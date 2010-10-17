@@ -1,3 +1,31 @@
+2010-10-17       Gaius Mulley <gaius@gnu.org>
+	
+	* gm2/gccgm2.c:  renamed gccgm2_BuildArrayType to
+	  gm2_build_array_type as it is no longer exported.
+	  gccgm2_BuildEndArrayType has an extra parameter, type.
+	  gccgm2_BuildStringConstant uses stricter parameter
+	  declaration.  build_m2_iso_byte_node,
+	  build_m2_iso_word_node, build_m2_word16_type_node,
+	  build_m2_word32_type_node, build_m2_word64_type_node
+	  all have a front end type parameter so that
+	  we can canonicalize array declarations.
+	  (New functions) gccgm2_InitSystemTypes.
+	  Use gm2_canonicalize_array instead of
+	  canonicalize_array and skip type declarations during
+	  construction of array types.
+	  This fixes a bug reported by John O Goyo.
+	* gm2/examples/gravity/Makefile.in:  run the more interesting
+	  test testsim2.py rather than testsim.py.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  pass the front end type
+	  to gccgm2 array building functions.
+	* gm2/gm2-compiler/M2System.mod:  only build GCC ISO types
+	  based on LOC once LOC is declared.
+	* gm2/gm2-compiler/gccgm2.def:  add the extra type parameter to
+	  the array building functions.  Also export the new function
+	  InitSystemTypes.
+	* gm2/www/index.ms:  update homepage with reference to the
+	  newly released 0.99.
+		
 2010-10-11       Gaius Mulley <gaius@gnu.org>
 
 	* released version 0.99 of gm2.

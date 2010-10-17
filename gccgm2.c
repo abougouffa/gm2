@@ -390,6 +390,7 @@ extern tree gm2builtins_BuiltInHugeValShort (void);
 extern tree gm2builtins_BuiltInHugeValLong  (void);
 extern tree gm2builtins_BuiltInMemCopy      (tree dest, tree src, tree bytes);
 extern void gm2except_InitExceptions        (void);
+extern int  M2System_Loc;
 
 
 /* Global Variables Expected by gcc: */
@@ -526,9 +527,9 @@ tree                   gccgm2_BuildStartEnumeration               (char *name);
 tree                   gccgm2_BuildEndEnumeration                 (tree enumtype, tree enumvalues);
 tree                   gccgm2_BuildEnumerator                     (char *name, tree value, tree *enumvalues);
 tree                   gccgm2_BuildPointerType                    (tree totype);
-static tree            gccgm2_BuildArrayType                      (tree elementtype, tree indextype);
+static tree            gm2_build_array_type                       (tree elementtype, tree indextype, int type);
 tree                   gccgm2_BuildStartArrayType                 (tree index_type, tree elt_type, int type);
-tree                   gccgm2_BuildEndArrayType                   (tree arraytype, tree elementtype, tree indextype);
+tree                   gccgm2_BuildEndArrayType                   (tree arraytype, tree elementtype, tree indextype, int type);
 tree                   build_set_type                             (tree domain, tree type, int allow_void);
 tree                   gccgm2_BuildSetTypeFromSubrange            (char *, tree, tree, tree);
 tree                   gccgm2_BuildSetType                        (char *name, tree type, tree lowval, tree highval);
@@ -628,7 +629,7 @@ tree                   build_int_2_type                           (int low, int 
 tree                   convertToPtr                               (tree t);
 int                    gccgm2_AreConstantsEqual                   (tree e1, tree e2);
 int                    gccgm2_DetermineSign                       (tree e);
-tree                   gccgm2_BuildStringConstant                 (char *string, int length);
+tree                   gccgm2_BuildStringConstant                 (const char *string, int length);
 tree                   gccgm2_BuildStringConstantType             (int length, const char *string, tree type);
 tree                   gccgm2_ConvertString                       (tree type, tree expr);
 tree                   gccgm2_BuildCharConstant                   (char *string);
@@ -691,8 +692,8 @@ static tree                   build_m2_long_card_node                     (void)
 static tree                   build_m2_short_int_node                     (void);
 static tree                   build_m2_short_card_node                    (void);
 static tree                   build_m2_iso_loc_node                       (void);
-static tree                   build_m2_iso_byte_node                      (void);
-static tree                   build_m2_iso_word_node                      (void);
+static tree                   build_m2_iso_byte_node                      (int loc);
+static tree                   build_m2_iso_word_node                      (int loc);
 static tree                   build_m2_integer8_type_node                 (void);
 static tree                   build_m2_integer16_type_node                (void);
 static tree                   build_m2_integer32_type_node                (void);
@@ -701,9 +702,9 @@ static tree                   build_m2_cardinal8_type_node                (void)
 static tree                   build_m2_cardinal16_type_node               (void);
 static tree                   build_m2_cardinal32_type_node               (void);
 static tree                   build_m2_cardinal64_type_node               (void);
-static tree                   build_m2_word16_type_node                   (void);
-static tree                   build_m2_word32_type_node                   (void);
-static tree                   build_m2_word64_type_node                   (void);
+static tree                   build_m2_word16_type_node                   (int loc);
+static tree                   build_m2_word32_type_node                   (int loc);
+static tree                   build_m2_word64_type_node                   (int loc);
 static tree                   build_m2_bitset8_type_node                  (void);
 static tree                   build_m2_bitset16_type_node                 (void);
 static tree                   build_m2_bitset32_type_node                 (void);
@@ -870,7 +871,7 @@ static tree                   build_m2_complex_type_from                  (tree 
        void                   gccgm2_PutArrayType                         (tree array, tree type);
        tree                   gccgm2_GetDeclContext                       (tree t);
        unsigned int           gccgm2_StringLength                         (tree string);
-static tree                   gm2_finish_build_array_type                 (tree t, tree elt_type, tree index_type);
+static tree                   gm2_finish_build_array_type                 (tree t, tree elt_type, tree index_type, int type);
        tree                   gm2_tree_inlining_walk_subtrees             (tree *tp ATTRIBUTE_UNUSED,
 									   int *subtrees ATTRIBUTE_UNUSED,
 									   walk_tree_fn func ATTRIBUTE_UNUSED,
@@ -878,6 +879,9 @@ static tree                   gm2_finish_build_array_type                 (tree 
 									   struct pointer_set_t *pset ATTRIBUTE_UNUSED);
        tree                   gccgm2_SetAlignment                         (tree type, tree align);
        tree                   gccgm2_BuildNumberOfArrayElements           (tree arrayType);
+       tree                   undo_static                                 (tree t);
+static int                    getFrontEndLOC                              (void);
+       tree                   gccgm2_DumpGlobalConstants                  (void);
   /* PROTOTYPES: ADD HERE */
   
   
@@ -1873,6 +1877,21 @@ gm2_tree_inlining_walk_subtrees (tree *tp ATTRIBUTE_UNUSED,
 #endif
 }
 
+/*
+ *  gccgm2_InitSystemTypes - initialise loc and word derivatives.
+ */
+
+void
+gccgm2_InitSystemTypes (int loc)
+{
+  m2_iso_word_type_node = build_m2_iso_word_node (loc);
+  m2_iso_byte_type_node = build_m2_iso_byte_node (loc);
+
+  m2_word16_type_node = build_m2_word16_type_node (loc);
+  m2_word32_type_node = build_m2_word32_type_node (loc);
+  m2_word64_type_node = build_m2_word64_type_node (loc);
+}
+
 /* init_m2_builtins - build tree nodes and builtin functions for GNU Modula-2
  */
 
@@ -1899,9 +1918,6 @@ init_m2_builtins (void)
   m2_short_int_type_node = build_m2_short_int_node ();
   m2_short_card_type_node = build_m2_short_card_node ();
   m2_z_type_node = build_m2_long_int_node ();
-  m2_iso_loc_type_node = build_m2_iso_loc_node ();
-  m2_iso_byte_type_node = build_m2_iso_byte_node ();
-  m2_iso_word_type_node = build_m2_iso_word_node ();
   m2_integer8_type_node = build_m2_integer8_type_node ();
   m2_integer16_type_node = build_m2_integer16_type_node ();
   m2_integer32_type_node = build_m2_integer32_type_node ();
@@ -1910,9 +1926,6 @@ init_m2_builtins (void)
   m2_cardinal16_type_node = build_m2_cardinal16_type_node ();
   m2_cardinal32_type_node = build_m2_cardinal32_type_node ();
   m2_cardinal64_type_node = build_m2_cardinal64_type_node ();
-  m2_word16_type_node = build_m2_word16_type_node ();
-  m2_word32_type_node = build_m2_word32_type_node ();
-  m2_word64_type_node = build_m2_word64_type_node ();
   m2_bitset8_type_node = build_m2_bitset8_type_node ();
   m2_bitset16_type_node = build_m2_bitset16_type_node ();
   m2_bitset32_type_node = build_m2_bitset32_type_node ();
@@ -1928,6 +1941,7 @@ init_m2_builtins (void)
   m2_complex64_type_node = build_m2_complex64_type_node ();
   m2_complex96_type_node = build_m2_complex96_type_node ();
   m2_complex128_type_node = build_m2_complex128_type_node ();
+  m2_iso_loc_type_node = build_m2_iso_loc_node ();
 
   /*
    * --fixme-- this is a hack which allows us to generate correct stabs for CHAR and sets of CHAR
@@ -2123,7 +2137,7 @@ build_m2_iso_loc_node (void)
 
 static
 tree
-build_m2_iso_byte_node (void)
+build_m2_iso_byte_node (int loc)
 {
   tree c;
 
@@ -2136,15 +2150,16 @@ build_m2_iso_byte_node (void)
   if (BITS_PER_UNIT == 8)
     c = gccgm2_GetISOLocType ();
   else
-    c = gccgm2_BuildArrayType (gccgm2_GetISOLocType (),
-                               gccgm2_BuildArrayIndexType (gccgm2_GetIntegerZero (),
-                                                           gccgm2_BuildIntegerConstant (BITS_PER_UNIT/8)));
+    c = gm2_build_array_type (gccgm2_GetISOLocType (),
+			      gccgm2_BuildArrayIndexType (gccgm2_GetIntegerZero (),
+							  gccgm2_BuildIntegerConstant (BITS_PER_UNIT/8)),
+			      loc);
   return c;
 }
 
 static
 tree
-build_m2_iso_word_node (void)
+build_m2_iso_word_node (int loc)
 {
   tree c;
 
@@ -2157,11 +2172,12 @@ build_m2_iso_word_node (void)
   if (gccgm2_GetBitsPerInt () == BITS_PER_UNIT)
     c = gccgm2_GetISOLocType ();
   else
-    c = gccgm2_BuildArrayType (gccgm2_GetISOLocType (),
-                               gccgm2_BuildArrayIndexType (gccgm2_GetIntegerZero (),
-                                                           (gccgm2_BuildSub (gccgm2_BuildIntegerConstant (gccgm2_GetBitsPerInt ()/BITS_PER_UNIT),
-                                                                             integer_one_node,
-                                                                             FALSE))));
+    c = gm2_build_array_type (gccgm2_GetISOLocType (),
+			      gccgm2_BuildArrayIndexType (gccgm2_GetIntegerZero (),
+							  (gccgm2_BuildSub (gccgm2_BuildIntegerConstant (gccgm2_GetBitsPerInt ()/BITS_PER_UNIT),
+									    integer_one_node,
+									    FALSE))),
+			      loc);
   return c;
 }
 
@@ -2252,29 +2268,32 @@ build_m2_cardinal64_type_node (void)
 
 static
 tree
-build_m2_word16_type_node (void)
+build_m2_word16_type_node (int loc)
 {
-  return gccgm2_BuildArrayType (gccgm2_GetISOLocType (),
-                                gccgm2_BuildArrayIndexType (gccgm2_GetIntegerZero (),
-                                                            gccgm2_GetIntegerOne ()));
+  return gm2_build_array_type (gccgm2_GetISOLocType (),
+			       gccgm2_BuildArrayIndexType (gccgm2_GetIntegerZero (),
+							   gccgm2_GetIntegerOne ()),
+			       loc);
 }
 
 static
 tree
-build_m2_word32_type_node (void)
+build_m2_word32_type_node (int loc)
 {
-  return gccgm2_BuildArrayType (gccgm2_GetISOLocType (),
-                                gccgm2_BuildArrayIndexType (gccgm2_GetIntegerZero (),
-                                                            gccgm2_BuildIntegerConstant (3)));
+  return gm2_build_array_type (gccgm2_GetISOLocType (),
+			       gccgm2_BuildArrayIndexType (gccgm2_GetIntegerZero (),
+							   gccgm2_BuildIntegerConstant (3)),
+			       loc);
 }
 
 static
 tree
-build_m2_word64_type_node (void)
+build_m2_word64_type_node (int loc)
 {
-  return gccgm2_BuildArrayType (gccgm2_GetISOLocType (),
-                                gccgm2_BuildArrayIndexType (gccgm2_GetIntegerZero (),
-                                                            gccgm2_BuildIntegerConstant (7)));
+  return gm2_build_array_type (gccgm2_GetISOLocType (),
+			       gccgm2_BuildArrayIndexType (gccgm2_GetIntegerZero (),
+							   gccgm2_BuildIntegerConstant (7)),
+			       loc);
 }
 
 static
@@ -2582,6 +2601,7 @@ gccgm2_DumpGlobalConstants (void)
   if (global_binding_level->constants != NULL_TREE)
     for (s = global_binding_level->constants; TREE_CHAIN (s); s = TREE_CHAIN (s))
       debug_tree (s);
+  return NULL_TREE;
 }
 
 /*
@@ -3776,7 +3796,7 @@ static tree convert_to_string (tree type, tree expr)
   case 1:
     {
       /* remove the trailing nul character */
-      char *p = TREE_STRING_POINTER (expr);
+      const char *p = TREE_STRING_POINTER (expr);
       int length = TREE_STRING_LENGTH (expr);
 
       if (p[length] == (char)0) {
@@ -3789,6 +3809,9 @@ static tree convert_to_string (tree type, tree expr)
       error("string literal is too large to be converted into this array type");
       return convert_to_string (type, gccgm2_BuildStringConstant ("", 0));
     }
+  default:
+    internal_error ("[%s:%d]: unexpected result of gccgm2_CompareTrees", __FILE__, __LINE__);
+    return NULL_TREE;
   }
 }
 
@@ -6672,6 +6695,7 @@ tree undo_static (tree t)
 {
   TREE_PUBLIC (t) = 0;
   // TREE_STATIC (t) = 0;
+  return t;
 }
 
 /*
@@ -7412,6 +7436,7 @@ gccgm2_BuildStartArrayType (tree index_type, tree elt_type, int type)
 {
   tree t;
 
+  elt_type = skip_type_decl (elt_type);
   ASSERT_CONDITION (index_type != NULL_TREE);
   if (elt_type == NULL_TREE)
     {
@@ -7420,11 +7445,13 @@ gccgm2_BuildStartArrayType (tree index_type, tree elt_type, int type)
        */
       return gm2_canonicalize_array (index_type, type);
     }
-  t = make_node (ARRAY_TYPE);
+  t = gm2_canonicalize_array (index_type, type);
+  if (TREE_TYPE (t) == NULL_TREE)
+    TREE_TYPE (t) = elt_type;
+  else
+    ASSERT_CONDITION (TREE_TYPE (t) == elt_type);
 
-  TREE_TYPE (t) = skip_type_decl (elt_type);
-  TYPE_DOMAIN (t) = index_type;
-  return canonicalize_array (t);
+  return t;
 }
 
 /*
@@ -7443,37 +7470,37 @@ gccgm2_PutArrayType (tree array, tree type)
  */
 
 tree
-gccgm2_BuildEndArrayType (tree arraytype, tree elementtype, tree indextype)
+gccgm2_BuildEndArrayType (tree arraytype, tree elementtype, tree indextype, int type)
 {
+  elementtype = skip_type_decl (elementtype);
   ASSERT(indextype == TYPE_DOMAIN (arraytype), indextype);
 
   if (TREE_CODE (elementtype) == FUNCTION_TYPE)
-    return gm2_finish_build_array_type (arraytype, ptr_type_node, indextype);
+    return gm2_finish_build_array_type (arraytype, ptr_type_node, indextype, type);
   else
-    return gm2_finish_build_array_type (arraytype, skip_type_decl (elementtype), indextype);
+    return gm2_finish_build_array_type (arraytype, skip_type_decl (elementtype), indextype, type);
 }
 
 /*
- *  BuildArrayType - returns a type which is an array indexed by IndexType
- *                   and which has ElementType elements.
+ *  gm2_build_array_type - returns a type which is an array indexed by IndexType
+ *                         and which has ElementType elements.
  */
 
 static
 tree
-gccgm2_BuildArrayType (tree elementtype, tree indextype)
+gm2_build_array_type (tree elementtype, tree indextype, int type)
 {
-  if (TREE_CODE (elementtype) == FUNCTION_TYPE)
-    return build_array_type (ptr_type_node, indextype);
-  else
-    return build_array_type (skip_type_decl (elementtype), indextype);
+  tree t = gccgm2_BuildStartArrayType (indextype, elementtype, type);
+  return gccgm2_BuildEndArrayType (t, elementtype, indextype, type);
 }
 
 static
 tree
-gm2_finish_build_array_type (tree t, tree elt_type, tree index_type)
+gm2_finish_build_array_type (tree t, tree elt_type, tree index_type, int type)
 {
   tree old = t;
 
+  ASSERT_CONDITION (index_type != NULL_TREE);
   if (TREE_CODE (elt_type) == FUNCTION_TYPE)
     {
       error ("arrays of functions are not meaningful");
@@ -7483,24 +7510,9 @@ gm2_finish_build_array_type (tree t, tree elt_type, tree index_type)
   TREE_TYPE (t) = elt_type;
   TYPE_DOMAIN (t) = index_type;
 
-#if 0
-  t = canonicalize_array (t);
-#endif
-  ASSERT_CONDITION (index_type != NULL_TREE);
-#if 0
-  if (index_type == 0)
-    {
-      if (old == t)
-        layout_type (t);
-      return t;
-    }
-#endif
-
-#if 0
+  t = gm2_canonicalize_array (index_type, type);
   if (t != old)
-    t = old;
-  ASSERT_CONDITION (t == old);
-#endif
+    internal_error ("[%s:%d]:array declaration has changed canonicalization has failed", __FILE__, __LINE__);
 
   if (!COMPLETE_TYPE_P (t))
     layout_type (t);
@@ -11226,7 +11238,7 @@ build_set_full_complement (void)
  */
 
 tree
-gccgm2_BuildStringConstant (char *string, int length)
+gccgm2_BuildStringConstant (const char *string, int length)
 {
   tree elem, index, type;
 

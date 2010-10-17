@@ -103,7 +103,7 @@ Recent news:
 .sp
 .ULS
 .LI
-gm2 0.98 was released on September 16 2010.
+gm2 0.99 was released on October 12 2010.
 .LI
 all regression tests pass on the x86_64 and x86_32 debian platforms.
 There are 1673 individual tests and each test is compiled with varying

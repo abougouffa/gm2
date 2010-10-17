@@ -77,7 +77,7 @@ FROM gccgm2 IMPORT Tree,
                    GetM2Bitset8, GetM2Bitset16, GetM2Bitset32,
                    GetM2Real32, GetM2Real64, GetM2Real96, GetM2Real128,
                    GetM2Complex32, GetM2Complex64, GetM2Complex96, GetM2Complex128,
-                   GetBitsetType, GetISOByteType, GetISOWordType ;
+                   GetBitsetType, GetISOByteType, GetISOWordType, InitSystemTypes ;
 
 
 TYPE
@@ -258,6 +258,7 @@ VAR
    min, max: CARDINAL ;
 BEGIN
    Loc := AttemptToCreateType('LOC', '', '', TRUE, GetISOLocType()) ;
+   InitSystemTypes(Loc) ;
    Word := AttemptToCreateType('WORD', '', '', TRUE, GetWordType()) ;
    Byte := AttemptToCreateType('BYTE', '', '', TRUE, GetByteType()) ;
 
@@ -283,10 +284,9 @@ END InitPIMTypes ;
 *)
 
 PROCEDURE InitISOTypes ;
-VAR
-   MinLoc, MaxLoc: CARDINAL ;
 BEGIN
    Loc := AttemptToCreateType('LOC', 'MinLoc', 'MaxLoc', TRUE, GetISOLocType()) ;
+   InitSystemTypes(Loc) ;
 
    Address := MakePointer(MakeKey('ADDRESS')) ;
    PutPointer(Address, Loc) ;                (* Base Type       *)

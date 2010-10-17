@@ -142,7 +142,8 @@ EXPORT QUALIFIED Tree, Constructor,
                  TreeOverflow, RemoveOverflow,
                  SetLastFunction,
                  SetFlagUnitAtATime, MarkFunctionReferenced,
-                 SetAlignment, BuildNumberOfArrayElements ;
+                 SetAlignment, BuildNumberOfArrayElements,
+                 InitSystemTypes ;
 
 
 TYPE
@@ -769,7 +770,7 @@ PROCEDURE BuildStartArrayType (indextype: Tree; elttype: Tree; type: CARDINAL) :
                        contains elements, ElementType.
 *)
 
-PROCEDURE BuildEndArrayType (t: Tree; ElementType, IndexType: Tree) : Tree ;
+PROCEDURE BuildEndArrayType (t: Tree; ElementType, IndexType: Tree; type: CARDINAL) : Tree ;
 
 
 (*
@@ -1558,6 +1559,13 @@ PROCEDURE SetAlignment (type: Tree; align: Tree) : Tree ;
 *)
 
 PROCEDURE BuildNumberOfArrayElements (arrayType: Tree) : Tree ;
+
+
+(*
+   InitSystemTypes - initialise loc and word derivatives.
+*)
+
+PROCEDURE InitSystemTypes (loc: CARDINAL) ;
 
 
 END gccgm2.

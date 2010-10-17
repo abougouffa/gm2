@@ -614,7 +614,7 @@ END CanDeclareArrayAsNil ;
 
 PROCEDURE DeclareArrayAsNil (sym: CARDINAL) ;
 BEGIN
-   PreAddModGcc(sym, BuildStartArrayType(BuildIndex(sym), NIL, GetType(sym))) ;
+   PreAddModGcc(sym, BuildStartArrayType(BuildIndex(sym), NIL, SkipType(GetType(sym)))) ;
    WatchIncludeList(sym, niltypedarrays)
 END DeclareArrayAsNil ;
 
@@ -1108,7 +1108,7 @@ BEGIN
    array := 628 ;
    IF NOT GccKnowsAbout(array)
    THEN
-      PreAddModGcc(array, BuildStartArrayType(BuildIndex(array), NIL, GetType(array)))
+      PreAddModGcc(array, BuildStartArrayType(BuildIndex(array), NIL, SkipType(GetType(array))))
    END ;
    pointer := 626 ;
    IF NOT GccKnowsAbout(pointer)
@@ -3629,22 +3629,24 @@ END BuildIndex ;
 
 PROCEDURE DeclareArray (Sym: CARDINAL) : Tree ;
 VAR
+   typeOfArray: CARDINAL ;
    ArrayType,
    GccArray,
-   GccIndex : Tree ;
-   Subscript: CARDINAL ;
+   GccIndex   : Tree ;
+   Subscript  : CARDINAL ;
 BEGIN
    Assert(IsArray(Sym)) ;
 
    Subscript := GetArraySubscript(Sym) ;
-   GccArray := Mod2Gcc(GetType(Sym)) ;
+   typeOfArray := SkipType(GetType(Sym)) ;
+   GccArray := Mod2Gcc(typeOfArray) ;
    GccIndex := BuildIndex(Sym) ;
 
    IF GccKnowsAbout(Sym)
    THEN
       ArrayType := Mod2Gcc(Sym)
    ELSE
-      ArrayType := BuildStartArrayType(GccIndex, GccArray, GetType(Sym)) ;
+      ArrayType := BuildStartArrayType(GccIndex, GccArray, typeOfArray) ;
       PreAddModGcc(Sym, ArrayType)
    END ;
 
@@ -3652,7 +3654,7 @@ BEGIN
    PushIntegerTree(BuildSize(GccArray, FALSE)) ;  (* and the size of this array so far *)
    PopSize(Subscript) ;
 
-   GccArray := BuildEndArrayType(ArrayType, GccArray, GccIndex) ;
+   GccArray := BuildEndArrayType(ArrayType, GccArray, GccIndex, typeOfArray) ;
    Assert(GccArray=ArrayType) ;
 
    RETURN( GccArray )

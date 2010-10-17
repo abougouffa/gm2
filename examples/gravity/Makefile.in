@@ -49,7 +49,7 @@ pre-install: clean
 	$(XGCC) -c -fPIC twoDsim_wrap.cxx -I/usr/include/python$(PYTHON_VERSION)
 	$(XGM2) -fiso -I$(SRC_PATH_SO) -fobject-path=$(OBJ_PATH_SO) -fPIC -fshared -shared \
             $(srcdir)/twoDsim.mod twoDsim_wrap.o -o _twoDsim.so
-	PYTHONPATH=`pwd` python $(srcdir)/testsim.py
+	PYTHONPATH=`pwd` python $(srcdir)/testsim2.py
 	$(SHELL) $(srcdir)/produce-avi
 
 post-install: clean
@@ -60,7 +60,7 @@ post-install: clean
 	gcc -c -fPIC twoDsim_wrap.cxx -I/usr/include/python$(PYTHON_VERSION)
 	gm2 -fiso -I$(srcdir) -fPIC -fshared -shared \
             $(srcdir)/twoDsim.mod twoDsim_wrap.o -o _twoDsim.so
-	PYTHONPATH=`pwd` python $(srcdir)/testsim.py
+	PYTHONPATH=`pwd` python $(srcdir)/testsim2.py
 	$(SHELL) $(srcdir)/produce-avi
 
 pre-install-static: clean
