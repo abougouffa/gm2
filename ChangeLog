@@ -1,3 +1,8 @@
+2010-10-18       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/examples/gravity/testsim2.py:  (New file)
+        * gm2/examples/gravity/produce-avi:  restored remove command.
+
 2010-10-17       Gaius Mulley <gaius@gnu.org>
 	
 	* gm2/gccgm2.c:  renamed gccgm2_BuildArrayType to
