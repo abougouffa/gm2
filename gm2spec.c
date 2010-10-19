@@ -506,6 +506,7 @@ add_default_combinations (int *in_argc,
 			  libs first,
 			  libs second,
 			  libs third,
+			  libs fourth,
 			  styles style)
 {
   if (first != maxlib)
@@ -514,12 +515,16 @@ add_default_combinations (int *in_argc,
     add_lib (in_argc, in_argv, build_archive_path (libpath, second, style));
   if (third != maxlib)
     add_lib (in_argc, in_argv, build_archive_path (libpath, third, style));
+  if (fourth != maxlib)
+    add_lib (in_argc, in_argv, build_archive_path (libpath, fourth, style));
   if (first != maxlib)
     add_lib (in_argc, in_argv, build_archive (first));
   if (second != maxlib)
     add_lib (in_argc, in_argv, build_archive (second));
   if (third != maxlib)
     add_lib (in_argc, in_argv, build_archive (third));
+  if (fourth != maxlib)
+    add_lib (in_argc, in_argv, build_archive (fourth));
 }
 
 /*
@@ -537,22 +542,22 @@ add_default_archives (int *in_argc,
   switch (libraries) {
 
   case iso:
-    add_default_combinations (in_argc, in_argv, libpath, iso, pim, maxlib, s);
+    add_default_combinations (in_argc, in_argv, libpath, iso, pim, logitech, maxlib, s);
     break;
   case pim:
-    add_default_combinations (in_argc, in_argv, libpath, pim, logitech, maxlib, s);
+    add_default_combinations (in_argc, in_argv, libpath, pim, logitech, iso, maxlib, s);
     break;
   case ulm:
-    add_default_combinations (in_argc, in_argv, libpath, ulm, pim, logitech, s);
+    add_default_combinations (in_argc, in_argv, libpath, ulm, pim, logitech, iso, s);
     break;
   case min:
-    add_default_combinations (in_argc, in_argv, libpath, min, maxlib, maxlib, s);
+    add_default_combinations (in_argc, in_argv, libpath, min, maxlib, maxlib, maxlib, s);
     break;
   case logitech:
-    add_default_combinations (in_argc, in_argv, libpath, logitech, pim, maxlib, s);
+    add_default_combinations (in_argc, in_argv, libpath, logitech, pim, iso, maxlib, s);
     break;
   case pimcoroutine:
-    add_default_combinations (in_argc, in_argv, libpath, pimcoroutine, pim, logitech, s);
+    add_default_combinations (in_argc, in_argv, libpath, pimcoroutine, pim, logitech, iso, s);
     break;
   default:
     fprintf(stderr, "%s:%d:internal error unrecognized case clause\n",

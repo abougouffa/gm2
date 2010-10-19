@@ -1,3 +1,10 @@
+2010-10-19       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2spec.c:  added fourth parameter to
+	  add_default_combinations which allows iso to be present at the
+	  end of the pimcoroutine library choice.  In turn this allows
+	  pth.def to be found.
+
 2010-10-18       Gaius Mulley <gaius@gnu.org>
 
         * gm2/examples/gravity/testsim2.py:  (New file)
