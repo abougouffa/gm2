@@ -211,10 +211,6 @@ A
 version can be found
 .URL http://floppsie.comp.glam.ac.uk/download/m2/gm2.pdf here.
 The pdf version is built nightly.
-.PP
-A paper was presented at the GCC 2006 conference on the state of GNU Modula-2,
-if you are interested a copy can be found
-.URL http://floppsie.comp.glam.ac.uk/Papers/paper15/mulley-proc.pdf "here (pdf)" .
 .SH
 Regression tests for gm2-\*[CURRENTGM2] in the CVS
 .LP
@@ -482,6 +478,18 @@ Other languages for GCC
 .LP
 These exist and can be found on the
 .URL "http://gcc.gnu.org/frontends.html" "gcc web site" .
+.SH
+Papers and talks
+.LP
+A paper was presented at the GCC 2006 conference on the state of GNU Modula-2,
+if you are interested a copy can be found
+.URL http://floppsie.comp.glam.ac.uk/Papers/paper15/mulley-proc.pdf "here (pdf)" .
+.sp
+A 
+.URL http://www.gccsummit.org/2010/speakers.php?types=LIGHTNING "lightening talk"
+will be given at GCC 2010 on "Exploiting front end
+knowledge to effortlessly create Python modules" and the slides can be read
+.URL http://floppsie.comp.glam.ac.uk/Papers/paper20/talk.pdf "here (pdf)" .
 .LNE
 \fI\s-2This document was produced using
 .     URL http://groff.ffii.org/ groff-\n[.x].\n[.y] .\s0\fP

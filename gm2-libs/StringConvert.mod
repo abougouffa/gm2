@@ -802,7 +802,6 @@ BEGIN
          END
       END
    END ;
-   (* free(r) ; *)
    IF Length(s)<TotalWidth
    THEN
       s := ConCat(Mult(InitStringChar(' '), TotalWidth-Length(s)), Mark(s))

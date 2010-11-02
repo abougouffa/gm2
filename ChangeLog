@@ -1,3 +1,15 @@
+2010-11-02       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/TODO:  updated.
+	* gm2/gccgm2.c:  removed dead code.
+	* gm2/gm2.texi:  changed Warning section to Caveat and modified
+	  text in light of the imminent release of 1.0 and complete ISO
+	  library support.
+	* gm2/gm2spec.c:  tidied up spacing.
+	* gm2/lang.opt:  added new internal option -fonlylink.
+	* gm2/examples/gravity/twoDsim.mod:  corrected dates.
+        * gm2/www/index.ms:  updated with the GCC lightening talk.
+
 2010-10-19       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2spec.c:  added fourth parameter to
@@ -11,7 +23,7 @@
         * gm2/examples/gravity/produce-avi:  restored remove command.
 
 2010-10-17       Gaius Mulley <gaius@gnu.org>
-	
+
 	* gm2/gccgm2.c:  renamed gccgm2_BuildArrayType to
 	  gm2_build_array_type as it is no longer exported.
 	  gccgm2_BuildEndArrayType has an extra parameter, type.

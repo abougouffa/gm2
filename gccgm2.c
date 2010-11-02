@@ -7519,19 +7519,6 @@ gm2_finish_build_array_type (tree t, tree elt_type, tree index_type, int type)
   return t;
 }
 
-#if 0
-/* Construct, lay out and return the type of arrays of elements with ELT_TYPE
-   and number of elements specified by the range of values of INDEX_TYPE.
-   If such a type has already been constructed, reuse it.  */
-
-tree
-build_array_type (tree elt_type, tree index_type)
-{
-  return gm2_finish_build_array_type (make_node (ARRAY_TYPE),
-                                      elt_type, index_type);
-}
-#endif
-
 /*
  *  build_set_type - creates a set type from the, domain, [low..high]. The
  *                   values low..high all have type, range_type.

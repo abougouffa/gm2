@@ -2301,14 +2301,13 @@ the @code{-fiso} and @code{-fpim2} command line switches.
 @node Obtaining, Licence, Using, Top
 @chapter Obtaining GNU Modula-2.
 
-@section Warning
+@section Caveat
 
-This code is still in development.
-Nevertheless the compiler is sufficiently stable to support itself on
-Debian GNU/Linux x86 systems.  The PIM libraries are complete but the
-ISO libraries are still in development.
-Patches and development volunteers highly welcome! 
-@xref{Contributing, Contributing to GNU Modula-2}.
+This code is stable on the x86_64 and x86_32 Debian GNU/Linux
+platforms.  However it is less stable on other platforms.  Please see
+the web site to see the current regression test results.  Patches and
+development volunteers are always welcome!  @xref{Contributing,
+Contributing to GNU Modula-2}.
 
 @section Getting GNU Modula-2
 
@@ -2394,7 +2393,7 @@ carefully onto an existing GCC release.  The notes in this section
 document how this is achieved, however a prepared CVS and GCC release
 is available here
 @uref{http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-cvs-latest.tar.gz}
-and it is created each night.
+and it is created upon each commit.
 
 If you want to obtain the latest sources via CVS then type the
 following:

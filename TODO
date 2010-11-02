@@ -1,8 +1,8 @@
 Pre 1.0
 
-*  write section in gm2.texi explaining about how to produce
-   a production python module.
-*  add data alignment directives to records (Scott)
+*  remove all patches and reorganise patches into generic/target
+   categories and utilise langhooks to ensure that any patches
+   _only_ apply to gm2.
 *  if at all possible try and make sure that it builds on OSX.
    (Michael)
 *  if at all possible try and make sure that it builds on cygwin

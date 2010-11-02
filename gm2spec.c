@@ -191,11 +191,11 @@ void add_B_prefix (int pos, int *in_argc, char ***in_argv)
     {
       char *prefix;
       /* insert -B */
-      insert_arg(pos, in_argc, in_argv);
-      prefix = (char *) alloca(strlen("-B") + strlen (path) + 1);
-      strcpy(prefix, "-B");
-      strcat(prefix, path);
-      (*in_argv)[pos] = xstrdup(prefix);
+      insert_arg (pos, in_argc, in_argv);
+      prefix = (char *) alloca (strlen("-B") + strlen (path) + 1);
+      strcpy (prefix, "-B");
+      strcat (prefix, path);
+      (*in_argv)[pos] = xstrdup (prefix);
     }
 }
 
@@ -213,19 +213,19 @@ void add_exec_prefix (int pos, int *in_argc, char ***in_argv)
 
   /* insert ar */
   insert_arg(pos, in_argc, in_argv);
-  prefix = (char *) alloca(strlen("-ftarget-ar=") +
-				    strlen(ar) + 1);
-  strcpy(prefix, "-ftarget-ar=");
-  strcat(prefix, ar);
-  (*in_argv)[pos] = xstrdup(prefix);
+  prefix = (char *) alloca (strlen ("-ftarget-ar=") +
+			    strlen (ar) + 1);
+  strcpy (prefix, "-ftarget-ar=");
+  strcat (prefix, ar);
+  (*in_argv)[pos] = xstrdup (prefix);
 
   /* and now insert ranlib */
   insert_arg(pos, in_argc, in_argv);
   prefix = (char *) alloca(strlen("-ftarget-ranlib=") +
 				    strlen(ranlib) + 1);
-  strcpy(prefix, "-ftarget-ranlib=");
-  strcat(prefix, ranlib);
-  (*in_argv)[pos] = xstrdup(prefix);
+  strcpy (prefix, "-ftarget-ranlib=");
+  strcat (prefix, ranlib);
+  (*in_argv)[pos] = xstrdup (prefix);
 }
 
 static void

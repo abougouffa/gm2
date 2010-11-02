@@ -129,6 +129,10 @@ fmake-I=
 Modula-2 Joined
 build project path (internal)
 
+fonlylink
+Modula-2
+only link the module and do not compile module (internal)
+
 ftarget-ar=
 Modula-2 Joined
 full path to target archiver
