@@ -20,7 +20,7 @@ IMPLEMENTATION MODULE RTExceptions ;
 
 FROM ASCII IMPORT nul, nl ;
 FROM StrLib IMPORT StrLen ;
-FROM Storage IMPORT ALLOCATE ;
+FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM SYSTEM IMPORT ADR, THROW ;
 FROM libc IMPORT write, strlen ;
 FROM M2RTS IMPORT HALT, Halt ;
@@ -753,6 +753,34 @@ BEGIN
 END Init ;
 
 
+(*
+   TidyUp - deallocate memory used by this module.
+*)
+
+PROCEDURE TidyUp ;
+VAR
+   f: Handler ;
+   e: EHBlock ;
+BEGIN
+   IF currentEHB#NIL
+   THEN
+      currentEHB := KillExceptionBlock(currentEHB)
+   END ;
+   WHILE freeHandler#NIL DO
+      f := freeHandler ;
+      freeHandler := freeHandler^.right ;
+      DISPOSE(f)
+   END ;
+   WHILE freeEHB#NIL DO
+      e := freeEHB ;
+      freeEHB := freeEHB^.right ;
+      DISPOSE(e)
+   END
+END TidyUp ;
+
+
 BEGIN
    Init
+FINALLY
+   TidyUp
 END RTExceptions.

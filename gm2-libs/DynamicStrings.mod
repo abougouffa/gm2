@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *
 
 IMPLEMENTATION MODULE DynamicStrings ;
 
-FROM libc IMPORT strlen ;
+FROM libc IMPORT strlen, strncpy, printf ;
 FROM StrLib IMPORT StrLen ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM Assertion IMPORT Assert ;
@@ -28,7 +28,7 @@ FROM ASCII IMPORT nul, tab ;
 
 CONST
    MaxBuf   = 127 ;
-   PoisonOn = TRUE ;    (* enable debugging, if FALSE no overhead is incurred *)
+   PoisonOn = FALSE ;    (* enable debugging, if FALSE no overhead is incurred *)
 
 TYPE
    Contents = RECORD
@@ -42,27 +42,45 @@ TYPE
    String = POINTER TO RECORD
                           contents: Contents ;
                           head    : Descriptor ;
+                          debug   : DebugInfo ;
                        END ;
 
-   descriptor =            RECORD
-                              charStarUsed : BOOLEAN ;     (* can we garbage collect this? *)
-                              charStar     : ADDRESS ;
-                              charStarSize : CARDINAL ;
-                              charStarValid: BOOLEAN ;
-                              state        : (inuse, marked, onlist, poisoned) ;
-                              garbage      : String ;      (* temporary strings to be destroyed
-                                                              once this string is killed *)
-                           END ;
+   DebugInfo = RECORD
+                  next: String ;   (* a mechanism for tracking used/lost strings *)
+                  file: ADDRESS ;
+                  line: CARDINAL ;
+                  proc: ADDRESS ;
+               END ;
+
+   descriptor = RECORD
+                   charStarUsed : BOOLEAN ;     (* can we garbage collect this? *)
+                   charStar     : ADDRESS ;
+                   charStarSize : CARDINAL ;
+                   charStarValid: BOOLEAN ;
+                   state        : (inuse, marked, onlist, poisoned) ;
+                   garbage      : String ;      (* temporary strings to be destroyed
+                                                   once this string is killed *)
+                END ;
+
+   frame = POINTER TO RECORD
+                         alloc, dealloc: String ;
+                         next          : frame ;
+                      END ;
 
 
 VAR
-   captured: String ;  (* debugging aid *)
+   frameHead      : frame ;
+   allocatedHead,
+   deallocatedHead,
+   captured       : String ;  (* debugging aid *)
+
 
 PROCEDURE Capture (s: String) : CARDINAL ;
 BEGIN
    captured := s ;
    RETURN 1;
 END Capture ;
+
 
 (*
    Min - 
@@ -116,6 +134,48 @@ END CopyOut ;
 
 
 (*
+   AddDebugInfo - adds string, s, to the list of allocated strings.
+*)
+
+PROCEDURE AddDebugInfo (s: String) ;
+BEGIN
+   WITH s^ DO
+      debug.next := allocatedHead ;
+      debug.file := NIL ;
+      debug.line := 0 ;
+      debug.proc := NIL ;
+   END ;
+   allocatedHead := s
+END AddDebugInfo ;
+
+
+(*
+   SubDebugInfo - removes string, s, from the list of allocated strings.
+*)
+
+PROCEDURE SubDebugInfo (s: String) ;
+VAR
+   p: String ;
+BEGIN
+   Assert(allocatedHead#NIL) ;
+   IF allocatedHead=s
+   THEN
+      allocatedHead := s^.debug.next
+   ELSE
+      p := allocatedHead ;
+      WHILE (p#NIL) AND (p^.debug.next#s) DO
+         p := p^.debug.next
+      END ;
+      Assert(p#NIL) ;
+      Assert(p^.debug.next=s) ;
+      p^.debug.next := s^.debug.next
+   END ;
+   s^.debug.next := deallocatedHead ;
+   deallocatedHead := s
+END SubDebugInfo ;
+
+
+(*
    ConcatContents - add the contents of string, a, where, h, is the
                     total length of, a. The offset is in, o.
 *)
@@ -138,8 +198,10 @@ BEGIN
          head := NIL ;
          contents.len := 0 ;
          contents.next := NIL ;
-         ConcatContents(contents, a, h, o)         
-      END
+         ConcatContents(contents, a, h, o)
+      END ;
+      AddDebugInfo(c.next) ;
+      c.next := AssignDebug(c.next, __FILE__, __LINE__, __FUNCTION__)
    ELSE
       c.len := i
    END
@@ -161,7 +223,7 @@ BEGIN
          len := 0 ;
          next := NIL
       END ;
-      ConcatContents(contents, a, StrLen(a), 0);
+      ConcatContents(contents, a, StrLen(a), 0) ;
       NEW(head) ;
       WITH head^ DO
          charStarUsed  := FALSE ;
@@ -169,9 +231,10 @@ BEGIN
          charStarSize  := 0;
          charStarValid := FALSE ;
          garbage       := NIL ;
-         state         := inuse
+         state         := inuse ;
       END
    END ;
+   AddDebugInfo(s) ;
    RETURN( s )
 END InitString ;
 
@@ -227,6 +290,7 @@ BEGIN
    END ;
    IF s#NIL
    THEN
+      SubDebugInfo(s) ;
       IF PoisonOn
       THEN
          IF s^.head#NIL
@@ -310,8 +374,10 @@ BEGIN
          head          := NIL ;
          contents.len  := 0 ;
          contents.next := NIL ;
-         ConcatContentsAddress(contents, p, h-j)
-      END
+         ConcatContentsAddress(contents, p, h-j) ;
+      END ;
+      AddDebugInfo(c.next) ;
+      c.next := AssignDebug(c.next, __FILE__, __LINE__, __FUNCTION__)
    ELSE
       c.len := i ;
       c.next := NIL
@@ -347,6 +413,7 @@ BEGIN
          state         := inuse
       END
    END ;
+   AddDebugInfo(s) ;
    RETURN( s )
 END InitStringCharStar ;
 
@@ -384,25 +451,28 @@ END Mark ;
 
 
 (*
-   AddToGarbage - adds String, b, onto the garbage list of, a. Providing
-                  the state of b is marked. The state is then altered to onlist.
-                  String, a, is returned.
+   AddToGarbage - adds String, b, onto the garbage list of, a.  Providing
+                  the state of b is marked.  The state is then altered to
+                  onlist.  String, a, is returned.
 *)
 
 PROCEDURE AddToGarbage (a, b: String) : String ;
+VAR
+   c: String ;
 BEGIN
    IF PoisonOn
    THEN
       a := CheckPoisoned(a) ;
       b := CheckPoisoned(b)
    END ;
-   IF (a#NIL) AND (b#NIL) AND (b^.head^.state=marked)
+   IF (a#b) AND (a#NIL) AND (b#NIL) AND (b^.head^.state=marked)
    THEN
-      WITH b^.head^ DO
-         state   := onlist ;
-         garbage := a^.head^.garbage
+      c := a ;
+      WHILE c^.head^.garbage#NIL DO
+         c := c^.head^.garbage
       END ;
-      a^.head^.garbage := b
+      c^.head^.garbage := b ;
+      b^.head^.state := onlist
    END ;
    RETURN( a )
 END AddToGarbage ;
@@ -642,7 +712,7 @@ BEGIN
    END ;
    IF n<=0
    THEN
-      RETURN( InitString('') )
+      RETURN( AddToGarbage(InitString(''), s) )
    ELSE
       RETURN( ConCat(Mult(s, n-1), s) )
    END
@@ -682,6 +752,7 @@ BEGIN
       high := Min(Length(s), high)
    END ;
    d := InitString('') ;
+   d := AddToGarbage(d, s) ;
    o := 0 ;
    t := d ;
    WHILE s#NIL DO
@@ -705,8 +776,10 @@ BEGIN
                   NEW(t^.contents.next) ;
                   WITH t^.contents.next^ DO
                      head         := NIL ;
-                     contents.len := 0 ;
-                  END
+                     contents.len := 0
+                  END ;
+                  AddDebugInfo(t^.contents.next) ;
+                  t^.contents.next := AssignDebug(t^.contents.next, __FILE__, __LINE__, __FUNCTION__)
                END ;
                t := t^.contents.next
             END ;
@@ -1027,4 +1100,197 @@ BEGIN
 END ToLower ;
 
 
+(*
+   AssignDebug - assigns, file, and, line, information to string, s.
+*)
+
+PROCEDURE AssignDebug (s: String; file: ARRAY OF CHAR; line: CARDINAL; proc: ARRAY OF CHAR) : String ;
+BEGIN
+   WITH s^ DO
+      ALLOCATE(debug.file, StrLen(file)+1) ;
+      IF strncpy(debug.file, ADR(file), StrLen(file)+1)=NIL
+      THEN
+      END ;
+      debug.line := line ;
+      ALLOCATE(debug.proc, StrLen(proc)+1) ;
+      IF strncpy(debug.proc, ADR(proc), StrLen(proc)+1)=NIL
+      THEN
+      END
+   END ;
+   RETURN( s )
+END AssignDebug ;
+
+
+(*
+   InitStringDB - the debug version of InitString.
+*)
+
+PROCEDURE InitStringDB (a: ARRAY OF CHAR; file: ARRAY OF CHAR; line: CARDINAL) : String ;
+BEGIN
+   RETURN( AssignDebug(InitString(a), file, line, 'InitString') )
+END InitStringDB ;
+
+
+(*
+   InitStringCharStarDB - the debug version of InitStringCharStar.
+*)
+
+PROCEDURE InitStringCharStarDB (a: ADDRESS; file: ARRAY OF CHAR; line: CARDINAL) : String ;
+BEGIN
+   RETURN( AssignDebug(InitStringCharStar(a), file, line, 'InitStringCharStar') )
+END InitStringCharStarDB ;
+
+
+(*
+   InitStringCharDB - the debug version of InitStringChar.
+*)
+
+PROCEDURE InitStringCharDB (ch: CHAR; file: ARRAY OF CHAR; line: CARDINAL) : String ;
+BEGIN
+   RETURN( AssignDebug(InitStringChar(ch), file, line, 'InitStringChar') )
+END InitStringCharDB ;
+
+
+(*
+   MultDB - the debug version of MultDB.
+*)
+
+PROCEDURE MultDB (s: String; n: CARDINAL; file: ARRAY OF CHAR; line: CARDINAL) : String ;
+BEGIN
+   RETURN( AssignDebug(Mult(s, n), file, line, 'Mult') )
+END MultDB ;
+
+
+(*
+   DupDB - the debug version of Dup.
+*)
+
+PROCEDURE DupDB (s: String; file: ARRAY OF CHAR; line: CARDINAL) : String ;
+BEGIN
+   RETURN( AssignDebug(Dup(s), file, line, 'Dup') )
+END DupDB ;
+
+
+(*
+   SliceDB - debug version of Slice.
+*)
+
+PROCEDURE SliceDB (s: String; low, high: INTEGER;
+                   file: ARRAY OF CHAR; line: CARDINAL) : String ;
+BEGIN
+   RETURN( AssignDebug(Slice(s, low, high), file, line, 'Slice') )
+END SliceDB ;
+
+
+(*
+   PushAllocation - pushes the current allocation/deallocation lists.
+*)
+
+PROCEDURE PushAllocation ;
+VAR
+   f: frame ;
+BEGIN
+   NEW(f) ;
+   WITH f^ DO
+      next := frameHead ;
+      alloc := allocatedHead ;
+      dealloc := deallocatedHead
+   END ;
+   frameHead := f ;
+   allocatedHead := NIL ;
+   deallocatedHead := NIL
+END PushAllocation ;
+
+
+(*
+   DumpState - 
+*)
+
+PROCEDURE DumpState (s: String) ;
+BEGIN
+   CASE s^.contents.len OF
+
+   inuse   :  printf("still in use (length %d chars)", s^.contents.len) |
+   marked  :  printf("marked") |
+   onlist  :  printf("on a garbage list") |
+   poisoned:  printf("poisoned")
+
+   ELSE
+      printf("unknown state")
+   END
+END DumpState ;
+
+
+(*
+   PopAllocation - test to see that all strings are deallocated since
+                   the last push.  Then it pops to the previous
+                   allocation/deallocation lists.
+
+                   If halt is true then the application terminates
+                   with an exit code of 1.
+*)
+
+PROCEDURE PopAllocation (halt: BOOLEAN) ;
+VAR
+   s: String ;
+   f: frame ;
+BEGIN
+   IF allocatedHead#NIL
+   THEN
+      printf("the following strings have been lost\n") ;
+      s := allocatedHead ;
+      WHILE s#NIL DO
+         printf("%s:%d:%s ", s^.debug.file, s^.debug.line, s^.debug.proc) ;
+         CASE s^.contents.len OF
+
+         inuse   :  printf("still in use (length %d chars)", s^.contents.len) |
+         marked  :  printf("marked") |
+         onlist  :  printf("on a (lost) garbage list") |
+         poisoned:  printf("poisoned")
+
+         ELSE
+            printf("unknown state")
+         END ;
+         printf(" \n") ;
+         s := s^.debug.next
+      END ;
+      IF halt
+      THEN
+         HALT(1)
+      END
+   END ;
+   IF frameHead=NIL
+   THEN
+      printf("mismatched number of PopAllocation's compared to PushAllocation's")
+   ELSE
+      f := frameHead ;
+      WITH f^ DO
+         allocatedHead   := alloc ;
+         deallocatedHead := alloc ;
+         frameHead       := next         
+      END ;
+      DISPOSE(f)
+   END
+END PopAllocation ;
+
+
+(*
+   DumpString - displays the contents of string, s.
+*)
+
+PROCEDURE DumpString (s: String) ;
+BEGIN
+   IF s#NIL
+   THEN
+      printf("%s:%d:%s ", s^.debug.file, s^.debug.line, s^.debug.proc) ;
+      printf(" string %p ", s) ;
+      DumpState(s) ;
+   END
+END DumpString ;
+
+
+BEGIN
+   allocatedHead := NIL ;
+   deallocatedHead := NIL ;
+   frameHead := NIL
 END DynamicStrings.

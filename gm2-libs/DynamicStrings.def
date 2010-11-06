@@ -35,7 +35,9 @@ EXPORT QUALIFIED String,
                  Equal, EqualCharStar, EqualArray, ToUpper, ToLower,
                  CopyOut, Mult, Slice,
                  RemoveWhitePrefix, RemoveWhitePostfix, RemoveComment,
-                 char, string ;
+                 char, string,
+                 InitStringDB, InitStringCharStarDB, InitStringCharDB,
+                 MultDB, DupDB, SliceDB, PushAllocation, PopAllocation ;
 
 TYPE
    String ;
@@ -266,6 +268,87 @@ PROCEDURE char (s: String; i: INTEGER) : CHAR ;
 *)
 
 PROCEDURE string (s: String) : ADDRESS ;
+
+
+(*
+   to easily debug an application using this library one could use
+   use the following macro processing defines:
+
+   #define InitString(X) InitStringDB(X, __FILE__, __LINE__)
+   #define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
+   #define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
+   #define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
+   #define Dup(X) DupDB(X, __FILE__, __LINE__)
+   #define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+
+   and then invoke gm2 with the -fcpp flag.
+*)
+
+
+(*
+   InitStringDB - the debug version of InitString.
+*)
+
+PROCEDURE InitStringDB (a: ARRAY OF CHAR;
+                        file: ARRAY OF CHAR; line: CARDINAL) : String ;
+
+
+(*
+   InitStringCharStarDB - the debug version of InitStringCharStar.
+*)
+
+PROCEDURE InitStringCharStarDB (a: ADDRESS;
+                                file: ARRAY OF CHAR; line: CARDINAL) : String ;
+
+
+(*
+   InitStringCharDB - the debug version of InitStringChar.
+*)
+
+PROCEDURE InitStringCharDB (ch: CHAR;
+                            file: ARRAY OF CHAR; line: CARDINAL) : String ;
+
+
+(*
+   MultDB - the debug version of MultDB.
+*)
+
+PROCEDURE MultDB (s: String; n: CARDINAL;
+                  file: ARRAY OF CHAR; line: CARDINAL) : String ;
+
+
+(*
+   DupDB - the debug version of Dup.
+*)
+
+PROCEDURE DupDB (s: String;
+                 file: ARRAY OF CHAR; line: CARDINAL) : String ;
+
+
+(*
+   SliceDB - debug version of Slice.
+*)
+
+PROCEDURE SliceDB (s: String; low, high: INTEGER;
+                   file: ARRAY OF CHAR; line: CARDINAL) : String ;
+
+(*
+   PushAllocation - pushes the current allocation/deallocation lists.
+*)
+
+PROCEDURE PushAllocation ;
+
+
+(*
+   PopAllocation - test to see that all strings are deallocated since
+                   the last push.  Then it pops to the previous
+                   allocation/deallocation lists.
+
+                   If halt is true then the application terminates
+                   with an exit code of 1.
+*)
+
+PROCEDURE PopAllocation (halt: BOOLEAN) ;
 
 
 END DynamicStrings.

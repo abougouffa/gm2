@@ -28,7 +28,9 @@ FROM DynamicStrings IMPORT String, InitString,
                            InitStringChar, InitStringCharStar,
                            Mark, ConCat, Dup, string,
                            Slice, Index, char, Assign, Length, Mult,
-                           RemoveWhitePrefix, ConCatChar, KillString ;
+                           RemoveWhitePrefix, ConCatChar, KillString,
+                           InitStringDB, InitStringCharStarDB,
+                           InitStringCharDB, MultDB, DupDB, SliceDB ;
 
 FROM ldtoa IMPORT Mode, strtold, ldtoa ;
 IMPORT dtoa ;   (* this fixes linking - as the C ldtoa uses dtoa *)
@@ -39,6 +41,14 @@ PROCEDURE carryOne (s: String; i: CARDINAL) : String ; FORWARD ;
 PROCEDURE doDecimalPlaces (s: String; n: CARDINAL) : String ; FORWARD ;
    %%%FORWARD%%% *)
 
+(*
+ #define InitString(X) InitStringDB(X, __FILE__, __LINE__)
+ #define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
+ #define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
+ #define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
+ #define Dup(X) DupDB(X, __FILE__, __LINE__)
+ #define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+*)
 
 (*
    Assert - implement a simple assert.
@@ -249,11 +259,11 @@ BEGIN
          THEN
             RETURN( ConCat(IntegerToString(-VAL(INTEGER, c DIV base),
                                            width-1, padding, sign, base, lower),
-                           IntegerToString(c MOD base, 0, ' ', FALSE, base, lower)) )
+                           Mark(IntegerToString(c MOD base, 0, ' ', FALSE, base, lower))) )
          ELSE
             RETURN( ConCat(IntegerToString(-VAL(INTEGER, c DIV base),
                                            0, padding, sign, base, lower),
-                           IntegerToString(c MOD base, 0, ' ', FALSE, base, lower)) )
+                           Mark(IntegerToString(c MOD base, 0, ' ', FALSE, base, lower))) )
          END
       ELSE
          s := InitString('-')
@@ -269,24 +279,24 @@ BEGIN
    END ;
    IF i>VAL(INTEGER, base)-1
    THEN
-      s := ConCat(ConCat(s, IntegerToString(VAL(CARDINAL, i) DIV base, 0, ' ', FALSE, base, lower)),
-                  IntegerToString(VAL(CARDINAL, i) MOD base, 0, ' ', FALSE, base, lower))
+      s := ConCat(ConCat(s, Mark(IntegerToString(VAL(CARDINAL, i) DIV base, 0, ' ', FALSE, base, lower))),
+                  Mark(IntegerToString(VAL(CARDINAL, i) MOD base, 0, ' ', FALSE, base, lower)))
    ELSE
       IF i<=9
       THEN
-         s := ConCat(s, InitStringChar(CHR(VAL(CARDINAL, i)+ORD('0'))))
+         s := ConCat(s, Mark(InitStringChar(CHR(VAL(CARDINAL, i)+ORD('0')))))
       ELSE
          IF lower
          THEN
-            s := ConCat(s, InitStringChar(CHR(VAL(CARDINAL, i)+ORD('a')-10)))
+            s := ConCat(s, Mark(InitStringChar(CHR(VAL(CARDINAL, i)+ORD('a')-10))))
          ELSE
-            s := ConCat(s, InitStringChar(CHR(VAL(CARDINAL, i)+ORD('A')-10)))
+            s := ConCat(s, Mark(InitStringChar(CHR(VAL(CARDINAL, i)+ORD('A')-10))))
          END
       END
    END ;
    IF width>Length(s)
    THEN
-      RETURN( ConCat(Mult(InitStringChar(padding), width-Length(s)), s) )
+      RETURN( ConCat(Mult(Mark(InitStringChar(padding)), width-Length(s)), Mark(s)) )
    END ;
    RETURN( s )
 END IntegerToString ;
@@ -309,24 +319,24 @@ BEGIN
    s := InitString('') ;
    IF c>base-1
    THEN
-      s := ConCat(ConCat(s, CardinalToString(c DIV base, 0, ' ', base, lower)),
-                  CardinalToString(c MOD base, 0, ' ', base, lower))
+      s := ConCat(ConCat(s, Mark(CardinalToString(c DIV base, 0, ' ', base, lower))),
+                  Mark(CardinalToString(c MOD base, 0, ' ', base, lower)))
    ELSE
       IF c<=9
       THEN
-         s := ConCat(s, InitStringChar(CHR(c+ORD('0'))))
+         s := ConCat(s, Mark(InitStringChar(CHR(c+ORD('0')))))
       ELSE
          IF lower
          THEN
-            s := ConCat(s, InitStringChar(CHR(c+ORD('a')-10)))
+            s := ConCat(s, Mark(InitStringChar(CHR(c+ORD('a')-10))))
          ELSE
-            s := ConCat(s, InitStringChar(CHR(c+ORD('A')-10)))
+            s := ConCat(s, Mark(InitStringChar(CHR(c+ORD('A')-10))))
          END
       END
    END ;
    IF width>Length(s)
    THEN
-      RETURN( ConCat(Mult(InitStringChar(padding), width-Length(s)), s) )
+      RETURN( ConCat(Mult(Mark(InitStringChar(padding)), width-Length(s)), s) )
    END ;
    RETURN( s )
 END CardinalToString ;
@@ -362,11 +372,11 @@ BEGIN
          THEN
             RETURN( ConCat(LongIntegerToString(-VAL(LONGINT, c DIV VAL(LONGCARD, base)),
                                                width-1, padding, sign, base, lower),
-                           LongIntegerToString(c MOD VAL(LONGCARD, base), 0, ' ', FALSE, base, lower)) )
+                           Mark(LongIntegerToString(c MOD VAL(LONGCARD, base), 0, ' ', FALSE, base, lower))) )
          ELSE
             RETURN( ConCat(LongIntegerToString(-VAL(LONGINT, c DIV VAL(LONGCARD, base)),
                                                0, padding, sign, base, lower),
-                           LongIntegerToString(c MOD VAL(LONGCARD, base), 0, ' ', FALSE, base, lower)) )
+                           Mark(LongIntegerToString(c MOD VAL(LONGCARD, base), 0, ' ', FALSE, base, lower))) )
          END
       ELSE
          s := InitString('-')
@@ -382,24 +392,24 @@ BEGIN
    END ;
    IF i>VAL(LONGINT, base-1)
    THEN
-      s := ConCat(ConCat(s, LongIntegerToString(i DIV VAL(LONGINT, base), 0, ' ', FALSE, base, lower)),
-                  LongIntegerToString(i MOD VAL(LONGINT, base), 0, ' ', FALSE, base, lower))
+      s := ConCat(ConCat(s, Mark(LongIntegerToString(i DIV VAL(LONGINT, base), 0, ' ', FALSE, base, lower))),
+                  Mark(LongIntegerToString(i MOD VAL(LONGINT, base), 0, ' ', FALSE, base, lower)))
    ELSE
       IF i<=9
       THEN
-         s := ConCat(s, InitStringChar(CHR(VAL(CARDINAL, i)+ORD('0'))))
+         s := ConCat(s, Mark(InitStringChar(CHR(VAL(CARDINAL, i)+ORD('0')))))
       ELSE
          IF lower
          THEN
-            s := ConCat(s, InitStringChar(CHR(VAL(CARDINAL, i)+ORD('a')-10)))
+            s := ConCat(s, Mark(InitStringChar(CHR(VAL(CARDINAL, i)+ORD('a')-10))))
          ELSE
-            s := ConCat(s, InitStringChar(CHR(VAL(CARDINAL, i)+ORD('A')-10)))
+            s := ConCat(s, Mark(InitStringChar(CHR(VAL(CARDINAL, i)+ORD('A')-10))))
          END
       END
    END ;
    IF width>Length(s)
    THEN
-      RETURN( ConCat(Mult(InitStringChar(padding), width-Length(s)), s) )
+      RETURN( ConCat(Mult(Mark(InitStringChar(padding)), width-Length(s)), s) )
    END ;
    RETURN( s )
 END LongIntegerToString ;
@@ -738,10 +748,10 @@ BEGIN
       maxprecision := TRUE ;
       r := ldtoa(x, decimaldigits, 100, point, sign)
    ELSE
-      r := ldtoa(x, decimaldigits, 100, point, sign) ;
+      r := ldtoa(x, decimaldigits, 100, point, sign)
    END ;
    s := InitStringCharStar(r) ;
-   (* free(r) ; *)
+   free(r) ;
    l := Length(s) ;
    IF point>l
    THEN
@@ -757,7 +767,7 @@ BEGIN
       END
    ELSIF point<0
    THEN
-      s := ConCat(Mult(InitStringChar('0'), -point), Mark(s)) ;
+      s := ConCat(Mult(Mark(InitStringChar('0')), -point), Mark(s)) ;
       l := Length(s) ;
       s := ConCat(InitString('0.'), Mark(s)) ;
       IF (NOT maxprecision) AND (l<VAL(INTEGER, FractionWidth))
@@ -767,10 +777,10 @@ BEGIN
    ELSE
       IF point=0
       THEN
-         s := ConCat(InitString('0.'), Slice(s, point, 0))
+         s := ConCat(InitString('0.'), Mark(Slice(Mark(s), point, 0)))
       ELSE
-         s := ConCat(ConCatChar(Slice(s, 0, point), '.'),
-                     Slice(s, point, 0))
+         s := ConCat(ConCatChar(Slice(Mark(s), 0, point), '.'),
+                     Mark(Slice(Mark(s), point, 0)))
       END ;
       IF (NOT maxprecision) AND (l-point<VAL(INTEGER, FractionWidth))
       THEN
@@ -783,12 +793,12 @@ BEGIN
       THEN
          IF sign
          THEN
-            s := Slice(ToDecimalPlaces(s, FractionWidth), 0, TotalWidth-1) ;
+            s := Slice(Mark(ToDecimalPlaces(s, FractionWidth)), 0, TotalWidth-1) ;
             s := ConCat(InitStringChar('-'), Mark(s)) ;
             sign := FALSE
          ELSE
             (* minus 1 because all results will include a '.' *)
-            s := Slice(ToDecimalPlaces(s, FractionWidth), 0, TotalWidth) ;
+            s := Slice(Mark(ToDecimalPlaces(s, FractionWidth)), 0, TotalWidth) ;
          END
       ELSE
          IF sign
@@ -804,7 +814,7 @@ BEGIN
    END ;
    IF Length(s)<TotalWidth
    THEN
-      s := ConCat(Mult(InitStringChar(' '), TotalWidth-Length(s)), Mark(s))
+      s := ConCat(Mult(Mark(InitStringChar(' ')), TotalWidth-Length(s)), Mark(s))
    END ;
    RETURN( s )
 END LongrealToString ;
@@ -1096,8 +1106,8 @@ BEGIN
       s := Slice(Mark(s), 1, 0)
    ELSIF point<l
    THEN
-      s := ConCat(Slice(s, 0, point),
-                  Slice(Mark(s), point+1, 0))
+      s := ConCat(Slice(Mark(s), 0, point),
+                  Mark(Slice(Mark(s), point+1, 0)))
    ELSE
       s := Slice(Mark(s), 0, point)
    END ;
@@ -1171,8 +1181,8 @@ BEGIN
       THEN
          s := ConCat(InitStringChar('.'), Mark(s))
       ELSE
-         s := ConCat(ConCatChar(Slice(s, 0, point), '.'),
-                     Slice(Mark(s), point, 0))
+         s := ConCat(ConCatChar(Slice(Mark(s), 0, point), '.'),
+                     Mark(Slice(Mark(s), point, 0)))
       END
    END ;
    RETURN( s )
@@ -1218,7 +1228,7 @@ BEGIN
    ELSE
       IF poTen>Length(s)
       THEN
-         s := ConCat(s, Mult(Mark(InitStringChar('0')), poTen-Length(s)))
+         s := ConCat(s, Mark(Mult(Mark(InitStringChar('0')), poTen-Length(s))))
       END ;
       RETURN( s )
    END
@@ -1250,8 +1260,8 @@ BEGIN
          s := Slice(Mark(s), 1, 0)
       ELSIF point<l
       THEN
-         s := ConCat(Slice(s, 0, point),
-                     Slice(Mark(s), point+1, 0))
+         s := ConCat(Slice(Mark(s), 0, point),
+                     Mark(Slice(Mark(s), point+1, 0)))
       ELSE
          s := Slice(Mark(s), 0, point)
       END
@@ -1280,8 +1290,8 @@ BEGIN
    THEN
       s := ConCat(InitStringChar('0'), Mark(s))
    ELSE
-      s := ConCat(ConCatChar(Slice(s, 0, i), '0'),
-                  Slice(Mark(s), i, 0))
+      s := ConCat(ConCatChar(Slice(Mark(s), 0, i), '0'),
+                  Mark(Slice(Mark(s), i, 0)))
    END ;
    INC(n) ;  (* and increase the number of sig figs needed *)
    l := Length(s) ;
@@ -1317,8 +1327,8 @@ BEGIN
       THEN
          s := Slice(Mark(s), z+1, 0)
       ELSE
-         s := ConCat(Slice(s, 0, z),
-                     Slice(Mark(s), z+1, 0))
+         s := ConCat(Slice(Mark(s), 0, z),
+                     Mark(Slice(Mark(s), z+1, 0)))
       END ;
       l := Length(s)
    ELSE
@@ -1340,8 +1350,8 @@ BEGIN
       THEN
          s := ConCat(InitStringChar('.'), Mark(s))
       ELSE
-         s := ConCat(ConCatChar(Slice(s, 0, point), '.'),
-                     Slice(Mark(s), point, 0))
+         s := ConCat(ConCatChar(Slice(Mark(s), 0, point), '.'),
+                     Mark(Slice(Mark(s), point, 0)))
       END
    END ;
    RETURN( s )
@@ -1365,19 +1375,19 @@ BEGIN
                s := ConCat(InitStringChar('1'), Mark(s)) ;
                RETURN s
             ELSE
-               s := ConCat(ConCatChar(Slice(s, 0, i), '0'),
-                           Slice(Mark(s), i+1, 0)) ;
+               s := ConCat(ConCatChar(Slice(Mark(s), 0, i), '0'),
+                           Mark(Slice(Mark(s), i+1, 0))) ;
                RETURN carryOne(s, i-1)
             END
          ELSE
             IF i=0
             THEN
                s := ConCat(InitStringChar(CHR(ORD(char(s, i))+1)),
-                           Slice(Mark(s), i+1, 0))
+                           Mark(Slice(Mark(s), i+1, 0)))
             ELSE
-               s := ConCat(ConCatChar(Slice(s, 0, i),
+               s := ConCat(ConCatChar(Slice(Mark(s), 0, i),
                                       CHR(ORD(char(s, i))+1)),
-                           Slice(Mark(s), i+1, 0))
+                           Mark(Slice(Mark(s), i+1, 0)))
             END
          END
       END

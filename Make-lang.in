@@ -808,18 +808,19 @@ GM2_O_S3=-O
 # GM2_G=-g -gdwarf-2
 # GM2_G=-gstabs+
 GM2_G=-g
+GM2_CPP=
 GM2_FLAGS=-fsoft-check-all $(GM2_G) $(GM2_O) \
  -funbounded-by-reference -fpim -fextended-opaque \
  -Wpedantic-cast -Wpedantic-param-names -ffunction-sections \
- -fdata-sections
+ -fdata-sections $(GM2_CPP)
 GM2_ISO_FLAGS=-fsoft-check-all $(GM2_G) $(GM2_O) \
  -funbounded-by-reference -fiso -fextended-opaque \
  -Wpedantic-cast -Wpedantic-param-names -ffunction-sections \
- -fdata-sections
+ -fdata-sections $(GM2_CPP)
 GM2_MIN_FLAGS=$(GM2_G) $(GM2_O) \
  -funbounded-by-reference -fextended-opaque \
  -Wpedantic-cast -Wpedantic-param-names -fno-exceptions \
- -ffunction-sections -fdata-sections
+ -ffunction-sections -fdata-sections $(GM2_CPP)
 
 O2=-O2 -g
 SO_O2=-O2 -g -fPIC

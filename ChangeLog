@@ -1,3 +1,20 @@
+2010-11-05       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added $(GM2_CPP) variable.
+	* gm2/gccgm2.c:  removed incorrect comment boilerplate.
+	* gm2/gm2-libs/DynamicStrings.def:  added debugging equivalents
+	  of InitString and family, Mult, Dup and Slice.  New procedures
+	  (PushAllocation) (PopAllocation).
+	* gm2/gm2-libs/DynamicStrings.mod:  PoisonedOn FALSE.  Implemented
+	  debugging equivalents of InitString and family, Mult, Dup and Slice.
+	  Also added memory leak verification PushAllocation/PopAllocation.
+	* gm2/gm2-libs/RTExceptions.mod:  New procedure (TidyUp) called during
+	  finalisation to deallocate memory.
+	* gm2/gm2-libs/StringConvert.mod:  fixed many memory leaks by
+	  Mark(ing) appropriate strings.
+	* gm2/gm2-libs-pim/RealConversions.mod:  fixed many memory leaks by
+	  Mark(ing) appropriate strings.
+	
 2010-11-02       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/TODO:  updated.

@@ -297,8 +297,8 @@ BEGIN
                digits := width-point-2
             END ;
             s := ConCat(Slice(s, 0, point),
-                        ConCat(InitStringChar('.'),
-                               Mark(Slice(Mark(s), point, point+digits)))) ;
+                        Mark(ConCat(InitStringChar('.'),
+                                    Mark(Slice(Mark(s), point, point+digits))))) ;
             IF Debugging
             THEN
                printf("value returned was '%s'\n", string(s))
@@ -306,7 +306,7 @@ BEGIN
             (* and add trailing '0's if needed *)
             IF VAL(INTEGER, Length(s))-point<digits+1
             THEN
-               s := ConCat(s, Mult(Mark(InitString('0')), digits+1-(VAL(INTEGER, Length(s))-point))) ;
+               s := ConCat(s, Mark(Mult(Mark(InitString('0')), digits+1-(VAL(INTEGER, Length(s))-point)))) ;
                IF Debugging
                THEN
                   printf("value returned was '%s'\n", string(s))
