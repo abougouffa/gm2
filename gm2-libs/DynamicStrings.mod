@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *
 
 IMPLEMENTATION MODULE DynamicStrings ;
 
-FROM libc IMPORT strlen, strncpy, write ;
+FROM libc IMPORT strlen, strncpy, write, exit ;
 FROM StrLib IMPORT StrLen ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM Assertion IMPORT Assert ;
@@ -72,8 +72,9 @@ TYPE
 
 
 VAR
-   frameHead      : frame ;
-   captured       : String ;  (* debugging aid *)
+   Initialized: BOOLEAN ;
+   frameHead  : frame ;
+   captured   : String ;  (* debugging aid *)
 
 
 PROCEDURE Capture (s: String) : CARDINAL ;
@@ -160,6 +161,31 @@ BEGIN
       i := write(1, ADR(ch), 1)
    END
 END writeCard ;
+
+
+(*
+   writeAddress - 
+*)
+
+PROCEDURE writeAddress (a: ADDRESS) ;
+VAR
+   ch: CHAR ;
+   i : INTEGER ;
+BEGIN
+   IF a>16
+   THEN
+      writeAddress(a DIV 16) ;
+      writeAddress(a MOD 16)
+   ELSIF a<10
+   THEN
+      ch := CHR(ORD('0')+VAL(CARDINAL, a)) ;
+      i := write(1, ADR(ch), 1)
+   ELSIF a<16
+   THEN
+      ch := CHR(ORD('a')+VAL(CARDINAL, a)-10) ;
+      i := write(1, ADR(ch), 1)
+   END
+END writeAddress ;
 
 
 (*
@@ -281,6 +307,7 @@ END SubFrom ;
 
 PROCEDURE AddAllocated (s: String) ;
 BEGIN
+   Init ;
    AddTo(frameHead^.alloc, s)
 END AddAllocated ;
 
@@ -291,6 +318,7 @@ END AddAllocated ;
 
 PROCEDURE AddDeallocated (s: String) ;
 BEGIN
+   Init ;
    AddTo(frameHead^.dealloc, s)
 END AddDeallocated ;
 
@@ -303,6 +331,7 @@ PROCEDURE IsOnAllocated (s: String) : BOOLEAN ;
 VAR
    f: frame ;
 BEGIN
+   Init ;
    f := frameHead ;
    REPEAT
       IF IsOn(f^.alloc, s)
@@ -324,6 +353,7 @@ PROCEDURE IsOnDeallocated (s: String) : BOOLEAN ;
 VAR
    f: frame ;
 BEGIN
+   Init ;
    f := frameHead ;
    REPEAT
       IF IsOn(f^.dealloc, s)
@@ -345,6 +375,7 @@ PROCEDURE SubAllocated (s: String) ;
 VAR
    f: frame ;
 BEGIN
+   Init ;
    f := frameHead ;
    REPEAT
       IF IsOn(f^.alloc, s)
@@ -366,6 +397,7 @@ PROCEDURE SubDeallocated (s: String) ;
 VAR
    f: frame ;
 BEGIN
+   Init ;
    f := frameHead ;
    REPEAT
       IF IsOn(f^.dealloc, s)
@@ -713,6 +745,12 @@ BEGIN
       a := CheckPoisoned(a) ;
       b := CheckPoisoned(b)
    END ;
+(*
+   IF (a#NIL) AND (a#b) AND (a^.head^.state=marked)
+   THEN
+      writeString('warning trying to add to a marked string') ; writeLn
+   END ;
+*)
    IF (a#b) AND (a#NIL) AND (b#NIL) AND (b^.head^.state=marked) AND (a^.head^.state=inuse)
    THEN
       c := a ;
@@ -1417,6 +1455,7 @@ PROCEDURE PushAllocation ;
 VAR
    f: frame ;
 BEGIN
+   Init ;
    NEW(f) ;
    WITH f^ DO
       next := frameHead ;
@@ -1460,6 +1499,7 @@ VAR
    s: String ;
    f: frame ;
 BEGIN
+   Init ;
    IF frameHead=NIL
    THEN
       writeString("mismatched number of PopAllocation's compared to PushAllocation's")
@@ -1471,6 +1511,8 @@ BEGIN
          writeCstring(s^.debug.file) ; writeString(':') ;
          writeCard(s^.debug.line) ; writeString(':') ;
          writeCstring(s^.debug.proc) ; writeString(' ') ;
+         writeAddress(s) ;
+         writeString(' ') ;
          CASE s^.contents.len OF
 
          inuse   :  writeString("still in use (") ; writeCard(s^.contents.len) ; writeString(") characters") |
@@ -1486,7 +1528,7 @@ BEGIN
       END ;
       IF halt
       THEN
-         HALT(1)
+         exit(1)
       END
    END
 END PopAllocation ;
@@ -1503,15 +1545,31 @@ BEGIN
       writeCstring(s^.debug.file) ; writeString(':') ;
       writeCard(s^.debug.line) ; writeString(':') ;
       writeCstring(s^.debug.proc) ;
-(*
-      printf(" string %p ", s) ;
-*)
+      writeString(' string ') ;
+      writeAddress(s) ;
+      writeString(' ') ;
       DumpState(s) ;
+      writeLn
    END
 END DumpString ;
 
 
+(*
+   Init - initialize the module.
+*)
+
+PROCEDURE Init ;
 BEGIN
-   frameHead := NIL ;
-   PushAllocation
+   IF NOT Initialized
+   THEN
+      Initialized := TRUE
+      frameHead := NIL ;
+      PushAllocation ;
+   END
+END Init ;
+
+
+BEGIN
+   Initialized := FALSE ;
+   Init
 END DynamicStrings.
