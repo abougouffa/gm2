@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *
 
 IMPLEMENTATION MODULE DynamicStrings ;
 
-FROM libc IMPORT strlen, strncpy, printf ;
+FROM libc IMPORT strlen, strncpy ;
 FROM StrLib IMPORT StrLen ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM Assertion IMPORT Assert ;
@@ -29,6 +29,7 @@ FROM ASCII IMPORT nul, tab ;
 CONST
    MaxBuf   = 127 ;
    PoisonOn = FALSE ;    (* enable debugging, if FALSE no overhead is incurred *)
+   DebugOn  = FALSE ;
 
 TYPE
    Contents = RECORD
@@ -72,8 +73,6 @@ TYPE
 
 VAR
    frameHead      : frame ;
-   allocatedHead,
-   deallocatedHead,
    captured       : String ;  (* debugging aid *)
 
 
@@ -157,19 +156,165 @@ END CopyOut ;
 
 
 (*
-   AddDebugInfo - adds string, s, to the list of allocated strings.
+   IsOn - returns TRUE if, s, is on one of the debug lists.
 *)
 
-PROCEDURE AddDebugInfo (s: String) ;
+PROCEDURE IsOn (list, s: String) : BOOLEAN ;
 BEGIN
-   WITH s^ DO
-      debug.next := allocatedHead ;
-      debug.file := NIL ;
-      debug.line := 0 ;
-      debug.proc := NIL ;
+   WHILE (list#s) AND (list#NIL) DO
+      list := list^.debug.next
    END ;
-   allocatedHead := s
-END AddDebugInfo ;
+   RETURN( list=s )
+END IsOn ;
+
+
+(*
+   AddTo - adds string, s, to, list.
+*)
+
+PROCEDURE AddTo (VAR list: String; s: String) ;
+BEGIN
+   IF list=NIL
+   THEN
+      list := s ;
+      s^.debug.next := NIL ;
+   ELSE
+      s^.debug.next := list ;
+      list := s
+   END
+END AddTo ;
+
+
+(*
+   SubFrom - removes string, s, from, list.
+*)
+
+PROCEDURE SubFrom (VAR list: String; s: String) ;
+VAR
+   p: String ;
+BEGIN
+   IF list=s
+   THEN
+      list := s^.debug.next ;
+   ELSE
+      p := list ;
+      WHILE (p^.debug.next#NIL) AND (p^.debug.next#s) DO
+         p := p^.debug.next
+      END ;
+      IF p^.debug.next=s
+      THEN
+         p^.debug.next := s^.debug.next
+      ELSE
+         (* not found, quit *)
+         RETURN
+      END
+   END ;
+   s^.debug.next := NIL ;
+END SubFrom ;
+
+
+(*
+   AddAllocated - adds string, s, to the head of the allocated list.
+*)
+
+PROCEDURE AddAllocated (s: String) ;
+BEGIN
+   AddTo(frameHead^.alloc, s)
+END AddAllocated ;
+
+
+(*
+   AddDeallocated - adds string, s, to the head of the deallocated list.
+*)
+
+PROCEDURE AddDeallocated (s: String) ;
+BEGIN
+   AddTo(frameHead^.dealloc, s)
+END AddDeallocated ;
+
+
+(*
+   IsOnAllocated - returns TRUE if the string, s, has ever been allocated.
+*)
+
+PROCEDURE IsOnAllocated (s: String) : BOOLEAN ;
+VAR
+   f: frame ;
+BEGIN
+   f := frameHead ;
+   REPEAT
+      IF IsOn(f^.alloc, s)
+      THEN
+         RETURN( TRUE )
+      ELSE
+         f := f^.next
+      END
+   UNTIL f=NIL ;
+   RETURN( FALSE )
+END IsOnAllocated ;
+
+
+(*
+   IsOnDeallocated - returns TRUE if the string, s, has ever been deallocated.
+*)
+
+PROCEDURE IsOnDeallocated (s: String) : BOOLEAN ;
+VAR
+   f: frame ;
+BEGIN
+   f := frameHead ;
+   REPEAT
+      IF IsOn(f^.dealloc, s)
+      THEN
+         RETURN( TRUE )
+      ELSE
+         f := f^.next
+      END
+   UNTIL f=NIL ;
+   RETURN( FALSE )
+END IsOnDeallocated ;
+
+
+(*
+   SubAllocated - removes string, s, from the list of allocated strings.
+*)
+
+PROCEDURE SubAllocated (s: String) ;
+VAR
+   f: frame ;
+BEGIN
+   f := frameHead ;
+   REPEAT
+      IF IsOn(f^.alloc, s)
+      THEN
+         SubFrom(f^.alloc, s) ;
+         RETURN
+      ELSE
+         f := f^.next
+      END
+   UNTIL f=NIL
+END SubAllocated ;
+
+
+(*
+   SubDeallocated - removes string, s, from the list of deallocated strings.
+*)
+
+PROCEDURE SubDeallocated (s: String) ;
+VAR
+   f: frame ;
+BEGIN
+   f := frameHead ;
+   REPEAT
+      IF IsOn(f^.dealloc, s)
+      THEN
+         SubFrom(f^.dealloc, s) ;
+         RETURN
+      ELSE
+         f := f^.next
+      END
+   UNTIL f=NIL
+END SubDeallocated ;
 
 
 (*
@@ -177,25 +322,38 @@ END AddDebugInfo ;
 *)
 
 PROCEDURE SubDebugInfo (s: String) ;
-VAR
-   p: String ;
 BEGIN
-   Assert(allocatedHead#NIL) ;
-   IF allocatedHead=s
+   IF IsOnDeallocated(s)
    THEN
-      allocatedHead := s^.debug.next
-   ELSE
-      p := allocatedHead ;
-      WHILE (p#NIL) AND (p^.debug.next#s) DO
-         p := p^.debug.next
-      END ;
-      Assert(p#NIL) ;
-      Assert(p^.debug.next=s) ;
-      p^.debug.next := s^.debug.next
+      Assert(NOT DebugOn) ;
+      (* string has already been deallocated *)
+      RETURN
    END ;
-   s^.debug.next := deallocatedHead ;
-   deallocatedHead := s
+   IF IsOnAllocated(s)
+   THEN
+      SubAllocated(s) ;
+      AddDeallocated(s)
+   ELSE
+      Assert(NOT DebugOn) ;
+      (* string has not been allocated *)
+   END
 END SubDebugInfo ;
+
+
+(*
+   AddDebugInfo - adds string, s, to the list of allocated strings.
+*)
+
+PROCEDURE AddDebugInfo (s: String) ;
+BEGIN
+   WITH s^ DO
+      debug.next := NIL ;
+      debug.file := NIL ;
+      debug.line := 0 ;
+      debug.proc := NIL ;
+   END ;
+   AddAllocated(s)
+END AddDebugInfo ;
 
 
 (*
@@ -313,25 +471,30 @@ BEGIN
    END ;
    IF s#NIL
    THEN
-      SubDebugInfo(s) ;
-      IF PoisonOn
+      IF IsOnAllocated(s)
       THEN
-         IF s^.head#NIL
+         SubAllocated(s)
+      ELSIF IsOnDeallocated(s)
+      THEN
+         SubDeallocated(s)
+      END ;
+      WITH s^ DO
+         IF head#NIL
          THEN
-            s^.head^.state := poisoned
-         END
-      ELSE
-         WITH s^ DO
-            IF head#NIL
-            THEN
-               WITH head^ DO
-                  garbage := KillString(garbage) ;
+            WITH head^ DO
+               state := poisoned ;
+               garbage := KillString(garbage) ;
+               IF NOT PoisonOn
+               THEN
                   DeallocateCharStar(s)
                END
             END
          END ;
          t := KillString(s^.contents.next) ;
-         DISPOSE(s)
+         IF NOT PoisonOn
+         THEN
+            DISPOSE(s)
+         END
       END
    END ;
    RETURN( NIL )
@@ -488,7 +651,7 @@ BEGIN
       a := CheckPoisoned(a) ;
       b := CheckPoisoned(b)
    END ;
-   IF (a#b) AND (a#NIL) AND (b#NIL) AND (b^.head^.state=marked)
+   IF (a#b) AND (a#NIL) AND (b#NIL) AND (b^.head^.state=marked) AND (a^.head^.state=inuse)
    THEN
       c := a ;
       WHILE c^.head^.garbage#NIL DO
@@ -1195,12 +1358,10 @@ BEGIN
    NEW(f) ;
    WITH f^ DO
       next := frameHead ;
-      alloc := allocatedHead ;
-      dealloc := deallocatedHead
+      alloc := NIL ;
+      dealloc := NIL
    END ;
-   frameHead := f ;
-   allocatedHead := NIL ;
-   deallocatedHead := NIL
+   frameHead := f
 END PushAllocation ;
 
 
@@ -1239,10 +1400,13 @@ VAR
    s: String ;
    f: frame ;
 BEGIN
-   IF allocatedHead#NIL
+   IF frameHead=NIL
    THEN
+      (*    printf("mismatched number of PopAllocation's compared to PushAllocation's") *)
+   ELSE
+(*
       printf("the following strings have been lost\n") ;
-      s := allocatedHead ;
+      s := frameHead^.alloc ;
       WHILE s#NIL DO
          (* printf("%s:%d:%s ", s^.debug.file, s^.debug.line, s^.debug.proc) ; *)
          CASE s^.contents.len OF
@@ -1262,19 +1426,8 @@ BEGIN
       THEN
          HALT(1)
       END
+*)
    END ;
-   IF frameHead=NIL
-   THEN
-      printf("mismatched number of PopAllocation's compared to PushAllocation's")
-   ELSE
-      f := frameHead ;
-      WITH f^ DO
-         allocatedHead   := alloc ;
-         deallocatedHead := alloc ;
-         frameHead       := next         
-      END ;
-      DISPOSE(f)
-   END
 END PopAllocation ;
 
 
@@ -1296,7 +1449,6 @@ END DumpString ;
 
 
 BEGIN
-   allocatedHead := NIL ;
-   deallocatedHead := NIL ;
-   frameHead := NIL
+   frameHead := NIL ;
+   PushAllocation
 END DynamicStrings.
