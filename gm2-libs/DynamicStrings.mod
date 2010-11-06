@@ -1562,7 +1562,7 @@ PROCEDURE Init ;
 BEGIN
    IF NOT Initialized
    THEN
-      Initialized := TRUE
+      Initialized := TRUE ;
       frameHead := NIL ;
       PushAllocation ;
    END
