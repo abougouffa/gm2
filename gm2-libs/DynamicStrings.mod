@@ -39,6 +39,8 @@ TYPE
 
    Descriptor = POINTER TO descriptor ;   (* forward declaration necessary for p2c *)
 
+   String = POINTER TO stringRecord ;
+
    DebugInfo = RECORD
                   next: String ;   (* a mechanism for tracking used/lost strings *)
                   file: ADDRESS ;
@@ -46,7 +48,6 @@ TYPE
                   proc: ADDRESS ;
                END ;
 
-   String = POINTER TO stringRecord ;
    stringRecord = RECORD
                      contents: Contents ;
                      head    : Descriptor ;
@@ -111,6 +112,27 @@ BEGIN
       RETURN( b )
    END
 END Max ;
+
+
+(*
+   AssignDebug - assigns, file, and, line, information to string, s.
+*)
+
+PROCEDURE AssignDebug (s: String; file: ARRAY OF CHAR; line: CARDINAL; proc: ARRAY OF CHAR) : String ;
+BEGIN
+   WITH s^ DO
+      ALLOCATE(debug.file, StrLen(file)+1) ;
+      IF strncpy(debug.file, ADR(file), StrLen(file)+1)=NIL
+      THEN
+      END ;
+      debug.line := line ;
+      ALLOCATE(debug.proc, StrLen(proc)+1) ;
+      IF strncpy(debug.proc, ADR(proc), StrLen(proc)+1)=NIL
+      THEN
+      END
+   END ;
+   RETURN( s )
+END AssignDebug ;
 
 
 (*
@@ -1102,27 +1124,6 @@ END ToLower ;
 
 
 (*
-   AssignDebug - assigns, file, and, line, information to string, s.
-*)
-
-PROCEDURE AssignDebug (s: String; file: ARRAY OF CHAR; line: CARDINAL; proc: ARRAY OF CHAR) : String ;
-BEGIN
-   WITH s^ DO
-      ALLOCATE(debug.file, StrLen(file)+1) ;
-      IF strncpy(debug.file, ADR(file), StrLen(file)+1)=NIL
-      THEN
-      END ;
-      debug.line := line ;
-      ALLOCATE(debug.proc, StrLen(proc)+1) ;
-      IF strncpy(debug.proc, ADR(proc), StrLen(proc)+1)=NIL
-      THEN
-      END
-   END ;
-   RETURN( s )
-END AssignDebug ;
-
-
-(*
    InitStringDB - the debug version of InitString.
 *)
 
@@ -1209,6 +1210,7 @@ END PushAllocation ;
 
 PROCEDURE DumpState (s: String) ;
 BEGIN
+(*
    CASE s^.contents.len OF
 
    inuse   :  printf("still in use (length %d chars)", s^.contents.len) |
@@ -1219,6 +1221,7 @@ BEGIN
    ELSE
       printf("unknown state")
    END
+*)
 END DumpState ;
 
 
@@ -1241,10 +1244,10 @@ BEGIN
       printf("the following strings have been lost\n") ;
       s := allocatedHead ;
       WHILE s#NIL DO
-         printf("%s:%d:%s ", s^.debug.file, s^.debug.line, s^.debug.proc) ;
+         (* printf("%s:%d:%s ", s^.debug.file, s^.debug.line, s^.debug.proc) ; *)
          CASE s^.contents.len OF
 
-         inuse   :  printf("still in use (length %d chars)", s^.contents.len) |
+         inuse   :  (* printf("still in use (length %d chars)", s^.contents.len) *) printf("still in use") |
          marked  :  printf("marked") |
          onlist  :  printf("on a (lost) garbage list") |
          poisoned:  printf("poisoned")
@@ -1281,12 +1284,14 @@ END PopAllocation ;
 
 PROCEDURE DumpString (s: String) ;
 BEGIN
+(*
    IF s#NIL
    THEN
       printf("%s:%d:%s ", s^.debug.file, s^.debug.line, s^.debug.proc) ;
       printf(" string %p ", s) ;
       DumpState(s) ;
    END
+*)
 END DumpString ;
 
 

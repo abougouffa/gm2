@@ -1,5 +1,9 @@
 2010-11-05       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2-libs/DynamicStrings.mod:  more minor fixes to aid
+	  p2c.
+	* gm2/gm2-libs/DynamicStrings.mod:  minor fix moving data type
+	  declarations to satisfy p2c.
 	* gm2/Make-lang.in:  added $(GM2_CPP) variable.
 	* gm2/gccgm2.c:  removed incorrect comment boilerplate.
 	* gm2/gm2-libs/DynamicStrings.def:  added debugging equivalents
