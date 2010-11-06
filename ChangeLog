@@ -1,7 +1,11 @@
-2010-11-05       Gaius Mulley <gaius@gnu.org>
+2010-11-06       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2-libs/DynamicStrings.mod:  implemented the debugging
+	  print statements with write.
+	* gm2/gm2-libs/StringConvert.mod:  fixed more memory leaks by
+	  Mark(ing) appropriate strings.
 	* gm2/gm2-libs/DynamicStrings.mod:  reimplemented the frame
-	  and data structure some of the key list routines.
+	  data structure some of the key list routines.
 	* gm2/gm2-libs/DynamicStrings.mod:  more minor fixes to aid
 	  p2c.
 	* gm2/gm2-libs/DynamicStrings.mod:  minor fix moving data type

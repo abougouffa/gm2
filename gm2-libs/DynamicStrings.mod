@@ -19,16 +19,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *
 
 IMPLEMENTATION MODULE DynamicStrings ;
 
-FROM libc IMPORT strlen, strncpy ;
+FROM libc IMPORT strlen, strncpy, write ;
 FROM StrLib IMPORT StrLen ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM Assertion IMPORT Assert ;
 FROM SYSTEM IMPORT ADR ;
-FROM ASCII IMPORT nul, tab ;
+FROM ASCII IMPORT nul, tab, lf ;
 
 CONST
    MaxBuf   = 127 ;
-   PoisonOn = FALSE ;    (* enable debugging, if FALSE no overhead is incurred *)
+   PoisonOn = FALSE ;    (* to enable debugging, turn on PoisonOn and DebugOn  *)
    DebugOn  = FALSE ;
 
 TYPE
@@ -112,6 +112,68 @@ BEGIN
    END
 END Max ;
 
+
+(*
+   writeString - writes a string to stdout.
+*)
+
+PROCEDURE writeString (a: ARRAY OF CHAR) ;
+VAR
+   i: INTEGER ;
+BEGIN
+   i := write(1, ADR(a), StrLen(a))
+END writeString ;
+
+
+(*
+   writeCstring - writes a C string to stdout.
+*)
+
+PROCEDURE writeCstring (a: ADDRESS) ;
+VAR
+   i: INTEGER ;
+BEGIN
+   IF a=NIL
+   THEN
+      writeString('(null)')
+   ELSE
+      i := write(1, a, strlen(a))
+   END
+END writeCstring ;
+
+
+(*
+   writeCard - 
+*)
+
+PROCEDURE writeCard (c: CARDINAL) ;
+VAR
+   ch: CHAR ;
+   i : INTEGER ;
+BEGIN
+   IF c>9
+   THEN
+      writeCard(c DIV 10) ;
+      writeCard(c MOD 10)
+   ELSE
+      ch := CHR(ORD('0')+c) ;
+      i := write(1, ADR(ch), 1)
+   END
+END writeCard ;
+
+
+(*
+   writeLn - writes a newline.
+*)
+
+PROCEDURE writeLn ;
+VAR
+   ch: CHAR ;
+   i : INTEGER ;
+BEGIN
+   ch := lf ;
+   i := write(1, ADR(ch), 1)
+END writeLn ;
 
 (*
    AssignDebug - assigns, file, and, line, information to string, s.
@@ -1371,18 +1433,16 @@ END PushAllocation ;
 
 PROCEDURE DumpState (s: String) ;
 BEGIN
-(*
    CASE s^.contents.len OF
 
-   inuse   :  printf("still in use (length %d chars)", s^.contents.len) |
-   marked  :  printf("marked") |
-   onlist  :  printf("on a garbage list") |
-   poisoned:  printf("poisoned")
+   inuse   :  writeString("still in use (") ; writeCard(s^.contents.len) ; writeString(") characters") |
+   marked  :  writeString("marked") |
+   onlist  :  writeString("on a garbage list") |
+   poisoned:  writeString("poisoned")
 
    ELSE
-      printf("unknown state")
+      writeString("unknown state")
    END
-*)
 END DumpState ;
 
 
@@ -1402,32 +1462,33 @@ VAR
 BEGIN
    IF frameHead=NIL
    THEN
-      (*    printf("mismatched number of PopAllocation's compared to PushAllocation's") *)
-   ELSE
-(*
-      printf("the following strings have been lost\n") ;
+      writeString("mismatched number of PopAllocation's compared to PushAllocation's")
+   ELSIF frameHead^.alloc#NIL
+   THEN
+      writeString("the following strings have been lost") ; writeLn ;
       s := frameHead^.alloc ;
       WHILE s#NIL DO
-         (* printf("%s:%d:%s ", s^.debug.file, s^.debug.line, s^.debug.proc) ; *)
+         writeCstring(s^.debug.file) ; writeString(':') ;
+         writeCard(s^.debug.line) ; writeString(':') ;
+         writeCstring(s^.debug.proc) ; writeString(' ') ;
          CASE s^.contents.len OF
 
-         inuse   :  (* printf("still in use (length %d chars)", s^.contents.len) *) printf("still in use") |
-         marked  :  printf("marked") |
-         onlist  :  printf("on a (lost) garbage list") |
-         poisoned:  printf("poisoned")
+         inuse   :  writeString("still in use (") ; writeCard(s^.contents.len) ; writeString(") characters") |
+         marked  :  writeString("marked") |
+         onlist  :  writeString("on a (lost) garbage list") |
+         poisoned:  writeString("poisoned")
 
          ELSE
-            printf("unknown state")
+            writeString("unknown state")
          END ;
-         printf(" \n") ;
+         writeLn ;
          s := s^.debug.next
       END ;
       IF halt
       THEN
          HALT(1)
       END
-*)
-   END ;
+   END
 END PopAllocation ;
 
 
@@ -1437,14 +1498,16 @@ END PopAllocation ;
 
 PROCEDURE DumpString (s: String) ;
 BEGIN
-(*
    IF s#NIL
    THEN
-      printf("%s:%d:%s ", s^.debug.file, s^.debug.line, s^.debug.proc) ;
+      writeCstring(s^.debug.file) ; writeString(':') ;
+      writeCard(s^.debug.line) ; writeString(':') ;
+      writeCstring(s^.debug.proc) ;
+(*
       printf(" string %p ", s) ;
+*)
       DumpState(s) ;
    END
-*)
 END DumpString ;
 
 

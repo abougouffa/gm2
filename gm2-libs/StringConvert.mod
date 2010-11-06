@@ -755,14 +755,14 @@ BEGIN
    l := Length(s) ;
    IF point>l
    THEN
-      s := ConCat(s, Mark(Mult(InitStringChar('0'), point-l))) ;
+      s := ConCat(s, Mark(Mult(Mark(InitStringChar('0')), point-l))) ;
       s := ConCat(s, Mark(InitString('.0'))) ;
       IF (NOT maxprecision) AND (FractionWidth>0)
       THEN
          DEC(FractionWidth) ;
          IF VAL(INTEGER, FractionWidth)>point-l
          THEN
-            s := ConCat(s, Mark(Mult(InitString('0'), FractionWidth)))
+            s := ConCat(s, Mark(Mult(Mark(InitString('0')), FractionWidth)))
          END
       END
    ELSIF point<0
@@ -772,7 +772,7 @@ BEGIN
       s := ConCat(InitString('0.'), Mark(s)) ;
       IF (NOT maxprecision) AND (l<VAL(INTEGER, FractionWidth))
       THEN
-         s := ConCat(s, Mark(Mult(InitString('0'), VAL(INTEGER, FractionWidth)-l)))
+         s := ConCat(s, Mark(Mult(Mark(InitString('0')), VAL(INTEGER, FractionWidth)-l)))
       END
    ELSE
       IF point=0
@@ -784,7 +784,7 @@ BEGIN
       END ;
       IF (NOT maxprecision) AND (l-point<VAL(INTEGER, FractionWidth))
       THEN
-         s := ConCat(s, Mark(Mult(InitString('0'), VAL(INTEGER, FractionWidth)-(l-point))))
+         s := ConCat(s, Mark(Mult(Mark(InitString('0')), VAL(INTEGER, FractionWidth)-(l-point))))
       END
    END ;
    IF Length(s)>TotalWidth
@@ -919,7 +919,7 @@ BEGIN
    END ;
    IF width>Length(s)
    THEN
-      RETURN( ConCat(Mult(InitStringChar(padding), width-Length(s)), s) )
+      RETURN( ConCat(Mult(Mark(InitStringChar(padding)), width-Length(s)), s) )
    END ;
    RETURN( s )
 END LongCardinalToString ;
@@ -995,7 +995,7 @@ BEGIN
    END ;
    IF width>Length(s)
    THEN
-      RETURN( ConCat(Mult(InitStringChar(padding), width-Length(s)), s) )
+      RETURN( ConCat(Mult(Mark(InitStringChar(padding)), width-Length(s)), s) )
    END ;
    RETURN( s )
 END ShortCardinalToString ;
@@ -1065,7 +1065,7 @@ BEGIN
    THEN
       IF n>0
       THEN
-         RETURN( ConCat(ConCat(s, Mark(InitStringChar('.'))), Mult(InitStringChar('0'), n)) )
+         RETURN( ConCat(ConCat(s, Mark(InitStringChar('.'))), Mult(Mark(InitStringChar('0')), n)) )
       ELSE
          RETURN( s )
       END
@@ -1123,7 +1123,7 @@ BEGIN
       IF (i=l) AND (char(s, i-1)='0')
       THEN
          s := KillString(s) ;
-         s := ConCat(InitString('0.'), Mark(Mult(InitStringChar('0'), n))) ;
+         s := ConCat(InitString('0.'), Mark(Mult(Mark(InitStringChar('0')), n))) ;
          RETURN( s )
       END
    END ;
