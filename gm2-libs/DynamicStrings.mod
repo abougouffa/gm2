@@ -70,6 +70,9 @@ TYPE
                          next          : frame ;
                       END ;
 
+(* %%%FORWARD%%%
+PROCEDURE Init ; FORWARD ;
+   %%%FORWARD%%% *)
 
 VAR
    Initialized: BOOLEAN ;
@@ -172,6 +175,7 @@ VAR
    ch: CHAR ;
    i : INTEGER ;
 BEGIN
+(*
    IF a>16
    THEN
       writeAddress(a DIV 16) ;
@@ -185,6 +189,7 @@ BEGIN
       ch := CHR(ORD('a')+VAL(CARDINAL, a)-10) ;
       i := write(1, ADR(ch), 1)
    END
+*)
 END writeAddress ;
 
 

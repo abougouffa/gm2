@@ -1,5 +1,6 @@
 2010-11-06       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2-libs/DynamicStrings.mod:  added forward declaration.
 	* gm2/gm2-libs/DynamicStrings.mod:  corrected typo.
 	* gm2/gm2-libs/DynamicStrings.mod:  fixed initialization order	
 	  bug by using Init and a boolean.
