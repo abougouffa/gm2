@@ -39,18 +39,19 @@ TYPE
 
    Descriptor = POINTER TO descriptor ;   (* forward declaration necessary for p2c *)
 
-   String = POINTER TO RECORD
-                          contents: Contents ;
-                          head    : Descriptor ;
-                          debug   : DebugInfo ;
-                       END ;
-
    DebugInfo = RECORD
                   next: String ;   (* a mechanism for tracking used/lost strings *)
                   file: ADDRESS ;
                   line: CARDINAL ;
                   proc: ADDRESS ;
                END ;
+
+   String = POINTER TO stringRecord ;
+   stringRecord = RECORD
+                     contents: Contents ;
+                     head    : Descriptor ;
+                     debug   : DebugInfo ;
+                  END ;
 
    descriptor = RECORD
                    charStarUsed : BOOLEAN ;     (* can we garbage collect this? *)
