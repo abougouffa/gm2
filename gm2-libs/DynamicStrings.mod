@@ -167,29 +167,37 @@ END writeCard ;
 
 
 (*
-   writeAddress - 
+   writeLongcard - 
 *)
 
-PROCEDURE writeAddress (a: ADDRESS) ;
+PROCEDURE writeLongcard (l: LONGCARD) ;
 VAR
    ch: CHAR ;
    i : INTEGER ;
 BEGIN
-(*
-   IF a>16
+   IF l>16
    THEN
-      writeAddress(a DIV 16) ;
-      writeAddress(a MOD 16)
-   ELSIF a<10
+      writeLongcard(l DIV 16) ;
+      writeLongcard(l MOD 16)
+   ELSIF l<10
    THEN
-      ch := CHR(ORD('0')+VAL(CARDINAL, a)) ;
+      ch := CHR(ORD('0')+VAL(CARDINAL, l)) ;
       i := write(1, ADR(ch), 1)
-   ELSIF a<16
+   ELSIF l<16
    THEN
-      ch := CHR(ORD('a')+VAL(CARDINAL, a)-10) ;
+      ch := CHR(ORD('a')+VAL(CARDINAL, l)-10) ;
       i := write(1, ADR(ch), 1)
    END
+END writeLongcard ;
+
+
+(*
+   writeAddress - 
 *)
+
+PROCEDURE writeAddress (a: ADDRESS) ;
+BEGIN
+   writeLongcard(VAL(LONGCARD, a))
 END writeAddress ;
 
 
@@ -206,20 +214,25 @@ BEGIN
    i := write(1, ADR(ch), 1)
 END writeLn ;
 
+
 (*
    AssignDebug - assigns, file, and, line, information to string, s.
 *)
 
 PROCEDURE AssignDebug (s: String; file: ARRAY OF CHAR; line: CARDINAL; proc: ARRAY OF CHAR) : String ;
+VAR
+   f, p: ADDRESS ;
 BEGIN
+   f := ADR(file) ;
+   p := ADR(proc) ;
    WITH s^ DO
       ALLOCATE(debug.file, StrLen(file)+1) ;
-      IF strncpy(debug.file, ADR(file), StrLen(file)+1)=NIL
+      IF strncpy(debug.file, f, StrLen(file)+1)=NIL
       THEN
       END ;
       debug.line := line ;
       ALLOCATE(debug.proc, StrLen(proc)+1) ;
-      IF strncpy(debug.proc, ADR(proc), StrLen(proc)+1)=NIL
+      IF strncpy(debug.proc, p, StrLen(proc)+1)=NIL
       THEN
       END
    END ;
@@ -587,6 +600,11 @@ BEGIN
                THEN
                   DeallocateCharStar(s)
                END
+            END ;
+            IF NOT PoisonOn
+            THEN
+               DISPOSE(head) ;
+               head := NIL
             END
          END ;
          t := KillString(s^.contents.next) ;
@@ -1540,21 +1558,52 @@ END PopAllocation ;
 
 
 (*
+   DumpStringSynopsis - 
+*)
+
+PROCEDURE DumpStringSynopsis (s: String) ;
+BEGIN
+   writeCstring(s^.debug.file) ; writeString(':') ;
+   writeCard(s^.debug.line) ; writeString(':') ;
+   writeCstring(s^.debug.proc) ;
+   writeString(' string ') ;
+   writeAddress(s) ;
+   writeString(' ') ;
+   DumpState(s) ;
+   IF IsOnAllocated(s)
+   THEN
+      writeString(' globally allocated')
+   ELSIF IsOnDeallocated(s)
+   THEN
+      writeString(' globally deallocated')
+   ELSE
+      writeString(' globally unknown')
+   END ;
+   writeLn
+END DumpStringSynopsis ;
+
+
+
+(*
    DumpString - displays the contents of string, s.
 *)
 
 PROCEDURE DumpString (s: String) ;
+VAR
+   t: String ;
 BEGIN
    IF s#NIL
    THEN
-      writeCstring(s^.debug.file) ; writeString(':') ;
-      writeCard(s^.debug.line) ; writeString(':') ;
-      writeCstring(s^.debug.proc) ;
-      writeString(' string ') ;
-      writeAddress(s) ;
-      writeString(' ') ;
-      DumpState(s) ;
-      writeLn
+      DumpStringSynopsis(s) ;
+      IF (s^.head#NIL) AND (s^.head^.garbage#NIL)
+      THEN
+         writeString('display chained strings on the garbage list') ; writeLn ;
+         t := s^.head^.garbage ;
+         WHILE t#NIL DO
+            DumpStringSynopsis(t) ;
+            t := t^.head^.garbage
+         END
+      END
    END
 END DumpString ;
 

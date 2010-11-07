@@ -1,3 +1,13 @@
+2010-11-07       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/DynamicStrings.mod:  writeAddress (New procedure),
+	  writeLongcard (New procedure),
+	  DumpStringSynopsis (New procedure).
+	* gm2/gm2-libs-pim/RealConversions.mod:  import debugging
+	  versions of the DynamicString primitives and fix memory leak.
+	* gm2/gm2-libs-pim/RealInOut.mod:  import debugging
+	  versions of the DynamicString primitives and fix memory leak.
+
 2010-11-06       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/DynamicStrings.mod:  added forward declaration.

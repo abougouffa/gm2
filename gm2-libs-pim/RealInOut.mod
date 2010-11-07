@@ -20,7 +20,9 @@ MA 02110-1301, USA *)
 IMPLEMENTATION MODULE RealInOut ;
 
 FROM DynamicStrings IMPORT String, InitString, KillString, RemoveWhitePrefix,
-                           Length, Mult, InitStringChar, Mark, ConCat ;
+                           Length, Mult, InitStringChar, Mark, ConCat,
+                           InitStringDB, InitStringCharStarDB,
+                           InitStringCharDB, MultDB, DupDB, SliceDB ;
 
 FROM StringConvert IMPORT StringToLongreal, LongrealToString ;
 FROM SYSTEM IMPORT ADR, BYTE ;
@@ -29,6 +31,14 @@ IMPORT InOut ;
 VAR
    DecimalPlacesLength: CARDINAL ;
 
+(*
+ #define InitString(X) InitStringDB(X, __FILE__, __LINE__)
+ #define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
+ #define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
+ #define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
+ #define Dup(X) DupDB(X, __FILE__, __LINE__)
+ #define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+*)
 
 (*
    SetNoOfDecimalPlaces - number of decimal places WriteReal and
@@ -52,7 +62,7 @@ PROCEDURE Pad (s: String; n: CARDINAL) : String ;
 BEGIN
    IF Length(s)<n
    THEN
-      s := ConCat(Mult(InitStringChar(' '), n-Length(s)), Mark(s))
+      s := ConCat(Mult(Mark(InitStringChar(' ')), n-Length(s)), Mark(s))
    END ;
    RETURN( s )
 END Pad ;

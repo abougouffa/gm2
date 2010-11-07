@@ -20,7 +20,9 @@ IMPLEMENTATION MODULE RealConversions ;
 
 FROM DynamicStrings IMPORT String, InitString, KillString, CopyOut, Length,
                            ConCat, ConCatChar, Mark, RemoveWhitePrefix,
-                           InitStringChar, Mult, Slice, Index, char, string ;
+                           InitStringChar, Mult, Slice, Index, char, string,
+                           InitStringDB, InitStringCharStarDB,
+                           InitStringCharDB, MultDB, DupDB, SliceDB ;
 
 FROM StringConvert IMPORT LongrealToString, StringToLongreal,
                           StringToLongreal, StringToInteger, itos ;
@@ -38,6 +40,14 @@ CONST
 VAR
    ExponentDigits: CARDINAL ;
 
+(*
+ #define InitString(X) InitStringDB(X, __FILE__, __LINE__)
+ #define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
+ #define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
+ #define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
+ #define Dup(X) DupDB(X, __FILE__, __LINE__)
+ #define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+*)
 
 (*
    logl10 - 
@@ -398,7 +408,7 @@ BEGIN
    ok := TRUE ;
    IF VAL(INTEGER, Length(s))<=width
    THEN
-      s := ConCat(Mult(InitStringChar(' '), width-VAL(INTEGER, Length(s))), Mark(s)) ;
+      s := ConCat(Mult(Mark(InitStringChar(' ')), width-VAL(INTEGER, Length(s))), Mark(s)) ;
       IF Debugging
       THEN
          printf('value returned was %s\n', string(s))
