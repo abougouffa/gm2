@@ -41,12 +41,12 @@ VAR
    ExponentDigits: CARDINAL ;
 
 (*
- #define InitString(X) InitStringDB(X, __FILE__, __LINE__)
- #define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
- #define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
- #define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
- #define Dup(X) DupDB(X, __FILE__, __LINE__)
- #define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+#define InitString(X) InitStringDB(X, __FILE__, __LINE__)
+#define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
+#define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
+#define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
+#define Dup(X) DupDB(X, __FILE__, __LINE__)
+#define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
 *)
 
 (*
@@ -128,14 +128,14 @@ BEGIN
       ELSE
          c := r
       END ;
-      IF r>=1.0
+      IF c>=1.0
       THEN
-         RETURN( VAL(INTEGER, log10l(r)) )         
+         RETURN( VAL(INTEGER, log10l(c)) )
       ELSE
          i := 0 ;
          LOOP
             d := c*powl(10.0, VAL(LONGREAL, i)) ;
-            IF d>1.0
+            IF d>=1.0
             THEN
                RETURN( -i )
             ELSE

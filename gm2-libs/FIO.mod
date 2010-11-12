@@ -35,7 +35,6 @@ FROM StrLib IMPORT StrLen, StrConCat, StrCopy ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM NumberIO IMPORT CardToStr ;
 FROM libc IMPORT exit, open, creat, read, write, close, lseek, strncpy, memcpy ;
-FROM DynamicStrings IMPORT Length, string ;
 FROM Indexing IMPORT Index, InitIndex, InBounds, HighIndice, PutIndice, GetIndice ;
 FROM M2RTS IMPORT InstallTerminationProcedure ;
 

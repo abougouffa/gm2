@@ -1,3 +1,20 @@
+2010-11-12       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/FIO.mod:  removed unnecessary import of FIO.
+	* gm2/gm2-libs/FormatStrings.mod:  included cpp macros for
+	  debugging memory leaks within the module.
+	* gm2/gm2-libs/FpuIO.mod:  included cpp macros for
+	  debugging memory leaks within the module.
+	* gm2/gm2-libs/SArgs.mod:  included cpp macros for
+	  debugging memory leaks within the module.
+	* gm2/gm2-libs/SEnvironment.mod:  included cpp macros for
+	  debugging memory leaks within the module.
+	* gm2/gm2-libs/StringConvert.mod:  included cpp macros for
+	  debugging memory leaks within the module.
+	* gm2/gm2-libs-pim/RealConversions.mod:  included cpp macros for
+	  debugging memory leaks within the module.  Also fixed
+	  doPowerOfTen.
+	
 2010-11-07       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/DynamicStrings.mod:  writeAddress (New procedure),

@@ -31,6 +31,7 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
+
 IMPLEMENTATION MODULE SArgs ;
 
 
@@ -42,6 +43,15 @@ FROM DynamicStrings IMPORT InitStringCharStar ;
 TYPE
    PtrToChar      = POINTER TO CHAR ;
    PtrToPtrToChar = POINTER TO PtrToChar ;
+
+(*
+#define InitString(X) InitStringDB(X, __FILE__, __LINE__)
+#define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
+#define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
+#define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
+#define Dup(X) DupDB(X, __FILE__, __LINE__)
+#define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+*)
 
 
 (*

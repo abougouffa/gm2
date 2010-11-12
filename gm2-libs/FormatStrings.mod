@@ -26,6 +26,15 @@ FROM StringConvert IMPORT IntegerToString, CardinalToString ;
 FROM ASCII IMPORT nul, nl, tab ;
 FROM SYSTEM IMPORT ADDRESS ;
 
+(*
+#define InitString(X) InitStringDB(X, __FILE__, __LINE__)
+#define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
+#define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
+#define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
+#define Dup(X) DupDB(X, __FILE__, __LINE__)
+#define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+*)
+
 
 (*
    IsDigit - returns TRUE if ch lies in the range: 0..9

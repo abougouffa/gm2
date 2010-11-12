@@ -42,12 +42,12 @@ PROCEDURE doDecimalPlaces (s: String; n: CARDINAL) : String ; FORWARD ;
    %%%FORWARD%%% *)
 
 (*
- #define InitString(X) InitStringDB(X, __FILE__, __LINE__)
- #define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
- #define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
- #define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
- #define Dup(X) DupDB(X, __FILE__, __LINE__)
- #define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+#define InitString(X) InitStringDB(X, __FILE__, __LINE__)
+#define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
+#define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
+#define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
+#define Dup(X) DupDB(X, __FILE__, __LINE__)
+#define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
 *)
 
 (*
