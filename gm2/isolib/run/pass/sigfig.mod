@@ -17,7 +17,9 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 MODULE sigfig ;
 
-FROM DynamicStrings IMPORT String, EqualArray, KillString, InitString ;
+FROM DynamicStrings IMPORT String, EqualArray, KillString, InitString,
+                           PushAllocation, PopAllocation ;
+
 FROM StringConvert IMPORT ToSigFig ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NumberIO IMPORT WriteCard ;
@@ -52,6 +54,7 @@ BEGIN
                     tests{ 3, "99.999"      , "100"}} ;
    e := 0 ;
    FOR j := 0 TO HIGH(a) DO
+      PushAllocation ;
       WITH a[j] DO
          t := InitString(i) ;
          s := ToSigFig(t, n) ;
@@ -72,9 +75,9 @@ BEGIN
             WriteString(o) ; WriteString(')')
          END ;
          WriteLn ;
-         s := KillString(s) ;
-         t := KillString(t)
-      END
+         s := KillString(s)
+      END ;
+      PopAllocation(TRUE)
    END ;
    WriteLn ;
    WriteString('The sigfig tests: ') ;

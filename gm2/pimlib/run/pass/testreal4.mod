@@ -46,11 +46,19 @@ BEGIN
    THEN
       WriteString(s) ; WriteLn
    END ;
+   IF NOT StrEqual(s, '1.23456789E-002')
+   THEN
+      WriteString('expecting 1.23456789E-002 and received ') ; WriteString(s) ; WriteLn
+   END ;
    LongRealToString(1.23456789, -8, 15, s, ok) ;
    Assert(StrEqual(s, '1.23456789E+000') AND ok) ;
    IF ok
    THEN
       WriteString(s) ; WriteLn
+   END ;
+   IF NOT StrEqual(s, '1.23456789E+000')
+   THEN
+      WriteString('expecting 1.23456789E+000 and received ') ; WriteString(s) ; WriteLn
    END ;
    HALT(r)
 END testreal4.
