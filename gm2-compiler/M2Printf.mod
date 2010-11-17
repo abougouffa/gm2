@@ -108,16 +108,18 @@ END fprintf0 ;
 
 PROCEDURE fprintf1 (file: File; a: ARRAY OF CHAR; w: ARRAY OF BYTE) ;
 VAR
-   s: String ;
-   n: Name ;
+   s, t: String ;
+   n   : Name ;
 BEGIN
    IF TranslateNameToCharStar(a, 1)
    THEN
       Cast(n, w) ;
       s := Mark(InitStringCharStar(KeyToCharStar(n))) ;
-      s := Sprintf1(Mark(InitString(a)), s)
+      t := Mark(InitString(a)) ;
+      s := Sprintf1(t, s)
    ELSE
-      s := Sprintf1(Mark(InitString(a)), w)
+      t := Mark(InitString(a)) ;
+      s := Sprintf1(t, w)
    END ;
    IF KillString(WriteS(file, s))=NIL
    THEN

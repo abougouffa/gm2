@@ -22,7 +22,9 @@ IMPLEMENTATION MODULE FpuIO ;
 FROM StrIO IMPORT ReadString, WriteString, WriteLn ;
 FROM StrLib IMPORT StrLen, StrRemoveWhitePrefix ;
 FROM ASCII IMPORT nul ;
-FROM DynamicStrings IMPORT String, InitString, KillString, CopyOut ;
+FROM DynamicStrings IMPORT String, InitString, KillString, CopyOut,
+                           InitStringDB, InitStringCharStarDB,
+                           InitStringCharDB, MultDB, DupDB, SliceDB ;
 
 FROM StringConvert IMPORT StringToLongreal, LongrealToString, 
                           LongIntegerToString, StringToLongInteger ;

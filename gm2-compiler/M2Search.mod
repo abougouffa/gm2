@@ -16,6 +16,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 IMPLEMENTATION MODULE M2Search ;
 
 
@@ -24,7 +25,10 @@ FROM M2FileName IMPORT CalculateFileName ;
 
 FROM DynamicStrings IMPORT InitString, InitStringChar,
                            KillString, ConCat, ConCatChar, Index, Slice,
-                           Add, EqualArray, Dup, Mark ;
+                           Add, EqualArray, Dup, Mark,
+                           PushAllocation, PopAllocationExemption,
+                           InitStringDB, InitStringCharStarDB,
+                           InitStringCharDB, MultDB, DupDB, SliceDB ;
 
  
 CONST
@@ -35,6 +39,59 @@ VAR
    UserPath,
    InitialPath: String ;
 
+(*
+#define InitString(X) InitStringDB(X, __FILE__, __LINE__)
+#define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
+#define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
+#define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
+#define Dup(X) DupDB(X, __FILE__, __LINE__)
+#define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+*)
+
+
+(*
+   doDSdbEnter - 
+*)
+
+PROCEDURE doDSdbEnter ;
+BEGIN
+   PushAllocation
+END doDSdbEnter ;
+
+
+(*
+   doDSdbExit - 
+*)
+
+PROCEDURE doDSdbExit (s: String) ;
+BEGIN
+   s := PopAllocationExemption(TRUE, s)
+END doDSdbExit ;
+
+
+(*
+   DSdbEnter - 
+*)
+
+PROCEDURE DSdbEnter ;
+BEGIN
+END DSdbEnter ;
+
+
+(*
+   DSdbExit - 
+*)
+
+PROCEDURE DSdbExit (s: String) ;
+BEGIN
+END DSdbExit ;
+
+
+(*
+#define DSdbEnter doDSdbEnter
+#define DSdbExit  doDSdbExit
+*)
+
 
 (*
    PrependSearchPath - prepends a new path to the initial search path.
@@ -42,13 +99,15 @@ VAR
 
 PROCEDURE PrependSearchPath (path: String) ;
 BEGIN
+   DSdbEnter ;
    IF EqualArray(UserPath, '')
    THEN
       UserPath := KillString(UserPath) ;
       UserPath := Dup(path)
    ELSE
       UserPath := ConCat(ConCatChar(UserPath, ':'), path)
-   END
+   END ;
+   DSdbExit(UserPath)
 END PrependSearchPath ;
 
 

@@ -20,7 +20,10 @@ IMPLEMENTATION MODULE FormatStrings ;
 
 FROM DynamicStrings IMPORT String, InitString, InitStringChar, Mark,
                            ConCat, Slice, Index, char,
-                           Assign, Length, Mult, Dup, ConCatChar ;
+                           Assign, Length, Mult, Dup, ConCatChar,
+                           PushAllocation, PopAllocationExemption,
+                           InitStringDB, InitStringCharStarDB,
+                           InitStringCharDB, MultDB, DupDB, SliceDB ;
 
 FROM StringConvert IMPORT IntegerToString, CardinalToString ;
 FROM ASCII IMPORT nul, nl, tab ;
@@ -33,6 +36,50 @@ FROM SYSTEM IMPORT ADDRESS ;
 #define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
 #define Dup(X) DupDB(X, __FILE__, __LINE__)
 #define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+*)
+
+
+(*
+   doDSdbEnter - 
+*)
+
+PROCEDURE doDSdbEnter ;
+BEGIN
+   PushAllocation
+END doDSdbEnter ;
+
+
+(*
+   doDSdbExit - 
+*)
+
+PROCEDURE doDSdbExit (s: String) ;
+BEGIN
+   s := PopAllocationExemption(TRUE, s)
+END doDSdbExit ;
+
+
+(*
+   DSdbEnter - 
+*)
+
+PROCEDURE DSdbEnter ;
+BEGIN
+END DSdbEnter ;
+
+
+(*
+   DSdbExit - 
+*)
+
+PROCEDURE DSdbExit (s: String) ;
+BEGIN
+END DSdbExit ;
+
+
+(*
+#define DBsbEnter doDBsbEnter
+#define DBsbExit  doDBsbExit
 *)
 
 
@@ -75,6 +122,7 @@ VAR
    i, j: INTEGER ;
    ch  : CHAR ;
 BEGIN
+   DSdbEnter ;
    d := InitString('') ;
    i := Index(s, '\', 0) ;
    j := 0 ;
@@ -101,7 +149,10 @@ BEGIN
       j := i ;
       i := Index(s, '\', CARDINAL(i))
    END ;
-   RETURN( Assign(s, Mark(ConCat(d, Mark(Slice(s, j, 0))))) )
+   (*   s := Assign(s, Mark(ConCat(d, Mark(Slice(s, j, 0))))) ;   (* dont Mark(s) in the Slice as we Assign contents *) *)
+   s := ConCat(d, Mark(Slice(Mark(s), j, 0))) ;
+   DSdbExit(s) ;
+   RETURN( s )
 END HandleEscape ;
 
       
@@ -122,6 +173,7 @@ VAR
    ch, ch2: CHAR ;
    p      : String ;
 BEGIN
+   DSdbEnter ;
    i := 0 ;
    j := Index(s, '%', 0) ;
    IF j=0
@@ -176,23 +228,25 @@ BEGIN
             END
          END ;
          (* include string, p, into s *)
-         RETURN( ConCat(ConCat(Slice(s, i, k), Mark(p)), Slice(s, j+2, 0)) )
+         s := ConCat(ConCat(Slice(s, i, k), Mark(p)), Mark(Slice(s, j+2, 0)))
       ELSIF ch='d'
       THEN
          Cast(c, w) ;
-         RETURN( ConCat(ConCat(Slice(s, i, k), IntegerToString(c, width, leader, FALSE, 10, FALSE)),
-                        Slice(s, j+2, 0)) )
+         s := ConCat(ConCat(Slice(s, i, k), IntegerToString(c, width, leader, FALSE, 10, FALSE)),
+                     Mark(Slice(s, j+2, 0)))
       ELSIF ch='u'
       THEN
          Cast(u, w) ;
-         RETURN( ConCat(ConCat(Slice(s, i, k), CardinalToString(u, width, leader, 10, FALSE)),
-                        Slice(s, j+2, 0)) )
+         s := ConCat(ConCat(Slice(s, i, k), CardinalToString(u, width, leader, 10, FALSE)),
+                     Mark(Slice(s, j+2, 0)))
       ELSE
-         RETURN( ConCat(ConCat(Slice(s, i, k), Mark(InitStringChar(ch))), Slice(s, j+1, 0)) )
+         s := ConCat(ConCat(Slice(s, i, k), Mark(InitStringChar(ch))), Mark(Slice(s, j+1, 0)))
       END
    ELSE
-      RETURN( Dup(s) )
-   END
+      s := Dup(s)
+   END ;
+   DSdbExit(s) ;
+   RETURN( s )
 END FormatString ;
 
 
@@ -203,7 +257,10 @@ END FormatString ;
 
 PROCEDURE Sprintf0 (s: String) : String ;
 BEGIN
-   RETURN( HandleEscape(s) )
+   DSdbEnter ;
+   s := HandleEscape(s) ;
+   DSdbExit(s) ;
+   RETURN( s )
 END Sprintf0 ;
 
 
@@ -212,9 +269,12 @@ END Sprintf0 ;
               entity, w. It only formats the first %s or %d with n.
 *)
 
-PROCEDURE Sprintf1 (s: String; w: ARRAY OF BYTE) ;
+PROCEDURE Sprintf1 (s: String; w: ARRAY OF BYTE) : String ;
 BEGIN
-   RETURN( FormatString(HandleEscape(s), w) )
+   DSdbEnter ;
+   s := FormatString(HandleEscape(s), w) ;
+   DSdbExit(s) ;
+   RETURN( s )
 END Sprintf1 ;
 
 
@@ -224,7 +284,10 @@ END Sprintf1 ;
 
 PROCEDURE Sprintf2 (s: String; w1, w2: ARRAY OF BYTE) : String ;
 BEGIN
-   RETURN( FormatString(FormatString(HandleEscape(s), w1), w2) )
+   DSdbEnter ;
+   s := FormatString(FormatString(HandleEscape(s), w1), w2) ;
+   DSdbExit(s) ;
+   RETURN( s )
 END Sprintf2 ;
 
 
@@ -234,7 +297,10 @@ END Sprintf2 ;
 
 PROCEDURE Sprintf3 (s: String; w1, w2, w3: ARRAY OF BYTE) : String ;
 BEGIN
-   RETURN( FormatString(FormatString(FormatString(HandleEscape(s), w1), w2), w3) )
+   DSdbEnter ;
+   s := FormatString(FormatString(FormatString(HandleEscape(s), w1), w2), w3) ;
+   DSdbExit(s) ;
+   RETURN( s )
 END Sprintf3 ;
 
 
@@ -244,7 +310,10 @@ END Sprintf3 ;
 
 PROCEDURE Sprintf4 (s: String; w1, w2, w3, w4: ARRAY OF BYTE) : String ;
 BEGIN
-   RETURN( FormatString(FormatString(FormatString(FormatString(HandleEscape(s), w1), w2), w3), w4) )
+   DSdbEnter ;
+   s := FormatString(FormatString(FormatString(FormatString(HandleEscape(s), w1), w2), w3), w4) ;
+   DSdbExit(s) ;
+   RETURN( s )
 END Sprintf4 ;
 
 

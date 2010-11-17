@@ -29,12 +29,68 @@ FROM libc IMPORT exit ;
 FROM Debug IMPORT Halt ;
 
 FROM DynamicStrings IMPORT String, Length, InitString, Mark, Slice, EqualArray,
-                           InitStringCharStar, ConCatChar, ConCat ;
+                           InitStringCharStar, ConCatChar, ConCat, KillString,
+                           PushAllocation, PopAllocationExemption,
+                           InitStringDB, InitStringCharStarDB,
+                           InitStringCharDB, MultDB, DupDB, SliceDB ;
+
+(*
+#define InitString(X) InitStringDB(X, __FILE__, __LINE__)
+#define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
+#define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
+#define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
+#define Dup(X) DupDB(X, __FILE__, __LINE__)
+#define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+*)
 
 
 VAR
    CppAndArgs : String ;
    SeenSources: BOOLEAN ;
+
+
+(*
+   doDSdbEnter - 
+*)
+
+PROCEDURE doDSdbEnter ;
+BEGIN
+   PushAllocation
+END doDSdbEnter ;
+
+
+(*
+   doDSdbExit - 
+*)
+
+PROCEDURE doDSdbExit (s: String) ;
+BEGIN
+   s := PopAllocationExemption(TRUE, s)
+END doDSdbExit ;
+
+
+(*
+   DSdbEnter - 
+*)
+
+PROCEDURE DSdbEnter ;
+BEGIN
+END DSdbEnter ;
+
+
+(*
+   DSdbExit - 
+*)
+
+PROCEDURE DSdbExit (s: String) ;
+BEGIN
+END DSdbExit ;
+
+
+(*
+#define DSdbEnter doDSdbEnter
+#define DSdbExit  doDSdbExit
+*)
 
 
 (*
@@ -68,6 +124,7 @@ PROCEDURE ScanCppArgs (i: CARDINAL) : CARDINAL ;
 VAR
    s: String ;
 BEGIN
+   DSdbEnter ;
    IF GetArg(s, i) AND EqualArray(s, '-fcppbegin')
    THEN
       INC(i) ;
@@ -83,6 +140,7 @@ BEGIN
          INC(i)
       END
    END ;
+   DSdbExit(NIL) ;
    RETURN( i )
 END ScanCppArgs ;
 
@@ -102,17 +160,18 @@ BEGIN
    THEN
       i := 1 ;
       REPEAT
+         DSdbEnter ;
          IF GetArg(s, i)
          THEN
             IF EqualArray(Mark(Slice(s, 0, 2)), '-I')
             THEN
-               PrependSearchPath(Slice(s, 2, 0))
+               PrependSearchPath(Mark(Slice(s, 2, 0)))
             ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-fdef=')
             THEN
-               SetDefExtension(Slice(s, 6, 0))
+               SetDefExtension(Mark(Slice(s, 6, 0)))
             ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-fmod=')
             THEN
-               SetModExtension(Slice(s, 6, 0))
+               SetModExtension(Mark(Slice(s, 6, 0)))
             ELSIF EqualArray(s, '-fcppbegin')
             THEN
                i := ScanCppArgs(i)
@@ -131,6 +190,8 @@ BEGIN
                *)
             END
          END ;
+         DSdbExit(s) ;
+         s := KillString(s) ;
          INC(i)
       UNTIL i>n
    END
@@ -147,13 +208,18 @@ VAR
    s: String ;
    i: CARDINAL ;
 BEGIN
+   DSdbEnter ;
    i := 1 ;
    WHILE GetArg(s, i) DO
+      DSdbEnter ;
       IF IsAnOption(s)
       THEN
       END ;
+      s := KillString(s) ;
+      DSdbExit(NIL) ;
       INC(i)
-   END
+   END ;
+   DSdbExit(NIL)
 END ScanForInitialOptions ;
 
 
@@ -293,6 +359,7 @@ PROCEDURE IsAnOption (s: String) : BOOLEAN ;
 VAR
    Legal: BOOLEAN ;
 BEGIN
+   DSdbEnter ;
    IF EqualArray(Mark(Slice(s, 0, 2)), '-g')
    THEN
       GenerateDebugging := TRUE ;
@@ -543,6 +610,7 @@ BEGIN
    ELSE
       Legal := FALSE
    END ;
+   DSdbExit(NIL) ;
    RETURN( Legal )
 END IsAnOption ;
 

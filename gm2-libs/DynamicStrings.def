@@ -37,7 +37,8 @@ EXPORT QUALIFIED String,
                  RemoveWhitePrefix, RemoveWhitePostfix, RemoveComment,
                  char, string,
                  InitStringDB, InitStringCharStarDB, InitStringCharDB,
-                 MultDB, DupDB, SliceDB, PushAllocation, PopAllocation ;
+                 MultDB, DupDB, SliceDB,
+                 PushAllocation, PopAllocation, PopAllocationExemption ;
 
 TYPE
    String ;
@@ -349,6 +350,21 @@ PROCEDURE PushAllocation ;
 *)
 
 PROCEDURE PopAllocation (halt: BOOLEAN) ;
+
+
+(*
+   PopAllocationExemption - test to see that all strings are deallocated, except
+                            string, e, since the last push.
+                            Then it pops to the previous allocation/deallocation
+                            lists.
+
+                            If halt is true then the application terminates
+                            with an exit code of 1.
+
+                            The string, e, is returned unmodified,
+*)
+
+PROCEDURE PopAllocationExemption (halt: BOOLEAN; e: String) : String ;
 
 
 END DynamicStrings.

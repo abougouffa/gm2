@@ -809,6 +809,8 @@ GM2_O_S3=-O
 # GM2_G=-gstabs+
 GM2_G=-g
 GM2_CPP=
+# GM2_DEBUG_STRMEM=-fcpp
+GM2_DEBUG_STRMEM=
 GM2_FLAGS=-fsoft-check-all $(GM2_G) $(GM2_O) \
  -funbounded-by-reference -fpim -fextended-opaque \
  -Wpedantic-cast -Wpedantic-param-names -ffunction-sections \
@@ -1471,6 +1473,21 @@ gm2/gm2-libiberty/xlibc.o: $(srcdir)/gm2/gm2-libs-ch/xlibc.c
 
 gm2/gm2-libs/%.o: $(srcdir)/gm2/gm2-libs/%.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c -g -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/gm2-libs -Wall $(INCLUDES) $< -o $@
+
+gm2/gm2-libs/DynamicStrings.o: $(srcdir)/gm2/gm2-libs/DynamicStrings.mod
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(GM2_DEBUG_STRMEM) $< -o $@
+
+gm2/gm2-libs/FormatStrings.o: $(srcdir)/gm2/gm2-libs/FormatStrings.mod
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(GM2_DEBUG_STRMEM) $< -o $@
+
+gm2/gm2-compiler/M2Options.o: $(srcdir)/gm2/gm2-compiler/M2Options.mod
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(GM2_DEBUG_STRMEM) $< -o $@
+
+gm2/gm2-compiler/M2Search.o: $(srcdir)/gm2/gm2-compiler/M2Search.mod
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(GM2_DEBUG_STRMEM) $< -o $@
+
+gm2/gm2-compiler/M2Quads.o: $(srcdir)/gm2/gm2-compiler/M2Quads.mod
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(GM2_DEBUG_STRMEM) $< -o $@
 
 gm2/gm2-libs/%.o: $(srcdir)/gm2/gm2-libs/%.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $< -o $@

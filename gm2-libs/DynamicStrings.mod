@@ -28,8 +28,10 @@ FROM ASCII IMPORT nul, tab, lf ;
 
 CONST
    MaxBuf   = 127 ;
-   PoisonOn = FALSE ;    (* to enable debugging, turn on PoisonOn and DebugOn  *)
+   PoisonOn = FALSE ;    (* to enable debugging of this module, turn on PoisonOn and DebugOn  *)
    DebugOn  = FALSE ;
+   CheckOn  = FALSE ;    (* to enable debugging of users of this module turn on               *)
+   TraceOn  = FALSE ;    (* CheckOn and TraceOn.                                              *)
 
 TYPE
    Contents = RECORD
@@ -65,19 +67,226 @@ TYPE
                                                    once this string is killed *)
                 END ;
 
-   frame = POINTER TO RECORD
-                         alloc, dealloc: String ;
-                         next          : frame ;
-                      END ;
+   frame    = POINTER TO frameRec ;
+   frameRec =            RECORD
+                            alloc, dealloc: String ;
+                            next          : frame ;
+                         END ;
 
 (* %%%FORWARD%%%
 PROCEDURE Init ; FORWARD ;
+PROCEDURE writeCstring (a: ADDRESS) ; FORWARD ;
+PROCEDURE writeString (a: ARRAY OF CHAR) ; FORWARD ;
+PROCEDURE writeCard (c: CARDINAL) ; FORWARD ;
+PROCEDURE writeLongcard (l: LONGCARD) ; FORWARD ;
+PROCEDURE writeAddress (a: ADDRESS) ; FORWARD ;
+PROCEDURE writeLn ; FORWARD ;
+PROCEDURE IsOnGarbage (e, s: String) : BOOLEAN ; FORWARD ;
    %%%FORWARD%%% *)
 
 VAR
    Initialized: BOOLEAN ;
    frameHead  : frame ;
    captured   : String ;  (* debugging aid *)
+
+
+(*
+   writeStringDesc - 
+*)
+
+PROCEDURE writeStringDesc (s: String) ;
+BEGIN
+   writeCstring(s^.debug.file) ; writeString(':') ;
+   writeCard(s^.debug.line) ; writeString(':') ;
+   writeCstring(s^.debug.proc) ; writeString(' ') ;
+   writeAddress(s) ;
+   writeString(' ') ;
+   CASE s^.head^.state OF
+
+   inuse   :  writeString("still in use (") ; writeCard(s^.contents.len) ; writeString(") characters") |
+   marked  :  writeString("marked") |
+   onlist  :  writeString("on a (lost) garbage list") |
+   poisoned:  writeString("poisoned")
+
+   ELSE
+      writeString("unknown state")
+   END
+END writeStringDesc ;
+
+
+(*
+   writeNspace - 
+*)
+
+PROCEDURE writeNspace (n: CARDINAL) ;
+BEGIN
+   WHILE n>0 DO
+      writeString(' ') ;
+      DEC(n)
+   END
+END writeNspace ;
+
+
+(*
+   DumpStringInfo - 
+*)
+
+PROCEDURE DumpStringInfo (s: String; i: CARDINAL) ;
+VAR
+   t: String ;
+BEGIN
+   IF s#NIL
+   THEN
+      writeNspace(i) ; writeStringDesc(s) ; writeLn ;
+      IF s^.head^.garbage#NIL
+      THEN
+         writeNspace(i) ; writeString('garbage list:') ; writeLn ;
+         REPEAT
+            s := s^.head^.garbage ;
+            DumpStringInfo(s, i+1) ; writeLn
+         UNTIL s=NIL
+      END
+   END
+END DumpStringInfo ;
+
+
+(*
+   PopAllocationExemption - test to see that all strings are deallocated, except
+                            string, e, since the last push.
+                            Then it pops to the previous allocation/deallocation
+                            lists.
+
+                            If halt is true then the application terminates
+                            with an exit code of 1.
+*)
+
+PROCEDURE PopAllocationExemption (halt: BOOLEAN; e: String) : String ;
+VAR
+   s: String ;
+   f: frame ;
+   b: BOOLEAN ;
+BEGIN
+   Init ;
+   IF frameHead=NIL
+   THEN
+      writeString("mismatched number of PopAllocation's compared to PushAllocation's")
+   ELSE
+      IF frameHead^.alloc#NIL
+      THEN
+         b := FALSE ;
+         s := frameHead^.alloc ;
+         WHILE s#NIL DO
+            IF NOT ((e=s) OR IsOnGarbage(e, s) OR IsOnGarbage(s, e))
+            THEN
+               IF NOT b
+               THEN
+                  writeString("the following strings have been lost") ; writeLn ;
+                  b := TRUE
+               END ;
+               DumpStringInfo(s, 0)
+            END ;
+            s := s^.debug.next
+         END ;
+         IF b AND halt
+         THEN
+            exit(1)
+         END
+      END ;
+      frameHead := frameHead^.next
+   END ;
+   RETURN( e )
+END PopAllocationExemption ;
+
+
+(*
+   PopAllocation - test to see that all strings are deallocated since
+                   the last push.  Then it pops to the previous
+                   allocation/deallocation lists.
+
+                   If halt is true then the application terminates
+                   with an exit code of 1.
+*)
+
+PROCEDURE PopAllocation (halt: BOOLEAN) ;
+BEGIN
+   IF PopAllocationExemption(halt, NIL)=NIL
+   THEN
+   END
+END PopAllocation ;
+
+
+(*
+   PushAllocation - pushes the current allocation/deallocation lists.
+*)
+
+PROCEDURE PushAllocation ;
+VAR
+   f: frame ;
+BEGIN
+   IF CheckOn
+   THEN
+      Init ;
+      NEW(f) ;
+      WITH f^ DO
+         next := frameHead ;
+         alloc := NIL ;
+         dealloc := NIL
+      END ;
+      frameHead := f
+   END
+END PushAllocation ;
+
+
+(*
+   doDSdbEnter - 
+*)
+
+PROCEDURE doDSdbEnter ;
+BEGIN
+   IF CheckOn
+   THEN
+      PushAllocation
+   END
+END doDSdbEnter ;
+
+
+(*
+   doDSdbExit - 
+*)
+
+PROCEDURE doDSdbExit (s: String) ;
+BEGIN
+   IF CheckOn
+   THEN
+      s := PopAllocationExemption(TRUE, s)
+   END
+END doDSdbExit ;
+
+
+(*
+   DSdbEnter - 
+*)
+
+PROCEDURE DSdbEnter ;
+BEGIN
+END DSdbEnter ;
+
+
+(*
+   DSdbExit - 
+*)
+
+PROCEDURE DSdbExit (s: String) ;
+BEGIN
+END DSdbExit ;
+
+
+(*
+#define DSdbEnter doDSdbEnter
+#define DSdbExit  doDSdbExit
+#define CheckOn   TRUE
+#define TraceOn   TRUE
+*)
 
 
 PROCEDURE Capture (s: String) : CARDINAL ;
@@ -446,7 +655,7 @@ BEGIN
       SubAllocated(s) ;
       AddDeallocated(s)
    ELSE
-      Assert(NOT DebugOn) ;
+      Assert(NOT DebugOn)
       (* string has not been allocated *)
    END
 END SubDebugInfo ;
@@ -464,7 +673,10 @@ BEGIN
       debug.line := 0 ;
       debug.proc := NIL ;
    END ;
-   AddAllocated(s)
+   IF CheckOn
+   THEN
+      AddAllocated(s)
+   END
 END AddDebugInfo ;
 
 
@@ -528,6 +740,10 @@ BEGIN
       END
    END ;
    AddDebugInfo(s) ;
+   IF TraceOn
+   THEN
+      s := AssignDebug(s, __FILE__, __LINE__, __FUNCTION__)
+   END ;
    RETURN( s )
 END InitString ;
 
@@ -583,12 +799,15 @@ BEGIN
    END ;
    IF s#NIL
    THEN
-      IF IsOnAllocated(s)
+      IF CheckOn
       THEN
-         SubAllocated(s)
-      ELSIF IsOnDeallocated(s)
-      THEN
-         SubDeallocated(s)
+         IF IsOnAllocated(s)
+         THEN
+            SubAllocated(s)
+         ELSIF IsOnDeallocated(s)
+         THEN
+            SubDeallocated(s)
+         END
       END ;
       WITH s^ DO
          IF head#NIL
@@ -680,7 +899,10 @@ BEGIN
          ConcatContentsAddress(contents, p, h-j) ;
       END ;
       AddDebugInfo(c.next) ;
-      c.next := AssignDebug(c.next, __FILE__, __LINE__, __FUNCTION__)
+      IF TraceOn
+      THEN
+         c.next := AssignDebug(c.next, __FILE__, __LINE__, __FUNCTION__)
+      END
    ELSE
       c.len := i ;
       c.next := NIL
@@ -717,6 +939,10 @@ BEGIN
       END
    END ;
    AddDebugInfo(s) ;
+   IF TraceOn
+   THEN
+      s := AssignDebug(s, __FILE__, __LINE__, __FUNCTION__)
+   END ;
    RETURN( s )
 END InitStringCharStar ;
 
@@ -728,10 +954,16 @@ END InitStringCharStar ;
 PROCEDURE InitStringChar (ch: CHAR) : String ;
 VAR
    a: ARRAY [0..1] OF CHAR ;
+   s: String ;
 BEGIN
    a[0] := ch ;
    a[1] := nul ;
-   RETURN( InitString(a) )
+   s := InitString(a) ;
+   IF TraceOn
+   THEN
+      s := AssignDebug(s, __FILE__, __LINE__, __FUNCTION__)
+   END ;
+   RETURN( s )
 END InitStringChar ;
 
 
@@ -781,10 +1013,35 @@ BEGIN
          c := c^.head^.garbage
       END ;
       c^.head^.garbage := b ;
-      b^.head^.state := onlist
+      b^.head^.state := onlist ;
+      IF CheckOn
+      THEN
+         SubDebugInfo(b)
+      END
    END ;
    RETURN( a )
 END AddToGarbage ;
+
+
+(*
+   IsOnGarbage - returns TRUE if, s, is on string, e, garbage list.
+*)
+
+PROCEDURE IsOnGarbage (e, s: String) : BOOLEAN ;
+BEGIN
+   IF (e#NIL) AND (s#NIL)
+   THEN
+      WHILE e^.head^.garbage#NIL DO
+         IF e^.head^.garbage=s
+         THEN
+            RETURN( TRUE )
+         ELSE
+            e := e^.head^.garbage
+         END
+      END
+   END ;
+   RETURN( FALSE )
+END IsOnGarbage ;
 
 
 (*
@@ -897,7 +1154,12 @@ BEGIN
    THEN
       s := CheckPoisoned(s)
    END ;
-   RETURN( Assign(InitString(''), s) )
+   s := Assign(InitString(''), s) ;
+   IF TraceOn
+   THEN
+      s := AssignDebug(s, __FILE__, __LINE__, __FUNCTION__)
+   END ;
+   RETURN( s )
 END Dup ;
 
 
@@ -912,7 +1174,12 @@ BEGIN
       a := CheckPoisoned(a) ;
       b := CheckPoisoned(b)
    END ;
-   RETURN( ConCat(ConCat(InitString(''), a), b) )
+   a := ConCat(ConCat(InitString(''), a), b) ;
+   IF TraceOn
+   THEN
+      a := AssignDebug(a, __FILE__, __LINE__, __FUNCTION__)
+   END ;
+   RETURN( a )
 END Add ;
 
 
@@ -973,6 +1240,11 @@ BEGIN
       s := CheckPoisoned(s)
    END ;
    t := InitStringCharStar(a) ;
+   IF TraceOn
+   THEN
+      t := AssignDebug(t, __FILE__, __LINE__, __FUNCTION__)
+   END ;
+   t := AddToGarbage(t, s) ;
    IF Equal(t, s)
    THEN
       t := KillString(t) ;
@@ -998,6 +1270,11 @@ BEGIN
       s := CheckPoisoned(s)
    END ;
    t := InitString(a) ;
+   IF TraceOn
+   THEN
+      t := AssignDebug(t, __FILE__, __LINE__, __FUNCTION__)
+   END ;
+   t := AddToGarbage(t, s) ;
    IF Equal(t, s)
    THEN
       t := KillString(t) ;
@@ -1021,10 +1298,15 @@ BEGIN
    END ;
    IF n<=0
    THEN
-      RETURN( AddToGarbage(InitString(''), s) )
+      s := AddToGarbage(InitString(''), s)
    ELSE
-      RETURN( ConCat(Mult(s, n-1), s) )
-   END
+      s := ConCat(Mult(s, n-1), s)
+   END ;
+   IF TraceOn
+   THEN
+      s := AssignDebug(s, __FILE__, __LINE__, __FUNCTION__)
+   END ;
+   RETURN( s )
 END Mult ;
 
 
@@ -1088,7 +1370,10 @@ BEGIN
                      contents.len := 0
                   END ;
                   AddDebugInfo(t^.contents.next) ;
-                  t^.contents.next := AssignDebug(t^.contents.next, __FILE__, __LINE__, __FUNCTION__)
+                  IF TraceOn
+                  THEN
+                     t^.contents.next := AssignDebug(t^.contents.next, __FILE__, __LINE__, __FUNCTION__)
+                  END
                END ;
                t := t^.contents.next
             END ;
@@ -1101,6 +1386,10 @@ BEGIN
          INC(o, s^.contents.len) ;
          s := s^.contents.next
       END ;
+   END ;
+   IF TraceOn
+   THEN
+      d := AssignDebug(d, __FILE__, __LINE__, __FUNCTION__)
    END ;
    RETURN( d )
 END Slice ;
@@ -1205,13 +1494,16 @@ BEGIN
    i := Index(s, comment, 0) ;
    IF i=0
    THEN
-      RETURN( InitString('') )
+      s := InitString('')
    ELSIF i>0
    THEN
-      RETURN( RemoveWhitePostfix(Slice(Mark(s), 0, i)) )
-   ELSE
-      RETURN( s )
-   END
+      s := RemoveWhitePostfix(Slice(Mark(s), 0, i))
+   END ;
+   IF TraceOn
+   THEN
+      s := AssignDebug(s, __FILE__, __LINE__, __FUNCTION__)
+   END ;
+   RETURN( s )
 END RemoveComment ;
 
 
@@ -1318,7 +1610,12 @@ BEGIN
    WHILE IsWhite(char(s, i)) DO
       INC(i)
    END ;
-   RETURN( Slice(s, INTEGER(i), 0) )
+   s := Slice(s, INTEGER(i), 0) ;
+   IF TraceOn
+   THEN
+      s := AssignDebug(s, __FILE__, __LINE__, __FUNCTION__)
+   END ;
+   RETURN( s )
 END RemoveWhitePrefix ;
 
 
@@ -1335,7 +1632,12 @@ BEGIN
    WHILE (i>=0) AND IsWhite(char(s, i)) DO
       DEC(i)
    END ;
-   RETURN( Slice(s, 0, i+1) )
+   s := Slice(s, 0, i+1) ;
+   IF TraceOn
+   THEN
+      s := AssignDebug(s, __FILE__, __LINE__, __FUNCTION__)
+   END ;
+   RETURN( s )
 END RemoveWhitePostfix ;
 
 
@@ -1466,27 +1768,11 @@ END DupDB ;
 PROCEDURE SliceDB (s: String; low, high: INTEGER;
                    file: ARRAY OF CHAR; line: CARDINAL) : String ;
 BEGIN
-   RETURN( AssignDebug(Slice(s, low, high), file, line, 'Slice') )
+   DSdbEnter ;
+   s := AssignDebug(Slice(s, low, high), file, line, 'Slice') ;
+   DSdbExit(s) ;
+   RETURN( s )
 END SliceDB ;
-
-
-(*
-   PushAllocation - pushes the current allocation/deallocation lists.
-*)
-
-PROCEDURE PushAllocation ;
-VAR
-   f: frame ;
-BEGIN
-   Init ;
-   NEW(f) ;
-   WITH f^ DO
-      next := frameHead ;
-      alloc := NIL ;
-      dealloc := NIL
-   END ;
-   frameHead := f
-END PushAllocation ;
 
 
 (*
@@ -1495,7 +1781,7 @@ END PushAllocation ;
 
 PROCEDURE DumpState (s: String) ;
 BEGIN
-   CASE s^.contents.len OF
+   CASE s^.head^.state OF
 
    inuse   :  writeString("still in use (") ; writeCard(s^.contents.len) ; writeString(") characters") |
    marked  :  writeString("marked") |
@@ -1506,55 +1792,6 @@ BEGIN
       writeString("unknown state")
    END
 END DumpState ;
-
-
-(*
-   PopAllocation - test to see that all strings are deallocated since
-                   the last push.  Then it pops to the previous
-                   allocation/deallocation lists.
-
-                   If halt is true then the application terminates
-                   with an exit code of 1.
-*)
-
-PROCEDURE PopAllocation (halt: BOOLEAN) ;
-VAR
-   s: String ;
-   f: frame ;
-BEGIN
-   Init ;
-   IF frameHead=NIL
-   THEN
-      writeString("mismatched number of PopAllocation's compared to PushAllocation's")
-   ELSIF frameHead^.alloc#NIL
-   THEN
-      writeString("the following strings have been lost") ; writeLn ;
-      s := frameHead^.alloc ;
-      WHILE s#NIL DO
-         writeCstring(s^.debug.file) ; writeString(':') ;
-         writeCard(s^.debug.line) ; writeString(':') ;
-         writeCstring(s^.debug.proc) ; writeString(' ') ;
-         writeAddress(s) ;
-         writeString(' ') ;
-         CASE s^.contents.len OF
-
-         inuse   :  writeString("still in use (") ; writeCard(s^.contents.len) ; writeString(") characters") |
-         marked  :  writeString("marked") |
-         onlist  :  writeString("on a (lost) garbage list") |
-         poisoned:  writeString("poisoned")
-
-         ELSE
-            writeString("unknown state")
-         END ;
-         writeLn ;
-         s := s^.debug.next
-      END ;
-      IF halt
-      THEN
-         exit(1)
-      END
-   END
-END PopAllocation ;
 
 
 (*
@@ -1581,7 +1818,6 @@ BEGIN
    END ;
    writeLn
 END DumpStringSynopsis ;
-
 
 
 (*

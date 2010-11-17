@@ -30,7 +30,10 @@ FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3,
                         MetaErrorString1, MetaErrorString2 ;
 
 FROM DynamicStrings IMPORT String, string, InitString, KillString, 
-                           ConCat, InitStringCharStar, Dup, Mark ;
+                           ConCat, InitStringCharStar, Dup, Mark,
+                           PushAllocation, PopAllocationExemption,
+                           InitStringDB, InitStringCharStarDB,
+                           InitStringCharDB, MultDB, DupDB, SliceDB ;
 
 FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         MakeTemporary,
@@ -493,6 +496,60 @@ PROCEDURE BuildIntFunction (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE PushTFD (True, False, Dim: WORD) ; FORWARD ;
 PROCEDURE PopTFD (VAR True, False, Dim: WORD) ; FORWARD ;
    %%%FORWARD%%% *)
+
+
+(*
+#define InitString(X) InitStringDB(X, __FILE__, __LINE__)
+#define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
+#define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
+#define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
+#define Dup(X) DupDB(X, __FILE__, __LINE__)
+#define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+*)
+
+
+(*
+   doDSdbEnter - 
+*)
+
+PROCEDURE doDSdbEnter ;
+BEGIN
+   PushAllocation
+END doDSdbEnter ;
+
+
+(*
+   doDSdbExit - 
+*)
+
+PROCEDURE doDSdbExit (s: String) ;
+BEGIN
+   s := PopAllocationExemption(TRUE, s)
+END doDSdbExit ;
+
+
+(*
+   DSdbEnter - 
+*)
+
+PROCEDURE DSdbEnter ;
+BEGIN
+END DSdbEnter ;
+
+
+(*
+   DSdbExit - 
+*)
+
+PROCEDURE DSdbExit (s: String) ;
+BEGIN
+END DSdbExit ;
+
+
+(*
+#define DBsbEnter doDBsbEnter
+#define DBsbExit  doDBsbExit
+*)
 
 
 (*
@@ -11872,7 +11929,9 @@ END DisplayStack ;
 
 PROCEDURE DisplayQuad (QuadNo: CARDINAL) ;
 BEGIN
-   printf1('%4d  ', QuadNo) ; WriteQuad(QuadNo) ; printf0('\n')
+   DSdbEnter ;
+   printf1('%4d  ', QuadNo) ; WriteQuad(QuadNo) ; printf0('\n') ;
+   DSdbExit(NIL)
 END DisplayQuad ;
 
 

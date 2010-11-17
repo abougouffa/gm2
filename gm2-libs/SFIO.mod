@@ -20,9 +20,22 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE SFIO ;
 
 FROM ASCII IMPORT nul ;
-FROM DynamicStrings IMPORT string, Length, InitString, ConCatChar ;
+
+FROM DynamicStrings IMPORT string, Length, InitString, ConCatChar,
+                           InitStringDB, InitStringCharStarDB,
+                           InitStringCharDB, MultDB, DupDB, SliceDB ;
+
 FROM FIO IMPORT exists, openToRead, openToWrite, openForRandom, WriteNBytes, ReadChar,
                 EOLN, EOF, IsNoError ;
+
+(*
+#define InitString(X) InitStringDB(X, __FILE__, __LINE__)
+#define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
+#define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
+#define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
+#define Dup(X) DupDB(X, __FILE__, __LINE__)
+#define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+*)
 
 
 (*

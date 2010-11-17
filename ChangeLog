@@ -1,3 +1,34 @@
+2010-11-17       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  compile static versions of
+	  DynamicStrings, FormatStrings, M2Quads, M2Options, M2Search
+	  with $(GM2_DEBUG_STRMEM) (-fcpp) flag to track down any
+	  memory leaks.
+	* gm2/gm2-compiler/M2Options.mod:  changes to allow debugging
+	  code to be included if -fcpp is used.
+	* gm2/gm2-compiler/M2Printf.mod:  changes to allow debugging
+	  code to be included if -fcpp is used.
+	* gm2/gm2-compiler/M2Quads.mod:  changes to allow debugging
+	  code to be included if -fcpp is used.
+	* gm2/gm2-compiler/M2Search.mod:  changes to allow debugging
+	  code to be included if -fcpp is used.
+	* gm2/gm2-libs/DynamicStrings.def:  added definition for
+	  PopAllocationExemption.
+	* gm2/gm2-libs/DynamicStrings.mod:  fixed memory leaks and
+	  bugs related to deallocating strings.
+	* gm2/gm2-libs/FormatStrings.mod:  changes to allow debugging
+	  code to be included if -fcpp is used.  Also fixed memory
+	  leaks, which occurred if strings were not Mark'ed.
+	* gm2/gm2-libs/FpuIO.mod:  tidied up header comment and added
+	  DynamicString debugging code.
+	* gm2/gm2-libs/SEnvironment.mod:  tidied up header comment and
+	  added DynamicString debugging code.
+	* gm2/gm2-libs/SFIO.mod:  tidied up header comment and
+	  added DynamicString debugging code.
+	* gm2/gm2-libs/StringConvert.mod:  changes to allow debugging
+	  code to be included if -fcpp is used.  Also fixed memory
+	  leaks, which occurred if strings were not Mark'ed.
+
 2010-11-12       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/FIO.mod:  removed unnecessary import of FIO.

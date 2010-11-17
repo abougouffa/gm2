@@ -24,6 +24,8 @@ FROM libc IMPORT free, printf ;
 FROM libm IMPORT powl ;
 FROM M2RTS IMPORT ErrorMessage ;
 
+IMPORT DynamicStrings ;
+
 FROM DynamicStrings IMPORT String, InitString,
                            InitStringChar, InitStringCharStar,
                            Mark, ConCat, Dup, string,
@@ -294,9 +296,9 @@ BEGIN
          END
       END
    END ;
-   IF width>Length(s)
+   IF width>DynamicStrings.Length(s)
    THEN
-      RETURN( ConCat(Mult(Mark(InitStringChar(padding)), width-Length(s)), Mark(s)) )
+      RETURN( ConCat(Mult(Mark(InitStringChar(padding)), width-DynamicStrings.Length(s)), Mark(s)) )
    END ;
    RETURN( s )
 END IntegerToString ;
@@ -334,9 +336,9 @@ BEGIN
          END
       END
    END ;
-   IF width>Length(s)
+   IF width>DynamicStrings.Length(s)
    THEN
-      RETURN( ConCat(Mult(Mark(InitStringChar(padding)), width-Length(s)), s) )
+      RETURN( ConCat(Mult(Mark(InitStringChar(padding)), width-DynamicStrings.Length(s)), s) )
    END ;
    RETURN( s )
 END CardinalToString ;
@@ -407,9 +409,9 @@ BEGIN
          END
       END
    END ;
-   IF width>Length(s)
+   IF width>DynamicStrings.Length(s)
    THEN
-      RETURN( ConCat(Mult(Mark(InitStringChar(padding)), width-Length(s)), s) )
+      RETURN( ConCat(Mult(Mark(InitStringChar(padding)), width-DynamicStrings.Length(s)), s) )
    END ;
    RETURN( s )
 END LongIntegerToString ;
@@ -430,7 +432,7 @@ VAR
    negative: BOOLEAN ;
 BEGIN
    s := RemoveWhitePrefix(s) ;    (* returns a new string, s *)
-   l := Length(s) ;
+   l := DynamicStrings.Length(s) ;
    c := 0 ;
    n := 0 ;
    negative := FALSE ;
@@ -476,7 +478,7 @@ VAR
    negative: BOOLEAN ;
 BEGIN
    s := RemoveWhitePrefix(s) ;    (* returns a new string, s *)
-   l := Length(s) ;
+   l := DynamicStrings.Length(s) ;
    c := 0 ;
    n := 0 ;
    negative := FALSE ;
@@ -521,7 +523,7 @@ VAR
    c   : CARDINAL ;
 BEGIN
    s := RemoveWhitePrefix(s) ;    (* returns a new string, s *)
-   l := Length(s) ;
+   l := DynamicStrings.Length(s) ;
    c := 0 ;
    n := 0 ;
    IF n<l
@@ -752,7 +754,7 @@ BEGIN
    END ;
    s := InitStringCharStar(r) ;
    free(r) ;
-   l := Length(s) ;
+   l := DynamicStrings.Length(s) ;
    IF point>l
    THEN
       s := ConCat(s, Mark(Mult(Mark(InitStringChar('0')), point-l))) ;
@@ -768,7 +770,7 @@ BEGIN
    ELSIF point<0
    THEN
       s := ConCat(Mult(Mark(InitStringChar('0')), -point), Mark(s)) ;
-      l := Length(s) ;
+      l := DynamicStrings.Length(s) ;
       s := ConCat(InitString('0.'), Mark(s)) ;
       IF (NOT maxprecision) AND (l<VAL(INTEGER, FractionWidth))
       THEN
@@ -787,7 +789,7 @@ BEGIN
          s := ConCat(s, Mark(Mult(Mark(InitString('0')), VAL(INTEGER, FractionWidth)-(l-point))))
       END
    END ;
-   IF Length(s)>TotalWidth
+   IF DynamicStrings.Length(s)>TotalWidth
    THEN
       IF TotalWidth>0
       THEN
@@ -812,9 +814,9 @@ BEGIN
          END
       END
    END ;
-   IF Length(s)<TotalWidth
+   IF DynamicStrings.Length(s)<TotalWidth
    THEN
-      s := ConCat(Mult(Mark(InitStringChar(' ')), TotalWidth-Length(s)), Mark(s))
+      s := ConCat(Mult(Mark(InitStringChar(' ')), TotalWidth-DynamicStrings.Length(s)), Mark(s))
    END ;
    RETURN( s )
 END LongrealToString ;
@@ -917,9 +919,9 @@ BEGIN
          END
       END
    END ;
-   IF width>Length(s)
+   IF width>DynamicStrings.Length(s)
    THEN
-      RETURN( ConCat(Mult(Mark(InitStringChar(padding)), width-Length(s)), s) )
+      RETURN( ConCat(Mult(Mark(InitStringChar(padding)), width-DynamicStrings.Length(s)), s) )
    END ;
    RETURN( s )
 END LongCardinalToString ;
@@ -939,7 +941,7 @@ VAR
    c   : LONGCARD ;
 BEGIN
    s := RemoveWhitePrefix(s) ;    (* returns a new string, s *)
-   l := Length(s) ;
+   l := DynamicStrings.Length(s) ;
    c := 0 ;
    n := 0 ;
    IF n<l
@@ -993,9 +995,9 @@ BEGIN
          END
       END
    END ;
-   IF width>Length(s)
+   IF width>DynamicStrings.Length(s)
    THEN
-      RETURN( ConCat(Mult(Mark(InitStringChar(padding)), width-Length(s)), s) )
+      RETURN( ConCat(Mult(Mark(InitStringChar(padding)), width-DynamicStrings.Length(s)), s) )
    END ;
    RETURN( s )
 END ShortCardinalToString ;
@@ -1016,7 +1018,7 @@ VAR
    c   : SHORTCARD ;
 BEGIN
    s := RemoveWhitePrefix(s) ;    (* returns a new string, s *)
-   l := Length(s) ;
+   l := DynamicStrings.Length(s) ;
    c := 0 ;
    n := 0 ;
    IF n<l
@@ -1072,7 +1074,7 @@ BEGIN
    END ;
    s := doDecimalPlaces(s, n) ;
    (* if the last character is '.' remove it *)
-   IF (Length(s)>0) AND (char(s, -1)='.')
+   IF (DynamicStrings.Length(s)>0) AND (char(s, -1)='.')
    THEN
       RETURN( Slice(Mark(s), 0, -1) )
    ELSE
@@ -1097,7 +1099,7 @@ VAR
    tenths,
    hundreths: String ;
 BEGIN
-   l := Length(s) ;
+   l := DynamicStrings.Length(s) ;
    i := 0 ;
    (* remove '.' *)
    point := Index(s, '.', 0) ;
@@ -1111,7 +1113,7 @@ BEGIN
    ELSE
       s := Slice(Mark(s), 0, point)
    END ;
-   l := Length(s) ;
+   l := DynamicStrings.Length(s) ;
    i := 0 ;
    IF l>0
    THEN
@@ -1131,7 +1133,7 @@ BEGIN
    (* insert leading zero *)
    s := ConCat(InitStringChar('0'), Mark(s)) ;
    INC(point) ;  (* and move point position to correct place *)
-   l := Length(s) ;   (* update new length *)
+   l := DynamicStrings.Length(s) ;   (* update new length *)
    i := point ;
    WHILE (n>1) AND (i<l) DO
       DEC(n) ;
@@ -1168,7 +1170,7 @@ BEGIN
    IF i<l
    THEN
       s := Slice(Mark(s), 0, i) ;
-      l := Length(s) ;
+      l := DynamicStrings.Length(s) ;
       IF l<point
       THEN
          s := ConCat(s, Mult(Mark(InitStringChar('0')), point-l))
@@ -1216,19 +1218,19 @@ BEGIN
    point := Index(s, '.', 0) ;
    IF point<0
    THEN
-      poTen := Length(s)
+      poTen := DynamicStrings.Length(s)
    ELSE
       poTen := point
    END ;
    s := doSigFig(s, n) ;
    (* if the last character is '.' remove it *)
-   IF (Length(s)>0) AND (char(s, -1)='.')
+   IF (DynamicStrings.Length(s)>0) AND (char(s, -1)='.')
    THEN
       RETURN( Slice(Mark(s), 0, -1) )
    ELSE
-      IF poTen>Length(s)
+      IF poTen>DynamicStrings.Length(s)
       THEN
-         s := ConCat(s, Mark(Mult(Mark(InitStringChar('0')), poTen-Length(s))))
+         s := ConCat(s, Mark(Mult(Mark(InitStringChar('0')), poTen-DynamicStrings.Length(s))))
       END ;
       RETURN( s )
    END
@@ -1249,7 +1251,7 @@ VAR
    tenths,
    hundreths: String ;
 BEGIN
-   l := Length(s) ;
+   l := DynamicStrings.Length(s) ;
    i := 0 ;
    (* remove '.' *)
    point := Index(s, '.', 0) ;
@@ -1268,7 +1270,7 @@ BEGIN
    ELSE
       s := Dup(Mark(s))
    END ;
-   l := Length(s) ;
+   l := DynamicStrings.Length(s) ;
    i := 0 ;
    IF l>0
    THEN
@@ -1294,7 +1296,7 @@ BEGIN
                   Mark(Slice(Mark(s), i, 0)))
    END ;
    INC(n) ;  (* and increase the number of sig figs needed *)
-   l := Length(s) ;
+   l := DynamicStrings.Length(s) ;
    WHILE (n>1) AND (i<l) DO
       DEC(n) ;
       INC(i)
@@ -1330,14 +1332,14 @@ BEGIN
          s := ConCat(Slice(Mark(s), 0, z),
                      Mark(Slice(Mark(s), z+1, 0)))
       END ;
-      l := Length(s)
+      l := DynamicStrings.Length(s)
    ELSE
       INC(point)
    END ;
    IF i<l
    THEN
       s := Slice(Mark(s), 0, i) ;
-      l := Length(s) ;
+      l := DynamicStrings.Length(s) ;
       IF l<point
       THEN
          s := ConCat(s, Mult(Mark(InitStringChar('0')), point-l))
