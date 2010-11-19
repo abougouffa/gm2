@@ -1209,7 +1209,7 @@ GNU Modula-2 also allows programmers to interface to @code{C} and
 assembly language.
 
 GNU Modula-2 provides support for the special tokens @code{__LINE__},
-@code{__FILE__}, @code{__FUNCTION__} and @code{__DATE__}. Support for
+@code{__FILE__}, @code{__FUNCTION__} and @code{__DATE__}.  Support for
 these tokens will occur even if the @samp{-fcpp} option is not
 supplied. A table of these identifiers and their data type and values
 is given below:
@@ -1284,6 +1284,68 @@ BEGIN
    END
 END cpp.
 @end example
+
+Another use for the C preprocessor in Modula-2 might be to turn on
+debugging code.  For example the library module
+@file{FormatStrings.mod} uses procedures from @file{DynamicStrings.mod}
+and to track down memory leaks it was useful to track the source file
+and line where each string was created.  Here is a section of
+@file{FormatStrings.mod} which shows how the debugging code was
+enabled and disabled by adding @code{-fcpp} to the command line.
+
+@example
+FROM DynamicStrings IMPORT String, InitString, InitStringChar, Mark,
+                           ConCat, Slice, Index, char,
+                           Assign, Length, Mult, Dup, ConCatChar,
+                           PushAllocation, PopAllocationExemption,
+                           InitStringDB, InitStringCharStarDB,
+                           InitStringCharDB, MultDB, DupDB, SliceDB ;
+
+(*
+#define InitString(X) InitStringDB(X, __FILE__, __LINE__)
+#define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
+#define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
+#define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
+#define Dup(X) DupDB(X, __FILE__, __LINE__)
+#define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+*)
+
+PROCEDURE doDSdbEnter ;
+BEGIN
+   PushAllocation
+END doDSdbEnter ;
+
+PROCEDURE doDSdbExit (s: String) ;
+BEGIN
+   s := PopAllocationExemption(TRUE, s)
+END doDSdbExit ;
+
+PROCEDURE DSdbEnter ;
+BEGIN
+END DSdbEnter ;
+
+PROCEDURE DSdbExit (s: String) ;
+BEGIN
+END DSdbExit ;
+
+(*
+#define DBsbEnter doDBsbEnter
+#define DBsbExit  doDBsbExit
+*)
+
+PROCEDURE Sprintf1 (s: String; w: ARRAY OF BYTE) : String ;
+BEGIN
+   DSdbEnter ;
+   s := FormatString(HandleEscape(s), w) ;
+   DSdbExit(s) ;
+   RETURN( s )
+END Sprintf1 ;
+@end example
+
+It is worth noting that the overhead of this code once @code{-fcpp} is
+not present and -O2 is used will be zero since the local empty
+procedures @code{DSdbEnter} and @code{DSdbExit} will be thrown away by
+the optimization passes of the GCC backend.
 
 @subsection Optional procedure parameter
 
