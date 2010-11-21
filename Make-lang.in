@@ -713,7 +713,7 @@ gm2.install-normal: gm2.install-common gm2.install-info gm2.install-man
 gm2.install: gm2.install-normal; @true
 
 gm2.install-with-gcc: $(INSTALL_HEADERS) gm2.install $(INSTALL_LIBGCC)
-        for file in $(GCC_PASSES); do \
+	for file in $(GCC_PASSES); do \
           if [ x"$$file" != x"xgcc$(exeext)" ]; then \
             rm -f $(DESTDIR)$(libsubdir)/$$file; \
             $(INSTALL_PROGRAM) $$file $(DESTDIR)$(libsubdir)/$$file || exit 1; \

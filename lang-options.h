@@ -137,6 +137,8 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("generate the start up C code for the module, a file _m2_modulename.c is created") },
   { "-fobject-path=",
       N_("set the object path") },
+  { "-fonlylink",
+      N_("only link the module and do not compile module (internal)"),
   { "--version",
       N_("display the GNU Modula-2 version") },
   { "-fversion",

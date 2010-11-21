@@ -1,3 +1,8 @@
+2010-11-21       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  bugfix, replaced 8 spaces by a tab.
+	  Bug reported by Steve Giess.
+
 2010-11-19       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  extended the section on using the C
