@@ -58,6 +58,7 @@ TYPE
 
    Buffer            = POINTER TO buf ;
    buf               =            RECORD
+                                     valid   : BOOLEAN ;   (* are the field valid?             *)
                                      bufstart: LONGINT ;   (* the position of buffer in file   *)
                                      position: CARDINAL ;  (* where are we through this buffer *)
                                      address : ADDRESS ;   (* dynamic buffer address           *)
@@ -382,6 +383,7 @@ BEGIN
             RETURN( Error )
          ELSE
             WITH buffer^ DO
+               valid    := FALSE ;
                bufstart := 0 ;
                size     := buflength ;
                position := 0 ;
@@ -517,7 +519,8 @@ BEGIN
                      DEALLOCATE(address, size)
                   END
                END ;
-               DISPOSE(buffer)
+               DISPOSE(buffer) ;
+               buffer := NIL
             END
          END ;
          DISPOSE(fd) ;
@@ -551,7 +554,7 @@ BEGIN
       fd := GetIndice(FileInfo, f) ;
       WITH fd^ DO
          (* extract from the buffer first *)
-         IF buffer#NIL
+         IF (buffer#NIL) AND (buffer^.valid)
          THEN
             WITH buffer^ DO
                IF left>0
@@ -588,11 +591,12 @@ BEGIN
             IF result>0
             THEN
                INC(total, result) ;
+               INC(abspos, result) ;
+               (* now disable the buffer as we read directly into, a. *)
                IF buffer#NIL
                THEN
-                  buffer^.bufstart := abspos
+                  buffer^.valid := FALSE
                END ;
-               INC(abspos, result)
             ELSE
                IF result=0
                THEN
@@ -605,6 +609,7 @@ BEGIN
                IF buffer#NIL
                THEN
                   WITH buffer^ DO
+                     valid    := FALSE ;
                      left     := 0 ;
                      position := 0 ;
                      IF address#NIL
@@ -679,7 +684,7 @@ BEGIN
             THEN
                WITH buffer^ DO
                   WHILE nBytes>0 DO
-                     IF left>0
+                     IF (left>0) AND valid
                      THEN
                         IF nBytes=1
                         THEN
@@ -706,6 +711,7 @@ BEGIN
                         n := read(unixfd, address, size) ;
                         IF n>=0
                         THEN
+                           valid    := TRUE ;
                            position := 0 ;
                            left     := n ;
                            filled   := n ;
@@ -718,6 +724,7 @@ BEGIN
                               RETURN( -1 )
                            END
                         ELSE
+                           valid    := FALSE ;
                            position := 0 ;
                            left     := 0 ;
                            filled   := 0 ;
@@ -1008,7 +1015,7 @@ BEGIN
 *)
          IF (state=successful) OR (state=endoffile)
          THEN
-            IF buffer#NIL
+            IF (buffer#NIL) AND (buffer^.valid)
             THEN
                WITH buffer^ DO
                   (* we assume that a ReadChar has occurred, we will check just in case. *)
@@ -1391,6 +1398,7 @@ BEGIN
                END ;
                IF buffer#NIL
                THEN
+                  buffer^.valid := FALSE ;
                   buffer^.bufstart := abspos
                END
             END
@@ -1440,6 +1448,7 @@ BEGIN
             END ;
             IF buffer#NIL
             THEN
+               buffer^.valid := FALSE ;
                buffer^.bufstart := offset
             END
          END
@@ -1462,7 +1471,7 @@ BEGIN
       IF fd#NIL
       THEN
          WITH fd^ DO
-            IF buffer=NIL
+            IF (buffer=NIL) OR (NOT buffer^.valid)
             THEN
                RETURN( abspos )
             ELSE

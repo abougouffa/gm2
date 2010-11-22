@@ -307,15 +307,18 @@ BEGIN
       Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   try {\n'))))))
    END ;
    WHILE i<=n DO
-      funcname := GetIndice(FunctionList, i) ;
-      IF NeedInitial
+      IF i=n
       THEN
-         IF CPlusPlus
+         IF NeedInitial
          THEN
-            Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   '))))))
-         END ;
-         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   M2RTS_ExecuteInitialProcedures ();\n'))))))
+            IF CPlusPlus
+            THEN
+               Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   '))))))
+            END ;
+            Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   M2RTS_ExecuteInitialProcedures ();\n'))))))
+         END
       END ;
+      funcname := GetIndice(FunctionList, i) ;
       IF CPlusPlus
       THEN
          Fin(WriteS(fo, Mark(InitString('   '))))

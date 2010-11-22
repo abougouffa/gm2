@@ -1,3 +1,14 @@
+2010-11-22       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/gm2lgen.mod:  only invoke the call to
+          M2RTS_ExecuteInitialProcedures prior to the BEGIN END
+	  of the main module.
+	* gm2/gm2-libs/FIO.mod:  introduce new field, valid,
+	  to Buffer, so that the buffer can be declared invalid
+	  after a seek or when it is exhausted and a read is
+	  performed directly at an address.  Fixes a bug reported
+	  by James Cox.
+
 2010-11-21       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  bugfix, replaced 8 spaces by a tab.
