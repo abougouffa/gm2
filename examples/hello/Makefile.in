@@ -29,18 +29,14 @@ all: force
 	@echo "or you can use 'make post-install' to build the examples after installing the compiler"
 
 pre-install: clean
-	$(XGM2) -I$(SRC_PATH_PIM) -c -g $(srcdir)/hello.mod
 	$(XGM2) -I$(SRC_PATH_PIM)    -g $(srcdir)/hello.mod
 	size a.out
-	$(XGM2) -c -g -I$(OBJ_PATH_PIM) -ffunction-sections -fdata-sections $(srcdir)/hello.mod -fno-exceptions
 	$(XGM2)    -g -I$(OBJ_PATH_PIM) -ffunction-sections -fdata-sections $(srcdir)/hello.mod -fno-exceptions -Wl,--gc-sections
 	size a.out
 
 post-install: clean
-	gm2 -c -g -I. $(srcdir)/hello.mod
 	gm2 -g -I. $(srcdir)/hello.mod
 	size a.out
-	gm2 -c -g -I. -ffunction-sections -fdata-sections $(srcdir)/hello.mod -fno-exceptions
 	gm2    -g -I. -ffunction-sections -fdata-sections $(srcdir)/hello.mod -fno-exceptions -Wl,--gc-sections
 	size a.out
 

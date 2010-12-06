@@ -41,7 +41,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 (*
    Author     : Gaius Mulley
    Title      : gm2m
-   Date       : 3/4/86  [$Date: 2010/09/29 05:32:02 $]
+   Date       : 3/4/86  [$Date: 2010/12/06 21:17:56 $]
    SYSTEM     : GNU Modula-2
    Description: Generates a makefile by examining the imports within Modula-2 source.
 *)
@@ -1406,11 +1406,11 @@ BEGIN
    THEN
       FormatString('M2L= ') ;
       FormatS(Compiler) ;
-      FormatString(' -I. $(OPTIONS) ')
+      FormatString(' -fonlylink -I. $(OPTIONS) ')
    ELSE
       FormatString('M2L= ') ;
       FormatS(Compiler) ;
-      FormatString(' ') ;
+      FormatString(' -fonlylink ') ;
       FormatS(DestDirectory) ; FormatString(' $(OPTIONS) ')
    END ;
    FormatLn

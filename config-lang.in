@@ -90,6 +90,7 @@ gtfiles="\$(srcdir)/gm2/gccgm2.c \$(srcdir)/gm2/gm2-lang.c \
 outputs=" \
          gm2/Makefile \
          gm2/config-make \
+         gm2/examples/callingC/Makefile \
          gm2/examples/cplusplus/cppcatchm2/Makefile \
          gm2/examples/cplusplus/m2catchcpp/Makefile \
          gm2/examples/cpp/Makefile \

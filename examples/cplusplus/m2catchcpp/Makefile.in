@@ -31,14 +31,12 @@ all: force
 
 pre-install: clean
 	$(XGPP) -g -c $(srcdir)/cpp.cpp
-	$(XGM2) -I$(SRC_PATH_ISO) -g -c $(srcdir)/m2.mod
-	$(XGM2) -I$(SRC_PATH_ISO) -fobject-path=$(OBJ_PATH_ISO) -g $(srcdir)/m2.mod cpp.o
+	$(XGM2) -I$(srcdir) -I$(SRC_PATH_ISO) -fobject-path=$(OBJ_PATH_ISO) -g $(srcdir)/m2.mod cpp.o
 	./a.out
 
 post-install: force
-	gm2 -g -c $(srcdir)/m2.mod
 	g++ -g -c $(srcdir)/cpp.cpp
-	gm2 -g $(srcdir)/m2.mod cpp.o
+	gm2 -I$(srcdir) -g $(srcdir)/m2.mod cpp.o
 	./a.out
 
 clean: force

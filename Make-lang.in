@@ -2678,6 +2678,24 @@ check-gm2-local: $(GM2TESTSUITEDIR)/site.exp
 	    export TCL_LIBRARY ; fi ; \
 	$(RUNTEST) --tool gm2 --directory testsuite/gm2/pim/pass)
 
+gm2-check-examples: force
+	allok="yes" ; \
+        for i in examples/hello examples/gravity/ \
+                 examples/cplusplus/cppcatchm2 examples/cplusplus/m2catchcpp \
+                 examples/callingC examples/swig/exceptions \
+                 examples/swig/tiny examples/swig/strlib \
+                 examples/cpp examples/map examples/ncurses ; do \
+          ( testdir=`pwd` ; cd gm2/$${i} ; if make clean pre-install >& $${testdir}/log ; \
+                           then echo "passed gm2/$${i}" ; \
+                           else echo "failed gm2/$${i}" ; allok="no" ; \
+                           fi ) ; \
+        done ; \
+        if [ "$${allok}" == "yes" ] ; then \
+            echo "all examples passed" ; \
+        else \
+            echo "some example(s) failed" ; \
+        fi
+
 gm2.maintainer-clean: force
 	-rm -f $(srcdir)/gm2/gm2-auto/*
 	-rm -f $(srcdir)/gm2/gm2-libs.texi

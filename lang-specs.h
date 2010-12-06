@@ -56,6 +56,8 @@ Boston, MA 02110-1301, USA.  */
                                      %{fclean:make -r -f %g.m clean %b } \n\
                                      %{!fclean:make -r -f %g.m }}}}} \n\
       %{!c:%{!S:%{!gm2gcc:%{!fuselist:%{fcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
+                                            %{!fonlylink:cc1gm2 %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} -o %d%g.s %g.mod \n\
+                                                as %a %Y %g.s -o %uprog.o } \n\
                                              gm2l -fcppbegin %:exec_prefix(cc1%s) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %g.mod |\n\
                                              gm2lorder %{fruntime-modules=*} %{!pipe:%g.l} -o %g.lst \n\
                                              gm2lgen %{fshared} %{fshared:-terminate -exit} %{!fno-exceptions:-cpp} %g.lst -o %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
@@ -64,8 +66,12 @@ Boston, MA 02110-1301, USA.  */
                                              gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} \
                                                     %{fobject-path=*} %{v} -exec -startup %Ustart%d%O \
                                                     %{!fshared:-ar -o %w%d%g.a} \
-                                                    %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:linkargs() } %g.lst } \n\
-                                      %{!fcpp:gm2l %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %i |\n\
+                                                    %{!fonlylink:%Uprog.o} \
+                                                    %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:linkargs() } %g.lst \n\
+                                             rm -f %Ustart %{!fonlylink:%Uprog.o} } \n\
+                                      %{!fcpp:%{!fonlylink:cc1gm2 %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} -o %d%g.s %i \n\
+                                                as %a %Y %g.s -o %uprog.o } \n\
+                                             gm2l %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %i |\n\
                                              gm2lorder %{fruntime-modules=*} %{!pipe:%g.l} -o %g.lst \n\
                                              gm2lgen %{fshared} %{fshared:-terminate -exit} %{!fno-exceptions:-cpp} %g.lst -o %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
                                              gm2cc %{v*} %{B*} %{g*} %{O*} %{fPIC} %{fpic} %{fno-exceptions:-x c} -c -o %ustart%d%O %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
@@ -73,12 +79,15 @@ Boston, MA 02110-1301, USA.  */
                                              gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} \
                                                     %{fobject-path=*} %{v} -exec -startup %Ustart%d%O \
                                                     %{!fshared:-ar -o %w%d%g.a} \
-                                                    %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:linkargs() } %g.lst }} \n\
+                                                    %{!fonlylink:%Uprog.o} \
+                                                    %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:linkargs() } %g.lst \n\
+                                             rm -f %Ustart %{!fonlylink:%Uprog.o} }} \n\
                            %{fuselist:gm2lgen %{fshared} %{fshared:-terminate -exit} %{!fno-exceptions:-cpp} %b.lst -o %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
                                       gm2cc %{v*} %{B*} %{g*} %{O*} %{fPIC} %{fpic} %{fno-exceptions:-x c} -c -o %ustart%d%O %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
                                       rm -f %w%d%g.a \n\
                                       gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} \
                                              %{fobject-path=*} %{v} -exec -startup %Ustart%d%O \
                                              %{!fshared:-ar -o %w%d%g.a} \
-                                             %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:linkargs() } %b.lst }}}} \n\
+                                             %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:linkargs() } %b.lst \n\
+                                      rm -f %Ustart }}}} \n\
     ", 0, 0, 0},

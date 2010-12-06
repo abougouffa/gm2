@@ -248,6 +248,7 @@ TYPE
                              BooleanOp: BOOLEAN ;
                              Dimension: CARDINAL ;
                              ReadWrite: CARDINAL ;
+                             name     : CARDINAL ;
                           END ;
 
    QuadFrame = POINTER TO quadFrame ;  (* again we help p2c *)
@@ -12867,7 +12868,8 @@ BEGIN
       Unbounded := Array ;
       BooleanOp := FALSE ;
       Dimension := 0 ;
-      ReadWrite := NulSym
+      ReadWrite := NulSym ;
+      name      := NulSym
    END ;
    PushAddress(BoolStack, f)
 END PushTFA ;
@@ -12890,7 +12892,8 @@ BEGIN
       Unbounded := Array ;
       BooleanOp := FALSE ;
       Dimension := Dim ;
-      ReadWrite := NulSym
+      ReadWrite := NulSym ;
+      name      := NulSym
    END ;
    PushAddress(BoolStack, f)
 END PushTFAD ;
@@ -12913,7 +12916,8 @@ BEGIN
       Unbounded := Array ;
       BooleanOp := FALSE ;
       Dimension := Dim ;
-      ReadWrite := rw
+      ReadWrite := rw ;
+      name      := NulSym
    END ;
    PushAddress(BoolStack, f)
 END PushTFADrw ;
@@ -12936,7 +12940,8 @@ BEGIN
       Unbounded := NulSym ;
       BooleanOp := FALSE ;
       Dimension := Dim ;
-      ReadWrite := NulSym
+      ReadWrite := NulSym ;
+      name      := NulSym
    END ;
    PushAddress(BoolStack, f)
 END PushTFD ;
@@ -12979,7 +12984,8 @@ BEGIN
       Unbounded := NulSym ;
       BooleanOp := FALSE ;
       Dimension := Dim ;
-      ReadWrite := rw
+      ReadWrite := rw ;
+      name      := NulSym
    END ;
    PushAddress(BoolStack, f)
 END PushTFDrw ;
@@ -13003,7 +13009,8 @@ BEGIN
       Unbounded := NulSym ;
       BooleanOp := FALSE ;
       Dimension := 0 ;
-      ReadWrite := rw
+      ReadWrite := rw ;
+      name      := NulSym
    END ;
    PushAddress(BoolStack, f)
 END PushTFrw ;
@@ -13045,7 +13052,8 @@ BEGIN
       Unbounded := NulSym ;
       BooleanOp := FALSE ;
       Dimension := 0 ;
-      ReadWrite := NulSym
+      ReadWrite := NulSym ;
+      name      := NulSym
    END ;
    PushAddress(BoolStack, f)
 END PushTF ;
@@ -13085,7 +13093,8 @@ BEGIN
       Unbounded := NulSym ;
       BooleanOp := FALSE ;
       Dimension := 0 ;
-      ReadWrite := NulSym
+      ReadWrite := NulSym ;
+      name      := NulSym
    END ;
    PushAddress(BoolStack, f)
 END PushT ;
@@ -13123,7 +13132,8 @@ BEGIN
       Unbounded := NulSym ;
       BooleanOp := FALSE ;
       Dimension := 0 ;
-      ReadWrite := rw
+      ReadWrite := rw ;
+      name      := NulSym
    END ;
    PushAddress(BoolStack, f)
 END PushTrw ;
@@ -13145,6 +13155,49 @@ BEGIN
    END ;
    DISPOSE(f)
 END PopTrw ;
+
+
+(*
+   PushTFn - Push a True and False numbers onto the True/False stack.
+             True and False are assumed to contain Symbols or Ident etc.
+*)
+
+PROCEDURE PushTFn (True, False, n: WORD) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   NEW(f) ;
+   WITH f^ DO
+      TrueExit  := True ;
+      FalseExit := False ;
+      Unbounded := NulSym ;
+      BooleanOp := FALSE ;
+      Dimension := 0 ;
+      ReadWrite := NulSym ;
+      name      := n
+   END ;
+   PushAddress(BoolStack, f)
+END PushTFn ;
+
+
+(*
+   PopTFn - Pop a True and False number from the True/False stack.
+            True and False are assumed to contain Symbols or Ident etc.
+*)
+
+PROCEDURE PopTFn (VAR True, False, n: WORD) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   f := PopAddress(BoolStack) ;
+   WITH f^ DO
+      True := TrueExit ;
+      False := FalseExit ;
+      n := name ;
+      Assert(NOT BooleanOp)
+   END ;
+   DISPOSE(f)
+END PopTFn ;
 
 
 (*

@@ -23,7 +23,7 @@ gm2dir = $(srcdir)/../..
 SRC_PATH_PIM=$(srcdir):$(gm2dir)/gm2-compiler:../../gm2-libs:$(gm2dir)/gm2-libs:$(gm2dir)/gm2-libs-iso
 OBJ_PATH_PIM=.:../../gm2-libs
 
-XGM2=../../../xgm2 -B../../.. -B../../../stage1/gm2
+XGM2=../../../xgm2 -B../../../x
 
 all: force
 	@echo "you need to use 'make pre-install' to build the examples using the locally built compiler"

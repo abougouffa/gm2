@@ -1,3 +1,67 @@
+2010-12-01       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added example checking rule,
+	  gm2-check-examples.
+	* gm2/config-lang.in:  create gm2/examples/callingC/Makefile.
+	* gm2/gm2spec.c:  fixed off by 1 error in strncmp, use strlen
+	  to calculate length of string to prevent this reoccuring.
+	* gm2/examples/callingC/Makefile.in:  modified to use correct
+	  path.
+	* gm2/examples/cplusplus/cppcatchm2/Makefile.in:  modified to
+	  use correct path.
+	* gm2/examples/cplusplus/m2catchcpp/Makefile.in:  modified to
+	  use correct path.
+	* gm2/examples/cpp/Makefile.in:  modified to
+	  use correct path.
+	* gm2/examples/gravity/Makefile.in:  modified to
+	  use correct path.
+	* gm2/examples/hello/Makefile.in:  modified to
+	  use correct path.
+	* gm2/examples/map/Makefile.in:  modified to
+	  use correct path.
+	* gm2/examples/ncurses/Makefile.in:  modified to
+	  use correct path.
+	* gm2/examples/swig/exceptions/Makefile.in:  modified to
+	  use correct path.
+	* gm2/examples/swig/strlib/Makefile.in:  modified to
+	  use correct path.
+	* gm2/examples/swig/tiny/Makefile.in:  modified to
+	  use correct path.
+	* gm2/gm2-compiler/PCSymBuild.mod:  detect error if
+	  trying to assign a constant from an unresolved symbol.
+	* gm2/gm2-libs-pim/NumberConversion.def:  fixed dates.
+	* gm2/gm2-libs-pim/NumberConversion.mod:  fixed dates.
+
+2010-11-26       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2.texi:  changed documentation to use -fonlylink
+          where appropriate and remove the -c flag for the simple
+	  examples.
+	* gm2/examples/hello/Makefile.in:  removed compile without
+	  link stage.
+	* gm2/examples/ncurses/Makefile.in:  fixed pre-install build.
+
+2010-11-25       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2.texi:  modified shared library examples
+	  to use -fonlylink.
+
+2010-11-24       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/lang-specs.h:  modified so that gm2 foo.mod will
+	  both compile and link file foo.mod.
+	* gm2/lang.opt:  modified description of -fonlylink
+	  (removed internal usage
+	* gm2/gm2.texi:  changed compile commands in the
+	  hello world example to start with the simpler
+	  gm2 -g hello.mod.
+	* gm2/gm2.texi:  replaced @filename with @file.
+	* gm2/bnf/gm2m.bnf:  modified M2L to use -fonlylink.
+	* gm2/examples/gravity/Makefile.in:  use -fonlylink.
+	* gm2/examples/swig/exceptions/Makefile.in:  use -fonlylink.
+	* gm2/examples/swig/strlib/Makefile.in:  use -fonlylink.
+	* gm2/examples/swig/tiny/Makefile.in: use -fonlylink.
+
 2010-11-22       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/gm2lgen.mod:  only invoke the call to

@@ -26,7 +26,7 @@ OBJ_PATH_PIM=.:../../../gm2-libs/SO:../../../gm2-libs-pim/SO:../../../gm2-libs-i
 
 XGM2=../../../../xgm2 -B../../../.. -B../../../../stage1/gm2
 XGPP=../../../../g++
-XGCC=../../../../g++
+XGCC=../../../../xgcc
 
 PYTHON_VERSION=2.5
 
@@ -39,7 +39,7 @@ pre-install: clean
 	swig -c++ -python MyStrLib.i
 	$(XGCC) -c -fPIC MyStrLib_wrap.cxx -I/usr/include/python$(PYTHON_VERSION)
 	$(XGM2) -fmakelist -c -fPIC -g -fshared $(srcdir)/MyStrLib.mod
-	$(XGM2) -fuselist -fobject-path=$(OBJ_PATH_PIM) -fPIC -g -shared -fshared $(srcdir)/MyStrLib.mod MyStrLib_wrap.o -o _MyStrLib.so
+	$(XGM2) -fonlylink -fuselist -fobject-path=$(OBJ_PATH_PIM) -fPIC -g -shared -fshared $(srcdir)/MyStrLib.mod MyStrLib_wrap.o -o _MyStrLib.so
 	PYTHONPATH=.:$(srcdir) python $(srcdir)/testlen.py
 
 post-install: clean
@@ -47,7 +47,7 @@ post-install: clean
 	swig -c++ -python MyStrLib.i
 	gcc -c -fPIC MyStrLib_wrap.cxx -I/usr/include/python$(PYTHON_VERSION)
 	gm2 -I$(srcdir) -fmakelist -c -fPIC -g -fshared $(srcdir)/MyStrLib.mod
-	gm2 -I$(srcdir) -fuselist -fPIC -g -shared -fshared $(srcdir)/MyStrLib.mod MyStrLib_wrap.o -o _MyStrLib.so
+	gm2 -I$(srcdir) -fonlylink -fuselist -fPIC -g -shared -fshared $(srcdir)/MyStrLib.mod MyStrLib_wrap.o -o _MyStrLib.so
 	PYTHONPATH=.:$(srcdir) python $(srcdir)/testlen.py
 
 clean: force

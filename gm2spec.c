@@ -780,24 +780,24 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   while (i<*in_argc) {
     if ((strcmp((*in_argv)[i], "-c") == 0) || (strcmp((*in_argv)[i], "-S") == 0))
       linking = FALSE;
-    if ((strncmp((*in_argv)[i], "-I", 2) == 0) &&
+    if ((strncmp((*in_argv)[i], "-I", strlen("-I")) == 0) &&
 	(strcmp((*in_argv)[i], "-I-") != 0))
       inclPos = i;
-    if (strncmp((*in_argv)[i], "-fobject-path=", 15) == 0)
+    if (strncmp((*in_argv)[i], "-fobject-path=", strlen("-fobject-path=")) == 0)
       linkPos = i;
-    if (strncmp((*in_argv)[i], "-fiso", 5) == 0)
+    if (strncmp((*in_argv)[i], "-fiso", strlen("-fiso")) == 0)
       libraries = iso;
-    if (strncmp((*in_argv)[i], "-flibs=pim", 10) == 0)
+    if (strncmp((*in_argv)[i], "-flibs=pim", strlen("-flibs=pim")) == 0)
       libraries = pim;
-    if (strncmp((*in_argv)[i], "-flibs=ulm", 10) == 0)
+    if (strncmp((*in_argv)[i], "-flibs=ulm", strlen("-flibs=ulm")) == 0)
       libraries = ulm;
-    if (strncmp((*in_argv)[i], "-flibs=min", 10) == 0)
+    if (strncmp((*in_argv)[i], "-flibs=min", strlen("-flibs=min")) == 0)
       libraries = min;
-    if (strncmp((*in_argv)[i], "-flibs=logitech", 15) == 0)
+    if (strncmp((*in_argv)[i], "-flibs=logitech", strlen("-flibs=logitech")) == 0)
       libraries = logitech;
-    if (strncmp((*in_argv)[i], "-flibs=pim-coroutine", 20) == 0)
+    if (strncmp((*in_argv)[i], "-flibs=pim-coroutine", strlen("-flibs=pim-coroutine")) == 0)
       libraries = pimcoroutine;
-    if (strncmp((*in_argv)[i], "-fmod=", 6) == 0)
+    if (strncmp((*in_argv)[i], "-fmod=", strlen("-fmod=")) == 0)
       moduleExtension = i;
     if ((strcmp((*in_argv)[i], "--version") == 0) ||
 	(strcmp((*in_argv)[i], "-fversion") == 0))
@@ -834,6 +834,9 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   }
 #endif
   if (inclPos != -1 && linkPos == -1) {
+#if defined(DEBUGGING)
+    printf("inclPos = %d,  linkPos = %d\n", inclPos, linkPos);
+#endif
     insert_arg (1, in_argc, (char ***)in_argv);
     linkPos = 1;
     add_link_from_include (linkPos, (char ***)in_argv, inclPos, "-fobject-path=");

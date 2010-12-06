@@ -131,7 +131,7 @@ build project path (internal)
 
 fonlylink
 Modula-2
-only link the module and do not compile module (internal)
+only link the module and do not compile module
 
 ftarget-ar=
 Modula-2 Joined

@@ -50,7 +50,7 @@ FROM M2Batch IMPORT MakeDefinitionSource,
                     MakeImplementationSource,
                     MakeProgramSource ;
 
-FROM M2Quads IMPORT PushT, PopT, OperandT, PopN, PopTF, PushTF, IsAutoPushOn, PopNothing ;
+FROM M2Quads IMPORT PushT, PopT, OperandT, PopN, PopTF, PushTF, IsAutoPushOn, PopNothing, PushTFn, PopTFn ;
 
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule,
@@ -726,19 +726,25 @@ END SetCurrentConstType ;
 
 PROCEDURE SetConstTypeOrExpr ;
 VAR
-   sym: CARDINAL ;
+   sym, f: CARDINAL ;
+   n     : Name ;
 BEGIN
-   PopT(sym) ;
-   PushT(sym) ;
-   IF IsProcedure(sym)
+   PopTFn(sym, f, n) ;
+   PushTFn(sym, f, n) ;
+   IF sym=NulSym
    THEN
-      FixupConstExpr(CurrentConst, sym)
+      WriteFormat1('expecting a procedure, const or type symbol, symbol %a is unknown', n)
    ELSE
-      IF IsConst(sym)
+      IF IsProcedure(sym)
       THEN
          FixupConstExpr(CurrentConst, sym)
       ELSE
-         FixupConstType(CurrentConst, sym)
+         IF IsConst(sym)
+         THEN
+            FixupConstExpr(CurrentConst, sym)
+         ELSE
+            FixupConstType(CurrentConst, sym)
+         END
       END
    END ;
    CurrentConst := NulSym

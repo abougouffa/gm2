@@ -164,10 +164,11 @@ code will either have to be translated into another high level
 language or alternatively a Modula-2 compiler which can target these
 new generation of microprocessors will have to be acquired. GNU
 Modula-2 builds and passes all its regression tests on Debian Pure 64
-(LP64 architecture), 64 bit Solaris, 32 bit x86 GNU/Linux (Suse,
-Debian, stable and unstable) and 32 bit x86 FreeBSD.  GNU Modula-2 has
-also been configured as a cross compiler for embedded microprocessors
-such as the ATMega8 and StrongArm.
+LP64 (x86_64 architecture), 32 bit x86 GNU/Linux (Debian, stable and
+unstable).  It almost certainly builds and passes on more platforms
+(for an up to date list of ports please see the GNU Modula-2
+homepage).  GNU Modula-2 has also been configured as a cross compiler
+for embedded microprocessors such as the ATMega8 and StrongArm.
 
 GNU Modula-2 also has the advantage of being closely tied to GCC.  Not
 only does this produce excellent code and excellent architectural and
@@ -517,6 +518,10 @@ option.
 @item -fxcode
 issues all errors and warnings in the @file{Xcode} format.
 
+@item -fonlylink
+only link the modula-2 application, do not compile the program module
+beforehand.
+
 @item -funbounded-by-reference
 enable optimization of unbounded parameters by attempting to pass non
 @code{VAR} unbounded parameters by reference.  This optimization
@@ -590,13 +595,23 @@ BEGIN
 END hello.
 @end example
 
-You should be able to compile it by: @samp{gm2 -c -g -I. hello.mod}
-and link via: @samp{gm2 -g -I. hello.mod}.  The result should be an
-@samp{a.out} file created in your directory.
+You should be able to compile and link it by: @samp{gm2 -g hello.mod}.
+The result should be an @samp{a.out} file created in your directory.
 
-Alternatively it may be compiled by:
+You can split this command into two steps if you prefer.  The compile
+step can be achieved by: @samp{gm2 -g -c hello.mod} and the link via:
+@samp{gm2 -g -fonlylink hello.mod}.
+
+To compile larger projects consisting of many modules you might find
+the option @code{-fmakeall} useful.  For example to compile this tiny
+example using this option you can use the following command line:
 
 @samp{gm2 -g -I. -fmakeall hello.mod}
+
+which will read the file @file{hello.mod} work out the dependancies
+and proceed to compile any dependant module whose source is in the
+directory determined by @samp{-I.}.
+
 @footnote{To see all the compile actions taken by @samp{gm2} users can also
 add the @samp{-v} flag at the command line, for example:
 
@@ -620,7 +635,7 @@ this:
 
 @example
 $ gm2 -g -c -I. -I../project:../project/unix foo.mod
-$ gm2 -g -I. -I../project:../project/unix \
+$ gm2 -fonlylink -g -I. -I../project:../project/unix \
   -fobject-path=../project/obj:../project/unix/obj -I. foo.mod
 @end example
 
@@ -630,7 +645,6 @@ exactly the same compile and link.
 @example
 $ export GM2IPATH=../project:../project/unix
 $ export GM2OPATH=../project/obj:../project/unix/obj
-$ gm2 -g -c -I. foo.mod
 $ gm2 -g -I. foo.mod
 @end example
 
@@ -1710,7 +1724,7 @@ your own modules which will be near the end of the file.  Once you are happy
 with the order you can conclude the link with the command:
 
 @example
-gm2 -fuselist -fiso -fPIC -g c.mod -o c.so
+gm2 -fonlylink -fuselist -fiso -fPIC -g c.mod -o c.so
 @end example
 
 which creates @file{c.so} and @file{c_m2.cpp}.  The initialization and
@@ -1771,7 +1785,7 @@ compiled into position independant code.  Finally the module
 @file{NumberIO_wrap.o}.
 
 @example
-$ gm2 -shared -fshared -fPIC -g \
+$ gm2 -fonlylink -shared -fshared -fPIC -g \
      ../../../gm2-libs/NumberIO.mod NumberIO_wrap.o -o _NumberIO.so
 @end example
 
@@ -2037,7 +2051,8 @@ $ gcc -c -fPIC twoDsim_wrap.cxx -I/usr/include/python@value{version-python}
 Finally the application is linked into a shared library:
 
 @example
-$ gm2 -fiso -fPIC -fshared -shared twoDsim.mod twoDsim_wrap.o -o _twoDsim.so
+$ gm2 -fonlylink -fiso -fPIC -fshared -shared \
+      twoDsim.mod twoDsim_wrap.o -o _twoDsim.so
 @end example
 
 The library name must start with a @code{_} to comply with the Python

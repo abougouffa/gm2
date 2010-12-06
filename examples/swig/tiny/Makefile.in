@@ -24,9 +24,9 @@ gm2dir = $(srcdir)/../../..
 SRC_PATH_PIM=$(srcdir):../../../gm2-libs:$(gm2dir)/gm2-libs:$(gm2dir)/gm2-libs-iso
 OBJ_PATH_PIM=.:../../../gm2-libs/SO:../../../gm2-libs-pim/SO:../../../gm2-libs-iso/SO
 
-XGM2=../../../../xgm2 -B../../../.. -B../../../../stage1/gm2
-XGPP=../../../../g++
-XGCC=../../../../g++
+XGM2=../../../../xgm2 -B../../../../
+XGPP=../../../../xgcc -B../../../../
+XGCC=../../../../xgcc -B../../../../
 
 PYTHON_VERSION=2.5
 
@@ -39,7 +39,7 @@ pre-install: clean
 	swig -c++ -python tiny.i
 	$(XGCC) -c -fPIC tiny_wrap.cxx -I/usr/include/python$(PYTHON_VERSION)
 	$(XGM2) -fshared -c -fPIC -g -fmakelist -I$(SRC_PATH_PIM) $(srcdir)/tiny.mod
-	$(XGM2) -fuselist -fobject-path=$(OBJ_PATH_PIM) -fPIC -g -shared -fshared -I$(srcdir) $(srcdir)/tiny.mod tiny_wrap.o -o _tiny.so
+	$(XGM2) -fonlylink -fuselist -fobject-path=$(OBJ_PATH_PIM) -fPIC -g -shared -fshared -I$(srcdir) $(srcdir)/tiny.mod tiny_wrap.o -o _tiny.so
 	PYTHONPATH=.:$(srcdir) python $(srcdir)/testtiny.py
 
 post-install: clean
@@ -47,7 +47,7 @@ post-install: clean
 	swig -c++ -python tiny.i
 	gcc -c -fPIC tiny_wrap.cxx -I/usr/include/python$(PYTHON_VERSION)
 	gm2 -fshared -c -fPIC -g -fmakelist -I$(srcdir) $(srcdir)/tiny.mod
-	gm2 -fuselist -fobject-path=. -fPIC -g -shared -fshared -I$(srcdir) $(srcdir)/tiny.mod tiny_wrap.o -o _tiny.so
+	gm2 -fonlylink -fuselist -fobject-path=. -fPIC -g -shared -fshared -I$(srcdir) $(srcdir)/tiny.mod tiny_wrap.o -o _tiny.so
 	PYTHONPATH=.:$(srcdir) python $(srcdir)/testtiny.py
 
 clean: force

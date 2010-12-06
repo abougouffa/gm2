@@ -75,6 +75,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildUnaryOp,
                  RecordOp,
                  PopTF, PushTF, PopT, PushT, PopNothing, PopN, PushTFA,
+                 PushTFn, PopTFn,
                  OperandT, OperandF, OperandA,
                  DisplayStack, WriteOperand,
 
@@ -2069,6 +2070,22 @@ PROCEDURE PushT (True: WORD) ;
 *)
 
 PROCEDURE PopT (VAR True: WORD) ;
+
+
+(*
+   PushTFn - Push a True and False numbers onto the True/False stack.
+             True and False are assumed to contain Symbols or Ident etc.
+*)
+
+PROCEDURE PushTFn (True, False, n: WORD) ;
+
+
+(*
+   PopTFn - Pop a True and False number from the True/False stack.
+            True and False are assumed to contain Symbols or Ident etc.
+*)
+
+PROCEDURE PopTFn (VAR True, False, n: WORD) ;
 
 
 (*

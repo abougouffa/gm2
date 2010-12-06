@@ -24,9 +24,9 @@ gm2dir = $(srcdir)/../../..
 SRC_PATH_PIM=$(srcdir):../../../gm2-libs:$(gm2dir)/gm2-libs:$(gm2dir)/gm2-libs-iso
 OBJ_PATH_PIM=.:../../../gm2-libs/SO:../../../gm2-libs-pim/SO:../../../gm2-libs-iso/SO
 
-XGM2=../../../../xgm2 -B../../../.. -B../../../../stage1/gm2
+XGM2=../../../../xgm2 -B../../../../
 XGPP=../../../../g++
-XGCC=../../../../g++
+XGCC=../../../../gcc
 
 PYTHON_VERSION=2.5
 
@@ -35,10 +35,10 @@ all: force
 	@echo "or you can use 'make post-install' to build the examples after installing the compiler"
 
 pre-install: clean
-	gm2 -fshared -fswig -I$(SRC_PATH_PIM) -c -fPIC -g -fswig $(srcdir)/tiny.mod
+	$(XGM2) -fshared -fswig -I$(SRC_PATH_PIM) -c -fPIC -g -fswig $(srcdir)/tiny.mod
 	swig -c++ -python tiny.i
 	gcc -c -fPIC tiny_wrap.cxx -I/usr/include/python$(PYTHON_VERSION)
-	gm2 -fobject-path=$(OBJ_PATH_PIM) -fPIC -g -shared -fshared -I$(SRC_PATH_PIM) $(srcdir)/tiny.mod tiny_wrap.o -o _tiny.so
+	$(XGM2) -fonlylink -fobject-path=$(OBJ_PATH_PIM) -fPIC -g -shared -fshared -I$(SRC_PATH_PIM) $(srcdir)/tiny.mod tiny_wrap.o -o _tiny.so
 	PYTHONPATH=.:$(srcdir) python $(srcdir)/testtiny.py
 	PYTHONPATH=.:$(srcdir) python $(srcdir)/stresstiny.py
 
@@ -46,7 +46,7 @@ post-install: clean
 	gm2 -fshared -fswig -I$(srcdir) -c -fPIC -g -fswig $(srcdir)/tiny.mod
 	swig -c++ -python tiny.i
 	gcc -c -fPIC tiny_wrap.cxx -I/usr/include/python$(PYTHON_VERSION)
-	gm2 -fPIC -g -shared -fshared -I$(srcdir) $(srcdir)/tiny.mod tiny_wrap.o -o _tiny.so
+	gm2 -fonlylink -fPIC -g -shared -fshared -I$(srcdir) $(srcdir)/tiny.mod tiny_wrap.o -o _tiny.so
 	PYTHONPATH=.:$(srcdir) python $(srcdir)/testtiny.py
 	PYTHONPATH=.:$(srcdir) python $(srcdir)/stresstiny.py
 

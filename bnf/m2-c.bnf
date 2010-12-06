@@ -842,7 +842,7 @@ PushQualident :=                                                           % VAR
                                                                              Sym := GetSym(name) ;
                                                                              IF Sym=NulSym
                                                                              THEN
-                                                                                PushTF(NulSym, NulSym)
+                                                                                PushTFn(NulSym, NulSym, name)
                                                                              ELSIF IsDefImp(Sym) OR IsModule(Sym)
                                                                              THEN
                                                                                 Expect(periodtok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
@@ -850,7 +850,7 @@ PushQualident :=                                                           % VAR
                                                                                 PushQualident(stopset0, stopset1, stopset2) ;
                                                                                 EndScope
                                                                              ELSE
-                                                                                PushTF(Sym, GetType(Sym))
+                                                                                PushTFn(Sym, GetType(Sym), name)
                                                                              END ;
                                                                              PopAuto %
                                                                            % WHILE FALSE DO %

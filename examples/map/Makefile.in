@@ -19,7 +19,7 @@
 srcdir = @srcdir@
 gm2dir = $(srcdir)/../..
 
-XGM2=../../../xgm2 -B../../.. -B../../../stage1/gm2
+XGM2=../../../xgm2 -B../../../x
 GM2FLAGS=-O3
 
 SRC_PATH_PIM=$(srcdir):$(gm2dir)/gm2-compiler:../../gm2-libs:$(gm2dir)/gm2-libs:$(gm2dir)/gm2-libs-iso
