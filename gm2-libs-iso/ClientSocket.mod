@@ -162,7 +162,7 @@ BEGIN
       IF NOT setPushBackChar(c, ch)
       THEN
          RAISEdevException(cid, did, notAvailable,
-                           'ClientSocket.dounreadchar: cannot push back more than one character consecutively')
+                           'ClientSocket.dounreadchar: number of characters pushed back exceeds buffer')
       END ;
       RETURN( ch )
    END

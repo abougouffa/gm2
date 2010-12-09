@@ -7,6 +7,10 @@
 	* gm2/gm2-libs/RTExceptions.mod:  new procedure addFile
 	  and stripPath which extracts the filename from the
 	  complete path.  Bug reported by Christoph Schlegel.
+	* gm2/gm2-libs-iso/ClientSocket.mod:  modified exception
+	  message given the increased push back buffer.
+	* gm2/gm2-libs-iso/wrapsock.c:  modified the push back
+	  routines to work with multiple consecutive push back.
 
 2010-12-01       Gaius Mulley <gaius@gnu.org>
 

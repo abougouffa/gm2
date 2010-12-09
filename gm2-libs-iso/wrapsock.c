@@ -71,6 +71,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 #include "ChanConsts.h"
 
 #define MAXHOSTNAME 1024
+#define MAXPBBUF    1024
 
 
 typedef struct {
@@ -80,7 +81,7 @@ typedef struct {
   int                 sockFd;
   int                 portNo;
   int                 hasChar;
-  char                pbChar;
+  char                pbChar[MAXPBBUF];
 } clientInfo;
 
 static openResults clientConnect (clientInfo *c);
@@ -108,7 +109,7 @@ openResults wrapsock_clientOpen (clientInfo *c, char *hostname,
   memcpy((void *)&c->sa.sin_addr, (void *)c->hp->h_addr, c->hp->h_length);
   c->portNo        = portNo;
   c->sa.sin_port   = htons(portNo);
-  c->hasChar       = FALSE;
+  c->hasChar       = 0;
   /*
    *  Open a TCP socket (an Internet stream socket)
    */
@@ -207,9 +208,9 @@ unsigned int wrapsock_getClientIP (clientInfo *c)
 
 unsigned int wrapsock_getPushBackChar (clientInfo *c, char *ch)
 {
-  if (c->hasChar) {
-    *ch = c->pbChar;
-    c->hasChar = FALSE;
+  if (c->hasChar > 0) {
+    c->hasChar--;
+    *ch = c->pbChar[c->hasChar];
     return TRUE;
   }
   return FALSE;
@@ -222,10 +223,10 @@ unsigned int wrapsock_getPushBackChar (clientInfo *c, char *ch)
 
 unsigned int wrapsock_setPushBackChar (clientInfo *c, char ch)
 {
-  if (c->hasChar)
+  if (c->hasChar == MAXPBBUF)
     return FALSE;
-  c->pbChar = ch;
-  c->hasChar = TRUE;
+  c->pbChar[c->hasChar] = ch;
+  c->hasChar++;
   return TRUE;
 }
 
