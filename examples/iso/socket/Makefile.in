@@ -17,12 +17,12 @@
 # Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 srcdir = @srcdir@
-gm2dir = $(srcdir)/../..
+gm2dir = $(srcdir)/../../..
 
 SRC_PATH_ISO=$(srcdir):../../gm2-libs-iso:$(gm2dir)/gm2-libs-iso:$(gm2dir)/gm2-libs
-OBJ_PATH_ISO=.:../../gm2-libs-iso:../../gm2-libs
+OBJ_PATH_ISO=.:../../../gm2-libs-iso:../../../gm2-libs
 
-XGM2=../../../xgm2 -B../../.. -B../../../stage1/gm2
+XGM2=../../../../xgm2 -B../../../.. -B../../../../stage1/gm2
 
 all: force
 	@echo "you need to use 'make pre-install' to build the examples using the locally built compiler"
@@ -30,7 +30,7 @@ all: force
 
 pre-install: clean
 	$(XGM2) -c -I$(SRC_PATH_ISO) -g $(srcdir)/client.mod
-	$(XGM2) -fonlylink -g -I$(OBJ_PATH_ISO) $(srcdir)/client.mod
+	$(XGM2) -fonlylink -g -I$(SRC_PATH_ISO) -fobject-path=$(OBJ_PATH_ISO) $(srcdir)/client.mod
 
 post-install: clean
 	gm2 -g -fiso $(srcdir)/client.mod

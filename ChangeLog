@@ -11,6 +11,10 @@
 	  message given the increased push back buffer.
 	* gm2/gm2-libs-iso/wrapsock.c:  modified the push back
 	  routines to work with multiple consecutive push back.
+	* gm2/config-lang.in:  added
+          gm2/examples/iso/socket/Makefile to be configured.
+	* gm2/examples/iso/socket/Makefile.in:  fixed compiler,
+	  include and link paths.
 
 2010-12-01       Gaius Mulley <gaius@gnu.org>
 

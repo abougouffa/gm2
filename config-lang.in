@@ -96,6 +96,7 @@ outputs=" \
          gm2/examples/cpp/Makefile \
          gm2/examples/gravity/Makefile \
          gm2/examples/hello/Makefile \
+         gm2/examples/iso/socket/Makefile \
          gm2/examples/map/Makefile \
          gm2/examples/ncurses/Makefile \
          gm2/examples/swig/exceptions/Makefile \
