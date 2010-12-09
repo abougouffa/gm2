@@ -29,7 +29,7 @@ proc default_gcc_version { } {
 
     # verify that the compiler exists
     if { $compiler_name != 0 } then {
-	set tmp [remote_exec host "$compiler -v"]
+	set tmp [remote_exec host "$compiler --version"]
 	set status [lindex $tmp 0];
 	set output [lindex $tmp 1];
 	regexp "version.*$" $output version
