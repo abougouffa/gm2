@@ -2300,6 +2300,9 @@ BEGIN
          IsVarParam(op2, op1) AND IsConst(op3)
       THEN
          MetaErrorT1(CurrentQuadToken, 'cannot pass a constant {%1ad} as a VAR parameter', op3)
+      ELSIF IsAModula2Type(op3)
+      THEN
+         MetaErrorT2(CurrentQuadToken, 'cannot pass a type {%1ad} as a parameter to procedure {%2ad}', op3, op2)
       ELSE
          doParam(quad, op1, op2, op3)
       END

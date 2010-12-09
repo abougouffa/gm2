@@ -1,3 +1,13 @@
+2010-12-09       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  detect an attempt to pass a
+	  type as a parameter and issue an error.  Fixes a bug
+	  reported by Scott Iverson.
+	* gm2/gm2-compiler/SymbolTable.mod:  tidied up comment.
+	* gm2/gm2-libs/RTExceptions.mod:  new procedure addFile
+	  and stripPath which extracts the filename from the
+	  complete path.  Bug reported by Christoph Schlegel.
+
 2010-12-01       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  added example checking rule,

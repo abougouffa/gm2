@@ -198,6 +198,46 @@ END addChar ;
 
 
 (*
+   stripPath - returns the filename from the path.
+*)
+
+PROCEDURE stripPath (s: ADDRESS) : ADDRESS ;
+VAR
+   f, p: PtrToChar ;
+BEGIN
+   p := s ;
+   f := s ;
+   WHILE p^#nul DO
+      IF p^='/'
+      THEN
+         INC(p) ;
+         f := p
+      ELSE
+         INC(p)
+      END
+   END ;
+   RETURN( f )
+END stripPath ;
+
+
+(*
+   addFile - adds the filename determined by, s, however it strips
+             any preceeding path.
+*)
+
+PROCEDURE addFile (s: ADDRESS; VAR i: CARDINAL) ;
+VAR
+   p: PtrToChar ;
+BEGIN
+   p := stripPath(s) ;
+   WHILE (p#NIL) AND (p^#nul) DO
+      addChar(p^, i) ;
+      INC(p)
+   END
+END addFile ;
+
+
+(*
    addStr - adds a C string from address, s, into the current
             handler text buffer.
 *)
@@ -246,7 +286,7 @@ VAR
 BEGIN
    currentEHB^.number := number ;
    i := 0 ;
-   addStr(file, i) ;
+   addFile(file, i) ;
    addChar(':', i) ;
    addNum(line, i) ;
    addChar(':', i) ;

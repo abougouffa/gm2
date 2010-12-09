@@ -10679,9 +10679,6 @@ END IsProcedureNested ;
                     IsType, IsPointer, IsRecord, IsEnumeration,
                     IsSubrange, IsArray, IsUnbounded, IsProcType.
                     NOTE that it different from IsType.
-                    IsType is used for:
-                    TYPE
-                       a = CARDINAL ;  (* IsType(a)=TRUE *)
 *)
 
 PROCEDURE IsAModula2Type (Sym: CARDINAL) : BOOLEAN ;
