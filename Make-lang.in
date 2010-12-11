@@ -2682,7 +2682,7 @@ gm2-check-examples: force
 	allok="yes" ; \
         for i in examples/hello examples/gravity/ \
                  examples/cplusplus/cppcatchm2 examples/cplusplus/m2catchcpp \
-                 examples/callingC examples/swig/exceptions \
+                 examples/callingC examples/iso/socket examples/swig/exceptions \
                  examples/swig/tiny examples/swig/strlib \
                  examples/cpp examples/map examples/ncurses ; do \
           ( testdir=`pwd` ; cd gm2/$${i} ; if make clean pre-install >& $${testdir}/log ; \

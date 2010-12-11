@@ -1,3 +1,9 @@
+2010-12-10       Gaius Mulley <gaius@gnu.org>
+
+	* Release 1.0
+	* gm2/Make-lang.in:  added gm2/examples/iso/socket to the list
+	  of examples to be checked.
+
 2010-12-09       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  detect an attempt to pass a
