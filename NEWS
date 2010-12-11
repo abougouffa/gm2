@@ -1,6 +1,14 @@
 This file describes recent user-visible changes in gm2.  Bug fixes are
 not described.  There are more details in the man and info pages.
 
+VERSION 1.0
+===========
+
+* All ISO libraries are complete.
+* All ISO language implemented.
+* All regression tests pass on both x86_64 and x86_32 Debian GNU/Linux
+  platforms.
+
 VERSION 0.68
 ============
 
