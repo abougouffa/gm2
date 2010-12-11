@@ -4,6 +4,7 @@
 	* gm2/Make-lang.in:  added gm2/examples/iso/socket to the list
 	  of examples to be checked.
 	* gm2/NEWS:  updated.
+	* gm2/TODO:  updated.
 
 2010-12-09       Gaius Mulley <gaius@gnu.org>
 
