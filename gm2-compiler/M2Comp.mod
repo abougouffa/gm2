@@ -43,7 +43,7 @@ IMPORT P2Build ;
 IMPORT PCBuild ;
 IMPORT P3Build ;
 IMPORT PHBuild ;
-IMPORT P2SymBuild ;
+IMPORT PCSymBuild ;
 
 FROM M2Batch IMPORT GetSource, GetModuleNo, GetDefinitionModuleFile, GetModuleFile,
                     AssociateModule, AssociateDefinition, MakeImplementationSource,
@@ -409,7 +409,7 @@ BEGIN
       INC(i) ;
       Sym := GetModuleNo(i)
    END ;
-   P2SymBuild.ResolveConstTypes ;
+   PCSymBuild.ResolveConstTypes ;
    ResolveConstructorTypes ;
    SetPassToNoPass
 END DoPassC ;

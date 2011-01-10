@@ -817,20 +817,39 @@ BEGIN
    Convert := MakeProcedure(MakeKey('CONVERT')) ;  (* Internal function CONVERT    *)
    IF Iso
    THEN
-      LengthS := MakeProcedure(MakeKey('LENGTH'))  (* Pseudo Base function LENGTH  *)
+      LengthS := MakeProcedure(MakeKey('LENGTH')) ; (* Pseudo Base function LENGTH  *)
+      PutFunction(LengthS, ZType)
    ELSE
       LengthS := NulSym
    END ;
    Abs   := MakeProcedure(MakeKey('ABS')) ;      (* Pseudo Base function ABS     *)
+   PutFunction(Abs, ZType) ;
+
    Cap   := MakeProcedure(MakeKey('CAP')) ;      (* Pseudo Base function CAP     *)
+   PutFunction(Cap, Char) ;
+
    Odd   := MakeProcedure(MakeKey('ODD')) ;      (* Pseudo Base function ODD     *)
-   Val   := MakeProcedure(MakeKey('VAL')) ;      (* Pseudo Base function VAL     *)
+   PutFunction(Odd, Boolean) ;
+
    Chr   := MakeProcedure(MakeKey('CHR')) ;      (* Pseudo Base function CHR     *)
+   PutFunction(Chr, Char) ;
+
+   (* the following three procedure functions have a return type depending upon  *)
+   (* the parameters.                                                            *)
+
+   Val   := MakeProcedure(MakeKey('VAL')) ;      (* Pseudo Base function VAL     *)
    Min   := MakeProcedure(MakeKey('MIN')) ;      (* Pseudo Base function MIN     *)
    Max   := MakeProcedure(MakeKey('MAX')) ;      (* Pseudo Base function MIN     *)
+
    Re    := MakeProcedure(MakeKey('RE')) ;       (* Pseudo Base function RE      *)
+   PutFunction(Re, RType) ;
+
    Im    := MakeProcedure(MakeKey('IM')) ;       (* Pseudo Base function IM      *)
+   PutFunction(Im, RType) ;
+
    Cmplx := MakeProcedure(MakeKey('CMPLX')) ;    (* Pseudo Base function CMPLX   *)
+   PutFunction(Cmplx, CType) ;
+
    BuildFloatFunctions ;
    BuildTruncFunctions ;
    BuildOrdFunctions ;

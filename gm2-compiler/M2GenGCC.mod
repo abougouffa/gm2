@@ -36,7 +36,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         GetModuleFinallyFunction, PutModuleFinallyFunction,
                         GetLocalSym, GetVarWritten,
                         GetVarient, GetVarBackEndType,
-                        NoOfParam, GetParent, GetDimension,
+                        NoOfParam, GetParent, GetDimension, IsAModula2Type,
                         IsModule, IsDefImp, IsType, IsModuleWithinProcedure,
                         IsConstString, GetString, GetStringLength,
                         IsConst, IsConstSet, IsProcedure, IsProcType,
@@ -1951,6 +1951,26 @@ END IsCoerceableParameter ;
 
 
 (*
+   IsConstProcedure - returns TRUE if, p, is a const procedure.
+*)
+
+PROCEDURE IsConstProcedure (p: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsConst(p) AND (GetType(p)#NulSym) AND IsProcType(GetType(p)) )
+END IsConstProcedure ;
+
+
+(*
+   IsConstant - returns TRUE if symbol, p, is either a const or procedure.
+*)
+
+PROCEDURE IsConstant (p: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsConst(p) OR IsProcedure(p) )
+END IsConstant ;
+
+
+(*
    CheckConvertCoerceParameter - 
 *)
 
@@ -1971,7 +1991,7 @@ BEGIN
    END ;
    IF IsProcType(ParamType)
    THEN
-      IF IsProcedure(op3)
+      IF IsProcedure(op3) OR IsConstProcedure(op3)
       THEN
          RETURN( Mod2Gcc(op3) )
       ELSE
@@ -2377,7 +2397,7 @@ VAR
 BEGIN
    TryDeclareConstant(tokenno, op3) ;  (* checks to see whether it is a constant literal and declares it *)
    TryDeclareConstructor(quad, op3) ;
-   IF IsConst(op1) AND IsConst(op3)
+   IF IsConst(op1) AND IsConstant(op3)
    THEN
       CheckStop(quad) ;
 
@@ -2402,7 +2422,11 @@ BEGIN
                CheckOrResetOverflow(tokenno, Mod2Gcc(op3), MustCheckOverflow(quad)) ;
                AddModGcc(op1, Mod2Gcc(op3))
             ELSE
-               IF IsValueSolved(op3)
+               IF IsProcedure(op3)
+               THEN
+                  AddModGcc(op1,
+                            BuildConvert(Mod2Gcc(GetType(op1)), BuildAddr(Mod2Gcc(op3), FALSE), TRUE))
+               ELSIF IsValueSolved(op3)
                THEN
                   PushValue(op3) ;
                   IF IsValueTypeReal()
@@ -2610,9 +2634,12 @@ BEGIN
    TryDeclareConstant(tokenno, op3) ;
    t := Mod2Gcc(op3) ;
    Assert(t#NIL) ;
-   IF IsConst(op3)
+   IF IsConstant(op3)
    THEN
-      IF (NOT IsConstString(op3)) AND (NOT IsConstSet(op3)) AND
+      IF IsProcedure(op3)
+      THEN
+         t := BuildConvert(Mod2Gcc(GetType(op1)), BuildAddr(Mod2Gcc(op3), FALSE), TRUE)
+      ELSIF (NOT IsConstString(op3)) AND (NOT IsConstSet(op3)) AND
          (SkipType(GetType(op3))#SkipType(GetType(op1)))
       THEN
          t := ConvertConstantAndCheck(DefaultConvertGM2(GetType(op1)), t)
@@ -2707,7 +2734,7 @@ BEGIN
            IsUnbounded(SkipType(GetType(op3))) AND
            (IsGenericSystemType(SkipType(GetType(GetType(op1)))) #
             IsGenericSystemType(SkipType(GetType(GetType(op3))))))) AND
-         (NOT IsConst(op3))
+         (NOT IsConstant(op3))
       THEN
          AddStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(op1), FALSE),
                                      BuildAddr(Mod2Gcc(op3), FALSE),
@@ -4822,9 +4849,10 @@ VAR
 BEGIN
    (* firstly ensure that constant literals are declared *)
    TryDeclareConstant(tokenno, op3) ;
-   IF IsConst(op3)
+   IF IsConstant(op3)
    THEN
-      IF GccKnowsAbout(op2) AND IsValueSolved(op3) AND
+      IF GccKnowsAbout(op2) AND
+         (IsProcedure(op3) OR IsValueSolved(op3)) AND
          GccKnowsAbout(SkipType(op2))
       THEN
          (* fine, we can take advantage of this and fold constant *)
@@ -4832,45 +4860,50 @@ BEGIN
          THEN
             PutConst(op1, op2) ;
             tl := Mod2Gcc(SkipType(op2)) ;
-            PushValue(op3) ;
-            IF IsConstSet(op3)
+            IF IsProcedure(op3)
             THEN
-               IF IsSet(SkipType(op2))
-               THEN
-                  WriteFormat0('cannot convert values between sets')
-               ELSE
-                  PushIntegerTree(FoldAndStrip(BuildConvert(tl, PopSetTree(tokenno), TRUE))) ;
-                  PopValue(op1) ;
-                  PushValue(op1) ;
-                  AddModGcc(op1, PopIntegerTree())
-               END
+               AddModGcc(op1, BuildConvert(tl, Mod2Gcc(op3), TRUE))
             ELSE
-               IF IsSet(SkipType(op2))
+               PushValue(op3) ;
+               IF IsConstSet(op3)
                THEN
-                  PushSetTree(tokenno,
-                              FoldAndStrip(BuildConvert(tl, PopIntegerTree(),
-                                                        TRUE)), SkipType(op2)) ;
-                  PopValue(op1) ;
-                  PutConstSet(op1) ;
-                  PushValue(op1) ;
-                  AddModGcc(op1, PopSetTree(tokenno))
-               ELSIF IsRealType(SkipType(op2))
-               THEN
-                  PushRealTree(FoldAndStrip(BuildConvert(tl, PopIntegerTree(),
-                                                         TRUE))) ;
-                  PopValue(op1) ;
-                  PushValue(op1) ;
-                  AddModGcc(op1, PopRealTree())
+                  IF IsSet(SkipType(op2))
+                  THEN
+                     WriteFormat0('cannot convert values between sets')
+                  ELSE
+                     PushIntegerTree(FoldAndStrip(BuildConvert(tl, PopSetTree(tokenno), TRUE))) ;
+                     PopValue(op1) ;
+                     PushValue(op1) ;
+                     AddModGcc(op1, PopIntegerTree())
+                  END
                ELSE
-                  (* we let CheckOverflow catch a potential overflow rather than BuildConvert *)
-                  PushIntegerTree(FoldAndStrip(BuildConvert(tl,
-                                                            PopIntegerTree(),
-                                                            FALSE))) ;
-                  PopValue(op1) ;
-                  PushValue(op1) ;
-                  CheckOrResetOverflow(tokenno, PopIntegerTree(), MustCheckOverflow(quad)) ;
-                  PushValue(op1) ;
-                  AddModGcc(op1, PopIntegerTree())
+                  IF IsSet(SkipType(op2))
+                  THEN
+                     PushSetTree(tokenno,
+                                 FoldAndStrip(BuildConvert(tl, PopIntegerTree(),
+                                                           TRUE)), SkipType(op2)) ;
+                     PopValue(op1) ;
+                     PutConstSet(op1) ;
+                     PushValue(op1) ;
+                     AddModGcc(op1, PopSetTree(tokenno))
+                  ELSIF IsRealType(SkipType(op2))
+                  THEN
+                     PushRealTree(FoldAndStrip(BuildConvert(tl, PopIntegerTree(),
+                                                            TRUE))) ;
+                     PopValue(op1) ;
+                     PushValue(op1) ;
+                     AddModGcc(op1, PopRealTree())
+                  ELSE
+                     (* we let CheckOverflow catch a potential overflow rather than BuildConvert *)
+                     PushIntegerTree(FoldAndStrip(BuildConvert(tl,
+                                                               PopIntegerTree(),
+                                                               FALSE))) ;
+                     PopValue(op1) ;
+                     PushValue(op1) ;
+                     CheckOrResetOverflow(tokenno, PopIntegerTree(), MustCheckOverflow(quad)) ;
+                     PushValue(op1) ;
+                     AddModGcc(op1, PopIntegerTree())
+                  END
                END
             END ;
             p(op1) ;

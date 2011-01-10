@@ -16,9 +16,9 @@
 .\" 
 .ds GCCVERSION 4.1.2
 .ds LATESTCVSGM2 gcc-\*[GCCVERSION]+gm2-cvs-latest.tar.gz
-.ds CURRENTDATE "Thu Sep 16 12:34:07 BST 2010
-.ds CURRENTGM2 1.0
-.ds DEBIANGM2 0.9.9
+.ds CURRENTDATE "Sat Dec 11 14:03:48 GMT 2010
+.ds CURRENTGM2 1.0.1
+.ds DEBIANGM2 1.0
 .HEAD "<link rel=""stylesheet"" type=""text/css"" href=""gm2.css"" />"
 .HEAD "<link rel=""icon"" type=""image/png"" href=""gm2-logo.png"" />"
 .de OPT
@@ -75,12 +75,10 @@ GNU Modula-2
 .\" .SH
 .\" GNU Modula-2 status
 .LNS
-The home of the GNU Modula-2 compiler.
-This compiler is still in development.
-.LP
-The compiler has undergone quite a number of changes recently and the
-current version in the CVS being worked upon is gm2-\*[CURRENTGM2].
-The native x86_64 and 32 bit x86 versions are the most stable.
+The home of the GNU Modula-2 compiler.  The compiler has undergone
+quite a number of changes recently and the current version in the CVS
+being worked upon is gm2-\*[CURRENTGM2].  The native x86_64 and x86_32
+ports are the most stable.
 .PP
 The GNU Modula-2 compiler is one of a number of
 .URL http://gcc.gnu.org/frontends.html "front end languages"
@@ -103,7 +101,7 @@ Recent news:
 .sp
 .ULS
 .LI
-gm2 0.99 was released on October 12 2010.
+gm2 1.0 was released on December 11 2010.
 .LI
 all regression tests pass on the x86_64 and x86_32 debian platforms.
 There are 1673 individual tests and each test is compiled with varying
@@ -119,7 +117,7 @@ builds under OSX leopard and snow leopard using \f[I]macports\f[P]
 (although there are regression test failures on these platforms).
 .LI
 builds under Sparc Solaris LP64 and passes most of the regression tests
-(45 failures out of 9200).
+(39 failures out of 9200).
 .LI
 now builds under Cygwin (however at present -O3 does not work on this platform
 and also swig and Modula-2 have not been seen to work together yet).
@@ -201,16 +199,17 @@ how these licences work
 .SH
 Documentation
 .LP
-Currently some GNU Modula-2
-.URL gm2.html documentation
-documentation exists, albeit incomplete, but it does contain a fully
-indexed list of all library procedures, a release map, and full
-building and downloading instructions.
-A 
+GNU Modula-2 documentation exists, and it contains a fully indexed
+list of all library procedures, a release map, and full building and
+downloading instructions.  A
 .URL http://floppsie.comp.glam.ac.uk/download/m2/gm2.pdf (pdf)
 version can be found
 .URL http://floppsie.comp.glam.ac.uk/download/m2/gm2.pdf here.
-The pdf version is built nightly.
+and the equivalent
+.URL gm2.html (html)
+version can be found
+.URL gm2.html here .
+.
 .SH
 Regression tests for gm2-\*[CURRENTGM2] in the CVS
 .LP
@@ -241,10 +240,10 @@ modules please check the
 .SH
 Building GNU Modula-2
 .LP
-Rather than duplicate building instructions here, please see the
-\f[B]Obtaining GNU Modula-2\f[P] section in the
-.URL http://www.nongnu.org/gm2/gm2.html "gm2 texinfo documentation"
-which matches the CVS.
+Rather than duplicate building instructions here, please see section
+.URL gm2.html#SEC32 "Obtaining GNU Modula-2"
+in the
+.URL gm2.html "gm2 manual" .
 .sp
 .
 .SH
@@ -372,6 +371,9 @@ You can download the latest CVS and patched gcc combination from
 .GM2URL "\*[LATESTCVSGM2]" \*[LATESTCVSGM2] .
 You can also browse for older releases
 .GM2URL "" "here" .
+.sp
+The 1.0 release tarball is available:
+.GM2URL gcc-4.1.2+gm2-1.0.tar.gz gcc-4.1.2+gm2-1.0.tar.gz .
 .
 .SH
 Contributing code
@@ -390,21 +392,17 @@ before you start coding.
 .SH
 Objectives
 .LP
-Here follows the objectives of GNU Modula-2 note that some of these
-have already been achieved and they are listed in no particular order.
+Here follows the objectives of GNU Modula-2:
 .ULS
 .LI
 The intention of GNU Modula-2 is to provide a production modula-2
-front end to GCC. Initially GNU Modula-2 will comply with the
-PIM-[234] dialect of M2, eventually it will fully compliant with ISO
-Modula-2.
+front end to GCC.
 .LI
-It is an aim to provide PIM library compatibility.
+It supports all Niklaus Wirth PIM Dialects [234] and also ISO Modula-2
+including a reimplementation of all the ISO modules.
 .LI
-ISO Modula-2 library support is likely to occur before the compiler is fully
-ISO compliant.
-.LI
-Compatibility libraries. Topspeed, Logitech, Ulm are also required.
+To provides PIM library compatibility which includes the all the Ulm
+libraries and many of the Logitech libraries.
 .LI
 There should be an easy interface to C.
 .LI

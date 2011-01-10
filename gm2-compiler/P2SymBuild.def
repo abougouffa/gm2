@@ -77,22 +77,20 @@ EXPORT QUALIFIED P2StartBuildDefModule,
                  BuildFieldArray,
                  BuildProcedureType,
                  BuildFormalType,
-
                  SeenCast,
                  SeenSet,
                  SeenArray,
                  SeenConstructor,
                  SeenUnknown,
                  SeenString,
+                 SeenBoolean,
+                 SeenCType, SeenRType, SeenZType,
                  DetermineType, PushType, PopType,
                  PushRememberConstant,
                  PopRememberConstant,
-                 RememberConstant,
-                 FixupConstAsString,
-                 FixupConstType,
-                 FixupConstExpr,
-                 ResolveConstTypes,
-                 SkipConst ;
+                 RememberConstant ;
+                 
+
 
 
 (*
@@ -1141,6 +1139,7 @@ PROCEDURE BuildProcedureType ;
 PROCEDURE BuildFormalType ;
 
 
+
 (*
    SeenUnknown - sets the operand type to unknown.
 *)
@@ -1184,6 +1183,34 @@ PROCEDURE SeenString ;
 
 
 (*
+   SeenBoolean - sets the operand type to a BOOLEAN.
+*)
+
+PROCEDURE SeenBoolean (sym: CARDINAL) ;
+
+
+(*
+   SeenZType - sets the operand type to a Z type.
+*)
+
+PROCEDURE SeenZType (sym: CARDINAL) ;
+
+
+(*
+   SeenRType - sets the operand type to a R type.
+*)
+
+PROCEDURE SeenRType (sym: CARDINAL) ;
+
+
+(*
+   SeenCType - sets the operand type to a C type.
+*)
+
+PROCEDURE SeenCType (sym: CARDINAL) ;
+
+
+(*
    DetermineType - assigns the top of stack symbol with the type of
                    constant expression, if known.
 *)
@@ -1224,41 +1251,6 @@ PROCEDURE PopRememberConstant ;
 *)
 
 PROCEDURE RememberConstant (sym: CARDINAL) ;
-
-
-(*
-   FixupConstAsString - fixes up a constant, sym, which will have the string type.
-*)
-
-PROCEDURE FixupConstAsString (sym: CARDINAL) ;
-
-
-(*
-   FixupConstType - fixes up a constant, sym, which will have the type, consttype.
-*)
-
-PROCEDURE FixupConstType (sym: CARDINAL; consttype: CARDINAL) ;
-
-
-(*
-   FixupConstExpr - fixes up a constant, sym, which will be equivalent to e.
-*)
-
-PROCEDURE FixupConstExpr (sym: CARDINAL; e: CARDINAL) ;
-
-
-(*
-   SkipConst - returns the symbol which is a pseudonum of, sym.
-*)
-
-PROCEDURE SkipConst (sym: CARDINAL) : CARDINAL ;
-
-
-(*
-   ResolveConstTypes - resolves the types of all aggegrate constants.
-*)
-
-PROCEDURE ResolveConstTypes ;
 
 
 END P2SymBuild.

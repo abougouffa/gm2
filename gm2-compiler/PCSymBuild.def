@@ -42,11 +42,23 @@ EXPORT QUALIFIED PCStartBuildDefModule,
                  BuildConst,
                  PCBuildImportOuterModule,
                  PCBuildImportInnerModule,
-                 StartCurrentConst,
-                 EndCurrentConst,
-                 SetCurrentConstToString,
-                 SetCurrentConstType,
-                 SetConstTypeOrExpr ;
+                 StartDesConst,
+                 EndDesConst,
+                 BuildRelationConst,
+                 BuildUnaryConst,
+                 BuildBinaryConst,
+                 PushInConstructor,
+                 PopInConstructor,
+                 SkipConst,
+                 PushConstType,
+                 PushConstAttributeType,
+                 PushConstAttributePairType,
+                 PushConstructorCastType,
+                 PushRType,
+                 PushConstFunctionType,
+                 PushIntegerType,
+                 PushStringType,
+                 ResolveConstTypes ;
 
 
 (*
@@ -361,40 +373,123 @@ PROCEDURE BuildConst ;
 
 
 (*
-   StartCurrentConst - if the auto push is one then set the current const
-                       to the top of stack.
+   StartDesConst - 
 *)
 
-PROCEDURE StartCurrentConst ;
+PROCEDURE StartDesConst ;
 
 
 (*
-   EndCurrentConst - set the current const to NulSym.
+   EndDesConst - 
 *)
 
-PROCEDURE EndCurrentConst ;
+PROCEDURE EndDesConst ;
 
 
 (*
-   SetCurrentConstToString - set the type of current const to string.
+   BuildRelationConst - builds a relationship binary operation.
 *)
 
-PROCEDURE SetCurrentConstToString ;
+PROCEDURE BuildRelationConst ;
 
 
 (*
-   SetCurrentConstType - set the type of the current const to the top of stack.
+   BuildUnaryConst - builds a unary operator node.
 *)
 
-PROCEDURE SetCurrentConstType ;
+PROCEDURE BuildUnaryConst ;
 
 
 (*
-   SetConstTypeOrExpr - ensures that the current constant is either equivalent to
-                        sym, or has the type, sym.
+   BuildBinaryConst - builds a binary operator node.
 *)
 
-PROCEDURE SetConstTypeOrExpr ;
+PROCEDURE BuildBinaryConst ;
+
+
+(*
+   PushConstFunctionType - 
+*)
+
+PROCEDURE PushConstFunctionType ;
+
+
+(*
+   PushIntegerType - pushes a ztype or char leaf.
+*)
+
+PROCEDURE PushIntegerType ;
+
+
+(*
+   PushRType - 
+*)
+
+PROCEDURE PushRType ;
+
+
+(*
+   PushStringType - 
+*)
+
+PROCEDURE PushStringType ;
+
+
+(*
+   SkipConst - returns an alias to constant, sym, if one exists.
+               Otherwise sym is returned.
+*)
+
+PROCEDURE SkipConst (sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   PushConstType - pushes a constant to the expression stack.
+*)
+
+PROCEDURE PushConstType ;
+
+
+(*
+   PushConstAttributeType - 
+*)
+
+PROCEDURE PushConstAttributeType ;
+
+
+(*
+   PushConstAttributePairType - 
+*)
+
+PROCEDURE PushConstAttributePairType ;
+
+
+(*
+   PushConstructorCastType - 
+*)
+
+PROCEDURE PushConstructorCastType ;
+
+
+(*
+   PushInConstructor - 
+*)
+
+PROCEDURE PushInConstructor ;
+
+
+(*
+   PopInConstructor - 
+*)
+
+PROCEDURE PopInConstructor ;
+
+
+(*
+   ResolveConstTypes - resolves the types of all designator declared constants.
+*)
+
+PROCEDURE ResolveConstTypes ;
 
 
 END PCSymBuild.

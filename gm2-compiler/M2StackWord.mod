@@ -174,7 +174,7 @@ END PopWord ;
 
 PROCEDURE IsEmptyWord (s: StackOfWord) : BOOLEAN ;
 BEGIN
-   RETURN( (s=NIL) OR (s^.tail=NIL) OR (s^.tail^.items=0) )
+   RETURN( (s=NIL) OR (s^.tail=NIL) )
 END IsEmptyWord ;
 
 

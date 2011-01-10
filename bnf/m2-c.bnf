@@ -52,7 +52,7 @@ FROM NameKey IMPORT NulName, Name, makekey ;
 FROM DynamicStrings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
 FROM M2Printf IMPORT printf0 ;
 FROM M2Debug IMPORT Assert ;
-FROM P2SymBuild IMPORT BuildString, BuildNumber, FixupConstAsString, FixupConstType ;
+FROM P2SymBuild IMPORT BuildString, BuildNumber ;
 
 FROM M2Reserved IMPORT tokToTok, toktype,
                        NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
@@ -61,7 +61,8 @@ FROM M2Reserved IMPORT tokToTok, toktype,
                        OrTok, TimesTok, DivTok, DivideTok, ModTok, RemTok,
                        AndTok, AmbersandTok, PeriodPeriodTok, ByTok ;
 
-FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing, OperandT, PushTFA,
+FROM M2Quads IMPORT Top, PushT, PopT, PushTF, PopTF, PopNothing, OperandT, PushTFA,
+                    PushTFn, PopTFn,
                     PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto,
                     BuildTypeForConstructor, BuildConstructor, BuildConstructorEnd,
                     NextConstructorField, SilentBuildConstructor ;
@@ -83,11 +84,21 @@ FROM PCSymBuild IMPORT PCStartBuildProgModule,
                        PCEndBuildProcedure,
                        PCBuildImportOuterModule,
                        PCBuildImportInnerModule,
-                       StartCurrentConst,
-                       EndCurrentConst,
-                       SetCurrentConstToString,
-                       SetCurrentConstType,
-                       SetConstTypeOrExpr ;
+                       StartDesConst,
+                       EndDesConst,
+                       BuildRelationConst,
+                       BuildBinaryConst,
+                       BuildUnaryConst,
+                       PushIntegerType,
+                       PushStringType,
+                       PushConstructorCastType,
+                       PushInConstructor,
+                       PopInConstructor,
+                       PushConstFunctionType,
+                       PushConstType,
+                       PushConstAttributeType,
+                       PushConstAttributePairType,
+                       PushRType ;
 
 FROM SymbolTable IMPORT MakeGnuAsm, PutGnuAsmVolatile, PutGnuAsm, PutGnuAsmInput,
                         PutGnuAsmOutput, PutGnuAsmTrash, PutGnuAsmVolatile,
@@ -557,50 +568,97 @@ Qualident :=                                                               % VAR
                                                                                    PushTF(Sym, GetType(Sym))
                                                                                 END
                                                                              ELSE (* just parse qualident *) %
-             { "." Ident }                                                 % END %
+              { "." Ident }                                                % END %
            =:
 
-ConstantDeclaration :=                                                     % PushAutoOn %
-                       ( Ident "="                                         % StartCurrentConst %
+ConstantDeclaration :=                                                     % VAR top: CARDINAL ; %
+                                                                           % top := Top() %
+                                                                           % PushAutoOn %
+                       ( Ident "="                                         % StartDesConst %
                                                                            % PushAutoOff %
                                    ConstExpression                         % PopAuto %
                                                     )
-                                                                           % EndCurrentConst ;
-                                                                             PopAuto %
+                                                                           % EndDesConst %
+                                                                           % PopAuto %
+                                                                           % Assert(top=Top()) %
                      =:
 
-ConstExpression :=                                                         % PushAutoOff %
-                   SimpleConstExpr [ Relation SimpleConstExpr
+ConstExpression :=                                                         % VAR top: CARDINAL ; %
+                                                                           % top := Top() %
+                                                                           % PushAutoOff %
+                   SimpleConstExpr [ Relation SimpleConstExpr              % BuildRelationConst %
                                    ]                                       % PopAuto %
+                                                                           % Assert(top=Top()) %
                 =:
 
-Relation := "="   
-            | "#" 
-            | "<>"
-            | "<" 
-            | "<="
-            | ">" 
-            | ">="
-            | "IN"
+Relation :=   "="                                                          % PushT(EqualTok) %
+            | "#"                                                          % PushT(HashTok) %
+            | "<>"                                                         % PushT(LessGreaterTok) %
+            | "<"                                                          % PushT(LessTok) %
+            | "<="                                                         % PushT(LessEqualTok) %
+            | ">"                                                          % PushT(GreaterTok) %
+            | ">="                                                         % PushT(GreaterEqualTok) %
+            | "IN"                                                         % PushT(InTok) %
          =:
 
-SimpleConstExpr := UnaryOrConstTerm { AddOperator ConstTerm } =:
+SimpleConstExpr :=                                                         % VAR top: CARDINAL ; %
+                                                                           % top := Top() %
+                   UnaryOrConstTerm { ConstAddOperator ConstTerm           % BuildBinaryConst %
+                                                                 }         % Assert(top=Top()) %
+                                                                   =:
 
-UnaryOrConstTerm := "+" ConstTerm | "-" ConstTerm | ConstTerm =:
+UnaryOrConstTerm :=   "+"                                                  % PushT(PlusTok) %
+                          ConstTerm                                        % BuildUnaryConst %
+                                    | "-"                                  % PushT(MinusTok) %
+                                          ConstTerm                        % BuildUnaryConst %
+                                                    | ConstTerm
+                  =:
+
+ConstAddOperator :=   "+"                                                  % PushT(PlusTok) %
+                    | "-"                                                  % PushT(MinusTok) %
+                    | "OR"                                                 % PushT(OrTok) %
+                  =:
 
 AddOperator :=   "+" | "-" | "OR" =:
 
-ConstTerm := ConstFactor { MulOperator ConstFactor } =:
+ConstTerm :=                                                               % VAR top: CARDINAL ; %
+                                                                           % top := Top() %
+             ConstFactor                                                   % Assert(top=Top()) %
+                         { ConstMulOperator ConstFactor                    % BuildBinaryConst %
+                                                                           % Assert(top=Top()) %
+                                                        }                  % Assert(top=Top()) %
+                                                          =:
 
-MulOperator := "*" | "/" | "DIV" | "MOD" | "REM" | "AND" | "&" =:
+ConstMulOperator :=   "*"                                                  % PushT(TimesTok) %
+                    | "/"                                                  % PushT(DivideTok) %
+                    | "DIV"                                                % PushT(DivTok) %
+                    | "MOD"                                                % PushT(ModTok) %
+                    | "REM"                                                % PushT(RemTok) %
+                    | "AND"                                                % PushT(AndTok) %
+                    | "&"                                                  % PushT(AmbersandTok) %
+             =:
 
-ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
-               "(" ConstExpression ")" | "NOT" ConstFactor
-               | ConstAttribute =:
+MulOperator :=   "*" | "/" | "DIV" | "MOD" | "REM" | "AND" | "&"   
+             =:
+
+ConstFactor := ConstNumber | ConstString |
+               ConstSetOrQualidentOrFunction |
+               "(" ConstExpression ")" |
+               "NOT" ConstFactor
+               | ConstAttribute
+             =:
+
+ConstNumber :=                                                             % PushAutoOn %
+               ( Integer                                                   % PushIntegerType %
+                         | Real                                            % PushRType %
+                                )                                          % PopAuto %
+             =:
 
 -- to help satisfy LL1
 
-ConstString := string                                                      % SetCurrentConstToString %
+ConstString :=                                                             % PushAutoOn %
+               string                                                      % PushStringType %
+                                                                           % PopAuto %
              =:
 
 ComponentElement := ConstExpression [ ".." ConstExpression ] =:
@@ -610,14 +668,15 @@ ComponentValue := ComponentElement [ 'BY' ConstExpression ] =:
 ArraySetRecordValue := ComponentValue { ','                                % NextConstructorField %
                                             ComponentValue } =:
 
-Constructor := '{'                                                         % SetCurrentConstType ;
-                                                                             BuildConstructor %
+Constructor := '{'                                                         % PushConstructorCastType %
+                                                                           % PushInConstructor %               
+                                                                           % BuildConstructor %
                   [ ArraySetRecordValue ]                                  % BuildConstructorEnd %
-               '}' =:
+               '}'                                                         % PopInConstructor %
+                   =:
 
-ConstructorOrConstActualParameters := Constructor |                        % SetCurrentConstType ;
-                                                                             PopNothing %
-                                                    ConstActualParameters
+ConstructorOrConstActualParameters := Constructor | ConstActualParameters  % PushConstFunctionType %
+                                                                           % PopNothing (* pop function *) %
                                     =:
 
 -- the entry to Constructor
@@ -625,23 +684,38 @@ ConstructorOrConstActualParameters := Constructor |                        % Set
 ConstSetOrQualidentOrFunction :=                                           % PushAutoOff %
                                  (
                                    PushQualident
-                                   ( ConstructorOrConstActualParameters |  % SetConstTypeOrExpr ;
-                                                                             PopNothing %
+                                   ( ConstructorOrConstActualParameters |  % PushConstType %
+                                                                           % PopNothing %
                                                                           )
                                    |                                       % BuildTypeForConstructor %
-                                     Constructor
-                                                 )                         % PopAuto %
+                                     Constructor )                         % PopAuto %
                                =:
 
-ConstActualParameters := ActualParameters =:
+ConstActualParameters :=                                                   % PushT(0) %
+                         "(" [ ConstExpList ] ")" =:
 
-ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "("                    % PushAutoOff %
+ConstExpList :=                                                            % VAR n: CARDINAL ; %
+                ConstExpression                                            % PopT(n) %
+                                                                           % INC(n) %
+                                                                           % Assert(n=1) %
+                                                                           % PushT(n) %
+                                { "," ConstExpression                      % PopT(n) %
+                                                                           % INC(n) %
+                                                                           % PushT(n) %
+                                                      } =:
+
+ConstAttribute :=                                                          % VAR top: CARDINAL ; %
+                                                                           % top := Top() %
+                  "__ATTRIBUTE__" "__BUILTIN__" "(" "("                    % PushAutoOn %
                   ConstAttributeExpression                                 % PopAuto %
-                  ")" ")" =:
+                  ")" ")"                                                  % Assert(top=Top()) %
+                =:
 
 ConstAttributeExpression :=
-                            Ident
-                                  | "<" Qualident ',' Ident ">"
+                            Ident                                          % PushConstAttributeType %
+                                                                           % PopNothing %
+                                  | "<" Qualident ',' Ident ">"            % PushConstAttributePairType %
+                                                                           % PopNothing ; PopNothing %
                           =:
 
 -- Set := [ Qualident ] "{" [ Element { "," Element } ] "}" =:
@@ -822,7 +896,7 @@ ArrayExpList := Expression { "," Expression } =:
 
 ExpList := Expression { "," Expression } =:
 
-Expression := SimpleExpression [ Relation SimpleExpression ]
+Expression := SimpleExpression [ SilentRelation SimpleExpression ]
            =:
 
 SimpleExpression := UnaryOrTerm { AddOperator Term } =:
@@ -864,12 +938,12 @@ ConstructorOrSimpleDes := Constructor |                                   % PopN
 
 SetOrDesignatorOrFunction :=                                              % PushAutoOff %
                              (
-                             PushQualident
-                             ( ConstructorOrSimpleDes |                   % PopNothing %
-                                                        )
+                               PushQualident
+                               ( ConstructorOrSimpleDes |                 % PopNothing %
+                                                          )
                                 |
                                                                           % BuildTypeForConstructor %
-                             Constructor
+                                  Constructor
                              )                                            % PopAuto %
                           =:
 
@@ -892,18 +966,23 @@ Statement :=                                                               % Pus
 
 RetryStatement := "RETRY" =:
 
-AssignmentOrProcedureCall := Designator ( ":=" Expression |
+AssignmentOrProcedureCall :=                                               % VAR top: CARDINAL ; %
+                                                                           % top := Top() %
+                             Designator ( ":=" Expression |
                                            ActualParameters |              % (* epsilon *) %
-                                        ) =:
+                                        )                                  % Assert(top=Top()) %
+                                          =:
 
 -- these two break LL1 as both start with a Designator
 -- ProcedureCall := Designator [ ActualParameters ] =:
 -- Assignment := Designator ":=" Expression =:
 
-StatementSequence :=
-                     Statement
+StatementSequence :=                                                       % VAR top: CARDINAL ; %
+                                                                           % top := Top() %
+                     Statement                                             % Assert(top=Top()) %
                                { ";"
-                                     Statement }
+                                     Statement                             % Assert(top=Top()) %
+                                               }
                   =:
 
 IfStatement := "IF" Expression "THEN"
@@ -983,9 +1062,18 @@ DefProcedureHeading := "PROCEDURE"                                         % Pus
 -- introduced procedure block so we can produce more informative
 -- error messages
 
-ProcedureBlock := { Declaration } [ "BEGIN" ProcedureBlockBody ] "END" =:
+ProcedureBlock :=                                                          % VAR top: CARDINAL ; %
+                                                                           % top := Top() %
+                  { Declaration                                            % Assert(top=Top()) %
+                                } [ "BEGIN" ProcedureBlockBody             % Assert(top=Top()) %
+                                                               ] "END"     % Assert(top=Top()) %
+                                                                       =:
 
-Block := { Declaration } InitialBlock FinalBlock "END" =:
+Block :=                                                                   % VAR top: CARDINAL ; %
+                                                                           % top := Top() %
+         { Declaration } InitialBlock FinalBlock
+                                                 "END"                     % Assert(top=Top()) %
+                                                       =:
 
 InitialBlock := [ "BEGIN" InitialBlockBody ] =:
 

@@ -223,7 +223,7 @@ FROM M2Range IMPORT InitAssignmentRangeCheck,
                     WriteRangeCheck ;
 
 FROM M2CaseList IMPORT PushCase, PopCase, AddRange, BeginCaseList, EndCaseList, ElseCase ;
-FROM P2SymBuild IMPORT SkipConst ;
+FROM PCSymBuild IMPORT SkipConst ;
 
 FROM gm2builtins IMPORT GetBuiltinTypeInfoType ;
 
@@ -13224,6 +13224,16 @@ BEGIN
       DEC(n)
    END
 END PopN ;
+
+
+(*
+   Top - returns the no of items held in the stack.
+*)
+
+PROCEDURE Top () : CARDINAL ;
+BEGIN
+   RETURN( NoOfItemsInStackAddress(BoolStack) )
+END Top ;
 
 
 (*

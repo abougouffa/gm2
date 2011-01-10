@@ -217,7 +217,7 @@ gm2.dvi: $(TEXISRC)
 	$(TEXI2DVI) -I $(objdir)/gm2 $(srcdir)/gm2/gm2.texi
 
 gm2.html: $(TEXISRC)
-	$(TEXI2HTML) -I $(objdir)/gm2 $(srcdir)/gm2/gm2.texi
+	$(TEXI2HTML) --sec-nav -I $(objdir)/gm2 $(srcdir)/gm2/gm2.texi
 
 gm2.ps: gm2.dvi
 	dvips -o gm2.ps gm2.dvi
@@ -1051,7 +1051,7 @@ GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  M2Defaults.
                      cflex.def       CLexBuf.def     M2Bitset.def    M2Size.def      \
                      M2Scope.def     M2Range.def     M2Swig.def      \
                      M2MetaError.def Sets.def        M2CaseList.def  PCSymBuild.def  \
-                     PCBuild.def
+                     PCBuild.def     M2Const.def
 
 GM2-COMP-BOOT-MODS = ppg.mod         \
                      FifoQueue.mod   M2LexBuf.mod                             \
@@ -1070,7 +1070,7 @@ GM2-COMP-BOOT-MODS = ppg.mod         \
                      M2Preprocess.mod                CLexBuf.mod     M2Bitset.mod    \
                      M2Size.mod      M2Scope.mod     M2Range.mod     \
                      M2Swig.mod      M2MetaError.mod Sets.mod        M2CaseList.mod  \
-                     PCSymBuild.mod  PCBuild.mod
+                     PCSymBuild.mod  PCBuild.mod     M2Const.mod
 
 GM2-PPG-MODS      =  SymbolKey.mod   NameKey.mod     Lists.mod       bnflex.mod
 
@@ -1126,7 +1126,7 @@ GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Default
                      M2Preprocess.def  M2Printf.def    M2LexBuf.def    M2Quiet.def     \
                      M2Bitset.def      M2Size.def      M2Scope.def     M2Range.def     \
                      M2Swig.def        M2MetaError.def Sets.def        M2CaseList.def  \
-                     PCSymBuild.def    PCBuild.def
+                     PCSymBuild.def    PCBuild.def     M2Const.def
 
 GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimize.mod  \
                      M2StackWord.mod   M2Options.mod   M2Pass.mod      M2Batch.mod     \
@@ -1143,7 +1143,7 @@ GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod     \
                      M2Bitset.mod      M2Size.mod      M2Scope.mod     M2Range.mod     \
                      M2Swig.mod        M2MetaError.mod Sets.mod        M2CaseList.mod  \
-                     PCSymBuild.mod    PCBuild.mod
+                     PCSymBuild.mod    PCBuild.mod     M2Const.mod
 
 GM2-TOOLS-MOD      = gm2l.mod          gm2lcc.mod      gm2lgen.mod     gm2lorder.mod   \
                      gm2m.mod          ppg.mod
@@ -1174,7 +1174,7 @@ GM2-VERIFY-MODS    = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod     \
                      M2Bitset.mod      M2Size.mod      CLexBuf.mod     M2Scope.mod     \
                      M2Range.mod       M2Swig.mod      M2MetaError.mod Sets.mod        \
-                     M2CaseList.mod    PCSymBuild.mod  PCBuild.mod
+                     M2CaseList.mod    PCSymBuild.mod  PCBuild.mod     M2Const.mod
 
 GM2-VERIFY-AUTO    = P1SyntaxCheck.mod P2Build.mod     PCBuild.mod     P3Build.mod     \
                      PHBuild.mod       gm2l.mod        gm2m.mod        pg.mod

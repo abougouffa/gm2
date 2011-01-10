@@ -20,12 +20,32 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE PCSymBuild ;
 
 
-FROM NameKey IMPORT Name, WriteKey, NulName ;
+FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
+FROM NameKey IMPORT Name, WriteKey, MakeKey, NulName ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NumberIO IMPORT WriteCard ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
-FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, FlushErrors, InternalError ;
+FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, FlushErrors, InternalError, NewError ;
+FROM M2MetaError IMPORT MetaError1 ;
 FROM M2LexBuf IMPORT GetTokenNo ;
+FROM M2Reserved IMPORT NulTok, ImportTok ;
+FROM M2Const IMPORT constType ;
+FROM Indexing IMPORT Index, InitIndex, GetIndice, PutIndice, InBounds, IncludeIndiceIntoIndex, HighIndice ;
+FROM M2Quads IMPORT PushT, PopT, OperandT, PopN, PopTF, PushTF, IsAutoPushOn, PopNothing, PushTFn, PopTFn ;
+FROM M2Options IMPORT Iso ;
+FROM StdIO IMPORT Write ;
+FROM M2System IMPORT IsPseudoSystemFunctionConstExpression ;
+
+FROM M2Base IMPORT MixTypes,
+                   ZType, RType, Char, Boolean, Val, Max, Min, Convert,
+                   IsPseudoBaseFunction, IsRealType, IsAComplexType, IsOrdinalType ;
+
+FROM M2Reserved IMPORT PlusTok, MinusTok, TimesTok, DivTok, ModTok,
+                       DivideTok, RemTok,
+                       OrTok, AndTok, AmbersandTok,
+                       EqualTok, LessEqualTok, GreaterEqualTok,
+                       LessTok, GreaterTok, HashTok, LessGreaterTok,
+                       InTok, NotTok ;
 
 FROM SymbolTable IMPORT NulSym, ModeOfAddr,
                         StartScope, EndScope, GetScope, GetCurrentScope,
@@ -34,7 +54,7 @@ FROM SymbolTable IMPORT NulSym, ModeOfAddr,
                         GetExported,
                         IsDefImp, IsModule,
                         RequestSym,
-                        IsProcedure, PutOptArgInit,
+                        IsProcedure, PutOptArgInit, IsEnumeration,
                         CheckForUnknownInModule,
                         GetFromOuterModule,
                         CheckForEnumerationInCurrentModule,
@@ -44,24 +64,149 @@ FROM SymbolTable IMPORT NulSym, ModeOfAddr,
                         PopValue, PushValue,
                         MakeTemporary, PutVar,
                         PutSubrange,
-                        GetSymName ;
+                        GetSymName,
+                        CheckAnonymous,
+                        IsProcedureBuiltin,
+                        MakeProcType,
+                        NoOfParam,
+                        GetParam,
+                        IsParameterVar, PutProcTypeParam,
+                        PutProcTypeVarParam, IsParameterUnbounded,
+                        PutFunction, PutProcTypeParam,
+                        GetType,
+                        IsAModula2Type, GetDeclared ;
 
 FROM M2Batch IMPORT MakeDefinitionSource,
                     MakeImplementationSource,
                     MakeProgramSource ;
 
-FROM M2Quads IMPORT PushT, PopT, OperandT, PopN, PopTF, PushTF, IsAutoPushOn, PopNothing, PushTFn, PopTFn ;
-
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule,
                    CompilingProgramModule ;
 
-FROM M2Reserved IMPORT NulTok, ImportTok ;
-FROM P2SymBuild IMPORT FixupConstAsString, FixupConstType, FixupConstExpr, FixupConstType ;
+FROM M2StackAddress IMPORT StackOfAddress, InitStackAddress, KillStackAddress,
+                           PushAddress, PopAddress, PeepAddress,
+                           IsEmptyAddress, NoOfItemsInStackAddress ;
+
+FROM M2StackWord IMPORT StackOfWord, InitStackWord, KillStackWord,
+                        PushWord, PopWord, PeepWord,
+                        IsEmptyWord, NoOfItemsInStackWord ;
+
+
+CONST
+   Debugging = FALSE ;
+
+TYPE
+   tagType = (leaf, unary, binary, designator, expr, convert, function) ;
+
+   exprNode = POINTER TO eNode ;
+
+   eDes = RECORD
+             type: CARDINAL ;
+             meta: constType ;
+             sym : CARDINAL ;
+             left: exprNode ;
+          END ;
+
+   eLeaf = RECORD
+              type: CARDINAL ;
+              meta: constType ;
+              sym: CARDINAL ;
+           END ;
+
+   eUnary = RECORD
+               type: CARDINAL ;
+               meta: constType ;
+               left: exprNode ;
+               op  : Name ;
+            END ;
+
+   eBinary = RECORD
+                type: CARDINAL ;
+                meta: constType ;
+                left,
+                right: exprNode ;
+                op   : Name ;
+             END ;
+
+   eExpr = RECORD
+              type: CARDINAL ;
+              meta: constType ;
+              left: exprNode ;
+           END ;
+
+   eFunction = RECORD
+                  type  : CARDINAL ;
+                  meta  : constType ;
+                  func  : CARDINAL ;
+                  first,
+                  second: exprNode ;
+                  third : BOOLEAN ;
+               END ;
+
+   eConvert = RECORD
+                 type  : CARDINAL ;
+                 meta  : constType ;
+                 totype: exprNode ;
+                 expr  : exprNode ;
+              END ;
+
+   eNode    = RECORD
+                 CASE tag: tagType OF
+
+                 designator:  edes     : eDes |
+                 leaf      :  eleaf    : eLeaf |
+                 unary     :  eunary   : eUnary |
+                 binary    :  ebinary  : eBinary |
+                 expr      :  eexpr    : eExpr |
+                 function  :  efunction: eFunction |
+                 convert   :  econvert : eConvert
+
+                 END
+              END ;
 
 
 VAR
-   CurrentConst: CARDINAL ;
+   stackPtr    : CARDINAL ;
+   exprStack   : StackOfAddress ;
+   constList   : Index ;
+   constToken  : CARDINAL ;
+   currentConst: CARDINAL ;
+   desStack    : StackOfWord ;
+   inDesignator: BOOLEAN ;
+
+
+(* %%%FORWARD%%%
+PROCEDURE WalkExpr (e: exprNode) : BOOLEAN ; FORWARD ;
+PROCEDURE WalkUnary (e: exprNode) : BOOLEAN ; FORWARD ;
+PROCEDURE WalkLeaf (e: exprNode) : BOOLEAN ; FORWARD ;
+PROCEDURE doWalkNode (e: exprNode) : BOOLEAN ; FORWARD ;
+PROCEDURE WalkBinary (e: exprNode) : BOOLEAN ; FORWARD ;
+PROCEDURE findConstDes (sym: CARDINAL) : exprNode ; FORWARD ;
+PROCEDURE doWalkDesExpr (d, e: exprNode) : BOOLEAN ; FORWARD ;
+PROCEDURE InitUnary (m: constType; t: CARDINAL; o: Name) ; FORWARD ;
+PROCEDURE DebugDes (d: exprNode) ; FORWARD ;
+PROCEDURE DebugSym (sym: CARDINAL) ; FORWARD ;
+PROCEDURE DebugMeta (m: constType) ; FORWARD ;
+PROCEDURE DebugType (type: CARDINAL) ; FORWARD ;
+PROCEDURE DebugExpr (e: exprNode) ; FORWARD ;
+PROCEDURE DebugLeaf (l: exprNode) ; FORWARD ;
+PROCEDURE DebugUnary (l: exprNode) ; FORWARD ;
+PROCEDURE DebugBinary (l: exprNode) ; FORWARD ;
+PROCEDURE DebugFunction (f: exprNode) ; FORWARD ;
+PROCEDURE DebugConvert (f: exprNode) ; FORWARD ;
+PROCEDURE DebugOp (op: Name) ; FORWARD ;
+   %%%FORWARD%%% *)
+
+
+(*
+   GetSkippedType - 
+*)
+
+PROCEDURE GetSkippedType (sym: CARDINAL) : CARDINAL ;
+BEGIN
+   RETURN( SkipType(GetType(sym)) )
+END GetSkippedType ;
 
 
 (*
@@ -447,6 +592,7 @@ END PCBuildImportInnerModule ;
 
 PROCEDURE stop ; BEGIN END stop ;
 
+
 (*
    StartBuildProcedure - Builds a Procedure.
 
@@ -657,98 +803,1474 @@ END BuildOptArgInitializer ;
 
 
 (*
-   StartCurrentConst - if the auto push is one then set the current const
-                       to the top of stack.
+   InitDesExpr - 
 *)
 
-PROCEDURE StartCurrentConst ;
+PROCEDURE InitDesExpr (des: CARDINAL) ;
+VAR
+   e: exprNode ;
+BEGIN
+   NEW(e) ;
+   WITH e^ DO
+      tag := designator ;
+      CASE tag OF
+
+      designator:  WITH edes DO
+                      type := NulSym ;
+                      meta := unknown ;
+                      tag := designator ;
+                      sym := des ;
+                      left := NIL
+                   END
+
+      END
+   END ;
+   PushAddress(exprStack, e)
+END InitDesExpr ;
+
+
+(*
+   DebugNode - 
+*)
+
+PROCEDURE DebugNode (d: exprNode) ;
+BEGIN
+   IF Debugging AND (d#NIL)
+   THEN
+      WITH d^ DO
+         CASE tag OF
+
+         designator:  DebugDes(d) |
+         expr      :  DebugExpr(d) |
+         leaf      :  DebugLeaf(d) |
+         unary     :  DebugUnary(d) |
+         binary    :  DebugBinary(d) |
+         function  :  DebugFunction(d) |
+         convert   :  DebugConvert(d)
+
+         END
+      END
+   END
+END DebugNode ;
+
+
+(*
+   DebugDes - 
+*)
+
+PROCEDURE DebugDes (d: exprNode) ;
+BEGIN
+   WITH d^ DO
+      WITH edes DO
+         DebugSym(sym) ; Write(':') ; DebugMeta(meta) ; Write(':') ; DebugType(type) ;
+         WriteString(' = ') ;
+         DebugNode(left) ;
+         WriteLn
+      END
+   END
+END DebugDes ;
+
+
+(*
+   DebugSym - 
+*)
+
+PROCEDURE DebugSym (sym: CARDINAL) ;
+VAR
+   n: Name ;
+BEGIN
+   n := GetSymName(sym) ;
+   IF n#NulName
+   THEN
+      WriteKey(n)
+   END ;
+   Write(':') ; WriteCard(sym, 0)
+END DebugSym ;
+
+
+(*
+   DebugMeta - 
+*)
+
+PROCEDURE DebugMeta (m: constType) ;
+BEGIN
+   CASE m OF
+
+   unknown    :  WriteString('unknown') |
+   set        :  WriteString('set') |
+   str        :  WriteString('str') |
+   constructor:  WriteString('constructor') |
+   array      :  WriteString('array') |
+   cast       :  WriteString('cast') |
+   boolean    :  WriteString('boolean') |
+   ztype      :  WriteString('ztype') |
+   rtype      :  WriteString('rtype') |
+   ctype      :  WriteString('ctype') |
+   procedure  :  WriteString('procedure') |
+   char       :  WriteString('ctype')
+
+   END
+END DebugMeta ;
+
+
+(*
+   DebugType - 
+*)
+
+PROCEDURE DebugType (type: CARDINAL) ;
+VAR
+   n: Name ;
+BEGIN
+   WriteString('[type:') ;
+   IF type=NulSym
+   THEN
+      WriteString('<nulsym>')
+   ELSE
+      n := GetSymName(type) ;
+      IF n#NulSym
+      THEN
+         WriteKey(n)
+      END ;
+      Write(':') ; WriteCard(type, 0)
+   END ;
+   Write(']')
+END DebugType ;
+
+
+(*
+   DebugExpr - 
+*)
+
+PROCEDURE DebugExpr (e: exprNode) ;
+BEGIN
+   WITH e^.eexpr DO
+      WriteString('expr (') ;
+      DebugType(type) ; Write(':') ;
+      DebugMeta(meta) ; Write(' ') ;
+      DebugNode(left) ;
+      WriteString(') ')
+   END
+END DebugExpr ;
+
+
+(*
+   DebugFunction - 
+*)
+
+PROCEDURE DebugFunction (f: exprNode) ;
+BEGIN
+   WITH f^.efunction DO
+      WriteKey(GetSymName(func)) ;
+      Write('(') ;
+      IF first#NIL
+      THEN
+         DebugNode(first) ;
+         IF second#NIL
+         THEN
+            WriteString(', ') ;
+            DebugNode(second) ;
+            IF third
+            THEN
+               WriteString(', ...')
+            END
+         END
+      END ;
+      Write(')')
+   END
+END DebugFunction ;
+
+
+(*
+   DebugConvert - 
+*)
+
+PROCEDURE DebugConvert (f: exprNode) ;
+BEGIN
+   WITH f^.econvert DO
+      DebugNode(totype) ;
+      Write('(') ;
+      DebugNode(expr) ;
+      Write(')')
+   END
+END DebugConvert ;
+
+
+(*
+   DebugLeaf - 
+*)
+
+PROCEDURE DebugLeaf (l: exprNode) ;
+BEGIN
+   WITH l^.eleaf DO
+      WriteString('leaf (') ;
+      DebugType(type) ; Write(':') ;
+      DebugMeta(meta) ; Write(':') ;
+      DebugSym(sym) ;
+      WriteString(') ')
+   END
+END DebugLeaf ;
+
+
+(*
+   DebugUnary - 
+*)
+
+PROCEDURE DebugUnary (l: exprNode) ;
+BEGIN
+   WITH l^.eunary DO
+      WriteString('unary (') ;
+      DebugType(type) ; Write(':') ;
+      DebugMeta(meta) ; Write(' ') ;
+      DebugOp(op) ; Write(' ') ;
+      DebugNode(left) ;
+      WriteString(') ')
+   END
+END DebugUnary ;
+
+
+(*
+   DebugBinary - 
+*)
+
+PROCEDURE DebugBinary (l: exprNode) ;
+BEGIN
+   WITH l^.ebinary DO
+      WriteString('unary (') ;
+      DebugType(type) ; Write(':') ;
+      DebugMeta(meta) ; Write(' ') ;
+      DebugNode(left) ;
+      DebugOp(op) ; Write(' ') ;
+      DebugNode(right) ;
+      WriteString(') ')
+   END
+END DebugBinary ;
+
+
+(*
+   DebugOp - 
+*)
+
+PROCEDURE DebugOp (op: Name) ;
+BEGIN
+   WriteKey(op)
+END DebugOp ;
+
+
+(*
+   PushInConstructor - 
+*)
+
+PROCEDURE PushInConstructor ;
+BEGIN
+   PushWord(desStack, inDesignator) ;
+   inDesignator := FALSE
+END PushInConstructor ;
+
+
+(*
+   PopInConstructor - 
+*)
+
+PROCEDURE PopInConstructor ;
+BEGIN
+   inDesignator := PopWord(desStack)
+END PopInConstructor ;
+
+
+(*
+   StartDesConst - 
+*)
+
+PROCEDURE StartDesConst ;
 VAR
    name: Name ;
 BEGIN
+   inDesignator := TRUE ;
+   exprStack := KillStackAddress(exprStack) ;
+   exprStack := InitStackAddress() ;
    PopT(name) ;
-   CurrentConst := RequestSym(name)
-END StartCurrentConst ;
+   InitDesExpr(RequestSym(name))
+END StartDesConst ;
 
 
 (*
-   EndCurrentConst - set the current const to NulSym.
+   EndDesConst - 
 *)
 
-PROCEDURE EndCurrentConst ;
-BEGIN
-   CurrentConst := NulSym
-END EndCurrentConst ;
-
-
-(*
-   SetCurrentConstToString - set the type of current const to string.
-*)
-
-PROCEDURE SetCurrentConstToString ;
-BEGIN
-   IF IsAutoPushOn()
-   THEN
-      PopNothing
-   END ;
-   IF CurrentConst#NulSym
-   THEN
-      FixupConstAsString(CurrentConst) ;
-      CurrentConst := NulSym
-   END
-END SetCurrentConstToString ;
-
-
-(*
-   SetCurrentConstType - set the type of the current const to the top of stack.
-*)
-
-PROCEDURE SetCurrentConstType ;
+PROCEDURE EndDesConst ;
 VAR
-   type: CARDINAL ;
+   d, e: exprNode ;
 BEGIN
-   PopT(type) ;
-   PushT(type) ;
-   IF CurrentConst#NulSym
-   THEN
-      IF NOT IsProcedure(type)
-      THEN
-         FixupConstType(CurrentConst, type)
-      END ;
-      CurrentConst := NulSym
-   END
-END SetCurrentConstType ;
+   e := PopAddress(exprStack) ;
+   d := PopAddress(exprStack) ;
+   Assert(d^.tag=designator) ;
+   d^.edes.left := e ;
+   IncludeIndiceIntoIndex(constList, d) ;
+   inDesignator := FALSE
+END EndDesConst ;
 
 
 (*
-   SetConstTypeOrExpr - ensures that the current constant is either equivalent to
-                        sym, or has the type, sym.
+   fixupProcedureType - creates a proctype from a procedure.
 *)
 
-PROCEDURE SetConstTypeOrExpr ;
+PROCEDURE fixupProcedureType (p: CARDINAL) : CARDINAL ;
 VAR
-   sym, f: CARDINAL ;
-   n     : Name ;
+   par,
+   t   : CARDINAL ;
+   n, i: CARDINAL ;
 BEGIN
-   PopTFn(sym, f, n) ;
-   PushTFn(sym, f, n) ;
-   IF sym=NulSym
+   IF IsProcedure(p)
    THEN
-      WriteFormat1('expecting a procedure, const or type symbol, symbol %a is unknown', n)
-   ELSE
-      IF IsProcedure(sym)
-      THEN
-         FixupConstExpr(CurrentConst, sym)
-      ELSE
-         IF IsConst(sym)
+      t := MakeProcType(CheckAnonymous(NulName)) ;
+      i := 1 ;
+      n := NoOfParam(p) ;
+      WHILE i<=n DO
+         par := GetParam(p, i) ;
+         IF IsParameterVar(par)
          THEN
-            FixupConstExpr(CurrentConst, sym)
+            PutProcTypeVarParam(t, GetType(par), IsParameterUnbounded(par))
          ELSE
-            FixupConstType(CurrentConst, sym)
+            PutProcTypeParam(t, GetType(par), IsParameterUnbounded(par))
+         END ;
+         INC(i)
+      END ;
+      IF GetType(p)#NulSym
+      THEN
+         PutFunction(t, GetType(p))
+      END ;
+      RETURN( t )
+   ELSE
+      InternalError('expecting a procedure', __FILE__, __LINE__)
+   END ;
+   RETURN( NulSym )
+END fixupProcedureType ;
+
+
+(*
+   InitFunction - 
+*)
+
+PROCEDURE InitFunction (m: constType; p, t: CARDINAL; f, s: exprNode; more: BOOLEAN) ;
+VAR
+   n: exprNode ;
+BEGIN
+   NEW(n) ;
+   WITH n^ DO
+      tag := function ;
+      CASE tag OF
+
+      function:  WITH efunction DO
+                    meta := m ;
+                    type := t ;
+                    func := p ;
+                    first := f ;
+                    second := s ;
+                    third := more
+                 END
+
+      END
+   END ;
+   PushAddress(exprStack, n)
+END InitFunction ;
+
+
+(*
+   InitConvert - 
+*)
+
+PROCEDURE InitConvert (m: constType; t: CARDINAL; to, e: exprNode) ;
+VAR
+   n: exprNode ;
+BEGIN
+   NEW(n) ;
+   WITH n^ DO
+      tag := convert ;
+      CASE tag OF
+
+      convert:  WITH econvert DO
+                   type := t ;
+                   meta := m ;
+                   totype := to ;
+                   expr := e
+                 END
+
+      END
+   END ;
+   PushAddress(exprStack, n)
+END InitConvert ;
+
+
+(*
+   InitLeaf - 
+*)
+
+PROCEDURE InitLeaf (m: constType; s, t: CARDINAL) ;
+VAR
+   l: exprNode ;
+BEGIN
+   NEW(l) ;
+   WITH l^ DO
+      tag := leaf ;
+      CASE tag OF
+
+      leaf:  WITH eleaf DO
+                type := t ;
+                meta := m ;
+                sym := s
+             END
+
+      END
+   END ;
+   PushAddress(exprStack, l)
+END InitLeaf ;
+
+
+(*
+   InitProcedure - 
+*)
+
+PROCEDURE InitProcedure (s: CARDINAL) ;
+BEGIN
+   InitLeaf(procedure, s, fixupProcedureType(s))
+END InitProcedure ;
+
+
+(*
+   InitCharType - 
+*)
+
+PROCEDURE InitCharType (s: CARDINAL) ;
+BEGIN
+   InitLeaf(char, s, Char)
+END InitCharType ;
+
+
+(*
+   InitZType - 
+*)
+
+PROCEDURE InitZType (s: CARDINAL) ;
+BEGIN
+   InitLeaf(ztype, s, ZType)
+END InitZType ;
+
+
+(*
+   InitRType - 
+*)
+
+PROCEDURE InitRType (s: CARDINAL) ;
+BEGIN
+   InitLeaf(rtype, s, RType)
+END InitRType ;
+
+
+(*
+   InitUnknown - 
+*)
+
+PROCEDURE InitUnknown (s: CARDINAL) ;
+BEGIN
+   InitLeaf(unknown, s, NulSym)
+END InitUnknown ;
+
+
+(*
+   InitBooleanType - 
+*)
+
+PROCEDURE InitBooleanType (s: CARDINAL) ;
+BEGIN
+   InitLeaf(boolean, s, Boolean)
+END InitBooleanType ;
+
+
+(*
+   PushConstType - pushes a constant to the expression stack.
+*)
+
+PROCEDURE PushConstType ;
+VAR
+   c: CARDINAL ;
+BEGIN
+   PopT(c) ;
+   PushT(c) ;
+   IF inDesignator
+   THEN
+      IF c=NulSym
+      THEN
+         WriteFormat0('module or symbol in qualident is not known') ;
+         FlushErrors ;
+         InitUnknown(c)
+      ELSIF IsProcedure(c)
+      THEN
+         InitProcedure(c)
+      ELSIF GetSkippedType(c)=RType
+      THEN
+         InitRType(c)
+      ELSIF GetSkippedType(c)=ZType
+      THEN
+         InitZType(c)
+      ELSIF GetSkippedType(c)=Boolean
+      THEN
+         InitBooleanType(c)
+      ELSE
+         InitUnknown(c)
+      END
+   END
+END PushConstType ;
+
+
+(*
+   PushConstructorCastType - 
+*)
+
+PROCEDURE PushConstructorCastType ;
+VAR
+   c: CARDINAL ;
+BEGIN
+   PopT(c) ;
+   PushT(c) ;
+   IF inDesignator
+   THEN
+      InitConvert(cast, c, NIL, NIL)
+   END
+END PushConstructorCastType ;
+
+
+(*
+   TypeToMeta - 
+*)
+
+PROCEDURE TypeToMeta (type: CARDINAL) : constType ;
+BEGIN
+   IF type=Char
+   THEN
+      RETURN( char )
+   ELSIF type=Boolean
+   THEN
+      RETURN( boolean )
+   ELSIF IsRealType(type)
+   THEN
+      RETURN( rtype )
+   ELSIF IsAComplexType(type)
+   THEN
+      RETURN( ctype )
+   ELSIF IsOrdinalType(type)
+   THEN
+      RETURN( ztype )
+   ELSE
+      RETURN( unknown )
+   END
+END TypeToMeta ;
+
+
+(*
+   buildConstFunction - we are only concerned about resolving the return type o
+                        a function, so we can ignore all parameters - except
+                        the first one in the case of VAL(type, foo).
+                        buildConstFunction uses a unary exprNode to represent
+                        a function.
+*)
+
+PROCEDURE buildConstFunction (func: CARDINAL; n: CARDINAL) ;
+VAR
+   i   : CARDINAL ;
+   f, s: exprNode ;
+BEGIN
+   f := NIL ;
+   s := NIL ;
+   IF n=1
+   THEN
+      f := PopAddress(exprStack)
+   ELSIF n>=2
+   THEN
+      i := n ;
+      WHILE i>2 DO
+         s := PopAddress(exprStack) ;
+         DISPOSE(s) ;
+         DEC(i)
+      END ;
+      s := PopAddress(exprStack) ;
+      f := PopAddress(exprStack)
+   END ;
+   IF func=Val
+   THEN
+      InitConvert(cast, NulSym, f, s)
+   ELSIF (func=Max) OR (func=Min)
+   THEN
+      InitFunction(unknown, func, NulSym, f, s, FALSE)
+   ELSE
+      InitFunction(TypeToMeta(GetSkippedType(func)), func, GetSkippedType(func), f, s, n>2)
+   END
+END buildConstFunction ;
+
+
+(*
+   PushConstFunctionType - 
+*)
+
+PROCEDURE PushConstFunctionType ;
+VAR
+   func: CARDINAL ;
+   n   : CARDINAL ;
+BEGIN
+   PopT(n) ;
+   PopT(func) ;
+   IF inDesignator
+   THEN
+      IF (func#Convert) AND
+         (IsPseudoBaseFunction(func) OR
+          IsPseudoSystemFunctionConstExpression(func) OR
+          (IsProcedure(func) AND IsProcedureBuiltin(func)))
+      THEN
+         buildConstFunction(func, n)
+      ELSIF IsAModula2Type(func)
+      THEN
+         IF n=1
+         THEN
+            (* the top element on the expression stack is the first and only parameter to the cast *)
+            InitUnary(cast, func, GetSymName(func))
+         ELSE
+            WriteFormat0('a constant type conversion can only have one argument')
+         END
+      ELSE
+         IF Iso
+         THEN
+            WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, CMPLX, FLOAT, HIGH, IM, LENGTH, MAX, MIN, ODD, ORD, RE, SIZE, TSIZE, TRUNC, VAL and gcc builtins')
+         ELSE
+            WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, MAX, MIN, ODD, ORD, SIZE, TSIZE, TRUNC, VAL and gcc builtins')
          END
       END
    END ;
-   CurrentConst := NulSym
-END SetConstTypeOrExpr ;
+   PushT(func)
+END PushConstFunctionType ;
 
 
+(*
+   PushIntegerType - 
+*)
+
+PROCEDURE PushIntegerType ;
+VAR
+   sym: CARDINAL ;
+   m  : constType ;
+BEGIN
+   PopT(sym) ;
+   IF inDesignator
+   THEN
+      m := TypeToMeta(GetSkippedType(sym)) ;
+      IF m=char
+      THEN
+         InitCharType(sym)
+      ELSE
+         InitZType(sym)
+      END
+   END
+END PushIntegerType ;
+
+
+(*
+   PushRType - 
+*)
+
+PROCEDURE PushRType ;
+VAR
+   sym: CARDINAL ;
+BEGIN
+   PopT(sym) ;
+   IF inDesignator
+   THEN
+      InitRType(sym)
+   END
+END PushRType ;
+
+
+(*
+   PushStringType - 
+*)
+
+PROCEDURE PushStringType ;
+VAR
+   sym: CARDINAL ;
+BEGIN
+   PopT(sym) ;
+   IF inDesignator
+   THEN
+      InitLeaf(str, sym, NulSym)
+   END
+END PushStringType ;
+
+
+(*
+   InitBinary - 
+*)
+
+PROCEDURE InitBinary (m: constType; t: CARDINAL; o: Name) ;
+VAR
+   l, r, b: exprNode ;
+BEGIN
+   r := PopAddress(exprStack) ;
+   l := PopAddress(exprStack) ;
+   NEW(b) ;
+   WITH b^ DO
+      tag := binary ;
+      CASE tag OF
+
+      binary:  WITH ebinary DO
+                  meta := m ;
+                  type := t ;
+                  left := l ;
+                  right := r ;
+                  op := o
+               END
+      END
+   END ;
+   PushAddress(exprStack, b)
+END InitBinary ;
+
+
+(*
+   BuildRelationConst - builds a relationship binary operation.
+*)
+
+PROCEDURE BuildRelationConst ;
+VAR
+   op: Name ;
+BEGIN
+   PopT(op) ;
+   IF inDesignator
+   THEN
+      InitBinary(boolean, Boolean, op)
+   END
+END BuildRelationConst ;
+
+
+(*
+   BuildBinaryConst - builds a binary operator node.
+*)
+
+PROCEDURE BuildBinaryConst ;
+VAR
+   op: Name ;
+BEGIN
+   PopT(op) ;
+   IF inDesignator
+   THEN
+      InitBinary(unknown, NulSym, op)
+   END
+END BuildBinaryConst ;
+
+
+(*
+   InitUnary - 
+*)
+
+PROCEDURE InitUnary (m: constType; t: CARDINAL; o: Name) ;
+VAR
+   l, b: exprNode ;
+BEGIN
+   l := PopAddress(exprStack) ;
+   NEW(b) ;
+   WITH b^ DO
+      tag := unary ;
+      CASE tag OF
+
+      unary:  WITH eunary DO
+                 meta := m ;
+                 type := t ;
+                 left := l ;
+                 op := o
+              END
+
+      END
+   END ;
+   PushAddress(exprStack, b)
+END InitUnary ;
+
+
+(*
+   BuildUnaryConst - builds a unary operator node.
+*)
+
+PROCEDURE BuildUnaryConst ;
+VAR
+   op: Name ;
+BEGIN
+   PopT(op) ;
+   IF inDesignator
+   THEN
+      InitUnary(unknown, NulSym, op)
+   END
+END BuildUnaryConst ;
+
+
+(*
+   isTypeResolved - 
+*)
+
+PROCEDURE isTypeResolved (e: exprNode) : BOOLEAN ;
+BEGIN
+   WITH e^ DO
+      CASE tag OF
+
+      leaf      :  RETURN( (eleaf.type#NulSym) OR (eleaf.meta=str) ) |
+      unary     :  RETURN( (eunary.type#NulSym) OR (eunary.meta=str) ) |
+      binary    :  RETURN( (ebinary.type#NulSym) OR (ebinary.meta=str) ) |
+      designator:  RETURN( (edes.type#NulSym) OR (edes.meta=str) ) |
+      expr      :  RETURN( (eexpr.type#NulSym) OR (eexpr.meta=str) ) |
+      convert   :  RETURN( (econvert.type#NulSym) OR (econvert.meta=str) ) |
+      function  :  RETURN( (efunction.type#NulSym) OR (efunction.meta=str) )
+
+      END
+   END
+END isTypeResolved ;
+
+
+(*
+   getEtype - 
+*)
+
+PROCEDURE getEtype (e: exprNode) : CARDINAL ;
+BEGIN
+   WITH e^ DO
+      CASE tag OF
+
+      leaf      :  RETURN( eleaf.type ) |
+      unary     :  RETURN( eunary.type ) |
+      binary    :  RETURN( ebinary.type ) |
+      designator:  RETURN( edes.type ) |
+      expr      :  RETURN( eexpr.type ) |
+      convert   :  RETURN( econvert.type ) |
+      function  :  RETURN( efunction.type )
+
+      END
+   END
+END getEtype ;
+
+
+(*
+   getEmeta - 
+*)
+
+PROCEDURE getEmeta (e: exprNode) : constType ;
+BEGIN
+   WITH e^ DO
+      CASE tag OF
+
+      leaf      :  RETURN( eleaf.meta ) |
+      unary     :  RETURN( eunary.meta ) |
+      binary    :  RETURN( ebinary.meta ) |
+      designator:  RETURN( edes.meta ) |
+      expr      :  RETURN( eexpr.meta ) |
+      convert   :  RETURN( econvert.meta ) |
+      function  :  RETURN( efunction.meta )
+
+      END
+   END
+END getEmeta ;
+
+
+(*
+   assignTM - 
+*)
+
+PROCEDURE assignTM (VAR td: CARDINAL; VAR md: constType; te: CARDINAL; me: constType) ;
+BEGIN
+   md := me ;
+   td := te
+END assignTM ;
+
+
+(*
+   assignType - 
+*)
+
+PROCEDURE assignType (d, e: exprNode) ;
+VAR
+   t: CARDINAL ;
+   m: constType ;
+BEGIN
+   m := getEmeta(e) ;
+   t := getEtype(e) ;
+   WITH d^ DO
+      CASE tag OF
+
+      leaf      :  assignTM(eleaf.type, eleaf.meta, t, m) |
+      unary     :  assignTM(eunary.type, eunary.meta, t, m) |
+      binary    :  assignTM(ebinary.type, ebinary.meta, t, m) |
+      designator:  assignTM(edes.type, edes.meta, t, m) |
+      expr      :  assignTM(eexpr.type, eexpr.meta, t, m) |
+      convert   :  assignTM(econvert.type, econvert.meta, t, m) |
+      function  :  assignTM(efunction.type, efunction.meta, t, m)
+
+      END
+   END
+END assignType ;
+
+
+(*
+   deduceTypes - 
+*)
+
+PROCEDURE deduceTypes (l, r: exprNode; op: Name) : CARDINAL ;
+BEGIN
+   IF r=NIL
+   THEN
+      (* function or cast *)
+      RETURN( getEtype(l) )
+   ELSIF (op=EqualTok) OR (op=HashTok) OR (op=LessGreaterTok) OR
+      (op=LessTok) OR (op=LessEqualTok) OR (op=GreaterTok) OR
+      (op=GreaterEqualTok) OR (op=InTok) OR (op=OrTok) OR
+      (op=AndTok) OR (op=NotTok) OR (op=AmbersandTok)
+   THEN
+      RETURN( Boolean )
+   ELSIF (op=PlusTok) OR (op=MinusTok) OR (op=TimesTok) OR (op=ModTok) OR
+         (op=DivTok) OR (op=RemTok) OR (op=DivideTok)
+   THEN
+      RETURN( MixTypes(getEtype(l), getEtype(r), constToken) )
+   ELSE
+      InternalError('unexpected operator', __FILE__, __LINE__)
+   END
+END deduceTypes ;
+
+
+(*
+   WalkConvert - 
+*)
+
+PROCEDURE WalkConvert (e: exprNode) : BOOLEAN ;
+BEGIN
+   IF isTypeResolved(e)
+   THEN
+      RETURN( FALSE )
+   ELSE
+      WITH e^.econvert DO
+         IF isTypeResolved(totype)
+         THEN
+            assignType(e, totype) ;
+            RETURN( TRUE )
+         END ;
+         RETURN( doWalkNode(totype) )
+      END
+   END
+END WalkConvert ;
+
+
+(*
+   WalkFunctionParam - 
+*)
+
+PROCEDURE WalkFunctionParam (func: CARDINAL; e: exprNode) : BOOLEAN ;
+BEGIN
+   IF isTypeResolved(e)
+   THEN
+      RETURN( FALSE )
+   ELSE
+      IF e^.tag=leaf
+      THEN
+         WITH e^.eleaf DO
+            IF (sym#NulSym) AND (type=NulSym)
+            THEN
+               IF (func=Min) OR (func=Max)
+               THEN
+                  IF IsEnumeration(sym) OR IsSet(sym)
+                  THEN
+                     type := SkipType(GetType(sym))
+                  ELSE
+                     (* sym is the type required for MAX, MIN and VAL *)
+                     type := sym
+                  END
+               ELSE
+                  Assert(func=Val) ;
+                  type := sym
+               END ;
+               meta := TypeToMeta(sym) ;
+               RETURN( TRUE )
+            END
+         END
+      END
+   END ;
+   RETURN( FALSE )
+END WalkFunctionParam ;
+
+
+(*
+   WalkFunction - 
+*)
+
+PROCEDURE WalkFunction (e: exprNode) : BOOLEAN ;
+BEGIN
+   IF isTypeResolved(e)
+   THEN
+      RETURN( FALSE )
+   ELSE
+      WITH e^.efunction DO
+         IF (func=Max) OR (func=Min) OR (func=Val)
+         THEN
+            IF isTypeResolved(first)
+            THEN
+               IF getEmeta(first)=str
+               THEN
+                  MetaError1('a string parameter cannot be passed to function {%1Dad}', func) ;
+                  RETURN( FALSE )
+               END ;
+               type := getEtype(first) ;
+               RETURN( TRUE )
+            END ;
+            RETURN( WalkFunctionParam(func, first) )
+         ELSE
+            MetaError1('not expecting this function inside a constant expression {%1Dad}', func)
+         END
+      END
+   END
+END WalkFunction ;
+
+
+(*
+   doWalkNode - 
+*)
+
+PROCEDURE doWalkNode (e: exprNode) : BOOLEAN ;
+BEGIN
+   WITH e^ DO
+      CASE tag OF
+
+      expr    :  RETURN( WalkExpr(e) ) |
+      leaf    :  RETURN( WalkLeaf(e) ) |
+      unary   :  RETURN( WalkUnary(e) ) |
+      binary  :  RETURN( WalkBinary(e) ) |
+      convert :  RETURN( WalkConvert(e) ) |
+      function:  RETURN( WalkFunction(e) )
+
+      ELSE
+         InternalError('unexpected tag value', __FILE__, __LINE__)
+      END
+   END ;
+   RETURN( FALSE )
+END doWalkNode ;
+
+
+(*
+   WalkLeaf - 
+*)
+
+PROCEDURE WalkLeaf (e: exprNode) : BOOLEAN ;
+VAR
+   c: exprNode ;
+BEGIN
+   IF isTypeResolved(e)
+   THEN
+      RETURN( FALSE )
+   ELSE
+      WITH e^.eleaf DO
+         IF GetType(sym)#NulSym
+         THEN
+            type := GetSkippedType(sym) ;
+            RETURN( TRUE )
+         END ;
+         IF sym=710
+         THEN
+            stop
+         END ;
+         c := findConstDes(sym) ;
+         IF (c#NIL) AND isTypeResolved(c)
+         THEN
+            assignType(e, c) ;
+            RETURN( TRUE )
+         END
+      END
+   END ;
+   RETURN( FALSE )
+END WalkLeaf ;
+
+
+(*
+   WalkUnary - 
+*)
+
+PROCEDURE WalkUnary (e: exprNode) : BOOLEAN ;
+BEGIN
+   IF isTypeResolved(e)
+   THEN
+      RETURN( FALSE )
+   ELSE
+      WITH e^.eunary DO
+         IF isTypeResolved(left)
+         THEN
+            type := deduceTypes(left, left, op) ;
+            RETURN( TRUE )
+         END ;
+         RETURN( doWalkNode(left) )
+      END
+   END
+END WalkUnary ;
+
+
+(*
+   WalkBinary - 
+*)
+
+PROCEDURE WalkBinary (e: exprNode) : BOOLEAN ;
+VAR
+   changed: BOOLEAN ;
+BEGIN
+   IF isTypeResolved(e)
+   THEN
+      RETURN( FALSE )
+   ELSE
+      WITH e^.ebinary DO
+         IF isTypeResolved(left) AND isTypeResolved(right)
+         THEN
+            type := deduceTypes(left, right, op) ;
+            RETURN( TRUE )
+         END ;
+         changed := doWalkNode(left) ;
+         RETURN( doWalkNode(right) OR changed )
+      END
+   END
+END WalkBinary ;
+
+
+(*
+   WalkExpr - 
+*)
+
+PROCEDURE WalkExpr (e: exprNode) : BOOLEAN ;
+BEGIN
+   IF isTypeResolved(e)
+   THEN
+      RETURN( FALSE )
+   ELSE
+      WITH e^.eexpr DO
+         IF isTypeResolved(left)
+         THEN
+            assignType(e, left) ;
+            RETURN( TRUE )
+         END ;
+         RETURN( doWalkNode(left) )
+      END
+   END
+END WalkExpr ;
+
+
+(*
+   doWalkDesExpr - returns TRUE if the expression trees, d, or, e, are changed.
+*)
+
+PROCEDURE doWalkDesExpr (d, e: exprNode) : BOOLEAN ;
+BEGIN
+   IF isTypeResolved(e)
+   THEN
+      WITH d^.edes DO
+         type := getEtype(e) ;
+         IF type=NulSym
+         THEN
+            meta := getEmeta(e) ;
+            IF meta=str
+            THEN
+               (* PutConstString(sym, getString(e)) *)
+            END
+         ELSE
+            PutConst(sym, type)
+         END ;
+         RETURN( TRUE )
+      END
+   END ;
+   RETURN( doWalkNode(e) )
+END doWalkDesExpr ;
+
+
+(*
+   doWalkDes - return TRUE if expression, e, is changed.
+*)
+
+PROCEDURE doWalkDes (d: exprNode) : BOOLEAN ;
+BEGIN
+   IF isTypeResolved(d)
+   THEN
+      RETURN( FALSE )
+   ELSE
+      WITH d^ DO
+         CASE tag OF
+
+         designator:  WITH edes DO
+                         constToken := GetDeclared(sym) ;
+                         RETURN( doWalkDesExpr(d, left) )
+                      END
+
+         ELSE
+            InternalError('unexpected tag value', __FILE__,__LINE__)
+         END
+      END
+   END
+END doWalkDes ;
+
+
+(*
+   findConstDes - 
+*)
+
+PROCEDURE findConstDes (sym: CARDINAL) : exprNode ;
+VAR
+   i: CARDINAL ;
+   e: exprNode ;
+BEGIN
+   i := 1 ;
+   WHILE i<=HighIndice(constList) DO
+      e := GetIndice(constList, i) ;
+      WITH e^ DO
+         CASE tag OF
+
+         designator:  IF edes.sym=sym
+                      THEN
+                         RETURN( e )
+                      END
+
+         ELSE
+         END
+      END ;
+      INC(i)
+   END ;
+   RETURN( NIL )
+END findConstDes ;
+
+
+(*
+   WalkDes - return TRUE if expression, e, is changed.
+*)
+
+PROCEDURE WalkDes (d: exprNode) : BOOLEAN ;
+BEGIN
+   IF d=NIL
+   THEN
+      RETURN( FALSE )
+   ELSE
+      RETURN( doWalkDes(d) )
+   END
+END WalkDes ;
+
+
+(*
+   WalkConst - returns TRUE if the constant tree associated with, sym,
+               is changed.
+*)
+
+PROCEDURE WalkConst (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( WalkDes(findConstDes(sym)) )
+END WalkConst ;
+
+
+(*
+   WalkConsts - walk over the constant trees and return TRUE if any tree was changed.
+                (As a result of a type resolution).
+*)
+
+PROCEDURE WalkConsts () : BOOLEAN ;
+VAR
+   changed: BOOLEAN ;
+   i      : CARDINAL ;
+BEGIN
+   changed := FALSE ;
+   i := 1 ;
+   WHILE i<=HighIndice(constList) DO
+      IF WalkDes(GetIndice(constList, i))
+      THEN
+         changed := TRUE
+      END ;
+      INC(i)
+   END ;
+   RETURN( changed )
+END WalkConsts ;
+
+
+(*
+   DebugNodes - 
+*)
+
+PROCEDURE DebugNodes ;
+VAR
+   i: CARDINAL ;
+BEGIN
+   i := 1 ;
+   WHILE i<=HighIndice(constList) DO
+      IF isTypeResolved(GetIndice(constList, i))
+      THEN
+         WriteString('resolved ')
+      ELSE
+         WriteString('unresolved ')
+      END ;
+      DebugNode(GetIndice(constList, i)) ; WriteLn ;
+      INC(i)
+   END
+END DebugNodes ;
+
+
+(*
+   findAlias - 
+*)
+
+PROCEDURE findAlias (sym: CARDINAL; e: exprNode) : CARDINAL ;
+BEGIN
+   CASE e^.tag OF
+
+   designator:  RETURN( findAlias(sym, e^.edes.left) ) |
+   leaf      :  RETURN( e^.eleaf.sym ) |
+   expr      :  RETURN( findAlias(sym, e^.eexpr.left) ) |
+   unary,
+   binary    :  RETURN( sym )
+
+   ELSE
+      InternalError('not expecting this tag value', __FILE__, __LINE__)
+   END
+END findAlias ;
+
+
+(*
+   SkipConst - returns an alias to constant, sym, if one exists.
+               Otherwise sym is returned.
+*)
+
+PROCEDURE SkipConst (sym: CARDINAL) : CARDINAL ;
+VAR
+   i: CARDINAL ;
+   e: exprNode ;
+BEGIN
+   i := 1 ;
+   WHILE i<=HighIndice(constList) DO
+      e := GetIndice(constList, i) ;
+      IF (e^.tag=designator) AND (e^.edes.sym=sym)
+      THEN
+         RETURN( findAlias(sym, e) )
+      END ;
+      INC(i)
+   END ;
+   RETURN( sym )
+END SkipConst ;
+
+
+(*
+   PushConstAttributeType - 
+*)
+
+PROCEDURE PushConstAttributeType ;
+VAR
+   n: Name ;
+BEGIN
+   PopT(n) ;
+   PushT(n) ;
+   InitZType(NulSym) ;
+   IF (n=MakeKey('BITS_PER_UNIT')) OR (n=MakeKey('BITS_PER_WORD')) OR
+      (n=MakeKey('BITS_PER_CHAR')) OR (n=MakeKey('UNITS_PER_WORD'))
+   THEN
+      (* all ok *)
+   ELSE
+      WriteFormat1("unknown constant attribute value '%a'", n)
+   END
+END PushConstAttributeType ;
+
+
+(*
+   PushConstAttributePairType - 
+*)
+
+PROCEDURE PushConstAttributePairType ;
+VAR
+   q, n: Name ;
+BEGIN
+   PopT(n) ;
+   PopT(q) ;
+   PushT(q) ;
+   PushT(n) ;
+   IF (n=MakeKey('IEC559')) OR (n=MakeKey('LIA1')) OR (n=MakeKey('IEEE')) OR
+      (n=MakeKey('ISO')) OR (n=MakeKey('rounds')) OR (n=MakeKey('gUnderflow')) OR
+      (n=MakeKey('exception')) OR (n=MakeKey('extend'))
+   THEN
+      InitBooleanType(NulSym)
+   ELSIF (n=MakeKey('radix')) OR (n=MakeKey('places')) OR (n=MakeKey('expoMin')) OR
+         (n=MakeKey('expoMax')) OR (n=MakeKey('nModes'))
+   THEN
+      InitZType(NulSym)
+   ELSIF (n=MakeKey('large')) OR (n=MakeKey('small'))
+   THEN
+      InitRType(NulSym)
+   ELSE
+      WriteFormat1("unknown constant attribute value '%a'", n) ;
+      InitUnknown(NulSym)
+   END
+END PushConstAttributePairType ;
+
+
+(*
+   CheckConsts - 
+*)
+
+PROCEDURE CheckConsts ;
+VAR
+   i: CARDINAL ;
+   e: exprNode ;
+BEGIN
+   i := 1 ;
+   WHILE i<=HighIndice(constList) DO
+      e := GetIndice(constList, i) ;
+      IF NOT isTypeResolved(e)
+      THEN
+         WITH e^ DO
+            CASE tag OF
+
+            designator:  MetaError1('the type of the constant declaration {%1Dad} cannot be determined', edes.sym)
+
+            ELSE
+            END
+         END
+      END ;
+      INC(i)
+   END
+END CheckConsts ;
+
+
+(*
+   ResolveConstTypes - resolves the types of all designator declared constants.
+*)
+
+PROCEDURE ResolveConstTypes ;
+BEGIN
+   IF Debugging
+   THEN
+      WriteString('initially') ; WriteLn ;
+      DebugNodes
+   END ;
+   WHILE WalkConsts() DO
+      IF Debugging
+      THEN
+         WriteString('iteration') ; WriteLn ;
+         DebugNodes
+      END
+   END ;
+   IF Debugging
+   THEN
+      WriteString('finally') ; WriteLn ;
+      DebugNodes
+   END ;
+   CheckConsts
+END ResolveConstTypes ;
+
+
+(*
+   Init - 
+*)
+
+PROCEDURE Init ;
+BEGIN
+   exprStack := InitStackAddress() ;
+   constList := InitIndex(1) ;
+   desStack := InitStackWord() ;
+   inDesignator := FALSE
+END Init ;
+
+
+BEGIN
+   Init
 END PCSymBuild.

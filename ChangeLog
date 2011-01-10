@@ -1,3 +1,38 @@
+2011-01-10       Gaius Mulley <gaius@gnu.org>
+
+	* fixed many constant type related bugs reported by 
+          DragiÅ¡a DuriÄ (dragisa-duric/testcase18 and
+	  dragisa-duric/testcase19).
+	* gm2/Make-lang.in:  modified texi2html build rule.
+	* gm2/bnf/m2-c.bnf:  major number of changes to incorporate
+	  parsing const expressions to deduce their types.
+	* gm2/gm2-compiler/M2Base.mod:  added return types to the
+	  builtin procedure functions so that if they are used in
+	  constant expressions m2-c can determine their types.
+	* gm2/gm2-compiler/M2Comp.mod:  ResolveConstType is now
+	  exported from PCSymBuild rather than P2SymBuild.
+	* gm2/gm2-compiler/M2GenGCC.mod:  allow procedures to be
+	  assigned to constants.
+	* gm2/gm2-compiler/M2Quads.def:  export new procedure
+	  function Top.
+	* gm2/gm2-compiler/M2Quads.mod:  implement new procedure
+	  function Top.
+	* gm2/gm2-compiler/M2StackAddress.mod:  fixed bug in
+	  M2StackAddress.NoOfItemsInStackAddress.
+	* gm2/gm2-compiler/M2StackWord.mod:  fixed same bug in
+	  M2StackWord.NoOfItemsInStackAddress.
+	* gm2/gm2-compiler/P2SymBuild.def:  removed many of the
+	  constant type resolution procedures and moved them to
+	  PCSymBuild.
+	* gm2/gm2-compiler/PCSymBuild.def:  export many constant
+	  type related procedures.
+	* gm2/gm2-compiler/PCSymBuild.mod:  major reimplementation
+	  to allow constant expression trees to be built so that
+	  types can be deduced.
+	* gm2/init/gm2-gccinit:  added new M2Const.
+	* gm2/www/index.ms:  web page now contains info relating
+	  to release 1.0.
+
 2010-12-10       Gaius Mulley <gaius@gnu.org>
 
 	* Release 1.0

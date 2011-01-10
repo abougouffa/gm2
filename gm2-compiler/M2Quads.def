@@ -74,6 +74,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildBinaryOp,
                  BuildUnaryOp,
                  RecordOp,
+                 Top,
                  PopTF, PushTF, PopT, PushT, PopNothing, PopN, PushTFA,
                  PushTFn, PopTFn,
                  OperandT, OperandF, OperandA,
@@ -2124,6 +2125,13 @@ PROCEDURE OperandA (pos: CARDINAL) : WORD ;
 *)
 
 PROCEDURE DisplayStack ;
+
+
+(*
+   Top - returns the no of items held in the stack.
+*)
+
+PROCEDURE Top () : CARDINAL ;
 
 
 (*
