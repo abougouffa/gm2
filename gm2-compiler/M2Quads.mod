@@ -4716,7 +4716,7 @@ VAR
    NewList            : BOOLEAN ;
    ActualType, FormalType: CARDINAL ;
 BEGIN
-   FormalType := GetType(Formal) ;
+   FormalType := SkipType(GetType(Formal)) ;
    IF IsConstString(Actual) AND (GetStringLength(Actual) = 1)   (* if = 1 then it maybe treated as a char *)
    THEN
       ActualType := Char
@@ -4724,7 +4724,7 @@ BEGIN
    THEN
       ActualType := Actual
    ELSE
-      ActualType := GetType(Actual)
+      ActualType := SkipType(GetType(Actual))
    END ;
    IF TypeList=NIL
    THEN

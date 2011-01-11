@@ -288,6 +288,7 @@ EXPORT QUALIFIED NulSym,
                  DoesNotNeedExportList,
                  ResolveConstructorTypes,
                  MakeTemporaryFromExpression, MakeTemporaryFromExpressions,
+                 SanityCheckConstants,
 
                  IsSizeSolved,
                  IsOffsetSolved,
@@ -1984,6 +1985,15 @@ PROCEDURE DoesNotNeedExportList (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE CheckForEnumerationInCurrentModule (Sym: CARDINAL) ;
+
+
+(*
+   SanityCheckConstants - must only be called once all constants, types, procedures
+                          have been declared.  It checks to see that constants are
+                          not used as procedure parameter types.
+*)
+
+PROCEDURE SanityCheckConstants ;
 
 
 (*

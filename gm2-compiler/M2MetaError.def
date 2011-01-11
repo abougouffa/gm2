@@ -81,6 +81,20 @@ EXPORT QUALIFIED MetaError1, MetaError2, MetaError3, MetaError4,
     describe the symbol.
 *)
 
+(*
+   ebnf := { percent | lbra | any } =:
+
+   percent := '%' anych =:
+
+   lbra := '{' [ '!' ] percenttoken '}' =:
+
+   percenttoken := '%' ( '1' op | '2' op | '3' op | '4' op ) =:
+
+   op := {'a'|'q'|'t'|'d'|'n'|'s'|'D'|'U'|'E'|'W'} then =:
+
+   then := [ ':' ebnf ] =:
+*)
+
 PROCEDURE MetaError1 (m: ARRAY OF CHAR; s: CARDINAL) ;
 PROCEDURE MetaError2 (m: ARRAY OF CHAR; s1, s2: CARDINAL) ;
 PROCEDURE MetaError3 (m: ARRAY OF CHAR; s1, s2, s3: CARDINAL) ;

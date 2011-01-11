@@ -82,7 +82,7 @@ PROCEDURE ebnf (VAR e: Error; VAR t: errorType;
                        )
                        } =:
 
-   op := {'a'|'q'|'t'|'d'|'s'|'D'|'U'|'E'|'W'} then =:
+   op := {'a'|'q'|'t'|'d'|'n'|'s'|'D'|'U'|'E'|'W'} then =:
 
    then := [ ':' ebnf ] =:
 *)

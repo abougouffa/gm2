@@ -9272,6 +9272,53 @@ END ResolveConstructorTypes ;
 
 
 (*
+   SanityCheckProcedure - check to see that procedure parameters do not use constants
+                          instead of types in their formal parameter section.
+*)
+
+PROCEDURE SanityCheckProcedure (sym: CARDINAL) ;
+VAR
+   p   : CARDINAL ;
+   i, n: CARDINAL ;
+BEGIN
+   i := 1 ;
+   n := NoOfParam(sym) ;
+   WHILE i<=n DO
+      p := GetType(GetParam(sym, i)) ;
+      IF IsConst(p)
+      THEN
+         MetaError3('the {%1N} formal parameter in procedure {%2Dad} should have a type rather than a constant {%3Dad}',
+                    i, sym, p)
+      END ;
+      INC(i)
+   END
+END SanityCheckProcedure ;
+
+
+(*
+   SanityCheckModule - 
+*)
+
+PROCEDURE SanityCheckModule (sym: CARDINAL) ;
+BEGIN
+   ForeachInnerModuleDo(sym, SanityCheckModule) ;
+   ForeachProcedureDo(sym, SanityCheckProcedure)
+END SanityCheckModule ;
+
+
+(*
+   SanityCheckConstants - must only be called once all constants, types, procedures
+                          have been declared.  It checks to see that constants are
+                          not used as procedure parameter types.
+*)
+
+PROCEDURE SanityCheckConstants ;
+BEGIN
+   ForeachModuleDo(SanityCheckModule)
+END SanityCheckConstants ;
+
+
+(*
    AddNameTo - adds Name, n, to tree, s.
 *)
 

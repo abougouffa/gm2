@@ -51,7 +51,7 @@ FROM M2Batch IMPORT GetSource, GetModuleNo, GetDefinitionModuleFile, GetModuleFi
 
 FROM SymbolTable IMPORT GetSymName, IsDefImp, NulSym,
                         IsHiddenTypeDeclared, GetFirstUsed, GetMainModule, SetMainModule,
-                        ResolveConstructorTypes ;
+                        ResolveConstructorTypes, SanityCheckConstants ;
 
 FROM FIO IMPORT StdErr ;
 FROM NameKey IMPORT Name, GetKey, KeyToCharStar, makekey ;
@@ -411,6 +411,7 @@ BEGIN
    END ;
    PCSymBuild.ResolveConstTypes ;
    ResolveConstructorTypes ;
+   SanityCheckConstants ;
    SetPassToNoPass
 END DoPassC ;
 

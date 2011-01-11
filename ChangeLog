@@ -1,3 +1,17 @@
+2011-01-11       Gaius Mulley <gaius@gnu.org>
+
+	* fixed many bug reported by
+          DragiÅ¡a DuriÄ (dragisa-duric/testcase20).
+	* gm2/gm2-compiler/SymbolTable.mod:  new procedure
+	  SanityCheckConstants which checks to see types
+	  are used in formal parameters.
+	* gm2/gm2-compiler/SymbolTable.def:  export new procedure
+	  SanityCheckConstants.
+	* gm2/gm2-compiler/M2Comp.mod:  call SanityCheckConstants
+	  after Pass C.
+	* gm2/gm2-compiler/M2Quads.mod:  skip types in CheckParameters
+	* gm2/gm2-compiler/M2MetaError.def:  add ebnf comments.
+
 2011-01-10       Gaius Mulley <gaius@gnu.org>
 
 	* fixed many constant type related bugs reported by 
