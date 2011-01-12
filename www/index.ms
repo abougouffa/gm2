@@ -17,8 +17,8 @@
 .ds GCCVERSION 4.1.2
 .ds LATESTCVSGM2 gcc-\*[GCCVERSION]+gm2-cvs-latest.tar.gz
 .ds CURRENTDATE "Sat Dec 11 14:03:48 GMT 2010
-.ds CURRENTGM2 1.0.1
-.ds DEBIANGM2 1.0
+.ds CURRENTGM2 1.0.2
+.ds DEBIANGM2 1.0.1
 .HEAD "<link rel=""stylesheet"" type=""text/css"" href=""gm2.css"" />"
 .HEAD "<link rel=""icon"" type=""image/png"" href=""gm2-logo.png"" />"
 .de OPT
@@ -100,6 +100,8 @@ Recent news:
 \m[darkblue]
 .sp
 .ULS
+.LI
+gm2 1.0.1 was released on January 12 2011.  This is a bug fix release.
 .LI
 gm2 1.0 was released on December 11 2010.
 .LI
