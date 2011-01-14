@@ -1,3 +1,11 @@
+2011-01-14       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  modified the stage2 and Modula-2
+	  library objects built from C sources to use XGCC.
+	  Define XGCC to the locally built ./xgcc -B./
+	  This allows gm2 to build under Darwin OS X
+	  Snow Leopard.
+
 2011-01-12       Gaius Mulley <gaius@gnu.org>
 
 	* released version 1.0.1 of gm2.
