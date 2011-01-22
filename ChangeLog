@@ -1,3 +1,12 @@
+2011-01-22       Gaius Mulley <gaius@gnu.org>
+
+	* fixed a bug reported by Steve Giess.
+	* testsuite/gm2/pim/pass/constcast.mod:  New file.
+	* testsuite/gm2/pim/pass/constmax.mod:  New file.
+	* gm2/gm2-compiler/PCSymBuild.mod:  WalkLeaf detect
+	  if the symbol is a type in which case copy the
+	  type rather than get the type of a type.
+	
 2011-01-14       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  modified the stage2 and Modula-2

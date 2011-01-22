@@ -1865,14 +1865,19 @@ BEGIN
       RETURN( FALSE )
    ELSE
       WITH e^.eleaf DO
-         IF GetType(sym)#NulSym
+         IF sym=13
+         THEN
+            stop
+         END ;
+         IF IsConst(sym) AND (GetType(sym)#NulSym)
          THEN
             type := GetSkippedType(sym) ;
             RETURN( TRUE )
          END ;
-         IF sym=710
+         IF IsAModula2Type(sym)
          THEN
-            stop
+            type := sym ;
+            RETURN( TRUE )
          END ;
          c := findConstDes(sym) ;
          IF (c#NIL) AND isTypeResolved(c)
