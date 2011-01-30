@@ -117,7 +117,7 @@ gm2 m2 modula-2 modula2: $(GM2)$(exeext) xgcc$(exeext) cc1gm2$(exeext) \
                  $(GM2_TARGET_INDEPENDENT_BIN_TOOLS) \
                  $(BUILD-ALL-LIBS) $(ARCHIVE-ALL-LIBS)
 
-TEXI2HTML=texi2html
+TEXI2HTML=python $(srcdir)/gm2/examples/texi2tr/src/texi2tr.py
 
 include gm2/config-make
 LIBSTDCXX=../$(TARGET_SUBDIR)/libstdc++-v3/src/.libs/libstdc++.a
@@ -219,7 +219,7 @@ gm2.dvi: $(TEXISRC)
 	$(TEXI2DVI) -I $(objdir)/gm2 $(srcdir)/gm2/gm2.texi
 
 gm2.html: $(TEXISRC)
-	$(TEXI2HTML) --sec-nav -I $(objdir)/gm2 $(srcdir)/gm2/gm2.texi
+	$(TEXI2HTML) -I$(objdir)/gm2:.:$(srcdir)/gm2 $(srcdir)/gm2/gm2.texi > gm2.html
 
 gm2.ps: gm2.dvi
 	dvips -o gm2.ps gm2.dvi

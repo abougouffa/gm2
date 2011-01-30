@@ -1,3 +1,16 @@
+2011-01-30       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2.texi:  fixed some typos and corrected the
+	  python version number.  Also foxed some texinfo variable
+	  references.
+	* gm2/gm2/gm2spec.c:  tided up code.  Also modified the
+	  driver to add easily maintainable ordered lists of
+	  object paths and library paths.
+	* gm2/el/g-mode.el:  updated the dates.
+	* gm2/gm2/Make-lang.in:  use the new tool texi2tr to
+	  generate the html documentation which is currently
+	  under development.
+
 2011-01-22       Gaius Mulley <gaius@gnu.org>
 
 	* fixed a bug reported by Steve Giess.

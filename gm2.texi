@@ -2,11 +2,6 @@
 @c -*-texinfo-*-
 
 @c
-
-@code{makeinfo}
-@code{texinfo-format-buffer}
-
-@c
 @c Design notes and documentation about GNU Modula-2
 @c
 @c
@@ -17,7 +12,7 @@
 
 @include version.texi
 @set version-GDB     6.6
-@set version-python  2.5
+@set version-python  2.6
 
 @settitle The GNU Modula-2 front end to GCC (gm2-@value{version-GM2})
 
@@ -156,7 +151,7 @@ Modula-2 compilers being actively maintained. Code which was written
 ten or fifteen years ago may still be compiled by older commercial
 (possibly unmaintained) compilers. While the 32 bit x86 remains these
 compilers presumably can be run in compatibility mode (some compilers
-only produced 16 bit code). Time is running out as the computing
+only produced 16 bit code).  Time is running out as the computing
 industry is switching to 64 microprocessors.  While x86 emulation or
 16 bit backwards compatibility is always possible it has some serious
 drawbacks. In order for the older source to run natively the source
@@ -1871,12 +1866,12 @@ code are familiar with Python and can use it to configure your
 application.
 
 The examples given here can be found in the source tree
-@file{gcc-@var{version}/gcc/gm2/examples/gravity/}.  The example used
+@file{gcc-@var{version-GCC}/gcc/gm2/examples/gravity/}.  The example used
 here is a pedagogical two dimensional gravity next event simulation.
 The Python module needs to have a clear API, this also needs to be
 placed in a single definition module.  In the gravity simulation
 example this is found in the file:
-@file{gcc-@var{version}/gcc/gm2/examples/gravity/twoDsim.def}.
+@file{gcc-@var{version-GCC}/gcc/gm2/examples/gravity/twoDsim.def}.
 Furthermore the API should only use fundamental pervasive data types
 and strings.  Below is @file{twoDsim.def}:
 
@@ -2074,7 +2069,7 @@ The recommended method of interfacing GNU Modula-2 to C is by telling
 the definition module that the implementation is in the C language.
 This is achieved by using the tokens @code{DEFINITION MODULE FOR "C"}.
 Here is an example which can be found in the source tree
-@file{gcc-@var{version}/gcc/gm2/examples/callingC/libprintf.def}
+@file{gcc-@var{version-GCC}/gcc/gm2/examples/callingC/libprintf.def}
 
 @example
 DEFINITION MODULE FOR "C" libprintf ;
@@ -2421,7 +2416,7 @@ and then finally build it manually.
 
 Combined GNU Modula-2 and patched GCC tarballs exist at
 @uref{http://floppsie.comp.glam.ac.uk/download/c}.
-Search for files which look like @file{gm2+gcc-@var{version}.tar.gz}.
+Search for files which look like @file{gm2+gcc-@var{version-GCC}.tar.gz}.
 For example you should be able to download the latest version of GNU
 Modula-2 and GCC using these commands.
 
@@ -2559,11 +2554,11 @@ the test suite:
 
 @example
 $ cvs -z3 -d:pserver:anoncvs@@cvs.sv.gnu.org:/sources/gm2 co testsuite
-$ tar cf - testsuite | ( cd gcc-@var{version}/gcc ; tar xf - )
+$ tar cf - testsuite | ( cd gcc-@var{version-GCC}/gcc ; tar xf - )
 @end example
 
 Do not simply move the directory @file{testsuite} into
-@file{gcc-@var{version}/gcc} as the GNU Modula-2 regression
+@file{gcc-@var{version-GCC}/gcc} as the GNU Modula-2 regression
 tests have to be overlaid on top of the gcc testsuite.
 
 Thereafter you can run the GNU Modula-2 testsuite by:
@@ -2807,7 +2802,7 @@ assumes that the bash shell has been installed (as described above).
 @example
   mkdir host-build
   cd host-build
-  env CONFIG_SHELL=/usr/local/bin/bash CC=gcc32 ../gcc-@var{version}/configure
+  env CONFIG_SHELL=/usr/local/bin/bash CC=gcc32 ../gcc-@var{version-GCC}/configure
       --with-system-zlib --disable-nls --enable-languages=c,c++,gm2
   gmake
 @end example
@@ -2820,7 +2815,7 @@ you may also want to add @code{--host}. Here is the author of this
 section's full configure line:
 
 @example
-  env CONFIG_SHELL=/usr/local/bin/bash CC=gcc32 ../gcc-@var{version}/configure
+  env CONFIG_SHELL=/usr/local/bin/bash CC=gcc32 ../gcc-@var{version-GCC}/configure
       --with-system-zlib --disable-nls --enable-languages=c,c++,gm2
       --program-prefix=m2 --host=i386-gm2bld-freebsd5.3
 @end example

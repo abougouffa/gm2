@@ -1,6 +1,6 @@
 /* Specific flags and argument handling of the GNU Modula-2 front-end.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *               2010
+ * Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+ *               2010, 2011
  *               Free Software Foundation, Inc.
 
 This file is part of GNU Modula-2.
@@ -106,10 +106,6 @@ static style_sig libraryStyle[LIB_MAX+1] = {{"",      { FALSE,    FALSE}},
 					    {"SO_O2", {  TRUE,     TRUE}},
 					    {"",      { FALSE,    FALSE}}};
 
-static void add_default_directories (int incl, char ***in_argv,
-				     const char *default_library_path,
-				     const char *option, libs which_lib,
-				     styles s, const char *env_path);
 static void add_arg (int incl, char ***in_argv, const char *str);
 static void insert_arg (int incl, int *in_argc, char ***in_argv);
 int lang_specific_pre_link (void);
@@ -279,84 +275,6 @@ remember_link_arg (const char *s)
   n->name = s;
   n->next = head_link_args;
   head_link_args = n;
-}
-
-/*
- *  add_default_directories - add the current working
- *                            directory and the GM2 default library
- *                            directory to the end of the search path.
- */
-
-static void
-add_default_directories (int incl, char ***in_argv,
-			 const char *default_library_path,
-			 const char *option, libs which_lib,
-			 styles s, const char *env_path)
-{
-  char *gm2libs;
-  char  sepstr[2];
-  const char *style_name = libraryStyle[s].directory;
-  int   style_len = strlen(style_name);
-  int   env_length= 0;
-
-  sepstr[0] = DIR_SEPARATOR;
-  sepstr[1] = (char)0;
-
-  if (env_path != NULL && (strlen (env_path) > 0))
-    env_length = strlen (env_path) + 1;
-
-  if (style_len > 0)
-    style_len += strlen(sepstr);
-
-  if ((*in_argv)[incl] == NULL) {
-    gm2libs = (char *) alloca(strlen(option) + env_length +
-			      strlen(default_library_path)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len+
-			      strlen(default_library_path)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len);
-    strcpy(gm2libs, option);
-  }
-  else {
-    gm2libs = (char *) alloca(strlen((*in_argv)[incl]) + env_length + strlen(":") +
-			      strlen(default_library_path)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len+
-			      strlen(default_library_path)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len);
-    strcpy(gm2libs, (*in_argv)[incl]);
-    strcat(gm2libs, ":");
-  }
-  if (env_length > 0) {
-    strcat(gm2libs, env_path);
-    strcat(gm2libs, ":");
-  }
-  strcat(gm2libs, default_library_path);
-  strcat(gm2libs, sepstr);
-  strcat(gm2libs, "gm2");
-  strcat(gm2libs, sepstr);
-  strcat(gm2libs, libraryName[which_lib]);
-  if (style_len > 0) {
-    strcat(gm2libs, sepstr);
-    strcat(gm2libs, style_name);
-  }
-
-  strcat(gm2libs, ":");
-  strcat(gm2libs, default_library_path);
-  strcat(gm2libs, sepstr);
-  strcat(gm2libs, "gm2");
-  strcat(gm2libs, sepstr);
-  if (which_lib == pim)
-    /*
-     *  fall back to logitech libraries if using pim (the logitech
-     *  libraries are extended pim libraries)
-     */
-    strcat(gm2libs, libraryName[logitech]);
-  else
-    strcat(gm2libs, "pim");   /* all other libraries fall back to pim */
-  if (style_len > 0) {
-    strcat(gm2libs, sepstr);
-    strcat(gm2libs, style_name);
-  }
-
-#if defined(DEBUGGING)
-  fprintf(stderr, "adding %s and %s\n", option, gm2libs);
-#endif
-  (*in_argv)[incl] = xstrdup(gm2libs);
 }
 
 /*
@@ -565,6 +483,236 @@ add_default_archives (int *in_argc,
   }
 }
 
+/*
+ *  build_include_path - builds the component of the include path referenced by
+ *                       the, which, libs.
+ */
+
+static const char *
+build_include_path (const char *prev, const char *libpath, libs which)
+{
+  char  sepstr[2];
+  char *gm2libs;
+  const char *option = "-I";
+
+  sepstr[0] = DIR_SEPARATOR;
+  sepstr[1] = (char)0;
+
+  if (prev == NULL) {
+    gm2libs = (char *) alloca(strlen(option) +
+			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+
+			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1);
+    strcpy(gm2libs, option);
+  }
+  else {
+    gm2libs = (char *) alloca(strlen(prev) + strlen(":") +
+			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+
+			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1);
+    strcpy(gm2libs, prev);
+    strcat(gm2libs, ":");
+  }
+  strcat(gm2libs, libpath);
+  strcat(gm2libs, sepstr);
+  strcat(gm2libs, "gm2");
+  strcat(gm2libs, sepstr);
+  strcat(gm2libs, libraryName[which]);
+
+  return xstrdup (gm2libs);
+}
+
+/*
+ *  do_set - providing that path is non null and contains characters replace
+ *           the existing include path with path.
+ */
+
+static void
+do_set (int i,
+	const char ***in_argv,
+	const char *path)
+{
+  if (path != NULL && (strlen (path) != 0))
+    (*in_argv)[i] = path;
+}
+
+/*
+ *  add_includes - add all required includes for first, second, third and
+ *                 fourth.
+ */
+
+static void
+add_includes (int incl,
+	      const char ***in_argv,
+	      const char *libpath,
+	      const char *envpath,
+	      libs first,
+	      libs second,
+	      libs third,
+	      libs fourth)
+{
+  const char *prev = (char *)(*in_argv)[incl];
+  do_set (incl, in_argv, envpath);
+
+  if (first != maxlib)
+    do_set (incl, in_argv, build_include_path (prev, libpath, first));
+  if (second != maxlib)
+    do_set (incl, in_argv, build_include_path (prev, libpath, second));
+  if (third != maxlib)
+    do_set (incl, in_argv, build_include_path (prev, libpath, third));
+  if (fourth != maxlib)
+    do_set (incl, in_argv, build_include_path (prev, libpath, fourth));
+}
+
+/*
+ *  add_default_includes - add the appropriate default include paths depending
+ *                         upon the style of libraries chosen.
+ */
+
+static void
+add_default_includes (int incl,
+		      const char ***in_argv,
+		      const char *libpath,
+		      libs libraries,
+		      const char *envpath)
+{
+  switch (libraries) {
+
+  case iso:
+    add_includes (incl, in_argv, libpath, envpath, iso, pim, logitech, maxlib);
+    break;
+  case pim:
+    add_includes (incl, in_argv, libpath, envpath, pim, logitech, iso, maxlib);
+    break;
+  case ulm:
+    add_includes (incl, in_argv, libpath, envpath, ulm, pim, logitech, iso);
+    break;
+  case min:
+    add_includes (incl, in_argv, libpath, envpath, min, maxlib, maxlib, maxlib);
+    break;
+  case logitech:
+    add_includes (incl, in_argv, libpath, envpath, logitech, pim, iso, maxlib);
+    break;
+  case pimcoroutine:
+    add_includes (incl, in_argv, libpath, envpath, pimcoroutine, pim, logitech, iso);
+    break;
+  default:
+    fprintf(stderr, "%s:%d:internal error unrecognized case clause\n",
+	    __FILE__, __LINE__);
+  }
+}
+
+/*
+ *  build_fobject_path - returns a string containing the a path to the
+ *                       objects defined by, libpath, s, and, dialectLib.
+ */
+
+static const char *
+build_fobject_path (const char *prev, const char *libpath, libs dialectLib,
+		    styles style)
+{
+  char  sepstr[2];
+  char *gm2objs;
+  const char *option = "-fobject-path=";
+  const char *style_name = libraryStyle[style].directory;
+  const char *libName = libraryName[dialectLib];
+
+  sepstr[0] = DIR_SEPARATOR;
+  sepstr[1] = (char)0;
+
+  if (prev == NULL) {
+    gm2objs = (char *) alloca(strlen(option) +
+			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libName)+1+
+			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libName)+1);
+    strcpy(gm2objs, option);
+  }
+  else {
+    gm2objs = (char *) alloca(strlen(prev) + strlen(":") +
+			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libName)+1+
+			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libName)+1);
+    strcpy(gm2objs, prev);
+    strcat(gm2objs, ":");
+  }
+  strcat(gm2objs, libpath);
+  strcat(gm2objs, sepstr);
+  strcat(gm2objs, "gm2");
+  strcat(gm2objs, sepstr);
+  strcat(gm2objs, libName);
+
+  if (strlen(style_name) != 0) {
+    strcat (gm2objs, sepstr);
+    strcat (gm2objs, style_name);
+  }
+
+  return xstrdup (gm2objs);
+}
+
+/*
+ *  add_fobjects - add all required objects for first, second, third and
+ *                 fourth.
+ */
+
+static void
+add_fobjects (int incl,
+	      const char ***in_argv,
+	      const char *libpath,
+	      const char *envpath,
+	      libs first,
+	      libs second,
+	      libs third,
+	      libs fourth,
+	      styles s)
+{
+  const char *prev = (char *)(*in_argv)[incl];
+  do_set (incl, in_argv, envpath);
+
+  if (first != maxlib)
+    do_set (incl, in_argv, build_fobject_path (prev, libpath, first, s));
+  if (second != maxlib)
+    do_set (incl, in_argv, build_fobject_path (prev, libpath, second, s));
+  if (third != maxlib)
+    do_set (incl, in_argv, build_fobject_path (prev, libpath, third, s));
+  if (fourth != maxlib)
+    do_set (incl, in_argv, build_fobject_path (prev, libpath, fourth, s));
+}
+
+/*
+ *  add_default_fobjects - add the appropriate default include paths depending
+ *                         upon the style of libraries chosen.
+ */
+
+static void
+add_default_fobjects (int incl,
+		      const char ***in_argv,
+		      const char *libpath,
+		      libs libraries,
+		      styles s,
+		      const char *envpath)
+{
+  switch (libraries) {
+
+  case iso:
+    add_fobjects (incl, in_argv, libpath, envpath, iso, pim, logitech, maxlib, s);
+    break;
+  case pim:
+    add_fobjects (incl, in_argv, libpath, envpath, pim, logitech, iso, maxlib, s);
+    break;
+  case ulm:
+    add_fobjects (incl, in_argv, libpath, envpath, ulm, pim, logitech, iso, s);
+    break;
+  case min:
+    add_fobjects (incl, in_argv, libpath, envpath, min, maxlib, maxlib, maxlib, s);
+    break;
+  case logitech:
+    add_fobjects (incl, in_argv, libpath, envpath, logitech, pim, iso, maxlib, s);
+    break;
+  case pimcoroutine:
+    add_fobjects (incl, in_argv, libpath, envpath, pimcoroutine, pim, logitech, iso, s);
+    break;
+  default:
+    fprintf(stderr, "%s:%d:internal error unrecognized case clause\n",
+	    __FILE__, __LINE__);
+  }
+}
+
 static void
 scan_for_link_args (int *in_argc, const char *const **in_argv)
 {
@@ -738,7 +886,7 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
 		      int *in_added_libraries ATTRIBUTE_UNUSED)
 {
   int i;
-  int libraries=pim;
+  libs libraries=pim;
   int x=-1;
   const char *language = NULL;
   int moduleExtension = -1;
@@ -846,11 +994,10 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     inclPos = 1;
   }
   s = get_style (seen_flags);
-  add_default_directories (inclPos, (char ***)in_argv, libpath,
-			   "-I", libraries, s, gm2ipath);
-  if (s != LIB)
-    add_default_directories (inclPos, (char ***)in_argv, libpath,
-			     "-I", libraries, LIB, gm2ipath);
+  
+  add_default_includes (inclPos, (char ***)in_argv, libpath,
+			libraries, gm2ipath);
+
   add_exec_prefix (1, in_argc, (char ***)in_argv);
 
   if ((! seen_B) && seen_fmakeall) {
@@ -861,8 +1008,8 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     insert_arg (1, in_argc, (char ***)in_argv);
     linkPos = 1;
   }
-  add_default_directories (linkPos, (char ***)in_argv, libpath,
-			   "-fobject-path=", libraries, s, gm2opath);
+  add_default_fobjects (linkPos, (char ***)in_argv, libpath,
+			libraries, s, gm2opath);
 
   if (x == -1 && moduleExtension != -1) {
     insert_arg (1, in_argc, (char ***)in_argv);
