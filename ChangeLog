@@ -1,3 +1,12 @@
+2011-02-04       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/texi2tr:  new directory.
+	* gm2/examples/texi2tr/src:  new directory.
+	* gm2/examples/texi2tr/src/config.py:  new file.
+	* gm2/examples/texi2tr/src/outputdev.py:  new file.
+	* gm2/examples/texi2tr/src/navigate.py:  new file.
+	* gm2/examples/texi2tr/src/texi2tr.py:  new file.
+
 2011-01-30       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  fixed some typos and corrected the

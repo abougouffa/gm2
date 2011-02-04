@@ -2823,11 +2823,11 @@ section's full configure line:
 @node Licence, GNU Project, Obtaining, Top
 @section Licence of GNU Modula-2
 
-@include gpl-3.0.texi
+@c @include gpl-3.0.texi
 
 @node GNU Project, Contributing, Licence, Top
 
-@include gnu.texi
+@c @include gnu.texi
 
 @node Contributing, Internals, GNU Project, Top
 @section Contributing to GNU Modula-2
