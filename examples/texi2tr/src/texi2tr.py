@@ -41,44 +41,18 @@ includePath = './'
 title = ""
 inTitlePage = False
 tableSpecifier = []
+enumerateSpecifier = []
 menuText = ""
-menus = []
+frags = []
+outputFile = sys.stdout.write
+
 
 # output state
 ignore, passthrough, arguments, menu = range(4)
 
-html = outputdev.htmlDevice()
+html = outputdev.htmlDevice('gm2.html')
+html.setBasename('gm2-%d.html')
 currentMenu = navigation.menuInfo(True)
-
-
-#
-#  deviceHeader - emit html header.
-#
-
-def deviceHeader ():
-    global html
-    html.puts("""
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
-<html>
-<head>
-<meta name="generator" content="texi2tr, see www.nongnu.org/gm2">
-<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<meta name="Content-Style" content="text/css">
-<link rel="stylesheet" type="text/css" href="/home/gaius/GM2/graft-4.1.2/gcc-4.1.2/gcc/gm2/examples/texi2tr/test/texi2tr.css" />
-</head>
-
-""")
-
-#
-#  deviceFooter - emit html footer.
-#
-
-def deviceFooter ():
-    global html
-    html.puts("</div>\n")
-    html.puts("</body>\n")
-    html.puts("</html>")
 
 
 #
@@ -272,13 +246,12 @@ def parseArgs (contents, i, delim):
         contents = contents.lstrip(' ')
         pushArg("")
         i = contents.find('\n')
-        c, state = scanFor(contents.split('\n')[0], arguments)
+        args = contents.split('\n')[0]
     elif contents[i] == '{':
         contents = contents[i+1:]
         pushArg("")
         i = findArgend(contents)
-        c, state = scanFor(contents[:i], arguments)
-    args = popArg()
+        args = contents[:i]
     if len(contents)>i:
         return contents[i+1:], args
     else:
@@ -337,7 +310,7 @@ def switchAt (contents, state):
 
     if len(contents)>0:
         contents = contents[1:]
-        if (contents[0] == '@') or (contents[0] == '{') or (contents[0] == '}'):
+        if (contents[0] == '@') or (contents[0] == '{') or (contents[0] == '}') or (contents[0] == '.'):
             if state==arguments:
                 # still need to escape it
                 doState('@', state)
@@ -412,11 +385,10 @@ def scanFor (contents, state):
 #
 
 def parseFile (contents, state):
+    global html
     debugf('parseFile')
-    deviceHeader()
     contents, state = skipLine(contents, state)
     contents, state = scanFor(contents, state)
-    deviceFooter()
     return contents, state
 
 
@@ -461,13 +433,7 @@ def doTitlepage (content, state):
 def doTitlepageEnd (state):
     global html, title, inTitlePage
     inTitlePage = False
-    html.titleBegin()
-    html.write(title)
-    html.titleEnd()
-    if not config.ignoreh1Titlepage:
-        html.h1Begin()
-        html.write(title)
-        html.h1End()
+    html.setTitle(title)
     html.paraBegin()
 
 def doCenter (content, state):
@@ -492,6 +458,16 @@ def doTitlefont (content, state):
     return "", state
 
 def doI (content, state):
+    global html
+    if state != ignore:
+        html.push()
+        html.iBegin()
+        scanFor(content, state)
+        html.iEnd()
+        html.pop()
+    return "", state
+
+def doVar (content, state):
     global html
     if state != ignore:
         html.push()
@@ -581,16 +557,20 @@ def doExampleEnd (state):
         html.paraBegin()
 
 def doCopyright (content, state):
-    content = 'copyright' + content
+    global html
+
+    if state != ignore:
+        html.copyright()
     return content, state
 
 def doNode (content, state):
-    global menus
+    global frags
     if state == ignore:
         return skipLine (content, state)
-    html.newFragment('node')
-    navigation.anchor(html.puts, content.split(',')[0])
-    menus += [navigation.addNode(content)]
+    if content.split(',')[0].rstrip().lstrip() == "Top":
+        return "", state
+    frags += [['text', html.collectFragment('node')]]
+    frags += [['node', navigation.addNode(html, content)]]
     return "", state
 
 def doTop (content, state):
@@ -599,20 +579,20 @@ def doTop (content, state):
     return "", state
 
 def doMenu (content, state):
-    global currentMenu, html
-
+    global currentMenu, html, menuText, frags
     if state == ignore:
         return doConsume(content, state, 'menu')
     else:
-        html.newFragment('menu')
+        frags += [['text', html.collectFragment('menu')]]
         pushState('menu', state)
+        menuText = ""
         return "", menu
 
 def doMenuEnd (state):
-    global currentMenu, menus, html
+    global currentMenu, frags
     if state != ignore:
         currentMenu.parseMenu(menuText)
-    menus += [currentMenu]
+    frags += [['menu', currentMenu]]
     currentMenu = navigation.menuInfo(False)
     return "", state
 
@@ -649,30 +629,30 @@ def doSubSection (content, state):
 def doUref (content, state):
     global html
     if state != ignore:
-        html.puts('<a href="')
+        html.raw('<a href="')
         scanFor(content, state)
-        html.puts('">')
+        html.raw('">')
         scanFor(content, state)
-        html.puts('</a>')
+        html.raw('</a>')
     return "", state
 
 def doEmail (content, state):
     global html
     if state != ignore:
-        html.puts('<a href="mailto:')
+        html.raw('<a href="mailto:')
         scanFor(content, state)
-        html.puts('">')
+        html.raw('">')
         scanFor(content, state)
-        html.puts('</a>')
+        html.raw('</a>')
     return "", state
 
 #
 #  pushSpecifier - pushes a format to the top of stack.
 #
 
-def pushSpecifier (format):
+def pushSpecifier (dataType, format):
     global tableSpecifier
-    tableSpecifier += [format]
+    tableSpecifier += [[dataType, format]]
 
 #
 #  popSpecifier - removes the top of stack
@@ -693,6 +673,16 @@ def getSpecifier ():
     global tableSpecifier
     return tableSpecifier[0]
 
+def isTableSpecifier (s):
+    return s[0] == 'table'
+
+def isEnumSpecifier (s):
+    return s[0] == 'enum'
+
+def incrementSpecifier ():
+    global tableSpecifier
+    tableSpecifier[0][1] = chr(ord(tableSpecifier[0][1])+1)
+
 #
 #  doTable - collect the format specifier and emit the start
 #
@@ -703,7 +693,7 @@ def doTable (content, state):
         return doConsume(content, state, 'table')
     else:
         html.end()
-        pushSpecifier(content)
+        pushSpecifier('table', content)
         pushState('table', state)
         html.tableBegin()
         html.paraBegin()
@@ -734,11 +724,44 @@ def doItem (content, state):
         html.end()  # shuts down a para
         html.tableRightEnd()
         html.tableLeftBegin()
-        scanFor(getSpecifier () + '{' + content + '}', state)
+        if isEnumSpecifier(getSpecifier()):
+            scanFor(getSpecifier ()[1] + ' ' + content, state)
+            incrementSpecifier()
+        else:
+            scanFor(getSpecifier ()[1] + '{' + content + '}', state)
         html.tableLeftEnd()
         html.tableRightBegin()
         html.paraBegin()
         return "", state
+
+#
+#  doEnumerate - collect the enumeration specifier and emit the start
+#
+
+def doEnumerate (content, state):
+    global html
+    if state == ignore:
+        return doConsume(content, state, 'enumerate')
+    else:
+        html.end()
+        pushSpecifier('enumerate', content)
+        pushState('enumerate', state)
+        html.tableBegin()
+        html.paraBegin()
+        return "", state
+
+#
+#  doEnumerateEnd - terminates the current enumeration list.
+#
+
+def doEnumerateEnd (state):
+    global html
+    if state != ignore:
+        html.end()   # end of paragraph
+        popSpecifier()
+        html.tableRightEnd()
+        html.tableEnd()
+        html.paraBegin()
 
 def doExample (content, state):
     global html
@@ -750,6 +773,22 @@ def doExample (content, state):
         html.preBegin()
         return content, state
 
+def doSmallExample (content, state):
+    global html
+    if state == ignore:
+        return doConsume(content, state, 'smallexample')
+    else:
+        pushState('smallexample', state)
+        html.paraEnd()
+        html.preBegin()
+        return content, state
+
+def doSmallExampleEnd (state):
+    global html
+    if state != ignore:
+        html.preEnd()
+        html.paraBegin()
+
 def doFootnote (content, state):
     global html
     if state == ignore:
@@ -757,12 +796,13 @@ def doFootnote (content, state):
     else:
         html.paraEnd()
         pushState('footnote', state)
-        html.preBegin()
-        html.puts("<div footnote>\n")
+        html.raw('<div class="footnote"><ul class="footnote"><li class="footnote">\n')
+        html.paraBegin()
         scanFor(content, state)
-        html.puts("</div\n")
         html.paraEnd()
-        html.preBegin()
+        html.raw("\n</li></ul></div>\n")
+        state = popState('footnote')
+        html.paraBegin()
         return "", state
 
 def doXref (content, state):
@@ -777,7 +817,7 @@ def doDisplay (content, state):
     else:
         pushState('display', state)
         html.paraEnd()
-        html.puts("<div display>\n")
+        html.raw("<div display>\n")
         html.paraBegin()
         return content, state
 
@@ -785,9 +825,18 @@ def doDisplayEnd (state):
     global html
     if state != ignore:
         html.paraEnd()
-        html.puts("</div>\n")
+        html.raw("</div>\n")
         html.paraBegin()
 
+def doHeading (content, state):
+    global html
+    if state == ignore:
+        return skipLine (content, state)
+    html.h2Begin()
+    html.write(content)
+    html.h2End()
+    html.paraBegin()
+    return "", state
 
 #
 #  populateFunctions - create the dictionary of commands.
@@ -806,11 +855,14 @@ def populateFunctions ():
     endFunctions['display'] = doDisplayEnd
     functions['email'] = doEmail
     functions['end'] = doEnd
+    functions['enumerate'] = doEnumerate
+    endFunctions['enumerate'] = doEnumerateEnd
     functions['example'] = doExample
     endFunctions['example'] = doExampleEnd
     functions['file'] = doSamp
     functions['findex'] = doComment
     functions['footnote'] = doFootnote
+    functions['heading'] = doHeading
     functions['i'] = doI
     functions['image'] = doIgnore
     functions['include'] = doInclude
@@ -825,13 +877,15 @@ def populateFunctions ():
     functions['contents'] = doPass
     functions['quotation'] = doQuotation
     functions['value'] = doValue
-    functions['var'] = doValue
+    functions['var'] = doVar
     functions['samp'] = doSamp
     functions['section'] = doSection
     functions['set'] = doSet
     functions['setchapternewpage'] = doPass
     functions['setfilename'] = doSetfilename
     functions['settitle'] = doSettitle
+    functions['smallexample'] = doSmallExample
+    endFunctions['smallexample'] = doSmallExampleEnd
     functions['sp'] = doPass
     functions['subsection'] = doSubSection
     functions['table'] = doTable
@@ -840,26 +894,59 @@ def populateFunctions ():
     functions['titlepage'] = doTitlepage
     endFunctions['titlepage'] = doTitlepageEnd
     functions['titlefont'] = doTitlefont
+    functions['unnumbered'] = doChapter
+    functions['unnumberedsec'] = doSection
     functions['uref'] = doUref
     functions['url'] = doUref
     functions['vskip'] = doPass
     functions['xref'] = doXref
+
+def openDiv (openedDiv):
+    if not openedDiv:
+        html.raw(' <div class="page">\n')
+        html.raw('  <div class="plain">\n')
+    return True
+
+def closeDiv (openedDiv):
+    if openedDiv:
+        html.raw('  </div>\n')
+        html.raw(' </div>\n')
+    return False
 
 #
 #  mergeMenu - write out each menu between each fragment.
 #
 
 def mergeMenu ():
-    global menus, html
-    i = 0
-    root = navigation.getRoot(menus)
-    for f in html.getFragments():
-        sys.stdout.write(f)
-        last = ""
-        if len(menus)>i:
-            last = menus[i].generateMenu(sys.stdout.write, root, last)
-            i += 1
-        
+    global frags, html, outputFile
+
+    root = navigation.getRoot(frags)
+    fn = ""
+    html.openFragment()
+    selected = ""
+    for f in frags:
+        if f[0] == 'menu':
+            if f[1] == root:
+                pass
+            elif not f[1]._isShort():
+                html.openDiv().flushDiv()
+                selected = f[1].generateMenu(html, root, selected)
+                html.closeDiv()
+        elif f[0] == 'node':
+            if f[1] == root:
+                pass
+            else:
+                html.flushDiv()
+                html.nextFragment(fn)
+                selected = f[1].generateMenu(html, root, selected)
+        elif f[0] == 'text':
+            if (fn != f[1][0]) and (f[1][0] != ""):
+                fn = f[1][0]
+            html.openDiv().flushDiv()
+            html.raw(f[1][1])
+            html.closeDiv()
+    html.flushDiv()
+    html.closeFragment()
 
 #
 #  main - the first procedure to execute.

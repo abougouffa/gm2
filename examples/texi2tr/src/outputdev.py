@@ -22,63 +22,208 @@
 import sys
 import os
 import string
+import config
 
 
 # html tag
-null_tag, title_tag, header1_tag, header2_tag, header3_tag, header4_tag, center_tag, paragraph_tag, preformatted_tag, teletype_tag, italic_tag = range(11)
+null_tag, title_tag, header1_tag, header2_tag, header3_tag, header4_tag, center_tag, paragraph_tag, preformatted_tag, teletype_tag, italic_tag, bold_tag = range(12)
 
 # html state machine
 init_state, known_state, end_state, copy_state, white_state, nf_state = range(6)
+
+# char2code contains all html character codes
+char2code = {}
+char2code['"'] = "&quot;"
+char2code['&'] = "&amp;"
+char2code['<'] = "&lt;"
+char2code['>'] = "&gt;"
+
 
 # all methods prefixed by _ are for internal use only.
 
 class htmlDevice:
     #
-    #  newFragment - saves the previous fragment and creates an empty new fragment.
     #
-    def newFragment (self, dataType):
-        self.fragmentList += [self.currentFragment]
-        self.currentFragment = ""
-        sys.stderr.write('[%d] ' % (len(self.fragmentList)))
-        if (len(self.fragmentList) % 10) == 0:
-            sys.stderr.write('\n')
     #
-    #  puts - append, s, to the currentFragment.
+    def getNodeAnchor (self):
+        if config.multipleFragments:
+            return self.previousFilename
+        else:
+            return "SEC%d" % self.anchorCount
+    #
+    #
+    #
+    def getNodeLink (self):
+        if config.multipleFragments:
+            return self.previousFilename
+        else:
+            return "#SEC%d" % self.anchorCount
+    #
+    #
+    #
+    def getAnchor (self):
+        if config.multipleFragments:
+            if self.anchorCount == 0:
+                return self.currentFilename
+            else:
+                return "SEC%d" % self.anchorCount
+        else:
+            return "SEC%d" % self.anchorCount
+    #
+    #  nextAnchor
+    #
+    def nextAnchor (self):
+        self.anchorCount += 1
+    #
+    #
+    #
+    def getLink (self):
+        if config.multipleFragments:
+            if self.anchorCount == 0:
+                return self.currentFilename
+            else:
+                return "#SEC%d" % self.anchorCount
+        else:
+            return "#SEC%d" % self.anchorCount
+    #
+    #  openDiv - delay opening a div
+    #
+    def openDiv (self):
+        self.pendingDiv = True
+        return self
+    #
+    #  closeDiv - delay closing a div
+    #
+    def closeDiv (self):
+        self.pendingDiv = False
+        return self
+    #
+    #  flushDiv - really write the div needed.
+    #
+    def flushDiv (self):
+        if self.pendingDiv == self.actualDiv:
+            return self
+        self.actualDiv = self.pendingDiv
+        if self.pendingDiv:
+            self.raw(' <div class="page">\n')
+            self.raw('  <div class="plain">\n')
+        else:
+            self.raw('  </div>\n')
+            self.raw(' </div>\n')
+        return self
+    #
+    #  setBasename - assigns the basename with name.  The fragments
+    #                will be named (basename % no).html
+    #
+    def setBasename (self, name):
+        self.basename = name
+    #
+    #  collectFragment - return the old fragment filename and string and
+    #                    create a new filename and an empty new fragment.
+    #
+    def collectFragment (self, dataType):
+        if dataType == "menu":
+            f, s = "", self.currentFragment
+            self.currentFragment = ""
+        else:
+            f, s = self.currentFilename, self.currentFragment
+            self.currentFragment = ""
+            self.maxFrag += 1
+            sys.stderr.write('[%d] ' % self.maxFrag)
+            if (self.maxFrag % 10) == 0:
+                sys.stderr.write('\n')
+            self.previousFilename = self.currentFilename
+            self.currentFilename = (self.basename % self.maxFrag)
+            self.anchorCount = 0
+        return f, s
+    #
+    #  encodeChar - 
+    #
+    def _encodeChar (self, c):
+        global char2code
+        if char2code.has_key(c):
+            self.raw(char2code[c])
+        else:
+            self.raw(c)
+    #
+    #  puts - append, s, to the currentFragment, encoding each
+    #         character in turn.
     #
     def puts (self, s):
-        self.currentFragment += s
+        for i in s:
+            self._encodeChar(i)
     #
-    #  getFragments - returns all fragments.
+    #  raw - append, s, to the currentFragment.
     #
-    def getFragments (self):
-        return self.fragmentList
+    def raw (self, s):
+        if self.output == None:
+            self.currentFragment += s
+        else:
+            self.output.write(s)
+    #
+    #  openFragment - open up the initial fragment.
+    #
+    def openFragment (self):
+        self.fragNo = 0
+    #
+    #  nextFragment - closes the last fragment and opens up the next
+    #                 filename.
+    #
+    def nextFragment (self, name):
+        if self.fragNo > 0:
+            self.closeFragment()
+        if config.multipleFragments:
+            self.output = open(name, 'w')
+        if config.debugFragments:
+            print
+            print "----------------------------------------------"
+            print name
+            print "----------------------------------------------"
+            print
+            self.output = sys.stdout
+        self.fragNo += 1
+        self.deviceHeader()
+    #
+    #  closeFragment - closes the final file fragment.
+    #
+    def closeFragment (self):
+        self.deviceFooter()
+        if config.multipleFragments:
+            self.output.close()
+    #
+    #  copyright - output the (C) symbol.
+    #
+    def copyright (self):
+        self.raw('&copy;')
     #
     #  emitTagName - write out tag names
     #
     def _emitTagName(self, s):
         if self.state == init_state:
             return
-        self.puts(s)
+        self.raw(s)
         if self.tag == title_tag:
-            self.puts('title>')
+            self.raw('title>')
         elif self.tag == header1_tag:
-            self.puts('h1>')
+            self.raw('h1>')
         elif self.tag == header2_tag:
-            self.puts('h2>')
+            self.raw('h2>')
         elif self.tag == header3_tag:
-            self.puts('h3>')
+            self.raw('h3>')
         elif self.tag == header4_tag:
-            self.puts('h4>')
+            self.raw('h4>')
         elif self.tag == center_tag:
-            self.puts('center>')
+            self.raw('center>')
         elif self.tag == paragraph_tag:
-            self.puts('p>')
+            self.raw('p>')
         elif self.tag == preformatted_tag:
-            self.puts('pre>')
+            self.raw('pre>')
         elif self.tag == teletype_tag:
-            self.puts('tt>')
+            self.raw('tt>')
         elif self.tag == italic_tag:
-            self.puts('i>')
+            self.raw('i>')
+        elif self.tag == bold_tag:
+            self.raw('b>')
     #
     #  emitTag - write out the start tag
     #
@@ -91,19 +236,28 @@ class htmlDevice:
         if self.state in [copy_state, white_state, nf_state]:
             self._emitTagName('</')
             if self.tag in [header1_tag, header2_tag, header3_tag, header4_tag, title_tag, center_tag, paragraph_tag, preformatted_tag]:
-                self.puts('\n')
-            if not (self.tag in [teletype_tag, italic_tag]):
-                self.puts('\n')
+                self.raw('\n')
+            if not (self.tag in [teletype_tag, italic_tag, bold_tag]):
+                self.raw('\n')
     def _initState (self):
         self.state = init_state
-    def __init__ (self):
+    def __init__ (self, name):
         self.state = init_state
         self.tag = null_tag
         self.stack = []
         self.lastnewline = False
-        self.fragmentList = []
+        self.filenameList = []
         self.currentFragment = ""
+        self.currentFilename = name
+        self.previousFilename = name
+        self.title = ""
+        self.output = None
+        self.fragNo = 0
+        self.maxFrag = 0
         sys.stderr.write('[1] ')
+        self.pendingDiv = False
+        self.actualDiv = False
+        self.anchorCount = 0
     def _to (self, s):
         self.state = s
     def _status (self):
@@ -155,6 +309,8 @@ class htmlDevice:
             return
         for c in contents:
             self._doChar(c)
+    def setTitle(self, content):
+        title = content
     def titleBegin(self):
         self._end()
         self.state = known_state
@@ -219,6 +375,13 @@ class htmlDevice:
     def iEnd(self):
         self._end()
         self.pop()
+    def bBegin(self):
+        self.push()
+        self.tag = bold_tag
+        self._emitTag()
+    def bEnd(self):
+        self._end()
+        self.pop()
     def centerBegin(self):
         self._end()
         self.state = known_state
@@ -231,39 +394,89 @@ class htmlDevice:
     #  tableBegin -
     #
     def tableBegin(self):
-        self.puts("<dl>\n")
+        self.raw('<div class="itemize">\n')
+        self.raw("<dl>\n")
         self.firstItem = True
         self.tableRightOpen = False
     #
     #  tableEnd -
     #
     def tableEnd(self):
-        self.puts("</dl>\n")
+        self.raw("</dl>\n")
+        self.raw('</div>\n')
     #
     #  tableLeftBegin -
     #
     def tableLeftBegin(self):
         if self.firstItem:
             self.tableRightEnd()
-        self.puts("<dt>")
+        self.raw("<dt>")
     #
     #  tableLeftEnd -
     #
     def tableLeftEnd(self):
         self.firstItem = False
-        self.puts("</dt>\n")
+        self.raw("</dt>\n")
     #
     #  tableRightBegin -
     #
     def tableRightBegin(self):
         self._end()
         self.tableRightOpen = True
-        self.puts("<dd>")
+        self.raw("<dd>")
     #
     #  tableRightEnd -
     #
     def tableRightEnd(self):
         self._end()
         if self.tableRightOpen:
-            self.puts("</dd>")
+            self.raw("</dd>")
             self.tableRightOpen = False
+    #
+    #  emitTitle
+    #
+    def emitTitle (self):
+        self.titleBegin()
+        self.write(title)
+        self.titleEnd()
+        if config.ignoreh1Titlepage:
+            pass
+        else:
+            self.h1Begin()
+            self.write(self.title)
+            self.h1End()
+
+    #
+    #  deviceHeader - emit html header.
+    #
+    def deviceHeader (self):
+        self.raw(self._safeOpen('header.ht', 'header template "header.ht"'))
+    #
+    #  deviceFooter - emit html footer.
+    #
+    def deviceFooter (self):
+        self.raw(self._safeOpen('footer.ht', 'footer template "footer.ht"'))
+    #
+    #  safeOpen - 
+    #
+    def _safeOpen (self, f, description):
+        fn = os.path.join('/home/gaius/GM2/graft-4.1.2/gcc-4.1.2/gcc/gm2/examples/texi2tr/test', f)
+        if os.path.exists(fn) and os.path.isfile(fn):
+            try:
+                return open(fn, 'r').read()
+            except:
+                print "cannot open", description
+                return ""
+        else:
+            print "cannot open", description
+            return ""
+    #
+    #  emitMenuTitle -
+    #
+    def emitMenuTitle (self):
+        self.raw(self._safeOpen('title.ht', 'title template "title.ht"'))
+    #
+    #  emitNodeHeading -
+    #
+    def emitNodeHeading (self):
+        self.raw(self._safeOpen('heading.ht', 'heading template "heading.ht"'))

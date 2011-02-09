@@ -5,3 +5,13 @@
 #                      <h1> in the template file title.ht
 #
 ignoreh1Titlepage = True
+#
+#
+#  multipleFragments - should we produce multiple fragments, one for each node.
+#                      Normally this is True - and False is only used for debugging.
+#
+multipleFragments = True
+#
+#
+#
+debugFragments = False

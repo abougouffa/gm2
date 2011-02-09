@@ -23,7 +23,6 @@ import sys
 import os
 
 
-headerCount = 0
 anchors = {}
 nodes = {}
 
@@ -35,40 +34,64 @@ class nodeInfo:
     #  record the texinfo nodes
     #
     def __init__ (self, me, n, p, u):
-        self.name = me
-        self.next = n
-        self.prev = p
-        self.up   = u
-    def generateMenu (self, write, root, last):
-        emitMenuTitle(write)
-        emitNodeHeading(write)
-        emitRootTab(root, write, last)
-        write('</div>\n')
-        write('need to create node for')
-        write(self.name)
-        write(self.next)
-        write(self.prev)
-        write(self.up)
-        if (root != None) and (not root.isNode()) and (root._isShort()):
+        self.name  = me
+        self.next  = n
+        self.prev  = p
+        self.up    = u
+    def selectTab (self, root, selected):
+        if (root != None) and (root._isShort()):
             for i in root.list:
-                if i == self.name:
-                    return i
-        return last
+                if (i[0] == self.name) or (selected == ""):
+                    return i[0]
+        return selected
+    def generateMenu (self, html, root, selected):
+        if self.name == "Top":
+            return selected
+        html.emitMenuTitle()
+        html.emitNodeHeading()
+        self.emitPrevNext(html)
+        selected = self.selectTab(root, selected)
+        root.emitTab(html, selected)
+        html.raw('</div>\n')
+        return selected
+    def requiresNewFile(self):
+        return self.name != "Top"
     def _isShort (self):
         return False
-    def _genShort (self, write, active):
+    def _genShort (self, html, active):
+        pass
+    def emitTab (self, root, selected):
         pass
     def isNode (self):
         return True
     def getName (self):
         return self.name
+    def emitPrevNext (self, html):
+        global anchors
+
+        html.raw("""
+    <div id="navigation">
+      <table width="100%" cellpadding="2" cellspacing="2">
+	<tr valign="middle">
+""")
+        if (self.prev != "") and (self.prev != "Top") and anchors.has_key(self.prev):
+            html.raw('''
+	  <td><a accesskey="p" href="''')
+            html.raw(anchors[self.prev])
+            html.raw('"><img width="48" alt="Prev" src="prev.png" border="0" height="48"></img></a></td>')
+        if (self.next != "") and (self.next != "Top") and anchors.has_key(self.next):
+            html.raw('''
+	  <td align="right"><a accesskey="n" href="''')
+            html.raw(anchors[self.next])
+            html.raw('"><img width="48" alt="Next" src="next.png" border="0" height="48"></img></a></td>')
+        html.raw('</tr></table></div>')
 
 
 #
 #  addNode - adds a node to the dictionary.
 #
 
-def addNode (line):
+def addNode (html, line):
     global nodes
 
     w = line.split(',')
@@ -77,7 +100,14 @@ def addNode (line):
     while len(w)<4:
         w += [""]
     me, n, p, u = w
+
+    me = me.rstrip().lstrip()
+    n = n.rstrip().lstrip()
+    p = p.rstrip().lstrip()
+    u = u.rstrip().lstrip()
+
     nodes[me] = nodeInfo(me, n, p, u)
+    anchor(html, me)
     return nodes[me]
 
 class menuInfo:
@@ -109,15 +139,23 @@ class menuInfo:
         for m in self.list:
             print m[0], m[1]
     #
-    #  generateMenu - issues the 
+    #  generateMenu - issues the menu
     #
-    def generateMenu (self, write, root, last):
-        # emitMenuTitle(write)
-        # emitNodeHeading(write)
-        # emitRootTab(root, write, last)
-        if (root != self) and (not self._isShort()):
-            self._genLong(write)
-        return last
+    def generateMenu (self, html, root, selected):
+        if self != root:
+            self._genLong(html)
+        return selected
+    #
+    #  requiresNewFile - returns False for a menu
+    #
+    def requiresNewFile(self):
+        return False
+    #
+    #
+    #
+    def emitTab (self, html, selected):
+        if self._isShort():
+            self._genShort(html, selected)
     #
     #  isShort - return True if the menu can be encoded in a short form.
     #
@@ -133,141 +171,98 @@ class menuInfo:
     #
     #  genShort - generate a list of tabs for the short menu
     #
-    def _genShort (self, write, active):
-        write('<div id="tabmenu">\n')
-        write('<ul id="tab">\n')
+    def _genShort (self, html, active):
+        html.raw('<div id="tabmenu">\n')
+        html.raw('<ul id="tab">\n')
         for m in self.list:
             if anchors.has_key(m[0]):
-                active = litab(write, anchors[m[0]], m[0], active)
+                active = litab(html, anchors[m[0]], m[0], active)
             else:
                 if (len(m[1]) > 1) and (m[1][-1] == '.') and (anchors.has_key(m[1][:-1])):
-                    active = litab(write, anchors[m[1][:-1]], m[0], active)
+                    active = litab(html, anchors[m[1][:-1]], m[0], active)
                 elif anchors.has_key(m[1]):
-                    active = litab(write, anchors[m[1]], m[0], active)
+                    active = litab(html, anchors[m[1]], m[0], active)
                 else:
                     print "cannot find anchor for section", m[0], "or", m[1]
-        write('\n</ul>\n')
-        write('</div>\n')
+        html.raw('\n</ul>\n')
+        html.raw('</div>\n')
     #
     #  genLong - generate a unordered list for the short menu
     #
-    def _genLong (self, write):
-        write('\n<ul>\n')
+    def _genLong (self, html):
+        html.raw('\n<ul>\n')
         for m in self.list:
             if anchors.has_key(m[0]):
-                liurl(write, anchors[m[0]], m[1])
+                liurl(html, anchors[m[0]], m[1])
             else:
                 if (len(m[1]) > 1) and (m[1][-1] == '.') and (anchors.has_key(m[1][:-1])):
-                    liurl(write, anchors[m[1][:-1]], m[1])
+                    liurl(html, anchors[m[1][:-1]], m[1])
                 elif anchors.has_key(m[1]):
-                    liurl(write, anchors[m[1]], m[1])
+                    liurl(html, anchors[m[1]], m[1])
                 else:
                     print "cannot find anchor for section", m[0], "or", m[1]
-        write('</ul>\n')
-
-
-#
-#
-#
-def emitRootTab (root, write, last):
-    if root == None:
-        return
-    if root._isShort():
-        root._genShort(write, last)
-
+        html.raw('</ul>\n')
 
 #
 #  anchor - adds an anchor to the output and enters it into our dictionary
 #
 
-def anchor (write, label):
-    global anchors, headerCount
-    headerCount += 1
-    s = '<a name="SEC%d"></a>\n' % headerCount
-    anchors[label] = "#SEC%d" % headerCount
-    write(s)
+def anchor (html, label):
+    global anchors
+    anchors[label] = html.getNodeLink()
+    s = '<a name="' + html.getNodeAnchor() + '"></a>\n'
+    html.raw(s)
+    html.nextAnchor()
 
 #
 #  liurl - issue a <li> url </li> as long as text is not empty.
 #
 
-def liurl (write, link, text):
+def liurl (html, link, text):
     if text != "":
-        write('<li>\n')
-        url(write, link, text)
-        write('</li>\n')
-
+        html.raw('<li>\n')
+        url(html, link, text)
+        html.raw('</li>\n')
 
 #
 #  url - issue a link providing that text is non nul.
 #
 
-def url (write, link, text):
+def url (html, link, text):
     if text != "":
-        write('<a href="')
-        write(link)
-        write('">')
-        write(text)
-        write('</a>')
+        html.raw('<a href="')
+        html.raw(link)
+        html.raw('">')
+        html.puts(text)
+        html.raw('</a>')
 
 #
 #  litab - issue a tab link providing that text is non nul.
 #
 
-def litab (write, link, text, active):
+def litab (html, link, text, selected):
     if text != "":
-        if (active == ""):
-            write('<li class="selected">')
-            active = text
-        elif active == text:
-            write('<li class="selected">')
+        if (selected == ""):
+            html.raw('<li class="selected">')
+            selected = text
+        elif selected == text:
+            html.raw('<li class="selected">')
         else:
-            write('<li>')
-        write('<a href="')
-        write(link)
-        write('"><span>')
-        write(text)
-        write('</span></a></li>\n')
-        return active
+            html.raw('<li>')
+        html.raw('<a href="')
+        html.raw(link)
+        html.raw('"><span>')
+        html.puts(text)
+        html.raw('</span></a></li>\n')
+        return selected
 
 #
-#  safeOpen - 
+#  getRoot - returns the root menu
 #
 
-def safeOpen (f, description):
-    fn = os.path.join('/home/gaius/GM2/graft-4.1.2/gcc-4.1.2/gcc/gm2/examples/texi2tr/test', f)
-    if os.path.exists(fn) and os.path.isfile(fn):
-        try:
-            return open(fn, 'r').read()
-        except:
-            print "cannot open", description
-            return ""
-    else:
-        print "cannot open", description
-        return ""
-
-
-#
-#  emitMenuTitle -
-#
-
-def emitMenuTitle (write):
-    write(safeOpen('title.ht', 'title template "title.ht"'))
-
-
-#
-#  emitNodeHeading -
-#
-
-def emitNodeHeading (write):
-    write(safeOpen('heading.ht', 'heading template "heading.ht"'))
-
-#
-#
-#
-
-def getRoot (menus):
-    for m in menus:
-        if (not m.isNode()) and (m._isShort()):
-            return m
+def getRoot (frags):
+    for m in frags:
+        if (m[0] == 'menu') or (m[0] == 'node'):
+            if (not m[1].isNode()) and (m[1]._isShort()):
+                return m[1]
     return None
