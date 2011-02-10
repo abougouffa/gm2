@@ -45,6 +45,11 @@ class htmlDevice:
     #
     #
     #
+    def setTemplatePath (self, p):
+        self.templatePath = p
+    #
+    #
+    #
     def getNodeAnchor (self):
         if config.multipleFragments:
             return self.previousFilename
@@ -258,6 +263,7 @@ class htmlDevice:
         self.pendingDiv = False
         self.actualDiv = False
         self.anchorCount = 0
+        self.templatePath = '.'
     def _to (self, s):
         self.state = s
     def _status (self):
@@ -459,17 +465,17 @@ class htmlDevice:
     #
     #  safeOpen - 
     #
-    def _safeOpen (self, f, description):
-        fn = os.path.join('/home/gaius/GM2/graft-4.1.2/gcc-4.1.2/gcc/gm2/examples/texi2tr/test', f)
-        if os.path.exists(fn) and os.path.isfile(fn):
-            try:
-                return open(fn, 'r').read()
-            except:
-                print "cannot open", description
-                return ""
-        else:
+    def _safeOpen (self, filename, description):
+        try:
+            for i in self.templatePath.split(':'):
+                f = os.path.join(i, filename)
+                if os.path.exists(f) and os.path.isfile(f):
+                    return open(f, 'r').read()
             print "cannot open", description
-            return ""
+            sys.exit(0)
+        except:
+            print "cannot open", description
+            sys.exit(0)
     #
     #  emitMenuTitle -
     #

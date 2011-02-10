@@ -19,12 +19,34 @@
 # Boston, MA 02110-1301, USA.
 
 objdir = @objdir@
-srcdir = @srcdir@
+srcdir = @srcdir@/../..
 
 WWWDIR=../../../../../www/gm2
 
+TEXISRC = $(srcdir)/gm2/gm2.texi \
+          $(objdir)/gm2/gm2-libs.texi \
+          $(objdir)/gm2/gm2-ebnf.texi \
+          $(objdir)/gm2/SYSTEM-pim.texi \
+          $(objdir)/gm2/SYSTEM-iso.texi \
+          $(objdir)/gm2/Builtins.texi \
+          $(objdir)/gm2/version.texi
 
-all: index.html gm2-logo.png gnu-mini.png ../../gm2.html
+TEXI2HTML=python $(srcdir)/gm2/examples/texi2tr/src/texi2tr.py
+
+OUTPUTS=about.html download.html homepage.html license.html platforms.html \
+        release.html users.html texi2tr.css \
+        news.html development.html community.html index.html \
+        gm2-logo.png gm2.html
+
+PNGS=debian.png develop.png install.png library.png menu-left-tab.png \
+     menu-right-tab.png menu-selected-left-tab.png menu-selected-right-tab.png \
+     next.png note.png prev.png release.png snapshot.png terminal.png users.png \
+     debian-swirl48x48.png 200px-Heckert_GNU_white.png
+
+all: $(OUTPUTS)
+	for i in $(PNGS) ; do \
+           cp ${srcdir}/gm2/examples/texi2tr/png/$${i} . ; \
+        done
 
 %.pdf: %.ps
 	gs -q -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$@ $<
@@ -32,41 +54,65 @@ all: index.html gm2-logo.png gnu-mini.png ../../gm2.html
 %.ps: %.ms
 	groff -s -e -t -Tps -ms -mwww $< > $@
 
-%.html: %.ms
-	groff -P-b -e -t -U -Thtml -ms $< > $@
-
-index.html: $(srcdir)/index.ms gm2-logo.png gnubw.eps gnu-mini.png
-	groff -P-Igm2- -M$(srcdir) -P-jindex -P-r -P-b -p -e -t -Thtml -U -ms -mswww $(srcdir)/index.ms > $@
-
-gnubw.eps: $(srcdir)/../images/gnupng
-	pngtopnm $< | pnmtops -noturn > $@
-
-gnu-mini.png: $(srcdir)/../images/gnupng
-	pngtopnm $< | pnmscale .5 | pnmtopng > $@
-
 gm2-logo.png: gm2-logo.eps
 	pstopnm -nocrop -stdout $< | pnmcrop | pnmscale .4 | pnmrotate -90 | pnmtopng > $@
 
-gm2-logo.eps: $(srcdir)/gm2-logo.ms
+gm2-logo.eps: $(srcdir)/gm2/www/gm2-logo.ms
 	groff -P-b16 $< > gm2-logo.ps
 	gs -dNOPAUSE -sDEVICE=bbox -- gm2-logo.ps 2> gm2-logo.bbox
 	cat gm2-logo.ps | sed -e '/%%Orientation/rgm2-logo.bbox' > gm2-logo.eps
 	rm gm2-logo.bbox
 
-../../gm2.html: force
-	( cd ../.. ; make gm2.html )
+about.html: $(srcdir)/gm2/examples/texi2tr/html/about.html
+	cp $< $@
+
+download.html: $(srcdir)/gm2/examples/texi2tr/html/download.html
+	cp $< $@
+
+homepage.html: $(srcdir)/gm2/examples/texi2tr/html/homepage.html
+	cp $< $@
+
+license.html: $(srcdir)/gm2/examples/texi2tr/html/license.html
+	cp $< $@
+
+platforms.html: $(srcdir)/gm2/examples/texi2tr/html/platforms.html
+	cp $< $@
+
+release.html: $(srcdir)/gm2/examples/texi2tr/html/release.html
+	cp $< $@
+
+users.html: $(srcdir)/gm2/examples/texi2tr/html/users.html
+	cp $< $@
+
+news.html: $(srcdir)/gm2/examples/texi2tr/html/news.html
+	cp $< $@
+
+development.html: $(srcdir)/gm2/examples/texi2tr/html/development.html
+	cp $< $@
+
+community.html: $(srcdir)/gm2/examples/texi2tr/html/community.html
+	cp $< $@
+
+index.html: $(srcdir)/gm2/examples/texi2tr/html/index.html
+	cp $< $@
+
+texi2tr.css: $(srcdir)/gm2/examples/texi2tr/html/texi2tr.css
+	cp $< $@
+
+gm2.html: $(TEXISRC)
+	$(TEXI2HTML) -T:$(srcdir)/gm2/examples/texi2tr/html -I$(objdir)/gm2:.:$(srcdir)/gm2 -b gm2-%d.html -r gm2.html  gm2.texi
+
 
 install: all force
-	@if [ "$(srcdir)/$(WWWDIR)" = "" ] ; then \
+	@if [ "$(WWWDIR)" = "" ] ; then \
             echo "you must set WWWDIR" ; \
             exit 1 ; \
         fi
-	@if [ ! -d $(srcdir)/$(WWWDIR) ] ; then \
+	@if [ ! -d $(WWWDIR) ] ; then \
             echo "you must set WWWDIR to point to a directory" ; \
             exit 1 ; \
         fi
-	cp ../../*.html *.html *.png $(WWWDIR)
-	cp $(srcdir)/*.css $(WWWDIR)
+	cp *.css *.html *.png $(WWWDIR)
 
 clean: force
 	$(RM) *.eps *.ps *.html *.png *~

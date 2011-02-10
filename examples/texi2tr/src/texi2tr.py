@@ -38,6 +38,7 @@ endFunctions = {}
 values = {}
 statementStack = {}
 includePath = './'
+templatePath = '.'
 title = ""
 inTitlePage = False
 tableSpecifier = []
@@ -45,14 +46,15 @@ enumerateSpecifier = []
 menuText = ""
 frags = []
 outputFile = sys.stdout.write
-
+rootName = ""
+baseName = "texi2tr-%d.html"
+html = None
 
 # output state
 ignore, passthrough, arguments, menu = range(4)
 
-html = outputdev.htmlDevice('gm2.html')
-html.setBasename('gm2-%d.html')
 currentMenu = navigation.menuInfo(True)
+
 
 
 #
@@ -88,7 +90,7 @@ def verbosef (format, *args):
 #
 
 def Usage ():
-    print "texi2tr [-h] [-v] filename.texi"
+    print "texi2tr [-h] [-v] [-Iincludepath] [-Ttemplatepath] [-r rootname.html] [-b basename-%d.html] filename.texi"
     print "  produces html from the texinfo filename.texi"
     print "  -h help"
     print "  -v verbose"
@@ -101,9 +103,9 @@ def Usage ():
 #
 
 def collectArgs():
-    global verbose, debugging, includePath
+    global verbose, debugging, includePath, templatePath, rootName, baseName
     try:
-        optlist, list = getopt.getopt(sys.argv[1:],':dhI:v')
+        optlist, list = getopt.getopt(sys.argv[1:],':b:dhI:r:T:v')
     except getopt.GetoptError:
         Usage()
     for opt in optlist:
@@ -115,6 +117,12 @@ def collectArgs():
             verbose = True
         if opt[0] == '-I':
             includePath = opt[1]
+        if opt[0] == '-T':
+            templatePath = opt[1]
+        if opt[0] == '-r':
+            rootName = opt[1]
+        if opt[0] == '-b':
+            baseName = opt[1]
     return list
 
 
@@ -129,6 +137,7 @@ def readFile (filename):
         for i in includePath.split(':'):
             f = os.path.join(i, filename)
             if os.path.exists(f) and os.path.isfile(f):
+                debugf('opening file: %s\n', f)
                 return open(f, 'r').read()
         printf("cannot find file: %s\n", filename)
         sys.exit(0)
@@ -953,9 +962,14 @@ def mergeMenu ():
 #
 
 def main():
-    global filename
+    global filename, baseName, rootName, templatePath, html
+
     list = collectArgs()
     filename = list[0]
+    html = outputdev.htmlDevice(rootName)
+    html.setBasename(baseName)
+    html.setTemplatePath(templatePath)
+
     populateFunctions()
     contents = readFile(filename)
     contents, state = parseFile(contents, passthrough)

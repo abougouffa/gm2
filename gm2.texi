@@ -73,7 +73,7 @@ Software Foundation raise funds for GNU development.''
 * Internals::        GNU Modula-2 internals.
 * EBNF::             EBNF of GNU Modula-2
 * Libraries::        PIM and ISO library definitions.
-* Function Index::   Index for all library functions.
+* Indices::          Document and function indices.
 @end menu
 
 @node Using, Obtaining, Top, Top
@@ -1855,8 +1855,8 @@ force the automatic mechanism to generate correct interface files by
 reading or writing to the @code{VAR} parameter in the first basic
 block of a procedure.
 
-@section How to produce a Python module
 @node Producing a Python module, Interface to C, Interface for Python, Using
+@section How to produce a Python module
 
 This section descibes how it is possible to produce a Python module
 from your Modula-2 code.  There are a number of advantages to this
@@ -2053,8 +2053,8 @@ $ gm2 -fonlylink -fiso -fPIC -fshared -shared \
 The library name must start with a @code{_} to comply with the Python
 naming scheme.
 
-@section Interfacing GNU Modula-2 to C
 @node Interface to C, Assembly language, Producing a Python module, Using
+@section Interfacing GNU Modula-2 to C
 
 The GNU Modula-2 compiler tries to use the C calling convention
 wherever possible however some parameters have no C equivalent and
@@ -2823,11 +2823,11 @@ section's full configure line:
 @node Licence, GNU Project, Obtaining, Top
 @section Licence of GNU Modula-2
 
-@c @include gpl-3.0.texi
+@include gpl-3.0.texi
 
 @node GNU Project, Contributing, Licence, Top
 
-@c @include gnu.texi
+@include gnu.texi
 
 @node Contributing, Internals, GNU Project, Top
 @section Contributing to GNU Modula-2
@@ -2841,12 +2841,10 @@ Please do. But also please read the GNU Emacs info under
 * Contributions::               Accepting Contributions
 @end example
 
-You might consider joining the GM2 Mailing list available via
-a web brouser at
-
-@uref{http://lists.nongnu.org/mailman/listinfo/gm2}
-available via email: @uref{mail:gm2-subscribe@@nongnu.org} before you
-start coding.
+You might consider joining the GM2 Mailing list before you start
+coding.  The mailing list may be subscribed via a web interface
+@uref{http://lists.nongnu.org/mailman/listinfo/gm2} or via email
+@email{gm2-subscribe@@nongnu.org}.
 
 Many thanks and enjoy your coding!
 
@@ -2869,7 +2867,7 @@ phase.
 
 @include gm2-ebnf.texi
 
-@node Libraries, Function Index, EBNF, Top
+@node Libraries, Indices, EBNF, Top
 @chapter PIM and ISO library definitions
 
 This chapter contains M2F, ULM, PIM and ISO libraries. The ISO
@@ -2883,7 +2881,7 @@ Modula-2 compiler.
 
 @include gm2-libs.texi
 
-@node Function Index, , Libraries, Top
+@node Indices, , Libraries, Top
 
 @c @printindex cp
 @printindex fn

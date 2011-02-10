@@ -203,14 +203,9 @@ Documentation
 .LP
 GNU Modula-2 documentation exists, and it contains a fully indexed
 list of all library procedures, a release map, and full building and
-downloading instructions.  A
-.URL http://floppsie.comp.glam.ac.uk/download/m2/gm2.pdf (pdf)
-version can be found
-.URL http://floppsie.comp.glam.ac.uk/download/m2/gm2.pdf here.
-and the equivalent
-.URL gm2.html (html)
-version can be found
-.URL gm2.html here .
+downloading instructions
+.URL http://floppsie.comp.glam.ac.uk/download/m2/gm2.pdf pdf ,
+.URL gm2.html html .
 .
 .SH
 Regression tests for gm2-\*[CURRENTGM2] in the CVS

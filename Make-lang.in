@@ -219,7 +219,7 @@ gm2.dvi: $(TEXISRC)
 	$(TEXI2DVI) -I $(objdir)/gm2 $(srcdir)/gm2/gm2.texi
 
 gm2.html: $(TEXISRC)
-	$(TEXI2HTML) -I$(objdir)/gm2:.:$(srcdir)/gm2 $(srcdir)/gm2/gm2.texi > gm2.html
+	$(TEXI2HTML) -T:$(srcdir)/gm2/examples/texi2tr/html -I$(objdir)/gm2:.:$(srcdir)/gm2 -b gm2-%d.html -r gm2.html  $(srcdir)/gm2/gm2.texi
 
 gm2.ps: gm2.dvi
 	dvips -o gm2.ps gm2.dvi
