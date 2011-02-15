@@ -38,10 +38,10 @@ OUTPUTS=about.html download.html homepage.html license.html platforms.html \
         news.html development.html community.html index.html \
         gm2-logo.png gm2.html
 
-PNGS=debian.png develop.png install.png library.png menu-left-tab.png \
+PNGS=debian-swirl48x48.png develop.png install.png library.png menu-left-tab.png \
      menu-right-tab.png menu-selected-left-tab.png menu-selected-right-tab.png \
      next.png note.png prev.png release.png snapshot.png terminal.png users.png \
-     debian-swirl48x48.png 200px-Heckert_GNU_white.png
+     200px-Heckert_GNU_white.png
 
 all: $(OUTPUTS)
 	for i in $(PNGS) ; do \
@@ -100,8 +100,7 @@ texi2tr.css: $(srcdir)/gm2/examples/texi2tr/html/texi2tr.css
 	cp $< $@
 
 gm2.html: $(TEXISRC)
-	$(TEXI2HTML) -T:$(srcdir)/gm2/examples/texi2tr/html -I$(objdir)/gm2:.:$(srcdir)/gm2 -b gm2-%d.html -r gm2.html  gm2.texi
-
+	$(TEXI2HTML) -T$(srcdir)/gm2/examples/texi2tr/html -I$(objdir)/gm2:$(srcdir)/gm2 -b gm2-%d.html -r gm2.html gm2.texi
 
 install: all force
 	@if [ "$(WWWDIR)" = "" ] ; then \
@@ -112,7 +111,7 @@ install: all force
             echo "you must set WWWDIR to point to a directory" ; \
             exit 1 ; \
         fi
-	cp *.css *.html *.png $(WWWDIR)
+	cp *.html *.png *.css $(WWWDIR)
 
 clean: force
 	$(RM) *.eps *.ps *.html *.png *~

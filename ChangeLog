@@ -1,3 +1,8 @@
+2011-02-15       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2.texi:  incorporated the contents of the
+	  web page gm2/www/index.ms into gm2.texi.
+
 2011-02-10       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  modified gm2.html rule.
