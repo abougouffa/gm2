@@ -1,3 +1,9 @@
+2011-02-17       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2.texi:  many bug fixes to nodes.
+	* gm2/www/tools/texi2tr:  added html, png subdirs.
+	* gm2/www/tools/texi2tr/src:  many bug fixes applied.
+
 2011-02-15       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  incorporated the contents of the

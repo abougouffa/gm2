@@ -19,7 +19,7 @@
 # Boston, MA 02110-1301, USA.
 
 objdir = @objdir@
-srcdir = @srcdir@/../..
+srcdir = @srcdir@
 
 WWWDIR=../../../../../www/gm2
 
@@ -31,9 +31,9 @@ TEXISRC = $(srcdir)/gm2/gm2.texi \
           $(objdir)/gm2/Builtins.texi \
           $(objdir)/gm2/version.texi
 
-TEXI2HTML=python $(srcdir)/gm2/examples/texi2tr/src/texi2tr.py
+TEXI2HTML=python $(srcdir)/gm2/www/tools/texi2tr/src/texi2tr.py
 
-OUTPUTS=about.html download.html homepage.html license.html platforms.html \
+OUTPUTS=download.html homepage.html license.html platforms.html \
         release.html users.html texi2tr.css \
         news.html development.html community.html index.html \
         gm2-logo.png gm2.html
@@ -45,7 +45,7 @@ PNGS=debian-swirl48x48.png develop.png install.png library.png menu-left-tab.png
 
 all: $(OUTPUTS)
 	for i in $(PNGS) ; do \
-           cp ${srcdir}/gm2/examples/texi2tr/png/$${i} . ; \
+           cp ${srcdir}/gm2/www/tools/texi2tr/png/$${i} . ; \
         done
 
 %.pdf: %.ps
@@ -63,44 +63,32 @@ gm2-logo.eps: $(srcdir)/gm2/www/gm2-logo.ms
 	cat gm2-logo.ps | sed -e '/%%Orientation/rgm2-logo.bbox' > gm2-logo.eps
 	rm gm2-logo.bbox
 
-about.html: $(srcdir)/gm2/examples/texi2tr/html/about.html
+download.html: $(srcdir)/gm2/www/tools/texi2tr/html/download.html
 	cp $< $@
 
-download.html: $(srcdir)/gm2/examples/texi2tr/html/download.html
+homepage.html: $(srcdir)/gm2/www/tools/texi2tr/html/homepage.html
 	cp $< $@
 
-homepage.html: $(srcdir)/gm2/examples/texi2tr/html/homepage.html
+license.html: $(srcdir)/gm2/www/tools/texi2tr/html/license.html
 	cp $< $@
 
-license.html: $(srcdir)/gm2/examples/texi2tr/html/license.html
+platforms.html: $(srcdir)/gm2/www/tools/texi2tr/html/platforms.html
 	cp $< $@
 
-platforms.html: $(srcdir)/gm2/examples/texi2tr/html/platforms.html
+release.html: $(srcdir)/gm2/www/tools/texi2tr/html/release.html
 	cp $< $@
 
-release.html: $(srcdir)/gm2/examples/texi2tr/html/release.html
+users.html: $(srcdir)/gm2/www/tools/texi2tr/html/users.html
 	cp $< $@
 
-users.html: $(srcdir)/gm2/examples/texi2tr/html/users.html
+index.html: $(srcdir)/gm2/www/tools/texi2tr/html/index.html
 	cp $< $@
 
-news.html: $(srcdir)/gm2/examples/texi2tr/html/news.html
-	cp $< $@
-
-development.html: $(srcdir)/gm2/examples/texi2tr/html/development.html
-	cp $< $@
-
-community.html: $(srcdir)/gm2/examples/texi2tr/html/community.html
-	cp $< $@
-
-index.html: $(srcdir)/gm2/examples/texi2tr/html/index.html
-	cp $< $@
-
-texi2tr.css: $(srcdir)/gm2/examples/texi2tr/html/texi2tr.css
+texi2tr.css: $(srcdir)/gm2/www/tools/texi2tr/html/texi2tr.css
 	cp $< $@
 
 gm2.html: $(TEXISRC)
-	$(TEXI2HTML) -T$(srcdir)/gm2/examples/texi2tr/html -I$(objdir)/gm2:$(srcdir)/gm2 -b gm2-%d.html -r gm2.html gm2.texi
+	$(TEXI2HTML) -T$(srcdir)/gm2/www/tools/texi2tr/html -n -I$(objdir)/gm2:$(srcdir)/gm2 -b gm2-%d.html -r gm2.html gm2.texi
 
 install: all force
 	@if [ "$(WWWDIR)" = "" ] ; then \

@@ -77,8 +77,22 @@ Software Foundation raise funds for GNU development.''
 * Indices::          Document and function indices.
 @end menu
 
+@ifinfo
+@menu
+* Debian::           Get Debian GNU Modula-2 packages.
+* Tarball::          How to get a source tarball.
+* Building::         How to build GNU Modula-2 from source.
+* Development::      How to access the CVS repository.
+* Dejagnu::          Stress testing GM2.
+* Cygwin::           How to build GNU Modula-2 under Cygwin.
+* Moving::           How to move an install to another directory.
+* OSX::              How to build GNU Modula-2 under OSX.
+* FreeBSD::          How to build GNU Modula-2 under FreeBSD.
+@end menu
+@end ifinfo
+
 @node About, Using, Top, Top
-@chapter What is GNU Modula-2
+@chapter Overview of GNU Modula-2
 
 @menu
 * What is GNU Modula-2::  Brief description of GNU Modula-2.
@@ -91,30 +105,32 @@ Software Foundation raise funds for GNU development.''
 @node What is GNU Modula-2, Why use GNU Modula-2, , Using
 @section What is GNU Modula-2
 
-GNU Modula-2 is a front end @uref{http://gcc.gnu.org/frontends.html}
-for GCC. GCC is a retargetable C compiler which has been ported to a large
-number of architectures and operating systems. GNU Modula-2 utilizes the
-back end of GCC and replaces the C language front end with a Modula-2
-front end. Consequently GNU Modula-2 has been built on i[3456]86 GNU/Linux,
-i[3456]86 BSD, Opteron LP64 GNU/Linux and sparc GNU/Linux systems.
-It has also been built as a cross compiler for MinGW, StrongARM GNU/Linux
-and ATMega8 microprocessor.
+GNU Modula-2 is a @uref{http://gcc.gnu.org/frontends.html, front end}
+for the GNU Compiler Collection (@uref{http://gcc.gnu.org/, GCC}).
+The GNU Modula-2 compiler is compliant with the PIM2, PIM3, PIM4 and
+ISO dialects.  Also implemented are a complete set of free ISO
+libraries and PIM libraries.
 
-The GNU Modula-2 compiler is compliant with four dialects of Modula-2.
-The language as defined in 'Programming in Modula-2' 2nd Edition,
-Springer Verlag, 1982, 1983 by Niklaus Wirth (PIM2), 'Programming in
-Modula-2', 3rd Corrected Edition, Springer Verlag, 1985 (PIM3) and
-'Programming in Modula-2', 4th Edition, Springer Verlag, 1988 (PIM4)
-@uref{http://freepages.modula2.org/report4/modula-2.html} and the ISO
-Modula-2 language as defined in ISO/IEC Information technology -
-programming languages - part 1: Modula-2 Language, ISO/IEC 10514-1
-(1996) (ISO).
-
-There are currently three sets of libraries. The 'Programming in
-Modula-2' libraries, the 'University of ULM libraries' and the ISO
-libraries. The ISO libraries are still being written, however all
-definition modules for the three library sets are contained within
-this document.
+@footnote{The four dialects commonly referred to are:
+@table @strong
+@item
+PIM2 'Programming in Modula-2'
+2nd Edition, Springer Verlag, 1982, 1983 by Niklaus Wirth (PIM2).
+@item
+PIM3
+'Programming in Modula-2', 3rd Corrected Edition, Springer Verlag,
+1985 (PIM3)
+@item
+PIM4
+'Programming in Modula-2', 4th Edition, Springer Verlag, 1988
+(@uref{http://freepages.modula2.org/report4/modula-2.html, PIM4})
+@item
+ISO
+the ISO Modula-2 language as defined in 'ISO/IEC Information technology
+- programming languages - part 1: Modula-2 Language, ISO/IEC 10514-1
+(1996)'
+@end table
+}
 
 @node Why use GNU Modula-2, Release map, What is GNU Modula-2, Using
 @section Why use GNU Modula-2
@@ -168,7 +184,7 @@ range, functions execute a @code{RETURN} statement, a pointer does not
 dereference a @code{NIL} pointer value and that the expression within
 a @code{CASE} statement is correctly matched.
 
-@node Release map, , Using, Using
+@node Release map, News, Why use GNU Modula-2, Using
 @section Release map
 
 This section attempts to give an idea of which releases points are
@@ -224,10 +240,10 @@ will be provided as far as it is possible.  Releases will also occur
 if a key component of ISO Modula-2 is implemented (for example
 exception handling, complex types or @samp{FINALLY} is implemented).
 
-@node News, , Release map, Using
+@node News, Features, Release map, Using
 @section News
 
-@table
+@table @code
 @item
 gm2 1.0.1 was released on January 12 2011.  This is a bug fix release.
 @item
@@ -253,10 +269,10 @@ now builds under Cygwin (however at present -O3 does not work on this platform
 and also swig and Modula-2 have not been seen to work together yet).
 @end table
 
-@node GNU Modula-2 Features, Documentation, News, Using
+@node Features, Documentation, News, Using
 @section GNU Modula-2 Features
 
-@table
+@table @code
 
 @item
 the compiler currently complies with Programming in Modula-2 Edition
@@ -321,7 +337,7 @@ such as the AVR and the ARM).
 
 @end table
 
-@node Documentation, Regression tests, GNU Modula-2 Features, Using
+@node Documentation, Regression tests, Features, Using
 @section Documentation
 
 The GNU Modula-2 documentation is available on line or as a
@@ -346,7 +362,7 @@ the mailing list.
 @node Limitations, Creating packages, Regression tests, Using
 @section Limitations
 
-@table
+@table @code
 
 @item
 Logitech compatibility library is incomplete.  The principle modules
@@ -363,7 +379,7 @@ This section documents an easy method of producing Debian packages for GNU Modul
 There are probably other ways to build Debian packages but this method works well enough to
 produce the binary and source packages described in earlier sections.
 
-@table
+@table @code
 @item
 firstly you need to create a pbuilder environment.  I used the excellent
 @url{http://people.connexer.com/~roberto/howtos/debcustomize} tutorial.
@@ -392,7 +408,7 @@ $ myrevdeb
 @end example
 
 the script @samp{myrevdeb} is available from
-@uirl{http://floppsie.comp.glam.ac.uk/download/scripts/myrevdeb}.
+@url{http://floppsie.comp.glam.ac.uk/download/scripts/myrevdeb}.
 
 @item
 if you just want to rebuild the rebuild the package with no
@@ -425,14 +441,14 @@ which are available as a trivial script
 Once this completes you should have a binary package and a
 corresponding documentation package available in the directory
 @file{/usr/local/src/results}.
-@end example
+@end table
 
 @node Objectives, FAQ, Creating packages, Using
 @section Objectives
 
 Here follows the objectives of GNU Modula-2:
 
-@table
+@table @code
 
 @item
 The intention of GNU Modula-2 is to provide a production modula-2
@@ -460,10 +476,10 @@ Exploit the features of GCC.
 Listen to the requests of the users.
 @end table
 
-@node FAQ, , Objectives, Using
+@node FAQ, Community, Objectives, Using
 @section FAQ
 
-@subsection{Why do you need to specify @code{--enable-languages=c,c++,gm2}?}
+@subsection Why do you need to specify @code{--enable-languages=c,c++,gm2}?
 
 GNU Modula-2 uses the C++ compiler to compile the underlying main
 function which consists of a try catch clause.  The try clause
@@ -471,17 +487,15 @@ calls each module in order and the catch clause calls the default
 exception handler.  It needs the C compiler during the initial
 bootstrap.
 
-@subsection{Why use the C++ exception mechanism in GCC, rather than a
-bespoke Modula-2 mechanism?}
+@subsection Why use the C++ exception mechanism in GCC, rather than a bespoke Modula-2 mechanism?
 
 The C++ mechanism is tried and tested, it also provides GNU Modula-2
 with the ability to link with C++ modules and via swig it can raise
 Python exceptions.
 
-@subsection{Why not copy the C++ exception handing code into the
-Modula-2 runtime thus saving the necessity to build the C++ compiler?}
+@subsection Why not copy the C++ exception handing code into the Modula-2 runtime thus saving the necessity to build the C++ compiler?
 
-@table
+@table @code
 
 @item
 The C++ compiler is needed to compile the underlying \f[C]main()\f[P]
@@ -503,7 +517,7 @@ in C++ and therefore in future releases it will be necessary to build
 @samp{-lstdc++} anyway.
 @end table
 
-@node Community, Other Languages, FAQ, Using
+@node Community, Other languages, FAQ, Using
 @section Community
 
 You can subscribe to the GNU Modula-2 mailing by sending an
@@ -514,24 +528,26 @@ or by
 The mailing list contents can be viewed
 @url{http://lists.gnu.org/archive/html/gm2}.
 
-@node Other Languages, Papers and talks, FAQ, Using
+@node Other languages, Papers and talks, Community, Using
 @section Other languages for GCC
 
-These exist and can be found on the frontends web page on the gcc web site
-@url{http://gcc.gnu.org/frontends.html}.
+These exist and can be found on the frontends web page on the
+@uref{http://gcc.gnu.org/frontends.html, gcc web site}.
 
-@node Papers and talks, , Other Languages, Using
+@node Papers and talks, , Other languages, Using
 @section Papers and talks
 
-A paper was presented at the GCC 2006 conference on the state of GNU Modula-2,
-if you are interested a copy can be found at
-@url{http://floppsie.comp.glam.ac.uk/Papers/paper15/mulley-proc.pdf}.
+A paper was presented at the @uref{http://www.gccsummit.org/2006,
+GCC 2006 conference} on
+@uref{http://floppsie.comp.glam.ac.uk/Papers/paper15/mulley-proc.pdf,
+the state of GNU Modula-2}.
 
-A @url{http://www.gccsummit.org/2010/speakers.php?types=LIGHTNING} has
-been given at the GCC 2010 conference titled "Exploiting front end
-knowledge to effortlessly create Python modules" and the slides are
-available
-@url{http://floppsie.comp.glam.ac.uk/Papers/paper20/talk.pdf}.
+A @uref{http://www.gccsummit.org/2010/speakers.php?types=LIGHTNING,
+lightening talk} has been given at the GCC 2010 conference titled
+"Exploiting front end knowledge to effortlessly create Python modules"
+and the slides are
+@uref{http://floppsie.comp.glam.ac.uk/Papers/paper20/talk.pdf,
+available}.
 
 @node Using, Obtaining, About, Top
 @chapter Using GNU Modula-2
@@ -556,7 +572,26 @@ available
 * Built-ins::             Accessing GNU Modula-2 Built-ins.
 * The PIM system module:: SYSTEM data types and procedures.
 * The ISO system module:: SYSTEM data types, procedures and run time.
+* Papers and talks::      Papers and talks.
+* Other languages::       Other languages for GCC.
 @end menu
+
+@ifinfo
+@menu
+* Objectives:: Objectives.
+* Community:: Community.
+* FAQ:: FAQ.
+* Creating packages:: Creating a deb package for GNU Modula-2.
+* Limitations:: Limitations.
+* Regression tests:: Regression tests for gm2 in the CVS.
+* Documentation:: Documentation.
+* Features:: GNU Modula-2 Features.
+* News:: News.
+* Release map:: Release map.
+* What is GNU Modula-2::  Brief description of GNU Modula-2.
+* Why use GNU Modula-2::  Advantages of GNU Modula-2.
+@end menu
+@end ifinfo
 
 This document contains the user and design issues relevant to the
 Modula-2 front end to gcc.  Throughout this document the GNU Modula-2
@@ -564,7 +599,7 @@ front end is often referred to as @samp{gm2-@value{version-GM2}} or
 @samp{gm2} for short.  This corresponds to GCC version
 @value{version-GCC} and GNU Modula-2 version @value{version-GM2}.
 
-@node Example usage, Environment variables, Compiler options, Using
+@node Example usage, Compiler options, Using, Using
 @section Example compile and link
 
 This section describes how to compile and link a simple hello world
@@ -608,7 +643,7 @@ add the @samp{-v} flag at the command line, for example:
 This displays the subprocesses initiated by @samp{gm2} which can be useful
 when trouble shooting.}
 
-@node Compiler options, Example usage, Release map, Using
+@node Compiler options, Environment variables, Example usage, Using
 @section Compiler options
 
 This section describes the compiler options specific to GNU Modula-2
@@ -933,7 +968,7 @@ exclusively for changes in type on objects which have the same size.
 
 @end table
 
-@node Environment variables, Elementary data types, Example usage, Using
+@node Environment variables, Elementary data types, Compiler options, Using
 @section GNU Modula-2 related environment variables
 
 This section descibes the environment variables used by GNU Modula-2 and
@@ -1973,7 +2008,6 @@ code to test whether the address range of their respective contents
 intersect.
 
 @node Building a shared library, Interface for Python, Unbounded by reference, Using
-
 @section Building a shared library
 
 This section describes building a tiny shared library implemented
@@ -2703,7 +2737,7 @@ Contributing to GNU Modula-2}.
 * Debian::            Get Debian GNU Modula-2 packages.
 * Tarball::           How to get a source tarball.
 * Building::          How to build GNU Modula-2 from source.
-* CVS::               How to access the CVS repository.
+* Development::       How to access the CVS repository.
 * Dejagnu::           Stress testing GM2.
 * Cygwin::            How to build GNU Modula-2 under Cygwin.
 * Moving::            How to move an install to another directory.
@@ -2759,7 +2793,7 @@ $ wget http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-cv
 $ tar zxf gcc-@value{version-GCC}+gm2-cvs-latest.tar.gz
 @end example
 
-@node Building, CVS, Tarball, Top
+@node Building, Development, Tarball, Top
 @section Building GNU Modula-2 from source under GNU/Linux
 
 On a GNU/Linux system you should also be able to build it using these
@@ -2793,14 +2827,13 @@ $ make post-install
 which will create an @file{a.out} for the infamous hello world
 example.
 
-@node CVS, Dejagnu, Building, Top
+@node Development, Dejagnu, Building, Top
 @section Development sources via CVS
 
 Development sources can be downloaded via CVS but they must be grafted
 carefully onto an existing GCC release.  The notes in this section
 document how this is achieved, however a prepared CVS and GCC release
-is available here
-@uref{http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-cvs-latest.tar.gz}
+@uref{http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-cvs-latest.tar.gz, is available}
 and it is created upon each commit.
 
 If you want to obtain the latest sources via CVS then type the
@@ -2813,9 +2846,9 @@ $ cvs -z3 -d:pserver:anoncvs@@cvs.sv.gnu.org:/sources/gm2 co gm2
 This will checkout a copy of GNU Modula-2 into one subdirectory,
 @file{gm2}.  This version of GNU Modula-2 needs to be placed inside
 the GCC source tree in the position gcc-@value{version-GCC}/gcc before
-GNU Modula-2 can be built. Please check the GNU Modula-2 homepage
-@uref{http://www.nongnu.org/gm2} for details about which GCC releases
-are supported by GNU Modula-2.
+GNU Modula-2 can be built. Please check the
+@uref{http://www.nongnu.org/gm2, GNU Modula-2 homepage} for details
+about which GCC releases are supported by GNU Modula-2.
 
 Once you have downloaded the correct GCC release from
 @uref{http://gcc.gnu.org} or a mirror site you should unpack the GCC
@@ -2847,7 +2880,7 @@ Note that if you download a tarball from
 @url{http://floppsie.comp.glam.ac.uk} then any patching will have
 already been applied.  @xref{Obtaining, , ,}.
 
-@node Dejagnu, Cygwin, CVS, Top
+@node Dejagnu, Cygwin, Development, Top
 @section Stress testing GM2
 
 Currently there are two automated methods to test GNU Modula-2.
