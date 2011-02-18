@@ -93,7 +93,7 @@ class htmlDevice:
                 if config.debugFragments:
                     return ('<<' + self.currentFilename + ">> #SEC%d") % self.anchorCount
                 else:
-                    return "#SEC%d" % self.anchorCount
+                    return "%s#SEC%d" % (self.currentFilename, self.anchorCount)
         else:
             return "#SEC%d" % self.anchorCount
     #

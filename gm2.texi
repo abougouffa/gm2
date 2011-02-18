@@ -60,12 +60,12 @@ Software Foundation raise funds for GNU development.''
 @c Part 4: `Top' Node and Master Menu
 
 @ifinfo
-@node Top, About, (dir), (dir)
+@node Top, Overview, (dir), (dir)
 @top Introduction
 @end ifinfo
 
 @menu
-* About::            What is GNU Modula-2.
+* Overview::         What is GNU Modula-2.
 * Using::            Using GNU Modula-2.
 * Obtaining::        Obtaining GNU Modula-2.
 * Licence::          Licence of GNU Modula-2.
@@ -91,7 +91,7 @@ Software Foundation raise funds for GNU development.''
 @end menu
 @end ifinfo
 
-@node About, Using, Top, Top
+@node Overview, Using, Top, Top
 @chapter Overview of GNU Modula-2
 
 @menu
@@ -121,14 +121,12 @@ PIM3
 'Programming in Modula-2', 3rd Corrected Edition, Springer Verlag,
 1985 (PIM3)
 @item
-PIM4
-'Programming in Modula-2', 4th Edition, Springer Verlag, 1988
+PIM4 'Programming in Modula-2', 4th Edition, Springer Verlag, 1988
 (@uref{http://freepages.modula2.org/report4/modula-2.html, PIM4})
 @item
-ISO
-the ISO Modula-2 language as defined in 'ISO/IEC Information technology
-- programming languages - part 1: Modula-2 Language, ISO/IEC 10514-1
-(1996)'
+ISO the ISO Modula-2 language as defined in 'ISO/IEC Information
+technology - programming languages - part 1: Modula-2 Language,
+ISO/IEC 10514-1 (1996)'
 @end table
 }
 
@@ -549,7 +547,7 @@ and the slides are
 @uref{http://floppsie.comp.glam.ac.uk/Papers/paper20/talk.pdf,
 available}.
 
-@node Using, Obtaining, About, Top
+@node Using, Obtaining, Overview, Top
 @chapter Using GNU Modula-2
 
 @menu
@@ -2836,7 +2834,9 @@ document how this is achieved, however a prepared CVS and GCC release
 @uref{http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-cvs-latest.tar.gz, is available}
 and it is created upon each commit.
 
-If you want to obtain the latest sources via CVS then type the
+The source code in the CVS can be
+@uref{http://cvs.savannah.nongnu.org/viewcvs/?root=gm2, browsed}.
+However if you want to obtain the latest sources via CVS then type the
 following:
 
 @example

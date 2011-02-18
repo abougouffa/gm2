@@ -1,3 +1,8 @@
+2011-02-18       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2.texi:  changed node About to Overview.
+	* gm2/www/tools/texi2tr/src:  added function index.
+
 2011-02-17       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  many bug fixes to nodes.

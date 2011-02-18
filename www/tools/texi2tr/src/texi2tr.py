@@ -49,6 +49,7 @@ frags = []
 outputFile = sys.stdout.write
 rootName = ""
 baseName = "texi2tr-%d.html"
+indexFunc = {}
 html = None
 
 # output state
@@ -531,7 +532,7 @@ def doIfinfo (content, state):
         return doConsume(content, state, 'ifinfo')
     else:
         pushState('ifinfo', state)
-        return content, state
+        return '', ignore
 
 def doPass (content, state):
     return content, state
@@ -899,13 +900,76 @@ def doHeading (content, state):
     html.paraBegin()
     return "", state
 
+def doFindex (content, state):
+    global indexFunc, html
+
+    if state == ignore:
+        return skipLine (content, state)
+    if indexFunc.has_key(content):
+        indexFunc[content] += [html.getLink()]
+    else:
+        indexFunc[content] = [html.getLink()]
+    s = '<a name="' + html.getAnchor() + '"></a>\n'
+    html.raw(s)
+    html.nextAnchor()
+    return "", state
+
+def sort_compare (a, b):
+    return a < b
+
+#
+#
+#
+
+def doPrintIndex (content, state):
+    global indexFunc, html, frags
+
+    if state == ignore:
+        return skipLine (content, state)
+    if not (content in ['cp', 'fn']):
+        error('printindex knows about cp and fn but not ' + content)
+    frags += [['text', html.collectFragment(content)]]
+    frags += [[content, html.collectFragment(content)]]
+    return "", state
+
+#
+#  doBye - adds the remaining fragment to the list of frags.
+#
+
+def doBye (content, state):
+    global frags
+    frags += [['text', html.collectFragment('bye')]]
+    return "", state
+
+
+def generateFunctionIndex (html):
+    global indexFunc
+
+    html.openDiv().flushDiv()
+    html.paraBegin()
+    for k,v in sorted([(key, value) for (key,value) in indexFunc.items()]):
+        html.write(k)
+        html.write(': ')
+        for n in range(len(v)):
+            if n>0:
+                html.write(', ')
+            html.raw('<a href="')
+            html.raw(v[n])
+            html.raw('">')
+            html.write('[%d]' % (n+1))
+            html.raw('</a>')
+        html.raw('.<br>')
+    html.paraEnd()
+    html.closeDiv()
+
+
 #
 #  populateFunctions - create the dictionary of commands.
 #
 
 def populateFunctions ():
     global functions
-    functions['bye'] = doPass
+    functions['bye'] = doBye
     functions['c'] = doComment
     functions['center'] = doPass
     functions['chapter'] = doChapter
@@ -921,7 +985,7 @@ def populateFunctions ():
     functions['example'] = doExample
     endFunctions['example'] = doExampleEnd
     functions['file'] = doSamp
-    functions['findex'] = doComment
+    functions['findex'] = doFindex
     functions['footnote'] = doFootnote
     functions['heading'] = doHeading
     functions['i'] = doI
@@ -933,7 +997,7 @@ def populateFunctions ():
     endFunctions['menu'] = doMenuEnd
     functions['node'] = doNode
     functions['page'] = doPass
-    functions['printindex'] = doPass
+    functions['printindex'] = doPrintIndex
     functions['summarycontents'] = doPass
     functions['contents'] = doPass
     functions['quotation'] = doQuotation
@@ -1007,6 +1071,8 @@ def mergeMenu ():
             html.openDiv().flushDiv()
             html.raw(f[1][1])
             html.closeDiv()
+        elif f[0] == 'fn':
+            generateFunctionIndex(html)
     html.flushDiv()
     html.closeFragment()
 
