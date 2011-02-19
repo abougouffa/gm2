@@ -549,15 +549,23 @@ add_includes (int incl,
 	      libs third,
 	      libs fourth)
 {
-  const char *prev = (char *)(*in_argv)[incl];
+  const char *prev;
+
   do_set (incl, in_argv, envpath);
 
+  prev = (char *)(*in_argv)[incl];
   if (first != maxlib)
     do_set (incl, in_argv, build_include_path (prev, libpath, first));
+
+  prev = (char *)(*in_argv)[incl];
   if (second != maxlib)
     do_set (incl, in_argv, build_include_path (prev, libpath, second));
+
+  prev = (char *)(*in_argv)[incl];
   if (third != maxlib)
     do_set (incl, in_argv, build_include_path (prev, libpath, third));
+
+  prev = (char *)(*in_argv)[incl];
   if (fourth != maxlib)
     do_set (incl, in_argv, build_include_path (prev, libpath, fourth));
 }

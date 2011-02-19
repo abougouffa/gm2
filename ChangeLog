@@ -1,3 +1,8 @@
+2011-02-19       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2spec.c:  ensure that the prev
+	  value is reset before each include path is added.
+
 2011-02-18       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  changed node About to Overview.
