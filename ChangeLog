@@ -2,6 +2,8 @@
 
 	* gm2/gm2spec.c:  ensure that the prev
 	  value is reset before each include path is added.
+	* gm2/examples/gravity/Makefile.in:  changed python version
+	  and fixed exec prefix.
 
 2011-02-18       Gaius Mulley <gaius@gnu.org>
 
