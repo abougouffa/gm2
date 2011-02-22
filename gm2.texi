@@ -373,9 +373,10 @@ modules please check the documentation
 @node Creating packages, Objectives, Limitations, Using
 @section Creating a deb package for GNU Modula-2
 
-This section documents an easy method of producing Debian packages for GNU Modula-2.
-There are probably other ways to build Debian packages but this method works well enough to
-produce the binary and source packages described in earlier sections.
+This section documents an easy method of producing Debian packages for
+GNU Modula-2.  There are probably other ways to build Debian packages
+but this method works well enough to produce the binary and source
+packages described in earlier sections.
 
 @table @code
 @item

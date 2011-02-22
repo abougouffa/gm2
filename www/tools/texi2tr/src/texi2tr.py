@@ -297,8 +297,6 @@ def collectNonProcessedArgs (command, contents):
             contents = contents[i+1:]
             return contents, ""
     elif command == 'table':
-        stop()
-
         i = contents.find(' ')
         if (len(contents)<i) or (i == -1):
             return "", ""
@@ -543,7 +541,7 @@ def doIgnore (content, state):
 def pushState (keyword, state):
     global statementStack
     if statementStack.has_key(keyword):
-        statementStack[keyword] += [state]
+        statementStack[keyword] = [state] + statementStack[keyword]
     else:
         statementStack[keyword] = [state]
 
@@ -714,7 +712,7 @@ def doEmail (content, state):
 
 def pushSpecifier (dataType, format):
     global tableSpecifier
-    tableSpecifier += [[dataType, format]]
+    tableSpecifier = [[dataType, format]] + tableSpecifier
 
 #
 #  popSpecifier - removes the top of stack
@@ -739,11 +737,21 @@ def isTableSpecifier (s):
     return s[0] == 'table'
 
 def isEnumSpecifier (s):
-    return s[0] == 'enum'
+    return s[0] == 'enumerate'
+
+def is_int(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
 
 def incrementSpecifier ():
     global tableSpecifier
-    tableSpecifier[0][1] = chr(ord(tableSpecifier[0][1])+1)
+    if is_int(tableSpecifier[0][1]):
+        tableSpecifier[0][1] = "%d" % (int(tableSpecifier[0][1])+1)
+    else:
+        tableSpecifier[0][1] = chr(ord(tableSpecifier[0][1])+1)
 
 #
 #  doTable - collect the format specifier and emit the start
@@ -787,6 +795,7 @@ def doItem (content, state):
         html.tableRightEnd()
         html.tableLeftBegin()
         if isEnumSpecifier(getSpecifier()):
+            stop()
             scanFor(getSpecifier ()[1] + ' ' + content, state)
             incrementSpecifier()
         else:

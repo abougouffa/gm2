@@ -1,3 +1,12 @@
+2011-02-22       Gaius Mulley <gaius@gnu.org>
+
+	* www/tools/texi2tr/src/outputdev.py:  added no_tag so
+	  table elements can easily be added - fixes a bug
+	  with enumerate.
+	* gm2/www/tools/texi2tr/src/texi2tr.py:  fixed pushSpecifier
+	  and fixed 'enum' with 'enumerate'.  Enumerations work
+	  for integer and alphabetical values.
+
 2011-02-19       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2spec.c:  ensure that the prev
@@ -32,7 +41,7 @@
 	* gm2/www/Makefile.in:  new building instructions
 	  for the web site now that texi2tr is useable.
 	* gm2/www/index.ms:  minor changes.
-	
+
 2011-02-09       Gaius Mulley <gaius@gnu.org>
 
 	* texi2tr is now able to translate the gm2.texi

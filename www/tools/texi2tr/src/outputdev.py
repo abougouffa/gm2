@@ -26,7 +26,7 @@ import config
 
 
 # html tag
-null_tag, title_tag, header1_tag, header2_tag, header3_tag, header4_tag, center_tag, paragraph_tag, preformatted_tag, teletype_tag, italic_tag, bold_tag = range(12)
+null_tag, title_tag, header1_tag, header2_tag, header3_tag, header4_tag, center_tag, paragraph_tag, preformatted_tag, teletype_tag, italic_tag, bold_tag, no_tag = range(13)
 
 # html state machine
 init_state, known_state, end_state, copy_state, white_state, nf_state = range(6)
@@ -224,7 +224,7 @@ class htmlDevice:
     #  emitTagName - write out tag names
     #
     def _emitTagName(self, s):
-        if self.state == init_state:
+        if (self.state == init_state) or (self.tag == no_tag):
             return
         self.raw(s)
         if self.tag == title_tag:
@@ -249,6 +249,7 @@ class htmlDevice:
             self.raw('i>')
         elif self.tag == bold_tag:
             self.raw('b>')
+
     #
     #  emitTag - write out the start tag
     #
@@ -417,6 +418,14 @@ class htmlDevice:
         self._end()
         self.state = init_state
         self.tag = null_tag
+    def noBegin(self):
+        self.push()
+        self.state = known_state
+        self.tag = no_tag
+        self._emitTag()
+    def noEnd(self):
+        self._end()
+        self.pop()
     #
     #  tableBegin -
     #
@@ -438,10 +447,12 @@ class htmlDevice:
         if self.firstItem:
             self.tableRightEnd()
         self.raw("<dt>")
+        self.noBegin()
     #
     #  tableLeftEnd -
     #
     def tableLeftEnd(self):
+        self.noEnd()
         self.firstItem = False
         self.raw("</dt>\n")
     #
