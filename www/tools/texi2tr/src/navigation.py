@@ -210,6 +210,8 @@ class menuInfo:
 def anchor (html, label):
     global anchors
 
+    if anchors.has_key(label):
+        print "node", label, "already exists"
     anchors[label] = html.getNodeLink()
     s = '<a name="' + html.getNodeAnchor() + '"></a>\n'
     html.raw(s)

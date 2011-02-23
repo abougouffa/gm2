@@ -286,6 +286,7 @@ class htmlDevice:
         self.anchorCount = 0
         self.templatePath = '.'
         self.nodename = False
+        self.sectionCount = 0
     def _to (self, s):
         self.state = s
     def _status (self):
@@ -361,24 +362,28 @@ class htmlDevice:
         self._end()
         self.state = known_state
         self.tag = header1_tag
+        self.sectionCount += 1
     def h1End(self):
         self._end()
     def h2Begin(self):
         self._end()
         self.state = known_state
         self.tag = header2_tag
+        self.sectionCount += 1
     def h2End(self):
         self._end()
     def h3Begin(self):
         self._end()
         self.state = known_state
         self.tag = header3_tag
+        self.sectionCount += 1
     def h3End(self):
         self._end()
     def h4Begin(self):
         self._end()
         self.state = known_state
         self.tag = header4_tag
+        self.sectionCount += 1
     def h4End(self):
         self._end()
     def preBegin(self):
@@ -518,3 +523,14 @@ class htmlDevice:
     #
     def emitNodeHeading (self):
         self.raw(self._safeOpen('heading.ht', 'heading template "heading.ht"'))
+    #
+    #
+    #
+    def getSectionAnchor (self):
+        return "section%d" % self.sectionCount
+    #
+    #  sectionAnchor -
+    #
+    def sectionAnchor (self, content):
+        self.raw('<a name="' + self.getSectionAnchor() + '"></a>\n')
+        return self.currentFilename + '#' + self.getSectionAnchor()

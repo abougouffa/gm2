@@ -3265,8 +3265,22 @@ Modula-2 compiler.
 @include gm2-libs.texi
 
 @node Indices, , Libraries, Top
+@section Indices
 
-@c @printindex cp
+@ifhtml
+@menu
+* Contents::    Section and subsections.
+* Functions::   Function, constants, types, ebnf indices.
+@end menu
+
+@node Contents, Functions, ,
+@section Section and subsections
+@printindex cp
+
+@node Functions, , Contents, 
+@section Function, constants, types, ebnf indices.
+@end ifhtml
+
 @printindex fn
 
 @summarycontents

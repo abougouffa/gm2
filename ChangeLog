@@ -1,3 +1,9 @@
+2011-02-23       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/www/tools/texi2tr/src/texi2tr.py:  implemented
+	  section alphabetically sorted index.  Also implemented
+	  @ifhtml.
+
 2011-02-22       Gaius Mulley <gaius@gnu.org>
 
 	* www/tools/texi2tr/src/outputdev.py:  added no_tag so

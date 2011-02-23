@@ -50,6 +50,7 @@ outputFile = sys.stdout.write
 rootName = ""
 baseName = "texi2tr-%d.html"
 indexFunc = {}
+indexSections = {}
 html = None
 
 # output state
@@ -532,6 +533,13 @@ def doIfinfo (content, state):
         pushState('ifinfo', state)
         return '', ignore
 
+def doIfhtml (content, state):
+    if state == ignore:
+        return doConsume(content, state, 'ifhtml')
+    else:
+        pushState('ifhtml', state)
+        return '', state
+
 def doPass (content, state):
     return content, state
 
@@ -656,10 +664,18 @@ def doChapter (content, state):
     html.paraBegin()
     return "", state
 
+def addSectionAnchor (content):
+    global html, indexSections
+    if indexSections.has_key(content):
+        error('section name "' + content + '" already exists')
+    else:
+        indexSections[content] = html.sectionAnchor(content)
+
 def doSection (content, state):
     global html
     if state == ignore:
         return skipLine (content, state)
+    addSectionAnchor(content)
     html.h3Begin()
     html.write(content)
     html.h3End()
@@ -667,9 +683,10 @@ def doSection (content, state):
     return "", state
 
 def doSubSection (content, state):
-    global html
+    global html, indexSections
     if state == ignore:
         return skipLine (content, state)
+    addSectionAnchor(content)
     html.h4Begin()
     html.write(content)
     html.h4End()
@@ -967,7 +984,25 @@ def generateFunctionIndex (html):
             html.raw('">')
             html.write('[%d]' % (n+1))
             html.raw('</a>')
-        html.raw('.<br>')
+        html.raw('.<br>\n')
+    html.paraEnd()
+    html.closeDiv()
+
+
+def generateSectionIndex (html):
+    global indexSections
+
+    html.openDiv().flushDiv()
+    html.paraBegin()
+    html.write('Alphabetically sorted list of contents')
+    html.raw('<br>\n')
+    for k,v in sorted([(key, value) for (key,value) in indexSections.items()]):
+        html.raw('<a href="')
+        html.raw(v)
+        html.raw('">')
+        html.write(k)
+        html.raw('</a>')
+        html.raw('<br>\n')
     html.paraEnd()
     html.closeDiv()
 
@@ -1000,6 +1035,7 @@ def populateFunctions ():
     functions['i'] = doI
     functions['image'] = doIgnore
     functions['include'] = doInclude
+    functions['ifhtml'] = doIfhtml
     functions['ifinfo'] = doIfinfo
     functions['item'] = doItem
     functions['menu'] = doMenu
@@ -1082,6 +1118,8 @@ def mergeMenu ():
             html.closeDiv()
         elif f[0] == 'fn':
             generateFunctionIndex(html)
+        elif f[0] == 'cp':
+            generateSectionIndex(html)
     html.flushDiv()
     html.closeFragment()
 
