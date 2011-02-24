@@ -2756,8 +2756,8 @@ your @file{/etc/apt/sources.list} file.
 #  GNU Modula-2 repo
 #
 
-deb http://floppsie.comp.glam.ac.uk/debian/ lenny main 
-deb-src http://floppsie.comp.glam.ac.uk/debian/ lenny main
+deb http://floppsie.comp.glam.ac.uk/debian/ squeeze main 
+deb-src http://floppsie.comp.glam.ac.uk/debian/ squeeze main
 @end example
 
 Now as root type:

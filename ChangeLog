@@ -1,3 +1,8 @@
+2011-02-24       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2.texi:  changed lenny to squeeze in repository
+	  definitions.
+
 2011-02-23       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/www/tools/texi2tr/src/texi2tr.py:  implemented
