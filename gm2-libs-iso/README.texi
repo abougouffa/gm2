@@ -33,15 +33,20 @@ The following implementation modules are complete:
 @code{ConvStringReal}
 @code{ConvTypes}
 @code{EXCEPTIONS}
+@code{GeneralUser}
 @code{IOChan}
 @code{IOConsts}
 @code{IOLink}
+@code{LongComplex}
 @code{LongConv}
 @code{LongIO}
 @code{LongMath}
 @code{LongStr}
+@code{LowLong}
+@code{LowReal}
 @code{M2EXCEPTION}
 @code{M2RTS}
+@code{Processes}
 @code{ProgramArgs}
 @code{RawIO}
 @code{RealConv}
@@ -55,6 +60,7 @@ The following implementation modules are complete:
 @code{RTgen}
 @code{RTgenif}
 @code{RTio}
+@code{Semaphores}
 @code{SLongIO.mod}
 @code{SRealIO.mod}
 @code{SimpleCipher}
@@ -74,15 +80,6 @@ The following implementation modules are complete:
 @code{wraptime}
 @code{WholeConv}
 @code{WholeIO}
-and
 @code{WholeStr}.
-
-The following modules are incomplete:
-@code{GeneralUser},
-@code{LongComplex}, 
-@code{LowLong}, 
-@code{LowReal}, 
-@code{Processes} and
-@code{Semaphores}.
 
 

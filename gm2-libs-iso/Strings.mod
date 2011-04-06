@@ -349,8 +349,55 @@ END Compare ;
 
 PROCEDURE Equal (stringVal1, stringVal2: ARRAY OF CHAR) : BOOLEAN ;
   (* Returns Strings.Compare(stringVal1, stringVal2) = Strings.equal *)
+VAR
+   h1, h2, i: CARDINAL ;
+   c1, c2   : CHAR ;
 BEGIN
-   RETURN Compare(stringVal1, stringVal2)=equal
+   i := 0 ;
+   h1 := HIGH(stringVal1) ;
+   h2 := HIGH(stringVal2) ;
+   IF h1=h2
+   THEN
+      REPEAT
+         c1 := stringVal1[i] ;
+         c2 := stringVal2[i] ;
+         IF c1#c2
+         THEN
+            RETURN FALSE
+         END ;
+         IF c1=ASCII.nul
+         THEN
+            RETURN TRUE
+         END ;
+         INC(i) ;
+      UNTIL i>h1 ;
+      RETURN TRUE
+   ELSE
+      c1 := stringVal1[0] ;
+      c2 := stringVal2[0] ;
+      WHILE c1=c2 DO
+         IF c1=ASCII.nul
+         THEN
+            RETURN TRUE
+         END ;
+         INC(i) ;
+         IF i<=h1
+         THEN
+            c1 := stringVal1[i] ;
+            IF i<=h2
+            THEN
+               c2 := stringVal2[i]
+            ELSE
+               RETURN c1=ASCII.nul
+            END
+         ELSIF i<=h2
+         THEN
+            c2 := stringVal2[i] ;
+            RETURN c2=ASCII.nul
+         END
+      END ;
+      RETURN FALSE
+   END
 END Equal ;
 
 PROCEDURE FindNext (pattern, stringToSearch: ARRAY OF CHAR; startIndex: CARDINAL;

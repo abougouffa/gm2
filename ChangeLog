@@ -1,3 +1,31 @@
+2011-04-06       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  modified to allow gm2 to coexist with
+	  gcc as the linker support rather than g++.  Useful for
+	  embedded targets which don't yet support g++.  Separated
+	  target from host when building libraries and use separate
+	  configure scripts for both.
+	* gm2/README:  removed warning about development code.
+	* gm2/config-lang.in:  added gm2lorder.
+	* gm2/gm2.texi:  updated documentation to reflect release 1.0.
+	  Corrected statements such as GNU Modula-2 is fully ISO
+	  compliant.
+	* gm2/gm2spec.c:  only include -lstdc++ if -fno-exceptions is
+	  not present.
+	* gm2/gm2-libs/README.texi:  tidied up dates.
+	* gm2/gm2-libs-iso/README.texi:  corrected status of modules
+	  given release of 1.0.
+	* gm2/gm2-libs-iso/Strings.mod:  fixed performance bug reported
+	  by Scott Iverson
+	  (http://lists.nongnu.org/archive/html/gm2/2011-03/msg00035.html).
+	* gm2/p2c/p2c.h:  test BUILD_GM2_LIBS_TARGET and include appropriate
+	  configure header.
+	* gm2/tools-src/makeversion:  added another consistency test.
+	* gm2/gm2-libs/config-host.in:  new file.
+	* gm2/gm2-libs/config-target.in:  new file.
+	* gm2/gm2-libs/configure:  removed.
+	* gm2/gm2-libs/configure.in:  removed.
+
 2011-02-24       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  changed lenny to squeeze in repository

@@ -42,7 +42,7 @@
 @c
 @vskip 0pt plus 1filll
 Copyright @copyright{} 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-2008, 2009, 2010 Free Software Foundation, Inc.
+2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
@@ -189,54 +189,21 @@ This section attempts to give an idea of which releases points are
 likely in the future. Clearly this is a fairly fluid release map but
 hopefully it is more helpful than omitting it altogether. Please note
 that this is not set in stone and if you wish to see something
-different please email @email{gaius@@gnu.org} with your ideas. Also
-please note that the actual release numbers do not have any
-correlation to the estimated time of release. For example please do
-not misunderstand that GM2-1.0 will take twice as long as GM2-0.5 to
-appear. It is worthing noting that some of the later points in the
-release life have already been addressed (in part) but are not yet
-complete.
+different please email @email{gaius@@gnu.org} with your ideas. 
 
 @table @code
 
-@item 0.50
-compatible with gcc-3.3.6. GNU Modula-2 is stable and passes all
-regression tests on LP64 Opteron and 32 bit x86 GNU/Linux.  The
-compiler is PIM-234 compatible (use @samp{-fpim2}, @samp{-fpim3} and
-@samp{-fpim4} to force mutually exclusive PIM features).
-
-It is also able to compile the University of Ulm libraries which are
-now distributed as part of GNU Modula-2.  To reference these libraries
-use the @samp{-flibs=ulm} compiler switch.
-
-@item 0.60
-many Logitech compatible libraries will be provided, which will
-be available when invoked by @samp{-fpim}.
-
-@item 0.70
-ISO exception handling working.  Core exception handling ISO modules
-completed.  Basic ISO IO libraries implemented.  Multi-dimensional
-dynamic arrays complete.  COMPLEX types implemented.
-
-@item 0.80
-a full set of ISO libraries will have been implemented.
-This release point marks the bug fixing of libraries and porting
-and fixing bugs.
-
-@item 0.90
-This release marks the porting and bug fixing and rapid releasing
-count down towards..
-
 @item 1.0
-GNU Modula-2 will be fully ISO compliant.
+GNU Modula-2 has been released and is fully ISO compliant.
+
+@item 2.0
+will be released when it works with the GCC trunc.
+
 @end table
 
 There will be releases inbetween those outlined above and these
 releases may occur when GNU Modula-2 builds using a different GCC
-source tree.  It is a goal that backward compatibility to gcc-3.3.6
-will be provided as far as it is possible.  Releases will also occur
-if a key component of ISO Modula-2 is implemented (for example
-exception handling, complex types or @samp{FINALLY} is implemented).
+source tree.
 
 @node News, Features, Release map, Using
 @section News

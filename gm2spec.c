@@ -902,12 +902,15 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   flag_set seen_flags = {FALSE, FALSE};
   styles s;
   int seen_source = FALSE;
+  int seen_fno_exceptions = FALSE;
   const char *libpath;
   const char *gm2ipath;
   const char *gm2opath;
 
   i=1;
   while (i<*in_argc) {
+    if (strcmp((*in_argv)[i], "-fno-exceptions") == 0)
+      seen_fno_exceptions = TRUE;
     if (strcmp((*in_argv)[i], "-fmakeall") == 0)
       seen_fmakeall = TRUE;
     if (strcmp((*in_argv)[i], "-fmakeall0") == 0)
@@ -1028,7 +1031,8 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   if (linking) {
     add_default_archives (in_argc, in_argv, libpath, s, libraries);
     add_lib (in_argc, in_argv, MATH_LIBRARY);
-    add_lib (in_argc, in_argv, "-lstdc++");
+    if (! seen_fno_exceptions)
+      add_lib (in_argc, in_argv, "-lstdc++");
 #if defined(ENABLE_SHARED_LIBGCC)
     insert_arg (1, in_argc, (char ***)in_argv);
     add_arg (1, (char ***)in_argv, "-shared-libgcc");

@@ -33,7 +33,11 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
  */
 
 #if defined(BUILD_GM2_LIBS)
-#   include "gm2-libs-host.h"
+#   if defined(BUILD_GM2_LIBS_TARGET)
+#       include "gm2-libs-target.h"
+#   else
+#       include "gm2-libs-host.h"
+#   endif
 #   include "ansidecl.h"
 #else
 #   include "auto-host.h"
