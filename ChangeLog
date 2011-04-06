@@ -27,6 +27,7 @@
 	* gm2/gm2-libs/configure.in:  removed.
 	* gm2/gm2-libs/config-host:  new file.
 	* gm2/gm2-libs/config-target:  new file.
+	* gm2/gm2-libs/gm2-libs-target.h.in:  new file.
 
 2011-02-24       Gaius Mulley <gaius@gnu.org>
 
