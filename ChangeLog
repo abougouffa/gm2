@@ -1,3 +1,7 @@
+2011-04-09       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  modified to build O2 versions of gm2-libs-min.
+
 2011-04-06       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  modified to allow gm2 to coexist with

@@ -205,6 +205,7 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot \
                  $(objdir)/gm2/gm2-libs-coroutines/SO \
                  $(objdir)/gm2/gm2-libs-coroutines/SO_O2 \
                  $(objdir)/gm2/gm2-libs-min \
+                 $(objdir)/gm2/gm2-libs-min/O2 \
                  stage1/gm2 stage2/gm2 stage3/gm2 stage4/gm2
 
 gt-gm2-gm2-lang.h gtype-gm2.h gt-gm2-gccgm2.h gt-gm2-gm2builtins.h \
@@ -684,6 +685,15 @@ gm2.install-common: installdirs \
               fi ; \
            fi ; \
         done
+	for i in gm2/gm2-libs-min/O2/*.a ; do \
+           rm -f $(GM2_LIB_DIR_MIN)/O2/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_MIN)/O2 ; \
+              fi ; \
+           fi ; \
+        done
+
 
 gm2.install-info: installdirs
 	if [ -d gm2$(exeext) ] ; then \
@@ -818,6 +828,7 @@ M2LINK=gm2/boot-bin/mklink$(exeext)
 GCC-VERSION=4.1.2
 GM2_O=
 GM2_O_S3=-O
+GM2_OS=-Os -O2
 # GM2_G=-g -gdwarf-2
 # GM2_G=-gstabs+
 GM2_G=-g
@@ -832,7 +843,7 @@ GM2_ISO_FLAGS=-fsoft-check-all $(GM2_G) $(GM2_O) \
  -funbounded-by-reference -fiso -fextended-opaque \
  -Wpedantic-cast -Wpedantic-param-names -ffunction-sections \
  -fdata-sections $(GM2_CPP)
-GM2_MIN_FLAGS=$(GM2_G) $(GM2_O) \
+GM2_MIN_FLAGS=$(GM2_G) $(GM2_OS) \
  -funbounded-by-reference -fextended-opaque \
  -Wpedantic-cast -Wpedantic-param-names -fno-exceptions \
  -ffunction-sections -fdata-sections $(GM2_CPP)
@@ -1304,9 +1315,15 @@ BUILD-BOOT-H = gm2/boot-bin/p2c$(exeext) \
 P2C_INCLUDE_TRANSLATE=-I$(srcdir)/gm2 -Igm2 -I. -I$(srcdir)/../include -Igm2/gm2-libs-boot $(INCLUDES) 
 
 gm2/gm2-libs-min/%.o: gm2/gm2-libs-min/%.c
-	$(GCC_FOR_TARGET) $(GM2_O) -B./ -c -g -Wall $< -o $@
+	$(GCC_FOR_TARGET) $(GM2_OS) -B./ -c -g -Wall $< -o $@
 
 gm2/gm2-libs-min/%.o: gm2/gm2-libs-min/%.mod
+	$(XGM2_1) $(GM2_MIN_FLAGS) -c -B$(XGM2BUILD1) -B./ -Igm2/gm2-libs-min:$(srcdir)/gm2/gm2-libs-min -c -g $< -o $@
+
+gm2/gm2-libs-min/O2/%.o: gm2/gm2-libs-min/%.c
+	$(GCC_FOR_TARGET) $(GM2_OS) -B./ -c -g -Wall $< -o $@
+
+gm2/gm2-libs-min/O2/%.o: gm2/gm2-libs-min/%.mod
 	$(XGM2_1) $(GM2_MIN_FLAGS) -c -B$(XGM2BUILD1) -B./ -Igm2/gm2-libs-min:$(srcdir)/gm2/gm2-libs-min -c -g $< -o $@
 
 gm2/gm2-libs-boot/%.o: gm2/gm2-libs-boot/%.c
@@ -1850,13 +1867,19 @@ $(objdir)/gm2/gm2-libs-iso/SYSTEM.def: stage1/gm2/cc1gm2$(exeext)
 
 build-libs-min: $(objdir)/gm2/gm2-libs-min/SYSTEM.def \
                 $(GM2-LIBS-MIN-MODS:%.mod=gm2/gm2-libs-min/%.o) \
-                $(GM2-LIBS-MIN-C:%.c=gm2/gm2-libs-min/%.o)
+                $(GM2-LIBS-MIN-C:%.c=gm2/gm2-libs-min/%.o) \
+                $(GM2-LIBS-MIN-MODS:%.mod=gm2/gm2-libs-min/O2/%.o) \
+                $(GM2-LIBS-MIN-C:%.c=gm2/gm2-libs-min/O2/%.o)
 
 archive-libs-min: build-libs-min
 	$(AR_CREATE_FOR_TARGET) gm2/gm2-libs-min/libgm2min.a \
         $(GM2-LIBS-MIN-MODS:%.mod=gm2/gm2-libs-min/%.o) \
         $(GM2-LIBS-MIN-C:%.c=gm2/gm2-libs-min/%.o)
 	$(RANLIB_FOR_TARGET) gm2/gm2-libs-min/libgm2min.a
+	$(AR_CREATE_FOR_TARGET) gm2/gm2-libs-min/O2/libgm2min.a \
+        $(GM2-LIBS-MIN-MODS:%.mod=gm2/gm2-libs-min/O2/%.o) \
+        $(GM2-LIBS-MIN-C:%.c=gm2/gm2-libs-min/O2/%.o)
+	$(RANLIB_FOR_TARGET) gm2/gm2-libs-min/O2/libgm2min.a
 
 build-libs: gm2/gm2-libs/gm2-libs-host.h \
             $(objdir)/gm2/gm2-libs/SYSTEM.def \
