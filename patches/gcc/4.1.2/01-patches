@@ -362,3 +362,5 @@
 +	      (TREE_CODE (TREE_TYPE (v)) == RECORD_TYPE))));
 +#endif
  }
+ 
+   
