@@ -1,3 +1,12 @@
+2011-04-22       Gaius Mulley <gaius@gnu.org>
+
+	* patches/gcc/4.1.2/ChangeLog:  New file.
+	* patches/gcc/4.1.2/01-patches:  New file.
+	  These patches have been regenerated and rationalised.  They
+	  have also been regression tested against the C and C++
+	  regression tests.  Both these sets of regression tests are
+	  unaffected by these patches.
+
 2011-04-09       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  modified to build O2 versions of gm2-libs-min.
