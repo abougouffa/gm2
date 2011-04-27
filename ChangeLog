@@ -1,3 +1,10 @@
+2011-04-27       Gaius Mulley <gaius@gnu.org>
+
+	* patches/gcc/4.1.2/01-patches:  corrected bug in patch.
+	* gm2/gm2-compiler/M2Quads.mod:  fixed bug reported by
+	  John O Goyo
+	  (http://lists.nongnu.org/archive/html/gm2/2011-04/msg00031.html).
+
 2011-04-22       Gaius Mulley <gaius@gnu.org>
 
 	* patches/gcc/4.1.2/ChangeLog:  New file.

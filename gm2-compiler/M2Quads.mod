@@ -5449,7 +5449,8 @@ BEGIN
          PushT(1) ;
          BuildAdrFunction ;
          PopT(f^.TrueExit)
-      ELSIF IsForC AND IsConstString(OperandT(pi))
+      ELSIF IsForC AND IsConstString(OperandT(pi)) AND
+                        (IsUnboundedParam(Proc, i) OR (SkipType(GetType(GetParam(Proc, i)))=Address))
       THEN
          f^.TrueExit := MakeLeftValue(ConvertStringToC(OperandT(pi)), RightValue, Address) ;
          MarkAsReadWrite(rw)
