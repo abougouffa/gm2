@@ -1,3 +1,10 @@
+2011-05-04       Gaius Mulley <gaius@gnu.org>
+
+	* gm2:  tagged with gcc_4_1_2_0
+	* gm2:  created branch using "cvs tag -r gcc_4_1_2_0 -b gcc_4_1_2_gm2"
+	* testsuite:  tagged with gcc_4_1_2_0
+	* testsuite:  created branch using "cvs tag -r gcc_4_1_2_0 -b gcc_4_1_2_gm2"
+
 2011-04-27       Gaius Mulley <gaius@gnu.org>
 
 	* patches/gcc/4.1.2/01-patches:  corrected bug in patch.

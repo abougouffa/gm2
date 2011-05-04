@@ -2708,6 +2708,7 @@ Contributing to GNU Modula-2}.
 * Cygwin::            How to build GNU Modula-2 under Cygwin.
 * Moving::            How to move an install to another directory.
 * OSX::               How to build GNU Modula-2 under OSX.
+* Solaris::           How to build GNU Modula-2 under Solaris.
 * FreeBSD::           How to build GNU Modula-2 under FreeBSD.
 @end menu
 
@@ -3000,7 +3001,7 @@ $ make
 $ ./a.out
 @end example
 
-@node OSX, FreeBSD, Moving, Top
+@node OSX, Solaris, Moving, Top
 @section Building GNU Modula-2 under Mac OSX
 
 The easiest way to build GNU Modula-2 under Mac OSX is to use
@@ -3106,7 +3107,27 @@ sudo make gm2.paranoid
 sudo make check-gm2
 @end example
 
-@node FreeBSD, , OSX, Top
+@node Solaris, FreeBSD, OSX, Top
+@section Building GNU Modula-2 under Solaris
+
+There is a prebuilt solaris binary tarball available
+@uref{http://floppsie.comp.glam.ac.uk/download/m2/binaries/solaris/opt-gm2-4.1.2-2011-04-09.tar.gz,
+opt-gm2-4.1.2-2011-04-09.tar.gz}.  This was built using the following
+@uref{http://floppsie.comp.glam.ac.uk/download/m2/binaries/solaris/configure-opt-gm2-4.1.2,
+configure script} against the following
+@uref{http://floppsie.comp.glam.ac.uk/download/m2/binaries/solaris/gcc-4.1.2+gm2-20110409.tar.gz,
+source tarball}.  The binary tarball must reside under the @file{/opt}
+directory, due to a current gm2 restriction.  So you could install it
+using the following commands:
+
+@example
+$ cd /opt
+$ sudo wget http://floppsie.comp.glam.ac.uk/download/m2/binaries/solaris/opt-gm2-4.1.2-2011-04-09.tar.gz
+$ sudo tar zxf opt-gm2-4.1.2-2011-04-09.tar.gz
+$ sudo rm opt-gm2-4.1.2-2011-04-09.tar.gz
+@end example
+
+@node FreeBSD, , Solaris, Top
 @section Building GNU Modula-2 under FreeBSD
 
 [This section is out of date and has not been verified against
