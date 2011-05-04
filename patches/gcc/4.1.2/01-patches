@@ -350,7 +350,7 @@
    if (TREE_THIS_VOLATILE (v))
      return false;
  
-+#if 1
++#if 0
 +  /* original gcc code below here (gaius) */
    return (AGGREGATE_TYPE_P (TREE_TYPE (v)) &&
  	  TREE_CODE (TREE_TYPE (v)) != ARRAY_TYPE);
