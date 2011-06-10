@@ -1,3 +1,11 @@
+2011-06-10       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Quads.mod:  modified CheckNotConstAndVar
+	  to CheckBecomesMeta so that it also checks that we are
+	  not assigning to a unbounded array.  Fixes a bug reported
+	  by Scott Iverson
+	  (http://lists.gnu.org/archive/html/gm2/2011-06/msg00010.html).
+
 2011-05-04       Gaius Mulley <gaius@gnu.org>
 
 	* gm2:  tagged with gcc_4_1_2_0

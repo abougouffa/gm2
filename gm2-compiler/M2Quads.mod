@@ -83,6 +83,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         IsVar, IsProcType, IsType, IsSubrange, IsExported,
                         IsConst, IsConstString, IsModule, IsDefImp,
                         IsArray, IsUnbounded, IsProcedureNested,
+                        IsParameterUnbounded,
                         IsPartialUnbounded, IsProcedureBuiltin,
                         IsSet, IsConstSet, IsConstructor, PutConst,
                         PutConstructor, PutConstructorFrom,
@@ -2795,18 +2796,24 @@ END BuildBuiltinTypeInfo ;
 
 
 (*
-   CheckNotConstAndVar - checks to make sure that we are not
-                         assigning a variable to a constant.
+   CheckBecomesMeta - checks to make sure that we are not
+                      assigning a variable to a constant.
+                      Also check we are not assigning to an
+                      unbounded array.
 *)
 
-PROCEDURE CheckNotConstAndVar (Des, Exp: CARDINAL) ;
+PROCEDURE CheckBecomesMeta (Des, Exp: CARDINAL) ;
 BEGIN
    IF IsConst(Des) AND IsVar(Exp)
    THEN
       MetaErrors2('error in assignment, cannot assign a variable {%2a} to a constant {%1a}',
                   'designator {%1Da} is declared as a CONST', Des, Exp)
+   END ;
+   IF IsVar(Des) AND IsUnbounded(SkipType(GetType(Des)))
+   THEN
+      MetaError1('error in assignment, cannot assign to an unbounded array {%1ad}', Des)
    END
-END CheckNotConstAndVar ;
+END CheckBecomesMeta ;
 
 
 (*
@@ -2938,7 +2945,10 @@ BEGIN
             catch overflow and underflow *)
          BuildRange(InitAssignmentRangeCheck(Des, Exp))
       END ;
-      CheckNotConstAndVar(Des, Exp) ;
+      IF checkTypes
+      THEN
+         CheckBecomesMeta(Des, Exp)
+      END ;
       (* Traditional Assignment *)
       MoveWithMode(Des, Exp, Array) ;
       IF checkTypes
