@@ -2682,8 +2682,15 @@ BEGIN
             r := AddRange(r, i, DupConst(tokenno, s^.low, -1))
          END
       END ;
-      i := DupConst(tokenno, s^.high, 1) ;
-      s := s^.next
+      PushValue(s^.high) ;
+      PushValue(max) ;
+      IF Less(tokenno)
+      THEN
+         i := DupConst(tokenno, s^.high, 1) ;
+         s := s^.next
+      ELSE
+         s := NIL
+      END
    END ;
    IF Debugging
    THEN
