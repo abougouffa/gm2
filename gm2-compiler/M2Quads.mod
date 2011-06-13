@@ -2806,12 +2806,16 @@ PROCEDURE CheckBecomesMeta (Des, Exp: CARDINAL) ;
 BEGIN
    IF IsConst(Des) AND IsVar(Exp)
    THEN
-      MetaErrors2('error in assignment, cannot assign a variable {%2a} to a constant {%1a}',
+      MetaErrors2('in assignment, cannot assign a variable {%2a} to a constant {%1a}',
                   'designator {%1Da} is declared as a CONST', Des, Exp)
    END ;
    IF IsVar(Des) AND IsUnbounded(SkipType(GetType(Des)))
    THEN
-      MetaError1('error in assignment, cannot assign to an unbounded array {%1ad}', Des)
+      MetaError1('in assignment, cannot assign to an unbounded array {%1ad}', Des)
+   END ;
+   IF IsVar(Exp) AND IsUnbounded(SkipType(GetType(Exp)))
+   THEN
+      MetaError1('in assignment, cannot assign from an unbounded array {%1ad}', Exp)
    END
 END CheckBecomesMeta ;
 

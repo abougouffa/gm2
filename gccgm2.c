@@ -864,6 +864,7 @@ static tree                   gm2_finish_build_array_type                 (tree 
        tree                   undo_static                                 (tree t);
 static int                    getFrontEndLOC                              (void);
        tree                   gccgm2_DumpGlobalConstants                  (void);
+       tree                   gccgm2_GetArrayNoOfElements                 (tree arraytype);
   /* PROTOTYPES: ADD HERE */
   
   
@@ -7502,6 +7503,20 @@ gm2_finish_build_array_type (tree t, tree elt_type, tree index_type, int type)
 }
 
 /*
+ *  gccgm2_GetArrayNoOfElements - returns the number of elements in, arraytype.
+ */
+
+tree
+gccgm2_GetArrayNoOfElements (tree arraytype)
+{
+  tree index_type = TYPE_DOMAIN (skip_type_decl (arraytype));
+  tree min = TYPE_MIN_VALUE (index_type);
+  tree max = TYPE_MAX_VALUE (index_type);
+
+  return gccgm2_BuildSub (max, min, FALSE);
+}
+
+/*
  *  build_set_type - creates a set type from the, domain, [low..high]. The
  *                   values low..high all have type, range_type.
  */
@@ -7947,7 +7962,7 @@ tree
 gccgm2_BuildVariableArrayAndDeclare (tree elementtype, tree high, char *name,
                                      tree scope)
 {
-  tree indextype = build_index_type (variable_size(high));
+  tree indextype = build_index_type (variable_size (high));
   tree arraytype = build_array_type (elementtype, indextype);
   tree id        = get_identifier (name);
   tree decl;

@@ -1,3 +1,16 @@
+2011-06-13       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  gccgm2_GetArrayNoOfElements (New function).
+	* gm2/gm2-compiler/M2GenGCC.mod:  checkArrayElements (New
+	  procedure function).  CodeBecomes modified to call
+	  checkArrayElements to test whether assigned arrays contain
+	  the same number of elements.
+	* gm2/gm2-compiler/M2Quads.mod:  CheckBecomesMeta tidied up
+	  error messages and added extra check to ensure that
+	  we are not assigning from an unbounded array.
+	* gm2/gccgm2.def:  export GetArrayNoOfElements.
+	  Fixes a bug reported by Scott Iverson.
+	
 2011-06-11       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2ALU.mod:  added a limit check to SetNegate

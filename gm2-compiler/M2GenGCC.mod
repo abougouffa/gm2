@@ -186,7 +186,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildSetNegate,
                    BuildPushFunctionContext, BuildPopFunctionContext,
                    BuildCap, BuildAbs, BuildRe, BuildIm, BuildCmplx,
-                   AddStatement, ConvertString,
+                   AddStatement, ConvertString, GetArrayNoOfElements,
                    GetPointerType, GetPointerZero,
                    GetWordType, GetM2ZType, GetM2RType, GetM2CType,
                    GetBitsPerBitset, GetSizeOfInBits, GetMaxFrom,
@@ -2704,6 +2704,36 @@ END DoCopyString ;
 
 
 (*
+   checkArrayElements - return TRUE if op1 or op3 are not arrays.
+                        If they are arrays and have different number of
+                        elements return FALSE, otherwise TRUE.
+*)
+
+PROCEDURE checkArrayElements (quad: CARDINAL; op1, op3: CARDINAL) : BOOLEAN ;
+VAR
+   e1, e3: Tree ;
+   t1, t3: CARDINAL ;
+BEGIN
+   t1 := GetType(op1) ;
+   t3 := GetType(op3) ;
+   IF (t1#NulSym) AND (t3#NulSym) AND
+      IsArray(SkipType(GetType(op3))) AND IsArray(SkipType(GetType(op1)))
+   THEN
+      (* both arrays continue checking *)
+      e1 := GetArrayNoOfElements(Mod2Gcc(SkipType(GetType(op1)))) ;
+      e3 := GetArrayNoOfElements(Mod2Gcc(SkipType(GetType(op3)))) ;
+      IF CompareTrees(e1, e3)#0
+      THEN
+         MetaErrorT2(QuadToTokenNo(quad), 'not allowed to assign array {%2ad} to {%1ad} as they have a different number of elements',
+                     op1, op3) ;
+         RETURN( FALSE )
+      END
+   END ;
+   RETURN( TRUE )
+END checkArrayElements ;
+
+
+(*
 ------------------------------------------------------------------------------
    := Operator
 ------------------------------------------------------------------------------
@@ -2747,8 +2777,11 @@ BEGIN
                                                 GetWordType()),
                                   BuildConvert(GetWordType(), Mod2Gcc(op3), FALSE)) ;
       ELSE
-         t := BuildAssignmentTree(Mod2Gcc(op1),
-                                  FoldConstBecomes(QuadToTokenNo(quad), op1, op3))
+         IF checkArrayElements(quad, op1, op3)
+         THEN
+            t := BuildAssignmentTree(Mod2Gcc(op1),
+                                     FoldConstBecomes(QuadToTokenNo(quad), op1, op3))
+         END
       END
    END
 END CodeBecomes ;

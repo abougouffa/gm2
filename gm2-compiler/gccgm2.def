@@ -71,6 +71,8 @@ EXPORT QUALIFIED Tree, Constructor,
                  BuildFieldRecord, ChainOn, ChainOnParamValue, AddStringToTreeList,
                  BuildConstPointerType, BuildPointerType,
                  BuildStartArrayType, BuildEndArrayType, PutArrayType,
+                 GetArrayNoOfElements,
+
                  BuildSetType,
                  BuildStartSetConstructor, BuildSetConstructorElement,
                  BuildEndSetConstructor,
@@ -685,6 +687,13 @@ PROCEDURE BuildArrayIndexType (low, high: Tree) : Tree ;
 *)
 
 PROCEDURE BuildVariableArrayAndDeclare (elementtype, high: Tree; name: ADDRESS; scope: Tree) : Tree ;
+
+
+(*
+   GetArrayNoOfElements - returns the number of elements in arraytype.
+*)
+
+PROCEDURE GetArrayNoOfElements (arraytype: Tree) : Tree ;
 
 
 (*
