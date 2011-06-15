@@ -1,3 +1,9 @@
+2011-06-15       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/PCSymBuild.mod:  fixed bug in deduceTypes
+	  so that binary constant expressions can correctly identify
+	  their types.  Fixes a bug report by Scott Iverson.
+
 2011-06-13       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  gccgm2_GetArrayNoOfElements (New function).

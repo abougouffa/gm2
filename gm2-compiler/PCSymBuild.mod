@@ -25,7 +25,7 @@ FROM NameKey IMPORT Name, WriteKey, MakeKey, NulName ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NumberIO IMPORT WriteCard ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
-FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, FlushErrors, InternalError, NewError ;
+FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, FlushErrors, InternalError, NewError, ErrorFormat0 ;
 FROM M2MetaError IMPORT MetaError1 ;
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM M2Reserved IMPORT NulTok, ImportTok ;
@@ -1711,25 +1711,38 @@ END assignType ;
 
 
 (*
-   deduceTypes - 
+   deduceTypes - works out the type and metatype given, l, and, r.
 *)
 
-PROCEDURE deduceTypes (l, r: exprNode; op: Name) : CARDINAL ;
+PROCEDURE deduceTypes (VAR t: CARDINAL;
+                       VAR m: constType;
+                       l, r: exprNode; op: Name) ;
 BEGIN
    IF r=NIL
    THEN
       (* function or cast *)
-      RETURN( getEtype(l) )
+      t := getEtype(l) ;
+      m := getEmeta(l)
    ELSIF (op=EqualTok) OR (op=HashTok) OR (op=LessGreaterTok) OR
       (op=LessTok) OR (op=LessEqualTok) OR (op=GreaterTok) OR
       (op=GreaterEqualTok) OR (op=InTok) OR (op=OrTok) OR
       (op=AndTok) OR (op=NotTok) OR (op=AmbersandTok)
    THEN
-      RETURN( Boolean )
+      t := Boolean ;
+      m := boolean
    ELSIF (op=PlusTok) OR (op=MinusTok) OR (op=TimesTok) OR (op=ModTok) OR
          (op=DivTok) OR (op=RemTok) OR (op=DivideTok)
    THEN
-      RETURN( MixTypes(getEtype(l), getEtype(r), constToken) )
+      t := MixTypes(getEtype(l), getEtype(r), constToken) ;
+      m := getEmeta(l) ;
+      IF m=unknown
+      THEN
+         m := getEmeta(r)
+      ELSIF (getEmeta(r)#unknown) AND (m#getEmeta(r))
+      THEN
+         ErrorFormat0(NewError(constToken),
+                      'the operands to a binary constant expression have different types')
+      END
    ELSE
       InternalError('unexpected operator', __FILE__, __LINE__)
    END
@@ -1904,7 +1917,7 @@ BEGIN
       WITH e^.eunary DO
          IF isTypeResolved(left)
          THEN
-            type := deduceTypes(left, left, op) ;
+            deduceTypes(type, meta, left, left, op) ;
             RETURN( TRUE )
          END ;
          RETURN( doWalkNode(left) )
@@ -1928,7 +1941,7 @@ BEGIN
       WITH e^.ebinary DO
          IF isTypeResolved(left) AND isTypeResolved(right)
          THEN
-            type := deduceTypes(left, right, op) ;
+            deduceTypes(type, meta, left, right, op) ;
             RETURN( TRUE )
          END ;
          changed := doWalkNode(left) ;
