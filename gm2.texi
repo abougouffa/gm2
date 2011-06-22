@@ -284,17 +284,17 @@ easy interface to C, and varargs can be passed to C routines.
 @item
 University of Ulm libraries are installed together with the compiler
 and can be accessed via:
-@samp{-flibs=ulm}.
+@samp{-flibs=ulm,pim}.
 
 @item
 many Logitech libraries have been implemented and can be accessed via:
-@samp{-flibs=logitech}.
+@samp{-flibs=logitech,pim}.
 
 @item
 coroutines have been implemented in the PIM style and these are
 accessible from SYSTEM. A number of supporting libraries (executive
 and file descriptor mapping to interrupt vector libraries are
-available through the @samp{-flibs=pim-coroutines} switch).
+available through the @samp{-flibs=pim-coroutines,pim} switch).
 
 @item
 can be built as a cross compiler (for embedded microprocessors
@@ -816,31 +816,14 @@ All modulus results are positive and the results from the division are
 rounded to the floor.
 See @xref{Dialect, , ,gm2}.
 
-@item -flibs=ulm
-modifies the default library search path so that the University of Ulm
-libraries are searched before the other PIM libraries.
-
-@item -flibs=pim
-modifies the default library search path so that the PIM libraries
-are searched before any others (the default).
-
-@item -flibs=min
-modifies the default library search path so that the absolute minimum
-of Modula-2 runtime libraries are loaded (a stripped down M2RTS, SYSTEM
-and libc).
-
-@item -flibs=iso
-modifies the default library search path so that the ISO libraries are
-searched before any others (not needed if @samp{-fiso} was specified).
-
-@item -flibs=logitech
-modifies the default library search path so that the Logitech compatible
-libraries are searched before the base PIM libraries.
-
-@item -flibs=pim-coroutine
-modifies the default libraries search path so that the PIM @code{SYSTEM}
-module providing coroutine support is searched before the base PIM libraries.
-This directory also includes many coroutine related libraries.
+@item -flibs=
+modifies the default library search path.  The libraries supplied are:
+pim, iso, min, logitech, pim-coroutine and ulm.  These map onto the
+Programming in Modula-2 base libraries, ISO standard libraries, minimal
+library support, Logitech compatible library and University of Ulm library.
+Multiple libraries might be specified and are comma separated with precidence
+going to the first in the list.  It is not necessary to use -flibs=pim or
+-flibs=iso if you also specify -fpim, -fpim2, -fpim3, -fpim4 or -fiso.
 
 @item -fextended-opaque
 allows opaque types to be implemented as any type. This is a GNU
@@ -2708,7 +2691,6 @@ Contributing to GNU Modula-2}.
 * Cygwin::            How to build GNU Modula-2 under Cygwin.
 * Moving::            How to move an install to another directory.
 * OSX::               How to build GNU Modula-2 under OSX.
-* Solaris::           How to build GNU Modula-2 under Solaris.
 * FreeBSD::           How to build GNU Modula-2 under FreeBSD.
 @end menu
 
@@ -3001,7 +2983,7 @@ $ make
 $ ./a.out
 @end example
 
-@node OSX, Solaris, Moving, Top
+@node OSX, FreeBSD, Moving, Top
 @section Building GNU Modula-2 under Mac OSX
 
 The easiest way to build GNU Modula-2 under Mac OSX is to use
@@ -3107,27 +3089,7 @@ sudo make gm2.paranoid
 sudo make check-gm2
 @end example
 
-@node Solaris, FreeBSD, OSX, Top
-@section Building GNU Modula-2 under Solaris
-
-There is a prebuilt solaris binary tarball available
-@uref{http://floppsie.comp.glam.ac.uk/download/m2/binaries/solaris/opt-gm2-4.1.2-2011-04-09.tar.gz,
-opt-gm2-4.1.2-2011-04-09.tar.gz}.  This was built using the following
-@uref{http://floppsie.comp.glam.ac.uk/download/m2/binaries/solaris/configure-opt-gm2-4.1.2,
-configure script} against the following
-@uref{http://floppsie.comp.glam.ac.uk/download/m2/binaries/solaris/gcc-4.1.2+gm2-20110409.tar.gz,
-source tarball}.  The binary tarball must reside under the @file{/opt}
-directory, due to a current gm2 restriction.  So you could install it
-using the following commands:
-
-@example
-$ cd /opt
-$ sudo wget http://floppsie.comp.glam.ac.uk/download/m2/binaries/solaris/opt-gm2-4.1.2-2011-04-09.tar.gz
-$ sudo tar zxf opt-gm2-4.1.2-2011-04-09.tar.gz
-$ sudo rm opt-gm2-4.1.2-2011-04-09.tar.gz
-@end example
-
-@node FreeBSD, , Solaris, Top
+@node FreeBSD, , OSX, Top
 @section Building GNU Modula-2 under FreeBSD
 
 [This section is out of date and has not been verified against

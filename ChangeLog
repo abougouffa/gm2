@@ -1,3 +1,22 @@
+2011-06-22       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  specify source and build directories to def2texi.py.
+	* gm2/gm2.texi:  modified to document the new behaviour of specifying
+	  library ordering.
+	* gm2/gm2spec.c:  default library is 'pim'.  Large number of changes
+	  which remove the implicit ordering of library search paths in favour
+	  of users specifying the explicit order via -flibs=pim,iso,ulm etc.
+	* gm2/lang.opt:  -flibs= takes a number of Joined arguments.
+	* gm2/examples/hello/Makefile.in:  removed -fno-exceptions from the
+	  command line build.
+	* fixes a bug reported by Scott Iverson
+	  (http://lists.gnu.org/archive/html/gm2/2011-06/msg00002.html).
+	* gm2/gm2-libs-iso/README.texi:  corrected status of copyright and
+	  implementation modules.  Removed all information about incomplete
+	  modules.
+	* gm2/tools-src/def2texi.py:  fixed bug in building the www pages
+	  by adding an option to specify the build and source directory.
+
 2011-06-15       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/PCSymBuild.mod:  fixed bug in deduceTypes

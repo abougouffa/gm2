@@ -7,79 +7,26 @@
 
 This directory contains the ISO definition modules and some
 corresponding implementation modules.  All definition files except
-@file{M2RTS.def}, @file{RTio.def} and @file{ErrnoCategory.def} were
-defined by the International Standard Information technology -
-programming languages BS ISO/IEC 10514-1:1996E Part 1: Modula-2, Base
-Language.  The Copyright to the definition files (except
-@file{ClientSocket}, @file{M2RTS.def}, @file{RTio.def},
+@file{M2RTS.def}, @file{RTio.def}, @file{RTgen.def},
+@file{RTgenif.def}, @file{RTfio.def}, @file{RTentity.def},
+@file{SimpleCipher.def}, @file{wraptime.def}, @file{wrapsock.def} and
+@file{ErrnoCategory.def} were defined by the International Standard
+Information technology - programming languages BS ISO/IEC
+10514-1:1996E Part 1: Modula-2, Base Language.
+
+The Copyright to the definition files (except @file{ClientSocket.def},
+@file{M2RTS.def}, @file{RTio.def}, @file{RTgen.def},
+@file{RTgenif.def}, @file{RTfio.def}, @file{RTentity.def}
+@file{SimpleCipher.def} and @file{ErrnoCategory.def}) belong to
+ISO/IEC (International Organization for Standardization and
+International Electrotechnical Commission).  The licence allows them
+to be distributed with the compiler.
+
+All implementation modules and @file{M2RTS.def}, @file{RTio.def},
 @file{RTgen.def}, @file{RTgenif.def}, @file{RTfio.def},
-@file{RTentity.def} @file{SimpleCipher.def} and
-@file{ErrnoCategory.def}) belong to ISO/IEC (International
-Organization for Standardization and International Electrotechnical
-Commission).  All implementation modules and @file{M2RTS.def},
-@file{RTio.def}, @file{RTgen.def}, @file{RTgenif.def},
-@file{RTfio.def}, @file{RTentity.def}, @file{SimpleCipher.def},
-@file{wraptime.def}, @file{wrapsock.def} and @file{ErrnoCategory.def}
-are Copyright of the FSF and are held under the LGPL.
+@file{RTentity.def}, @file{SimpleCipher.def}, @file{wraptime.def},
+@file{wrapsock.def} and @file{ErrnoCategory.def} are Copyright of the
+FSF and are held under the LGPL.
 
-The ISO definition modules are allowed to be distributed with
-the compiler.
-
-The following implementation modules are complete:
-@code{ChanConsts}
-@code{CharClass}
-@code{ClientSocket}
-@code{ConvStringLong}
-@code{ConvStringReal}
-@code{ConvTypes}
-@code{EXCEPTIONS}
-@code{GeneralUser}
-@code{IOChan}
-@code{IOConsts}
-@code{IOLink}
-@code{LongComplex}
-@code{LongConv}
-@code{LongIO}
-@code{LongMath}
-@code{LongStr}
-@code{LowLong}
-@code{LowReal}
-@code{M2EXCEPTION}
-@code{M2RTS}
-@code{Processes}
-@code{ProgramArgs}
-@code{RawIO}
-@code{RealConv}
-@code{RealIO}
-@code{RealMath}
-@code{RealStr}
-@code{RndFile}
-@code{RTdata}
-@code{RTentity}
-@code{RTfio}
-@code{RTgen}
-@code{RTgenif}
-@code{RTio}
-@code{Semaphores}
-@code{SLongIO.mod}
-@code{SRealIO.mod}
-@code{SimpleCipher}
-@code{SeqFile}
-@code{StdChans}
-@code{Storage}
-@code{StreamFile}
-@code{Strings}
-@code{STextIO}
-@code{SWholeIO}
-@code{SysClock}
-@code{SYSTEM}
-@code{TermFile}
-@code{TERMINATION}
-@code{TextIO}
-@code{wrapsock}
-@code{wraptime}
-@code{WholeConv}
-@code{WholeIO}
-@code{WholeStr}.
 
 

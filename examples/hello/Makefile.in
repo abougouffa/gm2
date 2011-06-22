@@ -31,13 +31,13 @@ all: force
 pre-install: clean
 	$(XGM2) -I$(SRC_PATH_PIM)    -g $(srcdir)/hello.mod
 	size a.out
-	$(XGM2)    -g -I$(OBJ_PATH_PIM) -ffunction-sections -fdata-sections $(srcdir)/hello.mod -fno-exceptions -Wl,--gc-sections
+	$(XGM2) -g -I$(OBJ_PATH_PIM) -ffunction-sections -fdata-sections $(srcdir)/hello.mod -Wl,--gc-sections
 	size a.out
 
 post-install: clean
 	gm2 -g -I. $(srcdir)/hello.mod
 	size a.out
-	gm2    -g -I. -ffunction-sections -fdata-sections $(srcdir)/hello.mod -fno-exceptions -Wl,--gc-sections
+	gm2    -g -I. -ffunction-sections -fdata-sections $(srcdir)/hello.mod -Wl,--gc-sections
 	size a.out
 
 clean:

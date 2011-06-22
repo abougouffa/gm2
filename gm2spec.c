@@ -77,6 +77,8 @@ extern int force_no_linker;
 
 #undef DEBUGGING
 
+#define DEFAULT_DIALECT "pim"
+
 typedef enum { iso, pim, ulm, min, logitech, pimcoroutine, maxlib } libs;
 
 /* the last entry in libraryName must be the longest string in the list */
@@ -125,6 +127,8 @@ static void add_link_from_include (int link, char **in_argv[],
                                    int incl, const char *option);
 static void add_lib (int *in_argc, const char *const **in_argv, const char *lib);
 static void check_gm2_root (void);
+static void add_include (int incl, const char ***in_argv, const char *libpath, const char *library);
+
 
 
 typedef struct object_list {
@@ -354,44 +358,61 @@ add_lib (int *in_argc, const char *const **in_argv, const char *lib)
 }
 
 /*
+ *  getArchiveName - return the corresponding archive name given the library name.
+ */
+
+static const char *
+getArchiveName (const char *library)
+{
+  libs i;
+
+  for (i=iso; i<maxlib; i++)
+    if (strcmp(libraryName[i], library) == 0)
+      return archiveName[i];
+  return NULL;
+}
+
+/*
  *  build_archive_path - returns a string containing the a path to the
  *                       archive defined by, libpath, s, and, dialectLib.
  */
 
 static const char *
 build_archive_path (const char *libpath,
-		    libs dialectLib,
+		    const char *library,
 		    styles style)
 {
-  if (dialectLib == maxlib)
-    return NULL;
-  else {
+  if (library != NULL) {
     const char *style_name = libraryStyle[style].directory;
-    const char *libdir = (const char *)libraryName[dialectLib];
-    int l = strlen("-L") + strlen (libpath) + 1 +
-      strlen("lib") + 1 + strlen("gcc") + 1 +
-      strlen (DEFAULT_TARGET_MACHINE) + 1 +
-      strlen (DEFAULT_TARGET_VERSION) + 1 +
-      strlen (style_name) + 1 +
-      strlen (libdir) + 1;
-    char *s = (char *) xmalloc (l);
-    char dir_sep[2];
+    const char *libdir = (const char *)library;
 
-    dir_sep[0] = DIR_SEPARATOR;
-    dir_sep[1] = (char)0;
+    if (libdir != NULL) {
+      int l = strlen("-L") + strlen (libpath) + 1 +
+	strlen("lib") + 1 + strlen("gcc") + 1 +
+	strlen (DEFAULT_TARGET_MACHINE) + 1 +
+	strlen (DEFAULT_TARGET_VERSION) + 1 +
+	strlen (style_name) + 1 +
+	strlen (libdir) + 1;
+      char *s = (char *) xmalloc (l);
+      char dir_sep[2];
+
+      dir_sep[0] = DIR_SEPARATOR;
+      dir_sep[1] = (char)0;
     
-    strcpy (s, "-L");
-    strcat (s, libpath);
-    strcat (s, dir_sep);
-    strcat (s, "gm2");
-    strcat (s, dir_sep);
-    strcat (s, libdir);
-    if (strlen(style_name) != 0) {
+      strcpy (s, "-L");
+      strcat (s, libpath);
       strcat (s, dir_sep);
-      strcat (s, style_name);
+      strcat (s, "gm2");
+      strcat (s, dir_sep);
+      strcat (s, libdir);
+      if (strlen(style_name) != 0) {
+	strcat (s, dir_sep);
+	strcat (s, style_name);
+      }
+      return s;
     }
-    return s;
   }
+  return NULL;
 }
 
 /*
@@ -400,49 +421,35 @@ build_archive_path (const char *libpath,
  */
 
 static char *
-build_archive (libs dialectLib)
+build_archive (const char *library)
 {
-  if (dialectLib == maxlib)
-    return NULL;
-  else {
-    const char *a = archiveName[dialectLib];
-    char *s = (char *) xmalloc (strlen ("-l") + strlen (a) + 1);
-    strcpy (s, "-l");
-    strcat (s, a);
-    return s; 
+  if (library != NULL) {
+    const char *a = getArchiveName(library);
+    if (a != NULL) {
+      char *s = (char *) xmalloc (strlen ("-l") + strlen (a) + 1);
+      strcpy (s, "-l");
+      strcat (s, a);
+      return s;
+    }
   }
+  return NULL;
 }
 
 /*
- *  add_default_combinations - adds the correct link path and then the library name.
+ *  add_default_combination - adds the correct link path and then the library name.
  */
 
 static void
-add_default_combinations (int *in_argc,
-			  const char *const **in_argv,
-			  const char *libpath,
-			  libs first,
-			  libs second,
-			  libs third,
-			  libs fourth,
-			  styles style)
+add_default_combination (int *in_argc,
+			 const char *const **in_argv,
+			 const char *libpath,
+			 const char *library,
+			 styles style)
 {
-  if (first != maxlib)
-    add_lib (in_argc, in_argv, build_archive_path (libpath, first, style));
-  if (second != maxlib)
-    add_lib (in_argc, in_argv, build_archive_path (libpath, second, style));
-  if (third != maxlib)
-    add_lib (in_argc, in_argv, build_archive_path (libpath, third, style));
-  if (fourth != maxlib)
-    add_lib (in_argc, in_argv, build_archive_path (libpath, fourth, style));
-  if (first != maxlib)
-    add_lib (in_argc, in_argv, build_archive (first));
-  if (second != maxlib)
-    add_lib (in_argc, in_argv, build_archive (second));
-  if (third != maxlib)
-    add_lib (in_argc, in_argv, build_archive (third));
-  if (fourth != maxlib)
-    add_lib (in_argc, in_argv, build_archive (fourth));
+  if (library != NULL) {
+    add_lib (in_argc, in_argv, build_archive_path (libpath, library, style));
+    add_lib (in_argc, in_argv, build_archive (library));
+  }
 }
 
 /*
@@ -451,36 +458,31 @@ add_default_combinations (int *in_argc,
  */
 
 static void
-add_default_archives (int *in_argc,
+add_default_archives (int incl,
+		      int *in_argc,
 		      const char *const **in_argv,
 		      const char *libpath,
 		      styles s,
-		      libs libraries)
+		      const char *libraries)
 {
-  switch (libraries) {
+  const char *l = libraries;
+  const char *e;
+  const char *c;
 
-  case iso:
-    add_default_combinations (in_argc, in_argv, libpath, iso, pim, logitech, maxlib, s);
-    break;
-  case pim:
-    add_default_combinations (in_argc, in_argv, libpath, pim, logitech, iso, maxlib, s);
-    break;
-  case ulm:
-    add_default_combinations (in_argc, in_argv, libpath, ulm, pim, logitech, iso, s);
-    break;
-  case min:
-    add_default_combinations (in_argc, in_argv, libpath, min, maxlib, maxlib, maxlib, s);
-    break;
-  case logitech:
-    add_default_combinations (in_argc, in_argv, libpath, logitech, pim, iso, maxlib, s);
-    break;
-  case pimcoroutine:
-    add_default_combinations (in_argc, in_argv, libpath, pimcoroutine, pim, logitech, iso, s);
-    break;
-  default:
-    fprintf(stderr, "%s:%d:internal error unrecognized case clause\n",
-	    __FILE__, __LINE__);
-  }
+  do {
+    e = index (l, ',');
+    if (e == NULL) {
+      c = xstrdup(l);
+      l = NULL;
+    }
+    else {
+      c = strndup(l, e-l);
+      l = e+1;
+    }
+    add_default_combination (in_argc, in_argv, libpath, c, s);
+    add_include (incl, in_argv, libpath, c);
+    free((void *)c);
+  } while ((l != NULL) && (l[0] != (char)0));
 }
 
 /*
@@ -489,7 +491,7 @@ add_default_archives (int *in_argc,
  */
 
 static const char *
-build_include_path (const char *prev, const char *libpath, libs which)
+build_include_path (const char *prev, const char *libpath, const char *library)
 {
   char  sepstr[2];
   char *gm2libs;
@@ -500,14 +502,14 @@ build_include_path (const char *prev, const char *libpath, libs which)
 
   if (prev == NULL) {
     gm2libs = (char *) alloca(strlen(option) +
-			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+
-			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1);
+			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(library)+1+
+			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(library)+1);
     strcpy(gm2libs, option);
   }
   else {
     gm2libs = (char *) alloca(strlen(prev) + strlen(":") +
-			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+
-			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1);
+			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(library)+1+
+			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(library)+1);
     strcpy(gm2libs, prev);
     strcat(gm2libs, ":");
   }
@@ -515,7 +517,7 @@ build_include_path (const char *prev, const char *libpath, libs which)
   strcat(gm2libs, sepstr);
   strcat(gm2libs, "gm2");
   strcat(gm2libs, sepstr);
-  strcat(gm2libs, libraryName[which]);
+  strcat(gm2libs, library);
 
   return xstrdup (gm2libs);
 }
@@ -535,39 +537,19 @@ do_set (int i,
 }
 
 /*
- *  add_includes - add all required includes for first, second, third and
- *                 fourth.
+ *  add_include - add the correct include path given the libpath and library.
  */
 
 static void
-add_includes (int incl,
-	      const char ***in_argv,
-	      const char *libpath,
-	      const char *envpath,
-	      libs first,
-	      libs second,
-	      libs third,
-	      libs fourth)
+add_include (int incl,
+	     const char ***in_argv,
+	     const char *libpath,
+	     const char *library)
 {
-  const char *prev;
+  const char *prev = (char *)(*in_argv)[incl];
 
-  do_set (incl, in_argv, envpath);
-
-  prev = (char *)(*in_argv)[incl];
-  if (first != maxlib)
-    do_set (incl, in_argv, build_include_path (prev, libpath, first));
-
-  prev = (char *)(*in_argv)[incl];
-  if (second != maxlib)
-    do_set (incl, in_argv, build_include_path (prev, libpath, second));
-
-  prev = (char *)(*in_argv)[incl];
-  if (third != maxlib)
-    do_set (incl, in_argv, build_include_path (prev, libpath, third));
-
-  prev = (char *)(*in_argv)[incl];
-  if (fourth != maxlib)
-    do_set (incl, in_argv, build_include_path (prev, libpath, fourth));
+  if (library != NULL)
+    do_set (incl, in_argv, build_include_path (prev, libpath, library));
 }
 
 /*
@@ -579,33 +561,27 @@ static void
 add_default_includes (int incl,
 		      const char ***in_argv,
 		      const char *libpath,
-		      libs libraries,
+		      const char *libraries,
 		      const char *envpath)
 {
-  switch (libraries) {
+  const char *l = libraries;
+  const char *e;
+  const char *c;
 
-  case iso:
-    add_includes (incl, in_argv, libpath, envpath, iso, pim, logitech, maxlib);
-    break;
-  case pim:
-    add_includes (incl, in_argv, libpath, envpath, pim, logitech, iso, maxlib);
-    break;
-  case ulm:
-    add_includes (incl, in_argv, libpath, envpath, ulm, pim, logitech, iso);
-    break;
-  case min:
-    add_includes (incl, in_argv, libpath, envpath, min, maxlib, maxlib, maxlib);
-    break;
-  case logitech:
-    add_includes (incl, in_argv, libpath, envpath, logitech, pim, iso, maxlib);
-    break;
-  case pimcoroutine:
-    add_includes (incl, in_argv, libpath, envpath, pimcoroutine, pim, logitech, iso);
-    break;
-  default:
-    fprintf(stderr, "%s:%d:internal error unrecognized case clause\n",
-	    __FILE__, __LINE__);
-  }
+  do_set (incl, in_argv, envpath);
+  do {
+    e = index (l, ',');
+    if (e == NULL) {
+      c = xstrdup(l);
+      l = NULL;
+    }
+    else {
+      c = strndup(l, e-l);
+      l = e+1;
+    }
+    add_include (incl, in_argv, libpath, c);
+    free((void *)c);
+  } while ((l != NULL) && (l[0] != (char)0));
 }
 
 /*
@@ -614,14 +590,14 @@ add_default_includes (int incl,
  */
 
 static const char *
-build_fobject_path (const char *prev, const char *libpath, libs dialectLib,
+build_fobject_path (const char *prev, const char *libpath, const char *library,
 		    styles style)
 {
   char  sepstr[2];
   char *gm2objs;
   const char *option = "-fobject-path=";
   const char *style_name = libraryStyle[style].directory;
-  const char *libName = libraryName[dialectLib];
+  const char *libName = library;
 
   sepstr[0] = DIR_SEPARATOR;
   sepstr[1] = (char)0;
@@ -654,32 +630,20 @@ build_fobject_path (const char *prev, const char *libpath, libs dialectLib,
 }
 
 /*
- *  add_fobjects - add all required objects for first, second, third and
- *                 fourth.
+ *  add_fobject - add all required path to satisfy the link for library.
  */
 
 static void
-add_fobjects (int incl,
-	      const char ***in_argv,
-	      const char *libpath,
-	      const char *envpath,
-	      libs first,
-	      libs second,
-	      libs third,
-	      libs fourth,
-	      styles s)
+add_fobject (int incl,
+	     const char ***in_argv,
+	     const char *libpath,
+	     const char *library,
+	     styles s)
 {
   const char *prev = (char *)(*in_argv)[incl];
-  do_set (incl, in_argv, envpath);
 
-  if (first != maxlib)
-    do_set (incl, in_argv, build_fobject_path (prev, libpath, first, s));
-  if (second != maxlib)
-    do_set (incl, in_argv, build_fobject_path (prev, libpath, second, s));
-  if (third != maxlib)
-    do_set (incl, in_argv, build_fobject_path (prev, libpath, third, s));
-  if (fourth != maxlib)
-    do_set (incl, in_argv, build_fobject_path (prev, libpath, fourth, s));
+  if (library != NULL)
+    do_set (incl, in_argv, build_fobject_path (prev, libpath, library, s));
 }
 
 /*
@@ -691,34 +655,28 @@ static void
 add_default_fobjects (int incl,
 		      const char ***in_argv,
 		      const char *libpath,
-		      libs libraries,
+		      const char *libraries,
 		      styles s,
 		      const char *envpath)
 {
-  switch (libraries) {
+  const char *l = libraries;
+  const char *e;
+  const char *c;
 
-  case iso:
-    add_fobjects (incl, in_argv, libpath, envpath, iso, pim, logitech, maxlib, s);
-    break;
-  case pim:
-    add_fobjects (incl, in_argv, libpath, envpath, pim, logitech, iso, maxlib, s);
-    break;
-  case ulm:
-    add_fobjects (incl, in_argv, libpath, envpath, ulm, pim, logitech, iso, s);
-    break;
-  case min:
-    add_fobjects (incl, in_argv, libpath, envpath, min, maxlib, maxlib, maxlib, s);
-    break;
-  case logitech:
-    add_fobjects (incl, in_argv, libpath, envpath, logitech, pim, iso, maxlib, s);
-    break;
-  case pimcoroutine:
-    add_fobjects (incl, in_argv, libpath, envpath, pimcoroutine, pim, logitech, iso, s);
-    break;
-  default:
-    fprintf(stderr, "%s:%d:internal error unrecognized case clause\n",
-	    __FILE__, __LINE__);
-  }
+  do_set (incl, in_argv, envpath);
+  do {
+    e = index (l, ',');
+    if (e == NULL) {
+      c = xstrdup(l);
+      l = NULL;
+    }
+    else {
+      c = strndup(l, e-l);
+      l = e+1;
+    }
+    add_fobject (incl, in_argv, libpath, c, s);
+    free(c);
+  } while ((l != NULL) && (l[0] != (char)0));
 }
 
 static void
@@ -894,7 +852,8 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
 		      int *in_added_libraries ATTRIBUTE_UNUSED)
 {
   int i;
-  libs libraries=pim;
+  const char *libraries = NULL;
+  const char *dialect = DEFAULT_DIALECT;
   int x=-1;
   const char *language = NULL;
   int moduleExtension = -1;
@@ -945,17 +904,17 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     if (strncmp((*in_argv)[i], "-fobject-path=", strlen("-fobject-path=")) == 0)
       linkPos = i;
     if (strncmp((*in_argv)[i], "-fiso", strlen("-fiso")) == 0)
-      libraries = iso;
-    if (strncmp((*in_argv)[i], "-flibs=pim", strlen("-flibs=pim")) == 0)
-      libraries = pim;
-    if (strncmp((*in_argv)[i], "-flibs=ulm", strlen("-flibs=ulm")) == 0)
-      libraries = ulm;
-    if (strncmp((*in_argv)[i], "-flibs=min", strlen("-flibs=min")) == 0)
-      libraries = min;
-    if (strncmp((*in_argv)[i], "-flibs=logitech", strlen("-flibs=logitech")) == 0)
-      libraries = logitech;
-    if (strncmp((*in_argv)[i], "-flibs=pim-coroutine", strlen("-flibs=pim-coroutine")) == 0)
-      libraries = pimcoroutine;
+      dialect = "iso";
+    if (strncmp((*in_argv)[i], "-fpim2", strlen("-fpim2")) == 0)
+      dialect = "pim2";
+    if (strncmp((*in_argv)[i], "-fpim3", strlen("-fpim3")) == 0)
+      dialect = "pim3";
+    if (strncmp((*in_argv)[i], "-fpim4", strlen("-fpim4")) == 0)
+      dialect = "pim4";
+    if (strncmp((*in_argv)[i], "-fpim", strlen("-fpim")) == 0)
+      dialect = "pim";
+    if (strncmp((*in_argv)[i], "-flibs=", strlen("-flibs=")) == 0)
+      libraries = (*in_argv)[i] + strlen("-flibs=");
     if (strncmp((*in_argv)[i], "-fmod=", strlen("-fmod=")) == 0)
       moduleExtension = i;
     if ((strcmp((*in_argv)[i], "--version") == 0) ||
@@ -992,6 +951,16 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     i++;
   }
 #endif
+  /*
+   *  work out which libraries to use
+   */
+  if (libraries == NULL) {
+    if (strncmp (dialect, "pim", 2) == 0)
+      libraries = "pim";
+    else if (strcmp (dialect, "iso") == 0)
+      libraries = "iso";
+  }
+
   if (inclPos != -1 && linkPos == -1) {
 #if defined(DEBUGGING)
     printf("inclPos = %d,  linkPos = %d\n", inclPos, linkPos);
@@ -1011,9 +980,8 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
 
   add_exec_prefix (1, in_argc, (char ***)in_argv);
 
-  if ((! seen_B) && seen_fmakeall) {
+  if ((! seen_B) && seen_fmakeall)
     add_B_prefix (1, in_argc, (char ***)in_argv);
-  }
 
   if (linkPos == -1) {
     insert_arg (1, in_argc, (char ***)in_argv);
@@ -1029,7 +997,7 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     add_arg(1, (char ***)in_argv, "-x");
   }
   if (linking) {
-    add_default_archives (in_argc, in_argv, libpath, s, libraries);
+    add_default_archives (inclPos, in_argc, in_argv, libpath, s, libraries);
     add_lib (in_argc, in_argv, MATH_LIBRARY);
     if (! seen_fno_exceptions)
       add_lib (in_argc, in_argv, "-lstdc++");

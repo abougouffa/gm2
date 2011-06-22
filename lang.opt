@@ -57,21 +57,9 @@ fpositive-mod-floor-div
 Modula-2
 force positive result from MOD and DIV result floor
 
-flibs=logitech
-Modula-2
-use the Logitech compatible (PIM dialect) set of libraries
-
-flibs=min
-Modula-2
-use a minimal SYSTEM, M2RTS and libc and no other system libraries
-
-flibs=pim-coroutine
-Modula-2
-use the PIM dialect libraries which include coroutine support
-
-flibs=ulm
-Modula-2
-use the University of Ulm libraries and PIM dialect of Modula-2
+flibs=
+Modula-2 Joined
+specify the library order, currently legal entries include: logitech, min, pim-coroutine, ulm, iso
 
 fbounds
 Modula-2
