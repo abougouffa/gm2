@@ -1396,6 +1396,7 @@ AsmStatement :=                                                            % VAR
                 ] '(' AsmOperands                                          % IF Pass3
                                                                              THEN
                                                                                 BuildInline ;
+                                                                                PopNothing() ;  (* throw away count *)
                                                                                 PopAuto
                                                                              END
                                                                            %
@@ -1442,23 +1443,28 @@ AsmOperands :=                                                             % VAR
 
 AsmList     :=                                                             % IF Pass3
                                                                              THEN
+                                                                                PushT(0) ;
                                                                                 PushT(NulSym)
                                                                              END
                                                                            %
                [ AsmElement ] { ',' AsmElement } =:
 
-AsmElement :=                                                              % VAR str,
+AsmElement :=                                                              % VAR n,
+                                                                                 str,
                                                                                  expr, CurrentInterface: CARDINAL ; %
               string '(' Expression                                        % IF Pass3
                                                                              THEN
                                                                                 PopT(expr) ;
                                                                                 PopT(str) ;
                                                                                 PopT(CurrentInterface) ;
+                                                                                PopT(n) ;
+                                                                                INC(n) ;
                                                                                 IF CurrentInterface=NulSym
                                                                                 THEN
                                                                                    CurrentInterface := MakeRegInterface()
                                                                                 END ;
-                                                                                PutRegInterface(CurrentInterface, str, expr) ;
+                                                                                PutRegInterface(CurrentInterface, n, str, expr) ;
+                                                                                PushT(n) ;
                                                                                 PushT(CurrentInterface)
                                                                              END
                                                                            %

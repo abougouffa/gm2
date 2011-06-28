@@ -958,7 +958,7 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     if (strncmp (dialect, "pim", 2) == 0)
       libraries = "pim";
     else if (strcmp (dialect, "iso") == 0)
-      libraries = "iso";
+      libraries = "iso,pim";
   }
 
   if (inclPos != -1 && linkPos == -1) {

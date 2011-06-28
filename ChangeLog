@@ -1,3 +1,9 @@
+2011-06-28       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2spec.c:  modified default libraries to iso,pim if -fiso is
+	  used.  Fixes a bug reported by Scott Iverson
+	  (http://lists.gnu.org/archive/html/gm2/2011-06/msg00026.html).
+
 2011-06-22       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  specify source and build directories to def2texi.py.
