@@ -762,19 +762,21 @@ PROCEDURE MakeRegInterface () : CARDINAL ;
 
 
 (*
-   PutRegInterface - places a, string, and, object, into the interface list, sym.
+   PutRegInterface - places a, string, and, object, into the interface array, sym,
+                     at position, i.
                      The string symbol will either be a register name or a constraint.
                      The object is an optional Modula-2 variable or constant symbol.
 *)
 
-PROCEDURE PutRegInterface (sym: CARDINAL; string, object: CARDINAL) ;
+PROCEDURE PutRegInterface (sym: CARDINAL; i: CARDINAL; string, object: CARDINAL) ;
 
 
 (*
-   GetRegInterface - gets a, string, and, object, from the interface list, sym.
+   GetRegInterface - gets a, string, and, object, from the interface array, sym,
+                     from position, i.
 *)
 
-PROCEDURE GetRegInterface (sym: CARDINAL; n: CARDINAL; VAR string, object: CARDINAL) ;
+PROCEDURE GetRegInterface (sym: CARDINAL; i: CARDINAL; VAR string, object: CARDINAL) ;
 
 
 (*

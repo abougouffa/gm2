@@ -1383,6 +1383,7 @@ AsmStatement :=                                                            % VAR
                 'ASM'                                                      % IF Pass3
                                                                              THEN
                                                                                 PushAutoOn ;
+                                                                                PushT(0) ;  (* operand count *)
                                                                                 PushT(MakeGnuAsm())
                                                                              END
                                                                            %
@@ -1402,7 +1403,7 @@ AsmStatement :=                                                            % VAR
                                                                            %
                   ')' =:
 
-AsmOperands :=                                                             % VAR CurrentAsm, outputs, inputs, trash: CARDINAL ;
+AsmOperands :=                                                             % VAR CurrentAsm, outputs, inputs, trash, count: CARDINAL ;
                                                                                  str: CARDINAL ;
                                                                            %
                string                                                      % IF Pass3
@@ -1418,7 +1419,9 @@ AsmOperands :=                                                             % VAR
                                                                              THEN
                                                                                 PopT(outputs) ;
                                                                                 PopT(CurrentAsm) ;
+                                                                                PopT(count) ;
                                                                                 PutGnuAsmOutput(CurrentAsm, outputs) ;
+                                                                                PushT(0) ;  (* reset count *)
                                                                                 PushT(CurrentAsm)
                                                                              END
                                                                            %
@@ -1426,7 +1429,9 @@ AsmOperands :=                                                             % VAR
                                                                              THEN
                                                                                 PopT(inputs) ;
                                                                                 PopT(CurrentAsm) ;
+                                                                                PopT(count) ;
                                                                                 PutGnuAsmInput(CurrentAsm, inputs) ;
+                                                                                PushT(0) ;  (* reset count *)
                                                                                 PushT(CurrentAsm)
                                                                              END
                                                                            %
@@ -1434,7 +1439,9 @@ AsmOperands :=                                                             % VAR
                                                                              THEN
                                                                                 PopT(trash) ;
                                                                                 PopT(CurrentAsm) ;
+                                                                                PopT(count) ;
                                                                                 PutGnuAsmTrash(CurrentAsm, trash) ;
+                                                                                PushT(0) ;  (* reset count *)
                                                                                 PushT(CurrentAsm)
                                                                              END
                                                                            %
@@ -1443,15 +1450,13 @@ AsmOperands :=                                                             % VAR
 
 AsmList     :=                                                             % IF Pass3
                                                                              THEN
-                                                                                PushT(0) ;
                                                                                 PushT(NulSym)
                                                                              END
                                                                            %
                [ AsmElement ] { ',' AsmElement } =:
 
-AsmElement :=                                                              % VAR n,
-                                                                                 str,
-                                                                                 expr, CurrentInterface: CARDINAL ; %
+AsmElement :=                                                              % VAR n, str, expr,
+                                                                                 CurrentInterface: CARDINAL ; %
               string '(' Expression                                        % IF Pass3
                                                                              THEN
                                                                                 PopT(expr) ;
@@ -1471,13 +1476,16 @@ AsmElement :=                                                              % VAR
                       ')'
            =:
 
-TrashList :=                                                               % VAR CurrentInterface: CARDINAL ;
-                                                                                 str: CARDINAL ; %
+TrashList :=                                                               % VAR CurrentInterface,
+                                                                                 n, str          : CARDINAL ; %
              [ string                                                      % IF Pass3
                                                                              THEN
                                                                                 PopT(str) ;
                                                                                 CurrentInterface := MakeRegInterface() ;
-                                                                                PutRegInterface(CurrentInterface, str, NulSym) ;
+                                                                                PopT(n) ;
+                                                                                INC(n) ;
+                                                                                PutRegInterface(CurrentInterface, n, str, NulSym) ;
+                                                                                PushT(n) ;
                                                                                 PushT(CurrentInterface)
                                                                              END
                                                                            %
@@ -1485,7 +1493,10 @@ TrashList :=                                                               % VAR
                                                                              THEN
                                                                                 PopT(str) ;
                                                                                 PopT(CurrentInterface) ;
-                                                                                PutRegInterface(CurrentInterface, str, NulSym) ;
+                                                                                PopT(n) ;
+                                                                                INC(n) ;
+                                                                                PutRegInterface(CurrentInterface, n, str, NulSym) ;
+                                                                                PushT(n) ;
                                                                                 PushT(CurrentInterface)
                                                                              END
                                                                            %

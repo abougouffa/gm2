@@ -1,3 +1,13 @@
+2011-06-29       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/m2-3.bnf:  maintain a count of the number of asm operands
+	  in both the AsmElement and TrashList.
+	* gm2/gm2-compiler/SymbolTable.def:  PutRegInterface, GetRegInterface
+	  now specify which parameter number they are manipulating.
+	* gm2/gm2-compiler/SymbolTable.def:  modified the implementation of
+	  PutRegInterface, GetRegInterface to use dynamic array Indexing rather
+	  than the List.
+
 2011-06-28       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2spec.c:  modified default libraries to iso,pim if -fiso is

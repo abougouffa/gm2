@@ -108,6 +108,12 @@ TYPE
               FirstUsed: CARDINAL ;
            END ;
 
+   PtrToAsmConstraint = POINTER TO AsmConstraint ;
+   AsmConstraint = RECORD
+                      str: CARDINAL ;   (* regnames or constraints     *)
+                      obj: CARDINAL ;   (* list of M2 syms             *)
+                   END ;
+
    SymOAFamily = RECORD
                     MaxDimensions: CARDINAL ;
                     SimpleType   : CARDINAL ;
@@ -148,8 +154,9 @@ TYPE
                   END ;
 
    SymInterface = RECORD
-                     StringList: List ;       (* regnames or constraints     *)
-                     ObjectList: List ;       (* list of M2 syms             *)
+                     Parameters: Indexing.Index ;
+                                              (* regnames or constraints     *)
+                                              (* list of M2 syms.            *)
                      At        : Where ;      (* Where was sym declared/used *)
                   END ;
 
@@ -2181,8 +2188,7 @@ BEGIN
    WITH pSym^ DO
       SymbolType := InterfaceSym ;
       WITH Interface DO
-         InitList(StringList) ;
-         InitList(ObjectList) ;
+         Parameters := InitIndex(1) ;
          InitWhereDeclared(At)
       END
    END ;
@@ -2191,21 +2197,35 @@ END MakeRegInterface ;
 
 
 (*
-   PutRegInterface - places a, string, and, object, into the interface list, sym.
+   PutRegInterface - places a, string, and, object, into the interface array, sym,
+                     at position, i.
                      The string symbol will either be a register name or a constraint.
                      The object is an optional Modula-2 variable or constant symbol.
 *)
 
-PROCEDURE PutRegInterface (sym: CARDINAL; string, object: CARDINAL) ;
+PROCEDURE PutRegInterface (sym: CARDINAL; i: CARDINAL; string, object: CARDINAL) ;
 VAR
-   pSym: PtrToSymbol ;
+   pSym : PtrToSymbol ;
+   p    : PtrToAsmConstraint ;
 BEGIN
    pSym := GetPsym(sym) ;
    WITH pSym^ DO
       CASE SymbolType OF
 
-      InterfaceSym: PutItemIntoList(Interface.StringList, string) ;
-                    PutItemIntoList(Interface.ObjectList, object)
+      InterfaceSym: IF Indexing.InBounds(Interface.Parameters, i)
+                    THEN
+                       p := Indexing.GetIndice(Interface.Parameters, i)
+                    ELSIF i+1=Indexing.HighIndice(Interface.Parameters)
+                    THEN
+                       NEW(p) ;
+                       Indexing.PutIndice(Interface.Parameters, i, p)
+                    ELSE
+                       InternalError('expecting to add parameters sequentially', __FILE__, __LINE__)
+                    END ;
+                    WITH p^ DO
+                       str := string ;
+                       obj := object
+                    END
 
       ELSE
          InternalError('expecting Interface symbol', __FILE__, __LINE__)
@@ -2215,19 +2235,29 @@ END PutRegInterface ;
 
 
 (*
-   GetRegInterface - gets a, string, and, object, from the interface list, sym.
+   GetRegInterface - gets a, string, and, object, from the interface array, sym,
+                     from position, i.
 *)
 
-PROCEDURE GetRegInterface (sym: CARDINAL; n: CARDINAL; VAR string, object: CARDINAL) ;
+PROCEDURE GetRegInterface (sym: CARDINAL; i: CARDINAL; VAR string, object: CARDINAL) ;
 VAR
    pSym: PtrToSymbol ;
+   p   : PtrToAsmConstraint ;
 BEGIN
    pSym := GetPsym(sym) ;
    WITH pSym^ DO
       CASE SymbolType OF
 
-      InterfaceSym: string := GetItemFromList(Interface.StringList, n) ;
-                    object := GetItemFromList(Interface.ObjectList, n)
+      InterfaceSym: IF Indexing.InBounds(Interface.Parameters, i)
+                    THEN
+                       p := Indexing.GetIndice(Interface.Parameters, i) ;
+                       WITH p^ DO
+                          string := str ;
+                          object := obj
+                       END
+                    ELSE
+                       InternalError('trying to access a non existent parameter', __FILE__, __LINE__)
+                    END
 
       ELSE
          InternalError('expecting Interface symbol', __FILE__, __LINE__)
@@ -8502,7 +8532,7 @@ BEGIN
       UnboundedSym  : n := 1 |   (* Standard language limitation *)
 *)
       EnumerationSym: n := pSym^.Enumeration.NoOfElements |
-      InterfaceSym  : n := NoOfItemsInList(Interface.ObjectList)
+      InterfaceSym  : n := HighIndice(Interface.Parameters)
 
       ELSE
          InternalError('expecting an Array or UnBounded symbol', __FILE__, __LINE__)
