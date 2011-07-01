@@ -635,7 +635,7 @@ tree                   gccgm2_BuildStartVarientRecord             (char *name);
 static void                   layout_array_type                   (tree t);
 tree                   gccgm2_BuildFieldRecord                    (char *name, tree type);
 tree                   gccgm2_ChainOn                             (tree t1, tree t2);
-tree                   gccgm2_ChainOnParamValue                   (tree list, tree parm, tree value);
+tree                   gccgm2_ChainOnParamValue                   (tree list, tree name, tree str, tree value);
 tree                   gccgm2_AddStringToTreeList                 (tree list, tree string);
 tree                   gccgm2_BuildEndRecord                      (tree t, tree fieldlist);
 tree                   start_enum                                 (tree name);
@@ -11998,13 +11998,13 @@ gccgm2_ChainOn (tree t1, tree t2)
 }
 
 /*
- *  ChainOnParamValue - adds a list node {parm, value} into the tree list.
+ *  ChainOnParamValue - adds a list node {{name, str}, value} into the tree list.
  */
 
 tree
-gccgm2_ChainOnParamValue (tree list, tree parm, tree value)
+gccgm2_ChainOnParamValue (tree list, tree name, tree str, tree value)
 {
-  return chainon (list, build_tree_list(parm, value));
+  return chainon (list, build_tree_list (build_tree_list (name, str), value));
 }
 
 /*

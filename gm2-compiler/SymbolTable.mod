@@ -2215,7 +2215,7 @@ BEGIN
       InterfaceSym: IF Indexing.InBounds(Interface.Parameters, i)
                     THEN
                        p := Indexing.GetIndice(Interface.Parameters, i)
-                    ELSIF i+1=Indexing.HighIndice(Interface.Parameters)
+                    ELSIF i=Indexing.HighIndice(Interface.Parameters)+1
                     THEN
                        NEW(p) ;
                        Indexing.PutIndice(Interface.Parameters, i, p)
@@ -2256,7 +2256,8 @@ BEGIN
                           object := obj
                        END
                     ELSE
-                       InternalError('trying to access a non existent parameter', __FILE__, __LINE__)
+                       string := NulSym ;
+                       object := NulSym
                     END
 
       ELSE
@@ -5270,7 +5271,9 @@ BEGIN
          SubscriptSym        : n := NulName |
          DummySym            : n := NulName |
          PartialUnboundedSym : n := GetSymName(PartialUnbounded.Type) |
-         TupleSym            : n := NulName
+         TupleSym            : n := NulName |
+         GnuAsmSym           : n := NulName |
+         InterfaceSym        : n := NulName
 
          ELSE
             InternalError('unexpected symbol type', __FILE__, __LINE__)

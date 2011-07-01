@@ -737,10 +737,10 @@ PROCEDURE ChainOn (t1, t2: Tree) : Tree ;
 
 
 (*
-   ChainOnParamValue - adds a list node {parm, value} into the tree list.
+   ChainOnParamValue - adds a list node {{name, str}, value} into the tree list.
 *)
 
-PROCEDURE ChainOnParamValue (list, parm, value: Tree) : Tree ;
+PROCEDURE ChainOnParamValue (list, name, str, value: Tree) : Tree ;
 
 
 (*

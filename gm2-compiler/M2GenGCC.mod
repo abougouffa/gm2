@@ -729,7 +729,7 @@ BEGIN
             IF IsConstString(str)
             THEN
                DeclareConstant(GetDeclared(obj), obj) ;
-               tree := ChainOnParamValue(tree, PromoteToString(GetDeclared(str), str), Mod2Gcc(obj))
+               tree := ChainOnParamValue(tree, NIL, PromoteToString(GetDeclared(str), str), Mod2Gcc(obj))
             ELSE
                WriteFormat0('a constraint to the GNU ASM statement must be a constant string')
             END
@@ -801,8 +801,8 @@ BEGIN
       can handle the register dependency providing the user
       specifies VOLATILE and input/output/trash sets correctly.
    *)
-   inputs  := BuildTrashTreeFromInterface(GetGnuAsmInput(GnuAsm)) ;
-   outputs := BuildTrashTreeFromInterface(GetGnuAsmOutput(GnuAsm)) ;
+   inputs  := BuildTreeFromInterface(GetGnuAsmInput(GnuAsm)) ;
+   outputs := BuildTreeFromInterface(GetGnuAsmOutput(GnuAsm)) ;
    trash   := BuildTrashTreeFromInterface(GetGnuAsmTrash(GnuAsm)) ;
    string  := GetGnuAsm(GnuAsm) ;
    DeclareConstant(CurrentQuadToken, string) ;

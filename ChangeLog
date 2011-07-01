@@ -1,3 +1,17 @@
+2011-07-01       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  modified gccgm2_ChainOnParamValue to contain a
+	  name, str and value.
+	* gm2/bnf/m2-3.bnf:  many fixes in AsmList, AsmOperands, TrashList
+	  with respect to interface sym and gnuasm sym.
+	* gm2/gm2-compiler/M2GenGCC.mod:  call BuildTreeFromInterface
+	  instead of BuildTrashTreeFromInterface.
+	* gm2/gm2-compiler/SymbolTable.def:  fix GetRegInterface so that
+	  NulSym are returned in string and object if i exceeds number of
+	  parameters.
+	* gm2/gm2-compiler/gccgm2.def:  changed definition of
+	  ChainOnParamValue.
+
 2011-06-29       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/m2-3.bnf:  maintain a count of the number of asm operands

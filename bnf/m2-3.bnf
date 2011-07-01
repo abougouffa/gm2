@@ -50,7 +50,7 @@ FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertT
 FROM M2Error IMPORT ErrorStringAt, WriteFormat1, WriteFormat2 ;
 FROM NameKey IMPORT NulName, Name, makekey ;
 FROM DynamicStrings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
-FROM M2Printf IMPORT printf0 ;
+FROM M2Printf IMPORT printf0, printf1 ;
 FROM M2Debug IMPORT Assert ;
 FROM P2SymBuild IMPORT BuildString, BuildNumber ;
 
@@ -153,6 +153,7 @@ FROM SymbolTable IMPORT MakeGnuAsm, PutGnuAsmVolatile, PutGnuAsm, PutGnuAsmInput
                         PutGnuAsmOutput, PutGnuAsmTrash, PutGnuAsmVolatile,
                         MakeRegInterface,
                         PutRegInterface,
+                        IsRegInterface, IsGnuAsmVolatile, IsGnuAsm,
                         GetSymName, GetType, SkipType,
                         NulSym,
                         StartScope, EndScope,
@@ -1396,8 +1397,9 @@ AsmStatement :=                                                            % VAR
                                                                            %
                 ] '(' AsmOperands                                          % IF Pass3
                                                                              THEN
+                                                                                PopNothing ;  (* throw away interface sym *)
                                                                                 BuildInline ;
-                                                                                PopNothing() ;  (* throw away count *)
+                                                                                PopNothing ;  (* throw away count *)
                                                                                 PopAuto
                                                                              END
                                                                            %
@@ -1410,66 +1412,93 @@ AsmOperands :=                                                             % VAR
                                                                              THEN
                                                                                 PopT(str) ;
                                                                                 PopT(CurrentAsm) ;
+                                                                                Assert(IsGnuAsm(CurrentAsm) OR IsGnuAsmVolatile(CurrentAsm)) ;
+                                                                                PopT(count) ;
+                                                                                printf1('1: count of asm operands: %d\n', count) ;
+                                                                                PushT(count) ;
                                                                                 (* adds the name/instruction for this asm *)
                                                                                 PutGnuAsm(CurrentAsm, str) ;
-                                                                                PushT(CurrentAsm)
+                                                                                PushT(CurrentAsm) ;
+                                                                                PushT(NulSym)    (* the InterfaceSym *)
                                                                              END
                                                                            %
                [ ':' AsmList                                               % IF Pass3
                                                                              THEN
                                                                                 PopT(outputs) ;
                                                                                 PopT(CurrentAsm) ;
+                                                                                Assert(IsGnuAsm(CurrentAsm) OR IsGnuAsmVolatile(CurrentAsm)) ;
                                                                                 PopT(count) ;
+                                                                                printf1('2: output count of asm operands: %d\n', count) ;
                                                                                 PutGnuAsmOutput(CurrentAsm, outputs) ;
                                                                                 PushT(0) ;  (* reset count *)
-                                                                                PushT(CurrentAsm)
+                                                                                PushT(CurrentAsm) ;
+                                                                                PushT(NulSym)    (* the InterfaceSym *)
                                                                              END
                                                                            %
                   [ ':' AsmList                                            % IF Pass3
                                                                              THEN
                                                                                 PopT(inputs) ;
                                                                                 PopT(CurrentAsm) ;
+                                                                                Assert(IsGnuAsm(CurrentAsm) OR IsGnuAsmVolatile(CurrentAsm)) ;
                                                                                 PopT(count) ;
+                                                                                printf1('3: input count of asm operands: %d\n', count) ;
                                                                                 PutGnuAsmInput(CurrentAsm, inputs) ;
                                                                                 PushT(0) ;  (* reset count *)
-                                                                                PushT(CurrentAsm)
+                                                                                PushT(CurrentAsm) ;
+                                                                                PushT(NulSym)    (* the InterfaceSym *)
                                                                              END
                                                                            %
                      [ ':' TrashList                                       % IF Pass3
                                                                              THEN
                                                                                 PopT(trash) ;
                                                                                 PopT(CurrentAsm) ;
+                                                                                Assert(IsGnuAsm(CurrentAsm) OR IsGnuAsmVolatile(CurrentAsm)) ;
                                                                                 PopT(count) ;
+                                                                                printf1('4: trash count of asm operands: %d\n', count) ;
                                                                                 PutGnuAsmTrash(CurrentAsm, trash) ;
                                                                                 PushT(0) ;  (* reset count *)
-                                                                                PushT(CurrentAsm)
+                                                                                PushT(CurrentAsm) ;
+                                                                                PushT(NulSym)    (* the InterfaceSym *)
                                                                              END
                                                                            %
                         ] ] ]
             =:
 
-AsmList     :=                                                             % IF Pass3
+AsmList     :=                                                             % VAR count, CurrentAsm, CurrentInterface: CARDINAL ; %
+                                                                           % IF Pass3
                                                                              THEN
-                                                                                PushT(NulSym)
+                                                                                PopT(CurrentInterface) ;
+                                                                                PopT(CurrentAsm) ;
+                                                                                PopT(count) ;
+                                                                                Assert(IsGnuAsm(CurrentAsm) OR IsGnuAsmVolatile(CurrentAsm)) ;
+                                                                                PushT(count) ;
+                                                                                PushT(CurrentAsm) ;
+                                                                                PushT(CurrentInterface) ;
+                                                                                printf1('8: AsmList has a count of asm operands: %d\n', count) ;
                                                                              END
                                                                            %
                [ AsmElement ] { ',' AsmElement } =:
 
 AsmElement :=                                                              % VAR n, str, expr,
-                                                                                 CurrentInterface: CARDINAL ; %
+                                                                                 CurrentInterface,
+                                                                                 CurrentAsm      : CARDINAL ; %
               string '(' Expression                                        % IF Pass3
                                                                              THEN
                                                                                 PopT(expr) ;
                                                                                 PopT(str) ;
                                                                                 PopT(CurrentInterface) ;
+                                                                                PopT(CurrentAsm) ;
+                                                                                Assert(IsGnuAsm(CurrentAsm) OR IsGnuAsmVolatile(CurrentAsm)) ;
                                                                                 PopT(n) ;
                                                                                 INC(n) ;
                                                                                 IF CurrentInterface=NulSym
                                                                                 THEN
                                                                                    CurrentInterface := MakeRegInterface()
                                                                                 END ;
+                                                                                printf1('5: count of asm operands: %d\n', n) ;
                                                                                 PutRegInterface(CurrentInterface, n, str, expr) ;
                                                                                 PushT(n) ;
+                                                                                PushT(CurrentAsm) ;
                                                                                 PushT(CurrentInterface)
                                                                              END
                                                                            %
@@ -1477,15 +1506,24 @@ AsmElement :=                                                              % VAR
            =:
 
 TrashList :=                                                               % VAR CurrentInterface,
+                                                                                 CurrentAsm,
                                                                                  n, str          : CARDINAL ; %
              [ string                                                      % IF Pass3
                                                                              THEN
                                                                                 PopT(str) ;
-                                                                                CurrentInterface := MakeRegInterface() ;
+                                                                                PopT(CurrentInterface) ;
+                                                                                PopT(CurrentAsm) ;
                                                                                 PopT(n) ;
                                                                                 INC(n) ;
+                                                                                Assert(IsGnuAsm(CurrentAsm) OR IsGnuAsmVolatile(CurrentAsm)) ;
+                                                                                printf1('6: count of asm trash operands: %d\n', n) ;
+                                                                                IF CurrentInterface=NulSym
+                                                                                THEN
+                                                                                   CurrentInterface := MakeRegInterface()
+                                                                                END ;
                                                                                 PutRegInterface(CurrentInterface, n, str, NulSym) ;
                                                                                 PushT(n) ;
+                                                                                PushT(CurrentAsm) ;
                                                                                 PushT(CurrentInterface)
                                                                              END
                                                                            %
@@ -1493,10 +1531,18 @@ TrashList :=                                                               % VAR
                                                                              THEN
                                                                                 PopT(str) ;
                                                                                 PopT(CurrentInterface) ;
+                                                                                PopT(CurrentAsm) ;
                                                                                 PopT(n) ;
                                                                                 INC(n) ;
+                                                                                Assert(IsGnuAsm(CurrentAsm) OR IsGnuAsmVolatile(CurrentAsm)) ;
+                                                                                printf1('7: count of asm trash operands: %d\n', n) ;
+                                                                                IF CurrentInterface=NulSym
+                                                                                THEN
+                                                                                   CurrentInterface := MakeRegInterface()
+                                                                                END ;
                                                                                 PutRegInterface(CurrentInterface, n, str, NulSym) ;
                                                                                 PushT(n) ;
+                                                                                PushT(CurrentAsm) ;
                                                                                 PushT(CurrentInterface)
                                                                              END
                                                                            %
