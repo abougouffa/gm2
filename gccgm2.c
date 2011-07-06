@@ -581,8 +581,8 @@ void                   gccgm2_BuildParam                          (tree param);
 tree                   gccgm2_BuildProcedureCallTree              (tree procedure, tree rettype);
 tree                   gccgm2_BuildIndirectProcedureCallTree      (tree procedure, tree rettype);
 void                   gccgm2_BuildFunctValue                     (tree value);
-void                   gccgm2_BuildAsm                            (tree instr, int IsVolatile, tree inputs,
-                                                                   tree outputs, tree trash);
+void                   gccgm2_BuildAsm                            (tree instr, int isVolatile, int isSimple,
+                                                                   tree inputs, tree outputs, tree trash);
 tree                   gccgm2_GetIntegerType                      (void);
 tree                   gccgm2_GetCardinalType                     (void);
 tree                   gccgm2_GetCharType                         (void);
@@ -10095,15 +10095,16 @@ gccgm2_BuildIfThenElseEnd (tree condition, tree then_block, tree else_block)
  */
 
 void
-gccgm2_BuildAsm (tree instr, int IsVolatile,
+gccgm2_BuildAsm (tree instr, int isVolatile, int isSimple,
                  tree inputs, tree outputs, tree trash)
 {
-  tree args = build_stmt (ASM_EXPR, instr, outputs, inputs, trash);
+  tree string = resolve_asm_operand_names (instr, outputs, inputs);
+  tree args = build_stmt (ASM_EXPR, string, outputs, inputs, trash);
 
   /* asm statements without outputs, including simple ones, are treated
      as volatile.  */
-  ASM_INPUT_P (args) = (outputs == NULL_TREE);
-  ASM_VOLATILE_P (args) = IsVolatile;
+  ASM_INPUT_P (args) = isSimple;
+  ASM_VOLATILE_P (args) = isVolatile;
 
   add_stmt (args);
 }

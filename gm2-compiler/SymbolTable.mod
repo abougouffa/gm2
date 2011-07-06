@@ -110,8 +110,9 @@ TYPE
 
    PtrToAsmConstraint = POINTER TO AsmConstraint ;
    AsmConstraint = RECORD
-                      str: CARDINAL ;   (* regnames or constraints     *)
-                      obj: CARDINAL ;   (* list of M2 syms             *)
+                      name: Name ;
+                      str : CARDINAL ;   (* regnames or constraints     *)
+                      obj : CARDINAL ;   (* list of M2 syms             *)
                    END ;
 
    SymOAFamily = RECORD
@@ -151,6 +152,7 @@ TYPE
                      Outputs,
                      Trashed   : CARDINAL ;   (* The interface symbols.      *)
                      Volatile  : BOOLEAN ;    (* Declared as ASM VOLATILE ?  *)
+                     Simple    : BOOLEAN ;    (* is a simple kind?           *)
                   END ;
 
    SymInterface = RECORD
@@ -1976,7 +1978,8 @@ BEGIN
          Inputs   := NulSym ;
          Outputs  := NulSym ;
          Trashed  := NulSym ;
-         Volatile := FALSE
+         Volatile := FALSE ;
+         Simple   := FALSE
       END
    END ;
    RETURN( Sym )
@@ -2175,6 +2178,27 @@ END PutGnuAsmVolatile ;
 
 
 (*
+   PutGnuAsmSimple - defines a GnuAsm symbol as a simple kind.
+*)
+
+PROCEDURE PutGnuAsmSimple (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      GnuAsmSym: GnuAsm.Simple := TRUE
+
+      ELSE
+         InternalError('expecting GnuAsm symbol', __FILE__, __LINE__)
+      END
+   END
+END PutGnuAsmSimple ;
+
+
+(*
    MakeRegInterface - creates and returns a register interface symbol.
 *)
 
@@ -2197,13 +2221,13 @@ END MakeRegInterface ;
 
 
 (*
-   PutRegInterface - places a, string, and, object, into the interface array, sym,
-                     at position, i.
+   PutRegInterface - places a, name, string, and, object, into the interface array,
+                     sym, at position, i.
                      The string symbol will either be a register name or a constraint.
                      The object is an optional Modula-2 variable or constant symbol.
 *)
 
-PROCEDURE PutRegInterface (sym: CARDINAL; i: CARDINAL; string, object: CARDINAL) ;
+PROCEDURE PutRegInterface (sym: CARDINAL; i: CARDINAL; n: Name; string, object: CARDINAL) ;
 VAR
    pSym : PtrToSymbol ;
    p    : PtrToAsmConstraint ;
@@ -2223,8 +2247,9 @@ BEGIN
                        InternalError('expecting to add parameters sequentially', __FILE__, __LINE__)
                     END ;
                     WITH p^ DO
-                       str := string ;
-                       obj := object
+                       name := n ;
+                       str  := string ;
+                       obj  := object
                     END
 
       ELSE
@@ -2235,11 +2260,11 @@ END PutRegInterface ;
 
 
 (*
-   GetRegInterface - gets a, string, and, object, from the interface array, sym,
-                     from position, i.
+   GetRegInterface - gets a, name, string, and, object, from the interface array,
+                     sym, from position, i.
 *)
 
-PROCEDURE GetRegInterface (sym: CARDINAL; i: CARDINAL; VAR string, object: CARDINAL) ;
+PROCEDURE GetRegInterface (sym: CARDINAL; i: CARDINAL; VAR n: Name; VAR string, object: CARDINAL) ;
 VAR
    pSym: PtrToSymbol ;
    p   : PtrToAsmConstraint ;
@@ -2252,10 +2277,12 @@ BEGIN
                     THEN
                        p := Indexing.GetIndice(Interface.Parameters, i) ;
                        WITH p^ DO
+                          n      := name ;
                           string := str ;
                           object := obj
                        END
                     ELSE
+                       n      := NulName ;
                        string := NulSym ;
                        object := NulSym
                     END
@@ -10791,6 +10818,27 @@ BEGIN
       END
    END
 END IsGnuAsmVolatile ;
+
+
+(*
+   IsGnuAsmSimple - returns TRUE if a GnuAsm symbol is a simple kind.
+*)
+
+PROCEDURE IsGnuAsmSimple (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      GnuAsmSym: RETURN( GnuAsm.Simple )
+
+      ELSE
+         InternalError('expecting GnuAsm symbol', __FILE__, __LINE__)
+      END
+   END
+END IsGnuAsmSimple ;
 
 
 (*

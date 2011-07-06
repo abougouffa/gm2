@@ -1372,7 +1372,7 @@ PROCEDURE BuildIfThenElseEnd (condition, thenblock, elseblock: Tree) : Tree ;
    BuildAsm - generates an inline assembler instruction.
 *)
 
-PROCEDURE BuildAsm (instr: Tree; IsVolatile: BOOLEAN; inputs, outputs, trash: Tree) ;
+PROCEDURE BuildAsm (instr: Tree; IsVolatile, IsSimple: BOOLEAN; inputs, outputs, trash: Tree) ;
 
 
 (*

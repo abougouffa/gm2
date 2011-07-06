@@ -164,7 +164,8 @@ EXPORT QUALIFIED NulSym,
                  PutProcedureReachable,
                  PutReadQuad, RemoveReadQuad,
                  PutWriteQuad, RemoveWriteQuad,
-                 PutGnuAsm, PutGnuAsmOutput, PutGnuAsmInput, PutGnuAsmTrash, PutGnuAsmVolatile,
+                 PutGnuAsm, PutGnuAsmOutput, PutGnuAsmInput, PutGnuAsmTrash,
+                 PutGnuAsmVolatile, PutGnuAsmSimple,
                  PutRegInterface,
                  PutVariableAtAddress,
                  PutAlignment,
@@ -204,7 +205,7 @@ EXPORT QUALIFIED NulSym,
       	       	 IsSet,
                  IsHiddenType,
                  IsAModula2Type,
-                 IsGnuAsmVolatile, IsGnuAsm, IsRegInterface,
+                 IsGnuAsmVolatile, IsGnuAsmSimple, IsGnuAsm, IsRegInterface,
                  IsError,
                  IsObject,
                  IsTuple,
@@ -755,6 +756,13 @@ PROCEDURE PutGnuAsmVolatile (Sym: CARDINAL) ;
 
 
 (*
+   PutGnuAsmSimple - defines a GnuAsm symbol as a simple kind.
+*)
+
+PROCEDURE PutGnuAsmSimple (Sym: CARDINAL) ;
+
+
+(*
    MakeRegInterface - creates and returns a register interface symbol.
 *)
 
@@ -762,21 +770,23 @@ PROCEDURE MakeRegInterface () : CARDINAL ;
 
 
 (*
-   PutRegInterface - places a, string, and, object, into the interface array, sym,
-                     at position, i.
+   PutRegInterface - places a, name, string, and, object, into the interface array,
+                     sym, at position, i.
                      The string symbol will either be a register name or a constraint.
                      The object is an optional Modula-2 variable or constant symbol.
 *)
 
-PROCEDURE PutRegInterface (sym: CARDINAL; i: CARDINAL; string, object: CARDINAL) ;
+PROCEDURE PutRegInterface (sym: CARDINAL; i: CARDINAL;
+                           n: Name; string, object: CARDINAL) ;
 
 
 (*
-   GetRegInterface - gets a, string, and, object, from the interface array, sym,
-                     from position, i.
+   GetRegInterface - gets a, name, string, and, object, from the interface array,
+                     sym, from position, i.
 *)
 
-PROCEDURE GetRegInterface (sym: CARDINAL; i: CARDINAL; VAR string, object: CARDINAL) ;
+PROCEDURE GetRegInterface (sym: CARDINAL; i: CARDINAL;
+                           VAR n: Name; VAR string, object: CARDINAL) ;
 
 
 (*
@@ -2555,6 +2565,15 @@ PROCEDURE IsAModula2Type (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsGnuAsmVolatile (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsGnuAsmSimple - returns TRUE if a GnuAsm symbol is a simple statement of the
+                    form ASM("instruction"), which differs from ASM("instruction" :)
+                    slightly.
+*)
+
+PROCEDURE IsGnuAsmSimple (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*

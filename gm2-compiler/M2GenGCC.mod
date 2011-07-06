@@ -30,7 +30,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         StartScope, EndScope,
                         GetMainModule, GetModuleScope,
                         GetSymName, ModeOfAddr, GetMode,
-                        GetGnuAsm, IsGnuAsmVolatile,
+                        GetGnuAsm, IsGnuAsmVolatile, IsGnuAsmSimple,
                         GetGnuAsmInput, GetGnuAsmOutput, GetGnuAsmTrash,
                         GetLowestType,
                         GetModuleFinallyFunction, PutModuleFinallyFunction,
@@ -92,7 +92,7 @@ FROM M2Base IMPORT MixTypes, NegateType, ActivationPointer, IsMathType,
                    CheckAssignmentCompatible, IsAssignmentCompatible ;
 
 FROM M2Bitset IMPORT Bitset ;
-FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, makekey, NulName ;
+FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, LengthKey, makekey, NulName ;
 FROM DynamicStrings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark, Slice, ConCat ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3, Sprintf4 ;
 FROM M2System IMPORT Address, Word, System, MakeAdr, IsSystemType, IsGenericSystemType, IsRealN, IsComplexN, IsSetN ;
@@ -713,28 +713,36 @@ END FindType ;
 
 PROCEDURE BuildTreeFromInterface (sym: CARDINAL) : Tree ;
 VAR
-   n   : CARDINAL ;
+   i      : CARDINAL ;
+   name   : Name ;
    str,
-   obj : CARDINAL ;
-   tree: Tree ;
+   obj    : CARDINAL ;
+   gccName,
+   tree   : Tree ;
 BEGIN
    tree := Tree(NIL) ;
    IF sym#NulSym
    THEN
-      n := 1 ;
+      i := 1 ;
       REPEAT
-         GetRegInterface(sym, n, str, obj) ;
+         GetRegInterface(sym, i, name, str, obj) ;
          IF str#NulSym
          THEN
             IF IsConstString(str)
             THEN
                DeclareConstant(GetDeclared(obj), obj) ;
-               tree := ChainOnParamValue(tree, NIL, PromoteToString(GetDeclared(str), str), Mod2Gcc(obj))
+               IF name=NulName
+               THEN
+                  gccName := NIL
+               ELSE
+                  gccName := BuildStringConstant(KeyToCharStar(name), LengthKey(name))
+               END ;
+               tree := ChainOnParamValue(tree, gccName, PromoteToString(GetDeclared(str), str), Mod2Gcc(obj))
             ELSE
                WriteFormat0('a constraint to the GNU ASM statement must be a constant string')
             END
          END ;
-         INC(n)
+         INC(i)
       UNTIL (str=NulSym) AND (obj=NulSym) ;
    END ;
    RETURN( tree )
@@ -750,6 +758,7 @@ VAR
    n   : CARDINAL ;
    str,
    obj : CARDINAL ;
+   name: Name ;
    tree: Tree ;
 BEGIN
    tree := Tree(NIL) ;
@@ -757,7 +766,7 @@ BEGIN
    THEN
       n := 1 ;
       REPEAT
-         GetRegInterface(sym, n, str, obj) ;
+         GetRegInterface(sym, n, name, str, obj) ;
          IF str#NulSym
          THEN
             IF IsConstString(str)
@@ -806,7 +815,8 @@ BEGIN
    trash   := BuildTrashTreeFromInterface(GetGnuAsmTrash(GnuAsm)) ;
    string  := GetGnuAsm(GnuAsm) ;
    DeclareConstant(CurrentQuadToken, string) ;
-   BuildAsm(Mod2Gcc(string), IsGnuAsmVolatile(GnuAsm), inputs, outputs, trash)
+   BuildAsm(Mod2Gcc(string), IsGnuAsmVolatile(GnuAsm), IsGnuAsmSimple(GnuAsm),
+            inputs, outputs, trash)
 END CodeInline ;
 
 

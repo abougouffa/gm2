@@ -1117,12 +1117,16 @@ Definition := "CONST" { ConstantDeclaration ";" } |
 
 AsmStatement := 'ASM' [ 'VOLATILE' ] '(' AsmOperands ')' =:
 
+NamedOperand := '[' Ident ']' =:
+
+AsmOperandName := [ NamedOperand ] =:
+
 AsmOperands  := string [ ':' AsmList [ ':' AsmList [ ':' TrashList ] ] ]
              =:
 
 AsmList      := [ AsmElement ] { ',' AsmElement } =:
 
-AsmElement   := string '(' Expression ')'
+AsmElement   := AsmOperandName string '(' Expression ')'
              =:
 
 TrashList    := [ string ] { ',' string } =:

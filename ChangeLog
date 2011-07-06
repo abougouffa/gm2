@@ -1,3 +1,31 @@
+2011-07-05       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  BuildAsm now has an extra parameter (isSimple).
+	  Also call resolve_asm_operand_names.
+	* gm2/bnf/m2-2.bnf:  parse full GNU asm syntax (including
+	  operand names).
+	* gm2/bnf/m2-3.bnf:  implement full GNU asm syntax (including
+	  operand names).  Record all asm operand names, specifiers
+	  and trash lists.  Also record whether it was a simple kind.
+	* gm2/bnf/m2-c.bnf:  parse full GNU asm syntax (including
+	  operand names).
+	* gm2/bnf/m2-h.bnf:  parse full GNU asm syntax (including
+	  operand names).
+	* gm2/bnf/m2.bnf:  parse full GNU asm syntax (including
+	  operand names).
+	* gm2/gm2-compiler/M2GenGCC.mod:  correct generation of
+	  input, output and trash values for the asm operands.
+	* gm2/gm2-compiler/SymbolTable.def:  New procedures
+	  (PutGnuAsmSimple) and (IsGnuAsmSimple).  Added extra
+	  parameter to (GetRegInterface).
+	* gm2/gm2-compiler/SymbolTable.mod:  Implemented new procedures
+	  (PutGnuAsmSimple) and (IsGnuAsmSimple).  Added extra
+	  parameter to (GetRegInterface) to correct a bug.
+	* gm2/gm2-compiler/gccgm2.def:  modified declaration of
+	  (BuildAsm) to include an extra parameter, IsSimple.
+	* These fixes allow GNU ASM syntax to behave in exactly
+	  the same way as the other GCC front ends.
+
 2011-07-01       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  modified gccgm2_ChainOnParamValue to contain a
