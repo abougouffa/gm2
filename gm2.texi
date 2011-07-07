@@ -2444,17 +2444,18 @@ convention.
 
 A simple, but highly non optimal, example is given below. Here we want
 to add the two @code{CARDINAL}s @code{foo} and @code{bar} together and
-return the result.
+return the result.  The target processor is assumed to be executing
+the x86_64 instruction set.
 
 @example
 PROCEDURE Example (foo, bar: CARDINAL) : CARDINAL ;
 VAR
    myout: CARDINAL ;
 BEGIN
-   ASM VOLATILE ("movl %1,%%eax; addl %2,%%eax; movl %%eax,%0"
-      : "=g" (myout)           (* outputs *)
-      : "g" (foo), "g" (bar)   (* inputs  *)
-      : "eax") ;               (* we trash *)
+   ASM VOLATILE ("movq %1,%%rax; addq %2,%%rax; movq %%rax,%0"
+      : "=rm" (myout)            (* outputs *)
+      : "rm" (foo), "rm" (bar)   (* inputs  *)
+      : "rax") ;                 (* we trash *)
    RETURN( myout )
 END Example ;
 @end example
@@ -2462,6 +2463,29 @@ END Example ;
 For a full description of this interface we refer the reader to the GNU C manual.
 
 @xref{Extended Asm, ,Extensions to the C Language Family,gcc}.
+
+The same example can be written using the newer extensions of naming
+the operands rather than using numbered arguments.
+
+@example
+PROCEDURE Example (foo, bar: CARDINAL) : CARDINAL ;
+VAR
+   myout: CARDINAL ;
+BEGIN
+   ASM VOLATILE ("movq %[left],%%rax; addq %[right],%%rax; movq %%rax,%[output]"
+      : [output] "=rm" (myout)                  (* outputs *)
+      : [left] "rm" (foo), [right] "rm" (bar)   (* inputs  *)
+      : "rax") ;                                (* we trash *)
+   RETURN( myout )
+END Example ;
+@end example
+
+Both examples generate exactly the same code.  It is worth noting that
+the specifier ``rm'' indicates that the operand can be either a
+register or memory.  Of course you must choose an instruction which
+can take either, but this allows the compiler to take make more
+efficient choices depending upon the optimization level given to the
+compiler.
 
 @node Alignment, Built-ins, Assembly language, Using
 @section Data type alignment

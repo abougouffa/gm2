@@ -1,3 +1,8 @@
+2011-07-07       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2.texi:  improved the Extended Asm section and changed
+	  the example for the x86_64 processor.
+
 2011-07-05       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  BuildAsm now has an extra parameter (isSimple).
