@@ -4696,17 +4696,14 @@ BEGIN
    s := NIL ;
    IF IsConstString(el)
    THEN
-      isChar := TRUE ;
-      IF IsConstString(el)
-      THEN
-         s := InitStringCharStar(KeyToCharStar(GetString(el))) ;
-         l := GetStringLength(el)
-      ELSE
-         WriteFormat1('cannot build a string using {%1ad}', el)
-      END
+      isChar := FALSE ;
+      s := InitStringCharStar(KeyToCharStar(GetString(el))) ;
+      l := GetStringLength(el)
    ELSIF IsConst(el) AND (SkipType(GetType(el))=Char) AND IsValueSolved(el)
    THEN
-      isChar := FALSE
+      isChar := TRUE
+   ELSE
+      WriteFormat1('cannot build a string using {%1ad}', el)
    END ;
    i := 0 ;
    REPEAT
@@ -4714,6 +4711,7 @@ BEGIN
       PushCard(i) ;
       Addn ;
       indice := PopIntegerTree() ;
+      letter := NIL ;
       IF isChar
       THEN
          isChar := FALSE ;
