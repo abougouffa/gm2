@@ -1986,7 +1986,7 @@ also visible to the user of the shared library.
 The @code{BEGIN} @code{END} code at module scope in @file{a.mod},
 @file{b.mod}, @file{c.mod} and all dependent library modules will be
 initialized when the shared library is loaded.  Likewise the
-@code{FINISH} @code{END} code at all module scopes is executed when
+@code{FINALLY} @code{END} code at all module scopes is executed when
 the library is unloaded.  Both the initialization and termination is
 implemented transparently using the GNU/Linux mechanism:
 
