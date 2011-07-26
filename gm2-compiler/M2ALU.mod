@@ -4643,7 +4643,16 @@ END IsString ;
 PROCEDURE StringFitsArray (arrayType, el: CARDINAL; tokenno: CARDINAL) : BOOLEAN ;
 BEGIN
    PushIntegerTree(BuildNumberOfArrayElements(Mod2Gcc(arrayType))) ;
-   PushCard(GetStringLength(el)) ;
+   IF IsConstString(el)
+   THEN
+      PushCard(GetStringLength(el))
+   ELSIF IsConst(el) AND (SkipType(GetType(el))=Char) AND IsValueSolved(el)
+   THEN
+      PushCard(1)
+   ELSE
+      PushCard(0) ;
+      WriteFormat1('cannot build a string using {%1ad}', el)
+   END ;
    RETURN GreEqu(tokenno)
 END StringFitsArray ;
 
@@ -4675,6 +4684,7 @@ END GetArrayLimits ;
 PROCEDURE InitialiseArrayOfCharWithString (tokenno: CARDINAL; cons: Tree;
                                            v: PtrToValue; el, baseType, arrayType: CARDINAL) : Tree ;
 VAR
+   isChar   : BOOLEAN ;
    s, letter: String ;
    i, l     : CARDINAL ;
    high, low: CARDINAL ;
@@ -4682,15 +4692,34 @@ VAR
    indice   : Tree ;
 BEGIN
    GetArrayLimits(baseType, low, high) ;
-   s := InitStringCharStar(KeyToCharStar(GetString(el))) ;
-   l := GetStringLength(el) ;
+   l := 0 ;
+   s := NIL ;
+   IF IsConstString(el)
+   THEN
+      isChar := TRUE ;
+      IF IsConstString(el)
+      THEN
+         s := InitStringCharStar(KeyToCharStar(GetString(el))) ;
+         l := GetStringLength(el)
+      ELSE
+         WriteFormat1('cannot build a string using {%1ad}', el)
+      END
+   ELSIF IsConst(el) AND (SkipType(GetType(el))=Char) AND IsValueSolved(el)
+   THEN
+      isChar := FALSE
+   END ;
    i := 0 ;
    REPEAT
       PushValue(low) ;
       PushCard(i) ;
       Addn ;
       indice := PopIntegerTree() ;
-      IF i<l
+      IF isChar
+      THEN
+         isChar := FALSE ;
+         PushValue(el) ;
+         value := PopIntegerTree()
+      ELSIF i<l
       THEN
          IF i+1<l
          THEN

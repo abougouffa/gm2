@@ -1,3 +1,9 @@
+2011-07-26       Gaius Mulley <gaius@gnu.org>
+	
+	* gm2/gm2-compiler/M2ALU.mod:  allow constant array strings
+	  to be created with const chars.  Bug fix for:
+	  testsuite/gm2/iso/pass/constchar.mod.
+
 2011-07-25       Gaius Mulley <gaius@gnu.org>
 	
 	* gm2/gm2.texi:  corrected typo in the documentation.
