@@ -2132,7 +2132,12 @@ BEGIN
                   RETURN( IsParameterCompatible(at, ft) )
                END
             ELSE
-               RETURN( FALSE )
+               IF IsParameterVar(formal)
+               THEN
+                  RETURN( IsVarParamCompatible(at, formal) )
+               ELSE
+                  RETURN( IsParameterCompatible(at, ft) )
+               END
             END
          END
       END

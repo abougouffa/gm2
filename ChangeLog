@@ -1,3 +1,9 @@
+2011-07-27       Gaius Mulley <gaius@gnu.org>
+	
+	* gm2/gm2-compiler/M2Base.mod:  allow a dataType to be
+	  passed to ARRAY OF dataType.  Bug fix for:
+          testsuite/gm2/pim/pass/charstring.mod.
+
 2011-07-26       Gaius Mulley <gaius@gnu.org>
 	
 	* gm2/gm2-compiler/M2ALU.mod:  allow constant array strings
