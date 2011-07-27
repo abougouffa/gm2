@@ -4,6 +4,10 @@
 	  passed to ARRAY OF dataType.  Bug fix for:
           testsuite/gm2/pim/pass/charstring.mod.
 	* gm2/version.c:  updated to 1.0.3
+	* gm2/gm2-libs/config-host:  rebuilt.
+	* gm2/gm2-libs/config-host.in:  updated to 1.0.3.
+	* gm2/gm2-libs/config-target:  rebuilt.
+	* gm2/gm2-libs/config-target.in:  updated to 1.0.3.
 
 2011-07-26       Gaius Mulley <gaius@gnu.org>
 	
