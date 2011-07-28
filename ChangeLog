@@ -1,3 +1,8 @@
+2011-07-28       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  add dependencies for the constuction of
+	  gm2/gm2-libs.texi.
+
 2011-07-27       Gaius Mulley <gaius@gnu.org>
 	
 	* gm2/gm2-compiler/M2Base.mod:  allow a dataType to be

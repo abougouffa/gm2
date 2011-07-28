@@ -250,7 +250,7 @@ $(objdir)/gm2/images/gnu.eps: $(srcdir)/gm2/images/gnupng
            pngtopnm $< | pnmtops -noturn > $@ ; \
         fi
 
-gm2/gm2-libs.texi: $(BUILD-ALL-LIBS)
+gm2/gm2-libs.texi: $(BUILD-ALL-LIBS) gm2/SYSTEM-pim.texi gm2/SYSTEM-iso.texi gm2/Builtins.texi 
 	python $(srcdir)/gm2/tools-src/def2texi.py -uLibraries -s$(srcdir)/gm2 -b$(objdir)/gm2 > $(objdir)/gm2/gm2-libs.texi
 
 gm2/gm2-ebnf.texi: gm2/gm2-auto gm2/ppg$(exeext) $(srcdir)/gm2/bnf/m2.bnf
