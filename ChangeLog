@@ -1,10 +1,20 @@
+2011-09-30       Gaius Mulley <gaius@gnu.org>
+
+	* released GM2 1.0.4
+	* tagged with:  gcc_4_1_2_gm2_1_0_4
+	* gm2/version.c:  updated to 1.0.4
+	* gm2/gm2-libs/config-host:  rebuilt.
+	* gm2/gm2-libs/config-host.in:  updated to 1.0.4.
+	* gm2/gm2-libs/config-target:  rebuilt.
+	* gm2/gm2-libs/config-target.in:  updated to 1.0.4
+
 2011-07-28       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  add dependencies for the constuction of
 	  gm2/gm2-libs.texi.
 
 2011-07-27       Gaius Mulley <gaius@gnu.org>
-	
+
 	* gm2/gm2-compiler/M2Base.mod:  allow a dataType to be
 	  passed to ARRAY OF dataType.  Bug fix for:
           testsuite/gm2/pim/pass/charstring.mod.
@@ -15,7 +25,7 @@
 	* gm2/gm2-libs/config-target.in:  updated to 1.0.3.
 
 2011-07-26       Gaius Mulley <gaius@gnu.org>
-	
+
 	* gm2/gm2-compiler/M2ALU.mod:  allow constant array strings
 	  to be created with const chars.  Bug fix for:
 	  testsuite/gm2/iso/pass/constchar.mod.
@@ -23,16 +33,16 @@
 	  patch.
 
 2011-07-25       Gaius Mulley <gaius@gnu.org>
-	
+
 	* gm2/gm2.texi:  corrected typo in the documentation.
 
 2011-07-15       Gaius Mulley <gaius@gnu.org>
-	
+
 	* gm2/gm2-libs-iso/StdChans.mod:  allow raw operators on
 	  stdin, stdout and stderr.  Bug fix to an error reported
 	  by Scott Iverson
 	  (http://lists.gnu.org/archive/html/gm2/2011-07/msg00003.html).
-	
+
 2011-07-07       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  improved the Extended Asm section and changed
@@ -133,7 +143,7 @@
 	  we are not assigning from an unbounded array.
 	* gm2/gccgm2.def:  export GetArrayNoOfElements.
 	  Fixes a bug reported by Scott Iverson.
-	
+
 2011-06-11       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2ALU.mod:  added a limit check to SetNegate
@@ -300,7 +310,7 @@
 	* gm2/gm2-compiler/PCSymBuild.mod:  WalkLeaf detect
 	  if the symbol is a type in which case copy the
 	  type rather than get the type of a type.
-	
+
 2011-01-14       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  modified the stage2 and Modula-2
@@ -525,7 +535,7 @@
 	* gm2/gm2-libs-pim/RealConversions.mod:  included cpp macros for
 	  debugging memory leaks within the module.  Also fixed
 	  doPowerOfTen.
-	
+
 2010-11-07       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/DynamicStrings.mod:  writeAddress (New procedure),
@@ -566,7 +576,7 @@
 	  Mark(ing) appropriate strings.
 	* gm2/gm2-libs-pim/RealConversions.mod:  fixed many memory leaks by
 	  Mark(ing) appropriate strings.
-	
+
 2010-11-02       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/TODO:  updated.
@@ -618,7 +628,7 @@
 	  InitSystemTypes.
 	* gm2/www/index.ms:  update homepage with reference to the
 	  newly released 0.99.
-		
+
 2010-10-11       Gaius Mulley <gaius@gnu.org>
 
 	* released version 0.99 of gm2.
@@ -654,15 +664,15 @@
 	* gm2/Make-lang.in:  tidied up Copyright dates on
 	* gm2/Makefile.in:  the following files.
 	* gm2/config-lang.in:
-	* gm2/gccgm2.c:  
-	* gm2/gm2-common.c:  
-	* gm2/gm2-common.h:  
-	* gm2/gm2-lang.c:  
-	* gm2/gm2-lang.h:  
-	* gm2/gm2-tree.def:  
-	* gm2/gm2-tree.h:  
-	* gm2/gm2builtins.c:  
-	* gm2/gm2config.h.in:  
+	* gm2/gccgm2.c:
+	* gm2/gm2-common.c:
+	* gm2/gm2-common.h:
+	* gm2/gm2-lang.c:
+	* gm2/gm2-lang.h:
+	* gm2/gm2-tree.def:
+	* gm2/gm2-tree.h:
+	* gm2/gm2builtins.c:
+	* gm2/gm2config.h.in:
 	* gm2/gm2except.c:
 	* gm2/gm2spec.c:
 	* gm2/gm2version.h:

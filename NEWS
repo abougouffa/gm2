@@ -1,6 +1,11 @@
 This file describes recent user-visible changes in gm2.  Bug fixes are
 not described.  There are more details in the man and info pages.
 
+VERSION 1.0.4
+=============
+
+* Bug fixes to release 1.0
+
 VERSION 1.0
 ===========
 
