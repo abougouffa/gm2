@@ -1,3 +1,9 @@
+2011-10-04       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/version.c:  updated to 1.0.5
+	* gm2/gm2-libs/config-host.in:  updated to 1.0.5.
+	* gm2/gm2-libs/config-target.in:  updated to 1.0.5
+
 2011-10-02       Gaius Mulley <gaius@gnu.org>
 
 	* tagged GM2 gcc_4_1_2_gm2_1_0_4_0 post checkin.

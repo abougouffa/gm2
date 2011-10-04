@@ -210,7 +210,7 @@ source tree.
 
 @table @code
 @item
-gm2 1.0.1 was released on January 12 2011.  This is a bug fix release.
+gm2 1.0.4 was released on September 30 2011.  This is a bug fix release.
 @item
 gm2 1.0 was released on December 11 2010.
 @item
