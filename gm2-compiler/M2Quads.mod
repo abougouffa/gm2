@@ -10811,10 +10811,15 @@ BEGIN
    PutVar(constValue, type) ;
    PutConstructor(constValue) ;
    PushValue(constValue) ;
-   ChangeToConstructor(GetTokenNo(), type) ;
-   PutConstructorFrom(constValue, type) ;
-   PopValue(constValue) ;
-   PutConstructorIntoFifoQueue(constValue) ;
+   IF type=NulSym
+   THEN
+      WriteFormat0('constructor requires a type before the opening {')
+   ELSE
+      ChangeToConstructor(GetTokenNo(), type) ;
+      PutConstructorFrom(constValue, type) ;
+      PopValue(constValue) ;
+      PutConstructorIntoFifoQueue(constValue)
+   END ;
    PushConstructor(type)
 END BuildConstructor ;
 

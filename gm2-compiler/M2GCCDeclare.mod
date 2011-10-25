@@ -318,6 +318,57 @@ END DebugSets ;
 
 
 (*
+   DebugNumber - 
+*)
+
+PROCEDURE DebugNumber (a: ARRAY OF CHAR; s: Set) ;
+VAR
+   n: CARDINAL ;
+BEGIN
+   n := NoOfElementsInSet(s) ;
+   printf1(a, n)
+END DebugNumber ;
+
+
+(*
+   FindSetNumbers - 
+*)
+
+PROCEDURE FindSetNumbers (VAR t, p, f, n, b: CARDINAL) : BOOLEAN ;
+VAR
+   t1, p1, f1, n1, b1: CARDINAL ;
+   same              : BOOLEAN ;
+BEGIN
+   t1 := NoOfElementsInSet(ToDoList) ;
+   p1 := NoOfElementsInSet(PartiallyDeclared) ;
+   f1 := NoOfElementsInSet(FullyDeclared) ;
+   n1 := NoOfElementsInSet(NilTypedArrays) ;
+   b1 := NoOfElementsInSet(ToBeSolvedByQuads) ;
+   same := ((t=t1) AND (p=p1) AND (f=f1) AND (n=n1) AND (b=b1)) ;
+   t := t1 ;
+   p := p1 ;
+   f := f1 ;
+   n := n1 ;
+   b := b1 ;
+   RETURN( same )
+END FindSetNumbers ;
+
+
+(*
+   DebugSets - 
+*)
+
+PROCEDURE DebugSetNumbers ;
+BEGIN
+   DebugNumber('ToDoList : %d\n', ToDoList) ;
+   DebugNumber('PartiallyDeclared : %d\n', PartiallyDeclared) ;
+   DebugNumber('FullyDeclared : %d\n', FullyDeclared) ;
+   DebugNumber('NilTypedArrays : %d\n', NilTypedArrays) ;
+   DebugNumber('ToBeSolvedByQuads : %d\n', ToBeSolvedByQuads)
+END DebugSetNumbers ;
+
+
+(*
    AddSymToWatch - adds symbol, sym, to the list of symbols
                    to watch and annotate their movement between
                    lists.
@@ -359,10 +410,6 @@ BEGIN
                               printf1("symbol %d -> FullyDeclared\n", sym) ;
                               FIO.FlushBuffer(FIO.StdOut) ;
                               IncludeElementIntoSet(FullyDeclared, sym)
-                              ; IF sym=1420
-                              THEN
-                                 mystop
-                              END
                            END |
       partiallydeclared :  IF NOT IsElementInSet(PartiallyDeclared, sym)
                            THEN
@@ -576,25 +623,29 @@ PROCEDURE DeclareTypePartially (sym: CARDINAL) ;
 VAR
    t: Tree ;
 BEGIN
-   IF IsRecord(sym)
+   (* check to see if we have already partially declared the symbol *)
+   IF NOT IsElementInSet(PartiallyDeclared, sym)
    THEN
-      t := DoStartDeclaration(sym, BuildStartRecord)
-   ELSIF IsProcType(sym)
-   THEN
-      t := DoStartDeclaration(sym, BuildStartFunctionType)
-   ELSIF IsType(sym)
-   THEN
-      IF NOT GccKnowsAbout(sym)
+      IF IsRecord(sym)
       THEN
-         PreAddModGcc(sym, BuildStartType(KeyToCharStar(GetFullSymName(sym)),
-                                          Mod2Gcc(GetType(sym))))
-      END
-   ELSE
-      InternalError('do not know how to create a partial type from this symbol',
-                    __FILE__, __LINE__)
-   END ;
-   WatchIncludeList(sym, partiallydeclared) ;
-   WatchIncludeList(sym, todolist)
+         t := DoStartDeclaration(sym, BuildStartRecord)
+      ELSIF IsProcType(sym)
+      THEN
+         t := DoStartDeclaration(sym, BuildStartFunctionType)
+      ELSIF IsType(sym)
+      THEN
+         IF NOT GccKnowsAbout(sym)
+         THEN
+            PreAddModGcc(sym, BuildStartType(KeyToCharStar(GetFullSymName(sym)),
+                                             Mod2Gcc(GetType(sym))))
+         END
+      ELSE
+         InternalError('do not know how to create a partial type from this symbol',
+                       __FILE__, __LINE__)
+      END ;
+      WatchIncludeList(sym, partiallydeclared) ;
+      WatchIncludeList(sym, todolist)
+   END
 END DeclareTypePartially ;
 
 
@@ -1046,6 +1097,10 @@ PROCEDURE Body (sym: CARDINAL) ;
 BEGIN
    IF bodyq(sym)
    THEN
+      IF sym=23222
+      THEN
+         mystop
+      END ;
       WatchRemoveList(sym, bodyt) ;
       bodyp(sym) ;
       (* bodyp(sym) might have replaced sym into the set *)
@@ -1142,10 +1197,20 @@ END testThis ;
 PROCEDURE DeclaredOutstandingTypes (MustHaveCompleted: BOOLEAN;
                                     start, end: CARDINAL) : BOOLEAN ;
 VAR
-   finished: BOOLEAN ;  (* p2c cannot handle LOOP EXIT END *)
+   finished     : BOOLEAN ;  (* p2c cannot handle LOOP EXIT END *)
+   d, p, f, n, b: CARDINAL ;
 BEGIN
+   d := 0 ;
+   p := 0 ;
+   f := 0 ;
+   n := 0 ;
+   b := 0 ;
    finished := FALSE ;
    REPEAT
+      IF FindSetNumbers(d, p, f, n, b)
+      THEN
+         DebugSetNumbers
+      END ;
       IF ForeachTryDeclare(start, end,
                            todolist, ToDoList,
                            CanDeclareTypePartially,
@@ -2245,6 +2310,8 @@ BEGIN
    (* AddSymToWatch(5889) ; *)
    (* IncludeElementIntoSet(WatchList, 717) ; *)
    (* IncludeElementIntoSet(WatchList, 829) ; *)
+   (* IncludeElementIntoSet(WatchList, 2714) ; *)
+   (* IncludeElementIntoSet(WatchList, 23222) ; *)
    IF Debugging
    THEN
       n := GetSymName(scope) ;

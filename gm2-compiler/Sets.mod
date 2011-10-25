@@ -46,6 +46,16 @@ TYPE
 
 
 (*
+   growSet - 
+*)
+
+PROCEDURE growSet (i: CARDINAL; bytes: CARDINAL) ;
+BEGIN
+   printf2("i = %d,  bytes = %d\n", i, bytes)
+END growSet ;
+
+
+(*
    checkRange - checks to make sure, i, is within range and
                 it will extend the set bitmap if required.
 *)
@@ -83,6 +93,10 @@ BEGIN
                bytes := BitsetSize
             END ;
             WHILE i >= bytes*BitsPerByte DO
+               IF Debugging
+               THEN
+                  growSet(i, bytes)
+               END ;
                bytes := bytes * 2
             END ;
             ALLOCATE(b, bytes) ;

@@ -1,3 +1,12 @@
+2011-10-25       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  added debugging
+	  and also fixed a bug reported by Scott Iverson.
+	  (non-free/scott-iverson/test25/fail/WinShell.mod).
+	* gm2/gm2-compiler/M2Quads.mod:  added error checking
+	  to detect a nul typed constructor.
+	* gm2/gm2-compiler/Sets.mod:  added internal debugging.
+	  
 2011-10-04       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/version.c:  updated to 1.0.5
