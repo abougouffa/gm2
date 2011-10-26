@@ -1,3 +1,11 @@
+2011-10-26       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added LMathLib0.def LegacyReal.def
+	  MemUtils.def to the list of GM2-LIBS-DEFS and
+          LMathLib0.mod LegacyReal.mod MemUtils.mod to
+          GM2-LIBS-MODS.  This corrects a bug reported by
+	  Steve Giess.
+
 2011-10-25       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  added debugging
