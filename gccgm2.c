@@ -9167,6 +9167,8 @@ gccgm2_BuildSize (tree op1, int needconvert ATTRIBUTE_UNUSED)
 tree
 gccgm2_BuildAddr (tree op1, int needconvert)
 {
+  if (! gm2_mark_addressable (op1))
+    error ("cannot take the address of this expression");
   return build_unary_op (ADDR_EXPR, op1, needconvert);
 }
 
@@ -9818,6 +9820,16 @@ tree
 gccgm2_BuildArray (tree type, tree array, tree index, tree lowIndice, tree elementSize)
 {
   return build4 (ARRAY_REF, type, array, index, lowIndice, elementSize);
+}
+
+/*
+ *
+ */
+
+tree
+gccgm2_BuildComponentRef (tree record, tree field)
+{
+  return build (COMPONENT_REF, TREE_TYPE (field), record, field, NULL_TREE);
 }
 
 /*
@@ -10528,6 +10540,17 @@ gccgm2_GetErrorNode (void)
 {
   return error_mark_node;
 }
+
+/*
+ *  convertToSizeT - return VAL(size_t, t)
+ */
+
+tree
+convertToSizeT (tree t)
+{
+  return gccgm2_BuildConvert (size_type_node, t, FALSE);
+}
+
 
 /*
  *  convertToPtr - if the type of tree, t, is not a ptr_type_node then convert it.

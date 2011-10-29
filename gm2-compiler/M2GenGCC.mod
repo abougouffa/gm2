@@ -181,7 +181,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    AreConstantsEqual, CompareTrees,
                    DoJump,
                    BuildProcedureCallTree, BuildIndirectProcedureCallTree,
-                   BuildParam, BuildFunctValue,
+                   BuildParam, BuildFunctValue, BuildComponentRef,
                    BuildAsm, DebugTree,
                    BuildSetNegate,
                    BuildPushFunctionContext, BuildPopFunctionContext,
@@ -1201,11 +1201,9 @@ BEGIN
    UnboundedType := GetType(param) ;
    Assert(IsUnbounded(UnboundedType)) ;
 
-   RETURN( BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
-                                  BuildOffset1(Mod2Gcc(GetUnboundedAddressOffset(UnboundedType)),
-                                               FALSE),
-                                  FALSE),
-                         GetPointerType()) )
+   RETURN( BuildConvert(GetPointerType(),
+                        BuildComponentRef(Mod2Gcc(param), Mod2Gcc(GetUnboundedAddressOffset(UnboundedType))),
+                        FALSE) )
 END GetAddressOfUnbounded ;
 
 
@@ -1223,10 +1221,7 @@ BEGIN
    Assert(IsUnbounded(UnboundedType)) ;
    ArrayType := GetType(UnboundedType) ;
 
-   RETURN( BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
-                                  BuildOffset1(Mod2Gcc(GetUnboundedHighOffset(UnboundedType, dim)), FALSE),
-                                  FALSE),
-                         GetIntegerType()) )
+   RETURN( BuildComponentRef(Mod2Gcc(param), Mod2Gcc(GetUnboundedHighOffset(UnboundedType, dim))) )
 END GetHighFromUnbounded ;
 
 
@@ -1303,11 +1298,8 @@ BEGIN
 
    (* now assign  param.Addr := ADR(NewArray) *)
 
-   t := BuildAssignmentTree(BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
-                                                   BuildOffset1(Mod2Gcc(GetUnboundedAddressOffset(UnboundedType)), FALSE),
-                                                   FALSE),
-                                          GetPointerType()), NewArray)
-
+   t := BuildAssignmentTree(BuildComponentRef(Mod2Gcc(param), Mod2Gcc(GetUnboundedAddressOffset(UnboundedType))),
+                            NewArray)
 END MakeCopyAndUse ;
 
 
@@ -4660,10 +4652,7 @@ BEGIN
                                BuildAddr(Mod2Gcc(op3), TRUE))
    ELSIF IsUnbounded(GetType(op3))
    THEN
-      Addr := BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(op3), FALSE),
-                                     BuildOffset1(Mod2Gcc(GetUnboundedAddressOffset(GetType(op3))), FALSE),
-                                     FALSE),
-                            GetPointerType()) ;
+      Addr := BuildComponentRef(Mod2Gcc(op3), Mod2Gcc(GetUnboundedAddressOffset(GetType(op3)))) ;
       t := BuildAssignmentTree(BuildIndirect(Mod2Gcc(op1), GetPointerType()), Addr)
    ELSIF GetMode(op3)=RightValue
    THEN

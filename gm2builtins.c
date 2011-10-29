@@ -304,6 +304,7 @@ static GTY(()) tree floatptr_type_node;
 
 /* prototypes go here */
 /* imports */
+extern tree                   convertToSizeT                              (tree t);
 extern tree                   convertToPtr   		       	 	  (tree t);
 extern tree                   gccgm2_BuildIntegerConstant                 (int value);
 extern void                   gccgm2_SetLastFunction                      (tree t);
@@ -800,7 +801,7 @@ gm2builtins_BuiltInMemCopy (tree dest, tree src, tree n)
 {
   tree params = chainon (chainon (build_tree_list (NULL_TREE, convertToPtr (dest)),
 				  build_tree_list (NULL_TREE, convertToPtr (src))),
-			 build_tree_list (NULL_TREE, n));
+			 build_tree_list (NULL_TREE, convertToSizeT(n) ));
   return DoBuiltinMemCopy (params);
 }
 
@@ -812,7 +813,7 @@ gm2builtins_BuiltInMemCopy (tree dest, tree src, tree n)
 tree
 gm2builtins_BuiltInAlloca (tree n)
 {
-  return DoBuiltinAlloca (listify (n));
+  return DoBuiltinAlloca (listify (convertToSizeT (n)));
 }
 
 /*

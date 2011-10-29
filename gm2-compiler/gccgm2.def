@@ -107,7 +107,7 @@ EXPORT QUALIFIED Tree, Constructor,
                  BuildIsSubset, BuildIsNotSubset,
                  BuildIfConstInVar, BuildIfNotConstInVar,
                  BuildIfVarInVar, BuildIfNotVarInVar,
-                 BuildIndirect, BuildArray,
+                 BuildIndirect, BuildArray, BuildComponentRef,
                  DoJump,
                  BuildProcedureCallTree, BuildIndirectProcedureCallTree, BuildParam, BuildFunctValue,
                  BuildStartMainModule, BuildEndMainModule,
@@ -1304,6 +1304,13 @@ PROCEDURE BuildForeachWordInSetDoIfExpr (type, op1, op2: Tree;
 *)
 
 PROCEDURE BuildArray (type, array, index, lowIndice, elementSize: Tree) : Tree ;
+
+
+(*
+   BuildComponentRef - returns a tree representing (record.field).
+*)
+
+PROCEDURE BuildComponentRef (record, field: Tree) : Tree ;
 
 
 (*

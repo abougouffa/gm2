@@ -1,3 +1,19 @@
+2011-10-29       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  gccgm2_BuildAddr call gm2_mark_addressable.
+	* gm2/gccgm2.c:  gccgm2_BuildComponentRef, convertToSizeT
+	  (New functions).
+	* gm2/gm2builtins.c:  gm2builtins_BuiltInAlloca call convertToSizeT.
+	* gm2/gm2-compiler/M2GenGCC.mod:  use gccgm2_BuildComponentRef
+	  to access high and address fields within unbounded records.
+	  This fixes a bug reported by Scott Iverson which has been
+	  expressed as testsuite/gm2/pim/run/pass/passparam.mod and
+          testsuite/gm2/pim/run/pass/passparam2.mod.  Manifested
+	  itself when attempting to take the address of a parameter.
+	  This does not work with -O2 as parameters are passed in
+	  registers on some architectures (x86_64).  These changes
+	  introduce no new regression test failures.
+
 2011-10-26       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  added LMathLib0.def LegacyReal.def
@@ -14,7 +30,7 @@
 	* gm2/gm2-compiler/M2Quads.mod:  added error checking
 	  to detect a nul typed constructor.
 	* gm2/gm2-compiler/Sets.mod:  added internal debugging.
-	  
+
 2011-10-04       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/version.c:  updated to 1.0.5
