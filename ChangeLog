@@ -1,3 +1,28 @@
+2011-11-07      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  BuildCall2, BuildCall3 (New functions).
+	* gm2/gm2.texi:  document the new command line switch
+	  -fdebug-builtins.
+	* gm2/lang.opt:  define -fdebug-builtins.
+	* gm2/gm2-compiler/M2Base.mod:  InitBuiltins (New procedure).
+	* gm2/gm2-compiler/M2Batch.def:  Tidied up spacing.
+	* gm2/gm2-compiler/M2GenGCC.mod:  implemented MaybeDebugBuiltinAlloca,
+	  MaybeDebugBuiltinMemcpy and call then instead of BuiltinAlloca,
+	  BuiltinMemcpy.  Modified CanUseBuiltin to return FALSE if
+	  DebugBuiltins is TRUE.
+	* gm2/gm2-compiler/M2Options.def:  DebugBuiltins new boolean flag.
+	* gm2/gm2-compiler/M2Options.mod:  set DebugBuiltins if -fdebug-builtins
+	  is present.
+	* gm2/gm2-compiler/gccgm2.def:  define BuildCall2, BuildCall3.
+	* gm2/gm2-libs/Builtins.def:  alloca_trace (New procedure function).
+	* gm2/gm2-libs/Builtins.mod:  tidied up comment and implemented
+	  alloca_trace.
+	* gm2/gm2-compiler/M2GenGCC.mod:  fixed GetSizeOfHighFromUnbounded
+	  bug reported by John O Goyo
+	  <http://lists.gnu.org/archive/html/gm2/2011-11/msg00004.html>
+	  and Martin KalbfuÃ
+	  <http://lists.gnu.org/archive/html/gm2/2011-10/msg00023.html>.
+
 2011-10-29       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  gccgm2_BuildAddr call gm2_mark_addressable.

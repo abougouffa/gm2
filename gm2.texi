@@ -646,6 +646,11 @@ the @code{-I} was also not specified then it uses the current
 directory.  In all cases the appropriate language dialect library
 directories are appended to the end of the path.
 
+@item -fdebug-builtins
+call a real function, rather than the builtin equivalent.  This can
+be useful for debugging parameter values to a builtin function as
+it allows users to single step code into a real function.
+
 @item -fdump-system-exports
 display all inbuilt system items.
 This is an internal command line option.

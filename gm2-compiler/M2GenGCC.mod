@@ -72,6 +72,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         PutConst, PutConstSet, PutConstructor,
                         NulSym ;
 
+FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo ;
 FROM M2Code IMPORT CodeBlock ;
 FROM M2Debug IMPORT Assert ;
@@ -79,7 +80,7 @@ FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, WriteFormat2, Err
 FROM M2MetaError IMPORT MetaErrorT1, MetaErrorT2, MetaError1 ;
 
 FROM M2Options IMPORT DisplayQuadruples, UnboundedByReference, PedanticCast,
-                      VerboseUnbounded, Iso, Pim ;
+                      VerboseUnbounded, Iso, Pim, DebugBuiltins ;
 
 FROM M2Printf IMPORT printf0, printf1, printf2, printf4 ;
 
@@ -182,6 +183,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    DoJump,
                    BuildProcedureCallTree, BuildIndirectProcedureCallTree,
                    BuildParam, BuildFunctValue, BuildComponentRef,
+                   BuildCall2, BuildCall3,
                    BuildAsm, DebugTree,
                    BuildSetNegate,
                    BuildPushFunctionContext, BuildPopFunctionContext,
@@ -1245,12 +1247,12 @@ BEGIN
 
    i := 1 ;
    n := GetDimension(UnboundedType) ;
-   t := GetIntegerZero() ;
+   t := GetIntegerOne() ;
    WHILE i<=n DO
-      t := BuildAdd(BuildAdd(GetHighFromUnbounded(i, param),
-                             GetIntegerOne(),
-                             FALSE),
-                    t, FALSE) ;
+      t := BuildMult(BuildAdd(GetHighFromUnbounded(i, param),
+                              GetIntegerOne(),
+                              FALSE),
+                     t, FALSE) ;
       (* remember we must add one as HIGH(a) means we can legally reference a[HIGH(a)] *)      
       INC(i)
    END ;
@@ -1258,6 +1260,42 @@ BEGIN
                         BuildMult(t, FindSize(ArrayType), FALSE),
                         FALSE) )
 END GetSizeOfHighFromUnbounded ;
+
+
+(*
+   MaybeDebugBuiltinAlloca - 
+*)
+
+PROCEDURE MaybeDebugBuiltinAlloca (high: Tree) : Tree ;
+VAR
+   func: Tree ;
+BEGIN
+   IF DebugBuiltins
+   THEN
+      func := Mod2Gcc(FromModuleGetSym(MakeKey('alloca_trace'), MakeDefinitionSource(MakeKey('Builtins')))) ;
+      RETURN( BuildCall2(func, BuiltInAlloca(high), high) )
+   ELSE
+      RETURN( BuiltInAlloca(high) )
+   END
+END MaybeDebugBuiltinAlloca ;
+
+
+(*
+   MaybeDebugBuiltinMemcpy - 
+*)
+
+PROCEDURE MaybeDebugBuiltinMemcpy (src, dest, nbytes: Tree) : Tree ;
+VAR
+   func: Tree ;
+BEGIN
+   IF DebugBuiltins
+   THEN
+      func := Mod2Gcc(FromModuleGetSym(MakeKey('memcpy'), MakeDefinitionSource(MakeKey('Builtins')))) ;
+      RETURN( BuildCall3(func, src, dest, nbytes) )
+   ELSE
+      RETURN( BuiltInMemCopy(src, dest, nbytes) )
+   END
+END MaybeDebugBuiltinMemcpy ;
 
 
 (*
@@ -1293,8 +1331,8 @@ BEGIN
    Addr := GetAddressOfUnbounded(param) ;
    Type := Mod2Gcc(GetType(param)) ;
    
-   NewArray := BuiltInAlloca(High) ;
-   NewArray := BuiltInMemCopy(NewArray, Addr, High) ;
+   NewArray := MaybeDebugBuiltinAlloca(High) ;
+   NewArray := MaybeDebugBuiltinMemcpy(NewArray, Addr, High) ;
 
    (* now assign  param.Addr := ADR(NewArray) *)
 
@@ -1799,8 +1837,9 @@ END CodeCall ;
 
 PROCEDURE CanUseBuiltin (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( BuiltinExists(KeyToCharStar(GetProcedureBuiltin(Sym))) OR
-           BuiltinExists(KeyToCharStar(GetSymName(Sym))) )
+   RETURN( (NOT DebugBuiltins) AND
+           (BuiltinExists(KeyToCharStar(GetProcedureBuiltin(Sym))) OR
+            BuiltinExists(KeyToCharStar(GetSymName(Sym)))) )
 END CanUseBuiltin ;
 
 
@@ -2758,9 +2797,9 @@ BEGIN
    ELSIF IsConstString(op3) AND (SkipTypeAndSubrange(GetType(op1))#Char)
    THEN
       DoCopyString(t, op3t, SkipType(GetType(op1)), op3) ;
-      AddStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(op1), FALSE),
-                                  BuildAddr(op3t, FALSE),
-                                  t))
+      AddStatement(MaybeDebugBuiltinMemcpy(BuildAddr(Mod2Gcc(op1), FALSE),
+                                           BuildAddr(op3t, FALSE),
+                                           t))
    ELSE
       IF ((IsGenericSystemType(SkipType(GetType(op1))) #
            IsGenericSystemType(SkipType(GetType(op3)))) OR
@@ -2770,9 +2809,9 @@ BEGIN
             IsGenericSystemType(SkipType(GetType(GetType(op3))))))) AND
          (NOT IsConstant(op3))
       THEN
-         AddStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(op1), FALSE),
-                                     BuildAddr(Mod2Gcc(op3), FALSE),
-                                     BuildSize(Mod2Gcc(op1), FALSE)))
+         AddStatement(MaybeDebugBuiltinMemcpy(BuildAddr(Mod2Gcc(op1), FALSE),
+                                              BuildAddr(Mod2Gcc(op3), FALSE),
+                                              BuildSize(Mod2Gcc(op1), FALSE)))
       ELSIF (SkipType(GetType(op1))=Word) AND Iso AND
             (SkipType(GetType(op3))#SkipType(GetType(op1)))
       THEN
@@ -5029,9 +5068,9 @@ BEGIN
             t := BuildAssignmentTree(Mod2Gcc(op1), Mod2Gcc(op3))
          ELSE
             (* does not work t := BuildCoerce(Mod2Gcc(op1), Mod2Gcc(op2), Mod2Gcc(op3)) *)
-            AddStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(op1), FALSE),
-                                        BuildAddr(Mod2Gcc(op3), FALSE),
-                                        FindSize(op2)))
+            AddStatement(MaybeDebugBuiltinMemcpy(BuildAddr(Mod2Gcc(op1), FALSE),
+                                                 BuildAddr(Mod2Gcc(op3), FALSE),
+                                                 FindSize(op2)))
          END
       END
    ELSE
@@ -5972,7 +6011,7 @@ BEGIN
    ELSIF IsConstString(op3) AND (SkipTypeAndSubrange(GetType(op1))#Char)
    THEN
       DoCopyString(t, op3t, op2, op3) ;
-      AddStatement(BuiltInMemCopy(Mod2Gcc(op1), BuildAddr(op3t, FALSE), t))
+      AddStatement(MaybeDebugBuiltinMemcpy(Mod2Gcc(op1), BuildAddr(op3t, FALSE), t))
    ELSE
       t := BuildAssignmentTree(BuildIndirect(Mod2Gcc(op1), Mod2Gcc(op2)),
                                StringToChar(Mod2Gcc(op3), op2, op3))

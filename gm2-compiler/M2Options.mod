@@ -522,6 +522,10 @@ BEGIN
    THEN
       ExtendedOpaque := TRUE ;
       Legal := TRUE
+   ELSIF EqualArray(s, '-fdebug-builtins')
+   THEN
+      DebugBuiltins := TRUE ;
+      Legal := TRUE
    ELSIF EqualArray(s, '-fdump-system-exports')
    THEN
       DumpSystemExports := TRUE ;
@@ -679,5 +683,6 @@ BEGIN
    DumpSystemExports            := FALSE ;
    GenerateSwig                 := FALSE ;
    Exceptions                   :=  TRUE ;
+   DebugBuiltins                := FALSE ;
    ScanForInitialOptions
 END M2Options.

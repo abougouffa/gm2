@@ -87,6 +87,7 @@ FROM M2Options IMPORT NilChecking,
                       WholeDivChecking, WholeValueChecking,
                       IndexChecking, RangeChecking,
                       ReturnChecking, CaseElseChecking, Exceptions,
+                      DebugBuiltins,
                       Iso, Pim, Pim2, Pim3 ;
 
 FROM gccgm2 IMPORT GetSizeOf, GetIntegerType,
@@ -181,6 +182,22 @@ VAR
    MinEnum    : CARDINAL ;
 
 
+(*
+   InitBuiltins - 
+*)
+
+PROCEDURE InitBuiltins ;
+VAR
+   builtins: CARDINAL ;
+BEGIN
+   IF DebugBuiltins
+   THEN
+      (* we will need to parse this module as functions alloca/memcpy will be used *)
+      builtins := MakeDefinitionSource(MakeKey('Builtins'))
+   END
+END InitBuiltins ;
+
+
 
 (*
    InitBase - initializes the base types and procedures
@@ -213,6 +230,7 @@ BEGIN
             when all other scopes fail to deliver a symbol.
    *)
    EndScope ;
+   InitBuiltins ;
    InitCompatibilityMatrices
 END InitBase ;
 

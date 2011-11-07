@@ -86,6 +86,7 @@ EXPORT QUALIFIED Tree, Constructor,
                  BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
                  BuildStartFunctionCode, BuildEndFunctionCode,
                  BuildReturnValueCode, BuildArrayStringConstructor,
+                 BuildCall2, BuildCall3,
                  BuildAssignmentTree,
                  BuildAdd, BuildSub, BuildMult,
                  BuildDivTrunc, BuildModTrunc,
@@ -1356,6 +1357,21 @@ PROCEDURE BuildIndirectProcedureCallTree (procedure, rettype: Tree) : Tree ;
 *)
 
 PROCEDURE BuildFunctValue (value: Tree) ;
+
+
+(*
+   BuildCall2 - builds a tree representing:  function(arg1, arg2).
+*)
+
+PROCEDURE BuildCall2 (function: Tree; arg1, arg2: Tree) : Tree ;
+
+
+(*
+   BuildCall3 - builds a tree representing:  function(arg1, arg2, arg3).
+*)
+
+PROCEDURE BuildCall3 (function: Tree; arg1, arg2, arg3: Tree) : Tree ;
+
 
 
 (*

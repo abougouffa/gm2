@@ -8041,7 +8041,6 @@ finish_build_pointer_type (tree t, tree to_type,
 }
 
 /*
- *
  *  BuildEndFunctionType - build a function type which would return a, value.
  *                         The arguments have been created by BuildParameterDeclaration.
  */
@@ -9908,7 +9907,7 @@ gccgm2_BuildParam (tree param)
     param = build_unary_op (ADDR_EXPR, param, 0);
 #endif
 
-  param_list = chainon (build_tree_list(NULL_TREE, param), param_list);
+  param_list = chainon (build_tree_list (NULL_TREE, param), param_list);
 #if 0
   debug_tree(param_list);
   fprintf(stderr, "end of tree for parameter\n"); fflush(stderr);
@@ -10009,6 +10008,36 @@ gccgm2_BuildFunctValue (tree value)
   TREE_USED (assign) = TRUE;
   add_stmt (assign);
   last_function = NULL_TREE;
+}
+
+/*
+   BuildCall2 - builds a tree representing:  function(arg1, arg2).
+*/
+
+tree
+gccgm2_BuildCall2 (tree function, tree arg1, tree arg2)
+{
+  tree param_list = NULL_TREE;
+
+  param_list = chainon (build_tree_list (NULL_TREE, arg2), param_list);
+  param_list = chainon (build_tree_list (NULL_TREE, arg1), param_list);
+  return build_function_call (function, param_list);
+}
+
+
+/*
+   BuildCall3 - builds a tree representing:  function(arg1, arg2, arg3).
+*/
+
+tree
+gccgm2_BuildCall3 (tree function, tree arg1, tree arg2, tree arg3)
+{
+  tree param_list = NULL_TREE;
+
+  param_list = chainon (build_tree_list (NULL_TREE, arg3), param_list);
+  param_list = chainon (build_tree_list (NULL_TREE, arg2), param_list);
+  param_list = chainon (build_tree_list (NULL_TREE, arg1), param_list);
+  return build_function_call (function, param_list);
 }
 
 /*

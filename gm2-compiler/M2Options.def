@@ -22,10 +22,10 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2010/10/03 19:01:06 $]
+   Date       : 27/5/87  [$Date: 2011/11/07 15:21:33 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.28 $
+   Version    : $Revision: 1.28.2.1 $
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
@@ -55,7 +55,8 @@ EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions,
                  PedanticParamNames, PedanticCast,
       	       	 DisplayQuadruples,
                  CompilerDebugging, GenerateDebugging, GenerateLineDebug,
-                 CppCommandLine, DumpSystemExports, GenerateSwig, Exceptions ;
+                 CppCommandLine, DumpSystemExports, GenerateSwig, Exceptions,
+                 DebugBuiltins ;
 
 
 VAR
@@ -106,6 +107,7 @@ VAR
    DumpSystemExports,            (* print all inbuilt system items?          *)
    GenerateSwig,                 (* should we generate a swig interface file?*)
    Exceptions,                   (* should we generate exception code?       *)
+   DebugBuiltins,                (* should we always call a real function?   *)
    Optimizing,
    Coding,
    Profiling         : BOOLEAN ;

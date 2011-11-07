@@ -161,6 +161,10 @@ fxcode
 Modula-2
 issue all errors and warnings in the Xcode format
 
+fdebug-builtins
+Modula-2
+call a real function, rather than the builtin equivalent
+
 fdump-system-exports
 Modula-2
 display all inbuilt system items

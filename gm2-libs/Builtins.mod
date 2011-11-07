@@ -22,9 +22,22 @@ IMPORT cbuiltin, wrapc ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_alloca)) alloca (i: CARDINAL) : ADDRESS ;
 BEGIN
-   HALT ;  (* not allowed to call alloca yet, it can only be expanded as a built-in *)
+   (* This routine will never be called as it allocates memory on
+      top of the current stack frame, which is automatically
+      deallocated upon its return. *)
+   HALT ;
    RETURN NIL
 END alloca ;
+
+PROCEDURE alloca_trace (returned: ADDRESS; nBytes: CARDINAL) : ADDRESS ;
+BEGIN
+   (* this routine is only called if -fdebug-builtins is supplied
+      on the command line.  The purpose of this routine is to allow
+      a developer to single step into this routine and inspect the
+      value of, nBytes, and, returned.
+    *)
+   RETURN returned
+END alloca_trace ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_memcpy)) memcpy (dest, src: ADDRESS; n: CARDINAL) : ADDRESS ;
 BEGIN
