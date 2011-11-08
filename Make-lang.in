@@ -2568,36 +2568,28 @@ gm2/pge$(exeext): buildpge
         fi
 	$(RM) gm2/gm2-auto/t.mod gm2/gm2-auto/t1.mod gm2/gm2-auto/t2.mod
 
-$(objdir)/gm2/gm2-auto/P1SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf
-	$(MAKE) gm2/pge$(exeext)
+$(objdir)/gm2/gm2-auto/P1SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf gm2/pge$(exeext)
 	./gm2/pge$(exeext) $< > $@
 
-$(objdir)/gm2/gm2-auto/P2Build.mod: $(srcdir)/gm2/bnf/m2-2.bnf
-	$(MAKE) gm2/pge$(exeext)
+$(objdir)/gm2/gm2-auto/P2Build.mod: $(srcdir)/gm2/bnf/m2-2.bnf gm2/pge$(exeext)
 	./gm2/pge$(exeext) $< > $@
 
-$(objdir)/gm2/gm2-auto/PCBuild.mod: $(srcdir)/gm2/bnf/m2-c.bnf
-	$(MAKE) gm2/pge$(exeext)
+$(objdir)/gm2/gm2-auto/PCBuild.mod: $(srcdir)/gm2/bnf/m2-c.bnf gm2/pge$(exeext)
+	./gm2/pge$(exeext) -l $< > $@
+
+$(objdir)/gm2/gm2-auto/P3Build.mod: $(srcdir)/gm2/bnf/m2-3.bnf gm2/pge$(exeext)
 	./gm2/pge$(exeext) $< > $@
 
-$(objdir)/gm2/gm2-auto/P3Build.mod: $(srcdir)/gm2/bnf/m2-3.bnf
-	$(MAKE) gm2/pge$(exeext)
+$(objdir)/gm2/gm2-auto/PHBuild.mod: $(srcdir)/gm2/bnf/m2-h.bnf gm2/pge$(exeext)
 	./gm2/pge$(exeext) $< > $@
 
-$(objdir)/gm2/gm2-auto/PHBuild.mod: $(srcdir)/gm2/bnf/m2-h.bnf
-	$(MAKE) gm2/pge$(exeext)
+$(objdir)/gm2/gm2-auto/gm2l.mod: $(srcdir)/gm2/bnf/gm2l.bnf gm2/pge$(exeext)
 	./gm2/pge$(exeext) $< > $@
 
-$(objdir)/gm2/gm2-auto/gm2l.mod: $(srcdir)/gm2/bnf/gm2l.bnf
-	$(MAKE) gm2/pge$(exeext)
+$(objdir)/gm2/gm2-auto/gm2m.mod: $(srcdir)/gm2/bnf/gm2m.bnf gm2/pge$(exeext)
 	./gm2/pge$(exeext) $< > $@
 
-$(objdir)/gm2/gm2-auto/gm2m.mod: $(srcdir)/gm2/bnf/gm2m.bnf
-	$(MAKE) gm2/pge$(exeext)
-	./gm2/pge$(exeext) $< > $@
-
-$(objdir)/gm2/gm2-auto/h2def.mod: $(srcdir)/gm2/bnf/h2def.bnf
-	$(MAKE) gm2/pge$(exeext)
+$(objdir)/gm2/gm2-auto/h2def.mod: $(srcdir)/gm2/bnf/h2def.bnf gm2/pge$(exeext)
 	./gm2/pge$(exeext) -l $< > $@
 
 #

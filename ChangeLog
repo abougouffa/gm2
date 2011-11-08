@@ -1,3 +1,11 @@
+2011-11-08      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  altered bnf rules to depend upon
+	  gm2/pge$(exeext).
+	* gm2/bnf/m2-c.bnf:  reimplemented Qualident and PushQualident
+	  to fix a bug reported by Alexandr Simon:
+	  <http://lists.gnu.org/archive/html/gm2/2011-04/msg00002.html>
+
 2011-11-07      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  BuildCall2, BuildCall3 (New functions).

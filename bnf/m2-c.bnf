@@ -67,6 +67,8 @@ FROM M2Quads IMPORT Top, PushT, PopT, PushTF, PopTF, PopNothing, OperandT, PushT
                     BuildTypeForConstructor, BuildConstructor, BuildConstructorEnd,
                     NextConstructorField, SilentBuildConstructor ;
 
+FROM P3SymBuild IMPORT CheckCanBeImported ;
+
 FROM PCSymBuild IMPORT PCStartBuildProgModule,
                        PCEndBuildProgModule,
 
@@ -109,7 +111,7 @@ FROM SymbolTable IMPORT MakeGnuAsm, PutGnuAsmVolatile, PutGnuAsm, PutGnuAsmInput
                         StartScope, EndScope,
                         PutIncluded,
                         IsVarParam, IsProcedure, IsDefImp, IsModule,
-                        IsRecord,
+                        IsRecord, IsProcType,
                         RequestSym,
                         GetSym, GetLocalSym,
                         RequestSym ;
@@ -547,28 +549,32 @@ ImplementationOrProgramModule :=                                           % Pus
 
 Number := Integer | Real =:
 
-Qualident :=                                                               % VAR name: Name;
-                                                                                 Type, Sym: CARDINAL ; %
+Qualident :=                                                               % VAR name     : Name ;
+                                                                                 init, ip1: CARDINAL ; %
              Ident
                                                                            % IF IsAutoPushOn()
                                                                              THEN
                                                                                 PopT(name) ;
-                                                                                Sym := RequestSym(name) ;
-                                                                                IF IsDefImp(Sym) OR IsModule(Sym)
-                                                                                THEN
+                                                                                init := RequestSym(name) ;
+                                                                                WHILE IsDefImp(init) OR IsModule(init) DO
                                                                                    Expect(periodtok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
-                                                                                   StartScope(Sym) ;
-                                                                                   Qualident(stopset0, stopset1, stopset2) ;
-                                                                                   (* should we test for lack of ident? *)
-                                                                                   PopTF(Sym, Type) ;
-                                                                                   PushTF(Sym, Type) ;
-                                                                                   PutIncluded(Sym) ;
-                                                                                   EndScope
+                                                                                   StartScope(init) ;
+                                                                                   Ident(stopset0, stopset1, stopset2) ;
+                                                                                   PopT(name) ;
+                                                                                   ip1 := RequestSym(name) ;
+                                                                                   PutIncluded(ip1) ;
+                                                                                   EndScope ;
+                                                                                   CheckCanBeImported(init, ip1) ;
+                                                                                   init := ip1
+                                                                                END ;
+                                                                                IF IsProcedure(init) OR IsProcType(init)
+                                                                                THEN
+                                                                                   PushT(init)
                                                                                 ELSE
-                                                                                   PushTF(Sym, GetType(Sym))
+                                                                                   PushTF(init, GetType(init))
                                                                                 END
-                                                                             ELSE (* just parse qualident *) %
-              { "." Ident }                                                % END %
+                                                                             ELSE %
+             { "." Ident }                                                 % END %
            =:
 
 ConstantDeclaration :=                                                     % VAR top: CARDINAL ; %
@@ -908,31 +914,58 @@ Term := Factor { MulOperator Factor } =:
 Factor := Number | string | SetOrDesignatorOrFunction |
           "(" Expression ")" | "NOT" ( Factor | ConstAttribute ) =:
 
-PushQualident :=                                                           % VAR name: Name;
-                                                                                 Sym : CARDINAL ; %
+PushQualident :=                                                           % VAR name     : Name ;
+                                                                                 init, ip1: CARDINAL ; %
                                                                            % PushAutoOn %
-                        Ident
-                                                                           % PopT(name) ;
-                                                                             Sym := GetSym(name) ;
-                                                                             IF Sym=NulSym
+             Ident                                                         % IF IsAutoPushOn()
                                                                              THEN
-                                                                                PushTFn(NulSym, NulSym, name)
-                                                                             ELSIF IsDefImp(Sym) OR IsModule(Sym)
-                                                                             THEN
-                                                                                Expect(periodtok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
-                                                                                StartScope(Sym) ;
-                                                                                PushQualident(stopset0, stopset1, stopset2) ;
-                                                                                EndScope
-                                                                             ELSE
-                                                                                PushTFn(Sym, GetType(Sym), name)
-                                                                             END ;
-                                                                             PopAuto %
-                                                                           % WHILE FALSE DO %
+                                                                                PopT(name) ;
+                                                                                init := GetSym(name) ;
+                                                                                IF init=NulSym
+                                                                                THEN
+                                                                                   PushTFn(NulSym, NulSym, name)
+                                                                                ELSE
+                                                                                   WHILE IsDefImp(init) OR IsModule(init) DO
+                                                                                      IF currenttoken#periodtok
+                                                                                      THEN
+                                                                                         ErrorArray("expecting '.' after module in the construction of a qualident") ;
+                                                                                         PushT(init) ;
+                                                                                         PopAuto ;
+                                                                                         RETURN
+                                                                                      ELSE
+                                                                                         Expect(periodtok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
+                                                                                         StartScope(init) ;
+                                                                                         Ident(stopset0, stopset1, stopset2) ;
+                                                                                         PopT(name) ;
+                                                                                         ip1 := GetSym(name) ;
+                                                                                         IF ip1=NulSym
+                                                                                         THEN
+                                                                                            ErrorArray("unknown ident in the construction of a qualident") ;
+                                                                                            EndScope ;
+                                                                                            PushTFn(NulSym, NulSym, name) ;
+                                                                                            PopAuto ;
+                                                                                            RETURN
+                                                                                         ELSE
+                                                                                            PutIncluded(ip1)
+                                                                                         END ;
+                                                                                         EndScope ;
+                                                                                         CheckCanBeImported(init, ip1) ;
+                                                                                         init := ip1
+                                                                                      END
+                                                                                   END ;
+                                                                                   IF IsProcedure(init) OR IsProcType(init)
+                                                                                   THEN
+                                                                                      PushT(init)
+                                                                                   ELSE
+                                                                                      PushTF(init, GetType(init))
+                                                                                   END
+                                                                                END
+                                                                             ELSE %
              { "." Ident }                                                 % END %
-                    =:
+                                                                           % PopAuto %
+           =:
 
-
-ConstructorOrSimpleDes := Constructor |                                   % PopNothing %
+ConstructorOrSimpleDes := Constructor |                                    % PopNothing %
                                           SimpleDes [ ActualParameters ]
                         =:
 
