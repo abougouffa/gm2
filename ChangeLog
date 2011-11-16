@@ -3,7 +3,7 @@
 	* gm2/gm2-compiler/M2CaseList.def:  add TypeCaseBounds to the
 	  definition module.
 	* gm2/gm2-compiler/M2CaseList.mod:  GetVariantTagType, checkTypes,
-	  inRange, TypeCaseBounds (New procedurbe functions).  Check to
+	  inRange, TypeCaseBounds (New procedure functions).  Check to
 	  see that case bounds are of the correct type.
 	* gm2/gm2-compiler/M2MetaError.mod:  fix internal error message.
 	* gm2/gm2-compiler/M2Options.def:  new boolean VariantValueChecking
