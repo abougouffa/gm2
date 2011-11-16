@@ -1,4 +1,4 @@
-(* Copyright (C) 2009, 2010
+(* Copyright (C) 2009, 2010, 2011
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -32,6 +32,7 @@ FROM SymbolConversion IMPORT GccKnowsAbout, Mod2Gcc, AddModGcc ;
 FROM DynamicStrings IMPORT InitString, InitStringCharStar, ConCat, Mark, KillString ;
 FROM gccgm2 IMPORT Tree, RememberType, GetMinFrom ;
 FROM Storage IMPORT ALLOCATE ;
+FROM M2Base IMPORT IsExpressionCompatible ;
 
 FROM SymbolTable IMPORT NulSym, IsConst, IsFieldVarient, IsRecord, IsRecordField, GetVarientTag, GetType,
                         ForeachLocalSymDo, GetSymName, IsEnumeration, SkipType ;
@@ -212,6 +213,24 @@ END AddRange ;
 
 
 (*
+   GetVariantTagType - returns the type associated with, variant.
+*)
+
+PROCEDURE GetVariantTagType (variant: CARDINAL) : CARDINAL ;
+VAR
+   tag: CARDINAL ;
+BEGIN
+   tag := GetVarientTag(variant) ;
+   IF IsFieldVarient(tag) OR IsRecordField(tag)
+   THEN
+      RETURN( GetType(tag) )
+   ELSE
+      RETURN( tag )
+   END
+END GetVariantTagType ;
+
+   
+(*
    CaseBoundsResolved - returns TRUE if all constants in the case list, c,
                         are known to GCC.
 *)
@@ -233,13 +252,7 @@ BEGIN
       IF varient#NulSym
       THEN
          (* not a CASE statement, but a varient record containing without an ELSE clause *)
-         tag := GetVarientTag(varient) ;
-         IF IsFieldVarient(tag) OR IsRecordField(tag)
-         THEN
-            type := GetType(tag)
-         ELSE
-            type := tag
-         END ;
+         type := GetVariantTagType(varient) ;
          resolved := TRUE ;
          IF NOT GccKnowsAbout(type)
          THEN
@@ -752,13 +765,7 @@ BEGIN
       IF (record#NulSym) AND (varient#NulSym) AND (NOT elseClause)
       THEN
          (* not a CASE statement, but a varient record containing without an ELSE clause *)
-         tag := GetVarientTag(varient) ;
-         IF IsFieldVarient(tag) OR IsRecordField(tag)
-         THEN
-            type := GetType(tag)
-         ELSE
-            type := tag
-         END ;
+         type := GetVariantTagType(varient) ;
          set := NewSet(type) ;
          set := ExcludeCaseRanges(set, p) ;
          IF set#NIL
@@ -817,6 +824,104 @@ BEGIN
    END ;
    RETURN( FALSE )
 END InRangeList ;
+
+
+(*
+   checkTypes - checks to see that, constant, and, type, are compatible.
+*)
+
+PROCEDURE checkTypes (constant, type: CARDINAL) : BOOLEAN ;
+VAR
+   consttype: CARDINAL ;
+BEGIN
+   IF (constant#NulSym) AND IsConst(constant)
+   THEN
+      consttype := GetType(constant) ;
+      IF NOT IsExpressionCompatible(consttype, type)
+      THEN
+         MetaError2('the CASE statement variant tag {%1ad} must be type compatible with the constant {%2Da:is a {%2d}}',
+                    type, constant) ;
+         RETURN( FALSE )
+      END
+   END ;
+   RETURN( TRUE )
+END checkTypes ;
+
+
+(*
+   inRange - returns TRUE if, min <= i <= max.
+*)
+
+PROCEDURE inRange (i, min, max: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( OverlapsRange(Mod2Gcc(i), Mod2Gcc(i), Mod2Gcc(min), Mod2Gcc(max)) )
+END inRange ;
+
+
+(*
+   TypeCaseBounds - returns TRUE if all bounds in case list, c, are
+                    compatible with the tagged type.
+*)
+
+PROCEDURE TypeCaseBounds (tokenno: CARDINAL; c: CARDINAL) : BOOLEAN ;
+VAR
+   p         : CaseDescriptor ;
+   q         : CaseList ;
+   r         : RangePair ;
+   min, max,
+   type,
+   i, j      : CARDINAL ;
+   compatible: BOOLEAN ;
+BEGIN
+   p := GetIndice(caseArray, c) ;
+   type := NulSym ;
+   WITH p^ DO
+      type := NulSym ;
+      IF varient#NulSym
+      THEN
+         (* not a CASE statement, but a varient record containing without an ELSE clause *)
+         type := GetVariantTagType(varient) ;
+         min := GetTypeMin(type) ;
+         max := GetTypeMax(type)
+      END ;
+      IF type=NulSym
+      THEN
+         RETURN( TRUE )
+      END ;
+      compatible := TRUE ;
+      i := 1 ;
+      WHILE i<=maxCaseId DO
+         q := GetIndice(caseListArray, i) ;
+         j := 1 ;
+         WHILE j<=q^.maxRangeId DO
+            r := GetIndice(q^.rangeArray, j) ;
+            IF (r^.low#NulSym) AND (NOT inRange(r^.low, min, max))
+            THEN
+               MetaError2('the CASE statement variant range {%1ad} exceeds that of the tag type {%2ad}',
+                          r^.low, type) ;
+               compatible := FALSE
+            END ;
+            IF NOT checkTypes(r^.low, type)
+            THEN
+               compatible := FALSE
+            END ;
+            IF (r^.high#NulSym) AND (NOT inRange(r^.high, min, max))
+            THEN
+               MetaError2('the CASE statement variant range {%1ad} exceeds that of the tag type {%2ad}',
+                          r^.high, type) ;
+               compatible := FALSE
+            END ;
+            IF NOT checkTypes(r^.high, type)
+            THEN
+               compatible := FALSE
+            END ;
+            INC(j)
+         END ;
+         INC(i)
+      END ;
+      RETURN( compatible )
+   END
+END TypeCaseBounds ;
 
 
 BEGIN

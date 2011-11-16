@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
+                 2010, 2011
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -146,6 +146,18 @@ END ScanCppArgs ;
 
 
 (*
+   FinaliseOptions - once all options have been parsed we set any inferred
+                     values.
+*)
+
+PROCEDURE FinaliseOptions ;
+BEGIN
+   (* currently only one value, this could be make an option in the future *)
+   VariantValueChecking := Iso
+END FinaliseOptions ;
+
+
+(*
    ParseOptions - parses the options and sets the option flags
                   accordingly.
 *)
@@ -194,7 +206,8 @@ BEGIN
          s := KillString(s) ;
          INC(i)
       UNTIL i>n
-   END
+   END ;
+   FinaliseOptions
 END ParseOptions ;
 
 

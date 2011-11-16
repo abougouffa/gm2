@@ -84,6 +84,14 @@ PROCEDURE CaseBoundsResolved (tokenno: CARDINAL; c: CARDINAL) : BOOLEAN ;
 
 
 (*
+   TypeCaseBounds - returns TRUE if all bounds in case list, c, are
+                    compatible with the tagged type.
+*)
+
+PROCEDURE TypeCaseBounds (tokenno: CARDINAL; c: CARDINAL) : BOOLEAN ;
+
+
+(*
    OverlappingCaseBounds - returns TRUE if there were any overlapping bounds
                            in the case list, c.  It will generate an error
                            messages for each overlapping bound found.

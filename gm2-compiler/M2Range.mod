@@ -42,6 +42,7 @@ FROM Indexing IMPORT Index, InitIndex, InBounds, PutIndice, GetIndice ;
 FROM Storage IMPORT ALLOCATE ;
 FROM M2ALU IMPORT PushIntegerTree, ConvertToInt, Equ, Gre, Less ;
 FROM M2Error IMPORT Error, InternalError, ErrorFormat0, ErrorFormat1, ErrorFormat2, ErrorString, FlushErrors ;
+FROM M2Options IMPORT VariantValueChecking ;
 
 FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3,
                         MetaErrorT1, MetaErrorT2, MetaErrorT3,
@@ -78,7 +79,7 @@ FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
                    ExceptionZeroDiv, ExceptionZeroRem,
                    ExceptionNo ;
 
-FROM M2CaseList IMPORT CaseBoundsResolved, OverlappingCaseBounds, WriteCase, MissingCaseBounds ;
+FROM M2CaseList IMPORT CaseBoundsResolved, OverlappingCaseBounds, WriteCase, MissingCaseBounds, TypeCaseBounds ;
 
 
 TYPE
@@ -1668,14 +1669,18 @@ BEGIN
    WITH p^ DO
       IF CaseBoundsResolved(tokenno, caseList)
       THEN
+         IF TypeCaseBounds(tokenno, caseList)
+         THEN
+            (* nothing to do *)
+         END ;
          IF OverlappingCaseBounds(tokenno, caseList)
          THEN
             PutQuad(q, ErrorOp, NulSym, NulSym, r) ;
-            IF MissingCaseBounds(tokenno, caseList)
+            IF VariantValueChecking AND MissingCaseBounds(tokenno, caseList)
             THEN
                (* nothing to do *)
             END
-         ELSIF MissingCaseBounds(tokenno, caseList)
+         ELSIF VariantValueChecking AND MissingCaseBounds(tokenno, caseList)
          THEN
             PutQuad(q, ErrorOp, NulSym, NulSym, r)
          ELSE
@@ -1700,6 +1705,10 @@ VAR
 BEGIN
    IF CaseBoundsResolved(tokenno, caseList)
    THEN
+      IF TypeCaseBounds(tokenno, caseList)
+      THEN
+         (* nothing to do *)
+      END ;
       IF OverlappingCaseBounds(tokenno, caseList)
       THEN
          (* nothing to do *)

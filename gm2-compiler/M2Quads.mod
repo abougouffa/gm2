@@ -12836,8 +12836,8 @@ PROCEDURE AddVarientRange ;
 VAR
    r1, r2: CARDINAL ;
 BEGIN
-   PopT(r1) ;
    PopT(r2) ;
+   PopT(r1) ;
    AddRange(r1, r2, GetTokenNo())
 END AddVarientRange ;
 

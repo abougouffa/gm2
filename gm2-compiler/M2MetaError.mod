@@ -603,7 +603,7 @@ BEGIN
             DEC(i)
 
       ELSE
-         InternalFormat(s, i, 'expecting one of [aqtdsDUEW:]')
+         InternalFormat(s, i, 'expecting one of [aqtdnNsDUEW:]')
       END ;
       INC(i) ;
    END ;

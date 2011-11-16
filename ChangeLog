@@ -1,3 +1,22 @@
+2011-11-16      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2CaseList.def:  add TypeCaseBounds to the
+	  definition module.
+	* gm2/gm2-compiler/M2CaseList.mod:  GetVariantTagType, checkTypes,
+	  inRange, TypeCaseBounds (New procedurbe functions).  Check to
+	  see that case bounds are of the correct type.
+	* gm2/gm2-compiler/M2MetaError.mod:  fix internal error message.
+	* gm2/gm2-compiler/M2Options.def:  new boolean VariantValueChecking
+	  which is set if -fiso is used.  FinaliseOptions new procedure.
+	* gm2/gm2-compiler/M2Quads.mod:  reverse PopT(r1) and PopT(r2)
+	  to correct range bug.
+	* gm2/gm2-compiler/M2Range.mod:  only check missing values
+	  in variant record case bounds if VariantValueChecking is enabled.
+	  We always check for overlapping bounds.
+	* testsuite/gm2/pim/fail/variant.mod:  new file.
+	* testsuite/gm2/pim/fail/variant2.mod:  new file.
+	* testsuite/gm2/pim/fail/variant3.mod:  new file.
+
 2011-11-08      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  altered bnf rules to depend upon
