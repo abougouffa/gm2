@@ -1373,7 +1373,7 @@ BEGIN
                   formal, actual, paramNo) ;
       MetaError3('{%3N} parameter in procedure {%1Da} {%2a} has a type of {%2tad}',
                  procedure, formal, paramNo) ;
-      FlushErrors
+      (* FlushErrors *)
    END
 END FoldTypeParam ;
 
@@ -1391,7 +1391,7 @@ BEGIN
       MetaErrorT2(tokenNo,
                   'expression of type {%1tad} is incompatible with type {%2tad}',
                   des, expr) ;
-      FlushErrors
+      (* FlushErrors *)
    END
 END FoldTypeExpr ;
 
@@ -1423,7 +1423,7 @@ BEGIN
                      'assignment designator {%1a} {%1ta:of type {%1ta}} {%1d:is a {%1d}} and expression {%2a} {%2tad:of type {%2tad}} are incompatible',
                      des, expr)
       END ;
-      FlushErrors
+      (* FlushErrors *)
    END
 END CodeTypeAssign ;
 
@@ -1441,7 +1441,7 @@ BEGIN
                   formal, actual, paramNo) ;
       MetaError3('{%3N} parameter of procedure {%1Da} {%2a} has a type of {%2tad}',
                  procedure, formal, paramNo) ;
-      FlushErrors
+      (* FlushErrors *)
    END
 END CodeTypeParam ;
 
@@ -1457,7 +1457,7 @@ BEGIN
       MetaErrorT2(tokenNo,
                   'expression of type {%1tad} is incompatible with type {%2tad}',
                   des, expr) ;
-      FlushErrors
+      (* FlushErrors *)
    END
 END CodeTypeExpr ;
 
@@ -1984,7 +1984,7 @@ BEGIN
       END ;
       s := ConCat(ConCatChar(scopeDesc, ':'), Mark(s)) ;
       MetaErrorStringT3(tokenNo, s, des, expr, dimension) ;
-      FlushErrors
+      (* FlushErrors *)
    END
 END IssueWarning ;
 

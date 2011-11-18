@@ -1,3 +1,9 @@
+2011-11-18      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Range.mod:  removed calls to FlushErrors
+	  to allow the compiler to issue many more error messages before
+	  exiting.
+
 2011-11-16      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2CaseList.def:  add TypeCaseBounds to the
