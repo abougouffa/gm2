@@ -9332,11 +9332,10 @@ END ResolveConstructorTypes ;
 
 
 (*
-   SanityCheckProcedure - check to see that procedure parameters do not use constants
-                          instead of types in their formal parameter section.
+   SanityCheckParameters - 
 *)
 
-PROCEDURE SanityCheckProcedure (sym: CARDINAL) ;
+PROCEDURE SanityCheckParameters (sym: CARDINAL) ;
 VAR
    p   : CARDINAL ;
    i, n: CARDINAL ;
@@ -9352,6 +9351,61 @@ BEGIN
       END ;
       INC(i)
    END
+END SanityCheckParameters ;
+
+
+(*
+   SanityCheckArray - checks to see that an array has a correct subrange type.
+*)
+
+PROCEDURE SanityCheckArray (sym: CARDINAL) ;
+VAR
+   type     : CARDINAL ;
+   subscript: CARDINAL ;
+BEGIN
+   IF IsArray(sym)
+   THEN
+      subscript := GetArraySubscript(sym) ;
+      IF subscript#NulSym
+      THEN
+         type := SkipType(GetType(subscript)) ;
+         IF IsAModula2Type(type)
+         THEN
+            (* ok all is good *)
+         ELSE
+            MetaError2('the array {%1Dad} must be declared with a simpletype in the [..] component rather than a {%2d}',
+                       sym, type)
+         END
+      END
+   END
+END SanityCheckArray ;
+
+
+(*
+   ForeachSymbolDo - foreach symbol, call, P(sym).
+*)
+
+PROCEDURE ForeachSymbolDo (P: PerformOperation) ;
+VAR
+   i, n: CARDINAL ;
+BEGIN
+   i := Indexing.LowIndice(Symbols) ;
+   n := Indexing.HighIndice(Symbols) ;
+   WHILE i<=n DO
+      P(i) ;
+      INC(i)
+   END
+END ForeachSymbolDo ;
+
+
+(*
+   SanityCheckProcedure - check to see that procedure parameters do not use constants
+                          instead of types in their formal parameter section.
+*)
+
+PROCEDURE SanityCheckProcedure (sym: CARDINAL) ;
+BEGIN
+   SanityCheckParameters(sym)
 END SanityCheckProcedure ;
 
 
@@ -9362,7 +9416,8 @@ END SanityCheckProcedure ;
 PROCEDURE SanityCheckModule (sym: CARDINAL) ;
 BEGIN
    ForeachInnerModuleDo(sym, SanityCheckModule) ;
-   ForeachProcedureDo(sym, SanityCheckProcedure)
+   ForeachProcedureDo(sym, SanityCheckProcedure) ;
+   ForeachLocalSymDo(sym, SanityCheckArray)
 END SanityCheckModule ;
 
 
@@ -9374,7 +9429,8 @@ END SanityCheckModule ;
 
 PROCEDURE SanityCheckConstants ;
 BEGIN
-   ForeachModuleDo(SanityCheckModule)
+   ForeachModuleDo(SanityCheckModule) ;
+   ForeachSymbolDo(SanityCheckArray)
 END SanityCheckConstants ;
 
 

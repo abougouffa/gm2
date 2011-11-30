@@ -1,3 +1,9 @@
+2011-11-30      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/SymbolTable.mod:  fixed a poor error message
+	  bug reported by <doug@dougtelford.com>.  Arrays are now checked
+	  for a correct subscript type before M2GCCDeclare is used.
+
 2011-11-18      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Range.mod:  removed calls to FlushErrors
