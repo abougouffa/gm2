@@ -1,8 +1,13 @@
+2011-12-01      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added ServerSocket.mod to be compiled and installed
+	  in the iso library.
+
 2011-11-30      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/SymbolTable.mod:  fixed a poor error message
 	  bug reported by <doug@dougtelford.com>.  Arrays are now checked
-	  for a correct subscript type before M2GCCDeclare is used.
+	  for a correct subscript type before M2GCCDeclare is called.
 
 2011-11-18      Gaius Mulley <gaius@gnu.org>
 
