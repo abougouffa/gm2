@@ -19,7 +19,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *
 IMPLEMENTATION MODULE ServerSocket ;
 
 
-
 (*
    OpenSocketBindListen - opens a TCP server socket.  The socket
                           is bound to, port, and will allow, listen,
@@ -69,7 +68,7 @@ END Close ;
 
 PROCEDURE IsSocket (cid: ChanId) : BOOLEAN ;
 BEGIN
-   
+   RETURN TRUE
 END IsSocket ;
 
 
