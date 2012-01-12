@@ -25,7 +25,6 @@ FROM DynamicStrings IMPORT String, string, InitString, KillString, InitStringCha
 FROM StrLib IMPORT StrLen ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3, Sprintf4 ;
 FROM NameKey IMPORT Name, KeyToCharStar ;
-FROM SYSTEM IMPORT BITSET ;
 
 
 (*

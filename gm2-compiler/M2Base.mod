@@ -215,10 +215,7 @@ BEGIN
    (* initialise the SYSTEM module before we used CARDINAL and ADDRESS! *)
    InitSystem ;
 
-   IF Iso
-   THEN
-      MakeBitset  (* we do this after SYSTEM has been created as BITSET is dependant upon WORD *)
-   END ;
+   MakeBitset ; (* we do this after SYSTEM has been created as BITSET is dependant upon WORD *)
 
    InitBaseConstants ;
    InitBaseFunctions ;
@@ -524,7 +521,7 @@ BEGIN
    THEN
       min := MinChar ;
       max := MaxChar
-   ELSIF (type=Bitset) AND Iso
+   ELSIF type=Bitset
    THEN
       GetBitsetMinMax(min, max)
    ELSIF (type=LongInt)
@@ -938,7 +935,7 @@ BEGIN
           (Sym=ShortInt) OR (Sym=ShortCard) OR
           (Sym=Real)     OR (Sym=LongReal) OR (Sym=ShortReal) OR
           (Sym=Complex)  OR (Sym=LongComplex) OR (Sym=ShortComplex) OR
-          ((Sym=Bitset) AND Iso)
+          (Sym=Bitset)
          )
 END IsBaseType ;
 

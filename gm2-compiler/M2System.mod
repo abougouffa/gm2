@@ -54,7 +54,6 @@ FROM NameKey IMPORT Name, MakeKey, NulName ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2Base IMPORT Cardinal, ZType ;
 FROM M2Size IMPORT Size, MakeSize ;
-FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
 FROM M2ALU IMPORT PushCard, PushIntegerTree, DivTrunc ;
 FROM M2Error IMPORT InternalError ;
 FROM Lists IMPORT List, InitList, IsItemInList, PutItemIntoList, GetItemFromList, NoOfItemsInList ;
@@ -266,16 +265,7 @@ BEGIN
 
    Address := MakePointer(MakeKey('ADDRESS')) ;
    PutPointer(Address, Byte) ;                (* Base Type       *)
-   MapType(Address, 'ADDRESS', '', '', TRUE, GetPointerType()) ;
-
-   IF NOT Iso
-   THEN
-      MakeBitset ;
-      MapType(Bitset, 'BITSET', '', '', TRUE, GetBitsetType()) ;
-      GetBitsetMinMax(min, max) ;
-      PutSymKey(MaxValues, GetSymName(Bitset), max) ;
-      PutSymKey(MinValues, GetSymName(Bitset), min)
-   END
+   MapType(Address, 'ADDRESS', '', '', TRUE, GetPointerType())
 END InitPIMTypes ;
 
 
