@@ -535,6 +535,7 @@ available}.
 * Interface to C::        Interfacing GNU Modula-2 to C.
 * Assembly language::     Interface to assembly language.
 * Alignment::             Data type alignment.
+* Packed::                Packing data types.
 * Built-ins::             Accessing GNU Modula-2 Built-ins.
 * The PIM system module:: SYSTEM data types and procedures.
 * The ISO system module:: SYSTEM data types, procedures and run time.
@@ -1733,6 +1734,7 @@ CARDINAL                  pervasive
 LONGCARD                  pervasive
 SHORTCARD                 pervasive
 BOOLEAN                   pervasive
+BITSET                    pervasive
 REAL                      pervasive
 LONGREAL                  pervasive
 SHORTREAL                 pervasive
@@ -1741,7 +1743,6 @@ SHORTCOMPLEX              pervasive
 COMPLEX                   pervasive
 LONGCOMPLEX               pervasive
 
-BITSET                    SYSTEM
 LOC                       SYSTEM     -fiso
 BYTE                      SYSTEM
 WORD                      SYSTEM
@@ -2492,7 +2493,7 @@ can take either, but this allows the compiler to take make more
 efficient choices depending upon the optimization level given to the
 compiler.
 
-@node Alignment, Built-ins, Assembly language, Using
+@node Alignment, Packed, Assembly language, Using
 @section Data type alignment
 
 GNU Modula-2 allows you to specify alignment for types and variables.
@@ -2607,7 +2608,69 @@ BEGIN
 END align6.
 @end example
 
-@node Built-ins, The PIM system module, Alignment, Using
+@node Packed, Built-ins, Alignment, Using
+@section Packing data types
+
+The pragma @code{<* bytealignment(0) *>} can be used to specify that
+the fields within a @code{RECORD} are to be packed.  Currently this
+only applies to fields which are declared as subranges, ordinal types
+and enumerated types.  Here is an example of how two subranges might
+be packed into a byte.
+
+@example
+TYPE
+   bits3c =  [0..7] ;
+   bits3i = [-4..3] ;
+
+   byte = RECORD
+              <* bytealignment(0) *>
+              x: bits3c ;
+              <* bitsunused(2) *>
+              y: bits3i ;
+          END ;
+@end example
+
+Notice that the user has specified that in between fields @code{x} and
+@code{y} there are two bits unused.
+
+Now the user wishes to create a record with byte numbers zero and one
+occupied and then an @code{INTEGER32} field which is four byte
+aligned.  In this case byte numbers two and three will be unused.  The
+pragma @code{bytealignment} can be issued at the start of the record
+indicating the default alignment for the whole record and this can be
+overridden by individual fields if necessary.
+
+@example
+   rec = RECORD
+            <* bytealignment (1) *> ;
+            a, b: byte ;
+            x: INTEGER32 <* bytealignment(4) *> ;
+         END ;
+@end example
+
+In the following example the user has specified that a record has two
+fields @code{p} and @code{q} but that there are three bytes unused between
+these fields.
+
+@example
+   header = RECORD
+               <* bytealignment(1) *>
+               p: byte ;
+               <* bytesunused(3) *>
+               q: byte ;
+            END ;
+@end example
+
+The pragma @code{<* bytesunused(x) *>} can only be used if the current
+field is on a byte boundary.  There is also a @code{SYSTEM} pseudo
+procedure function @code{TBITSIZE(T)} which returns the minimum number of
+bits necessary to represent type @code{T}.
+
+@footnote{The exact definition of these pragmas are still being worked
+out and thus this section is likely to change over the next couple of
+weeks.}
+
+@node Built-ins, The PIM system module, Packed, Using
 @section Accessing GNU Modula-2 Built-ins
 
 This section describes the built-in constants and functions defined in

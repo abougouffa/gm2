@@ -1,3 +1,19 @@
+2012-01-12      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/Indexing.mod:  removed import of BITSET from SYSTEM.
+	* gm2/gm2-compiler/M2Base.mod:  BITSET is now declared as a pervasive
+	  type.
+	* gm2/gm2-compiler/M2Error.mod:  removed import of BITSET from SYSTEM.
+	* gm2/gm2-compiler/M2Printf.mod:  removed import of BITSET from SYSTEM.
+	* gm2/gm2-compiler/M2System.mod:  removed BITSET from being declared.
+	* gm2/gm2-libs/SYSTEM.def:  removed BITSET from export list.
+	* gm2/gm2-libs-min/SYSTEM.def:  removed BITSET from export list.
+	* gm2/gm2-libs-coroutines/SYSTEM.def:  removed BITSET from export list.
+	* gm2/gm2-libs/Indexing.mod:  BITSET is now a pervasive type.
+	* gm2/gm2-libs/M2RTS.mod:  BITSET is now a pervasive type.
+	* gm2/gm2.texi:  added new section on packed records and also BITSET
+	  is no longer exported from SYSTEM but is a pervasive type.
+
 2011-12-01      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  added ServerSocket.mod to be compiled and
