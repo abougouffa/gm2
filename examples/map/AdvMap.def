@@ -18,7 +18,6 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 DEFINITION MODULE AdvMap ;
 
 
-FROM SYSTEM IMPORT BITSET ;
 EXPORT QUALIFIED Rooms, Line, DoorStatus, Door, Room, Treasure,
                  ActualNoOfRooms, MaxNoOfTreasures, MaxNoOfRooms,
                  NoOfRoomsToHidePlayers, NoOfRoomsToSpring,
