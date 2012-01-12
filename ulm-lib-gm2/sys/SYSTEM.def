@@ -31,7 +31,7 @@ DEFINITION MODULE FOR "C" SYSTEM ;
 
 EXPORT QUALIFIED (* the following are built into the compiler: *)
                  (* SIZE is exported if -fpim2 is enabled *)
-                 ADDRESS, WORD, BYTE, BITSET, ADR, TSIZE, THROW,
+                 ADDRESS, WORD, BYTE, ADR, TSIZE, THROW,
                  (* the rest are implemented in SYSTEM.c *)
                  UNIXCALL, UNIXSIGNAL, UNIXFORK ;
 

@@ -23,7 +23,7 @@ IMPLEMENTATION MODULE M2RTS ;
 FROM libc IMPORT abort, exit, write ;
 FROM Conversions IMPORT ConvertCardinal ;
 FROM Strings IMPORT StrCpy, StrLen, StrCmp ;
-FROM SYSTEM IMPORT ADDRESS, ADR, BITSET ;
+FROM SYSTEM IMPORT ADDRESS, ADR ;
 FROM ASCII IMPORT nl, nul ;
 
 (* RTExceptions is not used in this module - but it is a

@@ -29,7 +29,6 @@ This file was originally part of the University of Ulm library
 
 IMPLEMENTATION MODULE Plot;
 
-   FROM SYSTEM IMPORT BITSET ;
    FROM StdIO IMPORT FILE, stdout, stderr, Fputc, Fflush;
    FROM SysPerror IMPORT Perror;
    FROM FtdIO IMPORT FwriteString, FwriteLn;
