@@ -31,7 +31,7 @@ DEFINITION MODULE SysIoctl;
 
    (* SUN version *)
 
-   FROM SYSTEM IMPORT BYTE, BITSET;
+   FROM SYSTEM IMPORT BYTE ;
 
    CONST
       shift = 0;

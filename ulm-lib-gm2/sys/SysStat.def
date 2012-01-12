@@ -30,7 +30,6 @@ This file was originally part of the University of Ulm library
 DEFINITION MODULE SysStat;
 
    FROM SystemTypes IMPORT TIME, OFF;
-   FROM SYSTEM IMPORT BITSET ;
 
    TYPE
       StatBuf =
