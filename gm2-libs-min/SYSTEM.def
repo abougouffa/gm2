@@ -28,7 +28,7 @@ DEFINITION MODULE SYSTEM ;
 *)
 
 EXPORT QUALIFIED BITSPERBYTE, BYTESPERWORD,
-                 ADDRESS, WORD, BYTE, BITSET, (* @SYSTEM_DATATYPES@ *)
+                 ADDRESS, WORD, BYTE, (* @SYSTEM_DATATYPES@ *)
                  ADR, TSIZE ;
                  (* SIZE is also exported if -fpim2 is used *)
 
