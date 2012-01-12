@@ -13,6 +13,13 @@
 	* gm2/gm2-libs/M2RTS.mod:  BITSET is now a pervasive type.
 	* gm2/gm2.texi:  added new section on packed records and also BITSET
 	  is no longer exported from SYSTEM but is a pervasive type.
+	* gm2/ulm-lib-gm2/std/M2RTS.mod:  no longer import BITSET.
+        * gm2/ulm-lib-gm2/std/MathLib.mod:  no longer import BITSET.
+	* gm2/ulm-lib-gm2/std/Plot.mod:  no longer import BITSET.
+	* gm2/ulm-lib-gm2/sys/SYSTEM.def:  no longer export BITSET.
+	* gm2/ulm-lib-gm2/sys/SysStat.def:  no longer import BITSET.
+	* gm2/ulm-lib-gm2/sys/SysStat.mod:  no longer import BITSET.
+	* gm2/ulm-lib-gm2/std/Archive.def:  no longer import BITSET.
 
 2011-12-01      Gaius Mulley <gaius@gnu.org>
 
