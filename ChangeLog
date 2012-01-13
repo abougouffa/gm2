@@ -1,3 +1,9 @@
+2012-01-13      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  declare procedures in
+	  topological order with constants and types.  This fixes a bug
+	  reported by Scott Iverson.
+
 2012-01-12      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/Indexing.mod:  removed import of BITSET from SYSTEM.
@@ -20,6 +26,12 @@
 	* gm2/ulm-lib-gm2/sys/SysStat.def:  no longer import BITSET.
 	* gm2/ulm-lib-gm2/sys/SysStat.mod:  no longer import BITSET.
 	* gm2/ulm-lib-gm2/std/Archive.def:  no longer import BITSET.
+	* gm2/ulm-lib-gm2/sys/SysIoctl.def:  no longer import BITSET.
+	* gm2/gm2-libs-pim/BitBlockOps.mod:  no longer import BITSET.
+	* gm2/gm2-libs-pim/BitBlockOps.mod:  no longer import BITSET.
+	* gm2/gm2-libs-pim/BitByteOps.mod:  no longer import BITSET.
+	* gm2/gm2-libs-pim/BitWordOps.mod:  no longer import BITSET.
+	* gm2/gm2/examples/map/AdvMap.def:  no longer import BITSET.
 
 2011-12-01      Gaius Mulley <gaius@gnu.org>
 

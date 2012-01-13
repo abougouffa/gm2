@@ -183,6 +183,7 @@ TYPE
 
 
 (* %%%FORWARD%%%
+PROCEDURE DeclareProcedureToGcc (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE AlignDeclarationWithSource (sym: CARDINAL) ; FORWARD ;
 PROCEDURE PrintTerse (sym: CARDINAL) ; FORWARD ;
 PROCEDURE DeclareFileName ; FORWARD ;
@@ -214,7 +215,7 @@ PROCEDURE DeclareUnboundedProcedureParameters (sym: WORD) ; FORWARD ;
 PROCEDURE PreAddModGcc (sym: CARDINAL; t: Tree) ; FORWARD ;
 PROCEDURE DeclareAssociatedUnbounded (sym: CARDINAL) ; FORWARD ;
 PROCEDURE DeclareUnbounded (sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE DeclareTypesAndConstantsInRange (start, end: CARDINAL) ; FORWARD ;
+PROCEDURE DeclareTypesConstantsProceduresInRange (start, end: CARDINAL) ; FORWARD ;
 PROCEDURE IsTypeQ (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
 PROCEDURE IsFullyDeclared (sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE TypeConstFullyDeclared (sym: CARDINAL) : Tree ; FORWARD ;
@@ -410,6 +411,10 @@ BEGIN
                               printf1("symbol %d -> FullyDeclared\n", sym) ;
                               FIO.FlushBuffer(FIO.StdOut) ;
                               IncludeElementIntoSet(FullyDeclared, sym)
+                              ; IF sym=1104
+                              THEN
+                                 mystop
+                              END
                            END |
       partiallydeclared :  IF NOT IsElementInSet(PartiallyDeclared, sym)
                            THEN
@@ -995,8 +1000,14 @@ VAR
 BEGIN
    IF NOT IsElementInSet(ToBeSolvedByQuads, sym)
    THEN
-      IF IsProcedure(sym) OR IsModule(sym) OR IsDefImp(sym)
+      IF IsModule(sym) OR IsDefImp(sym)
       THEN
+         WatchIncludeList(sym, fullydeclared) ;
+         WatchRemoveList(sym, partiallydeclared) ;
+         WatchRemoveList(sym, todolist)
+      ELSIF IsProcedure(sym)
+      THEN
+         DeclareProcedureToGcc(sym) ;
          WatchIncludeList(sym, fullydeclared) ;
          WatchRemoveList(sym, partiallydeclared) ;
          WatchRemoveList(sym, todolist)
@@ -1097,10 +1108,6 @@ PROCEDURE Body (sym: CARDINAL) ;
 BEGIN
    IF bodyq(sym)
    THEN
-      IF sym=23222
-      THEN
-         mystop
-      END ;
       WatchRemoveList(sym, bodyt) ;
       bodyp(sym) ;
       (* bodyp(sym) might have replaced sym into the set *)
@@ -1468,7 +1475,7 @@ BEGIN
          tokenno := QuadToTokenNo(quad)
       END ;
       WalkConstructor(sym, TraverseDependants) ;
-      DeclareTypesAndConstantsInRange(quad, quad) ;
+      DeclareTypesConstantsProceduresInRange(quad, quad) ;
       Assert(IsConstructorDependants(sym, IsFullyDeclared)) ;
       PushValue(sym) ;
       DeclareConstantFromTree(sym, PopConstructorTree(tokenno))
@@ -2179,10 +2186,10 @@ END FoldConstants ;
 
 
 (*
-   DeclareTypesAndConstantsInRange - 
+   DeclareTypesConstantsProceduresInRange - 
 *)
 
-PROCEDURE DeclareTypesAndConstantsInRange (start, end: CARDINAL) ;
+PROCEDURE DeclareTypesConstantsProceduresInRange (start, end: CARDINAL) ;
 VAR
    n, m: CARDINAL ;
 BEGIN
@@ -2201,14 +2208,14 @@ BEGIN
       m := NoOfElementsInSet(ToDoList)
    UNTIL (NOT ResolveConstantExpressions(DeclareConstFully, start, end)) AND
          (n=m)
-END DeclareTypesAndConstantsInRange ;
+END DeclareTypesConstantsProceduresInRange ;
 
 
 (*
-   DeclareTypesAndConstants - 
+   DeclareTypesConstantsProcedures - 
 *)
 
-PROCEDURE DeclareTypesAndConstants (scope: CARDINAL) ;
+PROCEDURE DeclareTypesConstantsProcedures (scope: CARDINAL) ;
 VAR
    s, t: CARDINAL ;
    sb  : ScopeBlock ;
@@ -2217,11 +2224,11 @@ BEGIN
    REPEAT
       s := NoOfElementsInSet(ToDoList) ;
       (* ForeachLocalSymDo(scope, DeclareTypeInfo) ; *)
-      ForeachScopeBlockDo(sb, DeclareTypesAndConstantsInRange) ;
+      ForeachScopeBlockDo(sb, DeclareTypesConstantsProceduresInRange) ;
       t := NoOfElementsInSet(ToDoList) ;
    UNTIL (s=t) ;
    sb := KillScopeBlock(sb)
-END DeclareTypesAndConstants ;
+END DeclareTypesConstantsProcedures ;
 
 
 (*
@@ -2312,6 +2319,7 @@ BEGIN
    (* IncludeElementIntoSet(WatchList, 829) ; *)
    (* IncludeElementIntoSet(WatchList, 2714) ; *)
    (* IncludeElementIntoSet(WatchList, 23222) ; *)
+   (* IncludeElementIntoSet(WatchList, 1104) ; *)
    IF Debugging
    THEN
       n := GetSymName(scope) ;
@@ -2322,8 +2330,8 @@ BEGIN
       WalkTypesInProcedure(scope) ;
       DeclareProcedure(scope) ;
       ForeachInnerModuleDo(scope, WalkTypesInModule) ;
-      DeclareTypesAndConstants(scope) ;
-      ForeachInnerModuleDo(scope, DeclareTypesAndConstants) ;
+      DeclareTypesConstantsProcedures(scope) ;
+      ForeachInnerModuleDo(scope, DeclareTypesConstantsProcedures) ;
       DeclareLocalVariables(scope) ;
       ForeachInnerModuleDo(scope, DeclareModuleVariables) ;
       AssertAllTypesDeclared(scope) ;
@@ -2331,14 +2339,14 @@ BEGIN
       ForeachInnerModuleDo(scope, StartDeclareScope)
    ELSIF scope#GetMainModule()
    THEN
-      DeclareTypesAndConstants(scope) ;
+      DeclareTypesConstantsProcedures(scope) ;
       AssertAllTypesDeclared(scope) ;
       ForeachProcedureDo(scope, DeclareProcedure) ;
       DeclareModuleInit(scope) ;
       ForeachInnerModuleDo(scope, StartDeclareScope)
    ELSE
       ForeachModuleDo(WalkTypesInModule) ;     (* will populate the TYPE and CONST ToDo list  *)
-      DeclareTypesAndConstants(scope) ;        (* will resolved TYPEs and CONSTs on the ToDo  *)
+      DeclareTypesConstantsProcedures(scope) ; (* will resolved TYPEs and CONSTs on the ToDo  *)
                                                (* lists.                                      *)
       ForeachModuleDo(DeclareProcedure) ;
       (*
@@ -2358,9 +2366,8 @@ BEGIN
       ForeachProcedureDo(scope, DeclareProcedure) ;
       (* --testing-- *)
       ForeachInnerModuleDo(scope, WalkTypesInModule) ;
-      ForeachInnerModuleDo(scope, DeclareTypesAndConstants) ;
+      ForeachInnerModuleDo(scope, DeclareTypesConstantsProcedures) ;
       (* --end of test-- *)
-      ForeachInnerModuleDo(scope, DeclareProcedure) ;
       ForeachInnerModuleDo(scope, StartDeclareScope)
    END ;
    IF Debugging
