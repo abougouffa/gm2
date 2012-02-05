@@ -11338,7 +11338,11 @@ gccgm2_ConvertConstantAndCheck (tree type, tree expr)
 {
   expr = fold (expr);
   STRIP_NOPS (expr);
-  return convert_and_check (skip_type_decl (type), gccgm2_FoldAndStrip (expr));
+  expr = gccgm2_FoldAndStrip (expr);
+
+  if (TREE_CODE (expr) == FUNCTION_DECL)
+    expr = gccgm2_BuildAddr (expr, FALSE);
+  return convert_and_check (skip_type_decl (type), expr);
 }
 
 /*

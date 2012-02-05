@@ -1,3 +1,9 @@
+2012-02-05      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  fixed bug reported by Scott Iverson.
+	  The bug occurred when a procedure was used in a constructor.
+	  The solution is to take the address of the FUNCTION_DECL.
+
 2012-01-13      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  declare procedures in
