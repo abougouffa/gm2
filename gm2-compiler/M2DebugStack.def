@@ -1,0 +1,48 @@
+(* Copyright (C) 2011 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)
+
+DEFINITION MODULE M2DebugStack ;
+
+(*
+    Title      : M2DebugStack
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Mon Dec  5 16:19:43 2011
+    Revision   : $Version$ 
+    Description: provides a procedure which displays the
+                 compile time stack neatly and with annotation.
+*)
+
+FROM SYSTEM IMPORT WORD ;
+FROM DynamicStrings IMPORT String ;
+
+TYPE
+   ProcedureWord    = PROCEDURE (CARDINAL) : WORD ;
+   ProcedureString  = PROCEDURE (CARDINAL) : String ;
+
+   
+(*
+   DebugStack - displays the stack.
+*)
+
+PROCEDURE DebugStack (amount: CARDINAL;
+                      opt, opf, opa, opd, oprw: ProcedureWord;
+                      opanno: ProcedureString) ;
+
+
+END M2DebugStack.

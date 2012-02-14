@@ -3,6 +3,8 @@
 	The following changes are a change to the type declaration system
 	which is necessary to implement bit alignment of record fields.
 
+	* gm2/gm2-compiler/M2DebugStack.def:  New file.
+	* gm2/gm2-compiler/M2DebugStack.mod:  New file.
 	* gm2/Make-lang.in:  tidied up the file and introduced a commented
 	  rule which allows stage2 to be built from a prebuilt stage1.  This
 	  is only ever used during heavy development and allows debugging in
