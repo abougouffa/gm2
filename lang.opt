@@ -169,6 +169,10 @@ fdump-system-exports
 Modula-2
 display all inbuilt system items
 
+fd
+Modula-2
+turn on internal debugging of the compiler
+
 fswig
 Modula-2
 create a swig interface file for the module

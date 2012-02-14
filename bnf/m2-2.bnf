@@ -1,5 +1,5 @@
 -- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
---               2010
+--               2010, 2011, 2012
 -- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
@@ -47,13 +47,13 @@ IMPLEMENTATION MODULE P2Build ;
 
 FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertTokenAndRewind, GetTokenNo ;
 FROM M2Error IMPORT ErrorStringAt ;
-FROM NameKey IMPORT NulName, Name, makekey ;
+FROM NameKey IMPORT NulName, Name, makekey, MakeKey ;
 FROM M2Reserved IMPORT tokToTok, toktype, NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok ;
 FROM DynamicStrings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
 FROM M2Printf IMPORT printf0 ;
 FROM M2Debug IMPORT Assert ;
 
-FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing, OperandT, PushTFA,
+FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing, OperandT, PushTFA, Top, Annotate,
                     StartBuildInit,
                     EndBuildInit,
                     BuildProcedureStart,
@@ -61,7 +61,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing, OperandT, PushTFA,
                     BuildAssignment,
                     BuildInline,
                     AddRecordToList, AddVarientToList,
-                    PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
+                    PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto, DisplayStack ;
 
 FROM P2SymBuild IMPORT P2StartBuildProgramModule,
                        P2EndBuildProgramModule,
@@ -108,6 +108,7 @@ FROM P2SymBuild IMPORT P2StartBuildProgramModule,
                        BuildFieldArray, BuildArrayComma,
                        BuildSubrange, BuildAligned,
                        BuildTypeAlignment, BuildVarAlignment,
+                       P2BuildDefaultFieldAlignment, BuildPragmaConst,
                        BuildSetType,
                        BuildFormalType, BuildFunction, BuildProcedureType,
                        DetermineType, PushType, PopType,
@@ -121,7 +122,7 @@ FROM SymbolTable IMPORT MakeGnuAsm, PutGnuAsmVolatile, PutGnuAsm, PutGnuAsmInput
                         PutGnuAsmOutput, PutGnuAsmTrash, PutGnuAsmVolatile,
                         MakeRegInterface,
                         PutRegInterface, GetRegInterface,
-                        GetSymName, GetType,
+                        GetSymName, GetType, MakeConstLit,
                         NulSym,
                         StartScope, EndScope,
                         PutIncluded,
@@ -362,7 +363,8 @@ PROCEDURE Ident (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop
 BEGIN
    IF IsAutoPushOn()
    THEN
-      PushTF(makekey(currentstring), identtok)
+      PushTF(makekey(currentstring), identtok) ;
+      Annotate("%1n|identtok||Ident rule")
    END ;
    Expect(identtok, stopset0, stopset1, stopset2)
 END Ident ;
@@ -443,6 +445,8 @@ token   '>'               greatertok
 token   '<>'              lessgreatertok
 token   '<='              lessequaltok
 token   '>='              greaterequaltok
+token   '<*'              ldirectivetok
+token   '*>'              rdirectivetok
 token   '..'              periodperiodtok
 token   ':'               colontok
 token   '"'               doublequotestok
@@ -580,10 +584,12 @@ Qualident :=                                                               % VAR
                                                                                    (* should we test for lack of ident? *)
                                                                                    PopTF(Sym, Type) ;
                                                                                    PushTF(Sym, Type) ;
+                                                                                   Annotate("%1s(%1d)|%1s(%1d)||qualident|type") ;
                                                                                    EndScope ;
                                                                                    PutIncluded(Sym)
                                                                                 ELSE
-                                                                                   PushTF(Sym, GetType(Sym))
+                                                                                   PushTF(Sym, GetType(Sym)) ;
+                                                                                   Annotate("%1s(%1d)|%1s(%1d)||qualident|type")
                                                                                 END
                                                                              ELSE (* just parse qualident *) %
              { "." Ident }                                                 % END %
@@ -666,14 +672,21 @@ ConstAttributeExpression := Ident | "<" Qualident ',' Ident ">" =:
 
 Element := ConstExpression [ ".." ConstExpression ] =:
 
-doAlignment :=  "__ATTRIBUTE__" "(" "(" Ident "(" ConstExpression ")"      % BuildAligned %
-                ")" ")"
-             =:
+ByteAlignment := "__ATTRIBUTE__" "(" "(" Ident OptAlignmentExpression      % BuildAligned %
+                                                                      ")" ")"
+               =:
 
-Alignment :=  doAlignment |                                                % PushT(NulSym) %
+OptAlignmentExpression := [ AlignmentExpression ] =:
+
+AlignmentExpression := "(" ConstExpression ")" =:
+
+Alignment := ByteAlignment |                                               % PushT(NulSym) %
            =:
 
-TypeDeclaration := Ident "=" Type Alignment                                % BuildTypeAlignment %
+TypeDeclaration :=                                                         % VAR top: CARDINAL ; %
+                                                                           % top := Top() %
+                   Ident "=" Type Alignment                                % BuildTypeAlignment %
+                                                                           % Assert(top=Top()) %
                  =:							   
 
 Type :=                                                                    
@@ -740,8 +753,40 @@ ArrayType := "ARRAY"                                                       % VAR
            =:
 
 RecordType := "RECORD"                                                     % BuildRecord %
-              FieldListSequence "END" =:
+                       [ DefaultRecordAttributes ]
+                       FieldListSequence "END" =:
 
+DefaultRecordAttributes := '<*'                                            % PushAutoOn %
+                                AttributeExpression                        % P2BuildDefaultFieldAlignment %
+                                                                           % PopAuto %
+                                                    '*>' =:
+
+RecordFieldPragma := ( '<*' FieldPragmaExpression                          % VAR n: CARDINAL ; %
+                                                                           % n := 1 %
+                                                                           % PushT(n) %
+                                                                           % Annotate('(%1d)||pragma count') %
+                        { ','                                              % PopT(n) %
+                              FieldPragmaExpression                        % INC(n) %
+                                                                           % PushT(n) %
+                                                                           % Annotate('(%1d)||pragma count') %
+                                                    } '*>' |               % n := 0 %
+                                                                           % PushT(n) %
+                                                                           % Annotate('(%1d)||pragma count') %
+                                                              ) =:
+
+FieldPragmaExpression :=                                                   % PushAutoOn %
+                         Ident PragmaConstExpression
+                                                                           % PopAuto %
+                                                           =:
+
+PragmaConstExpression := (                                                 % PushAutoOff %
+                           '(' ConstExpression                             % BuildPragmaConst %
+                                               ')'                         % PopAuto %
+                                                   |                       % PushT(NulSym) %
+                                                                           % Annotate('NulSym||no pragma const') %
+                                                     )     =:
+
+AttributeExpression := Ident '(' ConstExpression ')' =:
 
 FieldListSequence := FieldListStatement { ";" FieldListStatement } =:
 
@@ -751,7 +796,7 @@ FieldListStatement := [ FieldList ] =:
 -- symbols. We rewrite FieldList to inline qualident
 
 FieldList := IdentList ":"                                                 % BuildNulName %
-                           Type Alignment                                  % BuildFieldRecord %
+                           Type RecordFieldPragma                          % BuildFieldRecord %
              |
              "CASE"                                                        % AddRecordToList %
                                                                            % StartBuildVarient %
@@ -784,7 +829,7 @@ CaseLabelList := CaseLabels { "," CaseLabels } =:
 CaseLabels := ConstExpression [ ".." ConstExpression ] =:
 
 SetType := ( "SET" | "PACKEDSET" ) "OF"                                    % BuildNulName %
-           SimpleType                                                      % BuildSetType %
+                                        SimpleType                         % BuildSetType %
          =:
 
 PointerType := "POINTER" "TO"                                              % BuildNulName %

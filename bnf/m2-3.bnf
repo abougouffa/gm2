@@ -61,7 +61,7 @@ FROM M2Reserved IMPORT tokToTok, toktype,
                        OrTok, TimesTok, DivTok, DivideTok, ModTok, RemTok,
                        AndTok, AmbersandTok, PeriodPeriodTok, ByTok ;
 
-FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
+FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing, Annotate,
                     BuildModuleStart,
                     StartBuildDefFile, StartBuildModFile,
                     EndBuildFile,
@@ -120,10 +120,11 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     CheckOuterScopeProcedureVariable,
                     BuildModulePriority,
                     BuildRetry,
-                    DumpStack,
+                    DisplayStack,
                     AddVarientRange, AddVarientEquality,
                     BeginVarient, EndVarient, BeginVarientList, EndVarientList,
                     PushInConstExpression, PopInConstExpression, IsInConstExpression,
+                    BuildDefaultFieldAlignment, BuildPragmaField,
                     IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
 
 FROM P3SymBuild IMPORT P3StartBuildProgModule,
@@ -484,6 +485,8 @@ token   '>'               greatertok
 token   '<>'              lessgreatertok
 token   '<='              lessequaltok
 token   '>='              greaterequaltok
+token   '<*'              ldirectivetok
+token   '*>'              rdirectivetok
 token   '..'              periodperiodtok
 token   ':'               colontok
 token   '"'               doublequotestok
@@ -756,11 +759,17 @@ Element := ConstExpression ( ".." ConstExpression                          % Bui
                              |                                             % BuildInclBit (* epsilon *) %
                            ) =:
 
-Alignment := [ "__ATTRIBUTE__" "(" "("                                     % PushAutoOn %
-                                       Ident "(" ConstExpression ")"       % BuildAlignment %
+ByteAlignment := "__ATTRIBUTE__" "(" "("                                   % PushAutoOn %
+                                         Ident OptAlignmentExpression      % BuildAlignment %
                                                                            % PopAuto %
-               ")" ")" ]
-           =:
+                                                                   ")" ")"
+               =:
+
+OptAlignmentExpression := [ AlignmentExpression ] =:
+
+AlignmentExpression := "(" ConstExpression ")" =:
+
+Alignment := [ ByteAlignment ] =:
 
 TypeDeclaration := Ident "=" Type Alignment
                 =:							   
@@ -812,9 +821,26 @@ ArrayType := "ARRAY"
              Type
            =:
 
-RecordType := "RECORD"
-              FieldListSequence "END" =:
+RecordType := "RECORD" [ DefaultRecordAttributes ] FieldListSequence "END" =:
 
+DefaultRecordAttributes := '<*'                                           % PushAutoOn %
+                                AttributeExpression                       % BuildDefaultFieldAlignment %
+                                                                          % PopAuto %
+                                                    '*>' =:
+
+RecordFieldPragma := [ '<*' FieldPragmaExpression
+                            { ',' FieldPragmaExpression } '*>' ] =:
+
+FieldPragmaExpression :=                                                   % PushAutoOn %
+                         Ident PragmaConstExpression                       % BuildPragmaField %
+                                                                           % PopAuto %
+                                                           =:
+
+PragmaConstExpression := ( '(' ConstExpression ')' |                       % PushT(NulSym) %
+                                                                           % Annotate('NulSym||no pragma const') %
+                                                     )     =:
+
+AttributeExpression := Ident '(' ConstExpression ')' =:
 
 FieldListSequence := FieldListStatement { ";" FieldListStatement } =:
 
@@ -831,7 +857,7 @@ FieldListStatement := [ FieldList ] =:
 --                    [ "ELSE" FieldListSequence ] "END" =:
 
 FieldList := IdentList ":"
-                           Type Alignment
+                           Type RecordFieldPragma
              |
              "CASE"                                                        % BeginVarient %
                     CaseTag "OF"
@@ -1092,7 +1118,7 @@ ReturnStatement :=                                                         % Bui
                                            )                               % BuildReturn %
                 =:
 
-Statement :=                                                               % PushAutoOn ; DumpStack %
+Statement :=                                                               % PushAutoOn ; DisplayStack %
              [ AssignmentOrProcedureCall | IfStatement | CaseStatement |
                WhileStatement | RepeatStatement | LoopStatement |
                ForStatement | WithStatement | AsmStatement |
@@ -1104,7 +1130,7 @@ RetryStatement := "RETRY"                                                  % Bui
                 =:
 
 AssignmentOrProcedureCall :=                                               % VAR isFunc: BOOLEAN ; %
-                                                                           % BuildLineNo ; DumpStack %
+                                                                           % BuildLineNo ; DisplayStack %
                              Designator
                              ( ":=" Expression                             % BuildAssignment %
                                 |                                          % BuildLineNo ;
@@ -1117,7 +1143,7 @@ AssignmentOrProcedureCall :=                                               % VAR
                                                                              ELSE
                                                                                 BuildProcedureCall
                                                                              END %
-                             )                                             % DumpStack %
+                             )                                             % DisplayStack %
                            =:
 
 -- these two break LL1 as both start with a Designator
@@ -1179,7 +1205,7 @@ WhileStatement :=                                                          % Bui
                   "WHILE"                                                  % BuildWhile %
                   Expression
                              "DO"                                          % BuildDoWhile %
-                                  StatementSequence "END"                  % DumpStack ; BuildEndWhile %
+                                  StatementSequence "END"                  % DisplayStack ; BuildEndWhile %
                 =:
 
 RepeatStatement :=

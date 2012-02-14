@@ -430,6 +430,8 @@ token   '>'               greatertok
 token   '<>'              lessgreatertok
 token   '<='              lessequaltok
 token   '>='              greaterequaltok
+token   '<*'              ldirectivetok
+token   '*>'              rdirectivetok
 token   '..'              periodperiodtok
 token   ':'               colontok
 token   '"'               doublequotestok
@@ -728,10 +730,16 @@ ConstAttributeExpression :=
 
 Element := ConstExpression [ ".." ConstExpression ] =:
 
-Alignment := [ "__ATTRIBUTE__" "(" "(" Ident "(" ConstExpression ")" ")" ")" ]
-           =:
+ByteAlignment := "__ATTRIBUTE__" "(" "(" Ident OptAlignmentExpression ")" ")"
+               =:
 
-TypeDeclaration := Ident "=" Type Alignment =:							   
+OptAlignmentExpression := [ AlignmentExpression ] =:
+
+AlignmentExpression := "(" ConstExpression ")" =:
+
+Alignment := [ ByteAlignment ] =:
+
+TypeDeclaration := Ident "=" Type Alignment =:
 									   
 Type := 
                                                                            % PushAutoOff %
@@ -775,16 +783,28 @@ ArrayType := "ARRAY"
              Type
            =:
 
-RecordType := "RECORD"
-              FieldListSequence "END" =:
+RecordType := "RECORD" [ DefaultRecordAttributes ] FieldListSequence "END" =:
 
+DefaultRecordAttributes := '<*' AttributeExpression '*>' =:
+
+RecordFieldPragma := [ '<*' FieldPragmaExpression
+                        { ',' FieldPragmaExpression } '*>' ] =:
+
+FieldPragmaExpression :=                                                           % PushAutoOff %
+                         Ident [ '(' ConstExpression ')' ]
+                                                                                   % PopAuto %
+                       =:
+
+AttributeExpression :=                                                             % PushAutoOff %
+                       Ident '(' ConstExpression ')'                               % PopAuto %
+                     =:
 
 FieldListSequence := FieldListStatement { ";" FieldListStatement } =:
 
 FieldListStatement := [ FieldList ] =:
 
 FieldList := IdentList ":"
-                           Type Alignment
+                           Type RecordFieldPragma
              |
              "CASE"
                     CaseTag "OF"

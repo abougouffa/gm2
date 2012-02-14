@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
+                 2010, 2011, 2012
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -102,7 +102,9 @@ FROM SymbolTable IMPORT NulSym,
                         GetSymName, GetParent,
                         GetDeclared, GetVarBackEndType,
                         GetString, GetStringLength, IsConstString,
-                        GetAlignment,
+                        GetAlignment, IsDeclaredPacked, PutDeclaredPacked,
+                        GetDefaultRecordFieldAlignment, IsDeclaredPackedResolved,
+                        GetPackedEquivalent, 
                         GetParameterShadowVar,
                         GetUnboundedRecordType,
                         ForeachOAFamily, GetOAFamily,
@@ -153,11 +155,14 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
                    BuildIntegerConstant, BuildStringConstant, BuildCharConstant,
                    BuildSubrangeType,
-                   BuildStartRecord, BuildEndRecord, BuildStartVarientRecord, BuildFieldRecord,
+                   BuildStartRecord, BuildEndRecord, BuildStartVarient, BuildEndVarient,
+                   BuildFieldRecord,
                    BuildArrayIndexType, BuildStartArrayType, BuildEndArrayType, BuildSetType,
+                   BuildAdd,
                    DebugTree, GetDeclContext,
                    ChainOn,
                    BuildPointerType, BuildConstPointerType, BuildConvert, SetAlignment,
+                   SetDeclPacked, SetTypePacked, SetRecordFieldOffset, BuildSmallestTypeRange,
                    BuildStartFunctionType, BuildEndFunctionType,
                    InitFunctionTypeParameters,
                    BuildParameterDeclaration,
@@ -166,7 +171,8 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildStartType, BuildEndType, PutArrayType,
                    RememberType, BuildTypeDeclaration, RememberConstant,
                    GetBooleanType, GetBooleanFalse, GetBooleanTrue,
-                   BuildSize, MarkFunctionReferenced,
+                   GetPackedBooleanType,
+                   BuildSize, MarkFunctionReferenced, BuildTBitSize,
                    GetM2Integer8, GetM2Integer16, GetM2Integer32, GetM2Integer64,
                    GetM2Cardinal8, GetM2Cardinal16, GetM2Cardinal32, GetM2Cardinal64,
                    GetM2Bitset8, GetM2Bitset16, GetM2Bitset32,
@@ -179,10 +185,20 @@ FROM gccgm2 IMPORT Tree, Constructor,
 TYPE
    StartProcedure = PROCEDURE (ADDRESS) : Tree ;
    ListType       = (fullydeclared, partiallydeclared, niltypedarrays,
-                     todolist, tobesolvedbyquads) ;
+                     heldbyalignment, finishedalignment, todolist, tobesolvedbyquads) ;
+   doDeclareProcedure = PROCEDURE (CARDINAL, CARDINAL) ;
 
 
 (* %%%FORWARD%%%
+PROCEDURE DeclareFieldVarient (sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE WalkProcedureDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
+PROCEDURE IsProcedureDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
+PROCEDURE DeclareRecordField (sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE WriteRule ; FORWARD ;
+PROCEDURE RecordNotPacked (sym: CARDINAL) ; FORWARD ;
+PROCEDURE MaybePackField (field: CARDINAL; VAR byteOffset, bitOffset: Tree) : Tree ; FORWARD ;
+PROCEDURE WalkRecordDependants2 (sym: CARDINAL; p: WalkAction) ; FORWARD ;
+PROCEDURE DetermineIfRecordPacked (sym: CARDINAL) ; FORWARD ;
 PROCEDURE DeclareProcedureToGcc (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE AlignDeclarationWithSource (sym: CARDINAL) ; FORWARD ;
 PROCEDURE PrintTerse (sym: CARDINAL) ; FORWARD ;
@@ -219,7 +235,7 @@ PROCEDURE DeclareTypesConstantsProceduresInRange (start, end: CARDINAL) ; FORWAR
 PROCEDURE IsTypeQ (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
 PROCEDURE IsFullyDeclared (sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE TypeConstFullyDeclared (sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE CanCompleteDeclarationOf (sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE CompleteDeclarationOf (sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE TraverseDependants (sym: WORD) ; FORWARD ;
 PROCEDURE WalkEnumerationDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
 PROCEDURE WalkSubrangeDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
@@ -248,10 +264,12 @@ PROCEDURE WalkRecordFieldDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
 PROCEDURE IsVarientFieldDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
 PROCEDURE WalkVarientFieldDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
 PROCEDURE TryDeclareConst (tokenno: CARDINAL; sym: CARDINAL) ; FORWARD ;
+PROCEDURE PossiblyPacked (sym: CARDINAL; isPacked: BOOLEAN) : Tree ; FORWARD ;
    %%%FORWARD%%% *)
 
 CONST
    Debugging = FALSE ;
+   Progress  = FALSE ;
 
 VAR
    ToBeSolvedByQuads,               (* constants which must be solved *)
@@ -264,6 +282,12 @@ VAR
                                     (* be finished (but already       *)
                                     (* started: records, function,    *)
                                     (* and array type).               *)
+   HeldByAlignment,                 (* types which have a user        *)
+                                    (* specified alignment constant.  *)
+   FinishedAlignment,               (* records for which we know      *)
+                                    (* their alignment value.         *)
+   VisitedList,
+   ChainedList,
    ToDoList            : Set ;      (* Contains a set of all          *)
                                     (* outstanding types that need to *)
                                     (* be declared to GCC once        *)
@@ -311,6 +335,8 @@ END DebugSet ;
 PROCEDURE DebugSets ;
 BEGIN
    DebugSet('ToDoList', ToDoList) ;
+   DebugSet('HeldByAlignment', HeldByAlignment) ;
+   DebugSet('FinishedAlignment', FinishedAlignment) ;
    DebugSet('PartiallyDeclared', PartiallyDeclared) ;
    DebugSet('FullyDeclared', FullyDeclared) ;
    DebugSet('NilTypedArrays', NilTypedArrays) ;
@@ -327,7 +353,8 @@ VAR
    n: CARDINAL ;
 BEGIN
    n := NoOfElementsInSet(s) ;
-   printf1(a, n)
+   printf1(a, n) ;
+   FIO.FlushBuffer(FIO.StdOut)
 END DebugNumber ;
 
 
@@ -335,18 +362,20 @@ END DebugNumber ;
    FindSetNumbers - 
 *)
 
-PROCEDURE FindSetNumbers (VAR t, p, f, n, b: CARDINAL) : BOOLEAN ;
+PROCEDURE FindSetNumbers (VAR t, a, p, f, n, b: CARDINAL) : BOOLEAN ;
 VAR
-   t1, p1, f1, n1, b1: CARDINAL ;
-   same              : BOOLEAN ;
+   t1, p1, f1, n1, b1, a1: CARDINAL ;
+   same                  : BOOLEAN ;
 BEGIN
    t1 := NoOfElementsInSet(ToDoList) ;
+   a1 := NoOfElementsInSet(HeldByAlignment) ;
    p1 := NoOfElementsInSet(PartiallyDeclared) ;
    f1 := NoOfElementsInSet(FullyDeclared) ;
    n1 := NoOfElementsInSet(NilTypedArrays) ;
    b1 := NoOfElementsInSet(ToBeSolvedByQuads) ;
-   same := ((t=t1) AND (p=p1) AND (f=f1) AND (n=n1) AND (b=b1)) ;
+   same := ((t=t1) AND (a=a1) AND (p=p1) AND (f=f1) AND (n=n1) AND (b=b1)) ;
    t := t1 ;
+   a := a1 ;
    p := p1 ;
    f := f1 ;
    n := n1 ;
@@ -362,6 +391,7 @@ END FindSetNumbers ;
 PROCEDURE DebugSetNumbers ;
 BEGIN
    DebugNumber('ToDoList : %d\n', ToDoList) ;
+   DebugNumber('HeldByAlignment : %d\n', HeldByAlignment) ;
    DebugNumber('PartiallyDeclared : %d\n', PartiallyDeclared) ;
    DebugNumber('FullyDeclared : %d\n', FullyDeclared) ;
    DebugNumber('NilTypedArrays : %d\n', NilTypedArrays) ;
@@ -388,10 +418,28 @@ END AddSymToWatch ;
 
 
 (*
-   WatchIncludeSet - include a symbol onto the set first checking
-                     whether it is already on the set and
-                     displaying a debug message if the set is
-                     changed.
+   doInclude - 
+*)
+
+PROCEDURE doInclude (l: Set; a: ARRAY OF CHAR; sym: CARDINAL) ;
+BEGIN
+   IF NOT IsElementInSet(l, sym)
+   THEN
+      printf0('rule: ') ;
+      WriteRule ;
+      printf0('  ') ;
+      printf1(a, sym) ;
+      FIO.FlushBuffer(FIO.StdOut) ;
+      IncludeElementIntoSet(l, sym)
+   END
+END doInclude ;
+
+
+(*
+   WatchIncludeList - include a symbol onto the set first checking
+                      whether it is already on the set and
+                      displaying a debug message if the set is
+                      changed.
 *)
 
 PROCEDURE WatchIncludeList (sym: CARDINAL; lt: ListType) ;
@@ -400,40 +448,13 @@ BEGIN
    THEN
       CASE lt OF
 
-      tobesolvedbyquads :  IF NOT IsElementInSet(ToBeSolvedByQuads, sym)
-                           THEN
-                              printf1("symbol %d -> ToBeSolvedByQuads\n", sym) ;
-                              FIO.FlushBuffer(FIO.StdOut) ;
-                              IncludeElementIntoSet(ToBeSolvedByQuads, sym)
-                           END |
-      fullydeclared     :  IF NOT IsElementInSet(FullyDeclared, sym)
-                           THEN
-                              printf1("symbol %d -> FullyDeclared\n", sym) ;
-                              FIO.FlushBuffer(FIO.StdOut) ;
-                              IncludeElementIntoSet(FullyDeclared, sym)
-                              ; IF sym=1104
-                              THEN
-                                 mystop
-                              END
-                           END |
-      partiallydeclared :  IF NOT IsElementInSet(PartiallyDeclared, sym)
-                           THEN
-                              printf1("symbol %d -> PartiallyDeclared\n", sym) ;
-                              FIO.FlushBuffer(FIO.StdOut) ;
-                              IncludeElementIntoSet(PartiallyDeclared, sym)
-                           END |
-      todolist          :  IF NOT IsElementInSet(ToDoList, sym)
-                           THEN
-                              printf1("symbol %d -> ToDoList\n", sym) ;
-                              FIO.FlushBuffer(FIO.StdOut) ;
-                              IncludeElementIntoSet(ToDoList, sym)
-                           END |
-      niltypedarrays    :  IF NOT IsElementInSet(NilTypedArrays, sym)
-                           THEN
-                              printf1("symbol %d -> NilTypedArrays\n", sym) ;
-                              FIO.FlushBuffer(FIO.StdOut) ;
-                              IncludeElementIntoSet(NilTypedArrays, sym)
-                           END
+      tobesolvedbyquads :  doInclude(ToBeSolvedByQuads, "symbol %d -> ToBeSolvedByQuads\n", sym) |
+      fullydeclared     :  doInclude(FullyDeclared, "symbol %d -> FullyDeclared\n", sym) |
+      partiallydeclared :  doInclude(PartiallyDeclared, "symbol %d -> PartiallyDeclared\n", sym) |
+      heldbyalignment   :  doInclude(HeldByAlignment, "symbol %d -> HeldByAlignment\n", sym) |
+      finishedalignment :  doInclude(FinishedAlignment, "symbol %d -> FinishedAlignment\n", sym) |
+      todolist          :  doInclude(ToDoList, "symbol %d -> ToDoList\n", sym) |
+      niltypedarrays    :  doInclude(NilTypedArrays, "symbol %d -> NilTypedArrays\n", sym)
 
       ELSE
          InternalError('unknown list', __FILE__, __LINE__)
@@ -444,6 +465,8 @@ BEGIN
       tobesolvedbyquads :  IncludeElementIntoSet(ToBeSolvedByQuads, sym) |
       fullydeclared     :  IncludeElementIntoSet(FullyDeclared, sym) |
       partiallydeclared :  IncludeElementIntoSet(PartiallyDeclared, sym) |
+      heldbyalignment   :  IncludeElementIntoSet(HeldByAlignment, sym) |
+      finishedalignment :  IncludeElementIntoSet(FinishedAlignment, sym) |
       todolist          :  IncludeElementIntoSet(ToDoList, sym) |
       niltypedarrays    :  IncludeElementIntoSet(NilTypedArrays, sym)
 
@@ -452,6 +475,24 @@ BEGIN
       END
    END
 END WatchIncludeList ;
+
+
+(*
+   doExclude - 
+*)
+
+PROCEDURE doExclude (l: Set; a: ARRAY OF CHAR; sym: CARDINAL) ;
+BEGIN
+   IF IsElementInSet(l, sym)
+   THEN
+      printf0('rule: ') ;
+      WriteRule ;
+      printf0('  ') ;
+      printf1(a, sym) ;
+      FIO.FlushBuffer(FIO.StdOut) ;
+      ExcludeElementFromSet(l, sym)
+   END
+END doExclude ;
 
 
 (*
@@ -467,36 +508,17 @@ BEGIN
    THEN
       CASE lt OF
 
-      tobesolvedbyquads :  IF IsElementInSet(ToBeSolvedByQuads, sym)
+      tobesolvedbyquads :  doExclude(ToBeSolvedByQuads, "symbol %d off ToBeSolvedByQuads\n", sym) |
+      fullydeclared     :  doExclude(FullyDeclared, "symbol %d off FullyDeclared\n", sym) |
+      partiallydeclared :  doExclude(PartiallyDeclared, "symbol %d off PartiallyDeclared\n", sym) |
+      heldbyalignment   :  doExclude(HeldByAlignment, "symbol %d -> HeldByAlignment\n", sym) |
+      finishedalignment :  doExclude(FinishedAlignment, "symbol %d -> FinishedAlignment\n", sym) |
+      todolist          :  doExclude(ToDoList, "symbol %d off ToDoList\n", sym) ;
+                           IF sym=1948
                            THEN
-                              printf1("symbol %d off ToBeSolvedByQuads\n", sym) ;
-                              FIO.FlushBuffer(FIO.StdOut) ;
-                              ExcludeElementFromSet(ToBeSolvedByQuads, sym)
+                              mystop
                            END |
-      fullydeclared     :  IF IsElementInSet(FullyDeclared, sym)
-                           THEN
-                              printf1("symbol %d off FullyDeclared\n", sym) ;
-                              FIO.FlushBuffer(FIO.StdOut) ;
-                              ExcludeElementFromSet(FullyDeclared, sym)
-                           END |
-      partiallydeclared :  IF IsElementInSet(PartiallyDeclared, sym)
-                           THEN
-                              printf1("symbol %d off PartiallyDeclared\n", sym) ;
-                              FIO.FlushBuffer(FIO.StdOut) ;
-                              ExcludeElementFromSet(PartiallyDeclared, sym)
-                           END |
-      todolist          :  IF IsElementInSet(ToDoList, sym)
-                           THEN
-                              printf1("symbol %d off ToDoList\n", sym) ;
-                              FIO.FlushBuffer(FIO.StdOut) ;
-                              ExcludeElementFromSet(ToDoList, sym)
-                           END |
-      niltypedarrays    :  IF IsElementInSet(NilTypedArrays, sym)
-                           THEN
-                              printf1("symbol %d off NilTypedArrays\n", sym) ;
-                              FIO.FlushBuffer(FIO.StdOut) ;
-                              ExcludeElementFromSet(NilTypedArrays, sym)
-                           END
+      niltypedarrays    :  doExclude(NilTypedArrays, "symbol %d off NilTypedArrays\n", sym)
 
       ELSE
          InternalError('unknown list', __FILE__, __LINE__)
@@ -507,6 +529,8 @@ BEGIN
       tobesolvedbyquads :  ExcludeElementFromSet(ToBeSolvedByQuads, sym) |
       fullydeclared     :  ExcludeElementFromSet(FullyDeclared, sym) |
       partiallydeclared :  ExcludeElementFromSet(PartiallyDeclared, sym) |
+      heldbyalignment   :  ExcludeElementFromSet(HeldByAlignment, sym) |
+      finishedalignment :  ExcludeElementFromSet(FinishedAlignment, sym) |
       todolist          :  ExcludeElementFromSet(ToDoList, sym) |
       niltypedarrays    :  ExcludeElementFromSet(NilTypedArrays, sym)
 
@@ -560,6 +584,23 @@ END MarkExported ;
 
 
 (*
+   Chained - checks to see that, sym, has not already been placed on a chain.
+             It returns the symbol, sym.
+*)
+
+PROCEDURE Chained (sym: CARDINAL) : CARDINAL ;
+BEGIN
+   IF IsElementInSet(ChainedList, sym)
+   THEN
+      InternalError('symbol has already been chained onto a previous list',
+                    __FILE__, __LINE__)
+   END ;
+   IncludeElementIntoSet(ChainedList, sym) ;
+   RETURN( sym )
+END Chained ;
+
+
+(*
    DoStartDeclaration - returns a tree representing a symbol which has
                         not yet been finished. (Useful when declaring
                         recursive types).
@@ -597,6 +638,86 @@ END ArrayComponentsDeclared ;
 
 
 (*
+   GetRecordOfVarient - 
+*)
+
+PROCEDURE GetRecordOfVarient (sym: CARDINAL) : CARDINAL ;
+BEGIN
+   IF IsVarient(sym) OR IsFieldVarient(sym)
+   THEN
+      REPEAT
+         sym := GetParent(sym)
+      UNTIL IsRecord(sym)
+   END ;
+   RETURN( sym )
+END GetRecordOfVarient ;
+
+
+(*
+   CanDeclareRecordKind - 
+*)
+
+PROCEDURE CanDeclareRecordKind (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   sym := GetRecordOfVarient(sym) ;
+   RETURN( IsRecord(sym) AND
+           ((GetDefaultRecordFieldAlignment(sym)=NulSym) OR
+            IsFullyDeclared(GetDefaultRecordFieldAlignment(sym))) )
+END CanDeclareRecordKind ;
+
+
+(*
+   DeclareRecordKind - works out whether record, sym, is packed or not.
+*)
+
+PROCEDURE DeclareRecordKind (sym: CARDINAL) ;
+BEGIN
+   IF IsRecord(sym)
+   THEN
+      DetermineIfRecordPacked(sym)
+   END ;
+   WatchIncludeList(sym, todolist) ;
+   WatchRemoveList(sym, heldbyalignment) ;
+   WatchIncludeList(sym, finishedalignment) ;
+   IF AllDependantsFullyDeclared(sym)
+   THEN
+      (* ready to be solved.. *)
+   END
+END DeclareRecordKind ;
+
+
+(*
+   CanDeclareRecord - 
+*)
+
+PROCEDURE CanDeclareRecord (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   TraverseDependants(sym) ;
+   IF AllDependantsFullyDeclared(sym)
+   THEN
+      RETURN TRUE
+   ELSE
+      WatchIncludeList(sym, finishedalignment) ;
+      RETURN FALSE
+   END
+END CanDeclareRecord ;
+
+
+(*
+   FinishDeclareRecord - 
+*)
+
+PROCEDURE FinishDeclareRecord (sym: CARDINAL) ;
+BEGIN
+   DeclareTypeConstFully(sym) ;
+   WatchRemoveList(sym, heldbyalignment) ;
+   WatchRemoveList(sym, finishedalignment) ;
+   WatchRemoveList(sym, todolist) ;
+   WatchIncludeList(sym, fullydeclared)
+END FinishDeclareRecord ;
+
+
+(*
    CanDeclareTypePartially - return TRUE if we are able to make a
                              gcc partially created type.
 *)
@@ -605,7 +726,10 @@ PROCEDURE CanDeclareTypePartially (sym: CARDINAL) : BOOLEAN ;
 VAR
    type: CARDINAL ;
 BEGIN
-   IF IsProcType(sym) OR IsRecord(sym)
+   IF IsElementInSet(PartiallyDeclared, sym)
+   THEN
+      RETURN( FALSE )
+   ELSIF IsProcType(sym) OR IsRecord(sym) OR IsVarient(sym) OR IsFieldVarient(sym)
    THEN
       RETURN( TRUE )
    ELSIF IsType(sym)
@@ -633,7 +757,19 @@ BEGIN
    THEN
       IF IsRecord(sym)
       THEN
-         t := DoStartDeclaration(sym, BuildStartRecord)
+         Assert(NOT IsElementInSet(HeldByAlignment, sym)) ;
+         t := DoStartDeclaration(sym, BuildStartRecord) ;
+         WatchIncludeList(sym, heldbyalignment)
+      ELSIF IsVarient(sym)
+      THEN
+         Assert(NOT IsElementInSet(HeldByAlignment, sym)) ;
+         t := DoStartDeclaration(sym, BuildStartVarient) ;
+         WatchIncludeList(sym, heldbyalignment)
+      ELSIF IsFieldVarient(sym)
+      THEN
+         Assert(NOT IsElementInSet(HeldByAlignment, sym)) ;
+         t := DoStartDeclaration(sym, BuildStartVarient) ;
+         WatchIncludeList(sym, heldbyalignment)
       ELSIF IsProcType(sym)
       THEN
          t := DoStartDeclaration(sym, BuildStartFunctionType)
@@ -649,7 +785,7 @@ BEGIN
                        __FILE__, __LINE__)
       END ;
       WatchIncludeList(sym, partiallydeclared) ;
-      WatchIncludeList(sym, todolist)
+      TraverseDependants(sym)
    END
 END DeclareTypePartially ;
 
@@ -819,6 +955,9 @@ BEGIN
          all dependants are constants.
        *)
       RETURN( IsConstructorDependants(sym, q) )
+   ELSIF IsProcedure(sym)
+   THEN
+      RETURN( IsProcedureDependants(sym, q) )
    ELSE
       RETURN( TRUE )
    END
@@ -942,6 +1081,7 @@ END NotAllDependantsPartiallyOrFullyDeclared ;
 PROCEDURE TypeConstDependantsFullyDeclared (sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN( (NOT IsVar(sym)) AND
+           (NOT IsRecord(sym)) AND
            (NOT IsParameter(sym)) AND
            AllDependantsFullyDeclared(sym) )
 END TypeConstDependantsFullyDeclared ;
@@ -1019,6 +1159,8 @@ BEGIN
             PreAddModGcc(sym, t) ;
             WatchIncludeList(sym, fullydeclared) ;
             WatchRemoveList(sym, partiallydeclared) ;
+            WatchRemoveList(sym, heldbyalignment) ;
+            WatchRemoveList(sym, finishedalignment) ;
             WatchRemoveList(sym, todolist)
          END
       END
@@ -1035,7 +1177,7 @@ PROCEDURE DeclareTypeFromPartial (sym: CARDINAL) ;
 VAR
    t: Tree ;
 BEGIN
-   t := CanCompleteDeclarationOf(sym) ;
+   t := CompleteDeclarationOf(sym) ;
    IF t=NIL
    THEN
       InternalError('expecting to be able to create a gcc type',
@@ -1062,7 +1204,10 @@ BEGIN
       WatchRemoveList(sym, todolist) ;
       PreAddModGcc(sym, DeclarePointer(sym))
    ELSE
-      WatchIncludeList(sym, todolist)
+      (* place sym and all dependants on the todolist
+         providing they are not already on the FullyDeclared list
+      *)
+      TraverseDependants(sym)
    END
 END DeclarePointerTypeFully ;
 
@@ -1090,14 +1235,55 @@ BEGIN
 END EmitCircularDependancyError ;
 
 
+TYPE
+   Rule = (none, partialtype, arraynil, pointernilarray, arraypartial,
+           pointerfully, recordkind, recordfully, typeconstfully,
+           pointerfrompartial, typefrompartial, partialfrompartial,
+           partialtofully, circulartodo, circularpartial, circularniltyped) ;
+
 VAR
    bodyp          : WalkAction ;
    bodyq          : IsAction ;
    bodyt          : ListType ;
    bodyl          : Set ;
+   bodyr          : Rule ;
    recursionCaught,
    oneResolved,
    noMoreWritten  : BOOLEAN ;
+
+
+(*
+   WriteRule - writes out the name of the rule.
+*)
+
+PROCEDURE WriteRule ;
+BEGIN
+   IF Debugging
+   THEN
+      CASE bodyr OF
+
+      none              :  printf0('none') |
+      partialtype       :  printf0('partialtype') |
+      arraynil          :  printf0('arraynil') |
+      pointernilarray   :  printf0('pointernilarray') |
+      arraypartial      :  printf0('arraypartial') |
+      pointerfully      :  printf0('pointerfully') |
+      recordkind        :  printf0('recordkind') |
+      recordfully       :  printf0('recordfully') |
+      typeconstfully    :  printf0('typeconstfully') |
+      pointerfrompartial:  printf0('pointerfrompartial') |
+      typefrompartial   :  printf0('typefrompartial') |
+      partialfrompartial:  printf0('partialfrompartial') |
+      partialtofully    :  printf0('partialtofully') |
+      circulartodo      :  printf0('circulartodo') |
+      circularpartial   :  printf0('circularpartial') |
+      circularniltyped  :  printf0('circularniltyped')
+
+      ELSE
+         InternalError('unknown rule', __FILE__, __LINE__)
+      END
+   END
+END WriteRule ;
 
 
 (*
@@ -1131,7 +1317,7 @@ END Body ;
 *)
 
 PROCEDURE ForeachTryDeclare (start, end: CARDINAL;
-                             t: ListType; l: Set;
+                             t: ListType; l: Set; r: Rule;
                              q: IsAction; p: WalkAction) : BOOLEAN ;
 VAR
    sym : CARDINAL ;
@@ -1145,12 +1331,14 @@ BEGIN
    bodyq := q ;
    bodyp := p ;
    bodyl := l ;
+   bodyr := r ;
    recursionCaught := TRUE ;
    oneResolved := FALSE ;
    REPEAT
       noMoreWritten := TRUE ;
       ForeachElementInSetDo(l, Body)
    UNTIL noMoreWritten ;
+   bodyr := none ;
    recursionCaught := FALSE ;
    RETURN( oneResolved )
 END ForeachTryDeclare ;
@@ -1204,76 +1392,95 @@ END testThis ;
 PROCEDURE DeclaredOutstandingTypes (MustHaveCompleted: BOOLEAN;
                                     start, end: CARDINAL) : BOOLEAN ;
 VAR
-   finished     : BOOLEAN ;  (* p2c cannot handle LOOP EXIT END *)
-   d, p, f, n, b: CARDINAL ;
+   finished        : BOOLEAN ;  (* p2c cannot handle LOOP EXIT END *)
+   d, a, p, f, n, b: CARDINAL ;
 BEGIN
    d := 0 ;
+   a := 0 ;
    p := 0 ;
    f := 0 ;
    n := 0 ;
    b := 0 ;
    finished := FALSE ;
    REPEAT
-      IF FindSetNumbers(d, p, f, n, b)
+      IF FindSetNumbers(d, a, p, f, n, b) OR Progress
       THEN
          DebugSetNumbers
       END ;
       IF ForeachTryDeclare(start, end,
                            todolist, ToDoList,
+                           partialtype,
                            CanDeclareTypePartially,
                            DeclareTypePartially)
       THEN
          (* continue looping *)
       ELSIF ForeachTryDeclare(start, end,
                               todolist, ToDoList,
+                              arraynil,
                               CanDeclareArrayAsNil,
                               DeclareArrayAsNil)
       THEN
          (* continue looping *)
       ELSIF ForeachTryDeclare(start, end,
                               todolist, ToDoList,
+                              pointernilarray,
                               CanDeclarePointerToNilArray,
                               DeclarePointerToNilArray)
       THEN
          (* continue looping *)
       ELSIF ForeachTryDeclare(start, end,
                               niltypedarrays, NilTypedArrays,
+                              arraypartial,
                               CanDeclareArrayPartially,
                               DeclareArrayPartially)
       THEN
          (* continue looping *)
       ELSIF ForeachTryDeclare(start, end,
                               niltypedarrays, NilTypedArrays,
+                              pointerfully,
                               CanPromotePointerFully,
                               PromotePointerFully)
       THEN
          (* continue looping *)
       ELSIF ForeachTryDeclare(start, end,
+                              heldbyalignment, HeldByAlignment,
+                              recordkind,
+                              CanDeclareRecordKind,
+                              DeclareRecordKind)
+      THEN
+         (* continue looping *)
+      ELSIF ForeachTryDeclare(start, end,
+                              finishedalignment, FinishedAlignment,
+                              recordfully,
+                              CanDeclareRecord,
+                              FinishDeclareRecord)
+      THEN
+         (* continue looping *)
+      ELSIF ForeachTryDeclare(start, end,
                               todolist, ToDoList,
+                              typeconstfully,
                               TypeConstDependantsFullyDeclared,
                               DeclareTypeConstFully)
       THEN
          (* continue looping *)
       ELSIF ForeachTryDeclare(start, end,
                               todolist, ToDoList,
-                              AllDependantsPartiallyOrFullyDeclared,
-                              DeclarePointerTypeFully)
-      THEN
-         (* continue looping *)
-      ELSIF ForeachTryDeclare(start, end,
-                              partiallydeclared, PartiallyDeclared,
+                              (* partiallydeclared, PartiallyDeclared, *)
+                              typefrompartial,
                               CanBeDeclaredViaPartialDependants,
                               DeclareTypeFromPartial)
       THEN
          (* continue looping *)
       ELSIF ForeachTryDeclare(start, end,
                               partiallydeclared, PartiallyDeclared,
+                              partialfrompartial,
                               CanBeDeclaredPartiallyViaPartialDependants,
                               DeclareTypePartially)
       THEN
          (* continue looping *)
       ELSIF ForeachTryDeclare(start, end,
                               partiallydeclared, PartiallyDeclared,
+                              partialtofully,
                               TypeConstDependantsFullyDeclared,
                               DeclareTypeConstFully)
       THEN
@@ -1287,16 +1494,19 @@ BEGIN
    THEN
       IF ForeachTryDeclare(start, end,
                            todolist, ToDoList,
+                           circulartodo,
                            NotAllDependantsFullyDeclared,
                            EmitCircularDependancyError)
       THEN
       ELSIF ForeachTryDeclare(start, end,
                               partiallydeclared, PartiallyDeclared,
+                              circularpartial,
                               NotAllDependantsPartiallyDeclared,
                               EmitCircularDependancyError)
       THEN
       ELSIF ForeachTryDeclare(start, end,
                               niltypedarrays, NilTypedArrays,
+                              circularniltyped,
                               NotAllDependantsPartiallyDeclared,
                               EmitCircularDependancyError)
       THEN
@@ -1307,26 +1517,29 @@ END DeclaredOutstandingTypes ;
 
 
 (*
-   CanCompleteDeclarationOf - returns the GCC Tree for, sym, if it can
-                              be created from partially or fully declared
-                              dependents.
+   CompleteDeclarationOf - returns the GCC Tree for, sym, if it can
+                           be created from partially or fully declared
+                           dependents.
 *)
 
-PROCEDURE CanCompleteDeclarationOf (sym: CARDINAL) : Tree ;
+PROCEDURE CompleteDeclarationOf (sym: CARDINAL) : Tree ;
 BEGIN
-   IF IsRecord(sym)
-   THEN
-      RETURN( DeclareRecord(sym) )
-   ELSIF IsArray(sym)
+   IF IsArray(sym)
    THEN
       RETURN( DeclareArray(sym) )
    ELSIF IsProcType(sym)
    THEN
       RETURN( DeclareProcType(sym) )
+   ELSIF IsRecordField(sym)
+   THEN
+      RETURN( DeclareRecordField(sym) )
+   ELSIF IsPointer(sym)
+   THEN
+      RETURN( DeclarePointer(sym) )
    ELSE
       RETURN( NIL )
    END
-END CanCompleteDeclarationOf ;
+END CompleteDeclarationOf ;
 
 
 (*
@@ -1583,18 +1796,27 @@ BEGIN
       type := GetType(sym) ;
       IF (type#NulSym) AND (NOT CompletelyResolved(type))
       THEN
+         TraverseDependants(sym) ;
+(*
          WatchIncludeList(sym, todolist) ;
          WatchIncludeList(type, todolist) ;
+*)
          RETURN
       END ;
       IF IsConstructor(sym) AND (NOT IsConstructorConstant(sym))
       THEN
+         TraverseDependants(sym) ;
+(*
          WatchIncludeList(sym, todolist) ;
+*)
          RETURN
       END ;
       IF (IsConstructor(sym) OR IsConstSet(sym)) AND (type=NulSym)
       THEN
+(*
          WatchIncludeList(sym, todolist) ;
+*)
+         TraverseDependants(sym) ;
          RETURN
       END ;
       IF IsElementInSet(ToBeSolvedByQuads, sym)
@@ -1609,7 +1831,10 @@ BEGIN
          THEN
             RETURN
          END ;
+         TraverseDependants(sym) ;
+(*
          WatchIncludeList(sym, todolist)
+*)
       ELSE
          TryDeclareConst(tokenno, sym)
       END
@@ -1658,7 +1883,10 @@ BEGIN
          TryEvaluateValue(sym) ;
          IF NOT IsConstructorDependants(sym, IsFullyDeclared)
          THEN
+(*
             WatchIncludeList(sym, todolist) ;
+*)
+            TraverseDependants(sym) ;
             RETURN
          END ;
          IF NOT IsConstructorConstant(sym)
@@ -1694,7 +1922,10 @@ BEGIN
             DeclareConstantFromTree(sym, PopIntegerTree())
          END
       ELSE
+         TraverseDependants(sym) ;
+(*
          WatchIncludeList(sym, todolist)
+*)
       END
    END
 END TryDeclareConst ;
@@ -1792,11 +2023,44 @@ END WalkFamilyOfUnbounded ;
 PROCEDURE WalkAssociatedUnbounded (sym: CARDINAL; p: WalkAction) ;
 VAR
    oaf: CARDINAL ;
+   o  : WalkAction ;
 BEGIN
    oaf := GetOAFamily(sym) ;
+   o := unboundedp ;
    unboundedp := p ;
-   ForeachOAFamily(oaf, WalkFamilyOfUnbounded)
+   ForeachOAFamily(oaf, WalkFamilyOfUnbounded) ;
+   unboundedp := o
 END WalkAssociatedUnbounded ;
+
+
+(*
+   WalkProcedureParameterDependants - 
+*)
+
+PROCEDURE WalkProcedureParameterDependants (sym: CARDINAL; p: WalkAction) ;
+VAR
+   son,
+   type,
+   n, i: CARDINAL ;
+BEGIN
+   IF IsProcedure(sym)
+   THEN
+      n := NoOfParam(sym) ;
+      i := n ;
+      WHILE i>0 DO
+         IF IsUnboundedParam(sym, i)
+         THEN
+            son := GetNthParam(sym, i)
+         ELSE
+            son := GetNth(sym, i) ;
+         END ;
+         type := GetType(son) ;
+         p(type) ;
+         WalkDependants(type, p) ;
+         DEC(i)
+      END
+   END
+END WalkProcedureParameterDependants ;
 
 
 (*
@@ -1849,8 +2113,30 @@ BEGIN
    ELSIF IsVar(sym)
    THEN
       WalkVarDependants(sym, p)
+   ELSIF IsProcedure(sym)
+   THEN
+      WalkProcedureDependants(sym, p)
    END
 END WalkDependants ;
+
+
+(*
+   TraverseDependantsInner - 
+*)
+
+PROCEDURE TraverseDependantsInner (sym: WORD) ;
+BEGIN
+   IF (NOT IsElementInSet(FullyDeclared, sym)) AND
+      (NOT IsElementInSet(ToDoList, sym))
+   THEN
+      WatchIncludeList(sym, todolist)
+   END ;
+   IF NOT IsElementInSet(VisitedList, sym)
+   THEN
+      IncludeElementIntoSet(VisitedList, sym) ;
+      WalkDependants(sym, TraverseDependantsInner)
+   END
+END TraverseDependantsInner ;
 
 
 (*
@@ -1861,11 +2147,13 @@ END WalkDependants ;
 
 PROCEDURE TraverseDependants (sym: WORD) ;
 BEGIN
-   IF (NOT IsElementInSet(FullyDeclared, sym)) AND
-      (NOT IsElementInSet(ToDoList, sym))
+   IF VisitedList=NIL
    THEN
-      WatchIncludeList(sym, todolist) ;
-      WalkDependants(sym, TraverseDependants)
+      VisitedList := InitSet(1) ;
+      TraverseDependantsInner(sym) ;
+      VisitedList := KillSet(VisitedList)
+   ELSE
+      InternalError('recursive call to TraverseDependants caught', __FILE__, __LINE__)
    END
 END TraverseDependants ;
 
@@ -1947,7 +2235,12 @@ BEGIN
          THEN
             son := GetNthParam(sym, i) ;
             type := GetType(son) ;
-            WalkTypeInfo(type)
+            WalkTypeInfo(type) ;
+(*
+            type := GetUnboundedRecordType(type) ;
+            Assert(IsRecord(type)) ;
+            RecordNotPacked(type)      (* which is never packed.                   *)
+*)
          ELSE
             son := GetNth(sym, i) ;
             type := GetType(son) ;
@@ -1965,8 +2258,7 @@ END WalkUnboundedProcedureParameters ;
 
 PROCEDURE WalkTypesInProcedure (sym: WORD) ;
 BEGIN
-   ForeachLocalSymDo(sym, TraverseDependants) ;
-   ForeachLocalSymDo(sym, WalkUnboundedProcedureParameters)
+   ForeachLocalSymDo(sym, TraverseDependants)
 END WalkTypesInProcedure ;
 
 
@@ -1990,24 +2282,21 @@ END WalkTypesInModule ;
 
 
 (*
-   WalkRecordFieldDependants - 
-*)
-
-PROCEDURE WalkRecordFieldDependants (sym: CARDINAL; p: WalkAction) ;
-BEGIN
-   Assert(IsRecordField(sym)) ;
-   p(GetType(sym))
-END WalkRecordFieldDependants ;
-
-
-(*
    IsRecordFieldDependants - returns TRUE if the record field
                              symbol, sym, p(dependants) all return TRUE.
 *)
 
 PROCEDURE IsRecordFieldDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
+VAR
+   v    : CARDINAL ;
+   final: BOOLEAN ;
 BEGIN
-   RETURN( q(GetType(sym)) )
+   final := TRUE ;
+   IF NOT q(GetType(sym))
+   THEN
+      final := FALSE
+   END ;
+   RETURN( final )
 END IsRecordFieldDependants ;
 
 
@@ -2226,43 +2515,32 @@ BEGIN
       (* ForeachLocalSymDo(scope, DeclareTypeInfo) ; *)
       ForeachScopeBlockDo(sb, DeclareTypesConstantsProceduresInRange) ;
       t := NoOfElementsInSet(ToDoList) ;
-   UNTIL (s=t) ;
+   UNTIL s=t ;
    sb := KillScopeBlock(sb)
 END DeclareTypesConstantsProcedures ;
 
 
 (*
-   AssertDeclareTypesAndConstantsInRange - 
-*)
-
-PROCEDURE AssertDeclareTypesAndConstantsInRange (start, end: CARDINAL) ;
-VAR
-   sym,
-   i, n: CARDINAL ;
-BEGIN
-(*
-   i := 1 ;
-   n := NoOfItemsInList(ToDoList) ;
-   WHILE i<=n DO
-      sym := GetItemFromList(ToDoList, i) ;
-      (* Assert(IsVar(sym)) ; *)
-      INC(i)
-   END
-*)
-END AssertDeclareTypesAndConstantsInRange ;
-
-
-(*
-   AssertAllTypesDeclared - 
+   AssertAllTypesDeclared - asserts that all types for variables are declared in, scope.
 *)
 
 PROCEDURE AssertAllTypesDeclared (scope: CARDINAL) ;
 VAR
-   sb: ScopeBlock ;
+   o, s,
+   n, Var: CARDINAL ;
 BEGIN
-   sb := InitScopeBlock(scope) ;
-   ForeachScopeBlockDo(sb, AssertDeclareTypesAndConstantsInRange) ;
-   sb := KillScopeBlock(sb)
+   n := 1 ;
+   Var := GetNth(scope, n) ;
+   o := 0 ;
+   WHILE Var#NulSym DO
+      IF NOT AllDependantsFullyDeclared(GetType(Var))
+      THEN
+         mystop
+      END ;
+      Assert(AllDependantsFullyDeclared(GetType(Var))) ;
+      INC(n) ;
+      Var := GetNth(scope, n)
+   END
 END AssertAllTypesDeclared ;
 
 
@@ -2320,6 +2598,13 @@ BEGIN
    (* IncludeElementIntoSet(WatchList, 2714) ; *)
    (* IncludeElementIntoSet(WatchList, 23222) ; *)
    (* IncludeElementIntoSet(WatchList, 1104) ; *)
+   (* IncludeElementIntoSet(WatchList, 859) ; *)
+   (* IncludeElementIntoSet(WatchList, 858) ; *)
+
+   (* IncludeElementIntoSet(WatchList, 720) ; *)
+   (* IncludeElementIntoSet(WatchList, 706) ; *)
+   (* IncludeElementIntoSet(WatchList, 1948) ; *)
+
    IF Debugging
    THEN
       n := GetSymName(scope) ;
@@ -2583,6 +2868,30 @@ END DeclareDefaultSimpleTypes ;
 
 
 (*
+   DeclarePackedBoolean - 
+*)
+
+PROCEDURE DeclarePackedBoolean ;
+VAR
+   e: CARDINAL ;
+BEGIN
+   e := GetPackedEquivalent(Boolean) ;
+   AddModGcc(e, GetPackedBooleanType()) ;
+   IncludeElementIntoSet(FullyDeclared, e)
+END DeclarePackedBoolean ;
+
+
+(*
+   DeclarePackedDefaultSimpleTypes - 
+*)
+
+PROCEDURE DeclarePackedDefaultSimpleTypes ;
+BEGIN
+   DeclarePackedBoolean
+END DeclarePackedDefaultSimpleTypes ;
+
+
+(*
    DeclareDefaultTypes - makes default types known to GCC
 *)
 
@@ -2591,7 +2900,8 @@ BEGIN
    IF NOT HaveInitDefaultTypes
    THEN
       HaveInitDefaultTypes := TRUE ;
-      DeclareDefaultSimpleTypes
+      DeclareDefaultSimpleTypes ;
+      DeclarePackedDefaultSimpleTypes
    END
 END DeclareDefaultTypes ;
 
@@ -2857,6 +3167,22 @@ END DeclareModuleVariables ;
 
 
 (*
+   DeclareFieldValue - 
+*)
+
+PROCEDURE DeclareFieldValue (sym: CARDINAL; value: Tree; VAR list: Tree) : Tree ;
+BEGIN
+   IF (GetModuleWhereDeclared(sym)=NulSym) OR
+      (GetModuleWhereDeclared(sym)=GetMainModule())
+   THEN
+      RETURN( BuildEnumerator(KeyToCharStar(GetSymName(sym)), value, list) )
+   ELSE
+      RETURN( BuildEnumerator(KeyToCharStar(GetFullScopeAsmName(sym)), value, list) )
+   END
+END DeclareFieldValue ;
+
+
+(*
    DeclareFieldEnumeration - declares an enumerator within the current enumeration type.
 *)
 
@@ -2870,17 +3196,7 @@ BEGIN
    type := GetType(sym) ;
    enumlist := GetEnumList(type) ;
    PushValue(sym) ;
-   IF (GetModuleWhereDeclared(sym)=NulSym) OR
-      (GetModuleWhereDeclared(sym)=GetMainModule())
-   THEN
-      field := BuildEnumerator(KeyToCharStar(GetSymName(sym)),
-                               PopIntegerTree(),
-                               enumlist)
-   ELSE
-      field := BuildEnumerator(KeyToCharStar(GetFullScopeAsmName(sym)),
-                               PopIntegerTree(),
-                               enumlist)
-   END ;
+   field := DeclareFieldValue(sym, PopIntegerTree(), enumlist) ;
    PutEnumList(type, enumlist) ;
    RETURN( field )
 END DeclareFieldEnumeration ;
@@ -2895,7 +3211,7 @@ VAR
    enumlist,
    gccenum : Tree ;
 BEGIN
-   gccenum := BuildStartEnumeration(KeyToCharStar(GetFullSymName(sym))) ;
+   gccenum := BuildStartEnumeration(KeyToCharStar(GetFullSymName(sym)), FALSE) ;
    enumlist := GetEnumList(sym) ;
    RETURN( BuildEndEnumeration(gccenum, enumlist) )
 END DeclareEnumeration ;
@@ -3100,6 +3416,26 @@ END IncludeGetParent ;
 
 
 (*
+   PrintDecl - 
+*)
+
+PROCEDURE PrintDecl (sym: CARDINAL) ;
+BEGIN
+   IF IsDeclaredPackedResolved(sym)
+   THEN
+      IF IsDeclaredPacked(sym)
+      THEN
+         printf0(' packed')
+      ELSE
+         printf0(' unpacked')
+      END
+   ELSE
+      printf0(' unknown if packed')
+   END
+END PrintDecl ;
+
+
+(*
    PrintVerboseFromList - prints the, i, th element in the list, l.
 *)
 
@@ -3175,16 +3511,19 @@ BEGIN
       printf2('sym %d IsRecord (%a)', sym, n) ;
       PrintLocalSymbols(sym) ;
       IncludeGetNth(l, sym) ;
-      PrintAlignment(sym)
+      PrintAlignment(sym) ;
+      PrintDecl(sym)
    ELSIF IsVarient(sym)
    THEN
       printf2('sym %d IsVarient (%a)', sym, n) ;
+      PrintDecl(sym) ;
       IncludeGetNth(l, sym) ;
       IncludeGetVarient(l, sym) ;
       IncludeGetParent(l, sym)
    ELSIF IsFieldVarient(sym)
    THEN
       printf2('sym %d IsFieldVarient (%a)', sym, n) ;
+      PrintDecl(sym) ;
       IncludeGetNth(l, sym) ;
       IncludeGetVarient(l, sym) ;
       IncludeGetParent(l, sym)
@@ -3222,7 +3561,8 @@ BEGIN
       IncludeType(l, sym) ;
       IncludeGetVarient(l, sym) ;
       IncludeGetParent(l, sym) ;
-      PrintAlignment(sym)
+      PrintAlignment(sym) ;
+      PrintDecl(sym)
    ELSIF IsProcType(sym)
    THEN
       printf2('sym %d IsProcType (%a)', sym, n)
@@ -3486,104 +3826,293 @@ BEGIN
 END PrintTerse ;
 
 
-PROCEDURE stop ; BEGIN END stop ;
-
-
 (*
    CheckAlignment - 
 *)
 
 PROCEDURE CheckAlignment (type: Tree; sym: CARDINAL) : Tree ;
+VAR
+   align: CARDINAL ;
 BEGIN
-   IF GetAlignment(sym)#NulSym
+   align := GetAlignment(sym) ;
+   IF align#NulSym
    THEN
-      RETURN( SetAlignment(type, Mod2Gcc(GetAlignment(sym))) )
+      PushInt(0) ;
+      PushValue(align) ;
+      IF NOT Equ(GetDeclared(sym))
+      THEN
+         RETURN( SetAlignment(type, Mod2Gcc(GetAlignment(sym))) )
+      END
    END ;
    RETURN( type )
 END CheckAlignment ;
 
 
 (*
-   DeclareVarient - 
+   CheckPragma - 
 *)
 
-PROCEDURE DeclareVarient (sym: CARDINAL) : Tree ;
+PROCEDURE CheckPragma (type: Tree; sym: CARDINAL) : Tree ;
 VAR
-   GccFieldType: Tree ;
+   align: CARDINAL ;
 BEGIN
-   IF IsVarient(sym)
+   align := GetAlignment(sym) ;
+   IF IsDeclaredPacked(sym)
    THEN
-      GccFieldType := PostDeclareVarient(sym)
-   ELSE
-      GccFieldType := Mod2Gcc(GetType(sym))
-   END ;
-   RETURN( BuildFieldRecord(KeyToCharStar(GetFullSymName(sym)), GccFieldType) )
-END DeclareVarient ;
-
-
-(*
-   DeclareFieldVarient - 
-*)
-
-PROCEDURE DeclareFieldVarient (sym: CARDINAL) : Tree ;
-VAR
-   i           : CARDINAL ;
-   Field       : CARDINAL ;
-   FieldList,
-   GccFieldType,
-   GccField,
-   RecordType  : Tree ;
-BEGIN
-   RecordType := BuildStartRecord(NIL) ;
-   i := 1 ;
-   FieldList := Tree(NIL) ;
-   REPEAT
-      Field := GetNth(sym, i) ;
-      IF Field#NulSym
+      IF IsRecordField(sym) OR IsFieldVarient(sym)
       THEN
-         Assert(Mod2Gcc(Field)#NIL) ;
-         FieldList := ChainOn(FieldList, Mod2Gcc(Field)) ;
-         INC(i)
+         type := SetDeclPacked(type)
+      ELSIF IsRecord(sym) OR IsVarient(sym)
+      THEN
+         type := SetTypePacked(type)
       END
-   UNTIL Field=NulSym ;
-   GccFieldType := BuildEndRecord(RecordType, FieldList) ;
-   GccField := BuildFieldRecord(KeyToCharStar(GetFullSymName(sym)), GccFieldType) ;
-   RETURN( GccField )
-END DeclareFieldVarient ;
+   END ;
+   RETURN( CheckAlignment(type, sym) )
+END CheckPragma ;
 
 
 (*
-   PostDeclareVarient - declares a varient record to gcc and returns the gcc representation.
+   IsZero - returns TRUE if symbol, sym, is zero.
 *)
 
-PROCEDURE PostDeclareVarient (sym: CARDINAL) : Tree ;
-VAR
-   i           : CARDINAL ;
-   Field       : CARDINAL ;
-   VarientList,
-   VarientType : Tree ;
+PROCEDURE IsZero (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   i := 1 ;
-   VarientList := Tree(NIL) ;
-   VarientType := BuildStartVarientRecord(KeyToCharStar(GetFullSymName(sym))) ;
-   (* no need to store the [sym, RecordType] tuple as it is stored by DeclareRecord which calls us *)
-   REPEAT
-      Field := GetNth(sym, i) ;
-      IF Field#NulSym
+   PushIntegerTree(Mod2Gcc(sym)) ;
+   PushInt(0) ;
+   RETURN( Equ(GetDeclared(sym)) )
+END IsZero ;
+
+
+(*
+   SetFieldPacked - sets Varient, VarientField and RecordField symbols
+                    as packed.
+*)
+
+PROCEDURE SetFieldPacked (field: CARDINAL) ;
+BEGIN
+   IF IsVarient(field) OR IsFieldVarient(field) OR IsRecordField(field)
+   THEN
+      PutDeclaredPacked(field, TRUE)
+   END
+END SetFieldPacked ;
+
+
+(*
+   RecordPacked - indicates that record, sym, and its fields
+                  are all packed.
+*)
+
+PROCEDURE RecordPacked (sym: CARDINAL) ;
+BEGIN
+   PutDeclaredPacked(sym, TRUE) ;
+   WalkRecordDependants(sym, SetFieldPacked)
+END RecordPacked ;
+
+
+(*
+   SetFieldNotPacked - sets Varient, VarientField and RecordField symbols
+                       as not packed.
+*)
+
+PROCEDURE SetFieldNotPacked (field: CARDINAL) ;
+BEGIN
+   IF IsVarient(field) OR IsFieldVarient(field) OR IsRecordField(field)
+   THEN
+      PutDeclaredPacked(field, FALSE)
+   END
+END SetFieldNotPacked ;
+
+
+(*
+   RecordNotPacked - indicates that record, sym, and its fields
+                     are all not packed.
+*)
+
+PROCEDURE RecordNotPacked (sym: CARDINAL) ;
+BEGIN
+   PutDeclaredPacked(sym, FALSE) ;
+   WalkRecordDependants(sym, SetFieldNotPacked)
+END RecordNotPacked ;
+
+
+(*
+   DetermineIfRecordPacked - 
+*)
+
+PROCEDURE DetermineIfRecordPacked (sym: CARDINAL) ;
+VAR
+   defaultAlignment: CARDINAL ;
+BEGIN
+   defaultAlignment := GetDefaultRecordFieldAlignment(sym) ;
+   IF (defaultAlignment#NulSym) AND IsZero(defaultAlignment)
+   THEN
+      RecordPacked(sym)
+   ELSE
+      RecordNotPacked(sym)
+   END
+END DetermineIfRecordPacked ;
+
+
+(*
+   DeclarePackedSubrange - 
+*)
+
+PROCEDURE DeclarePackedSubrange (equiv, sym: CARDINAL) ;
+VAR
+   type,
+   gccsym   : Tree ;
+   high, low: CARDINAL ;
+BEGIN
+   GetSubrange(sym, high, low) ;
+   type := BuildSmallestTypeRange(Mod2Gcc(low), Mod2Gcc(high)) ;
+   gccsym := BuildSubrangeType(KeyToCharStar(GetFullSymName(sym)),
+                               type, Mod2Gcc(low), Mod2Gcc(high)) ;
+   AddModGcc(equiv, gccsym)
+END DeclarePackedSubrange ;
+
+
+(*
+   DeclareFieldEnumeration - declares an enumerator within the current enumeration type.
+*)
+
+PROCEDURE DeclarePackedFieldEnumeration (sym: WORD) ;
+VAR
+   equiv,
+   type    : CARDINAL ;
+   field,
+   enumlist: Tree ;
+BEGIN
+   (* add relationship between gccSym and sym *)
+   type := GetType(sym) ;
+   equiv := GetPackedEquivalent(type) ;
+   enumlist := GetEnumList(equiv) ;
+   PushValue(sym) ;
+   field := DeclareFieldValue(sym, PopIntegerTree(), enumlist) ;
+   PutEnumList(equiv, enumlist)
+END DeclarePackedFieldEnumeration ;
+
+
+(*
+   DeclarePackedEnumeration - 
+*)
+
+PROCEDURE DeclarePackedEnumeration (equiv, sym: CARDINAL) ;
+VAR
+   enumlist,
+   gccenum : Tree ;
+BEGIN
+   gccenum := BuildStartEnumeration(KeyToCharStar(GetFullSymName(sym)), TRUE) ;
+   ForeachLocalSymDo(sym, DeclarePackedFieldEnumeration) ;
+   enumlist := GetEnumList(equiv) ;
+   gccenum := BuildEndEnumeration(gccenum, enumlist) ;
+   AddModGcc(equiv, gccenum)
+END DeclarePackedEnumeration ;
+
+
+(*
+   DeclarePackedType - 
+*)
+
+PROCEDURE DeclarePackedType (equiv, sym: CARDINAL) ;
+VAR
+   type: CARDINAL ;
+BEGIN
+   type := GetType(sym) ;
+   IF type=NulSym
+   THEN
+      (* AddModGcc(equiv, DeclarePackedBaseType(Mod2Gcc(sym))) *)
+      IF type=Boolean
       THEN
-      	 Assert(IsFieldVarient(Field)) ;
-         IF IsEmptyFieldVarient(Field)
-         THEN
-            (* do not include empty varient fields (created via 'else end' in variant records *)
-         ELSE
-            VarientList := ChainOn(VarientList, Mod2Gcc(Field))
-         END
-      END ;
-      INC(i)
-   UNTIL Field=NulSym ;
-   WatchRemoveList(sym, partiallydeclared) ;
-   RETURN( BuildEndRecord(VarientType, VarientList) )
-END PostDeclareVarient ;
+         AddModGcc(equiv, GetPackedBooleanType())
+      END
+   ELSE
+      DeclarePackedType(GetPackedEquivalent(type), type) ;
+      AddModGcc(equiv, Mod2Gcc(GetPackedEquivalent(type)))
+   END
+END DeclarePackedType ;
+
+
+(*
+   doDeclareEquivalent -
+*)
+
+PROCEDURE doDeclareEquivalent (sym: CARDINAL; p: doDeclareProcedure) : Tree ;
+VAR
+   type,
+   equiv: CARDINAL ;
+BEGIN
+   equiv := GetPackedEquivalent(sym) ;
+   IF NOT GccKnowsAbout(equiv)
+   THEN
+      p(equiv, sym) ;
+      IncludeElementIntoSet(FullyDeclared, equiv)
+   END ;
+   RETURN( Mod2Gcc(equiv) )
+END doDeclareEquivalent ;
+
+
+(*
+   PossiblyPacked - 
+*)
+
+PROCEDURE PossiblyPacked (sym: CARDINAL; isPacked: BOOLEAN) : Tree ;
+BEGIN
+   IF isPacked
+   THEN
+      IF IsSubrange(sym)
+      THEN
+         RETURN( doDeclareEquivalent(sym, DeclarePackedSubrange) )
+      ELSIF IsType(sym)
+      THEN
+         RETURN( doDeclareEquivalent(sym, DeclarePackedType) )
+      ELSIF IsEnumeration(sym)
+      THEN
+         RETURN( doDeclareEquivalent(sym, DeclarePackedEnumeration) )
+      END
+   END ;
+   RETURN( Mod2Gcc(sym) )
+END PossiblyPacked ;
+
+
+(*
+   GetPackedType - returns a possibly packed type for field.
+*)
+
+PROCEDURE GetPackedType (sym: CARDINAL) : Tree ;
+BEGIN
+   IF IsSubrange(sym)
+   THEN
+      RETURN( doDeclareEquivalent(sym, DeclarePackedSubrange) )
+   ELSIF IsType(sym)
+   THEN
+      RETURN( doDeclareEquivalent(sym, DeclarePackedType) )
+   ELSIF IsEnumeration(sym)
+   THEN
+      RETURN( doDeclareEquivalent(sym, DeclarePackedEnumeration) )
+   END ;
+   RETURN( Mod2Gcc(sym) )
+END GetPackedType ;
+
+
+(*
+   MaybePackField - 
+*)
+
+PROCEDURE MaybePackField (field: CARDINAL; VAR byteOffset, bitOffset: Tree) : Tree ;
+VAR
+   f, ftype, nbits: Tree ;
+BEGIN
+   f := Mod2Gcc(field) ;
+   IF IsDeclaredPacked(field)
+   THEN
+      f := SetDeclPacked(f) ;
+      ftype := GetPackedType(GetType(field)) ;
+      nbits := BuildTBitSize(ftype) ;
+      f := SetRecordFieldOffset(f, byteOffset, bitOffset, ftype, nbits) ;
+      bitOffset := BuildAdd(bitOffset, GetIntegerOne(), FALSE)
+   END ;
+   RETURN( f )
+END MaybePackField ;
 
 
 (*
@@ -3595,12 +4124,19 @@ PROCEDURE DeclareRecord (Sym: CARDINAL) : Tree ;
 VAR
    Field       : CARDINAL ;
    i           : CARDINAL ;
+   nbits,
+   ftype,
+   field,
+   byteOffset,
+   bitOffset,
    FieldList,
    RecordType  : Tree ;
 BEGIN
    i := 1 ;
    FieldList := Tree(NIL) ;
    RecordType := DoStartDeclaration(Sym, BuildStartRecord) ;
+   byteOffset := GetIntegerZero() ;
+   bitOffset := GetIntegerZero() ;
    REPEAT
       Field := GetNth(Sym, i) ;
       IF Field#NulSym
@@ -3608,14 +4144,33 @@ BEGIN
          IF IsRecordField(Field) AND IsRecordFieldAVarientTag(Field) AND (GetSymName(Field)=NulName)
          THEN
             (* do not include a nameless tag into the C struct *)
+         ELSIF IsVarient(Field)
+         THEN
+            Field := Chained(Field) ;
+            field := Mod2Gcc(Field) ;  (* BuildFieldRecord(KeyToCharStar(GetFullSymName(Field)), Mod2Gcc(Field)) ; *)  (* xxx *)
+            IF IsDeclaredPacked(Field)
+            THEN
+               field := SetDeclPacked(field) ;
+               ftype := GetPackedType(GetType(Field)) ;
+               nbits := BuildTBitSize(ftype) ;
+               field := SetRecordFieldOffset(field, byteOffset, bitOffset, ftype, nbits) ;
+               bitOffset := BuildAdd(bitOffset, GetIntegerOne(), FALSE)   (* --fixme-- *)
+            END ;
+            FieldList := ChainOn(FieldList, field)
          ELSE
-            FieldList := ChainOn(FieldList, Mod2Gcc(Field))
+            IF Debugging
+            THEN
+               printf0('chaining ') ; PrintTerse(Field) ; printf0('\n')
+            END ;
+            FieldList := ChainOn(FieldList, MaybePackField(Chained(Field), byteOffset, bitOffset))
          END
       END ;
       INC(i)
    UNTIL Field=NulSym ;
    WatchRemoveList(Sym, partiallydeclared) ;
-   RETURN( BuildEndRecord(RecordType, FieldList) )
+   WatchRemoveList(Sym, heldbyalignment) ;
+   WatchRemoveList(Sym, finishedalignment) ;
+   RETURN( BuildEndRecord(RecordType, FieldList, IsDeclaredPacked(Sym)) )
 END DeclareRecord ;
 
 
@@ -3625,21 +4180,95 @@ END DeclareRecord ;
 
 PROCEDURE DeclareRecordField (sym: CARDINAL) : Tree ;
 VAR
+   field,
    GccFieldType: Tree ;
 BEGIN
-   IF IsVarient(sym)
-   THEN
-      Assert(AllDependantsFullyDeclared(sym)) ;
-      GccFieldType := PostDeclareVarient(sym)
-   ELSIF IsFieldVarient(sym)
-   THEN
-      MetaError1('found unexpected field varient name {%1a}\n', sym) ;
-      InternalError('unexpected varient record data structure', __FILE__, __LINE__)
-   ELSE
-      GccFieldType := Mod2Gcc(GetType(sym))
-   END ;
-   RETURN( BuildFieldRecord(KeyToCharStar(GetFullSymName(sym)), GccFieldType) )
+   GccFieldType := PossiblyPacked(GetType(sym), IsDeclaredPacked(sym)) ;
+   field := BuildFieldRecord(KeyToCharStar(GetFullSymName(sym)), GccFieldType) ;
+   RETURN( field )
 END DeclareRecordField ;
+
+
+(*
+   DeclareVarient - declares a record and its fields to gcc.
+                    The final gcc record type is returned.
+*)
+
+PROCEDURE DeclareVarient (sym: CARDINAL) : Tree ;
+VAR
+   Field       : CARDINAL ;
+   i           : CARDINAL ;
+   byteOffset,
+   bitOffset,
+   FieldList,
+   field,
+   VarientType : Tree ;
+BEGIN
+   i := 1 ;
+   FieldList := Tree(NIL) ;
+   VarientType := DoStartDeclaration(sym, BuildStartVarient) ;
+   byteOffset := GetIntegerZero() ;
+   bitOffset := GetIntegerZero() ;
+   WHILE GetNth(sym, i)#NulSym DO
+      Field := GetNth(sym, i) ;
+      IF IsRecordField(Field) AND IsRecordFieldAVarientTag(Field) AND (GetSymName(Field)=NulName)
+      THEN
+         (* do not include a nameless tag into the C struct *)
+      ELSE
+         IF Debugging
+         THEN
+            printf0('chaining ') ; PrintTerse(Field) ; printf0('\n')
+         END ;
+         FieldList := ChainOn(FieldList, MaybePackField(Chained(Field), byteOffset, bitOffset))
+      END ;
+      INC(i)
+   END ;
+   WatchRemoveList(sym, partiallydeclared) ;
+   WatchRemoveList(sym, heldbyalignment) ;
+   WatchRemoveList(sym, finishedalignment) ;
+   VarientType := BuildEndVarient(VarientType, FieldList, IsDeclaredPacked(sym)) ;
+   RETURN( VarientType )
+END DeclareVarient ;
+
+
+(*
+   DeclareFieldVarient - 
+*)
+
+PROCEDURE DeclareFieldVarient (sym: CARDINAL) : Tree ;
+VAR
+   i, f        : CARDINAL ;
+   VarientList,
+   VarientType,
+   byteOffset,
+   bitOffset,
+   field,
+   GccFieldType: Tree ;
+BEGIN
+   i := 1 ;
+   VarientList := Tree(NIL) ;
+   VarientType := DoStartDeclaration(sym, BuildStartVarient) ;
+   (* no need to store the [sym, RecordType] tuple as it is stored by DeclareRecord which calls us *)
+   byteOffset := GetIntegerZero() ;
+   bitOffset := GetIntegerZero() ;
+   WHILE GetNth(sym, i)#NulSym DO
+      f := GetNth(sym, i) ;
+      IF IsFieldVarient(f) AND IsEmptyFieldVarient(f)
+      THEN
+         (* do not include empty varient fields (created via 'else end' in variant records *)
+      ELSE
+         IF Debugging
+         THEN
+            printf0('chaining ') ; PrintTerse(f) ; printf0('\n')
+         END ;
+         VarientList := ChainOn(VarientList, MaybePackField(Chained(f), byteOffset, bitOffset))
+      END ;
+      INC(i)
+   END ;
+   WatchRemoveList(sym, partiallydeclared) ;
+   GccFieldType := BuildEndVarient(VarientType, VarientList, IsDeclaredPacked(sym)) ;
+   RETURN( GccFieldType )
+END DeclareFieldVarient ;
 
 
 (*
@@ -3943,7 +4572,7 @@ BEGIN
       PushIntegerTree(BitsInSet) ;
       PushCard(0)
    END ;
-   RETURN( BuildEndRecord(RecordType, FieldList) )
+   RETURN( BuildEndRecord(RecordType, FieldList, FALSE) )
 END DeclareLargeSet ;
 
 
@@ -4073,10 +4702,10 @@ BEGIN
       t := DeclareSubrange(sym)
    ELSIF IsRecord(sym)
    THEN
-      t := CheckAlignment(DeclareRecord(sym), sym)
+      t := CheckPragma(DeclareRecord(sym), sym)
    ELSIF IsRecordField(sym)
    THEN
-      t := CheckAlignment(DeclareRecordField(sym), sym)
+      t := CheckPragma(DeclareRecordField(sym), sym)
    ELSIF IsFieldVarient(sym)
    THEN
       t := DeclareFieldVarient(sym)
@@ -4312,6 +4941,23 @@ END IsPointerDependants ;
 
 
 (*
+   IsRecordAlignment - 
+*)
+
+PROCEDURE IsRecordAlignment (sym: CARDINAL; q: IsAction) : BOOLEAN ;
+BEGIN
+   IF GetDefaultRecordFieldAlignment(sym)#NulSym
+   THEN
+      IF NOT q(GetDefaultRecordFieldAlignment(sym))
+      THEN
+         RETURN( FALSE )
+      END
+   END ;
+   RETURN( TRUE )
+END IsRecordAlignment ;
+
+
+(*
    IsRecordDependants - returns TRUE if the symbol, sym,
                         q(dependants) all return TRUE.
 *)
@@ -4322,7 +4968,7 @@ VAR
    i     : CARDINAL ;
    field : CARDINAL ;
 BEGIN
-   result := TRUE ;
+   result := IsRecordAlignment(sym, q) ;
    i := 1 ;
    REPEAT
       field := GetNth(sym, i) ;
@@ -4357,40 +5003,114 @@ END IsRecordDependants ;
 
 
 (*
-   WalkRecordDependants - walks symbol, sym, dependants.
+   WalkRecordAlignment - walks the alignment constant associated with
+                         record, sym.
+*)
+
+PROCEDURE WalkRecordAlignment (sym: CARDINAL; p: WalkAction) ;
+BEGIN
+   IF GetDefaultRecordFieldAlignment(sym)#NulSym
+   THEN
+      p(GetDefaultRecordFieldAlignment(sym))
+   END
+END WalkRecordAlignment ;
+
+
+(*
+   WalkRecordDependants - walks symbol, sym, dependants.  It only
+                          walks the fields if the alignment is
+                          unused or fully declared.
 *)
 
 PROCEDURE WalkRecordDependants (sym: CARDINAL; p: WalkAction) ;
+BEGIN
+   WalkRecordAlignment(sym, p) ;
+   WalkRecordDependants2(sym, p)
+END WalkRecordDependants ;
+
+
+(*
+   WalkRecordFieldDependants - 
+*)
+
+PROCEDURE WalkRecordFieldDependants (sym: CARDINAL; p: WalkAction) ;
+VAR
+   v: CARDINAL ;
+BEGIN
+   Assert(IsRecordField(sym)) ;
+   p(GetType(sym)) ;
+   v := GetVarient(sym) ;
+   IF v#NulSym
+   THEN
+      p(v)
+   END
+END WalkRecordFieldDependants ;
+
+
+(*
+   WalkVarient - 
+*)
+
+PROCEDURE WalkVarient (sym: CARDINAL; p: WalkAction) ;
+VAR
+   v: CARDINAL ;
+BEGIN
+   p(sym) ;
+   v := GetVarient(sym) ;
+   IF v#NulSym
+   THEN
+      p(v)
+   END
+END WalkVarient ;
+
+
+(*
+   WalkRecordDependants2 - walks the fields of record, sym, calling
+                           p on every dependant.
+*)
+
+PROCEDURE WalkRecordDependants2 (sym: CARDINAL; p: WalkAction) ;
 VAR
    i    : CARDINAL ;
-   type,
    Field: CARDINAL ;
 BEGIN
    i := 1 ;
-   REPEAT
+   WHILE GetNth(sym, i)#NulSym DO
       Field := GetNth(sym, i) ;
-      IF Field#NulSym
+      p(Field) ;
+      IF IsRecordField(Field)
       THEN
-         type := GetType(Field) ;
-         IF IsRecordField(Field)
-         THEN
-            IF (NOT IsRecordFieldAVarientTag(Field)) OR (GetSymName(Field)#NulName)
-            THEN
-               p(Field)
-            END
-         ELSIF IsVarient(Field)
-         THEN
-            p(Field)
-      	 ELSIF IsFieldVarient(Field)
-      	 THEN
-            InternalError('should not see a field varient', __FILE__, __LINE__)
-         ELSE
-            InternalError('unknown symbol in record', __FILE__, __LINE__)
-      	 END
+         WalkRecordFieldDependants(Field, p)
+      ELSIF IsVarient(Field)
+      THEN
+         WalkVarientDependants(Field, p)
+      ELSIF IsFieldVarient(Field)
+      THEN
+         InternalError('should not see a field varient', __FILE__, __LINE__)
+      ELSE
+         InternalError('unknown symbol in record', __FILE__, __LINE__)
       END ;
       INC(i)
-   UNTIL Field=NulSym
-END WalkRecordDependants ;
+   END
+END WalkRecordDependants2 ;
+
+
+(*
+   IsVarientAlignment - 
+*)
+
+PROCEDURE IsVarientAlignment (sym: CARDINAL; q: IsAction) : BOOLEAN ;
+VAR
+   align: CARDINAL ;
+BEGIN
+   sym := GetRecordOfVarient(sym) ;
+   align := GetDefaultRecordFieldAlignment(sym) ;
+   IF (align#NulSym) AND (NOT q(align))
+   THEN
+      RETURN( FALSE )
+   END ;
+   RETURN( TRUE )
+END IsVarientAlignment ;
 
 
 (*
@@ -4404,22 +5124,36 @@ VAR
    i     : CARDINAL ;
    Field : CARDINAL ;
 BEGIN
-   result := TRUE ;
+   result := IsVarientAlignment(sym, q) ;
    i := 1 ;
-   REPEAT
+   WHILE GetNth(sym, i)#NulSym DO
       Field := GetNth(sym, i) ;
-      IF Field#NulSym
+      Assert(IsFieldVarient(Field)) ;
+      IF NOT q(Field)
       THEN
-      	 Assert(IsFieldVarient(Field)) ;
-         IF NOT q(Field)
-         THEN
-            result := FALSE
-         END
+         result := FALSE
       END ;
       INC(i)
-   UNTIL Field=NulSym ;
+   END ;
    RETURN( result )
 END IsVarientDependants ;
+
+
+(*
+   WalkVarientAlignment - 
+*)
+
+PROCEDURE WalkVarientAlignment (sym: CARDINAL; p: WalkAction) ;
+VAR
+   align: CARDINAL ;
+BEGIN
+   sym := GetRecordOfVarient(sym) ;
+   align := GetDefaultRecordFieldAlignment(sym) ;
+   IF align#NulSym
+   THEN
+      p(align)
+   END
+END WalkVarientAlignment ;
 
 
 (*
@@ -4429,18 +5163,27 @@ END IsVarientDependants ;
 PROCEDURE WalkVarientDependants (sym: CARDINAL; p: WalkAction) ;
 VAR
    i    : CARDINAL ;
+   v,
    Field: CARDINAL ;
 BEGIN
+   WalkVarientAlignment(sym, p) ;
+   IF GetType(sym)#NulSym
+   THEN
+      p(GetType(sym))
+   END ;
+   v := GetVarient(sym) ;
+   IF v#NulSym
+   THEN
+      p(v)
+   END ;
    i := 1 ;
-   REPEAT
+   WHILE GetNth(sym, i)#NulSym DO
       Field := GetNth(sym, i) ;
-      IF Field#NulSym
-      THEN
-      	 Assert(IsFieldVarient(Field)) ;
-         p(Field)
-      END ;
+      Assert(IsFieldVarient(Field)) ;  (* field varients do _not_ have a type *)
+      p(Field) ;
+      WalkVarientFieldDependants(Field, p) ;
       INC(i)
-   UNTIL Field=NulSym
+   END
 END WalkVarientDependants ;
 
 
@@ -4457,26 +5200,23 @@ VAR
    result: BOOLEAN ;
 BEGIN
    i := 1 ;
-   result := TRUE ;
-   REPEAT
+   result := IsVarientAlignment(sym, q) ;
+   WHILE GetNth(sym, i)#NulSym DO
       Field := GetNth(sym, i) ;
-      IF Field#NulSym
+      IF NOT q(Field)
       THEN
-         IF NOT q(Field)
+         result := FALSE
+      END ;
+      type := GetType(Field) ;
+      IF type#NulSym
+      THEN
+         IF NOT q(type)
          THEN
             result := FALSE
-         END ;
-         type := GetType(Field) ;
-         IF type#NulSym
-         THEN
-            IF NOT q(type)
-            THEN
-               result := FALSE
-            END
-         END ;
-         INC(i)
-      END
-   UNTIL Field=NulSym ;
+         END
+      END ;
+      INC(i)
+   END ;
    RETURN( result )
 END IsVarientFieldDependants ;
 
@@ -4487,24 +5227,22 @@ END IsVarientFieldDependants ;
 
 PROCEDURE WalkVarientFieldDependants (sym: CARDINAL; p: WalkAction) ;
 VAR
-   i   :  CARDINAL ;
+   i    : CARDINAL ;
    type,
    Field: CARDINAL ;
 BEGIN
+   WalkVarientAlignment(sym, p) ;
    i := 1 ;
-   REPEAT
+   WHILE GetNth(sym, i)#NulSym DO
       Field := GetNth(sym, i) ;
-      IF Field#NulSym
+      p(Field) ;
+      type := GetType(Field) ;
+      IF type#NulSym
       THEN
-         p(Field) ;
-         type := GetType(Field) ;
-         IF type#NulSym
-         THEN
-            p(type)
-         END ;
-         INC(i)
-      END
-   UNTIL Field=NulSym
+         p(type)
+      END ;
+      INC(i)
+   END
 END WalkVarientFieldDependants ;
 
 
@@ -4698,6 +5436,65 @@ END WalkProcTypeDependants ;
 
 
 (*
+   IsProcedureDependants - 
+*)
+
+PROCEDURE IsProcedureDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
+VAR
+   i, son    : CARDINAL ;
+   type,
+   ReturnType: CARDINAL ;
+   result    : BOOLEAN ;
+BEGIN
+   result := TRUE ;
+   Assert(IsProcedure(sym)) ;
+   i := 1 ;
+   ReturnType := GetType(sym) ;
+   WHILE GetNth(sym, i)#NulSym DO
+      son := GetNth(sym, i) ;
+      type := GetType(son) ;
+      IF NOT q(type)
+      THEN
+         result := FALSE
+      END ;
+      INC(i)
+   END ;
+   IF (ReturnType=NulSym) OR q(ReturnType)
+   THEN
+      RETURN( result )
+   ELSE
+      RETURN( FALSE )
+   END
+END IsProcedureDependants ;
+
+
+(*
+   WalkProcedureDependants - walks dependants, sym.
+*)
+
+PROCEDURE WalkProcedureDependants (sym: CARDINAL; p: WalkAction) ;
+VAR
+   i, son    : CARDINAL ;
+   type,
+   ReturnType: CARDINAL ;
+BEGIN
+   Assert(IsProcedure(sym)) ;
+   i := 1 ;
+   ReturnType := GetType(sym) ;
+   WHILE GetNth(sym, i)#NulSym DO
+      son := GetNth(sym, i) ;
+      type := GetType(son) ;
+      p(type) ;
+      INC(i)
+   END ;
+   IF ReturnType#NulSym
+   THEN
+      p(ReturnType)
+   END
+END WalkProcedureDependants ;
+
+
+(*
    IsUnboundedDependants - returns TRUE if the symbol, sym,
                            q(dependants) all return TRUE.
 *)
@@ -4812,8 +5609,12 @@ BEGIN
    FullyDeclared := InitSet(1) ;
    PartiallyDeclared := InitSet(1) ;
    NilTypedArrays := InitSet(1) ;
+   HeldByAlignment := InitSet(1) ;
+   FinishedAlignment := InitSet(1) ;
    ToBeSolvedByQuads := InitSet(1) ;
+   ChainedList := InitSet(1) ;
    WatchList := InitSet(1) ;
+   VisitedList := NIL ;
    EnumerationIndex := InitIndex(1) ;
    IncludeElementIntoSet(WatchList, 8) ;
    HaveInitDefaultTypes := FALSE ;

@@ -47,6 +47,7 @@ EXPORT QUALIFIED P2StartBuildDefModule,
                  BuildConst,
                  BuildSubrange, BuildAligned,
                  BuildTypeAlignment, BuildVarAlignment,
+                 P2BuildDefaultFieldAlignment, BuildPragmaConst,
                  BuildVariable,
                  StartBuildEnumeration,
                  BuildType,
@@ -538,6 +539,37 @@ PROCEDURE BuildVarAlignment ;
 *)
 
 PROCEDURE BuildTypeAlignment ;
+
+
+(*
+   BuildDefaultFieldAlignment - 
+
+                 The Stack:
+
+                 Entry                         Exit
+                 =====                         ====
+
+
+          Ptr ->
+                 +-----------+
+                 | Alignment |
+                 |-----------|                 +-----------+
+                 | RecordSym |                 | RecordSym |
+                 |-----------|                 |-----------|
+                 | Name      |                 | Name      |
+                 |-----------|                 |-----------|
+
+*)
+
+PROCEDURE P2BuildDefaultFieldAlignment ;
+
+
+(*
+   BuildPragmaConst - pushes a constant to the stack and stores it away into the
+                      const fifo queue ready for pass 3.
+*)
+
+PROCEDURE BuildPragmaConst ;
 
 
 (*

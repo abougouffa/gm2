@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
+                 2010, 2011
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -28,6 +28,8 @@ DEFINITION MODULE M2Quads ;
 *)
 
 FROM SYSTEM IMPORT WORD ;
+FROM DynamicStrings IMPORT String ;
+
 EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildModuleStart,
                  StartBuildInit, EndBuildInit,
@@ -38,6 +40,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildReThrow,
                  BuildBuiltinConst, BuildBuiltinTypeInfo,
                  BuildAssignment, BuildAlignment,
+                 BuildDefaultFieldAlignment, BuildPragmaField,
                  BuildRepeat, BuildUntil,
                  BuildWhile, BuildDoWhile, BuildEndWhile,
                  BuildLoop, BuildExit, BuildEndLoop,
@@ -77,8 +80,8 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  Top,
                  PopTF, PushTF, PopT, PushT, PopNothing, PopN, PushTFA,
                  PushTFn, PopTFn,
-                 OperandT, OperandF, OperandA,
-                 DisplayStack, WriteOperand,
+                 OperandT, OperandF, OperandA, OperandAnno,
+                 DisplayStack, WriteOperand, Annotate,
 
                  BuildCodeOn, BuildCodeOff,
                  BuildProfileOn, BuildProfileOff,
@@ -118,7 +121,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  IsDefOrModFile,
                  IsInitialisingConst,
 
-                 DisplayQuadList, DisplayQuadRange, DisplayQuad, DumpStack,
+                 DisplayQuadList, DisplayQuadRange, DisplayQuad,
                  WriteOperator, BackPatchSubrangesAndOptParam,
 
                  GetQuad, GetFirstQuad, GetNextQuad, PutQuad,
@@ -377,13 +380,6 @@ PROCEDURE DisplayQuadRange (start, end: CARDINAL) ;
 *)
 
 PROCEDURE DisplayQuad (QuadNo: CARDINAL) ;
-
-
-(*
-   DumpStack - display the expression stack.
-*)
-
-PROCEDURE DumpStack ;
 
 
 (*
@@ -751,6 +747,60 @@ PROCEDURE BuildAssignment ;
 *)
 
 PROCEDURE BuildAlignment ;
+
+
+(*
+   BuildBitLength - builds an assignment to a bit length constant.
+
+                    The Stack is expected to contain:
+
+
+                           Entry                   Exit
+                           =====                   ====
+
+                    Ptr ->
+                           +------------+
+                           | Expression |
+                           |------------|          empty
+*)
+
+PROCEDURE BuildBitLength ;
+
+
+(*
+   BuildPragmaField - builds an assignment to a pragma constant.
+
+                      The Stack is expected to contain:
+
+
+                                 Entry                   Exit
+                                 =====                   ====
+
+                         Ptr ->
+                                +------------+
+                                | Expression |
+                                |------------|          empty
+*)
+
+PROCEDURE BuildPragmaField ;
+
+
+(*
+   BuildDefaultFieldAlignment - builds an assignment to an alignment constant.
+
+                                The Stack is expected to contain:
+
+
+                                       Entry                   Exit
+                                       =====                   ====
+
+                                Ptr ->
+                                       +------------+
+                                       | Expression |
+                                       |------------|          empty
+*)
+
+PROCEDURE BuildDefaultFieldAlignment ;
 
 
 (*
@@ -2118,6 +2168,21 @@ PROCEDURE PushTFA (True, False, Array: WORD) ;
 *)
 
 PROCEDURE OperandA (pos: CARDINAL) : WORD ;
+
+
+(*
+   OperandAnno - returns the annotation string associated with the
+                 position, n, on the stack.
+*)
+
+PROCEDURE OperandAnno (n: CARDINAL) : String ;
+
+
+(*
+   Annotate - annotate the top of stack.
+*)
+
+PROCEDURE Annotate (a: ARRAY OF CHAR) ;
 
 
 (*

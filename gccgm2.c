@@ -1,4 +1,5 @@
-/* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+/* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+ *               2010, 2011, 2012
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -197,6 +198,7 @@ static GTY(()) tree m2_complex64_type_node;
 static GTY(()) tree m2_complex96_type_node;
 static GTY(()) tree m2_complex128_type_node;
 static GTY(()) tree set_full_complement;
+static GTY(()) tree m2_packed_boolean_type_node;
 
 /* The current statement tree.  */
 static GTY(()) struct stmt_tree_s c_stmt_tree;
@@ -505,7 +507,7 @@ int                    gccgm2_GetBitsPerBitset                    (void);
 void                   trythis                                    (void);
 tree                   gccgm2_DeclareKnownConstant                (tree type, tree value);
 void                   finish_decl                                (tree decl, tree init, tree asmspec_tree);
-tree                   gccgm2_BuildStartEnumeration               (char *name);
+tree                   gccgm2_BuildStartEnumeration               (char *name, int ispacked);
 tree                   gccgm2_BuildEndEnumeration                 (tree enumtype, tree enumvalues);
 tree                   gccgm2_BuildEnumerator                     (char *name, tree value, tree *enumvalues);
 tree                   gccgm2_BuildPointerType                    (tree totype);
@@ -627,7 +629,6 @@ tree                   gccgm2_BuildAbs                            (tree t);
 void                   gccgm2_DebugTree                           (tree t);
 void                   gccgm2_DebugTreeChain                      (tree t);
 tree                   build_function_call                        (tree function, tree params);
-tree                   start_enum                                 (tree name);
 void                   pushtag                                    (tree name, tree type);
 tree                   start_struct                               (enum tree_code code, tree name);
 tree                   gccgm2_BuildStartRecord                    (char *name);
@@ -637,8 +638,8 @@ tree                   gccgm2_BuildFieldRecord                    (char *name, t
 tree                   gccgm2_ChainOn                             (tree t1, tree t2);
 tree                   gccgm2_ChainOnParamValue                   (tree list, tree name, tree str, tree value);
 tree                   gccgm2_AddStringToTreeList                 (tree list, tree string);
-tree                   gccgm2_BuildEndRecord                      (tree t, tree fieldlist);
-tree                   start_enum                                 (tree name);
+tree                   gccgm2_BuildEndRecord                      (tree t, tree fieldlist, int isPacked);
+tree                   start_enum                                 (tree name, int ispacked);
 unsigned int           min_precision                              (tree value, int unsignedp);
 tree                   build_enumerator                           (tree name, tree value);
 void                   gccgm2_ExpandExpressionStatement           (tree t);
@@ -860,11 +861,22 @@ static tree                   gm2_finish_build_array_type                 (tree 
 									   void *data ATTRIBUTE_UNUSED,
 									   struct pointer_set_t *pset ATTRIBUTE_UNUSED);
        tree                   gccgm2_SetAlignment                         (tree type, tree align);
+       tree                   gccgm2_SetTypePacked                        (tree node);
+       tree                   gccgm2_SetDeclPacked                        (tree node);
        tree                   gccgm2_BuildNumberOfArrayElements           (tree arrayType);
        tree                   undo_static                                 (tree t);
 static int                    getFrontEndLOC                              (void);
        tree                   gccgm2_DumpGlobalConstants                  (void);
        tree                   gccgm2_GetArrayNoOfElements                 (tree arraytype);
+       tree                   gccgm2_GetPackedBooleanType                 (void);
+static tree                   c_build_bitfield_integer_type (unsigned HOST_WIDE_INT width, int unsignedp);
+       tree                   gccgm2_BuildPackedFieldRecord               (char *name, tree fieldtype);
+       tree                   gccgm2_SetRecordFieldOffset (tree field, tree byteOffset, tree bitOffset, tree fieldtype, tree nbits);
+       tree                   gccgm2_GetTBitSize (tree type);
+static tree                   noBitsRequired                              (tree values);
+       tree                   gccgm2_BuildEndVarient (tree varientField, tree varientList, int isPacked);
+       tree                   gccgm2_BuildStartVarient (char *name);
+       tree                   gccgm2_BuildStartFieldRecord (char *name, tree type);
   /* PROTOTYPES: ADD HERE */
   
   
@@ -1925,6 +1937,8 @@ init_m2_builtins (void)
   m2_complex96_type_node = build_m2_complex96_type_node ();
   m2_complex128_type_node = build_m2_complex128_type_node ();
   m2_iso_loc_type_node = build_m2_iso_loc_node ();
+
+  m2_packed_boolean_type_node = c_build_bitfield_integer_type (1, TRUE);
 
   /*
    * --fixme-- this is a hack which allows us to generate correct stabs for CHAR and sets of CHAR
@@ -5077,8 +5091,8 @@ c_common_truthvalue_conversion (tree expr)
     case COMPLEX_EXPR:
       return build_binary_op ((TREE_SIDE_EFFECTS (TREE_OPERAND (expr, 1))
                                ? TRUTH_OR_EXPR : TRUTH_ORIF_EXPR),
-                c_common_truthvalue_conversion (TREE_OPERAND (expr, 0)),
-                c_common_truthvalue_conversion (TREE_OPERAND (expr, 1)),
+			      c_common_truthvalue_conversion (TREE_OPERAND (expr, 0)),
+			      c_common_truthvalue_conversion (TREE_OPERAND (expr, 1)),
                               0);
 
     case NEGATE_EXPR:
@@ -5166,8 +5180,8 @@ c_common_truthvalue_conversion (tree expr)
       return (build_binary_op
               ((TREE_SIDE_EFFECTS (expr)
                 ? TRUTH_OR_EXPR : TRUTH_ORIF_EXPR),
-        c_common_truthvalue_conversion (build_unary_op (REALPART_EXPR, t, 0)),
-        c_common_truthvalue_conversion (build_unary_op (IMAGPART_EXPR, t, 0)),
+	       c_common_truthvalue_conversion (build_unary_op (REALPART_EXPR, t, 0)),
+	       c_common_truthvalue_conversion (build_unary_op (IMAGPART_EXPR, t, 0)),
                0));
     }
 
@@ -7327,7 +7341,7 @@ lookup_label (tree id)
 }
 
 tree
-gccgm2_BuildStartEnumeration (char *name)
+gccgm2_BuildStartEnumeration (char *name, int ispacked)
 {
   tree id;
 
@@ -7336,13 +7350,13 @@ gccgm2_BuildStartEnumeration (char *name)
   else
     id = get_identifier (name);
 
-  return start_enum(id);
+  return start_enum (id, ispacked);
 }
 
 tree
 gccgm2_BuildEndEnumeration (tree enumtype, tree enumvalues)
 {
-  tree finished ATTRIBUTE_UNUSED = finish_enum(enumtype, enumvalues, NULL_TREE);
+  tree finished ATTRIBUTE_UNUSED = finish_enum (enumtype, enumvalues, NULL_TREE);
   return enumtype;
 }
 
@@ -9149,6 +9163,72 @@ gccgm2_GetSizeOf (tree type)
 }
 
 /*
+ *  noBitsRequired - returns the number of bits required to contain, values.
+ */
+
+static tree
+noBitsRequired (tree values)
+{
+  tree bits = gccgm2_GetIntegerOne ();
+  tree nmax = fold (gccgm2_BuildAdd (gccgm2_GetIntegerOne (),
+				     gccgm2_GetIntegerOne (),
+				     FALSE));
+  values = fold (values);
+  while (gccgm2_CompareTrees (nmax, values) < 0) {
+    bits = fold (gccgm2_BuildAdd (gccgm2_GetIntegerOne (), bits, FALSE));
+    nmax = fold (gccgm2_BuildAdd (nmax, nmax, FALSE));
+  }
+  return bits;
+}
+
+/*
+ *  gccgm2_BuildSmallestTypeRange - returns the smallest INTEGER_TYPE which is
+ *                                  sufficient to contain values: low..high.
+ */
+
+tree
+gccgm2_BuildSmallestTypeRange (tree low, tree high)
+{
+  tree bits;
+
+  low = fold (low);
+  high = fold (high);
+  bits = fold (noBitsRequired (gccgm2_BuildAdd (gccgm2_BuildSub (high, low, FALSE),
+						gccgm2_GetIntegerOne (),
+						FALSE)));
+  return build_m2_specific_size_type (INTEGER_TYPE, TREE_INT_CST_LOW (bits),
+				      tree_int_cst_sgn (low) < 0);
+}
+
+/*
+ *  BuildTBitSize - returns the minimum number of bits to represent, type.
+ */
+
+tree
+gccgm2_BuildTBitSize (tree type)
+{
+  enum tree_code code = TREE_CODE (type);
+  tree min;
+  tree max;
+
+  switch (code) {
+
+  case INTEGER_TYPE:
+  case ENUMERAL_TYPE:
+    min = gccgm2_BuildConvert (gccgm2_GetIntegerType (), TYPE_MIN_VALUE (type), FALSE);
+    max = gccgm2_BuildConvert (gccgm2_GetIntegerType (), TYPE_MAX_VALUE (type), FALSE);
+    return noBitsRequired (gccgm2_BuildSub (max, min, FALSE));
+
+  case BOOLEAN_TYPE:
+    return gccgm2_GetIntegerOne ();
+  default:
+    return gccgm2_BuildMult (gccgm2_GetSizeOf (type),
+			     gccgm2_BuildIntegerConstant (BITS_PER_UNIT),
+			     FALSE);
+  }
+}
+
+/*
  *  BuildSize - builds a SIZE function expression and returns the tree.
  */
 
@@ -10178,6 +10258,12 @@ gccgm2_GetBooleanTrue (void)
 #else
   return gccgm2_GetIntegerOne ();
 #endif
+}
+
+tree
+gccgm2_GetPackedBooleanType (void)
+{
+  return m2_packed_boolean_type_node;
 }
 
 tree
@@ -11995,7 +12081,7 @@ gccgm2_BuildStartRecord (char *name)
 
 
 tree
-gccgm2_BuildStartVarientRecord (char *name)
+gccgm2_BuildStartUnion (char *name)
 {
   tree id;
 
@@ -12007,6 +12093,35 @@ gccgm2_BuildStartVarientRecord (char *name)
   return start_struct (UNION_TYPE, id);
 }
 
+/*
+ *  gccgm2_BuildStartVarient - builds a varient record.
+ *                             It creates a record field which
+ *                             has a, name, and whose type is a
+ *                             union.
+ */
+
+tree
+gccgm2_BuildStartVarient (char *name)
+{
+  tree varient = gccgm2_BuildStartUnion (name);
+  tree field = gccgm2_BuildStartFieldRecord (name, varient);
+  return field;
+}
+
+/*
+ *  gccgm2_BuildEndVarient - finish the varientField by calling
+ *                           decl_finish and also finish the type of
+ *                           varientField (which is a union).
+ */
+
+tree
+gccgm2_BuildEndVarient (tree varientField, tree varientList, int isPacked)
+{
+  tree varient = TREE_TYPE (varientField);
+  varient = gccgm2_BuildEndRecord (varient, varientList, isPacked);
+  finish_decl (varientField, NULL_TREE, NULL_TREE);
+  return varientField;
+}
 
 /* Lay out the type T, and its element type, and so on.  */
 
@@ -12018,6 +12133,26 @@ layout_array_type (tree t)
   layout_type (t);
 }
 
+/*
+ *  gccgm2_BuildStartFieldRecord - starts building a field record.
+ *                                 It returns the field which must be
+ *                                 completed by calling finish_decl.
+ */
+
+tree
+gccgm2_BuildStartFieldRecord (char *name, tree type)
+{
+  tree field, declarator;
+  
+  if ((name == NULL) || (strcmp(name, "") == 0))
+    declarator = NULL_TREE;
+  else
+    declarator = get_identifier (name);
+
+  /* The corresponding pop_obstacks is in finish_decl.  */
+  field = build_decl (FIELD_DECL, declarator, skip_type_decl (type)) ;
+  return field;
+}
 
 /* Build a record field with name (name maybe NULL),
    returning the new field declaration, FIELD_DECL.
@@ -12029,17 +12164,8 @@ layout_array_type (tree t)
 tree
 gccgm2_BuildFieldRecord (char *name, tree type)
 {
-  tree field, declarator;
-  
-  if ((name == NULL) || (strcmp(name, "") == 0))
-    declarator = NULL_TREE;
-  else
-    declarator = get_identifier (name);
-
-  /* The corresponding pop_obstacks is in finish_decl.  */
-  field = build_decl (FIELD_DECL, declarator, skip_type_decl (type)) ;
+  tree field = gccgm2_BuildStartFieldRecord (name, type);
   finish_decl (field, NULL_TREE, NULL_TREE);
-
   return field;
 }
 
@@ -12171,7 +12297,7 @@ pushtag (tree name, tree type)
 /* -- from c-decl.c import finish_struct -- */
 
 tree
-gccgm2_BuildEndRecord (tree t, tree fieldlist /* , attributes */ )
+gccgm2_BuildEndRecord (tree t, tree fieldlist, int isPacked)
 {
   tree x;
   int toplevel = global_binding_level == current_binding_level;
@@ -12226,6 +12352,13 @@ gccgm2_BuildEndRecord (tree t, tree fieldlist /* , attributes */ )
       if (TYPE_PACKED (t) && TYPE_ALIGN (TREE_TYPE (x)) > BITS_PER_UNIT)
         DECL_PACKED (x) = 1;
 
+      if (isPacked) {
+        DECL_PACKED (x) = 1;
+	DECL_BIT_FIELD (x) = 1;
+	SET_DECL_C_BIT_FIELD (x);
+      }
+
+#if !defined(GM2)         /* 16-01-2012 */
       /* If any field is const, the structure type is pseudo-const.  */
       if (TREE_READONLY (x))
         C_TYPE_FIELDS_READONLY (t) = 1;
@@ -12283,6 +12416,7 @@ gccgm2_BuildEndRecord (tree t, tree fieldlist /* , attributes */ )
       if (pedantic && !in_system_header && TREE_CODE (t) == RECORD_TYPE
           && flexible_array_type_p (TREE_TYPE (x)))
         pedwarn ("%Jinvalid use of structure with flexible array member", x);
+#endif
 
       if (DECL_NAME (x))
         saw_named_field = 1;
@@ -12299,6 +12433,7 @@ gccgm2_BuildEndRecord (tree t, tree fieldlist /* , attributes */ )
 
   layout_type (t);
 
+#if !defined(GM2)  /* 16-01-2012 */
   /* Give bit-fields their proper types.  */
   {
     tree *fieldlistp = &fieldlist;
@@ -12320,6 +12455,7 @@ gccgm2_BuildEndRecord (tree t, tree fieldlist /* , attributes */ )
       else
         fieldlistp = &TREE_CHAIN (*fieldlistp);
   }
+#endif
 
   /* Now we have the truly final field list.
      Store it in this type and in the variants.  */
@@ -12442,20 +12578,10 @@ gccgm2_BuildEndRecord (tree t, tree fieldlist /* , attributes */ )
    may be used to declare the individual values as they are read.  */
 
 tree
-start_enum (name)
-     tree name;
+start_enum (tree name, int ispacked)
 {
-  tree enumtype = 0;
-
-  /* If this is the real definition for a previous forward reference,
-     fill in the contents in the same object that used to be the
-     forward reference.  */
-
-  if (enumtype == 0 || TREE_CODE (enumtype) != ENUMERAL_TYPE)
-    {
-      enumtype = make_node (ENUMERAL_TYPE);
-      pushtag (name, enumtype);
-    }
+  tree enumtype = make_node (ENUMERAL_TYPE);
+  pushtag (name, enumtype);
   
   if (TYPE_VALUES (enumtype) != 0)
     {
@@ -12470,7 +12596,7 @@ start_enum (name)
   enum_next_value = integer_zero_node;
   enum_overflow = 0;
 
-  if (flag_short_enums)
+  if (ispacked)
     TYPE_PACKED (enumtype) = 1;
 
 #if defined(GM2)
@@ -12516,10 +12642,7 @@ min_precision (value, unsignedp)
    Returns ENUMTYPE.  */
 
 tree
-finish_enum (enumtype, values, attributes)
-     tree enumtype;
-     tree values;
-     tree attributes ATTRIBUTE_UNUSED;
+finish_enum (tree enumtype, tree values, tree attributes ATTRIBUTE_UNUSED)
 {
   tree pair, tem;
   tree minnode = 0, maxnode = 0;
@@ -12559,7 +12682,8 @@ finish_enum (enumtype, values, attributes)
   if (TYPE_PACKED (enumtype) || precision > TYPE_PRECISION (integer_type_node))
     {
 #if defined(GM2)
-      tem = gm2_type_for_size (precision, unsign);
+      /* tem = gm2_type_for_size (precision, unsign); */
+      tem = c_build_bitfield_integer_type (precision, unsign);
 #else
       tem = c_common_type_for_size (precision, unsign);
 #endif
@@ -12665,10 +12789,9 @@ finish_enum (enumtype, values, attributes)
    Assignment of sequential values by default is handled here.  */
 
 tree
-build_enumerator (name, value)
-     tree name, value;
+build_enumerator (tree name, tree value)
 {
-  register tree decl, type;
+  tree decl, type;
 
   /* Validate and default VALUE.  */
 
@@ -12795,6 +12918,56 @@ gccgm2_SetAlignment (tree node, tree align)
       DECL_USER_ALIGN (decl) = 1;
     }
   return node;
+}
+
+/*
+ *  SetDeclPacked - sets the packed bit in decl TREE, node.
+ *                  It returns the node.
+ */
+
+tree
+gccgm2_SetDeclPacked (tree node)
+{
+  DECL_PACKED (node) = 1;
+  return node;
+}
+
+/*
+ *  SetTypePacked - sets the packed bit in type TREE, node.
+ *                  It returns the node.
+ */
+
+tree
+gccgm2_SetTypePacked (tree node)
+{
+  TYPE_PACKED (node) = 1;
+  return node;
+}
+
+/*
+ *  SetRecordFieldOffset - returns field after the byteOffset and bitOffset
+ *                         has been applied to it.
+ */
+
+tree
+gccgm2_SetRecordFieldOffset (tree field, tree byteOffset, tree bitOffset, tree fieldtype, tree nbits)
+{
+  DECL_FIELD_OFFSET (field) = byteOffset;
+  DECL_FIELD_BIT_OFFSET (field) = bitOffset;
+  TREE_TYPE (field) = skip_type_decl (fieldtype);
+  DECL_SIZE (field) = bitsize_int (TREE_INT_CST_LOW (nbits));
+  return field;
+}
+
+/*
+ *  BuildPackedFieldRecord - builds a packed field record of,
+ *                           name, and, fieldtype.
+ */
+
+tree
+gccgm2_BuildPackedFieldRecord (char *name, tree fieldtype)
+{
+  return gccgm2_BuildFieldRecord (name, fieldtype);
 }
 
 /*

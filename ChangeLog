@@ -1,3 +1,81 @@
+2012-02-14      Gaius Mulley <gaius@gnu.org>
+
+	The following changes are a change to the type declaration system
+	which is necessary to implement bit alignment of record fields.
+
+	* gm2/Make-lang.in:  tidied up the file and introduced a commented
+	  rule which allows stage2 to be built from a prebuilt stage1.  This
+	  is only ever used during heavy development and allows debugging in
+	  Modula-2 to occur rather than in the translated, C, files.
+	* gm2/gccgm2.c:  gccgm2_BuildStartEnumeration, gccgm2_BuildEndRecord,
+	  start_enum (new parameter ispacked).  New functions
+	  (gccgm2_SetTypePacked, gccgm2_SetDeclPacked,
+	   gccgm2_GetPackedBooleanType, gccgm2_SetRecordFieldOffset,
+	   gccgm2_GetTBitSize, noBitsRequired, gccgm2_BuildStartVarient,
+	   gccgm2_BuildEndVarient, gccgm2_BuildSmallestTypeRange,
+           gccgm2_BuildTBitSize).
+	* gm2/lang.opt:  introduce debugging option -fd.
+	* gm2/m2.flex:  introduce <* *> into the set of lexical tokens.
+	* gm2/m2pp.c:  pretty print union types and also whether records and their
+	  fields are aligned, packed, offset values and addressible.
+	* gm2/bnf/gm2l.bnf:  introduce <* *> into the set of lexical tokens.
+	* gm2/bnf/gm2m.bnf:  introduce <* *> into the set of lexical tokens.
+	* gm2/bnf/m2-2.bnf:  introduce <* *> into the set of lexical tokens.
+	  extended the ebnf to include a default record alignment using pragmas.
+	  Also extended the ebnf to include field alignment and packing using
+	  pragmas.
+	* gm2/bnf/m2-3.bnf:  introduce <* *> into the set of lexical tokens.
+	  extended the ebnf to include a default record alignment using pragmas.
+	  Also extended the ebnf to include field alignment and packing using
+	  pragmas.
+	* gm2/bnf/m2-c.bnf:  introduce <* *> into the set of lexical tokens.
+	  extended the ebnf to include a default record alignment using pragmas.
+	  Also extended the ebnf to include field alignment and packing using
+	  pragmas.
+	* gm2/bnf/m2-h.bnf:  introduce <* *> into the set of lexical tokens.
+	  extended the ebnf to include a default record alignment using pragmas.
+	  Also extended the ebnf to include field alignment and packing using
+	  pragmas.
+	* gm2/bnf/m2.bnf:  introduce <* *> into the set of lexical tokens.
+	  extended the ebnf to include a default record alignment using pragmas.
+	  Also extended the ebnf to include field alignment and packing using
+	  pragmas.
+	* gm2/el/g-mode.el:  removed PACKED as a keyword.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  huge number of changes and
+	  many aspects have been rewritten.  The main changes occur from
+	  delaying a records declaration into a GCC Tree until its alignment
+	  is known.  Varient records are also handled in this way.  Much
+	  debugging code added as well.  Simple types can also be declared
+	  as packed (Subranges, Boolean) and enumeration types.
+	* gm2/gm2-compiler/M2Quads.def:  new procedures BuildBitLength,
+	  BuildPragmaField, BuildDefaultFieldAlignment, OperandAnno,
+	  Annotate).
+	* gm2/gm2-compiler/M2Quads.mod:  implement all of the above.
+	  Provide a useful internal debugging procedure function 'ds'
+	  which display the quadruple stack.
+	* gm2/gm2-compiler/M2Reserved.def:  add LDirectiveTok and
+	  RDirectiveTok.
+	* gm2/gm2-compiler/M2Reserved.mod:  implement above.
+	* gm2/gm2-compiler/P2SymBuild.def:  new procedure functions
+	  P2BuildDefaultFieldAlignment, BuildPragmaConst.
+	* gm2/gm2-compiler/P2SymBuild.mod:  implement above.
+	* gm2/gm2-compiler/Sets.mod:  no longer import BITSET from SYSTEM.
+	* gm2/gm2-compiler/SymbolTable.def:  new procedures
+	  (GetDefaultRecordFieldAlignment, PutDeclaredPacked,
+	   IsDeclaredPacked, IsDeclaredPackedResolved,
+           GetPackedEquivalent, GetNonPackedEquivalent,
+           PutDefaultRecordFieldAlignment, PutUnused, IsUnused).
+	* gm2/gm2-compiler/SymbolTable.mod:  implement above.
+	* gm2/gm2-compiler/gccgm2.def:  remove procedure function
+          BuildStartVarientRecord and add procedure functions
+	  BuildStartVarient, BuildEndVarient, BuildSmallestTypeRange,
+	  GetPackedBooleanType, SetDeclPacked, SetTypePacked,
+	  SetRecordFieldOffset, BuildTBitSize.
+	* gm2/gm2-compiler/ppg.mod:  remove BITSET from SYSTEM
+	  import list.
+	* gm2/gm2-libs-iso/SYSTEM.def:  define new builtin procedure
+	  function TBITSIZE.
+
 2012-02-05      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  fixed bug reported by Scott Iverson.

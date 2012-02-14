@@ -1,22 +1,4 @@
-/* Copyright (C) 2010
- *               Free Software Foundation, Inc. */
-/* This file is part of GNU Modula-2.
-
-GNU Modula-2 is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 3, or (at your option) any later
-version.
-
-GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License along
-with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 51 Franklin Street, Fifth Floor, Boston,
-MA 02110-1301, USA. */
-/* Copyright (C) 2007, 2008, 2009, 2010
+/* Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -163,6 +145,7 @@ static void m2pp_subrange (pretty *s, tree t);
 static void m2pp_gimpified (pretty *s, tree t);
 static void m2pp_pointer_type (pretty *s, tree t);
 static void m2pp_record_type (pretty *s, tree t);
+static void m2pp_union_type (pretty *s, tree t);
 static void m2pp_simple_type (pretty *s, tree t);
 static void m2pp_expression (pretty *s, tree t);
 static void m2pp_relop (pretty *s, tree t, const char *p);
@@ -1197,8 +1180,8 @@ m2pp_type (pretty *s, tree t)
       m2pp_enum (s, t);
       break;
     case UNION_TYPE:
-      /* m2pp_union (s, t); */
-      /* break; */
+      m2pp_union_type (s, t);
+      break;
     case RECORD_TYPE:
       m2pp_record_type (s, t);
       break;
@@ -1343,6 +1326,35 @@ m2pp_pointer_type (pretty *s, tree t)
 }
 
 /*
+ *  m2pp_record_alignment - prints out whether this record is aligned
+ *                          (packed).
+ */
+
+static void
+m2pp_record_alignment (pretty *s, tree t)
+{
+  if (TYPE_PACKED (t))
+    m2pp_print(s, "<* bytealignment (0) *>\n");
+}
+
+static void
+m2pp_recordfield_bitfield (pretty *s, tree t)
+{
+  if (DECL_PACKED (t)) {
+    m2pp_print(s, " (* packed");
+    if (DECL_NONADDRESSABLE_P (t))
+      m2pp_print(s, ", non-addressible");
+    if (DECL_BIT_FIELD (t))
+      m2pp_print(s, ", bit-field");
+    m2pp_print (s, ", offset: ");
+    m2pp_expression (s, DECL_FIELD_OFFSET (t));
+    m2pp_print (s, ", bit offset:");
+    m2pp_expression (s, DECL_FIELD_BIT_OFFSET (t));
+    m2pp_print(s, " *) ");
+  }
+}
+
+/*
  *  m2pp_record_type - displays the record type.
  */
 
@@ -1358,11 +1370,45 @@ m2pp_record_type (pretty *s, tree t)
 
       m2pp_print(s, "RECORD\n");
       setindent (s, p+3);
+      m2pp_record_alignment (s, t);
       for (i = TYPE_FIELDS (t); i != NULL_TREE; i = TREE_CHAIN (i))
 	{
 	  m2pp_identifier (s, i);
 	  m2pp_print(s, " : ");
 	  m2pp_type (s, TREE_TYPE (i));
+	  m2pp_recordfield_bitfield (s, i);
+	  m2pp_print (s, ";\n");
+	}
+      setindent (s, p);
+      m2pp_print(s, "END");
+      setindent (s, o);
+    }
+  pop ();
+}
+
+/*
+ *  m2pp_record_type - displays the record type.
+ */
+
+static void
+m2pp_union_type (pretty *s, tree t)
+{
+  push (t);
+  if (TREE_CODE (t) == UNION_TYPE)
+    {
+      tree i;
+      int o = getindent (s);
+      int p = getcurpos (s);
+
+      m2pp_print(s, "CASE .. OF\n");
+      setindent (s, p+3);
+      m2pp_record_alignment (s, t);
+      for (i = TYPE_FIELDS (t); i != NULL_TREE; i = TREE_CHAIN (i))
+	{
+	  m2pp_identifier (s, i);
+	  m2pp_print(s, " : ");
+	  m2pp_type (s, TREE_TYPE (i));
+	  m2pp_recordfield_bitfield (s, i);
 	  m2pp_print (s, ";\n");
 	}
       setindent (s, p);
@@ -1410,6 +1456,9 @@ m2pp_simple_type (pretty *s, tree t)
       break;
     case RECORD_TYPE:
       m2pp_record_type (s, t);
+      break;
+    case UNION_TYPE:
+      m2pp_union_type (s, t);
       break;
     case ENUMERAL_TYPE:
       m2pp_enum (s, t);

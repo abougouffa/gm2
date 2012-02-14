@@ -116,7 +116,7 @@ BEGIN
       END
    END ;
 
-   IF sym=1006
+   IF sym=707
    THEN
       mystop2
    END ;

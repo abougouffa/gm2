@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
+                 2010, 2011
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -24,6 +24,7 @@ FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
 FROM NameKey IMPORT Name, NulName, MakeKey, GetKey, makekey, KeyToCharStar ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
+FROM M2DebugStack IMPORT DebugStack ;
 
 FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3,
                         MetaErrors1, MetaErrors2, MetaErrors3,
@@ -100,6 +101,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         
                         ForeachFieldEnumerationDo, ForeachLocalSymDo,
                         GetExported, PutImported, GetSym,
+                        IsUnused,
                         NulSym ;
 
 FROM M2Configure IMPORT PushParametersLeftToRight, UsingGCCBackend ;
@@ -230,7 +232,7 @@ FROM gm2builtins IMPORT GetBuiltinTypeInfoType ;
 
 
 CONST
-   DebugStack = FALSE ;
+   DebugStackOn = TRUE ;
    DebugVarients = FALSE ;
    BreakAtQuad = 37 ;
 
@@ -243,13 +245,14 @@ TYPE
 
    BoolFrame = POINTER TO boolFrame ;  (* using intemediate type helps p2c *)
    boolFrame =            RECORD
-                             TrueExit : CARDINAL ;
-                             FalseExit: CARDINAL ;
-                             Unbounded: CARDINAL ;
-                             BooleanOp: BOOLEAN ;
-                             Dimension: CARDINAL ;
-                             ReadWrite: CARDINAL ;
-                             name     : CARDINAL ;
+                             TrueExit  : CARDINAL ;
+                             FalseExit : CARDINAL ;
+                             Unbounded : CARDINAL ;
+                             BooleanOp : BOOLEAN ;
+                             Dimension : CARDINAL ;
+                             ReadWrite : CARDINAL ;
+                             name      : CARDINAL ;
+                             Annotation: String ;
                           END ;
 
    QuadFrame = POINTER TO quadFrame ;  (* again we help p2c *)
@@ -466,6 +469,8 @@ PROCEDURE WriteOperand (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE WriteOperator (Operator: QuadOperator) ; FORWARD ;
 PROCEDURE WriteQuad (BufferQuad: CARDINAL) ; FORWARD ;
 PROCEDURE IsBoolean (pos: CARDINAL) : BOOLEAN ; FORWARD ;
+PROCEDURE OperandTno (pos: CARDINAL) : WORD ; FORWARD ;
+PROCEDURE OperandFno (pos: CARDINAL) : WORD ; FORWARD ;
 PROCEDURE OperandT (pos: CARDINAL) : WORD ; FORWARD ;
 PROCEDURE OperandF (pos: CARDINAL) : WORD ; FORWARD ;
 PROCEDURE OperandA (pos: CARDINAL) : WORD ; FORWARD ;
@@ -2908,7 +2913,7 @@ VAR
    Array,
    Des, Exp: CARDINAL ;
 BEGIN
-   DumpStack ;
+   DisplayStack ;
    IF IsBoolean(1)
    THEN
       PopBool(t, f) ;
@@ -2966,8 +2971,8 @@ BEGIN
          END ;
          CheckAssignCompatible(Des, Exp)
       END
-   END
- ; DumpStack ;
+   END ;
+   DisplayStack
 END doBuildAssignment ;
 
 
@@ -3117,6 +3122,105 @@ BEGIN
    PushT(expr) ;
    BuildAssignment
 END BuildAlignment ;
+
+
+(*
+   BuildBitLength - builds an assignment to a bit length constant.
+
+                    The Stack is expected to contain:
+
+
+                           Entry                   Exit
+                           =====                   ====
+
+                    Ptr ->
+                           +------------+
+                           | Expression |
+                           |------------|          empty
+*)
+
+PROCEDURE BuildBitLength ;
+VAR
+   expr,
+   length: CARDINAL ;
+BEGIN
+   PopT(expr) ;
+   GetConstFromFifoQueue(length) ;
+   PushT(length) ;
+   PushT(expr) ;
+   BuildAssignment
+END BuildBitLength ;
+
+
+(*
+   BuildDefaultFieldAlignment - builds an assignment to an alignment constant.
+
+                                The Stack is expected to contain:
+
+
+                                       Entry                   Exit
+                                       =====                   ====
+
+                                Ptr ->
+                                       +------------+
+                                       | Expression |
+                                       |------------|          empty
+*)
+
+PROCEDURE BuildDefaultFieldAlignment ;
+VAR
+   expr,
+   align: CARDINAL ;
+   name : Name ;
+BEGIN
+   PopT(expr) ;
+   PopT(name) ;
+   IF name#MakeKey('bytealignment')
+   THEN
+      WriteFormat0('only allowed to use the attribute bytealignment in the default record field alignment pragma')
+   END ;
+   GetConstFromFifoQueue(align) ;
+   PushT(align) ;
+   PushT(expr) ;
+   BuildAssignment
+END BuildDefaultFieldAlignment ;
+
+
+(*
+   BuildPragmaField - builds an assignment to an alignment constant.
+
+                      The Stack is expected to contain:
+
+
+                      Entry                   Exit
+                      =====                   ====
+
+               Ptr ->
+                      +------------+
+                      | Expression |
+                      |------------|          empty
+*)
+
+PROCEDURE BuildPragmaField ;
+VAR
+   expr,
+   const: CARDINAL ;
+   name : Name ;
+BEGIN
+   PopT(expr) ;
+   PopT(name) ;
+   IF (name#MakeKey('unused')) AND (name#MakeKey('bytealignment'))
+   THEN
+      WriteFormat0('only allowed to use the attributes bytealignment and unused in a record field padding pragma')
+   END ;
+   IF expr#NulSym
+   THEN
+      GetConstFromFifoQueue(const) ;
+      PushT(const) ;
+      PushT(expr) ;
+      BuildAssignment
+   END
+END BuildPragmaField ;
 
 
 (*
@@ -4225,19 +4329,19 @@ BEGIN
    PushT(NoOfParam) ;  (* Compile time stack restored to entry state *)
    IF IsPseudoBaseProcedure(ProcSym) OR IsPseudoSystemProcedure(ProcSym)
    THEN
-      DumpStack ;
+      DisplayStack ;
       ManipulatePseudoCallParameters ;
-      DumpStack ;
+      DisplayStack ;
       BuildPseudoProcedureCall ;
-      DumpStack ;
+      DisplayStack
    ELSIF IsUnknown(ProcSym)
    THEN
       MetaError1('{%1Ua} is not recognised as a procedure, check declaration or import', ProcSym) ;
       PopN(NoOfParam + 2)
    ELSE
-      DumpStack ;
+      DisplayStack ;
       BuildRealProcedureCall ;
-      DumpStack ;
+      DisplayStack ;
    END
 END BuildProcedureCall ;
 
@@ -9784,6 +9888,11 @@ BEGIN
    THEN
       InternalError('not expecting to see n>1', __FILE__, __LINE__)
    END ;
+   IF IsUnused(Sym)
+   THEN
+      MetaErrors1('record field {%1Dad} was declared as unused by a pragma',
+                  'record field {%1ad} is being used after being declared as unused by a pragma', Sym)
+   END ;
    (* Res will be an Address since it is LeftValue mode *)
    Res := MakeTemporary(LeftValue) ;
    (*
@@ -9997,7 +10106,7 @@ VAR
    Dim, i, rw,
    ti, tj, tk   : CARDINAL ;
 BEGIN
-   DumpStack ;
+   DisplayStack ;
    Sym  := OperandT(2) ;
    Type := SkipType(OperandF(2)) ;
    Dim := OperandD(2) ;
@@ -10026,7 +10135,7 @@ BEGIN
       PushT(1) ;  (* One record field to dereference *)
       BuildDesignatorRecord ;
       PopT(PtrToBase) ;
-      DumpStack ;
+      DisplayStack ;
       (* Now actually copy Unbounded.ArrayAddress into base *)
       IF GetMode(PtrToBase)=LeftValue
       THEN
@@ -10177,7 +10286,7 @@ VAR
    Sym, Type,
    adr      : CARDINAL ;
 BEGIN
-   DumpStack ;
+   DisplayStack ;
    PopTF(Sym, Type) ;
    Type := SkipType(Type) ;
    adr := MakeTemporary(LeftValue) ;
@@ -10221,7 +10330,7 @@ BEGIN
       END
    END ;
    StartScope(Type)
- ; DumpStack ;
+ ; DisplayStack ;
 END StartBuildWith ;
 
 
@@ -10231,10 +10340,10 @@ END StartBuildWith ;
 
 PROCEDURE EndBuildWith ;
 BEGIN
-   DumpStack ;
+   DisplayStack ;
    EndScope ;
    PopWith
- ; DumpStack ;
+ ; DisplayStack ;
 END EndBuildWith ;
 
 
@@ -10310,6 +10419,10 @@ BEGIN
          WITH f^ DO
             IF IsRecordField(Sym) AND (GetRecord(GetParent(Sym))=RecordSym)
             THEN
+               IF IsUnused(Sym)
+               THEN
+                  MetaError1('record field {%1Dad} was declared as unused by a pragma', Sym)
+               END ;
                (* Fake a RecordSym.op *)
                PushTFrw(PtrSym, RecordSym, rw) ;
                PushTF(Sym, Type) ;
@@ -11400,7 +11513,9 @@ BEGIN
       BooleanOp := FALSE ; (* no longer a Boolean True|False pair    *)
       Unbounded := NulSym ;
       Dimension := 0 ;
-      ReadWrite := NulSym
+      ReadWrite := NulSym ;
+      Annotation := KillString(Annotation) ;
+      Annotation := InitString('%1s(%1d)|%2s(%2d)||boolean var|type')
    END
 END ConvertBooleanToVariable ;
 
@@ -11916,32 +12031,64 @@ END Merge ;
 
 
 (*
+   Annotate - annotate the top of stack.
+*)
+
+PROCEDURE Annotate (a: ARRAY OF CHAR) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   IF DebugStackOn AND CompilerDebugging AND (NoOfItemsInStackAddress(BoolStack)>0)
+   THEN
+      f := PeepAddress(BoolStack, 1) ;    (* top of stack *)
+      WITH f^ DO
+         IF Annotation#NIL
+         THEN
+            Annotation := KillString(Annotation)
+         END ;
+         Annotation := InitString(a)
+      END
+   END
+END Annotate ;
+
+
+(*
+   OperandAnno - returns the annotation string associated with the
+                 position, n, on the stack.
+*)
+
+PROCEDURE OperandAnno (n: CARDINAL) : String ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   f := PeepAddress(BoolStack, n) ;
+   RETURN( f^.Annotation )
+END OperandAnno ;
+
+
+(*
    DisplayStack - displays the compile time symbol stack.
 *)
 
 PROCEDURE DisplayStack ;
-VAR
-   i, n: CARDINAL ;
-   f   : BoolFrame ;
 BEGIN
-   printf0('+-------------------+\n') ;
-   n := NoOfItemsInStackAddress(BoolStack) ;
-   i := 1 ;
-   WHILE i<=n DO
-      f := PeepAddress(BoolStack, i) ;
-      WITH f^ DO
-         IF BooleanOp
-         THEN
-            printf2('| Q%6d | Q%6d |\n', TrueExit, FalseExit) ;
-            printf0('|---------|---------|\n')
-         ELSE
-            printf1('| %6d            |\n', TrueExit) ;
-            printf0('|-------------------|\n')
-         END
-      END ;
-      INC(i)
+   IF DebugStackOn AND CompilerDebugging
+   THEN
+      DebugStack(NoOfItemsInStackAddress(BoolStack),
+                 OperandTno, OperandFno, OperandA,
+                 OperandD, OperandRW, OperandAnno)
    END
 END DisplayStack ;
+
+
+(*
+   ds - tiny procedure name, useful for calling from the gdb shell.
+*)
+
+PROCEDURE ds ;
+BEGIN
+   DisplayStack
+END ds ;
 
 
 (*
@@ -12268,34 +12415,35 @@ END PopFor ;
 
 
 (*
-   DumpStack - display the expression stack.
+   OperandTno - returns the ident operand stored in the true position
+                on the boolean stack.  This is exactly the same as
+                OperandT but it has no IsBoolean checking.
 *)
 
-PROCEDURE DumpStack ;
+PROCEDURE OperandTno (pos: CARDINAL) : WORD ;
 VAR
-   o1, o2 : WORD ;
-   i, n, v: CARDINAL ;
+   f: BoolFrame ;
 BEGIN
-   IF DebugStack
-   THEN
-      n := NoOfItemsInStackAddress(BoolStack) ;
-      i := n ;
-      printf0('quad stack: ') ;
-      WHILE i>0 DO
-         v := n-i+1 ;
-         IF IsBoolean(i)
-         THEN
-            printf1('%d {boolean}  ', v)
-         ELSE
-            o1 := OperandT(i) ;
-            o2 := OperandF(i) ;
-            printf3('%d [%d, %d]  ', v, o1, o2)
-         END ;
-         DEC(i)
-      END ;
-      printf0('\n')
-   END
-END DumpStack ;
+   Assert(pos>0) ;
+   f := PeepAddress(BoolStack, pos) ;
+   RETURN( f^.TrueExit )
+END OperandTno ;
+
+
+(*
+   OperandFno - returns the ident operand stored in the false position
+                on the boolean stack.  This is exactly the same as
+                OperandF but it has no IsBoolean checking.
+*)
+
+PROCEDURE OperandFno (pos: CARDINAL) : WORD ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   Assert(pos>0) ;
+   f := PeepAddress(BoolStack, pos) ;
+   RETURN( f^.FalseExit )
+END OperandFno ;
 
 
 (*
@@ -12332,9 +12480,11 @@ BEGIN
    WITH f^ DO
       TrueExit := True ;
       FalseExit := False ;
-      BooleanOp := TRUE
+      BooleanOp := TRUE ;
+      Annotation := NIL
    END ;
-   PushAddress(BoolStack, f)
+   PushAddress(BoolStack, f) ;
+   Annotate('<q%1d>|<q%2d>||true quad|false quad')
 END PushBool ;
 
 
@@ -12390,13 +12540,9 @@ END OperandA ;
 *)
 
 PROCEDURE OperandT (pos: CARDINAL) : WORD ;
-VAR
-   f: BoolFrame ;
 BEGIN
-   Assert(pos>0) ;
    Assert(NOT IsBoolean(pos)) ;
-   f := PeepAddress(BoolStack, pos) ;
-   RETURN( f^.TrueExit )
+   RETURN( OperandTno(pos) )
 END OperandT ;
 
 
@@ -12405,13 +12551,9 @@ END OperandT ;
 *)
 
 PROCEDURE OperandF (pos: CARDINAL) : WORD ;
-VAR
-   f: BoolFrame ;
 BEGIN
-   Assert(pos>0) ;
    Assert(NOT IsBoolean(pos)) ;
-   f := PeepAddress(BoolStack, pos) ;
-   RETURN( f^.FalseExit )
+   RETURN( OperandFno(pos) )
 END OperandF ;
 
 
@@ -12889,7 +13031,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := 0 ;
       ReadWrite := NulSym ;
-      name      := NulSym
+      name      := NulSym ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushTFA ;
@@ -12913,7 +13056,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := Dim ;
       ReadWrite := NulSym ;
-      name      := NulSym
+      name      := NulSym ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushTFAD ;
@@ -12937,7 +13081,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := Dim ;
       ReadWrite := rw ;
-      name      := NulSym
+      name      := NulSym ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushTFADrw ;
@@ -12961,7 +13106,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := Dim ;
       ReadWrite := NulSym ;
-      name      := NulSym
+      name      := NulSym ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushTFD ;
@@ -13005,7 +13151,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := Dim ;
       ReadWrite := rw ;
-      name      := NulSym
+      name      := NulSym ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushTFDrw ;
@@ -13030,7 +13177,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := 0 ;
       ReadWrite := rw ;
-      name      := NulSym
+      name      := NulSym ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushTFrw ;
@@ -13073,7 +13221,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := 0 ;
       ReadWrite := NulSym ;
-      name      := NulSym
+      name      := NulSym ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushTF ;
@@ -13114,7 +13263,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := 0 ;
       ReadWrite := NulSym ;
-      name      := NulSym
+      name      := NulSym ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushT ;
@@ -13153,7 +13303,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := 0 ;
       ReadWrite := rw ;
-      name      := NulSym
+      name      := NulSym ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushTrw ;
@@ -13194,7 +13345,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := 0 ;
       ReadWrite := NulSym ;
-      name      := n
+      name      := n ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushTFn ;

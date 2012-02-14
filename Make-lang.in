@@ -934,7 +934,7 @@ gm2l$(exeext): force
                 fi \
             fi \
         fi
-  
+
 gm2lgen$(exeext): force
 	if [ -f stage3_build ] ; then \
             true ; \
@@ -951,7 +951,7 @@ gm2lgen$(exeext): force
                 fi \
             fi \
         fi
-  
+
 gm2lorder$(exeext): force
 	if [ -f stage3_build ] ; then \
             true ; \
@@ -985,30 +985,35 @@ gm2cc$(exeext): force
                 fi \
             fi \
         fi
-  
+
 # end here
-  
+
 stage3/gm2/cc1gm2$(exeext): stage2/gm2/cc1gm2$(exeext) gm2/gm2-compiler-paranoid/m2flex.o \
                             $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID) \
                             $(LIBSTDCXX)
 	$(XGCC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_PARANOID) \
                               gm2/gm2-compiler-paranoid/m2flex.o $(BACKEND) $(LIBS) \
                               $(LIBSTDCXX) -lm
-  
+
 stage2/gm2/cc1gm2$(exeext): stage1/gm2/cc1gm2$(exeext) gm2/gm2-compiler/m2flex.o $(P) \
                             $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS) \
                             $(LIBSTDCXX)
 	$(XGCC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) \
                               gm2/gm2-compiler/m2flex.o $(BACKEND) $(LIBS) \
                               $(LIBSTDCXX) -lm
-  
+
 stage1/gm2/cc1gm2$(exeext): $(GM2_DIRS) $(GM2)$(exeext) gm2/gm2-compiler-boot/m2flex.o \
                            $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_BOOT)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_BOOT) \
                              gm2/gm2-compiler-boot/m2flex.o $(BACKEND) $(LIBS) -lm
 
+# stage1/gm2/cc1gm2$(exeext): $(GM2_DIRS) $(GM2)$(exeext) gm2/gm2-compiler-boot/m2flex.o \
+#                             $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_BOOT)
+#	cp ${HOME}/GM2/build-4.1.2/gcc/stage1/gm2/cc1gm2 .
+#	cp ${HOME}/GM2/build-4.1.2/gcc/stage1/gm2/cc1gm2 $@
+
 # Compiling object files from source files.
-  
+
 gm2/gccgm2.o : $(srcdir)/gm2/gccgm2.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-gccgm2.h
 
 gm2/gm2builtins.o : $(srcdir)/gm2/gm2builtins.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-gm2builtins.h
@@ -1075,7 +1080,7 @@ GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  M2Defaults.
                      cflex.def       CLexBuf.def     M2Bitset.def    M2Size.def      \
                      M2Scope.def     M2Range.def     M2Swig.def      \
                      M2MetaError.def Sets.def        M2CaseList.def  PCSymBuild.def  \
-                     PCBuild.def     M2Const.def
+                     PCBuild.def     M2Const.def     M2DebugStack.def
 
 GM2-COMP-BOOT-MODS = ppg.mod         \
                      FifoQueue.mod   M2LexBuf.mod                             \
@@ -1094,7 +1099,7 @@ GM2-COMP-BOOT-MODS = ppg.mod         \
                      M2Preprocess.mod                CLexBuf.mod     M2Bitset.mod    \
                      M2Size.mod      M2Scope.mod     M2Range.mod     \
                      M2Swig.mod      M2MetaError.mod Sets.mod        M2CaseList.mod  \
-                     PCSymBuild.mod  PCBuild.mod     M2Const.mod
+                     PCSymBuild.mod  M2Const.mod     M2DebugStack.mod
 
 GM2-PPG-MODS      =  SymbolKey.mod   NameKey.mod     Lists.mod       bnflex.mod
 
@@ -1151,7 +1156,7 @@ GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Default
                      M2Preprocess.def  M2Printf.def    M2LexBuf.def    M2Quiet.def     \
                      M2Bitset.def      M2Size.def      M2Scope.def     M2Range.def     \
                      M2Swig.def        M2MetaError.def Sets.def        M2CaseList.def  \
-                     PCSymBuild.def    PCBuild.def     M2Const.def
+                     PCSymBuild.def    PCBuild.def     M2Const.def     M2DebugStack.def
 
 GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimize.mod  \
                      M2StackWord.mod   M2Options.mod   M2Pass.mod      M2Batch.mod     \
@@ -1168,7 +1173,7 @@ GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod     \
                      M2Bitset.mod      M2Size.mod      M2Scope.mod     M2Range.mod     \
                      M2Swig.mod        M2MetaError.mod Sets.mod        M2CaseList.mod  \
-                     PCSymBuild.mod    PCBuild.mod     M2Const.mod
+                     PCSymBuild.mod    M2Const.mod     M2DebugStack.mod
 
 GM2-TOOLS-MOD      = gm2l.mod          gm2lcc.mod      gm2lgen.mod     gm2lorder.mod   \
                      gm2m.mod          ppg.mod
@@ -1199,7 +1204,8 @@ GM2-VERIFY-MODS    = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod     \
                      M2Bitset.mod      M2Size.mod      CLexBuf.mod     M2Scope.mod     \
                      M2Range.mod       M2Swig.mod      M2MetaError.mod Sets.mod        \
-                     M2CaseList.mod    PCSymBuild.mod  PCBuild.mod     M2Const.mod
+                     M2CaseList.mod    PCSymBuild.mod  M2Const.mod     \
+                     M2DebugStack.mod
 
 GM2-VERIFY-AUTO    = P1SyntaxCheck.mod P2Build.mod     PCBuild.mod     P3Build.mod     \
                      PHBuild.mod       gm2l.mod        gm2m.mod        pg.mod

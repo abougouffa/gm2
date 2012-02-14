@@ -67,11 +67,12 @@ EXPORT QUALIFIED Tree, Constructor,
                  BuildIntegerConstant, BuildStringConstant, BuildCharConstant,
                  BuildConstLiteralNumber,
                  BuildSubrangeType, BuildArrayIndexType,
-                 BuildStartRecord, BuildStartVarientRecord, BuildEndRecord,
+                 BuildStartRecord, BuildEndRecord,
                  BuildFieldRecord, ChainOn, ChainOnParamValue, AddStringToTreeList,
                  BuildConstPointerType, BuildPointerType,
                  BuildStartArrayType, BuildEndArrayType, PutArrayType,
                  GetArrayNoOfElements,
+                 BuildStartVarient, BuildEndVarient,
 
                  BuildSetType,
                  BuildStartSetConstructor, BuildSetConstructorElement,
@@ -86,6 +87,7 @@ EXPORT QUALIFIED Tree, Constructor,
                  BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
                  BuildStartFunctionCode, BuildEndFunctionCode,
                  BuildReturnValueCode, BuildArrayStringConstructor,
+                 BuildPackedFieldRecord, BuildSmallestTypeRange,
                  BuildCall2, BuildCall3,
                  BuildAssignmentTree,
                  BuildAdd, BuildSub, BuildMult,
@@ -136,6 +138,7 @@ EXPORT QUALIFIED Tree, Constructor,
                  AreConstantsEqual, AreRealOrComplexConstantsEqual,
                  DetermineSign, CompareTrees,
                  GetBooleanType, GetBooleanFalse, GetBooleanTrue,
+                 GetPackedBooleanType,
                  ConvertConstantAndCheck, ConvertString,
                  DetermineSizeOfConstant, StringLength,
                  ToWord,
@@ -146,6 +149,8 @@ EXPORT QUALIFIED Tree, Constructor,
                  SetLastFunction,
                  SetFlagUnitAtATime, MarkFunctionReferenced,
                  SetAlignment, BuildNumberOfArrayElements,
+                 SetDeclPacked, SetTypePacked, SetRecordFieldOffset,
+                 BuildTBitSize,
                  InitSystemTypes ;
 
 
@@ -316,6 +321,13 @@ PROCEDURE GetSizeOf (type: Tree) : Tree ;
 *)
 
 PROCEDURE GetSizeOfInBits (type: Tree) : Tree ;
+
+
+(*
+   BuildTBitSize - returns the minimum number of bits to represent, type.
+*)
+
+PROCEDURE BuildTBitSize (type: Tree) : Tree ;
 
 
 (*
@@ -539,7 +551,7 @@ PROCEDURE BuildEndMainModule ;
    BuildStartEnumeration - create an enumerated type in gcc.
 *)
 
-PROCEDURE BuildStartEnumeration (name: ADDRESS) : Tree ;
+PROCEDURE BuildStartEnumeration (name: ADDRESS; ispacked: BOOLEAN) : Tree ;
 
 
 (*
@@ -666,11 +678,27 @@ PROCEDURE GetBooleanTrue () : Tree ;
 
 
 (*
+   GetPackedBooleanType - returns a boolean type which will occupy
+                          a single bit.
+*)
+
+PROCEDURE GetPackedBooleanType () : Tree ;
+
+
+(*
    BuildSubrangeType - creates a subrange of, type, with, lowval, highval.
 *)
 
 PROCEDURE BuildSubrangeType (name: ADDRESS;
                              type, lowval, highval: Tree) : Tree ;
+
+
+(*
+   BuildSmallestTypeRange - returns the smallest INTEGER_TYPE which is
+                            sufficient to contain values: low..high.
+*)
+
+PROCEDURE BuildSmallestTypeRange (lowval, highval: Tree) : Tree ;
 
 
 (*
@@ -698,6 +726,22 @@ PROCEDURE GetArrayNoOfElements (arraytype: Tree) : Tree ;
 
 
 (*
+   gccgm2_BuildStartVarient - starts building the varient (or varient field).
+*)
+
+PROCEDURE BuildStartVarient (name: ADDRESS) : Tree ;
+
+
+(*
+   BuildEndVarient - finish the varientField by calling
+                     decl_finish and also finish the type of
+                     varientField (which is a union).
+*)
+
+PROCEDURE BuildEndVarient (varientField, varientList: Tree; isPacked: BOOLEAN) : Tree ;
+
+
+(*
    BuildStartRecord - creates a record with, name.
 *)
 
@@ -710,15 +754,7 @@ PROCEDURE BuildStartRecord (name: ADDRESS) : Tree ;
                     fieldlist is created from BuildFieldRecord.
 *)
 
-PROCEDURE BuildEndRecord (t: Tree; fieldlist: Tree) : Tree ;
-
-
-(*
-   BuildStartVarientRecord - creates a varient record with, name.
-                             Note that this is finished by calling BuildEndRecord.
-*)
-
-PROCEDURE BuildStartVarientRecord (name: ADDRESS) : Tree ;
+PROCEDURE BuildEndRecord (t: Tree; fieldlist: Tree; isPacked: BOOLEAN) : Tree ;
 
 
 (*
@@ -1591,6 +1627,38 @@ PROCEDURE SetAlignment (type: Tree; align: Tree) : Tree ;
 *)
 
 PROCEDURE BuildNumberOfArrayElements (arrayType: Tree) : Tree ;
+
+
+(*
+   SetDeclPacked - sets the packed bit in TREE, node.  It returns the
+                   node.
+*)
+
+PROCEDURE SetDeclPacked (node: Tree) : Tree ;
+
+
+(*
+   SetTypePacked - sets the packed bit in TREE, node.  It returns the
+                   node.
+*)
+
+PROCEDURE SetTypePacked (node: Tree) : Tree ;
+
+
+(*
+   BuildPackedFieldRecord - builds a packed field record of,
+                            name, and, fieldtype.
+*)
+
+PROCEDURE BuildPackedFieldRecord (name: ADDRESS; fieldtype: Tree) : Tree ;
+
+
+(*
+   SetRecordFieldOffset - returns field after the byteOffset and bitOffset
+                          has been applied to it.
+*)
+
+PROCEDURE SetRecordFieldOffset (field, byteOffset, bitOffset, fieldType, nBits: Tree) : Tree ;
 
 
 (*

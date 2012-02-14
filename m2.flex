@@ -185,6 +185,8 @@ extern  void  yylex            (void);
 \<\>                       { updatepos(); M2LexBuf_AddTok(M2Reserved_lessgreatertok); return; }
 \<\=                       { updatepos(); M2LexBuf_AddTok(M2Reserved_lessequaltok); return; }
 \>\=                       { updatepos(); M2LexBuf_AddTok(M2Reserved_greaterequaltok); return; }
+"<*"                       { updatepos(); M2LexBuf_AddTok(M2Reserved_ldirectivetok); return; }
+"*>"                       { updatepos(); M2LexBuf_AddTok(M2Reserved_rdirectivetok); return; }
 \.\.                       { updatepos(); M2LexBuf_AddTok(M2Reserved_periodperiodtok); return; }
 \.\.\.                     { updatepos(); M2LexBuf_AddTok(M2Reserved_periodperiodperiodtok); return; }
 \:                         { updatepos(); M2LexBuf_AddTok(M2Reserved_colontok); return; }
