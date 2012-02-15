@@ -9213,6 +9213,8 @@ gccgm2_BuildTBitSize (tree type)
 
   switch (code) {
 
+  case TYPE_DECL:
+    return gccgm2_BuildTBitSize (TREE_TYPE (type));
   case INTEGER_TYPE:
   case ENUMERAL_TYPE:
     min = gccgm2_BuildConvert (gccgm2_GetIntegerType (), TYPE_MIN_VALUE (type), FALSE);
