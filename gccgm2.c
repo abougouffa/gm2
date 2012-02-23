@@ -12125,6 +12125,36 @@ gccgm2_BuildEndVarient (tree varientField, tree varientList, int isPacked)
   return varientField;
 }
 
+/*
+ *  gccgm2_BuildStartFieldVarient - builds a field varient record.
+ *                                  It creates a record field which
+ *                                  has a, name, and whose type is a
+ *                                  record.
+ */
+
+tree
+gccgm2_BuildStartFieldVarient (char *name)
+{
+  tree record = gccgm2_BuildStartRecord (name);
+  tree field = gccgm2_BuildStartFieldRecord (name, record);
+  return field;
+}
+
+/*
+ *  gccgm2_BuildEndFieldVarient - finish the varientField by calling
+ *                                decl_finish and also finish the type of
+ *                                varientField (which is a record).
+ */
+
+tree
+gccgm2_BuildEndFieldVarient (tree varientField, tree varientList, int isPacked)
+{
+  tree record = TREE_TYPE (varientField);
+  record = gccgm2_BuildEndRecord (record, varientList, isPacked);
+  finish_decl (varientField, NULL_TREE, NULL_TREE);
+  return varientField;
+}
+
 /* Lay out the type T, and its element type, and so on.  */
 
 static void

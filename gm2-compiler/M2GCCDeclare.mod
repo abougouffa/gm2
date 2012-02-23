@@ -155,7 +155,9 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
                    BuildIntegerConstant, BuildStringConstant, BuildCharConstant,
                    BuildSubrangeType,
-                   BuildStartRecord, BuildEndRecord, BuildStartVarient, BuildEndVarient,
+                   BuildStartRecord, BuildEndRecord,
+                   BuildStartVarient, BuildEndVarient,
+                   BuildStartFieldVarient, BuildEndFieldVarient,
                    BuildFieldRecord,
                    BuildArrayIndexType, BuildStartArrayType, BuildEndArrayType, BuildSetType,
                    BuildAdd,
@@ -768,7 +770,7 @@ BEGIN
       ELSIF IsFieldVarient(sym)
       THEN
          Assert(NOT IsElementInSet(HeldByAlignment, sym)) ;
-         t := DoStartDeclaration(sym, BuildStartVarient) ;
+         t := DoStartDeclaration(sym, BuildStartFieldVarient) ;
          WatchIncludeList(sym, heldbyalignment)
       ELSIF IsProcType(sym)
       THEN
@@ -4247,7 +4249,7 @@ VAR
 BEGIN
    i := 1 ;
    VarientList := Tree(NIL) ;
-   VarientType := DoStartDeclaration(sym, BuildStartVarient) ;
+   VarientType := DoStartDeclaration(sym, BuildStartFieldVarient) ;
    (* no need to store the [sym, RecordType] tuple as it is stored by DeclareRecord which calls us *)
    byteOffset := GetIntegerZero() ;
    bitOffset := GetIntegerZero() ;
@@ -4266,7 +4268,7 @@ BEGIN
       INC(i)
    END ;
    WatchRemoveList(sym, partiallydeclared) ;
-   GccFieldType := BuildEndVarient(VarientType, VarientList, IsDeclaredPacked(sym)) ;
+   GccFieldType := BuildEndFieldVarient(VarientType, VarientList, IsDeclaredPacked(sym)) ;
    RETURN( GccFieldType )
 END DeclareFieldVarient ;
 

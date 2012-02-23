@@ -1164,7 +1164,8 @@ m2pp_type (pretty *s, tree t)
     m2pp_print (s, "<...>");
     return;
   }
-  m2pp_gimpified (s, t);
+  if (TREE_CODE (t) != FIELD_DECL)
+    m2pp_gimpified (s, t);
   switch (TREE_CODE (t))
     {
     case CHAR_TYPE:

@@ -1,3 +1,16 @@
+2012-02-23      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  (gccgm2_BuildStartFieldVarient,
+	  gccgm2_BuildEndFieldVarient) New functions.
+	* gm2/m2pp.c:  detect FIELD_DECL in m2pp_type.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  use
+	  BuildStartFieldVarient rather than BuildStartVarient.
+	  Use BuildEndFieldVarient rather than BuildEndVarient.
+	  This fixes a number of regression test bugs including:
+	  testsuite/gm2/extensions/run/pass/align8.mod.
+	* gm2/gm2-compiler/gccgm2.def:  define BuildStartFieldVarient
+	  and BuildEndFieldVarient.
+	
 2012-02-15      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  (gccgm2_BuildTBitSize) detect if TYPE_DECL is passed.
