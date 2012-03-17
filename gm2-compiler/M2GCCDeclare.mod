@@ -198,7 +198,7 @@ PROCEDURE IsProcedureDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD
 PROCEDURE DeclareRecordField (sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE WriteRule ; FORWARD ;
 PROCEDURE RecordNotPacked (sym: CARDINAL) ; FORWARD ;
-PROCEDURE MaybePackField (field: CARDINAL; VAR byteOffset, bitOffset: Tree) : Tree ; FORWARD ;
+PROCEDURE MaybeAlignField (field: CARDINAL; VAR byteOffset, bitOffset: Tree) : Tree ; FORWARD ;
 PROCEDURE WalkRecordDependants2 (sym: CARDINAL; p: WalkAction) ; FORWARD ;
 PROCEDURE DetermineIfRecordPacked (sym: CARDINAL) ; FORWARD ;
 PROCEDURE DeclareProcedureToGcc (Sym: CARDINAL) ; FORWARD ;
@@ -4097,10 +4097,11 @@ END GetPackedType ;
 
 
 (*
-   MaybePackField - 
+   MaybeAlignField - checks to see whether, field, is packed or aligned and it updates
+                     the offsets if appropriate.
 *)
 
-PROCEDURE MaybePackField (field: CARDINAL; VAR byteOffset, bitOffset: Tree) : Tree ;
+PROCEDURE MaybeAlignField (field: CARDINAL; VAR byteOffset, bitOffset: Tree) : Tree ;
 VAR
    f, ftype, nbits: Tree ;
 BEGIN
@@ -4111,10 +4112,11 @@ BEGIN
       ftype := GetPackedType(GetType(field)) ;
       nbits := BuildTBitSize(ftype) ;
       f := SetRecordFieldOffset(f, byteOffset, bitOffset, ftype, nbits) ;
-      bitOffset := BuildAdd(bitOffset, GetIntegerOne(), FALSE)
-   END ;
-   RETURN( f )
-END MaybePackField ;
+      bitOffset := BuildAdd(bitOffset, nbits, FALSE)
+   ELSE
+      RETURN( CheckAlignment(f, field) )
+   END
+END MaybeAlignField ;
 
 
 (*
@@ -4164,7 +4166,7 @@ BEGIN
             THEN
                printf0('chaining ') ; PrintTerse(Field) ; printf0('\n')
             END ;
-            FieldList := ChainOn(FieldList, MaybePackField(Chained(Field), byteOffset, bitOffset))
+            FieldList := ChainOn(FieldList, MaybeAlignField(Chained(Field), byteOffset, bitOffset))
          END
       END ;
       INC(i)
@@ -4221,7 +4223,7 @@ BEGIN
          THEN
             printf0('chaining ') ; PrintTerse(Field) ; printf0('\n')
          END ;
-         FieldList := ChainOn(FieldList, MaybePackField(Chained(Field), byteOffset, bitOffset))
+         FieldList := ChainOn(FieldList, MaybeAlignField(Chained(Field), byteOffset, bitOffset))
       END ;
       INC(i)
    END ;
@@ -4263,7 +4265,7 @@ BEGIN
          THEN
             printf0('chaining ') ; PrintTerse(f) ; printf0('\n')
          END ;
-         VarientList := ChainOn(VarientList, MaybePackField(Chained(f), byteOffset, bitOffset))
+         VarientList := ChainOn(VarientList, MaybeAlignField(Chained(f), byteOffset, bitOffset))
       END ;
       INC(i)
    END ;

@@ -1,4 +1,4 @@
-2012-02-23      Gaius Mulley <gaius@gnu.org>
+2012-03-17      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/SymbolTable.mod:  record when an unknown
 	  symbol is reported and ensure that we only report unknown
@@ -6,6 +6,8 @@
 	  Procedure UnknownSymbolError uses IsUnreportedUnknown and
 	  populates ReportedUnknowns whenever an error message is
 	  generated.  New procedure function (IsUnreportedUnknown).
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  renamed MaybePackField
+	  by MakebeAlignField.
 
 2012-02-23      Gaius Mulley <gaius@gnu.org>
 

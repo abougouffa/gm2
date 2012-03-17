@@ -1164,7 +1164,7 @@ m2pp_type (pretty *s, tree t)
     m2pp_print (s, "<...>");
     return;
   }
-  if (TREE_CODE (t) != FIELD_DECL)
+  if ((TREE_CODE (t) != FIELD_DECL) && (TREE_CODE (t) != TYPE_DECL))
     m2pp_gimpified (s, t);
   switch (TREE_CODE (t))
     {
