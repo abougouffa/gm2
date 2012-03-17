@@ -8,6 +8,8 @@
 	  generated.  New procedure function (IsUnreportedUnknown).
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  renamed MaybePackField
 	  by MakebeAlignField.
+	* gm2/gm2-compiler/SymbolTable.mod:  GetAlignment modified
+	  to return the alignment of Varient and VarientFields.
 
 2012-02-23      Gaius Mulley <gaius@gnu.org>
 

@@ -11965,11 +11965,13 @@ BEGIN
    WITH pSym^ DO
       CASE SymbolType OF
 
-      RecordSym     :  RETURN( Record.Align ) |
-      RecordFieldSym:  RETURN( RecordField.Align ) |
-      TypeSym       :  RETURN( Type.Align ) |
-      ArraySym      :  RETURN( Array.Align ) |
-      PointerSym    :  RETURN( Pointer.Align )
+      RecordSym      :  RETURN( Record.Align ) |
+      RecordFieldSym :  RETURN( RecordField.Align ) |
+      TypeSym        :  RETURN( Type.Align ) |
+      ArraySym       :  RETURN( Array.Align ) |
+      PointerSym     :  RETURN( Pointer.Align ) |
+      VarientFieldSym:  RETURN( GetAlignment(VarientField.Parent) ) |
+      VarientSym     :  RETURN( GetAlignment(Varient.Parent) )
 
       ELSE
          InternalError('expecting record, field, pointer, type or an array symbol', __FILE__, __LINE__)
