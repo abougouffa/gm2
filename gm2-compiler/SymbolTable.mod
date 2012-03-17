@@ -26,6 +26,7 @@ FROM M2Debug IMPORT Assert ;
 
 IMPORT Indexing ;
 FROM Indexing IMPORT InitIndex, InBounds, HighIndice, PutIndice, GetIndice ;
+FROM Sets IMPORT Set, InitSet, IncludeElementIntoSet, IsElementInSet ;
 
 FROM M2Options IMPORT Pedantic, ExtendedOpaque ;
 
@@ -797,10 +798,13 @@ VAR
    UnresolvedConstructorType: List ;  (* all constructors whose type   *)
                                  (* is not yet known.                  *)
    AnonymousName     : CARDINAL ;(* anonymous type name unique id      *)
+   ReportedUnknowns  : Set ;     (* set of symbols already reported as *)
+                                 (* unknowns to the user.              *)
 
 
 (* %%%FORWARD%%%
 PROCEDURE stop ; FORWARD ;
+PROCEDURE IsUnreportedUnknown (sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE CheckRecordConsistency (sym: CARDINAL) ; FORWARD ;
 PROCEDURE InitPacked (VAR packedInfo: PackedInfo) ; FORWARD ;
 PROCEDURE ResolveImport (o: WORD) ; FORWARD ;
@@ -863,7 +867,7 @@ PROCEDURE RemoveFromUnresolvedTree (ScopeSym: CARDINAL; name: Name) : BOOLEAN ; 
 PROCEDURE TransparentScope (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE UnImplementedSymbolError (Sym: WORD) ; FORWARD ;
 PROCEDURE UndeclaredSymbolError (Sym: WORD) ; FORWARD ;
-PROCEDURE UnknownSymbolError (Sym: WORD) ; FORWARD ;
+PROCEDURE UnknownSymbolError (sym: WORD) ; FORWARD ;
 PROCEDURE GetWhereImported (Sym: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE RemoveFromExportRequest (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE PutUnbounded (oaf: CARDINAL; sym: CARDINAL; ndim: CARDINAL) ; FORWARD ;
@@ -1283,7 +1287,8 @@ BEGIN
    InitBase(BaseModule) ;
    StartScope(BaseModule) ;   (* BaseModule scope placed at the bottom of the stack *)
    BaseScopePtr := ScopePtr ; (* BaseScopePtr points to the top of the BaseModule scope *)
-   InitList(AddressTypes)
+   InitList(AddressTypes) ;
+   ReportedUnknowns := InitSet(1)
 END Init ;
 
 
@@ -7092,21 +7097,33 @@ END CheckForUnknownInModule ;
 
 
 (*
-   UnknownSymbolError - displays symbol name for symbol, Sym.
+   UnknownSymbolError - displays symbol name for symbol, sym.
 *)
 
-PROCEDURE UnknownSymbolError (Sym: WORD) ;
+PROCEDURE UnknownSymbolError (sym: WORD) ;
 VAR
    e: Error ;
    n: Name ;
 BEGIN
-   IF IsUnknown(Sym)
+   IF IsUnreportedUnknown(sym)
    THEN
-      n := GetSymName(Sym) ;
-      e := ChainError(GetFirstUsed(Sym), CurrentError) ;
+      IncludeElementIntoSet(ReportedUnknowns, sym) ;
+      n := GetSymName(sym) ;
+      e := ChainError(GetFirstUsed(sym), CurrentError) ;
       ErrorFormat1(e, "unknown symbol '%a'", n)
    END
 END UnknownSymbolError ;
+
+
+(*
+   IsUnreportedUnknown - returns TRUE if symbol, sym, has not been
+                         reported and is an unknown symbol.
+*)
+
+PROCEDURE IsUnreportedUnknown (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsUnknown(sym) AND (NOT IsElementInSet(ReportedUnknowns, sym)) )
+END IsUnreportedUnknown ;
 
 
 (*
@@ -7120,7 +7137,7 @@ PROCEDURE CheckForUnknowns (name: Name; Tree: SymbolTree;
 VAR
    n: Name ;
 BEGIN
-   IF DoesTreeContainAny(Tree, IsUnknown)
+   IF DoesTreeContainAny(Tree, IsUnreportedUnknown)
    THEN
       CurrentError := NewError(GetTokenNo()) ;
       n := MakeKey(a) ;
