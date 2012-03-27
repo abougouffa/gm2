@@ -4112,7 +4112,8 @@ BEGIN
       ftype := GetPackedType(GetType(field)) ;
       nbits := BuildTBitSize(ftype) ;
       f := SetRecordFieldOffset(f, byteOffset, bitOffset, ftype, nbits) ;
-      bitOffset := BuildAdd(bitOffset, nbits, FALSE)
+      bitOffset := BuildAdd(bitOffset, nbits, FALSE) ;
+      RETURN( f )
    ELSE
       RETURN( CheckAlignment(f, field) )
    END
