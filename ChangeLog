@@ -2,6 +2,8 @@
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  added missing RETURN
 	  statement.
+	* gm2/examples/gravity/twoDsim.mod:  added debugging procedure
+	  to display the definition of the polygon.
 	
 2012-03-17      Gaius Mulley <gaius@gnu.org>
 
