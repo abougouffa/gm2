@@ -12015,7 +12015,9 @@ BEGIN
    WITH pSym^ DO
       CASE SymbolType OF
 
-      RecordSym:  RETURN( Record.DefaultAlign )
+      RecordSym      :  RETURN( Record.DefaultAlign ) |
+      VarientFieldSym:  RETURN( GetDefaultRecordFieldAlignment(GetParent(sym)) ) |
+      VarientSym     :  RETURN( GetDefaultRecordFieldAlignment(GetParent(sym)) )
 
       ELSE
          InternalError('expecting record symbol', __FILE__, __LINE__)

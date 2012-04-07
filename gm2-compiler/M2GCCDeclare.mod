@@ -4022,10 +4022,11 @@ BEGIN
    type := GetType(sym) ;
    IF type=NulSym
    THEN
-      (* AddModGcc(equiv, DeclarePackedBaseType(Mod2Gcc(sym))) *)
-      IF type=Boolean
+      IF sym=Boolean
       THEN
          AddModGcc(equiv, GetPackedBooleanType())
+      ELSE
+         AddModGcc(equiv, Mod2Gcc(sym))
       END
    ELSE
       DeclarePackedType(GetPackedEquivalent(type), type) ;
@@ -4946,7 +4947,7 @@ END IsPointerDependants ;
 
 
 (*
-   IsRecordAlignment - 
+   IsRecordAlignment -
 *)
 
 PROCEDURE IsRecordAlignment (sym: CARDINAL; q: IsAction) : BOOLEAN ;

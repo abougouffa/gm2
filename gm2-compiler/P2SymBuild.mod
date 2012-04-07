@@ -2095,11 +2095,15 @@ END BuildRecord ;
 
 PROCEDURE HandleRecordFieldPragmas (record, field: CARDINAL; n: CARDINAL) ;
 VAR
-   sym : CARDINAL ;
-   i   : CARDINAL ;
-   name: Name ;
-   s   : String ;
+   seenAlignment   : BOOLEAN ;
+   defaultAlignment,
+   sym             : CARDINAL ;
+   i               : CARDINAL ;
+   name            : Name ;
+   s               : String ;
 BEGIN
+   seenAlignment := FALSE ;
+   defaultAlignment := GetDefaultRecordFieldAlignment(record) ;
    i := 1 ;
    WHILE i<=n DO
       name := OperandT(i*2) ;
@@ -2118,7 +2122,8 @@ BEGIN
          THEN
             WriteFormat0("expecting an expression with the pragma 'bytealignment'")
          ELSE
-            PutAlignment(field, sym)
+            PutAlignment(field, sym) ;
+            seenAlignment := TRUE
          END
       ELSE
          s := InitString("cannot use pragma '") ;
@@ -2127,6 +2132,10 @@ BEGIN
          MetaErrorString1(s, field)
       END ;
       INC(i)
+   END ;
+   IF (NOT seenAlignment) AND (defaultAlignment#NulSym)
+   THEN
+      PutAlignment(field, defaultAlignment)
    END
 END HandleRecordFieldPragmas ;
 

@@ -324,6 +324,13 @@ pv (tree t)
     }
 }
 
+void
+ptc (tree t)
+{
+  pt (t);
+  dump_node(t, -1, stderr);
+}
+
 /*
  *  push - pushes tree, t, onto stack.
  */
@@ -1338,6 +1345,44 @@ m2pp_record_alignment (pretty *s, tree t)
     m2pp_print(s, "<* bytealignment (0) *>\n");
 }
 
+static unsigned int
+m2pp_getaligned (tree t)
+{
+  if (DECL_P (t))
+    {
+      if (DECL_USER_ALIGN (t))
+	return DECL_ALIGN (t);
+    }
+  else if (TYPE_P (t))
+    {
+      if (TYPE_USER_ALIGN (t))
+	return TYPE_ALIGN (t);
+    }
+  return 0;
+}
+
+static void
+m2pp_recordfield_alignment (pretty *s, tree t)
+{
+  unsigned int aligned = m2pp_getaligned (t);
+
+  if (aligned != NULL_TREE) {
+    int o = getindent (s);
+    int p = getcurpos (s);
+    m2pp_needspace (s);
+    m2pp_print(s, "<* bytealignment (");
+    setindent (s, p+18);
+
+    printf ("%d", aligned/BITS_PER_UNIT);
+
+    m2pp_print(s, ")");
+    m2pp_needspace (s);
+    setindent (s, p);
+    m2pp_print(s, "*>");
+    setindent (s, o);
+  }
+}
+
 static void
 m2pp_recordfield_bitfield (pretty *s, tree t)
 {
@@ -1378,6 +1423,7 @@ m2pp_record_type (pretty *s, tree t)
 	  m2pp_print(s, " : ");
 	  m2pp_type (s, TREE_TYPE (i));
 	  m2pp_recordfield_bitfield (s, i);
+	  m2pp_recordfield_alignment (s, i);
 	  m2pp_print (s, ";\n");
 	}
       setindent (s, p);

@@ -361,7 +361,6 @@ int flag_objc = 0;
    testing cardinal values < 0 */
 int want_warnings = 0;
 
-
 /* arguments given to compiler */
 
 static unsigned int gm2_argc;
@@ -9169,16 +9168,12 @@ gccgm2_GetSizeOf (tree type)
 static tree
 noBitsRequired (tree values)
 {
-  tree bits = gccgm2_GetIntegerOne ();
-  tree nmax = fold (gccgm2_BuildAdd (gccgm2_GetIntegerOne (),
-				     gccgm2_GetIntegerOne (),
-				     FALSE));
-  values = fold (values);
-  while (gccgm2_CompareTrees (nmax, values) < 0) {
-    bits = fold (gccgm2_BuildAdd (gccgm2_GetIntegerOne (), bits, FALSE));
-    nmax = fold (gccgm2_BuildAdd (nmax, nmax, FALSE));
-  }
-  return bits;
+  int bits = tree_floor_log2 (values);
+
+  if (integer_pow2p (values))
+    return gccgm2_BuildIntegerConstant (bits+1);
+  else
+    return gccgm2_BuildIntegerConstant (bits+1);
 }
 
 /*
@@ -9201,6 +9196,69 @@ gccgm2_BuildSmallestTypeRange (tree low, tree high)
 }
 
 /*
+ *  getMax - returns the result of max(a, b).
+ */
+
+static tree
+getMax (tree a, tree b)
+{
+  if (gccgm2_CompareTrees (a, b) > 0)
+    return a;
+  else
+    return b;
+}
+
+/*
+ *  testLimits - returns the number of bits required to represent:  min..max
+ *               if it matches the, type.  Otherwise NULL_TREE is returned.
+ */
+
+static tree
+testLimits (tree type, tree min, tree max)
+{
+  if ((gccgm2_CompareTrees (TYPE_MAX_VALUE (type), max) == 0) &&
+      (gccgm2_CompareTrees (TYPE_MIN_VALUE (type), min) == 0))
+    return gccgm2_BuildMult (gccgm2_GetSizeOf (type),
+			     gccgm2_BuildIntegerConstant (BITS_PER_UNIT),
+			     FALSE);
+  return NULL_TREE;
+}
+
+/*
+ *  calcNbits - returns the smallest number of bits required to represent:
+ *              min..max.
+ */
+
+static tree
+calcNbits (tree min, tree max)
+{
+  int negative = FALSE;
+  tree t = testLimits (gccgm2_GetIntegerType (), min, max);
+  
+  if (t == NULL)
+    t = testLimits (gccgm2_GetCardinalType (), min, max);
+  
+  if (t == NULL)
+    {
+      if (gccgm2_CompareTrees (min, gccgm2_GetIntegerZero ()) < 0)
+	{
+	  min = gccgm2_BuildAdd(min, gccgm2_GetIntegerOne (), FALSE);
+	  min = fold (gccgm2_BuildNegate (min, FALSE));
+	  negative = TRUE;
+	}
+      if (gccgm2_CompareTrees (max, gccgm2_GetIntegerZero ()) < 0)
+	{
+	  max = fold (gccgm2_BuildNegate (max, FALSE));
+	  negative = TRUE;
+	}
+      t = noBitsRequired (getMax (min, max));
+      if (negative)
+	t = gccgm2_BuildAdd (t, gccgm2_GetIntegerOne (), FALSE);
+    }
+  return t;
+}
+
+/*
  *  BuildTBitSize - returns the minimum number of bits to represent, type.
  */
 
@@ -9210,6 +9268,7 @@ gccgm2_BuildTBitSize (tree type)
   enum tree_code code = TREE_CODE (type);
   tree min;
   tree max;
+  tree bits;
 
   switch (code) {
 
@@ -9217,10 +9276,9 @@ gccgm2_BuildTBitSize (tree type)
     return gccgm2_BuildTBitSize (TREE_TYPE (type));
   case INTEGER_TYPE:
   case ENUMERAL_TYPE:
-    min = gccgm2_BuildConvert (gccgm2_GetIntegerType (), TYPE_MIN_VALUE (type), FALSE);
     max = gccgm2_BuildConvert (gccgm2_GetIntegerType (), TYPE_MAX_VALUE (type), FALSE);
-    return noBitsRequired (gccgm2_BuildSub (max, min, FALSE));
-
+    min = gccgm2_BuildConvert (gccgm2_GetIntegerType (), TYPE_MIN_VALUE (type), FALSE);
+    return calcNbits (min, max);
   case BOOLEAN_TYPE:
     return gccgm2_GetIntegerOne ();
   default:
