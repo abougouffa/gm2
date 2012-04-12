@@ -160,7 +160,7 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildStartFieldVarient, BuildEndFieldVarient,
                    BuildFieldRecord,
                    BuildArrayIndexType, BuildStartArrayType, BuildEndArrayType, BuildSetType,
-                   BuildAdd,
+                   BuildAdd, BuildSub, BuildLSL,
                    DebugTree, GetDeclContext,
                    ChainOn,
                    BuildPointerType, BuildConstPointerType, BuildConvert, SetAlignment,
@@ -516,7 +516,7 @@ BEGIN
       heldbyalignment   :  doExclude(HeldByAlignment, "symbol %d -> HeldByAlignment\n", sym) |
       finishedalignment :  doExclude(FinishedAlignment, "symbol %d -> FinishedAlignment\n", sym) |
       todolist          :  doExclude(ToDoList, "symbol %d off ToDoList\n", sym) ;
-                           IF sym=1948
+                           IF sym=865
                            THEN
                               mystop
                            END |
@@ -2606,6 +2606,7 @@ BEGIN
    (* IncludeElementIntoSet(WatchList, 720) ; *)
    (* IncludeElementIntoSet(WatchList, 706) ; *)
    (* IncludeElementIntoSet(WatchList, 1948) ; *)
+   (* IncludeElementIntoSet(WatchList, 865) ; *)
 
    IF Debugging
    THEN
@@ -3974,6 +3975,32 @@ END DeclarePackedSubrange ;
 
 
 (*
+   DeclarePackedSet - 
+*)
+
+PROCEDURE DeclarePackedSet (equiv, sym: CARDINAL) ;
+VAR
+   highLimit,
+   range,
+   gccsym   : Tree ;
+   type,
+   high, low: CARDINAL ;
+BEGIN
+   Assert(IsSet(sym)) ;
+   type := SkipType(GetType(sym)) ;
+   low := GetTypeMin(type) ;
+   high := GetTypeMax(type) ;
+   highLimit := BuildSub(Mod2Gcc(high), Mod2Gcc(low), FALSE) ;
+   (* --fixme-- we need to check that low <= WORDLENGTH *)
+   highLimit := BuildLSL(GetIntegerOne(), highLimit, FALSE) ;
+   range := BuildSmallestTypeRange(GetIntegerZero(), highLimit) ;
+   gccsym := BuildSubrangeType(KeyToCharStar(GetFullSymName(sym)),
+                               range, GetIntegerZero(), highLimit) ;
+   AddModGcc(equiv, gccsym)
+END DeclarePackedSet ;
+
+
+(*
    DeclareFieldEnumeration - declares an enumerator within the current enumeration type.
 *)
 
@@ -4071,6 +4098,9 @@ BEGIN
       ELSIF IsEnumeration(sym)
       THEN
          RETURN( doDeclareEquivalent(sym, DeclarePackedEnumeration) )
+      ELSIF IsSet(sym)
+      THEN
+         RETURN( doDeclareEquivalent(sym, DeclarePackedSet) )
       END
    END ;
    RETURN( Mod2Gcc(sym) )

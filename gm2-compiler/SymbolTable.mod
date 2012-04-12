@@ -533,6 +533,7 @@ TYPE
                                               (* of set.                     *)
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
       	       	     	      	       	      (* (subrange or enumeration).  *)
+                packedInfo: PackedInfo ;      (* the equivalent packed type  *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
                 oafamily : CARDINAL ;         (* The oafamily for this sym   *)
                 Scope    : CARDINAL ;         (* Scope of declaration.       *)
@@ -4356,7 +4357,8 @@ BEGIN
 
       EnumerationSym:  RETURN( doEquivalent(Enumeration.packedInfo, sym) ) |
       SubrangeSym   :  RETURN( doEquivalent(Subrange.packedInfo, sym) ) |
-      TypeSym       :  RETURN( doEquivalent(Type.packedInfo, sym) )
+      TypeSym       :  RETURN( doEquivalent(Type.packedInfo, sym) ) |
+      SetSym        :  RETURN( doEquivalent(Set.packedInfo, sym) )
 
       ELSE
          InternalError('expecting type, subrange or enumerated type symbol', __FILE__, __LINE__)
@@ -4399,7 +4401,8 @@ BEGIN
 
       EnumerationSym:  RETURN( GetEquivalent(Enumeration.packedInfo, sym) ) |
       SubrangeSym   :  RETURN( GetEquivalent(Subrange.packedInfo, sym) ) |
-      TypeSym       :  RETURN( GetEquivalent(Type.packedInfo, sym) )
+      TypeSym       :  RETURN( GetEquivalent(Type.packedInfo, sym) ) |
+      SetSym        :  RETURN( GetEquivalent(Set.packedInfo, sym) )
 
       ELSE
          InternalError('expecting type, subrange or enumerated type symbol', __FILE__, __LINE__)
@@ -9118,7 +9121,9 @@ BEGIN
             name := SetName ;          (* The name of the set.        *)
             Type := NulSym ;           (* Index to a subrange symbol. *)
             Size := InitValue() ;      (* Size of this set            *)
-            oafamily := oaf ;   (* The unbounded sym for this  *)
+            InitPacked(packedInfo) ;        (* not packed and no      *)
+                                            (* equivalent (yet).      *)
+            oafamily := oaf ;          (* The unbounded sym for this  *)
             Scope := GetCurrentScope() ;    (* Which scope created it *)
             InitWhereDeclared(At)      (* Declared here               *)
          END
