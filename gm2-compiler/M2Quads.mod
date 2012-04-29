@@ -88,6 +88,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         IsPartialUnbounded, IsProcedureBuiltin,
                         IsSet, IsConstSet, IsConstructor, PutConst,
                         PutConstructor, PutConstructorFrom,
+                        MakeComponentRecord, MakeComponentRef,
                         IsSubscript,
                         IsTemporary,
                         IsAModula2Type,
@@ -270,9 +271,10 @@ TYPE
 
    WithFrame = POINTER TO withFrame ;  (* again we help p2c *)
    withFrame =            RECORD
-                             PtrSym   : CARDINAL ;
-                             RecordSym: CARDINAL ;
-                             rw       : CARDINAL ;  (* the record variable *)
+                             RecordSym : CARDINAL ;
+                             RecordType: CARDINAL ;
+                             RecordRef : CARDINAL ;
+                             rw        : CARDINAL ;  (* the record variable *)
                           END ;
 
    ForLoopInfo = RECORD
@@ -459,7 +461,7 @@ PROCEDURE PopInit (VAR q: CARDINAL) ; FORWARD ;
 PROCEDURE PopWith ; FORWARD ;
 PROCEDURE PushBool (True, False: CARDINAL) ; FORWARD ;
 PROCEDURE PushExit (Exit: CARDINAL) ; FORWARD ;
-PROCEDURE PushWith (Sym, Type, RecordVar: CARDINAL) ; FORWARD ;
+PROCEDURE PushWith (Sym, Type, Ref: CARDINAL) ; FORWARD ;
 PROCEDURE PushFor (Exit: CARDINAL) ; FORWARD ;
 PROCEDURE PopFor () : CARDINAL ; FORWARD ;
 PROCEDURE UnboundedNonVarLinkToArray (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ; FORWARD ;
@@ -960,6 +962,7 @@ BEGIN
    HighOp,
    SizeOp,
    AddrOp,
+   RecordFieldOp,
    OffsetOp,
    ArrayOp,
    LogicalShiftOp,
@@ -1286,6 +1289,7 @@ BEGIN
                           (* _may_ also write to a var parameter, although we dont know *)
                           CheckAddVariableWrite(Oper3, TRUE, QuadNo)
                        END |
+   RecordFieldOp,
    OffsetOp,
    ArrayOp,
    LogicalShiftOp,
@@ -1429,6 +1433,7 @@ BEGIN
                           (* _may_ also write to a var parameter, although we dont know *)
                           CheckRemoveVariableWrite(Oper3, TRUE, QuadNo)
                        END |
+   RecordFieldOp,
    OffsetOp,
    ArrayOp,
    LogicalShiftOp,
@@ -8916,11 +8921,19 @@ BEGIN
          PushT(1) ;
          BuildDesignatorRecord ;
          PopTrw(ReturnVar, rw) ;
-         Assert(GetMode(ReturnVar)=LeftValue) ;
-         t := MakeTemporary(RightValue) ;
-         PutVar(t, GetType(ProcSym)) ;
-         doIndrX(t, ReturnVar) ;  (* was       GenQuad(IndrXOp, t, GetType(ProcSym), ReturnVar) ; *)
-         ReturnVar := t
+         IF GetMode(ReturnVar)=LeftValue
+         THEN
+            t := MakeTemporary(RightValue) ;
+            PutVar(t, GetType(ProcSym)) ;
+            doIndrX(t, ReturnVar) ;
+            ReturnVar := t
+         ELSE
+            (* we need to cast ReturnVar into ADDRESS *)
+            t := MakeTemporary(RightValue) ;
+            PutVar(t, GetType(ProcSym)) ;
+            GenQuad(ConvertOp, t, GetType(ProcSym), ReturnVar) ;
+            ReturnVar := t
+         END
       ELSE
          ReturnVar := MakeTemporary(RightValue) ;
          PutVar(ReturnVar, GetType(ProcSym)) ;
@@ -9865,44 +9878,35 @@ END BuildReturn ;
 
 PROCEDURE BuildDesignatorRecord ;
 VAR
-   n, i, rw,
+   n, rw,
    PrevType,
-   Sym, Type,
-   adr, Res,
-   t1, t2, t3: CARDINAL ;
+   Field,
+   FieldType,
+   Record,
+   RecordType,
+   Res       : CARDINAL ;
 BEGIN
    PopT(n) ;
-   Sym  := OperandT(n+1) ;
-   Type := SkipType(OperandF(n+1)) ;
-   rw   := OperandMergeRW(n+1) ;
+   Record := OperandT(n+1) ;
+   RecordType := SkipType(OperandF(n+1)) ;
+   rw := OperandMergeRW(n+1) ;
    Assert(IsLegal(rw)) ;
-   (* adr will be Address type *)
-   adr := MakeLeftValue(Sym, RightValue, Address) ;
-   (* No type for t1 since constant *)
-   t1 := MakeTemporary(ImmediateValue) ;
-   Sym  := OperandT(n) ;
-   Type := SkipType(OperandF(n)) ;
-   PrevType := GetRecord(GetParent(Sym)) ;
-   GenQuad(OffsetOp, t1, PrevType, Sym) ;
+
+   Field := OperandT(n) ;
+   FieldType := SkipType(OperandF(n)) ;
    IF n>1
    THEN
       InternalError('not expecting to see n>1', __FILE__, __LINE__)
    END ;
-   IF IsUnused(Sym)
+   IF IsUnused(Field)
    THEN
       MetaErrors1('record field {%1Dad} was declared as unused by a pragma',
-                  'record field {%1ad} is being used after being declared as unused by a pragma', Sym)
+                  'record field {%1ad} is being used after being declared as unused by a pragma', Field)
    END ;
-   (* Res will be an Address since it is LeftValue mode *)
-   Res := MakeTemporary(LeftValue) ;
-   (*
-      Ok must reference by address
-      - but we contain the type of the referenced entity
-   *)
-   PutLeftValueFrontBackType(Res, Type, Address) ;
-   GenQuad(AddOp, Res, adr, t1) ;
+   Res := MakeComponentRef(MakeComponentRecord(RightValue, Record), Field) ;
+   GenQuad(RecordFieldOp, Res, Record, Field) ;
    PopN(n+1) ;
-   PushTFrw(Res, Type, rw)
+   PushTFrw(Res, FieldType, rw)
 END BuildDesignatorRecord ;
 
 
@@ -10284,23 +10288,24 @@ PROCEDURE StartBuildWith ;
 VAR
    n        : Name ;
    Sym, Type,
-   adr      : CARDINAL ;
+   Ref      : CARDINAL ;
 BEGIN
    DisplayStack ;
    PopTF(Sym, Type) ;
    Type := SkipType(Type) ;
-   adr := MakeTemporary(LeftValue) ;
-   PutLeftValueFrontBackType(adr, Type, NulSym) ;
 
+   Ref := MakeTemporary(LeftValue) ;
+   PutVar(Ref, Type) ;
    IF GetMode(Sym)=LeftValue
    THEN
       (* copy LeftValue *)
-      GenQuad(BecomesOp, adr, NulSym, Sym)
+      GenQuad(BecomesOp, Ref, NulSym, Sym)
    ELSE
       (* calculate the address of Sym *)
-      GenQuad(AddrOp, adr, NulSym, Sym)
+      GenQuad(AddrOp, Ref, NulSym, Sym)
    END ;
-   PushWith(adr, Type, Sym) ;
+
+   PushWith(Sym, Type, Ref) ;
    IF Type=NulSym
    THEN
       IF IsTemporary(Sym)
@@ -10308,8 +10313,7 @@ BEGIN
          WriteFormat0('unknown record variable specified in WITH statement')
       ELSE
          n := GetSymName(Sym) ;
-         WriteFormat1('symbol (%a) is unknown, it should be a variable of a record type',
-                           n)
+         WriteFormat1('symbol (%a) is unknown, it should be a variable of a record type', n)
       END
    ELSIF NOT IsRecord(Type)
    THEN
@@ -10352,7 +10356,7 @@ END EndBuildWith ;
               previous declaration of this record type.
 *)
 
-PROCEDURE PushWith (Sym, Type, RecordVar: CARDINAL) ;
+PROCEDURE PushWith (Sym, Type, Ref: CARDINAL) ;
 VAR
    i, n: CARDINAL ;
    f   : WithFrame ;
@@ -10373,9 +10377,10 @@ BEGIN
    END ;
    NEW(f) ;
    WITH f^ DO
-      PtrSym    := Sym ;
-      RecordSym := Type ;
-      rw        := RecordVar
+      RecordSym  := Sym ;
+      RecordType := Type ;
+      RecordRef  := Ref ;
+      rw         := Sym
    END ;
    PushAddress(WithStack, f)
 END PushWith ;
@@ -10417,14 +10422,14 @@ BEGIN
          (* WriteString('Checking for a with') ; *)
          f := PeepAddress(WithStack, i) ;
          WITH f^ DO
-            IF IsRecordField(Sym) AND (GetRecord(GetParent(Sym))=RecordSym)
+            IF IsRecordField(Sym) AND (GetRecord(GetParent(Sym))=RecordType)
             THEN
                IF IsUnused(Sym)
                THEN
                   MetaError1('record field {%1Dad} was declared as unused by a pragma', Sym)
                END ;
                (* Fake a RecordSym.op *)
-               PushTFrw(PtrSym, RecordSym, rw) ;
+               PushTFrw(RecordRef, RecordType, rw) ;
                PushTF(Sym, Type) ;
                BuildAccessWithField ;
                PopTFrw(Sym, Type, rw) ;
@@ -10461,126 +10466,26 @@ END CheckWithReference ;
 
 PROCEDURE BuildAccessWithField ;
 VAR
-   OldSuppressWith: BOOLEAN ;
+   OldSuppressWith   : BOOLEAN ;
    rw,
-   Field, Type1,
-   Adr, Type2,
-   Res,
-   t1, t2         : CARDINAL ;
+   Field, FieldType,
+   Record, RecordType,
+   Ref               : CARDINAL ;
 BEGIN
    OldSuppressWith := SuppressWith ;
    SuppressWith := TRUE ;
    (*
       now the WITH cannot look at the stack of outstanding WITH records.
    *)
-   PopTF(Field, Type1) ;
-   PopTFrw(Adr, Type2, rw) ;
-   t1 := MakeTemporary(ImmediateValue) ;
-   (* No type since t1 is constant *)
-   GenQuad(OffsetOp, t1, GetRecord(GetParent(Field)), Field) ;
-   Res := MakeTemporary(LeftValue) ;
-   (*
-      Ok must reference by address
-      - but we contain the type of the referenced entity
-   *)
-   PutLeftValueFrontBackType(Res, Type1, NulSym) ;
-   GenQuad(AddOp, Res, Adr, t1) ;
-   PushTFrw(Res, Type1, rw) ;
+   PopTF(Field, FieldType) ;
+   PopTFrw(Record, RecordType, rw) ;
+
+   Ref := MakeComponentRef(MakeComponentRecord(RightValue, Record), Field) ;
+   GenQuad(RecordFieldOp, Ref, Record, Field) ;
+
+   PushTFrw(Ref, FieldType, rw) ;
    SuppressWith := OldSuppressWith
 END BuildAccessWithField ;
-
-
-(*
-   CheckOuterScopeProcedureVariable - checks whether the symbol
-                                      on top of the stack is a procedure
-                                      symbol from a previous scope.
-
-                                      Entry                    Exit
-
-                                      +------------+           +------------+
-                                      | Sym | Type |           | Sym | Type |
-                                      |------------|           |------------|
-*)
-
-PROCEDURE CheckOuterScopeProcedureVariable ;
-VAR
-   n1, n2: Name ;
-   t2, t1,
-   t, c,
-   ScopeSym,
-   DeclaredScopeSym,
-   Sym, Type       : CARDINAL ;
-BEGIN
-   ScopeSym := GetCurrentScope() ;
-   (*
-    *  note that we do not need to check for nested procedure variables when
-    *  using the GCC backend as GCC is intelligent to work this out for itself.
-    *  So we simply use the variables and not calculate the position using the
-    *  activation record pointer.
-    *)
-   IF (NOT UsingGCCBackend) AND IsProcedure(ScopeSym)
-   THEN
-      (* currently inside a procedure *)
-      PopTF(Sym, Type) ;
-      IF IsVar(Sym)
-      THEN
-         (* note we must not try to GetScope if Sym is not a variable *)
-         DeclaredScopeSym := GetScope(Sym) ;
-
-         IF CompilerDebugging
-         THEN
-            n1 := GetSymName(Sym) ;
-            n2 := GetSymName(GetScope(Sym)) ;
-            printf2('need to reference symbol, %a, defined in scope %a\n',
-                     n1, n2)
-         END ;
-
-         IF IsProcedure(DeclaredScopeSym) AND (DeclaredScopeSym#ScopeSym)
-         THEN
-            (*
-               so now we know that Sym is a procedure variable which was not declared in
-               the current procedure but in an outer procedure.
-            *)
-            t := MakeTemporary(RightValue) ;
-            PutVar(t, Address) ;
-            GenQuad(BecomesOp, t, NulSym, ActivationPointer) ;
-            ScopeSym := GetScope(ScopeSym) ;
-            WHILE IsProcedure(DeclaredScopeSym) AND (ScopeSym#DeclaredScopeSym) DO
-               c := MakeTemporary(ImmediateValue) ;
-               (* must continue to chain backwards to find the scope where Sym was declared *)
-               GenQuad(OffsetOp, c, GetRecord(GetParent(ActivationPointer)), ActivationPointer) ;
-               (* need to look indirectly to find next activation record *)
-               t1 := MakeTemporary(RightValue) ;   (* we use a different variable to help the optimizer *)
-               PutVar(t1, Address) ;
-               GenQuad(AddOp, t1, t, c) ;
-               t2 := MakeTemporary(RightValue) ;   (* we use a different variable to help the optimizer *)
-               PutVar(t2, Address) ;
-               GenQuad(IndrXOp, t2, Address, t1) ; (* next chained frame is now in t2 *)
-               t := t2 ;
-               ScopeSym := GetScope(ScopeSym)
-            END ;
-            IF ScopeSym=DeclaredScopeSym
-            THEN
-               (* finished chaining backwards, found sym in scope ScopeSym *)
-               c := MakeTemporary(ImmediateValue) ;
-               GenQuad(OffsetOp, c, GetRecord(GetParent(Sym)), Sym) ;
-               (* calculate address of sym *)
-               t1 := MakeTemporary(RightValue) ;   (* we use a different variable to help the optimizer *)
-               PutVar(t1, Address) ;
-               GenQuad(AddOp, t1, t, c) ;
-
-               (* now we create a new variable, sym, which will contain the address of the variable *)
-               Sym := MakeTemporary(LeftValue) ;
-               PutLeftValueFrontBackType(Sym, Type, NulSym) ;
-               GenQuad(BecomesOp, Sym, NulSym, t1)
-            ELSE
-               InternalError('we should have found symbol in a procedure scope', __FILE__, __LINE__)
-            END
-         END
-      END ;
-      PushTF(Sym, Type)
-   END
-END CheckOuterScopeProcedureVariable ;
 
 
 (*
@@ -12185,6 +12090,7 @@ BEGIN
                           printf0('  ') ;
                           WriteOperand(Operand3) |
       SizeOp,
+      RecordFieldOp,
       OffsetOp,
       IndrXOp,
       XIndrOp,
@@ -12262,6 +12168,7 @@ BEGIN
    XIndrOp                  : printf0('XIndr             ') |
    ArrayOp                  : printf0('Array             ') |
    ElementSizeOp            : printf0('ElementSize       ') |
+   RecordFieldOp            : printf0('RecordField       ') |
    AddrOp                   : printf0('Addr              ') |
    SizeOp                   : printf0('Size              ') |
    OffsetOp                 : printf0('Offset            ') |

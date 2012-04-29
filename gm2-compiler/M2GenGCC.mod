@@ -398,7 +398,9 @@ PROCEDURE CodeParam (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeFunctValue (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeInline (quad: CARDINAL; op1, op2, GnuAsm: CARDINAL); FORWARD ;
 PROCEDURE CodeOffset (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeRecordField (quad: CARDINAL; op1, record, field: CARDINAL); FORWARD ;
 PROCEDURE FoldOffset (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldRecordField (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL; op1, record, field: CARDINAL); FORWARD ;
 PROCEDURE CodeHigh (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE FoldHigh (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL; op1, dim, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeUnbounded (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
@@ -549,6 +551,7 @@ BEGIN
    AddrOp             : CodeAddr(q, op1, op2, op3) |
    SizeOp             : CodeSize(q, op1, op2, op3) |
    UnboundedOp        : CodeUnbounded(q, op1, op2, op3) |
+   RecordFieldOp      : CodeRecordField(q, op1, op2, op3) |
    OffsetOp           : CodeOffset(q, op1, op2, op3) |
    HighOp             : CodeHigh(q, op1, op2, op3) |
    ArrayOp            : CodeArray(q, op1, op2, op3) |
@@ -626,6 +629,7 @@ BEGIN
          ModFloorOp         : FoldModFloor(tokenno, p, quad, op1, op2, op3) |
          NegateOp           : FoldNegate(tokenno, p, quad, op1, op2, op3) |
          SizeOp             : FoldSize(tokenno, p, quad, op1, op2, op3) |
+         RecordFieldOp      : FoldRecordField(tokenno, p, quad, op1, op2, op3) |
          OffsetOp           : FoldOffset(tokenno, p, quad, op1, op2, op3) |
          HighOp             : FoldHigh(tokenno, p, quad, op1, op2, op3) |
          ElementSizeOp      : FoldElementSize(tokenno, p, quad, op1, op2, op3) |
@@ -4491,6 +4495,92 @@ END CodeOffset ;
 
 
 (*
+   FoldRecordField - check whether we can fold an RecordFieldOp quadruple.
+                     Very similar to FoldBinary, except that we need to
+                     hard code a few parameters to the gcc backend.
+*)
+
+PROCEDURE FoldRecordField (tokenno: CARDINAL; p: WalkAction;
+                           quad: CARDINAL; op1, record, field: CARDINAL) ;
+VAR
+   recordType,
+   fieldType : CARDINAL ;
+   t         : Tree ;
+BEGIN
+   RETURN ;
+   (* firstly ensure that any constant literal is declared *)
+   TryDeclareConstant(tokenno, record) ;
+   IF IsRecordField(record) OR IsFieldVarient(record)
+   THEN
+      recordType := GetType(record) ;
+      fieldType := GetType(field) ;
+      IF GccKnowsAbout(record) AND GccKnowsAbout(field) AND
+         GccKnowsAbout(recordType) AND GccKnowsAbout(fieldType) AND
+         CompletelyResolved(recordType) AND CompletelyResolved(fieldType)
+      THEN
+         (* fine, we can take advantage of this and fold constants *)
+         IF IsConst(op1)
+         THEN
+            t := BuildComponentRef(Mod2Gcc(record), Mod2Gcc(field)) ;
+            IF NOT IsValueSolved(op1)
+            THEN
+               PushIntegerTree(t) ;
+               PopValue(op1)
+            END ;
+            PutConst(op1, fieldType) ;
+            AddModGcc(op1, DeclareKnownConstant(Mod2Gcc(fieldType), t)) ;
+            p(op1) ;
+            NoChange := FALSE ;
+            SubQuad(quad)
+         ELSE
+            (* we can still fold the expression, but not the assignment, however, we will
+               not do this here but in CodeOffset
+             *)
+         END
+      END
+   END
+END FoldRecordField ;
+
+
+(*
+   CodeRecordField - encode an OffsetOp quadruple. Very similar to CodeBinary,
+                     except that we need to hard code a few parameters to the
+                     gcc backend.
+*)
+
+PROCEDURE CodeRecordField (quad: CARDINAL; op1, record, field: CARDINAL) ;
+VAR
+   recordType,
+   fieldType : CARDINAL ;
+   t         : Tree ;
+BEGIN
+   (* firstly ensure that any constant literal is declared *)
+   IF IsRecordField(field) OR IsFieldVarient(field)
+   THEN
+      recordType := GetType(record) ;
+      fieldType := GetType(field) ;
+      IF GccKnowsAbout(record) AND GccKnowsAbout(field) AND
+         GccKnowsAbout(recordType) AND GccKnowsAbout(fieldType) AND
+         CompletelyResolved(recordType) AND CompletelyResolved(fieldType)
+      THEN
+         IF GetMode(record)=LeftValue
+         THEN
+            t := BuildComponentRef(BuildIndirect(Mod2Gcc(record), Mod2Gcc(recordType)),
+                                   Mod2Gcc(field))
+         ELSE
+            t := BuildComponentRef(Mod2Gcc(record), Mod2Gcc(field))
+         END ;
+         AddModGcc(op1, t)
+      ELSE
+         InternalError('symbol type should have been declared by now..', __FILE__, __LINE__)
+      END
+   ELSE
+      InternalError('not expecting this type of symbol', __FILE__, __LINE__)
+   END
+END CodeRecordField ;
+
+
+(*
    BuildHighFromChar - 
 *)
 
@@ -4680,6 +4770,7 @@ VAR
    t   : Tree ;
 BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;
+(* was
    IF IsConstString(op3)
    THEN
       t := BuildAssignmentTree(BuildIndirect(Mod2Gcc(op1), GetPointerType()),
@@ -4698,6 +4789,23 @@ BEGIN
       t := BuildAssignmentTree(BuildIndirect(Mod2Gcc(op1), GetPointerType()), BuildAddr(Mod2Gcc(op3), FALSE))
    ELSE
       t := BuildAssignmentTree(BuildIndirect(Mod2Gcc(op1), GetPointerType()), Mod2Gcc(op3))
+   END
+*)
+   IF IsConstString(op3)
+   THEN
+      t := BuildAssignmentTree(Mod2Gcc(op1), BuildAddr(PromoteToString(CurrentQuadToken, op3), FALSE))
+   ELSIF IsConstructor(op3)
+   THEN
+      t := BuildAssignmentTree(Mod2Gcc(op1), BuildAddr(Mod2Gcc(op3), TRUE))
+   ELSIF IsUnbounded(GetType(op3))
+   THEN
+      Addr := BuildComponentRef(Mod2Gcc(op3), Mod2Gcc(GetUnboundedAddressOffset(GetType(op3)))) ;
+      t := BuildAssignmentTree(Mod2Gcc(op1), Addr)
+   ELSIF GetMode(op3)=RightValue
+   THEN
+      t := BuildAssignmentTree(Mod2Gcc(op1), BuildAddr(Mod2Gcc(op3), FALSE))
+   ELSE
+      t := BuildAssignmentTree(Mod2Gcc(op1), Mod2Gcc(op3))
    END
 END CodeUnbounded ;
 

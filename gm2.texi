@@ -2666,9 +2666,46 @@ field is on a byte boundary.  There is also a @code{SYSTEM} pseudo
 procedure function @code{TBITSIZE(T)} which returns the minimum number of
 bits necessary to represent type @code{T}.
 
-@footnote{The exact definition of these pragmas are still being worked
-out and thus this section is likely to change over the next couple of
-weeks.}
+Another example of packing record bit fields is given below:
+
+@example
+MODULE align21 ;
+
+FROM libc IMPORT exit ;
+
+TYPE
+   colour = (red, blue, green, purple, white, black) ;
+
+   soc = PACKEDSET OF colour ;
+
+   rec = RECORD
+            <* bytealignment(0) *>
+            x: soc ;
+            y: [-1..1] ;
+         END ;
+
+VAR
+   r: rec ;
+   v: CARDINAL ;
+BEGIN
+   v := SIZE(r) ;
+   IF SIZE(r)#1
+   THEN
+      exit(1)
+   END ;
+   r.x := soc@{blue@} ;
+   IF r.x#soc@{blue@}
+   THEN
+      exit(2)
+   END
+END align21.
+@end example
+
+Here we see that the total size of this record is one byte and consists
+of a six bit set type followed by a 2 bit integer subrange.
+
+@footnote{It is likely that in the future all alignment will use this
+syntax rather than the @code{ATTRIBUTE} keyword equivalent.}
 
 @node Built-ins, The PIM system module, Packed, Using
 @section Accessing GNU Modula-2 Built-ins

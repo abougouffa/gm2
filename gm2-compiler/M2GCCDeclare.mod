@@ -93,6 +93,7 @@ FROM SymbolTable IMPORT NulSym,
                         IsGnuAsm, IsGnuAsmVolatile, IsObject, IsTuple,
                         IsError, IsHiddenType,
                         IsDefinitionForC, IsHiddenTypeDeclared,
+                        IsComponent,
       	       	     	GetMainModule, GetBaseModule, GetModule,
                         PutModuleFinallyFunction,
                         GetProcedureScope, GetProcedureQuads,
@@ -192,6 +193,8 @@ TYPE
 
 
 (* %%%FORWARD%%%
+PROCEDURE WalkComponentDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
+PROCEDURE IsVarDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
 PROCEDURE DeclareFieldVarient (sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE WalkProcedureDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
 PROCEDURE IsProcedureDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
@@ -905,7 +908,10 @@ END CompletelyResolved ;
 
 PROCEDURE IsTypeQ (sym: CARDINAL; q: IsAction) : BOOLEAN ;
 BEGIN
-   IF IsEnumeration(sym)
+   IF IsVar(sym)
+   THEN
+      RETURN( IsVarDependants(sym, q) )
+   ELSIF IsEnumeration(sym)
    THEN
       RETURN( IsEnumerationDependants(sym, q) )
    ELSIF IsFieldEnumeration(sym)
@@ -2073,7 +2079,10 @@ END WalkProcedureParameterDependants ;
 PROCEDURE WalkDependants (sym: CARDINAL; p: WalkAction) ;
 BEGIN
    WalkAssociatedUnbounded(sym, p) ;
-   IF IsEnumeration(sym)
+   IF IsComponent(sym)
+   THEN
+      WalkComponentDependants(sym, p)
+   ELSIF IsEnumeration(sym)
    THEN
       WalkEnumerationDependants(sym, p)
    ELSIF IsSubrange(sym)
@@ -3013,6 +3022,10 @@ VAR
    type   : Tree ;
    varType: CARDINAL ;
 BEGIN
+   IF IsComponent(var)
+   THEN
+      RETURN
+   END ;
    IF GetMode(var)=LeftValue
    THEN
       (*
@@ -3126,7 +3139,7 @@ BEGIN
    Var := GetNth(sym, i) ;
    WHILE Var#NulSym DO
       AlignDeclarationWithSource(Var) ;
-      Assert(AllDependantsFullyDeclared(GetType(Var))) ;
+      Assert(AllDependantsFullyDeclared(Var)) ;
       DoVariableDeclaration(Var,
                             KeyToCharStar(GetFullSymName(Var)),
                             FALSE,  (* local variables cannot be imported *)
@@ -3581,6 +3594,14 @@ BEGIN
       NoValue       : printf0('n ')
 
       END ;
+      IF IsTemporary(sym)
+      THEN
+         printf0('temporary ')
+      END ;
+      IF IsComponent(sym)
+      THEN
+         printf0('component ')
+      END ;
       IncludeType(l, sym)
    ELSIF IsConst(sym)
    THEN
@@ -3658,6 +3679,20 @@ BEGIN
       ELSE
          printf2('sym %d IsGnuAsm (%a)', sym, n)
       END
+   ELSIF IsComponent(sym)
+   THEN
+      printf2('sym %d IsComponent (%a) ', sym, n) ;
+      i := 1 ;
+      REPEAT
+         type := GetNth(sym, i) ;
+         IF type#NulSym
+         THEN
+            IncludeItemIntoList(l, type) ;
+            n := GetSymName(type) ;
+            printf2("[%a %d] ", n, type) ;
+            INC(i)
+         END ;
+      UNTIL type=NulSym
    END ;
 
    IF IsHiddenType(sym)
@@ -4912,6 +4947,65 @@ END IsSubrangeDependants ;
 
 
 (*
+   WalkComponentDependants - 
+*)
+
+PROCEDURE WalkComponentDependants (sym: CARDINAL; p: WalkAction) ;
+VAR
+   i   : CARDINAL ;
+   type: CARDINAL ;
+BEGIN
+   (* need to walk record and field *)
+   i := 1 ;
+   REPEAT
+      type := GetNth(sym, i) ;
+      IF type#NulSym
+      THEN
+         IF IsVar(type)
+         THEN
+            p(GetType(type))
+         ELSE
+            p(type)
+         END ;
+         INC(i)
+      END
+   UNTIL type=NulSym
+END WalkComponentDependants ;
+
+
+(*
+   IsComponentDependants - 
+*)
+
+PROCEDURE IsComponentDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
+VAR
+   type  : CARDINAL ;
+   i     : CARDINAL ;
+   result: BOOLEAN ;
+BEGIN
+   (* need to check record is completely resolved *)
+   result := TRUE ;
+   i := 1 ;
+   REPEAT
+      type := GetNth(sym, i) ;
+      IF type#NulSym
+      THEN
+         IF IsVar(type)
+         THEN
+            type := GetType(type)
+         END ;
+         IF NOT q(type)
+         THEN
+            result := FALSE
+         END ;
+         INC(i)
+      END
+   UNTIL type=NulSym ;
+   RETURN( result )
+END IsComponentDependants ;
+
+
+(*
    WalkVarDependants - walks all dependants of sym.
 *)
 
@@ -4920,6 +5014,10 @@ VAR
    type: CARDINAL ;
 BEGIN
    p(GetType(sym)) ;
+   IF IsComponent(sym)
+   THEN
+      WalkComponentDependants(sym, p)
+   END ;
    type := GetVarBackEndType(sym) ;
    IF type#NulSym
    THEN
@@ -4942,6 +5040,13 @@ BEGIN
    IF NOT q(GetType(sym))
    THEN
       result := FALSE
+   END ;
+   IF IsComponent(sym)
+   THEN
+      IF NOT IsComponentDependants(sym, q)
+      THEN
+         result := FALSE
+      END
    END ;
    type := GetVarBackEndType(sym) ;
    IF type#NulSym

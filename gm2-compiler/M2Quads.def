@@ -64,7 +64,6 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildBooleanVariable,
                  BuildSizeCheckStart,
                  StartBuildWith, EndBuildWith, CheckWithReference,
-                 CheckOuterScopeProcedureVariable,
                  BuildDesignatorRecord,
                  BuildDesignatorArray,
                  BuildDesignatorPointer,
@@ -144,6 +143,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
 
 TYPE
    QuadOperator = (BecomesOp, IndrXOp, XIndrOp, ArrayOp, ElementSizeOp,
+                   RecordFieldOp,
                    AddrOp, SizeOp, OffsetOp,
                    IfEquOp, IfLessEquOp, IfGreEquOp, IfGreOp, IfLessOp,
                    IfNotEquOp, IfInOp, IfNotInOp,
@@ -1651,21 +1651,6 @@ PROCEDURE EndBuildWith ;
 *)
 
 PROCEDURE CheckWithReference ;
-
-
-(*
-   CheckOuterScopeProcedureVariable - checks whether the symbol
-                                      on top of the stack is a procedure
-                                      symbol from a previous scope.
-
-                        Entry                    Exit
-
-                        +------------+           +------------+
-                        | Sym | Type |           | Sym | Type |
-                        |------------|           |------------|
-*)
-
-PROCEDURE CheckOuterScopeProcedureVariable ;
 
 
 (*

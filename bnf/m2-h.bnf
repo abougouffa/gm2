@@ -106,7 +106,6 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BeginVarientList, EndVarientList,
                     AddVarientRange, AddVarientEquality,
                     CheckWithReference,
-                    CheckOuterScopeProcedureVariable,
                     IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
 
 FROM P3SymBuild IMPORT P3StartBuildProgModule,

@@ -1,3 +1,45 @@
+2012-04-28      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Range.mod:  (firstmention) New field
+	  in Range.  (FirstMention) New procedure function.
+	  FoldTypeAssign, FoldTypeParam, FoldTypeExpr, CodeTypeAssign,
+          CodeTypeParam, CodeTypeExpr call FirstMention before
+	  emitting an error message.  Multiple related messages have
+	  been chained.  This fixes a bug report by Scott Iverson
+	  (duplicate error messages).
+	* gm2/Make-lang.in:  tidied up formatting and added a commented
+	  out short cut used during development.
+	* gm2/gccgm2.c:  tidied up formatting of gccgm2_GetSizeOf.
+	  gccgm2_GetSizeOf now detects COMPONENT_REF.
+	  gccgm2_GetSizeOfInBits now detects COMPONENT_REF.
+	* gm2/gm2.texi:  added new example of how bit field packing
+	  can be achieved.
+	* gm2/bnf/m2-3.bnf:  removed call to dummy
+	  CheckOuterScopeProcedureVariable procedure.
+	* gm2/bnf/m2-h.bnf:  removed import CheckOuterScopeProcedureVariable.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  (WalkComponentDependants)
+	  New procedure.  (IsValueDeendants) New procedure function.
+	* gm2/gm2-compiler/M2GenGCC.mod:  (FoldRecordField, CodeRecordField)
+	  New procedures.  CodeUnbounded simplified.
+	* gm2/gm2-compiler/M2Quads.def:  Removed
+	  CheckOuterScopeProcedureVariable.
+	* gm2/gm2-compiler/M2Quads.mod:  many changes to allow
+	  record accesses to be achieved via the GCC Tree
+	  COMPONENT_REF.  To this end we use a front end symbol
+	  component which mirrors the eventual GCC Tree.
+	  BuildAdrFunction altered to obtain the address of
+	  Components and the WITH statement has been rewritten.
+	  (CheckOuterScopeProcedureVariable) removed.
+	  New quadruple operator RecordFieldOp introduced to
+	  generate components.  All unbounded accesses use the
+	  new component record mechanism.
+	* gm2/gm2-compiler/SymbolTable.def:  (MakeComponentRecord),
+	  (MakeComponentRef), (IsComponent) New procedure functions.
+	* gm2/gm2-compiler/SymbolTable.mod:  (MakeComponentRecord),
+	  (MakeComponentRef), (IsComponent), (GetNthFromComponent),
+	  (buildTemporary).  MakeTemporary use buildTemporary.
+	  New procedure functions.
+
 2012-04-11      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  (DeclarePackedSet) New

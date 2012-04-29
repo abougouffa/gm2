@@ -64,6 +64,9 @@ EXPORT QUALIFIED NulSym,
       	       	 MakeSet,
                  MakeArray,
                  MakeTemporary,
+                 MakeComponentRecord,
+                 MakeComponentRef,
+                 IsComponent,
                  MakePointer,
                  MakeSubscript,
                  MakeUnbounded,
@@ -336,6 +339,29 @@ TYPE
 *)
 
 PROCEDURE FinalSymbol () : CARDINAL ;
+
+
+(*
+   MakeComponentRecord - make a temporary which will be used to reference and field
+                         (or sub field) of record.
+*)
+
+PROCEDURE MakeComponentRecord (Mode: ModeOfAddr; record: CARDINAL) : CARDINAL ;
+
+
+(*
+   MakeComponentRef - use, sym, to reference, field, sym is returned.
+*)
+
+PROCEDURE MakeComponentRef (sym: CARDINAL; field: CARDINAL) : CARDINAL ;
+
+
+(*
+   IsComponent - returns TRUE if symbol, sym, is a temporary and a component
+                 reference.
+*)
+
+PROCEDURE IsComponent (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

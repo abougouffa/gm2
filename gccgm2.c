@@ -9101,6 +9101,9 @@ gccgm2_GetSizeOfInBits (tree type)
   if (code == TYPE_DECL)
     return gccgm2_GetSizeOfInBits (TREE_TYPE (type));
 
+  if (code == COMPONENT_REF)
+    return gccgm2_GetSizeOfInBits (TREE_TYPE (type));
+
   if (code == ERROR_MARK)
     return size_one_node;
 
@@ -9132,22 +9135,25 @@ gccgm2_GetSizeOf (tree type)
   }
 
   if (code == VAR_DECL)
-    return gccgm2_GetSizeOf (TREE_TYPE(type));
+    return gccgm2_GetSizeOf (TREE_TYPE (type));
 
   if (code == PARM_DECL)
-    return gccgm2_GetSizeOf (TREE_TYPE(type));
+    return gccgm2_GetSizeOf (TREE_TYPE (type));
 
   if (code == TYPE_DECL)
-    return gccgm2_GetSizeOf (TREE_TYPE(type));
+    return gccgm2_GetSizeOf (TREE_TYPE (type));
 
   if (code == ERROR_MARK)
     return size_one_node;
 
   if (code == CONSTRUCTOR)
-    return gccgm2_GetSizeOf (TREE_TYPE(type));
+    return gccgm2_GetSizeOf (TREE_TYPE (type));
 
   if (code == FIELD_DECL)
-    return gccgm2_GetSizeOf (TREE_TYPE(type));
+    return gccgm2_GetSizeOf (TREE_TYPE (type));
+
+  if (code == COMPONENT_REF)
+    return gccgm2_GetSizeOf (TREE_TYPE (type));
 
   if (!COMPLETE_TYPE_P (type))
     {
@@ -9968,7 +9974,15 @@ gccgm2_BuildArray (tree type, tree array, tree index, tree lowIndice, tree eleme
 tree
 gccgm2_BuildComponentRef (tree record, tree field)
 {
-  return build (COMPONENT_REF, TREE_TYPE (field), record, field, NULL_TREE);
+  tree recordType = skip_type_decl (TREE_TYPE (record));
+
+  if (DECL_CONTEXT (field) == recordType)
+    return build (COMPONENT_REF, TREE_TYPE (field), record, field, NULL_TREE);
+  else {
+    tree r1 = DECL_CONTEXT (field);
+    tree r2 = determinePenultimateField (recordType, field);
+    return gccgm2_BuildComponentRef (gccgm2_BuildComponentRef (record, r2), field);
+  }
 }
 
 /*

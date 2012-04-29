@@ -46,7 +46,7 @@ FROM M2Options IMPORT VariantValueChecking ;
 
 FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3,
                         MetaErrorT1, MetaErrorT2, MetaErrorT3,
-                        MetaErrorsT1, MetaErrorsT2, MetaErrorsT3,
+                        MetaErrorsT1, MetaErrorsT2, MetaErrorsT3, MetaErrorsT4,
                         MetaErrorStringT1, MetaErrorStringT2, MetaErrorStringT3 ;
 
 FROM M2LexBuf IMPORT GetTokenNo, FindFileNameFromToken, TokenToLineNo, TokenToColumnNo ;
@@ -108,6 +108,7 @@ TYPE
                          dimension     : CARDINAL ;
                          caseList      : CARDINAL ;
                          tokenNo       : CARDINAL ;
+                         firstmention  : BOOLEAN ; (* error message reported yet? *)
                       END ;
 
 
@@ -266,12 +267,35 @@ BEGIN
          isLeftValue    := FALSE ;   (* ignored in all cases other *)
          dimension      := 0 ;
          caseList       := 0 ;
-         tokenNo        := 0         (* than pointernil            *)
+         tokenNo        := 0 ;       (* than pointernil            *)
+         firstmention   := TRUE
       END ;
       PutIndice(RangeIndex, r, p)
    END ;
    RETURN( r )
 END InitRange ;
+
+
+(*
+   FirstMention - returns whether this is the first time this error has been
+                  reported.
+*)
+
+PROCEDURE FirstMention (r: CARDINAL) : BOOLEAN ;
+VAR
+   p: Range ;
+BEGIN
+   p := GetIndice(RangeIndex, r) ;
+   WITH p^ DO
+      IF firstmention
+      THEN
+         firstmention := FALSE ;
+         RETURN( TRUE )
+      ELSE
+         RETURN( FALSE )
+      END
+   END
+END FirstMention ;
 
 
 (*
@@ -1327,7 +1351,7 @@ END FoldRotate ;
    FoldTypeAssign - 
 *)
 
-PROCEDURE FoldTypeAssign (q: CARDINAL; tokenNo: CARDINAL; des, expr: CARDINAL) ;
+PROCEDURE FoldTypeAssign (q: CARDINAL; tokenNo: CARDINAL; des, expr: CARDINAL; r: CARDINAL) ;
 VAR
    exprType: CARDINAL ;
 BEGIN
@@ -1342,18 +1366,21 @@ BEGIN
    THEN
       SubQuad(q)
    ELSE
-      IF IsProcedure(des)
+      IF FirstMention(r)
       THEN
-         MetaErrorsT2(tokenNo,
-                      'the return type {%1tad} declared in procedure {%1Da}',
-                      'is incompatible with the returned expression {%2ad}}',
-                      des, expr) ;
-      ELSE
-         MetaErrorT3(tokenNo,
-                     'assignment designator {%1a} {%1ta:of type {%1ta}} {%1d:is a {%1d}} and expression {%2a} {%3ad:of type {%3ad}} are incompatible',
-                     des, expr, exprType)
-      END ;
-      FlushErrors
+         IF IsProcedure(des)
+         THEN
+            MetaErrorsT2(tokenNo,
+                         'the return type {%1tad} declared in procedure {%1Da}',
+                         'is incompatible with the returned expression {%2ad}}',
+                         des, expr) ;
+         ELSE
+            MetaErrorT3(tokenNo,
+                        'assignment designator {%1a} {%1ta:of type {%1ta}} {%1d:is a {%1d}} and expression {%2a} {%3ad:of type {%3ad}} are incompatible',
+                        des, expr, exprType)
+         END ;
+         FlushErrors
+      END
    END
 END FoldTypeAssign ;
 
@@ -1362,18 +1389,20 @@ END FoldTypeAssign ;
    FoldTypeParam - 
 *)
 
-PROCEDURE FoldTypeParam (q: CARDINAL; tokenNo: CARDINAL; formal, actual, procedure: CARDINAL; paramNo: CARDINAL) ;
+PROCEDURE FoldTypeParam (q: CARDINAL; tokenNo: CARDINAL; formal, actual, procedure: CARDINAL; paramNo: CARDINAL; r: CARDINAL) ;
 BEGIN
    IF IsValidParameter(formal, actual)
    THEN
       SubQuad(q)
    ELSE
-      MetaErrorT3(tokenNo,
-                  '{%3N} actual parameter type {%2tasd} is incompatible with the formal parameter type {%1tasd}',
-                  formal, actual, paramNo) ;
-      MetaError3('{%3N} parameter in procedure {%1Da} {%2a} has a type of {%2tad}',
-                 procedure, formal, paramNo) ;
-      (* FlushErrors *)
+      IF FirstMention(r)
+      THEN
+         MetaErrorsT4(tokenNo,
+                     '{%3N} actual parameter type {%2tasd} is incompatible with the formal parameter type {%1tasd}',
+                     '{%3N} parameter in procedure {%4Da} {%1a} has a type of {%1tad}',
+                     formal, actual, paramNo, procedure) ;
+         (* FlushErrors *)
+      END
    END
 END FoldTypeParam ;
 
@@ -1382,15 +1411,18 @@ END FoldTypeParam ;
    FoldTypeExpr - 
 *)
 
-PROCEDURE FoldTypeExpr (q: CARDINAL; tokenNo: CARDINAL; des, expr: CARDINAL) ;
+PROCEDURE FoldTypeExpr (q: CARDINAL; tokenNo: CARDINAL; des, expr: CARDINAL; r: CARDINAL) ;
 BEGIN
    IF IsExpressionCompatible(GetType(des), GetType(expr))
    THEN
       SubQuad(q)
    ELSE
-      MetaErrorT2(tokenNo,
-                  'expression of type {%1tad} is incompatible with type {%2tad}',
-                  des, expr) ;
+      IF FirstMention(r)
+      THEN
+         MetaErrorT2(tokenNo,
+                     'expression of type {%1tad} is incompatible with type {%2tad}',
+                     des, expr)
+      END
       (* FlushErrors *)
    END
 END FoldTypeExpr ;
@@ -1400,7 +1432,7 @@ END FoldTypeExpr ;
    CodeTypeAssign - 
 *)
 
-PROCEDURE CodeTypeAssign (tokenNo: CARDINAL; des, expr: CARDINAL) ;
+PROCEDURE CodeTypeAssign (tokenNo: CARDINAL; des, expr: CARDINAL; r: CARDINAL) ;
 VAR
    exprType: CARDINAL ;
 BEGIN
@@ -1412,17 +1444,20 @@ BEGIN
    END ;
    IF NOT IsAssignmentCompatible(GetType(des), exprType)
    THEN
-      IF IsProcedure(des)
+      IF FirstMention(r)
       THEN
-         MetaErrorsT2(tokenNo,
-                      'the return type {%1tad} declared in procedure {%1Da}',
-                      'is incompatible with the returned expression {%2Ua} {%2tad:of type {%2tad}}',
-                      des, expr) ;
-      ELSE
-         MetaErrorT2(tokenNo,
-                     'assignment designator {%1a} {%1ta:of type {%1ta}} {%1d:is a {%1d}} and expression {%2a} {%2tad:of type {%2tad}} are incompatible',
-                     des, expr)
-      END ;
+         IF IsProcedure(des)
+         THEN
+            MetaErrorsT2(tokenNo,
+                         'the return type {%1tad} declared in procedure {%1Da}',
+                         'is incompatible with the returned expression {%2Ua} {%2tad:of type {%2tad}}',
+                         des, expr) ;
+         ELSE
+            MetaErrorT2(tokenNo,
+                        'assignment designator {%1a} {%1ta:of type {%1ta}} {%1d:is a {%1d}} and expression {%2a} {%2tad:of type {%2tad}} are incompatible',
+                        des, expr)
+         END
+      END
       (* FlushErrors *)
    END
 END CodeTypeAssign ;
@@ -1432,16 +1467,18 @@ END CodeTypeAssign ;
    CodeTypeParam - 
 *)
 
-PROCEDURE CodeTypeParam (tokenNo: CARDINAL; formal, actual, procedure: CARDINAL; paramNo: CARDINAL) ;
+PROCEDURE CodeTypeParam (tokenNo: CARDINAL; formal, actual, procedure: CARDINAL; paramNo: CARDINAL; r: CARDINAL) ;
 BEGIN
    IF NOT IsValidParameter(formal, actual)
    THEN
-      MetaErrorT3(tokenNo,
-                  '{%3N} actual parameter type {%2tasd} is incompatible with the formal parameter type {%1tasd}',
-                  formal, actual, paramNo) ;
-      MetaError3('{%3N} parameter of procedure {%1Da} {%2a} has a type of {%2tad}',
-                 procedure, formal, paramNo) ;
-      (* FlushErrors *)
+      IF FirstMention(r)
+      THEN
+         MetaErrorsT4(tokenNo,
+                      '{%3N} actual parameter type {%2tasd} is incompatible with the formal parameter type {%1tasd}',
+                      '{%3N} parameter of procedure {%4Da} {%1a} has a type of {%1tad}',
+                      formal, actual, paramNo, procedure) ;
+         (* FlushErrors *)
+      END
    END
 END CodeTypeParam ;
 
@@ -1450,14 +1487,17 @@ END CodeTypeParam ;
    CodeTypeExpr - 
 *)
 
-PROCEDURE CodeTypeExpr (tokenNo: CARDINAL; des, expr: CARDINAL) ;
+PROCEDURE CodeTypeExpr (tokenNo: CARDINAL; des, expr: CARDINAL; r: CARDINAL) ;
 BEGIN
    IF NOT IsExpressionCompatible(GetType(des), GetType(expr))
    THEN
-      MetaErrorT2(tokenNo,
-                  'expression of type {%1tad} is incompatible with type {%2tad}',
-                  des, expr) ;
-      (* FlushErrors *)
+      IF FirstMention(r)
+      THEN
+         MetaErrorT2(tokenNo,
+                     'expression of type {%1tad} is incompatible with type {%2tad}',
+                     des, expr) ;
+         (* FlushErrors *)
+      END
    END
 END CodeTypeExpr ;
 
@@ -1481,9 +1521,9 @@ BEGIN
       THEN
          CASE type OF
 
-         typeassign:  FoldTypeAssign(q, tokenNo, des, expr) |
-         typeparam:   FoldTypeParam(q, tokenNo, des, expr, procedure, paramNo) |
-         typeexpr:    FoldTypeExpr(q, tokenNo, des, expr)
+         typeassign:  FoldTypeAssign(q, tokenNo, des, expr, r) |
+         typeparam:   FoldTypeParam(q, tokenNo, des, expr, procedure, paramNo, r) |
+         typeexpr:    FoldTypeExpr(q, tokenNo, des, expr, r)
 
          ELSE
             InternalError('not expecting to reach this point', __FILE__, __LINE__)
@@ -1514,9 +1554,9 @@ BEGIN
       THEN
          CASE type OF
 
-         typeassign:  CodeTypeAssign(tokenNo, des, expr) |
-         typeparam:   CodeTypeParam(tokenNo, des, expr, procedure, paramNo) |
-         typeexpr:    CodeTypeExpr(tokenNo, des, expr)
+         typeassign:  CodeTypeAssign(tokenNo, des, expr, r) |
+         typeparam:   CodeTypeParam(tokenNo, des, expr, procedure, paramNo, r) |
+         typeexpr:    CodeTypeExpr(tokenNo, des, expr, r)
 
          ELSE
             InternalError('not expecting to reach this point', __FILE__, __LINE__)

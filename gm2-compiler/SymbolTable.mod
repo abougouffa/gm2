@@ -436,6 +436,9 @@ TYPE
                Scope         : CARDINAL ;     (* Scope of declaration.       *)
                AtAddress     : BOOLEAN ;      (* Is declared at address?     *)
                Address       : CARDINAL ;     (* Address at which declared   *)
+               IsComponentRef: BOOLEAN ;      (* Is temporary referencing a  *)
+                                              (* record field?               *)
+               list          : Indexing.Index ;  (* the record and fields    *)
                IsTemp        : BOOLEAN ;      (* Is variable a temporary?    *)
                IsParam       : BOOLEAN ;      (* Is variable a parameter?    *)
                IsPointerCheck: BOOLEAN ;      (* Is variable used to         *)
@@ -3184,6 +3187,7 @@ BEGIN
             AtAddress := FALSE ;
             Address := NulSym ;           (* Address at which declared   *)
             IsTemp := FALSE ;
+            IsComponentRef := FALSE ;
             IsParam := FALSE ;
             IsPointerCheck := FALSE ;
             IsWritten := FALSE ;
@@ -4602,6 +4606,34 @@ END GetLowestType ;
 
 
 (*
+   GetTypeOfVar - returns the type of a, var, symbol.
+*)
+
+PROCEDURE GetTypeOfVar (var: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
+   high: CARDINAL ;
+BEGIN
+   pSym := GetPsym(var) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      VarSym:  IF Var.IsTemp AND Var.IsComponentRef
+               THEN
+                  high := Indexing.HighIndice(Var.list) ;
+                  RETURN( GetType(GetFromIndex(Var.list, high)) )
+               ELSE
+                  RETURN( Var.Type )
+               END
+
+      ELSE
+         InternalError('expecting a var symbol', __FILE__, __LINE__)
+      END
+   END
+END GetTypeOfVar ;
+
+
+(*
    GetType - Returns the symbol that is the TYPE symbol to Sym.
              If zero is returned then we assume type unknown.
 *)
@@ -4617,7 +4649,7 @@ BEGIN
       CASE SymbolType OF
 
       OAFamilySym         : type := OAFamily.SimpleType |
-      VarSym              : type := Var.Type |
+      VarSym              : type := GetTypeOfVar(Sym) |
       ConstLitSym         : type := ConstLit.Type |
       ConstVarSym         : type := ConstVar.Type |
       ConstStringSym      : IF ConstString.Length=1
@@ -4801,6 +4833,37 @@ END GetLocalSym ;
 
 
 (*
+   GetNthFromComponent - 
+*)
+
+PROCEDURE GetNthFromComponent (Sym: CARDINAL; n: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      VarSym:  IF IsComponent(Sym)
+               THEN
+                  IF InBounds(Var.list, n)
+                  THEN
+                     RETURN( GetFromIndex(Var.list, n) )
+                  ELSE
+                     RETURN( NulSym )
+                  END
+               ELSE
+                  InternalError('cannot GetNth from this symbol', __FILE__, __LINE__)
+               END
+
+      ELSE
+         InternalError('cannot GetNth from this symbol', __FILE__, __LINE__)
+      END
+   END
+END GetNthFromComponent ;
+
+
+(*
    GetNth - returns the n th symbol in the list of father Sym.
             Sym may be a Module, DefImp, Procedure or Record symbol.
 *)
@@ -4820,7 +4883,8 @@ BEGIN
       ProcedureSym    : i := GetItemFromList(Procedure.ListOfVars, n) |
       DefImpSym       : i := GetItemFromList(DefImp.ListOfVars, n) |
       ModuleSym       : i := GetItemFromList(Module.ListOfVars, n) |
-      TupleSym        : i := GetFromIndex(Tuple.list, n)
+      TupleSym        : i := GetFromIndex(Tuple.list, n) |
+      VarSym          : i := GetNthFromComponent(Sym, n)
 
       ELSE
          InternalError('cannot GetNth from this symbol', __FILE__, __LINE__)
@@ -5751,11 +5815,10 @@ END PutConstVarTemporary ;
 
 
 (*
-   MakeTemporary - Makes a new temporary variable at the highest real scope.
-                   The addressing mode of the temporary is set to NoValue.
+   buildTemporary - builds the temporary filling in componentRef, record and sets mode.
 *)
 
-PROCEDURE MakeTemporary (Mode: ModeOfAddr) : CARDINAL ;
+PROCEDURE buildTemporary (Mode: ModeOfAddr; componentRef: BOOLEAN; record: CARDINAL) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
    s   : String ;
@@ -5775,7 +5838,13 @@ BEGIN
          CASE SymbolType OF
 
          VarSym : Var.AddrMode := Mode ;
+                  Var.IsComponentRef := componentRef ;
                   Var.IsTemp := TRUE ;       (* Variable is a temporary var *)
+                  IF componentRef
+                  THEN
+                     Var.list := Indexing.InitIndex(1) ;
+                     PutIntoIndex(Var.list, 1, record)
+                  END ;
                   InitWhereDeclared(Var.At)  (* Declared here               *)
 
          ELSE
@@ -5785,6 +5854,82 @@ BEGIN
    END ;
    s := KillString(s) ;
    RETURN( Sym )
+END buildTemporary ;
+
+
+(*
+   MakeComponentRef - use, sym, to reference, field, sym is returned.
+*)
+
+PROCEDURE MakeComponentRef (sym: CARDINAL; field: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
+   high: CARDINAL ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      VarSym:  IF NOT Var.IsTemp
+               THEN
+                  InternalError('variable must be a temporary', __FILE__, __LINE__)
+               ELSIF Var.IsComponentRef
+               THEN
+                  high := Indexing.HighIndice(Var.list) ;
+                  PutIntoIndex(Var.list, high+1, field)
+               ELSE
+                  InternalError('temporary is not a component reference', __FILE__, __LINE__)
+               END
+
+      ELSE
+         InternalError('expecting a variable symbol', __FILE__, __LINE__)
+      END
+   END ;
+   RETURN( sym )
+END MakeComponentRef ;
+
+
+(*
+   MakeComponentRecord - make a temporary which will be used to reference and field
+                         (or sub field) of record.
+*)
+
+PROCEDURE MakeComponentRecord (Mode: ModeOfAddr; record: CARDINAL) : CARDINAL ;
+BEGIN
+   RETURN( buildTemporary(Mode, TRUE, record) )
+END MakeComponentRecord ;
+
+
+(*
+   IsComponent - returns TRUE if symbol, sym, is a temporary and a component
+                 reference.
+*)
+
+PROCEDURE IsComponent (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      VarSym:   RETURN( Var.IsComponentRef )
+
+      ELSE
+         RETURN( FALSE )
+      END
+   END
+END IsComponent ;
+
+
+(*
+   MakeTemporary - Makes a new temporary variable at the highest real scope.
+                   The addressing mode of the temporary is set to NoValue.
+*)
+
+PROCEDURE MakeTemporary (Mode: ModeOfAddr) : CARDINAL ;
+BEGIN
+   RETURN( buildTemporary(Mode, FALSE, NulSym) )
 END MakeTemporary ;
 
 
@@ -5830,6 +5975,7 @@ BEGIN
          CASE SymbolType OF
 
          VarSym : Var.AddrMode := mode ;
+                  Var.IsComponentRef := FALSE ;
                   Var.IsTemp := TRUE ;       (* Variable is a temporary var *)
                   InitWhereDeclared(Var.At)  (* Declared here               *)
 
