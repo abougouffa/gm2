@@ -1,3 +1,8 @@
+2012-04-30      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  (BuildRecord) fixed bit
+	  field calculation.
+
 2012-04-28      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Range.mod:  (firstmention) New field

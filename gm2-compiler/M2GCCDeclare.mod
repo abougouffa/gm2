@@ -150,7 +150,8 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    GetM2ShortIntType, GetM2ShortCardType,
                    GetM2RealType, GetM2ShortRealType, GetM2LongRealType,
                    GetProcType, GetCardinalType, GetWordType, GetByteType,
-                   GetBitsetType, GetBitnumType, GetMinFrom, GetMaxFrom, GetBitsPerInt, GetBitsPerBitset,
+                   GetBitsetType, GetBitnumType, GetMinFrom, GetMaxFrom,
+                   GetBitsPerInt, GetBitsPerBitset,
                    GetM2IntegerType, GetM2CardinalType, GetPointerZero,
                    GetISOLocType, GetISOByteType, GetISOWordType,
                    BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
@@ -161,7 +162,7 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildStartFieldVarient, BuildEndFieldVarient,
                    BuildFieldRecord,
                    BuildArrayIndexType, BuildStartArrayType, BuildEndArrayType, BuildSetType,
-                   BuildAdd, BuildSub, BuildLSL,
+                   BuildAdd, BuildSub, BuildLSL, BuildDivTrunc, BuildModTrunc,
                    DebugTree, GetDeclContext,
                    ChainOn,
                    BuildPointerType, BuildConstPointerType, BuildConvert, SetAlignment,
@@ -4218,14 +4219,18 @@ BEGIN
          ELSIF IsVarient(Field)
          THEN
             Field := Chained(Field) ;
-            field := Mod2Gcc(Field) ;  (* BuildFieldRecord(KeyToCharStar(GetFullSymName(Field)), Mod2Gcc(Field)) ; *)  (* xxx *)
+            field := Mod2Gcc(Field) ;
             IF IsDeclaredPacked(Field)
             THEN
                field := SetDeclPacked(field) ;
                ftype := GetPackedType(GetType(Field)) ;
                nbits := BuildTBitSize(ftype) ;
                field := SetRecordFieldOffset(field, byteOffset, bitOffset, ftype, nbits) ;
-               bitOffset := BuildAdd(bitOffset, GetIntegerOne(), FALSE)   (* --fixme-- *)
+               bitOffset := BuildAdd(bitOffset, nbits, FALSE) ;
+               byteOffset := BuildAdd(byteOffset,
+                                      BuildDivTrunc(bitOffset, BuildIntegerConstant(8), FALSE),
+                                      FALSE) ;
+               bitOffset := BuildModTrunc(bitOffset, BuildIntegerConstant(8), FALSE)
             END ;
             FieldList := ChainOn(FieldList, field)
          ELSE
