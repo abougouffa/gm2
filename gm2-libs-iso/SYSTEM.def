@@ -22,7 +22,7 @@ EXPORT QUALIFIED BITSPERLOC, LOCSPERWORD,
                  (* Internal GM2 compiler functions *)
                  ShiftVal, ShiftLeft, ShiftRight,
                  RotateVal, RotateLeft, RotateRight,
-                 THROW ;
+                 THROW, TBITSIZE ;
 
 CONST
                   (* <implementation-defined constant> ; *)

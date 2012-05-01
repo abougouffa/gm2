@@ -29,7 +29,7 @@ DEFINITION MODULE SYSTEM ;
 
 EXPORT QUALIFIED BITSPERBYTE, BYTESPERWORD,
                  ADDRESS, WORD, BYTE, (* @SYSTEM_DATATYPES@ *)
-                 ADR, TSIZE, ROTATE, SHIFT, THROW ;
+                 ADR, TSIZE, ROTATE, SHIFT, THROW, TBITSIZE ;
                  (* SIZE is also exported if -fpim2 is used *)
 
 CONST

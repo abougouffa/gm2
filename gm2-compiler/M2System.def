@@ -48,6 +48,7 @@ EXPORT QUALIFIED
                  Shift,            (* ISO specific System Function *)
                  Cast,             (* ISO specific System Function *)
                  Throw,            (* GNU Modula-2 extension *)
+                 TBitSize,         (* GNU Modula-2 extension *)
 
                  GetSystemTypeMinMax,
                  IsPseudoSystemFunction, IsPseudoSystemProcedure,
@@ -69,7 +70,7 @@ VAR
    Address,
 
    Adr,
-   TSize,
+   TSize, TBitSize,
    AddAdr, SubAdr,
    DifAdr, MakeAdr,
    Rotate, Shift,
@@ -95,14 +96,14 @@ PROCEDURE GetSystemTypeMinMax (type: CARDINAL; VAR min, max: CARDINAL) ;
    IsPseudoSystemFunction - returns true if Sym is a SYSTEM pseudo function.
 *)
 
-PROCEDURE IsPseudoSystemFunction (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsPseudoSystemFunction (sym: CARDINAL) : BOOLEAN ;
 
 
 (*
    IsPseudoSystemProcedure - returns true if Sym is a SYSTEM pseudo procedure.
 *)
 
-PROCEDURE IsPseudoSystemProcedure (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsPseudoSystemProcedure (sym: CARDINAL) : BOOLEAN ;
 
 
 (*
@@ -110,7 +111,7 @@ PROCEDURE IsPseudoSystemProcedure (Sym: CARDINAL) : BOOLEAN ;
                                            is legal in a constant expression.
 *)
 
-PROCEDURE IsPseudoSystemFunctionConstExpression (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsPseudoSystemFunctionConstExpression (sym: CARDINAL) : BOOLEAN ;
 
 
 (*
@@ -118,7 +119,7 @@ PROCEDURE IsPseudoSystemFunctionConstExpression (Sym: CARDINAL) : BOOLEAN ;
                   It does not search your SYSTEM implementation module.
 *)
 
-PROCEDURE IsSystemType (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsSystemType (sym: CARDINAL) : BOOLEAN ;
 
 
 (*
@@ -170,52 +171,52 @@ PROCEDURE ComplexN (bitlength: CARDINAL) : CARDINAL ;
 
 
 (*
-   IsIntegerN - returns the TRUE if, Sym, is one of the SYSTEM
+   IsIntegerN - returns the TRUE if, sym, is one of the SYSTEM
                 INTEGER types (not the base INTEGER type).
 *)
 
-PROCEDURE IsIntegerN (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsIntegerN (sym: CARDINAL) : BOOLEAN ;
 
 
 (*
-   IsCardinalN - returns the TRUE if, Sym, is one of the SYSTEM
+   IsCardinalN - returns the TRUE if, sym, is one of the SYSTEM
                  CARDINAL types (not the base CARDINAL type).
 *)
 
-PROCEDURE IsCardinalN (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsCardinalN (sym: CARDINAL) : BOOLEAN ;
 
 
 (*
-   IsWordN - returns the TRUE if, Sym, is one of the SYSTEM
+   IsWordN - returns the TRUE if, sym, is one of the SYSTEM
              WORD[n] types (not the default SYSTEM WORD type).
 *)
 
-PROCEDURE IsWordN (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsWordN (sym: CARDINAL) : BOOLEAN ;
 
 
 (*
-   IsSetN - returns the TRUE if, Sym, is one of the SYSTEM
+   IsSetN - returns the TRUE if, sym, is one of the SYSTEM
             SET[n] types (not the default SYSTEM BITSET type).
 *)
 
-PROCEDURE IsSetN (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsSetN (sym: CARDINAL) : BOOLEAN ;
 
 
 (*
-   IsRealN - returns the TRUE if, Sym, is one of the SYSTEM
+   IsRealN - returns the TRUE if, sym, is one of the SYSTEM
              REAL[n] types (not the default base REAL type).
 *)
 
-PROCEDURE IsRealN (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsRealN (sym: CARDINAL) : BOOLEAN ;
 
 
 (*
-   IsComplexN - returns the TRUE if, Sym, is one of the SYSTEM
+   IsComplexN - returns the TRUE if, sym, is one of the SYSTEM
                 COMPLEX[n] types (not the default base COMPLEX,
                 LONGCOMPLEX or SHORTCOMPLEX types).
 *)
 
-PROCEDURE IsComplexN (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsComplexN (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

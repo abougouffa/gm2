@@ -101,7 +101,8 @@ EXPORT QUALIFIED Tree, Constructor,
                  BuildLogicalOr, BuildLogicalAnd,
                  BuildSymmetricDifference, BuildLogicalDifference,
                  BuildConvert, BuildCoerce,
-                 BuildAddr, BuildNegate, BuildSetNegate, BuildSize,
+                 BuildAddr, BuildNegate, BuildSetNegate,
+                 BuildSize, BuildTBitSize,
                  BuildOffset, BuildOffset1, BuildTrunc,
                  BuildGoto, DeclareLabel,
                  BuildLessThan, BuildGreaterThan,
@@ -151,7 +152,6 @@ EXPORT QUALIFIED Tree, Constructor,
                  SetFlagUnitAtATime, MarkFunctionReferenced,
                  SetAlignment, BuildNumberOfArrayElements,
                  SetDeclPacked, SetTypePacked, SetRecordFieldOffset,
-                 BuildTBitSize,
                  InitSystemTypes ;
 
 

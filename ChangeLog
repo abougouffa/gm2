@@ -1,3 +1,15 @@
+2012-05-01      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeStandardFunction) implement
+	  TBITSIZE.  (FoldStandardFunction) implement TBITSIZE.
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildTBitSizeFunction) New
+	  procedure function.
+	* gm2/gm2-compiler/M2System.def:  (TBitSize) define and export.
+	  Tidied up formatting (sym used instead of Sym).
+	* gm2/gm2-compiler/M2System.mod:  initialise TBitSize.
+	  Tidied up formatting (sym used instead of Sym).
+	  (IsPseudoSystemFunction) includes TBitSize.
+
 2012-04-30      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  (BuildRecord) fixed bit

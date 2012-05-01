@@ -163,8 +163,8 @@ FROM M2System IMPORT IsPseudoSystemFunction, IsPseudoSystemProcedure,
                      IsSystemType, GetSystemTypeMinMax,
                      IsPseudoSystemFunctionConstExpression,
                      IsGenericSystemType,
-                     Adr, TSize, AddAdr, SubAdr, DifAdr, Cast, Shift, Rotate,
-                     MakeAdr, Address, Byte, Word, Loc, Throw ;
+                     Adr, TSize, TBitSize, AddAdr, SubAdr, DifAdr, Cast,
+                     Shift, Rotate, MakeAdr, Address, Byte, Word, Loc, Throw ;
 
 FROM M2Size IMPORT Size ;
 FROM M2Bitset IMPORT Bitset ;
@@ -437,6 +437,7 @@ PROCEDURE BuildRealProcedureCall ; FORWARD ;
 PROCEDURE BuildSizeFunction ; FORWARD ;
 PROCEDURE BuildStaticArray ; FORWARD ;
 PROCEDURE BuildTSizeFunction ; FORWARD ;
+PROCEDURE BuildTBitSizeFunction ; FORWARD ;
 PROCEDURE BuildTypeCoercion ; FORWARD ;
 PROCEDURE BuildValFunction ; FORWARD ;
 PROCEDURE CheckBooleanId ; FORWARD ;
@@ -6950,6 +6951,9 @@ BEGIN
    ELSIF ProcSym=TSize
    THEN
       BuildTSizeFunction
+   ELSIF ProcSym=TBitSize
+   THEN
+      BuildTBitSizeFunction
    ELSIF ProcSym=Convert
    THEN
       BuildConvertFunction
@@ -9123,6 +9127,73 @@ BEGIN
    PopN(NoOfParam+1) ;       (* destroy the arguments and function *)
    PushTF(ReturnVar, GetType(ProcSym))
 END BuildTSizeFunction ;
+
+
+(*
+   BuildTBitSizeFunction - builds the pseudo function TBITSIZE
+                           The Stack:
+
+
+                           Entry                      Exit
+
+                   Ptr ->
+                           +----------------+
+                           | NoOfParam      |  
+                           |----------------|
+                           | Param 1        |  
+                           |----------------|
+                           | Param 2        |  
+                           |----------------|
+                           .                .  
+                           .                .  
+                           .                .  
+                           |----------------|
+                           | Param #        |                        <- Ptr
+                           |----------------|         +------------+
+                           | ProcSym | Type |         | ReturnVar  |
+                           |----------------|         |------------|
+
+*)
+
+PROCEDURE BuildTBitSizeFunction ;
+VAR
+   t, f        : CARDINAL ;
+   i, NoOfParam: CARDINAL ;
+   ti, tj,
+   ProcSym,
+   Record,
+   ReturnVar   : CARDINAL ;
+BEGIN
+   PopT(NoOfParam) ;
+   ProcSym := OperandT(NoOfParam+1) ;
+   IF NoOfParam=1
+   THEN
+      IF IsAModula2Type(OperandT(1))
+      THEN
+         ReturnVar := MakeTemporary(ImmediateValue) ;
+         GenQuad(StandardFunctionOp, ReturnVar, ProcSym, OperandT(1)) ;
+      ELSIF IsVar(OperandT(1))
+      THEN
+         ReturnVar := MakeTemporary(ImmediateValue) ;
+         GenQuad(StandardFunctionOp, ReturnVar, ProcSym, OperandT(1)) ;
+      ELSE
+         WriteFormat0('SYSTEM procedure TBITSIZE expects the first parameter to be a type or variable') ;
+         ReturnVar := MakeConstLit(MakeKey('0'))
+      END
+   ELSE
+      Record := OperandT(NoOfParam) ;
+      IF IsRecord(Record)
+      THEN
+         ReturnVar := MakeTemporary(ImmediateValue) ;
+         GenQuad(StandardFunctionOp, ReturnVar, ProcSym, OperandT(1)) ;
+      ELSE
+         WriteFormat0('SYSTEM procedure TBITSIZE expects the first parameter to be a record type') ;
+         ReturnVar := MakeConstLit(MakeKey('0'))
+      END
+   END ;
+   PopN(NoOfParam+1) ;       (* destroy the arguments and function *)
+   PushTF(ReturnVar, GetType(ProcSym))
+END BuildTBitSizeFunction ;
 
 
 (*

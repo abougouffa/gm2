@@ -96,7 +96,7 @@ FROM M2Bitset IMPORT Bitset ;
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, LengthKey, makekey, NulName ;
 FROM DynamicStrings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark, Slice, ConCat ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3, Sprintf4 ;
-FROM M2System IMPORT Address, Word, System, MakeAdr, IsSystemType, IsGenericSystemType, IsRealN, IsComplexN, IsSetN ;
+FROM M2System IMPORT Address, Word, System, TBitSize, MakeAdr, IsSystemType, IsGenericSystemType, IsRealN, IsComplexN, IsSetN ;
 FROM M2FileName IMPORT CalculateFileName ;
 FROM M2AsmUtil IMPORT GetModuleInitName, GetModuleFinallyName ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
@@ -158,7 +158,8 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
                    BuildLogicalDifference,
                    BuildLogicalShift, BuildLogicalRotate,
-                   BuildNegate, BuildAddr, BuildSize, BuildOffset, BuildOffset1,
+                   BuildNegate, BuildAddr, BuildSize, BuildTBitSize,
+                   BuildOffset, BuildOffset1,
                    BuildGoto, DeclareLabel, StringLength,
                    BuildLessThan, BuildGreaterThan,
                    BuildLessThanOrEqual, BuildGreaterThanOrEqual,
@@ -3377,8 +3378,17 @@ BEGIN
             END
          END
       END
+   ELSIF op2=TBitSize
+   THEN
+      IF GccKnowsAbout(op3)
+      THEN
+         AddModGcc(op1, BuildTBitSize(Mod2Gcc(op3))) ;
+         p(op1) ;
+         NoChange := FALSE ;
+         SubQuad(quad)
+      END
    ELSE
-      InternalError('only expecting LENGTH, CAP, ABS, IM, RE or CMPLX as a standard function',
+      InternalError('only expecting LENGTH, CAP, ABS, IM, RE, CMPLX or TBITSIZE as a standard function',
                     __FILE__, __LINE__)
    END
 END FoldStandardFunction ;
@@ -3478,8 +3488,17 @@ BEGIN
                                                               Mod2Gcc(GetNth(op3, 2))))
          END
       END
+   ELSIF op2=TBitSize
+   THEN
+      IF IsConst(op1)
+      THEN
+         InternalError('TBITSIZE function should already have been folded',
+                       __FILE__, __LINE__)
+      ELSE
+         t := BuildAssignmentTree(Mod2Gcc(op1), BuildTBitSize(Mod2Gcc(op3)))
+      END
    ELSE
-      InternalError('expecting LENGTH, CAP, ABS, IM, RE or CMPLX as a standard function',
+      InternalError('expecting LENGTH, CAP, ABS, IM, RE CMPLX or TBITSIZE as a standard function',
                     __FILE__, __LINE__)
    END
 END CodeStandardFunction ;
