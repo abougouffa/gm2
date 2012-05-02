@@ -4,6 +4,7 @@
 	  gccgm2_BuildEqualTo, gccgm2_BuildNotEqualTo use
 	  convert_for_comparison.  This fixes comparison between a
 	  WORD operand.  Bug reported by Scott Iverson.
+	* gm2/gccgm2.c:  applied fix for all WORD sizes.
 
 2012-05-01      Gaius Mulley <gaius@gnu.org>
 

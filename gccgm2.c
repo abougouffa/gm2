@@ -877,6 +877,7 @@ static tree                   noBitsRequired                              (tree 
        tree                   gccgm2_BuildStartVarient (char *name);
        tree                   gccgm2_BuildStartFieldRecord (char *name, tree type);
 static tree                   convert_for_comparison (tree op);
+static tree                   check_for_comparison (tree op, tree badType, tree goodType);
   /* PROTOTYPES: ADD HERE */
   
   
@@ -9560,6 +9561,22 @@ boolean_enum_to_unsigned (tree t)
 }
 
 /*
+ *  check_for_comparison - checks to see if, op, is of type, badType.
+ *                         If so then it returns op after it has been
+ *                         cast to, goodType.  op will be an array
+ *                         so we take the address and cast the contents.
+ */
+
+static tree
+check_for_comparison (tree op, tree badType, tree goodType)
+{
+  if (skip_type_decl (TREE_TYPE (op)) == badType)
+    /* cannot compare array contents in build_binary_op */
+    return gccgm2_BuildIndirect (gccgm2_BuildAddr (op, FALSE), goodType);
+  return op;
+}
+
+/*
  *  convert_for_comparison - returns a tree which can be used as an argument
  *                           during a comparison.
  */
@@ -9568,9 +9585,11 @@ static tree
 convert_for_comparison (tree op)
 {
   op = boolean_enum_to_unsigned (op);
-  if (skip_type_decl (TREE_TYPE (op)) == gccgm2_GetISOWordType ())
-    /* cannot compare array contents in build_binary_op */
-    return gccgm2_BuildIndirect (gccgm2_BuildAddr (op, FALSE), gccgm2_GetWordType ());
+
+  op = check_for_comparison (op, gccgm2_GetISOWordType (), gccgm2_GetWordType ());
+  op = check_for_comparison (op, gccgm2_GetM2Word16 (), gccgm2_GetM2Cardinal16 ());
+  op = check_for_comparison (op, gccgm2_GetM2Word32 (), gccgm2_GetM2Cardinal32 ());
+  op = check_for_comparison (op, gccgm2_GetM2Word64 (), gccgm2_GetM2Cardinal64 ());
 
   return op;
 }
