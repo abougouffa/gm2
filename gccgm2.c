@@ -876,6 +876,7 @@ static tree                   noBitsRequired                              (tree 
        tree                   gccgm2_BuildEndVarient (tree varientField, tree varientList, int isPacked);
        tree                   gccgm2_BuildStartVarient (char *name);
        tree                   gccgm2_BuildStartFieldRecord (char *name, tree type);
+static tree                   convert_for_comparison (tree op);
   /* PROTOTYPES: ADD HERE */
   
   
@@ -9559,6 +9560,22 @@ boolean_enum_to_unsigned (tree t)
 }
 
 /*
+ *  convert_for_comparison - returns a tree which can be used as an argument
+ *                           during a comparison.
+ */
+
+static tree
+convert_for_comparison (tree op)
+{
+  op = boolean_enum_to_unsigned (op);
+  if (skip_type_decl (TREE_TYPE (op)) == gccgm2_GetISOWordType ())
+    /* cannot compare array contents in build_binary_op */
+    return gccgm2_BuildIndirect (gccgm2_BuildAddr (op, FALSE), gccgm2_GetWordType ());
+
+  return op;
+}
+
+/*
  *  BuildLessThan - return a tree which computes <
  */
 
@@ -9617,10 +9634,9 @@ tree
 gccgm2_BuildEqualTo (tree op1, tree op2)
 {
   return build_binary_op (EQ_EXPR,
-                          boolean_enum_to_unsigned (op1),
-                          boolean_enum_to_unsigned (op2), 0);
+			  convert_for_comparison (op1),
+                          convert_for_comparison (op2), 0);
 }
-
 
 /*
  *  BuildEqualNotTo - return a tree which computes #
@@ -9630,8 +9646,8 @@ tree
 gccgm2_BuildNotEqualTo (tree op1, tree op2)
 {
   return build_binary_op (NE_EXPR,
-                          boolean_enum_to_unsigned (op1),
-                          boolean_enum_to_unsigned (op2), 0);
+                          convert_for_comparison (op1),
+			  convert_for_comparison (op2), 0);
 }
 
 /*
