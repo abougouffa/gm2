@@ -2548,9 +2548,9 @@ BEGIN
    E(card16      , '. . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F F') ;
    E(card32      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F') ;
    E(card64      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F') ;
-   E(word16      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F') ;
-   E(word32      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F') ;
-   E(word64      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F') ;
+   E(word16      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . F F F F F F F F F F F F F F F F F F') ;
+   E(word32      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . F F F F F F F F F F F F F F F F F') ;
+   E(word64      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . F F F F F F F F F F F F F F F F') ;
    E(real32      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F') ;
    E(real64      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F') ;
    E(real96      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F') ;

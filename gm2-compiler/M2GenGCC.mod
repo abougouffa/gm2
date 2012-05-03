@@ -96,7 +96,7 @@ FROM M2Bitset IMPORT Bitset ;
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, LengthKey, makekey, NulName ;
 FROM DynamicStrings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark, Slice, ConCat ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3, Sprintf4 ;
-FROM M2System IMPORT Address, Word, System, TBitSize, MakeAdr, IsSystemType, IsGenericSystemType, IsRealN, IsComplexN, IsSetN ;
+FROM M2System IMPORT Address, Word, System, TBitSize, MakeAdr, IsSystemType, IsGenericSystemType, IsRealN, IsComplexN, IsSetN, IsWordN, Loc, Byte ;
 FROM M2FileName IMPORT CalculateFileName ;
 FROM M2AsmUtil IMPORT GetModuleInitName, GetModuleFinallyName ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
@@ -3040,6 +3040,39 @@ END CodeBinarySet ;
 
 
 (*
+   BinaryOperands - returns TRUE if, l, and, r, are acceptable for
+                    binary operator: + - / * and friends.  If FALSE
+                    is returned, an error message will be generated
+                    and the, quad, is deleted.
+*)
+
+PROCEDURE BinaryOperands (quad: CARDINAL; l, r: CARDINAL) : BOOLEAN ;
+VAR
+   tl, tr: CARDINAL ;
+   ok    : BOOLEAN ;
+BEGIN
+   ok := TRUE ;
+   tl := SkipType(GetType(l)) ;
+   tr := SkipType(GetType(r)) ;
+   IF (Word=tl) OR IsWordN(tl) OR (Byte=tl) OR (Loc=tl)
+   THEN
+      MetaErrorT1(QuadToTokenNo(quad), 'operand of type {%1ts} is not allowed in a binary expression', l) ;
+      ok := FALSE
+   END ;
+   IF (Word=tr) OR IsWordN(tr) OR (Byte=tl) OR (Loc=tl)
+   THEN
+      MetaErrorT1(QuadToTokenNo(quad), 'operand of type {%1ts} is not allowed in a binary expression', r) ;
+      ok := FALSE
+   END ;
+   IF NOT ok
+   THEN
+      SubQuad(quad)   (* we do not want multiple copies of the same error *)
+   END ;
+   RETURN( ok )
+END BinaryOperands ;
+
+
+(*
    FoldAdd - check addition for constant folding.
 *)
 
@@ -3061,7 +3094,10 @@ BEGIN
       SubQuad(quad) ;
       s := KillString(s)
    ELSE
-      FoldBinary(tokenno, p, BuildAdd, quad, op1, op2, op3)
+      IF BinaryOperands(quad, op2, op3)
+      THEN
+         FoldBinary(tokenno, p, BuildAdd, quad, op1, op2, op3)
+      END
    END
 END FoldAdd ;
 
@@ -3072,7 +3108,10 @@ END FoldAdd ;
 
 PROCEDURE CodeAdd (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinary(BuildAdd, quad, op1, op2, op3)
+   IF BinaryOperands(quad, op2, op3)
+   THEN
+      CodeBinary(BuildAdd, quad, op1, op2, op3)
+   END
 END CodeAdd ;
 
 
@@ -3083,7 +3122,10 @@ END CodeAdd ;
 PROCEDURE FoldSub (tokenno: CARDINAL; p: WalkAction;
                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, p, BuildSub, quad, op1, op2, op3)
+   IF BinaryOperands(quad, op2, op3)
+   THEN
+      FoldBinary(tokenno, p, BuildSub, quad, op1, op2, op3)
+   END
 END FoldSub ;
 
 
@@ -3093,7 +3135,10 @@ END FoldSub ;
 
 PROCEDURE CodeSub (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinary(BuildSub, quad, op1, op2, op3)
+   IF BinaryOperands(quad, op2, op3)
+   THEN
+      CodeBinary(BuildSub, quad, op1, op2, op3)
+   END
 END CodeSub ;
 
 
@@ -3104,7 +3149,10 @@ END CodeSub ;
 PROCEDURE FoldMult (tokenno: CARDINAL; p: WalkAction;
                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, p, BuildMult, quad, op1, op2, op3)
+   IF BinaryOperands(quad, op2, op3)
+   THEN
+      FoldBinary(tokenno, p, BuildMult, quad, op1, op2, op3)
+   END
 END FoldMult ;
 
 
@@ -3114,7 +3162,10 @@ END FoldMult ;
 
 PROCEDURE CodeMult (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinary(BuildMult, quad, op1, op2, op3)
+   IF BinaryOperands(quad, op2, op3)
+   THEN
+      CodeBinary(BuildMult, quad, op1, op2, op3)
+   END
 END CodeMult ;
 
 
@@ -3125,7 +3176,10 @@ END CodeMult ;
 PROCEDURE FoldDivTrunc (tokenno: CARDINAL; p: WalkAction;
                         quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, p, BuildDivTrunc, quad, op1, op2, op3)
+   IF BinaryOperands(quad, op2, op3)
+   THEN
+      FoldBinary(tokenno, p, BuildDivTrunc, quad, op1, op2, op3)
+   END
 END FoldDivTrunc ;
 
 
@@ -3135,7 +3189,10 @@ END FoldDivTrunc ;
 
 PROCEDURE CodeDivTrunc (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinary(BuildDivTrunc, quad, op1, op2, op3)
+   IF BinaryOperands(quad, op2, op3)
+   THEN
+      CodeBinary(BuildDivTrunc, quad, op1, op2, op3)
+   END
 END CodeDivTrunc ;
 
 
@@ -3146,7 +3203,10 @@ END CodeDivTrunc ;
 PROCEDURE FoldModTrunc (tokenno: CARDINAL; p: WalkAction;
                         quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, p, BuildModTrunc, quad, op1, op2, op3)
+   IF BinaryOperands(quad, op2, op3)
+   THEN
+      FoldBinary(tokenno, p, BuildModTrunc, quad, op1, op2, op3)
+   END
 END FoldModTrunc ;
 
 
@@ -3156,7 +3216,10 @@ END FoldModTrunc ;
 
 PROCEDURE CodeModTrunc (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinary(BuildModTrunc, quad, op1, op2, op3)
+   IF BinaryOperands(quad, op2, op3)
+   THEN
+      CodeBinary(BuildModTrunc, quad, op1, op2, op3)
+   END
 END CodeModTrunc ;
 
 
@@ -3167,7 +3230,10 @@ END CodeModTrunc ;
 PROCEDURE FoldDivFloor (tokenno: CARDINAL; p: WalkAction;
                         quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, p, BuildDivFloor, quad, op1, op2, op3)
+   IF BinaryOperands(quad, op2, op3)
+   THEN
+      FoldBinary(tokenno, p, BuildDivFloor, quad, op1, op2, op3)
+   END
 END FoldDivFloor ;
 
 
@@ -3177,7 +3243,10 @@ END FoldDivFloor ;
 
 PROCEDURE CodeDivFloor (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinary(BuildDivFloor, quad, op1, op2, op3)
+   IF BinaryOperands(quad, op2, op3)
+   THEN
+      CodeBinary(BuildDivFloor, quad, op1, op2, op3)
+   END
 END CodeDivFloor ;
 
 
@@ -3188,7 +3257,10 @@ END CodeDivFloor ;
 PROCEDURE FoldModFloor (tokenno: CARDINAL; p: WalkAction;
                         quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, p, BuildModFloor, quad, op1, op2, op3)
+   IF BinaryOperands(quad, op2, op3)
+   THEN
+      FoldBinary(tokenno, p, BuildModFloor, quad, op1, op2, op3)
+   END
 END FoldModFloor ;
 
 
@@ -3198,7 +3270,10 @@ END FoldModFloor ;
 
 PROCEDURE CodeModFloor (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinary(BuildModFloor, quad, op1, op2, op3)
+   IF BinaryOperands(quad, op2, op3)
+   THEN
+      CodeBinary(BuildModFloor, quad, op1, op2, op3)
+   END
 END CodeModFloor ;
 
 

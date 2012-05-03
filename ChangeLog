@@ -1,3 +1,9 @@
+2012-05-03      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  (BinaryOperands) New procedure function.
+	  Used by FoldAdd, CodeAdd, FoldSub, CodeSub, FoldMult, CodeMult,
+	  FoldDivTrunc, CodeDivTrunc, FoldModFloor, CodeModFloor.
+
 2012-05-02      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  (convert_for_comparison) New function.
