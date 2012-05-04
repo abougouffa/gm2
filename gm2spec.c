@@ -140,6 +140,7 @@ static object_list *head_objects = NULL;
 static object_list *head_link_args = NULL;
 static int inclPos=-1;
 static int linkPos=-1;
+static int seen_fonlylink = FALSE;
 static int seen_fmakeall0 = FALSE;
 static int seen_fmakeall = FALSE;
 static int seen_B = FALSE;
@@ -870,6 +871,8 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   while (i<*in_argc) {
     if (strcmp((*in_argv)[i], "-fno-exceptions") == 0)
       seen_fno_exceptions = TRUE;
+    if (strcmp((*in_argv)[i], "-fonlylink") == 0)
+      seen_fonlylink = TRUE;
     if (strcmp((*in_argv)[i], "-fmakeall") == 0)
       seen_fmakeall = TRUE;
     if (strcmp((*in_argv)[i], "-fmakeall0") == 0)
@@ -877,6 +880,15 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     if (strlen((*in_argv)[i]) >= 1 && strncmp((*in_argv)[i], "-B", 2) == 0)
       seen_B = TRUE;
     i++;
+  }
+  /*
+   *  -fmakeall implies that the first invoked driver only does the link and should
+   *  leave all compiles to the makefile otherwise we will try and link two main
+   *  applications.
+   */
+  if (seen_fmakeall && (! seen_fonlylink)) {
+    insert_arg (1, in_argc, (char ***)in_argv);
+    add_arg(1, (char ***)in_argv, "-fonlylink");
   }
 
   check_gm2_root ();

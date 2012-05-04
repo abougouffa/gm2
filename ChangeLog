@@ -1,3 +1,11 @@
+2012-05-04      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2spec.c:  detect -fonlylink.  Ensure that -fonlylink is
+	  present on the command line if -fmakeall is used.  Otherwise
+	  the driver will compile and link the main module object together
+	  with the main module compiled via the make.  Fixes a bug reported
+	  by Scott Iverson, linking a shared library.
+
 2012-05-03      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  (BinaryOperands) New procedure function.
