@@ -2405,18 +2405,27 @@ END CodeFunctValue ;
 
 PROCEDURE CodeAddr (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t: Tree ;
-   s: String ;
+   value,
+   t    : Tree ;
+   s    : String ;
+   type : CARDINAL ;
 BEGIN
    IF IsConst(op3) AND (NOT IsConstString(op3))
    THEN
       MetaErrorT1(CurrentQuadToken, 'error in expression, trying to find the address of a constant {%1ad}', op3)
    ELSE
+      type := SkipType(GetType(op3)) ;
       DeclareConstant(CurrentQuadToken, op3) ;  (* we might be asked to find the address of a constant string *)
       DeclareConstructor(quad, op3) ;
+      IF type=Char
+      THEN
+         value := BuildStringConstant(KeyToCharStar(GetString(op3)), GetStringLength(op3))
+      ELSE
+         value := Mod2Gcc(op3)
+      END ;
       t := BuildAssignmentTree(Mod2Gcc(op1),
                                BuildConvert(GetPointerType(),
-                                            BuildAddr(Mod2Gcc(op3), FALSE), FALSE))
+                                            BuildAddr(value, FALSE), FALSE))
    END
 END CodeAddr ;
 

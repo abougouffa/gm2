@@ -1,3 +1,9 @@
+2012-06-28      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  CodeAddr can now obtain the
+	  address of CHAR constants.  Fixes a bug reported by Scott
+	  Iverson.
+
 2012-05-04      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2spec.c:  detect -fonlylink.  Ensure that -fonlylink is
