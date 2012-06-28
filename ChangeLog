@@ -3,6 +3,9 @@
 	* gm2/gm2-compiler/M2GenGCC.mod:  CodeAddr can now obtain the
 	  address of CHAR constants.  Fixes a bug reported by Scott
 	  Iverson.
+	* gm2/gm2-compiler/M2GenGCC.mod:  corrected CodeAddr to ensure
+	  that the address of a char is only converted into address of
+	  a string for constants.
 
 2012-05-04      Gaius Mulley <gaius@gnu.org>
 
