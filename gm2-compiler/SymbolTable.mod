@@ -25,7 +25,7 @@ FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM M2Debug IMPORT Assert ;
 
 IMPORT Indexing ;
-FROM Indexing IMPORT InitIndex, InBounds, HighIndice, PutIndice, GetIndice ;
+FROM Indexing IMPORT InitIndex, InBounds, LowIndice, HighIndice, PutIndice, GetIndice ;
 FROM Sets IMPORT Set, InitSet, IncludeElementIntoSet, IsElementInSet ;
 
 FROM M2Options IMPORT Pedantic, ExtendedOpaque ;
@@ -756,6 +756,8 @@ TYPE
 
    PtrToSymbol = POINTER TO Symbol ;
    PtrToCallFrame = POINTER TO CallFrame ;
+
+   CheckProcedure = PROCEDURE (CARDINAL) ;
 
 VAR
    Symbols       : Indexing.Index ;       (* ARRAY [1..MaxSymbols] OF Symbol.   *)
@@ -9319,6 +9321,55 @@ END IsSet ;
 
 
 (*
+   ForeachParameterDo - 
+*)
+
+PROCEDURE ForeachParameterDo (p: CheckProcedure) ;
+VAR
+   l, h: CARDINAL ;
+BEGIN
+   l := LowIndice(Symbols) ;
+   h := HighIndice(Symbols) ;
+   WHILE l<=h DO
+      IF IsParameter(l)
+      THEN
+         p(l)
+      END ;
+      INC(l)
+   END
+END ForeachParameterDo ;
+
+
+(*
+   CheckUnbounded - checks to see if parameter, Sym, is now an unbounded parameter.
+*)
+
+PROCEDURE CheckUnbounded (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   CheckLegal(Sym) ;
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      ParamSym   :   IF IsUnbounded(Param.Type)
+                     THEN
+                        Param.IsUnbounded := TRUE
+                     END |
+      VarParamSym:   IF IsUnbounded(VarParam.Type)
+                     THEN
+                        VarParam.IsUnbounded := TRUE
+                     END
+
+      ELSE
+         HALT
+      END
+   END
+END CheckUnbounded ;
+
+
+(*
    IsOAFamily - returns TRUE if, Sym, is an OAFamily symbol.
 *)
 
@@ -9512,7 +9563,8 @@ BEGIN
             END ;
             Dimensions := ndim
          END
-      END
+      END ;
+      ForeachParameterDo(CheckUnbounded)
    END
 END FillInUnboundedFields ;
 

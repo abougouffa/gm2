@@ -1,4 +1,4 @@
-(* Copyright (C) 2008, 2009, 2010
+(* Copyright (C) 2008, 2009, 2010, 2011, 2012
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 

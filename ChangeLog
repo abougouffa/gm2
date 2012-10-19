@@ -1,3 +1,10 @@
+2012-09-19      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/SymbolTable.mod:  bug fix to fix up all
+	  unbounded parameter types if they are produced via partial
+	  unbounded symbols.  Fixes a bug exposed by macroObjects.mod
+	  in a new example directory.
+
 2012-06-28      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  CodeAddr can now obtain the
