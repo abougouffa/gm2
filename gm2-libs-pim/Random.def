@@ -28,8 +28,7 @@ DEFINITION MODULE Random ;
 *)
 
 FROM SYSTEM IMPORT BYTE ;
-EXPORT QUALIFIED Randomize, RandomInit, RandomCard, RandomInt, RandomReal ;
-
+EXPORT QUALIFIED Randomize, RandomInit, RandomBytes, RandomCard, RandomInt, RandomReal, RandomLongReal ;
 
 
 (*

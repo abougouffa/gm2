@@ -1,3 +1,8 @@
+2012-11-21      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-pim/Random.def:  export RandomLongReal and
+	  RandomBytes.  Fixes a bug reported by Steve Giess.
+
 2012-09-19      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/SymbolTable.mod:  bug fix to fix up all
