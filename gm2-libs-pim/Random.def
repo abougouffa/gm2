@@ -50,7 +50,7 @@ PROCEDURE RandomInit (seed: CARDINAL) ;
    RandomBytes - fills in an array with random values.
 *)
 
-PROCEDURE RandomBytes (a: ARRAY OF BYTE) ;
+PROCEDURE RandomBytes (VAR a: ARRAY OF BYTE) ;
 
 
 (*

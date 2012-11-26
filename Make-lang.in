@@ -1208,11 +1208,6 @@ GM2-VERIFY-MODS    = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
 GM2-VERIFY-AUTO    = P1SyntaxCheck.mod P2Build.mod     PCBuild.mod     P3Build.mod     \
                      PHBuild.mod       gm2l.mod        gm2m.mod        pg.mod
 
-
-#
-# the ISO implementation modules are still being written
-#
-
 GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ClientSocket.mod \
                      ComplexMath.mod \
                      ConvStringReal.mod                ConvStringLong.mod \
@@ -1228,6 +1223,7 @@ GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ClientSocket.mod \
                      LowLong.mod       LowReal.mod     LowShort.mod \
                      M2EXCEPTION.mod   M2RTS.mod \
                      Processes.mod     ProgramArgs.mod \
+                     RandomNumber.mod \
                      RawIO.mod         \
                      RealConv.mod      RealIO.mod      \
                      RealMath.mod      RealStr.mod \

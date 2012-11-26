@@ -1,3 +1,15 @@
+2012-11-26      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-pim/Random.def:  fixed declaration of
+          RandomBytes to use VAR parameter.
+	* gm2/gm2-libs-pim/Random.mod:  fixed declaration of
+          RandomBytes to use VAR parameter.  Also improved
+	  implementation of RandomReal and RandomLongReal.
+	* gm2/gm2-libs-iso/RandomNumber.def:  (New module).
+	* gm2/gm2-libs-iso/RandomNumber.mod:  (New module).
+	* gm2/Make-lang.in:  add RandomNumber.mod to the list
+	  of ISO modules.
+
 2012-11-21      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-pim/Random.def:  export RandomLongReal and
