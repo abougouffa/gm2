@@ -9,6 +9,7 @@
 	* gm2/gm2-libs-iso/RandomNumber.mod:  (New module).
 	* gm2/Make-lang.in:  add RandomNumber.mod to the list
 	  of ISO modules.
+	* gm2/gm2-libs-iso/RandomNumber.def:  Fixed description.
 
 2012-11-21      Gaius Mulley <gaius@gnu.org>
 
