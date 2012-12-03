@@ -1,3 +1,8 @@
+2012-12-03      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-iso/RandomNumber.def:  (added file).
+	* gm2/gm2-libs-iso/RandomNumber.mod:  (added file).
+
 2012-11-26      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-pim/Random.def:  fixed declaration of
