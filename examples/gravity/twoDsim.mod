@@ -137,7 +137,7 @@ VAR
 BEGIN
    WITH o^ DO
       i := 0 ;
-      printf("polygon at (%g, %g) mass %g\n", p.pos.x, p.pos.y, p.mass)
+      printf("polygon at (%g, %g) mass %g\n", p.pos.x, p.pos.y, p.mass) ;
       WHILE i<p.nPoints DO
          printf("  line (%g,%g)\n", p.points[i].x, p.points[i].y) ;
          INC(i)
