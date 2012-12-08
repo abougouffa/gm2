@@ -1,6 +1,10 @@
 2012-12-08      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/gravity/twoDsim.mod:  (added semicolon).
+	* gm2/gm2-libs-pim/InOut.def:  improved comment to
+	  OpenOutput.
+	* gm2/gm2-libs-pim/InOut.mod:  fixed so that the file
+	  can only be written to if it does not already exist.
 
 2012-12-03      Gaius Mulley <gaius@gnu.org>
 

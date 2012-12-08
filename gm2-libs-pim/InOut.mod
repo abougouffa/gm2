@@ -95,6 +95,7 @@ END CloseInput ;
                 If the filename ends with `.' then it appends the defext
                 extension. The global variable Done is set if all
                 was successful.
+                If the file already exists then Done is set to FALSE.
 *)
 
 PROCEDURE OpenOutput (defext: ARRAY OF CHAR) ;
@@ -108,12 +109,12 @@ BEGIN
    END ;
    IF SFIO.Exists(s)
    THEN
+      Done := FALSE ;
+      outUsed := FALSE
+   ELSE
       out := SFIO.OpenToWrite(s) ;
       Done := FIO.IsNoError(out) ;
       outUsed := TRUE
-   ELSE
-      Done := FALSE ;
-      outUsed := FALSE
    END ;
    s := KillString(s)
 END OpenOutput ;
