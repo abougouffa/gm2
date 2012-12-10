@@ -113,7 +113,7 @@ END RandomReal ;
 
 PROCEDURE RandomLongReal () : LONGREAL ;
 VAR
-   l: LONGREAL ;
+   l: LONGCARD ;
 BEGIN
    RandomBytes(l) ;
    RETURN VAL(LONGREAL, l)/VAL(LONGREAL, MAX(LONGCARD))

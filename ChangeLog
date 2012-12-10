@@ -1,3 +1,9 @@
+2012-12-10      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-pim/Random.mod:  fixed bug in RandomLongReal
+	  report by Steve Giess.  Incorrect data type was used which
+	  caused a NaN to be generated.
+
 2012-12-08      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/gravity/twoDsim.mod:  (added semicolon).
