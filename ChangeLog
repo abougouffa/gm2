@@ -1,3 +1,27 @@
+2013-01-07      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-iso/SShortWholeIO.def:  (added file).
+	* gm2/gm2-libs-iso/SShortWholeIO.mod:  (added file).
+	* gm2/gm2-libs-iso/SShortIO.def:  (added file).
+	* gm2/gm2-libs-iso/SShortIO.mod:  (added file).
+	* gm2/gm2-libs-iso/SLongWholeIO.def:  (added file).
+	* gm2/gm2-libs-iso/SLongWholeIO.mod:  (added file).
+	* gm2/gm2-libs-iso/ShortIO.def:  (added file).
+	* gm2/gm2-libs-iso/ShortIO.mod:  (added file).
+	* gm2/gm2-libs-iso/LongWholeIO.def:  (added file).
+	* gm2/gm2-libs-iso/LongWholeIO.mod:  (added file).
+	* gm2/gm2-libs-iso/ShortWholeIO.def:  (added file).
+	* gm2/gm2-libs-iso/ShortWholeIO.mod:  (added file).
+	* gm2/gm2/Make-lang.in:  added the following modules
+	  to be built and installed as part of the ISO libraries:
+          SShortIO.mod, SShortIO.def, SLongWholeIO.mod, SLongWholeIO.def,
+          ShortWholeIO.def, ShortIO.def, LongWholeIO.def, SShortWholeIO.mod
+          ShortWholeIO.mod, ShortIO.mod, LongWholeIO.mod
+        * gm2/gm2-compiler/M2Base.mod:  fixed bug, which omitted to declare
+	  MaxShortInt, MinShortInt, MaxShortCard, MinShortCard.
+	* gm2/gm2-libs-iso/README.texi:  updated list of ISO style modules
+	  and their respective copyrights.  Minor documentation added.
+
 2012-12-10      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-pim/Random.mod:  fixed bug in RandomLongReal

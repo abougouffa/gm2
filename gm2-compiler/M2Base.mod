@@ -463,7 +463,31 @@ BEGIN
    MaxLongReal := MakeTemporary(ImmediateValue) ;
    PushRealTree(GetMaxFrom(GetM2LongRealType())) ;
    PopValue(MaxLongReal) ;
-   PutVar(MaxLongReal, LongReal)
+   PutVar(MaxLongReal, LongReal) ;
+
+   (* MaxShortInt *)
+   MaxShortInt := MakeTemporary(ImmediateValue) ;
+   PushIntegerTree(GetMaxFrom(GetM2ShortIntType())) ;
+   PopValue(MaxShortInt) ;
+   PutVar(MaxShortInt, ShortInt) ;
+
+   (* MinShortInt *)
+   MinShortInt := MakeTemporary(ImmediateValue) ;
+   PushIntegerTree(GetMinFrom(GetM2ShortIntType())) ;
+   PopValue(MinShortInt) ;
+   PutVar(MinShortInt, ShortInt) ;
+
+   (* MaxShortCard *)
+   MaxShortCard := MakeTemporary(ImmediateValue) ;
+   PushIntegerTree(GetMaxFrom(GetM2ShortCardType())) ;
+   PopValue(MaxShortCard) ;
+   PutVar(MaxShortCard, ShortCard) ;
+
+   (* MinShortCard *)
+   MinShortCard := MakeTemporary(ImmediateValue) ;
+   PushIntegerTree(GetMinFrom(GetM2ShortCardType())) ;
+   PopValue(MinShortCard) ;
+   PutVar(MinShortCard, ShortCard)
 
 END InitBaseSimpleTypes ;
 

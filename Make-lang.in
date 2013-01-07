@@ -1239,6 +1239,11 @@ GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ClientSocket.mod \
                      SLongIO.mod       SRawIO.mod      SRealIO.mod     \
                      STextIO.mod       Storage.mod     StreamFile.mod \
                      Strings.mod       StringChan.mod  SWholeIO.mod \
+                     \
+                     SShortIO.mod      SShortWholeIO.mod \
+                     SLongWholeIO.mod  ShortWholeIO.mod \
+                     ShortIO.mod       LongWholeIO.mod \
+                     \
                      SysClock.mod      \
                      SYSTEM.mod        TERMINATION.mod TextIO.mod \
                      TermFile.mod      \
