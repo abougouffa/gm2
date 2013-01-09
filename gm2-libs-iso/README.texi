@@ -7,7 +7,6 @@
 
 This directory contains the ISO definition modules and some
 corresponding implementation modules.  The definition files:
-
 @file{ChanConsts.def}, @file{CharClass.def}, @file{ComplexMath.def},
 @file{ConvStringLong.def}, @file{ConvStringReal.def},
 @file{ConvTypes.def}, @file{COROUTINES.def}, @file{EXCEPTIONS.def},
@@ -64,9 +63,7 @@ are Copyright of the FSF and are held under the LGPL.
 Notice that GNU Modula-2 contains additional libraries for
 input/output of @code{SHORTREAL}, @code{SHORTCARD}, @code{SHORTINT},
 @code{LONGCARD}, @code{LONGINT} data types.  It also provides a
-@code{RandomNumber} and @code{ClientSocket} modules as well as low
-level modules which allow the IO libraries to coexist with their PIM
-counterparts.
-
-
+@code{RandomNumber}, @code{SimpleCipher} and @code{ClientSocket}
+modules as well as low level modules which allow the IO libraries to
+coexist with their PIM counterparts.
 
