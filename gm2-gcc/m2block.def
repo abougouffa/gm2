@@ -1,0 +1,142 @@
+DEFINITION MODULE m2block ;
+
+
+FROM m2tree IMPORT Tree ;
+FROM m2linemap IMPORT location_t ;
+FROM SYSTEM IMPORT ADDRESS ;
+
+
+(*
+    init - initialise the data structures in this module.
+*)
+
+PROCEDURE init ;
+
+
+(*
+    toplevel - return TRUE if we are in the global scope.
+*)
+
+PROCEDURE toplevel () : BOOLEAN ;
+
+
+(*
+    global_constant - t is a constant, we keep a chain of all constants
+                      in the global binding level.
+*)
+
+PROCEDURE global_constant (t: Tree) : Tree ;
+
+
+(*
+    RememberInitModuleFunction - records tree, t, in the global binding level.
+                                 So that it will not be garbage collected.
+                                 In theory the inner modules could be placed
+                                 inside the current_binding_level I suspect.
+*)
+
+PROCEDURE RememberInitModuleFunction (t: Tree) : Tree ;
+
+
+(*
+    DumpGlobalConstants - displays all global constants and checks none are
+                          poisoned.
+*)
+
+PROCEDURE DumpGlobalConstants () : Tree ;
+
+
+(*
+    RememberConstant - adds a tree, t, onto the list of constants to be marked
+                       whenever the ggc re-marks all used storage.  Constants
+                       live throughout the whole compilation - and they
+                       can be used by many different functions if necessary.
+*)
+
+PROCEDURE RememberConstant (t: Tree) : Tree ;
+
+
+(*
+    RememberType - remember the type, t, in the ggc marked list.
+*)
+
+PROCEDURE RememberType (t: Tree) : Tree ;
+
+
+(*
+    pushDecl - pushes a declaration onto the current binding level.
+*)
+
+PROCEDURE pushDecl (decl: Tree) : Tree ;
+
+
+(*
+    popGlobalScope - pops the current binding level, it expects this binding level
+                     to be the global binding level.
+*)
+
+PROCEDURE popGlobalScope ;
+
+
+(*
+    pushGlobalScope - push the global scope onto the binding level stack.
+                      There can only ever be one instance of the global binding
+                      level on the stack.
+*)
+
+PROCEDURE pushGlobalScope ;
+
+
+(*
+    popFunctionScope - pops a binding level, returning the function associated with the
+                       binding level.
+*)
+
+PROCEDURE popFunctionScope () : Tree ;
+
+
+(*
+    pushFunctionScope - push a binding level.
+*)
+
+PROCEDURE pushFunctionScope (fndecl: Tree) ;
+
+
+(*
+   finishFunctionCode - adds cur_stmt_list to fndecl.  The current binding level
+                        is then able to be destroyed by a call to popFunctionScope.
+                        The cur_stmt_list is appended to the STATEMENT_LIST.
+*)
+
+PROCEDURE finishFunctionCode (fndecl: Tree) ;
+
+
+(*
+   finishFunctionDecl - removes declarations from the current binding level and places
+                        them inside fndecl.  The current binding level is then able to
+                        be destroyed by a call to popFunctionScope.
+ 
+                        The extra tree nodes associated with fndecl will be created
+                        such as BIND_EXPR, BLOCK and the initial STATEMENT_LIST
+                        containing the DECL_EXPR is also created.
+*)
+
+PROCEDURE finishFunctionDecl (fndecl: Tree) ;
+
+
+(*
+    getLabel - return the label, name, or create a label, name
+               in the current scope.
+*)
+
+PROCEDURE getLabel (location: location_t; name: ADDRESS) : Tree ;
+
+
+(*
+   GetErrorNode - returns the gcc error_mark_node.
+*)
+
+PROCEDURE GetErrorNode () : Tree ;
+
+
+END m2block.
