@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
+                 2010, 2011
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -26,7 +26,7 @@ FROM StrLib IMPORT StrEqual ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM M2Error IMPORT InternalError, WriteFormat1, WriteFormat2, WriteFormat0, ErrorStringAt2, WarnStringAt, ErrorStringAt ;
-FROM M2MetaError IMPORT MetaError1, MetaError2, MetaErrorsT2, MetaErrors1, MetaErrors2 ;
+FROM M2MetaError IMPORT MetaError1, MetaError2, MetaErrorsT2, MetaErrors1, MetaErrors2, MetaErrorString1 ;
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, Mark, Slice, ConCat, KillString, string ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf4 ;
 FROM M2Printf IMPORT printf0, printf1, printf2 ;
@@ -90,6 +90,9 @@ FROM SymbolTable IMPORT NulSym,
                         MakeConstVar,
                         PutVariableAtAddress, IsVariableAtAddress,
                         GetAlignment, PutAlignment,
+                        PutDefaultRecordFieldAlignment,
+                        GetDefaultRecordFieldAlignment,
+                        PutUnused,
                         MakeUnbounded, IsUnbounded,
                         NoOfParam,
                         PutParamName,
@@ -121,7 +124,7 @@ FROM M2Batch IMPORT MakeDefinitionSource,
 
 FROM M2Quads IMPORT PushT, PopT,
                     PushTF, PopTF,
-                    OperandT, OperandF, OperandA, PopN, DisplayStack,
+                    OperandT, OperandF, OperandA, PopN, DisplayStack, Annotate,
                     AddVarientFieldToList ;
 
 FROM M2Comp IMPORT CompilingDefinitionModule,
@@ -185,7 +188,8 @@ BEGIN
    StartScope(ModuleSym) ;
    Assert(IsDefImp(ModuleSym)) ;
    Assert(CompilingDefinitionModule()) ;
-   PushT(name)
+   PushT(name) ;
+   Annotate("%1n||definition module name")
 END P2StartBuildDefModule ;
 
 
@@ -254,7 +258,8 @@ BEGIN
    StartScope(ModuleSym) ;
    Assert(IsDefImp(ModuleSym)) ;
    Assert(CompilingImplementationModule()) ;
-   PushT(name)
+   PushT(name) ;
+   Annotate("%1n||implementation module name")
 END P2StartBuildImplementationModule ;
 
 
@@ -319,6 +324,7 @@ BEGIN
    Assert(CompilingProgramModule()) ;
    Assert(NOT IsDefImp(ModuleSym)) ;
    PushT(name) ;
+   Annotate("%1n||program module name")
 END P2StartBuildProgramModule ;
 
 
@@ -384,7 +390,8 @@ BEGIN
    ModuleSym := GetDeclareSym(name) ;
    StartScope(ModuleSym) ;
    Assert(NOT IsDefImp(ModuleSym)) ;
-   PushT(name)
+   PushT(name) ;
+   Annotate("%1n||inner module name")
 END StartBuildInnerModule ;
 
 
@@ -635,7 +642,8 @@ VAR
 BEGIN
    PopT(name) ;
    Sym := MakeConstLit(name) ;
-   PushTF(Sym, GetType(Sym))
+   PushTF(Sym, GetType(Sym)) ;
+   Annotate("%1s(%1d)||constant number")
 END BuildNumber ;
 
 
@@ -661,7 +669,8 @@ BEGIN
    PopT(name) ;
    (* slice off the leading and trailing quotes *)
    Sym := MakeConstLitString(makekey(string(Mark(Slice(Mark(InitStringCharStar(KeyToCharStar(name))), 1, -1))))) ;
-   PushTF(Sym, NulSym)
+   PushTF(Sym, NulSym) ;
+   Annotate("%1s(%1d)||constant string")
 END BuildString ;
 
 
@@ -685,7 +694,8 @@ BEGIN
    PopT(name) ;
    sym := MakeConstVar(name) ;
    PushT(sym) ;
-   RememberConstant(sym)
+   RememberConstant(sym) ;
+   Annotate("%1s(%1d)||remembered constant")
 END BuildConst ;
 
 
@@ -726,7 +736,8 @@ BEGIN
    GetEnumerationFromFifoQueue(Type) ;
    CheckForExportedImplementation(Type) ;   (* May be an exported hidden type *)
    PopN(n) ;
-   PushT(Type)
+   PushT(Type) ;
+   Annotate("%1s(%1d)||enumerated type")
 END StartBuildEnumeration ;
 
 
@@ -759,8 +770,60 @@ BEGIN
    PutSubrangeIntoFifoQueue(Base) ;   (* store Base type of subrange away as well.  *)
    CheckForExportedImplementation(Type) ; (* May be an exported hidden type *)
    PushT(name) ;
-   PushT(Type)
+   Annotate("%1n||subrange name") ;
+   PushT(Type) ;
+   Annotate("%1s(%1d)||subrange type")
 END BuildSubrange ;
+
+
+(*
+   BuildDefaultFieldAlignment - 
+
+                 The Stack:
+
+                 Entry                         Exit
+                 =====                         ====
+
+
+          Ptr ->
+                 +-----------+
+                 | Alignment |
+                 |-----------|                 +-----------+
+                 | RecordSym |                 | RecordSym |
+                 |-----------|                 |-----------|
+                 | Name      |                 | Name      |
+                 |-----------|                 |-----------|
+
+*)
+
+PROCEDURE P2BuildDefaultFieldAlignment ;
+VAR
+   alignment: Name ;
+   align    : CARDINAL ;
+BEGIN
+   PopT(alignment) ;
+   align := MakeTemporary(ImmediateValue) ;
+   PutConst(align, ZType) ;
+   PutConstIntoFifoQueue(align) ;     (* store align away ready for pass 3 *)
+   PutDefaultRecordFieldAlignment(OperandT(1), align)
+END P2BuildDefaultFieldAlignment ;
+
+
+(*
+   BuildPragmaConst - pushes a constant to the stack and stores it away into the
+                      const fifo queue ready for pass 3.
+*)
+
+PROCEDURE BuildPragmaConst ;
+VAR
+   value : CARDINAL ;
+BEGIN
+   value := MakeTemporary(ImmediateValue) ;
+   PutConst(value, ZType) ;
+   PutConstIntoFifoQueue(value) ;     (* Store value away so that we can fill it in   *)
+   PushT(value) ;                     (* during pass 3.                               *)
+   Annotate("%1s(%1d)||pragma constant")
+END BuildPragmaConst ;
 
 
 (*
@@ -785,14 +848,21 @@ VAR
    align: CARDINAL ;
 BEGIN
    PopT(name) ;
-   IF name#MakeKey('ALIGNED')
+   IF name=MakeKey('ALIGNED')
    THEN
-      WriteFormat1('expecting ALIGNED identifier, rather than %a', name)
+      align := MakeTemporary(ImmediateValue) ;
+      PutConst(align, ZType) ;
+      PutConstIntoFifoQueue(align) ;     (* Store align away so that we can fill in its  *)
+      PushT(align) ;                     (* value during pass 3.                         *)
+      Annotate("%1s(%1d)||aligned constant generated from __ATTRIBUTE__")
+   ELSIF name=MakeKey('PACKED')
+   THEN
+      (* nothing to do *)
+   ELSE
+      WriteFormat1('expecting ALIGNED or PACKED identifier, rather than %a', name) ;
    END ;
-   align := MakeTemporary(ImmediateValue) ;
-   PutConst(align, ZType) ;
-   PutConstIntoFifoQueue(align) ;     (* Store align away so that we can fill in its  *)
-   PushT(align)                       (* value during pass 3.                         *)
+   PushT(name) ;
+   Annotate("%1n(%1d)||ALIGNED or PACKED keyword associated with __ATTRIBUTE__")
 END BuildAligned ;
 
 
@@ -819,19 +889,26 @@ END BuildAligned ;
 
 PROCEDURE BuildTypeAlignment ;
 VAR
+   alignment: Name ;
    type,
-   align: CARDINAL ;
+   align    : CARDINAL ;
 BEGIN
-   PopT(align) ;
-   PopT(type) ;
-   IF align#NulSym
+   PopT(alignment) ;
+   IF alignment=MakeKey('ALIGNED')
    THEN
-      IF IsRecord(type) OR IsRecordField(type) OR IsType(type) OR IsArray(type) OR IsPointer(type)
+      PopT(align) ;
+      PopT(type) ;
+      IF align#NulSym
       THEN
-         PutAlignment(type, align)
-      ELSE
-         MetaError1('not allowed to add an alignment attribute to type {%1ad}', type)
+         IF IsRecord(type) OR IsRecordField(type) OR IsType(type) OR IsArray(type) OR IsPointer(type)
+         THEN
+            PutAlignment(type, align)
+         ELSE
+            MetaError1('not allowed to add an alignment attribute to type {%1ad}', type)
+         END
       END
+   ELSE
+      PopT(type)
    END
 END BuildTypeAlignment ;
 
@@ -856,16 +933,18 @@ END BuildTypeAlignment ;
 
 PROCEDURE BuildVarAlignment ;
 VAR
+   alignment,
    name,
-   newname: Name ;
+   newname  : Name ;
    new,
    type,
-   align  : CARDINAL ;
-   s      : String ;
+   align    : CARDINAL ;
+   s        : String ;
 BEGIN
-   PopT(align) ;
-   IF align#NulSym
+   PopT(alignment) ;
+   IF alignment=MakeKey('ALIGNED')
    THEN
+      PopT(align) ;
       PopT(type) ;
       IF IsRecord(type) OR IsRecordField(type) OR IsType(type) OR IsArray(type) OR IsPointer(type)
       THEN
@@ -873,7 +952,8 @@ BEGIN
          IF IsNameAnonymous(type)
          THEN
             PutAlignment(type, align) ;
-            PushTF(type, GetSymName(type))
+            PushTF(type, GetSymName(type)) ;
+            Annotate("%1s(%1d)|%2n||aligned type|aligned type name")
          ELSE
             (* create a pseudonym *)
             s := Sprintf1(Mark(InitString('_$A%d')), alignTypeNo) ;
@@ -888,11 +968,13 @@ BEGIN
             s := KillString(s) ;
             PutType(new, type) ;
             PutAlignment(new, align) ;
-            PushTF(new, GetSymName(new))
+            PushTF(new, GetSymName(new)) ;
+            Annotate("%1s(%1d)|%2n||aligned type|aligned type name")
          END
       ELSE
          MetaError1('not allowed to add an alignment attribute to type {%1ad}', type) ;
-         PushTF(type, GetSymName(type))
+         PushTF(type, GetSymName(type)) ;
+         Annotate("%1s(%1d)|%2n||error aligned type|error aligned type name")
       END
    END
 END BuildVarAlignment ;
@@ -1014,10 +1096,12 @@ BEGIN
 
       *)
       (* WriteString('Blank name type') ; WriteLn ; *)
-      PushTF(Type, name)
+      PushTF(Type, name) ;
+      Annotate("%1s(%1d)|%2n||type|type name")
    ELSIF IsError(Type)
    THEN
-      PushTF(Sym, name)
+      PushTF(Sym, name) ;
+      Annotate("%1s(%1d)|%2n||error type|error type name")
    ELSIF GetSymName(Type)=name
    THEN
       isunknown := IsUnknown(Type) ; 
@@ -1043,16 +1127,19 @@ BEGIN
                CheckForEnumerationInCurrentModule(Type)
             END
          END ;
-         PushTF(Sym, name)
+         PushTF(Sym, name) ;
+         Annotate("%1s(%1d)|%2n||type|type name")
       ELSE
-         PushTF(Type, name)
+         PushTF(Type, name) ;
+         Annotate("%1s(%1d)|%2n||type|type name")
       END
    ELSE
       (* example   TYPE a = CARDINAL *)
       Sym := MakeType(name) ;
       PutType(Sym, Type) ;
       CheckForExportedImplementation(Sym) ;   (* May be an exported hidden type *)
-      PushTF(Sym, name)
+      PushTF(Sym, name) ;
+      Annotate("%1s(%1d)|%2n||type|type name")
    END
 END BuildType ;
 
@@ -1111,6 +1198,7 @@ BEGIN
       CheckForExportedImplementation(ProcSym)   (* May be exported procedure *)
    END ;
    PushT(ProcSym) ;
+   Annotate("%1s(%1d)||procedure start symbol") ;
    StartScope(ProcSym)
 END StartBuildProcedure ;
 
@@ -1918,7 +2006,9 @@ BEGIN
    PutPointer(PtrToType, Type) ;
    CheckForExportedImplementation(PtrToType) ;   (* May be an exported hidden type *)
    PushT(name) ;
-   PushT(PtrToType)
+   Annotate("%1n||pointer type name") ;
+   PushT(PtrToType) ;
+   Annotate("%1s(%1d)||pointer type")
 
 END BuildPointerType ;
 
@@ -1951,7 +2041,9 @@ BEGIN
    CheckForExportedImplementation(SetType) ;   (* May be an exported hidden type *)
    PutSet(SetType, Type) ;
    PushT(name) ;
-   PushT(SetType)
+   Annotate("%1n||set type name") ;
+   PushT(SetType) ;
+   Annotate("%1s(%1d)||set type")
 END BuildSetType ;
 
 
@@ -1959,15 +2051,16 @@ END BuildSetType ;
    BuildRecord - Builds a record type.
                  The Stack:
 
-                 Entry                        Exit
-                 =====                        ====
+                 Entry                              Exit
+                 =====                              ====
 
-                                                            <- Ptr
-                                              +-----------+
-          Ptr ->                              | RecordSym |
-                 +------------+               |-----------|
-                 | Name       |               | Name      |
-                 |------------|               |-----------|
+
+                                                                  <- Ptr
+                                                    +-----------+
+          Ptr ->                                    | RecordSym |
+                 +------------------+               |-----------|
+                 | Name             |               | Name      |
+                 |------------------|               |-----------|
 *)
 
 PROCEDURE BuildRecord ;
@@ -1975,14 +2068,76 @@ VAR
    name      : Name ;
    RecordType: CARDINAL ;
 BEGIN
-   PopT(name) ;
-   PushT(name) ;
+   name := OperandT(1) ;
    name := CheckAnonymous(name) ;
    RecordType := MakeRecord(name) ;
    CheckForExportedImplementation(RecordType) ;   (* May be an exported hidden type *)
-   PushT(RecordType)
+   PushT(RecordType) ;
 (* ; WriteKey(name) ; WriteString(' RECORD made') ; WriteLn *)
+   Annotate("%1s(%1d)||record type")
 END BuildRecord ;
+
+
+(*
+   HandleRecordFieldPragmas - 
+
+                      Entry                     Exit
+                      =====                     ====
+
+               Ptr ->                                     <- Ptr
+
+                      |-------------|           |-------------|
+                      | Const1      |           | Const1      |
+                      |-------------|           |-------------|
+                      | PragmaName1 |           | PragmaName1 |
+                      |-------------|           |-------------|
+*)
+
+PROCEDURE HandleRecordFieldPragmas (record, field: CARDINAL; n: CARDINAL) ;
+VAR
+   seenAlignment   : BOOLEAN ;
+   defaultAlignment,
+   sym             : CARDINAL ;
+   i               : CARDINAL ;
+   name            : Name ;
+   s               : String ;
+BEGIN
+   seenAlignment := FALSE ;
+   defaultAlignment := GetDefaultRecordFieldAlignment(record) ;
+   i := 1 ;
+   WHILE i<=n DO
+      name := OperandT(i*2) ;
+      sym  := OperandT(i*2-1) ;
+      IF name=MakeKey('unused')
+      THEN
+         IF sym=NulSym
+         THEN
+            PutUnused(field)
+         ELSE
+            WriteFormat0("not expecting pragma 'unused' to contain an expression")
+         END
+      ELSIF name=MakeKey('bytealignment')
+      THEN
+         IF sym=NulSym
+         THEN
+            WriteFormat0("expecting an expression with the pragma 'bytealignment'")
+         ELSE
+            PutAlignment(field, sym) ;
+            seenAlignment := TRUE
+         END
+      ELSE
+         s := InitString("cannot use pragma '") ;
+         s := ConCat(s, Mark(InitStringCharStar(KeyToCharStar(name)))) ;
+         s := ConCat(s, Mark(InitString("' on record field {%1ad}"))) ;
+         MetaErrorString1(s, field)
+      END ;
+      INC(i)
+   END ;
+   IF (NOT seenAlignment) AND (defaultAlignment#NulSym)
+   THEN
+      PutAlignment(field, defaultAlignment)
+   END
+END HandleRecordFieldPragmas ;
 
 
 (*
@@ -1995,7 +2150,11 @@ END BuildRecord ;
 
                Ptr ->
                       +-------------+
-                      | Alignment   |
+                      | NoOfPragmas |
+                      |-------------|
+                      | Const1      |
+                      |-------------|
+                      | PragmaName1 |
                       |-------------|
                       | Type | Name |
                       |-------------|
@@ -2017,22 +2176,24 @@ END BuildRecord ;
 
 PROCEDURE BuildFieldRecord ;
 VAR
+   bytealignment,
    name,
-   n1, n2    : Name ;
-   align,
+   n1, n2       : Name ;
    fsym,
    Field,
    Varient,
    Parent,
    Type,
+   NoOfPragmas,
    NoOfFields,
    Record,
-   Ptr, i    : CARDINAL ;
+   Ptr, i       : CARDINAL ;
 BEGIN
-   PopT(align) ;
-   PopTF(Type, name) ;
-   PopT(NoOfFields) ;
-   Record := OperandT(NoOfFields+1) ;
+   PopT(NoOfPragmas) ;
+   Type := OperandT(NoOfPragmas*2+1) ;
+   name := OperandF(NoOfPragmas*2+1) ;
+   NoOfFields := OperandT(NoOfPragmas*2+2) ;
+   Record := OperandT(NoOfPragmas*2+NoOfFields+3) ;
    IF IsRecord(Record)
    THEN
       Parent := Record ;
@@ -2041,7 +2202,7 @@ BEGIN
       (* Record maybe FieldVarient *)
       Parent := GetRecord(GetParent(Record)) ;
       Assert(IsFieldVarient(Record)) ;
-      Varient := OperandT(NoOfFields+2) ;
+      Varient := OperandT(NoOfPragmas*2+NoOfFields+4) ;
       Assert(IsVarient(Varient)) ;
       PutFieldVarient(Record, Varient) ;
       IF Debugging
@@ -2062,25 +2223,29 @@ BEGIN
          WriteString('Record ') ;
          WriteKey(n1) ;
          WriteString('  ') ;
-         WriteKey(OperandT(NoOfFields+1-i)) ; WriteString(' is a Field with type ') ;
+         WriteKey(OperandT(NoOfPragmas*2+NoOfFields+3-i)) ; WriteString(' is a Field with type ') ;
          WriteKey(GetSymName(Type)) ; WriteLn ;
       END ;
-      fsym := GetLocalSym(Parent, OperandT(NoOfFields+1-i)) ;
+      fsym := GetLocalSym(Parent, OperandT(NoOfPragmas*2+NoOfFields+3-i)) ;
       IF fsym=NulSym
       THEN
-         Field := PutFieldRecord(Record, OperandT(NoOfFields+1-i), Type, Varient) ;
-         IF align#NulSym
-         THEN
-            PutAlignment(Field, align)
-         END
+         Field := PutFieldRecord(Record, OperandT(NoOfPragmas*2+NoOfFields+3-i), Type, Varient) ;
+         HandleRecordFieldPragmas(Record, Field, NoOfPragmas)
       ELSE
          MetaErrors2('record field {%1ad} has already been declared inside a {%2Dd} {%2a}',
                      'attempting to declare a duplicate record field', fsym, Parent)
       END ;
       INC(i)
    END ;
-   PopN(NoOfFields+1) ;
-   PushT(Record)
+   PopN(NoOfPragmas*2+NoOfFields+3) ;
+   PushT(Record) ;
+   IF IsRecord(Record)
+   THEN
+      Annotate("%1s(%1d)||record type")
+   ELSE
+      Assert(IsFieldVarient(Record)) ;
+      Annotate("%1s(%1d)||varient field type")
+   END
 END BuildFieldRecord ;
 
 
@@ -2115,8 +2280,7 @@ VAR
 BEGIN
    PopT(Type) ;
    PopT(tag) ;
-   PopT(Record) ;
-   PushT(Record) ;  (* and restore stack ready for exiting *)
+   Record := OperandT(1) ;
    IF IsRecord(Record)
    THEN
       Parent := Record ;
@@ -2193,10 +2357,11 @@ VAR
    VarientSym,
    FieldSym  : CARDINAL ;
 BEGIN
-   PopT(VarientSym) ;
+   VarientSym := OperandT(1) ;
    FieldSym := MakeFieldVarient(CheckAnonymous(NulName), VarientSym) ;
-   PushT(VarientSym) ;
+   Annotate("%1s(%1d)||varient sym") ;
    PushT(FieldSym) ;
+   Annotate("%1s(%1d)||varient field type") ;
    Assert(IsFieldVarient(FieldSym)) ;
    PutFieldVarient(FieldSym, VarientSym) ;
    AddVarientFieldToList(FieldSym)
@@ -2251,10 +2416,10 @@ VAR
    RecordSym,
    Sym      : CARDINAL ;
 BEGIN
-   PopT(RecordSym) ;
+   RecordSym := OperandT(1) ;
    Sym := MakeVarient(RecordSym) ;
-   PushT(RecordSym) ;
-   PushT(Sym)
+   PushT(Sym) ;
+   Annotate("%1s(%1d)||varient type")
 END StartBuildVarient ;
 
 
@@ -2298,7 +2463,8 @@ END EndBuildVarient ;
 
 PROCEDURE BuildNulName ;
 BEGIN
-   PushT(NulName)
+   PushT(NulName) ;
+   Annotate("%1n||BuildNulName")
 END BuildNulName ;
 
 
@@ -2345,11 +2511,11 @@ VAR
    name     : Name ;
    ArrayType: CARDINAL ;
 BEGIN
-   PopT(name) ;
-   PushT(name) ;
+   name := OperandT(1) ;
    ArrayType := MakeArray(name) ;
    CheckForExportedImplementation(ArrayType) ;   (* May be an exported hidden type *)
-   PushT(ArrayType)
+   PushT(ArrayType) ;
+   Annotate("%1s(%1d)||array type")
 (* ; WriteKey(Name) ; WriteString(' ARRAY made') ; WriteLn *)
 END StartBuildArray ;
 
@@ -2380,7 +2546,8 @@ BEGIN
    PopT(ArraySym) ;
    Assert(IsArray(ArraySym)) ;
    PutArray(ArraySym, TypeSym) ;
-   PushT(ArraySym)
+   PushT(ArraySym) ;
+   Annotate("%1s(%1d)||array type")
 END EndBuildArray ;
 
 
@@ -2427,7 +2594,8 @@ BEGIN
    *)
    PutSubscript(Subscript, Type) ;
    PutArraySubscript(Array, Subscript) ;
-   PushT(Array)
+   PushT(Array) ;
+   Annotate("%1s(%1d)||array type")
 (* ; WriteString('Field Placed in Array') ; WriteLn *)
 END BuildFieldArray ;
 
@@ -2457,7 +2625,8 @@ BEGIN
    PushT(ArraySym2) ;
    EndBuildArray ;
    PopT(ArraySym1) ;
-   PushT(ArraySym2)
+   PushT(ArraySym2) ;
+   Annotate("%1s(%1d)||array type comma")
 END BuildArrayComma ;
 
 
@@ -2479,10 +2648,11 @@ VAR
    name       : Name ;
    ProcTypeSym: CARDINAL ;
 BEGIN
-   PopT(name) ;
+   name := OperandT(1) ;
    ProcTypeSym := MakeProcType(name) ;
-   PushT(name) ;
-   PushT(ProcTypeSym)
+   Annotate("%1n||procedure type name") ;
+   PushT(ProcTypeSym) ;
+   Annotate("%1s(%1d)||proc type")
 END BuildProcedureType ;
 
 
@@ -2534,7 +2704,8 @@ BEGIN
       (* Non VAR parameter *)
       PutProcTypeParam(ProcTypeSym, TypeSym, IsUnbounded(TypeSym))
    END ;
-   PushT(ProcTypeSym)
+   PushT(ProcTypeSym) ;
+   Annotate("%1s(%1d)||proc type")
 END BuildFormalType ;
 
 

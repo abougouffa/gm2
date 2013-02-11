@@ -41,7 +41,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 (*
    Author     : Gaius Mulley
    Title      : gm2m
-   Date       : 3/4/86  [$Date: 2010/12/06 21:17:56 $]
+   Date       : 3/4/86  [$Date: 2013/02/11 14:45:00 $]
    SYSTEM     : GNU Modula-2
    Description: Generates a makefile by examining the imports within Modula-2 source.
 *)
@@ -73,7 +73,7 @@ FROM StrLib IMPORT StrLen ;
 FROM SFIO IMPORT WriteS, OpenToWrite, Exists ;
 FROM M2Preprocess IMPORT PreprocessModule ;
 FROM M2Configure IMPORT UsingGCCBackend ;
-FROM M2Options IMPORT ScanCppArgs ;
+FROM M2DriverOptions IMPORT ScanCppArgs ;
 FROM libc IMPORT exit ;
 FROM SYSTEM IMPORT ADDRESS, WORD ;
 IMPORT m2flex ;
@@ -1755,6 +1755,8 @@ token   '>'               greatertok
 token   '<>'              lessgreatertok
 token   '<='              lessequaltok
 token   '>='              greaterequaltok
+token   '<*'              ldirectivetok
+token   '*>'              rdirectivetok
 token   '..'              periodperiodtok
 token   ':'               colontok
 token   '"'               doublequotestok

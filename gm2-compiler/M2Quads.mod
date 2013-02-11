@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
+                 2010, 2011
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -24,6 +24,7 @@ FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
 FROM NameKey IMPORT Name, NulName, MakeKey, GetKey, makekey, KeyToCharStar ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
+FROM M2DebugStack IMPORT DebugStack ;
 
 FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3,
                         MetaErrors1, MetaErrors2, MetaErrors3,
@@ -87,6 +88,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         IsPartialUnbounded, IsProcedureBuiltin,
                         IsSet, IsConstSet, IsConstructor, PutConst,
                         PutConstructor, PutConstructorFrom,
+                        MakeComponentRecord, MakeComponentRef,
                         IsSubscript,
                         IsTemporary,
                         IsAModula2Type,
@@ -100,6 +102,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         
                         ForeachFieldEnumerationDo, ForeachLocalSymDo,
                         GetExported, PutImported, GetSym,
+                        IsUnused,
                         NulSym ;
 
 FROM M2Configure IMPORT PushParametersLeftToRight, UsingGCCBackend ;
@@ -160,8 +163,8 @@ FROM M2System IMPORT IsPseudoSystemFunction, IsPseudoSystemProcedure,
                      IsSystemType, GetSystemTypeMinMax,
                      IsPseudoSystemFunctionConstExpression,
                      IsGenericSystemType,
-                     Adr, TSize, AddAdr, SubAdr, DifAdr, Cast, Shift, Rotate,
-                     MakeAdr, Address, Byte, Word, Loc, Throw ;
+                     Adr, TSize, TBitSize, AddAdr, SubAdr, DifAdr, Cast,
+                     Shift, Rotate, MakeAdr, Address, Byte, Word, Loc, Throw ;
 
 FROM M2Size IMPORT Size ;
 FROM M2Bitset IMPORT Bitset ;
@@ -226,13 +229,13 @@ FROM M2Range IMPORT InitAssignmentRangeCheck,
 FROM M2CaseList IMPORT PushCase, PopCase, AddRange, BeginCaseList, EndCaseList, ElseCase ;
 FROM PCSymBuild IMPORT SkipConst ;
 
-FROM gm2builtins IMPORT GetBuiltinTypeInfoType ;
+FROM m2builtins IMPORT GetBuiltinTypeInfoType ;
 
 
 CONST
-   DebugStack = FALSE ;
+   DebugStackOn = TRUE ;
    DebugVarients = FALSE ;
-   BreakAtQuad = 37 ;
+   BreakAtQuad = 1099 ;
 
 TYPE
    ConstructorFrame = POINTER TO constructorFrame ;
@@ -243,13 +246,14 @@ TYPE
 
    BoolFrame = POINTER TO boolFrame ;  (* using intemediate type helps p2c *)
    boolFrame =            RECORD
-                             TrueExit : CARDINAL ;
-                             FalseExit: CARDINAL ;
-                             Unbounded: CARDINAL ;
-                             BooleanOp: BOOLEAN ;
-                             Dimension: CARDINAL ;
-                             ReadWrite: CARDINAL ;
-                             name     : CARDINAL ;
+                             TrueExit  : CARDINAL ;
+                             FalseExit : CARDINAL ;
+                             Unbounded : CARDINAL ;
+                             BooleanOp : BOOLEAN ;
+                             Dimension : CARDINAL ;
+                             ReadWrite : CARDINAL ;
+                             name      : CARDINAL ;
+                             Annotation: String ;
                           END ;
 
    QuadFrame = POINTER TO quadFrame ;  (* again we help p2c *)
@@ -267,9 +271,10 @@ TYPE
 
    WithFrame = POINTER TO withFrame ;  (* again we help p2c *)
    withFrame =            RECORD
-                             PtrSym   : CARDINAL ;
-                             RecordSym: CARDINAL ;
-                             rw       : CARDINAL ;  (* the record variable *)
+                             RecordSym : CARDINAL ;
+                             RecordType: CARDINAL ;
+                             RecordRef : CARDINAL ;
+                             rw        : CARDINAL ;  (* the record variable *)
                           END ;
 
    ForLoopInfo = RECORD
@@ -432,6 +437,7 @@ PROCEDURE BuildRealProcedureCall ; FORWARD ;
 PROCEDURE BuildSizeFunction ; FORWARD ;
 PROCEDURE BuildStaticArray ; FORWARD ;
 PROCEDURE BuildTSizeFunction ; FORWARD ;
+PROCEDURE BuildTBitSizeFunction ; FORWARD ;
 PROCEDURE BuildTypeCoercion ; FORWARD ;
 PROCEDURE BuildValFunction ; FORWARD ;
 PROCEDURE CheckBooleanId ; FORWARD ;
@@ -456,7 +462,7 @@ PROCEDURE PopInit (VAR q: CARDINAL) ; FORWARD ;
 PROCEDURE PopWith ; FORWARD ;
 PROCEDURE PushBool (True, False: CARDINAL) ; FORWARD ;
 PROCEDURE PushExit (Exit: CARDINAL) ; FORWARD ;
-PROCEDURE PushWith (Sym, Type, RecordVar: CARDINAL) ; FORWARD ;
+PROCEDURE PushWith (Sym, Type, Ref: CARDINAL) ; FORWARD ;
 PROCEDURE PushFor (Exit: CARDINAL) ; FORWARD ;
 PROCEDURE PopFor () : CARDINAL ; FORWARD ;
 PROCEDURE UnboundedNonVarLinkToArray (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ; FORWARD ;
@@ -466,6 +472,8 @@ PROCEDURE WriteOperand (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE WriteOperator (Operator: QuadOperator) ; FORWARD ;
 PROCEDURE WriteQuad (BufferQuad: CARDINAL) ; FORWARD ;
 PROCEDURE IsBoolean (pos: CARDINAL) : BOOLEAN ; FORWARD ;
+PROCEDURE OperandTno (pos: CARDINAL) : WORD ; FORWARD ;
+PROCEDURE OperandFno (pos: CARDINAL) : WORD ; FORWARD ;
 PROCEDURE OperandT (pos: CARDINAL) : WORD ; FORWARD ;
 PROCEDURE OperandF (pos: CARDINAL) : WORD ; FORWARD ;
 PROCEDURE OperandA (pos: CARDINAL) : WORD ; FORWARD ;
@@ -955,6 +963,7 @@ BEGIN
    HighOp,
    SizeOp,
    AddrOp,
+   RecordFieldOp,
    OffsetOp,
    ArrayOp,
    LogicalShiftOp,
@@ -1281,6 +1290,7 @@ BEGIN
                           (* _may_ also write to a var parameter, although we dont know *)
                           CheckAddVariableWrite(Oper3, TRUE, QuadNo)
                        END |
+   RecordFieldOp,
    OffsetOp,
    ArrayOp,
    LogicalShiftOp,
@@ -1424,6 +1434,7 @@ BEGIN
                           (* _may_ also write to a var parameter, although we dont know *)
                           CheckRemoveVariableWrite(Oper3, TRUE, QuadNo)
                        END |
+   RecordFieldOp,
    OffsetOp,
    ArrayOp,
    LogicalShiftOp,
@@ -2779,7 +2790,7 @@ BEGIN
    PopT(Ident) ;
    PopT(Type) ;
    Sym := MakeTemporary(ImmediateValue) ;
-   CASE GetBuiltinTypeInfoType(KeyToCharStar(Name(Ident))) OF
+   CASE GetBuiltinTypeInfoType(TokenToLocation(GetTokenNo()), KeyToCharStar(Name(Ident))) OF
 
    0:  ErrorFormat1(NewError(GetTokenNo()),
                     '%a unrecognised builtin constant', Ident) |
@@ -2806,12 +2817,16 @@ PROCEDURE CheckBecomesMeta (Des, Exp: CARDINAL) ;
 BEGIN
    IF IsConst(Des) AND IsVar(Exp)
    THEN
-      MetaErrors2('error in assignment, cannot assign a variable {%2a} to a constant {%1a}',
+      MetaErrors2('in assignment, cannot assign a variable {%2a} to a constant {%1a}',
                   'designator {%1Da} is declared as a CONST', Des, Exp)
    END ;
    IF IsVar(Des) AND IsUnbounded(SkipType(GetType(Des)))
    THEN
-      MetaError1('error in assignment, cannot assign to an unbounded array {%1ad}', Des)
+      MetaError1('in assignment, cannot assign to an unbounded array {%1ad}', Des)
+   END ;
+   IF IsVar(Exp) AND IsUnbounded(SkipType(GetType(Exp)))
+   THEN
+      MetaError1('in assignment, cannot assign from an unbounded array {%1ad}', Exp)
    END
 END CheckBecomesMeta ;
 
@@ -2904,7 +2919,7 @@ VAR
    Array,
    Des, Exp: CARDINAL ;
 BEGIN
-   DumpStack ;
+   DisplayStack ;
    IF IsBoolean(1)
    THEN
       PopBool(t, f) ;
@@ -2962,8 +2977,8 @@ BEGIN
          END ;
          CheckAssignCompatible(Des, Exp)
       END
-   END
- ; DumpStack ;
+   END ;
+   DisplayStack
 END doBuildAssignment ;
 
 
@@ -3113,6 +3128,105 @@ BEGIN
    PushT(expr) ;
    BuildAssignment
 END BuildAlignment ;
+
+
+(*
+   BuildBitLength - builds an assignment to a bit length constant.
+
+                    The Stack is expected to contain:
+
+
+                           Entry                   Exit
+                           =====                   ====
+
+                    Ptr ->
+                           +------------+
+                           | Expression |
+                           |------------|          empty
+*)
+
+PROCEDURE BuildBitLength ;
+VAR
+   expr,
+   length: CARDINAL ;
+BEGIN
+   PopT(expr) ;
+   GetConstFromFifoQueue(length) ;
+   PushT(length) ;
+   PushT(expr) ;
+   BuildAssignment
+END BuildBitLength ;
+
+
+(*
+   BuildDefaultFieldAlignment - builds an assignment to an alignment constant.
+
+                                The Stack is expected to contain:
+
+
+                                       Entry                   Exit
+                                       =====                   ====
+
+                                Ptr ->
+                                       +------------+
+                                       | Expression |
+                                       |------------|          empty
+*)
+
+PROCEDURE BuildDefaultFieldAlignment ;
+VAR
+   expr,
+   align: CARDINAL ;
+   name : Name ;
+BEGIN
+   PopT(expr) ;
+   PopT(name) ;
+   IF name#MakeKey('bytealignment')
+   THEN
+      WriteFormat0('only allowed to use the attribute bytealignment in the default record field alignment pragma')
+   END ;
+   GetConstFromFifoQueue(align) ;
+   PushT(align) ;
+   PushT(expr) ;
+   BuildAssignment
+END BuildDefaultFieldAlignment ;
+
+
+(*
+   BuildPragmaField - builds an assignment to an alignment constant.
+
+                      The Stack is expected to contain:
+
+
+                      Entry                   Exit
+                      =====                   ====
+
+               Ptr ->
+                      +------------+
+                      | Expression |
+                      |------------|          empty
+*)
+
+PROCEDURE BuildPragmaField ;
+VAR
+   expr,
+   const: CARDINAL ;
+   name : Name ;
+BEGIN
+   PopT(expr) ;
+   PopT(name) ;
+   IF (name#MakeKey('unused')) AND (name#MakeKey('bytealignment'))
+   THEN
+      WriteFormat0('only allowed to use the attributes bytealignment and unused in a record field padding pragma')
+   END ;
+   IF expr#NulSym
+   THEN
+      GetConstFromFifoQueue(const) ;
+      PushT(const) ;
+      PushT(expr) ;
+      BuildAssignment
+   END
+END BuildPragmaField ;
 
 
 (*
@@ -4221,19 +4335,19 @@ BEGIN
    PushT(NoOfParam) ;  (* Compile time stack restored to entry state *)
    IF IsPseudoBaseProcedure(ProcSym) OR IsPseudoSystemProcedure(ProcSym)
    THEN
-      DumpStack ;
+      DisplayStack ;
       ManipulatePseudoCallParameters ;
-      DumpStack ;
+      DisplayStack ;
       BuildPseudoProcedureCall ;
-      DumpStack ;
+      DisplayStack
    ELSIF IsUnknown(ProcSym)
    THEN
       MetaError1('{%1Ua} is not recognised as a procedure, check declaration or import', ProcSym) ;
       PopN(NoOfParam + 2)
    ELSE
-      DumpStack ;
+      DisplayStack ;
       BuildRealProcedureCall ;
-      DumpStack ;
+      DisplayStack ;
    END
 END BuildProcedureCall ;
 
@@ -6837,6 +6951,9 @@ BEGIN
    ELSIF ProcSym=TSize
    THEN
       BuildTSizeFunction
+   ELSIF ProcSym=TBitSize
+   THEN
+      BuildTBitSizeFunction
    ELSIF ProcSym=Convert
    THEN
       BuildConvertFunction
@@ -8808,11 +8925,19 @@ BEGIN
          PushT(1) ;
          BuildDesignatorRecord ;
          PopTrw(ReturnVar, rw) ;
-         Assert(GetMode(ReturnVar)=LeftValue) ;
-         t := MakeTemporary(RightValue) ;
-         PutVar(t, GetType(ProcSym)) ;
-         doIndrX(t, ReturnVar) ;  (* was       GenQuad(IndrXOp, t, GetType(ProcSym), ReturnVar) ; *)
-         ReturnVar := t
+         IF GetMode(ReturnVar)=LeftValue
+         THEN
+            t := MakeTemporary(RightValue) ;
+            PutVar(t, GetType(ProcSym)) ;
+            doIndrX(t, ReturnVar) ;
+            ReturnVar := t
+         ELSE
+            (* we need to cast ReturnVar into ADDRESS *)
+            t := MakeTemporary(RightValue) ;
+            PutVar(t, GetType(ProcSym)) ;
+            GenQuad(ConvertOp, t, GetType(ProcSym), ReturnVar) ;
+            ReturnVar := t
+         END
       ELSE
          ReturnVar := MakeTemporary(RightValue) ;
          PutVar(ReturnVar, GetType(ProcSym)) ;
@@ -9002,6 +9127,73 @@ BEGIN
    PopN(NoOfParam+1) ;       (* destroy the arguments and function *)
    PushTF(ReturnVar, GetType(ProcSym))
 END BuildTSizeFunction ;
+
+
+(*
+   BuildTBitSizeFunction - builds the pseudo function TBITSIZE
+                           The Stack:
+
+
+                           Entry                      Exit
+
+                   Ptr ->
+                           +----------------+
+                           | NoOfParam      |  
+                           |----------------|
+                           | Param 1        |  
+                           |----------------|
+                           | Param 2        |  
+                           |----------------|
+                           .                .  
+                           .                .  
+                           .                .  
+                           |----------------|
+                           | Param #        |                        <- Ptr
+                           |----------------|         +------------+
+                           | ProcSym | Type |         | ReturnVar  |
+                           |----------------|         |------------|
+
+*)
+
+PROCEDURE BuildTBitSizeFunction ;
+VAR
+   t, f        : CARDINAL ;
+   i, NoOfParam: CARDINAL ;
+   ti, tj,
+   ProcSym,
+   Record,
+   ReturnVar   : CARDINAL ;
+BEGIN
+   PopT(NoOfParam) ;
+   ProcSym := OperandT(NoOfParam+1) ;
+   IF NoOfParam=1
+   THEN
+      IF IsAModula2Type(OperandT(1))
+      THEN
+         ReturnVar := MakeTemporary(ImmediateValue) ;
+         GenQuad(StandardFunctionOp, ReturnVar, ProcSym, OperandT(1)) ;
+      ELSIF IsVar(OperandT(1))
+      THEN
+         ReturnVar := MakeTemporary(ImmediateValue) ;
+         GenQuad(StandardFunctionOp, ReturnVar, ProcSym, OperandT(1)) ;
+      ELSE
+         WriteFormat0('SYSTEM procedure TBITSIZE expects the first parameter to be a type or variable') ;
+         ReturnVar := MakeConstLit(MakeKey('0'))
+      END
+   ELSE
+      Record := OperandT(NoOfParam) ;
+      IF IsRecord(Record)
+      THEN
+         ReturnVar := MakeTemporary(ImmediateValue) ;
+         GenQuad(StandardFunctionOp, ReturnVar, ProcSym, OperandT(1)) ;
+      ELSE
+         WriteFormat0('SYSTEM procedure TBITSIZE expects the first parameter to be a record type') ;
+         ReturnVar := MakeConstLit(MakeKey('0'))
+      END
+   END ;
+   PopN(NoOfParam+1) ;       (* destroy the arguments and function *)
+   PushTF(ReturnVar, GetType(ProcSym))
+END BuildTBitSizeFunction ;
 
 
 (*
@@ -9757,39 +9949,35 @@ END BuildReturn ;
 
 PROCEDURE BuildDesignatorRecord ;
 VAR
-   n, i, rw,
+   n, rw,
    PrevType,
-   Sym, Type,
-   adr, Res,
-   t1, t2, t3: CARDINAL ;
+   Field,
+   FieldType,
+   Record,
+   RecordType,
+   Res       : CARDINAL ;
 BEGIN
    PopT(n) ;
-   Sym  := OperandT(n+1) ;
-   Type := SkipType(OperandF(n+1)) ;
-   rw   := OperandMergeRW(n+1) ;
+   Record := OperandT(n+1) ;
+   RecordType := SkipType(OperandF(n+1)) ;
+   rw := OperandMergeRW(n+1) ;
    Assert(IsLegal(rw)) ;
-   (* adr will be Address type *)
-   adr := MakeLeftValue(Sym, RightValue, Address) ;
-   (* No type for t1 since constant *)
-   t1 := MakeTemporary(ImmediateValue) ;
-   Sym  := OperandT(n) ;
-   Type := SkipType(OperandF(n)) ;
-   PrevType := GetRecord(GetParent(Sym)) ;
-   GenQuad(OffsetOp, t1, PrevType, Sym) ;
+
+   Field := OperandT(n) ;
+   FieldType := SkipType(OperandF(n)) ;
    IF n>1
    THEN
       InternalError('not expecting to see n>1', __FILE__, __LINE__)
    END ;
-   (* Res will be an Address since it is LeftValue mode *)
-   Res := MakeTemporary(LeftValue) ;
-   (*
-      Ok must reference by address
-      - but we contain the type of the referenced entity
-   *)
-   PutLeftValueFrontBackType(Res, Type, Address) ;
-   GenQuad(AddOp, Res, adr, t1) ;
+   IF IsUnused(Field)
+   THEN
+      MetaErrors1('record field {%1Dad} was declared as unused by a pragma',
+                  'record field {%1ad} is being used after being declared as unused by a pragma', Field)
+   END ;
+   Res := MakeComponentRef(MakeComponentRecord(RightValue, Record), Field) ;
+   GenQuad(RecordFieldOp, Res, Record, Field) ;
    PopN(n+1) ;
-   PushTFrw(Res, Type, rw)
+   PushTFrw(Res, FieldType, rw)
 END BuildDesignatorRecord ;
 
 
@@ -9993,7 +10181,7 @@ VAR
    Dim, i, rw,
    ti, tj, tk   : CARDINAL ;
 BEGIN
-   DumpStack ;
+   DisplayStack ;
    Sym  := OperandT(2) ;
    Type := SkipType(OperandF(2)) ;
    Dim := OperandD(2) ;
@@ -10022,7 +10210,7 @@ BEGIN
       PushT(1) ;  (* One record field to dereference *)
       BuildDesignatorRecord ;
       PopT(PtrToBase) ;
-      DumpStack ;
+      DisplayStack ;
       (* Now actually copy Unbounded.ArrayAddress into base *)
       IF GetMode(PtrToBase)=LeftValue
       THEN
@@ -10171,23 +10359,24 @@ PROCEDURE StartBuildWith ;
 VAR
    n        : Name ;
    Sym, Type,
-   adr      : CARDINAL ;
+   Ref      : CARDINAL ;
 BEGIN
-   DumpStack ;
+   DisplayStack ;
    PopTF(Sym, Type) ;
    Type := SkipType(Type) ;
-   adr := MakeTemporary(LeftValue) ;
-   PutLeftValueFrontBackType(adr, Type, NulSym) ;
 
+   Ref := MakeTemporary(LeftValue) ;
+   PutVar(Ref, Type) ;
    IF GetMode(Sym)=LeftValue
    THEN
       (* copy LeftValue *)
-      GenQuad(BecomesOp, adr, NulSym, Sym)
+      GenQuad(BecomesOp, Ref, NulSym, Sym)
    ELSE
       (* calculate the address of Sym *)
-      GenQuad(AddrOp, adr, NulSym, Sym)
+      GenQuad(AddrOp, Ref, NulSym, Sym)
    END ;
-   PushWith(adr, Type, Sym) ;
+
+   PushWith(Sym, Type, Ref) ;
    IF Type=NulSym
    THEN
       IF IsTemporary(Sym)
@@ -10195,8 +10384,7 @@ BEGIN
          WriteFormat0('unknown record variable specified in WITH statement')
       ELSE
          n := GetSymName(Sym) ;
-         WriteFormat1('symbol (%a) is unknown, it should be a variable of a record type',
-                           n)
+         WriteFormat1('symbol (%a) is unknown, it should be a variable of a record type', n)
       END
    ELSIF NOT IsRecord(Type)
    THEN
@@ -10217,7 +10405,7 @@ BEGIN
       END
    END ;
    StartScope(Type)
- ; DumpStack ;
+ ; DisplayStack ;
 END StartBuildWith ;
 
 
@@ -10227,10 +10415,10 @@ END StartBuildWith ;
 
 PROCEDURE EndBuildWith ;
 BEGIN
-   DumpStack ;
+   DisplayStack ;
    EndScope ;
    PopWith
- ; DumpStack ;
+ ; DisplayStack ;
 END EndBuildWith ;
 
 
@@ -10239,7 +10427,7 @@ END EndBuildWith ;
               previous declaration of this record type.
 *)
 
-PROCEDURE PushWith (Sym, Type, RecordVar: CARDINAL) ;
+PROCEDURE PushWith (Sym, Type, Ref: CARDINAL) ;
 VAR
    i, n: CARDINAL ;
    f   : WithFrame ;
@@ -10260,9 +10448,10 @@ BEGIN
    END ;
    NEW(f) ;
    WITH f^ DO
-      PtrSym    := Sym ;
-      RecordSym := Type ;
-      rw        := RecordVar
+      RecordSym  := Sym ;
+      RecordType := Type ;
+      RecordRef  := Ref ;
+      rw         := Sym
    END ;
    PushAddress(WithStack, f)
 END PushWith ;
@@ -10304,10 +10493,14 @@ BEGIN
          (* WriteString('Checking for a with') ; *)
          f := PeepAddress(WithStack, i) ;
          WITH f^ DO
-            IF IsRecordField(Sym) AND (GetRecord(GetParent(Sym))=RecordSym)
+            IF IsRecordField(Sym) AND (GetRecord(GetParent(Sym))=RecordType)
             THEN
+               IF IsUnused(Sym)
+               THEN
+                  MetaError1('record field {%1Dad} was declared as unused by a pragma', Sym)
+               END ;
                (* Fake a RecordSym.op *)
-               PushTFrw(PtrSym, RecordSym, rw) ;
+               PushTFrw(RecordRef, RecordType, rw) ;
                PushTF(Sym, Type) ;
                BuildAccessWithField ;
                PopTFrw(Sym, Type, rw) ;
@@ -10344,126 +10537,26 @@ END CheckWithReference ;
 
 PROCEDURE BuildAccessWithField ;
 VAR
-   OldSuppressWith: BOOLEAN ;
+   OldSuppressWith   : BOOLEAN ;
    rw,
-   Field, Type1,
-   Adr, Type2,
-   Res,
-   t1, t2         : CARDINAL ;
+   Field, FieldType,
+   Record, RecordType,
+   Ref               : CARDINAL ;
 BEGIN
    OldSuppressWith := SuppressWith ;
    SuppressWith := TRUE ;
    (*
       now the WITH cannot look at the stack of outstanding WITH records.
    *)
-   PopTF(Field, Type1) ;
-   PopTFrw(Adr, Type2, rw) ;
-   t1 := MakeTemporary(ImmediateValue) ;
-   (* No type since t1 is constant *)
-   GenQuad(OffsetOp, t1, GetRecord(GetParent(Field)), Field) ;
-   Res := MakeTemporary(LeftValue) ;
-   (*
-      Ok must reference by address
-      - but we contain the type of the referenced entity
-   *)
-   PutLeftValueFrontBackType(Res, Type1, NulSym) ;
-   GenQuad(AddOp, Res, Adr, t1) ;
-   PushTFrw(Res, Type1, rw) ;
+   PopTF(Field, FieldType) ;
+   PopTFrw(Record, RecordType, rw) ;
+
+   Ref := MakeComponentRef(MakeComponentRecord(RightValue, Record), Field) ;
+   GenQuad(RecordFieldOp, Ref, Record, Field) ;
+
+   PushTFrw(Ref, FieldType, rw) ;
    SuppressWith := OldSuppressWith
 END BuildAccessWithField ;
-
-
-(*
-   CheckOuterScopeProcedureVariable - checks whether the symbol
-                                      on top of the stack is a procedure
-                                      symbol from a previous scope.
-
-                                      Entry                    Exit
-
-                                      +------------+           +------------+
-                                      | Sym | Type |           | Sym | Type |
-                                      |------------|           |------------|
-*)
-
-PROCEDURE CheckOuterScopeProcedureVariable ;
-VAR
-   n1, n2: Name ;
-   t2, t1,
-   t, c,
-   ScopeSym,
-   DeclaredScopeSym,
-   Sym, Type       : CARDINAL ;
-BEGIN
-   ScopeSym := GetCurrentScope() ;
-   (*
-    *  note that we do not need to check for nested procedure variables when
-    *  using the GCC backend as GCC is intelligent to work this out for itself.
-    *  So we simply use the variables and not calculate the position using the
-    *  activation record pointer.
-    *)
-   IF (NOT UsingGCCBackend) AND IsProcedure(ScopeSym)
-   THEN
-      (* currently inside a procedure *)
-      PopTF(Sym, Type) ;
-      IF IsVar(Sym)
-      THEN
-         (* note we must not try to GetScope if Sym is not a variable *)
-         DeclaredScopeSym := GetScope(Sym) ;
-
-         IF CompilerDebugging
-         THEN
-            n1 := GetSymName(Sym) ;
-            n2 := GetSymName(GetScope(Sym)) ;
-            printf2('need to reference symbol, %a, defined in scope %a\n',
-                     n1, n2)
-         END ;
-
-         IF IsProcedure(DeclaredScopeSym) AND (DeclaredScopeSym#ScopeSym)
-         THEN
-            (*
-               so now we know that Sym is a procedure variable which was not declared in
-               the current procedure but in an outer procedure.
-            *)
-            t := MakeTemporary(RightValue) ;
-            PutVar(t, Address) ;
-            GenQuad(BecomesOp, t, NulSym, ActivationPointer) ;
-            ScopeSym := GetScope(ScopeSym) ;
-            WHILE IsProcedure(DeclaredScopeSym) AND (ScopeSym#DeclaredScopeSym) DO
-               c := MakeTemporary(ImmediateValue) ;
-               (* must continue to chain backwards to find the scope where Sym was declared *)
-               GenQuad(OffsetOp, c, GetRecord(GetParent(ActivationPointer)), ActivationPointer) ;
-               (* need to look indirectly to find next activation record *)
-               t1 := MakeTemporary(RightValue) ;   (* we use a different variable to help the optimizer *)
-               PutVar(t1, Address) ;
-               GenQuad(AddOp, t1, t, c) ;
-               t2 := MakeTemporary(RightValue) ;   (* we use a different variable to help the optimizer *)
-               PutVar(t2, Address) ;
-               GenQuad(IndrXOp, t2, Address, t1) ; (* next chained frame is now in t2 *)
-               t := t2 ;
-               ScopeSym := GetScope(ScopeSym)
-            END ;
-            IF ScopeSym=DeclaredScopeSym
-            THEN
-               (* finished chaining backwards, found sym in scope ScopeSym *)
-               c := MakeTemporary(ImmediateValue) ;
-               GenQuad(OffsetOp, c, GetRecord(GetParent(Sym)), Sym) ;
-               (* calculate address of sym *)
-               t1 := MakeTemporary(RightValue) ;   (* we use a different variable to help the optimizer *)
-               PutVar(t1, Address) ;
-               GenQuad(AddOp, t1, t, c) ;
-
-               (* now we create a new variable, sym, which will contain the address of the variable *)
-               Sym := MakeTemporary(LeftValue) ;
-               PutLeftValueFrontBackType(Sym, Type, NulSym) ;
-               GenQuad(BecomesOp, Sym, NulSym, t1)
-            ELSE
-               InternalError('we should have found symbol in a procedure scope', __FILE__, __LINE__)
-            END
-         END
-      END ;
-      PushTF(Sym, Type)
-   END
-END CheckOuterScopeProcedureVariable ;
 
 
 (*
@@ -10807,10 +10900,15 @@ BEGIN
    PutVar(constValue, type) ;
    PutConstructor(constValue) ;
    PushValue(constValue) ;
-   ChangeToConstructor(GetTokenNo(), type) ;
-   PutConstructorFrom(constValue, type) ;
-   PopValue(constValue) ;
-   PutConstructorIntoFifoQueue(constValue) ;
+   IF type=NulSym
+   THEN
+      WriteFormat0('constructor requires a type before the opening {')
+   ELSE
+      ChangeToConstructor(GetTokenNo(), type) ;
+      PutConstructorFrom(constValue, type) ;
+      PopValue(constValue) ;
+      PutConstructorIntoFifoQueue(constValue)
+   END ;
    PushConstructor(type)
 END BuildConstructor ;
 
@@ -11391,7 +11489,9 @@ BEGIN
       BooleanOp := FALSE ; (* no longer a Boolean True|False pair    *)
       Unbounded := NulSym ;
       Dimension := 0 ;
-      ReadWrite := NulSym
+      ReadWrite := NulSym ;
+      Annotation := KillString(Annotation) ;
+      Annotation := InitString('%1s(%1d)|%2s(%2d)||boolean var|type')
    END
 END ConvertBooleanToVariable ;
 
@@ -11907,32 +12007,64 @@ END Merge ;
 
 
 (*
+   Annotate - annotate the top of stack.
+*)
+
+PROCEDURE Annotate (a: ARRAY OF CHAR) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   IF DebugStackOn AND CompilerDebugging AND (NoOfItemsInStackAddress(BoolStack)>0)
+   THEN
+      f := PeepAddress(BoolStack, 1) ;    (* top of stack *)
+      WITH f^ DO
+         IF Annotation#NIL
+         THEN
+            Annotation := KillString(Annotation)
+         END ;
+         Annotation := InitString(a)
+      END
+   END
+END Annotate ;
+
+
+(*
+   OperandAnno - returns the annotation string associated with the
+                 position, n, on the stack.
+*)
+
+PROCEDURE OperandAnno (n: CARDINAL) : String ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   f := PeepAddress(BoolStack, n) ;
+   RETURN( f^.Annotation )
+END OperandAnno ;
+
+
+(*
    DisplayStack - displays the compile time symbol stack.
 *)
 
 PROCEDURE DisplayStack ;
-VAR
-   i, n: CARDINAL ;
-   f   : BoolFrame ;
 BEGIN
-   printf0('+-------------------+\n') ;
-   n := NoOfItemsInStackAddress(BoolStack) ;
-   i := 1 ;
-   WHILE i<=n DO
-      f := PeepAddress(BoolStack, i) ;
-      WITH f^ DO
-         IF BooleanOp
-         THEN
-            printf2('| Q%6d | Q%6d |\n', TrueExit, FalseExit) ;
-            printf0('|---------|---------|\n')
-         ELSE
-            printf1('| %6d            |\n', TrueExit) ;
-            printf0('|-------------------|\n')
-         END
-      END ;
-      INC(i)
+   IF DebugStackOn AND CompilerDebugging
+   THEN
+      DebugStack(NoOfItemsInStackAddress(BoolStack),
+                 OperandTno, OperandFno, OperandA,
+                 OperandD, OperandRW, OperandAnno)
    END
 END DisplayStack ;
+
+
+(*
+   ds - tiny procedure name, useful for calling from the gdb shell.
+*)
+
+PROCEDURE ds ;
+BEGIN
+   DisplayStack
+END ds ;
 
 
 (*
@@ -12029,6 +12161,7 @@ BEGIN
                           printf0('  ') ;
                           WriteOperand(Operand3) |
       SizeOp,
+      RecordFieldOp,
       OffsetOp,
       IndrXOp,
       XIndrOp,
@@ -12106,6 +12239,7 @@ BEGIN
    XIndrOp                  : printf0('XIndr             ') |
    ArrayOp                  : printf0('Array             ') |
    ElementSizeOp            : printf0('ElementSize       ') |
+   RecordFieldOp            : printf0('RecordField       ') |
    AddrOp                   : printf0('Addr              ') |
    SizeOp                   : printf0('Size              ') |
    OffsetOp                 : printf0('Offset            ') |
@@ -12259,34 +12393,35 @@ END PopFor ;
 
 
 (*
-   DumpStack - display the expression stack.
+   OperandTno - returns the ident operand stored in the true position
+                on the boolean stack.  This is exactly the same as
+                OperandT but it has no IsBoolean checking.
 *)
 
-PROCEDURE DumpStack ;
+PROCEDURE OperandTno (pos: CARDINAL) : WORD ;
 VAR
-   o1, o2 : WORD ;
-   i, n, v: CARDINAL ;
+   f: BoolFrame ;
 BEGIN
-   IF DebugStack
-   THEN
-      n := NoOfItemsInStackAddress(BoolStack) ;
-      i := n ;
-      printf0('quad stack: ') ;
-      WHILE i>0 DO
-         v := n-i+1 ;
-         IF IsBoolean(i)
-         THEN
-            printf1('%d {boolean}  ', v)
-         ELSE
-            o1 := OperandT(i) ;
-            o2 := OperandF(i) ;
-            printf3('%d [%d, %d]  ', v, o1, o2)
-         END ;
-         DEC(i)
-      END ;
-      printf0('\n')
-   END
-END DumpStack ;
+   Assert(pos>0) ;
+   f := PeepAddress(BoolStack, pos) ;
+   RETURN( f^.TrueExit )
+END OperandTno ;
+
+
+(*
+   OperandFno - returns the ident operand stored in the false position
+                on the boolean stack.  This is exactly the same as
+                OperandF but it has no IsBoolean checking.
+*)
+
+PROCEDURE OperandFno (pos: CARDINAL) : WORD ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   Assert(pos>0) ;
+   f := PeepAddress(BoolStack, pos) ;
+   RETURN( f^.FalseExit )
+END OperandFno ;
 
 
 (*
@@ -12323,9 +12458,11 @@ BEGIN
    WITH f^ DO
       TrueExit := True ;
       FalseExit := False ;
-      BooleanOp := TRUE
+      BooleanOp := TRUE ;
+      Annotation := NIL
    END ;
-   PushAddress(BoolStack, f)
+   PushAddress(BoolStack, f) ;
+   Annotate('<q%1d>|<q%2d>||true quad|false quad')
 END PushBool ;
 
 
@@ -12381,13 +12518,9 @@ END OperandA ;
 *)
 
 PROCEDURE OperandT (pos: CARDINAL) : WORD ;
-VAR
-   f: BoolFrame ;
 BEGIN
-   Assert(pos>0) ;
    Assert(NOT IsBoolean(pos)) ;
-   f := PeepAddress(BoolStack, pos) ;
-   RETURN( f^.TrueExit )
+   RETURN( OperandTno(pos) )
 END OperandT ;
 
 
@@ -12396,13 +12529,9 @@ END OperandT ;
 *)
 
 PROCEDURE OperandF (pos: CARDINAL) : WORD ;
-VAR
-   f: BoolFrame ;
 BEGIN
-   Assert(pos>0) ;
    Assert(NOT IsBoolean(pos)) ;
-   f := PeepAddress(BoolStack, pos) ;
-   RETURN( f^.FalseExit )
+   RETURN( OperandFno(pos) )
 END OperandF ;
 
 
@@ -12827,8 +12956,8 @@ PROCEDURE AddVarientRange ;
 VAR
    r1, r2: CARDINAL ;
 BEGIN
-   PopT(r1) ;
    PopT(r2) ;
+   PopT(r1) ;
    AddRange(r1, r2, GetTokenNo())
 END AddVarientRange ;
 
@@ -12880,7 +13009,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := 0 ;
       ReadWrite := NulSym ;
-      name      := NulSym
+      name      := NulSym ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushTFA ;
@@ -12904,7 +13034,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := Dim ;
       ReadWrite := NulSym ;
-      name      := NulSym
+      name      := NulSym ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushTFAD ;
@@ -12928,7 +13059,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := Dim ;
       ReadWrite := rw ;
-      name      := NulSym
+      name      := NulSym ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushTFADrw ;
@@ -12952,7 +13084,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := Dim ;
       ReadWrite := NulSym ;
-      name      := NulSym
+      name      := NulSym ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushTFD ;
@@ -12996,7 +13129,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := Dim ;
       ReadWrite := rw ;
-      name      := NulSym
+      name      := NulSym ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushTFDrw ;
@@ -13021,7 +13155,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := 0 ;
       ReadWrite := rw ;
-      name      := NulSym
+      name      := NulSym ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushTFrw ;
@@ -13064,7 +13199,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := 0 ;
       ReadWrite := NulSym ;
-      name      := NulSym
+      name      := NulSym ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushTF ;
@@ -13105,7 +13241,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := 0 ;
       ReadWrite := NulSym ;
-      name      := NulSym
+      name      := NulSym ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushT ;
@@ -13144,7 +13281,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := 0 ;
       ReadWrite := rw ;
-      name      := NulSym
+      name      := NulSym ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushTrw ;
@@ -13185,7 +13323,8 @@ BEGIN
       BooleanOp := FALSE ;
       Dimension := 0 ;
       ReadWrite := NulSym ;
-      name      := n
+      name      := n ;
+      Annotation := NIL
    END ;
    PushAddress(BoolStack, f)
 END PushTFn ;

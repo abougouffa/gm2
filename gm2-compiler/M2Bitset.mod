@@ -1,4 +1,4 @@
-(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -20,7 +20,11 @@ IMPLEMENTATION MODULE M2Bitset ;
 
 
 FROM M2Debug IMPORT Assert ;
-FROM gccgm2 IMPORT GetSizeOf, GetWordType, GetBitsPerBitset ;
+FROM m2tree IMPORT Tree ;
+FROM m2linemap IMPORT BuiltinsLocation ;
+FROM m2type IMPORT GetWordType ;
+FROM m2decl IMPORT GetBitsPerBitset ;
+FROM m2expr IMPORT GetSizeOf ;
 FROM M2ALU IMPORT PushCard, PushIntegerTree ;
 FROM NameKey IMPORT MakeKey ;
 FROM M2System IMPORT Word ;
@@ -62,7 +66,7 @@ BEGIN
    PutSubrange(Bitnum, MinBitset, MaxBitset, Cardinal) ;
    PutSet(Bitset, Bitnum) ;
 
-   PushIntegerTree(GetSizeOf(GetWordType())) ;
+   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetWordType())) ;
    PopSize(Bitset)
 END MakeBitset ;
 

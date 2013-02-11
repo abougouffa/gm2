@@ -1479,7 +1479,7 @@ int flags;
 
             case TK_SUBR:
                 if (type == tp_abyte || type == tp_ubyte || type == tp_sbyte ||
-                    type == tp_ushort || type == tp_sshort) {
+                    type == tp_ushort || type == tp_sshort || type == tp_word) {
                     return type;
                 } else if ((type->basetype->kind == TK_ENUM && useenum) ||
                            (type->basetype->kind == TK_BOOLEAN && *name_BOOLEAN)) {
@@ -1716,7 +1716,7 @@ int isheader, isforward;
 			    output("const ");
 			}
 		      }
-		      
+
 		      if (dopromote)
 			tp = promote_type(tp);
 		      outbasetype(tp, ODECL_CHARSTAR|ODECL_FREEARRAY|ODECL_NOPRES);
@@ -2337,6 +2337,8 @@ int flags;
                 output("char");
             } else if (type == tp_ubyte) {
                 output(ucharname);
+            } else if (type == tp_word) {
+                output("unsigned int");
             } else if (type == tp_sbyte) {
                 output(scharname);
                 if (signedchars != 1 && !hassignedchar)

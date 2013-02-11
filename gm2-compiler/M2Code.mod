@@ -58,7 +58,7 @@ FROM M2GCCDeclare IMPORT FoldConstants, StartDeclareScope,
                          DeclareModuleVariables, MarkExported ;
 
 FROM M2Scope IMPORT ScopeBlock, InitScopeBlock, KillScopeBlock, ForeachScopeBlockDo ;
-FROM gccgm2 IMPORT InitGlobalContext, FinishBackend, SetFlagUnitAtATime ;
+FROM m2top IMPORT InitGlobalContext, FinishBackend, SetFlagUnitAtATime ;
 FROM M2Error IMPORT FlushErrors, FlushWarnings ;
 FROM M2Swig IMPORT GenerateSwigFile ;
 

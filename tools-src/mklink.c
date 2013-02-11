@@ -27,9 +27,215 @@
  * Start date : 9/6/93
  *
  *
- * $Header: /sources/gm2/gm2/tools-src/mklink.c,v 1.9 2010/10/03 19:01:19 gaius Exp $
+ * $Header: /sources/gm2/gm2/tools-src/mklink.c,v 1.10 2013/02/11 14:45:21 gaius Exp $
  *
  * $Log: mklink.c,v $
+ * Revision 1.10  2013/02/11 14:45:21  gaius
+ * * gm2/Make-lang.in:  build rules changed to enable gm2 to be built
+ *   with gcc-4.7.1.
+ * * gm2/NEWS:  minor version number change.
+ * * gm2/config-lang.in:  removed gcc-3.x.y version checking.
+ * * gm2/configure:  rebuilt.
+ * * gm2/configure.in:  updated as gccgm2.c is no longer used.
+ * * gm2/gccgm2.c:  (removed).  The contents of this 12000 line file
+ *   have been replaced by the modular equivalent in gm2/gm2-gcc/*.[ch]
+ * * gm2/gm2-common.h:  (removed).
+ * * gm2/gm2-common.c:  (removed).
+ * * gm2/gm2-lang.c:  changed to use the gm2/gm2-gcc structure and gcc-4.7.1.
+ * * gm2/gm2-lang.h:  changed to use the gm2/gm2-gcc structure and gcc-4.7.1.
+ * * gm2/gm2-tree.def:  removed THROW_EXPR, TRY_BLOCK, HANDLER, EXPR_STMT
+ *   definitions.
+ * * gm2/gm2-tree.h:  commented out the language tree code.
+ * * gm2/gm2.texi:  modified to reflect library command line switch changes
+ *   between 1.0.1 and 1.0.4.  Improved the assembly language example
+ *   together with an explanation.  Added alignment information.
+ *   Updated the Solaris building instructions.
+ * * gm2/gm2config.h.in:  (updated to reflect gcc-4.7.1).
+ * * gm2/gm2spec.c:    (updated to reflect gcc-4.7.1).
+ * * gm2/lang-options.h:  changed -fverbose-unbounded to
+ *   -Wverbose-unbounded.
+ * * gm2/lang.opt:  changed so that libraries dialects can be ordered.
+ * * gm2/m2.flex:  updated to reflect gcc-4.7.1 and the new gm2/gm2-gcc
+ *   structure.
+ * * gm2/m2pp.c:  updated to reflect gcc-4.7.1 and the new gm2/gm2-gcc
+ *   structure.
+ * * gm2/p2crc:  added many more AvoidNames to avoid conflicts with C
+ *   header files.
+ * * gm2/version.c:  updated to 1.0.5.
+ * * gm2/bnf/gm2l.bnf:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/bnf/gm2m.bnf:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/bnf/m2-2.bnf:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/bnf/m2-3.bnf:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/bnf/m2-c.bnf:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/bnf/m2-h.bnf:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/bnf/m2.bnf:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/el/g-mode.el:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/examples/gravity/README:  updated package versions required.
+ * * gm2/examples/gravity/twoDsim.def:  updated dates.
+ * * gm2/examples/gravity/twoDsim.mod:  updated dates and improved debugging.
+ * * gm2/examples/gravity/doc/collision.ms:  reorganised document.
+ * * gm2/examples/hello/Makefile.in:  modified build rules.
+ * * gm2/examples/hello/hello.mod:  added blank line.
+ * * gm2/examples/map/AdvMap.def:  removed BITSET import.
+ * * gm2/gm2-compiler/Indexing.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2ALU.def:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2ALU.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Base.def:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Base.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Batch.def:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Batch.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Bitset.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2CaseList.def:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2CaseList.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Code.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Comp.def:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Comp.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Error.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2GCCDeclare.def:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2GCCDeclare.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2GenGCC.def:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2GenGCC.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2LexBuf.def:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2LexBuf.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2MetaError.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Options.def:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Options.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Preprocess.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Printf.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Quads.def:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Quads.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Range.def:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Range.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Reserved.def:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2Reserved.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2System.def:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/M2System.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/P2SymBuild.def:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/P2SymBuild.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/PCSymBuild.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/Sets.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/SymbolConversion.def:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/SymbolConversion.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/SymbolKey.def:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/SymbolKey.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/SymbolTable.def:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/SymbolTable.mod:  updated to reflect gcc-4.7.1 and the
+ *   new gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/gccgm2.def:  updated to reflect gcc-4.7.1 and the new
+ *   gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/gm2.mod:  updated to reflect gcc-4.7.1 and the new
+ *   gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/m2flex.def:  updated to reflect gcc-4.7.1 and the new
+ *   gm2/gm2-gcc structure.
+ * * gm2/gm2-compiler/ppg.mod:  updated to reflect gcc-4.7.1 and the new
+ *   gm2/gm2-gcc structure.
+ * * gm2/gm2-libs/Builtins.def:  added alloca_trace for debugging.
+ * * gm2/gm2-libs/Builtins.mod:  implemented alloca_trace for debugging.
+ * * gm2/gm2-libs/Indexing.mod:  removed BITSET from imports.
+ * * gm2/gm2-libs/M2RTS.def:  removed BITSET from imports.
+ * * gm2/gm2-libs/SYSTEM.def:  removed BITSET from export list.
+ * * gm2/gm2-libs/config-host:  rebuilt.
+ * * gm2/gm2-libs/config-host.in:  updated version to 1.0.5.
+ * * gm2/gm2-libs/config-target:  rebuilt.
+ * * gm2/gm2-libs/config-target.in:  updated version to 1.0.5.
+ * * gm2/gm2-libs-boot/SYSTEM.def:  removed BITSET from export list.
+ * * gm2/gm2-libs-coroutines/SYSTEM.def:  removed BITSET from export list.
+ * * gm2/gm2-libs-iso/README.texi:  updated the list of implemented ISO
+ *   Modules and GNU Modules.
+ * * gm2/gm2-libs-iso/SYSTEM.def:  export TBITSIZE.
+ * * gm2/gm2-libs-iso/ServerSocket.mod:  added missing, RETURN TRUE.
+ * * gm2/gm2-libs-iso/StdChans.mod:  changed to include 'raw' in the std
+ *   file descriptors.
+ * * gm2/gm2-libs-min/SYSTEM.def:  removed BITSET from export list.
+ * * gm2/gm2-libs-pim/BitBlockOps.mod:  removed BITSET from import list.
+ * * gm2/gm2-libs-pim/BitByteOps.mod:  removed BITSET from import list.
+ * * gm2/gm2-libs-pim/BitWordOps.mod:  removed BITSET from import list.
+ * * gm2/gm2-libs-pim/Random.def:  fixed RandomBytes definition.
+ * * gm2/gm2-libs-pim/Random.mod:  fixed RandomBytes definition.
+ * * gm2/init/gm2linit:  updated to reflect gcc-4.7.1 and the new gm2/gm2-gcc
+ *   structure.
+ * * gm2/init/gm2minit:  updated to reflect gcc-4.7.1 and the new gm2/gm2-gcc
+ *   structure.
+ * * gm2/p2c/p2c.h:  modified prototypes to use plain C.
+ * * gm2/p2c/p2c-src/src/citmods.c:  use TOUPPER rather than toupper,
+ *   use TOLOWER rather than tolower.
+ * * gm2/p2c/p2c-src/src/decl.c:  test for WORD and use unsigned int.
+ * * gm2/p2c/p2c-src/src/expr.c:  use TOLOWER, ISSPACE, ISDIGIT, ISALPHA
+ *   rather than their lower case counterparts.
+ * * gm2/p2c/p2c-src/src/funcs.c:  use TOUPPER rather than the lower
+ *   case counterpart.
+ * * gm2/p2c/p2c-src/src/lex.c:  register the uppercase functions:
+ *   TOLOWER, TOUPPER, ISALPHA, ISDIGIT.
+ * * gm2/p2c/p2c-src/src/p2clib.c:  use ISSPACE and TOUPPER rather than
+ *   their lower case counterparts.
+ * * gm2/tools-src/def2texi.py:  many changes to explicitly differentiate
+ *   between the build and src directories.
+ * * gm2/tools-src/mklink.c:  modified so that the default library is NULL and
+ *   new --lib specifies the library.
+ *   Also alter long options to use -- rather than -.
+ * * gm2/ulm-lib-gm2/std/Archive.def:  remove BITSET from import.
+ * * gm2/ulm-lib-gm2/std/M2RTS.mod:  remove BITSET from import.
+ * * gm2/ulm-lib-gm2/std/MathLib.mod:  remove BITSET from import.
+ * * gm2/ulm-lib-gm2/std/Plot.mod:  remove BITSET from import.
+ * * gm2/ulm-lib-gm2/sys/SYSTEM.def:  remove BITSET from import.
+ * * gm2/ulm-lib-gm2/sys/SysIoctl.def:  remove BITSET from import.
+ * * gm2/ulm-lib-gm2/sys/SysStat.def:  remove BITSET from import.
+ * * gm2/ulm-lib-gm2/sys/SysStat.mod:  remove BITSET from import.
+ * * gm2/www/tools/texi2tr/html/download.html:  modified url to reference
+ *   gm2-1.0.4.
+ * * gm2/www/tools/texi2tr/html/release.html:  modified url to reference
+ *   gm2-1.0.4.
+ *
  * Revision 1.9  2010/10/03 19:01:19  gaius
  * * gm2/Make-lang.in:  tidied up Copyright dates on
  * * gm2/Makefile.in:  the following files.
@@ -1525,9 +1731,29 @@ static int        LinkCommandLine   = FALSE;
 static int        ProfilePCommand   = FALSE;
 static int        ProfilePGCommand  = FALSE;
 static int        ExitNeeded        = TRUE;
-static char      *P2CLibrary        = "../p2c/home/libp2c.a";
+static char      *libraries         = NULL;
 static functList *head              = NULL;
 static functList *tail              = NULL;
+
+
+/*
+ *  addLibrary - adds libname to the list of libraries to be linked.
+ */
+
+static void addLibrary (char *libname)
+{
+  if (libraries == NULL)
+    libraries = strdup (libname);
+  else {
+    char *old = libraries;
+    char *new = (char *) malloc (strlen (libname) + strlen(libraries) + 1 + 1);
+    strcpy (new, libraries);
+    strcat (new, " ");
+    strcat (new, libname);
+    libraries = new;
+    free (old);
+  }
+}
 
 
 main (int argc, char *argv[])
@@ -1540,7 +1766,7 @@ main (int argc, char *argv[])
 	} else if (strcmp(argv[1], "-s") == 0) {
 	    LinkCommandLine = FALSE;
 	} else {
-	    fprintf(stderr, "Usage: mklink (-l|-s) [-pg|-p] [-p2c p2clibrary] [-main name] [-exit] <modulelistfile>\n");
+	    fprintf(stderr, "Usage: mklink (-l|-s) [--pg|-p] [--lib library] [--main name] [--exit] <modulelistfile>\n");
 	    fprintf(stderr, "       must supply -l or -s option\n");
 	    exit(1);
 	}
@@ -1548,16 +1774,16 @@ main (int argc, char *argv[])
 	ProfilePGCommand = FALSE;
 	i = 2;
 	while (i<argc-1) {
-	  if (strcmp(argv[i], "-pg") == 0) {
+	  if (strcmp(argv[i], "--pg") == 0) {
 	    ProfilePGCommand = TRUE;
 	  } else if (strcmp(argv[i], "-p") == 0) {
 	    ProfilePCommand = TRUE;
-	  } else if (strcmp(argv[i], "-exit") == 0) {
+	  } else if (strcmp(argv[i], "--exit") == 0) {
 	    ExitNeeded = FALSE;
-	  } else if (strcmp(argv[i], "-p2c") == 0) {
+	  } else if (strcmp(argv[i], "--lib") == 0) {
 	    i++;
-	    P2CLibrary = argv[i];
-	  } else if (strcmp(argv[i], "-main") == 0) {
+	    addLibrary(argv[i]);
+	  } else if (strcmp(argv[i], "--main") == 0) {
 	    i++;
 	    NameOfMain = argv[i];
 	  }
@@ -1565,7 +1791,7 @@ main (int argc, char *argv[])
 	}
 	ParseFile(argv[i]);
     } else {
-        fprintf(stderr, "Usage: mklink (-l|-s) [-pg|-p] [-main name] [-exit] <modulelistfile>\n");
+        fprintf(stderr, "Usage: mklink (-l|-s) [--pg|-p] [--lib library] [--main name] [--exit] <modulelistfile>\n");
 	exit(1);
     }
     exit(0);
@@ -1617,7 +1843,7 @@ static void ParseFileLinkCommand (void)
     if ((strlen(name) > 0) && (name[0] != '#'))
       FindObject(name);
   }
-  printf(" %s\n", P2CLibrary);
+  printf(" %s\n", libraries);
 }
 
 

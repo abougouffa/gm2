@@ -31,7 +31,6 @@ IMPLEMENTATION MODULE MathLib;
 
    (* implementation for the SPARCv8 platform *)
 
-   FROM SYSTEM IMPORT BITSET;
    IMPORT Builtins ;
 
    TYPE
@@ -60,7 +59,6 @@ IMPLEMENTATION MODULE MathLib;
 
    MODULE IEEE754Conversions;
 
-      IMPORT BITSET ;
       EXPORT IEEE754, IEEE754Real2ExpMan, IEEE754ExpMan2Real;
 
       TYPE

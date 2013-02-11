@@ -29,7 +29,6 @@ This file was originally part of the University of Ulm library
 
 DEFINITION MODULE Archive; (* AFB 3/84 *)
 
-   FROM SYSTEM IMPORT BITSET ;
    FROM SystemTypes IMPORT TIME, OFF;
 
    (* routines for reading an archive file *)

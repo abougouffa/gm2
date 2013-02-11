@@ -91,7 +91,7 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("compiler warns if a cast is being used on types of differing sizes") },
   { "-fextended-opaque",
       N_("allows opaque types to be implemented as any type (a GNU Modula-2 extension)") },
-  { "-fverbose-unbounded",
+  { "-Wverbose-unbounded",
       N_("inform user which parameters will be passed by reference") },
   { "-fxcode",
       N_("issue all errors and warnings in the Xcode format") },

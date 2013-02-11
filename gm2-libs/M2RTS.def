@@ -26,7 +26,7 @@ DEFINITION MODULE M2RTS ;
    Description: Implements the run time system facilities of Modula-2.
 *)
 
-FROM SYSTEM IMPORT BITSET, ADDRESS ;
+FROM SYSTEM IMPORT ADDRESS ;
 EXPORT QUALIFIED HALT, Halt,
                  InstallTerminationProcedure, ExecuteTerminationProcedures,
                  InstallInitialProcedure, ExecuteInitialProcedures,

@@ -101,14 +101,12 @@ typedef struct {
 # define _FNSIZE  120
 #endif
 
-
-
-extern int      _OutMem     PV();
-extern int      _CaseCheck  PV();
-extern int      _NilCheck   PV();
-extern int	_Escape     PP( (int) );
-extern int	_EscIO      PP( (int) );
-
+extern int _OutMem (void);
+extern int _CaseCheck (void);
+extern int _NilCheck (void);
+extern int _Escape (int);
+extern int _EscIO (int);
+extern void M2RTS_HALT (int);
 
 #endif    /* P2C_H */
 

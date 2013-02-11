@@ -20,7 +20,6 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE M2Comp ;
 
 
-FROM SYSTEM IMPORT ADDRESS ;
 FROM M2Options IMPORT Statistics, Quiet ;
 
 FROM M2Pass IMPORT SetPassToPass1, SetPassToPass2, SetPassToPassC, SetPassToPass3,
@@ -130,6 +129,20 @@ BEGIN
    Code ;
    FlushWarnings ; FlushErrors
 END Compile ;
+
+
+(*
+   compile - compile the filename.
+*)
+
+PROCEDURE compile (filename: ADDRESS) ;
+VAR
+   f: String ;
+BEGIN
+   f := InitStringCharStar(filename) ;
+   Compile(f) ;
+   f := KillString(f) ;
+END compile ;
 
 
 (*

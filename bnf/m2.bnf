@@ -1,4 +1,5 @@
--- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+-- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+--               2010, 2011, 2012
 -- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
@@ -450,6 +451,8 @@ token   '>'               greatertok
 token   '<>'              lessgreatertok
 token   '<='              lessequaltok
 token   '>='              greaterequaltok
+token   '<*'              ldirectivetok
+token   '*>'              rdirectivetok
 token   '..'              periodperiodtok
 token   ':'               colontok
 token   '"'               doublequotestok
@@ -624,10 +627,16 @@ ConstAttributeExpression := Ident | "<" Qualident ',' Ident ">" =:
 
 Element := ConstExpression [ ".." ConstExpression ] =:
 
-Alignment := [ "__ATTRIBUTE__" "(" "("                                     % PushAutoOff %
-                                       Ident "(" ConstExpression ")"       % PopAuto %
-                                                                     ")" ")" ]
-           =:
+ByteAlignment := "__ATTRIBUTE__" "(" "("                                   % PushAutoOff %
+                                         Ident OptAlignmentExpression      % PopAuto %
+                                                                      ")" ")"
+               =:
+
+OptAlignmentExpression := [ AlignmentExpression ] =:
+
+AlignmentExpression := "(" ConstExpression ")" =:
+
+Alignment := [ ByteAlignment ] =:
 
 TypeDeclaration :=
                                                                            % PushAutoOn %
@@ -708,7 +717,20 @@ SubrangeType := "[" ConstExpression ".." ConstExpression "]" =:
 ArrayType := "ARRAY" SimpleType { "," SimpleType } "OF"                    % BuildNulName %
              Type =:
 
-RecordType := "RECORD" FieldListSequence "END" =:
+RecordType := "RECORD" [ DefaultRecordAttributes ] FieldListSequence "END" =:
+
+DefaultRecordAttributes := '<*' AttributeExpression '*>' =:
+
+RecordFieldPragma := [ '<*' FieldPragmaExpression
+                        { ',' FieldPragmaExpression } '*>' ] =:
+
+FieldPragmaExpression :=                                                   % PushAutoOff %
+                         Ident [ '(' ConstExpression ')' ]                 % PopAuto %
+                                                           =:
+
+AttributeExpression :=                                                     % PushAutoOff %
+                       Ident '(' ConstExpression ')'                       % PopAuto %
+                                                     =:
 
 FieldListSequence := FieldListStatement { ";" FieldListStatement } =:
 
@@ -723,7 +745,7 @@ FieldListStatement := [ FieldList ] =:
 --                    [ "ELSE" FieldListSequence ] "END" =:
 
 FieldList := IdentList ":"                                                 % BuildNulName %
-                           Type Alignment
+                           Type RecordFieldPragma
                                 |
              "CASE" CaseTag "OF" Varient { "|" Varient }
              [ "ELSE" FieldListSequence ] "END"
@@ -992,12 +1014,16 @@ Definition := "CONST" { ConstantDeclaration ";" } |
 
 AsmStatement := 'ASM' [ 'VOLATILE' ] '(' AsmOperands ')' =:
 
+NamedOperand := '[' Ident ']' =:
+
+AsmOperandName := [ NamedOperand ] =:
+
 AsmOperands  := string [ ':' AsmList [ ':' AsmList [ ':' TrashList ] ] ]
              =:
 
 AsmList      := [ AsmElement ] { ',' AsmElement } =:
 
-AsmElement   := string '(' Expression ')'
+AsmElement   := AsmOperandName string '(' Expression ')'
              =:
 
 TrashList    := [ string ] { ',' string } =:

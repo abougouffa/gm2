@@ -48,7 +48,7 @@ SArgs
 Lists
 M2Debug
 M2Error
-M2Options
+M2DriverOptions
 M2Preprocess
 choosetemp
 M2Version

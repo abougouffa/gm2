@@ -57,21 +57,9 @@ fpositive-mod-floor-div
 Modula-2
 force positive result from MOD and DIV result floor
 
-flibs=logitech
-Modula-2
-use the Logitech compatible (PIM dialect) set of libraries
-
-flibs=min
-Modula-2
-use a minimal SYSTEM, M2RTS and libc and no other system libraries
-
-flibs=pim-coroutine
-Modula-2
-use the PIM dialect libraries which include coroutine support
-
-flibs=ulm
-Modula-2
-use the University of Ulm libraries and PIM dialect of Modula-2
+flibs=
+Modula-2 Joined
+specify the library order, currently legal entries include: logitech, min, pim-coroutine, ulm, iso
 
 fbounds
 Modula-2
@@ -173,9 +161,17 @@ fxcode
 Modula-2
 issue all errors and warnings in the Xcode format
 
+fdebug-builtins
+Modula-2
+call a real function, rather than the builtin equivalent
+
 fdump-system-exports
 Modula-2
 display all inbuilt system items
+
+fd
+Modula-2
+turn on internal debugging of the compiler
 
 fswig
 Modula-2

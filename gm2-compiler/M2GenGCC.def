@@ -30,7 +30,7 @@ DEFINITION MODULE M2GenGCC ;
 *)
 
 FROM M2GCCDeclare IMPORT WalkAction ;
-FROM gccgm2 IMPORT Tree ;
+FROM m2tree IMPORT Tree ;
 EXPORT QUALIFIED ConvertQuadsToTree, ResolveConstantExpressions,
                  GetHighFromUnbounded, StringToChar,
                  LValueToGenericPtr, ZConstToTypedConst,
@@ -94,7 +94,7 @@ PROCEDURE ZConstToTypedConst (t: Tree; op1, op2: CARDINAL) : Tree ;
                        providing it fits.
 *)
 
-PROCEDURE DoCopyString (VAR t, op3t: Tree; op1t, op3: CARDINAL) ;
+PROCEDURE DoCopyString (tokenno: CARDINAL; VAR t, op3t: Tree; op1t, op3: CARDINAL) ;
 
 
 END M2GenGCC.

@@ -30,6 +30,8 @@ DEFINITION MODULE M2LexBuf ;
 FROM SYSTEM IMPORT ADDRESS ;
 FROM M2Reserved IMPORT toktype ;
 FROM DynamicStrings IMPORT String ;
+FROM m2linemap IMPORT location_t ;
+
 EXPORT QUALIFIED OpenSource, CloseSource, ReInitialize, GetToken, InsertToken,
                  InsertTokenAndRewind, GetPreviousTokenLineNo, GetLineNo,
                  GetColumnNo, GetTokenNo, TokenToLineNo, TokenToColumnNo,
@@ -149,6 +151,13 @@ PROCEDURE GetColumnNo () : CARDINAL ;
 *)
 
 PROCEDURE TokenToColumnNo (TokenNo: CARDINAL; depth: CARDINAL) : CARDINAL ;
+
+
+(*
+   TokenToLocation - returns the location_t corresponding to, TokenNo.
+*)
+
+PROCEDURE TokenToLocation (TokenNo: CARDINAL) : location_t ;
 
 
 (*

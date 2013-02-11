@@ -20,7 +20,6 @@ IMPLEMENTATION MODULE Random ;
 
 FROM libc IMPORT rand, srand ;
 FROM Selective IMPORT Timeval, InitTime, KillTime, GetTime, GetTimeOfDay ;
-FROM FloatingUtilities IMPORT Frac, Fracl ;
 
 
 (*
@@ -57,7 +56,7 @@ END RandomInit ;
    RandomBytes - fills in an array with random values.
 *)
 
-PROCEDURE RandomBytes (a: ARRAY OF BYTE) ;
+PROCEDURE RandomBytes (VAR a: ARRAY OF BYTE) ;
 VAR
    i, h: CARDINAL ;
 BEGIN
@@ -103,11 +102,8 @@ END RandomCard ;
 *)
 
 PROCEDURE RandomReal () : REAL ;
-VAR
-   r: REAL ;
 BEGIN
-   RandomBytes(r) ;
-   RETURN Frac(r)
+   RETURN RandomLongReal()
 END RandomReal ;
 
 
@@ -117,10 +113,10 @@ END RandomReal ;
 
 PROCEDURE RandomLongReal () : LONGREAL ;
 VAR
-   l: LONGREAL ;
+   l: LONGCARD ;
 BEGIN
    RandomBytes(l) ;
-   RETURN Fracl(l)
+   RETURN VAL(LONGREAL, l)/VAL(LONGREAL, MAX(LONGCARD))
 END RandomLongReal ;
 
 

@@ -50,7 +50,7 @@ FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertT
 FROM M2Error IMPORT ErrorStringAt, WriteFormat1, WriteFormat2 ;
 FROM NameKey IMPORT NulName, Name, makekey ;
 FROM DynamicStrings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
-FROM M2Printf IMPORT printf0 ;
+FROM M2Printf IMPORT printf0, printf1 ;
 FROM M2Debug IMPORT Assert ;
 FROM P2SymBuild IMPORT BuildString, BuildNumber ;
 
@@ -61,7 +61,7 @@ FROM M2Reserved IMPORT tokToTok, toktype,
                        OrTok, TimesTok, DivTok, DivideTok, ModTok, RemTok,
                        AndTok, AmbersandTok, PeriodPeriodTok, ByTok ;
 
-FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
+FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing, Annotate,
                     BuildModuleStart,
                     StartBuildDefFile, StartBuildModFile,
                     EndBuildFile,
@@ -117,13 +117,13 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildDesignatorPointer,
                     BuildBooleanVariable,
                     CheckWithReference,
-                    CheckOuterScopeProcedureVariable,
                     BuildModulePriority,
                     BuildRetry,
-                    DumpStack,
+                    DisplayStack,
                     AddVarientRange, AddVarientEquality,
                     BeginVarient, EndVarient, BeginVarientList, EndVarientList,
                     PushInConstExpression, PopInConstExpression, IsInConstExpression,
+                    BuildDefaultFieldAlignment, BuildPragmaField,
                     IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
 
 FROM P3SymBuild IMPORT P3StartBuildProgModule,
@@ -150,9 +150,11 @@ FROM P3SymBuild IMPORT P3StartBuildProgModule,
                        BuildOptArgInitializer ;
 
 FROM SymbolTable IMPORT MakeGnuAsm, PutGnuAsmVolatile, PutGnuAsm, PutGnuAsmInput,
-                        PutGnuAsmOutput, PutGnuAsmTrash, PutGnuAsmVolatile,
+                        PutGnuAsmOutput, PutGnuAsmTrash,
+                        PutGnuAsmVolatile, PutGnuAsmSimple,
                         MakeRegInterface,
                         PutRegInterface,
+                        IsRegInterface, IsGnuAsmVolatile, IsGnuAsm,
                         GetSymName, GetType, SkipType,
                         NulSym,
                         StartScope, EndScope,
@@ -173,6 +175,7 @@ CONST
    Pass1     = FALSE ;          (* permanently disabled for the time being *)
    Pass2     = FALSE ;
    Pass3     =  TRUE ;          (* permanently disabled for the time being *)
+   DebugAsm  = FALSE ;
 
 VAR
    WasNoError: BOOLEAN ;
@@ -481,6 +484,8 @@ token   '>'               greatertok
 token   '<>'              lessgreatertok
 token   '<='              lessequaltok
 token   '>='              greaterequaltok
+token   '<*'              ldirectivetok
+token   '*>'              rdirectivetok
 token   '..'              periodperiodtok
 token   ':'               colontok
 token   '"'               doublequotestok
@@ -753,11 +758,17 @@ Element := ConstExpression ( ".." ConstExpression                          % Bui
                              |                                             % BuildInclBit (* epsilon *) %
                            ) =:
 
-Alignment := [ "__ATTRIBUTE__" "(" "("                                     % PushAutoOn %
-                                       Ident "(" ConstExpression ")"       % BuildAlignment %
+ByteAlignment := "__ATTRIBUTE__" "(" "("                                   % PushAutoOn %
+                                         Ident OptAlignmentExpression      % BuildAlignment %
                                                                            % PopAuto %
-               ")" ")" ]
-           =:
+                                                                   ")" ")"
+               =:
+
+OptAlignmentExpression := [ AlignmentExpression ] =:
+
+AlignmentExpression := "(" ConstExpression ")" =:
+
+Alignment := [ ByteAlignment ] =:
 
 TypeDeclaration := Ident "=" Type Alignment
                 =:							   
@@ -809,9 +820,26 @@ ArrayType := "ARRAY"
              Type
            =:
 
-RecordType := "RECORD"
-              FieldListSequence "END" =:
+RecordType := "RECORD" [ DefaultRecordAttributes ] FieldListSequence "END" =:
 
+DefaultRecordAttributes := '<*'                                           % PushAutoOn %
+                                AttributeExpression                       % BuildDefaultFieldAlignment %
+                                                                          % PopAuto %
+                                                    '*>' =:
+
+RecordFieldPragma := [ '<*' FieldPragmaExpression
+                            { ',' FieldPragmaExpression } '*>' ] =:
+
+FieldPragmaExpression :=                                                   % PushAutoOn %
+                         Ident PragmaConstExpression                       % BuildPragmaField %
+                                                                           % PopAuto %
+                                                           =:
+
+PragmaConstExpression := ( '(' ConstExpression ')' |                       % PushT(NulSym) %
+                                                                           % Annotate('NulSym||no pragma const') %
+                                                     )     =:
+
+AttributeExpression := Ident '(' ConstExpression ')' =:
 
 FieldListSequence := FieldListStatement { ";" FieldListStatement } =:
 
@@ -828,7 +856,7 @@ FieldListStatement := [ FieldList ] =:
 --                    [ "ELSE" FieldListSequence ] "END" =:
 
 FieldList := IdentList ":"
-                           Type Alignment
+                           Type RecordFieldPragma
              |
              "CASE"                                                        % BeginVarient %
                     CaseTag "OF"
@@ -973,7 +1001,6 @@ VariableDeclaration := VarIdentList ":"
                     =:
 
 Designator := Qualident                                                    % CheckWithReference %
-                                                                           % CheckOuterScopeProcedureVariable %
               { SubDesignator } =:
 
 SubDesignator := "."                                                       % VAR Sym, Type,
@@ -1060,7 +1087,6 @@ Factor :=                                                                  % Bui
                                 ) =:
 
 SetOrDesignatorOrFunction := Qualident                                     % CheckWithReference %
-                                                                           % CheckOuterScopeProcedureVariable %
                               [ Constructor |
                                 SimpleDes [ ActualParameters               % IF IsInConstExpression()
                                                                              THEN
@@ -1089,7 +1115,7 @@ ReturnStatement :=                                                         % Bui
                                            )                               % BuildReturn %
                 =:
 
-Statement :=                                                               % PushAutoOn ; DumpStack %
+Statement :=                                                               % PushAutoOn ; DisplayStack %
              [ AssignmentOrProcedureCall | IfStatement | CaseStatement |
                WhileStatement | RepeatStatement | LoopStatement |
                ForStatement | WithStatement | AsmStatement |
@@ -1101,7 +1127,7 @@ RetryStatement := "RETRY"                                                  % Bui
                 =:
 
 AssignmentOrProcedureCall :=                                               % VAR isFunc: BOOLEAN ; %
-                                                                           % BuildLineNo ; DumpStack %
+                                                                           % BuildLineNo ; DisplayStack %
                              Designator
                              ( ":=" Expression                             % BuildAssignment %
                                 |                                          % BuildLineNo ;
@@ -1114,7 +1140,7 @@ AssignmentOrProcedureCall :=                                               % VAR
                                                                              ELSE
                                                                                 BuildProcedureCall
                                                                              END %
-                             )                                             % DumpStack %
+                             )                                             % DisplayStack %
                            =:
 
 -- these two break LL1 as both start with a Designator
@@ -1176,7 +1202,7 @@ WhileStatement :=                                                          % Bui
                   "WHILE"                                                  % BuildWhile %
                   Expression
                              "DO"                                          % BuildDoWhile %
-                                  StatementSequence "END"                  % DumpStack ; BuildEndWhile %
+                                  StatementSequence "END"                  % DisplayStack ; BuildEndWhile %
                 =:
 
 RepeatStatement :=
@@ -1383,6 +1409,7 @@ AsmStatement :=                                                            % VAR
                 'ASM'                                                      % IF Pass3
                                                                              THEN
                                                                                 PushAutoOn ;
+                                                                                PushT(0) ;  (* operand count *)
                                                                                 PushT(MakeGnuAsm())
                                                                              END
                                                                            %
@@ -1395,83 +1422,180 @@ AsmStatement :=                                                            % VAR
                                                                            %
                 ] '(' AsmOperands                                          % IF Pass3
                                                                              THEN
+                                                                                PopNothing ;  (* throw away interface sym *)
                                                                                 BuildInline ;
+                                                                                PopNothing ;  (* throw away count *)
                                                                                 PopAuto
                                                                              END
                                                                            %
                   ')' =:
 
-AsmOperands :=                                                             % VAR CurrentAsm, outputs, inputs, trash: CARDINAL ;
+AsmOperands :=                                                             % VAR CurrentAsm, count: CARDINAL ;
                                                                                  str: CARDINAL ;
                                                                            %
                string                                                      % IF Pass3
                                                                              THEN
                                                                                 PopT(str) ;
                                                                                 PopT(CurrentAsm) ;
+                                                                                Assert(IsGnuAsm(CurrentAsm) OR IsGnuAsmVolatile(CurrentAsm)) ;
+                                                                                PopT(count) ;
+                                                                                IF DebugAsm
+                                                                                THEN
+                                                                                   printf1('1: count of asm operands: %d\n', count)
+                                                                                END ;
+                                                                                PushT(count) ;
                                                                                 (* adds the name/instruction for this asm *)
                                                                                 PutGnuAsm(CurrentAsm, str) ;
-                                                                                PushT(CurrentAsm)
+                                                                                PushT(CurrentAsm) ;
+                                                                                PushT(NulSym)    (* the InterfaceSym *)
                                                                              END
                                                                            %
-               [ ':' AsmList                                               % IF Pass3
+                       ( AsmOperandSpec |                                  % (* epsilon *)
+                                                                             IF Pass3
                                                                              THEN
-                                                                                PopT(outputs) ;
-                                                                                PopT(CurrentAsm) ;
-                                                                                PutGnuAsmOutput(CurrentAsm, outputs) ;
-                                                                                PushT(CurrentAsm)
-                                                                             END
+                                                                                PutGnuAsmSimple(CurrentAsm)
+                                                                             END 
+                                                                           %
+                                                        )
+               =:
+
+AsmOperandSpec :=                                                          % VAR CurrentAsm, outputs, inputs, trash, count: CARDINAL ;
+                                                                                 str: CARDINAL ;
                                                                            %
                   [ ':' AsmList                                            % IF Pass3
                                                                              THEN
-                                                                                PopT(inputs) ;
+                                                                                PopT(outputs) ;
                                                                                 PopT(CurrentAsm) ;
-                                                                                PutGnuAsmInput(CurrentAsm, inputs) ;
-                                                                                PushT(CurrentAsm)
+                                                                                Assert(IsGnuAsm(CurrentAsm) OR IsGnuAsmVolatile(CurrentAsm)) ;
+                                                                                PopT(count) ;
+                                                                                IF DebugAsm
+                                                                                THEN
+                                                                                   printf1('2: output count of asm operands: %d\n', count)
+                                                                                END ;
+                                                                                PutGnuAsmOutput(CurrentAsm, outputs) ;
+                                                                                PushT(0) ;  (* reset count *)
+                                                                                PushT(CurrentAsm) ;
+                                                                                PushT(NulSym)    (* the InterfaceSym *)
                                                                              END
                                                                            %
-                     [ ':' TrashList                                       % IF Pass3
+                     [ ':' AsmList                                         % IF Pass3
+                                                                             THEN
+                                                                                PopT(inputs) ;
+                                                                                PopT(CurrentAsm) ;
+                                                                                Assert(IsGnuAsm(CurrentAsm) OR IsGnuAsmVolatile(CurrentAsm)) ;
+                                                                                PopT(count) ;
+                                                                                IF DebugAsm
+                                                                                THEN
+                                                                                   printf1('3: input count of asm operands: %d\n', count)
+                                                                                END ;
+                                                                                PutGnuAsmInput(CurrentAsm, inputs) ;
+                                                                                PushT(0) ;  (* reset count *)
+                                                                                PushT(CurrentAsm) ;
+                                                                                PushT(NulSym)    (* the InterfaceSym *)
+                                                                             END
+                                                                           %
+                        [ ':' TrashList                                    % IF Pass3
                                                                              THEN
                                                                                 PopT(trash) ;
                                                                                 PopT(CurrentAsm) ;
+                                                                                Assert(IsGnuAsm(CurrentAsm) OR IsGnuAsmVolatile(CurrentAsm)) ;
+                                                                                PopT(count) ;
+                                                                                IF DebugAsm
+                                                                                THEN
+                                                                                   printf1('4: trash count of asm operands: %d\n', count)
+                                                                                END ;
                                                                                 PutGnuAsmTrash(CurrentAsm, trash) ;
-                                                                                PushT(CurrentAsm)
+                                                                                PushT(0) ;  (* reset count *)
+                                                                                PushT(CurrentAsm) ;
+                                                                                PushT(NulSym)    (* the InterfaceSym *)
                                                                              END
                                                                            %
-                        ] ] ]
+                           ] ] ]
             =:
 
-AsmList     :=                                                             % IF Pass3
+AsmList     :=                                                             % VAR count, CurrentAsm, CurrentInterface: CARDINAL ; %
+                                                                           % IF Pass3
                                                                              THEN
-                                                                                PushT(NulSym)
+                                                                                PopT(CurrentInterface) ;
+                                                                                PopT(CurrentAsm) ;
+                                                                                PopT(count) ;
+                                                                                Assert(IsGnuAsm(CurrentAsm) OR IsGnuAsmVolatile(CurrentAsm)) ;
+                                                                                PushT(count) ;
+                                                                                PushT(CurrentAsm) ;
+                                                                                PushT(CurrentInterface) ;
+                                                                                IF DebugAsm
+                                                                                THEN
+                                                                                   printf1('8: AsmList has a count of asm operands: %d\n', count)
+                                                                                END
                                                                              END
                                                                            %
                [ AsmElement ] { ',' AsmElement } =:
 
-AsmElement :=                                                              % VAR str,
-                                                                                 expr, CurrentInterface: CARDINAL ; %
+NamedOperand := '[' Ident ']' =:
+
+AsmOperandName :=  ( NamedOperand
+                                  |                                        % IF IsAutoPushOn()
+                                                                             THEN
+                                                                                PushTF(NulName, identtok)
+                                                                             END
+                                                                           %
+                                    )
+                =:
+
+AsmElement :=                                                              % VAR n, str, expr,
+                                                                                 CurrentInterface,
+                                                                                 CurrentAsm, name: CARDINAL ; %
+              AsmOperandName
+
               string '(' Expression                                        % IF Pass3
                                                                              THEN
                                                                                 PopT(expr) ;
                                                                                 PopT(str) ;
+                                                                                PopT(name) ;
                                                                                 PopT(CurrentInterface) ;
+                                                                                PopT(CurrentAsm) ;
+                                                                                Assert(IsGnuAsm(CurrentAsm) OR IsGnuAsmVolatile(CurrentAsm)) ;
+                                                                                PopT(n) ;
+                                                                                INC(n) ;
                                                                                 IF CurrentInterface=NulSym
                                                                                 THEN
                                                                                    CurrentInterface := MakeRegInterface()
                                                                                 END ;
-                                                                                PutRegInterface(CurrentInterface, str, expr) ;
+                                                                                IF DebugAsm
+                                                                                THEN
+                                                                                   printf1('5: count of asm operands: %d\n', n)
+                                                                                END ;
+                                                                                PutRegInterface(CurrentInterface, n, name, str, expr) ;
+                                                                                PushT(n) ;
+                                                                                PushT(CurrentAsm) ;
                                                                                 PushT(CurrentInterface)
                                                                              END
                                                                            %
                       ')'
            =:
 
-TrashList :=                                                               % VAR CurrentInterface: CARDINAL ;
-                                                                                 str: CARDINAL ; %
+TrashList :=                                                               % VAR CurrentInterface,
+                                                                                 CurrentAsm,
+                                                                                 n, str          : CARDINAL ; %
              [ string                                                      % IF Pass3
                                                                              THEN
                                                                                 PopT(str) ;
-                                                                                CurrentInterface := MakeRegInterface() ;
-                                                                                PutRegInterface(CurrentInterface, str, NulSym) ;
+                                                                                PopT(CurrentInterface) ;
+                                                                                PopT(CurrentAsm) ;
+                                                                                PopT(n) ;
+                                                                                INC(n) ;
+                                                                                Assert(IsGnuAsm(CurrentAsm) OR IsGnuAsmVolatile(CurrentAsm)) ;
+                                                                                IF DebugAsm
+                                                                                THEN
+                                                                                   printf1('6: count of asm trash operands: %d\n', n)
+                                                                                END ;
+                                                                                IF CurrentInterface=NulSym
+                                                                                THEN
+                                                                                   CurrentInterface := MakeRegInterface()
+                                                                                END ;
+                                                                                PutRegInterface(CurrentInterface, n, NulName, str, NulSym) ;
+                                                                                PushT(n) ;
+                                                                                PushT(CurrentAsm) ;
                                                                                 PushT(CurrentInterface)
                                                                              END
                                                                            %
@@ -1479,7 +1603,21 @@ TrashList :=                                                               % VAR
                                                                              THEN
                                                                                 PopT(str) ;
                                                                                 PopT(CurrentInterface) ;
-                                                                                PutRegInterface(CurrentInterface, str, NulSym) ;
+                                                                                PopT(CurrentAsm) ;
+                                                                                PopT(n) ;
+                                                                                INC(n) ;
+                                                                                Assert(IsGnuAsm(CurrentAsm) OR IsGnuAsmVolatile(CurrentAsm)) ;
+                                                                                IF DebugAsm
+                                                                                THEN
+                                                                                   printf1('7: count of asm trash operands: %d\n', n)
+                                                                                END ;
+                                                                                IF CurrentInterface=NulSym
+                                                                                THEN
+                                                                                   CurrentInterface := MakeRegInterface()
+                                                                                END ;
+                                                                                PutRegInterface(CurrentInterface, n, NulName, str, NulSym) ;
+                                                                                PushT(n) ;
+                                                                                PushT(CurrentAsm) ;
                                                                                 PushT(CurrentInterface)
                                                                              END
                                                                            %

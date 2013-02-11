@@ -21,7 +21,28 @@ the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
 #if !defined(GM2_LANG_H)
-#   define GM2_LANG_H
+#  define GM2_LANG_H
+
+#if defined(GM2_LANG_C)
+#  define EXTERN
+#else
+#  define EXTERN extern
+#endif
+
+
+/* Language-dependent contents of a type.  */
+
+struct GTY(()) lang_type
+{
+  char dummy;
+};
+
+/* Language-dependent contents of a decl.  */
+
+struct GTY(()) lang_decl
+{
+  char dummy;
+};
 
 /* Language-dependent contents of an identifier.  */
 
@@ -33,20 +54,25 @@ Boston, MA 02110-1301, USA.  */
    lang_identifier nodes, because some keywords are only special in a
    particular context.  */
 
-struct lang_identifier GTY(())
+struct GTY(()) lang_identifier
 {
-  struct c_common_identifier common_id;
-  tree global_value;
-  tree local_value;
-  tree label_value;
-  tree implicit_decl;
-  tree error_locus;
-  tree limbo_value;
+  struct tree_identifier common;
+};
+
+/* The resulting tree type.  */
+
+union GTY((desc ("TREE_CODE (&%h.generic) == IDENTIFIER_NODE"),
+	   chain_next ("CODE_CONTAINS_STRUCT (TREE_CODE (&%h.generic), TS_COMMON) ? ((union lang_tree_node *) TREE_CHAIN (&%h.generic)) : NULL")))
+lang_tree_node
+{
+  union tree_node GTY((tag ("0"),
+		       desc ("tree_node_structure (&%h)"))) generic;
+  struct lang_identifier GTY((tag ("1"))) identifier;
 };
 
 /* Structure giving our language-specific hooks.  */
 
-struct language_function GTY(())
+struct GTY(()) language_function
 {
   /* While we are parsing the function, this contains information
      about the statement-tree that we are building.  */
@@ -54,9 +80,10 @@ struct language_function GTY(())
     tree stmt_tree;
 };
 
-EXTERN void  objc_check_decl (tree decl);
-EXTERN int   objc_comptypes  (tree lhs, tree rhs, int reflexive);
 EXTERN enum gimplify_status  gm2_gimplify_expr (tree *, tree *, tree *);
+EXTERN bool gm2_mark_addressable (tree);
+EXTERN tree gm2_type_for_size             (unsigned int bits, int unsignedp);
+EXTERN tree gm2_type_for_mode             (enum machine_mode mode, int unsignedp);
 
+#undef EXTERN
 #endif
-

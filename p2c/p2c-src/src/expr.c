@@ -2225,7 +2225,7 @@ Expr *a, *b;
 		if (abs(i+j) == 32) {
 		    delfreearg(&a, a->nargs-1);
 		    delsimpfreearg(&a, a->nargs-1);
-		    a = makeexpr_bicall_1((i+j > 0) ? "tolower" : "toupper",
+		    a = makeexpr_bicall_1((i+j > 0) ? "TOLOWER" : "TOUPPER",
 					  tp_char, a);
 		}
 	    }
@@ -3034,10 +3034,10 @@ Expr *a, *b;
     if (useisspace && b->val.type->kind == TK_CHAR && checkconst(b, ' ')) {
         if (rel == EK_EQ) {
             freeexpr(b);
-            return makeexpr_bicall_1("isspace", tp_boolean, a);
+            return makeexpr_bicall_1("ISSPACE", tp_boolean, a);
         } else if (rel == EK_NE) {
             freeexpr(b);
-            return makeexpr_not(makeexpr_bicall_1("isspace", tp_boolean, a));
+            return makeexpr_not(makeexpr_bicall_1("ISSPACE", tp_boolean, a));
         }
     }
     if (rel == EK_LT || rel == EK_GE)
@@ -3255,17 +3255,17 @@ Expr *a, *b;
         if (b->args[1]->val.type->kind == TK_CHAR && useisalpha) {
             if (checkconst(low, 'A') && checkconst(b->args[1], 'Z')) {
                 freeexpr(ex);
-                *exp = makeexpr_bicall_1("isupper", tp_boolean, grabarg(b, 0));
+                *exp = makeexpr_bicall_1("ISUPPER", tp_boolean, grabarg(b, 0));
                 return a;
             }
             if (checkconst(low, 'a') && checkconst(b->args[1], 'z')) {
                 freeexpr(ex);
-                *exp = makeexpr_bicall_1("islower", tp_boolean, grabarg(b, 0));
+                *exp = makeexpr_bicall_1("ISLOWER", tp_boolean, grabarg(b, 0));
                 return a;
             }
             if (checkconst(low, '0') && checkconst(b->args[1], '9')) {
                 freeexpr(ex);
-                *exp = makeexpr_bicall_1("isdigit", tp_boolean, grabarg(b, 0));
+                *exp = makeexpr_bicall_1("ISDIGIT", tp_boolean, grabarg(b, 0));
                 return a;
             }
         }
@@ -3285,21 +3285,21 @@ Expr *a, *b;
     if (!b)
         return a;
     for (exp = &a; (ex = *exp)->kind == EK_OR; exp = &ex->args[1]) ;
-    if (((b->kind == EK_BICALL && !strcmp(b->val.s, "isdigit") &&
-          ex->kind == EK_BICALL && !strcmp(ex->val.s, "isalpha")) ||
-         (b->kind == EK_BICALL && !strcmp(b->val.s, "isalpha") &&
-          ex->kind == EK_BICALL && !strcmp(ex->val.s, "isdigit"))) &&
+    if (((b->kind == EK_BICALL && !strcmp(b->val.s, "ISDIGIT") &&
+          ex->kind == EK_BICALL && !strcmp(ex->val.s, "ISALPHA")) ||
+         (b->kind == EK_BICALL && !strcmp(b->val.s, "ISALPHA") &&
+          ex->kind == EK_BICALL && !strcmp(ex->val.s, "ISDIGIT"))) &&
         exprsame(ex->args[0], b->args[0], 1)) {
-        strchange(&ex->val.s, "isalnum");
+        strchange(&ex->val.s, "ISALNUM");
         freeexpr(b);
         return a;
     }
-    if (((b->kind == EK_BICALL && !strcmp(b->val.s, "islower") &&
-          ex->kind == EK_BICALL && !strcmp(ex->val.s, "isupper")) ||
-         (b->kind == EK_BICALL && !strcmp(b->val.s, "isupper") &&
-          ex->kind == EK_BICALL && !strcmp(ex->val.s, "islower"))) &&
+    if (((b->kind == EK_BICALL && !strcmp(b->val.s, "ISLOWER") &&
+          ex->kind == EK_BICALL && !strcmp(ex->val.s, "ISUPPER")) ||
+         (b->kind == EK_BICALL && !strcmp(b->val.s, "ISUPPRT") &&
+          ex->kind == EK_BICALL && !strcmp(ex->val.s, "ISLOWER"))) &&
         exprsame(ex->args[0], b->args[0], 1)) {
-        strchange(&ex->val.s, "isalpha");
+        strchange(&ex->val.s, "ISALPHA");
         freeexpr(b);
         return a;
     }

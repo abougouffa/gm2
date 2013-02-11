@@ -17,79 +17,34 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-MODULE gm2 ;
+IMPLEMENTATION MODULE gm2 ;
 
 (*
    Author     : Gaius Mulley
    Title      : gm2
-   Date       : 1987  [$Date: 2010/10/03 19:01:09 $]
+   Date       : 1987  [$Date: 2013/02/11 14:45:17 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Main module of the compiler, collects arguments and
                 starts the compilation.
-   Version    : $Revision: 1.15 $
+   Version    : $Revision: 1.16 $
 *)
 
-FROM M2Options IMPORT IsAnOption, IsAnOptionAndArg, ParseOptions ;
 FROM M2Comp IMPORT Compile ;
-FROM SArgs IMPORT GetArg, Narg ;
-FROM DynamicStrings IMPORT String, InitString, string, KillString, EqualArray ;
-FROM M2Printf IMPORT fprintf0 ;
-FROM FIO IMPORT StdErr ;
-FROM libc IMPORT exit ;
+FROM DynamicStrings IMPORT String, KillString, InitStringCharStar ;
 
 
 (*
-   StartParsing - scans the command line and processes the arguments.
-                  It attempts to compile the first module supplied.
+   CompileFile - compile the filename.
 *)
 
-PROCEDURE StartParsing ;
+PROCEDURE CompileFile (filename: ADDRESS) ;
 VAR
-   s, module: String ;
-   n        : CARDINAL ;
+   f: String ;
 BEGIN
-   ParseOptions ;
-   n := 1 ;
-   module := NIL ;
-   WHILE GetArg(s, n) AND
-         (IsAnOption(s) OR IsAnOptionAndArg(s) OR
-          EqualArray(s, '-M') OR EqualArray(s, '-o') OR
-          EqualArray(s, '-dumpbase') OR EqualArray(s, '-version'))
-   DO
-      IF EqualArray(s, '-M') OR EqualArray(s, '-o')
-      THEN
-         INC(n)
-      ELSIF EqualArray(s, '-dumpbase') AND GetArg(module, n+1)
-      THEN
-         INC(n)
-      ELSIF IsAnOptionAndArg(s)
-      THEN
-         INC(n)
-      ELSIF EqualArray(s, '-version')
-      THEN
-      ELSIF EqualArray(s, '-fcppbegin')
-      THEN
-         REPEAT
-            INC(n)
-         UNTIL (NOT GetArg(s, n)) OR (s=NIL) OR EqualArray(s, '-fcppend') ;
-         IF NOT EqualArray(s, '-fcppend')
-         THEN
-            fprintf0(StdErr, 'expecting -fcppend argument after a -fcppbegin\n') ;
-            exit(1)
-         END
-      END ;
-      s := KillString(s) ;
-      INC(n)
-   END ;
-   IF GetArg(s, n) AND (NOT IsAnOption(s)) AND (NOT IsAnOptionAndArg(s))
-   THEN
-      Compile(s)
-   END ;
-   s := KillString(s) ;
-   module := KillString(module)
-END StartParsing ;
+   f := InitStringCharStar(filename) ;
+   Compile(f) ;
+   f := KillString(f) ;
+END CompileFile
 
 
-BEGIN
-   StartParsing
 END gm2.

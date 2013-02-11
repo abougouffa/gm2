@@ -39,7 +39,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 #endif
 
 
-#define Isspace(c)  isspace(c)      /* or "((c) == ' ')" if preferred */
+#define Isspace(c)  ISSPACE(c)      /* or "((c) == ' ')" if preferred */
 
 
 
@@ -243,8 +243,8 @@ register char *s1, *s2;
 	if (*s1++ != *s2++) {
 	    if (!s2[-1])
 		return 1;
-	    c1 = toupper(s1[-1]);
-	    c2 = toupper(s2[-1]);
+	    c1 = TOUPPER(s1[-1]);
+	    c2 = TOUPPER(s2[-1]);
 	    if (c1 != c2)
 		return c1 - c2;
 	}
@@ -523,7 +523,7 @@ register int len;
     static Char fnbuf[256];
     register Char *cp = fnbuf;
     
-    while (--len >= 0 && *fn && !isspace(*fn))
+    while (--len >= 0 && *fn && !Isspace(*fn))
 	*cp++ = *fn++;
     *cp = 0;
     return fnbuf;
@@ -834,7 +834,7 @@ char *s;
     time(&clock);
     c = ctime(&clock);
     for (i = 0; i < 11; i++)
-	s[i] = toupper(c[where[i]]);
+	s[i] = TOUPPER(c[where[i]]);
     s[2] = '-';
     s[6] = '-';
 }

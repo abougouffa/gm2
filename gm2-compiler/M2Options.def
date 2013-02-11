@@ -22,17 +22,16 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2010/10/03 19:01:06 $]
+   Date       : 27/5/87  [$Date: 2013/02/11 14:45:13 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.28 $
+   Version    : $Revision: 1.29 $
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
 FROM DynamicStrings IMPORT String ;
 
 EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions,
-                 ScanCppArgs,
 
                  SetReturnCheck, SetNilCheck, SetCaseCheck,
                  SetCheckAll, SetVerboseUnbounded, SetQuiet, SetCpp,
@@ -51,11 +50,13 @@ EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions,
                  WholeDivChecking, WholeValueChecking,
                  IndexChecking, RangeChecking,
                  ReturnChecking, CaseElseChecking,
+                 VariantValueChecking,
                  Quiet, LineDirectives, CPreProcessor, Xcode, ExtendedOpaque,
                  PedanticParamNames, PedanticCast,
       	       	 DisplayQuadruples,
                  CompilerDebugging, GenerateDebugging, GenerateLineDebug,
-                 CppCommandLine, DumpSystemExports, GenerateSwig, Exceptions ;
+                 DumpSystemExports, GenerateSwig, Exceptions,
+                 DebugBuiltins, setdefextension, setmodextension ;
 
 
 VAR
@@ -96,6 +97,9 @@ VAR
    CaseElseChecking,             (* -fcase checks program does not need an   *)
                                  (* else statement within an case statement  *)
                                  (* when the user omits one                  *)
+   VariantValueChecking,         (* should we check all values are present   *)
+                                 (* in a variant record?  True for ISO and   *)
+                                 (* false for PIM.                           *)
    Quiet,                        (* -fquiet option specified.                *)
    Alignment,                    (* should parameters and data be aligned?   *)
    LineDirectives,               (* should compiler understand preprocessor  *)
@@ -106,47 +110,17 @@ VAR
    DumpSystemExports,            (* print all inbuilt system items?          *)
    GenerateSwig,                 (* should we generate a swig interface file?*)
    Exceptions,                   (* should we generate exception code?       *)
+   DebugBuiltins,                (* should we always call a real function?   *)
    Optimizing,
    Coding,
    Profiling         : BOOLEAN ;
 
 
 (*
-   IsAnOption - Returns true if a legal option was specified in, s.
-                If legal then the appropriate flag was set.
+   DisplayVersion - displays the version of the compiler.
 *)
 
-PROCEDURE IsAnOption (s: String) : BOOLEAN ;
-
-
-(*
-   IsAnOptionAndArg - returns TRUE if argument, s, implies that the next argument
-                      is associated with this argument.
-*)
-
-PROCEDURE IsAnOptionAndArg (s: String) : BOOLEAN ;
-
-
-(*
-   ParseOptions - parses the options and sets the option flags
-                  accordingly.
-*)
-
-PROCEDURE ParseOptions ;
-
-
-(*
-   ScanCppArgs - scans the cpp arguments and builds up the cpp command line.
-*)
-
-PROCEDURE ScanCppArgs (i: CARDINAL) : CARDINAL ;
-
-
-(*
-   CppCommandLine - returns the Cpp command line and all arguments.
-*)
-
-PROCEDURE CppCommandLine () : String ;
+PROCEDURE DisplayVersion ;
 
 
 (*
@@ -224,6 +198,195 @@ PROCEDURE SetIncludePath (arg: ADDRESS) : BOOLEAN ;
 *)
 
 PROCEDURE SetUnboundedByReference (value: BOOLEAN) : BOOLEAN ;
+
+
+(*
+   SetSearchPath -
+*)
+
+PROCEDURE SetSearchPath (arg: ADDRESS) ;
+
+
+(*
+   SetISO -
+*)
+
+PROCEDURE SetISO (value: BOOLEAN) ;
+
+
+(*
+   SetPIM -
+*)
+
+PROCEDURE SetPIM (value: BOOLEAN) ;
+
+
+(*
+   SetPIM2 -
+*)
+
+PROCEDURE SetPIM2 (value: BOOLEAN) ;
+
+
+(*
+   SetPIM3 -
+*)
+
+PROCEDURE SetPIM3 (value: BOOLEAN) ;
+
+
+(*
+   SetPIM4 -
+*)
+
+PROCEDURE SetPIM4 (value: BOOLEAN) ;
+
+
+(*
+   SetPositiveModFloor -
+*)
+
+PROCEDURE SetPositiveModFloor (value: BOOLEAN) ;
+
+
+(*
+   SetWholeDiv -
+*)
+
+PROCEDURE SetWholeDiv (value: BOOLEAN) ;
+
+
+(*
+   SetIndex -
+*)
+
+PROCEDURE SetIndex (value: BOOLEAN) ;
+
+
+(*
+   SetRange -
+*)
+
+PROCEDURE SetRange (value: BOOLEAN) ;
+
+
+(*
+   SetExceptions -
+*)
+
+PROCEDURE SetExceptions (value: BOOLEAN) ;
+
+
+(*
+   SetStudents -
+*)
+
+PROCEDURE SetStudents (value: BOOLEAN) ;
+
+
+(*
+   SetPedantic -
+*)
+
+PROCEDURE SetPedantic (value: BOOLEAN) ;
+
+
+(*
+   SetPedanticParamNames -
+*)
+
+PROCEDURE SetPedanticParamNames (value: BOOLEAN) ;
+
+
+(*
+   SetPedanticCast -
+*)
+
+PROCEDURE SetPedanticCast (value: BOOLEAN) ;
+
+
+(*
+   SetExtendedOpaque -
+*)
+
+PROCEDURE SetExtendedOpaque (value: BOOLEAN) ;
+
+
+(*
+   SetXCode -
+*)
+
+PROCEDURE SetXCode (value: BOOLEAN) ;
+
+
+(*
+   SetCompilerDebugging - turn on internal compiler debugging.
+*)
+
+PROCEDURE SetCompilerDebugging (value: BOOLEAN) ;
+
+
+(*
+   SetQuadDebugging - display the quadruples (internal debugging).
+*)
+
+PROCEDURE SetQuadDebugging (value: BOOLEAN) ;
+
+
+(*
+   SetSources -
+*)
+
+PROCEDURE SetSources (value: BOOLEAN) ;
+
+
+(*
+   SetDefExtension -
+*)
+
+PROCEDURE SetDefExtension (arg: ADDRESS) ;
+
+
+(*
+   SetModExtension -
+*)
+
+PROCEDURE SetModExtension (arg: ADDRESS) ;
+
+
+(*
+   SetDumpSystemExports -
+*)
+
+PROCEDURE SetDumpSystemExports (value: BOOLEAN) ;
+
+
+(*
+   SetSwig -
+*)
+
+PROCEDURE SetSwig (value: BOOLEAN) ;
+
+
+(*
+   SetOptimizing -
+*)
+
+PROCEDURE SetOptimizing (value: BOOLEAN) ;
+
+
+(*
+   setdefextension - 
+*)
+
+PROCEDURE setdefextension (arg: ADDRESS) ;
+
+
+(*
+   setmodextension - 
+*)
+
+PROCEDURE setmodextension (arg: ADDRESS) ;
 
 
 END M2Options.

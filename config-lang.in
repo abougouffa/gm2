@@ -27,52 +27,6 @@
 # compilers	- value to add to $(COMPILERS)
 # stagestuff	- files to add to $(STAGESTUFF)
 
-if [ -f $srcdir/version.c ] ; then
-   version=`grep version_string "$srcdir/version.c" | sed -e 's/[^"]*"//;s/[ "].*//'`
-elif [ -f $srcdir/gcc/version.c ] ; then
-   version=`grep version_string "$srcdir/gcc/version.c" | sed -e 's/[^"]*"//;s/[ "].*//'`
-else
-   version="unknown"
-fi
-
-echo -n "checking GCC release $version is... "
-touch gcc-version.h
-if true; then
-   echo "#define GCC_4_1_X" >> gcc-version.h
-   echo "supported"
-   mainversion=4_1_0
-elif echo $version | grep '^3.4' > /dev/null; then
-   echo "#define GCC_3_4_X" >> gcc-version.h
-   echo "supported"
-   mainversion=3_4_6
-elif echo $version | grep '^3.3' > /dev/null; then
-   echo "#define GCC_3_3_X" >> gcc-version.h
-   echo "supported"
-   mainversion=3_3_3
-elif echo $version | grep '^3.2' > /dev/null; then
-   echo "#define GCC_3_2_X" >> gcc-version.h
-   echo "not supported. You need to use a gcc-3.3 or 3.4 series source tree"
-   exit 1
-else
-   echo "not supported. You need to use a gcc-3.3 or 3.4 series source tree"
-   exit 1
-fi
-
-######################################################################
-#
-#if grep "@@ PATCHED FOR GM2 @@" "$srcdir/stor-layout.c" > /dev/null; then
-#  :
-#else
-#  patchfile="gm2/diffs/gcc-$mainversion.diff"
-#  if [ ! -r "$srcdir/$patchfile" ]; then
-#    echo "" >&2
-#    echo "***" >&2
-#    echo "*** Detected GCC version $mainversion." >&2
-#  fi
-#fi
-#
-######################################################################
-
 language="gm2"
 
 compilers="cc1gm2\$(exeext) gm2l\$(exeext) gm2lcc\$(exeext) \
@@ -84,9 +38,17 @@ stagestuff="gm2\$(exeext) cc1gm2\$(exeext) gm2l\$(exeext) \
 
 target_libs="target-libstdc++-v3"
 
-gtfiles="\$(srcdir)/gm2/gccgm2.c \$(srcdir)/gm2/gm2-lang.c \
-         \$(srcdir)/gm2/gm2-lang.h \$(srcdir)/c-common.h \
-         \$(srcdir)/gm2/gm2except.c \$(srcdir)/gm2/gm2builtins.c"
+# The Modula-2 frontend needs C++ to compile the main, so we need to build the C++
+# compiler during stage 1.
+lang_requires_boot_languages=c++
+
+# Do not build by default.
+build_by_default="no"
+
+gtfiles="\$(srcdir)/gm2/gm2-lang.c \
+         \$(srcdir)/gm2/gm2-lang.h \
+         \$(srcdir)/gm2/gm2-gcc/m2except.c \
+         \$(srcdir)/gm2/gm2-gcc/m2builtins.c"
 
 outputs=" \
          gm2/Makefile \
@@ -109,4 +71,3 @@ outputs=" \
          gm2/p2c/p2c-src/src/Makefile \
          gm2/www/Makefile \
         "
-

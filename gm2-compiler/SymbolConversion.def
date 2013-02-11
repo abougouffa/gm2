@@ -27,7 +27,7 @@ DEFINITION MODULE SymbolConversion ;
     Description: provides a simple mechanism to translate between m2f symbols and gcc symbols.
 *)
 
-FROM gccgm2 IMPORT Tree ;
+FROM m2tree IMPORT Tree ;
 FROM SYSTEM IMPORT WORD ;
 EXPORT QUALIFIED Mod2Gcc, AddModGcc, GccKnowsAbout, AddTemporaryKnown,
                  RemoveTemporaryKnown, Poison, RemoveMod2Gcc ;

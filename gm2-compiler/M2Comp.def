@@ -16,6 +16,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 DEFINITION MODULE M2Comp ;
 
 (*
@@ -26,18 +27,18 @@ DEFINITION MODULE M2Comp ;
                 referenced in the Modula-2 compiler.
 *)
 
-FROM DynamicStrings IMPORT String ;
+FROM SYSTEM IMPORT ADDRESS ;
 EXPORT QUALIFIED CompilingDefinitionModule,
                  CompilingImplementationModule,
                  CompilingProgramModule,
-                 Compile ;
+                 compile ;
 
 
 (*
-   Compile - compile file, s.
+   compile - compile the filename.
 *)
 
-PROCEDURE Compile (s: String) ;
+PROCEDURE compile (filename: ADDRESS) ;
 
 
 (*

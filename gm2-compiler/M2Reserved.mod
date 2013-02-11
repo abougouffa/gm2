@@ -116,6 +116,12 @@ BEGIN
    GreaterEqualTok := MakeKey('>=') ;
    AddKeyword(GreaterEqualTok, greaterequaltok) ;
 
+   LDirectiveTok := MakeKey('<*') ;
+   AddKeyword(LDirectiveTok, ldirectivetok) ;
+
+   RDirectiveTok := MakeKey('*>') ;
+   AddKeyword(RDirectiveTok, rdirectivetok) ;
+
    PeriodPeriodTok := MakeKey('..') ;
    AddKeyword(PeriodPeriodTok, periodperiodtok) ;
 
@@ -221,7 +227,10 @@ BEGIN
 
    OrTok := MakeKey('OR') ;
    AddKeyword(OrTok, ortok) ;
-
+(*
+   PackedTok := MakeKey('PACKED') ;
+   AddKeyword(PackedTok, packedtok) ;
+*)
    PackedSetTok := MakeKey('PACKEDSET') ;
    AddKeyword(PackedSetTok, packedsettok) ;
 

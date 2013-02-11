@@ -31,6 +31,7 @@ FROM M2Reserved IMPORT toktype ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3 ;
 FROM M2Debug IMPORT Assert ;
 FROM NameKey IMPORT makekey ;
+FROM m2linemap IMPORT location_t ;
 
 CONST
    MaxBucketSize = 100 ;
@@ -53,6 +54,7 @@ TYPE
                   line : CARDINAL ;
                   col  : CARDINAL ;
                   file : SourceList ;
+                  loc  : location_t ;
                END ;
 
    TokenBucket = POINTER TO tokenbucket ;
@@ -77,7 +79,7 @@ VAR
 
 (* %%%FORWARD%%%
 PROCEDURE AddTokToList (t: toktype; n: Name;
-                        i: INTEGER; l: CARDINAL; c: CARDINAL; f: SourceList) ; FORWARD ;
+                        i: INTEGER; l: CARDINAL; c: CARDINAL; f: SourceList; location: location_t) ; FORWARD ;
 PROCEDURE SyncOpenWithBuffer ; FORWARD ;
 PROCEDURE FindTokenBucket (VAR TokenNo: CARDINAL) : TokenBucket ; FORWARD ;
 PROCEDURE IsLastTokenEof () : BOOLEAN ; FORWARD ;
@@ -553,7 +555,7 @@ BEGIN
          END
       END ;
       AddTokToList(currenttoken, NulName, 0,
-                   GetLineNo(), GetColumnNo(), CurrentSource) ;
+                   GetLineNo(), GetColumnNo(), CurrentSource, m2flex.GetLocation()) ;
       GetToken
    END
 END InsertToken ;
@@ -575,7 +577,7 @@ BEGIN
          END
       END ;
       AddTokToList(currenttoken, NulName, 0,
-                   GetLineNo(), GetColumnNo(), CurrentSource) ;
+                   GetLineNo(), GetColumnNo(), CurrentSource, m2flex.GetLocation()) ;
       currenttoken := token
    END
 END InsertTokenAndRewind ;
@@ -745,6 +747,24 @@ END TokenToColumnNo ;
 
 
 (*
+   TokenToLocation - returns the location_t corresponding to, TokenNo.
+*)
+
+PROCEDURE TokenToLocation (TokenNo: CARDINAL) : location_t ;
+VAR
+   b: TokenBucket ;
+BEGIN
+   b := FindTokenBucket(TokenNo) ;
+   IF b=NIL
+   THEN
+      RETURN( 0 )
+   ELSE
+      RETURN( b^.buf[TokenNo].loc )
+   END
+END TokenToLocation ;
+
+
+(*
    FindFileNameFromToken - returns the complete FileName for the appropriate
                            source file yields the token number, TokenNo.
                            The, Depth, indicates the include level: 0..n
@@ -794,7 +814,7 @@ PROCEDURE stop ; BEGIN END stop ;
 *)
 
 PROCEDURE AddTokToList (t: toktype; n: Name;
-                        i: INTEGER; l: CARDINAL; c: CARDINAL; f: SourceList) ;
+                        i: INTEGER; l: CARDINAL; c: CARDINAL; f: SourceList; location: location_t) ;
 VAR
    b: TokenBucket ;
 BEGIN
@@ -828,7 +848,8 @@ BEGIN
          int   := i ;
          line  := l ;
          col   := c ;
-         file  := f
+         file  := f ;
+         loc   := location
       END ;
       INC(len)
    END
@@ -883,7 +904,8 @@ BEGIN
    IF NOT ((t=eoftok) AND IsLastTokenEof())
    THEN
       AddTokToList(t, NulName, 0,
-                   m2flex.GetLineNo(), m2flex.GetColumnNo(), CurrentSource) ;
+                   m2flex.GetLineNo(), m2flex.GetColumnNo(), CurrentSource,
+                   m2flex.GetLocation()) ;
       CurrentUsed := TRUE
    END
 END AddTok ;
@@ -901,7 +923,7 @@ BEGIN
       stop
    END ;
    AddTokToList(t, makekey(s), 0, m2flex.GetLineNo(),
-                m2flex.GetColumnNo(), CurrentSource) ;
+                m2flex.GetColumnNo(), CurrentSource, m2flex.GetLocation()) ;
    CurrentUsed := TRUE
 END AddTokCharStar ;
 
@@ -919,7 +941,7 @@ BEGIN
    l := m2flex.GetLineNo() ;
    c := m2flex.GetColumnNo() ;
    s := Sprintf1(Mark(InitString('%d')), i) ;
-   AddTokToList(t, makekey(string(s)), i, l, c, CurrentSource) ;
+   AddTokToList(t, makekey(string(s)), i, l, c, CurrentSource, m2flex.GetLocation()) ;
    s := KillString(s) ;
    CurrentUsed := TRUE
 END AddTokInteger ;

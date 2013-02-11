@@ -22,6 +22,12 @@ Boston, MA 02110-1301, USA.  */
 #ifndef GCC_GM2_TREE_H
 #define GCC_GM2_TREE_H
 
+#include "ggc.h"
+#include "function.h"
+#include "hashtab.h"
+#include "vec.h"
+
+#if 0
 /* Modula-2 language-specific tree codes.  */
 #define DEFTREECODE(SYM, NAME, TYPE, LENGTH) SYM,
 enum m2_tree_code {
@@ -50,3 +56,5 @@ enum m2_tree_code {
 /* EXPR_STMT accessor. This gives the expression associated with an
    expression statement.  */
 #define EXPR_STMT_EXPR(NODE)	TREE_OPERAND (EXPR_STMT_CHECK (NODE), 0)
+
+#endif

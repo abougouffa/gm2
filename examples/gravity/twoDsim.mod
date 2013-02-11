@@ -1,4 +1,4 @@
-(* Copyright (C) 2008, 2009, 2010
+(* Copyright (C) 2008, 2009, 2010, 2011, 2012
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -116,6 +116,37 @@ END AssertR ;
 
 
 (*
+   dumpCircle - 
+*)
+
+PROCEDURE dumpCircle (o: Object) ;
+BEGIN
+   WITH o^ DO
+      printf("circle at (%g, %g) radius %g mass %g\n", c.pos.x, c.pos.y, c.r, c.mass)
+   END
+END dumpCircle ;
+
+
+(*
+   dumpPolygon - 
+*)
+
+PROCEDURE dumpPolygon (o: Object) ;
+VAR
+   i: CARDINAL ;
+BEGIN
+   WITH o^ DO
+      i := 0 ;
+      printf("polygon at (%g, %g) mass %g\n", p.pos.x, p.pos.y, p.mass)
+      WHILE i<p.nPoints DO
+         printf("  line (%g,%g)\n", p.points[i].x, p.points[i].y) ;
+         INC(i)
+      END
+   END
+END dumpPolygon ;
+
+
+(*
    DumpObject - 
 *)
 
@@ -131,8 +162,8 @@ BEGIN
       END ;
       CASE object OF
 
-      circleOb :  printf("circle at (%g, %g) radius %g mass %g\n", c.pos.x, c.pos.y, c.r, c.mass) |
-      polygonOb:  printf("polygon\n") |
+      circleOb :  dumpCircle(o) |
+      polygonOb:  dumpPolygon(o) |
       pivotOb  :  printf("pivot\n")
 
       ELSE

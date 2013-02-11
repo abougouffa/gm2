@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009.
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012.
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -54,7 +54,6 @@ FROM NameKey IMPORT Name, MakeKey, NulName ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2Base IMPORT Cardinal, ZType ;
 FROM M2Size IMPORT Size, MakeSize ;
-FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
 FROM M2ALU IMPORT PushCard, PushIntegerTree, DivTrunc ;
 FROM M2Error IMPORT InternalError ;
 FROM Lists IMPORT List, InitList, IsItemInList, PutItemIntoList, GetItemFromList, NoOfItemsInList ;
@@ -67,8 +66,10 @@ FROM M2Base IMPORT Real, Cardinal, Integer, Complex,
                    LongReal, LongCard, LongInt, LongComplex,
                    ShortReal, ShortCard, ShortInt, ShortComplex ;
 
-FROM gccgm2 IMPORT Tree,
-                   GetMaxFrom, GetMinFrom,
+FROM m2tree IMPORT Tree ;
+FROM m2linemap IMPORT BuiltinsLocation ;
+
+FROM m2type IMPORT GetMaxFrom, GetMinFrom,
                    GetWordType, GetPointerType, GetByteType, GetISOLocType,
                    GetBitsPerUnit, GetSizeOf, BuildSize, AreConstantsEqual,
                    GetM2Integer8, GetM2Integer16, GetM2Integer32, GetM2Integer64,
@@ -78,6 +79,8 @@ FROM gccgm2 IMPORT Tree,
                    GetM2Real32, GetM2Real64, GetM2Real96, GetM2Real128,
                    GetM2Complex32, GetM2Complex64, GetM2Complex96, GetM2Complex128,
                    GetBitsetType, GetISOByteType, GetISOWordType, InitSystemTypes ;
+
+FROM m2expr IMPORT BuildSize ;
 
 
 TYPE
@@ -110,13 +113,13 @@ VAR
    maxval, minval: CARDINAL ;
 BEGIN
    maxval := MakeConstVar(MakeKey(max)) ;
-   PushIntegerTree(GetMaxFrom(gccType)) ;
+   PushIntegerTree(GetMaxFrom(BuiltinsLocation(), gccType)) ;
    PopValue(maxval) ;
    PutVar(maxval, type) ;
    PutSymKey(MaxValues, GetSymName(type), maxval) ;
 
    minval := MakeConstVar(MakeKey(min)) ;
-   PushIntegerTree(GetMinFrom(gccType)) ;
+   PushIntegerTree(GetMinFrom(BuiltinsLocation(), gccType)) ;
    PopValue(minval) ;
    PutVar(minval, type) ;
    PutSymKey(MinValues, GetSymName(type), minval)
@@ -135,7 +138,7 @@ VAR
    maxval: CARDINAL ;
    n     : Name ;
 BEGIN
-   PushIntegerTree(BuildSize(t, FALSE)) ;
+   PushIntegerTree(BuildSize(BuiltinsLocation(), t, FALSE)) ;
    PopSize(type) ;
    IF IsItemInList(SystemTypes, type)
    THEN
@@ -258,7 +261,7 @@ VAR
    min, max: CARDINAL ;
 BEGIN
    Loc := AttemptToCreateType('LOC', '', '', TRUE, GetISOLocType()) ;
-   InitSystemTypes(Loc) ;
+   InitSystemTypes(BuiltinsLocation(), Loc) ;
    Word := AttemptToCreateType('WORD', '', '', TRUE, GetWordType()) ;
    Byte := AttemptToCreateType('BYTE', '', '', TRUE, GetByteType()) ;
 
@@ -266,16 +269,7 @@ BEGIN
 
    Address := MakePointer(MakeKey('ADDRESS')) ;
    PutPointer(Address, Byte) ;                (* Base Type       *)
-   MapType(Address, 'ADDRESS', '', '', TRUE, GetPointerType()) ;
-
-   IF NOT Iso
-   THEN
-      MakeBitset ;
-      MapType(Bitset, 'BITSET', '', '', TRUE, GetBitsetType()) ;
-      GetBitsetMinMax(min, max) ;
-      PutSymKey(MaxValues, GetSymName(Bitset), max) ;
-      PutSymKey(MinValues, GetSymName(Bitset), min)
-   END
+   MapType(Address, 'ADDRESS', '', '', TRUE, GetPointerType())
 END InitPIMTypes ;
 
 
@@ -286,7 +280,7 @@ END InitPIMTypes ;
 PROCEDURE InitISOTypes ;
 BEGIN
    Loc := AttemptToCreateType('LOC', 'MinLoc', 'MaxLoc', TRUE, GetISOLocType()) ;
-   InitSystemTypes(Loc) ;
+   InitSystemTypes(BuiltinsLocation(), Loc) ;
 
    Address := MakePointer(MakeKey('ADDRESS')) ;
    PutPointer(Address, Loc) ;                (* Base Type       *)
@@ -344,36 +338,40 @@ BEGIN
 
    (* And now the predefined pseudo functions *)
 
-   Adr := MakeProcedure(MakeKey('ADR')) ;         (* Function        *)
-   PutFunction(Adr, Address) ;                    (* Return Type     *)
-                                                  (* Address         *)
+   Adr := MakeProcedure(MakeKey('ADR')) ;           (* Function        *)
+   PutFunction(Adr, Address) ;                      (* Return Type     *)
+                                                    (* Address         *)
 
-   TSize := MakeProcedure(MakeKey('TSIZE')) ;     (* Function        *)
-   PutFunction(TSize, ZType) ;                    (* Return Type     *)
-                                                  (* ZType           *)
+   TSize := MakeProcedure(MakeKey('TSIZE')) ;       (* Function        *)
+   PutFunction(TSize, ZType) ;                      (* Return Type     *)
+                                                    (* ZType           *)
 
+   TBitSize := MakeProcedure(MakeKey('TBITSIZE')) ; (* GNU extension   *)
+                                                    (* Function        *)
+   PutFunction(TBitSize, ZType) ;                   (* Return Type     *)
+                                                    (* ZType           *)
    (* and the ISO specific predefined pseudo functions *)
 
-   AddAdr := MakeProcedure(MakeKey('ADDADR')) ;   (* Function        *)
-   PutFunction(AddAdr, Address) ;                 (* Return Type     *)
+   AddAdr := MakeProcedure(MakeKey('ADDADR')) ;     (* Function        *)
+   PutFunction(AddAdr, Address) ;                   (* Return Type     *)
 
-   SubAdr := MakeProcedure(MakeKey('SUBADR')) ;   (* Function        *)
-   PutFunction(SubAdr, Address) ;                 (* Return Type     *)
+   SubAdr := MakeProcedure(MakeKey('SUBADR')) ;     (* Function        *)
+   PutFunction(SubAdr, Address) ;                   (* Return Type     *)
 
-   DifAdr := MakeProcedure(MakeKey('DIFADR')) ;   (* Function        *)
-   PutFunction(DifAdr, Address) ;                 (* Return Type     *)
+   DifAdr := MakeProcedure(MakeKey('DIFADR')) ;     (* Function        *)
+   PutFunction(DifAdr, Address) ;                   (* Return Type     *)
 
-   MakeAdr := MakeProcedure(MakeKey('MAKEADR')) ; (* Function        *)
-   PutFunction(MakeAdr, Address) ;                (* Return Type     *)
+   MakeAdr := MakeProcedure(MakeKey('MAKEADR')) ;   (* Function        *)
+   PutFunction(MakeAdr, Address) ;                  (* Return Type     *)
 
    (* the return value for ROTATE, SHIFT and CAST is actually the
       same as the first parameter, this is faked in M2Quads *)
 
-   Rotate := MakeProcedure(MakeKey('ROTATE')) ;   (* Function        *)
-   Shift := MakeProcedure(MakeKey('SHIFT')) ;     (* Function        *)
-   Cast := MakeProcedure(MakeKey('CAST')) ;       (* Function        *)
+   Rotate := MakeProcedure(MakeKey('ROTATE')) ;     (* Function        *)
+   Shift := MakeProcedure(MakeKey('SHIFT')) ;       (* Function        *)
+   Cast := MakeProcedure(MakeKey('CAST')) ;         (* Function        *)
 
-   Throw := MakeProcedure(MakeKey('THROW')) ;     (* Procedure       *)
+   Throw := MakeProcedure(MakeKey('THROW')) ;       (* Procedure       *)
 
    CreateMinMaxFor(Word, 'MinWord', 'MaxWord', GetWordType()) ;
    CreateMinMaxFor(Address, 'MinAddress', 'MaxAddress', GetPointerType()) ;
@@ -406,34 +404,34 @@ END GetSystemTypeMinMax ;
    IsISOPseudoSystemFunction - 
 *)
 
-PROCEDURE IsISOPseudoSystemFunction (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsISOPseudoSystemFunction (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( Iso AND ((Sym=AddAdr) OR (Sym=SubAdr) OR (Sym=DifAdr) OR
-                    (Sym=MakeAdr) OR (Sym=Rotate) OR (Sym=Shift) OR
-                    (Sym=Cast)) )
+   RETURN( Iso AND ((sym=AddAdr) OR (sym=SubAdr) OR (sym=DifAdr) OR
+                    (sym=MakeAdr) OR (sym=Rotate) OR (sym=Shift) OR
+                    (sym=Cast)) )
 END IsISOPseudoSystemFunction ;
 
 
 (*
-   IsPIMPseudoSystemFunction - returns TRUE if Sym is specifically a PIM
+   IsPIMPseudoSystemFunction - returns TRUE if sym is specifically a PIM
                                system function.
 *)
 
-PROCEDURE IsPIMPseudoSystemFunction (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsPIMPseudoSystemFunction (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( (NOT Iso) AND ((Sym=Size) OR (Sym=Shift) OR (Sym=Rotate)) )
+   RETURN( (NOT Iso) AND ((sym=Size) OR (sym=Shift) OR (sym=Rotate)) )
 END IsPIMPseudoSystemFunction ;
 
 
 (*
-   IsPseudoSystemFunction - returns true if Sym is a SYSTEM pseudo function.
+   IsPseudoSystemFunction - returns true if sym is a SYSTEM pseudo function.
 *)
 
-PROCEDURE IsPseudoSystemFunction (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsPseudoSystemFunction (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( (Sym=Adr) OR (Sym=TSize) OR
-           IsPIMPseudoSystemFunction(Sym) OR
-           IsISOPseudoSystemFunction(Sym) )
+   RETURN( (sym=Adr) OR (sym=TSize) OR (sym=TBitSize) OR
+           IsPIMPseudoSystemFunction(sym) OR
+           IsISOPseudoSystemFunction(sym) )
 END IsPseudoSystemFunction ;
 
 
@@ -442,33 +440,33 @@ END IsPseudoSystemFunction ;
                                            is legal in a constant expression.
 *)
 
-PROCEDURE IsPseudoSystemFunctionConstExpression (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsPseudoSystemFunctionConstExpression (sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
-          (Sym=Size) OR (Sym=TSize) OR (Sym=Rotate) OR (Sym=Shift) OR
-          (Iso AND ((Sym=Cast) OR (Sym=MakeAdr)))
+          (sym=Size) OR (sym=TSize) OR (sym=Rotate) OR (sym=Shift) OR
+          (Iso AND ((sym=Cast) OR (sym=MakeAdr)))
          )
 END IsPseudoSystemFunctionConstExpression ;
 
 
 (*
-   IsPseudoSystemProcedure - returns true if Sym is a SYSTEM pseudo procedure.
+   IsPseudoSystemProcedure - returns true if sym is a SYSTEM pseudo procedure.
 *)
 
-PROCEDURE IsPseudoSystemProcedure (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsPseudoSystemProcedure (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( Sym=Throw )
+   RETURN( sym=Throw )
 END IsPseudoSystemProcedure ;
 
 
 (*
-   IsSystemType - returns TRUE if Sym is a SYSTEM (inbuilt) type.
+   IsSystemType - returns TRUE if sym is a SYSTEM (inbuilt) type.
                   It does not search your SYSTEM implementation module.
 *)
 
-PROCEDURE IsSystemType (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsSystemType (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( IsItemInList(SystemTypes, Sym) )
+   RETURN( IsItemInList(SystemTypes, sym) )
 END IsSystemType ;
 
 
@@ -614,91 +612,91 @@ END ComplexN ;
 
 
 (*
-   IsIntegerN - returns the TRUE if, Sym, is one of the SYSTEM
+   IsIntegerN - returns the TRUE if, sym, is one of the SYSTEM
                 INTEGER types (not the base INTEGER type).
 *)
 
-PROCEDURE IsIntegerN (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsIntegerN (sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
-          (Sym#NulSym) AND
-          ((Sym=IntegerN(8)) OR (Sym=IntegerN(16)) OR
-           (Sym=IntegerN(32)) OR (Sym=IntegerN(64)))
+          (sym#NulSym) AND
+          ((sym=IntegerN(8)) OR (sym=IntegerN(16)) OR
+           (sym=IntegerN(32)) OR (sym=IntegerN(64)))
          )
 END IsIntegerN ;
 
 
 (*
-   IsCardinalN - returns the TRUE if, Sym, is one of the SYSTEM
+   IsCardinalN - returns the TRUE if, sym, is one of the SYSTEM
                  CARDINAL types (not the base CARDINAL type).
 *)
 
-PROCEDURE IsCardinalN (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsCardinalN (sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
-          (Sym#NulSym) AND
-          ((Sym=CardinalN(8)) OR (Sym=CardinalN(16)) OR
-           (Sym=CardinalN(32)) OR (Sym=CardinalN(64)))
+          (sym#NulSym) AND
+          ((sym=CardinalN(8)) OR (sym=CardinalN(16)) OR
+           (sym=CardinalN(32)) OR (sym=CardinalN(64)))
          )
 END IsCardinalN ;
 
 
 (*
-   IsWordN - returns the TRUE if, Sym, is one of the SYSTEM
+   IsWordN - returns the TRUE if, sym, is one of the SYSTEM
              WORD[n] types (not the default SYSTEM WORD type).
 *)
 
-PROCEDURE IsWordN (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsWordN (sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
-          (Sym#NulSym) AND
-          ((Sym=WordN(16)) OR
-           (Sym=WordN(32)) OR (Sym=WordN(64)))
+          (sym#NulSym) AND
+          ((sym=WordN(16)) OR
+           (sym=WordN(32)) OR (sym=WordN(64)))
          )
 END IsWordN ;
 
 
 (*
-   IsSetN - returns the TRUE if, Sym, is one of the SYSTEM
+   IsSetN - returns the TRUE if, sym, is one of the SYSTEM
             SET[n] types (not the default SYSTEM BITSET type).
 *)
 
-PROCEDURE IsSetN (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsSetN (sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
-          (Sym#NulSym) AND
-          ((Sym=SetN(8)) OR (Sym=SetN(16)) OR (Sym=SetN(32)))
+          (sym#NulSym) AND
+          ((sym=SetN(8)) OR (sym=SetN(16)) OR (sym=SetN(32)))
          )
 END IsSetN ;
 
 
 (*
-   IsRealN - returns the TRUE if, Sym, is one of the SYSTEM
+   IsRealN - returns the TRUE if, sym, is one of the SYSTEM
              REAL[n] types (not the default base REAL type).
 *)
 
-PROCEDURE IsRealN (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsRealN (sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
-          (Sym#NulSym) AND
-          ((Sym=RealN(32)) OR (Sym=RealN(64)) OR
-           (Sym=RealN(96)) OR (Sym=RealN(128)))
+          (sym#NulSym) AND
+          ((sym=RealN(32)) OR (sym=RealN(64)) OR
+           (sym=RealN(96)) OR (sym=RealN(128)))
          )
 END IsRealN ;
 
 
 (*
-   IsComplexN - returns the TRUE if, Sym, is one of the SYSTEM
+   IsComplexN - returns the TRUE if, sym, is one of the SYSTEM
                 COMPLEX[n] types (not the default base COMPLEX,
                 LONGCOMPLEX or SHORTCOMPLEX types).
 *)
 
-PROCEDURE IsComplexN (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsComplexN (sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
-          (Sym#NulSym) AND
-          ((Sym=ComplexN(32)) OR (Sym=ComplexN(64)) OR
-           (Sym=ComplexN(96)) OR (Sym=ComplexN(128)))
+          (sym#NulSym) AND
+          ((sym=ComplexN(32)) OR (sym=ComplexN(64)) OR
+           (sym=ComplexN(96)) OR (sym=ComplexN(128)))
          )
 END IsComplexN ;
 
@@ -723,8 +721,8 @@ END IsGenericSystemType ;
 
 PROCEDURE IsSameSize (a, b: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( AreConstantsEqual(BuildSize(Mod2Gcc(a), FALSE),
-                             BuildSize(Mod2Gcc(b), FALSE)) )
+   RETURN( AreConstantsEqual(BuildSize(BuiltinsLocation(), Mod2Gcc(a), FALSE),
+                             BuildSize(BuiltinsLocation(), Mod2Gcc(b), FALSE)) )
 END IsSameSize ;
 
 

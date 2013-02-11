@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
+                 2010, 2011
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -20,13 +20,13 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE SymbolTable ;
 
 
-
-FROM SYSTEM IMPORT ADDRESS ;
+FROM SYSTEM IMPORT ADDRESS, ADR ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM M2Debug IMPORT Assert ;
 
 IMPORT Indexing ;
-FROM Indexing IMPORT InitIndex, InBounds, HighIndice, PutIndice, GetIndice ;
+FROM Indexing IMPORT InitIndex, InBounds, LowIndice, HighIndice, PutIndice, GetIndice ;
+FROM Sets IMPORT Set, InitSet, IncludeElementIntoSet, IsElementInSet ;
 
 FROM M2Options IMPORT Pedantic, ExtendedOpaque ;
 
@@ -63,7 +63,9 @@ FROM M2Base IMPORT MixTypes, InitBase, Char, Integer, LongReal,
                    Cardinal, LongInt, LongCard, ZType, RType ;
 
 FROM M2System IMPORT Address ;
-FROM gccgm2 IMPORT DetermineSizeOfConstant, Tree ;
+FROM m2decl IMPORT DetermineSizeOfConstant ;
+FROM m2tree IMPORT Tree ;
+FROM m2linemap IMPORT BuiltinsLocation ;
 FROM StrLib IMPORT StrEqual ;
 
 FROM M2Comp IMPORT CompilingDefinitionModule,
@@ -101,12 +103,29 @@ TYPE
                    DefImpSym, ModuleSym, SetSym, ProcedureSym, ProcTypeSym,
                    SubscriptSym, UnboundedSym, GnuAsmSym, InterfaceSym,
                    ObjectSym, PartialUnboundedSym, TupleSym, OAFamilySym,
-                   ErrorSym) ;
+                   EquivSym, ErrorSym) ;
 
    Where = RECORD
               Declared,
               FirstUsed: CARDINAL ;
            END ;
+
+   PackedInfo = RECORD
+                   IsPacked    : BOOLEAN ;    (* is this type packed?        *)
+                   PackedEquiv : CARDINAL ;   (* the equivalent packed type  *)
+                END ;
+
+   PtrToAsmConstraint = POINTER TO AsmConstraint ;
+   AsmConstraint = RECORD
+                      name: Name ;
+                      str : CARDINAL ;   (* regnames or constraints     *)
+                      obj : CARDINAL ;   (* list of M2 syms             *)
+                   END ;
+
+   SymEquiv = RECORD
+                 packedInfo: PackedInfo ;
+                 nonPacked : CARDINAL ;
+              END ;
 
    SymOAFamily = RECORD
                     MaxDimensions: CARDINAL ;
@@ -145,11 +164,13 @@ TYPE
                      Outputs,
                      Trashed   : CARDINAL ;   (* The interface symbols.      *)
                      Volatile  : BOOLEAN ;    (* Declared as ASM VOLATILE ?  *)
+                     Simple    : BOOLEAN ;    (* is a simple kind?           *)
                   END ;
 
    SymInterface = RECORD
-                     StringList: List ;       (* regnames or constraints     *)
-                     ObjectList: List ;       (* list of M2 syms             *)
+                     Parameters: Indexing.Index ;
+                                              (* regnames or constraints     *)
+                                              (* list of M2 syms.            *)
                      At        : Where ;      (* Where was sym declared/used *)
                   END ;
 
@@ -160,6 +181,8 @@ TYPE
                                               (* SymVarients                 *)
                                               (* declared by the source      *)
                                               (* file.                       *)
+                   DeclPacked  : BOOLEAN ;    (* Is this varient packed?     *)
+                   DeclResolved: BOOLEAN ;    (* has we resolved packed?     *)
                    Parent      : CARDINAL ;   (* Points to the parent symbol *)
                    Varient     : CARDINAL ;   (* Index into symbol table to  *)
                                               (* determine the associated    *)
@@ -181,8 +204,11 @@ TYPE
                                               (* SymVarients                 *)
                                               (* declared by the source      *)
                                               (* file.                       *)
-                  Align        : CARDINAL ;   (* The alignment of this type  *)
-                  oafamily     : CARDINAL ;   (* The oafamily for this sym   *)
+                  Align        : CARDINAL ;   (* The alignment of this type. *)
+                  DefaultAlign : CARDINAL ;   (* The default field alignment *)
+                  DeclPacked   : BOOLEAN ;    (* Is this record packed?      *)
+                  DeclResolved : BOOLEAN ;    (* has we resolved packed?     *)
+                  oafamily     : CARDINAL ;   (* The oafamily for this sym.  *)
                   Parent       : CARDINAL ;   (* Points to the parent symbol *)
                   Scope        : CARDINAL ;   (* Scope of declaration.       *)
                   At           : Where ;      (* Where was sym declared/used *)
@@ -196,6 +222,7 @@ TYPE
                     Size       : PtrToValue ; (* Size of subrange type.      *)
                     Type       : CARDINAL ;   (* Index to type symbol for    *)
                                               (* the type of subrange.       *)
+                    packedInfo : PackedInfo ; (* the equivalent packed type  *)
                     oafamily   : CARDINAL ;   (* The oafamily for this sym   *)
                     Scope      : CARDINAL ;   (* Scope of declaration.       *)
                     At         : Where ;      (* Where was sym declared/used *)
@@ -209,6 +236,7 @@ TYPE
                    LocalSymbols: SymbolTree ; (* Contains all enumeration    *)
                                               (* fields.                     *)
                    Size        : PtrToValue ; (* Size at runtime of symbol.  *)
+                   packedInfo  : PackedInfo ; (* the equivalent packed type  *)
                    oafamily    : CARDINAL ;   (* The oafamily for this sym   *)
                    Scope       : CARDINAL ;   (* Scope of declaration.       *)
                    At          : Where ;      (* Where was sym declared/used *)
@@ -410,6 +438,9 @@ TYPE
                Scope         : CARDINAL ;     (* Scope of declaration.       *)
                AtAddress     : BOOLEAN ;      (* Is declared at address?     *)
                Address       : CARDINAL ;     (* Address at which declared   *)
+               IsComponentRef: BOOLEAN ;      (* Is temporary referencing a  *)
+                                              (* record field?               *)
+               list          : Indexing.Index ;  (* the record and fields    *)
                IsTemp        : BOOLEAN ;      (* Is variable a temporary?    *)
                IsParam       : BOOLEAN ;      (* Is variable a parameter?    *)
                IsPointerCheck: BOOLEAN ;      (* Is variable used to         *)
@@ -421,15 +452,16 @@ TYPE
             END ;
 
    SymType = RECORD
-                name     : Name ;             (* Index into name array, name *)
+                name      : Name ;            (* Index into name array, name *)
                                               (* of type.                    *)
-                Type     : CARDINAL ;         (* Index to a type symbol.     *)
-                IsHidden : BOOLEAN ;          (* Was it declared as hidden?  *)
-                Size     : PtrToValue ;       (* Runtime size of symbol.     *)
-                oafamily : CARDINAL ;         (* The oafamily for this sym   *)
-                Align    : CARDINAL ;         (* The alignment of this type  *)
-                Scope    : CARDINAL ;         (* Scope of declaration.       *)
-                At       : Where ;            (* Where was sym declared/used *)
+                Type      : CARDINAL ;        (* Index to a type symbol.     *)
+                IsHidden  : BOOLEAN ;         (* Was it declared as hidden?  *)
+                Size      : PtrToValue ;      (* Runtime size of symbol.     *)
+                packedInfo: PackedInfo ;      (* the equivalent packed type  *)
+                oafamily  : CARDINAL ;        (* The oafamily for this sym   *)
+                Align     : CARDINAL ;        (* The alignment of this type  *)
+                Scope     : CARDINAL ;        (* Scope of declaration.       *)
+                At        : Where ;           (* Where was sym declared/used *)
              END ;
 
    SymPointer
@@ -446,23 +478,26 @@ TYPE
 
    SymRecordField =
              RECORD
-                name     : Name ;             (* Index into name array, name *)
+                name      : Name ;            (* Index into name array, name *)
                                               (* of record field.            *)
-                Type     : CARDINAL ;         (* Index to a type symbol.     *)
-                Tag      : BOOLEAN ;          (* is the record field really  *)
+                Type      : CARDINAL ;        (* Index to a type symbol.     *)
+                Tag       : BOOLEAN ;         (* is the record field really  *)
                                               (* a varient tag?              *)
-                Size     : PtrToValue ;       (* Runtime size of symbol.     *)
-                Offset   : PtrToValue ;       (* Offset at runtime of symbol *)
-                Parent   : CARDINAL ;         (* Index into symbol table to  *)
+                Size      : PtrToValue ;      (* Runtime size of symbol.     *)
+                Offset    : PtrToValue ;      (* Offset at runtime of symbol *)
+                Parent    : CARDINAL ;        (* Index into symbol table to  *)
                                               (* determine the parent symbol *)
                                               (* for this record field. Used *)
                                               (* for BackPatching.           *)
-                Varient  : CARDINAL ;         (* Index into symbol table to  *)
+                Varient   : CARDINAL ;        (* Index into symbol table to  *)
                                               (* determine the associated    *)
                                               (* varient symbol.             *)
-                Align    : CARDINAL ;         (* The alignment of this type  *)
-                Scope    : CARDINAL ;         (* Scope of declaration.       *)
-                At       : Where ;            (* Where was sym declared/used *)
+                Align     : CARDINAL ;        (* The alignment of this type  *)
+                Used      : BOOLEAN ;         (* pragma usused unsets this.  *)
+                DeclPacked: BOOLEAN ;         (* Is this declared packed?    *)
+                DeclResolved: BOOLEAN ;       (* has we resolved packed?     *)
+                Scope     : CARDINAL ;        (* Scope of declaration.       *)
+                At        : Where ;           (* Where was sym declared/used *)
              END ;
 
    SymVarientField =
@@ -481,6 +516,9 @@ TYPE
                 ListOfSons: List ;            (* Contains a list of the      *)
                                               (* RecordField symbols and     *)
                                               (* SymVarients                 *)
+                DeclPacked: BOOLEAN ;         (* Is this varient field       *)
+                                              (* packed?                     *)
+                DeclResolved: BOOLEAN ;       (* is it resolved?             *)
                 Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
              END ;
@@ -500,6 +538,7 @@ TYPE
                                               (* of set.                     *)
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
       	       	     	      	       	      (* (subrange or enumeration).  *)
+                packedInfo: PackedInfo ;      (* the equivalent packed type  *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
                 oafamily : CARDINAL ;         (* The oafamily for this sym   *)
                 Scope    : CARDINAL ;         (* Scope of declaration.       *)
@@ -675,6 +714,7 @@ TYPE
 
                OAFamilySym         : OAFamily         : SymOAFamily |
                ObjectSym           : Object           : SymObject |
+               EquivSym            : Equiv            : SymEquiv |
                RecordSym           : Record           : SymRecord |
                VarientSym          : Varient          : SymVarient |
                VarSym              : Var              : SymVar |
@@ -718,6 +758,8 @@ TYPE
 
    PtrToSymbol = POINTER TO Symbol ;
    PtrToCallFrame = POINTER TO CallFrame ;
+
+   CheckProcedure = PROCEDURE (CARDINAL) ;
 
 VAR
    Symbols       : Indexing.Index ;       (* ARRAY [1..MaxSymbols] OF Symbol.   *)
@@ -764,10 +806,15 @@ VAR
    UnresolvedConstructorType: List ;  (* all constructors whose type   *)
                                  (* is not yet known.                  *)
    AnonymousName     : CARDINAL ;(* anonymous type name unique id      *)
+   ReportedUnknowns  : Set ;     (* set of symbols already reported as *)
+                                 (* unknowns to the user.              *)
 
 
 (* %%%FORWARD%%%
 PROCEDURE stop ; FORWARD ;
+PROCEDURE IsUnreportedUnknown (sym: CARDINAL) : BOOLEAN ; FORWARD ;
+PROCEDURE CheckRecordConsistency (sym: CARDINAL) ; FORWARD ;
+PROCEDURE InitPacked (VAR packedInfo: PackedInfo) ; FORWARD ;
 PROCEDURE ResolveImport (o: WORD) ; FORWARD ;
 PROCEDURE GetExportUndeclared (ModSym: CARDINAL; name: Name) : CARDINAL ; FORWARD ;
 PROCEDURE IsHiddenType (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
@@ -828,7 +875,7 @@ PROCEDURE RemoveFromUnresolvedTree (ScopeSym: CARDINAL; name: Name) : BOOLEAN ; 
 PROCEDURE TransparentScope (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE UnImplementedSymbolError (Sym: WORD) ; FORWARD ;
 PROCEDURE UndeclaredSymbolError (Sym: WORD) ; FORWARD ;
-PROCEDURE UnknownSymbolError (Sym: WORD) ; FORWARD ;
+PROCEDURE UnknownSymbolError (sym: WORD) ; FORWARD ;
 PROCEDURE GetWhereImported (Sym: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE RemoveFromExportRequest (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE PutUnbounded (oaf: CARDINAL; sym: CARDINAL; ndim: CARDINAL) ; FORWARD ;
@@ -925,6 +972,10 @@ VAR
    pSym: PtrToSymbol ;
 BEGIN
    sym := FreeSymbol ;
+   IF sym=700
+   THEN
+      stop
+   END ;
    NEW(pSym) ;
    WITH pSym^ DO
       SymbolType := DummySym
@@ -1195,22 +1246,10 @@ BEGIN
       END ;
       Sym := MakeError(name)
    ELSE
-      IF name=513
-      THEN
-         stop
-      END ;
       Sym := FetchUnknownSym(name) ;
-      IF Sym=717
-      THEN
-         stop
-      END ;
       IF Sym=NulSym
       THEN
          NewSym(Sym)
-      END ;
-      IF Sym=717
-      THEN
-         stop
       END ;
       CheckForExportedDeclaration(Sym)
    END ;
@@ -1253,10 +1292,11 @@ BEGIN
 *)
    InitList(UnresolvedConstructorType) ;
 
-   InitBase(BaseModule) ;
+   InitBase(BuiltinsLocation(), BaseModule) ;
    StartScope(BaseModule) ;   (* BaseModule scope placed at the bottom of the stack *)
    BaseScopePtr := ScopePtr ; (* BaseScopePtr points to the top of the BaseModule scope *)
-   InitList(AddressTypes)
+   InitList(AddressTypes) ;
+   ReportedUnknowns := InitSet(1)
 END Init ;
 
 
@@ -1969,7 +2009,8 @@ BEGIN
          Inputs   := NulSym ;
          Outputs  := NulSym ;
          Trashed  := NulSym ;
-         Volatile := FALSE
+         Volatile := FALSE ;
+         Simple   := FALSE
       END
    END ;
    RETURN( Sym )
@@ -2168,6 +2209,27 @@ END PutGnuAsmVolatile ;
 
 
 (*
+   PutGnuAsmSimple - defines a GnuAsm symbol as a simple kind.
+*)
+
+PROCEDURE PutGnuAsmSimple (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      GnuAsmSym: GnuAsm.Simple := TRUE
+
+      ELSE
+         InternalError('expecting GnuAsm symbol', __FILE__, __LINE__)
+      END
+   END
+END PutGnuAsmSimple ;
+
+
+(*
    MakeRegInterface - creates and returns a register interface symbol.
 *)
 
@@ -2181,8 +2243,7 @@ BEGIN
    WITH pSym^ DO
       SymbolType := InterfaceSym ;
       WITH Interface DO
-         InitList(StringList) ;
-         InitList(ObjectList) ;
+         Parameters := InitIndex(1) ;
          InitWhereDeclared(At)
       END
    END ;
@@ -2191,21 +2252,36 @@ END MakeRegInterface ;
 
 
 (*
-   PutRegInterface - places a, string, and, object, into the interface list, sym.
+   PutRegInterface - places a, name, string, and, object, into the interface array,
+                     sym, at position, i.
                      The string symbol will either be a register name or a constraint.
                      The object is an optional Modula-2 variable or constant symbol.
 *)
 
-PROCEDURE PutRegInterface (sym: CARDINAL; string, object: CARDINAL) ;
+PROCEDURE PutRegInterface (sym: CARDINAL; i: CARDINAL; n: Name; string, object: CARDINAL) ;
 VAR
-   pSym: PtrToSymbol ;
+   pSym : PtrToSymbol ;
+   p    : PtrToAsmConstraint ;
 BEGIN
    pSym := GetPsym(sym) ;
    WITH pSym^ DO
       CASE SymbolType OF
 
-      InterfaceSym: PutItemIntoList(Interface.StringList, string) ;
-                    PutItemIntoList(Interface.ObjectList, object)
+      InterfaceSym: IF Indexing.InBounds(Interface.Parameters, i)
+                    THEN
+                       p := Indexing.GetIndice(Interface.Parameters, i)
+                    ELSIF i=Indexing.HighIndice(Interface.Parameters)+1
+                    THEN
+                       NEW(p) ;
+                       Indexing.PutIndice(Interface.Parameters, i, p)
+                    ELSE
+                       InternalError('expecting to add parameters sequentially', __FILE__, __LINE__)
+                    END ;
+                    WITH p^ DO
+                       name := n ;
+                       str  := string ;
+                       obj  := object
+                    END
 
       ELSE
          InternalError('expecting Interface symbol', __FILE__, __LINE__)
@@ -2215,19 +2291,32 @@ END PutRegInterface ;
 
 
 (*
-   GetRegInterface - gets a, string, and, object, from the interface list, sym.
+   GetRegInterface - gets a, name, string, and, object, from the interface array,
+                     sym, from position, i.
 *)
 
-PROCEDURE GetRegInterface (sym: CARDINAL; n: CARDINAL; VAR string, object: CARDINAL) ;
+PROCEDURE GetRegInterface (sym: CARDINAL; i: CARDINAL; VAR n: Name; VAR string, object: CARDINAL) ;
 VAR
    pSym: PtrToSymbol ;
+   p   : PtrToAsmConstraint ;
 BEGIN
    pSym := GetPsym(sym) ;
    WITH pSym^ DO
       CASE SymbolType OF
 
-      InterfaceSym: string := GetItemFromList(Interface.StringList, n) ;
-                    object := GetItemFromList(Interface.ObjectList, n)
+      InterfaceSym: IF Indexing.InBounds(Interface.Parameters, i)
+                    THEN
+                       p := Indexing.GetIndice(Interface.Parameters, i) ;
+                       WITH p^ DO
+                          n      := name ;
+                          string := str ;
+                          object := obj
+                       END
+                    ELSE
+                       n      := NulName ;
+                       string := NulSym ;
+                       object := NulSym
+                    END
 
       ELSE
          InternalError('expecting Interface symbol', __FILE__, __LINE__)
@@ -3102,6 +3191,7 @@ BEGIN
             AtAddress := FALSE ;
             Address := NulSym ;           (* Address at which declared   *)
             IsTemp := FALSE ;
+            IsComponentRef := FALSE ;
             IsParam := FALSE ;
             IsPointerCheck := FALSE ;
             IsWritten := FALSE ;
@@ -3249,6 +3339,9 @@ BEGIN
             oafamily := oaf ;
             Parent := NulSym ;
             Align := NulSym ;
+            DefaultAlign := NulSym ;
+            DeclPacked := FALSE ;
+            DeclResolved := FALSE ;
             Scope := scope ;
             InitWhereDeclared(At)
          END
@@ -3280,6 +3373,9 @@ BEGIN
 END HandleHiddenOrDeclare ;
 
 
+VAR
+   pList: POINTER TO List ;
+
 (*
    MakeRecord - makes a Record symbol with name RecordName.
 *)
@@ -3287,10 +3383,20 @@ END HandleHiddenOrDeclare ;
 PROCEDURE MakeRecord (RecordName: Name) : CARDINAL ;
 VAR
    oaf, sym: CARDINAL ;
+   pSym: PtrToSymbol ;
 BEGIN
    sym := HandleHiddenOrDeclare(RecordName, oaf) ;
+   IF sym=693
+   THEN
+      stop
+   END ;
    FillInRecordFields(sym, RecordName, GetCurrentScope(), oaf) ;
    ForeachOAFamily(oaf, doFillInOAFamily) ;
+   IF sym=693
+   THEN
+      pSym := GetPsym(sym) ;
+      pList := ADR(pSym^.Record.ListOfSons) ;
+   END ;
    RETURN( sym )
 END MakeRecord ;
 
@@ -3319,6 +3425,7 @@ BEGIN
             Varient := RecOrVarFieldSym
          END ;
          tag := NulSym ;
+         DeclPacked := FALSE ;
          Scope := GetCurrentScope() ;
          InitList(ListOfSons) ;
          InitWhereDeclared(At)
@@ -3367,6 +3474,84 @@ END GetRecord ;
 
 
 (*
+   PutDeclaredPacked - sets the Packed field of the record or record field symbol.
+*)
+
+PROCEDURE PutDeclaredPacked (sym: CARDINAL; b: BOOLEAN) ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+         
+      RecordSym      :  Record.DeclPacked := b ;
+                        Record.DeclResolved := TRUE |
+      RecordFieldSym :  RecordField.DeclPacked := b ;
+                        RecordField.DeclResolved := TRUE |
+      VarientFieldSym:  VarientField.DeclPacked := b ;
+                        VarientField.DeclResolved := TRUE |
+      VarientSym     :  Varient.DeclPacked := b ;
+                        Varient.DeclResolved := TRUE
+
+      ELSE
+         InternalError('expecting a record or field record symbol', __FILE__, __LINE__)
+      END
+   END
+END PutDeclaredPacked ;
+
+
+(*
+   IsDeclaredPacked - was the record symbol or record field, sym,
+                      declared as packed?
+*)
+
+PROCEDURE IsDeclaredPacked (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+         
+      RecordSym      :  RETURN( Record.DeclPacked ) |
+      RecordFieldSym :  RETURN( RecordField.DeclPacked ) |
+      VarientFieldSym:  RETURN( VarientField.DeclPacked ) |
+      VarientSym     :  RETURN( Varient.DeclPacked )
+
+      ELSE
+         InternalError('expecting a record or a record field symbol', __FILE__, __LINE__)
+      END
+   END
+END IsDeclaredPacked ;
+
+
+(*
+   IsDeclaredPackedResolved - do we know if the record symbol or record
+                              field, sym, declared as packed or not packed?
+*)
+
+PROCEDURE IsDeclaredPackedResolved (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+         
+      RecordSym      :  RETURN( Record.DeclResolved ) |
+      RecordFieldSym :  RETURN( RecordField.DeclResolved ) |
+      VarientFieldSym:  RETURN( VarientField.DeclResolved ) |
+      VarientSym     :  RETURN( Varient.DeclResolved )
+
+      ELSE
+         InternalError('expecting a record or a record field symbol', __FILE__, __LINE__)
+      END
+   END
+END IsDeclaredPackedResolved ;
+
+
+(*
    MakeEnumeration - places a new symbol in the current scope, the symbol
                      is an enumeration symbol. The symbol index is returned.
 *)
@@ -3402,6 +3587,8 @@ BEGIN
                                            (* enumeration type.      *)
             Size := InitValue() ;          (* Size at runtime of sym *)
             InitTree(LocalSymbols) ;       (* Enumeration fields.    *)
+            InitPacked(packedInfo) ;       (* not packed and no      *)
+                                           (* equivalent (yet).      *)
             oafamily := oaf ;              (* The open array family  *)
             Scope := GetCurrentScope() ;   (* Which scope created it *)
             InitWhereDeclared(At)          (* Declared here          *)
@@ -3440,6 +3627,8 @@ BEGIN
             IsHidden := FALSE ;       (* Was it declared as hidden?  *)
             Size := InitValue() ;     (* Runtime size of symbol.     *)
             Align := NulSym ;         (* Alignment of this type.     *)
+            InitPacked(packedInfo) ;  (* not packed and no           *)
+                                      (* equivalent yet.             *)
             oafamily := oaf ;         (* The open array family.      *)
             Scope := GetCurrentScope() ;   (* Which scope created it *)
             InitWhereDeclared(At)     (* Declared here               *)
@@ -4123,6 +4312,156 @@ END PutConstructorFrom ;
 
 
 (*
+   InitPacked - initialise packedInfo to FALSE and NulSym.
+*)
+
+PROCEDURE InitPacked (VAR packedInfo: PackedInfo) ;
+BEGIN
+   WITH packedInfo DO
+      IsPacked := FALSE ;
+      PackedEquiv := NulSym
+   END
+END InitPacked ;
+
+
+(*
+   doEquivalent - create a packed equivalent symbol for, sym, and return the
+                  new symbol.  It sets both fields in packedInfo to FALSE
+                  and the new symbol.
+*)
+
+PROCEDURE doEquivalent (VAR packedInfo: PackedInfo; sym: CARDINAL) : CARDINAL ;
+VAR
+   nSym: CARDINAL ;
+   pSym: PtrToSymbol ;
+BEGIN
+   NewSym(nSym) ;
+   pSym := GetPsym(nSym) ;
+   WITH pSym^ DO
+      SymbolType := EquivSym ;
+      WITH Equiv DO
+         nonPacked := sym ;
+         packedInfo.IsPacked := TRUE ;
+         packedInfo.PackedEquiv := NulSym
+      END
+   END ;
+   packedInfo.IsPacked := FALSE ;
+   packedInfo.PackedEquiv := nSym ;
+   RETURN( nSym )
+END doEquivalent ;
+
+
+(*
+   MakeEquivalent - return the equivalent packed symbol for, sym.
+*)
+
+PROCEDURE MakeEquivalent (sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      EnumerationSym:  RETURN( doEquivalent(Enumeration.packedInfo, sym) ) |
+      SubrangeSym   :  RETURN( doEquivalent(Subrange.packedInfo, sym) ) |
+      TypeSym       :  RETURN( doEquivalent(Type.packedInfo, sym) ) |
+      SetSym        :  RETURN( doEquivalent(Set.packedInfo, sym) )
+
+      ELSE
+         InternalError('expecting type, subrange or enumerated type symbol', __FILE__, __LINE__)
+      END
+   END
+END MakeEquivalent ;
+
+
+(*
+   GetEquivalent - 
+*)
+
+PROCEDURE GetEquivalent (VAR packedInfo: PackedInfo; sym: CARDINAL) : CARDINAL ;
+BEGIN
+   WITH packedInfo DO
+      IF IsPacked
+      THEN
+         RETURN( sym )
+      ELSIF PackedEquiv=NulSym
+      THEN
+         PackedEquiv := MakeEquivalent(sym)
+      END ;
+      RETURN( PackedEquiv )
+   END
+END GetEquivalent ;
+
+
+(*
+   GetPackedEquivalent - returns the packed equivalent of type, sym.
+                         sym must be a type, subrange or enumerated type.
+*)
+
+PROCEDURE GetPackedEquivalent (sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      EnumerationSym:  RETURN( GetEquivalent(Enumeration.packedInfo, sym) ) |
+      SubrangeSym   :  RETURN( GetEquivalent(Subrange.packedInfo, sym) ) |
+      TypeSym       :  RETURN( GetEquivalent(Type.packedInfo, sym) ) |
+      SetSym        :  RETURN( GetEquivalent(Set.packedInfo, sym) )
+
+      ELSE
+         InternalError('expecting type, subrange or enumerated type symbol', __FILE__, __LINE__)
+      END
+   END
+END GetPackedEquivalent ;
+
+
+(*
+   GetNonPackedEquivalent - returns the equivalent non packed symbol associated with, sym.
+*)
+
+PROCEDURE GetNonPackedEquivalent (sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      EquivSym:  RETURN( Equiv.nonPacked )
+
+      ELSE
+         InternalError('expecting equivalent symbol', __FILE__, __LINE__)
+      END
+   END
+END GetNonPackedEquivalent ;
+
+
+(*
+   IsEquivalent - returns TRUE if, sym, is an equivalent symbol.
+*)
+
+PROCEDURE IsEquivalent (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      EquivSym:  RETURN( TRUE )
+
+      ELSE
+         RETURN( FALSE )
+      END
+   END
+END IsEquivalent ;
+
+
+(*
    MakeSubrange - makes a new symbol into a subrange type with
                   name SubrangeName.
 *)
@@ -4152,6 +4491,7 @@ BEGIN
                                         (* ConstExpression.              *)
             Type := NulSym ;            (* Index to a type. Determines   *)
                                         (* the type of subrange.         *)
+            InitPacked(packedInfo) ;    (* not packed and no equivalent  *)
             Size := InitValue() ;       (* Size determines the type size *)
             oafamily := oaf ;           (* The unbounded sym for this    *)
             Scope := GetCurrentScope() ;      (* Which scope created it  *)
@@ -4270,6 +4610,34 @@ END GetLowestType ;
 
 
 (*
+   GetTypeOfVar - returns the type of a, var, symbol.
+*)
+
+PROCEDURE GetTypeOfVar (var: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
+   high: CARDINAL ;
+BEGIN
+   pSym := GetPsym(var) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      VarSym:  IF Var.IsTemp AND Var.IsComponentRef
+               THEN
+                  high := Indexing.HighIndice(Var.list) ;
+                  RETURN( GetType(GetFromIndex(Var.list, high)) )
+               ELSE
+                  RETURN( Var.Type )
+               END
+
+      ELSE
+         InternalError('expecting a var symbol', __FILE__, __LINE__)
+      END
+   END
+END GetTypeOfVar ;
+
+
+(*
    GetType - Returns the symbol that is the TYPE symbol to Sym.
              If zero is returned then we assume type unknown.
 *)
@@ -4285,7 +4653,7 @@ BEGIN
       CASE SymbolType OF
 
       OAFamilySym         : type := OAFamily.SimpleType |
-      VarSym              : type := Var.Type |
+      VarSym              : type := GetTypeOfVar(Sym) |
       ConstLitSym         : type := ConstLit.Type |
       ConstVarSym         : type := ConstVar.Type |
       ConstStringSym      : IF ConstString.Length=1
@@ -4469,6 +4837,37 @@ END GetLocalSym ;
 
 
 (*
+   GetNthFromComponent - 
+*)
+
+PROCEDURE GetNthFromComponent (Sym: CARDINAL; n: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      VarSym:  IF IsComponent(Sym)
+               THEN
+                  IF InBounds(Var.list, n)
+                  THEN
+                     RETURN( GetFromIndex(Var.list, n) )
+                  ELSE
+                     RETURN( NulSym )
+                  END
+               ELSE
+                  InternalError('cannot GetNth from this symbol', __FILE__, __LINE__)
+               END
+
+      ELSE
+         InternalError('cannot GetNth from this symbol', __FILE__, __LINE__)
+      END
+   END
+END GetNthFromComponent ;
+
+
+(*
    GetNth - returns the n th symbol in the list of father Sym.
             Sym may be a Module, DefImp, Procedure or Record symbol.
 *)
@@ -4488,7 +4887,8 @@ BEGIN
       ProcedureSym    : i := GetItemFromList(Procedure.ListOfVars, n) |
       DefImpSym       : i := GetItemFromList(DefImp.ListOfVars, n) |
       ModuleSym       : i := GetItemFromList(Module.ListOfVars, n) |
-      TupleSym        : i := GetFromIndex(Tuple.list, n)
+      TupleSym        : i := GetFromIndex(Tuple.list, n) |
+      VarSym          : i := GetNthFromComponent(Sym, n)
 
       ELSE
          InternalError('cannot GetNth from this symbol', __FILE__, __LINE__)
@@ -4715,6 +5115,7 @@ PROCEDURE PutFieldRecord (Sym: CARDINAL;
                           FieldName: Name; FieldType: CARDINAL;
                           VarSym: CARDINAL) : CARDINAL ;
 VAR
+   n     : CARDINAL ;
    oSym,
    pSym  : PtrToSymbol ;
    esym,
@@ -4731,6 +5132,11 @@ BEGIN
 
       RecordSym       : WITH Record DO
                            PutItemIntoList(ListOfSons, SonSym) ;
+                           Assert(IsItemInList(Record.ListOfSons, SonSym)) ;
+(*
+                           n := NoOfItemsInList(ListOfSons) ;
+                           printf3('record %d no of fields in ListOfSons = %d, field %d\n', Sym, n, SonSym) ;
+*)
                            (* Ensure that the Field is in the Parents Local Symbols *)
                            IF FieldName#NulName
                            THEN
@@ -4743,7 +5149,8 @@ BEGIN
                                              'field record duplicate', esym)
                               END
                            END
-                        END |
+                        END ;
+                        CheckRecordConsistency(Sym) |
       VarientFieldSym : WITH VarientField DO
                            PutItemIntoList(ListOfSons, SonSym) ;
                            ParSym := GetRecord(Parent)
@@ -4771,9 +5178,13 @@ BEGIN
          Parent := Sym ;
          Varient := VarSym ;
          Align := NulSym ;
+         Used := TRUE ;
+         DeclPacked := FALSE ;     (* not known as packed (yet). *)
+         DeclResolved := FALSE ;
          Scope := GetScope(Sym) ;
          Size := InitValue() ;
-         Offset := InitValue()
+         Offset := InitValue() ;
+         InitWhereDeclared(At)
       END
    END ;
    RETURN( SonSym )
@@ -4811,6 +5222,8 @@ BEGIN
          Varient := NulSym ;
          Size := InitValue() ;
          Offset := InitValue() ;
+         DeclPacked := FALSE ;
+         DeclResolved := FALSE ;
          Scope := GetCurrentScope() ;
          InitWhereDeclared(At)
       END
@@ -4905,13 +5318,100 @@ END GCFieldVarient ;
 *)
 
 PROCEDURE EnsureOrder (l: List; a, b: CARDINAL) ;
+VAR
+   n: CARDINAL ;
 BEGIN
+   n := NoOfItemsInList(l) ;
    IF IsItemInList(l, a) AND IsItemInList(l, b)
    THEN
       RemoveItemFromList(l, b) ;
       IncludeItemIntoList(l, b)
-   END
+   END ;
+   Assert(n=NoOfItemsInList(l))
 END EnsureOrder ;
+
+
+VAR
+   recordConsist: CARDINAL ;
+
+
+(*
+   DumpSons - 
+*)
+
+PROCEDURE DumpSons (sym: CARDINAL) ;
+VAR
+   pSym   : PtrToSymbol ;
+   f, n, i: CARDINAL ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      RecordSym:  n := NoOfItemsInList(Record.ListOfSons) ;
+                  i := 1 ;
+                  WHILE i<=n DO
+                     f := GetItemFromList(Record.ListOfSons, i) ;
+                     printf3('record %d field %d is %d\n', sym, i, f) ;
+                     INC(i)
+                  END
+
+      ELSE
+         InternalError('expecting record symbol', __FILE__, __LINE__)
+      END
+   END
+END DumpSons ;
+
+
+
+(*
+   CheckListOfSons - checks to see that sym, is present in, recordConsist, ListOfSons.
+*)
+
+PROCEDURE CheckListOfSons (sym: WORD) ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(recordConsist) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      RecordSym:  IF NOT IsItemInList(Record.ListOfSons, sym)
+                  THEN
+                     DumpSons(recordConsist) ;
+                     MetaError1('internal error:  expecting {%1ad} to exist in record ListOfSons', sym)
+                  END
+
+      ELSE
+         InternalError('expecting record symbol', __FILE__, __LINE__)
+      END
+   END
+END CheckListOfSons ;
+
+
+(*
+   CheckRecordConsistency - 
+*)
+
+PROCEDURE CheckRecordConsistency (sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   RETURN ;
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      RecordSym:  recordConsist := sym ;
+                  WITH Record DO
+                     ForeachNodeDo(LocalSymbols, CheckListOfSons)
+                  END |
+
+      ELSE
+         InternalError('record symbol expected', __FILE__, __LINE__)
+      END
+   END
+END CheckRecordConsistency ;
 
 
 (*
@@ -4992,7 +5492,8 @@ BEGIN
          ErrorSym: |
          VarientSym     : EnsureOrder(Varient.ListOfSons, Tag, Sym) |
          VarientFieldSym: EnsureOrder(VarientField.ListOfSons, Tag, Sym) |
-         RecordSym      : EnsureOrder(Record.ListOfSons, Tag, Sym)
+         RecordSym      : EnsureOrder(Record.ListOfSons, Tag, Sym) ;
+                          CheckRecordConsistency(parent)
 
          ELSE
             InternalError('not expecting this symbol type', __FILE__, __LINE__)
@@ -5063,6 +5564,49 @@ BEGIN
    pSym := GetPsym(Sym) ;
    RETURN( pSym^.SymbolType=VarientSym )
 END IsVarient ;
+
+
+(*
+   PutUnused - sets, sym, as unused.  This is a gm2 pragma.
+*)
+
+PROCEDURE PutUnused (sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      RecordFieldSym:  RecordField.Used := FALSE
+
+      ELSE
+         MetaError1("cannot use pragma 'unused' on symbol {%1ad}", sym)
+      END
+   END
+END PutUnused ;
+
+
+(*
+   IsUnused - returns TRUE if the symbol was declared as unused with a
+              gm2 pragma.
+*)
+
+PROCEDURE IsUnused (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      RecordFieldSym:  RETURN( NOT RecordField.Used )
+
+      ELSE
+         InternalError('expecting a record field symbol', __FILE__, __LINE__)
+      END
+   END
+END IsUnused ;
 
 
 (*
@@ -5240,7 +5784,9 @@ BEGIN
          SubscriptSym        : n := NulName |
          DummySym            : n := NulName |
          PartialUnboundedSym : n := GetSymName(PartialUnbounded.Type) |
-         TupleSym            : n := NulName
+         TupleSym            : n := NulName |
+         GnuAsmSym           : n := NulName |
+         InterfaceSym        : n := NulName
 
          ELSE
             InternalError('unexpected symbol type', __FILE__, __LINE__)
@@ -5273,11 +5819,10 @@ END PutConstVarTemporary ;
 
 
 (*
-   MakeTemporary - Makes a new temporary variable at the highest real scope.
-                   The addressing mode of the temporary is set to NoValue.
+   buildTemporary - builds the temporary filling in componentRef, record and sets mode.
 *)
 
-PROCEDURE MakeTemporary (Mode: ModeOfAddr) : CARDINAL ;
+PROCEDURE buildTemporary (Mode: ModeOfAddr; componentRef: BOOLEAN; record: CARDINAL) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
    s   : String ;
@@ -5297,7 +5842,13 @@ BEGIN
          CASE SymbolType OF
 
          VarSym : Var.AddrMode := Mode ;
+                  Var.IsComponentRef := componentRef ;
                   Var.IsTemp := TRUE ;       (* Variable is a temporary var *)
+                  IF componentRef
+                  THEN
+                     Var.list := Indexing.InitIndex(1) ;
+                     PutIntoIndex(Var.list, 1, record)
+                  END ;
                   InitWhereDeclared(Var.At)  (* Declared here               *)
 
          ELSE
@@ -5307,6 +5858,82 @@ BEGIN
    END ;
    s := KillString(s) ;
    RETURN( Sym )
+END buildTemporary ;
+
+
+(*
+   MakeComponentRef - use, sym, to reference, field, sym is returned.
+*)
+
+PROCEDURE MakeComponentRef (sym: CARDINAL; field: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
+   high: CARDINAL ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      VarSym:  IF NOT Var.IsTemp
+               THEN
+                  InternalError('variable must be a temporary', __FILE__, __LINE__)
+               ELSIF Var.IsComponentRef
+               THEN
+                  high := Indexing.HighIndice(Var.list) ;
+                  PutIntoIndex(Var.list, high+1, field)
+               ELSE
+                  InternalError('temporary is not a component reference', __FILE__, __LINE__)
+               END
+
+      ELSE
+         InternalError('expecting a variable symbol', __FILE__, __LINE__)
+      END
+   END ;
+   RETURN( sym )
+END MakeComponentRef ;
+
+
+(*
+   MakeComponentRecord - make a temporary which will be used to reference and field
+                         (or sub field) of record.
+*)
+
+PROCEDURE MakeComponentRecord (Mode: ModeOfAddr; record: CARDINAL) : CARDINAL ;
+BEGIN
+   RETURN( buildTemporary(Mode, TRUE, record) )
+END MakeComponentRecord ;
+
+
+(*
+   IsComponent - returns TRUE if symbol, sym, is a temporary and a component
+                 reference.
+*)
+
+PROCEDURE IsComponent (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      VarSym:   RETURN( Var.IsComponentRef )
+
+      ELSE
+         RETURN( FALSE )
+      END
+   END
+END IsComponent ;
+
+
+(*
+   MakeTemporary - Makes a new temporary variable at the highest real scope.
+                   The addressing mode of the temporary is set to NoValue.
+*)
+
+PROCEDURE MakeTemporary (Mode: ModeOfAddr) : CARDINAL ;
+BEGIN
+   RETURN( buildTemporary(Mode, FALSE, NulSym) )
 END MakeTemporary ;
 
 
@@ -5352,6 +5979,7 @@ BEGIN
          CASE SymbolType OF
 
          VarSym : Var.AddrMode := mode ;
+                  Var.IsComponentRef := FALSE ;
                   Var.IsTemp := TRUE ;       (* Variable is a temporary var *)
                   InitWhereDeclared(Var.At)  (* Declared here               *)
 
@@ -6622,21 +7250,33 @@ END CheckForUnknownInModule ;
 
 
 (*
-   UnknownSymbolError - displays symbol name for symbol, Sym.
+   UnknownSymbolError - displays symbol name for symbol, sym.
 *)
 
-PROCEDURE UnknownSymbolError (Sym: WORD) ;
+PROCEDURE UnknownSymbolError (sym: WORD) ;
 VAR
    e: Error ;
    n: Name ;
 BEGIN
-   IF IsUnknown(Sym)
+   IF IsUnreportedUnknown(sym)
    THEN
-      n := GetSymName(Sym) ;
-      e := ChainError(GetFirstUsed(Sym), CurrentError) ;
+      IncludeElementIntoSet(ReportedUnknowns, sym) ;
+      n := GetSymName(sym) ;
+      e := ChainError(GetFirstUsed(sym), CurrentError) ;
       ErrorFormat1(e, "unknown symbol '%a'", n)
    END
 END UnknownSymbolError ;
+
+
+(*
+   IsUnreportedUnknown - returns TRUE if symbol, sym, has not been
+                         reported and is an unknown symbol.
+*)
+
+PROCEDURE IsUnreportedUnknown (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsUnknown(sym) AND (NOT IsElementInSet(ReportedUnknowns, sym)) )
+END IsUnreportedUnknown ;
 
 
 (*
@@ -6650,7 +7290,7 @@ PROCEDURE CheckForUnknowns (name: Name; Tree: SymbolTree;
 VAR
    n: Name ;
 BEGIN
-   IF DoesTreeContainAny(Tree, IsUnknown)
+   IF DoesTreeContainAny(Tree, IsUnreportedUnknown)
    THEN
       CurrentError := NewError(GetTokenNo()) ;
       n := MakeKey(a) ;
@@ -8502,7 +9142,7 @@ BEGIN
       UnboundedSym  : n := 1 |   (* Standard language limitation *)
 *)
       EnumerationSym: n := pSym^.Enumeration.NoOfElements |
-      InterfaceSym  : n := NoOfItemsInList(Interface.ObjectList)
+      InterfaceSym  : n := HighIndice(Interface.Parameters)
 
       ELSE
          InternalError('expecting an Array or UnBounded symbol', __FILE__, __LINE__)
@@ -8631,7 +9271,9 @@ BEGIN
             name := SetName ;          (* The name of the set.        *)
             Type := NulSym ;           (* Index to a subrange symbol. *)
             Size := InitValue() ;      (* Size of this set            *)
-            oafamily := oaf ;   (* The unbounded sym for this  *)
+            InitPacked(packedInfo) ;        (* not packed and no      *)
+                                            (* equivalent (yet).      *)
+            oafamily := oaf ;          (* The unbounded sym for this  *)
             Scope := GetCurrentScope() ;    (* Which scope created it *)
             InitWhereDeclared(At)      (* Declared here               *)
          END
@@ -8678,6 +9320,55 @@ BEGIN
    pSym := GetPsym(Sym) ;
    RETURN( pSym^.SymbolType=SetSym )
 END IsSet ;
+
+
+(*
+   ForeachParameterDo - 
+*)
+
+PROCEDURE ForeachParameterDo (p: CheckProcedure) ;
+VAR
+   l, h: CARDINAL ;
+BEGIN
+   l := LowIndice(Symbols) ;
+   h := HighIndice(Symbols) ;
+   WHILE l<=h DO
+      IF IsParameter(l)
+      THEN
+         p(l)
+      END ;
+      INC(l)
+   END
+END ForeachParameterDo ;
+
+
+(*
+   CheckUnbounded - checks to see if parameter, Sym, is now an unbounded parameter.
+*)
+
+PROCEDURE CheckUnbounded (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   CheckLegal(Sym) ;
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      ParamSym   :   IF IsUnbounded(Param.Type)
+                     THEN
+                        Param.IsUnbounded := TRUE
+                     END |
+      VarParamSym:   IF IsUnbounded(VarParam.Type)
+                     THEN
+                        VarParam.IsUnbounded := TRUE
+                     END
+
+      ELSE
+         HALT
+      END
+   END
+END CheckUnbounded ;
 
 
 (*
@@ -8874,7 +9565,8 @@ BEGIN
             END ;
             Dimensions := ndim
          END
-      END
+      END ;
+      ForeachParameterDo(CheckUnbounded)
    END
 END FillInUnboundedFields ;
 
@@ -9272,11 +9964,10 @@ END ResolveConstructorTypes ;
 
 
 (*
-   SanityCheckProcedure - check to see that procedure parameters do not use constants
-                          instead of types in their formal parameter section.
+   SanityCheckParameters - 
 *)
 
-PROCEDURE SanityCheckProcedure (sym: CARDINAL) ;
+PROCEDURE SanityCheckParameters (sym: CARDINAL) ;
 VAR
    p   : CARDINAL ;
    i, n: CARDINAL ;
@@ -9292,6 +9983,61 @@ BEGIN
       END ;
       INC(i)
    END
+END SanityCheckParameters ;
+
+
+(*
+   SanityCheckArray - checks to see that an array has a correct subrange type.
+*)
+
+PROCEDURE SanityCheckArray (sym: CARDINAL) ;
+VAR
+   type     : CARDINAL ;
+   subscript: CARDINAL ;
+BEGIN
+   IF IsArray(sym)
+   THEN
+      subscript := GetArraySubscript(sym) ;
+      IF subscript#NulSym
+      THEN
+         type := SkipType(GetType(subscript)) ;
+         IF IsAModula2Type(type)
+         THEN
+            (* ok all is good *)
+         ELSE
+            MetaError2('the array {%1Dad} must be declared with a simpletype in the [..] component rather than a {%2d}',
+                       sym, type)
+         END
+      END
+   END
+END SanityCheckArray ;
+
+
+(*
+   ForeachSymbolDo - foreach symbol, call, P(sym).
+*)
+
+PROCEDURE ForeachSymbolDo (P: PerformOperation) ;
+VAR
+   i, n: CARDINAL ;
+BEGIN
+   i := Indexing.LowIndice(Symbols) ;
+   n := Indexing.HighIndice(Symbols) ;
+   WHILE i<=n DO
+      P(i) ;
+      INC(i)
+   END
+END ForeachSymbolDo ;
+
+
+(*
+   SanityCheckProcedure - check to see that procedure parameters do not use constants
+                          instead of types in their formal parameter section.
+*)
+
+PROCEDURE SanityCheckProcedure (sym: CARDINAL) ;
+BEGIN
+   SanityCheckParameters(sym)
 END SanityCheckProcedure ;
 
 
@@ -9302,7 +10048,8 @@ END SanityCheckProcedure ;
 PROCEDURE SanityCheckModule (sym: CARDINAL) ;
 BEGIN
    ForeachInnerModuleDo(sym, SanityCheckModule) ;
-   ForeachProcedureDo(sym, SanityCheckProcedure)
+   ForeachProcedureDo(sym, SanityCheckProcedure) ;
+   ForeachLocalSymDo(sym, SanityCheckArray)
 END SanityCheckModule ;
 
 
@@ -9314,7 +10061,8 @@ END SanityCheckModule ;
 
 PROCEDURE SanityCheckConstants ;
 BEGIN
-   ForeachModuleDo(SanityCheckModule)
+   ForeachModuleDo(SanityCheckModule) ;
+   ForeachSymbolDo(SanityCheckArray)
 END SanityCheckConstants ;
 
 
@@ -10761,6 +11509,27 @@ END IsGnuAsmVolatile ;
 
 
 (*
+   IsGnuAsmSimple - returns TRUE if a GnuAsm symbol is a simple kind.
+*)
+
+PROCEDURE IsGnuAsmSimple (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      GnuAsmSym: RETURN( GnuAsm.Simple )
+
+      ELSE
+         InternalError('expecting GnuAsm symbol', __FILE__, __LINE__)
+      END
+   END
+END IsGnuAsmSimple ;
+
+
+(*
    IsGnuAsm - returns TRUE if Sym is a GnuAsm symbol.
 *)
 
@@ -11401,17 +12170,65 @@ BEGIN
    WITH pSym^ DO
       CASE SymbolType OF
 
-      RecordSym     :  RETURN( Record.Align ) |
-      RecordFieldSym:  RETURN( RecordField.Align ) |
-      TypeSym       :  RETURN( Type.Align ) |
-      ArraySym      :  RETURN( Array.Align ) |
-      PointerSym    :  RETURN( Pointer.Align )
+      RecordSym      :  RETURN( Record.Align ) |
+      RecordFieldSym :  RETURN( RecordField.Align ) |
+      TypeSym        :  RETURN( Type.Align ) |
+      ArraySym       :  RETURN( Array.Align ) |
+      PointerSym     :  RETURN( Pointer.Align ) |
+      VarientFieldSym:  RETURN( GetAlignment(VarientField.Parent) ) |
+      VarientSym     :  RETURN( GetAlignment(Varient.Parent) )
 
       ELSE
          InternalError('expecting record, field, pointer, type or an array symbol', __FILE__, __LINE__)
       END
    END
 END GetAlignment ;
+
+
+(*
+   PutDefaultRecordFieldAlignment - assigns, align, as the default alignment
+                                    to record, sym.
+*)
+
+PROCEDURE PutDefaultRecordFieldAlignment (sym: CARDINAL; align: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      RecordSym:  Record.DefaultAlign := align
+
+      ELSE
+         InternalError('expecting record symbol', __FILE__, __LINE__)
+      END
+   END
+END PutDefaultRecordFieldAlignment ;
+
+
+(*
+   GetDefaultRecordFieldAlignment - assigns, align, as the default alignment
+                                    to record, sym.
+*)
+
+PROCEDURE GetDefaultRecordFieldAlignment (sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      RecordSym      :  RETURN( Record.DefaultAlign ) |
+      VarientFieldSym:  RETURN( GetDefaultRecordFieldAlignment(GetParent(sym)) ) |
+      VarientSym     :  RETURN( GetDefaultRecordFieldAlignment(GetParent(sym)) )
+
+      ELSE
+         InternalError('expecting record symbol', __FILE__, __LINE__)
+      END
+   END
+END GetDefaultRecordFieldAlignment ;
 
 
 (*

@@ -18,7 +18,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE Sets ;
 
-FROM SYSTEM IMPORT BITSET, ADDRESS, BYTE ;
+FROM SYSTEM IMPORT ADDRESS, BYTE ;
 FROM SymbolTable IMPORT FinalSymbol ;
 FROM M2Error IMPORT InternalError ;
 FROM Storage IMPORT ALLOCATE, REALLOCATE, DEALLOCATE ;
@@ -43,6 +43,16 @@ TYPE
                        bytes   : CARDINAL ;
                        elements: CARDINAL ;
                     END ;
+
+
+(*
+   growSet - 
+*)
+
+PROCEDURE growSet (i: CARDINAL; bytes: CARDINAL) ;
+BEGIN
+   printf2("i = %d,  bytes = %d\n", i, bytes)
+END growSet ;
 
 
 (*
@@ -83,6 +93,10 @@ BEGIN
                bytes := BitsetSize
             END ;
             WHILE i >= bytes*BitsPerByte DO
+               IF Debugging
+               THEN
+                  growSet(i, bytes)
+               END ;
                bytes := bytes * 2
             END ;
             ALLOCATE(b, bytes) ;

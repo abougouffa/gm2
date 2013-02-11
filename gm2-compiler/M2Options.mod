@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
+                 2010, 2011
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -146,81 +146,15 @@ END ScanCppArgs ;
 
 
 (*
-   ParseOptions - parses the options and sets the option flags
-                  accordingly.
+   FinaliseOptions - once all options have been parsed we set any inferred
+                     values.
 *)
 
-PROCEDURE ParseOptions ;
-VAR
-   s   : String ;
-   i, n: CARDINAL ;
+PROCEDURE FinaliseOptions ;
 BEGIN
-   n := Narg() ;
-   IF n>1
-   THEN
-      i := 1 ;
-      REPEAT
-         DSdbEnter ;
-         IF GetArg(s, i)
-         THEN
-            IF EqualArray(Mark(Slice(s, 0, 2)), '-I')
-            THEN
-               PrependSearchPath(Mark(Slice(s, 2, 0)))
-            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-fdef=')
-            THEN
-               SetDefExtension(Mark(Slice(s, 6, 0)))
-            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-fmod=')
-            THEN
-               SetModExtension(Mark(Slice(s, 6, 0)))
-            ELSIF EqualArray(s, '-fcppbegin')
-            THEN
-               i := ScanCppArgs(i)
-            ELSIF EqualArray(s, '-fversion') OR EqualArray(s, '--version') OR
-                  EqualArray(s, '-fgm2-version')
-            THEN
-               DisplayVersion
-            ELSIF IsAnOptionAndArg(s)
-            THEN
-               INC(i)
-            ELSIF NOT IsAnOption(s)
-            THEN
-               (*
-                  do nothing - note that we may have set some flags by
-                  calling IsAnOption.
-               *)
-            END
-         END ;
-         DSdbExit(s) ;
-         s := KillString(s) ;
-         INC(i)
-      UNTIL i>n
-   END
-END ParseOptions ;
-
-
-(*
-   ScanForInitialOptions - parses the options and sets any initial
-                           options immediately.
-*)
-
-PROCEDURE ScanForInitialOptions ;
-VAR
-   s: String ;
-   i: CARDINAL ;
-BEGIN
-   DSdbEnter ;
-   i := 1 ;
-   WHILE GetArg(s, i) DO
-      DSdbEnter ;
-      IF IsAnOption(s)
-      THEN
-      END ;
-      s := KillString(s) ;
-      DSdbExit(NIL) ;
-      INC(i)
-   END ;
-   DSdbExit(NIL)
-END ScanForInitialOptions ;
+   (* currently only one value, this could be make an option in the future *)
+   VariantValueChecking := Iso
+END FinaliseOptions ;
 
 
 (*
@@ -352,281 +286,192 @@ END SetUnboundedByReference ;
 
 
 (*
-   IsAnOption - returns TRUE if the option, s, was legal for gm2.
+   SetDebugging - sets the debugging flag to, v.
 *)
 
-PROCEDURE IsAnOption (s: String) : BOOLEAN ;
-VAR
-   Legal: BOOLEAN ;
+PROCEDURE SetDebugging (value: BOOLEAN) ;
 BEGIN
-   DSdbEnter ;
-   IF EqualArray(Mark(Slice(s, 0, 2)), '-g')
-   THEN
-      GenerateDebugging := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-p')
-   THEN
-      (* profiling *)
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fiso')
-   THEN
-      Iso := TRUE ;
-      Pim := FALSE ;
-      Pim2 := FALSE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fpim')
-   THEN
-      Pim := TRUE ;
-      Iso := FALSE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fpim2')
-   THEN
-      Pim := TRUE ;
-      Pim2 := TRUE ;
-      Iso := FALSE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fpim3')
-   THEN
-      Pim := TRUE ;
-      Pim3 := TRUE ;
-      Iso := FALSE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fpim4')
-   THEN
-      Pim := TRUE ;
-      Pim4 := TRUE ;
-      Iso := FALSE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fpositive-mod-floor-div')
-   THEN
-      PositiveModFloorDiv := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(Mark(Slice(s, 0, 7)), '-flibs=')
-   THEN
-      (* at present this switch just modifies the default library
-         search path *)
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fd')
-   THEN
-      CompilerDebugging := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-Obb')
-   THEN
-      OptimizeBasicBlock := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-Ouncalled')
-   THEN
-      OptimizeUncalledProcedures := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-Ocse')
-   THEN
-      OptimizeCommonSubExpressions := FALSE ;
-      Legal := TRUE
-   ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-O')
-   THEN
-      Optimizing := TRUE ;
-      OptimizeUncalledProcedures := TRUE ;
-      OptimizeBasicBlock := TRUE ;
-      OptimizeCommonSubExpressions := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-funbounded-by-reference')
-   THEN
-      Legal := SetUnboundedByReference(TRUE)
-   ELSIF EqualArray(s, '-Wverbose-unbounded')
-   THEN
-      Legal := SetVerboseUnbounded(TRUE)
-   ELSIF EqualArray(s, '-Wpedantic-param-names')
-   THEN
-      PedanticParamNames := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-Wpedantic-cast')
-   THEN
-      PedanticCast := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fsoft-check-all')
-   THEN
-      Legal := SetCheckAll(TRUE)
-   ELSIF EqualArray(s, '-fno-soft-check-all')
-   THEN
-      Legal := SetCheckAll(FALSE)
-   ELSIF EqualArray(s, '-fnil')
-   THEN
-      NilChecking := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fno-nil')
-   THEN
-      NilChecking := FALSE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fwholediv')
-   THEN
-      WholeDivChecking := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fno-wholediv')
-   THEN
-      WholeDivChecking := FALSE ;
-      Legal := TRUE
-(* --fixme-- when gm2/gcc can detect integer/cardinal expression overlows
-   ELSIF EqualArray(s, '-fwholevalue')
-   THEN
-      WholeValueChecking := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fno-wholevalue')
-   THEN
-      WholeValueChecking := FALSE ;
-      Legal := TRUE
-*)
-   ELSIF EqualArray(s, '-findex')
-   THEN
-      IndexChecking := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fno-index')
-   THEN
-      IndexChecking := FALSE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-frange')
-   THEN
-      RangeChecking := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fno-range')
-   THEN
-      RangeChecking := FALSE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-freturn')
-   THEN
-      ReturnChecking := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fno-return')
-   THEN
-      ReturnChecking := FALSE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fcase')
-   THEN
-      CaseElseChecking := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fno-case')
-   THEN
-      CaseElseChecking := FALSE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fcpp') OR EqualArray(s, '-fcppbegin')
-   THEN
-      Legal := SetCpp(TRUE)
-   ELSIF EqualArray(s, '-fstatistics')
-   THEN
-      Statistics := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fxcode')
-   THEN
-      Xcode := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fextended-opaque')
-   THEN
-      ExtendedOpaque := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fdump-system-exports')
-   THEN
-      DumpSystemExports := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fswig')
-   THEN
-      GenerateSwig := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fexceptions')
-   THEN
-      Exceptions := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fno-exceptions')
-   THEN
-      Exceptions := FALSE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-verbose') OR EqualArray(s, '-v')
-   THEN
-      Verbose := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fsources')
-   THEN
-      Quiet := FALSE ;
-      SeenSources := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-quiet')
-   THEN
-      IF NOT SeenSources
-      THEN
-         Quiet := TRUE    (* Quiet is automatically set by the front end *)
-      END ;
-      Legal := TRUE
-   ELSIF EqualArray(Mark(Slice(s, 0, 12)), '-ftarget-ar=')
-   THEN
-      Legal := TRUE
-   ELSIF EqualArray(Mark(Slice(s, 0, 16)), '-ftarget-ranlib=')
-   THEN
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fq')
-   THEN
-      DisplayQuadruples := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-I')
-   THEN
-      Legal := TRUE
-   ELSIF EqualArray(s, '-dumpbase')
-   THEN
-      (* gcc passes this to us, we ignore it *)
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fclean')
-   THEN
-      (* we ignore it, as it is handled by the makefile generator and lang-specs.h *)
-      Legal := TRUE
-   ELSIF EqualArray(s, '-fmakeall') OR EqualArray(s, '-fmakeall0') OR
-         EqualArray(Mark(Slice(s, 0, 9)), '-fmake-I=')
-   THEN
-      Legal := TRUE
-   ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-fdef=') OR
-         EqualArray(Mark(Slice(s, 0, 6)), '-fmod=')
-   THEN
-      Legal := TRUE
-   ELSIF EqualArray(s, '-Wstudents')
-   THEN
-      StudentChecking := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-Wpedantic')
-   THEN
-      Pedantic := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-m')
-   THEN
-      (* if gcc passes architectural flags to us, we ignore it *)
-      Legal := TRUE
-   ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-d')
-   THEN
-      (* if gcc passes -d flags to us, we ignore them *)
-      Legal := TRUE
-   ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-f')
-   THEN
-      (* if gcc passes architectural flags to us, we ignore it *)
-      Legal := TRUE
-   ELSIF EqualArray(s, '--version')
-   THEN
-      (* gcc passes this to us, we handle it *)
-      Legal := TRUE
-   ELSE
-      Legal := FALSE
-   END ;
-   DSdbExit(NIL) ;
-   RETURN( Legal )
-END IsAnOption ;
+   GenerateDebugging := value
+END SetDebugging ;
 
 
 (*
-   IsAnOptionAndArg - returns TRUE if argument, s, implies that the next argument
-                      is associated with this argument.
+   SetProfiling - dummy procedure, as profiling is implemented in the gcc backend.
 *)
 
-PROCEDURE IsAnOptionAndArg (s: String) : BOOLEAN ;
+PROCEDURE SetProfiling (value: BOOLEAN) ;
 BEGIN
-   RETURN(
-          EqualArray(s, '-auxbase-strip') OR
-          EqualArray(s, '-auxbase')
-         )
-END IsAnOptionAndArg ;
+   (* nothing to do *)
+END SetProfiling ;
+
+
+(*
+   SetISO - 
+*)
+
+PROCEDURE SetISO (value: BOOLEAN) ;
+BEGIN
+   Iso := value ;
+   Pim := NOT value ;
+   Pim2 := NOT value
+END SetISO ;
+
+
+(*
+   SetPIM - 
+*)
+
+PROCEDURE SetPIM (value: BOOLEAN) ;
+BEGIN
+   Pim := value ;
+   Iso := NOT value
+END SetPIM ;
+
+
+(*
+   SetPIM2 - 
+*)
+
+PROCEDURE SetPIM2 (value: BOOLEAN) ;
+BEGIN
+   Pim := value ;
+   Pim2 := value ;
+   Iso := NOT value
+END SetPIM2 ;
+
+
+(*
+   SetPIM3 - 
+*)
+
+PROCEDURE SetPIM3 (value: BOOLEAN) ;
+BEGIN
+   Pim := value ;
+   Pim3 := value ;
+   Iso := NOT value
+END SetPIM3 ;
+
+
+(*
+   SetPIM4 - 
+*)
+
+PROCEDURE SetPIM4 (value: BOOLEAN) ;
+BEGIN
+   Pim := value ;
+   Pim4 := value ;
+   Iso := NOT value
+END SetPIM4 ;
+
+
+(*
+   SetPositiveModFloor - sets the positive mod floor option.
+*)
+
+PROCEDURE SetPositiveModFloor (value: BOOLEAN) ;
+BEGIN
+   PositiveModFloorDiv := value
+END SetPositiveModFloor ;
+
+
+(*
+   SetWholeDiv - sets the whole division flag.
+*)
+
+PROCEDURE SetWholeDiv (value: BOOLEAN) ;
+BEGIN
+   WholeDivChecking := value
+END SetWholeDiv ;
+
+
+(*
+   SetIndex - sets the runtime array index checking flag.
+*)
+
+PROCEDURE SetIndex (value: BOOLEAN) ;
+BEGIN
+   IndexChecking := value
+END SetIndex ;
+
+
+(*
+   SetRange -  sets the runtime range checking flag.
+*)
+
+PROCEDURE SetRange (value: BOOLEAN) ;
+BEGIN
+   RangeChecking := value
+END SetRange ;
+
+
+(*
+   SetExceptions - sets the enable runtime exceptions flag.
+*)
+
+PROCEDURE SetExceptions (value: BOOLEAN) ;
+BEGIN
+   Exceptions := value
+END SetExceptions ;
+
+
+(*
+   SetStudents - 
+*)
+
+PROCEDURE SetStudents (value: BOOLEAN) ;
+BEGIN
+   StudentChecking := value
+END SetStudents ;
+
+
+(*
+   SetPedantic - 
+*)
+
+PROCEDURE SetPedantic (value: BOOLEAN) ;
+BEGIN
+   Pedantic := value
+END SetPedantic ;
+
+
+(*
+   SetPedanticParamNames - sets the pedantic parameter name flag.
+*)
+
+PROCEDURE SetPedanticParamNames (value: BOOLEAN) ;
+BEGIN
+   PedanticParamNames := value
+END SetPedanticParamNames ;
+
+
+(*
+   SetPedanticCast - sets the pedantic cast flag.
+*)
+
+PROCEDURE SetPedanticCast (value: BOOLEAN) ;
+BEGIN
+   PedanticCast := value
+END SetPedanticCast ;
+
+
+(*
+   SetExtendedOpaque - sets the ExtendedOpaque flag.
+*)
+
+PROCEDURE SetExtendedOpaque (value: BOOLEAN) ;
+BEGIN
+   ExtendedOpaque := value
+END SetExtendedOpaque ;
+
+
+(*
+   SetXCode - sets the xcode flag.
+*)
+
+PROCEDURE SetXCode (value: BOOLEAN) ;
+BEGIN
+   Xcode := value
+END SetXCode ;
 
 
 (*
@@ -637,6 +482,120 @@ PROCEDURE CppCommandLine () : String ;
 BEGIN
    RETURN( CppAndArgs )
 END CppCommandLine ;
+
+
+(*
+   SetSwig - 
+*)
+
+PROCEDURE SetSwig (value: BOOLEAN) ;
+BEGIN
+   GenerateSwig := value
+END SetSwig ;
+
+
+(*
+   SetQuadDebugging - display the quadruples (internal debugging).
+*)
+
+PROCEDURE SetQuadDebugging (value: BOOLEAN) ;
+BEGIN
+   DisplayQuadruples := value
+END SetQuadDebugging ;
+
+
+(*
+   SetCompilerDebugging - turn on internal compiler debugging.
+*)
+
+PROCEDURE SetCompilerDebugging (value: BOOLEAN) ;
+BEGIN
+   CompilerDebugging := value
+END SetCompilerDebugging ;
+
+
+(*
+   SetSources - 
+*)
+
+PROCEDURE SetSources (value: BOOLEAN) ;
+BEGIN
+   Quiet := NOT value ;
+   SeenSources := value
+END SetSources ;
+
+
+(*
+   SetDumpSystemExports - 
+*)
+
+PROCEDURE SetDumpSystemExports (value: BOOLEAN) ;
+BEGIN
+   DumpSystemExports := value
+END SetDumpSystemExports ;
+
+
+(*
+   SetSearchPath -
+*)
+
+PROCEDURE SetSearchPath (arg: ADDRESS) ;
+VAR
+   s: String ;
+BEGIN
+   s := InitStringCharStar(arg) ;
+   PrependSearchPath(s) ;
+   s := KillString(s)
+END SetSearchPath ;
+
+
+(*
+   setdefextension - 
+*)
+
+PROCEDURE setdefextension (arg: ADDRESS) ;
+VAR
+   s: String ;
+BEGIN
+   s := InitStringCharStar(arg) ;
+   SetDefExtension(s) ;
+   s := KillString(s)
+END setdefextension ;
+
+
+(*
+   setmodextension - 
+*)
+
+PROCEDURE setmodextension (arg: ADDRESS) ;
+VAR
+   s: String ;
+BEGIN
+   s := InitStringCharStar(arg) ;
+   SetModExtension(s) ;
+   s := KillString(s)
+END setmodextension ;
+
+
+(*
+   SetOptimizing - 
+*)
+
+PROCEDURE SetOptimizing (value: CARDINAL) ;
+BEGIN
+   IF value>0
+   THEN
+      Optimizing := TRUE ;
+      OptimizeBasicBlock := TRUE ;
+      OptimizeUncalledProcedures := TRUE ;
+      OptimizeCommonSubExpressions := TRUE
+   ELSE
+      Optimizing := FALSE ;
+      OptimizeBasicBlock := FALSE ;
+      OptimizeUncalledProcedures := FALSE ;
+      OptimizeCommonSubExpressions := FALSE
+   END
+END SetOptimizing ;
 
 
 BEGIN
@@ -679,5 +638,5 @@ BEGIN
    DumpSystemExports            := FALSE ;
    GenerateSwig                 := FALSE ;
    Exceptions                   :=  TRUE ;
-   ScanForInitialOptions
+   DebugBuiltins                := FALSE
 END M2Options.

@@ -667,7 +667,7 @@ Static Stmt *proc_return(ex)
 Static Expr *func_charupper(ex)
 Expr *ex;
 {
-    return makeexpr_bicall_1("toupper", tp_char,
+    return makeexpr_bicall_1("TOUPPER", tp_char,
                              grabarg(ex, 0));
 }
 
@@ -676,7 +676,7 @@ Expr *ex;
 Static Expr *func_charlower(ex)
 Expr *ex;
 {
-    return makeexpr_bicall_1("tolower", tp_char,
+    return makeexpr_bicall_1("TOLOWER", tp_char,
                              grabarg(ex, 0));
 }
 

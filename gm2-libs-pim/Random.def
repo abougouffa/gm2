@@ -28,8 +28,7 @@ DEFINITION MODULE Random ;
 *)
 
 FROM SYSTEM IMPORT BYTE ;
-EXPORT QUALIFIED Randomize, RandomInit, RandomCard, RandomInt, RandomReal ;
-
+EXPORT QUALIFIED Randomize, RandomInit, RandomBytes, RandomCard, RandomInt, RandomReal, RandomLongReal ;
 
 
 (*
@@ -51,7 +50,7 @@ PROCEDURE RandomInit (seed: CARDINAL) ;
    RandomBytes - fills in an array with random values.
 *)
 
-PROCEDURE RandomBytes (a: ARRAY OF BYTE) ;
+PROCEDURE RandomBytes (VAR a: ARRAY OF BYTE) ;
 
 
 (*

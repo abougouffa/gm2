@@ -106,7 +106,6 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BeginVarientList, EndVarientList,
                     AddVarientRange, AddVarientEquality,
                     CheckWithReference,
-                    CheckOuterScopeProcedureVariable,
                     IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
 
 FROM P3SymBuild IMPORT P3StartBuildProgModule,
@@ -465,6 +464,8 @@ token   '>'               greatertok
 token   '<>'              lessgreatertok
 token   '<='              lessequaltok
 token   '>='              greaterequaltok
+token   '<*'              ldirectivetok
+token   '*>'              rdirectivetok
 token   '..'              periodperiodtok
 token   ':'               colontok
 token   '"'               doublequotestok
@@ -721,11 +722,17 @@ Element := ConstExpression ( ".." ConstExpression                          % Bui
                              |                                             % BuildInclBit (* epsilon *) %
                            ) =:
 
-Alignment := [ "__ATTRIBUTE__" "(" "("                                     % PushAutoOn %
-                                       Ident "(" ConstExpression ")"       % BuildAlignment %
+ByteAlignment := "__ATTRIBUTE__" "(" "("                                   % PushAutoOn %
+                                         Ident OptAlignmentExpression      % BuildAlignment %
                                                                            % PopAuto %
-               ")" ")" ]
-           =:
+                                 ")" ")"
+               =:
+
+OptAlignmentExpression := [ AlignmentExpression ] =:
+
+AlignmentExpression := "(" ConstExpression ")" =:
+
+Alignment := [ ByteAlignment ] =:
 
 TypeDeclaration := Ident "=" Type Alignment
                 =:							   
@@ -777,9 +784,20 @@ ArrayType := "ARRAY"
              Type
            =:
 
-RecordType := "RECORD"
-              FieldListSequence "END" =:
+RecordType := "RECORD" [ DefaultRecordAttributes ] FieldListSequence "END" =:
 
+DefaultRecordAttributes := '<*' AttributeExpression '*>' =:
+
+RecordFieldPragma := [ '<*' FieldPragmaExpression
+                        { ',' FieldPragmaExpression } '*>' ] =:
+
+FieldPragmaExpression :=                                                    % PushAutoOff %
+                         Ident [ '(' ConstExpression ')' ]                  % PopAuto %
+                                                           =:
+
+AttributeExpression :=                                                      % PushAutoOff %
+                       Ident '(' ConstExpression ')'                        % PopAuto %
+                                                      =:
 
 FieldListSequence := FieldListStatement { ";" FieldListStatement } =:
 
@@ -796,7 +814,7 @@ FieldListStatement := [ FieldList ] =:
 --                    [ "ELSE" FieldListSequence ] "END" =:
 
 FieldList := IdentList ":"
-                           Type Alignment
+                           Type RecordFieldPragma
              |
              "CASE"                                                        % BeginVarient %
                     CaseTag "OF"
@@ -1226,7 +1244,11 @@ Definition := "CONST" { ConstantDeclaration ";" } |
 
 AsmStatement := 'ASM' [ 'VOLATILE' ] '(' AsmOperands ')' =:
 
-AsmOperands  := string [ ':' AsmList [ ':' AsmList [ ':' TrashList ] ] ]
+NamedOperand := '[' Ident ']' =:
+
+AsmOperandName := [ NamedOperand ] =:
+
+AsmOperands  := AsmOperandName string [ ':' AsmList [ ':' AsmList [ ':' TrashList ] ] ]
              =:
 
 AsmList      := [ AsmElement ] { ',' AsmElement } =:

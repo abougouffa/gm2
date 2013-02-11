@@ -62,7 +62,7 @@ def displayLibraryClass():
         print "@node " + l[1] + ", " + next + ", " + previous + ", " + up
         print "@section " + l[1]
         print ""
-        displayModules(l[1], l[0], os.path.join(buildDir, l[0]))
+        displayModules(l[1], l[0], buildDir, sourceDir)
         print ""
         print "@c ---------------------------------------------------------------------"
         previous = l[1]
@@ -216,12 +216,9 @@ def checkIndex (line):
 #  parseDefinition
 #
 
-def parseDefinition (dir, build, file, needPage):
+def parseDefinition (dir, source, build, file, needPage):
     print ""
-    if os.path.exists(os.path.join(build, file)):
-        f = open(os.path.join(build, file), 'r')
-    else:
-        f = open(os.path.join(dir, file), 'r')
+    f = open(findFile(dir, build, source, file), 'r')
     initState()
     line = f.readline()
     while (string.find(line, "(*") != -1):
@@ -256,7 +253,7 @@ def parseDefinition (dir, build, file, needPage):
         print "@page"
     f.close()
 
-def parseModules (up, dir, build, listOfModules):
+def parseModules (up, dir, build, source, listOfModules):
     previous = ""
     i = 0
     if len(listOfModules)>1:
@@ -267,7 +264,7 @@ def parseModules (up, dir, build, listOfModules):
     while i<len(listOfModules):
        print "@node " + dir + "/" + listOfModules[i][:-4] + ", " + next + ", " + previous + ", " + up
        print "@subsection " + dir + "/" + listOfModules[i][:-4]
-       parseDefinition(dir, build, listOfModules[i], True)
+       parseDefinition(dir, source, build, listOfModules[i], True)
        print "\n"
        previous = dir + "/" + listOfModules[i][:-4]
        i = i + 1
@@ -278,15 +275,15 @@ def parseModules (up, dir, build, listOfModules):
 
 
 #
-#  doCat - displays the contents of dir/file to stdout
+#  doCat - displays the contents of file, name, to stdout
 #
 
-def doCat (dir, file):
-    file = open(os.path.join(dir, file), 'r')
-    while 1:
-        line = file.readline()
-        if not line: break
+def doCat (name):
+    file = open(name, 'r')
+    line = file.readline()
+    while line:
         print string.rstrip(line)
+        line = file.readline()
     file.close()
 
 
@@ -295,46 +292,93 @@ def doCat (dir, file):
 #               in dir
 #
 
-def moduleMenu (dir):
+def moduleMenu (dir, build, source):
     print "@menu"
-    listOfFiles = os.listdir(dir)
+    listOfFiles = []
+    if os.path.exists(os.path.join(source, dir)):
+        listOfFiles += os.listdir(os.path.join(source, dir))
+    if os.path.exists(os.path.join(source, dir)):
+        listOfFiles += os.listdir(os.path.join(build, dir))
+    listOfFiles = dict.fromkeys(listOfFiles).keys()
     listOfFiles.sort()
     for file in listOfFiles:
-        if os.path.isfile(os.path.join(dir, file)):
+        if foundFile(dir, build, source, file):
             if (len(file)>4) and (file[-4:] == '.def'):
                 print "* " + dir + "/" + file[:-4] + "::" + file
     print "@end menu"
     print "\n"
+
+
+#
+#  checkDirectory - returns True if dir exists in either build or source.
+#
+
+def checkDirectory (dir, build, source):
+    if os.path.isdir(build) and os.path.exists(os.path.join(build, dir)):
+        return True
+    elif os.path.isdir(source) and os.path.exists(os.path.join(source, dir)):
+        return True
+    else:
+        return False
+
+
+#
+#  foundFile - return True if file is found in build/dir/file or source/dir/file.
+#
+
+def foundFile (dir, build, source, file):
+    name = os.path.join(os.path.join(build, dir), file)
+    if os.path.exists(name):
+        return True
+    name = os.path.join(os.path.join(source, dir), file)
+    if os.path.exists(name):
+        return True
+    return False
+
+
+#
+#  findFile - return the path to file searching in build/dir/file first then source/dir/file.
+#
+
+def findFile (dir, build, source, file):
+    name1 = os.path.join(os.path.join(build, dir), file)
+    if os.path.exists(name1):
+        return name1
+    name2 = os.path.join(os.path.join(source, dir), file)
+    if os.path.exists(name2):
+        return name2
+    print "file cannot be found in either " + name1 + " or " + name2
+    os.sys.exit(1)
+
 
 #
 #  displayModules - walks though the files in dir and parses
 #                   definition modules and includes README.texi
 #
 
-def displayModules(up, dir, build):
-    if os.path.isdir(dir):
-        if os.path.exists(os.path.join(dir, "README.texi")):
-            doCat(dir, "README.texi")
+def displayModules(up, dir, build, source):
+    if checkDirectory(dir, build, source):
+        if foundFile(dir, build, source, "README.texi"):
+            doCat(findFile(dir, build, source, "README.texi"))
 
-        moduleMenu(dir)
-        listOfModules = []
-        if not os.path.exists(build):
-            build = dir
-            listOfFiles = os.listdir(build)
-        else:
-            listOfFiles = os.listdir(dir) + os.listdir(build)
-        listOfFiles.sort()
+        moduleMenu(dir, build, source)
+        listOfFiles = []
+        if os.path.exists(os.path.join(source, dir)):
+            listOfFiles += os.listdir(os.path.join(source, dir))
+        if os.path.exists(os.path.join(source, dir)):
+            listOfFiles += os.listdir(os.path.join(build, dir))
         listOfFiles = dict.fromkeys(listOfFiles).keys()
+        listOfFiles.sort()
+        listOfModules = []
         for file in listOfFiles:
-            if os.path.isfile(os.path.join(build, file)):
+            if foundFile(dir, build, source, file):
                 if (len(file)>4) and (file[-4:] == '.def'):
-                    listOfModules = listOfModules + [file]
-            elif os.path.isfile(os.path.join(dir, file)):
-                if (len(file)>4) and (file[-4:] == '.def'):
-                    listOfModules = listOfModules + [file]
-        parseModules(up, dir, build, listOfModules)
+                    listOfModules += [file]
+        listOfModules.sort()
+        parseModules(up, dir, build, source, listOfModules)
     else:
-        print "directory " + dir + " not found"
+        print "directory " + dir + " not found in either " + build + " or " + source
+
 
 def displayCopyright ():
     print "@c Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008"
@@ -350,10 +394,11 @@ def Usage():
     
 def collectArgs():
     buildDir="."
+    sourceDir="."
     filename=""
     up=""
     try:
-        optlist, list = getopt.getopt(sys.argv[1:],':hb:f:u:')
+        optlist, list = getopt.getopt(sys.argv[1:],':hb:f:s:u:')
     except getopt.GetoptError:
         Usage()
         os.sys.exit(1)
@@ -364,16 +409,18 @@ def collectArgs():
             buildDir = opt[1]
         if opt[0] == '-f':
             filename = opt[1]
+        if opt[0] == '-s':
+            sourceDir = opt[1]
         if opt[0] == '-u':
             up = opt[1]
-    return buildDir, filename, up
+    return buildDir, sourceDir, filename, up
 
 
-buildDir, filename, up = collectArgs()
+buildDir, sourceDir, filename, up = collectArgs()
 
 if filename == "":
     displayCopyright()
     displayMenu()
     displayLibraryClass()
 else:
-    parseDefinition(buildDir, buildDir, filename, False)
+    parseDefinition('.', sourceDir, buildDir, filename, False)

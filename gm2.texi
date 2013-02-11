@@ -210,7 +210,7 @@ source tree.
 
 @table @code
 @item
-gm2 1.0.1 was released on January 12 2011.  This is a bug fix release.
+gm2 1.0.4 was released on September 30 2011.  This is a bug fix release.
 @item
 gm2 1.0 was released on December 11 2010.
 @item
@@ -284,17 +284,17 @@ easy interface to C, and varargs can be passed to C routines.
 @item
 University of Ulm libraries are installed together with the compiler
 and can be accessed via:
-@samp{-flibs=ulm}.
+@samp{-flibs=ulm,pim}.
 
 @item
 many Logitech libraries have been implemented and can be accessed via:
-@samp{-flibs=logitech}.
+@samp{-flibs=logitech,pim}.
 
 @item
 coroutines have been implemented in the PIM style and these are
 accessible from SYSTEM. A number of supporting libraries (executive
 and file descriptor mapping to interrupt vector libraries are
-available through the @samp{-flibs=pim-coroutines} switch).
+available through the @samp{-flibs=pim-coroutines,pim} switch).
 
 @item
 can be built as a cross compiler (for embedded microprocessors
@@ -535,6 +535,7 @@ available}.
 * Interface to C::        Interfacing GNU Modula-2 to C.
 * Assembly language::     Interface to assembly language.
 * Alignment::             Data type alignment.
+* Packed::                Packing data types.
 * Built-ins::             Accessing GNU Modula-2 Built-ins.
 * The PIM system module:: SYSTEM data types and procedures.
 * The ISO system module:: SYSTEM data types, procedures and run time.
@@ -645,6 +646,11 @@ internally by using the path as specified by the @code{-I} option.  If
 the @code{-I} was also not specified then it uses the current
 directory.  In all cases the appropriate language dialect library
 directories are appended to the end of the path.
+
+@item -fdebug-builtins
+call a real function, rather than the builtin equivalent.  This can
+be useful for debugging parameter values to a builtin function as
+it allows users to single step code into a real function.
 
 @item -fdump-system-exports
 display all inbuilt system items.
@@ -816,31 +822,14 @@ All modulus results are positive and the results from the division are
 rounded to the floor.
 See @xref{Dialect, , ,gm2}.
 
-@item -flibs=ulm
-modifies the default library search path so that the University of Ulm
-libraries are searched before the other PIM libraries.
-
-@item -flibs=pim
-modifies the default library search path so that the PIM libraries
-are searched before any others (the default).
-
-@item -flibs=min
-modifies the default library search path so that the absolute minimum
-of Modula-2 runtime libraries are loaded (a stripped down M2RTS, SYSTEM
-and libc).
-
-@item -flibs=iso
-modifies the default library search path so that the ISO libraries are
-searched before any others (not needed if @samp{-fiso} was specified).
-
-@item -flibs=logitech
-modifies the default library search path so that the Logitech compatible
-libraries are searched before the base PIM libraries.
-
-@item -flibs=pim-coroutine
-modifies the default libraries search path so that the PIM @code{SYSTEM}
-module providing coroutine support is searched before the base PIM libraries.
-This directory also includes many coroutine related libraries.
+@item -flibs=
+modifies the default library search path.  The libraries supplied are:
+pim, iso, min, logitech, pim-coroutine and ulm.  These map onto the
+Programming in Modula-2 base libraries, ISO standard libraries, minimal
+library support, Logitech compatible library and University of Ulm library.
+Multiple libraries might be specified and are comma separated with precidence
+going to the first in the list.  It is not necessary to use -flibs=pim or
+-flibs=iso if you also specify -fpim, -fpim2, -fpim3, -fpim4 or -fiso.
 
 @item -fextended-opaque
 allows opaque types to be implemented as any type. This is a GNU
@@ -1745,6 +1734,7 @@ CARDINAL                  pervasive
 LONGCARD                  pervasive
 SHORTCARD                 pervasive
 BOOLEAN                   pervasive
+BITSET                    pervasive
 REAL                      pervasive
 LONGREAL                  pervasive
 SHORTREAL                 pervasive
@@ -1753,7 +1743,6 @@ SHORTCOMPLEX              pervasive
 COMPLEX                   pervasive
 LONGCOMPLEX               pervasive
 
-BITSET                    SYSTEM
 LOC                       SYSTEM     -fiso
 BYTE                      SYSTEM
 WORD                      SYSTEM
@@ -2003,7 +1992,7 @@ also visible to the user of the shared library.
 The @code{BEGIN} @code{END} code at module scope in @file{a.mod},
 @file{b.mod}, @file{c.mod} and all dependent library modules will be
 initialized when the shared library is loaded.  Likewise the
-@code{FINISH} @code{END} code at all module scopes is executed when
+@code{FINALLY} @code{END} code at all module scopes is executed when
 the library is unloaded.  Both the initialization and termination is
 implemented transparently using the GNU/Linux mechanism:
 
@@ -2461,17 +2450,18 @@ convention.
 
 A simple, but highly non optimal, example is given below. Here we want
 to add the two @code{CARDINAL}s @code{foo} and @code{bar} together and
-return the result.
+return the result.  The target processor is assumed to be executing
+the x86_64 instruction set.
 
 @example
 PROCEDURE Example (foo, bar: CARDINAL) : CARDINAL ;
 VAR
    myout: CARDINAL ;
 BEGIN
-   ASM VOLATILE ("movl %1,%%eax; addl %2,%%eax; movl %%eax,%0"
-      : "=g" (myout)           (* outputs *)
-      : "g" (foo), "g" (bar)   (* inputs  *)
-      : "eax") ;               (* we trash *)
+   ASM VOLATILE ("movq %1,%%rax; addq %2,%%rax; movq %%rax,%0"
+      : "=rm" (myout)            (* outputs *)
+      : "rm" (foo), "rm" (bar)   (* inputs  *)
+      : "rax") ;                 (* we trash *)
    RETURN( myout )
 END Example ;
 @end example
@@ -2480,7 +2470,30 @@ For a full description of this interface we refer the reader to the GNU C manual
 
 @xref{Extended Asm, ,Extensions to the C Language Family,gcc}.
 
-@node Alignment, Built-ins, Assembly language, Using
+The same example can be written using the newer extensions of naming
+the operands rather than using numbered arguments.
+
+@example
+PROCEDURE Example (foo, bar: CARDINAL) : CARDINAL ;
+VAR
+   myout: CARDINAL ;
+BEGIN
+   ASM VOLATILE ("movq %[left],%%rax; addq %[right],%%rax; movq %%rax,%[output]"
+      : [output] "=rm" (myout)                  (* outputs *)
+      : [left] "rm" (foo), [right] "rm" (bar)   (* inputs  *)
+      : "rax") ;                                (* we trash *)
+   RETURN( myout )
+END Example ;
+@end example
+
+Both examples generate exactly the same code.  It is worth noting that
+the specifier ``rm'' indicates that the operand can be either a
+register or memory.  Of course you must choose an instruction which
+can take either, but this allows the compiler to take make more
+efficient choices depending upon the optimization level given to the
+compiler.
+
+@node Alignment, Packed, Assembly language, Using
 @section Data type alignment
 
 GNU Modula-2 allows you to specify alignment for types and variables.
@@ -2595,7 +2608,106 @@ BEGIN
 END align6.
 @end example
 
-@node Built-ins, The PIM system module, Alignment, Using
+@node Packed, Built-ins, Alignment, Using
+@section Packing data types
+
+The pragma @code{<* bytealignment(0) *>} can be used to specify that
+the fields within a @code{RECORD} are to be packed.  Currently this
+only applies to fields which are declared as subranges, ordinal types
+and enumerated types.  Here is an example of how two subranges might
+be packed into a byte.
+
+@example
+TYPE
+   bits3c =  [0..7] ;
+   bits3i = [-4..3] ;
+
+   byte = RECORD
+              <* bytealignment(0) *>
+              x: bits3c ;
+              <* bitsunused(2) *>
+              y: bits3i ;
+          END ;
+@end example
+
+Notice that the user has specified that in between fields @code{x} and
+@code{y} there are two bits unused.
+
+Now the user wishes to create a record with byte numbers zero and one
+occupied and then an @code{INTEGER32} field which is four byte
+aligned.  In this case byte numbers two and three will be unused.  The
+pragma @code{bytealignment} can be issued at the start of the record
+indicating the default alignment for the whole record and this can be
+overridden by individual fields if necessary.
+
+@example
+   rec = RECORD
+            <* bytealignment (1) *> ;
+            a, b: byte ;
+            x: INTEGER32 <* bytealignment(4) *> ;
+         END ;
+@end example
+
+In the following example the user has specified that a record has two
+fields @code{p} and @code{q} but that there are three bytes unused between
+these fields.
+
+@example
+   header = RECORD
+               <* bytealignment(1) *>
+               p: byte ;
+               <* bytesunused(3) *>
+               q: byte ;
+            END ;
+@end example
+
+The pragma @code{<* bytesunused(x) *>} can only be used if the current
+field is on a byte boundary.  There is also a @code{SYSTEM} pseudo
+procedure function @code{TBITSIZE(T)} which returns the minimum number of
+bits necessary to represent type @code{T}.
+
+Another example of packing record bit fields is given below:
+
+@example
+MODULE align21 ;
+
+FROM libc IMPORT exit ;
+
+TYPE
+   colour = (red, blue, green, purple, white, black) ;
+
+   soc = PACKEDSET OF colour ;
+
+   rec = RECORD
+            <* bytealignment(0) *>
+            x: soc ;
+            y: [-1..1] ;
+         END ;
+
+VAR
+   r: rec ;
+   v: CARDINAL ;
+BEGIN
+   v := SIZE(r) ;
+   IF SIZE(r)#1
+   THEN
+      exit(1)
+   END ;
+   r.x := soc@{blue@} ;
+   IF r.x#soc@{blue@}
+   THEN
+      exit(2)
+   END
+END align21.
+@end example
+
+Here we see that the total size of this record is one byte and consists
+of a six bit set type followed by a 2 bit integer subrange.
+
+@footnote{It is likely that in the future all alignment will use this
+syntax rather than the @code{ATTRIBUTE} keyword equivalent.}
+
+@node Built-ins, The PIM system module, Packed, Using
 @section Accessing GNU Modula-2 Built-ins
 
 This section describes the built-in constants and functions defined in
@@ -2708,7 +2820,6 @@ Contributing to GNU Modula-2}.
 * Cygwin::            How to build GNU Modula-2 under Cygwin.
 * Moving::            How to move an install to another directory.
 * OSX::               How to build GNU Modula-2 under OSX.
-* Solaris::           How to build GNU Modula-2 under Solaris.
 * FreeBSD::           How to build GNU Modula-2 under FreeBSD.
 @end menu
 
@@ -3001,7 +3112,7 @@ $ make
 $ ./a.out
 @end example
 
-@node OSX, Solaris, Moving, Top
+@node OSX, FreeBSD, Moving, Top
 @section Building GNU Modula-2 under Mac OSX
 
 The easiest way to build GNU Modula-2 under Mac OSX is to use
@@ -3107,81 +3218,24 @@ sudo make gm2.paranoid
 sudo make check-gm2
 @end example
 
-@node Solaris, FreeBSD, OSX, Top
-@section Building GNU Modula-2 under Solaris
-
-There is a prebuilt solaris binary tarball available
-@uref{http://floppsie.comp.glam.ac.uk/download/m2/binaries/solaris/opt-gm2-4.1.2-2011-04-09.tar.gz,
-opt-gm2-4.1.2-2011-04-09.tar.gz}.  This was built using the following
-@uref{http://floppsie.comp.glam.ac.uk/download/m2/binaries/solaris/configure-opt-gm2-4.1.2,
-configure script} against the following
-@uref{http://floppsie.comp.glam.ac.uk/download/m2/binaries/solaris/gcc-4.1.2+gm2-20110409.tar.gz,
-source tarball}.  The binary tarball must reside under the @file{/opt}
-directory, due to a current gm2 restriction.  So you could install it
-using the following commands:
-
-@example
-$ cd /opt
-$ sudo wget http://floppsie.comp.glam.ac.uk/download/m2/binaries/solaris/opt-gm2-4.1.2-2011-04-09.tar.gz
-$ sudo tar zxf opt-gm2-4.1.2-2011-04-09.tar.gz
-$ sudo rm opt-gm2-4.1.2-2011-04-09.tar.gz
-@end example
-
-@node FreeBSD, , Solaris, Top
+@node FreeBSD, , OSX, Top
 @section Building GNU Modula-2 under FreeBSD
 
-[This section is out of date and has not been verified against
-gcc-@value{version-GCC} and GNU Modula-2 release
-gm2-@value{version-GM2}].
-
-When building GNU Modula-2 under FreeBSD, there are essentially three
-issues that need to be addressed.
-
-The first, is the system shell, @file{/bin/sh}. GNU Modula-2's build
-script uses some @file{bash} constructs that are not understood by
-@file{sh}.  Therefore @file{bash} must be installed and this can be
-obtained from the ports package collection (ports:shells/bash).
-
-The second, is the compiler used to bootstrap GNU Modula-2. On
-FreeBSD4.x the system compiler is from the 2.95.x generation, and
-should work without problems.  On 5-RELEASE and 6-CURRENT, the system
-compiler is from the 3.4.x generation or greater, and it is known to
-create a faulty GNU Modula-2 compiler. Therefore you will need to
-install an earlier gcc on your machine. Known to work are gcc 3.2.3
-(ports:lang/gcc32), gcc 3.3.4, 3.3.5 and 3.3.6 (ports:lang/gcc33).
-
-Finally, @file{gmake} is required.
-
-It is recommended that the same options are used to configure GNU
-Modula-2 as those suggested in the ports collection.  A number of
-options are not relevant for building GNU Modula-2 and these can be
-safely omitted. The only two which apply directly to GNU Modula-2's
-build process are @code{--with-system-zlib} and @code{--disable-nls}.
-
-The example below assumes that @code{gcc-3.2.3} is installed (from the
-ports collection) and the compiler is called @file{gcc32}. The example
-assumes that the bash shell has been installed (as described above).
+To build gm2 under OpenBSD and NetBSD you can use:
 
 @example
-  mkdir host-build
-  cd host-build
-  env CONFIG_SHELL=/usr/local/bin/bash CC=gcc32 ../gcc-@var{version-GCC}/configure
-      --with-system-zlib --disable-nls --enable-languages=c,c++,gm2
-  gmake
+$ pkg_add bash gmake pth flex
 @end example
 
-If you choose to install the generated compiler, you are urged to make
-use of the name rewriting options of configure
-(@code{--program-prefix} and @code{--program-suffix} work fine), and
-to avoid possible conflicts with a port that installs it's own gcc,
-you may also want to add @code{--host}. Here is the author of this
-section's full configure line:
+The build process will fail when building the texinfo documentation.
+But you should be able to perform
 
 @example
-  env CONFIG_SHELL=/usr/local/bin/bash CC=gcc32 ../gcc-@var{version-GCC}/configure
-      --with-system-zlib --disable-nls --enable-languages=c,c++,gm2
-      --program-prefix=m2 --host=i386-gm2bld-freebsd5.3
+$ make install
 @end example
+
+and have a working gm2 without documentation or manpages.  This has
+been reported to work in OpenBSD 5.2, OpenBSD 4.8 and NetBSD 6.0.
 
 @node Licence, GNU Project, Obtaining, Top
 @section Licence of GNU Modula-2

@@ -22,7 +22,7 @@ IMPORT FIO, IOLink, ChanConsts, SYSTEM, RTio ;
 
 FROM RTio IMPORT SetFile, GetFile, GetDevicePtr ;
 FROM IOConsts IMPORT ReadResults ;
-FROM ChanConsts IMPORT read, write, text, FlagSet ;
+FROM ChanConsts IMPORT read, write, text, raw, FlagSet ;
 FROM RTgenif IMPORT GenDevIF, InitGenDevIF ;
 
 FROM RTfio IMPORT doreadchar, dounreadchar,
@@ -283,9 +283,9 @@ BEGIN
                        iseof, iseoln, iserror) ;
    dev := InitChanDev(stdchans, did, gen) ;
 
-   stdin := MapFile(FIO.StdIn, read+text) ;
-   stdout := MapFile(FIO.StdOut, write+text) ;
-   stderr := MapFile(FIO.StdErr, write+text) ;
+   stdin := MapFile(FIO.StdIn, read+text+raw) ;
+   stdout := MapFile(FIO.StdOut, write+text+raw) ;
+   stderr := MapFile(FIO.StdErr, write+text+raw) ;
    SetInChan(stdin) ;
    SetOutChan(stdout) ;
    SetErrChan(stderr) ;

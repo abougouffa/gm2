@@ -4414,7 +4414,7 @@ Static Expr *func_uor(arg)
 Static Expr *func_upcase(ex)
 Expr *ex;
 {
-    return makeexpr_bicall_1("toupper", tp_char, grabarg(ex, 0));
+    return makeexpr_bicall_1("TOUPPER", tp_char, grabarg(ex, 0));
 }
 
 

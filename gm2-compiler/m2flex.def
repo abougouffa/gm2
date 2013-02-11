@@ -24,13 +24,14 @@ DEFINITION MODULE m2flex ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Tue Jul 31 17:46:41 2001
-    Last edit  : $Date: 2010/10/03 19:01:09 $ 
+    Last edit  : $Date: 2013/02/11 14:45:17 $ 
     Revision   : $Version$ 
     Description: provides a Modula-2 definition module for the C lexical
                  analysis flex file m2.flex
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
+FROM m2linemap IMPORT location_t ;
 
 EXPORT QUALIFIED GetToken, M2Error, OpenSource, CloseSource, GetLineNo,
                  GetColumnNo ;
@@ -70,6 +71,13 @@ PROCEDURE GetLineNo () : CARDINAL ;
 *)
 
 PROCEDURE GetColumnNo () : CARDINAL ;
+
+
+(*
+   GetLocation - returns the gcc location_t of the current token.
+*)
+
+PROCEDURE GetLocation () : location_t ;
 
 
 (*

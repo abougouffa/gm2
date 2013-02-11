@@ -45,7 +45,7 @@ FROM M2Printf IMPORT printf0, printf2 ;
 FROM M2Base IMPORT MixTypes, GetBaseTypeMinMax, Char, IsRealType, IsAComplexType ;
 FROM DynamicStrings IMPORT String, InitString, Mark, ConCat, Slice, InitStringCharStar, KillString, InitStringChar, string ;
 FROM M2Constants IMPORT MakeNewConstFromValue ;
-FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken ;
+FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken, TokenToLocation ;
 FROM M2MetaError IMPORT MetaError2 ;
 
 FROM SymbolTable IMPORT NulSym, IsEnumeration, IsSubrange, IsValueSolved, PushValue,
@@ -58,6 +58,21 @@ FROM SymbolTable IMPORT NulSym, IsEnumeration, IsSubrange, IsValueSolved, PushVa
 
 IMPORT DynamicStrings ;
 
+FROM m2tree IMPORT Tree ;
+FROM m2linemap IMPORT location_t ;
+
+FROM m2expr IMPORT BuildAdd, BuildSub, BuildMult,
+                   BuildDivTrunc, BuildModTrunc, BuildDivFloor, BuildModFloor,
+                   BuildLSL, BuildLSR,
+                   BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference ;
+
+FROM m2decl IMPORT GetBitsPerBitset ;
+FROM m2misc IMPORT DebugTree ;
+FROM m2type IMPORT RealToTree ;
+FROM m2convert IMPORT ConvertConstantAndCheck ;
+FROM m2block IMPORT RememberConstant ;
+
+(*
 FROM gccgm2 IMPORT Tree, Constructor,
                    SetFileNameAndLineNo,
                    BuildIntegerConstant,
@@ -67,10 +82,7 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    GetWordOne, ToWord,
                    AreConstantsEqual, AreRealOrComplexConstantsEqual,
                    GetBitsPerBitset,
-                   BuildAdd, BuildSub, BuildMult,
-                   BuildDivTrunc, BuildModTrunc, BuildDivFloor, BuildModFloor,
-                   BuildLSL, BuildLSR,
-                   BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
+                   BuildAdd
                    BuildIfIn, BuildStringConstant,
                    BuildStartRecord, BuildFieldRecord, ChainOn, BuildEndRecord,
                    RealToTree, RememberConstant, BuildConstLiteralNumber,
@@ -82,6 +94,7 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildEndArrayConstructor, BuildNumberOfArrayElements,
                    FoldAndStrip, TreeOverflow, RemoveOverflow, BuildCharConstant,
                    DebugTree ;
+*)
 
 TYPE
    cellType   = (none, integer, real, complex, set, constructor, array, record) ;
@@ -144,6 +157,7 @@ TYPE
 
    PtrToValue = POINTER TO cell ;
    cell       = RECORD
+                   location       : location_t ;
                    areAllConstants,
                    solved         : BOOLEAN ;
                    constructorType: CARDINAL ;
@@ -502,6 +516,7 @@ BEGIN
       InternalError('out of memory error', __FILE__, __LINE__)
    ELSE
       WITH v^ DO
+         location        := UnknownLocation() ;
          type            := none ;
          areAllConstants := TRUE ;
          solved          := FALSE ;
@@ -853,31 +868,34 @@ VAR
    c,
    i: CARDINAL ;
    r: listOfRange ;
+   l: location_t ;
 BEGIN
+   l := TokenToLocation(tokenno) ;
    r := NIL ;
    i := 0 ;
    WHILE (i<GetBitsPerBitset()) AND
          (CompareTrees(GetIntegerZero(), t)#0) DO
       IF CompareTrees(GetIntegerOne(),
-                      BuildLogicalAnd(t, GetIntegerOne(), FALSE))=0
+                      BuildLogicalAnd(l, t, GetIntegerOne(), FALSE))=0
       THEN
          PushCard(i) ;
          c := Val(tokenno, SkipType(sym), PopIntegerTree()) ;
          DeclareConstant(tokenno, c) ;
          r := AddRange(r, c, c)
       END ;
-      t := BuildLSR(t, GetIntegerOne(), FALSE) ;
+      t := BuildLSR(l, t, GetIntegerOne(), FALSE) ;
       INC(i)
    END ;
    SortElements(tokenno, r) ;
    CombineElements(tokenno, r) ;
    v := New() ;
    WITH v^ DO
-      type := set ;
+      location        := TokenToLocation(tokenno) ;
+      type            := set ;
       constructorType := sym ;
       areAllConstants := FALSE ;
       solved          := FALSE ;
-      setValue := r
+      setValue        := r
    END ;
    Eval(tokenno, v) ;
    Push(v)
@@ -1263,7 +1281,7 @@ BEGIN
    WITH v^ DO
       IF type=real
       THEN
-         numberValue     := ConvertConstantAndCheck(GetIntegerType(), numberValue) ;
+         numberValue     := ConvertConstantAndCheck(location, GetIntegerType(), numberValue) ;
          type            := integer ;
          areAllConstants := TRUE ;
          solved          := TRUE
@@ -1287,7 +1305,7 @@ BEGIN
    WITH v^ DO
       IF type=real
       THEN
-         numberValue     := ConvertConstantAndCheck(GetIntegerType(), numberValue) ;
+         numberValue     := ConvertConstantAndCheck(location, GetIntegerType(), numberValue) ;
          type            := integer ;
          areAllConstants := TRUE ;
          solved          := TRUE
@@ -1311,7 +1329,7 @@ BEGIN
    WITH v^ DO
       IF type=integer
       THEN
-         numberValue     := ConvertConstantAndCheck(GetLongRealType(), numberValue) ;
+         numberValue     := ConvertConstantAndCheck(location, GetLongRealType(), numberValue) ;
          type            := real ;
          areAllConstants := TRUE ;
          solved          := TRUE
@@ -1337,7 +1355,7 @@ BEGIN
    WITH v^ DO
       IF type=integer
       THEN
-         numberValue     := ConvertConstantAndCheck(GetIntegerType(), numberValue) ;
+         numberValue     := ConvertConstantAndCheck(location, GetIntegerType(), numberValue) ;
          solved          := TRUE ;
          areAllConstants := TRUE
       ELSE
@@ -1432,8 +1450,9 @@ BEGIN
    ELSE
       Temp := New() ;    (* as it is a temp *)
       WITH Temp^ DO
+         location     := Op1^.location ;
          type         := integer ;
-         numberValue  := BuildAdd(Op1^.numberValue, Op2^.numberValue, FALSE) ;
+         numberValue  := BuildAdd(location, Op1^.numberValue, Op2^.numberValue, FALSE) ;
          solved       := TRUE
       END ;
       Push(Temp)
@@ -1465,7 +1484,8 @@ BEGIN
    END ;
    Temp := New() ;
    WITH Temp^ DO
-      numberValue := BuildAdd(Op1^.numberValue, Op2^.numberValue, FALSE) ;
+      location    := Op1^.location ;
+      numberValue := BuildAdd(location, Op1^.numberValue, Op2^.numberValue, FALSE) ;
       type        := real ;
       solved      := TRUE
    END ;
@@ -1485,7 +1505,8 @@ BEGIN
    THEN
       Temp := New() ;
       WITH Temp^ DO
-         numberValue := BuildAdd(Op1^.numberValue, Op2^.numberValue, FALSE) ;
+         location    := Op1^.location ;
+         numberValue := BuildAdd(location, Op1^.numberValue, Op2^.numberValue, FALSE) ;
          type        := complex ;
          solved      := TRUE
       END ;
@@ -1527,8 +1548,9 @@ BEGIN
    ELSE
       Temp := New() ;      (* as it is a temp *)
       WITH Temp^ DO
+         location    := Op1^.location ;
          type        := integer ;
-         numberValue := BuildSub(Op2^.numberValue, Op1^.numberValue, TRUE) ;
+         numberValue := BuildSub(location, Op2^.numberValue, Op1^.numberValue, TRUE) ;
          solved      := TRUE
       END ;
       Push(Temp)
@@ -1560,7 +1582,8 @@ BEGIN
    END ;
    Temp := New() ;
    WITH Temp^ DO
-      numberValue := BuildSub(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+      location    := Op1^.location ;
+      numberValue := BuildSub(location, Op2^.numberValue, Op1^.numberValue, FALSE) ;
       type        := real ;
       solved      := TRUE
    END ;
@@ -1580,7 +1603,8 @@ BEGIN
    THEN
       Temp := New() ;
       WITH Temp^ DO
-         numberValue := BuildSub(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+         location    := Op1^.location ;
+         numberValue := BuildSub(location, Op2^.numberValue, Op1^.numberValue, FALSE) ;
          type        := complex ;
          solved      := TRUE
       END ;
@@ -1622,8 +1646,9 @@ BEGIN
    ELSE
       Temp := New() ;     (* as it is a temp *)
       WITH Temp^ DO
+         location    := Op1^.location ;
          type        := integer ;
-         numberValue := BuildMult(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+         numberValue := BuildMult(location, Op2^.numberValue, Op1^.numberValue, FALSE) ;
          solved      := TRUE
       END ;
       Push(Temp)
@@ -1655,7 +1680,8 @@ BEGIN
    END ;
    Temp := New() ;     (* as it is a temp *)
    WITH Temp^ DO
-      numberValue := BuildMult(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+      location    := Op1^.location ;
+      numberValue := BuildMult(location, Op2^.numberValue, Op1^.numberValue, FALSE) ;
       type        := real ;
       solved      := TRUE
    END ;
@@ -1675,7 +1701,8 @@ BEGIN
    THEN
       Temp := New() ;
       WITH Temp^ DO
-         numberValue := BuildMult(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+         location    := Op1^.location ;
+         numberValue := BuildMult(location, Op2^.numberValue, Op1^.numberValue, FALSE) ;
          type        := complex ;
          solved      := TRUE
       END ;
@@ -1717,8 +1744,9 @@ BEGIN
    ELSE
       Temp := New() ;     (* as it is a temp *)
       WITH Temp^ DO
-         type  := integer ;
-         numberValue := BuildDivTrunc(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+         location    := Op1^.location ;
+         type        := integer ;
+         numberValue := BuildDivTrunc(location, Op2^.numberValue, Op1^.numberValue, FALSE) ;
          solved      := TRUE
       END ;
       Push(Temp)
@@ -1759,8 +1787,9 @@ BEGIN
    ELSE
       Temp := New() ;     (* as it is a temp *)
       WITH Temp^ DO
-         type  := integer ;
-         numberValue := BuildDivFloor(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+         location    := Op1^.location ;
+         type        := integer ;
+         numberValue := BuildDivFloor(location, Op2^.numberValue, Op1^.numberValue, FALSE) ;
          solved      := TRUE
       END ;
       Push(Temp)
@@ -1792,7 +1821,8 @@ BEGIN
    END ;
    Temp := New() ;     (* as it is a temp *)
    WITH Temp^ DO
-      numberValue := BuildDivTrunc(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+      location    := Op1^.location ;
+      numberValue := BuildDivTrunc(location, Op2^.numberValue, Op1^.numberValue, FALSE) ;
       type        := real ;
       solved      := TRUE
    END ;
@@ -1812,7 +1842,8 @@ BEGIN
    THEN
       Temp := New() ;
       WITH Temp^ DO
-         numberValue := BuildDivTrunc(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+         location    := Op1^.location ;
+         numberValue := BuildDivTrunc(location, Op2^.numberValue, Op1^.numberValue, FALSE) ;
          type        := complex ;
          solved      := TRUE
       END ;
@@ -1854,8 +1885,9 @@ BEGIN
    ELSE
       Temp := New() ;     (* as it is a temp *)
       WITH Temp^ DO
+         location    := Op1^.location ;
          type        := integer ;
-         numberValue := BuildModFloor(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+         numberValue := BuildModFloor(location, Op2^.numberValue, Op1^.numberValue, FALSE) ;
          solved      := TRUE
       END ;
       Push(Temp)
@@ -1896,8 +1928,9 @@ BEGIN
    ELSE
       Temp := New() ;     (* as it is a temp *)
       WITH Temp^ DO
+         location    := Op1^.location ;
          type        := integer ;
-         numberValue := BuildModTrunc(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+         numberValue := BuildModTrunc(location, Op2^.numberValue, Op1^.numberValue, FALSE) ;
          solved      := TRUE
       END ;
       Push(Temp)
@@ -2682,8 +2715,15 @@ BEGIN
             r := AddRange(r, i, DupConst(tokenno, s^.low, -1))
          END
       END ;
-      i := DupConst(tokenno, s^.high, 1) ;
-      s := s^.next
+      PushValue(s^.high) ;
+      PushValue(max) ;
+      IF Less(tokenno)
+      THEN
+         i := DupConst(tokenno, s^.high, 1) ;
+         s := s^.next
+      ELSE
+         s := NIL
+      END
    END ;
    IF Debugging
    THEN
@@ -4461,7 +4501,7 @@ END ConstructSetConstant ;
                         array constructor.
 *)
 
-PROCEDURE ConvertConstToType (field: CARDINAL; init: CARDINAL) : Tree ;
+PROCEDURE ConvertConstToType (tokenno: CARDINAL; field: CARDINAL; init: CARDINAL) : Tree ;
 VAR
    initT,
    nBytes: Tree ;
@@ -4469,10 +4509,10 @@ BEGIN
    IF IsConstString(init) AND IsArray(SkipType(GetType(field))) AND
       (SkipTypeAndSubrange(GetType(GetType(field)))=Char)
    THEN
-      DoCopyString(nBytes, initT, GetType(field), init) ;
+      DoCopyString(tokenno, nBytes, initT, GetType(field), init) ;
       RETURN( initT )
    ELSE
-      RETURN( ConvertConstantAndCheck(Mod2Gcc(GetType(field)), Mod2Gcc(init)) )
+      RETURN( ConvertConstantAndCheck(TokenToLocation(tokenno), Mod2Gcc(GetType(field)), Mod2Gcc(init)) )
    END
 END ConvertConstToType ;
 
@@ -4491,7 +4531,9 @@ VAR
    baseType,
    high, low   : CARDINAL ;
    cons        : Constructor ;
+   location    : location_t ;
 BEGIN
+   location := TokenToLocation(tokenno) ;
    WITH v^ DO
       IF constructorType=NulSym
       THEN
@@ -4512,7 +4554,7 @@ BEGIN
             THEN
                IF GccKnowsAbout(GetType(Field))
                THEN
-                  BuildRecordConstructorElement(cons, ConvertConstToType(Field, GetConstructorField(v, i)))
+                  BuildRecordConstructorElement(cons, ConvertConstToType(tokenno, Field, GetConstructorField(v, i)))
                ELSE
                   ErrorStringAt(InitString('trying to construct a compound literal and using a record field which does not exist'),
                                 tokenno)
@@ -4634,9 +4676,21 @@ END IsString ;
 *)
 
 PROCEDURE StringFitsArray (arrayType, el: CARDINAL; tokenno: CARDINAL) : BOOLEAN ;
+VAR
+   location: location_t ;
 BEGIN
-   PushIntegerTree(BuildNumberOfArrayElements(Mod2Gcc(arrayType))) ;
-   PushCard(GetStringLength(el)) ;
+   location := TokenToLocation(tokenno) ;
+   PushIntegerTree(BuildNumberOfArrayElements(location, Mod2Gcc(arrayType))) ;
+   IF IsConstString(el)
+   THEN
+      PushCard(GetStringLength(el))
+   ELSIF IsConst(el) AND (SkipType(GetType(el))=Char) AND IsValueSolved(el)
+   THEN
+      PushCard(1)
+   ELSE
+      PushCard(0) ;
+      WriteFormat1('cannot build a string using {%1ad}', el)
+   END ;
    RETURN GreEqu(tokenno)
 END StringFitsArray ;
 
@@ -4668,6 +4722,7 @@ END GetArrayLimits ;
 PROCEDURE InitialiseArrayOfCharWithString (tokenno: CARDINAL; cons: Tree;
                                            v: PtrToValue; el, baseType, arrayType: CARDINAL) : Tree ;
 VAR
+   isChar   : BOOLEAN ;
    s, letter: String ;
    i, l     : CARDINAL ;
    high, low: CARDINAL ;
@@ -4675,15 +4730,32 @@ VAR
    indice   : Tree ;
 BEGIN
    GetArrayLimits(baseType, low, high) ;
-   s := InitStringCharStar(KeyToCharStar(GetString(el))) ;
-   l := GetStringLength(el) ;
+   l := 0 ;
+   s := NIL ;
+   IF IsConstString(el)
+   THEN
+      isChar := FALSE ;
+      s := InitStringCharStar(KeyToCharStar(GetString(el))) ;
+      l := GetStringLength(el)
+   ELSIF IsConst(el) AND (SkipType(GetType(el))=Char) AND IsValueSolved(el)
+   THEN
+      isChar := TRUE
+   ELSE
+      WriteFormat1('cannot build a string using {%1ad}', el)
+   END ;
    i := 0 ;
    REPEAT
       PushValue(low) ;
       PushCard(i) ;
       Addn ;
       indice := PopIntegerTree() ;
-      IF i<l
+      letter := NIL ;
+      IF isChar
+      THEN
+         isChar := FALSE ;
+         PushValue(el) ;
+         value := PopIntegerTree()
+      ELSIF i<l
       THEN
          IF i+1<l
          THEN
@@ -4696,7 +4768,7 @@ BEGIN
          letter := InitStringChar(nul) ;
          value := BuildCharConstant(string(letter))
       END ;
-      value := ConvertConstantAndCheck(Mod2Gcc(arrayType), value) ;
+      value := ConvertConstantAndCheck(TokenToLocation(tokenno), Mod2Gcc(arrayType), value) ;
       letter := KillString(letter) ;
       BuildArrayConstructorElement(cons, value, indice) ;
       PushValue(low) ;
@@ -4761,7 +4833,7 @@ BEGIN
       Addn ;
       indice := PopIntegerTree() ;
       value := CheckElementString(el, arrayType, baseType, tokenno) ;
-      value := ConvertConstantAndCheck(Mod2Gcc(arrayType), value) ;
+      value := ConvertConstantAndCheck(TokenToLocation(tokenno), Mod2Gcc(arrayType), value) ;
       BuildArrayConstructorElement(cons, value, indice) ;
       PushValue(low) ;
       PushCard(i) ;
@@ -4831,8 +4903,10 @@ END ConstructArrayConstant ;
 
 PROCEDURE BuildRange (tokenno: CARDINAL; e1, e2: Tree) : Tree ;
 VAR
-   c, i, t: Tree ;
+   c, i, t : Tree ;
+   location: location_t ;
 BEGIN
+   location := TokenToLocation(tokenno) ;
    PushIntegerTree(e1) ;
    PushIntegerTree(e2) ;
    IF Gre(tokenno)
@@ -4847,9 +4921,9 @@ BEGIN
    REPEAT
       IF t=Tree(NIL)
       THEN
-         t := BuildLSL(GetWordOne(), ToWord(i), FALSE)
+         t := BuildLSL(location, GetWordOne(), ToWord(i), FALSE)
       ELSE
-         t := BuildLogicalOr(t, BuildLSL(GetWordOne(), ToWord(i), FALSE), FALSE)
+         t := BuildLogicalOr(location, t, BuildLSL(location, GetWordOne(), ToWord(i), FALSE), FALSE)
       END ;
       PushIntegerTree(i) ;
       PushIntegerTree(GetIntegerOne()) ;
@@ -4871,9 +4945,10 @@ PROCEDURE BuildBitset (tokenno: CARDINAL;
                        v: PtrToValue; low, high: Tree) : Tree ;
 VAR
    tl, th,
-   t      : Tree ;
-   n      : CARDINAL ;
-   r1, r2 : CARDINAL ;
+   t       : Tree ;
+   n       : CARDINAL ;
+   r1, r2  : CARDINAL ;
+   location: location_t ;
 BEGIN
    n := 1 ;
    t := GetIntegerZero() ;
@@ -4886,7 +4961,7 @@ BEGIN
       THEN
          tl := SubTree(MaxTree(tokenno, tl, low), low) ;
          th := SubTree(MinTree(tokenno, th, high), low) ;
-         t := BuildLogicalOr(t, BuildRange(tokenno, tl, th), FALSE)
+         t := BuildLogicalOr(location, t, BuildRange(tokenno, tl, th), FALSE)
       END ;
       INC(n)
    END ;

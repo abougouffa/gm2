@@ -28,6 +28,8 @@ DEFINITION MODULE M2Base ;
 *)
 
 FROM NameKey IMPORT Name ;
+FROM m2linemap IMPORT location_t ;
+
 EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  Cardinal,              (* Base types              *)
                  Integer,
@@ -154,7 +156,7 @@ VAR
               used in the Modula-2 compiler.
 *)
 
-PROCEDURE InitBase (VAR Sym: CARDINAL) ;
+PROCEDURE InitBase (location: location_t; VAR sym: CARDINAL) ;
 
 
 (*

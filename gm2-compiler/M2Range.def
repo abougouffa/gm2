@@ -35,7 +35,7 @@ DEFINITION MODULE M2Range ;
                  time, post optimization.
 *)
 
-FROM gccgm2 IMPORT Tree ;
+FROM m2tree IMPORT Tree ;
 FROM DynamicStrings IMPORT String ;
 
 EXPORT QUALIFIED InitAssignmentRangeCheck,

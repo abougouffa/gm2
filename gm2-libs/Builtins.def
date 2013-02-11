@@ -222,4 +222,11 @@ PROCEDURE __BUILTIN__ frame_address (level: CARDINAL) : ADDRESS ;
 PROCEDURE __BUILTIN__ return_address (level: CARDINAL) : ADDRESS ;
 
 
+(*
+   alloca_trace - this is a no-op which is used for internal debugging.
+*)
+
+PROCEDURE alloca_trace (returned: ADDRESS; nBytes: CARDINAL) : ADDRESS ;
+
+
 END Builtins.

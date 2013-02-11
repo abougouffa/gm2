@@ -30,7 +30,7 @@ DEFINITION MODULE M2ALU ;
 *)
 
 FROM NameKey IMPORT Name ;
-FROM gccgm2 IMPORT Tree ;
+FROM m2tree IMPORT Tree ;
 FROM M2GCCDeclare IMPORT WalkAction, IsAction ;
 
 EXPORT QUALIFIED PtrToValue,

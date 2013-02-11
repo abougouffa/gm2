@@ -87,9 +87,10 @@ FROM M2Options IMPORT NilChecking,
                       WholeDivChecking, WholeValueChecking,
                       IndexChecking, RangeChecking,
                       ReturnChecking, CaseElseChecking, Exceptions,
+                      DebugBuiltins,
                       Iso, Pim, Pim2, Pim3 ;
 
-FROM gccgm2 IMPORT GetSizeOf, GetIntegerType,
+FROM m2type IMPORT GetIntegerType,
                    GetM2IntegerType, GetM2CharType,
                    GetMaxFrom, GetMinFrom, GetRealType,
                    GetM2LongIntType, GetLongRealType, GetProcType,
@@ -103,6 +104,11 @@ FROM gccgm2 IMPORT GetSizeOf, GetIntegerType,
                    GetM2ShortComplexType,
                    GetM2RType, GetM2ZType, GetM2CType,
                    BuildIntegerConstant ;
+
+FROM m2expr IMPORT GetSizeOf ;
+FROM m2linemap IMPORT location_t, BuiltinsLocation ;
+FROM m2decl IMPORT BuildIntegerConstant ;
+
 
 TYPE
    Compatability = (expression, assignment, parameter) ;
@@ -126,7 +132,7 @@ TYPE
 
 (* %%%FORWARD%%%
 PROCEDURE InitBaseConstants ; FORWARD ;
-PROCEDURE InitBaseSimpleTypes ; FORWARD ;
+PROCEDURE InitBaseSimpleTypes (location: location_t) ; FORWARD ;
 PROCEDURE InitBaseFunctions ; FORWARD ;
 PROCEDURE InitBaseProcedures ; FORWARD ;
 PROCEDURE InitCompatibilityMatrices ; FORWARD ;
@@ -181,27 +187,40 @@ VAR
    MinEnum    : CARDINAL ;
 
 
+(*
+   InitBuiltins - 
+*)
+
+PROCEDURE InitBuiltins ;
+VAR
+   builtins: CARDINAL ;
+BEGIN
+   IF DebugBuiltins
+   THEN
+      (* we will need to parse this module as functions alloca/memcpy will be used *)
+      builtins := MakeDefinitionSource(MakeKey('Builtins'))
+   END
+END InitBuiltins ;
+
+
 
 (*
    InitBase - initializes the base types and procedures
               used in the Modula-2 compiler.
 *)
 
-PROCEDURE InitBase (VAR Sym: CARDINAL) ;
+PROCEDURE InitBase (location: location_t; VAR sym: CARDINAL) ;
 BEGIN
-   Sym := MakeModule(MakeKey('_BaseTypes')) ;
-   SetCurrentModule(Sym) ;
-   StartScope(Sym) ;
+   sym := MakeModule(MakeKey('_BaseTypes')) ;
+   SetCurrentModule(sym) ;
+   StartScope(sym) ;
 
-   InitBaseSimpleTypes ;
+   InitBaseSimpleTypes(location) ;
 
    (* initialise the SYSTEM module before we used CARDINAL and ADDRESS! *)
-   InitSystem ;
+   InitSystem(location) ;
 
-   IF Iso
-   THEN
-      MakeBitset  (* we do this after SYSTEM has been created as BITSET is dependant upon WORD *)
-   END ;
+   MakeBitset ; (* we do this after SYSTEM has been created as BITSET is dependant upon WORD *)
 
    InitBaseConstants ;
    InitBaseFunctions ;
@@ -213,6 +232,7 @@ BEGIN
             when all other scopes fail to deliver a symbol.
    *)
    EndScope ;
+   InitBuiltins ;
    InitCompatibilityMatrices
 END InitBase ;
 
@@ -250,29 +270,31 @@ END InitBaseConstants ;
                          CARDINAL, INTEGER, CHAR, BOOLEAN.
 *)
 
-PROCEDURE InitBaseSimpleTypes ;
+PROCEDURE InitBaseSimpleTypes (location: location_t) ;
 VAR
    Zero,
    MaxCard: CARDINAL ;
 BEGIN
+   InitBaseTypes(location) ;
+
    ZType := MakeType(MakeKey('_M2_Ztype')) ;
    PutType(ZType, NulSym) ;                   (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetM2ZType())) ;
+   PushIntegerTree(GetSizeOf(location, GetM2ZType())) ;
    PopSize(ZType) ;
 
    RType := MakeType(MakeKey('_M2_Rtype')) ;
    PutType(RType, NulSym) ;                   (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetM2RType())) ;
+   PushIntegerTree(GetSizeOf(location, GetM2RType())) ;
    PopSize(RType) ;
 
    CType := MakeType(MakeKey('_M2_Ctype')) ;
    PutType(CType, NulSym) ;                   (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetM2CType())) ;
+   PushIntegerTree(GetSizeOf(location, GetM2CType())) ;
    PopSize(CType) ;
 
    Integer := MakeType(MakeKey('INTEGER')) ;
    PutType(Integer, NulSym) ;                 (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetM2IntegerType())) ;
+   PushIntegerTree(GetSizeOf(location, GetM2IntegerType())) ;
    PopSize(Integer) ;
 
    Zero := MakeConstLit(MakeKey('0')) ;
@@ -281,62 +303,62 @@ BEGIN
    Cardinal := MakeType(MakeKey('CARDINAL')) ;
    PutType(Cardinal, NulSym) ;
                                               (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetM2CardinalType())) ;
+   PushIntegerTree(GetSizeOf(location, GetM2CardinalType())) ;
    PopSize(Cardinal) ;
 
    LongInt := MakeType(MakeKey('LONGINT')) ;
    PutType(LongInt, NulSym) ;                 (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetM2LongIntType())) ;
+   PushIntegerTree(GetSizeOf(location, GetM2LongIntType())) ;
    PopSize(LongInt) ;
 
    LongCard := MakeType(MakeKey('LONGCARD')) ;
    PutType(LongCard, NulSym) ;                (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetM2LongCardType())) ;
+   PushIntegerTree(GetSizeOf(location, GetM2LongCardType())) ;
    PopSize(LongCard) ;
 
    ShortInt := MakeType(MakeKey('SHORTINT')) ;
    PutType(ShortInt, NulSym) ;                (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetM2ShortIntType())) ;
+   PushIntegerTree(GetSizeOf(location, GetM2ShortIntType())) ;
    PopSize(ShortInt) ;
 
    ShortCard := MakeType(MakeKey('SHORTCARD')) ;
    PutType(ShortCard, NulSym) ;               (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetM2ShortCardType())) ;
+   PushIntegerTree(GetSizeOf(location, GetM2ShortCardType())) ;
    PopSize(ShortCard) ;
 
    Real := MakeType(MakeKey('REAL')) ;
    PutType(Real, NulSym) ;                    (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetM2RealType())) ;
+   PushIntegerTree(GetSizeOf(location, GetM2RealType())) ;
    PopSize(Real) ;
 
    ShortReal := MakeType(MakeKey('SHORTREAL')) ;
    PutType(ShortReal, NulSym) ;               (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetM2ShortRealType())) ;
+   PushIntegerTree(GetSizeOf(location, GetM2ShortRealType())) ;
    PopSize(ShortReal) ;
 
    LongReal := MakeType(MakeKey('LONGREAL')) ;
    PutType(LongReal, NulSym) ;                (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetM2LongRealType())) ;
+   PushIntegerTree(GetSizeOf(location, GetM2LongRealType())) ;
    PopSize(LongReal) ;
 
    Complex := MakeType(MakeKey('COMPLEX')) ;
    PutType(Complex, NulSym) ;                 (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetM2ComplexType())) ;
+   PushIntegerTree(GetSizeOf(location, GetM2ComplexType())) ;
    PopSize(Complex) ;
 
    LongComplex := MakeType(MakeKey('LONGCOMPLEX')) ;
    PutType(LongComplex, NulSym) ;             (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetM2LongComplexType())) ;
+   PushIntegerTree(GetSizeOf(location, GetM2LongComplexType())) ;
    PopSize(LongComplex) ;
 
    ShortComplex := MakeType(MakeKey('SHORTCOMPLEX')) ;
    PutType(ShortComplex, NulSym) ;            (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetM2ShortComplexType())) ;
+   PushIntegerTree(GetSizeOf(location, GetM2ShortComplexType())) ;
    PopSize(ShortComplex) ;
 
    Char := MakeType(MakeKey('CHAR')) ;
    PutType(Char, NulSym) ;                    (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetM2CharType())) ;
+   PushIntegerTree(GetSizeOf(location, GetM2CharType())) ;
    PopSize(Char) ;
 
    (*
@@ -351,104 +373,128 @@ BEGIN
    False := RequestSym(MakeKey('FALSE')) ;
 
    Proc := MakeProcType(MakeKey('PROC')) ;
-   PushIntegerTree(GetSizeOf(GetProcType())) ;
+   PushIntegerTree(GetSizeOf(location, GetProcType())) ;
    PopSize(Proc) ;
 
    (* MinChar *)
    MinChar := MakeTemporary(ImmediateValue) ;
-   PushIntegerTree(GetMinFrom(GetM2CharType())) ;
+   PushIntegerTree(GetMinFrom(location, GetM2CharType())) ;
    PopValue(MinChar) ;
    PutVar(MinChar, Char) ;
 
    (* MaxChar *)
    MaxChar := MakeTemporary(ImmediateValue) ;
-   PushIntegerTree(GetMaxFrom(GetM2CharType())) ;
+   PushIntegerTree(GetMaxFrom(location, GetM2CharType())) ;
    PopValue(MaxChar) ;
    PutVar(MaxChar, Char) ;
 
    (* MinInteger *)
    MinInteger := MakeTemporary(ImmediateValue) ;
-   PushIntegerTree(GetMinFrom(GetM2IntegerType())) ;
+   PushIntegerTree(GetMinFrom(location, GetM2IntegerType())) ;
    PopValue(MinInteger) ;
    PutVar(MinInteger, Integer) ;
 
    (* MaxInteger *)
    MaxInteger := MakeTemporary(ImmediateValue) ;
-   PushIntegerTree(GetMaxFrom(GetM2IntegerType())) ;
+   PushIntegerTree(GetMaxFrom(location, GetM2IntegerType())) ;
    PopValue(MaxInteger) ;
    PutVar(MaxInteger, Integer) ;
 
    (* MinCardinal *)
    MinCardinal := MakeTemporary(ImmediateValue) ;
-   PushIntegerTree(GetMinFrom(GetM2CardinalType())) ;
+   PushIntegerTree(GetMinFrom(BuiltinsLocation(), GetM2CardinalType())) ;
    PopValue(MinCardinal) ;
    PutVar(MinCardinal, Cardinal) ;
 
    (* MaxCardinal *)
    MaxCardinal := MakeTemporary(ImmediateValue) ;
-   PushIntegerTree(GetMaxFrom(GetM2CardinalType())) ;
+   PushIntegerTree(GetMaxFrom(location, GetM2CardinalType())) ;
    PopValue(MaxCardinal) ;
    PutVar(MaxCardinal, Cardinal) ;
 
    (* MinLongInt *)
    MinLongInt := MakeTemporary(ImmediateValue) ;
-   PushIntegerTree(GetMinFrom(GetM2LongIntType())) ;
+   PushIntegerTree(GetMinFrom(location, GetM2LongIntType())) ;
    PopValue(MinLongInt) ;
    PutVar(MinLongInt, LongInt) ;
 
    (* MaxLongInt *)
    MaxLongInt := MakeTemporary(ImmediateValue) ;
-   PushIntegerTree(GetMaxFrom(GetM2LongIntType())) ;
+   PushIntegerTree(GetMaxFrom(location, GetM2LongIntType())) ;
    PopValue(MaxLongInt) ;
    PutVar(MaxLongInt, LongInt) ;
 
    (* MinLongCard *)
    MinLongCard := MakeTemporary(ImmediateValue) ;
-   PushIntegerTree(GetMinFrom(GetM2LongCardType())) ;
+   PushIntegerTree(GetMinFrom(location, GetM2LongCardType())) ;
    PopValue(MinLongCard) ;
    PutVar(MinLongCard, LongCard) ;
 
    (* MinLongCard *)
    MaxLongCard := MakeTemporary(ImmediateValue) ;
-   PushIntegerTree(GetMaxFrom(GetM2LongCardType())) ;
+   PushIntegerTree(GetMaxFrom(BuiltinsLocation(), GetM2LongCardType())) ;
    PopValue(MaxLongCard) ;
    PutVar(MaxLongCard, LongCard) ;
 
    (* MinReal *)
    MinReal := MakeTemporary(ImmediateValue) ;
-   PushRealTree(GetMinFrom(GetM2RealType())) ;
+   PushRealTree(GetMinFrom(location, GetM2RealType())) ;
    PopValue(MinReal) ;
    PutVar(MinReal, Real) ;
 
    (* MaxReal *)
    MaxReal := MakeTemporary(ImmediateValue) ;
-   PushRealTree(GetMaxFrom(GetM2RealType())) ;
+   PushRealTree(GetMaxFrom(location, GetM2RealType())) ;
    PopValue(MaxReal) ;
    PutVar(MaxReal, Real) ;
 
    (* MinShortReal *)
    MinShortReal := MakeTemporary(ImmediateValue) ;
-   PushRealTree(GetMinFrom(GetM2ShortRealType())) ;
+   PushRealTree(GetMinFrom(location, GetM2ShortRealType())) ;
    PopValue(MinShortReal) ;
    PutVar(MinShortReal, ShortReal) ;
 
    (* MaxShortReal *)
    MaxShortReal := MakeTemporary(ImmediateValue) ;
-   PushRealTree(GetMaxFrom(GetM2ShortRealType())) ;
+   PushRealTree(GetMaxFrom(location, GetM2ShortRealType())) ;
    PopValue(MaxShortReal) ;
    PutVar(MaxShortReal, ShortReal) ;
 
    (* MinLongReal *)
    MinLongReal := MakeTemporary(ImmediateValue) ;
-   PushRealTree(GetMinFrom(GetM2LongRealType())) ;
+   PushRealTree(GetMinFrom(location, GetM2LongRealType())) ;
    PopValue(MinLongReal) ;
    PutVar(MinLongReal, LongReal) ;
 
    (* MaxLongReal *)
    MaxLongReal := MakeTemporary(ImmediateValue) ;
-   PushRealTree(GetMaxFrom(GetM2LongRealType())) ;
+   PushRealTree(GetMaxFrom(location, GetM2LongRealType())) ;
    PopValue(MaxLongReal) ;
-   PutVar(MaxLongReal, LongReal)
+   PutVar(MaxLongReal, LongReal) ;
+
+   (* MaxShortInt *)
+   MaxShortInt := MakeTemporary(ImmediateValue) ;
+   PushIntegerTree(GetMaxFrom(location, GetM2ShortIntType())) ;
+   PopValue(MaxShortInt) ;
+   PutVar(MaxShortInt, ShortInt) ;
+
+   (* MinShortInt *)
+   MinShortInt := MakeTemporary(ImmediateValue) ;
+   PushIntegerTree(GetMinFrom(location, GetM2ShortIntType())) ;
+   PopValue(MinShortInt) ;
+   PutVar(MinShortInt, ShortInt) ;
+
+   (* MaxShortCard *)
+   MaxShortCard := MakeTemporary(ImmediateValue) ;
+   PushIntegerTree(GetMaxFrom(location, GetM2ShortCardType())) ;
+   PopValue(MaxShortCard) ;
+   PutVar(MaxShortCard, ShortCard) ;
+
+   (* MinShortCard *)
+   MinShortCard := MakeTemporary(ImmediateValue) ;
+   PushIntegerTree(GetMinFrom(location, GetM2ShortCardType())) ;
+   PopValue(MinShortCard) ;
+   PutVar(MinShortCard, ShortCard)
 
 END InitBaseSimpleTypes ;
 
@@ -506,7 +552,7 @@ BEGIN
    THEN
       min := MinChar ;
       max := MaxChar
-   ELSIF (type=Bitset) AND Iso
+   ELSIF type=Bitset
    THEN
       GetBitsetMinMax(min, max)
    ELSIF (type=LongInt)
@@ -920,7 +966,7 @@ BEGIN
           (Sym=ShortInt) OR (Sym=ShortCard) OR
           (Sym=Real)     OR (Sym=LongReal) OR (Sym=ShortReal) OR
           (Sym=Complex)  OR (Sym=LongComplex) OR (Sym=ShortComplex) OR
-          ((Sym=Bitset) AND Iso)
+          (Sym=Bitset)
          )
 END IsBaseType ;
 
@@ -2132,7 +2178,12 @@ BEGIN
                   RETURN( IsParameterCompatible(at, ft) )
                END
             ELSE
-               RETURN( FALSE )
+               IF IsParameterVar(formal)
+               THEN
+                  RETURN( IsVarParamCompatible(at, formal) )
+               ELSE
+                  RETURN( IsParameterCompatible(at, ft) )
+               END
             END
          END
       END
@@ -2196,34 +2247,34 @@ BEGIN
    const    :   InternalError('do not know the size of a constant', __FILE__, __LINE__) |
    word     :   IF Iso
                 THEN
-                   PushIntegerTree(GetSizeOf(GetISOWordType()))
+                   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetISOWordType()))
                 ELSE
-                   PushIntegerTree(GetSizeOf(GetWordType()))
+                   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetWordType()))
                 END |
    byte     :   IF Iso
                 THEN
-                   PushIntegerTree(GetSizeOf(GetISOByteType()))
+                   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetISOByteType()))
                 ELSE
-                   PushIntegerTree(GetSizeOf(GetByteType()))
+                   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetByteType()))
                 END |
-   address  :   PushIntegerTree(GetSizeOf(GetPointerType())) |
-   chr      :   PushIntegerTree(GetSizeOf(GetM2CharType())) |
-   normint  :   PushIntegerTree(GetSizeOf(GetM2IntegerType())) |
-   shortint :   PushIntegerTree(GetSizeOf(GetM2ShortIntType())) |
-   longint  :   PushIntegerTree(GetSizeOf(GetM2LongIntType())) |
-   normcard :   PushIntegerTree(GetSizeOf(GetM2CardinalType())) |
-   shortcard:   PushIntegerTree(GetSizeOf(GetM2ShortCardType())) |
-   longcard :   PushIntegerTree(GetSizeOf(GetM2LongCardType())) |
-   pointer  :   PushIntegerTree(GetSizeOf(GetPointerType())) |
-   enum     :   PushIntegerTree(GetSizeOf(GetIntegerType())) |
-   real     :   PushIntegerTree(GetSizeOf(GetM2RealType())) |
-   shortreal:   PushIntegerTree(GetSizeOf(GetM2ShortRealType())) |
-   longreal :   PushIntegerTree(GetSizeOf(GetM2LongRealType())) |
+   address  :   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetPointerType())) |
+   chr      :   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2CharType())) |
+   normint  :   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2IntegerType())) |
+   shortint :   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2ShortIntType())) |
+   longint  :   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2LongIntType())) |
+   normcard :   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2CardinalType())) |
+   shortcard:   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2ShortCardType())) |
+   longcard :   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2LongCardType())) |
+   pointer  :   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetPointerType())) |
+   enum     :   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetIntegerType())) |
+   real     :   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2RealType())) |
+   shortreal:   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2ShortRealType())) |
+   longreal :   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2LongRealType())) |
    set      :   InternalError('do not know the size of a set', __FILE__, __LINE__) |
    opaque   :   InternalError('do not know the size of an opaque', __FILE__, __LINE__) |
-   loc      :   PushIntegerTree(GetSizeOf(GetISOLocType())) |
-   rtype    :   PushIntegerTree(GetSizeOf(GetM2RType())) |
-   ztype    :   PushIntegerTree(GetSizeOf(GetM2ZType())) |
+   loc      :   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetISOLocType())) |
+   rtype    :   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2RType())) |
+   ztype    :   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2ZType())) |
    int8,
    card8,
    set8     :   PushIntegerTree(BuildIntegerConstant(1)) |
@@ -2528,9 +2579,9 @@ BEGIN
    E(card16      , '. . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F F') ;
    E(card32      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F') ;
    E(card64      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F') ;
-   E(word16      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F') ;
-   E(word32      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F') ;
-   E(word64      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F') ;
+   E(word16      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . F F F F F F F F F F F F F F F F F F') ;
+   E(word32      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . F F F F F F F F F F F F F F F F F') ;
+   E(word64      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . F F F F F F F F F F F F F F F F') ;
    E(real32      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F') ;
    E(real64      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F') ;
    E(real96      , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F') ;

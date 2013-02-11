@@ -116,7 +116,6 @@ PROCEDURE GetSymKey (t: SymbolTree; NameKey: Name) : WORD ;
 VAR
    father,
    child : SymbolTree ;
-   SymKey: CARDINAL ;
 BEGIN
    FindNodeAndParentInTree(t, NameKey, child, father) ;
    IF child=NIL

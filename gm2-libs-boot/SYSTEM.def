@@ -26,7 +26,7 @@ DEFINITION MODULE SYSTEM ;
                 in GNU Modula-2 when being bootstrapped by p2c.
 *)
 
-EXPORT QUALIFIED ADDRESS, WORD, BYTE, BITSET, ADR, TSIZE, SIZE ;
+EXPORT QUALIFIED ADDRESS, WORD, BYTE, ADR, TSIZE, SIZE ;
 
 TYPE
    ADDRESS = POINTER TO WORD ;
@@ -34,10 +34,5 @@ TYPE
 (*
    It is assumed that the base types in M2System have been declared.
 *)
-(* This needs to be hidden for the gm2 in C
-TYPE
-   BITSET = SET OF [0..31] ;
-*)
-
 
 END SYSTEM.

@@ -17,23 +17,39 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 /* gm2config.h.in.  Generated from configure.in by autoheader.  */
 
+/* Define to the full name of this package. */
+#ifndef AR_PATH
 /* the path to target archiver */
 #undef AR_PATH
+#endif
 
+#ifndef PACKAGE_BUGREPORT
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
+#endif
 
+#ifndef PACKAGE_NAME
 /* Define to the full name of this package. */
 #undef PACKAGE_NAME
+#endif
 
+#ifndef PACKAGE_STRING
 /* Define to the full name and version of this package. */
 #undef PACKAGE_STRING
+#endif
 
+#ifndef PACKAGE_TARNAME
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
+#endif
 
+#ifndef PACKAGE_VERSION
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+#endif
 
+#ifndef RANLIB_PATH
 /* the path to target ranlib */
 #undef RANLIB_PATH
+#endif
+

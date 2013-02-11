@@ -1,5 +1,6 @@
 %{
-/* Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009
+/* Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
+                 2013
    Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
@@ -22,10 +23,24 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 #include "GM2Reserved.h"
 #include "GM2LexBuf.h"
+#include "input.h"
 
 #if defined(GM2USEGGC)
 #  include "ggc.h"
 #endif
+
+#if defined(GM2TOOLS)
+#   define START_FILE(F,L)
+#   define END_FILE()
+#   define START_LINE(N,S)
+#   define GET_LOCATION(C)   0
+#else
+#   define START_FILE(F,L)   m2linemap_StartFile(F,L)
+#   define END_FILE()        m2linemap_EndFile()
+#   define START_LINE(N,S)   m2linemap_StartLine(N,S)
+#   define GET_LOCATION(C)   m2linemap_GetLocationColumn(C)
+#endif
+
 
   /*
    *  m2.flex - provides a lexical analyser for GNU Modula-2
@@ -40,6 +55,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     int              actualline;       /* line number of this line */
     int              column;           /* first column number of token on this line */
     int              inuse;            /* do we need to keep this line info? */
+    location_t       location;         /* the corresponding gcc location_t */
     struct lineInfo *next;
   };
 
@@ -77,6 +93,7 @@ static  void handleColumn      (void);
 static  void pushFunction      (char *function, int module);
 static  void popFunction       (void);
 static  void checkFunction     (void);
+        location_t m2flex_GetLocation (void);
         int  m2flex_GetColumnNo(void);
 	int  m2flex_OpenSource (char *s);
 	int  m2flex_GetLineNo  (void);
@@ -133,6 +150,7 @@ extern  void  yylex            (void);
                              filename = (char *)xrealloc(filename, yyleng+1);
 			     strcpy(filename, yytext);
                              filename[yyleng-1] = (char)0;  /* remove trailing quote */
+                             START_FILE (filename, lineno);
                              BEGIN LINE2;
                            }
 <LINE2>[ \t]*              { updatepos(); }
@@ -185,6 +203,8 @@ extern  void  yylex            (void);
 \<\>                       { updatepos(); M2LexBuf_AddTok(M2Reserved_lessgreatertok); return; }
 \<\=                       { updatepos(); M2LexBuf_AddTok(M2Reserved_lessequaltok); return; }
 \>\=                       { updatepos(); M2LexBuf_AddTok(M2Reserved_greaterequaltok); return; }
+"<*"                       { updatepos(); M2LexBuf_AddTok(M2Reserved_ldirectivetok); return; }
+"*>"                       { updatepos(); M2LexBuf_AddTok(M2Reserved_rdirectivetok); return; }
 \.\.                       { updatepos(); M2LexBuf_AddTok(M2Reserved_periodperiodtok); return; }
 \.\.\.                     { updatepos(); M2LexBuf_AddTok(M2Reserved_periodperiodperiodtok); return; }
 \:                         { updatepos(); M2LexBuf_AddTok(M2Reserved_colontok); return; }
@@ -336,7 +356,7 @@ static void handleDate (void)
 static void handleFunction (void)
 {
   if (currentFunction == NULL)
-    M2LexBuf_AddTokCharStar(M2Reserved_stringtok, (char *)"\"\"");
+    M2LexBuf_AddTokCharStar(M2Reserved_stringtok, (void *)"\"\"");
   else if (currentFunction->module) {
     char *s = (char *) alloca(strlen(yytext) +
 			      strlen("\"module  initialization\"") + 1);
@@ -457,6 +477,7 @@ static void consumeLine (void)
   currentLine->tokenpos=0;
   currentLine->nextpos=0;
   currentLine->column=0;
+  START_LINE (lineno, yyleng);
   yyless(1);                  /* push back all but the \n */
 }
 
@@ -474,6 +495,7 @@ static void updatepos (void)
   currentLine->toklen  = yyleng;
   if (currentLine->column == 0)
     currentLine->column = currentLine->tokenpos;
+  currentLine->location = GET_LOCATION (currentLine->column);
 }
 
 /*
@@ -612,6 +634,7 @@ char *m2flex_GetToken (void)
 
 void m2flex_CloseSource (void)
 {
+  END_FILE ();
 }
 
 /*
@@ -640,6 +663,7 @@ int m2flex_OpenSource (char *s)
     lineno   =1;
     if (currentLine != NULL)
       currentLine->actualline = lineno;
+    START_FILE (filename, lineno);
     return TRUE;
   }
 }
@@ -665,6 +689,18 @@ int m2flex_GetColumnNo (void)
 {
   if (currentLine != NULL)
     return currentLine->column;
+  else
+    return 0;
+}
+
+/*
+ *  m2flex_GetLocation - returns the gcc location_t of the current token.
+ */
+
+location_t m2flex_GetLocation (void)
+{
+  if (currentLine != NULL)
+    return currentLine->location;
   else
     return 0;
 }

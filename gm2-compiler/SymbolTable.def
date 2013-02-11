@@ -30,7 +30,7 @@ DEFINITION MODULE SymbolTable ;
 FROM SYSTEM IMPORT WORD ;
 FROM SymbolKey IMPORT PerformOperation ;
 FROM NameKey IMPORT Name ;
-FROM gccgm2 IMPORT Tree ;
+FROM m2tree IMPORT Tree ;
 
 EXPORT QUALIFIED NulSym,
                  FinalSymbol,
@@ -64,6 +64,9 @@ EXPORT QUALIFIED NulSym,
       	       	 MakeSet,
                  MakeArray,
                  MakeTemporary,
+                 MakeComponentRecord,
+                 MakeComponentRef,
+                 IsComponent,
                  MakePointer,
                  MakeSubscript,
                  MakeUnbounded,
@@ -120,7 +123,9 @@ EXPORT QUALIFIED NulSym,
                  GetGnuAsmInput, GetGnuAsmOutput, GetGnuAsmTrash, GetGnuAsm,
                  GetRegInterface,
                  GetVariableAtAddress,
-                 GetAlignment,
+                 GetAlignment, GetDefaultRecordFieldAlignment,
+                 PutDeclaredPacked, IsDeclaredPacked, IsDeclaredPackedResolved,
+                 GetPackedEquivalent, GetNonPackedEquivalent,
 
                  PutVar,
                  PutLeftValueFrontBackType,
@@ -164,10 +169,12 @@ EXPORT QUALIFIED NulSym,
                  PutProcedureReachable,
                  PutReadQuad, RemoveReadQuad,
                  PutWriteQuad, RemoveWriteQuad,
-                 PutGnuAsm, PutGnuAsmOutput, PutGnuAsmInput, PutGnuAsmTrash, PutGnuAsmVolatile,
+                 PutGnuAsm, PutGnuAsmOutput, PutGnuAsmInput, PutGnuAsmTrash,
+                 PutGnuAsmVolatile, PutGnuAsmSimple,
                  PutRegInterface,
                  PutVariableAtAddress,
-                 PutAlignment,
+                 PutAlignment, PutDefaultRecordFieldAlignment,
+                 PutUnused, IsUnused,
 
                  IsDefImp,
                  IsModule,
@@ -204,7 +211,7 @@ EXPORT QUALIFIED NulSym,
       	       	 IsSet,
                  IsHiddenType,
                  IsAModula2Type,
-                 IsGnuAsmVolatile, IsGnuAsm,
+                 IsGnuAsmVolatile, IsGnuAsmSimple, IsGnuAsm, IsRegInterface,
                  IsError,
                  IsObject,
                  IsTuple,
@@ -332,6 +339,29 @@ TYPE
 *)
 
 PROCEDURE FinalSymbol () : CARDINAL ;
+
+
+(*
+   MakeComponentRecord - make a temporary which will be used to reference and field
+                         (or sub field) of record.
+*)
+
+PROCEDURE MakeComponentRecord (Mode: ModeOfAddr; record: CARDINAL) : CARDINAL ;
+
+
+(*
+   MakeComponentRef - use, sym, to reference, field, sym is returned.
+*)
+
+PROCEDURE MakeComponentRef (sym: CARDINAL; field: CARDINAL) : CARDINAL ;
+
+
+(*
+   IsComponent - returns TRUE if symbol, sym, is a temporary and a component
+                 reference.
+*)
+
+PROCEDURE IsComponent (sym: CARDINAL) : BOOLEAN ;
 
 
 (*
@@ -755,6 +785,13 @@ PROCEDURE PutGnuAsmVolatile (Sym: CARDINAL) ;
 
 
 (*
+   PutGnuAsmSimple - defines a GnuAsm symbol as a simple kind.
+*)
+
+PROCEDURE PutGnuAsmSimple (Sym: CARDINAL) ;
+
+
+(*
    MakeRegInterface - creates and returns a register interface symbol.
 *)
 
@@ -762,19 +799,23 @@ PROCEDURE MakeRegInterface () : CARDINAL ;
 
 
 (*
-   PutRegInterface - places a, string, and, object, into the interface list, sym.
+   PutRegInterface - places a, name, string, and, object, into the interface array,
+                     sym, at position, i.
                      The string symbol will either be a register name or a constraint.
                      The object is an optional Modula-2 variable or constant symbol.
 *)
 
-PROCEDURE PutRegInterface (sym: CARDINAL; string, object: CARDINAL) ;
+PROCEDURE PutRegInterface (sym: CARDINAL; i: CARDINAL;
+                           n: Name; string, object: CARDINAL) ;
 
 
 (*
-   GetRegInterface - gets a, string, and, object, from the interface list, sym.
+   GetRegInterface - gets a, name, string, and, object, from the interface array,
+                     sym, from position, i.
 *)
 
-PROCEDURE GetRegInterface (sym: CARDINAL; n: CARDINAL; VAR string, object: CARDINAL) ;
+PROCEDURE GetRegInterface (sym: CARDINAL; i: CARDINAL;
+                           VAR n: Name; VAR string, object: CARDINAL) ;
 
 
 (*
@@ -2556,6 +2597,15 @@ PROCEDURE IsGnuAsmVolatile (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*
+   IsGnuAsmSimple - returns TRUE if a GnuAsm symbol is a simple statement of the
+                    form ASM("instruction"), which differs from ASM("instruction" :)
+                    slightly.
+*)
+
+PROCEDURE IsGnuAsmSimple (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
    IsGnuAsm - returns TRUE if Sym is a GnuAsm symbol.
 *)
 
@@ -2627,6 +2677,83 @@ PROCEDURE PutAlignment (type: CARDINAL; align: CARDINAL) ;
 *)
 
 PROCEDURE GetAlignment (type: CARDINAL) : CARDINAL ;
+
+
+(*
+   GetDefaultRecordFieldAlignment - assigns, align, as the default alignment
+                                    to record, sym.
+*)
+
+PROCEDURE GetDefaultRecordFieldAlignment (sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   PutDefaultRecordFieldAlignment - assigns, align, as the default alignment
+                                    to record, sym.
+*)
+
+PROCEDURE PutDefaultRecordFieldAlignment (sym: CARDINAL; align: CARDINAL) ;
+
+
+(*
+   PutUnused - sets, sym, as unused.  This is a gm2 pragma.
+*)
+
+PROCEDURE PutUnused (sym: CARDINAL) ;
+
+
+(*
+   IsUnused - returns TRUE if the symbol was declared as unused with a
+              gm2 pragma.
+*)
+
+PROCEDURE IsUnused (sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   PutDeclaredPacked - sets the Packed field of the record or record field symbol.
+*)
+
+PROCEDURE PutDeclaredPacked (sym: CARDINAL; b: BOOLEAN) ;
+
+
+(*
+   IsDeclaredPacked - was the record symbol or record field, sym,
+                      declared as packed?
+*)
+
+PROCEDURE IsDeclaredPacked (sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsDeclaredPackedResolved - do we know if the record symbol or record
+                              field, sym, declared as packed or not packed?
+*)
+
+PROCEDURE IsDeclaredPackedResolved (sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   GetPackedEquivalent - returns the packed equivalent of type, sym.
+                         sym must be a type, subrange or enumerated type.
+*)
+
+PROCEDURE GetPackedEquivalent (sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   GetNonPackedEquivalent - returns the equivalent non packed symbol
+                            associated with, sym.
+*)
+
+PROCEDURE GetNonPackedEquivalent (sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   IsEquivalent - returns TRUE if, sym, is an equivalent symbol.
+*)
+
+PROCEDURE IsEquivalent (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

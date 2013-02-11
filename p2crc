@@ -1223,6 +1223,8 @@ AvoidName         Signed Const Volatile Register Static Local Inline
 AvoidName         cdecl far near huge
 AvoidName         isalpha isupper islower isdigit isxdigit isspace ispunct
 AvoidName         isalnum isprint isgraph iscntrl isascii toascii
+AvoidName         ISALPHA ISUPPER ISLOWER ISDIGIT ISXDIGIT ISSPACE ISPUNCT
+AvoidName         ISALNUM ISPRINT ISGRAPH ISCNTRL ISASCII TOASCII
 AvoidName         toupper tolower
 AvoidName         const
 AvoidName         fmod div fdiv fabs
