@@ -4,6 +4,8 @@
 	* gm2/gm2-lang.h:  include gm2_langhook_init and gm2_langhook_handle_option.
 	* gm2/gm2-gcc/m2options.h:  corrected spelling of M2Options_setdefextension
 	  and M2Options_setmodextension.
+	* gm2/gm2-compiler/M2DebugStack.def:  (New file).
+	* gm2/gm2-compiler/M2DebugStack.mod:  (New file).
 
 2013-02-09      Gaius Mulley <gaius@gnu.org>
 
