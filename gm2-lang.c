@@ -45,7 +45,6 @@ Boston, MA 02110-1301, USA.  */
 
 #define GM2_LANG_C
 #include "gm2-lang.h"
-#include "gm2-common.h"
 #include "dynamicstrings.h"
 #include "m2options.h"
 #include "init.h"

@@ -1,3 +1,10 @@
+2013-02-11      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-lang.c:  removed reference to gm2-common.h.
+	* gm2/gm2-lang.h:  include gm2_langhook_init and gm2_langhook_handle_option.
+	* gm2/gm2-gcc/m2options.h:  corrected spelling of M2Options_setdefextension
+	  and M2Options_setmodextension.
+
 2013-02-09      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  build rules changed to enable gm2 to be built

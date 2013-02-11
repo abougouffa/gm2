@@ -84,6 +84,13 @@ EXTERN enum gimplify_status  gm2_gimplify_expr (tree *, tree *, tree *);
 EXTERN bool gm2_mark_addressable (tree);
 EXTERN tree gm2_type_for_size             (unsigned int bits, int unsignedp);
 EXTERN tree gm2_type_for_mode             (enum machine_mode mode, int unsignedp);
+EXTERN bool gm2_langhook_init (void);
+EXTERN bool gm2_langhook_handle_option (size_t scode, const char *arg,
+					int value,
+					int kind ATTRIBUTE_UNUSED,
+					location_t loc ATTRIBUTE_UNUSED,
+					const struct cl_option_handlers *handlers ATTRIBUTE_UNUSED);
+
 
 #undef EXTERN
 #endif

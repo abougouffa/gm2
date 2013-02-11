@@ -35,8 +35,8 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 
 EXTERN void M2Options_SetMakeIncludePath (const char *arg);
 EXTERN void M2Options_SetSearchPath (const char *arg);
-EXTERN void M2Optioms_setdefextension (const char *arg);
-EXTERN void M2Optioms_setmodextension (const char *arg);
+EXTERN void M2Options_setdefextension (const char *arg);
+EXTERN void M2Options_setmodextension (const char *arg);
 
 EXTERN void M2Options_SetISO (int value);
 EXTERN void M2Options_SetPIM (int value);
