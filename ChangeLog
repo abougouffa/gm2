@@ -6,6 +6,8 @@
 	  and M2Options_setmodextension.
 	* gm2/gm2-compiler/M2DebugStack.def:  (New file).
 	* gm2/gm2-compiler/M2DebugStack.mod:  (New file).
+	* gm2/gm2-compiler/M2DriverOptions.def:  (New file).
+	* gm2/gm2-compiler/M2DriverOptions.mod:  (New file).
 
 2013-02-09      Gaius Mulley <gaius@gnu.org>
 
