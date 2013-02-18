@@ -1,4 +1,10 @@
+2013-02-18      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-iso/RandomNumber.def:  (New file).
+	* gm2/gm2-libs-iso/RandomNumber.mod:  (New file).
+
 2013-02-11      Gaius Mulley <gaius@gnu.org>
+
 
 	* gm2/gm2-lang.c:  removed reference to gm2-common.h.
 	* gm2/gm2-lang.h:  include gm2_langhook_init and gm2_langhook_handle_option.
