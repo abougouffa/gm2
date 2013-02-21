@@ -1,3 +1,8 @@
+2013-02-21      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/patches/gcc/4.7.1/01-patches:  (New file).
+	* gm2/patches/gcc/4.7.1/02-patches:  (New file).
+
 2013-02-18      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-iso/RandomNumber.def:  (New file).
