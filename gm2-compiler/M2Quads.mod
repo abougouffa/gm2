@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011
+                 2010, 2011, 2012, 2013
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -235,7 +235,7 @@ FROM m2builtins IMPORT GetBuiltinTypeInfoType ;
 CONST
    DebugStackOn = TRUE ;
    DebugVarients = FALSE ;
-   BreakAtQuad = 1099 ;
+   BreakAtQuad = 2140 ;
 
 TYPE
    ConstructorFrame = POINTER TO constructorFrame ;
@@ -2790,7 +2790,7 @@ BEGIN
    PopT(Ident) ;
    PopT(Type) ;
    Sym := MakeTemporary(ImmediateValue) ;
-   CASE GetBuiltinTypeInfoType(TokenToLocation(GetTokenNo()), KeyToCharStar(Name(Ident))) OF
+   CASE GetBuiltinTypeInfoType(KeyToCharStar(Name(Ident))) OF
 
    0:  ErrorFormat1(NewError(GetTokenNo()),
                     '%a unrecognised builtin constant', Ident) |
@@ -4525,10 +4525,6 @@ BEGIN
          time --fixme--
       *)
       ReturnVar := MakeTemporary(AreConstant(ParamConstant)) ;
-      IF ReturnVar=2873
-      THEN
-         stop
-      END ;
       (* ReturnVar := MakeTemporary(RightValue) ; *)
       PutVar(ReturnVar, GetType(Proc)) ;
       GenQuad(FunctValueOp, ReturnVar, NulSym, Proc) ;
@@ -10127,6 +10123,7 @@ BEGIN
    THEN
       (* ti has no type since constant *)
       ti := MakeTemporary(ImmediateValue) ;
+      PutVar(ti, Cardinal) ;
       GenQuad(ElementSizeOp, ti, arrayType, 1)
    ELSE
       INC(dim) ;
@@ -10235,7 +10232,9 @@ BEGIN
    THEN
       (* tj has no type since constant *)
       tj := MakeTemporary(ImmediateValue) ;
-      tk := MakeTemporary(ImmediateValue)
+      tk := MakeTemporary(ImmediateValue) ;
+      PutVar(tj, Cardinal) ;
+      PutVar(tk, Cardinal)
    ELSE
       (* tj has Cardinal type since we have multiplied array indices *)
       tj := MakeTemporary(RightValue) ;
@@ -10603,8 +10602,7 @@ BEGIN
             MetaError1('{%1ad} is not a set, record or array type which is expected when constructing an aggregate entity',
                        type)
          END
-      END ;
-      stop
+      END
    END
 END BuildTypeForConstructor ;
 

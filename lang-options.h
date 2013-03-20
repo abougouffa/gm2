@@ -147,7 +147,10 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("display the GNU Modula-2 version") },
   { "-O",
       N_("optimize code") },
-
+  { "-flocation=",
+      N_("set all location values to unknown,builtin,integer value (internal debugging)") },
+  { "-x",
+      N_("specify the language") },
 
   /*
    *  --fixme-- add these when gm2 can detect integer/cardinal overflow in expressions

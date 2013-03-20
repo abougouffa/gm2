@@ -56,42 +56,22 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "../gm2-tree.h"
 #include "../gm2-lang.h"
 
-#include "m2decl.h"
+#define m2assert_c
 #include "m2assert.h"
-#include "m2expr.h"
-#include "m2type.h"
-#include "m2tree.h"
-#include "m2block.h"
-#define m2top_c
-#include "m2top.h"
+#include "m2options.h"
 
-/*
- *  InitGlobalContext - initializes a dummy function for the global scope.
- */
 
-void m2top_InitGlobalContext (void)
+void
+m2assert_AssertLocation (location_t location)
 {
-  if (cfun == NULL)
-    init_dummy_function_start ();
-}
+  /*
+   *   internally the compiler will use unknown location and builtins_location
+   *   so we ignore these values.
+   */
+  if (location == BUILTINS_LOCATION || location == UNKNOWN_LOCATION)
+    return;
 
-
-/*
- *  FinishBackend - flushes all outstanding functions held in the GCC backend
- *                  out to the assembly file.
- */
-
-void m2top_FinishBackend (void)
-{
-}
-
-
-/*
- *  SetFlagUnitAtATime - sets GCC flag_unit_at_a_time to b.
- */
-
-void m2top_SetFlagUnitAtATime (int b)
-{
-  flag_unit_at_a_time = b;
+  if (M2Options_OverrideLocation(location) != location)
+    internal_error ("the location value is corrupt");
 }
 

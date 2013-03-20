@@ -93,6 +93,7 @@ m2decl_DeclareKnownVariable (location_t location, char *name, tree type, int exp
   tree id;
   tree decl;
 
+  m2assert_AssertLocation (location);
   ASSERT (m2tree_is_type(type), type);
   ASSERT_BOOL (isglobal);
 
@@ -174,6 +175,7 @@ m2decl_DeclareKnownConstant (location_t location, tree type, tree value)
   tree id = make_node (IDENTIFIER_NODE);  /* ignore the name of the constant */
   tree decl;
 
+  m2assert_AssertLocation (location);
   m2expr_ConstantExpressionWarning (value);
   type = m2tree_skip_type_decl (type);
   layout_type (type);
@@ -202,6 +204,7 @@ m2decl_BuildParameterDeclaration (location_t location, char *name, tree type,
 {
   tree parm_decl;
 
+  m2assert_AssertLocation (location);
   ASSERT_BOOL (isreference);
   type = m2tree_skip_type_decl(type);
   layout_type (type);
@@ -254,6 +257,7 @@ m2decl_BuildEndFunctionDeclaration (location_t location, const char *name, tree 
   tree fntype;
   tree fndecl;
 
+  m2assert_AssertLocation (location);
   ASSERT_BOOL (isexternal);
   ASSERT_BOOL (isnested);
   ASSERT_BOOL (ispublic);

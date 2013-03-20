@@ -122,6 +122,7 @@ m2expr_StringLength (tree string)
 tree
 m2expr_BuildAdd (location_t location, tree op1, tree op2, int needconvert)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, PLUS_EXPR,
 				 m2expr_FoldAndStrip (op1),
 				 m2expr_FoldAndStrip (op2), needconvert);
@@ -135,6 +136,7 @@ m2expr_BuildAdd (location_t location, tree op1, tree op2, int needconvert)
 tree
 m2expr_BuildSub (location_t location, tree op1, tree op2, int needconvert)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, MINUS_EXPR,
 				 m2expr_FoldAndStrip (op1),
 				 m2expr_FoldAndStrip (op2), needconvert);
@@ -148,6 +150,7 @@ m2expr_BuildSub (location_t location, tree op1, tree op2, int needconvert)
 tree
 m2expr_BuildDivTrunc (location_t location, tree op1, tree op2, int needconvert)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, TRUNC_DIV_EXPR,
 				 m2expr_FoldAndStrip (op1),
 				 m2expr_FoldAndStrip (op2), needconvert);
@@ -161,6 +164,7 @@ m2expr_BuildDivTrunc (location_t location, tree op1, tree op2, int needconvert)
 tree
 m2expr_BuildModTrunc (location_t location, tree op1, tree op2, int needconvert)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, TRUNC_MOD_EXPR,
 				 m2expr_FoldAndStrip (op1),
 				 m2expr_FoldAndStrip (op2), needconvert);
@@ -174,6 +178,7 @@ m2expr_BuildModTrunc (location_t location, tree op1, tree op2, int needconvert)
 tree
 m2expr_BuildDivFloor (location_t location, tree op1, tree op2, int needconvert)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, FLOOR_DIV_EXPR,
 				 m2expr_FoldAndStrip (op1),
 				 m2expr_FoldAndStrip (op2), needconvert);
@@ -187,6 +192,7 @@ m2expr_BuildDivFloor (location_t location, tree op1, tree op2, int needconvert)
 tree
 m2expr_BuildModFloor (location_t location, tree op1, tree op2, int needconvert)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, FLOOR_MOD_EXPR,
 				 m2expr_FoldAndStrip (op1),
 				 m2expr_FoldAndStrip (op2), needconvert);
@@ -200,6 +206,7 @@ m2expr_BuildModFloor (location_t location, tree op1, tree op2, int needconvert)
 tree
 m2expr_BuildLSL (location_t location, tree op1, tree op2, int needconvert)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, LSHIFT_EXPR,
 				 m2expr_FoldAndStrip (op1),
 				 m2expr_FoldAndStrip (op2), needconvert);
@@ -213,6 +220,7 @@ m2expr_BuildLSL (location_t location, tree op1, tree op2, int needconvert)
 tree
 m2expr_BuildLSR (location_t location, tree op1, tree op2, int needconvert)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, RSHIFT_EXPR,
 				 m2expr_FoldAndStrip (op1),
 				 m2expr_FoldAndStrip (op2), needconvert);
@@ -255,6 +263,7 @@ m2expr_BuildLogicalShift (location_t location, tree op1, tree op2, tree op3,
 {
   tree res;
 
+  m2assert_AssertLocation (location);
   op2 = m2expr_FoldAndStrip (op2);
   op3 = m2expr_FoldAndStrip (op3);
   if (TREE_CODE (op3) == INTEGER_CST) {
@@ -303,6 +312,7 @@ m2expr_BuildLRL (location_t location, tree op1, tree op2, int needconvert)
 tree
 m2expr_BuildLRR (location_t location, tree op1, tree op2, int needconvert)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, RROTATE_EXPR, op1, op2, needconvert);
 }
 
@@ -317,6 +327,7 @@ m2expr_BuildMask (location_t location, tree nBits, int needconvert)
 {
   tree mask = m2expr_BuildLSL (location, m2expr_GetIntegerOne (),
                                nBits, needconvert);
+  m2assert_AssertLocation (location);
   return m2expr_BuildSub (location, mask, m2expr_GetIntegerOne (),
                           needconvert);
 }
@@ -331,6 +342,7 @@ tree
 m2expr_BuildLRLn (location_t location, tree op1, tree op2, tree nBits,
                   int  needconvert)
 {
+  m2assert_AssertLocation (location);
   /*
    *  ensure we wrap the rotate
    */
@@ -367,6 +379,7 @@ m2expr_BuildLRLn (location_t location, tree op1, tree op2, tree nBits,
 tree
 m2expr_BuildLRRn (location_t location, tree op1, tree op2, tree nBits, int needconvert)
 {
+  m2assert_AssertLocation (location);
   /*
    *  ensure we wrap the rotate
    */
@@ -406,6 +419,7 @@ m2expr_BuildLogicalRotate (location_t location,
 {
   tree res;
 
+  m2assert_AssertLocation (location);
   op2 = m2expr_FoldAndStrip (op2);
   op3 = m2expr_FoldAndStrip (op3);
   if (TREE_CODE (op3) == INTEGER_CST) {
@@ -483,6 +497,8 @@ m2expr_BuildBinarySetDo (location_t location, tree settype, tree op1, tree op2, 
   tree size     = m2expr_GetSizeOf (location, settype);
   int  is_const = FALSE;
   int  is_left  = FALSE;
+
+  m2assert_AssertLocation (location);
 
   ASSERT_BOOL (is_op1lvalue);
   ASSERT_BOOL (is_op2lvalue);
@@ -637,6 +653,8 @@ m2expr_BuildCoerce (location_t location, tree des, tree type, tree expr)
   tree copy = copy_node (expr);
   TREE_TYPE (copy) = type;
 
+  m2assert_AssertLocation (location);
+
   return m2treelib_build_modify_expr (location, des, NOP_EXPR, copy);
 }
 
@@ -663,6 +681,8 @@ m2expr_build_unary_op (location_t location,
   tree argtype = TREE_TYPE (arg);
   tree result;
 
+  m2assert_AssertLocation (location);
+
   arg = m2expr_FoldAndStrip (arg);
   result = build1 (code, argtype, arg);
   protected_set_expr_location (result, location);
@@ -682,17 +702,13 @@ build_binary_op (location_t location,
 		 int convert ATTRIBUTE_UNUSED)
 {
   tree type1 = TREE_TYPE (op1);
-  tree type2 = TREE_TYPE (op2);
   tree result;
+
+  m2assert_AssertLocation (location);
   
   /* Strip NON_LVALUE_EXPRs, etc., since we aren't using as an lvalue.  */
   STRIP_TYPE_NOPS (op1);
   STRIP_TYPE_NOPS (op2);
-
-#if 0
-  if (type1 != type2)
-    error_at (location, "internal error: not expecting different types");
-#endif
 
   result = build2 (code, type1, op1, op2);
   protected_set_expr_location (result, location);
@@ -713,6 +729,8 @@ default_convert_binary_operands (location_t location, tree *op1, tree *op2)
 {
   tree type1 = m2tree_skip_type_decl (TREE_TYPE (*op1));
   tree type2 = m2tree_skip_type_decl (TREE_TYPE (*op2));
+
+  m2assert_AssertLocation (location);
       
   if (type1 != type2)
     {
@@ -731,6 +749,7 @@ default_convert_binary_operands (location_t location, tree *op1, tree *op2)
 
 /* Return a NOP_EXPR converting EXPR to TYPE.  */
 
+static
 tree
 build_nop (tree type, tree expr)
 {
@@ -749,32 +768,41 @@ m2expr_build_binary_op (location_t location,
 			enum tree_code code, tree op1, tree op2,
 			int convert)
 {
+  tree type1, type2;
+
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
 
+  type1 = m2tree_skip_type_decl (TREE_TYPE (op1));
+  type2 = m2tree_skip_type_decl (TREE_TYPE (op2));
+
+  m2assert_AssertLocation (location);
+
   if (convert)
     {
-      tree type1 = m2tree_skip_type_decl (TREE_TYPE (op1));
-      tree type2 = m2tree_skip_type_decl (TREE_TYPE (op2));
-
       if (code == PLUS_EXPR)
 	{
 	  if (POINTER_TYPE_P (type1))
 	    {
-	      op2 = build_nop (sizetype, op2);
-	      return build2_loc (location, POINTER_PLUS_EXPR, type1, op1, op2);
+	      op2 = fold_convert_loc (location, sizetype, unshare_expr (op2));
+	      return fold_build2_loc (location, POINTER_PLUS_EXPR,
+				      TREE_TYPE (op1), op1, op2);
 	    }
 	  else if (POINTER_TYPE_P (type2))
 	    {
-	      op1 = build_nop (sizetype, op1);
-	      return build2_loc (location, POINTER_PLUS_EXPR, type1, op2, op1);
+	      op1 = fold_convert_loc (location, sizetype, unshare_expr (op1));
+	      return fold_build2_loc (location, POINTER_PLUS_EXPR,
+				      TREE_TYPE (op2), op2, op1);
 	    }
 	}
-      default_convert_binary_operands (location, &op1, &op2);
-      return build_binary_op (location, code, op1, op2, convert);
     }
-  else
-    return build_binary_op (location, code, op1, op2, convert);
+  
+  if (type1 != type2)
+    error_at (location, "not expecting different types to binary operator");
+#if 0
+      default_convert_binary_operands (location, &op1, &op2);
+#endif
+   return build_binary_op (location, code, op1, op2, convert);
 }
 
 
@@ -787,6 +815,8 @@ m2expr_BuildNegate (location_t location, tree op1, int needconvert)
 {
   tree type = TREE_TYPE (op1);
   enum tree_code code = TREE_CODE (type);
+
+  m2assert_AssertLocation (location);
 
   if (code == ENUMERAL_TYPE)
     error_at (location, "not expecting to negate an enumerated value");
@@ -802,6 +832,8 @@ m2expr_BuildNegate (location_t location, tree op1, int needconvert)
 tree
 m2expr_BuildSetNegate (location_t location, tree op1, int needconvert)
 {
+  m2assert_AssertLocation (location);
+
   return m2expr_build_binary_op (location, BIT_XOR_EXPR,
 				 m2convert_BuildConvert (m2type_GetWordType (), op1, FALSE),
 				 set_full_complement,
@@ -816,6 +848,7 @@ m2expr_BuildSetNegate (location_t location, tree op1, int needconvert)
 tree
 m2expr_BuildMult (location_t location, tree op1, tree op2, int needconvert)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, MULT_EXPR, op1, op2, needconvert);
 }
 
@@ -828,6 +861,8 @@ m2expr_BuildMult (location_t location, tree op1, tree op2, int needconvert)
 static tree
 testLimits (location_t location, tree type, tree min, tree max)
 {
+  m2assert_AssertLocation (location);
+
   if ((m2expr_CompareTrees (TYPE_MAX_VALUE (type), max) == 0) &&
       (m2expr_CompareTrees (TYPE_MIN_VALUE (type), min) == 0))
     return m2expr_BuildMult (location,
@@ -878,6 +913,8 @@ calcNbits (location_t location, tree min, tree max)
 {
   int negative = FALSE;
   tree t = testLimits (location, m2type_GetIntegerType (), min, max);
+
+  m2assert_AssertLocation (location);
   
   if (t == NULL)
     t = testLimits (location, m2type_GetCardinalType (), min, max);
@@ -913,6 +950,7 @@ m2expr_BuildTBitSize (location_t location, tree type)
   enum tree_code code = TREE_CODE (type);
   tree min;
   tree max;
+  m2assert_AssertLocation (location);
 
   switch (code) {
 
@@ -941,6 +979,7 @@ m2expr_BuildTBitSize (location_t location, tree type)
 tree
 m2expr_BuildSize (location_t location, tree op1, int needconvert ATTRIBUTE_UNUSED)
 {
+  m2assert_AssertLocation (location);
   return m2expr_GetSizeOf (location, op1);
 }
 
@@ -953,12 +992,18 @@ m2expr_BuildSize (location_t location, tree op1, int needconvert ATTRIBUTE_UNUSE
 tree
 m2expr_BuildAddr (location_t location, tree op1, int needconvert ATTRIBUTE_UNUSED)
 {
-  tree type = TREE_TYPE (op1);
-  tree ptrType = build_pointer_type (m2tree_skip_type_decl (type));
+  tree type = m2tree_skip_type_decl (TREE_TYPE (op1));
+  tree ptrType = build_pointer_type (type);
   tree result;
+
+  m2assert_AssertLocation (location);
 
   if (! gm2_mark_addressable (op1))
     error_at (location, "cannot take the address of this expression");
+
+#if 0
+  op1 = m2convert_BuildConvert (type, op1, FALSE);
+#endif
 
   result = build1 (ADDR_EXPR, ptrType, op1);
   protected_set_expr_location (result, location);
@@ -977,6 +1022,7 @@ m2expr_BuildAddr (location_t location, tree op1, int needconvert ATTRIBUTE_UNUSE
 tree
 m2expr_BuildOffset1 (location_t location, tree field, int needconvert ATTRIBUTE_UNUSED)
 {
+  m2assert_AssertLocation (location);
   return m2expr_BuildOffset (location, DECL_CONTEXT (field), field, needconvert);
 }
 
@@ -1037,6 +1083,8 @@ m2expr_BuildOffset (location_t location,
 		    tree record, tree field,
                     int needconvert ATTRIBUTE_UNUSED)
 {
+  m2assert_AssertLocation (location);
+
   if (DECL_CONTEXT (field) == record)
     return m2convert_BuildConvert (m2type_GetIntegerType (),
 				   m2expr_BuildAdd (location,
@@ -1069,6 +1117,7 @@ m2expr_BuildLogicalOrAddress (location_t location,
 			      tree op1, tree op2,
                               int  needconvert)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, BIT_IOR_EXPR, op1, op2, needconvert);
 }
 
@@ -1081,6 +1130,7 @@ tree
 m2expr_BuildLogicalOr (location_t location, tree op1, tree op2,
                        int  needconvert)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, BIT_IOR_EXPR,
 				 m2convert_BuildConvert (m2type_GetWordType (), op1, FALSE),
 				 m2convert_BuildConvert (m2type_GetWordType (), op2, FALSE), needconvert);
@@ -1095,6 +1145,7 @@ tree
 m2expr_BuildLogicalAnd (location_t location, tree op1, tree op2,
                         int  needconvert)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, BIT_AND_EXPR,
 				 m2convert_BuildConvert (m2type_GetWordType (), op1, FALSE),
 				 m2convert_BuildConvert (m2type_GetWordType (), op2, FALSE), needconvert);
@@ -1109,6 +1160,7 @@ tree
 m2expr_BuildSymmetricDifference (location_t location, tree op1, tree op2,
                                  int needconvert)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, BIT_XOR_EXPR,
 				 m2convert_BuildConvert (m2type_GetWordType (), op1, FALSE),
 				 m2convert_BuildConvert (m2type_GetWordType (), op2, FALSE), needconvert);
@@ -1125,6 +1177,7 @@ tree
 m2expr_BuildLogicalDifference (location_t location, tree op1, tree op2,
                                int needconvert)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, BIT_AND_EXPR,
 				 m2convert_BuildConvert (m2type_GetWordType (), op1, FALSE),
 				 m2expr_BuildSetNegate (location, op2, needconvert),
@@ -1184,6 +1237,7 @@ boolean_enum_to_unsigned (tree t)
 static tree
 check_for_comparison (location_t location, tree op, tree badType, tree goodType)
 {
+  m2assert_AssertLocation (location);
   if (m2tree_skip_type_decl (TREE_TYPE (op)) == badType)
     /* cannot compare array contents in m2expr_build_binary_op */
     return m2expr_BuildIndirect (location, m2expr_BuildAddr (location, op, FALSE), goodType);
@@ -1199,6 +1253,7 @@ check_for_comparison (location_t location, tree op, tree badType, tree goodType)
 static tree
 convert_for_comparison (location_t location, tree op)
 {
+  m2assert_AssertLocation (location);
   op = boolean_enum_to_unsigned (op);
 
   op = check_for_comparison (location, op, m2type_GetISOWordType (), m2type_GetWordType ());
@@ -1217,6 +1272,7 @@ convert_for_comparison (location_t location, tree op)
 tree
 m2expr_BuildLessThan (location_t location, tree op1, tree op2)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, LT_EXPR,
 				 boolean_enum_to_unsigned (op1),
 				 boolean_enum_to_unsigned (op2), TRUE);
@@ -1230,6 +1286,7 @@ m2expr_BuildLessThan (location_t location, tree op1, tree op2)
 tree
 m2expr_BuildGreaterThan (location_t location, tree op1, tree op2)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, GT_EXPR,
 				 boolean_enum_to_unsigned (op1),
 				 boolean_enum_to_unsigned (op2), TRUE);
@@ -1243,6 +1300,7 @@ m2expr_BuildGreaterThan (location_t location, tree op1, tree op2)
 tree
 m2expr_BuildLessThanOrEqual (location_t location, tree op1, tree op2)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, LE_EXPR,
 				 boolean_enum_to_unsigned (op1),
 				 boolean_enum_to_unsigned (op2), TRUE);
@@ -1256,6 +1314,7 @@ m2expr_BuildLessThanOrEqual (location_t location, tree op1, tree op2)
 tree
 m2expr_BuildGreaterThanOrEqual (location_t location, tree op1, tree op2)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, GE_EXPR,
 				 boolean_enum_to_unsigned (op1),
 				 boolean_enum_to_unsigned (op2), TRUE);
@@ -1269,6 +1328,7 @@ m2expr_BuildGreaterThanOrEqual (location_t location, tree op1, tree op2)
 tree
 m2expr_BuildEqualTo (location_t location, tree op1, tree op2)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, EQ_EXPR,
 				 convert_for_comparison (location, op1),
 				 convert_for_comparison (location, op2), TRUE);
@@ -1282,6 +1342,7 @@ m2expr_BuildEqualTo (location_t location, tree op1, tree op2)
 tree
 m2expr_BuildNotEqualTo (location_t location, tree op1, tree op2)
 {
+  m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, NE_EXPR,
 				 convert_for_comparison (location, op1),
 				 convert_for_comparison (location, op2), TRUE);
@@ -1295,6 +1356,7 @@ m2expr_BuildNotEqualTo (location_t location, tree op1, tree op2)
 tree
 m2expr_BuildIsSuperset (location_t location, tree op1, tree op2)
 {
+  m2assert_AssertLocation (location);
   return m2expr_BuildEqualTo (location, op2,
                               m2expr_BuildLogicalAnd (location, op1, op2, FALSE));
 }
@@ -1307,6 +1369,7 @@ m2expr_BuildIsSuperset (location_t location, tree op1, tree op2)
 tree
 m2expr_BuildIsNotSuperset (location_t location, tree op1, tree op2)
 {
+  m2assert_AssertLocation (location);
   return m2expr_BuildNotEqualTo (location, op2,
                                  m2expr_BuildLogicalAnd (location, op1, op2, FALSE));
 }
@@ -1319,6 +1382,7 @@ m2expr_BuildIsNotSuperset (location_t location, tree op1, tree op2)
 tree
 m2expr_BuildIsSubset (location_t location, tree op1, tree op2)
 {
+  m2assert_AssertLocation (location);
   return m2expr_BuildEqualTo (location, op1,
                               m2expr_BuildLogicalAnd (location, op1, op2, FALSE));
 }
@@ -1331,6 +1395,7 @@ m2expr_BuildIsSubset (location_t location, tree op1, tree op2)
 tree
 m2expr_BuildIsNotSubset (location_t location, tree op1, tree op2)
 {
+  m2assert_AssertLocation (location);
   return m2expr_BuildNotEqualTo (location, op1,
                                  m2expr_BuildLogicalAnd (location, op1, op2, FALSE));
 }
@@ -1346,6 +1411,7 @@ m2expr_BuildIfConstInVar (location_t location, tree type, tree varset, tree cons
                           char *label)
 {
   tree size = m2expr_GetSizeOf (location, type);
+  m2assert_AssertLocation (location);
 
   ASSERT_BOOL (is_lvalue);
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
@@ -1374,6 +1440,8 @@ m2expr_BuildIfNotConstInVar (location_t location, tree type, tree varset, tree c
                              char *label)
 {
   tree size = m2expr_GetSizeOf (location, type);
+
+  m2assert_AssertLocation (location);
 
   ASSERT_BOOL (is_lvalue);
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
@@ -1409,6 +1477,8 @@ m2expr_BuildIfVarInVar (location_t location,
   tree index = m2expr_BuildSub (location,
 				m2convert_BuildConvert (m2type_GetIntegerType(), varel, FALSE),
                                 m2convert_BuildConvert (m2type_GetIntegerType(), low, FALSE), FALSE);
+
+  m2assert_AssertLocation (location);
 
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
@@ -1451,6 +1521,8 @@ m2expr_BuildIfNotVarInVar (location_t location,
   tree index = m2expr_BuildSub (location,
 				m2convert_BuildConvert (m2type_GetIntegerType(), varel, FALSE),
                                 m2convert_BuildConvert (m2type_GetIntegerType(), low, FALSE), FALSE);
+
+  m2assert_AssertLocation (location);
 
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
@@ -1497,6 +1569,8 @@ m2expr_BuildForeachWordInSetDoIfExpr (location_t location,
   tree field1 = m2treelib_get_field_no (type, op1, is_op1const, fieldNo);
   tree field2 = m2treelib_get_field_no (type, op2, is_op2const, fieldNo);
 
+  m2assert_AssertLocation (location);
+
   while (field1 != NULL && field2 != NULL) {
     m2statement_DoJump (location,
 			(*expr) (m2treelib_get_set_value (location, p1, field1, is_op1const, op1, fieldNo),
@@ -1516,6 +1590,8 @@ m2expr_BuildForeachWordInSetDoIfExpr (location_t location,
 void
 m2expr_BuildIfInRangeGoto (location_t location, tree var, tree low, tree high, char *label)
 {
+  m2assert_AssertLocation (location);
+
   if (m2expr_CompareTrees (low, high) == 0)
     m2statement_DoJump (location, m2expr_BuildEqualTo (location, var, low),
 			NULL, label);
@@ -1536,6 +1612,8 @@ m2expr_BuildIfInRangeGoto (location_t location, tree var, tree low, tree high, c
 void
 m2expr_BuildIfNotInRangeGoto (location_t location, tree var, tree low, tree high, char *label)
 {
+  m2assert_AssertLocation (location);
+
   if (m2expr_CompareTrees (low, high) == 0)
     m2statement_DoJump (location,
 			m2expr_BuildNotEqualTo (location, var, low),
@@ -1558,6 +1636,8 @@ m2expr_BuildIfNotInRangeGoto (location_t location, tree var, tree low, tree high
 tree
 m2expr_BuildArray (tree type, tree array, tree index, tree lowIndice, tree elementSize)
 {
+  type = m2tree_skip_type_decl (type);
+
   return build4 (ARRAY_REF, type, array, index, lowIndice, elementSize);
 }
 
@@ -1601,6 +1681,8 @@ m2expr_BuildIndirect (location_t location ATTRIBUTE_UNUSED, tree target, tree ty
 
   tree t1 = m2tree_skip_type_decl (type);
   tree t2 = build_pointer_type (t1);
+
+  m2assert_AssertLocation (location);
 
   return build1 (INDIRECT_REF, t1, m2convert_BuildConvert (t2, target, FALSE));
 }
@@ -1703,6 +1785,8 @@ m2expr_BuildCap (location_t location, tree t)
   tree tt;
   tree out_of_range, less_than, greater_than, translated;
 
+  m2assert_AssertLocation (location);
+
   t = fold(t);
   if (t == error_mark_node)
     return error_mark_node;
@@ -1742,6 +1826,8 @@ m2expr_BuildCap (location_t location, tree t)
 tree
 m2expr_BuildAbs (location_t location, tree t)
 {
+  m2assert_AssertLocation (location);
+
   return m2expr_build_unary_op (location, ABS_EXPR, t, 0);
 }
 
@@ -1815,6 +1901,8 @@ m2expr_BuildBinaryForeachWordDo (location_t location, tree type, tree op1, tree 
                                  int is_op1const, int is_op2const, int is_op3const)
 {
   tree size = m2expr_GetSizeOf (location, type);
+
+  m2assert_AssertLocation (location);
 
   ASSERT_BOOL (is_op1lvalue);
   ASSERT_BOOL (is_op2lvalue);
@@ -2138,6 +2226,7 @@ tree
 m2expr_GetSizeOf (location_t location, tree type)
 {
   enum tree_code code = TREE_CODE (type);
+  m2assert_AssertLocation (location);
 
   if (code == FUNCTION_TYPE)
     return m2expr_GetSizeOf (location, m2type_GetPointerType());
@@ -2238,6 +2327,8 @@ build_set_full_complement (location_t location)
   tree value = integer_zero_node;
   int i;
 
+  m2assert_AssertLocation (location);
+
   for (i=0; i<SET_WORD_SIZE; i++) {
     value = m2expr_BuildLogicalOr(location, value,
                                   m2expr_BuildLSL (location,
@@ -2257,5 +2348,7 @@ build_set_full_complement (location_t location)
 void
 m2expr_init (location_t location)
 {
+  m2assert_AssertLocation (location);
+
   set_full_complement = build_set_full_complement (location);
 }

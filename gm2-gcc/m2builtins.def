@@ -67,7 +67,7 @@ PROCEDURE GetBuiltinConstType (name: ADDRESS) : CARDINAL ;
                             3    if ident is large, small.
 *)
 
-PROCEDURE GetBuiltinTypeInfoType (location: location_t; ident: ADDRESS) : CARDINAL ;
+PROCEDURE GetBuiltinTypeInfoType (ident: ADDRESS) : CARDINAL ;
 
 
 (*
@@ -81,7 +81,7 @@ PROCEDURE GetBuiltinTypeInfoType (location: location_t; ident: ADDRESS) : CARDIN
                         RType Tree       if ident is large, small.
 *)
 
-PROCEDURE GetBuiltinTypeInfo (type: Tree; ident: ADDRESS) : Tree ;
+PROCEDURE GetBuiltinTypeInfo (location: location_t; type: Tree; ident: ADDRESS) : Tree ;
 
 
 (*
@@ -96,14 +96,14 @@ PROCEDURE BuiltinExists (name: ADDRESS) : BOOLEAN ;
    BuildBuiltinTree - returns a Tree containing the builtin function, name.
 *)
 
-PROCEDURE BuildBuiltinTree (name: ADDRESS) : Tree ;
+PROCEDURE BuildBuiltinTree (location: location_t; name: ADDRESS) : Tree ;
 
 
 (*
    BuiltinMemCopy and BuiltinAlloca - are called by M2GenGCC to implement open arrays.
 *)
 
-PROCEDURE BuiltInMemCopy (dest, src, n: Tree) : Tree ;
+PROCEDURE BuiltInMemCopy (location: location_t; dest, src, n: Tree) : Tree ;
 
 
 (*
@@ -111,7 +111,7 @@ PROCEDURE BuiltInMemCopy (dest, src, n: Tree) : Tree ;
                    of the current function.
 *)
 
-PROCEDURE BuiltInAlloca (n: Tree) : Tree ;
+PROCEDURE BuiltInAlloca (location: location_t; n: Tree) : Tree ;
 
 
 END m2builtins.

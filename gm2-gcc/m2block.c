@@ -770,7 +770,7 @@ m2block_finishFunctionDecl (tree fndecl)
   else
     {
       BIND_EXPR_VARS (bind_expr) = chainon (BIND_EXPR_VARS (bind_expr),
-					   current_binding_level->names);
+					    current_binding_level->names);
       for (i = tsi_start (current_binding_level->names); !tsi_end_p (i); tsi_next (&i))
 	append_to_statement_list_force (*tsi_stmt_ptr (i), &BIND_EXPR_BODY (bind_expr));
     }
@@ -831,6 +831,10 @@ m2block_finishFunctionCode (tree fndecl)
     }
 
   BLOCK_VARS (block) = BIND_EXPR_VARS (bind_expr);
+
+  if (current_binding_level->decl != NULL_TREE)
+    for (i = tsi_start (current_binding_level->decl); !tsi_end_p (i); tsi_next (&i))
+      append_to_statement_list_force (*tsi_stmt_ptr (i), &BIND_EXPR_BODY (bind_expr));
 
   for (i = tsi_start (statements); !tsi_end_p (i); tsi_next (&i))
     append_to_statement_list_force (*tsi_stmt_ptr (i), &BIND_EXPR_BODY (bind_expr));

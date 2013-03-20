@@ -118,6 +118,8 @@ EXTERN void m2expr_BuildBinarySetDo (location_t location, tree settype, tree op1
 EXTERN tree m2expr_GetSizeOf (location_t location, tree type);
 EXTERN tree m2expr_GetSizeOfInBits (tree type);
 
+EXTERN tree m2expr_GetCardinalZero (void);
+EXTERN tree m2expr_GetCardinalOne (void);
 EXTERN tree m2expr_GetIntegerZero (void);
 EXTERN tree m2expr_GetIntegerOne (void);
 EXTERN tree m2expr_GetWordZero (void);

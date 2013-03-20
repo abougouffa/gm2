@@ -61,6 +61,10 @@ flibs=
 Modula-2 Joined
 specify the library order, currently legal entries include: logitech, min, pim-coroutine, ulm, iso
 
+flocation=
+Modula-2 Joined
+set all location values to a specific value (internal)
+
 fbounds
 Modula-2
 turns on runtime subrange, array index and indirection via NIL pointer checking
@@ -264,5 +268,9 @@ passed to the preprocessor if -fcpp is used
 D
 Modula-2
 define preprocessor symbol
+
+x
+Modula-2 Joined
+specify the language from the compiler driver
 
 ; This comment is to ensure we retain the blank line above.

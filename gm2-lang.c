@@ -40,6 +40,7 @@ Boston, MA 02110-1301, USA.  */
 #include "target.h"
 #include "common/common-target.h"
 #include "opts.h"
+#include "cgraph.h"
 
 #include <mpfr.h>
 
@@ -297,6 +298,21 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
   case OPT_quiet:
     M2Options_SetQuiet(value);
     return 1;
+  case OPT_flocation_:
+    if (strcmp (arg, "builtins") == 0) {
+      M2Options_SetForcedLocation (BUILTINS_LOCATION);
+      return 1;
+    }
+    else if (strcmp (arg, "unknown") == 0) {
+      M2Options_SetForcedLocation (UNKNOWN_LOCATION);
+      return 1;
+    }
+    else if ((arg != NULL) && (ISDIGIT (arg[0]))) {
+      M2Options_SetForcedLocation(atoi (arg));
+      return 1;
+    }
+    else
+      return 0;
   default:
     return 0;
   }
@@ -635,9 +651,11 @@ gm2_langhook_getdecls (void)
 static void
 gm2_langhook_write_globals (void)
 {
-#if 0
-  gm2_write_globals ();
-#endif
+  /* in the future it is likely that GCC will call this automatically.
+     Until then we must do this.
+  */
+  /* We're done parsing; proceed to optimize and emit assembly. */
+  cgraph_finalize_compilation_unit ();
 }
 
 /* Go specific gimplification.  We need to gimplify
@@ -654,23 +672,31 @@ gm2_langhook_gimplify_expr (tree *expr_p, gimple_seq *pre_p, gimple_seq *post_p)
   return GS_UNHANDLED;
 }
 
+/* FIXME: This is a hack to preserve trees that we create from the
+   garbage collector.  */
+
+static GTY(()) tree gm2_gc_root;
+static tree personality_decl = NULL_TREE;
+
+
+static void
+gm2_preserve_from_gc (tree t)
+{
+  gm2_gc_root = tree_cons (NULL_TREE, t, gm2_gc_root);
+}
+
 /* Return a decl for the exception personality function.  The function
    itself is implemented in libgo/runtime/go-unwind.c.  */
 
 static tree
 gm2_langhook_eh_personality (void)
 {
-#if 0
-  static tree personality_decl;
   if (personality_decl == NULL_TREE)
     {
       personality_decl = build_personality_function ("gccgm2");
       gm2_preserve_from_gc (personality_decl);
     }
   return personality_decl;
-#else
-  return NULL_TREE;
-#endif
 }
 
 /* Functions called directly by the generic backend.  */
@@ -702,6 +728,8 @@ convert (tree type, tree expr)
       return fold (convert_to_real (type, expr));
     case COMPLEX_TYPE:
       return fold (convert_to_complex (type, expr));
+    case ENUMERAL_TYPE:
+      return fold (convert_to_integer (type, expr));
     default:
       break;
     }

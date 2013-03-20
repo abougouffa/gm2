@@ -246,6 +246,7 @@ m2type_GetArrayNoOfElements (location_t location, tree arraytype)
   tree min = TYPE_MIN_VALUE (index_type);
   tree max = TYPE_MAX_VALUE (index_type);
 
+  m2assert_AssertLocation (location);
   return m2expr_BuildSub (location, max, min, FALSE);
 }
 
@@ -266,6 +267,7 @@ gm2_finish_build_array_type (tree arrayType, tree elt_type, tree index_type, int
 {
   tree old = arrayType;
 
+  elt_type = m2tree_skip_type_decl (elt_type);
   ASSERT_CONDITION (index_type != NULL_TREE);
   if (TREE_CODE (elt_type) == FUNCTION_TYPE)
     {
@@ -1181,6 +1183,7 @@ static
 tree
 build_bitset_type (location_t location)
 {
+  m2assert_AssertLocation (location);
   bitnum_type_node = build_range_type (m2tree_skip_type_decl (m2type_GetCardinalType()),
                                        m2decl_BuildIntegerConstant (0),
                                        m2decl_BuildIntegerConstant (m2decl_GetBitsPerBitset()-1));
@@ -1208,6 +1211,7 @@ m2type_BuildSetTypeFromSubrange (location_t location,
 				 char *name, tree subrangeType,
                                  tree lowval, tree highval)
 {
+  m2assert_AssertLocation (location);
   lowval = m2expr_FoldAndStrip (lowval);
   highval = m2expr_FoldAndStrip (highval);
 
@@ -1262,6 +1266,7 @@ build_m2_size_set_type (location_t location, int precision)
                                             m2decl_BuildIntegerConstant (0),
                                             m2decl_BuildIntegerConstant (precision-1));
   layout_type (bitnum_type_node);
+  m2assert_AssertLocation (location);
 
   if (broken_set_debugging_info)
     return unsigned_type_node;
@@ -1289,6 +1294,7 @@ build_m2_specific_size_type (location_t location, enum tree_code base, int preci
 {
   tree c;
 
+  m2assert_AssertLocation (location);
   c = make_node (base);
   TYPE_PRECISION (c) = precision;
 
@@ -1323,6 +1329,7 @@ m2type_BuildSmallestTypeRange (location_t location, tree low, tree high)
 {
   tree bits;
 
+  m2assert_AssertLocation (location);
   low = fold (low);
   high = fold (high);
   bits = fold (noBitsRequired (m2expr_BuildAdd (location,
@@ -1404,6 +1411,7 @@ m2type_BuildStartFunctionType (location_t location ATTRIBUTE_UNUSED, char *name 
 {
   tree n = make_node (POINTER_TYPE);
 
+  m2assert_AssertLocation (location);
   return n;
 }
 
@@ -1434,6 +1442,7 @@ gm2_finish_decl (location_t location, tree decl)
   tree type = TREE_TYPE (decl);
   int was_incomplete = (DECL_SIZE (decl) == 0);
 
+  m2assert_AssertLocation (location);
   if (TREE_CODE (decl) == VAR_DECL)
     {
       if (DECL_SIZE (decl) == 0 && TREE_TYPE (decl) != error_mark_node
@@ -1499,7 +1508,7 @@ gm2_finish_decl (location_t location, tree decl)
     {
       if (!DECL_FILE_SCOPE_P (decl)
           && variably_modified_type_p (TREE_TYPE (decl), NULL_TREE))
-        add_stmt (build_stmt (location, DECL_EXPR, decl));
+        m2block_pushDecl (build_stmt (location, DECL_EXPR, decl));
 
       rest_of_decl_compilation (decl, DECL_FILE_SCOPE_P (decl), 0);
     }
@@ -1522,6 +1531,7 @@ m2type_BuildVariableArrayAndDeclare (location_t location,
   tree id        = get_identifier (name);
   tree decl;
 
+  m2assert_AssertLocation (location);
   C_TYPE_VARIABLE_SIZE (arraytype) = TRUE;
   decl = build_decl (location, VAR_DECL, id, arraytype);
 
@@ -1548,6 +1558,7 @@ build_m2_iso_word_node (location_t location, int loc)
 {
   tree c;
 
+  m2assert_AssertLocation (location);
   /*
    * Define `WORD' as specified in ISO m2
    *
@@ -1598,6 +1609,8 @@ build_m2_iso_byte_node (int loc)
 void
 m2type_InitSystemTypes (location_t location, int loc)
 {
+  m2assert_AssertLocation (location);
+
   m2_iso_word_type_node = build_m2_iso_word_node (location, loc);
   m2_iso_byte_type_node = build_m2_iso_byte_node (loc);
 
@@ -1656,6 +1669,7 @@ build_m2_char_node (void)
   /* Define `CHAR', to be an unsigned char. */
 
   c = make_unsigned_type (CHAR_TYPE_SIZE);
+  layout_type (c);
   return c;
 }
 
@@ -1783,6 +1797,7 @@ static
 tree
 build_m2_integer8_type_node (location_t location)
 {
+  m2assert_AssertLocation (location);
   return build_m2_specific_size_type (location, INTEGER_TYPE, 8, TRUE);
 }
 
@@ -1790,6 +1805,7 @@ static
 tree
 build_m2_integer16_type_node (location_t location)
 {
+  m2assert_AssertLocation (location);
   return build_m2_specific_size_type (location, INTEGER_TYPE, 16, TRUE);
 }
 
@@ -1797,6 +1813,7 @@ static
 tree
 build_m2_integer32_type_node (location_t location)
 {
+  m2assert_AssertLocation (location);
   return build_m2_specific_size_type (location, INTEGER_TYPE, 32, TRUE);
 }
 
@@ -1804,6 +1821,7 @@ static
 tree
 build_m2_integer64_type_node (location_t location)
 {
+  m2assert_AssertLocation (location);
   return build_m2_specific_size_type (location, INTEGER_TYPE, 64, TRUE);
 }
 
@@ -1811,6 +1829,7 @@ static
 tree
 build_m2_cardinal8_type_node (location_t location)
 {
+  m2assert_AssertLocation (location);
   return build_m2_specific_size_type (location, INTEGER_TYPE, 8, FALSE);
 }
 
@@ -1818,6 +1837,7 @@ static
 tree
 build_m2_cardinal16_type_node (location_t location)
 {
+  m2assert_AssertLocation (location);
   return build_m2_specific_size_type (location, INTEGER_TYPE, 16, FALSE);
 }
 
@@ -1825,6 +1845,7 @@ static
 tree
 build_m2_cardinal32_type_node (location_t location)
 {
+  m2assert_AssertLocation (location);
   return build_m2_specific_size_type (location, INTEGER_TYPE, 32, FALSE);
 }
 
@@ -1832,6 +1853,7 @@ static
 tree
 build_m2_cardinal64_type_node (location_t location)
 {
+  m2assert_AssertLocation (location);
   return build_m2_specific_size_type (location, INTEGER_TYPE, 64, FALSE);
 }
 
@@ -1840,6 +1862,7 @@ static
 tree
 build_m2_bitset8_type_node (location_t location)
 {
+  m2assert_AssertLocation (location);
   if (broken_set_debugging_info)
     return build_m2_specific_size_type (location, INTEGER_TYPE, 8, FALSE);
   else
@@ -1850,6 +1873,7 @@ static
 tree
 build_m2_bitset16_type_node (location_t location)
 {
+  m2assert_AssertLocation (location);
   if (broken_set_debugging_info)
     return build_m2_specific_size_type (location, INTEGER_TYPE, 16, FALSE);
   else
@@ -1860,6 +1884,7 @@ static
 tree
 build_m2_bitset32_type_node (location_t location)
 {
+  m2assert_AssertLocation (location);
   if (broken_set_debugging_info)
     return build_m2_specific_size_type (location, INTEGER_TYPE, 32, FALSE);
   else
@@ -1870,6 +1895,7 @@ static
 tree
 build_m2_real32_type_node (location_t location)
 {
+  m2assert_AssertLocation (location);
   return build_m2_specific_size_type (location, REAL_TYPE, 32, TRUE);
 }
 
@@ -1877,6 +1903,7 @@ static
 tree
 build_m2_real64_type_node (location_t location)
 {
+  m2assert_AssertLocation (location);
   return build_m2_specific_size_type (location, REAL_TYPE, 64, TRUE);
 }
 
@@ -1884,6 +1911,7 @@ static
 tree
 build_m2_real96_type_node (location_t location)
 {
+  m2assert_AssertLocation (location);
   return build_m2_specific_size_type (location, REAL_TYPE, 96, TRUE);
 }
 
@@ -1891,6 +1919,7 @@ static
 tree
 build_m2_real128_type_node (location_t location)
 {
+  m2assert_AssertLocation (location);
   return build_m2_specific_size_type (location, REAL_TYPE, 128, TRUE);
 }
 
@@ -1970,6 +1999,7 @@ build_m2_complex128_type_node (void)
 void
 m2type_InitBaseTypes (location_t location)
 {
+  m2assert_AssertLocation (location);
   m2block_init ();
 
   ptr_type_node
@@ -2037,6 +2067,7 @@ m2type_BuildStartType (location_t location, char *name, tree type)
   tree id = get_identifier (name);
   tree decl, tem;
 
+  m2assert_AssertLocation (location);
   ASSERT(m2tree_is_type(type), type);
   type = m2tree_skip_type_decl (type);
   decl = build_decl (location, TYPE_DECL, id, type);
@@ -2056,6 +2087,7 @@ m2type_BuildStartType (location_t location, char *name, tree type)
 tree
 m2type_BuildEndType (location_t location, tree type)
 {
+  m2assert_AssertLocation (location);
   layout_type (TREE_TYPE (type));
   gm2_finish_decl (location, type);
   return type;
@@ -2071,6 +2103,7 @@ m2type_BuildEndType (location_t location, tree type)
 tree
 m2type_DeclareKnownType (location_t location, char *name, tree type)
 {
+  m2assert_AssertLocation (location);
   return m2type_BuildEndType (location, m2type_BuildStartType (location, name, type));
 }
 
@@ -2093,6 +2126,7 @@ m2type_GetDefaultType (location_t location, char *name, tree type)
 {
   tree id = maybe_get_identifier (name);
 
+  m2assert_AssertLocation (location);
   if (id == NULL) {
     tree prev = type;
     tree t;
@@ -2118,6 +2152,8 @@ m2type_GetDefaultType (location_t location, char *name, tree type)
 tree
 m2type_GetMinFrom (location_t location, tree type)
 {
+  m2assert_AssertLocation (location);
+
   if (type == m2_real_type_node || type == m2type_GetRealType())
     return fold (m2expr_BuildNegate (location, fold (m2builtins_BuiltInHugeVal (location)),
                                      FALSE));
@@ -2142,6 +2178,8 @@ m2type_GetMinFrom (location_t location, tree type)
 tree
 m2type_GetMaxFrom (location_t location, tree type)
 {
+  m2assert_AssertLocation (location);
+
   if (type == m2_real_type_node || type == m2type_GetRealType ())
     return fold (m2builtins_BuiltInHugeVal (location));
   if (type == m2_long_real_type_node || type == m2type_GetLongRealType())
@@ -2167,14 +2205,19 @@ m2type_BuildTypeDeclaration (location_t location, tree type)
 {
   enum tree_code code = TREE_CODE (type);
 
+  m2assert_AssertLocation (location);
   if (code == TYPE_DECL || code == RECORD_TYPE || code == POINTER_TYPE) {
-    // debug_tree(type);
-    add_stmt (build_stmt (location, DECL_EXPR, build_decl (location, TYPE_DECL, NULL, type)));
+    m2block_pushDecl (build_decl (location, TYPE_DECL, NULL, type));
   }
   else if (code == VAR_DECL) {
     m2type_BuildTypeDeclaration (location, TREE_TYPE (type));
-    add_stmt (build_stmt (location, DECL_EXPR, type));
+    m2block_pushDecl (build_stmt (location, DECL_EXPR, type));   /* is this safe?  --fixme-- gaius got here*/
   }
+
+#if 0
+    add_stmt (build_stmt (location, DECL_EXPR, type));
+    add_stmt (build_stmt (location, DECL_EXPR, build_decl (location, TYPE_DECL, NULL, type)));
+#endif
 }
 
 
@@ -2190,7 +2233,7 @@ gm2_start_enum (location_t location, tree name, int ispacked)
 {
   tree enumtype = make_node (ENUMERAL_TYPE);
   
-  
+  m2assert_AssertLocation (location);  
   if (TYPE_VALUES (enumtype) != 0)
     {
       /* This enum is a named one that has been declared already.  */
@@ -2203,6 +2246,20 @@ gm2_start_enum (location_t location, tree name, int ispacked)
 
   TYPE_PACKED (enumtype) = ispacked;
   TREE_TYPE (enumtype) = m2type_GetIntegerType ();
+
+  /* This is required as rest_of_type_compilation will use this
+     field when called from gm2_finish_enum.
+
+     Create a fake NULL-named TYPE_DECL node whose TREE_TYPE will be the
+     tagged type we just added to the current scope.  This fake
+     NULL-named TYPE_DECL node helps dwarfout.c to know when it needs
+     to output a representation of a tagged type, and it also gives
+     us a convenient place to record the "scope start" address for the
+     tagged type.  */
+
+  TYPE_STUB_DECL (enumtype) = m2block_pushDecl (build_decl (location,
+							    TYPE_DECL, NULL_TREE, enumtype));
+
 
   return enumtype;
 }
@@ -2336,6 +2393,7 @@ m2type_BuildStartEnumeration (location_t location, char *name, int ispacked)
 {
   tree id;
 
+  m2assert_AssertLocation (location);
   if ((name == NULL) || (strcmp(name, "") == 0))
     id = NULL_TREE;
   else
@@ -2369,6 +2427,7 @@ gm2_build_enumerator (location_t location, tree name, tree value)
 {
   tree decl, type;
 
+  m2assert_AssertLocation (location);
   /* Remove no-op casts from the value.  */
   if (value)
     STRIP_TYPE_NOPS (value);
@@ -2397,6 +2456,7 @@ m2type_BuildEnumerator (location_t location, char *name, tree value, tree *enumv
   tree copy_of_value = copy_node (value);
   tree gccenum = gm2_build_enumerator (location, id, copy_of_value);
 
+  m2assert_AssertLocation (location);
   /* choose copy_of_value for enum value */
   *enumvalues = chainon (gccenum, *enumvalues);
   return copy_of_value;
@@ -2438,6 +2498,7 @@ m2type_BuildSetType (location_t location, char *name, tree type, tree lowval, tr
                                  m2expr_FoldAndStrip (lowval),
                                  m2expr_FoldAndStrip (highval));
 
+  m2assert_AssertLocation (location);
   return m2type_BuildSetTypeFromSubrange (location, name, range,
                                           m2expr_FoldAndStrip (lowval),
                                           m2expr_FoldAndStrip (highval));
@@ -2686,6 +2747,7 @@ m2type_BuildArrayStringConstructor (location_t location, tree arrayType, tree st
   tree type = m2tree_skip_type_decl (TREE_TYPE (arrayType));
   struct struct_constructor *c = (struct struct_constructor *) m2type_BuildStartArrayConstructor (arrayType);
 
+  m2assert_AssertLocation (location);
   n = m2expr_GetIntegerZero ();
   while (m2expr_CompareTrees (n, length) < 0) {
     val = m2convert_BuildConvert (type, m2type_BuildCharConstant (&p[i]), FALSE);
@@ -2709,6 +2771,7 @@ m2type_BuildSubrangeType (location_t location, char *name, tree type, tree lowva
   tree hi = copy_node (m2convert_BuildConvert (btype, m2expr_FoldAndStrip (highval), FALSE));
   tree id = build_range_type (btype, lo, hi);
 
+  m2assert_AssertLocation (location);
   if (tree_int_cst_sgn (lo) < 0)
     TYPE_UNSIGNED (id) = FALSE;
   else
@@ -2751,6 +2814,7 @@ m2type_BuildCharConstant (const char *string)
                                    >> (HOST_BITS_PER_WIDE_INT - num_bits)));
 #endif
   id = build_int_cst (char_type_node, result);
+  id = m2convert_BuildConvert (m2type_GetM2CharType (), id, FALSE);
   return m2block_RememberConstant (id);
 }
 
@@ -2776,9 +2840,9 @@ tree
 gm2_start_struct (location_t location, enum tree_code code, char *name)
 {
   tree s = make_node (code);
-
   tree id;
 
+  m2assert_AssertLocation (location);
   if ((name == NULL) || (strcmp (name, "") == 0))
     id = NULL_TREE;
   else
@@ -2798,6 +2862,7 @@ gm2_start_struct (location_t location, enum tree_code code, char *name)
 tree
 m2type_BuildStartRecord (location_t location, char *name)
 {
+  m2assert_AssertLocation (location);
   return gm2_start_struct (location, RECORD_TYPE, name);
 }
 
@@ -2809,6 +2874,7 @@ m2type_BuildStartRecord (location_t location, char *name)
 tree
 m2type_BuildStartUnion (location_t location, char *name)
 {
+  m2assert_AssertLocation (location);
   return gm2_start_struct (location, UNION_TYPE, name);
 }
 
@@ -2825,6 +2891,7 @@ m2type_BuildStartVarient (location_t location, char *name)
 {
   tree varient = m2type_BuildStartUnion (location, name);
   tree field = m2type_BuildStartFieldRecord (location, name, varient);
+  m2assert_AssertLocation (location);
   return field;
 }
 
@@ -2839,6 +2906,7 @@ tree
 m2type_BuildEndVarient (location_t location, tree varientField, tree varientList, int isPacked)
 {
   tree varient = TREE_TYPE (varientField);
+  m2assert_AssertLocation (location);
   varient = m2type_BuildEndRecord (location, varient, varientList, isPacked);
   gm2_finish_decl (location, varientField);
   return varientField;
@@ -2857,6 +2925,7 @@ m2type_BuildStartFieldVarient (location_t location, char *name)
 {
   tree record = m2type_BuildStartRecord (location, name);
   tree field = m2type_BuildStartFieldRecord (location, name, record);
+  m2assert_AssertLocation (location);
   return field;
 }
 
@@ -2871,8 +2940,9 @@ m2type_BuildStartFieldVarient (location_t location, char *name)
 tree
 m2type_BuildEndRecord (location_t location, tree record, tree fieldlist, int isPacked)
 {
-  tree x, d;
+  tree x, d, s;
 
+  m2assert_AssertLocation (location);
   /* If this type was previously laid out as a forward reference,
      make sure we lay it out again.  */
 
@@ -2928,9 +2998,11 @@ m2type_BuildEndRecord (location_t location, tree record, tree fieldlist, int isP
      to be bound now.  */
   if (cur_stmt_list && variably_modified_type_p (record, NULL))
 #endif
+    // --fixme-- this is the problem area I think ... check this later!
   d = build_decl (location, TYPE_DECL, NULL, record);
   TYPE_STUB_DECL (record) = d;
-  add_stmt (build_stmt (location, DECL_EXPR, d));
+  s = build_stmt (location, DECL_EXPR, d);
+  m2block_pushDecl (s);
 
   /* Finish debugging output for this type.  This must be done after we have called build_decl */
   rest_of_type_compilation (record, m2block_toplevel ());
@@ -2949,6 +3021,8 @@ tree
 m2type_BuildEndFieldVarient (location_t location, tree varientField, tree varientList, int isPacked)
 {
   tree record = TREE_TYPE (varientField);
+
+  m2assert_AssertLocation (location);
   record = m2type_BuildEndRecord (location, record, varientList, isPacked);
   gm2_finish_decl (location, varientField);
   return varientField;
@@ -2965,7 +3039,8 @@ tree
 m2type_BuildStartFieldRecord (location_t location, char *name, tree type)
 {
   tree field, declarator;
-  
+
+  m2assert_AssertLocation (location);  
   if ((name == NULL) || (strcmp(name, "") == 0))
     declarator = NULL_TREE;
   else
@@ -2987,6 +3062,8 @@ tree
 m2type_BuildFieldRecord (location_t location, char *name, tree type)
 {
   tree field = m2type_BuildStartFieldRecord (location, name, type);
+
+  m2assert_AssertLocation (location);
   gm2_finish_decl (location, field);
   return field;
 }
@@ -3147,6 +3224,7 @@ m2type_SetRecordFieldOffset (tree field, tree byteOffset, tree bitOffset, tree f
 tree
 m2type_BuildPackedFieldRecord (location_t location, char *name, tree fieldtype)
 {
+  m2assert_AssertLocation (location);
   return m2type_BuildFieldRecord (location, name, fieldtype);
 }
 
@@ -3165,6 +3243,7 @@ m2type_BuildNumberOfArrayElements (location_t location, tree arrayType)
   tree elements = m2expr_BuildAdd (location,
 				   m2expr_BuildSub (location, high, low, FALSE),
 				   m2expr_GetIntegerOne (), FALSE);
+  m2assert_AssertLocation (location);
   return elements;
 }
 

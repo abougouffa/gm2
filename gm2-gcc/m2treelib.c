@@ -265,7 +265,7 @@ tree m2treelib_DoCall (location_t location, tree rettype, tree funcptr, tree par
   int i;
 
   for (i = 0; i < n; i++) {
-    argarray[i] = l;
+    argarray[i] = TREE_VALUE (l);
     l = TREE_CHAIN (l);
   }
   return build_call_array_loc (location, rettype, funcptr, n, argarray);

@@ -1,3 +1,46 @@
+2013-03-20      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added gm2/gm2-gcc/m2assert.o to list
+	  of objects.
+	* gm2/TODO:  added new future change request.
+	* gm2/gm2-lang.c:  added -flocation= flag for internal debugging.
+	  Tidied up file by removing some of the #if 0 code.
+	* gm2/gm2spec.c:  re-written comment for clarity.
+	* gm2/lang-options.h:  added -x and -flocation= options.
+	* gm2/lang.opt:  added -flocation= and -x specifications.
+	* gm2/m2.flex:  override the current location if -flocation is set.
+	* gm2/m2pp.c:  add debugging code and also handle the expression node
+	  POINTER_PLUS_EXPR.
+	* gm2/gm2-compiler/M2GenGCC.mod:  added location to many of the build tree functions.
+	  Also convert operands correctly in FoldBecomes.  Added type checking in binary
+	  operators.
+	* gm2/gm2-compiler/M2Options.def:  (OverrideLocation, SetForcedLocation) New Procedures.
+	* gm2/gm2-compiler/M2Options.mod:  (OverrideLocation, SetForcedLocation) Implemented.
+	* gm2/gm2-compiler/M2Quads.mod:  Set types for intemediate constants when calculating
+	  unbounded array indices.
+	* gm2/gm2-compiler/M2Range.mod:  ensure that max min values are checked against the
+	  same typed variable.
+	* gm2/gm2-compiler/M2System.def:  add location to InitSystem.
+	* gm2/gm2-compiler/M2System.mod:  add location to InitSystem.
+	* gm2/gm2-gcc/m2assert.h:  added m2assert_AssertLocation prototype.  Convert m2assert.h
+	  to general modular style header file.
+	* gm2/gm2-gcc/m2block.c:  ensure that all declarations are added to the BIND_EXPR_BODY.
+	* gm2/gm2-gcc/m2builtins.def:  add location_t to many of the build tree procedure functions.
+	* gm2/gm2-gcc/m2convert.c:  use m2assert_AssertLocation.
+	* gm2/gm2-gcc/m2decl.c:  use m2assert_AssertLocation.
+	* gm2/gm2-gcc/m2except.c:  use m2assert_AssertLocation.
+	* gm2/gm2-gcc/m2expr.c:  use m2assert_AssertLocation.  Fixed bugs in type conversion.
+	* gm2/gm2-gcc/m2expr.h:  added m2expr_GetCardinalZero and m2expr_GetCardinalOne.
+	* gm2/gm2-gcc/m2options.h:  M2Options_SetForcedLocation, M2Options_OverrideLocation (New
+	  procedure functions).
+	* gm2/gm2-gcc/m2statement.c:  use m2assert_AssertLocation.
+	* gm2/gm2-gcc/m2top.c:  remove call to cgraph_finalize_compilation_unit.
+	* gm2/gm2-gcc/m2treelib.c:  fix DoCall by using TREE_VALUE (l) rather than, l.
+	* gm2/gm2-gcc/m2type.c:  use m2assert_AssertLocation.
+	* gm2/gm2-libs/FIO.mod:  cast position to INTEGER before comparing it to the return
+	  value for write.
+	* gm2/gm2-gcc/m2assert.c:  (New file).
+
 2013-02-21      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/patches/gcc/4.7.1/01-patches:  (New file).

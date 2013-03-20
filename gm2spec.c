@@ -823,8 +823,8 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   unsigned int i;
 
   /* Nonzero if we saw a `-xfoo' language specification on the
-     command line.  Used to avoid adding our own -xgm2 if the user
-     already gave a language for the file.  */
+     command line.  This function will add a -xmodula-2 if the user
+     has not already placed one onto the command line.  */
   int seen_x_flag = FALSE;
   const char *language = NULL;
 

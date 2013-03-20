@@ -1356,9 +1356,9 @@ BEGIN
    IF DebugBuiltins
    THEN
       func := Mod2Gcc(FromModuleGetSym(MakeKey('alloca_trace'), MakeDefinitionSource(MakeKey('Builtins')))) ;
-      RETURN( BuildCall2(location, func, GetPointerType(), BuiltInAlloca(high), high) )
+      RETURN( BuildCall2(location, func, GetPointerType(), BuiltInAlloca(location, high), high) )
    ELSE
-      RETURN( BuiltInAlloca(high) )
+      RETURN( BuiltInAlloca(location, high) )
    END
 END MaybeDebugBuiltinAlloca ;
 
@@ -1376,7 +1376,7 @@ BEGIN
       func := Mod2Gcc(FromModuleGetSym(MakeKey('memcpy'), MakeDefinitionSource(MakeKey('Builtins')))) ;
       RETURN( BuildCall3(location, func, GetPointerType(), src, dest, nbytes) )
    ELSE
-      RETURN( BuiltInMemCopy(src, dest, nbytes) )
+      RETURN( BuiltInMemCopy(location, src, dest, nbytes) )
    END
 END MaybeDebugBuiltinMemcpy ;
 
@@ -1953,15 +1953,15 @@ PROCEDURE UseBuiltin (Sym: CARDINAL) : Tree ;
 BEGIN
    IF BuiltinExists(KeyToCharStar(GetProcedureBuiltin(Sym)))
    THEN
-      RETURN( BuildBuiltinTree(KeyToCharStar(GetProcedureBuiltin(Sym))) )
+      RETURN( BuildBuiltinTree(TokenToLocation(GetTokenNo()), KeyToCharStar(GetProcedureBuiltin(Sym))) )
    ELSE
-      RETURN( BuildBuiltinTree(KeyToCharStar(GetSymName(Sym))) )
+      RETURN( BuildBuiltinTree(TokenToLocation(GetTokenNo()), KeyToCharStar(GetSymName(Sym))) )
    END
 END UseBuiltin ;
 
 
 (*
-   CodeDirectCall - saves all volitiles and jumps to a subroutine.
+   CodeDirectCall - calls a function/procedure.
 *)
 
 PROCEDURE CodeDirectCall (tokenno: CARDINAL; procedure: CARDINAL) ;
@@ -1991,7 +1991,7 @@ END CodeDirectCall ;
 
 
 (*
-   CodeIndirectCall - saves all volitiles and jumps to a subroutine.
+   CodeIndirectCall - calls a function/procedure indirectly.
 *)
 
 PROCEDURE CodeIndirectCall (tokenno: CARDINAL; ProcVar: CARDINAL) ;
@@ -2628,8 +2628,14 @@ BEGIN
                      PopValue(op1)
                   ELSE
                      CheckOrResetOverflow(tokenno, PopIntegerTree(), MustCheckOverflow(quad)) ;
-                     PushValue(op3) ;
-                     AddModGcc(op1, PopIntegerTree())
+                     IF GetType(op1)=NulSym
+                     THEN
+                        PushValue(op3) ;
+                        AddModGcc(op1, PopIntegerTree())
+                     ELSE
+                        PushValue(op3) ;
+                        AddModGcc(op1, BuildConvert(Mod2Gcc(GetType(op1)), PopIntegerTree(), FALSE))
+                     END
                   END
                ELSE
                   CheckOrResetOverflow(tokenno, Mod2Gcc(op3), MustCheckOverflow(quad)) ;
@@ -3075,8 +3081,8 @@ END ZConstToTypedConst ;
 PROCEDURE FoldBinary (tokenno: CARDINAL; p: WalkAction; binop: BuildBinProcedure;
                       quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   tl, tr, tv: Tree ;
-   location  : location_t ;
+   tl, tr, tv, resType: Tree ;
+   location           : location_t ;
 BEGIN
    (* firstly ensure that constant literals are declared *)
    TryDeclareConstant(tokenno, op3) ;
@@ -3091,17 +3097,25 @@ BEGIN
          THEN
             Assert(MixTypes(FindType(op3), FindType(op2), tokenno)#NulSym) ;
             PutConst(op1, MixTypes(FindType(op3), FindType(op2), tokenno)) ;
+
             tl := LValueToGenericPtr(op2) ;
             tr := LValueToGenericPtr(op3) ;
+            
+            IF (GetType(op1)=NulSym) OR IsOrdinalType(GetType(op1))
+            THEN
+               resType := GetM2ZType()
+            ELSE
+               resType := Mod2Gcc(GetType(op1))
+            END ;
+
+            tl := BuildConvert(resType, tl, FALSE) ;
+            tr := BuildConvert(resType, tr, FALSE) ;
+
             tv := binop(location, tl, tr, TRUE) ;
             CheckOrResetOverflow(tokenno, tv, MustCheckOverflow(quad)) ;
 
-            IF (GetType(op1)=NulSym) OR IsOrdinalType(GetType(op1))
-            THEN
-               AddModGcc(op1, DeclareKnownConstant(location, GetM2ZType(), tv))
-            ELSE
-               AddModGcc(op1, DeclareKnownConstant(location, Mod2Gcc(GetType(op1)), tv))
-            END ;
+            AddModGcc(op1, DeclareKnownConstant(location, resType, tv)) ;
+
             p(op1) ;
             NoChange := FALSE ;
             SubQuad(quad)
@@ -3465,12 +3479,14 @@ END FoldBuiltinConst ;
 PROCEDURE FoldBuiltinTypeInfo (tokenno: CARDINAL; p: WalkAction;
                                quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t: Tree ;
-   s: String ;
+   t       : Tree ;
+   s       : String ;
+   location: location_t ;
 BEGIN
    IF GccKnowsAbout(op2) AND CompletelyResolved(op2)
    THEN
-      t := GetBuiltinTypeInfo(Mod2Gcc(op2), KeyToCharStar(Name(op3))) ;
+      location := TokenToLocation(tokenno) ;
+      t := GetBuiltinTypeInfo(location, Mod2Gcc(op2), KeyToCharStar(Name(op3))) ;
       IF t=NIL
       THEN
          MetaErrorT2(tokenno, 'unknown built in constant {%1ad} attribute for type {%2ad}', op3, op2)
@@ -5171,7 +5187,7 @@ BEGIN
       resType := GetVarBackEndType(res) ;
       IF resType=NulSym
       THEN
-         resType := GetType(res)
+         resType := SkipType(GetType(res))
       END ;
       elementSize := BuildSize(location, Mod2Gcc(GetType(arrayDecl)), FALSE) ;
       ta := Mod2Gcc(SkipType(GetType(arrayDecl))) ;
@@ -5189,8 +5205,7 @@ BEGIN
                                                                            Mod2Gcc(low),
                                                                            elementSize),
                                                       FALSE),
-                                            FALSE)) ;
-      AddStatement(t)
+                                            FALSE))
    ELSE
       InternalError('subranges not yet resolved', __FILE__, __LINE__)
    END
@@ -5220,8 +5235,10 @@ BEGIN
          PushSize(Subscript) ;
          AddModGcc(op1,
                    DeclareKnownConstant(location,
-                                        GetIntegerType(),
-                                        PopIntegerTree())) ;
+                                        GetCardinalType(),
+                                        BuildConvert(GetCardinalType(),
+                                                     PopIntegerTree(),
+                                                     TRUE))) ;
          p(op1) ;
          NoChange := FALSE ;
          SubQuad(quad)
@@ -5259,8 +5276,10 @@ BEGIN
             PutConst(op1, Cardinal) ;
             AddModGcc(op1,
                       DeclareKnownConstant(location,
-                                           GetIntegerType(),
-                                           FindSize(tokenno, Type))) ;
+                                           GetCardinalType(),
+                                           BuildConvert(GetCardinalType(),
+                                                        FindSize(tokenno, Type),
+                                                        TRUE))) ;
             p(op1) ;
             NoChange := FALSE ;
             SubQuad(quad)

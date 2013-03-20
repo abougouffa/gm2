@@ -125,6 +125,7 @@ m2except_InitExceptions (location_t location)
 {
   tree t;
 
+  m2assert_AssertLocation (location);
   m2block_pushGlobalScope ();
   flag_exceptions = 1;
   init_eh ();
@@ -198,6 +199,7 @@ build_exc_ptr (location_t location)
   tree *argarray = XALLOCAVEC (tree, 1);
   tree exe_ptr = builtin_decl_explicit (BUILT_IN_EH_POINTER);
 
+  m2assert_AssertLocation (location);
   argarray[0] = integer_zero_node;
   return build_call_array_loc (location, TREE_TYPE (exe_ptr), exe_ptr, 1, argarray);
 }
@@ -208,6 +210,8 @@ get_tinfo_decl_m2 (location_t location)
 {
   tree t = build_decl (location, VAR_DECL, get_identifier ("_ZTIi"),
 		       ptr_type_node);
+
+  m2assert_AssertLocation (location);
   TREE_STATIC (t) = 1;
   DECL_EXTERNAL (t) = 1;
   TREE_PUBLIC (t) = 1;
@@ -223,6 +227,7 @@ static
 tree
 eh_type_info (location_t location, tree type)
 {
+  m2assert_AssertLocation (location);
   if (type == NULL_TREE || type == error_mark_node)
     return type;
 
@@ -250,6 +255,7 @@ build_eh_type_type (location_t location, tree type)
 {
   tree exp = eh_type_info (location, type);
 
+  m2assert_AssertLocation (location);
   if (!exp)
     return NULL;
 
@@ -264,6 +270,7 @@ do_allocate_exception (location_t location, tree type)
 {
   tree *argarray = XALLOCAVEC (tree, 1);
 
+  m2assert_AssertLocation (location);
   argarray[0] = size_in_bytes (type);
   return build_call_array_loc (location, TREE_TYPE (fn_allocate_exception_tree),
 			       fn_allocate_exception_tree, 1, argarray);
@@ -292,6 +299,8 @@ static tree
 build_local_temp (location_t location, tree type)
 {
   tree slot = build_decl (location, VAR_DECL, NULL_TREE, type);
+
+  m2assert_AssertLocation (location);
   DECL_ARTIFICIAL (slot) = 1;
   DECL_IGNORED_P (slot) = 1;
   DECL_CONTEXT (slot) = current_function_decl;
@@ -308,6 +317,7 @@ build_target_expr_with_type (location_t location, tree init, tree type)
 {
   tree slot;
 
+  m2assert_AssertLocation (location);
   gcc_assert (!VOID_TYPE_P (type));
 
   if (TREE_CODE (init) == TARGET_EXPR)
@@ -323,6 +333,7 @@ static
 tree
 get_target_expr (location_t location, tree init)
 {
+  m2assert_AssertLocation (location);
   return build_target_expr_with_type (location, init, TREE_TYPE (init));
 }
 
@@ -334,6 +345,7 @@ get_target_expr (location_t location, tree init)
 tree
 m2except_BuildThrow (location_t location, tree exp)
 {
+  m2assert_AssertLocation (location);
   if (exp == NULL_TREE)
     {
       /* rethrow the current exception */
@@ -394,6 +406,7 @@ do_begin_catch (location_t location)
 {
   tree *argarray = XALLOCAVEC (tree, 1);
 
+  m2assert_AssertLocation (location);
   argarray[0] = build_exc_ptr (location);
   return build_call_array_loc (location, TREE_TYPE (fn_begin_catch_tree),
 			       fn_begin_catch_tree, 1, argarray);
@@ -407,6 +420,8 @@ do_end_catch (location_t location)
 {
   tree cleanup = build_call_array_loc (location, TREE_TYPE (fn_end_catch_tree),
 				       fn_end_catch_tree, 0, NULL);
+
+  m2assert_AssertLocation (location);
   TREE_NOTHROW (cleanup) = 1;
   return cleanup;
 }
@@ -418,6 +433,7 @@ do_end_catch (location_t location)
 tree
 m2except_BuildTryBegin (location_t location)
 {
+  m2assert_AssertLocation (location);
   return begin_try_block (location);
 }
 
@@ -448,6 +464,8 @@ tree
 m2except_BuildCatchBegin (location_t location)
 {
   tree handler = begin_handler (location);
+
+  m2assert_AssertLocation (location);
   return finish_handler_parms (location, handler);
 }
 
@@ -462,6 +480,7 @@ m2except_BuildCatchBegin (location_t location)
 tree
 m2except_BuildCatchEnd (location_t location, tree handler, tree try_block)
 {
+  m2assert_AssertLocation (location);
   finish_handler (location, handler);
   finish_handler_sequence (try_block);
   return try_block;
@@ -475,6 +494,7 @@ begin_handler (location_t location)
 {
   tree r;
 
+  m2assert_AssertLocation (location);
   r = build_stmt (location, HANDLER, NULL_TREE, NULL_TREE);
   add_stmt (r);
 
@@ -496,6 +516,7 @@ finish_handler (location_t location, tree handler)
   /* use this code:  finish_expr_stmt (build_throw (NULL_TREE)); */
   tree body = m2block_pop_statement_list ();
 
+  m2assert_AssertLocation (location);
   HANDLER_BODY (handler) = body;
   m2block_end_statement_list (HANDLER_BODY (handler));
   HANDLER_BODY (handler) = build2 (TRY_FINALLY_EXPR, void_type_node, body, do_end_catch (location));
@@ -508,6 +529,7 @@ static
 tree
 finish_handler_parms (location_t location, tree handler)
 {
+  m2assert_AssertLocation (location);
   /* equivalent to C++ catch (...) */
   finish_expr_stmt (location, do_begin_catch (location));
 
@@ -534,6 +556,8 @@ tree
 begin_try_block (location_t location)
 {
   tree r = build_stmt (location, TRY_BLOCK, NULL_TREE, NULL_TREE);
+
+  m2assert_AssertLocation (location);
   TRY_STMTS (r) = m2block_begin_statement_list ();
 
   /* now ensure that all successive add_stmts adds to this statement sequence */
@@ -549,6 +573,7 @@ finish_expr_stmt (location_t location, tree expr)
 {
   tree r = NULL_TREE;
 
+  m2assert_AssertLocation (location);
   if (expr != NULL_TREE)
     {
       expr = build1 (CONVERT_EXPR, void_type_node, expr);

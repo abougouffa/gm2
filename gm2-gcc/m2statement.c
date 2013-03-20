@@ -1,4 +1,4 @@
-/* Copyright (C) 2012.
+/* Copyright (C) 2012, 2013.
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -235,11 +235,12 @@ m2statement_BuildAssignmentTree (location_t location, tree des, tree expr)
 {
   tree result;
 
+  m2assert_AssertLocation (location);
   STRIP_TYPE_NOPS (expr);
 
   if (TREE_CODE (expr) == FUNCTION_DECL)
     result = build2 (MODIFY_EXPR, TREE_TYPE (des), des,
-		     m2expr_build_unary_op (location, ADDR_EXPR, expr, 0));
+		     m2expr_BuildAddr (location, expr, FALSE));
   else
     {
       if (TREE_TYPE (expr) == TREE_TYPE (des))
@@ -268,6 +269,7 @@ m2statement_BuildGoto (location_t location, char *name)
 #endif
   tree label = m2block_getLabel (location, name);
 
+  m2assert_AssertLocation (location);
   TREE_USED (label) = 1;
   add_stmt (build1 (GOTO_EXPR, void_type_node, label));
 }
@@ -291,6 +293,8 @@ void
 m2statement_DeclareLabel (location_t location, char *name)
 {
   tree label = m2block_getLabel (location, name);
+
+  m2assert_AssertLocation (location);
   add_stmt (build1 (LABEL_EXPR, void_type_node, label));
 }
 
@@ -302,13 +306,17 @@ m2statement_DeclareLabel (location_t location, char *name)
 void
 m2statement_BuildParam (location_t location, tree param)
 {
+  m2assert_AssertLocation (location);
 #if 0
   fprintf(stderr, "tree for parameter containing "); fflush(stderr);
   fprintf(stderr, "list of elements\n"); fflush(stderr);
 #endif
 
   if (TREE_CODE(param) == FUNCTION_DECL)
-    param = m2expr_build_unary_op (location, ADDR_EXPR, param, 0);
+#if 0
+    param = build1 (ADDR_EXPR, build_pointer_type (TREE_TYPE (param)), param);
+#endif
+    param = m2expr_BuildAddr (location, param, FALSE);
 
   param_list = chainon (build_tree_list (NULL_TREE, param), param_list);
 #if 0
@@ -350,6 +358,7 @@ m2statement_BuildProcedureCallTree (location_t location, tree procedure, tree re
   tree t = param_list;
   int i;
 
+  m2assert_AssertLocation (location);
   ASSERT_CONDITION (last_function == NULL_TREE);  /* previous function value has not been collected */
   TREE_USED (procedure) = TRUE;
 
@@ -396,6 +405,7 @@ m2statement_BuildIndirectProcedureCallTree (location_t location, tree procedure,
   tree t = param_list;
   int i;
 
+  m2assert_AssertLocation (location);
   TREE_USED (procedure) = TRUE;
   TREE_SIDE_EFFECTS (procedure) = TRUE;
 
@@ -449,6 +459,7 @@ m2statement_BuildFunctValue (location_t location, tree value)
 {
   tree assign = m2treelib_build_modify_expr (location, value, NOP_EXPR, last_function);
 
+  m2assert_AssertLocation (location);
   ASSERT_CONDITION (last_function != NULL_TREE);  /* no value available, possible used before */
   
   TREE_SIDE_EFFECTS (assign) = TRUE;
@@ -465,6 +476,7 @@ m2statement_BuildFunctValue (location_t location, tree value)
 tree
 m2statement_BuildCall2 (location_t location, tree function, tree rettype, tree arg1, tree arg2)
 {
+  m2assert_AssertLocation (location);
   ASSERT_CONDITION (param_list == NULL_TREE);
 
   param_list = chainon (build_tree_list (NULL_TREE, arg2), param_list);
@@ -480,6 +492,7 @@ m2statement_BuildCall2 (location_t location, tree function, tree rettype, tree a
 tree
 m2statement_BuildCall3 (location_t location, tree function, tree rettype, tree arg1, tree arg2, tree arg3)
 {
+  m2assert_AssertLocation (location);
   ASSERT_CONDITION (param_list == NULL_TREE);
 
   param_list = chainon (build_tree_list (NULL_TREE, arg3), param_list);
@@ -559,6 +572,7 @@ build_stmt (location_t loc, enum tree_code code, ...)
   va_list p;
   bool side_effects;
 
+  m2assert_AssertLocation (loc);
   /* This function cannot be used to construct variably-sized nodes.  */
   gcc_assert (TREE_CODE_CLASS (code) != tcc_vl_exp);
 
@@ -602,6 +616,7 @@ m2statement_BuildAsm (location_t location,
   tree string = resolve_asm_operand_names (instr, outputs, inputs, labels);
   tree args = build_stmt (location, ASM_EXPR, string, outputs, inputs, trash, labels);
 
+  m2assert_AssertLocation (location);
   /* asm statements without outputs, including simple ones, are treated
      as volatile.  */
   ASM_INPUT_P (args) = isSimple;
@@ -628,6 +643,7 @@ m2statement_BuildUnaryForeachWordDo (location_t location,
 {
   tree size = m2expr_GetSizeOf (location, type);
 
+  m2assert_AssertLocation (location);
   ASSERT_BOOL (is_op1lvalue);
   ASSERT_BOOL (is_op2lvalue);
   ASSERT_BOOL (is_op1const);
@@ -675,6 +691,7 @@ m2statement_BuildExcludeVarConst (location_t location,
 {
   tree size = m2expr_GetSizeOf (location, type);
 
+  m2assert_AssertLocation (location);
   ASSERT_BOOL (is_lvalue);
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant(SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
@@ -718,6 +735,7 @@ m2statement_BuildExcludeVarVar (location_t location,
 {
   tree size = m2expr_GetSizeOf (location, type);
 
+  m2assert_AssertLocation (location);
   ASSERT_BOOL (is_lvalue);
   /* calculate the index from the first bit, ie bit 0 represents low value */
   tree index = m2expr_BuildSub (location,
@@ -778,6 +796,7 @@ m2statement_BuildIncludeVarConst (location_t location,
 {
   tree size = m2expr_GetSizeOf (location, type);
 
+  m2assert_AssertLocation (location);
   ASSERT_BOOL (is_lvalue);
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant(SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
@@ -817,6 +836,7 @@ m2statement_BuildIncludeVarVar (location_t location,
 {
   tree size = m2expr_GetSizeOf (location, type);
 
+  m2assert_AssertLocation (location);
   ASSERT_BOOL (is_lvalue);
   /* calculate the index from the first bit, ie bit 0 represents low value */
   tree index = m2expr_BuildSub (location,
@@ -875,6 +895,7 @@ m2statement_BuildStart (location_t location, char *name, int inner_module)
   tree fntype;
   tree fndecl;
 
+  m2assert_AssertLocation (location);
   /* The function type depends on the return type and type of args.  */
   fntype = build_function_type (integer_type_node, NULL_TREE);
   fndecl = build_decl (location, FUNCTION_DECL, get_identifier (name), fntype);
@@ -918,6 +939,7 @@ m2statement_BuildEnd (tree fndecl, int nested)
 void
 m2statement_BuildCallInner (location_t location, tree fndecl)
 {
+  m2assert_AssertLocation (location);
   param_list = NULL_TREE;
   add_stmt (m2statement_BuildProcedureCallTree (location, fndecl, NULL_TREE));
 }
@@ -989,6 +1011,7 @@ m2statement_BuildReturnValueCode (location_t location, tree fndecl, tree value)
   tree ret_stmt;
   tree t;
 
+  m2assert_AssertLocation (location);
   if (TREE_CODE (TREE_TYPE (value)) == FUNCTION_TYPE)
     t = build2 (MODIFY_EXPR,
 		TREE_TYPE (DECL_RESULT (fndecl)),
@@ -1015,6 +1038,7 @@ m2statement_DoJump (location_t location, tree exp, char *falselabel, char *truel
 {
   tree c = NULL_TREE;
 
+  m2assert_AssertLocation (location);
   if (TREE_CODE (TREE_TYPE (exp)) != BOOLEAN_TYPE)
     exp = convert (m2type_GetBooleanType (), exp);
 

@@ -718,7 +718,6 @@ static tree donModes (location_t location ATTRIBUTE_UNUSED, tree type ATTRIBUTE_
   return m2decl_BuildIntegerConstant (1);
 }
 
-
 /*
  *  BuiltInMemCopy - copy n bytes of memory efficiently from address
  *                   src to dest.

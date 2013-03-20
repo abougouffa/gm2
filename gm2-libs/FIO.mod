@@ -1250,7 +1250,7 @@ BEGIN
             IF output AND (buffer#NIL)
             THEN
                WITH buffer^ DO
-                  IF (position=0) OR (write(unixfd, address, position)=position)
+                  IF (position=0) OR (write(unixfd, address, position)=VAL(INTEGER, position))
                   THEN
                      INC(abspos, position) ;
                      bufstart := abspos ;

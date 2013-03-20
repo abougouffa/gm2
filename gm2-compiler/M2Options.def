@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
+                 2010, 2011, 2012, 2013
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -22,14 +22,15 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2013/02/11 14:45:13 $]
+   Date       : 27/5/87  [$Date: 2013/03/20 13:10:36 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.29 $
+   Version    : $Revision: 1.30 $
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
 FROM DynamicStrings IMPORT String ;
+FROM m2linemap IMPORT location_t ;
 
 EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions,
 
@@ -56,6 +57,7 @@ EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions,
       	       	 DisplayQuadruples,
                  CompilerDebugging, GenerateDebugging, GenerateLineDebug,
                  DumpSystemExports, GenerateSwig, Exceptions,
+                 OverrideLocation,
                  DebugBuiltins, setdefextension, setmodextension ;
 
 
@@ -111,6 +113,7 @@ VAR
    GenerateSwig,                 (* should we generate a swig interface file?*)
    Exceptions,                   (* should we generate exception code?       *)
    DebugBuiltins,                (* should we always call a real function?   *)
+   ForcedLocation,
    Optimizing,
    Coding,
    Profiling         : BOOLEAN ;
@@ -373,6 +376,22 @@ PROCEDURE SetSwig (value: BOOLEAN) ;
 *)
 
 PROCEDURE SetOptimizing (value: BOOLEAN) ;
+
+
+(*
+   OverrideLocation - possibly override the location value, depending upon
+                      whether the -flocation= option was used.
+*)
+
+PROCEDURE OverrideLocation (location: location_t) : location_t ;
+
+
+(*
+   SetForcedLocation - sets the location for the lifetime of this compile to, location.
+                       This is primarily an internal debugging switch.
+*)
+
+PROCEDURE SetForcedLocation (location: location_t) ;
 
 
 (*

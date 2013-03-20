@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011, 2012
+                 2010, 2011, 2012, 2013
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -487,7 +487,7 @@ BEGIN
       heldbyalignment   :  doExclude(HeldByAlignment, "symbol %d -> HeldByAlignment\n", sym) |
       finishedalignment :  doExclude(FinishedAlignment, "symbol %d -> FinishedAlignment\n", sym) |
       todolist          :  doExclude(ToDoList, "symbol %d off ToDoList\n", sym) ;
-                           IF sym=865
+                           IF sym=1221
                            THEN
                               mystop
                            END |

@@ -24,6 +24,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #include "GM2Reserved.h"
 #include "GM2LexBuf.h"
 #include "input.h"
+#include "m2options.h"
 
 #if defined(GM2USEGGC)
 #  include "ggc.h"
@@ -495,7 +496,7 @@ static void updatepos (void)
   currentLine->toklen  = yyleng;
   if (currentLine->column == 0)
     currentLine->column = currentLine->tokenpos;
-  currentLine->location = GET_LOCATION (currentLine->column);
+  currentLine->location = M2Options_OverrideLocation (GET_LOCATION (currentLine->column));
 }
 
 /*

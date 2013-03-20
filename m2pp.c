@@ -704,7 +704,13 @@ m2pp_var_list (pretty *s, tree t)
 	  killPretty (p);
 	  printf("\n");
 	}
-      else
+      else if (TREE_CODE (t) == TYPE_DECL)
+	m2pp_identifier (s, t);
+      else if (TREE_CODE (t) == DECL_EXPR) {
+	printf("is this node legal here? \n");
+	// is it legal to have a DECL_EXPR here ?
+	m2pp_var_type_decl (s, DECL_EXPR_DECL (t));
+      } else
 	m2pp_var_type_decl (s, t);
     }
 }
@@ -1850,6 +1856,9 @@ m2pp_simple_expression (pretty *s, tree t)
       break;
     case CONST_DECL:
       m2pp_identifier (s, t);
+      break;
+    case POINTER_PLUS_EXPR:
+      m2pp_binary (s, t, "+");
       break;
     default:
       m2pp_unknown (s, __FUNCTION__, tree_code_name[code]);

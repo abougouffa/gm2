@@ -1,4 +1,4 @@
-/* Copyright (C) 2012
+/* Copyright (C) 2012, 2013
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -24,7 +24,13 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 */
 
 #if !defined(m2assert_h)
-#  define m2assert_h
+#   define m2assert_h
+#   if defined(m2assert_c)
+#       define EXTERN 
+#   else
+#       define EXTERN extern
+#   endif
+
 
 #define ASSERT(X,Y)   { if (!(X)) { debug_tree(Y); internal_error("[%s:%d]:condition `%s' failed", \
                                                                    __FILE__, __LINE__, #X); } }
@@ -35,4 +41,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #define ASSERT_CONDITION(X)   { if (!(X)) { internal_error("[%s:%d]:condition `%s' failed", \
                                                                    __FILE__, __LINE__, #X); } }
 
+EXTERN void m2assert_AssertLocation (location_t location);
+
+#undef EXTERN
 #endif

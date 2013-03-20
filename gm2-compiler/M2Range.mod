@@ -2476,7 +2476,8 @@ VAR
    falseStatement,
    trueStatement,
    condition, c,
-   min, max, e   : Tree ;
+   lg, min, max,
+   e             : Tree ;
    location      : location_t ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
@@ -2493,13 +2494,15 @@ BEGIN
             e := BuildConvert(GetIntegerType(), DeReferenceLValue(tokenno, expr), FALSE) ;
             condition := BuildGreaterThan(location, e, GetIntegerZero()) ;
 
+            lg := BuildConvert(Mod2Gcc(desLowestType), DeReferenceLValue(tokenno, expr), FALSE) ;
+
             (* check des has room to add, expr, without overflowing *)
-            c := BuildGreaterThan(location, e, BuildSub(location, max, Mod2Gcc(des), FALSE)) ;
+            c := BuildGreaterThan(location, lg, BuildSub(location, max, Mod2Gcc(des), FALSE)) ;
             trueStatement := BuildIfCallHandler(c, r, scopeDesc, IsTrue(condition)) ;
 
             (* check des has room to subtract, expr, without underflowing *)
             c := BuildLessThan(location, BuildSub(location, Mod2Gcc(des), min, FALSE),
-                               BuildNegate(location, e, FALSE)) ;
+                               BuildNegate(location, lg, FALSE)) ;
             falseStatement := BuildIfCallHandler(c, r, scopeDesc, IsFalse(condition)) ;
 
             AddStatement(BuildIfThenElseEnd(condition, trueStatement, falseStatement))

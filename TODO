@@ -1,3 +1,9 @@
+Post 4.7.1
+  when the compiler is stable alter BuildStatic and friends so that
+  the front end does not calculate the address of the array
+  and then dereference it again.  This is a hangover from the pre
+  ArrayOp era and I'm pretty sure it can be factored away.
+
 Post 1.0
 
 *  remove all patches and reorganise patches into generic/target

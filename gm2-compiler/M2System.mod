@@ -301,7 +301,7 @@ END InitISOTypes ;
                 backend. Essentially we perform double book keeping.
 *)
 
-PROCEDURE InitSystem ;
+PROCEDURE InitSystem (location: location_t) ;
 VAR
    Previous              : CARDINAL ;
    MinWord   , MaxWord,

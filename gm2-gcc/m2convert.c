@@ -474,6 +474,7 @@ m2convert_ConvertConstantAndCheck (location_t location, tree type, tree expr)
   STRIP_NOPS (expr);
   expr = m2expr_FoldAndStrip (expr);
 
+  m2assert_AssertLocation (location);
   if (TREE_CODE (expr) == FUNCTION_DECL)
     expr = m2expr_BuildAddr (location, expr, FALSE);
   return convert_and_check (m2tree_skip_type_decl (type),

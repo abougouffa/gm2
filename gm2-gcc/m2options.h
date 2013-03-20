@@ -32,6 +32,8 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #       define EXTERN extern
 #   endif
 
+#include "input.h"
+
 
 EXTERN void M2Options_SetMakeIncludePath (const char *arg);
 EXTERN void M2Options_SetSearchPath (const char *arg);
@@ -68,6 +70,8 @@ EXTERN void M2Options_SetOptimizing (int value);
 EXTERN void M2Options_SetQuiet (int value);
 EXTERN void M2Options_SetCpp (int value);
 EXTERN void M2Options_SetSwig (int value);
+EXTERN void M2Options_SetForcedLocation (location_t location);
+EXTERN location_t M2Options_OverrideLocation (location_t location);
 
 EXTERN void M2Options_DisplayVersion (void);
 

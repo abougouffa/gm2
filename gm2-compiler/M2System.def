@@ -29,6 +29,8 @@ DEFINITION MODULE M2System ;
                  are mapped onto their equivalents in the gcc backend.
 *)
 
+FROM m2linemap IMPORT location_t ;
+
 EXPORT QUALIFIED 
                  System,           (* The SYSTEM module symbol     *)
                  Loc,              (* ISO specific System Type *)
@@ -82,7 +84,7 @@ VAR
                 SYSTEM.
 *)
 
-PROCEDURE InitSystem ;
+PROCEDURE InitSystem (location: location_t) ;
 
 
 (*

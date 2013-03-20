@@ -47,6 +47,7 @@ FROM DynamicStrings IMPORT String, Length, InitString, Mark, Slice, EqualArray,
 VAR
    CppAndArgs : String ;
    SeenSources: BOOLEAN ;
+   ForcedLocationValue: location_t ;
 
 
 (*
@@ -598,6 +599,34 @@ BEGIN
 END SetOptimizing ;
 
 
+(*
+   SetForcedLocation - sets the location for the lifetime of this compile to, location.
+                       This is primarily an internal debugging switch.
+*)
+
+PROCEDURE SetForcedLocation (location: location_t) ;
+BEGIN
+   ForcedLocation := TRUE ;
+   ForcedLocationValue := location
+END SetForcedLocation ;
+
+
+(*
+   OverrideLocation - possibly override the location value, depending upon
+                      whether the -flocation= option was used.
+*)
+
+PROCEDURE OverrideLocation (location: location_t) : location_t ;
+BEGIN
+   IF ForcedLocation
+   THEN
+      RETURN( ForcedLocationValue )
+   ELSE
+      RETURN( location )
+   END
+END OverrideLocation ;
+
+
 BEGIN
    CppAndArgs                   := InitString('') ;
    Pim                          :=  TRUE ;
@@ -638,5 +667,6 @@ BEGIN
    DumpSystemExports            := FALSE ;
    GenerateSwig                 := FALSE ;
    Exceptions                   :=  TRUE ;
-   DebugBuiltins                := FALSE
+   DebugBuiltins                := FALSE ;
+   ForcedLocation               := FALSE
 END M2Options.
