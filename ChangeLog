@@ -1,3 +1,8 @@
+2013-03-22      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2spec.c:  many bug fixes relating to using (*in_options)[]
+	  rather than options[].
+
 2013-03-20      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  added gm2/gm2-gcc/m2assert.o to list
