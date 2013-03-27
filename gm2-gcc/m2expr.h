@@ -9,7 +9,7 @@
 
 EXTERN void m2expr_BuildBinaryForeachWordDo (location_t location,
 					     tree type, tree op1, tree op2, tree op3,
-					     tree (*binop)(tree, tree, int),
+					     tree (*binop)(location_t, tree, tree, int),
 					     int is_op1lvalue, int is_op2lvalue, int is_op3lvalue,
 					     int is_op1const, int is_op2const, int is_op3const);
 EXTERN tree m2expr_BuildCmplx (tree type, tree real, tree imag);
@@ -137,6 +137,7 @@ EXTERN tree m2expr_build_unary_op (location_t location ATTRIBUTE_UNUSED,
 				   enum tree_code code, tree arg, int flag ATTRIBUTE_UNUSED);
 EXTERN tree m2expr_build_binary_op (location_t location, enum tree_code code, tree op1, tree op2, int convert);
 EXTERN void m2expr_ConstantExpressionWarning (tree value);
+EXTERN void m2expr_BuildAddAddress (location_t location, tree op1, tree op2);
 
 EXTERN void m2expr_init (location_t location);
 

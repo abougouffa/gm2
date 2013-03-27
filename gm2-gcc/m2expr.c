@@ -278,16 +278,23 @@ m2expr_BuildLogicalShift (location_t location, tree op1, tree op2, tree op3,
   else {
     char *labelElseName = createUniqueLabel ();
     char *labelEndName  = createUniqueLabel ();
-    tree  is_less       = m2expr_BuildLessThan (location, op3, m2expr_GetIntegerZero ());
+    tree  is_less       = m2expr_BuildLessThan (location,
+						m2convert_BuildConvert (m2type_GetIntegerType (),
+									op3, FALSE),
+						m2expr_GetIntegerZero ());
 
     m2statement_DoJump (location, is_less, NULL, labelElseName);
+    op2 = m2convert_ToWord (op2);
+    op3 = m2convert_ToWord (op3);
     res = m2expr_BuildLSL (location, op2, op3, needconvert);
+    res = m2convert_BuildConvert (m2tree_skip_type_decl (TREE_TYPE (op1)), res, FALSE);
     m2statement_BuildAssignmentTree (location, op1, res);
     m2statement_BuildGoto (location, labelEndName);
     m2statement_DeclareLabel (location, labelElseName);
     res = m2expr_BuildLSR (location, op2,
                            m2expr_BuildNegate (location, op3, needconvert),
                            needconvert);
+    res = m2convert_BuildConvert (m2tree_skip_type_decl (TREE_TYPE (op1)), res, FALSE);
     m2statement_BuildAssignmentTree (location, op1, res);
     m2statement_DeclareLabel (location, labelEndName);
   }
@@ -796,15 +803,43 @@ m2expr_build_binary_op (location_t location,
 	    }
 	}
     }
+
+#if 0
+  default_convert_binary_operands (location, &op1, &op2);
+  type1 = m2tree_skip_type_decl (TREE_TYPE (op1));
+  type2 = m2tree_skip_type_decl (TREE_TYPE (op2));
+#endif
   
   if (type1 != type2)
     error_at (location, "not expecting different types to binary operator");
-#if 0
-      default_convert_binary_operands (location, &op1, &op2);
-#endif
    return build_binary_op (location, code, op1, op2, convert);
 }
 
+
+/*
+ *  BuildAddAddress - returns an expression op1+op2 where op1 is a pointer type
+ *                    and op2 is not a pointer type.
+ */
+
+void
+m2expr_BuildAddAddress (location_t location, tree op1, tree op2)
+{
+  tree type1, type2;
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  type1 = m2tree_skip_type_decl (TREE_TYPE (op1));
+  type2 = m2tree_skip_type_decl (TREE_TYPE (op2));
+
+  m2assert_AssertLocation (location);
+  ASSERT_CONDITION (POINTER_TYPE_P (type1));
+  ASSERT_CONDITION (! POINTER_TYPE_P (type2));
+
+  op2 = fold_convert_loc (location, sizetype, unshare_expr (op2));
+  return fold_build2_loc (location, POINTER_PLUS_EXPR,
+			  TREE_TYPE (op1), op1, op2);
+}
 
 /*
  *  BuildNegate - builds a negate expression and returns the tree.
@@ -1896,7 +1931,7 @@ m2expr_BuildCmplx (tree type, tree real, tree imag)
 
 void
 m2expr_BuildBinaryForeachWordDo (location_t location, tree type, tree op1, tree op2, tree op3,
-                                 tree  (*binop)(tree, tree, int),
+                                 tree  (*binop)(location_t, tree, tree, int),
                                  int is_op1lvalue, int is_op2lvalue, int is_op3lvalue,
                                  int is_op1const, int is_op2const, int is_op3const)
 {
@@ -1913,7 +1948,8 @@ m2expr_BuildBinaryForeachWordDo (location_t location, tree type, tree op1, tree 
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
     m2statement_BuildAssignmentTree (location, m2treelib_get_rvalue (location, op1, type, is_op1lvalue),
-				     (*binop) (m2treelib_get_rvalue (location, op2, type, is_op2lvalue),
+				     (*binop) (location,
+					       m2treelib_get_rvalue (location, op2, type, is_op2lvalue),
 					       m2treelib_get_rvalue (location, op3, type, is_op3lvalue), FALSE));
   else {
     /* large set size > TSIZE(WORD) */
@@ -1931,11 +1967,12 @@ m2expr_BuildBinaryForeachWordDo (location_t location, tree type, tree op1, tree 
 
     while (field1 != NULL && field2 != NULL && field3 != NULL) {
       m2statement_BuildAssignmentTree (location,
-				  m2treelib_get_set_field_rhs (location, p1, field1),
-                                  (*binop) (m2treelib_get_set_value (location, p2, field2,
-                                                           is_op2const, op2, fieldNo),
-                                            m2treelib_get_set_value (location, p3, field3,
-                                                           is_op3const, op3, fieldNo), FALSE));
+				       m2treelib_get_set_field_rhs (location, p1, field1),
+				       (*binop) (location,
+						 m2treelib_get_set_value (location, p2, field2,
+									  is_op2const, op2, fieldNo),
+						 m2treelib_get_set_value (location, p3, field3,
+									  is_op3const, op3, fieldNo), FALSE));
       fieldNo++;
       field1 = m2treelib_get_field_no (type, op1, is_op1const, fieldNo);
       field2 = m2treelib_get_field_no (type, op2, is_op2const, fieldNo);

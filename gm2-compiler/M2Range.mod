@@ -911,6 +911,8 @@ BEGIN
          max := GetMaxFrom(location, Mod2Gcc(t)) ;
          min := GetMinFrom(location, Mod2Gcc(t))
       END ;
+      max := BuildConvert(Mod2Gcc(t), max, FALSE) ;
+      min := BuildConvert(Mod2Gcc(t), min, FALSE) ;
       RETURN( TRUE )
    ELSE
       RETURN( FALSE )
@@ -2235,7 +2237,9 @@ BEGIN
             IF GetMinMax(tokenno, desLowestType, desMin, desMax)
             THEN
                e := BuildConvert(GetTreeType(desMin), DeReferenceLValue(tokenno, expr), FALSE) ;
-               IfOutsideLimitsDo(tokenNo, GetIntegerZero(), e, desMax, r, scopeDesc) ;
+               IfOutsideLimitsDo(tokenNo,
+                                 BuildConvert(GetTreeType(desMin), GetIntegerZero(), FALSE),
+                                 e, desMax, r, scopeDesc) ;
                t := BuildSub(location,
                              desMax,
                              BuildConvert(Mod2Gcc(desLowestType), e, FALSE),
@@ -2276,7 +2280,9 @@ BEGIN
             IF GetMinMax(tokenno, desLowestType, desMin, desMax)
             THEN
                e := BuildConvert(GetTreeType(desMin), DeReferenceLValue(tokenno, expr), FALSE) ;
-               IfOutsideLimitsDo(tokenNo, GetIntegerZero(), e, desMax, r, scopeDesc) ;
+               IfOutsideLimitsDo(tokenNo,
+                                 BuildConvert(GetTreeType(desMin), GetIntegerZero(), FALSE),
+                                 e, desMax, r, scopeDesc) ;
                t := BuildSub(location, BuildConvert(Mod2Gcc(desLowestType), e, FALSE),
                              desMin,
                              FALSE) ;

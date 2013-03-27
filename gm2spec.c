@@ -137,7 +137,7 @@ static styles get_style (flag_set flags);
 static void add_link_from_include (int pos, struct cl_decoded_option **in_options, int include);
 static void add_lib (unsigned int *in_options_count, struct cl_decoded_option **in_options, size_t opt_index, const char *lib);
 static void check_gm2_root (void);
-static const char *add_include (const char *prev, const char *libpath, char *library);
+static char *add_include (char *prev, const char *libpath, char *library);
 
 
 typedef struct object_list {
@@ -167,6 +167,10 @@ static void assert (int b)
   if (! b)
     exit(1);
 }
+
+
+static const char *gm2_cpp_options = "-fcppbegin %:exec_prefix(cc1%s) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend";
+
 
 /*
  *  find_executable_path - if argv0 references an executable filename then use
@@ -207,7 +211,7 @@ void add_B_prefix (int pos, unsigned int *in_options_count, struct cl_decoded_op
     {
       /* insert -B */
       insert_arg (pos, in_options_count, in_options);
-      generate_option (OPT_B, path, 1, CL_ModulaX2, &((*in_options)[pos]));
+      generate_option (OPT_B, path, 1, CL_DRIVER, &((*in_options)[pos]));
       assert ((*in_options)[pos].errors == 0);
     }
 }
@@ -333,7 +337,7 @@ add_lib (unsigned int *in_options_count, struct cl_decoded_option **in_options, 
   if (lib == NULL || (strcmp (lib, "") == 0))
     return;
   insert_arg (end, in_options_count, in_options);
-  generate_option (opt_index, xstrdup (lib), 1, CL_ModulaX2, &((*in_options)[end]));
+  generate_option (opt_index, xstrdup (lib), 1, CL_DRIVER, &((*in_options)[end]));
   assert ((*in_options)[end].errors == 0);
 }
 
@@ -444,11 +448,15 @@ add_default_archives (int incl,
 		      styles s,
 		      const char *libraries)
 {
-  struct cl_decoded_option *options = *in_options;
-  const char *prev = libpath;
+  char *prev;
   const char *l = libraries;
   const char *e;
   char *c;
+
+  if (libpath == NULL)
+    prev = NULL;
+  else
+    prev = xstrdup (libpath);
 
   do {
     e = index (l, ',');
@@ -462,7 +470,7 @@ add_default_archives (int incl,
     }
     add_default_combination (in_options_count, in_options, libpath, c, s);
     prev = add_include (prev, libpath, c);
-    generate_option (OPT_I, prev, 1, CL_ModulaX2, &options[incl]);
+    generate_option (OPT_I, prev, 1, CL_ModulaX2, &(*in_options)[incl]);
     free((void *)c);
   } while ((l != NULL) && (l[0] != (char)0));
 }
@@ -477,7 +485,7 @@ build_include_path (const char *prev, const char *libpath, const char *library)
 {
   char  sepstr[2];
   char *gm2libs;
-  const char *option = "-I";
+  const char *option = "";
 
   sepstr[0] = DIR_SEPARATOR;
   sepstr[1] = (char)0;
@@ -509,8 +517,8 @@ build_include_path (const char *prev, const char *libpath, const char *library)
  *                The new path is returned.
  */
 
-static const char *
-add_include (const char *prev, const char *libpath, char *library)
+static char *
+add_include (char *prev, const char *libpath, char *library)
 {
   if (library == NULL)
     return prev;
@@ -530,11 +538,29 @@ add_default_includes (int incl,
 		      const char *libraries,
 		      const char *envpath)
 {
-  struct cl_decoded_option *options = *in_options;
   const char *l = libraries;
   const char *e;
-  const char *prev = envpath;
+  const char *arg = (*in_options)[incl].arg;
+  char *prev;
   char *c;
+
+  if (arg == NULL || (strlen (arg) == 0)) {
+    if (envpath == NULL || (strlen (envpath) == 0))
+      prev = NULL;
+    else
+      prev = xstrdup (envpath);
+  }
+  else {
+    if (envpath == NULL || (strlen (envpath) == 0))
+      prev = xstrdup (arg);      
+    else {
+      prev = (char *) xmalloc (strlen (arg) + 1 + strlen (envpath) + 1);
+      prev[0] = (char)0;
+      prev = strcat (prev, arg);
+      prev = strcat (prev, ":");
+      prev = strcat (prev, envpath);
+    }
+  }
 
   do {
     e = index (l, ',');
@@ -550,8 +576,8 @@ add_default_includes (int incl,
     free((void *)c);
   } while ((l != NULL) && (l[0] != (char)0));
 
-  generate_option (OPT_I, prev, 1, CL_ModulaX2, &options[incl]);
-  assert (options[incl].errors == 0);
+  generate_option (OPT_I, prev, 1, CL_ModulaX2, &(*in_options)[incl]);
+  assert ((*in_options)[incl].errors == 0);
 }
 
 /*
@@ -610,13 +636,12 @@ add_fobject_path (int incl,
 		  const char *library,
 		  styles s)
 {
-  struct cl_decoded_option *options = *in_options;
-  const char *prev = options[incl].arg;
+  const char *prev = (*in_options)[incl].arg;
   
   if (library != NULL) {
     generate_option (OPT_fobject_path_, build_fobject_path (prev, libpath, library, s),
-		     1, CL_ModulaX2, &options[incl]);
-    assert (options[incl].errors == 0);
+		     1, CL_ModulaX2, &(*in_options)[incl]);
+    assert ((*in_options)[incl].errors == 0);
   }
 }
 
@@ -633,13 +658,12 @@ add_default_fobjects (int incl,
 		      styles s,
 		      const char *envpath)
 {
-  struct cl_decoded_option *options = *in_options;
   const char *l = libraries;
   const char *e;
   char *c;
 
-  generate_option (OPT_I, envpath, 1, CL_ModulaX2, &options[incl]);
-  assert (options[incl].errors == 0);
+  generate_option (OPT_I, envpath, 1, CL_ModulaX2, &(*in_options)[incl]);
+  assert ((*in_options)[incl].errors == 0);
   do {
     e = index (l, ',');
     if (e == NULL) {
@@ -820,6 +844,36 @@ check_gm2_root (void)
 	    " as well as either " LIBRARY_PATH_ENV " or COMPILER_PATH\n");
 }
 
+#if defined(DEBUGGING)
+static void
+printOption (const char *desc, struct cl_decoded_option **in_decoded_options, int i)
+{
+  printf("lang_specific_driver ");
+  printf(desc);
+  printf(" [%d]", i);
+
+  switch ((*in_decoded_options)[i].opt_index) {
+
+  case N_OPTS:  break;
+  case OPT_SPECIAL_unknown:   printf(" flag <unknown>"); break;
+  case OPT_SPECIAL_ignore:   printf(" flag <ignore>"); break;
+  case OPT_SPECIAL_program_name:  printf(" flag <program name>"); break;
+  case OPT_SPECIAL_input_file:  printf(" flag <input file name>"); break;
+
+  default:
+    printf(" flag [%s]", cl_options[(*in_decoded_options)[i].opt_index].opt_text);
+  }
+
+  if ((*in_decoded_options)[i].arg == NULL)
+    printf(" no arg");
+  else
+    printf(" arg [%s]", (*in_decoded_options)[i].arg);
+  printf(" orig text [%s]", (*in_decoded_options)[i].orig_option_with_args_text);
+  printf(" value [%d]", (*in_decoded_options)[i].value);
+  printf(" error [%d]\n", (*in_decoded_options)[i].errors);
+}
+#endif
+
 /*
  *  lang_specific_driver - is invoked if we are compiling/linking a
  *                         Modula-2 file. It checks for module paths
@@ -868,6 +922,8 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 
   /* The number of libraries added in.  */
   int added_libraries;
+
+  return;
 
   argc = *in_decoded_options_count;
   added_libraries = *in_added_libraries;
@@ -918,9 +974,8 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   gm2opath = getenv (GM2OPATH_ENV);
 
 #if defined(DEBUGGING)
-  for (i = 0; i < *in_argc; i++) {
-    printf("in lang specific driver argv[%d] = %s\n", i, (*in_argv)[i]);
-  }
+  for (i = 0; i < *in_decoded_options_count; i++)
+    printOption("at beginning", in_decoded_options, i);
 #endif
   i = 1;
   for (i = 1; i < *in_decoded_options_count; i++) {
@@ -968,12 +1023,10 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   if (language != NULL && (strcmp (language, "modula-2") != 0))
     return;
 #if defined(DEBUGGING)
-  i=0;
-  while (i<*in_argc) {
-    printf("middle lang specific driver argv[%d] = %s\n", i, (*in_argv)[i]);
-    i++;
-  }
+  for (i = 0; i < *in_decoded_options_count; i++)
+    printOption("in the middle", in_decoded_options, i);
 #endif
+
   /*
    *  work out which libraries to use
    */
@@ -1003,7 +1056,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 
   add_exec_prefix (1, in_decoded_options_count, in_decoded_options);
 
-  if ((! seen_B) && seen_fmakeall)
+  if (! seen_B)
     add_B_prefix (1, in_decoded_options_count, in_decoded_options);
 
   if (linkPos == -1) {
@@ -1040,11 +1093,8 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   }
   scan_for_link_args (in_decoded_options_count, in_decoded_options);
 #if defined(DEBUGGING)
-  i=0;
-  while (i<*in_argc) {
-    printf("out lang specific driver argv[%d] = %s\n", i, (*in_argv)[i]);
-    i++;
-  }
+  for (i = 0; i < *in_decoded_options_count; i++)
+    printOption("at end", in_decoded_options, i);
 #endif
 }
 

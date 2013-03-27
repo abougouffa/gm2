@@ -24,6 +24,13 @@ Boston, MA 02110-1301, USA.  */
 /* This is the contribution to the `default_compilers' array in gcc.c for
    GNU Modula-2.  */
 
+#if 1
+{".mod", "@modula-2", 0, 0, 0},
+{"@modula-2",  "cc1gm2 %(gm2_cpp_options) %i %(cc1_options) %{I*} %{!fsyntax-only:%(invoke_as)}",
+    0, 0, 0},
+#endif
+
+#if 0
   {".mod", "@modula-2", 0, 0, 0},
   {"@modula-2",
       "%{c|S:%{fuselist:%{fsources:%eGNU Modula-2 does not know what to do with -fsources and -fuselist}} \
@@ -91,3 +98,4 @@ Boston, MA 02110-1301, USA.  */
                                              %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:linkargs() } %b.lst \n\
                                       rm -f %Ustart }}}} \n\
     ", 0, 0, 0},
+#endif

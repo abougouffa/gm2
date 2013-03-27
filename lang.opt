@@ -26,12 +26,12 @@ Language
 Modula-2
 
 I
-Modula-2 Joined
-; Documented for C
+Modula-2 Joined Separate
+; Documented in c.opt
 
 M
 Modula-2
-; Documented for C
+; Documented in c.opt
 
 fiso
 Modula-2
@@ -223,35 +223,35 @@ inform user which parameters will be passed by reference
 
 version
 Modula-2
-display the version of the GNU Modula-2 front end
+; Documented in c.opt
 
 O
 Modula-2
-optimize code
+; Documented in c.opt
 
 v
 Modula-2
-show the invocation of GNU Modula-2 subprograms
+; Documented in c.opt
 
 lang-asm
 Modula-2
-passed to the preprocessor if -fcpp is used
+; Documented in c.opt
 
 traditional-cpp
 Modula-2
-passed to the preprocessor if -fcpp is used
+; Documented in c.opt
 
 iprefix
 Modula-2
-passed to the preprocessor if -fcpp is used
+; Documented in c.opt
 
 isystem
 Modula-2
-passed to the preprocessor if -fcpp is used
+; Documented in c.opt
 
 idirafter
 Modula-2
-passed to the preprocessor if -fcpp is used
+; Documented in c.opt
 
 fcppend
 Modula-2
@@ -267,7 +267,7 @@ passed to the preprocessor if -fcpp is used
 
 D
 Modula-2
-define preprocessor symbol
+; Documented in c.opt
 
 x
 Modula-2 Joined

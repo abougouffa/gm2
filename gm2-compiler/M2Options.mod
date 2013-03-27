@@ -643,7 +643,7 @@ BEGIN
    Optimizing                   := FALSE ;
    Pedantic                     := FALSE ;
    Verbose                      := FALSE ;
-   Quiet                        := FALSE ;
+   Quiet                        :=  TRUE ;
    Profiling                    := FALSE ;
    DisplayQuadruples            := FALSE ;
    OptimizeBasicBlock           := FALSE ;

@@ -1861,6 +1861,7 @@ END DeclareConstant ;
 
 PROCEDURE TryDeclareConst (tokenno: CARDINAL; sym: CARDINAL) ;
 VAR
+   type,
    size: CARDINAL ;
 BEGIN
    IF NOT GccKnowsAbout(sym)
@@ -1902,12 +1903,20 @@ BEGIN
             DeclareConstantFromTree(sym, PopConstructorTree(tokenno))
          ELSIF IsRealType(SkipType(GetType(sym)))
          THEN
-            DeclareConstantFromTree(sym, PopRealTree())
+            type := SkipType(GetType(sym)) ;
+            DeclareConstantFromTree(sym, BuildConvert(Mod2Gcc(type), PopRealTree(), FALSE))
          ELSIF IsAComplexType(SkipType(GetType(sym)))
          THEN
-            DeclareConstantFromTree(sym, PopComplexTree())
+            type := SkipType(GetType(sym)) ;
+            DeclareConstantFromTree(sym, BuildConvert(Mod2Gcc(type), PopComplexTree(), FALSE))
          ELSE
-            DeclareConstantFromTree(sym, PopIntegerTree())
+            IF GetType(sym)=NulSym
+            THEN
+               type := ZType
+            ELSE
+               type := SkipType(GetType(sym))
+            END ;
+            DeclareConstantFromTree(sym, BuildConvert(Mod2Gcc(type), PopIntegerTree(), FALSE))
          END
       ELSE
          TraverseDependants(sym) ;

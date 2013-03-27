@@ -410,7 +410,7 @@ m2statement_BuildIndirectProcedureCallTree (location_t location, tree procedure,
   TREE_SIDE_EFFECTS (procedure) = TRUE;
 
   for (i = 0; i < n; i++) {
-    argarray[i] = t;
+    argarray[i] = TREE_VALUE (t);
     t = TREE_CHAIN (t);
   }
 

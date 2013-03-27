@@ -1632,7 +1632,7 @@ BEGIN
       j := 1 ;
       ta := GetAddressOfUnbounded(param) ;
       tb := BuildConvert(GetPointerType(),
-                         BuildAdd(location, ta, GetSizeOfHighFromUnbounded(tokenno, param), FALSE),
+                         BuildAddAddress(location, ta, GetSizeOfHighFromUnbounded(tokenno, param)),
                          FALSE) ;
       WHILE j<=n DO
          IF j>1
@@ -1646,8 +1646,7 @@ BEGIN
          END ;
          tc := GetParamAddress(proc, GetItemFromList(mustCheck, j)) ;
          td := BuildConvert(GetPointerType(),
-                            BuildAdd(location,
-                                     tc, GetParamSize(tokenno, param), FALSE),
+                            BuildAddAddress(location, tc, GetParamSize(tokenno, param)),
                             FALSE) ;
          tLabel := CreateLabelProcedureN(proc, "t", UnboundedLabelNo, j+1) ;
          fLabel := CreateLabelProcedureN(proc, "f", UnboundedLabelNo, j+1) ;
@@ -3130,6 +3129,35 @@ END FoldBinary ;
 
 
 (*
+   ConvertBinaryOperands - 
+*)
+
+PROCEDURE ConvertBinaryOperands (VAR tl, tr: Tree; type, op2, op3: CARDINAL) ;
+BEGIN
+   tl := NIL ;
+   tr := NIL ;
+   IF GetMode(op2)=LeftValue
+   THEN
+      tl := LValueToGenericPtr(op2)
+   END ;
+   IF GetMode(op3)=LeftValue
+   THEN
+      tr := LValueToGenericPtr(op3)
+   END ;
+   IF (tl=NIL) AND (tr=NIL)
+   THEN
+      tl := BuildConvert(Mod2Gcc(type), Mod2Gcc(op2), FALSE) ;
+      tr := BuildConvert(Mod2Gcc(type), Mod2Gcc(op3), FALSE)
+   ELSIF tl=NIL
+   THEN
+      tl := BuildConvert(Mod2Gcc(type), Mod2Gcc(op2), FALSE)
+   ELSE
+      tr := BuildConvert(Mod2Gcc(type), Mod2Gcc(op3), FALSE)
+   END
+END ConvertBinaryOperands ;
+
+
+(*
    CodeBinary - encode a binary arithmetic operation.
 *)
 
@@ -3137,6 +3165,7 @@ PROCEDURE CodeBinary (binop: BuildBinProcedure;
                       quad: CARDINAL;
                       op1, op2, op3: CARDINAL) ;
 VAR
+   type    : CARDINAL ;
    t, tv,
    tl, tr  : Tree ;
    location: location_t ;
@@ -3146,8 +3175,8 @@ BEGIN
    DeclareConstant(CurrentQuadToken, op2) ;
    location := TokenToLocation(QuadToTokenNo(quad)) ;
 
-   tl := ZConstToTypedConst(LValueToGenericPtr(op2), op2, op3) ;
-   tr := ZConstToTypedConst(LValueToGenericPtr(op3), op2, op3) ;
+   type := MixTypes(FindType(op2), FindType(op3), QuadToTokenNo(quad)) ;
+   ConvertBinaryOperands(tl, tr, type, op2, op3) ;
    
    tv := binop(location, tl, tr, TRUE) ;
    CheckOrResetOverflow(CurrentQuadToken, tv, MustCheckOverflow(quad)) ;
@@ -3944,6 +3973,7 @@ PROCEDURE CodeBinarySetShift (binop: BuildSetProcedure;
                               quad: CARDINAL;
                               op1, op2, op3: CARDINAL) ;
 VAR
+   type     : CARDINAL ;
    nBits,
    unbounded,
    leftproc,
@@ -3980,9 +4010,20 @@ BEGIN
       rightproc := Mod2Gcc(FromModuleGetSym(right, System)) ;
       unbounded := Mod2Gcc(GetType(GetNthParam(FromModuleGetSym(var, System), 1))) ;
       PushValue(GetTypeMax(SkipType(GetType(op1)))) ;
+      PushIntegerTree(BuildConvert(GetM2ZType(), PopIntegerTree(), FALSE)) ;
+
+(*
+      type := MixTypes(GetTypeMax(SkipType(GetType(op1))),
+                       GetTypeMin(SkipType(GetType(op1))), QuadToTokenNo(quad)) ;
+
+         ...
+      PushIntegerTree(BuildConvert(Mod2Gcc(type), PopIntegerTree(), FALSE)) ;
+*)
       PushValue(GetTypeMin(SkipType(GetType(op1)))) ;
+      PushIntegerTree(BuildConvert(GetM2ZType(), PopIntegerTree(), FALSE)) ;
       Sub ;
       PushCard(1) ;
+      PushIntegerTree(BuildConvert(GetM2ZType(), PopIntegerTree(), FALSE)) ;
       Addn ;
       nBits := PopIntegerTree() ;
       BuildBinarySetDo(location,
@@ -4918,7 +4959,7 @@ END CodeRecordField ;
 
 PROCEDURE BuildHighFromChar (operand: CARDINAL) : Tree ;
 BEGIN
-   RETURN( GetIntegerZero() )   
+   RETURN( GetCardinalZero() )   
 END BuildHighFromChar ;
 
 

@@ -569,4 +569,12 @@ PROCEDURE BuildBinarySetDo (location location_t;
 PROCEDURE ConstantExpressionWarning (value: Tree) ;
 
 
+(*
+   BuildAddAddress - returns an expression op1+op2 where op1 is a pointer type
+                     and op2 is not a pointer type.
+*)
+
+PROCEDURE BuildAddAddress (location: location_t; op1, op2: Tree) : Tree ;
+
+
 END m2expr.
