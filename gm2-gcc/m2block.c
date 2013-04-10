@@ -154,6 +154,8 @@ static struct binding_level clear_binding_level
 
 typedef struct stmt_tree_s *stmt_tree_t;
 
+#undef DEBUGGING
+
 
 /*
  *  lookupLabel - return label tree in current scope, otherwise NULL_TREE.
@@ -482,6 +484,11 @@ m2block_pushFunctionScope (tree fndecl)
   struct binding_level *n;
   struct binding_level *b;
 
+#if defined(DEBUGGING)
+  if (fndecl != NULL)
+    printf("pushFunctionScope\n");
+#endif
+
   /*
    *  allow multiple consecutive pushes of the same scope
    */
@@ -685,6 +692,11 @@ m2block_popFunctionScope (void)
 {
   tree fndecl = current_binding_level->fndecl;
 
+#if defined(DEBUGGING)
+  if (fndecl != NULL)
+    printf("popFunctionScope\n");
+#endif
+
   if (fndecl != NULL && current_binding_level->count>0) {
     /*
      *  multiple pushes have occurred of the same function scope (and ignored),
@@ -715,6 +727,9 @@ m2block_popFunctionScope (void)
 void
 m2block_pushGlobalScope (void)
 {
+#if defined(DEBUGGING)
+  printf("pushGlobalScope\n");
+#endif
   m2block_pushFunctionScope (NULL_TREE);
 }
 
@@ -730,6 +745,9 @@ m2block_popGlobalScope (void)
   ASSERT_CONDITION (current_binding_level->fndecl == NULL_TREE);   /* expecting global scope */
   ASSERT_CONDITION (current_binding_level == global_binding_level);
   current_binding_level = current_binding_level->next;
+#if defined(DEBUGGING)
+  printf("popGlobalScope\n");
+#endif
 }
 
 

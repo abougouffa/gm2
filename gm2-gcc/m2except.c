@@ -346,6 +346,7 @@ tree
 m2except_BuildThrow (location_t location, tree exp)
 {
   m2assert_AssertLocation (location);
+
   if (exp == NULL_TREE)
     {
       /* rethrow the current exception */

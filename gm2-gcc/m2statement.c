@@ -126,7 +126,7 @@ m2statement_BuildStartFunctionCode (tree fndecl, int isexported, int isinline)
 static void
 gm2_gimplify_function_parameters (tree fndecl)
 {
-#if 0
+#if 1
   tree parm;
 
   for (parm = DECL_ARGUMENTS (fndecl); parm ; parm = TREE_CHAIN (parm))
@@ -175,9 +175,12 @@ m2statement_BuildEndFunctionCode (tree fndecl, int nested)
   DECL_INITIAL (fndecl) = block;
 
   m2block_finishFunctionCode (fndecl);
+
   cgraph_finalize_function (fndecl, nested);
 
   m2block_popFunctionScope ();
+
+  gm2_gimplify_function_node (fndecl);
   // printf("ending scope %s\n", IDENTIFIER_POINTER(DECL_NAME (fndecl)));
 }
 
@@ -842,6 +845,7 @@ m2statement_BuildIncludeVarVar (location_t location,
   tree index = m2expr_BuildSub (location,
 				m2convert_BuildConvert (m2type_GetIntegerType(), varel, FALSE),
                                 m2convert_BuildConvert (m2type_GetIntegerType(), low, FALSE), FALSE);
+  tree indexw = m2convert_BuildConvert (m2type_GetWordType (), index, FALSE);
 
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
@@ -851,7 +855,7 @@ m2statement_BuildIncludeVarVar (location_t location,
 							    m2treelib_get_rvalue (location,
 										  varset, type, is_lvalue),
 							    m2expr_BuildLSL (location,
-									     m2expr_GetWordOne(), index, FALSE),
+									     m2expr_GetWordOne(), indexw, FALSE),
 							    FALSE));
   else {
     tree p1               = m2treelib_get_set_address (location, varset, is_lvalue);
@@ -859,8 +863,10 @@ m2statement_BuildIncludeVarVar (location_t location,
     tree word_index       = m2expr_BuildDivTrunc (location,
 						  index, m2decl_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
     /* calculate the bit in this word */
-    tree offset_into_word = m2expr_BuildModTrunc (location,
-						  index, m2decl_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree offset_into_word = m2convert_BuildConvert (m2type_GetWordType (),
+						    m2expr_BuildModTrunc (location,
+									  index, m2decl_BuildIntegerConstant (SET_WORD_SIZE), FALSE),
+						    FALSE);
 
     /* calculate the address of the word we are interested in */
     p1 = m2expr_BuildAdd (location,

@@ -2049,6 +2049,7 @@ m2type_InitBaseTypes (location_t location)
 
   m2builtins_init (location);
   m2except_InitExceptions (location);
+  m2expr_init (location);
 }
 
 

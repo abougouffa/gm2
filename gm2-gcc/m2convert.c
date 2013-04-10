@@ -76,6 +76,10 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "m2convert.h"
 
 
+static void mystop (void)
+{
+}
+
 /*
  *  ConvertString - converts string, expr, into a string
  *                  of type, type.
@@ -452,12 +456,27 @@ convert_and_check (tree type, tree expr)
  */
 
 tree
-m2convert_BuildConvert (tree op1, tree op2, int checkOverflow)
+m2convert_BuildConvert (tree type, tree value, int checkOverflow)
 {
+  enum tree_code code = TREE_CODE (value);
+
+  value = fold (value);
+  STRIP_NOPS (value);
+  value = m2expr_FoldAndStrip (value);
+#if 0
+  while (TREE_CODE (value) == NOP_EXPR) {
+    mystop ();
+    value = TREE_OPERAND (value, 0);
+  }
+  if (TREE_CODE (value) == VAR_DECL)
+    return build1 (NOP_EXPR, type, value);
+#endif
+
+
   if (checkOverflow)
-    return convert_and_check (m2tree_skip_type_decl (op1), op2);
+    return convert_and_check (m2tree_skip_type_decl (type), value);
   else
-    return convert (m2tree_skip_type_decl (op1), op2);
+    return convert (m2tree_skip_type_decl (type), value);
 }
 
 

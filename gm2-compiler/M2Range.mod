@@ -2598,7 +2598,7 @@ BEGIN
       THEN
          e := ZConstToTypedConst(LValueToGenericPtr(expr), expr, des) ;
          condition := BuildEqualTo(location,
-                                   e, BuildConvert(Mod2Gcc(SkipType(GetType(des))),
+                                   e, BuildConvert(GetTreeType(e),
                                                    Mod2Gcc(MakeConstLit(MakeKey('0'))), FALSE)) ;
          AddStatement(BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
       ELSE

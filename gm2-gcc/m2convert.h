@@ -31,7 +31,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #     define EXTERN extern
 #  endif
 
-EXTERN tree m2convert_BuildConvert (tree op1, tree op2, int checkOverflow);
+EXTERN tree m2convert_BuildConvert (tree type, tree value, int checkOverflow);
 EXTERN tree m2convert_ConvertToPtr (tree p);
 EXTERN tree m2convert_ToWord (tree expr);
 EXTERN tree m2convert_ConvertString (tree type, tree expr);

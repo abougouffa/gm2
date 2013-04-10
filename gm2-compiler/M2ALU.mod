@@ -4638,7 +4638,9 @@ BEGIN
                   RETURN( e^.element )
                END ;
                PushIntegerTree(j) ;
+               ConvertToInt ;
                PushValue(e^.by) ;
+               ConvertToInt ;
                Sub ;
                j := PopIntegerTree() ;
                e := e^.next

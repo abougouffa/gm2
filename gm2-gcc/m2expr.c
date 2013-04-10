@@ -802,6 +802,24 @@ m2expr_build_binary_op (location_t location,
 				      TREE_TYPE (op2), op2, op1);
 	    }
 	}
+      if (code == MINUS_EXPR)
+	{
+	  if (POINTER_TYPE_P (type1))
+	    {
+	      op2 = fold_convert_loc (location, sizetype, unshare_expr (op2));
+	      op2 = fold_build1_loc (location, NEGATE_EXPR, sizetype, op2);
+	      return fold_build2_loc (location, POINTER_PLUS_EXPR,
+				      TREE_TYPE (op1), op1, op2);
+	    }
+	  else if (POINTER_TYPE_P (type2))
+	    {
+	      op2 = fold_convert_loc (location, sizetype, unshare_expr (op2));
+	      op2 = fold_build1_loc (location, NEGATE_EXPR, sizetype, op2);
+	      op1 = fold_convert_loc (location, sizetype, unshare_expr (op1));
+	      return fold_build2_loc (location, POINTER_PLUS_EXPR,
+				      TREE_TYPE (op2), op2, op1);
+	    }
+	}
     }
 
 #if 0
@@ -853,8 +871,10 @@ m2expr_BuildNegate (location_t location, tree op1, int needconvert)
 
   m2assert_AssertLocation (location);
 
+#if 0
   if (code == ENUMERAL_TYPE)
     error_at (location, "not expecting to negate an enumerated value");
+#endif
 
   return m2expr_build_unary_op (location, NEGATE_EXPR, op1, needconvert);
 }
@@ -2370,7 +2390,7 @@ build_set_full_complement (location_t location)
     value = m2expr_BuildLogicalOr(location, value,
                                   m2expr_BuildLSL (location,
 						   m2expr_GetWordOne(),
-                                                   m2decl_BuildIntegerConstant (i),
+                                                   m2convert_BuildConvert (m2type_GetWordType (), m2decl_BuildIntegerConstant (i), FALSE),
                                                    FALSE),
                                   FALSE);
   }

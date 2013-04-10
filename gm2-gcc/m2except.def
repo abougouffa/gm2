@@ -29,6 +29,7 @@ DEFINITION MODULE m2except ;
 *)
 
 FROM m2tree IMPORT Tree ;
+FROM m2linemap IMPORT location_t ;
 
 
 (*
@@ -44,7 +45,7 @@ PROCEDURE InitExceptions ;
    BuildThrow - builds a throw statement and return the tree.
 *)
 
-PROCEDURE BuildThrow (t: Tree) : Tree ;
+PROCEDURE BuildThrow (location: location_t; t: Tree) : Tree ;
 
 
 (*

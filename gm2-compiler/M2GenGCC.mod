@@ -173,7 +173,7 @@ FROM m2decl IMPORT BuildStringConstant ;
 FROM m2statement IMPORT BuildAsm, BuildProcedureCallTree ;
 
 FROM m2type IMPORT ChainOnParamValue, GetPointerType ;
-FROM m2block IMPORT RememberConstant ;
+FROM m2block IMPORT RememberConstant, pushGlobalScope, popGlobalScope ;
 FROM m2misc IMPORT DebugTree ;
 
 
@@ -1047,6 +1047,7 @@ END CodeModuleScope ;
 
 PROCEDURE CodeStartModFile (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
+   pushGlobalScope ;
    LastLine := 1 ;
    PushScope(op3) ;
    PushWord(CompilingMainModuleStack, GetMainModule()=op3) ;
@@ -1077,6 +1078,7 @@ END CodeStartModFile ;
 
 PROCEDURE CodeStartDefFile (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
+   pushGlobalScope ;
    PushScope(op3) ;
    LastLine := 1 ;
    PushWord(CompilingMainModuleStack, FALSE) ;
@@ -1099,6 +1101,7 @@ END CodeStartDefFile ;
 
 PROCEDURE CodeEndFile (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
+   popGlobalScope ;
    ReduceWord(CompilingMainModuleStack, 1) ;
 (*   PopScope *)
 END CodeEndFile ;
@@ -2062,14 +2065,21 @@ END StringToChar ;
 
 PROCEDURE ConvertForComparison (tokenno: CARDINAL; sym, with: CARDINAL) : Tree ;
 VAR
+   symType,
+   withType: CARDINAL ;
    t       : Tree ;
    location: location_t ;
 BEGIN
    location := TokenToLocation(tokenno) ;
-   IF IsProcedure(sym)
+   symType := SkipType(GetType(sym)) ;
+   withType := SkipType(GetType(with)) ;
+   IF (symType#NulSym) AND IsPointer(symType) AND (symType#withType)
    THEN
-      RETURN( BuildAddr(location, Mod2Gcc(sym), FALSE) )
-   ELSIF (SkipType(GetType(sym))#NulSym) AND IsProcType(SkipType(GetType(sym)))
+      RETURN( BuildConvert(GetPointerType (), Mod2Gcc(sym), FALSE) )
+   ELSIF IsProcedure(sym)
+   THEN
+      RETURN( BuildConvert(GetPointerType (), BuildAddr(location, Mod2Gcc(sym), FALSE), FALSE) )
+   ELSIF (symType#NulSym) AND IsProcType(symType)
    THEN
       RETURN( BuildConvert(GetPointerType (), Mod2Gcc(sym), FALSE) )
    END ;
@@ -2600,6 +2610,10 @@ BEGIN
                CheckOrResetOverflow(tokenno, Mod2Gcc(op3), MustCheckOverflow(quad)) ;
                AddModGcc(op1, Mod2Gcc(op3))
             ELSE
+               IF NOT GccKnowsAbout(GetType(op1))
+               THEN
+                  RETURN
+               END ;
                IF IsProcedure(op3)
                THEN
                   AddModGcc(op1,
@@ -2677,14 +2691,17 @@ END CodeTry ;
 *)
 
 PROCEDURE CodeThrow (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   location: location_t ;
 BEGIN
+   location := TokenToLocation(QuadToTokenNo(quad)) ;
    IF op3=NulSym
    THEN
-      AddStatement(BuildThrow(Tree(NIL)))
+      AddStatement(BuildThrow(location, Tree(NIL)))
    ELSE
       DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant and declares it *)
-      AddStatement(BuildThrow(BuildConvert(GetIntegerType(),
-                                           Mod2Gcc(op3), FALSE)))
+      AddStatement(BuildThrow(location, BuildConvert(GetIntegerType(),
+                                                     Mod2Gcc(op3), FALSE)))
    END
 END CodeThrow ;
 
@@ -4399,7 +4416,8 @@ BEGIN
             Sub ;
             BuildIncludeVarConst(location,
                                  Mod2Gcc(GetType(op1)),
-                                 Mod2Gcc(op1), PopIntegerTree(),
+                                 Mod2Gcc(op1),
+                                 BuildConvert(Mod2Gcc(GetType(op1)), PopIntegerTree(), FALSE),
                                  GetMode(op1)=LeftValue, fieldno)
          ELSE
             MetaErrorT1(CurrentQuadToken, 'bit exceeded the range of set {%1atd}', op1)
@@ -4471,7 +4489,7 @@ BEGIN
             Sub ;
             BuildExcludeVarConst(location,
                                  Mod2Gcc(GetType(op1)),
-                                 Mod2Gcc(op1), PopIntegerTree(),
+                                 Mod2Gcc(op1), BuildConvert(Mod2Gcc(GetType(op1)), PopIntegerTree(), FALSE),
                                  GetMode(op1)=LeftValue, fieldno)
          ELSE
             MetaErrorT1(CurrentQuadToken, 'bit exceeded the range of set {%1atd}', op1)

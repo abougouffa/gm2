@@ -1,3 +1,24 @@
+2013-04-10      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-lang.c:  comment out definition for LANG_HOOKS_GIMPLIFY_EXPR.
+	* gm2/gm2-compiler/M2ALU.mod:  Convert top of stack to Integer type.
+	* gm2/gm2-compiler/M2GenGCC.mod:  ensure that the global scope is in use in CodeEndFile,
+	  CodeStartDefFile, CodeStartModFile.  ConvertForComparison convert pointer types to
+	  ADDRESS.  Fix calls to BuildThrow to use a location initial parameter.
+	* gm2/gm2-compiler/M2Range.mod:  (CodeWholeZero) convert const lit zero into the same
+	  type as, e.
+	* gm2/gm2-gcc/m2block.c:  added DEBUGGING macro and debugging prints.
+	* gm2/gm2-gcc/m2convert.c:  (m2convert_BuildConvert) added more steps to aid debugging.
+	* gm2/gm2-gcc/m2convert.h:  (m2convert_BuildConvert) changed parameter names.
+	* gm2/gm2-gcc/m2except.def:  (BuildThrow) added missing initial parameter.
+	* gm2/gm2-gcc/m2expr.c:  (gm2/gm2-gcc/m2expr.c)  added conversion between
+	  pointer types for MINUS_EXPR.
+	* gm2/gm2-gcc/m2statement.c:  (m2statement_BuildEndFunctionCode) call
+	  gm2_gimplify_function_node.
+	* gm2/gm2-gcc/m2treelib.c:  (m2treelib_do_jump_if_bit) use m2expr_GetWordZero
+	  rather than m2expr_GetIntegerZero.
+	* gm2/gm2-gcc/m2type.c:  (m2type_InitBaseTypes) call m2expr_init.
+
 2013-03-27      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2spec.c:  intemediate checkin.  With enough changes to allow the

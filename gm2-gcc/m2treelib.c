@@ -95,7 +95,7 @@ m2treelib_do_jump_if_bit (location_t location, enum tree_code code, tree word, t
 																      m2convert_BuildConvert (m2type_GetWordType (), bit, FALSE),
 																      FALSE), FALSE),
 								      FALSE),
-					      m2expr_GetIntegerZero (), FALSE),
+					      m2expr_GetWordZero (), FALSE),
 		      NULL, label);
 }
 
