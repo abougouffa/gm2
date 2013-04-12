@@ -5,6 +5,8 @@
 	  constants.  (m2type_BuildArrayIndexType) call
 	  m2expr_FoldAndStrip to ensure array bounds are defined by
 	  constants.   This fix allows DynamicStrings.mod to compile.
+	* gm2/gm2-gcc/m2type.c:  (m2type_BuildEndRecord) removed call
+	  to m2block_pushDecl.
 
 2013-04-10      Gaius Mulley <gaius@gnu.org>
 

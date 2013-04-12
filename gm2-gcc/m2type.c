@@ -3005,7 +3005,9 @@ m2type_BuildEndRecord (location_t location, tree record, tree fieldlist, int isP
   d = build_decl (location, TYPE_DECL, NULL, record);
   TYPE_STUB_DECL (record) = d;
   s = build_stmt (location, DECL_EXPR, d);
+#if 0
   m2block_pushDecl (s);
+#endif
 
   /* Finish debugging output for this type.  This must be done after we have called build_decl */
   rest_of_type_compilation (record, m2block_toplevel ());
