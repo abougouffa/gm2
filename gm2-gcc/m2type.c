@@ -247,7 +247,7 @@ m2type_GetArrayNoOfElements (location_t location, tree arraytype)
   tree max = TYPE_MAX_VALUE (index_type);
 
   m2assert_AssertLocation (location);
-  return m2expr_BuildSub (location, max, min, FALSE);
+  return m2expr_FoldAndStrip (m2expr_BuildSub (location, max, min, FALSE));
 }
 
 
@@ -328,15 +328,17 @@ gm2_build_array_type (tree elementtype, tree indextype, int fetype)
 tree
 m2type_BuildArrayIndexType (tree low, tree high)
 {
-  tree sizelow = convert (m2_z_type_node, low);
-  tree sizehigh = convert (m2_z_type_node, high);
+  tree sizelow = convert (m2_z_type_node, m2expr_FoldAndStrip (low));
+  tree sizehigh = convert (m2_z_type_node, m2expr_FoldAndStrip (high));
 
   if (m2expr_TreeOverflow (sizelow))
     error("low bound for the array is outside the ztype limits");
   if (m2expr_TreeOverflow (sizehigh))
     error("high bound for the array is outside the ztype limits");
   
-  return build_range_type (m2_z_type_node, sizelow, sizehigh);
+  return build_range_type (m2_z_type_node,
+			   m2expr_FoldAndStrip (sizelow),
+			   m2expr_FoldAndStrip (sizehigh));
 }
 
 

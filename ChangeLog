@@ -1,3 +1,11 @@
+2013-04-11      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-gcc/m2type.c:  (m2type_GetArrayNoOfElements) call
+	  m2expr_FoldAndStrip to ensure array bounds are defined by
+	  constants.  (m2type_BuildArrayIndexType) call
+	  m2expr_FoldAndStrip to ensure array bounds are defined by
+	  constants.   This fix allows DynamicStrings.mod to compile.
+
 2013-04-10      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-lang.c:  comment out definition for LANG_HOOKS_GIMPLIFY_EXPR.
