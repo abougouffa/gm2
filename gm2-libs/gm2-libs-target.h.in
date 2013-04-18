@@ -1,22 +1,3 @@
-/* Copyright (C) 2011
-#                Free Software Foundation, Inc.
-   This file is part of GNU Modula-2.
-
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-  
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
-   Process this file with autoconf to produce a configure script. */
-
 /* gm2-libs-target.h.in.  Generated from config-target.in by autoheader.  */
 
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
@@ -26,9 +7,6 @@
 
 /* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
-
-/* Define to 1 if you have the function cfmakeraw */
-#undef HAVE_CFMAKERAW
 
 /* Define to 1 if you have the `access' function. */
 #undef HAVE_ACCESS
@@ -42,6 +20,9 @@
 
 /* Define to 1 if you have the `brk' function. */
 #undef HAVE_BRK
+
+/* Define to 1 if you have the `cfmakeraw' function. */
+#undef HAVE_CFMAKERAW
 
 /* Define to 1 if you have the `close' function. */
 #undef HAVE_CLOSE
@@ -69,6 +50,15 @@
 
 /* Define to 1 if you have the `exit' function. */
 #undef HAVE_EXIT
+
+/* Define to 1 if your system has 'exp10'. */
+#undef HAVE_EXP10
+
+/* Define to 1 if your system has 'exp10f'. */
+#undef HAVE_EXP10F
+
+/* Define to 1 if your system has 'exp10l'. */
+#undef HAVE_EXP10L
 
 /* Define to 1 if you have the `fcntl' function. */
 #undef HAVE_FCNTL
@@ -106,11 +96,11 @@
 /* Define to 1 if you have the <langinfo.h> header file. */
 #undef HAVE_LANGINFO_H
 
+/* Define to 1 if you have the `pth' library (-lpth). */
+#undef HAVE_LIBPTH
+
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
-
-/* Define to 1 if you have the <math.h> header file. */
-#undef HAVE_MATH_H
 
 /* Define to 1 if you have the `link' function. */
 #undef HAVE_LINK
@@ -121,8 +111,17 @@
 /* Define to 1 if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
 
+/* have math.h */
+#undef HAVE_MATH_H
+
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the <netdb.h> header file. */
+#undef HAVE_NETDB_H
+
+/* Define to 1 if you have the <netinet/in.h> header file. */
+#undef HAVE_NETINET_IN_H
 
 /* Define to 1 if you have the `open' function. */
 #undef HAVE_OPEN
@@ -238,14 +237,11 @@
 /* Define to 1 if you have the `times' function. */
 #undef HAVE_TIMES
 
-/* have found timeval in sys/time.h */
+/* struct timeval exists */
 #undef HAVE_TIMEVAL
 
 /* Define to 1 if you have the <time.h> header file. */
 #undef HAVE_TIME_H
-
-/* Define to 1 if the system has the type `time_t'. */
-#undef HAVE_TIME_T
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
@@ -271,6 +267,9 @@
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
 
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
@@ -283,9 +282,12 @@
 /* Define to the type of arg 5 for `select'. */
 #undef SELECT_TYPE_ARG5
 
+/* The size of `long', as computed by sizeof. */
+#undef SIZEOF_LONG
+
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
-   automatically deduced at run-time.
+   automatically deduced at runtime.
 	STACK_DIRECTION > 0 => grows toward higher addresses
 	STACK_DIRECTION < 0 => grows toward lower addresses
 	STACK_DIRECTION = 0 => direction of growth unknown */
@@ -302,18 +304,3 @@
 
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
-
-/* Define to 1 if you have the <netinet/in.h> header file. */
-#undef HAVE_NETINET_IN_H
-
-/* Define to 1 if you have the <netdb.h> header file. */
-#undef HAVE_NETDB_H
-
-/* Define to 1 if your system has exp10. */
-#undef HAVE_EXP10
-
-/* Define to 1 if your system has exp10f. */
-#undef HAVE_EXP10F
-
-/* Define to 1 if your system has exp10l. */
-#undef HAVE_EXP10L
