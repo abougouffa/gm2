@@ -1860,6 +1860,9 @@ m2pp_simple_expression (pretty *s, tree t)
     case POINTER_PLUS_EXPR:
       m2pp_binary (s, t, "+");
       break;
+    case CLEANUP_POINT_EXPR:
+      m2pp_cleanup_point_expr (s, t);
+      break;
     default:
       m2pp_unknown (s, __FUNCTION__, tree_code_name[code]);
     }
@@ -2021,6 +2024,7 @@ m2pp_throw (pretty *s, tree t)
 {
   tree expr = TREE_OPERAND (t, 0);
 
+  m2pp_begin (s);
   if (expr == NULL_TREE)
     m2pp_print (s, "THROW ;\n");
   else
@@ -2180,13 +2184,13 @@ m2pp_statement (pretty *s, tree t)
 static void
 m2pp_try_catch_expr (pretty *s, tree t)
 {
-  m2pp_print (s, "(* try_catch_expr (post gimplification) *)\n");
+  m2pp_print (s, "(* try_catch_expr begins *)\n");
   m2pp_statement_sequence (s, TREE_OPERAND (t, 0));
   setindent (s, 0);
   m2pp_print (s, "EXCEPT\n");
   setindent (s, 3);
   m2pp_statement_sequence (s, TREE_OPERAND (t, 1));
-  m2pp_print (s, "(* end of try_catch_expr (post gimplification) *)\n");
+  m2pp_print (s, "(* try_catch_expr ends *)\n");
 }
 
 /*
@@ -2197,9 +2201,10 @@ m2pp_try_catch_expr (pretty *s, tree t)
 static void
 m2pp_cleanup_point_expr (pretty *s, tree t)
 {
-  m2pp_print (s, "(* cleanup point,  expression = ");
+  m2pp_begin (s);
+  m2pp_print (s, "(* cleanup point begins *)\n");
   m2pp_expression (s, TREE_OPERAND (t, 0));
-  m2pp_print (s, " *)\n");
+  m2pp_print (s, "(* cleanup point ends *)\n");
 }
 
 /*

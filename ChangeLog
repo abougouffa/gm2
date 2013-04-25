@@ -1,3 +1,36 @@
+2013-04-25      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/c.flex:  changed variable names try into ctry to avoid compiler
+	  warning.
+	* gm2/gm2-lang.c:  (gimplify_expr_stmt) New function.
+	  (gm2_langhook_gimplify_expr) reimplemented to gimplify THROW_EXPR
+	  and EXPR_STMT.
+	* gm2/gm2-tree.def:  fixed dates.
+	* gm2/m2pp.c:  (m2pp_simple_expression) added CLEANUP_POINT_EXPR
+	  handling.  Check issue begin before exception related nodes to aid
+	  pretty printing.
+	* gm2/gm2-gcc/m2except.c:  huge rewrite to bring it into line with
+	  the exception handling schema used in gcc-4.7.1.  Use
+	  m2statements to call the exception handling helper functions.
+	* gm2/gm2-gcc/m2statement.c:  fixed typo in comment.
+
+2013-04-18      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/config-host:  rebuilt.
+	* gm2/gm2-libs/config-host.in:  fix to generate SIZEOF_long and
+	  presence of struct timeval.
+	* gm2/gm2-libs/config-target:  rebuilt.
+	* gm2/gm2-libs/config-target.in:  fix to generate SIZEOF_long and
+	  presence of struct timeval.
+	* gm2/gm2-libs/gm2-libs-host.h.in:  add define for SIZEOF_LONG and
+	  HAVE_TIMEVAL.
+	* gm2/gm2-libs/gm2-libs-target.h.in:  add define for SIZEOF_LONG and
+	  HAVE_TIMEVAL.
+	* gm2/Make-lang.in:  (gm2.maintainer-reconfigure)
+	  (gm2.maintainer-help) New rules.
+	* gm2/configure.in:  fixed release number to 1.0.5.
+	* gm2/configure:  rebuilt.
+
 2013-04-11      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-gcc/m2type.c:  (m2type_GetArrayNoOfElements) call

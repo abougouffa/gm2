@@ -53,6 +53,9 @@ Boston, MA 02110-1301, USA.  */
 static int insideCppArgs = FALSE;
 
 
+#define EXPR_STMT_EXPR(NODE)  TREE_OPERAND (EXPR_STMT_CHECK (NODE), 0)
+
+
 /* Language hooks.  */
 
 bool
@@ -658,20 +661,44 @@ gm2_langhook_write_globals (void)
   cgraph_finalize_compilation_unit ();
 }
 
-/* Go specific gimplification.  We need to gimplify
-   CALL_EXPR_STATIC_CHAIN, because the gimplifier doesn't handle
-   it.  */
+
+/*  Gimplify an EXPR_STMT node.  */
+
+static void
+gimplify_expr_stmt (tree *stmt_p)
+{
+  gcc_assert (EXPR_STMT_EXPR (*stmt_p) != NULL_TREE);
+
+  *stmt_p = EXPR_STMT_EXPR (*stmt_p);
+}
+
+
+/* gm2 gimplify expression, currently just change THROW in the same way as C++
+ */
 
 static int
 gm2_langhook_gimplify_expr (tree *expr_p, gimple_seq *pre_p, gimple_seq *post_p)
 {
-#if 0
-  if (TREE_CODE (*expr_p) == CALL_EXPR
-      && CALL_EXPR_STATIC_CHAIN (*expr_p) != NULL_TREE)
-    gimplify_expr (&CALL_EXPR_STATIC_CHAIN (*expr_p), pre_p, post_p,
-		   is_gimple_val, fb_rvalue);
-#endif
-  return GS_UNHANDLED;
+  enum tree_code code = TREE_CODE (*expr_p);
+
+  switch (code)
+    {
+
+    case THROW_EXPR:
+      /* FIXME communicate throw type to back end, probably by moving
+	 THROW_EXPR into ../tree.def.  */
+      *expr_p = TREE_OPERAND (*expr_p, 0);
+      return GS_OK;
+      break;
+
+
+    case EXPR_STMT:
+      gimplify_expr_stmt (expr_p);
+      return GS_OK;
+
+    default:
+      return GS_UNHANDLED;
+    }
 }
 
 /* FIXME: This is a hack to preserve trees that we create from the
@@ -773,7 +800,7 @@ gm2_mark_addressable (tree exp)
 {
   tree x = exp;
 
-  while (1)
+  while (TRUE)
     switch (TREE_CODE (x))
       {
       case COMPONENT_REF:
@@ -872,7 +899,7 @@ gm2_type_for_size (unsigned int bits, int unsignedp)
 #undef LANG_HOOKS_PUSHDECL
 #undef LANG_HOOKS_GETDECLS
 #undef LANG_HOOKS_WRITE_GLOBALS
-// #undef LANG_HOOKS_GIMPLIFY_EXPR
+#undef LANG_HOOKS_GIMPLIFY_EXPR
 #undef LANG_HOOKS_EH_PERSONALITY
 
 #define LANG_HOOKS_NAME			"GNU Modula-2"
@@ -889,7 +916,7 @@ gm2_type_for_size (unsigned int bits, int unsignedp)
 #define LANG_HOOKS_PUSHDECL		gm2_langhook_pushdecl
 #define LANG_HOOKS_GETDECLS		gm2_langhook_getdecls
 #define LANG_HOOKS_WRITE_GLOBALS	gm2_langhook_write_globals
-// #define LANG_HOOKS_GIMPLIFY_EXPR	gm2_langhook_gimplify_expr
+#define LANG_HOOKS_GIMPLIFY_EXPR	gm2_langhook_gimplify_expr
 #define LANG_HOOKS_EH_PERSONALITY	gm2_langhook_eh_personality
 
 struct lang_hooks lang_hooks = LANG_HOOKS_INITIALIZER;

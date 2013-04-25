@@ -60,6 +60,8 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 	void cflex_SetSearchPath (char *newPath);
 	void cflex_AddTypeDef (char *a);
         void cflex_CError (const char *);
+        void _M2_cflex_init ();
+
 static  void pushLine     (void);
 static  void popLine      (void);
 static  void resetpos     (void);
@@ -645,25 +647,25 @@ static char *findFile (char *fileName, int localFirst)
     char *end = index (start, ':');
     
     if (end == NULL) {
-      char *try = (char *)xmalloc (strlen(start) + 2 + strlen (fileName));
-      strcpy (try, start);
-      strcat(try, "/");
-      strcat(try, fileName);
-      if (fileExists (try))
-	return try;
-      free (try);
+      char *ctry = (char *)xmalloc (strlen(start) + 2 + strlen (fileName));
+      strcpy (ctry, start);
+      strcat(ctry, "/");
+      strcat(ctry, fileName);
+      if (fileExists (ctry))
+	return ctry;
+      free (ctry);
       
       start = NULL;
     }
     else {
-      char *try = (char *)xmalloc (end-start + 2 + strlen (fileName));
-      strncpy (try, start, end-start);
-      try[end-start] = (char)0;
-      strcat(try, "/");
-      strcat(try, fileName);
-      if (fileExists (try))
-	return try;
-      free (try);
+      char *ctry = (char *)xmalloc (end-start + 2 + strlen (fileName));
+      strncpy (ctry, start, end-start);
+      ctry[end-start] = (char)0;
+      strcat(ctry, "/");
+      strcat(ctry, fileName);
+      if (fileExists (ctry))
+	return ctry;
+      free (ctry);
       start = end+1;
     }
   }

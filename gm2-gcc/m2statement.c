@@ -517,7 +517,7 @@ m2statement_SetLastFunction (tree t)
 
 
 /*
- *  SetParamList - assigs param_list to, t.
+ *  SetParamList - assigns param_list to, t.
  */
 
 void

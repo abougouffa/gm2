@@ -1,4 +1,4 @@
-/* Copyright (C) 2008, 2009, 2010, 2011, 2012
+/* Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -72,6 +72,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "m2expr.h"
 #include "m2type.h"
 #include "m2tree.h"
+#include "m2statement.h"
 #include "m2block.h"
 
 /* local prototypes */
@@ -100,12 +101,13 @@ void _M2_gm2except_finally (void);
 
 /* exception handling library functions */
 
-static GTY(()) tree fn_rethrow_tree = NULL_TREE;
 static GTY(()) tree fn_begin_catch_tree = NULL_TREE;
 static GTY(()) tree fn_end_catch_tree = NULL_TREE;
 static GTY(()) tree fn_throw_tree = NULL_TREE;
+static GTY(()) tree fn_rethrow_tree = NULL_TREE;
 static GTY(()) tree cleanup_type = NULL_TREE;
 static GTY(()) tree fn_allocate_exception_tree = NULL_TREE;
+static GTY(()) tree fn_free_exception_tree = NULL_TREE;
 static GTY(()) tree gm2_eh_int_type = NULL_TREE;
 
 /* Modula-2 linker fodder */
@@ -129,12 +131,6 @@ m2except_InitExceptions (location_t location)
   m2block_pushGlobalScope ();
   flag_exceptions = 1;
   init_eh ();
-#if 0
-  eh_personality_libfunc = init_one_libfunc (USING_SJLJ_EXCEPTIONS
-					     ? "__gxx_personality_sj0"
-					     : "__gxx_personality_v0");
-  default_init_unwind_resume_libfunc ();
-#endif
 
   m2decl_BuildStartFunctionDeclaration (FALSE);
   fn_rethrow_tree = m2decl_BuildEndFunctionDeclaration (location,
@@ -173,19 +169,41 @@ m2except_InitExceptions (location_t location)
 						      void_type_node,
 						      TRUE, FALSE, TRUE);
 
-  /* Declare void *__cxa_allocate_exception(size_t).  */
+  /* Declare void __cxa_rethrow (void).  */
+  m2decl_BuildStartFunctionDeclaration (FALSE);
+  fn_rethrow_tree = m2decl_BuildEndFunctionDeclaration (location,
+						      "__cxa_rethrow",
+						      void_type_node,
+						      TRUE, FALSE, TRUE);
+
+
+  /* Declare void *__cxa_allocate_exception (size_t).  */
   m2decl_BuildStartFunctionDeclaration (FALSE);
   m2decl_BuildParameterDeclaration (location, NULL, size_type_node, FALSE);
   fn_allocate_exception_tree = m2decl_BuildEndFunctionDeclaration (location,
 								   "__cxa_allocate_exception",
 								   ptr_type_node, 
 								   TRUE, FALSE, TRUE);
+
+  /* Declare void *__cxa_free_exception (void *).  */
+  m2decl_BuildStartFunctionDeclaration (FALSE);
+  m2decl_BuildParameterDeclaration (location, NULL, ptr_type_node, FALSE);
+  fn_free_exception_tree = m2decl_BuildEndFunctionDeclaration (location,
+							       "__cxa_free_exception",
+							       ptr_type_node, 
+							       TRUE, FALSE, TRUE);
+
   /*
    *  define integer type exception type which will match
    *  C++ int type in the C++ runtime library.
    */
   gm2_eh_int_type = build_eh_type_type (location, integer_type_node);
   m2block_popGlobalScope ();
+
+  MARK_TS_TYPED (TRY_BLOCK);
+  MARK_TS_TYPED (THROW_EXPR);
+  MARK_TS_TYPED (HANDLER);
+  MARK_TS_TYPED (EXPR_STMT);
 }
 
 /*
@@ -263,19 +281,6 @@ build_eh_type_type (location_t location, tree type)
   return convert (ptr_type_node, build_address (exp));
 }
 
-/* Return a pointer to a buffer for an exception object of type TYPE.  */
-
-static tree
-do_allocate_exception (location_t location, tree type)
-{
-  tree *argarray = XALLOCAVEC (tree, 1);
-
-  m2assert_AssertLocation (location);
-  argarray[0] = size_in_bytes (type);
-  return build_call_array_loc (location, TREE_TYPE (fn_allocate_exception_tree),
-			       fn_allocate_exception_tree, 1, argarray);
-}
-
 /* Build a TARGET_EXPR, initializing the DECL with the VALUE.  */
 
 static tree
@@ -338,57 +343,117 @@ get_target_expr (location_t location, tree init)
 }
 
 /*
- *  gccgm2_BuildThrow - builds a throw expression and
- *                      return the tree.
+ *  do_allocate_exception - returns a tree which calls  allocate_exception (sizeof (type));
  */
 
-tree
-m2except_BuildThrow (location_t location, tree exp)
+static tree
+do_allocate_exception (location_t location, tree type)
+{
+  tree func;
+
+  m2statement_BuildParam (location, size_in_bytes (type));
+  func = m2statement_BuildProcedureCallTree (location,
+					     fn_allocate_exception_tree, ptr_type_node);
+  m2statement_SetLastFunction (NULL_TREE);
+  return func;
+}
+
+/* Call __cxa_free_exception from a cleanup.  This is never invoked
+   directly, but see the comment for stabilize_throw_expr.  */
+
+static tree
+do_free_exception (location_t location, tree ptr)
+{
+  tree func;
+
+  m2statement_BuildParam (location, ptr);
+  func = m2statement_BuildProcedureCallTree (location,
+					     fn_free_exception_tree, ptr_type_node);
+  m2statement_SetLastFunction (NULL_TREE);
+  return func;
+}
+
+/*
+ *  do_throw - returns tree for a call to throw (ptr, gm2_eh_int_type, 0).
+ */
+
+static tree
+do_throw (location_t location, tree ptr)
+{
+  tree func;
+
+  m2statement_BuildParam (location, ptr);
+  m2statement_BuildParam (location, gm2_eh_int_type);
+  m2statement_BuildParam (location, build_int_cst (cleanup_type, 0));
+
+  func = m2statement_BuildProcedureCallTree (location,
+					     fn_throw_tree, void_type_node);
+  m2statement_SetLastFunction (NULL_TREE);
+  return func;
+}
+
+/*
+ *  do_rethrow - returns a tree containing the call to rethrow ().
+ */
+
+static tree
+do_rethrow (location_t location)
+{
+  tree func;
+
+  func = m2statement_BuildProcedureCallTree (location,
+					     fn_rethrow_tree, void_type_node);
+  m2statement_SetLastFunction (NULL_TREE);
+  return func;
+}
+
+/*
+ *  gm2_build_throw - build a GCC throw expression tree which looks identical to the C++
+ *                    front end.
+ */
+
+static tree
+gm2_build_throw (location_t location, tree exp)
 {
   m2assert_AssertLocation (location);
 
   if (exp == NULL_TREE)
     {
       /* rethrow the current exception */
-      tree exp = build_call_array_loc (location, TREE_TYPE (fn_rethrow_tree),
-				       fn_rethrow_tree, 0, NULL);
-      return build1 (THROW_EXPR, void_type_node, exp);
+      return build1 (THROW_EXPR, void_type_node, do_rethrow (location));
     }
   else
     {
-      tree throw_type;
       tree cleanup;
       tree object, ptr;
       tree allocate_expr;
       tree tmp;
       tree *argarray = XALLOCAVEC (tree, 3);
 
+      exp = m2expr_FoldAndStrip (convert (m2type_GetIntegerType (), m2expr_FoldAndStrip (exp)));
+      exp = m2expr_GetIntegerOne ();
+
       /* Allocate the space for the exception.  */
       allocate_expr = do_allocate_exception (location, TREE_TYPE (exp));
       allocate_expr = get_target_expr (location, allocate_expr);
       ptr = TARGET_EXPR_SLOT (allocate_expr);
+      TARGET_EXPR_CLEANUP (allocate_expr) = do_free_exception (location, ptr);
+      CLEANUP_EH_ONLY (allocate_expr) = 1;
+
       object = build1 (NOP_EXPR, build_pointer_type (TREE_TYPE (exp)), ptr);
       object = m2expr_BuildIndirect (location, object, TREE_TYPE (exp));
 
       /* And initialize the exception object.  */
       exp = build2 (INIT_EXPR, TREE_TYPE (object), object, exp);
 
-      exp = build1 (CLEANUP_POINT_EXPR, TREE_TYPE (exp), exp);
-
       /* Prepend the allocation.  */
       exp = build2 (COMPOUND_EXPR, TREE_TYPE (exp), allocate_expr, exp);
 
-      throw_type = gm2_eh_int_type;
+      /* Force all the cleanups to be evaluated here so that we don't have
+	 to do them during unwinding.  */
+      exp = build1 (CLEANUP_POINT_EXPR, void_type_node, exp);
 
-      cleanup = build_int_cst (cleanup_type, 0);
-
-      argarray[0] = ptr;
-      argarray[1] = throw_type;
-      argarray[2] = cleanup;
-      
-      /* ??? Indicate that this function call throws throw_type.  */
-      tmp = build_call_array_loc (location, TREE_TYPE (fn_rethrow_tree),
-				  fn_rethrow_tree, 3, argarray);
+      tmp = do_throw (location, ptr);
 
       /* Tack on the initialization stuff.  */
       exp = build2 (COMPOUND_EXPR, TREE_TYPE (tmp), exp, tmp);
@@ -397,6 +462,29 @@ m2except_BuildThrow (location_t location, tree exp)
       return exp;
     }
 }
+
+/*
+ *  gccgm2_BuildThrow - builds a throw expression and
+ *                      return the tree.
+ */
+
+tree
+m2except_BuildThrow (location_t location, tree expr)
+{
+  expr = gm2_build_throw (location, expr);
+
+  /* Simplification of inner statement expressions, compound exprs,
+     etc can result in us already having an EXPR_STMT.  */
+  if (TREE_CODE (expr) != CLEANUP_POINT_EXPR)
+    {
+      if (TREE_CODE (expr) != EXPR_STMT)
+	expr = build_stmt (input_location, EXPR_STMT, expr);
+      expr = maybe_cleanup_point_expr_void (expr);
+    }
+  
+  return expr;
+}
+
 
 /*  Build up a call to __cxa_begin_catch, to tell the runtime that the
  *  exception has been handled.
