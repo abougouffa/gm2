@@ -902,7 +902,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   flag_set seen_shared_opt_flags = {FALSE, FALSE};
   styles shared_opt;
   int seen_source = FALSE;
-  int seen_fno_exceptions = FALSE;
+  int seen_fexceptions = TRUE;
   const char *libpath;
   const char *gm2ipath;
   const char *gm2opath;
@@ -937,8 +937,8 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 
     switch ((*in_decoded_options)[i].opt_index)
       {
-      case OPT_fno_exceptions:
-	seen_fno_exceptions = TRUE;
+      case OPT_fexceptions:
+	seen_fexceptions = ((*in_decoded_options)[i].value);
 	break;
       case OPT_fonlylink:
 	seen_fonlylink = TRUE;
@@ -1076,7 +1076,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
     add_default_archives (inclPos, in_decoded_options_count, in_decoded_options, libpath, shared_opt, libraries);
     if (need_math)
       add_lib (in_decoded_options_count, in_decoded_options, OPT_l, MATH_LIBRARY);
-    if (! seen_fno_exceptions)
+    if (seen_fexceptions)
       add_lib (in_decoded_options_count, in_decoded_options, OPT_l, "stdc++");
   /* There's no point adding -shared-libgcc if we don't have a shared
      libgcc.  */

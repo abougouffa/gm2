@@ -85,9 +85,9 @@ fsoft-check-all
 Modula-2
 turns on all software runtime checking (an abbreviation for -fnil -frange -findex -fwholediv -fcase -freturn -fwholediv)
 
-fno-exceptions
+fexceptions
 Modula-2
-turns off all exception generating code, this flag should be used with -flibs=min
+turns on all exception generating code (the default)
 
 fextended-opaque
 Modula-2

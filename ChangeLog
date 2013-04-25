@@ -13,6 +13,10 @@
 	  the exception handling schema used in gcc-4.7.1.  Use
 	  m2statements to call the exception handling helper functions.
 	* gm2/gm2-gcc/m2statement.c:  fixed typo in comment.
+	* gm2/gm2spec.c:  change fseen_no_exceptions into fseen_exceptions
+	  and invert logic.
+	* gm2/lang.opt:  use fexceptions rather than fno-exceptions
+	  and use the option value which by default is TRUE.
 
 2013-04-18      Gaius Mulley <gaius@gnu.org>
 
