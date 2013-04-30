@@ -537,3 +537,13 @@ m2convert_convertToPtr (tree type)
     return m2convert_BuildConvert (m2type_GetPointerType (), type, FALSE);
 }
 
+
+/*
+ *  ToInteger - convert an expression, expr, to an INTEGER.
+ */
+
+tree
+m2convert_ToInteger (tree expr)
+{
+  return m2convert_BuildConvert (m2type_GetIntegerType (), expr, FALSE);
+}

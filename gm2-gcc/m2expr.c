@@ -279,8 +279,7 @@ m2expr_BuildLogicalShift (location_t location, tree op1, tree op2, tree op3,
     char *labelElseName = createUniqueLabel ();
     char *labelEndName  = createUniqueLabel ();
     tree  is_less       = m2expr_BuildLessThan (location,
-						m2convert_BuildConvert (m2type_GetIntegerType (),
-									op3, FALSE),
+						m2convert_ToInteger (op3),
 						m2expr_GetIntegerZero ());
 
     m2statement_DoJump (location, is_less, NULL, labelElseName);
@@ -349,17 +348,21 @@ tree
 m2expr_BuildLRLn (location_t location, tree op1, tree op2, tree nBits,
                   int  needconvert)
 {
+  tree op2min;
+
   m2assert_AssertLocation (location);
   /*
    *  ensure we wrap the rotate
    */
-  op2 = m2expr_BuildModTrunc (location, op2, nBits, needconvert);
+  op2min = m2expr_BuildModTrunc (location,
+				 m2convert_ToCardinal (op2),
+				 m2convert_ToCardinal (nBits), needconvert);
   /*
    *  optimize if we are we going to rotate a TSIZE(BITSET) set
    */
   if (m2expr_CompareTrees (m2decl_BuildIntegerConstant (m2decl_GetBitsPerBitset ()),
                            nBits) == 0)
-    return m2expr_build_binary_op (location, LROTATE_EXPR, op1, op2, needconvert);
+    return m2expr_build_binary_op (location, LROTATE_EXPR, op1, op2min, needconvert);
   else {
     tree mask = m2expr_BuildMask (location, nBits, needconvert);
     tree left, right;
@@ -368,10 +371,11 @@ m2expr_BuildLRLn (location_t location, tree op1, tree op2, tree nBits,
      *  make absolutely sure there are no high order bits lying around
      */
     op1 = m2expr_BuildLogicalAnd (location, op1, mask, needconvert);
-    left = m2expr_BuildLSL (location, op1, op2, needconvert);
+    left = m2expr_BuildLSL (location, op1, op2min, needconvert);
     left = m2expr_BuildLogicalAnd (location, left, mask, needconvert);
     right = m2expr_BuildLSR (location, 
-			     op1, m2expr_BuildSub (location, nBits, op2, needconvert),
+			     op1, m2expr_BuildSub (location,
+						   m2convert_ToCardinal (nBits), op2min, needconvert),
                              needconvert);
     return m2expr_BuildLogicalOr (location, left, right, needconvert);
   }
@@ -386,17 +390,22 @@ m2expr_BuildLRLn (location_t location, tree op1, tree op2, tree nBits,
 tree
 m2expr_BuildLRRn (location_t location, tree op1, tree op2, tree nBits, int needconvert)
 {
+  tree op2min;
+
   m2assert_AssertLocation (location);
   /*
    *  ensure we wrap the rotate
    */
-  op2 = m2expr_BuildModTrunc (location, op2, nBits, needconvert);
+  op2min = m2expr_BuildModTrunc (location,
+				 m2convert_ToCardinal (op2),
+				 m2convert_ToCardinal (nBits),
+				 needconvert);
   /*
    *  optimize if we are we going to rotate a TSIZE(BITSET) set
    */
   if (m2expr_CompareTrees (m2decl_BuildIntegerConstant (m2decl_GetBitsPerBitset ()),
                            nBits) == 0)
-    return m2expr_build_binary_op (location, RROTATE_EXPR, op1, op2, needconvert);
+    return m2expr_build_binary_op (location, RROTATE_EXPR, op1, op2min, needconvert);
   else {
     tree mask = m2expr_BuildMask (location, nBits, needconvert);
     tree left, right;
@@ -405,9 +414,10 @@ m2expr_BuildLRRn (location_t location, tree op1, tree op2, tree nBits, int needc
      *  make absolutely sure there are no high order bits lying around
      */
     op1 = m2expr_BuildLogicalAnd (location, op1, mask, needconvert);
-    right = m2expr_BuildLSR (location, op1, op2, needconvert);
+    right = m2expr_BuildLSR (location, op1, op2min, needconvert);
     left = m2expr_BuildLSL (location,
-			    op1, m2expr_BuildSub (location, nBits, op2, needconvert),
+			    op1, m2expr_BuildSub (location,
+						  m2convert_ToCardinal (nBits), op2min, needconvert),
                             needconvert);
     left = m2expr_BuildLogicalAnd (location, left, mask, needconvert);
     return m2expr_BuildLogicalOr (location, left, right, needconvert);
@@ -442,7 +452,9 @@ m2expr_BuildLogicalRotate (location_t location,
   else {
     char *labelElseName = createUniqueLabel ();
     char *labelEndName  = createUniqueLabel ();
-    tree  is_less       = m2expr_BuildLessThan (location, op3, m2expr_GetIntegerZero ());
+    tree  is_less       = m2expr_BuildLessThan (location,
+						m2convert_ToInteger (op3),
+						m2expr_GetIntegerZero ());
 
     m2statement_DoJump (location, is_less, NULL, labelElseName);
     res = m2expr_BuildLRLn (location, op2, op3, nBits, needconvert);
@@ -827,10 +839,13 @@ m2expr_build_binary_op (location_t location,
   type1 = m2tree_skip_type_decl (TREE_TYPE (op1));
   type2 = m2tree_skip_type_decl (TREE_TYPE (op2));
 #endif
+
+  if ((code != LSHIFT_EXPR) && (code != RSHIFT_EXPR)
+      && (code != LROTATE_EXPR) && (code == RROTATE_EXPR))
+    if (type1 != type2)
+      error_at (location, "not expecting different types to binary operator");
   
-  if (type1 != type2)
-    error_at (location, "not expecting different types to binary operator");
-   return build_binary_op (location, code, op1, op2, convert);
+return build_binary_op (location, code, op1, op2, convert);
 }
 
 

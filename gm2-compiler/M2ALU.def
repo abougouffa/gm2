@@ -57,6 +57,7 @@ EXPORT QUALIFIED PtrToValue,
                  CoerseLongRealToCard,
                  ConvertRealToInt,
                  ConvertToInt,
+                 ConvertToType,
                  GetSetValueType,
                  IsSolved, IsValueConst,
                  PutConstructorSolved, EvaluateValue, TryEvaluateValue,
@@ -285,6 +286,13 @@ PROCEDURE ConvertRealToInt ;
 *)
 
 PROCEDURE ConvertToInt ;
+
+
+(*
+   ConvertToType - converts the top of stack to type, t.
+*)
+
+PROCEDURE ConvertToType (t: CARDINAL) ;
 
 
 (*

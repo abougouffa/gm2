@@ -33,11 +33,12 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 
 EXTERN tree m2convert_BuildConvert (tree type, tree value, int checkOverflow);
 EXTERN tree m2convert_ConvertToPtr (tree p);
-EXTERN tree m2convert_ToWord (tree expr);
 EXTERN tree m2convert_ConvertString (tree type, tree expr);
 EXTERN tree m2convert_ConvertConstantAndCheck (location_t location, tree type, tree expr);
 EXTERN tree m2convert_convertToPtr (tree type);
 EXTERN tree m2convert_ToCardinal (tree expr);
+EXTERN tree m2convert_ToInteger (tree expr);
+EXTERN tree m2convert_ToWord (tree expr);
 
 #  undef EXTERN
 #endif

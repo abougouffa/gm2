@@ -4362,18 +4362,24 @@ BEGIN
    c := 0 ;
    PushValue(element) ;
    PushValue(low) ;
+   PushIntegerTree(ToCardinal(PopIntegerTree())) ;
    PushCard(bpw) ;
+   PushIntegerTree(ToCardinal(PopIntegerTree())) ;
    Addn ;
    WHILE GreEqu(tokenno) DO
       INC(c) ;   (* move onto next field *)
       PushValue(element) ;
+      PushIntegerTree(ToCardinal(PopIntegerTree())) ;
       PushCard((c+1)*bpw) ;
       PushValue(low) ;
+      PushIntegerTree(ToCardinal(PopIntegerTree())) ;
       Addn ;
       PushIntegerTree(offset) ;
+      PushIntegerTree(ToCardinal(PopIntegerTree())) ;
       PushCard(bpw) ;
+      PushIntegerTree(ToCardinal(PopIntegerTree())) ;
       Addn ;
-      offset := PopIntegerTree() ;
+      offset := PopIntegerTree()
    END ;
    RETURN( VAL(INTEGER, c) )
 END GetFieldNo ;
@@ -6441,6 +6447,7 @@ BEGIN
          THEN
             PushValue(op1) ;
             PushIntegerTree(offset) ;
+            ConvertToType(GetType(op1)) ;
             Sub ;
             BuildIfConstInVar(location,
                               Mod2Gcc(SkipType(GetType(op2))),
@@ -6510,6 +6517,7 @@ BEGIN
          THEN
             PushValue(op1) ;
             PushIntegerTree(offset) ;
+            ConvertToType(GetType(op1)) ;
             Sub ;
             BuildIfNotConstInVar(location,
                                  Mod2Gcc(SkipType(GetType(op2))),

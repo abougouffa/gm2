@@ -50,7 +50,7 @@ EXTERN void m2statement_BuildExcludeVarConst (location_t location,
 					      int is_lvalue, int fieldno);
 EXTERN void m2statement_BuildUnaryForeachWordDo (location_t location,
 						 tree type, tree op1, tree op2,
-						 tree (*unop)(tree, int),
+						 tree (*unop)(location_t, tree, int),
 						 int is_op1lvalue, int is_op2lvalue,
 						 int is_op1const, int is_op2const);
 EXTERN void m2statement_BuildAsm (location_t location,

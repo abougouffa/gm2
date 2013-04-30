@@ -19,6 +19,17 @@ PROCEDURE ToWord (expr: Tree) : Tree ;
 PROCEDURE ToCardinal (expr: Tree) : Tree ;
 
 
+(*
+   ToInteger - convert an expression, expr, to an INTEGER.
+*)
+
+PROCEDURE ToInteger (expr: Tree) : Tree ;
+
+
+(*
+   ConvertToPtr - convert an expression to a void *.
+*)
+
 PROCEDURE ConvertToPtr (p: Tree) : Tree ;
 
 

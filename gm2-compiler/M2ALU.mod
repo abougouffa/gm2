@@ -1367,6 +1367,33 @@ END ConvertToInt ;
 
 
 (*
+   ConvertToType - converts the top of stack to type, t.
+*)
+
+PROCEDURE ConvertToType (t: CARDINAL) ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := Pop() ;
+   IF t#NulSym
+   THEN
+      WITH v^ DO
+         IF type=integer
+         THEN
+            numberValue     := ConvertConstantAndCheck(location, Mod2Gcc(t), numberValue) ;
+            solved          := TRUE ;
+            areAllConstants := TRUE
+         ELSE
+            InternalError('expecting an INTEGER number', __FILE__, __LINE__)
+         END
+      END
+   END ;
+   Push(v)
+END ConvertToType ;
+
+
+
+(*
    IsSolved - returns true if the memory cell indicated by v
               has a known value.
 *)
@@ -4952,13 +4979,15 @@ VAR
    r1, r2  : CARDINAL ;
    location: location_t ;
 BEGIN
+   low := ToInteger(low) ;
+   high := ToInteger(high) ;
    n := 1 ;
    t := GetIntegerZero() ;
    WHILE GetRange(v, n, r1, r2) DO
       PushValue(r1) ;
-      tl := PopIntegerTree() ;
+      tl := ToInteger(PopIntegerTree()) ;
       PushValue(r2) ;
-      th := PopIntegerTree() ;
+      th := ToInteger(PopIntegerTree()) ;
       IF IsIntersectionTree(tokenno, tl, th, low, high)
       THEN
          tl := SubTree(MaxTree(tokenno, tl, low), low) ;

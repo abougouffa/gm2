@@ -1,3 +1,25 @@
+2013-04-30      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2ALU.def:  (ConvertToType) New procedure.
+	* gm2/gm2-compiler/M2ALU.mod:  (ConvertToType) New procedure
+	  implemented.
+	  Call ToInteger to change internal GCC types when computing bitsets.
+	* gm2/gm2-compiler/M2GenGCC.mod:  GetFieldNo converts M2ALU gcc trees
+	  using ToCardinal.
+	* gm2/gm2-compiler/M2Quads.mod:  (GetProtection) New procedure function.
+	  (CheckNeedPriorityBegin)  create variable of PROTECTION type rather than
+	  CARDINAL.
+	* gm2/gm2-gcc/m2convert.c:  (ToInteger) New function.
+	* gm2/gm2-gcc/m2convert.def:  (ToInteger) New procedure function.
+	* gm2/gm2-gcc/m2convert.h:  (ToInteger) New procedure function.
+	* gm2/gm2-gcc/m2expr.c:  (m2expr_BuildLogicalShift) convert binary
+	  operands to the same type.
+	* gm2/gm2-gcc/m2statement.c:  (m2statement_BuildUnaryForeachWordDo)
+	  convert binary operands to the same type and correct the call to
+	  (*unop).
+	* gm2/gm2-gcc/m2statement.h:  corrected parameter (*unop) to
+	  include the location_t parameter.
+
 2013-04-25      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/c.flex:  changed variable names try into ctry to avoid compiler

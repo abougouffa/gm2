@@ -640,7 +640,7 @@ m2statement_BuildAsm (location_t location,
 void
 m2statement_BuildUnaryForeachWordDo (location_t location,
 				     tree type, tree op1, tree op2,
-				     tree (*unop)(tree, int),
+				     tree (*unop)(location_t, tree, int),
 				     int is_op1lvalue, int is_op2lvalue,
 				     int is_op1const, int is_op2const)
 {
@@ -655,7 +655,7 @@ m2statement_BuildUnaryForeachWordDo (location_t location,
     /* small set size <= TSIZE(WORD) */
     m2statement_BuildAssignmentTree (location,
 				     m2treelib_get_rvalue (location, op1, type, is_op1lvalue),
-				     (*unop) (m2treelib_get_rvalue (location, op2, type, is_op2lvalue), FALSE));
+				     (*unop) (location, m2treelib_get_rvalue (location, op2, type, is_op2lvalue), FALSE));
   else {
     /* large set size > TSIZE(WORD) */
 
@@ -671,7 +671,8 @@ m2statement_BuildUnaryForeachWordDo (location_t location,
     while (field1 != NULL && field2 != NULL) {
       m2statement_BuildAssignmentTree (location,
 				       m2treelib_get_set_field_rhs (location, p1, field1),
-				       (*unop) (m2treelib_get_set_value (location, p2, field2, is_op2const, op2, fieldNo),
+				       (*unop) (location,
+						m2treelib_get_set_value (location, p2, field2, is_op2const, op2, fieldNo),
 						FALSE));
       fieldNo++;
       field1 = m2treelib_get_field_no (type, op1, is_op1const, fieldNo);
@@ -751,7 +752,7 @@ m2statement_BuildExcludeVarVar (location_t location,
 				     m2treelib_get_rvalue (location, varset, type, is_lvalue),
 				     m2expr_BuildLogicalAnd (location,
 							     m2treelib_get_rvalue (location, varset, type, is_lvalue),
-							     m2expr_BuildSetNegate (location, m2expr_BuildLSL (location, m2expr_GetWordOne(), index, FALSE),
+							     m2expr_BuildSetNegate (location, m2expr_BuildLSL (location, m2expr_GetWordOne(), m2convert_ToWord (index), FALSE),
 										    FALSE),
 							     FALSE));
   else {
@@ -779,7 +780,7 @@ m2statement_BuildExcludeVarVar (location_t location,
 							     m2expr_BuildSetNegate (location,
 										    m2expr_BuildLSL (location,
 												     m2expr_GetWordOne (),
-												     offset_into_word, FALSE),
+												     m2convert_ToWord (offset_into_word), FALSE),
 										    FALSE),
 							     FALSE));
   }
@@ -808,7 +809,7 @@ m2statement_BuildIncludeVarConst (location_t location,
 				     m2expr_BuildLogicalOr (location,
 							    m2treelib_get_rvalue (location, op1, type, is_lvalue),
 							    m2expr_BuildLSL (location,
-									     m2expr_GetWordOne(), op2, FALSE),
+									     m2expr_GetWordOne(), m2convert_ToWord (op2), FALSE),
 							    FALSE));
   else {
     tree p1 = m2treelib_get_set_address (location, op1, is_lvalue);
@@ -821,7 +822,7 @@ m2statement_BuildIncludeVarConst (location_t location,
 				     m2treelib_get_set_field_rhs (location, p1, field),
 				     m2expr_BuildLogicalOr (location,
 							    m2treelib_get_set_field_rhs (location, p1, field),
-							    m2expr_BuildLSL (location, m2expr_GetWordOne(), op2, FALSE),
+							    m2expr_BuildLSL (location, m2expr_GetWordOne(), m2convert_ToWord (op2), FALSE),
 							    FALSE));
   }
 }
@@ -845,7 +846,7 @@ m2statement_BuildIncludeVarVar (location_t location,
   tree index = m2expr_BuildSub (location,
 				m2convert_BuildConvert (m2type_GetIntegerType(), varel, FALSE),
                                 m2convert_BuildConvert (m2type_GetIntegerType(), low, FALSE), FALSE);
-  tree indexw = m2convert_BuildConvert (m2type_GetWordType (), index, FALSE);
+  tree indexw = m2convert_ToWord (index);
 
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */

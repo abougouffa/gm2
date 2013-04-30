@@ -1896,6 +1896,21 @@ END GetTurnInterrupts ;
 
 
 (*
+   GetProtection - returns the PROTECTION data type.
+*)
+
+PROCEDURE GetProtection () : CARDINAL ;
+BEGIN
+   IF Iso
+   THEN
+      RETURN( GetQualidentImport(MakeKey('PROTECTION'), MakeKey('COROUTINES')) )
+   ELSE
+      RETURN( GetQualidentImport(MakeKey('PROTECTION'), MakeKey('SYSTEM')) )
+   END
+END GetProtection ;
+
+
+(*
    CheckNeedPriorityBegin - checks to see whether we need to save the old
                             module priority and change to another module
                             priority.
@@ -1915,7 +1930,7 @@ BEGIN
       IF ProcSym#NulSym
       THEN
          old := MakeTemporary(RightValue) ;
-         PutVar(old, Cardinal) ;
+         PutVar(old, GetProtection()) ;
 
          GenQuad(SavePriorityOp, old, scope, ProcSym) ;
          PushWord(PriorityStack, old)
