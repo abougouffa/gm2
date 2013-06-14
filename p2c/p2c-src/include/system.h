@@ -25,12 +25,8 @@ Boston, MA 02110-1301, USA.  */
 #ifndef __GCC_SYSTEM_H__
 #define __GCC_SYSTEM_H__
 
-/* We must include stdarg.h/varargs.h before stdio.h. */
-#ifdef ANSI_PROTOTYPES
+/* We must include stdarg.h before stdio.h.  */
 #include <stdarg.h>
-#else
-#include <varargs.h>
-#endif
 
 #ifndef va_copy
 # ifdef __va_copy
@@ -38,6 +34,10 @@ Boston, MA 02110-1301, USA.  */
 # else
 #   define va_copy(d,s)  ((d) = (s))
 # endif
+#endif
+
+#ifdef HAVE_STDDEF_H
+# include <stddef.h>
 #endif
 
 #include <stdio.h>

@@ -2905,6 +2905,12 @@ $ make post-install
 which will create an @file{a.out} for the infamous hello world
 example.
 
+To build gm2 based on the 4.7 series of GCC you will need to install:
+
+@example
+$ sudo apt-get install gcc-multilib libmpfr-dev
+@end example
+
 @node Development, Dejagnu, Building, Top
 @section Development sources via CVS
 

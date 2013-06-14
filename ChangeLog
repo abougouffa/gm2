@@ -1,3 +1,15 @@
+2013-06-14      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  removed many of the library building rules.
+	* gm2/Makefile.in:  added description comment.
+	* gm2/gm2.texi:  updated dependencies for building gm2 on the gcc-4.7.x.
+	* gm2/examples/pge/rotating-line.asc:  rebuilt the .asc.
+	* gm2/gm2-libs-ch/termios.c:  include correct target/host configure header file.
+	* gm2/gm2-libs-min/libc.c:  updated copyright dates.
+	* gm2/p2c/p2c.h:  tidied formatting.
+	* gm2/p2c/p2c-src/include/system.h:  remove include <varargs.h>.  Add
+	  include of <stddef.h>.
+
 2013-04-30      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2ALU.def:  (ConvertToType) New procedure.
