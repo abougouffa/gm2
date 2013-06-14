@@ -1,0 +1,11 @@
+--- gcc-4.7.3-orig/gcc/Makefile.in	2013-04-01 09:11:11.000000000 +0100
++++ gcc-4.7.3/gcc/Makefile.in	2013-06-12 14:09:23.000000000 +0100
+@@ -1815,7 +1815,7 @@
+ 
+ cc1-checksum.o : cc1-checksum.c $(CONFIG_H) $(SYSTEM_H)
+ 
+-cc1$(exeext): $(C_OBJS) cc1-checksum.o $(BACKEND) $(LIBDEPS)
++cc1$(exeext): $(C_OBJS) cc1-checksum.o $(BACKEND) $(LIBDEPS) c-family/m2pp.o
+ 	+$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ $(C_OBJS) \
+ 	  cc1-checksum.o $(BACKEND) $(LIBS) $(BACKENDLIBS)
+ 
