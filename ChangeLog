@@ -1,3 +1,21 @@
+2013-07-08      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  removed installation rules for library modules.
+	* gm2/gm2.texi:  added information on how to build gm2 grafted onto gcc-4.7.3.
+	* gm2/gm2spec.c:  many changes which reintroduce the gm2 linking mechanism and
+	  via specs.  Many changes due to the differences between gcc-4.7.3 and gcc-4.1.2.
+	* gm2/lang-specs.h:  corrected dates.
+	* gm2/gm2-compiler/M2Defaults.def:  corrected dates.
+	* gm2/gm2-compiler/M2Defaults.mod:  corrected dates.
+	* gm2/gm2-compiler/M2FileName.def:  corrected dates.
+	* gm2/gm2-compiler/M2FileName.mod:  corrected dates.
+	* gm2/gm2-compiler/M2Options.mod:  added Debugging and printf1.
+	* gm2/gm2-compiler/M2Search.def:  corrected dates.
+	* gm2/gm2-compiler/M2Search.mod:  corrected dates.
+	* gm2/gm2-compiler/gm2lcc.mod:  corrected dates.
+	* gm2/www/Makefile.in:  commented out texisrc subcomponents and fixed path for
+	  TEXI2HTML.
+
 2013-06-14      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  removed many of the library building rules.

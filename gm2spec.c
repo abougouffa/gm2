@@ -1,6 +1,6 @@
 /* Specific flags and argument handling of the GNU Modula-2 front-end.
  * Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *               2010, 2011
+ *               2010, 2011, 2012, 2013
  *               Free Software Foundation, Inc.
 
 This file is part of GNU Modula-2.
@@ -122,10 +122,9 @@ static style_sig libraryStyle[LIB_MAX+1] = {{"",      { FALSE,    FALSE}},
 					    {"SO_O2", {  TRUE,     TRUE}},
 					    {"",      { FALSE,    FALSE}}};
 
-static void insert_arg (int pos, unsigned int *in_options_count, struct cl_decoded_option **in_options);
 int lang_specific_pre_link (void);
-static void add_exec_prefix (int pos, unsigned int *in_options_count, struct cl_decoded_option **in_options);
-static void add_B_prefix (int pos, unsigned int *in_options_count, struct cl_decoded_option **in_options);
+static void add_exec_prefix (void);
+static void add_B_prefix (struct cl_decoded_option **in_options, const char *gm2_root);
 static const char *get_objects (int argc, const char *argv[]);
 static const char *get_link_args (int argc, const char *argv[]);
 static const char *add_exec_dir (int argc, const char *argv[]);
@@ -134,10 +133,14 @@ static void remember_object (const char *s);
 static void remember_link_arg (const char *s);
 static void scan_for_link_args (unsigned int *in_decoded_options_count, struct cl_decoded_option **in_decoded_options);
 static styles get_style (flag_set flags);
-static void add_link_from_include (int pos, struct cl_decoded_option **in_options, int include);
-static void add_lib (unsigned int *in_options_count, struct cl_decoded_option **in_options, size_t opt_index, const char *lib);
+static void add_link_from_include (struct cl_decoded_option **in_options, int include);
+static void add_lib (size_t opt_index, const char *lib, int joined);
 static void check_gm2_root (void);
 static char *add_include (char *prev, const char *libpath, char *library);
+static const char *gen_gm2_root (const char *gm2_root);
+static const char *get_prefix (void);
+
+void fe_save_switch (const char *opt, size_t n_args, const char *const *args, bool validated);
 
 
 typedef struct object_list {
@@ -161,16 +164,62 @@ static int seen_B = FALSE;
 #define TARGET_OBJECT_SUFFIX ".o"
 #endif
 
+#if 0
+static const char *gm2_cpp_options = "-fcppbegin %:exec_prefix(cc1%s) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend";
+#endif
 
-static void assert (int b)
+
+/*
+ *  assert - simple assertion procedure.
+ */
+
+static void
+assert (int b)
 {
   if (! b)
-    exit(1);
+    {
+      printf ("assert failed in gm2spec.c");
+      exit (1);
+    }
 }
 
+/*
+ *  fe_generate_option - wrap up arg and pass it to fe_save_switch.
+ */
 
-static const char *gm2_cpp_options = "-fcppbegin %:exec_prefix(cc1%s) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend";
+static void fe_generate_option (size_t opt_index, const char *arg, int joined)
+{
+  const struct cl_option *option = &cl_options[opt_index];
+  const char *opt = (const char *) option->opt_text;
+  const char *newopt = opt;
 
+  if (opt_index == OPT_l)
+    return;
+
+  if (joined)
+    newopt = concat (opt, arg, NULL);
+
+  if (arg == NULL || joined)
+    {
+#if 1
+      if (opt_index == OPT_l)
+	{
+	  fe_add_infile (newopt, "*");
+	}
+#endif
+      fe_save_switch (newopt, 0, NULL, 1);
+    }
+  else
+    {
+      const char **x = XCNEWVEC (const char **, 2);
+
+      x[0] = xstrdup (arg);
+      x[1] = NULL;
+
+      assert (opt_index != OPT_l);
+      fe_save_switch (newopt, 1, x, 1);
+    }
+}
 
 /*
  *  find_executable_path - if argv0 references an executable filename then use
@@ -203,16 +252,20 @@ const char *find_executable_path (const char *argv0)
  */
 
 static
-void add_B_prefix (int pos, unsigned int *in_options_count, struct cl_decoded_option **in_options)
+void add_B_prefix (struct cl_decoded_option **in_options, const char *gm2_root)
 {
-  const char *path = xstrdup (find_executable_path ((*in_options)[0].arg));
-  
-  if (path != NULL)
+  if ((*in_options)[0].arg != NULL)
     {
-      /* insert -B */
-      insert_arg (pos, in_options_count, in_options);
-      generate_option (OPT_B, path, 1, CL_DRIVER, &((*in_options)[pos]));
-      assert ((*in_options)[pos].errors == 0);
+      const char *arg = (*in_options)[0].arg;
+      const char *path = find_executable_path (arg);
+
+      if (path == NULL || (strcmp (path, "") == 0))
+	path = gen_gm2_root (gm2_root);
+
+      if (path != NULL && (strcmp (path, "") != 0)) {
+	fe_B_prefix (xstrdup (path));
+	fe_generate_option (OPT_B, xstrdup (path), TRUE);
+      }
     }
 }
 
@@ -222,20 +275,24 @@ void add_B_prefix (int pos, unsigned int *in_options_count, struct cl_decoded_op
  */
 
 static
-void add_exec_prefix (int pos, unsigned int *in_options_count, struct cl_decoded_option **in_options)
+void add_exec_prefix (void)
 {
   const char *ar = AR_PATH;
   const char *ranlib = RANLIB_PATH;
 
-  /* insert ar */
-  insert_arg(pos, in_options_count, in_options);
-  generate_option (OPT_ftarget_ar_, xstrdup (ar), 1, CL_ModulaX2, &(*in_options)[pos]);
-  assert ((*in_options)[pos].errors == 0);
+  fe_generate_option (OPT_ftarget_ar_, ar, TRUE);
+  fe_generate_option (OPT_ftarget_ranlib_, ranlib, TRUE);
+}
 
-  /* and now insert ranlib */
-  insert_arg(pos, in_options_count, in_options);
-  generate_option (OPT_ftarget_ranlib_, xstrdup (ranlib), 1, CL_ModulaX2, &(*in_options)[pos]);
-  assert ((*in_options)[pos].errors == 0);
+static
+const char *get_prefix (void)
+{
+  const char *prefix = getenv (GM2_ROOT_ENV);
+
+  if (prefix == NULL || (strcmp (prefix, "") == 0))
+    return "/home/gaius/opt";
+  else
+    return prefix;
 }
 
 static int
@@ -270,43 +327,12 @@ remember_link_arg (const char *s)
  */
 
 static void
-add_link_from_include (int pos, struct cl_decoded_option **in_options, int include)
+add_link_from_include (struct cl_decoded_option **in_options, int include)
 {
   struct cl_decoded_option *options = *in_options;
   const char *arg = options[include].arg;
 
-  generate_option (OPT_fobject_path_, xstrdup (arg), 1, CL_ModulaX2, &options[pos]);
-  assert (options[pos].errors == 0);
-}
-
-/*
- *  insert_arg - inserts an empty argument at position, pos.
- *               in_argv and in_argc are updated accordingly.
- */
-
-static void
-insert_arg (int pos, unsigned int *in_options_count, struct cl_decoded_option **in_options)
-{
-  struct cl_decoded_option *new_options = XCNEWVEC (struct cl_decoded_option, ((*in_options_count) + 1));
-  int i = 0;
-
-  (*in_options_count)++;
-
-  while (i < pos) {
-    new_options[i] = (*in_options)[i];
-    i++;
-  }
-  memset(&new_options[pos], sizeof (struct cl_decoded_option*), 0);
-  i = pos+1;
-  while (i < (int) *in_options_count) {
-    new_options[i] = (*in_options)[i-1];
-    i++;
-  }
-  *in_options = new_options;
-  if (linkPos >= pos)
-    linkPos++;
-  if (inclPos >= pos)
-    inclPos++;
+  fe_generate_option (OPT_fobject_path_, arg, TRUE);
 }
 
 /*
@@ -330,15 +356,36 @@ get_style (flag_set flags)
  */
 
 static void
-add_lib (unsigned int *in_options_count, struct cl_decoded_option **in_options, size_t opt_index, const char *lib)
+add_lib (size_t opt_index, const char *lib, int joined)
 {
-  int end = *in_options_count;
-
   if (lib == NULL || (strcmp (lib, "") == 0))
     return;
-  insert_arg (end, in_options_count, in_options);
-  generate_option (opt_index, xstrdup (lib), 1, CL_DRIVER, &((*in_options)[end]));
-  assert ((*in_options)[end].errors == 0);
+
+  fe_generate_option (opt_index, lib, joined);
+}
+
+/*
+ *
+ */
+
+static void
+add_library (const char *libraryname,
+	     unsigned int *in_decoded_options_count,
+	     struct cl_decoded_option **in_decoded_options,
+	     int position)
+{
+  struct cl_decoded_option *new_decoded_options;
+  unsigned int i;
+  
+  (*in_decoded_options_count)++;
+  new_decoded_options = XNEWVEC (struct cl_decoded_option, (*in_decoded_options_count));
+  for (i=0; i<(*in_decoded_options_count); i++)
+    new_decoded_options[i] = (*in_decoded_options)[i];
+    
+  add_lib (OPT_l, libraryname, TRUE);
+  generate_option (OPT_l, libraryname, 1,
+		   CL_DRIVER, &new_decoded_options[position]);
+  *in_decoded_options = new_decoded_options;
 }
 
 /*
@@ -371,7 +418,7 @@ build_archive_path (const char *libpath,
     const char *libdir = (const char *)library;
 
     if (libdir != NULL) {
-      int l = strlen("-L") + strlen (libpath) + 1 +
+      int l = strlen (libpath) + 1 +
 	strlen("lib") + 1 + strlen("gcc") + 1 +
 	strlen (DEFAULT_TARGET_MACHINE) + 1 +
 	strlen (DEFAULT_TARGET_VERSION) + 1 +
@@ -383,8 +430,7 @@ build_archive_path (const char *libpath,
       dir_sep[0] = DIR_SEPARATOR;
       dir_sep[1] = (char)0;
     
-      strcpy (s, "-L");
-      strcat (s, libpath);
+      strcpy (s, libpath);
       strcat (s, dir_sep);
       strcat (s, "gm2");
       strcat (s, dir_sep);
@@ -410,9 +456,8 @@ build_archive (const char *library)
   if (library != NULL) {
     const char *a = getArchiveName(library);
     if (a != NULL) {
-      char *s = (char *) xmalloc (strlen ("-l") + strlen (a) + 1);
-      strcpy (s, "-l");
-      strcat (s, a);
+      char *s = (char *) xmalloc (strlen (a) + 1);
+      strcpy (s, a);
       return s;
     }
   }
@@ -424,14 +469,16 @@ build_archive (const char *library)
  */
 
 static void
-add_default_combination (unsigned int *in_options_count, struct cl_decoded_option **in_options,
-			 const char *libpath,
+add_default_combination (const char *libpath,
 			 const char *library,
-			 styles style)
+			 styles style,
+			 unsigned int *in_decoded_options_count,
+			 struct cl_decoded_option **in_decoded_options,
+			 int position)
 {
   if (library != NULL) {
-    add_lib (in_options_count, in_options, OPT_L, build_archive_path (libpath, library, style));
-    add_lib (in_options_count, in_options, OPT_l, build_archive (library));
+    add_lib (OPT_L, build_archive_path (libpath, library, style), TRUE);
+    add_library (build_archive (library), in_decoded_options_count, in_decoded_options, position);
   }
 }
 
@@ -441,24 +488,24 @@ add_default_combination (unsigned int *in_options_count, struct cl_decoded_optio
  */
 
 static void
-add_default_archives (int incl,
-		      unsigned int *in_options_count,
-		      struct cl_decoded_option **in_options,
-		      const char *libpath,
+add_default_archives (const char *libpath,
 		      styles s,
-		      const char *libraries)
+		      const char *libraries,
+		      unsigned int *in_decoded_options_count,
+		      struct cl_decoded_option **in_decoded_options,
+		      int position)
 {
   char *prev;
   const char *l = libraries;
   const char *e;
   char *c;
 
-  if (libpath == NULL)
-    prev = NULL;
-  else
-    prev = xstrdup (libpath);
-
   do {
+    if (libpath == NULL)
+      prev = NULL;
+    else
+      prev = xstrdup (libpath);
+
     e = index (l, ',');
     if (e == NULL) {
       c = xstrdup(l);
@@ -468,9 +515,10 @@ add_default_archives (int incl,
       c = strndup(l, e-l);
       l = e+1;
     }
-    add_default_combination (in_options_count, in_options, libpath, c, s);
+    add_default_combination (libpath, c, s, in_decoded_options_count, in_decoded_options, position);
     prev = add_include (prev, libpath, c);
-    generate_option (OPT_I, prev, 1, CL_ModulaX2, &(*in_options)[incl]);
+
+    fe_generate_option (OPT_L, prev, TRUE);
     free((void *)c);
   } while ((l != NULL) && (l[0] != (char)0));
 }
@@ -532,35 +580,19 @@ add_include (char *prev, const char *libpath, char *library)
  */
 
 static void
-add_default_includes (int incl,
-		      struct cl_decoded_option **in_options,
-		      const char *libpath,
+add_default_includes (const char *libpath,
 		      const char *libraries,
 		      const char *envpath)
 {
   const char *l = libraries;
   const char *e;
-  const char *arg = (*in_options)[incl].arg;
   char *prev;
   char *c;
 
-  if (arg == NULL || (strlen (arg) == 0)) {
-    if (envpath == NULL || (strlen (envpath) == 0))
-      prev = NULL;
-    else
-      prev = xstrdup (envpath);
-  }
-  else {
-    if (envpath == NULL || (strlen (envpath) == 0))
-      prev = xstrdup (arg);      
-    else {
-      prev = (char *) xmalloc (strlen (arg) + 1 + strlen (envpath) + 1);
-      prev[0] = (char)0;
-      prev = strcat (prev, arg);
-      prev = strcat (prev, ":");
-      prev = strcat (prev, envpath);
-    }
-  }
+  if (envpath == NULL || (strlen (envpath) == 0))
+    prev = NULL;
+  else
+    prev = xstrdup (envpath);
 
   do {
     e = index (l, ',');
@@ -576,8 +608,7 @@ add_default_includes (int incl,
     free((void *)c);
   } while ((l != NULL) && (l[0] != (char)0));
 
-  generate_option (OPT_I, prev, 1, CL_ModulaX2, &(*in_options)[incl]);
-  assert ((*in_options)[incl].errors == 0);
+  fe_generate_option (OPT_I, prev, TRUE);
 }
 
 /*
@@ -591,7 +622,6 @@ build_fobject_path (const char *prev, const char *libpath, const char *library,
 {
   char  sepstr[2];
   char *gm2objs;
-  const char *option = "-fobject-path=";
   const char *style_name = libraryStyle[style].directory;
   const char *libName = library;
 
@@ -599,10 +629,9 @@ build_fobject_path (const char *prev, const char *libpath, const char *library,
   sepstr[1] = (char)0;
 
   if (prev == NULL) {
-    gm2objs = (char *) alloca(strlen(option) +
-			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libName)+1+
+    gm2objs = (char *) alloca(strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libName)+1+
 			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libName)+1);
-    strcpy(gm2objs, option);
+    strcpy(gm2objs, "");
   }
   else {
     gm2objs = (char *) alloca(strlen(prev) + strlen(":") +
@@ -630,19 +659,13 @@ build_fobject_path (const char *prev, const char *libpath, const char *library,
  */
 
 static void
-add_fobject_path (int incl,
-		  struct cl_decoded_option **in_options,
+add_fobject_path (const char *prev,
 		  const char *libpath,
 		  const char *library,
 		  styles s)
 {
-  const char *prev = (*in_options)[incl].arg;
-  
-  if (library != NULL) {
-    generate_option (OPT_fobject_path_, build_fobject_path (prev, libpath, library, s),
-		     1, CL_ModulaX2, &(*in_options)[incl]);
-    assert ((*in_options)[incl].errors == 0);
-  }
+  if (library != NULL)
+    fe_generate_option (OPT_fobject_path_, build_fobject_path (prev, libpath, library, s), TRUE);
 }
 
 /*
@@ -651,8 +674,7 @@ add_fobject_path (int incl,
  */
 
 static void
-add_default_fobjects (int incl,
-		      struct cl_decoded_option **in_options,
+add_default_fobjects (const char *prev,
 		      const char *libpath,
 		      const char *libraries,
 		      styles s,
@@ -662,8 +684,9 @@ add_default_fobjects (int incl,
   const char *e;
   char *c;
 
-  generate_option (OPT_I, envpath, 1, CL_ModulaX2, &(*in_options)[incl]);
-  assert ((*in_options)[incl].errors == 0);
+  if (envpath != NULL && (strcmp (envpath, "") != 0))
+    fe_generate_option (OPT_I, envpath, TRUE);
+
   do {
     e = index (l, ',');
     if (e == NULL) {
@@ -674,7 +697,7 @@ add_default_fobjects (int incl,
       c = strndup(l, e-l);
       l = e+1;
     }
-    add_fobject_path (incl, in_options, libpath, c, s);
+    add_fobject_path (prev, libpath, c, s);
     free(c);
   } while ((l != NULL) && (l[0] != (char)0));
 }
@@ -728,6 +751,35 @@ build_path (char *gm2_root)
 }
 
 /*
+ *  gen_gm2_root - return a string containing the gm2_root path.
+ */
+
+static const char *
+gen_gm2_root (const char *gm2_root)
+{
+  int l = strlen (gm2_root) + 1 +
+    strlen("lib") + 1 + strlen("gcc") + 1 +
+    strlen (DEFAULT_TARGET_MACHINE) + 1 +
+    strlen (DEFAULT_TARGET_VERSION) + 1;
+  char *s = (char *) xmalloc (l);
+  char dir_sep[2];
+
+  dir_sep[0] = DIR_SEPARATOR;
+  dir_sep[1] = (char)0;
+
+  strcpy (s, gm2_root);
+  strcat (s, dir_sep);
+  strcat (s, "lib");
+  strcat (s, dir_sep);
+  strcat (s, "gcc");
+  strcat (s, dir_sep);
+  strcat (s, DEFAULT_TARGET_MACHINE);
+  strcat (s, dir_sep);
+  strcat (s, DEFAULT_TARGET_VERSION);
+  return s;
+}
+
+/*
  *  build_library_path - implements export
  *                       LIBRARY_PATH=$(gm2_root)/lib/gcc/\
  *                       $(default_target_machine)/\
@@ -741,26 +793,12 @@ build_path (char *gm2_root)
 static void
 build_library_path (char *gm2_root)
 {
-  int l = strlen ("LIBRARY_PATH=") + strlen (gm2_root) + 1 +
-    strlen("lib") + 1 + strlen("gcc") + 1 +
-    strlen (DEFAULT_TARGET_MACHINE) + 1 +
-    strlen (DEFAULT_TARGET_VERSION) + 1;
+  const char *gm2_root_path = gen_gm2_root (gm2_root);
+  int l = strlen ("LIBRARY_PATH=") + strlen (gm2_root_path) + 1;
   char *s = (char *) xmalloc (l);
-  char dir_sep[2];
-
-  dir_sep[0] = DIR_SEPARATOR;
-  dir_sep[1] = (char)0;
 
   strcpy (s, "LIBRARY_PATH=");
-  strcat (s, gm2_root);
-  strcat (s, dir_sep);
-  strcat (s, "lib");
-  strcat (s, dir_sep);
-  strcat (s, "gcc");
-  strcat (s, dir_sep);
-  strcat (s, DEFAULT_TARGET_MACHINE);
-  strcat (s, dir_sep);
-  strcat (s, DEFAULT_TARGET_VERSION);
+  strcat (s, gm2_root_path);
   putenv (s);
 }
 
@@ -778,26 +816,12 @@ build_library_path (char *gm2_root)
 static void
 build_compiler_path (char *gm2_root)
 {
-  int l = strlen ("COMPILER_PATH=") + strlen (gm2_root) + 1 +
-    strlen("libexec") + 1 + strlen("gcc") + 1 +
-    strlen (DEFAULT_TARGET_MACHINE) + 1 +
-    strlen (DEFAULT_TARGET_VERSION) + 1;
+  const char *gm2_root_path = gen_gm2_root (gm2_root);
+  int l = strlen ("COMPILER_PATH=") + strlen (gm2_root_path) + 1;
   char *s = (char *) xmalloc (l);
-  char dir_sep[2];
-
-  dir_sep[0] = DIR_SEPARATOR;
-  dir_sep[1] = (char)0;
 
   strcpy (s, "COMPILER_PATH=");
-  strcat (s, gm2_root);
-  strcat (s, dir_sep);
-  strcat (s, "libexec");
-  strcat (s, dir_sep);
-  strcat (s, "gcc");
-  strcat (s, dir_sep);
-  strcat (s, DEFAULT_TARGET_MACHINE);
-  strcat (s, dir_sep);
-  strcat (s, DEFAULT_TARGET_VERSION);
+  strcat (s, gm2_root_path);
   putenv (s);
 }
 
@@ -907,10 +931,6 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   const char *gm2ipath;
   const char *gm2opath;
 
-  /* An array used to flag each argument that needs a bit set for
-     LANGSPEC, MATHLIB, or WITHLIBC.  */
-  int *args;
-
   /* By default, we throw on the math library if we have one.  */
   int need_math = (MATH_LIBRARY[0] != '\0');
 
@@ -920,15 +940,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   /* The total number of arguments with the new stuff.  */
   unsigned int argc;
 
-  /* The number of libraries added in.  */
-  int added_libraries;
-
-  return;
-
   argc = *in_decoded_options_count;
-  added_libraries = *in_added_libraries;
-
-  args = XCNEWVEC (int, argc);
 
   /* initially scan the options for key values.  */
   for (i = 1; i < argc; i++) {
@@ -960,9 +972,8 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
    *  applications.
    */
   if (seen_fmakeall && (! seen_fonlylink)) {
-    insert_arg (1, in_decoded_options_count, in_decoded_options);
-    generate_option (OPT_fonlylink, NULL, 1, CL_ModulaX2, &((*in_decoded_options)[1]));
-    assert ((*in_decoded_options)[1].errors == 0);
+
+    fe_generate_option (OPT_fonlylink, NULL, FALSE);
   }
 
   check_gm2_root ();
@@ -1041,43 +1052,57 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 #if defined(DEBUGGING)
     printf("inclPos = %d,  linkPos = %d\n", inclPos, linkPos);
 #endif
-    insert_arg (1, in_decoded_options_count, in_decoded_options);
+
     linkPos = 1;
-    add_link_from_include (linkPos, in_decoded_options, inclPos);
-  }
-  if (inclPos == -1) {
-    insert_arg (1, in_decoded_options_count, in_decoded_options);
-    inclPos = 1;
+    add_link_from_include (in_decoded_options, inclPos);
   }
   shared_opt = get_style (seen_shared_opt_flags);
-  
-  add_default_includes (inclPos, in_decoded_options, libpath,
-			libraries, gm2ipath);
 
-  add_exec_prefix (1, in_decoded_options_count, in_decoded_options);
+  add_default_includes (libpath, libraries, gm2ipath);
+  add_exec_prefix ();
 
+#if 1
   if (! seen_B)
-    add_B_prefix (1, in_decoded_options_count, in_decoded_options);
+    add_B_prefix (in_decoded_options, get_prefix ());
+#endif
 
-  if (linkPos == -1) {
-    insert_arg (1, in_decoded_options_count, in_decoded_options);
-    linkPos = 1;
-  }
-  add_default_fobjects (linkPos, in_decoded_options, libpath,
-			libraries, shared_opt, gm2opath);
+#if defined(DEBUGGING)
+  for (i = 0; i < *in_decoded_options_count; i++)
+    printOption("after B prefix", in_decoded_options, i);
+#endif
 
-  if ((! seen_x_flag) && seen_module_extension) {
-    insert_arg (1, in_decoded_options_count, in_decoded_options);
-    generate_option (OPT_x, "modula-2", 1, CL_DRIVER, &((*in_decoded_options)[1]));
-    assert ((*in_decoded_options)[1].errors == 0);
-  }
+  if (linkPos == -1)
+    {
+      linkPos = 1;
+      if (inclPos == -1)
+	add_default_fobjects (NULL, libpath,
+			      libraries, shared_opt, gm2opath);
+      else
+	{
+	  struct cl_decoded_option *options = *in_decoded_options;
+	  const char *prev = options[inclPos].arg;
+	  
+	  add_default_fobjects (prev, libpath,
+				libraries, shared_opt, gm2opath);
+	}
+    }
+
+  if ((! seen_x_flag) && seen_module_extension)
+    fe_generate_option (OPT_x, "modula-2", FALSE);
 
   if (linking) {
-    add_default_archives (inclPos, in_decoded_options_count, in_decoded_options, libpath, shared_opt, libraries);
-    if (need_math)
-      add_lib (in_decoded_options_count, in_decoded_options, OPT_l, MATH_LIBRARY);
-    if (seen_fexceptions)
-      add_lib (in_decoded_options_count, in_decoded_options, OPT_l, "stdc++");
+    add_default_archives (libpath, shared_opt, libraries, in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
+    (*in_added_libraries)++;
+
+    if (need_math) {
+      add_library (MATH_LIBRARY, in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
+      (*in_added_libraries)++;
+    }
+
+    if (seen_fexceptions) {
+      add_library ("stdc++", in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
+      (*in_added_libraries)++;
+    }
   /* There's no point adding -shared-libgcc if we don't have a shared
      libgcc.  */
 #if !defined(ENABLE_SHARED_LIBGCC)
@@ -1085,10 +1110,8 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 #endif
 
     if (shared_libgcc) {
-      insert_arg (1, in_decoded_options_count, in_decoded_options);
-      generate_option (OPT_shared_libgcc, NULL, 1, CL_ModulaX2, &((*in_decoded_options)[1]));
-      assert ((*in_decoded_options)[1].errors == 0);
-      add_lib (in_decoded_options_count, in_decoded_options, OPT_l, "gcc_eh");
+      fe_generate_option (OPT_shared_libgcc, NULL, FALSE);
+      add_library ("gcc_eh", in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
     }
   }
   scan_for_link_args (in_decoded_options_count, in_decoded_options);

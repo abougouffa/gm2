@@ -1,6 +1,6 @@
 /* Definitions for specs for GNU Modula-2.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *               2010
+ * Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+ *               2010, 2011, 2012, 2013
  *               Free Software Foundation, Inc.
    Contributed by Gaius Mulley.
 
@@ -24,13 +24,13 @@ Boston, MA 02110-1301, USA.  */
 /* This is the contribution to the `default_compilers' array in gcc.c for
    GNU Modula-2.  */
 
-#if 1
+#if 0
 {".mod", "@modula-2", 0, 0, 0},
 {"@modula-2",  "cc1gm2 %(gm2_cpp_options) %i %(cc1_options) %{I*} %{!fsyntax-only:%(invoke_as)}",
     0, 0, 0},
 #endif
 
-#if 0
+#if 1
   {".mod", "@modula-2", 0, 0, 0},
   {"@modula-2",
       "%{c|S:%{fuselist:%{fsources:%eGNU Modula-2 does not know what to do with -fsources and -fuselist}} \

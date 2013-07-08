@@ -23,13 +23,14 @@ srcdir = @srcdir@
 
 WWWDIR=../../../../../www/gm2
 
-TEXISRC = $(srcdir)/../../gm2/gm2.texi \
-          $(objdir)/gm2/gm2-libs.texi \
-          $(objdir)/gm2/gm2-ebnf.texi \
-          $(objdir)/gm2/SYSTEM-pim.texi \
-          $(objdir)/gm2/SYSTEM-iso.texi \
-          $(objdir)/gm2/Builtins.texi \
-          $(objdir)/gm2/version.texi
+TEXISRC = $(srcdir)/../../gm2/gm2.texi
+
+#          $(objdir)/gm2/gm2-libs.texi \
+#          $(objdir)/gm2/gm2-ebnf.texi \
+#          $(objdir)/gm2/SYSTEM-pim.texi \
+#          $(objdir)/gm2/SYSTEM-iso.texi \
+#          $(objdir)/gm2/Builtins.texi \
+#          $(objdir)/gm2/version.texi
 
 TEXI2HTML=python $(srcdir)/tools/texi2tr/src/texi2tr.py
 
@@ -100,7 +101,7 @@ texi2tr.css: $(srcdir)/tools/texi2tr/html/texi2tr.css
 	cp $< $@
 
 gm2.html: $(TEXISRC)
-	$(TEXI2HTML) -T$(srcdir)/tools/texi2tr/html -n -I$(objdir)/gm2:$(srcdir)/../../gm2 -b gm2-%d.html -r gm2.html gm2.texi
+	$(TEXI2HTML) -T$(srcdir)/tools/texi2tr/html -n -I../../gm2:$(srcdir)/../../gm2 -b gm2-%d.html -r gm2.html gm2.texi
 
 install: all force
 	@if [ "$(WWWDIR)" = "" ] ; then \

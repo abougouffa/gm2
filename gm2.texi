@@ -81,7 +81,9 @@ Software Foundation raise funds for GNU development.''
 @menu
 * Debian::           Get Debian GNU Modula-2 packages.
 * Tarball::          How to get a source tarball.
-* Building::         How to build GNU Modula-2 from source.
+* Building::         Building GNU Modula-2 from source.
+* Building on gcc 4.1.2::   Building on the gcc-4.1.2 branch.
+* Building on gcc 4.7::   Building on the gcc-4.7 branch.
 * Development::      How to access the CVS repository.
 * Dejagnu::          Stress testing GM2.
 * Cygwin::           How to build GNU Modula-2 under Cygwin.
@@ -2814,7 +2816,9 @@ Contributing to GNU Modula-2}.
 @menu
 * Debian::            Get Debian GNU Modula-2 packages.
 * Tarball::           How to get a source tarball.
-* Building::          How to build GNU Modula-2 from source.
+* Building::          Building GNU Modula-2 from source.
+* Building on gcc 4.1.2::   Building on the gcc-4.1.2 branch.
+* Building on gcc 4.7::   Building on the gcc-4.7 branch.
 * Development::       How to access the CVS repository.
 * Dejagnu::           Stress testing GM2.
 * Cygwin::            How to build GNU Modula-2 under Cygwin.
@@ -2871,8 +2875,25 @@ $ wget http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-cv
 $ tar zxf gcc-@value{version-GCC}+gm2-cvs-latest.tar.gz
 @end example
 
-@node Building, Development, Tarball, Top
-@section Building GNU Modula-2 from source under GNU/Linux
+@node Building, Building on gcc 4.1.2, Tarball, Top
+@section Building GNU Modula-2 from source
+
+@c
+@c this section is hardreferenced by gm2/www/tools/texi2tr/html/platforms.html
+@c
+
+There are two gcc releases upon which gm2 can be grafted.  These are listed
+below together with their status.
+
+@table @code
+@item
+gcc-4.1.2 stable, see next section for details on how to build.
+@item
+gcc-4.7 testing, see next but one section for building details.
+@end table
+
+@node Building on gcc 4.1.2, Building on gcc 4.7, Building, Top
+@section Building GNU Modula-2 grafted on the gcc-4.1.2 branch
 
 On a GNU/Linux system you should also be able to build it using these
 commands.  The following commands assume your shell is @file{/bin/bash}.
@@ -2880,8 +2901,8 @@ To build GNU Modula-2 type:
 
 @example
 $ mkdir -p $HOME/opt
-$ mkdir -p build-@value{version-GCC}
-$ cd build-@value{version-GCC}
+$ mkdir -p build-4.1.2
+$ cd build-4.1.2
 $ ../gcc-4.1.2+gm2-cvs-latest/configure --enable-languages=c,c++,gm2 \
      --disable-multilib --enable-checking=all --prefix=$HOME/opt
 $ make "SHELL=/bin/bash"
@@ -2898,20 +2919,78 @@ Now you should be able to perform:
 
 @example
 $ export PATH=$HOME/opt/bin:$PATH
-$ cd build-@value{version-GCC}/gcc/gm2/examples/hello
+$ cd build-4.1.2/gcc/gm2/examples/hello
 $ make post-install
 @end example
 
 which will create an @file{a.out} for the infamous hello world
 example.
 
+@node Building on gcc 4.7, Development, Building on gcc 4.1.2, Top
+@section Building GNU Modula-2 grafted on the gcc-4.7 branch
+
+This is experimental and currently under development.  It currently
+builds cleanly under Debian Wheezy (LP64), however there are a number of
+restrictions which are currently being worked upon.  These include:
+
+@table @code
+@item
+University of ULM libraries are disabled.
+@item
+inability to link.
+@item
+unable to compile code using nested procedures.
+@item
+unable to run any regression tests.
+@end table
+
+The internals of GNU Modula-2 have been heavily overhauled, in
+particular the code interfacing the Modula-2 front end and the
+interface to the construction of GCC Trees.  This should mean that
+maintenance is easier in the future and it should reduce the time to
+graft gm2 onto future gcc releases.  In addition, the changes will
+allow for integer overflow to be detected.
+
 To build gm2 based on the 4.7 series of GCC you will need to install:
 
 @example
-$ sudo apt-get install gcc-multilib libmpfr-dev
+$ sudo apt-get install gcc-multilib libmpfr-dev libgmp-dev libmpc-dev flex
 @end example
 
-@node Development, Dejagnu, Building, Top
+To download and extract the tarball:
+
+@example
+$ wget http://floppsie.comp.glam.ac.uk/download/c/gcc-4.7.3+gm2-cvs-latest.tar.gz
+$ tar zxf gcc-4.7.3+gm2-cvs-latest.tar.gz
+@end example
+
+To configure:
+
+@example
+$ mkdir build-4.7.3
+$ cd build-4.7.3
+$ CXXFLAGS=-g BOOT_CFLAGS=-g CFLAGS=-g ../gcc-4.7.3/configure \
+  --prefix=$HOME/opt \
+  --libexecdir=$HOME/opt/lib \
+  --enable-shared \
+  --enable-threads=posix --enable-__cxa_atexit \
+  --enable-clocale=gnu --enable-languages=c,c++,gm2 \
+  --disable-multilib --disable-bootstrap --enable-checking --enable-libgm2
+@end example
+
+To compile:
+
+@example
+$ make
+@end example
+
+To install:
+
+@example
+$ make install
+@end example
+
+@node Development, Dejagnu, Building on gcc 4.7, Top
 @section Development sources via CVS
 
 Development sources can be downloaded via CVS but they must be grafted

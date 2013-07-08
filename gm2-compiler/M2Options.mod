@@ -27,6 +27,7 @@ FROM M2Version IMPORT GetGM2Version, GetGM2Date, GetGCCVersion, GetYear ;
 FROM M2Printf IMPORT printf0, printf1 ;
 FROM libc IMPORT exit ;
 FROM Debug IMPORT Halt ;
+FROM m2linemap IMPORT location_t ;
 
 FROM DynamicStrings IMPORT String, Length, InitString, Mark, Slice, EqualArray,
                            InitStringCharStar, ConCatChar, ConCat, KillString,
@@ -43,10 +44,12 @@ FROM DynamicStrings IMPORT String, Length, InitString, Mark, Slice, EqualArray,
 #define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
 *)
 
+CONST
+   Debugging = FALSE ;
 
 VAR
-   CppAndArgs : String ;
-   SeenSources: BOOLEAN ;
+   CppAndArgs         : String ;
+   SeenSources        : BOOLEAN ;
    ForcedLocationValue: location_t ;
 
 
@@ -545,6 +548,10 @@ VAR
    s: String ;
 BEGIN
    s := InitStringCharStar(arg) ;
+   IF Debugging
+   THEN
+      printf1("setting search path to: %s\n", s)
+   END ;
    PrependSearchPath(s) ;
    s := KillString(s)
 END SetSearchPath ;
