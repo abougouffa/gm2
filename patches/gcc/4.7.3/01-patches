@@ -1,5 +1,5 @@
---- gcc-4.7.3-orig/gcc/gcc.c	2013-03-08 07:25:09.000000000 +0000
-+++ gcc-4.7.3/gcc/gcc.c	2013-06-12 11:54:33.000000000 +0100
+--- gcc-4.7.3-orig/gcc/gcc.c	2013-06-19 15:00:24.487301824 +0100
++++ gcc-4.7.3/gcc/gcc.c	2013-07-08 11:33:35.755042947 +0100
 @@ -167,6 +167,10 @@
  static const char *cross_compile = "0";
  #endif
@@ -11,7 +11,136 @@
  /* Greatest exit code of sub-processes that has been encountered up to
     now.  */
  static int greatest_status = 1;
-@@ -6885,7 +6889,8 @@
+@@ -268,6 +272,7 @@
+ static const char *compare_debug_auxbase_opt_spec_function (int, const char **);
+ static const char *pass_through_libs_spec_func (int, const char **);
+ static char *convert_white_space (char *);
++static void handle_OPT_B (const char *arg);
+ 
+ /* The Specs Language
+ 
+@@ -665,6 +670,7 @@
+ /* We pass any -flto flags on to the linker, which is expected
+    to understand them.  In practice, this means it had better be collect2.  */
+ /* %{e*} includes -export-dynamic; see comment in common.opt.  */
++
+ #ifndef LINK_COMMAND_SPEC
+ #define LINK_COMMAND_SPEC "\
+ %{!fsyntax-only:%{!c:%{!M:%{!MM:%{!E:%{!S:\
+@@ -674,7 +680,7 @@
+     %{flto} %{flto=*} %l " LINK_PIE_SPEC \
+    "%X %{o*} %{e*} %{N} %{n} %{r}\
+     %{s} %{t} %{u*} %{z} %{Z} %{!nostdlib:%{!nostartfiles:%S}}\
+-    %{static:} %{L*} %(mfwrap) %(link_libgcc) %o\
++    %{static:} %{L*} %(mfwrap) %(link_libgcc) %o \
+     %{fopenmp|ftree-parallelize-loops=*:%:include(libgomp.spec)%(link_gomp)}\
+     %{fgnu-tm:%:include(libitm.spec)%(link_itm)}\
+     %(mflib) " STACK_SPLIT_SPEC "\
+@@ -3131,6 +3137,68 @@
+   n_switches++;
+ }
+ 
++/* Save an option OPT with N_ARGS arguments in array ARGS, marking it
++   as validated if VALIDATED.  */
++
++void
++fe_save_switch (const char *opt, size_t n_args, const char *const *args,
++		bool validated)
++{
++  save_switch (opt, n_args, args, validated);
++}
++
++void fe_B_prefix (const char *arg)
++{
++  handle_OPT_B (arg);
++}
++
++void
++fe_add_linker_option (const char *option)
++{
++  add_linker_option (option, strlen (option));
++}
++
++/*  Handle the -B option by adding the prefix to exec, startfile and
++    include search paths.  */
++
++static
++void handle_OPT_B (const char *arg)
++{
++  size_t len = strlen (arg);
++  
++  /* Catch the case where the user has forgotten to append a
++     directory separator to the path.  Note, they may be using
++     -B to add an executable name prefix, eg "i386-elf-", in
++     order to distinguish between multiple installations of
++     GCC in the same directory.  Hence we must check to see
++     if appending a directory separator actually makes a
++     valid directory name.  */
++  if (!IS_DIR_SEPARATOR (arg[len - 1])
++      && is_directory (arg, false))
++    {
++      char *tmp = XNEWVEC (char, len + 2);
++      strcpy (tmp, arg);
++      tmp[len] = DIR_SEPARATOR;
++      tmp[++len] = 0;
++      arg = tmp;
++    }
++
++  add_prefix (&exec_prefixes, arg, NULL,
++	      PREFIX_PRIORITY_B_OPT, 0, 0);
++  add_prefix (&startfile_prefixes, arg, NULL,
++	      PREFIX_PRIORITY_B_OPT, 0, 0);
++  add_prefix (&include_prefixes, arg, NULL,
++	      PREFIX_PRIORITY_B_OPT, 0, 0);
++}
++
++/* Save the infile */
++
++void
++fe_add_infile (const char *infile, const char *lang)
++{
++  add_infile (infile, lang);
++}
++
+ /* Handle an option DECODED that is unknown to the option-processing
+    machinery.  */
+ 
+@@ -3477,33 +3545,7 @@
+       break;
+ 
+     case OPT_B:
+-      {
+-	size_t len = strlen (arg);
+-
+-	/* Catch the case where the user has forgotten to append a
+-	   directory separator to the path.  Note, they may be using
+-	   -B to add an executable name prefix, eg "i386-elf-", in
+-	   order to distinguish between multiple installations of
+-	   GCC in the same directory.  Hence we must check to see
+-	   if appending a directory separator actually makes a
+-	   valid directory name.  */
+-	if (!IS_DIR_SEPARATOR (arg[len - 1])
+-	    && is_directory (arg, false))
+-	  {
+-	    char *tmp = XNEWVEC (char, len + 2);
+-	    strcpy (tmp, arg);
+-	    tmp[len] = DIR_SEPARATOR;
+-	    tmp[++len] = 0;
+-	    arg = tmp;
+-	  }
+-
+-	add_prefix (&exec_prefixes, arg, NULL,
+-		    PREFIX_PRIORITY_B_OPT, 0, 0);
+-	add_prefix (&startfile_prefixes, arg, NULL,
+-		    PREFIX_PRIORITY_B_OPT, 0, 0);
+-	add_prefix (&include_prefixes, arg, NULL,
+-		    PREFIX_PRIORITY_B_OPT, 0, 0);
+-      }
++      handle_OPT_B (arg);
+       validated = true;
+       break;
+ 
+@@ -6885,7 +6927,8 @@
  
    /* Run ld to link all the compiler output files.  */
  
@@ -21,7 +150,7 @@
      {
        int tmp = execution_count;
  
-@@ -6951,7 +6956,7 @@
+@@ -6951,7 +6994,7 @@
    /* If options said don't run linker,
       complain about input files to be given to the linker.  */
  

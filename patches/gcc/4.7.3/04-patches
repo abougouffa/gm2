@@ -1,23 +1,10 @@
---- gcc-4.7.3-orig/configure.ac	2012-09-05 13:19:47.000000000 +0100
-+++ gcc-4.7.3/configure.ac	2013-06-12 11:54:50.000000000 +0100
-@@ -164,6 +164,7 @@
- 		${libgcj} \
- 		target-libobjc \
- 		target-libada \
-+		target-libgm2 \
- 		target-libgo"
+--- gcc-4.7.3-orig/Makefile.def	2013-06-19 15:00:33.931301974 +0100
++++ gcc-4.7.3/Makefile.def	2013-06-19 15:04:55.427306124 +0100
+@@ -138,6 +138,7 @@
+ target_modules = { module= boehm-gc; };
+ target_modules = { module= rda; };
+ target_modules = { module= libada; };
++target_modules = { module= libgm2; };
+ target_modules = { module= libgomp; bootstrap= true; lib_path=.libs; };
+ target_modules = { module= libitm; lib_path=.libs; };
  
- # these tools are built using the target libraries, and are intended to
-@@ -419,6 +420,12 @@
-   noconfigdirs="$noconfigdirs gnattools"
- fi
- 
-+AC_ARG_ENABLE(libgm2,
-+[AS_HELP_STRING([--enable-libgm2], [build libgm2 directory])],
-+ENABLE_LIBGM2=$enableval,
-+ENABLE_LIBGM2=yes)
-+
-+
- AC_ARG_ENABLE(libssp,
- [AS_HELP_STRING([--enable-libssp], [build libssp directory])],
- ENABLE_LIBSSP=$enableval,

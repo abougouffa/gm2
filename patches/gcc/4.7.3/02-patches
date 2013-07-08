@@ -1,11 +1,14 @@
---- gcc-4.7.3-orig/gcc/Makefile.in	2013-04-01 09:11:11.000000000 +0100
-+++ gcc-4.7.3/gcc/Makefile.in	2013-06-12 14:09:23.000000000 +0100
-@@ -1815,7 +1815,7 @@
+--- gcc-4.7.3-orig/gcc/gcc.h	2013-06-19 15:00:29.063301897 +0100
++++ gcc-4.7.3/gcc/gcc.h	2013-07-05 17:59:53.668687666 +0100
+@@ -37,6 +37,11 @@
+ extern void record_temp_file (const char *, int, int);
+ extern void pfatal_with_name (const char *) ATTRIBUTE_NORETURN;
+ extern void set_input (const char *);
++extern void fe_save_switch (const char *opt, size_t n_args,
++			    const char *const *args, bool validated);
++extern void fe_B_prefix (const char *arg);
++extern void fe_add_infile (const char *infile, const char *lang);
++extern void fe_add_linker_option (const char *option);
  
- cc1-checksum.o : cc1-checksum.c $(CONFIG_H) $(SYSTEM_H)
- 
--cc1$(exeext): $(C_OBJS) cc1-checksum.o $(BACKEND) $(LIBDEPS)
-+cc1$(exeext): $(C_OBJS) cc1-checksum.o $(BACKEND) $(LIBDEPS) c-family/m2pp.o
- 	+$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ $(C_OBJS) \
- 	  cc1-checksum.o $(BACKEND) $(LIBS) $(BACKENDLIBS)
+ /* Spec files linked with gcc.c must provide definitions for these.  */
  
