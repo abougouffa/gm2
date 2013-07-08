@@ -37,6 +37,8 @@ build = @build@
 target = @target@
 prefix = @prefix@
 
+mkinstalldirs = $(srcdir)/../mkinstalldirs
+
 # Nonstandard autoconf-set variables.
 enable_shared = @enable_shared@
 
@@ -110,13 +112,286 @@ AR_FLAGS_FOR_TARGET =
 AR_CREATE_FOR_TARGET = $(AR_FOR_TARGET) $(AR_FLAGS_FOR_TARGET) rc
 AR_EXTRACT_FOR_TARGET = $(AR_FOR_TARGET) $(AR_FLAGS_FOR_TARGET) x
 
+GM2_LIB_DIR_ULM= $(DESTDIR)$(libsubdir)/gm2/ulm
+GM2_LIB_DIR_PIM= $(DESTDIR)$(libsubdir)/gm2/pim
+GM2_LIB_DIR_LOG= $(DESTDIR)$(libsubdir)/gm2/logitech
+GM2_LIB_DIR_PCO= $(DESTDIR)$(libsubdir)/gm2/pim-coroutine
+GM2_LIB_DIR_ISO= $(DESTDIR)$(libsubdir)/gm2/iso
+GM2_LIB_DIR_MIN= $(DESTDIR)$(libsubdir)/gm2/min
+
 # Rules to build gm2lib.
 .PHONY: gm2lib gm2lib-plain gm2lib-shared
 gm2lib: @default_gm2lib_target@
 
 
-install-gm2lib: 
+$(GM2_LIB_DIR_PIM):
+	$(mkinstalldirs) $(GM2_LIB_DIR_PIM)
 
+$(GM2_LIB_DIR_PIM)/O2:
+	$(mkinstalldirs) $(GM2_LIB_DIR_PIM)/O2
+
+$(GM2_LIB_DIR_PIM)/SO:
+	$(mkinstalldirs) $(GM2_LIB_DIR_PIM)/SO
+
+$(GM2_LIB_DIR_PIM)/SO_O2:
+	$(mkinstalldirs) $(GM2_LIB_DIR_PIM)/SO_O2
+
+$(GM2_LIB_DIR_ISO):
+	$(mkinstalldirs) $(GM2_LIB_DIR_ISO)
+
+$(GM2_LIB_DIR_ISO)/O2:
+	$(mkinstalldirs) $(GM2_LIB_DIR_ISO)/O2
+
+$(GM2_LIB_DIR_ISO)/SO:
+	$(mkinstalldirs) $(GM2_LIB_DIR_ISO)/SO
+
+$(GM2_LIB_DIR_ISO)/SO_O2:
+	$(mkinstalldirs) $(GM2_LIB_DIR_ISO)/SO_O2
+
+$(GM2_LIB_DIR_ULM):
+	$(mkinstalldirs) $(GM2_LIB_DIR_ULM)
+
+$(GM2_LIB_DIR_ULM)/O2:
+	$(mkinstalldirs) $(GM2_LIB_DIR_ULM)/O2
+
+$(GM2_LIB_DIR_ULM)/SO:
+	$(mkinstalldirs) $(GM2_LIB_DIR_ULM)/SO
+
+$(GM2_LIB_DIR_ULM)/SO_O2:
+	$(mkinstalldirs) $(GM2_LIB_DIR_ULM)/SO_O2
+
+$(GM2_LIB_DIR_MIN):
+	$(mkinstalldirs) $(GM2_LIB_DIR_MIN)
+
+$(GM2_LIB_DIR_MIN)/O2:
+	$(mkinstalldirs) $(GM2_LIB_DIR_MIN)/O2
+
+$(GM2_LIB_DIR_MIN)/SO:
+	$(mkinstalldirs) $(GM2_LIB_DIR_MIN)/SO
+
+$(GM2_LIB_DIR_MIN)/SO_O2:
+	$(mkinstalldirs) $(GM2_LIB_DIR_MIN)/SO_O2
+
+$(GM2_LIB_DIR_LOG):
+	$(mkinstalldirs) $(GM2_LIB_DIR_LOG)
+
+$(GM2_LIB_DIR_LOG)/O2:
+	$(mkinstalldirs) $(GM2_LIB_DIR_LOG)/O2
+
+$(GM2_LIB_DIR_LOG)/SO:
+	$(mkinstalldirs) $(GM2_LIB_DIR_LOG)/SO
+
+$(GM2_LIB_DIR_LOG)/SO_O2:
+	$(mkinstalldirs) $(GM2_LIB_DIR_LOG)/SO_O2
+
+$(GM2_LIB_DIR_PCO):
+	$(mkinstalldirs) $(GM2_LIB_DIR_PCO)
+
+$(GM2_LIB_DIR_PCO)/O2:
+	$(mkinstalldirs) $(GM2_LIB_DIR_PCO)/O2
+
+$(GM2_LIB_DIR_PCO)/SO:
+	$(mkinstalldirs) $(GM2_LIB_DIR_PCO)/SO
+
+$(GM2_LIB_DIR_PCO)/SO_O2:
+	$(mkinstalldirs) $(GM2_LIB_DIR_PCO)/SO_O2
+
+install-gm2lib: $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_PIM)/SO \
+                $(GM2_LIB_DIR_PIM)/O2 $(GM2_LIB_DIR_PIM)/SO_O2 \
+                $(GM2_LIB_DIR_ISO) $(GM2_LIB_DIR_ISO)/SO \
+                $(GM2_LIB_DIR_ISO)/O2 $(GM2_LIB_DIR_ISO)/SO_O2 \
+                $(GM2_LIB_DIR_ULM) $(GM2_LIB_DIR_ULM)/SO \
+                $(GM2_LIB_DIR_ULM)/O2 $(GM2_LIB_DIR_ULM)/SO_O2 \
+                $(GM2_LIB_DIR_LOG) $(GM2_LIB_DIR_LOG)/SO \
+                $(GM2_LIB_DIR_LOG)/O2 $(GM2_LIB_DIR_LOG)/SO_O2 \
+                $(GM2_LIB_DIR_PCO) $(GM2_LIB_DIR_PCO)/SO \
+                $(GM2_LIB_DIR_PCO)/O2 $(GM2_LIB_DIR_PCO)/SO_O2 \
+                $(GM2_LIB_DIR_MIN) $(GM2_LIB_DIR_MIN)/SO \
+                $(GM2_LIB_DIR_MIN)/O2 $(GM2_LIB_DIR_MIN)/SO_O2
+	for i in $(GM2_SRC)/gm2-libs/*.def $(GM2_SRC)/gm2-libs/*.mod ; do \
+           if [ "`basename $$i`" != "SYSTEM.def" ] ; then \
+              if [ ! -d $$i ] ; then \
+                 rm -f $(GM2_LIB_DIR_PIM)/$$i ; \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PIM) ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in $(GM2_OBJ)/gm2-libs/*.a $(GM2_SRC)/gm2-libs/*.def ; do \
+           rm -f $(GM2_LIB_DIR_PIM)/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PIM) ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in $(GM2_OBJ)/gm2-libs/SO/*.a ; do \
+           rm -f $(GM2_LIB_DIR_PIM)/SO/`basename $$i` ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PIM)/SO ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in $(GM2_OBJ)/gm2-libs/O2/*.a ; do \
+           rm -f $(GM2_LIB_DIR_PIM)/O2/`basename $$i` ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PIM)/O2 ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in $(GM2_OBJ)/gm2-libs/SO_O2/*.a ; do \
+           rm -f $(GM2_LIB_DIR_PIM)/SO_O2/`basename $$i` ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PIM)/SO_O2 ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in $(GM2_SRC)/gm2-libs-pim/*.def $(GM2_SRC)/gm2-libs-pim/*.mod ; do \
+           if [ ! -d $$i ] ; then \
+              rm -f $(GM2_LIB_DIR_LOG)/$$i ; \
+              $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_LOG) ; \
+           fi ; \
+        done ; \
+	for i in $(GM2_OBJ)/gm2-libs-pim/*.a ; do \
+           rm -f $(GM2_LIB_DIR_PIM)/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_LOG) ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in $(GM2_OBJ)/gm2-libs-pim/SO/*.a ; do \
+           if [ ! -d $$i ] ; then \
+              rm -f $(GM2_LIB_DIR_LOG)/SO/$$i ; \
+              $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_LOG)/SO ; \
+           fi ; \
+        done ; \
+	for i in $(GM2_OBJ)/gm2-libs-pim/O2/*.a ; do \
+           if [ ! -d $$i ] ; then \
+              rm -f $(GM2_LIB_DIR_LOG)/O2/$$i ; \
+              $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_LOG)/O2 ; \
+           fi ; \
+        done ; \
+	for i in $(GM2_OBJ)/gm2-libs-pim/SO_O2/*.a ; do \
+           if [ ! -d $$i ] ; then \
+              rm -f $(GM2_LIB_DIR_LOG)/SO_O2/$$i ; \
+              $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_LOG)/SO_O2 ; \
+           fi ; \
+        done ; \
+	for i in $(GM2_SRC)/gm2-libs-coroutines/*.def \
+                 $(GM2_SRC)/gm2-libs-coroutines/*.mod ; do \
+           if [ ! -d $$i ] ; then \
+              rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
+              $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PCO) ; \
+           fi ; \
+        done ; \
+	for i in $(GM2_OBJ)/gm2-libs-coroutines/*.a ; do \
+           rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PCO) ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in $(GM2_OBJ)/gm2-libs-coroutines/O2/*.a ; do \
+           rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PCO)/O2 ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in $(GM2_OBJ)/gm2-libs-coroutines/SO/*.a ; do \
+           rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PCO)/SO ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in $(GM2_OBJ)/gm2-libs-coroutines/SO_O2/*.a ; do \
+           rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PCO)/SO_O2 ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in $(GM2_SRC)/gm2-libs-iso/*.def $(GM2_SRC)/gm2-libs-iso/*.mod ; do \
+           if [ ! -d $$i ] ; then \
+              rm -f $(GM2_LIB_DIR_ISO)/$$i ; \
+              $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_ISO) ; \
+           fi ; \
+        done
+	for i in $(GM2_OBJ)/gm2-libs-iso/*.a $(GM2_SRC)/gm2-libs-iso/*.def ; do \
+           rm -f $(GM2_LIB_DIR_ISO)/$$i ; \
+           if [ -f $$i ] ; then \
+               if [ ! -d $$i ] ; then \
+                   $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_ISO) ; \
+               fi ; \
+           fi ; \
+        done ; \
+	for i in $(GM2_OBJ)/gm2-libs-iso/SO/*.a ; do \
+           rm -f $(GM2_LIB_DIR_ISO)/SO/`basename $$i` ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_ISO)/SO ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in $(GM2_OBJ)/gm2-libs-iso/O2/*.a ; do \
+           rm -f $(GM2_LIB_DIR_ISO)/O2/`basename $$i` ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_ISO)/O2 ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in $(GM2_SRC)/ulm-lib-gm2/sys/*.def \
+                 $(GM2_SRC)/ulm-lib-gm2/std/*.def \
+                 $(GM2_SRC)/ulm-lib-gm2/sys/*.mod \
+                 $(GM2_SRC)/ulm-lib-gm2/std/*.mod ; do \
+           if [ ! -d $$i ] ; then \
+              rm -f $(GM2_LIB_DIR_ULM)/$$i ; \
+              $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_ULM) ; \
+           fi ; \
+        done
+	for i in $(GM2_SRC)/ulm-lib-gm2/*.a ; do \
+           rm -f $(GM2_LIB_DIR_ULM)/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_ULM) ; \
+              fi ; \
+           fi ; \
+        done
+	for i in $(GM2_SRC)/gm2-libs-min/*.def $(GM2_SRC)/gm2-libs-min/*.mod ; do \
+           if [ ! -d $$i ] ; then \
+              rm -f $(GM2_LIB_DIR_MIN)/$$i ; \
+              $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_MIN) ; \
+           fi ; \
+        done
+	for i in $(GM2_OBJ)/gm2-libs-min/*.a ; do \
+           rm -f $(GM2_LIB_DIR_MIN)/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_MIN) ; \
+              fi ; \
+           fi ; \
+        done
+	for i in $(GM2_OBJ)/gm2-libs-min/O2/*.a ; do \
+           rm -f $(GM2_LIB_DIR_MIN)/O2/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_MIN)/O2 ; \
+              fi ; \
+           fi ; \
+        done
 
 gm2lib-plain: 
 	test -f stamp-libgm2 || ( \
@@ -129,9 +404,6 @@ gm2lib-shared:
 	$(MAKE) $(LIBGM2_FLAGS_TO_PASS) -C $(GCC_DIR) build-system && \
 	$(MAKE) $(LIBGM2_FLAGS_TO_PASS) gm2lib-shared-real \
 	&& touch stamp-libgm2 )
-
-#install-gm2lib: 
-#	$(MAKE) $(LIBGM2_FLAGS_TO_PASS) install-gm2lib
 
 # Check uninstalled version.
 check:
@@ -365,9 +637,6 @@ ARCHIVE-ALL-LIBS := archive-libs
 
 gm2lib-plain-real: $(BUILD-ALL-LIBS) $(ARCHIVE-ALL-LIBS)
 	echo xyz123 yes have built $@
-
-install-gm2lib: 
-	echo not yet written $@
 
 gm2lib-shared-real: $(BUILD-ALL-LIBS) $(ARCHIVE-ALL-LIBS)
 	echo xyz123 yes have built $@

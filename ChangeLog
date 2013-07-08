@@ -1,0 +1,5 @@
+2013-07-08      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/ChangeLog:  (New file).
+	* gm2/libgm2/Makefile.in:  added install rules.  Many of which
+	  were adapted from gcc/gm2/Make-file.in.
