@@ -46,6 +46,7 @@ Boston, MA 02110-1301, USA.  */
 
 #define GM2_LANG_C
 #include "gm2-lang.h"
+#include "m2block.h"
 #include "dynamicstrings.h"
 #include "m2options.h"
 #include "init.h"
@@ -646,7 +647,7 @@ gm2_langhook_pushdecl (tree decl ATTRIBUTE_UNUSED)
 static tree
 gm2_langhook_getdecls (void)
 {
-  return NULL;
+  return m2block_GetGlobals ();
 }
 
 /* Write out globals.  */
@@ -654,11 +655,14 @@ gm2_langhook_getdecls (void)
 static void
 gm2_langhook_write_globals (void)
 {
+  write_global_declarations ();
+#if 0
   /* in the future it is likely that GCC will call this automatically.
      Until then we must do this.
   */
   /* We're done parsing; proceed to optimize and emit assembly. */
   cgraph_finalize_compilation_unit ();
+#endif
 }
 
 
@@ -722,7 +726,7 @@ gm2_langhook_eh_personality (void)
 {
   if (personality_decl == NULL_TREE)
     {
-      personality_decl = build_personality_function ("gccgm2");
+      personality_decl = build_personality_function ("gxx");
       gm2_preserve_from_gc (personality_decl);
     }
   return personality_decl;

@@ -90,6 +90,7 @@ extern int force_no_linker;
 #include "gm2/gm2config.h"
 
 #undef DEBUGGING
+/* #define DEBUGGING */
 
 #define DEFAULT_DIALECT "pim"
 
@@ -718,6 +719,27 @@ scan_for_link_args (unsigned int *in_decoded_options_count,
   }
 }
 
+static void
+purge_include_options (unsigned int *in_decoded_options_count,
+		       struct cl_decoded_option **in_decoded_options)
+{
+  struct cl_decoded_option *decoded_options = *in_decoded_options;
+  unsigned int i, j;
+  
+  for (i = 0; i < *in_decoded_options_count; i++)
+    {
+      const char *arg = decoded_options[i].arg;
+      size_t opt = decoded_options[i].opt_index;
+
+      if (opt == OPT_I)
+	{
+	  for (j = i; j+1 < *in_decoded_options_count; j++)
+	    decoded_options[j] = decoded_options[j+1];
+	  (*in_decoded_options_count)--;
+	}
+    }
+}
+
 /*
  *  build_path - implements export PATH=$(gm2_root)/bin:$PATH
  *
@@ -971,10 +993,8 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
    *  leave all compiles to the makefile otherwise we will try and link two main
    *  applications.
    */
-  if (seen_fmakeall && (! seen_fonlylink)) {
-
+  if (seen_fmakeall && (! seen_fonlylink))
     fe_generate_option (OPT_fonlylink, NULL, FALSE);
-  }
 
   check_gm2_root ();
   libpath = getenv (LIBRARY_PATH_ENV);
@@ -995,8 +1015,10 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 
     if ((opt == OPT_c) || (opt == OPT_S))
       linking = FALSE;
-    if (opt == OPT_I)
+    if (opt == OPT_I) {
+      fe_generate_option (OPT_I, arg, TRUE);
       inclPos = i;
+    }
     if (opt == OPT_fobject_path_)
       linkPos = i;
     if (opt == OPT_fiso)
@@ -1115,6 +1137,18 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
     }
   }
   scan_for_link_args (in_decoded_options_count, in_decoded_options);
+
+#if defined(DEBUGGING)
+  for (i = 0; i < *in_decoded_options_count; i++)
+    printOption("before include purge", in_decoded_options, i);
+#endif
+  purge_include_options (in_decoded_options_count, in_decoded_options);
+#if defined(DEBUGGING)
+  for (i = 0; i < *in_decoded_options_count; i++)
+    printOption("after include purge", in_decoded_options, i);
+#endif
+
+
 #if defined(DEBUGGING)
   for (i = 0; i < *in_decoded_options_count; i++)
     printOption("at end", in_decoded_options, i);

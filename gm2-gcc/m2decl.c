@@ -77,6 +77,8 @@ extern GTY(()) tree current_function_decl;
 static GTY(()) tree param_type_list;
 static GTY(()) tree param_list = NULL_TREE;   /* ready for the next time we call/define a function */
 
+static void stop (void) {}
+
 
 /*
  *  DeclareKnownVariable - declares a variable in scope,
@@ -98,8 +100,8 @@ m2decl_DeclareKnownVariable (location_t location, char *name, tree type, int exp
   ASSERT_BOOL (isglobal);
 
 #if 0
-  if (name && (strcmp (name, "z3") == 0))
-    stop();
+  if (name && (strcmp (name, "_T25") == 0))
+    stop ();
 #endif
 
   id   = get_identifier (name);
@@ -136,6 +138,14 @@ m2decl_DeclareKnownVariable (location_t location, char *name, tree type, int exp
     TREE_STATIC (id) = 1;           /* declaration and definition */
 
   TREE_PUBLIC (id) = TREE_PUBLIC (decl);
+
+#if 0
+  if (name && ((strcmp (name, "_T25") == 0))) {
+    debug_tree (decl);
+    stop ();
+  }
+#endif
+
   m2block_pushDecl (decl);
 
   if (DECL_SIZE (decl) == 0)
@@ -146,14 +156,6 @@ m2decl_DeclareKnownVariable (location_t location, char *name, tree type, int exp
 
   if (! isglobal)
     m2block_addDeclExpr (build_stmt (location, DECL_EXPR, decl));
-
-#if 0
-  if (name && ((strcmp (name, "z3") == 0) ||
-	       (strcmp (name, "z4") == 0))) {
-    printf("decl size for %s is", name);
-    debug_tree (DECL_SIZE(decl));
-  }
-#endif
 
   return decl;
 }

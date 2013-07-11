@@ -58,6 +58,8 @@ EXTERN tree m2block_GetErrorNode (void);
 EXTERN tree m2block_cur_stmt_list (void);
 EXTERN tree *m2block_cur_stmt_list_addr (void);
 EXTERN int m2block_is_building_stmt_list (void);
+EXTERN tree m2block_GetGlobals (void);
+
 
 EXTERN void m2block_init (void);
 

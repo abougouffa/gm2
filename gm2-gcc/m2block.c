@@ -158,6 +158,19 @@ typedef struct stmt_tree_s *stmt_tree_t;
 
 
 /*
+ *  assert_global_names - asserts that the global_binding_level->names can be chained.
+ */
+
+static void assert_global_names (void)
+{
+  tree p = global_binding_level->names;
+
+  while (p)
+    p = TREE_CHAIN (p);
+}
+
+
+/*
  *  lookupLabel - return label tree in current scope, otherwise NULL_TREE.
  */
 
@@ -748,6 +761,8 @@ m2block_popGlobalScope (void)
 #if defined(DEBUGGING)
   printf("popGlobalScope\n");
 #endif
+
+  assert_global_names ();
 }
 
 
@@ -859,7 +874,7 @@ m2block_finishFunctionCode (tree fndecl)
 }
 
 
-static void stop () {}
+static void stop (void) {}
 
 /*
  *  pushDecl - pushes a declaration onto the current binding level.
@@ -896,6 +911,8 @@ tree m2block_pushDecl (tree decl)
   if (TREE_CODE (decl) == TYPE_DECL
       && TYPE_NAME (TREE_TYPE (decl)) == 0)
     TYPE_NAME (TREE_TYPE (decl)) = DECL_NAME (decl);
+
+  assert_global_names ();
 
   return decl;
 }
@@ -1023,6 +1040,19 @@ m2block_GetErrorNode (void)
 {
   return error_mark_node;
 }
+
+
+/*
+ *  GetGlobals - returns a list of global variables, functions, constants.
+ */
+
+tree
+m2block_GetGlobals (void)
+{
+  assert_global_names ();
+  return global_binding_level->names;
+}
+
 
 /*
  *  init - initialise the data structures in this module.

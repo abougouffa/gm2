@@ -1,3 +1,16 @@
+2013-07-11      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-lang.c:  gm2_langhook_getdecls return value from m2block_GetGlobals().
+          gm2_langhook_write_globals call write_global_declarations.
+	* gm2/gm2spec.c:  (purge_include_options) New function.  Call ge_generate_option
+	  if -I is found.
+	* gm2/gm2-compiler/M2GenGCC.mod:  corrected dates.
+	* gm2/gm2-gcc/m2block.c:  assert_global_names (New function).  m2block_GetGlobals
+	  call assert_global_names and return global_binding_level->names.
+	* gm2/gm2-gcc/m2block.def:  GetGlobals (New procedure function).
+	* gm2/gm2-gcc/m2block.h:  GetGlobals (New procedure function).
+	* gm2/gm2-gcc/m2decl.c:  added debugging hooks to detect variables being declared.
+
 2013-07-08      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  removed installation rules for library modules.
