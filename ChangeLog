@@ -10,6 +10,7 @@
 	* gm2/gm2-gcc/m2block.def:  GetGlobals (New procedure function).
 	* gm2/gm2-gcc/m2block.h:  GetGlobals (New procedure function).
 	* gm2/gm2-gcc/m2decl.c:  added debugging hooks to detect variables being declared.
+	* gm2/gm2spec.c:  convert_include_into_link (New procedure function).
 
 2013-07-08      Gaius Mulley <gaius@gnu.org>
 

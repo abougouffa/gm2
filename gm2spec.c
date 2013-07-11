@@ -719,6 +719,11 @@ scan_for_link_args (unsigned int *in_decoded_options_count,
   }
 }
 
+/*
+ *  purge_include_options - remove any -I option found from
+ *                          in_decoded_options.
+ */
+
 static void
 purge_include_options (unsigned int *in_decoded_options_count,
 		       struct cl_decoded_option **in_decoded_options)
@@ -738,6 +743,25 @@ purge_include_options (unsigned int *in_decoded_options_count,
 	  (*in_decoded_options_count)--;
 	}
     }
+}
+
+/*
+ *  convert_include_into_link - convert the include path options into link path
+ *                              options.
+ */
+
+static void
+convert_include_into_link (struct cl_decoded_option **in_decoded_options,
+			   unsigned int *in_decoded_options_count)
+{
+  int i;
+
+  for (i = 1; i < *in_decoded_options_count; i++) {
+    size_t opt = (*in_decoded_options)[i].opt_index;
+
+    if (opt == OPT_I)
+      add_link_from_include (in_decoded_options, i);
+  }
 }
 
 /*
@@ -1076,7 +1100,9 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 #endif
 
     linkPos = 1;
-    add_link_from_include (in_decoded_options, inclPos);
+
+    convert_include_into_link (in_decoded_options_count,
+			       in_decoded_options);
   }
   shared_opt = get_style (seen_shared_opt_flags);
 
