@@ -122,6 +122,7 @@ gm2spec.o: $(srcdir)/gm2/gm2spec.c $(SYSTEM_H) $(GCC_H) $(CONFIG_H)
 	SHLIB_MULTILIB='$(SHLIB_MULTILIB)'; \
 	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(DRIVER_DEFINES) \
 		-DLIBSUBDIR=\"$(libsubdir)\" \
+                -DPREFIX=\"$(prefix)\" \
 		$(INCLUDES) $(srcdir)/gm2/gm2spec.c $(OUTPUT_OPTION))
 
 gm2/gm2version.c: force

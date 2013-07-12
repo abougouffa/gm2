@@ -291,7 +291,7 @@ const char *get_prefix (void)
   const char *prefix = getenv (GM2_ROOT_ENV);
 
   if (prefix == NULL || (strcmp (prefix, "") == 0))
-    return "/home/gaius/opt";
+    return PREFIX;
   else
     return prefix;
 }
@@ -733,7 +733,6 @@ purge_include_options (unsigned int *in_decoded_options_count,
   
   for (i = 0; i < *in_decoded_options_count; i++)
     {
-      const char *arg = decoded_options[i].arg;
       size_t opt = decoded_options[i].opt_index;
 
       if (opt == OPT_I)
@@ -754,7 +753,7 @@ static void
 convert_include_into_link (struct cl_decoded_option **in_decoded_options,
 			   unsigned int *in_decoded_options_count)
 {
-  int i;
+  unsigned int i;
 
   for (i = 1; i < *in_decoded_options_count; i++) {
     size_t opt = (*in_decoded_options)[i].opt_index;
@@ -1101,8 +1100,8 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 
     linkPos = 1;
 
-    convert_include_into_link (in_decoded_options_count,
-			       in_decoded_options);
+    convert_include_into_link (in_decoded_options,
+			       in_decoded_options_count);
   }
   shared_opt = get_style (seen_shared_opt_flags);
 

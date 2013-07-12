@@ -1,3 +1,10 @@
+2013-07-12      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2spec.c:  get_prefix removed string literal and replaced it with
+	  PREFIX.  Fix to call add_link_from_include swapped parameters.  Use
+	  unsigned int as a comparison.  Removed unused variable.
+	* gm2/Make-lang.in:  add -DPREFIX to the build rule for gm2spec.o.
+	
 2013-07-11      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-lang.c:  gm2_langhook_getdecls return value from m2block_GetGlobals().
