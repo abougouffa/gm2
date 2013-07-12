@@ -2937,8 +2937,6 @@ restrictions which are currently being worked upon.  These include:
 @item
 University of ULM libraries are disabled.
 @item
-inability to link.
-@item
 unable to compile code using nested procedures.
 @item
 unable to run any regression tests.
