@@ -212,7 +212,7 @@ static void fe_generate_option (size_t opt_index, const char *arg, int joined)
     }
   else
     {
-      const char **x = XCNEWVEC (const char **, 2);
+      const char **x = (const char **) XCNEWVEC (const char **, 2);
 
       x[0] = xstrdup (arg);
       x[1] = NULL;
@@ -345,7 +345,7 @@ get_style (flag_set flags)
 {
   styles s;
 
-  for (s=LIB; s<LIB_MAX; s++)
+  for (s=LIB; s<LIB_MAX; s = (styles) ((int)s+1))
     if (flags.shared == libraryStyle[s].flags.shared &&
 	flags.o2 == libraryStyle[s].flags.o2)
       return s;
@@ -365,6 +365,36 @@ add_lib (size_t opt_index, const char *lib, int joined)
   fe_generate_option (opt_index, lib, joined);
 }
 
+#if defined(DEBUGGING)
+static void
+printOption (const char *desc, struct cl_decoded_option **in_decoded_options, int i)
+{
+  printf("lang_specific_driver ");
+  printf(desc);
+  printf(" [%d]", i);
+
+  switch ((*in_decoded_options)[i].opt_index) {
+
+  case N_OPTS:  break;
+  case OPT_SPECIAL_unknown:   printf(" flag <unknown>"); break;
+  case OPT_SPECIAL_ignore:   printf(" flag <ignore>"); break;
+  case OPT_SPECIAL_program_name:  printf(" flag <program name>"); break;
+  case OPT_SPECIAL_input_file:  printf(" flag <input file name>"); break;
+
+  default:
+    printf(" flag [%s]", cl_options[(*in_decoded_options)[i].opt_index].opt_text);
+  }
+
+  if ((*in_decoded_options)[i].arg == NULL)
+    printf(" no arg");
+  else
+    printf(" arg [%s]", (*in_decoded_options)[i].arg);
+  printf(" orig text [%s]", (*in_decoded_options)[i].orig_option_with_args_text);
+  printf(" value [%d]", (*in_decoded_options)[i].value);
+  printf(" error [%d]\n", (*in_decoded_options)[i].errors);
+}
+#endif
+
 /*
  *
  */
@@ -373,20 +403,39 @@ static void
 add_library (const char *libraryname,
 	     unsigned int *in_decoded_options_count,
 	     struct cl_decoded_option **in_decoded_options,
-	     int position)
+	     unsigned int position)
 {
   struct cl_decoded_option *new_decoded_options;
   unsigned int i;
-  
+
+#if defined(DEBUGGING)
+  printf("going to add -l%s at position=%d  count=%d\n",
+	 libraryname, position, *in_decoded_options_count);
+  for (i = 0; i < *in_decoded_options_count; i++)
+    printOption("before add_library", in_decoded_options, i);
+#endif
+
   (*in_decoded_options_count)++;
+
+  assert (position <= (*in_decoded_options_count));
+
   new_decoded_options = XNEWVEC (struct cl_decoded_option, (*in_decoded_options_count));
-  for (i=0; i<(*in_decoded_options_count); i++)
+  for (i=0; i<position; i++)
     new_decoded_options[i] = (*in_decoded_options)[i];
+  memset (&new_decoded_options[position], 0, sizeof (struct cl_decoded_option));
+
+  for (i=position; i<(*in_decoded_options_count)-1; i++)
+    new_decoded_options[i+1] = (*in_decoded_options)[i];
     
   add_lib (OPT_l, libraryname, TRUE);
   generate_option (OPT_l, libraryname, 1,
 		   CL_DRIVER, &new_decoded_options[position]);
   *in_decoded_options = new_decoded_options;
+
+#if defined(DEBUGGING)
+  for (i = 0; i < *in_decoded_options_count; i++)
+    printOption("after add_library", in_decoded_options, i);
+#endif
 }
 
 /*
@@ -398,7 +447,7 @@ getArchiveName (const char *library)
 {
   libs i;
 
-  for (i=iso; i<maxlib; i++)
+  for (i=iso; i<maxlib; i = (libs) ((int)i+1))
     if (strcmp(libraryName[i], library) == 0)
       return archiveName[i];
   return NULL;
@@ -475,7 +524,7 @@ add_default_combination (const char *libpath,
 			 styles style,
 			 unsigned int *in_decoded_options_count,
 			 struct cl_decoded_option **in_decoded_options,
-			 int position)
+			 unsigned int position)
 {
   if (library != NULL) {
     add_lib (OPT_L, build_archive_path (libpath, library, style), TRUE);
@@ -494,12 +543,13 @@ add_default_archives (const char *libpath,
 		      const char *libraries,
 		      unsigned int *in_decoded_options_count,
 		      struct cl_decoded_option **in_decoded_options,
-		      int position)
+		      unsigned int position)
 {
   char *prev;
   const char *l = libraries;
   const char *e;
   char *c;
+  unsigned int libcount = 0;
 
   do {
     if (libpath == NULL)
@@ -516,7 +566,8 @@ add_default_archives (const char *libpath,
       c = strndup(l, e-l);
       l = e+1;
     }
-    add_default_combination (libpath, c, s, in_decoded_options_count, in_decoded_options, position);
+    add_default_combination (libpath, c, s, in_decoded_options_count, in_decoded_options, position+libcount);
+    libcount++;
     prev = add_include (prev, libpath, c);
 
     fe_generate_option (OPT_L, prev, TRUE);
@@ -913,36 +964,6 @@ check_gm2_root (void)
 	    " as well as either " LIBRARY_PATH_ENV " or COMPILER_PATH\n");
 }
 
-#if defined(DEBUGGING)
-static void
-printOption (const char *desc, struct cl_decoded_option **in_decoded_options, int i)
-{
-  printf("lang_specific_driver ");
-  printf(desc);
-  printf(" [%d]", i);
-
-  switch ((*in_decoded_options)[i].opt_index) {
-
-  case N_OPTS:  break;
-  case OPT_SPECIAL_unknown:   printf(" flag <unknown>"); break;
-  case OPT_SPECIAL_ignore:   printf(" flag <ignore>"); break;
-  case OPT_SPECIAL_program_name:  printf(" flag <program name>"); break;
-  case OPT_SPECIAL_input_file:  printf(" flag <input file name>"); break;
-
-  default:
-    printf(" flag [%s]", cl_options[(*in_decoded_options)[i].opt_index].opt_text);
-  }
-
-  if ((*in_decoded_options)[i].arg == NULL)
-    printf(" no arg");
-  else
-    printf(" arg [%s]", (*in_decoded_options)[i].arg);
-  printf(" orig text [%s]", (*in_decoded_options)[i].orig_option_with_args_text);
-  printf(" value [%d]", (*in_decoded_options)[i].value);
-  printf(" error [%d]\n", (*in_decoded_options)[i].errors);
-}
-#endif
-
 /*
  *  lang_specific_driver - is invoked if we are compiling/linking a
  *                         Modula-2 file. It checks for module paths
@@ -1087,7 +1108,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
    *  work out which libraries to use
    */
   if (libraries == NULL) {
-    if (strncmp (dialect, "pim", 2) == 0)
+    if (strncmp (dialect, "pim", 3) == 0)
       libraries = "pim";
     else if (strcmp (dialect, "iso") == 0)
       libraries = "iso,pim";
