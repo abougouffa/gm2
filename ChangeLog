@@ -1,4 +1,15 @@
-2013-07-15	Gaius Mulley <gaius@gnu.org>
+2013-07-20      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/configure.in:  corrected dates.
+	* gm2/gm2spec.c:  (add_B_prefix) now calls insert_option.  (add_library)
+	  calls insert_option.  (insert_option) New function.
+	* gm2/bnf/gm2l.bnf:  corrected dates and also emit full path to the
+	  source file in the comment section.  Also exit(1) if no source file
+	  can be found.
+	* gm2/gm2-compiler/gm2lcc.mod:  allow -B to either take a concatenated
+	  argument or use the next argument.
+	
+2013-07-15      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2spec.c:  (fe_generate_option) fixed cast to XCNEWVEC.
 	  (printOption) moved function earlier in the file.

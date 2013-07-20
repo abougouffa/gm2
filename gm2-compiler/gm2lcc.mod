@@ -428,11 +428,13 @@ END AdditionalFOptions ;
 
 PROCEDURE ScanArguments ;
 VAR
+   filename,
    s        : String ;
    i        : CARDINAL ;
    FoundFile: BOOLEAN ;
 BEGIN
    FoundFile := FALSE ;
+   filename := NIL ;
    i := 1 ;
    WHILE GetArg(s, i) DO
       IF EqualArray(s, '-g')
@@ -453,7 +455,18 @@ BEGIN
       ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-B')
       THEN
          CompilerDir := KillString(CompilerDir) ;
-         CompilerDir := Slice(s, 2, 0)
+         IF Length(s)=2
+         THEN
+            INC(i) ;
+            IF NOT GetArg(CompilerDir, i)
+            THEN
+               fprintf0(StdErr, 'expecting path after -B option\n') ;
+               Close(StdErr) ;
+               exit(1)
+            END
+         ELSE
+            CompilerDir := Slice(s, 2, 0)
+         END
       ELSIF EqualArray(s, '-p')
       THEN
          ProfileFound := TRUE
@@ -500,7 +513,7 @@ BEGIN
       ELSE
          IF FoundFile
          THEN
-            fprintf1(StdErr, 'already specified input filename, unknown option (%s)\n', s) ;
+            fprintf2(StdErr, 'already specified input filename (%s), unknown option (%s)\n', filename, s) ;
             Close(StdErr) ;
             exit(1)
          ELSE
@@ -513,7 +526,8 @@ BEGIN
                Close(StdErr) ;
                exit(1)
             END ;
-            FoundFile := TRUE
+            FoundFile := TRUE ;
+            filename := Dup(s) ;
          END
       END ;
       INC(i)

@@ -1,4 +1,6 @@
--- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+-- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+--               2011, 2012, 2013
+-- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
 -- GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -19,7 +21,9 @@
 --
 % module gm2l begin
 MODULE gm2l ;
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 2011, 2012, 2013
+   Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -40,7 +44,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
    Author     : Gaius Mulley
    Title      : gm2l
    Date       : Date: Sat 16-09-1989 Time: 17:49:34.18
-              : [$Date: 2013/02/11 14:45:00 $]
+              : [$Date: 2013/07/20 12:33:01 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: generates the list of initialization order for the modules.
                 The initialization module list is used for two purposes.
@@ -92,6 +96,7 @@ TYPE
    Source = POINTER TO source ;
    source = RECORD
                name       : Name ;
+               fullpath   : String ;
                Depth      : CARDINAL ;
                OnlyDef    ,
                ForC       : BOOLEAN ;
@@ -563,6 +568,7 @@ BEGIN
    END ;
    WITH Tail^ DO
       name        := ModuleName ;
+      fullpath    := NIL ;
       Depth       := 0 ;
       ForC        := FALSE ;
       OnlyDef     := FALSE ;
@@ -584,6 +590,7 @@ BEGIN
       a := InitStringCharStar(KeyToCharStar(MainSrc)) ;
       IF OpenSource(PreprocessModule(a))
       THEN
+         pSource^.fullpath := Dup(a) ;
          a := KillString(a) ;
          RETURN( TRUE )
       ELSE
@@ -596,6 +603,7 @@ BEGIN
       THEN
          IF FindSourceDefFile(a, b) AND OpenSource(PreprocessModule(b))
          THEN
+            pSource^.fullpath := Dup(b) ;
             a := KillString(a) ;
             b := KillString(b) ;
             RETURN( TRUE )
@@ -607,6 +615,7 @@ BEGIN
       ELSE
          IF FindSourceModFile(a, b) AND OpenSource(PreprocessModule(b))
          THEN
+            pSource^.fullpath := Dup(b) ;
             a := KillString(a) ;
             b := KillString(b) ;
             RETURN( TRUE )
@@ -694,7 +703,21 @@ BEGIN
    p := Head ;
    WHILE p#NIL DO
       WITH p^ DO
-         fprintf3(fo, '%c %a %4d\n', CommentChar, name, Depth)
+         fprintf3(fo, '%c %a %4d ', CommentChar, name, Depth) ;
+         IF p^.fullpath=NIL
+         THEN
+            fprintf1(fo, 'no source file found for module %a\n', p^.name) ;
+            fprintf1(StdErr, 'no source file found for module %a\n', p^.name) ;
+            exit(1)
+         ELSE
+            fprintf1(fo, '%s', p^.fullpath) ;
+            IF p^.ForC
+            THEN
+               fprintf0(fo, " FOR 'C'\n")
+            ELSE
+               fprintf0(fo, '\n')
+            END
+         END
       END ;
       p := p^.next
    END ;

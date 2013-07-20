@@ -125,7 +125,7 @@ static style_sig libraryStyle[LIB_MAX+1] = {{"",      { FALSE,    FALSE}},
 
 int lang_specific_pre_link (void);
 static void add_exec_prefix (void);
-static void add_B_prefix (struct cl_decoded_option **in_options, const char *gm2_root);
+static void add_B_prefix (unsigned int *in_decoded_options_count, struct cl_decoded_option **in_decoded_options, const char *gm2_root);
 static const char *get_objects (int argc, const char *argv[]);
 static const char *get_link_args (int argc, const char *argv[]);
 static const char *add_exec_dir (int argc, const char *argv[]);
@@ -140,6 +140,8 @@ static void check_gm2_root (void);
 static char *add_include (char *prev, const char *libpath, char *library);
 static const char *gen_gm2_root (const char *gm2_root);
 static const char *get_prefix (void);
+static void insert_option (unsigned int *in_decoded_options_count, struct cl_decoded_option **in_decoded_options, unsigned int position);
+static void printOption (const char *desc, struct cl_decoded_option **in_decoded_options, int i);
 
 void fe_save_switch (const char *opt, size_t n_args, const char *const *args, bool validated);
 
@@ -194,15 +196,17 @@ static void fe_generate_option (size_t opt_index, const char *arg, int joined)
   const char *opt = (const char *) option->opt_text;
   const char *newopt = opt;
 
+#if 0
   if (opt_index == OPT_l)
     return;
+#endif
 
   if (joined)
     newopt = concat (opt, arg, NULL);
 
   if (arg == NULL || joined)
     {
-#if 1
+#if 0
       if (opt_index == OPT_l)
 	{
 	  fe_add_infile (newopt, "*");
@@ -253,20 +257,43 @@ const char *find_executable_path (const char *argv0)
  */
 
 static
-void add_B_prefix (struct cl_decoded_option **in_options, const char *gm2_root)
+void add_B_prefix (unsigned int *in_decoded_options_count,
+		   struct cl_decoded_option **in_decoded_options, const char *gm2_root)
 {
-  if ((*in_options)[0].arg != NULL)
+  if ((*in_decoded_options)[0].arg != NULL)
     {
-      const char *arg = (*in_options)[0].arg;
+      const char *arg = (*in_decoded_options)[0].arg;
       const char *path = find_executable_path (arg);
 
       if (path == NULL || (strcmp (path, "") == 0))
 	path = gen_gm2_root (gm2_root);
 
-      if (path != NULL && (strcmp (path, "") != 0)) {
-	fe_B_prefix (xstrdup (path));
-	fe_generate_option (OPT_B, xstrdup (path), TRUE);
-      }
+      if (path != NULL && (strcmp (path, "") != 0))
+	{
+	  unsigned int count = *in_decoded_options_count;
+
+#if defined(DEBUGGING)
+	  unsigned int i;
+
+	  printf("going to add -B%s\n", path);
+	  for (i = 0; i < *in_decoded_options_count; i++)
+	    printOption("before add -B", in_decoded_options, i);
+#endif
+
+	  fe_B_prefix (xstrdup (path));
+	  fe_generate_option (OPT_B, xstrdup (path), 1);
+#if 0
+	  insert_option (in_decoded_options_count, in_decoded_options, count);
+	  generate_option (OPT_B, xstrdup (path), 1,
+			   CL_DRIVER, &(*in_decoded_options)[count]);
+#endif
+
+#if defined(DEBUGGING)
+	  for (i = 0; i < *in_decoded_options_count; i++)
+	    printOption("after add -B", in_decoded_options, i);
+#endif
+
+	}
     }
 }
 
@@ -400,20 +427,12 @@ printOption (const char *desc, struct cl_decoded_option **in_decoded_options, in
  */
 
 static void
-add_library (const char *libraryname,
-	     unsigned int *in_decoded_options_count,
-	     struct cl_decoded_option **in_decoded_options,
-	     unsigned int position)
+insert_option (unsigned int *in_decoded_options_count,
+	       struct cl_decoded_option **in_decoded_options,
+	       unsigned int position)
 {
   struct cl_decoded_option *new_decoded_options;
   unsigned int i;
-
-#if defined(DEBUGGING)
-  printf("going to add -l%s at position=%d  count=%d\n",
-	 libraryname, position, *in_decoded_options_count);
-  for (i = 0; i < *in_decoded_options_count; i++)
-    printOption("before add_library", in_decoded_options, i);
-#endif
 
   (*in_decoded_options_count)++;
 
@@ -426,11 +445,36 @@ add_library (const char *libraryname,
 
   for (i=position; i<(*in_decoded_options_count)-1; i++)
     new_decoded_options[i+1] = (*in_decoded_options)[i];
-    
-  add_lib (OPT_l, libraryname, TRUE);
-  generate_option (OPT_l, libraryname, 1,
-		   CL_DRIVER, &new_decoded_options[position]);
   *in_decoded_options = new_decoded_options;
+
+}
+
+/*
+ *
+ */
+
+static void
+add_library (const char *libraryname,
+	     unsigned int *in_decoded_options_count,
+	     struct cl_decoded_option **in_decoded_options,
+	     unsigned int position)
+{
+  if (libraryname == NULL || (strcmp (libraryname, "") == 0))
+    return;
+
+  insert_option (in_decoded_options_count, in_decoded_options, position);
+
+#if defined(DEBUGGING)
+  unsigned int i;
+
+  printf("going to add -l%s at position=%d  count=%d\n",
+	 libraryname, position, *in_decoded_options_count);
+  for (i = 0; i < *in_decoded_options_count; i++)
+    printOption("before add_library", in_decoded_options, i);
+#endif
+
+  generate_option (OPT_l, libraryname, 1,
+		   CL_DRIVER, &(*in_decoded_options)[position]);
 
 #if defined(DEBUGGING)
   for (i = 0; i < *in_decoded_options_count; i++)
@@ -1131,7 +1175,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 
 #if 1
   if (! seen_B)
-    add_B_prefix (in_decoded_options, get_prefix ());
+    add_B_prefix (in_decoded_options_count, in_decoded_options, get_prefix ());
 #endif
 
 #if defined(DEBUGGING)
