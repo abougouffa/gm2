@@ -253,12 +253,20 @@ idirafter
 Modula-2
 ; Documented in c.opt
 
+imultilib
+Modula-2
+; Documented in c.opt
+
 fcppend
 Modula-2
 passed to the preprocessor if -fcpp is used
 
 fcppbegin
 Modula-2
+passed to the preprocessor if -fcpp is used
+
+fcppprog=
+Modula-2 Joined
 passed to the preprocessor if -fcpp is used
 
 E

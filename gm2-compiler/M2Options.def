@@ -22,10 +22,10 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2013/03/20 13:10:36 $]
+   Date       : 27/5/87  [$Date: 2013/08/14 20:39:40 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.30 $
+   Version    : $Revision: 1.31 $
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
@@ -58,7 +58,8 @@ EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions,
                  CompilerDebugging, GenerateDebugging, GenerateLineDebug,
                  DumpSystemExports, GenerateSwig, Exceptions,
                  OverrideLocation,
-                 DebugBuiltins, setdefextension, setmodextension ;
+                 DebugBuiltins, setdefextension, setmodextension,
+                 CppProg, CppArg, CppCommandLine ;
 
 
 VAR
@@ -166,6 +167,13 @@ PROCEDURE SetVerboseUnbounded (value: BOOLEAN) : BOOLEAN ;
 *)
 
 PROCEDURE SetQuiet (value: BOOLEAN) : BOOLEAN ;
+
+
+(*
+   SetCC1Quiet - sets the cc1quiet flag to, value.
+*)
+
+PROCEDURE SetCC1Quiet (value: BOOLEAN) ;
 
 
 (*
@@ -406,6 +414,27 @@ PROCEDURE setdefextension (arg: ADDRESS) ;
 *)
 
 PROCEDURE setmodextension (arg: ADDRESS) ;
+
+
+(*
+   CppProg - sets the cpp program to be, program.
+*)
+
+PROCEDURE CppProg (program: ADDRESS) ;
+
+
+(*
+   CppArg - sets the option and arg in the cpp command line.
+*)
+
+PROCEDURE CppArg (opt, arg: ADDRESS; joined: BOOLEAN) ;
+
+
+(*
+   CppCommandLine - returns the Cpp command line and all arguments.
+*)
+
+PROCEDURE CppCommandLine () : String ;
 
 
 END M2Options.

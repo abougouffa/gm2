@@ -68,10 +68,13 @@ EXTERN void M2Options_SetUnboundedByReference (int value);
 EXTERN void M2Options_SetDumpSystemExports (int value);
 EXTERN void M2Options_SetOptimizing (int value);
 EXTERN void M2Options_SetQuiet (int value);
+EXTERN void M2Options_SetCC1Quiet (int value);
 EXTERN void M2Options_SetCpp (int value);
 EXTERN void M2Options_SetSwig (int value);
 EXTERN void M2Options_SetForcedLocation (location_t location);
 EXTERN location_t M2Options_OverrideLocation (location_t location);
+EXTERN void M2Options_CppProg (const char *program);
+EXTERN void M2Options_CppArg (const char *opt, char *arg, int joined);
 
 EXTERN void M2Options_DisplayVersion (void);
 

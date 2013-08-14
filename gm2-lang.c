@@ -121,6 +121,50 @@ gm2_langhook_init_options_struct (struct gcc_options *opts)
   init_FrontEndInit ();
 }
 
+/* Infrastructure for a VEC of unsigned int values.  */
+
+typedef unsigned int gm2_bool;
+
+/* This array determines whether the filename is associated with
+   the C preprocessor.  */
+
+DEF_VEC_I(gm2_bool);
+DEF_VEC_ALLOC_I(gm2_bool, heap);
+static VEC(gm2_bool,heap) *filename_cpp;
+
+void
+gm2_langhook_init_options (unsigned int decoded_options_count,
+			   struct cl_decoded_option *decoded_options)
+{
+  unsigned int i;
+  unsigned int in_cpp_args = FALSE;
+
+  filename_cpp = VEC_alloc (gm2_bool, heap, decoded_options_count);
+
+  for (i = 1; i < decoded_options_count; i++)
+    {
+      switch (decoded_options[i].opt_index)
+	{
+	case OPT_fcppbegin:
+	  in_cpp_args = TRUE;
+	  break;
+	case OPT_fcppend:
+	  in_cpp_args = FALSE;
+	  break;
+	case OPT_SPECIAL_input_file:
+	case OPT_SPECIAL_program_name:
+	  VEC_quick_push (gm2_bool, filename_cpp, in_cpp_args);
+	}
+    }
+  VEC_quick_push (gm2_bool, filename_cpp, FALSE);
+}
+
+
+static unsigned int is_cpp_filename (unsigned int i)
+{
+  return VEC_index (gm2_bool, filename_cpp, i);
+}
+
 /* Infrastructure for a VEC of char * pointers.  */
 
 typedef const char *gm2_char_p;
@@ -259,6 +303,12 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
   case OPT_fcppbegin:
     insideCppArgs = TRUE;
     return 1;
+  case OPT_fcppend:
+    insideCppArgs = FALSE;
+    return 1;
+  case OPT_fcppprog_:
+    M2Options_CppProg(arg);
+    return 1;
   case OPT_fq:
     M2Options_SetQuadDebugging(value);
     return 1;
@@ -318,6 +368,13 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
     else
       return 0;
   default:
+    if (insideCppArgs) {
+      const struct cl_option *option = &cl_options[scode];
+      char *opt = (const char *) option->opt_text;
+
+      M2Options_CppArg(opt, arg, TRUE);
+      return 1;
+    }
     return 0;
   }
   return 0;
@@ -343,6 +400,7 @@ gm2_langhook_post_options (const char **pfilename ATTRIBUTE_UNUSED)
     flag_excess_precision_cmdline = EXCESS_PRECISION_STANDARD;
 #endif
   flag_excess_precision_cmdline = EXCESS_PRECISION_FAST;
+  M2Options_SetCC1Quiet (quiet_flag);
 
   /* Returning false means that the backend should be used.  */
   return false;
@@ -355,7 +413,8 @@ gm2_parse_input_files (const char** filenames, unsigned int filename_count)
   gcc_assert (filename_count > 0);
 
   for (i = 0; i < filename_count; i++)
-    init_PerCompilationInit (filenames[i]);
+    if (! is_cpp_filename (i))
+      init_PerCompilationInit (filenames[i]);
 }
 
 static void
@@ -891,6 +950,7 @@ gm2_type_for_size (unsigned int bits, int unsignedp)
 
 #undef LANG_HOOKS_NAME
 #undef LANG_HOOKS_INIT
+#undef LANG_HOOKS_INIT_OPTIONS
 #undef LANG_HOOKS_OPTION_LANG_MASK
 #undef LANG_HOOKS_INIT_OPTIONS_STRUCT
 #undef LANG_HOOKS_HANDLE_OPTION
@@ -908,6 +968,7 @@ gm2_type_for_size (unsigned int bits, int unsignedp)
 
 #define LANG_HOOKS_NAME			"GNU Modula-2"
 #define LANG_HOOKS_INIT			gm2_langhook_init
+#define LANG_HOOKS_INIT_OPTIONS         gm2_langhook_init_options
 #define LANG_HOOKS_OPTION_LANG_MASK	gm2_langhook_option_lang_mask
 #define LANG_HOOKS_INIT_OPTIONS_STRUCT	gm2_langhook_init_options_struct
 #define LANG_HOOKS_HANDLE_OPTION	gm2_langhook_handle_option

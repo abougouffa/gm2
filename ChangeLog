@@ -1,3 +1,26 @@
+2013-08-14      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-lang.c:  (gm2_langhook_init_options) New function.
+	  (is_cpp_filename) New function.  gm2_langhook_post_options
+	  call M2Options_SetCC1Quiet.  gm2_parse_input_files only call
+	  init_PerCompilationInit if filename is not a cpp filename argument.
+	* gm2/gm2spec.c:  corrected comment typo.  (get_B_or_prefix)
+	  New function.  add_exec_name use find_executable_path.
+	  (lang_register_spec_functions).  New function.
+	  (add_exec_dir) modified to create the argument -fcppprog=.
+	* gm2/lang-specs.h:  add %:exec_prefix(cc1) to all -fcpp options.
+	* gm2/lang.opt:  added imultilib to Modula-2.
+	* gm2/gm2-compiler/M2DriverOptions.def:  (CppCommandLine) New function.
+	* gm2/gm2-compiler/M2DriverOptions.mod:  (CppCommandLine) implemented
+	  new function.
+	* gm2/gm2-compiler/M2Options.def:  (SetCC1Quiet) New function.
+	* gm2/gm2-compiler/M2Options.mod:  (ScanCppArgs) Removed function.
+	  (CppCommandLine) New function.  (CppProg) New function.
+	  (CppArg) New function.  (SetCC1Quiet) New function.
+	* gm2/gm2-compiler/M2Preprocess.mod:  removed hack inside PreprocessModule.
+	* gm2/gm2-gcc/m2options.h:  New definitions for M2Options_SetCC1Quiet,
+	  M2Options_CppProg and M2Options_CppArg.
+
 2013-07-20      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/configure.in:  corrected dates.
@@ -8,7 +31,7 @@
 	  can be found.
 	* gm2/gm2-compiler/gm2lcc.mod:  allow -B to either take a concatenated
 	  argument or use the next argument.
-	
+
 2013-07-15      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2spec.c:  (fe_generate_option) fixed cast to XCNEWVEC.

@@ -48,7 +48,9 @@ CONST
    Debugging = FALSE ;
 
 VAR
-   CppAndArgs         : String ;
+   CppProgram,
+   CppArgs            : String ;
+   CC1Quiet,
    SeenSources        : BOOLEAN ;
    ForcedLocationValue: location_t ;
 
@@ -121,32 +123,72 @@ END DisplayVersion ;
 
 
 (*
-   ScanCppArgs - scans the cpp arguments and builds up the cpp command line.
+   CppCommandLine - returns the Cpp command line and all arguments.
 *)
 
-PROCEDURE ScanCppArgs (i: CARDINAL) : CARDINAL ;
+PROCEDURE CppCommandLine () : String ;
 VAR
    s: String ;
 BEGIN
-   DSdbEnter ;
-   IF GetArg(s, i) AND EqualArray(s, '-fcppbegin')
+   IF EqualArray(CppProgram, '')
    THEN
-      INC(i) ;
-      WHILE GetArg(s, i) DO
-         IF EqualArray(s, '-fcppend')
+      RETURN( NIL )
+   ELSE
+      s := Dup(CppProgram) ;
+      s := ConCat(ConCatChar(s, ' '), CppArgs) ;
+      IF CC1Quiet
+      THEN
+         s := ConCat(ConCatChar(s, ' '), Mark(InitString('-quiet')))
+      END ;
+      RETURN( s )
+   END
+END CppCommandLine ;
+
+
+(*
+   CppProg - sets the cpp program to be, program.
+*)
+
+PROCEDURE CppProg (program: ADDRESS) ;
+BEGIN
+   CppProgram := KillString(CppProgram) ;
+   CppProgram := InitStringCharStar(program)
+END CppProg ;
+
+
+(*
+   CppArg - sets the option and arg in the cpp command line.
+*)
+
+PROCEDURE CppArg (opt, arg: ADDRESS; joined: BOOLEAN) ;
+VAR
+   s: String ;
+BEGIN
+   s := InitStringCharStar(opt) ;
+   IF EqualArray(s, '-fcppbegin') OR EqualArray(s, '-fcppend')
+   THEN
+      (* do nothing *)
+   ELSIF EqualArray(s, '-fcppprog=')
+   THEN
+      CppProgram := KillString(CppProgram) ;
+      CppProgram := InitStringCharStar(arg)
+   ELSE
+      IF NOT EqualArray(CppArgs, '')
+      THEN
+         CppArgs := ConCatChar(CppArgs, ' ')
+      END ;
+      CppArgs := ConCat(CppArgs, Mark(s)) ;
+      IF arg#NIL
+      THEN
+         s := InitStringCharStar(arg) ;
+         IF NOT joined
          THEN
-            RETURN( i )
-         ELSIF NOT EqualArray(CppAndArgs, '')
-         THEN
-            CppAndArgs := ConCatChar(CppAndArgs, ' ')
+            CppArgs := ConCatChar(CppArgs, ' ')
          END ;
-         CppAndArgs := ConCat(CppAndArgs, s) ;
-         INC(i)
+         CppArgs := ConCat(CppArgs, s)
       END
-   END ;
-   DSdbExit(NIL) ;
-   RETURN( i )
-END ScanCppArgs ;
+   END
+END CppArg ;
 
 
 (*
@@ -479,16 +521,6 @@ END SetXCode ;
 
 
 (*
-   CppCommandLine - returns the Cpp command line and all arguments.
-*)
-
-PROCEDURE CppCommandLine () : String ;
-BEGIN
-   RETURN( CppAndArgs )
-END CppCommandLine ;
-
-
-(*
    SetSwig - 
 *)
 
@@ -619,6 +651,16 @@ END SetForcedLocation ;
 
 
 (*
+   SetCC1Quiet - sets the cc1quiet flag to, value.
+*)
+
+PROCEDURE SetCC1Quiet (value: BOOLEAN) ;
+BEGIN
+   CC1Quiet := value
+END SetCC1Quiet ;
+
+
+(*
    OverrideLocation - possibly override the location value, depending upon
                       whether the -flocation= option was used.
 *)
@@ -635,7 +677,8 @@ END OverrideLocation ;
 
 
 BEGIN
-   CppAndArgs                   := InitString('') ;
+   CppArgs                      := InitString('') ;
+   CppProgram                   := InitString('') ;
    Pim                          :=  TRUE ;
    Pim2                         := FALSE ;
    Pim3                         := FALSE ;
@@ -651,6 +694,7 @@ BEGIN
    Pedantic                     := FALSE ;
    Verbose                      := FALSE ;
    Quiet                        :=  TRUE ;
+   CC1Quiet                     :=  TRUE ;
    Profiling                    := FALSE ;
    DisplayQuadruples            := FALSE ;
    OptimizeBasicBlock           := FALSE ;

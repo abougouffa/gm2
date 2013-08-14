@@ -56,16 +56,6 @@ BEGIN
 END ScanCppArgs ;
 
 
-(*
-   CppCommandLine - returns the Cpp command line and all arguments.
-*)
-
-PROCEDURE CppCommandLine () : String ;
-BEGIN
-   RETURN( CppAndArgs )
-END CppCommandLine ;
-
-
 BEGIN
    CppAndArgs := InitString('')
 END M2DriverOptions.

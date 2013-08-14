@@ -37,11 +37,4 @@ FROM DynamicStrings IMPORT String ;
 PROCEDURE ScanCppArgs (i: CARDINAL) : CARDINAL ;
 
 
-(*
-   CppCommandLine - returns the Cpp command line and all arguments.
-*)
-
-PROCEDURE CppCommandLine () : String ;
-
-
 END M2DriverOptions.

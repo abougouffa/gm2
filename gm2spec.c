@@ -129,6 +129,7 @@ static void add_B_prefix (unsigned int *in_decoded_options_count, struct cl_deco
 static const char *get_objects (int argc, const char *argv[]);
 static const char *get_link_args (int argc, const char *argv[]);
 static const char *add_exec_dir (int argc, const char *argv[]);
+static const char *add_exec_name (int argc, const char *argv[]);
 static int is_object (const char *s);
 static void remember_object (const char *s);
 static void remember_link_arg (const char *s);
@@ -140,6 +141,7 @@ static void check_gm2_root (void);
 static char *add_include (char *prev, const char *libpath, char *library);
 static const char *gen_gm2_root (const char *gm2_root);
 static const char *get_prefix (void);
+static const char *get_B_or_prefix (void);
 static void insert_option (unsigned int *in_decoded_options_count, struct cl_decoded_option **in_decoded_options, unsigned int position);
 static void printOption (const char *desc, struct cl_decoded_option **in_decoded_options, int i);
 
@@ -159,6 +161,7 @@ static int seen_fonlylink = FALSE;
 static int seen_fmakeall0 = FALSE;
 static int seen_fmakeall = FALSE;
 static int seen_B = FALSE;
+static char *B_path = NULL;
 
 /* By default, the suffix for target object files is ".o".  */
 #ifdef TARGET_OBJECT_SUFFIX
@@ -238,7 +241,7 @@ const char *find_executable_path (const char *argv0)
     {
       char *n = strrchr (argv0, DIR_SEPARATOR);
 
-      /* strip of the program name from argv0, but leave the DIR_SEPARATOR */
+      /* strip off the program name from argv0, but leave the DIR_SEPARATOR */
       if (n != NULL) {
 	argv0 = xstrdup (argv0);
 	n = strrchr (argv0, DIR_SEPARATOR);
@@ -321,6 +324,15 @@ const char *get_prefix (void)
     return PREFIX;
   else
     return prefix;
+}
+
+static
+const char *get_B_or_prefix (void)
+{
+  if (seen_B)
+    return B_path;
+  else
+    return get_prefix ();
 }
 
 static int
@@ -1073,6 +1085,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 	break;
       case OPT_B:
 	seen_B = TRUE;
+	B_path = (*in_decoded_options)[i].arg;
 	break;
       }
   }
@@ -1327,17 +1340,52 @@ no_link (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
 static const char *
 add_exec_dir (int argc, const char *argv[])
 {
+  if (argc == 1 && argv[0] != NULL) {
+    char *path = gen_gm2_root (get_prefix ());
+    if (path != NULL) {
+      char *opt = (char *) xmalloc (strlen ("-fcppprog=") + strlen (path) + 1 + strlen (argv[0]) + 1);
+      char *sep = alloca (2);
+      
+      sep[0] = DIR_SEPARATOR;
+      sep[1] = (char)0;
+
+      strcpy (opt, "-fcppprog=");
+      strcat (opt, path);
+      strcat (opt, sep);
+      strcat (opt, argv[0]);
+      return opt;
+    }
+  }
+  return "-fcppprog=none";
+}
+
+/*  add_exec_name - generate binary name.
+ */
+
+static const char *
+add_exec_name (int argc, const char *argv[])
+{
   if (argc == 1 && argv[0] != NULL)
-    return find_executable_path (argv[0]);
+    return argv[0];
   return "";
 }
+
+/*
+ *  lang_register_spec_functions - register the Modula-2 associated spec functions.
+ */
+
+void lang_register_spec_functions (void)
+{
+  fe_add_spec_function ("objects", get_objects);
+  fe_add_spec_function ("nolink", no_link);
+  fe_add_spec_function ("linkargs", get_link_args);
+  fe_add_spec_function ("exec_prefix", add_exec_dir);
+  fe_add_spec_function ("exec_name", add_exec_name);
+}
+
 
 /* Table of language-specific spec functions.  */ 
 const struct spec_function lang_specific_spec_functions[] =
 {
-  { "objects", get_objects},
-  { "nolink", no_link},
-  { "linkargs", get_link_args},
-  { "exec_prefix", add_exec_dir},
   { NULL, NULL }
 };

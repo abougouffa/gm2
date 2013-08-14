@@ -101,11 +101,6 @@ BEGIN
    ELSE
       tempfile := InitStringCharStar(make_temp_file(KeyToCharStar(MakeKey('cpp')))) ;
       commandLine := Dup(command) ;
-      pos := RIndex(commandLine,  ' ', 0) ;
-      IF pos>0
-      THEN
-         commandLine := Slice(commandLine, 0, pos)
-      END ;
       commandLine := ConCat(ConCat(ConCat(ConCatChar(Dup(commandLine), ' '), filename),
                                    Mark(InitString(' -o '))),
                             tempfile) ;
