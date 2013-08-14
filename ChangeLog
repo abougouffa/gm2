@@ -20,6 +20,14 @@
 	* gm2/gm2-compiler/M2Preprocess.mod:  removed hack inside PreprocessModule.
 	* gm2/gm2-gcc/m2options.h:  New definitions for M2Options_SetCC1Quiet,
 	  M2Options_CppProg and M2Options_CppArg.
+	* gm2/patches/gcc/4.7.3/01-patches:  rebuilt.
+	* gm2/patches/gcc/4.7.3/02-patches:  rebuilt.
+	* gm2/patches/gcc/4.7.3/03-patches:  rebuilt.
+	* gm2/patches/gcc/4.7.3/04-patches:  rebuilt.
+	* gm2/patches/gcc/4.7.3/05-patches:  rebuilt.
+	* gm2/patches/gcc/4.7.3/06-patches:  rebuilt.
+	* gm2/patches/gcc/4.7.3/07-patches:  rebuilt.
+	* gm2/patches/gcc/4.7.3/08-patches:  rebuilt.
 
 2013-07-20      Gaius Mulley <gaius@gnu.org>
 

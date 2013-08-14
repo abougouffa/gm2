@@ -1,5 +1,5 @@
---- gcc-4.7.3-orig/Makefile.def	2013-06-19 15:00:33.931301974 +0100
-+++ gcc-4.7.3/Makefile.def	2013-06-19 15:04:55.427306124 +0100
+--- gcc-4.7.3-orig/Makefile.def	2013-06-19 15:00:33.000000000 +0100
++++ gcc-4.7.3/Makefile.def	2013-07-12 11:52:49.000000000 +0100
 @@ -138,6 +138,7 @@
  target_modules = { module= boehm-gc; };
  target_modules = { module= rda; };
@@ -8,3 +8,11 @@
  target_modules = { module= libgomp; bootstrap= true; lib_path=.libs; };
  target_modules = { module= libitm; lib_path=.libs; };
  
+@@ -530,6 +531,7 @@
+ languages = { language=obj-c++;	gcc-check-target=check-obj-c++; };
+ languages = { language=go;	gcc-check-target=check-go;
+ 				lib-check-target=check-target-libgo; };
++languages = { language=gm2;	gcc-check-target=check-gm2; };
+ 
+ // Toplevel bootstrap
+ bootstrap_stage = { id=1 ; };
