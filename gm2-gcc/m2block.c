@@ -804,8 +804,9 @@ m2block_finishFunctionDecl (tree fndecl)
     {
       BIND_EXPR_VARS (bind_expr) = chainon (BIND_EXPR_VARS (bind_expr),
 					    current_binding_level->names);
-      for (i = tsi_start (current_binding_level->names); !tsi_end_p (i); tsi_next (&i))
-	append_to_statement_list_force (*tsi_stmt_ptr (i), &BIND_EXPR_BODY (bind_expr));
+      if (current_binding_level->names != NULL_TREE)
+	for (i = tsi_start (current_binding_level->names); !tsi_end_p (i); tsi_next (&i))
+	  append_to_statement_list_force (*tsi_stmt_ptr (i), &BIND_EXPR_BODY (bind_expr));
     }
 
   current_binding_level->names = NULL_TREE;

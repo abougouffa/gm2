@@ -1,3 +1,11 @@
+2013-09-06      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-gcc/m2block.c:  (cosmetic changes).
+	* gm2/gm2-gcc/m2statement.c:  (m2statement_BuildEndFunctionCode)
+	  call cgraph_get_create_node for a nested function otherwise
+	  call cgraph_finalize_function and gm2_gimplify_function_code.
+	  Fixes allow nested procedures to be compiled.
+
 2013-08-14      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-lang.c:  (gm2_langhook_init_options) New function.

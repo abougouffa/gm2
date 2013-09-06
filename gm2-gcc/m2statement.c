@@ -176,11 +176,15 @@ m2statement_BuildEndFunctionCode (tree fndecl, int nested)
 
   m2block_finishFunctionCode (fndecl);
 
-  cgraph_finalize_function (fndecl, nested);
+  if (nested)
+    (void) cgraph_get_create_node (fndecl);
+  else
+    cgraph_finalize_function (fndecl, FALSE);
 
   m2block_popFunctionScope ();
 
-  gm2_gimplify_function_node (fndecl);
+  if (! nested)
+    gm2_gimplify_function_node (fndecl);
   // printf("ending scope %s\n", IDENTIFIER_POINTER(DECL_NAME (fndecl)));
 }
 
