@@ -2082,6 +2082,9 @@ BEGIN
    ELSIF (symType#NulSym) AND IsProcType(symType)
    THEN
       RETURN( BuildConvert(GetPointerType (), Mod2Gcc(sym), FALSE) )
+   ELSIF (symType#NulSym) AND IsSubrange(symType) AND (symType#withType) AND (withType#NulSym)
+   THEN
+      RETURN( BuildConvert(Mod2Gcc(withType), Mod2Gcc(sym), FALSE) )
    END ;
    t := StringToChar(NIL, GetType(with), sym) ;
    IF t=NIL
@@ -3168,7 +3171,8 @@ BEGIN
    ELSIF tl=NIL
    THEN
       tl := BuildConvert(Mod2Gcc(type), Mod2Gcc(op2), FALSE)
-   ELSE
+   ELSIF tr=NIL
+   THEN
       tr := BuildConvert(Mod2Gcc(type), Mod2Gcc(op3), FALSE)
    END
 END ConvertBinaryOperands ;
@@ -5861,8 +5865,11 @@ BEGIN
                      'comparison tests between are composite types not allowed {%1atd} and {%2atd}',
                      op1, op2)
       ELSE
-         tl := ConvertForComparison(tokenno, op1, op2) ;
-         tr := ConvertForComparison(tokenno, op2, op1) ;
+         ConvertBinaryOperands(tl, tr,
+                               MixTypes(SkipType(GetType(op1)),
+                                        SkipType(GetType(op2)),
+                                        tokenno),
+                               op1, op2) ;
          DoJump(location,
                 BuildLessThan(location, tl, tr), NIL, string(CreateLabelName(op3)))
       END
@@ -5959,8 +5966,11 @@ BEGIN
                      'comparison tests between are composite types not allowed {%1atd} and {%2atd}',
                      op1, op2)
       ELSE
-         tl := ConvertForComparison(tokenno, op1, op2) ;
-         tr := ConvertForComparison(tokenno, op2, op1) ;
+         ConvertBinaryOperands(tl, tr,
+                               MixTypes(SkipType(GetType(op1)),
+                                        SkipType(GetType(op2)),
+                                        tokenno),
+                               op1, op2) ;
          DoJump(location, BuildGreaterThan(location, tl, tr), NIL, string(CreateLabelName(op3)))
       END
    END
@@ -6056,8 +6066,11 @@ BEGIN
                      'comparison tests between are composite types not allowed {%1atd} and {%2atd}',
                      op1, op2)
       ELSE
-         tl := ConvertForComparison(tokenno, op1, op2) ;
-         tr := ConvertForComparison(tokenno, op2, op1) ;
+         ConvertBinaryOperands(tl, tr,
+                               MixTypes(SkipType(GetType(op1)),
+                                        SkipType(GetType(op2)),
+                                        tokenno),
+                               op1, op2) ;
          DoJump(location, BuildLessThanOrEqual(location, tl, tr), NIL, string(CreateLabelName(op3)))
       END
    END
@@ -6153,8 +6166,11 @@ BEGIN
                      'comparison tests between are composite types not allowed {%1atd} and {%2atd}',
                      op1, op2)
       ELSE
-         tl := ConvertForComparison(tokenno, op1, op2) ;
-         tr := ConvertForComparison(tokenno, op2, op1) ;
+         ConvertBinaryOperands(tl, tr,
+                               MixTypes(SkipType(GetType(op1)),
+                                        SkipType(GetType(op2)),
+                                        tokenno),
+                               op1, op2) ;
          DoJump(location, BuildGreaterThanOrEqual(location, tl, tr), NIL, string(CreateLabelName(op3)))
       END
    END
@@ -6301,8 +6317,11 @@ BEGIN
                      'equality tests between are composite types not allowed {%1atd} and {%2atd}',
                      op1, op2)
       ELSE
-         tl := ConvertForComparison(tokenno, op1, op2) ;
-         tr := ConvertForComparison(tokenno, op2, op1) ;
+         ConvertBinaryOperands(tl, tr,
+                               MixTypes(SkipType(GetType(op1)),
+                                        SkipType(GetType(op2)),
+                                        tokenno),
+                               op1, op2) ;
          DoJump(location, BuildEqualTo(location, tl, tr), NIL, string(CreateLabelName(op3)))
       END
    END
@@ -6348,8 +6367,11 @@ BEGIN
                      'inequality tests between are composite types not allowed {%1atd} and {%2atd}',
                      op1, op2)
       ELSE
-         tl := ConvertForComparison(tokenno, op1, op2) ;
-         tr := ConvertForComparison(tokenno, op2, op1) ;
+         ConvertBinaryOperands(tl, tr,
+                               MixTypes(SkipType(GetType(op1)),
+                                        SkipType(GetType(op2)),
+                                        tokenno),
+                               op1, op2) ;
          DoJump(location,
                 BuildNotEqualTo(location, tl, tr), NIL, string(CreateLabelName(op3)))
       END
@@ -6358,18 +6380,38 @@ END CodeIfNotEqu ;
 
 
 (*
+   MixTypes3 - returns a type compatible from, low, high, var.
+*)
+
+PROCEDURE MixTypes3 (low, high, var: CARDINAL; tokenno: CARDINAL) : CARDINAL ;
+VAR
+   type: CARDINAL ;
+BEGIN
+   type := MixTypes(SkipType(GetType(low)), SkipType(GetType(high)), tokenno) ;
+   type := MixTypes(type, SkipType(GetType(var)), tokenno) ;
+   RETURN( type )
+END MixTypes3 ;
+
+
+(*
    BuildIfVarInConstValue - if var in constsetvalue then goto trueexit
 *)
 
-PROCEDURE BuildIfVarInConstValue (location: location_t; constsetvalue: PtrToValue; var, trueexit: CARDINAL) ;
+PROCEDURE BuildIfVarInConstValue (location: location_t; tokenno: CARDINAL;
+                                  constsetvalue: PtrToValue; var, trueexit: CARDINAL) ;
 VAR
+   vt, lt, ht  : Tree ;
+   type,
    low, high, n: CARDINAL ;
    truelabel   : String ;
 BEGIN
    n := 1 ;
    truelabel := string(CreateLabelName(trueexit)) ;
    WHILE GetRange(constsetvalue, n, low, high) DO
-      BuildIfInRangeGoto(location, Mod2Gcc(var), Mod2Gcc(low), Mod2Gcc(high), truelabel) ;
+      type := MixTypes3(low, high, var, tokenno) ;
+      ConvertBinaryOperands(vt, lt, type, var, low) ;
+      ConvertBinaryOperands(ht, lt, type, high, low) ;
+      BuildIfInRangeGoto(location, vt, lt, ht, truelabel) ;
       INC(n)
    END
 END BuildIfVarInConstValue ;
@@ -6381,6 +6423,8 @@ END BuildIfVarInConstValue ;
 
 PROCEDURE BuildIfNotVarInConstValue (quad: CARDINAL; constsetvalue: PtrToValue; var, trueexit: CARDINAL) ;
 VAR
+   vt, lt, ht  : Tree ;
+   type,
    low, high, n: CARDINAL ;
    falselabel,
    truelabel   : String ;
@@ -6398,12 +6442,16 @@ BEGIN
    IF n=2
    THEN
       (* actually only one set range, so we invert it *)
-      BuildIfNotInRangeGoto(location, Mod2Gcc(var), Mod2Gcc(low), Mod2Gcc(high), truelabel) ;
+      vt := ConvertForComparison(tokenno, var, low) ;
+      BuildIfNotInRangeGoto(location, vt, Mod2Gcc(low), Mod2Gcc(high), truelabel) ;
    ELSE
       n := 1 ;
       falselabel := string(Sprintf1(Mark(InitString('.Lset%d')), quad)) ;
       WHILE GetRange(constsetvalue, n, low, high) DO
-         BuildIfInRangeGoto(location, Mod2Gcc(var), Mod2Gcc(low), Mod2Gcc(high), falselabel) ;
+         type := MixTypes3(low, high, var, tokenno) ;
+         ConvertBinaryOperands(vt, lt, type, var, low) ;
+         ConvertBinaryOperands(ht, lt, type, high, low) ;
+         BuildIfInRangeGoto(location, vt, lt, ht, falselabel) ;
          INC(n)
       END ;
       BuildGoto(location, truelabel) ;
@@ -6461,7 +6509,7 @@ BEGIN
       THEN
          (* builds a cascaded list of if statements *)
          PushValue(op2) ;
-         BuildIfVarInConstValue(location, GetValue(tokenno), op1, op3)
+         BuildIfVarInConstValue(location, tokenno, GetValue(tokenno), op1, op3)
       ELSE
          GetSetLimits(SkipType(GetType(op2)), low, high) ;
 
