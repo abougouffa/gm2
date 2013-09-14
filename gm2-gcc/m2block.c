@@ -720,11 +720,9 @@ m2block_popFunctionScope (void)
   }
   ASSERT_CONDITION (current_binding_level->fndecl != NULL_TREE);   /* expecting local scope */
 
-#if 0  
   ASSERT_CONDITION (current_binding_level->constants == NULL_TREE);   /* should not be used */
   ASSERT_CONDITION (current_binding_level->names == NULL_TREE);       /* should be cleared */
   ASSERT_CONDITION (current_binding_level->decl == NULL_TREE);        /* should be cleared */
-#endif
 
   current_binding_level = current_binding_level->next;
   return fndecl;
@@ -802,11 +800,17 @@ m2block_finishFunctionDecl (tree fndecl)
 				       block);
   else
     {
-      BIND_EXPR_VARS (bind_expr) = chainon (BIND_EXPR_VARS (bind_expr),
-					    current_binding_level->names);
-      if (current_binding_level->names != NULL_TREE)
-	for (i = tsi_start (current_binding_level->names); !tsi_end_p (i); tsi_next (&i))
-	  append_to_statement_list_force (*tsi_stmt_ptr (i), &BIND_EXPR_BODY (bind_expr));
+#if 1
+      if (! chain_member (current_binding_level->names, BIND_EXPR_VARS (bind_expr)))
+	{
+	  BIND_EXPR_VARS (bind_expr) = chainon (BIND_EXPR_VARS (bind_expr),
+					      current_binding_level->names);
+
+	  if (current_binding_level->names != NULL_TREE)
+	    for (i = tsi_start (current_binding_level->names); !tsi_end_p (i); tsi_next (&i))
+	      append_to_statement_list_force (*tsi_stmt_ptr (i), &BIND_EXPR_BODY (bind_expr));
+	}
+#endif
     }
 
   current_binding_level->names = NULL_TREE;
@@ -872,6 +876,8 @@ m2block_finishFunctionCode (tree fndecl)
 
   for (i = tsi_start (statements); !tsi_end_p (i); tsi_next (&i))
     append_to_statement_list_force (*tsi_stmt_ptr (i), &BIND_EXPR_BODY (bind_expr));
+
+  current_binding_level->decl = NULL_TREE;
 }
 
 
