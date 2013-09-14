@@ -1,3 +1,9 @@
+2013-09-14      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/libgm2/Makefile.in:  many changes to allow more libraries
+	  to build and also build SYSTEM.def for the pim, iso and min
+	  libraries.
+
 2013-07-08      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/ChangeLog:  (New file).
