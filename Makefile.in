@@ -74,6 +74,19 @@ libsubdir := $(libdir)/gcc/$(target_noncanonical)/$(version)$(MULTISUBDIR)
 
 GCCINCLUDES = -I$(GCC_SRC)/../include
 
+GM2_G=-g
+GM2_CPP=
+
+GM2_ISO_FLAGS=-fsoft-check-all $(GM2_G) $(GM2_O) \
+ -funbounded-by-reference -fiso -fextended-opaque \
+ -Wpedantic-cast -Wpedantic-param-names -ffunction-sections \
+ -fdata-sections $(GM2_CPP)
+GM2_MIN_FLAGS=$(GM2_G) $(GM2_OS) \
+ -funbounded-by-reference -fextended-opaque \
+ -Wpedantic-cast -Wpedantic-param-names -fno-exceptions \
+ -ffunction-sections -fdata-sections $(GM2_CPP)
+
+
 # exeext should not be used because it's the *host* exeext.  We're building
 # a *target* library, aren't we?!?  Likewise for CC.  Still, provide bogus
 # definitions just in case something slips through the safety net provided
@@ -393,15 +406,14 @@ install-gm2lib: $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_PIM)/SO \
            fi ; \
         done
 
+
 gm2lib-plain: 
 	test -f stamp-libgm2 || ( \
-	$(MAKE) $(LIBGM2_FLAGS_TO_PASS) -C $(GCC_DIR) build-system && \
 	$(MAKE) $(LIBGM2_FLAGS_TO_PASS) gm2lib-plain-real \
 	&& touch stamp-libgm2 )
 
 gm2lib-shared: 
 	test -f stamp-libgm2 || ( \
-	$(MAKE) $(LIBGM2_FLAGS_TO_PASS) -C $(GCC_DIR) build-system && \
 	$(MAKE) $(LIBGM2_FLAGS_TO_PASS) gm2lib-shared-real \
 	&& touch stamp-libgm2 )
 
@@ -608,31 +620,37 @@ GM2-LIBS-MIN-DEFS = M2RTS.def SYSTEM.def
 GM2-LIBS-MIN-MODS = M2RTS.mod SYSTEM.mod
 GM2-LIBS-MIN-C    = libc.c
 
+BUILD-ALL-LIBS := build-libs-min build-libs build-libs-iso
+ARCHIVE-LIBS-MIN := archive-libs-min archive-libs archive-libs-iso
 
 ifeq ($(MINLIB),yes)
     BUILD-ALL-LIBS   :=  build-libs-min
     ARCHIVE-ALL-LIBS :=  archive-libs-min
 else
-ifeq ($(ULMLIB),no)
-    BUILD-ALL-LIBS   :=  build-libs build-libs-iso \
-                         build-libs-pim build-libs-coroutines \
-                         build-libs-min
-    ARCHIVE-ALL-LIBS :=  archive-libs archive-libs-iso \
-                         archive-libs-pim archive-libs-coroutines \
-                         archive-libs-min
-else
-    BUILD-ALL-LIBS   :=  build-libs build-libs-iso build-libs-ulm \
-                         build-libs-pim build-libs-coroutines \
-                         build-libs-min
-    ARCHIVE-ALL-LIBS :=  archive-libs archive-libs-iso archive-libs-ulm \
-                         archive-libs-pim archive-libs-coroutines \
-                         archive-libs-min
+# ifeq ($(ULMLIB),no)
+#     BUILD-ALL-LIBS   :=  build-libs build-libs-iso \
+#                          build-libs-pim build-libs-coroutines \
+#                          build-libs-min
+#     ARCHIVE-ALL-LIBS :=  archive-libs archive-libs-iso \
+#                          archive-libs-pim archive-libs-coroutines \
+#                          archive-libs-min
+# else
+#     BUILD-ALL-LIBS   :=  build-libs build-libs-iso build-libs-ulm \
+#                          build-libs-pim build-libs-coroutines \
+#                          build-libs-min
+#     ARCHIVE-ALL-LIBS :=  archive-libs archive-libs-iso archive-libs-ulm \
+#                          archive-libs-pim archive-libs-coroutines \
+#                          archive-libs-min
+# endif
 endif
-endif
-
-BUILD-ALL-LIBS   := build-libs
-ARCHIVE-ALL-LIBS := archive-libs
-
+BUILD-ALL-LIBS   :=  build-libs build-libs-iso \
+                     build-libs-pim build-libs-coroutines \
+                     build-libs-min
+# build-libs-ulm
+ARCHIVE-ALL-LIBS :=  archive-libs archive-libs-iso \
+                     archive-libs-pim archive-libs-coroutines \
+                     archive-libs-min
+# archive-libs-ulm
 
 
 gm2lib-plain-real: $(BUILD-ALL-LIBS) $(ARCHIVE-ALL-LIBS)
@@ -641,7 +659,29 @@ gm2lib-plain-real: $(BUILD-ALL-LIBS) $(ARCHIVE-ALL-LIBS)
 gm2lib-shared-real: $(BUILD-ALL-LIBS) $(ARCHIVE-ALL-LIBS)
 	echo xyz123 yes have built $@
 
-build-libs-min: $(GM2-LIBS-MIN-MODS:%.mod=$(GM2_OBJ)/gm2-libs-min/%.o) \
+$(GM2_OBJ)/gm2-libs-min/SYSTEM.def: 
+	bash $(GM2_SRC)/tools-src/makeSystem -fpim \
+             $(GM2_SRC)/gm2-libs-min/SYSTEM.def \
+             $(GM2_SRC)/gm2-libs-min/SYSTEM.mod \
+             -I$(GM2_SRC)/gm2-libs-min:$(GM2_SRC)/gm2-libs \
+             "$(GCC_DIR)//xgm2 -B$(GCC_DIR)/stage1/gm2" $@
+
+$(GM2_OBJ)/gm2-libs/SYSTEM.def: 
+	bash $(GM2_SRC)/tools-src/makeSystem -fpim \
+             $(GM2_SRC)/gm2-libs/SYSTEM.def \
+             $(GM2_SRC)/gm2-libs/SYSTEM.mod \
+             -I$(GM2_SRC)/gm2-libs \
+             "$(GCC_DIR)//xgm2 -B$(GCC_DIR)/stage1/gm2" $@
+
+$(GM2_OBJ)/gm2-libs-iso/SYSTEM.def: 
+	bash $(GM2_SRC)/tools-src/makeSystem -fiso \
+             $(GM2_SRC)/gm2-libs-iso/SYSTEM.def \
+             $(GM2_SRC)/gm2-libs-iso/SYSTEM.mod \
+             -I$(GM2_SRC)/gm2-libs-iso:$(GM2_SRC)/gm2-libs: \
+             "$(GCC_DIR)/xgm2 -B$(GCC_DIR)/stage1/gm2" $@
+
+build-libs-min: $(GM2_OBJ)/gm2-libs-min/SYSTEM.def \
+                $(GM2-LIBS-MIN-MODS:%.mod=$(GM2_OBJ)/gm2-libs-min/%.o) \
                 $(GM2-LIBS-MIN-C:%.c=$(GM2_OBJ)/gm2-libs-min/%.o) \
                 $(GM2-LIBS-MIN-MODS:%.mod=$(GM2_OBJ)/gm2-libs-min/O2/%.o) \
                 $(GM2-LIBS-MIN-C:%.c=$(GM2_OBJ)/gm2-libs-min/O2/%.o)
@@ -656,7 +696,8 @@ archive-libs-min: build-libs-min
         $(GM2-LIBS-MIN-C:%.c=$(GM2_OBJ)/gm2-libs-min/O2/%.o)
 	$(RANLIB_FOR_TARGET) $(GM2_OBJ)/gm2-libs-min/O2/libgm2min.a
 
-build-libs: $(GM2_OBJ)/gm2-libs/gm2-libs-host.h \
+build-libs: $(GM2_OBJ)/gm2-libs/SYSTEM.def \
+            $(GM2_OBJ)/gm2-libs/gm2-libs-host.h \
             $(GM2-LIBS-MODS:%.mod=$(GM2_OBJ)/gm2-libs/%.o) \
             $(GM2-LIBS-C:%.c=$(GM2_OBJ)/gm2-libs/%.o) \
             $(GM2-LIBS-MODS:%.mod=$(GM2_OBJ)/gm2-libs/O2/%.o) \
@@ -689,7 +730,8 @@ $(GM2_OBJ)/gm2-libs/libgm2.a: build-libs
                     $(GM2-LIBS-C:%.c=$(GM2_OBJ)/gm2-libs/%.o)
 	$(RANLIB) $@
 
-build-libs-iso: $(GM2-LIBS-ISO-MODS:%.mod=$(GM2_OBJ)/gm2-libs-iso/%.o) \
+build-libs-iso: $(GM2_OBJ)/gm2-libs-iso/SYSTEM.def \
+                $(GM2-LIBS-ISO-MODS:%.mod=$(GM2_OBJ)/gm2-libs-iso/%.o) \
                 $(GM2-LIBS-ISO-C:%.c=$(GM2_OBJ)/gm2-libs-iso/%.o) \
                 $(GM2-LIBS-ISO-MODS:%.mod=$(GM2_OBJ)/gm2-libs-iso/SO/%.o) \
                 $(GM2-LIBS-ISO-C:%.c=$(GM2_OBJ)/gm2-libs-iso/SO/%.o) \
@@ -781,13 +823,13 @@ $(GM2_OBJ)/gm2-libs-pim/Break.o: $(GM2_SRC)/gm2-libs-pim/Break.c
 $(GM2_OBJ)/gm2-libs-coroutines/KeyBoardLEDs.o: $(GM2_SRC)/gm2-libs-coroutines/KeyBoardLEDs.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -I$(GM2_OBJ)/gm2-libs -c $(CFLAGS) $< -o $@
 
-gm2/gm2-libs-coroutines/O2/KeyBoardLEDs.o: gm2/gm2-libs-coroutines/KeyBoardLEDs.c
+$(GM2_OBJ)/gm2-libs-coroutines/O2/KeyBoardLEDs.o: $(GM2_SRC)/gm2-libs-coroutines/KeyBoardLEDs.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS $(O2) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
 
-gm2/gm2-libs-coroutines/SO/KeyBoardLEDs.o: gm2/gm2-libs-coroutines/KeyBoardLEDs.c
+$(GM2_OBJ)/gm2-libs-coroutines/SO/KeyBoardLEDs.o: $(GM2_SRC)/gm2-libs-coroutines/KeyBoardLEDs.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS $(SO) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
 
-gm2/gm2-libs-coroutines/SO_O2/KeyBoardLEDs.o: gm2/gm2-libs-coroutines/KeyBoardLEDs.c
+$(GM2_OBJ)/gm2-libs-coroutines/SO_O2/KeyBoardLEDs.o: $(GM2_SRC)/gm2-libs-coroutines/KeyBoardLEDs.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS $(SO_O2) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
 
 $(GM2_OBJ)/gm2/ulm-lib-gm2/sys/SYSTEM.o: $(GM2_OBJ)/gm2/ulm-lib-gm2/sys/SYSTEM.c
@@ -796,25 +838,22 @@ $(GM2_OBJ)/gm2/ulm-lib-gm2/sys/SYSTEM.o: $(GM2_OBJ)/gm2/ulm-lib-gm2/sys/SYSTEM.c
 $(GM2_OBJ)/ulm-lib-gm2/sys/SYSTEM.c: 
 	bash $(GM2_SRC)/tools-src/createUlmSys $(GM2_OBJ)/gm2/gm2-libs/gm2-libs-host.h > $@
 
-gm2/ulm-lib-gm2/sys/%.o: gm2/ulm-lib-gm2/sys/%.mod
+$(GM2_OBJ)/ulm-lib-gm2/sys/%.o: gm2/ulm-lib-gm2/sys/%.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B./stage1/gm2 -B./ -I$(GM2_SRC)/ulm-lib-gm2/sys -I$(GM2_SRC)/gm2-libs $< -o $@
 
-gm2/ulm-lib-gm2/std/%.o: gm2/ulm-lib-gm2/std/%.mod
+$(GM2_OBJ)/ulm-lib-gm2/std/%.o: $(GM2_SRC)/ulm-lib-gm2/std/%.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B./stage1/gm2 -B./ -I$(GM2_SRC)/ulm-lib-gm2/std:$(GM2_SRC)/ulm-lib-gm2/sys:$(GM2_SRC)/gm2-libs $< -o $@
 
-gm2/gm2-libs-pim/%.o: gm2/gm2-libs-pim/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -Igm2/gm2-libs:$(GM2_SRC)/gm2-libs:$(GM2_SRC)/gm2-libs-pim $< -o $@
-
-gm2/gm2-libs-coroutines/%.o: gm2/gm2-libs-coroutines/%.mod
+$(GM2_OBJ)/gm2-libs-coroutines/%.o: $(GM2_SRC)/gm2-libs-coroutines/%.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(GM2_SRC)/gm2-libs-coroutines:$(GM2_SRC)/gm2-libs:$(GM2_SRC)/gm2-libs-pim:$(GM2_SRC)/gm2-libs-iso $< -o $@
 
-gm2/gm2-libs-coroutines/O2/%.o: gm2/gm2-libs-coroutines/%.mod
+$(GM2_OBJ)/gm2-libs-coroutines/O2/%.o: $(GM2_SRC)/gm2-libs-coroutines/%.mod
 	$(XGM2_1) $(O2) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(GM2_SRC)/gm2-libs-coroutines:$(GM2_SRC)/gm2-libs:$(GM2_SRC)/gm2-libs-pim:$(GM2_SRC)/gm2-libs-iso $< -o $@
 
-gm2/gm2-libs-coroutines/SO/%.o: gm2/gm2-libs-coroutines/%.mod
+$(GM2_OBJ)/gm2-libs-coroutines/SO/%.o: $(GM2_SRC)/gm2-libs-coroutines/%.mod
 	$(XGM2_1) $(SO) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(GM2_SRC)/gm2-libs-coroutines:$(GM2_SRC)/gm2-libs:$(GM2_SRC)/gm2-libs-pim:$(GM2_SRC)/gm2-libs-iso $< -o $@
 
-gm2/gm2-libs-coroutines/SO_O2/%.o: gm2/gm2-libs-coroutines/%.mod
+$(GM2_OBJ)/gm2-libs-coroutines/SO_O2/%.o: $(GM2_SRC)/gm2-libs-coroutines/%.mod
 	$(XGM2_1) $(SO_O2) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(GM2_SRC)/gm2-libs-coroutines:$(GM2_SRC)/gm2-libs:$(GM2_SRC)/gm2-libs-pim:$(GM2_SRC)/gm2-libs-iso $< -o $@
 
 $(GM2_OBJ)/gm2-libs-min/%.o: $(GM2_SRC)/gm2-libs-min/%.c
@@ -888,6 +927,54 @@ $(GM2_OBJ)/gm2-libs/SO_O2/%.o: $(GM2_SRC)/gm2-libs/%.mod
 
 $(GM2_OBJ)/gm2-libs/SO_O2/%.o: $(GM2_SRC)/gm2-libs-ch/%.c $(GM2_OBJ)/gm2-libs/gm2-libs-target.h
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(GM2_SRC)/p2c/p2c-src/include -I$(GM2_SRC) -I$(GM2_SRC)/gm2 -I$(GM2_OBJ)/gm2-libs -I$(GM2_OBJ)/gm2-libiberty -I$(GM2_OBJ)/gm2-libs-boot -I$(GCC_DIR) $(GCCINCLUDES) $(SO_O2) $< -o $@
+
+$(GM2_OBJ)/gm2-libs-iso/%.o: $(GM2_SRC)/gm2-libs-iso/%.c $(GM2_OBJ)/gm2-libs/gm2-libs-target.h
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(GM2_OBJ)/gm2-libs -I$(GM2_SRC) -I$(GM2_SRC)/p2c/p2c-src/include -I$(GM2_OBJ)/gm2-libs-boot $(GCCINCLUDES) $< -o $@
+
+$(GM2_OBJ)/gm2-libs-iso/%.o: $(GM2_SRC)/gm2-libs-iso/%.mod
+	$(XGM2_1) $(GM2_ISO_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(GM2_OBJ)/gm2-libs-iso:$(GM2_SRC)/gm2-libs-iso -I$(GM2_SRC)/gm2-libs $< -o $@
+
+$(GM2_OBJ)/gm2-libs-iso/SO/%.o: $(GM2_SRC)/gm2-libs-iso/%.c $(GM2_OBJ)/gm2-libs/gm2-libs-target.h
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(GM2_OBJ)/gm2-libs -I$(GM2_SRC) -I$(GM2_SRC)/p2c/p2c-src/include -I$(GM2_OBJ)/gm2-libs-boot $(GCCINCLUDES) $(SO) $< -o $@
+
+$(GM2_OBJ)/gm2-libs-iso/SO/%.o: $(GM2_SRC)/gm2-libs-iso/%.mod
+	$(XGM2_1) $(GM2_ISO_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(GM2_OBJ)/gm2-libs-iso:$(GM2_SRC)/gm2-libs-iso -I$(GM2_SRC)/gm2-libs $(SO) $< -o $@
+
+$(GM2_OBJ)/gm2-libs-iso/O2/%.o: $(GM2_SRC)/gm2-libs-iso/%.c $(GM2_OBJ)/gm2-libs/gm2-libs-target.h
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(GM2_OBJ)/gm2-libs -I$(GM2_SRC) -I$(GM2_SRC)/p2c/p2c-src/include -I$(GM2_OBJ)/gm2-libs-boot $(GCCINCLUDES) $(O2) $< -o $@
+
+$(GM2_OBJ)/gm2-libs-iso/O2/%.o: $(GM2_SRC)/gm2-libs-iso/%.mod
+	$(XGM2_1) $(GM2_ISO_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(GM2_OBJ)/gm2-libs-iso:$(GM2_SRC)/gm2-libs-iso -I$(GM2_SRC)/gm2-libs $(O2) $< -o $@
+
+$(GM2_OBJ)/gm2-libs-iso/SO_O2/%.o: $(GM2_SRC)/gm2-libs-iso/%.c $(GM2_OBJ)/gm2-libs/gm2-libs-target.h
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(GM2_OBJ)/gm2-libs -I$(GM2_SRC) -I$(GM2_SRC)/p2c/p2c-src/include -I$(GM2_OBJ)/gm2-libs-boot $(GCCINCLUDES) $(SO_O2) $< -o $@
+
+$(GM2_OBJ)/gm2-libs-iso/SO_O2/%.o: $(GM2_SRC)/gm2-libs-iso/%.mod
+	$(XGM2_1) $(GM2_ISO_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(GM2_OBJ)/gm2-libs-iso:$(GM2_SRC)/gm2-libs-iso -I$(GM2_SRC)/gm2-libs $(SO_O2) $< -o $@
+
+$(GM2_OBJ)/gm2-libs-pim/%.o: $(GM2_SRC)/gm2-libs-pim/%.c $(GM2_OBJ)/gm2-libs/gm2-libs-target.h
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(GM2_OBJ)/gm2-libs -I$(GM2_SRC) -I$(GM2_SRC)/p2c/p2c-src/include -I$(GM2_OBJ)/gm2-libs-boot $(GCCINCLUDES) $< -o $@
+
+$(GM2_OBJ)/gm2-libs-pim/%.o: $(GM2_SRC)/gm2-libs-pim/%.mod
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(GM2_OBJ)/gm2-libs:$(GM2_SRC)/gm2-libs-pim -I$(GM2_SRC)/gm2-libs $< -o $@
+
+$(GM2_OBJ)/gm2-libs-pim/SO/%.o: $(GM2_SRC)/gm2-libs-pim/%.c $(GM2_OBJ)/gm2-libs/gm2-libs-target.h
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(GM2_OBJ)/gm2-libs -I$(GM2_SRC) -I$(GM2_SRC)/p2c/p2c-src/include -I$(GM2_OBJ)/gm2-libs-boot $(GCCINCLUDES) $(SO) $< -o $@
+
+$(GM2_OBJ)/gm2-libs-pim/SO/%.o: $(GM2_SRC)/gm2-libs-pim/%.mod
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(GM2_OBJ)/gm2-libs:$(GM2_SRC)/gm2-libs-pim -I$(GM2_SRC)/gm2-libs $(SO) $< -o $@
+
+$(GM2_OBJ)/gm2-libs-pim/O2/%.o: $(GM2_SRC)/gm2-libs-pim/%.c $(GM2_OBJ)/gm2-libs/gm2-libs-target.h
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(GM2_OBJ)/gm2-libs -I$(GM2_SRC) -I$(GM2_SRC)/p2c/p2c-src/include -I$(GM2_OBJ)/gm2-libs-boot $(GCCINCLUDES) $(O2) $< -o $@
+
+$(GM2_OBJ)/gm2-libs-pim/O2/%.o: $(GM2_SRC)/gm2-libs-pim/%.mod
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(GM2_OBJ)/gm2-libs:$(GM2_SRC)/gm2-libs-pim -I$(GM2_SRC)/gm2-libs $(O2) $< -o $@
+
+$(GM2_OBJ)/gm2-libs-pim/SO_O2/%.o: $(GM2_SRC)/gm2-libs-pim/%.c $(GM2_OBJ)/gm2-libs/gm2-libs-target.h
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(GM2_OBJ)/gm2-libs -I$(GM2_SRC) -I$(GM2_SRC)/p2c/p2c-src/include -I$(GM2_OBJ)/gm2-libs-boot $(GCCINCLUDES) $(SO_O2) $< -o $@
+
+$(GM2_OBJ)/gm2-libs-pim/SO_O2/%.o: $(GM2_SRC)/gm2-libs-pim/%.mod
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(GM2_OBJ)/gm2-libs:$(GM2_SRC)/gm2-libs-pim -I$(GM2_SRC)/gm2-libs $(SO_O2) $< -o $@
 
 $(GM2_OBJ)/gm2-libs/gm2-libs-target.h: force
 	echo "Configuring to build libraries using target compiler" ; \
