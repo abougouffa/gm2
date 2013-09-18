@@ -39,6 +39,7 @@ EXTERN tree m2convert_convertToPtr (tree type);
 EXTERN tree m2convert_ToCardinal (tree expr);
 EXTERN tree m2convert_ToInteger (tree expr);
 EXTERN tree m2convert_ToWord (tree expr);
+EXTERN tree m2convert_ToBitset (tree expr);
 
 #  undef EXTERN
 #endif

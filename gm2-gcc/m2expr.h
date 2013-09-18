@@ -137,7 +137,7 @@ EXTERN tree m2expr_build_unary_op (location_t location ATTRIBUTE_UNUSED,
 				   enum tree_code code, tree arg, int flag ATTRIBUTE_UNUSED);
 EXTERN tree m2expr_build_binary_op (location_t location, enum tree_code code, tree op1, tree op2, int convert);
 EXTERN void m2expr_ConstantExpressionWarning (tree value);
-EXTERN void m2expr_BuildAddAddress (location_t location, tree op1, tree op2);
+EXTERN tree m2expr_BuildAddAddress (location_t location, tree op1, tree op2);
 
 EXTERN void m2expr_init (location_t location);
 

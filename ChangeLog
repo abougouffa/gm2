@@ -1,3 +1,28 @@
+2013-09-18      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  (SkipModuleScope) New procedure
+	  function.  PushBinding use SkipModuleScope.  PopBinding use
+	  SkipModuleScope.
+	* gm2/gm2-compiler/M2GenGCC.mod:  CodeAddr checks whether
+	  op3 IsConstString.
+	* gm2/gm2-gcc/m2convert.c:  (m2convert_ToBitset) New function.
+	* gm2/gm2-gcc/m2convert.h:  (m2convert_ToBitset) New function.
+	* gm2/gm2-gcc/m2expr.c:  many changes to use m2expr_FoldAndStrip
+	  for binary operands.  Also many changes to set operators so
+	  that COMPOUND_REF are used whenever possible and that operands
+	  to binary operators are converted to the same types.
+	  Use m2expr_BuildAddAddress instead of BuildAdd for address
+	  arithmetic.
+	* gm2/gm2-gcc/m2expr.h:  fix header for m2expr_BuildAddAddress.
+	* gm2/gm2-gcc/m2statement.c:  many changes to set operators so
+	  that COMPOUND_REF are used whenever possible and that operands
+	  to binary operators are converted to the same types.
+	  Use m2expr_BuildAddAddress instead of BuildAdd for address
+	  arithmetic.
+	* gm2/gm2-gcc/m2treelib.c:  use COMPOUND_REF whenever possible.
+	  Convert all set return values to BITSET.  Use m2expr_BuildAddr
+	  rather than m2expr_build_unary_op.
+
 2013-09-14      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-gcc/m2block.c:  more fixes for nested procedures

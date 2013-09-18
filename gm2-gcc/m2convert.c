@@ -547,3 +547,14 @@ m2convert_ToInteger (tree expr)
 {
   return m2convert_BuildConvert (m2type_GetIntegerType (), expr, FALSE);
 }
+
+
+/*
+ *  ToBitset - convert an expression, expr, to a BITSET type.
+ */
+
+tree
+m2convert_ToBitset (tree expr)
+{
+  return m2convert_BuildConvert (m2type_GetBitsetType (), expr, FALSE);
+}

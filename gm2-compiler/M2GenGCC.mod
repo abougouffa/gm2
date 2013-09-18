@@ -2548,7 +2548,7 @@ BEGIN
       type := SkipType(GetType(op3)) ;
       DeclareConstant(CurrentQuadToken, op3) ;  (* we might be asked to find the address of a constant string *)
       DeclareConstructor(quad, op3) ;
-      IF IsConst(op3) AND (type=Char)
+      IF (IsConst(op3) AND (type=Char)) OR IsConstString(op3)
       THEN
          value := BuildStringConstant(KeyToCharStar(GetString(op3)), GetStringLength(op3))
       ELSE

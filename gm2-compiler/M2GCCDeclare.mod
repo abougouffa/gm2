@@ -2515,19 +2515,33 @@ END DeclareTypesConstantsProceduresInRange ;
 
 
 (*
+   SkipModuleScope - skips all module scopes for, scope.
+                     It returns either NulSym or a procedure sym.
+*)
+
+PROCEDURE SkipModuleScope (scope: CARDINAL) : CARDINAL ;
+BEGIN
+   IF (scope=NulSym) OR IsProcedure(scope)
+   THEN
+      RETURN( scope )
+   ELSE
+      RETURN( SkipModuleScope(GetScope(scope)) )
+   END
+END SkipModuleScope ;
+
+
+(*
    PushBinding - 
 *)
 
 PROCEDURE PushBinding (scope: CARDINAL) ;
 BEGIN
-   IF IsProcedure(scope)
+   scope := SkipModuleScope(scope) ;
+   IF scope=NulSym
    THEN
-      pushFunctionScope(Mod2Gcc(scope))
+      pushGlobalScope
    ELSE
-      IF GetScope(scope)=NulSym
-      THEN
-         pushGlobalScope
-      END
+      pushFunctionScope(Mod2Gcc(scope))
    END
 END PushBinding ;
 
@@ -2540,15 +2554,14 @@ PROCEDURE PopBinding (scope: CARDINAL) ;
 VAR
    t: Tree ;
 BEGIN
-   IF IsProcedure(scope)
+   scope := SkipModuleScope(scope) ;
+   IF scope=NulSym
    THEN
+      popGlobalScope
+   ELSE
+      Assert(IsProcedure(scope)) ;
       finishFunctionDecl(Mod2Gcc(scope)) ;
       t := popFunctionScope()
-   ELSE
-      IF GetScope(scope)=NulSym
-      THEN
-         popGlobalScope
-      END
    END
 END PopBinding ;
 

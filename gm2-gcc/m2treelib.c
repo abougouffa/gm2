@@ -87,13 +87,13 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 void
 m2treelib_do_jump_if_bit (location_t location, enum tree_code code, tree word, tree bit, char *label)
 {
+  word = m2convert_ToWord (word);
+  bit = m2convert_ToWord (bit);
   m2statement_DoJump (location,
 		      m2expr_build_binary_op (location, code,
 					      m2expr_build_binary_op (location, BIT_AND_EXPR,
-								      m2convert_BuildConvert (m2type_GetWordType (), word, FALSE),
-								      m2convert_BuildConvert (m2type_GetWordType (), m2expr_BuildLSL (location, m2expr_GetWordOne(),
-																      m2convert_BuildConvert (m2type_GetWordType (), bit, FALSE),
-																      FALSE), FALSE),
+								      word,
+								      m2expr_BuildLSL (location, m2expr_GetWordOne(), bit, FALSE),
 								      FALSE),
 					      m2expr_GetWordZero (), FALSE),
 		      NULL, label);
@@ -383,16 +383,23 @@ m2treelib_get_field_no (tree type, tree op, int is_const, unsigned int fieldNo)
 tree
 m2treelib_get_set_value (location_t location, tree p, tree field, int is_const, tree op, unsigned int fieldNo)
 {
+  tree value;
+
   ASSERT_BOOL (is_const);
   if (is_const) {
     gcc_assert( !VEC_empty (constructor_elt, CONSTRUCTOR_ELTS (op)));
     unsigned int size = VEC_length (constructor_elt, CONSTRUCTOR_ELTS (op));
     if (size < fieldNo)
       internal_error ("field number exceeds definition of set");
-    return VEC_index (constructor_elt, CONSTRUCTOR_ELTS (op), fieldNo)->value;
+    value = VEC_index (constructor_elt, CONSTRUCTOR_ELTS (op), fieldNo)->value;
   }
   else
-    return m2expr_BuildIndirect (location, m2treelib_get_set_field_lhs (location, p, field), m2type_GetWordType ());
+    {
+      ASSERT_CONDITION (TREE_CODE (TREE_TYPE (op)) == RECORD_TYPE);
+      value = m2expr_BuildComponentRef (op, field);
+    }
+  value = m2convert_ToBitset (value);
+  return value;
 }
 
 
@@ -406,7 +413,7 @@ m2treelib_get_set_address (location_t location, tree op1, int is_lvalue)
   if (is_lvalue)
     return op1;
   else
-    return m2expr_build_unary_op (location, ADDR_EXPR, op1, FALSE);
+    return m2expr_BuildAddr (location, op1, FALSE);
 }
 
 
@@ -417,7 +424,7 @@ m2treelib_get_set_address (location_t location, tree op1, int is_lvalue)
 tree
 m2treelib_get_set_field_lhs (location_t location, tree p, tree field)
 {
-  return m2expr_BuildAdd (location, m2convert_convertToPtr (p), m2expr_BuildOffset1 (location, field, FALSE), FALSE);
+  return m2expr_BuildAddr (location, m2convert_ToBitset (m2expr_BuildComponentRef (p, field)), FALSE);
 }
 
 
@@ -428,7 +435,7 @@ m2treelib_get_set_field_lhs (location_t location, tree p, tree field)
 tree
 m2treelib_get_set_field_rhs (location_t location, tree p, tree field)
 {
-  return m2expr_BuildIndirect (location, m2treelib_get_set_field_lhs (location, p, field), m2type_GetWordType ());
+  return m2convert_ToBitset (m2expr_BuildComponentRef (p, field));
 }
 
 

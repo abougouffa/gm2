@@ -534,9 +534,9 @@ m2expr_BuildBinarySetDo (location_t location, tree settype, tree op1, tree op2, 
   else {
     tree result;
     tree high = m2expr_BuildSub (location,
-				 m2expr_BuildDivTrunc (location, size,
-                                                       m2expr_GetSizeOf (location, m2type_GetBitsetType ()), FALSE),
-                                 m2expr_GetIntegerOne (), FALSE);
+				 m2convert_ToCardinal (m2expr_BuildDivTrunc (location, size,
+									     m2expr_GetSizeOf (location, m2type_GetBitsetType ()), FALSE)),
+                                 m2expr_GetCardinalOne (), FALSE);
 
     /*
      * if op3 is constant
@@ -685,7 +685,7 @@ m2expr_BuildCoerce (location_t location, tree des, tree type, tree expr)
 tree
 m2expr_BuildTrunc (tree op1)
 {
-  return convert_to_integer (m2type_GetIntegerType (), op1);
+  return convert_to_integer (m2type_GetIntegerType (), m2expr_FoldAndStrip (op1));
 }
 
 
@@ -728,6 +728,9 @@ build_binary_op (location_t location,
   /* Strip NON_LVALUE_EXPRs, etc., since we aren't using as an lvalue.  */
   STRIP_TYPE_NOPS (op1);
   STRIP_TYPE_NOPS (op2);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
 
   result = build2 (code, type1, op1, op2);
   protected_set_expr_location (result, location);
@@ -854,7 +857,7 @@ return build_binary_op (location, code, op1, op2, convert);
  *                    and op2 is not a pointer type.
  */
 
-void
+tree
 m2expr_BuildAddAddress (location_t location, tree op1, tree op2)
 {
   tree type1, type2;
@@ -871,7 +874,9 @@ m2expr_BuildAddAddress (location_t location, tree op1, tree op2)
 
   op2 = fold_convert_loc (location, sizetype, unshare_expr (op2));
   return fold_build2_loc (location, POINTER_PLUS_EXPR,
-			  TREE_TYPE (op1), op1, op2);
+			  TREE_TYPE (op1),
+			  m2expr_FoldAndStrip (op1),
+			  m2expr_FoldAndStrip (op2));
 }
 
 /*
@@ -891,7 +896,8 @@ m2expr_BuildNegate (location_t location, tree op1, int needconvert)
     error_at (location, "not expecting to negate an enumerated value");
 #endif
 
-  return m2expr_build_unary_op (location, NEGATE_EXPR, op1, needconvert);
+  return m2expr_build_unary_op (location, NEGATE_EXPR,
+				m2expr_FoldAndStrip (op1), needconvert);
 }
 
 
@@ -905,7 +911,8 @@ m2expr_BuildSetNegate (location_t location, tree op1, int needconvert)
   m2assert_AssertLocation (location);
 
   return m2expr_build_binary_op (location, BIT_XOR_EXPR,
-				 m2convert_BuildConvert (m2type_GetWordType (), op1, FALSE),
+				 m2convert_BuildConvert (m2type_GetWordType (),
+							 m2expr_FoldAndStrip (op1), FALSE),
 				 set_full_complement,
 				 needconvert);
 }
@@ -919,7 +926,9 @@ tree
 m2expr_BuildMult (location_t location, tree op1, tree op2, int needconvert)
 {
   m2assert_AssertLocation (location);
-  return m2expr_build_binary_op (location, MULT_EXPR, op1, op2, needconvert);
+  return m2expr_build_binary_op (location, MULT_EXPR,
+				 m2expr_FoldAndStrip (op1),
+				 m2expr_FoldAndStrip (op2), needconvert);
 }
 
 
@@ -1556,17 +1565,15 @@ m2expr_BuildIfVarInVar (location_t location,
   else {
     tree p1               = m2treelib_get_set_address (location, varset, is_lvalue);
     /* which word do we need to fetch? */
-    tree word_index       = m2expr_BuildDivTrunc (location, index, m2decl_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree word_index       = m2expr_FoldAndStrip (m2expr_BuildDivTrunc (location, index, m2decl_BuildIntegerConstant (SET_WORD_SIZE), FALSE));
     /* calculate the bit in this word */
-    tree offset_into_word = m2expr_BuildModTrunc (location, index, m2decl_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree offset_into_word = m2expr_FoldAndStrip (m2expr_BuildModTrunc (location, index, m2decl_BuildIntegerConstant (SET_WORD_SIZE), FALSE));
+    tree p2               = m2expr_FoldAndStrip (m2expr_BuildMult (location,
+								   word_index, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT),
+								   FALSE));
 
     /* calculate the address of the word we are interested in */
-    p1 = m2expr_BuildAdd (location,
-			  m2convert_convertToPtr (p1),
-                          m2expr_BuildMult (location,
-					    word_index, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT),
-                                            FALSE),
-                          FALSE);
+    p1 = m2expr_BuildAddAddress (location, m2convert_convertToPtr (p1), p2);
 
     /* fetch the word, extract the bit and test for != 0 */
     m2treelib_do_jump_if_bit (location, NE_EXPR, m2expr_BuildIndirect (location, p1, m2type_GetBitsetType ()), offset_into_word, label);
@@ -1589,9 +1596,10 @@ m2expr_BuildIfNotVarInVar (location_t location,
   tree size = m2expr_GetSizeOf (location, type);
   /* calculate the index from the first bit, ie bit 0 represents low value */
   tree index = m2expr_BuildSub (location,
-				m2convert_BuildConvert (m2type_GetIntegerType(), varel, FALSE),
-                                m2convert_BuildConvert (m2type_GetIntegerType(), low, FALSE), FALSE);
+				m2convert_BuildConvert (m2type_GetIntegerType(), m2expr_FoldAndStrip (varel), FALSE),
+                                m2convert_BuildConvert (m2type_GetIntegerType(), m2expr_FoldAndStrip (low), FALSE), FALSE);
 
+  index = m2expr_FoldAndStrip (index);
   m2assert_AssertLocation (location);
 
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
@@ -1602,17 +1610,15 @@ m2expr_BuildIfNotVarInVar (location_t location,
     /* calculate the index from the first bit */
 
     /* which word do we need to fetch? */
-    tree word_index       = m2expr_BuildDivTrunc (location, index, m2decl_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree word_index       = m2expr_FoldAndStrip (m2expr_BuildDivTrunc (location, index, m2decl_BuildIntegerConstant (SET_WORD_SIZE), FALSE));
     /* calculate the bit in this word */
-    tree offset_into_word = m2expr_BuildModTrunc (location, index, m2decl_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree offset_into_word = m2expr_FoldAndStrip (m2expr_BuildModTrunc (location, index, m2decl_BuildIntegerConstant (SET_WORD_SIZE), FALSE));
+    tree p2               = m2expr_FoldAndStrip (m2expr_BuildMult (location, word_index,
+								   m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT),
+								   FALSE));
 
     /* calculate the address of the word we are interested in */
-    p1 = m2expr_BuildAdd (location,
-			  m2convert_convertToPtr (p1),
-                          m2expr_BuildMult (location, word_index,
-                                            m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT),
-                                            FALSE),
-                          FALSE);
+    p1 = m2expr_BuildAddAddress (location, p1, p2);
 
     /* fetch the word, extract the bit and test for == 0 */
     m2treelib_do_jump_if_bit (location, EQ_EXPR, m2expr_BuildIndirect (location, p1, m2type_GetBitsetType ()), offset_into_word, label);
@@ -1640,6 +1646,8 @@ m2expr_BuildForeachWordInSetDoIfExpr (location_t location,
   tree field2 = m2treelib_get_field_no (type, op2, is_op2const, fieldNo);
 
   m2assert_AssertLocation (location);
+  ASSERT_CONDITION (TREE_CODE (TREE_TYPE (op1)) == RECORD_TYPE);
+  ASSERT_CONDITION (TREE_CODE (TREE_TYPE (op2)) == RECORD_TYPE);
 
   while (field1 != NULL && field2 != NULL) {
     m2statement_DoJump (location,
