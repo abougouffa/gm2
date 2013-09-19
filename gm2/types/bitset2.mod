@@ -17,8 +17,6 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 MODULE bitset2 ;
 
-FROM SYSTEM IMPORT BITSET;
-
 CONST
    A = {0} ;
    B = {1} ;

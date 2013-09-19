@@ -17,8 +17,6 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 MODULE constset ;
 
-FROM SYSTEM IMPORT BITSET ;
-
 CONST
     PTH_UNTIL_OCCURRED = BITSET {11} ;
 

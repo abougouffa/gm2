@@ -17,8 +17,6 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 MODULE varparam3 ;
 
-FROM SYSTEM IMPORT BITSET ;
-
    TYPE
       InputModes = BITSET;
       OutputModes = BITSET;

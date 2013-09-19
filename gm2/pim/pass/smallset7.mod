@@ -18,7 +18,6 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 MODULE smallset7 ;
 
 FROM libc IMPORT exit ;
-FROM SYSTEM IMPORT BITSET ;
 
 VAR
    b: BITSET ;

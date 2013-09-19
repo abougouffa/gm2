@@ -17,8 +17,6 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 MODULE arraytype ;
 
-FROM SYSTEM IMPORT BITSET ;
-
 VAR
    b: ARRAY BOOLEAN OF ARRAY BOOLEAN OF BITSET ;
 BEGIN

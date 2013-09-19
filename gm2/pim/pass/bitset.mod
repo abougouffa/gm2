@@ -17,7 +17,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 MODULE bitset ;
 
-FROM SYSTEM IMPORT BITSET, ADR ;
+FROM SYSTEM IMPORT ADR ;
 
 VAR
    b: BITSET ;

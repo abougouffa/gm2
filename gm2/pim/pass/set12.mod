@@ -17,8 +17,6 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 MODULE set12 ;
 
-FROM SYSTEM IMPORT BITSET ;
-
 TYPE
    colour = (red, blue, green) ;
    foo = SET OF colour ;

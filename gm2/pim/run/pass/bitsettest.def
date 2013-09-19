@@ -17,8 +17,6 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 DEFINITION MODULE bitsettest;
 
-FROM SYSTEM IMPORT BITSET ;
-
 PROCEDURE xorbitset (x, y: BITSET; VAR z: BITSET);
 
 END bitsettest.

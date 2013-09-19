@@ -19,7 +19,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 MODULE testmin ;
 
 
-FROM SYSTEM IMPORT TSIZE, BITSET ;
+FROM SYSTEM IMPORT TSIZE ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NumberIO IMPORT WriteCard, WriteInt ;
 

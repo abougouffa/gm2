@@ -18,7 +18,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 MODULE intb ;
 
 FROM BitBlockOps IMPORT BlockAnd, BlockOr, BlockXor, BlockNot, BlockShr ;
-FROM SYSTEM IMPORT BITSET, ADDRESS, BYTE, WORD, SIZE, ADR, SHIFT ;
+FROM SYSTEM IMPORT ADDRESS, BYTE, WORD, SIZE, ADR, SHIFT ;
 FROM libc IMPORT exit, printf ;
 FROM StrLib IMPORT StrEqual ;
 

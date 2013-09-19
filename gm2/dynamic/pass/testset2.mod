@@ -14,13 +14,11 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 MODULE testset2 ;
 
-
-FROM SYSTEM IMPORT BITSET ;
 FROM NumberIO IMPORT WriteHex ;
 FROM StrIO IMPORT WriteLn ;
-
 
 VAR
    b,

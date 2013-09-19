@@ -17,8 +17,6 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 MODULE bitsetfunc ;
 
-FROM SYSTEM IMPORT BITSET ;
-
 PROCEDURE foo (b: BITSET) ;
 BEGIN
 END foo ;

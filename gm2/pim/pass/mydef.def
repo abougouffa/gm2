@@ -17,8 +17,6 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 DEFINITION MODULE mydef ;
 
-FROM SYSTEM IMPORT BITSET ;
-
 TYPE
    BIT32 = BITSET ;
 
