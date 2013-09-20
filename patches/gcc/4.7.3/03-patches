@@ -1,11 +1,18 @@
---- gcc-4.7.3-orig/gcc/Makefile.in	2013-06-19 14:58:49.000000000 +0100
-+++ gcc-4.7.3/gcc/Makefile.in	2013-06-19 15:02:59.000000000 +0100
-@@ -1815,7 +1815,7 @@
+--- gcc-4.7.3-orig/Makefile.def	2013-06-19 15:00:33.000000000 +0100
++++ gcc-4.7.3/Makefile.def	2013-07-12 11:52:49.000000000 +0100
+@@ -138,6 +138,7 @@
+ target_modules = { module= boehm-gc; };
+ target_modules = { module= rda; };
+ target_modules = { module= libada; };
++target_modules = { module= libgm2; };
+ target_modules = { module= libgomp; bootstrap= true; lib_path=.libs; };
+ target_modules = { module= libitm; lib_path=.libs; };
  
- cc1-checksum.o : cc1-checksum.c $(CONFIG_H) $(SYSTEM_H)
+@@ -530,6 +531,7 @@
+ languages = { language=obj-c++;	gcc-check-target=check-obj-c++; };
+ languages = { language=go;	gcc-check-target=check-go;
+ 				lib-check-target=check-target-libgo; };
++languages = { language=gm2;	gcc-check-target=check-gm2; };
  
--cc1$(exeext): $(C_OBJS) cc1-checksum.o $(BACKEND) $(LIBDEPS)
-+cc1$(exeext): $(C_OBJS) cc1-checksum.o $(BACKEND) $(LIBDEPS) c-family/m2pp.o
- 	+$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ $(C_OBJS) \
- 	  cc1-checksum.o $(BACKEND) $(LIBS) $(BACKENDLIBS)
- 
+ // Toplevel bootstrap
+ bootstrap_stage = { id=1 ; };
