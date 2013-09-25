@@ -1,3 +1,8 @@
+2013-09-25      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/patches/gcc/4.7.3/[01-10]  (New patches created).
+	  Added configure which fixes the absence of libgm2 being built.
+
 2013-09-24      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2ALU.mod:  (BuildBitset) now return a
