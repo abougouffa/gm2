@@ -4461,9 +4461,9 @@ END BuildStructBitset ;
 (*
    ConstructLargeOrSmallSet - generates a constant representing the set value of the symbol, sym.
                               We manufacture the constant by using a initialization
-                              structure of integers.
+                              structure of cardinals.
 
-                              { (int), (int) etc }
+                              { (cardinal), (cardinal) etc }
 *)
 
 PROCEDURE ConstructLargeOrSmallSet (tokenno: CARDINAL; v: PtrToValue; low, high: CARDINAL) : Tree ;
@@ -4982,7 +4982,7 @@ BEGIN
    low := ToInteger(low) ;
    high := ToInteger(high) ;
    n := 1 ;
-   t := GetIntegerZero() ;
+   t := GetCardinalZero() ;
    WHILE GetRange(v, n, r1, r2) DO
       PushValue(r1) ;
       tl := ToInteger(PopIntegerTree()) ;
@@ -4990,13 +4990,13 @@ BEGIN
       th := ToInteger(PopIntegerTree()) ;
       IF IsIntersectionTree(tokenno, tl, th, low, high)
       THEN
-         tl := SubTree(MaxTree(tokenno, tl, low), low) ;
-         th := SubTree(MinTree(tokenno, th, high), low) ;
+         tl := ToCardinal(SubTree(MaxTree(tokenno, tl, low), low)) ;
+         th := ToCardinal(SubTree(MinTree(tokenno, th, high), low)) ;
          t := BuildLogicalOr(location, t, BuildRange(tokenno, tl, th), FALSE)
       END ;
       INC(n)
    END ;
-   RETURN( t )
+   RETURN( ToBitset(t) )
 END BuildBitset ;
 
 

@@ -816,16 +816,15 @@ m2statement_BuildIncludeVarConst (location_t location,
 									     m2expr_GetWordOne(), m2convert_ToWord (op2), FALSE),
 							    FALSE));
   else {
-    tree p1 = m2treelib_get_set_address (location, op1, is_lvalue);
     tree fieldlist = TYPE_FIELDS (type);
     tree field;
 
     for (field = fieldlist; (field != NULL) && (fieldno>0); field = TREE_CHAIN (field))
       fieldno--;
     m2statement_BuildAssignmentTree (location,
-				     m2treelib_get_set_field_rhs (location, p1, field),
+				     m2treelib_get_set_field_rhs (location, op1, field),
 				     m2expr_BuildLogicalOr (location,
-							    m2treelib_get_set_field_rhs (location, p1, field),
+							    m2treelib_get_set_field_rhs (location, op1, field),
 							    m2expr_BuildLSL (location, m2expr_GetWordOne(), m2convert_ToWord (op2), FALSE),
 							    FALSE));
   }

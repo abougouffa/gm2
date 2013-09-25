@@ -4427,7 +4427,7 @@ BEGIN
             BuildIncludeVarConst(location,
                                  Mod2Gcc(GetType(op1)),
                                  Mod2Gcc(op1),
-                                 BuildConvert(Mod2Gcc(GetType(op1)), PopIntegerTree(), FALSE),
+                                 PopIntegerTree(),
                                  GetMode(op1)=LeftValue, fieldno)
          ELSE
             MetaErrorT1(CurrentQuadToken, 'bit exceeded the range of set {%1atd}', op1)
@@ -4499,7 +4499,7 @@ BEGIN
             Sub ;
             BuildExcludeVarConst(location,
                                  Mod2Gcc(GetType(op1)),
-                                 Mod2Gcc(op1), BuildConvert(Mod2Gcc(GetType(op1)), PopIntegerTree(), FALSE),
+                                 Mod2Gcc(op1), PopIntegerTree(),
                                  GetMode(op1)=LeftValue, fieldno)
          ELSE
             MetaErrorT1(CurrentQuadToken, 'bit exceeded the range of set {%1atd}', op1)

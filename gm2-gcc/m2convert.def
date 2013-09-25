@@ -27,6 +27,13 @@ PROCEDURE ToInteger (expr: Tree) : Tree ;
 
 
 (*
+   ToBitset - convert an expression, expr, to a BITSET.
+*)
+
+PROCEDURE ToBitset (expr: Tree) : Tree ;
+
+
+(*
    ConvertToPtr - convert an expression to a void *.
 *)
 

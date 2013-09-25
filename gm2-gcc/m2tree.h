@@ -42,6 +42,7 @@ EXTERN tree m2tree_skip_const_decl (tree exp);
 EXTERN int m2tree_IsTreeOverflow (tree value);
 EXTERN int m2tree_IsOrdinal (tree type);
 EXTERN int m2tree_IsAConstant (tree t);
+EXTERN tree m2tree_skip_reference_type (tree exp);
 
 #ifndef SET_WORD_SIZE
 /* gross hack */

@@ -124,6 +124,22 @@ m2tree_skip_const_decl (tree exp)
   return exp;
 }
 
+
+/*
+ *  m2tree_skip_reference_type - skips all POINTER_TYPE and REFERENCE_TYPEs.
+ *                               Otherwise return exp.
+ */
+
+tree
+m2tree_skip_reference_type (tree exp)
+{
+  if (TREE_CODE (exp) == REFERENCE_TYPE)
+    return m2tree_skip_reference_type (TREE_TYPE (exp));
+  if (TREE_CODE (exp) == POINTER_TYPE)
+    return m2tree_skip_reference_type (TREE_TYPE (exp));
+  return exp;
+}
+
 /*
  *  m2tree_IsOrdinal - return TRUE if code is an INTEGER, BOOLEAN or ENUMERAL type.
  */

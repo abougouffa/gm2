@@ -267,12 +267,14 @@ m2expr_BuildLogicalShift (location_t location, tree op1, tree op2, tree op3,
   op2 = m2expr_FoldAndStrip (op2);
   op3 = m2expr_FoldAndStrip (op3);
   if (TREE_CODE (op3) == INTEGER_CST) {
+    op2 = m2convert_ToWord (op2);
     if (tree_int_cst_sgn (op3) < 0)
       res = m2expr_BuildLSR (location, op2,
-                             m2expr_BuildNegate (location, op3, needconvert),
+                             m2convert_ToWord (m2expr_BuildNegate (location, op3, needconvert)),
                              needconvert);
     else
-      res = m2expr_BuildLSL (location, op2, op3, needconvert);
+      res = m2expr_BuildLSL (location, op2, m2convert_ToWord (op3), needconvert);
+    res = m2convert_BuildConvert (m2tree_skip_type_decl (TREE_TYPE (op1)), res, FALSE);
     m2statement_BuildAssignmentTree (location, op1, res);
   }
   else {
@@ -1497,14 +1499,13 @@ m2expr_BuildIfConstInVar (location_t location, tree type, tree varset, tree cons
     /* small set size <= TSIZE(WORD) */
     m2treelib_do_jump_if_bit (location, NE_EXPR, m2treelib_get_rvalue (location, varset, type, is_lvalue), constel, label);
   else {
-    tree p1 = m2treelib_get_set_address (location, varset, is_lvalue);
     tree fieldlist = TYPE_FIELDS (type);
     tree field;
 
     for (field = fieldlist; (field != NULL) && (fieldno>0); field = TREE_CHAIN (field))
       fieldno--;
 
-    m2treelib_do_jump_if_bit (location, NE_EXPR, m2treelib_get_set_field_rhs (location, p1, field), constel, label);
+    m2treelib_do_jump_if_bit (location, NE_EXPR, m2treelib_get_set_field_rhs (location, varset, field), constel, label);
   }
 }
 
@@ -1527,14 +1528,13 @@ m2expr_BuildIfNotConstInVar (location_t location, tree type, tree varset, tree c
     /* small set size <= TSIZE(WORD) */
     m2treelib_do_jump_if_bit (location, EQ_EXPR, m2treelib_get_rvalue (location, varset, type, is_lvalue), constel, label);
   else {
-    tree p1 = m2treelib_get_set_address (location, varset, is_lvalue);
     tree fieldlist = TYPE_FIELDS (type);
     tree field;
 
     for (field = fieldlist; (field != NULL) && (fieldno>0); field = TREE_CHAIN (field))
       fieldno--;
 
-    m2treelib_do_jump_if_bit (location, EQ_EXPR, m2treelib_get_set_field_rhs (location, p1, field), constel, label);
+    m2treelib_do_jump_if_bit (location, EQ_EXPR, m2treelib_get_set_field_rhs (location, varset, field), constel, label);
   }
 }
 
@@ -1728,8 +1728,8 @@ m2expr_BuildArray (tree type, tree array, tree index, tree lowIndice, tree eleme
 
 tree
 m2expr_BuildComponentRef (tree record, tree field)
-{
-  tree recordType = m2tree_skip_type_decl (TREE_TYPE (record));
+{ 
+  tree recordType = m2tree_skip_reference_type (m2tree_skip_type_decl (TREE_TYPE (record)));
 
   if (DECL_CONTEXT (field) == recordType)
     return build3 (COMPONENT_REF, TREE_TYPE (field), record, field, NULL_TREE);
@@ -2010,7 +2010,7 @@ m2expr_BuildBinaryForeachWordDo (location_t location, tree type, tree op1, tree 
 
     while (field1 != NULL && field2 != NULL && field3 != NULL) {
       m2statement_BuildAssignmentTree (location,
-				       m2treelib_get_set_field_rhs (location, p1, field1),
+				       m2treelib_get_set_field_des (location, op1, field1),
 				       (*binop) (location,
 						 m2treelib_get_set_value (location, p2, field2,
 									  is_op2const, op2, fieldNo),

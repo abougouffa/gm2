@@ -440,6 +440,17 @@ m2treelib_get_set_field_rhs (location_t location, tree p, tree field)
 
 
 /*
+ *  get_set_field_des - returns the p->field ready to be a (rhs) designator.
+ */
+
+tree
+m2treelib_get_set_field_des (location_t location, tree p, tree field)
+{
+  return m2expr_BuildComponentRef (p, field);
+}
+
+
+/*
  *  get_set_address_if_var - returns the address of, op, providing
  *                           it is not a constant.
  *                           NULL is returned if, op, is a constant.

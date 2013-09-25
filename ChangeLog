@@ -1,3 +1,20 @@
+2013-09-24      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2ALU.mod:  (BuildBitset) now return a
+	  BITSET type rather than an integer.
+	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeInclude) do not convert the IntegerTree.
+	  (CodeExclude) do not convert the IntegerTree.
+	* gm2/gm2-gcc/m2expr.c:  (m2expr_BuildLogicalShift) convert op2 and op3
+	  ToWord.  (m2expr_BuildIfConstInVar) use varset rather than p1.
+	  (m2expr_BuildComponentRef)  call m2tree_skip_reference_type.
+	  (m2expr_BuildBinaryForeachWordDo)  call m2treelib_get_set_field_des.
+	* gm2/gm2-gcc/m2statement.c:  (m2statement_BuildIncludeVarConst)
+	  use op1, rather than p1 in m2treelib_get_set_field_rhs.
+	* gm2/gm2-gcc/m2tree.c:  (m2tree_skip_reference_type)  New function.
+	* gm2/gm2-gcc/m2tree.h:  (m2tree_skip_reference_type)  New declaration.
+	* gm2/gm2-gcc/m2treelib.c:  (m2treelib_get_set_field_des)  New function.
+	* gm2/gm2-gcc/m2treelib.h:  (m2treelib_get_set_field_des)  New declaration.
+
 2013-09-20      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/patches/gcc/4.7.3:  remade patch set which now includes toplevel
