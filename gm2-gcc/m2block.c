@@ -951,8 +951,8 @@ m2block_RememberType (tree t)
 
 
 /*
- *  global_constant - t is a constant, we keep a chain of all constants
- *                    in the global binding level.
+ *  global_constant - returns t.  It chains, t, onto the global_binding_level
+ *                    list of constants, if it is not already present.
  */
 
 tree

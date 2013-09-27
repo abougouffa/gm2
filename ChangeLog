@@ -1,3 +1,24 @@
+2013-09-27      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeHigh) convert high value into
+	  a cardinal.  (FoldHigh) convert high value into cardinal.  Fixes
+	  a bug exposed when compiling ulm-lib-gm2/std/StrSpec.mod.
+
+2013-09-26      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-iso/LongWholeIO.def:  (Re-added).
+	* ShortIO.def:  (Re-added).
+	* ShortWholeIO.def:  (Re-added).
+	* SLongWholeIO.def:  (Re-added).
+	* SShortIO.def:  (Re-added).
+	* SShortWholeIO.def:  (Re-added).
+	* LongWholeIO.mod:  (Re-added).
+	* ShortIO.mod:  (Re-added).
+	* ShortWholeIO.mod:  (Re-added).
+	* SLongWholeIO.mod:  (Re-added).
+	* SShortIO.mod:  (Re-added).
+	* SShortWholeIO.mod:  (Re-added).
+
 2013-09-25      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/patches/gcc/4.7.3/[01-10]  (New patches created).

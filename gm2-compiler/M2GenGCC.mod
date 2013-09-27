@@ -5128,7 +5128,7 @@ BEGIN
       THEN
          PutConst(op1, Cardinal) ;
          AddModGcc(op1,
-                   DeclareKnownConstant(location, GetIntegerType(), t)) ;
+                   DeclareKnownConstant(location, GetCardinalType(), t)) ;
          p(op1) ;
          NoChange := FALSE ;
          SubQuad(quad)
@@ -5166,7 +5166,9 @@ BEGIN
    ELSE
       t := BuildAssignmentTree(location,
                                Mod2Gcc(op1),
-                               ResolveHigh(tokenno, op2, op3))
+                               BuildConvert(Mod2Gcc(GetType(op1)),
+                                            ResolveHigh(tokenno, op2, op3),
+                                            FALSE))
    END
 END CodeHigh ;
 
