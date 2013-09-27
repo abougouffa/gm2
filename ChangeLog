@@ -3,6 +3,8 @@
 	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeHigh) convert high value into
 	  a cardinal.  (FoldHigh) convert high value into cardinal.  Fixes
 	  a bug exposed when compiling ulm-lib-gm2/std/StrSpec.mod.
+	* gm2/gm2-compiler/M2GenGCC.mod:  (FoldHigh) convert constant into
+	  a cardinal.
 
 2013-09-26      Gaius Mulley <gaius@gnu.org>
 

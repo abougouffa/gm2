@@ -5128,7 +5128,8 @@ BEGIN
       THEN
          PutConst(op1, Cardinal) ;
          AddModGcc(op1,
-                   DeclareKnownConstant(location, GetCardinalType(), t)) ;
+                   DeclareKnownConstant(location, GetCardinalType(),
+                                        ToCardinal(t))) ;
          p(op1) ;
          NoChange := FALSE ;
          SubQuad(quad)
