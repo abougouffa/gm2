@@ -1,3 +1,20 @@
+2013-10-02      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/circles.mxm:  (New file).
+	* gm2/examples/pge/debugt:  (New file).
+	* gm2/examples/pge/max2code.py:  (New file).
+	* gm2/examples/pge/mxmmaxima.py:  (New file).
+	* gm2/examples/pge/mxmout.py:  (New file).
+	* gm2/examples/pge/mxmparser.py:  (New file).
+	* gm2/examples/pge/mxmstack.py:  (New file).
+	* gm2/examples/pge/mxmtree.py:  (New file).
+	* gm2/examples/pge/mxmutils.py:  (New file).
+	* gm2/examples/pge/pge.py:  (New file).
+	* gm2/examples/pge/rotating-circles.mxm:  (New file).
+	* gm2/examples/pge/rotating-line.mxm:  (New file).
+	* gm2/examples/pge/runt:  (New file).
+	* gm2/examples/pge/test.mxm:  (New file).
+
 2013-09-27      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeHigh) convert high value into

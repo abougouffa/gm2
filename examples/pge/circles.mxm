@@ -1,0 +1,5 @@
+((a + b*t + c*t^2/2) - (d + e*t + f*t^2/2))^2 + 
+((g + h*t + i*t^2/2) - (j + k*t + l*t^2/2))^2 - (m+n)^2;
+ratsimp(%);
+collectterms(%,t);
+quit();
