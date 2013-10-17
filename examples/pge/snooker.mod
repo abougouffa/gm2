@@ -21,12 +21,47 @@ MODULE snooker ;
 IMPORT popWorld ;
 IMPORT twoDsim ;
 
-FROM deviceGroff IMPORT Colour, red, blue, green ;
+FROM deviceIf IMPORT Colour, defineColour, red, blue, green ;
 FROM Fractions IMPORT Fract, initFract, zero, one, two, cardinal ;
 FROM Points IMPORT Point, initPoint ;
 
 FROM macroObjects IMPORT Macro, circle, moveTo, up, down, left, right,
                          append, translate, rootMacro, dup, unRootMacro, initMacro, rectangle ;
+
+CONST
+   useGroff = TRUE ;
+
+
+(*
+   placeBoundary - 
+*)
+
+PROCEDURE placeBoundary ;
+VAR
+   m: Macro ;
+BEGIN
+   m := initMacro() ;
+
+   (* left edge *)
+   m := moveTo(m, initPoint(zero(), zero())) ;
+   m := rectangle(m, TRUE, zero(), dark, initFract(0, 1, 100), one()) ;
+
+   (* right edge *)
+   m := moveTo(m, initPoint(initFract(0, 99, 100), zero())) ;
+   m := rectangle(m, TRUE, zero(), dark, initFract(0, 1, 100), one()) ;
+
+   (* bot edge *)
+   m := moveTo(m, initPoint(zero(), zero())) ;
+   m := rectangle(m, TRUE, zero(), dark, one(), initFract(0, 1, 100)) ;
+
+   (* top edge *)
+   m := moveTo(m, initPoint(zero(), initFract(0, 99, 100))) ;
+   m := rectangle(m, TRUE, zero(), dark, one(), initFract(0, 1, 100)) ;
+   m := rootMacro(m) ;
+
+   popWorld.populate(m, TRUE, TRUE)
+
+END placeBoundary ;
 
 
 (*
@@ -38,18 +73,6 @@ VAR
    m: Macro ;
 BEGIN
    m := initMacro() ;
-
-   m := moveTo(m, initPoint(initFract(0, 0, 0), initFract(0, 0, 0))) ;
-   m := rectangle(m, TRUE, zero(), blue(), initFract(1, 0, 0), initFract(0, 1, 20)) ;
-
-   m := moveTo(m, initPoint(initFract(0, 0, 0), initFract(0, 19, 20))) ;
-   m := rectangle(m, TRUE, zero(), blue(), initFract(1, 0, 0), initFract(0, 1, 20)) ;
-
-   m := moveTo(m, initPoint(initFract(0, 0, 0), initFract(0, 0, 0))) ;
-   m := rectangle(m, TRUE, zero(), blue(), initFract(0, 1, 20), initFract(1, 0, 0)) ;
-
-   m := moveTo(m, initPoint(initFract(0, 19, 20), initFract(0, 0, 0))) ;
-   m := rectangle(m, TRUE, zero(), blue(), initFract(0, 1, 20), initFract(1, 0, 0)) ;
 
    m := moveTo(m, initPoint(initFract(0, 3, 10), initFract(0, 8, 10))) ;
    m := circle(m, TRUE, zero(), red(), size) ;
@@ -89,21 +112,32 @@ VAR
    m: Macro ;
 BEGIN
    m := initMacro() ;
+
    m := moveTo(m, initPoint(initFract(0, 7, 13), initFract(0, 1, 10))) ;
    m := circle(m, TRUE, zero(), green(), size) ;
    m := rootMacro(m) ;
    popWorld.mass(cardinal(3)) ;
    popWorld.velocity(initPoint(zero(), initFract(2, 0, 0))) ;
    popWorld.populate(m, FALSE, TRUE) ;
-   twoDsim.simulateFor(0.5)
+   twoDsim.simulateFor(30.0)
 END fireCue ;
 
 
 VAR
-   size: Fract ;
+   size       : Fract ;
+   light, dark: Colour ;
 BEGIN
-   popWorld.init(TRUE) ;
+   popWorld.init(useGroff) ;
+
+   light := defineColour(initFract(0, 166, 256),
+                         initFract(0, 124, 256),
+                         initFract(0, 54, 256)) ;
+   dark := defineColour(initFract(0, 76, 256),
+                        initFract(0, 47, 256),
+                        zero()) ;
+
    size := initFract(0, 1, 21) ;
+   placeBoundary ;
    placeBalls ;
    fireCue
 END snooker.

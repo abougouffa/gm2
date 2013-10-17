@@ -18,7 +18,6 @@ class parse:
     #
 
     def __init__ (self, filename, line, lang, content):
-        stop()
         self.inputFile = filename
         self.contents = content
         self.powerpos = 0
@@ -28,11 +27,19 @@ class parse:
         self.lineNo = 2
         self.startpos = self.curpos
         self.expressionStack = mxmstack.stack(None)  # self.internalError)
-        self.tokenStack = mxmstack.stack(None)  # self.internalError)
+        self.tokenStack = mxmstack.stack(None)       # self.internalError)
         self.lang = lang
         self.tok = self.getNext()
+        self.terms = []
+
+    def getPolynomials (self, nTerms):
         if self.expression():
-            self.expressionStack.pop().out()
+            e = self.expressionStack.pop()
+            for n in reversed(range(nTerms)):
+                self.terms += [e.collectPolynomial(n, 't')]
+            self.terms.reverse()
+            return self.terms
+        return None
 
 
     #

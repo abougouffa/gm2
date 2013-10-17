@@ -34,6 +34,7 @@ FROM macroObjects IMPORT Macro, circle, moveTo, up, down, left, right, rotate,
 CONST
    testCorner = FALSE ;
    testRight  = FALSE ;
+   useGroff   = FALSE ;
 
 
 (*
@@ -147,7 +148,7 @@ END dropBall ;
 VAR
    light, dark: Colour ;
 BEGIN
-   popWorld.init(FALSE) ;
+   popWorld.init(useGroff) ;
    light := defineColour(initFract(0, 166, 256),
                          initFract(0, 124, 256),
                          initFract(0, 54, 256)) ;

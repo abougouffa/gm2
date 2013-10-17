@@ -84,6 +84,8 @@ Software Foundation raise funds for GNU development.''
 * Building::         Building GNU Modula-2 from source.
 * Building on gcc 4.1.2::   Building on the gcc-4.1.2 branch.
 * Building on gcc 4.7::   Building on the gcc-4.7 branch.
+* Debian gcc-4.7 build::  Building gcc-4.7 under Debian.
+* Solaris gcc-4.7 build:: Building gcc-4.7 under Solaris.
 * Development::      How to access the CVS repository.
 * Dejagnu::          Stress testing GM2.
 * Cygwin::           How to build GNU Modula-2 under Cygwin.
@@ -2839,8 +2841,8 @@ your @file{/etc/apt/sources.list} file.
 #  GNU Modula-2 repo
 #
 
-deb http://floppsie.comp.glam.ac.uk/debian/ squeeze main 
-deb-src http://floppsie.comp.glam.ac.uk/debian/ squeeze main
+deb http://floppsie.comp.glam.ac.uk/debian/ wheezy main 
+deb-src http://floppsie.comp.glam.ac.uk/debian/ wheezy main
 @end example
 
 Now as root type:
@@ -2926,7 +2928,7 @@ $ make post-install
 which will create an @file{a.out} for the infamous hello world
 example.
 
-@node Building on gcc 4.7, Development, Building on gcc 4.1.2, Top
+@node Building on gcc 4.7, Debian gcc-4.7 build, Building on gcc 4.1.2, Top
 @section Building GNU Modula-2 grafted on the gcc-4.7 branch
 
 This is experimental and currently under development.  It currently
@@ -2937,9 +2939,7 @@ restrictions which are currently being worked upon.  These include:
 @item
 University of ULM libraries are disabled.
 @item
-unable to compile code using nested procedures.
-@item
-unable to run any regression tests.
+Arithmetic using complex data types cause the compiler to crash.
 @end table
 
 The internals of GNU Modula-2 have been heavily overhauled, in
@@ -2948,6 +2948,9 @@ interface to the construction of GCC Trees.  This should mean that
 maintenance is easier in the future and it should reduce the time to
 graft gm2 onto future gcc releases.  In addition, the changes will
 allow for integer overflow to be detected.
+
+@node Debian gcc-4.7 build, Solaris gcc-4.7 build, Building on gcc 4.7, Top
+@section Debian build on gcc-4.7 branch
 
 To build gm2 based on the 4.7 series of GCC you will need to install:
 
@@ -2988,7 +2991,102 @@ To install:
 $ make install
 @end example
 
-@node Development, Dejagnu, Building on gcc 4.7, Top
+@node Solaris gcc-4.7 build, Development, Debian gcc-4.7 build, Top
+@section Solaris build on gcc-4.7 branch
+
+These instructions have been reported to work with gm2 grafted onto
+gcc-4.7.3 and built on Solaris 10/Sparc (sun4u).
+
+1. Install gmp-5.1.2:
+
+Note that configure invokes the Bourne shell /bin/sh; this must be
+changed to the BASH shell /bin/bash.  Bourne shell will not work.
+
+Note that the source Will not compile with cc; requires gcc.  (In this
+example gcc-4.1.2 was used).
+
+@example
+$ ./configure SHELL=/bin/bash CFLAGS='-O2 -m64' \
+  --bindir=/usr/local/bin/64 --libdir=/usr/local/lib/64 --disable-cxx
+@end example
+
+  gmake check requires the following:
+
+@example
+export LD_LIBRARY_PATH_64=$PWD/.libs:$LD_LIBRARY_PATH_64
+@end example
+
+(Vide @url{http://gmplib.org/list-archives/gmp-bugs/2008-July/001084.html})
+
+Replace call to ranlib with echo in libtool.
+
+gmake check passes all tests.
+
+gmake install succeeded.
+
+
+2. Install mpfr-3.1.2
+
+@example
+$ ./configure SHELL=/bin/bash CFLAGS='-O2 -m64' \
+  --bindir=/usr/local/bin/64 --libdir=/usr/local/lib/64 \
+  --with-gmp-lib=/usr/local/lib/64 --with-gmp-include=/usr/local/include
+@end example
+
+Replaced call to ranlib with echo in libtool.
+
+gmake succeeded.
+
+gmake check passed all tests.
+
+gmake install succeeded.
+
+
+3. Install mpc-1.0.1
+
+@example
+$ ./configure SHELL=/bin/bash CFLAGS='-O2 -m64' \
+  --bindir=/usr/local/bin/64 --libdir=/usr/local/lib/64 \
+  --with-gmp-lib=/usr/local/lib/64 --with-gmp-include=/usr/local/include
+@end example
+
+Replaced call to ranlib with echo in libtool.
+
+gmake succeeded.
+
+gmake check passed all tests.
+
+gmake install succeeded.
+
+
+4. Finally, configuration script for gcc-4.7.3:
+
+@example
+$ ../../src/gcc-4.7.3/configure --prefix=$HOME/gcc-4.7.3 \
+  --exec-prefix=$HOME/gcc-4.7.3 --without-gnu-ld \
+  --with-ld=/usr/ccs/bin/ld --with-gnu-as --with-as=/usr/sfw/bin/gas \
+  --build=sparc64-sun-solaris2.10 --host=sparc64-sun-solaris2.10 \
+  --with-mpc-include=/usr/local/include --with-mpc-lib=/usr/local/lib/64 \
+  --with-mpfr-include=/usr/local/include \
+  --with-mpfr-lib=/usr/local/lib/64 \
+  --with-gmp-include=/usr/local/include --with-gmp-lib=/usr/local/lib/64 \
+  --enable-languages=c,c++ --disable-bootstrap --enable-checking \
+  --enable-shared --disable-libitm
+@end example
+
+Note that to build, you must export the locations of the libraries
+previously built, despite explicit location given in the configure
+options.  (This is a known bug.)
+
+Note that as per
+@url{http://blogs.everycity.co.uk/alasdair/2012/12/building-gcc-4-7-2-on-smartos-and-friends}
+@code{--disable-libitm} was added to configuration script.
+
+  gmake succeeded;
+
+  gmake install succeeded.
+
+@node Development, Dejagnu, Solaris gcc-4.7 build, Top
 @section Development sources via CVS
 
 Development sources can be downloaded via CVS but they must be grafted

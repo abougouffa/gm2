@@ -1,3 +1,23 @@
+2013-10-17      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2.texi:  added new section (Building gcc-4.7
+	  under Debian), added new section (Building gcc-4.7
+	  under Solaris).
+	* gm2/examples/pge/Fractions.mod:  updated dates.
+	* gm2/examples/pge/circles.mxm:   added comments and rewritten to use
+	  max2code syntax.
+	* gm2/examples/pge/mxmmaxima.py:  corrected getPolynomials.
+	* gm2/examples/pge/mxmparser.py:  many changes to allow stdout as a filename
+	  specified by '-'.
+	* gm2/examples/pge/mxmtree.py:  many changes and additions.
+	* gm2/examples/pge/ramps2.mod:  useGroff (New constant).
+	* gm2/examples/pge/rotating-line.mxm:  added comments and rewritten to
+	  use max2code syntax.
+	* gm2/examples/pge/snooker.mod:  added a boundary to the snooker table.
+	* gm2/examples/pge/test.mxm:  rewritten to use max2code syntax.
+	* gm2/examples/pge/twoDsim.mod:  minor changes to allow circle on circle
+	  collision to be calculated from a max2code included source file.
+
 2013-10-02      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/circles.mxm:  (New file).

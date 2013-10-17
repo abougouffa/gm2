@@ -40,7 +40,7 @@ class parse:
         self.language = language
         self.lineno = 1
         self.column = 0
-        self.polynomials = 0
+        self.polynomials = []
         self.embedded = []
         self.nTerms = 0
         self.lastNumber = 0
@@ -51,9 +51,19 @@ class parse:
         self.issueResults()
 
 
+    #
+    #  parseMaximaOutput - call mxmmaxima.parse and place all polynomial terms into self.polynomials
+    #
+
     def parseMaximaOutput (self, lines):
-        m = mxmmaxima.parse(self.filename, self.lineno, self.language, string.join(lines, ''))
-        
+        p = mxmmaxima.parse(self.filename, self.lineno, self.language, string.join(lines, ''))
+        m = p.getPolynomials(self.nTerms)
+        if m != None:
+            if self.nTerms == len(m):
+                # print m
+                self.polynomials = m
+            else:
+                internalError('expecting ' + str(self.nTerms) + ' terms')
 
     #
     #  makeTemporary - return a temporary filename
@@ -97,7 +107,6 @@ class parse:
                     i += 1
                 l[0] = l[0][i:]
                 l[1] = l[1][i:]
-                stop()
         return l
 
 
@@ -137,21 +146,31 @@ class parse:
 
 
     #
-    #
+    #  issueResults - flushes out the embedded code and polynomials to
+    #                 the required output file (or stdout).
     #
 
     def issueResults (self):
         #
         #  initialisation
         #
-        print self.embedded[0]
+        if self.outputFile == '-':
+            f = sys.stdout
+        else:
+            f = open (self.outputFile, 'w')
+        f.write(self.embedded[0])
 
-        for i in range(1, len(self.embedded)-1):
-            print self.embedded[i]
+        for i in range(1, len(self.embedded)-2):
+            f.write(self.embedded[i])
+            f.write(self.polynomials[i-1])
+            f.write(";\n")
         #
         #  finalisation
         #
-        print self.embedded[-1]
+        f.write(self.embedded[-2])
+        f.flush()
+        if self.outputFile != '-':
+            f.close()
 
 
     #

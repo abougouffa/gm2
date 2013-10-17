@@ -178,11 +178,26 @@ END Assert ;
 
 PROCEDURE AssertR (a, b: REAL) ;
 BEGIN
-   IF nearZero(a-b)
+   IF NOT nearZero(a-b)
    THEN
-      printf("error assert failed: %g should equal %g\n", a, b)
+      printf("error assert failed: %g should equal %g difference is %g\n", a, b, a-b)
    END
 END AssertR ;
+
+
+(*
+   AssertRDebug - 
+*)
+
+PROCEDURE AssertRDebug (a, b: REAL; message: ARRAY OF CHAR) ;
+BEGIN
+   IF nearZero(a-b)
+   THEN
+      printf("%s passed\n", ADR(message))
+   ELSE
+      printf("%s failed  %g should equal %g difference is %g\n", ADR(message), a, b, a-b)
+   END
+END AssertRDebug ;
 
 
 (*
@@ -253,7 +268,7 @@ BEGIN
          printf("is movable ") ;
          IF stationary
          THEN
-            printf("and is stationary ")
+            printf("but is now stationary ")
          ELSIF NOT nearZero(angularVelocity)
          THEN
             printf(" and has a rotating velocity of %g\n", angularVelocity)
@@ -893,7 +908,7 @@ VAR
 BEGIN
    WITH optr^ DO
       i := 0 ;
-
+(* new
       WHILE i<p.nPoints DO
          (* polygon points.[i].x *)
          p.points[i].x := newPositionScalar(p.points[i].x, vx, ax, dt) ;
@@ -904,8 +919,9 @@ BEGIN
       END ;
       vx := vx + ax*dt ;
       vy := vy + (ay+simulatedGravity)*dt ;
+*)
 
-(*
+(* old *)
       nvx := vx + ax*dt ;
       nvy := vy + (ay+simulatedGravity)*dt ;
       WHILE i<p.nPoints DO
@@ -918,7 +934,7 @@ BEGIN
       END ;
       vx := nvx ;
       vy := nvy
-*)
+(* *)
    END
 END updatePolygon ;
 
@@ -1623,6 +1639,17 @@ END getObjectValues ;
 
 
 (*
+   maximaCircleCollision - 
+*)
+
+PROCEDURE maximaCircleCollision (VAR array: ARRAY OF REAL;
+                                 a, b, c, d, e, f, g, h, i, j, k, l, m, n: REAL) ;
+BEGIN
+#  include "circles.m"
+END maximaCircleCollision ;
+
+
+(*
    earlierCircleCollision - let the following abreviations be assigned.
                             Note i is one circle, j is another circle.
                                  v is velocity, a, acceleration, x, y axis.
@@ -1655,6 +1682,7 @@ PROCEDURE earlierCircleCollision (VAR t, tc: REAL;
                                   a, b, c, d, e, f, g, h, k, l, m, n, o, p: REAL) : BOOLEAN ;
 VAR
    A, B, C, D, E, T: REAL ;
+   array           : ARRAY [0..4] OF REAL ;
 BEGIN
    (* thanks to wxmaxima  (expand ; factor ; ratsimp) *)
 
@@ -1664,6 +1692,18 @@ BEGIN
    D := (8.0*h-8.0*g)*l+(8.0*g-8.0*h)*k+(8.0*b-8.0*a)*d+(8.0*a-8.0*b)*c ;
    E := 4.0*sqr(h)-8.0*g*h+4.0*sqr(g)+4.0*sqr(b)-8.0*a*b+4.0*sqr(a)-sqr(2.0*(p+o)) ;
 
+(*
+   maximaCircleCollision (array,
+                          a, c, e, g, k, m,
+                          b, d, f, h, l, n,
+                          o, p) ;
+
+   AssertRDebug(array[4], A, "A") ;
+   AssertRDebug(array[3], B, "B") ;
+   AssertRDebug(array[2], C, "C") ;
+   AssertRDebug(array[1], D, "D") ;
+   AssertRDebug(array[0], E, "E") ;
+*)
    (* now solve for values of t which satisfy   At^4 + Bt^3 + Ct^2 + Dt^1 + Et^0 = 0 *)
    IF findQuartic(A, B, C, D, E, t)
    THEN
@@ -2588,6 +2628,7 @@ VAR
    k, n: CARDINAL ;
    l   : REAL ;
 BEGIN
+(*
    (* when do the Y values of line, i, equal Y values for point, j? *)
    l := Abs(p2.x - p1.x) ;
    AssertR(p1.y, p2.y) ;
@@ -2606,7 +2647,7 @@ BEGIN
       END ;
       INC(k)
    END
-
+*)
 END findEarliestCollisionRLineRPoint ;
 
 
@@ -2717,7 +2758,7 @@ END findCollisionPolygonRPolygon ;
 
 PROCEDURE findCollision (iptr, jptr: Object; VAR edesc: eventDesc; VAR tc: REAL) ;
 BEGIN
-   IF (NOT iptr^.fixed) OR (NOT jptr^.fixed)
+   IF NOT (iptr^.fixed AND jptr^.fixed)
    THEN
       IF (iptr^.object=circleOb) AND (jptr^.object=circleOb)
       THEN
