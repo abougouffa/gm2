@@ -1,3 +1,9 @@
+2013-10-17      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/libgm2/Makefile.in:  corrected install of iso SYSTEM.def.
+	  Ensure that we copy form the object directory and avoid the
+	  template version in the source directory.
+
 2013-09-14      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/libgm2/Makefile.in:  many changes to allow more libraries
