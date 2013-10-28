@@ -1,3 +1,8 @@
+2013-10-28      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-gcc/m2block.c:  iterate over the tree chain adding declaration
+	  statements (of variables) to the statement list.
+
 2013-10-17      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  added new section (Building gcc-4.7

@@ -779,7 +779,7 @@ m2block_finishFunctionDecl (tree fndecl)
 {
   tree block = DECL_INITIAL (fndecl);
   tree bind_expr = DECL_SAVED_TREE (fndecl);
-  tree_stmt_iterator i;
+  tree i;
 
   if (block == NULL_TREE)
     {
@@ -804,11 +804,18 @@ m2block_finishFunctionDecl (tree fndecl)
       if (! chain_member (current_binding_level->names, BIND_EXPR_VARS (bind_expr)))
 	{
 	  BIND_EXPR_VARS (bind_expr) = chainon (BIND_EXPR_VARS (bind_expr),
-					      current_binding_level->names);
+						current_binding_level->names);
 
 	  if (current_binding_level->names != NULL_TREE)
-	    for (i = tsi_start (current_binding_level->names); !tsi_end_p (i); tsi_next (&i))
-	      append_to_statement_list_force (*tsi_stmt_ptr (i), &BIND_EXPR_BODY (bind_expr));
+	    {
+	      for (i = current_binding_level->names; i != NULL_TREE; i = DECL_CHAIN (i))
+		append_to_statement_list_force (i, &BIND_EXPR_BODY (bind_expr));
+	      
+#if 0
+	      for (i = tsi_start (current_binding_level->names); !tsi_end_p (i); tsi_next (&i))
+		append_to_statement_list_force (*tsi_stmt_ptr (i), &BIND_EXPR_BODY (bind_expr));
+#endif
+	    }
 	}
 #endif
     }
