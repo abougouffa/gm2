@@ -41,6 +41,7 @@ CONST
    DefaultFramesPerSecond =    24.0 ;
    Debugging              = FALSE ;
    BufferedTime           =     0.1 ;
+   InactiveTime           =     1.0 ;  (* the time we keep simulating after all colision events have expired *)
 
 TYPE
    ObjectType = (polygonOb, circleOb, pivotOb, rpolygonOb) ;
