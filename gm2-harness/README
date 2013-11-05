@@ -1,21 +1,8 @@
 
-gm2-harness is a simple package which allows you to rebuild gm2 from
-source, run the regression tests and install the compiler.
+gm2-harness is a simple package which will download a gm2 tree from git
+and graft it onto the supported gcc release.
 
 To do this type:
 
 ./configure
-make all
-su
-make install
-
-The following configure options are implemented:
-
-   --with-gdb         builds gdb-6.6 (which has Modula-2 language support)
-   --with-cvs         forces `make' to download the latest cvs from the cvs server
-   --with-gcc=4.1.2   grafts GNU Modula-2 onto the gcc-4.1.2 release
-   --disable-ulmlib   disables building and installing the ulm libraries
-   --enable-ulmlib    enables building and installing the ulm libraries
-   
-Your system C compiler and associated tools will need to be able to
-build the C compiler from the gcc version requested.
+make

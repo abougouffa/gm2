@@ -1,0 +1,123 @@
+#!/bin/bash
+
+source config-values
+BRANCH=""
+
+
+#
+#  checkGCC - check gcc version and set the branch accordingly.
+#
+
+function checkGCC () {
+    case ${GCC} in
+	4.1.? )  BRANCH="" ;;
+	4.7.? )  BRANCH="" ;;
+	*     )  echo "it is unlikely that GNU Modula-2 will work with gcc-${GCC}" ;;
+    esac
+}
+
+
+#
+#  checkok - print out the status of an operation.
+#
+
+function checkok () {
+    if $1 ; then
+        echo "$2: passed"
+    else
+        echo "$2: failed"
+        exit 1
+    fi
+}
+
+
+function git-clone () {
+    checkok "git clone ${GITURL}" "git clone source code"
+}
+
+
+
+function unpackgcc () {
+   if [ -f $1.tar.gz ] ; then
+       gzip -dc $1.tar.gz | tar xf -
+   elif [ -f $1.tar.bz2 ] ; then
+       bzip2 -dc $1.tar.bz2 | tar xf -
+   else
+       echo "cannot find $1.tar.gz or $1.tar.bz2"
+       echo "will try and download it"
+       if wget -c -t 5 ${GCCURL}/gcc-${GCC}/$1.tar.bz2 ; then
+           unpackgcc $*
+       elif wget -c -t 5 ${GCCURL}/gcc-${GCC}/$1.tar.gz ; then
+           unpackgcc $*
+       else
+	   echo "cannot find $1 at ${GCCURL}/gcc-${GCC}/$1.tar.bz2"
+	   echo "and cannot find $1 at ${GCCURL}/gcc-${GCC}/$1.tar.gz"
+           exit 1
+       fi
+   fi
+}
+
+
+#
+#  checkPatchGCC - tests to see whether gm2 has a patch for gcc
+#                  and if so it applies it
+#
+
+function checkPatchGCC () {
+   if [ -d gcc/gm2/patches/gcc/${GCC} ] ; then
+      rm -f ../gcc-patch.log
+      touch ../gcc-patch.log
+      for i in gcc/gm2/patches/gcc/${GCC}/* xyz ; do
+          if [ -f $i ] ; then
+              echo "found a patch for gcc-${GCC} inside the gm2 release"
+              echo -n "will try and apply the patch: ($i) "
+              if patch -p1 < $i >> ../gcc-patch.log 2>&1 ; then
+                  echo "succeeded"
+              else
+                  echo "failed (result in ${DOWNLOADDIR}/gcc-patch.log)"
+                  exit 1
+              fi
+          fi
+      done
+   else
+       echo "no patch found for gcc-${GCC}"
+   fi
+}
+
+
+mkdir -p ${DOWNLOADDIR} ${SOURCEDIR}
+echo -n "this will remove ${SOURCEDIR}/gm2, press enter to continue"
+read ans
+
+rm -rf ${DOWNLOADDIR}/gcc-${GCC} ${DOWNLOADDIR}/gm2 ${SOURCEDIR}/gm2 ${DOWNLOADDIR}/tree
+
+( cd ${DOWNLOADDIR} ; unpackgcc gcc-${GCC} ; git-clone )
+
+#
+#  now we need to put the two source trees together
+#
+
+( cd ${DOWNLOADDIR} ; mkdir -p tree/gm2 ; mv gcc-${GCC} tree/gm2/gcc-versionno )
+
+( cd ${DOWNLOADDIR} ; tar cf - gm2 | ( cd tree ; tar xf - ) )
+
+#
+#  now apply any patches
+#
+
+( cd ${DOWNLOADDIR}/tree/gm2/gcc-versionno ; checkPatchGCC )
+
+#
+#  move the grafted tree to the source directory
+#
+
+mv ${DOWNLOADDIR}/tree/gm2 ${SOURCEDIR}
+
+#
+#  tidy up
+#
+
+rmdir ${DOWNLOADDIR}/tree
+
+echo -n "all done:  the combined (and patched) gcc and gm2 tree is: "
+ls -ld ${SOURCEDIR}/gm2
