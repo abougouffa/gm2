@@ -1,0 +1,12 @@
+#!/bin/sh
+
+source config-values
+source shell-bin/libs
+
+checkok "shell-bin/makefromcvs $1 $2 $3" "building gm2"
+cd ${BUILDDIR}/gcc
+
+PATH=${PREFIX}/bin:$PATH
+export PATH
+make check-gm2
+

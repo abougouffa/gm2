@@ -1,0 +1,1421 @@
+.\" Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
+.\" Contributed by Peter P. Eiserloh <peter@eiserloh.org>
+.\"
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.2 or
+.\" any later version published by the Free Software Foundation; with no
+.\" Invariant Sections.  A copy of the license is included in
+.\" gm2/COPYING.FDL
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with GNU CC; see the file gm2/COPYING.FDL.  If not, write to
+.\" the Free Software Foundation, 51 Franklin Street, Fifth Floor,
+.\" Boston, MA 02110-1301, USA.
+.\" 
+.mso www.tmac
+.de Vb \" Begin verbatim text
+.ft CW
+.nf
+.ne \\$1
+..
+.de Ve \" End verbatim text
+.ft R
+.fi
+..
+
+.TH gm2 1 27-Nov-2005 GM2 "GNU Modula-2"
+.SH NAME
+gm2 \- The GNU Modula-2 compiler.
+.br
+gm2l \- GNU Modula-2 linker subcomponent.
+.br
+gm2lcc \- GNU Modula-2 linker subcomponent.
+.br
+gm2lgen \- GNU Modula-2 linker subcomponent.
+.br
+gm2lsub \- GNU Modula-2 linker subcomponent.
+.br
+gm2m \- GNU Modula-2 makefile generator.
+.br
+h2def \- Transform a 'C' header file into a Modula-2 definition file.
+
+.SH DESCRIPTION
+
+.B NOTE:
+This document manual page may be out of date, check the texinfo
+file.
+.PP
+
+.I GNU Modula-2
+is a front end
+.URL http://gcc.gnu.org/frontends.html
+for GCC (the GNU Compiler Collection).
+GCC contains a retargetable C compiler which has been ported
+to a large number of architectures and operating systems.
+.I GNU Modula-2
+utilizes the back end of GCC and replaces the C language front end
+with a Modula-2 one.
+
+The
+.I GNU Modula-2
+front end can perform a substantial amount of static analysis
+of the source code (see
+.RI ` -Wpedantic "',"
+.RI ` -Wpedantic-param-names "',"
+.RI ` -Wstudents "', and"
+.RI ` -Wpedantic-cast "')."
+
+Finally runtime checking has been implemented and can check: bounds
+of subranges and array indexes, functions execute a 
+.RB ' RETURN '
+statement, a pointer does not dereference a 
+.RB ' NIL '
+pointer value,
+and that the expression within a 
+.RB ' CASE '
+statement is correctly matched.
+
+There are currently three sets of libraries. The
+.RI ' "Programming in Modula-2" '
+libraries, the 
+.RI ' "University of ULM libraries" '
+and the 
+.I ISO
+libraries. 
+The ISO libraries are still being written, however all
+definition modules for the three library sets are contained within this
+document.
+
+.I GNU Modula-2
+also has the advantage of being closely tied to 
+.I GCC
+(the GNU Compiler Collection.)
+Not only does this produce excellent code and excellent architectural
+and operating system coverage, but it also utilizes many of the 
+.I GCC
+features. 
+For example, 
+.I GNU Modula-2
+can invoke the C preprocessor to
+manage conditional compilation; inlining of
+.RB ` SYSTEM '
+procedures, intrinsic functions, memory copying routines
+are also exploited; access to assembly language using GCC syntax
+is also provided.
+.I GNU Modula-2
+also supports sets of any ordinal type (memory permitting).
+
+.I GNU Modula-2
+Reads source code from files containing either:
+(1) definition modules,
+(2) implementation modules,
+(3) main body module.
+Definition modules usually use the standard extension 
+.IR '.def' .
+Whereas, implementation and main body modules use the
+standard extension
+.IR '.mod' .
+When using legacy code which worked with a different compiler,
+other extensions may have been used.  
+.I GNU Modula-2
+can be told to search for those extension first
+, before defaulting
+to the standard extensions.
+For example, use the command line options:
+.RI ' "-fdef=.d2 -fmod=.m2" '.
+
+.I GNU Modula-2
+imports definition modules by reading the definition module file
+every time (similar to C including .h header files).
+Traditional Modula-2 compilers would require the compilation
+of every definition module into a symbol file before any import
+of symbols from that definition module.
+
+.SS Purpose
+It is expected that the primary purpose of
+.I GNU Modula-2
+will be to compile legacy code.
+Currently there are only a few commercial Modula-2 compilers being
+actively maintained.
+Code which was written ten or fifteen years ago may still be compiled
+by older commercial (possibly unmaintained) compilers.
+
+While the 32 bit x86 remains these compilers presumably can be run
+in compatibility mode (some compilers only produced 16 bit code).
+Time is running out as the computing industry is switching to
+64 microprocessors. While x86 emulation or 16 bit backwards
+compatibility is always possible it has some serious drawbacks.
+
+In order for the older source to run natively the source
+code will either have to be translated into another high level
+language or alternatively a Modula-2 compiler which can target
+these new generation of microprocessors will have to be acquired.
+
+.SS Current State
+Currently 
+.I GNU Modula-2
+(0.49) implements all PIM dialects of the language,
+eventually 
+.I GNU Modula-2
+will be fully compliant with ISO Modula-2.
+It has been built on i[3456]86 GNU/Linux, i[3456]86 BSD,
+Opteron LP64 GNU/Linux and sparc GNU/Linux systems.
+It has also been built as a cross compiler for MinGW
+and StrongARM GNU/Linux.
+
+.I GNU Modula-2
+builds and passes all its regression tests on
+Debian Pure 64 (LP64 architecture),
+64 bit Solaris,
+32 bit x86 GNU/Linux (Suse 9.1, Debian, stable and unstable) and 
+32 bit x86 FreeBSD.
+
+Work is underway to build and test it on DARWIN/i386,
+and DARWIN/powerpc.
+
+There is even a project to extend 
+.I GNU Modula-2
+with object oriented constructs similar to 
+.B Objective-C
+called 
+.RI ' "Objective Modula-2" "' ,"
+or 
+.I objM2
+for short.
+
+.SH OPTIONS
+
+This section describes the compiler's command line options
+specific to
+.IR "GNU Modula-2" ,
+although many of the standard options are documented here.
+For details on generic options see the manual page for 
+.I gcc
+(The GNU C Compiler), and other members of the GNU Compiler Collection.
+
+.SS "Overall Options"
+
+.TP
+.I --help
+Print (on the standard output) a description of the command line
+options understood by 
+.B gm2
+If the -v option is also specified then --help will also be passed
+on to the various processes invoked by 
+.BR gm2 ,
+so that they can display the command line options they accept.
+If the 
+.I -f 
+option is also specified then command line options which
+have no documentation associated with them will also be displayed.
+
+.TP
+.I --target-help
+Print (on the standard output) a description of target specific
+command line options for each tool.
+
+
+.TP
+.I --version
+Display the version number and copyrights of the invoked GCC.
+
+.TP
+.I -c
+Compile and assemble the source files, but do not link.
+The linking stage simply is not done.
+The ultimate output is in the form of an object file for each
+source file.
+
+.TP
+.I -E
+Stop after the preprocessing stage; do not run the compiler proper.
+The output is in the form of preprocessed source code, which is
+sent to the standard output.
+
+.TP
+.I -g
+Insert debugging symbols into the object files, and executable.
+.B NOTE:
+When using the debugger, it may be useful to not optimize at
+a high level.
+
+.TP
+.IR -I path
+Adds an include path.  The
+.I GNU Modula-2
+compiler needs to import symbols from definition module files.
+It include's the definition file, rather than reading a symbol
+file.
+
+.TP
+.I -On
+Set the optimization level and kind.
+.I -Os
+optimizes for size (desiring small executables).
+.IR -O , -O1 , -O2 ", ..., " -O6
+optimize for speed, with increasingly powerful techniques,
+such as loop unrolling and reordering of code.
+When debugging, only use 
+.I -O
+or at the most
+.IR -O1 .
+
+.TP
+.I -o file
+Place output in file 
+.IR file .
+This applies regardless to whatever sort of output is being produced,
+whether it be an executable file, an object file, an assembler file,
+or preprocessed C code.
+
+Since only one output file can be specified, it does not make sense
+to use 
+.I -o
+when compiling more than one input file, unless you are producing
+an executable file as output.
+
+If 
+.I -o
+is not specified, the default is to put an executable file in
+a.out, the object file for source.suffix in source.o, its assembly
+language file in 
+.IR source.s ,
+and all preprocessed C source on standard output.
+
+.TP
+.I -S
+Preprocess and compile the source code, but to not assemble.
+Do not delete the temporary assembly language file.
+Stop after the stage of compilation proper; do not assemble.
+The output is in the form of an assembly language code file
+for each non-assembler input file specified.
+
+.TP
+.I -v
+Verbosely display all calls to subsidiary programs,
+such as the C preprocessor, the 
+.I GNU Modula-2
+compiler and linker.
+Also print the version of the compiler, and which 
+.I specs
+file it is using.
+
+.TP
+.I -fcpp
+Preprocess the source with 
+.RI ` "cpp -lang-asm -traditional-cpp" '.
+If 
+.I -fcpp
+is supplied then all definition modules and implementation modules
+which are parsed will be preprocessed by 
+.RI ` cpp '.
+
+.TP
+.I -fdef=
+Recognize the specified suffix as a definition module filename.
+The default definition module filename suffix is `.def'.
+If this option is used 
+.I GNU Modula-2
+will still fall back to this default if a requested definition
+module is not found.
+
+.TP
+.I -fmod=
+Recognize the specified suffix as implementation and module
+filenames.  The default implementation and module filename suffix
+is `.mod'.  If this option is used 
+.I GNU Modula-2
+will still fall back to this default if it needs to read an
+implementation module and the specified suffixed filename does
+not exist.  Both this option and 
+.I -fdef=
+also work with the
+.I -fmakeall
+option.
+
+.TP
+.I -fextended-opaque
+Allows opaque types to be implemented as any type. This is a
+.I GNU Modula-2
+extension and it requires that the implementation module
+defining the opaque type is available so that it can be resolved
+when compiling the module which imports the opaque type.
+
+.TP
+.I -fmakeall
+Generate a temporary makefile and build all dependent modules and
+link.
+
+.TP
+.I -fmakelist
+This option is only applicable when linking a program module.  The
+compiler will generate a `modulename.lst' file which contains a
+list indicating the initialization order of all modules which are
+to be linked. The actual link does not occur.  The 
+.I GNU Modula-2
+linker scans all 
+.BR IMPORT "'s ,"
+generates a list of dependencies and produces an ordered list for
+initialization. It will probably get the order wrong if your project
+has cyclic dependencies, but the `.lst' file is plain text and can
+be modified if required.  Once the `.lst' file is created it can be
+used by the compiler to link your project via the
+.RI ` -fuselist '
+option. It has no effect if the 
+.RI ` -c '
+option is present.
+
+.TP
+.I -fsources
+Displays the path to the source of each module.
+
+.TP
+.I -fstatistics
+Generates quadruple information: number of quadruples generated,
+number of quadruples remaining after optimization.
+Quadruples are the intermediate language used internally by the
+.I GNU Modula-2
+compiler.
+
+.TP
+.I -fuselist
+Providing 
+.RI ` gm2 '
+has been told to link the program module this
+option uses the file 
+.RI ` modulename.lst '
+for the initialization order of modules.
+
+.TP
+.I -Wverbose-unbounded
+Inform the user which non 
+.RB ` VAR '
+unbounded parameters will be passed by reference.
+This only produces output if the option
+.I -funbounded-by-reference
+is also supplied on the command line.
+
+.TP
+.I -funbounded-by-reference
+Enable optimization of unbounded parameters by attempting to pass
+non
+.RB ` VAR '
+unbounded parameters by reference.  This optimization
+avoids the implicit copy inside the callee procedure.
+.I GNU Modula-2
+will only allow unbounded parameters to be passed by reference if,
+inside the callee procedure, they are not written to, no address is
+calculated on the array and it is not passed as a 
+.RB ` VAR '
+parameter.
+
+.B NOTE:
+That it is possible to write code to break this optimization,
+therefore this option should be used carefully.
+For example, it would be possible to take the address of an array, 
+pass the address and the array to a procedure,
+read from the array in the procedure and write to the location
+using the address parameter.
+
+Due to the dangerous nature of this option it is not enabled when
+the 
+.I -O
+option is specified.
+.br							      
+
+.SS "Runtime Checking Options"
+
+.TP
+.I -fbounds
+Generate code to check the bounds of subranges and array indexes.
+
+.TP
+.I -freturn
+Generate code to check that functions always exit with a 
+.RB ' RETURN '
+and do not fall out at the end.
+
+.TP
+.I -fnil
+Generate code to detect at runtime any attempt to access data
+through a
+.RB ' NIL '
+value pointer.
+
+.TP
+.I -fcase
+Generate code to detect at runtime whether a 
+.RB ' CASE '
+statement
+requires an 
+.RB ' ELSE '
+clause when one was not specified.
+This generates an implicit 
+.RB ' ELSE '
+for 
+.RB ' CASE '
+statements which do not define one.
+It simply prints an error message, and exits with an error code.
+
+.TP
+.I -fsoft-check-all
+Turns on all runtime checks. This is the same as invoking
+.I GNU Modula-2
+using the command options
+.IR -fbounds ", " -freturn ", " -fnil ", " -fcase ", " -frange ", ", -findex ", " -fwholediv
+
+.SS "Style Checking Options"
+
+.TP
+.I -Wstudents
+Checks for bad programming style. This option is aimed at new
+users of Modula-2 in that it checks for situations which might
+cause confusion and thus mistakes.  It checks whether variables of
+the same name are declared in different scopes and whether
+variables look like keywords.  Experienced users might find this
+option too aggressive.
+
+.TP
+.I -Wpedantic
+Forces the compiler to reject nested
+.RB ' WITH '
+statements referencing the same record type.
+Does not allow multiple imports of the same item from a module.
+It also checks that: procedure variables are written to before
+being read; variables are not only written to but read from;
+variables are declared and used.
+If the compiler encounters a variable being read before written
+it will terminate with a message.
+It will check that 
+.RB ' FOR '
+loop indices are not used outside the end of this loop without
+being reset.
+
+.TP
+.I -Wpedantic-param-names
+Procedure parameter names are checked in the definition module
+against their implementation module counterpart.
+This is not necessary in
+.I ISO
+or
+.I PIM
+versions of Modula-2, but it can be extremely useful,
+as long as code is intentionally written in this way.
+
+.TP
+.I -Wpedantic-cast
+Warns if the ISO system function is used and if the size of the
+variable is different from that of the type. This is legal in
+.IR "ISO Modula-2" ,
+however it can be dangerous. Some users may prefer to use
+.RB ' VAL '
+instead in these situations and use
+.RB ' CAST '
+exclusively for changes in type on objects which have the same size.
+
+.SS Language Dialect Options
+
+.TP
+.I -fiso
+Turn on ISO standard features. Currently this enables the
+.I ISO
+.B SYSTEM
+module and alters the default library search path so that
+the ISO libraries are searched before the PIM libraries.  It also
+effects the behavior of 
+.RB ' DIV '
+and
+.RB ' MOD '
+operators.
+
+.TP
+.I -fpim
+Turn on
+.I PIM
+standard features. Currently this enables the
+.I PIM
+.B SYSTEM
+module and determines which identifiers are pervasive
+(declared in the base module). If no other
+.I -fpim[234]
+switch is used then division and modulus operators behave as
+defined in PIM4.  (See 
+.BR "LANGUAGE DIALECTS" .)
+
+.TP
+.I -fpim2
+Turn on
+.I PIM-2
+standard features. Currently this removes
+.B SIZE
+from being a pervasive identifier (declared in the base module).
+It places
+.B SIZE
+in the
+.B SYSTEM
+module.  It also effects the
+behavior of 
+.RB ' DIV "' and '" MOD "' operators."
+
+.TP
+.I -fpim3
+Turn on 
+.I PIM-3
+standard features. Currently this only effects the
+behavior of 
+.RB ` DIV "' and `" MOD "' operators."
+
+.TP
+.I -fpim4
+Turn on 
+.I PIM-4
+standard features. Currently this only effects the
+behavior of 
+.RB ` DIV "' and `" MOD "' operators."
+
+.TP
+.I -fpositive-mod-floor-div
+Forces the 
+.RB ` DIV "' and `" MOD '
+operators to behave as defined by
+.IR PIM4 .
+All modulus results are positive and the results from the division
+are rounded to the floor.  
+.br
+.B NOTE:
+See the section
+.B LANGUAGE DIALECTS
+for a table describing these results.
+
+.SS Library Search Path Options
+
+.TP
+.I -flibs=ulm
+Modifies the default library search path so that the University of
+Ulm libraries are searched before the other PIM libraries.
+
+.TP
+.I -flibs=pim
+Modifies the default library search path so that the PIM libraries
+are searched before any others (the default).
+
+.TP
+.I -flibs=pim-coroutine
+Modifies the default libraries search path so that the
+.I PIM
+.RB ` SYSTEM '
+module providing coroutine support is searched before the base PIM
+libraries.  This directory also includes many coroutine related
+libraries.
+
+.TP
+.I -flibs=iso
+Modifies the default library search path so that the ISO libraries
+are searched before any others (not needed if 
+.RI ` -fiso '
+was specified).
+
+.TP
+.I -flibs=logitech
+Modifies the default library search path so that the Logitech
+compatible libraries are searched before the base PIM libraries.
+
+.TP
+.I -flibs=min
+Modifies the default library search path so that the minimal
+set of runtime libraries are searched before any others.
+Useful if targetting a small memory embedded device.
+
+
+.SH LANGUAGE DIALECTS
+This section describes the dialects understood by
+.IR "GNU Modula-2" .
+It also describes the differences between the dialects and
+any command line switches which determine dialect behavior.
+
+The
+.I GNU Modula-2
+compiler is based on the language as defined in:
+.TP
+.I PIM2
+\'Programming in Modula-2\', 2nd Edition,
+ Springer Verlag, 1982, 1983 by Niklaus Wirth,
+.TP
+.I PIM3
+\'Programming in Modula-2\', 3rd Corrected Edition,
+ Springer Verlag, 1985 by Niklaus Wirth, and
+.TP
+.I PIM4
+\'Programming in Modula-2\', 4th Edition,
+ Springer Verlag, 1988, by Niklaus Wirth.
+.TP
+.I ISO
+The International Standards Organization's 
+.I ISO/IEC 10514-1:1996
+Information Technology -- Programming Languages 
+-- Part-1: Modula-2, Base Language
+.PP
+It also includes ISO M2 features and 
+.I GNU Modula-2
+extensions. Currently 
+.I GNU Modula-2
+(0.49) implements all PIM dialects of the language, eventually
+.I GNU Modula-2
+will be fully compliant with ISO Modula-2 Base Language.
+It supports neither ISO Modula-2 Generics,
+nor ISO Object Oriented Modula-2.
+.PP
+
+The command line switches
+.IR -fpim2 ", " -fpim3 ", " -fpim4 ", and " -fiso
+can be used to force mutually exclusive features. However by default
+the compiler will not aggressively fail if a non mutually exclusive
+feature is used from another dialect. For example it is possible to
+specify 
+.I -fpim2
+and still utilize 
+.B DEFINITION MODULES
+which have no export list.
+
+Some dialect differences will force a compile time error,
+for example in
+.I PIM2
+the user must
+.B IMPORT SIZE
+from the module 
+.B SYSTEM
+, whereas in 
+.IR PIM3 " and " PIM4
+.B SIZE 
+is a pervasive function. Thus compiling 
+.I PIM4
+source code with the
+.I -fpim2
+switch will cause a compile time error.
+This can be fixed quickly with an additional
+.B IMPORT
+or alternatively
+by compiling with the
+.I -fpim4
+switch.
+
+However there are some very important differences between the
+dialects which are mutually exclusive and therefore it is vital that
+users choose the dialects with care when these language features are
+used.
+
+.SS Integer Division, Remainder and Modulus
+The most dangerous set of mutually exclusive features found in the four
+dialects supported by 
+.I GNU Modula-2
+are the
+.RB ` INTEGER '
+division, remainder and modulus arithmetic operators.
+It is important to note that the same source code can be compiled
+to give different runtime results depending upon these switches!
+The reference manual for the various dialects of Modula-2 are
+quite clear about this behavior and sadly there are three distinct
+definitions.
+
+The table below illustrates the problem when a negative operand is
+used.
+
+.Vb
+                      Pim2/3          Pim4                ISO
+                   -----------    -----------    ----------------------
+    lval    rval   DIV     MOD    DIV     MOD    DIV    MOD    /    REM
+    31      10      3       1      3       1      3      1     3     1
+   -31      10     -3      -1     -4       9     -4      9    -3    -1
+    31     -10     -3       1     -3       1     Exception    -3     1
+   -31     -10      3      -1      4       9     Exception     3    -1
+.Ve
+
+See also
+.RI "pg24 of " PIM2 ", pg27 of " PIM3 ", pg29 of " PIM4 ,
+.RI " and pg201 of the " ISO " Standard."
+At present all dialect division, remainder and modulus are
+implemented as above, apart from the exception calling in the
+.I ISO
+dialect. Instead of exception handling the results are the same as the
+.I PIM4
+dialect. This is a temporary implementation situation.
+
+.SS The PIM SYSTEM Module
+The different dialects of Modula-2 PIM-[234] and ISO Modula-2 declare
+the function `SIZE' in different places.  PIM-[34] and ISO Modula-2
+declare `SIZE' as a pervasive function (declared in the base module).
+PIM-2 defined `SIZE' in the `SYSTEM' module.
+
+.Vb
+     DEFINITION MODULE SYSTEM ;
+
+     EXPORT QUALIFIED (* the following are built into the compiler: *)
+                      ADDRESS, WORD, BYTE, BITSET, ADR, TSIZE, SIZE ;
+
+     END SYSTEM.
+.Ve
+
+.SS The ISO SYSTEM Module
+     DEFINITION MODULE SYSTEM;
+
+       (* Gives access to system programming facilities that
+          are probably non portable. *)
+
+       (* The constants and types define underlying properties
+          of storage *)
+
+     EXPORT QUALIFIED BITSPERLOC, LOCSPERWORD,
+                      LOC, BYTE, WORD, BITSET, ADDRESS,
+                      ADDADR, SUBADR, DIFADR, MAKEADR, ADR, ROTATE,
+                      SHIFT, CAST, TSIZE,
+
+                      (* Internal GM2 compiler functions *)
+                      ShiftVal, ShiftLeft, ShiftRight,
+                      RotateVal, RotateLeft, RotateRight ;
+
+     CONST
+                       (* <implementation-defined constant> ; *)
+       BITSPERLOC    = __ATTRIBUTE__ __BUILTIN__ ((BITS_PER_UNIT)) ;
+                       (* <implementation-defined constant> ; *)
+       LOCSPERWORD   = __ATTRIBUTE__ __BUILTIN__ ((UNITS_PER_WORD)) ;
+                       (* <implementation-defined constant> ; *)
+       LOCSPERBYTE = 8 DIV BITSPERLOC ;
+     (*
+        all the objects below are declared internally to gm2
+        ====================================================
+
+     TYPE
+       LOC; (* A system basic type. Values are the uninterpreted
+               contents of the smallest addressable unit of storage *)
+       ADDRESS = POINTER TO LOC;
+       WORD = ARRAY [0 .. LOCSPERWORD-1] OF LOC;
+
+       (* BYTE and LOCSPERBYTE are provided if appropriate for machine *)
+
+     TYPE
+       BYTE = ARRAY [0 .. LOCSPERBYTE-1] OF LOC;
+
+     PROCEDURE ADDADR (addr: ADDRESS; offset: CARDINAL): ADDRESS;
+       (* Returns address given by (addr + offset), or may raise
+          an exception if this address is not valid.
+       *)
+
+     PROCEDURE SUBADR (addr: ADDRESS; offset: CARDINAL): ADDRESS;
+       (* Returns address given by (addr - offset), or may raise an
+          exception if this address is not valid.
+       *)
+
+     PROCEDURE DIFADR (addr1, addr2: ADDRESS): INTEGER;
+       (* Returns the difference between addresses (addr1 - addr2),
+          or may raise an exception if the arguments are invalid
+          or address space is non-contiguous.
+       *)
+
+     PROCEDURE MAKEADR (high: <some type>; ...): ADDRESS;
+       (* Returns an address constructed from a list of values whose
+          types are implementation-defined, or may raise an
+          exception if this address is not valid.
+
+          In GNU Modula-2, MAKEADR can take any number of arguments
+          which are mapped onto the type ADDRESS. The first parameter
+          maps onto the high address bits and subsequent parameters map
+          onto lower address bits. For example:
+          a := MAKEADR(BYTE(0FEH), BYTE(0DCH), BYTE(0BAH), BYTE(098H),
+                       BYTE(076H), BYTE(054H), BYTE(032H), BYTE(010H)) ;
+
+          then the value of, a, on a 64 bit machine is:
+          0FEDCBA9876543210H
+
+          The parameters do not have to have the same type,
+          but constants _must_ be typed.
+       *)
+
+     PROCEDURE ADR (VAR v: <anytype>): ADDRESS;
+       (* Returns the address of variable v. *)
+
+     PROCEDURE ROTATE (val: <a packedset type>;
+                       num: INTEGER): <type of first parameter>;
+       (* Returns a bit sequence obtained from val by rotating up or
+          down (left or right) by the absolute value of num.
+          The direction is down if the sign of num is negative,
+          otherwise the direction is up.
+       *)
+
+     PROCEDURE SHIFT (val: <a packedset type>;
+                      num: INTEGER): <type of first parameter>;
+       (* Returns a bit sequence obtained from val by shifting up
+          or down (left or right) by the absolute value of num,
+          introducing zeros as necessary.  The direction is down
+          if the sign of num is negative, otherwise the direction
+          is up.
+       *)
+
+     PROCEDURE CAST (<targettype>; val: <anytype>): <targettype>;
+       (* CAST is a type transfer function.  Given the expression
+          denoted by val, it returns a value of the type <targettype>.
+          An invalid value for the target value or a
+          physical address alignment problem may raise an exception.
+       *)
+
+     PROCEDURE TSIZE (<type>; ... ): CARDINAL;
+       (* Returns the number of LOCS used to store a value of the
+          specified <type>.   The extra parameters, if present,
+          are used to distinguish variants in a variant record.
+       *)
+     *)
+
+
+     (* The following procedures are invoked by GNU Modula-2 to
+        shift non word set types. They are not part of ISO Modula-2
+        but are used by GNU Modula-2 to implement the SHIFT procedure
+        defined above. *)
+
+     (*
+        ShiftVal - is a runtime procedure whose job is to implement
+                   the SHIFT procedure of ISO SYSTEM. GNU Modula-2 will
+                   inline a SHIFT of a single WORD sized set and will
+                   only call this routine for larger sets.
+     *)
+
+     PROCEDURE ShiftVal (VAR s, d: ARRAY OF BITSET;
+                         SetSizeInBits: CARDINAL;
+                         ShiftCount: INTEGER) ;
+
+
+     (*
+        ShiftLeft - performs the shift left for a multi word set.
+                    This procedure might be called by the back end of
+                    GNU Modula-2 depending whether amount is known at
+                    compile time.
+     *)
+
+     PROCEDURE ShiftLeft (VAR s, d: ARRAY OF BITSET;
+                          SetSizeInBits: CARDINAL;
+                          ShiftCount: INTEGER) ;
+
+     (*
+        ShiftRight - performs the shift left for a multi word set.
+                     This procedure might be called by the back end of
+                     GNU Modula-2 depending whether amount is known at
+                     compile time.
+     *)
+
+     PROCEDURE ShiftRight (VAR s, d: ARRAY OF BITSET;
+                          SetSizeInBits: CARDINAL;
+                          ShiftCount: INTEGER) ;
+
+
+     (*
+        RotateVal - is a runtime procedure whose job is to implement
+                    the ROTATE procedure of ISO SYSTEM. GNU Modula-2
+                    will inline a ROTATE of a single WORD (or less)
+                    sized set and will only call this routine for
+                    larger sets.
+     *)
+
+     PROCEDURE RotateVal (VAR s, d: ARRAY OF BITSET;
+                          SetSizeInBits: CARDINAL;
+                          RotateCount: INTEGER) ;
+
+
+     (*
+        RotateLeft - performs the rotate left for a multi word set.
+                     This procedure might be called by the back end of
+                     GNU Modula-2 depending whether amount is known at
+                     compile time.
+     *)
+     PROCEDURE RotateLeft (VAR s, d: ARRAY OF BITSET;
+                           SetSizeInBits: CARDINAL;
+                           RotateCount: INTEGER) ;
+
+
+     (*
+        RotateRight - performs the rotate right for a multi word set.
+                      This procedure might be called by the back end of
+                      GNU Modula-2 depending whether amount is known
+                      at compile time.
+     *)
+
+     PROCEDURE RotateRight (VAR s, d: ARRAY OF BITSET;
+                            SetSizeInBits: CARDINAL;
+                            RotateCount: INTEGER) ;
+
+
+     END SYSTEM.
+.Ve
+
+
+.SH GM2 LANGUAGE EXTENSIONS
+This section introduces the GNU Modula-2 language extensions.
+.SS Abstract Types
+The 
+.I GNU Modula-2
+compiler allows abstract data types to be any type, not just
+restricted to a pointer type providing the 
+.I -fextended-opaque
+command line option is supplied.
+
+.SS Declaration Order
+Declarations can be made in any order, whether they are types,
+constants, procedures, nested modules or variables.
+
+.SS Interfacing to "C"
+.I GNU Modula-2
+also allows programmers to interface to `C' and assembly language.
+
+The
+.I GNU Modula-2
+compiler tries to use the C calling convention wherever
+possible however some parameters have no C equivalent and thus a
+language specific method is used. For example unbounded arrays are
+passed as a
+.RB  ` "struct void *address, unsigned int high" '
+and the contents of these arrays are copied by callee functions
+when they are declared as non 
+.RB ` VAR '
+parameters.  The
+.RB ` VAR '
+equivalent unbounded array
+parameters need no copy, but still use the 
+.RB ` struct '
+representation.
+
+The recommended method of interfacing 
+.I GNU Modula-2
+to C is by telling the definition module that the implementation
+is in the C language.
+This is achieved by using the tokens
+.RB ` "DEFINITION MODULE FOR "
+.BR \*(lqC\*(rq '.
+
+.Vb
+     DEFINITION MODULE FOR "C" libprintf ;
+
+     EXPORT UNQUALIFIED printf ;
+
+     PROCEDURE printf (a: ARRAY OF CHAR; ...) ;
+
+     END libprintf.
+.Ve
+
+The
+.RB ` UNQUALIFIED '
+keyword in the definition module informs 
+.I GNU Modula-2
+not to prefix the module name to exported references in the
+object file.
+
+The 
+.RI ` printf '
+declaration states that the first parameter semantically
+matches
+.RB ` "ARRAY OF CHAR" '
+but since the module is for the C language it will be mapped onto
+.RI ' "char *" ' .
+The token 
+.RB ` ... '
+indicates a variable number of arguments
+(varargs) and all parameters passed here are mapped onto their
+C equivalents. Arrays and constant strings are passed as pointers.
+
+The hello world program can be rewritten as:
+
+.Vb
+     MODULE hello ;
+
+     FROM libprintf IMPORT printf ;
+
+     BEGIN
+        printf("hello world\n")
+     END hello.
+.Ve
+
+and it can be compiled by:
+.IR "gm2 -fmakeall -g -I. hello.mod -lc" .
+
+In reality the `-lc' is redundant as libc is always included in the
+linking process. It is shown here to emphasize that the C library or
+object file containing
+.RI ` printf '
+must be present.
+
+.SS Interfacing to Assembly Language
+The interface for
+.I GNU Modula-2
+to assembly language is almost identical to 
+.IR "GNU C" .
+The only alterations are that the keywords 
+.RB ` asm '
+and
+.RB ` volatile '
+are in capitals, following the Modula-2 convention.
+
+A simple, but highly non-optimal, example is given below. Here we
+want to add the two `CARDINAL's `foo' and `bar' together and return the
+result.
+
+.Vb
+     PROCEDURE Example (foo, bar: CARDINAL) : CARDINAL;
+     VAR
+        myout: CARDINAL;
+     BEGIN
+        ASM VOLATILE ("movl %1,%%eax; addl %2,%%eax; movl %%eax,%0"
+           : "=g" (myout)           (* outputs *)
+           : "g" (foo), "g" (bar)   (* inputs  *)
+           : "eax");                (* we trash *)
+        RETURN( myout );
+     END Example;
+.Ve
+
+.SS Special Tokens
+.I GNU Modula-2
+provides support for the special tokens 
+.IR __LINE__ ", " __FILE__ ",  " __FUNCTION__ ", and " __DATE__ .
+Support for these tokens will occur even if the 
+.I -fcpp
+option is not supplied. A table of these identifiers and their
+data type and values is given below:
+
+.Vb
+  Scope       GNU Modula-2 token      Data type and example value
+
+  anywhere    __LINE__                Constant Literal compatible
+                                      with CARDINAL, INTEGER and WORD.
+                                      Example 1234
+
+  anywhere    __FILE__                Constant string compatible
+                                      with parameter ARRAY OF CHAR or
+                                      an ARRAY whose SIZE is >= string
+                                      length. Example "hello.mod"
+
+  procedure   __FUNCTION__            Constant string compatible
+                                      with parameter ARRAY OF CHAR or
+                                      an ARRAY whose SIZE is >= string
+                                      length. Example
+                                      "calc"
+
+  module      __FUNCTION__            Example
+                                      "module hello initialization"
+
+  anywhere    __DATE__                Constant string compatible
+                                      with parameter ARRAY OF CHAR or
+                                      an ARRAY whose SIZE is >= string
+                                      length. Example
+                                      "Thu Apr 29 10:07:16 BST 2004"
+
+.Ve
+
+.SS Preprocessor
+The preprocessor
+.I cpp
+can be invoked via the 
+.I -fcpp
+command line option. This in turn invokes
+.I cpp
+with the following arguments
+.IR "-traditional -lang-asm" .
+These options preserve comments and all quotations.  
+.I gm2
+treats a `#' character in the first column as a preprocessor directive.
+
+For example here is a module which calls `FatalError' via the macro
+`ERROR'.
+
+.Vb
+     MODULE cpp ;
+
+     FROM SYSTEM IMPORT ADR, SIZE ;
+     FROM libc IMPORT exit, printf, malloc ;
+
+     PROCEDURE FatalError (a, file: ARRAY OF CHAR;
+                              line: CARDINAL;
+                              func: ARRAY OF CHAR) ;
+     VAR
+        r: INTEGER ;
+     BEGIN
+        r := printf("%s:%d:fatal error, %s, in %s\n",
+                    ADR(file), line, ADR(a), ADR(func)) ;
+        exit(1)
+     END FatalError ;
+
+     #define ERROR(X)  FatalError(X, __FILE__, __LINE__, __FUNCTION__)
+
+     VAR
+        pc: POINTER TO CARDINAL;
+     BEGIN
+        pc := malloc(SIZE(CARDINAL)) ;
+        IF pc=NIL
+        THEN
+           ERROR('out of memory')
+        END
+     END cpp.
+.Ve
+
+.SS Optional procedure parameter
+.I GNU Modula-2
+allows the last parameter to a procedure or function parameter
+to be optional.
+This is achieved by enclosing the last formal parameter within
+square brackets, and providing an initializer (a constant assignment).
+
+For example in the 
+.I ISO
+library
+.I 'COROUTINES.def' the procedure
+.I NEWCOROUTINE
+is defined as having an optional fifth argument
+.RI (` initProtection ')
+which, if absent, is automatically replaced by 
+.BR `NIL' .
+
+.Vb
+     PROCEDURE NEWCOROUTINE (procBody: PROC; workspace: SYSTEM.ADDRESS;
+                             size: CARDINAL; VAR cr: COROUTINE;
+                             [initProtection: PROTECTION = NIL]);
+.Ve
+
+The implementation module
+.I `COROUTINES.mod'
+implements this procedure using the following syntax:
+
+.Vb
+     PROCEDURE NEWCOROUTINE (procBody: PROC; workspace: SYSTEM.ADDRESS;
+                             size: CARDINAL; VAR cr: COROUTINE;
+                             [initProtection: PROTECTION]);
+     BEGIN
+
+     END NEWCOROUTINE ;
+.Ve
+
+.B Note
+that it is illegal for this declaration to contain an
+initializer value for `initProtection'. However it is necessary to
+surround this parameter with the brackets `[' and `]'. This serves to
+remind the programmer that the last parameter was declared as optional
+in the definition module.
+
+Local procedures can be declared to have an optional final parameter
+in which case the initializer is mandatory in the implementation or
+program module.
+
+.SS Builtins
+This section describes the built-in constants and functions defined in
+.IR "GNU Modula-2" .
+The following compiler constants can be accessed using
+the 
+.RI ` __ATTRIBUTE__ "', `" __BUILTIN__ '
+keywords. These are not part of the
+Modula-2 language and they may differ depending upon the target
+architecture but they provide a method whereby common libraries can
+interface to a different underlying architecture.
+
+The built-in constants are: 
+.RI ` BITS_PER_UNIT "', `" BITS_PER_WORD "', '" BITS_PER_CHAR
+.RI "' and `" UNITS_PER_WORD' .
+They are integrated into 
+.I GNU Modula-2
+by an extension to the `ConstFactor' rule:
+
+.Vb
+     ConstFactor := ConstQualidentOrSet | Number | ConstString |
+                    "(" ConstExpression ")" | "NOT" ConstFactor |
+                    ConstAttribute =:
+
+     ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" =:
+.Ve
+
+Here is an example taken from the ISO library `SYSTEM.def':
+
+.Vb
+     CONST
+        BITSPERLOC    = __ATTRIBUTE__ __BUILTIN__ ((BITS_PER_UNIT)) ;
+        LOCSPERWORD   = __ATTRIBUTE__ __BUILTIN__ ((UNITS_PER_WORD)) ;
+.Ve
+
+Built-in functions are transparent to the end user. All built-in
+functions are declared in 
+.RB ` "DEFINITION MODULE" 's
+and are imported as and when required.  
+Built-in functions are declared in definition modules by using the
+.RB ` __BUILTIN__ '
+keyword. Here is a section of the ISO
+library 
+.RI ` LongMath.def '
+which demonstrates this feature.
+
+.Vb
+    PROCEDURE __BUILTIN__ sqrt (x: LONGREAL): LONGREAL;
+       (* Returns the square root of x *)
+.Ve
+
+This indicates that the function 
+.RI ` sqrt '
+will be implemented using
+the gcc built-in math library. If gcc cannot utilize the built-in
+function (for example if the programmer requested the address of
+.RI ` sqrt ')
+then code is generated to call the alternative function
+implemented in the 
+.RB ` "IMPLEMENTATION MODULE" '.
+
+Sometimes a function exported from the
+.RB ` "DEFINITION MODULE" '
+will have a different name from the built-in function within gcc.
+In such cases the mapping between the GNU Modula-2 function name
+and the gcc name is expressed using the keywords
+.RI ` "__ATTRIBUTE__ __BUILTIN__ ((Ident))" '.
+For example the function `sqrt' in `LongMath.def' maps
+onto the gcc built-in function `sqrtl' and this is expressed as:
+
+.Vb
+     PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((sqrtl)) sqrt
+                                         (x: LONGREAL) : LONGREAL;
+       (* Returns the positive square root of x *)
+.Ve
+
+The following module
+.RI ` Builtins.def '
+enumerates the list of built-in functions which can be accessed in
+.IR "GNU Modula-2" .
+It also serves to define the parameter and return value for each
+function:
+
+.Vb
+     DEFINITION MODULE Builtins ;
+
+     FROM SYSTEM IMPORT ADDRESS ;
+
+     PROCEDURE __BUILTIN__ sinf (x: SHORTREAL) : SHORTREAL ;
+     PROCEDURE __BUILTIN__ sin (x: REAL) : REAL ;
+     PROCEDURE __BUILTIN__ sinl (x: LONGREAL) : LONGREAL ;
+
+     PROCEDURE __BUILTIN__ cosf (x: SHORTREAL) : SHORTREAL ;
+     PROCEDURE __BUILTIN__ cos (x: REAL) : REAL ;
+     PROCEDURE __BUILTIN__ cosl (x: LONGREAL) : LONGREAL ;
+
+     PROCEDURE __BUILTIN__ sqrtf (x: SHORTREAL) : SHORTREAL ;
+     PROCEDURE __BUILTIN__ sqrt (x: REAL) : REAL ;
+     PROCEDURE __BUILTIN__ sqrtl (x: LONGREAL) : LONGREAL ;
+
+     PROCEDURE __BUILTIN__ fabsf (x: SHORTREAL) : SHORTREAL ;
+     PROCEDURE __BUILTIN__ fabs (x: REAL) : REAL ;
+     PROCEDURE __BUILTIN__ fabsl (x: LONGREAL) : LONGREAL ;
+
+     PROCEDURE __BUILTIN__ alloca (i: CARDINAL) : ADDRESS ;
+     PROCEDURE __BUILTIN__ memcpy (dest, src: ADDRESS; n: CARDINAL) : ADDRESS ;
+     PROCEDURE __BUILTIN__ index (s: ADDRESS; c: INTEGER) : ADDRESS ;
+     PROCEDURE __BUILTIN__ rindex (s: ADDRESS; c: INTEGER) : ADDRESS ;
+     PROCEDURE __BUILTIN__ memcmp (s1, s2: ADDRESS; n: CARDINAL) : INTEGER ;
+     PROCEDURE __BUILTIN__ memset (s: ADDRESS; c: INTEGER; n: CARDINAL) : ADDRESS ;
+     PROCEDURE __BUILTIN__ strcat (dest, src: ADDRESS) : ADDRESS ;
+     PROCEDURE __BUILTIN__ strncat (dest, src: ADDRESS; n: CARDINAL) : ADDRESS ;
+     PROCEDURE __BUILTIN__ strcpy (dest, src: ADDRESS) : ADDRESS ;
+     PROCEDURE __BUILTIN__ strncpy (dest, src: ADDRESS; n: CARDINAL) : ADDRESS ;
+     PROCEDURE __BUILTIN__ strcmp (s1, s2: ADDRESS) : INTEGER ;
+     PROCEDURE __BUILTIN__ strncmp (s1, s2: ADDRESS; n: CARDINAL) : INTEGER ;
+     PROCEDURE __BUILTIN__ strlen (s: ADDRESS) : INTEGER ;
+     PROCEDURE __BUILTIN__ strstr (haystack, needle: ADDRESS) : ADDRESS ;
+     PROCEDURE __BUILTIN__ strpbrk (s, accept: ADDRESS) : ADDRESS ;
+     PROCEDURE __BUILTIN__ strspn (s, accept: ADDRESS) : CARDINAL ;
+     PROCEDURE __BUILTIN__ strcspn (s, accept: ADDRESS) : CARDINAL ;
+     PROCEDURE __BUILTIN__ strchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
+     PROCEDURE __BUILTIN__ strrchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
+     PROCEDURE __BUILTIN__ huge_val (r: REAL) : REAL ;
+     PROCEDURE __BUILTIN__ huge_valf (s: SHORTREAL) : SHORTREAL ;
+     PROCEDURE __BUILTIN__ huge_vall (l: LONGREAL) : LONGREAL ;
+
+     END Builtins.
+.Ve
+
+Although this module exists and will result in the generation of
+inline code if optimization flags are passed to GNU Modula-2, users are
+advised to utilize the same functions from more generic libraries.  The
+built-in mechanism will be applied to these generic libraries where
+appropriate. 
+.B NOTE:
+for the mathematical routines to be inlined you need
+to specify the
+.RI ` "-ffast-math -O" '
+options.
+
+.SH LIBRARIES
+
+.SH EXAMPLES
+This section describes how to compile and link a simple 'hello world'
+program.  It provides a few examples of using the different options
+mentioned above.
+
+Assume the file "hello.mod" contains the code:
+.Vb
+     MODULE Hello;
+
+     FROM StrIO IMPORT WriteString, WriteLn;
+
+     BEGIN
+        WriteString('hello world');
+        WriteLn;
+     END Hello.
+.Ve
+
+You should be able to compile it by:
+.B gm2 -c hello.mod
+ and link via:
+.BR "gm2 hello.mod" .
+The result should be an `a.out' file created in your directory.
+
+Alternatively it may be compiled by:
+.BR "gm2 -g -I. -fmakeall hello.mod" .
+
+
+
+.SH FILES
+.SH ENVIRONMENT
+.SH CONFORMING TO
+The
+.I GNU Modula-2
+compiler is based on the language as defined in:
+.PP
+.RS
+.I 'Programming in Modula-2'
+2nd Edition, Springer Verlag, 1982, 1983 by
+Niklaus Wirth (PIM2),
+.PP
+.I 'Programming in Modula-2',
+3rd Corrected Edition, Springer Verlag, 1985 (PIM3) and
+.PP
+.I 'Programming in Modula-2',
+4th Edition, Springer Verlag, 1988 (PIM4).
+.PP
+It also includes ISO M2 features and GNU Modula-2 extensions. 
+.RE
+
+.SH BUGS
+.SH COPYRIGHT
+.SH LICENCE
+The 
+.I GNU Modula-2
+compiler and associated software is released under the 
+.I GNU PUBLIC LICENCE (GPL)
+which should be available in a file named
+.IR COPYING .
+
+The runtime libraries (pim, iso, and Logitech Compatable)
+are released under the
+.I LESSER GNU PUBLIC LICENCE (LGPL)
+which allows any user to link against the runtime libraries
+without invoking all the clauses of the full GPL.
+
+The Ulm library is released under the GPL.
+
+.SH AUTHOR
+This manual page was written
+(using the documentation from the texinfo files)
+by
+.MTO peter@eiserloh.org "Peter P. Eiserloh"
+.SH SEE ALSO
+The many fine books about Modula-2.
+.PP
+The 
+.I GNU Modula-2
+web site at
+.URL http://www.nongnu.org/gm2

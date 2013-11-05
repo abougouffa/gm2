@@ -1,0 +1,71 @@
+(* Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+This file was originally part of the University of Ulm library
+*)
+
+
+(* Ulm's Modula-2 Library
+   Copyright (C) 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991,
+   1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+   2002, 2003, 2004, 2005
+   by University of Ulm, SAI, D-89069 Ulm, Germany
+*)
+
+DEFINITION MODULE Sys;
+
+(*
+   The constants included here are those which are needed to get
+   the ulm modules working. This is a much reduced list from the
+   original ULM library. Please email <gm2 at glam.ac.uk> if you
+   require more system calls than those presented below:
+*)
+
+CONST
+    access = 0 ;
+    brk = 1 ;
+    close = 2 ;
+    creat = 3 ;
+    dup = 4 ;
+    execve = 5 ;
+    exit = 6 ;
+    fcntl = 7 ;
+    fstat = 8 ;
+    getdents = 9 ;
+    getgid = 10 ;
+    getpid = 11 ;
+    gettimeofday = 12 ;
+    getuid = 13 ;
+    ioctl = 14 ;
+    kill = 15 ;
+    link = 16 ;
+    lseek = 17 ;
+    open = 18 ;
+    pause = 19 ;
+    pipe = 20 ;
+    read = 21 ;
+    setitimer = 22 ;
+    setgid = 23 ;
+    setuid = 24 ;
+    stat = 25 ;
+    times = 26 ;
+    unlink = 27 ;
+    wait = 28 ;
+    write = 29 ;
+
+END Sys.

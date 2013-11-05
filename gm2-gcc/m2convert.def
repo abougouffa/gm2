@@ -1,0 +1,70 @@
+DEFINITION MODULE m2convert ;
+
+FROM m2tree IMPORT Tree ;
+FROM m2linemap IMPORT location_t ;
+
+
+(*
+   ToWord - converts an expression (Integer or Ordinal type) into
+            a WORD.
+*)
+
+PROCEDURE ToWord (expr: Tree) : Tree ;
+
+
+(*
+   ToCardinal - convert an expression, expr, to a CARDINAL.
+*)
+
+PROCEDURE ToCardinal (expr: Tree) : Tree ;
+
+
+(*
+   ToInteger - convert an expression, expr, to an INTEGER.
+*)
+
+PROCEDURE ToInteger (expr: Tree) : Tree ;
+
+
+(*
+   ToBitset - convert an expression, expr, to a BITSET.
+*)
+
+PROCEDURE ToBitset (expr: Tree) : Tree ;
+
+
+(*
+   ConvertToPtr - convert an expression to a void *.
+*)
+
+PROCEDURE ConvertToPtr (p: Tree) : Tree ;
+
+
+(*
+    BuildConvert - build and return tree VAL(op1, op2)
+                   where op1 is the type to which op2
+                   is to be converted.
+                   checkOverflow determines whether we
+                   should suppress overflow checking.
+*)
+
+PROCEDURE BuildConvert (op1: Tree; op2: Tree; checkOverflow: INTEGER) : Tree ;
+
+
+(*
+   ConvertConstantAndCheck - in Modula-2 sementics: return( VAL(type, expr) )
+                             Only to be used for a constant expr,
+                             overflow checking is performed. 
+*)
+
+PROCEDURE ConvertConstantAndCheck (location: location_t; type: Tree; expr: Tree) : Tree ;
+
+
+(*
+   ConvertString - converts string, expr, into a string of type, type.
+*)
+
+PROCEDURE ConvertString (type, expr: Tree) : Tree ;
+
+
+END m2convert.

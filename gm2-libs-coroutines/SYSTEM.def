@@ -1,0 +1,118 @@
+(* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
+
+DEFINITION MODULE SYSTEM ;
+
+(*
+   Author     : Gaius Mulley
+   Title      : SYSTEM
+   Description: Implements the SYSTEM dependent module
+                in the Modula-2 compiler. This module is designed
+                to be used on a native operating system rather than
+                an embedded system as it implements the coroutine
+                primitives TRANSFER, IOTRANSFER and
+                NEWPROCESS through the GNU Pthread library.
+*)
+
+FROM COROUTINES IMPORT PROTECTION ;
+
+EXPORT QUALIFIED (* the following are built into the compiler: *)
+                 ADDRESS, WORD, BYTE, ADR, TSIZE, THROW,
+                 (* SIZE is exported depending upon -fpim2 and
+                    -fpedantic *)
+                 (* and the rest are implemented in SYSTEM.mod *)
+                 PROCESS, TRANSFER, NEWPROCESS, IOTRANSFER,
+                 LISTEN,
+                 ListenLoop, TurnInterrupts ;
+
+
+TYPE
+   PROCESS  = RECORD
+                 context: ADDRESS ;
+                 ints   : PROTECTION ;
+              END ;
+
+
+(*
+   TRANSFER - save the current volatile environment into, p1.
+              Restore the volatile environment from, p2.
+*)
+
+PROCEDURE TRANSFER (VAR p1: PROCESS; p2: PROCESS) ;
+
+
+(*
+   NEWPROCESS - p is a parameterless procedure, a, is the origin of
+                the workspace used for the process stack and containing
+                the volatile environment of the process. n, is the amount
+                in bytes of this workspace. new, is the new process.
+*)
+
+PROCEDURE NEWPROCESS (p: PROC; a: ADDRESS; n: CARDINAL; VAR new: PROCESS) ;
+
+
+(*
+   IOTRANSFER - saves the current volatile environment into, First,
+                and restores volatile environment, Second.
+                When an interrupt, InterruptNo, is encountered then
+                the reverse takes place. (The then current volatile
+                environment is shelved onto Second and First is resumed).
+
+                NOTE: that upon interrupt the Second might not be the
+                      same process as that before the original call to
+                      IOTRANSFER.
+*)
+
+PROCEDURE IOTRANSFER (VAR First, Second: PROCESS; InterruptNo: CARDINAL) ;
+
+
+(*
+   LISTEN - briefly listen for any interrupts.
+*)
+
+PROCEDURE LISTEN ;
+
+
+(*
+   ListenLoop - should be called instead of users writing:
+
+                LOOP
+                   LISTEN
+                END
+
+                It performs the same function but yields
+                control back to the underlying operating system
+                via a call to pth_select.
+                It also checks for deadlock.
+                This function returns when an interrupt occurs ie
+                a file descriptor becomes ready or a time event expires.
+                See the module RTint.
+*)
+
+PROCEDURE ListenLoop ;
+
+
+(*
+   TurnInterrupts - switches processor interrupts to the protection
+                    level, to.  It returns the old value.
+*)
+
+PROCEDURE TurnInterrupts (to: PROTECTION) : PROTECTION ;
+
+
+END SYSTEM.

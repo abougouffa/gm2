@@ -1,0 +1,49 @@
+Building
+========
+
+This can only be built once GNU Modula-2 has been installed.
+
+To build type:
+
+  make
+
+Running
+=======
+
+To run try:
+
+  ./testtime
+
+which will start three processes which wait on a timer queue.  A 10,
+15 and 60 second process. Each process waits for its time to expire
+and writes out a simple message. The test terminates after 2 minutes.
+
+  ./winexec
+
+displays three ncurses windows and writes text to two of them
+contineously. Any keyboard input will cause the third window (process)
+to display text. 'p' displays a simple process status.  Type ^C to
+terminate this example.
+
+  ./testexecutive
+
+creates two processes and context switches between them. Type ^C to
+terminate this example.
+
+Overview
+========
+
+These two examples show that an executive and simple application code
+can be built on top of the SYSTEM process primitives NEWPROCESS,
+TRANSFER and IOTRANSFER. The Executive and TimerHandler have been used
+in a stand alone microkernel for many years and have had only minor
+alterations to make them work with the GNU/Linux SYSTEM.
+
+The alterations were confined to:
+
+  (*)  creating the clock interrupt vector (TimerHandler).
+  (*)  using ListenLoop in Executive rather than LISTEN.
+       LISTEN would work, but would be unkind to the
+       underlying operating system. ListenLoop yields
+       processor time back to the underlying OS via a
+       blocking `pth_select'.

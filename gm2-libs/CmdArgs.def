@@ -1,0 +1,51 @@
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+                 2010
+                 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
+DEFINITION MODULE CmdArgs ;
+
+(*
+   Title      : CmdArgs
+   Author     : Gaius Mulley
+   Date       : 7/11/87
+   LastEdit   : 7/11/87
+   System     : UNIX (GNU Modula-2)
+   Description: CmdArgs - implements procedures to retrieve arguments from
+                a string.
+*)
+
+EXPORT QUALIFIED GetArg, Narg ;
+
+
+(*
+   GetArg - returns the nth argument from the command line, CmdLine
+            the success of the operation is returned.
+*)
+
+PROCEDURE GetArg (CmdLine: ARRAY OF CHAR;
+                  n: CARDINAL; VAR Argi: ARRAY OF CHAR) : BOOLEAN ;
+
+
+(*
+   Narg - returns the number of arguments available from
+          command line, CmdLine.
+*)
+
+PROCEDURE Narg (CmdLine: ARRAY OF CHAR) : CARDINAL ;
+
+
+END CmdArgs.

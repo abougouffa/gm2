@@ -1,0 +1,92 @@
+(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
+DEFINITION MODULE FOR "C" libm ;
+
+(*
+    Title      : libm
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Sat Jan 11 19:44:29 2003
+    Revision   : $Version$ 
+    Description: provides access to libm. Users are strongly advised to
+                 use MathLib0 or RealMath as call to functions within
+                 these modules will generate inline code. This module
+                 is used by MathLib0 and RealMath when inline code cannot
+                 be generated.
+*)
+
+EXPORT UNQUALIFIED sin, sinl, sinf,
+                   cos, cosl, cosf,
+                   tan, tanl, tanf,
+                   sqrt, sqrtl, sqrtf,
+                   asin, asinl, asinf,
+                   acos, acosl, acosf,
+                   atan, atanl, atanf,
+                   atan2, atan2l, atan2f,
+                   exp, expl, expf,
+                   log, logl, logf,
+                   exp10, exp10l, exp10f,
+                   pow, powl, powf,
+                   floor, floorl, floorf,
+                   ceil, ceill, ceilf ;
+
+PROCEDURE sin (x: REAL) : REAL ;
+PROCEDURE sinl (x: LONGREAL) : LONGREAL ;
+PROCEDURE sinf (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE cos (x: REAL) : REAL ;
+PROCEDURE cosl (x: LONGREAL) : LONGREAL ;
+PROCEDURE cosf (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE tan (x: REAL) : REAL ;
+PROCEDURE tanl (x: LONGREAL) : LONGREAL ;
+PROCEDURE tanf (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE sqrt (x: REAL) : REAL ;
+PROCEDURE sqrtl (x: LONGREAL) : LONGREAL ;
+PROCEDURE sqrtf (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE asin (x: REAL) : REAL ;
+PROCEDURE asinl (x: LONGREAL) : LONGREAL ;
+PROCEDURE asinf (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE acos (x: REAL) : REAL ;
+PROCEDURE acosl (x: LONGREAL) : LONGREAL ;
+PROCEDURE acosf (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE atan (x: REAL) : REAL ;
+PROCEDURE atanl (x: LONGREAL) : LONGREAL ;
+PROCEDURE atanf (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE atan2 (x, y: REAL) : REAL ;
+PROCEDURE atan2l (x, y: LONGREAL) : LONGREAL ;
+PROCEDURE atan2f (x, y: SHORTREAL) : SHORTREAL ;
+PROCEDURE exp (x: REAL) : REAL ;
+PROCEDURE expl (x: LONGREAL) : LONGREAL ;
+PROCEDURE expf (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE log (x: REAL) : REAL ;
+PROCEDURE logl (x: LONGREAL) : LONGREAL ;
+PROCEDURE logf (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE exp10 (x: REAL) : REAL ;
+PROCEDURE exp10l (x: LONGREAL) : LONGREAL ;
+PROCEDURE exp10f (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE pow (x, y: REAL) : REAL ;
+PROCEDURE powl (x, y: LONGREAL) : LONGREAL ;
+PROCEDURE powf (x, y: SHORTREAL) : SHORTREAL ;
+PROCEDURE floor (x: REAL) : REAL ;
+PROCEDURE floorl (x: LONGREAL) : LONGREAL ;
+PROCEDURE floorf (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE ceil (x: REAL) : REAL ;
+PROCEDURE ceill (x: LONGREAL) : LONGREAL ;
+PROCEDURE ceilf (x: SHORTREAL) : SHORTREAL ;
+
+END libm.

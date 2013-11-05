@@ -1,0 +1,73 @@
+# Top level configure fragment for GNU Modula-2.
+#   Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+#                 2009
+#                 Free Software Foundation, Inc.
+
+# This file is part of GNU Modula-2.
+
+# GNU Modula-2 is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3, or (at your option)
+# any later version.
+
+# GNU Modula-2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU CC; see the file COPYING.  If not, write to
+# the Free Software Foundation, 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.  */
+
+# Configure looks for the existence of this file to auto-config each language.
+# We define several parameters used by configure:
+#
+# language	- name of language as it would appear in $(LANGUAGES)
+# compilers	- value to add to $(COMPILERS)
+# stagestuff	- files to add to $(STAGESTUFF)
+
+language="gm2"
+
+compilers="cc1gm2\$(exeext) gm2l\$(exeext) gm2lcc\$(exeext) \
+           gm2lgen\$(exeext) gm2lsub\$(exeext) gm2cc\$(exeext) \
+           gm2lorder\$(exeext)"
+
+stagestuff="gm2\$(exeext) cc1gm2\$(exeext) gm2l\$(exeext) \
+            gm2lcc\$(exeext) gm2lgen\$(exeext) gm2lsub\$(exeext) cc1gm2-cross\$(exeext)"
+
+target_libs="target-libstdc++-v3"
+
+# The Modula-2 frontend needs C++ to compile the main, so we need to build the C++
+# compiler during stage 1.
+lang_requires_boot_languages=c++
+
+# Do not build by default.
+build_by_default="no"
+
+gtfiles="\$(srcdir)/gm2/gm2-lang.c \
+         \$(srcdir)/gm2/gm2-lang.h \
+         \$(srcdir)/gm2/gm2-gcc/m2except.c \
+         \$(srcdir)/gm2/gm2-gcc/m2builtins.c"
+
+outputs=" \
+         gm2/Makefile \
+         gm2/config-make \
+         gm2/examples/callingC/Makefile \
+         gm2/examples/cplusplus/cppcatchm2/Makefile \
+         gm2/examples/cplusplus/m2catchcpp/Makefile \
+         gm2/examples/cpp/Makefile \
+         gm2/examples/gravity/Makefile \
+         gm2/examples/hello/Makefile \
+         gm2/examples/iso/socket/Makefile \
+         gm2/examples/map/Makefile \
+         gm2/examples/ncurses/Makefile \
+         gm2/examples/swig/exceptions/Makefile \
+         gm2/examples/swig/strlib/Makefile \
+         gm2/examples/swig/tiny/Makefile \
+         gm2/man/Makefile \
+         gm2/p2c/Makefile \
+         gm2/p2c/p2c-src/Makefile \
+         gm2/p2c/p2c-src/src/Makefile \
+         gm2/www/Makefile \
+        "

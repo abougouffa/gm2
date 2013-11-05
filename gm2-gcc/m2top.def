@@ -1,0 +1,26 @@
+DEFINITION MODULE m2top ;
+
+
+(*
+    SetFlagUnitAtATime - sets GCC flag_unit_at_a_time to b.
+*)
+
+PROCEDURE SetFlagUnitAtATime (b: INTEGER) ;
+
+
+(*
+    FinishBackend - flushes all outstanding functions held in the GCC backend
+                    out to the assembly file.
+*)
+
+PROCEDURE FinishBackend ;
+
+
+(*
+    InitGlobalContext - initializes a dummy function for the global scope.
+*)
+
+PROCEDURE InitGlobalContext ;
+
+
+END m2top.
