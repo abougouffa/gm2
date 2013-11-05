@@ -1,0 +1,64 @@
+# Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+# This file is part of GNU Modula-2.
+
+# GNU Modula-2 is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 3, or (at your option) any later
+# version.
+
+# GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for more details.
+
+# You should have received a copy of the GNU General Public License along
+# with gm2; see the file COPYING.  If not, write to the Free Software
+# Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+# It originated from p2c-1.20 another GNU Project "p2c" file: src/loc.p2crc
+
+
+# Standard configuration file for "p2c" 1.20, the Pascal to C translator
+#  Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation.
+#  Author's address: daveg@csvax.caltech.edu; 256-80 Caltech/Pasadena CA 91125.
+
+
+# Note that all options except "Naming Conventions" and certain library
+# functions may be left blank or omitted entirely; the defaults are intended
+# to encompass a wide variety of "reasonable" implementations of C.
+# Option names are case-insensitive.
+
+# The single-valued options can all be overridden by a later line in
+# this file, or in your own "p2crc" or ".p2crc" file, or in comments
+# in the input file.  To override an explicit value with the original
+# default, use the word "def".
+
+# Some options define printf-like format strings.  These support all the
+# usual formatting codes, with additional features for string formatting.
+# The following extra "flag" characters are defined for %s:
+#    _     Convert to lower case
+#    ^     Convert to upper case
+#    _^    Convert to lower except capitalize first char and after non-letters
+#    ~     Insert '_' between lower case and following upper case letters
+#    !     Remove '_' and other non-alphanumeric characters
+#    ?     Negates _ and ^ flags if name contains mixed case
+#    R     Remove file name suffix (e.g., "foo.pas" => "foo")
+#    /     Remove path name (prefix ending in /, \, ], or :)
+# Also, where a format includes several "%" arguments, they may
+# appear in either order in the string.  When two string args are
+# involved, "%s" will refer to one and "%S" to the other.  The
+# notation %H expands to the p2c home directory name, as in "%H/p2crc".
+
+# Many options simply refine defaults controlled by the Language, 
+# AnsiC, and Target options.
+
+
+
+# Search list of places to look for the
+# Pascal include file %s.
+IncludeDir  ../libs/%s.def
+IncludeDir  ../gm2s/%s.def
+ImportDir   ../libs/%s.def
+ImportDir   ../gm2s/%s.def
+
+# End of loc.p2crc

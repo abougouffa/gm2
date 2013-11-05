@@ -1,0 +1,92 @@
+(* Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
+                 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
+
+DEFINITION MODULE BlockOps ;
+
+(*
+    Title      : BlockOps
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Mon Oct  1 15:50:00 2007
+    Revision   : $Version$ 
+    Description: provides a Logitech compatible module for moving blocks
+                 of memory.
+*)
+
+FROM SYSTEM IMPORT ADDRESS ;
+
+
+(* 
+   MoveBlockForward - moves, n, bytes from, src, to, dest.
+                      Starts copying from src and keep copying
+                      until, n, bytes have been copied.
+*)
+
+PROCEDURE BlockMoveForward (dest, src: ADDRESS; n: CARDINAL) ;
+
+
+(* 
+   MoveBlockBackward - moves, n, bytes from, src, to, dest.
+                       Starts copying from src+n and keeps copying
+                       until, n, bytes have been copied.
+                       The last datum to be copied will be the byte
+                       at address, src.
+*)
+
+PROCEDURE BlockMoveBackward (dest, src: ADDRESS; n: CARDINAL) ;
+
+
+(*
+   BlockClear - fills, block..block+n-1, with zero's.
+*)
+
+PROCEDURE BlockClear (block: ADDRESS; n: CARDINAL) ;
+
+
+(*
+   BlockSet - fills, n, bytes starting at, block, with a pattern
+              defined at address pattern..pattern+patternSize-1.
+*)
+
+PROCEDURE BlockSet (block: ADDRESS; n: CARDINAL;
+                    pattern: ADDRESS; patternSize: CARDINAL) ;
+
+
+(*
+   BlockEqual - returns TRUE if the blocks defined, a..a+n-1, and,
+                b..b+n-1 contain the same bytes.
+*)
+
+PROCEDURE BlockEqual (a, b: ADDRESS; n: CARDINAL) : BOOLEAN ;
+
+
+(*
+   BlockPosition - searches for a pattern as defined by
+                   pattern..patternSize-1 in the block,
+                   block..block+blockSize-1.  It returns
+                   the offset from block indicating the
+                   first occurence of, pattern.
+                   MAX(CARDINAL) is returned if no match
+                   is detected.
+*)
+
+PROCEDURE BlockPosition (block: ADDRESS; blockSize: CARDINAL;
+                         pattern: ADDRESS; patternSize: CARDINAL) : CARDINAL ;
+
+
+END BlockOps.

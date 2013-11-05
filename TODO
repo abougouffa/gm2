@@ -1,0 +1,70 @@
+Post 4.7.1
+  when the compiler is stable alter BuildStatic and friends so that
+  the front end does not calculate the address of the array
+  and then dereference it again.  This is a hangover from the pre
+  ArrayOp era and I'm pretty sure it can be factored away.
+
+Post 1.0
+
+*  remove all patches and reorganise patches into generic/target
+   categories and utilise langhooks to ensure that any patches
+   _only_ apply to gm2.
+*  complete implementation of the following Logitech-3.0 libraries:
+   Calandar, Chronometer,
+   DateFormat, Decimals, Directories, DiskDirectory, FileMessage,
+   LogiFile, NumberConversion, Options, Processes, SimpleTerm.
+*  port GM2 to the latest version of GCC
+   + create branch at gcc.gnu.org and start grafting gm2.
+*  fix bugs in h2def
+*  finish documentation (p2, p3, p4 description) and scope behaviour
+*  allocation of dynamic arrays (extension using alloca).
+*  extend records to allow vla as the final field.
+*  implement variadics as in M2R10.
+*  implement LENGTH inline and remove it from M2RTS.
+
+--
+
+*  implement the following in GCC (two call back mechanisms):
+   -  if a tree is reachable (and a runtime error will occur).
+      Then the back end should call back the front end to
+      issue an appropriate error/warning message.
+   -  word type node needs a call back such that
+      just before the back end emits this data type
+      it can call back to the front end to fix up the
+      debugging type.  For example this way we can implement
+      set types, which can be treated by gimple as word type
+      but just at the end, before the dwarf-2 or whatever
+      debugging info is written, it can call back to the
+      front end and this can be fixed up.
+
+--
+
+Improve error messages
+
+*  catch
+        IF GetChar()    (* PROCEDURE GetChar () : CHAR *)
+        THEN
+   in a more friendly way.  
+*  catch
+        PROCEDURE foo (a: IOChan.ChanId) ;
+   (where IOChan has not been imported using a better message).
+*  improve absent
+        IMPORT IOChan
+   (reword the error message)
+
+Fix bugs in error detection
+
+*  ensure that enum1 is not compatible with enum2
+   both in assignment and expression
+*  ensure that opaque1 is not compatible with opaque2
+   both in assignment and expression
+*  ensure that cannot INCL(enum1Var, someConst)
+
+Fix syntax error recovery
+
+*  it appears not to insert missing ';'s.
+
+Bugs
+
+*  fix bug in varient record found in SysVec.mod
+   - is this still true?

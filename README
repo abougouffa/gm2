@@ -1,0 +1,89 @@
+
+Getting GNU Modula-2
+====================
+
+Two options, either get download a copy of gcc+gm2 in a large tarball
+or checkout the development sources.  Please be aware that gm2 is in
+development and might fail to compile with the current version of gcc.
+Obtaining a tarball is advisable if you just want a ready made gm2 and
+gcc combination.
+
+Tarballs
+========
+
+The latest cvs snapshot and combined gcc can be obtained from:
+http://floppsie.comp.glam.ac.uk/download/c/gcc-4.1.2+gm2-cvs-latest.tar.gz.
+There are also older snapshots available from
+http://floppsie.comp.glam.ac.uk/download/c.
+
+Development sources via CVS
+===========================
+
+To get the latest sources to GM2 type the following:
+
+   cvs -z3 -d:pserver:anoncvs@cvs.sv.gnu.org:/sources/gm2 co gm2
+
+This will checkout a copy of GNU Modula-2 into one subdirectory: gm2.
+This version of GM2 needs to be placed inside an GCC directory tree in
+the position gcc-version/gcc before GNU Modula-2 can be built.
+
+Assuming that both GCC and gm2 are at the same directory level, type:
+   
+   mv gm2 gcc-version/gcc
+
+Building GNU Modula-2
+=====================
+
+To build gm2 type:
+
+   mkdir host-build
+   cd host-build
+   ../gcc-version/configure --enable-languages=c,c++,gm2 --enable-checking=all \
+                            --disable-multilib --prefix=$HOME/opt
+   make
+   cd ..
+
+Installing GNU Modula-2
+
+   su
+   cd host-build
+   make install
+   cd ..
+
+A simple test
+=============
+
+Now you should be able to perform:
+
+   PATH=$HOME/opt/bin:$PATH
+   export PATH
+   cd host-build/gcc/gm2/examples/hello
+   make post-install
+
+this should result in creating an a.out for the infamous hello world
+example.  The directory $HOME/opt may be moved to a more public place
+and provided your PATH is altered appropriately (to reference the bin
+directory) all the libraries and subcomponents of GNU Modula-2 will be
+found.
+
+Stress testing GM2
+==================
+
+   cd host-build/gcc ; make gm2.paranoid
+
+which builds gm2 using itself and then compiles each module
+with both versions of gm2 comparing the emitted assembler code.
+
+Contributing to GNU Modula-2
+============================
+
+Please do. But also please read the GNU Emacs info under
+
+* Standards: (standards).       GNU coding standards.
+* Intellectual Property::       Keeping Free Software Free
+* Reading Non-Free Code::       Referring to Proprietary Programs
+* Contributions::               Accepting Contributions
+
+you might consider joining the GM2 Mailing list: see URL:
+http://lists.nongnu.org/mailman/listinfo/gm2 before you start coding.
+Many thanks and enjoy your programming!

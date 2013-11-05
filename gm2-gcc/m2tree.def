@@ -1,0 +1,20 @@
+DEFINITION MODULE m2tree ;
+
+(* ADD HERE *)
+
+FROM SYSTEM IMPORT ADDRESS ;
+
+TYPE
+   Tree = ADDRESS ;
+
+
+PROCEDURE IsAConstant (t: Tree) : BOOLEAN ;
+PROCEDURE IsOrdinal (type: Tree) : BOOLEAN ;
+PROCEDURE IsTreeOverflow (value: Tree) : BOOLEAN ;
+PROCEDURE skip_const_decl (exp: Tree) : Tree ;
+PROCEDURE skip_type_decl (type: Tree) : Tree ;
+PROCEDURE is_type (type: Tree) : BOOLEAN ;
+PROCEDURE is_array (array: Tree) : BOOLEAN ;
+PROCEDURE is_var (var: Tree) : BOOLEAN ;
+
+END m2tree.

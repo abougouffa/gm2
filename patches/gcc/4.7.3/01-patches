@@ -1,0 +1,42 @@
+--- gcc-4.7.3-orig/configure	2013-06-19 14:55:55.000000000 +0100
++++ gcc-4.7.3/configure	2013-06-19 15:00:47.000000000 +0100
+@@ -749,6 +749,7 @@
+ enable_libquadmath
+ enable_libquadmath_support
+ enable_libada
++enable_libgm2
+ enable_libssp
+ enable_static_libjava
+ enable_bootstrap
+@@ -1467,6 +1468,7 @@
+   --disable-libquadmath-support
+                           disable libquadmath support for Fortran
+   --enable-libada         build libada directory
++  --enable-libgm2         build libgm2 directory
+   --enable-libssp         build libssp directory
+   --enable-static-libjava[=ARG]
+                           build static libjava [default=no]
+@@ -2698,6 +2700,7 @@
+ 		${libgcj} \
+ 		target-libobjc \
+ 		target-libada \
++		target-libgm2 \
+ 		target-libgo"
+ 
+ # these tools are built using the target libraries, and are intended to
+@@ -2985,6 +2988,15 @@
+   noconfigdirs="$noconfigdirs gnattools"
+ fi
+ 
++# Check whether --enable-libgm2 was given.
++if test "${enable_libgm2+set}" = set; then :
++  enableval=$enable_libgm2; ENABLE_LIBGM2=$enableval
++else
++  ENABLE_LIBGM2=yes
++fi
++
++
++
+ # Check whether --enable-libssp was given.
+ if test "${enable_libssp+set}" = set; then :
+   enableval=$enable_libssp; ENABLE_LIBSSP=$enableval

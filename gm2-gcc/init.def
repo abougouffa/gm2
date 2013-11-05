@@ -1,0 +1,49 @@
+(* Copyright (C) 2012 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)
+
+DEFINITION MODULE init ;
+
+(*
+    Title      : init
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Mon Dec 17 22:02:43 2012
+    Revision   : $Version$ 
+    Description: provides procedures for initialising the Modula-2 front end.
+*)
+
+FROM SYSTEM IMPORT ADDRESS ;
+
+
+(*
+   FrontEndInit - initialise the modules, this is a global initialisation.
+                  This is called once.
+*)
+
+PROCEDURE FrontEndInit ;
+
+
+(*
+   PerCompilationInit - initialise the modules before compiling, filename.
+                        This is to be called every time we compile a new file.
+*)
+
+PROCEDURE PerCompilationInit (filename: ADDRESS) ;
+
+
+END init.

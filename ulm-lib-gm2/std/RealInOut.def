@@ -1,0 +1,86 @@
+(* Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+This file was originally part of the University of Ulm library
+*)
+
+
+(* Ulm's Modula-2 Library
+   Copyright (C) 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991,
+   1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+   2002, 2003, 2004, 2005
+   by University of Ulm, SAI, D-89069 Ulm, Germany
+*)
+
+DEFINITION MODULE RealInOut; (* AFB 6/84 * rev. wsc 2/85 *)
+
+   FROM StdIO IMPORT FILE;
+
+   VAR
+      Done: BOOLEAN;
+
+   (*
+    *	Read REAL number x according to syntax:
+    *
+    *	["+" | "-"] digit { digit } ["." digit { digit } ]
+    *	["E" ["+" | "-"] digit [digit] ]
+    *
+    *	Done := "a number was read".
+    *
+    *	at most 16 digits are significant, leading zeroes not
+    *	counting. Maximum exponent is 76. Input terminates
+    *	with a blank or any control character.
+    *)
+
+   PROCEDURE ReadReal(VAR x: REAL);
+
+   PROCEDURE FreadReal(f: FILE; VAR x: REAL);
+
+   (*
+    *	Write x using n characters. If fewer than n characters
+    *	are needed, leading blanks are inserted.
+    *)
+
+   PROCEDURE WriteReal(x: REAL; n: CARDINAL);
+
+   PROCEDURE FwriteReal(f: FILE; x: REAL; n: CARDINAL);
+
+   (*
+    *	Write x in fixed point notation using pd digits in front
+    *	of decimal point and dp digits behind decial point. If
+    *	fewer than pd digits are needed, leading blanks are
+    *	inserted.
+    *)
+
+   PROCEDURE WriteFloat(x: REAL; pd: CARDINAL; dp: CARDINAL);
+
+   PROCEDURE FwriteFloat(f: FILE; x: REAL; pd: CARDINAL; dp: CARDINAL);
+
+   (*
+    *	Write x in octal/hexadecimal form with exponent and mantissa
+    *)
+
+   PROCEDURE WriteRealOct(x: REAL);
+
+   PROCEDURE FwriteRealOct(f: FILE; x: REAL);
+
+   PROCEDURE WriteRealHex(x: REAL);
+
+   PROCEDURE FwriteRealHex(f: FILE; x: REAL);
+
+END RealInOut.

@@ -1,0 +1,295 @@
+(* Copyright (C) 2007, 2008, 2009, 2010
+                 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
+
+IMPLEMENTATION MODULE BitBlockOps ;
+
+
+FROM SYSTEM IMPORT BITSPERBYTE, SHIFT, BYTE, TSIZE ;
+FROM Builtins IMPORT memmove, memset ;
+
+TYPE
+   ptrToByte = POINTER TO BYTE ;
+   ptrToBitset = POINTER TO BITSET ;
+
+
+(*
+   BlockAnd - performs a bitwise AND on blocks
+              [dest..dest+size-1] := [dest..dest+size-1] AND
+                                     [src..src+size-1]
+*)
+
+PROCEDURE BlockAnd (dest, src: ADDRESS; size: CARDINAL) ;
+VAR
+   bitsetDest, bitsetSrc: ptrToBitset ;
+   byteDest, byteSrc    : ptrToByte ;
+BEGIN
+   bitsetDest := dest ;
+   bitsetSrc  := src ;
+   WHILE size>TSIZE(BITSET) DO
+      bitsetDest^ := bitsetDest^ * bitsetSrc^ ;
+      INC(bitsetDest, TSIZE(BITSET)) ;
+      INC(bitsetSrc, TSIZE(BITSET)) ;
+      DEC(size, TSIZE(BITSET))
+   END ;
+   byteDest := VAL(ptrToByte, bitsetDest) ;
+   byteSrc  := VAL(ptrToByte, bitsetSrc) ;
+   WHILE size>0 DO
+      byteDest^ := VAL(BYTE, VAL(BITSET, byteDest^) * VAL(BITSET, byteSrc^)) ;
+      INC(byteDest) ;
+      INC(byteSrc) ;
+      DEC(size)
+   END
+END BlockAnd ;
+
+
+(*
+   BlockOr - performs a bitwise OR on blocks
+             [dest..dest+size-1] := [dest..dest+size-1] OR
+                                    [src..src+size-1]
+*)
+
+PROCEDURE BlockOr (dest, src: ADDRESS; size: CARDINAL) ;
+VAR
+   bitsetDest, bitsetSrc: ptrToBitset ;
+   byteDest, byteSrc    : ptrToByte ;
+BEGIN
+   bitsetDest := dest ;
+   bitsetSrc  := src ;
+   WHILE size>TSIZE(BITSET) DO
+      bitsetDest^ := bitsetDest^ + bitsetSrc^ ;
+      INC(bitsetDest, TSIZE(BITSET)) ;
+      INC(bitsetSrc, TSIZE(BITSET)) ;
+      DEC(size, TSIZE(BITSET))
+   END ;
+   byteDest := VAL(ptrToByte, bitsetDest) ;
+   byteSrc  := VAL(ptrToByte, bitsetSrc) ;
+   WHILE size>0 DO
+      byteDest^ := VAL(BYTE, VAL(BITSET, byteDest^) + VAL(BITSET, byteSrc^)) ;
+      INC(byteDest) ;
+      INC(byteSrc) ;
+      DEC(size)
+   END
+END BlockOr ;
+
+
+(*
+   BlockXor - performs a bitwise XOR on blocks
+              [dest..dest+size-1] := [dest..dest+size-1] XOR
+                                     [src..src+size-1]
+*)
+
+PROCEDURE BlockXor (dest, src: ADDRESS; size: CARDINAL) ;
+VAR
+   bitsetDest, bitsetSrc: ptrToBitset ;
+   byteDest, byteSrc    : ptrToByte ;
+BEGIN
+   bitsetDest := dest ;
+   bitsetSrc  := src ;
+   WHILE size>TSIZE(BITSET) DO
+      bitsetDest^ := bitsetDest^ - bitsetSrc^ ;
+      INC(bitsetDest, TSIZE(BITSET)) ;
+      INC(bitsetSrc, TSIZE(BITSET)) ;
+      DEC(size, TSIZE(BITSET))
+   END ;
+   byteDest := VAL(ptrToByte, bitsetDest) ;
+   byteSrc  := VAL(ptrToByte, bitsetSrc) ;
+   WHILE size>0 DO
+      byteDest^ := VAL(BYTE, VAL(BITSET, byteDest^) - VAL(BITSET, byteSrc^)) ;
+      INC(byteDest) ;
+      INC(byteSrc) ;
+      DEC(size)
+   END
+END BlockXor ;
+
+
+(*
+   BlockNot - performs a bitsize NOT on the block as defined
+              by:  [dest..dest+size-1]
+*)
+
+PROCEDURE BlockNot (dest: ADDRESS; size: CARDINAL) ;
+VAR
+   bitsetDest: ptrToBitset ;
+   byteDest  : ptrToByte ;
+BEGIN
+   bitsetDest := dest ;
+   WHILE size>TSIZE(BITSET) DO
+      bitsetDest^ := -bitsetDest^ ;
+      INC(bitsetDest, TSIZE(BITSET)) ;
+      DEC(size, TSIZE(BITSET))
+   END ;
+   byteDest := VAL(ptrToByte, bitsetDest) ;
+   WHILE size>0 DO
+      byteDest^ := VAL(BYTE, -VAL(BITSET, byteDest^)) ;
+      INC(byteDest) ;
+      DEC(size)
+   END
+END BlockNot ;
+
+
+(*
+   BlockShr - performs a block shift right of, count, bits.
+              Where the block is defined as:
+              [dest..dest+size-1].
+              The block is considered to be an ARRAY OF BYTEs
+              which is shifted, bit at a time over each byte in
+              turn.  The left most byte is considered the byte
+              located at the lowest address.
+              If you require an endianness SHIFT use
+              the SYSTEM.SHIFT procedure and declare the
+              block as a POINTER TO set type.
+*)
+
+PROCEDURE BlockShr (dest: ADDRESS; size, count: CARDINAL) ;
+VAR
+   p         : POINTER TO BYTE ;
+   carry,
+   hi, lo    : BYTE ;
+   byteOffset,
+   bitOffset : CARDINAL ;
+BEGIN
+   byteOffset := count DIV BITSPERBYTE ;
+   IF byteOffset>=size
+   THEN
+      (* shifted all data out, nothing left *)
+      p := dest ;
+      dest := memset(p, 0, size)
+   ELSE
+      bitOffset := count MOD BITSPERBYTE ;
+      IF byteOffset>0
+      THEN
+         (* move whole bytes using memmove *)
+         p := dest ;
+         dest := memmove(dest, dest+VAL(ADDRESS, byteOffset), size-byteOffset) ;
+         (* zero leading bytes *)
+         dest := memset(p, 0, byteOffset)
+      END ;
+      IF bitOffset>0
+      THEN
+         (* some real shifting is necessary *)
+         p := dest+VAL(ADDRESS, byteOffset) ;
+         hi := BYTE(0) ;
+         WHILE size>byteOffset DO
+            lo := VAL(BYTE, SHIFT(VAL(BITSET, p^), -bitOffset)) ;
+            carry := VAL(BYTE, SHIFT(VAL(BITSET, p^), (BITSPERBYTE - bitOffset))) ;
+            p^ := VAL(BYTE, VAL(BITSET, lo) + VAL(BITSET, hi)) ;
+            INC(p) ;
+            hi := carry ;
+            DEC(size)
+         END
+      END
+   END
+END BlockShr ;
+
+
+(*
+   BlockShl - performs a block shift left of, count, bits.
+              Where the block is defined as:
+              [dest..dest+size-1].
+              The block is considered to be an ARRAY OF BYTEs
+              which is shifted, bit at a time over each byte in
+              turn.  The left most byte is considered the byte
+              located at the lowest address.
+              If you require an endianness SHIFT use
+              the SYSTEM.SHIFT procedure and declare the
+              block as a POINTER TO set type.
+*)
+
+PROCEDURE BlockShl (dest: ADDRESS; size, count: CARDINAL) ;
+VAR
+   p         : POINTER TO BYTE ;
+   carry,
+   hi, lo    : BYTE ;
+   byteOffset,
+   bitOffset : CARDINAL ;
+BEGIN
+   byteOffset := count DIV BITSPERBYTE ;
+   IF byteOffset>=size
+   THEN
+      (* shifted all data out, nothing left *)
+      p := dest ;
+      dest := memset(p, 0, size)
+   ELSE
+      bitOffset := count MOD BITSPERBYTE ;
+      IF byteOffset>0
+      THEN
+         (* move whole bytes using memmove *)
+         p := dest ;
+         dest := memmove(dest, dest+VAL(ADDRESS, byteOffset), size-byteOffset) ;
+         (* zero leading bytes *)
+         dest := memset(p, 0, byteOffset)
+      END ;
+      IF bitOffset>0
+      THEN
+         (* some real shifting is necessary *)
+         p := dest+VAL(ADDRESS, byteOffset) ;
+         hi := BYTE(0) ;
+         WHILE size>byteOffset DO
+            lo := VAL(BYTE, SHIFT(VAL(BITSET, p^), -bitOffset)) ;
+            carry := VAL(BYTE, SHIFT(VAL(BITSET, p^), (BITSPERBYTE - bitOffset))) ;
+            p^ := VAL(BYTE, VAL(BITSET, lo) + VAL(BITSET, hi)) ;
+            INC(p) ;
+            hi := carry ;
+            DEC(size)
+         END
+      END
+   END
+END BlockShl ;
+
+
+(*
+   BlockRor - performs a block rotate right of, count, bits.
+              Where the block is defined as:
+              [dest..dest+size-1].
+              The block is considered to be an ARRAY OF BYTEs
+              which is shifted, bit at a time over each byte in
+              turn.  The left most byte is considered the byte
+              located at the lowest address.
+              If you require an endianness ROTATE use
+              the SYSTEM.ROTATE procedure and declare the
+              block as a POINTER TO set type.
+*)
+
+PROCEDURE BlockRor (dest: ADDRESS; size, count: CARDINAL) ;
+BEGIN
+   (* not yet implemented *)
+   HALT
+END BlockRor ;
+
+
+(*
+   BlockRol - performs a block rotate left of, count, bits.
+              Where the block is defined as:
+              [dest..dest+size-1].
+              The block is considered to be an ARRAY OF BYTEs
+              which is shifted, bit at a time over each byte in
+              turn.  The left most byte is considered the byte
+              located at the lowest address.
+              If you require an endianness ROTATE use
+              the SYSTEM.ROTATE procedure and declare the
+              block as a POINTER TO set type.
+*)
+
+PROCEDURE BlockRol (dest: ADDRESS; size, count: CARDINAL) ;
+BEGIN
+   (* not yet implemented *)
+   HALT
+END BlockRol ;
+
+
+END BitBlockOps.

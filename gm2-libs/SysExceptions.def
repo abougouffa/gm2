@@ -1,0 +1,46 @@
+(* Copyright (C) 2009, 2010
+                 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
+
+DEFINITION MODULE SysExceptions ;
+
+(*
+    Title      : SysExceptions
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Thu Oct  1 18:55:11 2009
+    Revision   : $Version$ 
+    Description: provides a mechanism for the underlying libraries to
+                 configure the hardware exception routines either via
+                 Posix signal or maybe an alternative method.  Used by
+                 both the ISO and PIM libraries.  It is written to be
+                 ISO compliant though.
+*)
+
+FROM SYSTEM IMPORT ADDRESS ;
+
+TYPE
+   PROCEXCEPTION = PROCEDURE (ADDRESS) ;
+
+PROCEDURE InitExceptionHandlers (indexf, range, casef, invalidloc,
+                                 function, wholevalue, wholediv,
+                                 realvalue, realdiv, complexvalue,
+                                 complexdiv, protection, systemf,
+                                 coroutine, exception: PROCEXCEPTION) ;
+
+
+END SysExceptions.

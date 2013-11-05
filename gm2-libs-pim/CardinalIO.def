@@ -1,0 +1,147 @@
+(* Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA *)
+
+DEFINITION MODULE CardinalIO ;
+
+(*
+    Title      : CardinalIO
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Thu Jul 14 10:40:22 2005
+    Revision   : $Version$ 
+    Description: provides a PIM and Logitech compatible module.
+*)
+
+EXPORT QUALIFIED Done,
+                 ReadCardinal, WriteCardinal, ReadHex, WriteHex,
+                 ReadLongCardinal, WriteLongCardinal, ReadLongHex,
+                 WriteLongHex,
+                 ReadShortCardinal, WriteShortCardinal, ReadShortHex,
+                 WriteShortHex ;
+
+
+VAR
+   Done: BOOLEAN ;
+
+
+(*
+   ReadCardinal - read an unsigned decimal number from the terminal.
+                  The read continues until a space, newline, esc or
+                  end of file is reached.
+*)
+
+PROCEDURE ReadCardinal (VAR c: CARDINAL) ;
+
+
+(*
+   WriteCardinal - writes the value, c, to the terminal and ensures
+                   that at least, n, characters are written. The number
+                   will be padded out by preceeding spaces if necessary.
+*)
+
+PROCEDURE WriteCardinal (c: CARDINAL; n: CARDINAL) ;
+
+
+(*
+   ReadHex - reads in an unsigned hexadecimal number from the terminal.
+             The read continues until a space, newline, esc or
+             end of file is reached.
+*)
+
+PROCEDURE ReadHex (VAR c: CARDINAL) ;
+
+
+(*
+   WriteHex - writes out a CARDINAL, c, in hexadecimal format padding
+              with, n, characters (leading with '0')
+*)
+
+PROCEDURE WriteHex (c: CARDINAL; n: CARDINAL) ;
+
+
+(*
+   ReadLongCardinal - read an unsigned decimal number from the terminal.
+                      The read continues until a space, newline, esc or
+                      end of file is reached.
+*)
+
+PROCEDURE ReadLongCardinal (VAR c: LONGCARD) ;
+
+
+(*
+   WriteLongCardinal - writes the value, c, to the terminal and ensures
+                       that at least, n, characters are written. The number
+                       will be padded out by preceeding spaces if necessary.
+*)
+
+PROCEDURE WriteLongCardinal (c: LONGCARD; n: CARDINAL) ;
+
+
+(*
+   ReadLongHex - reads in an unsigned hexadecimal number from the terminal.
+                 The read continues until a space, newline, esc or
+                 end of file is reached.
+*)
+
+PROCEDURE ReadLongHex (VAR c: LONGCARD) ;
+
+
+(*
+   WriteLongHex - writes out a LONGCARD, c, in hexadecimal format padding
+                  with, n, characters (leading with '0')
+*)
+
+PROCEDURE WriteLongHex (c: LONGCARD; n: CARDINAL) ;
+
+
+(*
+   WriteShortCardinal - writes the value, c, to the terminal and ensures
+                       that at least, n, characters are written. The number
+                       will be padded out by preceeding spaces if necessary.
+*)
+
+PROCEDURE WriteShortCardinal (c: SHORTCARD; n: CARDINAL) ;
+
+
+(*
+   ReadShortCardinal - read an unsigned decimal number from the terminal.
+                       The read continues until a space, newline, esc or
+                       end of file is reached.
+*)
+
+PROCEDURE ReadShortCardinal (VAR c: SHORTCARD) ;
+
+
+(*
+   ReadShortHex - reads in an unsigned hexadecimal number from the terminal.
+                 The read continues until a space, newline, esc or
+                 end of file is reached.
+*)
+
+PROCEDURE ReadShortHex (VAR c: SHORTCARD) ;
+
+
+(*
+   WriteShortHex - writes out a SHORTCARD, c, in hexadecimal format padding
+                  with, n, characters (leading with '0')
+*)
+
+PROCEDURE WriteShortHex (c: SHORTCARD; n: CARDINAL) ;
+
+
+END CardinalIO.

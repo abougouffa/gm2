@@ -1,0 +1,249 @@
+DEFINITION MODULE m2statement ;
+
+
+FROM m2tree IMPORT Tree ;
+FROM m2linemap IMPORT location_t ;
+FROM m2expr IMPORT BuildUnarySetFunction ;
+
+
+(*
+   DoJump - jump to the appropriate label depending whether
+            result of the expression is TRUE or FALSE.
+*)
+
+PROCEDURE DoJump (location: location_t; exp: Tree; falselabel: ADDRESS; truelabel: ADDRESS) ;
+
+
+(*
+   BuildStartFunctionCode - generate function entry code.
+*)
+
+PROCEDURE BuildStartFunctionCode (fndecl: Tree; isexported: INTEGER; isinline: INTEGER) ;
+
+
+(*
+   BuildEndFunctionCode - generates the function epilogue.
+*)
+
+PROCEDURE BuildEndFunctionCode (fndecl: Tree; nested: INTEGER) ;
+
+
+(*
+   BuildReturnValueCode - generates the code associated with: RETURN( value )
+*)
+
+PROCEDURE BuildReturnValueCode (location: location_t; fndecl: Tree; value: Tree) ;
+
+
+(*
+   BuildPushFunctionContext - pushes the current function context.
+                              Maps onto push_function_context in ../function.c
+*)
+
+PROCEDURE BuildPushFunctionContext ;
+
+
+(*
+   BuildPopFunctionContext - pops the current function context.
+                             Maps onto pop_function_context in ../function.c
+*)
+
+PROCEDURE BuildPopFunctionContext ;
+
+
+(*
+   BuildAssignmentTree - builds the assignment of, des, and, expr.
+                         It returns, des.
+*)
+
+PROCEDURE BuildAssignmentTree (location: location_t; des: Tree; expr: Tree) : Tree ;
+
+
+(*
+   BuildGoto - builds a goto operation.
+*)
+
+PROCEDURE BuildGoto (location: location_t; name: ADDRESS) ;
+
+
+(*
+   DeclareLabel - create a label, name.
+*)
+
+PROCEDURE DeclareLabel (location: location_t; name: ADDRESS) ;
+
+
+(*
+   BuildIfThenDoEnd - returns a tree which will only execute
+                      statement, s, if, condition, is true.
+*)
+
+PROCEDURE BuildIfThenDoEnd (condition: Tree; then_block: Tree) : Tree ;
+
+
+(*
+   BuildIfThenElseEnd - returns a tree which will execute
+                        then_block or else_block depending upon,
+                        condition.
+*)
+
+PROCEDURE BuildIfThenElseEnd (condition: Tree; then_block: Tree; else_block: Tree) : Tree ;
+
+
+(*
+   BuildParam - build a list of parameters, ready for a subsequent procedure call.
+*)
+
+PROCEDURE BuildParam (location: location_t; param: Tree) ;
+
+
+(*
+   BuildProcedureCallTree - creates a procedure call from a procedure and
+                            parameter list and the return type, rettype.
+*)
+
+PROCEDURE BuildProcedureCallTree (location: location_t; procedure: Tree; rettype: Tree) : Tree ;
+
+
+(*
+   BuildIndirectProcedureCallTree - creates a procedure call from a procedure and
+                                    parameter list and the return type, rettype.
+*)
+
+PROCEDURE BuildIndirectProcedureCallTree (location: location_t; procedure: Tree; rettype: Tree) : Tree ;
+
+
+(*
+   BuildFunctValue - generates code for value := last_function(foobar);
+*)
+
+PROCEDURE BuildFunctValue (location: location_t; value: Tree) ;
+
+
+(*
+   BuildCall2 - builds a tree representing:  function(arg1, arg2).
+*)
+
+PROCEDURE BuildCall2 (location: location_t;
+                      function, rettype, arg1, arg2: Tree) : Tree ;
+
+
+(*
+   BuildCall3 - builds a tree representing:  function(arg1, arg2, arg3).
+*)
+
+PROCEDURE BuildCall3 (location: location_t;
+                      function, rettype, arg1, arg2, arg3: Tree) : Tree ;
+
+
+(*
+   SetLastFunction - set the last_function to, t.
+*)
+
+PROCEDURE SetLastFunction (t: Tree) ;
+
+
+(*
+   GetLastFunction - returns, last_function.
+*)
+
+PROCEDURE GetLastFunction () : Tree ;
+
+
+(*
+    BuildAsm - generates an inline assembler instruction.
+*)
+
+PROCEDURE BuildAsm (location: location_t; instr: Tree;
+                    isVolatile: BOOLEAN; isSimple: BOOLEAN;
+                    inputs: Tree; outputs: Tree; trash: Tree; labels: Tree) ;
+
+
+(*
+    BuildUnaryForeachWordDo - provides the large set operators.
+                              Each word (or less) of the set can be
+                              calculated by unop.
+                              This procedure runs along each word
+                              of the large set invoking the unop.
+*)
+
+PROCEDURE BuildUnaryForeachWordDo (location: location_t; type: Tree; op1: Tree; op2: Tree;
+                                   unop: BuildUnarySetFunction;
+                                   is_op1lvalue, is_op2lvalue, is_op1const, is_op2const: BOOLEAN) ;
+
+
+(*
+    BuildExcludeVarConst - builds the EXCL(op1, 1<<op2) operation for a small sets. Large
+                           sets call this routine to exclude the bit in the particular word.
+                           op2 is a constant.
+*)
+
+PROCEDURE BuildExcludeVarConst (location: location_t; type: Tree; op1: Tree; op2: Tree; is_lvalue: INTEGER; fieldno: INTEGER) ;
+
+
+(*
+    BuildExcludeVarVar - builds the EXCL(varset, 1<<varel) operation for a small and large sets.
+                         varel is a variable.
+*)
+
+PROCEDURE BuildExcludeVarVar (location: location_t; type: Tree; varset: Tree; varel: Tree; is_lvalue: INTEGER; low: Tree) ;
+
+
+(*
+    BuildIncludeVarConst - builds the INCL(op1, 1<<op2) operation for a small sets. Large
+                           sets call this routine to include the bit in the particular word.
+                           op2 is a constant.
+*)
+
+PROCEDURE BuildIncludeVarConst (location: location_t; type: Tree; op1: Tree; op2: Tree; is_lvalue: INTEGER; fieldno: INTEGER) ;
+
+
+(*
+    BuildIncludeVarVar - builds the INCL(varset, 1<<varel) operation for a small and large sets.
+                         op2 is a variable.
+*)
+
+PROCEDURE BuildIncludeVarVar (location: location_t; type: Tree; varset: Tree; varel: Tree; is_lvalue: INTEGER; low: Tree) ;
+
+
+(*
+    BuildStart - creates a module initialization function. We make
+                 this function public if it is not an inner module.
+                 The linker will create a call list for all linked
+                 modules which determines the initialization
+                 sequence for all modules.
+*)
+
+PROCEDURE BuildStart (location: location_t; name: ADDRESS; inner_module: INTEGER) : Tree ;
+
+
+(*
+    BuildEnd - complete the initialisation function for this module.
+*)
+
+PROCEDURE BuildEnd (fndecl: Tree; nested: INTEGER) ;
+
+
+(*
+    BuildCallInner - call the inner module function.  It has no parameters and no return value.
+*)
+
+PROCEDURE BuildCallInner (location: location_t; fndecl: Tree) ;
+
+
+(*
+    BuildStartMainModule - expands all the global variables ready for the main module.
+*)
+
+PROCEDURE BuildStartMainModule ;
+
+
+(*
+    BuildEndMainModule - tidies up the end of the main module. It moves
+                         back to global scope.
+*)
+
+PROCEDURE BuildEndMainModule ;
+
+
+END m2statement.

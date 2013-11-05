@@ -1,0 +1,92 @@
+# Copyright (C) 2005 Free Software Foundation, Inc.
+# This file is part of GNU Modula-2.
+#
+# GNU Modula-2 is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 3, or (at your option) any later
+# version.
+# 
+# GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with gm2; see the file COPYING.  If not, write to the Free Software
+# Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+M2Bitset
+Debug
+M2Defaults
+Environment
+RTExceptions
+M2EXCEPTION
+M2RTS
+SysExceptions
+DynamicStrings
+Assertion
+FormatStrings
+FIO
+SFIO
+SArgs
+Lists
+UnixArgs
+Args
+wrapc
+TimeString
+IO
+StdIO
+CmdArgs
+M2Preprocess
+M2Error
+M2Search
+Indexing
+NameKey
+NumberIO
+FpuIO
+SysStorage
+Storage
+StrIO
+M2Debug
+M2Batch
+StrLib
+M2ALU
+M2Options
+M2Comp
+M2LexBuf
+SymbolTable
+M2Base
+M2Quads
+SymbolKey
+FifoQueue
+M2Reserved
+M2Const
+P1SymBuild
+P2SymBuild
+P3SymBuild
+M2System
+M2BasicBlock
+M2Pass
+M2Code
+M2AsmUtil
+M2SubExp
+M2FileName
+M2Version
+M2Constants
+M2Students
+StrCase
+M2Entity
+SymbolConversion
+M2GCCDeclare
+M2GenGCC
+M2Range
+M2Swig
+M2MetaError
+M2CaseList
+PCSymBuild
+PCBuild
+Sets
+dtoa
+ldtoa
+gm2
+mod_init

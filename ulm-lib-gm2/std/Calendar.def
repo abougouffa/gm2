@@ -1,0 +1,107 @@
+(* Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+This file was originally part of the University of Ulm library
+*)
+
+
+(* Ulm's Modula-2 Library
+   Copyright (C) 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991,
+   1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+   2002, 2003, 2004, 2005
+   by University of Ulm, SAI, D-89069 Ulm, Germany
+*)
+
+DEFINITION MODULE Calendar;
+
+   FROM SystemTypes IMPORT TIME;
+
+(*
+ *	Date calculations with
+ *	(a)	Julius Caesar's calendar since Jan 01, 0001
+ *	(b)	the Gregorian calendar	 since Oct 15, 1582
+ *	(c)	Xelos system time.
+ *
+ *	Martin Hasch, University of Ulm, Jan 1988
+ *)
+
+   TYPE
+      Time         = TIME;    			(* consecutive seconds *)
+      Date         = LONGCARD;			(* consecutive days *)
+
+      Year         = CARDINAL;
+      Month        = [1..12];
+      Day          = [1..31];
+      Hour         = [0..23];
+      Minute       = [0..59];
+      Second       = [0..59];
+      Weekday      = (Mon, Tue, Wed, Thu, Fri, Sat, Sun);
+      Week         = [1..53];
+      Yearday      = [1..366];
+
+      Daytime      = RECORD
+			hour:    Hour;
+			minute:  Minute;
+			second:  Second;
+		     END;
+      Calendarday  = RECORD
+			year:    Year;
+			month:   Month;
+			day:     Day;
+		     END;
+      CalendarInfo = RECORD
+			weekday: Weekday;
+			week:	 Week;
+			yearday: Yearday;
+		     END;
+
+   PROCEDURE CurrentTime(): Time;
+   (*
+    *	returns actual system time = seconds since Jan 1, 1970, 00:00:00 GMT
+    *)
+
+   PROCEDURE ConvertTime(time: Time; VAR date: Date; VAR daytime: Daytime);
+   PROCEDURE ConvertDate(date: Date; VAR calendarday: Calendarday);
+   PROCEDURE ConvertCald(calendarday: Calendarday; VAR info: CalendarInfo);
+
+   PROCEDURE CTime   (date: Date; daytime: Daytime):       Time;
+   PROCEDURE CDate   (year: Year; month: Month; day: Day): Date;
+   PROCEDURE CUltimo (year: Year; month: Month):	   Date;
+   PROCEDURE CWeekday(date: Date):			   Weekday;
+
+   PROCEDURE DateOK(year, month, day: CARDINAL): BOOLEAN;
+
+   PROCEDURE TimeToString(time: Time; VAR string: ARRAY OF CHAR);
+   (*
+    *	converts time to a string, e.g. "Sun Sep 16 01:03:52 1973 GMT"
+    *)
+
+   PROCEDURE SetFirstOfWeek(weekday: Weekday);
+   (*
+    *	important for week of year calculation in ConvertCald; default is Mon.
+    *)
+
+   PROCEDURE GetTimezone (VAR tzName: ARRAY OF CHAR);
+   PROCEDURE SetTimezone (    tzName: ARRAY OF CHAR);
+   PROCEDURE GetLocaltime(VAR delay: Time);
+   PROCEDURE SetLocaltime(    delay: Time);
+   (*
+    *	important for CTime, ConvertTime and TimeToString.
+    *)
+
+END Calendar.

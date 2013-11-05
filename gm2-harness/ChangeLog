@@ -1,0 +1,44 @@
+2007-07-12       Gaius Mulley <gaius@gnu.org>
+
+	* released 0.97 and included it as part of the GNU Modula-2
+	  project.
+
+2006-10-19       Gaius Mulley <gaius@gnu.org>
+
+	* fixed bugs in aclocal.m4 and rebuilt configure
+	* released 0.96
+
+2006-10-17       Gaius Mulley <gaius@gnu.org>
+
+	* changed --with-ulm to --enable-ulm
+	* rebuild configure
+
+2006-10-14       Gaius Mulley <gaius@gnu.org>
+
+	* fixes to the options --with-ulm and --without-ulm option.
+	* released 0.95
+
+2006-10-02       Gaius Mulley <gaius@gnu.org>
+
+	* added --with-ulm and --without-ulm option, which enables
+	  and disables building and installing of the Ulm libraries.
+	* released 0.94
+
+2006-09-18       Gaius Mulley <gaius@gnu.org>
+
+	* modified PATH so that the tests are all performed by
+          the new compiler.
+	* released 0.93
+
+2006-09-17       Gaius Mulley <gaius@gnu.org>
+
+	* modified PATH to use the bootstrap compiler to build
+	  GNU Modula-2
+	* released 0.92
+	* now builds gcc and installs it before building gm2.
+
+2006-09-14       Gaius Mulley <gaius@gnu.org>
+
+	* updated README
+	* added new configure options: --with-cvs --with-gcc
+	* added gm2-harness into cvs.

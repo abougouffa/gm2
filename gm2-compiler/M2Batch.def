@@ -1,0 +1,135 @@
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+                 2010
+                 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
+DEFINITION MODULE M2Batch ;
+
+(*
+   Author     : Gaius Mulley
+   Title      : M2Batch
+   Date       : 29/5/87
+   Description: Implements a queue modules pending compilation.
+                MakeSource enters modules for later compilation.
+                GetSource collects the next module to be compiled.
+*)
+
+FROM DynamicStrings IMPORT String ;
+FROM NameKey IMPORT Name ;
+EXPORT QUALIFIED MakeDefinitionSource,
+                 MakeImplementationSource,
+                 MakeProgramSource,
+                 GetSource, GetModuleNo, IsModuleKnown,
+                 AssociateDefinition, GetDefinitionModuleFile,
+                 AssociateModule, GetModuleFile ;
+
+
+(*
+   MakeDefinitionSource - is given a Name, n, which is used to create a Definition
+                          module.
+                          The Definition Module will be placed onto the
+                          compilation pending queue if it has not yet been
+                          compiled.
+                          If the module has been compiled then no action is
+                          taken. The Module Sym is returned.
+*)
+
+PROCEDURE MakeDefinitionSource (n: Name) : CARDINAL ;
+
+
+(*
+   MakeImplementationSource - is given a Name, n, which is used to create an
+                              implementation module.
+                              The implementation Module will be placed onto
+                              the compilation pending
+                              queue if it has not yet been compiled.
+                              If the module has been compiled then no
+                              action is taken. The Module Sym is returned.
+*)
+
+PROCEDURE MakeImplementationSource (n: Name) : CARDINAL ;
+
+
+(*
+   MakeProgramSource - is given a Name, n, which is used to create a program module.
+                       The program module will be placed onto the compilation
+                       pending queue if it has not yet been compiled.
+                       If the module has been compiled then no action is taken.
+                       The Module Sym is returned.
+*)
+
+PROCEDURE MakeProgramSource (n: Name) : CARDINAL ;
+
+
+(*
+   GetSource - returns with the symbol Sym of the next module to be compiled.
+               If Sym returns with value NulSym then no module should be
+               compiled.
+*)
+
+PROCEDURE GetSource () : CARDINAL ;
+
+
+(*
+   GetModuleNo - returns with symbol number of the module which was
+                 the n th module to be read in Pass 1.
+                 The modules are numbered from 1..n
+*)
+
+PROCEDURE GetModuleNo (n: CARDINAL) : CARDINAL ;
+
+
+(*
+   IsModuleKnown - returns TRUE if the Name, n, matches a module.
+*)
+
+PROCEDURE IsModuleKnown (n: Name) : BOOLEAN ;
+
+
+(*
+   AssociateDefinition - associate the source file, filename, with the definition module,
+                         Sym.
+*)
+
+PROCEDURE AssociateDefinition (filename: String; Sym: CARDINAL) : String ;
+
+
+(*
+   GetDefinitionModuleFile - returns the filename associated with the definition module, Sym.
+                             It may return a temporary preprocessed file.
+*)
+
+PROCEDURE GetDefinitionModuleFile (Sym: CARDINAL) : String ;
+
+
+(*
+   AssociateModule - associate the source file, filename, with the implementation/program
+                     module, Sym.
+*)
+
+PROCEDURE AssociateModule (filename: String; Sym: CARDINAL) : String ;
+
+
+(*
+   GetModuleFile - returns the filename associated with the implementation/program module, Sym.
+                   It may return a temporary preprocessed file.
+*)
+
+PROCEDURE GetModuleFile (Sym: CARDINAL) : String ;
+
+
+END M2Batch.
