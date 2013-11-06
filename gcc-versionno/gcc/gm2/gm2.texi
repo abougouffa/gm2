@@ -86,7 +86,7 @@ Software Foundation raise funds for GNU development.''
 * Building on gcc 4.7::   Building on the gcc-4.7 branch.
 * Debian gcc-4.7 build::  Building gcc-4.7 under Debian.
 * Solaris gcc-4.7 build:: Building gcc-4.7 under Solaris.
-* Development::      How to access the CVS repository.
+* Development::      How to access the git repository.
 * Dejagnu::          Stress testing GM2.
 * Cygwin::           How to build GNU Modula-2 under Cygwin.
 * Moving::           How to move an install to another directory.
@@ -313,10 +313,10 @@ The GNU Modula-2 documentation is available on line or as a
 pdf @url{gm2.pdf}.
 
 @node Regression tests, Limitations, Documentation, Using
-@section Regression tests for gm2 in the CVS
+@section Regression tests for gm2 in the repository
 
 The result of the GNU Modula-2 regression tests for the current
-CVS snapshot are held at
+snapshot are held at
 @url{http://floppsie.comp.glam.ac.uk/gm2-results/regression-tests.html}.
 
 Other combinations almost certainly work, if you successfully
@@ -554,7 +554,7 @@ available}.
 * FAQ:: FAQ.
 * Creating packages:: Creating a deb package for GNU Modula-2.
 * Limitations:: Limitations.
-* Regression tests:: Regression tests for gm2 in the CVS.
+* Regression tests:: Regression tests for gm2 in the repository.
 * Documentation:: Documentation.
 * Features:: GNU Modula-2 Features.
 * News:: News.
@@ -2821,7 +2821,7 @@ Contributing to GNU Modula-2}.
 * Building::          Building GNU Modula-2 from source.
 * Building on gcc 4.1.2::   Building on the gcc-4.1.2 branch.
 * Building on gcc 4.7::   Building on the gcc-4.7 branch.
-* Development::       How to access the CVS repository.
+* Development::       How to access the git repository.
 * Dejagnu::           Stress testing GM2.
 * Cygwin::            How to build GNU Modula-2 under Cygwin.
 * Moving::            How to move an install to another directory.
@@ -2863,7 +2863,7 @@ $ apt-get source gm2
 
 If you are not running Debian GNU/Linux then you can either download
 the source tarball and build it manually or checkout the latest
-sources using CVS and combine them with the appropriate gcc tarball
+sources using git and combine them with the appropriate gcc tarball
 and then finally build it manually.
 
 Combined GNU Modula-2 and patched GCC tarballs exist at
@@ -2873,8 +2873,8 @@ For example you should be able to download the latest version of GNU
 Modula-2 and GCC using these commands.
 
 @example
-$ wget http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-cvs-latest.tar.gz
-$ tar zxf gcc-@value{version-GCC}+gm2-cvs-latest.tar.gz
+$ wget http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-git-latest.tar.gz
+$ tar zxf gcc-@value{version-GCC}+gm2-git-latest.tar.gz
 @end example
 
 @node Building, Building on gcc 4.1.2, Tarball, Top
@@ -2905,7 +2905,7 @@ To build GNU Modula-2 type:
 $ mkdir -p $HOME/opt
 $ mkdir -p build-4.1.2
 $ cd build-4.1.2
-$ ../gcc-4.1.2+gm2-cvs-latest/configure --enable-languages=c,c++,gm2 \
+$ ../gcc-4.1.2+gm2-git-latest/configure --enable-languages=c,c++,gm2 \
      --disable-multilib --enable-checking=all --prefix=$HOME/opt
 $ make "SHELL=/bin/bash"
 @end example
@@ -2961,8 +2961,8 @@ $ sudo apt-get install gcc-multilib libmpfr-dev libgmp-dev libmpc-dev flex
 To download and extract the tarball:
 
 @example
-$ wget http://floppsie.comp.glam.ac.uk/download/c/gcc-4.7.3+gm2-cvs-latest.tar.gz
-$ tar zxf gcc-4.7.3+gm2-cvs-latest.tar.gz
+$ wget http://floppsie.comp.glam.ac.uk/download/c/gcc-4.7.3+gm2-git-latest.tar.gz
+$ tar zxf gcc-4.7.3+gm2-git-latest.tar.gz
 @end example
 
 To configure:
@@ -3087,26 +3087,29 @@ Note that as per
   gmake install succeeded.
 
 @node Development, Dejagnu, Solaris gcc-4.7 build, Top
-@section Development sources via CVS
+@section Development sources via git
 
-Development sources can be downloaded via CVS but they must be grafted
+Development sources can be downloaded via git but they must be grafted
 carefully onto an existing GCC release.  The notes in this section
-document how this is achieved, however a prepared CVS and GCC release
-@uref{http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-cvs-latest.tar.gz, is available}
+document how this is achieved, however a prepared git and GCC release
+@uref{http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-git-latest.tar.gz, is available}
 and it is created upon each commit.
 
-The source code in the CVS can be
-@uref{http://cvs.savannah.nongnu.org/viewcvs/?root=gm2, browsed}.
-However if you want to obtain the latest sources via CVS then type the
+The source code in the git can be
+@uref{http://git.savannah.gnu.org/cgit/gm2.git/tree, browsed}.
+However if you want to obtain the latest sources via git then type the
 following:
 
 @example
-$ cvs -z3 -d:pserver:anoncvs@@cvs.sv.gnu.org:/sources/gm2 co gm2
+$ git clone git://git.sv.gnu.org/gm2.git
 @end example
 
 This will checkout a copy of GNU Modula-2 into one subdirectory,
-@file{gm2}.  This version of GNU Modula-2 needs to be placed inside
-the GCC source tree in the position gcc-@value{version-GCC}/gcc before
+@file{gm2}.  The checkout also includes the complete testsuite and
+gm2 libraries.
+
+This version of GNU Modula-2 needs to be placed on top of
+the GCC source tree and have various patches applied before
 GNU Modula-2 can be built. Please check the
 @uref{http://www.nongnu.org/gm2, GNU Modula-2 homepage} for details
 about which GCC releases are supported by GNU Modula-2.
@@ -3118,16 +3121,18 @@ archive.  Assuming that both the @file{gcc-@value{version-GCC}} and
 onto @file{gcc-@value{version-GCC}} by:
 
 @example   
-$ mv gm2 gcc-@value{version-GCC}/gcc
+$ mkdir -p combined/gm2
+$ mv gcc-@value{version-GCC} combined/gm2/gcc-versionno
+$ tar cf - gm2 | ( cd combined ; tar xf - )
 @end example
 
 If the directory
-@samp{gcc-@value{version-GCC}/gcc/gm2/patches/gcc/@value{version-GCC}}
+@samp{combined/gm2/gcc-versionno/gcc/gm2/patches/gcc/@value{version-GCC}}
 exists then the patch files inside that directory can be applied to the
-@samp{gcc-@value{version-GCC}} tree. This is done via:
+@samp{gcc-versionno} tree. This is done via:
 
 @example
-$ cd gcc-@value{version-GCC}
+$ cd combined/gm2/gcc-versionno
 $ if [ -d gcc/gm2/patches/gcc/@value{version-GCC} ] ; then
      for i in gcc/gm2/patches/gcc/@value{version-GCC}/* ; do
         if [ -f $i ] ; then
@@ -3156,43 +3161,7 @@ $ cd host-build/gcc ; make gm2.paranoid
 @end example
 
 The second method used to test GNU Modula-2 is to run the regression
-test suite.  The GNU Modula-2 regression test suite is available for
-download.  To install and run the GNU Modula-2 regression suite you
-need to have installed the @file{dejagnu} and @file{expect}
-packages. Note that you need to ensure that you have at least the
-following releases of dejagnu components:
-
-@example
-$ runtest --version
-
-Expect version is	5.42.1
-Tcl version is		8.4
-Framework version is	1.4.4
-@end example
-
-otherwise some of the tests may not run.
-
-If you have downloaded the combined GCC and GNU Modula-2 tarball
-@uref{http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-cvs-latest.tar.gz}
-then this will also contain the GNU Modula-2 testsuite.  In this case
-you can skip over the following @file{cvs} and @file{tar} commands.
-
-However if you have downloaded GNU Modula-2 using CVS then you will
-also need to download and position the testsuite.
-Assuming that the root of the GCC source tree is in the current
-working directory you can use the following commands to install
-the test suite:
-
-@example
-$ cvs -z3 -d:pserver:anoncvs@@cvs.sv.gnu.org:/sources/gm2 co testsuite
-$ tar cf - testsuite | ( cd gcc-@var{version-GCC}/gcc ; tar xf - )
-@end example
-
-Do not simply move the directory @file{testsuite} into
-@file{gcc-@var{version-GCC}/gcc} as the GNU Modula-2 regression
-tests have to be overlaid on top of the gcc testsuite.
-
-Thereafter you can run the GNU Modula-2 testsuite by:
+test suite, via:
 
 @example
 $ cd host-build/gcc
@@ -3212,7 +3181,7 @@ commands were used to build GNU Modula-2.
 @example
 $ mkdir build
 $ cd build
-$ ../gcc-4.1.2+gm2-cvs-latest/configure --prefix=/gm2/opt \
+$ ../gcc-4.1.2+gm2-git-latest/configure --prefix=/gm2/opt \
   --disable-multilib --enable-checking=all \
   --enable-languages=c,c++,gm2
 $ make
@@ -3252,7 +3221,7 @@ Let us assume that the build was configured as such:
 @example
 $ mkdir build
 $ cd build
-$ ../gcc-@value{version-GCC}+gm2-cvs-latest/configure \
+$ ../gcc-@value{version-GCC}+gm2-git-latest/configure \
    --prefix=$HOME/private \
    --enable-languages=c,c++,gm2  --enable-checking \
    --disable-multilib

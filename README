@@ -1,0 +1,10 @@
+This is the top level directory of the project GNU Modula-2.
+
+The GNU Modula-2 source is found under gcc-versionno, whereas utility
+scripts for building tarballs are found under gm2-harness.
+
+The directory structure of gcc-versionno, follows the directory
+structure of a gcc release and is intended to be overlayed ontop of a
+gcc release together with a few patches for gcc.  For more details see
+the gm2 documentation gcc-versionno/gcc/gm2/gm2.texi and also the
+script gm2-harness/shell-bin/produce-gcc-gm2-tree.
