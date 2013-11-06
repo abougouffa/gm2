@@ -8,3 +8,9 @@ structure of a gcc release and is intended to be overlayed ontop of a
 gcc release together with a few patches for gcc.  For more details see
 the gm2 documentation gcc-versionno/gcc/gm2/gm2.texi and also the
 script gm2-harness/shell-bin/produce-gcc-gm2-tree.
+
+Or to cut to the chase, type:
+
+$ sh ./combine-trees
+
+which will produce a source tree in ./scratch/source/gm2/gcc-versionno
