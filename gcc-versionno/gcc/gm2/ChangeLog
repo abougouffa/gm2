@@ -1,3 +1,14 @@
+2013-11-08      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/fig.py:  added abiltity to set a default velocity.
+	* gm2/examples/pge/foo.fig:  changed default demo.
+	* gm2/examples/pge/foo.fig:  changed default demo.
+	* gm2/tools-src/makeversion:  simplified to use 'cat'.
+	  Necessary as the top level directory name no longer contains
+	  the release number.
+	* gm2/www/tools/texi2tr/html/download.html:  changed to
+	  reflect change from cvs to git.
+
 2013-10-28      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-gcc/m2block.c:  iterate over the tree chain adding declaration

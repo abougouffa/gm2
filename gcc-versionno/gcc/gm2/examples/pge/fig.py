@@ -44,6 +44,7 @@ class fig:
         self.outputFile = fileout
         self.lineno = 1
         self.objects = []
+        self.forces = []
         self.readContents()
         self.parse()
         self.generateModula2()
@@ -130,7 +131,16 @@ class fig:
         self.skipLine ()
         points = self.contents[0].split()
         self.skipLine ()
-        if characteristics[2] == "0":
+        if characteristics[-1] == "2":
+            points = self.contents[0].split()
+            print "force points are", points
+            if characteristics[-3] == "0" and characteristics[-2] == "1":
+                print "found force backward"
+                self.forces += [["force", "backward", points]]
+            elif characteristics[-3] == "1" and characteristics[-2] == "0":
+                print "found force forward"
+                self.forces += [["force", "forward", points]]
+        elif characteristics[2] == "0":
             # solid, we treat as fixed
             print "found fixed polygon", points
             self.objects += [["fixed", "polygon", points]]
@@ -324,7 +334,11 @@ class fig:
    m := rootMacro(m) ;
 
    popWorld.mass(cardinal(1)) ;
-   popWorld.velocity(initPoint(zero(), zero())) ;
+""")
+            if self.forces != []:
+                print self.forces[0]
+                self.doForce (self.forces[0])
+            self.fo.write("""
    popWorld.populate(m, FALSE, TRUE) ;
 """)
 
@@ -436,7 +450,7 @@ IMPORT popWorld ;
 IMPORT twoDsim ;
 
 FROM deviceIf IMPORT Colour, red, blue, green, yellow, purple, defineColour ;
-FROM Fractions IMPORT Fract, initFract, zero, one, two, cardinal, negate, div, pi ;
+FROM Fractions IMPORT Fract, initFract, zero, one, two, cardinal, negate, mult, div, pi ;
 FROM Points IMPORT Point, initPoint ;
 
 FROM macroObjects IMPORT Macro, circle, moveTo, up, down, left, right, rotate,
@@ -504,6 +518,26 @@ BEGIN
         self.fo.write(moduleName)
         self.fo.write(".\n")
         self.fo.close()
+
+    def doForceValue (self, v):
+        self.fo.write("mult(initFract(10, 0, 1),")
+        self.doFract(v)
+        self.fo.write(")")
+
+    def doForce (self, f):
+        if f[0] == 'force':
+            vx, vy = self.getRel (int(f[2][2])-int(f[2][0]),
+                                  int(f[2][1])-int(f[2][3]))
+            if f[1] == 'backward':
+                vx = -vx
+                vy = -vy
+
+            self.fo.write("""
+   popWorld.velocity(initPoint(""")
+            self.doForceValue(vx)
+            self.fo.write(", ")
+            self.doForceValue(vy)
+            self.fo.write(")) ;")
 
 
 # if __name__ == "__main__":

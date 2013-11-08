@@ -1,0 +1,3 @@
+#!/bin/bash
+
+python max2code.py $*
