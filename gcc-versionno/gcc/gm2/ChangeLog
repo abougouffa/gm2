@@ -1,3 +1,9 @@
+2013-11-10      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gcc-gm2/m2expr.c:  (m2expr_BuildCap) fold results of each
+	  subexpression to ensure a constant is returned if a constant
+	  parameter is given.
+
 2013-11-08      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/fig.py:  added abiltity to set a default velocity.

@@ -1865,30 +1865,30 @@ m2expr_BuildCap (location_t location, tree t)
 
   m2assert_AssertLocation (location);
 
-  t = fold(t);
+  t = fold (t);
   if (t == error_mark_node)
     return error_mark_node;
 
-  tt = TREE_TYPE(t);
+  tt = TREE_TYPE (t);
 
-  t = fold (convert (char_type_node, t));
+  t = fold (convert (m2type_GetM2CharType (), t));
 
-  if (TREE_CODE(tt) == INTEGER_TYPE) {
-    less_than = m2expr_build_binary_op (location, LT_EXPR, t,
-					build_int_2_type ('a', 0,
-							  char_type_node), 0);
-    greater_than = m2expr_build_binary_op (location, GT_EXPR, t,
-					   build_int_2_type ('z', 0,
-							     char_type_node), 0);
-    out_of_range = m2expr_build_binary_op (location, TRUTH_ORIF_EXPR,
-					   less_than, greater_than, 0);
+  if (TREE_CODE (tt) == INTEGER_TYPE) {
+    less_than = fold (m2expr_build_binary_op (location, LT_EXPR, t,
+					      build_int_2_type ('a', 0,
+								m2type_GetM2CharType ()), 0));
+    greater_than = fold (m2expr_build_binary_op (location, GT_EXPR, t,
+						 build_int_2_type ('z', 0,
+								   m2type_GetM2CharType ()), 0));
+    out_of_range = fold (m2expr_build_binary_op (location, TRUTH_ORIF_EXPR,
+						 less_than, greater_than, 0));
     
-    translated = fold (convert (char_type_node,
+    translated = fold (convert (m2type_GetM2CharType (),
 				m2expr_build_binary_op (location, MINUS_EXPR, t,
 							build_int_2_type ('a'-'A', 0,
-									  char_type_node), 0)));
+									  m2type_GetM2CharType ()), 0)));
     
-    return fold_build3 (COND_EXPR, char_type_node, out_of_range, t, translated);
+    return fold_build3 (COND_EXPR, m2type_GetM2CharType (), out_of_range, t, translated);
   }
 
   error_at (location, "argument to CAP is not a constant or variable of type CHAR");
