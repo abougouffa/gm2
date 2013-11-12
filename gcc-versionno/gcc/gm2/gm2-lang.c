@@ -401,6 +401,7 @@ gm2_langhook_post_options (const char **pfilename ATTRIBUTE_UNUSED)
 #endif
   flag_excess_precision_cmdline = EXCESS_PRECISION_FAST;
   M2Options_SetCC1Quiet (quiet_flag);
+  M2Options_FinaliseOptions ();
 
   /* Returning false means that the backend should be used.  */
   return false;

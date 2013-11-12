@@ -3,6 +3,12 @@
 	* gcc-versionno/gcc/gm2/gm2-gcc/m2expr.c:  (m2expr_BuildCmplx) check
 	  to see that the expressions are REAL_CST before calling
 	  build_complex.
+	* gcc-versionno/gcc/gm2/gm2-compiler/M2Options.def:  (FinaliseOptions)
+	  exported.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2options.h:  (FinaliseOptions)
+	  declared extern.
+	* gcc-versionno/gcc/gm2/gm2-lang.c:  (gm2_langhook_post_options)
+	  call M2Options_FinaliseOptions.
 
 2013-11-10      Gaius Mulley <gaius@gnu.org>
 

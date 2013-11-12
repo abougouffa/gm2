@@ -57,7 +57,7 @@ EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions,
       	       	 DisplayQuadruples,
                  CompilerDebugging, GenerateDebugging, GenerateLineDebug,
                  DumpSystemExports, GenerateSwig, Exceptions,
-                 OverrideLocation,
+                 OverrideLocation, FinaliseOptions,
                  DebugBuiltins, setdefextension, setmodextension,
                  CppProg, CppArg, CppCommandLine ;
 
@@ -435,6 +435,14 @@ PROCEDURE CppArg (opt, arg: ADDRESS; joined: BOOLEAN) ;
 *)
 
 PROCEDURE CppCommandLine () : String ;
+
+
+(*
+   FinaliseOptions - once all options have been parsed we set any inferred
+                     values.
+*)
+
+PROCEDURE FinaliseOptions ;
 
 
 END M2Options.
