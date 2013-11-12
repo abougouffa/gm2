@@ -1958,7 +1958,7 @@ m2expr_BuildCmplx (tree type, tree real, tree imag)
   if (scalor != TREE_TYPE (imag))
     imag = m2convert_BuildConvert (scalor, imag, FALSE);
 
-  if (TREE_CONSTANT (real) && TREE_CONSTANT (imag))
+  if ((TREE_CODE (real) == REAL_CST) && (TREE_CODE (imag) == REAL_CST))
     return build_complex (type, real, imag);
   else
     return build2 (COMPLEX_EXPR, type, real, imag);
