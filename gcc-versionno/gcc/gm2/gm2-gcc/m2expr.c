@@ -122,10 +122,15 @@ m2expr_StringLength (tree string)
 tree
 m2expr_BuildAdd (location_t location, tree op1, tree op2, int needconvert)
 {
+  tree t;
+
   m2assert_AssertLocation (location);
-  return m2expr_build_binary_op (location, PLUS_EXPR,
-				 m2expr_FoldAndStrip (op1),
-				 m2expr_FoldAndStrip (op2), needconvert);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  t = m2expr_build_binary_op (location, PLUS_EXPR, op1, op2, needconvert);
+  return m2expr_FoldAndStrip (t);
 }
 
 
@@ -136,10 +141,15 @@ m2expr_BuildAdd (location_t location, tree op1, tree op2, int needconvert)
 tree
 m2expr_BuildSub (location_t location, tree op1, tree op2, int needconvert)
 {
+  tree t;
+
   m2assert_AssertLocation (location);
-  return m2expr_build_binary_op (location, MINUS_EXPR,
-				 m2expr_FoldAndStrip (op1),
-				 m2expr_FoldAndStrip (op2), needconvert);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  t = m2expr_build_binary_op (location, MINUS_EXPR, op1, op2, needconvert);
+  return m2expr_FoldAndStrip (t);
 }
 
 
@@ -150,10 +160,15 @@ m2expr_BuildSub (location_t location, tree op1, tree op2, int needconvert)
 tree
 m2expr_BuildDivTrunc (location_t location, tree op1, tree op2, int needconvert)
 {
+  tree t;
+
   m2assert_AssertLocation (location);
-  return m2expr_build_binary_op (location, TRUNC_DIV_EXPR,
-				 m2expr_FoldAndStrip (op1),
-				 m2expr_FoldAndStrip (op2), needconvert);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  t = m2expr_build_binary_op (location, TRUNC_DIV_EXPR, op1, op2, needconvert);
+  return m2expr_FoldAndStrip (t);
 }
 
 
@@ -164,10 +179,15 @@ m2expr_BuildDivTrunc (location_t location, tree op1, tree op2, int needconvert)
 tree
 m2expr_BuildModTrunc (location_t location, tree op1, tree op2, int needconvert)
 {
+  tree t;
+
   m2assert_AssertLocation (location);
-  return m2expr_build_binary_op (location, TRUNC_MOD_EXPR,
-				 m2expr_FoldAndStrip (op1),
-				 m2expr_FoldAndStrip (op2), needconvert);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  t = m2expr_build_binary_op (location, TRUNC_MOD_EXPR, op1, op2, needconvert);
+  return m2expr_FoldAndStrip (t);
 }
 
 
@@ -178,10 +198,15 @@ m2expr_BuildModTrunc (location_t location, tree op1, tree op2, int needconvert)
 tree
 m2expr_BuildDivFloor (location_t location, tree op1, tree op2, int needconvert)
 {
+  tree t;
+
   m2assert_AssertLocation (location);
-  return m2expr_build_binary_op (location, FLOOR_DIV_EXPR,
-				 m2expr_FoldAndStrip (op1),
-				 m2expr_FoldAndStrip (op2), needconvert);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  t = m2expr_build_binary_op (location, FLOOR_DIV_EXPR, op1, op2, needconvert);
+  return m2expr_FoldAndStrip (t);
 }
 
 
@@ -192,10 +217,15 @@ m2expr_BuildDivFloor (location_t location, tree op1, tree op2, int needconvert)
 tree
 m2expr_BuildModFloor (location_t location, tree op1, tree op2, int needconvert)
 {
+  tree t;
+
   m2assert_AssertLocation (location);
-  return m2expr_build_binary_op (location, FLOOR_MOD_EXPR,
-				 m2expr_FoldAndStrip (op1),
-				 m2expr_FoldAndStrip (op2), needconvert);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  t = m2expr_build_binary_op (location, FLOOR_MOD_EXPR, op1, op2, needconvert);
+  return m2expr_FoldAndStrip (t);
 }
 
 
@@ -206,10 +236,15 @@ m2expr_BuildModFloor (location_t location, tree op1, tree op2, int needconvert)
 tree
 m2expr_BuildLSL (location_t location, tree op1, tree op2, int needconvert)
 {
+  tree t;
+
   m2assert_AssertLocation (location);
-  return m2expr_build_binary_op (location, LSHIFT_EXPR,
-				 m2expr_FoldAndStrip (op1),
-				 m2expr_FoldAndStrip (op2), needconvert);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  t = m2expr_build_binary_op (location, LSHIFT_EXPR, op1, op2, needconvert);
+  return m2expr_FoldAndStrip (t);
 }
 
 
@@ -220,10 +255,15 @@ m2expr_BuildLSL (location_t location, tree op1, tree op2, int needconvert)
 tree
 m2expr_BuildLSR (location_t location, tree op1, tree op2, int needconvert)
 {
+  tree t;
+
   m2assert_AssertLocation (location);
-  return m2expr_build_binary_op (location, RSHIFT_EXPR,
-				 m2expr_FoldAndStrip (op1),
-				 m2expr_FoldAndStrip (op2), needconvert);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  t = m2expr_build_binary_op (location, RSHIFT_EXPR, op1, op2, needconvert);
+  return m2expr_FoldAndStrip (t);
 }
 
 
@@ -309,7 +349,15 @@ m2expr_BuildLogicalShift (location_t location, tree op1, tree op2, tree op3,
 tree
 m2expr_BuildLRL (location_t location, tree op1, tree op2, int needconvert)
 {
-  return m2expr_build_binary_op (location, LROTATE_EXPR, op1, op2, needconvert);
+  tree t;
+
+  m2assert_AssertLocation (location);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  t = m2expr_build_binary_op (location, LROTATE_EXPR, op1, op2, needconvert);
+  return m2expr_FoldAndStrip (t);
 }
 
 
@@ -320,8 +368,15 @@ m2expr_BuildLRL (location_t location, tree op1, tree op2, int needconvert)
 tree
 m2expr_BuildLRR (location_t location, tree op1, tree op2, int needconvert)
 {
+  tree t;
+
   m2assert_AssertLocation (location);
-  return m2expr_build_binary_op (location, RROTATE_EXPR, op1, op2, needconvert);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  t = m2expr_build_binary_op (location, RROTATE_EXPR, op1, op2, needconvert);
+  return m2expr_FoldAndStrip (t);
 }
 
 
@@ -333,11 +388,45 @@ m2expr_BuildLRR (location_t location, tree op1, tree op2, int needconvert)
 tree
 m2expr_BuildMask (location_t location, tree nBits, int needconvert)
 {
-  tree mask = m2expr_BuildLSL (location, m2expr_GetIntegerOne (),
-                               nBits, needconvert);
+  tree mask = m2expr_BuildLSL (location, m2expr_GetIntegerOne (), nBits, needconvert);
   m2assert_AssertLocation (location);
-  return m2expr_BuildSub (location, mask, m2expr_GetIntegerOne (),
-                          needconvert);
+  return m2expr_BuildSub (location, mask, m2expr_GetIntegerOne (), needconvert);
+}
+
+
+/*
+ *  m2expr_BuildLRotate - returns a tree in which op1 has been left rotated by
+ *                        nBits.
+ *                        It assumes nBits is <= TSIZE(WORD)
+ */
+
+tree
+m2expr_BuildLRotate (location_t location, tree op1, tree nBits, int needconvert)
+{
+  tree t;
+
+  op1 = m2expr_FoldAndStrip (op1);
+  nBits = m2expr_FoldAndStrip (nBits);
+  t = m2expr_build_binary_op (location, LROTATE_EXPR, op1, nBits, needconvert);
+  return m2expr_FoldAndStrip (t);
+}
+
+
+/*
+ *  m2expr_BuildRRotate - returns a tree in which op1 has been left rotated by
+ *                        nBits.
+ *                        It assumes nBits is <= TSIZE(WORD)
+ */
+
+tree
+m2expr_BuildRRotate (location_t location, tree op1, tree nBits, int needconvert)
+{
+  tree t;
+
+  op1 = m2expr_FoldAndStrip (op1);
+  nBits = m2expr_FoldAndStrip (nBits);
+  t = m2expr_build_binary_op (location, RROTATE_EXPR, op1, nBits, needconvert);
+  return m2expr_FoldAndStrip (t);
 }
 
 
@@ -364,7 +453,7 @@ m2expr_BuildLRLn (location_t location, tree op1, tree op2, tree nBits,
    */
   if (m2expr_CompareTrees (m2decl_BuildIntegerConstant (m2decl_GetBitsPerBitset ()),
                            nBits) == 0)
-    return m2expr_build_binary_op (location, LROTATE_EXPR, op1, op2min, needconvert);
+    return m2expr_BuildLRotate (location, op1, op2min, needconvert);
   else {
     tree mask = m2expr_BuildMask (location, nBits, needconvert);
     tree left, right;
@@ -407,7 +496,7 @@ m2expr_BuildLRRn (location_t location, tree op1, tree op2, tree nBits, int needc
    */
   if (m2expr_CompareTrees (m2decl_BuildIntegerConstant (m2decl_GetBitsPerBitset ()),
                            nBits) == 0)
-    return m2expr_build_binary_op (location, RROTATE_EXPR, op1, op2min, needconvert);
+    return m2expr_BuildRRotate (location, op1, op2min, needconvert);
   else {
     tree mask = m2expr_BuildMask (location, nBits, needconvert);
     tree left, right;
@@ -708,7 +797,7 @@ m2expr_build_unary_op (location_t location,
   result = build1 (code, argtype, arg);
   protected_set_expr_location (result, location);
 
-  return result;
+  return m2expr_FoldAndStrip (result);
 }
 
 
@@ -737,7 +826,7 @@ build_binary_op (location_t location,
   result = build2 (code, type1, op1, op2);
   protected_set_expr_location (result, location);
 
-  return result;
+  return m2expr_FoldAndStrip (result);
 }
 
 

@@ -3,6 +3,13 @@
 	* gcc-versionno/gcc/gm2/gm2-compiler/M2ALU.mod:  (InitialiseArrayWith)
 	  convert low and high bounds into integers when creating array
 	  constants.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2expr.c:  (m2expr_BuildAdd),
+	  (m2expr_BuildSub), (m2expr_BuildDivTrunc), (m2expr_BuildModTrunc),
+	  (m2expr_BuildDivFloor), (m2expr_BuildModFloor), (m2expr_BuildLSL),
+	  (m2expr_BuildLSR), (m2expr_BuildLRL), (m2expr_BuildLRR),
+	  (m2expr_BuildMask) all fold operands and also their results.
+	  (m2expr_BuildLRotate) New function.  (m2expr_BuildRRotate)
+	  New function.
 
 2013-11-12      Gaius Mulley <gaius@gnu.org>
 
