@@ -1,3 +1,9 @@
+2013-11-13      Gaius Mulley <gaius@gnu.org>
+
+	* gcc-versionno/gcc/gm2/gm2-compiler/M2ALU.mod:  (InitialiseArrayWith)
+	  convert low and high bounds into integers when creating array
+	  constants.
+
 2013-11-12      Gaius Mulley <gaius@gnu.org>
 
 	* gcc-versionno/gcc/gm2/gm2-gcc/m2expr.c:  (m2expr_BuildCmplx) check

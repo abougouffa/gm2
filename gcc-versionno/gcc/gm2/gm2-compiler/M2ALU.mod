@@ -4858,16 +4858,19 @@ BEGIN
    i := 0 ;
    WHILE el#NulSym DO
       PushValue(low) ;
-      PushCard(i) ;
+      ConvertToInt ;
+      PushInt(i) ;
       Addn ;
       indice := PopIntegerTree() ;
       value := CheckElementString(el, arrayType, baseType, tokenno) ;
       value := ConvertConstantAndCheck(TokenToLocation(tokenno), Mod2Gcc(arrayType), value) ;
       BuildArrayConstructorElement(cons, value, indice) ;
       PushValue(low) ;
-      PushCard(i) ;
+      ConvertToInt ;
+      PushInt(i) ;
       Addn ;
       PushValue(high) ;
+      ConvertToInt ;
       IF GreEqu(tokenno)
       THEN
          RETURN( BuildEndArrayConstructor(cons) )
