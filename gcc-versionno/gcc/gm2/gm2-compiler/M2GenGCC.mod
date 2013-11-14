@@ -3111,6 +3111,11 @@ BEGIN
    THEN
       IF GccKnowsAbout(op2) AND GccKnowsAbout(op3)
       THEN
+         IF tokenno=3670
+         THEN
+            stop
+         END ;
+
          (* fine, we can take advantage of this and fold constants *)
          IF IsConst(op1)
          THEN
@@ -3119,8 +3124,8 @@ BEGIN
 
             tl := LValueToGenericPtr(op2) ;
             tr := LValueToGenericPtr(op3) ;
-            
-            IF (GetType(op1)=NulSym) OR IsOrdinalType(GetType(op1))
+
+            IF GetType(op1)=NulSym
             THEN
                resType := GetM2ZType()
             ELSE

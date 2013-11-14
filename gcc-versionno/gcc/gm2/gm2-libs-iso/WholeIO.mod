@@ -82,7 +82,7 @@ BEGIN
    THEN
       IF negative
       THEN
-         IF c=MAX(INTEGER)+1
+         IF c=VAL(CARDINAL, MAX(INTEGER))+1
          THEN
             int := MIN(INTEGER)
          ELSE

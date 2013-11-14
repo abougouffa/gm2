@@ -82,7 +82,7 @@ BEGIN
    THEN
       IF negative
       THEN
-         IF c=VAL(SHORTCARD, MAX(SHORTINT)+1)
+         IF c=VAL(SHORTCARD, MAX(SHORTINT))+1
          THEN
             int := MIN(SHORTINT)
          ELSE

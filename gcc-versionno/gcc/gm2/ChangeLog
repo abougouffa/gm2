@@ -1,3 +1,12 @@
+2013-11-14      Gaius Mulley <gaius@gnu.org>
+
+	* gcc-versionno/gcc/gm2/gm2-compiler/M2GenGCC.mod:  (FoldBinary)
+	  convert left and right operands to the result type.
+	* gcc-versionno/gcc/gm2/gm2-libs-iso/ShortWholeIO.mod:  (ReadInt)
+	  handle negative value without overflowing.
+	* gcc-versionno/gcc/gm2/gm2-libs-iso/WholeIO.mod:  (ReadInt)
+	  handle negative value without overflowing.
+
 2013-11-13      Gaius Mulley <gaius@gnu.org>
 
 	* gcc-versionno/gcc/gm2/gm2-compiler/M2ALU.mod:  (InitialiseArrayWith)
