@@ -4,6 +4,10 @@
 	* gcc-versionno/gcc/gm2/gm2-libs-iso/ShortWholeIO.mod:  (ReadInt)
 	* gcc-versionno/gcc/gm2/gm2-libs-iso/WholeIO.mod:  (ReadInt)
 	  catch overflow and set the read result accordingly.
+	* gcc-versionno/gcc/gm2/gm2-libs-iso/LongWholeIO.mod:  (ReadInt)
+	* gcc-versionno/gcc/gm2/gm2-libs-iso/ShortWholeIO.mod:  (ReadInt)
+	* gcc-versionno/gcc/gm2/gm2-libs-iso/WholeIO.mod:  (ReadInt)
+	  reference SetReadResult correctly via IOChan.
 
 2013-11-14      Gaius Mulley <gaius@gnu.org>
 

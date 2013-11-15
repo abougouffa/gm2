@@ -91,7 +91,7 @@ BEGIN
             int := -VAL(SHORTINT, c)
          ELSE
             (* overflow *)
-            SetReadResult(cid, outOfRange)
+            IOChan.SetReadResult(cid, outOfRange)
          END
       ELSE
          int := c
