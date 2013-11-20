@@ -1,3 +1,21 @@
+2013-11-20      Gaius Mulley <gaius@gnu.org>
+
+	* gcc-versionno/gcc/gm2/config-lang.in:  added target-libgm2
+	  to the list of target_libs.
+	* gcc-versionno/gcc/gm2/examples/pge/foo.fig:  new example.
+	* gcc-versionno/gcc/gm2/examples/pge/foo.mod:  regenerated.
+	* gcc-versionno/gcc/gm2/gm2-compiler/M2GenGCC.mod:  change
+	  type to Address if lvalue is used, this fixes the
+	  regression test failure in
+	  gcc-versionno/gcc/testsuite/gm2/iso/run/pass/unbounded.mod.
+	* gcc-versionno/gcc/gm2/gm2spec.c:  remove extern int force_no_linker.
+	  Changed variable name force_no_linker to allow_linker and
+	  switched boolean value.  allow_linker now exported via gcc.h.
+	* gcc-versionno/gcc/gm2/patches/gcc/4.7.3/0[0-9]-patches:
+	  regenerated.
+	* gcc-versionno/gcc/gm2/patches/gcc/4.7.3/10-patches:
+	  regenerated.
+
 2013-11-15      Gaius Mulley <gaius@gnu.org>
 
 	* gcc-versionno/gcc/gm2/gm2-libs-iso/LongWholeIO.mod:  (ReadInt)

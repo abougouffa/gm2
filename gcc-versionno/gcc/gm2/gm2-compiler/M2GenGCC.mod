@@ -3163,11 +3163,13 @@ BEGIN
    tr := NIL ;
    IF GetMode(op2)=LeftValue
    THEN
-      tl := LValueToGenericPtr(op2)
+      tl := LValueToGenericPtr(op2) ;
+      type := Address
    END ;
    IF GetMode(op3)=LeftValue
    THEN
-      tr := LValueToGenericPtr(op3)
+      tr := LValueToGenericPtr(op3) ;
+      type := Address
    END ;
    IF (tl=NIL) AND (tr=NIL)
    THEN

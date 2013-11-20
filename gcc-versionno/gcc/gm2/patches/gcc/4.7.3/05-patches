@@ -1,12 +1,12 @@
 --- gcc-4.7.3-orig/gcc/gcc.c	2013-06-19 15:00:24.000000000 +0100
-+++ gcc-4.7.3/gcc/gcc.c	2013-08-12 13:12:24.000000000 +0100
++++ gcc-4.7.3/gcc/gcc.c	2013-11-20 13:14:53.908550979 +0000
 @@ -167,6 +167,10 @@
  static const char *cross_compile = "0";
  #endif
  
 +/* The lang specs might wish to override the default linker.
 + */
-+int force_no_linker = 0;
++int allow_linker = 1;
 +
  /* Greatest exit code of sub-processes that has been encountered up to
     now.  */
@@ -27,15 +27,6 @@
  #ifndef LINK_COMMAND_SPEC
  #define LINK_COMMAND_SPEC "\
  %{!fsyntax-only:%{!c:%{!M:%{!MM:%{!E:%{!S:\
-@@ -674,7 +680,7 @@
-     %{flto} %{flto=*} %l " LINK_PIE_SPEC \
-    "%X %{o*} %{e*} %{N} %{n} %{r}\
-     %{s} %{t} %{u*} %{z} %{Z} %{!nostdlib:%{!nostartfiles:%S}}\
--    %{static:} %{L*} %(mfwrap) %(link_libgcc) %o\
-+    %{static:} %{L*} %(mfwrap) %(link_libgcc) %o \
-     %{fopenmp|ftree-parallelize-loops=*:%:include(libgomp.spec)%(link_gomp)}\
-     %{fgnu-tm:%:include(libitm.spec)%(link_itm)}\
-     %(mflib) " STACK_SPLIT_SPEC "\
 @@ -1272,6 +1278,10 @@
    { 0, 0 }
  };
@@ -47,23 +38,7 @@
  static int processing_spec_function;
  
  /* Add appropriate libgcc specs to OBSTACK, taking into account
-@@ -2565,6 +2575,15 @@
- 	n_commands++;
-       }
- 
-+#if 0
-+  /* gaius added this */
-+  verbose_flag = 1;
-+#endif
-+#if 0
-+  /* gaius added this */
-+  verbose_only_flag = 1;
-+#endif
-+
-   /* If -v, print what we are about to do, and maybe query.  */
- 
-   if (verbose_flag)
-@@ -3131,6 +3150,68 @@
+@@ -3131,6 +3141,68 @@
    n_switches++;
  }
  
@@ -132,7 +107,7 @@
  /* Handle an option DECODED that is unknown to the option-processing
     machinery.  */
  
-@@ -3477,33 +3558,7 @@
+@@ -3477,33 +3549,7 @@
        break;
  
      case OPT_B:
@@ -167,7 +142,7 @@
        validated = true;
        break;
  
-@@ -5312,6 +5367,33 @@
+@@ -5312,6 +5358,33 @@
    return 0;
  }
  
@@ -201,7 +176,7 @@
  /* Look up a spec function.  */
  
  static const struct spec_function *
-@@ -5323,6 +5405,11 @@
+@@ -5323,6 +5396,11 @@
      if (strcmp (sf->name, name) == 0)
        return sf;
  
@@ -213,7 +188,7 @@
    return NULL;
  }
  
-@@ -6285,6 +6372,8 @@
+@@ -6285,6 +6363,8 @@
  			   spec_version, dir_separator_str, NULL);
    just_machine_suffix = concat (spec_machine, dir_separator_str, NULL);
  
@@ -222,22 +197,22 @@
    specs_file = find_a_file (&startfile_prefixes, "specs", R_OK, true);
    /* Read the specs file unless it is a default one.  */
    if (specs_file != 0 && strcmp (specs_file, "specs"))
-@@ -6885,7 +6974,8 @@
+@@ -6885,7 +6965,8 @@
  
    /* Run ld to link all the compiler output files.  */
  
 -  if (num_linker_inputs > 0 && !seen_error () && print_subprocess_help < 2)
 +  if (num_linker_inputs > 0 && !seen_error () && print_subprocess_help < 2
-+      && (! force_no_linker))
++      && allow_linker)
      {
        int tmp = execution_count;
  
-@@ -6951,7 +7041,7 @@
+@@ -6951,7 +7032,7 @@
    /* If options said don't run linker,
       complain about input files to be given to the linker.  */
  
 -  if (! linker_was_run && !seen_error ())
-+  if (! linker_was_run && !seen_error () && (! force_no_linker))
++  if (! linker_was_run && !seen_error () && allow_linker)
      for (i = 0; (int) i < n_infiles; i++)
        if (explicit_link_files[i]
  	  && !(infiles[i].language && infiles[i].language[0] == '*'))

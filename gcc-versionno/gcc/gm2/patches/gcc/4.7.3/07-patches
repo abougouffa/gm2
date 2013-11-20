@@ -1,5 +1,5 @@
 --- gcc-4.7.3-orig/gcc/Makefile.in	2013-06-19 14:58:49.000000000 +0100
-+++ gcc-4.7.3/gcc/Makefile.in	2013-08-17 15:13:08.959977543 +0100
++++ gcc-4.7.3/gcc/Makefile.in	2013-11-06 14:36:18.757363527 +0000
 @@ -1815,9 +1815,9 @@
  
  cc1-checksum.o : cc1-checksum.c $(CONFIG_H) $(SYSTEM_H)

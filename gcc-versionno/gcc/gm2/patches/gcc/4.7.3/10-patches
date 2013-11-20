@@ -1,5 +1,5 @@
 --- gcc-4.7.3-orig/gcc/cp/g++spec.c	2013-06-19 15:00:32.000000000 +0100
-+++ gcc-4.7.3/gcc/cp/g++spec.c	2013-07-27 16:14:10.000000000 +0100
++++ gcc-4.7.3/gcc/cp/g++spec.c	2013-11-06 14:36:18.769363527 +0000
 @@ -372,3 +372,9 @@
  
  /* Number of extra output files that lang_specific_pre_link may generate.  */

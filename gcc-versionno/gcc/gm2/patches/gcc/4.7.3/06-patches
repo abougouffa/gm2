@@ -1,5 +1,5 @@
 --- gcc-4.7.3-orig/gcc/gcc.h	2013-06-19 15:00:29.000000000 +0100
-+++ gcc-4.7.3/gcc/gcc.h	2013-07-24 14:04:07.000000000 +0100
++++ gcc-4.7.3/gcc/gcc.h	2013-11-20 12:59:07.396574307 +0000
 @@ -37,6 +37,12 @@
  extern void record_temp_file (const char *, int, int);
  extern void pfatal_with_name (const char *) ATTRIBUTE_NORETURN;
@@ -13,3 +13,12 @@
  
  /* Spec files linked with gcc.c must provide definitions for these.  */
  
+@@ -56,4 +62,8 @@
+ 
+ extern const char **outfiles;
+ 
++/* Default setting is true, but can be overridden by the language
++   front end to prohibit the linker from being invoked.  */
++extern int allow_linker;
++
+ #endif /* ! GCC_GCC_H */

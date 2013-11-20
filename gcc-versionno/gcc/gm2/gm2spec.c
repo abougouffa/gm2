@@ -84,7 +84,6 @@ along with GNU CC; see the file COPYING3.  If not see
 #endif
 
 int lang_specific_extra_outfiles = 0;
-extern int force_no_linker;
 
 #include "gm2/gm2version.h"
 #include "gm2/gm2config.h"
@@ -1323,17 +1322,6 @@ get_link_args (int argc ATTRIBUTE_UNUSED,
 }
 
 /*
- *  no_link - tell gcc.c not to invoke its linker.
- */
-
-static const char *
-no_link (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
-{
-  force_no_linker = TRUE;
-  return "";
-}
-
-/*
  *  add_exec_dir - prepends the exec path to the given executable filename.
  */
 
@@ -1367,6 +1355,17 @@ add_exec_name (int argc, const char *argv[])
 {
   if (argc == 1 && argv[0] != NULL)
     return argv[0];
+  return "";
+}
+
+/*
+ *  no_link - tell gcc.c not to invoke its linker.
+ */
+
+static const char *
+no_link (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
+{
+  allow_linker = FALSE;
   return "";
 }
 

@@ -1,5 +1,5 @@
 --- gcc-4.7.3-orig/configure	2013-06-19 14:55:55.000000000 +0100
-+++ gcc-4.7.3/configure	2013-06-19 15:00:47.000000000 +0100
++++ gcc-4.7.3/configure	2013-11-06 14:36:18.725363528 +0000
 @@ -749,6 +749,7 @@
  enable_libquadmath
  enable_libquadmath_support
