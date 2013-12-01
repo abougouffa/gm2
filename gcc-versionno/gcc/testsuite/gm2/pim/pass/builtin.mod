@@ -27,7 +27,7 @@ BEGIN
    RETURN dest
 END memcopy ;
 
-PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_sinf)) sinf (x: REAL) : REAL ;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_sinf)) sinf (x: SHORTREAL) : SHORTREAL ;
 BEGIN
    RETURN 0.0
 END sinf ;

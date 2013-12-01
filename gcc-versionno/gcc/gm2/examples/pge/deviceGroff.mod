@@ -397,6 +397,7 @@ BEGIN
       Indexing.ForeachIndiceInIndexDo(cArray, setColourUnused) ;
       foreachGlyphDo(setColourUsed) ;
       Indexing.ForeachIndiceInIndexDo(cArray, writeColourUsed) ;
+      WriteString(file, '.ll 8i') ; WriteLn(file) ;
       WriteString(file, '.nop \&') ; WriteLn(file)
    END
 END newFrame ;

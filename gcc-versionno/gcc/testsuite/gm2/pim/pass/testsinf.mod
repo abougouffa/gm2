@@ -20,7 +20,7 @@ MODULE testsinf ;
 FROM builtin IMPORT sinf ;
 
 VAR
-   r: REAL ;
+   r: SHORTREAL ;
 BEGIN
    r := 3.14 ;
    r := sinf(r) ;

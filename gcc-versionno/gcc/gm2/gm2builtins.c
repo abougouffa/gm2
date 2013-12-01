@@ -842,9 +842,9 @@ gm2builtins_BuildBuiltinTree (char *name)
   struct builtin_function_entry *fe;
   tree t;
 
-  gccgm2_SetLastFunction(NULL_TREE);
-  for (fe=&list_of_builtins[0]; fe->name != NULL; fe++)
-    if (strcmp(name, fe->name) == 0) {
+  gccgm2_SetLastFunction (NULL_TREE);
+  for (fe = &list_of_builtins[0]; fe->name != NULL; fe++)
+    if (strcmp (name, fe->name) == 0) {
       tree functype = TREE_TYPE (fe->function_node);
       tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), fe->function_node);
       gccgm2_SetLastFunction(build (CALL_EXPR, fe->return_node,
@@ -853,11 +853,11 @@ gm2builtins_BuildBuiltinTree (char *name)
       gccgm2_SetParamList (NULL_TREE);
       t = gccgm2_GetLastFunction ();
       if (fe->return_node == void_type_node)
-	gccgm2_SetLastFunction(NULL_TREE);
+	gccgm2_SetLastFunction (NULL_TREE);
       return t;
     }
   
-  gccgm2_SetParamList(NULL_TREE);
+  gccgm2_SetParamList (NULL_TREE);
   return gccgm2_GetLastFunction ();
 }
 

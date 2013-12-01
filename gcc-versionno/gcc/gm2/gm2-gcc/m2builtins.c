@@ -767,9 +767,9 @@ m2builtins_BuildBuiltinTree (location_t location, char *name)
   struct builtin_function_entry *fe;
   tree t;
 
-  m2statement_SetLastFunction(NULL_TREE);
-  for (fe=&list_of_builtins[0]; fe->name != NULL; fe++)
-    if (strcmp(name, fe->name) == 0) {
+  m2statement_SetLastFunction (NULL_TREE);
+  for (fe = &list_of_builtins[0]; fe->name != NULL; fe++)
+    if (strcmp (name, fe->name) == 0) {
       tree functype = TREE_TYPE (fe->function_node);
       tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), fe->function_node);
 
@@ -777,7 +777,7 @@ m2builtins_BuildBuiltinTree (location_t location, char *name)
       m2statement_SetParamList (NULL_TREE);
       t = m2statement_GetLastFunction ();
       if (fe->return_node == void_type_node)
-	m2statement_SetLastFunction(NULL_TREE);
+	m2statement_SetLastFunction (NULL_TREE);
       return t;
     }
   

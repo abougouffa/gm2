@@ -1,3 +1,17 @@
+2013-12-01      Gaius Mulley <gaius@gnu.org>
+
+	* gcc-versionno/gcc/gm2/examples/pge/deviceGroff.mod:  (newFrame)
+	  emit leading .ll 8i.
+	* gcc-versionno/gcc/gm2/examples/pge/foo.mod:  (regenerated).
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2builtins.c:  (m2builtins_BuildBuiltinTree)
+	  corrected formatting.
+	* gcc-versionno/gcc/testsuite/gm2/pim/pass/builtin.def:  corrected sinf
+	  to use and return SHORTREAL types.
+	* gcc-versionno/gcc/testsuite/gm2/pim/pass/builtin.mod:  corrected sinf
+	  to use and return SHORTREAL types.
+	* gcc-versionno/gcc/testsuite/gm2/pim/pass/testsinf.mod:  corrected test
+	  to use REAL rather than SHORTREAL with sinf.
+
 2013-11-20      Gaius Mulley <gaius@gnu.org>
 
 	* gcc-versionno/gcc/gm2/config-lang.in:  added target-libgm2
