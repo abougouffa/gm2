@@ -87,6 +87,8 @@ function checkPatchGCC () {
 }
 
 
+checkGCC
+
 mkdir -p ${DOWNLOADDIR} ${SOURCEDIR}
 echo "this will remove `pwd`/${SOURCEDIR}/gm2"
 # read ans
