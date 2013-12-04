@@ -4,12 +4,11 @@ AC_INIT
 AC_CONFIG_SRCDIR([version.c])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
-
-dnl Checks for configure options
-GM2_HARNESS_GDB_OPTION
-GM2_HARNESS_CVS_OPTION
 GM2_HARNESS_GCC_OPTION
-GM2_HARNESS_ULMLIB_OPTION
+
+dnl check for critical dependencies
+AC_PATH_PROG(GIT, git, /usr/bin/git, $PATH:/usr/bin)
+AC_PATH_PROG(BASH, bash, /bin/bash, $PATH:/bin)
 
 dnl create these files
 AC_CONFIG_FILES([Makefile config-values])

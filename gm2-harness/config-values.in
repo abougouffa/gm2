@@ -1,16 +1,7 @@
 GCC=@gccrelease@
-GDB=6.6
-CVSROOT=/usr/src/cvs
-# CVSROOT=:pserver:anoncvs@floppsie.comp.glam.ac.uk:/usr/src/cvs
-# CVSROOT=:pserver:anoncvs@merlin:/usr/src/cvs
-# CVSROOT=:pserver:anoncvs@isode:/usr/src/cvs
-CVSROOT=:pserver:anoncvs@cvs.sv.gnu.org:/sources/gm2
+GITURL=git://git.sv.gnu.org/gm2.git
 BUILDDIR=build
-BUILDGDBDIR=build-gdb
 DOWNLOADDIR=download
 SOURCEDIR=sources
 GCCURL=ftp://ftp.mirrorservice.org/sites/sources.redhat.com/pub/gcc/releases/
-GDBURL=ftp://ftp.mirrorservice.org/sites/sources.redhat.com/pub/gdb/releases/
 PREFIX=@prefix@
-ULMLIB=@ulmlib@
-

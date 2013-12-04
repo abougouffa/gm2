@@ -1,5 +1,5 @@
 # Makefile.in:  used to build the gm2 combined tarball.
-#   Copyright (C) 2010
+#   Copyright (C) 2010, 2013
 #                 Free Software Foundation, Inc.
 
 # This file is part of GNU Modula-2.
@@ -33,10 +33,7 @@ datarootdir= @datarootdir@
 all: force
 	mkdir -p download
 	mkdir -p sources
-	sh shell-bin/runtest @withgdb@ @withcvs@ @ulmlib@
-
-install: force
-	sh shell-bin/runinstall @withgdb@
+	bash $(srcdir)/shell-bin/produce-gcc-gm2-tree
 
 clean: force
 	$(RM) config.log config.cache config.status
