@@ -22,6 +22,8 @@ function checkGCC () {
 #
 
 function checkok () {
+    echo $1
+    read ans
     if $1 ; then
         echo "$2: passed"
     else
