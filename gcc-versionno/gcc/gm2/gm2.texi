@@ -2898,14 +2898,28 @@ gcc-4.7 testing, see next but one section for building details.
 @section Building GNU Modula-2 grafted on the gcc-4.1.2 branch
 
 On a GNU/Linux system you should also be able to build it using these
-commands.  The following commands assume your shell is @file{/bin/bash}.
+commands.  If you are building on a system which supports multiarch
+then you should type:
+
+@example
+$ CFLAGS=-B/usr/lib/x86_64-linux-gnu
+$ export CFLAGS
+$ LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
+$ export LIBRARY_PATH
+@end example
+
+The above is necessary on a Debian Wheezy x86_64 system, but not on
+Debian Squeeze.
+
+The following commands assume your shell is @file{/bin/bash}.
 To build GNU Modula-2 type:
 
 @example
 $ mkdir -p $HOME/opt
 $ mkdir -p build-4.1.2
 $ cd build-4.1.2
-$ ../gcc-4.1.2+gm2-git-latest/configure --enable-languages=c,c++,gm2 \
+$ ../gcc-4.1.2+gm2-git-latest/gm2/gcc-versionno/configure \
+     --enable-languages=c,c++,gm2 \
      --disable-multilib --enable-checking=all --prefix=$HOME/opt
 $ make "SHELL=/bin/bash"
 @end example
@@ -2970,7 +2984,8 @@ To configure:
 @example
 $ mkdir build-4.7.3
 $ cd build-4.7.3
-$ CXXFLAGS=-g BOOT_CFLAGS=-g CFLAGS=-g ../gcc-4.7.3/configure \
+$ CXXFLAGS=-g BOOT_CFLAGS=-g CFLAGS=-g \
+  ../gcc-4.7.3+gm2-git-latest/gm2/gcc-versionno/configure \
   --prefix=$HOME/opt \
   --libexecdir=$HOME/opt/lib \
   --enable-shared \
@@ -3062,7 +3077,8 @@ gmake install succeeded.
 4. Finally, configuration script for gcc-4.7.3:
 
 @example
-$ ../../src/gcc-4.7.3/configure --prefix=$HOME/gcc-4.7.3 \
+$ ../../src/gcc-4.7.3+gm2-git-latest/gm2/gcc-versionno/configure \
+  --prefix=$HOME/gcc-4.7.3 \
   --exec-prefix=$HOME/gcc-4.7.3 --without-gnu-ld \
   --with-ld=/usr/ccs/bin/ld --with-gnu-as --with-as=/usr/sfw/bin/gas \
   --build=sparc64-sun-solaris2.10 --host=sparc64-sun-solaris2.10 \
@@ -3070,7 +3086,7 @@ $ ../../src/gcc-4.7.3/configure --prefix=$HOME/gcc-4.7.3 \
   --with-mpfr-include=/usr/local/include \
   --with-mpfr-lib=/usr/local/lib/64 \
   --with-gmp-include=/usr/local/include --with-gmp-lib=/usr/local/lib/64 \
-  --enable-languages=c,c++ --disable-bootstrap --enable-checking \
+  --enable-languages=c,c++,gm2 --disable-bootstrap --enable-checking \
   --enable-shared --disable-libitm
 @end example
 
@@ -3181,7 +3197,8 @@ commands were used to build GNU Modula-2.
 @example
 $ mkdir build
 $ cd build
-$ ../gcc-4.1.2+gm2-git-latest/configure --prefix=/gm2/opt \
+$ ../gcc-4.1.2+gm2-git-latest/gm2/gcc-versionno/configure \
+  --prefix=/gm2/opt \
   --disable-multilib --enable-checking=all \
   --enable-languages=c,c++,gm2
 $ make
