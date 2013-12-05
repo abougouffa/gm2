@@ -10,7 +10,7 @@ BRANCH=""
 
 function checkGCC () {
     case ${GCC} in
-	4.1.? )  BRANCH="" ;;
+	4.1.? )  BRANCH="-b gcc_4_1_2_gm2" ;;
 	4.7.? )  BRANCH="" ;;
 	*     )  echo "it is unlikely that GNU Modula-2 will work with gcc-${GCC}" ;;
     esac
@@ -32,7 +32,7 @@ function checkok () {
 
 
 function git-clone () {
-    checkok "git clone ${GITURL}" "git clone source code"
+    checkok "git clone ${GITURL} ${BRANCH}" "git clone source code"
 }
 
 
@@ -67,7 +67,7 @@ function checkPatchGCC () {
    if [ -d gcc/gm2/patches/gcc/${GCC} ] ; then
       rm -f ../gcc-patch.log
       touch ../gcc-patch.log
-      for i in gcc/gm2/patches/gcc/${GCC}/* xyz ; do
+      for i in gcc/gm2/patches/gcc/${GCC}/[0-9][0-9]* xyz ; do
           if [ -f $i ] ; then
               echo "found a patch for gcc-${GCC} inside the gm2 release"
               echo -n "will try and apply the patch: ($i) "

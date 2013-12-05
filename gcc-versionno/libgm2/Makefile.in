@@ -688,6 +688,13 @@ $(GM2_OBJ)/gm2-libs-iso/SYSTEM.def:
              -I$(GM2_SRC)/gm2-libs-iso:$(GM2_SRC)/gm2-libs: \
              "$(GCC_DIR)/xgm2 -B$(GCC_DIR)/stage1/gm2" $@
 
+$(GM2_OBJ)/gm2-libs-coroutines/SYSTEM.def:
+	bash $(GM2_SRC)/tools-src/makeSystem -fiso \
+             $(GM2_SRC)/gm2-libs-coroutines/SYSTEM.def \
+             $(GM2_SRC)/gm2-libs-coroutines/SYSTEM.mod \
+             -I$(GM2_SRC)/gm2-libs-coroutines:$(GM2_SRC)/gm2-libs-iso:$(GM2_SRC)/gm2-libs: \
+             "$(GCC_DIR)/xgm2 -B$(GCC_DIR)/stage1/gm2" $@
+
 build-libs-min: $(GM2_OBJ)/gm2-libs-min/SYSTEM.def \
                 $(GM2-LIBS-MIN-MODS:%.mod=$(GM2_OBJ)/gm2-libs-min/%.o) \
                 $(GM2-LIBS-MIN-C:%.c=$(GM2_OBJ)/gm2-libs-min/%.o) \
@@ -798,7 +805,8 @@ archive-libs-pim: build-libs-pim
                 $(GM2_OBJ)/gm2-libs-pim/SO_O2/Break.o
 	$(RANLIB_FOR_TARGET) $(GM2_OBJ)/gm2-libs-pim/SO_O2/libgm2pim.a
 
-build-libs-coroutines: $(GM2-LIBS-PIM-COR-MODS:%.mod=$(GM2_OBJ)/gm2-libs-coroutines/%.o) \
+build-libs-coroutines: $(GM2_OBJ)/gm2-libs-coroutines/SYSTEM.def \
+                       $(GM2-LIBS-PIM-COR-MODS:%.mod=$(GM2_OBJ)/gm2-libs-coroutines/%.o) \
                        $(GM2_OBJ)/gm2-libs-coroutines/KeyBoardLEDs.o \
                        $(GM2-LIBS-PIM-COR-MODS:%.mod=$(GM2_OBJ)/gm2-libs-coroutines/O2/%.o) \
                        $(GM2_OBJ)/gm2-libs-coroutines/O2/KeyBoardLEDs.o \
