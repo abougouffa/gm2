@@ -1,0 +1,13 @@
+--- gcc-4.1.2-orig/gcc/ggc-page.c	2013-12-04 19:03:39.991122138 +0000
++++ gcc-4.1.2/gcc/ggc-page.c	2013-12-04 19:13:59.143107330 +0000
+@@ -1859,6 +1859,10 @@
+   if (G.allocated < allocated_last_gc + min_expand && !ggc_force_collect)
+     return;
+ 
++#if 1
++  return;  /* one gross hack (gaius) */
++#endif
++
+   timevar_push (TV_GC);
+   if (!quiet_flag)
+     fprintf (stderr, " {GC %luk -> ", (unsigned long) G.allocated / 1024);

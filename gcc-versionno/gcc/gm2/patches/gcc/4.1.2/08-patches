@@ -1,0 +1,11 @@
+--- gcc-4.1.2-orig/gcc/tree.h	2013-12-04 19:03:19.951122616 +0000
++++ gcc-4.1.2/gcc/tree.h	2013-12-04 19:13:59.151107329 +0000
+@@ -3231,6 +3231,8 @@
+ extern tree build_index_type (tree);
+ extern tree build_index_2_type (tree, tree);
+ extern tree build_array_type (tree, tree);
++extern tree finish_build_array_type (tree, tree, tree);   /* gaius */
++extern tree canonicalize_array (tree array);   /* gaius */
+ extern tree build_function_type (tree, tree);
+ extern tree build_function_type_list (tree, ...);
+ extern tree build_method_type_directly (tree, tree, tree);

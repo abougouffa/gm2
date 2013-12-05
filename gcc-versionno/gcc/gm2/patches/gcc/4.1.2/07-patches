@@ -1,0 +1,10 @@
+--- gcc-4.1.2-orig/gcc/gcc.h	2013-12-04 19:03:19.391122629 +0000
++++ gcc-4.1.2/gcc/gcc.h	2013-12-04 19:13:59.151107329 +0000
+@@ -61,6 +61,7 @@
+ extern void error (const char *, ...) ATTRIBUTE_PRINTF_1;
+ extern void pfatal_with_name (const char *) ATTRIBUTE_NORETURN;
+ extern void set_input (const char *);
++extern const char *find_executable (const char *prog_name);
+ 
+ /* Spec files linked with gcc.c must provide definitions for these.  */
+ 

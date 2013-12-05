@@ -1,0 +1,43 @@
+--- gcc-4.1.2-orig/gcc/gcc.c	2013-12-04 19:03:34.611122265 +0000
++++ gcc-4.1.2/gcc/gcc.c	2013-12-04 19:13:59.151107329 +0000
+@@ -262,6 +262,10 @@
+    run if this is nonzero.  */
+ static int error_count = 0;
+ 
++/* The lang specs might wish to override the default linker.
++ */
++int force_no_linker = 0;
++
+ /* Greatest exit code of sub-processes that has been encountered up to
+    now.  */
+ static int greatest_status = 1;
+@@ -6618,7 +6622,7 @@
+ 
+   /* Run ld to link all the compiler output files.  */
+ 
+-  if (num_linker_inputs > 0 && error_count == 0)
++  if (num_linker_inputs > 0 && error_count == 0 && (! force_no_linker))
+     {
+       int tmp = execution_count;
+ 
+@@ -6643,7 +6647,7 @@
+   /* If options said don't run linker,
+      complain about input files to be given to the linker.  */
+ 
+-  if (! linker_was_run && error_count == 0)
++  if (! linker_was_run && error_count == 0 && (! force_no_linker))
+     for (i = 0; (int) i < n_infiles; i++)
+       if (explicit_link_files[i])
+ 	error ("%s: linker input file unused because linking not done",
+@@ -7755,3 +7759,11 @@
+ 
+   return argv[nargs + 2];
+ }
++
++const char *find_executable (const char *prog_name)
++{
++#if defined(HAVE_TARGET_OBJECT_SUFFIX) || defined(HAVE_TARGET_EXECUTABLE_SUFFIX)
++  prog_name = convert_filename (prog_name, TRUE, FALSE);
++#endif  
++  return find_a_file (&exec_prefixes, prog_name, X_OK, 0);
++}

@@ -1,0 +1,13 @@
+--- gcc-4.1.2-orig/gcc/configure.ac	2013-12-04 19:03:34.483122268 +0000
++++ gcc-4.1.2/gcc/configure.ac	2013-12-04 19:13:59.159107329 +0000
+@@ -833,7 +833,9 @@
+ # that we can use it.
+ gcc_AC_CHECK_PROG_VER(MAKEINFO, makeinfo, --version,
+   [GNU texinfo.* \([0-9][0-9.]*\)],
+-  [4.[2-9]*])
++  [4.[7-9]*|4.[1-9][0-9]*|[5-9]*|[1-9][0-9]*])
++#  [GNU texinfo.* \([0-9][0-9.]*\)],
++#  [4.[2-9]*])
+ if test $gcc_cv_prog_makeinfo_modern = no; then
+   MAKEINFO="$MISSING makeinfo"
+   AC_MSG_WARN([

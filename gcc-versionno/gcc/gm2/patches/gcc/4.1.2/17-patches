@@ -1,0 +1,17 @@
+--- gcc-4.1.2-orig/ltconfig	2013-12-04 19:03:40.503122124 +0000
++++ gcc-4.1.2/ltconfig	2013-12-04 19:14:04.243107207 +0000
+@@ -1112,10 +1112,13 @@
+   need_version=no
+   # Disable shared library build on OS-X older than 10.3.
+   case $host_os in
++      darwin10*)
++	  can_build_shared=yes
++	  ;;
+       darwin[1-6]*)
+ 	  can_build_shared=no
+ 	  ;;
+-      darwin7*)
++      darwin[7-9]*)
+ 	  can_build_shared=yes
+ 	  ;;
+   esac
