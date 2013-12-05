@@ -2875,14 +2875,27 @@ $ tar zxf gcc-@value{version-GCC}+gm2-cvs-latest.tar.gz
 @section Building GNU Modula-2 from source under GNU/Linux
 
 On a GNU/Linux system you should also be able to build it using these
-commands.  The following commands assume your shell is @file{/bin/bash}.
+commands.  If you are building on a system which supports multiarch
+then you should type:
+
+@example
+$ CFLAGS=-B/usr/lib/x86_64-linux-gnu
+$ export CFLAGS
+$ LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
+$ export LIBRARY_PATH
+@end example
+
+The above is necessary on a Debian Wheezy x86_64 system, but not on
+Debian Squeeze.
+
+The following commands assume your shell is @file{/bin/bash}.
 To build GNU Modula-2 type:
 
 @example
 $ mkdir -p $HOME/opt
 $ mkdir -p build-@value{version-GCC}
 $ cd build-@value{version-GCC}
-$ ../gcc-4.1.2+gm2-cvs-latest/configure --enable-languages=c,c++,gm2 \
+$ ../gcc-4.1.2+gm2-git-latest/configure --enable-languages=c,c++,gm2 \
      --disable-multilib --enable-checking=all --prefix=$HOME/opt
 $ make "SHELL=/bin/bash"
 @end example

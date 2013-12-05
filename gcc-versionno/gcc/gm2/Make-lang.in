@@ -583,9 +583,11 @@ gm2.install-common: installdirs \
         done ; \
 	for i in $(srcdir)/gm2/gm2-libs-coroutines/*.def \
                  $(srcdir)/gm2/gm2-libs-coroutines/*.mod ; do \
-           if [ ! -d $$i ] ; then \
-              rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
-              $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PCO) ; \
+           if [ "`basename $$i`" != "SYSTEM.def" ] ; then \
+              if [ ! -d $$i ] ; then \
+                 rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PCO) ; \
+              fi ; \
            fi ; \
         done ; \
 	for i in gm2/gm2-libs-coroutines/*.a ; do \
@@ -1872,6 +1874,13 @@ $(objdir)/gm2/gm2-libs-iso/SYSTEM.def: stage1/gm2/cc1gm2$(exeext)
              -I$(srcdir)/gm2/gm2-libs-iso:$(srcdir)/gm2/gm2-libs \
              "./xgm2 -B./stage1/gm2" $@
 
+$(objdir)/gm2/gm2-libs-coroutines/SYSTEM.def: stage1/gm2/cc1gm2$(exeext)
+	bash $(srcdir)/gm2/tools-src/makeSystem -fiso \
+             $(srcdir)/gm2/gm2-libs-coroutines/SYSTEM.def \
+             $(srcdir)/gm2/gm2-libs-coroutines/SYSTEM.mod \
+             -I$(srcdir)/gm2/gm2-libs-coroutines:$(srcdir)/gm2/gm2-libs-iso:$(srcdir)/gm2/gm2-libs: \
+             "./xgm2 -B./stage1/gm2" $@
+
 build-libs-min: $(objdir)/gm2/gm2-libs-min/SYSTEM.def \
                 $(GM2-LIBS-MIN-MODS:%.mod=gm2/gm2-libs-min/%.o) \
                 $(GM2-LIBS-MIN-C:%.c=gm2/gm2-libs-min/%.o) \
@@ -1997,7 +2006,8 @@ archive-libs-pim: build-libs-pim
                 gm2/gm2-libs-pim/SO_O2/Break.o
 	$(RANLIB_FOR_TARGET) gm2/gm2-libs-pim/SO_O2/libgm2pim.a
 
-build-libs-coroutines: $(GM2-LIBS-PIM-COR-MODS:%.mod=gm2/gm2-libs-coroutines/%.o) \
+build-libs-coroutines: $(objdir)/gm2/gm2-libs-coroutines/SYSTEM.def \
+                       $(GM2-LIBS-PIM-COR-MODS:%.mod=gm2/gm2-libs-coroutines/%.o) \
                        gm2/gm2-libs-coroutines/KeyBoardLEDs.o \
                        $(GM2-LIBS-PIM-COR-MODS:%.mod=gm2/gm2-libs-coroutines/O2/%.o) \
                        gm2/gm2-libs-coroutines/O2/KeyBoardLEDs.o \

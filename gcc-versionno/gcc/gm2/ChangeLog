@@ -1,3 +1,18 @@
+2013-12-05      Gaius Mulley <gaius@gnu.org>
+
+	* gcc-versionno/gcc/gm2/Make-lang.in:  build a
+	  pim-coroutine version of SYSTEM.def and install it.
+	* gcc-versionno/gcc/gm2/gm2-libs-coroutines/SYSTEM.def:
+	  add (* @SYSTEM_DATATYPES@ *) to the export list and
+	  @SYSTEM_TYPES@ to the commented out type list.
+	* gcc-versionno/gcc/gm2/gm2.texi:  updated building
+	  section on how to build a 4.1.2 based gm2 under
+	  multiarch (Wheezy).
+
+2013-12-04      Gaius Mulley <gaius@gnu.org>
+
+	* repository now using git and the new structure.
+	
 2013-01-09      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  updated the building process for OpenBSD
