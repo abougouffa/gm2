@@ -2895,7 +2895,8 @@ To build GNU Modula-2 type:
 $ mkdir -p $HOME/opt
 $ mkdir -p build-@value{version-GCC}
 $ cd build-@value{version-GCC}
-$ ../gcc-4.1.2+gm2-git-latest/configure --enable-languages=c,c++,gm2 \
+$ ../gcc-4.1.2+gm2-git-latest/gm2/gcc-versionno/configure \
+     --enable-languages=c,c++,gm2 \
      --disable-multilib --enable-checking=all --prefix=$HOME/opt
 $ make "SHELL=/bin/bash"
 @end example
@@ -3044,7 +3045,8 @@ commands were used to build GNU Modula-2.
 @example
 $ mkdir build
 $ cd build
-$ ../gcc-4.1.2+gm2-cvs-latest/configure --prefix=/gm2/opt \
+$ ../gcc-4.1.2+gm2-git-latest/gm2/gcc-versionno/configure \
+  --prefix=/gm2/opt \
   --disable-multilib --enable-checking=all \
   --enable-languages=c,c++,gm2
 $ make
@@ -3084,7 +3086,7 @@ Let us assume that the build was configured as such:
 @example
 $ mkdir build
 $ cd build
-$ ../gcc-@value{version-GCC}+gm2-cvs-latest/configure \
+$ ../gcc-@value{version-GCC}+gm2-git-latest/gm2/gcc-versionno/configure \
    --prefix=$HOME/private \
    --enable-languages=c,c++,gm2  --enable-checking \
    --disable-multilib
