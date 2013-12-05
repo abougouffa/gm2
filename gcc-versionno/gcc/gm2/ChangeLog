@@ -8,6 +8,8 @@
 	* gcc-versionno/gcc/gm2/gm2.texi:  updated building
 	  section on how to build a 4.1.2 based gm2 under
 	  multiarch (Wheezy).
+	* gcc-versionno/gcc/gm2/gm2-libs-coroutines/SYSTEM.def:
+	  removed duplicate exports of BYTE, ADDRESS and WORD.
 
 2013-12-04      Gaius Mulley <gaius@gnu.org>
 

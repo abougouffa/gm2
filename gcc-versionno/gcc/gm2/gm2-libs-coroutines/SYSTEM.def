@@ -32,8 +32,7 @@ DEFINITION MODULE SYSTEM ;
 FROM COROUTINES IMPORT PROTECTION ;
 
 EXPORT QUALIFIED (* the following are built into the compiler: *)
-                 ADDRESS, WORD, BYTE, ADR, TSIZE, THROW,
-                 (* @SYSTEM_DATATYPES@ *)
+                 ADR, TSIZE, THROW, (* @SYSTEM_DATATYPES@ *)
                  (* SIZE is exported depending upon -fpim2 and
                     -fpedantic *)
                  (* and the rest are implemented in SYSTEM.mod *)
