@@ -10,6 +10,8 @@
 	  multiarch (Wheezy).
 	* gcc-versionno/gcc/gm2/gm2-libs-coroutines/SYSTEM.def:
 	  removed duplicate exports of BYTE, ADDRESS and WORD.
+	* gcc-versionno/gcc/gm2/gm2-libs-coroutines/SYSTEM.def:
+	  fixed previous change.
 
 2013-12-04      Gaius Mulley <gaius@gnu.org>
 
