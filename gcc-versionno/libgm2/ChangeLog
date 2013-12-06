@@ -1,3 +1,8 @@
+2013-12-06      Gaius Mulley <gaius@gnu.org>
+
+	* gcc-versionno/gcc/gm2/Make-lang.in:  changed flag to -fpim
+	  and changed path appropriately.
+
 2013-12-05      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/libgm2/Makefile.in:  build coroutine version of SYSTEM.def.

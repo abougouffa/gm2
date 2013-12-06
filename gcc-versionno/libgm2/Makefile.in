@@ -689,10 +689,10 @@ $(GM2_OBJ)/gm2-libs-iso/SYSTEM.def:
              "$(GCC_DIR)/xgm2 -B$(GCC_DIR)/stage1/gm2" $@
 
 $(GM2_OBJ)/gm2-libs-coroutines/SYSTEM.def:
-	bash $(GM2_SRC)/tools-src/makeSystem -fiso \
+	bash $(GM2_SRC)/tools-src/makeSystem -fpim \
              $(GM2_SRC)/gm2-libs-coroutines/SYSTEM.def \
              $(GM2_SRC)/gm2-libs-coroutines/SYSTEM.mod \
-             -I$(GM2_SRC)/gm2-libs-coroutines:$(GM2_SRC)/gm2-libs-iso:$(GM2_SRC)/gm2-libs: \
+             -I$(GM2_SRC)/gm2-libs-coroutines:$(GM2_SRC)/gm2-libs:$(GM2_SRC)/gm2-libs-iso \
              "$(GCC_DIR)/xgm2 -B$(GCC_DIR)/stage1/gm2" $@
 
 build-libs-min: $(GM2_OBJ)/gm2-libs-min/SYSTEM.def \
