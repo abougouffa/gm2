@@ -590,6 +590,15 @@ gm2.install-common: installdirs \
               fi ; \
            fi ; \
         done ; \
+	for i in gm2/gm2-libs-coroutines/*.def xyz ; do \
+           rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PCO) ; \
+              fi ; \
+           fi ; \
+        done ; \
 	for i in gm2/gm2-libs-coroutines/*.a ; do \
            rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
            if [ -f $$i ] ; then \
@@ -1900,6 +1909,7 @@ archive-libs-min: build-libs-min
 build-libs: gm2/gm2-libs/gm2-libs-host.h \
             $(objdir)/gm2/gm2-libs/SYSTEM.def \
             $(objdir)/gm2/gm2-libs-iso/SYSTEM.def \
+            $(objdir)/gm2/gm2-libs-coroutines/SYSTEM.def \
             $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs/%.o) \
             $(GM2-LIBS-C:%.c=gm2/gm2-libs/%.o) \
             $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs/O2/%.o) \

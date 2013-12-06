@@ -4,11 +4,15 @@
 	* gcc-version/gcc/testsuite/gm2/pimcoroutes/pass/exports.mod:
 	* gcc-version/gcc/testsuite/gm2/pimcoroutes/pass/exports2.mod:
 	  (New files)
-	* gcc-versionno/gcc/gm2/Make-lang.in:  changed flag to -fpim
+	* gcc-versionno/gcc/gm2/Make-lang.in: changed flag to -fpim
 	  and changed path appropriately.
-	* gcc-versionno/gcc/gm2/gm2-libs-coroutines/SYSTEM.def: corrected
-	  export list taking care to only have data types on the 
-	  (* @SYSTEM_DATATYPES@ *) line.
+	* gcc-versionno/gcc/gm2/gm2-libs-coroutines/SYSTEM.def:
+	  corrected export list taking care to only have data types
+          on the (* @SYSTEM_DATATYPES@ *) line.
+	* gcc-versionno/gcc/gm2/Make-lang.in: modified install to
+	  install pim coroutines version of SYSTEM.def.  Added
+	  coroutines version of SYSTEM.def to the build-libs
+	  dependency list.
 
 2013-12-05      Gaius Mulley <gaius@gnu.org>
 
