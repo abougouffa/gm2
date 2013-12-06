@@ -7,6 +7,10 @@
 	* gcc-versionno/gcc/gm2/gm2-libs-coroutines/SYSTEM.def: corrected
 	  export list taking care to only have data types on the 
 	  (* @SYSTEM_DATATYPES@ *) line.
+	* gcc-versionno/gcc/gm2/Make-lang.in:  add
+	  gcc-versionno/gcc/gm2/Make-lang.in to be a dependant of gm2/gm2-libs.texi.
+          Add new rule to build $(objdir)/gm2/gm2-libs-coroutines/SYSTEM.def.
+	  Add $(objdir)/gm2/gm2-libs-coroutines/SYSTEM.def to build-system.
 
 2013-12-05      Gaius Mulley <gaius@gnu.org>
 
