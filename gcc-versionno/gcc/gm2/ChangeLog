@@ -1,84 +1,102 @@
+2013-12-09      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-coroutines/SYSTEM.def: added definition
+	  of the internal procedure functions
+          ShiftVal, ShiftLeft, ShiftRight, RotateVal,
+	  RotateLeft, RotateRight to handle large sets.
+	* gm2/gm2-libs-coroutines/SYSTEM.mod: added implementation
+	  of the internal procedure functions
+          ShiftVal, ShiftLeft, ShiftRight, RotateVal,
+	  RotateLeft, RotateRight to handle large sets.
+	* gm2/gm2-compiler/M2GenGCC.mod:  fixed type change
+	  bug which occurred if a large bitset is compared to
+	  an empty set.  Use ConvertBinaryOperands for the
+	  special case as well.
+	* gm2/gm2-gcc/m2expr.c:  corrected function indirect
+	  prototype to include location_t.
+	* gm2/gm2-gcc/m2expr.h:  corrected function indirect
+	  prototype to include location_t.
+
 2013-12-06      Gaius Mulley <gaius@gnu.org>
 
-	* gcc-version/gcc/testsuite/gm2/pimcoroutes/pass/gm2.exp:
-	* gcc-version/gcc/testsuite/gm2/pimcoroutes/pass/exports.mod:
-	* gcc-version/gcc/testsuite/gm2/pimcoroutes/pass/exports2.mod:
+	* testsuite/gm2/pimcoroutes/pass/gm2.exp:
+	* testsuite/gm2/pimcoroutes/pass/exports.mod:
+	* testsuite/gm2/pimcoroutes/pass/exports2.mod:
 	  (New files)
-	* gcc-versionno/gcc/gm2/gm2-libs-coroutines/SYSTEM.def: corrected
+	* gm2/gm2-libs-coroutines/SYSTEM.def: corrected
 	  export list taking care to only have data types on the 
 	  (* @SYSTEM_DATATYPES@ *) line.
-	* gcc-versionno/gcc/gm2/Make-lang.in:  add
-	  gcc-versionno/gcc/gm2/Make-lang.in to be a dependant of gm2/gm2-libs.texi.
+	* gm2/Make-lang.in:  add
+	  gm2/Make-lang.in to be a dependant of gm2/gm2-libs.texi.
           Add new rule to build $(objdir)/gm2/gm2-libs-coroutines/SYSTEM.def.
 	  Add $(objdir)/gm2/gm2-libs-coroutines/SYSTEM.def to build-system.
 
 2013-12-05      Gaius Mulley <gaius@gnu.org>
 
-	* gcc-versionno/gcc/gm2/gm2.texi:  added information on
+	* gm2/gm2.texi:  added information on
 	  how to build a gcc-4.1.2 based gm2 under a multiarch
 	  linux system.
-	* gcc-versionno/gcc/gm2/gm2.texi:  changed configure
+	* gm2/gm2.texi:  changed configure
 	  examples to reflect new source tree layout.
-
 
 2013-12-01      Gaius Mulley <gaius@gnu.org>
 
-	* gcc-versionno/gcc/gm2/examples/pge/deviceGroff.mod:  (newFrame)
+	* gm2/examples/pge/deviceGroff.mod:  (newFrame)
 	  emit leading .ll 8i.
-	* gcc-versionno/gcc/gm2/examples/pge/foo.mod:  (regenerated).
-	* gcc-versionno/gcc/gm2/gm2-gcc/m2builtins.c:  (m2builtins_BuildBuiltinTree)
+	* gm2/examples/pge/foo.mod:  (regenerated).
+	* gm2/gm2-gcc/m2builtins.c:  (m2builtins_BuildBuiltinTree)
 	  corrected formatting.
-	* gcc-versionno/gcc/testsuite/gm2/pim/pass/builtin.def:  corrected sinf
+	* testsuite/gm2/pim/pass/builtin.def:  corrected sinf
 	  to use and return SHORTREAL types.
-	* gcc-versionno/gcc/testsuite/gm2/pim/pass/builtin.mod:  corrected sinf
+	* testsuite/gm2/pim/pass/builtin.mod:  corrected sinf
 	  to use and return SHORTREAL types.
-	* gcc-versionno/gcc/testsuite/gm2/pim/pass/testsinf.mod:  corrected test
+	* testsuite/gm2/pim/pass/testsinf.mod:  corrected test
 	  to use REAL rather than SHORTREAL with sinf.
 
 2013-11-20      Gaius Mulley <gaius@gnu.org>
 
-	* gcc-versionno/gcc/gm2/config-lang.in:  added target-libgm2
+	* gm2/config-lang.in:  added target-libgm2
 	  to the list of target_libs.
-	* gcc-versionno/gcc/gm2/examples/pge/foo.fig:  new example.
-	* gcc-versionno/gcc/gm2/examples/pge/foo.mod:  regenerated.
-	* gcc-versionno/gcc/gm2/gm2-compiler/M2GenGCC.mod:  change
+	* gm2/examples/pge/foo.fig:  new example.
+	* gm2/examples/pge/foo.mod:  regenerated.
+	* gm2/gm2-compiler/M2GenGCC.mod:  change
 	  type to Address if lvalue is used, this fixes the
 	  regression test failure in
-	  gcc-versionno/gcc/testsuite/gm2/iso/run/pass/unbounded.mod.
-	* gcc-versionno/gcc/gm2/gm2spec.c:  remove extern int force_no_linker.
+	  testsuite/gm2/iso/run/pass/unbounded.mod.
+	* gm2/gm2spec.c:  remove extern int force_no_linker.
 	  Changed variable name force_no_linker to allow_linker and
 	  switched boolean value.  allow_linker now exported via gcc.h.
-	* gcc-versionno/gcc/gm2/patches/gcc/4.7.3/0[0-9]-patches:
+	* gm2/patches/gcc/4.7.3/0[0-9]-patches:
 	  regenerated.
-	* gcc-versionno/gcc/gm2/patches/gcc/4.7.3/10-patches:
+	* gm2/patches/gcc/4.7.3/10-patches:
 	  regenerated.
 
 2013-11-15      Gaius Mulley <gaius@gnu.org>
 
-	* gcc-versionno/gcc/gm2/gm2-libs-iso/LongWholeIO.mod:  (ReadInt)
-	* gcc-versionno/gcc/gm2/gm2-libs-iso/ShortWholeIO.mod:  (ReadInt)
-	* gcc-versionno/gcc/gm2/gm2-libs-iso/WholeIO.mod:  (ReadInt)
+	* gm2/gm2-libs-iso/LongWholeIO.mod:  (ReadInt)
+	* gm2/gm2-libs-iso/ShortWholeIO.mod:  (ReadInt)
+	* gm2/gm2-libs-iso/WholeIO.mod:  (ReadInt)
 	  catch overflow and set the read result accordingly.
-	* gcc-versionno/gcc/gm2/gm2-libs-iso/LongWholeIO.mod:  (ReadInt)
-	* gcc-versionno/gcc/gm2/gm2-libs-iso/ShortWholeIO.mod:  (ReadInt)
-	* gcc-versionno/gcc/gm2/gm2-libs-iso/WholeIO.mod:  (ReadInt)
+	* gm2/gm2-libs-iso/LongWholeIO.mod:  (ReadInt)
+	* gm2/gm2-libs-iso/ShortWholeIO.mod:  (ReadInt)
+	* gm2/gm2-libs-iso/WholeIO.mod:  (ReadInt)
 	  reference SetReadResult correctly via IOChan.
 
 2013-11-14      Gaius Mulley <gaius@gnu.org>
 
-	* gcc-versionno/gcc/gm2/gm2-compiler/M2GenGCC.mod:  (FoldBinary)
+	* gm2/gm2-compiler/M2GenGCC.mod:  (FoldBinary)
 	  convert left and right operands to the result type.
-	* gcc-versionno/gcc/gm2/gm2-libs-iso/ShortWholeIO.mod:  (ReadInt)
+	* gm2/gm2-libs-iso/ShortWholeIO.mod:  (ReadInt)
 	  handle negative value without overflowing.
-	* gcc-versionno/gcc/gm2/gm2-libs-iso/WholeIO.mod:  (ReadInt)
+	* gm2/gm2-libs-iso/WholeIO.mod:  (ReadInt)
 	  handle negative value without overflowing.
 
 2013-11-13      Gaius Mulley <gaius@gnu.org>
 
-	* gcc-versionno/gcc/gm2/gm2-compiler/M2ALU.mod:  (InitialiseArrayWith)
+	* gm2/gm2-compiler/M2ALU.mod:  (InitialiseArrayWith)
 	  convert low and high bounds into integers when creating array
 	  constants.
-	* gcc-versionno/gcc/gm2/gm2-gcc/m2expr.c:  (m2expr_BuildAdd),
+	* gm2/gm2-gcc/m2expr.c:  (m2expr_BuildAdd),
 	  (m2expr_BuildSub), (m2expr_BuildDivTrunc), (m2expr_BuildModTrunc),
 	  (m2expr_BuildDivFloor), (m2expr_BuildModFloor), (m2expr_BuildLSL),
 	  (m2expr_BuildLSR), (m2expr_BuildLRL), (m2expr_BuildLRR),
@@ -88,14 +106,14 @@
 
 2013-11-12      Gaius Mulley <gaius@gnu.org>
 
-	* gcc-versionno/gcc/gm2/gm2-gcc/m2expr.c:  (m2expr_BuildCmplx) check
+	* gm2/gm2-gcc/m2expr.c:  (m2expr_BuildCmplx) check
 	  to see that the expressions are REAL_CST before calling
 	  build_complex.
-	* gcc-versionno/gcc/gm2/gm2-compiler/M2Options.def:  (FinaliseOptions)
+	* gm2/gm2-compiler/M2Options.def:  (FinaliseOptions)
 	  exported.
-	* gcc-versionno/gcc/gm2/gm2-gcc/m2options.h:  (FinaliseOptions)
+	* gm2/gm2-gcc/m2options.h:  (FinaliseOptions)
 	  declared extern.
-	* gcc-versionno/gcc/gm2/gm2-lang.c:  (gm2_langhook_post_options)
+	* gm2/gm2-lang.c:  (gm2_langhook_post_options)
 	  call M2Options_FinaliseOptions.
 
 2013-11-10      Gaius Mulley <gaius@gnu.org>

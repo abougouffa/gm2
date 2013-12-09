@@ -30,7 +30,7 @@ EXTERN void m2expr_BuildIfInRangeGoto (location_t location, tree var, tree low, 
 EXTERN void m2expr_BuildForeachWordInSetDoIfExpr (location_t location, tree type, tree op1, tree op2,
 						  int is_op1lvalue, int is_op2lvalue,
 						  int  is_op1const, int is_op2const,
-						  tree (*expr) (tree, tree),
+						  tree (*expr) (location_t, tree, tree),
 						  char *label);
 EXTERN void m2expr_BuildIfNotVarInVar (location_t location, tree type, tree varset, tree varel,
 				       int is_lvalue,

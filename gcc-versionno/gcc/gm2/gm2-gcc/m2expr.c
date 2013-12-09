@@ -1725,7 +1725,7 @@ m2expr_BuildForeachWordInSetDoIfExpr (location_t location,
 				      tree type, tree op1, tree op2,
                                       int is_op1lvalue, int is_op2lvalue,
                                       int  is_op1const, int is_op2const,
-                                      tree (*expr) (tree, tree),
+                                      tree (*expr) (location_t, tree, tree),
                                       char *label)
 {
   tree p1 = m2treelib_get_set_address_if_var (location, op1, is_op1lvalue, is_op1const);
@@ -1740,7 +1740,8 @@ m2expr_BuildForeachWordInSetDoIfExpr (location_t location,
 
   while (field1 != NULL && field2 != NULL) {
     m2statement_DoJump (location,
-			(*expr) (m2treelib_get_set_value (location, p1, field1, is_op1const, op1, fieldNo),
+			(*expr) (location,
+				 m2treelib_get_set_value (location, p1, field1, is_op1const, op1, fieldNo),
 				 m2treelib_get_set_value (location, p2, field2, is_op2const, op2, fieldNo)),
 			NULL, label);
     fieldNo++;

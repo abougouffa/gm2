@@ -6452,8 +6452,10 @@ BEGIN
    IF n=2
    THEN
       (* actually only one set range, so we invert it *)
-      vt := ConvertForComparison(tokenno, var, low) ;
-      BuildIfNotInRangeGoto(location, vt, Mod2Gcc(low), Mod2Gcc(high), truelabel) ;
+      type := MixTypes3(low, high, var, tokenno) ;
+      ConvertBinaryOperands(vt, lt, type, var, low) ;
+      ConvertBinaryOperands(ht, lt, type, high, low) ;
+      BuildIfNotInRangeGoto(location, vt, lt, ht, truelabel)
    ELSE
       n := 1 ;
       falselabel := string(Sprintf1(Mark(InitString('.Lset%d')), quad)) ;
