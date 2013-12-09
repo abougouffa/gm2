@@ -1,50 +1,61 @@
+2013-12-09      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-coroutines/SYSTEM.def: added definition
+	  of the internal procedure functions
+          ShiftVal, ShiftLeft, ShiftRight, RotateVal,
+	  RotateLeft, RotateRight to handle large sets.
+	* gm2/gm2-libs-coroutines/SYSTEM.mod: added implementation
+	  of the internal procedure functions
+          ShiftVal, ShiftLeft, ShiftRight, RotateVal,
+	  RotateLeft, RotateRight to handle large sets.
+
 2013-12-06      Gaius Mulley <gaius@gnu.org>
 
-	* gcc-version/gcc/testsuite/gm2/pimcoroutes/pass/gm2.exp:
-	* gcc-version/gcc/testsuite/gm2/pimcoroutes/pass/exports.mod:
-	* gcc-version/gcc/testsuite/gm2/pimcoroutes/pass/exports2.mod:
+	* testsuite/gm2/pimcoroutes/pass/gm2.exp:
+	* testsuite/gm2/pimcoroutes/pass/exports.mod:
+	* testsuite/gm2/pimcoroutes/pass/exports2.mod:
 	  (New files)
-	* gcc-versionno/gcc/gm2/Make-lang.in: changed flag to -fpim
+	* gm2/Make-lang.in: changed flag to -fpim
 	  and changed path appropriately.
-	* gcc-versionno/gcc/gm2/gm2-libs-coroutines/SYSTEM.def:
+	* gm2/gm2-libs-coroutines/SYSTEM.def:
 	  corrected export list taking care to only have data types
           on the (* @SYSTEM_DATATYPES@ *) line.
-	* gcc-versionno/gcc/gm2/Make-lang.in: modified install to
+	* gm2/Make-lang.in: modified install to
 	  install pim coroutines version of SYSTEM.def.  Added
 	  coroutines version of SYSTEM.def to the build-libs
 	  dependency list.
 
 2013-12-05      Gaius Mulley <gaius@gnu.org>
 
-	* gcc-versionno/gcc/gm2/Make-lang.in:  build a
+	* gm2/Make-lang.in:  build a
 	  pim-coroutine version of SYSTEM.def and install it.
-	* gcc-versionno/gcc/gm2/gm2-libs-coroutines/SYSTEM.def:
+	* gm2/gm2-libs-coroutines/SYSTEM.def:
 	  add (* @SYSTEM_DATATYPES@ *) to the export list and
 	  @SYSTEM_TYPES@ to the commented out type list.
-	* gcc-versionno/gcc/gm2/gm2.texi:  updated building
+	* gm2/gm2.texi:  updated building
 	  section on how to build a 4.1.2 based gm2 under
 	  multiarch (Wheezy).
-	* gcc-versionno/gcc/gm2/gm2-libs-coroutines/SYSTEM.def:
+	* gm2/gm2-libs-coroutines/SYSTEM.def:
 	  removed duplicate exports of BYTE, ADDRESS and WORD.
-	* gcc-versionno/gcc/gm2/gm2-libs-coroutines/SYSTEM.def:
+	* gm2/gm2-libs-coroutines/SYSTEM.def:
 	  fixed previous change.
-	* gcc-versionno/gcc/gm2/patches/gcc/4.1.2/03-patch:
-	* gcc-versionno/gcc/gm2/patches/gcc/4.1.2/04-patch:
-	* gcc-versionno/gcc/gm2/patches/gcc/4.1.2/05-patch:
-	* gcc-versionno/gcc/gm2/patches/gcc/4.1.2/06-patch:
-	* gcc-versionno/gcc/gm2/patches/gcc/4.1.2/07-patch:
-	* gcc-versionno/gcc/gm2/patches/gcc/4.1.2/08-patch:
-	* gcc-versionno/gcc/gm2/patches/gcc/4.1.2/09-patch:
-	* gcc-versionno/gcc/gm2/patches/gcc/4.1.2/10-patch:
-	* gcc-versionno/gcc/gm2/patches/gcc/4.1.2/11-patch:
-	* gcc-versionno/gcc/gm2/patches/gcc/4.1.2/12-patch:
-	* gcc-versionno/gcc/gm2/patches/gcc/4.1.2/13-patch:
-	* gcc-versionno/gcc/gm2/patches/gcc/4.1.2/14-patch:
-	* gcc-versionno/gcc/gm2/patches/gcc/4.1.2/15-patch:
-	* gcc-versionno/gcc/gm2/patches/gcc/4.1.2/16-patch:
-	* gcc-versionno/gcc/gm2/patches/gcc/4.1.2/17-patch:
+	* gm2/patches/gcc/4.1.2/03-patch:
+	* gm2/patches/gcc/4.1.2/04-patch:
+	* gm2/patches/gcc/4.1.2/05-patch:
+	* gm2/patches/gcc/4.1.2/06-patch:
+	* gm2/patches/gcc/4.1.2/07-patch:
+	* gm2/patches/gcc/4.1.2/08-patch:
+	* gm2/patches/gcc/4.1.2/09-patch:
+	* gm2/patches/gcc/4.1.2/10-patch:
+	* gm2/patches/gcc/4.1.2/11-patch:
+	* gm2/patches/gcc/4.1.2/12-patch:
+	* gm2/patches/gcc/4.1.2/13-patch:
+	* gm2/patches/gcc/4.1.2/14-patch:
+	* gm2/patches/gcc/4.1.2/15-patch:
+	* gm2/patches/gcc/4.1.2/16-patch:
+	* gm2/patches/gcc/4.1.2/17-patch:
 	  (New files).
-	* gcc-versionno/gcc/gm2/gm2.texi:  changed configure
+	* gm2/gm2.texi:  changed configure
 	  examples to reflect new source tree layout.
 
 2013-12-04      Gaius Mulley <gaius@gnu.org>
