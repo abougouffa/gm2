@@ -14,3 +14,61 @@ Or to cut to the chase, type:
 $ sh ./combine-trees
 
 which will produce a source tree in ./scratch/source/gm2/gcc-versionno
+
+
+Git Source Tree Layout
+======================
+
+Here is a diagram summarising the layout of this source tree
+
+             +------[gm2]----------+---------+
+            /         |             \         \
+           /          |              \         \
+[gm2-harness]   [gcc-versionno]   README   combine-trees
+   |                  |
+   |                  |
+  "etc"             [gcc]--------------+
+                      |                 \
+                      |                  \
+                    [gm2]             [testsuite]
+                     /  \                  \
+                    /    \                  \
+  "etc"    [gm2-libs]    [gm2-compiler]    [gm2]
+
+
+
+
+This tree should be overlayed on top of a gcc source tree which in
+summary looks like this:
+
+
+                 [gcc-4.7.3]
+                      |
+                      |
+                +---[gcc]----+
+               /      |       \
+              /       |        \
+     [fortran]    [c-family]    [testsuite]-------+
+                                 \                 \
+                                  \                 \
+                                  [c-c++-common]    [lib]
+
+
+To produce a tree looking like this:
+
+
+
+              +------[gm2]----------+---------+
+             /         |             \         \
+            /          |              \         \
+ [gm2-harness]   [gcc-versionno]   README   combine-trees
+    |                  |
+    |                  |
+  "etc"   +--------+-[gcc]--------------+
+         /        /    |                 \
+        /        /     |                  \
+[fortran] [c-family] [gm2]             [testsuite]--+-----------+
+                      / \                  |        |           |
+                     /   \                 |        |           |
+  "etc"    [gm2-libs]     [gm2-compiler] [gm2] [c-c++-common] [lib]
+

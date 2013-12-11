@@ -1,3 +1,8 @@
+2013-12-11      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-coroutines/SYSTEM.def: added commented
+	  internal procedure function definitions.
+
 2013-12-09      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-coroutines/SYSTEM.def: added definition

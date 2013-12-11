@@ -123,6 +123,59 @@ PROCEDURE ListenLoop ;
 PROCEDURE TurnInterrupts (to: PROTECTION) : PROTECTION ;
 
 
+(*
+   all the functions below are declared internally to gm2
+   ====================================================
+
+PROCEDURE ADR (VAR v: <anytype>): ADDRESS;
+  (* Returns the address of variable v. *)
+
+PROCEDURE SIZE (v: <type>) : ZType;
+  (* Returns the number of BYTES used to store a v of
+     any specified <type>.  Only available if -fpim2 is used.
+  *)
+
+PROCEDURE TSIZE (<type>) : CARDINAL;
+  (* Returns the number of BYTES used to store a value of the
+     specified <type>.
+  *)
+
+PROCEDURE ROTATE (val: <a set type>;
+                  num: INTEGER): <type of first parameter>;
+  (* Returns a bit sequence obtained from val by rotating up or down
+     (left or right) by the absolute value of num.  The direction is
+     down if the sign of num is negative, otherwise the direction is up.
+  *)
+
+PROCEDURE SHIFT (val: <a set type>;
+                 num: INTEGER): <type of first parameter>;
+  (* Returns a bit sequence obtained from val by shifting up or down
+     (left or right) by the absolute value of num, introducing
+     zeros as necessary.  The direction is down if the sign of
+     num is negative, otherwise the direction is up.
+  *)
+
+PROCEDURE THROW (i: INTEGER) ;
+  (*
+     THROW is a GNU extension and was not part of the PIM or ISO
+     standards.  It throws an exception which will be caught by the EXCEPT
+     block (assuming it exists).  This is a compiler builtin function which
+     interfaces to the GCC exception handling runtime system.
+     GCC uses the term throw, hence the naming distinction between
+     the GCC builtin and the Modula-2 runtime library procedure Raise.
+     The later library procedure Raise will call SYSTEM.THROW after
+     performing various housekeeping activities.
+  *)
+
+PROCEDURE TBITSIZE (<type>) : CARDINAL ;
+  (* Returns the minimum number of bits necessary to represent
+     <type>.  This procedure function is only useful for determining
+     the number of bits used for any type field within a packed RECORD.
+     It is not particularly useful elsewhere since <type> might be
+     optimized for speed, for example a BOOLEAN could occupy a WORD.
+  *)
+*)
+
 (* The following procedures are invoked by GNU Modula-2 to
    shift non word sized set types. They are not strictly part
    of the core PIM Modula-2, however they are used by

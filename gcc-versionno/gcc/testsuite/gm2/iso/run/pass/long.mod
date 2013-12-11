@@ -19,7 +19,7 @@ MODULE long ;
 
 FROM SYSTEM IMPORT WORD, ADR ;
 FROM Builtins IMPORT setjmp ;
-FROM libc IMPORT printf ;
+FROM libc IMPORT printf, exit ;
 
 VAR
    r: INTEGER ;
