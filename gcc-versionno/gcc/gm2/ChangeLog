@@ -2,6 +2,11 @@
 
 	* gm2/gm2-libs-coroutines/SYSTEM.def: added commented
 	  internal procedure function definitions.
+	* gm2/gm2-lang.c: remove the Go defaults in
+	  gm2_langhook_init_options_struct.  No longer attempt
+	  to split the stack, which fixes regression test failures
+	  in gm2/coroutines/pim/run/pass/testiotransfer.mod
+	  and gm2/coroutines/pim/run/pass/testtransfer.mod.
 
 2013-12-09      Gaius Mulley <gaius@gnu.org>
 

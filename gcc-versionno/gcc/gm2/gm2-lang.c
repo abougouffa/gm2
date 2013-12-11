@@ -93,15 +93,6 @@ gm2_langhook_option_lang_mask (void)
 static void
 gm2_langhook_init_options_struct (struct gcc_options *opts)
 {
-  /* Go says that signed overflow is precisely defined.  */
-  opts->x_flag_wrapv = 1;
-
-  /* We default to using strict aliasing, since Go pointers are safe.
-     This is turned off for code that imports the "unsafe" package,
-     because using unsafe.pointer violates C style aliasing
-     requirements.  */
-  opts->x_flag_strict_aliasing = 1;
-
   /* Default to avoiding range issues for complex multiply and
      divide.  */
   opts->x_flag_complex_method = 2;
@@ -109,10 +100,6 @@ gm2_langhook_init_options_struct (struct gcc_options *opts)
   /* The builtin math functions should not set errno.  */
   opts->x_flag_errno_math = 0;
   opts->frontend_set_flag_errno_math = true;
-
-  /* We turn on stack splitting if we can.  */
-  if (targetm_common.supports_split_stack (false, opts))
-    opts->x_flag_split_stack = 1;
 
   /* Exceptions are used to handle recovering from panics.  */
   opts->x_flag_exceptions = 1;
