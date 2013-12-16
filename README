@@ -25,9 +25,9 @@ Here is a diagram summarising the layout of this source tree
             /         |             \         \
            /          |              \         \
 [gm2-harness]   [gcc-versionno]   README   combine-trees
-   |                  |
-   |                  |
-  "etc"             [gcc]--------------+
+   |             /    |
+   |            /     |
+  "etc"    [libgm2] [gcc]--------------+
                       |                 \
                       |                  \
                     [gm2]             [testsuite]
@@ -62,9 +62,11 @@ To produce a tree looking like this:
              /         |             \         \
             /          |              \         \
  [gm2-harness]   [gcc-versionno]   README   combine-trees
-    |                  |
-    |                  |
-  "etc"   +--------+-[gcc]--------------+
+    |            /     |
+    |           /      |
+  "etc"    [libgm2]  [gcc]
+                       |
+          +--------+---+----------------+
          /        /    |                 \
         /        /     |                  \
 [fortran] [c-family] [gm2]             [testsuite]--+-----------+
