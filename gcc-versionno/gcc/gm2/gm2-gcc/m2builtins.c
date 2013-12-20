@@ -57,11 +57,6 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 #include "m2convert.h"
 #include "m2statement.h"
 
-
-extern tree builtin_function (location_t location, const char *, tree, int, enum built_in_class,
-			      const char *, tree);
-
-
 #define GM2
 #define GM2_BUG_REPORT "Please report this crash to the GNU Modula-2 mailing list <gm2@glam.ac.uk>\n"
 
@@ -356,8 +351,6 @@ static struct builtin_type_info m2_type_info[] = {
 };
 
 
-
-
 /* Return a definition for a builtin function named NAME and whose data type
    is TYPE.  TYPE should be a function type with argument types.
    FUNCTION_CODE tells later passes how to compile calls to this function.
@@ -370,8 +363,15 @@ tree
 builtin_function (location_t location,
 		  const char *name, tree type, int function_code,
 		  enum built_in_class fclass, const char *library_name,
-		  tree attrs ATTRIBUTE_UNUSED)
+		  tree attrs)
 {
+  tree decl = add_builtin_function (name, type, function_code, fclass, library_name, attrs);
+  DECL_SOURCE_LOCATION (decl) = location;
+
+  m2block_pushDecl (decl);
+  return decl;
+
+#if 0
   tree decl = build_decl (location, FUNCTION_DECL, get_identifier (name), type);
 
   DECL_EXTERNAL (decl) = 1;
@@ -384,6 +384,7 @@ builtin_function (location_t location,
   DECL_FUNCTION_CODE (decl) = function_code;
 
   return decl;
+#endif
 }
 
 /*

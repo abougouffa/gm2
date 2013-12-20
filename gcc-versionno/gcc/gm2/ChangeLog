@@ -1,3 +1,8 @@
+2013-12-20      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-gcc/m2builtins.c: (builtin_function) use
+	  add_builtin_function and set source line appropriately.
+
 2013-12-11      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-coroutines/SYSTEM.def: added commented
