@@ -447,6 +447,21 @@ convert_and_check (tree type, tree expr)
 }
 
 
+static tree
+doOrdinal (tree value)
+{
+  if (TREE_CODE (value) == STRING_CST
+      && (m2expr_StringLength (value) <= 1))
+    {
+      const char *p = TREE_STRING_POINTER (value);
+      int i = p[0];
+
+      return m2decl_BuildIntegerConstant (i);
+    }
+  return value;
+}
+
+
 /*
  *  BuildConvert - build and return tree VAL(op1, op2)
  *                 where op1 is the type to which op2
@@ -459,24 +474,21 @@ tree
 m2convert_BuildConvert (tree type, tree value, int checkOverflow)
 {
   enum tree_code code = TREE_CODE (value);
+  type = m2tree_skip_type_decl (type);
 
   value = fold (value);
   STRIP_NOPS (value);
   value = m2expr_FoldAndStrip (value);
-#if 0
-  while (TREE_CODE (value) == NOP_EXPR) {
-    mystop ();
-    value = TREE_OPERAND (value, 0);
-  }
-  if (TREE_CODE (value) == VAR_DECL)
-    return build1 (NOP_EXPR, type, value);
-#endif
 
+  if (TREE_CODE (value) == STRING_CST
+      && (m2expr_StringLength (value) <= 1)
+      && (m2tree_IsOrdinal (type)))
+    value = doOrdinal (value);
 
   if (checkOverflow)
-    return convert_and_check (m2tree_skip_type_decl (type), value);
+    return convert_and_check (type, value);
   else
-    return convert (m2tree_skip_type_decl (type), value);
+    return convert (type, value);
 }
 
 

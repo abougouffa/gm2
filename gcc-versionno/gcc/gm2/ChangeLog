@@ -1,3 +1,19 @@
+2013-12-24      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-gcc/m2convert.c: doOrdinal (New function).
+	  m2convert_BuildConvert call doOrdinal is value
+	  is a STRING_CST and its length <= 1.  Refactor
+	  type computation.
+	* gm2/gm2-gcc/m2statement.c:
+	  m2statement_BuildUnaryForeachWordDo remove p1, p2
+	  pointer calculations and use m2treelib_get_set_field_rhs
+	  and m2treelib_get_set_field_des instead.
+	  m2statement_BuildExcludeVarConst remove p1 and use
+          m2treelib_get_set_field_des and m2treelib_get_set_field_rhs
+	  instead.  m2statement_BuildIncludeVarConst use
+	  m2treelib_get_set_field_des instead of
+	  m2treelib_get_set_field_rhs.
+
 2013-12-20      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-gcc/m2builtins.c: (builtin_function) use
