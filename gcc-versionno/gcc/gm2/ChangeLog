@@ -2,6 +2,7 @@
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod: PushNoOfBits (New
 	  procedure).  DeclareLargeSet use PushNoOfBits.
+	* gm2/gm2-compiler/SymbolKey.def:  import WORD from SYSTEM.
 
 2013-12-24      Gaius Mulley <gaius@gnu.org>
 

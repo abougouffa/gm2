@@ -29,6 +29,7 @@ DEFINITION MODULE SymbolKey ;
                 Mon Aug 30 12:07:12 BST 1999
 *)
 
+FROM SYSTEM IMPORT WORD ;
 FROM NameKey IMPORT Name ;
 EXPORT QUALIFIED NulKey, SymbolTree,
                  IsSymbol, PerformOperation,
