@@ -1,3 +1,8 @@
+2013-12-25      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod: PushNoOfBits (New
+	  procedure).  DeclareLargeSet use PushNoOfBits.
+
 2013-12-24      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-gcc/m2convert.c: doOrdinal (New function).

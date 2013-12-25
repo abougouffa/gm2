@@ -134,7 +134,7 @@ FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout, Poison, RemoveMo
 FROM M2GenGCC IMPORT ResolveConstantExpressions ;
 FROM M2Scope IMPORT ScopeBlock, InitScopeBlock, KillScopeBlock, ForeachScopeBlockDo ;
 
-FROM M2ALU IMPORT Addn, Sub, Equ, GreEqu, Gre, Less, PushInt, PushCard,
+FROM M2ALU IMPORT Addn, Sub, Equ, GreEqu, Gre, Less, PushInt, PushCard, ConvertToType,
                   PushIntegerTree, PopIntegerTree, PopRealTree, ConvertToInt, PopSetTree,
                   IsConstructorDependants, WalkConstructorDependants,
                   PopConstructorTree, PopComplexTree, PutConstructorSolved,
@@ -4705,6 +4705,22 @@ END GetTypeMax ;
 
 
 (*
+   PushNoOfBits - pushes the integer value of the number of bits required
+                  to maintain a set of type.
+*)
+
+PROCEDURE PushNoOfBits (type: CARDINAL; low, high: CARDINAL) ;
+BEGIN
+   PushValue(high) ;
+   ConvertToType(type) ;
+   PushValue(low) ;
+   ConvertToType(type) ;
+   Sub ;
+   ConvertToType(Cardinal)
+END PushNoOfBits ;
+
+
+(*
    DeclareLargeSet - n is the name of the set.
                      type is the subrange type (or simple type)
                      low and high are the limits of the subrange.
@@ -4729,11 +4745,7 @@ BEGIN
    hightree   := PopIntegerTree() ;
    FieldList  := Tree(NIL) ;
    RecordType := BuildStartRecord(location, KeyToCharStar(n)) ;  (* no problem with recursive types here *)
-   PushValue(high) ;
-   ConvertToInt ;
-   PushValue(low) ;
-   ConvertToInt ;
-   Sub ;
+   PushNoOfBits(type, low, high) ;
    PushCard(1) ;
    Addn ;
    BitsInSet := PopIntegerTree() ;
@@ -4788,11 +4800,7 @@ PROCEDURE DeclareLargeOrSmallSet (sym: CARDINAL;
 VAR
    location: location_t ;
 BEGIN
-   PushValue(high) ;
-   ConvertToInt ;
-   PushValue(low) ;
-   ConvertToInt ;
-   Sub ;
+   PushNoOfBits(type, low, high) ;
    PushCard(GetBitsPerBitset()) ;
    IF Less(GetDeclared(type))
    THEN
