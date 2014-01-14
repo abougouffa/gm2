@@ -120,10 +120,11 @@ SRC_PREFIX=G
 gm2spec.o: $(srcdir)/gm2/gm2spec.c $(SYSTEM_H) $(GCC_H) $(CONFIG_H)
 	(SHLIB_LINK='$(SHLIB_LINK)' \
 	SHLIB_MULTILIB='$(SHLIB_MULTILIB)'; \
-	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(DRIVER_DEFINES) \
+	$(COMPILER) $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) \
+         $(DRIVER_DEFINES) \
 		-DLIBSUBDIR=\"$(libsubdir)\" \
                 -DPREFIX=\"$(prefix)\" \
-		$(INCLUDES) $(srcdir)/gm2/gm2spec.c $(OUTPUT_OPTION))
+                -c $(srcdir)/gm2/gm2spec.c $(OUTPUT_OPTION))
 
 gm2/gm2version.c: force
 	cd gm2 ; bash ../$(srcdir)/gm2/tools-src/makeversion -c ../$(srcdir)
@@ -833,16 +834,16 @@ gm2-gcc/m2builtins.o : $(srcdir)/gm2/gm2-gcc/m2builtins.c $(CONFIG_H) $(TREE_H) 
 gm2-gcc/m2except.o : $(srcdir)/gm2/gm2-gcc/m2except.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-m2except.h
 
 gm2/gm2-lang.o: $(srcdir)/gm2/gm2-lang.c $(CONFIG_H) gt-gm2-gm2-lang.h
-	$(CC) -c -g -I$(GM2GCC) $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
+	$(COMPILER) -c -g -I$(GM2GCC) $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
 
 gm2/stor-layout.o: $(srcdir)/stor-layout.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h
-	$(CC) -c -DSET_WORD_SIZE=INT_TYPE_SIZE $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
+	$(COMPILER) -c -DSET_WORD_SIZE=INT_TYPE_SIZE $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
 
 gm2/m2pp.o : $(srcdir)/gm2/m2pp.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h
-	$(CC) -c -g -DGM2 $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
+	$(COMPILER) -c -g -DGM2 $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
 
 c-family/m2pp.o : $(srcdir)/gm2/m2pp.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h
-	$(CC) -c -g $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
+	$(COMPILER) -c -g $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
 
 gm2/gm2-gcc/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-gcc/%.def
 	$(P2C) $(srcdir)/gm2/gm2-gcc/$*.def -h $@

@@ -76,10 +76,6 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "m2convert.h"
 
 
-static void mystop (void)
-{
-}
-
 /*
  *  ConvertString - converts string, expr, into a string
  *                  of type, type.

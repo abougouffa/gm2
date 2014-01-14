@@ -1,3 +1,36 @@
+2014-01-14      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  substituted $(CC) for $(COMPILER) when
+	  building gm2/gm2-lang.o, gm2/stor-layout.o and gm2/m2pp.o.
+	* gm2/gm2-gcc/m2builtins.c:  added BT_FN_NONE to the
+	  builtin_prototype enum.  Changed fclass to enum built_in_class.
+	  Modified compound constant constructor to contain correct types
+	  in the terminating array element.
+	* gm2/gm2-gcc/m2convert.c:  remove stop function.
+	* gm2/gm2-gcc/m2decl.c:  remove stop function.
+	* gm2/gm2-gcc/m2expr.c:  remove stop function.  Comment out
+	  default_convert_binary_operands and build_nop.  Comment out
+	  unused part of m2expr_BuildNegate.
+	* gm2/gm2-gcc/m2misc.c:  corrected formatting.
+	* gm2/gm2-gcc/m2options.h:  added const to the second parameter
+	  in M2Options_CppArg.
+	* gm2/gm2-lang.c:  added const to the declaration of opt.
+	* gm2/gm2-lang.h:  added list of includes, added extern prototype
+	  for gm2_langhook_init_options.
+	* gm2/gm2spec.c:  removed prototype for get_B_or_prefix.  Added
+	  conditional compilation for printOption.  Added const to
+	  declaration of B_path.  (find_executable_path)  corrected
+	  local variable declaration to include const.
+	  (add_B_prefix) added ATTRIBUTE_UNUSED to the first parameter.
+	  (get_B_or_prefix) removed.  (add_exec_dir) corrected local
+	  variables to include const.
+	* gm2/gm2version.h:  added conditional compilation for the
+	  prototype for gm2version so that it can be accessed by C and C++.
+	* gm2/m2pp.c:  changed stack_t to m2stack_t to avoid type clash.
+	  (pet) New function prototype.  (m2pp_integer) New function
+	  prototype.  Build gm2 or C versions of m2pp_integer.
+	  Build gm2 or C versions of m2pp_complex.
+	
 2013-12-25      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod: PushNoOfBits (New
@@ -61,7 +94,7 @@
 	* testsuite/gm2/pimcoroutes/pass/exports2.mod:
 	  (New files)
 	* gm2/gm2-libs-coroutines/SYSTEM.def: corrected
-	  export list taking care to only have data types on the 
+	  export list taking care to only have data types on the
 	  (* @SYSTEM_DATATYPES@ *) line.
 	* gm2/Make-lang.in:  add
 	  gm2/Make-lang.in to be a dependant of gm2/gm2-libs.texi.

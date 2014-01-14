@@ -89,9 +89,9 @@ typedef struct pretty_t {
   tree block;
 } pretty;
 
-typedef struct stack_t {
+typedef struct m2stack_t {
   tree value;
-  struct stack_t *next;
+  struct m2stack_t *next;
 } stack;
 
 
@@ -184,6 +184,9 @@ static void push (tree t);
 static void pop (void);
 static int  begin_printed (tree t);
 static void ps (tree t);
+
+void pet (tree t);
+void m2pp_integer (pretty *s, tree t);
 
 extern void stop (void);
 
@@ -1100,10 +1103,10 @@ m2pp_print_char (pretty *s, char ch)
  *  m2pp_integer - display the appropriate integer type.
  */
 
+#if defined(GM2)
 void
 m2pp_integer (pretty *s, tree t)
 {
-#if defined(GM2)
   if (t == m2type_GetM2ZType ())
     m2pp_print (s, "M2ZTYPE");
   else if (t == m2type_GetM2LongIntType ())
@@ -1140,20 +1143,25 @@ m2pp_integer (pretty *s, tree t)
     m2pp_print (s, "INTEGER");
     m2pp_integer_cst (s, TYPE_SIZE (t));
   }
-#else
-  m2pp_print (s, "INTEGER");
-#endif
 }
+#else
+void
+m2pp_integer (pretty *s, tree t ATTRIBUTE_UNUSED)
+{
+  m2pp_print (s, "INTEGER");
+}
+#endif
+
 
 /*
  *  m2pp_complex - display the actual complex type.
  */
 
+#if defined(GM2)
 static
 void
 m2pp_complex (pretty *s, tree t)
 {
-#if defined(GM2)
   if (t == m2type_GetM2ComplexType ())
     m2pp_print (s, "COMPLEX");
   else if (t == m2type_GetM2LongComplexType ())
@@ -1172,10 +1180,18 @@ m2pp_complex (pretty *s, tree t)
     m2pp_print (s, "COMPLEX128");
   else
     m2pp_print (s, "unknown COMPLEX type");
-#else
-    m2pp_print (s, "a COMPLEX type");
-#endif
 }
+
+#else
+
+static
+void
+m2pp_complex (pretty *s, tree t ATTRIBUTE_UNUSED)
+{
+    m2pp_print (s, "a COMPLEX type");
+}
+#endif
+
 
 /*
  *  m2pp_type - prints a full type.

@@ -59,6 +59,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #define m2misc_c
 #include "m2tree.h"
 #include "m2misc.h"
+#include "m2block.h"
 
 
 /*
@@ -94,6 +95,6 @@ m2misc_DebugTreeChain (tree t)
 void
 m2misc_printStmt (void)
 {
-  if (m2block_cur_stmt_list() != NULL)
-    debug_tree(m2block_cur_stmt_list());
+  if (m2block_cur_stmt_list () != NULL)
+    debug_tree (m2block_cur_stmt_list ());
 }

@@ -830,9 +830,7 @@ build_binary_op (location_t location,
 }
 
 
-static void stop (void) {}
-
-
+#if 0
 /*
  *  default_convert_binary_operands -
  */
@@ -870,6 +868,7 @@ build_nop (tree type, tree expr)
     return expr;
   return build1 (NOP_EXPR, type, expr);
 }
+#endif
 
 
 /*
@@ -977,16 +976,15 @@ m2expr_BuildAddAddress (location_t location, tree op1, tree op2)
 tree
 m2expr_BuildNegate (location_t location, tree op1, int needconvert)
 {
+#if 0
   tree type = TREE_TYPE (op1);
   enum tree_code code = TREE_CODE (type);
 
-  m2assert_AssertLocation (location);
-
-#if 0
   if (code == ENUMERAL_TYPE)
     error_at (location, "not expecting to negate an enumerated value");
 #endif
 
+  m2assert_AssertLocation (location);
   return m2expr_build_unary_op (location, NEGATE_EXPR,
 				m2expr_FoldAndStrip (op1), needconvert);
 }
@@ -2087,7 +2085,6 @@ m2expr_BuildBinaryForeachWordDo (location_t location, tree type, tree op1, tree 
   else {
     /* large set size > TSIZE(WORD) */
 
-    tree p1     = m2treelib_get_set_address (location, op1, is_op1lvalue);
     tree p2     = m2treelib_get_set_address_if_var (location, op2, is_op2lvalue, is_op2const);
     tree p3     = m2treelib_get_set_address_if_var (location, op3, is_op3lvalue, is_op3const);
     unsigned int fieldNo = 0;

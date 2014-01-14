@@ -49,6 +49,7 @@ Boston, MA 02110-1301, USA.  */
 #include "m2block.h"
 #include "dynamicstrings.h"
 #include "m2options.h"
+#include "gm2version.h"
 #include "init.h"
 
 static int insideCppArgs = FALSE;
@@ -357,7 +358,7 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
   default:
     if (insideCppArgs) {
       const struct cl_option *option = &cl_options[scode];
-      char *opt = (const char *) option->opt_text;
+      const char *opt = (const char *) option->opt_text;
 
       M2Options_CppArg(opt, arg, TRUE);
       return 1;

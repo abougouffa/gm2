@@ -140,9 +140,10 @@ static void check_gm2_root (void);
 static char *add_include (char *prev, const char *libpath, char *library);
 static const char *gen_gm2_root (const char *gm2_root);
 static const char *get_prefix (void);
-static const char *get_B_or_prefix (void);
 static void insert_option (unsigned int *in_decoded_options_count, struct cl_decoded_option **in_decoded_options, unsigned int position);
+#if defined (DEBUGGING)
 static void printOption (const char *desc, struct cl_decoded_option **in_decoded_options, int i);
+#endif
 
 void fe_save_switch (const char *opt, size_t n_args, const char *const *args, bool validated);
 
@@ -160,7 +161,7 @@ static int seen_fonlylink = FALSE;
 static int seen_fmakeall0 = FALSE;
 static int seen_fmakeall = FALSE;
 static int seen_B = FALSE;
-static char *B_path = NULL;
+static const char *B_path = NULL;
 
 /* By default, the suffix for target object files is ".o".  */
 #ifdef TARGET_OBJECT_SUFFIX
@@ -238,14 +239,14 @@ const char *find_executable_path (const char *argv0)
 {
   if (access (argv0, X_OK) == 0)
     {
-      char *n = strrchr (argv0, DIR_SEPARATOR);
+      const char *n = strrchr (argv0, DIR_SEPARATOR);
 
       /* strip off the program name from argv0, but leave the DIR_SEPARATOR */
       if (n != NULL) {
-	argv0 = xstrdup (argv0);
-	n = strrchr (argv0, DIR_SEPARATOR);
+	char *copy = xstrdup (argv0);
+	char *n    = strrchr (copy, DIR_SEPARATOR);
 	n[1] = (char)0;
-	return argv0;
+	return copy;
       }
     }
   return NULL;
@@ -259,7 +260,7 @@ const char *find_executable_path (const char *argv0)
  */
 
 static
-void add_B_prefix (unsigned int *in_decoded_options_count,
+void add_B_prefix (unsigned int *in_decoded_options_count ATTRIBUTE_UNUSED,
 		   struct cl_decoded_option **in_decoded_options, const char *gm2_root)
 {
   if ((*in_decoded_options)[0].arg != NULL)
@@ -272,8 +273,6 @@ void add_B_prefix (unsigned int *in_decoded_options_count,
 
       if (path != NULL && (strcmp (path, "") != 0))
 	{
-	  unsigned int count = *in_decoded_options_count;
-
 #if defined(DEBUGGING)
 	  unsigned int i;
 
@@ -284,11 +283,6 @@ void add_B_prefix (unsigned int *in_decoded_options_count,
 
 	  fe_B_prefix (xstrdup (path));
 	  fe_generate_option (OPT_B, xstrdup (path), 1);
-#if 0
-	  insert_option (in_decoded_options_count, in_decoded_options, count);
-	  generate_option (OPT_B, xstrdup (path), 1,
-			   CL_DRIVER, &(*in_decoded_options)[count]);
-#endif
 
 #if defined(DEBUGGING)
 	  for (i = 0; i < *in_decoded_options_count; i++)
@@ -323,15 +317,6 @@ const char *get_prefix (void)
     return PREFIX;
   else
     return prefix;
-}
-
-static
-const char *get_B_or_prefix (void)
-{
-  if (seen_B)
-    return B_path;
-  else
-    return get_prefix ();
 }
 
 static int
@@ -1329,10 +1314,10 @@ static const char *
 add_exec_dir (int argc, const char *argv[])
 {
   if (argc == 1 && argv[0] != NULL) {
-    char *path = gen_gm2_root (get_prefix ());
+    const char *path = gen_gm2_root (get_prefix ());
     if (path != NULL) {
       char *opt = (char *) xmalloc (strlen ("-fcppprog=") + strlen (path) + 1 + strlen (argv[0]) + 1);
-      char *sep = alloca (2);
+      char *sep = (char *) alloca (2);
       
       sep[0] = DIR_SEPARATOR;
       sep[1] = (char)0;

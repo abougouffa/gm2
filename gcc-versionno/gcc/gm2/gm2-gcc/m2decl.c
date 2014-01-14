@@ -77,8 +77,6 @@ extern GTY(()) tree current_function_decl;
 static GTY(()) tree param_type_list;
 static GTY(()) tree param_list = NULL_TREE;   /* ready for the next time we call/define a function */
 
-static void stop (void) {}
-
 
 /*
  *  DeclareKnownVariable - declares a variable in scope,

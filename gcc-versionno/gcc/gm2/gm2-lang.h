@@ -28,6 +28,13 @@ Boston, MA 02110-1301, USA.  */
 #else
 #  define EXTERN extern
 #endif
+#include "config.h"
+#include "system.h"
+#include "ansidecl.h"
+#include "coretypes.h"
+#include "opts.h"
+#include "tree.h"
+#include "gimple.h"
 
 
 /* Language-dependent contents of a type.  */
@@ -90,6 +97,9 @@ EXTERN bool gm2_langhook_handle_option (size_t scode, const char *arg,
 					int kind ATTRIBUTE_UNUSED,
 					location_t loc ATTRIBUTE_UNUSED,
 					const struct cl_option_handlers *handlers ATTRIBUTE_UNUSED);
+EXTERN void gm2_langhook_init_options (unsigned int decoded_options_count,
+				       struct cl_decoded_option *decoded_options);
+
 
 
 #undef EXTERN

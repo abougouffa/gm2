@@ -66,6 +66,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 
 
 typedef enum {
+  BT_FN_NONE,
   BT_FN_PTR_SIZE,
   BT_FN_TRAD_PTR_PTR_CONST_PTR_SIZE,
   BT_FN_FLOAT,
@@ -126,7 +127,7 @@ struct builtin_function_entry {
   const char *name;
   builtin_prototype defn;
   int function_code;
-  int fclass;
+  enum built_in_class fclass;
   const char *library_name;
   tree function_node;
   tree return_node;
@@ -275,7 +276,7 @@ static struct builtin_function_entry list_of_builtins[] = {
   //{ "__builtin_aggregate_incoming_address", BT_FN_PTR_VAR, BUILT_IN_AGGREGATE_INCOMING_ADDRESS, BUILT_IN_NORMAL, "aggregate_incoming_address", NULL, NULL},
 { "__builtin_longjmp", BT_FN_VOID_PTR_INT, BUILT_IN_LONGJMP, BUILT_IN_NORMAL, "longjmp", NULL, NULL},
 { "__builtin_setjmp", BT_FN_INT_PTR, BUILT_IN_SETJMP, BUILT_IN_NORMAL, "setjmp", NULL, NULL},
-{ NULL, 0, 0, 0, "", NULL, NULL} };
+{ NULL, BT_FN_NONE, 0, NOT_BUILT_IN, "", NULL, NULL} };
 
 
 struct builtin_type_info {
