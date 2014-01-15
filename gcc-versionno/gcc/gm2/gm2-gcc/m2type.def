@@ -894,4 +894,11 @@ PROCEDURE PutArrayType (array: Tree; type: Tree) ;
 PROCEDURE BuildStartArrayType (index_type: Tree; elt_type: Tree; type: INTEGER) : Tree ;
 
 
+(*
+   IsAddress - return TRUE if the type is an ADDRESS.
+*)
+
+PROCEDURE IsAddress (type: Tree) : BOOLEAN ;
+
+
 END m2type.

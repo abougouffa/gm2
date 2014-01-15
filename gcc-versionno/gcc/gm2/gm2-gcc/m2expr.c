@@ -167,6 +167,13 @@ m2expr_BuildDivTrunc (location_t location, tree op1, tree op2, int needconvert)
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
 
+  if (m2type_IsAddress (TREE_TYPE (op1)) ||
+      m2type_IsAddress (TREE_TYPE (op1)))
+    {
+      error_at (location, "Modula-2 forbids division of ADDRESS typed variables");
+      return m2expr_GetPointerZero ();
+    }
+
   t = m2expr_build_binary_op (location, TRUNC_DIV_EXPR, op1, op2, needconvert);
   return m2expr_FoldAndStrip (t);
 }
@@ -185,6 +192,13 @@ m2expr_BuildModTrunc (location_t location, tree op1, tree op2, int needconvert)
 
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
+
+  if (m2type_IsAddress (TREE_TYPE (op1)) ||
+      m2type_IsAddress (TREE_TYPE (op1)))
+    {
+      error_at (location, "Modula-2 forbids taking the modulus of ADDRESS typed variables");
+      return m2expr_GetPointerZero ();
+    }
 
   t = m2expr_build_binary_op (location, TRUNC_MOD_EXPR, op1, op2, needconvert);
   return m2expr_FoldAndStrip (t);
@@ -205,6 +219,13 @@ m2expr_BuildDivFloor (location_t location, tree op1, tree op2, int needconvert)
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
 
+  if (m2type_IsAddress (TREE_TYPE (op1)) ||
+      m2type_IsAddress (TREE_TYPE (op1)))
+    {
+      error_at (location, "Modula-2 forbids division of ADDRESS typed variables");
+      return m2expr_GetPointerZero ();
+    }
+
   t = m2expr_build_binary_op (location, FLOOR_DIV_EXPR, op1, op2, needconvert);
   return m2expr_FoldAndStrip (t);
 }
@@ -223,6 +244,13 @@ m2expr_BuildModFloor (location_t location, tree op1, tree op2, int needconvert)
 
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
+
+  if (m2type_IsAddress (TREE_TYPE (op1)) ||
+      m2type_IsAddress (TREE_TYPE (op1)))
+    {
+      error_at (location, "Modula-2 forbids taking the modulus of ADDRESS typed variables");
+      return m2expr_GetPointerZero ();
+    }
 
   t = m2expr_build_binary_op (location, FLOOR_MOD_EXPR, op1, op2, needconvert);
   return m2expr_FoldAndStrip (t);
@@ -1014,10 +1042,20 @@ m2expr_BuildSetNegate (location_t location, tree op1, int needconvert)
 tree
 m2expr_BuildMult (location_t location, tree op1, tree op2, int needconvert)
 {
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
   m2assert_AssertLocation (location);
+
+  if (m2type_IsAddress (TREE_TYPE (op1)) ||
+      m2type_IsAddress (TREE_TYPE (op1)))
+    {
+      error_at (location, "Modula-2 forbids multiplication of ADDRESS typed variables");
+      return m2expr_GetPointerZero ();
+    }
+
   return m2expr_build_binary_op (location, MULT_EXPR,
-				 m2expr_FoldAndStrip (op1),
-				 m2expr_FoldAndStrip (op2), needconvert);
+				 op1, op2, needconvert);
 }
 
 

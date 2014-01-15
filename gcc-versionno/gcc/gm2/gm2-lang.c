@@ -729,7 +729,7 @@ gimplify_expr_stmt (tree *stmt_p)
  */
 
 static int
-gm2_langhook_gimplify_expr (tree *expr_p, gimple_seq *pre_p, gimple_seq *post_p)
+gm2_langhook_gimplify_expr (tree *expr_p, gimple_seq *pre_p ATTRIBUTE_UNUSED, gimple_seq *post_p ATTRIBUTE_UNUSED)
 {
   enum tree_code code = TREE_CODE (*expr_p);
 
@@ -818,19 +818,6 @@ convert (tree type, tree expr)
   gcc_unreachable ();
 }
 
-
-/* FIXME: This is a hack to preserve trees that we create from the
-   garbage collector.  */
-
-static GTY(()) tree gm2_gc_root;
-
-#if 0
-void
-gm2_preserve_from_gc (tree t)
-{
-  gm2_gc_root = tree_cons (NULL_TREE, t, gm2_gc_root);
-}
-#endif
 
 #if 0
 /* Convert an identifier for use in an error message.  */

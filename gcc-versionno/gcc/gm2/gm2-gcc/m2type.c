@@ -3485,3 +3485,14 @@ m2type_gm2_signed_or_unsigned_type (int unsignedp, tree type)
 
   return type;
 }
+
+
+/*
+ *   IsAddress - returns TRUE if the type is an ADDRESS.
+ */
+
+int
+m2type_IsAddress (tree type)
+{
+  return type == ptr_type_node;
+}

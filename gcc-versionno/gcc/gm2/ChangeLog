@@ -1,3 +1,17 @@
+2014-01-15      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  use $(LINKER) rather than $(XGCC).
+	  use $(COMPILER) $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS)
+	  to aid building gm2 as a cross compiler.
+	* gm2/gm2-gcc/m2expr.c:  check operand types for ADDRESS
+	  in multiply, divide, modulus and issue appropriate errors.
+	* gm2/gm2-gcc/m2type.c:  (IsAddress) New function.
+	* gm2/gm2-gcc/m2type.def:  (IsAddress) New function.
+	* gm2/gm2-gcc/m2type.h:  (IsAddress) New function prototype.
+	* gm2/gm2-lang.c:  removed duplicate declaration of gm2_gc_root.
+	  Added compiler directives to unused parameters in
+	  gm2_langhook_gimplify_expr.
+
 2014-01-14      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  substituted $(CC) for $(COMPILER) when
@@ -30,7 +44,7 @@
 	  (pet) New function prototype.  (m2pp_integer) New function
 	  prototype.  Build gm2 or C versions of m2pp_integer.
 	  Build gm2 or C versions of m2pp_complex.
-	
+
 2013-12-25      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod: PushNoOfBits (New

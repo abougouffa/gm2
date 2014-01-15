@@ -170,6 +170,7 @@ EXTERN tree m2type_gm2_unsigned_type (tree type);
 EXTERN tree m2type_gm2_signed_type (tree type);
 EXTERN tree m2type_gm2_signed_or_unsigned_type (int unsignedp, tree type);
 EXTERN tree m2type_gm2_type_for_size (unsigned int bits, int unsignedp);
+EXTERN int m2type_IsAddress (tree type);
 
 #undef EXTERN
 #endif
