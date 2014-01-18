@@ -1,3 +1,19 @@
+2014-01-18      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-gcc/m2expr.c:  CheckAddressToCardinal (New function).
+	  BuildAdd use CheckAddressToCardinal for both operands.
+	  BuildSub use CheckAddressToCardinal for both operands.
+	  BuildDivTrunc use CheckAddressToCardinal for both operands.
+	  BuildModTrunc use CheckAddressToCardinal for both operands.
+	  BuildDivFloor use CheckAddressToCardinal for both operands.
+          BuildModFloor use CheckAddressToCardinal for both operands.
+          BuildMult use CheckAddressToCardinal for both operands.
+	* gm2/gm2-gcc/m2type.c:  m2_cardinal_address_type_node new
+	  internal datatype.  GetCardinalAddressType (New function).
+	  build_m2_cardinal_address_type_node (New function).
+	* gm2/gm2-gcc/m2type.h:  m2type_GetCardinalAddressType
+	  (New function prototype).
+	
 2014-01-15      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  use $(LINKER) rather than $(XGCC).

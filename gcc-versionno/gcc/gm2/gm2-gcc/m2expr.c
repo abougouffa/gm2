@@ -54,6 +54,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "libfuncs.h"
 #include "../gm2-tree.h"
 #include "../gm2-lang.h"
+#include "m2convert.h"
 
 
 /*
@@ -116,6 +117,20 @@ m2expr_StringLength (tree string)
 
 
 /*
+ *
+ */
+
+static
+tree
+CheckAddressToCardinal (tree op)
+{
+  if (m2type_IsAddress (TREE_TYPE (op)))
+    return m2convert_BuildConvert (m2type_GetCardinalAddressType (), op, FALSE);
+  return op;
+}
+
+
+/*
  *  BuildAdd - builds an addition tree.
  */
 
@@ -128,6 +143,9 @@ m2expr_BuildAdd (location_t location, tree op1, tree op2, int needconvert)
 
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
+
+  op1 = CheckAddressToCardinal (op1);
+  op2 = CheckAddressToCardinal (op2);
 
   t = m2expr_build_binary_op (location, PLUS_EXPR, op1, op2, needconvert);
   return m2expr_FoldAndStrip (t);
@@ -148,6 +166,9 @@ m2expr_BuildSub (location_t location, tree op1, tree op2, int needconvert)
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
 
+  op1 = CheckAddressToCardinal (op1);
+  op2 = CheckAddressToCardinal (op2);
+
   t = m2expr_build_binary_op (location, MINUS_EXPR, op1, op2, needconvert);
   return m2expr_FoldAndStrip (t);
 }
@@ -167,12 +188,8 @@ m2expr_BuildDivTrunc (location_t location, tree op1, tree op2, int needconvert)
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
 
-  if (m2type_IsAddress (TREE_TYPE (op1)) ||
-      m2type_IsAddress (TREE_TYPE (op1)))
-    {
-      error_at (location, "Modula-2 forbids division of ADDRESS typed variables");
-      return m2expr_GetPointerZero ();
-    }
+  op1 = CheckAddressToCardinal (op1);
+  op2 = CheckAddressToCardinal (op2);
 
   t = m2expr_build_binary_op (location, TRUNC_DIV_EXPR, op1, op2, needconvert);
   return m2expr_FoldAndStrip (t);
@@ -193,12 +210,8 @@ m2expr_BuildModTrunc (location_t location, tree op1, tree op2, int needconvert)
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
 
-  if (m2type_IsAddress (TREE_TYPE (op1)) ||
-      m2type_IsAddress (TREE_TYPE (op1)))
-    {
-      error_at (location, "Modula-2 forbids taking the modulus of ADDRESS typed variables");
-      return m2expr_GetPointerZero ();
-    }
+  op1 = CheckAddressToCardinal (op1);
+  op2 = CheckAddressToCardinal (op2);
 
   t = m2expr_build_binary_op (location, TRUNC_MOD_EXPR, op1, op2, needconvert);
   return m2expr_FoldAndStrip (t);
@@ -219,12 +232,8 @@ m2expr_BuildDivFloor (location_t location, tree op1, tree op2, int needconvert)
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
 
-  if (m2type_IsAddress (TREE_TYPE (op1)) ||
-      m2type_IsAddress (TREE_TYPE (op1)))
-    {
-      error_at (location, "Modula-2 forbids division of ADDRESS typed variables");
-      return m2expr_GetPointerZero ();
-    }
+  op1 = CheckAddressToCardinal (op1);
+  op2 = CheckAddressToCardinal (op2);
 
   t = m2expr_build_binary_op (location, FLOOR_DIV_EXPR, op1, op2, needconvert);
   return m2expr_FoldAndStrip (t);
@@ -245,12 +254,8 @@ m2expr_BuildModFloor (location_t location, tree op1, tree op2, int needconvert)
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
 
-  if (m2type_IsAddress (TREE_TYPE (op1)) ||
-      m2type_IsAddress (TREE_TYPE (op1)))
-    {
-      error_at (location, "Modula-2 forbids taking the modulus of ADDRESS typed variables");
-      return m2expr_GetPointerZero ();
-    }
+  op1 = CheckAddressToCardinal (op1);
+  op2 = CheckAddressToCardinal (op2);
 
   t = m2expr_build_binary_op (location, FLOOR_MOD_EXPR, op1, op2, needconvert);
   return m2expr_FoldAndStrip (t);
@@ -1047,12 +1052,8 @@ m2expr_BuildMult (location_t location, tree op1, tree op2, int needconvert)
 
   m2assert_AssertLocation (location);
 
-  if (m2type_IsAddress (TREE_TYPE (op1)) ||
-      m2type_IsAddress (TREE_TYPE (op1)))
-    {
-      error_at (location, "Modula-2 forbids multiplication of ADDRESS typed variables");
-      return m2expr_GetPointerZero ();
-    }
+  op1 = CheckAddressToCardinal (op1);
+  op2 = CheckAddressToCardinal (op2);
 
   return m2expr_build_binary_op (location, MULT_EXPR,
 				 op1, op2, needconvert);
@@ -1970,7 +1971,7 @@ static
 tree
 build_int_2_type (int low, int hi, tree type)
 {
-  tree t = make_node(INTEGER_CST);
+  tree t = make_node (INTEGER_CST);
   TREE_INT_CST_LOW(t) = low;
   TREE_INT_CST_HIGH(t) = hi;
   TREE_TYPE(t) = type;

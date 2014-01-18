@@ -163,6 +163,7 @@ static GTY(()) tree m2_complex64_type_node;
 static GTY(()) tree m2_complex96_type_node;
 static GTY(()) tree m2_complex128_type_node;
 static GTY(()) tree m2_packed_boolean_type_node;
+static GTY(()) tree m2_cardinal_address_type_node;
 
 
 /*
@@ -1085,6 +1086,18 @@ m2type_GetBooleanType (void)
 
 
 /*
+ *  GetCardinalAddressType - returns the internal data type for computing binary
+ *                           arithmetic upon the ADDRESS datatype.
+ */
+
+tree
+m2type_GetCardinalAddressType (void)
+{
+  return m2_cardinal_address_type_node;
+}
+
+
+/*
  *  noBitsRequired - returns the number of bits required to contain, values.
  */
 
@@ -1994,6 +2007,17 @@ build_m2_complex128_type_node (void)
   return build_m2_complex_type_from (m2_real128_type_node);
 }
 
+static
+tree
+build_m2_cardinal_address_type_node (location_t location)
+{
+  tree size = size_in_bytes (ptr_type_node);
+  int bits = TREE_INT_CST_LOW (size) * BITS_PER_UNIT;
+
+  return build_m2_specific_size_type (location, INTEGER_TYPE, bits, FALSE);
+}
+
+
 /*
  *  InitBaseTypes -
  */
@@ -2046,6 +2070,8 @@ m2type_InitBaseTypes (location_t location)
   m2_complex96_type_node = build_m2_complex96_type_node ();
   m2_complex128_type_node = build_m2_complex128_type_node ();
   m2_iso_loc_type_node = build_m2_iso_loc_node ();
+
+  m2_cardinal_address_type_node = build_m2_cardinal_address_type_node (location);
 
   m2_packed_boolean_type_node = build_nonstandard_integer_type (1, TRUE);
 
