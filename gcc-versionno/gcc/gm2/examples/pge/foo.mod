@@ -15,7 +15,7 @@ FROM macroObjects IMPORT Macro, circle, moveTo, up, down, left, right, rotate,
 CONST
    testCorner = FALSE ;
    testRight  = FALSE ;
-   useGroff   =  TRUE ;
+   useGroff   = FALSE ;
 
 
 (*
@@ -112,6 +112,7 @@ BEGIN
 
    popWorld.mass(cardinal(1)) ;
 
+   popWorld.velocity(initPoint(mult(initFract(10, 0, 1),zero()), mult(initFract(10, 0, 1),initFract(0,11,100)))) ;
    popWorld.populate(m, FALSE, TRUE) ;
 
 END placeNonFixed ;

@@ -1839,11 +1839,11 @@ m2expr_BuildIfNotInRangeGoto (location_t location, tree var, tree low, tree high
  */
 
 tree
-m2expr_BuildArray (tree type, tree array, tree index, tree lowIndice, tree elementSize)
+m2expr_BuildArray (tree type, tree array, tree index, tree lowIndice)
 {
   type = m2tree_skip_type_decl (type);
 
-  return build4 (ARRAY_REF, type, array, index, lowIndice, elementSize);
+  return build4 (ARRAY_REF, type, array, index, lowIndice, NULL_TREE);
 }
 
 

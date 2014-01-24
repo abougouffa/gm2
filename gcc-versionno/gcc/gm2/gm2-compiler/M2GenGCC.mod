@@ -5281,8 +5281,7 @@ BEGIN
                                BuildConvert(Mod2Gcc(resType),
                                             BuildAddr(location, BuildArray(ta, a,
                                                                            Mod2Gcc(index),
-                                                                           Mod2Gcc(low),
-                                                                           elementSize),
+                                                                           Mod2Gcc(low)),
                                                       FALSE),
                                             FALSE))
    ELSE

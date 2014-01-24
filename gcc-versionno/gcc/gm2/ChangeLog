@@ -1,3 +1,15 @@
+2014-01-24      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/foo.mod:  changed demo.
+	* gm2/gm2-compiler/M2GenGCC.mod:  no longer pass
+	  the fifth parameter to BuildArray.
+	* gm2/gm2-gcc/m2expr.c:  removed the fifth parameter to
+	  BuildArray.  Pass NULL_TREE to build4 of a ARRAY_REF.
+	* gm2/gm2-gcc/m2expr.def:  removed the fifth parameter to
+          the definition of BuildArray.
+	* gm2/gm2-gcc/m2expr.h:  removed the fifth parameter to
+          the prototype of BuildArray.
+
 2014-01-18      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-gcc/m2expr.c:  CheckAddressToCardinal (New function).
