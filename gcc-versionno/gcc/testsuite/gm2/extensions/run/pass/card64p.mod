@@ -99,16 +99,16 @@ BEGIN
    DEC(i, 1) ;
    Assert(i=j-2, __LINE__, __COLUMN__, "DEC failed to generate value of MAX(dataType)-2") ;
 
-   i := 0 ;
+   i64 := 0 ;
    j := 1 ;
-   DEC(i) ;
-   Assert(i=-1, __LINE__, __COLUMN__, "DEC failed to generate value of -1") ;
-   DEC(i, j) ;
-   Assert(i=-2, __LINE__, __COLUMN__, "DEC failed to generate value of -2") ;
-   INC(i) ;
-   Assert(i=-1, __LINE__, __COLUMN__, "DEC failed to generate value of -1") ;
-   INC(i, j) ;
-   Assert(i=0, __LINE__, __COLUMN__, "DEC failed to generate value of 0") ;
+   DEC(i64) ;
+   Assert(i64=-1, __LINE__, __COLUMN__, "DEC failed to generate value of -1") ;
+   DEC(i64, j) ;
+   Assert(i64=-2, __LINE__, __COLUMN__, "DEC failed to generate value of -2") ;
+   INC(i64) ;
+   Assert(i64=-1, __LINE__, __COLUMN__, "DEC failed to generate value of -1") ;
+   INC(i64, j) ;
+   Assert(i64=0, __LINE__, __COLUMN__, "DEC failed to generate value of 0") ;
    i := MIN(CARDINAL64) ;
    j := i ;
    INC(i) ;

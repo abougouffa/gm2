@@ -24,7 +24,7 @@ FROM libc IMPORT exit ;
 TYPE
    rec = RECORD
             x: CHAR ;
-            y: CHAR  __ATTRIBUTE__ ((ALIGNED(1024))) ;
+            y: CHAR <* bytealignment(1024) *> ;
          END ;
 VAR
    r: rec ;

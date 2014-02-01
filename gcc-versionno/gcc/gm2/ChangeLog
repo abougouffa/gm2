@@ -1,3 +1,51 @@
+2014-02-02      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/m2-2.bnf:  changed rule for ByteAlignment to use the ISO
+	  Modula-2 syntax <* *> extension.
+	* gm2/bnf/m2-3.bnf:  changed rule for ByteAlignment to use the ISO
+	  Modula-2 syntax <* *> extension.
+	* gm2/bnf/m2-c.bnf:  changed rule for ByteAlignment to use the ISO
+	  Modula-2 syntax <* *> extension.
+	* gm2/bnf/m2-h.bnf:  changed rule for ByteAlignment to use the ISO
+	  Modula-2 syntax <* *> extension.
+	* gm2/bnf/m2.bnf:  changed rule for ByteAlignment to use the ISO
+	  Modula-2 syntax <* *> extension.
+	* gm2/gm2-compiler/M2GenGCC.mod:  pass a location as the
+	  first parameter to BuildTryBegin, BuildCatchBegin,
+	  BuildCatchEnd.
+	* gm2/gm2-compiler/M2Quads.def:  changed comment to reflect
+	  new code (bytealignment) is used instead of (ALIGNED).
+	* gm2/gm2-compiler/M2Quads.mod:  change ALIGNED to bytealignment.
+	  BuildAlignment, changed error message to reflect bytealignment.
+	* gm2/gm2-compiler/P2SymBuild.def:  changed comment to reflect
+	  new code (bytealignment) is used instead of (ALIGNED).
+	* gm2/gm2-compiler/P2SymBuild.mod:  BuildAligned check for
+	  the alignment word (bytealignment).  BuildVarAlignment
+	* gm2/gm2-gcc/m2except.def:  (InitExceptions) corrected to
+	  include a parameter, location.  (BuildCatchBegin) corrected
+	  to include a parameter, location.  (BuildCatchEnd) corrected
+	  to include a parameter, location.
+	* gm2/gm2.texi:  changed documentation to reflect new syntax
+	  of alignment used in variable and type declaration.
+	* testsuite/gm2/extensions/pass/align.mod:  changed test code
+	  to reflect new syntax.
+	* testsuite/gm2/extensions/pass/align2.mod:  changed test code
+	  to reflect new syntax.
+	* testsuite/gm2/extensions/run/pass/align3.mod:  changed test code
+	  to reflect new syntax.
+	* testsuite/gm2/extensions/run/pass/align4.mod:  changed test code
+	  to reflect new syntax.
+	* testsuite/gm2/extensions/run/pass/align5.mod:  changed test code
+	  to reflect new syntax.
+	* testsuite/gm2/extensions/run/pass/align6.mod:  changed test code
+	  to reflect new syntax.
+	* testsuite/gm2/extensions/run/pass/align7.mod:  changed test code
+	  to reflect new syntax.
+	* testsuite/gm2/extensions/run/pass/card16p.mod:  corrected test.
+	* testsuite/gm2/extensions/run/pass/card32p.mod:  corrected test.
+	* testsuite/gm2/extensions/run/pass/card64p.mod:  corrected test.
+	* testsuite/gm2/extensions/run/pass/card8p.mod:  corrected test.
+
 2014-01-24      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/foo.mod:  changed demo.
@@ -25,7 +73,7 @@
 	  build_m2_cardinal_address_type_node (New function).
 	* gm2/gm2-gcc/m2type.h:  m2type_GetCardinalAddressType
 	  (New function prototype).
-	
+
 2014-01-15      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  use $(LINKER) rather than $(XGCC).

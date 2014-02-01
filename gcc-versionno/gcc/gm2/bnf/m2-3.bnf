@@ -758,10 +758,9 @@ Element := ConstExpression ( ".." ConstExpression                          % Bui
                              |                                             % BuildInclBit (* epsilon *) %
                            ) =:
 
-ByteAlignment := "__ATTRIBUTE__" "(" "("                                   % PushAutoOn %
-                                         Ident OptAlignmentExpression      % BuildAlignment %
-                                                                           % PopAuto %
-                                                                   ")" ")"
+ByteAlignment := '<*'                                                      % PushAutoOn %
+                      AttributeExpression                                  % BuildAlignment %
+                                          '*>'                             % PopAuto %
                =:
 
 OptAlignmentExpression := [ AlignmentExpression ] =:

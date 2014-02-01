@@ -20,7 +20,7 @@ MODULE align2 ;
 
 VAR
    x  : CHAR ;
-   z  : ARRAY [0..255] OF INTEGER  __ATTRIBUTE__ ((ALIGNED(1024))) ;
+   z  : ARRAY [0..255] OF INTEGER <* bytealignment(1024) *> ;
 BEGIN
 
 END align2.

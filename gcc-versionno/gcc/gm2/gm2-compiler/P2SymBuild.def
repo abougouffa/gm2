@@ -485,15 +485,15 @@ PROCEDURE BuildSubrange (Base: CARDINAL) ;
                   the stack.  It expects the ident ALIGNED to be on the
                   stack.
 
-                          Stack
+                         Stack
 
                            Entry                 Exit
 
 
                   Ptr ->                                            <- Ptr
-                           +------------+        +-----------------+
-                           | ALIGNED    |        | AlignmentConst  |
-                           |------------|        |-----------------|
+                         +---------------+      +-----------------+
+                         | bytealignment |      | AlignmentConst  |
+                         +---------------+      |-----------------|
 *)
 
 PROCEDURE BuildAligned ;

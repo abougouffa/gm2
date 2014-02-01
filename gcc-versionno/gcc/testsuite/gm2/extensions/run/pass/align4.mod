@@ -23,7 +23,7 @@ FROM libc IMPORT exit ;
 
 VAR
    x  : CHAR ;
-   z  : POINTER TO INTEGER __ATTRIBUTE__ ((ALIGNED(1024))) ;
+   z  : POINTER TO INTEGER <* bytealignment(1024) *> ;
 BEGIN
    IF ADR(z) MOD 1024=0
    THEN

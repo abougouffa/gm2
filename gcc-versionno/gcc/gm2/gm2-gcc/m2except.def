@@ -38,7 +38,7 @@ FROM m2linemap IMPORT location_t ;
                     the appropriate global tree variables.
 *)
 
-PROCEDURE InitExceptions ;
+PROCEDURE InitExceptions (location: location_t) ;
 
 
 (*
@@ -52,7 +52,7 @@ PROCEDURE BuildThrow (location: location_t; t: Tree) : Tree ;
     BuildTryBegin - returns a tree representing the 'try' block.
 *)
 
-PROCEDURE BuildTryBegin () : Tree ;
+PROCEDURE BuildTryBegin (location: location_t) : Tree ;
 
 
 (*
@@ -69,7 +69,7 @@ PROCEDURE BuildTryEnd (tryBlock: Tree) ;
                      It returns the handler tree.
 *)
 
-PROCEDURE BuildCatchBegin () : Tree ;
+PROCEDURE BuildCatchBegin (location: location_t) : Tree ;
 
 
 (*
@@ -80,7 +80,7 @@ PROCEDURE BuildCatchBegin () : Tree ;
                    '}' which matches the catch above.
 *)
 
-PROCEDURE BuildCatchEnd (handler, tryBlock: Tree) : Tree ;
+PROCEDURE BuildCatchEnd (location: location_t; handler, tryBlock: Tree) : Tree ;
 
 
 END m2except.

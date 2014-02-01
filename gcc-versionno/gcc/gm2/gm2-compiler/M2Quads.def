@@ -739,11 +739,11 @@ PROCEDURE BuildAssignment ;
                             =====                   ====
 
                     Ptr ->
-                            +------------+
-                            | Expression |
-                            |------------|
-                            | ALIGNED    |
-                            |------------|          empty
+                            +---------------+
+                            | Expression    |
+                            |---------------|
+                            | bytealignment |
+                            |---------------|       empty
 *)
 
 PROCEDURE BuildAlignment ;

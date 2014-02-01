@@ -22,7 +22,7 @@ FROM SYSTEM IMPORT ADR ;
 FROM libc IMPORT exit ;
 
 TYPE
-   foo = ARRAY [0..255] OF INTEGER __ATTRIBUTE__ ((ALIGNED(1024))) ;
+   foo = ARRAY [0..255] OF INTEGER <* bytealignment(1024) *> ;
 
 VAR
    x  : CHAR ;

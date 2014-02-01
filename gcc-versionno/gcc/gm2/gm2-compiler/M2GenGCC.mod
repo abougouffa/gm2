@@ -2683,9 +2683,12 @@ VAR
 *)
 
 PROCEDURE CodeTry (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   location: location_t ;
 BEGIN
+   location := TokenToLocation(QuadToTokenNo(quad)) ;
    handlerBlock := NIL ;
-   tryBlock := BuildTryBegin()
+   tryBlock := BuildTryBegin(location)
 END CodeTry ;
 
 
@@ -2719,15 +2722,21 @@ END CodeRetry ;
 
 
 PROCEDURE CodeCatchBegin (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   location: location_t ;
 BEGIN
+   location := TokenToLocation(QuadToTokenNo(quad)) ;
    BuildTryEnd(tryBlock) ;
-   handlerBlock := BuildCatchBegin()
+   handlerBlock := BuildCatchBegin(location)
 END CodeCatchBegin ;
 
 
 PROCEDURE CodeCatchEnd (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   location: location_t ;
 BEGIN
-   tryBlock := BuildCatchEnd(handlerBlock, tryBlock) ;
+   location := TokenToLocation(QuadToTokenNo(quad)) ;
+   tryBlock := BuildCatchEnd(location, handlerBlock, tryBlock) ;
    AddStatement(tryBlock)
 END CodeCatchEnd ;
 

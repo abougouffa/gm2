@@ -837,9 +837,9 @@ END BuildPragmaConst ;
 
 
                   Ptr ->                                            <- Ptr
-                         +------------+        +-----------------+
-                         | ALIGNED    |        | AlignmentConst  |
-                         +------------+        |-----------------|
+                         +---------------+      +-----------------+
+                         | bytealignment |      | AlignmentConst  |
+                         +---------------+      |-----------------|
 *)
 
 PROCEDURE BuildAligned ;
@@ -848,21 +848,19 @@ VAR
    align: CARDINAL ;
 BEGIN
    PopT(name) ;
-   IF name=MakeKey('ALIGNED')
+   IF name=MakeKey('bytealignment')
    THEN
       align := MakeTemporary(ImmediateValue) ;
       PutConst(align, ZType) ;
       PutConstIntoFifoQueue(align) ;     (* Store align away so that we can fill in its  *)
       PushT(align) ;                     (* value during pass 3.                         *)
-      Annotate("%1s(%1d)||aligned constant generated from __ATTRIBUTE__")
-   ELSIF name=MakeKey('PACKED')
-   THEN
-      (* nothing to do *)
+      Annotate("%1s(%1d)||bytealignment constant generated from <* *>") ;
+      PushT(name)
    ELSE
-      WriteFormat1('expecting ALIGNED or PACKED identifier, rather than %a', name) ;
+      WriteFormat1('expecting bytealignment identifier, rather than %a', name) ;
+      PushT(NulSym)
    END ;
-   PushT(name) ;
-   Annotate("%1n(%1d)||ALIGNED or PACKED keyword associated with __ATTRIBUTE__")
+   Annotate("%1n(%1d)||bytealignment constant generated from <* *>")
 END BuildAligned ;
 
 
@@ -894,7 +892,7 @@ VAR
    align    : CARDINAL ;
 BEGIN
    PopT(alignment) ;
-   IF alignment=MakeKey('ALIGNED')
+   IF alignment=MakeKey('bytealignment')
    THEN
       PopT(align) ;
       PopT(type) ;
@@ -907,6 +905,9 @@ BEGIN
             MetaError1('not allowed to add an alignment attribute to type {%1ad}', type)
          END
       END
+   ELSIF alignment#NulName
+   THEN
+      WriteFormat1('unknown type alignment attribute, %a', alignment)
    ELSE
       PopT(type)
    END
@@ -942,7 +943,7 @@ VAR
    s        : String ;
 BEGIN
    PopT(alignment) ;
-   IF alignment=MakeKey('ALIGNED')
+   IF alignment=MakeKey('bytealignment')
    THEN
       PopT(align) ;
       PopT(type) ;
@@ -976,6 +977,9 @@ BEGIN
          PushTF(type, GetSymName(type)) ;
          Annotate("%1s(%1d)|%2n||error aligned type|error aligned type name")
       END
+   ELSIF alignment#NulName
+   THEN
+      WriteFormat1('unknown variable alignment attribute, %a', alignment)
    END
 END BuildVarAlignment ;
 

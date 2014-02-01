@@ -19,7 +19,7 @@ Boston, MA 02110-1301, USA. *)
 MODULE align ;
 
 TYPE
-   foo = INTEGER __ATTRIBUTE__ ((ALIGNED(1024))) ;
+   foo = INTEGER <* bytealignment(1024) *> ;
 
 VAR
    z  : INTEGER ;

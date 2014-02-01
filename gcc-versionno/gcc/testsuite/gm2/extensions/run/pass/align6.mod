@@ -23,7 +23,7 @@ FROM libc IMPORT exit ;
 
 VAR
    x: CHAR ;
-   y: CHAR  __ATTRIBUTE__ ((ALIGNED(1024))) ;
+   y: CHAR  <* bytealignment(1024) *> ;
 BEGIN
    IF ADR(y) MOD 1024=0
    THEN

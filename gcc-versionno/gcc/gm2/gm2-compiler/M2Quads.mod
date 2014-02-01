@@ -3119,11 +3119,11 @@ END CheckBooleanId ;
                             =====                   ====
 
                     Ptr ->
-                            +------------+
-                            | Expression |
-                            |------------|
-                            | ALIGNED    |
-                            |------------|          empty
+                            +---------------+
+                            | Expression    |
+                            |---------------|
+                            | bytealignment |
+                            |---------------|       empty
 *)
 
 PROCEDURE BuildAlignment ;
@@ -3134,9 +3134,9 @@ VAR
 BEGIN
    PopT(expr) ;
    PopT(name) ;
-   IF name#MakeKey('ALIGNED')
+   IF name#MakeKey('bytealignment')
    THEN
-      WriteFormat1('expecting ALIGNED identifier, rather than %a', name)
+      WriteFormat1('expecting bytealignment identifier, rather than %a', name)
    END ;
    GetConstFromFifoQueue(align) ;
    PushT(align) ;

@@ -2501,12 +2501,16 @@ compiler.
 @section Data type alignment
 
 GNU Modula-2 allows you to specify alignment for types and variables.
-The syntax is similar to GCC and uses the @code{__ATTRIBUTE__}
-mechanism.  The ebnf of the alignment production is:
+The syntax for alignment is to use the ISO pragma directives @code{<*}
+@code{bytealignment (} expression @code{)} and @code{*>}.  These directives
+can be used after type and variable declarations.
+
+The ebnf of the alignment production is:
 
 @example
-Alignment := [ "__ATTRIBUTE__" "(" "(" ALIGNED "(" ConstExpression ")" ")" ")" ]
-           =:
+Alignment := [ ByteAlignment ] =:
+ByteAlignment := '<*' AttributeExpression '*>' =:
+AlignmentExpression := "(" ConstExpression ")" =:
 @end example
 
 The @code{Alignment} ebnf statement may be used during contruction of
@@ -2518,7 +2522,7 @@ aligned on a 1024 address.
 MODULE align ;
 
 TYPE
-   foo = INTEGER __ATTRIBUTE__ ((ALIGNED(1024))) ;
+   foo = INTEGER <* bytealignment(1024) *> ;
 
 VAR
    z  : INTEGER ;
@@ -2534,7 +2538,7 @@ MODULE align2 ;
 
 VAR
    x  : CHAR ;
-   z  : ARRAY [0..255] OF INTEGER __ATTRIBUTE__ ((ALIGNED(1024))) ;
+   z  : ARRAY [0..255] OF INTEGER <* bytealignment(1024) *> ;
 BEGIN
 END align2.
 @end example
@@ -2549,7 +2553,7 @@ FROM libc IMPORT exit ;
 
 VAR
    x  : CHAR ;
-   z  : POINTER TO INTEGER __ATTRIBUTE__ ((ALIGNED(1024))) ;
+   z  : POINTER TO INTEGER <* bytealignment(1024) *> ;
 BEGIN
    IF ADR(z) MOD 1024=0
    THEN
@@ -2572,7 +2576,7 @@ FROM libc IMPORT exit ;
 TYPE
    rec = RECORD
             x: CHAR ;
-            y: CHAR  __ATTRIBUTE__ ((ALIGNED(1024))) ;
+            y: CHAR <* bytealignment(1024) *> ;
          END ;
 VAR
    r: rec ;
@@ -2597,7 +2601,7 @@ FROM SYSTEM IMPORT ADR ;
 FROM libc IMPORT exit ;
 
 TYPE
-   foo = ARRAY [0..255] OF INTEGER __ATTRIBUTE__ ((ALIGNED(1024))) ;
+   foo = ARRAY [0..255] OF INTEGER <* bytealignment(1024) *> ;
 
 VAR
    x  : CHAR ;
@@ -2707,9 +2711,6 @@ END align21.
 
 Here we see that the total size of this record is one byte and consists
 of a six bit set type followed by a 2 bit integer subrange.
-
-@footnote{It is likely that in the future all alignment will use this
-syntax rather than the @code{ATTRIBUTE} keyword equivalent.}
 
 @node Built-ins, The PIM system module, Packed, Using
 @section Accessing GNU Modula-2 Built-ins

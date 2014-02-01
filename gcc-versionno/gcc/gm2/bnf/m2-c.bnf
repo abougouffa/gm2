@@ -730,8 +730,7 @@ ConstAttributeExpression :=
 
 Element := ConstExpression [ ".." ConstExpression ] =:
 
-ByteAlignment := "__ATTRIBUTE__" "(" "(" Ident OptAlignmentExpression ")" ")"
-               =:
+ByteAlignment := '<*' AttributeExpression '*>' =:
 
 OptAlignmentExpression := [ AlignmentExpression ] =:
 

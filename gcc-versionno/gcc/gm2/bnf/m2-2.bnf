@@ -672,9 +672,10 @@ ConstAttributeExpression := Ident | "<" Qualident ',' Ident ">" =:
 
 Element := ConstExpression [ ".." ConstExpression ] =:
 
-ByteAlignment := "__ATTRIBUTE__" "(" "(" Ident OptAlignmentExpression      % BuildAligned %
-                                                                      ")" ")"
-               =:
+ByteAlignment := '<*'                                                      % PushAutoOn %
+                                AttributeExpression                        % BuildAligned %
+                                                                           % PopAuto %
+                                                    '*>' =:
 
 OptAlignmentExpression := [ AlignmentExpression ] =:
 
