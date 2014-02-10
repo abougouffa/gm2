@@ -32,9 +32,7 @@ FROM SYSTEM IMPORT ADDRESS ;
 FROM DynamicStrings IMPORT String ;
 FROM m2linemap IMPORT location_t ;
 
-EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions,
-
-                 SetReturnCheck, SetNilCheck, SetCaseCheck,
+EXPORT QUALIFIED SetReturnCheck, SetNilCheck, SetCaseCheck,
                  SetCheckAll, SetVerboseUnbounded, SetQuiet, SetCpp,
                  SetMakeall, SetMakeall0, SetIncludePath,
                  SetUnboundedByReference,
@@ -352,20 +350,6 @@ PROCEDURE SetSources (value: BOOLEAN) ;
 
 
 (*
-   SetDefExtension -
-*)
-
-PROCEDURE SetDefExtension (arg: ADDRESS) ;
-
-
-(*
-   SetModExtension -
-*)
-
-PROCEDURE SetModExtension (arg: ADDRESS) ;
-
-
-(*
    SetDumpSystemExports -
 *)
 
@@ -383,7 +367,7 @@ PROCEDURE SetSwig (value: BOOLEAN) ;
    SetOptimizing -
 *)
 
-PROCEDURE SetOptimizing (value: BOOLEAN) ;
+PROCEDURE SetOptimizing (value: CARDINAL) ;
 
 
 (*

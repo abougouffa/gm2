@@ -1,3 +1,24 @@
+2014-02-10      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added -I$(srcdir)/gm2/gm2-gcc to all
+	  the compiler build rules when building gm2/gm2-compiler via xgm2.
+	* gm2/gm2-compiler/M2ALU.mod:  fix imports so that this file can
+	  be built by xgm2.
+	* gm2/gm2-compiler/M2GenGCC.mod:  fixed many (but not all) of the
+	  imports so this file can be compiled by xgm2.
+	* gm2/gm2-compiler/M2LexBuf.def:  add TokenToLocation to export
+	  qualified list.
+	* gm2/gm2-compiler/M2Options.def:  remove IsAnOption,
+	  IsAndOptionAndArg and ParseOptions from the export list.
+	  (SetOptimizing) correct parameter to CARDINAL.
+	* gm2/gm2-compiler/M2Options.mod:  include Dup into export list.
+	* gm2/gm2-gcc/m2decl.def:  import ADDRESS from SYSTEM.
+	* gm2/gm2-gcc/m2expr.def:  import ADDRESS from SYSTEM.
+	  (BuildBinarySetDo) added missing ';'.
+	* gm2/gm2-gcc/m2statement.def:  import ADDRESS from SYSTEM.
+	* gm2/gm2-gcc/m2top.def:  (SetFlagUnitAtATime) alter parameter to
+	  BOOLEAN.
+
 2014-02-02      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/m2-2.bnf:  changed rule for ByteAlignment to use the ISO

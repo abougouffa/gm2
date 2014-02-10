@@ -1,6 +1,7 @@
 DEFINITION MODULE m2statement ;
 
 
+FROM SYSTEM IMPORT ADDRESS ;
 FROM m2tree IMPORT Tree ;
 FROM m2linemap IMPORT location_t ;
 FROM m2expr IMPORT BuildUnarySetFunction ;

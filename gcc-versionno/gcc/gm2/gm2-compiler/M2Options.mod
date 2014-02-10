@@ -31,6 +31,7 @@ FROM m2linemap IMPORT location_t ;
 
 FROM DynamicStrings IMPORT String, Length, InitString, Mark, Slice, EqualArray,
                            InitStringCharStar, ConCatChar, ConCat, KillString,
+                           Dup,
                            PushAllocation, PopAllocationExemption,
                            InitStringDB, InitStringCharStarDB,
                            InitStringCharDB, MultDB, DupDB, SliceDB ;

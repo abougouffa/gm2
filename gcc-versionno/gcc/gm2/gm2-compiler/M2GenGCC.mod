@@ -73,7 +73,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         NulSym ;
 
 FROM M2Batch IMPORT MakeDefinitionSource ;
-FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo, TokenToLocation ;
+FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo, TokenToLocation, GetTokenNo ;
 FROM M2Code IMPORT CodeBlock ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, WriteFormat2, ErrorStringAt, WarnStringAt ;
@@ -123,7 +123,8 @@ FROM M2ALU IMPORT PtrToValue,
                   SetSymmetricDifference, SetDifference,
                   SetShift, SetRotate,
                   AddBit, SubBit, Less, Addn, GreEqu, SetIn,
-                  CheckOrResetOverflow, GetRange, GetValue ;
+                  CheckOrResetOverflow, GetRange, GetValue,
+                  ConvertToType ;
 
 FROM M2GCCDeclare IMPORT WalkAction,
                          DeclareConstant, TryDeclareConstant,
@@ -141,10 +142,10 @@ FROM m2builtins IMPORT BuiltInMemCopy, BuiltInAlloca,
                        GetBuiltinConst, GetBuiltinTypeInfo,
                        BuiltinExists, BuildBuiltinTree ;
 
-FROM m2expr IMPORT GetIntegerZero, GetIntegerOne, GetIntegerType,
+FROM m2expr IMPORT GetIntegerZero, GetIntegerOne,
                    GetCardinalOne,
                    BuildBinProcedure, BuildUnaryProcedure,
-                   BuildSetProcedure,
+                   BuildSetProcedure, BuildUnarySetFunction,
                    BuildAdd, BuildSub, BuildMult, BuildLSL,
                    BuildDivTrunc, BuildModTrunc, BuildDivFloor, BuildModFloor,
                    BuildLogicalOrAddress,
@@ -158,63 +159,35 @@ FROM m2expr IMPORT GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildEqualTo, BuildNotEqualTo,
                    BuildIsSuperset, BuildIsNotSuperset,
                    BuildIsSubset, BuildIsNotSubset,
-                   BuildIfIn, BuildIfNotIn,
                    BuildIndirect, BuildArray,
-                   BuildConvert, BuildTrunc, BuildCoerce,
+                   BuildTrunc, BuildCoerce,
                    BuildBinaryForeachWordDo,
-                   BuildUnaryForeachWordDo,
                    BuildBinarySetDo,
-                   BuildSetNegate ;
+                   BuildSetNegate,
+                   BuildComponentRef,
+                   BuildCap, BuildAbs, BuildIm, BuildRe, BuildCmplx,
+                   BuildAddAddress,
+                   BuildIfInRangeGoto, BuildIfNotInRangeGoto ;
 
 FROM m2convert IMPORT BuildConvert ;
 FROM m2tree IMPORT Tree ;
 FROM m2linemap IMPORT location_t ;
 FROM m2decl IMPORT BuildStringConstant ;
-FROM m2statement IMPORT BuildAsm, BuildProcedureCallTree ;
 
-FROM m2type IMPORT ChainOnParamValue, GetPointerType ;
+FROM m2statement IMPORT BuildAsm, BuildProcedureCallTree, BuildParam, BuildFunctValue,
+                        DoJump, BuildUnaryForeachWordDo, BuildGoto, BuildCall2, BuildCall3,
+                        BuildStart, BuildEnd, BuildCallInner, BuildStartFunctionCode,
+                        BuildEndFunctionCode, BuildAssignmentTree, DeclareLabel,
+                        BuildIndirectProcedureCallTree ;
+
+FROM m2type IMPORT ChainOnParamValue, GetPointerType, GetIntegerType, AddStatement,
+                   GetCardinalType, GetWordType, GetM2ZType, GetM2RType, GetM2CType,
+                   BuildCharConstant ;
+
 FROM m2block IMPORT RememberConstant, pushGlobalScope, popGlobalScope ;
 FROM m2misc IMPORT DebugTree ;
 
-
-(*
-                   BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
-                   BuildVariableArrayAndDeclare, BuildCharConstant ;
-
-                   AddStringToTreeList,
-                   SetFileNameAndLineNo, EmitLineNote, BuildStart, BuildEnd,
-                   BuildCallInner,
-                   BuildStartFunctionCode, BuildEndFunctionCode,
-                   BuildReturnValueCode, SetLastFunction,
-                   BuildAssignmentTree, DeclareKnownConstant,
-
-                   BuildGoto, DeclareLabel, StringLength,
-                   BuildExcludeVarConst, BuildIncludeVarConst,
-                   BuildExcludeVarVar, BuildIncludeVarVar,
-                   BuildIfConstInVar, BuildIfNotConstInVar,
-                   BuildIfVarInVar, BuildIfNotVarInVar,
-                   BuildIfInRangeGoto, BuildIfNotInRangeGoto,
-                   BuildForeachWordInSetDoIfExpr,
-                   ConvertConstantAndCheck,
-                   BuildArrayStringConstructor,
-                   AreConstantsEqual, CompareTrees,
-                   DoJump,
-                   BuildProcedureCallTree, BuildIndirectProcedureCallTree,
-                   BuildParam, BuildFunctValue, BuildComponentRef,
-                   BuildCall2, BuildCall3,
-                   BuildAsm, DebugTree,
-
-                   BuildPushFunctionContext, BuildPopFunctionContext,
-                   BuildCap, BuildAbs, BuildRe, BuildIm, BuildCmplx,
-                   AddStatement, ConvertString, GetArrayNoOfElements,
-                   GetPointerType, GetPointerZero,
-                   GetWordType, GetM2ZType, GetM2RType, GetM2CType,
-                   GetBitsPerBitset, GetSizeOfInBits, GetMaxFrom,
-                   BuildIntegerConstant, BuildStringConstant,
-                   RememberConstant, FoldAndStrip, RemoveOverflow ;
-*)
-
-FROM m2convert IMPORT BuildConvert, ConvertConstantAndCheck ;
+FROM m2convert IMPORT BuildConvert, ConvertConstantAndCheck, ToCardinal ;
 
 FROM m2except IMPORT BuildThrow, BuildTryBegin, BuildTryEnd,
                      BuildCatchBegin, BuildCatchEnd ;

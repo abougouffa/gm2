@@ -35,6 +35,7 @@ FROM m2linemap IMPORT location_t ;
 EXPORT QUALIFIED OpenSource, CloseSource, ReInitialize, GetToken, InsertToken,
                  InsertTokenAndRewind, GetPreviousTokenLineNo, GetLineNo,
                  GetColumnNo, GetTokenNo, TokenToLineNo, TokenToColumnNo,
+                 TokenToLocation,
                  FindFileNameFromToken, GetFileName,
                  ResetForNewPass,
                  currenttoken, currentstring, currentinteger,

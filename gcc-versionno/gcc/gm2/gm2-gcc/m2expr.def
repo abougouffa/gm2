@@ -1,5 +1,6 @@
 DEFINITION MODULE m2expr ;
 
+FROM SYSTEM IMPORT ADDRESS ;
 FROM m2tree IMPORT Tree ;
 FROM m2linemap IMPORT location_t ;
 
@@ -434,9 +435,9 @@ PROCEDURE BuildArray (type: Tree; array: Tree; index: Tree; lowIndice: Tree) : T
 
 
 (*
-    BuildComponentRef - build a component reference tree which accesses record.field.
-                        If field does not belong to record it calls
-                        BuildComponentRef on the penultimate field.
+   BuildComponentRef - build a component reference tree which accesses record.field.
+                       If field does not belong to record it calls
+                       BuildComponentRef on the penultimate field.
 *)
 
 PROCEDURE BuildComponentRef (record: Tree; field: Tree) : Tree ;
@@ -555,7 +556,7 @@ PROCEDURE BuildBinaryForeachWordDo (location: location_t;
                          call m2rtsprocedure(op1, op2, op3)
 *)
 
-PROCEDURE BuildBinarySetDo (location location_t;
+PROCEDURE BuildBinarySetDo (location: location_t;
                             settype, op1, op2, op3: Tree;
                             binop: BuildSetProcedure;
                             is_op1lvalue, is_op2lvalue, is_op3lvalue: BOOLEAN;

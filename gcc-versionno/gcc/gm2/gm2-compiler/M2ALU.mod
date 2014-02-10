@@ -68,7 +68,7 @@ FROM m2expr IMPORT BuildAdd, BuildSub, BuildMult,
 
 FROM m2decl IMPORT GetBitsPerBitset ;
 FROM m2misc IMPORT DebugTree ;
-FROM m2type IMPORT RealToTree ;
+FROM m2type IMPORT RealToTree, Constructor ;
 FROM m2convert IMPORT ConvertConstantAndCheck ;
 FROM m2block IMPORT RememberConstant ;
 

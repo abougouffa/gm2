@@ -1296,16 +1296,16 @@ gm2/gm2-libiberty/xlibc.o: $(srcdir)/gm2/gm2-libs-ch/xlibc.c gm2/gm2-libs/gm2-li
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-compiler/M2Options.o: $(srcdir)/gm2/gm2-compiler/M2Options.mod
-	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(GM2_DEBUG_STRMEM) $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso -I$(srcdir)/gm2/gm2-gcc $(GM2_DEBUG_STRMEM) $< -o $@
 
 gm2/gm2-compiler/M2Search.o: $(srcdir)/gm2/gm2-compiler/M2Search.mod
-	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(GM2_DEBUG_STRMEM) $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso -I$(srcdir)/gm2/gm2-gcc $(GM2_DEBUG_STRMEM) $< -o $@
 
 gm2/gm2-compiler/M2Quads.o: $(srcdir)/gm2/gm2-compiler/M2Quads.mod
-	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(GM2_DEBUG_STRMEM) $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso -I$(srcdir)/gm2/gm2-gcc $(GM2_DEBUG_STRMEM) $< -o $@
 
 gm2/gm2-compiler/%.o: $(srcdir)/gm2/gm2-compiler/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -g -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -g -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/m2flex.o: gm2/gm2-compiler/m2flex.c gm2/gm2-libs/gm2-libs-host.h
 	$(GCC_FOR_TARGET) -c $(CFLAGS) $(INCLUDES) $(GM2GCC) -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@

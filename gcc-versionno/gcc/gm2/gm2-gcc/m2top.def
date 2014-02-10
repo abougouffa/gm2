@@ -5,7 +5,7 @@ DEFINITION MODULE m2top ;
     SetFlagUnitAtATime - sets GCC flag_unit_at_a_time to b.
 *)
 
-PROCEDURE SetFlagUnitAtATime (b: INTEGER) ;
+PROCEDURE SetFlagUnitAtATime (b: BOOLEAN) ;
 
 
 (*
