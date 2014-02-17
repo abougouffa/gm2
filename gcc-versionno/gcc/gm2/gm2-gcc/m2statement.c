@@ -1074,3 +1074,6 @@ m2statement_DoJump (location_t location, tree exp, char *falselabel, char *truel
   if (c != NULL_TREE)
     add_stmt (c);
 }
+
+
+#include "gt-gm2-m2statement.h"

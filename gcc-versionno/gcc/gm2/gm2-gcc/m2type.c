@@ -77,8 +77,8 @@ static int broken_set_debugging_info = TRUE;
  */
 
 
-struct struct_constructor GTY(())
-{
+struct GTY(())
+struct_constructor {
   /*
    *  constructor_type, the type that we are constructing
    */
@@ -107,14 +107,16 @@ struct struct_constructor GTY(())
 static GTY(()) struct struct_constructor *top_constructor = NULL;
 
 
-typedef struct array_desc {
+typedef
+struct GTY(())
+array_desc {
   int type;
   tree index;
   tree array;
   struct array_desc *next;
 } array_desc;
 
-static array_desc *list_of_arrays = NULL;
+static GTY(()) array_desc *list_of_arrays = NULL;
 /* Used in BuildStartFunctionType */
 static GTY(()) tree param_type_list;
 static GTY(()) tree param_list = NULL_TREE;   /* ready for the next time we call/define a function */
@@ -182,7 +184,7 @@ gm2_canonicalize_array (tree index_type, int type)
       else
         l = l->next;
     }
-  l = (array_desc *) xmalloc (sizeof (array_desc));
+  l = (array_desc *) ggc_alloc_array_desc ();
   l->next = list_of_arrays;
   l->type = type;
   l->index = index_type;
@@ -2543,7 +2545,7 @@ struct struct_constructor *
 push_constructor (void)
 {
   struct struct_constructor *p =
-    (struct struct_constructor *) xmalloc (sizeof (struct struct_constructor));
+    (struct struct_constructor *) ggc_alloc_struct_constructor ();
 
   p->level = top_constructor;
   top_constructor = p;
@@ -3522,3 +3524,6 @@ m2type_IsAddress (tree type)
 {
   return type == ptr_type_node;
 }
+
+
+#include "gt-gm2-m2type.h"

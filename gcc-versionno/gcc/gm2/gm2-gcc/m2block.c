@@ -71,8 +71,8 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
    Binding contours are used to create GCC tree BLOCK nodes.  */
 
 
-struct binding_level GTY(())
-  {
+struct GTY(())
+binding_level {
     /* The function associated with the scope.  This is NULL_TREE for the
        global scope.
     */
@@ -222,7 +222,7 @@ newLevel (void)
   struct binding_level *newlevel;
 
   if (free_binding_level == NULL)
-    newlevel = (struct binding_level *) xmalloc (sizeof (struct binding_level));
+    newlevel = (struct binding_level *) ggc_alloc_binding_level ();
   else
     {
       newlevel = free_binding_level;
@@ -1079,3 +1079,6 @@ m2block_init (void)
   global_binding_level = newLevel ();
   current_binding_level = NULL;
 }
+
+
+#include "gt-gm2-m2block.h"

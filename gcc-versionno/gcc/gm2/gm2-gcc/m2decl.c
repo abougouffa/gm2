@@ -479,3 +479,6 @@ m2decl_GetDeclContext (tree t)
 {
   return DECL_CONTEXT (t);
 }
+
+
+#include "gt-gm2-m2decl.h"

@@ -301,8 +301,7 @@ m2expr_BuildLSR (location_t location, tree op1, tree op2, int needconvert)
 
 
 /*
- *  createUniqueLabel - returns a unique label which has been
- *                      xmalloc'ed.
+ *  createUniqueLabel - returns a unique label which has been alloc'ed
  */
 
 static char *
@@ -318,7 +317,7 @@ createUniqueLabel (void)
     i /= 10;
     size++;
   }
-  label = (char *)xmalloc (size);
+  label = (char *) ggc_alloc_atomic (size);
   sprintf(label, ".LSHIFT%d", label_count);
   return label;
 }
@@ -2558,3 +2557,6 @@ m2expr_init (location_t location)
 
   set_full_complement = build_set_full_complement (location);
 }
+
+
+#include "gt-gm2-m2expr.h"

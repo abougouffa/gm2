@@ -47,8 +47,13 @@ build_by_default="no"
 
 gtfiles="\$(srcdir)/gm2/gm2-lang.c \
          \$(srcdir)/gm2/gm2-lang.h \
+         \$(srcdir)/gm2/gm2-gcc/m2block.c \
+         \$(srcdir)/gm2/gm2-gcc/m2builtins.c \
+         \$(srcdir)/gm2/gm2-gcc/m2decl.c \
          \$(srcdir)/gm2/gm2-gcc/m2except.c \
-         \$(srcdir)/gm2/gm2-gcc/m2builtins.c"
+         \$(srcdir)/gm2/gm2-gcc/m2expr.c \
+         \$(srcdir)/gm2/gm2-gcc/m2statement.c \
+         \$(srcdir)/gm2/gm2-gcc/m2type.c"
 
 outputs=" \
          gm2/Makefile \

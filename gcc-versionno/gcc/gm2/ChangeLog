@@ -1,3 +1,18 @@
+2014-02-17      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/config-lang.in:  added m2block.c, m2builtins.c and m2decl.c
+	  to the list of gtfiles.
+	* gm2/gm2-gcc/m2block.c:  changed layout of the GTY binding level
+	  structure and use ggc_alloc_binding_level rather than xmalloc.
+	  Include gt-gm2-m2block.h.
+	* gm2/gm2-gcc/m2type.c:  include gt-gm2-m2decl.h.
+	* gm2/gm2-gcc/m2expr.c:  use ggc_alloc_atomic rather than xmalloc.
+	  Include gt-gm2-m2expr.h.
+	* gm2/gm2-gcc/m2statement.c:  include gt-gm2-m2statement.h.
+	* gm2/gm2-gcc/m2type.c:  layout GTY structure correctly and
+	  use ggc_alloc_array_desc and ggc_alloc_struct_constructor
+	  instead of xmalloc.  Include gt-gm2-m2type.h.
+
 2014-02-10      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  added -I$(srcdir)/gm2/gm2-gcc to all
