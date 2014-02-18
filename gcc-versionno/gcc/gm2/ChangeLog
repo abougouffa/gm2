@@ -1,3 +1,8 @@
+2014-02-18      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  fixed many imports so that
+	  the module can be built during stage2, via xgm2.
+	* 
 2014-02-17      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/config-lang.in:  added m2block.c, m2builtins.c and m2decl.c

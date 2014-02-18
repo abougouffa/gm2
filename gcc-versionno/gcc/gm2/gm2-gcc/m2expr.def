@@ -379,25 +379,25 @@ PROCEDURE BuildIsNotSubset (location: location_t; op1: Tree; op2: Tree) : Tree ;
     BuildIfConstInVar - generates: if constel in varset then goto label.
 *)
 
-PROCEDURE BuildIfConstInVar (location: location_t; type: Tree; varset: Tree; constel: Tree; is_lvalue: INTEGER; fieldno: INTEGER; label: ADDRESS) ;
+PROCEDURE BuildIfConstInVar (location: location_t; type: Tree; varset: Tree; constel: Tree; is_lvalue: BOOLEAN; fieldno: INTEGER; label: ADDRESS) ;
 
 
 
-PROCEDURE BuildIfNotConstInVar (location: location_t; type: Tree; varset: Tree; constel: Tree; is_lvalue: INTEGER; fieldno: INTEGER; label: ADDRESS) ;
+PROCEDURE BuildIfNotConstInVar (location: location_t; type: Tree; varset: Tree; constel: Tree; is_lvalue: BOOLEAN; fieldno: INTEGER; label: ADDRESS) ;
 
 
 (*
     BuildIfVarInVar - generates: if varel in varset then goto label
 *)
 
-PROCEDURE BuildIfVarInVar (location: location_t; type: Tree; varset: Tree; varel: Tree; is_lvalue: INTEGER; low: Tree; high: Tree; label: ADDRESS) ;
+PROCEDURE BuildIfVarInVar (location: location_t; type: Tree; varset: Tree; varel: Tree; is_lvalue: BOOLEAN; low: Tree; high: Tree; label: ADDRESS) ;
 
 
 (*
     BuildIfNotVarInVar - generates: if not (varel in varset) then goto label
 *)
 
-PROCEDURE BuildIfNotVarInVar (location: location_t; type: Tree; varset: Tree; varel: Tree; is_lvalue: INTEGER; low: Tree; high: Tree; label: ADDRESS) ;
+PROCEDURE BuildIfNotVarInVar (location: location_t; type: Tree; varset: Tree; varel: Tree; is_lvalue: BOOLEAN; low: Tree; high: Tree; label: ADDRESS) ;
 
 
 (*
@@ -454,14 +454,14 @@ PROCEDURE BuildIndirect (location: location_t; target: Tree; type: Tree) : Tree 
     IsTrue - returns TRUE if, t, is known to be TRUE.
 *)
 
-PROCEDURE IsTrue (t: Tree) : INTEGER ;
+PROCEDURE IsTrue (t: Tree) : BOOLEAN ;
 
 
 (*
     IsFalse - returns FALSE if, t, is known to be FALSE.
 *)
 
-PROCEDURE IsFalse (t: Tree) : INTEGER ;
+PROCEDURE IsFalse (t: Tree) : BOOLEAN ;
 
 
 (*
@@ -469,7 +469,7 @@ PROCEDURE IsFalse (t: Tree) : INTEGER ;
                         TRUE if the value of e1 is the same as e2.
 *)
 
-PROCEDURE AreConstantsEqual (e1: Tree; e2: Tree) : INTEGER ;
+PROCEDURE AreConstantsEqual (e1: Tree; e2: Tree) : BOOLEAN ;
 
 
 (*

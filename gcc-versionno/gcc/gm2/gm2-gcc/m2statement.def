@@ -19,14 +19,14 @@ PROCEDURE DoJump (location: location_t; exp: Tree; falselabel: ADDRESS; truelabe
    BuildStartFunctionCode - generate function entry code.
 *)
 
-PROCEDURE BuildStartFunctionCode (fndecl: Tree; isexported: INTEGER; isinline: INTEGER) ;
+PROCEDURE BuildStartFunctionCode (fndecl: Tree; isexported: BOOLEAN; isinline: BOOLEAN) ;
 
 
 (*
    BuildEndFunctionCode - generates the function epilogue.
 *)
 
-PROCEDURE BuildEndFunctionCode (fndecl: Tree; nested: INTEGER) ;
+PROCEDURE BuildEndFunctionCode (fndecl: Tree; nested: BOOLEAN) ;
 
 
 (*
@@ -179,7 +179,7 @@ PROCEDURE BuildUnaryForeachWordDo (location: location_t; type: Tree; op1: Tree; 
                            op2 is a constant.
 *)
 
-PROCEDURE BuildExcludeVarConst (location: location_t; type: Tree; op1: Tree; op2: Tree; is_lvalue: INTEGER; fieldno: INTEGER) ;
+PROCEDURE BuildExcludeVarConst (location: location_t; type: Tree; op1: Tree; op2: Tree; is_lvalue: BOOLEAN; fieldno: INTEGER) ;
 
 
 (*
@@ -187,7 +187,7 @@ PROCEDURE BuildExcludeVarConst (location: location_t; type: Tree; op1: Tree; op2
                          varel is a variable.
 *)
 
-PROCEDURE BuildExcludeVarVar (location: location_t; type: Tree; varset: Tree; varel: Tree; is_lvalue: INTEGER; low: Tree) ;
+PROCEDURE BuildExcludeVarVar (location: location_t; type: Tree; varset: Tree; varel: Tree; is_lvalue: BOOLEAN; low: Tree) ;
 
 
 (*
@@ -196,7 +196,7 @@ PROCEDURE BuildExcludeVarVar (location: location_t; type: Tree; varset: Tree; va
                            op2 is a constant.
 *)
 
-PROCEDURE BuildIncludeVarConst (location: location_t; type: Tree; op1: Tree; op2: Tree; is_lvalue: INTEGER; fieldno: INTEGER) ;
+PROCEDURE BuildIncludeVarConst (location: location_t; type: Tree; op1: Tree; op2: Tree; is_lvalue: BOOLEAN; fieldno: INTEGER) ;
 
 
 (*
@@ -204,7 +204,7 @@ PROCEDURE BuildIncludeVarConst (location: location_t; type: Tree; op1: Tree; op2
                          op2 is a variable.
 *)
 
-PROCEDURE BuildIncludeVarVar (location: location_t; type: Tree; varset: Tree; varel: Tree; is_lvalue: INTEGER; low: Tree) ;
+PROCEDURE BuildIncludeVarVar (location: location_t; type: Tree; varset: Tree; varel: Tree; is_lvalue: BOOLEAN; low: Tree) ;
 
 
 (*
@@ -215,14 +215,14 @@ PROCEDURE BuildIncludeVarVar (location: location_t; type: Tree; varset: Tree; va
                  sequence for all modules.
 *)
 
-PROCEDURE BuildStart (location: location_t; name: ADDRESS; inner_module: INTEGER) : Tree ;
+PROCEDURE BuildStart (location: location_t; name: ADDRESS; inner_module: BOOLEAN) : Tree ;
 
 
 (*
     BuildEnd - complete the initialisation function for this module.
 *)
 
-PROCEDURE BuildEnd (fndecl: Tree; nested: INTEGER) ;
+PROCEDURE BuildEnd (fndecl: Tree; nested: BOOLEAN) ;
 
 
 (*

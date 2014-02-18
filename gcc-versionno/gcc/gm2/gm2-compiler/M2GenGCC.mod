@@ -144,6 +144,18 @@ FROM m2builtins IMPORT BuiltInMemCopy, BuiltInAlloca,
 
 FROM m2expr IMPORT GetIntegerZero, GetIntegerOne,
                    GetCardinalOne,
+                   GetPointerZero,
+                   GetCardinalZero,
+                   GetSizeOfInBits,
+                   FoldAndStrip,
+                   CompareTrees,
+                   StringLength,
+                   AreConstantsEqual,
+                   BuildForeachWordInSetDoIfExpr,
+                   BuildIfConstInVar,
+                   BuildIfVarInVar,
+                   BuildIfNotConstInVar,
+                   BuildIfNotVarInVar,
                    BuildBinProcedure, BuildUnaryProcedure,
                    BuildSetProcedure, BuildUnarySetFunction,
                    BuildAdd, BuildSub, BuildMult, BuildLSL,
@@ -172,22 +184,30 @@ FROM m2expr IMPORT GetIntegerZero, GetIntegerOne,
 FROM m2convert IMPORT BuildConvert ;
 FROM m2tree IMPORT Tree ;
 FROM m2linemap IMPORT location_t ;
-FROM m2decl IMPORT BuildStringConstant ;
+
+FROM m2decl IMPORT BuildStringConstant, DeclareKnownConstant, GetBitsPerBitset,
+                   BuildIntegerConstant ;
 
 FROM m2statement IMPORT BuildAsm, BuildProcedureCallTree, BuildParam, BuildFunctValue,
                         DoJump, BuildUnaryForeachWordDo, BuildGoto, BuildCall2, BuildCall3,
                         BuildStart, BuildEnd, BuildCallInner, BuildStartFunctionCode,
                         BuildEndFunctionCode, BuildAssignmentTree, DeclareLabel,
-                        BuildIndirectProcedureCallTree ;
+                        BuildIndirectProcedureCallTree,
+                        BuildPushFunctionContext, BuildPopFunctionContext,
+                        BuildReturnValueCode, SetLastFunction,
+                        BuildIncludeVarConst, BuildIncludeVarVar,
+                        BuildExcludeVarConst, BuildExcludeVarVar ;
 
 FROM m2type IMPORT ChainOnParamValue, GetPointerType, GetIntegerType, AddStatement,
                    GetCardinalType, GetWordType, GetM2ZType, GetM2RType, GetM2CType,
-                   BuildCharConstant ;
+                   BuildCharConstant, AddStringToTreeList, BuildArrayStringConstructor,
+                   GetArrayNoOfElements ;
 
-FROM m2block IMPORT RememberConstant, pushGlobalScope, popGlobalScope ;
+FROM m2block IMPORT RememberConstant, pushGlobalScope, popGlobalScope, finishFunctionDecl ;
+
 FROM m2misc IMPORT DebugTree ;
 
-FROM m2convert IMPORT BuildConvert, ConvertConstantAndCheck, ToCardinal ;
+FROM m2convert IMPORT BuildConvert, ConvertConstantAndCheck, ToCardinal, ConvertString ;
 
 FROM m2except IMPORT BuildThrow, BuildTryBegin, BuildTryEnd,
                      BuildCatchBegin, BuildCatchEnd ;

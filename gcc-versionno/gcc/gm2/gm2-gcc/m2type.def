@@ -768,7 +768,7 @@ PROCEDURE ChainOnParamValue (list: Tree; name: Tree; str: Tree; value: Tree) : T
 
 
 (*
-    AddStringToTreeList - adds, string, to list.
+   AddStringToTreeList - adds, string, to list.
 *)
 
 PROCEDURE AddStringToTreeList (list: Tree; string: Tree) : Tree ;

@@ -48,7 +48,7 @@ PROCEDURE ConvertToPtr (p: Tree) : Tree ;
                    should suppress overflow checking.
 *)
 
-PROCEDURE BuildConvert (op1: Tree; op2: Tree; checkOverflow: INTEGER) : Tree ;
+PROCEDURE BuildConvert (op1: Tree; op2: Tree; checkOverflow: BOOLEAN) : Tree ;
 
 
 (*
