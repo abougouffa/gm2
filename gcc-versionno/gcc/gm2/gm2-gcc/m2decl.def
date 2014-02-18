@@ -59,7 +59,9 @@ PROCEDURE BuildCharConstant (string: ADDRESS) : Tree ;
                            isglobal is TRUE.
 *)
 
-PROCEDURE DeclareKnownVariable (location: location_t; name: ADDRESS; type: Tree; exported: INTEGER; imported: INTEGER; istemporary: INTEGER; isglobal: INTEGER; scope: Tree) : Tree ;
+PROCEDURE DeclareKnownVariable (location: location_t; name: ADDRESS; type: Tree;
+                                exported, imported, istemporary, isglobal: BOOLEAN;
+                                scope: Tree) : Tree ;
 
 
 (*
@@ -82,7 +84,8 @@ PROCEDURE DeclareKnownConstant (location: location_t; type: Tree; value: Tree) :
                                 type declaration and we ignore names.
 *)
 
-PROCEDURE BuildParameterDeclaration (location: location_t; name: ADDRESS; type: Tree; isreference: INTEGER) : Tree ;
+PROCEDURE BuildParameterDeclaration (location: location_t; name: ADDRESS; type: Tree;
+                                     isreference: BOOLEAN) : Tree ;
 
 
 (*
@@ -90,7 +93,7 @@ PROCEDURE BuildParameterDeclaration (location: location_t; name: ADDRESS; type: 
                                     for building a function.
 *)
 
-PROCEDURE BuildStartFunctionDeclaration (uses_varargs: INTEGER) ;
+PROCEDURE BuildStartFunctionDeclaration (uses_varargs: BOOLEAN) ;
 
 
 (*
@@ -98,7 +101,8 @@ PROCEDURE BuildStartFunctionDeclaration (uses_varargs: INTEGER) ;
                                   The arguments have been created by BuildParameterDeclaration.
 *)
 
-PROCEDURE BuildEndFunctionDeclaration (location: location_t; name: ADDRESS; returntype: Tree; isexternal: INTEGER; isnested: INTEGER; ispublic: INTEGER) : Tree ;
+PROCEDURE BuildEndFunctionDeclaration (location: location_t; name: ADDRESS; returntype: Tree;
+                                       isexternal, isnested, ispublic: BOOLEAN) : Tree ;
 
 
 (*
@@ -113,7 +117,8 @@ PROCEDURE RememberVariables (l: Tree) ;
                               needsLong and needsUnsigned appropriately.
 *)
 
-PROCEDURE DetermineSizeOfConstant (str: ADDRESS; base: CARDINAL; VAR needsLong: INTEGER; VAR needsUnsigned: INTEGER) ;
+PROCEDURE DetermineSizeOfConstant (str: ADDRESS; base: CARDINAL;
+                                   VAR needsLong, needsUnsigned: BOOLEAN) ;
 
 
 (*

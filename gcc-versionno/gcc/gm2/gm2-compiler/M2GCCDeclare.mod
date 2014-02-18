@@ -47,7 +47,7 @@ FROM M2FileName IMPORT CalculateFileName ;
 FROM M2Configure IMPORT PushParametersLeftToRight ;
 FROM DynamicStrings IMPORT String, string, InitString, KillString, InitStringCharStar, Mark ;
 FROM FormatStrings IMPORT Sprintf1 ;
-FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken ;
+FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken, TokenToLocation ;
 FROM M2MetaError IMPORT MetaError1 ;
 FROM M2Error IMPORT FlushErrors, InternalError ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3 ;
@@ -143,15 +143,43 @@ FROM M2ALU IMPORT Addn, Sub, Equ, GreEqu, Gre, Less, PushInt, PushCard, ConvertT
 FROM m2tree IMPORT Tree ;
 FROM m2linemap IMPORT location_t ;
 
-FROM m2decl IMPORT BuildIntegerConstant ;
-FROM m2type IMPORT MarkFunctionReferenced, BuildStartRecord ;
+FROM m2decl IMPORT BuildIntegerConstant, BuildStringConstant, BuildStartFunctionDeclaration,
+                   BuildParameterDeclaration, BuildEndFunctionDeclaration,
+                   DeclareKnownVariable, GetBitsPerBitset ;
+
+FROM m2type IMPORT MarkFunctionReferenced, BuildStartRecord, BuildStartVarient, BuildStartFunctionType,
+                   BuildStartFieldVarient, BuildStartVarient, BuildStartType, BuildStartArrayType,
+                   PutArrayType, BuildPointerType, BuildEndType, BuildCharConstant,
+                   BuildTypeDeclaration, GetDefaultType, GetBooleanType, GetBooleanTrue,
+                   GetBooleanFalse, BuildSubrangeType, GetM2ZType, GetM2RType, GetM2CType,
+                   GetM2CardinalType, GetM2IntegerType, GetM2CharType, GetISOLocType,
+                   GetISOByteType, GetISOWordType, GetByteType, GetWordType, GetProcType, GetPointerType,
+                   GetM2LongIntType, GetM2LongCardType, GetM2ShortIntType, GetM2ShortCardType, 
+                   GetM2LongRealType, GetM2ShortRealType, GetM2RealType, GetBitnumType, GetBitsetType,
+                   GetM2ComplexType, GetM2ComplexType, GetM2LongComplexType, GetM2ShortComplexType,
+                   GetM2Integer8, GetM2Integer16, GetM2Integer32, GetM2Integer64, GetM2Cardinal8,
+                   GetM2Cardinal16, GetM2Cardinal32, GetM2Cardinal64, GetM2Word16, GetM2Word32,
+                   GetM2Word64, GetM2Bitset8, GetM2Bitset16, GetM2Bitset32, GetM2Real32, GetM2Real64,
+                   GetM2Real96, GetM2Real128, GetM2Complex32, GetM2Complex64, GetM2Complex96,
+                   GetM2Complex128, GetPackedBooleanType, BuildConstPointerType,
+                   BuildPointerType, BuildEnumerator, BuildStartEnumeration, BuildEndEnumeration,
+                   SetAlignment, SetTypePacked, SetDeclPacked, BuildSmallestTypeRange,
+                   SetRecordFieldOffset, ChainOn, BuildEndRecord, BuildFieldRecord,
+                   BuildEndFieldVarient, BuildArrayIndexType, BuildEndFunctionType,
+                   BuildSetType, BuildEndVarient, BuildEndArrayType, InitFunctionTypeParameters ;
+
 FROM m2convert IMPORT BuildConvert ;
-FROM m2expr IMPORT BuildSub ;
-FROM m2block IMPORT RememberType, pushGlobalScope, popGlobalScope ;
+
+FROM m2expr IMPORT BuildSub, BuildLSL, BuildTBitSize, BuildAdd, BuildDivTrunc, BuildModTrunc,
+                   BuildSize,
+                   GetPointerZero, GetIntegerZero, GetIntegerOne ;
+
+FROM m2block IMPORT RememberType, pushGlobalScope, popGlobalScope, pushFunctionScope, popFunctionScope,
+                    finishFunctionDecl, RememberConstant ;
 
 
 TYPE
-   StartProcedure = PROCEDURE (location_t; ADDRESS) : Tree ;
+   StartProcedure = PROCEDURE (location_t, ADDRESS) : Tree ;
    ListType       = (fullydeclared, partiallydeclared, niltypedarrays,
                      heldbyalignment, finishedalignment, todolist, tobesolvedbyquads) ;
    doDeclareProcedure = PROCEDURE (CARDINAL, CARDINAL) ;

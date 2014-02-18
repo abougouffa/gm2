@@ -4182,272 +4182,274 @@ Meaning *tname;
 Type *p_funcdecl(isfunc, istype)
 int *isfunc, istype;
 {
-    Meaning *retmp = NULL, *mp, *firstmp, *lastmp, **prevm, **oldprevm;
-    Type *type, *tp, *basetype, *tmp;
-    enum meaningkind parkind;
-    int varargflag, anyvarflag, constflag, volatileflag, was_array, num = 0;
-    Symbol *sym;
-    Expr *defval;
-    Token savetok;
-    Strlist *l1;
-    int opt_arg = 0;
+  Meaning *retmp = NULL, *mp, *firstmp, *lastmp, **prevm, **oldprevm;
+  Type *type, *tp, *basetype, *tmp;
+  enum meaningkind parkind;
+  int varargflag, anyvarflag, constflag, volatileflag, was_array, num = 0;
+  Symbol *sym;
+  Expr *defval;
+  Token savetok;
+  Strlist *l1;
+  int opt_arg = 0;
+  
+  varargflag = 0;
+  if (*isfunc || modula2) {
+    sym = findsymbol(format_s(name_RETV, curctx->name));
+    retmp = addmeaning(sym, MK_VAR);
+    retmp->isreturn = 1;
+  }
+  type = maketype(TK_FUNCTION);
+  if (curtok == TOK_LPAR) {
+    prevm = &type->fbase;
+    do {
+      gettok();
+      was_array = 0;
+      opt_arg = 0;
+      if (curtok == TOK_LBR) {
+	opt_arg = 1;
+	gettok();
+      }
+      if (curtok == TOK_RPAR)
+	break;
+      p_mech_spec(1);
+      p_attributes();
+      checkkeyword(TOK_ANYVAR);
+      if (curtok == TOK_VAR || curtok == TOK_ANYVAR) {
+	parkind = MK_VARPARAM;
+	anyvarflag = (curtok == TOK_ANYVAR);
+	gettok();
+      } else if (curtok == TOK_PROCEDURE || curtok == TOK_FUNCTION) {
+	savetok = curtok;
+	gettok();
+	wexpecttok(TOK_IDENT);
+	*prevm = firstmp = addmeaning(curtoksym, MK_PARAM);
+	prevm = &firstmp->xnext;
+	firstmp->anyvarflag = 0;
+	curtok = savetok;   /* rearrange tokens to a proc ptr type! */
+	firstmp->type = p_type(firstmp);
+	continue;
+      } else if (modula2 && curtok == TOK_VARARG) {
+	varargflag = 1;
+	gettok();
+	continue;
+      } else {
+	parkind = MK_PARAM;
+	anyvarflag = 0;
+      }
+      oldprevm = prevm;
 
-    varargflag = 0;
-    if (*isfunc || modula2) {
-        sym = findsymbol(format_s(name_RETV, curctx->name));
-        retmp = addmeaning(sym, MK_VAR);
-	retmp->isreturn = 1;
-    }
-    type = maketype(TK_FUNCTION);
-    if (curtok == TOK_LPAR) {
-        prevm = &type->fbase;
-        do {
-            gettok();
-	    was_array = 0;
-	    opt_arg = 0;
-	    if (curtok == TOK_LBR) {
-	      opt_arg = 1;
-	      gettok();
-	    }
-	    if (curtok == TOK_RPAR)
-	      break;
-	    p_mech_spec(1);
-	    p_attributes();
-	    checkkeyword(TOK_ANYVAR);
-            if (curtok == TOK_VAR || curtok == TOK_ANYVAR) {
-                parkind = MK_VARPARAM;
-                anyvarflag = (curtok == TOK_ANYVAR);
-                gettok();
-            } else if (curtok == TOK_PROCEDURE || curtok == TOK_FUNCTION) {
-		savetok = curtok;
-		gettok();
-		wexpecttok(TOK_IDENT);
-		*prevm = firstmp = addmeaning(curtoksym, MK_PARAM);
-		prevm = &firstmp->xnext;
-		firstmp->anyvarflag = 0;
-		curtok = savetok;   /* rearrange tokens to a proc ptr type! */
-		firstmp->type = p_type(firstmp);
-		continue;
-	    } else if (modula2 && curtok == TOK_VARARG) {
-	        varargflag = 1;
-		gettok();
-		continue;
-            } else {
-                parkind = MK_PARAM;
-                anyvarflag = 0;
-            }
-	    oldprevm = prevm;
-
-	    if (modula2 && (istype)) {
-	      firstmp = addmeaning(findsymbol(format_d("_A%d", ++num)), parkind);
-	    } else {
-	      wexpecttok(TOK_IDENT);
-	      firstmp = addmeaning(curtoksym, parkind);
-	      gettok();
-	    }
-	    *prevm = firstmp;
-	    prevm = &firstmp->xnext;
-	    firstmp->isactive = 0;   /* nit-picking Turbo compatibility */
-	    lastmp = firstmp;
-	    while (curtok == TOK_COMMA) {
-	      gettok();
-	      if (wexpecttok(TOK_IDENT)) {
-		*prevm = lastmp = addmeaning(curtoksym, parkind);
-		prevm = &lastmp->xnext;
-		lastmp->isactive = 0;
-	      }
-	      gettok();
-            }
-	    constflag = volatileflag = 0;
-	    defval = NULL;
-            if (curtok != TOK_COLON && !modula2) {
-		if (parkind != MK_VARPARAM)
-		    wexpecttok(TOK_COLON);
-		parkind = MK_VARPARAM;
-                tp = tp_anyptr;
-                anyvarflag = 1;
-            } else {
-		if (curtok == TOK_COLON)
-		    gettok();
-		if (curtok == TOK_IDENT && !curtokmeaning &&
-		    !strcicmp(curtokbuf, "UNIV")) {
-		    if (parkind == MK_PARAM)
-			note("UNIV may not work for non-VAR parameters [112]");
-		    anyvarflag = 1;
-		    gettok();
-		}
-		p_attributes();
-		if ((l1 = strlist_find(attrlist, "READONLY")) != NULL) {
-		    constflag = 1;
-		    strlist_delete(&attrlist, l1);
-		}
-		if ((l1 = strlist_find(attrlist, "VOLATILE")) != NULL) {
-		    volatileflag = 1;
-		    strlist_delete(&attrlist, l1);
-		}
-		if ((l1 = strlist_find(attrlist, "UNSAFE")) != NULL &&
-		    parkind == MK_VARPARAM) {
-		    anyvarflag = 1;
-		    strlist_delete(&attrlist, l1);
-		}
-		if ((l1 = strlist_find(attrlist, "REFERENCE")) != NULL) {
-		    note("REFERENCE attribute treated like VAR [107]");
-		    parkind = MK_VARPARAM;
-		    strlist_delete(&attrlist, l1);
-		}
-		checkkeyword(TOK_VARYING);
-                if (curtok == TOK_IDENT && curtokmeaning == mp_string &&
-                    !anyvarflag && parkind == MK_VARPARAM) {
-                    anyvarflag = (varstrings > 0);
-                    tp = tp_str255;
-                    gettok();
-		    if (curtok == TOK_LBR) {
-			wexpecttok(TOK_SEMI);
-			skipparens();
-		    }
-		} else if (curtok == TOK_ARRAY || curtok == TOK_PACKED ||
-			   curtok == TOK_VARYING) {
-		    prevm = oldprevm;
-		    tp = p_conformant_array(firstmp->name, &prevm);
-		    was_array = 1;
-		    basetype = tp->basetype;
-		    *prevm = firstmp;
-		    while (*prevm)
-			prevm = &(*prevm)->xnext;
-                } else {
-		  tp = p_type(firstmp);
-		}
-		if (!varfiles && isfiletype(tp, 0))
-		  parkind = MK_PARAM;
-
-	    if (modula2 && opt_arg) {
-	      if (curtok == TOK_EQ) {
-		gettok();
-		defval = gentle_cast(p_expr(tp), tp);
-	      }
-	      wexpecttok(TOK_RBR);
-	      gettok();
-	    }
-#if 0
-	    if (curtok == TOK_ASSIGN) {    /* check for parameter default */
-		gettok();
-		p_mech_spec(0);
-		defval = gentle_cast(p_expr(tp), tp);
-		if ((tp->kind == TK_STRING || tp->kind == TK_ARRAY) &&
-		    tp->basetype->kind == TK_CHAR &&
-		    tp->structdefd &&     /* conformant string */
-		    defval->val.type->kind == TK_STRING) {
-		    mp = *oldprevm;
-		    if (tp->kind == TK_ARRAY) {
-			mp->constdefn = makeexpr_long(1);
-			mp = mp->xnext;
-		    }
-		    mp->constdefn = strmax_func(defval);
-		}
-	    }
-#endif
+      if (modula2 && (istype)) {
+	firstmp = addmeaning(findsymbol(format_d("_A%d", ++num)), parkind);
+      } else {
+	wexpecttok(TOK_IDENT);
+	firstmp = addmeaning(curtoksym, parkind);
+	gettok();
+      }
+      *prevm = firstmp;
+      prevm = &firstmp->xnext;
+      firstmp->isactive = 0;   /* nit-picking Turbo compatibility */
+      lastmp = firstmp;
+      if (! (modula2 && istype)) {
+	while (curtok == TOK_COMMA) {
+	  gettok();
+	  if (wexpecttok(TOK_IDENT)) {
+	    *prevm = lastmp = addmeaning(curtoksym, parkind);
+	    prevm = &lastmp->xnext;
+	    lastmp->isactive = 0;
+	  }
+	  gettok();
 	}
-            while (firstmp) {
-	      if (! firstmp->fakeparam) {
-		if (was_array) {
-		  /*  in this case the array type is handled inside
-		   *  p_conformant_array, we collect the one associated
-		   *  with firstmp
-		   */
-		  firstmp->type->basetype = basetype;
-		  if (parkind == MK_VARPARAM)
-		    firstmp->type = makepointertype(firstmp->type);
-		} else {
-		  if (parkind == MK_VARPARAM)
-		    firstmp->type = makepointertype(tp);
-		  else
-		    firstmp->type = tp;
-		}
-		tmp = firstmp->type;
-		
-		firstmp->kind = parkind;    /* in case it changed */
-		firstmp->isactive = 1;
-		firstmp->anyvarflag = anyvarflag;
-		firstmp->constqual = constflag;
-		firstmp->volatilequal = volatileflag;
-		if (defval) {
-		  if (firstmp == lastmp)
-		    firstmp->constdefn = defval;
-		  else
-		    firstmp->constdefn = copyexpr(defval);
-		}
-		if (parkind == MK_PARAM &&
-		    (tmp->kind == TK_STRING ||
-		     tmp->kind == TK_ARRAY ||
-		     tmp->kind == TK_SET ||
-		     ((tmp->kind == TK_RECORD ||
-		       tmp->kind == TK_BIGFILE ||
-		       tmp->kind == TK_PROCPTR) && copystructs < 2))) {
-		  firstmp->othername = stralloc(format_s(name_COPYPAR,
-							 firstmp->name));
-		  firstmp->rectype = makepointertype(tmp);
-		}
-	      }
-	      if (firstmp == lastmp)
-		break;
-	      firstmp = firstmp->xnext;
-            }
-        } while (curtok == TOK_SEMI || curtok == TOK_COMMA);
-        if (!wneedtok(TOK_RPAR))
-	  skippasttotoken(TOK_RPAR, TOK_SEMI);
-    }
-    if (modula2) {
-	if (curtok == TOK_COLON) {
-	    *isfunc = 1;
+      }
+      constflag = volatileflag = 0;
+      defval = NULL;
+      if (curtok != TOK_COLON && !modula2) {
+	if (parkind != MK_VARPARAM)
+	  wexpecttok(TOK_COLON);
+	parkind = MK_VARPARAM;
+	tp = tp_anyptr;
+	anyvarflag = 1;
+      } else {
+	if (curtok == TOK_COLON)
+	  gettok();
+	if (curtok == TOK_IDENT && !curtokmeaning &&
+	    !strcicmp(curtokbuf, "UNIV")) {
+	  if (parkind == MK_PARAM)
+	    note("UNIV may not work for non-VAR parameters [112]");
+	  anyvarflag = 1;
+	  gettok();
+	}
+	p_attributes();
+	if ((l1 = strlist_find(attrlist, "READONLY")) != NULL) {
+	  constflag = 1;
+	  strlist_delete(&attrlist, l1);
+	}
+	if ((l1 = strlist_find(attrlist, "VOLATILE")) != NULL) {
+	  volatileflag = 1;
+	  strlist_delete(&attrlist, l1);
+	}
+	if ((l1 = strlist_find(attrlist, "UNSAFE")) != NULL &&
+	    parkind == MK_VARPARAM) {
+	  anyvarflag = 1;
+	  strlist_delete(&attrlist, l1);
+	}
+	if ((l1 = strlist_find(attrlist, "REFERENCE")) != NULL) {
+	  note("REFERENCE attribute treated like VAR [107]");
+	  parkind = MK_VARPARAM;
+	  strlist_delete(&attrlist, l1);
+	}
+	checkkeyword(TOK_VARYING);
+	if (curtok == TOK_IDENT && curtokmeaning == mp_string &&
+	    !anyvarflag && parkind == MK_VARPARAM) {
+	  anyvarflag = (varstrings > 0);
+	  tp = tp_str255;
+	  gettok();
+	  if (curtok == TOK_LBR) {
+	    wexpecttok(TOK_SEMI);
+	    skipparens();
+	  }
+	} else if (curtok == TOK_ARRAY || curtok == TOK_PACKED ||
+		   curtok == TOK_VARYING) {
+	  prevm = oldprevm;
+	  tp = p_conformant_array(firstmp->name, &prevm);
+	  was_array = 1;
+	  basetype = tp->basetype;
+	  *prevm = firstmp;
+	  while (*prevm)
+	    prevm = &(*prevm)->xnext;
 	} else {
-	    unaddmeaning(retmp);
+	  tp = p_type(firstmp);
 	}
-    }
-    if (*isfunc) {
-        if (wneedtok(TOK_COLON)) {
-            /*
-	     *  parse the GNU Modula-2 extension for optional return value
-	     *  and treat it as a normal return value for a normal function.
-	     *  This needs to be extended if GM2 is ever to use this feature
-	     *  the compiler itself.
+	if (!varfiles && isfiletype(tp, 0))
+	  parkind = MK_PARAM;
+	
+	if (modula2 && opt_arg) {
+	  if (curtok == TOK_EQ) {
+	    gettok();
+	    defval = gentle_cast(p_expr(tp), tp);
+	  }
+	  wexpecttok(TOK_RBR);
+	  gettok();
+	}
+#if 0
+	if (curtok == TOK_ASSIGN) {    /* check for parameter default */
+	  gettok();
+	  p_mech_spec(0);
+	  defval = gentle_cast(p_expr(tp), tp);
+	  if ((tp->kind == TK_STRING || tp->kind == TK_ARRAY) &&
+	      tp->basetype->kind == TK_CHAR &&
+	      tp->structdefd &&     /* conformant string */
+	      defval->val.type->kind == TK_STRING) {
+	    mp = *oldprevm;
+	    if (tp->kind == TK_ARRAY) {
+	      mp->constdefn = makeexpr_long(1);
+	      mp = mp->xnext;
+	    }
+	    mp->constdefn = strmax_func(defval);
+	  }
+	}
+#endif
+      }
+      while (firstmp) {
+	if (! firstmp->fakeparam) {
+	  if (was_array) {
+	    /*  in this case the array type is handled inside
+	     *  p_conformant_array, we collect the one associated
+	     *  with firstmp
 	     */
-            if (modula2 && (curtok == TOK_LBR)) {
-	      gettok();
-	      retmp->type = type->basetype = p_type(NULL);
-	      if (curtok == TOK_RBR)
-		gettok();
-	    }
+	    firstmp->type->basetype = basetype;
+	    if (parkind == MK_VARPARAM)
+	      firstmp->type = makepointertype(firstmp->type);
+	  } else {
+	    if (parkind == MK_VARPARAM)
+	      firstmp->type = makepointertype(tp);
 	    else
-	      retmp->type = type->basetype = p_type(NULL);
-
-	    switch (retmp->type->kind) {
+	      firstmp->type = tp;
+	  }
+	  tmp = firstmp->type;
 		
-	      case TK_RECORD:
-	      case TK_BIGFILE:
-	      case TK_PROCPTR:
-                if (copystructs >= 3)
-                    break;
-		
-		/* fall through */
-	      case TK_ARRAY:
-	      case TK_STRING:
-	      case TK_SET:
-                type->basetype = retmp->type = makepointertype(retmp->type);
-                retmp->kind = MK_VARPARAM;
-                retmp->anyvarflag = 0;
-                retmp->xnext = type->fbase;
-                type->fbase = retmp;
-                retmp->refcount++;
-                break;
+	  firstmp->kind = parkind;    /* in case it changed */
+	  firstmp->isactive = 1;
+	  firstmp->anyvarflag = anyvarflag;
+	  firstmp->constqual = constflag;
+	  firstmp->volatilequal = volatileflag;
+	  if (defval) {
+	    if (firstmp == lastmp)
+	      firstmp->constdefn = defval;
+	    else
+	      firstmp->constdefn = copyexpr(defval);
+	  }
+	  if (parkind == MK_PARAM &&
+	      (tmp->kind == TK_STRING ||
+	       tmp->kind == TK_ARRAY ||
+	       tmp->kind == TK_SET ||
+	       ((tmp->kind == TK_RECORD ||
+		 tmp->kind == TK_BIGFILE ||
+		 tmp->kind == TK_PROCPTR) && copystructs < 2))) {
+	    firstmp->othername = stralloc(format_s(name_COPYPAR,
+						   firstmp->name));
+	    firstmp->rectype = makepointertype(tmp);
+	  }
+	}
+	if (firstmp == lastmp)
+	  break;
+	firstmp = firstmp->xnext;
+      }
+    } while (curtok == TOK_SEMI || curtok == TOK_COMMA);
+    if (!wneedtok(TOK_RPAR))
+      skippasttotoken(TOK_RPAR, TOK_SEMI);
+  }
+  if (modula2) {
+    if (curtok == TOK_COLON) {
+      *isfunc = 1;
+    } else {
+      unaddmeaning(retmp);
+    }
+  }
+  if (*isfunc) {
+    if (wneedtok(TOK_COLON)) {
+      /*
+       *  parse the GNU Modula-2 extension for optional return value
+       *  and treat it as a normal return value for a normal function.
+       *  This needs to be extended if GM2 is ever to use this feature
+       *  the compiler itself.
+       */
+      if (modula2 && (curtok == TOK_LBR)) {
+	gettok();
+	retmp->type = type->basetype = p_type(NULL);
+	if (curtok == TOK_RBR)
+	  gettok();
+      }
+      else
+	retmp->type = type->basetype = p_type(NULL);
 
-	      default:
-		break;
-	    }
-	} else
-	    retmp->type = type->basetype = tp_integer;
+      switch (retmp->type->kind) {
+		
+      case TK_RECORD:
+      case TK_BIGFILE:
+      case TK_PROCPTR:
+	if (copystructs >= 3)
+	  break;
+		
+	/* fall through */
+      case TK_ARRAY:
+      case TK_STRING:
+      case TK_SET:
+	type->basetype = retmp->type = makepointertype(retmp->type);
+	retmp->kind = MK_VARPARAM;
+	retmp->anyvarflag = 0;
+	retmp->xnext = type->fbase;
+	type->fbase = retmp;
+	retmp->refcount++;
+	break;
+
+      default:
+	break;
+      }
     } else
-        type->basetype = tp_void;
-    return type;
+      retmp->type = type->basetype = tp_integer;
+  } else
+    type->basetype = tp_void;
+  return type;
 }
 
 
