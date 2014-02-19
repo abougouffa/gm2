@@ -803,14 +803,15 @@ stage3/gm2/cc1gm2$(exeext): stage2/gm2/cc1gm2$(exeext) gm2/gm2-compiler-paranoid
                             $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID) \
                             $(BACKENDLIBS) $(LIBSTDCXX)
 	$(LINKER) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) gm2/gm2-compiler-paranoid/m2flex.o \
+                            attribs.o \
                               $(GM2_LIBS_PARANOID) \
                               $(BACKEND) $(LIBS) \
                               $(BACKENDLIBS) $(LIBSTDCXX) -lm
 
 stage2/gm2/cc1gm2$(exeext): stage1/gm2/cc1gm2$(exeext) gm2/gm2-compiler/m2flex.o $(P) \
-                            $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS) \
-                            $(BACKENDLIBS) $(LIBSTDCXX)
+                            $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS)
 	$(LINKER) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) gm2/gm2-compiler/m2flex.o \
+                            attribs.o \
                               $(GM2_LIBS) \
                               $(BACKEND) $(LIBS) \
                               $(BACKENDLIBS) $(LIBSTDCXX) -lm
@@ -2012,10 +2013,10 @@ gm2/gm2-libs-paranoid/%.o: $(srcdir)/gm2/gm2-libs/%.mod
 	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler-paranoid/%.o: $(srcdir)/gm2/gm2-compiler/%.mod
-	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler-paranoid/%.o: gm2/gm2-auto/%.mod
-	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -g -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -g -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-libs/paranoid/target.o: $(srcdir)/gm2/gm2-libs-ch/target.c
 	$(XGCC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
@@ -2091,7 +2092,7 @@ gm2/gm2-compiler-paranoid/M2Version.mod:
 	cd gm2/gm2-compiler-paranoid ; /bin/bash ../../$(srcdir)/gm2/tools-src/makeversion -m ../../$(srcdir)
 
 gm2/gm2-compiler-paranoid/M2Version.o: gm2/gm2-compiler-paranoid/M2Version.mod
-	./xgm2 $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs $< -o $@
+	./xgm2 $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc $< -o $@
 
 gm2/gm2-libs-paranoid/%.o: gm2-libs/%.c
 	$(XGCC) -c -g -I./ -Igm2/gm2-libs -Wall $(INCLUDES) $< -o $@

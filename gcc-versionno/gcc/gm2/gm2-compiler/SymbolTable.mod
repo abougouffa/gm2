@@ -4765,7 +4765,7 @@ VAR
    s            : String ;
    i, High      : CARDINAL ;
    needsLong,
-   needsUnsigned: INTEGER ;
+   needsUnsigned: BOOLEAN ;
 BEGIN
    s := InitStringCharStar(KeyToCharStar(GetSymName(Sym))) ;
    IF char(s, -1)='C'
@@ -4792,10 +4792,10 @@ BEGIN
                                  needsLong, needsUnsigned)
       END ;
       s := KillString(s) ;
-      IF (needsLong=1) AND (needsUnsigned=1)
+      IF needsLong AND needsUnsigned
       THEN
          RETURN( LongCard )
-      ELSIF (needsLong=1) AND (needsUnsigned=0)
+      ELSIF needsLong AND (NOT needsUnsigned)
       THEN
          RETURN( LongInt )
       END ;

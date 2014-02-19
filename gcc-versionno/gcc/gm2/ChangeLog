@@ -17,6 +17,14 @@
 	  the module can be built during stage2, via xgm2.
 	* gm2/gm2-compiler/m2flex.def:  fixed many imports so that
 	  the module can be built during stage2, via xgm2.
+	* gm2/Make-lang.in:  added attribs.o to link stage2/gm2/cc1gm2.
+	  Removed $(BACKENDLIBS) $(LIBSTDCXX) from the dependancies of
+	  stage2/gm2/cc1gm2.  Added -I$(srcdir)/gm2/gm2-gcc to
+	  all gm2/gm2-compiler-paranoid rules.
+	* gm2/gm2-compiler/M2Options.def:  added many procedures to the
+	  list of export qualified identifiers.
+	* gm2/gm2-compiler/SymbolTable.mod:  changed needsUnsigned
+	  and needsLong to BOOLEAN.
 
 2014-02-18      Gaius Mulley <gaius@gnu.org>
 
