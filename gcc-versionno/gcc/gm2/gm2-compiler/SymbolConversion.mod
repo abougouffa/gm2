@@ -29,7 +29,7 @@ FROM SymbolTable IMPORT IsConst, PopValue, IsValueSolved, GetSymName,
 
 FROM M2Error IMPORT InternalError ;
 FROM M2ALU IMPORT PushTypeOfTree ;
-FROM m2block IMPORT GetErrorNode, RememberConstant, GarbageCollect ;
+FROM m2block IMPORT GetErrorNode, RememberConstant ;
 FROM m2tree IMPORT Tree ;
 FROM M2Base IMPORT IsAComplexType ;
 FROM M2Printf IMPORT printf1 ;

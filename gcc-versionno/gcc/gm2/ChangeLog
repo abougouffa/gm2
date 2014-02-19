@@ -1,3 +1,23 @@
+2014-02-19      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  include the search path  -I$(srcdir)/gm2/gm2-gcc
+	  when building stage2 from the compiler sources.
+	* gm2/bnf/gm2l.bnf:  import Dup from DynamicStrings.
+	* gm2/gm2-compiler/M2ALU.mod:  fixed many imports so that
+	  the module can be built during stage2, via xgm2.
+	* gm2/gm2-compiler/M2Base.mod:  fixed many imports so that
+	  the module can be built during stage2, via xgm2.
+	* gm2/gm2-compiler/M2Preprocess.mod:  corrected import of
+	  CppCommandLine from M2Options rather than M2DriverOptions.
+	* gm2/gm2-compiler/M2Range.mod:  fixed many imports so that
+	  the module can be built during stage2, via xgm2.
+	* gm2/gm2-compiler/M2System.mod:  fixed many imports so that
+	  the module can be built during stage2, via xgm2.
+	* gm2/gm2-compiler/SymbolConversion.mod:  fixed many imports so that
+	  the module can be built during stage2, via xgm2.
+	* gm2/gm2-compiler/m2flex.def:  fixed many imports so that
+	  the module can be built during stage2, via xgm2.
+
 2014-02-18      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  fixed many imports so that

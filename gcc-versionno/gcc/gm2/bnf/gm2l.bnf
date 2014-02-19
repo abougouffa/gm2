@@ -83,7 +83,7 @@ IMPORT m2flex ;
 FROM SYSTEM IMPORT ADDRESS ;
 FROM M2DriverOptions IMPORT ScanCppArgs ;
 FROM DynamicStrings IMPORT String, InitString, KillString, Slice, InitStringCharStar,
-                           Mark, EqualArray, string, ConCat, ConCatChar ;
+                           Mark, EqualArray, string, ConCat, ConCatChar, Dup ;
 FROM Lists IMPORT List, InitList, KillList, IncludeItemIntoList, GetItemFromList, NoOfItemsInList ;
 
 

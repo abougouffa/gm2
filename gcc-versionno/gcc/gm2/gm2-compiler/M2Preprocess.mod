@@ -32,8 +32,7 @@ FROM Lists IMPORT List, InitList, KillList, IncludeItemIntoList, ForeachItemInLi
 FROM M2RTS IMPORT InstallTerminationProcedure ;
 FROM FIO IMPORT StdErr, StdOut ;
 FROM M2Printf IMPORT fprintf1 ;
-FROM M2DriverOptions IMPORT CppCommandLine ;
-FROM M2Options IMPORT Verbose ;
+FROM M2Options IMPORT Verbose, CppCommandLine ;
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, makekey ;
 
 

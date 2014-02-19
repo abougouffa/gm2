@@ -34,7 +34,7 @@ FROM SYSTEM IMPORT ADDRESS ;
 FROM m2linemap IMPORT location_t ;
 
 EXPORT QUALIFIED GetToken, M2Error, OpenSource, CloseSource, GetLineNo,
-                 GetColumnNo ;
+                 GetColumnNo, GetLocation ;
 
 
 (*

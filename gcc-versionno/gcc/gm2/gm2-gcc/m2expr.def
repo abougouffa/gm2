@@ -481,7 +481,7 @@ PROCEDURE AreConstantsEqual (e1: Tree; e2: Tree) : BOOLEAN ;
                                      -0 == 0 and NaN != NaN.
 *)
 
-PROCEDURE AreRealOrComplexConstantsEqual (e1: Tree; e2: Tree) : INTEGER ;
+PROCEDURE AreRealOrComplexConstantsEqual (e1: Tree; e2: Tree) : BOOLEAN ;
 
 
 (*

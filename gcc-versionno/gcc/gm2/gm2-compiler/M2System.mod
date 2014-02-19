@@ -68,10 +68,10 @@ FROM M2Base IMPORT Real, Cardinal, Integer, Complex,
 
 FROM m2tree IMPORT Tree ;
 FROM m2linemap IMPORT BuiltinsLocation ;
+FROM m2decl IMPORT GetBitsPerBitset, GetBitsPerUnit ;
 
 FROM m2type IMPORT GetMaxFrom, GetMinFrom,
                    GetWordType, GetPointerType, GetByteType, GetISOLocType,
-                   GetBitsPerUnit, GetSizeOf, BuildSize, AreConstantsEqual,
                    GetM2Integer8, GetM2Integer16, GetM2Integer32, GetM2Integer64,
                    GetM2Cardinal8, GetM2Cardinal16, GetM2Cardinal32, GetM2Cardinal64,
                    GetM2Word16, GetM2Word32, GetM2Word64,
@@ -80,7 +80,7 @@ FROM m2type IMPORT GetMaxFrom, GetMinFrom,
                    GetM2Complex32, GetM2Complex64, GetM2Complex96, GetM2Complex128,
                    GetBitsetType, GetISOByteType, GetISOWordType, InitSystemTypes ;
 
-FROM m2expr IMPORT BuildSize ;
+FROM m2expr IMPORT BuildSize, GetSizeOf, AreConstantsEqual ;
 
 
 TYPE

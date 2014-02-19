@@ -31,19 +31,21 @@ FROM SymbolTable IMPORT NulSym, GetLowestType, PutReadQuad, RemoveReadQuad,
 FROM m2tree IMPORT Tree ;
 FROM m2linemap IMPORT location_t ;
 
-FROM m2type IMPORT GetMinFrom, GetMaxFrom, BuildSub,
-                   BuildAdd, BuildConvert, BuildProcedureCallTree,
-                   BuildIfThenElseEnd, BuildIfThenDoEnd, IsTrue, IsFalse,
-                   GetIntegerZero, GetIntegerOne, GetIntegerType, GetTreeType,
-                   CompareTrees, BuildIndirect, BuildParam, BuildStringConstant,
-                   BuildIntegerConstant, AddStatement, BuildGreaterThan, BuildLessThan,
-                   BuildNegate, BuildEqualTo, GetPointerType, GetPointerZero, BuildAddr,
-                   BuildLessThanOrEqual ;
+FROM m2type IMPORT GetMinFrom, GetMaxFrom,
+                   GetIntegerType, GetTreeType,
+                   GetPointerType,
+                   AddStatement ;
 
-FROM m2expr IMPORT CompareTrees ;
+FROM m2statement IMPORT BuildProcedureCallTree, BuildIfThenElseEnd, BuildIfThenDoEnd ;
+
+FROM m2expr IMPORT CompareTrees, BuildSub, BuildAdd, GetIntegerZero, GetIntegerOne,
+                   BuildAddr, BuildIndirect, BuildGreaterThan, BuildLessThan,
+                   GetPointerZero, BuildNegate, BuildEqualTo, BuildLessThanOrEqual,
+                   IsTrue, IsFalse ;
+
 FROM m2convert IMPORT BuildConvert ;
 FROM m2statement IMPORT BuildParam ;
-FROM m2decl IMPORT BuildStringConstant ;
+FROM m2decl IMPORT BuildStringConstant, BuildIntegerConstant ;
 
 FROM M2Debug IMPORT Assert ;
 FROM Indexing IMPORT Index, InitIndex, InBounds, PutIndice, GetIndice ;
@@ -57,7 +59,7 @@ FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3,
                         MetaErrorsT1, MetaErrorsT2, MetaErrorsT3, MetaErrorsT4,
                         MetaErrorStringT1, MetaErrorStringT2, MetaErrorStringT3 ;
 
-FROM M2LexBuf IMPORT GetTokenNo, FindFileNameFromToken, TokenToLineNo, TokenToColumnNo ;
+FROM M2LexBuf IMPORT GetTokenNo, FindFileNameFromToken, TokenToLineNo, TokenToColumnNo, TokenToLocation ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM M2GCCDeclare IMPORT TryDeclareConstant, DeclareConstructor ;
 FROM M2Quads IMPORT QuadOperator, PutQuad, SubQuad, WriteOperand ;

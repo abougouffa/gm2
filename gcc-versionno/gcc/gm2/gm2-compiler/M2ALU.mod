@@ -59,42 +59,29 @@ FROM SymbolTable IMPORT NulSym, IsEnumeration, IsSubrange, IsValueSolved, PushVa
 IMPORT DynamicStrings ;
 
 FROM m2tree IMPORT Tree ;
-FROM m2linemap IMPORT location_t ;
+FROM m2linemap IMPORT location_t, UnknownLocation ;
 
 FROM m2expr IMPORT BuildAdd, BuildSub, BuildMult,
                    BuildDivTrunc, BuildModTrunc, BuildDivFloor, BuildModFloor,
                    BuildLSL, BuildLSR,
-                   BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference ;
+                   BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
+                   GetWordOne, GetCardinalZero, TreeOverflow, RemoveOverflow ;
 
-FROM m2decl IMPORT GetBitsPerBitset ;
+FROM m2decl IMPORT GetBitsPerBitset, BuildIntegerConstant, BuildConstLiteralNumber ;
 FROM m2misc IMPORT DebugTree ;
-FROM m2type IMPORT RealToTree, Constructor ;
-FROM m2convert IMPORT ConvertConstantAndCheck ;
+
+FROM m2type IMPORT RealToTree, Constructor, GetIntegerType, GetLongRealType,
+                   BuildStartSetConstructor, BuildSetConstructorElement, BuildEndSetConstructor,
+                   BuildRecordConstructorElement, BuildEndRecordConstructor, BuildStartRecordConstructor,
+                   BuildNumberOfArrayElements, BuildCharConstant,
+                   BuildArrayConstructorElement, BuildStartArrayConstructor, BuildEndArrayConstructor ;
+
+FROM m2convert IMPORT ConvertConstantAndCheck, ToWord, ToInteger, ToCardinal, ToBitset ;
 FROM m2block IMPORT RememberConstant ;
 
-(*
-FROM gccgm2 IMPORT Tree, Constructor,
-                   SetFileNameAndLineNo,
-                   BuildIntegerConstant,
-                   CompareTrees, ConvertConstantAndCheck, GetIntegerType,
-                   GetLongRealType,
-                   GetIntegerOne, GetIntegerZero,
-                   GetWordOne, ToWord,
-                   AreConstantsEqual, AreRealOrComplexConstantsEqual,
-                   GetBitsPerBitset,
-                   BuildAdd
-                   BuildIfIn, BuildStringConstant,
-                   BuildStartRecord, BuildFieldRecord, ChainOn, BuildEndRecord,
-                   RealToTree, RememberConstant, BuildConstLiteralNumber,
-                   BuildStartSetConstructor, BuildSetConstructorElement,
-                   BuildEndSetConstructor,
-                   BuildStartRecordConstructor, BuildRecordConstructorElement,
-                   BuildEndRecordConstructor,
-                   BuildStartArrayConstructor, BuildArrayConstructorElement,
-                   BuildEndArrayConstructor, BuildNumberOfArrayElements,
-                   FoldAndStrip, TreeOverflow, RemoveOverflow, BuildCharConstant,
-                   DebugTree ;
-*)
+FROM m2expr IMPORT GetPointerZero, GetIntegerZero, GetIntegerOne,
+                   CompareTrees, FoldAndStrip, AreRealOrComplexConstantsEqual, AreConstantsEqual ;
+
 
 TYPE
    cellType   = (none, integer, real, complex, set, constructor, array, record) ;
@@ -866,7 +853,7 @@ PROCEDURE PushSetTree (tokenno: CARDINAL;
 VAR
    v: PtrToValue ;
    c,
-   i: CARDINAL ;
+   i: INTEGER ;
    r: listOfRange ;
    l: location_t ;
 BEGIN

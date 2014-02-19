@@ -103,7 +103,7 @@ FROM m2type IMPORT GetIntegerType,
                    GetM2ComplexType, GetM2LongComplexType,
                    GetM2ShortComplexType,
                    GetM2RType, GetM2ZType, GetM2CType,
-                   BuildIntegerConstant ;
+                   InitBaseTypes ;
 
 FROM m2expr IMPORT GetSizeOf ;
 FROM m2linemap IMPORT location_t, BuiltinsLocation ;
