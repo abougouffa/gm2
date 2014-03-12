@@ -37,6 +37,7 @@ VAR
    InitialProc,
    TerminateProc: ARRAY [0..MaxProcedures] OF PROC ;
    ExitValue    : INTEGER ;
+   isHalting,
    CallExit     : BOOLEAN ;
 
 
@@ -131,7 +132,14 @@ BEGIN
       CallExit := TRUE ;
       ExitValue := exitcode
    END ;
-   ExecuteTerminationProcedures ;
+   IF isHalting
+   THEN
+      (* double HALT found *)
+      exit(-1)
+   ELSE
+      isHalting := TRUE ;
+      ExecuteTerminationProcedures ;
+   END ;
    IF CallExit
    THEN
       exit(ExitValue)
@@ -404,5 +412,6 @@ BEGIN
    iPtr := 0 ;
    tPtr := 0 ;
    ExitValue := 0 ;
+   isHalting := FALSE ;
    CallExit := FALSE   (* default by calling abort *)
 END M2RTS.

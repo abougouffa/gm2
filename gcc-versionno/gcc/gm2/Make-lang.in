@@ -2403,11 +2403,11 @@ gm2.verifyparanoid: stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext) stage3
 	$(QUIAT)for i in x $(GM2-VERIFY-AUTO) ; do \
            if [ -f gm2/gm2-auto/$$i ] ; then \
               echo -n "$$i " ; \
-              ./xgm2 -S $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty gm2/gm2-auto/$$i -o gm2/gm2-compiler-verify/1.s ; \
+              ./xgm2 -S $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-gcc:$(srcdir)/gm2/gm2-libiberty gm2/gm2-auto/$$i -o gm2/gm2-compiler-verify/1.s ; \
               echo -n "[1]" ; \
-              ./xgm2 -S $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty gm2/gm2-auto/$$i -o gm2/gm2-compiler-verify/2.s ; \
+              ./xgm2 -S $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-gcc:$(srcdir)/gm2/gm2-libiberty gm2/gm2-auto/$$i -o gm2/gm2-compiler-verify/2.s ; \
               echo -n "[2]" ; \
-              ./xgm2 -S $(GM2_FLAGS) -c -B./stage3/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty gm2/gm2-auto/$$i -o gm2/gm2-compiler-verify/3.s ; \
+              ./xgm2 -S $(GM2_FLAGS) -c -B./stage3/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-gcc:$(srcdir)/gm2/gm2-libiberty gm2/gm2-auto/$$i -o gm2/gm2-compiler-verify/3.s ; \
               echo -n "[3]" ; \
               if ! diff gm2/gm2-compiler-verify/1.s gm2/gm2-compiler-verify/2.s > gm2/gm2-compiler-verify/1_2.diff 2>&1 ; then \
                   echo -n " [stage 1 and stage 2 differ]" ; \
@@ -2433,9 +2433,9 @@ gm2.verifystage12: force # stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext)
 	@echo "verifying stage1 and stage2 generations of GNU Modula-2 compilers - it may take some time.."
 	$(QUIAT)for i in $(GM2-VERIFY-MODS) ; do \
            echo -n "$$i " ; \
-           ./xgm2 -S $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/1.s ; \
+           ./xgm2 -S $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-gcc:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/1.s ; \
            echo -n "[1]" ; \
-           ./xgm2 -S $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/2.s ; \
+           ./xgm2 -S $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-gcc:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/2.s ; \
            echo -n "[2]" ; \
            if ! diff gm2/gm2-compiler-verify/1.s gm2/gm2-compiler-verify/2.s > gm2/gm2-compiler-verify/1_2.diff 2>&1 ; then \
                echo -n " [stage 1 and stage 2 differ]" ; \
@@ -2449,9 +2449,9 @@ gm2.verifystage12: force # stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext)
 	$(QUIAT)for i in x $(GM2-VERIFY-AUTO) ; do \
            if [ -f gm2/gm2-auto/$$i ] ; then \
               echo -n "$$i " ; \
-              ./xgm2 -S $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty gm2/gm2-auto/$$i -o gm2/gm2-compiler-verify/1.s ; \
+              ./xgm2 -S $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-gcc:$(srcdir)/gm2/gm2-libiberty gm2/gm2-auto/$$i -o gm2/gm2-compiler-verify/1.s ; \
               echo -n "[1]" ; \
-              ./xgm2 -S $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty gm2/gm2-auto/$$i -o gm2/gm2-compiler-verify/2.s ; \
+              ./xgm2 -S $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-gcc:$(srcdir)/gm2/gm2-libiberty gm2/gm2-auto/$$i -o gm2/gm2-compiler-verify/2.s ; \
               echo -n "[2]" ; \
               if ! diff gm2/gm2-compiler-verify/1.s gm2/gm2-compiler-verify/2.s > gm2/gm2-compiler-verify/1_2.diff 2>&1 ; then \
                   echo -n " [stage 1 and stage 2 differ]" ; \

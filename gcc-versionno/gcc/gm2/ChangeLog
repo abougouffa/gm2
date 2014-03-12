@@ -1,3 +1,15 @@
+2014-03-12      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  fixed verify flags for gm2.verifyparanoid
+	  and gm2.verifystage12.
+	* gm2/gm2-libs-iso/M2RTS.mod:  detect double HALT and exit with
+	  -1.
+	* gm2/gm2-libs/M2RTS.mod:  detect double HALT and exit with
+	  -1.
+	* gm2/gm2-libs/Indexing.mod:  use memmove rather than memcpy
+	  which fixes the regression testsuite/gm2/isolib/run/pass/termfile.mod.
+	* gm2/gm2-libs/libc.def:  provide definition for memmove.
+
 2014-02-19      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  include the search path  -I$(srcdir)/gm2/gm2-gcc

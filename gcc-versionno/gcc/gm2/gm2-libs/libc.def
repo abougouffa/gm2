@@ -40,7 +40,7 @@ EXPORT UNQUALIFIED time_t, timeb, tm, ptrToTM,
                    perror, creat,
                    getcwd, chown, strlen, strcpy, strncpy,
                    unlink, setenv,
-                   memcpy, memset, printf, realloc,
+                   memcpy, memset, memmove, printf, realloc,
                    rand, srand,
                    time, localtime, ftime,
                    shutdown, rename, setjmp, longjmp, atexit,
@@ -335,6 +335,20 @@ PROCEDURE memcpy (dest, src: ADDRESS; size: CARDINAL) : ADDRESS ;
 *)
 
 PROCEDURE memset (s: ADDRESS; c: INTEGER; size: CARDINAL) : ADDRESS ;
+
+
+(*
+   memmove - copy memory areas which may overlap
+
+   SYNOPSIS
+
+   #include <string.h>
+
+   void *memmove(void *dest, const void *src, size_t n);
+   It returns dest.
+*)
+
+PROCEDURE memmove (dest, src: ADDRESS; size: CARDINAL) : ADDRESS ;
 
 
 (*
