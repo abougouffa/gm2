@@ -1,5 +1,10 @@
 2014-03-12      Gaius Mulley <gaius@gnu.org>
 
+	* changed persmissions to most files to remove the execute
+          bit.
+
+2014-03-12      Gaius Mulley <gaius@gnu.org>
+
 	* gm2/Make-lang.in:  fixed verify flags for gm2.verifyparanoid
 	  and gm2.verifystage12.
 	* gm2/gm2-libs-iso/M2RTS.mod:  detect double HALT and exit with
