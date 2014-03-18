@@ -1,3 +1,19 @@
+2014-03-18      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-gcc/m2except.c:  do_call0 (New function).
+	  do_call1 (New function).  do_call3 (New function).
+	  build_exc_ptr (rewritten to use do_call1).
+	  do_free_exception (rewritten to use do_call1).
+	  do_throw (rewritten to use do_call3).
+	  do_rethrow (rewritten to use do_call0).
+          gm2_build_throw (removed unused local variables).
+	  do_begin_catch (rewritten to use do_call1).
+	  do_end_catch (rewritten to use do_call0).
+	* gm2/gm2-lang.c:  genericize_try_block (New function).
+	  genericize_catch_block (New function).
+	  gm2_langhook_gimplify_expr call genericize_try_block
+	  and genericize_catch_block.
+
 2014-03-12      Gaius Mulley <gaius@gnu.org>
 
 	* changed persmissions to most files to remove the execute

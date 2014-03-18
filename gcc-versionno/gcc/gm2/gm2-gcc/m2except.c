@@ -206,6 +206,60 @@ m2except_InitExceptions (location_t location)
   MARK_TS_TYPED (EXPR_STMT);
 }
 
+
+/*
+ *  do_call0 - return a tree containing:  call builtin_function ().
+ */
+
+static tree
+do_call0 (location_t location, tree builtin_function)
+{
+  tree function = build_address (builtin_function);
+  tree fntype = TREE_TYPE (TREE_TYPE (function));
+  tree result_type = TREE_TYPE (fntype);
+
+  m2assert_AssertLocation (location);
+  return build_call_array_loc (location, result_type, function, 0, NULL);
+}
+
+
+/*
+ *  do_call1 - return a tree containing:  call builtin_function (param1).
+ */
+
+static tree
+do_call1 (location_t location, tree builtin_function, tree param1)
+{
+  tree *argarray = XALLOCAVEC (tree, 1);
+  tree function = build_address (builtin_function);
+  tree fntype = TREE_TYPE (TREE_TYPE (function));
+  tree result_type = TREE_TYPE (fntype);
+
+  m2assert_AssertLocation (location);
+  argarray[0] = param1;
+  return build_call_array_loc (location, result_type, function, 1, argarray);
+}
+
+
+/*
+ *  do_call3 - return a tree containing:  call builtin_function (param1, param2, param3).
+ */
+
+static tree
+do_call3 (location_t location, tree builtin_function, tree param1, tree param2, tree param3)
+{
+  tree *argarray = XALLOCAVEC (tree, 3);
+  tree function = build_address (builtin_function);
+  tree fntype = TREE_TYPE (TREE_TYPE (function));
+  tree result_type = TREE_TYPE (fntype);
+
+  m2assert_AssertLocation (location);
+  argarray[0] = param1;
+  argarray[1] = param2;
+  argarray[2] = param3;
+  return build_call_array_loc (location, result_type, function, 1, argarray);
+}
+
 /*
  *  build_exc_ptr - creates the GCC internal type, pointer to
  *                  exception control block.
@@ -214,13 +268,9 @@ m2except_InitExceptions (location_t location)
 static tree
 build_exc_ptr (location_t location)
 {
-  tree *argarray = XALLOCAVEC (tree, 1);
-  tree exe_ptr = builtin_decl_explicit (BUILT_IN_EH_POINTER);
-
-  m2assert_AssertLocation (location);
-  argarray[0] = integer_zero_node;
-  return build_call_array_loc (location, TREE_TYPE (exe_ptr), exe_ptr, 1, argarray);
+  return do_call1 (location, builtin_decl_explicit (BUILT_IN_EH_POINTER), integer_zero_node);
 }
+
 
 static
 tree
@@ -349,13 +399,8 @@ get_target_expr (location_t location, tree init)
 static tree
 do_allocate_exception (location_t location, tree type)
 {
-  tree func;
-
-  m2statement_BuildParam (location, size_in_bytes (type));
-  func = m2statement_BuildProcedureCallTree (location,
-					     fn_allocate_exception_tree, ptr_type_node);
-  m2statement_SetLastFunction (NULL_TREE);
-  return func;
+  return do_call1 (location, fn_allocate_exception_tree,
+		   size_in_bytes (type));
 }
 
 /* Call __cxa_free_exception from a cleanup.  This is never invoked
@@ -364,13 +409,7 @@ do_allocate_exception (location_t location, tree type)
 static tree
 do_free_exception (location_t location, tree ptr)
 {
-  tree func;
-
-  m2statement_BuildParam (location, ptr);
-  func = m2statement_BuildProcedureCallTree (location,
-					     fn_free_exception_tree, ptr_type_node);
-  m2statement_SetLastFunction (NULL_TREE);
-  return func;
+  return do_call1 (location, fn_free_exception_tree, ptr);
 }
 
 /*
@@ -380,16 +419,8 @@ do_free_exception (location_t location, tree ptr)
 static tree
 do_throw (location_t location, tree ptr)
 {
-  tree func;
-
-  m2statement_BuildParam (location, ptr);
-  m2statement_BuildParam (location, gm2_eh_int_type);
-  m2statement_BuildParam (location, build_int_cst (cleanup_type, 0));
-
-  func = m2statement_BuildProcedureCallTree (location,
-					     fn_throw_tree, void_type_node);
-  m2statement_SetLastFunction (NULL_TREE);
-  return func;
+  return do_call3 (location, fn_throw_tree,
+		   ptr, gm2_eh_int_type, build_int_cst (cleanup_type, 0));
 }
 
 /*
@@ -399,12 +430,7 @@ do_throw (location_t location, tree ptr)
 static tree
 do_rethrow (location_t location)
 {
-  tree func;
-
-  func = m2statement_BuildProcedureCallTree (location,
-					     fn_rethrow_tree, void_type_node);
-  m2statement_SetLastFunction (NULL_TREE);
-  return func;
+  return do_call0 (location, fn_rethrow_tree);
 }
 
 /*
@@ -424,11 +450,9 @@ gm2_build_throw (location_t location, tree exp)
     }
   else
     {
-      tree cleanup;
       tree object, ptr;
       tree allocate_expr;
       tree tmp;
-      tree *argarray = XALLOCAVEC (tree, 3);
 
       exp = m2expr_FoldAndStrip (convert (m2type_GetIntegerType (), m2expr_FoldAndStrip (exp)));
       exp = m2expr_GetIntegerOne ();
@@ -493,12 +517,8 @@ m2except_BuildThrow (location_t location, tree expr)
 static tree
 do_begin_catch (location_t location)
 {
-  tree *argarray = XALLOCAVEC (tree, 1);
-
-  m2assert_AssertLocation (location);
-  argarray[0] = build_exc_ptr (location);
-  return build_call_array_loc (location, TREE_TYPE (fn_begin_catch_tree),
-			       fn_begin_catch_tree, 1, argarray);
+  return do_call1 (location, fn_begin_catch_tree,
+		   build_exc_ptr (location));
 }
 
 /* Build up a call to __cxa_end_catch, to destroy the exception object
@@ -507,8 +527,7 @@ do_begin_catch (location_t location)
 static tree
 do_end_catch (location_t location)
 {
-  tree cleanup = build_call_array_loc (location, TREE_TYPE (fn_end_catch_tree),
-				       fn_end_catch_tree, 0, NULL);
+  tree cleanup = do_call0 (location, fn_end_catch_tree);
 
   m2assert_AssertLocation (location);
   TREE_NOTHROW (cleanup) = 1;

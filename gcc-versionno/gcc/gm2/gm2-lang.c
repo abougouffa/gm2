@@ -51,6 +51,7 @@ Boston, MA 02110-1301, USA.  */
 #include "m2options.h"
 #include "gm2version.h"
 #include "init.h"
+#include "../gm2-tree.h"
 
 static int insideCppArgs = FALSE;
 
@@ -725,6 +726,30 @@ gimplify_expr_stmt (tree *stmt_p)
 }
 
 
+/* Genericize a TRY_BLOCK.  */
+
+static void
+genericize_try_block (tree *stmt_p)
+{
+  tree body = TRY_STMTS (*stmt_p);
+  tree cleanup = TRY_HANDLERS (*stmt_p);
+
+  *stmt_p = build2 (TRY_CATCH_EXPR, void_type_node, body, cleanup);
+}
+
+/* Genericize a HANDLER by converting to a CATCH_EXPR.  */
+
+static void
+genericize_catch_block (tree *stmt_p)
+{
+  tree type = HANDLER_TYPE (*stmt_p);
+  tree body = HANDLER_BODY (*stmt_p);
+
+  /* FIXME should the caught type go in TREE_TYPE?  */
+  *stmt_p = build2 (CATCH_EXPR, void_type_node, type, body);
+}
+
+
 /* gm2 gimplify expression, currently just change THROW in the same way as C++
  */
 
@@ -741,11 +766,17 @@ gm2_langhook_gimplify_expr (tree *expr_p, gimple_seq *pre_p ATTRIBUTE_UNUSED, gi
 	 THROW_EXPR into ../tree.def.  */
       *expr_p = TREE_OPERAND (*expr_p, 0);
       return GS_OK;
-      break;
-
 
     case EXPR_STMT:
       gimplify_expr_stmt (expr_p);
+      return GS_OK;
+
+    case TRY_BLOCK:
+      genericize_try_block (expr_p);
+      return GS_OK;
+
+    case HANDLER:
+      genericize_catch_block (expr_p);
       return GS_OK;
 
     default:
