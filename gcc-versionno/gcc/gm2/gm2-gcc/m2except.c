@@ -257,7 +257,7 @@ do_call3 (location_t location, tree builtin_function, tree param1, tree param2, 
   argarray[0] = param1;
   argarray[1] = param2;
   argarray[2] = param3;
-  return build_call_array_loc (location, result_type, function, 1, argarray);
+  return build_call_array_loc (location, result_type, function, 3, argarray);
 }
 
 /*
@@ -268,6 +268,7 @@ do_call3 (location_t location, tree builtin_function, tree param1, tree param2, 
 static tree
 build_exc_ptr (location_t location)
 {
+  m2assert_AssertLocation (location);
   return do_call1 (location, builtin_decl_explicit (BUILT_IN_EH_POINTER), integer_zero_node);
 }
 
@@ -482,6 +483,7 @@ gm2_build_throw (location_t location, tree exp)
       /* Tack on the initialization stuff.  */
       exp = build2 (COMPOUND_EXPR, TREE_TYPE (tmp), exp, tmp);
       exp = build1 (THROW_EXPR, void_type_node, exp);
+      SET_EXPR_LOCATION (exp, location);
 
       return exp;
     }

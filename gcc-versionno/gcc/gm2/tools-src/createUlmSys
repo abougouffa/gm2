@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
 # Free Software Foundation, Inc.
@@ -166,7 +166,7 @@ EOFEOF
 	  count=`expr $count + 1`
 	  count=`expr $count + 1`
       else
-          echo "cannot find gm2-libs/gm2-libs-host.h"
+          echo "cannot find ${LIBS_H}"
           exit 1
       fi
    done

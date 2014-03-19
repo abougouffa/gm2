@@ -25,8 +25,11 @@ load_lib gm2-torture.exp
 gm2_init "-I../gm2/gm2-libs:$srcdir/../gm2/gm2-libs:$srcdir/../testsuite/gm2/extensions/run/pass:$srcdir/../testsuite/gm2/pim/pass" -L../gm2/gm2-libs -L../gm2/gm2-libs-iso -L../gm2/gm2-libs-pim
 
 gm2_link_with cvararg.o
+
+set XGCC [lookfor_file $tmpdir xgcc];
+
 set output [exec rm -f cvararg.o]
-set output [exec gcc -g -c $srcdir/gm2/extensions/run/pass/cvararg.c -o cvararg.o]
+set output [exec ${XGCC} -B[file dirname $tmpdir] -g -c $srcdir/gm2/extensions/run/pass/cvararg.c -o cvararg.o]
 
 
 foreach testcase [lsort [glob -nocomplain $srcdir/$subdir/*.mod]] {

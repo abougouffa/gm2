@@ -629,36 +629,22 @@ ifeq ($(MINLIB),yes)
     BUILD-ALL-LIBS   :=  build-libs-min
     ARCHIVE-ALL-LIBS :=  archive-libs-min
 else
-# ifeq ($(ULMLIB),no)
-#     BUILD-ALL-LIBS   :=  build-libs build-libs-iso \
-#                          build-libs-pim build-libs-coroutines \
-#                          build-libs-min
-#     ARCHIVE-ALL-LIBS :=  archive-libs archive-libs-iso \
-#                          archive-libs-pim archive-libs-coroutines \
-#                          archive-libs-min
-# else
-#     BUILD-ALL-LIBS   :=  build-libs build-libs-iso build-libs-ulm \
-#                          build-libs-pim build-libs-coroutines \
-#                          build-libs-min
-#     ARCHIVE-ALL-LIBS :=  archive-libs archive-libs-iso archive-libs-ulm \
-#                          archive-libs-pim archive-libs-coroutines \
-#                          archive-libs-min
-# endif
+  ifeq ($(ULMLIB),no)
+    BUILD-ALL-LIBS   :=  build-libs build-libs-iso \
+                         build-libs-pim build-libs-coroutines \
+                         build-libs-min
+    ARCHIVE-ALL-LIBS :=  archive-libs archive-libs-iso \
+                         archive-libs-pim archive-libs-coroutines \
+                         archive-libs-min
+  else
+    BUILD-ALL-LIBS   :=  build-libs build-libs-iso build-libs-ulm \
+                         build-libs-pim build-libs-coroutines \
+                         build-libs-min
+    ARCHIVE-ALL-LIBS :=  archive-libs archive-libs-iso archive-libs-ulm \
+                         archive-libs-pim archive-libs-coroutines \
+                         archive-libs-min
+  endif
 endif
-
-# build-libs-ulm \
-# 
-BUILD-ALL-LIBS   :=  build-libs build-libs-iso \
-                     build-libs-pim build-libs-coroutines \
-                     build-libs-min
-
-# archive-libs-ulm \
-#
-
-ARCHIVE-ALL-LIBS :=  archive-libs archive-libs-iso \
-                     archive-libs-pim archive-libs-coroutines \
-                     archive-libs-min
-# archive-libs-ulm
 
 
 gm2lib-plain-real: $(BUILD-ALL-LIBS) $(ARCHIVE-ALL-LIBS)
@@ -848,11 +834,11 @@ $(GM2_OBJ)/gm2-libs-coroutines/SO/KeyBoardLEDs.o: $(GM2_SRC)/gm2-libs-coroutines
 $(GM2_OBJ)/gm2-libs-coroutines/SO_O2/KeyBoardLEDs.o: $(GM2_SRC)/gm2-libs-coroutines/KeyBoardLEDs.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS $(SO_O2) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
 
-$(GM2_OBJ)/ulm-lib-gm2/sys/SYSTEM.o: $(GM2_SRC)/ulm-lib-gm2/sys/SYSTEM.c
+$(GM2_OBJ)/ulm-lib-gm2/sys/SYSTEM.o: $(GM2_OBJ)/ulm-lib-gm2/sys/SYSTEM.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(CFLAGS) $< -o $@
 
-$(GM2_OBJ)/ulm-lib-gm2/sys/SYSTEM.c: 
-	bash $(GM2_SRC)/tools-src/createUlmSys $(GM2_OBJ)/gm2/gm2-libs/gm2-libs-host.h > $@
+$(GM2_OBJ)/ulm-lib-gm2/sys/SYSTEM.c: $(GM2_OBJ)/gm2-libs/gm2-libs-target.h
+	bash $(GM2_SRC)/tools-src/createUlmSys $(GM2_OBJ)/gm2-libs/gm2-libs-target.h > $@
 
 $(GM2_OBJ)/ulm-lib-gm2/sys/%.o: $(GM2_SRC)/ulm-lib-gm2/sys/%.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -I$(GM2_SRC)/ulm-lib-gm2/sys -I$(GM2_SRC)/gm2-libs $< -o $@
