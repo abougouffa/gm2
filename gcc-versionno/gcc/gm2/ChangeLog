@@ -8,6 +8,8 @@
 	  an InitAddressOp instead of CodeBecomesOp.  (WriteQuad)
 	  new case clause for InitAddressOp.  (WriteOperands) new case
 	  clause for InitAddressOp.
+	* fixes variable at address bugs (see
+	  testsuite/gm2/embedded/pass/varataddress2.mod)
 
 2014-03-19      Gaius Mulley <gaius@gnu.org>
 
