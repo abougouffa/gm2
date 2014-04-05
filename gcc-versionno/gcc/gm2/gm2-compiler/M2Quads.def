@@ -160,6 +160,7 @@ TYPE
                    InclOp, ExclOp, LogicalShiftOp, LogicalRotateOp,
                    UnboundedOp, HighOp,
                    CoerceOp, ConvertOp, CastOp,
+                   InitAddressOp,
                    StartDefFileOp, StartModFileOp, EndFileOp,
                    CodeOnOp, CodeOffOp,
                    ProfileOnOp, ProfileOffOp,

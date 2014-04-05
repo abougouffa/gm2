@@ -1,3 +1,14 @@
+2014-04-05      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeInitAddress)  New procedure.
+	  (CodeStatement) added case clause for InitAddressOp which calls
+	  CodeInitAddress.
+	* gm2/gm2-compiler/M2Quads.def:  added InitAddressOp.
+	* gm2/gm2-compiler/M2Quads.mod:  (CheckVariableAt)  generate
+	  an InitAddressOp instead of CodeBecomesOp.  (WriteQuad)
+	  new case clause for InitAddressOp.  (WriteOperands) new case
+	  clause for InitAddressOp.
+
 2014-03-19      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-gcc/m2except.c:  (do_call3) corrected number of parameters.

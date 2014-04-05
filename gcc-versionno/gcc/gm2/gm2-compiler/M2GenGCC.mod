@@ -332,6 +332,7 @@ VAR
 (* To keep p2c happy we declare forward procedures *)
 
 (* %%%FORWARD%%%
+PROCEDURE CodeInitAddress (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE FoldBuiltinTypeInfo (tokenno: CARDINAL; p: WalkAction;
                                quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CheckStop (q: CARDINAL) ; FORWARD ;
@@ -534,6 +535,7 @@ BEGIN
    CatchEndOp         : CodeCatchEnd(q, op1, op2, op3) |
    RetryOp            : CodeRetry(q, op1, op2, op3) |
    DummyOp            : |
+   InitAddressOp      : CodeInitAddress(q, op1, op2, op3) |
    BecomesOp          : CodeBecomes(q, op1, op2, op3) |
    AddOp              : CodeAdd(q, op1, op2, op3) |
    SubOp              : CodeSub(q, op1, op2, op3) |
@@ -2945,6 +2947,25 @@ BEGIN
    END ;
    RETURN( TRUE )
 END checkArrayElements ;
+
+
+(*
+   CodeInitAddress - 
+*)
+
+PROCEDURE CodeInitAddress (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   t: Tree ;
+BEGIN
+   DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant and declares it *)
+   DeclareConstructor(quad, op3) ;
+   CheckStop(quad) ;
+   Assert(op2=NulSym) ;
+   Assert(GetMode(op1)=LeftValue) ;
+   t := BuildAssignmentTree(location,
+                            Mod2Gcc(op1),
+                            BuildConvert(GetPointerType(), Mod2Gcc(op3), FALSE))
+END CodeInitAddress ;
 
 
 (*

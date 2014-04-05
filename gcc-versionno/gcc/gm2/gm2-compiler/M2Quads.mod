@@ -1860,7 +1860,7 @@ BEGIN
    THEN
       IF GetMode(sym)=LeftValue
       THEN
-         GenQuad(BecomesOp, sym, Address, GetVariableAtAddress(sym))
+         GenQuad(InitAddressOp, sym, NulSym, GetVariableAtAddress(sym))
       ELSE
          InternalError('expecting lvalue for this variable which is declared at an explicit address',
                        __FILE__, __LINE__)
@@ -12110,6 +12110,7 @@ BEGIN
       HighOp           : WriteOperand(Operand1) ;
                          printf1('  %4d  ', Operand2) ;
                          WriteOperand(Operand3) |
+      InitAddressOp,
       SavePriorityOp,
       RestorePriorityOp,
       SubrangeLowOp,
@@ -12241,6 +12242,7 @@ PROCEDURE WriteOperator (Operator: QuadOperator) ;
 BEGIN
    CASE Operator OF
 
+   InitAddressOp            : printf0('InitAddress       ') |
    LogicalOrOp              : printf0('Or                ') |
    LogicalAndOp             : printf0('And               ') |
    LogicalXorOp             : printf0('Xor               ') |
