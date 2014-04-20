@@ -1314,7 +1314,13 @@ static const char *
 add_exec_dir (int argc, const char *argv[])
 {
   if (argc == 1 && argv[0] != NULL) {
-    const char *path = gen_gm2_root (get_prefix ());
+    const char *path;
+
+    if (seen_B)
+      path = xstrdup (B_path);
+    else
+      path = gen_gm2_root (get_prefix ());
+
     if (path != NULL) {
       char *opt = (char *) xmalloc (strlen ("-fcppprog=") + strlen (path) + 1 + strlen (argv[0]) + 1);
       char *sep = (char *) alloca (2);

@@ -1,5 +1,12 @@
 2014-04-05      Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeInitAddress) declare tokenno
+	  and location and set them correctly.
+	* gm2/gm2spec.c:  let the -B switch determine where the (preprocessor)
+	  cc1 is found.
+
+2014-04-05      Gaius Mulley <gaius@gnu.org>
+
 	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeInitAddress)  New procedure.
 	  (CodeStatement) added case clause for InitAddressOp which calls
 	  CodeInitAddress.

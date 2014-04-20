@@ -2955,11 +2955,16 @@ END checkArrayElements ;
 
 PROCEDURE CodeInitAddress (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t: Tree ;
+   t       : Tree ;
+   tokenno : CARDINAL ;
+   location: location_t ;
 BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant and declares it *)
    DeclareConstructor(quad, op3) ;
    CheckStop(quad) ;
+   tokenno := QuadToTokenNo(quad) ;
+   location := TokenToLocation(tokenno) ;
+
    Assert(op2=NulSym) ;
    Assert(GetMode(op1)=LeftValue) ;
    t := BuildAssignmentTree(location,
