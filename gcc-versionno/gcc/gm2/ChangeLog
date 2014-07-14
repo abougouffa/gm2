@@ -63,6 +63,15 @@
 	  m2pp_procedure_type modified to understand varargs.
 	* gm2/tools-src/createUlmSys:  fixed to test for presence of include
 	  files so that it can be run in a cross compiler for a minimal target.
+	* gm2/examples/pge/Makefile:  remove rule hack from objects.
+	* gm2/gm2-compiler/M2GenGCC.mod:  CodeDivTrunc, FoldDivTrunc,
+	  CodeDivFloor, FoldDivFloor check operand types and if REAL/COMPLEX
+	  family are used then call BuildRDiv instead.  Fixes a compiler error
+	  exposed by gm2/examples/pge/roots.mod.  BinaryOperandRealFamily
+	  (New procedure function).
+	* gm2/gm2-gcc/m2expr.c:  m2expr_BuildRDiv (New function).
+	* gm2/gm2-gcc/m2expr.def:  m2expr_BuildRDiv (New definition).
+	* gm2/gm2-gcc/m2expr.h:  m2expr_BuildRDiv (New prototype).
 
 2014-04-20      Gaius Mulley <gaius@gnu.org>
 

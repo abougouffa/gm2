@@ -15,7 +15,7 @@ FROM macroObjects IMPORT Macro, circle, moveTo, up, down, left, right, rotate,
 CONST
    testCorner = FALSE ;
    testRight  = FALSE ;
-   useGroff   = FALSE ;
+   useGroff   =  TRUE ;
 
 
 (*

@@ -158,6 +158,14 @@ PROCEDURE BuildDivTrunc (location: location_t; op1: Tree; op2: Tree; needconvert
 
 
 (*
+   BuildRDiv - builds a division tree (this should only be used for REAL and COMPLEX
+               types and NEVER for integer based types).
+*)
+
+PROCEDURE BuildRDiv (location: location_t; op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
     BuildSub - builds a subtraction tree.
 *)
 

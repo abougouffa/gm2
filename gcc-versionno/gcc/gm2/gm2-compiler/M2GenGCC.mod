@@ -160,6 +160,7 @@ FROM m2expr IMPORT GetIntegerZero, GetIntegerOne,
                    BuildSetProcedure, BuildUnarySetFunction,
                    BuildAdd, BuildSub, BuildMult, BuildLSL,
                    BuildDivTrunc, BuildModTrunc, BuildDivFloor, BuildModFloor,
+                   BuildRDiv,
                    BuildLogicalOrAddress,
                    BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
                    BuildLogicalDifference,
@@ -3405,7 +3406,7 @@ END CodeSub ;
 *)
 
 PROCEDURE FoldMult (tokenno: CARDINAL; p: WalkAction;
-                   quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    IF BinaryOperands(quad, op2, op3)
    THEN
@@ -3428,6 +3429,20 @@ END CodeMult ;
 
 
 (*
+   BinaryOperandRealFamily - 
+*)
+
+PROCEDURE BinaryOperandRealFamily (op: CARDINAL) : BOOLEAN ;
+VAR
+   t: CARDINAL ;
+BEGIN
+   t := SkipType(GetType(op)) ;
+   RETURN( IsAComplexType(t) OR IsComplexN(t) OR
+           IsRealType(t) OR IsRealN(t) )
+END BinaryOperandRealFamily ;
+
+
+(*
    FoldDivTrunc - check division for constant folding.
 *)
 
@@ -3436,7 +3451,12 @@ PROCEDURE FoldDivTrunc (tokenno: CARDINAL; p: WalkAction;
 BEGIN
    IF BinaryOperands(quad, op2, op3)
    THEN
-      FoldBinary(tokenno, p, BuildDivTrunc, quad, op1, op2, op3)
+      IF BinaryOperandRealFamily(op2) OR BinaryOperandRealFamily(op3)
+      THEN
+         FoldBinary(tokenno, p, BuildRDiv, quad, op1, op2, op3)
+      ELSE
+         FoldBinary(tokenno, p, BuildDivTrunc, quad, op1, op2, op3)
+      END
    END
 END FoldDivTrunc ;
 
@@ -3449,7 +3469,12 @@ PROCEDURE CodeDivTrunc (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    IF BinaryOperands(quad, op2, op3)
    THEN
-      CodeBinary(BuildDivTrunc, quad, op1, op2, op3)
+      IF BinaryOperandRealFamily(op2) OR BinaryOperandRealFamily(op3)
+      THEN
+         CodeBinary(BuildRDiv, quad, op1, op2, op3)
+      ELSE
+         CodeBinary(BuildDivTrunc, quad, op1, op2, op3)
+      END
    END
 END CodeDivTrunc ;
 
@@ -3490,7 +3515,12 @@ PROCEDURE FoldDivFloor (tokenno: CARDINAL; p: WalkAction;
 BEGIN
    IF BinaryOperands(quad, op2, op3)
    THEN
-      FoldBinary(tokenno, p, BuildDivFloor, quad, op1, op2, op3)
+      IF BinaryOperandRealFamily(op2) OR BinaryOperandRealFamily(op3)
+      THEN
+         FoldBinary(tokenno, p, BuildRDiv, quad, op1, op2, op3)
+      ELSE
+         FoldBinary(tokenno, p, BuildDivFloor, quad, op1, op2, op3)
+      END
    END
 END FoldDivFloor ;
 
@@ -3503,7 +3533,12 @@ PROCEDURE CodeDivFloor (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    IF BinaryOperands(quad, op2, op3)
    THEN
-      CodeBinary(BuildDivFloor, quad, op1, op2, op3)
+      IF BinaryOperandRealFamily(op2) OR BinaryOperandRealFamily(op3)
+      THEN
+         CodeBinary(BuildRDiv, quad, op1, op2, op3)
+      ELSE
+         CodeBinary(BuildDivFloor, quad, op1, op2, op3)
+      END
    END
 END CodeDivFloor ;
 

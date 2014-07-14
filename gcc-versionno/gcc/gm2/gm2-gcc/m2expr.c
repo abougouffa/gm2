@@ -241,6 +241,26 @@ m2expr_BuildDivFloor (location_t location, tree op1, tree op2, int needconvert)
 
 
 /*
+ *  BuildRDiv - builds a division tree (this should only be used for REAL and COMPLEX
+ *              types and NEVER for integer based types).
+ */
+
+tree
+m2expr_BuildRDiv (location_t location, tree op1, tree op2, int needconvert)
+{
+  tree t;
+
+  m2assert_AssertLocation (location);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  t = m2expr_build_binary_op (location, RDIV_EXPR, op1, op2, needconvert);
+  return m2expr_FoldAndStrip (t);
+}
+
+
+/*
  *  BuildModFloor - builds a modulus tree.
  */
 

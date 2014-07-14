@@ -6,7 +6,8 @@ SOURCES = test.mod \
           deviceIf.mod ramps.mod ramps2.mod boxes.mod wallh.mod bounce.mod line.mod bounce2.mod \
           bounce3.mod bounce4.mod bounce5.mod bagatelle.mod
 
-OBJECTS = hack $(SOURCES:%.mod=%.o)
+# OBJECTS = hack $(SOURCES:%.mod=%.o)
+OBJECTS = $(SOURCES:%.mod=%.o)
 PROFILE = 
 GM2FLAGS = $(PROFILE) -fsoft-check-all -g -fiso -fextended-opaque 
 

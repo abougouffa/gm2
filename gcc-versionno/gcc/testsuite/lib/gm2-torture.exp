@@ -21,7 +21,7 @@
 # and modified by Gaius Mulley (gaius@gnu.org) for GNU Modula-2
 
 load_lib file-format.exp
-load_lib gm2.exp
+load_lib target-libpath.exp
 
 # The default option list can be overridden by
 # TORTURE_OPTIONS="{ { list1 } ... { listN } }"

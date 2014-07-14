@@ -214,6 +214,10 @@ proc gm2_link_flags { paths } {
 	    append flags " -L${gccpath}/libstdc++-v3/src/.libs "
 	    append ld_library_path ":${gccpath}/libstdc++-v3/src/.libs"
 	}
+	if [file exists "${gccpath}/libgm2/.libs/libgm2.a"] {
+	    append flags " -L${gccpath}/libgm2/.libs "
+	    append ld_library_path ":${gccpath}/libgm2/.libs"
+	}
     }
 
     set_ld_library_path_env_vars
