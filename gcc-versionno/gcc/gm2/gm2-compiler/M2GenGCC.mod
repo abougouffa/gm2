@@ -203,7 +203,8 @@ FROM m2type IMPORT ChainOnParamValue, GetPointerType, GetIntegerType, AddStateme
                    BuildCharConstant, AddStringToTreeList, BuildArrayStringConstructor,
                    GetArrayNoOfElements ;
 
-FROM m2block IMPORT RememberConstant, pushGlobalScope, popGlobalScope, finishFunctionDecl ;
+FROM m2block IMPORT RememberConstant, pushGlobalScope, popGlobalScope, finishFunctionDecl,
+                    pushFunctionScope, popFunctionScope ;
 
 FROM m2misc IMPORT DebugTree ;
 

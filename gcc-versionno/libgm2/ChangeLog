@@ -1,3 +1,21 @@
+2014-07-11      Gaius Mulley <gaius@gnu.org>
+
+	* complete rewrite and restructuring of libgm2.
+	* gcc-versionno/libgm2/aclocal.m4:  (rebuilt)
+	* gcc-versionno/libgm2/autogen.sh:  (rebuilt)
+	* gcc-versionno/libgm2/config.h.in:  (New file)
+	* gcc-versionno/libgm2/configure:  (rebuilt)
+	* gcc-versionno/libgm2/configure.ac:  (New file)
+	* gcc-versionno/libgm2/libcor:  (New directory)
+	* gcc-versionno/libgm2/libiso:  (New directory)
+	* gcc-versionno/libgm2/liblog:  (New directory)
+	* gcc-versionno/libgm2/libmin:  (New directory)
+	* gcc-versionno/libgm2/libpim:  (New directory)
+	* gcc-versionno/libgm2/libulm:  (New directory)
+	* gcc-versionno/libgm2/Makefile.am:  (New file)
+	* gcc-versionno/libgm2/Makefile.in:  (rebuilt)
+	* gcc-versionno/libgm2/p2c:  (New directory)
+
 2013-12-06      Gaius Mulley <gaius@gnu.org>
 
 	* gcc-versionno/gcc/gm2/Make-lang.in:  changed flag to -fpim

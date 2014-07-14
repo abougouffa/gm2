@@ -83,6 +83,15 @@ binding_level {
      */
     tree names;
 
+    /* A boolean to indicate whether this is binding level is a global ie outer
+       module scope.  In which case fndecl will be NULL_TREE.  */
+    int is_global;
+
+    /* The context of the binding level, for a function binding level this will be
+       the same as fndecl, however for a global binding level this is a
+       translation_unit.  */
+    tree context;
+
     /* The binding level below this one.  This field is only used when the binding level
        has been pushed by pushFunctionScope.
     */
@@ -147,7 +156,7 @@ static GTY(()) struct binding_level *head_binding_level;
 /* Binding level structures are initialized by copying this one.  */
 
 static struct binding_level clear_binding_level
-= {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0};
+= {NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0};
 
 
 /* The current statement tree.  */
@@ -342,52 +351,6 @@ m2block_end_statement_list (tree t)
 }
 
 
-#if 0
-{
-  tree u = NULL_TREE;
-
-  /* Pop statement lists until we reach the target level.  The extra
-     nestings will be due to outstanding cleanups.  */
-  while (TRUE)
-    {
-      u = VEC_pop (tree, stmt_list_stack);
-      if (!VEC_empty (tree, stmt_list_stack))
-	{
-	  tree x = VEC_last (tree, stmt_list_stack);
-	  if (x != NULL_TREE)
-	    STATEMENT_LIST_HAS_LABEL (x) |= STATEMENT_LIST_HAS_LABEL (u);
-	}
-      if (t == u)
-	break;
-    }
-
-  gcc_assert (u != NULL_TREE);
-
-  /* If the statement list is completely empty, just return it.  This is
-     just as good small as build_empty_stmt, with the advantage that
-     statement lists are merged when they appended to one another.  So
-     using the STATEMENT_LIST avoids pathological buildup of EMPTY_STMT_P
-     statements.  */
-  if (TREE_SIDE_EFFECTS (t))
-    {
-      tree_stmt_iterator i = tsi_start (t);
-
-      /* If the statement list contained exactly one statement, then
-	 extract it immediately.  */
-      if (tsi_one_before_end_p (i))
-	{
-	  u = tsi_stmt (i);
-	  tsi_delink (&i);
-	  free_stmt_list (t);
-	  t = u;
-	}
-    }
-
-  return t;
-}
-#endif
-
-
 /* Build a generic statement based on the given type of node and
    arguments. Similar to `build_nt', except that we set
    EXPR_LOCATION to LOC. */
@@ -480,6 +443,8 @@ findLevel (tree fndecl)
   if (b == NULL) {
     b = newLevel ();
     b->fndecl = fndecl;
+    b->context = fndecl;
+    b->is_global = FALSE;
     b->list = head_binding_level;
     b->next = NULL;
   }
@@ -522,7 +487,7 @@ m2block_pushFunctionScope (tree fndecl)
 
   n = findLevel (fndecl);
 
-  /* Add this level to the front of the stack. */
+  /* Add this level to the front of the stack.  */
   n->next = current_binding_level;
   current_binding_level = n;
 }
@@ -537,160 +502,6 @@ set_type_context (tree type, tree context)
   for (type = TYPE_MAIN_VARIANT (type); type;
        type = TYPE_NEXT_VARIANT (type))
     TYPE_CONTEXT (type) = context;
-}
-#endif
-
-
-#if 0
-/*
- *
- */
-
-static void
-addTreeToBlock (tree fndecl, tree block, tree p)
-{
-  switch (TREE_CODE (p))
-    {
-    case LABEL_DECL:
-      /* Labels go in BLOCK_VARS.  */
-      DECL_CHAIN (p) = BLOCK_VARS (block);
-      BLOCK_VARS (block) = p;
-
-    case ENUMERAL_TYPE:
-    case UNION_TYPE:
-    case RECORD_TYPE:
-      set_type_context (p, fndecl);
-      break;
-    default:
-      break;
-    }
-
-#if 0
-    case FUNCTION_DECL:
-	  /* Propagate TREE_ADDRESSABLE from nested functions to their
-	     containing functions.  */
-	  if (!TREE_ASM_WRITTEN (p)
-	      && DECL_INITIAL (p) != 0
-	      && TREE_ADDRESSABLE (p)
-	      && DECL_ABSTRACT_ORIGIN (p) != 0
-	      && DECL_ABSTRACT_ORIGIN (p) != p)
-	    TREE_ADDRESSABLE (DECL_ABSTRACT_ORIGIN (p)) = 1;
-	  if (!DECL_EXTERNAL (p)
-	      && !DECL_INITIAL (p)
-	      && scope != file_scope
-	      && scope != external_scope)
-	    {
-	      error ("nested function %q+D declared but never defined", p);
-	      undef_nested_function = true;
-	    }
-	  else if (DECL_DECLARED_INLINE_P (p)
-		   && TREE_PUBLIC (p)
-		   && !DECL_INITIAL (p))
-	    {
-	      /* C99 6.7.4p6: "a function with external linkage... declared
-		 with an inline function specifier ... shall also be defined
-		 in the same translation unit."  */
-	      if (!flag_gnu89_inline)
-		pedwarn (input_location, 0,
-			 "inline function %q+D declared but never defined", p);
-	      DECL_EXTERNAL (p) = 1;
-	    }
-
-	  goto common_symbol;
-
-	case VAR_DECL:
-	  /* Warnings for unused variables.  */
-	  if ((!TREE_USED (p) || !DECL_READ_P (p))
-	      && !TREE_NO_WARNING (p)
-	      && !DECL_IN_SYSTEM_HEADER (p)
-	      && DECL_NAME (p)
-	      && !DECL_ARTIFICIAL (p)
-	      && scope != file_scope
-	      && scope != external_scope)
-	    {
-	      if (!TREE_USED (p))
-		warning (OPT_Wunused_variable, "unused variable %q+D", p);
-	      else if (DECL_CONTEXT (p) == current_function_decl)
-		warning_at (DECL_SOURCE_LOCATION (p),
-			    OPT_Wunused_but_set_variable,
-			    "variable %qD set but not used", p);
-	    }
-
-	  if (b->inner_comp)
-	    {
-	      error ("type of array %q+D completed incompatibly with"
-		     " implicit initialization", p);
-	    }
-
-	  /* Fall through.  */
-	case TYPE_DECL:
-	case CONST_DECL:
-	common_symbol:
-	  /* All of these go in BLOCK_VARS, but only if this is the
-	     binding in the home scope.  */
-	  if (!b->nested)
-	    {
-	      DECL_CHAIN (p) = BLOCK_VARS (block);
-	      BLOCK_VARS (block) = p;
-	    }
-	  else if (VAR_OR_FUNCTION_DECL_P (p) && scope != file_scope)
-	    {
-	      /* For block local externs add a special
-		 DECL_EXTERNAL decl for debug info generation.  */
-	      tree extp = copy_node (p);
-
-	      DECL_EXTERNAL (extp) = 1;
-	      TREE_STATIC (extp) = 0;
-	      TREE_PUBLIC (extp) = 1;
-	      DECL_INITIAL (extp) = NULL_TREE;
-	      DECL_LANG_SPECIFIC (extp) = NULL;
-	      DECL_CONTEXT (extp) = current_function_decl;
-	      if (TREE_CODE (p) == FUNCTION_DECL)
-		{
-		  DECL_RESULT (extp) = NULL_TREE;
-		  DECL_SAVED_TREE (extp) = NULL_TREE;
-		  DECL_STRUCT_FUNCTION (extp) = NULL;
-		}
-	      if (b->locus != UNKNOWN_LOCATION)
-		DECL_SOURCE_LOCATION (extp) = b->locus;
-	      DECL_CHAIN (extp) = BLOCK_VARS (block);
-	      BLOCK_VARS (block) = extp;
-	    }
-	  /* If this is the file scope set DECL_CONTEXT of each decl to
-	     the TRANSLATION_UNIT_DECL.  This makes same_translation_unit_p
-	     work.  */
-	  if (scope == file_scope)
-	    {
-	      DECL_CONTEXT (p) = context;
-	      if (TREE_CODE (p) == TYPE_DECL
-		  && TREE_TYPE (p) != error_mark_node)
-		set_type_context (TREE_TYPE (p), context);
-	    }
-
-	  /* Fall through.  */
-	  /* Parameters go in DECL_ARGUMENTS, not BLOCK_VARS, and have
-	     already been put there by store_parm_decls.  Unused-
-	     parameter warnings are handled by function.c.
-	     error_mark_node obviously does not go in BLOCK_VARS and
-	     does not get unused-variable warnings.  */
-	case PARM_DECL:
-	case ERROR_MARK:
-	  /* It is possible for a decl not to have a name.  We get
-	     here with b->id NULL in this case.  */
-	  if (b->id)
-	    {
-	      gcc_assert (I_SYMBOL_BINDING (b->id) == b);
-	      I_SYMBOL_BINDING (b->id) = b->shadowed;
-	      if (b->shadowed && b->shadowed->u.type)
-		TREE_TYPE (b->shadowed->decl) = b->shadowed->u.type;
-	    }
-	  break;
-
-	default:
-	  gcc_unreachable ();
-	}
-    }  
-#endif
 }
 #endif
 
@@ -753,7 +564,7 @@ m2block_pushGlobalScope (void)
 void
 m2block_popGlobalScope (void)
 {
-  ASSERT_CONDITION (current_binding_level->fndecl == NULL_TREE);   /* expecting global scope */
+  ASSERT_CONDITION (current_binding_level->is_global);   /* expecting global scope */
   ASSERT_CONDITION (current_binding_level == global_binding_level);
   current_binding_level = current_binding_level->next;
 #if defined(DEBUGGING)
@@ -777,6 +588,7 @@ m2block_popGlobalScope (void)
 void
 m2block_finishFunctionDecl (tree fndecl)
 {
+  tree context = current_binding_level->context;
   tree block = DECL_INITIAL (fndecl);
   tree bind_expr = DECL_SAVED_TREE (fndecl);
   tree i;
@@ -787,8 +599,8 @@ m2block_finishFunctionDecl (tree fndecl)
       DECL_INITIAL (fndecl) = block;
       TREE_USED (block) = TRUE;
       BLOCK_SUBBLOCKS (block) = NULL_TREE;
-      BLOCK_SUPERCONTEXT (block) = fndecl;
     }
+  BLOCK_SUPERCONTEXT (block) = context;
 
   BLOCK_VARS (block) = chainon (BLOCK_VARS (block), current_binding_level->names);
   TREE_USED (fndecl) = TRUE;
@@ -822,14 +634,46 @@ m2block_finishFunctionDecl (tree fndecl)
 
   current_binding_level->names = NULL_TREE;
   current_binding_level->decl = NULL_TREE;
+}
 
-  if (BLOCK_SUPERCONTEXT (block) == NULL_TREE)
-    {
-      if (current_binding_level->fndecl == NULL_TREE)
-	BLOCK_SUPERCONTEXT (block) = build_translation_unit_decl (NULL_TREE);
-      else
-	BLOCK_SUPERCONTEXT (block) = fndecl;
-    }
+
+static int
+is_variable_in (tree fndecl, const char *name)
+{
+  tree id = get_identifier (name);
+  tree bind = DECL_SAVED_TREE (fndecl);
+  tree vars;
+  
+  // ASSERT_CONDITION (TREE_CODE (block) == BLOCK);
+  ASSERT_CONDITION (TREE_CODE (bind) == BIND_EXPR);
+  vars = BIND_EXPR_VARS (bind);
+
+  if (vars != NULL)
+    for (; vars; vars = TREE_CHAIN (vars))
+      if (TREE_CODE (vars) != FUNCTION_DECL && TREE_CODE (vars) != TYPE_DECL && TREE_CODE (vars) != DECL_EXPR)
+	if (DECL_NAME (vars) == id)
+	  return TRUE;
+  return FALSE;
+}
+
+
+static void stop (void) {}
+
+
+static void
+check_trigger (tree fndecl, const char *name)
+{
+  tree id;
+
+  id = get_identifier ("RTExceptions_DefaultErrorCatch");
+  if (DECL_NAME (fndecl) == id)
+    if (is_variable_in (fndecl, name))
+      stop ();
+
+  id = get_identifier ("ErrorString");
+  if (DECL_NAME (fndecl) == id)
+    if (is_variable_in (fndecl, name))
+      stop ();
 }
 
 
@@ -846,6 +690,12 @@ m2block_finishFunctionCode (tree fndecl)
   tree block;
   tree statements = m2block_pop_statement_list ();
   tree_stmt_iterator i;
+  tree id = get_identifier ("ErrorString");
+
+  if (DECL_NAME (fndecl) == id)
+    stop ();
+
+  check_trigger (fndecl, "_T26");
 
   statements = m2block_end_statement_list (statements);
   ASSERT_CONDITION (DECL_SAVED_TREE (fndecl) != NULL_TREE);
@@ -884,11 +734,35 @@ m2block_finishFunctionCode (tree fndecl)
   for (i = tsi_start (statements); !tsi_end_p (i); tsi_next (&i))
     append_to_statement_list_force (*tsi_stmt_ptr (i), &BIND_EXPR_BODY (bind_expr));
 
+  check_trigger (fndecl, "_T26");
+
   current_binding_level->decl = NULL_TREE;
 }
 
 
-static void stop (void) {}
+tree
+m2block_finishGlobals (void)
+{
+  tree context = global_binding_level->context;
+  tree block = make_node (BLOCK);
+  tree p = global_binding_level->names;
+
+  BLOCK_SUBBLOCKS (block) = NULL;
+  TREE_USED (block) = 1;
+
+  BLOCK_VARS (block) = p;
+
+  DECL_INITIAL (context) = block;
+  BLOCK_SUPERCONTEXT (block) = context;
+
+#if 0
+  for (; p; p = TREE_CHAIN (p)) {
+    if (TREE_CODE (p) == VAR_DECL)
+      wrapup_global_declaration_2 (p);
+  }
+#endif
+}
+
 
 /*
  *  pushDecl - pushes a declaration onto the current binding level.
@@ -898,24 +772,12 @@ tree m2block_pushDecl (tree decl)
 {
   /* External objects aren't nested, other objects may be.  */
 
-#if 0
-  if (TREE_CODE (decl) == VAR_DECL)
-    pv(decl);
-  else
-    pf(decl);
-#endif
-
-  if ((DECL_EXTERNAL (decl)) || (decl==current_function_decl))
-    DECL_CONTEXT (decl) = NULL_TREE;
-  else
-    DECL_CONTEXT (decl) = current_function_decl;
+  if (decl != current_function_decl)
+    DECL_CONTEXT (decl) = current_binding_level->context;
 
   /* Put the declaration on the list.  The list of declarations is in reverse
      order. The list will be reversed later if necessary.  This needs to be
      this way for compatibility with the back-end.  */
-
-  if (current_binding_level->fndecl != NULL)
-    stop ();
 
   TREE_CHAIN (decl) = current_binding_level->names;
   current_binding_level->names = decl;
@@ -931,6 +793,20 @@ tree m2block_pushDecl (tree decl)
   return decl;
 }
 
+/*
+ *  includeDecl - pushes a declaration onto the current binding level providing
+ *                it is not already present.
+ */
+
+tree m2block_includeDecl (tree decl)
+{
+  tree p = current_binding_level->names;
+
+  while (p != decl && p != NULL)
+    p = TREE_CHAIN (p);
+  if (p != decl)
+    m2block_pushDecl (decl);
+}
 
 /*
  *  addDeclExpr - adds the DECL_EXPR node, t, to the statement list
@@ -1069,6 +945,17 @@ m2block_GetGlobals (void)
 
 
 /*
+ *  GetGlobalContext - returns the global context tree.
+ */
+
+tree
+m2block_GetGlobalContext (void)
+{
+  return global_binding_level->context;
+}
+
+
+/*
  *  init - initialise the data structures in this module.
  */
 
@@ -1077,6 +964,8 @@ m2block_init (void)
 {
   free_binding_level = NULL;
   global_binding_level = newLevel ();
+  global_binding_level->context = build_translation_unit_decl (NULL);
+  global_binding_level->is_global = TRUE;
   current_binding_level = NULL;
 }
 

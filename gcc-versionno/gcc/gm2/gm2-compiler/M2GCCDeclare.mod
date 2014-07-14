@@ -166,7 +166,8 @@ FROM m2type IMPORT MarkFunctionReferenced, BuildStartRecord, BuildStartVarient, 
                    SetAlignment, SetTypePacked, SetDeclPacked, BuildSmallestTypeRange,
                    SetRecordFieldOffset, ChainOn, BuildEndRecord, BuildFieldRecord,
                    BuildEndFieldVarient, BuildArrayIndexType, BuildEndFunctionType,
-                   BuildSetType, BuildEndVarient, BuildEndArrayType, InitFunctionTypeParameters ;
+                   BuildSetType, BuildEndVarient, BuildEndArrayType, InitFunctionTypeParameters,
+                   BuildProcTypeParameterDeclaration ;
 
 FROM m2convert IMPORT BuildConvert ;
 
@@ -175,7 +176,7 @@ FROM m2expr IMPORT BuildSub, BuildLSL, BuildTBitSize, BuildAdd, BuildDivTrunc, B
                    GetPointerZero, GetIntegerZero, GetIntegerOne ;
 
 FROM m2block IMPORT RememberType, pushGlobalScope, popGlobalScope, pushFunctionScope, popFunctionScope,
-                    finishFunctionDecl, RememberConstant ;
+                    finishFunctionDecl, RememberConstant, GetGlobalContext ;
 
 
 TYPE
@@ -2409,6 +2410,29 @@ END AlignProcedureWithSource ;
 
 
 (*
+   IsExternal - 
+*)
+
+PROCEDURE IsExternal (sym: CARDINAL) : BOOLEAN ;
+VAR
+   mod: CARDINAL ;
+BEGIN
+   mod := GetScope(sym) ;
+   REPEAT
+      IF mod=NulSym
+      THEN
+         RETURN( FALSE )
+      ELSIF IsDefImp(mod)
+      THEN
+         RETURN( mod#GetMainModule() )
+      END ;
+      mod := GetScope(mod)
+   UNTIL mod=NulSym ;
+   RETURN( FALSE )
+END IsExternal ;
+
+
+(*
    DeclareProcedureToGcc - traverses all parameters and interfaces to gm2gcc.
 *)
 
@@ -2464,16 +2488,14 @@ BEGIN
          PreAddModGcc(Sym, BuildEndFunctionDeclaration(location,
                                                        KeyToCharStar(GetFullSymName(Sym)),
                                                        NIL,
-                                                       IsEffectivelyImported(GetMainModule(), Sym) AND
-                                                       (GetModuleWhereDeclared(Sym)#GetMainModule()),
+                                                       IsExternal(Sym),
                                                        IsProcedureGccNested(Sym),
                                                        IsExported(GetModuleWhereDeclared(Sym), Sym)))
       ELSE
          PreAddModGcc(Sym, BuildEndFunctionDeclaration(location,
                                                        KeyToCharStar(GetFullSymName(Sym)),
                                                        Mod2Gcc(GetType(Sym)),
-                                                       IsEffectivelyImported(GetMainModule(), Sym) AND
-                                                       (GetModuleWhereDeclared(Sym)#GetMainModule()),
+                                                       IsExternal(Sym),
                                                        IsProcedureGccNested(Sym),
                                                        IsExported(GetModuleWhereDeclared(Sym), Sym)))
       END ;
@@ -3056,25 +3078,25 @@ END AlignDeclarationWithSource ;
 
 
 (*
-   FindTreeScope - returns the scope where the symbol
-                   should be created.
+   FindContext - returns the scope where the symbol
+                 should be created.
 
-                   Symbols created in a module will
-                   return NIL trees, but symbols created
-                   in a module which is declared inside
-                   a procedure will return the procedure Tree.
+                 Symbols created in a module will
+                 return the global context tree, but symbols created
+                 in a module which is declared inside
+                 a procedure will return the procedure Tree.
 *)
 
-PROCEDURE FindTreeScope (sym: CARDINAL) : Tree ;
+PROCEDURE FindContext (sym: CARDINAL) : Tree ;
 BEGIN
    sym := GetProcedureScope(sym) ;
    IF sym=NulSym
    THEN
-      RETURN( NIL )
+      RETURN( GetGlobalContext() )
    ELSE
       RETURN( Mod2Gcc(sym) )
    END
-END FindTreeScope ;
+END FindContext ;
 
 
 (*
@@ -3176,6 +3198,26 @@ END DoVariableDeclaration ;
 
 
 (*
+   IsGlobal - is the variable not in a procedure scope.
+*)
+
+PROCEDURE IsGlobal (sym: CARDINAL) : BOOLEAN ;
+VAR
+   s: CARDINAL ;
+BEGIN
+   s := GetScope(sym) ;
+   WHILE (s#NulSym) AND (NOT IsDefImp(s)) AND (NOT IsModule(s)) DO
+      IF IsProcedure(s)
+      THEN
+         RETURN FALSE
+      END ;
+      s := GetScope(s)
+   END ;
+   RETURN TRUE
+END IsGlobal ;
+
+
+(*
    DeclareVariable - declares a global variable to GCC.
 *)
 
@@ -3187,7 +3229,7 @@ BEGIN
    IF NOT GccKnowsAbout(Son)
    THEN
       AlignDeclarationWithSource(Son) ;
-      scope := FindTreeScope(ModSym) ;
+      scope := FindContext(ModSym) ;
       decl := FindOuterModule(Son) ;
       Assert(AllDependantsFullyDeclared(GetType(Son))) ;
       PushBinding(ModSym) ;
@@ -3197,7 +3239,7 @@ BEGIN
                             IsEffectivelyImported(ModSym, Son) AND (GetMainModule()#decl),
                             IsExported(ModSym, Son),
                             IsTemporary(Son),
-                            GetMainModule()=decl,
+                            IsGlobal(Son),
                             scope) ;
       PopBinding(ModSym)
    END
@@ -4596,22 +4638,22 @@ VAR
 BEGIN
    ReturnType := GetType(Sym) ;
    func := DoStartDeclaration(Sym, BuildStartFunctionType) ;
-   InitFunctionTypeParameters(UsesVarArgs(Sym)) ;
+   InitFunctionTypeParameters ;
    p := NoOfParam(Sym) ;
    i := p ;
    Assert(PushParametersLeftToRight) ;
    WHILE i>0 DO
       Son := GetNthParam(Sym, i) ;
       location := TokenToLocation(GetDeclared(Son)) ;
-      GccParam := BuildParameterDeclaration(location, NIL, Mod2Gcc(GetType(Son)), IsVarParam(Sym, i)) ;
+      GccParam := BuildProcTypeParameterDeclaration(location, Mod2Gcc(GetType(Son)), IsVarParam(Sym, i)) ;
       PreAddModGcc(Son, GccParam) ;
       DEC(i)
    END ;
    IF ReturnType=NulSym
    THEN
-      RETURN( BuildEndFunctionType(func, NIL) )
+      RETURN( BuildEndFunctionType(func, NIL, UsesVarArgs(Sym)) )
    ELSE
-      RETURN( BuildEndFunctionType(func, Mod2Gcc(ReturnType)) )
+      RETURN( BuildEndFunctionType(func, Mod2Gcc(ReturnType), UsesVarArgs(Sym)) )
    END
 END DeclareProcType ;
 

@@ -4395,9 +4395,15 @@ int isdefn;
 	    p_import(0);
 	outsection(majorspace);
 	if (usevextern) {
-	    output(format_s("#ifdef %s\n# define vextern\n#else\n",
-			    format_s(name_GSYMBOL, mod->sym->name)));
-	    output("# define vextern extern\n#endif\n");
+	    output(format_s("#ifdef %s\n", format_s(name_GSYMBOL, mod->sym->name)));
+	    output("#  define vextern\n");
+            output("#else\n");
+            output("#  if defined(__GNUG__)\n");
+            output("#     define vextern extern \"C\"\n");
+            output("#  else\n");
+	    output("#     define vextern extern\n");
+            output("#  endif\n");
+            output("#endif\n");
 	}
 	checkmodulewords();
 	p_block(TOK_EXPORT);

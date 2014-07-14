@@ -47,11 +47,13 @@ GM2_INSTALL_NAME = `echo gm2|sed '$(program_transform_name)'`
 # Actual names to use when installing a cross-compiler.
 GM2_CROSS_NAME = `echo gm2|sed '$(program_transform_cross_name)'`
 
-GM2 = xgm2
 GM2CC = gm2cc
 CPLUS = g++
 
 XGM2_1 = ./xgm2
+
+GM2_FOR_TARGET = ./x$(GM2_CROSS_NAME) -B./ -B$(build_tooldir)/bin/ -L$(objdir)/../ld
+
 XGM2BUILD1 = ./stage1/gm2  -g -gdwarf-2
 
 ifeq ($(shell uname -s),Darwin)
@@ -104,7 +106,7 @@ TEXISRC = gm2/images/gnu.eps \
 
 
 # Define the names for selecting GNU Modula-2 in LANGUAGES.
-gm2 m2 modula-2 modula2: $(GM2)$(exeext) xgcc$(exeext) cc1gm2$(exeext) \
+gm2 m2 modula-2 modula2: xgm2$(exeext) xgcc$(exeext) cc1gm2$(exeext) \
                  $(GCC_TOOLS_FOR_GM2) $(GM2_LINK_TOOLS) \
                  $(GM2_TARGET_INDEPENDENT_BIN_TOOLS)
 
@@ -136,8 +138,8 @@ gm2version.o: gm2/gm2version.c
 		-DLIBSUBDIR=\"$(libsubdir)\" \
 		$(INCLUDES) gm2/gm2version.c $(OUTPUT_OPTION))
 
-# Create the compiler driver for $(GM2).
-$(GM2)$(exeext): $(GM2_DIRS) gm2/gm2config.h \
+# Create the compiler driver for xgm2.
+xgm2$(exeext): $(GM2_DIRS) gm2/gm2config.h \
                  gcc.o gm2spec.o version.o gm2version.o \
 	   prefix.o intl.o $(LIBDEPS) $(EXTRA_GCC_OBJS) $(GCC_OBJS)
 	+$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ $(GCC_OBJS) \
@@ -145,10 +147,10 @@ $(GM2)$(exeext): $(GM2_DIRS) gm2/gm2config.h \
           $(EXTRA_GCC_OBJS) libcommon-target.a \
 	  $(EXTRA_GCC_LIBS) $(LIBS)
 
-# Create a version of the $(GM2) driver which calls the cross-compiler.
-$(GM2)-cross$(exeext): $(GM2)$(exeext)
-	-rm -f $(GM2)-cross$(exeext)
-	cp $(GM2)$(exeext) $(GM2)-cross$(exeext)
+# Create a version of the xgm2 driver which calls the cross-compiler.
+xgm2-cross$(exeext): xgm2$(exeext)
+	-rm -f xgm2-cross$(exeext)
+	cp xgm2$(exeext) xgm2-cross$(exeext)
 
 po-generated:
 
@@ -198,13 +200,13 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot \
 
 # Build hooks:
 
-gm2.all.build: $(GM2)$(exeext) stage1/gm2/cc1gm2$(exeext) \
+gm2.all.build: xgm2$(exeext) stage1/gm2/cc1gm2$(exeext) \
 	$(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext)
 
-gm2.all.cross: $(GM2)-cross$(exeext) stage1/gm2/cc1gm2$(exeext) \
+gm2.all.cross: xgm2-cross$(exeext) stage1/gm2/cc1gm2$(exeext) \
 	$(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext)
 
-gm2.start.encap: $(GM2)$(exeext)
+gm2.start.encap: xgm2$(exeext)
 gm2.rest.encap:
 gm2.info: $(objdir)/gm2/gm2.info
 gm2.generated-manpages: gm2.man
@@ -460,9 +462,9 @@ $(GM2_LIB_DIR_PCO)/SO_O2:
 	$(mkinstalldirs) $(GM2_LIB_DIR_PCO)/SO_O2
 
 gm2.install-common: installdirs
-	if [ -f $(GM2)$(exeext) ]; then \
+	if [ -f xgm2$(exeext) ]; then \
           rm -f $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
-          $(INSTALL_PROGRAM) $(GM2)$(exeext) $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
+          $(INSTALL_PROGRAM) xgm2$(exeext) $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
           chmod a+x $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
           for tool in stage1/gm2/cc1gm2$(exeext) \
                       $(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext) ; do \
@@ -506,8 +508,8 @@ gm2.install-info: installdirs
 	else true; fi
 
 gm2.install-man: $(GENERATED_MANPAGES) installdirs
-	-if [ -f $(GM2)$(exeext) ] ; then \
-	  if [ -f $(GM2)-cross$(exeext) ] ; then \
+	-if [ -f xgm2$(exeext) ] ; then \
+	  if [ -f xgm2-cross$(exeext) ] ; then \
 	    rm -f $(DESTDIR)$(man1dir)/$(GM2_CROSS_NAME)$(man1ext); \
 	    $(INSTALL_DATA) gm2/man/gm2.1 $(DESTDIR)$(man1dir)/$(GM2_CROSS_NAME)$(man1ext); \
 	    chmod a-x $(DESTDIR)$(man1dir)/$(GM2_CROSS_NAME)$(man1ext); \
@@ -621,7 +623,7 @@ P2C=gm2/boot-bin/p2c$(exeext) -c $(srcdir)/gm2/p2crc \
  -I$(srcdir)/gm2/gm2-gcc/%s.def \
  -M0 -q
 M2LINK=gm2/boot-bin/mklink$(exeext)
-GCC-VERSION=4.7.1
+GCC-VERSION=4.7.3
 GM2_O=
 GM2_O_S3=-O
 GM2_OS=-Os -O2
@@ -800,8 +802,7 @@ gm2cc$(exeext): force
 # end here
 
 stage3/gm2/cc1gm2$(exeext): stage2/gm2/cc1gm2$(exeext) gm2/gm2-compiler-paranoid/m2flex.o \
-                            $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID) \
-                            $(BACKENDLIBS) $(LIBSTDCXX)
+                            $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID)
 	$(LINKER) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) gm2/gm2-compiler-paranoid/m2flex.o \
                             attribs.o \
                               $(GM2_LIBS_PARANOID) \
@@ -816,7 +817,7 @@ stage2/gm2/cc1gm2$(exeext): stage1/gm2/cc1gm2$(exeext) gm2/gm2-compiler/m2flex.o
                               $(BACKEND) $(LIBS) \
                               $(BACKENDLIBS) $(LIBSTDCXX) -lm
 
-stage1/gm2/cc1gm2$(exeext): $(GM2_DIRS) $(GM2)$(exeext) gm2/gm2-compiler-boot/m2flex.o \
+stage1/gm2/cc1gm2$(exeext): $(GM2_DIRS) xgm2$(exeext) gm2/gm2-compiler-boot/m2flex.o \
                             $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_BOOT)
 	$(LINKER) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) gm2/gm2-compiler-boot/m2flex.o \
                             attribs.o \
@@ -833,6 +834,9 @@ gm2/gccgm2.o : $(srcdir)/gm2/gccgm2.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/f
 gm2-gcc/m2builtins.o : $(srcdir)/gm2/gm2-gcc/m2builtins.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-m2builtins.h
 
 gm2-gcc/m2except.o : $(srcdir)/gm2/gm2-gcc/m2except.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-m2except.h
+
+gm2/gm2-gcc/%.o: $(srcdir)/gm2/gm2-gcc/%.c
+	$(COMPILER) -c -g $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
 
 gm2/gm2-lang.o: $(srcdir)/gm2/gm2-lang.c $(CONFIG_H) gt-gm2-gm2-lang.h
 	$(COMPILER) -c -g -I$(GM2GCC) $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
@@ -1632,28 +1636,28 @@ $(objdir)/gm2/gm2-libs-min/SYSTEM.def:
              $(srcdir)/gm2/gm2-libs-min/SYSTEM.def \
              $(srcdir)/gm2/gm2-libs-min/SYSTEM.mod \
              -I$(srcdir)/gm2/gm2-libs-min:$(srcdir)/gm2/gm2-libs \
-             "./xgm2 -B./stage1/gm2" $@
+             "$(GM2_FOR_TARGET)" $@
 
 $(objdir)/gm2/gm2-libs/SYSTEM.def: 
 	bash $(srcdir)/gm2/tools-src/makeSystem -fpim \
              $(srcdir)/gm2/gm2-libs/SYSTEM.def \
              $(srcdir)/gm2/gm2-libs/SYSTEM.mod \
              -I$(srcdir)/gm2/gm2-libs \
-             "./xgm2 -B./stage1/gm2" $@
+             "$(GM2_FOR_TARGET)" $@
 
 $(objdir)/gm2/gm2-libs-iso/SYSTEM.def: 
 	bash $(srcdir)/gm2/tools-src/makeSystem -fiso \
              $(srcdir)/gm2/gm2-libs-iso/SYSTEM.def \
              $(srcdir)/gm2/gm2-libs-iso/SYSTEM.mod \
              -I$(srcdir)/gm2/gm2-libs-iso:$(srcdir)/gm2/gm2-libs \
-             "./xgm2 -B./stage1/gm2" $@
+             "$(GM2_FOR_TARGET)" $@
 
 $(objdir)/gm2/gm2-libs-coroutines/SYSTEM.def: 
 	bash $(srcdir)/gm2/tools-src/makeSystem -fpim \
              $(srcdir)/gm2/gm2-libs-coroutines/SYSTEM.def \
              $(srcdir)/gm2/gm2-libs-coroutines/SYSTEM.mod \
              -I$(srcdir)/gm2/gm2-libs-coroutines:$(srcdir)/gm2/gm2-libs-iso:$(srcdir)/gm2/gm2-libs \
-             "./xgm2 -B./stage1/gm2" $@
+             "$(GM2_FOR_TARGET)" $@
 
 ifeq ($(MINLIB),yes)
 build-system: $(objdir)/gm2/gm2-libs-min/SYSTEM.def
@@ -1717,7 +1721,7 @@ gm2/gm2-libs/libgm2.a: build-libs
                     $(GM2-LIBS-C:%.c=gm2/gm2-libs/%.o)
 	$(RANLIB) $@
 
-gm2/gm2-compiler/gm2.a: build-compiler $(GM2)$(exeext)
+gm2/gm2-compiler/gm2.a: build-compiler xgm2$(exeext)
 	$(AR_FOR_TARGET) cr $@ $(GM2-COMP-MODS:%.mod=gm2/gm2-compiler/%.o) \
                     gm2/gm2-compiler/M2Version.o \
                     $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler/%.o)
@@ -2010,7 +2014,7 @@ gm2/gm2-libs-paranoid/%.o: gm2/gm2-libs/%.c
 	$(XGCC) -c -g $(GM2_O_S3) $(GM2_O) -I./ -Igm2/gm2-libs -Wall $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/%.o: $(srcdir)/gm2/gm2-libs/%.mod
-	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libs-iso -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler-paranoid/%.o: $(srcdir)/gm2/gm2-compiler/%.mod
 	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
@@ -2018,20 +2022,20 @@ gm2/gm2-compiler-paranoid/%.o: $(srcdir)/gm2/gm2-compiler/%.mod
 gm2/gm2-compiler-paranoid/%.o: gm2/gm2-auto/%.mod
 	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -g -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
-gm2/gm2-libs/paranoid/target.o: $(srcdir)/gm2/gm2-libs-ch/target.c
-	$(XGCC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+gm2/gm2-libs-paranoid/target.o: $(srcdir)/gm2/gm2-libs-ch/target.c gm2/gm2-libs/gm2-libs-target.h
+	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c \
                                gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h
-	$(XGCC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/UnixArgs.o: $(srcdir)/gm2/gm2-libs-ch/UnixArgs.c \
                                   gm2/gm2-libs-boot/$(SRC_PREFIX)UnixArgs.h
-	$(XGCC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/Selective.o: $(srcdir)/gm2/gm2-libs-ch/Selective.c \
                                    gm2/gm2-libs-boot/$(SRC_PREFIX)Selective.h
-	$(XGCC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/sckt.o: $(srcdir)/gm2/gm2-libs-ch/sckt.c \
                                    gm2/gm2-libs-boot/$(SRC_PREFIX)sckt.h
@@ -2039,11 +2043,11 @@ gm2/gm2-libs-paranoid/sckt.o: $(srcdir)/gm2/gm2-libs-ch/sckt.c \
 
 gm2/gm2-libs-paranoid/errno.o: $(srcdir)/gm2/gm2-libs-ch/errno.c \
                                    gm2/gm2-libs-boot/$(SRC_PREFIX)errno.h
-	$(XGCC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/choosetemp.o: $(srcdir)/gm2/gm2-libs-ch/choosetemp.c \
                                     gm2/gm2-libiberty/$(SRC_PREFIX)choosetemp.h
-	$(XGCC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
+	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
 
 gm2/gm2-compiler-paranoid/m2flex.o: gm2/gm2-compiler/m2flex.c
 	$(XGCC) -c $(GM2_O_S3) $(GM2GCC) $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
@@ -2051,21 +2055,21 @@ gm2/gm2-compiler-paranoid/m2flex.o: gm2/gm2-compiler/m2flex.c
 gm2/gm2-libs-paranoid/dtoa.o: $(srcdir)/gm2/gm2-libs-ch/dtoa.c \
                               gm2/gm2-libs-boot/$(SRC_PREFIX)dtoa.h \
                               gm2/gm2-libs/gm2-libs-host.h
-	$(XGCC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs $(INCLUDES) $< -o $@
+	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/ldtoa.o: $(srcdir)/gm2/gm2-libs-ch/ldtoa.c \
                                gm2/gm2-libs-boot/$(SRC_PREFIX)ldtoa.h \
                                gm2/gm2-libs/gm2-libs-host.h
-	$(XGCC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs $(INCLUDES) $< -o $@
+	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/termios.o: $(srcdir)/gm2/gm2-libs-ch/termios.c \
                                gm2/gm2-libs-boot/$(SRC_PREFIX)termios.h \
                                gm2/gm2-libs/gm2-libs-host.h
-	$(XGCC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs $(INCLUDES) $< -o $@
+	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/SysExceptions.o: $(srcdir)/gm2/gm2-libs-ch/SysExceptions.c \
                                   gm2/gm2-libs-boot/$(SRC_PREFIX)SysExceptions.h
-	$(XGCC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 
 #
@@ -2379,11 +2383,11 @@ gm2.verifyparanoid: stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext) stage3
 	@echo "verifying the three generations of GNU Modula-2 compilers - it may take some time.."
 	$(QUIAT)for i in $(GM2-VERIFY-MODS) ; do \
            echo -n "$$i " ; \
-           ./xgm2 -S $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/1.s ; \
+           ./xgm2 -S $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-gcc:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/1.s ; \
            echo -n "[1]" ; \
-           ./xgm2 -S $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/2.s ; \
+           ./xgm2 -S $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-gcc:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/2.s ; \
            echo -n "[2]" ; \
-           ./xgm2 -S $(GM2_FLAGS) -c -B./stage3/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/3.s ; \
+           ./xgm2 -S $(GM2_FLAGS) -c -B./stage3/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-gcc:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/3.s ; \
            echo -n "[3]" ; \
            if ! diff gm2/gm2-compiler-verify/1.s gm2/gm2-compiler-verify/2.s > gm2/gm2-compiler-verify/1_2.diff 2>&1 ; then \
                echo -n " [stage 1 and stage 2 differ]" ; \
@@ -2429,7 +2433,7 @@ gm2.verifyparanoid: stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext) stage3
 #
 # gm2.verifystage12 - diffs the output of the stage1 and stage2 compilers with the compiler source code
 #
-gm2.verifystage12: force # stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext)
+gm2.verifystage12: force stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext)
 	@echo "verifying stage1 and stage2 generations of GNU Modula-2 compilers - it may take some time.."
 	$(QUIAT)for i in $(GM2-VERIFY-MODS) ; do \
            echo -n "$$i " ; \

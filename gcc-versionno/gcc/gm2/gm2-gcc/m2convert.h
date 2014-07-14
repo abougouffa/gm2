@@ -26,9 +26,17 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #if !defined(m2convert_h)
 #  define m2convert_h
 #  if defined(m2convert_c)
-#     define EXTERN
-#  else
-#     define EXTERN extern
+#      if defined(__GNUG__)
+#         define EXTERN extern "C"
+#      else
+#         define EXTERN 
+#      endif
+#   else
+#      if defined(__GNUG__)
+#         define EXTERN extern "C"
+#      else
+#         define EXTERN extern
+#      endif
 #  endif
 
 EXTERN tree m2convert_BuildConvert (tree type, tree value, int checkOverflow);

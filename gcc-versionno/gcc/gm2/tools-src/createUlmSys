@@ -88,11 +88,15 @@ function createSyscall () {
 
 int SYSTEM_UNIXCALL (int code, int *r0, int *r1, ...)
 {
+#if defined(HAVE_STDARG_H)
     va_list argsPtr;
     int ret;
+#endif
 
     if (! initialized)
 	_M2_SYSTEM_init ();
+
+#if defined(HAVE_STDARG_H)
     va_start(argsPtr, r1);
     switch (code) {
 
@@ -123,12 +127,20 @@ EOFEOF
    cat <<EOFEOF
    }
    va_end(argsPtr);
+#endif
+
+#if defined(HAVE_ERRNO_H)
    if (errno == 0)
       *r0 = ret;
    else
       *r0 = errno;
    *r1 = *r0;
    return errno == 0;
+#else
+   *r0 = 0;
+   *r1 = 0;
+   return 1;
+#endif
 }
 EOFEOF
 }
@@ -171,9 +183,9 @@ EOFEOF
       fi
    done
    echo ""
-   echo "#include <stdio.h>"
-   echo "#include <stdarg.h>"
-   echo "#include \"../../gm2-libs/gm2-libs-host.h\""
+   echo "#include \"../config.h\""
+   safeIncludeFile HAVE_STDIO_H stdio.h
+   safeIncludeFile HAVE_STDARG_H stdarg.h
    safeIncludeFile HAVE_UNISTD_H unistd.h
    safeIncludeFile HAVE_DIRECT_H direct.h
    safeIncludeFile HAVE_DIRENT_H dirent.h
@@ -418,7 +430,9 @@ function createNoSyscall () {
       echo ""
 cat <<EOF
 {
+#if defined(STDIO_H)
     fprintf(stderr, "system call $func does not exist\\n");
+#endif
 EOF
       echo -n "    "
       emitReturnValue ${CALL_LIST[$proto]}

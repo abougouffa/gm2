@@ -27,9 +27,17 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 
 #   define m2builtins_h
 #   if defined(m2builtins_c)
-#       define EXTERN 
+#      if defined(__GNUG__)
+#         define EXTERN extern "C"
+#      else
+#         define EXTERN 
+#      endif
 #   else
-#       define EXTERN extern
+#      if defined(__GNUG__)
+#         define EXTERN extern "C"
+#      else
+#         define EXTERN extern
+#      endif
 #   endif
 
 

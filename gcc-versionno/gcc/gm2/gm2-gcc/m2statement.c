@@ -176,16 +176,21 @@ m2statement_BuildEndFunctionCode (tree fndecl, int nested)
 
   m2block_finishFunctionCode (fndecl);
 
+#if 0
   if (nested)
     (void) cgraph_get_create_node (fndecl);
   else
     cgraph_finalize_function (fndecl, FALSE);
+#endif
+  cgraph_finalize_function (fndecl, nested);
 
   m2block_popFunctionScope ();
 
+#if 0
   if (! nested)
     gm2_gimplify_function_node (fndecl);
   // printf("ending scope %s\n", IDENTIFIER_POINTER(DECL_NAME (fndecl)));
+#endif
 }
 
 
@@ -365,6 +370,11 @@ m2statement_BuildProcedureCallTree (location_t location, tree procedure, tree re
   m2assert_AssertLocation (location);
   ASSERT_CONDITION (last_function == NULL_TREE);  /* previous function value has not been collected */
   TREE_USED (procedure) = TRUE;
+
+#if 0
+  if (DECL_EXTERNAL (procedure))
+    m2block_includeDecl (procedure);
+#endif
 
   for (i = 0; i < n; i++) {
     argarray[i] = TREE_VALUE (t);

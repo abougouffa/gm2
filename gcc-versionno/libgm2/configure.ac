@@ -15,28 +15,88 @@
 # along with this program; see the file COPYING3.  If not see
 # <http://www.gnu.org/licenses/>.
 
-sinclude(../config/acx.m4)
-sinclude(../config/multi.m4)
-sinclude(../config/override.m4)
-sinclude(../config/picflag.m4)
-sinclude(../config/unwind_ipinfo.m4)
+# Process this file with autoreconf to produce a configure script.
 
-AC_INIT
 AC_PREREQ([2.64])
+AC_INIT(package-unused, version-unused,, libgm2)
+AC_CONFIG_SRCDIR(Makefile.am)
+AC_CONFIG_HEADER(config.h)
 
-AC_CONFIG_SRCDIR([Makefile.in])
+# Find the rest of the source tree framework.
+AM_ENABLE_MULTILIB(, ..)
 
-# Determine the host, build, and target systems
-AC_CANONICAL_BUILD
-AC_CANONICAL_HOST
-AC_CANONICAL_TARGET
+# Gets build, host, target, *_vendor, *_cpu, *_os, etc.
+#
+# You will slowly go insane if you do not grok the following fact:  when
+# building this library, the top-level /target/ becomes the library's /host/.
+#
+# configure then causes --target to default to --host, exactly like any
+# other package using autoconf.  Therefore, 'target' and 'host' will
+# always be the same.  This makes sense both for native and cross compilers
+# just think about it for a little while.  :-)
+#
+# Also, if this library is being configured as part of a cross compiler, the
+# top-level configure script will pass the "real" host as $with_cross_host.
+#
+# Do not delete or change the following two lines.  For why, see
+# http://gcc.gnu.org/ml/libstdc++/2003-07/msg00451.html
+AC_CANONICAL_SYSTEM
 target_alias=${target_alias-$host_alias}
 
-# Determine the noncanonical target name, for directory use.
-ACX_NONCANONICAL_TARGET
+GCC_NO_EXECUTABLES
 
-# Determine the target- and build-specific subdirectories
+AM_INIT_AUTOMAKE([1.9.3 no-define foreign no-dist -Wall -Wno-portability])
+AH_TEMPLATE(PACKAGE, [Name of package])
+AH_TEMPLATE(VERSION, [Version number of package])
+
+AC_ARG_WITH(cross-host,
+[  --with-cross-host=HOST           Configuring with a cross compiler])
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_HEADER_TIME
+AC_HEADER_SYS_WAIT
+AC_CHECK_HEADER([math.h],
+	       [AC_DEFINE([HAVE_MATH_H], [1], [have math.h])])
+
+AC_CHECK_HEADERS(limits.h stddef.h string.h strings.h stdlib.h \
+                 time.h \
+		 fcntl.h unistd.h sys/file.h sys/time.h sys/mman.h \
+		 sys/resource.h sys/param.h sys/times.h sys/stat.h \
+                 sys/wait.h sys/ioctl.h errno.h sys/errno.h \
+		 pwd.h direct.h dirent.h signal.h malloc.h langinfo.h \
+                 pthread.h stdarg.h stdio.h sys/types.h termios.h \
+                 netinet/in.h netdb.h sys/uio.h sys/stat.h wchar.h)
+
+AC_SUBST(libtool_VERSION)
+
+AC_CANONICAL_HOST
+ACX_NONCANONICAL_HOST
+ACX_NONCANONICAL_TARGET
 GCC_TOPLEV_SUBDIRS
+
+AC_MSG_CHECKING([for --enable-version-specific-runtime-libs])
+AC_ARG_ENABLE(version-specific-runtime-libs,
+[  --enable-version-specific-runtime-libs    Specify that runtime libraries should be installed in a compiler-specific directory ],
+[case "$enableval" in
+ yes) version_specific_libs=yes ;;
+ no)  version_specific_libs=no ;;
+ *)   AC_MSG_ERROR([Unknown argument to enable/disable version-specific libs]);;
+ esac],
+[version_specific_libs=no])
+AC_MSG_RESULT($version_specific_libs)
+
+AC_ARG_WITH(slibdir,
+[  --with-slibdir=DIR      shared libraries in DIR [LIBDIR]],
+slibdir="$with_slibdir",
+if test "${version_specific_libs}" = yes; then
+  slibdir='$(libsubdir)'
+elif test -n "$with_cross_host" && test x"$with_cross_host" != x"no"; then
+  slibdir='$(exec_prefix)/$(host_noncanonical)/lib'
+else
+  slibdir='$(libdir)'
+fi)
+AC_SUBST(slibdir)
 
 # Command-line options.
 # Very limited version of AC_MAINTAINER_MODE.
@@ -53,25 +113,27 @@ AC_ARG_ENABLE([maintainer-mode],
   [MAINT='#'])
 AC_SUBST([MAINT])dnl
 
-AM_ENABLE_MULTILIB(, ..)
+toolexecdir=no
+toolexeclibdir=no
+
 # Calculate toolexeclibdir
 # Also toolexecdir, though it's only used in toolexeclibdir
-case ${enable_version_specific_runtime_libs} in
+case ${version_specific_libs} in
   yes)
     # Need the gcc compiler version to know where to install libraries
     # and header files if --enable-version-specific-runtime-libs option
     # is selected.
-    toolexecdir='$(libdir)/gcc/$(target_alias)'
+    toolexecdir='$(libdir)/gcc/$(target_noncanonical)'
     toolexeclibdir='$(toolexecdir)/$(gcc_version)$(MULTISUBDIR)'
     ;;
   no)
     if test -n "$with_cross_host" &&
        test x"$with_cross_host" != x"no"; then
       # Install a library built with a cross compiler in tooldir, not libdir.
-      toolexecdir='$(exec_prefix)/$(target_alias)'
+      toolexecdir='$(exec_prefix)/$(target_noncanonical)'
       toolexeclibdir='$(toolexecdir)/lib'
     else
-      toolexecdir='$(libdir)/gcc-lib/$(target_alias)'
+      toolexecdir='$(libdir)/gcc-lib/$(target_noncanonical)'
       toolexeclibdir='$(libdir)'
     fi
     multi_os_directory=`$CC -print-multi-os-directory`
@@ -81,9 +143,14 @@ case ${enable_version_specific_runtime_libs} in
     esac
     ;;
 esac
+
 AC_SUBST(toolexecdir)
 AC_SUBST(toolexeclibdir)
-#TODO: toolexeclibdir is currently disregarded
+
+AH_TEMPLATE(PACKAGE, [Name of package])
+AH_TEMPLATE(VERSION, [Version number of package])
+
+AM_MAINTAINER_MODE
 
 # Check the compiler.
 # The same as in boehm-gc and libstdc++. Have to borrow it from there.
@@ -94,59 +161,91 @@ AC_SUBST(toolexeclibdir)
 m4_rename([_AC_ARG_VAR_PRECIOUS],[real_PRECIOUS])
 m4_define([_AC_ARG_VAR_PRECIOUS],[])
 AC_PROG_CC
+AC_PROG_CXX
+AM_PROG_AS
 m4_rename_force([real_PRECIOUS],[_AC_ARG_VAR_PRECIOUS])
 
 AC_SUBST(CFLAGS)
 
-AC_ARG_ENABLE([shared],
-[AC_HELP_STRING([--disable-shared],
-                [don't provide a shared libgm2])],
-[
-case $enable_shared in
-  yes | no) ;;
-  *)
-    enable_shared=no
-    IFS="${IFS=         }"; ac_save_ifs="$IFS"; IFS="${IFS}:,"
-    for pkg in $enableval; do
-      case $pkg in
-        gm2 | libgm2)
-          enable_shared=yes ;;
-      esac
-    done
-    IFS="$ac_save_ifs"
-    ;;
+# In order to override CFLAGS_FOR_TARGET, all of our special flags go
+# in XCFLAGS.  But we need them in CFLAGS during configury.  So put them
+# in both places for now and restore CFLAGS at the end of config.
+save_CFLAGS="$CFLAGS"
+
+# Find other programs we need.
+AC_CHECK_TOOL(AR, ar)
+AC_CHECK_TOOL(NM, nm)
+AC_CHECK_TOOL(RANLIB, ranlib, ranlib-not-found-in-path-error)
+AC_PATH_PROG(PERL, perl, perl-not-found-in-path-error)
+AC_PROG_MAKE_SET
+AC_PROG_INSTALL
+
+AM_PROG_LIBTOOL
+AC_SUBST(enable_shared)
+AC_SUBST(enable_static)
+
+AM_MAINTAINER_MODE
+
+# For libtool versioning info, format is CURRENT:REVISION:AGE
+libtool_VERSION=1:0:0
+AC_SUBST(libtool_VERSION)
+
+AC_CHECK_TYPES([struct timezone, struct stat])
+
+
+CC_FOR_BUILD=${CC_FOR_BUILD:-gcc}
+AC_SUBST(CC_FOR_BUILD)
+
+BUILD_PIMLIB=true
+BUILD_ISOLIB=true
+BUILD_CORLIB=true
+BUILD_LOGLIB=true
+BUILD_ULMLIB=true
+
+case "$target" in
+
+  avr25*-*-* | avr31*-*-* | avr35*-*-* | avr4*-*-* | avr5*-*-* | avr51*-*-* | avr6*-*-*)
+  BUILD_PIMLIB=false
+  BUILD_ISOLIB=false
+  BUILD_CORLIB=false
+  BUILD_LOGLIB=false
+  BUILD_ULMLIB=false
+  ;;
+
+  avrxmega2*-*-* | avrxmega4*-*-* | avrxmega5*-*-* | avrxmega6*-*-* | avrxmega7*-*-*)
+  BUILD_PIMLIB=false
+  BUILD_ISOLIB=false
+  BUILD_CORLIB=false
+  BUILD_LOGLIB=false
+  BUILD_ULMLIB=false
+  ;;
+
+  avr3-*-*)
+  BUILD_PIMLIB=true
+  BUILD_ISOLIB=true
+  BUILD_CORLIB=true
+  BUILD_LOGLIB=true
+  BUILD_ULMLIB=true
+  ;;
+
 esac
-], [enable_shared=yes])
-AC_SUBST([enable_shared])
 
-GCC_PICFLAG
-AC_SUBST([PICFLAG])
+BUILD_PIMLIB=true
+BUILD_ISOLIB=true
+BUILD_CORLIB=true
+BUILD_LOGLIB=true
+BUILD_ULMLIB=true
 
-# These must be passed down, or are needed by gcc/libgcc.mvars
-AC_PROG_AWK
-AC_PROG_LN_S
+AM_CONDITIONAL([BUILD_PIMLIB], [test x$BUILD_PIMLIB = xtrue])
+AM_CONDITIONAL([BUILD_ISOLIB], [test x$BUILD_ISOLIB = xtrue])
+AM_CONDITIONAL([BUILD_CORLIB], [test x$BUILD_CORLIB = xtrue])
+AM_CONDITIONAL([BUILD_LOGLIB], [test x$BUILD_LOGLIB = xtrue])
+AM_CONDITIONAL([BUILD_ULMLIB], [test x$BUILD_ULMLIB = xtrue])
 
-# Determine what to build for 'gm2lib'
-if test $build = $target \
-   && test ${enable_shared} = yes ; then
-  # Note that build=target is almost certainly the wrong test; FIXME
-  default_gm2lib_target="gm2lib-shared"
-else
-  default_gm2lib_target="gm2lib-plain"
-fi
-default_gm2lib_target="gm2lib-shared"
 
-AC_SUBST([default_gm2lib_target])
+AC_CONFIG_SRCDIR([Makefile.am])
+AC_CONFIG_FILES([Makefile libmin/Makefile libpim/Makefile libiso/Makefile libcor/Makefile liblog/Makefile libulm/Makefile])
 
-# Check for _Unwind_GetIPInfo
-GCC_CHECK_UNWIND_GETIPINFO
-have_getipinfo=
-if test x$have_unwind_getipinfo = xyes; then
-  have_getipinfo=-DHAVE_GETIPINFO
-fi
-AC_SUBST(have_getipinfo)
-
-# Output: create a Makefile.
-AC_CONFIG_FILES([Makefile])
+AC_MSG_NOTICE([libgm2 has been configured.])
 
 AC_OUTPUT

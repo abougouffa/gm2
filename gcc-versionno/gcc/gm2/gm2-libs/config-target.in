@@ -21,6 +21,8 @@
 AC_INIT(ASCII.def, 1.0.5, gm2@nongnu.org)
 AC_CONFIG_HEADER(gm2-libs-target.h:gm2-libs-target.h.in)
 
+GCC_NO_EXECUTABLES
+
 # Checks for programs.
 
 # Checks for libraries.

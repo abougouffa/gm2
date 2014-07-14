@@ -1,0 +1,91 @@
+
+SUFFIXES = .c .mod .def .o .obj .lo .a
+
+ACLOCAL_AMFLAGS = -I . -I .. -I ../config
+
+VPATH = . @srcdir@ @srcdir@/../../gcc/gm2/gm2-libs-pim
+
+# Multilib support.
+MAKEOVERRIDES=
+
+
+# Work around what appears to be a GNU make bug handling MAKEFLAGS
+# values defined in terms of make variables, as is the case for CC and
+# friends when we are called from the top level Makefile.
+AM_MAKEFLAGS = \
+        "GCC_DIR=$(GCC_DIR)" \
+        "GM2_SRC=$(GM2_SRC)" \
+	"AR_FLAGS=$(AR_FLAGS)" \
+	"CC_FOR_BUILD=$(CC_FOR_BUILD)" \
+	"CC_FOR_TARGET=$(CC_FOR_TARGET)" \
+	"GM2_FOR_TARGET=$(GM2_FOR_TARGET)" \
+	"CFLAGS=$(CFLAGS)" \
+	"CXXFLAGS=$(CXXFLAGS)" \
+	"CFLAGS_FOR_BUILD=$(CFLAGS_FOR_BUILD)" \
+	"CFLAGS_FOR_TARGET=$(CFLAGS_FOR_TARGET)" \
+	"INSTALL=$(INSTALL)" \
+	"INSTALL_DATA=$(INSTALL_DATA)" \
+	"INSTALL_PROGRAM=$(INSTALL_PROGRAM)" \
+	"INSTALL_SCRIPT=$(INSTALL_SCRIPT)" \
+	"LDFLAGS=$(LDFLAGS)" \
+	"LIBCFLAGS=$(LIBCFLAGS)" \
+	"LIBCFLAGS_FOR_TARGET=$(LIBCFLAGS_FOR_TARGET)" \
+	"MAKE=$(MAKE)" \
+	"MAKEINFO=$(MAKEINFO) $(MAKEINFOFLAGS)" \
+	"SHELL=$(SHELL)" \
+	"RUNTESTFLAGS=$(RUNTESTFLAGS)" \
+	"exec_prefix=$(exec_prefix)" \
+	"infodir=$(infodir)" \
+	"libdir=$(libdir)" \
+	"includedir=$(includedir)" \
+	"prefix=$(prefix)" \
+	"tooldir=$(tooldir)" \
+	"gxx_include_dir=$(gxx_include_dir)" \
+	"AR=$(AR)" \
+	"AS=$(AS)" \
+	"LD=$(LD)" \
+	"RANLIB=$(RANLIB)" \
+	"NM=$(NM)" \
+	"NM_FOR_BUILD=$(NM_FOR_BUILD)" \
+	"NM_FOR_TARGET=$(NM_FOR_TARGET)" \
+	"DESTDIR=$(DESTDIR)" \
+	"WERROR=$(WERROR)"
+
+# Subdir rules rely on $(FLAGS_TO_PASS)
+FLAGS_TO_PASS = $(AM_MAKEFLAGS)
+
+
+# if BUILD_LOGLIB
+liblog_LIBRARIES = liblog.a
+liblog_a_SOURCES = CardinalIO.mod   Display.mod  InOut.mod \
+                   Keyboard.mod  RealInOut.mod   Termbase.mod  Terminal.mod \
+                   Delay.mod     ErrorCode.mod   FileSystem.mod \
+                   DebugTrace.mod                Conversions.mod \
+                   DebugPMD.mod  LongIO.mod      RealConversions.mod \
+                   FloatingUtilities.mod         Strings.mod   \
+                   Random.mod    TimeDate.mod    BitWordOps.mod \
+                   BitByteOps.mod                BitBlockOps.mod \
+                   BlockOps.mod  Break.c
+
+
+liblogdir = liblog
+liblog_a_DEPENDENCIES = ../libpim/SYSTEM.def
+liblog_a_CFLAGS = -I. -DBUILD_GM2_LIBS -I@srcdir@/../
+liblog_a_M2FLAGS = -I../libpim -I$(GM2_SRC)/gm2-libs-pim -I$(GM2_SRC)/gm2-libs -I$(GM2_SRC)/gm2-libs-iso
+
+
+../libpim/SYSTEM.def: ../libpim/Makefile
+	cd ../libpim ; $(MAKE) $(AM_MAKEFLAGS) SYSTEM.def
+
+.mod.o:
+	$(GM2_FOR_TARGET) -c $(CFLAGS_FOR_TARGET) $(LIBCFLAGS) $(liblog_a_M2FLAGS) $<
+
+# endif
+
+# Multilib support.  Automake should provide these on its own.
+all-recursive: all-multi
+install-recursive: install-multi
+mostlyclean-recursive: mostlyclean-multi
+clean-recursive: clean-multi
+distclean-recursive: distclean-multi
+maintainer-clean-recursive: maintainer-clean-multi

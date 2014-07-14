@@ -140,10 +140,25 @@ PROCEDURE GetErrorNode () : Tree ;
 
 
 (*
+   includeDecl - pushes a declaration onto the current binding level providing
+                 it is not already present.
+*)
+
+PROCEDURE includeDecl (decl: Tree) ;
+
+
+(*
    GetGlobals - returns a list of global variables, functions, constants.
 *)
 
 PROCEDURE GetGlobals () : Tree ;
+
+
+(*
+   GetGlobalContext - returns the global context tree.
+*)
+
+PROCEDURE GetGlobalContext () : Tree ;
 
 
 END m2block.

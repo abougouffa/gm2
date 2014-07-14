@@ -26,9 +26,17 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #if !defined(m2type_h)
 #   define m2type_h
 #   if defined(m2type_c)
-#      define EXTERN
+#      if defined(__GNUG__)
+#         define EXTERN extern "C"
+#      else
+#         define EXTERN 
+#      endif
 #   else
-#      define EXTERN extern
+#      if defined(__GNUG__)
+#         define EXTERN extern "C"
+#      else
+#         define EXTERN extern
+#      endif
 #   endif
 
 EXTERN tree m2type_BuildStartArrayType (tree index_type, tree elt_type, int type);
@@ -137,9 +145,9 @@ EXTERN tree m2type_GetM2ZType (void);
 
 EXTERN tree m2type_DeclareKnownType (location_t location, char *name, tree type);
 EXTERN tree m2type_GetTreeType (tree type);
-EXTERN tree m2type_BuildEndFunctionType (tree func, tree type);
+EXTERN tree m2type_BuildEndFunctionType (tree func, tree type, int uses_varargs);
 EXTERN tree m2type_BuildStartFunctionType (location_t location ATTRIBUTE_UNUSED, char *name ATTRIBUTE_UNUSED);
-EXTERN void m2type_InitFunctionTypeParameters (int uses_varargs);
+EXTERN void m2type_InitFunctionTypeParameters (void);
 EXTERN tree m2type_BuildVariableArrayAndDeclare (location_t location, tree elementtype, tree high, char *name, tree scope);
 EXTERN void m2type_InitSystemTypes (location_t location, int loc);
 EXTERN void m2type_InitBaseTypes (location_t location);
@@ -170,6 +178,7 @@ EXTERN tree m2type_gm2_unsigned_type (tree type);
 EXTERN tree m2type_gm2_signed_type (tree type);
 EXTERN tree m2type_gm2_signed_or_unsigned_type (int unsignedp, tree type);
 EXTERN tree m2type_gm2_type_for_size (unsigned int bits, int unsignedp);
+EXTERN tree m2type_BuildProcTypeParameterDeclaration (location_t location, tree type, int isreference);
 EXTERN int m2type_IsAddress (tree type);
 EXTERN tree m2type_GetCardinalAddressType (void);
 

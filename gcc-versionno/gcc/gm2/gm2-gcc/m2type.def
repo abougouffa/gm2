@@ -220,7 +220,15 @@ PROCEDURE BuildVariableArrayAndDeclare (location: location_t; elementtype: Tree;
     InitFunctionTypeParameters - resets the current function type parameter list.
 *)
 
-PROCEDURE InitFunctionTypeParameters (uses_varargs: BOOLEAN) ;
+PROCEDURE InitFunctionTypeParameters ;
+
+
+(*
+   BuildProcTypeParameterDeclaration - creates and returns one parameter from, name, and, type.
+                                       It appends this parameter to the internal param_type_list.
+*)
+
+PROCEDURE BuildProcTypeParameterDeclaration (location: location_t; type: Tree; isreference: BOOLEAN) : Tree ;
 
 
 (*
@@ -236,7 +244,7 @@ PROCEDURE BuildStartFunctionType (location: location_t; name: ADDRESS) : Tree ;
                            The arguments have been created by BuildParameterDeclaration.
 *)
 
-PROCEDURE BuildEndFunctionType (func: Tree; type: Tree) : Tree ;
+PROCEDURE BuildEndFunctionType (func: Tree; type: Tree; usesvarags: BOOLEAN) : Tree ;
 
 
 (*

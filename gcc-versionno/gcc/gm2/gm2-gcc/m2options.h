@@ -25,12 +25,20 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 
 #if !defined(m2options_h)
 
-#   define m2options_h
-#   if defined(m2options_c)
-#       define EXTERN 
-#   else
-#       define EXTERN extern
-#   endif
+#  define m2options_h
+#  if defined(m2options_c)
+#      if defined(__GNUG__)
+#         define EXTERN extern "C"
+#      else
+#         define EXTERN 
+#      endif
+#  else
+#      if defined(__GNUG__)
+#         define EXTERN extern "C"
+#      else
+#         define EXTERN extern
+#      endif
+#  endif
 
 #include "input.h"
 

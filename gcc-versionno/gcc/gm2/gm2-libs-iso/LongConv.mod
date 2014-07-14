@@ -218,6 +218,7 @@ BEGIN
       proc(str[i], chClass, proc) ;
       INC(i)
    END ;
+
    IF chClass=terminator
    THEN
       RETURN( strEmpty )

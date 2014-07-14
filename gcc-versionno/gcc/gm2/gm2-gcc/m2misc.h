@@ -28,9 +28,17 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 
 #   define m2misc_h
 #   if defined(m2misc_c)
-#       define EXTERN 
+#      if defined(__GNUG__)
+#         define EXTERN extern "C"
+#      else
+#         define EXTERN 
+#      endif
 #   else
-#       define EXTERN extern
+#      if defined(__GNUG__)
+#         define EXTERN extern "C"
+#      else
+#         define EXTERN extern
+#      endif
 #   endif
 
 EXTERN void m2misc_DebugTree (tree t);

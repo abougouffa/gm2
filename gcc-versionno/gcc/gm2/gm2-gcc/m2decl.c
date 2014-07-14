@@ -78,6 +78,9 @@ static GTY(()) tree param_type_list;
 static GTY(()) tree param_list = NULL_TREE;   /* ready for the next time we call/define a function */
 
 
+static void stop () {}
+
+
 /*
  *  DeclareKnownVariable - declares a variable in scope,
  *                         funcscope. Note that the global variable,
@@ -97,8 +100,8 @@ m2decl_DeclareKnownVariable (location_t location, char *name, tree type, int exp
   ASSERT (m2tree_is_type(type), type);
   ASSERT_BOOL (isglobal);
 
-#if 0
-  if (name && (strcmp (name, "_T25") == 0))
+#if 1
+  if (name && (strcmp (name, "_T52") == 0))
     stop ();
 #endif
 
@@ -109,25 +112,31 @@ m2decl_DeclareKnownVariable (location_t location, char *name, tree type, int exp
   DECL_SOURCE_LOCATION (decl) = location;
 
   DECL_EXTERNAL (decl) = imported;
+  TREE_STATIC (decl) = isglobal;
+  TREE_PUBLIC (decl) = exported || imported;
+
+#if 0  
   if (isglobal && (scope == NULL_TREE)) {
     TREE_PUBLIC (decl) = exported;
     TREE_STATIC (decl) = isglobal;           /* declaration and definition */
   } 
   else if (imported) {
-    TREE_STATIC (decl) = 0;
+    TREE_STATIC (decl) = isglobal;
     TREE_PUBLIC (decl) = 1;
   }
   else {
-    TREE_STATIC (decl) = 0;
+    TREE_STATIC (decl) = isglobal;
     TREE_PUBLIC (decl) = 0;
   }
+#endif
 
   /* The variable was not declared by GCC, but by the front end  */
   DECL_ARTIFICIAL (decl) = 0;
-  DECL_IGNORED_P (decl) = istemporary;
+  DECL_IGNORED_P (decl) = 0; // istemporary;
 
   DECL_CONTEXT (decl) = scope;
 
+#if 0
   /* now for the id */
 
   if (imported)
@@ -136,9 +145,10 @@ m2decl_DeclareKnownVariable (location_t location, char *name, tree type, int exp
     TREE_STATIC (id) = 1;           /* declaration and definition */
 
   TREE_PUBLIC (id) = TREE_PUBLIC (decl);
+#endif
 
 #if 0
-  if (name && ((strcmp (name, "_T25") == 0))) {
+  if (name && ((strcmp (name, "n") == 0))) {
     debug_tree (decl);
     stop ();
   }
@@ -152,8 +162,10 @@ m2decl_DeclareKnownVariable (location_t location, char *name, tree type, int exp
   if ((TREE_PUBLIC (decl) == 0) && DECL_EXTERNAL (decl))
     internal_error ("inconsistant because PUBLIC_DECL(decl) == 0 && DECL_EXTERNAL(decl) == 1");
 
+#if 0
   if (! isglobal)
-    m2block_addDeclExpr (build_stmt (location, DECL_EXPR, decl));
+#endif
+  m2block_addDeclExpr (build_stmt (location, DECL_EXPR, decl));
 
   return decl;
 }
@@ -194,8 +206,6 @@ m2decl_DeclareKnownConstant (location_t location, tree type, tree value)
 /*
  *  BuildParameterDeclaration - creates and returns one parameter from, name, and, type.
  *                              It appends this parameter to the internal param_type_list.
- *                              If name is nul then we assume we are creating a function
- *                              type declaration and we ignore names.
  */
 
 tree
@@ -211,21 +221,18 @@ m2decl_BuildParameterDeclaration (location_t location, char *name, tree type,
   if (isreference)
     type = build_reference_type (type);
 
-  if ((name != NULL) && (strcmp(name, "") != 0)) {
-    /* creating a function with parameters */
+  if (name == NULL)
+    parm_decl = build_decl (location, PARM_DECL, NULL, type);
+  else
     parm_decl = build_decl (location, PARM_DECL, get_identifier (name), type);
-    DECL_ARG_TYPE (parm_decl) = type;
-    param_list = chainon (parm_decl, param_list);
-    layout_type (type);
+  DECL_ARG_TYPE (parm_decl) = type;
+  param_list = chainon (parm_decl, param_list);
+  layout_type (type);
 #if 0
-    printf("making parameter %s known to gcc\n", name);
+  printf("making parameter %s known to gcc\n", name);
 #endif
-    param_type_list = tree_cons (NULL_TREE, type, param_type_list);
-    return parm_decl;
-  } else {
-    param_type_list = tree_cons (NULL_TREE, type, param_type_list);
-    return type;
-  }
+  param_type_list = tree_cons (NULL_TREE, type, param_type_list);
+  return parm_decl;
 }
 
 

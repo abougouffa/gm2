@@ -119,7 +119,6 @@ array_desc {
 static GTY(()) array_desc *list_of_arrays = NULL;
 /* Used in BuildStartFunctionType */
 static GTY(()) tree param_type_list;
-static GTY(()) tree param_list = NULL_TREE;   /* ready for the next time we call/define a function */
 
 static GTY(()) tree proc_type_node;
 static GTY(()) tree bitset_type_node;
@@ -1398,19 +1397,74 @@ finish_build_pointer_type (tree t, tree to_type,
 
 
 /*
+ *  BuildParameterDeclaration - creates and returns one parameter from, name, and, type.
+ *                              It appends this parameter to the internal param_type_list.
+ */
+
+tree
+m2type_BuildProcTypeParameterDeclaration (location_t location, tree type,
+					  int isreference)
+{
+  m2assert_AssertLocation (location);
+  ASSERT_BOOL (isreference);
+  type = m2tree_skip_type_decl(type);
+  layout_type (type);
+  if (isreference)
+    type = build_reference_type (type);
+
+  param_type_list = tree_cons (NULL_TREE, type, param_type_list);
+  return type;
+}
+
+
+/*
  *  BuildEndFunctionType - build a function type which would return a, value.
  *                         The arguments have been created by BuildParameterDeclaration.
  */
 
 tree
-m2type_BuildEndFunctionType (tree func, tree type)
+m2type_BuildEndFunctionType (tree func, tree return_type, int uses_varargs)
 {
-  if (type == NULL_TREE)
-    type = void_type_node;
+  tree last;
 
-  type = m2tree_skip_type_decl (type);
+  if (return_type == NULL_TREE)
+    return_type = void_type_node;
+  else
+    return_type = m2tree_skip_type_decl (return_type);
+
+  if (uses_varargs)
+    {    
+#if 0
+      last = param_type_list;
+      if (param_type_list != NULL_TREE)
+	param_type_list = nreverse (param_type_list);
+#else
+      if (param_type_list != NULL_TREE)
+	{
+	  param_type_list = nreverse (param_type_list);
+	  last = param_type_list;
+	  param_type_list = nreverse (param_type_list);
+	  gcc_assert (last != void_list_node);
+	}
+#endif
+    }
+  else if (param_type_list == NULL_TREE)
+    param_type_list = void_list_node;
+  else
+    {
+#if 0
+      last = param_type_list;
+      param_type_list = nreverse (param_type_list);
+#endif
+      param_type_list = nreverse (param_type_list);
+      last = param_type_list;
+      param_type_list = nreverse (param_type_list);
+      TREE_CHAIN (last) = void_list_node;
+    }
+  param_type_list = build_function_type (return_type, param_type_list);
+
   func = finish_build_pointer_type (func,
-                                    build_function_type (type, param_type_list),
+				    param_type_list,
                                     ptr_mode, false);
   TYPE_SIZE (func) = 0;
   layout_type (func);
@@ -1438,13 +1492,9 @@ m2type_BuildStartFunctionType (location_t location ATTRIBUTE_UNUSED, char *name 
  */
 
 void
-m2type_InitFunctionTypeParameters (int uses_varargs)
+m2type_InitFunctionTypeParameters (void)
 {
-  if (uses_varargs)
-    param_type_list = NULL_TREE;
-  else
-    param_type_list = tree_cons (NULL_TREE, void_type_node, NULL_TREE);
-  param_list = NULL_TREE;   /* ready for the next time we call/define a function */
+  param_type_list = NULL_TREE;
 }
 
 

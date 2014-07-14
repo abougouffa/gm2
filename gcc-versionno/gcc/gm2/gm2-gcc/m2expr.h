@@ -2,9 +2,17 @@
 #if !defined(m2expr_h)
 #   define m2expr_h
 #   if defined(m2expr_c)
-#       define EXTERN 
+#      if defined(__GNUG__)
+#         define EXTERN extern "C"
+#      else
+#         define EXTERN 
+#      endif
 #   else
-#       define EXTERN extern
+#      if defined(__GNUG__)
+#         define EXTERN extern "C"
+#      else
+#         define EXTERN extern
+#      endif
 #   endif
 
 EXTERN void m2expr_BuildBinaryForeachWordDo (location_t location,

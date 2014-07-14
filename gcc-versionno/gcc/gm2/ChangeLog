@@ -1,3 +1,69 @@
+2014-07-14      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  overhauled to ensure that target and host are
+	  distinct.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  IsExternal (New procedure function).
+	  FindContext replaces FindTreeScope.  IsGlobal (New procedure function).
+	  DeclareVariable uses IsGlobal, IsExternal and FindContext.
+	* gm2/gm2-gcc/init.c:  can now be compiled by a C or C++ compiler.
+	* gm2/gm2-gcc/m2block.c:  new fields to binding_level.  is_global and
+	  context.  The compiler now correctly uses a translation_unit tree
+	  node to contain the global variables.  Bug fixes to correct the
+	  context of local variables.  We also ensure that all locals
+	  are declared.  Added more self checking debugging code.
+	* gm2/gm2-gcc/m2block.def:  includeDecl (New procedure function).
+	  GetGlobalContext (New procedure function).
+	* gm2/gm2-gcc/m2block.h:  allow m2block.[ch] to be compiled by
+	  a C or C++ compiler, export GetGlobalContext, finishGlobals,
+	  and includeDecl.
+	* gm2/gm2-gcc/m2builtins.h:  allow m2block.[ch] to be compiled by
+	  a C or C++ compiler.
+	* gm2/gm2-gcc/m2convert.h:  allow m2block.[ch] to be compiled by
+	  a C or C++ compiler.
+	* gm2/gm2-gcc/m2decl.c:  simplified and corrected declaration of a
+	  variable.  BuildParameterDeclaration simplified as it only handles
+	  procedure/function parameters and not function/procedure types.
+	* gm2/gm2-gcc/m2decl.h:  allow m2decl.[ch] to be compiled by
+	  a C or C++ compiler.
+	* gm2/gm2-gcc/m2except.h:  allow m2except.[ch] to be compiled by
+	  a C or C++ compiler.
+	* gm2/gm2-gcc/m2expr.h:  allow m2expr.[ch] to be compiled by
+	  a C or C++ compiler.
+	* gm2/gm2-gcc/m2linemap.h:  allow m2linemap.[ch] to be compiled by
+	  a C or C++ compiler.
+	* gm2/gm2-gcc/m2misc.h:  allow m2misc.[ch] to be compiled by
+	  a C or C++ compiler.
+	* gm2/gm2-gcc/m2options.h:  allow m2options.[ch] to be compiled by
+	  a C or C++ compiler.
+	* gm2/gm2-gcc/m2statement.h:  allow m2statement.[ch] to be compiled by
+	  a C or C++ compiler.
+	* gm2/gm2-gcc/m2statement.c:  call cgraph_finalize_function whenever
+	  we finish a function.  Unit at a time change.
+	* gm2/gm2-gcc/m2top.h:  allow m2top.[ch] to be compiled by
+	  a C or C++ compiler.
+	* gm2/gm2-gcc/m2type.c:  specifically declares procedure types
+	  and parameter types.  Corrected a bug with procedure/function
+	  type declaration.
+	* gm2/gm2-gcc/m2type.def:  BuildProcTypeParameterDeclaration (New procedure
+	  function).  BuildEndFunctionType additional parameter.
+	* gm2/gm2-gcc/m2type.h:  allow m2type.[ch] to be compiled by
+	  a C or C++ compiler.
+	* gm2/gm2-lang.c:  m2_write_global_declarations (New function).
+	  gm2_langhook_write_globals for each translation unit write out globals.
+	* gm2/gm2-libs-pim/Break.c:  corrected #include syntax.  Reformatted to
+	  conform to GNU coding standards.
+	* gm2/gm2-libs/config-host:  rebuilt.
+	* gm2/gm2-libs/config-target:  rebuilt.
+	* gm2/gm2-libs/config-target.in:  use GCC_NO_EXECUTABLES.
+	* gm2/gm2spec.c:  removed style of libraries, added new location of
+	  libraries and new library names.
+	* gm2/m2pp.c:  pl (New function). m2pp_decl_list (New function).
+	  m2pp_decl_bool (New function).  remember (New function).
+	  m2pp_translation (New function).  m2pp_module_block (New function).
+	  m2pp_procedure_type modified to understand varargs.
+	* gm2/tools-src/createUlmSys:  fixed to test for presence of include
+	  files so that it can be run in a cross compiler for a minimal target.
+
 2014-04-20      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeInitAddress) declare tokenno

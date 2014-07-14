@@ -89,38 +89,24 @@ int lang_specific_extra_outfiles = 0;
 #include "gm2/gm2config.h"
 
 #undef DEBUGGING
-/* #define DEBUGGING */
+// #define DEBUGGING
 
 #define DEFAULT_DIALECT "pim"
 
 typedef enum { iso, pim, ulm, min, logitech, pimcoroutine, maxlib } libs;
 
-/* the last entry in libraryName must be the longest string in the list */
-static const char *libraryName[maxlib+1] = { "iso", "pim", "ulm", "min", "logitech",
-					     "pim-coroutine", "pim-coroutine" };
-
-static const char *archiveName[maxlib+1] = { "gm2iso", "gm2", "gm2ulm", "gm2min", "gm2pim",
-					     "gm2pco", "gm2min" };
-
-typedef enum { LIB, LIB_SO, LIB_O2, LIB_SO_O2, LIB_MAX } styles;
-
-typedef struct {
-  int shared;
-  int o2;
-} flag_set;
-
-typedef struct {
-  const char *directory;
-  flag_set flags;
-} style_sig;
-
-/*                                           dir      -fshared    -O2
+/* the last entry in libraryName must be the longest string in the list.
+   This is the -flibs=name
  */
-static style_sig libraryStyle[LIB_MAX+1] = {{"",      { FALSE,    FALSE}},
-					    {"SO",    {  TRUE,    FALSE}},
-					    {"O2",    { FALSE,     TRUE}},
-					    {"SO_O2", {  TRUE,     TRUE}},
-					    {"",      { FALSE,    FALSE}}};
+static const char *libraryName[maxlib] = { "iso", "pim", "ulm", "min", "log",
+					   "cor" };
+
+/*
+ *  this matches the archive name for example libiso.a, libmin.a
+ */
+static const char *archiveName[maxlib] = { "iso", "gm2", "ulm", "min", "log",
+					   "cor" };
+
 
 int lang_specific_pre_link (void);
 static void add_exec_prefix (void);
@@ -133,7 +119,6 @@ static int is_object (const char *s);
 static void remember_object (const char *s);
 static void remember_link_arg (const char *s);
 static void scan_for_link_args (unsigned int *in_decoded_options_count, struct cl_decoded_option **in_decoded_options);
-static styles get_style (flag_set flags);
 static void add_link_from_include (struct cl_decoded_option **in_options, int include);
 static void add_lib (size_t opt_index, const char *lib, int joined);
 static void check_gm2_root (void);
@@ -360,22 +345,6 @@ add_link_from_include (struct cl_decoded_option **in_options, int include)
 }
 
 /*
- *  get_style - returns the style of libraries required.
- */
-
-static styles
-get_style (flag_set flags)
-{
-  styles s;
-
-  for (s=LIB; s<LIB_MAX; s = (styles) ((int)s+1))
-    if (flags.shared == libraryStyle[s].flags.shared &&
-	flags.o2 == libraryStyle[s].flags.o2)
-      return s;
-  return LIB_MAX;
-}
-
-/*
  *  add_lib - add, lib, to the end of the command line.
  */
 
@@ -461,20 +430,26 @@ add_library (const char *libraryname,
   insert_option (in_decoded_options_count, in_decoded_options, position);
 
 #if defined(DEBUGGING)
-  unsigned int i;
-
-  printf("going to add -l%s at position=%d  count=%d\n",
-	 libraryname, position, *in_decoded_options_count);
-  for (i = 0; i < *in_decoded_options_count; i++)
-    printOption("before add_library", in_decoded_options, i);
+  {
+    unsigned int i;
+    
+    printf("going to add -l%s at position=%d  count=%d\n",
+	   libraryname, position, *in_decoded_options_count);
+    for (i = 0; i < *in_decoded_options_count; i++)
+      printOption("before add_library", in_decoded_options, i);
+  }
 #endif
 
   generate_option (OPT_l, libraryname, 1,
 		   CL_DRIVER, &(*in_decoded_options)[position]);
 
 #if defined(DEBUGGING)
-  for (i = 0; i < *in_decoded_options_count; i++)
-    printOption("after add_library", in_decoded_options, i);
+  {
+    unsigned int i;
+
+    for (i = 0; i < *in_decoded_options_count; i++)
+      printOption("after add_library", in_decoded_options, i);
+  }
 #endif
 }
 
@@ -500,11 +475,9 @@ getArchiveName (const char *library)
 
 static const char *
 build_archive_path (const char *libpath,
-		    const char *library,
-		    styles style)
+		    const char *library)
 {
   if (library != NULL) {
-    const char *style_name = libraryStyle[style].directory;
     const char *libdir = (const char *)library;
 
     if (libdir != NULL) {
@@ -512,7 +485,7 @@ build_archive_path (const char *libpath,
 	strlen("lib") + 1 + strlen("gcc") + 1 +
 	strlen (DEFAULT_TARGET_MACHINE) + 1 +
 	strlen (DEFAULT_TARGET_VERSION) + 1 +
-	strlen (style_name) + 1 +
+	strlen ("m2") + 1 +
 	strlen (libdir) + 1;
       char *s = (char *) xmalloc (l);
       char dir_sep[2];
@@ -522,13 +495,9 @@ build_archive_path (const char *libpath,
     
       strcpy (s, libpath);
       strcat (s, dir_sep);
-      strcat (s, "gm2");
+      strcat (s, "m2");
       strcat (s, dir_sep);
       strcat (s, libdir);
-      if (strlen(style_name) != 0) {
-	strcat (s, dir_sep);
-	strcat (s, style_name);
-      }
       return s;
     }
   }
@@ -544,7 +513,7 @@ static char *
 build_archive (const char *library)
 {
   if (library != NULL) {
-    const char *a = getArchiveName(library);
+    const char *a = getArchiveName (library);
     if (a != NULL) {
       char *s = (char *) xmalloc (strlen (a) + 1);
       strcpy (s, a);
@@ -561,13 +530,12 @@ build_archive (const char *library)
 static void
 add_default_combination (const char *libpath,
 			 const char *library,
-			 styles style,
 			 unsigned int *in_decoded_options_count,
 			 struct cl_decoded_option **in_decoded_options,
 			 unsigned int position)
 {
   if (library != NULL) {
-    add_lib (OPT_L, build_archive_path (libpath, library, style), TRUE);
+    add_lib (OPT_L, build_archive_path (libpath, library), TRUE);
     add_library (build_archive (library), in_decoded_options_count, in_decoded_options, position);
   }
 }
@@ -579,7 +547,6 @@ add_default_combination (const char *libpath,
 
 static void
 add_default_archives (const char *libpath,
-		      styles s,
 		      const char *libraries,
 		      unsigned int *in_decoded_options_count,
 		      struct cl_decoded_option **in_decoded_options,
@@ -606,7 +573,7 @@ add_default_archives (const char *libpath,
       c = strndup(l, e-l);
       l = e+1;
     }
-    add_default_combination (libpath, c, s, in_decoded_options_count, in_decoded_options, position+libcount);
+    add_default_combination (libpath, c, in_decoded_options_count, in_decoded_options, position+libcount);
     libcount++;
     prev = add_include (prev, libpath, c);
 
@@ -632,20 +599,20 @@ build_include_path (const char *prev, const char *libpath, const char *library)
 
   if (prev == NULL) {
     gm2libs = (char *) alloca(strlen(option) +
-			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(library)+1+
-			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(library)+1);
+			      strlen(libpath)+strlen(sepstr)+strlen("m2")+strlen(sepstr)+strlen(library)+1+
+			      strlen(libpath)+strlen(sepstr)+strlen("m2")+strlen(sepstr)+strlen(library)+1);
     strcpy(gm2libs, option);
   }
   else {
     gm2libs = (char *) alloca(strlen(prev) + strlen(":") +
-			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(library)+1+
-			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(library)+1);
+			      strlen(libpath)+strlen(sepstr)+strlen("m2")+strlen(sepstr)+strlen(library)+1+
+			      strlen(libpath)+strlen(sepstr)+strlen("m2")+strlen(sepstr)+strlen(library)+1);
     strcpy(gm2libs, prev);
     strcat(gm2libs, ":");
   }
   strcat(gm2libs, libpath);
   strcat(gm2libs, sepstr);
-  strcat(gm2libs, "gm2");
+  strcat(gm2libs, "m2");
   strcat(gm2libs, sepstr);
   strcat(gm2libs, library);
 
@@ -709,12 +676,10 @@ add_default_includes (const char *libpath,
  */
 
 static char *
-build_fobject_path (const char *prev, const char *libpath, const char *library,
-		    styles style)
+build_fobject_path (const char *prev, const char *libpath, const char *library)
 {
   char  sepstr[2];
   char *gm2objs;
-  const char *style_name = libraryStyle[style].directory;
   const char *libName = library;
 
   sepstr[0] = DIR_SEPARATOR;
@@ -738,11 +703,6 @@ build_fobject_path (const char *prev, const char *libpath, const char *library,
   strcat(gm2objs, sepstr);
   strcat(gm2objs, libName);
 
-  if (strlen(style_name) != 0) {
-    strcat (gm2objs, sepstr);
-    strcat (gm2objs, style_name);
-  }
-
   return xstrdup (gm2objs);
 }
 
@@ -753,23 +713,21 @@ build_fobject_path (const char *prev, const char *libpath, const char *library,
 static void
 add_fobject_path (const char *prev,
 		  const char *libpath,
-		  const char *library,
-		  styles s)
+		  const char *library)
 {
   if (library != NULL)
-    fe_generate_option (OPT_fobject_path_, build_fobject_path (prev, libpath, library, s), TRUE);
+    fe_generate_option (OPT_fobject_path_, build_fobject_path (prev, libpath, library), TRUE);
 }
 
 /*
  *  add_default_fobjects - add the appropriate default include paths depending
- *                         upon the style of libraries chosen.
+ *                         upon the libraries chosen.
  */
 
 static void
 add_default_fobjects (const char *prev,
 		      const char *libpath,
 		      const char *libraries,
-		      styles s,
 		      const char *envpath)
 {
   const char *l = libraries;
@@ -789,7 +747,7 @@ add_default_fobjects (const char *prev,
       c = strndup(l, e-l);
       l = e+1;
     }
-    add_fobject_path (prev, libpath, c, s);
+    add_fobject_path (prev, libpath, c);
     free(c);
   } while ((l != NULL) && (l[0] != (char)0));
 }
@@ -1029,8 +987,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 
   int seen_module_extension = -1;
   int linking = TRUE;
-  flag_set seen_shared_opt_flags = {FALSE, FALSE};
-  styles shared_opt;
+  int seen_shared_opt = FALSE;
   int seen_source = FALSE;
   int seen_fexceptions = TRUE;
   const char *libpath;
@@ -1127,9 +1084,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
       language = arg;
     }
     if (opt == OPT_fshared)
-      seen_shared_opt_flags.shared = TRUE;
-    if ((opt == OPT_O) && ((*in_decoded_options)[i].value >= 2))
-      seen_shared_opt_flags.o2 = TRUE;
+      seen_shared_opt = TRUE;
     if (opt == OPT_SPECIAL_input_file)
       seen_source = TRUE;
     if ((opt == OPT_SPECIAL_ignore) && (is_object(arg)))
@@ -1165,8 +1120,6 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
     convert_include_into_link (in_decoded_options,
 			       in_decoded_options_count);
   }
-  shared_opt = get_style (seen_shared_opt_flags);
-
   add_default_includes (libpath, libraries, gm2ipath);
   add_exec_prefix ();
 
@@ -1184,15 +1137,13 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
     {
       linkPos = 1;
       if (inclPos == -1)
-	add_default_fobjects (NULL, libpath,
-			      libraries, shared_opt, gm2opath);
+	add_default_fobjects (NULL, libpath, libraries, gm2opath);
       else
 	{
 	  struct cl_decoded_option *options = *in_decoded_options;
 	  const char *prev = options[inclPos].arg;
 	  
-	  add_default_fobjects (prev, libpath,
-				libraries, shared_opt, gm2opath);
+	  add_default_fobjects (prev, libpath, libraries, gm2opath);
 	}
     }
 
@@ -1200,7 +1151,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
     fe_generate_option (OPT_x, "modula-2", FALSE);
 
   if (linking) {
-    add_default_archives (libpath, shared_opt, libraries, in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
+    add_default_archives (libpath, libraries, in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
     (*in_added_libraries)++;
 
     if (need_math) {

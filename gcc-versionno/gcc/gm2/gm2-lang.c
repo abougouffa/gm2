@@ -696,7 +696,16 @@ gm2_langhook_pushdecl (tree decl ATTRIBUTE_UNUSED)
 static tree
 gm2_langhook_getdecls (void)
 {
-  return m2block_GetGlobals ();
+  return NULL;
+}
+
+static void
+m2_write_global_declarations (tree globals)
+{
+  tree decl;
+
+  for (decl = globals; decl; decl = DECL_CHAIN (decl))
+    rest_of_decl_compilation (decl, 1, 1);
 }
 
 /* Write out globals.  */
@@ -704,8 +713,19 @@ gm2_langhook_getdecls (void)
 static void
 gm2_langhook_write_globals (void)
 {
-  write_global_declarations ();
-#if 0
+  int i;
+  tree t;
+
+  m2block_finishGlobals ();
+
+  /* Process all file scopes in this compilation, and the external_scope,
+     through wrapup_global_declarations and check_global_declarations.  */
+  FOR_EACH_VEC_ELT (tree, all_translation_units, i, t)
+    m2_write_global_declarations (BLOCK_VARS (DECL_INITIAL (t)));
+  // m2_write_global_declarations (BLOCK_VARS (ext_block));
+
+  //   write_global_declarations ();
+#if 1
   /* in the future it is likely that GCC will call this automatically.
      Until then we must do this.
   */

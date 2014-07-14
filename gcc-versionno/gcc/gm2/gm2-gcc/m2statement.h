@@ -26,9 +26,17 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #if !defined(m2statement_h)
 #   define m2statement_h
 #   if defined(m2statement_c)
-#       define EXTERN 
+#      if defined(__GNUG__)
+#         define EXTERN extern "C"
+#      else
+#         define EXTERN 
+#      endif
 #   else
-#       define EXTERN extern
+#      if defined(__GNUG__)
+#         define EXTERN extern "C"
+#      else
+#         define EXTERN extern
+#      endif
 #   endif
 
 EXTERN void m2statement_BuildEndMainModule (void);
