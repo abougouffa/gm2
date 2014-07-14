@@ -1,13 +1,14 @@
---- gcc-4.7.3-orig/gcc/gccspec.c	2013-06-19 14:58:50.000000000 +0100
-+++ gcc-4.7.3/gcc/gccspec.c	2013-11-06 14:36:18.761363527 +0000
-@@ -106,3 +106,10 @@
+--- gcc-4.7.3-orig/gcc/Makefile.in	2013-06-19 14:58:49.000000000 +0100
++++ gcc-4.7.3/gcc/Makefile.in	2013-11-06 14:36:18.000000000 +0000
+@@ -1815,9 +1815,9 @@
  
- /* Number of extra output files that lang_specific_pre_link may generate.  */
- int lang_specific_extra_outfiles = 0;  /* Not used for C.  */
-+
-+
-+/* lang_register_spec_functions.  Not used for C.  */
-+void
-+lang_register_spec_functions (void)
-+{
-+}
+ cc1-checksum.o : cc1-checksum.c $(CONFIG_H) $(SYSTEM_H)
+ 
+-cc1$(exeext): $(C_OBJS) cc1-checksum.o $(BACKEND) $(LIBDEPS)
++cc1$(exeext): $(C_OBJS) cc1-checksum.o $(BACKEND) $(LIBDEPS) c-family/m2pp.o
+ 	+$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ $(C_OBJS) \
+-	  cc1-checksum.o $(BACKEND) $(LIBS) $(BACKENDLIBS)
++	  cc1-checksum.o $(BACKEND) $(LIBS) $(BACKENDLIBS) c-family/m2pp.o
+ 
+ #
+ # Build libgcc.a.
