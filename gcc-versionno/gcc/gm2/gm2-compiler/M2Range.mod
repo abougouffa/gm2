@@ -2568,6 +2568,7 @@ BEGIN
       TryDeclareConstant(tokenNo, expr) ;
       IF GccKnowsAbout(expr)
       THEN
+         location := TokenToLocation(tokenno) ;
          e := ZConstToTypedConst(LValueToGenericPtr(expr), expr, des) ;
          condition := BuildLessThanOrEqual(location,
                                            e, BuildConvert(Mod2Gcc(SkipType(GetType(des))),
@@ -2598,6 +2599,7 @@ BEGIN
       TryDeclareConstant(tokenNo, expr) ;
       IF GccKnowsAbout(expr)
       THEN
+         location := TokenToLocation(tokenno) ;
          e := ZConstToTypedConst(LValueToGenericPtr(expr), expr, des) ;
          condition := BuildEqualTo(location,
                                    e, BuildConvert(GetTreeType(e),
