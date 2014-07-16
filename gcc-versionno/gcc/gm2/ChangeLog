@@ -1,3 +1,12 @@
+2014-07-16      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/Makefile:  remove hack rule.
+	* libgm2/config.h.in:  rebuilt.
+	* libgm2/configure:  rebuilt.
+	* libgm2/configure.ac:  test for libc functions.
+	* libgm2/libpim/Selective.c:  provide dummy KillSet procedure
+	  function.
+
 2014-07-15      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Range.mod:  CodeWholeNonPos, CodeWholeZero

@@ -15793,6 +15793,415 @@ fi
 
 
 
+for ac_func in access
+do :
+  ac_fn_c_check_func "$LINENO" "access" "ac_cv_func_access"
+if test "x$ac_cv_func_access" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ACCESS 1
+_ACEOF
+
+fi
+done
+
+for ac_func in brk
+do :
+  ac_fn_c_check_func "$LINENO" "brk" "ac_cv_func_brk"
+if test "x$ac_cv_func_brk" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_BRK 1
+_ACEOF
+
+fi
+done
+
+for ac_func in cfmakeraw
+do :
+  ac_fn_c_check_func "$LINENO" "cfmakeraw" "ac_cv_func_cfmakeraw"
+if test "x$ac_cv_func_cfmakeraw" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CFMAKERAW 1
+_ACEOF
+
+fi
+done
+
+for ac_func in close
+do :
+  ac_fn_c_check_func "$LINENO" "close" "ac_cv_func_close"
+if test "x$ac_cv_func_close" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CLOSE 1
+_ACEOF
+
+fi
+done
+
+for ac_func in ctime
+do :
+  ac_fn_c_check_func "$LINENO" "ctime" "ac_cv_func_ctime"
+if test "x$ac_cv_func_ctime" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CTIME 1
+_ACEOF
+
+fi
+done
+
+for ac_func in creat
+do :
+  ac_fn_c_check_func "$LINENO" "creat" "ac_cv_func_creat"
+if test "x$ac_cv_func_creat" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CREAT 1
+_ACEOF
+
+fi
+done
+
+for ac_func in dup
+do :
+  ac_fn_c_check_func "$LINENO" "dup" "ac_cv_func_dup"
+if test "x$ac_cv_func_dup" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DUP 1
+_ACEOF
+
+fi
+done
+
+for ac_func in execve
+do :
+  ac_fn_c_check_func "$LINENO" "execve" "ac_cv_func_execve"
+if test "x$ac_cv_func_execve" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_EXECVE 1
+_ACEOF
+
+fi
+done
+
+for ac_func in exit
+do :
+  ac_fn_c_check_func "$LINENO" "exit" "ac_cv_func_exit"
+if test "x$ac_cv_func_exit" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_EXIT 1
+_ACEOF
+
+fi
+done
+
+for ac_func in fcntl
+do :
+  ac_fn_c_check_func "$LINENO" "fcntl" "ac_cv_func_fcntl"
+if test "x$ac_cv_func_fcntl" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_FCNTL 1
+_ACEOF
+
+fi
+done
+
+for ac_func in fstat
+do :
+  ac_fn_c_check_func "$LINENO" "fstat" "ac_cv_func_fstat"
+if test "x$ac_cv_func_fstat" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_FSTAT 1
+_ACEOF
+
+fi
+done
+
+for ac_func in getdents
+do :
+  ac_fn_c_check_func "$LINENO" "getdents" "ac_cv_func_getdents"
+if test "x$ac_cv_func_getdents" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GETDENTS 1
+_ACEOF
+
+fi
+done
+
+for ac_func in getgid
+do :
+  ac_fn_c_check_func "$LINENO" "getgid" "ac_cv_func_getgid"
+if test "x$ac_cv_func_getgid" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GETGID 1
+_ACEOF
+
+fi
+done
+
+for ac_func in getpid
+do :
+  ac_fn_c_check_func "$LINENO" "getpid" "ac_cv_func_getpid"
+if test "x$ac_cv_func_getpid" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GETPID 1
+_ACEOF
+
+fi
+done
+
+for ac_func in gettimeofday
+do :
+  ac_fn_c_check_func "$LINENO" "gettimeofday" "ac_cv_func_gettimeofday"
+if test "x$ac_cv_func_gettimeofday" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GETTIMEOFDAY 1
+_ACEOF
+
+fi
+done
+
+for ac_func in getuid
+do :
+  ac_fn_c_check_func "$LINENO" "getuid" "ac_cv_func_getuid"
+if test "x$ac_cv_func_getuid" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GETUID 1
+_ACEOF
+
+fi
+done
+
+for ac_func in ioctl
+do :
+  ac_fn_c_check_func "$LINENO" "ioctl" "ac_cv_func_ioctl"
+if test "x$ac_cv_func_ioctl" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_IOCTL 1
+_ACEOF
+
+fi
+done
+
+for ac_func in kill
+do :
+  ac_fn_c_check_func "$LINENO" "kill" "ac_cv_func_kill"
+if test "x$ac_cv_func_kill" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_KILL 1
+_ACEOF
+
+fi
+done
+
+for ac_func in link
+do :
+  ac_fn_c_check_func "$LINENO" "link" "ac_cv_func_link"
+if test "x$ac_cv_func_link" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LINK 1
+_ACEOF
+
+fi
+done
+
+for ac_func in lseek
+do :
+  ac_fn_c_check_func "$LINENO" "lseek" "ac_cv_func_lseek"
+if test "x$ac_cv_func_lseek" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LSEEK 1
+_ACEOF
+
+fi
+done
+
+for ac_func in open
+do :
+  ac_fn_c_check_func "$LINENO" "open" "ac_cv_func_open"
+if test "x$ac_cv_func_open" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_OPEN 1
+_ACEOF
+
+fi
+done
+
+for ac_func in pause
+do :
+  ac_fn_c_check_func "$LINENO" "pause" "ac_cv_func_pause"
+if test "x$ac_cv_func_pause" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_PAUSE 1
+_ACEOF
+
+fi
+done
+
+for ac_func in pipe
+do :
+  ac_fn_c_check_func "$LINENO" "pipe" "ac_cv_func_pipe"
+if test "x$ac_cv_func_pipe" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_PIPE 1
+_ACEOF
+
+fi
+done
+
+for ac_func in rand
+do :
+  ac_fn_c_check_func "$LINENO" "rand" "ac_cv_func_rand"
+if test "x$ac_cv_func_rand" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_RAND 1
+_ACEOF
+
+fi
+done
+
+for ac_func in read
+do :
+  ac_fn_c_check_func "$LINENO" "read" "ac_cv_func_read"
+if test "x$ac_cv_func_read" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_READ 1
+_ACEOF
+
+fi
+done
+
+for ac_func in select
+do :
+  ac_fn_c_check_func "$LINENO" "select" "ac_cv_func_select"
+if test "x$ac_cv_func_select" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SELECT 1
+_ACEOF
+
+fi
+done
+
+for ac_func in setitimer
+do :
+  ac_fn_c_check_func "$LINENO" "setitimer" "ac_cv_func_setitimer"
+if test "x$ac_cv_func_setitimer" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SETITIMER 1
+_ACEOF
+
+fi
+done
+
+for ac_func in setgid
+do :
+  ac_fn_c_check_func "$LINENO" "setgid" "ac_cv_func_setgid"
+if test "x$ac_cv_func_setgid" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SETGID 1
+_ACEOF
+
+fi
+done
+
+for ac_func in setuid
+do :
+  ac_fn_c_check_func "$LINENO" "setuid" "ac_cv_func_setuid"
+if test "x$ac_cv_func_setuid" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SETUID 1
+_ACEOF
+
+fi
+done
+
+for ac_func in stat
+do :
+  ac_fn_c_check_func "$LINENO" "stat" "ac_cv_func_stat"
+if test "x$ac_cv_func_stat" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STAT 1
+_ACEOF
+
+fi
+done
+
+for ac_func in strsignal
+do :
+  ac_fn_c_check_func "$LINENO" "strsignal" "ac_cv_func_strsignal"
+if test "x$ac_cv_func_strsignal" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRSIGNAL 1
+_ACEOF
+
+fi
+done
+
+for ac_func in strtod
+do :
+  ac_fn_c_check_func "$LINENO" "strtod" "ac_cv_func_strtod"
+if test "x$ac_cv_func_strtod" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRTOD 1
+_ACEOF
+
+fi
+done
+
+for ac_func in strtold
+do :
+  ac_fn_c_check_func "$LINENO" "strtold" "ac_cv_func_strtold"
+if test "x$ac_cv_func_strtold" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRTOLD 1
+_ACEOF
+
+fi
+done
+
+for ac_func in times
+do :
+  ac_fn_c_check_func "$LINENO" "times" "ac_cv_func_times"
+if test "x$ac_cv_func_times" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_TIMES 1
+_ACEOF
+
+fi
+done
+
+for ac_func in unlink
+do :
+  ac_fn_c_check_func "$LINENO" "unlink" "ac_cv_func_unlink"
+if test "x$ac_cv_func_unlink" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_UNLINK 1
+_ACEOF
+
+fi
+done
+
+for ac_func in wait
+do :
+  ac_fn_c_check_func "$LINENO" "wait" "ac_cv_func_wait"
+if test "x$ac_cv_func_wait" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_WAIT 1
+_ACEOF
+
+fi
+done
+
+for ac_func in write
+do :
+  ac_fn_c_check_func "$LINENO" "write" "ac_cv_func_write"
+if test "x$ac_cv_func_write" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_WRITE 1
+_ACEOF
+
+fi
+done
+
+
+
 CC_FOR_BUILD=${CC_FOR_BUILD:-gcc}
 
 

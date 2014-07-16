@@ -12,10 +12,6 @@ PROFILE =
 GM2FLAGS = $(PROFILE) -fsoft-check-all -g -fiso -fextended-opaque 
 
 
-hack: force
-	tar zxf objects.tar.gz
-	cp objects/* .
-
 bounce: $(OBJECTS)
 	gm2 $(GM2FLAGS) -fonlylink bounce.mod
 

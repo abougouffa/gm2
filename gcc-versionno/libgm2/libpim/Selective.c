@@ -232,6 +232,11 @@ FDSET_T *Selective_InitSet (void)
   return NULL;
 }
 
+FDSET_T *Selective_KillSet (void)
+{
+  return NULL;
+}
+
 void Selective_FdZero (void *s)
 {
 }
