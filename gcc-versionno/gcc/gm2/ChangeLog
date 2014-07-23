@@ -3,6 +3,9 @@
 	* fixes to the regression testsuite gm2.exp files to pick up the
 	  libraries from the new build locations.
 	* libgm2/libiso/Makefile.am:  build correct iso version of SYSTEM.
+	* gm2/gm2.texi:  updated the status of the gcc-4.7 branch of gm2.
+	  Also removed an unnecessary --enable-libgm2 option from the
+	  documentation.
 
 2014-07-16      Gaius Mulley <gaius@gnu.org>
 

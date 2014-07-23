@@ -2946,23 +2946,23 @@ example.
 @node Building on gcc 4.7, Debian gcc-4.7 build, Building on gcc 4.1.2, Top
 @section Building GNU Modula-2 grafted on the gcc-4.7 branch
 
-This is experimental and currently under development.  It currently
-builds cleanly under Debian Wheezy (LP64), however there are a number of
-restrictions which are currently being worked upon.  These include:
-
-@table @code
-@item
-University of ULM libraries are disabled.
-@item
-Arithmetic using complex data types cause the compiler to crash.
-@end table
-
+This is now pre-release.  It currently builds cleanly under Debian Wheezy
+(LP64) and at the time of writing only has 6 regression failures
+(compared to 9518 passes).
 The internals of GNU Modula-2 have been heavily overhauled, in
 particular the code interfacing the Modula-2 front end and the
 interface to the construction of GCC Trees.  This should mean that
 maintenance is easier in the future and it should reduce the time to
 graft gm2 onto future gcc releases.  In addition, the changes will
 allow for integer overflow to be detected.
+
+Most importantly all the libraries are now built with libtool and are
+now built in the same way as other gcc libraries.  From the users
+perspective it means that there are per target varient library
+binaries.  These will be automatically selected from the command line
+options.
+
+This version of gm2 can also be built as a cross compiler.
 
 @node Debian gcc-4.7 build, Solaris gcc-4.7 build, Building on gcc 4.7, Top
 @section Debian build on gcc-4.7 branch
@@ -2992,7 +2992,7 @@ $ CXXFLAGS=-g BOOT_CFLAGS=-g CFLAGS=-g \
   --enable-shared \
   --enable-threads=posix --enable-__cxa_atexit \
   --enable-clocale=gnu --enable-languages=c,c++,gm2 \
-  --disable-multilib --disable-bootstrap --enable-checking --enable-libgm2
+  --disable-multilib --disable-bootstrap --enable-checking
 @end example
 
 To compile:
