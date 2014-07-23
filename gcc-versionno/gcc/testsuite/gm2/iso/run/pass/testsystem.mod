@@ -20,7 +20,7 @@ MODULE testsystem ;
 FROM SYSTEM IMPORT BITSPERLOC, LOCSPERWORD,
                    LOC, BYTE, WORD, ADDRESS,
                    ADDADR, SUBADR, DIFADR, MAKEADR, ADR, ROTATE,
-                   SHIFT, CAST, TSIZE ;
+                   SHIFT, TSIZE ;
 FROM libc IMPORT exit ;
 FROM NumberIO IMPORT WriteCard ;
 FROM StrIO IMPORT WriteString, WriteLn ;

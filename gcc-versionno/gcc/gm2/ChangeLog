@@ -1,3 +1,9 @@
+2014-07-23      Gaius Mulley <gaius@gnu.org>
+
+	* fixes to the regression testsuite gm2.exp files to pick up the
+	  libraries from the new build locations.
+	* libgm2/libiso/Makefile.am:  build correct iso version of SYSTEM.
+
 2014-07-16      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/Makefile:  remove hack rule.

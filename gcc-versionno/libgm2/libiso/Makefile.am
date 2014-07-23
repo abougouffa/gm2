@@ -172,8 +172,8 @@ M2LIBDIR = /m2/iso/
 
 SYSTEM.def: Makefile
 	bash $(GM2_SRC)/tools-src/makeSystem -fiso \
-             $(GM2_SRC)/gm2-libs/SYSTEM.def \
-             $(GM2_SRC)/gm2-libs/SYSTEM.mod \
+             $(GM2_SRC)/gm2-libs-iso/SYSTEM.def \
+             $(GM2_SRC)/gm2-libs-iso/SYSTEM.mod \
              -I$(GM2_SRC)/gm2-libs-iso:$(GM2_SRC)/gm2-libs \
              "$(GM2_FOR_TARGET)" $@
 

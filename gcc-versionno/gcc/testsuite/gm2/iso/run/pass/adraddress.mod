@@ -1,6 +1,6 @@
 MODULE adraddress;
 
-FROM SYSTEM IMPORT ADR, ADDRESS, CAST;
+FROM SYSTEM IMPORT ADR, ADDRESS ;
 IMPORT STextIO;
 FROM libc IMPORT exit, printf ;
 
@@ -33,7 +33,7 @@ BEGIN
    namep := namepp^;
    assert(strp[0]=namep, __FILE__, __LINE__) ;
    assert(ADR(name)=namep, __FILE__, __LINE__) ;
-   (*  namep:=CAST(NamePtr,namepp);*) (* this works! *)
+
    STextIO.WriteString(namep^); STextIO.WriteLn;
    IF r#0
    THEN

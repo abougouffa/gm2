@@ -180,6 +180,7 @@ proc gm2_link_with { libraries } {
 proc gm2_link_flags { paths } {
     global srcdir;
     global ld_library_path;
+    global gccpath
 
     set gccpath ${paths}
     set libio_dir ""

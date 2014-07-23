@@ -23,7 +23,6 @@ if $tracelevel then {
 
 load_lib gm2-torture.exp
 
-
 gm2_init "-I.:${gccpath}/libgm2/libiso:${gccpath}/libgm2/libpim/:$srcdir/gm2/calling-c/datatypes/unbounded/run/pass" -fiso -L${gccpath}/libgm2/libiso/.libs/ -L${gccpath}/libgm2/libpim/.libs/ 
 
 set XGCC [lookfor_file $tmpdir xgcc];
