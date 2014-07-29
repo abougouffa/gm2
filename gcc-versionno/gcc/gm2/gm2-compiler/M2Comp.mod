@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
+                 2010, 2011, 2012, 2013, 2014
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -20,7 +20,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE M2Comp ;
 
 
-FROM M2Options IMPORT Statistics, Quiet ;
+FROM M2Options IMPORT Statistics, Quiet, WholeProgram ;
 
 FROM M2Pass IMPORT SetPassToPass1, SetPassToPass2, SetPassToPassC, SetPassToPass3,
                    SetPassToNoPass, SetPassToPassHidden ;
@@ -72,6 +72,7 @@ PROCEDURE DoPass3 ; FORWARD ;
 PROCEDURE DoPassC ; FORWARD ;
    %%%FORWARD%%% *)
 
+
 (*
    CompilingDefinitionModule - returns true if the current module being
                                compiled is a definition module.
@@ -106,6 +107,17 @@ END CompilingProgramModule ;
 
 
 (*
+   NeedToParseImplementation - 
+*)
+
+PROCEDURE NeedToParseImplementation (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN (IsDefImp(sym) OR IsHiddenTypeDeclared(sym)) OR
+          (WholeProgram AND (NOT IsDefinitionForC(sym))
+END NeedToParseImplementation ;
+
+
+(*
    Compile - compile file, s, using a 4 pass technique.
 *)
 
@@ -120,7 +132,7 @@ BEGIN
    qprintf0('Pass C\n') ;
    ResetForNewPass ;
    DoPassC ;
-   FlushWarnings ; FlushErrors ; 
+   FlushWarnings ; FlushErrors ;
    qprintf0('Pass 3\n') ;
    ResetForNewPass ;
    DoPass3 ;
@@ -247,7 +259,7 @@ BEGIN
       ELSE
          ModuleType := Program
       END ;
-      IF (Main=Sym) OR (IsDefImp(Sym) AND IsHiddenTypeDeclared(Sym))
+      IF (Main=Sym) OR NeedToParseImplementation(Sym)
       THEN
          (* only need to read implementation module if hidden types are declared or it is the main module *)
          IF Main=Sym
@@ -269,8 +281,14 @@ BEGIN
             END ;
             CloseSource
          ELSE
-            ErrorStringAt(Sprintf1(InitString('file %s cannot be found'), FileName), GetFirstUsed(Sym)) ;
-            fprintf1(StdErr, 'file %s cannot be opened\n', FileName)
+            (* quite legitimate to implement a module in C (and pretend it was a M2 implementation
+               providing that it is not the main program module and the definition module does not
+               imply that the implementation defines hidden types.  *)
+            IF (NOT WholeProgram) OR (Sym=Main) OR IsHiddenTypeDeclared(Sym)
+            THEN
+               ErrorStringAt(Sprintf1(InitString('file %s cannot be found'), FileName), GetFirstUsed(Sym)) ;
+               fprintf1(StdErr, 'file %s cannot be opened\n', FileName)
+            END
          END
       END ;
       SymName := KillString(SymName) ;
@@ -474,7 +492,7 @@ BEGIN
       THEN
          IF OpenSource(FileName)
          THEN
-            IF Main=Sym
+            IF (Main=Sym) OR NeedToParseImplementation(Sym)
             THEN
                IF NOT P3Build.CompilationUnit()
                THEN

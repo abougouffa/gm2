@@ -341,6 +341,9 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
   case OPT_quiet:
     M2Options_SetQuiet(value);
     return 1;
+  case OPT_fwhole_program:
+    M2Options_SetWholeProgram (value);
+    return 1;
   case OPT_flocation_:
     if (strcmp (arg, "builtins") == 0) {
       M2Options_SetForcedLocation (BUILTINS_LOCATION);

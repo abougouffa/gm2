@@ -205,6 +205,16 @@ END FinaliseOptions ;
 
 
 (*
+   SetWholeProgram - sets the WholeProgram flag (-fwhole-program).
+*)
+
+PROCEDURE SetWholeProgram (value: BOOLEAN) : BOOLEAN ;
+BEGIN
+   WholeProgram := value
+END SetWholeProgram ;
+
+
+(*
    SetReturnCheck -
 *)
 
@@ -720,5 +730,6 @@ BEGIN
    GenerateSwig                 := FALSE ;
    Exceptions                   :=  TRUE ;
    DebugBuiltins                := FALSE ;
-   ForcedLocation               := FALSE
+   ForcedLocation               := FALSE ;
+   WholeProgram                 := FALSE
 END M2Options.

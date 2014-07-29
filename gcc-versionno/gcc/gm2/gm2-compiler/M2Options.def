@@ -50,7 +50,7 @@ EXPORT QUALIFIED SetReturnCheck, SetNilCheck, SetCaseCheck,
                  Profiling, Coding, Optimizing,
                  OptimizeBasicBlock, OptimizeUncalledProcedures,
                  OptimizeCommonSubExpressions,
-                 StudentChecking,
+                 StudentChecking, WholeProgram,
                  NilChecking,
                  WholeDivChecking, WholeValueChecking,
                  IndexChecking, RangeChecking,
@@ -88,6 +88,7 @@ VAR
    OptimizeUncalledProcedures,   (* -Ouncalled removes uncalled procedures   *)
    OptimizeBasicBlock,           (* -Obb create basic blocks and optimize.   *)
    OptimizeCommonSubExpressions, (* -Ocse optimize common subexpressions     *)
+   WholeProgram,                 (* -fwhole-program optimization.            *)
    NilChecking,                  (* -fnil makes compiler test for pointer    *)
                                  (* NIL                                      *)
    WholeDivChecking,             (* -fwholediv produces code to raise an     *)
@@ -129,6 +130,13 @@ VAR
 *)
 
 PROCEDURE DisplayVersion ;
+
+
+(*
+   SetWholeProgram - sets the WholeProgram flag (-fwhole-program).
+*)
+
+PROCEDURE SetWholeProgram (value: BOOLEAN) ;
 
 
 (*

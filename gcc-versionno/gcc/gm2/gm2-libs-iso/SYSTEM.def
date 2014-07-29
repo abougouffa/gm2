@@ -17,7 +17,7 @@ DEFINITION MODULE SYSTEM;
 EXPORT QUALIFIED BITSPERLOC, LOCSPERWORD,
                  LOC, BYTE, WORD, ADDRESS, (* @SYSTEM_DATATYPES@ *)
                  ADDADR, SUBADR, DIFADR, MAKEADR, ADR, ROTATE,
-                 SHIFT, CAST, TSIZE,
+                 SHIFT, CAST, TSIZE, SIZE,
 
                  (* Internal GM2 compiler functions *)
                  ShiftVal, ShiftLeft, ShiftRight,

@@ -1,3 +1,29 @@
+2014-07-29      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/README:  updated preferred snapshot test release.  Use git rather
+	  than CVS.  Changed configuring advice as using 4.7.3 rather than 4.1.2.
+	* gm2/gm2-compiler/M2Comp.mod:  start of changes which allow -fwhole-program
+	  to be effective.
+	* gm2/gm2-compiler/M2Options.def:  (WholeProgram) new variable, define
+	  and export.  (SetWholeProgram) New procedure.
+	* gm2/gm2-compiler/M2Options.mod:  (SetWholeProgram) New procedure implemented.
+	  WholeProgram default to FALSE.
+	* gm2/gm2-compiler/M2System.mod:  allow user to import SIZE from ISO SYSTEM.
+	  Not strictly ISO but it is more flexible with -fwhole-program which will
+	  want to compile everything in a single dialect.
+	* gm2/gm2-gcc/m2options.h:  (M2Options_SetWholeProgram) New declaration.
+	* gm2/gm2-lang.c:  process -fwhole-option by calling M2Options_SetWholeProgram.
+	* gm2/gm2-libs-iso/SYSTEM.def:  add SIZE to export qualified list.
+	* gm2/lang.opt:  add -fwhole-option to list of legal Modula-2 options.
+	* testsuite/gm2/calling-c/datatypes/unbounded/run/pass/gm2.exp:  correct
+	  path to retieve path and libraries from the build area and avoid
+	  the install area.
+	* libgm2/config.h.in:  rebuilt.
+	* libgm2/configure:  rebuilt.
+	* libgm2/configure.ac:  define GM2_CHECK_LIB macro and use it to
+	  safely detect the presence of all used libc and libm functions
+	  used by the Modula-2 libraries.
+
 2014-07-23      Gaius Mulley <gaius@gnu.org>
 
 	* fixes to the regression testsuite gm2.exp files to pick up the

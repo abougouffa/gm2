@@ -1,21 +1,21 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Define to 1 if you have the `access' function. */
+/* libc includes access */
 #undef HAVE_ACCESS
 
-/* Define to 1 if you have the `brk' function. */
+/* libc includes brk */
 #undef HAVE_BRK
 
-/* Define to 1 if you have the `cfmakeraw' function. */
+/* libc includes cfmakeraw */
 #undef HAVE_CFMAKERAW
 
-/* Define to 1 if you have the `close' function. */
+/* libc includes close */
 #undef HAVE_CLOSE
 
-/* Define to 1 if you have the `creat' function. */
+/* libc includes creat */
 #undef HAVE_CREAT
 
-/* Define to 1 if you have the `ctime' function. */
+/* libc includes ctime */
 #undef HAVE_CTIME
 
 /* Define to 1 if you have the <direct.h> header file. */
@@ -27,49 +27,49 @@
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
-/* Define to 1 if you have the `dup' function. */
+/* libc includes dup */
 #undef HAVE_DUP
 
 /* Define to 1 if you have the <errno.h> header file. */
 #undef HAVE_ERRNO_H
 
-/* Define to 1 if you have the `execve' function. */
+/* libc includes execve */
 #undef HAVE_EXECVE
 
-/* Define to 1 if you have the `exit' function. */
+/* libc includes exit */
 #undef HAVE_EXIT
 
-/* Define to 1 if you have the `fcntl' function. */
+/* libc includes fcntl */
 #undef HAVE_FCNTL
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
-/* Define to 1 if you have the `fstat' function. */
+/* libc includes fstat */
 #undef HAVE_FSTAT
 
-/* Define to 1 if you have the `getdents' function. */
+/* libc includes getdents */
 #undef HAVE_GETDENTS
 
-/* Define to 1 if you have the `getgid' function. */
+/* libc includes getgid */
 #undef HAVE_GETGID
 
-/* Define to 1 if you have the `getpid' function. */
+/* libc includes getpid */
 #undef HAVE_GETPID
 
-/* Define to 1 if you have the `gettimeofday' function. */
-#undef HAVE_GETTIMEOFDAY
+/* libc includes gettimeofday */
+#undef HAVE_GETTIMEOFD
 
-/* Define to 1 if you have the `getuid' function. */
+/* libc includes getuid */
 #undef HAVE_GETUID
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `ioctl' function. */
+/* libc includes ioctl */
 #undef HAVE_IOCTL
 
-/* Define to 1 if you have the `kill' function. */
+/* libc includes kill */
 #undef HAVE_KILL
 
 /* Define to 1 if you have the <langinfo.h> header file. */
@@ -78,10 +78,10 @@
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
-/* Define to 1 if you have the `link' function. */
+/* libc includes link */
 #undef HAVE_LINK
 
-/* Define to 1 if you have the `lseek' function. */
+/* libc includes lseek */
 #undef HAVE_LSEEK
 
 /* Define to 1 if you have the <malloc.h> header file. */
@@ -99,13 +99,13 @@
 /* Define to 1 if you have the <netinet/in.h> header file. */
 #undef HAVE_NETINET_IN_H
 
-/* Define to 1 if you have the `open' function. */
+/* libc includes open */
 #undef HAVE_OPEN
 
-/* Define to 1 if you have the `pause' function. */
+/* libc includes pause */
 #undef HAVE_PAUSE
 
-/* Define to 1 if you have the `pipe' function. */
+/* libc includes pipe */
 #undef HAVE_PIPE
 
 /* Define to 1 if you have the <pthread.h> header file. */
@@ -114,28 +114,28 @@
 /* Define to 1 if you have the <pwd.h> header file. */
 #undef HAVE_PWD_H
 
-/* Define to 1 if you have the `rand' function. */
+/* libc includes rand */
 #undef HAVE_RAND
 
-/* Define to 1 if you have the `read' function. */
+/* libc includes read */
 #undef HAVE_READ
 
-/* Define to 1 if you have the `select' function. */
+/* libc includes select */
 #undef HAVE_SELECT
 
-/* Define to 1 if you have the `setgid' function. */
+/* libc includes setgid */
 #undef HAVE_SETGID
 
-/* Define to 1 if you have the `setitimer' function. */
+/* libc includes setitimer */
 #undef HAVE_SETITIMER
 
-/* Define to 1 if you have the `setuid' function. */
+/* libc includes setuid */
 #undef HAVE_SETUID
 
 /* Define to 1 if you have the <signal.h> header file. */
 #undef HAVE_SIGNAL_H
 
-/* Define to 1 if you have the `stat' function. */
+/* libc includes stat */
 #undef HAVE_STAT
 
 /* Define to 1 if you have the <stdarg.h> header file. */
@@ -159,13 +159,13 @@
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
-/* Define to 1 if you have the `strsignal' function. */
+/* libc includes strsignal */
 #undef HAVE_STRSIGNAL
 
-/* Define to 1 if you have the `strtod' function. */
+/* libc includes strtod */
 #undef HAVE_STRTOD
 
-/* Define to 1 if you have the `strtold' function. */
+/* libc includes strtold */
 #undef HAVE_STRTOLD
 
 /* Define to 1 if the system has the type `struct stat'. */
@@ -213,7 +213,7 @@
 /* Define to 1 if you have the <termios.h> header file. */
 #undef HAVE_TERMIOS_H
 
-/* Define to 1 if you have the `times' function. */
+/* libc includes times */
 #undef HAVE_TIMES
 
 /* Define to 1 if you have the <time.h> header file. */
@@ -222,16 +222,16 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define to 1 if you have the `unlink' function. */
+/* libc includes unlink */
 #undef HAVE_UNLINK
 
-/* Define to 1 if you have the `wait' function. */
+/* libc includes wait */
 #undef HAVE_WAIT
 
 /* Define to 1 if you have the <wchar.h> header file. */
 #undef HAVE_WCHAR_H
 
-/* Define to 1 if you have the `write' function. */
+/* libc includes write */
 #undef HAVE_WRITE
 
 /* Define to the sub-directory in which libtool stores uninstalled libraries.

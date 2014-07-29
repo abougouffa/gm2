@@ -319,7 +319,9 @@ BEGIN
 
    IF Iso
    THEN
-      InitISOTypes
+      InitISOTypes ;
+      MakeSize ;
+      PutExportQualified(MakeKey('SIZE'))
    ELSE
       InitPIMTypes ;
       (* SIZE is declared in SYSTEM.def in PIM-2 but not PIM-[34] *)
