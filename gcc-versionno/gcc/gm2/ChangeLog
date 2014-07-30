@@ -1,3 +1,8 @@
+2014-07-30      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Comp.mod:  corrected logical expression in
+	  NeedToParseImplementation.
+
 2014-07-29      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/README:  updated preferred snapshot test release.  Use git rather

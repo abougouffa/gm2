@@ -112,7 +112,7 @@ END CompilingProgramModule ;
 
 PROCEDURE NeedToParseImplementation (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN (IsDefImp(sym) OR IsHiddenTypeDeclared(sym)) OR
+   RETURN (IsDefImp(sym) AND IsHiddenTypeDeclared(sym)) OR
           (WholeProgram AND (NOT IsDefinitionForC(sym))
 END NeedToParseImplementation ;
 
