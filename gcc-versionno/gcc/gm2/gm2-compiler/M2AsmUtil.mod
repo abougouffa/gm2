@@ -26,6 +26,7 @@ FROM DynamicStrings IMPORT String, string, ConCat, KillString, InitString, Mark,
 FROM StdIO IMPORT Write ;
 FROM StrIO IMPORT WriteString ;
 FROM NameKey IMPORT WriteKey, GetKey, MakeKey, makekey, KeyToCharStar ;
+FROM M2Options IMPORT WholeProgram ;
 
 FROM SymbolTable IMPORT NulSym,
                         GetSymName,
@@ -186,6 +187,32 @@ END WriteName ;
 
 
 (*
+   SymNeedsModulePrefix -
+*)
+
+PROCEDURE SymNeedsModulePrefix (sym, mod: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF IsDefImp(mod)
+   THEN
+      IF WholeProgram
+      THEN
+         IF NOT IsDefinitionForC(mod)
+         THEN
+            RETURN( TRUE )
+         END
+      ELSIF IsExportQualified(sym)
+      THEN
+         RETURN( TRUE )
+      END
+   ELSIF IsModule(mod)
+   THEN
+      RETURN( WholeProgram )
+   END ;
+   RETURN( FALSE )
+END SymNeedsModulePrefix ;
+
+
+(*
    GetModulePrefix - returns a String containing the module prefix
                      for module, ModSym, providing symbol, Sym, is exported.
                      Name is marked if it is appended onto the new string.
@@ -199,7 +226,7 @@ BEGIN
       THEN
          RETURN( ConCat(ConCatChar(InitStringCharStar(KeyToCharStar(GetSymName(ModSym))), '_'),
                         GetModulePrefix(Name, ModSym, GetScope(ModSym))) )
-      ELSIF IsDefImp(ModSym) AND IsExportQualified(Sym)
+      ELSIF SymNeedsModulePrefix(Sym, ModSym)
       THEN
          RETURN( ConCatChar(ConCat(InitStringCharStar(KeyToCharStar(GetSymName(ModSym))), Mark(Name)), '_') )
       END

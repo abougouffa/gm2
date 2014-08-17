@@ -26,22 +26,24 @@ FROM NumberIO IMPORT WriteCard ;
 
 FROM M2Options IMPORT Statistics, DisplayQuadruples, OptimizeUncalledProcedures,
                       (* OptimizeDynamic, *) OptimizeCommonSubExpressions,
-                      StudentChecking, Optimizing ;
+                      StudentChecking, Optimizing, WholeProgram ;
 
+FROM M2Error IMPORT InternalError ;
 FROM M2Students IMPORT StudentVariableCheck ;
 
 FROM SymbolTable IMPORT GetMainModule, IsProcedure,
                         IsModuleWithinProcedure,
-                        CheckHiddenTypeAreAddress,
+                        CheckHiddenTypeAreAddress, IsModule, IsDefImp,
                         ForeachProcedureDo,
                         ForeachInnerModuleDo, GetSymName ;
 
 FROM M2Printf IMPORT printf2, printf1, printf0 ;
 FROM NameKey IMPORT Name ;
+FROM M2Batch IMPORT ForeachSourceModuleDo ;
 
 FROM M2Quads IMPORT CountQuads, GetFirstQuad, DisplayQuadList, DisplayQuadRange,
                     BackPatchSubrangesAndOptParam, VariableAnalysis,
-                    LoopAnalysis, ForLoopAnalysis ;
+                    LoopAnalysis, ForLoopAnalysis, GetQuad, QuadOperator ;
 
 FROM M2Pass IMPORT SetPassToNoPass, SetPassToCodeGeneration ;
 FROM M2SubExp IMPORT RemoveCommonSubExpressions ;
@@ -82,10 +84,6 @@ VAR
    BasicB,
    DeltaCse,
    Cse        : CARDINAL ;
-
-(* %%%FORWARD%%%
-PROCEDURE CodeBlock (scope: CARDINAL) ; FORWARD ;
-   %%%FORWARD%%% *)
 
 
 (*
@@ -135,10 +133,70 @@ BEGIN
    END ;
    IF DisplayQuadruples
    THEN
-      WriteString('after all front end optimization') ; WriteLn ;
+      printf0('after all front end optimization\n') ;
       DisplayQuadList
    END
 END OptimizationAnalysis ;
+
+
+(*
+   RemoveUnreachableCode - 
+*)
+
+PROCEDURE RemoveUnreachableCode ;
+BEGIN
+   IF WholeProgram
+   THEN
+      ForeachSourceModuleDo(RemoveProcedures)
+   ELSE
+      RemoveProcedures(GetMainModule())
+   END
+END RemoveUnreachableCode ;
+
+
+(*
+   DoModuleDeclare - declare all constants, types, variables, procedures for the
+                     main module or all modules.
+*)
+
+PROCEDURE DoModuleDeclare ;
+BEGIN
+   IF WholeProgram
+   THEN
+      ForeachSourceModuleDo(StartDeclareScope)
+   ELSE
+      StartDeclareScope(GetMainModule())
+   END
+END DoModuleDeclare ;
+
+
+(*
+   PrintModule - 
+*)
+
+PROCEDURE PrintModule (sym: CARDINAL) ;
+VAR
+   n: Name ;
+BEGIN
+   n := GetSymName(sym) ;
+   printf1('module %a\n', n)
+END PrintModule ;
+
+
+(*
+   DoCodeBlock - generate code for the main module or all modules.
+*)
+
+PROCEDURE DoCodeBlock ;
+BEGIN
+   IF WholeProgram
+   THEN
+      (* ForeachSourceModuleDo(PrintModule) ; *)
+      CodeBlock(GetMainModule())
+   ELSE
+      CodeBlock(GetMainModule())
+   END
+END DoCodeBlock ;
 
 
 (*
@@ -157,7 +215,7 @@ BEGIN
 
    IF DisplayQuadruples
    THEN
-      WriteString('before any optimization') ; WriteLn ;
+      printf0('before any optimization\n') ;
       DisplayQuadList
    END ;
 
@@ -174,12 +232,20 @@ BEGIN
    InitGlobalContext ;
    InitDeclarations ;
 
-   RemoveProcedures(GetMainModule()) ;
+   RemoveUnreachableCode ;
 
-   StartDeclareScope(GetMainModule()) ;
+   IF DisplayQuadruples
+   THEN
+      printf0('after dead procedure elimination\n') ;
+      DisplayQuadList
+   END ;
+
+   DoModuleDeclare ;
+
    FlushWarnings ;
    FlushErrors ;
-   CodeBlock(GetMainModule()) ;
+   DoCodeBlock ;
+
    MarkExported(GetMainModule()) ;
    GenerateSwigFile(GetMainModule()) ;
    FinishBackend ;
@@ -260,7 +326,7 @@ BEGIN
 
    IF (DeltaProc#0) OR (DeltaConst#0) OR (DeltaJump#0) OR (DeltaBasicB#0) OR (DeltaCse#0)
    THEN
-      WriteString('optimization finished although more reduction may be possible (increase MaxOptimTimes)') ; WriteLn
+      printf0('optimization finished although more reduction may be possible (increase MaxOptimTimes)\n')
    END
 END SecondDeclareAndOptimize ;
 
@@ -370,6 +436,19 @@ END CodeProceduresWithinBlock ;
 
 
 (*
+   CodeProcedures - 
+*)
+
+PROCEDURE CodeProcedures (scope: CARDINAL) ;
+BEGIN
+   IF IsDefImp(scope) OR IsModule(scope)
+   THEN
+      ForeachProcedureDo(scope, CodeBlock)
+   END
+END CodeProcedures ;
+
+
+(*
    CodeBlock - generates all code for this block and also declares
                all types and procedures for this block. It will
                also optimize quadruples within this scope.
@@ -417,7 +496,12 @@ BEGIN
          printf0('===============\n')
       END ;
       ForeachScopeBlockDo(sb, ConvertQuadsToTree) ;
-      ForeachProcedureDo(scope, CodeBlock) ;
+      IF WholeProgram
+      THEN
+         ForeachSourceModuleDo(CodeProcedures)
+      ELSE
+         ForeachProcedureDo(scope, CodeBlock)
+      END ;
       ForeachInnerModuleDo(scope, CodeProceduresWithinBlock)
    END ;
    sb := KillScopeBlock(sb)

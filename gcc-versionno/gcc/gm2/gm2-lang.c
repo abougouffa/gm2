@@ -229,6 +229,12 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
   case OPT_fd:
     M2Options_SetCompilerDebugging(value);
     return 1;
+  case OPT_fdebug_trace_quad:
+    M2Options_SetDebugTraceQuad(value);
+    return 1;
+  case OPT_fdebug_trace_api:
+    M2Options_SetDebugTraceAPI(value);
+    return 1;
   case OPT_fsoft_check_all:
     M2Options_SetCheckAll(value);
     return 1;
@@ -341,7 +347,7 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
   case OPT_quiet:
     M2Options_SetQuiet(value);
     return 1;
-  case OPT_fwhole_program:
+  case OPT_fm2_whole_program:
     M2Options_SetWholeProgram (value);
     return 1;
   case OPT_flocation_:

@@ -71,6 +71,8 @@ EXTERN void M2Options_SetVerboseUnbounded (int value);
 EXTERN void M2Options_SetXCode (int value);
 EXTERN void M2Options_SetCompilerDebugging (int value);
 EXTERN void M2Options_SetQuadDebugging (int value);
+EXTERN void M2Options_SetDebugTraceQuad (int value);
+EXTERN void M2Options_SetDebugTraceAPI (int value);
 EXTERN void M2Options_SetSources (int value);
 EXTERN void M2Options_SetUnboundedByReference (int value);
 EXTERN void M2Options_SetDumpSystemExports (int value);

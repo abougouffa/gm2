@@ -1,4 +1,42 @@
-2014-07-30      Gaius Mulley <gaius@gnu.org>
+2014-08-16      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  use new libgm2.a when building stage2.
+	* gm2/examples/map/Makefile.in:  (pre-install-whole) New rule.
+	* gm2/gm2-compiler/M2AsmUtil.mod:  (SymNeedsModulePrefix)
+	  New procedure function.  (GetModulePrefix) use SymNeedsModulePrefix.
+	* gm2/gm2-compiler/M2Batch.def:  (ForeachSourceModuleDo) new procedure.
+	  (IsSourceSeen) new procedure function.
+	* gm2/gm2-compiler/M2Batch.mod:  implement ForeachSourceModuleDo
+	  and IsSourceSeen.
+	* gm2/gm2-compiler/M2Code.mod:  import WholeProgram and modify (Code)
+	  and dependent procedures to behave differently if WholeProgram is
+	  set.
+	* gm2/gm2-compiler/M2Comp.mod:  (NeedToParseImplementation) New procedure
+	  function.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  import WholeProgram and modify
+	  declaration of procedure/module/types/variables to behave differently
+	  if WholeProgram is set.
+	* gm2/gm2-compiler/M2GenGCC.mod:  (IsExportedGcc) New procedure function.
+	  CodeStartModFile pushes the module scope and the global scope.
+	  CodeStartDefFile removed unnecessary code.  CodeEndFile call
+	  popGlobalScope.  CodeProcedureScope use IsExportedGcc instead of IsExported.
+	  Change CompilingMainModule to CompilingMainModule OR WholeProgram.
+	* gm2/gm2-compiler/M2Options.def:  (DebugTraceQuad, DebugTraceAPI) New
+	  internal options.  (SetDebugTraceQuad) New procedure definition.
+	  (SetDebugTraceAPI) New procedure definition.
+	* gm2/gm2-compiler/M2Options.mod:  (SetWholeProgram) remove return type.
+	  (SetDebugTraceQuad) implemented.  (SetDebugTraceAPI) implemented.
+	* gm2/gm2-compiler/M2Scope.def:  (DisplayScope) New procedure.
+	* gm2/gm2-gcc/m2options.h:  (SetDebugTraceQuad) exported.
+	  (SetDebugTraceAPI) exported.
+	* gm2/gm2-lang.c:  added case for OPT_fdebug_trace_quad and
+	  OPT_fdebug_trace_api.
+	* gm2/lang-options.h:  added entry for -fm2-whole-program.
+	* gm2/lang.opt:  added entry for -fdebug-trace-quad, -fdebug-trace-api
+	  and -fm2-whole-program.
+	* many testsuite scripts corrected to reflect the new library locations.
+
+2014-07-30      Gaius Mulley <gaius@gnu.org>'
 
 	* gm2/gm2-compiler/M2Comp.mod:  corrected logical expression in
 	  NeedToParseImplementation.

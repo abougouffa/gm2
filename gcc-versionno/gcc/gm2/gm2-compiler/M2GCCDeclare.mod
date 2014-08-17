@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011, 2012, 2013
+                 2010, 2011, 2012, 2013, 2014
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -36,7 +36,7 @@ FROM M2Quads IMPORT DisplayQuadRange, QuadToTokenNo ;
 IMPORT FIO ;
 
 FROM M2Options IMPORT DisplayQuadruples,
-                      GenerateDebugging, GenerateLineDebug, Iso, Optimizing ;
+                      GenerateDebugging, GenerateLineDebug, Iso, Optimizing, WholeProgram ;
 
 FROM M2AsmUtil IMPORT WriteAsmName, WriteName, GetAsmName, GetFullSymName,
                       UnderScoreString, GetModuleInitName, GetModuleFinallyName,
@@ -140,6 +140,7 @@ FROM M2ALU IMPORT Addn, Sub, Equ, GreEqu, Gre, Less, PushInt, PushCard, ConvertT
                   PopConstructorTree, PopComplexTree, PutConstructorSolved,
                   ChangeToConstructor, EvaluateValue, TryEvaluateValue ;
 
+FROM M2Batch IMPORT IsSourceSeen, GetModuleFile ;
 FROM m2tree IMPORT Tree ;
 FROM m2linemap IMPORT location_t ;
 
@@ -2433,10 +2434,104 @@ END IsExternal ;
 
 
 (*
-   DeclareProcedureToGcc - traverses all parameters and interfaces to gm2gcc.
+   IsExternalToWholeProgram - return TRUE if the symbol, sym, is external to the
+                              sources that we have parsed.
 *)
 
-PROCEDURE DeclareProcedureToGcc (Sym: CARDINAL) ;
+PROCEDURE IsExternalToWholeProgram (sym: CARDINAL) : BOOLEAN ;
+VAR
+   mod: CARDINAL ;
+BEGIN
+   mod := GetScope(sym) ;
+   REPEAT
+      IF mod=NulSym
+      THEN
+         RETURN( FALSE )
+      ELSIF IsDefImp(mod)
+      THEN
+         (* return TRUE if we have no source file.  *)
+         RETURN( GetModuleFile(mod)=NIL )
+      END ;
+      mod := GetScope(mod)
+   UNTIL mod=NulSym ;
+   RETURN( FALSE )
+END IsExternalToWholeProgram ;
+
+
+(*
+   DeclareProcedureToGccWholeProgram - 
+*)
+
+PROCEDURE DeclareProcedureToGccWholeProgram (Sym: CARDINAL) ;
+VAR
+   GccParam: Tree ;
+   scope,
+   Son,
+   p, i    : CARDINAL ;
+   location: location_t ;
+BEGIN
+   IF (NOT GccKnowsAbout(Sym)) AND (NOT IsPseudoProcFunc(Sym))
+   THEN
+      Assert(PushParametersLeftToRight) ;
+      (* AlignProcedureWithSource(Sym) ; *)
+      BuildStartFunctionDeclaration(UsesVarArgs(Sym)) ;
+      p := NoOfParam(Sym) ;
+      i := p ;
+      WHILE i>0 DO
+         (* note we dont use GetNthParam as we want the parameter that is seen by the procedure block
+            remember that this is treated exactly the same as a variable, just its position on
+            the activation record is special (ie a parameter)
+         *)
+         Son := GetNth(Sym, i) ;
+         location := TokenToLocation(GetDeclared(Son)) ;
+         IF IsUnboundedParam(Sym, i)
+         THEN
+            GccParam := BuildParameterDeclaration(location,
+                                                  KeyToCharStar(GetSymName(Son)),
+                                                  Mod2Gcc(GetType(Son)),
+                                                  FALSE)
+         ELSE
+            GccParam := BuildParameterDeclaration(location,
+                                                  KeyToCharStar(GetSymName(Son)),
+                                                  Mod2Gcc(GetType(Son)),
+                                                  IsVarParam(Sym, i))
+         END ;
+         PreAddModGcc(Son, GccParam) ;
+         WatchRemoveList(Son, todolist) ;
+         WatchIncludeList(Son, fullydeclared) ;
+         DEC(i)
+      END ;
+      location := TokenToLocation(GetDeclared(Sym)) ;
+      scope := GetScope(Sym) ;
+      PushBinding(scope) ;
+      IF GetType(Sym)=NulSym
+      THEN
+         PreAddModGcc(Sym, BuildEndFunctionDeclaration(location,
+                                                       KeyToCharStar(GetFullSymName(Sym)),
+                                                       NIL,
+                                                       IsExternalToWholeProgram(Sym),
+                                                       IsProcedureGccNested(Sym),
+                                                       IsExported(GetModuleWhereDeclared(Sym), Sym)))
+      ELSE
+         PreAddModGcc(Sym, BuildEndFunctionDeclaration(location,
+                                                       KeyToCharStar(GetFullSymName(Sym)),
+                                                       Mod2Gcc(GetType(Sym)),
+                                                       IsExternalToWholeProgram(Sym),
+                                                       IsProcedureGccNested(Sym),
+                                                       IsExported(GetModuleWhereDeclared(Sym), Sym)))
+      END ;
+      PopBinding(scope) ;
+      WatchRemoveList(Sym, todolist) ;
+      WatchIncludeList(Sym, fullydeclared)
+   END
+END DeclareProcedureToGccWholeProgram ;
+
+
+(*
+   DeclareProcedureToGccSeparateProgram - 
+*)
+
+PROCEDURE DeclareProcedureToGccSeparateProgram (Sym: CARDINAL) ;
 VAR
    GccParam: Tree ;
    scope,
@@ -2502,6 +2597,21 @@ BEGIN
       PopBinding(scope) ;
       WatchRemoveList(Sym, todolist) ;
       WatchIncludeList(Sym, fullydeclared)
+   END
+END DeclareProcedureToGccSeparateProgram ;
+
+
+(*
+   DeclareProcedureToGcc - traverses all parameters and interfaces to gm2gcc.
+*)
+
+PROCEDURE DeclareProcedureToGcc (Sym: CARDINAL) ;
+BEGIN
+   IF WholeProgram
+   THEN
+      DeclareProcedureToGccWholeProgram(Sym)
+   ELSE
+      DeclareProcedureToGccSeparateProgram(Sym)
    END
 END DeclareProcedureToGcc ;
 
@@ -2698,6 +2808,108 @@ END DeclareModuleInit ;
 
 
 (*
+   StartDeclareProcedureScope - 
+*)
+
+PROCEDURE StartDeclareProcedureScope (scope: CARDINAL) ;
+BEGIN
+   WalkTypesInProcedure(scope) ;
+   DeclareProcedure(scope) ;
+   ForeachInnerModuleDo(scope, WalkTypesInModule) ;
+   DeclareTypesConstantsProcedures(scope) ;
+   ForeachInnerModuleDo(scope, DeclareTypesConstantsProcedures) ;
+   DeclareLocalVariables(scope) ;
+   ForeachInnerModuleDo(scope, DeclareModuleVariables) ;
+   AssertAllTypesDeclared(scope) ;
+   ForeachProcedureDo(scope, DeclareProcedure) ;
+   ForeachInnerModuleDo(scope, StartDeclareScope)
+END StartDeclareProcedureScope ;
+
+
+(*
+   StartDeclareModuleScopeSeparate - 
+*)
+
+PROCEDURE StartDeclareModuleScopeSeparate (scope: CARDINAL) ;
+BEGIN
+   IF scope=GetMainModule()
+   THEN
+      ForeachModuleDo(WalkTypesInModule) ;     (* will populate the TYPE and CONST ToDo list  *)
+      DeclareTypesConstantsProcedures(scope) ; (* will resolved TYPEs and CONSTs on the ToDo  *)
+                                               (* lists.                                      *)
+      ForeachModuleDo(DeclareProcedure) ;
+      (*
+         now that all types have been resolved it is safe to declare
+         variables
+      *)
+      AssertAllTypesDeclared(scope) ;
+      DeclareGlobalVariables(scope) ;
+      ForeachImportedDo(scope, DeclareImportedVariables) ;
+      (* now it is safe to declare all procedures *)
+      ForeachProcedureDo(scope, DeclareProcedure) ;
+      ForeachInnerModuleDo(scope, WalkTypesInModule) ;
+      ForeachInnerModuleDo(scope, DeclareTypesConstantsProcedures) ;
+      ForeachInnerModuleDo(scope, StartDeclareScope)
+   ELSE
+      DeclareTypesConstantsProcedures(scope) ;
+      AssertAllTypesDeclared(scope) ;
+      ForeachProcedureDo(scope, DeclareProcedure) ;
+      DeclareModuleInit(scope) ;
+      ForeachInnerModuleDo(scope, StartDeclareScope)
+   END
+END StartDeclareModuleScopeSeparate ;
+
+
+(*
+   StartDeclareModuleScopeWholeProgram - 
+*)
+
+PROCEDURE StartDeclareModuleScopeWholeProgram (scope: CARDINAL) ;
+BEGIN
+   IF IsSourceSeen(scope)
+   THEN
+      ForeachModuleDo(WalkTypesInModule) ;     (* will populate the TYPE and CONST ToDo list  *)
+      DeclareTypesConstantsProcedures(scope) ; (* will resolved TYPEs and CONSTs on the ToDo  *)
+                                               (* lists.                                      *)
+      ForeachModuleDo(DeclareProcedure) ;
+      (*
+         now that all types have been resolved it is safe to declare
+         variables
+      *)
+      AssertAllTypesDeclared(scope) ;
+      DeclareGlobalVariables(scope) ;
+      ForeachImportedDo(scope, DeclareImportedVariables) ;
+      (* now it is safe to declare all procedures *)
+      ForeachProcedureDo(scope, DeclareProcedure) ;
+      ForeachInnerModuleDo(scope, WalkTypesInModule) ;
+      ForeachInnerModuleDo(scope, DeclareTypesConstantsProcedures) ;
+      ForeachInnerModuleDo(scope, StartDeclareScope)
+   ELSE
+      DeclareTypesConstantsProcedures(scope) ;
+      AssertAllTypesDeclared(scope) ;
+      ForeachProcedureDo(scope, DeclareProcedure) ;
+      DeclareModuleInit(scope) ;
+      ForeachInnerModuleDo(scope, StartDeclareScope)
+   END
+END StartDeclareModuleScopeWholeProgram ;
+
+
+(*
+   StartDeclareModuleScope - 
+*)
+
+PROCEDURE StartDeclareModuleScope (scope: CARDINAL) ;
+BEGIN
+   IF WholeProgram
+   THEN
+      StartDeclareModuleScopeWholeProgram(scope)
+   ELSE
+      StartDeclareModuleScopeSeparate(scope)
+   END
+END StartDeclareModuleScope ;
+
+
+(*
    StartDeclareScope - declares types, variables associated with this scope.
 *)
 
@@ -2743,48 +2955,9 @@ BEGIN
    END ;
    IF IsProcedure(scope)
    THEN
-      WalkTypesInProcedure(scope) ;
-      DeclareProcedure(scope) ;
-      ForeachInnerModuleDo(scope, WalkTypesInModule) ;
-      DeclareTypesConstantsProcedures(scope) ;
-      ForeachInnerModuleDo(scope, DeclareTypesConstantsProcedures) ;
-      DeclareLocalVariables(scope) ;
-      ForeachInnerModuleDo(scope, DeclareModuleVariables) ;
-      AssertAllTypesDeclared(scope) ;
-      ForeachProcedureDo(scope, DeclareProcedure) ;
-      ForeachInnerModuleDo(scope, StartDeclareScope)
-   ELSIF scope#GetMainModule()
-   THEN
-      DeclareTypesConstantsProcedures(scope) ;
-      AssertAllTypesDeclared(scope) ;
-      ForeachProcedureDo(scope, DeclareProcedure) ;
-      DeclareModuleInit(scope) ;
-      ForeachInnerModuleDo(scope, StartDeclareScope)
+      StartDeclareProcedureScope(scope)
    ELSE
-      ForeachModuleDo(WalkTypesInModule) ;     (* will populate the TYPE and CONST ToDo list  *)
-      DeclareTypesConstantsProcedures(scope) ; (* will resolved TYPEs and CONSTs on the ToDo  *)
-                                               (* lists.                                      *)
-      ForeachModuleDo(DeclareProcedure) ;
-      (*
-         now that all types have been resolved it is safe to declare
-         variables
-      *)
-(*
-      IF scope=148
-      THEN
-         testThis
-      END ;
-*)
-      AssertAllTypesDeclared(scope) ;
-      DeclareGlobalVariables(scope) ;
-      ForeachImportedDo(scope, DeclareImportedVariables) ;
-      (* now it is safe to declare all procedures *)
-      ForeachProcedureDo(scope, DeclareProcedure) ;
-      (* --testing-- *)
-      ForeachInnerModuleDo(scope, WalkTypesInModule) ;
-      ForeachInnerModuleDo(scope, DeclareTypesConstantsProcedures) ;
-      (* --end of test-- *)
-      ForeachInnerModuleDo(scope, StartDeclareScope)
+      StartDeclareModuleScope(scope)
    END ;
    IF Debugging
    THEN

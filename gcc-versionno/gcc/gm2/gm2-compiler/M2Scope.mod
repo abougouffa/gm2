@@ -24,7 +24,9 @@ FROM SymbolTable IMPORT IsProcedure, IsDefImp, GetProcedureQuads, GetScope,
                         GetProcedureScope, IsModule, IsModuleWithinProcedure,
                         NulSym ;
 
-FROM M2Quads IMPORT QuadOperator, GetFirstQuad, GetNextQuad, GetQuad ;
+FROM M2Options IMPORT DisplayQuadruples ;
+FROM M2Printf IMPORT printf1 ;
+FROM M2Quads IMPORT QuadOperator, GetFirstQuad, GetNextQuad, GetQuad, DisplayQuadRange ;
 FROM M2StackWord IMPORT StackOfWord, InitStackWord, KillStackWord,
                         PopWord, PushWord, PeepWord ;
 
@@ -160,7 +162,8 @@ BEGIN
             First := FALSE
          END
       END ;
-      IF i=end
+      (* IF (i=end) *)
+      IF (i=end) (*  OR (op=EndFileOp) *)
       THEN
          RETURN( sb )
       END ;
@@ -237,6 +240,20 @@ END GetProcQuads ;
 
 
 (*
+   DisplayScope - 
+*)
+
+PROCEDURE DisplayScope (sb: ScopeBlock) ;
+BEGIN
+   DisplayQuadRange(sb^.low, sb^.high) ;
+   IF sb^.next#NIL
+   THEN
+      DisplayScope(sb^.next)
+   END
+END DisplayScope ;
+
+
+(*
    InitScopeBlock - 
 *)
 
@@ -256,7 +273,12 @@ BEGIN
          THEN
             sb := GetProcQuads(sb, scope)
          ELSE
-            sb := GetGlobalQuads(sb, scope)
+            sb := GetGlobalQuads(sb, scope) ;
+            IF DisplayQuadruples
+            THEN
+               printf1("scope %a is defined by\n", scope) ;
+               DisplayScope(sb)
+            END
          END
       END
    END ;

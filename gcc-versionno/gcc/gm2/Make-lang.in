@@ -681,7 +681,9 @@ GM2_OBJS          = gm2/gm2-lang.o \
                     gm2/gm2-gcc/m2top.o \
                     gm2/gm2-gcc/m2misc.o \
                     gm2/gm2-gcc/init.o
-GM2_LIBS          = gm2/gm2-compiler/gm2.a gm2/gm2-libs/libgm2.a         # the final Modula-2 front end
+GM2_LIBS          = gm2/gm2-compiler/gm2.a ../$(target_subdir)/libgm2/libpim/.libs/libgm2.a gm2/gm2-libs-boot/choosetemp.o
+
+# gm2/gm2-compiler/gm2.a gm2/gm2-libs/libgm2.a         # the final Modula-2 front end
 GM2_LIBS_BOOT     = gm2/gm2-compiler-boot/gm2.a \
                     gm2/gm2-libs-boot/libgm2.a \
                     gm2/p2c/p2c-src/src/libp2c.a                    # the translated Modula-2 -> C front end

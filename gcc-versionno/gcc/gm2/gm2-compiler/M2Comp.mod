@@ -50,7 +50,7 @@ FROM M2Batch IMPORT GetSource, GetModuleNo, GetDefinitionModuleFile, GetModuleFi
 
 FROM SymbolTable IMPORT GetSymName, IsDefImp, NulSym,
                         IsHiddenTypeDeclared, GetFirstUsed, GetMainModule, SetMainModule,
-                        ResolveConstructorTypes, SanityCheckConstants ;
+                        ResolveConstructorTypes, SanityCheckConstants, IsDefinitionForC ;
 
 FROM FIO IMPORT StdErr ;
 FROM NameKey IMPORT Name, GetKey, KeyToCharStar, makekey ;
@@ -113,7 +113,7 @@ END CompilingProgramModule ;
 PROCEDURE NeedToParseImplementation (sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN (IsDefImp(sym) AND IsHiddenTypeDeclared(sym)) OR
-          (WholeProgram AND (NOT IsDefinitionForC(sym))
+          (WholeProgram AND (NOT IsDefinitionForC(sym)))
 END NeedToParseImplementation ;
 
 
@@ -492,7 +492,7 @@ BEGIN
       THEN
          IF OpenSource(FileName)
          THEN
-            IF (Main=Sym) OR NeedToParseImplementation(Sym)
+            IF (Main=Sym) OR WholeProgram
             THEN
                IF NOT P3Build.CompilationUnit()
                THEN

@@ -99,6 +99,8 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("use ordered list of modules when linking") },
   { "-fmakelist",
       N_("created ordered list of modules") },
+  { "-fm2-whole-program",
+      N_("compile all implementation and program modules as a single unit") },
   { "-fmodules",
       N_("display list of modules and location") },
   { "-fruntime-modules=",

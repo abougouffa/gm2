@@ -22,7 +22,7 @@ IMPLEMENTATION MODULE M2Batch ;
 
 FROM M2Debug IMPORT Assert ;
 FROM M2Error IMPORT InternalError ;
-FROM SymbolTable IMPORT MakeModule, MakeDefImp, NulSym ;
+FROM SymbolTable IMPORT MakeModule, MakeDefImp, IsModule, IsDefImp, NulSym ;
 FROM NameKey IMPORT GetKey, WriteKey ;
 FROM M2Printf IMPORT printf2 ;
 FROM M2Error IMPORT InternalError ;
@@ -54,6 +54,7 @@ PROCEDURE Pop () : CARDINAL ; FORWARD ;
 PROCEDURE Push (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE Put (Sym: CARDINAL; n: Name) ; FORWARD ;
    %%%FORWARD%%% *)
+
 
 (*
    MakeProgramSource - is given a Name, n, which is used to create a program module.
@@ -360,6 +361,42 @@ BEGIN
    END ;
    RETURN( NIL )
 END GetModuleFile ;
+
+
+(*
+   ForeachSourceModuleDo - call each procedure, p, for which there is a known
+                           source file.
+*)
+
+PROCEDURE ForeachSourceModuleDo (p: DoProcedure) ;
+VAR
+   i, no: CARDINAL ;
+   m    : Module ;
+BEGIN
+   i := 1 ;
+   no := HighIndice(DoneQueue) ;
+   WHILE i<=no DO
+      m := GetIndice(DoneQueue, i) ;
+      WITH m^ DO
+         IF ModFile#NIL
+         THEN
+            p(SymNo)
+         END
+      END ;
+      INC(i)
+   END
+END ForeachSourceModuleDo ;
+
+
+(*
+   IsSourceSeen - returns TRUE if the source for module, sym, has been seen.
+*)
+
+PROCEDURE IsSourceSeen (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   Assert(IsModule(sym) OR IsDefImp(sym)) ;
+   RETURN( GetModuleFile(sym)#NIL )
+END IsSourceSeen ;
 
 
 BEGIN

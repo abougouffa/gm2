@@ -208,7 +208,7 @@ END FinaliseOptions ;
    SetWholeProgram - sets the WholeProgram flag (-fwhole-program).
 *)
 
-PROCEDURE SetWholeProgram (value: BOOLEAN) : BOOLEAN ;
+PROCEDURE SetWholeProgram (value: BOOLEAN) ;
 BEGIN
    WholeProgram := value
 END SetWholeProgram ;
@@ -562,6 +562,26 @@ END SetCompilerDebugging ;
 
 
 (*
+   SetDebugTraceQuad - 
+*)
+
+PROCEDURE SetDebugTraceQuad (value: BOOLEAN) ;
+BEGIN
+   DebugTraceQuad := value
+END SetDebugTraceQuad ;
+
+
+(*
+   SetDebugTraceAPI - 
+*)
+
+PROCEDURE SetDebugTraceAPI (value: BOOLEAN) ;
+BEGIN
+   DebugTraceAPI := value
+END SetDebugTraceAPI ;
+
+
+(*
    SetSources - 
 *)
 
@@ -731,5 +751,7 @@ BEGIN
    Exceptions                   :=  TRUE ;
    DebugBuiltins                := FALSE ;
    ForcedLocation               := FALSE ;
-   WholeProgram                 := FALSE
+   WholeProgram                 := FALSE ;
+   DebugTraceQuad               := FALSE ;
+   DebugTraceAPI                := FALSE
 END M2Options.

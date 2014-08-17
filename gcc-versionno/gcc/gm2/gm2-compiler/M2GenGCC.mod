@@ -27,7 +27,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         PushSumOfParamSize,
                         MakeConstLit,
                         RequestSym, FromModuleGetSym,
-                        StartScope, EndScope,
+                        StartScope, EndScope, GetScope,
                         GetMainModule, GetModuleScope,
                         GetSymName, ModeOfAddr, GetMode,
                         GetGnuAsm, IsGnuAsmVolatile, IsGnuAsmSimple,
@@ -80,7 +80,8 @@ FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, WriteFormat2, Err
 FROM M2MetaError IMPORT MetaErrorT1, MetaErrorT2, MetaError1 ;
 
 FROM M2Options IMPORT DisplayQuadruples, UnboundedByReference, PedanticCast,
-                      VerboseUnbounded, Iso, Pim, DebugBuiltins ;
+                      VerboseUnbounded, Iso, Pim, DebugBuiltins, WholeProgram,
+                      DebugTraceQuad, DebugTraceAPI ;
 
 FROM M2Printf IMPORT printf0, printf1, printf2, printf4 ;
 
@@ -216,7 +217,7 @@ FROM m2except IMPORT BuildThrow, BuildTryBegin, BuildTryEnd,
 
 FROM M2Quads IMPORT QuadOperator, GetQuad, IsReferenced, GetNextQuad,
                     SubQuad, PutQuad, MustCheckOverflow,
-                    QuadToTokenNo,
+                    QuadToTokenNo, DisplayQuad,
                     DisplayQuadList ;
 
 
@@ -235,8 +236,6 @@ VAR
    LastLine                 : CARDINAL ;(* The Last Line number emitted with the  *)
                                         (* generated code.                        *)
    LastOperator             : QuadOperator ; (* The last operator processed.      *)
-   CompilingMainModuleStack : StackOfWord ; (* Determines whether the main module     *)
-                                            (* quadrules are being processed.         *)
    ScopeStack               : StackOfWord ; (* keeps track of the current scope       *)
                                             (* under translation.                     *)
    NoChange                 : BOOLEAN ;     (* has any constant been resolved?        *)
@@ -468,6 +467,36 @@ PROCEDURE CodeThrow (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 
 
 (*
+   IsExportedGcc - returns TRUE if this symbol should be (as far as the middle/backend of GCC)
+                   is concerned, exported.
+*)
+
+PROCEDURE IsExportedGcc (sym: CARDINAL) : BOOLEAN ;
+VAR
+   scope: CARDINAL ;
+BEGIN
+   IF WholeProgram
+   THEN
+      scope := GetScope(sym) ;
+      WHILE scope#NulSym DO
+         IF IsDefImp(scope)
+         THEN
+            RETURN( IsExported(scope, sym) )
+         ELSIF IsModule(scope)
+         THEN
+            RETURN( FALSE )
+         END ;
+         scope := GetScope(scope)
+      END ;
+      Assert(FALSE)
+   ELSE
+      RETURN( IsExported(GetMainModule(), sym) )
+   END
+END IsExportedGcc ;
+
+
+
+(*
    ConvertQuadsToTree - runs through the quadruple list and converts it into
                         the GCC tree structure.
 *)
@@ -515,6 +544,11 @@ BEGIN
    location := TokenToLocation(tokenno) ;
 
    CheckReferenced(q, op) ;
+   IF DebugTraceQuad
+   THEN
+      printf0('building: ') ;
+      DisplayQuad(q)
+   END ;
 
    CASE op OF
 
@@ -1013,7 +1047,7 @@ END CodeError ;
 
                      ModuleScopeOp  _  _  ModuleSym
 
-                     Its function is to reset the source file to another
+                     Its purpose is to reset the source file to another
                      file, hence all line numbers emitted with the
                      generated code will be relative to this source file.
 *)
@@ -1046,19 +1080,7 @@ PROCEDURE CodeStartModFile (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    pushGlobalScope ;
    LastLine := 1 ;
-   PushScope(op3) ;
-   PushWord(CompilingMainModuleStack, GetMainModule()=op3) ;
-(*
-   ModuleName := KillString(ModuleName) ;
-   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(op3))) ;
-*)
-   IF PeepWord(CompilingMainModuleStack, 1)=TRUE
-   THEN
-(*
-      SetFileNameAndLineNo(KeyToCharStar(Name(op2)), op1) ;
-      EmitLineNote(KeyToCharStar(Name(op2)), op1)
-*)
-   END
+   PushScope(op3)
 END CodeStartModFile ;
 
 
@@ -1077,12 +1099,7 @@ PROCEDURE CodeStartDefFile (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    pushGlobalScope ;
    PushScope(op3) ;
-   LastLine := 1 ;
-   PushWord(CompilingMainModuleStack, FALSE) ;
-(*
-   ModuleName := KillString(ModuleName) ;
-   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(op3)))
-*)
+   LastLine := 1
 END CodeStartDefFile ;
 
 
@@ -1098,9 +1115,7 @@ END CodeStartDefFile ;
 
 PROCEDURE CodeEndFile (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   popGlobalScope ;
-   ReduceWord(CompilingMainModuleStack, 1) ;
-(*   PopScope *)
+   popGlobalScope
 END CodeEndFile ;
 
 
@@ -1141,7 +1156,7 @@ VAR
    CurrentModuleInitFunction: Tree ;
    location                 : location_t;
 BEGIN
-   IF CompilingMainModule
+   IF CompilingMainModule OR WholeProgram
    THEN
       (* SetFileNameAndLineNo(string(FileName), op1) ; *)
       IF IsModuleWithinProcedure(op3)
@@ -1189,7 +1204,7 @@ PROCEDURE CodeInitEnd (quad: CARDINAL; op1, op2, op3: CARDINAL;
 VAR
    t: Tree ;
 BEGIN
-   IF CompilingMainModule
+   IF CompilingMainModule OR WholeProgram
    THEN
       (*
          SetFileNameAndLineNo(string(FileName), op1) ;
@@ -1220,7 +1235,7 @@ VAR
    CurrentModuleFinallyFunction: Tree ;
    location                    : location_t;
 BEGIN
-   IF CompilingMainModule
+   IF CompilingMainModule OR WholeProgram
    THEN
       (* SetFileNameAndLineNo(string(FileName), op1) ; *)
       IF IsModuleWithinProcedure(op3)
@@ -1249,7 +1264,7 @@ PROCEDURE CodeFinallyEnd (quad: CARDINAL; op1, op2, op3: CARDINAL;
 VAR
    t: Tree ;
 BEGIN
-   IF CompilingMainModule
+   IF CompilingMainModule OR WholeProgram
    THEN
       (*
          SetFileNameAndLineNo(string(FileName), op1) ;
@@ -1856,12 +1871,8 @@ END CodeKillLocalVar ;
 PROCEDURE CodeProcedureScope (quad: CARDINAL;
                               LineNo, PreviousScope, CurrentProcedure: CARDINAL) ;
 BEGIN
-(*
-   ModuleName := KillString(ModuleName) ;
-   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(GetMainModule()))) ;
-*)
    BuildStartFunctionCode(Mod2Gcc(CurrentProcedure),
-                          IsExported(GetMainModule(), CurrentProcedure),
+                          IsExportedGcc(CurrentProcedure),
                           IsProcedureInline(CurrentProcedure)) ;
    StartDeclareScope(CurrentProcedure) ;
    (* DeclareParameters(CurrentProcedure) *)
@@ -6764,7 +6775,6 @@ END CodeXIndr ;
 
 BEGIN
    UnboundedLabelNo := 0 ;
-   CompilingMainModuleStack := InitStackWord() ;
    ScopeStack := InitStackWord()
 END M2GenGCC.
 (*

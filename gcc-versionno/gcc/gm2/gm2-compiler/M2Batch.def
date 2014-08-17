@@ -35,7 +35,11 @@ EXPORT QUALIFIED MakeDefinitionSource,
                  MakeProgramSource,
                  GetSource, GetModuleNo, IsModuleKnown,
                  AssociateDefinition, GetDefinitionModuleFile,
-                 AssociateModule, GetModuleFile ;
+                 AssociateModule, GetModuleFile,
+                 ForeachSourceModuleDo, IsSourceSeen ;
+
+TYPE
+   DoProcedure = PROCEDURE (CARDINAL) ;
 
 
 (*
@@ -130,6 +134,21 @@ PROCEDURE AssociateModule (filename: String; Sym: CARDINAL) : String ;
 *)
 
 PROCEDURE GetModuleFile (Sym: CARDINAL) : String ;
+
+
+(*
+   ForeachSourceModuleDo - call each procedure, p, for which there is a known
+                           source file.
+*)
+
+PROCEDURE ForeachSourceModuleDo (p: DoProcedure) ;
+
+
+(*
+   IsSourceSeen - returns TRUE if the source for module, sym, has been seen.
+*)
+
+PROCEDURE IsSourceSeen (sym: CARDINAL) : BOOLEAN ;
 
 
 END M2Batch.

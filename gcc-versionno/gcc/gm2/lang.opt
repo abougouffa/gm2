@@ -177,6 +177,14 @@ fd
 Modula-2
 turn on internal debugging of the compiler
 
+fdebug-trace-quad
+Modula-2
+turn on quadruple tracing inside the compiler (internal switch)
+
+fdebug-trace-api
+Modula-2
+turn on the Modula-2 api tracing inside the compiler (internal switch)
+
 fswig
 Modula-2
 create a swig interface file for the module
@@ -193,7 +201,7 @@ fobject-path=
 Modula-2 Joined
 set the object path
 
-fwhole-program
+fm2-whole-program
 Modula-2
 compile all implementation modules and program module at once
 
