@@ -165,12 +165,16 @@ BEGIN
 *)
                REALLOCATE(ArrayStart, ArraySize) ;
                (* and initialize the remainder of the array to NIL *)
-               b := memset(ArrayStart+oldSize, 0, ArraySize-oldSize)
+               b := ArrayStart ;
+               INC(b, oldSize) ;
+               b := memset(b, 0, ArraySize-oldSize)
             END ;
             High := n
          END
       END ;
-      p := ArrayStart + ((n-Low)*TSIZE(ADDRESS)) ;
+      b := ArrayStart ;
+      INC(b, (n-Low)*TSIZE(ADDRESS)) ;
+      p := b;
       p^ := a ;
       IF Debug
       THEN
@@ -197,7 +201,8 @@ BEGIN
       THEN
          HALT
       END ;
-      b := ArrayStart + ((n-Low)*TSIZE(ADDRESS)) ;
+      b := ArrayStart ;
+      INC(b, (n-Low)*TSIZE(ADDRESS)) ;
       p := VAL(PtrToAddress, b) ;
       IF Debug
       THEN

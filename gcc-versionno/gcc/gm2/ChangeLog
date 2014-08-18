@@ -1,3 +1,11 @@
+2014-08-17      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/map/Makefile.in:  (pre-install-whole) corrected rule.
+	* gm2/examples/pge/Indexing.def:  removed file.
+	* gm2/examples/pge/Indexing.mod:  removed file.
+	* gm2/gm2-libs/FIO.mod:  modified so that it can be compiled under -fiso.
+	* gm2/gm2-libs/Indexing.mod:  modified so that it can be compiled under -fiso.
+
 2014-08-16      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  use new libgm2.a when building stage2.

@@ -38,8 +38,8 @@ post-install: clean
 	gm2 $(GM2FLAGS) -o semantic -g -I$(srcdir) -fmake-I=$(srcdir) -fmakeall $(srcdir)/Semantic.mod
 
 pre-install-whole: clean
-	$(XGM2) -fm2-whole-program -fextended-opaque $(GM2FLAGS) -o Map.o  -g -I$(SRC_PATH_PIM) -fmake-I=$(srcdir) -fobject-path=$(OBJ_PATH_PIM) $(srcdir)/Map.mod
-	# $(XGM2) -fm2-whole-program $(GM2FLAGS) -o semantic -g -I$(SRC_PATH_PIM) -fmake-I=$(srcdir) -fobject-path=$(OBJ_PATH_PIM) -fmakeall $(srcdir)/Semantic.mod
+	$(XGM2) -fm2-whole-program -fextended-opaque $(GM2FLAGS) -o Map.o  -g -I$(SRC_PATH_PIM) $(srcdir)/Map.mod
+	$(XGM2) -fm2-whole-program -fextended-opaque -fonlylink $(GM2FLAGS) -g -I$(SRC_PATH_PIM) $(srcdir)/Map.mod
 
 clean:
 	$(RM) *.o a.out map semantic

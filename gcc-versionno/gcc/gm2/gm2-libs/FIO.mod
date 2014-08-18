@@ -372,7 +372,8 @@ BEGIN
          END ;
          name.address := strncpy(name.address, fname, flength) ;
          (* and assign nul to the last byte *)
-         p := ADDRESS(name.address + flength) ;
+         p := name.address ;
+         INC(p, flength) ;
          p^ := nul ;
          abspos := 0 ;
          (* now for the buffer *)
@@ -542,6 +543,7 @@ END Close ;
 
 PROCEDURE ReadFromBuffer (f: File; a: ADDRESS; nBytes: CARDINAL) : INTEGER ;
 VAR 
+   t     : ADDRESS ;
    result: INTEGER ;
    total,
    n     : CARDINAL ;
@@ -571,11 +573,13 @@ BEGIN
                      RETURN( 1 )
                   ELSE
                      n := Min(left, nBytes) ;
-                     p := memcpy(a, ADDRESS(address+position), n) ;
+                     t := address ;
+                     INC(t, position) ;
+                     p := memcpy(a, t, n) ;
                      DEC(left, n) ;      (* remove consumed bytes               *)
                      INC(position, n) ;  (* move onwards n bytes                *)
                                          (* move onwards ready for direct reads *)
-                     a := ADDRESS(a+n) ;
+                     INC(a, n) ;
                      DEC(nBytes, n) ;    (* reduce the amount for future direct *)
                                          (* read                                *)
                      INC(total, n) ;
@@ -666,6 +670,7 @@ END ReadNBytes ;
 
 PROCEDURE BufferedRead (f: File; nBytes: CARDINAL; a: ADDRESS) : INTEGER ;
 VAR 
+   t     : ADDRESS ;
    result: INTEGER ;
    total,
    n     : INTEGER ;
@@ -697,11 +702,13 @@ BEGIN
                            RETURN( total )
                         ELSE
                            n := Min(left, nBytes) ;
-                           p := memcpy(a, ADDRESS(address+position), n) ;
+                           t := address ;
+                           INC(t, position) ;
+                           p := memcpy(a, t, n) ;
                            DEC(left, n) ;      (* remove consumed bytes               *)
                            INC(position, n) ;  (* move onwards n bytes                *)
                                                (* move onwards ready for direct reads *)
-                           a := ADDRESS(a+n) ;
+                           INC(a, n) ;
                            DEC(nBytes, n) ;    (* reduce the amount for future direct *)
                                                (* read                                *)
                            INC(total, n)
@@ -1176,6 +1183,7 @@ END WriteNBytes ;
 
 PROCEDURE BufferedWrite (f: File; nBytes: CARDINAL; a: ADDRESS) : INTEGER ;
 VAR 
+   t     : ADDRESS ;
    result: INTEGER ;
    total,
    n     : INTEGER ;
@@ -1207,11 +1215,13 @@ BEGIN
                            RETURN( total )
                         ELSE
                            n := Min(left, nBytes) ;
-                           p := memcpy(a, ADDRESS(address+position), CARDINAL(n)) ;
+                           t := address ;
+                           INC(t, position) ;
+                           p := memcpy(a, t, CARDINAL(n)) ;
                            DEC(left, n) ;      (* remove consumed bytes               *)
                            INC(position, n) ;  (* move onwards n bytes                *)
                                                (* move ready for further writes       *)
-                           a := ADDRESS(a+n) ;
+                           INC(a, n) ;
                            DEC(nBytes, n) ;    (* reduce the amount for future writes *)
                            INC(total, n)
                         END
