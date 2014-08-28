@@ -38,7 +38,8 @@ FROM SymbolTable IMPORT NulSym,
                         IsModule,
                         IsDefImp,
                         IsExportQualified,
-                        IsExported ;
+                        IsExported,
+                        IsDefinitionForC ;
 
 FROM M2Error IMPORT InternalError ;
 FROM M2Configure IMPORT UseUnderscoreForC, UseDotForJumpLabels ;

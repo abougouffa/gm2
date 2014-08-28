@@ -19,10 +19,14 @@
 srcdir = @srcdir@
 gm2dir = $(srcdir)/../..
 
-SRC_PATH_PIM=$(srcdir):$(gm2dir)/gm2-compiler:../../gm2-libs:$(gm2dir)/gm2-libs:$(gm2dir)/gm2-libs-iso
-OBJ_PATH_PIM=.:../../gm2-libs
+include ../../config-make
+LIBSTDCXX=../../../../$(TARGET_SUBDIR)/libstdc++-v3/src/.libs
+
+SRC_PATH_PIM=../../../../$(TARGET_SUBDIR)/libgm2/libpim/.libs:$(gm2dir)/gm2-libs
+OBJ_PATH_PIM=.:../../../../$(TARGET_SUBDIR)/libgm2/libpim/.libs
 
 XGM2=../../../xgm2 -B../../.. -B../../../stage1/gm2
+GM2FLAGS=-O3
 
 all: force
 	@echo "you need to use 'make pre-install' to build the examples using the locally built compiler"
@@ -39,6 +43,9 @@ post-install: clean
 	size a.out
 	gm2    -g -I. -ffunction-sections -fdata-sections $(srcdir)/hello.mod -Wl,--gc-sections
 	size a.out
+
+pre-install-whole: clean
+	$(XGM2) -fm2-whole-program -fextended-opaque $(GM2FLAGS) -o hello-m2-whole-program  -g -I$(SRC_PATH_PIM) $(srcdir)/hello.mod -L$(LIBSTDCXX)
 
 clean:
 	$(RM) *.o a.out a.exe *.cpp *.obj

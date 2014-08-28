@@ -107,6 +107,8 @@ BEGIN
    m := circle (m, TRUE, zero(), blue(), initFract(0, 3,100)) ;
    m := moveTo(m, initPoint(initFract(0,20,100), initFract(0,89,100))) ;
    m := circle (m, TRUE, zero(), dark, initFract(0, 3,100)) ;
+   m := moveTo(m, initPoint(initFract(0,21,100), initFract(0,73,100))) ;
+   m := circle (m, TRUE, zero(), yellow(), initFract(0, 3,100)) ;
 
    m := rootMacro(m) ;
 

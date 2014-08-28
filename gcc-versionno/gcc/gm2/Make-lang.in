@@ -1912,7 +1912,7 @@ ABSINCDIR = `cd $(INCDIR); pwd`
 ABSLIBDIR = `cd $(LIBDIR); pwd`
 
 gm2/boot-bin/p2c$(exeext): $(P2C_PROTOTYPES) $(P2COBJS)
-	$(CC) $(LDFLAGS) $(P2COBJS) -o $@
+	$(CC) $(ALL_LINKERFLAGS) $(LDFLAGS) $(P2COBJS) -o $@
 
 gm2/boot-bin/dir.o: $(srcdir)/gm2/p2c/p2c-src/src/dir.c $(srcdir)/gm2/p2c/p2c-src/src/trans.h
 	$(CC) -c $(CFLAGS) $(P2C_INCLUDES) $(CUSTDEFS) $< -o $@

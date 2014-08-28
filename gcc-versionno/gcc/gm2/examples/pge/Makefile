@@ -11,6 +11,8 @@ OBJECTS = $(SOURCES:%.mod=%.o)
 PROFILE = 
 GM2FLAGS = $(PROFILE) -fsoft-check-all -g -fiso -fextended-opaque 
 
+whole: force
+	gm2 -O3 -fsources -fiso -fcpp -I. -fm2-whole-program -fextended-opaque -g foo.mod 
 
 bounce: $(OBJECTS)
 	gm2 $(GM2FLAGS) -fonlylink bounce.mod
