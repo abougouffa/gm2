@@ -1,4 +1,5 @@
--- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+-- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+--               2011, 2012, 2013, 2014
 -- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
@@ -20,7 +21,8 @@
 --
 % module gm2m begin
 MODULE gm2m ;
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+                 2011, 2012, 2013, 2014
    Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
@@ -102,6 +104,14 @@ TYPE
                   Father: PtrToNode ;   (* Father of this node *)
                END ;
 
+   BlockInfoPtr = POINTER TO BlockInfo ;
+   BlockInfo    = RECORD
+                     level          : CARDINAL ;
+                     LocalModules,                (* locally declared modules at the current level  *)
+                     ImportedModules: List ;      (* current list of imports for the scanned module *)
+                     Prev           : BlockInfoPtr ;
+                  END ;
+
 VAR
    main           : PtrToNode ;
    DefExistsTree  : SymbolTree ; (* Table of definition modules found or not   *)
@@ -129,8 +139,8 @@ VAR
    MainSrc,
    MainName       : Name ;
    op             : File ;
-   ImportedModules: List ;
    ExitValue      : INTEGER ;
+   pBlock         : BlockInfoPtr ;
 
 
 (* %%%FORWARD%%%
@@ -157,6 +167,80 @@ PROCEDURE FormatLn ; FORWARD ;
 PROCEDURE FormatChar (ch: CHAR) ; FORWARD ;
    %%%FORWARD%%% *)
 
+
+
+(*
+   BeginBlock - 
+*)
+
+PROCEDURE BeginBlock (Level: CARDINAL) ;
+VAR
+   b: BlockInfoPtr ;
+BEGIN
+   NEW(b) ;
+   WITH b^ DO
+      IF (Level=0) AND (pBlock#NIL)
+      THEN
+         level := pBlock^.level
+      ELSE
+         level := Level
+      END ;
+      InitList(LocalModules) ;
+      InitList(ImportedModules) ;
+      Prev := pBlock
+   END ;
+   pBlock := b
+END BeginBlock ;
+
+
+(*
+   EndBlock - 
+*)
+
+PROCEDURE EndBlock ;
+VAR
+   b      : BlockInfoPtr ;
+   i, n   : CARDINAL ;
+   modname: Name ;
+BEGIN
+   b := pBlock^.Prev ;
+   WITH pBlock^ DO
+      KillList(LocalModules) ;
+      KillList(ImportedModules)
+   END ;
+   DISPOSE(pBlock) ;
+   pBlock := b
+END EndBlock ;
+
+
+(*
+   RegisterLocalModule - register, n, as a local module.
+*)
+
+PROCEDURE RegisterLocalModule (n: Name) ;
+BEGIN
+   printf1('seen local module %a\n', n) ;
+   WITH pBlock^ DO
+      IncludeItemIntoList(LocalModules, n) ;
+      RemoveItemFromList(ImportedModules, n)
+   END
+END RegisterLocalModule ;
+
+
+(*
+   RegisterImport - register, n, as a module imported from either a local scope or definition module.
+*)
+
+PROCEDURE RegisterImport (n: Name) ;
+BEGIN
+   printf1('register import from module %a\n', n) ;
+   WITH pBlock^ DO
+      IF NOT IsItemInList(LocalModules, n)
+      THEN
+         IncludeItemIntoList(ImportedModules, n)
+      END
+   END
+END RegisterImport ;
 
 
 (*
@@ -776,27 +860,25 @@ PROCEDURE ParseSource (ModuleName: Name; IsDefinition: BOOLEAN;
                        n: PtrToNode; Level: CARDINAL) ;
 VAR
    i, j     : CARDINAL ;
-   symbol   : Name ;
+   modname  : Name ;
    son      : PtrToNode ;
-   lasttoken: toktype ;
-   OldList  : List ;
 BEGIN
-   InitList(ImportedModules) ;
+   BeginBlock(Level) ;
    Open(ModuleName, IsDefinition) ;
    CompilationUnit ;
    CloseSource ;
-   OldList := DuplicateList(ImportedModules) ;
-   KillList(ImportedModules) ;
-   j := NoOfItemsInList(OldList) ;
    i := 1 ;
-   WHILE i<=j DO
-      symbol := GetItemFromList(OldList, i) ;
-      IF CreateSon(son, symbol, DefExtn, n, Level+1)
-      THEN
-      END ;
-      INC(i)
+   WITH pBlock^ DO
+      j := NoOfItemsInList(ImportedModules) ;
+      WHILE i<=j DO
+         modname := GetItemFromList(ImportedModules, i) ;
+         IF CreateSon(son, modname, DefExtn, n, level+1)
+         THEN
+         END ;
+         INC(i)
+      END
    END ;
-   KillList(OldList)
+   EndBlock
 END ParseSource ;
 
  
@@ -1839,7 +1921,7 @@ BNF
 -- OctalDigit := "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" =:
 -- String
 
-FileUnit :=  
+FileUnit :=
             ( DefinitionModule |
               ImplementationOrProgramModule )
          =:
@@ -1851,14 +1933,16 @@ ProgramModule := "MODULE"
 
                   { Import
                   }       
-                  =:
+                  Block Ident "."
+               =:
 
 ImplementationModule := "IMPLEMENTATION" "MODULE"
-                         Ident                   
+                         Ident
                          [ Priority ] ";"        
                          { Import               
                            }                     
-                         =:
+                         Block Ident "."
+                      =:
 
 ImplementationOrProgramModule := ImplementationModule | ProgramModule =:
 
@@ -1873,25 +1957,7 @@ DefinitionModule := "DEFINITION" "MODULE" [ "FOR" str
 
 Number := Integer | Real =:
 
-Qualident := Ident { "." Ident } =:
-
-Priority := "[" ConstExpression "]" =:
-
-Export := "EXPORT" ( "QUALIFIED"
-                                 IdentList |
-                     "UNQUALIFIED"
-                                 IdentList |
-                     IdentList ) ";" =:
-
-Import :=  "FROM" Ident                                                     % IncludeItemIntoList(ImportedModules, LastIdent) %
-                 "IMPORT" IdentList ";" |
-           "IMPORT" ImportList ";" =:
-
-IdentList := Ident { "," Ident } =:
-
-ImportList := Ident                                                         % IncludeItemIntoList(ImportedModules, LastIdent) %
-                    { "," Ident                                             % IncludeItemIntoList(ImportedModules, LastIdent) %
-                                } =:
+ConstantDeclaration := Ident "=" ConstExpression =:
 
 ConstExpression := SimpleConstExpr [ Relation SimpleConstExpr ] =:
 
@@ -1905,29 +1971,297 @@ AddOperator := "+" | "-" | "OR" =:
 
 ConstTerm := ConstFactor { MulOperator ConstFactor } =:
 
-MulOperator := "*" | "/" | "DIV" | "MOD" | "AND" | "&" =:
+MulOperator := "*" | "/" | "DIV" | "MOD" | "REM" | "AND" | "&" =:
 
-ConstFactor := ConstQualidentOrSet | Number | ConstString |
-               "(" ConstExpression ")" | "NOT" ConstFactor =:
+ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
+               "(" ConstExpression ")" | "NOT" ConstFactor |
+                                               ConstAttribute
+             =:
 
 -- to help satisfy LL1
 
 ConstString := str =:
 
-ConstQualidentOrSet := SimpleSet | Qualident [ SimpleSet ] =:
+ComponentElement := ConstExpression [ ".." ConstExpression ] =:
 
-SimpleSet := "{" [ Element { "," Element } ] "}" =:
+ComponentValue := ComponentElement [ 'BY' ConstExpression ] =:
+
+ArraySetRecordValue := ComponentValue { ',' ComponentValue } =:
+
+Constructor := '{' [ ArraySetRecordValue ] '}' =:
+
+ConstSetOrQualidentOrFunction := Constructor | Qualident
+                                 [ Constructor | ConstActualParameters ] =:
+
+ConstActualParameters := "(" [ ExpList ] ")" =:
+
+ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" ConstAttributeExpression ")" ")" =:
+
+ConstAttributeExpression := Ident | "<" Qualident ',' Ident ">" =:
+
+-- Set := [ Qualident ] "{" [ Element { "," Element } ] "}" =:
 
 Element := ConstExpression [ ".." ConstExpression ] =:
 
--- Block tells us when the exports/imports have finished (we use this rule to hand build our stop set)
+ByteAlignment := '<*' AttributeExpression '*>' =:
 
--- Block := "CONST" |
---          "TYPE" |
---          "VAR" |
---          "PROCEDURE" |
---          "MODULE" |
---          "BEGIN" |
---          "END" =:
+OptAlignmentExpression := [ AlignmentExpression ] =:
+
+AlignmentExpression := "(" ConstExpression ")" =:
+
+Alignment := [ ByteAlignment ] =:
+
+TypeDeclaration := ( Ident "=" Type Alignment ) =:
+
+Type := ( SimpleType | ArrayType | RecordType | SetType |
+          PointerType | ProcedureType )
+        =:
+
+SimpleType := Qualident [ SubrangeType ] | Enumeration | SubrangeType =:
+
+Enumeration := "(" IdentList ")" =:
+
+SubrangeType := "[" ConstExpression ".." ConstExpression "]" =:
+
+ArrayType := "ARRAY" SimpleType { "," SimpleType } "OF" Type =:
+
+RecordType := "RECORD" [ DefaultRecordAttributes ] FieldListSequence "END" =:
+
+DefaultRecordAttributes := '<*' AttributeExpression '*>' =:
+
+RecordFieldPragma := [ '<*' FieldPragmaExpression
+                        { ',' FieldPragmaExpression } '*>' ] =:
+
+FieldPragmaExpression := Ident [ '(' ConstExpression ')' ] =:
+
+AttributeExpression := Ident '(' ConstExpression ')' =:
+
+FieldListSequence := FieldListStatement { ";" FieldListStatement } =:
+
+FieldListStatement := [ FieldList ] =:
+
+FieldList := IdentList ":" Type RecordFieldPragma
+                                |
+             "CASE" CaseTag "OF" Varient { "|" Varient }
+             [ "ELSE" FieldListSequence ] "END"
+           =:
+
+TagIdent := [ Ident ] =:
+
+CaseTag := TagIdent [ ":" Qualident ] =:
+
+Varient := [ VarientCaseLabelList ":" FieldListSequence ] =:
+
+VarientCaseLabelList := VarientCaseLabels { "," VarientCaseLabels } =:
+
+VarientCaseLabels := ConstExpression [ ".." ConstExpression ] =:
+
+CaseLabelList := CaseLabels { "," CaseLabels } =:
+
+CaseLabels := ConstExpression [ ".." ConstExpression ] =:
+
+SetType := ( "SET" | "PACKEDSET" ) "OF" SimpleType =:
+
+PointerType := "POINTER" "TO" Type =:
+
+ProcedureType := "PROCEDURE" [ FormalTypeList ] =:
+
+FormalTypeList := "(" ( ")" FormalReturn |
+                        ProcedureParameters ")" FormalReturn ) =:
+
+FormalReturn := [ ":" OptReturnType ] =:
+
+OptReturnType := "[" Qualident "]" | Qualident =:
+
+ProcedureParameters := ProcedureParameter
+                       { "," ProcedureParameter } =:
+
+ProcedureParameter := "..." | "VAR" FormalType | FormalType =:
+
+VarIdent := Ident [ "[" ConstExpression "]" ] =:
+
+VariableDeclaration := VarIdentList ":" Type Alignment =:
+
+VarIdentList := VarIdent { "," VarIdent } =:
+
+Designator := Qualident { SubDesignator } =:
+
+SubDesignator := "." Ident | "[" ExpList "]" | "^" =:
+
+ExpList := Expression { "," Expression } =:
+
+Expression := SimpleExpression [ Relation SimpleExpression ] =:
+
+SimpleExpression := [ "+" | "-" ] Term { AddOperator Term } =:
+
+Term := Factor { MulOperator Factor } =:
+
+Factor := Number | str | SetOrDesignatorOrFunction |
+          "(" Expression ")" | "NOT" Factor | ConstAttribute =:
+
+SetOrDesignatorOrFunction := ( Qualident [ Constructor |
+                                           SimpleDes [ ActualParameters ]
+                                         ] | Constructor
+                             )
+                           =:
+
+SimpleDes := { "." Ident | "[" ExpList "]" | "^" } =:
+
+ActualParameters := "(" [ ExpList ] ")" =:
+
+Statement := [ AssignmentOrProcedureCall | IfStatement | CaseStatement |
+               WhileStatement | RepeatStatement | LoopStatement |
+               ForStatement | WithStatement | AsmStatement |
+               "EXIT" | "RETURN" [ Expression ] | RetryStatement ] =:
+
+RetryStatement := "RETRY" =:
+
+AssignmentOrProcedureCall := Designator ( ":=" Expression |
+                                           ActualParameters |              % (* epsilon *) %
+                                        ) =:
+
+-- these two break LL1 as both start with a Designator
+-- ProcedureCall := Designator [ ActualParameters ] =:
+-- Assignment := Designator ":=" Expression =:
+
+StatementSequence := Statement { ";" Statement } =:
+
+IfStatement := "IF" Expression "THEN" StatementSequence
+              { "ELSIF" Expression "THEN" StatementSequence }
+              [ "ELSE" StatementSequence ] "END" =:
+
+CaseStatement := "CASE" Expression "OF" Case { "|" Case }
+                 [ "ELSE" StatementSequence ] "END" =:
+
+Case := [ CaseLabelList ":" StatementSequence ] =:
+
+WhileStatement := "WHILE" Expression "DO" StatementSequence "END" =:
+
+RepeatStatement := "REPEAT" StatementSequence "UNTIL" Expression =:
+
+ForStatement := "FOR" Ident ":=" Expression "TO" Expression
+                [ "BY" ConstExpression ] "DO"
+                StatementSequence "END" =:
+
+LoopStatement := "LOOP" StatementSequence "END" =:
+
+WithStatement := "WITH" Designator "DO" StatementSequence "END" =:
+
+ProcedureDeclaration := ProcedureHeading ";" ( ProcedureBlock Ident ) =:
+
+DefineBuiltinProcedure := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")"
+                          | "__INLINE__" 
+                          | % (* epsilon *) %
+                       =:
+
+ProcedureHeading := "PROCEDURE" DefineBuiltinProcedure
+                     ( Ident [ FormalParameters ] ) =:
+
+Builtin := "__BUILTIN__" | "__INLINE__" | % (* epsilon *) % =:
+
+DefProcedureHeading := "PROCEDURE" Builtin ( Ident
+                                             [ DefFormalParameters ] ) =:
+
+-- introduced procedure block so we can produce more informative
+-- error messages
+
+ProcedureBlock :=                                                        % BeginBlock(0) %
+                  { Declaration } [ "BEGIN" BlockBody ] "END"            % EndBlock %
+                =:
+
+Block :=
+          { Declaration } InitialBlock FinalBlock "END"
+       =:
+
+InitialBlock := [ "BEGIN" BlockBody ] =:
+
+FinalBlock := [ "FINALLY" BlockBody ] =:
+
+BlockBody := NormalPart [ "EXCEPT" ExceptionalPart ] =:
+
+NormalPart := StatementSequence =:
+
+ExceptionalPart := StatementSequence =:
+
+Declaration := "CONST" { ConstantDeclaration ";" } |
+               "TYPE" { TypeDeclaration ";" } |
+               "VAR" { VariableDeclaration ";" } |
+               ProcedureDeclaration ";" |
+               ModuleDeclaration ";" =:
+
+DefFormalParameters := "(" [ DefMultiFPSection ] ")" FormalReturn =:
+
+DefMultiFPSection := DefExtendedFP |
+                     FPSection [ ";" DefMultiFPSection ] =:
+
+FormalParameters := "(" [ MultiFPSection ] ")" FormalReturn =:
+
+MultiFPSection := ExtendedFP |
+                  FPSection [ ";" MultiFPSection ] =:
+
+FPSection := NonVarFPSection | VarFPSection =:
+
+DefExtendedFP := DefOptArg | "..." =:
+
+ExtendedFP := OptArg | "..." =:
+
+VarFPSection := "VAR" IdentList ":" FormalType =:
+
+NonVarFPSection := IdentList ":" FormalType =:
+
+OptArg := "[" Ident ":" FormalType [ "=" ConstExpression ] "]" =:
+
+DefOptArg := "[" Ident ":" FormalType "=" ConstExpression "]" =:
+
+FormalType := { "ARRAY" "OF" } Qualident =:
+
+-- local module, make sure this is not in the import list
+
+ModuleDeclaration := "MODULE"
+                     Ident                                                  % RegisterLocalModule(LastIdent) %
+                     [ Priority ] ";"
+                     { Import  
+                        } [ Export
+                            ]     
+                                                                            % BeginBlock(0) %
+                       Block      
+                       Ident                                                % EndBlock %
+                     =:
+
+Priority := "[" ConstExpression "]" =:
+
+Qualident := Ident { "." Ident } =:
+
+Export := "EXPORT" ( "QUALIFIED"
+                                 IdentList |
+                     "UNQUALIFIED"
+                                 IdentList |
+                     IdentList ) ";" =:
+
+Import :=  "FROM" Ident                                                     % RegisterImport(LastIdent) %
+                 "IMPORT" IdentList ";" |
+           "IMPORT" ImportList ";" =:
+
+IdentList := Ident { "," Ident } =:
+
+ImportList := Ident                                                         % RegisterImport(LastIdent) %
+                    { "," Ident                                             % RegisterImport(LastIdent) %
+                                } =:
+
+AsmStatement := 'ASM' [ 'VOLATILE' ] '(' AsmOperands ')' =:
+
+NamedOperand := '[' Ident ']' =:
+
+AsmOperandName := [ NamedOperand ] =:
+
+AsmOperands  := str [ ':' AsmList [ ':' AsmList [ ':' TrashList ] ] ]
+             =:
+
+AsmList      := [ AsmElement ] { ',' AsmElement } =:
+
+AsmElement   := AsmOperandName str '(' Expression ')'
+             =:
+
+TrashList    := [ str ] { ',' str } =:
 
 FNB

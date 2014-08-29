@@ -1,3 +1,16 @@
+2014-08-29      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/gm2m.bnf:  fixed bug reported by John O Goyo
+	  (see testsuite/gm2/imports/run/pass/innermods.mod and
+	   testsuite/gm2/imports/run/pass/innermods2.mod).
+	  Maintain a block of nested modules and allow inner modules
+	  to import objects via FROM x statements.  (BeginBlock)
+	  New procedure.  (EndBlock) New procedure.  (RegisterLocalModule)
+	  New procedure.  (RegisterImport) New procedure.  The ebnf
+	  rules were extended to nearly the complete language (with the exception
+	  of full parsing of definition modules).  Similar to gm2l except
+	  the block retains the module level.
+
 2014-08-28      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/gm2l.bnf:  fixed bug reported by John O Goyo
