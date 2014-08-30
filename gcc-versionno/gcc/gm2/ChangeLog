@@ -3,6 +3,14 @@
 	* gm2/bnf/gm2m.bnf:  fixed bug so that nested local modules
 	  propagate their imported modules outwards.
 	  (see testsuite/gm2/imports/run/pass/innermods3.mod).
+	* gm2/bnf/m2.bnf:  corrected dates.
+	* gm2/bnf/gm2l.bnf:  commented out printfs.
+	* rebuild the all configure files changed by the gm2 front
+	  end.
+	* rebuilt all patch files.
+	  (gm2/patches/gcc/4.7.3/01-patches, gm2/patches/gcc/4.7.3/02-patches,
+           gm2/patches/gcc/4.7.3/03-patches, gm2/patches/gcc/4.7.3/04-patches,
+           gm2/patches/gcc/4.7.3/05-patches, gm2/patches/gcc/4.7.3/12-patches)
 
 2014-08-29      Gaius Mulley <gaius@gnu.org>
 
