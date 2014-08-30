@@ -1,3 +1,9 @@
+2014-08-30      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/gm2m.bnf:  fixed bug so that nested local modules
+	  propagate their imported modules outwards.
+	  (see testsuite/gm2/imports/run/pass/innermods3.mod).
+
 2014-08-29      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/gm2m.bnf:  fixed bug reported by John O Goyo

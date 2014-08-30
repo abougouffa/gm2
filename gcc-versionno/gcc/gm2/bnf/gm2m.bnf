@@ -107,6 +107,7 @@ TYPE
    BlockInfoPtr = POINTER TO BlockInfo ;
    BlockInfo    = RECORD
                      level          : CARDINAL ;
+                     ToDoModules,
                      LocalModules,                (* locally declared modules at the current level  *)
                      ImportedModules: List ;      (* current list of imports for the scanned module *)
                      Prev           : BlockInfoPtr ;
@@ -187,6 +188,7 @@ BEGIN
       END ;
       InitList(LocalModules) ;
       InitList(ImportedModules) ;
+      InitList(ToDoModules) ;
       Prev := pBlock
    END ;
    pBlock := b
@@ -205,6 +207,23 @@ VAR
 BEGIN
    b := pBlock^.Prev ;
    WITH pBlock^ DO
+      (* now remember any non local modules *)
+      n := NoOfItemsInList(ImportedModules) ;
+      i := 1 ;
+      WHILE i<=n DO
+         IncludeItemIntoList(ToDoModules, GetItemFromList(ImportedModules, i)) ;
+         INC(i)
+      END ;
+      IF b#NIL
+      THEN
+         (* and propagate this list to the outer level *)
+         i := 1 ;
+         n := NoOfItemsInList(ToDoModules) ;
+         WHILE i<=n DO
+            IncludeItemIntoList(b^.ToDoModules, GetItemFromList(ToDoModules, i)) ;
+            INC(i)
+         END
+      END ;
       KillList(LocalModules) ;
       KillList(ImportedModules)
    END ;
@@ -219,7 +238,7 @@ END EndBlock ;
 
 PROCEDURE RegisterLocalModule (n: Name) ;
 BEGIN
-   printf1('seen local module %a\n', n) ;
+   (* printf1('seen local module %a\n', n) ; *)
    WITH pBlock^ DO
       IncludeItemIntoList(LocalModules, n) ;
       RemoveItemFromList(ImportedModules, n)
@@ -233,7 +252,7 @@ END RegisterLocalModule ;
 
 PROCEDURE RegisterImport (n: Name) ;
 BEGIN
-   printf1('register import from module %a\n', n) ;
+   (* printf1('register import from module %a\n', n) ; *)
    WITH pBlock^ DO
       IF NOT IsItemInList(LocalModules, n)
       THEN
@@ -867,16 +886,20 @@ BEGIN
    Open(ModuleName, IsDefinition) ;
    CompilationUnit ;
    CloseSource ;
-   i := 1 ;
    WITH pBlock^ DO
-      j := NoOfItemsInList(ImportedModules) ;
+      i := 1 ;
+      j := NoOfItemsInList(ToDoModules) ;
       WHILE i<=j DO
-         modname := GetItemFromList(ImportedModules, i) ;
+         modname := GetItemFromList(ToDoModules, i) ;
          IF CreateSon(son, modname, DefExtn, n, level+1)
          THEN
          END ;
          INC(i)
-      END
+      END ;
+      KillList(ToDoModules) ;
+      InitList(ToDoModules) ;
+      KillList(ImportedModules) ;
+      InitList(ImportedModules)
    END ;
    EndBlock
 END ParseSource ;

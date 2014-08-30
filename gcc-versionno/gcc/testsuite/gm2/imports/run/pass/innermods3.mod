@@ -16,7 +16,7 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA. *)
 
-MODULE innermods2 ;
+MODULE innermods3 ;
 
   MODULE a ;
   EXPORT x ;
@@ -29,8 +29,12 @@ MODULE innermods2 ;
 
   MODULE b ;
 
-  FROM c IMPORT z ;
-  EXPORT y ;
+    MODULE d ;
+
+    FROM c IMPORT z ;
+    EXPORT y ;
+
+    END d ;
 
   PROCEDURE y ;
   BEGIN
@@ -41,4 +45,4 @@ MODULE innermods2 ;
 
 BEGIN
    y
-END innermods2.
+END innermods3.
