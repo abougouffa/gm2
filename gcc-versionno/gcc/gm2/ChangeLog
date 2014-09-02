@@ -1,3 +1,10 @@
+2014-09-02      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  removed unnecessary SO, SO_O2, O2 library build
+	  rules.
+	* gm2/gm2-compiler/SymbolTable.mod:  removed unnecessary Type, Size, Offset
+	  fields from Module, DefImp symbols.  Also removed their initialisation.
+
 2014-08-30      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/gm2m.bnf:  fixed bug so that nested local modules

@@ -26,11 +26,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <config.h>
 
 
-#define GM2
-
-#include <config.h>
-
-
 #if defined(HAVE_STRINGS)
 #  include <strings.h>
 #endif

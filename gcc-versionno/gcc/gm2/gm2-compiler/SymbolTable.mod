@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011
+                 2010, 2011, 2012, 2013, 2014
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -549,9 +549,6 @@ TYPE
             RECORD
                name          : Name ;       (* Index into name array, name   *)
                                             (* of record field.              *)
-               Type          : CARDINAL ;   (* Index to a type symbol.       *)
-               Size          : PtrToValue ; (* Runtime size of symbol.       *)
-               Offset        : PtrToValue ; (* Offset at runtime of symbol   *)
                ExportQualifiedTree: SymbolTree ;
                                             (* Holds all the export          *)
                                             (* Qualified identifiers.        *)
@@ -642,8 +639,6 @@ TYPE
             RECORD
                name          : Name ;       (* Index into name array, name   *)
                                             (* of record field.              *)
-               Size          : PtrToValue ; (* Runtime size of symbol.       *)
-               Offset        : PtrToValue ; (* Offset at runtime of symbol   *)
                LocalSymbols  : SymbolTree ; (* The LocalSymbols hold all the *)
                                             (* variables declared local to   *)
                                             (* the block. It contains the    *)
@@ -651,7 +646,7 @@ TYPE
                                             (* FROM _ IMPORT x, y, x ;       *)
                                             (*    and also                   *)
                                             (* MODULE WeAreHere ;            *)
-                                            (*    x y z visiable by localsym *)
+                                            (*    x y z visible by localsym  *)
                                             (*    MODULE Inner ;             *)
                                             (*       EXPORT x, y, z ;        *)
                                             (*    END Inner ;                *)
@@ -2715,8 +2710,6 @@ BEGIN
       WITH Module DO
          name := ModuleName ;               (* Index into name array, name   *)
                                             (* of record field.              *)
-         Size := InitValue() ;              (* Runtime size of symbol.       *)
-         Offset := InitValue() ;            (* Offset at runtime of symbol   *)
          InitTree(LocalSymbols) ;           (* The LocalSymbols hold all the *)
                                             (* variables declared local to   *)
                                             (* the block. It contains the    *)
@@ -2829,8 +2822,6 @@ BEGIN
          WITH Module DO
             name := ModuleName ;            (* Index into name array, name   *)
                                             (* of record field.              *)
-            Size := InitValue() ;           (* Runtime size of symbol.       *)
-            Offset := InitValue() ;         (* Offset at runtime of symbol   *)
             InitTree(LocalSymbols) ;        (* The LocalSymbols hold all the *)
                                             (* variables declared local to   *)
                                             (* the block. It contains the    *)
@@ -2925,9 +2916,6 @@ BEGIN
       WITH DefImp DO
          name := DefImpName ;         (* Index into name array, name   *)
                                       (* of record field.              *)
-         Type := NulSym ;             (* Index to a type symbol.       *)
-         Size := InitValue() ;        (* Runtime size of symbol.       *)
-         Offset := InitValue() ;      (* Offset at runtime of symbol   *)
          InitTree(ExportQualifiedTree) ;
                                       (* Holds all the EXPORT          *)
                                       (* QUALIFIED identifiers.        *)
@@ -6681,7 +6669,7 @@ END RequestFromModule ;
 PROCEDURE RequestFromDefinition (ModSym: CARDINAL; SymName: Name) : CARDINAL ;
 VAR
    pSym       : PtrToSymbol ;
-   Type, Sym  : CARDINAL ;
+   type, Sym  : CARDINAL ;
    OldScopePtr: CARDINAL ;
 BEGIN
    pSym := GetPsym(ModSym) ;
@@ -6709,7 +6697,7 @@ BEGIN
                              ELSE
                                 IF IsFieldEnumeration(Sym)
                                 THEN
-                                   Type := GetType(Sym) ;
+                                   type := GetType(Sym) ;
                                    IF IsExported(ModSym, GetType(Sym))
                                    THEN
                                       RETURN( Sym )
@@ -11643,14 +11631,12 @@ BEGIN
       CASE SymbolType OF
 
       ProcedureSym    : RETURN( IsSolved(Procedure.Size) ) |
-      ModuleSym       : RETURN( IsSolved(Module.Size) ) |
       VarSym          : RETURN( IsSolved(Var.Size) ) |
       TypeSym         : RETURN( IsSolved(Type.Size) ) |
       SetSym          : RETURN( IsSolved(Set.Size) ) |
       RecordSym       : RETURN( IsSolved(Record.Size) ) |
       VarientSym      : RETURN( IsSolved(Varient.Size) ) |
       EnumerationSym  : RETURN( IsSolved(Enumeration.Size) ) |
-      DefImpSym       : RETURN( IsSolved(DefImp.Size) ) |
       PointerSym      : RETURN( IsSolved(Pointer.Size) ) |
       ArraySym        : RETURN( IsSolved(Array.Size) ) |
       RecordFieldSym  : RETURN( IsSolved(RecordField.Size) ) |
@@ -11680,9 +11666,7 @@ BEGIN
    WITH pSym^ DO
       CASE SymbolType OF
 
-      ModuleSym       : RETURN( IsSolved(Module.Offset) ) |
       VarSym          : RETURN( IsSolved(Var.Offset) ) |
-      DefImpSym       : RETURN( IsSolved(DefImp.Offset) ) |
       RecordFieldSym  : RETURN( IsSolved(RecordField.Offset) ) |
       VarientFieldSym : RETURN( IsSolved(VarientField.Offset) )
 
@@ -11800,14 +11784,12 @@ BEGIN
       CASE SymbolType OF
 
       ProcedureSym    : PushFrom(Procedure.Size) |
-      ModuleSym       : PushFrom(Module.Size) |
       VarSym          : PushFrom(Var.Size) |
       TypeSym         : PushFrom(Type.Size) |
       SetSym          : PushFrom(Set.Size) |
       VarientSym      : PushFrom(Varient.Size) |
       RecordSym       : PushFrom(Record.Size) |
       EnumerationSym  : PushFrom(Enumeration.Size) |
-      DefImpSym       : PushFrom(DefImp.Size) |
       PointerSym      : PushFrom(Pointer.Size) |
       ArraySym        : PushFrom(Array.Size) |
       RecordFieldSym  : PushFrom(RecordField.Size) |
@@ -11837,9 +11819,7 @@ BEGIN
    WITH pSym^ DO
       CASE SymbolType OF
 
-      ModuleSym       : PushFrom(Module.Offset) |
       VarSym          : PushFrom(Var.Offset) |
-      DefImpSym       : PushFrom(DefImp.Offset) |
       RecordFieldSym  : PushFrom(RecordField.Offset) |
       VarientFieldSym : PushFrom(VarientField.Offset)
 
@@ -12057,13 +12037,11 @@ BEGIN
       CASE SymbolType OF
 
       ProcedureSym    : PopInto(Procedure.Size) |
-      ModuleSym       : PopInto(Module.Size) |
       VarSym          : PopInto(Var.Size) |
       TypeSym         : PopInto(Type.Size) |
       RecordSym       : PopInto(Record.Size) |
       VarientSym      : PopInto(Varient.Size) |
       EnumerationSym  : PopInto(Enumeration.Size) |
-      DefImpSym       : PopInto(DefImp.Size) |
       PointerSym      : PopInto(Pointer.Size) |
       ArraySym        : PopInto(Array.Size) |
       RecordFieldSym  : PopInto(RecordField.Size) |
@@ -12094,9 +12072,7 @@ BEGIN
    WITH pSym^ DO
       CASE SymbolType OF
 
-      ModuleSym       : PopInto(Module.Offset) |
       VarSym          : PopInto(Var.Offset) |
-      DefImpSym       : PopInto(DefImp.Offset) |
       RecordFieldSym  : PopInto(RecordField.Offset) |
       VarientFieldSym : PopInto(VarientField.Offset)
 
