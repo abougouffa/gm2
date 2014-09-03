@@ -121,6 +121,10 @@ fmake-I=
 Modula-2 Joined
 build project path (internal)
 
+fno-pth
+Modula-2
+do not link against the pth library
+
 fonlylink
 Modula-2
 only link the module and do not compile module

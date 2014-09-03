@@ -4,6 +4,14 @@
 	* libgm2/configure:  rebuilt.
 	* libgm2/configure.ac:  fixes to the GM2_CHECK_LIB macro to correctly
 	  test for the existence of library functions.
+	* gm2/configure.in:  added test for whether the pth library exists
+	  and issue a warning if it does not.
+	* gm2/gm2-lang.c:  new option -fno-pth.  Do not link against -lpth.
+	* gm2/gm2.texi:  document new option.
+	* gm2/gm2spec.c:  implement the new option, by default -lpth is included
+	  into the link process.  Add the library before -lstdc++.
+	* gm2/lang-options.h:  entry for new option.
+	* gm2/lang.opt:  entry for new option.
 
 2014-09-02      Gaius Mulley <gaius@gnu.org>
 

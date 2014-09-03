@@ -997,8 +997,11 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   /* By default, we throw on the math library if we have one.  */
   int need_math = (MATH_LIBRARY[0] != '\0');
 
+  /* True if we should add -lpth to the command-line.  */
+  int need_pth = TRUE;
+
   /* True if we should add -shared-libgcc to the command-line.  */
-  int shared_libgcc = 1;
+  int shared_libgcc = TRUE;
 
   /* The total number of arguments with the new stuff.  */
   unsigned int argc;
@@ -1028,6 +1031,8 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 	seen_B = TRUE;
 	B_path = (*in_decoded_options)[i].arg;
 	break;
+      case OPT_fno_pth:
+	need_pth = FALSE;
       }
   }
   /*
@@ -1156,6 +1161,11 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 
     if (need_math) {
       add_library (MATH_LIBRARY, in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
+      (*in_added_libraries)++;
+    }
+
+    if (need_pth) {
+      add_library ("pth", in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
       (*in_added_libraries)++;
     }
 

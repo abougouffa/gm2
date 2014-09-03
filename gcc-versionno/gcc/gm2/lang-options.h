@@ -103,6 +103,8 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("compile all implementation and program modules as a single unit") },
   { "-fmodules",
       N_("display list of modules and location") },
+  { "-fno-pth",
+      N_("do not link against -lpth") },
   { "-fruntime-modules=",
       N_("specify the list of runtime modules and their initialization order") },
   { "-fclean",

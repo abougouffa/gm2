@@ -286,6 +286,9 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
   case OPT_fmake_I_:
     /* handled in the driver */
     return 1;
+  case OPT_fno_pth:
+    /* handled in the driver */
+    return 1;
   case OPT_ftarget_ar_:
     /* handled in the driver */
     return 1;

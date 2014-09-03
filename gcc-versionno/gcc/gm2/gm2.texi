@@ -777,6 +777,13 @@ the @file{.lst} file is created it can be used by the compiler to link
 your project via the @samp{-fuselist} option.  It has no effect if the
 @samp{-c} option is present.
 
+@item -fno-pth
+do not automatically link against @code{-lpth}.  This option is likely
+useful if gm2 is configured as a cross compiler targetting embedded
+systems.  By default GNU Modula-2 uses the GNU Pth libraries to create
+thread contexts and to manipulate contexts (see the SYSTEM
+implementation module).
+
 @item -fuselist
 providing @samp{gm2} has been told to link the program module this
 option uses the file @file{modulename.lst} for the initialisation
