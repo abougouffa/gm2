@@ -1,21 +1,21 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* libc includes access */
+/* function access exists */
 #undef HAVE_ACCESS
 
-/* libc includes brk */
+/* function brk exists */
 #undef HAVE_BRK
 
-/* libc includes cfmakeraw */
+/* function cfmakeraw exists */
 #undef HAVE_CFMAKERAW
 
-/* libc includes close */
+/* function close exists */
 #undef HAVE_CLOSE
 
-/* libc includes creat */
+/* function creat exists */
 #undef HAVE_CREAT
 
-/* libc includes ctime */
+/* function ctime exists */
 #undef HAVE_CTIME
 
 /* Define to 1 if you have the <direct.h> header file. */
@@ -27,49 +27,52 @@
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
-/* libc includes dup */
+/* function dup exists */
 #undef HAVE_DUP
 
 /* Define to 1 if you have the <errno.h> header file. */
 #undef HAVE_ERRNO_H
 
-/* libc includes execve */
+/* function execve exists */
 #undef HAVE_EXECVE
 
-/* libc includes exit */
+/* function exit exists */
 #undef HAVE_EXIT
 
-/* libc includes fcntl */
+/* function fcntl exists */
 #undef HAVE_FCNTL
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
-/* libc includes fstat */
+/* function fstat exists */
 #undef HAVE_FSTAT
 
-/* libc includes getdents */
+/* function getdents exists */
 #undef HAVE_GETDENTS
 
-/* libc includes getgid */
+/* function getgid exists */
 #undef HAVE_GETGID
 
-/* libc includes getpid */
+/* function getpid exists */
 #undef HAVE_GETPID
 
-/* libc includes gettimeofday */
+/* function gettimeofday exists */
 #undef HAVE_GETTIMEOFD
 
-/* libc includes getuid */
+/* Define to 1 if you have the `gettimeofday' function. */
+#undef HAVE_GETTIMEOFDAY
+
+/* function getuid exists */
 #undef HAVE_GETUID
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* libc includes ioctl */
+/* function ioctl exists */
 #undef HAVE_IOCTL
 
-/* libc includes kill */
+/* function kill exists */
 #undef HAVE_KILL
 
 /* Define to 1 if you have the <langinfo.h> header file. */
@@ -78,10 +81,10 @@
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
-/* libc includes link */
+/* function link exists */
 #undef HAVE_LINK
 
-/* libc includes lseek */
+/* function lseek exists */
 #undef HAVE_LSEEK
 
 /* Define to 1 if you have the <malloc.h> header file. */
@@ -99,13 +102,13 @@
 /* Define to 1 if you have the <netinet/in.h> header file. */
 #undef HAVE_NETINET_IN_H
 
-/* libc includes open */
+/* function open exists */
 #undef HAVE_OPEN
 
-/* libc includes pause */
+/* function pause exists */
 #undef HAVE_PAUSE
 
-/* libc includes pipe */
+/* function pipe exists */
 #undef HAVE_PIPE
 
 /* Define to 1 if you have the <pthread.h> header file. */
@@ -114,28 +117,28 @@
 /* Define to 1 if you have the <pwd.h> header file. */
 #undef HAVE_PWD_H
 
-/* libc includes rand */
+/* function rand exists */
 #undef HAVE_RAND
 
-/* libc includes read */
+/* function read exists */
 #undef HAVE_READ
 
-/* libc includes select */
+/* function select exists */
 #undef HAVE_SELECT
 
-/* libc includes setgid */
+/* function setgid exists */
 #undef HAVE_SETGID
 
-/* libc includes setitimer */
+/* function setitimer exists */
 #undef HAVE_SETITIMER
 
-/* libc includes setuid */
+/* function setuid exists */
 #undef HAVE_SETUID
 
 /* Define to 1 if you have the <signal.h> header file. */
 #undef HAVE_SIGNAL_H
 
-/* libc includes stat */
+/* function stat exists */
 #undef HAVE_STAT
 
 /* Define to 1 if you have the <stdarg.h> header file. */
@@ -159,13 +162,13 @@
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
-/* libc includes strsignal */
+/* function strsignal exists */
 #undef HAVE_STRSIGNAL
 
-/* libc includes strtod */
+/* function strtod exists */
 #undef HAVE_STRTOD
 
-/* libc includes strtold */
+/* function strtold exists */
 #undef HAVE_STRTOLD
 
 /* Define to 1 if the system has the type `struct stat'. */
@@ -213,7 +216,7 @@
 /* Define to 1 if you have the <termios.h> header file. */
 #undef HAVE_TERMIOS_H
 
-/* libc includes times */
+/* function times exists */
 #undef HAVE_TIMES
 
 /* Define to 1 if you have the <time.h> header file. */
@@ -222,16 +225,16 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* libc includes unlink */
+/* function unlink exists */
 #undef HAVE_UNLINK
 
-/* libc includes wait */
+/* function wait exists */
 #undef HAVE_WAIT
 
 /* Define to 1 if you have the <wchar.h> header file. */
 #undef HAVE_WCHAR_H
 
-/* libc includes write */
+/* function write exists */
 #undef HAVE_WRITE
 
 /* Define to the sub-directory in which libtool stores uninstalled libraries.

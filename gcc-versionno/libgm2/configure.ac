@@ -192,12 +192,31 @@ AC_SUBST(libtool_VERSION)
 
 AC_CHECK_TYPES([struct timezone, struct stat])
 
-AC_DEFUN([GM2_CHECK_LIB],
-  [AC_MSG_CHECKING([for $2])
-  if test "x$ac_cv_lib_$1_$2" = x""yes; then
-    AC_DEFINE([HAVE_$3],[1],[lib$1 includes $2])
-  fi])
+AC_LANG_C
+# Check the compiler.
+# The same as in boehm-gc and libstdc++. Have to borrow it from there.
+# We must force CC to /not/ be precious variables; otherwise
+# the wrong, non-multilib-adjusted value will be used in multilibs.
+# As a side effect, we have to subst CFLAGS ourselves.
 
+m4_rename([_AC_ARG_VAR_PRECIOUS],[real_PRECIOUS])
+m4_define([_AC_ARG_VAR_PRECIOUS],[])
+AC_PROG_CC
+m4_rename_force([real_PRECIOUS],[_AC_ARG_VAR_PRECIOUS])
+
+AC_SUBST(CFLAGS)
+
+AC_DEFUN([GM2_CHECK_LIB],
+  [AC_MSG_CHECKING([m2 front end checking $1 library for $2])
+
+  AC_CHECK_FUNCS_ONCE($2)
+
+  if test "x$[ac_cv_lib_$1_$2]" = xyes; then
+    AC_DEFINE([HAVE_$3],[1],[lib$1 includes $2])
+  elif test "x$[ac_cv_func_$2]" = xyes; then
+    AC_DEFINE([HAVE_$3],[1],[function $2 exists])
+  fi
+])
 
 GM2_CHECK_LIB([c],[access],[ACCESS])
 GM2_CHECK_LIB([c],[brk],[BRK])

@@ -1,3 +1,10 @@
+2014-09-03      Gaius Mulley <gaius@gnu.org>
+
+	* libgm2/config.h.in:  rebuilt.
+	* libgm2/configure:  rebuilt.
+	* libgm2/configure.ac:  fixes to the GM2_CHECK_LIB macro to correctly
+	  test for the existence of library functions.
+
 2014-09-02      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  removed unnecessary SO, SO_O2, O2 library build
