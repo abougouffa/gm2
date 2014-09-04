@@ -248,9 +248,9 @@ static struct builtin_function_entry list_of_builtins[] = {
 { "__builtin_catanf", BT_FN_FCOMPLEX_FCOMPLEX, BUILT_IN_CATANF, BUILT_IN_NORMAL, "catanf", NULL, NULL},
 { "__builtin_catanl", BT_FN_LDCOMPLEX_LDCOMPLEX, BUILT_IN_CATANL, BUILT_IN_NORMAL, "catanl", NULL, NULL},
 
-{ "__builtin_huge_val",   BT_FN_DOUBLE, BUILT_IN_HUGE_VAL, BUILT_IN_NORMAL, "hughe_val", NULL, NULL},
-{ "__builtin_huge_valf",  BT_FN_FLOAT , BUILT_IN_HUGE_VALF, BUILT_IN_NORMAL, "hughe_valf", NULL, NULL},
-{ "__builtin_huge_vall",  BT_FN_LONG_DOUBLE, BUILT_IN_HUGE_VALL, BUILT_IN_NORMAL, "hughe_vall", NULL, NULL},
+{ "__builtin_huge_val",   BT_FN_DOUBLE, BUILT_IN_HUGE_VAL, BUILT_IN_NORMAL, "huge_val", NULL, NULL},
+{ "__builtin_huge_valf",  BT_FN_FLOAT , BUILT_IN_HUGE_VALF, BUILT_IN_NORMAL, "huge_valf", NULL, NULL},
+{ "__builtin_huge_vall",  BT_FN_LONG_DOUBLE, BUILT_IN_HUGE_VALL, BUILT_IN_NORMAL, "huge_vall", NULL, NULL},
 
 { "__builtin_index",   BT_FN_STRING_CONST_STRING_INT, BUILT_IN_INDEX, BUILT_IN_NORMAL, "index", NULL, NULL},
 { "__builtin_rindex",  BT_FN_STRING_CONST_STRING_INT, BUILT_IN_RINDEX, BUILT_IN_NORMAL, "rindex", NULL, NULL},
