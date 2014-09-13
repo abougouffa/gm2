@@ -1,5 +1,7 @@
 2014-09-13      Gaius Mulley <gaius@gnu.org>
 
+	* the majority of these changes fix a bug reported by John O Goyo
+	  (see testsuite/gm2/imports/run/pass/innermods.mod in cc1gm2.
 	* gm2/Make-lang.in:  added P0SymBuild.mod into list of modules.  Added
 	  build rule for m2-1.bnf and changed m2.bnf because of new file name.
 	  Changed calls to $(M2LINK) to include --name option.
@@ -13,7 +15,8 @@
 	* gm2/gm2-compiler/M2Inline.mod:  Removed file.
 	* gm2/gm2-compiler/M2Pass.def:  (IsPass0)  New procedure function.
 	* gm2/gm2-compiler/P0SymBuild.mod:  New file, generate a scope tree.
-	* gm2/gm2-compiler/P1SymBuild.mod:  changed to follow the scope tree generated during pass0.
+	* gm2/gm2-compiler/P1SymBuild.mod:  changed to follow the scope tree
+	  generated during pass0.
 	* gm2/gm2-compiler/P1SyntaxCheck.def:  removed file.
 	* gm2/gm2-compiler/P2SymBuild.mod:  use LookupModule instead
 	  of MakeDefinitionSource.
