@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
+                 2010, 2011, 2012, 2013, 2014
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -21,16 +21,17 @@ IMPLEMENTATION MODULE M2Batch ;
 
 
 FROM M2Debug IMPORT Assert ;
-FROM M2Error IMPORT InternalError ;
-FROM SymbolTable IMPORT MakeModule, MakeDefImp, IsModule, IsDefImp, NulSym ;
+FROM SymbolTable IMPORT MakeModule, MakeDefImp, IsModule, IsDefImp, GetScope, GetLocalSym, GetCurrentScope, NulSym ;
 FROM NameKey IMPORT GetKey, WriteKey ;
 FROM M2Printf IMPORT printf2 ;
 FROM M2Error IMPORT InternalError ;
+FROM M2MetaError IMPORT MetaError1 ;
 FROM Indexing IMPORT Index, InitIndex, GetIndice, HighIndice, RemoveIndiceFromIndex, IncludeIndiceIntoIndex, InBounds ;
 FROM Lists IMPORT List, InitList, IncludeItemIntoList, RemoveItemFromList,
                   GetItemFromList, NoOfItemsInList ;
 FROM Storage IMPORT ALLOCATE ;
 FROM DynamicStrings IMPORT String ;
+FROM M2Pass IMPORT IsPass1, IsPass2, IsPass3, IsPassC ;
 
 
 TYPE
@@ -71,6 +72,7 @@ BEGIN
    Sym := Get(n) ;
    IF Sym=NulSym
    THEN
+      Assert((NOT IsPass1()) AND (NOT IsPass2()) AND (NOT IsPass3()) AND (NOT IsPassC())) ;
       (* Neither been compiled or on the Pending Queue *)
       Sym := MakeModule(n) ;
       Put(Sym, n) ;
@@ -97,6 +99,7 @@ BEGIN
    Sym := Get(n) ;
    IF Sym=NulSym
    THEN
+      Assert((NOT IsPass1()) AND (NOT IsPass2()) AND (NOT IsPass3()) AND (NOT IsPassC())) ;
       (* Neither been compiled or on the Pending Queue *)
       Sym := MakeDefImp(n) ;
       Put(Sym, n) ;
@@ -123,6 +126,7 @@ BEGIN
    Sym := Get(n) ;
    IF Sym=NulSym
    THEN
+      Assert((NOT IsPass1()) AND (NOT IsPass2()) AND (NOT IsPass3()) AND (NOT IsPassC())) ;
       (* Neither been compiled or on the Pending Queue *)
       Sym := MakeDefImp(n) ;
       Put(Sym, n) ;
@@ -397,6 +401,61 @@ BEGIN
    Assert(IsModule(sym) OR IsDefImp(sym)) ;
    RETURN( GetModuleFile(sym)#NIL )
 END IsSourceSeen ;
+
+
+(*
+   LookupModule - looks up a module in the current scope, if a module does not exist
+                  then it creates a DefImp module.
+*)
+
+PROCEDURE LookupModule (n: Name) : CARDINAL ;
+VAR
+   sym: CARDINAL ;
+BEGIN
+   sym := GetSym(n) ;
+   IF sym=NulSym
+   THEN
+      RETURN( MakeDefinitionSource(n) )
+   ELSIF IsModule(sym) OR IsDefImp(sym)
+   THEN
+      RETURN( sym )
+   ELSE
+      RETURN( MakeDefinitionSource(n) )
+   END
+END LookupModule ;
+
+
+(*
+   LookupOuterModule - looks up a module in the order of: current scope, then outer scope, finally if a
+                       module does not exist then it creates a DefImp module.
+*)
+
+PROCEDURE LookupOuterModule (n: Name) : CARDINAL ;
+VAR
+   outer: CARDINAL ;
+   sym  : CARDINAL ;
+BEGIN
+   sym := GetSym(n) ;
+   IF sym=NulSym
+   THEN
+      outer := GetScope(GetCurrentScope()) ;
+      IF outer#NulSym
+      THEN
+         sym := GetLocalSym(outer, n)
+      END ;
+      IF sym=NulSym
+      THEN
+         (* not a local module, so it must be refering to a definition module *)
+         sym := MakeDefinitionSource(n)
+      END
+   END ;
+   IF IsModule(sym) OR IsDefImp(sym)
+   THEN
+      RETURN( sym )
+   ELSE
+      RETURN( MakeDefinitionSource(n) )
+   END
+END LookupOuterModule ;
 
 
 BEGIN

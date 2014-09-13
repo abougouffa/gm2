@@ -27,7 +27,7 @@ DEFINITION MODULE c ;
     Description: 
 *)
 
-EXPORT z ;
+EXPORT QUALIFIED z ;
 
 CONST
    z = 1 ;

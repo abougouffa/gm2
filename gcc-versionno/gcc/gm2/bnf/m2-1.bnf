@@ -19,7 +19,7 @@
 --
 --
 --
-% module P0SyntaxCheck begin
+% module P1Build begin
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
                  2011, 2012, 2013, 2014
    Free Software Foundation, Inc.
@@ -39,35 +39,65 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-IMPLEMENTATION MODULE P0SyntaxCheck ;
+IMPLEMENTATION MODULE P1Build ;
 
 FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertTokenAndRewind, GetTokenNo ;
 FROM M2Error IMPORT ErrorStringAt ;
 FROM M2Quads IMPORT PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto, DisplayStack ;
 FROM M2Reserved IMPORT tokToTok, toktype, NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok, BuiltinTok, InlineTok ;
-FROM P2SymBuild IMPORT BuildString, BuildNumber ;
 FROM NameKey IMPORT Name, NulName, makekey ;
 FROM StrLib IMPORT StrCopy, StrConCat, StrEqual ;
-FROM M2Batch IMPORT MakeProgramSource, MakeDefinitionSource, MakeImplementationSource ;
+FROM P2SymBuild IMPORT BuildString, BuildNumber ;
 FROM DynamicStrings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Printf IMPORT printf0 ;
+FROM SymbolTable IMPORT AddNameToScope ;
 
-(* imports for Pass0 *)
 
-FROM P0SymBuild IMPORT RegisterImports, RegisterInnerImports,
-                       RegisterProgramModule,
-                       RegisterImplementationModule, RegisterDefinitionModule,
-                       RegisterInnerModule, EndModule,
-                       RegisterProcedure, EndProcedure ;
+(* imports for Pass1 *)
+FROM M2Quads IMPORT PushT, PopT,
+                    StartBuildInit,
+                    EndBuildInit,
+                    BuildProcedureStart,
+                    BuildProcedureEnd,
+                    BuildAssignment,
+                    BuildInline ;
 
-FROM SymbolTable IMPORT NulSym, PutModuleContainsBuiltin, PutHiddenTypeDeclared ;
+FROM P1SymBuild IMPORT P1StartBuildProgramModule,
+                       P1EndBuildProgramModule,
+                       P1StartBuildDefinitionModule,
+                       P1EndBuildDefinitionModule,
+                       P1StartBuildImplementationModule,
+                       P1EndBuildImplementationModule,
+                       StartBuildInnerModule,
+                       EndBuildInnerModule,
 
+                       BuildImportOuterModule,
+                       BuildImportInnerModule,
+                       BuildExportOuterModule,
+                       BuildExportInnerModule,
+                       CheckExplicitExported,
+
+                       BuildHiddenType,
+                       BuildNulName,
+
+                       StartBuildEnumeration, EndBuildEnumeration,
+
+                       BuildProcedureHeading,
+                       StartBuildProcedure,
+                       EndBuildProcedure ;
+
+FROM SymbolTable IMPORT MakeGnuAsm, PutGnuAsmVolatile, PutGnuAsm, PutGnuAsmInput,
+                        PutGnuAsmOutput, PutGnuAsmTrash, PutGnuAsmVolatile,
+                        MakeRegInterface,
+                        PutRegInterface, GetRegInterface,
+                        GetSymName,
+                        NulSym ;
 
 CONST
    Debugging = FALSE ;
-   Pass0     = TRUE ;
-   Pass1     = FALSE ;
+   Pass0     = FALSE ;
+   Pass1     = TRUE ;
    Pass2     = FALSE ;          (* permanently disabled for the time being *)
    Pass3     = FALSE ;          (* permanently disabled for the time being *)
    MaxInsert = 10 ;             (* allow 10 tokens to be inserted before   *)
@@ -92,7 +122,7 @@ BEGIN
 END ErrorArray ;
 
 
-% declaration P0SyntaxCheck begin
+% declaration P1Build begin
 
 (*
    SyntaxError - after a syntax error we skip all tokens up until we reach
@@ -316,6 +346,39 @@ END Ident ;
 
 
 (*
+   IdentScope - error checking varient of Ident but it remembers the
+                idents name in the current scope.
+*)
+
+PROCEDURE IdentScope (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
+BEGIN
+   Ident(stopset0, stopset1, stopset2) ;
+   AddNameToScope(LastIdent)
+END IdentScope ;
+
+
+(*
+   PossiblyExportIdent - error checking varient of Ident which also
+                         checks to see if this ident should be
+                         explicitly exported.
+*)
+
+PROCEDURE PossiblyExportIdent (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
+VAR
+   nothing: CARDINAL ;
+BEGIN
+   AddNameToScope(makekey(currentstring)) ;
+   PushTF(makekey(currentstring), identtok) ;
+   CheckExplicitExported ;
+   IF NOT IsAutoPushOn()
+   THEN
+      PopT(nothing)
+   END ;
+   Expect(identtok, stopset0, stopset1, stopset2)
+END PossiblyExportIdent ;
+
+
+(*
    string -
 *)
 
@@ -359,8 +422,8 @@ BEGIN
    Expect(realtok, stopset0, stopset1, stopset2)
 END Real ;
 
-% module P0SyntaxCheck end
-END P0SyntaxCheck.
+% module P1Build end
+END P1Build.
 % rules
 error       'ErrorArray' 'ErrorString'
 tokenfunc   'currenttoken'
@@ -456,8 +519,12 @@ token   'identifier'      identtok
 token   'real number'     realtok
 token   'string'          stringtok
 
+special PossiblyExportIdent  first { < identtok > } follow { }
+     '@i{is a builtin which automatically exports an identifier}'
 special Ident                first { < identtok > } follow { }
      '@i{is a builtin and checks for an identifier}'
+special IdentScope           first { < identtok > } follow { }
+     '@i{a builtin which provides a context for error messages}'
 special Integer              first { < integertok > } follow { }
      '@i{is a builtin and checks for an integer}'
 special Real                 first { < realtok > } follow { }
@@ -478,32 +545,34 @@ BNF
 -- String
 
 FileUnit :=                                                                % PushAutoOff %
-            ( DefinitionModule | ImplementationOrProgramModule )           % PopAuto %
+            ( DefinitionModule |
+              ImplementationOrProgramModule )                              % PopAuto %
          =:
 
 ProgramModule := "MODULE"                                                  % PushAutoOn ; %
-                  Ident                                                    % RegisterProgramModule ; %
+                  Ident                                                    % P1StartBuildProgramModule ; %
                                                                            % PushAutoOff ; %
                   [ Priority ]
                   ";"
                                                                            % PushAutoOn ; %
-                  { Import                                                 % RegisterImports %
+                  { Import                                                 % BuildImportOuterModule(FALSE) %
                   }                                                        % PopAuto %
-                  Block                                                    % PopAuto %
-                        Ident "."                                          % EndModule %
-                                                                           % PopAuto %
+                  Block
+                                                                           % PushAutoOn %
+                  Ident                                                    % P1EndBuildProgramModule %
+                  "."                                                      % PopAuto ; PopAuto ; PopAuto %
                   =:
 
 ImplementationModule := "IMPLEMENTATION" "MODULE"                          % PushAutoOn ; %
-                         Ident                                             % RegisterImplementationModule ; %
+                         Ident                                             % P1StartBuildImplementationModule ; %
                                                                            % PushAutoOff ; %
                          [ Priority ] ";"                                  % PushAutoOn ; %
-                         { Import                                          % RegisterImports %
-                           }                                               % PopAuto %
-                         Block                                             % PopAuto %
+                         { Import                                          % BuildImportOuterModule(FALSE) %
+                           }                                               % PopAuto ; %
+                         Block                                             % PushAutoOn ; %
                                  
-                         Ident                                             % EndModule %
-                                                                           % PopAuto %
+                         Ident                                             % P1EndBuildImplementationModule %
+                                                                           % PopAuto ; PopAuto ; PopAuto ; %
                          "." =:
 
 ImplementationOrProgramModule := ImplementationModule | ProgramModule =:
@@ -512,9 +581,12 @@ Number := Integer | Real =:
 
 Qualident := Ident { "." Ident } =:
 
-ConstantDeclaration := Ident "=" ConstExpression =:
+ConstantDeclaration := PossiblyExportIdent
+                             "=" ConstExpression =:
 
-ConstExpression := SimpleConstExpr [ Relation SimpleConstExpr ] =:
+ConstExpression :=                                                         % PushAutoOff %
+                   SimpleConstExpr [ Relation SimpleConstExpr ]            % PopAuto %
+                =:
 
 Relation := "=" | "#" | "<>" | "<" | "<=" | ">" | ">=" | "IN" =:
 
@@ -565,14 +637,25 @@ AlignmentExpression := "(" ConstExpression ")" =:
 
 Alignment := [ ByteAlignment ] =:
 
-TypeDeclaration := Ident "=" Type Alignment =:
+TypeDeclaration :=
+                                                                           % PushAutoOn %
+                   ( IdentScope "=" Type Alignment )                       % PopAuto    %
+                =:
 
-Type := SimpleType | ArrayType | RecordType | SetType |
-        PointerType | ProcedureType =:
+Type :=                                                                    % VAR Name: CARDINAL ; %
+                                                                           % PushAutoOff %
+        ( SimpleType | ArrayType | RecordType | SetType |
+          PointerType | ProcedureType )                                    % PopAuto %
+                                                                           % PopT(Name)  (* remove TYPE name from stack *) %
+        =:
 
 SimpleType := Qualident [ SubrangeType ] | Enumeration | SubrangeType =:
 
-Enumeration := "(" IdentList ")" =:
+Enumeration := "("                                                         % PushAutoOn %
+                   ( PossiblyExportIdentList                               % StartBuildEnumeration %
+                                                                           % EndBuildEnumeration %
+                               )                                           % PopAuto %
+               ")" =:
 
 IdentList := Ident                                                         % VAR
                                                                                 on: BOOLEAN ;
@@ -592,9 +675,46 @@ IdentList := Ident                                                         % VAR
                                                                              END %
              =:
 
+IdentScopeList := IdentScope                                               % VAR
+                                                                                on: BOOLEAN ;
+                                                                                n : CARDINAL ; %
+                                                                           % on := IsAutoPushOn() ;
+                                                                             IF on
+                                                                             THEN
+                                                                                n := 1
+                                                                             END %
+             { "," IdentScope                                              % IF on
+                                                                             THEN
+                                                                                INC(n)
+                                                                             END %
+             }                                                             % IF on
+                                                                             THEN
+                                                                                PushT(n)
+                                                                             END %
+             =:
+
+PossiblyExportIdentList := PossiblyExportIdent                             % VAR
+                                                                                on: BOOLEAN ;
+                                                                                n : CARDINAL ; %
+                                                                           % on := IsAutoPushOn() ;
+                                                                             IF on
+                                                                             THEN
+                                                                                n := 1
+                                                                             END %
+             { "," PossiblyExportIdent                                     % IF on
+                                                                             THEN
+                                                                                INC(n)
+                                                                             END %
+             }                                                             % IF on
+                                                                             THEN
+                                                                                PushT(n)
+                                                                             END %
+             =:
+
 SubrangeType := "[" ConstExpression ".." ConstExpression "]" =:
 
-ArrayType := "ARRAY" SimpleType { "," SimpleType } "OF" Type =:
+ArrayType := "ARRAY" SimpleType { "," SimpleType } "OF"                    % BuildNulName %
+             Type =:
 
 RecordType := "RECORD" [ DefaultRecordAttributes ] FieldListSequence "END" =:
 
@@ -603,15 +723,28 @@ DefaultRecordAttributes := '<*' AttributeExpression '*>' =:
 RecordFieldPragma := [ '<*' FieldPragmaExpression
                         { ',' FieldPragmaExpression } '*>' ] =:
 
-FieldPragmaExpression := Ident [ '(' ConstExpression ')' ] =:
+FieldPragmaExpression :=                                                   % PushAutoOff %
+                         Ident [ '(' ConstExpression ')' ]                 % PopAuto %
+                                                           =:
 
-AttributeExpression := Ident '(' ConstExpression ')' =:
+AttributeExpression :=                                                     % PushAutoOff %
+                       Ident '(' ConstExpression ')'                       % PopAuto %
+                                                     =:
 
 FieldListSequence := FieldListStatement { ";" FieldListStatement } =:
 
 FieldListStatement := [ FieldList ] =:
 
-FieldList := IdentList ":" Type RecordFieldPragma
+-- sadly the PIM rules are not LL1 as Ident and Qualident have the same first
+-- symbols. We rewrite FieldList to inline qualident
+-- was
+-- FieldList := IdentList ":"                                              % BuildNulName %
+--                           Type |
+--             "CASE" [ Ident ":" ] Qualident "OF" Varient { "|" Varient }
+--                    [ "ELSE" FieldListSequence ] "END" =:
+
+FieldList := IdentList ":"                                                 % BuildNulName %
+                           Type RecordFieldPragma
                                 |
              "CASE" CaseTag "OF" Varient { "|" Varient }
              [ "ELSE" FieldListSequence ] "END"
@@ -631,9 +764,15 @@ CaseLabelList := CaseLabels { "," CaseLabels } =:
 
 CaseLabels := ConstExpression [ ".." ConstExpression ] =:
 
-SetType := ( "SET" | "PACKEDSET" ) "OF" SimpleType =:
+SetType :=                                                                 % VAR Name: CARDINAL ; %
 
-PointerType := "POINTER" "TO" Type =:
+           ( "SET" | "PACKEDSET" )
+                                   "OF"                                    % BuildNulName ; %
+                                        SimpleType                         % PopT(Name) ; %
+         =:
+
+PointerType := "POINTER" "TO"                                              % BuildNulName %
+                              Type =:
 
 ProcedureType := "PROCEDURE" [ FormalTypeList ] =:
 
@@ -649,10 +788,13 @@ ProcedureParameters := ProcedureParameter
 
 ProcedureParameter := "..." | "VAR" FormalType | FormalType =:
 
-VarIdent := Ident [ "[" ConstExpression "]" ]
+VarIdent := PossiblyExportIdent [ "[" ConstExpression "]" ]
          =:
 
-VariableDeclaration := VarIdentList ":" Type Alignment =:
+VariableDeclaration :=
+                       ( VarIdentList ":"                                  % BuildNulName %
+                         Type Alignment )
+                    =:
 
 VarIdentList := VarIdent                                                   % VAR
                                                                                 on: BOOLEAN ;
@@ -678,7 +820,9 @@ SubDesignator := "." Ident | "[" ExpList "]" | "^" =:
 
 ExpList := Expression { "," Expression } =:
 
-Expression := SimpleExpression [ Relation SimpleExpression ] =:
+Expression :=                                                              % PushAutoOff %
+              SimpleExpression [ Relation SimpleExpression ]               % PopAuto %
+           =:
 
 SimpleExpression := [ "+" | "-" ] Term { AddOperator Term } =:
 
@@ -735,31 +879,39 @@ LoopStatement := "LOOP" StatementSequence "END" =:
 
 WithStatement := "WITH" Designator "DO" StatementSequence "END" =:
 
-ProcedureDeclaration :=                                      
-                        ProcedureHeading ";" ( ProcedureBlock             % PushAutoOn %
-                                                              Ident       % EndProcedure %
-                                                                          % PopAuto %
-                                                                    ) =:
+ProcedureDeclaration := ProcedureHeading ";" ( ProcedureBlock              % PushAutoOn %
+                        Ident )                                            % EndBuildProcedure %
+                                                                           % PopAuto %
+                      =:
 
-DefineBuiltinProcedure := [ "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" |
-                            "__INLINE__" ] =:
+DefineBuiltinProcedure := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")"
+                          | "__INLINE__"                                   % PushT(InlineTok) %
+                          |                                                % PushT(NulTok) %
+                       =:
 
-ProcedureHeading := "PROCEDURE"
+ProcedureHeading := "PROCEDURE"                                            % PushAutoOn %
                      DefineBuiltinProcedure
-                     (                                                    % PushAutoOn %
-                       Ident                                              % RegisterProcedure %
-                                                                          % PopAuto %
-                             [ FormalParameters ] ) =:
+                     ( PossiblyExportIdent                                 % StartBuildProcedure %
+                                                                           % PushAutoOff %
+                       [ FormalParameters ]
+                                                                           % PopAuto %
+                                                                           % BuildProcedureHeading %
+                     )                                                     % PopAuto %
+                     =:
 
--- note that we do need to know whether builtins are used as they
--- determine whether we need to parse the implementation module
--- the same is true for hidden types
+Builtin := "__BUILTIN__"                                                   % PushT(BuiltinTok) %
+            | "__INLINE__"                                                 % PushT(InlineTok) %
+            |                                                              % PushT(NulTok) %
+        =:
 
-Builtin := [ "__BUILTIN__"                                                % PutModuleContainsBuiltin %
-                           | "__INLINE__"  ] =:
-
-DefProcedureHeading := "PROCEDURE" Builtin
-                       ( Ident [ DefFormalParameters ] )
+DefProcedureHeading := "PROCEDURE"                                         % PushAutoOn %
+                        Builtin
+                       ( PossiblyExportIdent                               % StartBuildProcedure %
+                                                                           % PushAutoOff %
+                       [ DefFormalParameters ]
+                                                                           % PopAuto %
+                                                                           % BuildProcedureHeading %
+                     )                                                     % PopAuto %
                      =:
 
 -- introduced procedure block so we can produce more informative
@@ -801,55 +953,60 @@ DefExtendedFP := DefOptArg | "..." =:
 
 ExtendedFP := OptArg | "..." =:
 
-VarFPSection := "VAR" IdentList ":" FormalType =:
+VarFPSection := "VAR" IdentScopeList ":" FormalType =:
 
-NonVarFPSection := IdentList ":" FormalType =:
+NonVarFPSection := IdentScopeList ":" FormalType =:
 
-OptArg := "[" Ident ":" FormalType [ "=" ConstExpression ] "]" =:
+OptArg := "[" IdentScope ":" FormalType [ "=" ConstExpression ] "]" =:
 
-DefOptArg := "[" Ident ":" FormalType "=" ConstExpression "]" =:
+DefOptArg := "[" IdentScope ":" FormalType "=" ConstExpression "]" =:
 
 FormalType := { "ARRAY" "OF" } Qualident =:
 
 ModuleDeclaration := "MODULE"                                              % PushAutoOn %
-                     Ident                                                 % RegisterInnerModule %
+                     Ident                                                 % StartBuildInnerModule %
                                                                            % PushAutoOff %
                      [ Priority ] ";"                                      % PushAutoOn %
-                     { Import                                              % RegisterInnerImports %
-                              }                                            % PopAuto %
-                                [ Export ] Block                           % PopAuto %
-                                                 Ident                     % EndModule %
-                                                                           % PopAuto %
-                  =:
+                     { Import                                              % BuildImportInnerModule %
+                        } [ Export                                         % BuildExportInnerModule %
+                            ]                                              % PopAuto %
+                       Block                                               % PushAutoOn %
+                       Ident                                               % EndBuildInnerModule %
+                                                                           % PopAuto ; PopAuto ; PopAuto %
+                     =:
 
 Priority := "[" ConstExpression "]" =:
 
-Export := "EXPORT" ( "QUALIFIED"   IdentList |
-                     "UNQUALIFIED" IdentList | 
-                      IdentList
-                   ) ";" =:
+Export := "EXPORT" ( "QUALIFIED"                                           % PushT(QualifiedTok) %
+                                 IdentList |
+                     "UNQUALIFIED"                                         % PushT(UnQualifiedTok) %
+                                 IdentList |                               % PushT(ExportTok) %
+                     IdentList ) ";" =:
 
 Import :=  "FROM" Ident "IMPORT" IdentList ";" |
            "IMPORT"                                                        % PushT(ImportTok)
                                                                              (* determines whether Ident or Module *) %
             IdentList ";" =:
 
-DefinitionModule := "DEFINITION" "MODULE" [ "FOR"  string ]                % PushAutoOn %
-                    Ident                                                  % RegisterDefinitionModule %
+DefinitionModule := "DEFINITION" "MODULE"                                  % PushAutoOn %
+                    ( "FOR"  string |                                      % (* epsilon *)
+                                                                             PushT(NulSym) %
+                    )
+                    Ident                                                  % P1StartBuildDefinitionModule %
                     ";"
-                    { Import                                               % RegisterImports %
-                             }                                             % PushAutoOff %
-                               [ Export
-                                        ]
+                    { Import                                               % BuildImportOuterModule(TRUE) %
+                             } [ Export                                    % BuildExportOuterModule %
+                                        ]                                  % PushAutoOff %
                     { Definition }                                         % PopAuto %
-                                   "END" Ident                             % EndModule %
+                                   "END" Ident                             % P1EndBuildDefinitionModule %
                                                "."                         % PopAuto %
                   =:
 
 Definition := "CONST" { ConstantDeclaration ";" } |
-              "TYPE" { Ident
-                       ( ";"                                               % PutHiddenTypeDeclared %
-                             | "=" Type Alignment ";" ) }
+              "TYPE"                                                       % PushAutoOn %
+                    { PossiblyExportIdent
+                            ( ";"                                          % BuildHiddenType %
+                                  | "=" Type Alignment ";" ) }             % PopAuto %
               |
               "VAR" { VariableDeclaration ";" } |
               DefProcedureHeading ";" =:
@@ -861,12 +1018,12 @@ NamedOperand := '[' Ident ']' =:
 AsmOperandName := [ NamedOperand ] =:
 
 AsmOperands  := string [ ':' AsmList [ ':' AsmList [ ':' TrashList ] ] ]
-              =:
+             =:
 
 AsmList      := [ AsmElement ] { ',' AsmElement } =:
 
 AsmElement   := AsmOperandName string '(' Expression ')'
-              =:
+             =:
 
 TrashList    := [ string ] { ',' string } =:
 

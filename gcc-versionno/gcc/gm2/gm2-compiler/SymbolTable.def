@@ -286,6 +286,7 @@ EXPORT QUALIFIED NulSym,
 
                  CheckForEnumerationInCurrentModule,
 
+                 PutHiddenTypeDeclared,
                  IsHiddenTypeDeclared,
 
                  PutDefinitionForC,
@@ -296,6 +297,8 @@ EXPORT QUALIFIED NulSym,
                  ResolveConstructorTypes,
                  MakeTemporaryFromExpression, MakeTemporaryFromExpressions,
                  SanityCheckConstants,
+
+                 PutModuleContainsBuiltin, IsBuiltinInModule,
 
                  IsSizeSolved,
                  IsOffsetSolved,
@@ -1951,14 +1954,6 @@ PROCEDURE CheckForUnknownInModule ;
 
 
 (*
-   IsHiddenTypeDeclared - returns true if a Hidden Type was declared in
-                          the module, Sym.
-*)
-
-PROCEDURE IsHiddenTypeDeclared (Sym: CARDINAL) : BOOLEAN ;
-
-
-(*
    IsReallyPointer - returns TRUE is sym is a pointer, address or a
                      type declared as a pointer or address.
 *)
@@ -2886,6 +2881,42 @@ PROCEDURE IsError (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsLegal (sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   PutModuleContainsBuiltin - sets a flag in the current compiled module which
+                              indicates that a builtin procedure is being declared.
+                              This is only expected to be called when we are
+                              parsing the definition module.
+*)
+
+PROCEDURE PutModuleContainsBuiltin ;
+
+
+(*
+   IsBuiltinInModule - returns true if a module, Sym, has declared a builtin procedure.
+*)
+
+PROCEDURE IsBuiltinInModule (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   PutHiddenTypeDeclared - sets a flag in the current compiled module which
+                           indicates that a Hidden Type is declared within
+                           the implementation part of the module.
+                           This procedure is expected to be called while
+                           compiling the associated definition module.
+*)
+
+PROCEDURE PutHiddenTypeDeclared ;
+
+
+(*
+   IsHiddenTypeDeclared - returns true if a Hidden Type was declared in
+                          the module, Sym.
+*)
+
+PROCEDURE IsHiddenTypeDeclared (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*

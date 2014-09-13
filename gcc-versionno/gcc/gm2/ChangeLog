@@ -1,3 +1,56 @@
+2014-09-13      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added P0SymBuild.mod into list of modules.  Added
+	  build rule for m2-1.bnf and changed m2.bnf because of new file name.
+	  Changed calls to $(M2LINK) to include --name option.
+	* gm2/gm2-compiler/M2Batch.def:  (LookupModule) New procedure definition.
+          (LookupOuterModule) New procedure definition.
+	* gm2/gm2-compiler/M2Batch.mod:  (LookupOuterModule) New procedure function.
+          (LookupModule) New procedure function.
+	* gm2/gm2-compiler/M2Comp.mod:  introduced new Pass0.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  modified debugging.
+	* gm2/gm2-compiler/M2Inline.def:  Removed file.
+	* gm2/gm2-compiler/M2Inline.mod:  Removed file.
+	* gm2/gm2-compiler/M2Pass.def:  (IsPass0)  New procedure function.
+	* gm2/gm2-compiler/P0SymBuild.mod:  New file, generate a scope tree.
+	* gm2/gm2-compiler/P1SymBuild.mod:  changed to follow the scope tree generated during pass0.
+	* gm2/gm2-compiler/P1SyntaxCheck.def:  removed file.
+	* gm2/gm2-compiler/P2SymBuild.mod:  use LookupModule instead
+	  of MakeDefinitionSource.
+	* gm2/gm2-compiler/P3SymBuild.mod:  use LookupModule instead
+	  of MakeDefinitionSource.
+	* gm2/gm2-compiler/PCSymBuild.mod:  use LookupModule instead
+	  of MakeDefinitionSource.
+	* gm2/gm2-compiler/P0SymBuild.mod:
+	* gm2/gm2-compiler/SymbolTable.def:
+	  (PutModuleContainsBuiltin)  New procedure definition.
+	  (IsBuiltinInModule)  New procedure function definition.
+	  (PutHiddenTypeDeclared)  New procedure definition.
+	  (IsHiddenTypeDeclared)  New procedure function definition.
+	* gm2/gm2-compiler/SymbolTable.mod:
+	  (ContainsBuiltin) new field in DefImp.
+	  (PutModuleContainsBuiltin)  New procedure.
+	  (IsBuiltinInModule)  New procedure function.
+	  (PutExported) allow modules to be imported from.
+	* gm2/gm2-compiler/m2flex.def:  (GetTotalLines)
+	  New function definition.
+	* gm2/init/gm2-gccinit:  added P0SymBuild.
+	* gm2/m2.flex:  (m2flex_GetTotalLines) New function.
+	* gm2/tools-src/mklink.c:  honour CFLAGS and LDFLAGS
+	  (fixes a build problem on 64 bit Solaris, reported by
+	   John O Goyo).
+	* testsuite/gm2/errors/fail/gm2.exp:
+	* testsuite/gm2/errors/fail/testfio.mod:
+	* testsuite/gm2/imports/run/pass/c.def:
+	* testsuite/gm2/imports/run/pass/c.mod:
+	* testsuite/gm2/imports/run/pass/gm2.exp:
+	* testsuite/gm2/imports/run/pass/innermods3.mod:
+	* m2/libmin/Makefile.am:  build SYSTEM.def with -fno-exceptions
+	* m2/libmin/Makefile.in:  regenerated.
+	* gm2/bnf/m2-1.bnf:  new file (copied from m2.bnf with
+	  some name changes).
+	* gm2/bng/m2.bnf:  new contents (pass 0).
+
 2014-09-04      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-gcc/m2builtins.c:  corrected spelling for huge_val, huge_valf,

@@ -2243,7 +2243,7 @@ FormalType := { "ARRAY" "OF" } Qualident =:
 ModuleDeclaration := "MODULE"
                      Ident                                                  % RegisterLocalModule(LastIdent) %
                      [ Priority ] ";"
-                     { Import  
+                     { ImportInner
                         } [ Export
                             ]     
                                                                             % BeginBlock(0) %
@@ -2264,6 +2264,10 @@ Export := "EXPORT" ( "QUALIFIED"
 Import :=  "FROM" Ident                                                     % RegisterImport(LastIdent) %
                  "IMPORT" IdentList ";" |
            "IMPORT" ImportList ";" =:
+
+ImportInner := "FROM" Ident                                                 % RegisterImport(LastIdent) %
+                            "IMPORT" IdentList ";" |
+                                                     "IMPORT" IdentList ";" =:
 
 IdentList := Ident { "," Ident } =:
 

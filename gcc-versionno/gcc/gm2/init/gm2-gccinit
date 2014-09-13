@@ -61,6 +61,7 @@ SymbolKey
 FifoQueue
 M2Reserved
 M2Const
+P0SymBuild
 P1SymBuild
 P2SymBuild
 P3SymBuild

@@ -456,7 +456,11 @@ BEGIN
       partiallydeclared :  doInclude(PartiallyDeclared, "symbol %d -> PartiallyDeclared\n", sym) |
       heldbyalignment   :  doInclude(HeldByAlignment, "symbol %d -> HeldByAlignment\n", sym) |
       finishedalignment :  doInclude(FinishedAlignment, "symbol %d -> FinishedAlignment\n", sym) |
-      todolist          :  doInclude(ToDoList, "symbol %d -> ToDoList\n", sym) |
+      todolist          :  doInclude(ToDoList, "symbol %d -> ToDoList\n", sym) ;
+                           IF sym=2823
+                           THEN
+                              mystop
+                           END |
       niltypedarrays    :  doInclude(NilTypedArrays, "symbol %d -> NilTypedArrays\n", sym)
 
       ELSE
@@ -516,11 +520,7 @@ BEGIN
       partiallydeclared :  doExclude(PartiallyDeclared, "symbol %d off PartiallyDeclared\n", sym) |
       heldbyalignment   :  doExclude(HeldByAlignment, "symbol %d -> HeldByAlignment\n", sym) |
       finishedalignment :  doExclude(FinishedAlignment, "symbol %d -> FinishedAlignment\n", sym) |
-      todolist          :  doExclude(ToDoList, "symbol %d off ToDoList\n", sym) ;
-                           IF sym=1221
-                           THEN
-                              mystop
-                           END |
+      todolist          :  doExclude(ToDoList, "symbol %d off ToDoList\n", sym) |
       niltypedarrays    :  doExclude(NilTypedArrays, "symbol %d off NilTypedArrays\n", sym)
 
       ELSE
@@ -2607,6 +2607,10 @@ END DeclareProcedureToGccSeparateProgram ;
 
 PROCEDURE DeclareProcedureToGcc (Sym: CARDINAL) ;
 BEGIN
+   IF Sym=468
+   THEN
+      mystop
+   END ;
    IF WholeProgram
    THEN
       DeclareProcedureToGccWholeProgram(Sym)

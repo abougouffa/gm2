@@ -75,33 +75,35 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
   static int                  seenEnd=FALSE;
   static int                  seenModuleStart=FALSE;
   static int                  isDefinitionModule=FALSE;
+  static int                  totalLines=0;
 
-        void m2flex_M2Error    (const char *);
-static  void pushLine          (void);
-static  void popLine           (void);
-static  void finishedLine      (void);
-static  void resetpos          (void);
-static  void consumeLine       (void);
-static  void updatepos         (void);
-static  void skippos           (void);
-static  void poperrorskip      (const char *);
-static  void endOfComment      (void);
-static  void handleDate        (void);
-static  void handleLine        (void);
-static  void handleFile        (void);
-static  void handleFunction    (void);
-static  void handleColumn      (void);
-static  void pushFunction      (char *function, int module);
-static  void popFunction       (void);
-static  void checkFunction     (void);
+        void m2flex_M2Error           (const char *);
+static  void pushLine                 (void);
+static  void popLine                  (void);
+static  void finishedLine             (void);
+static  void resetpos                 (void);
+static  void consumeLine              (void);
+static  void updatepos                (void);
+static  void skippos                  (void);
+static  void poperrorskip             (const char *);
+static  void endOfComment             (void);
+static  void handleDate               (void);
+static  void handleLine               (void);
+static  void handleFile               (void);
+static  void handleFunction           (void);
+static  void handleColumn             (void);
+static  void pushFunction             (char *function, int module);
+static  void popFunction              (void);
+static  void checkFunction            (void);
         location_t m2flex_GetLocation (void);
-        int  m2flex_GetColumnNo(void);
-	int  m2flex_OpenSource (char *s);
-	int  m2flex_GetLineNo  (void);
-	void m2flex_CloseSource(void);
-	char *m2flex_GetToken  (void);
-        void _M2_m2flex_init   (void);
-extern  void  yylex            (void);
+        int  m2flex_GetColumnNo       (void);
+	int  m2flex_OpenSource        (char *s);
+	int  m2flex_GetLineNo         (void);
+	void m2flex_CloseSource       (void);
+	char *m2flex_GetToken         (void);
+        void _M2_m2flex_init          (void);
+        int  m2flex_GetTotalLines     (void);
+extern  void  yylex                   (void);
 
 #if !defined(TRUE)
 #    define TRUE  (1==1)
@@ -704,6 +706,15 @@ location_t m2flex_GetLocation (void)
     return currentLine->location;
   else
     return 0;
+}
+
+/*
+ *  GetTotalLines - returns the total number of lines parsed.
+ */
+
+int m2flex_GetTotalLines (void)
+{
+  return totalLines;
 }
 
 /*

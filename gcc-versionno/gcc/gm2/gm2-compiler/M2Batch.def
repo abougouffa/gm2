@@ -151,4 +151,20 @@ PROCEDURE ForeachSourceModuleDo (p: DoProcedure) ;
 PROCEDURE IsSourceSeen (sym: CARDINAL) : BOOLEAN ;
 
 
+(*
+   LookupModule - looks up a module in the current scope, if a module does not exist
+                  then it creates a DefImp module.
+*)
+
+PROCEDURE LookupModule (n: Name) : CARDINAL ;
+
+
+(*
+   LookupOuterModule - looks up a module in the order of: current scope, then outer scope, finally if a
+                       module does not exist then it creates a DefImp module.
+*)
+
+PROCEDURE LookupOuterModule (n: Name) : CARDINAL ;
+
+
 END M2Batch.

@@ -20,9 +20,9 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE M2Comp ;
 
 
-FROM M2Options IMPORT Statistics, Quiet, WholeProgram ;
+FROM M2Options IMPORT Statistics, Quiet, WholeProgram, ExtendedOpaque ;
 
-FROM M2Pass IMPORT SetPassToPass1, SetPassToPass2, SetPassToPassC, SetPassToPass3,
+FROM M2Pass IMPORT SetPassToPass0, SetPassToPass1, SetPassToPass2, SetPassToPassC, SetPassToPass3,
                    SetPassToNoPass, SetPassToPassHidden ;
 
 FROM M2Reserved IMPORT toktype ;
@@ -35,9 +35,11 @@ FROM libc IMPORT exit ;
 
 FROM M2Error IMPORT ErrorStringAt, ErrorStringAt2, ErrorStringsAt2, WriteFormat0, FlushErrors, FlushWarnings ;
 FROM FormatStrings IMPORT Sprintf1 ;
+FROM P0SymBuild IMPORT P0Init, P1Init ;
 
 IMPORT m2flex ;
-IMPORT P1SyntaxCheck ;
+IMPORT P0SyntaxCheck ;
+IMPORT P1Build ;
 IMPORT P2Build ;
 IMPORT PCBuild ;
 IMPORT P3Build ;
@@ -50,7 +52,8 @@ FROM M2Batch IMPORT GetSource, GetModuleNo, GetDefinitionModuleFile, GetModuleFi
 
 FROM SymbolTable IMPORT GetSymName, IsDefImp, NulSym,
                         IsHiddenTypeDeclared, GetFirstUsed, GetMainModule, SetMainModule,
-                        ResolveConstructorTypes, SanityCheckConstants, IsDefinitionForC ;
+                        ResolveConstructorTypes, SanityCheckConstants, IsDefinitionForC,
+                        IsBuiltinInModule ;
 
 FROM FIO IMPORT StdErr ;
 FROM NameKey IMPORT Name, GetKey, KeyToCharStar, makekey ;
@@ -66,7 +69,8 @@ VAR
 
 
 (* %%%FORWARD%%%
-PROCEDURE DoPass1 (s: String) ; FORWARD ;
+PROCEDURE DoPass0 (s: String) ; FORWARD ;
+PROCEDURE DoPass1 ; FORWARD ;
 PROCEDURE DoPass2 ; FORWARD ;
 PROCEDURE DoPass3 ; FORWARD ;
 PROCEDURE DoPassC ; FORWARD ;
@@ -112,18 +116,23 @@ END CompilingProgramModule ;
 
 PROCEDURE NeedToParseImplementation (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN (IsDefImp(sym) AND IsHiddenTypeDeclared(sym)) OR
+   RETURN (IsDefImp(sym) AND IsHiddenTypeDeclared(sym) AND ExtendedOpaque) OR
+          (IsDefImp(sym) AND IsBuiltinInModule(sym)) OR
           (WholeProgram AND (NOT IsDefinitionForC(sym)))
 END NeedToParseImplementation ;
 
 
 (*
-   Compile - compile file, s, using a 4 pass technique.
+   Compile - compile file, s, using a 6 pass technique.
 *)
 
 PROCEDURE Compile (s: String) ;
 BEGIN
-   DoPass1(s) ;
+   DoPass0(s) ;
+   FlushWarnings ; FlushErrors ; 
+   ResetForNewPass ;
+   qprintf0('Pass 1\n') ;
+   DoPass1 ;
    FlushWarnings ; FlushErrors ; 
    qprintf0('Pass 2\n') ;
    ResetForNewPass ;
@@ -212,10 +221,10 @@ END PeepInto ;
 
 
 (*
-   DoPass1 - 
+   DoPass0 - 
 *)
 
-PROCEDURE DoPass1 (s: String) ;
+PROCEDURE DoPass0 (s: String) ;
 VAR
    Main,
    Sym     : CARDINAL ;
@@ -224,12 +233,14 @@ VAR
    SymName,
    FileName: String ;
 BEGIN
-   SetPassToPass1 ;
+   P0Init ;
+   SetPassToPass0 ;
    PeepInto(s) ;
    Main := GetMainModule() ;
    i := 1 ;
    Sym := GetModuleNo(i) ;
    qprintf1('Compiling: %s\n', s) ;
+   qprintf0('Pass 0\n') ;
    WHILE Sym#NulSym DO
       SymName := InitStringCharStar(KeyToCharStar(GetSymName(Sym))) ;
       IF IsDefImp(Sym)
@@ -240,7 +251,7 @@ BEGIN
             ModuleType := Definition ;
             IF OpenSource(AssociateDefinition(PreprocessModule(FileName), Sym))
             THEN
-               IF NOT P1SyntaxCheck.CompilationUnit()
+               IF NOT P0SyntaxCheck.CompilationUnit()
                THEN
                   WriteFormat0('compilation failed') ;
                   CloseSource ;
@@ -273,7 +284,7 @@ BEGIN
          qprintf2('   Module %-20s : %s\n', SymName, FileName) ;
          IF OpenSource(AssociateModule(PreprocessModule(FileName), Sym))
          THEN
-            IF NOT P1SyntaxCheck.CompilationUnit()
+            IF NOT P0SyntaxCheck.CompilationUnit()
             THEN
                WriteFormat0('compilation failed') ;
                CloseSource ;
@@ -293,6 +304,79 @@ BEGIN
       END ;
       SymName := KillString(SymName) ;
       FileName := KillString(FileName) ;
+      INC(i) ;
+      Sym := GetModuleNo(i)
+   END ;
+   SetPassToNoPass
+END DoPass0 ;
+
+
+(*
+   DoPass1 - parses the sources of all modules necessary to compile
+             the required module, Main.
+*)
+
+PROCEDURE DoPass1 ;
+VAR
+   name    : Name ;
+   Sym     : CARDINAL ;
+   i,
+   n       : CARDINAL ;
+   FileName: String ;
+BEGIN
+   P1Init ;
+   SetPassToPass1 ;
+   i := 1 ;
+   Sym := GetModuleNo(i) ;
+   WHILE Sym#NulSym DO
+      FileName := GetDefinitionModuleFile(Sym) ;
+      IF FileName#NIL
+      THEN
+         IF Debugging
+         THEN
+            name := GetSymName(Sym) ;
+            qprintf1('   Module %a\n', name)
+         END ;
+         IF OpenSource(FileName)
+         THEN
+            ModuleType := Definition ;
+            IF NOT P1Build.CompilationUnit()
+            THEN
+               WriteFormat0('compilation failed') ;
+               CloseSource ;
+               RETURN
+            END ;
+            CloseSource
+         ELSE
+            fprintf1(StdErr, 'failed to open %s\n', FileName) ;
+            exit(1)
+         END ;
+         ModuleType := Implementation
+      ELSE
+         ModuleType := Program
+      END ;
+      FileName := GetModuleFile(Sym) ;
+      IF FileName#NIL
+      THEN
+         IF Debugging
+         THEN
+            name := GetSymName(Sym) ;
+            qprintf1('   Module %a\n', name)
+         END ;
+         IF OpenSource(FileName)
+         THEN
+            IF NOT P1Build.CompilationUnit()
+            THEN
+               WriteFormat0('compilation failed') ;
+               CloseSource ;
+               RETURN
+            END ;
+            CloseSource
+         ELSE
+            fprintf1(StdErr, 'failed to open %s\n', FileName) ;
+            exit(1)
+         END
+      END ;
       INC(i) ;
       Sym := GetModuleNo(i)
    END ;

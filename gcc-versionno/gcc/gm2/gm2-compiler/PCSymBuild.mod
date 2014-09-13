@@ -78,7 +78,8 @@ FROM SymbolTable IMPORT NulSym, ModeOfAddr,
 
 FROM M2Batch IMPORT MakeDefinitionSource,
                     MakeImplementationSource,
-                    MakeProgramSource ;
+                    MakeProgramSource,
+                    LookupModule, LookupOuterModule ;
 
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule,
@@ -518,8 +519,8 @@ BEGIN
    PopT(n) ;       (* n   = # of the Ident List *)
    IF OperandT(n+1)#ImportTok
    THEN
-      (* Ident List contains list of objects *)
-      ModSym := MakeDefinitionSource(OperandT(n+1)) ;
+      (* Ident List contains list of objects imported from ModSym *)
+      ModSym := LookupModule(OperandT(n+1)) ;
       i := 1 ;
       WHILE i<=n DO
          Sym := GetExported(ModSym, OperandT(i)) ;
@@ -577,8 +578,8 @@ BEGIN
          INC(i)
       END
    ELSE
-      (* Ident List contains list of objects *)
-      ModSym := MakeDefinitionSource(OperandT(n+1)) ;
+      (* Ident List contains list of objects imported from ModSym *)
+      ModSym := LookupOuterModule(OperandT(n+1)) ;
       i := 1 ;
       WHILE i<=n DO
          Sym := GetExported(ModSym, OperandT(i)) ;

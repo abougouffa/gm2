@@ -22,7 +22,7 @@ IMPLEMENTATION MODULE M2Pass ;
 FROM M2Error IMPORT InternalError ;
 
 TYPE
-   Pass = (NoPass, Pass1, Pass2, PassC, Pass3, CodeGeneration, ErrorPass, HiddenPass) ;
+   Pass = (NoPass, Pass0, Pass1, Pass2, PassC, Pass3, CodeGeneration, ErrorPass, HiddenPass) ;
 
 VAR
    CurrentPass: Pass ;
@@ -36,6 +36,21 @@ PROCEDURE SetPassToNoPass ;
 BEGIN
    CurrentPass := NoPass
 END SetPassToNoPass ;
+
+
+(*
+   SetPassToPass0 - sets the pass state to Pass 0.
+*)
+
+PROCEDURE SetPassToPass0 ;
+BEGIN
+   IF CurrentPass=NoPass
+   THEN
+      CurrentPass := Pass0
+   ELSE
+      InternalError('attempting to set CurrentPass to Pass1', __FILE__, __LINE__)
+   END
+END SetPassToPass0 ;
 
 
 (*
@@ -142,6 +157,16 @@ PROCEDURE IsNoPass () : BOOLEAN ;
 BEGIN
    RETURN( CurrentPass=NoPass )
 END IsNoPass ;
+
+
+(*
+   IsPass0 - returns true if currently in Pass 0.
+*)
+
+PROCEDURE IsPass0 () : BOOLEAN ;
+BEGIN
+   RETURN( CurrentPass=Pass0 )
+END IsPass0 ;
 
 
 (*

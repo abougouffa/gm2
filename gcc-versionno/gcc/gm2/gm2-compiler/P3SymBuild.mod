@@ -48,7 +48,8 @@ FROM SymbolTable IMPORT NulSym, ModeOfAddr,
 
 FROM M2Batch IMPORT MakeDefinitionSource,
                     MakeImplementationSource,
-                    MakeProgramSource ;
+                    MakeProgramSource,
+                    LookupOuterModule ;
 
 FROM M2Quads IMPORT PushT, PopT, OperandT, PopN, PopTF, PushTF ;
 
@@ -372,7 +373,7 @@ BEGIN
    IF OperandT(n+1)#ImportTok
    THEN
       (* Ident List contains list of objects *)
-      ModSym := MakeDefinitionSource(OperandT(n+1)) ;
+      ModSym := LookupOuterModule(OperandT(n+1)) ;
       i := 1 ;
       WHILE i<=n DO
          IF (NOT IsExported(ModSym, RequestSym(OperandT(i)))) AND
@@ -380,7 +381,7 @@ BEGIN
          THEN
             n1 := OperandT(n+1) ;
             n2 := OperandT(i) ;
-            WriteFormat2('symbol %a is not exported from definition module %a', n2, n1)
+            WriteFormat2('symbol %a is not exported from definition or inner module %a', n2, n1)
          END ;
          INC(i)
       END

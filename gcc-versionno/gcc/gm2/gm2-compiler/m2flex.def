@@ -34,7 +34,7 @@ FROM SYSTEM IMPORT ADDRESS ;
 FROM m2linemap IMPORT location_t ;
 
 EXPORT QUALIFIED GetToken, M2Error, OpenSource, CloseSource, GetLineNo,
-                 GetColumnNo, GetLocation ;
+                 GetColumnNo, GetLocation, GetTotalLines ;
 
 
 (*
@@ -86,6 +86,13 @@ PROCEDURE GetLocation () : location_t ;
 *)
 
 PROCEDURE M2Error (s: ADDRESS) ;
+
+
+(*
+   GetTotalLines - returns the total number of lines parsed.
+*)
+
+PROCEDURE GetTotalLines () : CARDINAL ;
 
 
 END m2flex.

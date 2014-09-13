@@ -625,6 +625,8 @@ TYPE
                ExceptionBlock: BOOLEAN ;    (* does it have an exception?    *)
                ContainsHiddenType: BOOLEAN ;(* True if this module           *)
                                             (* implements a hidden type.     *)
+               ContainsBuiltin: BOOLEAN ;   (* Does the module define a      *)
+                                            (* builtin procedure?            *)
                ForC          : BOOLEAN ;    (* Is it a definition for "C"    *)
                NeedExportList: BOOLEAN ;    (* Must user supply export list? *)
                ListOfVars    : List ;       (* List of variables in this     *)
@@ -2992,6 +2994,8 @@ BEGIN
          ExceptionBlock := FALSE ;    (* does it have an exception?    *)
          ContainsHiddenType := FALSE ;(* True if this module           *)
                                       (* implements a hidden type.     *)
+         ContainsBuiltin := FALSE ;   (* Does module define a builtin  *)
+                                      (* procedure?                    *)
          ForC := FALSE ;              (* Is it a definition for "C"    *)
          NeedExportList := FALSE ;    (* Must user supply export list? *)
          InitList(ListOfVars) ;       (* List of variables in this     *)
@@ -6614,7 +6618,8 @@ BEGIN
    WITH pSym^ DO
       CASE SymbolType OF
 
-      DefImpSym: Sym := RequestFromDefinition(ModSym, SymName)
+      DefImpSym: Sym := RequestFromDefinition(ModSym, SymName) |
+      ModuleSym: Sym := RequestFromModule(ModSym, SymName)
 
       ELSE
          InternalError('expecting a DefImp symbol', __FILE__, __LINE__)
@@ -7711,6 +7716,52 @@ BEGIN
       END
    END
 END IsHiddenTypeDeclared ;
+
+
+(*
+   PutModuleContainsBuiltin - sets a flag in the current compiled module which
+                              indicates that a builtin procedure is being declared.
+                              This is only expected to be called when we are
+                              parsing the definition module.
+*)
+
+PROCEDURE PutModuleContainsBuiltin ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   PutHiddenTypeDeclared ;
+   pSym := GetPsym(CurrentModule) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      DefImpSym: DefImp.ContainsBuiltin := TRUE
+
+      ELSE
+         InternalError('expecting a DefImp symbol', __FILE__, __LINE__)
+      END
+   END
+END PutModuleContainsBuiltin ;
+
+
+(*
+   IsBuiltinInModule - returns true if a module, Sym, has declared a builtin procedure.
+*)
+
+PROCEDURE IsBuiltinInModule (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      DefImpSym: RETURN( DefImp.ContainsBuiltin )
+
+      ELSE
+         InternalError('expecting a DefImp symbol', __FILE__, __LINE__)
+      END
+   END
+END IsBuiltinInModule ;
 
 
 (*

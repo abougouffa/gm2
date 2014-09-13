@@ -29,10 +29,12 @@ MODULE innermods3 ;
 
   MODULE b ;
 
+  IMPORT x ;
+  EXPORT y ;
+
     MODULE d ;
 
     FROM c IMPORT z ;
-    EXPORT y ;
 
     END d ;
 

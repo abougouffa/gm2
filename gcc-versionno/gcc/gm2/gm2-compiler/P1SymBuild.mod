@@ -33,6 +33,7 @@ FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        NulTok, VarTok, ArrayTok, BuiltinTok, InlineTok ;
 
 FROM FifoQueue IMPORT PutEnumerationIntoFifoQueue ;
+FROM P0SymBuild IMPORT EnterBlock, LeaveBlock ;
 
 FROM SymbolTable IMPORT NulSym,
                         ModeOfAddr,
@@ -79,7 +80,8 @@ FROM SymbolTable IMPORT NulSym,
 
 FROM M2Batch IMPORT MakeDefinitionSource,
                     MakeImplementationSource,
-                    MakeProgramSource ;
+                    MakeProgramSource,
+                    LookupModule, LookupOuterModule ;
 
 FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, OperandT, PopN ;
 
@@ -174,7 +176,8 @@ BEGIN
          WriteFormat1('unknown definition module language (%a), currently a non modula-2 definition module can only be declared as DEFINITION FOR "C"', n)
       END
    END ;
-   PushT(name)
+   PushT(name) ;
+   EnterBlock(name)
 END P1StartBuildDefinitionModule ;
 
 
@@ -211,7 +214,8 @@ BEGIN
    IF NameStart#NameEnd
    THEN
       WriteFormat1('inconsistant definition module name %a', NameStart)
-   END
+   END ;
+   LeaveBlock
 END P1EndBuildDefinitionModule ;
 
 
@@ -247,7 +251,8 @@ BEGIN
       WriteFormat1('cannot find corresponding definition module to %a', n)
    END ;
    Assert(CompilingImplementationModule()) ;
-   PushT(name)
+   PushT(name) ;
+   EnterBlock(name)
 END P1StartBuildImplementationModule ;
 
 
@@ -280,7 +285,8 @@ BEGIN
    IF NameStart#NameEnd
    THEN
       WriteFormat1('inconsistant implementation module name %a', NameStart)
-   END
+   END ;
+   LeaveBlock
 END P1EndBuildImplementationModule ;
 
 
@@ -314,7 +320,8 @@ BEGIN
    THEN
       WriteFormat1('module %a has a corresponding DEFINITION MODULE but no IMPLEMENTATION keyword in the main module', name)
    END ;
-   PushT(name)
+   PushT(name) ;
+   EnterBlock(name)
 END P1StartBuildProgramModule ;
 
 
@@ -352,7 +359,8 @@ BEGIN
    IF NameStart#NameEnd
    THEN
       WriteFormat1('inconsistant program module name %a', NameStart)
-   END
+   END ;
+   LeaveBlock
 END P1EndBuildProgramModule ;
 
 
@@ -377,10 +385,12 @@ VAR
    ModuleSym: CARDINAL ;
 BEGIN
    PopT(name) ;
-   ModuleSym := MakeInnerModule(name) ;
+   ModuleSym := GetSym(name) ;
+   Assert(ModuleSym#NulSym) ;
    StartScope(ModuleSym) ;
    Assert(NOT IsDefImp(ModuleSym)) ;
-   PushT(name)
+   PushT(name) ;
+   EnterBlock(name)
 END StartBuildInnerModule ;
 
 
@@ -411,7 +421,8 @@ BEGIN
    IF NameStart#NameEnd
    THEN
       WriteFormat1('inconsistant inner module name %a', NameStart)
-   END
+   END ;
+   LeaveBlock
 END EndBuildInnerModule ;
 
 
@@ -457,7 +468,7 @@ BEGIN
       (* Ident list contains Module Names *)
       i := 1 ;
       WHILE i<=n DO
-         ModSym := MakeDefinitionSource(OperandT(n+1-i)) ;
+         ModSym := LookupModule(OperandT(n+1-i)) ;
          PutImported(ModSym) ;
          IF definition
          THEN
@@ -467,7 +478,7 @@ BEGIN
       END
    ELSE
       (* Ident List contains list of objects *)
-      ModSym := MakeDefinitionSource(OperandT(n+1)) ;
+      ModSym := LookupModule(OperandT(n+1)) ;
       i := 1 ;
       WHILE i<=n DO
 (*
@@ -612,6 +623,7 @@ END CheckExplicitExported ;
 
 PROCEDURE BuildImportInnerModule ;
 VAR
+   outer,
    Sym, ModSym,
    i, n       : CARDINAL ;
 BEGIN
@@ -626,7 +638,7 @@ BEGIN
       END
    ELSE
       (* Ident List contains list of objects *)
-      ModSym := MakeDefinitionSource(OperandT(n+1)) ;
+      ModSym := LookupOuterModule(OperandT(n+1)) ;
       i := 1 ;
       WHILE i<=n DO
          Sym := GetExported(ModSym, OperandT(n+1-i)) ;
@@ -857,7 +869,7 @@ VAR
    Sym : CARDINAL ;
 BEGIN
    PopT(name) ;
-   (* WriteString('Hidden type enocuntered: ') ; *)
+   (* WriteString('Hidden type encountered: ') ; *)
    (* WriteKey(Name) ; WriteLn ; *)
    Sym := MakeHiddenType(name)
 END BuildHiddenType ;
@@ -903,7 +915,7 @@ BEGIN
    ELSIF NOT IsProcedure(ProcSym)
    THEN
       n := GetSymName(ProcSym) ;
-      WriteFormat1('expecting a procedure name and symbol (%a) has been declared otherwise', n) ;
+      WriteFormat1('expecting a procedure name and symbol (%a) has been declared as something else', n) ;
       PushT(ProcSym) ;
       RETURN
    END ;
@@ -920,7 +932,11 @@ BEGIN
       END
    END ;
    PushT(ProcSym) ;
-   StartScope(ProcSym)
+   StartScope(ProcSym) ;
+   IF NOT CompilingDefinitionModule()
+   THEN
+      EnterBlock(name)
+   END
 END StartBuildProcedure ;
 
 
@@ -967,7 +983,9 @@ BEGIN
          WriteFormat2('procedure name at end (%a) does not match name at beginning (%a)', NameEnd, NameStart)
       END
    END ;
-   EndScope
+   EndScope ;
+   Assert(NOT CompilingDefinitionModule()) ;
+   LeaveBlock
 END EndBuildProcedure ;
 
 
