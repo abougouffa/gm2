@@ -53,6 +53,8 @@
 	* gm2/bnf/m2-1.bnf:  new file (copied from m2.bnf with
 	  some name changes).
 	* gm2/bng/m2.bnf:  new contents (pass 0).
+	* gm2/gm2-compiler/P0SymBuild.def:  New file.
+	* gm2/gm2-compiler/P0SymBuild.mod:  New file.
 
 2014-09-04      Gaius Mulley <gaius@gnu.org>
 
