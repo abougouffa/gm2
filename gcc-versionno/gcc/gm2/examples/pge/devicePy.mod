@@ -42,7 +42,7 @@ IMPORT rpc ;
 
 
 CONST
-   FPS       = 4 ;
+   FPS       = 10 ;
    Debugging = FALSE ;
    Height    = 5 ;
    Width     = Height ;

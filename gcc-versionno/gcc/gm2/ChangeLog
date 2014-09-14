@@ -1,3 +1,7 @@
+2014-09-14      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/README:  corrected language (gm2) and removed enable-__cxa_atexit.
+
 2014-09-13      Gaius Mulley <gaius@gnu.org>
 
 	* the majority of these changes fix a bug reported by John O Goyo

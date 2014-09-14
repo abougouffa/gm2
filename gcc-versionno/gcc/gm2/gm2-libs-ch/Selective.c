@@ -53,7 +53,7 @@ int Selective_Select (int nooffds,
    PROCEDURE InitTime (sec, usec) : Timeval ;
 */
 
-#if defined(HAVE_TIMEVAL)
+#if defined(HAVE_SELECT)
 struct timeval *Selective_InitTime (unsigned int sec, unsigned int usec)
 {
   struct timeval *t=(struct timeval *)malloc(sizeof(struct timeval));

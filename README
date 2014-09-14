@@ -13,7 +13,7 @@ Or to cut to the chase, type:
 
 $ sh ./combine-trees
 
-which will produce a source tree in ./scratch/source/gm2/gcc-versionno
+which will produce a source tree in ./scratch/sources/gm2/gcc-versionno
 
 
 Git Source Tree Layout

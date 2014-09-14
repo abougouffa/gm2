@@ -27,8 +27,8 @@ To build gm2 type:
     --prefix=$HOME/opt \
     --libexecdir=$HOME/opt/lib \
     --disable-shared \
-    --enable-threads=posix --enable-__cxa_atexit \
-    --enable-clocale=gnu --enable-languages=c,m2 \
+    --enable-threads=posix \
+    --enable-clocale=gnu --enable-languages=c,gm2 \
     --disable-multilib --disable-bootstrap --enable-checking
    make
    cd ..

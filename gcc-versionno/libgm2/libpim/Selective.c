@@ -1,4 +1,5 @@
-/* Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
+/* Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
+ *               2013, 2014
  *               Free Software Foundation, Inc. */
 /* This file is part of GNU Modula-2.
 
@@ -94,7 +95,7 @@ int Selective_Select (int nooffds,
    PROCEDURE InitTime (sec, usec) : Timeval ;
 */
 
-#if defined(HAVE_TIMEVAL)
+#if defined(HAVE_SELECT)
 struct timeval *Selective_InitTime (unsigned int sec, unsigned int usec)
 {
   struct timeval *t=(struct timeval *)malloc(sizeof(struct timeval));
