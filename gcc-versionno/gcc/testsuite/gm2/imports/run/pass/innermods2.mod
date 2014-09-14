@@ -29,6 +29,7 @@ MODULE innermods2 ;
 
   MODULE b ;
 
+  FROM a IMPORT x ;
   FROM c IMPORT z ;
   EXPORT y ;
 
