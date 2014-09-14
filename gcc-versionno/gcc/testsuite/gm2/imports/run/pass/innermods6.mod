@@ -1,4 +1,4 @@
-(* Copyright (C) 2014 Free Software Foundation, Inc. *)
+(* Copyright (C) 2011 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -16,33 +16,17 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA. *)
 
-MODULE innermods2 ;
+MODULE innermods6 ;
 
-  MODULE a ;
-  EXPORT x ;
+  PROCEDURE proc ;
 
-  PROCEDURE x ;
+    MODULE inner ;
+    BEGIN
+    END inner ;
+
   BEGIN
-  END x ;
-
-  END a ;
-
-  MODULE b ;
-
-    MODULE d ;
-
-    FROM c IMPORT z ;
-    EXPORT y ;
-
-    END d ;
-
-  PROCEDURE y ;
-  BEGIN
-     x
-  END y ;
-  
-  END b;
+  END proc ;
 
 BEGIN
-   y
-END innermods.
+
+END innermods6.
