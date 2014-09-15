@@ -64,6 +64,7 @@ EXPORT QUALIFIED SetReturnCheck, SetNilCheck, SetCaseCheck,
                  DumpSystemExports, GenerateSwig, Exceptions,
                  OverrideLocation, FinaliseOptions,
                  DebugBuiltins, setdefextension, setmodextension,
+                 SetStatistics,
                  CppProg, CppArg, CppCommandLine ;
 
 
@@ -429,6 +430,13 @@ PROCEDURE setdefextension (arg: ADDRESS) ;
 *)
 
 PROCEDURE setmodextension (arg: ADDRESS) ;
+
+
+(*
+   SetStatistics - turn on/off generate of compile time statistics.
+*)
+
+PROCEDURE SetStatistics (on: BOOLEAN) ;
 
 
 (*

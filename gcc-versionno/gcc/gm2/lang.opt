@@ -189,6 +189,10 @@ fdebug-trace-api
 Modula-2
 turn on the Modula-2 api tracing inside the compiler (internal switch)
 
+fm2-statistics
+Modula-2
+display statistics about the amount of source lines compiled and symbols used
+
 fswig
 Modula-2
 create a swig interface file for the module

@@ -136,5 +136,6 @@ BEGIN
 
    placeNonFixed ;
 
-   twoDsim.simulateFor(25.0)
+   twoDsim.simulateFor(25.0) ;
+(*   twoDsim.replayRate(4.0) *)
 END foo.

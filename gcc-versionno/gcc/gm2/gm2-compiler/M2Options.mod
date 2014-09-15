@@ -692,6 +692,16 @@ END SetCC1Quiet ;
 
 
 (*
+   SetStatistics - turn on/off generate of compile time statistics.
+*)
+
+PROCEDURE SetStatistics (on: BOOLEAN) ;
+BEGIN
+   Statistics := on
+END SetStatistics ;
+
+
+(*
    OverrideLocation - possibly override the location value, depending upon
                       whether the -flocation= option was used.
 *)

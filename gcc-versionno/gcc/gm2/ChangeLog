@@ -1,6 +1,25 @@
+2014-09-15      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/foo.mod:  added comment.
+	* gm2/gm2-compiler/M2Code.mod:  removed references to StrIO and
+	  NumberIO and replaced them with printf0 and printf1.
+	  Re-introduced OptimizationAnalysis which also reports on
+	  total source lines compiled.
+	* gcc/gm2/gm2-compiler/M2Options.def:  SetStatistic (New procedure).
+	* gcc/gm2/gm2-compiler/M2Options.def:  SetStatistic (New procedure)
+	  implemented.
+	* gm2/gm2-gcc/m2options.h:  SetStatistic (New prototype).
+	* gm2/gm2-lang.c:  handle -fm2-statistics.
+	* gm2/lang-options.h:  enumerate -fm2-statistics.
+	* gm2/lang.opt:  enumerate -fm2-statistics.
+	* gm2/m2.flex:  include timevar.h.  Call timevar_push, timevar_pop
+	  inside m2flex_GetToken.
+	
 2014-09-14      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/README:  corrected language (gm2) and removed enable-__cxa_atexit.
+	* gm2/README:  fixed source to sources.
+	* libgm2/libpim/Selective.c:  use HAVE_SELECT rather than HAVE_TIMEVAL.
 
 2014-09-13      Gaius Mulley <gaius@gnu.org>
 

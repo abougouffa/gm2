@@ -334,6 +334,9 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
   case OPT_fmakeinit:
     /* handled by the linker */
     return 1;
+  case OPT_fm2_statistics:
+    M2Options_SetStatistics (value);
+    return 1;
   case OPT_fobject_path_:
     /* handled by the linker */
     return 1;

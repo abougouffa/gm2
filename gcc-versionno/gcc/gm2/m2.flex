@@ -35,11 +35,16 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #   define END_FILE()
 #   define START_LINE(N,S)
 #   define GET_LOCATION(C)   0
+#   define TIMEVAR_PUSH_LEX
+#   define TIMEVAR_POP_LEX
 #else
+#   include "timevar.h"
 #   define START_FILE(F,L)   m2linemap_StartFile(F,L)
 #   define END_FILE()        m2linemap_EndFile()
 #   define START_LINE(N,S)   m2linemap_StartLine(N,S)
 #   define GET_LOCATION(C)   m2linemap_GetLocationColumn(C)
+#   define TIMEVAR_PUSH_LEX  timevar_push (TV_LEX)
+#   define TIMEVAR_POP_LEX   timevar_pop (TV_LEX)
 #endif
 
 
@@ -476,6 +481,7 @@ static void consumeLine (void)
   }
   strcpy(currentLine->linebuf, yytext+1);  /* copy all except the initial \n */
   lineno++;
+  totalLines++;
   currentLine->actualline = lineno;
   currentLine->tokenpos=0;
   currentLine->nextpos=0;
@@ -624,10 +630,12 @@ static void finishedLine (void)
 
 char *m2flex_GetToken (void)
 {
+  TIMEVAR_PUSH_LEX;
   if (currentLine == NULL)
     initLine();
   currentLine->tokenpos = currentLine->nextpos;
   yylex();
+  TIMEVAR_POP_LEX;
   return yytext;
 }
 
@@ -663,7 +671,7 @@ int m2flex_OpenSource (char *s)
     yy_delete_buffer(YY_CURRENT_BUFFER);
     yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));
     filename = xstrdup(s);
-    lineno   =1;
+    lineno =1;
     if (currentLine != NULL)
       currentLine->actualline = lineno;
     START_FILE (filename, lineno);

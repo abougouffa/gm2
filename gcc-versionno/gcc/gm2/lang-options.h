@@ -101,6 +101,8 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("created ordered list of modules") },
   { "-fm2-whole-program",
       N_("compile all implementation and program modules as a single unit") },
+  { "-fm2-statistics",
+      N_("display statistics about the amount of source lines compiled and symbols used") },
   { "-fmodules",
       N_("display list of modules and location") },
   { "-fno-pth",

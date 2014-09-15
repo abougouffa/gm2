@@ -21,9 +21,6 @@ IMPLEMENTATION MODULE M2Code ;
 
 
 FROM SYSTEM IMPORT WORD ;
-FROM StrIO IMPORT WriteString, WriteLn ;
-FROM NumberIO IMPORT WriteCard ;
-
 FROM M2Options IMPORT Statistics, DisplayQuadruples, OptimizeUncalledProcedures,
                       (* OptimizeDynamic, *) OptimizeCommonSubExpressions,
                       StudentChecking, Optimizing, WholeProgram ;
@@ -63,6 +60,8 @@ FROM M2Scope IMPORT ScopeBlock, InitScopeBlock, KillScopeBlock, ForeachScopeBloc
 FROM m2top IMPORT InitGlobalContext, FinishBackend, SetFlagUnitAtATime ;
 FROM M2Error IMPORT FlushErrors, FlushWarnings ;
 FROM M2Swig IMPORT GenerateSwigFile ;
+FROM m2flex IMPORT GetTotalLines ;
+FROM FIO IMPORT FlushBuffer, StdOut ;
 
 
 CONST
@@ -91,15 +90,18 @@ VAR
 *)
 
 PROCEDURE Percent (numerator, divisor: CARDINAL) ;
+VAR
+   value: CARDINAL ;
 BEGIN
-   WriteString('  (') ;
+   printf0('  (') ;
    IF divisor=0
    THEN
-      WriteString('overflow error')
+      printf0('overflow error')
    ELSE
-      WriteCard(numerator*100 DIV divisor, 3)
+      value := numerator*100 DIV divisor ;
+      printf1('%3d', value)
    END ;
-   WriteString('%)')
+   printf0('\%)')
 END Percent ;
 
 
@@ -108,28 +110,42 @@ END Percent ;
 *)
 
 PROCEDURE OptimizationAnalysis ;
+VAR
+   value: CARDINAL ;
 BEGIN
    IF Statistics
    THEN
       Count := CountQuads() ;
 
-      WriteString('Initial Number of Quadruples:') ; WriteCard(Total, 5) ;
-      Percent(Total, Total) ; WriteLn ;
-      WriteString('Constant folding achieved   :') ; WriteCard(Const, 5) ;
-      Percent(Const, Total) ; WriteLn ;
-      WriteString('Branch folding achieved     :') ; WriteCard(Jump, 5) ;
-      Percent(Jump, Total) ; WriteLn ;
-      WriteString('Basic Block optimization    :') ; WriteCard(BasicB, 5) ;
-      Percent(BasicB, Total) ; WriteLn ;
-      WriteString('Uncalled Procedures removed :') ; WriteCard(Proc, 5) ;
-      Percent(Proc, Total) ; WriteLn ;
-      WriteString('Common subexpession removed :') ; WriteCard(Cse, 5) ;
-      Percent(Cse, Total) ; WriteLn ;
-      WriteString('Total optimization removed  :') ; WriteCard(Const+Jump+BasicB+Proc+Cse, 5) ;
-      Percent(Const+Jump+BasicB+Proc+Cse, Total) ; WriteLn ;
-      WriteLn ;
-      WriteString('Resultant number of quads   :') ; WriteCard(Count, 5) ;
-      Percent(Count, Total) ; WriteLn
+      printf1('M2 initial number of quadruples: %6d', Total) ;
+      Percent(Total, Total) ; printf0('\n');
+      printf1('M2 constant folding achieved   : %6d', Const) ;
+      Percent(Const, Total) ; printf0('\n');
+      printf1('M2 branch folding achieved     : %6d', Jump) ;
+      Percent(Jump, Total) ; printf0('\n');
+      IF BasicB+Proc+Cse>0
+      THEN
+         (* there is no point making the front end attempt basic block, cse
+            and dead code elimination as the back end will do this for us
+            and it will do a better and faster job.  The code is left here
+            just in case this changes, but reporting 0 for these three
+            is likely to cause confusion.
+         *)
+         printf1('M2 basic block optimization    : %6d', BasicB) ;
+         Percent(BasicB, Total) ; printf0('\n') ;
+         printf1('M2 uncalled procedures removed : %6d', Proc) ;
+         Percent(Proc, Total) ; printf0('\n') ;
+         printf1('M2 common subexpession removed : %6d', Cse) ;
+         Percent(Cse, Total) ; printf0('\n')
+      END ;
+      value := Const+Jump+BasicB+Proc+Cse ;
+      printf1('Front end optimization removed : %6d', value) ;
+      Percent(value, Total) ; printf0('\n') ;
+      printf1('Front end final                : %6d', Count) ;
+      Percent(Count, Total) ; printf0('\n') ;
+      Count := GetTotalLines() ;
+      printf1('Total source lines compiled    : %6d\n', Count) ;
+      FlushBuffer(StdOut)
    END ;
    IF DisplayQuadruples
    THEN
