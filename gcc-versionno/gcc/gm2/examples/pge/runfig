@@ -19,7 +19,7 @@ xfig $source
 if python fig.py $source $modname ; then
     if gm2 -c -I. -g -fiso $modname ; then
         rm `basename $modname .mod`.o
-	make
+	make foo.o ; make foo
 	python pge.py &
 	sleep 1
 	./a.out

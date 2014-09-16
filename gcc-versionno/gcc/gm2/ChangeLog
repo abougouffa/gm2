@@ -7,6 +7,11 @@
 	  (testsuite/gm2/errors/fail/testinit.mod)
 	* gm2/gm2.texi:  changed the -fstatistics entry to -fm2-statistics.
 	  Added entry for -fm2-whole-program.
+	* gm2/examples/pge/Makefile:  corrected rules to whole and foo
+	  and introduced $(CHECK).
+	* examples/pge/history.mod:  hide debugging.
+	* gm2/examples/pge/twoDsim.mod:  hide debugging.
+	* gm2/gm2-compiler/M2Range.mod:  fixed bug in CodeEndForLoop.
 
 2014-09-15      Gaius Mulley <gaius@gnu.org>
 
@@ -24,7 +29,7 @@
 	* gm2/lang.opt:  enumerate -fm2-statistics.
 	* gm2/m2.flex:  include timevar.h.  Call timevar_push, timevar_pop
 	  inside m2flex_GetToken.
-	
+
 2014-09-14      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/README:  corrected language (gm2) and removed enable-__cxa_atexit.

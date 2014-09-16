@@ -22,6 +22,8 @@ FROM Storage IMPORT ALLOCATE ;
 FROM roots IMPORT nearZero ;
 FROM libc IMPORT printf ;
 
+CONST
+   Debugging = FALSE ;
 
 TYPE
    hList = POINTER TO RECORD
@@ -211,23 +213,35 @@ PROCEDURE isDuplicate (currentTime, relTime: REAL;
 VAR
    h, n: hList ;
 BEGIN
-   dumpList ;
+   IF Debugging
+   THEN
+      dumpList
+   END ;
    n := init(newHList(), currentTime+relTime, id1, id2, w1, w2) ;
-   printf("checking against: ") ;
-   dumpHlist(n) ;
+   IF Debugging
+   THEN
+      printf("checking against: ") ;
+      dumpHlist(n)
+   END ;
    h := list ;
    WHILE h#NIL DO
       IF isSame(h, n)
       THEN
          disposeHList(n) ;
-         printf("found same collision\n") ;
+         IF Debugging
+         THEN
+            printf("found same collision\n")
+         END ;
          RETURN TRUE
       END ;
       h := h^.next
    END ;
    updateList(n, currentTime) ;
-   printf("unique collision found\n") ;
-   dumpHlist(n) ;
+   IF Debugging
+   THEN
+      printf("unique collision found\n") ;
+      dumpHlist(n)
+   END ;
    RETURN FALSE
 END isDuplicate ;
 
@@ -244,7 +258,10 @@ PROCEDURE removeOlderHistory (currentTime: REAL) ;
 VAR
    h, p: hList ;
 BEGIN
-   printf("truncating the history list\n") ;
+   IF Debugging
+   THEN
+      printf("truncating the history list\n")
+   END ;
    p := NIL ;
    h := list ;
    WHILE h#NIL DO
@@ -266,7 +283,10 @@ BEGIN
          h := h^.next
       END
    END ;
-   dumpList
+   IF Debugging
+   THEN
+      dumpList
+   END
 END removeOlderHistory ;
 
 
@@ -288,10 +308,16 @@ PROCEDURE occurred (currentTime: REAL; id1, id2: CARDINAL) ;
 VAR
    h, n: hList ;
 BEGIN
-   dumpList ;
+   IF Debugging
+   THEN
+      dumpList
+   END ;
    n := init(newHList(), currentTime, id1, id2, edge, edge) ;
-   printf("checking against: ") ;
-   dumpHlist(n) ;
+   IF Debugging
+   THEN
+      printf("checking against: ") ;
+      dumpHlist(n)
+   END ;
    h := list ;
    WHILE h#NIL DO
       IF isSame(h, n)
@@ -301,7 +327,10 @@ BEGIN
       h := h^.next
    END ;
    disposeHList(n) ;
-   dumpList ;
+   IF Debugging
+   THEN
+      dumpList
+   END
 END occurred ;
 
 
@@ -313,7 +342,10 @@ PROCEDURE purge ;
 VAR
    h, p: hList ;
 BEGIN
-   printf("purging the history list\n") ;
+   IF Debugging
+   THEN
+      printf("purging the history list\n")
+   END ;
    p := NIL ;
    h := list ;
    WHILE h#NIL DO
@@ -335,7 +367,10 @@ BEGIN
          h := h^.next
       END
    END ;
-   dumpList
+   IF Debugging
+   THEN
+      dumpList
+   END
 END purge ;
 
 

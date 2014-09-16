@@ -1,6 +1,6 @@
 SOURCES = test.mod \
           macroObjects.mod Points.mod Fractions.mod PolyMatrix3D.mod Transform3D.mod \
-          deviceGroff.mod delay.mod GC.mod Indexing.mod Storage.mod popWorld.mod twoDsim.mod \
+          deviceGroff.mod delay.mod GC.mod popWorld.mod twoDsim.mod \
           roots.mod coord.mod polar.mod history.mod stairs.mod rpc.mod devicePy.mod \
           snooker.mod wall.mod npn.mod wallv.mod slope.mod para.mod testpy.mod RTgen.mod \
           deviceIf.mod ramps.mod ramps2.mod boxes.mod wallh.mod bounce.mod line.mod bounce2.mod \
@@ -9,10 +9,15 @@ SOURCES = test.mod \
 # OBJECTS = hack $(SOURCES:%.mod=%.o)
 OBJECTS = $(SOURCES:%.mod=%.o)
 PROFILE = 
-GM2FLAGS = $(PROFILE) -fsoft-check-all -g -fiso -fextended-opaque 
+CHECK =
+# CHECK = -fsoft-check-all
+GM2FLAGS = $(PROFILE) $(CHECK) -g -fiso -fextended-opaque -O3
 
-whole: force
+whole: circles.m force
 	gm2 -O3 -fsources -fiso -fcpp -I. -fm2-whole-program -fextended-opaque -g foo.mod 
+
+foo: circles.m $(OBJECTS)
+	gm2 $(GM2FLAGS) -fonlylink foo.mod
 
 bounce: $(OBJECTS)
 	gm2 $(GM2FLAGS) -fonlylink bounce.mod

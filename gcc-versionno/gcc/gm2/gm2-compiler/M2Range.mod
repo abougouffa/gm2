@@ -2484,6 +2484,8 @@ VAR
    falseStatement,
    trueStatement,
    condition, c,
+   upper, room,
+   desn,
    lg, min, max,
    e             : Tree ;
    location      : location_t ;
@@ -2505,12 +2507,15 @@ BEGIN
             lg := BuildConvert(Mod2Gcc(desLowestType), DeReferenceLValue(tokenno, expr), FALSE) ;
 
             (* check des has room to add, expr, without overflowing *)
-            c := BuildGreaterThan(location, lg, BuildSub(location, max, Mod2Gcc(des), FALSE)) ;
+            upper := BuildSub(location, max, Mod2Gcc(des), FALSE) ;
+            c := BuildGreaterThan(location, lg, upper) ;
             trueStatement := BuildIfCallHandler(c, r, scopeDesc, IsTrue(condition)) ;
 
             (* check des has room to subtract, expr, without underflowing *)
-            c := BuildLessThan(location, BuildSub(location, Mod2Gcc(des), min, FALSE),
-                               BuildNegate(location, lg, FALSE)) ;
+            desn := BuildNegate(location, Mod2Gcc(des), FALSE) ;
+            room := BuildAdd(location, min, desn, FALSE) ; (* how much room is there below des ?  *)
+            lg := BuildNegate(location, lg, FALSE) ;       (* get a positive value to decrement with *)
+            c := BuildGreaterThan(location, lg, room) ;    (* is decrement value > room *)
             falseStatement := BuildIfCallHandler(c, r, scopeDesc, IsFalse(condition)) ;
 
             AddStatement(BuildIfThenElseEnd(condition, trueStatement, falseStatement))

@@ -1238,7 +1238,10 @@ PROCEDURE checkStationaryCollision (a, b: Object) ;
 BEGIN
    IF a^.stationary
    THEN
-      printf("bumped into a stationary object\n") ;
+      IF Debugging
+      THEN
+         printf("bumped into a stationary object\n")
+      END ;
       a^.vy := 1.0 ;
       IF a^.c.pos.x<b^.c.pos.x
       THEN
@@ -1248,7 +1251,10 @@ BEGIN
       END ;
       a^.c.pos.y := a^.c.pos.y+0.001 ;
       a^.stationary := FALSE ;
-      DumpObject(a)
+      IF Debugging
+      THEN
+         DumpObject(a)
+      END
    ELSIF b^.stationary
    THEN
       checkStationaryCollision(b, a)
@@ -1451,7 +1457,10 @@ END circlePolygonCollision ;
 PROCEDURE collidePolygonAgainstFixedCircle (o: Object; collision: Coord) ;
 BEGIN
    collideAgainstFixedCircle(o, collision) ;
-   DumpObject(o)
+   IF Debugging
+   THEN
+      DumpObject(o)
+   END
 END collidePolygonAgainstFixedCircle ;
 
 
@@ -1462,7 +1471,10 @@ END collidePolygonAgainstFixedCircle ;
 PROCEDURE collidePolygonAgainstFixedEdge (o: Object; p1, p2: Coord) ;
 BEGIN
    collideCircleAgainstFixedEdge(o, p1, p2) ;
-   DumpObject(o)
+   IF Debugging
+   THEN
+      DumpObject(o)
+   END
 END collidePolygonAgainstFixedEdge ;
 
 
@@ -1475,9 +1487,12 @@ VAR
    ln    : CARDINAL ;
    p1, p2: Coord ;
 BEGIN
-   displayEvent(e) ;
-   DumpObject(id1) ;
-   DumpObject(id2) ;
+   IF Debugging
+   THEN
+      displayEvent(e) ;
+      DumpObject(id1) ;
+      DumpObject(id2)
+   END ;
    WITH e^.ePtr^ DO
       IF etype=polygonPolygonEvent
       THEN
