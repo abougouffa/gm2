@@ -1,3 +1,11 @@
+2014-09-16      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Quads.mod:  removed RangeCheck quadruples from
+	  changing the read/write lists.  Also removed PutWriteQuad
+	  from being called inside MarkAsRead.  More regression tests pass.
+	  (testsuite/gm2/errors/fail/testfio.mod)
+	  (testsuite/gm2/errors/fail/testinit.mod)
+
 2014-09-15      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/foo.mod:  added comment.

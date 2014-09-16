@@ -1320,7 +1320,7 @@ BEGIN
                        CheckAddVariableWrite(Oper1, FALSE, QuadNo) ;
                        CheckAddVariableRead(Oper3, TRUE, QuadNo) |
 
-   RangeCheckOp      : CheckRangeAddVariableRead(Oper3, QuadNo) |
+(* RangeCheckOp      : CheckRangeAddVariableRead(Oper3, QuadNo) | *)
    SaveExceptionOp   : CheckConst(Oper1) ;
                        CheckAddVariableWrite(Oper1, FALSE, QuadNo) |
    RestoreExceptionOp: CheckAddVariableRead(Oper1, FALSE, QuadNo)
@@ -1461,7 +1461,7 @@ BEGIN
    IndrXOp           : CheckRemoveVariableWrite(Oper1, FALSE, QuadNo) ;
                        CheckRemoveVariableRead(Oper3, TRUE, QuadNo) |
 
-   RangeCheckOp      : CheckRangeRemoveVariableRead(Oper3, QuadNo) |
+(* RangeCheckOp      : CheckRangeRemoveVariableRead(Oper3, QuadNo) | *)
    SaveExceptionOp   : CheckRemoveVariableWrite(Oper1, FALSE, QuadNo) |
    RestoreExceptionOp: CheckRemoveVariableRead(Oper1, FALSE, QuadNo)
 
@@ -2655,8 +2655,7 @@ PROCEDURE MarkAsRead (sym: CARDINAL) ;
 BEGIN
    IF (sym#NulSym) AND IsVar(sym)
    THEN
-      PutReadQuad(sym, RightValue, NextQuad) ;
-      PutWriteQuad(sym, RightValue, NextQuad)
+      PutReadQuad(sym, RightValue, NextQuad)
    END
 END MarkAsRead ;
 
