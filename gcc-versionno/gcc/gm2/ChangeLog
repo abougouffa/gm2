@@ -5,6 +5,8 @@
 	  from being called inside MarkAsRead.  More regression tests pass.
 	  (testsuite/gm2/errors/fail/testfio.mod)
 	  (testsuite/gm2/errors/fail/testinit.mod)
+	* gm2/gm2.texi:  changed the -fstatistics entry to -fm2-statistics.
+	  Added entry for -fm2-whole-program.
 
 2014-09-15      Gaius Mulley <gaius@gnu.org>
 

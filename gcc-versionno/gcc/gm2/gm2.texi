@@ -760,9 +760,17 @@ are made to the runtime exception libraries.
 display all calls to subsidiary programs, such as the C preprocessor,
 the GNU Modula-2 linker and compiler.
 
-@item -fstatistics
+@item -fm2-statistics
 generates quadruple information: number of quadruples generated,
-number of quadruples remaining after optimisation.
+number of quadruples remaining after optimisation and number of source
+lines compiled.
+
+@item -fm2-whole-program
+compile all implementation modules and program module at once.  Notice
+that you need to take care if you are compiling different dialect
+modules (particularly with the negative operands to modulus).  But
+this option, when coupled together with @code{-O3}, can deliver huge
+performance improvements.
 
 @item -fmakelist
 this option is only applicable when linking a program module.  The
