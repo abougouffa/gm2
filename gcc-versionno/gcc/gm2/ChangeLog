@@ -1,3 +1,11 @@
+2014-09-17      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Range.mod:  minor fixes which solve
+	  testsuite/gm2/pim/run/pass/For5.mod.
+	* gm2/gm2-libs-iso/RTgen.mod:  include guards to ensure that
+	  the do procedure functions are only called if >0 bytes are
+	  to be read/written.
+
 2014-09-16      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Quads.mod:  removed RangeCheck quadruples from

@@ -1,4 +1,4 @@
-(* Copyright (C) 2008, 2009, 2010
+(* Copyright (C) 2008, 2009, 2010, 2011, 2012
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -349,24 +349,27 @@ VAR
 BEGIN
    checkValid(g, d) ;
    checkFlags(read+text, d) ;
-   WITH d^ DO
-      INCL(flags, textFlag) ;
-      checkPreRead(g, d, FALSE, FALSE) ;
-      charsRead := 0 ;
-      REPEAT
-         IF doRBytes(g^.genif, d, to, maxChars, i)
-         THEN
-            INC(charsRead, i) ;
-            INC(to, i) ;
-            DEC(maxChars, i)
-         ELSE
-            checkErrno(g, d) ;
-            (* if our target system does not support errno then we *)
-            RAISEdevException(cid, did, notAvailable,
-                              'textread unrecoverable errno')
-         END
-      UNTIL (maxChars=0) OR isEOF(g^.genif, d) ;
-      checkPostRead(g, d)
+   IF maxChars>0
+   THEN
+      WITH d^ DO
+         INCL(flags, textFlag) ;
+         checkPreRead(g, d, FALSE, FALSE) ;
+         charsRead := 0 ;
+         REPEAT
+            IF doRBytes(g^.genif, d, to, maxChars, i)
+            THEN
+               INC(charsRead, i) ;
+               INC(to, i) ;
+               DEC(maxChars, i)
+            ELSE
+               checkErrno(g, d) ;
+               (* if our target system does not support errno then we *)
+               RAISEdevException(cid, did, notAvailable,
+                                 'textread unrecoverable errno')
+            END
+         UNTIL (maxChars=0) OR isEOF(g^.genif, d) ;
+         checkPostRead(g, d)
+      END
    END
 END doReadText ;
 
@@ -409,24 +412,27 @@ VAR
 BEGIN
    checkValid(g, d) ;
    checkFlags(read+raw, d) ;
-   WITH d^ DO
-      INCL(flags, rawFlag) ;
-      checkPreRead(g, d, FALSE, TRUE) ;
-      locsRead := 0 ;
-      REPEAT
-         IF doRBytes(g^.genif, d, to, maxLocs, i)
-         THEN
-            INC(locsRead, i) ;
-            INC(to, i) ;
-            DEC(maxLocs, i)
-         ELSE
-            checkErrno(g, d) ;
-            (* if our target system does not support errno then we *)
-            RAISEdevException(cid, did, notAvailable,
-                              'rawread unrecoverable errno')
-         END
-      UNTIL (maxLocs=0) OR isEOF(g^.genif, d) ;
-      checkPostRead(g, d)
+   IF maxLocs>0
+   THEN
+      WITH d^ DO
+         INCL(flags, rawFlag) ;
+         checkPreRead(g, d, FALSE, TRUE) ;
+         locsRead := 0 ;
+         REPEAT
+            IF doRBytes(g^.genif, d, to, maxLocs, i)
+            THEN
+               INC(locsRead, i) ;
+               INC(to, i) ;
+               DEC(maxLocs, i)
+            ELSE
+               checkErrno(g, d) ;
+               (* if our target system does not support errno then we *)
+               RAISEdevException(cid, did, notAvailable,
+                                 'rawread unrecoverable errno')
+            END
+         UNTIL (maxLocs=0) OR isEOF(g^.genif, d) ;
+         checkPostRead(g, d)
+      END
    END
 END doReadLocs ;
 

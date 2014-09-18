@@ -29,7 +29,7 @@ VAR
 BEGIN
    IF v
    THEN
-      r := printf("successfully evaluated assertion (%s)\n", ADR(e))
+      r := printf("successfully evaluated assertion\n")
    ELSE
       r := printf("%s:%d assertion failed when evaluating %s\n", ADR(f), l, ADR(e)) ;
       res := 1
@@ -44,6 +44,7 @@ BEGIN
    n := 4 ;
    c := 0 ;
    FOR i := -256 TO 256 BY 64 DO
+      printf("i = %d\n", i);
       j := i ;
       Assert(c<10, __FILE__,  __LINE__, "for loop executed too many times") ;
       INC(c)
