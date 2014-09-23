@@ -5,6 +5,15 @@
 	  (SameTypesCodeForLoopEnd) New procedure.
 	  (DiffTypesSameForLoopEnd) New procedure.
 	  All regression tests pass under Debian Wheezy amd64.
+	* gm2/examples/pge/Makefile.in:  fixed post rules for world.
+	* gm2/gm2-libs/config-host:  rebuilt.
+	* gm2/gm2-libs/config-host.in:  1.0.9.
+	* gm2/gm2-libs/config-target:  rebuilt.
+	* gm2/gm2-libs/config-target.in:  1.0.9.
+	* gm2/gm2.texi:  updated release map.
+	* gm2/gm2spec.c:  removed C++ comment.
+	* gm2/version.c:  1.0.9.
+	* Released 1.0.9 Beta Release.
 
 2014-09-17      Gaius Mulley <gaius@gnu.org>
 

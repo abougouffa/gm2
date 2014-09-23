@@ -89,7 +89,7 @@ int lang_specific_extra_outfiles = 0;
 #include "gm2/gm2config.h"
 
 #undef DEBUGGING
-// #define DEBUGGING
+/* #define DEBUGGING */
 
 #define DEFAULT_DIALECT "pim"
 

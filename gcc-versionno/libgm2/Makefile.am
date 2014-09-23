@@ -95,7 +95,6 @@ AM_MAKEFLAGS = \
 # Subdir rules rely on $(FLAGS_TO_PASS)
 FLAGS_TO_PASS = $(AM_MAKEFLAGS)
 
-
 # Multilib support.  Automake should provide these on its own.
 all-recursive: all-multi
 install-recursive: install-multi
