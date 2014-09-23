@@ -1,3 +1,11 @@
+2014-09-23      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/config-lang.in:  added entry for gm2/examples/pge/Makefile.
+	* gm2/gm2-compiler/M2Range.mod:  rewritten CodeForLoopEnd.
+	  (SameTypesCodeForLoopEnd) New procedure.
+	  (DiffTypesSameForLoopEnd) New procedure.
+	  All regression tests pass under Debian Wheezy amd64.
+
 2014-09-17      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Range.mod:  minor fixes which solve

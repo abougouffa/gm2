@@ -1,9 +1,9 @@
-(* Copyright (C) 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2014 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 2, or (at your option) any later
+Software Foundation; either version 3, or (at your option) any later
 version.
 
 GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -13,13 +13,14 @@ for more details.
 
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)
 
-MODULE For8 ;
+MODULE For10 ;
 
 FROM libc IMPORT exit, printf ;
 FROM SYSTEM IMPORT ADR ;
-(* FROM EndFor IMPORT CheckLongintLongint ; *)
+(* FROM EndFor IMPORT CheckCardinalInteger ; *)
 
 CONST
    Check = TRUE ;
@@ -41,19 +42,24 @@ BEGIN
 END Assert ;
 
 VAR
-   c      : INTEGER ;
-   n, i, j: LONGINT ;
+   c      : CARDINAL ;
+   n, i, j: CARDINAL ;
 BEGIN
    res := 0 ;
    n := 4 ;
-   c := 0 ;
-   FOR i := -256000000000 TO 256000000000 BY 64000000000 DO
+   c := 0 ; 
+   FOR i := 30000 TO 0 BY -10000 DO
       j := i ;
-      Assert(c<10, __FILE__,  __LINE__, "for loop executed too many times") ;
+      Assert(c<5, __FILE__,  __LINE__, "for loop executed too many times") ;
       INC(c) ;
-      (* CheckLongintLongint(i, 64000000000) *)
+(*
+      IF i#0
+      THEN
+         CheckCardinalInteger(i, -10000)   (* we cannot test when i=0 *)
+      END
+*)
    END ;
-   Assert(c=9, __FILE__,  __LINE__, "for loop executed too few times") ;
-   Assert(i=256000000000, __FILE__,  __LINE__, "for loop index") ;
+   Assert(c=4, __FILE__,  __LINE__, "for loop executed too few times") ;
+   Assert(i=0, __FILE__,  __LINE__, "for loop index") ;
    exit(res)
-END For8.
+END For10.

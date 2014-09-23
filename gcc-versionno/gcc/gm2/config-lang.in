@@ -66,6 +66,7 @@ outputs=" \
          gm2/examples/hello/Makefile \
          gm2/examples/iso/socket/Makefile \
          gm2/examples/map/Makefile \
+         gm2/examples/pge/Makefile \
          gm2/examples/ncurses/Makefile \
          gm2/examples/swig/exceptions/Makefile \
          gm2/examples/swig/strlib/Makefile \

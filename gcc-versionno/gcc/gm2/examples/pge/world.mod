@@ -1,4 +1,4 @@
-MODULE foo ;
+MODULE world ;
 
 IMPORT popWorld ;
 IMPORT twoDsim ;
@@ -138,4 +138,4 @@ BEGIN
 
    twoDsim.simulateFor(25.0) ;
 (*   twoDsim.replayRate(4.0) *)
-END foo.
+END world.

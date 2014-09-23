@@ -50,7 +50,7 @@ FROM m2decl IMPORT BuildStringConstant, BuildIntegerConstant ;
 FROM M2Debug IMPORT Assert ;
 FROM Indexing IMPORT Index, InitIndex, InBounds, PutIndice, GetIndice ;
 FROM Storage IMPORT ALLOCATE ;
-FROM M2ALU IMPORT PushIntegerTree, ConvertToInt, Equ, Gre, Less ;
+FROM M2ALU IMPORT PushIntegerTree, PushInt, ConvertToInt, Equ, Gre, Less, GreEqu ;
 FROM M2Error IMPORT Error, InternalError, ErrorFormat0, ErrorFormat1, ErrorFormat2, ErrorString, FlushErrors ;
 FROM M2Options IMPORT VariantValueChecking ;
 
@@ -2473,20 +2473,189 @@ BEGIN
 END CodeForLoopTo ;
 
 
+
 (*
-   CodeForLoopEnd - 
+   Pseudo template code for CodeLoopEnd:
+
+   PROCEDURE CheckCardinalInteger (des: CARDINAL; inc: INTEGER) ;
+   VAR
+      room,
+      lg  : CARDINAL ;
+   BEGIN
+      IF inc>=0
+      THEN
+         IF des>=0
+         THEN
+            lg := VAL(CARDINAL, inc) ;
+            room := MAX(CARDINAL)-des ;
+            IF lg>room
+            THEN
+               printf("increment exceeds range at end of FOR loop\n") ;
+               exit (2)
+            END
+         ELSE
+            (* inc can never cause an overflow given its type *)
+         END
+      ELSE
+         (* inc < 0 *)
+         IF des>VAL(CARDINAL, MAX(INTEGER))
+         THEN
+            (* inc can never cause an underflow given its range *)
+         ELSE
+            (* des <= MAX(INTEGER) *)
+            IF des=MIN(INTEGER)
+            THEN
+               printf("increment exceeds range at end of FOR loop\n") ;
+               exit (4)
+            ELSE
+               IF inc=MIN(INTEGER)
+               THEN
+                  IF des=0
+                  THEN
+                     printf("increment exceeds range at end of FOR loop\n") ;
+                     exit (5)
+                  END
+               ELSE
+                  lg := VAL(CARDINAL, -inc) ;
+                  IF lg>des
+                  THEN
+                     printf("increment exceeds range at end of FOR loop\n") ;
+                     exit (5)
+                  END
+               END
+            END
+         END
+      END
+   END CheckCardinalInteger ;
+
+
+   PROCEDURE CheckCardinalCardinal (des: CARDINAL; inc: CARDINAL) ;
+   BEGIN
+      IF MAX(CARDINAL)-des<inc
+      THEN
+         printf("increment exceeds range at end of FOR loop\n") ;
+         exit (2)
+      END
+   END CheckCardinalCardinal ;
+*)
+
+
+(*
+   SameTypesCodeForLoopEnd - the trivial case.
+*)
+
+PROCEDURE SameTypesCodeForLoopEnd (tokenNo: CARDINAL; r: CARDINAL; scopeDesc: String;
+                                   p: Range; dmin, dmax, emin, emax: Tree) ;
+VAR
+   inc,
+   room,
+   statement,
+   condition: Tree ;
+   location : location_t ;
+BEGIN
+   location := TokenToLocation(tokenNo) ;
+   WITH p^ DO
+      inc := DeReferenceLValue(tokenNo, expr) ;
+      room := BuildSub(location, dmax, Mod2Gcc(des), FALSE) ;
+      condition := BuildLessThan(location, room, inc) ;
+      statement := BuildIfCallHandler(condition, r, scopeDesc, IsTrue(condition)) ;
+      AddStatement(statement)
+   END
+END SameTypesCodeForLoopEnd ;
+
+
+(*
+   DiffTypesSameForLoopEnd - remember that lowestType will map onto an int, or unsigned int
+                             of appropriate size.
+*)
+
+PROCEDURE DiffTypesCodeForLoopEnd (tokenNo: CARDINAL; r: CARDINAL; scopeDesc: String;
+                                   p: Range; dmin, dmax, emin, emax: Tree) ;
+VAR
+   location  : location_t ;
+   desoftypee,
+   inc,
+   room,
+   c1, c2, c3,
+   c4, c5, c6,
+   c7, c8,
+   s1, s2, s3,
+   s4, s5, s6,
+   s7, s8,
+   lg1, lg2,
+   dz, ez    : Tree ;
+BEGIN
+   location := TokenToLocation(tokenNo) ;
+   WITH p^ DO
+      inc := DeReferenceLValue(tokenNo, expr) ;
+      ez := BuildConvert(Mod2Gcc(exprLowestType), GetIntegerZero(), FALSE) ;
+      dz := BuildConvert(Mod2Gcc(desLowestType), GetIntegerZero(), FALSE) ;
+
+      c1 := BuildGreaterThanOrEqual(location, inc, ez) ;
+      (* if (inc >= 0)                                           [c1] *)
+      c2 := BuildGreaterThanOrEqual(location, Mod2Gcc(des), dz) ;
+      (*    if (des >= 0)                                        [c2] *)
+      lg1 := BuildConvert(Mod2Gcc(desLowestType), inc, FALSE) ;
+      room := BuildSub(location, dmax, Mod2Gcc(des), FALSE) ;
+      c3 := BuildGreaterThan(location, lg1, room) ;           (* [c3]  *)
+      (* WarnIf(IsTrue(c1) AND IsTrue(c2) AND IsTrue(c3), scopeDesc) ; --implement me-- *)
+
+      s3 := BuildIfCallHandler(c3, r, scopeDesc, FALSE) ;
+      s2 := BuildIfThenDoEnd(c2, s3) ;
+
+      (* else *)
+      (*    (* inc < 0 *)                                        [s4]  *)
+      (*    if (des <= val(desLowestType, emax)                  [c4]  *)
+      c4 := BuildLessThanOrEqual(location, Mod2Gcc(des), BuildConvert(Mod2Gcc(desLowestType), emax, FALSE)) ;
+      (*    (* des <= MAX(exprLowestType) *) *)
+      desoftypee := BuildConvert(Mod2Gcc(exprLowestType), Mod2Gcc(des), FALSE) ;
+      c5 := BuildEqualTo(location, desoftypee, emin) ;        (* [c5]  *)
+      s5 := BuildIfCallHandler(c5, r, scopeDesc, FALSE) ;
+      (*       if des = emin  *)
+      (*          error                                          [s5]  *)
+      (*       end                                                     *)
+      c6 := BuildEqualTo(location, inc, emin) ;              (*  [c6]  *)
+      (*      if inc = emin                                            *)
+      (*         if des = 0                                      [c7]  *)
+      c7 := BuildEqualTo(location, Mod2Gcc(des), dz) ;
+      s7 := BuildIfCallHandler(c7, r, scopeDesc, FALSE) ;
+
+      (*         end                                                   *)
+      (*      else                                                     *)
+      (*         lg2 = VAL(desLowestType, -inc)                  [s8]  *)
+      lg2 := BuildConvert(Mod2Gcc(desLowestType), BuildNegate(location, inc, FALSE), FALSE) ;
+      (*         if lg2 > des                                          *)
+      (*             error                                             *)
+      c8 := BuildGreaterThan(location, lg2, Mod2Gcc(des)) ;
+      s8 := BuildIfCallHandler(c8, r, scopeDesc, FALSE) ;
+      (*             end                                               *)
+      (*          end                                                  *)
+      (*       end                                                     *)
+      (*    end                                                        *)
+      (* end                                                           *)
+   END ;
+
+   s6 := BuildIfThenElseEnd(c6, s7, s8) ;
+   s4 := BuildIfThenElseEnd(c4, s5, s6) ;
+   s1 := BuildIfThenElseEnd(c1, s2, s4) ;
+   AddStatement(s1)
+
+END DiffTypesSameForLoopEnd ;
+
+
+(*
+   CodeForLoopEnd - checks to see that des := des + expr does not overflow.
+                    This is called at the end of the for loop.  It is more complex
+                    than it initially seems as des and expr might be different types.
 *)
 
 PROCEDURE CodeForLoopEnd (tokenno: CARDINAL;
                           r: CARDINAL; scopeDesc: String) ;
 VAR
-   p             : Range ;
-   falseStatement,
-   trueStatement,
-   condition, c,
-   lg, min, max,
-   e, desn, room : Tree ;
-   location      : location_t ;
+   isCard    : BOOLEAN ;
+   p         : Range ;
+   dmin, dmax,
+   emin, emax: Tree ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
@@ -2495,31 +2664,20 @@ BEGIN
       IF desLowestType#NulSym
       THEN
          Assert(GccKnowsAbout(expr)) ;
-         IF GetMinMax(tokenno, desLowestType, min, max) AND
-            GccKnowsAbout(desLowestType)
+         IF GccKnowsAbout(desLowestType) AND
+            GetMinMax(tokenno, desLowestType, dmin, dmax) AND
+            GccKnowsAbout(exprLowestType) AND
+            GetMinMax(tokenno, exprLowestType, emin, emax)
          THEN
-            location := TokenToLocation(tokenNo) ;
-            e := BuildConvert(GetIntegerType(), DeReferenceLValue(tokenno, expr), FALSE) ;
-            condition := BuildGreaterThan(location, e, GetIntegerZero()) ;
-
-            lg := BuildConvert(Mod2Gcc(desLowestType), DeReferenceLValue(tokenno, expr), FALSE) ;
-
-            (* check des has room to add, expr, without overflowing *)
-            c := BuildGreaterThan(location, lg, BuildSub(location, max, Mod2Gcc(des), FALSE)) ;
-            trueStatement := BuildIfCallHandler(c, r, scopeDesc, IsTrue(condition)) ;
-
-            (* check des has room to subtract, expr, without underflowing *)
-            desn := BuildNegate(location, Mod2Gcc(des), FALSE) ;
-            room := BuildAdd(location, min, desn, FALSE) ; (* how much room is there below des ?  *)
-            lg := BuildNegate(location, lg, FALSE) ;       (* get a positive value to decrement with *)
-            c := BuildGreaterThan(location, lg, room) ;    (* is decrement value > room *)
-            falseStatement := BuildIfCallHandler(c, r, scopeDesc, IsFalse(condition)) ;
-(*
-            c := BuildLessThan(location, BuildSub(location, Mod2Gcc(des), min, FALSE),
-                               BuildNegate(location, lg, FALSE)) ;
-            falseStatement := BuildIfCallHandler(c, r, scopeDesc, IsFalse(condition)) ;
-*)
-            AddStatement(BuildIfThenElseEnd(condition, trueStatement, falseStatement))
+            PushIntegerTree(dmin) ;
+            PushInt(0) ;
+            isCard := GreEqu(tokenno) ;
+            IF (desLowestType=exprLowestType) AND isCard
+            THEN
+               SameTypesCodeForLoopEnd(tokenno, r, scopeDesc, p, dmin, dmax, emin, emax)
+            ELSE
+               DiffTypesCodeForLoopEnd(tokenno, r, scopeDesc, p, dmin, dmax, emin, emax)
+            END
          END
       END
    END

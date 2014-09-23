@@ -19,6 +19,10 @@ MODULE For7 ;
 
 FROM libc IMPORT exit, printf ;
 FROM SYSTEM IMPORT ADR ;
+(* FROM EndFor IMPORT CheckLongintInteger ; *)
+
+CONST
+   PseudoCheck = FALSE ;
 
 VAR
    res: INTEGER ;
@@ -47,7 +51,8 @@ BEGIN
       printf("i = %d\n", i);
       j := i ;
       Assert(c<10, __FILE__,  __LINE__, "for loop executed too many times") ;
-      INC(c)
+      INC(c) ;
+      (* CheckLongintInteger(i, 64) *)
    END ;
    Assert(c=9, __FILE__,  __LINE__, "for loop executed too few times") ;
    Assert(i=256, __FILE__,  __LINE__, "for loop index") ;

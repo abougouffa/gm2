@@ -89,13 +89,12 @@ BEGIN
    (* just see if one bit has been set *)
    i := thentok ;
    c := 0 ;
-   REPEAT
+   FOR i := thentok TO stringtok DO
       IF i IN s
       THEN
          INC(c)
-      END ;
-      INC(i)
-   UNTIL i>stringtok ;
+      END
+   END ;
    RETURN (c=1) AND (enumValue IN s)
 END only2 ;
 
