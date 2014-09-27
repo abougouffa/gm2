@@ -1,6 +1,6 @@
 /* Definitions for specs for GNU Modula-2.
  * Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *               2010, 2011, 2012, 2013
+ *               2010, 2011, 2012, 2013, 2014
  *               Free Software Foundation, Inc.
    Contributed by Gaius Mulley.
 
@@ -34,8 +34,7 @@ Boston, MA 02110-1301, USA.  */
   {".mod", "@modula-2", 0, 0, 0},
   {"@modula-2",
       "%{c|S:%{fuselist:%{fsources:%eGNU Modula-2 does not know what to do with -fsources and -fuselist}} \
-           %{!fmakelist:%{!fmodules:%{!gm2gcc:%{fcpp:cc1gm2 -fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend \
-                                                     %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
+           %{!fmakelist:%{!fmodules:%{!gm2gcc:%{fcpp:cc1gm2 -fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
                                                      %{!fsyntax-only:%(invoke_as)}} \n\
                                                %{!fcpp:cc1gm2 %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
                                                      %{!fsyntax-only:%(invoke_as)}}}}} \n\
@@ -63,7 +62,7 @@ Boston, MA 02110-1301, USA.  */
                                      %{fclean:make -r -f %g.m clean %b } \n\
                                      %{!fclean:make -r -f %g.m }}}}} \n\
       %{!c:%{!S:%{!gm2gcc:%{!fuselist:%{fcpp:cc1 -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
-                                            %{!fonlylink:cc1gm2 %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} -o %d%g.s %g.mod \n\
+                                            %{!fonlylink:cc1gm2 -fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} -o %d%g.s %g.mod \n\
                                                 as %a %Y %g.s -o %uprog.o } \n\
                                              gm2l -fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %g.mod |\n\
                                              gm2lorder %{fruntime-modules=*} %{!pipe:%g.l} -o %g.lst \n\

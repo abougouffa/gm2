@@ -281,24 +281,27 @@ BEGIN
             THEN
             END
          END ;
-         qprintf2('   Module %-20s : %s\n', SymName, FileName) ;
-         IF OpenSource(AssociateModule(PreprocessModule(FileName), Sym))
+         IF FileName#NIL
          THEN
-            IF NOT P0SyntaxCheck.CompilationUnit()
+            qprintf2('   Module %-20s : %s\n', SymName, FileName) ;
+            IF OpenSource(AssociateModule(PreprocessModule(FileName), Sym))
             THEN
-               WriteFormat0('compilation failed') ;
-               CloseSource ;
-               RETURN
-            END ;
-            CloseSource
-         ELSE
-            (* quite legitimate to implement a module in C (and pretend it was a M2 implementation
-               providing that it is not the main program module and the definition module does not
-               imply that the implementation defines hidden types.  *)
-            IF (NOT WholeProgram) OR (Sym=Main) OR IsHiddenTypeDeclared(Sym)
-            THEN
-               ErrorStringAt(Sprintf1(InitString('file %s cannot be found'), FileName), GetFirstUsed(Sym)) ;
-               fprintf1(StdErr, 'file %s cannot be opened\n', FileName)
+               IF NOT P0SyntaxCheck.CompilationUnit()
+               THEN
+                  WriteFormat0('compilation failed') ;
+                  CloseSource ;
+                  RETURN
+               END ;
+               CloseSource
+            ELSE
+               (* quite legitimate to implement a module in C (and pretend it was a M2 implementation
+                  providing that it is not the main program module and the definition module does not
+                 imply that the implementation defines hidden types.  *)
+               IF (NOT WholeProgram) OR (Sym=Main) OR IsHiddenTypeDeclared(Sym)
+               THEN
+                  ErrorStringAt(Sprintf1(InitString('file %s cannot be found'), FileName), GetFirstUsed(Sym)) ;
+                  fprintf1(StdErr, 'file %s cannot be opened\n', FileName)
+               END
             END
          END
       END ;

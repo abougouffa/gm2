@@ -84,14 +84,14 @@ PROCEDURE down (m: Macro; f: Fract) : Macro ;
                filled and has colour, c.
 *)
 
-PROCEDURE rectangle (m: Macro; filled: BOOLEAN; thick: Fract; c: Colour; length, height: Fract) : Macro ;
+PROCEDURE rectangle (m: Macro; fill: BOOLEAN; thick: Fract; c: Colour; length, height: Fract) : Macro ;
 
 
 (*
    circle - draw a circle at current position of, colour, and radius.
 *)
 
-PROCEDURE circle (m: Macro; filled: BOOLEAN; thick: Fract; c: Colour; radius: Fract) : Macro ;
+PROCEDURE circle (m: Macro; fill: BOOLEAN; thick: Fract; c: Colour; rad: Fract) : Macro ;
 
 
 (*

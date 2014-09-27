@@ -1,3 +1,24 @@
+2014-09-27      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/macroObjects.def:  fixed parameter names so that
+	  implementation and definition modules match.
+	* gm2/examples/pge/twoDsim.mod:  commented out include.
+	* gm2/gm2-compiler/M2Comp.mod:  only attempt to parse an implementation
+	  if the filename is found.  This avoids a bug when -fcpp -fm2-whole-program
+	  was used.
+	* gm2/gm2-compiler/M2Preprocess.mod:  corrected dates.
+	* gm2/gm2-compiler/M2Preprocess.mod:  tidied up formatting.
+	* gm2/gm2-libs/DynamicStrings.mod:  guard against the #defines from being
+	  invoked necessary as users may now use -fcpp and -fm2-whole-program and thus
+	  turn on internal debugging of gm2 libraries.
+	* gm2/gm2-libs/FormatStrings.mod:  as above.
+	* gm2/gm2-libs/FpuIO.mod:  as above.
+	* gm2/gm2-libs/SArgs.mod:  as above.
+	* gm2/gm2-libs/SEnvironment.mod:  as above.
+	* gm2/gm2-libs/SFIO.mod:  as above.
+	* gm2/gm2-libs/StringConvert.mod:  as above.
+	* gm2/lang-specs.h:  changed formatting.
+
 2014-09-23      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/config-lang.in:  added entry for gm2/examples/pge/Makefile.

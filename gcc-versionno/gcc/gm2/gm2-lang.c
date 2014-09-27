@@ -1,5 +1,6 @@
 /* Language-dependent hooks for GNU Modula-2.
-   Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+                 2011, 2012, 2013, 2014
  *               Free Software Foundation, Inc.
    Contributed by Gaius Mulley <gaius@glam.ac.uk>
 
@@ -183,84 +184,84 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
   switch (code) {
 
   case OPT_I:
-    M2Options_SetSearchPath(arg);
+    M2Options_SetSearchPath (arg);
     return 1;
   case OPT_fiso:
-    M2Options_SetISO(value);
+    M2Options_SetISO (value);
     return 1;
   case OPT_fpim:
-    M2Options_SetPIM(value);
+    M2Options_SetPIM (value);
     return 1;
   case OPT_fpim2:
-    M2Options_SetPIM2(value);
+    M2Options_SetPIM2 (value);
     return 1;
   case OPT_fpim3:
-    M2Options_SetPIM3(value);
+    M2Options_SetPIM3 (value);
     return 1;
   case OPT_fpim4:
-    M2Options_SetPIM4(value);
+    M2Options_SetPIM4 (value);
     return 1;
   case OPT_fpositive_mod_floor_div:
-    M2Options_SetPositiveModFloor(value);
+    M2Options_SetPositiveModFloor (value);
     return 1;
   case OPT_flibs_:
     /* handled in the gm2 driver */
     return 1;
   case OPT_fnil:
-    M2Options_SetNilCheck(value);
+    M2Options_SetNilCheck (value);
     return 1;
 #if 0
   case OPT_fwholediv:
-    M2Options_SetWholeDiv(value);
+    M2Options_SetWholeDiv (value);
     return 1;
   case OPT_findex:
-    M2Options_SetIndex(value);
+    M2Options_SetIndex (value);
     return 1;
   case OPT_frange:
-    M2Options_SetRange(value);
+    M2Options_SetRange (value);
     return 1;
 #endif
   case OPT_freturn:
-    M2Options_SetReturnCheck(value);
+    M2Options_SetReturnCheck (value);
     return 1;
   case OPT_fcase:
-    M2Options_SetCaseCheck(value);
+    M2Options_SetCaseCheck (value);
     return 1;
   case OPT_fd:
-    M2Options_SetCompilerDebugging(value);
+    M2Options_SetCompilerDebugging (value);
     return 1;
   case OPT_fdebug_trace_quad:
-    M2Options_SetDebugTraceQuad(value);
+    M2Options_SetDebugTraceQuad (value);
     return 1;
   case OPT_fdebug_trace_api:
-    M2Options_SetDebugTraceAPI(value);
+    M2Options_SetDebugTraceAPI (value);
     return 1;
   case OPT_fsoft_check_all:
-    M2Options_SetCheckAll(value);
+    M2Options_SetCheckAll (value);
     return 1;
   case OPT_fexceptions:
-    M2Options_SetExceptions(value);
+    M2Options_SetExceptions (value);
     return 1;
   case OPT_Wstudents:
-    M2Options_SetStudents(value);
+    M2Options_SetStudents (value);
     return 1;
   case OPT_Wpedantic:
-    M2Options_SetPedantic(value);
+    M2Options_SetPedantic (value);
     return 1;
   case OPT_Wpedantic_param_names:
-    M2Options_SetPedanticParamNames(value);
+    M2Options_SetPedanticParamNames (value);
     return 1;
   case OPT_Wpedantic_cast:
-    M2Options_SetPedanticCast(value);
+    M2Options_SetPedanticCast (value);
     return 1;
   case OPT_fextended_opaque:
-    M2Options_SetExtendedOpaque(value);
+    M2Options_SetExtendedOpaque (value);
     return 1;
   case OPT_Wverbose_unbounded:
-    M2Options_SetVerboseUnbounded(value);
+    M2Options_SetVerboseUnbounded (value);
     return 1;
   case OPT_fxcode:
-    M2Options_SetXCode(value);
+    M2Options_SetXCode (value);
     return 1;
   case OPT_fuselist:
     /* handled in the driver */
@@ -296,7 +297,7 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
     /* handled in the driver */
     return 1;
   case OPT_fcpp:
-    M2Options_SetCpp(value);
+    M2Options_SetCpp (value);
     return 1;
   case OPT_fcppbegin:
     insideCppArgs = TRUE;
@@ -305,28 +306,28 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
     insideCppArgs = FALSE;
     return 1;
   case OPT_fcppprog_:
-    M2Options_CppProg(arg);
+    M2Options_CppProg (arg);
     return 1;
   case OPT_fq:
-    M2Options_SetQuadDebugging(value);
+    M2Options_SetQuadDebugging (value);
     return 1;
   case OPT_fsources:
-    M2Options_SetSources(value);
+    M2Options_SetSources (value);
     return 1;
   case OPT_funbounded_by_reference:
-    M2Options_SetUnboundedByReference(value);
+    M2Options_SetUnboundedByReference (value);
     return 1;
   case OPT_fdef_:
-    M2Options_setdefextension(arg);
+    M2Options_setdefextension (arg);
     return 1;
   case OPT_fmod_:
-    M2Options_setmodextension(arg);
+    M2Options_setmodextension (arg);
     return 1;
   case OPT_fdump_system_exports:
-    M2Options_SetDumpSystemExports(value);
+    M2Options_SetDumpSystemExports (value);
     return 1;
   case OPT_fswig:
-    M2Options_SetSwig(value);
+    M2Options_SetSwig (value);
     return 1;
   case OPT_fshared:
     /* handled by the linker */
@@ -345,10 +346,10 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
     return 1;
   case OPT_version:
   case OPT_fgm2_version:
-    M2Options_DisplayVersion();
+    M2Options_DisplayVersion ();
     return 1;
   case OPT_O:
-    M2Options_SetOptimizing(value);
+    M2Options_SetOptimizing (value);
     return 1;
   case OPT_quiet:
     M2Options_SetQuiet(value);
@@ -366,7 +367,7 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
       return 1;
     }
     else if ((arg != NULL) && (ISDIGIT (arg[0]))) {
-      M2Options_SetForcedLocation(atoi (arg));
+      M2Options_SetForcedLocation (atoi (arg));
       return 1;
     }
     else

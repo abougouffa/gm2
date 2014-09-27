@@ -30,12 +30,15 @@ FROM ASCII IMPORT nul, nl, tab ;
 FROM SYSTEM IMPORT ADDRESS ;
 
 (*
-#define InitString(X) InitStringDB(X, __FILE__, __LINE__)
-#define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
-#define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
-#define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
-#define Dup(X) DupDB(X, __FILE__, __LINE__)
-#define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+#undef GM2_DEBUG_FORMATSTRINGS
+#if defined(GM2_DEBUG_FORMATSTRINGS)
+#  define InitString(X) InitStringDB(X, __FILE__, __LINE__)
+#  define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
+#  define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
+#  define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
+#  define Dup(X) DupDB(X, __FILE__, __LINE__)
+#  define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+#endif
 *)
 
 
@@ -78,8 +81,10 @@ END DSdbExit ;
 
 
 (*
-#define DBsbEnter doDBsbEnter
-#define DBsbExit  doDBsbExit
+#if defined(GM2_DEBUG_FORMATSTRINGS)
+#  define DBsbEnter doDBsbEnter
+#  define DBsbExit  doDBsbExit
+#endif
 *)
 
 

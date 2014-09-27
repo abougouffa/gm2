@@ -1661,7 +1661,7 @@ END getObjectValues ;
 PROCEDURE maximaCircleCollision (VAR array: ARRAY OF REAL;
                                  a, b, c, d, e, f, g, h, i, j, k, l, m, n: REAL) ;
 BEGIN
-#  include "circles.m"
+(* #  include "circles.m" *)
 END maximaCircleCollision ;
 
 
