@@ -1,3 +1,12 @@
+2014-09-28      Gaius Mulley <gaius@gnu.org>
+
+	* libgm2/config.h.in:  removed HAVE_GETTIMEOFDAY, added HAVE_STRUCT_TIMEVAL,
+	  removed TIME_WITH_SYS_TIME.
+	* libgm2/configure:  rebuilt.
+	* libgm2/configure.ac:  removed AC_HEADER_TIME.  Check for struct timeval.
+	  Added GM2_UNDEF macro.  GM2_CHECK_LIB rewritten.
+	* libgm2/libpim/Selective.c:  use HAVE_STRUCT_TIMEVAL rather than HAVE_SELECT.
+
 2014-09-27      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/macroObjects.def:  fixed parameter names so that

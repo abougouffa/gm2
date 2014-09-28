@@ -34,6 +34,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 # include <stdio.h>
 #endif
 
+#if defined(HAVE_SYS_TIME_H)
+# include <sys/time.h>
+#endif
+
 #if defined(HAVE_TIME_H)
 /* to obtain a definition for NULL */
 # include <time.h>
@@ -71,7 +75,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
                      timeout: Timeval) : INTEGER ;
 */
 
-#if defined(HAVE_SELECT)
+#if defined(HAVE_STRUCT_TIMEVAL)
 int Selective_Select (int nooffds,
 		      fd_set *readfds,
 		      fd_set *writefds,
@@ -95,7 +99,7 @@ int Selective_Select (int nooffds,
    PROCEDURE InitTime (sec, usec) : Timeval ;
 */
 
-#if defined(HAVE_SELECT)
+#if defined(HAVE_STRUCT_TIMEVAL)
 struct timeval *Selective_InitTime (unsigned int sec, unsigned int usec)
 {
   struct timeval *t=(struct timeval *)malloc(sizeof(struct timeval));

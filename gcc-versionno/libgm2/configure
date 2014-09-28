@@ -598,7 +598,6 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_func_list=
 ac_unique_file="Makefile.am"
 ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
@@ -2328,43 +2327,6 @@ $as_echo "$as_me: creating cache $cache_file" >&6;}
   >$cache_file
 fi
 
-as_fn_append ac_func_list " access"
-as_fn_append ac_func_list " brk"
-as_fn_append ac_func_list " cfmakeraw"
-as_fn_append ac_func_list " close"
-as_fn_append ac_func_list " ctime"
-as_fn_append ac_func_list " creat"
-as_fn_append ac_func_list " dup"
-as_fn_append ac_func_list " execve"
-as_fn_append ac_func_list " exit"
-as_fn_append ac_func_list " fcntl"
-as_fn_append ac_func_list " fstat"
-as_fn_append ac_func_list " getdents"
-as_fn_append ac_func_list " getgid"
-as_fn_append ac_func_list " getpid"
-as_fn_append ac_func_list " gettimeofday"
-as_fn_append ac_func_list " getuid"
-as_fn_append ac_func_list " ioctl"
-as_fn_append ac_func_list " kill"
-as_fn_append ac_func_list " link"
-as_fn_append ac_func_list " lseek"
-as_fn_append ac_func_list " open"
-as_fn_append ac_func_list " pause"
-as_fn_append ac_func_list " pipe"
-as_fn_append ac_func_list " rand"
-as_fn_append ac_func_list " read"
-as_fn_append ac_func_list " select"
-as_fn_append ac_func_list " setitimer"
-as_fn_append ac_func_list " setgid"
-as_fn_append ac_func_list " setuid"
-as_fn_append ac_func_list " stat"
-as_fn_append ac_func_list " strsignal"
-as_fn_append ac_func_list " strtod"
-as_fn_append ac_func_list " strtold"
-as_fn_append ac_func_list " times"
-as_fn_append ac_func_list " unlink"
-as_fn_append ac_func_list " wait"
-as_fn_append ac_func_list " write"
 # Check that the precious variables saved in the cache have kept the same
 # value.
 ac_cache_corrupted=false
@@ -4475,41 +4437,6 @@ $as_echo "$ac_cv_header_stdc" >&6; }
 if test $ac_cv_header_stdc = yes; then
 
 $as_echo "#define STDC_HEADERS 1" >>confdefs.h
-
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether time.h and sys/time.h may both be included" >&5
-$as_echo_n "checking whether time.h and sys/time.h may both be included... " >&6; }
-if test "${ac_cv_header_time+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <sys/types.h>
-#include <sys/time.h>
-#include <time.h>
-
-int
-main ()
-{
-if ((struct tm *) 0)
-return 0;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_cv_header_time=yes
-else
-  ac_cv_header_time=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_header_time" >&5
-$as_echo "$ac_cv_header_time" >&6; }
-if test $ac_cv_header_time = yes; then
-
-$as_echo "#define TIME_WITH_SYS_TIME 1" >>confdefs.h
 
 fi
 
@@ -12412,7 +12339,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 12415 "configure"
+#line 12342 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12518,7 +12445,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 12521 "configure"
+#line 12448 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -15828,6 +15755,15 @@ _ACEOF
 
 
 fi
+ac_fn_c_check_type "$LINENO" "struct timeval" "ac_cv_type_struct_timeval" "$ac_includes_default"
+if test "x$ac_cv_type_struct_timeval" = x""yes; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_STRUCT_TIMEVAL 1
+_ACEOF
+
+
+fi
 
 
 ac_ext=c
@@ -16520,647 +16456,2779 @@ fi
 
 
 
-
-  for ac_func in $ac_func_list
-do :
-  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
-ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
-eval as_val=\$$as_ac_var
-   if test "x$as_val" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
-_ACEOF
-
-fi
-done
-
-
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for access" >&5
 $as_echo_n "checking m2 front end checking c library for access... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for access in -lc" >&5
+$as_echo_n "checking for access in -lc... " >&6; }
+if test "${ac_cv_lib_c_access+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_access" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char access ();
+int
+main ()
+{
+return access ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_access=yes
+else
+  ac_cv_lib_c_access=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_access" >&5
+$as_echo "$ac_cv_lib_c_access" >&6; }
+if test "x$ac_cv_lib_c_access" = x""yes; then :
 
 $as_echo "#define HAVE_ACCESS 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_access" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking access: not found" >&5
+$as_echo_n "checking access: not found... " >&6; }
+  $as_echo "#undef HAVE_ACCESS" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_access" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking access: found" >&5
+$as_echo_n "checking access: found... " >&6; }
 
 $as_echo "#define HAVE_ACCESS 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_access" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking access: found" >&5
+$as_echo_n "checking access: found... " >&6; }
+
+$as_echo "#define HAVE_ACCESS 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking access: not found" >&5
+$as_echo_n "checking access: not found... " >&6; }
+  $as_echo "#undef HAVE_ACCESS" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for brk" >&5
 $as_echo_n "checking m2 front end checking c library for brk... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for brk in -lc" >&5
+$as_echo_n "checking for brk in -lc... " >&6; }
+if test "${ac_cv_lib_c_brk+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_brk" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char brk ();
+int
+main ()
+{
+return brk ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_brk=yes
+else
+  ac_cv_lib_c_brk=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_brk" >&5
+$as_echo "$ac_cv_lib_c_brk" >&6; }
+if test "x$ac_cv_lib_c_brk" = x""yes; then :
 
 $as_echo "#define HAVE_BRK 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_brk" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking brk: not found" >&5
+$as_echo_n "checking brk: not found... " >&6; }
+  $as_echo "#undef HAVE_BRK" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_brk" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking brk: found" >&5
+$as_echo_n "checking brk: found... " >&6; }
 
 $as_echo "#define HAVE_BRK 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_brk" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking brk: found" >&5
+$as_echo_n "checking brk: found... " >&6; }
+
+$as_echo "#define HAVE_BRK 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking brk: not found" >&5
+$as_echo_n "checking brk: not found... " >&6; }
+  $as_echo "#undef HAVE_BRK" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for cfmakeraw" >&5
 $as_echo_n "checking m2 front end checking c library for cfmakeraw... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cfmakeraw in -lc" >&5
+$as_echo_n "checking for cfmakeraw in -lc... " >&6; }
+if test "${ac_cv_lib_c_cfmakeraw+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_cfmakeraw" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char cfmakeraw ();
+int
+main ()
+{
+return cfmakeraw ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_cfmakeraw=yes
+else
+  ac_cv_lib_c_cfmakeraw=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_cfmakeraw" >&5
+$as_echo "$ac_cv_lib_c_cfmakeraw" >&6; }
+if test "x$ac_cv_lib_c_cfmakeraw" = x""yes; then :
 
 $as_echo "#define HAVE_CFMAKERAW 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_cfmakeraw" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking cfmakeraw: not found" >&5
+$as_echo_n "checking cfmakeraw: not found... " >&6; }
+  $as_echo "#undef HAVE_CFMAKERAW" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_cfmakeraw" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking cfmakeraw: found" >&5
+$as_echo_n "checking cfmakeraw: found... " >&6; }
 
 $as_echo "#define HAVE_CFMAKERAW 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_cfmakeraw" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking cfmakeraw: found" >&5
+$as_echo_n "checking cfmakeraw: found... " >&6; }
+
+$as_echo "#define HAVE_CFMAKERAW 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking cfmakeraw: not found" >&5
+$as_echo_n "checking cfmakeraw: not found... " >&6; }
+  $as_echo "#undef HAVE_CFMAKERAW" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for close" >&5
 $as_echo_n "checking m2 front end checking c library for close... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for close in -lc" >&5
+$as_echo_n "checking for close in -lc... " >&6; }
+if test "${ac_cv_lib_c_close+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_close" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char close ();
+int
+main ()
+{
+return close ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_close=yes
+else
+  ac_cv_lib_c_close=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_close" >&5
+$as_echo "$ac_cv_lib_c_close" >&6; }
+if test "x$ac_cv_lib_c_close" = x""yes; then :
 
 $as_echo "#define HAVE_CLOSE 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_close" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking close: not found" >&5
+$as_echo_n "checking close: not found... " >&6; }
+  $as_echo "#undef HAVE_CLOSE" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_close" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking close: found" >&5
+$as_echo_n "checking close: found... " >&6; }
 
 $as_echo "#define HAVE_CLOSE 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_close" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking close: found" >&5
+$as_echo_n "checking close: found... " >&6; }
+
+$as_echo "#define HAVE_CLOSE 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking close: not found" >&5
+$as_echo_n "checking close: not found... " >&6; }
+  $as_echo "#undef HAVE_CLOSE" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for ctime" >&5
 $as_echo_n "checking m2 front end checking c library for ctime... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ctime in -lc" >&5
+$as_echo_n "checking for ctime in -lc... " >&6; }
+if test "${ac_cv_lib_c_ctime+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_ctime" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char ctime ();
+int
+main ()
+{
+return ctime ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_ctime=yes
+else
+  ac_cv_lib_c_ctime=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_ctime" >&5
+$as_echo "$ac_cv_lib_c_ctime" >&6; }
+if test "x$ac_cv_lib_c_ctime" = x""yes; then :
 
 $as_echo "#define HAVE_CTIME 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_ctime" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking ctime: not found" >&5
+$as_echo_n "checking ctime: not found... " >&6; }
+  $as_echo "#undef HAVE_CTIME" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_ctime" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking ctime: found" >&5
+$as_echo_n "checking ctime: found... " >&6; }
 
 $as_echo "#define HAVE_CTIME 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_ctime" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking ctime: found" >&5
+$as_echo_n "checking ctime: found... " >&6; }
+
+$as_echo "#define HAVE_CTIME 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking ctime: not found" >&5
+$as_echo_n "checking ctime: not found... " >&6; }
+  $as_echo "#undef HAVE_CTIME" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for creat" >&5
 $as_echo_n "checking m2 front end checking c library for creat... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for creat in -lc" >&5
+$as_echo_n "checking for creat in -lc... " >&6; }
+if test "${ac_cv_lib_c_creat+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_creat" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char creat ();
+int
+main ()
+{
+return creat ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_creat=yes
+else
+  ac_cv_lib_c_creat=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_creat" >&5
+$as_echo "$ac_cv_lib_c_creat" >&6; }
+if test "x$ac_cv_lib_c_creat" = x""yes; then :
 
 $as_echo "#define HAVE_CREAT 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_creat" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking creat: not found" >&5
+$as_echo_n "checking creat: not found... " >&6; }
+  $as_echo "#undef HAVE_CREAT" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_creat" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking creat: found" >&5
+$as_echo_n "checking creat: found... " >&6; }
 
 $as_echo "#define HAVE_CREAT 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_creat" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking creat: found" >&5
+$as_echo_n "checking creat: found... " >&6; }
+
+$as_echo "#define HAVE_CREAT 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking creat: not found" >&5
+$as_echo_n "checking creat: not found... " >&6; }
+  $as_echo "#undef HAVE_CREAT" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for dup" >&5
 $as_echo_n "checking m2 front end checking c library for dup... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dup in -lc" >&5
+$as_echo_n "checking for dup in -lc... " >&6; }
+if test "${ac_cv_lib_c_dup+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_dup" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char dup ();
+int
+main ()
+{
+return dup ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_dup=yes
+else
+  ac_cv_lib_c_dup=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_dup" >&5
+$as_echo "$ac_cv_lib_c_dup" >&6; }
+if test "x$ac_cv_lib_c_dup" = x""yes; then :
 
 $as_echo "#define HAVE_DUP 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_dup" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking dup: not found" >&5
+$as_echo_n "checking dup: not found... " >&6; }
+  $as_echo "#undef HAVE_DUP" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_dup" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking dup: found" >&5
+$as_echo_n "checking dup: found... " >&6; }
 
 $as_echo "#define HAVE_DUP 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_dup" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking dup: found" >&5
+$as_echo_n "checking dup: found... " >&6; }
+
+$as_echo "#define HAVE_DUP 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking dup: not found" >&5
+$as_echo_n "checking dup: not found... " >&6; }
+  $as_echo "#undef HAVE_DUP" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for execve" >&5
 $as_echo_n "checking m2 front end checking c library for execve... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for execve in -lc" >&5
+$as_echo_n "checking for execve in -lc... " >&6; }
+if test "${ac_cv_lib_c_execve+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_execve" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char execve ();
+int
+main ()
+{
+return execve ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_execve=yes
+else
+  ac_cv_lib_c_execve=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_execve" >&5
+$as_echo "$ac_cv_lib_c_execve" >&6; }
+if test "x$ac_cv_lib_c_execve" = x""yes; then :
 
 $as_echo "#define HAVE_EXECVE 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_execve" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking execve: not found" >&5
+$as_echo_n "checking execve: not found... " >&6; }
+  $as_echo "#undef HAVE_EXECVE" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_execve" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking execve: found" >&5
+$as_echo_n "checking execve: found... " >&6; }
 
 $as_echo "#define HAVE_EXECVE 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_execve" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking execve: found" >&5
+$as_echo_n "checking execve: found... " >&6; }
+
+$as_echo "#define HAVE_EXECVE 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking execve: not found" >&5
+$as_echo_n "checking execve: not found... " >&6; }
+  $as_echo "#undef HAVE_EXECVE" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for exit" >&5
 $as_echo_n "checking m2 front end checking c library for exit... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for exit in -lc" >&5
+$as_echo_n "checking for exit in -lc... " >&6; }
+if test "${ac_cv_lib_c_exit+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_exit" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char exit ();
+int
+main ()
+{
+return exit ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_exit=yes
+else
+  ac_cv_lib_c_exit=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_exit" >&5
+$as_echo "$ac_cv_lib_c_exit" >&6; }
+if test "x$ac_cv_lib_c_exit" = x""yes; then :
 
 $as_echo "#define HAVE_EXIT 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_exit" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking exit: not found" >&5
+$as_echo_n "checking exit: not found... " >&6; }
+  $as_echo "#undef HAVE_EXIT" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_exit" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking exit: found" >&5
+$as_echo_n "checking exit: found... " >&6; }
 
 $as_echo "#define HAVE_EXIT 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_exit" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking exit: found" >&5
+$as_echo_n "checking exit: found... " >&6; }
+
+$as_echo "#define HAVE_EXIT 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking exit: not found" >&5
+$as_echo_n "checking exit: not found... " >&6; }
+  $as_echo "#undef HAVE_EXIT" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for fcntl" >&5
 $as_echo_n "checking m2 front end checking c library for fcntl... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for fcntl in -lc" >&5
+$as_echo_n "checking for fcntl in -lc... " >&6; }
+if test "${ac_cv_lib_c_fcntl+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_fcntl" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char fcntl ();
+int
+main ()
+{
+return fcntl ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_fcntl=yes
+else
+  ac_cv_lib_c_fcntl=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_fcntl" >&5
+$as_echo "$ac_cv_lib_c_fcntl" >&6; }
+if test "x$ac_cv_lib_c_fcntl" = x""yes; then :
 
 $as_echo "#define HAVE_FCNTL 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_fcntl" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking fcntl: not found" >&5
+$as_echo_n "checking fcntl: not found... " >&6; }
+  $as_echo "#undef HAVE_FCNTL" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_fcntl" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking fcntl: found" >&5
+$as_echo_n "checking fcntl: found... " >&6; }
 
 $as_echo "#define HAVE_FCNTL 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_fcntl" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking fcntl: found" >&5
+$as_echo_n "checking fcntl: found... " >&6; }
+
+$as_echo "#define HAVE_FCNTL 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking fcntl: not found" >&5
+$as_echo_n "checking fcntl: not found... " >&6; }
+  $as_echo "#undef HAVE_FCNTL" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for fstat" >&5
 $as_echo_n "checking m2 front end checking c library for fstat... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for fstat in -lc" >&5
+$as_echo_n "checking for fstat in -lc... " >&6; }
+if test "${ac_cv_lib_c_fstat+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_fstat" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char fstat ();
+int
+main ()
+{
+return fstat ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_fstat=yes
+else
+  ac_cv_lib_c_fstat=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_fstat" >&5
+$as_echo "$ac_cv_lib_c_fstat" >&6; }
+if test "x$ac_cv_lib_c_fstat" = x""yes; then :
 
 $as_echo "#define HAVE_FSTAT 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_fstat" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking fstat: not found" >&5
+$as_echo_n "checking fstat: not found... " >&6; }
+  $as_echo "#undef HAVE_FSTAT" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_fstat" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking fstat: found" >&5
+$as_echo_n "checking fstat: found... " >&6; }
 
 $as_echo "#define HAVE_FSTAT 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_fstat" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking fstat: found" >&5
+$as_echo_n "checking fstat: found... " >&6; }
+
+$as_echo "#define HAVE_FSTAT 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking fstat: not found" >&5
+$as_echo_n "checking fstat: not found... " >&6; }
+  $as_echo "#undef HAVE_FSTAT" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for getdents" >&5
 $as_echo_n "checking m2 front end checking c library for getdents... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for getdents in -lc" >&5
+$as_echo_n "checking for getdents in -lc... " >&6; }
+if test "${ac_cv_lib_c_getdents+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_getdents" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char getdents ();
+int
+main ()
+{
+return getdents ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_getdents=yes
+else
+  ac_cv_lib_c_getdents=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_getdents" >&5
+$as_echo "$ac_cv_lib_c_getdents" >&6; }
+if test "x$ac_cv_lib_c_getdents" = x""yes; then :
 
 $as_echo "#define HAVE_GETDENTS 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_getdents" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking getdents: not found" >&5
+$as_echo_n "checking getdents: not found... " >&6; }
+  $as_echo "#undef HAVE_GETDENTS" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_getdents" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getdents: found" >&5
+$as_echo_n "checking getdents: found... " >&6; }
 
 $as_echo "#define HAVE_GETDENTS 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_getdents" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getdents: found" >&5
+$as_echo_n "checking getdents: found... " >&6; }
+
+$as_echo "#define HAVE_GETDENTS 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getdents: not found" >&5
+$as_echo_n "checking getdents: not found... " >&6; }
+  $as_echo "#undef HAVE_GETDENTS" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for getgid" >&5
 $as_echo_n "checking m2 front end checking c library for getgid... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for getgid in -lc" >&5
+$as_echo_n "checking for getgid in -lc... " >&6; }
+if test "${ac_cv_lib_c_getgid+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_getgid" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char getgid ();
+int
+main ()
+{
+return getgid ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_getgid=yes
+else
+  ac_cv_lib_c_getgid=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_getgid" >&5
+$as_echo "$ac_cv_lib_c_getgid" >&6; }
+if test "x$ac_cv_lib_c_getgid" = x""yes; then :
 
 $as_echo "#define HAVE_GETGID 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_getgid" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking getgid: not found" >&5
+$as_echo_n "checking getgid: not found... " >&6; }
+  $as_echo "#undef HAVE_GETGID" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_getgid" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getgid: found" >&5
+$as_echo_n "checking getgid: found... " >&6; }
 
 $as_echo "#define HAVE_GETGID 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_getgid" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getgid: found" >&5
+$as_echo_n "checking getgid: found... " >&6; }
+
+$as_echo "#define HAVE_GETGID 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getgid: not found" >&5
+$as_echo_n "checking getgid: not found... " >&6; }
+  $as_echo "#undef HAVE_GETGID" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for getpid" >&5
 $as_echo_n "checking m2 front end checking c library for getpid... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for getpid in -lc" >&5
+$as_echo_n "checking for getpid in -lc... " >&6; }
+if test "${ac_cv_lib_c_getpid+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_getpid" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char getpid ();
+int
+main ()
+{
+return getpid ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_getpid=yes
+else
+  ac_cv_lib_c_getpid=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_getpid" >&5
+$as_echo "$ac_cv_lib_c_getpid" >&6; }
+if test "x$ac_cv_lib_c_getpid" = x""yes; then :
 
 $as_echo "#define HAVE_GETPID 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_getpid" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking getpid: not found" >&5
+$as_echo_n "checking getpid: not found... " >&6; }
+  $as_echo "#undef HAVE_GETPID" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_getpid" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getpid: found" >&5
+$as_echo_n "checking getpid: found... " >&6; }
 
 $as_echo "#define HAVE_GETPID 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_getpid" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getpid: found" >&5
+$as_echo_n "checking getpid: found... " >&6; }
+
+$as_echo "#define HAVE_GETPID 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getpid: not found" >&5
+$as_echo_n "checking getpid: not found... " >&6; }
+  $as_echo "#undef HAVE_GETPID" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for gettimeofday" >&5
 $as_echo_n "checking m2 front end checking c library for gettimeofday... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gettimeofday in -lc" >&5
+$as_echo_n "checking for gettimeofday in -lc... " >&6; }
+if test "${ac_cv_lib_c_gettimeofday+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_gettimeofday" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char gettimeofday ();
+int
+main ()
+{
+return gettimeofday ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_gettimeofday=yes
+else
+  ac_cv_lib_c_gettimeofday=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_gettimeofday" >&5
+$as_echo "$ac_cv_lib_c_gettimeofday" >&6; }
+if test "x$ac_cv_lib_c_gettimeofday" = x""yes; then :
 
 $as_echo "#define HAVE_GETTIMEOFD 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_gettimeofday" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking gettimeofday: not found" >&5
+$as_echo_n "checking gettimeofday: not found... " >&6; }
+  $as_echo "#undef HAVE_GETTIMEOFD" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_gettimeofday" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking gettimeofday: found" >&5
+$as_echo_n "checking gettimeofday: found... " >&6; }
 
 $as_echo "#define HAVE_GETTIMEOFD 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_gettimeofday" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking gettimeofday: found" >&5
+$as_echo_n "checking gettimeofday: found... " >&6; }
+
+$as_echo "#define HAVE_GETTIMEOFD 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking gettimeofday: not found" >&5
+$as_echo_n "checking gettimeofday: not found... " >&6; }
+  $as_echo "#undef HAVE_GETTIMEOFD" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for getuid" >&5
 $as_echo_n "checking m2 front end checking c library for getuid... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for getuid in -lc" >&5
+$as_echo_n "checking for getuid in -lc... " >&6; }
+if test "${ac_cv_lib_c_getuid+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_getuid" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char getuid ();
+int
+main ()
+{
+return getuid ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_getuid=yes
+else
+  ac_cv_lib_c_getuid=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_getuid" >&5
+$as_echo "$ac_cv_lib_c_getuid" >&6; }
+if test "x$ac_cv_lib_c_getuid" = x""yes; then :
 
 $as_echo "#define HAVE_GETUID 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_getuid" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking getuid: not found" >&5
+$as_echo_n "checking getuid: not found... " >&6; }
+  $as_echo "#undef HAVE_GETUID" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_getuid" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getuid: found" >&5
+$as_echo_n "checking getuid: found... " >&6; }
 
 $as_echo "#define HAVE_GETUID 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_getuid" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getuid: found" >&5
+$as_echo_n "checking getuid: found... " >&6; }
+
+$as_echo "#define HAVE_GETUID 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getuid: not found" >&5
+$as_echo_n "checking getuid: not found... " >&6; }
+  $as_echo "#undef HAVE_GETUID" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for ioctl" >&5
 $as_echo_n "checking m2 front end checking c library for ioctl... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ioctl in -lc" >&5
+$as_echo_n "checking for ioctl in -lc... " >&6; }
+if test "${ac_cv_lib_c_ioctl+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_ioctl" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char ioctl ();
+int
+main ()
+{
+return ioctl ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_ioctl=yes
+else
+  ac_cv_lib_c_ioctl=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_ioctl" >&5
+$as_echo "$ac_cv_lib_c_ioctl" >&6; }
+if test "x$ac_cv_lib_c_ioctl" = x""yes; then :
 
 $as_echo "#define HAVE_IOCTL 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_ioctl" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking ioctl: not found" >&5
+$as_echo_n "checking ioctl: not found... " >&6; }
+  $as_echo "#undef HAVE_IOCTL" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_ioctl" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking ioctl: found" >&5
+$as_echo_n "checking ioctl: found... " >&6; }
 
 $as_echo "#define HAVE_IOCTL 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_ioctl" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking ioctl: found" >&5
+$as_echo_n "checking ioctl: found... " >&6; }
+
+$as_echo "#define HAVE_IOCTL 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking ioctl: not found" >&5
+$as_echo_n "checking ioctl: not found... " >&6; }
+  $as_echo "#undef HAVE_IOCTL" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for kill" >&5
 $as_echo_n "checking m2 front end checking c library for kill... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for kill in -lc" >&5
+$as_echo_n "checking for kill in -lc... " >&6; }
+if test "${ac_cv_lib_c_kill+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_kill" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char kill ();
+int
+main ()
+{
+return kill ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_kill=yes
+else
+  ac_cv_lib_c_kill=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_kill" >&5
+$as_echo "$ac_cv_lib_c_kill" >&6; }
+if test "x$ac_cv_lib_c_kill" = x""yes; then :
 
 $as_echo "#define HAVE_KILL 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_kill" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking kill: not found" >&5
+$as_echo_n "checking kill: not found... " >&6; }
+  $as_echo "#undef HAVE_KILL" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_kill" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking kill: found" >&5
+$as_echo_n "checking kill: found... " >&6; }
 
 $as_echo "#define HAVE_KILL 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_kill" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking kill: found" >&5
+$as_echo_n "checking kill: found... " >&6; }
+
+$as_echo "#define HAVE_KILL 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking kill: not found" >&5
+$as_echo_n "checking kill: not found... " >&6; }
+  $as_echo "#undef HAVE_KILL" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for link" >&5
 $as_echo_n "checking m2 front end checking c library for link... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for link in -lc" >&5
+$as_echo_n "checking for link in -lc... " >&6; }
+if test "${ac_cv_lib_c_link+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_link" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char link ();
+int
+main ()
+{
+return link ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_link=yes
+else
+  ac_cv_lib_c_link=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_link" >&5
+$as_echo "$ac_cv_lib_c_link" >&6; }
+if test "x$ac_cv_lib_c_link" = x""yes; then :
 
 $as_echo "#define HAVE_LINK 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_link" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking link: not found" >&5
+$as_echo_n "checking link: not found... " >&6; }
+  $as_echo "#undef HAVE_LINK" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_link" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking link: found" >&5
+$as_echo_n "checking link: found... " >&6; }
 
 $as_echo "#define HAVE_LINK 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_link" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking link: found" >&5
+$as_echo_n "checking link: found... " >&6; }
+
+$as_echo "#define HAVE_LINK 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking link: not found" >&5
+$as_echo_n "checking link: not found... " >&6; }
+  $as_echo "#undef HAVE_LINK" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for lseek" >&5
 $as_echo_n "checking m2 front end checking c library for lseek... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for lseek in -lc" >&5
+$as_echo_n "checking for lseek in -lc... " >&6; }
+if test "${ac_cv_lib_c_lseek+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_lseek" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char lseek ();
+int
+main ()
+{
+return lseek ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_lseek=yes
+else
+  ac_cv_lib_c_lseek=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_lseek" >&5
+$as_echo "$ac_cv_lib_c_lseek" >&6; }
+if test "x$ac_cv_lib_c_lseek" = x""yes; then :
 
 $as_echo "#define HAVE_LSEEK 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_lseek" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking lseek: not found" >&5
+$as_echo_n "checking lseek: not found... " >&6; }
+  $as_echo "#undef HAVE_LSEEK" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_lseek" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking lseek: found" >&5
+$as_echo_n "checking lseek: found... " >&6; }
 
 $as_echo "#define HAVE_LSEEK 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_lseek" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking lseek: found" >&5
+$as_echo_n "checking lseek: found... " >&6; }
+
+$as_echo "#define HAVE_LSEEK 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking lseek: not found" >&5
+$as_echo_n "checking lseek: not found... " >&6; }
+  $as_echo "#undef HAVE_LSEEK" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for open" >&5
 $as_echo_n "checking m2 front end checking c library for open... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for open in -lc" >&5
+$as_echo_n "checking for open in -lc... " >&6; }
+if test "${ac_cv_lib_c_open+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_open" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char open ();
+int
+main ()
+{
+return open ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_open=yes
+else
+  ac_cv_lib_c_open=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_open" >&5
+$as_echo "$ac_cv_lib_c_open" >&6; }
+if test "x$ac_cv_lib_c_open" = x""yes; then :
 
 $as_echo "#define HAVE_OPEN 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_open" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking open: not found" >&5
+$as_echo_n "checking open: not found... " >&6; }
+  $as_echo "#undef HAVE_OPEN" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_open" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking open: found" >&5
+$as_echo_n "checking open: found... " >&6; }
 
 $as_echo "#define HAVE_OPEN 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_open" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking open: found" >&5
+$as_echo_n "checking open: found... " >&6; }
+
+$as_echo "#define HAVE_OPEN 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking open: not found" >&5
+$as_echo_n "checking open: not found... " >&6; }
+  $as_echo "#undef HAVE_OPEN" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for pause" >&5
 $as_echo_n "checking m2 front end checking c library for pause... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pause in -lc" >&5
+$as_echo_n "checking for pause in -lc... " >&6; }
+if test "${ac_cv_lib_c_pause+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_pause" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pause ();
+int
+main ()
+{
+return pause ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_pause=yes
+else
+  ac_cv_lib_c_pause=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_pause" >&5
+$as_echo "$ac_cv_lib_c_pause" >&6; }
+if test "x$ac_cv_lib_c_pause" = x""yes; then :
 
 $as_echo "#define HAVE_PAUSE 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_pause" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking pause: not found" >&5
+$as_echo_n "checking pause: not found... " >&6; }
+  $as_echo "#undef HAVE_PAUSE" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_pause" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking pause: found" >&5
+$as_echo_n "checking pause: found... " >&6; }
 
 $as_echo "#define HAVE_PAUSE 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_pause" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking pause: found" >&5
+$as_echo_n "checking pause: found... " >&6; }
+
+$as_echo "#define HAVE_PAUSE 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking pause: not found" >&5
+$as_echo_n "checking pause: not found... " >&6; }
+  $as_echo "#undef HAVE_PAUSE" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for pipe" >&5
 $as_echo_n "checking m2 front end checking c library for pipe... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pipe in -lc" >&5
+$as_echo_n "checking for pipe in -lc... " >&6; }
+if test "${ac_cv_lib_c_pipe+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_pipe" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pipe ();
+int
+main ()
+{
+return pipe ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_pipe=yes
+else
+  ac_cv_lib_c_pipe=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_pipe" >&5
+$as_echo "$ac_cv_lib_c_pipe" >&6; }
+if test "x$ac_cv_lib_c_pipe" = x""yes; then :
 
 $as_echo "#define HAVE_PIPE 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_pipe" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking pipe: not found" >&5
+$as_echo_n "checking pipe: not found... " >&6; }
+  $as_echo "#undef HAVE_PIPE" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_pipe" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking pipe: found" >&5
+$as_echo_n "checking pipe: found... " >&6; }
 
 $as_echo "#define HAVE_PIPE 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_pipe" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking pipe: found" >&5
+$as_echo_n "checking pipe: found... " >&6; }
+
+$as_echo "#define HAVE_PIPE 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking pipe: not found" >&5
+$as_echo_n "checking pipe: not found... " >&6; }
+  $as_echo "#undef HAVE_PIPE" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for rand" >&5
 $as_echo_n "checking m2 front end checking c library for rand... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for rand in -lc" >&5
+$as_echo_n "checking for rand in -lc... " >&6; }
+if test "${ac_cv_lib_c_rand+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_rand" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char rand ();
+int
+main ()
+{
+return rand ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_rand=yes
+else
+  ac_cv_lib_c_rand=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_rand" >&5
+$as_echo "$ac_cv_lib_c_rand" >&6; }
+if test "x$ac_cv_lib_c_rand" = x""yes; then :
 
 $as_echo "#define HAVE_RAND 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_rand" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking rand: not found" >&5
+$as_echo_n "checking rand: not found... " >&6; }
+  $as_echo "#undef HAVE_RAND" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_rand" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking rand: found" >&5
+$as_echo_n "checking rand: found... " >&6; }
 
 $as_echo "#define HAVE_RAND 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_rand" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking rand: found" >&5
+$as_echo_n "checking rand: found... " >&6; }
+
+$as_echo "#define HAVE_RAND 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking rand: not found" >&5
+$as_echo_n "checking rand: not found... " >&6; }
+  $as_echo "#undef HAVE_RAND" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for read" >&5
 $as_echo_n "checking m2 front end checking c library for read... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for read in -lc" >&5
+$as_echo_n "checking for read in -lc... " >&6; }
+if test "${ac_cv_lib_c_read+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_read" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char read ();
+int
+main ()
+{
+return read ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_read=yes
+else
+  ac_cv_lib_c_read=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_read" >&5
+$as_echo "$ac_cv_lib_c_read" >&6; }
+if test "x$ac_cv_lib_c_read" = x""yes; then :
 
 $as_echo "#define HAVE_READ 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_read" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking read: not found" >&5
+$as_echo_n "checking read: not found... " >&6; }
+  $as_echo "#undef HAVE_READ" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_read" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking read: found" >&5
+$as_echo_n "checking read: found... " >&6; }
 
 $as_echo "#define HAVE_READ 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_read" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking read: found" >&5
+$as_echo_n "checking read: found... " >&6; }
+
+$as_echo "#define HAVE_READ 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking read: not found" >&5
+$as_echo_n "checking read: not found... " >&6; }
+  $as_echo "#undef HAVE_READ" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for select" >&5
 $as_echo_n "checking m2 front end checking c library for select... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for select in -lc" >&5
+$as_echo_n "checking for select in -lc... " >&6; }
+if test "${ac_cv_lib_c_select+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_select" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char select ();
+int
+main ()
+{
+return select ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_select=yes
+else
+  ac_cv_lib_c_select=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_select" >&5
+$as_echo "$ac_cv_lib_c_select" >&6; }
+if test "x$ac_cv_lib_c_select" = x""yes; then :
 
 $as_echo "#define HAVE_SELECT 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_select" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking select: not found" >&5
+$as_echo_n "checking select: not found... " >&6; }
+  $as_echo "#undef HAVE_SELECT" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_select" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking select: found" >&5
+$as_echo_n "checking select: found... " >&6; }
 
 $as_echo "#define HAVE_SELECT 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_select" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking select: found" >&5
+$as_echo_n "checking select: found... " >&6; }
+
+$as_echo "#define HAVE_SELECT 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking select: not found" >&5
+$as_echo_n "checking select: not found... " >&6; }
+  $as_echo "#undef HAVE_SELECT" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for setitimer" >&5
 $as_echo_n "checking m2 front end checking c library for setitimer... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for setitimer in -lc" >&5
+$as_echo_n "checking for setitimer in -lc... " >&6; }
+if test "${ac_cv_lib_c_setitimer+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_setitimer" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char setitimer ();
+int
+main ()
+{
+return setitimer ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_setitimer=yes
+else
+  ac_cv_lib_c_setitimer=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_setitimer" >&5
+$as_echo "$ac_cv_lib_c_setitimer" >&6; }
+if test "x$ac_cv_lib_c_setitimer" = x""yes; then :
 
 $as_echo "#define HAVE_SETITIMER 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_setitimer" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking setitimer: not found" >&5
+$as_echo_n "checking setitimer: not found... " >&6; }
+  $as_echo "#undef HAVE_SETITIMER" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_setitimer" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking setitimer: found" >&5
+$as_echo_n "checking setitimer: found... " >&6; }
 
 $as_echo "#define HAVE_SETITIMER 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_setitimer" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking setitimer: found" >&5
+$as_echo_n "checking setitimer: found... " >&6; }
+
+$as_echo "#define HAVE_SETITIMER 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking setitimer: not found" >&5
+$as_echo_n "checking setitimer: not found... " >&6; }
+  $as_echo "#undef HAVE_SETITIMER" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for setgid" >&5
 $as_echo_n "checking m2 front end checking c library for setgid... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for setgid in -lc" >&5
+$as_echo_n "checking for setgid in -lc... " >&6; }
+if test "${ac_cv_lib_c_setgid+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_setgid" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char setgid ();
+int
+main ()
+{
+return setgid ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_setgid=yes
+else
+  ac_cv_lib_c_setgid=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_setgid" >&5
+$as_echo "$ac_cv_lib_c_setgid" >&6; }
+if test "x$ac_cv_lib_c_setgid" = x""yes; then :
 
 $as_echo "#define HAVE_SETGID 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_setgid" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking setgid: not found" >&5
+$as_echo_n "checking setgid: not found... " >&6; }
+  $as_echo "#undef HAVE_SETGID" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_setgid" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking setgid: found" >&5
+$as_echo_n "checking setgid: found... " >&6; }
 
 $as_echo "#define HAVE_SETGID 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_setgid" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking setgid: found" >&5
+$as_echo_n "checking setgid: found... " >&6; }
+
+$as_echo "#define HAVE_SETGID 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking setgid: not found" >&5
+$as_echo_n "checking setgid: not found... " >&6; }
+  $as_echo "#undef HAVE_SETGID" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for setuid" >&5
 $as_echo_n "checking m2 front end checking c library for setuid... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for setuid in -lc" >&5
+$as_echo_n "checking for setuid in -lc... " >&6; }
+if test "${ac_cv_lib_c_setuid+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_setuid" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char setuid ();
+int
+main ()
+{
+return setuid ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_setuid=yes
+else
+  ac_cv_lib_c_setuid=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_setuid" >&5
+$as_echo "$ac_cv_lib_c_setuid" >&6; }
+if test "x$ac_cv_lib_c_setuid" = x""yes; then :
 
 $as_echo "#define HAVE_SETUID 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_setuid" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking setuid: not found" >&5
+$as_echo_n "checking setuid: not found... " >&6; }
+  $as_echo "#undef HAVE_SETUID" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_setuid" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking setuid: found" >&5
+$as_echo_n "checking setuid: found... " >&6; }
 
 $as_echo "#define HAVE_SETUID 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_setuid" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking setuid: found" >&5
+$as_echo_n "checking setuid: found... " >&6; }
+
+$as_echo "#define HAVE_SETUID 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking setuid: not found" >&5
+$as_echo_n "checking setuid: not found... " >&6; }
+  $as_echo "#undef HAVE_SETUID" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for stat" >&5
 $as_echo_n "checking m2 front end checking c library for stat... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for stat in -lc" >&5
+$as_echo_n "checking for stat in -lc... " >&6; }
+if test "${ac_cv_lib_c_stat+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_stat" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char stat ();
+int
+main ()
+{
+return stat ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_stat=yes
+else
+  ac_cv_lib_c_stat=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_stat" >&5
+$as_echo "$ac_cv_lib_c_stat" >&6; }
+if test "x$ac_cv_lib_c_stat" = x""yes; then :
 
 $as_echo "#define HAVE_STAT 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_stat" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking stat: not found" >&5
+$as_echo_n "checking stat: not found... " >&6; }
+  $as_echo "#undef HAVE_STAT" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_stat" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking stat: found" >&5
+$as_echo_n "checking stat: found... " >&6; }
 
 $as_echo "#define HAVE_STAT 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_stat" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking stat: found" >&5
+$as_echo_n "checking stat: found... " >&6; }
+
+$as_echo "#define HAVE_STAT 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking stat: not found" >&5
+$as_echo_n "checking stat: not found... " >&6; }
+  $as_echo "#undef HAVE_STAT" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for strsignal" >&5
 $as_echo_n "checking m2 front end checking c library for strsignal... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for strsignal in -lc" >&5
+$as_echo_n "checking for strsignal in -lc... " >&6; }
+if test "${ac_cv_lib_c_strsignal+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_strsignal" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char strsignal ();
+int
+main ()
+{
+return strsignal ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_strsignal=yes
+else
+  ac_cv_lib_c_strsignal=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_strsignal" >&5
+$as_echo "$ac_cv_lib_c_strsignal" >&6; }
+if test "x$ac_cv_lib_c_strsignal" = x""yes; then :
 
 $as_echo "#define HAVE_STRSIGNAL 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_strsignal" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking strsignal: not found" >&5
+$as_echo_n "checking strsignal: not found... " >&6; }
+  $as_echo "#undef HAVE_STRSIGNAL" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_strsignal" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking strsignal: found" >&5
+$as_echo_n "checking strsignal: found... " >&6; }
 
 $as_echo "#define HAVE_STRSIGNAL 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_strsignal" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking strsignal: found" >&5
+$as_echo_n "checking strsignal: found... " >&6; }
+
+$as_echo "#define HAVE_STRSIGNAL 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking strsignal: not found" >&5
+$as_echo_n "checking strsignal: not found... " >&6; }
+  $as_echo "#undef HAVE_STRSIGNAL" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for strtod" >&5
 $as_echo_n "checking m2 front end checking c library for strtod... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for strtod in -lc" >&5
+$as_echo_n "checking for strtod in -lc... " >&6; }
+if test "${ac_cv_lib_c_strtod+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_strtod" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char strtod ();
+int
+main ()
+{
+return strtod ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_strtod=yes
+else
+  ac_cv_lib_c_strtod=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_strtod" >&5
+$as_echo "$ac_cv_lib_c_strtod" >&6; }
+if test "x$ac_cv_lib_c_strtod" = x""yes; then :
 
 $as_echo "#define HAVE_STRTOD 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_strtod" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking strtod: not found" >&5
+$as_echo_n "checking strtod: not found... " >&6; }
+  $as_echo "#undef HAVE_STRTOD" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_strtod" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking strtod: found" >&5
+$as_echo_n "checking strtod: found... " >&6; }
 
 $as_echo "#define HAVE_STRTOD 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_strtod" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking strtod: found" >&5
+$as_echo_n "checking strtod: found... " >&6; }
+
+$as_echo "#define HAVE_STRTOD 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking strtod: not found" >&5
+$as_echo_n "checking strtod: not found... " >&6; }
+  $as_echo "#undef HAVE_STRTOD" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for strtold" >&5
 $as_echo_n "checking m2 front end checking c library for strtold... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for strtold in -lc" >&5
+$as_echo_n "checking for strtold in -lc... " >&6; }
+if test "${ac_cv_lib_c_strtold+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_strtold" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char strtold ();
+int
+main ()
+{
+return strtold ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_strtold=yes
+else
+  ac_cv_lib_c_strtold=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_strtold" >&5
+$as_echo "$ac_cv_lib_c_strtold" >&6; }
+if test "x$ac_cv_lib_c_strtold" = x""yes; then :
 
 $as_echo "#define HAVE_STRTOLD 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_strtold" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking strtold: not found" >&5
+$as_echo_n "checking strtold: not found... " >&6; }
+  $as_echo "#undef HAVE_STRTOLD" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_strtold" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking strtold: found" >&5
+$as_echo_n "checking strtold: found... " >&6; }
 
 $as_echo "#define HAVE_STRTOLD 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_strtold" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking strtold: found" >&5
+$as_echo_n "checking strtold: found... " >&6; }
+
+$as_echo "#define HAVE_STRTOLD 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking strtold: not found" >&5
+$as_echo_n "checking strtold: not found... " >&6; }
+  $as_echo "#undef HAVE_STRTOLD" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for times" >&5
 $as_echo_n "checking m2 front end checking c library for times... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for times in -lc" >&5
+$as_echo_n "checking for times in -lc... " >&6; }
+if test "${ac_cv_lib_c_times+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_times" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char times ();
+int
+main ()
+{
+return times ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_times=yes
+else
+  ac_cv_lib_c_times=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_times" >&5
+$as_echo "$ac_cv_lib_c_times" >&6; }
+if test "x$ac_cv_lib_c_times" = x""yes; then :
 
 $as_echo "#define HAVE_TIMES 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_times" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking times: not found" >&5
+$as_echo_n "checking times: not found... " >&6; }
+  $as_echo "#undef HAVE_TIMES" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_times" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking times: found" >&5
+$as_echo_n "checking times: found... " >&6; }
 
 $as_echo "#define HAVE_TIMES 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_times" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking times: found" >&5
+$as_echo_n "checking times: found... " >&6; }
+
+$as_echo "#define HAVE_TIMES 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking times: not found" >&5
+$as_echo_n "checking times: not found... " >&6; }
+  $as_echo "#undef HAVE_TIMES" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for unlink" >&5
 $as_echo_n "checking m2 front end checking c library for unlink... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for unlink in -lc" >&5
+$as_echo_n "checking for unlink in -lc... " >&6; }
+if test "${ac_cv_lib_c_unlink+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_unlink" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char unlink ();
+int
+main ()
+{
+return unlink ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_unlink=yes
+else
+  ac_cv_lib_c_unlink=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_unlink" >&5
+$as_echo "$ac_cv_lib_c_unlink" >&6; }
+if test "x$ac_cv_lib_c_unlink" = x""yes; then :
 
 $as_echo "#define HAVE_UNLINK 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_unlink" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking unlink: not found" >&5
+$as_echo_n "checking unlink: not found... " >&6; }
+  $as_echo "#undef HAVE_UNLINK" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_unlink" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking unlink: found" >&5
+$as_echo_n "checking unlink: found... " >&6; }
 
 $as_echo "#define HAVE_UNLINK 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_unlink" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking unlink: found" >&5
+$as_echo_n "checking unlink: found... " >&6; }
+
+$as_echo "#define HAVE_UNLINK 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking unlink: not found" >&5
+$as_echo_n "checking unlink: not found... " >&6; }
+  $as_echo "#undef HAVE_UNLINK" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for wait" >&5
 $as_echo_n "checking m2 front end checking c library for wait... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for wait in -lc" >&5
+$as_echo_n "checking for wait in -lc... " >&6; }
+if test "${ac_cv_lib_c_wait+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_wait" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char wait ();
+int
+main ()
+{
+return wait ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_wait=yes
+else
+  ac_cv_lib_c_wait=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_wait" >&5
+$as_echo "$ac_cv_lib_c_wait" >&6; }
+if test "x$ac_cv_lib_c_wait" = x""yes; then :
 
 $as_echo "#define HAVE_WAIT 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_wait" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking wait: not found" >&5
+$as_echo_n "checking wait: not found... " >&6; }
+  $as_echo "#undef HAVE_WAIT" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_wait" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking wait: found" >&5
+$as_echo_n "checking wait: found... " >&6; }
 
 $as_echo "#define HAVE_WAIT 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_wait" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking wait: found" >&5
+$as_echo_n "checking wait: found... " >&6; }
+
+$as_echo "#define HAVE_WAIT 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking wait: not found" >&5
+$as_echo_n "checking wait: not found... " >&6; }
+  $as_echo "#undef HAVE_WAIT" >>confdefs.h
+
+    fi
   fi
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for write" >&5
 $as_echo_n "checking m2 front end checking c library for write... " >&6; }
 
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for write in -lc" >&5
+$as_echo_n "checking for write in -lc... " >&6; }
+if test "${ac_cv_lib_c_write+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-
-  if test "x$ac_cv_lib_c_write" = xyes; then
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char write ();
+int
+main ()
+{
+return write ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_write=yes
+else
+  ac_cv_lib_c_write=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_write" >&5
+$as_echo "$ac_cv_lib_c_write" >&6; }
+if test "x$ac_cv_lib_c_write" = x""yes; then :
 
 $as_echo "#define HAVE_WRITE 1" >>confdefs.h
 
-  elif test "x$ac_cv_func_write" = xyes; then
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking write: not found" >&5
+$as_echo_n "checking write: not found... " >&6; }
+  $as_echo "#undef HAVE_WRITE" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_c_write" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking write: found" >&5
+$as_echo_n "checking write: found... " >&6; }
 
 $as_echo "#define HAVE_WRITE 1" >>confdefs.h
 
+    elif test "x$ac_cv_func_write" = xyes; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking write: found" >&5
+$as_echo_n "checking write: found... " >&6; }
+
+$as_echo "#define HAVE_WRITE 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking write: not found" >&5
+$as_echo_n "checking write: not found... " >&6; }
+  $as_echo "#undef HAVE_WRITE" >>confdefs.h
+
+    fi
   fi
 
 
