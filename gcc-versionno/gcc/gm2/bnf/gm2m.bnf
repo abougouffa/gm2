@@ -49,7 +49,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 *)
  
 FROM ASCII IMPORT nul, tab ;
-FROM Storage IMPORT ALLOCATE ;
+FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM FIO IMPORT File, IsNoError, StdOut, StdErr ;
 FROM M2LexBuf IMPORT OpenSource, CloseSource, GetToken, ReInitialize,
                      InsertToken, InsertTokenAndRewind, GetLineNo, GetFileName,

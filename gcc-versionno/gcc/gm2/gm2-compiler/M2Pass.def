@@ -41,6 +41,7 @@ EXPORT QUALIFIED SetPassToNoPass,
                  IsPass1,
                  IsPass2,
                  IsPass3,
+                 IsPassC,
                  IsPassHidden,
                  IsPassCodeGeneration,
                  IsErrorPass ;

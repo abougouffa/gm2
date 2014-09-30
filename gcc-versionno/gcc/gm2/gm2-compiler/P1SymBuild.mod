@@ -24,7 +24,7 @@ FROM ASCII IMPORT nul ;
 FROM NameKey IMPORT Name, WriteKey, MakeKey, KeyToCharStar, NulName ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
 FROM M2LexBuf IMPORT GetFileName ;
-FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, WriteFormat3 ;
+FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, WriteFormat3, WarnFormat1 ;
 FROM DynamicStrings IMPORT String, Slice, InitString, KillString, EqualCharStar, RIndex, Mark ;
 FROM M2Printf IMPORT printf0, printf1, printf2 ;
 FROM M2Options IMPORT Iso ;
@@ -284,7 +284,7 @@ BEGIN
    PopT(NameEnd) ;
    IF NameStart#NameEnd
    THEN
-      WriteFormat1('inconsistant implementation module name %a', NameStart)
+      WarnFormat1('inconsistant implementation module name %a', NameStart)
    END ;
    LeaveBlock
 END P1EndBuildImplementationModule ;
@@ -358,7 +358,7 @@ BEGIN
    END ;
    IF NameStart#NameEnd
    THEN
-      WriteFormat1('inconsistant program module name %a', NameStart)
+      WarnFormat1('inconsistant program module name %a', NameStart)
    END ;
    LeaveBlock
 END P1EndBuildProgramModule ;
@@ -420,7 +420,7 @@ BEGIN
    PopT(NameEnd) ;
    IF NameStart#NameEnd
    THEN
-      WriteFormat1('inconsistant inner module name %a', NameStart)
+      WarnFormat1('inconsistant inner module name %a', NameStart)
    END ;
    LeaveBlock
 END EndBuildInnerModule ;

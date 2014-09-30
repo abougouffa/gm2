@@ -16456,9 +16456,9 @@ fi
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for access" >&5
-$as_echo_n "checking m2 front end checking c library for access... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for access" >&5
+$as_echo_n "checking m2 front end checking c library for access... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for access in -lc" >&5
 $as_echo_n "checking for access in -lc... " >&6; }
@@ -16504,36 +16504,30 @@ if test "x$ac_cv_lib_c_access" = x""yes; then :
 $as_echo "#define HAVE_ACCESS 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking access: not found" >&5
-$as_echo_n "checking access: not found... " >&6; }
+
   $as_echo "#undef HAVE_ACCESS" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_access" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking access: found" >&5
-$as_echo_n "checking access: found... " >&6; }
 
 $as_echo "#define HAVE_ACCESS 1" >>confdefs.h
 
     elif test "x$ac_cv_func_access" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking access: found" >&5
-$as_echo_n "checking access: found... " >&6; }
 
 $as_echo "#define HAVE_ACCESS 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking access: not found" >&5
-$as_echo_n "checking access: not found... " >&6; }
+
   $as_echo "#undef HAVE_ACCESS" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for brk" >&5
-$as_echo_n "checking m2 front end checking c library for brk... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for brk" >&5
+$as_echo_n "checking m2 front end checking c library for brk... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for brk in -lc" >&5
 $as_echo_n "checking for brk in -lc... " >&6; }
@@ -16579,36 +16573,30 @@ if test "x$ac_cv_lib_c_brk" = x""yes; then :
 $as_echo "#define HAVE_BRK 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking brk: not found" >&5
-$as_echo_n "checking brk: not found... " >&6; }
+
   $as_echo "#undef HAVE_BRK" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_brk" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking brk: found" >&5
-$as_echo_n "checking brk: found... " >&6; }
 
 $as_echo "#define HAVE_BRK 1" >>confdefs.h
 
     elif test "x$ac_cv_func_brk" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking brk: found" >&5
-$as_echo_n "checking brk: found... " >&6; }
 
 $as_echo "#define HAVE_BRK 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking brk: not found" >&5
-$as_echo_n "checking brk: not found... " >&6; }
+
   $as_echo "#undef HAVE_BRK" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for cfmakeraw" >&5
-$as_echo_n "checking m2 front end checking c library for cfmakeraw... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for cfmakeraw" >&5
+$as_echo_n "checking m2 front end checking c library for cfmakeraw... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cfmakeraw in -lc" >&5
 $as_echo_n "checking for cfmakeraw in -lc... " >&6; }
@@ -16654,36 +16642,30 @@ if test "x$ac_cv_lib_c_cfmakeraw" = x""yes; then :
 $as_echo "#define HAVE_CFMAKERAW 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking cfmakeraw: not found" >&5
-$as_echo_n "checking cfmakeraw: not found... " >&6; }
+
   $as_echo "#undef HAVE_CFMAKERAW" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_cfmakeraw" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking cfmakeraw: found" >&5
-$as_echo_n "checking cfmakeraw: found... " >&6; }
 
 $as_echo "#define HAVE_CFMAKERAW 1" >>confdefs.h
 
     elif test "x$ac_cv_func_cfmakeraw" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking cfmakeraw: found" >&5
-$as_echo_n "checking cfmakeraw: found... " >&6; }
 
 $as_echo "#define HAVE_CFMAKERAW 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking cfmakeraw: not found" >&5
-$as_echo_n "checking cfmakeraw: not found... " >&6; }
+
   $as_echo "#undef HAVE_CFMAKERAW" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for close" >&5
-$as_echo_n "checking m2 front end checking c library for close... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for close" >&5
+$as_echo_n "checking m2 front end checking c library for close... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for close in -lc" >&5
 $as_echo_n "checking for close in -lc... " >&6; }
@@ -16729,36 +16711,30 @@ if test "x$ac_cv_lib_c_close" = x""yes; then :
 $as_echo "#define HAVE_CLOSE 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking close: not found" >&5
-$as_echo_n "checking close: not found... " >&6; }
+
   $as_echo "#undef HAVE_CLOSE" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_close" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking close: found" >&5
-$as_echo_n "checking close: found... " >&6; }
 
 $as_echo "#define HAVE_CLOSE 1" >>confdefs.h
 
     elif test "x$ac_cv_func_close" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking close: found" >&5
-$as_echo_n "checking close: found... " >&6; }
 
 $as_echo "#define HAVE_CLOSE 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking close: not found" >&5
-$as_echo_n "checking close: not found... " >&6; }
+
   $as_echo "#undef HAVE_CLOSE" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for ctime" >&5
-$as_echo_n "checking m2 front end checking c library for ctime... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for ctime" >&5
+$as_echo_n "checking m2 front end checking c library for ctime... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ctime in -lc" >&5
 $as_echo_n "checking for ctime in -lc... " >&6; }
@@ -16804,36 +16780,30 @@ if test "x$ac_cv_lib_c_ctime" = x""yes; then :
 $as_echo "#define HAVE_CTIME 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking ctime: not found" >&5
-$as_echo_n "checking ctime: not found... " >&6; }
+
   $as_echo "#undef HAVE_CTIME" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_ctime" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking ctime: found" >&5
-$as_echo_n "checking ctime: found... " >&6; }
 
 $as_echo "#define HAVE_CTIME 1" >>confdefs.h
 
     elif test "x$ac_cv_func_ctime" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking ctime: found" >&5
-$as_echo_n "checking ctime: found... " >&6; }
 
 $as_echo "#define HAVE_CTIME 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking ctime: not found" >&5
-$as_echo_n "checking ctime: not found... " >&6; }
+
   $as_echo "#undef HAVE_CTIME" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for creat" >&5
-$as_echo_n "checking m2 front end checking c library for creat... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for creat" >&5
+$as_echo_n "checking m2 front end checking c library for creat... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for creat in -lc" >&5
 $as_echo_n "checking for creat in -lc... " >&6; }
@@ -16879,36 +16849,30 @@ if test "x$ac_cv_lib_c_creat" = x""yes; then :
 $as_echo "#define HAVE_CREAT 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking creat: not found" >&5
-$as_echo_n "checking creat: not found... " >&6; }
+
   $as_echo "#undef HAVE_CREAT" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_creat" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking creat: found" >&5
-$as_echo_n "checking creat: found... " >&6; }
 
 $as_echo "#define HAVE_CREAT 1" >>confdefs.h
 
     elif test "x$ac_cv_func_creat" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking creat: found" >&5
-$as_echo_n "checking creat: found... " >&6; }
 
 $as_echo "#define HAVE_CREAT 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking creat: not found" >&5
-$as_echo_n "checking creat: not found... " >&6; }
+
   $as_echo "#undef HAVE_CREAT" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for dup" >&5
-$as_echo_n "checking m2 front end checking c library for dup... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for dup" >&5
+$as_echo_n "checking m2 front end checking c library for dup... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dup in -lc" >&5
 $as_echo_n "checking for dup in -lc... " >&6; }
@@ -16954,36 +16918,30 @@ if test "x$ac_cv_lib_c_dup" = x""yes; then :
 $as_echo "#define HAVE_DUP 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking dup: not found" >&5
-$as_echo_n "checking dup: not found... " >&6; }
+
   $as_echo "#undef HAVE_DUP" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_dup" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking dup: found" >&5
-$as_echo_n "checking dup: found... " >&6; }
 
 $as_echo "#define HAVE_DUP 1" >>confdefs.h
 
     elif test "x$ac_cv_func_dup" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking dup: found" >&5
-$as_echo_n "checking dup: found... " >&6; }
 
 $as_echo "#define HAVE_DUP 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking dup: not found" >&5
-$as_echo_n "checking dup: not found... " >&6; }
+
   $as_echo "#undef HAVE_DUP" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for execve" >&5
-$as_echo_n "checking m2 front end checking c library for execve... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for execve" >&5
+$as_echo_n "checking m2 front end checking c library for execve... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for execve in -lc" >&5
 $as_echo_n "checking for execve in -lc... " >&6; }
@@ -17029,36 +16987,30 @@ if test "x$ac_cv_lib_c_execve" = x""yes; then :
 $as_echo "#define HAVE_EXECVE 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking execve: not found" >&5
-$as_echo_n "checking execve: not found... " >&6; }
+
   $as_echo "#undef HAVE_EXECVE" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_execve" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking execve: found" >&5
-$as_echo_n "checking execve: found... " >&6; }
 
 $as_echo "#define HAVE_EXECVE 1" >>confdefs.h
 
     elif test "x$ac_cv_func_execve" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking execve: found" >&5
-$as_echo_n "checking execve: found... " >&6; }
 
 $as_echo "#define HAVE_EXECVE 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking execve: not found" >&5
-$as_echo_n "checking execve: not found... " >&6; }
+
   $as_echo "#undef HAVE_EXECVE" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for exit" >&5
-$as_echo_n "checking m2 front end checking c library for exit... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for exit" >&5
+$as_echo_n "checking m2 front end checking c library for exit... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for exit in -lc" >&5
 $as_echo_n "checking for exit in -lc... " >&6; }
@@ -17104,36 +17056,30 @@ if test "x$ac_cv_lib_c_exit" = x""yes; then :
 $as_echo "#define HAVE_EXIT 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking exit: not found" >&5
-$as_echo_n "checking exit: not found... " >&6; }
+
   $as_echo "#undef HAVE_EXIT" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_exit" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking exit: found" >&5
-$as_echo_n "checking exit: found... " >&6; }
 
 $as_echo "#define HAVE_EXIT 1" >>confdefs.h
 
     elif test "x$ac_cv_func_exit" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking exit: found" >&5
-$as_echo_n "checking exit: found... " >&6; }
 
 $as_echo "#define HAVE_EXIT 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking exit: not found" >&5
-$as_echo_n "checking exit: not found... " >&6; }
+
   $as_echo "#undef HAVE_EXIT" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for fcntl" >&5
-$as_echo_n "checking m2 front end checking c library for fcntl... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for fcntl" >&5
+$as_echo_n "checking m2 front end checking c library for fcntl... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for fcntl in -lc" >&5
 $as_echo_n "checking for fcntl in -lc... " >&6; }
@@ -17179,36 +17125,30 @@ if test "x$ac_cv_lib_c_fcntl" = x""yes; then :
 $as_echo "#define HAVE_FCNTL 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking fcntl: not found" >&5
-$as_echo_n "checking fcntl: not found... " >&6; }
+
   $as_echo "#undef HAVE_FCNTL" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_fcntl" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking fcntl: found" >&5
-$as_echo_n "checking fcntl: found... " >&6; }
 
 $as_echo "#define HAVE_FCNTL 1" >>confdefs.h
 
     elif test "x$ac_cv_func_fcntl" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking fcntl: found" >&5
-$as_echo_n "checking fcntl: found... " >&6; }
 
 $as_echo "#define HAVE_FCNTL 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking fcntl: not found" >&5
-$as_echo_n "checking fcntl: not found... " >&6; }
+
   $as_echo "#undef HAVE_FCNTL" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for fstat" >&5
-$as_echo_n "checking m2 front end checking c library for fstat... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for fstat" >&5
+$as_echo_n "checking m2 front end checking c library for fstat... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for fstat in -lc" >&5
 $as_echo_n "checking for fstat in -lc... " >&6; }
@@ -17254,36 +17194,30 @@ if test "x$ac_cv_lib_c_fstat" = x""yes; then :
 $as_echo "#define HAVE_FSTAT 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking fstat: not found" >&5
-$as_echo_n "checking fstat: not found... " >&6; }
+
   $as_echo "#undef HAVE_FSTAT" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_fstat" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking fstat: found" >&5
-$as_echo_n "checking fstat: found... " >&6; }
 
 $as_echo "#define HAVE_FSTAT 1" >>confdefs.h
 
     elif test "x$ac_cv_func_fstat" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking fstat: found" >&5
-$as_echo_n "checking fstat: found... " >&6; }
 
 $as_echo "#define HAVE_FSTAT 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking fstat: not found" >&5
-$as_echo_n "checking fstat: not found... " >&6; }
+
   $as_echo "#undef HAVE_FSTAT" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for getdents" >&5
-$as_echo_n "checking m2 front end checking c library for getdents... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for getdents" >&5
+$as_echo_n "checking m2 front end checking c library for getdents... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for getdents in -lc" >&5
 $as_echo_n "checking for getdents in -lc... " >&6; }
@@ -17329,36 +17263,30 @@ if test "x$ac_cv_lib_c_getdents" = x""yes; then :
 $as_echo "#define HAVE_GETDENTS 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking getdents: not found" >&5
-$as_echo_n "checking getdents: not found... " >&6; }
+
   $as_echo "#undef HAVE_GETDENTS" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_getdents" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getdents: found" >&5
-$as_echo_n "checking getdents: found... " >&6; }
 
 $as_echo "#define HAVE_GETDENTS 1" >>confdefs.h
 
     elif test "x$ac_cv_func_getdents" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getdents: found" >&5
-$as_echo_n "checking getdents: found... " >&6; }
 
 $as_echo "#define HAVE_GETDENTS 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getdents: not found" >&5
-$as_echo_n "checking getdents: not found... " >&6; }
+
   $as_echo "#undef HAVE_GETDENTS" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for getgid" >&5
-$as_echo_n "checking m2 front end checking c library for getgid... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for getgid" >&5
+$as_echo_n "checking m2 front end checking c library for getgid... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for getgid in -lc" >&5
 $as_echo_n "checking for getgid in -lc... " >&6; }
@@ -17404,36 +17332,30 @@ if test "x$ac_cv_lib_c_getgid" = x""yes; then :
 $as_echo "#define HAVE_GETGID 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking getgid: not found" >&5
-$as_echo_n "checking getgid: not found... " >&6; }
+
   $as_echo "#undef HAVE_GETGID" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_getgid" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getgid: found" >&5
-$as_echo_n "checking getgid: found... " >&6; }
 
 $as_echo "#define HAVE_GETGID 1" >>confdefs.h
 
     elif test "x$ac_cv_func_getgid" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getgid: found" >&5
-$as_echo_n "checking getgid: found... " >&6; }
 
 $as_echo "#define HAVE_GETGID 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getgid: not found" >&5
-$as_echo_n "checking getgid: not found... " >&6; }
+
   $as_echo "#undef HAVE_GETGID" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for getpid" >&5
-$as_echo_n "checking m2 front end checking c library for getpid... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for getpid" >&5
+$as_echo_n "checking m2 front end checking c library for getpid... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for getpid in -lc" >&5
 $as_echo_n "checking for getpid in -lc... " >&6; }
@@ -17479,36 +17401,30 @@ if test "x$ac_cv_lib_c_getpid" = x""yes; then :
 $as_echo "#define HAVE_GETPID 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking getpid: not found" >&5
-$as_echo_n "checking getpid: not found... " >&6; }
+
   $as_echo "#undef HAVE_GETPID" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_getpid" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getpid: found" >&5
-$as_echo_n "checking getpid: found... " >&6; }
 
 $as_echo "#define HAVE_GETPID 1" >>confdefs.h
 
     elif test "x$ac_cv_func_getpid" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getpid: found" >&5
-$as_echo_n "checking getpid: found... " >&6; }
 
 $as_echo "#define HAVE_GETPID 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getpid: not found" >&5
-$as_echo_n "checking getpid: not found... " >&6; }
+
   $as_echo "#undef HAVE_GETPID" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for gettimeofday" >&5
-$as_echo_n "checking m2 front end checking c library for gettimeofday... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for gettimeofday" >&5
+$as_echo_n "checking m2 front end checking c library for gettimeofday... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gettimeofday in -lc" >&5
 $as_echo_n "checking for gettimeofday in -lc... " >&6; }
@@ -17554,36 +17470,30 @@ if test "x$ac_cv_lib_c_gettimeofday" = x""yes; then :
 $as_echo "#define HAVE_GETTIMEOFD 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking gettimeofday: not found" >&5
-$as_echo_n "checking gettimeofday: not found... " >&6; }
+
   $as_echo "#undef HAVE_GETTIMEOFD" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_gettimeofday" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking gettimeofday: found" >&5
-$as_echo_n "checking gettimeofday: found... " >&6; }
 
 $as_echo "#define HAVE_GETTIMEOFD 1" >>confdefs.h
 
     elif test "x$ac_cv_func_gettimeofday" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking gettimeofday: found" >&5
-$as_echo_n "checking gettimeofday: found... " >&6; }
 
 $as_echo "#define HAVE_GETTIMEOFD 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking gettimeofday: not found" >&5
-$as_echo_n "checking gettimeofday: not found... " >&6; }
+
   $as_echo "#undef HAVE_GETTIMEOFD" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for getuid" >&5
-$as_echo_n "checking m2 front end checking c library for getuid... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for getuid" >&5
+$as_echo_n "checking m2 front end checking c library for getuid... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for getuid in -lc" >&5
 $as_echo_n "checking for getuid in -lc... " >&6; }
@@ -17629,36 +17539,30 @@ if test "x$ac_cv_lib_c_getuid" = x""yes; then :
 $as_echo "#define HAVE_GETUID 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking getuid: not found" >&5
-$as_echo_n "checking getuid: not found... " >&6; }
+
   $as_echo "#undef HAVE_GETUID" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_getuid" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getuid: found" >&5
-$as_echo_n "checking getuid: found... " >&6; }
 
 $as_echo "#define HAVE_GETUID 1" >>confdefs.h
 
     elif test "x$ac_cv_func_getuid" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getuid: found" >&5
-$as_echo_n "checking getuid: found... " >&6; }
 
 $as_echo "#define HAVE_GETUID 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking getuid: not found" >&5
-$as_echo_n "checking getuid: not found... " >&6; }
+
   $as_echo "#undef HAVE_GETUID" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for ioctl" >&5
-$as_echo_n "checking m2 front end checking c library for ioctl... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for ioctl" >&5
+$as_echo_n "checking m2 front end checking c library for ioctl... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ioctl in -lc" >&5
 $as_echo_n "checking for ioctl in -lc... " >&6; }
@@ -17704,36 +17608,30 @@ if test "x$ac_cv_lib_c_ioctl" = x""yes; then :
 $as_echo "#define HAVE_IOCTL 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking ioctl: not found" >&5
-$as_echo_n "checking ioctl: not found... " >&6; }
+
   $as_echo "#undef HAVE_IOCTL" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_ioctl" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking ioctl: found" >&5
-$as_echo_n "checking ioctl: found... " >&6; }
 
 $as_echo "#define HAVE_IOCTL 1" >>confdefs.h
 
     elif test "x$ac_cv_func_ioctl" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking ioctl: found" >&5
-$as_echo_n "checking ioctl: found... " >&6; }
 
 $as_echo "#define HAVE_IOCTL 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking ioctl: not found" >&5
-$as_echo_n "checking ioctl: not found... " >&6; }
+
   $as_echo "#undef HAVE_IOCTL" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for kill" >&5
-$as_echo_n "checking m2 front end checking c library for kill... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for kill" >&5
+$as_echo_n "checking m2 front end checking c library for kill... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for kill in -lc" >&5
 $as_echo_n "checking for kill in -lc... " >&6; }
@@ -17779,36 +17677,30 @@ if test "x$ac_cv_lib_c_kill" = x""yes; then :
 $as_echo "#define HAVE_KILL 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking kill: not found" >&5
-$as_echo_n "checking kill: not found... " >&6; }
+
   $as_echo "#undef HAVE_KILL" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_kill" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking kill: found" >&5
-$as_echo_n "checking kill: found... " >&6; }
 
 $as_echo "#define HAVE_KILL 1" >>confdefs.h
 
     elif test "x$ac_cv_func_kill" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking kill: found" >&5
-$as_echo_n "checking kill: found... " >&6; }
 
 $as_echo "#define HAVE_KILL 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking kill: not found" >&5
-$as_echo_n "checking kill: not found... " >&6; }
+
   $as_echo "#undef HAVE_KILL" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for link" >&5
-$as_echo_n "checking m2 front end checking c library for link... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for link" >&5
+$as_echo_n "checking m2 front end checking c library for link... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for link in -lc" >&5
 $as_echo_n "checking for link in -lc... " >&6; }
@@ -17854,36 +17746,30 @@ if test "x$ac_cv_lib_c_link" = x""yes; then :
 $as_echo "#define HAVE_LINK 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking link: not found" >&5
-$as_echo_n "checking link: not found... " >&6; }
+
   $as_echo "#undef HAVE_LINK" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_link" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking link: found" >&5
-$as_echo_n "checking link: found... " >&6; }
 
 $as_echo "#define HAVE_LINK 1" >>confdefs.h
 
     elif test "x$ac_cv_func_link" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking link: found" >&5
-$as_echo_n "checking link: found... " >&6; }
 
 $as_echo "#define HAVE_LINK 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking link: not found" >&5
-$as_echo_n "checking link: not found... " >&6; }
+
   $as_echo "#undef HAVE_LINK" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for lseek" >&5
-$as_echo_n "checking m2 front end checking c library for lseek... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for lseek" >&5
+$as_echo_n "checking m2 front end checking c library for lseek... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for lseek in -lc" >&5
 $as_echo_n "checking for lseek in -lc... " >&6; }
@@ -17929,36 +17815,30 @@ if test "x$ac_cv_lib_c_lseek" = x""yes; then :
 $as_echo "#define HAVE_LSEEK 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking lseek: not found" >&5
-$as_echo_n "checking lseek: not found... " >&6; }
+
   $as_echo "#undef HAVE_LSEEK" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_lseek" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking lseek: found" >&5
-$as_echo_n "checking lseek: found... " >&6; }
 
 $as_echo "#define HAVE_LSEEK 1" >>confdefs.h
 
     elif test "x$ac_cv_func_lseek" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking lseek: found" >&5
-$as_echo_n "checking lseek: found... " >&6; }
 
 $as_echo "#define HAVE_LSEEK 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking lseek: not found" >&5
-$as_echo_n "checking lseek: not found... " >&6; }
+
   $as_echo "#undef HAVE_LSEEK" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for open" >&5
-$as_echo_n "checking m2 front end checking c library for open... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for open" >&5
+$as_echo_n "checking m2 front end checking c library for open... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for open in -lc" >&5
 $as_echo_n "checking for open in -lc... " >&6; }
@@ -18004,36 +17884,30 @@ if test "x$ac_cv_lib_c_open" = x""yes; then :
 $as_echo "#define HAVE_OPEN 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking open: not found" >&5
-$as_echo_n "checking open: not found... " >&6; }
+
   $as_echo "#undef HAVE_OPEN" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_open" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking open: found" >&5
-$as_echo_n "checking open: found... " >&6; }
 
 $as_echo "#define HAVE_OPEN 1" >>confdefs.h
 
     elif test "x$ac_cv_func_open" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking open: found" >&5
-$as_echo_n "checking open: found... " >&6; }
 
 $as_echo "#define HAVE_OPEN 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking open: not found" >&5
-$as_echo_n "checking open: not found... " >&6; }
+
   $as_echo "#undef HAVE_OPEN" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for pause" >&5
-$as_echo_n "checking m2 front end checking c library for pause... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for pause" >&5
+$as_echo_n "checking m2 front end checking c library for pause... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pause in -lc" >&5
 $as_echo_n "checking for pause in -lc... " >&6; }
@@ -18079,36 +17953,30 @@ if test "x$ac_cv_lib_c_pause" = x""yes; then :
 $as_echo "#define HAVE_PAUSE 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking pause: not found" >&5
-$as_echo_n "checking pause: not found... " >&6; }
+
   $as_echo "#undef HAVE_PAUSE" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_pause" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking pause: found" >&5
-$as_echo_n "checking pause: found... " >&6; }
 
 $as_echo "#define HAVE_PAUSE 1" >>confdefs.h
 
     elif test "x$ac_cv_func_pause" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking pause: found" >&5
-$as_echo_n "checking pause: found... " >&6; }
 
 $as_echo "#define HAVE_PAUSE 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking pause: not found" >&5
-$as_echo_n "checking pause: not found... " >&6; }
+
   $as_echo "#undef HAVE_PAUSE" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for pipe" >&5
-$as_echo_n "checking m2 front end checking c library for pipe... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for pipe" >&5
+$as_echo_n "checking m2 front end checking c library for pipe... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pipe in -lc" >&5
 $as_echo_n "checking for pipe in -lc... " >&6; }
@@ -18154,36 +18022,30 @@ if test "x$ac_cv_lib_c_pipe" = x""yes; then :
 $as_echo "#define HAVE_PIPE 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking pipe: not found" >&5
-$as_echo_n "checking pipe: not found... " >&6; }
+
   $as_echo "#undef HAVE_PIPE" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_pipe" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking pipe: found" >&5
-$as_echo_n "checking pipe: found... " >&6; }
 
 $as_echo "#define HAVE_PIPE 1" >>confdefs.h
 
     elif test "x$ac_cv_func_pipe" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking pipe: found" >&5
-$as_echo_n "checking pipe: found... " >&6; }
 
 $as_echo "#define HAVE_PIPE 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking pipe: not found" >&5
-$as_echo_n "checking pipe: not found... " >&6; }
+
   $as_echo "#undef HAVE_PIPE" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for rand" >&5
-$as_echo_n "checking m2 front end checking c library for rand... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for rand" >&5
+$as_echo_n "checking m2 front end checking c library for rand... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for rand in -lc" >&5
 $as_echo_n "checking for rand in -lc... " >&6; }
@@ -18229,36 +18091,30 @@ if test "x$ac_cv_lib_c_rand" = x""yes; then :
 $as_echo "#define HAVE_RAND 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking rand: not found" >&5
-$as_echo_n "checking rand: not found... " >&6; }
+
   $as_echo "#undef HAVE_RAND" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_rand" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking rand: found" >&5
-$as_echo_n "checking rand: found... " >&6; }
 
 $as_echo "#define HAVE_RAND 1" >>confdefs.h
 
     elif test "x$ac_cv_func_rand" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking rand: found" >&5
-$as_echo_n "checking rand: found... " >&6; }
 
 $as_echo "#define HAVE_RAND 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking rand: not found" >&5
-$as_echo_n "checking rand: not found... " >&6; }
+
   $as_echo "#undef HAVE_RAND" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for read" >&5
-$as_echo_n "checking m2 front end checking c library for read... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for read" >&5
+$as_echo_n "checking m2 front end checking c library for read... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for read in -lc" >&5
 $as_echo_n "checking for read in -lc... " >&6; }
@@ -18304,36 +18160,30 @@ if test "x$ac_cv_lib_c_read" = x""yes; then :
 $as_echo "#define HAVE_READ 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking read: not found" >&5
-$as_echo_n "checking read: not found... " >&6; }
+
   $as_echo "#undef HAVE_READ" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_read" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking read: found" >&5
-$as_echo_n "checking read: found... " >&6; }
 
 $as_echo "#define HAVE_READ 1" >>confdefs.h
 
     elif test "x$ac_cv_func_read" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking read: found" >&5
-$as_echo_n "checking read: found... " >&6; }
 
 $as_echo "#define HAVE_READ 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking read: not found" >&5
-$as_echo_n "checking read: not found... " >&6; }
+
   $as_echo "#undef HAVE_READ" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for select" >&5
-$as_echo_n "checking m2 front end checking c library for select... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for select" >&5
+$as_echo_n "checking m2 front end checking c library for select... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for select in -lc" >&5
 $as_echo_n "checking for select in -lc... " >&6; }
@@ -18379,36 +18229,30 @@ if test "x$ac_cv_lib_c_select" = x""yes; then :
 $as_echo "#define HAVE_SELECT 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking select: not found" >&5
-$as_echo_n "checking select: not found... " >&6; }
+
   $as_echo "#undef HAVE_SELECT" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_select" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking select: found" >&5
-$as_echo_n "checking select: found... " >&6; }
 
 $as_echo "#define HAVE_SELECT 1" >>confdefs.h
 
     elif test "x$ac_cv_func_select" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking select: found" >&5
-$as_echo_n "checking select: found... " >&6; }
 
 $as_echo "#define HAVE_SELECT 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking select: not found" >&5
-$as_echo_n "checking select: not found... " >&6; }
+
   $as_echo "#undef HAVE_SELECT" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for setitimer" >&5
-$as_echo_n "checking m2 front end checking c library for setitimer... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for setitimer" >&5
+$as_echo_n "checking m2 front end checking c library for setitimer... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for setitimer in -lc" >&5
 $as_echo_n "checking for setitimer in -lc... " >&6; }
@@ -18454,36 +18298,30 @@ if test "x$ac_cv_lib_c_setitimer" = x""yes; then :
 $as_echo "#define HAVE_SETITIMER 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking setitimer: not found" >&5
-$as_echo_n "checking setitimer: not found... " >&6; }
+
   $as_echo "#undef HAVE_SETITIMER" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_setitimer" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking setitimer: found" >&5
-$as_echo_n "checking setitimer: found... " >&6; }
 
 $as_echo "#define HAVE_SETITIMER 1" >>confdefs.h
 
     elif test "x$ac_cv_func_setitimer" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking setitimer: found" >&5
-$as_echo_n "checking setitimer: found... " >&6; }
 
 $as_echo "#define HAVE_SETITIMER 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking setitimer: not found" >&5
-$as_echo_n "checking setitimer: not found... " >&6; }
+
   $as_echo "#undef HAVE_SETITIMER" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for setgid" >&5
-$as_echo_n "checking m2 front end checking c library for setgid... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for setgid" >&5
+$as_echo_n "checking m2 front end checking c library for setgid... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for setgid in -lc" >&5
 $as_echo_n "checking for setgid in -lc... " >&6; }
@@ -18529,36 +18367,30 @@ if test "x$ac_cv_lib_c_setgid" = x""yes; then :
 $as_echo "#define HAVE_SETGID 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking setgid: not found" >&5
-$as_echo_n "checking setgid: not found... " >&6; }
+
   $as_echo "#undef HAVE_SETGID" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_setgid" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking setgid: found" >&5
-$as_echo_n "checking setgid: found... " >&6; }
 
 $as_echo "#define HAVE_SETGID 1" >>confdefs.h
 
     elif test "x$ac_cv_func_setgid" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking setgid: found" >&5
-$as_echo_n "checking setgid: found... " >&6; }
 
 $as_echo "#define HAVE_SETGID 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking setgid: not found" >&5
-$as_echo_n "checking setgid: not found... " >&6; }
+
   $as_echo "#undef HAVE_SETGID" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for setuid" >&5
-$as_echo_n "checking m2 front end checking c library for setuid... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for setuid" >&5
+$as_echo_n "checking m2 front end checking c library for setuid... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for setuid in -lc" >&5
 $as_echo_n "checking for setuid in -lc... " >&6; }
@@ -18604,36 +18436,30 @@ if test "x$ac_cv_lib_c_setuid" = x""yes; then :
 $as_echo "#define HAVE_SETUID 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking setuid: not found" >&5
-$as_echo_n "checking setuid: not found... " >&6; }
+
   $as_echo "#undef HAVE_SETUID" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_setuid" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking setuid: found" >&5
-$as_echo_n "checking setuid: found... " >&6; }
 
 $as_echo "#define HAVE_SETUID 1" >>confdefs.h
 
     elif test "x$ac_cv_func_setuid" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking setuid: found" >&5
-$as_echo_n "checking setuid: found... " >&6; }
 
 $as_echo "#define HAVE_SETUID 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking setuid: not found" >&5
-$as_echo_n "checking setuid: not found... " >&6; }
+
   $as_echo "#undef HAVE_SETUID" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for stat" >&5
-$as_echo_n "checking m2 front end checking c library for stat... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for stat" >&5
+$as_echo_n "checking m2 front end checking c library for stat... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for stat in -lc" >&5
 $as_echo_n "checking for stat in -lc... " >&6; }
@@ -18679,36 +18505,30 @@ if test "x$ac_cv_lib_c_stat" = x""yes; then :
 $as_echo "#define HAVE_STAT 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking stat: not found" >&5
-$as_echo_n "checking stat: not found... " >&6; }
+
   $as_echo "#undef HAVE_STAT" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_stat" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking stat: found" >&5
-$as_echo_n "checking stat: found... " >&6; }
 
 $as_echo "#define HAVE_STAT 1" >>confdefs.h
 
     elif test "x$ac_cv_func_stat" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking stat: found" >&5
-$as_echo_n "checking stat: found... " >&6; }
 
 $as_echo "#define HAVE_STAT 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking stat: not found" >&5
-$as_echo_n "checking stat: not found... " >&6; }
+
   $as_echo "#undef HAVE_STAT" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for strsignal" >&5
-$as_echo_n "checking m2 front end checking c library for strsignal... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for strsignal" >&5
+$as_echo_n "checking m2 front end checking c library for strsignal... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for strsignal in -lc" >&5
 $as_echo_n "checking for strsignal in -lc... " >&6; }
@@ -18754,36 +18574,30 @@ if test "x$ac_cv_lib_c_strsignal" = x""yes; then :
 $as_echo "#define HAVE_STRSIGNAL 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking strsignal: not found" >&5
-$as_echo_n "checking strsignal: not found... " >&6; }
+
   $as_echo "#undef HAVE_STRSIGNAL" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_strsignal" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking strsignal: found" >&5
-$as_echo_n "checking strsignal: found... " >&6; }
 
 $as_echo "#define HAVE_STRSIGNAL 1" >>confdefs.h
 
     elif test "x$ac_cv_func_strsignal" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking strsignal: found" >&5
-$as_echo_n "checking strsignal: found... " >&6; }
 
 $as_echo "#define HAVE_STRSIGNAL 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking strsignal: not found" >&5
-$as_echo_n "checking strsignal: not found... " >&6; }
+
   $as_echo "#undef HAVE_STRSIGNAL" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for strtod" >&5
-$as_echo_n "checking m2 front end checking c library for strtod... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for strtod" >&5
+$as_echo_n "checking m2 front end checking c library for strtod... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for strtod in -lc" >&5
 $as_echo_n "checking for strtod in -lc... " >&6; }
@@ -18829,36 +18643,30 @@ if test "x$ac_cv_lib_c_strtod" = x""yes; then :
 $as_echo "#define HAVE_STRTOD 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking strtod: not found" >&5
-$as_echo_n "checking strtod: not found... " >&6; }
+
   $as_echo "#undef HAVE_STRTOD" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_strtod" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking strtod: found" >&5
-$as_echo_n "checking strtod: found... " >&6; }
 
 $as_echo "#define HAVE_STRTOD 1" >>confdefs.h
 
     elif test "x$ac_cv_func_strtod" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking strtod: found" >&5
-$as_echo_n "checking strtod: found... " >&6; }
 
 $as_echo "#define HAVE_STRTOD 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking strtod: not found" >&5
-$as_echo_n "checking strtod: not found... " >&6; }
+
   $as_echo "#undef HAVE_STRTOD" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for strtold" >&5
-$as_echo_n "checking m2 front end checking c library for strtold... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for strtold" >&5
+$as_echo_n "checking m2 front end checking c library for strtold... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for strtold in -lc" >&5
 $as_echo_n "checking for strtold in -lc... " >&6; }
@@ -18904,36 +18712,30 @@ if test "x$ac_cv_lib_c_strtold" = x""yes; then :
 $as_echo "#define HAVE_STRTOLD 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking strtold: not found" >&5
-$as_echo_n "checking strtold: not found... " >&6; }
+
   $as_echo "#undef HAVE_STRTOLD" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_strtold" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking strtold: found" >&5
-$as_echo_n "checking strtold: found... " >&6; }
 
 $as_echo "#define HAVE_STRTOLD 1" >>confdefs.h
 
     elif test "x$ac_cv_func_strtold" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking strtold: found" >&5
-$as_echo_n "checking strtold: found... " >&6; }
 
 $as_echo "#define HAVE_STRTOLD 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking strtold: not found" >&5
-$as_echo_n "checking strtold: not found... " >&6; }
+
   $as_echo "#undef HAVE_STRTOLD" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for times" >&5
-$as_echo_n "checking m2 front end checking c library for times... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for times" >&5
+$as_echo_n "checking m2 front end checking c library for times... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for times in -lc" >&5
 $as_echo_n "checking for times in -lc... " >&6; }
@@ -18979,36 +18781,30 @@ if test "x$ac_cv_lib_c_times" = x""yes; then :
 $as_echo "#define HAVE_TIMES 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking times: not found" >&5
-$as_echo_n "checking times: not found... " >&6; }
+
   $as_echo "#undef HAVE_TIMES" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_times" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking times: found" >&5
-$as_echo_n "checking times: found... " >&6; }
 
 $as_echo "#define HAVE_TIMES 1" >>confdefs.h
 
     elif test "x$ac_cv_func_times" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking times: found" >&5
-$as_echo_n "checking times: found... " >&6; }
 
 $as_echo "#define HAVE_TIMES 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking times: not found" >&5
-$as_echo_n "checking times: not found... " >&6; }
+
   $as_echo "#undef HAVE_TIMES" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for unlink" >&5
-$as_echo_n "checking m2 front end checking c library for unlink... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for unlink" >&5
+$as_echo_n "checking m2 front end checking c library for unlink... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for unlink in -lc" >&5
 $as_echo_n "checking for unlink in -lc... " >&6; }
@@ -19054,36 +18850,30 @@ if test "x$ac_cv_lib_c_unlink" = x""yes; then :
 $as_echo "#define HAVE_UNLINK 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking unlink: not found" >&5
-$as_echo_n "checking unlink: not found... " >&6; }
+
   $as_echo "#undef HAVE_UNLINK" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_unlink" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking unlink: found" >&5
-$as_echo_n "checking unlink: found... " >&6; }
 
 $as_echo "#define HAVE_UNLINK 1" >>confdefs.h
 
     elif test "x$ac_cv_func_unlink" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking unlink: found" >&5
-$as_echo_n "checking unlink: found... " >&6; }
 
 $as_echo "#define HAVE_UNLINK 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking unlink: not found" >&5
-$as_echo_n "checking unlink: not found... " >&6; }
+
   $as_echo "#undef HAVE_UNLINK" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for wait" >&5
-$as_echo_n "checking m2 front end checking c library for wait... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for wait" >&5
+$as_echo_n "checking m2 front end checking c library for wait... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for wait in -lc" >&5
 $as_echo_n "checking for wait in -lc... " >&6; }
@@ -19129,36 +18919,30 @@ if test "x$ac_cv_lib_c_wait" = x""yes; then :
 $as_echo "#define HAVE_WAIT 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking wait: not found" >&5
-$as_echo_n "checking wait: not found... " >&6; }
+
   $as_echo "#undef HAVE_WAIT" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_wait" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking wait: found" >&5
-$as_echo_n "checking wait: found... " >&6; }
 
 $as_echo "#define HAVE_WAIT 1" >>confdefs.h
 
     elif test "x$ac_cv_func_wait" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking wait: found" >&5
-$as_echo_n "checking wait: found... " >&6; }
 
 $as_echo "#define HAVE_WAIT 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking wait: not found" >&5
-$as_echo_n "checking wait: not found... " >&6; }
+
   $as_echo "#undef HAVE_WAIT" >>confdefs.h
 
     fi
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for write" >&5
-$as_echo_n "checking m2 front end checking c library for write... " >&6; }
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking c library for write" >&5
+$as_echo_n "checking m2 front end checking c library for write... " >&6; }
   if test x$gcc_no_link != xyes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for write in -lc" >&5
 $as_echo_n "checking for write in -lc... " >&6; }
@@ -19204,28 +18988,22 @@ if test "x$ac_cv_lib_c_write" = x""yes; then :
 $as_echo "#define HAVE_WRITE 1" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking write: not found" >&5
-$as_echo_n "checking write: not found... " >&6; }
+
   $as_echo "#undef HAVE_WRITE" >>confdefs.h
 
 fi
 
   else
     if test "x$ac_cv_lib_c_write" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking write: found" >&5
-$as_echo_n "checking write: found... " >&6; }
 
 $as_echo "#define HAVE_WRITE 1" >>confdefs.h
 
     elif test "x$ac_cv_func_write" = xyes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking write: found" >&5
-$as_echo_n "checking write: found... " >&6; }
 
 $as_echo "#define HAVE_WRITE 1" >>confdefs.h
 
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking write: not found" >&5
-$as_echo_n "checking write: not found... " >&6; }
+
   $as_echo "#undef HAVE_WRITE" >>confdefs.h
 
     fi

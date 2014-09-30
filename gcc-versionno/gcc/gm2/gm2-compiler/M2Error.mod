@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
+                 2010, 2011, 2012, 2013, 2014
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -214,6 +214,23 @@ END WriteFormat0 ;
 
 
 (*
+   WarnFormat0 - displays the source module and line together
+                 with the encapsulated format string.
+                 Used for simple warning messages tied to the current token.
+*)
+
+PROCEDURE WarnFormat0 (a: ARRAY OF CHAR) ;
+VAR
+   e: Error ;
+BEGIN
+   e := NewWarning(GetTokenNo()) ;
+   WITH e^ DO
+      s := Sprintf0(Mark(InitString(a)))
+   END
+END WarnFormat0 ;
+
+
+(*
    DoFormat1 - 
 *)
 
@@ -247,6 +264,21 @@ BEGIN
    e := NewError(GetTokenNo()) ;
    e^.s := DoFormat1(a, w)
 END WriteFormat1 ;
+
+
+(*
+   WarnFormat1 - displays the source module and line together
+                 with the encapsulated format string.
+                 Used for simple warning messages tied to the current token.
+*)
+
+PROCEDURE WarnFormat1 (a: ARRAY OF CHAR; w: ARRAY OF BYTE) ;
+VAR
+   e: Error ;
+BEGIN
+   e := NewWarning(GetTokenNo()) ;
+   e^.s := DoFormat1(a, w)
+END WarnFormat1 ;
 
 
 (*

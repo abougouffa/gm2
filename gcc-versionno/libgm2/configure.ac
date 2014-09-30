@@ -205,22 +205,18 @@ m4_rename_force([real_PRECIOUS],[_AC_ARG_VAR_PRECIOUS])
 
 AC_SUBST(CFLAGS)
 
-AC_DEFUN([GM2_UNDEF],
-  [AC_MSG_CHECKING([$2: not found])
+AC_DEFUN([GM2_UNDEF],[
   $as_echo "#undef HAVE_$1" >>confdefs.h
 ])
 
-AC_DEFUN([GM2_CHECK_LIB],
-  [AC_MSG_CHECKING([m2 front end checking $1 library for $2])
-
+AC_DEFUN([GM2_CHECK_LIB],[
+  AC_MSG_CHECKING([m2 front end checking $1 library for $2])
   if test x$gcc_no_link != xyes; then
     AC_CHECK_LIB([$1],[$2],[AC_DEFINE([HAVE_$3],[1],[found $2])],[GM2_UNDEF([$3],[$2])])
   else
     if test "x$[ac_cv_lib_$1_$2]" = xyes; then
-      AC_MSG_CHECKING([$2: found])
       AC_DEFINE([HAVE_$3],[1],[lib$1 includes $2])
     elif test "x$[ac_cv_func_$2]" = xyes; then
-      AC_MSG_CHECKING([$2: found])
       AC_DEFINE([HAVE_$3],[1],[function $2 exists])
     else
       GM2_UNDEF([$3],[$2])

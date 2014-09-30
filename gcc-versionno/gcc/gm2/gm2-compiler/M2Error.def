@@ -38,7 +38,8 @@ EXPORT QUALIFIED Error,
                  FlushErrors, FlushWarnings, ChainError,
                  ErrorStringAt, ErrorStringAt2, ErrorStringsAt2,
                  WarnStringAt, WarnStringAt2, WarnStringsAt2,
-                 ErrorAbort0 ;
+                 ErrorAbort0,
+                 WarnFormat0, WarnFormat1 ;
 
 TYPE
    Error ;
@@ -142,6 +143,24 @@ PROCEDURE ErrorStringsAt2 (s1, s2: String; tok1, tok2: CARDINAL) ;
 PROCEDURE WarnStringAt (s: String; tok: CARDINAL) ;
 PROCEDURE WarnStringAt2 (s: String; tok1, tok2: CARDINAL) ;
 PROCEDURE WarnStringsAt2 (s1, s2: String; tok1, tok2: CARDINAL) ;
+
+
+(*
+   WarnFormat0 - displays the source module and line together
+                 with the encapsulated format string.
+                 Used for simple warning messages tied to the current token.
+*)
+
+PROCEDURE WarnFormat0 (a: ARRAY OF CHAR) ;
+
+
+(*
+   WarnFormat1 - displays the source module and line together
+                 with the encapsulated format string.
+                 Used for simple warning messages tied to the current token.
+*)
+
+PROCEDURE WarnFormat1 (a: ARRAY OF CHAR; w: ARRAY OF BYTE) ;
 
 
 (*

@@ -1,3 +1,22 @@
+2014-09-30      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  removed sckt.c from being built.
+	* gm2/bnf/gm2l.bnf:  corrected import of procedures from Lists.
+	* gm2/bnf/gm2m.bnf:  added import of DEALLOCATE.
+	* gm2/gm2-compiler/M2Batch.def:  added export of LookupModule, LookupOuterModule.
+	* gm2/gm2-compiler/M2Batch.mod:  added import of GetSym.
+	* gm2/gm2-compiler/M2Comp.mod:  added descriptions for each pass.
+	* gm2/gm2-compiler/M2Error.def:  (New procedure declarations) WarnFormat0, WarnFormat1.
+	* gm2/gm2-compiler/M2Error.mod:  (New procedures) WarnFormat0, WarnFormat1.
+	* gm2/gm2-compiler/M2Pass.def:  added IsPassC to export list.
+	* gm2/gm2-compiler/M2Range.mod:  import BuildGreaterThanOrEqual.
+	* gm2/gm2-compiler/P1SymBuild.mod:  added import of procedures from List.
+	* gm2/gm2-libs-ch/dtoa.c:  corrected dates and tidied up spacing.
+	* gm2/gm2-libs-ch/wrapc.c:  corrected dates and tidied up spacing.
+	* m2/configure:  regenerated.
+	* m2/configure.ac:  removed verbose messages.
+	* make gm2.paranoid now works on Wheezy.
+
 2014-09-28      Gaius Mulley <gaius@gnu.org>
 
 	* libgm2/config.h.in:  removed HAVE_GETTIMEOFDAY, added HAVE_STRUCT_TIMEVAL,

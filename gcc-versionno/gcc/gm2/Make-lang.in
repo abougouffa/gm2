@@ -844,7 +844,7 @@ GM2-LIBS-MODS      = ASCII.mod         IO.mod          Args.mod        M2RTS.mod
                      Indexing.mod      LMathLib0.mod   LegacyReal.mod  MemUtils.mod
 
 GM2-LIBS-C         = wrapc.c           UnixArgs.c      Selective.c     choosetemp.c    \
-                     sckt.c            errno.c         dtoa.c          ldtoa.c         \
+                     errno.c           dtoa.c          ldtoa.c         \
                      termios.c         SysExceptions.c target.c
 
 GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Defaults.def  \
@@ -1198,11 +1198,11 @@ gm2/gm2-compiler/%.o: $(srcdir)/gm2/gm2-compiler/%.mod
 	$(XGM2_1) $(GM2_FLAGS) -g -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/m2flex.o: gm2/gm2-compiler/m2flex.c gm2/gm2-libs/gm2-libs-host.h
-	$(GCC_FOR_TARGET) -c $(CFLAGS) $(INCLUDES) $(GM2GCC) -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
+	$(CC) -c $(CFLAGS) $(INCLUDES) $(GM2GCC) -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
 gm2/gm2-compiler/cflex.o: gm2/gm2-compiler/cflex.c gm2/gm2-compiler-boot/$(SRC_PREFIX)CLexBuf.h \
                          gm2/gm2-compiler-boot/$(SRC_PREFIX)cflex.h gm2/gm2-libs/gm2-libs-host.h
-	$(GCC_FOR_TARGET) -c $(CFLAGS) $(INCLUDES) $(GM2GCC) -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
+	$(CC) -c $(CFLAGS) $(INCLUDES) $(GM2GCC) -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
 gm2/gm2-compiler/gm2l.o: $(objdir)/gm2/gm2-auto/gm2l.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
@@ -1238,7 +1238,7 @@ gm2/gm2-compiler/h2def.o: $(objdir)/gm2/gm2-auto/h2def.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.c gm2/gm2-libs/gm2-libs-target.h
-	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(CC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
 	$(XGM2_1) $(GM2_ISO_FLAGS) -c -B$(XGM2BUILD1) -B./ -Igm2/gm2-libs-iso:$(srcdir)/gm2/gm2-libs-iso -I$(srcdir)/gm2/gm2-libs $< -o $@
@@ -1619,49 +1619,49 @@ gm2/gm2-libs-paranoid/target.o: $(srcdir)/gm2/gm2-libs-ch/target.c gm2/gm2-libs/
 
 gm2/gm2-libs-paranoid/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c \
                                gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h
-	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/UnixArgs.o: $(srcdir)/gm2/gm2-libs-ch/UnixArgs.c \
                                   gm2/gm2-libs-boot/$(SRC_PREFIX)UnixArgs.h
-	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/Selective.o: $(srcdir)/gm2/gm2-libs-ch/Selective.c \
                                    gm2/gm2-libs-boot/$(SRC_PREFIX)Selective.h
-	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/sckt.o: $(srcdir)/gm2/gm2-libs-ch/sckt.c \
                                    gm2/gm2-libs-boot/$(SRC_PREFIX)sckt.h
-	$(XGCC) -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot -Igm2/gm2-libs -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
+	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/errno.o: $(srcdir)/gm2/gm2-libs-ch/errno.c \
                                    gm2/gm2-libs-boot/$(SRC_PREFIX)errno.h
-	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/choosetemp.o: $(srcdir)/gm2/gm2-libs-ch/choosetemp.c \
                                     gm2/gm2-libiberty/$(SRC_PREFIX)choosetemp.h
-	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
+	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
 
 gm2/gm2-compiler-paranoid/m2flex.o: gm2/gm2-compiler/m2flex.c
-	$(XGCC) -c $(GM2_O_S3) $(GM2GCC) $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
+	$(CC) -c $(GM2_O_S3) $(GM2GCC) $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
 gm2/gm2-libs-paranoid/dtoa.o: $(srcdir)/gm2/gm2-libs-ch/dtoa.c \
                               gm2/gm2-libs-boot/$(SRC_PREFIX)dtoa.h \
                               gm2/gm2-libs/gm2-libs-host.h
-	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs $(INCLUDES) $< -o $@
+	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/ldtoa.o: $(srcdir)/gm2/gm2-libs-ch/ldtoa.c \
                                gm2/gm2-libs-boot/$(SRC_PREFIX)ldtoa.h \
                                gm2/gm2-libs/gm2-libs-host.h
-	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs $(INCLUDES) $< -o $@
+	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/termios.o: $(srcdir)/gm2/gm2-libs-ch/termios.c \
                                gm2/gm2-libs-boot/$(SRC_PREFIX)termios.h \
                                gm2/gm2-libs/gm2-libs-host.h
-	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs $(INCLUDES) $< -o $@
+	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/SysExceptions.o: $(srcdir)/gm2/gm2-libs-ch/SysExceptions.c \
                                   gm2/gm2-libs-boot/$(SRC_PREFIX)SysExceptions.h
-	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 
 #

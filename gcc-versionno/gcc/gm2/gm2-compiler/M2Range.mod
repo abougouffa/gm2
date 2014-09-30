@@ -40,6 +40,7 @@ FROM m2statement IMPORT BuildProcedureCallTree, BuildIfThenElseEnd, BuildIfThenD
 
 FROM m2expr IMPORT CompareTrees, BuildSub, BuildAdd, GetIntegerZero, GetIntegerOne,
                    BuildAddr, BuildIndirect, BuildGreaterThan, BuildLessThan,
+                   BuildGreaterThanOrEqual,
                    GetPointerZero, BuildNegate, BuildEqualTo, BuildLessThanOrEqual,
                    IsTrue, IsFalse ;
 
@@ -2640,7 +2641,7 @@ BEGIN
    s1 := BuildIfThenElseEnd(c1, s2, s4) ;
    AddStatement(s1)
 
-END DiffTypesSameForLoopEnd ;
+END DiffTypesCodeForLoopEnd ;
 
 
 (*

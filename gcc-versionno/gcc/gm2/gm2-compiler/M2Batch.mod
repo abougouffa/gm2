@@ -21,7 +21,7 @@ IMPLEMENTATION MODULE M2Batch ;
 
 
 FROM M2Debug IMPORT Assert ;
-FROM SymbolTable IMPORT MakeModule, MakeDefImp, IsModule, IsDefImp, GetScope, GetLocalSym, GetCurrentScope, NulSym ;
+FROM SymbolTable IMPORT MakeModule, MakeDefImp, IsModule, IsDefImp, GetScope, GetLocalSym, GetCurrentScope, GetSym, NulSym ;
 FROM NameKey IMPORT GetKey, WriteKey ;
 FROM M2Printf IMPORT printf2 ;
 FROM M2Error IMPORT InternalError ;

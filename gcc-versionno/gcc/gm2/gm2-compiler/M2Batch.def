@@ -36,7 +36,8 @@ EXPORT QUALIFIED MakeDefinitionSource,
                  GetSource, GetModuleNo, IsModuleKnown,
                  AssociateDefinition, GetDefinitionModuleFile,
                  AssociateModule, GetModuleFile,
-                 ForeachSourceModuleDo, IsSourceSeen ;
+                 ForeachSourceModuleDo, IsSourceSeen,
+                 LookupModule, LookupOuterModule ;
 
 TYPE
    DoProcedure = PROCEDURE (CARDINAL) ;

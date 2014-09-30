@@ -131,22 +131,22 @@ BEGIN
    DoPass0(s) ;
    FlushWarnings ; FlushErrors ; 
    ResetForNewPass ;
-   qprintf0('Pass 1\n') ;
+   qprintf0('Pass 1: scopes, enumerated types, declaration, resolving imports and exports\n') ;
    DoPass1 ;
    FlushWarnings ; FlushErrors ; 
-   qprintf0('Pass 2\n') ;
+   qprintf0('Pass 2: constant and type declaration\n') ;
    ResetForNewPass ;
    DoPass2 ;
    FlushWarnings ; FlushErrors ; 
-   qprintf0('Pass C\n') ;
+   qprintf0('Pass C: aggregate constant declaration\n') ;
    ResetForNewPass ;
    DoPassC ;
    FlushWarnings ; FlushErrors ;
-   qprintf0('Pass 3\n') ;
+   qprintf0('Pass 3: quadruple generation\n') ;
    ResetForNewPass ;
    DoPass3 ;
    FlushWarnings ; FlushErrors ; 
-   qprintf0('Pass 4\n') ;
+   qprintf0('Pass 4: gcc tree generation\n') ;
    Code ;
    FlushWarnings ; FlushErrors
 END Compile ;
@@ -240,7 +240,7 @@ BEGIN
    i := 1 ;
    Sym := GetModuleNo(i) ;
    qprintf1('Compiling: %s\n', s) ;
-   qprintf0('Pass 0\n') ;
+   qprintf0('Pass 0: lexical analysis, parsing, modules and associated filenames\n') ;
    WHILE Sym#NulSym DO
       SymName := InitStringCharStar(KeyToCharStar(GetSymName(Sym))) ;
       IF IsDefImp(Sym)

@@ -23,9 +23,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 #define GM2
 
-#include <p2c/p2c.h>
-
 #include "gm2-libs-host.h"
+
+#include <p2c/p2c.h>
 
 
 #if defined(HAVE_STRINGS)

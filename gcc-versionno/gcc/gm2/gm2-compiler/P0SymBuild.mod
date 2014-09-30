@@ -20,10 +20,10 @@ IMPLEMENTATION MODULE P0SymBuild ;
 
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM M2Printf IMPORT printf0, printf1, printf2 ;
-FROM Lists IMPORT List, InitList, KillList, IncludeItemIntoList, RemoveItemFromList ;
+FROM Lists IMPORT List, InitList, KillList, IncludeItemIntoList, RemoveItemFromList, NoOfItemsInList, GetItemFromList, IsItemInList ;
 FROM M2Batch IMPORT MakeDefinitionSource, MakeProgramSource, MakeImplementationSource ;
 FROM SymbolTable IMPORT NulSym, MakeInnerModule, SetCurrentModule, SetFileModule ;
-FROM NameKey IMPORT Name ;
+FROM NameKey IMPORT Name, NulName ;
 FROM M2Quads IMPORT PushT, PushTF, PopT, PopTF, PopN, OperandT ;
 FROM M2Reserved IMPORT ImportTok ;
 FROM M2Debug IMPORT Assert ;
