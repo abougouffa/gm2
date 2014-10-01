@@ -41,7 +41,6 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #   endif
 
 EXTERN void m2top_InitGlobalContext (void);
-EXTERN void m2top_FinishBackend (void);
 EXTERN void m2top_SetFlagUnitAtATime (int b);
 
 #  undef EXTERN

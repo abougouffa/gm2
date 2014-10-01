@@ -9,14 +9,6 @@ PROCEDURE SetFlagUnitAtATime (b: BOOLEAN) ;
 
 
 (*
-    FinishBackend - flushes all outstanding functions held in the GCC backend
-                    out to the assembly file.
-*)
-
-PROCEDURE FinishBackend ;
-
-
-(*
     InitGlobalContext - initializes a dummy function for the global scope.
 *)
 

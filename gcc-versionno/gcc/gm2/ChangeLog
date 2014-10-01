@@ -1,3 +1,10 @@
+2014-10-01      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Code.mod:  tidied up text in qprintf0
+	* gm2/gm2-compiler/M2Comp.mod:  tidied up text in qprintf0
+	* gm2/gm2-gcc/m2top.def:  removed non needed procedure.
+	* gm2/gm2-gcc/m2top.h:  removed non needed function.
+
 2014-09-30      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  removed sckt.c from being built.

@@ -57,11 +57,12 @@ FROM M2GCCDeclare IMPORT FoldConstants, StartDeclareScope,
                          DeclareModuleVariables, MarkExported ;
 
 FROM M2Scope IMPORT ScopeBlock, InitScopeBlock, KillScopeBlock, ForeachScopeBlockDo ;
-FROM m2top IMPORT InitGlobalContext, FinishBackend, SetFlagUnitAtATime ;
+FROM m2top IMPORT InitGlobalContext, SetFlagUnitAtATime ;
 FROM M2Error IMPORT FlushErrors, FlushWarnings ;
 FROM M2Swig IMPORT GenerateSwigFile ;
 FROM m2flex IMPORT GetTotalLines ;
 FROM FIO IMPORT FlushBuffer, StdOut ;
+FROM M2Quiet IMPORT qprintf0 ;
 
 
 CONST
@@ -256,15 +257,17 @@ BEGIN
       DisplayQuadList
    END ;
 
+   qprintf0('        symbols to gcc trees\n') ;
    DoModuleDeclare ;
 
    FlushWarnings ;
    FlushErrors ;
+   qprintf0('        statements to gcc trees\n') ;
    DoCodeBlock ;
 
    MarkExported(GetMainModule()) ;
    GenerateSwigFile(GetMainModule()) ;
-   FinishBackend ;
+   qprintf0('        gcc trees given to the gcc backend\n') ;
 
    OptimizationAnalysis
 END Code ;

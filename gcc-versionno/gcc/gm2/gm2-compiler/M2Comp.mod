@@ -131,14 +131,14 @@ BEGIN
    DoPass0(s) ;
    FlushWarnings ; FlushErrors ; 
    ResetForNewPass ;
-   qprintf0('Pass 1: scopes, enumerated types, declaration, resolving imports and exports\n') ;
+   qprintf0('Pass 1: scopes, enumerated types, imports and exports\n') ;
    DoPass1 ;
    FlushWarnings ; FlushErrors ; 
-   qprintf0('Pass 2: constant and type declaration\n') ;
+   qprintf0('Pass 2: constants and types\n') ;
    ResetForNewPass ;
    DoPass2 ;
    FlushWarnings ; FlushErrors ; 
-   qprintf0('Pass C: aggregate constant declaration\n') ;
+   qprintf0('Pass C: aggregate constants\n') ;
    ResetForNewPass ;
    DoPassC ;
    FlushWarnings ; FlushErrors ;
