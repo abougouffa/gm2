@@ -1,3 +1,12 @@
+2014-10-03      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/FpuIO.mod:  ensure that the debugging preprocessing
+	  directives are only turned on by a specific flag.
+	* gm2/gm2spec.c:  remove GM2_ROOT environment variable and use
+	  GM2_PREFIX and GM2_LIBEXEC instead.  These override the --prefix
+	  and --libexec strings used at compile time and allow users to move
+	  the complete tree of binaries to a different directory hierarchy.
+
 2014-10-01      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Code.mod:  tidied up text in qprintf0

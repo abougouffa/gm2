@@ -30,6 +30,7 @@ FROM StringConvert IMPORT StringToLongreal, LongrealToString,
                           LongIntegerToString, StringToLongInteger ;
 
 (*
+#undef GM2_DEBUG_FPUIO
 if defined(GM2_DEBUG_FPUIO)
 #  define InitString(X) InitStringDB(X, __FILE__, __LINE__)
 #  define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)

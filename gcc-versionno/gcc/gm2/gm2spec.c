@@ -71,8 +71,12 @@ along with GNU CC; see the file COPYING3.  If not see
 #define LIBRARY_PATH_ENV "LIBRARY_PATH"
 #endif
 
-#ifndef GM2_ROOT_ENV
-#define GM2_ROOT_ENV  "GM2_ROOT"
+#ifndef GM2_PREFIX_ENV
+#define GM2_PREFIX_ENV  "GM2_PREFIX"
+#endif
+
+#ifndef GM2_LIBEXEC_ENV
+#define GM2_LIBEXEC_ENV "GM2_LIBEXEC"
 #endif
 
 #ifndef GM2IPATH_ENV
@@ -110,7 +114,7 @@ static const char *archiveName[maxlib] = { "iso", "gm2", "ulm", "min", "log",
 
 int lang_specific_pre_link (void);
 static void add_exec_prefix (void);
-static void add_B_prefix (unsigned int *in_decoded_options_count, struct cl_decoded_option **in_decoded_options, const char *gm2_root);
+static void add_B_prefix (unsigned int *in_decoded_options_count, struct cl_decoded_option **in_decoded_options);
 static const char *get_objects (int argc, const char *argv[]);
 static const char *get_link_args (int argc, const char *argv[]);
 static const char *add_exec_dir (int argc, const char *argv[]);
@@ -123,8 +127,10 @@ static void add_link_from_include (struct cl_decoded_option **in_options, int in
 static void add_lib (size_t opt_index, const char *lib, int joined);
 static void check_gm2_root (void);
 static char *add_include (char *prev, const char *libpath, char *library);
-static const char *gen_gm2_root (const char *gm2_root);
+static const char *gen_gm2_prefix (const char *gm2_root);
+static const char *gen_gm2_libexec (const char *path);
 static const char *get_prefix (void);
+static const char *get_libexec (void);
 static void insert_option (unsigned int *in_decoded_options_count, struct cl_decoded_option **in_decoded_options, unsigned int position);
 #if defined (DEBUGGING)
 static void printOption (const char *desc, struct cl_decoded_option **in_decoded_options, int i);
@@ -246,7 +252,7 @@ const char *find_executable_path (const char *argv0)
 
 static
 void add_B_prefix (unsigned int *in_decoded_options_count ATTRIBUTE_UNUSED,
-		   struct cl_decoded_option **in_decoded_options, const char *gm2_root)
+		   struct cl_decoded_option **in_decoded_options)
 {
   if ((*in_decoded_options)[0].arg != NULL)
     {
@@ -254,7 +260,7 @@ void add_B_prefix (unsigned int *in_decoded_options_count ATTRIBUTE_UNUSED,
       const char *path = find_executable_path (arg);
 
       if (path == NULL || (strcmp (path, "") == 0))
-	path = gen_gm2_root (gm2_root);
+	path = gen_gm2_libexec (get_libexec ());
 
       if (path != NULL && (strcmp (path, "") != 0))
 	{
@@ -296,12 +302,23 @@ void add_exec_prefix (void)
 static
 const char *get_prefix (void)
 {
-  const char *prefix = getenv (GM2_ROOT_ENV);
+  const char *prefix = getenv (GM2_PREFIX_ENV);
 
   if (prefix == NULL || (strcmp (prefix, "") == 0))
     return PREFIX;
   else
     return prefix;
+}
+
+static
+const char *get_libexec (void)
+{
+  const char *libexec = getenv (GM2_LIBEXEC_ENV);
+
+  if (libexec == NULL || (strcmp (libexec, "") == 0))
+    return STANDARD_LIBEXEC_PREFIX;
+  else
+    return libexec;
 }
 
 static int
@@ -813,15 +830,15 @@ convert_include_into_link (struct cl_decoded_option **in_decoded_options,
 }
 
 /*
- *  build_path - implements export PATH=$(gm2_root)/bin:$PATH
+ *  build_path - implements export PATH=$(prefix)/bin:$PATH
  *
  *               where gm2_root is a C variable.
  */
 
 static void
-build_path (char *gm2_root)
+build_path (char *prefix)
 {
-  int l = strlen ("PATH=") + strlen (gm2_root) + 1 + strlen("bin") + 1;
+  int l = strlen ("PATH=") + strlen (prefix) + 1 + strlen("bin") + 1;
   char *s;
   char dir_sep[2];
   const char *path;
@@ -834,7 +851,7 @@ build_path (char *gm2_root)
   dir_sep[1] = (char)0;
 
   strcpy (s, "PATH=");
-  strcat (s, gm2_root);
+  strcat (s, prefix);
   strcat (s, dir_sep);
   strcat (s, "bin");
   if (path != NULL && (strcmp(path, "") != 0)) {
@@ -845,13 +862,13 @@ build_path (char *gm2_root)
 }
 
 /*
- *  gen_gm2_root - return a string containing the gm2_root path.
+ *  gen_gm2_prefix - return a prefix string possibly containing the prefix path.
  */
 
 static const char *
-gen_gm2_root (const char *gm2_root)
+gen_gm2_prefix (const char *prefix)
 {
-  int l = strlen (gm2_root) + 1 +
+  int l = strlen (prefix) + 1 +
     strlen("lib") + 1 + strlen("gcc") + 1 +
     strlen (DEFAULT_TARGET_MACHINE) + 1 +
     strlen (DEFAULT_TARGET_VERSION) + 1;
@@ -861,11 +878,35 @@ gen_gm2_root (const char *gm2_root)
   dir_sep[0] = DIR_SEPARATOR;
   dir_sep[1] = (char)0;
 
-  strcpy (s, gm2_root);
+  strcpy (s, prefix);
   strcat (s, dir_sep);
   strcat (s, "lib");
   strcat (s, dir_sep);
   strcat (s, "gcc");
+  strcat (s, dir_sep);
+  strcat (s, DEFAULT_TARGET_MACHINE);
+  strcat (s, dir_sep);
+  strcat (s, DEFAULT_TARGET_VERSION);
+  return s;
+}
+
+/*
+ *  gen_gm2_libexec - return a libexec string.
+ */
+
+static const char *
+gen_gm2_libexec (const char *libexec)
+{
+  int l = strlen (libexec) + 1 +
+    strlen (DEFAULT_TARGET_MACHINE) + 1 +
+    strlen (DEFAULT_TARGET_VERSION) + 1;
+  char *s = (char *) xmalloc (l);
+  char dir_sep[2];
+
+  dir_sep[0] = DIR_SEPARATOR;
+  dir_sep[1] = (char)0;
+
+  strcpy (s, libexec);
   strcat (s, dir_sep);
   strcat (s, DEFAULT_TARGET_MACHINE);
   strcat (s, dir_sep);
@@ -885,45 +926,43 @@ gen_gm2_root (const char *gm2_root)
  */
 
 static void
-build_library_path (char *gm2_root)
+build_library_path (const char *prefix)
 {
-  const char *gm2_root_path = gen_gm2_root (gm2_root);
-  int l = strlen ("LIBRARY_PATH=") + strlen (gm2_root_path) + 1;
+  const char *path = gen_gm2_prefix (prefix);
+  int l = strlen ("LIBRARY_PATH=") + strlen (prefix) + 1;
   char *s = (char *) xmalloc (l);
 
   strcpy (s, "LIBRARY_PATH=");
-  strcat (s, gm2_root_path);
+  strcat (s, path);
   putenv (s);
 }
 
 /*
  *  build_compiler_path - implements export
- *                        COMPILER_PATH=$(gm2_root)/libexec/gcc/\
+ *                        COMPILER_PATH=$(GM2_LIBEXEC)/libexec/gcc/\
  *                        $(default_target_machine)/\
  *                        $(default_target_version)
- *
- *                        where gm2_root, default_target_machine
- *                        and default_target_version are C
- *                        variables.
  */
 
 static void
-build_compiler_path (char *gm2_root)
+build_compiler_path (const char *path)
 {
-  const char *gm2_root_path = gen_gm2_root (gm2_root);
-  int l = strlen ("COMPILER_PATH=") + strlen (gm2_root_path) + 1;
+  const char *libexec = gen_gm2_libexec (path);
+  int l = strlen ("COMPILER_PATH=") + strlen (libexec) + 1;
   char *s = (char *) xmalloc (l);
 
   strcpy (s, "COMPILER_PATH=");
-  strcat (s, gm2_root_path);
+  strcat (s, libexec);
   putenv (s);
 }
 
 /*
- *  check_gm2_root - checks to see whether GM2_ROOT has been defined,
+ *  check_gm2_root - checks to see whether GM2_PREFIX or GM2_LIBEXEC has
+ *                   been defined,
  *                   if it has and also COMPILER_PATH and LIBRARY_PATH
  *                   are both unset then it sets COMPILER_PATH and
- *                   LIBRARY_PATH using GM2_ROOT as its prefix.
+ *                   LIBRARY_PATH using GM2_PREFIX and GM2_LIBEXEC as
+ *                   its prefix.
  */
 
 static void
@@ -931,11 +970,14 @@ check_gm2_root (void)
 {
   const char *library_path;
   const char *compiler_path;
-  char *gm2_root;
+  char *gm2_prefix;
+  char *gm2_libexec;
 
   library_path = getenv (LIBRARY_PATH_ENV);
   compiler_path = getenv ("COMPILER_PATH");
-  gm2_root = getenv (GM2_ROOT_ENV);
+  gm2_prefix = getenv (GM2_PREFIX_ENV);
+  gm2_libexec = getenv (GM2_LIBEXEC_ENV);
+
   if ((library_path == NULL || (strcmp (library_path, "") == 0)) && 
       (compiler_path == NULL || (strcmp (compiler_path, "") == 0))) {
 #if defined(DEBUGGING)
@@ -946,19 +988,20 @@ check_gm2_root (void)
     fprintf(stderr, "DEFAULT_TARGET_MACHINE = %s\n", DEFAULT_TARGET_MACHINE);
 #endif
 
-    if (gm2_root != NULL && (strcmp (gm2_root, "") != 0)) {
-      build_path (gm2_root);
-      build_library_path (gm2_root);
-      build_compiler_path (gm2_root);
+    if (gm2_prefix != NULL && (strcmp (gm2_prefix, "") != 0)) {
+      build_path (gm2_prefix);
+      build_library_path (gm2_prefix);
     }
+    if (gm2_libexec != NULL && (strcmp (gm2_libexec, "") != 0))
+      build_compiler_path (gm2_libexec);
   }
-  else if (gm2_root != NULL && !seen_fmakeall0)
+  else if (gm2_prefix != NULL && !seen_fmakeall0)
     /*  
      *  no need to issue a warning if seen_fmakeall0 as the parent will
      *  have set COMPILER_PATH and LIBRARY_PATH because of GM2_ROOT and
      *  users should not be using -fmakeall0 as it is an internal option.
      */
-    fprintf(stderr, "warning it is not advisible to set " GM2_ROOT_ENV
+    fprintf(stderr, "warning it is not advisible to set " GM2_PREFIX_ENV
 	    " as well as either " LIBRARY_PATH_ENV " or COMPILER_PATH\n");
 }
 
@@ -987,7 +1030,6 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 
   int seen_module_extension = -1;
   int linking = TRUE;
-  int seen_shared_opt = FALSE;
   int seen_source = FALSE;
   int seen_fexceptions = TRUE;
   const char *libpath;
@@ -1088,8 +1130,6 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
       seen_x_flag = TRUE;
       language = arg;
     }
-    if (opt == OPT_fshared)
-      seen_shared_opt = TRUE;
     if (opt == OPT_SPECIAL_input_file)
       seen_source = TRUE;
     if ((opt == OPT_SPECIAL_ignore) && (is_object(arg)))
@@ -1130,7 +1170,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 
 #if 1
   if (! seen_B)
-    add_B_prefix (in_decoded_options_count, in_decoded_options, get_prefix ());
+    add_B_prefix (in_decoded_options_count, in_decoded_options);
 #endif
 
 #if defined(DEBUGGING)
@@ -1280,7 +1320,7 @@ add_exec_dir (int argc, const char *argv[])
     if (seen_B)
       path = xstrdup (B_path);
     else
-      path = gen_gm2_root (get_prefix ());
+      path = gen_gm2_libexec (get_libexec ());
 
     if (path != NULL) {
       char *opt = (char *) xmalloc (strlen ("-fcppprog=") + strlen (path) + 1 + strlen (argv[0]) + 1);
