@@ -1,4 +1,4 @@
-/* Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012
+/* Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -30,6 +30,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "system.h"
 
 #include "coretypes.h"
+#include "line-map.h"
 #include "input.h"
 #include "tm.h"
 #include "version.h"
@@ -188,6 +189,7 @@ static void push (tree t);
 static void pop (void);
 static int  begin_printed (tree t);
 static void m2pp_decl_list (pretty *s, tree t);
+static void m2pp_loc (pretty *s, tree t);
 
 static void ps (tree t);
 static void pl (tree t);
@@ -300,6 +302,35 @@ pl (tree t)
   killPretty (state);
 }
 
+/*
+ *  loc - if tree has a location then display it within a comment.
+ */
+
+static void
+m2pp_loc (pretty *s, tree t)
+{
+  if (CAN_HAVE_LOCATION_P (t))
+    {
+      if (EXPR_HAS_LOCATION (t))
+	{
+	  if (EXPR_LOCATION (t) == UNKNOWN_LOCATION)
+	    m2pp_print(s, "(* missing location1 *)\n");
+	  else
+	    {
+	      expanded_location l = expand_location (EXPR_LOCATION (t));
+
+	      m2pp_print(s, "(* ");
+	      m2pp_print(s, l.file);
+	      m2pp_print(s, ":");
+	      printf ("%d", l.line);
+	      m2pp_print(s, " *)");
+	      m2pp_print(s, "\n");
+	    }
+	}
+      else
+	m2pp_print(s, "(* missing location2 *)\n");
+    }
+}
 
 /*
  *  m2pp_decl_list - prints a TREE_CHAINed list for a decl node.
@@ -1160,7 +1191,9 @@ m2pp_function_header (pretty *s, tree t)
 	  m2pp_simple_type (s, returnType);
 	  m2pp_needspace (s);
 	}
-      m2pp_print (s, ";\n");
+      m2pp_print (s, "; ");
+      m2pp_loc (s, t);
+      m2pp_print (s, "\n");
     }
   pop ();
 }
@@ -2326,7 +2359,8 @@ static void
 m2pp_statement (pretty *s, tree t)
 {
   enum tree_code code = TREE_CODE (t);
-  
+
+  m2pp_loc (s, t);  
   switch (code)
     {
     case COND_EXPR:

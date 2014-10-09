@@ -90,7 +90,8 @@ M2MODS = Debug.mod  Executive.mod \
 
 toolexeclib_LTLIBRARIES = libcor.la
 
-libcor_la_SOURCES = $(M2MODS)
+libcor_la_SOURCES = $(M2MODS) KeyBoardLEDs.c
+
 nodist_EXTRA_libcor_la_SOURCES = dummy.c  ## forces automake to generate the LINK definition
 
 libcordir = libcor

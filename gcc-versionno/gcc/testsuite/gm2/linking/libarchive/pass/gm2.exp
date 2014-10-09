@@ -24,9 +24,7 @@ load_lib gm2-torture.exp
 
 set gm2src ${srcdir}/../gm2
 
-gm2_init "-I${gccpath}/libgm2/libiso:${gm2src}/gm2-libs-iso:${gccpath}/libgm2/libpim:${gm2src}/gm2-libs:${srcdir}/gm2/linking/libarchive/pass" \
-  -fiso \
-  -L${gccpath}/libgm2/libiso/.libs -L${gccpath}/libgm2/libpim/.libs 
+gm2_init_iso "${srcdir}/gm2/linking/libarchive/pass" 
 
 set XGCC [lookfor_file $tmpdir xgcc];
 

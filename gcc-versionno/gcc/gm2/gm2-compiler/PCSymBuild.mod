@@ -74,7 +74,7 @@ FROM SymbolTable IMPORT NulSym, ModeOfAddr,
                         PutProcTypeVarParam, IsParameterUnbounded,
                         PutFunction, PutProcTypeParam,
                         GetType,
-                        IsAModula2Type, GetDeclared ;
+                        IsAModula2Type, GetDeclaredMod ;
 
 FROM M2Batch IMPORT MakeDefinitionSource,
                     MakeImplementationSource,
@@ -2015,7 +2015,7 @@ BEGIN
          CASE tag OF
 
          designator:  WITH edes DO
-                         constToken := GetDeclared(sym) ;
+                         constToken := GetDeclaredMod(sym) ;
                          RETURN( doWalkDesExpr(d, left) )
                       END
 

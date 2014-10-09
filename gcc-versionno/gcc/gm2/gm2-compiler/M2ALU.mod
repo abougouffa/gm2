@@ -52,7 +52,7 @@ FROM SymbolTable IMPORT NulSym, IsEnumeration, IsSubrange, IsValueSolved, PushVa
                         ForeachFieldEnumerationDo, MakeTemporary, PutVar, PopValue, GetType,
                         MakeConstLit, GetArraySubscript, GetStringLength,
                         IsSet, SkipType, IsRecord, IsArray, IsConst, IsConstructor,
-                        IsConstString, SkipTypeAndSubrange, GetDeclared,
+                        IsConstString, SkipTypeAndSubrange, GetDeclaredMod,
                         GetSubrange, GetSymName, GetNth, GetString, GetStringLength,
                         ModeOfAddr ;
 
@@ -1247,7 +1247,7 @@ BEGIN
    THEN
       IF NOT GccKnowsAbout(sym)
       THEN
-         DeclareConstant(GetDeclared(sym), sym)
+         DeclareConstant(GetDeclaredMod(sym), sym)
       END ;
       RETURN( TRUE )
    ELSE
@@ -3345,9 +3345,8 @@ VAR
    v: PtrToValue ;
 BEGIN
    PushValue(sym) ; 
-   (* ChangeToConstructor(GetDeclared(sym), GetType(sym)) ; *)
    v := Pop() ;
-   Eval(GetDeclared(sym), v) ;
+   Eval(GetDeclaredMod(sym), v) ;
    Push(v) ;
    PopValue(sym)
 END EvaluateValue ;
@@ -3371,7 +3370,7 @@ BEGIN
                               (* must wait *)
                               RETURN
                            ELSE
-                              Eval(GetDeclared(sym), v)
+                              Eval(GetDeclaredMod(sym), v)
                            END
 
       ELSE

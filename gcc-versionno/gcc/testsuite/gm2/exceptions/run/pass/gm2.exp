@@ -38,8 +38,7 @@ set output [exec ${XGPP} -B[file dirname $tmpdir] -g -c $srcdir/gm2/exceptions/r
 
 set gm2src ${srcdir}/../gm2
 
-gm2_init "-I${srcdir}/gm2/exceptions/run/pass:${gccpath}/libgm2/libpim:${gccpath}/libgm2/libiso:${gm2src}/gm2-libs:${gm2src}/gm2-libs-iso" -fpim  -L${gccpath}/libgm2/libpim/.libs -L${gccpath}/libgm2/libiso/.libs
-
+gm2_init_pim "${srcdir}/gm2/exceptions/run/pass"
 
 foreach testcase [lsort [glob -nocomplain $srcdir/$subdir/*.mod]] {
     # If we're only testing specific files and this isn't one of them, skip it.

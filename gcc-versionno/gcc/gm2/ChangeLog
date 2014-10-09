@@ -1,3 +1,97 @@
+2014-10-09      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2ALU.mod:  use GetDeclaredMod as a replacement for GetDeclared.
+	* gm2/gm2-compiler/M2Base.mod:  use GetDeclaredMod as a replacement for GetDeclared.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  use GetDeclaredMod as a replacement for GetDeclared.
+	* gm2/gm2-compiler/M2GenGCC.mod:  use GetDeclaredMod as a replacement for GetDeclared.
+	* gm2/gm2-compiler/M2MetaError.def:  provide %1M as a formatting specification.
+	* gm2/gm2-compiler/M2MetaError.mod:  implement %1M as a formatting specification.
+	* gm2/gm2-compiler/M2Optimize.mod:  use GetDeclaredMod as a replacement for GetDeclared.
+	* gm2/gm2-compiler/M2Quads.mod:  use GetDeclaredMod as a replacement for GetDeclared.
+	  Also use tokenno rather than line number in NewLocalVar and KillLocalVar.
+	* gm2/gm2-compiler/M2Students.mod:  use GetDeclaredMod as a replacement for GetDeclared.
+	* gm2/gm2-compiler/P1SymBuild.mod:  record location of implementation and definition module
+	  when declaring procedures.
+	* gm2/gm2-compiler/P2SymBuild.mod:  record location of implementation and definition module
+	  when declaring procedures.
+	* gm2/gm2-compiler/PCSymBuild.mod:  use GetDeclaredMod as a replacement for GetDeclared.
+	* gm2/gm2-compiler/SymbolTable.def:  export GetDeclaredMod and GetDeclaredDef.
+	* gm2/gm2-compiler/SymbolTable.mod:  implement GetDeclaredMod and GetDeclaredDef.
+	  (New procedure) GetDeclaredDefinition.  (New procedure) GetDeclaredModule.
+	* gm2/gm2-gcc/m2block.c:  removed debugging traps.
+	* gm2/gm2-gcc/m2expr.c:  tidied formatting.
+	* gm2/gm2-gcc/m2statement.c:  removed unnecessary code.
+	  (add_stmt) changed to record location.
+	* gm2/gm2-gcc/m2treelib.c:  allow component refs to be deferenced by pointers.
+	* gm2/gm2-libs-iso/RTgen.mod:  skip a character without pushing it back twice in
+	  succession.
+	* gm2/m2pp.c:  introduce line file numbers into the source code dump.
+	* testsuite/gm2/calling-c/datatypes/unbounded/run/pass/gm2.exp:  many changes to
+	  simplify the setting up of the chosen dialect and libraries.  All
+	  obvious invocations to gm2_init are replaced by gm2_init_pim, gm2_init_iso,
+	  gm2_init_ulm, gm2_init_log, gm2_init_cor.
+	* testsuite/gm2/case/pass/gm2.exp:  as above.
+	* testsuite/gm2/complex/pass/gm2.exp:  as above.
+	* testsuite/gm2/complex/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/coroutines/pim/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/cpp/pass/gm2.exp:  as above.
+	* testsuite/gm2/cse/fail/gm2.exp:  as above.
+	* testsuite/gm2/cse/pass/gm2.exp:  as above.
+	* testsuite/gm2/dynamic/pass/gm2.exp:  as above.
+	* testsuite/gm2/embedded/pass/gm2.exp:  as above.
+	* testsuite/gm2/errors/fail/gm2.exp:  as above.
+	* testsuite/gm2/examples/callingC/pass/gm2.exp:  as above.
+	* testsuite/gm2/examples/callingC/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/examples/cpp/pass/gm2.exp:  as above.
+	* testsuite/gm2/examples/cppDef/pass/gm2.exp:  as above.
+	* testsuite/gm2/examples/hello/pass/gm2.exp:  as above.
+	* testsuite/gm2/examples/map/pass/gm2.exp:  as above.
+	* testsuite/gm2/exceptions/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/extensions/pass/gm2.exp:  as above.
+	* testsuite/gm2/extensions/run/fail/gm2.exp:  as above.
+	* testsuite/gm2/extensions/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/imports/run/pass/gm2.exp:as above.
+	* testsuite/gm2/iso/fail/gm2.exp:  as above.
+	* testsuite/gm2/iso/pass/gm2.exp:  as above.
+	* testsuite/gm2/iso/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/isocoroutines/run/pass/gm2.exp: as above. 
+	* testsuite/gm2/isolib/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/link/pim/fail/gm2.exp:  as above.
+	* testsuite/gm2/link/pim/fail/import.mod:  as above.
+	* testsuite/gm2/link/pim/pass/gm2.exp:  as above.
+	* testsuite/gm2/linking/libarchive/pass/gm2.exp: as above. 
+	* testsuite/gm2/pim/fail/gm2.exp:  as above.
+	* testsuite/gm2/pim/options/bounds/fail/gm2.as above.exp:  
+	* testsuite/gm2/pim/options/optimize/run/pass/gm2.expas above.:  
+	* testsuite/gm2/pim/pass/gm2.exp:  as above.
+	* testsuite/gm2/pim/run/fail/gm2.exp:  as above.
+	* testsuite/gm2/pim/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/pimcoroutines/pass/gm2.exp:  as above.
+	* testsuite/gm2/pimlib/coroutines/pass/gm2.exp:  as above.
+	* testsuite/gm2/pimlib/logitech/pass/gm2.exp:  as above.
+	* testsuite/gm2/pimlib/logitech/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/pimlib/pass/gm2.exp:  as above.
+	* testsuite/gm2/pimlib/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/pimlib/ulm/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/quads/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/switches/check-all/run/fail/gm2.exas above.p:  
+	* testsuite/gm2/switches/check-all/run/pass/gm2.exp:as above.
+	* testsuite/gm2/switches/extended-opaque/fail/gm2.exp:  as above.
+	* testsuite/gm2/switches/extended-opaque/pass/gm2.exp:  as above.
+	* testsuite/gm2/switches/iso/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/switches/makeall/fail/gm2.exp:  as above.
+	* testsuite/gm2/switches/optimization/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/switches/pedantic-params/fail/gm2.exp:  as above.
+	* testsuite/gm2/switches/pedantic-params/pass/gm2.exp:  as above.
+	* testsuite/gm2/switches/pic/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/switches/pim2/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/switches/pim3/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/switches/pim4/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/types/run/pass/gm2.exp:  as above.
+	* testsuite/gm2/ulmlib/pass/gm2.exp:  as above.
+	* testsuite/gm2/ulmlib/std/pass/gm2.exp:  as above.
+	* testsuite/gm2/ulmlib/sys/pass/gm2.exp:  as above.
+
 2014-10-03      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/FpuIO.mod:  ensure that the debugging preprocessing

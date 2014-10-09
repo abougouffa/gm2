@@ -306,6 +306,11 @@ BEGIN
 END doSkip ;
 
 
+(*
+   doSkipLook - read a character, ignore it.  Read another and unread it
+                return the new character.
+*)
+
 PROCEDURE doSkipLook (g: ChanDev;
                       d: DeviceTablePtr;
                       VAR ch: CHAR;
@@ -313,7 +318,8 @@ PROCEDURE doSkipLook (g: ChanDev;
 BEGIN
    checkValid(g, d) ;
    WITH d^ DO
-      RTgen.doLook(g, d, ch, result) ;
+      ch := doReadChar(g^.genif, d) ;
+      ch := doReadChar(g^.genif, d) ;
       IF (result=IOConsts.allRight) OR (result=IOConsts.notKnown) OR
          (result=IOConsts.endOfLine)
       THEN

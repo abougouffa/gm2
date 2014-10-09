@@ -118,7 +118,7 @@ EXPORT QUALIFIED NulSym,
                  GetQuads,
                  GetReadQuads, GetWriteQuads,
                  GetReadLimitQuads, GetWriteLimitQuads,
-                 GetDeclared,
+                 GetDeclaredDef, GetDeclaredMod, PutDeclared,
                  GetFirstUsed,
                  GetGnuAsmInput, GetGnuAsmOutput, GetGnuAsmTrash, GetGnuAsm,
                  GetRegInterface,
@@ -1576,10 +1576,32 @@ PROCEDURE GetNthProcedure (Sym: CARDINAL; n: CARDINAL) : CARDINAL ;
 
 
 (*
-   GetDeclared - returns the token where this symbol was declared.
+   GetDeclaredDef - returns the token where this symbol was declared
+                    with the priority of the definition, implementation,
+                    program.
 *)
 
-PROCEDURE GetDeclared (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE GetDeclaredDef (Sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   GetDeclaredMod - returns the token where this symbol was declared.
+                    with the priority of the implementation, program
+                    and definition.
+*)
+
+PROCEDURE GetDeclaredMod (Sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   PutDeclared - adds an entry to symbol, Sym, indicating that it
+                 was declared at the current tokenno.  This routine
+                 may be called twice, once for definition module
+                 partial declaration and once when parsing the
+                 implementation module.
+*)
+
+PROCEDURE PutDeclared (Sym: CARDINAL) ;
 
 
 (*

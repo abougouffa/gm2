@@ -63,7 +63,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         GetUnboundedHighOffset,
                         GetUnboundedAddressOffset,
                         GetSubrange, NoOfElements, GetArraySubscript,
-                        GetFirstUsed, GetDeclared,
+                        GetFirstUsed, GetDeclaredMod,
                         GetRegInterface,
                         GetProcedureQuads,
                         GetProcedureBuiltin,
@@ -794,14 +794,14 @@ BEGIN
          THEN
             IF IsConstString(str)
             THEN
-               DeclareConstant(GetDeclared(obj), obj) ;
+               DeclareConstant(GetDeclaredMod(obj), obj) ;
                IF name=NulName
                THEN
                   gccName := NIL
                ELSE
                   gccName := BuildStringConstant(KeyToCharStar(name), LengthKey(name))
                END ;
-               tree := ChainOnParamValue(tree, gccName, PromoteToString(GetDeclared(str), str), Mod2Gcc(obj))
+               tree := ChainOnParamValue(tree, gccName, PromoteToString(GetDeclaredMod(str), str), Mod2Gcc(obj))
             ELSE
                WriteFormat0('a constraint to the GNU ASM statement must be a constant string')
             END
@@ -835,7 +835,7 @@ BEGIN
          THEN
             IF IsConstString(str)
             THEN
-               tree := AddStringToTreeList(tree, PromoteToString(GetDeclared(str), str))
+               tree := AddStringToTreeList(tree, PromoteToString(GetDeclaredMod(str), str))
             ELSE
                WriteFormat0('a constraint to the GNU ASM statement must be a constant string')
             END
@@ -1494,8 +1494,8 @@ BEGIN
          THEN
             n1 := GetSymName(sym) ;
             n2 := GetSymName(proc) ;
-            f := FindFileNameFromToken(GetDeclared(sym), 0) ;
-            l := TokenToLineNo(GetDeclared(sym), 0) ;
+            f := FindFileNameFromToken(GetDeclaredMod(sym), 0) ;
+            l := TokenToLineNo(GetDeclaredMod(sym), 0) ;
             printf4('%s:%d:non VAR unbounded parameter %a in procedure %a does not need to be copied\n',
                     f, l, n1, n2)
          END ;
@@ -1724,8 +1724,8 @@ BEGIN
             THEN
                n1 := GetSymName(paramTrashed) ;
                n2 := GetSymName(proc) ;
-               f := FindFileNameFromToken(GetDeclared(paramTrashed), 0) ;
-               l := TokenToLineNo(GetDeclared(paramTrashed), 0) ;
+               f := FindFileNameFromToken(GetDeclaredMod(paramTrashed), 0) ;
+               l := TokenToLineNo(GetDeclaredMod(paramTrashed), 0) ;
                printf4('%s:%d:must check at runtime the address of parameter, %a, in procedure, %a, whose contents will be trashed\n',
                        f, l, n1, n2) ;
                n1 := GetSymName(param) ;
@@ -1808,8 +1808,8 @@ BEGIN
          THEN
             n1 := GetSymName(sym) ;
             n2 := GetSymName(proc) ;
-            f := FindFileNameFromToken(GetDeclared(sym), 0) ;
-            l := TokenToLineNo(GetDeclared(sym), 0) ;
+            f := FindFileNameFromToken(GetDeclaredMod(sym), 0) ;
+            l := TokenToLineNo(GetDeclaredMod(sym), 0) ;
             printf4('%s:%d:parameter, %a, in procedure, %a, is trashed\n',
                     f, l, n1, n2)
          END ;
@@ -1837,11 +1837,10 @@ END SaveNonVarUnboundedParameters ;
 *)
 
 PROCEDURE CodeNewLocalVar (quad: CARDINAL;
-                           LineNo, PreviousScope, CurrentProcedure: CARDINAL) ;
+                           tokenno, PreviousScope, CurrentProcedure: CARDINAL) ;
 BEGIN
    (* callee saves non var unbounded parameter contents *)
-   SaveNonVarUnboundedParameters(QuadToTokenNo(quad), CurrentProcedure) ;
-   (* EmitLineNote(string(FileName), LineNo) ; *)
+   SaveNonVarUnboundedParameters(tokenno, CurrentProcedure) ;
    BuildPushFunctionContext ;
    ForeachProcedureDo(CurrentProcedure, CodeBlock) ;
    ForeachInnerModuleDo(CurrentProcedure, CodeBlock) ;
@@ -1855,9 +1854,8 @@ END CodeNewLocalVar ;
 *)
 
 PROCEDURE CodeKillLocalVar (quad: CARDINAL;
-                            LineNo, op2, CurrentProcedure: CARDINAL) ;
+                            tokenno, op2, CurrentProcedure: CARDINAL) ;
 BEGIN
-   (* SetFileNameAndLineNo(string(FileName), LineNo) ; *)
    BuildEndFunctionCode(Mod2Gcc(CurrentProcedure),
                         IsProcedureGccNested(CurrentProcedure)) ;
    PoisonSymbols(CurrentProcedure)

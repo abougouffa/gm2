@@ -75,7 +75,7 @@ FROM SymbolTable IMPORT NulSym,
                         PutProcTypeVarParam, PutProcTypeParam,
                         PutProcedureBuiltin, PutProcedureInline,
                         GetSymName,
-                        ResolveImports,
+                        ResolveImports, PutDeclared,
                         DisplayTrees ;
 
 FROM M2Batch IMPORT MakeDefinitionSource,
@@ -912,8 +912,11 @@ BEGIN
          compiled before corresponding DEF module.
       *)
       ProcSym := MakeProcedure(name)
-   ELSIF NOT IsProcedure(ProcSym)
+   ELSIF IsProcedure(ProcSym)
    THEN
+      (* declared in the other module, we record declaration here as well *)
+      PutDeclared(ProcSym)
+   ELSE
       n := GetSymName(ProcSym) ;
       WriteFormat1('expecting a procedure name and symbol (%a) has been declared as something else', n) ;
       PushT(ProcSym) ;

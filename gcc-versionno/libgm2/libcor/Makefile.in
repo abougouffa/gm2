@@ -100,7 +100,7 @@ am__installdirs = "$(DESTDIR)$(toolexeclibdir)"
 LTLIBRARIES = $(toolexeclib_LTLIBRARIES)
 libcor_la_LIBADD =
 am__objects_1 = Debug.lo Executive.lo SYSTEM.lo TimerHandler.lo
-am_libcor_la_OBJECTS = $(am__objects_1)
+am_libcor_la_OBJECTS = $(am__objects_1) KeyBoardLEDs.lo
 libcor_la_OBJECTS = $(am_libcor_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/../depcomp
@@ -341,7 +341,7 @@ M2MODS = Debug.mod  Executive.mod \
          SYSTEM.mod  TimerHandler.mod
 
 toolexeclib_LTLIBRARIES = libcor.la
-libcor_la_SOURCES = $(M2MODS)
+libcor_la_SOURCES = $(M2MODS) KeyBoardLEDs.c
 nodist_EXTRA_libcor_la_SOURCES = dummy.c  ## forces automake to generate the LINK definition
 libcordir = libcor
 libcor_la_DEPENDENCIES = SYSTEM.def
@@ -426,6 +426,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KeyBoardLEDs.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dummy.Plo@am__quote@
 
 .c.o:

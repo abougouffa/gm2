@@ -114,8 +114,9 @@ FROM SymbolTable IMPORT NulSym,
                         UsesOptArg,
                         IsDefinitionForC,
                         GetSymName,
-                        GetDeclared,
+                        GetDeclaredDef, GetDeclaredMod,
                         RequestSym,
+                        PutDeclared,
                         DisplayTrees ;
 
 FROM M2Batch IMPORT MakeDefinitionSource,
@@ -1189,12 +1190,12 @@ BEGIN
          - no definition should always be compilied before implementation modules.
       *)
       ProcSym := MakeProcedure(name)
+   ELSIF IsProcedure(ProcSym)
+   THEN
+      PutDeclared(ProcSym)
    ELSE
-      IF NOT IsProcedure(ProcSym)
-      THEN
-         ErrorStringAt2(Sprintf1(Mark(InitString('procedure name (%a) has been declared as another object elsewhere')),
-                                 name), GetTokenNo(), GetDeclared(ProcSym))
-      END
+      ErrorStringAt2(Sprintf1(Mark(InitString('procedure name (%a) has been declared as another object elsewhere')),
+                              name), GetTokenNo(), GetDeclaredMod(ProcSym))
    END ;
    IF CompilingDefinitionModule()
    THEN
@@ -1752,10 +1753,20 @@ VAR
 BEGIN
    IF NoOfParam(ProcedureSym)>=ParameterNo
    THEN
-      First := GetDeclared(GetNthParam(ProcedureSym, ParameterNo))
+      IF CompilingDefinitionModule()
+      THEN
+         First := GetDeclaredDef(GetNthParam(ProcedureSym, ParameterNo))
+      ELSE
+         First := GetDeclaredMod(GetNthParam(ProcedureSym, ParameterNo))
+      END
    ELSE
       (* ParameterNo does not exist - which is probably the reason why this routine was called.. *)
-      First := GetDeclared(ProcedureSym)
+      IF CompilingDefinitionModule()
+      THEN
+         First := GetDeclaredDef(ProcedureSym)
+      ELSE
+         First := GetDeclaredMod(ProcedureSym)
+      END
    END ;
    IF CompilingDefinitionModule()
    THEN
@@ -1893,12 +1904,12 @@ BEGIN
       THEN
          IF CompilingDefinitionModule()
          THEN
-            MetaErrorsT2(GetDeclared(ProcSym),
+            MetaErrorsT2(GetDeclaredDef(ProcSym),
                          'the return type for procedure {%1a} is defined differently in the definition module as {%1tad} and the implementation module as {%2ad}',
                          'the return type for procedure {%1a} is defined differently in the definition module as {%1tad} and the implementation module as {%2ad}',
                          ProcSym, TypeSym)
          ELSE
-            MetaErrorsT2(GetDeclared(ProcSym),
+            MetaErrorsT2(GetDeclaredMod(ProcSym),
                          'the return type for procedure {%1a} is defined differently in the definition module as {%2ad} and the implementation module as {%1tad}',
                          'the return type for procedure {%1a} is defined differently in the definition module as {%2ad} and the implementation module as {%1tad}',
                          ProcSym, TypeSym)

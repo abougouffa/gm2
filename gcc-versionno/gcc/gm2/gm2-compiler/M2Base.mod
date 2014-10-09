@@ -56,7 +56,7 @@ FROM SymbolTable IMPORT ModeOfAddr,
                         MakeSubrange, PutSubrange, IsSubrange,
                         IsEnumeration, IsSet, IsPointer, IsType, IsUnknown,
                         IsHiddenType, IsProcType,
-                        GetType, GetLowestType, GetDeclared, SkipType,
+                        GetType, GetLowestType, GetDeclaredMod, SkipType,
                         SetCurrentModule,
                         StartScope, EndScope, PseudoScope,
                         ForeachFieldEnumerationDo,
@@ -1508,13 +1508,13 @@ BEGIN
       GetSubrange(b, bh, bl) ;
       PushValue(al) ;
       PushValue(bl) ;
-      IF NOT Equ(GetDeclared(a))
+      IF NOT Equ(GetDeclaredMod(a))
       THEN
          RETURN( FALSE )
       END ;
       PushValue(ah) ;
       PushValue(bh) ;
-      IF NOT Equ(GetDeclared(a))
+      IF NOT Equ(GetDeclaredMod(a))
       THEN
          RETURN( FALSE )
       END

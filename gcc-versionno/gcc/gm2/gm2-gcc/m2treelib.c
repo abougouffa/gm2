@@ -395,7 +395,10 @@ m2treelib_get_set_value (location_t location, tree p, tree field, int is_const, 
   }
   else
     {
-      ASSERT_CONDITION (TREE_CODE (TREE_TYPE (op)) == RECORD_TYPE);
+      tree type = TREE_TYPE (op);
+      enum tree_code code = TREE_CODE (type);
+
+      ASSERT_CONDITION (code == RECORD_TYPE || (code == POINTER_TYPE && (TREE_CODE (TREE_TYPE (type)) == RECORD_TYPE)));
       value = m2expr_BuildComponentRef (op, field);
     }
   value = m2convert_ToBitset (value);

@@ -62,6 +62,7 @@ AC_CHECK_HEADERS(limits.h stddef.h string.h strings.h stdlib.h \
                  time.h \
 		 fcntl.h unistd.h sys/file.h sys/time.h sys/mman.h \
 		 sys/resource.h sys/param.h sys/times.h sys/stat.h \
+                 sys/socket.h \
                  sys/wait.h sys/ioctl.h errno.h sys/errno.h \
 		 pwd.h direct.h dirent.h signal.h malloc.h langinfo.h \
                  pthread.h stdarg.h stdio.h sys/types.h termios.h \

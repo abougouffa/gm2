@@ -24,8 +24,7 @@ load_lib gm2-torture.exp
 
 set gm2src ${srcdir}/../gm2
 
-gm2_init "-I${gccpath}/libgm2/liblog:${gccpath}/libgm2/libpim:${srcdir}/gm2/pimlib/logitech/run/pass:${gm2src}/gm2-libs-pim:${gm2src}/gm2-libs" \
-  -fpim -L${gccpath}/libgm2/liblog/.libs/ -L${gccpath}/libgm2/libpim/.libs/ -L${gccpath}/libgm2/libiso/.libs/
+gm2_init_log 
 
 gm2_link_with "-llog -lgm2"
 

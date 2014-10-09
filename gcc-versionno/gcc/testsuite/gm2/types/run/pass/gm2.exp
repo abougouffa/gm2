@@ -24,9 +24,7 @@ load_lib gm2-torture.exp
 
 set gm2src ${srcdir}/../gm2
 
-gm2_init "-I$srcdir/gm2/types/run/pass:${gccpath}/libgm2/libpim:${gm2src}/gm2-libs:${gccpath}/libgm2/libiso:${gm2src}/gm2-libs-iso" \
-  -fpim \
-  -L${gccpath}/libgm2/libpim/.libs -L${gccpath}/libgm2/libiso/.libs
+gm2_init_pim "${srcdir}/gm2/types/run/pass" 
 
 gm2_link_with d.o
 

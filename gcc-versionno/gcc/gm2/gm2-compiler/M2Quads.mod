@@ -52,7 +52,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         GetArraySubscript, GetDimension,
                         GetParam,
                         GetNth, GetNthParam,
-                        GetFirstUsed, GetDeclared,
+                        GetFirstUsed, GetDeclaredMod,
                         GetQuads, GetReadQuads, GetWriteQuads,
                         GetWriteLimitQuads, GetReadLimitQuads,
                         GetVarScope,
@@ -4710,12 +4710,12 @@ BEGIN
    END ;
    IF n#NoOfParam(CheckedProcedure)
    THEN
-      e := NewError(GetDeclared(ProcType)) ;
+      e := NewError(GetDeclaredMod(ProcType)) ;
       n1 := GetSymName(call) ;
       n2 := GetSymName(ProcType) ;
       ErrorFormat2(e, 'procedure (%a) is a parameter being passed as variable (%a) but they are declared with different number of parameters',
                    n1, n2) ;
-      e := ChainError(GetDeclared(call), e) ;
+      e := ChainError(GetDeclaredMod(call), e) ;
       t := NoOfParam(CheckedProcedure) ;
       IF n<2
       THEN
@@ -5082,7 +5082,7 @@ BEGIN
          s := ConCat(s, Mark(InitString('VAR ')))
       END ;
 
-      First := GetDeclared(GetNthParam(ProcedureSym, ParameterNo)) ;
+      First := GetDeclaredMod(GetNthParam(ProcedureSym, ParameterNo)) ;
       ExpectType := GetType(Expecting) ;
       IF IsUnboundedParam(ProcedureSym, ParameterNo)
       THEN
@@ -5100,7 +5100,7 @@ BEGIN
          s := ConCat(s, Mark(InitString('; ... ')))
       END
    ELSE
-      First := GetDeclared(ProcedureSym) ;
+      First := GetDeclaredMod(ProcedureSym) ;
       IF NoOfParam(ProcedureSym)>0
       THEN
          s := ConCat(s, Mark(InitString('..')))
@@ -5185,7 +5185,7 @@ BEGIN
          s := ConCat(s, Mark(InitString('VAR ')))
       END ;
 
-      First := GetDeclared(GetNthParam(ProcedureSym, ParameterNo)) ;
+      First := GetDeclaredMod(GetNthParam(ProcedureSym, ParameterNo)) ;
       ExpectType := GetType(Expecting) ;
       IF IsUnboundedParam(ProcedureSym, ParameterNo)
       THEN
@@ -5203,7 +5203,7 @@ BEGIN
          s := ConCat(s, Mark(InitString('; ... ')))
       END
    ELSE
-      First := GetDeclared(ProcedureSym) ;
+      First := GetDeclaredMod(ProcedureSym) ;
       IF NoOfParam(ProcedureSym)>0
       THEN
          s := ConCat(s, Mark(InitString('..')))
@@ -6855,7 +6855,7 @@ BEGIN
          s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(ProcSym)))) ;
          ErrorStringAt2(Sprintf2(Mark(InitString('trying to coerse (%s) which is not a variable or constant into (%s)')),
                                  s1, s2),
-                        GetTokenNo(), GetDeclared(OperandT(1))) ;
+                        GetTokenNo(), GetDeclaredMod(OperandT(1))) ;
          PopN(NoOfParam+1)
       END
    ELSE
@@ -9221,20 +9221,20 @@ BEGIN
          s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
          ErrorStringAt2(Sprintf1(Mark(InitString('the type used in the formal parameter in procedure (%s) is unknown')),
                                  s2),
-                        GetDeclared(BlockSym), GetDeclared(Type))
+                        GetDeclaredMod(BlockSym), GetDeclaredMod(Type))
       ELSIF IsPartialUnbounded(Type) OR IsUnknown(Type)
       THEN
          s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Type)))) ;
          s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
          ErrorStringAt2(Sprintf2(Mark(InitString('the type in the formal parameter is unknown (%s) in procedure (%s)')),
                                  s1, s2),
-                        GetDeclared(BlockSym), GetDeclared(Type))
+                        GetDeclaredMod(BlockSym), GetDeclaredMod(Type))
       ELSE
          s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Type)))) ;
          s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
          ErrorStringAt2(Sprintf2(Mark(InitString('the type (%s) specified as the formal parameter in procedure (%s) was not declared as a type')),
                                  s1, s2),
-                        GetDeclared(BlockSym), GetDeclared(Type))
+                        GetDeclaredMod(BlockSym), GetDeclaredMod(Type))
       END
    END
 END ExpectingParameterType ;
@@ -9255,20 +9255,20 @@ BEGIN
          s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
          ErrorStringAt2(Sprintf1(Mark(InitString('the type used during the variable declaration section in procedure (%s) is unknown')),
                                  s2),
-                        GetDeclared(BlockSym), GetDeclared(Type))
+                        GetDeclaredMod(BlockSym), GetDeclaredMod(Type))
       ELSIF IsPartialUnbounded(Type) OR IsUnknown(Type)
       THEN
          s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Type)))) ;
          s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
          ErrorStringAt2(Sprintf2(Mark(InitString('the type (%s) used during variable declaration section in procedure (%s) is unknown')),
                                  s1, s2),
-                        GetDeclared(BlockSym), GetDeclared(Type))
+                        GetDeclaredMod(BlockSym), GetDeclaredMod(Type))
       ELSE
          s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Type)))) ;
          s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
          ErrorStringAt2(Sprintf2(Mark(InitString('the symbol (%s) is not a type and therefore cannot be used to declare a variable in procedure (%s)')),
                                  s1, s2),
-                        GetDeclared(BlockSym), GetDeclared(Type))
+                        GetDeclaredMod(BlockSym), GetDeclaredMod(Type))
       END
    END
 END ExpectingVariableType ;
@@ -9376,7 +9376,7 @@ BEGIN
    PopT(ProcSym) ;
    Assert(IsProcedure(ProcSym)) ;
    PutProcedureStartQuad(ProcSym, NextQuad) ;
-   GenQuad(NewLocalVarOp, GetPreviousTokenLineNo(), GetScope(ProcSym), ProcSym) ;
+   GenQuad(NewLocalVarOp, GetTokenNo(), GetScope(ProcSym), ProcSym) ;
    CurrentProc := ProcSym ;
    PushWord(ReturnStack, 0) ;
    PushT(ProcSym) ;
@@ -9431,7 +9431,7 @@ BEGIN
    BackPatch(PopWord(ReturnStack), NextQuad) ;
    CheckNeedPriorityEnd(ProcSym, GetCurrentModule()) ;
    CurrentProc := NulSym ;
-   GenQuad(KillLocalVarOp, GetPreviousTokenLineNo(), NulSym, ProcSym) ;
+   GenQuad(KillLocalVarOp, GetTokenNo(), NulSym, ProcSym) ;
    PutProcedureEndQuad(ProcSym, NextQuad) ;
    GenQuad(ReturnOp, NulSym, NulSym, ProcSym) ;
    CheckFunctionReturn(ProcSym) ;
@@ -9474,7 +9474,7 @@ BEGIN
                   s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(ProcSym)))) ;
                   ErrorStringAt2(Sprintf2(Mark(InitString('reading from a variable (%s) before it is initialized in procedure (%s)')),
                                           s1, s2),
-                                 GetDeclared(n), GetDeclared(n))
+                                 GetDeclaredMod(n), GetDeclaredMod(n))
                END
             END
          END
@@ -10041,7 +10041,7 @@ BEGIN
    IF (NOT IsVar(OperandT(2))) AND (NOT IsTemporary(OperandT(2)))
    THEN
       ErrorStringAt2(Mark(InitString('can only access arrays using variables or formal parameters')),
-                     GetDeclared(OperandT(2)), GetTokenNo())
+                     GetDeclaredMod(OperandT(2)), GetTokenNo())
    END ;
    Sym := SkipType(GetType(OperandT(2))) ;
    IF Sym=NulSym
@@ -11675,7 +11675,7 @@ BEGIN
          s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(t2)))) ;
          ErrorStringAt2(Sprintf1(Mark(InitString('expect a set type as the right hand operand to the IN operator, type name is (%s)')),
                                  s),
-                        GetTokenNo(), GetDeclared(t2)) ;
+                        GetTokenNo(), GetDeclaredMod(t2)) ;
          RETURN( t1 )
       END
    ELSE

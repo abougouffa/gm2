@@ -24,8 +24,7 @@ load_lib gm2-torture.exp
 
 set gm2src ${srcdir}/../gm2
 
-gm2_init "-I${gccpath}/libgm2/libulm:${srcdir}/../gm2/pimlib/ulm/run/pass:${gm2src}/ulm-lib-gm2/std:${gm2src}/ulm-lib-gm2/sys:${gm2src}/gm2-libs" -fpim \
-   -L${gccpath}/libgm2/libulm/.libs -L${gccpath}/libgm2/libpim/.libs
+gm2_init_ulm "${srcdir}/../gm2/pimlib/ulm/run/pass"
 
 gm2_link_with "-lulm -lgm2"
 

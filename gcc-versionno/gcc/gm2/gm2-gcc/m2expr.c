@@ -1354,7 +1354,7 @@ m2expr_BuildLogicalOrAddress (location_t location,
 
 tree
 m2expr_BuildLogicalOr (location_t location, tree op1, tree op2,
-                       int  needconvert)
+                       int needconvert)
 {
   m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, BIT_IOR_EXPR,
@@ -1369,7 +1369,7 @@ m2expr_BuildLogicalOr (location_t location, tree op1, tree op2,
 
 tree
 m2expr_BuildLogicalAnd (location_t location, tree op1, tree op2,
-                        int  needconvert)
+                        int needconvert)
 {
   m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, BIT_AND_EXPR,

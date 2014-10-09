@@ -690,12 +690,6 @@ m2block_finishFunctionCode (tree fndecl)
   tree block;
   tree statements = m2block_pop_statement_list ();
   tree_stmt_iterator i;
-  tree id = get_identifier ("ErrorString");
-
-  if (DECL_NAME (fndecl) == id)
-    stop ();
-
-  check_trigger (fndecl, "_T26");
 
   statements = m2block_end_statement_list (statements);
   ASSERT_CONDITION (DECL_SAVED_TREE (fndecl) != NULL_TREE);
@@ -733,8 +727,6 @@ m2block_finishFunctionCode (tree fndecl)
 
   for (i = tsi_start (statements); !tsi_end_p (i); tsi_next (&i))
     append_to_statement_list_force (*tsi_stmt_ptr (i), &BIND_EXPR_BODY (bind_expr));
-
-  check_trigger (fndecl, "_T26");
 
   current_binding_level->decl = NULL_TREE;
 }

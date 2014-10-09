@@ -43,8 +43,8 @@ FROM SymbolTable IMPORT NulSym,
                         IsConstructor, IsDummy, IsTemporary, IsVarAParam,
                         IsSubscript, IsSubrange, IsSet, IsHiddenType,
                         IsError, GetSymName, GetScope, IsExported,
-                        GetType, SkipType, GetDeclared, GetFirstUsed,
-                        IsNameAnonymous ;
+                        GetType, SkipType, GetDeclaredDef, GetDeclaredMod,
+                        GetFirstUsed, IsNameAnonymous ;
 
 TYPE
    errorType = (error, warning, chained) ;
@@ -82,7 +82,7 @@ PROCEDURE ebnf (VAR e: Error; VAR t: errorType;
                        )
                        } =:
 
-   op := {'a'|'q'|'t'|'d'|'n'|'s'|'D'|'U'|'E'|'W'} then =:
+   op := {'a'|'q'|'t'|'d'|'n'|'s'|'D'|'I'|'U'|'E'|'W'} then =:
 
    then := [ ':' ebnf ] =:
 *)
@@ -360,19 +360,35 @@ END doError ;
 
 
 (*
-   doDeclared - creates an error note where sym[bol] was declared.
+   doDeclaredDef - creates an error note where sym[bol] was declared.
 *)
 
-PROCEDURE doDeclared (e: Error; t: errorType;
-                      bol: CARDINAL; count: CARDINAL;
-                      sym: ARRAY OF CARDINAL) : Error ;
+PROCEDURE doDeclaredDef (e: Error; t: errorType;
+                         bol: CARDINAL; count: CARDINAL;
+                         sym: ARRAY OF CARDINAL) : Error ;
 BEGIN
    IF (count>HIGH(sym)) AND (bol<=HIGH(sym))
    THEN
-      e := doError(e, t, GetDeclared(sym[bol]))
+      e := doError(e, t, GetDeclaredDef(sym[bol]))
    END ;
    RETURN( e )
-END doDeclared ;
+END doDeclaredDef ;
+
+
+(*
+   doDeclaredMod - creates an error note where sym[bol] was declared.
+*)
+
+PROCEDURE doDeclaredMod (e: Error; t: errorType;
+                         bol: CARDINAL; count: CARDINAL;
+                         sym: ARRAY OF CARDINAL) : Error ;
+BEGIN
+   IF (count>HIGH(sym)) AND (bol<=HIGH(sym))
+   THEN
+      e := doError(e, t, GetDeclaredMod(sym[bol]))
+   END ;
+   RETURN( e )
+END doDeclaredMod ;
 
 
 (*
@@ -562,7 +578,7 @@ END copySym ;
 
 
 (*
-   op := {'a'|'q'|'t'|'d'|'n'|'s'|'D'|'U'|'E'|'W'} then =:
+   op := {'a'|'q'|'t'|'d'|'n'|'s'|'D'|'I'|'U'|'E'|'W'} then =:
 *)
 
 PROCEDURE op (VAR e: Error; VAR t: errorType;
@@ -588,7 +604,8 @@ BEGIN
       'n':  o := x(o, doNumber(bol, count, sym, o, quotes)) |
       'N':  o := x(o, doCount(bol, count, sym, o, quotes)) |
       's':  o := x(o, doSkipType(bol, count, sym, o)) |
-      'D':  e := doDeclared(e, t, bol, count, sym) |
+      'D':  e := doDeclaredDef(e, t, bol, count, sym) |
+      'M':  e := doDeclaredMod(e, t, bol, count, sym) |
       'U':  e := doUsed(e, t, bol, count, sym) |
       'E':  t := error |
       'W':  t := warning |

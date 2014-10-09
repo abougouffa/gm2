@@ -21,7 +21,7 @@ IMPLEMENTATION MODULE M2Students ;
 
 
 FROM SymbolTable IMPORT FinalSymbol, IsVar, IsProcedure, IsModule,
-                        GetMainModule, IsType, NulSym, IsRecord, GetSymName, GetNth, GetNthProcedure, GetDeclared, NoOfParam ;
+                        GetMainModule, IsType, NulSym, IsRecord, GetSymName, GetNth, GetNthProcedure, GetDeclaredMod, NoOfParam ;
 FROM NameKey IMPORT GetKey, WriteKey, MakeKey, IsSameExcludingCase, NulName, makekey, KeyToCharStar ;
 FROM M2Error IMPORT WarnStringAt ;
 FROM Lists IMPORT List, InitList, IsItemInList, IncludeItemIntoList ;
@@ -115,11 +115,11 @@ BEGIN
       THEN
          n3 := InitStringCharStar(KeyToCharStar(GetSymName(previous))) ;
          WarnStringAt(Sprintf2(Mark(InitString('identical symbol name in two different scopes, scope (%s) has symbol called (%s)')),
-                               n3, n1), GetDeclared(s1)) ;
+                               n3, n1), GetDeclaredMod(s1)) ;
          n3 := KillString(n3) ;
          n3 := InitStringCharStar(KeyToCharStar(GetSymName(newblock))) ;
          WarnStringAt(Sprintf2(Mark(InitString('identical symbol name in two different scopes, scope (%s) has symbol called (%s)')),
-                               n3, n2), GetDeclared(s2)) ;
+                               n3, n2), GetDeclaredMod(s2)) ;
       END
    ELSIF IsSameExcludingCase(a1, a2)
    THEN
@@ -127,11 +127,11 @@ BEGIN
       THEN
          n3 := InitStringCharStar(KeyToCharStar(GetSymName(previous))) ;
          WarnStringAt(Sprintf2(Mark(InitString('very similar symbol names (different case) in two different scopes, scope (%s) has symbol called (%s)')),
-                               n3, n1), GetDeclared(s1)) ;
+                               n3, n1), GetDeclaredMod(s1)) ;
          n3 := KillString(n3) ;
          n3 := InitStringCharStar(KeyToCharStar(GetSymName(newblock))) ;
          WarnStringAt(Sprintf2(Mark(InitString('very similar symbol names (different case) in two different scopes, scope (%s) has symbol called (%s)')),
-                               n3, n2), GetDeclared(s2))
+                               n3, n2), GetDeclaredMod(s2))
       END
    END ;
    n1 := KillString(n1) ;

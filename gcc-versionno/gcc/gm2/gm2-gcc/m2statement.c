@@ -176,21 +176,9 @@ m2statement_BuildEndFunctionCode (tree fndecl, int nested)
 
   m2block_finishFunctionCode (fndecl);
 
-#if 0
-  if (nested)
-    (void) cgraph_get_create_node (fndecl);
-  else
-    cgraph_finalize_function (fndecl, FALSE);
-#endif
   cgraph_finalize_function (fndecl, nested);
 
   m2block_popFunctionScope ();
-
-#if 0
-  if (! nested)
-    gm2_gimplify_function_node (fndecl);
-  // printf("ending scope %s\n", IDENTIFIER_POINTER(DECL_NAME (fndecl)));
-#endif
 }
 
 
@@ -224,13 +212,11 @@ m2statement_BuildPopFunctionContext (void)
 
 static
 tree
-add_stmt (tree t)
+add_stmt (location_t location, tree t)
 {
-  enum tree_code code = TREE_CODE (t);
-
-  if (CAN_HAVE_LOCATION_P (t) && code != LABEL_EXPR)
-    if (!EXPR_HAS_LOCATION (t))
-      SET_EXPR_LOCATION (t, input_location);
+  if (CAN_HAVE_LOCATION_P (t))
+    if (! EXPR_HAS_LOCATION (t))
+      SET_EXPR_LOCATION (t, location);
 
   append_to_statement_list_force (t, m2block_cur_stmt_list_addr ());
   return t;
@@ -263,7 +249,7 @@ m2statement_BuildAssignmentTree (location_t location, tree des, tree expr)
     }
 
   TREE_SIDE_EFFECTS (result) = 1;
-  add_stmt (result);
+  add_stmt (location, result);
   return des;
 }
 
@@ -283,7 +269,7 @@ m2statement_BuildGoto (location_t location, char *name)
 
   m2assert_AssertLocation (location);
   TREE_USED (label) = 1;
-  add_stmt (build1 (GOTO_EXPR, void_type_node, label));
+  add_stmt (location, build1 (GOTO_EXPR, void_type_node, label));
 }
 
 
@@ -307,7 +293,7 @@ m2statement_DeclareLabel (location_t location, char *name)
   tree label = m2block_getLabel (location, name);
 
   m2assert_AssertLocation (location);
-  add_stmt (build1 (LABEL_EXPR, void_type_node, label));
+  add_stmt (location, build1 (LABEL_EXPR, void_type_node, label));
 }
 
 
@@ -443,7 +429,7 @@ m2statement_BuildIndirectProcedureCallTree (location_t location, tree procedure,
     debug_tree (call);
 #endif
 
-    add_stmt (call);
+    add_stmt (location, call);
     last_function = NULL_TREE;
   } else {
     last_function = build_call_array_loc (location, m2tree_skip_type_decl (rettype), procedure, n, argarray);
@@ -478,7 +464,7 @@ m2statement_BuildFunctValue (location_t location, tree value)
   
   TREE_SIDE_EFFECTS (assign) = TRUE;
   TREE_USED (assign) = TRUE;
-  add_stmt (assign);
+  add_stmt (location, assign);
   last_function = NULL_TREE;
 }
 
@@ -636,7 +622,7 @@ m2statement_BuildAsm (location_t location,
   ASM_INPUT_P (args) = isSimple;
   ASM_VOLATILE_P (args) = isVolatile;
 
-  add_stmt (args);
+  add_stmt (location, args);
 }
 
 
@@ -962,7 +948,7 @@ m2statement_BuildCallInner (location_t location, tree fndecl)
 {
   m2assert_AssertLocation (location);
   param_list = NULL_TREE;
-  add_stmt (m2statement_BuildProcedureCallTree (location, fndecl, NULL_TREE));
+  add_stmt (location, m2statement_BuildProcedureCallTree (location, fndecl, NULL_TREE));
 }
 
 
@@ -1045,7 +1031,7 @@ m2statement_BuildReturnValueCode (location_t location, tree fndecl, tree value)
 		m2convert_BuildConvert (TREE_TYPE (DECL_RESULT (fndecl)), value, FALSE));
   
   ret_stmt = build_stmt (location, RETURN_EXPR, t);
-  add_stmt (ret_stmt);
+  add_stmt (location, ret_stmt);
 }
 
 
@@ -1082,7 +1068,7 @@ m2statement_DoJump (location_t location, tree exp, char *falselabel, char *truel
   else
     error_at (location, "expecting one and only one label to be declared");
   if (c != NULL_TREE)
-    add_stmt (c);
+    add_stmt (location, c);
 }
 
 

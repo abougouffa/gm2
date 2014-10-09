@@ -55,6 +55,12 @@ EXPORT QUALIFIED MetaError1, MetaError2, MetaError3, MetaError4,
     {%1td}    type symbol description
     
     {%1D}     sets the error message to where symbol 1 was declared.
+              The declaration will choose the definition module, then
+              implementation (or program) module.
+    {%1M}     sets the error message to where symbol 1 was declared.
+              The declaration will choose the implementation or program
+              module and if these do not exist then it falls back to
+              the definition module.
     {%1U}     sets the error message to where symbol 1 was first used.
     {%E}      error (default)
     {%W}      message is a warning, not an error.

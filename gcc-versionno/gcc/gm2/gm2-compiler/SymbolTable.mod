@@ -106,8 +106,9 @@ TYPE
                    EquivSym, ErrorSym) ;
 
    Where = RECORD
-              Declared,
-              FirstUsed: CARDINAL ;
+              DefDeclared,
+              ModDeclared,
+              FirstUsed  : CARDINAL ;
            END ;
 
    PackedInfo = RECORD
@@ -932,8 +933,15 @@ END IsNameAnonymous ;
 PROCEDURE InitWhereDeclared (VAR at: Where) ;
 BEGIN
    WITH at DO
-      Declared := GetTokenNo() ;
-      FirstUsed := Declared   (* we assign this field to something legal *)
+      IF CompilingDefinitionModule()
+      THEN
+         DefDeclared := GetTokenNo() ;
+         ModDeclared := 0
+      ELSE
+         DefDeclared := 0 ;
+         ModDeclared := GetTokenNo()
+      END ;
+      FirstUsed := GetTokenNo()   (* we assign this field to something legal *)
    END
 END InitWhereDeclared ;
 
@@ -1239,7 +1247,7 @@ BEGIN
          s := Mark(InitStringCharStar(KeyToCharStar(name))) ;
          AlreadyDeclaredError(Sprintf1(Mark(InitString('symbol (%s) is already declared in this scope, use a different name or remove the declaration')), s),
                               name,
-                              GetDeclared(GetVisibleSym(name)))
+                              GetDeclaredMod(GetVisibleSym(name)))
       END ;
       Sym := MakeError(name)
    ELSE
@@ -5647,7 +5655,7 @@ BEGIN
                                s := Mark(InitStringCharStar(KeyToCharStar(FieldName))) ;
                                AlreadyDeclaredError(Sprintf1(Mark(InitString('enumeration field (%s) is already declared elsewhere, use a different name or remove the declaration')), s),
                                                     FieldName,
-                                                    GetDeclared(GetSymKey(LocalSymbols, FieldName)))
+                                                    GetDeclaredMod(GetSymKey(LocalSymbols, FieldName)))
                             ELSE
                                PutSymKey(LocalSymbols, FieldName, Field)
                             END
@@ -6242,9 +6250,9 @@ BEGIN
       IF NOT IsHiddenReallyPointer(sym)
       THEN
          name := GetSymName(sym) ;
-         e := NewError(GetDeclared(sym)) ;
+         e := NewError(GetDeclaredDef(sym)) ;
          ErrorFormat1(e, 'opaque type (%a) should be equivalent to a POINTER or an ADDRESS', name) ;
-         e := NewError(GetDeclared(sym)) ;
+         e := NewError(GetDeclaredMod(sym)) ;
          ErrorFormat0(e, 'if you really need a non POINTER type use the -fextended-opaque switch')
       END ;
       INC(i)
@@ -8148,14 +8156,14 @@ BEGIN
          n := GetSymName(sym) ;
          e := NewError(GetTokenNo()) ;
          ErrorFormat1(e, 'function (%a) has no optional return value here', n) ;
-         e := ChainError(GetDeclared(sym), e) ;
+         e := ChainError(GetDeclaredMod(sym), e) ;
          ErrorFormat1(e, 'whereas the same function (%a) was declared to have an optional return value at this point', n)
       ELSIF (NOT IsReturnOptional(sym)) AND isopt
       THEN
          n := GetSymName(sym) ;
          e := NewError(GetTokenNo()) ;
          ErrorFormat1(e, 'function (%a) has an optional return value', n) ;
-         e := ChainError(GetDeclared(sym), e) ;
+         e := ChainError(GetDeclaredMod(sym), e) ;
          ErrorFormat1(e, 'whereas the same function (%a) was declared to have no optional return value at this point', n)
       END
    END ;
@@ -9963,7 +9971,7 @@ BEGIN
    THEN
       FOR i := 1 TO n DO
          s := GetItemFromList(UnresolvedConstructorType, i) ;
-         e := NewError(GetDeclared(s)) ;
+         e := NewError(GetDeclaredMod(s)) ;
          ErrorFormat0(e, 'constructor has an unknown type')
       END ;
       FlushErrors
@@ -11118,10 +11126,11 @@ END GetNthProcedure ;
 
 
 (*
-   GetDeclared - returns the token where this symbol was declared.
+   GetDeclaredDefinition - returns the token where this symbol
+                           was declared in the definition module.
 *)
 
-PROCEDURE GetDeclared (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE GetDeclaredDefinition (Sym: CARDINAL) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
 BEGIN
@@ -11129,39 +11138,241 @@ BEGIN
    WITH pSym^ DO
       CASE SymbolType OF
 
-      ErrorSym           : RETURN( Error.At.Declared ) |
-      ObjectSym          : RETURN( Object.At.Declared ) |
-      VarientSym         : RETURN( Varient.At.Declared ) |
-      RecordSym          : RETURN( Record.At.Declared ) |
-      SubrangeSym        : RETURN( Subrange.At.Declared ) |
-      EnumerationSym     : RETURN( Enumeration.At.Declared ) |
-      ArraySym           : RETURN( Array.At.Declared ) |
-      SubscriptSym       : RETURN( Subscript.At.Declared ) |
-      UnboundedSym       : RETURN( Unbounded.At.Declared ) |
-      ProcedureSym       : RETURN( Procedure.At.Declared ) |
-      ProcTypeSym        : RETURN( ProcType.At.Declared ) |
-      ParamSym           : RETURN( Param.At.Declared ) |
-      VarParamSym        : RETURN( VarParam.At.Declared ) |
-      ConstStringSym     : RETURN( ConstString.At.Declared ) |
-      ConstLitSym        : RETURN( ConstLit.At.Declared ) |
-      ConstVarSym        : RETURN( ConstVar.At.Declared ) |
-      VarSym             : RETURN( Var.At.Declared ) |
-      TypeSym            : RETURN( Type.At.Declared ) |
-      PointerSym         : RETURN( Pointer.At.Declared ) |
-      RecordFieldSym     : RETURN( RecordField.At.Declared ) |
-      VarientFieldSym    : RETURN( VarientField.At.Declared ) |
-      EnumerationFieldSym: RETURN( EnumerationField.At.Declared ) |
-      SetSym             : RETURN( Set.At.Declared ) |
-      DefImpSym          : RETURN( DefImp.At.Declared ) |
-      ModuleSym          : RETURN( Module.At.Declared ) |
+      ErrorSym           : RETURN( Error.At.DefDeclared ) |
+      ObjectSym          : RETURN( Object.At.DefDeclared ) |
+      VarientSym         : RETURN( Varient.At.DefDeclared ) |
+      RecordSym          : RETURN( Record.At.DefDeclared ) |
+      SubrangeSym        : RETURN( Subrange.At.DefDeclared ) |
+      EnumerationSym     : RETURN( Enumeration.At.DefDeclared ) |
+      ArraySym           : RETURN( Array.At.DefDeclared ) |
+      SubscriptSym       : RETURN( Subscript.At.DefDeclared ) |
+      UnboundedSym       : RETURN( Unbounded.At.DefDeclared ) |
+      ProcedureSym       : RETURN( Procedure.At.DefDeclared ) |
+      ProcTypeSym        : RETURN( ProcType.At.DefDeclared ) |
+      ParamSym           : RETURN( Param.At.DefDeclared ) |
+      VarParamSym        : RETURN( VarParam.At.DefDeclared ) |
+      ConstStringSym     : RETURN( ConstString.At.DefDeclared ) |
+      ConstLitSym        : RETURN( ConstLit.At.DefDeclared ) |
+      ConstVarSym        : RETURN( ConstVar.At.DefDeclared ) |
+      VarSym             : RETURN( Var.At.DefDeclared ) |
+      TypeSym            : RETURN( Type.At.DefDeclared ) |
+      PointerSym         : RETURN( Pointer.At.DefDeclared ) |
+      RecordFieldSym     : RETURN( RecordField.At.DefDeclared ) |
+      VarientFieldSym    : RETURN( VarientField.At.DefDeclared ) |
+      EnumerationFieldSym: RETURN( EnumerationField.At.DefDeclared ) |
+      SetSym             : RETURN( Set.At.DefDeclared ) |
+      DefImpSym          : RETURN( DefImp.At.DefDeclared ) |
+      ModuleSym          : RETURN( Module.At.DefDeclared ) |
       UndefinedSym       : RETURN( GetFirstUsed(Sym) ) |
-      PartialUnboundedSym: RETURN( GetDeclared(PartialUnbounded.Type) )
+      PartialUnboundedSym: RETURN( GetDeclaredDefinition(PartialUnbounded.Type) )
 
       ELSE
          InternalError('not expecting this type of symbol', __FILE__, __LINE__)
       END
    END
-END GetDeclared ;
+END GetDeclaredDefinition ;
+
+
+(*
+   GetDeclaredModule - returns the token where this symbol was declared
+                       in an implementation or program module.
+*)
+
+PROCEDURE GetDeclaredModule (Sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      ErrorSym           : RETURN( Error.At.ModDeclared ) |
+      ObjectSym          : RETURN( Object.At.ModDeclared ) |
+      VarientSym         : RETURN( Varient.At.ModDeclared ) |
+      RecordSym          : RETURN( Record.At.ModDeclared ) |
+      SubrangeSym        : RETURN( Subrange.At.ModDeclared ) |
+      EnumerationSym     : RETURN( Enumeration.At.ModDeclared ) |
+      ArraySym           : RETURN( Array.At.ModDeclared ) |
+      SubscriptSym       : RETURN( Subscript.At.ModDeclared ) |
+      UnboundedSym       : RETURN( Unbounded.At.ModDeclared ) |
+      ProcedureSym       : RETURN( Procedure.At.ModDeclared ) |
+      ProcTypeSym        : RETURN( ProcType.At.ModDeclared ) |
+      ParamSym           : RETURN( Param.At.ModDeclared ) |
+      VarParamSym        : RETURN( VarParam.At.ModDeclared ) |
+      ConstStringSym     : RETURN( ConstString.At.ModDeclared ) |
+      ConstLitSym        : RETURN( ConstLit.At.ModDeclared ) |
+      ConstVarSym        : RETURN( ConstVar.At.ModDeclared ) |
+      VarSym             : RETURN( Var.At.ModDeclared ) |
+      TypeSym            : RETURN( Type.At.ModDeclared ) |
+      PointerSym         : RETURN( Pointer.At.ModDeclared ) |
+      RecordFieldSym     : RETURN( RecordField.At.ModDeclared ) |
+      VarientFieldSym    : RETURN( VarientField.At.ModDeclared ) |
+      EnumerationFieldSym: RETURN( EnumerationField.At.ModDeclared ) |
+      SetSym             : RETURN( Set.At.ModDeclared ) |
+      DefImpSym          : RETURN( DefImp.At.ModDeclared ) |
+      ModuleSym          : RETURN( Module.At.ModDeclared ) |
+      UndefinedSym       : RETURN( GetFirstUsed(Sym) ) |
+      PartialUnboundedSym: RETURN( GetDeclaredModule(PartialUnbounded.Type) )
+
+      ELSE
+         InternalError('not expecting this type of symbol', __FILE__, __LINE__)
+      END
+   END
+END GetDeclaredModule ;
+
+
+(*
+   PutDeclaredDefinition - associates the current tokenno with
+                           the symbols declaration in the definition
+                           module.
+*)
+
+PROCEDURE PutDeclaredDefinition (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      ErrorSym           : Error.At.DefDeclared := GetTokenNo() |
+      ObjectSym          : Object.At.DefDeclared := GetTokenNo() |
+      VarientSym         : Varient.At.DefDeclared := GetTokenNo() |
+      RecordSym          : Record.At.DefDeclared := GetTokenNo() |
+      SubrangeSym        : Subrange.At.DefDeclared := GetTokenNo() |
+      EnumerationSym     : Enumeration.At.DefDeclared := GetTokenNo() |
+      ArraySym           : Array.At.DefDeclared := GetTokenNo() |
+      SubscriptSym       : Subscript.At.DefDeclared := GetTokenNo() |
+      UnboundedSym       : Unbounded.At.DefDeclared := GetTokenNo() |
+      ProcedureSym       : Procedure.At.DefDeclared := GetTokenNo() |
+      ProcTypeSym        : ProcType.At.DefDeclared := GetTokenNo() |
+      ParamSym           : Param.At.DefDeclared := GetTokenNo() |
+      VarParamSym        : VarParam.At.DefDeclared := GetTokenNo() |
+      ConstStringSym     : ConstString.At.DefDeclared := GetTokenNo() |
+      ConstLitSym        : ConstLit.At.DefDeclared := GetTokenNo() |
+      ConstVarSym        : ConstVar.At.DefDeclared := GetTokenNo() |
+      VarSym             : Var.At.DefDeclared := GetTokenNo() |
+      TypeSym            : Type.At.DefDeclared := GetTokenNo() |
+      PointerSym         : Pointer.At.DefDeclared := GetTokenNo() |
+      RecordFieldSym     : RecordField.At.DefDeclared := GetTokenNo() |
+      VarientFieldSym    : VarientField.At.DefDeclared := GetTokenNo() |
+      EnumerationFieldSym: EnumerationField.At.DefDeclared := GetTokenNo() |
+      SetSym             : Set.At.DefDeclared := GetTokenNo() |
+      DefImpSym          : DefImp.At.DefDeclared := GetTokenNo() |
+      ModuleSym          : Module.At.DefDeclared := GetTokenNo() |
+      UndefinedSym       : |
+      PartialUnboundedSym: PutDeclaredDefinition(PartialUnbounded.Type)
+
+      ELSE
+         InternalError('not expecting this type of symbol', __FILE__, __LINE__)
+      END
+   END
+END PutDeclaredDefinition ;
+
+
+(*
+   PutDeclaredModule - returns the token where this symbol was declared
+                       in an implementation or program module.
+*)
+
+PROCEDURE PutDeclaredModule (Sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      ErrorSym           : Error.At.ModDeclared := GetTokenNo() |
+      ObjectSym          : Object.At.ModDeclared := GetTokenNo() |
+      VarientSym         : Varient.At.ModDeclared := GetTokenNo() |
+      RecordSym          : Record.At.ModDeclared := GetTokenNo() |
+      SubrangeSym        : Subrange.At.ModDeclared := GetTokenNo() |
+      EnumerationSym     : Enumeration.At.ModDeclared := GetTokenNo() |
+      ArraySym           : Array.At.ModDeclared := GetTokenNo() |
+      SubscriptSym       : Subscript.At.ModDeclared := GetTokenNo() |
+      UnboundedSym       : Unbounded.At.ModDeclared := GetTokenNo() |
+      ProcedureSym       : Procedure.At.ModDeclared := GetTokenNo() |
+      ProcTypeSym        : ProcType.At.ModDeclared := GetTokenNo() |
+      ParamSym           : Param.At.ModDeclared := GetTokenNo() |
+      VarParamSym        : VarParam.At.ModDeclared := GetTokenNo() |
+      ConstStringSym     : ConstString.At.ModDeclared := GetTokenNo() |
+      ConstLitSym        : ConstLit.At.ModDeclared := GetTokenNo() |
+      ConstVarSym        : ConstVar.At.ModDeclared := GetTokenNo() |
+      VarSym             : Var.At.ModDeclared := GetTokenNo() |
+      TypeSym            : Type.At.ModDeclared := GetTokenNo() |
+      PointerSym         : Pointer.At.ModDeclared := GetTokenNo() |
+      RecordFieldSym     : RecordField.At.ModDeclared := GetTokenNo() |
+      VarientFieldSym    : VarientField.At.ModDeclared := GetTokenNo() |
+      EnumerationFieldSym: EnumerationField.At.ModDeclared := GetTokenNo() |
+      SetSym             : Set.At.ModDeclared := GetTokenNo() |
+      DefImpSym          : DefImp.At.ModDeclared := GetTokenNo() |
+      ModuleSym          : Module.At.ModDeclared := GetTokenNo() |
+      UndefinedSym       : |
+      PartialUnboundedSym: PutDeclaredModule(PartialUnbounded.Type)
+
+      ELSE
+         InternalError('not expecting this type of symbol', __FILE__, __LINE__)
+      END
+   END
+END PutDeclaredModule ;
+
+
+(*
+   PutDeclared - adds an entry to symbol, Sym, indicating that it
+                 was declared at the current tokenno.  This routine
+                 may be called twice, once for definition module
+                 partial declaration and once when parsing the
+                 implementation module.
+*)
+
+PROCEDURE PutDeclared (Sym: CARDINAL) ;
+BEGIN
+   IF CompilingDefinitionModule()
+   THEN
+      PutDeclaredDefinition(Sym)
+   ELSE
+      PutDeclaredModule(Sym)
+   END
+END PutDeclared ;
+
+
+(*
+   GetDeclaredDef - returns the tokenno where the symbol was declared.
+                    The priority of declaration is definition, implementation
+                    and program module.
+*)
+
+PROCEDURE GetDeclaredDef (Sym: CARDINAL) : CARDINAL ;
+VAR
+   declared: CARDINAL ;
+BEGIN
+   declared := GetDeclaredDefinition(Sym) ;
+   IF declared=0
+   THEN
+      RETURN( GetDeclaredModule(Sym) )
+   END ;
+   RETURN( declared )
+END GetDeclaredDef ;
+
+
+(*
+   GetDeclaredMod - returns the tokenno where the symbol was declared.
+                    The priority of declaration is program,
+                    implementation and definition module.
+*)
+
+PROCEDURE GetDeclaredMod (Sym: CARDINAL) : CARDINAL ;
+VAR
+   declared: CARDINAL ;
+BEGIN
+   declared := GetDeclaredModule(Sym) ;
+   IF declared=0
+   THEN
+      RETURN( GetDeclaredDefinition(Sym) )
+   END ;
+   RETURN( declared )
+END GetDeclaredMod ;
 
 
 (*

@@ -58,6 +58,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 # include <stdlib.h>
 #endif
 
+#if defined(HAVE_SYS_TYPES_H)
+# include <sys/types.h>
+#endif
+
+#if defined(HAVE_UNISTD_H)
+# include <unistd.h>
+#endif
+
 #if !defined(NULL)
 # define NULL (void *)0
 #endif
@@ -82,7 +90,7 @@ int Selective_Select (int nooffds,
 		      fd_set *exceptfds,
 		      struct timeval *timeout)
 {
-  return select(nooffds, readfds, writefds, exceptfds, timeout);
+  return select (nooffds, readfds, writefds, exceptfds, timeout);
 }
 #else
 int Selective_Select (int nooffds,
