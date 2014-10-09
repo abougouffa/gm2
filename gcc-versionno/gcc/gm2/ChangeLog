@@ -1,3 +1,8 @@
+2014-10-10      Gaius Mulley <gaius@gnu.org>
+
+	* testsuite/gm2/pim/pass/gm2.exp:  added more paths.
+	* testsuite/lib/gm2.exp:  refactored gm2_init_pim and friends.
+
 2014-10-09      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2ALU.mod:  use GetDeclaredMod as a replacement for GetDeclared.

@@ -228,11 +228,12 @@ proc gm2_link_flags { paths } {
 
 
 #
-#  gm2_init_pim - set the default libraries to choose PIM and then ISO.
+#  gm2_init_pimx - set the default libraries to choose PIM and then ISO.
+#                  choose Modula-2, dialect.
 #
 #
 
-proc gm2_init_pim { {path ""} args } {
+proc gm2_init_pimx { dialect {path ""} args } {
     global srcdir;
     global gccpath;
 
@@ -256,7 +257,16 @@ proc gm2_init_pim { {path ""} args } {
 	append theIpath ${path}
     }
 
-    gm2_init {*}${theIpath} -fpim {*}${theLpath} {*}${args};
+    gm2_init {*}${theIpath} {*}${dialect} {*}${theLpath} {*}${args};
+}
+
+#
+#  gm2_init_pim - set the default libraries to choose PIM and then ISO.
+#
+#
+
+proc gm2_init_pim { {path ""} args } {
+    gm2_init_pimx -fpim {*}${path} {*}${args};
 }
 
 
@@ -266,30 +276,7 @@ proc gm2_init_pim { {path ""} args } {
 #
 
 proc gm2_init_pim2 { {path ""} args } {
-    global srcdir;
-    global gccpath;
-
-    set gm2src ${srcdir}/../gm2;
-
-    send_log "srcdir is $srcdir\n"
-    send_log "gccpath is $gccpath\n"
-    send_log "gm2src is $gm2src\n"
-
-    set pimIpath "${gccpath}/libgm2/libpim:${gm2src}/gm2-libs";
-    set pimLpath "${gccpath}/libgm2/libpim/.libs";
-    
-    set isoIpath "${gccpath}/libgm2/libiso:${gm2src}/gm2-libs-iso";
-    set isoLpath "${gccpath}/libgm2/libiso/.libs";
-
-    set theIpath "-I${pimIpath} -I${isoIpath}";
-    set theLpath "-L${pimLpath} -L${isoLpath}";
-    
-    if { $path != "" } then {
-	append theIpath " -I"
-	append theIpath ${path}
-    }
-
-    gm2_init {*}${theIpath} -fpim2 {*}${theLpath} {*}${args};
+    gm2_init_pimx -fpim2 {*}${path} {*}${args};
 }
 
 
@@ -299,30 +286,7 @@ proc gm2_init_pim2 { {path ""} args } {
 #
 
 proc gm2_init_pim3 { {path ""} args } {
-    global srcdir;
-    global gccpath;
-
-    set gm2src ${srcdir}/../gm2;
-
-    send_log "srcdir is $srcdir\n"
-    send_log "gccpath is $gccpath\n"
-    send_log "gm2src is $gm2src\n"
-
-    set pimIpath "${gccpath}/libgm2/libpim:${gm2src}/gm2-libs";
-    set pimLpath "${gccpath}/libgm2/libpim/.libs";
-    
-    set isoIpath "${gccpath}/libgm2/libiso:${gm2src}/gm2-libs-iso";
-    set isoLpath "${gccpath}/libgm2/libiso/.libs";
-
-    set theIpath "-I${pimIpath} -I${isoIpath}";
-    set theLpath "-L${pimLpath} -L${isoLpath}";
-    
-    if { $path != "" } then {
-	append theIpath " -I"
-	append theIpath ${path}
-    }
-
-    gm2_init {*}${theIpath} -fpim3 {*}${theLpath} {*}${args};
+    gm2_init_pimx -fpim3 {*}${path} {*}${args};
 }
 
 
@@ -332,30 +296,7 @@ proc gm2_init_pim3 { {path ""} args } {
 #
 
 proc gm2_init_pim4 { {path ""} args } {
-    global srcdir;
-    global gccpath;
-
-    set gm2src ${srcdir}/../gm2;
-
-    send_log "srcdir is $srcdir\n"
-    send_log "gccpath is $gccpath\n"
-    send_log "gm2src is $gm2src\n"
-
-    set pimIpath "${gccpath}/libgm2/libpim:${gm2src}/gm2-libs";
-    set pimLpath "${gccpath}/libgm2/libpim/.libs";
-    
-    set isoIpath "${gccpath}/libgm2/libiso:${gm2src}/gm2-libs-iso";
-    set isoLpath "${gccpath}/libgm2/libiso/.libs";
-
-    set theIpath "-I${pimIpath} -I${isoIpath}";
-    set theLpath "-L${pimLpath} -L${isoLpath}";
-    
-    if { $path != "" } then {
-	append theIpath " -I"
-	append theIpath ${path}
-    }
-
-    gm2_init {*}${theIpath} -fpim4 {*}${theLpath} {*}${args};
+    gm2_init_pimx -fpim4 {*}${path} {*}${args};
 }
 
 
