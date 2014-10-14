@@ -169,7 +169,16 @@ END checkPreRead ;
 PROCEDURE checkPostRead (g: ChanDev; d: DeviceTablePtr) ;
 BEGIN
    checkErrno(g, d) ;
+   setReadResult(g, d)
+END checkPostRead ;
+
+
 (*
+   setReadResult -
+*)
+
+PROCEDURE setReadResult (g: ChanDev; d: DeviceTablePtr) ;
+BEGIN
    WITH d^ DO
       IF isEOLN(g^.genif, d)
       THEN
@@ -181,8 +190,7 @@ BEGIN
          result := IOConsts.allRight
       END
    END
-*)
-END checkPostRead ;
+END setReadResult ;
 
 
 PROCEDURE checkPreWrite (g: ChanDev; d: DeviceTablePtr) ;
@@ -266,24 +274,24 @@ PROCEDURE doLook (g: ChanDev;
                   d: DeviceTablePtr;
                   VAR ch: CHAR;
                   VAR r: ReadResults) ;
+VAR
+   old: ReadResults ;
 BEGIN
    checkValid(g, d) ;
    WITH d^ DO
       checkErrno(g, d) ;
       checkPreRead(g, d, RaiseEOFinLook(g), ChanConsts.rawFlag IN flags) ;
+      r := result ;
+      old := result ;
       IF (result=IOConsts.allRight) OR (result=IOConsts.notKnown) OR
          (result=IOConsts.endOfLine) 
       THEN
          ch := doReadChar(g^.genif, d) ;
-         IF isEOF(g^.genif, d)
-         THEN
-            result := IOConsts.endOfInput
-         ELSE
-            ch := doUnReadChar(g^.genif, d, ch) ;
-            checkPostRead(g, d)
-         END
-      END ;
-      r := result
+         setReadResult(g, d) ;
+         r := result ;
+         ch := doUnReadChar(g^.genif, d, ch) ;
+         result := old
+      END
    END
 END doLook ;
 
@@ -316,18 +324,8 @@ PROCEDURE doSkipLook (g: ChanDev;
                       VAR ch: CHAR;
                       VAR r: ReadResults) ;
 BEGIN
-   checkValid(g, d) ;
-   WITH d^ DO
-      ch := doReadChar(g^.genif, d) ;
-      ch := doReadChar(g^.genif, d) ;
-      IF (result=IOConsts.allRight) OR (result=IOConsts.notKnown) OR
-         (result=IOConsts.endOfLine)
-      THEN
-         ch := doUnReadChar(g^.genif, d, ch) ;
-         checkPostRead(g, d)
-      END ;
-      r := result
-   END
+   doSkip(g, d) ;
+   doLook(g, d, ch, r)
 END doSkipLook ;
 
 

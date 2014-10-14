@@ -24,20 +24,24 @@ Boston, MA 02110-1301, USA.  */
 /* This is the contribution to the `default_compilers' array in gcc.c for
    GNU Modula-2.  */
 
-#if 0
-{".mod", "@modula-2", 0, 0, 0},
-{"@modula-2",  "cc1gm2 %(gm2_cpp_options) %i %(cc1_options) %{I*} %{!fsyntax-only:%(invoke_as)}",
-    0, 0, 0},
-#endif
+#define AS(INPUT,OUTPUT)  "as %a %Y " INPUT " -o " OUTPUT
+
+#define GM2CC_OPTIONS "%{v*} %{m*} %{g*} %{O*} %{fPIC} %{fpic} \
+                       %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} \
+                       %{MT*} %{MF*} -quiet "
+
+#define GM2CC \
+  "%{!fno-exceptions:cc1plus;:cc1} " GM2CC_OPTIONS " %{!g:%g.cpp} %{g:%b_m2.cpp} -o %b_m2.s \n\
+  " AS("%b_m2.s","%ustart%d%O") " "
+
 
 #if 1
   {".mod", "@modula-2", 0, 0, 0},
   {"@modula-2",
       "%{c|S:%{fuselist:%{fsources:%eGNU Modula-2 does not know what to do with -fsources and -fuselist}} \
-           %{!fmakelist:%{!fmodules:%{!gm2gcc:%{fcpp:cc1gm2 -fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
-                                                     %{!fsyntax-only:%(invoke_as)}} \n\
-                                               %{!fcpp:cc1gm2 %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
-                                                     %{!fsyntax-only:%(invoke_as)}}}}} \n\
+           %{!fmakelist:%{!fmodules:%{!gm2gcc:cc1gm2 %{fcpp:-fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend} \
+                                                     %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
+                                                     %{!fsyntax-only:%(invoke_as)}}}} \n\
            %{fmakelist:%{fcpp:cc1 -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
                               gm2l %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %g.mod |\n\
                               gm2lorder %{fruntime-modules=*} %{!pipe:%g.l} -o %b.lst} \n\
@@ -63,11 +67,11 @@ Boston, MA 02110-1301, USA.  */
                                      %{!fclean:make -r -f %g.m }}}}} \n\
       %{!c:%{!S:%{!gm2gcc:%{!fuselist:%{fcpp:cc1 -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
                                             %{!fonlylink:cc1gm2 -fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} -o %d%g.s %g.mod \n\
-                                                as %a %Y %g.s -o %uprog.o } \n\
+                                            " AS("%g.s","%uprog.o") " } \n\
                                              gm2l -fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %g.mod |\n\
                                              gm2lorder %{fruntime-modules=*} %{!pipe:%g.l} -o %g.lst \n\
                                              gm2lgen %{fshared} %{fshared:-terminate -exit} %{!fno-exceptions:-cpp} %g.lst -o %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
-                                             gm2cc %{v*} %{B*} %{g*} %{O*} %{fPIC} %{fpic} %{fno-exceptions:-x c} -c -o %ustart%d%O %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
+                                             " GM2CC " \n\
                                              rm -f %w%d%g.a \n\
                                              gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} \
                                                     %{fobject-path=*} %{v} -exec -startup %Ustart%d%O \
@@ -76,11 +80,11 @@ Boston, MA 02110-1301, USA.  */
                                                     %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:linkargs() } %g.lst \n\
                                              rm -f %Ustart %{!fonlylink:%Uprog.o} } \n\
                                       %{!fcpp:%{!fonlylink:cc1gm2 %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} -o %d%g.s %i \n\
-                                                as %a %Y %g.s -o %uprog.o } \n\
+                                             "  AS("%g.s","%uprog.o") " } \n\
                                              gm2l %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %i |\n\
                                              gm2lorder %{fruntime-modules=*} %{!pipe:%g.l} -o %g.lst \n\
                                              gm2lgen %{fshared} %{fshared:-terminate -exit} %{!fno-exceptions:-cpp} %g.lst -o %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
-                                             gm2cc %{v*} %{B*} %{g*} %{O*} %{fPIC} %{fpic} %{fno-exceptions:-x c} -c -o %ustart%d%O %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
+                                             " GM2CC " \n\
                                              rm -f %w%d%g.a \n\
                                              gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} \
                                                     %{fobject-path=*} %{v} -exec -startup %Ustart%d%O \
@@ -89,7 +93,7 @@ Boston, MA 02110-1301, USA.  */
                                                     %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:linkargs() } %g.lst \n\
                                              rm -f %Ustart %{!fonlylink:%Uprog.o} }} \n\
                            %{fuselist:gm2lgen %{fshared} %{fshared:-terminate -exit} %{!fno-exceptions:-cpp} %b.lst -o %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
-                                      gm2cc %{v*} %{B*} %{g*} %{O*} %{fPIC} %{fpic} %{fno-exceptions:-x c} -c -o %ustart%d%O %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
+                                      " GM2CC " \n\
                                       rm -f %w%d%g.a \n\
                                       gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} \
                                              %{fobject-path=*} %{v} -exec -startup %Ustart%d%O \

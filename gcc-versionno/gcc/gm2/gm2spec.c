@@ -190,24 +190,11 @@ static void fe_generate_option (size_t opt_index, const char *arg, int joined)
   const char *opt = (const char *) option->opt_text;
   const char *newopt = opt;
 
-#if 0
-  if (opt_index == OPT_l)
-    return;
-#endif
-
   if (joined)
     newopt = concat (opt, arg, NULL);
 
   if (arg == NULL || joined)
-    {
-#if 0
-      if (opt_index == OPT_l)
-	{
-	  fe_add_infile (newopt, "*");
-	}
-#endif
-      fe_save_switch (newopt, 0, NULL, 1);
-    }
+    fe_save_switch (newopt, 0, NULL, 1);
   else
     {
       const char **x = (const char **) XCNEWVEC (const char **, 2);

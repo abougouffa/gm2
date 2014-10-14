@@ -1,3 +1,11 @@
+2014-10-14      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-iso/RTgen.mod:  (setReadResult)  New procedure.
+	  Modified doLook to use setReadResult.
+	* gm2/gm2spec.c:  started refactoring.  Introduced and used AS and GM2CC
+	  macros.  Use cc1 or cc1plus rather than gm2cc.  gm2cc is no longer needed.
+	* gm2/Make-file.in:  removed all references to gm2cc.
+
 2014-10-10      Gaius Mulley <gaius@gnu.org>
 
 	* testsuite/gm2/pim/pass/gm2.exp:  added more paths.
