@@ -247,4 +247,18 @@ PROCEDURE BuildStartMainModule ;
 PROCEDURE BuildEndMainModule ;
 
 
+(*
+   SetBeginLocation - sets the begin location for the function to obtain good debugging info.
+*)
+
+PROCEDURE SetBeginLocation (location: location_t) ;
+
+
+(*
+   SetEndLocation - sets the end location for the function to obtain good debugging info.
+*)
+
+PROCEDURE SetEndLocation (location: location_t) ;
+
+
 END m2statement.

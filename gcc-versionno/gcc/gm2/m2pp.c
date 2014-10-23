@@ -201,6 +201,8 @@ extern void stop (void);
 
 static stack *stackPtr = NULL;
 
+static void mystop (void) {}
+
 
 /*
  *  pf - print function.  Expected to be printed interactively from the
@@ -328,7 +330,10 @@ m2pp_loc (pretty *s, tree t)
 	    }
 	}
       else
-	m2pp_print(s, "(* missing location2 *)\n");
+	{
+	  m2pp_print(s, "(* missing location2 *)\n");
+	  mystop ();
+	}
     }
 }
 

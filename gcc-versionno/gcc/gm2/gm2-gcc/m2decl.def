@@ -101,7 +101,8 @@ PROCEDURE BuildStartFunctionDeclaration (uses_varargs: BOOLEAN) ;
                                   The arguments have been created by BuildParameterDeclaration.
 *)
 
-PROCEDURE BuildEndFunctionDeclaration (location: location_t; name: ADDRESS; returntype: Tree;
+PROCEDURE BuildEndFunctionDeclaration (location_begin, location_end: location_t;
+                                       name: ADDRESS; returntype: Tree;
                                        isexternal, isnested, ispublic: BOOLEAN) : Tree ;
 
 

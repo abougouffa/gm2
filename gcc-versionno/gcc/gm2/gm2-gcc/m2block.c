@@ -586,7 +586,7 @@ m2block_popGlobalScope (void)
  */
 
 void
-m2block_finishFunctionDecl (tree fndecl)
+m2block_finishFunctionDecl (location_t location, tree fndecl)
 {
   tree context = current_binding_level->context;
   tree block = DECL_INITIAL (fndecl);
@@ -606,10 +606,13 @@ m2block_finishFunctionDecl (tree fndecl)
   TREE_USED (fndecl) = TRUE;
 
   if (bind_expr == NULL_TREE)
-    DECL_SAVED_TREE (fndecl) = build3 (BIND_EXPR, void_type_node,
-				       current_binding_level->names,
-				       current_binding_level->decl,
-				       block);
+    {
+      bind_expr = build3 (BIND_EXPR, void_type_node,
+			  current_binding_level->names,
+			  current_binding_level->decl,
+			  block);
+      DECL_SAVED_TREE (fndecl) = bind_expr;
+    }
   else
     {
 #if 1
@@ -631,6 +634,7 @@ m2block_finishFunctionDecl (tree fndecl)
 	}
 #endif
     }
+  SET_EXPR_LOCATION (bind_expr, location);
 
   current_binding_level->names = NULL_TREE;
   current_binding_level->decl = NULL_TREE;

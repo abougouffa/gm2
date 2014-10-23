@@ -258,13 +258,15 @@ m2decl_BuildStartFunctionDeclaration (int uses_varargs)
  */
 
 tree
-m2decl_BuildEndFunctionDeclaration (location_t location, const char *name, tree returntype,
+m2decl_BuildEndFunctionDeclaration (location_t location_begin, location_t location_end,
+				    const char *name, tree returntype,
                                     int isexternal, int isnested, int ispublic)
 {
   tree fntype;
   tree fndecl;
 
-  m2assert_AssertLocation (location);
+  m2assert_AssertLocation (location_begin);
+  m2assert_AssertLocation (location_end);
   ASSERT_BOOL (isexternal);
   ASSERT_BOOL (isnested);
   ASSERT_BOOL (ispublic);
@@ -279,7 +281,7 @@ m2decl_BuildEndFunctionDeclaration (location_t location, const char *name, tree 
     returntype = ptr_type_node;
 
   fntype = build_function_type (returntype, param_type_list);
-  fndecl = build_decl (location, FUNCTION_DECL, get_identifier (name), fntype);
+  fndecl = build_decl (location_begin, FUNCTION_DECL, get_identifier (name), fntype);
 
   if (isexternal)
     ASSERT_CONDITION (ispublic);
@@ -288,11 +290,11 @@ m2decl_BuildEndFunctionDeclaration (location_t location, const char *name, tree 
   TREE_PUBLIC (fndecl) = ispublic;
   TREE_STATIC (fndecl) = (! isexternal);
   DECL_ARGUMENTS (fndecl) = param_list;
-  DECL_RESULT (fndecl) = build_decl (location, RESULT_DECL, NULL_TREE, returntype);
+  DECL_RESULT (fndecl) = build_decl (location_end, RESULT_DECL, NULL_TREE, returntype);
   DECL_CONTEXT (DECL_RESULT (fndecl)) = fndecl;
   TREE_TYPE (fndecl) = fntype;
 
-  DECL_SOURCE_LOCATION (fndecl) = location;
+  DECL_SOURCE_LOCATION (fndecl) = location_begin;
 
   /* Prevent the optimizer from removing it if it is public. */
   if (TREE_PUBLIC (fndecl))

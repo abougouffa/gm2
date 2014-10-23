@@ -9365,7 +9365,7 @@ END BuildProcedureStart ;
 
                         Quadruples:
 
-                        q   NewLocalVarOp  _  _  ProcSym
+                        q   NewLocalVarOp  TokenNo(BEGIN)  _  ProcSym
 *)
 
 PROCEDURE BuildProcedureBegin ;
@@ -9410,7 +9410,7 @@ END BuildProcedureBegin ;
 
                        Quadruples:
 
-                       q   KillLocalVarOp  _  _  ProcSym
+                       q   KillLocalVarOp  TokenNo(END)  _  ProcSym
 *)
 
 PROCEDURE BuildProcedureEnd ;

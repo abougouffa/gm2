@@ -52,7 +52,7 @@ EXTERN tree m2block_begin_statement_list (void);
 EXTERN tree m2block_push_statement_list (tree t);
 EXTERN tree m2block_pop_statement_list (void);
 
-EXTERN void m2block_finishFunctionDecl (tree fndecl);
+EXTERN void m2block_finishFunctionDecl (location_t location, tree fndecl);
 EXTERN void m2block_finishFunctionCode (tree fndecl);
 
 EXTERN tree m2block_RememberType (tree t);

@@ -88,6 +88,8 @@ EXTERN tree m2statement_GetLastFunction (void);
 EXTERN void m2statement_SetParamList (tree t);
 EXTERN tree m2statement_GetParamList (void);
 EXTERN tree m2statement_GetCurrentFunction (void);
+EXTERN void m2statement_SetBeginLocation (location_t location);
+EXTERN void m2statement_SetEndLocation (location_t location);
 
 #   undef EXTERN
 #endif

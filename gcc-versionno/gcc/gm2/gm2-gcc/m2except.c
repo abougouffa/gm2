@@ -133,7 +133,7 @@ m2except_InitExceptions (location_t location)
   init_eh ();
 
   m2decl_BuildStartFunctionDeclaration (FALSE);
-  fn_rethrow_tree = m2decl_BuildEndFunctionDeclaration (location,
+  fn_rethrow_tree = m2decl_BuildEndFunctionDeclaration (location, location,
 							"__cxa_rethrow",
 							void_type_node,
 							TRUE, FALSE, TRUE);
@@ -141,12 +141,12 @@ m2except_InitExceptions (location_t location)
 
   m2decl_BuildStartFunctionDeclaration (FALSE);
   m2decl_BuildParameterDeclaration (location,  NULL, ptr_type_node, FALSE);
-  fn_begin_catch_tree = m2decl_BuildEndFunctionDeclaration (location,
+  fn_begin_catch_tree = m2decl_BuildEndFunctionDeclaration (location, location,
 							    "__cxa_begin_catch",
 							    ptr_type_node,
 							    TRUE, FALSE, TRUE);
   m2decl_BuildStartFunctionDeclaration (FALSE);
-  fn_end_catch_tree = m2decl_BuildEndFunctionDeclaration (location,
+  fn_end_catch_tree = m2decl_BuildEndFunctionDeclaration (location, location,
 							  "__cxa_end_catch",
 							  void_type_node,
 							  TRUE, FALSE, TRUE);
@@ -164,14 +164,14 @@ m2except_InitExceptions (location_t location)
   m2decl_BuildParameterDeclaration (location, NULL, cleanup_type, FALSE);
   m2decl_BuildParameterDeclaration (location, NULL, ptr_type_node, FALSE);
   m2decl_BuildParameterDeclaration (location, NULL, ptr_type_node, FALSE);
-  fn_throw_tree = m2decl_BuildEndFunctionDeclaration (location,
+  fn_throw_tree = m2decl_BuildEndFunctionDeclaration (location, location,
 						      "__cxa_throw",
 						      void_type_node,
 						      TRUE, FALSE, TRUE);
 
   /* Declare void __cxa_rethrow (void).  */
   m2decl_BuildStartFunctionDeclaration (FALSE);
-  fn_rethrow_tree = m2decl_BuildEndFunctionDeclaration (location,
+  fn_rethrow_tree = m2decl_BuildEndFunctionDeclaration (location, location,
 						      "__cxa_rethrow",
 						      void_type_node,
 						      TRUE, FALSE, TRUE);
@@ -180,7 +180,7 @@ m2except_InitExceptions (location_t location)
   /* Declare void *__cxa_allocate_exception (size_t).  */
   m2decl_BuildStartFunctionDeclaration (FALSE);
   m2decl_BuildParameterDeclaration (location, NULL, size_type_node, FALSE);
-  fn_allocate_exception_tree = m2decl_BuildEndFunctionDeclaration (location,
+  fn_allocate_exception_tree = m2decl_BuildEndFunctionDeclaration (location, location,
 								   "__cxa_allocate_exception",
 								   ptr_type_node, 
 								   TRUE, FALSE, TRUE);
@@ -188,7 +188,7 @@ m2except_InitExceptions (location_t location)
   /* Declare void *__cxa_free_exception (void *).  */
   m2decl_BuildStartFunctionDeclaration (FALSE);
   m2decl_BuildParameterDeclaration (location, NULL, ptr_type_node, FALSE);
-  fn_free_exception_tree = m2decl_BuildEndFunctionDeclaration (location,
+  fn_free_exception_tree = m2decl_BuildEndFunctionDeclaration (location, location,
 							       "__cxa_free_exception",
 							       ptr_type_node, 
 							       TRUE, FALSE, TRUE);

@@ -65,6 +65,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #define m2top_c
 #include "m2top.h"
 
+
 /*
  *  InitGlobalContext - initializes a dummy function for the global scope.
  */

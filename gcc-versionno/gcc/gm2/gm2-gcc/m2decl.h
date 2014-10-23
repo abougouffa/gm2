@@ -47,7 +47,9 @@ EXTERN tree m2decl_BuildConstLiteralNumber (const char *str, unsigned int base);
 EXTERN void m2decl_DetermineSizeOfConstant (const char *str, unsigned int base,
 					    int *needsLong, int *needsUnsigned);
 EXTERN void m2decl_RememberVariables (tree l);
-EXTERN tree m2decl_BuildEndFunctionDeclaration (location_t location, const char *name, tree returntype,
+            
+EXTERN tree m2decl_BuildEndFunctionDeclaration (location_t location_begin, location_t location_end,
+						const char *name, tree returntype,
 						int isexternal, int isnested, int ispublic);
 EXTERN void m2decl_BuildStartFunctionDeclaration (int uses_varargs);
 EXTERN tree m2decl_BuildParameterDeclaration (location_t location, char *name, tree type,

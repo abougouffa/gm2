@@ -206,6 +206,22 @@ m2statement_BuildPopFunctionContext (void)
 }
 
 
+void
+m2statement_SetBeginLocation (location_t location)
+{
+  if (cfun != NULL)
+    cfun->function_start_locus = location;
+}
+
+
+void
+m2statement_SetEndLocation (location_t location)
+{
+  if (cfun != NULL)
+    cfun->function_end_locus = location;
+}
+
+
 /*
  *  add_stmt - t is a statement.  Add it to the statement-tree.
  */

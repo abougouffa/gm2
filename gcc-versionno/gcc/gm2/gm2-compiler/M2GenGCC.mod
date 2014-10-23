@@ -198,7 +198,8 @@ FROM m2statement IMPORT BuildAsm, BuildProcedureCallTree, BuildParam, BuildFunct
                         BuildPushFunctionContext, BuildPopFunctionContext,
                         BuildReturnValueCode, SetLastFunction,
                         BuildIncludeVarConst, BuildIncludeVarVar,
-                        BuildExcludeVarConst, BuildExcludeVarVar ;
+                        BuildExcludeVarConst, BuildExcludeVarVar,
+                        SetBeginLocation, SetEndLocation ;
 
 FROM m2type IMPORT ChainOnParamValue, GetPointerType, GetIntegerType, AddStatement,
                    GetCardinalType, GetWordType, GetM2ZType, GetM2RType, GetM2CType,
@@ -354,8 +355,8 @@ PROCEDURE CodeStartDefFile (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeEndFile (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeStatement (q: CARDINAL) ; FORWARD ;
 PROCEDURE CodeLineNumber (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeNewLocalVar (quad: CARDINAL; LineNo, PreviousScope, CurrentProcedure: CARDINAL); FORWARD ;
-PROCEDURE CodeKillLocalVar (quad: CARDINAL; LineNo, op2, CurrentProcedure: CARDINAL); FORWARD ;
+PROCEDURE CodeNewLocalVar (quad: CARDINAL; tokenno, PreviousScope, CurrentProcedure: CARDINAL); FORWARD ;
+PROCEDURE CodeKillLocalVar (quad: CARDINAL; tokenno, op2, CurrentProcedure: CARDINAL); FORWARD ;
 PROCEDURE CodeReturnValue (quad: CARDINAL; res, op2, Procedure: CARDINAL); FORWARD ;
 PROCEDURE CodeReturn (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeProcedureScope (quad: CARDINAL; LineNo, PreviousScope, CurrentProcedure: CARDINAL); FORWARD ;
@@ -1212,7 +1213,7 @@ BEGIN
       *)
 
       t := Mod2Gcc(op3) ;
-      finishFunctionDecl(t) ;
+      finishFunctionDecl(TokenToLocation(GetDeclaredMod(op3)), t) ;
 
       IF IsModuleWithinProcedure(op3)
       THEN
@@ -1272,7 +1273,7 @@ BEGIN
       *)
 
       t := GetModuleFinallyFunction(op3) ;
-      finishFunctionDecl(t) ;
+      finishFunctionDecl(TokenToLocation(GetDeclaredMod(op3)), t) ;
 
       IF IsModuleWithinProcedure(op3)
       THEN
@@ -1842,6 +1843,7 @@ BEGIN
    (* callee saves non var unbounded parameter contents *)
    SaveNonVarUnboundedParameters(tokenno, CurrentProcedure) ;
    BuildPushFunctionContext ;
+   SetBeginLocation(TokenToLocation(tokenno)) ;
    ForeachProcedureDo(CurrentProcedure, CodeBlock) ;
    ForeachInnerModuleDo(CurrentProcedure, CodeBlock) ;
    BuildPopFunctionContext ;
@@ -1856,6 +1858,7 @@ END CodeNewLocalVar ;
 PROCEDURE CodeKillLocalVar (quad: CARDINAL;
                             tokenno, op2, CurrentProcedure: CARDINAL) ;
 BEGIN
+   SetEndLocation(TokenToLocation(tokenno)) ;
    BuildEndFunctionCode(Mod2Gcc(CurrentProcedure),
                         IsProcedureGccNested(CurrentProcedure)) ;
    PoisonSymbols(CurrentProcedure)

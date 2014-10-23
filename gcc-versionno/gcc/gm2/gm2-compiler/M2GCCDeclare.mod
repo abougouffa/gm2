@@ -2464,11 +2464,12 @@ END IsExternalToWholeProgram ;
 
 PROCEDURE DeclareProcedureToGccWholeProgram (Sym: CARDINAL) ;
 VAR
-   GccParam: Tree ;
+   GccParam  : Tree ;
    scope,
    Son,
-   p, i    : CARDINAL ;
-   location: location_t ;
+   p, i      : CARDINAL ;
+   begin, end,
+   location  : location_t ;
 BEGIN
    IF (NOT GccKnowsAbout(Sym)) AND (NOT IsPseudoProcFunc(Sym))
    THEN
@@ -2501,19 +2502,20 @@ BEGIN
          WatchIncludeList(Son, fullydeclared) ;
          DEC(i)
       END ;
-      location := TokenToLocation(GetDeclaredMod(Sym)) ;
+      begin := TokenToLocation(GetDeclaredMod(Sym)) ;
+      end := TokenToLocation(GetDeclaredMod(Sym)+10) ;
       scope := GetScope(Sym) ;
       PushBinding(scope) ;
       IF GetType(Sym)=NulSym
       THEN
-         PreAddModGcc(Sym, BuildEndFunctionDeclaration(location,
+         PreAddModGcc(Sym, BuildEndFunctionDeclaration(begin, end,
                                                        KeyToCharStar(GetFullSymName(Sym)),
                                                        NIL,
                                                        IsExternalToWholeProgram(Sym),
                                                        IsProcedureGccNested(Sym),
                                                        IsExported(GetModuleWhereDeclared(Sym), Sym)))
       ELSE
-         PreAddModGcc(Sym, BuildEndFunctionDeclaration(location,
+         PreAddModGcc(Sym, BuildEndFunctionDeclaration(begin, end,
                                                        KeyToCharStar(GetFullSymName(Sym)),
                                                        Mod2Gcc(GetType(Sym)),
                                                        IsExternalToWholeProgram(Sym),
@@ -2533,11 +2535,12 @@ END DeclareProcedureToGccWholeProgram ;
 
 PROCEDURE DeclareProcedureToGccSeparateProgram (Sym: CARDINAL) ;
 VAR
-   GccParam: Tree ;
+   GccParam  : Tree ;
    scope,
    Son,
-   p, i    : CARDINAL ;
-   location: location_t ;
+   p, i      : CARDINAL ;
+   begin, end,
+   location  : location_t ;
 BEGIN
    IF (NOT GccKnowsAbout(Sym)) AND (NOT IsPseudoProcFunc(Sym)) AND
       (IsEffectivelyImported(GetMainModule(), Sym) OR
@@ -2575,19 +2578,20 @@ BEGIN
          WatchIncludeList(Son, fullydeclared) ;
          DEC(i)
       END ;
-      location := TokenToLocation(GetDeclaredMod(Sym)) ;
+      begin := TokenToLocation(GetDeclaredMod(Sym)) ;
+      end := TokenToLocation(GetDeclaredMod(Sym)+10) ;
       scope := GetScope(Sym) ;
       PushBinding(scope) ;
       IF GetType(Sym)=NulSym
       THEN
-         PreAddModGcc(Sym, BuildEndFunctionDeclaration(location,
+         PreAddModGcc(Sym, BuildEndFunctionDeclaration(begin, end,
                                                        KeyToCharStar(GetFullSymName(Sym)),
                                                        NIL,
                                                        IsExternal(Sym),
                                                        IsProcedureGccNested(Sym),
                                                        IsExported(GetModuleWhereDeclared(Sym), Sym)))
       ELSE
-         PreAddModGcc(Sym, BuildEndFunctionDeclaration(location,
+         PreAddModGcc(Sym, BuildEndFunctionDeclaration(begin, end,
                                                        KeyToCharStar(GetFullSymName(Sym)),
                                                        Mod2Gcc(GetType(Sym)),
                                                        IsExternal(Sym),
@@ -2724,7 +2728,7 @@ BEGIN
       popGlobalScope
    ELSE
       Assert(IsProcedure(scope)) ;
-      finishFunctionDecl(Mod2Gcc(scope)) ;
+      finishFunctionDecl(TokenToLocation(GetDeclaredMod(scope)), Mod2Gcc(scope)) ;
       t := popFunctionScope()
    END
 END PopBinding ;
@@ -2783,28 +2787,31 @@ END AssertAllTypesDeclared ;
 
 PROCEDURE DeclareModuleInit (sym: WORD) ;
 VAR
-   t       : Tree ;
-   location: location_t ;
+   t         : Tree ;
+   begin, end,
+   location  : location_t ;
 BEGIN
    IF IsModuleWithinProcedure(sym)
    THEN
       location := TokenToLocation(GetDeclaredMod(sym)) ;
+      begin := TokenToLocation(GetDeclaredMod(sym)) ;
+      end := TokenToLocation(GetDeclaredMod(sym)+10) ;
 
       BuildStartFunctionDeclaration(FALSE) ;
-      t := BuildEndFunctionDeclaration(location,
+      t := BuildEndFunctionDeclaration(begin, end,
                                        KeyToCharStar(GetModuleInitName(sym)),
                                        NIL, FALSE, TRUE, FALSE) ;
       pushFunctionScope(t) ;
-      finishFunctionDecl(t) ;
+      finishFunctionDecl(location, t) ;
       t := popFunctionScope() ;
 
       PreAddModGcc(sym, t) ;
       BuildStartFunctionDeclaration(FALSE) ;
-      t := BuildEndFunctionDeclaration(location,
+      t := BuildEndFunctionDeclaration(begin, end,
                                        KeyToCharStar(GetModuleFinallyName(sym)),
                                        NIL, FALSE, TRUE, FALSE) ;
       pushFunctionScope(t) ;
-      finishFunctionDecl(t) ;
+      finishFunctionDecl(location, t) ;
       t := popFunctionScope() ;
       PutModuleFinallyFunction(sym, t)
    END

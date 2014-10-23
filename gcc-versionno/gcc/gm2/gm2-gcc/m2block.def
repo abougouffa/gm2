@@ -121,7 +121,7 @@ PROCEDURE finishFunctionCode (fndecl: Tree) ;
                         containing the DECL_EXPR is also created.
 *)
 
-PROCEDURE finishFunctionDecl (fndecl: Tree) ;
+PROCEDURE finishFunctionDecl (location: location_t; fndecl: Tree) ;
 
 
 (*

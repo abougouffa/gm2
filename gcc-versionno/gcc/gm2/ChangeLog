@@ -1,3 +1,27 @@
+2014-10-23      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  (BuildEndFunctionDeclaration) introduce
+	  begin, end locations.  (finishFunctionDecl) add location parameter.
+	* gm2/gm2-compiler/M2GenGCC.mod:  (finishFunctionDecl) extra parameter.
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildProcedureBegin) and (BuildProcedureEnd)
+	  record the tokenno of the BEGIN or END respectively.
+	* gm2/gm2-gcc/m2block.c:  (finishFunctionDecl) sets location in the bind_expr.
+	* gm2/gm2-gcc/m2block.def:  (finishFunctionDecl) additional parameter.
+	* gm2/gm2-gcc/m2block.h:  (finishFunctionDecl) additional parameter.
+	* gm2/gm2-gcc/m2decl.c:  (BuildEndFunctionDeclaration) begin and end
+	  location parameters.
+	* gm2/gm2-gcc/m2decl.def:  (BuildEndFunctionDeclaration) begin and end
+	  location parameters.
+	* gm2/gm2-gcc/m2decl.h:  (BuildEndFunctionDeclaration) begin and end
+	  location parameters.
+	* gm2/gm2-gcc/m2except.c:  pass additional parameter for builtin functions.
+	* gm2/gm2-gcc/m2statement.c:  (SetBeginLocation), (SetEndLocation) New procedures.
+	* gm2/gm2-gcc/m2statement.def:  (SetBeginLocation), (SetEndLocation) New procedures.
+	* gm2/gm2-gcc/m2statement.h:  (SetBeginLocation), (SetEndLocation) New procedures.
+	* gm2/gm2-gcc/m2top.c:  tidied up spacing.
+	* gm2/gm2spec.c:  remember_link_arg extra parameter.
+	* gm2/m2pp.c:  added debugging stub.
+
 2014-10-14      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-iso/RTgen.mod:  (setReadResult)  New procedure.

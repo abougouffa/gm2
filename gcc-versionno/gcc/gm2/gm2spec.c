@@ -121,7 +121,7 @@ static const char *add_exec_dir (int argc, const char *argv[]);
 static const char *add_exec_name (int argc, const char *argv[]);
 static int is_object (const char *s);
 static void remember_object (const char *s);
-static void remember_link_arg (const char *s);
+static void remember_link_arg (const char *opt, const char *s);
 static void scan_for_link_args (unsigned int *in_decoded_options_count, struct cl_decoded_option **in_decoded_options);
 static void add_link_from_include (struct cl_decoded_option **in_options, int include);
 static void add_lib (size_t opt_index, const char *lib, int joined);
@@ -326,10 +326,12 @@ remember_object (const char *s)
 }
 
 static void
-remember_link_arg (const char *s)
+remember_link_arg (const char *opt, const char *s)
 {
   object_list *n = (object_list *)xmalloc (sizeof (object_list));
-  n->name = s;
+  n->name = (char *) xmalloc (strlen (opt) + strlen (s) + 1);
+  strcpy (n->name, opt);
+  strcat (n->name, s);
   n->next = head_link_args;
   head_link_args = n;
 }
@@ -767,8 +769,10 @@ scan_for_link_args (unsigned int *in_decoded_options_count,
     const char *arg = decoded_options[i].arg;
     size_t opt = decoded_options[i].opt_index;
 
-    if ((opt == OPT_l) || (opt == OPT_L))
-      remember_link_arg (arg);
+    if (opt == OPT_l)
+      remember_link_arg ("-l", arg);
+    else if (opt == OPT_L)
+      remember_link_arg ("-L", arg);
   }
 }
 
@@ -1285,11 +1289,11 @@ get_link_args (int argc ATTRIBUTE_UNUSED,
   *result = (char)0;
 
   for (o = head_link_args; o != NULL; o = o->next) {
-    len = strlen(result);
-    alen = strlen(o->name);
+    len = strlen (result);
+    alen = strlen (o->name);
     result = (char *)xrealloc (result, len+alen+1+1);
-    strcat(result, o->name);
-    strcat(result, " ");
+    strcat (result, o->name);
+    strcat (result, " ");
   }
   return result;
 }
