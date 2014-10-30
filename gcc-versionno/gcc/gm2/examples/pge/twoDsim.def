@@ -1,4 +1,4 @@
-(* Copyright (C) 2008, 2009, 2010, 2011, 2012
+(* Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -29,9 +29,6 @@ DEFINITION MODULE twoDsim ;
 *)
 
 FROM deviceIf IMPORT Colour ;
-
-TYPE
-   whereHit = (corner, edge) ;   (* where does a circle hit a polygon *)
 
 
 (*

@@ -21,7 +21,7 @@ FROM TextIO IMPORT ReadString, ReadRestLine, ReadToken, SkipLine ;
 FROM SeqFile IMPORT OpenResults, ChanId, OpenRead, read ;
 FROM IOConsts IMPORT ReadResults ;
 FROM Strings IMPORT Length ;
-FROM libc IMPORT exit ;
+FROM libc IMPORT exit, printf ;
 
 VAR
    c: ChanId ;
@@ -32,17 +32,20 @@ BEGIN
    ReadString(c, s) ;
    IF Length(s)#Length('this is a line of text')
    THEN
+      printf("failed reading first string\n") ;
       exit(1)
    END ;
    ReadString(c, s) ;
    IF Length(s)#0
    THEN
+      printf("failed reading second string\n") ;
       exit(2)
    END ;
    SkipLine(c) ;
    ReadToken(c, s) ;
    IF Length(s)#Length('some')
    THEN
+      printf("failed reading third string\n") ;
       exit(3)
    END
 END testio2.

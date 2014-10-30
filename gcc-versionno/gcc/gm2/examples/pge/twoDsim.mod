@@ -1,4 +1,4 @@
-(* Copyright (C) 2008, 2009, 2010, 2011, 2012
+(* Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -44,6 +44,8 @@ CONST
    InactiveTime           =     1.0 ;  (* the time we keep simulating after all colision events have expired *)
 
 TYPE
+   whereHit = (corner, edge) ;   (* where does a circle hit a polygon *)
+
    ObjectType = (polygonOb, circleOb, pivotOb, rpolygonOb) ;
 
    eventType = (frameEvent, circlesEvent, circlePolygonEvent, polygonPolygonEvent) ;

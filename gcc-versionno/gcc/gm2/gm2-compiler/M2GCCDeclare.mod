@@ -102,6 +102,7 @@ FROM SymbolTable IMPORT NulSym,
                         IsAModula2Type, UsesVarArgs,
                         GetSymName, GetParent,
                         GetDeclaredMod, GetVarBackEndType,
+                        GetProcedureBeginEnd,
                         GetString, GetStringLength, IsConstString,
                         GetAlignment, IsDeclaredPacked, PutDeclaredPacked,
                         GetDefaultRecordFieldAlignment, IsDeclaredPackedResolved,
@@ -2381,36 +2382,6 @@ END IsProcedureGccNested ;
 
 
 (*
-   AlignProcedureWithSource - tells the gcc backend the source file and line
-                              number associated with the start of the procedure.
-*)
-
-PROCEDURE AlignProcedureWithSource (sym: CARDINAL) ;
-VAR
-   scope,
-   start,
-   end  : CARDINAL ;
-   file : String ;
-   t,
-   line : CARDINAL ;
-BEGIN
-   IF GenerateDebugging
-   THEN
-(* --fixme-- remove this and all that call it!
-      GetProcedureQuads(sym, scope, start, end) ;
-      IF start>0
-      THEN
-         t := QuadToTokenNo(start) ;
-         line := TokenToLineNo(t, 0) ;
-         file := FindFileNameFromToken(t, 0) ;
-         SetFileNameAndLineNo(string(file), line)
-      END
-*)
-   END
-END AlignProcedureWithSource ;
-
-
-(*
    IsExternal - 
 *)
 
@@ -2468,13 +2439,13 @@ VAR
    scope,
    Son,
    p, i      : CARDINAL ;
+   b, e      : CARDINAL ;
    begin, end,
    location  : location_t ;
 BEGIN
    IF (NOT GccKnowsAbout(Sym)) AND (NOT IsPseudoProcFunc(Sym))
    THEN
       Assert(PushParametersLeftToRight) ;
-      (* AlignProcedureWithSource(Sym) ; *)
       BuildStartFunctionDeclaration(UsesVarArgs(Sym)) ;
       p := NoOfParam(Sym) ;
       i := p ;
@@ -2502,8 +2473,9 @@ BEGIN
          WatchIncludeList(Son, fullydeclared) ;
          DEC(i)
       END ;
-      begin := TokenToLocation(GetDeclaredMod(Sym)) ;
-      end := TokenToLocation(GetDeclaredMod(Sym)+10) ;
+      GetProcedureBeginEnd(Sym, b, e) ;
+      begin := TokenToLocation(b) ;
+      end := TokenToLocation(e) ;
       scope := GetScope(Sym) ;
       PushBinding(scope) ;
       IF GetType(Sym)=NulSym
@@ -2539,6 +2511,7 @@ VAR
    scope,
    Son,
    p, i      : CARDINAL ;
+   b, e      : CARDINAL ;
    begin, end,
    location  : location_t ;
 BEGIN
@@ -2550,7 +2523,6 @@ BEGIN
        IsExported(GetModuleWhereDeclared(Sym), Sym))
    THEN
       Assert(PushParametersLeftToRight) ;
-      AlignProcedureWithSource(Sym) ;
       BuildStartFunctionDeclaration(UsesVarArgs(Sym)) ;
       p := NoOfParam(Sym) ;
       i := p ;
@@ -2578,8 +2550,9 @@ BEGIN
          WatchIncludeList(Son, fullydeclared) ;
          DEC(i)
       END ;
-      begin := TokenToLocation(GetDeclaredMod(Sym)) ;
-      end := TokenToLocation(GetDeclaredMod(Sym)+10) ;
+      GetProcedureBeginEnd(Sym, b, e) ;
+      begin := TokenToLocation(b) ;
+      end := TokenToLocation(e) ;
       scope := GetScope(Sym) ;
       PushBinding(scope) ;
       IF GetType(Sym)=NulSym

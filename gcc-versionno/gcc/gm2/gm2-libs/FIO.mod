@@ -49,7 +49,7 @@ CONST
 
 TYPE
    FileUsage         = (unused, openedforread, openedforwrite, openedforrandom) ;
-   FileStatus        = (successful, outofmemory, toomanyfilesopen, failed, connectionfailure, endoffile) ;
+   FileStatus        = (successful, outofmemory, toomanyfilesopen, failed, connectionfailure, endofline, endoffile) ;
 
    NameInfo          = RECORD
                           address: ADDRESS ;
@@ -86,6 +86,7 @@ TYPE
 (* we only need forward directives for the p2c bootstrapping tool *)
 
 (* %%%FORWARD%%%
+PROCEDURE SetEndOfLine (f: File; ch: CHAR) ; FORWARD ;
 PROCEDURE FormatError (a: ARRAY OF CHAR) ; FORWARD ;
 PROCEDURE FormatError1 (a: ARRAY OF CHAR; w: ARRAY OF BYTE) ; FORWARD ;
 PROCEDURE CheckAccess (f: File; use: FileUsage; towrite: BOOLEAN) ; FORWARD ;
@@ -216,7 +217,7 @@ BEGIN
       RETURN( FALSE )
    ELSE
       fd := GetIndice(FileInfo, f) ;
-      RETURN( (fd#NIL) AND ((fd^.state=successful) OR (fd^.state=endoffile)) )
+      RETURN( (fd#NIL) AND ((fd^.state=successful) OR (fd^.state=endoffile) OR (fd^.state=endofline)) )
    END
 END IsNoError ;
 
@@ -643,6 +644,7 @@ END ReadFromBuffer ;
 PROCEDURE ReadNBytes (f: File; nBytes: CARDINAL; a: ADDRESS) : CARDINAL ;
 VAR
    n: INTEGER ;
+   p: POINTER TO CHAR ;
 BEGIN
    IF f#Error
    THEN
@@ -652,6 +654,9 @@ BEGIN
       THEN
          RETURN( 0 )
       ELSE
+         p := a ;
+         INC(p, n) ;
+         SetEndOfLine(f, p^) ;
          RETURN( n )
       END
    ELSE
@@ -989,6 +994,7 @@ BEGIN
    CheckAccess(f, openedforread, FALSE) ;
    IF BufferedRead(f, SIZE(ch), ADR(ch))=SIZE(ch)
    THEN
+      SetEndOfLine(f, ch) ;
       RETURN( ch )
    ELSE
       RETURN( nul )
@@ -997,14 +1003,10 @@ END ReadChar ;
 
 
 (*
-   UnReadChar - replaces a character, ch, back into file, f.
-                This character must have been read by ReadChar
-                and it does not allow successive calls.  It may
-                only be called if the previous read was successful
-                or end of file was seen.
+   SetEndOfLine - 
 *)
 
-PROCEDURE UnReadChar (f: File ; ch: CHAR) ;
+PROCEDURE SetEndOfLine (f: File; ch: CHAR) ;
 VAR
    fd: FileDescriptor ;
 BEGIN
@@ -1013,14 +1015,40 @@ BEGIN
    THEN
       fd := GetIndice(FileInfo, f) ;
       WITH fd^ DO
-(*
-         IF state=endoffile
+         IF ch=nl
          THEN
-            FormatError1('UnReadChar being called when EOF has been seen (%d)\n', f) ;
-            RETURN (* testing *)
-         END ;
+            state := endofline
+         ELSE
+            state := successful
+         END
+      END
+   END
+END SetEndOfLine ;
+
+
+(*
+   UnReadChar - replaces a character, ch, back into file, f.
+                This character must have been read by ReadChar
+                and it does not allow successive calls.  It may
+                only be called if the previous read was successful
+                or end of file was seen.
+                If the state was previously endoffile then it
+                is altered to successful.
+                Otherwise it is left alone.
 *)
-         IF (state=successful) OR (state=endoffile)
+
+PROCEDURE UnReadChar (f: File ; ch: CHAR) ;
+VAR
+   fd  : FileDescriptor ;
+   n   : CARDINAL ;
+   a, b: ADDRESS ;
+BEGIN
+   CheckAccess(f, openedforread, FALSE) ;
+   IF f#Error
+   THEN
+      fd := GetIndice(FileInfo, f) ;
+      WITH fd^ DO
+         IF (state=successful) OR (state=endoffile) OR (state=endofline)
          THEN
             IF (buffer#NIL) AND (buffer^.valid)
             THEN
@@ -1037,9 +1065,21 @@ BEGIN
                   THEN
                      DEC(position) ;
                      INC(left) ;
-                     contents^[position] := ch
+                     contents^[position] := ch ;
                   ELSE
-                     FormatError1('performing too many UnReadChar calls on file (%d)\n', f)
+                     (* position=0 *)
+                     (* if possible make room and store ch *)
+                     IF filled=size
+                     THEN
+                        FormatError1('performing too many UnReadChar calls on file (%d)\n', f)
+                     ELSE
+                        n := filled-position ;
+                        b := ADR(contents^[position]) ;
+                        a := ADR(contents^[position+1]) ;
+                        a := memcpy(a, b, n) ;
+                        INC(filled) ;
+                        contents^[position] := ch ;
+                     END
                   END
                END
             END
@@ -1062,6 +1102,7 @@ BEGIN
    CheckAccess(f, openedforread, FALSE) ;
    IF BufferedRead(f, HIGH(a), ADR(a))=HIGH(a)
    THEN
+      SetEndOfLine(f, a[HIGH(a)])
    END
 END ReadAny ;
 
@@ -1107,10 +1148,10 @@ BEGIN
       fd := GetIndice(FileInfo, f) ;
       IF fd#NIL
       THEN
-         IF fd^.state=successful
+         IF (fd^.state=successful) OR (fd^.state=endofline)
          THEN
             ch := ReadChar(f) ;
-            IF fd^.state=successful
+            IF (fd^.state=successful) OR (fd^.state=endofline)
             THEN
                UnReadChar(f, ch)
             END ;
@@ -1120,6 +1161,25 @@ BEGIN
    END ;
    RETURN( FALSE )
 END EOLN ;
+
+
+(*
+   WasEOLN - tests to see whether a file, f, has just seen a newline.
+*)
+
+PROCEDURE WasEOLN (f: File) : BOOLEAN ;
+VAR
+   fd: FileDescriptor ;
+BEGIN
+   CheckAccess(f, openedforread, FALSE) ;
+   IF f=Error
+   THEN
+      RETURN FALSE
+   ELSE
+      fd := GetIndice(FileInfo, f) ;
+      RETURN( (fd#NIL) AND (fd^.state=endofline) )
+   END
+END WasEOLN ;
 
 
 (*
@@ -1227,7 +1287,7 @@ BEGIN
                         END
                      ELSE
                         FlushBuffer(f) ;
-                        IF state#successful
+                        IF (state#successful) AND (state#endofline)
                         THEN
                            nBytes := 0
                         END

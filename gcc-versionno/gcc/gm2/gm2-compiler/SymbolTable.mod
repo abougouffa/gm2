@@ -353,6 +353,7 @@ TYPE
                ExceptionBlock: BOOLEAN ;    (* does it have an exception?    *)
                Scope         : CARDINAL ;   (* Scope of declaration.         *)
                ListOfModules : List ;       (* List of all inner modules.    *)
+               Begin, End    : CARDINAL ;   (* Tokens marking the BEGIN END  *)
                At            : Where ;      (* Where was sym declared/used   *)
             END ;
 
@@ -3092,6 +3093,8 @@ BEGIN
             Size := InitValue() ;        (* Activation record size.       *)
             TotalParamSize
                        := InitValue() ;  (* size of all parameters.       *)
+            Begin := 0 ;                 (* token number for BEGIN        *)
+            End := 0 ;                   (* token number for END          *)
             InitWhereDeclared(At) ;      (* Where symbol declared.        *)
          END
       END ;
@@ -10869,6 +10872,72 @@ PROCEDURE GetWriteQuads (Sym: CARDINAL; m: ModeOfAddr;
 BEGIN
    GetWriteLimitQuads(Sym, m, 0, 0, Start, End)
 END GetWriteQuads ;
+
+
+(*
+   PutProcedureBegin - assigns begin as the token number matching the
+                       procedure BEGIN.
+*)
+
+PROCEDURE PutProcedureBegin (Sym: CARDINAL; begin: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      ProcedureSym: Procedure.Begin := begin
+
+      ELSE
+         InternalError('expecting a Procedure symbol', __FILE__, __LINE__)
+      END
+   END
+END PutProcedureBegin ;
+
+
+(*
+   PutProcedureEnd - assigns end as the token number matching the
+                     procedure END.
+*)
+
+PROCEDURE PutProcedureEnd (Sym: CARDINAL; end: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      ProcedureSym: Procedure.End := end
+
+      ELSE
+         InternalError('expecting a Procedure symbol', __FILE__, __LINE__)
+      END
+   END
+END PutProcedureEnd ;
+
+
+(*
+   GetProcedureBeginEnd - assigns, begin, end, to the stored token values.
+*)
+
+PROCEDURE GetProcedureBeginEnd (Sym: CARDINAL; VAR begin, end: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      ProcedureSym: begin := Procedure.Begin ;
+                    end := Procedure.End
+
+      ELSE
+         InternalError('expecting a Procedure symbol', __FILE__, __LINE__)
+      END
+   END
+END GetProcedureBeginEnd ;
 
 
 (*

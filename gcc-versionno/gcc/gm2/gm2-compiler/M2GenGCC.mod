@@ -64,6 +64,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         GetUnboundedAddressOffset,
                         GetSubrange, NoOfElements, GetArraySubscript,
                         GetFirstUsed, GetDeclaredMod,
+                        GetProcedureBeginEnd,
                         GetRegInterface,
                         GetProcedureQuads,
                         GetProcedureBuiltin,
@@ -1839,11 +1840,14 @@ END SaveNonVarUnboundedParameters ;
 
 PROCEDURE CodeNewLocalVar (quad: CARDINAL;
                            tokenno, PreviousScope, CurrentProcedure: CARDINAL) ;
+VAR
+   begin, end: CARDINAL ;
 BEGIN
    (* callee saves non var unbounded parameter contents *)
    SaveNonVarUnboundedParameters(tokenno, CurrentProcedure) ;
    BuildPushFunctionContext ;
-   SetBeginLocation(TokenToLocation(tokenno)) ;
+   GetProcedureBeginEnd(CurrentProcedure, begin, end) ;
+   SetBeginLocation(TokenToLocation(begin)) ;
    ForeachProcedureDo(CurrentProcedure, CodeBlock) ;
    ForeachInnerModuleDo(CurrentProcedure, CodeBlock) ;
    BuildPopFunctionContext ;
@@ -1857,8 +1861,11 @@ END CodeNewLocalVar ;
 
 PROCEDURE CodeKillLocalVar (quad: CARDINAL;
                             tokenno, op2, CurrentProcedure: CARDINAL) ;
+VAR
+   begin, end: CARDINAL ;
 BEGIN
-   SetEndLocation(TokenToLocation(tokenno)) ;
+   GetProcedureBeginEnd(CurrentProcedure, begin, end) ;
+   SetEndLocation(TokenToLocation(end)) ;
    BuildEndFunctionCode(Mod2Gcc(CurrentProcedure),
                         IsProcedureGccNested(CurrentProcedure)) ;
    PoisonSymbols(CurrentProcedure)

@@ -1,5 +1,6 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-   Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+                 2010
+                 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 This library is free software; you can redistribute it and/or
@@ -34,7 +35,6 @@ FROM StrLib IMPORT StrLen, StrConCat, StrCopy ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM NumberIO IMPORT CardToStr ;
 FROM libc IMPORT exit, open, creat, read, write, close, lseek, strncpy, memcpy ;
-FROM DynamicStrings IMPORT Length, string ;
 FROM Indexing IMPORT Index, InitIndex, InBounds, HighIndice, PutIndice, GetIndice ;
 FROM M2RTS IMPORT InstallTerminationProcedure ;
 
@@ -49,7 +49,7 @@ CONST
 
 TYPE
    FileUsage         = (unused, openedforread, openedforwrite, openedforrandom) ;
-   FileStatus        = (successful, outofmemory, toomanyfilesopen, failed, connectionfailure, endoffile) ;
+   FileStatus        = (successful, outofmemory, toomanyfilesopen, failed, connectionfailure, endofline, endoffile) ;
 
    NameInfo          = RECORD
                           address: ADDRESS ;
@@ -58,6 +58,7 @@ TYPE
 
    Buffer            = POINTER TO buf ;
    buf               =            RECORD
+                                     valid   : BOOLEAN ;   (* are the field valid?             *)
                                      bufstart: LONGINT ;   (* the position of buffer in file   *)
                                      position: CARDINAL ;  (* where are we through this buffer *)
                                      address : ADDRESS ;   (* dynamic buffer address           *)
@@ -85,6 +86,7 @@ TYPE
 (* we only need forward directives for the p2c bootstrapping tool *)
 
 (* %%%FORWARD%%%
+PROCEDURE SetEndOfLine (f: File; ch: CHAR) ; FORWARD ;
 PROCEDURE FormatError (a: ARRAY OF CHAR) ; FORWARD ;
 PROCEDURE FormatError1 (a: ARRAY OF CHAR; w: ARRAY OF BYTE) ; FORWARD ;
 PROCEDURE CheckAccess (f: File; use: FileUsage; towrite: BOOLEAN) ; FORWARD ;
@@ -195,7 +197,7 @@ BEGIN
       INC(f) ;
       IF f>h
       THEN
-         PutIndice(FileInfo, f, NIL) ;  (* create new slow *)
+         PutIndice(FileInfo, f, NIL) ;  (* create new slot *)
          RETURN( f )
       END
    END
@@ -215,7 +217,7 @@ BEGIN
       RETURN( FALSE )
    ELSE
       fd := GetIndice(FileInfo, f) ;
-      RETURN( (fd#NIL) AND ((fd^.state=successful) OR (fd^.state=endoffile)) )
+      RETURN( (fd#NIL) AND ((fd^.state=successful) OR (fd^.state=endoffile) OR (fd^.state=endofline)) )
    END
 END IsNoError ;
 
@@ -371,7 +373,8 @@ BEGIN
          END ;
          name.address := strncpy(name.address, fname, flength) ;
          (* and assign nul to the last byte *)
-         p := ADDRESS(name.address + flength) ;
+         p := name.address ;
+         INC(p, flength) ;
          p^ := nul ;
          abspos := 0 ;
          (* now for the buffer *)
@@ -382,6 +385,7 @@ BEGIN
             RETURN( Error )
          ELSE
             WITH buffer^ DO
+               valid    := FALSE ;
                bufstart := 0 ;
                size     := buflength ;
                position := 0 ;
@@ -517,7 +521,8 @@ BEGIN
                      DEALLOCATE(address, size)
                   END
                END ;
-               DISPOSE(buffer)
+               DISPOSE(buffer) ;
+               buffer := NIL
             END
          END ;
          DISPOSE(fd) ;
@@ -539,6 +544,7 @@ END Close ;
 
 PROCEDURE ReadFromBuffer (f: File; a: ADDRESS; nBytes: CARDINAL) : INTEGER ;
 VAR 
+   t     : ADDRESS ;
    result: INTEGER ;
    total,
    n     : CARDINAL ;
@@ -551,7 +557,7 @@ BEGIN
       fd := GetIndice(FileInfo, f) ;
       WITH fd^ DO
          (* extract from the buffer first *)
-         IF buffer#NIL
+         IF (buffer#NIL) AND (buffer^.valid)
          THEN
             WITH buffer^ DO
                IF left>0
@@ -568,11 +574,13 @@ BEGIN
                      RETURN( 1 )
                   ELSE
                      n := Min(left, nBytes) ;
-                     p := memcpy(a, ADDRESS(address+position), n) ;
+                     t := address ;
+                     INC(t, position) ;
+                     p := memcpy(a, t, n) ;
                      DEC(left, n) ;      (* remove consumed bytes               *)
                      INC(position, n) ;  (* move onwards n bytes                *)
                                          (* move onwards ready for direct reads *)
-                     a := ADDRESS(a+n) ;
+                     INC(a, n) ;
                      DEC(nBytes, n) ;    (* reduce the amount for future direct *)
                                          (* read                                *)
                      INC(total, n) ;
@@ -588,11 +596,12 @@ BEGIN
             IF result>0
             THEN
                INC(total, result) ;
+               INC(abspos, result) ;
+               (* now disable the buffer as we read directly into, a. *)
                IF buffer#NIL
                THEN
-                  buffer^.bufstart := abspos
+                  buffer^.valid := FALSE
                END ;
-               INC(abspos, result)
             ELSE
                IF result=0
                THEN
@@ -605,6 +614,7 @@ BEGIN
                IF buffer#NIL
                THEN
                   WITH buffer^ DO
+                     valid    := FALSE ;
                      left     := 0 ;
                      position := 0 ;
                      IF address#NIL
@@ -634,6 +644,7 @@ END ReadFromBuffer ;
 PROCEDURE ReadNBytes (f: File; nBytes: CARDINAL; a: ADDRESS) : CARDINAL ;
 VAR
    n: INTEGER ;
+   p: POINTER TO CHAR ;
 BEGIN
    IF f#Error
    THEN
@@ -643,6 +654,9 @@ BEGIN
       THEN
          RETURN( 0 )
       ELSE
+         p := a ;
+         INC(p, n) ;
+         SetEndOfLine(f, p^) ;
          RETURN( n )
       END
    ELSE
@@ -661,6 +675,7 @@ END ReadNBytes ;
 
 PROCEDURE BufferedRead (f: File; nBytes: CARDINAL; a: ADDRESS) : INTEGER ;
 VAR 
+   t     : ADDRESS ;
    result: INTEGER ;
    total,
    n     : INTEGER ;
@@ -679,7 +694,7 @@ BEGIN
             THEN
                WITH buffer^ DO
                   WHILE nBytes>0 DO
-                     IF left>0
+                     IF (left>0) AND valid
                      THEN
                         IF nBytes=1
                         THEN
@@ -692,11 +707,13 @@ BEGIN
                            RETURN( total )
                         ELSE
                            n := Min(left, nBytes) ;
-                           p := memcpy(a, ADDRESS(address+position), n) ;
+                           t := address ;
+                           INC(t, position) ;
+                           p := memcpy(a, t, n) ;
                            DEC(left, n) ;      (* remove consumed bytes               *)
                            INC(position, n) ;  (* move onwards n bytes                *)
                                                (* move onwards ready for direct reads *)
-                           a := ADDRESS(a+n) ;
+                           INC(a, n) ;
                            DEC(nBytes, n) ;    (* reduce the amount for future direct *)
                                                (* read                                *)
                            INC(total, n)
@@ -706,6 +723,7 @@ BEGIN
                         n := read(unixfd, address, size) ;
                         IF n>=0
                         THEN
+                           valid    := TRUE ;
                            position := 0 ;
                            left     := n ;
                            filled   := n ;
@@ -718,6 +736,7 @@ BEGIN
                               RETURN( -1 )
                            END
                         ELSE
+                           valid    := FALSE ;
                            position := 0 ;
                            left     := 0 ;
                            filled   := 0 ;
@@ -975,11 +994,34 @@ BEGIN
    CheckAccess(f, openedforread, FALSE) ;
    IF BufferedRead(f, SIZE(ch), ADR(ch))=SIZE(ch)
    THEN
+      SetEndOfLine(f, ch) ;
       RETURN( ch )
    ELSE
       RETURN( nul )
    END
 END ReadChar ;
+
+
+(*
+   SetEndOfLine - 
+*)
+
+PROCEDURE SetEndOfLine (f: File; ch: CHAR) ;
+VAR
+   fd: FileDescriptor ;
+BEGIN
+   CheckAccess(f, openedforread, FALSE) ;
+   IF f#Error
+   THEN
+      fd := GetIndice(FileInfo, f) ;
+      WITH fd^ DO
+         IF ch=nl
+         THEN
+            state := endofline
+         END
+      END
+   END
+END SetEndOfLine ;
 
 
 (*
@@ -992,23 +1034,18 @@ END ReadChar ;
 
 PROCEDURE UnReadChar (f: File ; ch: CHAR) ;
 VAR
-   fd: FileDescriptor ;
+   fd  : FileDescriptor ;
+   n   : CARDINAL ;
+   a, b: ADDRESS ;
 BEGIN
    CheckAccess(f, openedforread, FALSE) ;
    IF f#Error
    THEN
       fd := GetIndice(FileInfo, f) ;
       WITH fd^ DO
-(*
-         IF state=endoffile
+         IF (state=successful) OR (state=endoffile) OR (state=endofline)
          THEN
-            FormatError1('UnReadChar being called when EOF has been seen (%d)\n', f) ;
-            RETURN (* testing *)
-         END ;
-*)
-         IF (state=successful) OR (state=endoffile)
-         THEN
-            IF buffer#NIL
+            IF (buffer#NIL) AND (buffer^.valid)
             THEN
                WITH buffer^ DO
                   (* we assume that a ReadChar has occurred, we will check just in case. *)
@@ -1023,9 +1060,23 @@ BEGIN
                   THEN
                      DEC(position) ;
                      INC(left) ;
-                     contents^[position] := ch
+                     contents^[position] := ch ;
+                     SetEndOfLine(f, ch)
                   ELSE
-                     FormatError1('performing too many UnReadChar calls on file (%d)\n', f)
+                     (* position=0 *)
+                     (* if possible make room and store ch *)
+                     IF filled=size
+                     THEN
+                        FormatError1('performing too many UnReadChar calls on file (%d)\n', f)
+                     ELSE
+                        n := filled-position ;
+                        b := ADR(contents^[position]) ;
+                        a := ADR(contents^[position+1]) ;
+                        a := memcpy(a, b, n) ;
+                        INC(filled) ;
+                        contents^[position] := ch ;
+                        SetEndOfLine(f, ch)
+                     END
                   END
                END
             END
@@ -1048,6 +1099,7 @@ BEGIN
    CheckAccess(f, openedforread, FALSE) ;
    IF BufferedRead(f, HIGH(a), ADR(a))=HIGH(a)
    THEN
+      SetEndOfLine(f, a[HIGH(a)])
    END
 END ReadAny ;
 
@@ -1106,6 +1158,25 @@ BEGIN
    END ;
    RETURN( FALSE )
 END EOLN ;
+
+
+(*
+   WasEOLN - tests to see whether a file, f, has just seen a newline.
+*)
+
+PROCEDURE WasEOLN (f: File) : BOOLEAN ;
+VAR
+   fd: FileDescriptor ;
+BEGIN
+   CheckAccess(f, openedforread, FALSE) ;
+   IF f=Error
+   THEN
+      RETURN FALSE
+   ELSE
+      fd := GetIndice(FileInfo, f) ;
+      RETURN( (fd#NIL) AND (fd^.state=endofline) )
+   END
+END WasEOLN ;
 
 
 (*
@@ -1169,6 +1240,7 @@ END WriteNBytes ;
 
 PROCEDURE BufferedWrite (f: File; nBytes: CARDINAL; a: ADDRESS) : INTEGER ;
 VAR 
+   t     : ADDRESS ;
    result: INTEGER ;
    total,
    n     : INTEGER ;
@@ -1200,11 +1272,13 @@ BEGIN
                            RETURN( total )
                         ELSE
                            n := Min(left, nBytes) ;
-                           p := memcpy(a, ADDRESS(address+position), CARDINAL(n)) ;
+                           t := address ;
+                           INC(t, position) ;
+                           p := memcpy(a, t, CARDINAL(n)) ;
                            DEC(left, n) ;      (* remove consumed bytes               *)
                            INC(position, n) ;  (* move onwards n bytes                *)
                                                (* move ready for further writes       *)
-                           a := ADDRESS(a+n) ;
+                           INC(a, n) ;
                            DEC(nBytes, n) ;    (* reduce the amount for future writes *)
                            INC(total, n)
                         END
@@ -1243,7 +1317,7 @@ BEGIN
             IF output AND (buffer#NIL)
             THEN
                WITH buffer^ DO
-                  IF (position=0) OR (write(unixfd, address, position)=position)
+                  IF (position=0) OR (write(unixfd, address, position)=VAL(INTEGER, position))
                   THEN
                      INC(abspos, position) ;
                      bufstart := abspos ;
@@ -1391,6 +1465,7 @@ BEGIN
                END ;
                IF buffer#NIL
                THEN
+                  buffer^.valid := FALSE ;
                   buffer^.bufstart := abspos
                END
             END
@@ -1440,6 +1515,7 @@ BEGIN
             END ;
             IF buffer#NIL
             THEN
+               buffer^.valid := FALSE ;
                buffer^.bufstart := offset
             END
          END
@@ -1462,7 +1538,7 @@ BEGIN
       IF fd#NIL
       THEN
          WITH fd^ DO
-            IF buffer=NIL
+            IF (buffer=NIL) OR (NOT buffer^.valid)
             THEN
                RETURN( abspos )
             ELSE

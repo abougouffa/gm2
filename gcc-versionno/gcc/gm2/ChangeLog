@@ -1,3 +1,36 @@
+2014-10-30      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/popWorld.def:  tidied up comment.
+	* gm2/examples/pge/popWorld.mod:  tidied up comment.
+	* gm2/examples/pge/twoDsim.def:  tidied up comment and moved a type definition
+	  into the implementation module.
+	* gm2/examples/pge/twoDsim.mod:  added type definition.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  (AlignProcedureWithSource) removed procedure.
+	  (DeclareProcedureToGccWholeProgram), (DeclareProcedureToGccSeparateProgram)
+	  call GetProcedureBeginEnd to obtain the position of the BEGIN END tokens for
+	  accurate debugging info.
+	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeNewLocalVar) and (CodeKillLocalVar)
+	  also obtain the position of the BEGIN END tokens for accurate debugging info.
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildProcedureBegin) call PutProcedureBegin to
+	  save the BEGIN location.  (BuildProcedureEnd) call PutProcedureEnd to
+	  save the END location.
+	* gm2/gm2-compiler/SymbolTable.def:  (PutProcedureBegin) define new procedure.
+	  (PutProcedureEnd) define new procedure.
+	* gm2/gm2-compiler/SymbolTable.mod:  (PutProcedureBegin) implement new procedure.
+	  (PutProcedureEnd) implement new procedure.
+	* gm2/gm2-libs-iso/IOChan.mod:  (Look) fix bug to ensure the result is set to the
+	  result of the look.
+	* gm2/gm2-libs-iso/RTfio.def:  changed specification of iseoln to avoid having to
+	  read ahead an extra character.
+	* gm2/gm2-libs-iso/RTfio.mod:  use FIO.WasEOLN rather than FIO.EOLN.
+	  (checkPostRead) corrected comment.  (setReadResult) changed order of
+	  if statements (check worst condition first).
+	* gm2/gm2-libs-iso/RTgen.mod:  (doLook) restore old result, but return newer
+	  result in r.
+	* gm2/gm2-libs/FIO.def:  (WasEOLN) new procedure function.
+	* gm2/gm2-libs/FIO.mod:  (WasEOLN) new procedure function implemented.  Introduced
+	  new state endofline which is set appropriately.
+
 2014-10-23      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  (BuildEndFunctionDeclaration) introduce

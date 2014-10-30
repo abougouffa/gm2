@@ -120,6 +120,7 @@ EXPORT QUALIFIED NulSym,
                  GetReadLimitQuads, GetWriteLimitQuads,
                  GetDeclaredDef, GetDeclaredMod, PutDeclared,
                  GetFirstUsed,
+                 PutProcedureBegin, PutProcedureEnd, GetProcedureBeginEnd,
                  GetGnuAsmInput, GetGnuAsmOutput, GetGnuAsmTrash, GetGnuAsm,
                  GetRegInterface,
                  GetVariableAtAddress,
@@ -1609,6 +1610,29 @@ PROCEDURE PutDeclared (Sym: CARDINAL) ;
 *)
 
 PROCEDURE GetFirstUsed (Sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   PutProcedureBegin - assigns begin as the token number matching the
+                       procedure BEGIN.
+*)
+
+PROCEDURE PutProcedureBegin (Sym: CARDINAL; begin: CARDINAL) ;
+
+
+(*
+   PutProcedureEnd - assigns end as the token number matching the
+                     procedure END.
+*)
+
+PROCEDURE PutProcedureEnd (Sym: CARDINAL; end: CARDINAL) ;
+
+
+(*
+   GetProcedureBeginEnd - assigns, begin, end, to the stored token values.
+*)
+
+PROCEDURE GetProcedureBeginEnd (Sym: CARDINAL; VAR begin, end: CARDINAL) ;
 
 
 (*

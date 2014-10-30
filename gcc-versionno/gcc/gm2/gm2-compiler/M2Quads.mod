@@ -69,6 +69,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         PutReadQuad, RemoveReadQuad,
                         PutWriteQuad, RemoveWriteQuad,
                         PutPriority, GetPriority,
+                        PutProcedureBegin, PutProcedureEnd,
                         IsVarParam, IsProcedure, IsPointer, IsParameter,
                         IsUnboundedParam, IsEnumeration, IsDefinitionForC,
                         IsVarAParam, IsVarient, IsLegal,
@@ -9376,6 +9377,7 @@ BEGIN
    PopT(ProcSym) ;
    Assert(IsProcedure(ProcSym)) ;
    PutProcedureStartQuad(ProcSym, NextQuad) ;
+   PutProcedureBegin(ProcSym, GetTokenNo()-1) ;
    GenQuad(NewLocalVarOp, GetTokenNo(), GetScope(ProcSym), ProcSym) ;
    CurrentProc := ProcSym ;
    PushWord(ReturnStack, 0) ;
@@ -9431,6 +9433,7 @@ BEGIN
    BackPatch(PopWord(ReturnStack), NextQuad) ;
    CheckNeedPriorityEnd(ProcSym, GetCurrentModule()) ;
    CurrentProc := NulSym ;
+   PutProcedureEnd(ProcSym, GetTokenNo()-1) ;
    GenQuad(KillLocalVarOp, GetTokenNo(), NulSym, ProcSym) ;
    PutProcedureEndQuad(ProcSym, NextQuad) ;
    GenQuad(ReturnOp, NulSym, NulSym, ProcSym) ;

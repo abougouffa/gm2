@@ -106,7 +106,7 @@ END pcircle ;
 
 
 (*
-   populate - popule the 2D world with the contents of macro, m.
+   populate - populate the 2D world with the contents of macro, m.
 *)
 
 PROCEDURE populate (m: Macro; fixed, solid: BOOLEAN) ;

@@ -161,9 +161,9 @@ END checkPreRead ;
 
 
 (*
-   checkPostRead - only checks whether an error occurred.
-                   The result is not set as the result is
-                   set prior to a read occuring.
+   checkPostRead - checks whether an error occurred and sets
+                   the result status.  This must only be called
+                   after a read.
 *)
 
 PROCEDURE checkPostRead (g: ChanDev; d: DeviceTablePtr) ;
@@ -180,12 +180,12 @@ END checkPostRead ;
 PROCEDURE setReadResult (g: ChanDev; d: DeviceTablePtr) ;
 BEGIN
    WITH d^ DO
-      IF isEOLN(g^.genif, d)
-      THEN
-         result := IOConsts.endOfLine
-      ELSIF isEOF(g^.genif, d)
+      IF isEOF(g^.genif, d)
       THEN
          result := IOConsts.endOfInput
+      ELSIF isEOLN(g^.genif, d)
+      THEN
+         result := IOConsts.endOfLine
       ELSE
          result := IOConsts.allRight
       END
@@ -281,11 +281,10 @@ BEGIN
    WITH d^ DO
       checkErrno(g, d) ;
       checkPreRead(g, d, RaiseEOFinLook(g), ChanConsts.rawFlag IN flags) ;
-      r := result ;
-      old := result ;
       IF (result=IOConsts.allRight) OR (result=IOConsts.notKnown) OR
          (result=IOConsts.endOfLine) 
       THEN
+         old := result ;
          ch := doReadChar(g^.genif, d) ;
          setReadResult(g, d) ;
          r := result ;
