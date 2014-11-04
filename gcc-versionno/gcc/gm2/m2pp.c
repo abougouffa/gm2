@@ -1973,6 +1973,17 @@ m2pp_realpart_expr (pretty *s, tree t)
 }
 
 /*
+ *  m2pp_bit_ior_expr - 
+ */
+
+static
+void
+m2pp_bit_ior_expr (pretty *s, tree t)
+{
+  m2pp_binary (s, t, "|");
+}
+
+/*
  *  m2pp_simple_expression - handle GCC expression tree.
  */
 
@@ -2117,6 +2128,9 @@ m2pp_simple_expression (pretty *s, tree t)
       break;
     case CLEANUP_POINT_EXPR:
       m2pp_cleanup_point_expr (s, t);
+      break;
+    case BIT_IOR_EXPR:
+      m2pp_bit_ior_expr (s, t);
       break;
     default:
       m2pp_unknown (s, __FUNCTION__, tree_code_name[code]);

@@ -1797,8 +1797,8 @@ m2expr_BuildForeachWordInSetDoIfExpr (location_t location,
   while (field1 != NULL && field2 != NULL) {
     m2statement_DoJump (location,
 			(*expr) (location,
-				 m2treelib_get_set_value (location, p1, field1, is_op1const, op1, fieldNo),
-				 m2treelib_get_set_value (location, p2, field2, is_op2const, op2, fieldNo)),
+				 m2treelib_get_set_value (location, p1, field1, is_op1const, is_op1lvalue, op1, fieldNo),
+				 m2treelib_get_set_value (location, p2, field2, is_op2const, is_op2lvalue, op2, fieldNo)),
 			NULL, label);
     fieldNo++;
     field1 = m2treelib_get_field_no (type, op1, is_op1const, fieldNo);
@@ -2158,9 +2158,9 @@ m2expr_BuildBinaryForeachWordDo (location_t location, tree type, tree op1, tree 
 				       m2treelib_get_set_field_des (location, op1, field1),
 				       (*binop) (location,
 						 m2treelib_get_set_value (location, p2, field2,
-									  is_op2const, op2, fieldNo),
+									  is_op2const, is_op2lvalue, op2, fieldNo),
 						 m2treelib_get_set_value (location, p3, field3,
-									  is_op3const, op3, fieldNo), FALSE));
+									  is_op3const, is_op3lvalue, op3, fieldNo), FALSE));
       fieldNo++;
       field1 = m2treelib_get_field_no (type, op1, is_op1const, fieldNo);
       field2 = m2treelib_get_field_no (type, op2, is_op2const, fieldNo);

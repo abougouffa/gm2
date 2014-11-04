@@ -1,3 +1,12 @@
+2014-11-04      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-gcc/m2expr.c: (m2expr_BuildForeachWordInSetDoIfExpr) add additional
+	  parameter to m2expr_BuildForeachWordInSetDoIfExpr (is_lvalue).
+	* gm2/gm2-gcc/m2treelib.c:  (m2treelib_get_set_value) extra parameter,
+	  is_lvalue, which builds a component ref using an indirect value.
+	* gm2/gm2-gcc/m2treelib.h:  added new parameter to prototype.
+	* gm2/m2pp.c:  (m2pp_bit_ior_expr)  New function.
+
 2014-10-30      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/popWorld.def:  tidied up comment.

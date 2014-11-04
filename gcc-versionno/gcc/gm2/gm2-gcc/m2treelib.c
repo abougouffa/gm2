@@ -381,18 +381,25 @@ m2treelib_get_field_no (tree type, tree op, int is_const, unsigned int fieldNo)
  */
 
 tree
-m2treelib_get_set_value (location_t location, tree p, tree field, int is_const, tree op, unsigned int fieldNo)
+m2treelib_get_set_value (location_t location, tree p, tree field, int is_const, int is_lvalue, tree op, unsigned int fieldNo)
 {
   tree value;
 
   ASSERT_BOOL (is_const);
+  ASSERT_BOOL (is_lvalue);
   if (is_const) {
+    ASSERT_CONDITION (is_lvalue == FALSE);
     gcc_assert( !VEC_empty (constructor_elt, CONSTRUCTOR_ELTS (op)));
     unsigned int size = VEC_length (constructor_elt, CONSTRUCTOR_ELTS (op));
     if (size < fieldNo)
       internal_error ("field number exceeds definition of set");
     value = VEC_index (constructor_elt, CONSTRUCTOR_ELTS (op), fieldNo)->value;
   }
+  else if (is_lvalue)
+    {
+      ASSERT_CONDITION (TREE_CODE (TREE_TYPE (p)) == POINTER_TYPE);
+      value = m2expr_BuildComponentRef (m2expr_BuildIndirect (location, p, TREE_TYPE (p)), field);
+    }
   else
     {
       tree type = TREE_TYPE (op);
