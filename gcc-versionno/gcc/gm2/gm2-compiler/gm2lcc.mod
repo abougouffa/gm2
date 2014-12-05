@@ -69,9 +69,10 @@ VAR
    UseAr         : BOOLEAN ;    (* use 'ar' and create archive     *)
    UseRanlib     : BOOLEAN ;    (* use 'ranlib' to index archive   *)
    IgnoreMain    : BOOLEAN ;    (* ignore main module when linking *)
+   UseLibtool    : BOOLEAN ;    (* use libtool and suffixes?       *)
    Shared        : BOOLEAN ;    (* is a shared library required?   *)
+   BOption,
    FOptions,
-   Compiler,
    CompilerDir,
    RanlibProgram,
    ArProgram,
@@ -126,12 +127,13 @@ BEGIN
          WriteString(StdErr, 'need target with ar') ; WriteLine(StdErr) ; Close(StdErr) ;
          exit(1)
       END
-   ELSE
-      IF EqualArray(Slice(CompilerDir, -1, 0), '/')
+   ELSIF UseLibtool
+   THEN
+      Command := InitString('libtool --tag=CC --mode=link gcc ') ;
+      IF BOption#NIL
       THEN
-         Command := ConCat(CompilerDir, ConCatChar(Compiler, ' '))
-      ELSE
-         Command := ConCat(ConCatChar(CompilerDir, '/'), ConCatChar(Compiler, ' '))
+         Command := ConCat(Command, Dup(BOption)) ;
+         Command := ConCatChar(Command, ' ')
       END ;
       IF DebugFound
       THEN
@@ -198,39 +200,96 @@ END RemoveLinkOnly ;
 
 
 (*
+   ConCatStartupFile - 
+*)
+
+PROCEDURE ConCatStartupFile ;
+BEGIN
+   IF UseLibtool
+   THEN
+      Command := ConCat(Command, Mark(Sprintf1(Mark(InitString('%s.lo')),
+                                               StartupFile)))
+   ELSE
+      Command := ConCat(Command, Mark(Sprintf1(Mark(InitString('%s.o')),
+                                               StartupFile)))
+   END
+END ConCatStartupFile ;
+
+
+(*
+   GenObjectSuffix - 
+*)
+
+PROCEDURE GenObjectSuffix () : String ;
+BEGIN
+   IF UseLibtool
+   THEN
+      RETURN( InitString('lo') )
+   ELSE
+      RETURN( InitString('o') )
+   END
+END GenObjectSuffix ;
+
+
+(*
+   GenArchiveSuffix - 
+*)
+
+PROCEDURE GenArchiveSuffix () : String ;
+BEGIN
+   IF UseLibtool
+   THEN
+      RETURN( InitString('la') )
+   ELSE
+      RETURN( InitString('a') )
+   END
+END GenArchiveSuffix ;
+
+
+(*
+   ConCatObject - 
+*)
+
+PROCEDURE ConCatObject (s: String) ;
+VAR
+   t, u: String ;
+BEGIN
+   t := CalculateFileName(s, Mark(GenObjectSuffix())) ;
+   IF FindSourceFile(t, u)
+   THEN
+      Command := ConCat(ConCatChar(Command, ' '), u) ;
+      u := KillString(u)
+   ELSE
+      t := KillString(t) ;
+      (* try finding .a or .la archive *)
+      t := CalculateFileName(s, Mark(GenArchiveSuffix())) ;
+      IF FindSourceFile(t, u)
+      THEN
+         Archives := ConCatChar(ConCat(Archives, u), ' ') ;
+         u := KillString(u)
+      END
+   END ;
+   t := KillString(t)   
+END ConCatObject ;
+
+
+(*
    GenCC - writes out the linkage command for the C compiler.
 *)
 
 PROCEDURE GenCC ;
 VAR
-   s, t, u: String ;
-   Error  : INTEGER ;
+   s    : String ;
+   Error: INTEGER ;
 BEGIN
    GenerateLinkCommand ;
-   Command := ConCat(Command, Mark(Sprintf1(Mark(InitString('%s.o')),
-                                            StartupFile))) ;
+   ConCatStartupFile ;
    REPEAT
       s := RemoveComment(RemoveWhitePrefix(ReadS(fi)), Comment) ;
       IF (NOT EqualArray(s, '')) AND (NOT (IgnoreMain AND Equal(s, MainModule)))
       THEN
          s := RemoveLinkOnly(s) ;
-         t := Dup(s) ;
-         t := CalculateFileName(s, Mark(InitString('o'))) ;
-         IF FindSourceFile(t, u)
-         THEN
-            Command := ConCat(ConCatChar(Command, ' '), u) ;
-            u := KillString(u)
-         ELSE
-            t := KillString(t) ;
-            (* try finding .a archive *)
-            t := CalculateFileName(s, Mark(InitString('a'))) ;
-            IF FindSourceFile(t, u)
-            THEN
-               Archives := ConCatChar(ConCat(Archives, u), ' ') ;
-               u := KillString(u)
-            END
-         END ;
-         t := KillString(t)
+         ConCatObject(s)
       END
    UNTIL EOF(fi) ;
    Command := ConCat(Command, Archives) ;
@@ -295,7 +354,7 @@ BEGIN
       THEN
          s := RemoveLinkOnly(s) ;
          t := Dup(s) ;
-         t := CalculateFileName(s, Mark(InitString('o'))) ;
+         t := CalculateFileName(s, Mark(GenObjectSuffix())) ;
          IF FindSourceFile(t, u)
          THEN
             IF KillString(WriteS(fo, Mark(Sprintf2(Mark(InitString('%-20s : %s\n')), t, u))))=NIL
@@ -305,7 +364,7 @@ BEGIN
          ELSE
             t := KillString(t) ;
             (* try finding .a archive *)
-            t := CalculateFileName(s, Mark(InitString('a'))) ;
+            t := CalculateFileName(s, Mark(GenArchiveSuffix())) ;
             IF FindSourceFile(t, u)
             THEN
                IF KillString(WriteS(fo, Mark(Sprintf2(Mark(InitString('%-20s : %s\n')), t, u))))=NIL
@@ -345,15 +404,24 @@ END ProcessTarget ;
 
 (*
    StripModuleExtension - returns a String without an extension from, s.
-                          It only considers '.obj' and '.o' as extensions.
+                          It only considers '.obj', '.o' and '.lo' as
+                          extensions.
 *)
 
 PROCEDURE StripModuleExtension (s: String) : String ;
+VAR
+   t: String ;
 BEGIN
-   RETURN(
-          ExtractExtension(ExtractExtension(s, Mark(InitString('.o'))),
-                           Mark(InitString('.obj')))
-         )
+   t := ExtractExtension(s, Mark(InitString('.lo'))) ;
+   IF s=t
+   THEN
+      t := ExtractExtension(s, Mark(InitString('.obj'))) ;
+      IF s=t
+      THEN
+         RETURN( ExtractExtension(s, Mark(InitString('.o'))) )
+      END
+   END ;
+   RETURN( t )
 END StripModuleExtension ;
 
 
@@ -367,7 +435,7 @@ BEGIN
    THEN
       StartupFile := StripModuleExtension(StartupFile)
    ELSE
-      fprintf0(StdErr, 'cannot get startup argument after -startup\n') ;
+      fprintf0(StdErr, 'cannot get startup argument after --startup\n') ;
       Close(StdErr) ;
       exit(1)
    END
@@ -381,8 +449,7 @@ END ProcessStartupFile ;
 
 PROCEDURE IsALibrary (s: String) : BOOLEAN ;
 BEGIN
-   IF EqualArray(Mark(Slice(s, 0, 2)), '-l') OR
-      EqualArray(Mark(Slice(s, 0, 2)), '-L')
+   IF EqualArray(Mark(Slice(s, 0, 2)), '-l')
    THEN
       LibrariesFound := TRUE ;
       Libraries := ConCat(ConCatChar(Libraries, ' '), s) ;
@@ -391,6 +458,26 @@ BEGIN
       RETURN( FALSE )
    END
 END IsALibrary ;
+
+
+(*
+   IsALibraryPath - 
+*)
+
+PROCEDURE IsALibraryPath (s: String) : BOOLEAN ;
+BEGIN
+   IF EqualArray(Mark(Slice(s, 0, 2)), '-L')
+   THEN
+      IF UseLibtool
+      THEN
+         LibrariesFound := TRUE ;
+         Libraries := ConCat(ConCatChar(Libraries, ' '), s)
+      END ;
+      RETURN( TRUE )
+   ELSE
+      RETURN( FALSE )
+   END
+END IsALibraryPath ;
 
 
 (*
@@ -443,7 +530,7 @@ BEGIN
       ELSIF EqualArray(s, '-c')
       THEN
          CheckFound := TRUE
-      ELSIF EqualArray(s, '-main')
+      ELSIF EqualArray(s, '--main')
       THEN
          INC(i) ;
          IF NOT GetArg(MainModule, i)
@@ -466,26 +553,28 @@ BEGIN
             END
          ELSE
             CompilerDir := Slice(s, 2, 0)
-         END
+         END ;
+         BOption := Dup(s)
       ELSIF EqualArray(s, '-p')
       THEN
          ProfileFound := TRUE
       ELSIF EqualArray(s, '-v')
       THEN
          VerboseFound := TRUE
-      ELSIF EqualArray(s, '-exec')
+      ELSIF EqualArray(s, '--exec')
       THEN
          ExecCommand := TRUE
       ELSIF EqualArray(s, '-fshared')
       THEN
          Shared := TRUE
-      ELSIF EqualArray(s, '-ignoremain')
+      ELSIF EqualArray(s, '--ignoremain')
       THEN
          IgnoreMain := TRUE
-      ELSIF EqualArray(s, '-ar')
+      ELSIF EqualArray(s, '--ar')
       THEN
          UseAr := TRUE ;
-         UseRanlib := TRUE
+         UseRanlib := TRUE ;
+         UseLibtool := FALSE
       ELSIF EqualArray(Mark(Slice(s, 0, 14)), '-fobject-path=')
       THEN
          PrependSearchPath(Slice(s, 14, 0))
@@ -501,14 +590,14 @@ BEGIN
       THEN
          INC(i) ;                 (* Target found *)
          ProcessTarget(i)
-      ELSIF EqualArray(s, '-startup')
+      ELSIF EqualArray(s, '--startup')
       THEN
          INC(i) ;                 (* Target found *)
          ProcessStartupFile(i)
       ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-f')
       THEN
          AdditionalFOptions(s)
-      ELSIF IsALibrary(s) OR IsAnObject(s)
+      ELSIF IsALibrary(s) OR IsALibraryPath(s) OR IsAnObject(s)
       THEN
       ELSE
          IF FoundFile
@@ -547,6 +636,7 @@ BEGIN
    ProfileFound  := FALSE ;
    IgnoreMain    := FALSE ;
    UseAr         := FALSE ;
+   UseLibtool    := FALSE ;
    UseRanlib     := FALSE ;
    VerboseFound  := FALSE ;
    Shared        := FALSE ;
@@ -558,19 +648,8 @@ BEGIN
    fo            := StdOut ;
    ExecCommand   := FALSE ;
 
-   Compiler      := InitString('gm2cc') ;
-   IF GetArg(CompilerDir, 0)
-   THEN
-      IF RIndex(CompilerDir, '/', 0)=-1
-      THEN
-         CompilerDir := KillString(CompilerDir) ;
-         CompilerDir := InitString('')
-      ELSE
-         CompilerDir := Slice(CompilerDir, 0, RIndex(CompilerDir, '/', 0))
-      END
-   ELSE
-      CompilerDir := InitString('')
-   END ;
+   CompilerDir   := InitString('') ;
+
    FOptions      := InitString('') ;
    Archives      := NIL ;
    Path          := NIL ;
@@ -579,6 +658,7 @@ BEGIN
    Objects       := InitString('') ;
    Command       := NIL ;
    Target        := NIL ;
+   BOption       := NIL ;
 
    ScanArguments ;
    IF CheckFound

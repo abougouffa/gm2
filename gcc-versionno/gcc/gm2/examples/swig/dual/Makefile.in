@@ -36,29 +36,30 @@ all: force
 	@echo "or you can use 'make post-install' to build the examples after installing the compiler"
 
 pre-install: clean
-	@echo "this example can only be run once the compiler has been installed"
+	@echo "this example only works when the compiler has been installed, please run make post-install"
 
 post-install: clean
-	gm2 -I$(srcdir) -c -g -fswig $(srcdir)/libtiny.mod
-	gm2 -I$(srcdir) -c -g -fmakelist $(srcdir)/libtiny.mod
-	gm2 -I$(srcdir) -c -g -fmakeinit -fshared $(srcdir)/libtiny.mod
+	gm2 -I$(srcdir) -c -g -fswig $(srcdir)/libfirst.mod
+	gm2 -I$(srcdir) -c -g -fmakelist $(srcdir)/libfirst.mod
+	gm2 -I$(srcdir) -c -g -fmakeinit -fshared $(srcdir)/libfirst.mod
 
-	$(RM) libtiny.o
+	$(RM) libfirst.o
 
-	swig -c++ -python libtiny.i
+	swig -c++ -python libfirst.i
 
-	libtool --mode=compile g++ -g -c -I$(srcdir) _m2_libtiny.cpp -o _m2_libtiny.lo
-	libtool --tag=CC --mode=compile gm2 -g -c -I$(srcdir) $(srcdir)/libtiny.mod -o libtiny.lo
-	libtool --tag=CC --mode=compile g++ -g -c libtiny_wrap.cxx -I/usr/include/python$(PYTHON_VERSION) -o libtiny_wrap.lo
+	libtool --mode=compile g++ -g -c -I$(srcdir) _m2_libfirst.cpp -o _m2_libfirst.lo
+	libtool --tag=CC --mode=compile gm2 -g -c -I$(srcdir) $(srcdir)/libfirst.mod -o libfirst.lo
+	libtool --tag=CC --mode=compile gm2 -g -c -I$(srcdir) $(srcdir)/second.mod -o second.lo
+	libtool --tag=CC --mode=compile g++ -g -c libfirst_wrap.cxx -I/usr/include/python$(PYTHON_VERSION) -o libfirst_wrap.lo
 
-	libtool --mode=link gcc -g _m2_libtiny.lo libtiny_wrap.lo libtiny.lo \
+	libtool --mode=link gcc -g _m2_libfirst.lo libfirst_wrap.lo libfirst.lo second.lo \
              -L$(prefix)/lib64 \
-             -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libtiny.la 
+             -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libfirst.la 
 
-	cp .libs/libtiny.so  _libtiny.so 
-	PYTHONPATH=.:$(srcdir) python $(srcdir)/testtiny.py
+	cp .libs/libfirst.so  _libfirst.so 
+	PYTHONPATH=.:$(srcdir) python $(srcdir)/testdual.py
 
 clean: force
-	$(RM) -f *.o *.so a.out *.pyc *~ *_wrap* tiny.py *.i *.lst *.cpp
+	$(RM) -f *.o *.so a.out *.pyc *~ *_wrap* *.i *.lst *.cpp *.lo *.la
 
 force:

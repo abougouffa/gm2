@@ -115,23 +115,23 @@ BEGIN
    fi            := StdIn ;
    fo            := StdOut ;
    WHILE GetArg(s, i) DO
-      IF EqualArray(s, '-exit')
+      IF EqualArray(s, '--exit')
       THEN
          ExitNeeded := FALSE
-      ELSIF EqualArray(s, '-terminate')
+      ELSIF EqualArray(s, '--terminate')
       THEN
          NeedTerminate := FALSE
-      ELSIF EqualArray(s, '-initial')
+      ELSIF EqualArray(s, '--initial')
       THEN
          NeedInitial := FALSE
       ELSIF EqualArray(s, '-h')
       THEN
-         fprintf0(StdErr, 'gm2lgen [-fshared] [-main function] [-o outputfile] [ inputfile ] [-exit] [-terminate] [-cpp]\n') ;
+         fprintf0(StdErr, 'gm2lgen [-fshared] [--main function] [-o outputfile] [ inputfile ] [--exit] [--terminate] [-fcpp]\n') ;
          exit(0)
       ELSIF EqualArray(s, '-fshared')
       THEN
          SharedLibrary := TRUE
-      ELSIF EqualArray(s, '-cpp')
+      ELSIF EqualArray(s, '-fcpp')
       THEN
          CPlusPlus := TRUE
       ELSIF EqualArray(s, '-o')
@@ -144,7 +144,7 @@ BEGIN
             fprintf0(StdErr, 'missing filename option after -o\n') ;
             exit(1)
          END
-      ELSIF EqualArray(s, '-main')
+      ELSIF EqualArray(s, '--main')
       THEN
          INC(i) ;
          IF GetArg(s, i)

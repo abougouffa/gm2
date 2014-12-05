@@ -1,3 +1,34 @@
+2014-11-05      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/config-lang.in:  added entry for new test example dual.
+	* gm2/examples/hello/Makefile.in:  fixed example to build, added
+	  reference to stdc++.
+	* gm2/examples/pge/Makefile.in:  changed name of pge.py to pgepygame.py.
+	* gm2/examples/pge/pge.py:  first cut of a python interface to pge.
+	* gm2/examples/pge/twoDsim.def:  moved whereHit back to the definition
+	  module.
+	* gm2/examples/pge/twoDsim.mod:  moved whereHit back to the definition
+	  module.
+	* gm2/examples/swig/tiny/Makefile.in:  rewrote build rules as shared libraries
+	  are now built using libtool.
+	* gm2/examples/swig/tiny/libtiny.def:  rename tiny.def as libtiny.def to comply
+	  with libtool.
+	* gm2/examples/swig/tiny/libtiny.mod:  rename tiny.def as libtiny.def to comply
+	  with libtool.
+	* gm2/examples/swig/tiny/testtiny.py:  import libtiny instead of tiny.
+	* gm2/gm2-compiler/gm2lcc.mod:  shared libraries are built using libtool changes
+	  to allow this tool to deal with .lo, la files.  Separate -L from -l as ar
+	  does not understand -L.  Long options now require --.  (--main, --exec,
+	  --ignoremain, --startup).
+	* gm2/gm2-compiler/gm2lgen.mod:  Long options now require -- (--terminate,
+	  --initial, --exit, --main).
+	* gm2/gm2-libs/FIO.mod:  corrected dates.
+	* gm2/gm2-libs/libc.def:  corrected dates.
+	* gm2/gm2spec.c:  corrected formatting.  gen_link_path (New function).
+	  Use gen_link_path rather than add_include.
+	* gm2/lang-specs.h:  changed all gm2lcc and gm2lgen long options to comply
+	  with the new -- delimiter.
+
 2014-11-04      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-gcc/m2expr.c: (m2expr_BuildForeachWordInSetDoIfExpr) add additional

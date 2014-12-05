@@ -71,6 +71,7 @@ outputs=" \
          gm2/examples/swig/exceptions/Makefile \
          gm2/examples/swig/strlib/Makefile \
          gm2/examples/swig/tiny/Makefile \
+         gm2/examples/swig/dual/Makefile \
          gm2/man/Makefile \
          gm2/p2c/Makefile \
          gm2/p2c/p2c-src/Makefile \

@@ -16,8 +16,23 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-DEFINITION MODULE tiny ;
+IMPLEMENTATION MODULE libtiny ;
+
+IMPORT FIO ;
 
 PROCEDURE out (a: ARRAY OF CHAR) ;
+BEGIN
+   FIO.WriteString(FIO.StdOut, a) ;
+   FIO.WriteLine(FIO.StdOut) ;
+   FIO.FlushBuffer(FIO.StdOut)
+END out ;
 
-END tiny.
+BEGIN
+   FIO.WriteString(FIO.StdOut, 'starting Modula-2 tiny') ;
+   FIO.WriteLine(FIO.StdOut) ;
+   FIO.FlushBuffer(FIO.StdOut)
+FINALLY
+   FIO.WriteString(FIO.StdOut, 'finishing Modula-2 tiny') ;
+   FIO.WriteLine(FIO.StdOut) ;
+   FIO.FlushBuffer(FIO.StdOut)
+END libtiny.

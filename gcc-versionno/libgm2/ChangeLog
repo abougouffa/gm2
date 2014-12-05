@@ -1,3 +1,12 @@
+2014-12-05      Gaius Mulley <gaius@gnu.org>
+
+	* libmin/Makefile.am:  add .la to the list of SUFFIXES.
+	* libulm/Makefile.am:  add .la to the list of SUFFIXES.
+	* libpim/Makefile.am:  add .la to the list of SUFFIXES.
+	* libcor/Makefile.am:  add .la to the list of SUFFIXES.
+	* liblog/Makefile.am:  add .la to the list of SUFFIXES.
+	* libiso/Makefile.am:  add .la to the list of SUFFIXES.
+
 2014-07-11      Gaius Mulley <gaius@gnu.org>
 
 	* complete rewrite and restructuring of libgm2.

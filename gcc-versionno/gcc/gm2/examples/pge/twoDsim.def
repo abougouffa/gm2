@@ -31,6 +31,10 @@ DEFINITION MODULE twoDsim ;
 FROM deviceIf IMPORT Colour ;
 
 
+TYPE
+   whereHit = (corner, edge) ;   (* where does a circle hit a polygon *)
+
+
 (*
    gravity - turn on gravity at: g m^2
 *)

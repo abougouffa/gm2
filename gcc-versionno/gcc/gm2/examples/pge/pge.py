@@ -1,228 +1,103 @@
 #!/usr/bin/env python
 
-import os, pygame, string, sys, getopt, math, struct
-from pygame.locals import *
-from socket import *
+import pgeif
+
+colour_t, box_t, circle_t = range (3)
+id2ob = {}
+ob2id = {}
+
+class object:
+    def __init__ (self, t, o):
+        self.type = t
+        self.o = o
+        self.fixed = False
+        return self
+
+    def _id (self):
+        return self.o
+
+    def velocity (self, vx, vy):
+        check_type ([box_t, circle_t])
+        check_not_fixed ()
+        self.o = pgeif.velocity (self.o, vx, vy)
+        return self
+
+    def accel (self, ax, ay):
+        check_type ([box_t, circle_t])
+        check_not_fixed ()
+        self.o = pgeif.accel (self.o, vx, vy)
+        return self
+
+    def fix (self):
+        check_type ([box_t, circle_t])
+        self.fixed = True
+        self.o = pgeif.fix (self.o, vx, vy)
+        return self
+
+    def mass (self, m):
+        check_type ([box_t, circle_t])
+        check_not_fixed ()
+        self.o = pgeif.mass (self.o, m)
+        return self
+
+    def on_collision_with (self, another, p):
+        self.collisionp = p
+        self.collisionWith = another
+        return self
+
+    def on_collision (self, p):
+        self.on_collision_with (self, [], p)
+        return self
+
+
+def rgb (r, g, b):
+    return object (colour_t, pgeif.rgb (r, g, b))
+
+def _register (id, ob):
+    global id2ob, od2id
+    id2ob[id] = ob
+    ob2id[ob] = id
+
+def box (x, y, w, h, c):
+    id = pgeif.box (x, y, w, h, c._id())
+    ob = object (box_t, id)
+    register (id, ob)
+    return ob
+
+
+def _process (pe):
+    f = pe._get_func ()
+    if pe._get_type () == collision_event:
+        f (pe.between ())
+    elif pe._get_type () == frame_event:
+        f (pe.frame_buffer (), pe.frame_length ())
+
+
+def _post_event (e, t):
+    if t != -1:
+        pygame.event.post (pygame.event.Event (USEREVENT, pge_event=e))
+        pygame.time.set_timer(USEREVENT, t)
+    return e
 
 
 #
-#  global variables
-#
-versionNumber     = '0.1'
-BoardEdge         = 40
-#
-resolution        = (1024, 1024)
-#
-#
-Black             = (0, 0, 0)
-lightGrey         = (200, 200, 200)
-fullscreen        = False
-debugging         = False
-programName       = "GNU PGE"
-pgePort           = 6000
-   
-call              = {}
-
-colTOid           = {}
-idTOcol           = {}
-maxColour         = 0
-
-
-#
-#  printf - keeps C programmers happy :-)
+# run - runs pge for time, t, milliseconds and also
+#       process the pygame events
 #
 
-def printf (format, *args):
-    print str(format) % args,
-
-#
-#  error - issues an error message and exits.
-#
-
-def error (format, *args):
-    print str(format) % args,
-    sys.exit(1)
-
-
-#
-#  debugf - issues prints if debugging is set
-#
-
-def debugf (format, *args):
-    global debugging
-    if debugging:
-        print str(format) % args,
-
-
-#
-#  flip - returns the y value flipped against the resolution.
-#
-
-def flip (y):
-    global resolution
-
-    return resolution[1]-y
-
-
-#
-#  initScreen - initialise the screen to the desired resolution.
-#
-
-def initScreen ():
-    global screen, background, fullscreen, resolution, lightGrey
-
-    pygame.init()
-    if fullscreen:
-        screen = pygame.display.set_mode(resolution, FULLSCREEN)
-    else:
-        screen = pygame.display.set_mode(resolution)
-    pygame.display.set_caption(programName + ' ' + versionNumber)
-    background = pygame.Surface(screen.get_size())
-    background = background.convert()
-    background.fill(lightGrey)
-
-#
-#  registerColour - read the r, g, b, from the connection and
-#                   looks up the id from the colour dictionary.
-#                   It returns the colour id to the connection socket.
-#                   If (r, g, b) does not exist then it is added to
-#                   the dictionary and a reverse dictionary lookup
-#                   is also added.
-#
-
-def registerColour (connection):
-    global maxColour, colTOid, idTOcol
-
-    connection, bytes = get(connection, 3)
-    r, g, b = struct.unpack('BBB', bytes)
-    debugf("colour %d, %d, %d\n", r, g, b)
-    if not colTOid.has_key((r, g, b)):
-        maxColour += 1
-        colTOid[(r, g, b)] = maxColour
-        idTOcol[maxColour] = (r, g, b)
-    debugf("colour id %d\n", colTOid[(r, g, b)])
-    connection.send(struct.pack('<I', colTOid[(r, g, b)]))
-    return connection
-
-
-#
-#  drawCircle - 
-#
-
-def drawCircle (connection):
-    global idTOcol, screen
-
-    connection, bytes = get(connection, 4*4)
-    c, x, y, r = struct.unpack('<IIII', bytes)
-    debugf("circle colour %d  x = %d  y = %d,  r = %d\n", c, x, y, r)
-    pygame.draw.circle(screen, idTOcol[c], (x, flip(y)), r, 0)
-    return connection
-
-
-#
-#  drawPolygon - 
-#
-
-def drawPolygon (connection):
-    connection, bytes = get(connection, 4*2)
-    c, n = struct.unpack('<II', bytes)
-    debugf("polygon colour %d  sides %d\n", c, n)
-    l = []
-    i = 0
-    while i<n:
-        connection, bytes = get(connection, 4*2)
-        x, y = struct.unpack('II', bytes)
-        # print "point ", x, y
-        l += [[x, flip(y)]]
-        i += 1
-    # print l
-    pygame.draw.polygon(screen, idTOcol[c], l, 0)
-    return connection
-
-
-#
-#
-#
-
-def get (connection, nBytes):
-    bytes = ""
-    while nBytes>0:
-        last = connection.recv(nBytes)
-        bytes += last
-        nBytes -= len(last)
-    return connection, bytes
-
-
-#
-#
-#
-
-def setResolution (connection):
-    global resolution
-
-    connection, bytes = get(connection, 4*2)
-    x, y = struct.unpack('<II', bytes)
-    debugf("resolution set to %d, %d\n", x, y)
-    resolution = (x, y)
-    initScreen()
-    return connection
-
-
-#
-#  flipBuffer - flips the screen buffer.
-#
-
-def flipBuffer (connection):
-    global background
-
-    pygame.display.flip()
-    # background.fill(lightGrey)
-    return connection
-
-
-#
-#  serveRPC - sets up a server TCP socket and calls the correct
-#             function depending upon the first character in the
-#             packet.
-#
-
-def serveRPC ():
-    global pgePort, call
-
-    s = socket(AF_INET, SOCK_STREAM)
-    # bind it to the server port number
-    s.bind(('', pgePort))
-    s.listen(1)
-    # wait for next client to connect
-    connection, address = s.accept()
+def run (t=-1, ep=None):
+    nev = _post_event (_get_next_event ())
+    fin = _post_event (finish_event (t))
     while True:
-        debugf("before recv\n")
-        data = connection.recv(1)
-        debugf("received packet %c\n", data)
-        if data:
-            if call.has_key(data):
-                connection = call[data](connection)
+        for e in pygame.event.get():
+            if e.type == USEREVENT:
+                if e.pge_event == fin:
+                    return
+                else:
+                    _process (e.pge_event)
+                    nev = _post_event (_get_next_event ())
             else:
-                printf("error unexpected packet %c\n", data)
-        else:
-            debugf("connection closed\n")
-            break
-    # connection.close()
-
-
-#
-#  
-#
-
-def main():
-    global call
-
-    call['P'] = drawPolygon
-    call['C'] = drawCircle
-    call['r'] = setResolution
-    call['f'] = flipBuffer
-    call['o'] = registerColour
-    serveRPC()
-
-
-main()
+                if ep != None:
+                    if nev._get_time () >= cur_time ():
+                        pgeif.advance_time (cur_time ())
+                    ep (e)

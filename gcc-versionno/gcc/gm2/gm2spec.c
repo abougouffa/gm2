@@ -92,8 +92,8 @@ int lang_specific_extra_outfiles = 0;
 #include "gm2/gm2version.h"
 #include "gm2/gm2config.h"
 
+#define DEBUGGING
 #undef DEBUGGING
-/* #define DEBUGGING */
 
 #define DEFAULT_DIALECT "pim"
 
@@ -135,6 +135,7 @@ static void insert_option (unsigned int *in_decoded_options_count, struct cl_dec
 #if defined (DEBUGGING)
 static void printOption (const char *desc, struct cl_decoded_option **in_decoded_options, int i);
 #endif
+static char *gen_link_path (char *libpath, char *dialect);
 
 void fe_save_switch (const char *opt, size_t n_args, const char *const *args, bool validated);
 
@@ -319,7 +320,7 @@ is_object (const char *s)
 static void
 remember_object (const char *s)
 {
-  object_list *n = (object_list *)xmalloc (sizeof (object_list));
+  object_list *n = (object_list *) xmalloc (sizeof (object_list));
   n->name = s;
   n->next = head_objects;
   head_objects = n;
@@ -328,7 +329,7 @@ remember_object (const char *s)
 static void
 remember_link_arg (const char *opt, const char *s)
 {
-  object_list *n = (object_list *)xmalloc (sizeof (object_list));
+  object_list *n = (object_list *) xmalloc (sizeof (object_list));
   n->name = (char *) xmalloc (strlen (opt) + strlen (s) + 1);
   strcpy (n->name, opt);
   strcat (n->name, s);
@@ -547,6 +548,16 @@ add_default_combination (const char *libpath,
 }
 
 /*
+ *  gen_link_path - 
+ */
+
+static char *
+gen_link_path (char *libpath, char *dialect)
+{
+  return add_include (NULL, libpath, dialect);
+}
+
+/*
  *  add_default_archives - adds the default archives to the end of the current
  *                         command line.
  */
@@ -572,16 +583,16 @@ add_default_archives (const char *libpath,
 
     e = index (l, ',');
     if (e == NULL) {
-      c = xstrdup(l);
+      c = xstrdup (l);
       l = NULL;
     }
     else {
-      c = strndup(l, e-l);
+      c = strndup (l, e-l);
       l = e+1;
     }
     add_default_combination (libpath, c, in_decoded_options_count, in_decoded_options, position+libcount);
     libcount++;
-    prev = add_include (prev, libpath, c);
+    prev = gen_link_path (libpath, c);
 
     fe_generate_option (OPT_L, prev, TRUE);
     free((void *)c);
@@ -746,15 +757,15 @@ add_default_fobjects (const char *prev,
   do {
     e = index (l, ',');
     if (e == NULL) {
-      c = xstrdup(l);
+      c = xstrdup (l);
       l = NULL;
     }
     else {
-      c = strndup(l, e-l);
+      c = strndup (l, e-l);
       l = e+1;
     }
     add_fobject_path (prev, libpath, c);
-    free(c);
+    free (c);
   } while ((l != NULL) && (l[0] != (char)0));
 }
 
@@ -1219,18 +1230,18 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 
 #if defined(DEBUGGING)
   for (i = 0; i < *in_decoded_options_count; i++)
-    printOption("before include purge", in_decoded_options, i);
+    printOption ("before include purge", in_decoded_options, i);
 #endif
   purge_include_options (in_decoded_options_count, in_decoded_options);
 #if defined(DEBUGGING)
   for (i = 0; i < *in_decoded_options_count; i++)
-    printOption("after include purge", in_decoded_options, i);
+    printOption ("after include purge", in_decoded_options, i);
 #endif
 
 
 #if defined(DEBUGGING)
   for (i = 0; i < *in_decoded_options_count; i++)
-    printOption("at end", in_decoded_options, i);
+    printOption ("at end", in_decoded_options, i);
 #endif
 }
 

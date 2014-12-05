@@ -44,8 +44,6 @@ CONST
    InactiveTime           =     1.0 ;  (* the time we keep simulating after all colision events have expired *)
 
 TYPE
-   whereHit = (corner, edge) ;   (* where does a circle hit a polygon *)
-
    ObjectType = (polygonOb, circleOb, pivotOb, rpolygonOb) ;
 
    eventType = (frameEvent, circlesEvent, circlePolygonEvent, polygonPolygonEvent) ;
