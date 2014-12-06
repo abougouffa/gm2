@@ -128,6 +128,8 @@ M2LIBDIR = /m2/log/
 
 install-data-local: force
 	mkdir -p $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)
+	$(INSTALL_DATA) .libs/liblog.la $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)
+	chmod 644 $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)liblog.la
 	$(INSTALL_DATA) .libs/liblog.a $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)
 	chmod 644 $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)liblog.a
 	$(RANLIB) $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)liblog.a

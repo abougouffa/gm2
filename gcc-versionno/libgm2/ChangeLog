@@ -1,3 +1,19 @@
+2014-12-06      Gaius Mulley <gaius@gnu.org>
+
+	* libgm2/libcor/Makefile.in:  add .la to list of SUFFIXES.
+	  install .la archive.
+	* libgm2/libcor/Makefile.am:  install .la archive.
+	* libgm2/libiso/Makefile.in:  install .la archive.
+	* libgm2/libiso/Makefile.am:  install .la archive.
+	* libgm2/liblog/Makefile.am:  install .la archive.
+	* libgm2/liblog/Makefile.in:  install .la archive.
+	* libgm2/libmin/Makefile.am:  install .la archive.
+	* libgm2/libmin/Makefile.in:  install .la archive.
+	* libgm2/libpim/Makefile.am:  install .la archive.
+	* libgm2/libpim/Makefile.in:  install .la archive.
+	* libgm2/libulm/Makefile.am:  install .la archive.
+	* libgm2/libulm/Makefile.in:  install .la archive.
+
 2014-12-05      Gaius Mulley <gaius@gnu.org>
 
 	* libmin/Makefile.am:  add .la to the list of SUFFIXES.

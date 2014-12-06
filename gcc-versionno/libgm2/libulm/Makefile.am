@@ -179,6 +179,8 @@ SYSTEM.c: Makefile
 
 install-data-local: force
 	mkdir -p $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)
+	$(INSTALL_DATA) .libs/libulm.la $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)
+	chmod 644 $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)libulm.la
 	$(INSTALL_DATA) .libs/libulm.a $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)
 	chmod 644 $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)libulm.a
 	$(RANLIB) $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)libulm.a

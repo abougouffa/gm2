@@ -115,6 +115,8 @@ SYSTEM.def: Makefile
 
 install-data-local: force
 	mkdir -p $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)
+	$(INSTALL_DATA) .libs/libcor.la $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)
+	chmod 644 $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)libcor.la
 	$(INSTALL_DATA) .libs/libcor.a $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)
 	chmod 644 $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)libcor.a
 	$(RANLIB) $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)libcor.a

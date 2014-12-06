@@ -38,10 +38,12 @@ Boston, MA 02110-1301, USA.  */
 #if 1
   {".mod", "@modula-2", 0, 0, 0},
   {"@modula-2",
-      "%{c|S:%{fuselist:%{fsources:%eGNU Modula-2 does not know what to do with -fsources and -fuselist}} \
-           %{!fmakelist:%{!fmodules:%{!gm2gcc:cc1gm2 %{fcpp:-fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend} \
-                                                     %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
-                                                     %{!fsyntax-only:%(invoke_as)}}}} \n\
+      "%{c|S:%{fuselist:%{fsources:%eGNU Modula-2 cannot use -fsources and -fuselist at the same time}} \
+           %{!fmakelist:%{!fmodules:%{!fmakeinit:%{!fswig:%{!gm2gcc:cc1gm2 %{fcpp:-fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend} \
+                                                                           %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
+                                                                           %{!fsyntax-only:%(invoke_as)}}}}}} \n\
+           %{fswig:cc1gm2 %{fcpp:-fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend} \
+                                                                           %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %V %i} \n\
            %{fmakelist:%{fcpp:cc1 -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
                               gm2l %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %g.mod |\n\
                               gm2lorder %{fruntime-modules=*} %{!pipe:%g.l} -o %b.lst} \n\
@@ -59,6 +61,7 @@ Boston, MA 02110-1301, USA.  */
       %{!c:%{fmakelist:%eGNU Modula-2 does not support -fmakelist without -c}} \n\
       %{!c:%{fmodules:%eGNU Modula-2 does not support -fmodules without -c}} \n\
       %{!c:%{fmakeinit:%eGNU Modula-2 does not support -fmakeinit without -c}} \n\
+      %{!c:%{fswig:%eGNU Modula-2 does not support -fswig without -c}} \n\
       %{!c:%{fmakeall:%{!fmakeall0:%{fcpp:gm2m -fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend -nolink -fgm2begin -fmakeall0 %{B*} %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -fgm2end -o %g.m %i \n\
                                      %{fclean:make -r -f %g.m clean %b } \n\
                                      %{!fclean:make -r -f %g.m }} \n\

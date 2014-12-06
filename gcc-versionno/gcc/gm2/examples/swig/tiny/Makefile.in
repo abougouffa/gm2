@@ -43,8 +43,6 @@ post-install: clean
 	gm2 -I$(srcdir) -c -g -fmakelist $(srcdir)/libtiny.mod
 	gm2 -I$(srcdir) -c -g -fmakeinit -fshared $(srcdir)/libtiny.mod
 
-	$(RM) libtiny.o
-
 	swig -c++ -python libtiny.i
 
 	libtool --mode=compile g++ -g -c -I$(srcdir) _m2_libtiny.cpp -o _m2_libtiny.lo

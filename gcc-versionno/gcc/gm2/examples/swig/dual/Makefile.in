@@ -43,8 +43,6 @@ post-install: clean
 	gm2 -I$(srcdir) -c -g -fmakelist $(srcdir)/libfirst.mod
 	gm2 -I$(srcdir) -c -g -fmakeinit -fshared $(srcdir)/libfirst.mod
 
-	$(RM) libfirst.o
-
 	swig -c++ -python libfirst.i
 
 	libtool --mode=compile g++ -g -c -I$(srcdir) _m2_libfirst.cpp -o _m2_libfirst.lo

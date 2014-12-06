@@ -1,4 +1,12 @@
-2014-11-05      Gaius Mulley <gaius@gnu.org>
+2014-12-06      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/swig/dual/Makefile.in:  removed unnecessary $(RM).
+	* gm2/examples/swig/tiny/Makefile.in:  removed unnecessary $(RM).
+	* gm2/lang-specs.h:  changed invocation of -fswig, -fmakelist, -fmakeinit which
+	  can only be issued with -c and none of them will generate a .s (or .o) file.
+	  The compiler is disabled from producing an output file using %V.
+
+2014-12-05      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/config-lang.in:  added entry for new test example dual.
 	* gm2/examples/hello/Makefile.in:  fixed example to build, added
