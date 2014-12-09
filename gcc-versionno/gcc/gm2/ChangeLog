@@ -1,3 +1,23 @@
+2014-12-09      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/config-lang.in:  added new gm2/examples/shared,
+	  gm2/examples/full-strlib and gm2/examples/strio examples to the
+	  list of Makefiles to be generated via configure.
+	* gm2/examples/swig/exceptions/Makefile.in:  rewritten to use
+	  libtool.
+	* gm2/examples/swig/exceptions/stresstiny.py:  removed unnecessary
+	  qualification.
+	* gm2/examples/swig/exceptions/testtiny.py:  removed unnecessary
+	  qualification.
+	* gm2/examples/swig/exceptions/tiny.def:  renamed to libtiny.def.
+	* gm2/examples/swig/exceptions/tiny.mod:  renamed to libtiny.mod.
+	* gm2/examples/swig/strio/Makefile:  deleted.
+	* gm2/examples/swig/strlib/Makefile.in:  rewritten to use libtool.
+	* gm2/examples/swig/strlib/MyStrLib.def:  renamed as libStrLib.def.
+	* gm2/examples/swig/strlib/MyStrLib.mod:  renamed as libStrLib.mod.
+	* gm2/gm2.texi:  rewritten sections on building shared libraries
+	  and interface to python using swig given that gm2 now uses libtool.
+
 2014-12-06      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/swig/dual/Makefile.in:  removed unnecessary $(RM).

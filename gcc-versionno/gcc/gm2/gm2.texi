@@ -257,9 +257,9 @@ exclusive features by using: @samp{-fpim}, @samp{-fpim2},
 @samp{-fpim3}, @samp{-fpim4} or @samp{-fiso}.
 
 @item
-the option
-@samp{-fswig} will automatically create a swig interface file which corresponds to
-the definition module of the file being compiled.
+the option @samp{-fswig} will automatically create a swig interface
+file which corresponds to the definition module of the file being
+compiled.
 
 @item
 exception handling is compatible with C++ and swig.  Modula-2 code can
@@ -1991,74 +1991,41 @@ intersect.
 @node Building a shared library, Interface for Python, Unbounded by reference, Using
 @section Building a shared library
 
-This section describes building a tiny shared library implemented
-entirely in Modula-2.  Suppose a project consists of two definition
-modules and two implementation modules and a program module
-@file{a.def}, @file{a.mod}, @file{b.def}, @file{b.mod} and @file{c.mod}.
-The first step is to compile the modules using position independent code.
-This can be achieved by the following three commands:
+This section describes building a tiny shared library implemented in
+Modula-2 and built with @file{libtool}.  Suppose a project consists of
+two definition modules and two implementation modules and a program
+module @file{a.def}, @file{a.mod}, @file{b.def}, @file{b.mod} and
+@file{c.mod}.  The first step is to compile the modules using position
+independent code.  This can be achieved by the following three
+commands:
 
 @example
-gm2 -fiso -g -c -fPIC a.mod
-gm2 -fiso -g -c -fPIC b.mod
-gm2 -fiso -g -c -fPIC c.mod
+libtool --tag=CC --mode=compile gm2 -g -c a.mod -o a.lo
+libtool --tag=CC --mode=compile gm2 -g -c b.mod -o b.lo
+libtool --tag=CC --mode=compile gm2 -g -c c.mod -o c.lo
 @end example
 
-The second step is to perform the link.  In a simple project such as this
-you can use the single command:
+The second step is to generate the shared library initialization and
+finalization routines.  We can do this by asking gm2 to generate a
+list of dependant modules and then use this to generate the scaffold.
+We also must compile the scaffold.
 
 @example
-gm2 -fiso -shared -fshared -fPIC -g c.mod -o c.so
+gm2 -c -g -fmakelist c.mod
+gm2 -c -g -fmakeinit -fshared c.mod
+libtool --tag=CC --mode=compile g++ -g -c _m2_c.cpp -o _m2_c.lo
 @end example
 
-At this point the shared library @file{c.so} will have been created.
-All procedures which are exported from the definition modules are
-also visible to the user of the shared library.
-
-The @code{BEGIN} @code{END} code at module scope in @file{a.mod},
-@file{b.mod}, @file{c.mod} and all dependent library modules will be
-initialized when the shared library is loaded.  Likewise the
-@code{FINALLY} @code{END} code at all module scopes is executed when
-the library is unloaded.  Both the initialization and termination is
-implemented transparently using the GNU/Linux mechanism:
+The third step is to link all these @file{.lo} files.
 
 @example
-void __attribute__ ((constructor)) initcode (void);
-void __attribute__ ((destructor)) fincode (void);
+libtool --mode=link gcc -g _m2_c.lo a.lo b.lo c.lo \
+        -L$(prefix)/lib64 \
+        -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libabc.la 
 @end example
 
-The linking command above utilizes a number of subcomponents which
-determine the runtime initialization order, create the C++ initialization
-and finalization function and links all required modules together.
-You can inspect and modify the initialization and finalization order
-by using the following commands:
-
-@example
-gm2 -c -fmakelist -fiso -fPIC -g c.mod
-@end example
-
-The command above will create a file @file{c.lst} which is a plain ascii
-file which contains the modules in initialization order.  The @code{#}
-is a comment which continues to the next newline.  It is worth noting that
-the first five or so modules which are listed before the commented lines
-are the critical runtime modules which have a default order.  You can
-override these using the command line option @code{-fruntime-modules=}.
-However you should only do this if you are building an application for an
-embedded system or your own set of Modula-2 low level libraries.
-
-You can modify the order of the modules in this file, although it is wise
-to leave the initial five modules alone.  It is much more useful to order
-your own modules which will be near the end of the file.  Once you are happy
-with the order you can conclude the link with the command:
-
-@example
-gm2 -fonlylink -fuselist -fiso -fPIC -g c.mod -o c.so
-@end example
-
-which creates @file{c.so} and @file{c_m2.cpp}.  The initialization and
-finalization code is contained within @file{c_m2.cpp} which is
-compiled and linked with all the modules required to satisfy all the
-program module @file{c.mod} dependencies.
+At this point the shared library @file{libabc.so} will have been
+created inside the directory @file{.libs}.
 
 @node Interface for Python, Producing a Python module, Building a shared library, Using
 @section How to produce swig interface files
@@ -2076,46 +2043,37 @@ This example can be found in the directory
 @file{gm2/examples/swig/full-strlib} and can be run using the commands:
 
 @example
-$ cd gcc-@value{version-GCC}/gcc/gm2/examples/swig/full-strlib
+$ cd build-@value{version-GCC}/gcc/gm2/examples/swig/full-strlib
 $ make numberio
 @end example
 
-If you wanted to do this step by step without the @file{Makefile} then
-firstly you should compile the @code{NumberIO} module as a shared
-library.  This can be achieved by using the following commands:
+The build commands can be run individually from the command line via:
 
 @example
-$ cd gcc-@value{version-GCC}/gcc/gm2/examples/swig/full-strlib
-$ gm2 -fshared -I. -c -fPIC -g -fswig -I../../../gm2-libs \
-    ../../../gm2-libs/NumberIO.mod
+export yoursrc=@samp{path to the sources}
+export yourprefix=@samp{path to where the compiler is installed}
+export yourpython=@samp{your python version}
+gm2 -I$(yoursrc) -c -g -fswig $(yoursrc)/../../../gm2-libs/NumberIO.mod
+gm2 -I$(yoursrc) -c -g -fmakelist $(yoursrc)/../../../gm2-libs/NumberIO.mod
+gm2 -I$(yoursrc) -c -g -fmakeinit -fshared $(yoursrc)/../../../gm2-libs/NumberIO.mod
+swig -c++ -python NumberIO.i
+
+libtool --mode=compile g++ -g -c -I$(yoursrc) _m2_NumberIO.cpp -o _m2_NumberIO.lo
+libtool --tag=CC --mode=compile gm2 -g -c -I$(yoursrc)../../../gm2-libs $(yoursrc)/../../../gm2-libs/NumberIO.mod -o NumberIO.lo
+libtool --tag=CC --mode=compile g++ -g -c NumberIO_wrap.cxx -I/usr/include/python$(yourpython=) -o NumberIO_wrap.lo
+
+libtool --mode=link gcc -g _m2_NumberIO.lo NumberIO_wrap.lo \
+   -L$(yourprefix)/lib64 \
+   -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libNumberIO.la 
+cp .libs/libNumberIO.so _NumberIO.so
 @end example
 
-The example assumes that the source code for @file{NumberIO.mod} can
-be found in directory @file{../../../gm2-libs}.  The first command
-produces two files: @file{NumberIO.i} and @file{NumberIO.o}.  The file
-@file{NumberIO.o} is a position independant code object file whereas
-the file @file{NumberIO.i} is a swig interface file and contains a
-swig interpretation of the @file{NumberIO.def}.  GNU Modula-2 uses the
-same mechanism for handling exceptions as GNU C++.  The file
-@file{NumberIO.i} contains exception handling information therefore we
-need to ask @code{swig} to generate C++ wrappers for
-@file{NumberIO.mod}.  This is achieved by:
-
-@example
-$ swig -c++ -python NumberIO.i
-$ gcc -c -fPIC NumberIO_wrap.cxx -I/usr/include/python2.4
-@end example
-
-The swig command line generates the necessary Python and C++ interface
-files using the interface file.  The C++ interface file is also
-compiled into position independant code.  Finally the module
-@code{NumberIO} is linked with all its dependants and
-@file{NumberIO_wrap.o}.
-
-@example
-$ gm2 -fonlylink -shared -fshared -fPIC -g \
-     ../../../gm2-libs/NumberIO.mod NumberIO_wrap.o -o _NumberIO.so
-@end example
+The first four commands, generate the swig interface file
+@file{NumberIO.i} and python wrap files @file{NumberIO_wrap.cxx} and
+@file{NumberIO.py}.  The next three @file{libtool} commnads compile
+the C++ and Modula-2 source code into @file{.lo} objects.  The last
+@file{libtool} command links all the @file{.lo} files into a
+@file{.la} file and includes all shared library dependencies.
 
 Now it is possible to run the following Python script
 (called @file{testnum.py}):

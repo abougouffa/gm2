@@ -16,18 +16,18 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-IMPLEMENTATION MODULE tiny ;
+IMPLEMENTATION MODULE libStrLib ;
 
-FROM SYSTEM IMPORT THROW ;
-FROM libc IMPORT printf ;
-
-PROCEDURE doSomething (i: INTEGER) ;
+PROCEDURE StrLen (a: ARRAY OF CHAR) : CARDINAL ;
+VAR
+   i, n: CARDINAL ;
 BEGIN
-   printf("doSomething %d\n", i) ;
-   IF i#0
-   THEN
-      THROW(i)
-   END
-END doSomething ;
+   i := 0 ;
+   n := HIGH(a) ;
+   WHILE (i<=n) AND (a[i]#0C) DO
+      INC(i)
+   END ;
+   RETURN i
+END StrLen ;
 
-END tiny.
+END libStrLib.

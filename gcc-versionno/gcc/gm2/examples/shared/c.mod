@@ -1,5 +1,4 @@
-(* Copyright (C) 2008, 2009, 2010
-                 Free Software Foundation, Inc. *)
+(* Copyright (C) 2011 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -14,19 +13,13 @@ for more details.
 
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)
 
-DEFINITION MODULE tiny ;
+MODULE c ;
 
-(*
-    Title      : tiny
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Fri Sep  5 23:37:58 2008
-    Revision   : $Version$ 
-    Description: 
-*)
+IMPORT a, b ;
 
-PROCEDURE doSomething (i: INTEGER) ;
 
-END tiny.
+BEGIN
+END c.

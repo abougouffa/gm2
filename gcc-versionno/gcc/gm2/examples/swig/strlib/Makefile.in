@@ -20,6 +20,8 @@ SHELL=/bin/bash
 
 srcdir = @srcdir@
 gm2dir = $(srcdir)/../../..
+prefix = @prefix@
+libdir = @libdir@
 
 SRC_PATH_PIM=$(srcdir):../../../gm2-libs:$(gm2dir)/gm2-libs:$(gm2dir)/gm2-libs-iso
 OBJ_PATH_PIM=.:../../../gm2-libs/SO:../../../gm2-libs-pim/SO:../../../gm2-libs-iso/SO
@@ -28,29 +30,33 @@ XGM2=../../../../xgm2 -B../../../.. -B../../../../stage1/gm2
 XGPP=../../../../g++
 XGCC=../../../../xgcc
 
-PYTHON_VERSION=2.5
+PYTHON_VERSION=2.7
 
 all: force
-	@echo "you need to use 'make pre-install' to build the examples using the locally built compiler"
-	@echo "or you can use 'make post-install' to build the examples after installing the compiler"
+	@echo "you can use 'make post-install' to build the examples after installing the compiler"
 
 pre-install: clean
-	$(XGM2) -fshared -fsources -I$(SRC_PATH_PIM) -c -fPIC -g -fswig $(srcdir)/MyStrLib.mod
-	swig -c++ -python MyStrLib.i
-	$(XGCC) -c -fPIC MyStrLib_wrap.cxx -I/usr/include/python$(PYTHON_VERSION)
-	$(XGM2) -fmakelist -c -fPIC -g -fshared $(srcdir)/MyStrLib.mod
-	$(XGM2) -fonlylink -fuselist -fobject-path=$(OBJ_PATH_PIM) -fPIC -g -shared -fshared $(srcdir)/MyStrLib.mod MyStrLib_wrap.o -o _MyStrLib.so
-	PYTHONPATH=.:$(srcdir) python $(srcdir)/testlen.py
+	@echo "'make pre-install' is not supported in this example"
 
 post-install: clean
-	gm2 -fshared -fsources -I$(srcdir) -c -fPIC -g -fswig $(srcdir)/MyStrLib.mod
-	swig -c++ -python MyStrLib.i
-	gcc -c -fPIC MyStrLib_wrap.cxx -I/usr/include/python$(PYTHON_VERSION)
-	gm2 -I$(srcdir) -fmakelist -c -fPIC -g -fshared $(srcdir)/MyStrLib.mod
-	gm2 -I$(srcdir) -fonlylink -fuselist -fPIC -g -shared -fshared $(srcdir)/MyStrLib.mod MyStrLib_wrap.o -o _MyStrLib.so
+	gm2 -I$(srcdir) -c -g -fswig $(srcdir)/libStrLib.mod
+	gm2 -I$(srcdir) -c -g -fmakelist $(srcdir)/libStrLib.mod
+	gm2 -I$(srcdir) -c -g -fmakeinit -fshared $(srcdir)/libStrLib.mod
+
+	swig -c++ -python libStrLib.i
+
+	libtool --mode=compile g++ -g -c -I$(srcdir) _m2_libStrLib.cpp -o _m2_libStrLib.lo
+	libtool --tag=CC --mode=compile gm2 -g -c -I$(srcdir) $(srcdir)/libStrLib.mod -o libStrLib.lo
+	libtool --tag=CC --mode=compile g++ -g -c libStrLib_wrap.cxx -I/usr/include/python$(PYTHON_VERSION) -o libStrLib_wrap.lo
+
+	libtool --mode=link gcc -g _m2_libStrLib.lo libStrLib_wrap.lo libStrLib.lo \
+             -L$(prefix)/lib64 \
+             -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libStrLib.la
+
+	cp .libs/libStrLib.so  _libStrLib.so 
 	PYTHONPATH=.:$(srcdir) python $(srcdir)/testlen.py
 
 clean: force
-	$(RM) -f *.o *.so a.out *.pyc *~ *_wrap* MyStrLib.py *.i *.lst MyStrLib_m2.cpp
+	$(RM) -f *.o *.so a.out *.pyc *~ *_wrap* libStrLib.py *.i *.lst libStrLib_m2.cpp
 
 force:

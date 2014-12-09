@@ -68,8 +68,11 @@ outputs=" \
          gm2/examples/map/Makefile \
          gm2/examples/pge/Makefile \
          gm2/examples/ncurses/Makefile \
+         gm2/examples/shared/Makefile \
          gm2/examples/swig/exceptions/Makefile \
+         gm2/examples/swig/full-strlib/Makefile \
          gm2/examples/swig/strlib/Makefile \
+         gm2/examples/swig/strio/Makefile \
          gm2/examples/swig/tiny/Makefile \
          gm2/examples/swig/dual/Makefile \
          gm2/man/Makefile \

@@ -1,5 +1,4 @@
-(* Copyright (C) 2008, 2009, 2010
-                 Free Software Foundation, Inc. *)
+(* Copyright (C) 2011 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -14,20 +13,21 @@ for more details.
 
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)
 
-IMPLEMENTATION MODULE MyStrLib ;
+IMPLEMENTATION MODULE a ;
 
-PROCEDURE StrLen (a: ARRAY OF CHAR) : CARDINAL ;
-VAR
-   i, n: CARDINAL ;
+FROM libc IMPORT printf ;
+
+(*
+   proca - 
+*)
+
+PROCEDURE proca ;
 BEGIN
-   i := 0 ;
-   n := HIGH(a) ;
-   WHILE (i<=n) AND (a[i]#0C) DO
-      INC(i)
-   END ;
-   RETURN i
-END StrLen ;
+   printf ("inside procedure a\n")
+END proca ;
 
-END MyStrLib.
+
+END a.
