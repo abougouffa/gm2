@@ -219,6 +219,10 @@ EOFEOF
 
     createSyscall
 
+    createUnixFork
+
+    createUnixSignal
+
 cat <<EOFEOF
 
 void _M2_SYSTEM_init ()
@@ -256,6 +260,69 @@ EOFEOF
    echo "void _M2_SYSTEM_finish (void)"
    echo "{"
    echo "}"
+}
+
+function createUnixFork () {
+    cat <<EOF
+#if !defined(TRUE)
+#   define TRUE (1==1)
+#endif
+
+#if !defined(FALSE)
+#   define FALSE (1==0)
+#endif
+
+int
+SYSTEM_UNIXFORK (int *pid)
+{
+   int result = fork ();
+
+#if defined(HAVE_ERRNO_H)
+   if (errno != 0)
+     {
+        *pid = errno;
+        return FALSE;
+     }
+#endif
+   *pid = result;
+   return TRUE;
+}
+EOF
+}
+
+function createUnixSignal () {
+    cat <<EOF
+#if defined(HAVE_SIGNAL_H)
+
+/* Type of a signal handler.  */
+typedef void (*proc_t) (int);
+
+int
+SYSTEM_UNIXSIGNAL (int signo, proc_t p, proc_t *old, int *result)
+{
+  proc_t r = signal (signo, p);
+
+#if defined(HAVE_ERRNO_H)
+  *result = errno;
+#endif
+
+  if (r == SIG_ERR)
+    return FALSE;
+
+  *old = r;
+  return TRUE;
+}
+
+#else
+
+int
+SYSTEM_UNIXSIGNAL (int signo, void *p, void **old, int *result)
+{
+  return FALSE;
+}
+
+#endif
+EOF
 }
 
 function createSysDef () {

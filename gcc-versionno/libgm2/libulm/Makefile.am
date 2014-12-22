@@ -163,16 +163,23 @@ libulmdir = libulm
 libulm_la_LINK = $(LINK)
 libulm_la_DEPENDENCIES = SYSTEM.def
 libulm_la_CFLAGS = -I. -DBUILD_GM2_LIBS -I@srcdir@/../
-libulm_la_M2FLAGS = -I. -I$(GM2_SRC)/ulm-lib-gm2/sys -I$(GM2_SRC)/ulm-lib-gm2/std -I$(GM2_SRC)/gm2-libs
+libulm_la_M2FLAGS = -I. -I@srcdir@ -I$(GM2_SRC)/ulm-lib-gm2/sys -I$(GM2_SRC)/ulm-lib-gm2/std -I$(GM2_SRC)/gm2-libs
 ## nodist_EXTRA_libulm_la_SOURCES = dummy.c  ## forces automake to generate the LINK definition
 
-BUILT_SOURCES = SYSTEM.c
-CLEANFILES = SYSTEM.c
+BUILT_SOURCES = SYSTEM.c SYSTEM.def
+CLEANFILES = SYSTEM.c SYSTEM.def
 
 M2LIBDIR = /m2/ulm/
 
 SYSTEM.c: Makefile
 	bash $(GM2_SRC)/tools-src/createUlmSys ../config.h > $@
+
+SYSTEM.def: Makefile
+	bash $(GM2_SRC)/tools-src/makeSystem -fpim \
+             @srcdir@/SYSTEM.def \
+             @srcdir@/dummy.mod \
+             -I$(GM2_SRC)/ulm-lib-gm2/sys:$(GM2_SRC)/ulm-lib-gm2/sys:$(GM2_SRC)/gm2-libs-iso \
+             "$(GM2_FOR_TARGET)" $@
 
 .mod.lo:
 	../libtool --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(GM2_FOR_TARGET) -c $(CFLAGS_FOR_TARGET) $(LIBCFLAGS) $(libulm_la_M2FLAGS) $< -o $@

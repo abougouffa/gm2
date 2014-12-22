@@ -1,3 +1,10 @@
+2014-12-22      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/run:  changed name of python script.
+	* gm2/examples/swig/strlen/MyStrLib.i:  deleted.
+	* gm2/tools-src/createUlmSys:  added SYSTEM_UNIXFORK and
+	  SYSTEM_UNIXSIGNAL.
+
 2014-12-09      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/config-lang.in:  added new gm2/examples/shared,

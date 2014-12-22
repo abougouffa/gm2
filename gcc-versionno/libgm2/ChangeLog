@@ -1,3 +1,8 @@
+2014-12-22      Gaius Mulley <gaius@gnu.org>
+
+	* libgm2/libulm/Makefile.am:  added rule to build
+	  SYSTEM.def as a built source.
+
 2014-12-06      Gaius Mulley <gaius@gnu.org>
 
 	* libgm2/libcor/Makefile.in:  add .la to list of SUFFIXES.
