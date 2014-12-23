@@ -178,7 +178,7 @@ SYSTEM.def: Makefile
 	bash $(GM2_SRC)/tools-src/makeSystem -fpim \
              @srcdir@/SYSTEM.def \
              @srcdir@/dummy.mod \
-             -I$(GM2_SRC)/ulm-lib-gm2/sys:$(GM2_SRC)/ulm-lib-gm2/sys:$(GM2_SRC)/gm2-libs-iso \
+             -I$(GM2_SRC)/ulm-lib-gm2/sys:$(GM2_SRC)/ulm-lib-gm2/sys:$(GM2_SRC)/gm2-libs:$(GM2_SRC)/gm2-libs-iso \
              "$(GM2_FOR_TARGET)" $@
 
 .mod.lo:

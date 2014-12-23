@@ -1,3 +1,8 @@
+2014-12-23      Gaius Mulley <gaius@gnu.org>
+
+	* libgm2/libulm/Makefile.am:  added pim libs to the
+	  path on the createUlmSys command.
+
 2014-12-22      Gaius Mulley <gaius@gnu.org>
 
 	* libgm2/libulm/Makefile.am:  added rule to build
