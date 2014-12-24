@@ -66,6 +66,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 #  include <stdlib.h>
 #endif
 
+#if defined(HAVE_STDIO_H)
+#  include <stdio.h>
+#endif
+
 #define PORTSTART     7000
 #define NOOFTRIES      100
 #define MAXHOSTNAME    256

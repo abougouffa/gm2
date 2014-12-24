@@ -1,3 +1,11 @@
+2014-12-24      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/pge.py:  interim checkin.
+	* gm2/gm2-compiler/SymbolTable.mod:  corrected declaration of
+	  PutDeclaredModule as reported by Christoph Schlegel.
+	* gm2/gm2-libs-ch/sckt.c:  added conditional import of
+	  stdio.h as reported by Christoph Schlegel.
+
 2014-12-22      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/run:  changed name of python script.

@@ -11344,7 +11344,7 @@ END PutDeclaredDefinition ;
                        in an implementation or program module.
 *)
 
-PROCEDURE PutDeclaredModule (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE PutDeclaredModule (Sym: CARDINAL) ;
 VAR
    pSym: PtrToSymbol ;
 BEGIN

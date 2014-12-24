@@ -1,10 +1,20 @@
 #!/usr/bin/env python
 
 import pgeif
+import pygame
 
 colour_t, box_t, circle_t = range (3)
 id2ob = {}
 ob2id = {}
+
+
+#
+#  printf - keeps C programmers happy :-)
+#
+
+def printf (format, *args):
+    print str (format) % args,
+
 
 class object:
     def __init__ (self, t, o):
@@ -17,26 +27,26 @@ class object:
         return self.o
 
     def velocity (self, vx, vy):
-        check_type ([box_t, circle_t])
-        check_not_fixed ()
+        self._check_type ([box_t, circle_t], "assign a velocity to a")
+        self._check_not_fixed ("assign a velocity")
         self.o = pgeif.velocity (self.o, vx, vy)
         return self
 
     def accel (self, ax, ay):
-        check_type ([box_t, circle_t])
-        check_not_fixed ()
+        self._check_type ([box_t, circle_t], "assign an acceleration to a")
+        self._check_not_fixed ("assign an acceleration")
         self.o = pgeif.accel (self.o, vx, vy)
         return self
 
     def fix (self):
-        check_type ([box_t, circle_t])
+        self._check_type ([box_t, circle_t], "fix a")
         self.fixed = True
         self.o = pgeif.fix (self.o, vx, vy)
         return self
 
     def mass (self, m):
-        check_type ([box_t, circle_t])
-        check_not_fixed ()
+        self._check_type ([box_t, circle_t], "assign a mass to a")
+        self._check_not_fixed ("assign a mass")
         self.o = pgeif.mass (self.o, m)
         return self
 
@@ -49,6 +59,13 @@ class object:
         self.on_collision_with (self, [], p)
         return self
 
+    def _check_type (legal, message):
+        if not self.type in legal:
+            printf ("you cannot %s %s object\n", message, self._type_name ())
+
+    def _check_not_fixed (self, message):
+        if self.fixed:
+            printf ("object %s is fixed, you cannot %s\n", self._type_name (), message)
 
 def rgb (r, g, b):
     return object (colour_t, pgeif.rgb (r, g, b))
@@ -61,7 +78,7 @@ def _register (id, ob):
 def box (x, y, w, h, c):
     id = pgeif.box (x, y, w, h, c._id())
     ob = object (box_t, id)
-    register (id, ob)
+    _register (id, ob)
     return ob
 
 
@@ -76,7 +93,7 @@ def _process (pe):
 def _post_event (e, t):
     if t != -1:
         pygame.event.post (pygame.event.Event (USEREVENT, pge_event=e))
-        pygame.time.set_timer(USEREVENT, t)
+        pygame.time.set_timer (USEREVENT, t)
     return e
 
 
