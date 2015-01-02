@@ -1,5 +1,5 @@
 # Makefile.in:  used to build the pge examples.
-# Copyright (C) 2010
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015
 #                 Free Software Foundation, Inc.
 
 # This file is part of GNU Modula-2.
@@ -27,6 +27,10 @@ SOURCES = \
           deviceIf.mod ramps.mod ramps2.mod boxes.mod wallh.mod bounce.mod line.mod bounce2.mod \
           bounce3.mod bounce4.mod bounce5.mod bagatelle.mod
 
+PGELIBSOURCES = macroObjects.mod Points.mod Fractions.mod PolyMatrix3D.mod Transform3D.mod \
+                deviceGroff.mod delay.mod GC.mod popWorld.mod twoDsim.mod \
+                roots.mod coord.mod polar.mod history.mod devicePy.mod pgeif.mod
+
 include ../../../gm2/config-make
 LIBSTDCXX=../$(TARGET_SUBDIR)/libstdc++-v3/src/.libs/libstdc++.a
 
@@ -49,6 +53,8 @@ OBJ_PATH=.:../../gm2-libs-iso:../../gm2/gm2-libs
 XGM2=../../../xgm2 -B../../../
 XGCC=../../../xgcc -B../../../
 
+PYTHON_VERSION=2.7
+
 all: force
 	@echo "you need to use 'make pre-install' to build the examples using the locally built compiler"
 	@echo "or you can use 'make post-install' to build the examples after installing the compiler"
@@ -63,13 +69,16 @@ all: force
 %.m:  $(srcdir)/%.mxm
 	python $(srcdir)/max2code.py -o $@ $<
 
-$(srcdir)/twoDsim.mod: $(srcdir)/circles.m
+$(srcdir)/twoDsim.mod: circles.m
 
 twoDsim.o: $(srcdir)/twoDsim.mod
 	gm2 -fcpp $(GM2FLAGS) -c $< -o $@
 
 %.o:  $(srcdir)/%.mod
 	gm2 $(GM2FLAGS) -c $< -o $@
+
+%.lo:  $(srcdir)/%.mod
+	libtool --tag=CC --mode=compile gm2 -g -fiso -fextended-opaque -I$(srcdir) -c $< -o $@
 
 run-whole-world: force
 	( python ../../../../../combined/gm2/gcc-versionno/gcc/gm2/examples/pge/pgepygame.py & ) ; sleep 1 ; ./whole-world
@@ -85,6 +94,22 @@ pre-whole-world: circles.m force
 
 post-world: circles.m $(OBJECTS) force
 	gm2 -fm2-statistics -O3 -fsources -fiso -fcpp -I$(srcdir) -fextended-opaque -g -o post-world $(srcdir)/world.mod
+
+libpgeif.la:  $(PGELIBSOURCES:%.mod=%.lo)
+	gm2 -c -g -I$(SRC_PATH_PIM) -fswig $(srcdir)/pgeif.mod
+	swig -c++ -python pgeif.i
+	libtool --tag=CC --mode=compile g++ -g -c pgeif_wrap.cxx -I/usr/include/python$(PYTHON_VERSION) -o pgeif_wrap.lo
+	gm2 -c -g -I$(SRC_PATH_PIM) -fmakelist $(srcdir)/pgeif.mod
+	gm2 -c -g -I$(SRC_PATH_PIM) -fmakeinit -fshared $(srcdir)/pgeif.mod
+	libtool --tag=CC --mode=compile g++ -g -c _m2_pgeif.cpp -o _m2_pgeif.lo
+	libtool --mode=link gcc -g _m2_pgeif.lo $(PGELIBSOURCES:%.mod=%.lo) \
+            pgeif_wrap.lo \
+           -L$(prefix)/lib64 \
+           -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libpgeif.la 
+	cp .libs/libpgeif.so _pgeif.so
+
+pytest: libpgeif.la
+	PYTHONPATH=$(srcdir) python $(srcdir)/examples/exampleBoxes.py
 
 foo: circles.m $(OBJECTS)
 	gm2 $(GM2FLAGS) -fonlylink foo.mod

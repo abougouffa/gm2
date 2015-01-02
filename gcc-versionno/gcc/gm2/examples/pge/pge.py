@@ -3,6 +3,8 @@
 import pgeif
 import pygame
 
+print dir (pgeif)
+
 colour_t, box_t, circle_t = range (3)
 id2ob = {}
 ob2id = {}
@@ -69,6 +71,9 @@ class object:
 
 def rgb (r, g, b):
     return object (colour_t, pgeif.rgb (r, g, b))
+
+def white ():
+    return object (colour_t, pgeif.white ())
 
 def _register (id, ob):
     global id2ob, od2id
