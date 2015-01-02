@@ -214,11 +214,11 @@ source tree.
 
 @table @code
 @item
-gm2 1.0.9 was released on September 23 2014.  This is a beta release before
-gm2-1.1.0.  gm2-1.0.9 passes all regression tests on Debian Wheezy (amd64).
-But on other platforms it is known not to build or create many regression
-test failures.  Bugfixes will be applied to fix porting problems and
-in due time gm2-1.1.0 will be released.
+gm2 1.1.0 was released on January 02 2015.  gm2-1.1.0 passes all regression
+tests on Debian Wheezy (x86_64) and (i686).
+@item
+gm2 1.0.9 Beta was released on September 23 2014, all regressions passed on
+x86_64 Debian Wheezy.
 @item
 gm2 1.0.4 was released on September 30 2011.  This is a bug fix
 release.

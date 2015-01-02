@@ -1,3 +1,16 @@
+2014-01-02      Gaius Mulley <gaius@gnu.org>
+
+	* released GM2 1.1.0
+	* gm2/gm2-libs/config-host:  rebuilt.
+	* gm2/gm2-libs/config-host.in:  1.1.0.
+	* gm2/gm2-libs/config-target:  rebuilt.
+	* gm2/gm2-libs/config-target.in:  1.1.0.
+	* gm2/gm2.texi:  updated release map.
+	* gm2/gm2spec.c:  removed C++ comment.
+	* gm2/version.c:  1.1.0.
+	* gm2/examples/pge/Makefile.in:  interim checkin libpgeif uses
+	  libtool during construction.  Temporary files removed from git.
+
 2014-12-24      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/pge.py:  interim checkin.
