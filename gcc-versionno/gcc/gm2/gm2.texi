@@ -2060,7 +2060,7 @@ swig -c++ -python NumberIO.i
 
 libtool --mode=compile g++ -g -c -I$(yoursrc) _m2_NumberIO.cpp -o _m2_NumberIO.lo
 libtool --tag=CC --mode=compile gm2 -g -c -I$(yoursrc)../../../gm2-libs $(yoursrc)/../../../gm2-libs/NumberIO.mod -o NumberIO.lo
-libtool --tag=CC --mode=compile g++ -g -c NumberIO_wrap.cxx -I/usr/include/python$(yourpython=) -o NumberIO_wrap.lo
+libtool --tag=CC --mode=compile g++ -g -c NumberIO_wrap.cxx -I/usr/include/python$(yourpython) -o NumberIO_wrap.lo
 
 libtool --mode=link gcc -g _m2_NumberIO.lo NumberIO_wrap.lo \
    -L$(yourprefix)/lib64 \

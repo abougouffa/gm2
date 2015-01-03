@@ -1,3 +1,15 @@
+2014-01-03      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/gm2m.bnf:  added debugging and verbose flag.
+	  Also fixed bug so that it understands the -fmake-I option.
+	* gm2/examples/hello/Makefile.in:  use $(EXE) rather than .out
+	* gm2/examples/ncurses/Makefile.in:  corrected arguments to
+	  gm2 -fmakeall.
+	* gm2/examples/pge/Makefile.in:  improved clean target.
+	* gm2/gm2.texi:  corrected typo.
+	* gm2/lang-specs.h:   ensure that gm2m has the -B 
+	  and -fmake-I option outside the -fgm2begin -fgm2end delimiters.
+
 2014-01-02      Gaius Mulley <gaius@gnu.org>
 
 	* released GM2 1.1.0

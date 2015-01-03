@@ -192,7 +192,8 @@ later: force
 transforms: rotating-circles.asc rotating-line.asc
 
 clean: force
-	$(RM) *.o *.m *.cpp *~ $(EXAMPLES)
+	$(RM) *.o *.m *.cpp *~ $(EXAMPLES) *.so *.lo *.la
+	$(RM) -rf .libs *_m2.cpp
 
 clear: force
 	$(RM) *.png *.ms *.cpp

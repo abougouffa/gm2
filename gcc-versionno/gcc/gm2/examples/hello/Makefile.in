@@ -34,21 +34,21 @@ all: force
 
 pre-install: clean
 	$(XGM2) -I$(SRC_PATH_PIM) -g $(srcdir)/hello.mod -L$(LIBSTDCXX)
-	size a.out
+	size a$(EXE)
 	$(XGM2) -g -I$(OBJ_PATH_PIM) -ffunction-sections -fdata-sections $(srcdir)/hello.mod -Wl,--gc-sections -L$(LIBSTDCXX)
-	size a.out
+	size a$(EXE)
 
 post-install: clean
 	gm2 -g -I. $(srcdir)/hello.mod
-	size a.out
+	size a$(EXE)
 	gm2    -g -I. -ffunction-sections -fdata-sections $(srcdir)/hello.mod -Wl,--gc-sections
-	size a.out
+	size a$(EXE)
 
 pre-install-whole: clean
 	$(XGM2) -fm2-whole-program -fextended-opaque $(GM2FLAGS) -o hello-m2-whole-program  -g -I$(SRC_PATH_PIM) $(srcdir)/hello.mod -L$(LIBSTDCXX)
 
 clean:
-	$(RM) *.o a.out a.exe *.cpp *.obj
+	$(RM) *.o a$(EXE) *.cpp *.obj
 
 force:
 

@@ -114,6 +114,7 @@ TYPE
                   END ;
 
 VAR
+   Verbose        : BOOLEAN ;
    main           : PtrToNode ;
    DefExistsTree  : SymbolTree ; (* Table of definition modules found or not   *)
    ModExistsTree  : SymbolTree ; (* Table of imp/program modules found or not  *)
@@ -252,7 +253,10 @@ END RegisterLocalModule ;
 
 PROCEDURE RegisterImport (n: Name) ;
 BEGIN
-   (* printf1('register import from module %a\n', n) ; *)
+   IF Verbose
+   THEN
+      printf1('register import from module %a\n', n)
+   END ;
    WITH pBlock^ DO
       IF NOT IsItemInList(LocalModules, n)
       THEN
@@ -525,19 +529,29 @@ PROCEDURE Open (ModuleName: Name; IsDefinition: BOOLEAN) ;
 VAR
    a, b: String ;
 BEGIN
-   IF Debugging
+   IF Verbose
    THEN
-      fprintf1(StdErr, 'opening module %a.%a\n', ModuleName)
+      fprintf1(StdErr, 'opening module %a\n', ModuleName)
    END ;
    IF IsDefinition
    THEN
-      IF NOT DefExists(ModuleName)
+      IF DefExists(ModuleName)
       THEN
+         IF Verbose
+         THEN
+            fprintf1(StdErr, 'found definition module for %a\n', ModuleName)
+         END
+      ELSE
          fprintf1(StdErr, '# fatal error: definition module for %a does not exist\n', ModuleName)
       END
    ELSE
-      IF NOT ModExists(ModuleName)
+      IF ModExists(ModuleName)
       THEN
+         IF Verbose
+         THEN
+            fprintf1(StdErr, 'found implementation module for %a\n', ModuleName)
+         END
+      ELSE
          fprintf1(StdErr, '# fatal error: implementation/program module %a does not exist\n',
                   ModuleName)
       END
@@ -556,16 +570,44 @@ BEGIN
       a := InitStringCharStar(KeyToCharStar(ModuleName)) ;
       IF IsDefinition
       THEN
-         IF NOT (FindSourceDefFile(a, b) AND OpenSource(PreprocessModule(b)))
+         IF FindSourceDefFile(a, b)
          THEN
-            fprintf1(StdErr, 'cannot find source file for definition module %s\n', a) ;
-            exit(1)
+            IF Verbose
+            THEN
+               fprintf1(StdErr, 'source file: %s\n', b)
+            END ;
+            IF OpenSource(PreprocessModule(b))
+            THEN
+               (* nothing *)
+            ELSE
+               fprintf1(StdErr, 'cannot find source file for definition module %s\n', a) ;
+               exit(1)
+            END
+         ELSE
+            IF Verbose
+            THEN
+               fprintf1(StdErr, 'source file: %s definition not found\n', a)
+            END
          END
       ELSE
-         IF NOT (FindSourceModFile(a, b) AND OpenSource(PreprocessModule(b)))
+         IF FindSourceModFile(a, b)
          THEN
-            fprintf1(StdErr, 'cannot find source file for implementation or program module %s\n', a) ;
-            exit(1)
+            IF Verbose
+            THEN
+               fprintf1(StdErr, 'source file: %s\n', b)
+            END ;
+            IF OpenSource(PreprocessModule(b))
+            THEN
+               (* nothing *)
+            ELSE
+               fprintf1(StdErr, 'cannot find source file for implementation or program module %s\n', a) ;
+               exit(1)
+            END
+         ELSE
+            IF Verbose
+            THEN
+               fprintf1(StdErr, 'source file: %s implementation not found\n', a)
+            END
          END
       END ;
       a := KillString(a) ;
@@ -871,6 +913,42 @@ END Real ;
 
 % module gm2m end
 
+
+(*
+   DumpList - 
+*)
+
+PROCEDURE DumpList (l: List; name: ARRAY OF CHAR) ;
+VAR
+   n: CARDINAL ;
+   s: String ;
+BEGIN
+   IF Verbose
+   THEN
+      n := NoOfItemsInList(l) ;
+      s := Mark(InitString(name)) ;
+      fprintf2(StdErr, 'list %s has %d items\n', s, n)
+   END
+END DumpList ;
+
+
+(*
+   DumpLists - 
+*)
+
+PROCEDURE DumpLists ;
+BEGIN
+   IF pBlock#NIL
+   THEN
+      WITH pBlock^ DO
+         DumpList(ToDoModules, 'ToDoModules') ;
+         DumpList(LocalModules, 'LocalModules') ;
+         DumpList(ImportedModules, 'ImportedModules')
+      END
+   END
+END DumpLists ;
+
+
 (*
    ParseSource - find all imports from a module.
 *)
@@ -878,19 +956,27 @@ END Real ;
 PROCEDURE ParseSource (ModuleName: Name; IsDefinition: BOOLEAN;
                        n: PtrToNode; Level: CARDINAL) ;
 VAR
-   i, j     : CARDINAL ;
-   modname  : Name ;
-   son      : PtrToNode ;
+   i      : CARDINAL ;
+   modname: Name ;
+   son    : PtrToNode ;
 BEGIN
    BeginBlock(Level) ;
    Open(ModuleName, IsDefinition) ;
    CompilationUnit ;
    CloseSource ;
+   DumpLists ;
    WITH pBlock^ DO
       i := 1 ;
-      j := NoOfItemsInList(ToDoModules) ;
-      WHILE i<=j DO
+      WHILE i<=NoOfItemsInList(ToDoModules) DO
          modname := GetItemFromList(ToDoModules, i) ;
+         IF CreateSon(son, modname, DefExtn, n, level+1)
+         THEN
+         END ;
+         INC(i)
+      END ;
+      i := 1 ;
+      WHILE i<=NoOfItemsInList(ImportedModules) DO
+         modname := GetItemFromList(ImportedModules, i) ;
          IF CreateSon(son, modname, DefExtn, n, level+1)
          THEN
          END ;
@@ -1033,7 +1119,7 @@ VAR
    n1, n2: Name ;
    n     : CARDINAL ;
 BEGIN
-   IF Debugging
+   IF Verbose
    THEN
       n1 := father^.Source^.ModName ;
       n2 := father^.Source^.Ext ;
@@ -1086,18 +1172,18 @@ BEGIN
       ELSE
          IF FindSourceModFile(a, b)
          THEN
-            IF Debugging
+            IF Verbose
             THEN
-               fprintf1(StdErr, 'module %s exists\n', b)
+               fprintf2(StdErr, 'module %s:  %s\n', a, b)
             END ;
             b := KillString(b) ;
             PutSymKey(ModExistsTree, ModuleName, KeyFound) ;
             a := KillString(a) ;
             RETURN( TRUE )
          ELSE
-            IF Debugging
+            IF Verbose
             THEN
-               fprintf1(StdErr, 'module %s does not exist\n', a)
+               fprintf1(StdErr, 'module %s:  implementation not found\n', a)
             END ;
             b := KillString(b) ;
             PutSymKey(ModExistsTree, ModuleName, KeyNotFound) ;
@@ -1134,18 +1220,18 @@ BEGIN
    THEN
       IF FindSourceDefFile(a, b)
       THEN
-         IF Debugging
+         IF Verbose
          THEN
-            fprintf1(StdErr, 'module %s exists\n', b)
+            fprintf2(StdErr, 'module %s:  %s\n', a, b)
          END ;
          b := KillString(b) ;
          PutSymKey(DefExistsTree, ModuleName, KeyFound) ;
          a := KillString(a) ;
          RETURN( TRUE )
       ELSE
-         IF Debugging
+         IF Verbose
          THEN
-            fprintf1(StdErr, 'module %s.def does not exist\n', a)
+            fprintf1(StdErr, 'module %s:  definition module not found\n', a)
          END ;
          b := KillString(b) ;
          PutSymKey(DefExistsTree, ModuleName, KeyNotFound) ;
@@ -1634,6 +1720,46 @@ END OpenOutputFile ;
 
 
 (*
+   StripSlash - removes '/' from the end of the string, s.
+*)
+
+PROCEDURE StripSlash (s: String) : String ;
+BEGIN
+   WHILE Length(s)>0 DO
+      IF char(s, -1)='/'
+      THEN
+         s := Slice(Mark(s), 0, -1)
+      ELSE
+         RETURN( s )
+      END
+   END ;
+   RETURN( s )
+END StripSlash ;
+
+
+(*
+   TryPrefix - 
+*)
+
+PROCEDURE TryPrefix (prefix, compiler: String) : String ;
+VAR
+   try: String ;
+BEGIN
+   prefix := StripSlash(prefix) ;
+   compiler := StripSlash(compiler) ;
+   try := ConCat(prefix, compiler) ;
+   IF Exists(try)
+   THEN
+      compiler := KillString(compiler) ;
+      RETURN( try )
+   ELSE
+      prefix := KillString(prefix) ;
+      RETURN( compiler )
+   END
+END TryPrefix ;
+
+
+(*
    ScanGm2Args - scans the gm2 arguments and builds up the Options string.
 *)
 
@@ -1655,9 +1781,10 @@ BEGIN
                Options := ConCatChar(Options, ' ')
             END ;
             Options := ConCat(Options, s) ;
+(*
             IF EqualArray(Mark(Slice(s, 0, 2)), '-B')
             THEN
-               Compiler := ConCat(Slice(s, 2, 0), Mark(Compiler))
+               Compiler := TryPrefix(Slice(s, 2, 0), Compiler)
             ELSIF EqualArray(Slice(s, 0, 9), '-fmake-I=')
             THEN
                IF GM2PathFound
@@ -1668,7 +1795,8 @@ BEGIN
                M2MPathFound := TRUE ;
                M2MPath := Slice(s, 9, 0) ;
                InitSearchPath(M2MPath)
-            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-fdef=')
+*)
+            IF EqualArray(Mark(Slice(s, 0, 6)), '-fdef=')
             THEN
                SetDefExtension(Slice(s, 6, 0)) ;
                DefExtn := makekey(string(Slice(s, 6, 0)))
@@ -1698,7 +1826,13 @@ BEGIN
    IF Narg()>1
    THEN
       WHILE GetArg(s, CurrentArg) DO
-         IF EqualArray(Slice(s, 0, 2), '-I')
+         IF EqualArray(Mark(Slice(s, 0, 2)), '-B')
+         THEN
+            Compiler := TryPrefix(Slice(s, 2, 0), InitString('gm2'))
+         ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-v')
+         THEN
+            Verbose := TRUE
+         ELSIF EqualArray(Slice(s, 0, 2), '-I')
          THEN
             IF M2MPathFound
             THEN
@@ -1824,6 +1958,7 @@ BEGIN
    NoLink := FALSE ;
    op := StdOut ;
    ExitValue := 0 ;
+   Verbose := FALSE ;
    ParseArgs
 END Init ;
 

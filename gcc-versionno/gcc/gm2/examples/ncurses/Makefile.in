@@ -35,9 +35,9 @@ pre-install: clean
                 -fmakeall -g $(srcdir)/testwin.mod -lncurses -lpth
 
 post-install: force
-	gm2 -g -fmake-I=$(srcdir) -flibs=pim-coroutine -fmakeall -I$(srcdir)/../../gm2-libs-coroutines:$(srcdir) $(srcdir)/testwin.mod -lncurses -lpth
+	gm2 -g -fmake-I=$(srcdir) -flibs=cor,pim,iso -fmakeall -I$(srcdir)/../../gm2-libs-coroutines:$(srcdir) $(srcdir)/testwin.mod -lncurses -lpth
 
 clean: force
-	$(RM) *.o a.out *_m2.cpp
+	$(RM) *.o a$(EXE) *_m2.cpp
 
 force:
