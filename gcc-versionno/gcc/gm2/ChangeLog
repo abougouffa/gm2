@@ -1,3 +1,18 @@
+2014-01-04      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/Fractions.mod:  removed unnecessary local
+	 variable.
+	* gm2/examples/pge/Makefile.in:  added extra sources and added
+	  libraries.  Added local directory to the PYTHONPATH.
+	* gm2/examples/pge/pge.py:  many bugfixes and self checking code
+	  added.
+	* gm2/examples/pge/pgeif.mod:  initialise deviceIf.
+	* gm2/gm2-libs-iso/LowLong.mod:  correct prototype for huge_val.
+	* gm2/gm2-libs-iso/LowReal.mod:  correct prototype for huge_val.
+	* gm2/gm2-libs-iso/LowShort.mod:  correct prototype for huge_valf.
+	* gm2/gm2-libs/Builtins.def:  correct prototype for huge_val,
+	  huge_valf, huge_vall.
+
 2014-01-03      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/gm2m.bnf:  added debugging and verbose flag.
@@ -7,8 +22,9 @@
 	  gm2 -fmakeall.
 	* gm2/examples/pge/Makefile.in:  improved clean target.
 	* gm2/gm2.texi:  corrected typo.
-	* gm2/lang-specs.h:   ensure that gm2m has the -B 
-	  and -fmake-I option outside the -fgm2begin -fgm2end delimiters.
+	* gm2/lang-specs.h:   ensure that gm2m is invoked with the -B 
+	  and -fmake-I options present outside the -fgm2begin
+	  -fgm2end delimiters.
 
 2014-01-02      Gaius Mulley <gaius@gnu.org>
 

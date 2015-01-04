@@ -84,7 +84,7 @@ END sign ;
 
 PROCEDURE succ (x: SHORTREAL) : SHORTREAL ;
 BEGIN
-   RETURN nextafterf(x, huge_valf(x))
+   RETURN nextafterf(x, huge_valf())
 END succ ;
 
 
@@ -100,7 +100,7 @@ END succ ;
 
 PROCEDURE ulp (x: SHORTREAL) : SHORTREAL ;
 BEGIN
-   IF x<huge_valf(x)
+   IF x<huge_valf()
    THEN
       RETURN succ(x)-x
    ELSE
@@ -115,7 +115,7 @@ END ulp ;
 
 PROCEDURE pred (x: SHORTREAL) : SHORTREAL ;
 BEGIN
-   RETURN nextafterf(x, -huge_valf(x))
+   RETURN nextafterf(x, -huge_valf())
 END pred ;
 
 

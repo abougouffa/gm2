@@ -27,9 +27,10 @@ SOURCES = \
           deviceIf.mod ramps.mod ramps2.mod boxes.mod wallh.mod bounce.mod line.mod bounce2.mod \
           bounce3.mod bounce4.mod bounce5.mod bagatelle.mod
 
-PGELIBSOURCES = macroObjects.mod Points.mod Fractions.mod PolyMatrix3D.mod Transform3D.mod \
-                deviceGroff.mod delay.mod GC.mod popWorld.mod twoDsim.mod \
-                roots.mod coord.mod polar.mod history.mod devicePy.mod pgeif.mod
+PGELIBSOURCES = macroObjects.mod Points.mod Fractions.mod PolyMatrix3D.mod \
+                Transform3D.mod deviceGroff.mod delay.mod GC.mod popWorld.mod \
+                twoDsim.mod roots.mod coord.mod polar.mod history.mod devicePy.mod \
+                deviceIf.mod rpc.mod pgeif.mod
 
 include ../../../gm2/config-make
 LIBSTDCXX=../$(TARGET_SUBDIR)/libstdc++-v3/src/.libs/libstdc++.a
@@ -45,6 +46,7 @@ EXAMPLES = post-world whole-world
 srcdir = @srcdir@
 gm2dir = $(srcdir)/../..
 gm2tardir = ../../../../$(TARGET_SUBDIR)
+prefix = @prefix@
 
 SRC_PATH_PIM=$(srcdir):$(gm2tardir)/libgm2/libpim:$(gm2dir)/gm2-libs:$(gm2dir)/gm2-libs-iso
 SRC_PATH=$(srcdir):$(gm2dir)/gm2-compiler:../../gm2-libs-iso:$(gm2dir)/gm2-libs-iso:$(gm2dir)/gm2-libs
@@ -105,11 +107,11 @@ libpgeif.la:  $(PGELIBSOURCES:%.mod=%.lo)
 	libtool --mode=link gcc -g _m2_pgeif.lo $(PGELIBSOURCES:%.mod=%.lo) \
             pgeif_wrap.lo \
            -L$(prefix)/lib64 \
-           -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libpgeif.la 
+           -rpath `pwd` -lgm2 -liso -lgcc -lstdc++ -lpth -lc -lm -o libpgeif.la 
 	cp .libs/libpgeif.so _pgeif.so
 
 pytest: libpgeif.la
-	PYTHONPATH=$(srcdir) python $(srcdir)/examples/exampleBoxes.py
+	PYTHONPATH=.:$(srcdir) python $(srcdir)/examples/exampleBoxes.py
 
 foo: circles.m $(OBJECTS)
 	gm2 $(GM2FLAGS) -fonlylink foo.mod

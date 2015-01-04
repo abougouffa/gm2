@@ -3,8 +3,6 @@
 import pgeif
 import pygame
 
-print dir (pgeif)
-
 colour_t, box_t, circle_t = range (3)
 id2ob = {}
 ob2id = {}
@@ -23,7 +21,6 @@ class object:
         self.type = t
         self.o = o
         self.fixed = False
-        return self
 
     def _id (self):
         return self.o
@@ -43,7 +40,7 @@ class object:
     def fix (self):
         self._check_type ([box_t, circle_t], "fix a")
         self.fixed = True
-        self.o = pgeif.fix (self.o, vx, vy)
+        self.o = pgeif.fix (self.o)
         return self
 
     def mass (self, m):
@@ -58,10 +55,10 @@ class object:
         return self
 
     def on_collision (self, p):
-        self.on_collision_with (self, [], p)
+        self.on_collision_with ([], p)
         return self
 
-    def _check_type (legal, message):
+    def _check_type (self, legal, message):
         if not self.type in legal:
             printf ("you cannot %s %s object\n", message, self._type_name ())
 
@@ -69,8 +66,22 @@ class object:
         if self.fixed:
             printf ("object %s is fixed, you cannot %s\n", self._type_name (), message)
 
+    def _check_colour (self):
+        if self.type != colour_t:
+            printf ("object is expected to be a colour")
+
+    def _param_colour (self, message):
+        if self.type != colour_t:
+            printf (message)
+
+
 def rgb (r, g, b):
-    return object (colour_t, pgeif.rgb (r, g, b))
+    print "in rgb"
+    c = pgeif.rgb (float(r), float(g), float(b))
+    print "after pgeif.rgb ->", c
+    o = object (colour_t, c)
+    o._check_colour ()
+    return object (colour_t, c)
 
 def white ():
     return object (colour_t, pgeif.white ())
@@ -81,6 +92,7 @@ def _register (id, ob):
     ob2id[ob] = id
 
 def box (x, y, w, h, c):
+    c._param_colour ("fifth parameter to box is expected to be a colour")
     id = pgeif.box (x, y, w, h, c._id())
     ob = object (box_t, id)
     _register (id, ob)

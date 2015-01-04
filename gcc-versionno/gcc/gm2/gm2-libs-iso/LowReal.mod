@@ -84,7 +84,7 @@ END sign ;
 
 PROCEDURE succ (x: REAL) : REAL ;
 BEGIN
-   RETURN nextafter(x, huge_val(x))
+   RETURN nextafter(x, huge_val())
 END succ ;
 
 
@@ -100,7 +100,7 @@ END succ ;
 
 PROCEDURE ulp (x: REAL) : REAL ;
 BEGIN
-   IF x<huge_val(x)
+   IF x<huge_val()
    THEN
       RETURN succ(x)-x
    ELSE
@@ -115,7 +115,7 @@ END ulp ;
 
 PROCEDURE pred (x: REAL) : REAL ;
 BEGIN
-   RETURN nextafter(x, -huge_val(x))
+   RETURN nextafter(x, -huge_val())
 END pred ;
 
 

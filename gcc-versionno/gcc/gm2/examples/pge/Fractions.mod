@@ -2531,7 +2531,7 @@ END getFract ;
 
 PROCEDURE putReal (r: REAL) : Fract ;
 VAR
-   w, n, d: CARDINAL ;
+   w, n: CARDINAL ;
 BEGIN
    IF r>=0.0
    THEN

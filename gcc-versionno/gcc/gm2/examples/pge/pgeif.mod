@@ -22,6 +22,7 @@ IMPLEMENTATION MODULE pgeif ;
 FROM Storage IMPORT ALLOCATE ;
 IMPORT deviceIf ;
 IMPORT twoDsim ;
+FROM deviceIf IMPORT useGroff ;
 FROM SYSTEM IMPORT THROW ;
 FROM Indexing IMPORT Index, InitIndex, GetIndice, PutIndice, HighIndice, IncludeIndiceIntoIndex, InBounds ;
 FROM Fractions IMPORT Fract, putReal ;
@@ -47,7 +48,8 @@ VAR
 
 PROCEDURE init ;
 BEGIN
-   listOfDefs := InitIndex (1)
+   listOfDefs := InitIndex (1) ;
+   useGroff (FALSE)
 END init ;
 
 
