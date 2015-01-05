@@ -29,10 +29,12 @@ DEFINITION MODULE pgeif ;
                  to be swig/python friendly.
 *)
 
+FROM SYSTEM IMPORT ADDRESS ;
+
 EXPORT UNQUALIFIED ExceptionKind,
                    rgb, white, black, red, green, blue, purple, gravity,
                    box, poly3, poly4, poly5, poly6, mass, fix, circle,
-                   velocity, accel, rotate ;
+                   velocity, accel, rotate, getNextEvent ;
 
 
 TYPE
@@ -184,6 +186,13 @@ PROCEDURE accel (id: CARDINAL; ax, ay: REAL) : CARDINAL ;
 *)
 
 PROCEDURE rotate (id: CARDINAL; angle: REAL) : CARDINAL ;
+
+
+(*
+   getNextEvent -
+*)
+
+PROCEDURE getNextEvent () : ADDRESS ;
 
 
 END pgeif.

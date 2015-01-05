@@ -347,6 +347,16 @@ BEGIN
 END fps ;
 
 
+(*
+   getNextEvent -
+*)
+
+PROCEDURE getNextEvent () : ADDRESS ;
+BEGIN
+   RETURN NIL
+END getNextEvent ;
+
+
 BEGIN
    init
 END pgeif.
