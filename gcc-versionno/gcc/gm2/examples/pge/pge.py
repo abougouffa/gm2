@@ -18,6 +18,7 @@ def printf (format, *args):
 
 class object:
     def __init__ (self, t, o):
+        self.deleted = False
         self.type = t
         self.o = o
         self.fixed = False
@@ -28,17 +29,20 @@ class object:
     def velocity (self, vx, vy):
         self._check_type ([box_t, circle_t], "assign a velocity to a")
         self._check_not_fixed ("assign a velocity")
+        self._check_not_deleted ("a velocity")
         self.o = pgeif.velocity (self.o, vx, vy)
         return self
 
     def accel (self, ax, ay):
         self._check_type ([box_t, circle_t], "assign an acceleration to a")
         self._check_not_fixed ("assign an acceleration")
+        self._check_not_deleted ("an acceleration")
         self.o = pgeif.accel (self.o, vx, vy)
         return self
 
     def fix (self):
         self._check_type ([box_t, circle_t], "fix a")
+        self._check_not_deleted (" a fixed position")
         self.fixed = True
         self.o = pgeif.fix (self.o)
         return self
@@ -46,6 +50,7 @@ class object:
     def mass (self, m):
         self._check_type ([box_t, circle_t], "assign a mass to a")
         self._check_not_fixed ("assign a mass")
+        self._check_not_deleted (" a mass")
         self.o = pgeif.mass (self.o, m)
         return self
 
@@ -74,6 +79,13 @@ class object:
         if self.type != colour_t:
             printf (message)
 
+    def delete (self):
+        if not self.deleted:
+            self.o = pgeif.remove (self.o)
+
+    def _check_not_deleted (self, message):
+        if self.deleted:
+            printf ("object has been deleted and now it is being given " + message)
 
 def rgb (r, g, b):
     print "in rgb"
@@ -98,6 +110,12 @@ def box (x, y, w, h, c):
     _register (id, ob)
     return ob
 
+def circle (x, y, r, c):
+    c._param_colour ("fourth parameter to box is expected to be a colour")
+    id = pgeif.circle (x, y, r, c._id())
+    ob = object (circle_t, id)
+    _register (id, ob)
+    return ob
 
 def _process (pe):
     f = pe._get_func ()

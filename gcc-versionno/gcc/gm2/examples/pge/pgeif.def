@@ -1,4 +1,4 @@
-(* Copyright (C) 2011 Free Software Foundation, Inc. *)
+(* Copyright (C) 2015 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -29,17 +29,17 @@ DEFINITION MODULE pgeif ;
                  to be swig/python friendly.
 *)
 
-FROM SYSTEM IMPORT ADDRESS ;
+FROM SYSTEM IMPORT BYTE ;
 
 EXPORT UNQUALIFIED ExceptionKind,
                    rgb, white, black, red, green, blue, purple, gravity,
                    box, poly3, poly4, poly5, poly6, mass, fix, circle,
-                   velocity, accel, rotate, getNextEvent ;
+                   velocity, accel, rotate, do_next_event, get_event_data,
+                   is_collision, is_frame, time_until, get_time, rm ;
 
 
 TYPE
    ExceptionKind = (IncorrectType, IdOutOfBounds) ;
-
 
 
 (*
@@ -189,10 +189,64 @@ PROCEDURE rotate (id: CARDINAL; angle: REAL) : CARDINAL ;
 
 
 (*
-   getNextEvent -
+   get_event_data - retrieves the next event into the, data.
+                    The buffer address may be changed by this procedure
+                    it will also assign the number of bytes used into
+                    length.
 *)
 
-PROCEDURE getNextEvent () : ADDRESS ;
+PROCEDURE get_event_data (VAR data: ARRAY OF CHAR) ;
+
+
+(*
+   is_collision - returns TRUE if next event is a collision event.
+*)
+
+PROCEDURE is_collision () : BOOLEAN ;
+
+
+(*
+   is_frame - returns TRUE if the next event is a redraw frame event.
+*)
+
+PROCEDURE is_frame () : BOOLEAN ;
+
+
+(*
+   time_until - returns the relative time from now until the next event.
+*)
+
+PROCEDURE time_until () : REAL ;
+
+
+(*
+   skip_until - advances time for, t, units or until the next event is reached.
+*)
+
+PROCEDURE skip_until (t: REAL) ;
+
+
+(*
+   do_next_event - advance time to the next event and then
+                   process the event.
+*)
+
+PROCEDURE do_next_event ;
+
+
+(*
+   get_time - return the current simulation time.
+*)
+
+PROCEDURE get_time () : REAL ;
+
+
+(*
+   rm - delete this object from the simulated world.
+        The same id is returned.
+*)
+
+PROCEDURE rm (id: CARDINAL) : CARDINAL ;
 
 
 END pgeif.

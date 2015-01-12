@@ -2870,13 +2870,14 @@ below together with their status.
 
 @table @code
 @item
-gcc-4.1.2 stable, see next section for details on how to build.
-@item
-gcc-4.7 testing, see next but one section for building details.
+gcc-4.7 stable, see next but one section for building details.
 @end table
 
 @node Building on gcc 4.1.2, Building on gcc 4.7, Building, Top
 @section Building GNU Modula-2 grafted on the gcc-4.1.2 branch
+
+Unless you have a specific reason, it is advisable to use the 4.7 graft of
+gm2 (see the next section).
 
 On a GNU/Linux system you should also be able to build it using these
 commands.  If you are building on a system which supports multiarch
@@ -2926,9 +2927,9 @@ example.
 @node Building on gcc 4.7, Debian gcc-4.7 build, Building on gcc 4.1.2, Top
 @section Building GNU Modula-2 grafted on the gcc-4.7 branch
 
-This is now pre-release.  It currently builds cleanly under Debian Wheezy
-(LP64) and at the time of writing only has 6 regression failures
-(compared to 9518 passes).
+This is the current stable release of GNU Modula-2.  It currently
+builds cleanly under Debian Wheezy (x86_64 and i686) and at the time
+of writing no regression failures on the above platforms.
 The internals of GNU Modula-2 have been heavily overhauled, in
 particular the code interfacing the Modula-2 front end and the
 interface to the construction of GCC Trees.  This should mean that

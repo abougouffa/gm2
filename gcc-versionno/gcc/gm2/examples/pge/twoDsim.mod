@@ -3164,6 +3164,131 @@ END addCollisionEvent ;
 
 
 (*
+   nextEvent - moves onto the next event.
+*)
+
+PROCEDURE nextEvent ;
+VAR
+   t: REAL ;
+BEGIN
+   t := doNextEvent ()
+END nextEvent ;
+
+
+(*
+   getTime - returns the current time in the simulation.
+*)
+
+PROCEDURE getTime () : REAL ;
+BEGIN
+   RETURN( currentTime )
+END getTime ;
+
+
+(*
+   isEvent - return TRUE if the next event is of type, t.
+*)
+
+PROCEDURE isEvent (t: eventType) : BOOLEAN ;
+BEGIN
+   IF eventQ=NIL
+   THEN
+      RETURN( FALSE )
+   ELSE
+      WITH eventQ^ DO
+         IF ePtr=NIL
+         THEN
+            RETURN( FALSE )
+         ELSE
+            RETURN( ePtr^.etype=t )
+         END
+      END
+   END
+END isEvent ;
+
+
+(*
+   isCollision - returns TRUE if the next event is a collision event.
+*)
+
+PROCEDURE isCollision () : BOOLEAN ;
+BEGIN
+   RETURN( isEvent(circlesEvent) OR isEvent(circlePolygonEvent) OR
+           isEvent(polygonPolygonEvent) )
+END isCollision ;
+
+
+(*
+   isFrame - returns TRUE if the next event is a frame event.
+*)
+
+PROCEDURE isFrame () : BOOLEAN ;
+BEGIN
+   RETURN( isEvent(frameEvent) )
+END isFrame ;
+
+
+(*
+   timeUntil - returns the relative time from now until the next event.
+*)
+
+PROCEDURE timeUntil () : REAL ;
+BEGIN
+   IF eventQ=NIL
+   THEN
+      RETURN( 0.0 )
+   ELSE
+      RETURN( eventQ^.time )
+   END
+END timeUntil ;
+
+
+(*
+   skipUntil - advances time for, t, units or until the next event is reached.
+*)
+
+PROCEDURE skipUntil (t: REAL) ;
+VAR
+   dt: REAL ;
+BEGIN
+   IF eventQ#NIL
+   THEN
+      IF t > eventQ^.time
+      THEN
+         dt := eventQ^.time ;
+         IF NOT nearZero(dt)
+         THEN
+            currentTime := currentTime + dt
+         END ;
+         eventQ^.time := 0.0
+      ELSE
+         dt := eventQ^.time - t ;
+         IF nearZero(dt)
+         THEN
+            currentTime := currentTime + eventQ^.time ;
+            eventQ^.time := 0.0
+         ELSE
+            currentTime := currentTime + t ;
+            eventQ^.time := eventQ^.time - t
+         END
+      END
+   END
+END skipUntil ;
+
+
+(*
+   delete - delete this object from the simulated world.
+            The same id is returned.
+*)
+
+PROCEDURE delete (id: CARDINAL) : CARDINAL ;
+BEGIN
+
+   RETURN( id )
+END delete ;
+
+
+(*
    killQueue - destroys the event queue and returns events to the free list.
 *)
 

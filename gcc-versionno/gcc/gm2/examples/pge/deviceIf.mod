@@ -18,10 +18,10 @@ Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE deviceIf ;
 
-IMPORT devicePy, deviceGroff ;
+IMPORT devicePy, deviceGroff, deviceBuffer ;
 
 VAR
-   groff: BOOLEAN ;
+   device: (groff, rpc, buffer) ;
 
 
 (*
@@ -30,11 +30,12 @@ VAR
 
 PROCEDURE white () : CARDINAL ;
 BEGIN
-   IF groff
-   THEN
-      RETURN deviceGroff.white()
-   ELSE
-      RETURN devicePy.white()
+   CASE device OF
+
+   groff :  RETURN deviceGroff.white() |
+   rpc   :  RETURN devicePy.white() |
+   buffer:  RETURN deviceBuffer.white()
+
    END
 END white ;
 
@@ -45,11 +46,12 @@ END white ;
 
 PROCEDURE black () : CARDINAL ;
 BEGIN
-   IF groff
-   THEN
-      RETURN deviceGroff.black()
-   ELSE
-      RETURN devicePy.black()
+   CASE device OF
+
+   groff :  RETURN deviceGroff.black() |
+   rpc   :  RETURN devicePy.black() |
+   buffer:  RETURN deviceBuffer.black()
+
    END
 END black ;
 
@@ -60,11 +62,12 @@ END black ;
 
 PROCEDURE red () : CARDINAL ;
 BEGIN
-   IF groff
-   THEN
-      RETURN deviceGroff.red()
-   ELSE
-      RETURN devicePy.red()
+   CASE device OF
+
+   groff :  RETURN deviceGroff.red() |
+   rpc   :  RETURN devicePy.red() |
+   buffer:  RETURN deviceBuffer.red()
+
    END
 END red ;
 
@@ -75,11 +78,12 @@ END red ;
 
 PROCEDURE green () : CARDINAL ;
 BEGIN
-   IF groff
-   THEN
-      RETURN deviceGroff.green()
-   ELSE
-      RETURN devicePy.green()
+   CASE device OF
+
+   groff :  RETURN deviceGroff.green() |
+   rpc   :  RETURN devicePy.green() |
+   buffer:  RETURN deviceBuffer.green()
+
    END
 END green ;
 
@@ -90,11 +94,12 @@ END green ;
 
 PROCEDURE blue () : CARDINAL ;
 BEGIN
-   IF groff
-   THEN
-      RETURN deviceGroff.blue()
-   ELSE
-      RETURN devicePy.blue()
+   CASE device OF
+
+   groff :  RETURN deviceGroff.blue() |
+   rpc   :  RETURN devicePy.blue() |
+   buffer:  RETURN deviceBuffer.blue()
+
    END
 END blue ;
 
@@ -105,11 +110,12 @@ END blue ;
 
 PROCEDURE yellow () : CARDINAL ;
 BEGIN
-   IF groff
-   THEN
-      RETURN deviceGroff.yellow()
-   ELSE
-      RETURN devicePy.yellow()
+   CASE device OF
+
+   groff :  RETURN deviceGroff.yellow() |
+   rpc   :  RETURN devicePy.yellow() |
+   buffer:  RETURN deviceBuffer.yellow()
+
    END
 END yellow ;
 
@@ -120,11 +126,12 @@ END yellow ;
 
 PROCEDURE purple () : CARDINAL ;
 BEGIN
-   IF groff
-   THEN
-      RETURN deviceGroff.purple()
-   ELSE
-      RETURN devicePy.purple()
+   CASE device OF
+
+   groff :  RETURN deviceGroff.purple() |
+   rpc   :  RETURN devicePy.purple() |
+   buffer:  RETURN deviceBuffer.purple()
+
    END
 END purple ;
 
@@ -135,11 +142,12 @@ END purple ;
 
 PROCEDURE glyphLine (start, end: Point; thick: Fract; c: Colour) ;
 BEGIN
-   IF groff
-   THEN
-      deviceGroff.glyphLine(start, end, thick, c)
-   ELSE
-      devicePy.glyphLine(start, end, thick, c)
+   CASE device OF
+
+   groff :  deviceGroff.glyphLine(start, end, thick, c) |
+   rpc   :  devicePy.glyphLine(start, end, thick, c) |
+   buffer:  deviceBuffer.glyphLine(start, end, thick, c)
+
    END
 END glyphLine ;
 
@@ -152,11 +160,12 @@ END glyphLine ;
 
 PROCEDURE glyphPolygon (n: CARDINAL; p: ARRAY OF Point; fill: BOOLEAN; thick: Fract; c: Colour) ;
 BEGIN
-   IF groff
-   THEN
-      deviceGroff.glyphPolygon(n, p, fill, thick, c)
-   ELSE
-      devicePy.glyphPolygon(n, p, fill, thick, c)
+   CASE device OF
+
+   groff :  deviceGroff.glyphPolygon(n, p, fill, thick, c) |
+   rpc   :  devicePy.glyphPolygon(n, p, fill, thick, c) |
+   buffer:  deviceBuffer.glyphPolygon(n, p, fill, thick, c)
+
    END
 END glyphPolygon ;
 
@@ -168,11 +177,12 @@ END glyphPolygon ;
 
 PROCEDURE glyphCircle (pos: Point; fill: BOOLEAN; thick: Fract; rad: Fract; c: Colour) ;
 BEGIN
-   IF groff
-   THEN
-      deviceGroff.glyphCircle(pos, fill, thick, rad, c)
-   ELSE
-      devicePy.glyphCircle(pos, fill, thick, rad, c)
+   CASE device OF
+
+   groff :  deviceGroff.glyphCircle(pos, fill, thick, rad, c) |
+   rpc   :  devicePy.glyphCircle(pos, fill, thick, rad, c) |
+   buffer:  deviceBuffer.glyphCircle(pos, fill, thick, rad, c)
+
    END
 END glyphCircle ;
 
@@ -184,11 +194,12 @@ END glyphCircle ;
 
 PROCEDURE flipBuffer ;
 BEGIN
-   IF groff
-   THEN
-      deviceGroff.flipBuffer
-   ELSE
-      devicePy.flipBuffer
+   CASE device OF
+
+   groff :  deviceGroff.flipBuffer |
+   rpc   :  devicePy.flipBuffer |
+   buffer:  deviceBuffer.flipBuffer
+
    END
 END flipBuffer ;
 
@@ -202,27 +213,55 @@ END flipBuffer ;
 
 PROCEDURE defineColour (r, g, b: Fract) : CARDINAL ;
 BEGIN
-   IF groff
-   THEN
-      RETURN deviceGroff.defineColour(r, g, b)
-   ELSE
-      RETURN devicePy.defineColour(r, g, b)
+   CASE device OF
+
+   groff :  RETURN deviceGroff.defineColour(r, g, b) |
+   rpc   :  RETURN devicePy.defineColour(r, g, b) |
+   buffer:  RETURN deviceBuffer.defineColour(r, g, b)
+
    END
 END defineColour ;
 
 
 (*
-   useGroff - if b is TRUE then deviceIf maps onto the groff device.
+   useGroff - use the groff device to render frames into png images.
 *)
 
-PROCEDURE useGroff (b: BOOLEAN) ;
+PROCEDURE useGroff ;
 BEGIN
    deviceGroff.Init ;
    devicePy.Init ;
-   groff := b
+   deviceBuffer.Init ;
+   device := groff
 END useGroff ;
 
 
+(*
+   useRPC - use the rpc device connect to a server to render frames.
+*)
+
+PROCEDURE useRPC ;
 BEGIN
-   groff := FALSE
+   deviceGroff.Init ;
+   devicePy.Init ;
+   deviceBuffer.Init ;
+   device := rpc
+END useRPC ;
+
+
+(*
+   useBuffer - place the objects into a frame buffer.
+*)
+
+PROCEDURE useBuffer ;
+BEGIN
+   deviceGroff.Init ;
+   devicePy.Init ;
+   deviceBuffer.Init ;
+   device := buffer
+END useBuffer ;
+
+
+BEGIN
+   device := groff
 END deviceIf.

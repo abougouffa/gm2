@@ -22,7 +22,7 @@ IMPLEMENTATION MODULE pgeif ;
 FROM Storage IMPORT ALLOCATE ;
 IMPORT deviceIf ;
 IMPORT twoDsim ;
-FROM deviceIf IMPORT useGroff ;
+FROM deviceIf IMPORT useBuffer ;
 FROM SYSTEM IMPORT THROW ;
 FROM Indexing IMPORT Index, InitIndex, GetIndice, PutIndice, HighIndice, IncludeIndiceIntoIndex, InBounds ;
 FROM Fractions IMPORT Fract, putReal ;
@@ -49,7 +49,7 @@ VAR
 PROCEDURE init ;
 BEGIN
    listOfDefs := InitIndex (1) ;
-   useGroff (FALSE)
+   useBuffer
 END init ;
 
 
@@ -348,13 +348,79 @@ END fps ;
 
 
 (*
-   getNextEvent -
+   get_event_data -
 *)
 
-PROCEDURE getNextEvent () : ADDRESS ;
+PROCEDURE get_event_data (VAR data: ARRAY OF CHAR) ;
 BEGIN
-   RETURN NIL
-END getNextEvent ;
+   (* getEventData (data, length) *)
+END get_event_data ;
+
+
+PROCEDURE do_next_event ;
+BEGIN
+   twoDsim.nextEvent
+END do_next_event ;
+
+
+PROCEDURE get_time () : REAL ;
+BEGIN
+   RETURN twoDsim.getTime ()
+END get_time ;
+
+
+PROCEDURE is_collision () : BOOLEAN ;
+BEGIN
+   RETURN twoDsim.isCollision ()
+END is_collision ;
+
+
+PROCEDURE is_frame () : BOOLEAN ;
+BEGIN
+   RETURN twoDsim.isFrame ()
+END is_frame ;
+
+
+(*
+   time_until - returns the relative time from now until the next event.
+*)
+
+PROCEDURE time_until () : REAL ;
+BEGIN
+   RETURN twoDsim.timeUntil ()
+END time_until ;
+
+
+(*
+   skip_until - advances time for, t, units or until the next event is reached.
+*)
+
+PROCEDURE skip_until (t: REAL) ;
+BEGIN
+   twoDsim.skipUntil (t)
+END skip_until ;
+
+
+(*
+   do_next_event - advance time to the next event and then
+                   process the event.
+*)
+
+PROCEDURE do_next_event ;
+BEGIN
+   twoDsim.nextEvent
+END do_next_event ;
+
+
+(*
+   rm - delete this object from the simulated world.
+        The same id is returned.
+*)
+
+PROCEDURE rm (id: CARDINAL) : CARDINAL ;
+BEGIN
+   RETURN twoDsim.delete (id)
+END rm ;
 
 
 BEGIN

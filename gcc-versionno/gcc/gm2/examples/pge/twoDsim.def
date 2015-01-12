@@ -159,4 +159,54 @@ PROCEDURE simulateFor (t: REAL) ;
 PROCEDURE skipFor (t: REAL) ;
 
 
+(*
+   skipUntil - advances time for, t, units or until the next event is reached.
+*)
+
+PROCEDURE skipUntil (t: REAL) ;
+
+
+(*
+   timeUntil - returns the relative time from now until the next event.
+*)
+
+PROCEDURE timeUntil () : REAL ;
+
+
+(*
+   nextEvent - moves onto the next event.
+*)
+
+PROCEDURE nextEvent ;
+
+
+(*
+   getTime - returns the current time in the simulation.
+*)
+
+PROCEDURE getTime () : REAL ;
+
+
+(*
+   isCollision - returns TRUE if the next event is a collision event.
+*)
+
+PROCEDURE isCollision () : BOOLEAN ;
+
+
+(*
+   isFrame - returns TRUE if the next event is a frame event.
+*)
+
+PROCEDURE isFrame () : BOOLEAN ;
+
+
+(*
+   delete - delete this object from the simulated world.
+            The same id is returned.
+*)
+
+PROCEDURE delete (id: CARDINAL) : CARDINAL ;
+
+
 END twoDsim.

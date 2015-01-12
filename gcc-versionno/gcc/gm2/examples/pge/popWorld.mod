@@ -18,7 +18,7 @@ Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE popWorld ;
 
-FROM deviceIf IMPORT Colour, useGroff ;
+FROM deviceIf IMPORT Colour, useGroff, useRPC ;
 FROM macroObjects IMPORT Macro ;
 FROM Fractions IMPORT Fract, getReal, cardinal, one, zero, root, unroot ;
 FROM Points IMPORT Point, initPoint, rootPoint, unRootPoint ;
@@ -154,17 +154,18 @@ END rotate ;
 
 PROCEDURE init (groff: BOOLEAN) ;
 BEGIN
-   useGroff(groff) ;
    defaultMass := root(one()) ;
    defaultVelocity := rootPoint(initPoint(zero(), zero())) ;
    IF groff
    THEN
+      useGroff ;
       deviceGroff.configDevice(initPoint(one(), one()),
                                initPoint(cardinal(5), cardinal(5)),
                                FPSgroff,
                                TRUE, FALSE, FALSE, FALSE) ;
       twoDsim.fps(FLOAT(FPSgroff))
    ELSE
+      useRPC ;
       devicePy.configDevice(initPoint(one(), one()),
                             initPoint(cardinal(1000), cardinal(1000)),
                             FPSpy) ;

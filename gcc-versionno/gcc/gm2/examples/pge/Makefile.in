@@ -30,7 +30,7 @@ SOURCES = \
 PGELIBSOURCES = macroObjects.mod Points.mod Fractions.mod PolyMatrix3D.mod \
                 Transform3D.mod deviceGroff.mod delay.mod GC.mod popWorld.mod \
                 twoDsim.mod roots.mod coord.mod polar.mod history.mod devicePy.mod \
-                deviceIf.mod rpc.mod pgeif.mod
+                deviceIf.mod rpc.mod deviceBuffer.mod pgeif.mod
 
 include ../../../gm2/config-make
 LIBSTDCXX=../$(TARGET_SUBDIR)/libstdc++-v3/src/.libs/libstdc++.a
@@ -104,7 +104,7 @@ libpgeif.la:  $(PGELIBSOURCES:%.mod=%.lo)
 	gm2 -c -g -I$(SRC_PATH_PIM) -fmakelist $(srcdir)/pgeif.mod
 	gm2 -c -g -I$(SRC_PATH_PIM) -fmakeinit -fshared $(srcdir)/pgeif.mod
 	libtool --tag=CC --mode=compile g++ -g -c _m2_pgeif.cpp -o _m2_pgeif.lo
-	libtool --mode=link gcc -g _m2_pgeif.lo $(PGELIBSOURCES:%.mod=%.lo) \
+	libtool --tag=CC --mode=link gcc -g _m2_pgeif.lo $(PGELIBSOURCES:%.mod=%.lo) \
             pgeif_wrap.lo \
            -L$(prefix)/lib64 \
            -rpath `pwd` -lgm2 -liso -lgcc -lstdc++ -lpth -lc -lm -o libpgeif.la 

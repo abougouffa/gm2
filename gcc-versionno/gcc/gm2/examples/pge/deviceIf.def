@@ -127,10 +127,24 @@ PROCEDURE defineColour (r, g, b: Fract) : CARDINAL ;
 
 
 (*
-   useGroff - if b is TRUE then deviceIf maps onto the groff device.
+   useGroff - use the groff device to render frames into png images.
 *)
 
-PROCEDURE useGroff (b: BOOLEAN) ;
+PROCEDURE useGroff ;
+
+
+(*
+   useBuffer - place the objects into a frame buffer.
+*)
+
+PROCEDURE useBuffer ;
+
+
+(*
+   useRPC - make rpc's to the pygame display server to render frames.
+*)
+
+PROCEDURE useRPC ;
 
 
 END deviceIf.

@@ -60,7 +60,7 @@ def crate_split (p):
 
 
 def main ():
-    placeBoarders (boarder, wood_dark)
+    b1, b2, b3, b4 = placeBoarders (boarder, wood_dark)
 
 print "before main()"
 main ()
