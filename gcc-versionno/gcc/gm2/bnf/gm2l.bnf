@@ -86,6 +86,7 @@ FROM DynamicStrings IMPORT String, InitString, KillString, Slice, InitStringChar
                            Mark, EqualArray, string, ConCat, ConCatChar, Dup ;
 FROM Lists IMPORT List, InitList, KillList, IncludeItemIntoList, GetItemFromList,
                   RemoveItemFromList, NoOfItemsInList, IsItemInList ;
+FROM M2Options IMPORT SetVerbose ;
 
 
 CONST
@@ -846,13 +847,18 @@ BEGIN
    n := SArgs.Narg() ;
    IF n=1
    THEN
-      printf0('Usage: gm2l [-M2RTS] [-Isearchpath] [-fdef=extension] [-fmod=extension] [-o outputfile] modulefile\n')
+      printf0('Usage: gm2l [-v] [-M2RTS] [-Isearchpath] [-fdef=extension] [-fmod=extension] [-o outputfile] modulefile\n')
    ELSE
       i := 1 ;
       REPEAT
          IF SArgs.GetArg(s, i)
          THEN
-            IF EqualArray(Mark(Slice(s, 0, 2)), '-I')
+            IF EqualArray(Mark(Slice(s, 0, 2)), '-v')
+            THEN
+               IF SetVerbose(TRUE)
+               THEN
+               END
+            ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-I')
             THEN
                PrependSearchPath(Slice(s, 2, 0))
             ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-fdef=')

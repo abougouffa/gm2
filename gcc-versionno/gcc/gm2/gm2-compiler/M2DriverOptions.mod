@@ -23,7 +23,7 @@ FROM DynamicStrings IMPORT String, Length, InitString, Mark, Slice, EqualArray,
                            PushAllocation, PopAllocationExemption ;
 
 FROM SArgs IMPORT GetArg, Narg ;
-
+FROM M2Options IMPORT CppRemember ;
 
 VAR
    CppAndArgs: String ;
@@ -44,11 +44,18 @@ BEGIN
          IF EqualArray(s, '-fcppend')
          THEN
             RETURN( i )
-         ELSIF NOT EqualArray(CppAndArgs, '')
-         THEN
-            CppAndArgs := ConCatChar(CppAndArgs, ' ')
+         ELSE
+            (* do not remember the filename *)
+            IF char(s, 0)='-'
+            THEN
+               CppRemember(s) ;
+               IF NOT EqualArray(CppAndArgs, '')
+               THEN
+                  CppAndArgs := ConCatChar(CppAndArgs, ' ')
+               END ;
+               CppAndArgs := ConCat(CppAndArgs, s)
+            END
          END ;
-         CppAndArgs := ConCat(CppAndArgs, s) ;
          INC(i)
       END
    END ;

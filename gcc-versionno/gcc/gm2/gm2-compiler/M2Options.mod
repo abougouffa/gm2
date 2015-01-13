@@ -193,6 +193,28 @@ END CppArg ;
 
 
 (*
+   CppRemember - remember a string, s, as a cpp related argument.
+                 The string, s, is not garbage collected.
+*)
+
+PROCEDURE CppRemember (s: String) ;
+BEGIN
+   IF EqualArray(Mark(Slice(s, 0, 10)), '-fcppprog=')
+   THEN
+      CppProg(string(Mark(Slice(s, 10, 0))))
+   ELSE
+      IF (CppArgs=NIL) OR EqualArray(CppArgs, '')
+      THEN
+         CppArgs := Dup(s)
+      ELSE
+         CppArgs := ConCatChar(CppArgs, ' ') ;
+         CppArgs := ConCat(CppArgs, s)
+      END
+   END
+END CppRemember ;
+
+
+(*
    FinaliseOptions - once all options have been parsed we set any inferred
                      values.
 *)
@@ -297,6 +319,17 @@ BEGIN
    LineDirectives := value ;
    RETURN( TRUE )
 END SetCpp ;
+
+
+(*
+   SetVerbose - set the Verbose flag to, value.  It returns TRUE.
+*)
+
+PROCEDURE SetVerbose (value: BOOLEAN) : BOOLEAN ;
+BEGIN
+   Verbose := value ;
+   RETURN( TRUE )
+END SetVerbose ;
 
 
 (*

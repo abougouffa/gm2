@@ -43,6 +43,7 @@ EXPORT QUALIFIED SetReturnCheck, SetNilCheck, SetCaseCheck,
                  SetDumpSystemExports,
                  SetSwig, DisplayVersion, SetOptimizing, SetForcedLocation,
                  SetCC1Quiet, SetWholeProgram, SetDebugTraceQuad, SetDebugTraceAPI,
+                 SetVerbose,
 
                  Iso, Pim, Pim2, Pim3, Pim4,
                  PositiveModFloorDiv,
@@ -65,7 +66,7 @@ EXPORT QUALIFIED SetReturnCheck, SetNilCheck, SetCaseCheck,
                  OverrideLocation, FinaliseOptions,
                  DebugBuiltins, setdefextension, setmodextension,
                  SetStatistics,
-                 CppProg, CppArg, CppCommandLine ;
+                 CppProg, CppArg, CppCommandLine, CppRemember ;
 
 
 VAR
@@ -440,6 +441,13 @@ PROCEDURE SetStatistics (on: BOOLEAN) ;
 
 
 (*
+   SetVerbose - set the Verbose flag to, value.  It returns TRUE.
+*)
+
+PROCEDURE SetVerbose (value: BOOLEAN) : BOOLEAN ;
+
+
+(*
    CppProg - sets the cpp program to be, program.
 *)
 
@@ -458,6 +466,14 @@ PROCEDURE CppArg (opt, arg: ADDRESS; joined: BOOLEAN) ;
 *)
 
 PROCEDURE CppCommandLine () : String ;
+
+
+(*
+   CppRemember - remember a string, s, as a cpp related argument.
+                 The string, s, is not garbage collected.
+*)
+
+PROCEDURE CppRemember (s: String) ;
 
 
 (*
