@@ -1,5 +1,12 @@
+2014-01-26      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2DriverOptions.mod:  add char to the import
+	  list.
+	* gm2/gm2-compiler/M2Options.mod:  add string to the import list.
+
 2014-01-13      Gaius Mulley <gaius@gnu.org>
 
+	* Fixed bug reported by Peter Fletcher.
 	* gm2/bnf/gm2l.bnf:  handle '-v' options and remember cpp options.
 	* gm2/gm2-compiler/M2DriverOptions.mod:  remember cpp options.
 	* gm2/gm2-compiler/M2Options.def:  SetVerbose new procedure function.
@@ -8,6 +15,7 @@
 	  procedure function and CppRemember.
 	* gm2/www/tools/texi2tr/html/download.html:  updated to include
 	  download reference to 4.7.x series of gcc.
+	* gm2 now builds when grafted onto 4.7.4.
 
 2014-01-04      Gaius Mulley <gaius@gnu.org>
 

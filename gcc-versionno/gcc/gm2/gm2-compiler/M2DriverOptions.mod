@@ -20,7 +20,7 @@ IMPLEMENTATION MODULE M2DriverOptions ;
 
 FROM DynamicStrings IMPORT String, Length, InitString, Mark, Slice, EqualArray,
                            InitStringCharStar, ConCatChar, ConCat, KillString,
-                           PushAllocation, PopAllocationExemption ;
+                           PushAllocation, PopAllocationExemption, char ;
 
 FROM SArgs IMPORT GetArg, Narg ;
 FROM M2Options IMPORT CppRemember ;
