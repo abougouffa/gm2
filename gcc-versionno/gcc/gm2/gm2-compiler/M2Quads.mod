@@ -353,6 +353,7 @@ VAR
 *)
 
 (* %%%FORWARD%%%
+PROCEDURE MakeLengthConst (sym: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE doIndrX (des, exp: CARDINAL) ; FORWARD ;
 PROCEDURE doConvert (type: CARDINAL; sym: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE PushTrw (True: WORD; rw: WORD) ; FORWARD ;
@@ -5797,43 +5798,48 @@ BEGIN
    BuildDesignatorRecord ;
    IF IsGenericSystemType(ParamType)
    THEN
-      ArrayType := GetType(Sym) ;
-      IF IsUnbounded(ArrayType)
+      IF IsConstString(Sym)
       THEN
-         (*
-          *  SIZE(parameter) DIV TSIZE(ParamType)
-          *  however in this case parameter
-          *  is an unbounded symbol and therefore we must use
-          *  (HIGH(parameter)+1)*SIZE(unbounded type) DIV TSIZE(ParamType)
-          *
-          *  we call upon the function SIZE(ArraySym)
-          *  remember SIZE doubles as
-          *  (HIGH(a)+1) * SIZE(ArrayType) for unbounded symbols
-          *)
-         PushTF(calculateMultipicand(ArraySym, ArrayType, actuali-1), Cardinal) ;
-         PushT(DivideTok) ;        (* Divide by                    *)
-         PushTF(TSize, Cardinal) ; (* TSIZE(ParamType)             *)
-         PushT(ParamType) ;
-         PushT(1) ;                (* 1 parameter for TSIZE()      *)
-         BuildFunctionCall ;
-         BuildBinaryOp
+         PushT(MakeLengthConst(Sym))
       ELSE
-         (* SIZE(parameter) DIV TSIZE(ParamType)                   *)
-         PushTF(TSize, Cardinal) ;  (* TSIZE(ArrayType)            *)
-         PushT(ArrayType) ;
-         PushT(1) ;                (* 1 parameter for TSIZE()      *)
-         BuildFunctionCall ;
-         PushT(DivideTok) ;        (* Divide by                    *)
-         PushTF(TSize, Cardinal) ; (* TSIZE(ParamType)             *)
-         PushT(ParamType) ;
-         PushT(1) ;                (* 1 parameter for TSIZE()      *)
-         BuildFunctionCall ;
+         ArrayType := GetType(Sym) ;
+         IF IsUnbounded(ArrayType)
+         THEN
+            (*
+             *  SIZE(parameter) DIV TSIZE(ParamType)
+             *  however in this case parameter
+             *  is an unbounded symbol and therefore we must use
+             *  (HIGH(parameter)+1)*SIZE(unbounded type) DIV TSIZE(ParamType)
+             *
+             *  we call upon the function SIZE(ArraySym)
+             *  remember SIZE doubles as
+             *  (HIGH(a)+1) * SIZE(ArrayType) for unbounded symbols
+             *)
+            PushTF(calculateMultipicand(ArraySym, ArrayType, actuali-1), Cardinal) ;
+            PushT(DivideTok) ;        (* Divide by                    *)
+            PushTF(TSize, Cardinal) ; (* TSIZE(ParamType)             *)
+            PushT(ParamType) ;
+            PushT(1) ;                (* 1 parameter for TSIZE()      *)
+            BuildFunctionCall ;
+            BuildBinaryOp
+         ELSE
+            (* SIZE(parameter) DIV TSIZE(ParamType)                   *)
+            PushTF(TSize, Cardinal) ;  (* TSIZE(ArrayType)            *)
+            PushT(ArrayType) ;
+            PushT(1) ;                (* 1 parameter for TSIZE()      *)
+            BuildFunctionCall ;
+            PushT(DivideTok) ;        (* Divide by                    *)
+            PushTF(TSize, Cardinal) ; (* TSIZE(ParamType)             *)
+            PushT(ParamType) ;
+            PushT(1) ;                (* 1 parameter for TSIZE()      *)
+            BuildFunctionCall ;
+            BuildBinaryOp
+         END ;
+         (* now convert from no of elements into HIGH by subtracting 1 *)
+         PushT(MinusTok) ;            (* -1                           *)
+         PushT(MakeConstLit(MakeKey('1'))) ;
          BuildBinaryOp
-      END ;
-      (* now convert from no of elements into HIGH by subtracting 1 *)
-      PushT(MinusTok) ;            (* -1                           *)
-      PushT(MakeConstLit(MakeKey('1'))) ;
-      BuildBinaryOp
+      END
    ELSE
       ReturnVar := MakeTemporary(RightValue) ;
       PutVar(ReturnVar, Cardinal) ;
@@ -7430,6 +7436,24 @@ END GetQualidentImport ;
 
 
 (*
+   MakeLengthConst - creates a constant which contains the length of string, sym.
+*)
+
+PROCEDURE MakeLengthConst (sym: CARDINAL) : CARDINAL ;
+VAR
+   l: CARDINAL ;
+   s: String ;
+   c: CARDINAL ;
+BEGIN
+   l := GetStringLength(sym) ;
+   s := Sprintf1(Mark(InitString("%d")), l) ;
+   c := MakeConstLit(makekey(string(s))) ;
+   s := KillString(s) ;
+   RETURN( c )
+END MakeLengthConst ;
+
+
+(*
    BuildLengthFunction - builds the inline standard function LENGTH.
 
                          The Stack:
@@ -7478,10 +7502,7 @@ BEGIN
       ELSIF IsConstString(Param)
       THEN
          PopT(NoOfParam) ;
-         l := GetStringLength(OperandT(1)) ;
-         s := Sprintf1(Mark(InitString("%d")), l) ;
-         ReturnVar := MakeConstLit(makekey(string(s))) ;
-         s := KillString(s) ;
+         ReturnVar := MakeLengthConst(OperandT(1)) ;
          PopN(NoOfParam+1) ;
          PushT(ReturnVar)
       ELSE

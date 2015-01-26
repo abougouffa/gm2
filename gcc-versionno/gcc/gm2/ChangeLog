@@ -1,5 +1,11 @@
 2014-01-26      Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2-compiler/M2Quads.mod:  MakeLengthConst new procedure
+	  function.   BuildLengthFunction use MakeLengthConst.
+	  AssignHighField check for conststring and call MakeLengthConst.
+	  This fixes a bug reported below.
+	* testsuite/gm2/pim/run/pass/bytearray.mod:  new test code to
+	  detect bug reported by Michael Riedl <udo-michael.riedl@t-online.de>.
 	* gm2/gm2-compiler/M2DriverOptions.mod:  add char to the import
 	  list.
 	* gm2/gm2-compiler/M2Options.mod:  add string to the import list.
@@ -41,7 +47,7 @@
 	  gm2 -fmakeall.
 	* gm2/examples/pge/Makefile.in:  improved clean target.
 	* gm2/gm2.texi:  corrected typo.
-	* gm2/lang-specs.h:   ensure that gm2m is invoked with the -B 
+	* gm2/lang-specs.h:   ensure that gm2m is invoked with the -B
 	  and -fmake-I options present outside the -fgm2begin
 	  -fgm2end delimiters.
 
