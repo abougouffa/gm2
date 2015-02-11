@@ -124,7 +124,6 @@ def _process (pe):
     elif pe._get_type () == frame_event:
         f (pe.frame_buffer (), pe.frame_length ())
 
-
 def _post_event (e, t):
     if t != -1:
         pygame.event.post (pygame.event.Event (USEREVENT, pge_event=e))

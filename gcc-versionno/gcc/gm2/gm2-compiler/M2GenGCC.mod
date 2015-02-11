@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011, 2012, 2013
+                 2010, 2011, 2012, 2013, 2014, 2015
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -78,7 +78,7 @@ FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo, TokenToLocation, GetT
 FROM M2Code IMPORT CodeBlock ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, WriteFormat2, ErrorStringAt, WarnStringAt ;
-FROM M2MetaError IMPORT MetaErrorT1, MetaErrorT2, MetaError1 ;
+FROM M2MetaError IMPORT MetaErrorT1, MetaErrorT2, MetaError1, MetaError2 ;
 
 FROM M2Options IMPORT DisplayQuadruples, UnboundedByReference, PedanticCast,
                       VerboseUnbounded, Iso, Pim, DebugBuiltins, WholeProgram,
@@ -87,7 +87,7 @@ FROM M2Options IMPORT DisplayQuadruples, UnboundedByReference, PedanticCast,
 FROM M2Printf IMPORT printf0, printf1, printf2, printf4 ;
 
 FROM M2Base IMPORT MixTypes, NegateType, ActivationPointer, IsMathType,
-                   IsRealType, IsAComplexType,
+                   IsRealType, IsAComplexType, IsBaseType,
                    IsOrdinalType,
                    Cardinal, Char, Integer, IsTrunc,
                    Boolean, True,
@@ -5711,6 +5711,22 @@ END FoldCoerce ;
 
 
 (*
+   CanConvert - returns TRUE if we can convert variable, var, to a, type.
+*)
+
+PROCEDURE CanConvert (type, var: CARDINAL) : BOOLEAN ;
+VAR
+   svar,
+   stype: CARDINAL ;
+BEGIN
+   stype := SkipType(type) ;
+   svar := SkipType(GetType(var)) ;
+   RETURN (IsBaseType(stype) OR IsOrdinalType(stype) OR IsSystemType(stype)) AND
+          (IsBaseType(svar) OR IsOrdinalType(svar) OR IsSystemType(stype))
+END CanConvert ;
+
+
+(*
    CodeCast - Cast op3 to type op2 placing the result into op1.
               Cast will NOT alter the machine representation
               of op3 to comply with TYPE op2 as long as SIZE(op3)=SIZE(op2).
@@ -5746,12 +5762,18 @@ BEGIN
    THEN
       CodeCoerce(quad, op1, op2, op3)
    ELSE
-      IF PedanticCast
+      IF CanConvert(op2, op3)
       THEN
-         WarnStringAt(InitString('CAST is converting a variable to a different sized type'),
-                      tokenno)
-      END ;
-      CodeConvert(quad, op1, op2, op3)
+         IF PedanticCast
+         THEN
+            WarnStringAt(InitString('CAST is converting a variable to a different sized type'),
+                         tokenno)
+         END ;
+         CodeConvert(quad, op1, op2, op3)
+      ELSE
+         MetaError2('CAST cannot copy a variable src {%2Dad} to a destination {%1Dad} as they are of different sizes and are not ordinal or real types',
+                    op1, op3)
+      END
    END
 END CodeCast ;
 

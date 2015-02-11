@@ -1,3 +1,18 @@
+2014-02-11      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/pge.py:  tidied up formatting.
+	* gm2/gm2-compiler/M2GenGCC.mod:  CanConvert (New procedure function).
+	  CodeCast checks to see if non same sized types can be converted
+	  and generates an error message if they cannot.
+	* gm2/gm2.texi:  corrected documentation to use libtool when building
+	  shared libraries.  Updated references to jessie, rather than wheezy.
+	  Updated gcc graft to 4.7.4.
+	* gm2/www/tools/texi2tr/html/download.html:  update to stable release
+	  gm2-1.1.1.
+	* gm2/www/tools/texi2tr/html/release.html:  update to stable release
+	  gm2-1.1.1.
+	* testsuite/gm2/iso/pass/realbitscast.mod:  simplified test code.
+
 2014-01-26      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Quads.mod:  MakeLengthConst new procedure

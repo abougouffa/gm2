@@ -19,23 +19,6 @@ MODULE realbitscast;
 
 FROM SYSTEM IMPORT CAST, WORD ;
 
-#undef HAVE_REAL96
-
-#if defined(__sparc__)
-#   undef HAVE_REAL96
-#elif defined(__alpha__) && defined(__arch64__)
-#   define HAVE_REAL96
-#elif defined(__ppc__)
-#   undef HAVE_REAL96
-#elif defined(__ia64)
-#   undef HAVE_REAL69
-#elif defined(__APPLE__) && defined(__i386__)
-#   undef HAVE_REAL96
-#elif defined(__APPLE__)
-#   define HAVE_REAL96
-#endif
-
-
 TYPE
     BITS32 = SET OF [0..31];
     BITS64 = SET OF [0..63];
@@ -43,27 +26,15 @@ TYPE
     REAL32 = SHORTREAL;
     REAL64 = REAL;
 
-#if defined(HAVE_REAL96)
-    REAL96 = LONGREAL ;
-    (* and on the x86_64 LONGREAL is 128 bits *)
-    (* this is also true for at least some alphas *)
-#endif
-
 VAR
     b32 : BITS32;
     b64 : BITS64;
     r32 : REAL32;
     r64 : REAL64;
-#if defined(HAVE_REAL96)
-    b96 : BITS96 ;
-    r96 : REAL96 ;
-#endif
     w   : WORD ;
 BEGIN
    r32 := 1.0 ;
-   b32 := CAST(BITS32, r32) ;
-   b64 := CAST(BITS64, r64) ;
-#if defined(HAVE_REAL96)
-   b96 := CAST(BITS96, r96)
-#endif
+   r64 := 1.0 ;
+   b32 := CAST(BITS32, r64) ;   (* error (r32), but the compiler should not crash!  *)
+   b64 := CAST(BITS64, r32) ;   (* error (r64), but the compiler should not crash!  *)
 END realbitscast.

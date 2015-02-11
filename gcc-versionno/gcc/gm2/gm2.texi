@@ -214,6 +214,10 @@ source tree.
 
 @table @code
 @item
+gm2 1.1.1 was released on January 26 2015.  gm2-1.1.1 passes all regression
+tests on Debian Wheezy (x86_64) and (i686).  Also passes all regression tests
+under Debian Jessie (x86_64).
+@item
 gm2 1.1.0 was released on January 02 2015.  gm2-1.1.0 passes all regression
 tests on Debian Wheezy (x86_64) and (i686).
 @item
@@ -2320,9 +2324,9 @@ which accesses the various functions defined and implemented by the
 module @code{twoDsim}.  The Modula-2 source code is compiled via:
 
 @example
-$ gm2 -g -fPIC -fiso -c deviceGnuPic.mod
-$ gm2 -g -fPIC -fiso -c roots.mod
-$ gm2 -g -fPIC -fiso -c -fswig twoDsim.mod
+$ gm2 -g -fiso -c -fswig twoDsim.mod
+$ gm2 -g -fiso -c -fmakelist twoDsim.mod
+$ gm2 -g -fiso -c -fmakeinit twoDsim.mod
 @end example
 
 Notice that the last command both compiled and produced a swig
@@ -2330,15 +2334,22 @@ interface file @file{swig.i}.  We now use @code{swig} and @code{gcc}
 to produce and compile the interface wrappers:
 
 @example
+$ libtool --mode=compile g++ -g -c _m2_twoDsim.cpp -o _m2_twoDsim.lo
 $ swig -c++ -python twoDsim.i
-$ gcc -c -fPIC twoDsim_wrap.cxx -I/usr/include/python@value{version-python}
+$ libtool --mode=compile g++ -c -fPIC twoDsim_wrap.cxx -I/usr/include/python@value{version-python} -o twoDsim_wrap.lo
+$ libtool --mode=compile gm2 -g -fPIC -fiso -c deviceGnuPic.mod
+$ libtool --mode=compile gm2 -g -fPIC -fiso -c roots.mod
+$ libtool --mode=compile gm2 -g -fPIC -fiso -c -fswig twoDsim.mod -o twoDsim.lo
 @end example
 
 Finally the application is linked into a shared library:
 
 @example
-$ gm2 -fonlylink -fiso -fPIC -fshared -shared \
-      twoDsim.mod twoDsim_wrap.o -o _twoDsim.so
+$ libtool --mode=link gcc -g _m2_twoDsim.lo twoDsim_wrap.lo \
+  roots.lo deviceGnuPic.lo \
+   -L$(yourprefix)/lib64 \
+   -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libtwoDsim.la 
+cp .libs/libtwoDsim.so _twoDsim.so
 @end example
 
 The library name must start with a @code{_} to comply with the Python
@@ -2813,8 +2824,8 @@ Contributing to GNU Modula-2}.
 @node Debian, Tarball, Top, Top
 @section Getting GNU Modula-2
 
-The easiest way to obtain GNU Modula-2 is to install i386, amd64 or
-ppc64 Debian GNU/Linux and then add these repository descriptions to
+The easiest way to obtain GNU Modula-2 is to install i386 or amd64
+Debian GNU/Linux and then add these repository descriptions to
 your @file{/etc/apt/sources.list} file.
 
 @example
@@ -2822,8 +2833,8 @@ your @file{/etc/apt/sources.list} file.
 #  GNU Modula-2 repo
 #
 
-deb http://floppsie.comp.glam.ac.uk/debian/ wheezy main 
-deb-src http://floppsie.comp.glam.ac.uk/debian/ wheezy main
+deb http://floppsie.comp.glam.ac.uk/debian/ jessie main 
+deb-src http://floppsie.comp.glam.ac.uk/debian/ jessie main
 @end example
 
 Now as root type:
@@ -2838,6 +2849,11 @@ As a normal user you can obtain the source code via:
 @example
 $ apt-get source gm2
 @end example
+
+@footnote{
+Packages are also built under wheezy (just replace jessie with wheezy
+in your @file{/etc/apt/sources.list} file).
+}
 
 @node Tarball, Building, Debian, Top
 @section How to get a source tarball
@@ -2957,17 +2973,17 @@ $ sudo apt-get install gcc-multilib libmpfr-dev libgmp-dev libmpc-dev flex
 To download and extract the tarball:
 
 @example
-$ wget http://floppsie.comp.glam.ac.uk/download/c/gcc-4.7.3+gm2-git-latest.tar.gz
-$ tar zxf gcc-4.7.3+gm2-git-latest.tar.gz
+$ wget http://floppsie.comp.glam.ac.uk/download/c/gcc-4.7.4+gm2-git-latest.tar.gz
+$ tar zxf gcc-4.7.4+gm2-git-latest.tar.gz
 @end example
 
 To configure:
 
 @example
-$ mkdir build-4.7.3
-$ cd build-4.7.3
+$ mkdir build-4.7.4
+$ cd build-4.7.4
 $ CXXFLAGS=-g BOOT_CFLAGS=-g CFLAGS=-g \
-  ../gcc-4.7.3+gm2-git-latest/gm2/gcc-versionno/configure \
+  ../gcc-4.7.4+gm2-git-latest/gm2/gcc-versionno/configure \
   --prefix=$HOME/opt \
   --libexecdir=$HOME/opt/lib \
   --enable-shared \
@@ -2992,7 +3008,7 @@ $ make install
 @section Solaris build on gcc-4.7 branch
 
 These instructions have been reported to work with gm2 grafted onto
-gcc-4.7.3 and built on Solaris 10/Sparc (sun4u).
+gcc-4.7.4 and built on Solaris 10/Sparc (sun4u).
 
 1. Install gmp-5.1.2:
 
@@ -3056,12 +3072,12 @@ gmake check passed all tests.
 gmake install succeeded.
 
 
-4. Finally, configuration script for gcc-4.7.3:
+4. Finally, configuration script for gcc-4.7.4:
 
 @example
-$ ../../src/gcc-4.7.3+gm2-git-latest/gm2/gcc-versionno/configure \
-  --prefix=$HOME/gcc-4.7.3 \
-  --exec-prefix=$HOME/gcc-4.7.3 --without-gnu-ld \
+$ ../../src/gcc-4.7.4+gm2-git-latest/gm2/gcc-versionno/configure \
+  --prefix=$HOME/gcc-4.7.4 \
+  --exec-prefix=$HOME/gcc-4.7.4 --without-gnu-ld \
   --with-ld=/usr/ccs/bin/ld --with-gnu-as --with-as=/usr/sfw/bin/gas \
   --build=sparc64-sun-solaris2.10 --host=sparc64-sun-solaris2.10 \
   --with-mpc-include=/usr/local/include --with-mpc-lib=/usr/local/lib/64 \
