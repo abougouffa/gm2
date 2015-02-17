@@ -1,3 +1,9 @@
+2014-02-17      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-iso/Storage.mod:  fixed bug reported by
+          reported by Michael Riedl <udo-michael.riedl@t-online.de>.
+	  DEALLOCATE should assign the pointer to NIL.
+
 2014-02-11      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/pge.py:  tidied up formatting.

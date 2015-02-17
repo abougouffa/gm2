@@ -45,7 +45,8 @@ PROCEDURE DEALLOCATE (VAR addr: SYSTEM.ADDRESS; amount: CARDINAL) ;
 BEGIN
    IF VerifyDeallocate (addr, amount)
    THEN
-      free (addr)
+      free (addr) ;
+      addr := NIL
    END
 END DEALLOCATE ;
 
