@@ -94,6 +94,7 @@ M2DEFS = ChanConsts.def  CharClass.def \
          LongWholeIO.def  LowLong.def \
          LowReal.def  LowShort.def \
          M2EXCEPTION.def  M2RTS.def \
+         MemStream.def \
          Processes.def  ProgramArgs.def \
          pth.def  RandomNumber.def \
          RawIO.def  RealConv.def \
@@ -131,7 +132,8 @@ M2MODS = ChanConsts.mod  CharClass.mod \
          LongStr.mod  LongWholeIO.mod \
          LowLong.mod  LowReal.mod \
          LowShort.mod  M2EXCEPTION.mod \
-         M2RTS.mod  Processes.mod \
+         M2RTS.mod  MemStream.mod \
+         Processes.mod \
          ProgramArgs.mod  RandomNumber.mod \
          RawIO.mod  RealConv.mod \
          RealIO.mod  RealMath.mod \

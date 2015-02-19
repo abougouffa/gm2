@@ -51,7 +51,8 @@ International Electrotechnical Commission).  The licence allows them
 to be distributed with the compiler.
 
 All implementation modules and @file{ClientSocket.def},
-@file{LongWholeIO.def}, @file{M2RTS.def}, @file{pth.def},
+@file{LongWholeIO.def}, @file{M2RTS.def}, @file{MemStream.def},
+@file{pth.def},
 @file{RandomNumber.def}, @file{RTdata.def}, @file{RTentity.def},
 @file{RTfio.def}, @file{RTio.def}, @file{ShortComplexMath.def},
 @file{ShortIO.def}, @file{ShortWholeIO.def}, @file{SimpleCipher.def},
