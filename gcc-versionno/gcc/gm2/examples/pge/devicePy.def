@@ -24,7 +24,8 @@ DEFINITION MODULE devicePy ;
     System     : GNU Modula-2
     Date       : Mon Jun 18 15:00:23 2012
     Revision   : $Version$ 
-    Description: provides an interface to PyGame.
+    Description: provides a generic interface to all supported output
+                 devices.
 *)
 
 FROM Points IMPORT Point ;

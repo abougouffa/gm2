@@ -18,7 +18,7 @@ Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE popWorld ;
 
-FROM deviceIf IMPORT Colour, useGroff, useRPC ;
+FROM deviceIf IMPORT Colour, useGroff, useRPC, configDevice ;
 FROM macroObjects IMPORT Macro ;
 FROM Fractions IMPORT Fract, getReal, cardinal, one, zero, root, unroot ;
 FROM Points IMPORT Point, initPoint, rootPoint, unRootPoint ;
@@ -26,8 +26,6 @@ FROM libc IMPORT printf ;
 
 IMPORT macroObjects ;
 IMPORT twoDsim ;
-
-IMPORT deviceGroff, devicePy ;
 
 
 CONST
@@ -159,16 +157,15 @@ BEGIN
    IF groff
    THEN
       useGroff ;
-      deviceGroff.configDevice(initPoint(one(), one()),
-                               initPoint(cardinal(5), cardinal(5)),
-                               FPSgroff,
-                               TRUE, FALSE, FALSE, FALSE) ;
+      configDevice(initPoint(one(), one()),
+                   initPoint(cardinal(5), cardinal(5)),
+                   FPSgroff) ;
       twoDsim.fps(FLOAT(FPSgroff))
    ELSE
       useRPC ;
-      devicePy.configDevice(initPoint(one(), one()),
-                            initPoint(cardinal(1000), cardinal(1000)),
-                            FPSpy) ;
+      configDevice(initPoint(one(), one()),
+                   initPoint(cardinal(1000), cardinal(1000)),
+                   FPSpy) ;
       twoDsim.fps(FLOAT(FPSpy))
    END
 END init ;

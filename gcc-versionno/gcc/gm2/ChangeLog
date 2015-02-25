@@ -1,3 +1,8 @@
+2014-02-25      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge:  huge amount of changes to expose the frame
+	  buffer to python/pygame.
+
 2014-02-19      Gaius Mulley <gaius@gnu.org>
 
 	* libgm2/libiso/Makefile.in:  added MemStream.def and MemStream.mod

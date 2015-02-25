@@ -28,6 +28,7 @@ DEFINITION MODULE twoDsim ;
                  simulation world.
 *)
 
+FROM SYSTEM IMPORT ADDRESS ;
 FROM deviceIf IMPORT Colour ;
 
 
@@ -207,6 +208,13 @@ PROCEDURE isFrame () : BOOLEAN ;
 *)
 
 PROCEDURE delete (id: CARDINAL) : CARDINAL ;
+
+
+(*
+   getEventBuffer - collects the event buffer limits in the following parameters.
+*)
+
+PROCEDURE getEventBuffer (VAR start: ADDRESS; VAR length: CARDINAL; VAR used: CARDINAL) ;
 
 
 END twoDsim.

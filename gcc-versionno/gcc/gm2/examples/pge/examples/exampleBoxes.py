@@ -4,8 +4,10 @@ import pge
 # import pgemacro
 
 print "starting exampleBoxes"
+pge.groff ()
 
-wood_light = pge.rgb (166.0/256.0, 124/256.0, 54.0/256.0)
+t = pge.rgb (1.0/2.0, 2.0/3.0, 3.0/4.0)
+wood_light = pge.rgb (166.0/256.0, 124.0/256.0, 54.0/256.0)
 wood_dark = pge.rgb (76.0/256.0, 47.0/256.0, 0.0)
 metal = pge.rgb (0.5, 0.5, 0.5)
 ball_size = 0.04
@@ -31,36 +33,32 @@ def placeBall (x, y, r):
 
 
 def crate (x, y, w):
-    c = pge.box (x, y, w, w, wood_dark, 6).on_collision (crate_split)
-
-
-def crate_split0 (p):
-    w = p.width () / 2
-    wg = w - gap
-    e = p.get_extra ()
-    if e != None:
-        if e % 2 == 1:
-            # subdivide into smaller crates
-            c = []
-            m = p[0].mass ()
-            for v in [[0, 0], [0, w], [w, 0], [w, w]]:
-                b = pge.box (x+v[0], y+v[1], wg, wg, e-1).mass (m).on_collision (crate_split)
-                c += [b]
-        elif e == 0:
-            p.delete ()
-        else:
-            # allow collision bounce
-            p.set_extra (e-1)
+    c = pge.box (x, y, w, w, wood_dark).on_collision (crate_split).set_param (6)
 
 
 def crate_split (p):
-    if len (p)>0:
-        for c in p:
-            crate_split0 (c)
+    w = p.width () / 2
+    wg = w - gap
+    e = p.get_param ()
+    if e != None:
+        if e % 2 == 1:
+            # subdivide into smaller crates, every odd bounce
+            m = p[0].mass ()
+            c = p[0].colour ()
+            for v in [[0, 0], [0, w], [w, 0], [w, w]]:
+                b = pge.box (v[0], v[1], wg, wg, c).mass (m).on_collision (crate_split)
+                b.set_param (e-1)
+        elif e == 0:
+            # at the end of 6 collisions the crates disappear
+            p.delete ()
+        else:
+            # allow collision (bounce) without splitting every even bounce
+            p.set_param (e-1)
 
 
 def main ():
     b1, b2, b3, b4 = placeBoarders (boarder, wood_dark)
+    pge.run (10.0)
 
 print "before main()"
 main ()

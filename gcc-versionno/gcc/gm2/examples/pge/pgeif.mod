@@ -48,8 +48,7 @@ VAR
 
 PROCEDURE init ;
 BEGIN
-   listOfDefs := InitIndex (1) ;
-   useBuffer
+   listOfDefs := InitIndex (1)
 END init ;
 
 
@@ -421,6 +420,16 @@ PROCEDURE rm (id: CARDINAL) : CARDINAL ;
 BEGIN
    RETURN twoDsim.delete (id)
 END rm ;
+
+
+(*
+   groff - use the batch device groff to record the output frames.
+*)
+
+PROCEDURE groff ;
+BEGIN
+   deviceIf.useGroff ()
+END groff ;
 
 
 BEGIN

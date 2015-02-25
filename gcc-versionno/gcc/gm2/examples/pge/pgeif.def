@@ -35,7 +35,7 @@ EXPORT UNQUALIFIED ExceptionKind,
                    rgb, white, black, red, green, blue, purple, gravity,
                    box, poly3, poly4, poly5, poly6, mass, fix, circle,
                    velocity, accel, rotate, do_next_event, get_event_data,
-                   is_collision, is_frame, time_until, get_time, rm ;
+                   is_collision, is_frame, time_until, get_time, rm, groff ;
 
 
 TYPE
@@ -115,7 +115,7 @@ PROCEDURE box (x0, y0, i, j: REAL; c: CARDINAL) : CARDINAL ;
 
 (*
    poly3 - place a triangle in the world at:
-           (x0,y0),(x1,y1),(x2,y2)
+           (x0,y0), (x1,y1), (x2,y2)
 *)
 
 PROCEDURE poly3 (x0, y0, x1, y1, x2, y2: REAL; c: CARDINAL) : CARDINAL ;
@@ -123,7 +123,7 @@ PROCEDURE poly3 (x0, y0, x1, y1, x2, y2: REAL; c: CARDINAL) : CARDINAL ;
 
 (*
    poly4 - place a rectangle in the world at:
-           (x0,y0),(x1,y1),(x2,y2),(x3,y3)
+           (x0,y0), (x1,y1), (x2,y2), (x3,y3)
 *)
 
 PROCEDURE poly4 (x0, y0, x1, y1, x2, y2, x3, y3: REAL; c: CARDINAL) : CARDINAL ;
@@ -131,7 +131,7 @@ PROCEDURE poly4 (x0, y0, x1, y1, x2, y2, x3, y3: REAL; c: CARDINAL) : CARDINAL ;
 
 (*
    poly5 - place a pentagon in the world at:
-           (x0,y0),(x1,y1),(x2,y2),(x3,y3),(x4,y4)
+           (x0,y0), (x1,y1), (x2,y2), (x3,y3), (x4,y4)
 *)
 
 PROCEDURE poly5 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4: REAL; c: CARDINAL) : CARDINAL ;
@@ -139,7 +139,7 @@ PROCEDURE poly5 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4: REAL; c: CARDINAL) : CA
 
 (*
    poly6 - place a hexagon in the world at:
-           (x0,y0),(x1,y1),(x2,y2),(x3,y3),(x4,y4),(x5,y5)
+           (x0,y0), (x1,y1), (x2,y2), (x3,y3), (x4,y4), (x5,y5)
 *)
 
 PROCEDURE poly6 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5: REAL; d: CARDINAL) : CARDINAL ;
@@ -247,6 +247,13 @@ PROCEDURE get_time () : REAL ;
 *)
 
 PROCEDURE rm (id: CARDINAL) : CARDINAL ;
+
+
+(*
+   groff - use the batch device groff to record the output frames.
+*)
+
+PROCEDURE groff ;
 
 
 END pgeif.

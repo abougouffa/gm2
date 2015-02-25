@@ -33,10 +33,6 @@ FROM ChanConsts IMPORT FlagSet, OpenResults ;
 FROM SYSTEM IMPORT ADDRESS, LOC ;
 
 
-TYPE
-   DeallocP = PROCEDURE (ADDRESS, CARDINAL) ;
-
-
 (*
    Attempts to obtain and open a channel connected to a contigeous
    buffer in memory.  The write flag is implied; without the raw
@@ -47,8 +43,8 @@ TYPE
    invalid channel.
 
    The parameters, buffer, length and used maybe updated as
-   data is written.  Indeed the buffer maybe reallocated
-   and its address might alter, however these parameters will
+   data is written.  The buffer maybe reallocated
+   and its address might alter, however the parameters will
    always reflect the current active buffer.  When this
    channel is closed the buffer is deallocated and
    buffer will be set to NIL, length and used will be set to
@@ -61,6 +57,7 @@ PROCEDURE OpenWrite (VAR cid: ChanId; flags: FlagSet;
                      VAR length: CARDINAL;
                      VAR used: CARDINAL;
                      deallocOnClose: BOOLEAN) ;
+
 
 (*
    Attempts to obtain and open a channel connected to a contigeous

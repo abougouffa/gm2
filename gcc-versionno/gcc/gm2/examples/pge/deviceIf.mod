@@ -1,4 +1,5 @@
-(* Copyright (C) 2011 Free Software Foundation, Inc. *)
+(* Copyright (C) 2011, 2012, 2013, 2014, 2015
+   Free Software Foundation, Inc.  *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -14,29 +15,88 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA. *)
+Boston, MA 02110-1301, USA.  *)
 
 IMPLEMENTATION MODULE deviceIf ;
 
-IMPORT devicePy, deviceGroff, deviceBuffer ;
+IMPORT MemStream ;
+IMPORT ClientSocket ;
+IMPORT SeqFile ;
+IMPORT RawIO ;
+IMPORT Fractions ;
+
+FROM IOChan IMPORT ChanId ;
+FROM ChanConsts IMPORT read, write, raw, text, OpenResults ;
+FROM SYSTEM IMPORT ADDRESS, ADR, TSIZE ;
+FROM libc IMPORT printf, exit, system ;
+FROM Fractions IMPORT Fract, one, zero, getFract, dup ;
+FROM GC IMPORT garbage, entity, rootAllocate, markEntity, initGarbage, getData ;
+FROM Points IMPORT Point, unRootPoint, dupPoint, initPoint, subPoint, addPoint, markPoint ;
+FROM DynamicStrings IMPORT InitString ;
+FROM NetworkOrder IMPORT writeCard, writeFract, writePoint, writeShort ;
+
+
+CONST
+   whiteCID   =    1 ;
+   blackCID   =    2 ;
+   redCID     =    3 ;
+   greenCID   =    4 ;
+   blueCID    =    5 ;
+   yellowCID  =    6 ;
+   purpleCID  =    7 ;
+   nextCID    =    8 ;
+   MaxColours = 4096 ;
+   FPS        =   30 ;
+
+TYPE
+   SetOfColours = SET OF [0..MaxColours] ;
+
+   configDesc = POINTER TO RECORD
+                              centity      : entity ;
+                              inMax, outMax: Point ;
+                              same         : BOOLEAN ;
+                              fps          : CARDINAL ;
+                           END ;
 
 VAR
-   device: (groff, rpc, buffer) ;
+   device      : (none, groff, rpc, buffer) ;
+   file        : ChanId ;
+   registered  : SetOfColours ;
+   nextColour  : CARDINAL ;
+   nextFrame   : CARDINAL ;
+   bufferStart : ADDRESS ;
+   bufferLength: CARDINAL ;
+   bufferUsed  : CARDINAL ;
+   configHeap  : garbage ;
+   config      : configDesc ;
+
+
+(*
+   registerColour - 
+*)
+
+PROCEDURE registerColour (cid: Colour; r, g, b: Fract) : Colour ;
+BEGIN
+   IF NOT (cid IN registered)
+   THEN
+      INCL(registered, cid) ;
+      RawIO.Write (file, "rc") ;
+      writeShort (file, cid) ;
+      writeFract (file, r) ;
+      writeFract (file, g) ;
+      writeFract (file, b)
+   END ;
+   RETURN cid
+END registerColour ;
 
 
 (*
    white - returns the colour, white.
 *)
 
-PROCEDURE white () : CARDINAL ;
+PROCEDURE white () : Colour ;
 BEGIN
-   CASE device OF
-
-   groff :  RETURN deviceGroff.white() |
-   rpc   :  RETURN devicePy.white() |
-   buffer:  RETURN deviceBuffer.white()
-
-   END
+   RETURN registerColour (whiteCID, one (), one (), one ())
 END white ;
 
 
@@ -44,15 +104,9 @@ END white ;
    black - returns the colour, black.
 *)
 
-PROCEDURE black () : CARDINAL ;
+PROCEDURE black () : Colour ;
 BEGIN
-   CASE device OF
-
-   groff :  RETURN deviceGroff.black() |
-   rpc   :  RETURN devicePy.black() |
-   buffer:  RETURN deviceBuffer.black()
-
-   END
+   RETURN registerColour (blackCID, zero (), zero (), zero ())
 END black ;
 
 
@@ -60,15 +114,9 @@ END black ;
    red - returns the colour, red.
 *)
 
-PROCEDURE red () : CARDINAL ;
+PROCEDURE red () : Colour ;
 BEGIN
-   CASE device OF
-
-   groff :  RETURN deviceGroff.red() |
-   rpc   :  RETURN devicePy.red() |
-   buffer:  RETURN deviceBuffer.red()
-
-   END
+   RETURN registerColour (redCID, one (), zero (), zero ())
 END red ;
 
 
@@ -76,15 +124,9 @@ END red ;
    green - returns the colour, green.
 *)
 
-PROCEDURE green () : CARDINAL ;
+PROCEDURE green () : Colour ;
 BEGIN
-   CASE device OF
-
-   groff :  RETURN deviceGroff.green() |
-   rpc   :  RETURN devicePy.green() |
-   buffer:  RETURN deviceBuffer.green()
-
-   END
+   RETURN registerColour (greenCID, zero (), one (), zero ())
 END green ;
 
 
@@ -92,15 +134,9 @@ END green ;
    blue - returns the colour, blue.
 *)
 
-PROCEDURE blue () : CARDINAL ;
+PROCEDURE blue () : Colour ;
 BEGIN
-   CASE device OF
-
-   groff :  RETURN deviceGroff.blue() |
-   rpc   :  RETURN devicePy.blue() |
-   buffer:  RETURN deviceBuffer.blue()
-
-   END
+   RETURN registerColour (blueCID, zero (), zero (), one ())
 END blue ;
 
 
@@ -108,15 +144,9 @@ END blue ;
    yellow - returns the colour, yellow.
 *)
 
-PROCEDURE yellow () : CARDINAL ;
+PROCEDURE yellow () : Colour ;
 BEGIN
-   CASE device OF
-
-   groff :  RETURN deviceGroff.yellow() |
-   rpc   :  RETURN devicePy.yellow() |
-   buffer:  RETURN deviceBuffer.yellow()
-
-   END
+   RETURN registerColour (yellowCID, one (), one (), zero ())
 END yellow ;
 
 
@@ -124,16 +154,20 @@ END yellow ;
    purple - returns the colour, purple.
 *)
 
-PROCEDURE purple () : CARDINAL ;
+PROCEDURE purple () : Colour ;
 BEGIN
-   CASE device OF
-
-   groff :  RETURN deviceGroff.purple() |
-   rpc   :  RETURN devicePy.purple() |
-   buffer:  RETURN deviceBuffer.purple()
-
-   END
+   RETURN registerColour (purpleCID, one (), zero (), one ())
 END purple ;
+
+
+(*
+   writeColour - 
+*)
+
+PROCEDURE writeColour (c: Colour) ;
+BEGIN
+   writeShort (file, c)
+END writeColour ;
 
 
 (*
@@ -142,13 +176,11 @@ END purple ;
 
 PROCEDURE glyphLine (start, end: Point; thick: Fract; c: Colour) ;
 BEGIN
-   CASE device OF
-
-   groff :  deviceGroff.glyphLine(start, end, thick, c) |
-   rpc   :  devicePy.glyphLine(start, end, thick, c) |
-   buffer:  deviceBuffer.glyphLine(start, end, thick, c)
-
-   END
+   RawIO.Write (file, "dl") ;
+   writePoint (file, start) ;
+   writePoint (file, end) ;
+   writeFract (file, thick) ;
+   writeColour (c)
 END glyphLine ;
 
 
@@ -159,13 +191,24 @@ END glyphLine ;
 *)
 
 PROCEDURE glyphPolygon (n: CARDINAL; p: ARRAY OF Point; fill: BOOLEAN; thick: Fract; c: Colour) ;
+VAR
+   i: CARDINAL ;
 BEGIN
-   CASE device OF
-
-   groff :  deviceGroff.glyphPolygon(n, p, fill, thick, c) |
-   rpc   :  devicePy.glyphPolygon(n, p, fill, thick, c) |
-   buffer:  deviceBuffer.glyphPolygon(n, p, fill, thick, c)
-
+   IF fill
+   THEN
+      RawIO.Write (file, "dP")
+   ELSE
+      RawIO.Write (file, "dp")
+   END ;
+   writeShort (file, n) ;
+   FOR i := 0 TO n-1 DO
+      writePoint (file, p[i])
+   END ;
+   IF fill
+   THEN
+      writeColour (c)
+   ELSE
+      writeFract (file, thick)
    END
 END glyphPolygon ;
 
@@ -177,12 +220,19 @@ END glyphPolygon ;
 
 PROCEDURE glyphCircle (pos: Point; fill: BOOLEAN; thick: Fract; rad: Fract; c: Colour) ;
 BEGIN
-   CASE device OF
-
-   groff :  deviceGroff.glyphCircle(pos, fill, thick, rad, c) |
-   rpc   :  devicePy.glyphCircle(pos, fill, thick, rad, c) |
-   buffer:  deviceBuffer.glyphCircle(pos, fill, thick, rad, c)
-
+   IF fill
+   THEN
+      RawIO.Write (file, "dC")
+   ELSE
+      RawIO.Write (file, "dc")
+   END ;
+   writePoint (file, pos) ;
+   writeFract (file, rad) ;
+   IF fill
+   THEN
+      writeColour (c)
+   ELSE
+      writeFract (file, thick)
    END
 END glyphCircle ;
 
@@ -194,13 +244,17 @@ END glyphCircle ;
 
 PROCEDURE flipBuffer ;
 BEGIN
-   CASE device OF
-
-   groff :  deviceGroff.flipBuffer |
-   rpc   :  devicePy.flipBuffer |
-   buffer:  deviceBuffer.flipBuffer
-
-   END
+   IF device=none
+   THEN
+      useBuffer
+   END ;
+   IF device=buffer
+   THEN
+      MemStream.Rewrite (file)
+   END ;
+   RawIO.Write (file, "fb") ;
+   writeCard (file, nextFrame) ;
+   INC(nextFrame)
 END flipBuffer ;
 
 
@@ -212,14 +266,12 @@ END flipBuffer ;
 *)
 
 PROCEDURE defineColour (r, g, b: Fract) : CARDINAL ;
+VAR
+   col: CARDINAL ;
 BEGIN
-   CASE device OF
-
-   groff :  RETURN deviceGroff.defineColour(r, g, b) |
-   rpc   :  RETURN devicePy.defineColour(r, g, b) |
-   buffer:  RETURN deviceBuffer.defineColour(r, g, b)
-
-   END
+   col := nextColour ;
+   INC(nextColour) ;
+   RETURN registerColour (col, r, g, b)
 END defineColour ;
 
 
@@ -228,11 +280,16 @@ END defineColour ;
 *)
 
 PROCEDURE useGroff ;
+VAR
+   res: OpenResults ;
 BEGIN
-   deviceGroff.Init ;
-   devicePy.Init ;
-   deviceBuffer.Init ;
-   device := groff
+   device := groff ;
+   SeqFile.OpenWrite (file, 'output.raw', write+raw, res) ;
+   IF res#opened
+   THEN
+      printf ("something went wrong when trying to open the raw output file\n");
+      exit (1)
+   END
 END useGroff ;
 
 
@@ -241,11 +298,19 @@ END useGroff ;
 *)
 
 PROCEDURE useRPC ;
+VAR
+   res: OpenResults ;
+   r  : INTEGER ;
 BEGIN
-   deviceGroff.Init ;
-   devicePy.Init ;
-   deviceBuffer.Init ;
-   device := rpc
+   device := rpc ;
+   REPEAT
+      ClientSocket.OpenSocket(file, 'localhost', 6000, read+write+raw+text, res) ;
+      IF res#opened
+      THEN
+         printf("unable to connect to localhost:6000\n") ;
+         r := system(ADR("sleep 1"))
+      END
+   UNTIL res=opened
 END useRPC ;
 
 
@@ -254,14 +319,140 @@ END useRPC ;
 *)
 
 PROCEDURE useBuffer ;
+VAR
+   res: OpenResults ;
 BEGIN
-   deviceGroff.Init ;
-   devicePy.Init ;
-   deviceBuffer.Init ;
-   device := buffer
+   device := buffer ;
+   MemStream.OpenWrite (file, write+raw, res, bufferStart, bufferLength, bufferUsed, TRUE) ;
+   IF res#opened
+   THEN
+      printf ("something went wrong when trying to open the memstream file\n");
+      exit (1)
+   END
 END useBuffer ;
 
 
+(*
+   finish - close the device file.
+*)
+
+PROCEDURE finish ;
 BEGIN
-   device := groff
+   RawIO.Write (file, "ex") ;
+   RawIO.Write (file, 0C) ;
+   CASE device OF
+
+   groff  :  SeqFile.Close (file) |
+   rpc    :  ClientSocket.Close (file) |
+   buffer :  MemStream.Close (file)
+
+   END
+END finish ;
+
+
+(*
+   scaleX - 
+*)
+
+PROCEDURE scaleX (x: Fract) : Fract ;
+BEGIN
+   IF config^.same
+   THEN
+      RETURN dup(x)
+   ELSE
+      RETURN Fractions.div(Fractions.mult(config^.outMax.x, x), config^.inMax.x) ;
+   END
+END scaleX ;
+
+
+(*
+   scaleY - it assumes that, y, is an absolute position on the y axis.
+*)
+
+PROCEDURE scaleY (y: Fract) : Fract ;
+BEGIN
+   IF config^.same
+   THEN
+      RETURN dup(y)
+   ELSE
+      RETURN Fractions.div(Fractions.mult(config^.outMax.y, y), config^.inMax.y) ;
+   END
+END scaleY ;
+
+
+(*
+   getFrameBuffer - collects the frame buffer limits in the following parameters.
+*)
+
+PROCEDURE getFrameBuffer (VAR start: ADDRESS; VAR length: CARDINAL; VAR used: CARDINAL) ;
+BEGIN
+   start := bufferStart ;
+   length := bufferLength ;
+   used := bufferUsed
+END getFrameBuffer ;
+
+
+
+(*
+   configDevice - configure the output device to have outMax resolution.
+*)
+
+PROCEDURE configDevice (inMax, outMax: Point; fps: CARDINAL) ;
+BEGIN
+   config^.inMax := dupPoint(inMax) ;
+   config^.outMax := dupPoint(outMax) ;
+   config^.same := Fractions.areEqual(inMax.x, outMax.x) AND
+                   Fractions.areEqual(inMax.y, outMax.y) ;
+   config^.fps := fps
+END configDevice ;
+
+
+(*
+   markConfig - 
+*)
+
+PROCEDURE markConfig (e: entity) ;
+VAR
+   c: configDesc ;
+BEGIN
+   c := getData(e) ;
+   IF c=config
+   THEN
+      WITH config^ DO
+         markEntity(centity) ;
+         markPoint(inMax) ;
+         markPoint(outMax)
+      END
+   ELSE
+      HALT
+   END
+END markConfig ;
+
+
+(*
+   Init - 
+*)
+
+PROCEDURE Init ;
+VAR
+   e: entity ;
+BEGIN
+   nextColour := nextCID ;
+   registered := SetOfColours{} ;
+   nextFrame := 1 ;
+   bufferStart := NIL ;
+   bufferLength := 0 ;
+   bufferUsed := 0 ;
+   device := none ;
+
+   configHeap := initGarbage(markConfig, TSIZE(config^), InitString('config')) ;
+   rootAllocate(configHeap, e, config) ;
+   config^.centity := e ;
+
+   configDevice(initPoint(one(), one()), initPoint(one(), one()), FPS)
+END Init ;
+
+
+BEGIN
+   Init
 END deviceIf.

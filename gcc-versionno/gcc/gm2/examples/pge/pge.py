@@ -6,6 +6,8 @@ import pygame
 colour_t, box_t, circle_t = range (3)
 id2ob = {}
 ob2id = {}
+groff_d, pyg_d = range (2)
+device = None
 
 
 #
@@ -87,8 +89,14 @@ class object:
         if self.deleted:
             printf ("object has been deleted and now it is being given " + message)
 
+    def collision (self, between):
+        for o in between:
+            if self != o:
+                if o in self.collisionWith:
+                    self.collisionp (self)
+
 def rgb (r, g, b):
-    print "in rgb"
+    print "in rgb (",r, g, b, ")"
     c = pgeif.rgb (float(r), float(g), float(b))
     print "after pgeif.rgb ->", c
     o = object (colour_t, c)
@@ -112,17 +120,42 @@ def box (x, y, w, h, c):
 
 def circle (x, y, r, c):
     c._param_colour ("fourth parameter to box is expected to be a colour")
-    id = pgeif.circle (x, y, r, c._id())
+    id = pgeif.circle (x, y, r, c._id ())
     ob = object (circle_t, id)
     _register (id, ob)
     return ob
 
+
+frame_event, collision_event = range (2)
+
+class event:
+    def __init__ (self, t, d, l):
+        self._type = t
+        self._edata = d
+        self._elength = l
+        self._fdata = None
+        self._flength = 0
+    def _set_frame_contents (self, data, length):
+        self._fdata = data
+        self._flength = length
+    def _process (self):
+        if self.type == frame_event:
+            draw_frame (self._fdata, self._flength)
+        elif self.type == collision_event:
+            collision (self._between ())
+    def _between (self):
+        self._check (collision_event)
+        # returns the two object ids of the colliding objects
+        ob1 = id2ob[id1]
+        ob2 = id2ob[id2]
+        return [ob1, ob2]
+
+def collision (between):
+    for o in between:
+        o.collision (between)
+
 def _process (pe):
-    f = pe._get_func ()
-    if pe._get_type () == collision_event:
-        f (pe.between ())
-    elif pe._get_type () == frame_event:
-        f (pe.frame_buffer (), pe.frame_length ())
+    pe._process ()
 
 def _post_event (e, t):
     if t != -1:
@@ -132,11 +165,12 @@ def _post_event (e, t):
 
 
 #
-# run - runs pge for time, t, milliseconds and also
-#       process the pygame events
+# runpy - runs pge for time, t, milliseconds and also
+#         process the pygame events.  Each event is
+#         passed to procedure, ep.
 #
 
-def run (t=-1, ep=None):
+def runpy (t=-1, ep=None):
     nev = _post_event (_get_next_event ())
     fin = _post_event (finish_event (t))
     while True:
@@ -152,3 +186,55 @@ def run (t=-1, ep=None):
                     if nev._get_time () >= cur_time ():
                         pgeif.advance_time (cur_time ())
                     ep (e)
+
+#
+#  rungroff - runs pge for time, t.  If t < 0.0 then simulate for 30.0 seconds max.
+#
+
+def rungroff (t):
+    if t < 0.0:
+        t = 30.0
+    nev = _get_next_event ()
+    while nev._get_time () < t:
+        _process (nev)
+        nev = _get_next_event ()
+
+
+#
+# run - runs pge for time, t, milliseconds and also
+#       process the pygame events
+#
+
+def run (t=-1, ep=None):
+    global device
+
+    setDefaultDevice ()
+    if device == pyg_d:
+        runpy (t, ep)
+    else:
+        rungroff (t)
+
+
+def setDevice (d):
+    global device
+
+    if device == None:
+        device = d
+        if d == pyg_d:
+            pgeif.useBuffer ()
+        elif d == groff_d:
+            pgeif.groff ()
+    else:
+        printf ("cannot change device once pge has started\n")
+
+
+def setDefaultDevice ():
+    global device
+
+    if device == None:
+        device = pyg_d
+        pgeif.useBuffer ()
+    
+
+def groff ():
+    setDevice (groff_d)

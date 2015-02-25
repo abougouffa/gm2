@@ -29,7 +29,7 @@ DEFINITION MODULE macroObjects ;
 
 FROM Points IMPORT Point ;
 FROM Fractions IMPORT Fract ;
-FROM deviceGroff IMPORT Colour ;
+FROM deviceIf IMPORT Colour ;
 
 TYPE
    Macro ;

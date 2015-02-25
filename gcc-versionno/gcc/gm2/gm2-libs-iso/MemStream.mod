@@ -41,12 +41,14 @@ FROM ChanConsts IMPORT readFlag, writeFlag ;
 FROM SYSTEM IMPORT ADDRESS, ADR ;
 FROM ASCII IMPORT nl, nul ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE, REALLOCATE ;
+FROM libc IMPORT printf ;
 
 IMPORT SYSTEM, RTio, errno, ErrnoCategory, ChanConsts, IOChan ;
 
 
 CONST
    InitialLength = 128 ;
+   Debugging     = FALSE ;
 
 TYPE
    PtrToLoc      = POINTER TO LOC ;
@@ -176,6 +178,7 @@ BEGIN
             pc := buffer ;
             INC(pc, index) ;
             INC(index) ;
+            AssignIndex(m, index) ;
             eoln := (pc^=nl) ;
             eof := FALSE ;
             RETURN( pc^ )
@@ -204,6 +207,7 @@ BEGIN
          IF index>0
          THEN
             DEC(index) ;
+            AssignIndex(m, index) ;
             eof := FALSE ;
             pc := buffer ;
             INC(pc, index) ;
@@ -250,6 +254,7 @@ BEGIN
          actual := Min(max, length-index) ;
          to := memcpy(to, pl, actual) ;
          INC(index, actual) ;
+         AssignIndex(m, index) ;
          eof := FALSE ;
          eoln := FALSE
       END ;
@@ -287,7 +292,8 @@ BEGIN
          INC(pl, index) ;
          actual := Min(nBytes, length-index) ;
          pl := memcpy(pl, from, actual) ;
-         INC(index, actual)
+         INC(index, actual) ;
+         AssignIndex(m, index)
       END ;
       RETURN( TRUE )
    END
@@ -317,7 +323,15 @@ PROCEDURE iseof (g: GenDevIF; d: DeviceTablePtr) : BOOLEAN ;
 VAR
    m: MemInfo ;
 BEGIN
+   IF Debugging
+   THEN
+      printf ("mid = %p, d = %p\n", mid, d)
+   END ;
    WITH d^ DO
+      IF Debugging
+      THEN
+         printf ("mid = %p, d = %p\n", mid, d)
+      END ;
       m := GetData(d, mid) ;
       RETURN( m^.eof )
    END
@@ -381,6 +395,21 @@ BEGIN
 END AssignBuffer ;
 
 
+(*
+   AssignIndex - 
+*)
+
+PROCEDURE AssignIndex (m: MemInfo; i: CARDINAL) ;
+BEGIN
+   WITH m^ DO
+      index := i ;
+      IF pUsed#NIL
+      THEN
+         pUsed^ := i
+      END
+   END
+END AssignIndex ;
+
 
 (*
    newCidWrite - returns a ChanId which represents the opened file, name.
@@ -405,10 +434,10 @@ BEGIN
    m^.pLength := ADR(length) ;
    m^.pUsed := ADR(used) ;
    m^.dealloc := deallocOnClose ;
-   m^.index := 0 ;
    ALLOCATE(m^.buffer, InitialLength) ;
    AssignBuffer(m, m^.buffer) ;
    AssignLength(m, InitialLength) ;
+   AssignIndex(m, 0) ;
    InitData(d, mid, m, freeMemInfo) ;
    WITH d^ DO
       flags := f ;
@@ -440,8 +469,8 @@ END newCidWrite ;
    invalid channel.
 
    The parameters, buffer, length and used maybe updated as
-   data is written.  Indeed the buffer maybe reallocated
-   and its address might alter, however these parameters will
+   data is written.  The buffer maybe reallocated
+   and its address might alter, however the parameters will
    always reflect the current active buffer.  When this
    channel is closed the buffer is deallocated and
    buffer will be set to NIL, length and used will be set to
@@ -486,9 +515,9 @@ BEGIN
    m^.pLength := NIL ;
    m^.pUsed := NIL ;
    m^.dealloc := deallocOnClose ;
-   m^.index := 0 ;
    AssignBuffer(m, buffer) ;
    AssignLength(m, length) ;
+   AssignIndex(m, 0) ;
    InitData(d, mid, m, freeMemInfo) ;
    WITH d^ DO
       flags := f ;
@@ -587,7 +616,7 @@ BEGIN
          IF readFlag IN flags
          THEN
             m := GetData(d, mid) ;
-            m^.index := 0
+            AssignIndex(m, 0)
          ELSE
             EXCL(flags, readFlag)
          END
@@ -621,7 +650,7 @@ BEGIN
          IF writeFlag IN flags
          THEN
             m := GetData(d, mid) ;
-            m^.index := 0
+            AssignIndex(m, 0)
          ELSE
             EXCL(flags, writeFlag)
          END
@@ -640,7 +669,6 @@ END Rewrite ;
 
 PROCEDURE handlefree (d: DeviceTablePtr) ;
 BEGIN
-   KillData(d, mid)
 END handlefree ;
 
 
@@ -688,6 +716,10 @@ VAR
    gen: GenDevIF ;
 BEGIN
    MakeModuleId(mid) ;
+   IF Debugging
+   THEN
+      printf ("mid = %d\n", mid)
+   END ;
    AllocateDeviceId(did) ;
    gen := InitGenDevIF(did, doreadchar, dounreadchar,
                        dogeterrno, dorbytes, dowbytes,

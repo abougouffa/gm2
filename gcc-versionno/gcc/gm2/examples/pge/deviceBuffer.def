@@ -1,5 +1,4 @@
-(* Copyright (C) 2011, 2012, 2013, 2014, 2015
-   Free Software Foundation, Inc. *)
+(* Copyright (C) 2015 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -17,16 +16,15 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA. *)
 
-DEFINITION MODULE deviceIf ;
+DEFINITION MODULE deviceBuffer ;
 
 (*
-    Title      : deviceGroff
+    Title      : deviceBuffer
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Mon Jun 18 15:00:23 2012
     Revision   : $Version$ 
-    Description: provides a generic interface to all supported output
-                 devices.
+    Description: provides an interface to a frame buffer.
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
@@ -35,6 +33,14 @@ FROM Fractions IMPORT Fract ;
 
 TYPE
    Colour = CARDINAL ;
+
+
+(*
+   configDevice - configure the output device to have outMax resolution and
+                  a buffer.
+*)
+
+PROCEDURE configDevice (inMax, outMax: Point; buffer: ADDRESS; length: CARDINAL) ;
 
 
 (*
@@ -129,45 +135,10 @@ PROCEDURE defineColour (r, g, b: Fract) : CARDINAL ;
 
 
 (*
-   useGroff - use the groff device to render frames into png images.
+   Init - initialise this module.
 *)
 
-PROCEDURE useGroff ;
+PROCEDURE Init ;
 
 
-(*
-   useBuffer - place the objects into a frame buffer.
-*)
-
-PROCEDURE useBuffer ;
-
-
-(*
-   useRPC - make rpc's to the pygame display server to render frames.
-*)
-
-PROCEDURE useRPC ;
-
-
-(*
-   finish - close the device file.
-*)
-
-PROCEDURE finish ;
-
-
-(*
-   configDevice - configure the output device to have outMax resolution.
-*)
-
-PROCEDURE configDevice (inMax, outMax: Point; fps: CARDINAL) ;
-
-
-(*
-   getFrameBuffer - collects the frame buffer limits in the following parameters.
-*)
-
-PROCEDURE getFrameBuffer (VAR start: ADDRESS; VAR length: CARDINAL; VAR used: CARDINAL) ;
-
-
-END deviceIf.
+END deviceBuffer.

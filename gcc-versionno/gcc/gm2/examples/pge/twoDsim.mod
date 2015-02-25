@@ -1,4 +1,4 @@
-(* Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014
+(* Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -34,6 +34,11 @@ FROM polar IMPORT Polar, initPolar, polarToCoord, coordToPolar ;
 FROM history IMPORT isDuplicate, removeOlderHistory, forgetHistory, purge, occurred ;
 FROM delay IMPORT getActualFPS ;
 FROM MathLib0 IMPORT pi ;
+FROM IOChan IMPORT ChanId ;
+FROM ChanConsts IMPORT read, write, raw, text, OpenResults ;
+FROM NetworkOrder IMPORT writeCard, writeFract, writePoint, writeShort, writeReal, writeCoord ;
+
+IMPORT MemStream ;
 
 
 CONST
@@ -157,6 +162,7 @@ VAR
    freeEvents        : eventQueue ;
    freeDesc          : eventDesc ;
    drawCollisionFrame: BOOLEAN ;
+   file              : ChanId ;
 
 
 (*
@@ -3307,6 +3313,97 @@ BEGIN
       eventQ := NIL
    END
 END killQueue ;
+
+
+(*
+   writeCircles - 
+*)
+
+PROCEDURE writeCircles (c: cDesc) ;
+BEGIN
+   writeCoord (file, c.cPoint) ;
+   writeCard (file, c.cid1) ;
+   writeCard (file, c.cid2)
+END writeCircles ;
+
+
+(*
+   writeKind - 
+*)
+
+PROCEDURE writeKind (k: whereHit) ;
+BEGIN
+   writeCard (file, ORD(k))
+END writeKind ;
+
+
+(*
+   writeCirclePolygon - 
+*)
+
+PROCEDURE writeCirclePolygon (c: cpDesc) ;
+BEGIN
+   writeCoord (file, c.cPoint) ;
+   writeCard (file, c.pid) ;
+   writeCard (file, c.cid) ;
+   writeKind (c.kind)
+END writeCirclePolygon ;
+
+
+(*
+   writePolygonPolygon - 
+*)
+
+PROCEDURE writePolygonPolygon (p: ppDesc) ;
+BEGIN
+   writeCoord (file, p.cPoint) ;
+   writeCard (file, p.pid1) ;
+   writeCard (file, p.pid2) ;
+   writeKind (p.kind)
+END writePolygonPolygon ;
+
+
+(*
+   writeDesc - 
+*)
+
+PROCEDURE writeDesc (p: eventDesc) ;
+BEGIN
+   WITH p^ DO
+      writeCard (file, ORD(etype)) ;
+      CASE etype OF
+
+      frameEvent         :  |
+      circlesEvent       :  writeCircles (cc) |
+      circlePolygonEvent :  writeCirclePolygon (cp) |
+      polygonPolygonEvent:  writePolygonPolygon (pp)
+
+      END
+   END
+END writeDesc ;
+
+
+(*
+   writeEvent - writes the first event to the file.
+*)
+
+PROCEDURE writeEvent (e: eventQueue) ;
+BEGIN
+   WITH e^ DO
+      writeReal (file, time) ;
+      writeDesc (ePtr)
+   END
+END writeEvent ;
+
+
+(*
+   getEventBuffer - collects the event buffer limits in the following parameters.
+*)
+
+PROCEDURE getEventBuffer (VAR start: ADDRESS; VAR length: CARDINAL; VAR used: CARDINAL) ;
+BEGIN
+   
+END getEventBuffer ;
 
 
 (*

@@ -21,16 +21,17 @@
 
 SOURCES = \
           macroObjects.mod Points.mod Fractions.mod PolyMatrix3D.mod Transform3D.mod \
-          deviceGroff.mod delay.mod GC.mod popWorld.mod twoDsim.mod \
-          roots.mod coord.mod polar.mod history.mod stairs.mod rpc.mod devicePy.mod \
+          delay.mod GC.mod popWorld.mod twoDsim.mod NetworkOrder.mod \
+          roots.mod coord.mod polar.mod history.mod stairs.mod rpc.mod \
           snooker.mod wall.mod npn.mod wallv.mod slope.mod para.mod testpy.mod \
           deviceIf.mod ramps.mod ramps2.mod boxes.mod wallh.mod bounce.mod line.mod bounce2.mod \
           bounce3.mod bounce4.mod bounce5.mod bagatelle.mod
 
+
 PGELIBSOURCES = macroObjects.mod Points.mod Fractions.mod PolyMatrix3D.mod \
-                Transform3D.mod deviceGroff.mod delay.mod GC.mod popWorld.mod \
-                twoDsim.mod roots.mod coord.mod polar.mod history.mod devicePy.mod \
-                deviceIf.mod rpc.mod deviceBuffer.mod pgeif.mod
+                Transform3D.mod delay.mod GC.mod popWorld.mod \
+                twoDsim.mod roots.mod coord.mod polar.mod history.mod \
+                deviceIf.mod rpc.mod deviceBuffer.mod pgeif.mod NetworkOrder.mod
 
 include ../../../gm2/config-make
 LIBSTDCXX=../$(TARGET_SUBDIR)/libstdc++-v3/src/.libs/libstdc++.a
@@ -39,7 +40,7 @@ OBJECTS = $(SOURCES:%.mod=%.o)
 PROFILE = 
 CHECK =
 # CHECK = -fsoft-check-all
-GM2FLAGS = $(PROFILE) $(CHECK) -g -fiso -fextended-opaque -O3 -I$(srcdir)
+GM2FLAGS = $(PROFILE) $(CHECK) -g -fiso -fextended-opaque -I$(srcdir) -g
 
 EXAMPLES = post-world whole-world
 
@@ -79,8 +80,14 @@ twoDsim.o: $(srcdir)/twoDsim.mod
 %.o:  $(srcdir)/%.mod
 	gm2 $(GM2FLAGS) -c $< -o $@
 
+%.o:  $(srcdir)/%.c
+	gcc -g -c $< -o $@
+
 %.lo:  $(srcdir)/%.mod
 	libtool --tag=CC --mode=compile gm2 -g -fiso -fextended-opaque -I$(srcdir) -c $< -o $@
+
+%.lo:  $(srcdir)/%.c
+	libtool --tag=CC --mode=compile gcc -g -I$(srcdir) -c $< -o $@
 
 run-whole-world: force
 	( python ../../../../../combined/gm2/gcc-versionno/gcc/gm2/examples/pge/pgepygame.py & ) ; sleep 1 ; ./whole-world
@@ -97,7 +104,9 @@ pre-whole-world: circles.m force
 post-world: circles.m $(OBJECTS) force
 	gm2 -fm2-statistics -O3 -fsources -fiso -fcpp -I$(srcdir) -fextended-opaque -g -o post-world $(srcdir)/world.mod
 
-libpgeif.la:  $(PGELIBSOURCES:%.mod=%.lo)
+libpgeif.la:  $(PGELIBSOURCES:%.mod=%.lo) fBuffer.lo
+	swig -outdir . -o fBuffer_wrap.cxx -c++ -python $(srcdir)/fBuffer.i
+	libtool --tag=CC --mode=compile g++ -g -c fBuffer_wrap.cxx -I/usr/include/python$(PYTHON_VERSION) -o fBuffer_wrap.lo
 	gm2 -c -g -I$(SRC_PATH_PIM) -fswig $(srcdir)/pgeif.mod
 	swig -c++ -python pgeif.i
 	libtool --tag=CC --mode=compile g++ -g -c pgeif_wrap.cxx -I/usr/include/python$(PYTHON_VERSION) -o pgeif_wrap.lo
@@ -105,7 +114,7 @@ libpgeif.la:  $(PGELIBSOURCES:%.mod=%.lo)
 	gm2 -c -g -I$(SRC_PATH_PIM) -fmakeinit -fshared $(srcdir)/pgeif.mod
 	libtool --tag=CC --mode=compile g++ -g -c _m2_pgeif.cpp -o _m2_pgeif.lo
 	libtool --tag=CC --mode=link gcc -g _m2_pgeif.lo $(PGELIBSOURCES:%.mod=%.lo) \
-            pgeif_wrap.lo \
+            pgeif_wrap.lo fBuffer_wrap.lo fBuffer.lo \
            -L$(prefix)/lib64 \
            -rpath `pwd` -lgm2 -liso -lgcc -lstdc++ -lpth -lc -lm -o libpgeif.la 
 	cp .libs/libpgeif.so _pgeif.so
@@ -114,48 +123,48 @@ pytest: libpgeif.la
 	PYTHONPATH=.:$(srcdir) python $(srcdir)/examples/exampleBoxes.py
 
 foo: circles.m $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink foo.mod
+	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/foo.mod
 
 bounce: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink bounce.mod
+	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/bounce.mod
 
 bounce2: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink bounce2.mod
+	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/bounce2.mod
 
 bounce3: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink bounce3.mod
+	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/bounce3.mod
 
 bounce4: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink bounce4.mod
+	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/bounce4.mod
 
 bounce5: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink bounce5.mod
+	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/bounce5.mod
 
 bagatelle: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink bagatelle.mod
+	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/bagatelle.mod
 
 line: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink line.mod
+	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/line.mod
 
 wallh: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink wallh.mod
+	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/wallh.mod
 
 boxes: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink boxes.mod
+	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/boxes.mod
 
 ramps: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink ramps.mod
+	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/ramps.mod
 
 ramps2: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink ramps2.mod
+	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/ramps2.mod
 
 slope: $(OBJECTS)
 	$(RM) *.ms *.png
-	gm2 $(GM2FLAGS) -fonlylink slope.mod
+	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/slope.mod
 
 stairs: $(OBJECTS)
 	$(RM) *.ms *.png
-	gm2 $(GM2FLAGS) -fonlylink stairs.mod
+	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/stairs.mod
 
 py: $(OBJECTS)
 	$(RM) *.ms *.png
@@ -178,18 +187,14 @@ wall: $(OBJECTS)
 
 snooker: $(OBJECTS)
 	$(RM) *.ms *.png
-	gm2 $(GM2FLAGS) -fonlylink snooker.mod
+	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/snooker.mod
 
 npn: $(OBJECTS)
 	$(RM) *.ms *.png
-	gm2 $(GM2FLAGS) -fonlylink npn.mod && ./a.out
+	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/npn.mod && ./a.out
 
 test: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink test.mod && ./a.out
-
-later: force
-	gm2 -fiso -c -g deviceGroff.mod
-	gm2 -fiso -c -g macroObjects.mod
+	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/test.mod && ./a.out
 
 transforms: rotating-circles.asc rotating-line.asc
 
