@@ -119,6 +119,21 @@ PROCEDURE flipBuffer ;
 
 
 (*
+   emptyBuffer - empty the frame buffer (this only applies if the module is using
+                 the buffer device).
+*)
+
+PROCEDURE emptyBuffer ;
+
+
+(*
+   writeTime - writes the delay, t, to the frame buffer (if t > 0.0).
+*)
+
+PROCEDURE writeTime (t: REAL) ;
+
+
+(*
    defineColour - defines a colour by: r, g, b.  The fracts
                   are given to the colour and a colour index
                   is returned.  Colours live for ever and are

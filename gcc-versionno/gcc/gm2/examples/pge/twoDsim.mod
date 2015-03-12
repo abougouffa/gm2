@@ -1,5 +1,5 @@
 (* Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015
-                 Free Software Foundation, Inc. *)
+                 Free Software Foundation, Inc.  *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -18,11 +18,11 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE twoDsim ;
 
-FROM SYSTEM IMPORT ADR ;
+FROM SYSTEM IMPORT ADR, BYTE ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, HighIndice ;
 FROM libc IMPORT printf, exit ;
-FROM deviceIf IMPORT flipBuffer, glyphCircle, glyphPolygon, blue, red, black, yellow, purple ;
+FROM deviceIf IMPORT flipBuffer, glyphCircle, glyphPolygon, writeTime, blue, red, black, yellow, purple ;
 FROM libm IMPORT sqrt, asin, sin, cos ;
 FROM roots IMPORT findQuartic, findQuadratic, findAllRootsQuartic, nearZero ;
 FROM Fractions IMPORT Fract, zero, one, putReal, initFract ;
@@ -39,6 +39,8 @@ FROM ChanConsts IMPORT read, write, raw, text, OpenResults ;
 FROM NetworkOrder IMPORT writeCard, writeFract, writePoint, writeShort, writeReal, writeCoord ;
 
 IMPORT MemStream ;
+IMPORT deviceIf ;
+IMPORT gdbif ;
 
 
 CONST
@@ -46,7 +48,7 @@ CONST
    DefaultFramesPerSecond =    24.0 ;
    Debugging              = FALSE ;
    BufferedTime           =     0.1 ;
-   InactiveTime           =     1.0 ;  (* the time we keep simulating after all colision events have expired *)
+   InactiveTime           =     1.0 ;  (* the time we keep simulating after all collision events have expired *)
 
 TYPE
    ObjectType = (polygonOb, circleOb, pivotOb, rpolygonOb) ;
@@ -152,6 +154,7 @@ TYPE
 VAR
    objects           : Index ;
    maxId             : CARDINAL ;
+   lastDrawTime,
    lastCollisionTime,
    collisionTime,
    currentTime,
@@ -161,8 +164,14 @@ VAR
    eventQ,
    freeEvents        : eventQueue ;
    freeDesc          : eventDesc ;
+   writeTimeDelay,
    drawCollisionFrame: BOOLEAN ;
+   bufferStart       : ADDRESS ;
+   bufferLength      : CARDINAL ;
+   bufferUsed        : CARDINAL ;
+   fileOpened        : BOOLEAN ;
    file              : ChanId ;
+
 
 
 (*
@@ -349,25 +358,8 @@ END newObject ;
 *)
 
 PROCEDURE box (x0, y0, i, j: REAL; colour: Colour) : CARDINAL ;
-VAR
-   id: CARDINAL ;
-   optr: Object ;
 BEGIN
-   id := newObject(polygonOb) ;
-   optr := GetIndice(objects, id) ;
-   WITH optr^ DO
-      p.nPoints := 4 ;
-      p.points[0].x := i ;
-      p.points[0].y := 0.0 ;
-      p.points[1].x := 0.0 ;
-      p.points[1].y := j ;
-      p.points[2].x := -i ;
-      p.points[2].y := 0.0 ;
-      p.points[3].x := 0.0 ;
-      p.points[3].y := -j ;
-      p.col := colour ;
-   END ;
-   RETURN id
+   RETURN poly4 (x0, y0, x0+i, y0, x0+i, y0+j, x0, y0+j, colour)
 END box ;
 
 
@@ -398,7 +390,7 @@ END poly3 ;
 
 
 (*
-   poly4 - place a triangle in the world at:
+   poly4 - place a quadrangle in the world at:
            (x0,y0),(x1,y1),(x2,y2),(x3,y3)
 *)
 
@@ -831,7 +823,7 @@ END getAccelCoord ;
    drawFrame - 
 *)
 
-PROCEDURE drawFrame (e: eventQueue) ;
+PROCEDURE drawFrame ;
 VAR
    po  : ARRAY [0..MaxPolygonPoints] OF Coord ;
    i, j,
@@ -841,6 +833,11 @@ VAR
    vc,
    ac  : Coord ;
 BEGIN
+   IF writeTimeDelay
+   THEN
+      writeTime (currentTime-lastDrawTime)
+   END ;
+   lastDrawTime := currentTime ;
    dt := currentTime-lastCollisionTime ;
    drawBoarder(black()) ;
    n := HighIndice(objects) ;
@@ -852,8 +849,7 @@ BEGIN
       WITH optr^ DO
          CASE object OF
 
-         circleOb  :  doCircle(newPositionCoord(c.pos, vc, ac, dt),
-                               c.r, c.col) |
+         circleOb  :  doCircle(newPositionCoord(c.pos, vc, ac, dt), c.r, c.col) |
          polygonOb :  j := 0 ;
                       WHILE j<p.nPoints DO
                          po[j] := newPositionCoord(p.points[j], vc, ac, dt) ;
@@ -881,10 +877,15 @@ END drawFrame ;
 
 PROCEDURE drawFrameEvent (e: eventQueue) ;
 BEGIN
-   drawFrame(e) ;
-   addEvent(1.0/framesPerSecond, drawFrameEvent) ;
    flipBuffer ;
+   drawFrame ;
+   addEvent(1.0/framesPerSecond, drawFrameEvent) ;
+   (* *)
+(*
+   printf ("collectAll\n");
    collectAll
+*)
+   (* *)
 END drawFrameEvent ;
 
 
@@ -1120,7 +1121,8 @@ BEGIN
    IF eventQ=NIL
    THEN
       printf("no more events on the event queue\n") ;
-      HALT
+      exit (1);
+      RETURN 0.0
    ELSE
       (* printQueue ; *)
       e := eventQ ;
@@ -1135,7 +1137,7 @@ BEGIN
       disposeDesc(e^.ePtr) ;
       disposeEvent(e) ;
       updateStats(dt) ;
-      RETURN( dt )
+      RETURN dt
    END
 END doNextEvent ;
 
@@ -1579,12 +1581,14 @@ PROCEDURE doCollision (e: eventQueue) ;
 BEGIN
    updatePhysics(currentTime-lastCollisionTime) ;
    lastCollisionTime := currentTime ;
-   IF drawCollisionFrame
+   IF TRUE OR drawCollisionFrame
    THEN
-      drawFrame(e)
+      flipBuffer ;
+      drawFrame ;
+(*
+      collectAll
+*)
    END ;
-   flipBuffer ;
-   collectAll ;
    physicsCollision(e) ;
    addNextCollisionEvent(lastCollisionTime-BufferedTime)
 END doCollision ;
@@ -2077,8 +2081,8 @@ END hVec ;
 
 PROCEDURE hFlush ;
 BEGIN
-   drawBoarder(black()) ;
    flipBuffer ;
+   drawBoarder(black()) ;
    collectAll
 END hFlush ;
 
@@ -2320,7 +2324,7 @@ BEGIN
       edesc := createDesc(edesc, cid, pid, line, 0, collisonPoint) ;
       IF Debugging AND drawCollisionFrame
       THEN
-         drawFrame(NIL) ;
+         drawFrame ;
          debugCircle(center, radius, purple()) ;
          debugLine(p3, p5) ;
          debugCircle(collisonPoint, 0.02, purple()) ;
@@ -2341,7 +2345,7 @@ BEGIN
       edesc := createDesc(edesc, cid, pid, line, 0, collisonPoint) ;
       IF Debugging AND drawCollisionFrame
       THEN
-         drawFrame(NIL) ;
+         drawFrame ;
          debugCircle(center, radius, purple()) ;
          debugLine(p4, p6) ;
          debugCircle(collisonPoint, 0.02, purple()) ;
@@ -2420,7 +2424,7 @@ BEGIN
       edesc := createDesc(edesc, cid, pid, 0, l, p1) ;  (* point no, l *)
       IF Debugging AND drawCollisionFrame
       THEN
-         drawFrame(NIL) ;
+         drawFrame ;
          debugCircle(center, r, yellow()) ;
          debugCircle(p1, 0.03, yellow()) ;
          flipBuffer ;
@@ -2442,7 +2446,7 @@ BEGIN
       edesc := createDesc(edesc, cid, pid, 0, l+1, p2) ;  (* point no, l+1 *)
       IF Debugging AND drawCollisionFrame
       THEN
-         drawFrame(NIL) ;
+         drawFrame ;
          debugCircle(cPtr^.c.pos, r, yellow()) ;
          debugCircle(p2, 0.03, yellow()) ;
          flipBuffer ;
@@ -2812,7 +2816,7 @@ END findCollision ;
 PROCEDURE debugFrame (e: eventQueue) ;
 BEGIN
    drawBackground(yellow()) ;
-   drawFrame(e)
+   drawFrame
 END debugFrame ;
 
 
@@ -3134,6 +3138,10 @@ PROCEDURE addEvent (t: REAL; dop: eventProc) ;
 VAR
    e: eventQueue ;
 BEGIN
+   IF Debugging
+   THEN
+      printf ("new event will occur at time %g in the future\n", t)
+   END ;
    e := newEvent() ;
    WITH e^ DO
       time := t ;
@@ -3167,18 +3175,6 @@ BEGIN
    END ;
    addRelative(e)
 END addCollisionEvent ;
-
-
-(*
-   nextEvent - moves onto the next event.
-*)
-
-PROCEDURE nextEvent ;
-VAR
-   t: REAL ;
-BEGIN
-   t := doNextEvent ()
-END nextEvent ;
 
 
 (*
@@ -3219,6 +3215,11 @@ END isEvent ;
 
 PROCEDURE isCollision () : BOOLEAN ;
 BEGIN
+   IF Debugging
+   THEN
+      printf ("isCollision before pumpQueue\n")
+   END ;
+   pumpQueue ;
    RETURN( isEvent(circlesEvent) OR isEvent(circlePolygonEvent) OR
            isEvent(polygonPolygonEvent) )
 END isCollision ;
@@ -3230,7 +3231,12 @@ END isCollision ;
 
 PROCEDURE isFrame () : BOOLEAN ;
 BEGIN
-   RETURN( isEvent(frameEvent) )
+   IF Debugging
+   THEN
+      printf ("isFrame before pumpQueue\n")
+   END ;
+   pumpQueue ;
+   RETURN( NOT isCollision() )
 END isFrame ;
 
 
@@ -3240,6 +3246,7 @@ END isFrame ;
 
 PROCEDURE timeUntil () : REAL ;
 BEGIN
+   pumpQueue ;
    IF eventQ=NIL
    THEN
       RETURN( 0.0 )
@@ -3250,15 +3257,21 @@ END timeUntil ;
 
 
 (*
-   skipUntil - advances time for, t, units or until the next event is reached.
+   skipTime - attempts to skip, t, seconds.  It returns the amount
+              of time actually skipped.  This function will not skip
+              past the next event.
 *)
 
-PROCEDURE skipUntil (t: REAL) ;
+PROCEDURE skipTime (t: REAL) : REAL ;
 VAR
    dt: REAL ;
 BEGIN
-   IF eventQ#NIL
+   pumpQueue ;
+   IF eventQ=NIL
    THEN
+      printf ("no events in the queue\n") ;
+      RETURN 0.0
+   ELSE
       IF t > eventQ^.time
       THEN
          dt := eventQ^.time ;
@@ -3277,9 +3290,67 @@ BEGIN
             currentTime := currentTime + t ;
             eventQ^.time := eventQ^.time - t
          END
-      END
+      END ;
+      RETURN dt
    END
-END skipUntil ;
+END skipTime ;
+
+
+(*
+   recordEvent - 
+*)
+
+PROCEDURE recordEvent ;
+BEGIN
+   checkOpened ;
+   IF eventQ#NIL
+   THEN
+      printf ("before writeEvent\n");
+      (* gdbif.sleepSpin ; *)
+      writeEvent (eventQ) ;
+      printf ("after writeEvent\n");
+   END
+END recordEvent ;
+
+
+(*
+   processEvent - skips any outstanding time and processes the next event.
+                  Time is adjusted to the time of the next event.
+*)
+
+PROCEDURE processEvent ;
+VAR
+   dt: REAL ;
+BEGIN
+   IF Debugging
+   THEN
+      printf ("processEvent before pumpQueue\n")
+   END ;
+   pumpQueue ;
+   printf ("before doNextEvent\n");
+   printQueue ;
+   dt := doNextEvent() ;
+   printf ("finished doNextEvent\n")
+END processEvent ;
+
+
+(*
+   pumpQueue - prime the event queue with initial frame and collision events.
+*)
+
+PROCEDURE pumpQueue ;
+BEGIN
+   IF eventQ=NIL
+   THEN
+      printf ("eventQ = NIL adding new event\n");
+      (* gdbif.sleepSpin ; *)
+      checkObjects ;
+      addEvent(0.0, drawFrameEvent) ;
+      addNextCollisionEvent(0.0) ;
+      printQueue
+   END ;
+   recordEvent
+END pumpQueue ;
 
 
 (*
@@ -3369,15 +3440,20 @@ END writePolygonPolygon ;
 
 PROCEDURE writeDesc (p: eventDesc) ;
 BEGIN
-   WITH p^ DO
-      writeCard (file, ORD(etype)) ;
-      CASE etype OF
+   IF p=NIL
+   THEN
+      writeCard (file, ORD(frameEvent))
+   ELSE
+      WITH p^ DO
+         writeCard (file, ORD(etype)) ;
+         CASE etype OF
 
-      frameEvent         :  |
-      circlesEvent       :  writeCircles (cc) |
-      circlePolygonEvent :  writeCirclePolygon (cp) |
-      polygonPolygonEvent:  writePolygonPolygon (pp)
+         frameEvent         :  |
+         circlesEvent       :  writeCircles (cc) |
+         circlePolygonEvent :  writeCirclePolygon (cp) |
+         polygonPolygonEvent:  writePolygonPolygon (pp)
 
+         END
       END
    END
 END writeDesc ;
@@ -3389,7 +3465,11 @@ END writeDesc ;
 
 PROCEDURE writeEvent (e: eventQueue) ;
 BEGIN
+   MemStream.Rewrite (file) ;
+   printf ("time of next event in twoDsim is %g\n", e^.time);
+   displayEvent (e);
    WITH e^ DO
+      printf ("check time is %g\n", time);
       writeReal (file, time) ;
       writeDesc (ePtr)
    END
@@ -3397,13 +3477,104 @@ END writeEvent ;
 
 
 (*
+   memDump - 
+*)
+
+PROCEDURE memDump (a: ADDRESS; len: CARDINAL) ;
+VAR
+   i, j: CARDINAL ;
+   p   : POINTER TO BYTE ;
+BEGIN
+   p := a ;
+   j := 0 ;
+   FOR i := 0 TO len DO
+      IF j MOD 16 = 0
+      THEN
+         printf ("\n%p  %02x", p, VAL(CARDINAL, p^))
+      ELSE
+         printf (" %02x", VAL(CARDINAL, p^))
+      END ;
+      INC(p) ;
+      INC(j)
+   END ;
+   printf ("\n")
+END memDump ;
+
+
+(*
    getEventBuffer - collects the event buffer limits in the following parameters.
 *)
 
 PROCEDURE getEventBuffer (VAR start: ADDRESS; VAR length: CARDINAL; VAR used: CARDINAL) ;
+VAR
+   f: POINTER TO REAL ;
 BEGIN
-   
+   recordEvent ;
+   start := bufferStart ;
+   length := bufferLength ;
+   used := bufferUsed ;
+   f := bufferStart ;
+   printf ("event buffer ptr = 0x%p, length = %d, used = %d\n", start, length, used);
+   printf ("ptr to real is %g\n", f^) ;
+   memDump (start, 8)
 END getEventBuffer ;
+
+
+(*
+   checkOpened - checks to see of the MemStream file has been created and if not then
+                 it is opened.
+*)
+
+PROCEDURE checkOpened ;
+VAR
+   res: OpenResults ;
+BEGIN
+   IF NOT fileOpened
+   THEN
+      (* gdbif.sleepSpin ; *)
+
+      fileOpened := TRUE ;
+      MemStream.OpenWrite (file, write+raw, res, bufferStart, bufferLength, bufferUsed, TRUE) ;
+      IF res#opened
+      THEN
+         printf ("twoDsim.checkOpened: something went wrong when trying to open the memstream file (res = %d)\n", res);
+         exit (1)
+      END
+   END
+END checkOpened ;
+
+
+(*
+   buildFrame - populate the frame buffer contents with the world at the current time.
+*)
+
+PROCEDURE buildFrame ;
+BEGIN
+   printf ("flipBuffer\n");
+   flipBuffer ;
+   printf ("drawFrame\n");
+   drawFrame
+END buildFrame ;
+
+
+(*
+   emptyBuffer - empty the frame buffer.
+*)
+
+PROCEDURE emptyBuffer ;
+BEGIN
+   deviceIf.emptyBuffer
+END emptyBuffer ;
+
+
+(*
+   useTimeDelay - should the frame buffer include the time delay command?
+*)
+
+PROCEDURE useTimeDelay (on: BOOLEAN) ;
+BEGIN
+   writeTimeDelay := on
+END useTimeDelay ;
 
 
 (*
@@ -3423,7 +3594,9 @@ BEGIN
    currentTime := 0.0 ;
    collisionTime := -1.0 ;
    lastCollisionTime := 0.0 ;
-   drawCollisionFrame := TRUE
+   drawCollisionFrame := TRUE ;
+   fileOpened := FALSE ;
+   writeTimeDelay := TRUE
 END Init ;
 
 

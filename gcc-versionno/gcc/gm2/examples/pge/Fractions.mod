@@ -514,6 +514,19 @@ END isZero ;
 
 
 (*
+   isOne - returns TRUE if the fraction is one.
+*)
+
+PROCEDURE isOne (f: Fract) : BOOLEAN ;
+BEGIN
+   f := simplify(f) ;
+   WITH f^ DO
+      RETURN (whole=1) AND (num=0)
+   END
+END isOne ;
+
+
+(*
    isEqual - returns TRUE if Fracts, l, and, r, are equal.
 *)
 

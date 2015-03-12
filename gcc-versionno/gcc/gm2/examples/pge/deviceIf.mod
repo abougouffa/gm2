@@ -79,6 +79,7 @@ PROCEDURE registerColour (cid: Colour; r, g, b: Fract) : Colour ;
 BEGIN
    IF NOT (cid IN registered)
    THEN
+      printf ("register colour %d\n", cid);
       INCL(registered, cid) ;
       RawIO.Write (file, "rc") ;
       writeShort (file, cid) ;
@@ -248,14 +249,39 @@ BEGIN
    THEN
       useBuffer
    END ;
-   IF device=buffer
-   THEN
-      MemStream.Rewrite (file)
-   END ;
    RawIO.Write (file, "fb") ;
    writeCard (file, nextFrame) ;
    INC(nextFrame)
 END flipBuffer ;
+
+
+(*
+   emptyBuffer - empty the frame buffer (this only applies if the module is using
+                 the buffer device).
+*)
+
+PROCEDURE emptyBuffer ;
+BEGIN
+   IF device=buffer
+   THEN
+      printf ("rewrite\n");
+      MemStream.Rewrite (file)
+   END
+END emptyBuffer ;
+
+
+(*
+   writeTime - writes the delay, t, to the frame buffer (if t > 0.0).
+*)
+
+PROCEDURE writeTime (t: REAL) ;
+BEGIN
+   IF t > 0.0
+   THEN
+      RawIO.Write (file, "sl") ;
+      RawIO.Write (file, t)
+   END
+END writeTime ;
 
 
 (*
@@ -326,7 +352,7 @@ BEGIN
    MemStream.OpenWrite (file, write+raw, res, bufferStart, bufferLength, bufferUsed, TRUE) ;
    IF res#opened
    THEN
-      printf ("something went wrong when trying to open the memstream file\n");
+      printf ("deviceIf.useBuffer: something went wrong when trying to open the memstream file\n");
       exit (1)
    END
 END useBuffer ;
@@ -389,8 +415,8 @@ BEGIN
    start := bufferStart ;
    length := bufferLength ;
    used := bufferUsed
+   ; printf ("getFrameBuffer (addr = 0x%p, length = %d, used = %d)\n", start, length, used)
 END getFrameBuffer ;
-
 
 
 (*

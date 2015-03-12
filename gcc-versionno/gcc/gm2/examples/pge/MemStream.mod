@@ -47,7 +47,7 @@ IMPORT SYSTEM, RTio, errno, ErrnoCategory, ChanConsts, IOChan ;
 
 
 CONST
-   InitialLength = 128 ;
+   InitialLength = 4096 ;
    Debugging     = FALSE ;
 
 TYPE
@@ -264,6 +264,31 @@ END dorbytes ;
 
 
 (*
+   memDump - 
+*)
+
+PROCEDURE memDump (a: ADDRESS; len: CARDINAL) ;
+VAR
+   i, j: CARDINAL ;
+   p   : POINTER TO SYSTEM.LOC ;
+BEGIN
+   p := a ;
+   j := 0 ;
+   FOR i := 0 TO len DO
+      IF j MOD 16 = 0
+      THEN
+         printf ("\n%p  %02x", p, VAL(CARDINAL, p^))
+      ELSE
+         printf (" %02x", VAL(CARDINAL, p^))
+      END ;
+      INC(p) ;
+      INC(j)
+   END ;
+   printf ("\n")
+END memDump ;
+
+
+(*
    dowbytes - 
 *)
 
@@ -291,6 +316,11 @@ BEGIN
          pl := buffer ;
          INC(pl, index) ;
          actual := Min(nBytes, length-index) ;
+         IF Debugging
+         THEN
+            printf ("memcpy (0x%p, 0x%p, %d)\n", pl, from, actual);
+            memDump (pl, actual)
+         END ;
          pl := memcpy(pl, from, actual) ;
          INC(index, actual) ;
          AssignIndex(m, index)
@@ -435,6 +465,12 @@ BEGIN
    m^.pUsed := ADR(used) ;
    m^.dealloc := deallocOnClose ;
    ALLOCATE(m^.buffer, InitialLength) ;
+   printf ("memory buffer address = 0x%p\n", m^.buffer);
+   res := opened ;
+   IF m^.buffer=NIL
+   THEN
+      res := noRoomOnDevice
+   END ;
    AssignBuffer(m, m^.buffer) ;
    AssignLength(m, InitialLength) ;
    AssignIndex(m, 0) ;
@@ -511,6 +547,7 @@ VAR
 BEGIN
    MakeChan(did, c) ;
    d := DeviceTablePtrValue(c, did) ;
+   res := opened ;
    NEW(m) ;
    m^.pBuffer := NIL ;
    m^.pLength := NIL ;

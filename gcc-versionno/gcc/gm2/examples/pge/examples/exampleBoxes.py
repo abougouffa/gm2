@@ -4,18 +4,25 @@ import pge
 # import pgemacro
 
 print "starting exampleBoxes"
-pge.groff ()
+pge.batch ()
 
 t = pge.rgb (1.0/2.0, 2.0/3.0, 3.0/4.0)
 wood_light = pge.rgb (166.0/256.0, 124.0/256.0, 54.0/256.0)
 wood_dark = pge.rgb (76.0/256.0, 47.0/256.0, 0.0)
+red = pge.rgb (1.0, 0.0, 0.0)
 metal = pge.rgb (0.5, 0.5, 0.5)
 ball_size = 0.04
 boarder = 0.01
 
 
 def play_wood ():
-    pass
+    pge.play ("/home/gaius/Sandpit/penguin-tower/sounds/brokenglass.wav")
+
+def play_crack ():
+    pge.play ("/home/gaius/Sandpit/penguin-tower/sounds/brokenglass.wav")
+
+def play_bounce ():
+    pge.play ("/home/gaius/Sandpit/cluedo/sounds/cardsnap.wav")
 
 def placeBoarders (thickness, color):
     print "placeBoarders"
@@ -29,7 +36,7 @@ def placeBoarders (thickness, color):
 
 
 def placeBall (x, y, r):
-    b = pge.circle (x, y, r, metal)
+    return pge.circle (x, y, r, metal)
 
 
 def crate (x, y, w):
@@ -48,17 +55,26 @@ def crate_split (p):
             for v in [[0, 0], [0, w], [w, 0], [w, w]]:
                 b = pge.box (v[0], v[1], wg, wg, c).mass (m).on_collision (crate_split)
                 b.set_param (e-1)
+            p.delete ()
+            play_crack ()
         elif e == 0:
             # at the end of 6 collisions the crates disappear
             p.delete ()
+            play_crack ()
         else:
             # allow collision (bounce) without splitting every even bounce
             p.set_param (e-1)
-
+            play_bounce ()
 
 def main ():
     b1, b2, b3, b4 = placeBoarders (boarder, wood_dark)
+    b = placeBall (0.5, 0.5, 0.02)
+    # b = b.fix ()
+    # crate (0.5, 0.5, 0.2)
+    print "before run"
+    pge.gravity ()
     pge.run (10.0)
+    pge.finish ()
 
 print "before main()"
 main ()

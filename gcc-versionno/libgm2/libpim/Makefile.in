@@ -107,7 +107,7 @@ am__objects_1 = ASCII.lo IO.lo Args.lo M2RTS.lo Assertion.lo \
 	PushBackInput.lo StringConvert.lo FormatStrings.lo Builtins.lo \
 	MathLib0.lo M2EXCEPTION.lo RTExceptions.lo SMathLib0.lo \
 	RTint.lo COROUTINES.lo Indexing.lo LMathLib0.lo LegacyReal.lo \
-	MemUtils.lo
+	MemUtils.lo gdbif.lo
 am_libgm2_la_OBJECTS = $(am__objects_1) libgm2_la-UnixArgs.lo \
 	libgm2_la-Selective.lo libgm2_la-sckt.lo libgm2_la-errno.lo \
 	libgm2_la-dtoa.lo libgm2_la-ldtoa.lo libgm2_la-termios.lo \
@@ -365,7 +365,7 @@ M2MODS = ASCII.mod IO.mod \
        SMathLib0.mod RTint.mod \
        COROUTINES.mod Indexing.mod \
        LMathLib0.mod LegacyReal.mod \
-       MemUtils.mod
+       MemUtils.mod gdbif.mod
 
 M2DEFS = Args.def   ASCII.def \
          Assertion.def  Break.def \
@@ -375,7 +375,8 @@ M2DEFS = Args.def   ASCII.def \
          dtoa.def  DynamicStrings.def \
          Environment.def  errno.def \
          FIO.def  FormatStrings.def \
-         FpuIO.def  Indexing.def \
+         FpuIO.def  gdbif.def \
+         Indexing.def \
          IO.def  ldtoa.def \
          LegacyReal.def  libc.def \
          libm.def  LMathLib0.def \

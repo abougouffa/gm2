@@ -25,7 +25,7 @@ SOURCES = \
           roots.mod coord.mod polar.mod history.mod stairs.mod rpc.mod \
           snooker.mod wall.mod npn.mod wallv.mod slope.mod para.mod testpy.mod \
           deviceIf.mod ramps.mod ramps2.mod boxes.mod wallh.mod bounce.mod line.mod bounce2.mod \
-          bounce3.mod bounce4.mod bounce5.mod bagatelle.mod
+          bounce3.mod bounce4.mod bounce5.mod bagatelle.mod elc.mod
 
 
 PGELIBSOURCES = macroObjects.mod Points.mod Fractions.mod PolyMatrix3D.mod \
@@ -104,17 +104,14 @@ pre-whole-world: circles.m force
 post-world: circles.m $(OBJECTS) force
 	gm2 -fm2-statistics -O3 -fsources -fiso -fcpp -I$(srcdir) -fextended-opaque -g -o post-world $(srcdir)/world.mod
 
-libpgeif.la:  $(PGELIBSOURCES:%.mod=%.lo) fBuffer.lo
-	swig -outdir . -o fBuffer_wrap.cxx -c++ -python $(srcdir)/fBuffer.i
-	libtool --tag=CC --mode=compile g++ -g -c fBuffer_wrap.cxx -I/usr/include/python$(PYTHON_VERSION) -o fBuffer_wrap.lo
-	gm2 -c -g -I$(SRC_PATH_PIM) -fswig $(srcdir)/pgeif.mod
-	swig -c++ -python pgeif.i
+libpgeif.la:  $(PGELIBSOURCES:%.mod=%.lo) buffers.lo
+	swig -outdir . -o pgeif_wrap.cxx -c++ -python $(srcdir)/pgeif.i
 	libtool --tag=CC --mode=compile g++ -g -c pgeif_wrap.cxx -I/usr/include/python$(PYTHON_VERSION) -o pgeif_wrap.lo
 	gm2 -c -g -I$(SRC_PATH_PIM) -fmakelist $(srcdir)/pgeif.mod
 	gm2 -c -g -I$(SRC_PATH_PIM) -fmakeinit -fshared $(srcdir)/pgeif.mod
 	libtool --tag=CC --mode=compile g++ -g -c _m2_pgeif.cpp -o _m2_pgeif.lo
 	libtool --tag=CC --mode=link gcc -g _m2_pgeif.lo $(PGELIBSOURCES:%.mod=%.lo) \
-            pgeif_wrap.lo fBuffer_wrap.lo fBuffer.lo \
+            pgeif_wrap.lo buffers.lo \
            -L$(prefix)/lib64 \
            -rpath `pwd` -lgm2 -liso -lgcc -lstdc++ -lpth -lc -lm -o libpgeif.la 
 	cp .libs/libpgeif.so _pgeif.so
@@ -142,6 +139,9 @@ bounce5: $(OBJECTS)
 
 bagatelle: $(OBJECTS)
 	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/bagatelle.mod
+
+elc: $(OBJECTS)
+	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/elc.mod
 
 line: $(OBJECTS)
 	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/line.mod

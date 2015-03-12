@@ -102,7 +102,7 @@ M2MODS = ASCII.mod IO.mod \
        SMathLib0.mod RTint.mod \
        COROUTINES.mod Indexing.mod \
        LMathLib0.mod LegacyReal.mod \
-       MemUtils.mod
+       MemUtils.mod gdbif.mod
 
 M2DEFS = Args.def   ASCII.def \
          Assertion.def  Break.def \
@@ -112,7 +112,8 @@ M2DEFS = Args.def   ASCII.def \
          dtoa.def  DynamicStrings.def \
          Environment.def  errno.def \
          FIO.def  FormatStrings.def \
-         FpuIO.def  Indexing.def \
+         FpuIO.def  gdbif.def \
+         Indexing.def \
          IO.def  ldtoa.def \
          LegacyReal.def  libc.def \
          libm.def  LMathLib0.def \

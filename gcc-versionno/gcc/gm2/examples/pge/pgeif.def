@@ -34,8 +34,9 @@ FROM SYSTEM IMPORT BYTE ;
 EXPORT UNQUALIFIED ExceptionKind,
                    rgb, white, black, red, green, blue, purple, gravity,
                    box, poly3, poly4, poly5, poly6, mass, fix, circle,
-                   velocity, accel, rotate, do_next_event, get_event_data,
-                   is_collision, is_frame, time_until, get_time, rm, groff ;
+                   velocity, accel, rotate, process_event,
+                   is_collision, is_frame, time_until, get_time, rm,
+                   batch, use_buffer, empty_buffer, use_time_delay ;
 
 
 TYPE
@@ -189,16 +190,6 @@ PROCEDURE rotate (id: CARDINAL; angle: REAL) : CARDINAL ;
 
 
 (*
-   get_event_data - retrieves the next event into the, data.
-                    The buffer address may be changed by this procedure
-                    it will also assign the number of bytes used into
-                    length.
-*)
-
-PROCEDURE get_event_data (VAR data: ARRAY OF CHAR) ;
-
-
-(*
    is_collision - returns TRUE if next event is a collision event.
 *)
 
@@ -223,15 +214,15 @@ PROCEDURE time_until () : REAL ;
    skip_until - advances time for, t, units or until the next event is reached.
 *)
 
-PROCEDURE skip_until (t: REAL) ;
+PROCEDURE skip_until (t: REAL) : REAL ;
 
 
 (*
-   do_next_event - advance time to the next event and then
+   process_event - advance time to the next event and then
                    process the event.
 *)
 
-PROCEDURE do_next_event ;
+PROCEDURE process_event ;
 
 
 (*
@@ -250,10 +241,31 @@ PROCEDURE rm (id: CARDINAL) : CARDINAL ;
 
 
 (*
-   groff - use the batch device groff to record the output frames.
+   batch - use the batch device to record the output frames.
 *)
 
-PROCEDURE groff ;
+PROCEDURE batch ;
+
+
+(*
+   use_buffer - use the buffer device to record the output frames.
+*)
+
+PROCEDURE use_buffer ;
+
+
+(*
+   empty_buffer - empty the frame buffer.
+*)
+
+PROCEDURE empty_buffer ;
+
+
+(*
+   useTimeDelay - should the frame buffer include the time delay command?
+*)
+
+PROCEDURE use_time_delay (on: BOOLEAN) ;
 
 
 END pgeif.

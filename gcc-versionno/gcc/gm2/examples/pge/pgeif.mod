@@ -23,7 +23,7 @@ FROM Storage IMPORT ALLOCATE ;
 IMPORT deviceIf ;
 IMPORT twoDsim ;
 FROM deviceIf IMPORT useBuffer ;
-FROM SYSTEM IMPORT THROW ;
+FROM SYSTEM IMPORT THROW, ADDRESS ;
 FROM Indexing IMPORT Index, InitIndex, GetIndice, PutIndice, HighIndice, IncludeIndiceIntoIndex, InBounds ;
 FROM Fractions IMPORT Fract, putReal ;
 FROM deviceIf IMPORT Colour ;
@@ -346,22 +346,6 @@ BEGIN
 END fps ;
 
 
-(*
-   get_event_data -
-*)
-
-PROCEDURE get_event_data (VAR data: ARRAY OF CHAR) ;
-BEGIN
-   (* getEventData (data, length) *)
-END get_event_data ;
-
-
-PROCEDURE do_next_event ;
-BEGIN
-   twoDsim.nextEvent
-END do_next_event ;
-
-
 PROCEDURE get_time () : REAL ;
 BEGIN
    RETURN twoDsim.getTime ()
@@ -392,23 +376,25 @@ END time_until ;
 
 (*
    skip_until - advances time for, t, units or until the next event is reached.
+                The amount of time skipped is returned.  This function will not
+                skip past the next event.
 *)
 
-PROCEDURE skip_until (t: REAL) ;
+PROCEDURE skip_until (t: REAL) : REAL ;
 BEGIN
-   twoDsim.skipUntil (t)
+   RETURN twoDsim.skipTime (t)
 END skip_until ;
 
 
 (*
-   do_next_event - advance time to the next event and then
+   process_event - advance time to the next event and then
                    process the event.
 *)
 
-PROCEDURE do_next_event ;
+PROCEDURE process_event ;
 BEGIN
-   twoDsim.nextEvent
-END do_next_event ;
+   twoDsim.processEvent
+END process_event ;
 
 
 (*
@@ -423,13 +409,57 @@ END rm ;
 
 
 (*
-   groff - use the batch device groff to record the output frames.
+   use_buffer - use the buffer device to record the output frames.
 *)
 
-PROCEDURE groff ;
+PROCEDURE use_buffer ;
+VAR
+   t: REAL ;
+BEGIN
+   deviceIf.useBuffer () ;
+   t := time_until ()
+END use_buffer ;
+
+
+(*
+   empty_buffer - empty the frame buffer.
+*)
+
+PROCEDURE empty_buffer ;
+BEGIN
+   twoDsim.emptyBuffer
+END empty_buffer ;
+
+
+(*
+   batch - use the batch device to record the output frames.
+*)
+
+PROCEDURE batch ;
 BEGIN
    deviceIf.useGroff ()
-END groff ;
+END batch ;
+
+
+(*
+   useTimeDelay - should the frame buffer include the time delay command?
+*)
+
+PROCEDURE use_time_delay (on: BOOLEAN) ;
+BEGIN
+   twoDsim.useTimeDelay (on)
+END use_time_delay ;
+
+
+(*
+   nofree - do not free, a.
+*)
+
+PROCEDURE nofree (a: ADDRESS) : ADDRESS ;
+BEGIN
+   (* do nothing *)
+   RETURN a
+END nofree ;
 
 
 BEGIN

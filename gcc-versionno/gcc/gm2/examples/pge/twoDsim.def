@@ -154,17 +154,19 @@ PROCEDURE simulateFor (t: REAL) ;
 
 
 (*
-   skipFor - skip displaying any frames for, t, simulated seconds.
+   getTime - returns the current time in the simulation.
 *)
 
-PROCEDURE skipFor (t: REAL) ;
+PROCEDURE getTime () : REAL ;
 
 
 (*
-   skipUntil - advances time for, t, units or until the next event is reached.
+   skipTime - attempts to skip, t, seconds.  It returns the amount
+              of time actually skipped.  This function will not skip
+              past the next event.
 *)
 
-PROCEDURE skipUntil (t: REAL) ;
+PROCEDURE skipTime (t: REAL) : REAL ;
 
 
 (*
@@ -175,17 +177,11 @@ PROCEDURE timeUntil () : REAL ;
 
 
 (*
-   nextEvent - moves onto the next event.
+   processEvent - skips any outstanding time and processes the next event.
+                  Time is adjusted to the time of the next event.
 *)
 
-PROCEDURE nextEvent ;
-
-
-(*
-   getTime - returns the current time in the simulation.
-*)
-
-PROCEDURE getTime () : REAL ;
+PROCEDURE processEvent ;
 
 
 (*
@@ -215,6 +211,27 @@ PROCEDURE delete (id: CARDINAL) : CARDINAL ;
 *)
 
 PROCEDURE getEventBuffer (VAR start: ADDRESS; VAR length: CARDINAL; VAR used: CARDINAL) ;
+
+
+(*
+   buildFrame - populate the frame buffer contents with the world at the current time.
+*)
+
+PROCEDURE buildFrame ;
+
+
+(*
+   emptyBuffer - empty the frame buffer.
+*)
+
+PROCEDURE emptyBuffer ;
+
+
+(*
+   useTimeDelay - should the frame buffer include the time delay command?
+*)
+
+PROCEDURE useTimeDelay (on: BOOLEAN) ;
 
 
 END twoDsim.

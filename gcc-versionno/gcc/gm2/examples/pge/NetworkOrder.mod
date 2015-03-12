@@ -18,12 +18,13 @@ Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE NetworkOrder ;
 
-FROM SYSTEM IMPORT ADR ;
+FROM SYSTEM IMPORT ADR, LOC ;
 FROM network IMPORT htons, htonl ;
 IMPORT RawIO ;
 
-FROM Fractions IMPORT Fract, getFract ;
+FROM Fractions IMPORT Fract, getFract, isZero, isOne, putReal ;
 FROM Points IMPORT Point ;
+FROM libc IMPORT printf ;
 
 
 (*
@@ -32,6 +33,7 @@ FROM Points IMPORT Point ;
 
 PROCEDURE writeReal (file: ChanId; r: REAL) ;
 BEGIN
+   printf ("about to write real %g\n", r);
    RawIO.Write (file, r)
 END writeReal ;
 
@@ -71,10 +73,26 @@ PROCEDURE writeFract (file: ChanId; f: Fract) ;
 VAR
    w, n, d: LONGCARD ;
 BEGIN
-   getFract (f, w, n, d) ;
-   writeLongCard (file, w) ;
-   writeLongCard (file, n) ;
-   writeLongCard (file, d)
+   IF isZero (f)
+   THEN
+      RawIO.Write (file, LOC (0))
+   ELSIF isOne (f)
+   THEN
+      RawIO.Write (file, LOC (1))
+   ELSE
+      getFract (f, w, n, d) ;
+      IF w=0
+      THEN
+         RawIO.Write (file, LOC (2)) ;
+         writeLongCard (file, n) ;
+         writeLongCard (file, d)
+      ELSE
+         RawIO.Write (file, LOC (3)) ;
+         writeLongCard (file, w) ;
+         writeLongCard (file, n) ;
+         writeLongCard (file, d)
+      END
+   END
 END writeFract ;
 
 

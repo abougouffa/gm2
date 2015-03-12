@@ -2901,6 +2901,7 @@ PROCEDURE StartDeclareScope (scope: CARDINAL) ;
 VAR
    n: Name ;
 BEGIN
+   (* AddSymToWatch(819) ; *)
    (* 
    AddSymToWatch(2125) ;  (* watch goes here *)
    DebugSets ;

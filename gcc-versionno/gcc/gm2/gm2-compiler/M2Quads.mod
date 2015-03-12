@@ -82,6 +82,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         HasExceptionBlock, PutExceptionBlock,
                         HasExceptionFinally, PutExceptionFinally,
                         GetParent, GetRecord, IsRecordField, IsFieldVarient, IsRecord,
+                        IsFieldEnumeration,
                         IsVar, IsProcType, IsType, IsSubrange, IsExported,
                         IsConst, IsConstString, IsModule, IsDefImp,
                         IsArray, IsUnbounded, IsProcedureNested,
@@ -2593,14 +2594,16 @@ END BackPatchSubrangesAndOptParam ;
 *)
 
 PROCEDURE CheckCompatibleWithBecomes (sym: CARDINAL) ;
-VAR
-   n: Name ;
 BEGIN
-   IF IsType(sym) OR IsProcedure(sym)
+   IF IsType(sym)
    THEN
-      n := GetSymName(sym) ;
-      WriteFormat1('illegal designator (%a) it must be a variable',
-                   n)
+      MetaError1('in assignment, cannot assign a value to a type {%1a}', sym)
+   ELSIF IsProcedure(sym)
+   THEN
+      MetaError1('in assignment, cannot assign a value to a procedure {%1a}', sym)
+   ELSIF IsFieldEnumeration(sym)
+   THEN
+      MetaError1('in assignment, cannot assign a value to an enumeration field {%1a}', sym)
    END
 END CheckCompatibleWithBecomes ;
 

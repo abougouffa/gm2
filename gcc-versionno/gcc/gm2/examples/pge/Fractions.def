@@ -137,6 +137,13 @@ PROCEDURE isZero (f: Fract) : BOOLEAN ;
 
 
 (*
+   isOne - returns TRUE if the fraction is one.
+*)
+
+PROCEDURE isOne (f: Fract) : BOOLEAN ;
+
+
+(*
    isEqual - returns TRUE if Fracts, l, and, r, are equal.
 *)
 

@@ -28,7 +28,7 @@ DEFINITION MODULE FOR "C" network ;
                  routines.
 *)
 
-EXPORT UNQUALIFIED htons, htonl ;
+EXPORT UNQUALIFIED htons, htonl, htond ;
 
 
 (*
@@ -43,6 +43,13 @@ PROCEDURE htons (s: SHORTCARD) : SHORTCARD ;
 *)
 
 PROCEDURE htonl (s: CARDINAL) : CARDINAL ;
+
+
+(*
+   htond - returns a network ordered CARDINAL.
+*)
+
+PROCEDURE htond (d: REAL) : REAL ;
 
 
 END network.
