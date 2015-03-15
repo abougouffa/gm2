@@ -1,3 +1,9 @@
+2014-03-15      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge:  more changes to the shared library example.
+	* gm2/gm2-libs/gdbif.mod:  New file.
+	* gm2/gm2-libs/gdbif.def:  New file.
+
 2014-02-25      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge:  huge amount of changes to expose the frame

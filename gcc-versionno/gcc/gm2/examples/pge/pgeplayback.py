@@ -28,7 +28,32 @@ sounds            = {}
 singleStep        = False
 frameNo           = 0
 wantedFrame       = 0
+movie             = False
+tmpdir            = ""
 
+
+class myfile:
+    def __init__ (self, name):
+        self.name = name
+        self.contents = open (name, 'r').read ()
+        self.pos = 0
+        self.length = len (self.contents)
+    def read (self, n):
+        if self.pos + n < self.length:
+            printf ("reading from pos %d\n", self.pos)
+            b = self.contents[self.pos:self.pos+n]
+            self.pos += n
+            return b
+        else:
+            printf ("eof in %s reached\n", self.name)
+            sys.exit (1)
+    def seek (self, pos):
+        printf ("seeking to %d\n", pos)
+        self.pos = pos
+
+    def close (self):
+        pass
+        
 
 #
 #  printf - keeps C programmers happy :-)
@@ -81,7 +106,7 @@ def load_sound(name):
 
 
 def doPlay (f):
-    global sounds, wantedFrame, frameno
+    global sounds, wantedFrame, frameNo
 
     name = ""
     b = f.read (1)
@@ -90,7 +115,7 @@ def doPlay (f):
         b = f.read (1)
     if not sounds.has_key (name):
         sounds[name] = load_sound (name)
-    if frameno == wantedFrame:
+    if frameNo == wantedFrame:
         sounds[name].play ()
 
 
@@ -166,7 +191,7 @@ def drawCircle (f):
 #
 
 def drawFillCircle (f):
-    global screen, debugging, frameno, wantedFrame
+    global screen, debugging, frameNo, wantedFrame
 
     f, xf = readFract (f)
     f, yf = readFract (f)
@@ -176,7 +201,7 @@ def drawFillCircle (f):
     r = mults (resolution[0], rf)
 
     f, c = readColour (f)
-    if frameno == wantedFrame:
+    if frameNo == wantedFrame:
         debugf("circle  x = %d  y = %d,  r = %d\n", x, y, r)
         if debugging:
             print "  colour =", c
@@ -189,7 +214,7 @@ def drawFillCircle (f):
 #
 
 def drawPolygon (f):
-    global debugging, frameno, wantedFrame
+    global debugging, frameNo, wantedFrame
 
     f, n = readShort (f)
     l = []
@@ -207,7 +232,7 @@ def drawPolygon (f):
     f, t = readFract (f)
     if debugging:
         print "draw polygon", l, "thickness", t
-    if frameno == wantedFrame:
+    if frameNo == wantedFrame:
         # pygame.draw.polygon(screen, c, l, 0)
         pass
     return f
@@ -269,7 +294,7 @@ def toFloat (f):
 #
 
 def drawFillPolygon (f):
-    global screen, debugging, frameno, wantedFrame
+    global screen, debugging, frameNo, wantedFrame
 
     f, n = readShort (f)
     l = []
@@ -285,7 +310,7 @@ def drawFillPolygon (f):
         l += [[x, flip(y)]]
 
     f, c = readColour (f)
-    if frameno == wantedFrame:
+    if frameNo == wantedFrame:
         if debugging:
             print ""
             print "drawFillPolygon (colour =", c, " l =", l, ")"
@@ -303,14 +328,16 @@ def readCard (f):
 #
 
 def flipBuffer (f):
-    global background, lightGrey, screen, frameno, wantedFrame
+    global background, lightGrey, screen, frameNo, wantedFrame
 
-    f, frameno = readCard (f)
-    pygame.display.set_caption (programName + ' ' + versionNumber + ' (%d)' % frameno)
-    wantedFrame = frameno
-    if frameno == wantedFrame:
+    print "flipBuffer (frameNo =", frameNo, ") (wantedFrame =", wantedFrame, ")"
+    f, nextFrame = readCard (f)
+    pygame.display.set_caption (programName + ' ' + versionNumber + ' (%d)' % frameNo)
+    if frameNo == wantedFrame:
         pygame.display.flip ()
         screen.blit (background, (0, 0))
+    frameNo = nextFrame
+    wantedFrame += 1
     return f
 
 
@@ -318,34 +345,37 @@ def doExit (f):
     sys.exit (0)
 
 
-def skip (frames):
-    if frames != 1:
-        pass
+def skip (f, frames):
+    global frameNo, wantedFrame
+
+    if frames != 1 and frameNo + frames > 0:
+        f.seek (0)
+        wantedFrame = frameNo+frames
+        frameNo = 0
+    return f
 
 
-def handleSingleStep ():
-    global multiplier, singleStep
+def handleSingleStep (f):
+    global multiplier, singleStep, frameNo, wantedFrame
 
     while True:
         for event in pygame.event.get():
             if event.type == KEYDOWN:
                 if event.key == K_SPACE:
                     singleStep = False
-                    return
+                    return f
                 elif event.key == K_ESCAPE:
                     sys.exit (0)
                 elif event.key == K_RIGHT:
-                    skip (1)
-                    return
+                    return skip (f, 1)
                 elif event.key == K_LEFT:
-                    skip (-1)
-                    return
+                    return skip (f, -1)
                 elif event.key == K_UP:
-                    skip (-5)
-                    return
+                    return skip (f, -5)
                 elif event.key == K_DOWN:
-                    skip (5)
-                    return
+                    return skip (f, 5)
+        if frameNo != wantedFrame:
+            return
 
 
 def handleRT ():
@@ -387,7 +417,7 @@ def handleEvents (f):
     global singleStep
 
     if singleStep:
-        handleSingleStep ()        
+        f = handleSingleStep (f)
     else:
         handleRT ()
     return f
@@ -400,18 +430,21 @@ def handleEvents (f):
 #
 
 def readFile (name):
-    global frameno
+    global frameNo, wantedFrame
 
     frameNo = 0
     callno = 0
-    f = open (name)
+    f = myfile (name)
+    f = handleEvents (f)
     header = struct.unpack ("3s", f.read (3))[0]
     while header and len (header) > 0:
-        f = handleEvents (f)
+        print frameNo, wantedFrame
         header = header[:2]
+        print "calling", header
         if call.has_key (header):
             debugf ("[%d] %s\n", callno, header)
             f = call[header] (f)
+            f = handleEvents (f)
             header = struct.unpack ("3s", f.read (3))[0]
             callno += 1
         else:
@@ -432,10 +465,10 @@ def readReal (f):
 
 
 def doSleep (f):
-    global multiplier, singleStep, wantedFrame, frameno
+    global multiplier, singleStep, wantedFrame, frameNo
 
     f, t = readReal (f)
-    if (not singleStep) and (frameno == wantedFrame):
+    if (not singleStep) and (frameNo == wantedFrame):
         t *= multiplier
         t *= 10.0
         debugf ("sleeping for %f seconds\n", t)
@@ -444,7 +477,7 @@ def doSleep (f):
 
 
 def usage ():
-    printf ("pgeplayback [-v][-d][-m][-f][-g]\n")
+    printf ("pgeplayback [-v][-d][-m][-f][-g] filename.raw\n")
 
 
 def handleOptions ():
@@ -462,10 +495,29 @@ def handleOptions ():
                movie = True
            elif opt[0] == '-v':
                printf ("pgeplayback version " + versionNumber + "\n")
-               
+       if l != []:
+           return l[0]
+
     except getopt.GetoptError:
-       usage()
-       sys.exit(1)
+       usage ()
+       sys.exit (1)
+    return "output.raw"
+
+
+def initMovie ():
+    global tmpdir
+
+    tmpdir = "tmpdir"
+    os.system ("mkdir -p " + tmpdir)
+
+
+def configDevice ():
+    global movie
+
+    if movie:
+        initMovie ()
+    else:
+        initScreen ()
 
 
 #
@@ -473,21 +525,33 @@ def handleOptions ():
 #
 
 def main ():
-    global call
+    global call, movie
 
-    handleOptions ()
-    call['rc'] = registerColour
-    call['dp'] = drawPolygon
-    call['dP'] = drawFillPolygon
-    call['dc'] = drawCircle
-    call['dC'] = drawFillCircle
-    call['fb'] = flipBuffer
-    call['fr'] = framesPerSecond
-    call['ex'] = doExit
-    call['sl'] = doSleep
-    call['ps'] = doPlay
-    initScreen ()
-    readFile ("output.raw")
+    filename = handleOptions ()
+    configDevice ()
+    if movie:
+        call['rc'] = grRegisterColour
+        call['dp'] = grDrawPolygon
+        call['dP'] = grDrawFillPolygon
+        call['dc'] = grDrawCircle
+        call['dC'] = grDrawFillCircle
+        call['fb'] = grFlipBuffer
+        call['fr'] = grFramesPerSecond
+        call['ex'] = grExit
+        call['sl'] = grSleep
+        call['ps'] = grPlay
+    else:
+        call['rc'] = registerColour
+        call['dp'] = drawPolygon
+        call['dP'] = drawFillPolygon
+        call['dc'] = drawCircle
+        call['dC'] = drawFillCircle
+        call['fb'] = flipBuffer
+        call['fr'] = framesPerSecond
+        call['ex'] = doExit
+        call['sl'] = doSleep
+        call['ps'] = doPlay
+    readFile (filename)
 
 
 main ()
