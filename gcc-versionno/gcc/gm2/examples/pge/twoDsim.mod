@@ -22,7 +22,7 @@ FROM SYSTEM IMPORT ADR, BYTE ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, HighIndice ;
 FROM libc IMPORT printf, exit ;
-FROM deviceIf IMPORT flipBuffer, glyphCircle, glyphPolygon, writeTime, blue, red, black, yellow, purple ;
+FROM deviceIf IMPORT flipBuffer, frameNote, glyphCircle, glyphPolygon, writeTime, blue, red, black, yellow, purple ;
 FROM libm IMPORT sqrt, asin, sin, cos ;
 FROM roots IMPORT findQuartic, findQuadratic, findAllRootsQuartic, nearZero ;
 FROM Fractions IMPORT Fract, zero, one, putReal, initFract ;
@@ -877,14 +877,14 @@ END drawFrame ;
 
 PROCEDURE drawFrameEvent (e: eventQueue) ;
 BEGIN
-   flipBuffer ;
+   frameNote ;
    drawFrame ;
+   flipBuffer ;
    addEvent(1.0/framesPerSecond, drawFrameEvent) ;
    (* *)
-(*
+
    printf ("collectAll\n");
    collectAll
-*)
    (* *)
 END drawFrameEvent ;
 
@@ -1583,8 +1583,9 @@ BEGIN
    lastCollisionTime := currentTime ;
    IF TRUE OR drawCollisionFrame
    THEN
-      flipBuffer ;
+      frameNote ;
       drawFrame ;
+      flipBuffer ;
 (*
       collectAll
 *)
@@ -2081,8 +2082,9 @@ END hVec ;
 
 PROCEDURE hFlush ;
 BEGIN
-   flipBuffer ;
+   frameNote ;
    drawBoarder(black()) ;
+   flipBuffer ;
    collectAll
 END hFlush ;
 
@@ -2324,6 +2326,7 @@ BEGIN
       edesc := createDesc(edesc, cid, pid, line, 0, collisonPoint) ;
       IF Debugging AND drawCollisionFrame
       THEN
+         frameNote ;
          drawFrame ;
          debugCircle(center, radius, purple()) ;
          debugLine(p3, p5) ;
@@ -2345,6 +2348,7 @@ BEGIN
       edesc := createDesc(edesc, cid, pid, line, 0, collisonPoint) ;
       IF Debugging AND drawCollisionFrame
       THEN
+         frameNote ;
          drawFrame ;
          debugCircle(center, radius, purple()) ;
          debugLine(p4, p6) ;
@@ -2424,6 +2428,7 @@ BEGIN
       edesc := createDesc(edesc, cid, pid, 0, l, p1) ;  (* point no, l *)
       IF Debugging AND drawCollisionFrame
       THEN
+         frameNote ;
          drawFrame ;
          debugCircle(center, r, yellow()) ;
          debugCircle(p1, 0.03, yellow()) ;
@@ -2446,6 +2451,7 @@ BEGIN
       edesc := createDesc(edesc, cid, pid, 0, l+1, p2) ;  (* point no, l+1 *)
       IF Debugging AND drawCollisionFrame
       THEN
+         frameNote ;
          drawFrame ;
          debugCircle(cPtr^.c.pos, r, yellow()) ;
          debugCircle(p2, 0.03, yellow()) ;
@@ -3550,10 +3556,9 @@ END checkOpened ;
 
 PROCEDURE buildFrame ;
 BEGIN
-   printf ("flipBuffer\n");
-   flipBuffer ;
-   printf ("drawFrame\n");
-   drawFrame
+   frameNote ;
+   drawFrame ;
+   flipBuffer
 END buildFrame ;
 
 

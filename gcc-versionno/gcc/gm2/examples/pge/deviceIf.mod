@@ -249,10 +249,20 @@ BEGIN
    THEN
       useBuffer
    END ;
-   RawIO.Write (file, "fb") ;
+   RawIO.Write (file, "fb")
+END flipBuffer ;
+
+
+(*
+   frameNote - emit a note to indicate a new frame has commenced.
+*)
+
+PROCEDURE frameNote ;
+BEGIN
+   RawIO.Write (file, "fn") ;
    writeCard (file, nextFrame) ;
    INC(nextFrame)
-END flipBuffer ;
+END frameNote ;
 
 
 (*

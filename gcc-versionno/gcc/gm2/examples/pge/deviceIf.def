@@ -119,6 +119,13 @@ PROCEDURE flipBuffer ;
 
 
 (*
+   frameNote - emit a note to indicate a new frame has commenced.
+*)
+
+PROCEDURE frameNote ;
+
+
+(*
    emptyBuffer - empty the frame buffer (this only applies if the module is using
                  the buffer device).
 *)

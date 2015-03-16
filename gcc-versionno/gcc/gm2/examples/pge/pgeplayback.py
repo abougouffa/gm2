@@ -15,7 +15,7 @@ resolution        = (1024, 1024)
 Black             = (0, 0, 0)
 lightGrey         = (200, 200, 200)
 fullscreen        = False
-debugging         =  True
+debugging         = False
 programName       = "GNU PGE Playback"
 fps               = 30
 multiplier        = 1.0
@@ -27,9 +27,11 @@ maxColour         = 0
 sounds            = {}
 singleStep        = False
 frameNo           = 0
-wantedFrame       = 0
+wantedFrame       = 1
 movie             = False
 tmpdir            = ""
+seekTable         = {}
+pc                = 0
 
 
 class myfile:
@@ -40,7 +42,6 @@ class myfile:
         self.length = len (self.contents)
     def read (self, n):
         if self.pos + n < self.length:
-            printf ("reading from pos %d\n", self.pos)
             b = self.contents[self.pos:self.pos+n]
             self.pos += n
             return b
@@ -50,7 +51,18 @@ class myfile:
     def seek (self, pos):
         printf ("seeking to %d\n", pos)
         self.pos = pos
+    def record_pos (self, pos, frameno):
+        global seekTable
 
+        seekTable[frameno] = pos
+    def rewind_to (self, frameno):
+        global seekTable
+
+        if seekTable.has_key (frameno):
+            self.pos = seekTable[frameno]
+            return True
+        else:
+            return False
     def close (self):
         pass
         
@@ -127,6 +139,7 @@ def initScreen ():
     global screen, background, fullscreen, resolution, lightGrey
 
     pygame.init ()
+    pygame.key.set_repeat (1, 300)
     if fullscreen:
         screen = pygame.display.set_mode (resolution, FULLSCREEN)
     else:
@@ -328,16 +341,13 @@ def readCard (f):
 #
 
 def flipBuffer (f):
-    global background, lightGrey, screen, frameNo, wantedFrame
+    global background, lightGrey, screen, wantedFrame, multiplier
 
-    print "flipBuffer (frameNo =", frameNo, ") (wantedFrame =", wantedFrame, ")"
-    f, nextFrame = readCard (f)
-    pygame.display.set_caption (programName + ' ' + versionNumber + ' (%d)' % frameNo)
+    pygame.display.set_caption (programName + ' ' + versionNumber + ' (%d) [%g]' % (frameNo, multiplier))
     if frameNo == wantedFrame:
         pygame.display.flip ()
         screen.blit (background, (0, 0))
-    frameNo = nextFrame
-    wantedFrame += 1
+    f = handleEvents (f)
     return f
 
 
@@ -345,13 +355,21 @@ def doExit (f):
     sys.exit (0)
 
 
+def doFrameNote (f):
+    global frameNo, pc
+
+    f, frameNo = readCard (f)
+    f.record_pos (pc, frameNo)
+    return f
+
+
 def skip (f, frames):
     global frameNo, wantedFrame
 
-    if frames != 1 and frameNo + frames > 0:
-        f.seek (0)
-        wantedFrame = frameNo+frames
-        frameNo = 0
+    if frameNo + frames > 0:
+        wantedFrame = frameNo + frames
+        if f.rewind_to (wantedFrame):
+            pass
     return f
 
 
@@ -363,7 +381,7 @@ def handleSingleStep (f):
             if event.type == KEYDOWN:
                 if event.key == K_SPACE:
                     singleStep = False
-                    return f
+                    return skip (f, 1)
                 elif event.key == K_ESCAPE:
                     sys.exit (0)
                 elif event.key == K_RIGHT:
@@ -374,12 +392,10 @@ def handleSingleStep (f):
                     return skip (f, -5)
                 elif event.key == K_DOWN:
                     return skip (f, 5)
-        if frameNo != wantedFrame:
-            return
 
 
-def handleRT ():
-    global multiplier, singleStep
+def handleRT (f):
+    global multiplier, singleStep, wantedFrame, frameNo
 
     for event in pygame.event.get():
         if event.type == KEYDOWN:
@@ -388,21 +404,21 @@ def handleRT ():
             elif event.key == K_ESCAPE:
                 sys.exit (0)
             elif event.key == K_RIGHT:
-                skip (10)
+                return skip (f, 10)
             elif event.key == K_LEFT:
-                skip (-10)
+                return skip (f, -10)
             elif event.key == K_UP:
-                skip (-50)
+                return skip (f, -50)
             elif event.key == K_DOWN:
-                skip (50)
-            elif event.key == K_PLUS:
+                return skip (f, 50)
+            elif event.key == K_KP_PLUS:
                 if multiplier > 1.0:
                     multiplier -= 1.0
                 elif multiplier > 0.0:
                     multiplier -= 0.1
                 else:
                     multiplier = 0.1
-            elif event.key == K_MINUS:
+            elif event.key == K_MINUS or event.key == K_KP_MINUS:
                 if multiplier < 1.0:
                     multiplier += 0.1
                 elif multiplier < 10.0:
@@ -411,6 +427,9 @@ def handleRT ():
                     multiplier = 10.0
             elif event.key == K_EQUALS:
                 multiplier = 1.0
+    if (not singleStep) and (frameNo == wantedFrame):
+        wantedFrame += 1
+    return f
 
 
 def handleEvents (f):
@@ -419,7 +438,7 @@ def handleEvents (f):
     if singleStep:
         f = handleSingleStep (f)
     else:
-        handleRT ()
+        f = handleRT (f)
     return f
               
 
@@ -430,23 +449,20 @@ def handleEvents (f):
 #
 
 def readFile (name):
-    global frameNo, wantedFrame
+    global frameNo, wantedFrame, pc
 
-    frameNo = 0
-    callno = 0
+    wantedFrame = 1
+    frameNo = 1
     f = myfile (name)
+    pc = f.pos
     f = handleEvents (f)
     header = struct.unpack ("3s", f.read (3))[0]
     while header and len (header) > 0:
-        print frameNo, wantedFrame
         header = header[:2]
-        print "calling", header
         if call.has_key (header):
-            debugf ("[%d] %s\n", callno, header)
             f = call[header] (f)
-            f = handleEvents (f)
+            pc = f.pos
             header = struct.unpack ("3s", f.read (3))[0]
-            callno += 1
         else:
             printf ("error unexpected call %s\n", header)
             break
@@ -467,6 +483,7 @@ def readReal (f):
 def doSleep (f):
     global multiplier, singleStep, wantedFrame, frameNo
 
+    # printf ("doSleep (frameNo = %d, wantedFrame = %d)\n", frameNo, wantedFrame)
     f, t = readReal (f)
     if (not singleStep) and (frameNo == wantedFrame):
         t *= multiplier
@@ -476,8 +493,9 @@ def doSleep (f):
     return f
 
 
-def usage ():
+def usage (code):
     printf ("pgeplayback [-v][-d][-m][-f][-g] filename.raw\n")
+    sys.exit (code)
 
 
 def handleOptions ():
@@ -486,7 +504,7 @@ def handleOptions ():
        optlist, l = getopt.getopt(sys.argv[1:], ':vdhmfg')
        for opt in optlist:
            if opt[0] == '-h':
-               usage ()
+               usage (0)
            elif opt[0] == '-d':
                debugging = True
            elif opt[0] == '-f':
@@ -495,12 +513,12 @@ def handleOptions ():
                movie = True
            elif opt[0] == '-v':
                printf ("pgeplayback version " + versionNumber + "\n")
+               sys.exit (0)
        if l != []:
            return l[0]
 
     except getopt.GetoptError:
-       usage ()
-       sys.exit (1)
+       usage (1)
     return "output.raw"
 
 
@@ -540,6 +558,7 @@ def main ():
         call['ex'] = grExit
         call['sl'] = grSleep
         call['ps'] = grPlay
+        call['fn'] = grFrameNote
     else:
         call['rc'] = registerColour
         call['dp'] = drawPolygon
@@ -551,6 +570,7 @@ def main ():
         call['ex'] = doExit
         call['sl'] = doSleep
         call['ps'] = doPlay
+        call['fn'] = doFrameNote
     readFile (filename)
 
 

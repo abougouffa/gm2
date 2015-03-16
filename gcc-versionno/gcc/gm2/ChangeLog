@@ -1,3 +1,8 @@
+2014-03-16      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge:  many more improvements to pgeplayback.py
+	  and twoDsim.mod.
+
 2014-03-15      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge:  more changes to the shared library example.
