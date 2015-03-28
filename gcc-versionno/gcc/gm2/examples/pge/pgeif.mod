@@ -442,13 +442,34 @@ END batch ;
 
 
 (*
-   useTimeDelay - should the frame buffer include the time delay command?
+   use_time_delay - should the frame buffer include the time delay command?
 *)
 
 PROCEDURE use_time_delay (on: BOOLEAN) ;
 BEGIN
    twoDsim.useTimeDelay (on)
 END use_time_delay ;
+
+
+(*
+   draw_collision - turn on drawing of the actual collision frame
+                    and the prediction frame.
+*)
+
+PROCEDURE draw_collision (actual, predict: BOOLEAN) ;
+BEGIN
+   twoDsim.drawCollisionFrames (actual, predict)
+END draw_collision ;
+
+
+(*
+   dump_world - dump a list of all objects and their characteristics.
+*)
+
+PROCEDURE dump_world ;
+BEGIN
+   twoDsim.dumpWorld
+END dump_world ;
 
 
 (*

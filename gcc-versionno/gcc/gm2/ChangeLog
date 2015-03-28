@@ -1,3 +1,7 @@
+2014-03-28      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge:  many bugfixes to the shared library example.
+
 2014-03-16      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge:  many more improvements to pgeplayback.py

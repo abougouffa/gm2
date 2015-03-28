@@ -1,0 +1,58 @@
+(* Copyright (C) 2011 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)
+
+DEFINITION MODULE gdbif ;
+
+(*
+    Title      : gdbif
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Tue Mar  3 11:38:43 2015
+    Revision   : $Version$ 
+    Description: provides a set of interfaces which enable interactive connectivity with gdb.
+*)
+
+EXPORT UNQUALIFIED sleepSpin, finishSpin, connectSpin ;
+
+
+(*
+   finishSpin - sets boolean mustWait to FALSE.
+*)
+
+PROCEDURE finishSpin ;
+
+
+(*
+   sleepSpin - waits for the boolean variable mustWait to become FALSE.
+               It sleeps for a second between each test of the variable.
+*)
+
+PROCEDURE sleepSpin ;
+
+
+(*
+   connectSpin - breakpoint placeholder.  Its only purpose is to allow users
+                 to set a breakpoint.  This procedure is called once
+                 sleepSpin is released from its spin (via a call from
+                 finishSpin).
+*)
+
+PROCEDURE connectSpin ;
+
+
+END gdbif.

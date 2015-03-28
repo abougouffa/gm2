@@ -234,4 +234,22 @@ PROCEDURE emptyBuffer ;
 PROCEDURE useTimeDelay (on: BOOLEAN) ;
 
 
+(*
+   drawCollisionFrames - turn the drawing of collision frames on or off.
+                         actual:   determines whether an extra frame is generated
+                                   at the time of actual collision.
+                         predict:  draws a frame predicting the next collision.
+                                   It will show the points predicted to collide.
+*)
+
+PROCEDURE drawCollisionFrames (actual, predict: BOOLEAN) ;
+
+
+(*
+   dumpWorld - dump a list of all objects and their characteristics.
+*)
+
+PROCEDURE dumpWorld ;
+
+
 END twoDsim.

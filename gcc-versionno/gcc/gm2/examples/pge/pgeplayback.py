@@ -32,7 +32,13 @@ movie             = False
 tmpdir            = ""
 seekTable         = {}
 pc                = 0
-
+colours           = []
+frameTime         = 0.0
+delay             = 0.0
+writtenColours    = []
+margin            = 1.0
+header            = 1.0
+groffBox          = 5.0   # number of inches width and height
 
 class myfile:
     def __init__ (self, name):
@@ -98,9 +104,12 @@ def debugf (format, *args):
 #
 
 def flip (y):
-    global resolution
+    global resolution, groffBox, movie
 
-    return resolution[1]-y
+    if movie:
+        return 1.0-y
+    else:
+        return resolution[1]-y
 
 
 def load_sound(name):
@@ -272,6 +281,11 @@ def readFract (f):
     else:
         b = f.read (8*3)
         return f, struct.unpack('!QQQ', b)
+
+
+def readColourRaw (f):
+    f, c = readShort (f)
+    return f, c
     
 
 #
@@ -279,7 +293,7 @@ def readFract (f):
 #
 
 def readColour (f):
-    f, c = readShort (f)
+    f, c = readColourRaw (f)
     col = idTOcol[c]
     return f, col
 
@@ -433,12 +447,13 @@ def handleRT (f):
 
 
 def handleEvents (f):
-    global singleStep
+    global singleStep, movie
 
-    if singleStep:
-        f = handleSingleStep (f)
-    else:
-        f = handleRT (f)
+    if not movie:
+        if singleStep:
+            f = handleSingleStep (f)
+        else:
+            f = handleRT (f)
     return f
               
 
@@ -459,6 +474,7 @@ def readFile (name):
     header = struct.unpack ("3s", f.read (3))[0]
     while header and len (header) > 0:
         header = header[:2]
+        print header
         if call.has_key (header):
             f = call[header] (f)
             pc = f.pos
@@ -481,10 +497,11 @@ def readReal (f):
 
 
 def doSleep (f):
-    global multiplier, singleStep, wantedFrame, frameNo
+    global multiplier, singleStep, wantedFrame, frameNo, frameTime
 
     # printf ("doSleep (frameNo = %d, wantedFrame = %d)\n", frameNo, wantedFrame)
     f, t = readReal (f)
+    frameTime += t
     if (not singleStep) and (frameNo == wantedFrame):
         t *= multiplier
         t *= 10.0
@@ -493,22 +510,34 @@ def doSleep (f):
     return f
 
 
+def grSleep (f):
+    global frameTime
+
+    f, t = readReal (f)
+    frameTime += t
+    return f
+
+
 def usage (code):
-    printf ("pgeplayback [-v][-d][-m][-f][-g] filename.raw\n")
+    printf ("pgeplayback [-v][-d][-m][-f][-t delay] filename.raw\n")
     sys.exit (code)
 
 
 def handleOptions ():
-    global debugging, fullscreen, movie
+    global debugging, fullscreen, movie, delay
     try:
-       optlist, l = getopt.getopt(sys.argv[1:], ':vdhmfg')
+       optlist, l = getopt.getopt(sys.argv[1:], ':a:b:dhfmv')
        for opt in optlist:
-           if opt[0] == '-h':
-               usage (0)
+           if opt[0] == '-a':
+               delay = -float (opt[1])
+           elif opt[0] == '-b':
+               delay = float (opt[1])
            elif opt[0] == '-d':
                debugging = True
            elif opt[0] == '-f':
                fullscreen = FULLSCREEN
+           elif opt[0] == '-h':
+               usage (0)
            elif opt[0] == '-m':
                movie = True
            elif opt[0] == '-v':
@@ -538,6 +567,228 @@ def configDevice ():
         initScreen ()
 
 
+def grFlipBuffer (f):
+    global outf, frameNo, writtenColours
+
+    num = "%06d" % frameNo
+
+    outf.close ()
+    writtenColours = []
+    os.system ("groff f" + num + ".ms > f" + num + ".ps")
+    os.system ("gs -dNOPAUSE -sDEVICE=pnmraw -sOutputFile=t" + num + ".pnm -dGraphicsAlphaBits=4 -q -dBATCH f" + num +  ".ps > /dev/null 2>&1")
+    os.system ("pnmcrop -quiet < t" + num + ".pnm | pnmtopng > e" + num + ".png 2> /dev/null")
+    os.system ("convert e" + num + ".png -type truecolor f" + num + ".png 2> /dev/null")
+    os.system ("rm -f t" + num + ".pnm f" + num + ".ps e" + num + ".png")
+    return f
+
+
+def writeColour (c):
+    global outf, writtenColours, idTOcol
+
+    if not (c in writtenColours):
+        writtenColours += [c]
+        s = ".defcolor col%d rgb " % c
+        r, g, b = idTOcol[c]
+        r = r / 255.0
+        g = g / 255.0
+        b = b / 255.0
+        s += "%gf %gf %gf\n" % (r, g, b)
+        outf.write (s)
+
+
+def grFrameNote (f):
+    global frameNo, outf
+
+    f, frameNo = readCard (f)
+    outf = open ("f%06d.ms" % frameNo, "w")
+    return f
+
+
+def finishMovie ():
+    global fps
+
+    s = "mencoder \"mf://f*.png\" -mf w=600:h=600:fps=%d:type=png -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o pge.avi" % fps
+    os.system (s)
+
+
+def finish ():
+    if movie:
+        finishMovie ()
+        
+
+#
+#  grDrawFillCircle - 
+#
+
+def grDrawFillCircle (f):
+    global screen, debugging, frameNo, wantedFrame
+
+    debugf ("grDrawFillCircle\n")
+    f, xf = readFract (f)
+    f, yf = readFract (f)
+    f, rf = readFract (f)
+
+    x = mults (1.0, xf)
+    y = mults (1.0, yf)
+    r = mults (1.0, rf)
+    y = flip (y)
+
+    f, c = readColourRaw (f)
+    writeColour (c)
+    moveTo (x-r, y)
+    outf.write (".nop ")
+    s = "\\M[col%d]\\D'C " % c
+    s += unit (r*2.0*groffBox)
+    s += "'\\M[]\n"
+    outf.write (s)
+    return f
+
+
+def unit (v):
+    if v == 0.0:
+        return '(u;0i)'
+    s = ""
+    if v < 0.0:
+        s = '-'
+        v = -v
+    s += '(u;'
+    s += "%g" % v
+    s += 'i)'
+    return s
+
+
+def addOffset (x, y):
+    global margin, header
+
+    x += margin
+    y += header
+    return x, y
+
+
+def moveTo (x, y):
+    x, y = scale (x, y)
+    x, y = addOffset (x, y)
+    outf.write (".sp |" + unit (y) + "\n")
+    outf.write (".nop \\h'" + unit (x) + "'\n")
+
+
+def scale (x, y):
+    global groffBox
+
+    return x*groffBox, y*groffBox
+    
+
+def grRegisterColour (f):
+    global idTOcol, debugging, colours
+
+    f, c = readShort (f)
+    f, rf = readFract (f)
+    f, gf = readFract (f)
+    f, bf = readFract (f)
+    if debugging:
+        print rf, gf, bf
+    r = toCol (rf)
+    g = toCol (gf)
+    b = toCol (bf)
+    debugf("colour %d, %d, %d\n", r, g, b)
+    idTOcol[c] = (r, g, b)
+    debugf("colour id %d\n", c)
+    colours += [c]
+    return f
+
+
+def doMessage (f):
+    global frameTime
+
+    text = ""
+    b = f.read (1)
+    while int(b) != 0:
+        text += b
+        b = f.read (1)
+    print "Time:", frameTime, text
+
+
+def grMessage (f):
+    global frameTime
+
+    text = ""
+    b = f.read (1)
+    while int(b) != 0:
+        text += b
+        b = f.read (1)
+    print "Time:", frameTime, text
+
+
+def grDrawPolygon (f):
+    f, n = readShort (f)
+    l = []
+    if debugging:
+        print "grDrawPolygon", n,
+    for i in range (n):
+        f, xf = readFract (f)
+        f, yf = readFract (f)
+        if debugging:
+            print xf, yf,
+        x = mults (1.0, xf)
+        y = mults (1.0, yf)
+        l += [[x, flip(y)]]
+
+    f, t = readFract (f)
+    if debugging:
+        print "draw polygon", l, "thickness", t
+    return f
+
+
+def grDrawFillPolygon (f):
+    global groffBox
+
+    f, n = readShort (f)
+    l = []
+    if debugging:
+        print "grDrawFillPolygon", n,
+    for i in range (n):
+        f, xf = readFract (f)
+        f, yf = readFract (f)
+        if debugging:
+            print xf, yf,
+        x = mults (1.0, xf)
+        y = mults (1.0, yf)
+        l += [[x, flip(y)]]
+
+    f, c = readColourRaw (f)
+
+    writeColour (c)
+    moveTo (l[0][0], l[0][1])
+    outf.write (".nop ")
+    s = "\\M[col%d]\\D'P " % c
+    outf.write (s)
+    s = ""
+    x, y = l[0]
+    for p in l[1:]:
+        s += unit ((p[0]-x)*groffBox) + " "
+        s += unit ((p[1]-y)*groffBox) + " "
+        x, y = p
+    outf.write (s)
+    outf.write ("'\M[]\n")
+    return f
+
+
+def grDrawCircle (f):
+    return f
+
+
+def grFramesPerSecond (f):
+    return f
+
+
+def grExit (f):
+    return f
+
+
+def grPlay (f):
+    return f
+
+
 #
 #  main -
 #
@@ -559,6 +810,7 @@ def main ():
         call['sl'] = grSleep
         call['ps'] = grPlay
         call['fn'] = grFrameNote
+        call['ms'] = grMessage
     else:
         call['rc'] = registerColour
         call['dp'] = drawPolygon
@@ -571,7 +823,9 @@ def main ():
         call['sl'] = doSleep
         call['ps'] = doPlay
         call['fn'] = doFrameNote
+        call['ms'] = doMessage
     readFile (filename)
+    finish ()
 
 
 main ()

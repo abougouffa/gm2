@@ -22,7 +22,7 @@ FROM SYSTEM IMPORT ADR, BYTE ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, HighIndice ;
 FROM libc IMPORT printf, exit ;
-FROM deviceIf IMPORT flipBuffer, frameNote, glyphCircle, glyphPolygon, writeTime, blue, red, black, yellow, purple ;
+FROM deviceIf IMPORT flipBuffer, frameNote, glyphCircle, glyphPolygon, writeTime, blue, red, black, yellow, purple, white ;
 FROM libm IMPORT sqrt, asin, sin, cos ;
 FROM roots IMPORT findQuartic, findQuadratic, findAllRootsQuartic, nearZero ;
 FROM Fractions IMPORT Fract, zero, one, putReal, initFract ;
@@ -165,6 +165,7 @@ VAR
    freeEvents        : eventQueue ;
    freeDesc          : eventDesc ;
    writeTimeDelay,
+   drawPrediction,
    drawCollisionFrame: BOOLEAN ;
    bufferStart       : ADDRESS ;
    bufferLength      : CARDINAL ;
@@ -383,7 +384,8 @@ BEGIN
       p.points[1].y := y1 ;
       p.points[2].x := x2 ;
       p.points[2].y := y2 ;
-      p.col := colour
+      p.col := colour ;
+      p.mass := 0.0
    END ;
    RETURN id
 END poly3 ;
@@ -411,7 +413,8 @@ BEGIN
       p.points[2].y := y2 ;
       p.points[3].x := x3 ;
       p.points[3].y := y3 ;
-      p.col := colour
+      p.col := colour ;
+      p.mass := 0.0
    END ;
    RETURN id
 END poly4 ;
@@ -441,7 +444,8 @@ BEGIN
       p.points[3].y := y2 ;
       p.points[4].x := x2 ;
       p.points[4].y := y2 ;
-      p.col := colour
+      p.col := colour ;
+      p.mass := 0.0
    END ;
    RETURN id
 END poly5 ;
@@ -473,7 +477,8 @@ BEGIN
       p.points[4].y := y2 ;
       p.points[5].x := x2 ;
       p.points[5].y := y2 ;
-      p.col := colour
+      p.col := colour ;
+      p.mass := 0.0
    END ;
    RETURN id
 END poly6 ;
@@ -1158,10 +1163,25 @@ BEGIN
    WHILE i<=n DO
       optr := GetIndice(objects, i) ;
       WITH optr^ DO
-         IF (NOT (optr^.fixed)) AND (optr^.c.mass=0.0)
+         IF NOT fixed
          THEN
-            printf("object %d is not fixed and does not have a mass\n",
-                   optr^.id)
+            CASE object OF
+
+            polygonOb :  IF p.mass=0.0
+                         THEN
+                            printf("polygon %d is not fixed and does not have a mass\n", optr^.id)
+                         END |
+            circleOb  :  IF c.mass=0.0
+                         THEN
+                            printf("circle %d is not fixed and does not have a mass\n", optr^.id)
+                         END |
+            rpolygonOb:  IF r.mass=0.0
+                         THEN
+                            printf("rotating polygon %d is not fixed and does not have a mass\n", optr^.id)
+                         END
+
+            ELSE
+            END
          END
       END ;
       INC(i)
@@ -1581,7 +1601,7 @@ PROCEDURE doCollision (e: eventQueue) ;
 BEGIN
    updatePhysics(currentTime-lastCollisionTime) ;
    lastCollisionTime := currentTime ;
-   IF TRUE OR drawCollisionFrame
+   IF drawCollisionFrame
    THEN
       frameNote ;
       drawFrame ;
@@ -2324,13 +2344,13 @@ BEGIN
          printf("circle hits line (%g, %g) (%g, %g) in %g\n", p1.x, p1.y, p2.x, p2.y, timeOfCollision)
       END ;
       edesc := createDesc(edesc, cid, pid, line, 0, collisonPoint) ;
-      IF Debugging AND drawCollisionFrame
+      IF drawPrediction
       THEN
          frameNote ;
          drawFrame ;
-         debugCircle(center, radius, purple()) ;
+         debugCircle(center, radius, white ()) ;
          debugLine(p3, p5) ;
-         debugCircle(collisonPoint, 0.02, purple()) ;
+         debugCircle(collisonPoint, 0.02, white ()) ;
          flipBuffer ;
          collectAll
       END
@@ -2346,13 +2366,13 @@ BEGIN
          printf("circle hits line (%g, %g) (%g, %g) in %g\n", p1.x, p1.y, p2.x, p2.y, timeOfCollision)
       END ;
       edesc := createDesc(edesc, cid, pid, line, 0, collisonPoint) ;
-      IF Debugging AND drawCollisionFrame
+      IF drawPrediction
       THEN
          frameNote ;
          drawFrame ;
-         debugCircle(center, radius, purple()) ;
+         debugCircle(center, radius, white ()) ;
          debugLine(p4, p6) ;
-         debugCircle(collisonPoint, 0.02, purple()) ;
+         debugCircle(collisonPoint, 0.02, white ()) ;
          flipBuffer ;
          collectAll
       END
@@ -2426,12 +2446,12 @@ BEGIN
       END ;
       timeOfCollision := t ;
       edesc := createDesc(edesc, cid, pid, 0, l, p1) ;  (* point no, l *)
-      IF Debugging AND drawCollisionFrame
+      IF drawPrediction
       THEN
          frameNote ;
          drawFrame ;
-         debugCircle(center, r, yellow()) ;
-         debugCircle(p1, 0.03, yellow()) ;
+         debugCircle(center, r, white ()) ;
+         debugCircle(p1, 0.02, white ()) ;
          flipBuffer ;
          collectAll
       END
@@ -2449,12 +2469,12 @@ BEGIN
       END ;
       timeOfCollision := t ;
       edesc := createDesc(edesc, cid, pid, 0, l+1, p2) ;  (* point no, l+1 *)
-      IF Debugging AND drawCollisionFrame
+      IF drawPrediction
       THEN
          frameNote ;
          drawFrame ;
-         debugCircle(cPtr^.c.pos, r, yellow()) ;
-         debugCircle(p2, 0.03, yellow()) ;
+         debugCircle(cPtr^.c.pos, r, white ()) ;
+         debugCircle(p2, 0.02, white ()) ;
          flipBuffer ;
          collectAll
       END
@@ -2972,7 +2992,6 @@ PROCEDURE skipFor (t: REAL) ;
 VAR
    s, dt: REAL ;
 BEGIN
-   drawCollisionFrame := FALSE ;
    s := 0.0 ;
    (* killQueue ; *)
    checkObjects ;
@@ -2996,7 +3015,6 @@ PROCEDURE simulateFor (t: REAL) ;
 VAR
    s, dt: REAL ;
 BEGIN
-   drawCollisionFrame := TRUE ;
    s := 0.0 ;
    (* killQueue ; *)
    checkObjects ;
@@ -3583,6 +3601,38 @@ END useTimeDelay ;
 
 
 (*
+   drawCollisionFrames - turn the drawing of collision frames on or off.
+                         actual:   determines whether an extra frame is generated
+                                   at the time of actual collision.
+                         predict:  draws a frame predicting the next collision.
+                                   It will show the points predicted to collide.
+*)
+
+PROCEDURE drawCollisionFrames (actual, predict: BOOLEAN) ;
+BEGIN
+   drawCollisionFrame := actual ;
+   drawPrediction := predict
+END drawCollisionFrames ;
+
+
+(*
+   dumpWorld - dump a list of all objects and their characteristics.
+*)
+
+PROCEDURE dumpWorld ;
+VAR
+   i, n: CARDINAL ;
+BEGIN
+   n := HighIndice(objects) ;
+   i := 1 ;
+   WHILE i<=n DO
+      DumpObject (GetIndice(objects, i)) ;
+      INC(i)
+   END
+END dumpWorld ;
+
+
+(*
    Init - 
 *)
 
@@ -3600,6 +3650,7 @@ BEGIN
    collisionTime := -1.0 ;
    lastCollisionTime := 0.0 ;
    drawCollisionFrame := TRUE ;
+   drawPrediction := FALSE ;
    fileOpened := FALSE ;
    writeTimeDelay := TRUE
 END Init ;

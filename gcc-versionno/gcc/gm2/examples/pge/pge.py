@@ -461,6 +461,32 @@ def play (name):
         output.write (name)
 
 #
+#  message - write out text to the output.
+#
+
+def message (text):
+    output.write (struct.pack ("3s", "ms"))
+    output.write (text)
+
+
+#
+#  turn the drawing of collision frames on or off.
+#
+#        actual:   determines whether an extra frame is generated
+#                  at the time of actual collision.
+#        predict:  draws a frame predicting the next collision.
+#                  It will show the points predicted to collide.
+#
+
+def draw_collision (actual, predict):
+    pgeif.draw_collision (actual, predict)
+
+
+def dump_world ():
+    pgeif.dump_world ()
+
+
+#
 #  _flush_delay - write out or implement the collected delay time.
 #
 

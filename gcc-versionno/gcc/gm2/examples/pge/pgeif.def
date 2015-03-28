@@ -36,7 +36,8 @@ EXPORT UNQUALIFIED ExceptionKind,
                    box, poly3, poly4, poly5, poly6, mass, fix, circle,
                    velocity, accel, rotate, process_event,
                    is_collision, is_frame, time_until, get_time, rm,
-                   batch, use_buffer, empty_buffer, use_time_delay ;
+                   batch, use_buffer, empty_buffer, use_time_delay,
+                   dump_world, draw_collision ;
 
 
 TYPE
@@ -266,6 +267,21 @@ PROCEDURE empty_buffer ;
 *)
 
 PROCEDURE use_time_delay (on: BOOLEAN) ;
+
+
+(*
+   draw_collision - turn on drawing of the actual collision frame
+                    and the prediction frame.
+*)
+
+PROCEDURE draw_collision (actual, predict: BOOLEAN) ;
+
+
+(*
+   dump_world - dump a list of all objects and their characteristics.
+*)
+
+PROCEDURE dump_world ;
 
 
 END pgeif.

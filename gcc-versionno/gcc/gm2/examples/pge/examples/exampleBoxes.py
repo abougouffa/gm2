@@ -50,8 +50,8 @@ def crate_split (p):
     if e != None:
         if e % 2 == 1:
             # subdivide into smaller crates, every odd bounce
-            m = p[0].mass ()
-            c = p[0].colour ()
+            m = p[0].get_mass ()
+            c = p[0].get_colour ()
             for v in [[0, 0], [0, w], [w, 0], [w, w]]:
                 b = pge.box (v[0], v[1], wg, wg, c).mass (m).on_collision (crate_split)
                 b.set_param (e-1)
@@ -69,10 +69,12 @@ def crate_split (p):
 def main ():
     b1, b2, b3, b4 = placeBoarders (boarder, wood_dark)
     b = placeBall (0.5, 0.5, 0.02)
+    b.mass (1.0)
     # b = b.fix ()
     # crate (0.5, 0.5, 0.2)
     print "before run"
     pge.gravity ()
+    pge.dump_world ()
     pge.run (10.0)
     pge.finish ()
 
