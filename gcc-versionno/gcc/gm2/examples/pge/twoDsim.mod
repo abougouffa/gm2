@@ -1599,7 +1599,7 @@ END physicsCollision ;
 
 PROCEDURE doCollision (e: eventQueue) ;
 BEGIN
-   updatePhysics(currentTime-lastCollisionTime) ;
+   updatePhysics (currentTime-lastCollisionTime) ;
    lastCollisionTime := currentTime ;
    IF drawCollisionFrame
    THEN
@@ -1611,7 +1611,7 @@ BEGIN
 *)
    END ;
    physicsCollision(e) ;
-   addNextCollisionEvent(lastCollisionTime-BufferedTime)
+   addNextCollisionEvent
 END doCollision ;
 
 
@@ -2948,7 +2948,7 @@ END removeCollisionEvent ;
    addNextCollisionEvent - 
 *)
 
-PROCEDURE addNextCollisionEvent (prevCollisionTime: REAL) ;
+PROCEDURE addNextCollisionEvent ;
 VAR
    tc        : REAL ;
    ic, jc,
@@ -2976,8 +2976,8 @@ BEGIN
    END ;
    IF edesc#NIL
    THEN
-      addCollisionEvent(tc, doCollision, edesc) ;
-      rememberCollision(tc, edesc)
+      addCollisionEvent (tc, doCollision, edesc) ;
+      rememberCollision (tc, edesc)
    ELSE
       printf("no more collisions found\n")
    END
@@ -2989,22 +2989,41 @@ END addNextCollisionEvent ;
 *)
 
 PROCEDURE skipFor (t: REAL) ;
-VAR
-   s, dt: REAL ;
 BEGIN
-   s := 0.0 ;
-   (* killQueue ; *)
-   checkObjects ;
-   addNextCollisionEvent(s) ;
-   printQueue ;
-   WHILE s<t DO
-      dt := doNextEvent() ;
-      s := s + dt
-   END ;
-   updatePhysics(currentTime-lastCollisionTime) ;
-   printQueue ;
-   lastCollisionTime := currentTime
+   simulateFor (t)
 END skipFor ;
+
+
+(*
+   resetQueue - 
+*)
+
+PROCEDURE resetQueue ;
+VAR
+   c, f, e: eventQueue ;
+BEGIN
+   c := NIL ;
+   f := NIL ;
+   e := eventQ ;
+   WHILE e#NIL DO
+      IF e^.ePtr=NIL
+      THEN
+         f := e
+      ELSE
+         c := e
+      END ;
+      e := e^.next
+   END ;
+   IF f=NIL
+   THEN
+      addEvent(0.0, drawFrameEvent)
+   END ;
+   IF c=NIL
+   THEN
+      addNextCollisionEvent
+   END
+END resetQueue ;
+
 
 
 (*
@@ -3016,18 +3035,19 @@ VAR
    s, dt: REAL ;
 BEGIN
    s := 0.0 ;
-   (* killQueue ; *)
    checkObjects ;
-   addEvent(0.0, drawFrameEvent) ;
-   addNextCollisionEvent(s) ;
-   printQueue ;
-   WHILE s<t DO
-      dt := doNextEvent() ;
-      s := s + dt
-   END ;
-   updatePhysics(currentTime-lastCollisionTime) ;
-   printQueue ;
-   lastCollisionTime := currentTime
+   IF s<t
+   THEN
+      pumpQueue ;
+      printQueue ;
+      WHILE s<t DO
+         dt := doNextEvent() ;
+         s := s + dt
+      END ;
+      updatePhysics(currentTime-lastCollisionTime) ;
+      printQueue ;
+      lastCollisionTime := currentTime
+   END
 END simulateFor ;
 
 
@@ -3364,15 +3384,7 @@ END processEvent ;
 
 PROCEDURE pumpQueue ;
 BEGIN
-   IF eventQ=NIL
-   THEN
-      printf ("eventQ = NIL adding new event\n");
-      (* gdbif.sleepSpin ; *)
-      checkObjects ;
-      addEvent(0.0, drawFrameEvent) ;
-      addNextCollisionEvent(0.0) ;
-      printQueue
-   END ;
+   resetQueue ;
    recordEvent
 END pumpQueue ;
 
@@ -3416,6 +3428,7 @@ END killQueue ;
 
 PROCEDURE writeCircles (c: cDesc) ;
 BEGIN
+   printf ("writeCircleCircle %d %d\n", c.cid1, c.cid2) ;
    writeCoord (file, c.cPoint) ;
    writeCard (file, c.cid1) ;
    writeCard (file, c.cid2)
@@ -3438,6 +3451,7 @@ END writeKind ;
 
 PROCEDURE writeCirclePolygon (c: cpDesc) ;
 BEGIN
+   printf ("writeCirclePolygon %d %d\n", c.pid, c.cid) ;
    writeCoord (file, c.cPoint) ;
    writeCard (file, c.pid) ;
    writeCard (file, c.cid) ;
@@ -3451,6 +3465,7 @@ END writeCirclePolygon ;
 
 PROCEDURE writePolygonPolygon (p: ppDesc) ;
 BEGIN
+   printf ("writePolygonPolygon %d %d\n", p.pid1, p.pid2) ;
    writeCoord (file, p.cPoint) ;
    writeCard (file, p.pid1) ;
    writeCard (file, p.pid2) ;

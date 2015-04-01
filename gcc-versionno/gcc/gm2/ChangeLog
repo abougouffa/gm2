@@ -1,3 +1,11 @@
+2014-01-01      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge:  many bugfixes to the shared library example.
+	* gm2/gm2-compiler/M2GenGCC.mod:  FoldConvert use PopKindTree.
+          PopKindTree new procedure function.  This fixes a bug reported
+	  by:  Michael Riedl.  (see
+	  http://lists.nongnu.org/archive/html/gm2/2015-02/msg00006.html).
+
 2014-03-28      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge:  many bugfixes to the shared library example.

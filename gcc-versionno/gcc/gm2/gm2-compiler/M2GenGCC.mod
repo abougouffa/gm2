@@ -5482,6 +5482,27 @@ END CodeElementSize ;
 
 
 (*
+   PopKindTree - returns a Tree from M2ALU of the type implied by, op.
+*)
+
+PROCEDURE PopKindTree (op: CARDINAL; tokenno: CARDINAL) : Tree ;
+VAR
+   type: CARDINAL ;
+BEGIN
+   type := SkipType(GetType(op)) ;
+   IF IsSet(type)
+   THEN
+      RETURN( PopSetTree(tokenno) )
+   ELSIF IsRealType(type)
+   THEN
+      RETURN( PopRealTree() )
+   ELSE
+      RETURN( PopIntegerTree() )
+   END
+END PopKindTree ;
+
+
+(*
    FoldConvert - attempts to fold op3 to type op2 placing the result into
                  op1, providing that op1 and op3 are constants.
                  Convert will, if need be, alter the machine representation
@@ -5527,7 +5548,7 @@ BEGIN
                   IF IsSet(SkipType(op2))
                   THEN
                      PushSetTree(tokenno,
-                                 FoldAndStrip(BuildConvert(tl, PopIntegerTree(),
+                                 FoldAndStrip(BuildConvert(tl, PopKindTree(op3, tokenno),
                                                            TRUE)), SkipType(op2)) ;
                      PopValue(op1) ;
                      PutConstSet(op1) ;
@@ -5535,21 +5556,21 @@ BEGIN
                      AddModGcc(op1, PopSetTree(tokenno))
                   ELSIF IsRealType(SkipType(op2))
                   THEN
-                     PushRealTree(FoldAndStrip(BuildConvert(tl, PopIntegerTree(),
+                     PushRealTree(FoldAndStrip(BuildConvert(tl, PopKindTree(op3, tokenno),
                                                             TRUE))) ;
                      PopValue(op1) ;
                      PushValue(op1) ;
-                     AddModGcc(op1, PopRealTree())
+                     AddModGcc(op1, PopKindTree(op1, tokenno))
                   ELSE
                      (* we let CheckOverflow catch a potential overflow rather than BuildConvert *)
                      PushIntegerTree(FoldAndStrip(BuildConvert(tl,
-                                                               PopIntegerTree(),
+                                                               PopKindTree(op3, tokenno),
                                                                FALSE))) ;
                      PopValue(op1) ;
                      PushValue(op1) ;
-                     CheckOrResetOverflow(tokenno, PopIntegerTree(), MustCheckOverflow(quad)) ;
+                     CheckOrResetOverflow(tokenno, PopKindTree(op1, tokenno), MustCheckOverflow(quad)) ;
                      PushValue(op1) ;
-                     AddModGcc(op1, PopIntegerTree())
+                     AddModGcc(op1, PopKindTree(op1, tokenno))
                   END
                END
             END ;

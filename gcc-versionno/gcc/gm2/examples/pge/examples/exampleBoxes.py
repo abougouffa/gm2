@@ -69,7 +69,7 @@ def crate_split (p):
 def main ():
     b1, b2, b3, b4 = placeBoarders (boarder, wood_dark)
     b = placeBall (0.5, 0.5, 0.02)
-    b.mass (1.0)
+    b.mass (1.0).on_collision (play_bounce)
     # b = b.fix ()
     # crate (0.5, 0.5, 0.2)
     print "before run"

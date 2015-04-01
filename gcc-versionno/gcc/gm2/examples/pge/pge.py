@@ -39,6 +39,7 @@ class object:
         self.fixed = False
         self.param = None
         self.kg = None
+        self.collisionWith = []
 
     def _id (self):
         return self.o
@@ -127,7 +128,8 @@ class object:
     def collision (self, between):
         print "collision seen, between:", between
         for o in between:
-            if self != o:
+            if self.o != o:
+                print "checking to see if", self.o, "has bumped into", self.collisionWith
                 if o in self.collisionWith:
                     self.collisionp (self)
 
@@ -151,6 +153,8 @@ def white ():
 
 def _register (id, ob):
     global id2ob, od2id
+
+    printf ("registering %d\n", id)
     id2ob[id] = ob
     ob2id[ob] = id
 
@@ -158,6 +162,7 @@ def box (x, y, w, h, c):
     c._param_colour ("fifth parameter to box is expected to be a colour")
     id = pgeif.box (x, y, w, h, c._id())
     ob = object (box_t, id)
+    printf ("box ")
     _register (id, ob)
     return ob
 
@@ -165,6 +170,7 @@ def circle (x, y, r, c):
     c._param_colour ("fourth parameter to box is expected to be a colour")
     id = pgeif.circle (x, y, r, c._id ())
     print "circle id =", id
+    printf ("circle ")
     ob = object (circle_t, id)
     _register (id, ob)
     return ob
@@ -217,6 +223,12 @@ def unpackCardPair (s):
     else:
         printf ("insufficient data passed to unpackCardPair (%d bytes)\n", len (s))
 
+def unpackIdPair (s):
+    p = unpackCardPair (s)
+    p[0] = pgeif.low2high (p[0])
+    p[1] = pgeif.low2high (p[1])
+    return p
+
 def unpackPoint (s):
     if len (s) >= 16:
         return [unpackReal (s[:8]), unpackReal (s[8:])]
@@ -247,7 +259,8 @@ class event:
             if t == collision_event:
                 self.__etype = unpackCard (self._edata[8:12]) # 4 bytes etype
                 self.__point = unpackPoint (self._edata[12:])
-                self.__between = unpackCardPair (self._edata[28:])
+                self.__between = unpackIdPair (self._edata[28:])
+                print "assigning between values", self.__between
 
                 # etype == 0 is a draw frame event
                 # etype == 1 two circles colliding
@@ -271,9 +284,17 @@ class event:
         elif self._type == collision_event:
             printf ("collision event seen!!\n")
             collision (self._between ())
+    def _check (self, et):
+        if self._type != et:
+            printf ("fatal error, unexpected event type\n")
+            sys.exit (1)
+
     def _between (self):
+        global id2ob
+
         self._check (collision_event)
         # returns the two object ids of the colliding objects
+        printf ("id0 = %d, id1 = %d\n", self.__between[0], self.__between[1])
         ob1 = id2ob[self.__between[0]]
         ob2 = id2ob[self.__between[1]]
         return [ob1, ob2]

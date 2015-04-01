@@ -137,5 +137,15 @@ BEGIN
    twoDsim.simulateFor(5.0) ;
    dropBall(purple()) ;
 *)
-   twoDsim.simulateFor(30.0)  (* 15.0 ok *)
+   twoDsim.simulateFor(1.0) ;
+   twoDsim.simulateFor(1.0) ;
+   twoDsim.simulateFor(1.0) ;
+   twoDsim.simulateFor(1.0) ;
+   twoDsim.simulateFor(1.0) ;
+   twoDsim.simulateFor(1.0) ;
+   twoDsim.simulateFor(1.0) ;
+   twoDsim.simulateFor(1.0) ;
+   twoDsim.simulateFor(1.0) ;
+   twoDsim.simulateFor(1.0) ;
+   twoDsim.simulateFor(10.0)  (* 15.0 ok *)
 END bounce.

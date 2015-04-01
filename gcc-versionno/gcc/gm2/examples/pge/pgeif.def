@@ -37,7 +37,7 @@ EXPORT UNQUALIFIED ExceptionKind,
                    velocity, accel, rotate, process_event,
                    is_collision, is_frame, time_until, get_time, rm,
                    batch, use_buffer, empty_buffer, use_time_delay,
-                   dump_world, draw_collision ;
+                   dump_world, draw_collision, low2high ;
 
 
 TYPE
@@ -282,6 +282,13 @@ PROCEDURE draw_collision (actual, predict: BOOLEAN) ;
 *)
 
 PROCEDURE dump_world ;
+
+
+(*
+   low2high - translate a twoDsim, id, to the pgeid.
+*)
+
+PROCEDURE low2high (id: CARDINAL) : CARDINAL ;
 
 
 END pgeif.

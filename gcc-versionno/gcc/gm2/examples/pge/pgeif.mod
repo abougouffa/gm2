@@ -473,6 +473,29 @@ END dump_world ;
 
 
 (*
+   low2high - translate a twoDsim, id, to the pgeid.
+*)
+
+PROCEDURE low2high (id: CARDINAL) : CARDINAL ;
+VAR
+   d   : def ;
+   i, h: CARDINAL ;
+BEGIN
+   h := HighIndice (listOfDefs) ;
+   i := 1 ;
+   WHILE i<=h DO
+      d := GetIndice (listOfDefs, i) ;
+      IF (d^.definition=id) AND (d^.type=object)
+      THEN
+         RETURN i
+      END ;
+      INC(i)
+   END ;
+   RETURN 0
+END low2high ;
+
+
+(*
    nofree - do not free, a.
 *)
 
