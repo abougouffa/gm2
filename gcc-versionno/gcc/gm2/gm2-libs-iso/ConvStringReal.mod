@@ -21,7 +21,7 @@ IMPLEMENTATION MODULE ConvStringReal ;
 
 FROM DynamicStrings IMPORT InitString, KillString, ConCat, ConCatChar,
                            Slice, Length, Mult, Mark, InitStringCharStar,
-                           InitStringChar, Index ;
+                           InitStringChar, Index, char ;
 FROM StringConvert IMPORT IntegerToString, ToSigFig ;
 FROM dtoa IMPORT dtoa, Mode ;
 FROM libc IMPORT free, printf ;
@@ -29,6 +29,16 @@ FROM SYSTEM IMPORT ADDRESS ;
 
 CONST
    Debugging = FALSE ;
+
+
+(*
+   IsDigit - returns TRUE if, ch, lies between '0'..'9'.
+*)
+
+PROCEDURE IsDigit (ch: CHAR) : BOOLEAN ;
+BEGIN
+   RETURN (ch>='0') AND (ch<='9')
+END IsDigit ;
 
 
 (*
@@ -50,31 +60,34 @@ BEGIN
    IF sigFigs>0
    THEN
       l := Length(s) ;
-      IF VAL(INTEGER, sigFigs)<l
+      IF (l>0) AND IsDigit(char(s, 0))
       THEN
-         s := Slice(ToSigFig(s, sigFigs), 0, sigFigs)
-      ELSE
-         (* add '0's to make up significant figures *)
-         s := ConCat(s, Mark(Mult(InitStringChar('0'), l-VAL(INTEGER, sigFigs))))
-      END ;
-      l := Length(s) ;
-      (*
-       *  we reassign point to 1 and adjust the exponent
-       *  accordingly, so we can achieve the format X.XXXE+X
-       *)
-      powerOfTen := point-1 ;
-      point := 1 ;
+         IF VAL(INTEGER, sigFigs)<l
+         THEN
+            s := Slice(ToSigFig(s, sigFigs), 0, sigFigs)
+         ELSE
+            (* add '0's to make up significant figures *)
+            s := ConCat(s, Mark(Mult(InitStringChar('0'), l-VAL(INTEGER, sigFigs))))
+         END ;
+         l := Length(s) ;
+         (*
+          *  we reassign point to 1 and adjust the exponent
+          *  accordingly, so we can achieve the format X.XXXE+X
+          *)
+         powerOfTen := point-1 ;
+         point := 1 ;
 
-      IF (point<l) AND (point<VAL(INTEGER, sigFigs))
-      THEN
-         s := ConCat(ConCatChar(Slice(s, 0, point), '.'),
-                     Slice(s, point, 0))
-      END ;
+         IF (point<l) AND (point<VAL(INTEGER, sigFigs))
+         THEN
+            s := ConCat(ConCatChar(Slice(s, 0, point), '.'),
+                        Slice(s, point, 0))
+         END ;
 
-      IF powerOfTen#0
-      THEN
-         s := ConCat(ConCatChar(s, 'E'),
-                     IntegerToString(powerOfTen, 0, ' ', TRUE, 10, FALSE))
+         IF powerOfTen#0
+         THEN
+            s := ConCat(ConCatChar(s, 'E'),
+                        IntegerToString(powerOfTen, 0, ' ', TRUE, 10, FALSE))
+         END
       END ;
       IF sign
       THEN
@@ -109,81 +122,84 @@ BEGIN
    IF sigFigs>0
    THEN
       l := Length(s) ;
-      IF sigFigs<l
+      IF (l>0) AND IsDigit(char(s, 0))
       THEN
-         s := Slice(ToSigFig(s, sigFigs), 0, sigFigs)
-      ELSE
-         (* add '0's to make up significant figures *)
-         s := ConCat(s, Mark(Mult(InitStringChar('0'), l-sigFigs)))
-      END ;
-      l := Length(s) ;
-      IF (point>0) AND (point<=2)
-      THEN
-         (* current range is fine, no need for a exponent *)
-         powerOfTen := 0 ;
-         IF point>VAL(INTEGER, sigFigs)
+         IF sigFigs<l
          THEN
-            (* add '0's to make up required mantissa length *)
-            s := ConCat(s, Mark(Mult(InitStringChar('0'), point-VAL(INTEGER, sigFigs)))) ;
-            l := Length(s)
-         END
-      ELSE
-         (*
-          *  desire a value of point which lies between 1..3
-          *  this allows the mantissa to have the format
-          *  X.XXX  or  XX.XX  or XXX.X
-          *)
-         powerOfTen := point-VAL(INTEGER, l) ;
-         point := point-powerOfTen ;
-         offset := 0 ;
-         IF point>3
-         THEN
-            offset := (point DIV 3) * 3 ;
-            point := point-offset ;
-            powerOfTen := powerOfTen+offset
-         ELSIF point<0
-         THEN
-            offset := (ABS(point) DIV 3) * 3 ;
-            point := point+offset ;
-            powerOfTen := powerOfTen-offset
+            s := Slice(ToSigFig(s, sigFigs), 0, sigFigs)
+         ELSE
+            (* add '0's to make up significant figures *)
+            s := ConCat(s, Mark(Mult(InitStringChar('0'), l-sigFigs)))
          END ;
-         IF powerOfTen<0
+         l := Length(s) ;
+         IF (point>0) AND (point<=2)
          THEN
-            IF ABS(powerOfTen) MOD 3#0
+            (* current range is fine, no need for a exponent *)
+            powerOfTen := 0 ;
+            IF point>VAL(INTEGER, sigFigs)
             THEN
-               offset := 3-(ABS(powerOfTen) MOD 3)
+               (* add '0's to make up required mantissa length *)
+               s := ConCat(s, Mark(Mult(InitStringChar('0'), point-VAL(INTEGER, sigFigs)))) ;
+               l := Length(s)
             END
          ELSE
-            (* at this stage, point >= sigFigs *)
-            IF powerOfTen MOD 3#0
+            (*
+             *  desire a value of point which lies between 1..3
+             *  this allows the mantissa to have the format
+             *  X.XXX  or  XX.XX  or XXX.X
+             *)
+            powerOfTen := point-VAL(INTEGER, l) ;
+            point := point-powerOfTen ;
+            offset := 0 ;
+            IF point>3
             THEN
-               offset := -(3-(powerOfTen MOD 3))
-            END
+               offset := (point DIV 3) * 3 ;
+               point := point-offset ;
+               powerOfTen := powerOfTen+offset
+            ELSIF point<0
+            THEN
+               offset := (ABS(point) DIV 3) * 3 ;
+               point := point+offset ;
+               powerOfTen := powerOfTen-offset
+            END ;
+            IF powerOfTen<0
+            THEN
+               IF ABS(powerOfTen) MOD 3#0
+               THEN
+                  offset := 3-(ABS(powerOfTen) MOD 3)
+               END
+            ELSE
+               (* at this stage, point >= sigFigs *)
+               IF powerOfTen MOD 3#0
+               THEN
+                  offset := -(3-(powerOfTen MOD 3))
+               END
+            END ;
+            IF offset+point>VAL(INTEGER, sigFigs)
+            THEN
+               (* add '0's to make up required mantissa length *)
+               s := ConCat(s, Mark(Mult(InitStringChar('0'), offset+point-VAL(INTEGER, sigFigs)))) ;
+               l := Length(s)
+            END ;
+            (* now adjust point and powerOfTen by offset *)
+            point := point + offset ;
+            powerOfTen := powerOfTen - offset
          END ;
-         IF offset+point>VAL(INTEGER, sigFigs)
+
+         IF point<0
          THEN
-            (* add '0's to make up required mantissa length *)
-            s := ConCat(s, Mark(Mult(InitStringChar('0'), offset+point-VAL(INTEGER, sigFigs)))) ;
-            l := Length(s)
+            s := ConCat(ConCat(InitString('0.'), Mult(InitStringChar('0'), -point)), s)
+         ELSIF (point>0) AND (point<VAL(INTEGER, l)) AND (point<VAL(INTEGER, sigFigs))
+         THEN
+            s := ConCat(ConCatChar(Slice(s, 0, point), '.'),
+                        Slice(s, point, 0))
          END ;
-         (* now adjust point and powerOfTen by offset *)
-         point := point + offset ;
-         powerOfTen := powerOfTen - offset
-      END ;
 
-      IF point<0
-      THEN
-         s := ConCat(ConCat(InitString('0.'), Mult(InitStringChar('0'), -point)), s)
-      ELSIF (point>0) AND (point<VAL(INTEGER, l)) AND (point<VAL(INTEGER, sigFigs))
-      THEN
-         s := ConCat(ConCatChar(Slice(s, 0, point), '.'),
-                     Slice(s, point, 0))
-      END ;
-
-      IF powerOfTen#0
-      THEN
-         s := ConCat(ConCatChar(s, 'E'),
-                     IntegerToString(powerOfTen, 0, ' ', TRUE, 10, FALSE))
+         IF powerOfTen#0
+         THEN
+            s := ConCat(ConCatChar(s, 'E'),
+                        IntegerToString(powerOfTen, 0, ' ', TRUE, 10, FALSE))
+         END
       END ;
       IF sign
       THEN
@@ -216,50 +232,53 @@ BEGIN
    THEN
       printf("length of string returned is %d decimal point at position %d\n", l, point)
    END ;
-   IF point+place>=0
+   IF (l>0) AND IsDigit(char(s, 0))
    THEN
-      (* add decimal point at correct position *)
-      IF point<0
+      IF point+place>=0
       THEN
-         s := ConCat(ConCat(InitString('0.'), Mult(InitStringChar('0'), -point)), s)
-      ELSIF point=0
-      THEN
-         s := ConCat(InitString('0.'), Mark(s))
-      ELSIF point<l
-      THEN
-         s := ConCat(ConCatChar(Slice(s, 0, point), '.'),
-                     Slice(s, point, 0))
-      END ;
-      IF place<0
-      THEN
-         s := ToSigFig(s, point+place+1)
-      ELSE
-         s := ToSigFig(s, point+place)
-      END ;
-      l := Length(s) ;
-      IF place>=0
-      THEN
-         IF Index(s, '.', 0)<0
+         (* add decimal point at correct position *)
+         IF point<0
          THEN
-            s := ConCatChar(s, '.') ;
-            s := ConCat(s, Mark(Mult(InitStringChar('0'), place)))
+            s := ConCat(ConCat(InitString('0.'), Mult(InitStringChar('0'), -point)), s)
+         ELSIF point=0
+         THEN
+            s := ConCat(InitString('0.'), Mark(s))
+         ELSIF point<l
+         THEN
+            s := ConCat(ConCatChar(Slice(s, 0, point), '.'),
+                        Slice(s, point, 0))
+         END ;
+         IF place<0
+         THEN
+            s := ToSigFig(s, point+place+1)
          ELSE
-            point := Index(s, '.', 0) ;
-            IF l-point<place
+            s := ToSigFig(s, point+place)
+         END ;
+         l := Length(s) ;
+         IF place>=0
+         THEN
+            IF Index(s, '.', 0)<0
             THEN
-               s := ConCat(s, Mark(Mult(InitStringChar('0'), l-point-place)))
+               s := ConCatChar(s, '.') ;
+               s := ConCat(s, Mark(Mult(InitStringChar('0'), place)))
+            ELSE
+               point := Index(s, '.', 0) ;
+               IF l-point<place
+               THEN
+                  s := ConCat(s, Mark(Mult(InitStringChar('0'), l-point-place)))
+               END
             END
          END
-      END
-   ELSE
-      IF place<0
-      THEN
-         s := InitString('0')
-      ELSIF place=0
-      THEN
-         s := InitString('0.')
       ELSE
-         s := InitString('0.0')
+         IF place<0
+         THEN
+            s := InitString('0')
+         ELSIF place=0
+         THEN
+            s := InitString('0.')
+         ELSE
+            s := InitString('0.0')
+         END
       END
    END ;
    IF sign

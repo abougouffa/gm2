@@ -1,3 +1,11 @@
+2014-01-02      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-iso/ConvStringLong.mod:  check to see if the
+	  conversion generates a NAN and return accordingly.
+	* gm2/gm2-libs-iso/ConvStringReal.mod:  check to see if the
+	  conversion generates a NAN and return accordingly.
+	  This fixes a bug reported by:  Michael Riedl.
+
 2014-01-01      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge:  many bugfixes to the shared library example.
