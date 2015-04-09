@@ -90,7 +90,7 @@ endif
 
 
 
-TEXISRC = gm2/images/gnu.eps \
+TEXISRC = $(objdir)/gm2/images/gnu.eps \
           $(srcdir)/gm2/gm2.texi \
           gm2/gm2-libs.texi \
           gm2/gm2-ebnf.texi \

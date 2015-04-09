@@ -889,7 +889,7 @@ BEGIN
    (* *)
 
    printf ("collectAll\n");
-   collectAll
+   (* collectAll *)
    (* *)
 END drawFrameEvent ;
 

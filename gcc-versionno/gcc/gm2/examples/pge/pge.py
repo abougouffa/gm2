@@ -6,7 +6,7 @@ import sys
 import struct
 import time
 
-colour_t, box_t, circle_t = range (3)
+colour_t, box_t, circle_t, fb_box_t, fb_circle_t = range (5)
 id2ob = {}
 ob2id = {}
 batch_d, pyg_d = range (2)
@@ -15,6 +15,10 @@ opened = False
 output = None
 lastDelay = 0.0
 debugging = True
+foreground= []
+background= []
+colours = []
+levels = {}
 
 
 #
@@ -24,11 +28,31 @@ debugging = True
 def printf (format, *args):
     print str (format) % args,
 
+
 def debugf (format, *args):
     global debugging
 
     if debugging:
         print str (format) % args,
+
+
+def _emit_short (s):
+    global output
+
+    output.write (struct.pack ('!H', s))
+
+
+def _emit_fract (f):
+    if f == 0:
+        output.write (struct.pack ('B', 0))
+    elif f == 1:
+        output.write (struct.pack ('B', 1))
+    elif f < 1.0:
+        output.write (struct.pack ('B', 2))
+        output.write (struct.pack ('!QQ', f*10000.0, 10000.0))
+    else:
+        output.write (struct.pack ('B', 3))
+        output.write (struct.pack ('!QQQ', int (f), f*10000.0, 10000.0))
 
 
 class object:
@@ -43,6 +67,44 @@ class object:
 
     def _id (self):
         return self.o
+
+    def _get_colour (self):
+        self._check_colour ()
+        return self.o[-1]
+
+    def _draw (self):
+        if self.type == fb_box_t:
+            if device == pyg_d:
+                pass
+            else:
+                self._emit_fill_polygon ()
+        elif self.type == fb_circle_t:
+            if device == pyg_d:
+                pass
+            else:
+                self._emit_fill_circle ()
+        elif self.type == colour_t:
+            self._emit_colour ()
+
+    def _emit_fill_circle (self):
+        c = self._get_colour ()
+        c._emit_colour ()
+        output.write (struct.pack ("3s", "dC"))
+        _emit_fract (self.o [0])
+        _emit_fract (self.o [1])
+        _emit_fract (self.o [2])
+
+    def _emit_colour (self):
+        global colours
+
+        i = self._get_colour ()
+        if not (i in colours):
+            colours += [i]
+            output.write (struct.pack ("3s", "rc"))
+            _emit_short (i)
+            _emit_fract (self.o[0])
+            _emit_fract (self.o[1])
+            _emit_fract (self.o[2])
 
     def _name (self):
         if self.type == colour_t:
@@ -88,6 +150,7 @@ class object:
         return self
 
     def on_collision_with (self, another, p):
+        print "ok registering call back", p, another
         self.collisionp = p
         self.collisionWith = another
         return self
@@ -127,11 +190,16 @@ class object:
 
     def collision (self, between):
         print "collision seen, between:", between
-        for o in between:
-            if self.o != o:
-                print "checking to see if", self.o, "has bumped into", self.collisionWith
-                if o in self.collisionWith:
-                    self.collisionp (self)
+        if self.collisionWith == []:
+            self.collisionp (self)
+        else:
+            for c in self.collisionWith:
+                for b in between:
+                    if c == b:
+                        break
+            else:
+                return
+            self.collisionp (self)
 
     def get_param (self):
         return self.param
@@ -144,9 +212,9 @@ def rgb (r, g, b):
     print "in rgb (",r, g, b, ")"
     c = pgeif.rgb (float(r), float(g), float(b))
     print "after pgeif.rgb ->", c
-    o = object (colour_t, c)
+    o = object (colour_t, [float(r), float(g), float(b), c])
     o._check_colour ()
-    return object (colour_t, c)
+    return o
 
 def white ():
     return object (colour_t, pgeif.white ())
@@ -158,21 +226,49 @@ def _register (id, ob):
     id2ob[id] = ob
     ob2id[ob] = id
 
-def box (x, y, w, h, c):
+
+def box (x, y, w, h, c, level = 0):
     c._param_colour ("fifth parameter to box is expected to be a colour")
-    id = pgeif.box (x, y, w, h, c._id())
-    ob = object (box_t, id)
-    printf ("box ")
-    _register (id, ob)
+    if level == 0:
+        id = pgeif.box (x, y, w, h, c._get_colour())
+        ob = object (box_t, id)
+        printf ("box ")
+        _register (id, ob)
+    else:
+        ob = object (fb_box_t, [x, y, w, h, c, level])
+        _add (ob, level)
     return ob
 
-def circle (x, y, r, c):
+
+def _add (ob, level):
+    global foreground, background
+
+    if level > 0:
+        if not (level in foreground):
+            foreground += [level]
+            foreground.sort ()
+    else:
+        if not (level in background):
+            background += [level]
+            background.sort ()
+
+    if levels.has_key (level):
+        levels[level] += [ob]
+    else:
+        levels[level] = [ob]
+
+
+def circle (x, y, r, c, level = 0):
     c._param_colour ("fourth parameter to box is expected to be a colour")
-    id = pgeif.circle (x, y, r, c._id ())
-    print "circle id =", id
-    printf ("circle ")
-    ob = object (circle_t, id)
-    _register (id, ob)
+    if level == 0:
+        id = pgeif.circle (x, y, r, c._get_colour ())
+        print "circle id =", id
+        printf ("circle ")
+        ob = object (circle_t, id)
+        _register (id, ob)
+    else:
+        ob = object (fb_circle_t, [x, y, r, c])
+        _add (ob, level)
     return ob
 
 
@@ -235,6 +331,20 @@ def unpackPoint (s):
     else:
         printf ("insufficient data passed to unpackPoint\n")
 
+def draw_foreground ():
+    print "foreground", foreground
+    if foreground != []:
+        for l in foreground:
+            for o in levels[l]:
+                o._draw ()
+
+def draw_background ():
+    print "background", background
+    if background != []:
+        for l in background:
+            print "level", l, levels[l]
+            for o in levels[l]:
+                o._draw ()
 
 no_event, frame_event, collision_event, final_event = range (4)
 
@@ -349,12 +459,14 @@ def draw_frame (data, length):
     if not opened:
         opened = True
         output = open ("output.raw", "w")
+    draw_background ()
     if length > 0:
         printf ("data length = %d bytes\n", length)
         output.write (data)
     else:
         printf ("length of zero!!\n")
         sys.exit (2)
+    draw_foreground ()
         
 
 def gravity (value=-9.81):
@@ -456,7 +568,7 @@ def finish ():
         output.close ()
         opened = False
 
-def load_sound(name):
+def load_sound (name):
     class NoneSound:
         def play(self):
             pass
@@ -480,6 +592,8 @@ def play (name):
     else:
         output.write (struct.pack ("3s", "ps"))
         output.write (name)
+        output.write ('\0')
+
 
 #
 #  message - write out text to the output.
@@ -505,6 +619,13 @@ def draw_collision (actual, predict):
 
 def dump_world ():
     pgeif.dump_world ()
+
+
+def _draw (l):
+    if l != []:
+        for i in l:
+            for o in levels[i]:
+                o._draw ()
 
 
 #

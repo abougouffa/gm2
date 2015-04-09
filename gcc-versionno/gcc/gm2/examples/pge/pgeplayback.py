@@ -131,13 +131,19 @@ def doPlay (f):
 
     name = ""
     b = f.read (1)
-    while int(b) != 0:
+    while b != '\0':
         name += b
         b = f.read (1)
+    print "need to play", name
     if not sounds.has_key (name):
         sounds[name] = load_sound (name)
     if frameNo == wantedFrame:
+        print "playing", name
         sounds[name].play ()
+    else:
+        print "wrong frame, not playing", name, frameNo, wantedFrame
+        sounds[name].play ()
+    return f
 
 
 #
@@ -355,7 +361,7 @@ def readCard (f):
 #
 
 def flipBuffer (f):
-    global background, lightGrey, screen, wantedFrame, multiplier
+    global background, lightGrey, screen, wantedFrame, multiplier, frameNo
 
     pygame.display.set_caption (programName + ' ' + versionNumber + ' (%d) [%g]' % (frameNo, multiplier))
     if frameNo == wantedFrame:

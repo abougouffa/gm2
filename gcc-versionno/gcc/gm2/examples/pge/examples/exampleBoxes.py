@@ -13,15 +13,17 @@ red = pge.rgb (1.0, 0.0, 0.0)
 metal = pge.rgb (0.5, 0.5, 0.5)
 ball_size = 0.04
 boarder = 0.01
+white = pge.rgb (1.0, 1.0, 1.0)
 
 
-def play_wood ():
+def play_wood (o):
     pge.play ("/home/gaius/Sandpit/penguin-tower/sounds/brokenglass.wav")
 
-def play_crack ():
+def play_crack (o):
     pge.play ("/home/gaius/Sandpit/penguin-tower/sounds/brokenglass.wav")
 
-def play_bounce ():
+def play_bounce (o):
+    print "callback has been called"
     pge.play ("/home/gaius/Sandpit/cluedo/sounds/cardsnap.wav")
 
 def placeBoarders (thickness, color):
@@ -67,6 +69,7 @@ def crate_split (p):
             play_bounce ()
 
 def main ():
+    c = pge.circle (0.5, 0.5, 0.3, white, -1)
     b1, b2, b3, b4 = placeBoarders (boarder, wood_dark)
     b = placeBall (0.5, 0.5, 0.02)
     b.mass (1.0).on_collision (play_bounce)

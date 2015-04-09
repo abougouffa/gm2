@@ -1,3 +1,13 @@
+2014-01-09      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  changed path to gnu.eps to contain
+	  $(objdir).
+	* gm2/examples/pge/examples/exampleBoxes.py:  more intermin
+	  changes.
+	* gm2/examples/pge/pge.py:  more intermin changes.
+	* gm2/examples/pge/pgeplayback.py:  more intermin changes.
+	* gm2/examples/pge/twoDsim.mod:  more intermin changes.
+
 2014-01-02      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-iso/ConvStringLong.mod:  check to see if the
