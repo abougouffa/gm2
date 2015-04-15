@@ -19,7 +19,6 @@
 extern "C" void get_ebuf(char **s, int *slen);
 extern "C" void get_fbuf(char **s, int *slen);
 
-extern "C" int low2high (int id);
 extern "C" void empty_buffer (void);
 extern "C" void batch (void);
 extern "C" void use_buffer (void);
@@ -51,9 +50,10 @@ extern "C" unsigned int red (void);
 extern "C" unsigned int black (void);
 extern "C" unsigned int white (void);
 extern "C" unsigned int rgb (double r, double g, double b);
+extern "C" unsigned int l2h (unsigned int id);
+extern "C" unsigned int h2l (unsigned int id);
 %}
 
-extern "C" int low2high (int id);
 extern "C" void empty_buffer (void);
 extern "C" void batch (void);
 extern "C" void use_buffer (void);
@@ -85,6 +85,8 @@ extern "C" unsigned int red (void);
 extern "C" unsigned int black (void);
 extern "C" unsigned int white (void);
 extern "C" unsigned int rgb (double r, double g, double b);
+extern "C" unsigned int l2h (unsigned int id);
+extern "C" unsigned int h2l (unsigned int id);
 
 extern "C" void get_ebuf (char **s, int *slen);
 extern "C" void get_fbuf (char **s, int *slen);

@@ -1,3 +1,14 @@
+2014-01-15      Gaius Mulley <gaius@gnu.org>
+
+	* released GM2 1.1.3
+	* gm2/gm2-libs/config-host:  rebuilt.
+	* gm2/gm2-libs/config-host.in:  1.1.3.
+	* gm2/gm2-libs/config-target:  rebuilt.
+	* gm2/gm2-libs/config-target.in:  1.1.3.
+	* gm2/gm2.texi:  updated release map.
+	* gm2/version.c:  1.1.3.
+	* gm2/examples/pge/examples:  improved debugging log messages.
+
 2014-01-09      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  changed path to gnu.eps to contain

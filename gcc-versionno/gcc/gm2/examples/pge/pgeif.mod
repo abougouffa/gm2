@@ -23,10 +23,11 @@ FROM Storage IMPORT ALLOCATE ;
 IMPORT deviceIf ;
 IMPORT twoDsim ;
 FROM deviceIf IMPORT useBuffer ;
-FROM SYSTEM IMPORT THROW, ADDRESS ;
+FROM SYSTEM IMPORT THROW, ADDRESS, ADR ;
 FROM Indexing IMPORT Index, InitIndex, GetIndice, PutIndice, HighIndice, IncludeIndiceIntoIndex, InBounds ;
 FROM Fractions IMPORT Fract, putReal ;
 FROM deviceIf IMPORT Colour ;
+FROM libc IMPORT printf ;
 
 
 TYPE
@@ -40,6 +41,17 @@ TYPE
 
 VAR
    listOfDefs: Index ;
+
+
+(*
+   trace - 
+*)
+
+PROCEDURE trace (id: CARDINAL; name: ARRAY OF CHAR) : CARDINAL ;
+BEGIN
+   printf ("pgeif:  %s as id=%d\n", ADR (name), id) ;
+   RETURN id
+END trace ;
 
 
 (*
@@ -75,9 +87,13 @@ END newDef ;
 *)
 
 PROCEDURE addDef (type: TypeOfDef; d: CARDINAL) : CARDINAL ;
+VAR
+   id: CARDINAL ;
 BEGIN
    IncludeIndiceIntoIndex (listOfDefs, newDef (type, d)) ;
-   RETURN HighIndice (listOfDefs)
+   id := HighIndice (listOfDefs) ;
+   printf ("pgeif:  mapping (pgeid=%d) onto %d\n", id, d) ;
+   RETURN id
 END addDef ;
 
 
@@ -119,9 +135,8 @@ BEGIN
    rf := putReal (r) ;
    gf := putReal (g) ;
    bf := putReal (b) ;
-   RETURN addDef (colour, deviceIf.defineColour (rf, gf, bf))
+   RETURN trace (addDef (colour, deviceIf.defineColour (rf, gf, bf)), "colour")
 END rgb ;
-
 
 
 (*
@@ -130,7 +145,7 @@ END rgb ;
 
 PROCEDURE white () : CARDINAL ;
 BEGIN
-   RETURN addDef (colour, deviceIf.white ())
+   RETURN trace (addDef (colour, deviceIf.white ()), "white")
 END white ;
 
 
@@ -140,7 +155,7 @@ END white ;
 
 PROCEDURE black () : CARDINAL ;
 BEGIN
-   RETURN addDef (colour, deviceIf.black ())
+   RETURN trace (addDef (colour, deviceIf.black ()), "black")
 END black ;
 
 
@@ -150,7 +165,7 @@ END black ;
 
 PROCEDURE red () : CARDINAL ;
 BEGIN
-   RETURN addDef (colour, deviceIf.red ())
+   RETURN trace (addDef (colour, deviceIf.red ()), "red")
 END red ;
 
 
@@ -160,7 +175,7 @@ END red ;
 
 PROCEDURE green () : CARDINAL ;
 BEGIN
-   RETURN addDef (colour, deviceIf.green ())
+   RETURN trace (addDef (colour, deviceIf.green ()), "green")
 END green ;
 
 
@@ -170,7 +185,7 @@ END green ;
 
 PROCEDURE blue () : CARDINAL ;
 BEGIN
-   RETURN addDef (colour, deviceIf.blue ())
+   RETURN trace (addDef (colour, deviceIf.blue ()), "blue")
 END blue ;
 
 
@@ -180,7 +195,7 @@ END blue ;
 
 PROCEDURE yellow () : CARDINAL ;
 BEGIN
-   RETURN addDef (colour, deviceIf.yellow ())
+   RETURN trace (addDef (colour, deviceIf.yellow ()), "yellow")
 END yellow ;
 
 
@@ -190,7 +205,7 @@ END yellow ;
 
 PROCEDURE purple () : CARDINAL ;
 BEGIN
-   RETURN addDef (colour, deviceIf.purple ())
+   RETURN trace (addDef (colour, deviceIf.purple ()), "purple")
 END purple ;
 
 
@@ -210,8 +225,9 @@ END gravity ;
 
 PROCEDURE box (x0, y0, i, j: REAL; c: CARDINAL) : CARDINAL ;
 BEGIN
-   RETURN addDef (object, twoDsim.box (x0, y0, i, j,
-                                       lookupDef (colour, c)))
+   RETURN trace (addDef (object, twoDsim.box (x0, y0, i, j,
+                                              lookupDef (colour, c))),
+                 "box")
 END box ;
 
 
@@ -222,9 +238,10 @@ END box ;
 
 PROCEDURE poly3 (x0, y0, x1, y1, x2, y2: REAL; c: CARDINAL) : CARDINAL ;
 BEGIN
-   RETURN addDef (object,
-                  twoDsim.poly3 (x0, y0, x1, y1, x2, y2,
-                                 lookupDef (colour, c)))
+   RETURN trace (addDef (object,
+                         twoDsim.poly3 (x0, y0, x1, y1, x2, y2,
+                                        lookupDef (colour, c))),
+                 "poly3")
 END poly3 ;
 
 
@@ -235,9 +252,10 @@ END poly3 ;
 
 PROCEDURE poly4 (x0, y0, x1, y1, x2, y2, x3, y3: REAL; c: CARDINAL) : CARDINAL ;
 BEGIN
-   RETURN addDef (object,
-                  twoDsim.poly4 (x0, y0, x1, y1, x2, y2, x3, y3,
-                                 lookupDef (colour, c)))
+   RETURN trace (addDef (object,
+                         twoDsim.poly4 (x0, y0, x1, y1, x2, y2, x3, y3,
+                                        lookupDef (colour, c))),
+                 "poly4")
 END poly4 ;
 
 
@@ -248,9 +266,10 @@ END poly4 ;
 
 PROCEDURE poly5 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4: REAL; c: CARDINAL) : CARDINAL ;
 BEGIN
-   RETURN addDef (object,
-                  twoDsim.poly5 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4,
-                                 lookupDef (colour, c)))
+   RETURN trace (addDef (object,
+                         twoDsim.poly5 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4,
+                                        lookupDef (colour, c))),
+                 "poly5")
 END poly5 ;
 
 
@@ -261,9 +280,10 @@ END poly5 ;
 
 PROCEDURE poly6 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5: REAL; c: CARDINAL) : CARDINAL ;
 BEGIN
-   RETURN addDef (object,
-                  twoDsim.poly6 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5,
-                                 lookupDef (colour, c)))
+   RETURN trace (addDef (object,
+                         twoDsim.poly6 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5,
+                                        lookupDef (colour, c))),
+                 "poly6")
 END poly6 ;
 
 
@@ -294,8 +314,9 @@ END fix ;
 
 PROCEDURE circle (x0, y0, radius: REAL; c: Colour) : CARDINAL ;
 BEGIN
-   RETURN addDef (object,
-                  twoDsim.circle (x0, y0, radius, lookupDef (colour, c)))
+   RETURN trace (addDef (object,
+                         twoDsim.circle (x0, y0, radius, lookupDef (colour, c))),
+                 "circle")
 END circle ;
 
 
@@ -473,10 +494,10 @@ END dump_world ;
 
 
 (*
-   low2high - translate a twoDsim, id, to the pgeid.
+   l2h - translate a twoDsim, id, to the pgeid.
 *)
 
-PROCEDURE low2high (id: CARDINAL) : CARDINAL ;
+PROCEDURE l2h (id: CARDINAL) : CARDINAL ;
 VAR
    d   : def ;
    i, h: CARDINAL ;
@@ -492,7 +513,20 @@ BEGIN
       INC(i)
    END ;
    RETURN 0
-END low2high ;
+END l2h ;
+
+
+(*
+   h2l - translate a pgeif, id, to the twoDsim.
+*)
+
+PROCEDURE h2l (id: CARDINAL) : CARDINAL ;
+VAR
+   d: def ;
+BEGIN
+   d := GetIndice (listOfDefs, id) ;
+   RETURN d^.definition
+END h2l ;
 
 
 (*

@@ -77,8 +77,10 @@ VAR
 
 PROCEDURE registerColour (cid: Colour; r, g, b: Fract) : Colour ;
 BEGIN
-   IF NOT (cid IN registered)
+   IF cid IN registered
    THEN
+      printf ("colour %d already registered\n", cid);
+   ELSE
       printf ("register colour %d\n", cid);
       INCL(registered, cid) ;
       RawIO.Write (file, "rc") ;

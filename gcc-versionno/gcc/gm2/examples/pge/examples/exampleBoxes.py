@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import pge
+import pge, sys
 # import pgemacro
 
 print "starting exampleBoxes"
@@ -14,6 +14,9 @@ metal = pge.rgb (0.5, 0.5, 0.5)
 ball_size = 0.04
 boarder = 0.01
 white = pge.rgb (1.0, 1.0, 1.0)
+
+pge.finish ()
+sys.exit (0)
 
 
 def play_wood (o):

@@ -84,27 +84,15 @@ class object:
             else:
                 self._emit_fill_circle ()
         elif self.type == colour_t:
-            self._emit_colour ()
+            pass
 
     def _emit_fill_circle (self):
-        c = self._get_colour ()
-        c._emit_colour ()
         output.write (struct.pack ("3s", "dC"))
-        _emit_fract (self.o [0])
-        _emit_fract (self.o [1])
-        _emit_fract (self.o [2])
-
-    def _emit_colour (self):
-        global colours
-
-        i = self._get_colour ()
-        if not (i in colours):
-            colours += [i]
-            output.write (struct.pack ("3s", "rc"))
-            _emit_short (i)
-            _emit_fract (self.o[0])
-            _emit_fract (self.o[1])
-            _emit_fract (self.o[2])
+        _emit_fract (self.o [0])  #  x pos
+        _emit_fract (self.o [1])  #  y pos
+        _emit_fract (self.o [2])  #  radius
+        _emit_short (self.o [3])  #  colour
+        print "_emit_fill_circle, colour is ", self.o [3]
 
     def _name (self):
         if self.type == colour_t:
@@ -209,7 +197,7 @@ class object:
         return self
 
 def rgb (r, g, b):
-    print "in rgb (",r, g, b, ")"
+    print "in rgb (", r, g, b, ")"
     c = pgeif.rgb (float(r), float(g), float(b))
     print "after pgeif.rgb ->", c
     o = object (colour_t, [float(r), float(g), float(b), c])
@@ -230,12 +218,12 @@ def _register (id, ob):
 def box (x, y, w, h, c, level = 0):
     c._param_colour ("fifth parameter to box is expected to be a colour")
     if level == 0:
-        id = pgeif.box (x, y, w, h, c._get_colour())
+        id = pgeif.box (x, y, w, h, c._get_colour ())
         ob = object (box_t, id)
         printf ("box ")
         _register (id, ob)
     else:
-        ob = object (fb_box_t, [x, y, w, h, c, level])
+        ob = object (fb_box_t, [x, y, w, h, c._get_colour (), level])
         _add (ob, level)
     return ob
 
@@ -267,7 +255,8 @@ def circle (x, y, r, c, level = 0):
         ob = object (circle_t, id)
         _register (id, ob)
     else:
-        ob = object (fb_circle_t, [x, y, r, c])
+        print "pge: colour", c._get_colour ()
+        ob = object (fb_circle_t, [x, y, r, pgeif.h2l (c._get_colour ())])
         _add (ob, level)
     return ob
 
@@ -321,8 +310,8 @@ def unpackCardPair (s):
 
 def unpackIdPair (s):
     p = unpackCardPair (s)
-    p[0] = pgeif.low2high (p[0])
-    p[1] = pgeif.low2high (p[1])
+    p[0] = pgeif.l2h (p[0])
+    p[1] = pgeif.l2h (p[1])
     return p
 
 def unpackPoint (s):

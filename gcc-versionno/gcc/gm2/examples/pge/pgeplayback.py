@@ -194,7 +194,7 @@ def registerColour (f):
     r = toCol (rf)
     g = toCol (gf)
     b = toCol (bf)
-    debugf("colour %d, %d, %d\n", r, g, b)
+    debugf("colour %d, %d, %d -> %d\n", r, g, b, c)
     idTOcol[c] = (r, g, b)
     debugf("colour id %d\n", c)
     return f
@@ -300,6 +300,7 @@ def readColourRaw (f):
 
 def readColour (f):
     f, c = readColourRaw (f)
+    print "colour value", c
     col = idTOcol[c]
     return f, col
 
