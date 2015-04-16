@@ -1,4 +1,4 @@
-2014-01-15      Gaius Mulley <gaius@gnu.org>
+2015-01-15      Gaius Mulley <gaius@gnu.org>
 
 	* released GM2 1.1.3
 	* gm2/gm2-libs/config-host:  rebuilt.
@@ -9,7 +9,7 @@
 	* gm2/version.c:  1.1.3.
 	* gm2/examples/pge/examples:  improved debugging log messages.
 
-2014-01-09      Gaius Mulley <gaius@gnu.org>
+2015-01-09      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  changed path to gnu.eps to contain
 	  $(objdir).
@@ -19,7 +19,7 @@
 	* gm2/examples/pge/pgeplayback.py:  more intermin changes.
 	* gm2/examples/pge/twoDsim.mod:  more intermin changes.
 
-2014-01-02      Gaius Mulley <gaius@gnu.org>
+2015-01-02      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-iso/ConvStringLong.mod:  check to see if the
 	  conversion generates a NAN and return accordingly.
@@ -27,7 +27,7 @@
 	  conversion generates a NAN and return accordingly.
 	  This fixes a bug reported by:  Michael Riedl.
 
-2014-01-01      Gaius Mulley <gaius@gnu.org>
+2015-01-01      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge:  many bugfixes to the shared library example.
 	* gm2/gm2-compiler/M2GenGCC.mod:  FoldConvert use PopKindTree.
@@ -35,40 +35,40 @@
 	  by:  Michael Riedl.  (see
 	  http://lists.nongnu.org/archive/html/gm2/2015-02/msg00006.html).
 
-2014-03-28      Gaius Mulley <gaius@gnu.org>
+2015-03-28      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge:  many bugfixes to the shared library example.
 
-2014-03-16      Gaius Mulley <gaius@gnu.org>
+2015-03-16      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge:  many more improvements to pgeplayback.py
 	  and twoDsim.mod.
 
-2014-03-15      Gaius Mulley <gaius@gnu.org>
+2015-03-15      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge:  more changes to the shared library example.
 	* gm2/gm2-libs/gdbif.mod:  New file.
 	* gm2/gm2-libs/gdbif.def:  New file.
 
-2014-02-25      Gaius Mulley <gaius@gnu.org>
+2015-02-25      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge:  huge amount of changes to expose the frame
 	  buffer to python/pygame.
 
-2014-02-19      Gaius Mulley <gaius@gnu.org>
+2015-02-19      Gaius Mulley <gaius@gnu.org>
 
 	* libgm2/libiso/Makefile.in:  added MemStream.def and MemStream.mod
 	  in list of modules to be built and installed.
 	* gm2/gm2-libs-iso/MemStream.def:  New file.
 	* gm2/gm2-libs-iso/MemStream.mod:  New file.
 
-2014-02-17      Gaius Mulley <gaius@gnu.org>
+2015-02-17      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-iso/Storage.mod:  fixed bug reported by
           reported by Michael Riedl <udo-michael.riedl@t-online.de>.
 	  DEALLOCATE should assign the pointer to NIL.
 
-2014-02-11      Gaius Mulley <gaius@gnu.org>
+2015-02-11      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/pge.py:  tidied up formatting.
 	* gm2/gm2-compiler/M2GenGCC.mod:  CanConvert (New procedure function).
@@ -83,7 +83,7 @@
 	  gm2-1.1.1.
 	* testsuite/gm2/iso/pass/realbitscast.mod:  simplified test code.
 
-2014-01-26      Gaius Mulley <gaius@gnu.org>
+2015-01-26      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Quads.mod:  MakeLengthConst new procedure
 	  function.   BuildLengthFunction use MakeLengthConst.
@@ -95,7 +95,7 @@
 	  list.
 	* gm2/gm2-compiler/M2Options.mod:  add string to the import list.
 
-2014-01-13      Gaius Mulley <gaius@gnu.org>
+2015-01-13      Gaius Mulley <gaius@gnu.org>
 
 	* Fixed bug reported by Peter Fletcher.
 	* gm2/bnf/gm2l.bnf:  handle '-v' options and remember cpp options.
@@ -108,7 +108,7 @@
 	  download reference to 4.7.x series of gcc.
 	* gm2 now builds when grafted onto 4.7.4.
 
-2014-01-04      Gaius Mulley <gaius@gnu.org>
+2015-01-04      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/Fractions.mod:  removed unnecessary local
 	 variable.
@@ -123,7 +123,7 @@
 	* gm2/gm2-libs/Builtins.def:  correct prototype for huge_val,
 	  huge_valf, huge_vall.
 
-2014-01-03      Gaius Mulley <gaius@gnu.org>
+2015-01-03      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/gm2m.bnf:  added debugging and verbose flag.
 	  Also fixed bug so that it understands the -fmake-I option.
@@ -136,7 +136,7 @@
 	  and -fmake-I options present outside the -fgm2begin
 	  -fgm2end delimiters.
 
-2014-01-02      Gaius Mulley <gaius@gnu.org>
+2015-01-02      Gaius Mulley <gaius@gnu.org>
 
 	* released GM2 1.1.0
 	* gm2/gm2-libs/config-host:  rebuilt.
