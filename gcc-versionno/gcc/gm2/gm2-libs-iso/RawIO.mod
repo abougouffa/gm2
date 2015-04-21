@@ -21,6 +21,7 @@ IMPLEMENTATION MODULE RawIO ;
 FROM IOChan IMPORT RawWrite, RawRead, ReadResult ;
 FROM IOConsts IMPORT ReadResults ;
 FROM libc IMPORT printf ;
+FROM FIO IMPORT FlushOutErr ;
 
 
 (* Reading and writing data over specified channels using raw
@@ -39,6 +40,7 @@ VAR
    i, n: CARDINAL ;
    a   : SYSTEM.ADDRESS ;
 BEGIN
+   FlushOutErr ;
    a := SYSTEM.ADR(to) ;
    n := HIGH(to)+1 ;
    LOOP

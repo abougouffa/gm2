@@ -72,6 +72,20 @@ VAR
 
 
 (*
+   checkOpened - 
+*)
+
+PROCEDURE checkOpened ;
+BEGIN
+   IF device=none
+   THEN
+      printf ("device must be configured before anything can be displayed\n") ;
+      exit (1)
+   END
+END checkOpened ;
+
+
+(*
    registerColour - 
 *)
 
@@ -81,8 +95,10 @@ BEGIN
    THEN
       printf ("colour %d already registered\n", cid);
    ELSE
+      checkOpened ;
       printf ("register colour %d\n", cid);
       INCL(registered, cid) ;
+      printf ("  output rc command\n");
       RawIO.Write (file, "rc") ;
       writeShort (file, cid) ;
       writeFract (file, r) ;
@@ -179,6 +195,7 @@ END writeColour ;
 
 PROCEDURE glyphLine (start, end: Point; thick: Fract; c: Colour) ;
 BEGIN
+   checkOpened ;
    RawIO.Write (file, "dl") ;
    writePoint (file, start) ;
    writePoint (file, end) ;
@@ -197,6 +214,7 @@ PROCEDURE glyphPolygon (n: CARDINAL; p: ARRAY OF Point; fill: BOOLEAN; thick: Fr
 VAR
    i: CARDINAL ;
 BEGIN
+   checkOpened ;
    IF fill
    THEN
       RawIO.Write (file, "dP")
@@ -223,6 +241,7 @@ END glyphPolygon ;
 
 PROCEDURE glyphCircle (pos: Point; fill: BOOLEAN; thick: Fract; rad: Fract; c: Colour) ;
 BEGIN
+   checkOpened ;
    IF fill
    THEN
       RawIO.Write (file, "dC")
@@ -261,6 +280,7 @@ END flipBuffer ;
 
 PROCEDURE frameNote ;
 BEGIN
+   checkOpened ;
    RawIO.Write (file, "fn") ;
    writeCard (file, nextFrame) ;
    INC(nextFrame)
@@ -290,6 +310,7 @@ PROCEDURE writeTime (t: REAL) ;
 BEGIN
    IF t > 0.0
    THEN
+      checkOpened ;
       RawIO.Write (file, "sl") ;
       RawIO.Write (file, t)
    END
@@ -376,6 +397,7 @@ END useBuffer ;
 
 PROCEDURE finish ;
 BEGIN
+   checkOpened ;
    RawIO.Write (file, "ex") ;
    RawIO.Write (file, 0C) ;
    CASE device OF

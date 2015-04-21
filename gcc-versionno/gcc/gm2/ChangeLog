@@ -1,3 +1,15 @@
+2015-01-21      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/examples:  another interim checkin.
+          (More debugging statements added and internal checking).
+	* gm2/gm2-libs-iso/RawIO.mod:  (Read) call FlushOutErr.
+	* gm2/gm2-libs-iso/TextIO.mod:  (Read) call FlushOutErr.
+	* gm2/gm2-libs/FIO.def:  export FlushOutErr.
+	* This fixes a bug reported by Steve Giess, which allows
+	  iso and pim libraries to be mixed.  It also fixes
+	  the interactive behaviour of the iso libraries so that
+	  output is flushed before data is read.
+
 2015-01-15      Gaius Mulley <gaius@gnu.org>
 
 	* released GM2 1.1.3

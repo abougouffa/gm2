@@ -144,6 +144,7 @@ PROCEDURE rawwrite (d: DeviceTablePtr;
                     from: SYSTEM.ADDRESS;
                     locsToWrite: CARDINAL) ;
 BEGIN
+   printf ("rawwrite called\n");
    doWriteLocs(dev, d, from, locsToWrite)
 END rawwrite ;
 
@@ -682,6 +683,7 @@ END handlefree ;
 
 PROCEDURE Close (VAR cid: ChanId) ;
 BEGIN
+   printf ("Close called\n");
    IF IsMem(cid)
    THEN
       UnMakeChan(did, cid) ;

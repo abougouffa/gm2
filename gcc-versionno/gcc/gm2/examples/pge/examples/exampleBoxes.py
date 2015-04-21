@@ -53,17 +53,17 @@ def crate_split (p):
     wg = w - gap
     e = p.get_param ()
     if e != None:
-        if e % 2 == 1:
+        if e == 0:
+            # at the end of 6 collisions the crates disappear
+            p.delete ()
+            play_crack ()
+        elif e % 2 == 1:
             # subdivide into smaller crates, every odd bounce
             m = p[0].get_mass ()
             c = p[0].get_colour ()
             for v in [[0, 0], [0, w], [w, 0], [w, w]]:
                 b = pge.box (v[0], v[1], wg, wg, c).mass (m).on_collision (crate_split)
                 b.set_param (e-1)
-            p.delete ()
-            play_crack ()
-        elif e == 0:
-            # at the end of 6 collisions the crates disappear
             p.delete ()
             play_crack ()
         else:

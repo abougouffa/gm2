@@ -1669,8 +1669,10 @@ END PreInitialize ;
 
 
 (*
-   FlushOutErr - called when the application calls M2RTS.Terminate (automatically
-                 placed in program modules by GM2.
+   FlushOutErr - flushes, StdOut, and, StdErr.
+                 It is also called when the application calls M2RTS.Terminate.
+                 (which is automatically placed in program modules by the GM2
+                 scaffold).
 *)
 
 PROCEDURE FlushOutErr ;

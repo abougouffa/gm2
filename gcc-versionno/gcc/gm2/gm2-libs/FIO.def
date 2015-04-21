@@ -45,6 +45,7 @@ EXPORT QUALIFIED (* types *)
                  FlushBuffer,
                  GetUnixFileDescriptor,
                  GetFileName, getFileName, getFileNameLength,
+                 FlushOutErr,
                  (* variables *)
                  StdIn, StdOut, StdErr ;
 
@@ -321,6 +322,13 @@ PROCEDURE getFileName (f: File) : ADDRESS ;
 *)
 
 PROCEDURE getFileNameLength (f: File) : CARDINAL ;
+
+
+(*
+   FlushOutErr - flushes, StdOut, and, StdErr.
+*)
+
+PROCEDURE FlushOutErr ;
 
 
 END FIO.

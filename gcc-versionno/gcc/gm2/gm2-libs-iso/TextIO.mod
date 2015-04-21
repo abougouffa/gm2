@@ -22,6 +22,7 @@ IMPLEMENTATION MODULE TextIO ;
 
 IMPORT IOChan, IOConsts, CharClass, ASCII ;
 FROM SYSTEM IMPORT ADR ;
+FROM FIO IMPORT FlushOutErr ;
 
   (* The following procedures do not read past line marks *)
 
@@ -72,6 +73,7 @@ PROCEDURE ReadChar (cid: IOChan.ChanId; VAR ch: CHAR);
 VAR
    res: IOConsts.ReadResults ;
 BEGIN
+   FlushOutErr ;
    IF CanRead(cid)
    THEN
       IOChan.Look(cid, ch, res) ;
