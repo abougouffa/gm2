@@ -59,16 +59,19 @@ TYPE
                            END ;
 
 VAR
-   device      : (none, groff, rpc, buffer) ;
-   file        : ChanId ;
-   registered  : SetOfColours ;
-   nextColour  : CARDINAL ;
-   nextFrame   : CARDINAL ;
-   bufferStart : ADDRESS ;
-   bufferLength: CARDINAL ;
-   bufferUsed  : CARDINAL ;
-   configHeap  : garbage ;
-   config      : configDesc ;
+   device       : (none, groff, rpc, buffer) ;
+   ffile, cfile : ChanId ;
+   registered   : SetOfColours ;
+   nextColour   : CARDINAL ;
+   nextFrame    : CARDINAL ;
+   fbufferStart : ADDRESS ;
+   fbufferLength: CARDINAL ;
+   fbufferUsed  : CARDINAL ;
+   cbufferStart : ADDRESS ;
+   cbufferLength: CARDINAL ;
+   cbufferUsed  : CARDINAL ;
+   configHeap   : garbage ;
+   config       : configDesc ;
 
 
 (*
@@ -99,11 +102,11 @@ BEGIN
       printf ("register colour %d\n", cid);
       INCL(registered, cid) ;
       printf ("  output rc command\n");
-      RawIO.Write (file, "rc") ;
-      writeShort (file, cid) ;
-      writeFract (file, r) ;
-      writeFract (file, g) ;
-      writeFract (file, b)
+      RawIO.Write (cfile, "rc") ;
+      writeShort (cfile, cid) ;
+      writeFract (cfile, r) ;
+      writeFract (cfile, g) ;
+      writeFract (cfile, b)
    END ;
    RETURN cid
 END registerColour ;
@@ -185,7 +188,7 @@ END purple ;
 
 PROCEDURE writeColour (c: Colour) ;
 BEGIN
-   writeShort (file, c)
+   writeShort (ffile, c)
 END writeColour ;
 
 
@@ -196,10 +199,10 @@ END writeColour ;
 PROCEDURE glyphLine (start, end: Point; thick: Fract; c: Colour) ;
 BEGIN
    checkOpened ;
-   RawIO.Write (file, "dl") ;
-   writePoint (file, start) ;
-   writePoint (file, end) ;
-   writeFract (file, thick) ;
+   RawIO.Write (ffile, "dl") ;
+   writePoint (ffile, start) ;
+   writePoint (ffile, end) ;
+   writeFract (ffile, thick) ;
    writeColour (c)
 END glyphLine ;
 
@@ -217,19 +220,19 @@ BEGIN
    checkOpened ;
    IF fill
    THEN
-      RawIO.Write (file, "dP")
+      RawIO.Write (ffile, "dP")
    ELSE
-      RawIO.Write (file, "dp")
+      RawIO.Write (ffile, "dp")
    END ;
-   writeShort (file, n) ;
+   writeShort (ffile, n) ;
    FOR i := 0 TO n-1 DO
-      writePoint (file, p[i])
+      writePoint (ffile, p[i])
    END ;
    IF fill
    THEN
       writeColour (c)
    ELSE
-      writeFract (file, thick)
+      writeFract (ffile, thick)
    END
 END glyphPolygon ;
 
@@ -244,17 +247,17 @@ BEGIN
    checkOpened ;
    IF fill
    THEN
-      RawIO.Write (file, "dC")
+      RawIO.Write (ffile, "dC")
    ELSE
-      RawIO.Write (file, "dc")
+      RawIO.Write (ffile, "dc")
    END ;
-   writePoint (file, pos) ;
-   writeFract (file, rad) ;
+   writePoint (ffile, pos) ;
+   writeFract (ffile, rad) ;
    IF fill
    THEN
       writeColour (c)
    ELSE
-      writeFract (file, thick)
+      writeFract (ffile, thick)
    END
 END glyphCircle ;
 
@@ -270,7 +273,7 @@ BEGIN
    THEN
       useBuffer
    END ;
-   RawIO.Write (file, "fb")
+   RawIO.Write (ffile, "fb")
 END flipBuffer ;
 
 
@@ -281,25 +284,40 @@ END flipBuffer ;
 PROCEDURE frameNote ;
 BEGIN
    checkOpened ;
-   RawIO.Write (file, "fn") ;
-   writeCard (file, nextFrame) ;
+   RawIO.Write (ffile, "fn") ;
+   writeCard (ffile, nextFrame) ;
    INC(nextFrame)
 END frameNote ;
 
 
 (*
-   emptyBuffer - empty the frame buffer (this only applies if the module is using
-                 the buffer device).
+   emptyFbuffer - empty the frame buffer (this only applies if the module is using
+                  the buffer device).
 *)
 
-PROCEDURE emptyBuffer ;
+PROCEDURE emptyFbuffer ;
 BEGIN
    IF device=buffer
    THEN
       printf ("rewrite\n");
-      MemStream.Rewrite (file)
+      MemStream.Rewrite (ffile)
    END
-END emptyBuffer ;
+END emptyFbuffer ;
+
+
+(*
+   emptyCbuffer - empty the colour buffer (this only applies if the module is using
+                  the buffer device).
+*)
+
+PROCEDURE emptyCbuffer ;
+BEGIN
+   IF device=buffer
+   THEN
+      printf ("rewrite\n");
+      MemStream.Rewrite (cfile)
+   END
+END emptyCbuffer ;
 
 
 (*
@@ -311,8 +329,8 @@ BEGIN
    IF t > 0.0
    THEN
       checkOpened ;
-      RawIO.Write (file, "sl") ;
-      RawIO.Write (file, t)
+      RawIO.Write (ffile, "sl") ;
+      RawIO.Write (ffile, t)
    END
 END writeTime ;
 
@@ -343,12 +361,13 @@ VAR
    res: OpenResults ;
 BEGIN
    device := groff ;
-   SeqFile.OpenWrite (file, 'output.raw', write+raw, res) ;
+   SeqFile.OpenWrite (ffile, 'output.raw', write+raw, res) ;
    IF res#opened
    THEN
       printf ("something went wrong when trying to open the raw output file\n");
       exit (1)
-   END
+   END ;
+   cfile := ffile
 END useGroff ;
 
 
@@ -363,7 +382,7 @@ VAR
 BEGIN
    device := rpc ;
    REPEAT
-      ClientSocket.OpenSocket(file, 'localhost', 6000, read+write+raw+text, res) ;
+      ClientSocket.OpenSocket(ffile, 'localhost', 6000, read+write+raw+text, res) ;
       IF res#opened
       THEN
          printf("unable to connect to localhost:6000\n") ;
@@ -382,10 +401,16 @@ VAR
    res: OpenResults ;
 BEGIN
    device := buffer ;
-   MemStream.OpenWrite (file, write+raw, res, bufferStart, bufferLength, bufferUsed, TRUE) ;
+   MemStream.OpenWrite (ffile, write+raw, res, fbufferStart, fbufferLength, fbufferUsed, TRUE) ;
    IF res#opened
    THEN
-      printf ("deviceIf.useBuffer: something went wrong when trying to open the memstream file\n");
+      printf ("deviceIf.useBuffer: something went wrong when trying to open the frame memstream file\n");
+      exit (1)
+   END ;
+   MemStream.OpenWrite (cfile, write+raw, res, cbufferStart, cbufferLength, cbufferUsed, TRUE) ;
+   IF res#opened
+   THEN
+      printf ("deviceIf.useBuffer: something went wrong when trying to open the colour memstream file\n");
       exit (1)
    END
 END useBuffer ;
@@ -398,13 +423,14 @@ END useBuffer ;
 PROCEDURE finish ;
 BEGIN
    checkOpened ;
-   RawIO.Write (file, "ex") ;
-   RawIO.Write (file, 0C) ;
+   RawIO.Write (ffile, "ex") ;
+   RawIO.Write (ffile, 0C) ;
    CASE device OF
 
-   groff  :  SeqFile.Close (file) |
-   rpc    :  ClientSocket.Close (file) |
-   buffer :  MemStream.Close (file)
+   groff  :  SeqFile.Close (ffile) |
+   rpc    :  ClientSocket.Close (ffile) |
+   buffer :  MemStream.Close (ffile) ;
+             MemStream.Close (cfile)
 
    END
 END finish ;
@@ -446,11 +472,24 @@ END scaleY ;
 
 PROCEDURE getFrameBuffer (VAR start: ADDRESS; VAR length: CARDINAL; VAR used: CARDINAL) ;
 BEGIN
-   start := bufferStart ;
-   length := bufferLength ;
-   used := bufferUsed
+   start := fbufferStart ;
+   length := fbufferLength ;
+   used := fbufferUsed
    ; printf ("getFrameBuffer (addr = 0x%p, length = %d, used = %d)\n", start, length, used)
 END getFrameBuffer ;
+
+
+(*
+   getColourBuffer - collects the colour buffer limits in the following parameters.
+*)
+
+PROCEDURE getColourBuffer (VAR start: ADDRESS; VAR length: CARDINAL; VAR used: CARDINAL) ;
+BEGIN
+   start := cbufferStart ;
+   length := cbufferLength ;
+   used := cbufferUsed
+   ; printf ("getColourBuffer (addr = 0x%p, length = %d, used = %d)\n", start, length, used)
+END getColourBuffer ;
 
 
 (*
@@ -500,9 +539,12 @@ BEGIN
    nextColour := nextCID ;
    registered := SetOfColours{} ;
    nextFrame := 1 ;
-   bufferStart := NIL ;
-   bufferLength := 0 ;
-   bufferUsed := 0 ;
+   fbufferStart := NIL ;
+   fbufferLength := 0 ;
+   fbufferUsed := 0 ;
+   cbufferStart := NIL ;
+   cbufferLength := 0 ;
+   cbufferUsed := 0 ;
    device := none ;
 
    configHeap := initGarbage(markConfig, TSIZE(config^), InitString('config')) ;

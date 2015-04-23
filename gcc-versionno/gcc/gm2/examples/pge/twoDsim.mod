@@ -3596,13 +3596,23 @@ END buildFrame ;
 
 
 (*
-   emptyBuffer - empty the frame buffer.
+   emptyFbuffer - empty the frame buffer.
 *)
 
-PROCEDURE emptyBuffer ;
+PROCEDURE emptyFbuffer ;
 BEGIN
-   deviceIf.emptyBuffer
-END emptyBuffer ;
+   deviceIf.emptyFbuffer
+END emptyFbuffer ;
+
+
+(*
+   emptyCbuffer - empty the colour buffer.
+*)
+
+PROCEDURE emptyCbuffer ;
+BEGIN
+   deviceIf.emptyCbuffer
+END emptyCbuffer ;
 
 
 (*

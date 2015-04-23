@@ -221,10 +221,17 @@ PROCEDURE buildFrame ;
 
 
 (*
-   emptyBuffer - empty the frame buffer.
+   emptyCbuffer - empty the colour buffer.
 *)
 
-PROCEDURE emptyBuffer ;
+PROCEDURE emptyCbuffer ;
+
+
+(*
+   emptyFbuffer - empty the frame buffer.
+*)
+
+PROCEDURE emptyFbuffer ;
 
 
 (*

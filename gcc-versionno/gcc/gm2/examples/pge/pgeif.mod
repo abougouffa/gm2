@@ -443,13 +443,23 @@ END use_buffer ;
 
 
 (*
-   empty_buffer - empty the frame buffer.
+   empty_fbuffer - empty the frame buffer.
 *)
 
-PROCEDURE empty_buffer ;
+PROCEDURE empty_fbuffer ;
 BEGIN
-   twoDsim.emptyBuffer
-END empty_buffer ;
+   twoDsim.emptyFbuffer
+END empty_fbuffer ;
+
+
+(*
+   empty_cbuffer - empty the colour buffer.
+*)
+
+PROCEDURE empty_cbuffer ;
+BEGIN
+   twoDsim.emptyCbuffer
+END empty_cbuffer ;
 
 
 (*

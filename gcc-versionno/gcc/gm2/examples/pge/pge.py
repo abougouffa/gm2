@@ -43,6 +43,8 @@ def _emit_short (s):
 
 
 def _emit_fract (f):
+    global output
+
     if f == 0:
         output.write (struct.pack ('B', 0))
     elif f == 1:
@@ -51,8 +53,10 @@ def _emit_fract (f):
         output.write (struct.pack ('B', 2))
         output.write (struct.pack ('!QQ', f*10000.0, 10000.0))
     else:
+        w = int (f)
+        f -= w
         output.write (struct.pack ('B', 3))
-        output.write (struct.pack ('!QQQ', int (f), f*10000.0, 10000.0))
+        output.write (struct.pack ('!QQQ', w, f*10000.0, 10000.0))
 
 
 class object:
@@ -92,7 +96,7 @@ class object:
         _emit_fract (self.o [1])  #  y pos
         _emit_fract (self.o [2])  #  radius
         _emit_short (self.o [3])  #  colour
-        print "_emit_fill_circle, colour is ", self.o [3]
+        print "_emit_fill_circle, colour is ", self.o [3], self.o [0], self.o [1], self.o [2]
 
     def _name (self):
         if self.type == colour_t:
@@ -321,14 +325,15 @@ def unpackPoint (s):
         printf ("insufficient data passed to unpackPoint\n")
 
 def draw_foreground ():
-    print "foreground", foreground
+    print "draw foreground", foreground
     if foreground != []:
         for l in foreground:
+            print "level", l, levels[l]
             for o in levels[l]:
                 o._draw ()
 
 def draw_background ():
-    print "background", background
+    print "draw background", background
     if background != []:
         for l in background:
             print "level", l, levels[l]
@@ -345,6 +350,8 @@ class event:
         self._elength = l
         self._fdata = None
         self._flength = 0
+        self._cData = None
+        self._clength = 0
         # the following are the event data values
         self.__point = None
         self.__between = None
@@ -367,19 +374,27 @@ class event:
                     # circle/polygon collision or polygon/polygon collision
                     self.__kind = unpackCard (self._edata[36:])
     def _set_frame_contents (self, data, length):
-        self._fdata = data
+        self._fData = data
         self._flength = length
+    def _set_colour_contents (self, data, length):
+        self._cData = data
+        self._clength = length
     def _process (self):
         printf ("about to call process_event\n")
         _flush_delay ()
         pgeif.process_event ();
         printf ("find out which event\n")
         if self._type == frame_event:
+            cData = pgeif.get_cbuf ()
+            printf ("cData len = %d\n", len (cData))
+            self._set_colour_contents (cData, len (cData))
             fData = pgeif.get_fbuf ()
             printf ("fData len = %d\n", len (fData))
             self._set_frame_contents (fData, len (fData))
-            draw_frame (self._fdata, self._flength)
-            pgeif.empty_buffer ()
+            draw_frame (self._cData, self._clength,
+                        self._fData, self._flength)
+            pgeif.empty_fbuffer ()
+            pgeif.empty_cbuffer ()
         elif self._type == collision_event:
             printf ("collision event seen!!\n")
             collision (self._between ())
@@ -439,22 +454,25 @@ def _finish_event (t):
     return event (final_event, None, 0)
 
 
-def draw_frame (data, length):
+def draw_frame (cdata, clength, fdata, flength):
     global opened, output
 
-    if data is None:
+    if fdata is None:
         printf ("no data in the frame!\n")
         sys.exit (1)
     if not opened:
         opened = True
         output = open ("output.raw", "w")
+    if clength > 0:
+        printf ("writing colour data length = %d bytes\n", clength)
+        output.write (cdata)
     draw_background ()
-    if length > 0:
-        printf ("data length = %d bytes\n", length)
-        output.write (data)
+    if flength > 0:
+        printf ("writing frame data length = %d bytes\n", flength)
+        output.write (fdata)
     else:
         printf ("length of zero!!\n")
-        sys.exit (2)
+        # sys.exit (2)
     draw_foreground ()
         
 
@@ -470,9 +488,11 @@ def gravity (value=-9.81):
 
 def runpy (t=-1, ep=None):
     pgeif.use_time_delay (False)
+    cData = pgeif.get_cbuf ()
     fData = pgeif.get_fbuf ()
-    draw_frame (fdata, len (fData))
-    pgeif.empty_buffer ()
+    draw_frame (cData, len (cData), fData, len (fData))
+    pgeif.empty_fbuffer ()
+    pgeif.empty_cbuffer ()
     nev = _post_event (_get_next_event ())
     fin = _post_event (_finish_event (t))
     while True:
@@ -498,9 +518,11 @@ def runbatch (t):
     if t < 0.0:
         t = 30.0
     debugf ("runbatch (%f)\n", t)
+    cData = pgeif.get_cbuf ()
     fData = pgeif.get_fbuf ()
-    draw_frame (fData, len (fData))
-    pgeif.empty_buffer ()
+    draw_frame (cData, len (cData), fData, len (fData))
+    pgeif.empty_fbuffer ()
+    pgeif.empty_cbuffer ()
     nev = _get_next_event ()
     acc = 0.0
     while acc+nev._get_time () < t:

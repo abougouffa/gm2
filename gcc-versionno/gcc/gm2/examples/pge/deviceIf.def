@@ -126,11 +126,19 @@ PROCEDURE frameNote ;
 
 
 (*
-   emptyBuffer - empty the frame buffer (this only applies if the module is using
-                 the buffer device).
+   emptyCbuffer - empty the colour buffer (this only applies if the module is using
+                  the buffer device).
 *)
 
-PROCEDURE emptyBuffer ;
+PROCEDURE emptyCbuffer ;
+
+
+(*
+   emptyFbuffer - empty the frame buffer (this only applies if the module is using
+                  the buffer device).
+*)
+
+PROCEDURE emptyFbuffer ;
 
 
 (*
@@ -190,6 +198,13 @@ PROCEDURE configDevice (inMax, outMax: Point; fps: CARDINAL) ;
 *)
 
 PROCEDURE getFrameBuffer (VAR start: ADDRESS; VAR length: CARDINAL; VAR used: CARDINAL) ;
+
+
+(*
+   getColourBuffer - collects the colour buffer limits in the following parameters.
+*)
+
+PROCEDURE getColourBuffer (VAR start: ADDRESS; VAR length: CARDINAL; VAR used: CARDINAL) ;
 
 
 END deviceIf.

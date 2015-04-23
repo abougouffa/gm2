@@ -36,8 +36,8 @@ EXPORT UNQUALIFIED ExceptionKind,
                    box, poly3, poly4, poly5, poly6, mass, fix, circle,
                    velocity, accel, rotate, process_event,
                    is_collision, is_frame, time_until, get_time, rm,
-                   batch, use_buffer, empty_buffer, use_time_delay,
-                   dump_world, draw_collision, l2h, h2l ;
+                   batch, use_buffer, empty_cbuffer, empty_fbuffer,
+                   use_time_delay, dump_world, draw_collision, l2h, h2l ;
 
 
 TYPE
@@ -256,10 +256,17 @@ PROCEDURE use_buffer ;
 
 
 (*
-   empty_buffer - empty the frame buffer.
+   empty_cbuffer - empty the colour buffer.
 *)
 
-PROCEDURE empty_buffer ;
+PROCEDURE empty_cbuffer ;
+
+
+(*
+   empty_fbuffer - empty the frame buffer.
+*)
+
+PROCEDURE empty_fbuffer ;
 
 
 (*
