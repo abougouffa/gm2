@@ -114,10 +114,12 @@ BEGIN
          THEN
             RETURN definition
          ELSE
+            printf ("throwing an exception in lookupDef (1)\n");
             THROW (ORD (IncorrectType))
          END
       END
    ELSE
+      printf ("throwing an exception in lookupDef (2)\n");
       THROW (ORD (IdOutOfBounds))
    END
 END lookupDef ;
@@ -333,7 +335,9 @@ END circle ;
 
 PROCEDURE velocity (id: CARDINAL; vx, vy: REAL) : CARDINAL ;
 BEGIN
-   RETURN twoDsim.velocity (lookupDef (object, id), vx, vy)
+   printf ("inside velocity\n");
+   RETURN trace (twoDsim.velocity (lookupDef (object, id), vx, vy),
+                 "velocity")
 END velocity ;
 
 

@@ -273,7 +273,10 @@ BEGIN
    THEN
       useBuffer
    END ;
-   RawIO.Write (ffile, "fb")
+   IF device=groff
+   THEN
+      RawIO.Write (ffile, "fb")
+   END
 END flipBuffer ;
 
 
@@ -284,8 +287,11 @@ END flipBuffer ;
 PROCEDURE frameNote ;
 BEGIN
    checkOpened ;
-   RawIO.Write (ffile, "fn") ;
-   writeCard (ffile, nextFrame) ;
+   IF device=groff
+   THEN
+      RawIO.Write (ffile, "fn") ;
+      writeCard (ffile, nextFrame)
+   END ;
    INC(nextFrame)
 END frameNote ;
 

@@ -1,3 +1,9 @@
+2015-01-23      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  add $(TIMEVAR_H) to all m2.flex
+	  dependant rules.
+	* gm2/examples/pge:  more changes.
+
 2015-01-21      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/examples:  another interim checkin.

@@ -41,6 +41,10 @@ def _emit_short (s):
 
     output.write (struct.pack ('!H', s))
 
+def _emit_card (c):
+    global output
+
+    output.write (struct.pack ('!I', c))
 
 def _emit_fract (f):
     global output
@@ -98,6 +102,17 @@ class object:
         _emit_short (self.o [3])  #  colour
         print "_emit_fill_circle, colour is ", self.o [3], self.o [0], self.o [1], self.o [2]
 
+    def _emit_fill_polygon (self):
+        output.write (struct.pack ("3s", "dP"))
+        n = (len (self.o)-1)/2
+        _emit_short (n)
+        ier = iter (self.o[:-1])
+        print self.o
+        for x in ier:
+            _emit_fract (x)
+            _emit_fract (next (ier))
+        _emit_short (self.o [-1])
+
     def _name (self):
         if self.type == colour_t:
             return "colour"
@@ -113,6 +128,7 @@ class object:
         self._check_type ([box_t, circle_t], "assign a velocity to a")
         self._check_not_fixed ("assign a velocity")
         self._check_not_deleted ("a velocity")
+        print "velocity for object", self.o, vx, vy
         self.o = pgeif.velocity (self.o, vx, vy)
         return self
 
@@ -227,7 +243,7 @@ def box (x, y, w, h, c, level = 0):
         printf ("box ")
         _register (id, ob)
     else:
-        ob = object (fb_box_t, [x, y, w, h, c._get_colour (), level])
+        ob = object (fb_box_t, [x, y, x+w, y, x+w, y+h, x+w, y+h, x, y+h, pgeif.h2l (c._get_colour ())])
         _add (ob, level)
     return ob
 
@@ -455,7 +471,7 @@ def _finish_event (t):
 
 
 def draw_frame (cdata, clength, fdata, flength):
-    global opened, output
+    global opened, output, nextFrame
 
     if fdata is None:
         printf ("no data in the frame!\n")
@@ -463,6 +479,9 @@ def draw_frame (cdata, clength, fdata, flength):
     if not opened:
         opened = True
         output = open ("output.raw", "w")
+        nextFrame = 1
+    output.write (struct.pack ("3s", "fn")) # frame note
+    _emit_card (nextFrame)
     if clength > 0:
         printf ("writing colour data length = %d bytes\n", clength)
         output.write (cdata)
@@ -474,7 +493,9 @@ def draw_frame (cdata, clength, fdata, flength):
         printf ("length of zero!!\n")
         # sys.exit (2)
     draw_foreground ()
-        
+    output.write (struct.pack ("3s", "fb")) # flip buffer
+    nextFrame += 1
+
 
 def gravity (value=-9.81):
     pgeif.gravity (value)
