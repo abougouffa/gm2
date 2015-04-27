@@ -83,6 +83,20 @@ PROCEDURE poly6 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5: REAL; colour: C
 
 
 (*
+   get_xpos - returns the first point, x, coordinate of object.
+*)
+
+PROCEDURE get_xpos (id: CARDINAL) : REAL ;
+
+
+(*
+   get_ypos - returns the first point, y, coordinate of object.
+*)
+
+PROCEDURE get_ypos (id: CARDINAL) : REAL ;
+
+
+(*
    mass - specify the mass of an object and return the, id.
 *)
 
@@ -199,11 +213,11 @@ PROCEDURE isFrame () : BOOLEAN ;
 
 
 (*
-   delete - delete this object from the simulated world.
-            The same id is returned.
+   rm - delete this object from the simulated world.
+        The same id is returned.
 *)
 
-PROCEDURE delete (id: CARDINAL) : CARDINAL ;
+PROCEDURE rm (id: CARDINAL) : CARDINAL ;
 
 
 (*

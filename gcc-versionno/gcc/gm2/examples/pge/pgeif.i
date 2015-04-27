@@ -45,7 +45,12 @@ extern "C" unsigned int poly5 (double x0, double y0, double x1, double y1, doubl
 extern "C" unsigned int poly4 (double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, unsigned int c);
 extern "C" unsigned int poly3 (double x0, double y0, double x1, double y1, double x2, double y2, unsigned int c);
 extern "C" unsigned int box (double x0, double y0, double i, double j, unsigned int c);
+
+extern "C" double get_xpos (unsigned int id);
+extern "C" double get_ypos (unsigned int id);
+
 extern "C" void gravity (double g);
+
 extern "C" unsigned int purple (void);
 extern "C" unsigned int blue (void);
 extern "C" unsigned int green (void);
@@ -53,6 +58,7 @@ extern "C" unsigned int red (void);
 extern "C" unsigned int black (void);
 extern "C" unsigned int white (void);
 extern "C" unsigned int rgb (double r, double g, double b);
+
 extern "C" unsigned int l2h (unsigned int id);
 extern "C" unsigned int h2l (unsigned int id);
 %}
@@ -82,6 +88,10 @@ extern "C" unsigned int poly5 (double x0, double y0, double x1, double y1, doubl
 extern "C" unsigned int poly4 (double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, unsigned int c);
 extern "C" unsigned int poly3 (double x0, double y0, double x1, double y1, double x2, double y2, unsigned int c);
 extern "C" unsigned int box (double x0, double y0, double i, double j, unsigned int c);
+
+extern "C" double get_xpos (unsigned int id);
+extern "C" double get_ypos (unsigned int id);
+
 extern "C" void gravity (double g);
 extern "C" unsigned int purple (void);
 extern "C" unsigned int blue (void);
@@ -90,6 +100,7 @@ extern "C" unsigned int red (void);
 extern "C" unsigned int black (void);
 extern "C" unsigned int white (void);
 extern "C" unsigned int rgb (double r, double g, double b);
+
 extern "C" unsigned int l2h (unsigned int id);
 extern "C" unsigned int h2l (unsigned int id);
 

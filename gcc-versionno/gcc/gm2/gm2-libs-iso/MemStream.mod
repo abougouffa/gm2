@@ -144,7 +144,6 @@ PROCEDURE rawwrite (d: DeviceTablePtr;
                     from: SYSTEM.ADDRESS;
                     locsToWrite: CARDINAL) ;
 BEGIN
-   printf ("rawwrite called\n");
    doWriteLocs(dev, d, from, locsToWrite)
 END rawwrite ;
 

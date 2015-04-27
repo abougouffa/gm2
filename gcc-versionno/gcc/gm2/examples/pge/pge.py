@@ -72,6 +72,8 @@ class object:
         self.param = None
         self.kg = None
         self.collisionWith = []
+        self.w = 0
+        self.c = None
 
     def _id (self):
         return self.o
@@ -152,6 +154,9 @@ class object:
         self._check_type ([box_t, circle_t], "assign a mass to a")
         self._check_not_fixed ("assign a mass")
         self._check_not_deleted (" a mass")
+        if m is None:
+            printf ("cannot give value None as the mass\n")
+            sys.exit (1)
         self.kg = m
         self.o = pgeif.mass (self.o, m)
         print "mass", self.o
@@ -183,9 +188,9 @@ class object:
         if self.type != colour_t:
             printf (message)
 
-    def delete (self):
+    def rm (self):
         if not self.deleted:
-            self.o = pgeif.remove (self.o)
+            self.o = pgeif.rm (self.o)
 
     def _check_not_deleted (self, message):
         if self.deleted:
@@ -216,6 +221,28 @@ class object:
         self.param = value
         return self
 
+    def _set_width (self, value):
+        self.w = value
+
+    def get_width (self):
+        self._check_type ([box_t, circle_t], "get the width")
+        return self.w
+
+    def get_mass (self):
+        return self.kg
+
+    def get_colour (self):
+        return self.c
+
+    def get_xpos (self):
+        self._check_type ([box_t, circle_t], "get the xpos")
+        return pgeif.get_xpos (self.o)
+
+    def get_ypos (self):
+        self._check_type ([box_t, circle_t], "get the ypos")
+        return pgeif.get_ypos (self.o)
+
+
 def rgb (r, g, b):
     print "in rgb (", r, g, b, ")"
     c = pgeif.rgb (float(r), float(g), float(b))
@@ -240,6 +267,8 @@ def box (x, y, w, h, c, level = 0):
     if level == 0:
         id = pgeif.box (x, y, w, h, c._get_colour ())
         ob = object (box_t, id)
+        ob._set_width (w)
+        ob.c = c
         printf ("box ")
         _register (id, ob)
     else:
@@ -274,6 +303,7 @@ def circle (x, y, r, c, level = 0):
         printf ("circle ")
         ob = object (circle_t, id)
         _register (id, ob)
+        ob.c = c
     else:
         print "pge: colour", c._get_colour ()
         ob = object (fb_circle_t, [x, y, r, pgeif.h2l (c._get_colour ())])

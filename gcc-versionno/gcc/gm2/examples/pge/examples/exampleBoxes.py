@@ -14,6 +14,7 @@ metal = pge.rgb (0.5, 0.5, 0.5)
 ball_size = 0.04
 boarder = 0.01
 white = pge.rgb (1.0, 1.0, 1.0)
+gap = 0.04
 
 # pge.finish ()
 # sys.exit (0)
@@ -45,40 +46,53 @@ def placeBall (x, y, r):
 
 
 def crate (x, y, w):
-    c = pge.box (x, y, w, w, wood_dark).on_collision (crate_split).set_param (6)
+    c = pge.box (x, y, w, w, wood_dark).on_collision (crate_split).set_param (6).mass (1.0)
 
 
 def crate_split (p):
-    w = p.width () / 2
+    global gap
+
+    print "crate_split", p
+    w = p.get_width () / 2
     wg = w - gap
     e = p.get_param ()
     if e != None:
         if e == 0:
+            print "crate piece completely gone"
             # at the end of 6 collisions the crates disappear
-            p.delete ()
-            play_crack ()
+            p.rm ()
+            play_crack (p)
         elif e % 2 == 1:
+            print "crate sub divides"
             # subdivide into smaller crates, every odd bounce
-            m = p[0].get_mass ()
-            c = p[0].get_colour ()
+            m = p.get_mass ()
+            print "mass of crate is", m
+            c = p.get_colour ()
+            print "colour of crate is", c
+            x = p.get_xpos ()
+            y = p.get_ypos ()
             for v in [[0, 0], [0, w], [w, 0], [w, w]]:
-                b = pge.box (v[0], v[1], wg, wg, c).mass (m).on_collision (crate_split)
+                print "creating sub box", v
+                b = pge.box (v[0]+x, v[1]+y, wg, wg, c).mass (m).on_collision (crate_split)
+                print "set_param", e-1
                 b.set_param (e-1)
-            p.delete ()
-            play_crack ()
+            print "play_crack", p
+            play_crack (p)
+            print "rm", p
+            p.rm ()
         else:
+            print "crate bounces without breaking"
             # allow collision (bounce) without splitting every even bounce
             p.set_param (e-1)
-            play_bounce ()
+            play_bounce (p)
 
 def main ():
     c = pge.circle (0.5, 0.5, 0.3, white, -1)
     l = pge.box (0.0, 0.25, 1.0, 0.02, wood_light, 1)
     b1, b2, b3, b4 = placeBoarders (boarder, wood_dark)
-    b = placeBall (0.5, 0.5, 0.02)
-    b.mass (1.0).on_collision (play_bounce).velocity (0.0, 0.1).velocity (0.1, 0.1)
-    # b = b.fix ()
-    # crate (0.5, 0.5, 0.2)
+    # b = placeBall (0.5, 0.5, 0.02)
+    # b.mass (1.0).on_collision (play_bounce).velocity (0.9, 0.0)
+    crate (0.7, 0.8, 0.1)
     print "before run"
     pge.gravity ()
     pge.dump_world ()

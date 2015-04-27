@@ -9,7 +9,7 @@ from pygame.locals import *
 #
 versionNumber     = '0.1'
 #
-resolution        = (1024, 1024)
+resolution        = (512, 512)
 #
 #
 Black             = (0, 0, 0)

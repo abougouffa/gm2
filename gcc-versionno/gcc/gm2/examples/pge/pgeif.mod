@@ -27,7 +27,7 @@ FROM SYSTEM IMPORT THROW, ADDRESS, ADR ;
 FROM Indexing IMPORT Index, InitIndex, GetIndice, PutIndice, HighIndice, IncludeIndiceIntoIndex, InBounds ;
 FROM Fractions IMPORT Fract, putReal ;
 FROM deviceIf IMPORT Colour ;
-FROM libc IMPORT printf ;
+FROM libc IMPORT printf, exit ;
 
 
 TYPE
@@ -52,6 +52,20 @@ BEGIN
    printf ("pgeif:  %s as id=%d\n", ADR (name), id) ;
    RETURN id
 END trace ;
+
+
+(*
+   Assert - 
+*)
+
+PROCEDURE Assert (b: BOOLEAN) ;
+BEGIN
+   IF NOT b
+   THEN
+      printf ("assert failed\n");
+      exit (1)
+   END
+END Assert ;
 
 
 (*
@@ -89,10 +103,13 @@ END newDef ;
 PROCEDURE addDef (type: TypeOfDef; d: CARDINAL) : CARDINAL ;
 VAR
    id: CARDINAL ;
+   f : def ;
 BEGIN
-   IncludeIndiceIntoIndex (listOfDefs, newDef (type, d)) ;
+   f := newDef (type, d) ;
+   IncludeIndiceIntoIndex (listOfDefs, f) ;
    id := HighIndice (listOfDefs) ;
-   printf ("pgeif:  mapping (pgeid=%d) onto %d\n", id, d) ;
+   Assert (GetIndice (listOfDefs, id)=f) ;
+   printf ("pgeif:  map (pgeid %d) onto (twoDsim %d)\n", id, d) ;
    RETURN id
 END addDef ;
 
@@ -106,15 +123,17 @@ PROCEDURE lookupDef (t: TypeOfDef; d: CARDINAL) : CARDINAL ;
 VAR
    f: def ;
 BEGIN
+   printf ("inside lookupDef (d = %d)\n", d);
    IF InBounds (listOfDefs, d)
    THEN
       f := GetIndice (listOfDefs, d) ;
+      printf ("inside lookupDef (type = %d, definition = %d)\n", f^.type, f^.definition);
       WITH f^ DO
          IF t=type
          THEN
             RETURN definition
          ELSE
-            printf ("throwing an exception in lookupDef (1)\n");
+            printf ("throwing an exception in lookupDef (1)  t = %d, type = %d\n", t, type);
             THROW (ORD (IncorrectType))
          END
       END
@@ -222,6 +241,26 @@ END gravity ;
 
 
 (*
+   get_xpos - returns the first point, x, coordinate of object.
+*)
+
+PROCEDURE get_xpos (id: CARDINAL) : REAL ;
+BEGIN
+   RETURN twoDsim.get_xpos (lookupDef (object, id))
+END get_xpos ;
+
+
+(*
+   get_ypos - returns the first point, y, coordinate of object.
+*)
+
+PROCEDURE get_ypos (id: CARDINAL) : REAL ;
+BEGIN
+   RETURN twoDsim.get_xpos (lookupDef (object, id))
+END get_ypos ;
+
+
+(*
    box - place a box in the world at (x0,y0),(x0+i,y0+j)
 *)
 
@@ -294,8 +333,11 @@ END poly6 ;
 *)
 
 PROCEDURE mass (id: CARDINAL; m: REAL) : CARDINAL ;
+VAR
+   ti: CARDINAL ;
 BEGIN
-   RETURN twoDsim.mass (lookupDef (object, id), m)
+   ti := trace (twoDsim.mass (lookupDef (object, id), m), "mass") ;
+   RETURN id
 END mass ;
 
 
@@ -304,8 +346,11 @@ END mass ;
 *)
 
 PROCEDURE fix (id: CARDINAL) : CARDINAL ;
+VAR
+   ti: CARDINAL ;
 BEGIN
-   RETURN twoDsim.fix (lookupDef (object, id))
+   ti := trace (twoDsim.fix (lookupDef (object, id)), "fix") ;
+   RETURN id
 END fix ;
 
 
@@ -315,10 +360,13 @@ END fix ;
 *)
 
 PROCEDURE circle (x0, y0, radius: REAL; c: Colour) : CARDINAL ;
+VAR
+   ti, id: CARDINAL ;
 BEGIN
-   RETURN trace (addDef (object,
-                         twoDsim.circle (x0, y0, radius, lookupDef (colour, c))),
-                 "circle")
+   ti := twoDsim.circle (x0, y0, radius, lookupDef (colour, c)) ;
+   id := addDef (object, ti) ;
+   Assert (ti = lookupDef (object, id)) ;
+   RETURN trace (id, "circle")
 END circle ;
 
 
@@ -334,10 +382,13 @@ END circle ;
 *)
 
 PROCEDURE velocity (id: CARDINAL; vx, vy: REAL) : CARDINAL ;
+VAR
+   ti: CARDINAL ;
 BEGIN
-   printf ("inside velocity\n");
-   RETURN trace (twoDsim.velocity (lookupDef (object, id), vx, vy),
-                 "velocity")
+   printf ("inside velocity (id = %d)\n", id);
+   ti := trace (twoDsim.velocity (lookupDef (object, id), vx, vy),
+                "velocity") ;
+   RETURN id
 END velocity ;
 
 
@@ -346,8 +397,11 @@ END velocity ;
 *)
 
 PROCEDURE accel (id: CARDINAL; ax, ay: REAL) : CARDINAL ;
+VAR
+   ti: CARDINAL ;
 BEGIN
-   RETURN twoDsim.accel (lookupDef (object, id), ax, ay)
+   ti := twoDsim.accel (lookupDef (object, id), ax, ay) ;
+   RETURN id
 END accel ;
 
 
@@ -356,8 +410,11 @@ END accel ;
 *)
 
 PROCEDURE rotate (id: CARDINAL; angle: REAL) : CARDINAL ;
+VAR
+   ti: CARDINAL ;
 BEGIN
-   RETURN twoDsim.rotate (lookupDef (object, id), angle)
+   ti := twoDsim.rotate (lookupDef (object, id), angle) ;
+   RETURN id
 END rotate ;
 
 
@@ -428,8 +485,11 @@ END process_event ;
 *)
 
 PROCEDURE rm (id: CARDINAL) : CARDINAL ;
+VAR
+   ti: CARDINAL ;
 BEGIN
-   RETURN twoDsim.delete (id)
+   ti := twoDsim.rm (lookupDef (object, id)) ;
+   RETURN id
 END rm ;
 
 

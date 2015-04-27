@@ -45,7 +45,7 @@ IMPORT gdbif ;
 
 CONST
    MaxPolygonPoints       =     6 ;
-   DefaultFramesPerSecond =    24.0 ;
+   DefaultFramesPerSecond =   100.0 ;
    Debugging              = FALSE ;
    BufferedTime           =     0.1 ;
    InactiveTime           =     1.0 ;  (* the time we keep simulating after all collision events have expired *)
@@ -98,6 +98,7 @@ TYPE
 
    Object = POINTER TO RECORD
                           id             : CARDINAL ;
+                          deleted,
                           fixed,
                           stationary     : BOOLEAN ;
                           vx, vy, ax, ay : REAL ;
@@ -278,7 +279,11 @@ PROCEDURE DumpObject (o: Object) ;
 BEGIN
    WITH o^ DO
       printf("object %d ", id) ;
-      IF fixed
+      IF deleted
+      THEN
+         printf("is deleted\n") ;
+         RETURN
+      ELSIF fixed
       THEN
          printf("is fixed ")
       ELSE
@@ -340,6 +345,7 @@ BEGIN
    NEW(optr) ;
    WITH optr^ DO
       id              := maxId ;
+      deleted         := FALSE ;
       fixed           := FALSE ;
       stationary      := FALSE ;
       object          := type ;
@@ -546,6 +552,64 @@ BEGIN
    END ;
    RETURN id
 END circle ;
+
+
+(*
+   get_xpos - returns the first point, x, coordinate of object.
+*)
+
+PROCEDURE get_xpos (id: CARDINAL) : REAL ;
+VAR
+   optr: Object ;
+BEGIN
+   id := newObject(polygonOb) ;
+   optr := GetIndice(objects, id) ;
+   WITH optr^ DO
+      IF deleted
+      THEN
+         printf ("get_xpos: object has been deleted\n");
+         HALT
+      ELSE
+         CASE object OF
+
+         polygonOb:  RETURN p.points[0].x
+
+         ELSE
+            printf ("get_xpos: only expecting polygon\n");
+            HALT
+         END
+      END
+   END
+END get_xpos ;
+
+
+(*
+   get_ypos - returns the first point, y, coordinate of object.
+*)
+
+PROCEDURE get_ypos (id: CARDINAL) : REAL ;
+VAR
+   optr: Object ;
+BEGIN
+   id := newObject(polygonOb) ;
+   optr := GetIndice(objects, id) ;
+   WITH optr^ DO
+      IF deleted
+      THEN
+         printf ("get_ypos: object has been deleted\n");
+         HALT
+      ELSE
+         CASE object OF
+
+         polygonOb:  RETURN p.points[0].y
+
+         ELSE
+            printf ("get_ypos: only expecting polygon\n");
+            HALT
+         END
+      END
+   END
+END get_ypos ;
 
 
 (*
@@ -825,54 +889,73 @@ END getAccelCoord ;
 
 
 (*
+   doDrawFrame - 
+*)
+
+PROCEDURE doDrawFrame (optr: Object; dt: REAL) ;
+VAR
+   i     : CARDINAL ;
+   vc, ac: Coord ;
+   po    : ARRAY [0..MaxPolygonPoints] OF Coord ;
+BEGIN
+   vc := getVelCoord(optr) ;
+   ac := getAccelCoord(optr) ;
+   WITH optr^ DO
+      CASE object OF
+
+      circleOb  :  doCircle(newPositionCoord(c.pos, vc, ac, dt), c.r, c.col) |
+      polygonOb :  i := 0 ;
+                   WHILE i<p.nPoints DO
+                      po[i] := newPositionCoord(p.points[i], vc, ac, dt) ;
+                      INC(i)
+                   END ;
+                   doPolygon(p.nPoints, po, p.col) |
+      pivotOb   :  |
+      rpolygonOb:  i := 0 ;
+                   WHILE i<r.nPoints DO
+                      po[i] := newPositionRotationCoord(r.cOfG, vc, ac, dt, angularVelocity, r.points[i]) ;
+                      INC(i)
+                   END ;
+                   doPolygon(r.nPoints, po, r.col)
+
+      END
+   END
+END doDrawFrame ;
+
+
+(*
    drawFrame - 
 *)
 
 PROCEDURE drawFrame ;
 VAR
-   po  : ARRAY [0..MaxPolygonPoints] OF Coord ;
-   i, j,
-   n   : CARDINAL ;
-   optr: Object ;
    dt  : REAL ;
-   vc,
-   ac  : Coord ;
+   i, n: CARDINAL ;
+   optr: Object ;
 BEGIN
+   printf ("start drawFrame\n");
    IF writeTimeDelay
    THEN
       writeTime (currentTime-lastDrawTime)
    END ;
    lastDrawTime := currentTime ;
    dt := currentTime-lastCollisionTime ;
+   printf ("before drawBoarder\n");
    drawBoarder(black()) ;
+   printf ("after drawBoarder\n");
    n := HighIndice(objects) ;
    i := 1 ;
    WHILE i<=n DO
       optr := GetIndice(objects, i) ;
-      vc := getVelCoord(optr) ;
-      ac := getAccelCoord(optr) ;
-      WITH optr^ DO
-         CASE object OF
-
-         circleOb  :  doCircle(newPositionCoord(c.pos, vc, ac, dt), c.r, c.col) |
-         polygonOb :  j := 0 ;
-                      WHILE j<p.nPoints DO
-                         po[j] := newPositionCoord(p.points[j], vc, ac, dt) ;
-                         INC(j)
-                      END ;
-                      doPolygon(p.nPoints, po, p.col) |
-         pivotOb   :  |
-         rpolygonOb:  j := 0 ;
-                      WHILE j<r.nPoints DO
-                         po[j] := newPositionRotationCoord(r.cOfG, vc, ac, dt, angularVelocity, r.points[j]) ;
-                         INC(j)
-                      END ;
-                      doPolygon(r.nPoints, po, r.col)
-
-         END
+      IF (optr#NIL) AND (NOT optr^.deleted)
+      THEN
+         printf ("before doDrawFrame\n");
+         doDrawFrame(optr, dt) ;
+         printf ("after doDrawFrame\n");
       END ;
       INC(i)
-   END
+   END ;
+   printf ("end drawFrame\n");
 END drawFrame ;
 
 
@@ -882,15 +965,20 @@ END drawFrame ;
 
 PROCEDURE drawFrameEvent (e: eventQueue) ;
 BEGIN
+   printf ("start drawFrameEvent\n");
    frameNote ;
+   printf ("before drawFrame\n");
    drawFrame ;
+   printf ("before flipBuffer\n");
    flipBuffer ;
+   printf ("before addEvent\n");
    addEvent(1.0/framesPerSecond, drawFrameEvent) ;
    (* *)
 
    printf ("collectAll\n");
    (* collectAll *)
    (* *)
+   printf ("end drawFrameEvent\n");
 END drawFrameEvent ;
 
 
@@ -920,34 +1008,37 @@ VAR
    i  : CARDINAL ;
 BEGIN
    WITH optr^ DO
-      i := 0 ;
-(* new
-      WHILE i<p.nPoints DO
-         (* polygon points.[i].x *)
-         p.points[i].x := newPositionScalar(p.points[i].x, vx, ax, dt) ;
+      IF NOT deleted
+      THEN
+         i := 0 ;
+         (* new
+         WHILE i<p.nPoints DO
+            (* polygon points.[i].x *)
+            p.points[i].x := newPositionScalar(p.points[i].x, vx, ax, dt) ;
 
-         (* and points[i].y *)
-         p.points[i].y := newPositionScalar(p.points[i].y, vy, ay+simulatedGravity, dt) ;
-         INC(i)
-      END ;
-      vx := vx + ax*dt ;
-      vy := vy + (ay+simulatedGravity)*dt ;
-*)
+            (* and points[i].y *)
+            p.points[i].y := newPositionScalar(p.points[i].y, vy, ay+simulatedGravity, dt) ;
+            INC(i)
+         END ;
+         vx := vx + ax*dt ;
+         vy := vy + (ay+simulatedGravity)*dt ;
+         *)
 
-(* old *)
-      nvx := vx + ax*dt ;
-      nvy := vy + (ay+simulatedGravity)*dt ;
-      WHILE i<p.nPoints DO
-         (* polygon points.[i].x *)
-         p.points[i].x := p.points[i].x+dt*(vx+nvx)/2.0 ;
+         (* old *)
+         nvx := vx + ax*dt ;
+         nvy := vy + (ay+simulatedGravity)*dt ;
+         WHILE i<p.nPoints DO
+            (* polygon points.[i].x *)
+            p.points[i].x := p.points[i].x+dt*(vx+nvx)/2.0 ;
 
-         (* and points[i].y *)
-         p.points[i].y := p.points[i].y+dt*(vy+nvy)/2.0 ;
-         INC(i)
-      END ;
-      vx := nvx ;
-      vy := nvy
-(* *)
+            (* and points[i].y *)
+            p.points[i].y := p.points[i].y+dt*(vy+nvy)/2.0 ;
+            INC(i)
+         END ;
+         vx := nvx ;
+         vy := nvy
+         (* *)
+      END
    END
 END updatePolygon ;
 
@@ -961,28 +1052,34 @@ VAR
    vn: REAL ;
 BEGIN
    WITH optr^ DO
-(*
-      checkZero(dt) ;
-      checkZero(vx) ;
-      checkZero(vy) ;
-*)
-      (* update vx and pos.x *)
+      IF NOT deleted
+      THEN
+         (*
+         checkZero(dt) ;
+         checkZero(vx) ;
+         checkZero(vy) ;
+         *)
+         (* update vx and pos.x *)
 
-      c.pos.x := newPositionScalar(c.pos.x, vx, ax, dt) ;
-      vx := vx + ax*dt ;
-(*
-      vn := vx + ax*dt ;
-      c.pos.x := c.pos.x+dt*(vx+vn)/2.0 ;
-      vx := vn ;
-*)
-      (* update vy and pos.y *)
-      c.pos.y := newPositionScalar(c.pos.y, vy, ay+simulatedGravity, dt) ;
-      vy := vy + (ay+simulatedGravity)*dt ;
-(*
-      vn := vy + (ay+simulatedGravity)*dt ;
-      c.pos.y := c.pos.y+dt*(vy+vn)/2.0 ;
-      vy := vn
-*)
+         c.pos.x := newPositionScalar(c.pos.x, vx, ax, dt) ;
+         vx := vx + ax*dt ;
+
+         (*
+         vn := vx + ax*dt ;
+         c.pos.x := c.pos.x+dt*(vx+vn)/2.0 ;
+         vx := vn ;
+         *)
+
+         (* update vy and pos.y *)
+         c.pos.y := newPositionScalar(c.pos.y, vy, ay+simulatedGravity, dt) ;
+         vy := vy + (ay+simulatedGravity)*dt ;
+         
+         (*
+         vn := vy + (ay+simulatedGravity)*dt ;
+         c.pos.y := c.pos.y+dt*(vy+vn)/2.0 ;
+         vy := vn
+         *)
+      END
    END
 END updateCircle ;
 
@@ -994,7 +1091,7 @@ END updateCircle ;
 PROCEDURE updateOb (optr: Object; dt: REAL) ;
 BEGIN
    WITH optr^ DO
-      IF (NOT fixed) AND (NOT stationary)
+      IF (NOT deleted) AND (NOT fixed) AND (NOT stationary)
       THEN
          CASE object OF
 
@@ -1129,7 +1226,6 @@ BEGIN
       exit (1);
       RETURN 0.0
    ELSE
-      (* printQueue ; *)
       e := eventQ ;
       eventQ := eventQ^.next ;
       dt := e^.time ;
@@ -1163,7 +1259,7 @@ BEGIN
    WHILE i<=n DO
       optr := GetIndice(objects, i) ;
       WITH optr^ DO
-         IF NOT fixed
+         IF (NOT fixed) AND (NOT deleted)
          THEN
             CASE object OF
 
@@ -1244,7 +1340,7 @@ END inElastic ;
 PROCEDURE checkStationary (o: Object) ;
 BEGIN
    WITH o^ DO
-      IF NOT fixed
+      IF (NOT fixed) AND (NOT deleted)
       THEN
          inElastic(vx) ;
          inElastic(vy) ;
@@ -1264,7 +1360,7 @@ END checkStationary ;
 
 PROCEDURE checkStationaryCollision (a, b: Object) ;
 BEGIN
-   IF a^.stationary
+   IF a^.stationary AND (NOT a^.deleted)
    THEN
       IF Debugging
       THEN
@@ -1283,7 +1379,7 @@ BEGIN
       THEN
          DumpObject(a)
       END
-   ELSIF b^.stationary
+   ELSIF b^.stationary AND (NOT b^.deleted)
    THEN
       checkStationaryCollision(b, a)
    END
@@ -2963,14 +3059,17 @@ BEGIN
    tc := -1.0 ;
    WHILE i<=n DO
       iptr := GetIndice(objects, i) ;
-      j := 1+i ;
-      WHILE j<=n DO
-         jptr := GetIndice(objects, j) ;
-         IF iptr#jptr
-         THEN
-            findCollision(iptr, jptr, edesc, tc)
-         END ;
-         INC(j)
+      IF NOT iptr^.deleted
+      THEN
+         j := 1+i ;
+         WHILE j<=n DO
+            jptr := GetIndice(objects, j) ;
+            IF (iptr#jptr) AND (NOT jptr^.deleted)
+            THEN
+               findCollision(iptr, jptr, edesc, tc)
+            END ;
+            INC(j)
+         END
       END ;
       INC(i)
    END ;
@@ -3390,15 +3489,20 @@ END pumpQueue ;
 
 
 (*
-   delete - delete this object from the simulated world.
-            The same id is returned.
+   rm - delete this object from the simulated world.
+        The same id is returned.
 *)
 
-PROCEDURE delete (id: CARDINAL) : CARDINAL ;
+PROCEDURE rm (id: CARDINAL) : CARDINAL ;
+VAR
+   optr: Object ;
 BEGIN
-
+   optr := GetIndice(objects, id) ;
+   WITH optr^ DO
+      deleted := TRUE
+   END ;
    RETURN( id )
-END delete ;
+END rm ;
 
 
 (*
@@ -3677,7 +3781,8 @@ BEGIN
    drawCollisionFrame := TRUE ;
    drawPrediction := FALSE ;
    fileOpened := FALSE ;
-   writeTimeDelay := TRUE
+   writeTimeDelay := TRUE ;
+   gdbif.sleepSpin
 END Init ;
 
 

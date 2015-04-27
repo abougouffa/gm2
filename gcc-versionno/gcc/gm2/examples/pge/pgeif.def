@@ -37,7 +37,8 @@ EXPORT UNQUALIFIED ExceptionKind,
                    velocity, accel, rotate, process_event,
                    is_collision, is_frame, time_until, get_time, rm,
                    batch, use_buffer, empty_cbuffer, empty_fbuffer,
-                   use_time_delay, dump_world, draw_collision, l2h, h2l ;
+                   use_time_delay, dump_world, draw_collision, l2h, h2l,
+                   get_xpos, get_ypos ;
 
 
 TYPE
@@ -239,6 +240,20 @@ PROCEDURE get_time () : REAL ;
 *)
 
 PROCEDURE rm (id: CARDINAL) : CARDINAL ;
+
+
+(*
+   get_xpos - returns the first point, x, coordinate of object.
+*)
+
+PROCEDURE get_xpos (id: CARDINAL) : REAL ;
+
+
+(*
+   get_ypos - returns the first point, y, coordinate of object.
+*)
+
+PROCEDURE get_ypos (id: CARDINAL) : REAL ;
 
 
 (*
