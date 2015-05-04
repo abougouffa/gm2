@@ -666,8 +666,6 @@ BEGIN
          GetQuad(quad, op, op1, op2, op3) ;
          tokenno := QuadToTokenNo(quad) ;
 
-         (* CheckStop(quad) ; *)
-
          CASE op OF
 
          StandardFunctionOp : FoldStandardFunction(tokenno, p, quad, op1, op2, op3) |
@@ -1930,6 +1928,8 @@ END CodeReturnValue ;
 
 PROCEDURE CodeCall (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
+   CheckStop(quad) ;
+
    (*
       op  : CallOp
       op3 : Procedure
@@ -2582,7 +2582,7 @@ PROCEDURE stop ; BEGIN END stop ;
 
 PROCEDURE CheckStop (q: CARDINAL) ;
 BEGIN
-   IF q=16
+   IF q=483
    THEN
       stop
    END
@@ -2606,8 +2606,6 @@ BEGIN
    location := TokenToLocation(QuadToTokenNo(quad)) ;
    IF IsConst(op1) AND IsConstant(op3)
    THEN
-      CheckStop(quad) ;
-
       (* constant folding taking place, but have we resolved op3 yet? *)
       IF GccKnowsAbout(op3)
       THEN
@@ -2982,7 +2980,7 @@ VAR
 BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant and declares it *)
    DeclareConstructor(quad, op3) ;
-   CheckStop(quad) ;
+
    tokenno := QuadToTokenNo(quad) ;
    location := TokenToLocation(tokenno) ;
 
@@ -3010,7 +3008,6 @@ VAR
 BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant and declares it *)
    DeclareConstructor(quad, op3) ;
-   CheckStop(quad) ;
    tokenno := QuadToTokenNo(quad) ;
    location := TokenToLocation(tokenno) ;
 

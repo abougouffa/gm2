@@ -1,15 +1,29 @@
-2015-01-27      Gaius Mulley <gaius@gnu.org>
+2015-05-04      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge:  more interim checkins.
+	* gm2/gm2-compiler/M2Batch.def:  IsModuleSeen (New procedure
+	  function).
+	* gm2/gm2-compiler/M2Batch.mod:  IsModuleSeen (New procedure
+	  function) implemented.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  TryFindSymbol
+	  (New procedure function).  Used to aid internal debugging.
+	* gm2/gm2-libs-iso/IOLink.mod:  fixed bug between dids and cid
+	  checking.  Check did against dids and cid against did^.cids.
+	* gm2/gm2-libs-iso/ProgramArgs.mod:  fixed bug reported by
+	  (D.E.Evans <sinuhe@gnu.org>).
+
+2015-04-27      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-iso/MemStream.mod:  removed debugging printf.
 	* gm2/examples/pge:  more changes.
 
-2015-01-23      Gaius Mulley <gaius@gnu.org>
+2015-04-23      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  add $(TIMEVAR_H) to all m2.flex
 	  dependant rules.
 	* gm2/examples/pge:  more changes.
 
-2015-01-21      Gaius Mulley <gaius@gnu.org>
+2015-04-21      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/examples:  another interim checkin.
           (More debugging statements added and internal checking).
@@ -21,7 +35,7 @@
 	  the interactive behaviour of the iso libraries so that
 	  output is flushed before data is read.
 
-2015-01-15      Gaius Mulley <gaius@gnu.org>
+2015-04-15      Gaius Mulley <gaius@gnu.org>
 
 	* released GM2 1.1.3
 	* gm2/gm2-libs/config-host:  rebuilt.
@@ -32,7 +46,7 @@
 	* gm2/version.c:  1.1.3.
 	* gm2/examples/pge/examples:  improved debugging log messages.
 
-2015-01-09      Gaius Mulley <gaius@gnu.org>
+2015-04-09      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  changed path to gnu.eps to contain
 	  $(objdir).
@@ -42,7 +56,7 @@
 	* gm2/examples/pge/pgeplayback.py:  more intermin changes.
 	* gm2/examples/pge/twoDsim.mod:  more intermin changes.
 
-2015-01-02      Gaius Mulley <gaius@gnu.org>
+2015-04-02      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-iso/ConvStringLong.mod:  check to see if the
 	  conversion generates a NAN and return accordingly.
@@ -50,7 +64,7 @@
 	  conversion generates a NAN and return accordingly.
 	  This fixes a bug reported by:  Michael Riedl.
 
-2015-01-01      Gaius Mulley <gaius@gnu.org>
+2015-04-01      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge:  many bugfixes to the shared library example.
 	* gm2/gm2-compiler/M2GenGCC.mod:  FoldConvert use PopKindTree.

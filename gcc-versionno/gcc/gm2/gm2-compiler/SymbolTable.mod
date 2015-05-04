@@ -1375,7 +1375,7 @@ VAR
 BEGIN
    IF ScopeId>0
    THEN
-      (* choose to place the unknown symbol in the first module scope scope
+      (* choose to place the unknown symbol in the first module scope
          outside the current scope *)
       REPEAT
          pCall := GetPcall(ScopeId) ;

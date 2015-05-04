@@ -36,7 +36,7 @@ EXPORT QUALIFIED MakeDefinitionSource,
                  GetSource, GetModuleNo, IsModuleKnown,
                  AssociateDefinition, GetDefinitionModuleFile,
                  AssociateModule, GetModuleFile,
-                 ForeachSourceModuleDo, IsSourceSeen,
+                 ForeachSourceModuleDo, IsSourceSeen, IsModuleSeen,
                  LookupModule, LookupOuterModule ;
 
 TYPE
@@ -150,6 +150,13 @@ PROCEDURE ForeachSourceModuleDo (p: DoProcedure) ;
 *)
 
 PROCEDURE IsSourceSeen (sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsModuleSeen - returns TRUE if the source for module, name, has been seen.
+*)
+
+PROCEDURE IsModuleSeen (n: Name) : BOOLEAN ;
 
 
 (*

@@ -577,15 +577,16 @@ def configDevice ():
 def grFlipBuffer (f):
     global outf, frameNo, writtenColours
 
-    num = "%06d" % frameNo
+    num = "%08d" % frameNo
 
     outf.close ()
     writtenColours = []
-    os.system ("groff f" + num + ".ms > f" + num + ".ps")
-    os.system ("gs -dNOPAUSE -sDEVICE=pnmraw -sOutputFile=t" + num + ".pnm -dGraphicsAlphaBits=4 -q -dBATCH f" + num +  ".ps > /dev/null 2>&1")
-    os.system ("pnmcrop -quiet < t" + num + ".pnm | pnmtopng > e" + num + ".png 2> /dev/null")
-    os.system ("convert e" + num + ".png -type truecolor f" + num + ".png 2> /dev/null")
-    os.system ("rm -f t" + num + ".pnm f" + num + ".ps e" + num + ".png")
+    os.system ("groff " + num + ".ms > " + num + ".ps")
+    os.system ("gs -dNOPAUSE -sDEVICE=pnmraw -sOutputFile=" + num + ".pnm -dGraphicsAlphaBits=4 -q -dBATCH " + num +  ".ps > /dev/null 2>&1")
+    os.system ("pnmcrop -quiet < " + num + ".pnm | pnmtopng > e" + num + ".png 2> /dev/null")
+    os.system ("convert e" + num + ".png -type truecolor " + num + ".png 2> /dev/null")
+    os.system ("rm -f t" + num + ".pnm " + num + ".ps e" + num + ".png")
+    os.system ("rm -f " + num + ".pnm " + num + ".ms ")
     return f
 
 
@@ -607,7 +608,7 @@ def grFrameNote (f):
     global frameNo, outf
 
     f, frameNo = readCard (f)
-    outf = open ("f%06d.ms" % frameNo, "w")
+    outf = open ("%08d.ms" % frameNo, "w")
     return f
 
 

@@ -90,9 +90,9 @@ def main ():
     c = pge.circle (0.5, 0.5, 0.3, white, -1)
     l = pge.box (0.0, 0.25, 1.0, 0.02, wood_light, 1)
     b1, b2, b3, b4 = placeBoarders (boarder, wood_dark)
-    # b = placeBall (0.5, 0.5, 0.02)
-    # b.mass (1.0).on_collision (play_bounce).velocity (0.9, 0.0)
-    crate (0.7, 0.8, 0.1)
+    b = placeBall (0.5, 0.5, 0.02)
+    b.mass (1.0).on_collision (play_bounce).velocity (0.9, 0.0)
+    # crate (0.7, 0.8, 0.1)
     print "before run"
     pge.gravity ()
     pge.dump_world ()

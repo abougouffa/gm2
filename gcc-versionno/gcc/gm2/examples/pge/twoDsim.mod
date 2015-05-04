@@ -3782,7 +3782,7 @@ BEGIN
    drawPrediction := FALSE ;
    fileOpened := FALSE ;
    writeTimeDelay := TRUE ;
-   gdbif.sleepSpin
+(*   gdbif.sleepSpin *)
 END Init ;
 
 

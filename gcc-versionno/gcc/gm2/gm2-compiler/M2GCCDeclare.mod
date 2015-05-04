@@ -94,7 +94,7 @@ FROM SymbolTable IMPORT NulSym,
                         IsError, IsHiddenType,
                         IsDefinitionForC, IsHiddenTypeDeclared,
                         IsComponent,
-      	       	     	GetMainModule, GetBaseModule, GetModule,
+      	       	     	GetMainModule, GetBaseModule, GetModule, GetLocalSym,
                         PutModuleFinallyFunction,
                         GetProcedureScope, GetProcedureQuads,
                         IsRecordFieldAVarientTag, IsEmptyFieldVarient,
@@ -141,7 +141,7 @@ FROM M2ALU IMPORT Addn, Sub, Equ, GreEqu, Gre, Less, PushInt, PushCard, ConvertT
                   PopConstructorTree, PopComplexTree, PutConstructorSolved,
                   ChangeToConstructor, EvaluateValue, TryEvaluateValue ;
 
-FROM M2Batch IMPORT IsSourceSeen, GetModuleFile ;
+FROM M2Batch IMPORT IsSourceSeen, GetModuleFile, IsModuleSeen, LookupModule ;
 FROM m2tree IMPORT Tree ;
 FROM m2linemap IMPORT location_t ;
 
@@ -411,7 +411,7 @@ END DebugSetNumbers ;
 
 PROCEDURE AddSymToWatch (sym: WORD) ;
 BEGIN
-   IF NOT IsElementInSet(WatchList, sym)
+   IF (sym#NulSym) AND (NOT IsElementInSet(WatchList, sym))
    THEN
       IncludeElementIntoSet(WatchList, sym) ;
       WalkDependants(sym, AddSymToWatch) ;
@@ -419,6 +419,27 @@ BEGIN
       FIO.FlushBuffer(FIO.StdOut)
    END
 END AddSymToWatch ;
+
+
+(*
+   TryFindSymbol - 
+*)
+
+PROCEDURE TryFindSymbol (module, symname: ARRAY OF CHAR) : CARDINAL ;
+VAR
+   mn, sn: Name ;
+   mod   : CARDINAL ;
+BEGIN
+   mn := MakeKey(module) ;
+   sn := MakeKey(symname) ;
+   IF IsModuleSeen(mn)
+   THEN
+      mod := LookupModule(mn) ;
+      RETURN( GetLocalSym(mod, sn) )
+   ELSE
+      RETURN( NulSym )
+   END
+END TryFindSymbol ;
 
 
 (*
@@ -453,15 +474,15 @@ BEGIN
       CASE lt OF
 
       tobesolvedbyquads :  doInclude(ToBeSolvedByQuads, "symbol %d -> ToBeSolvedByQuads\n", sym) |
-      fullydeclared     :  doInclude(FullyDeclared, "symbol %d -> FullyDeclared\n", sym) |
-      partiallydeclared :  doInclude(PartiallyDeclared, "symbol %d -> PartiallyDeclared\n", sym) |
-      heldbyalignment   :  doInclude(HeldByAlignment, "symbol %d -> HeldByAlignment\n", sym) |
-      finishedalignment :  doInclude(FinishedAlignment, "symbol %d -> FinishedAlignment\n", sym) |
-      todolist          :  doInclude(ToDoList, "symbol %d -> ToDoList\n", sym) ;
-                           IF sym=2823
+      fullydeclared     :  doInclude(FullyDeclared, "symbol %d -> FullyDeclared\n", sym) ;
+                           IF sym=449
                            THEN
                               mystop
                            END |
+      partiallydeclared :  doInclude(PartiallyDeclared, "symbol %d -> PartiallyDeclared\n", sym) |
+      heldbyalignment   :  doInclude(HeldByAlignment, "symbol %d -> HeldByAlignment\n", sym) |
+      finishedalignment :  doInclude(FinishedAlignment, "symbol %d -> FinishedAlignment\n", sym) |
+      todolist          :  doInclude(ToDoList, "symbol %d -> ToDoList\n", sym) |
       niltypedarrays    :  doInclude(NilTypedArrays, "symbol %d -> NilTypedArrays\n", sym)
 
       ELSE
@@ -2901,6 +2922,7 @@ PROCEDURE StartDeclareScope (scope: CARDINAL) ;
 VAR
    n: Name ;
 BEGIN
+   (* AddSymToWatch(TryFindSymbol('IOLink', 'DeviceId')) ; *)
    (* AddSymToWatch(819) ; *)
    (* 
    AddSymToWatch(2125) ;  (* watch goes here *)

@@ -166,19 +166,10 @@ BEGIN
       IF currentPos>0
       THEN
          DEC(currentPtr) ;
-         DEC(currentPos) ;
-         IF ch#currentPtr^
-         THEN
-            RAISEdevException(cid, did, notAvailable,
-                              'ProgramArgs.unreadchar:  not allowed to overwrite argument data')
-         END ;
-         d^.result := allRight
-      ELSE
-         RAISEdevException(cid, did, notAvailable,
-                           'ProgramArgs.unreadchar:  attempting to move back beyond the start of argument data')
-      END ;
-      RETURN( ch )
-   END
+         DEC(currentPos)
+      END
+   END ;
+   RETURN( ch )
 END dounreadchar ;
 
 
@@ -370,6 +361,7 @@ BEGIN
             INC(currentPos) ;
             INC(currentPtr)
          END ;
+         INC(currentPtr) ;  (* move over nul onto first char of next arg *)
          argLength := strlen(currentPtr)+1 ;
          currentPos := 0
       END

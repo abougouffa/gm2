@@ -404,6 +404,16 @@ END IsSourceSeen ;
 
 
 (*
+   IsModuleSeen - returns TRUE if the source for module, name, has been seen.
+*)
+
+PROCEDURE IsModuleSeen (n: Name) : BOOLEAN ;
+BEGIN
+   RETURN( Get(n)#NulSym )
+END IsModuleSeen ;
+
+
+(*
    LookupModule - looks up a module in the current scope, if a module does not exist
                   then it creates a DefImp module.
 *)
