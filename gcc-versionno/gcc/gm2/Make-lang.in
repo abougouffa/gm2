@@ -88,7 +88,14 @@ else
             stage1/gm2/cpp$(exeext)
 endif
 
-# STPCPY = --lib ../../libiberty/stpcpy.o
+
+HAVE_STPCPY= $(SHELL ( grep define $(objdir)/gm2/gm2config.h | grep HAVE_STPCPY ))
+
+ifeq ($(strip $(HAVE_STPCPY)),)
+STPCPY = --lib ../../libiberty/stpcpy.o
+else
+STPCPY =
+endif
 
 TEXISRC = $(objdir)/gm2/images/gnu.eps \
           $(srcdir)/gm2/gm2.texi \

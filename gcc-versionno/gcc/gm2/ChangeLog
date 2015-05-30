@@ -1,3 +1,15 @@
+2015-05-30      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added rule to detect HAVE_STPCPY in configure output.
+	* gm2/configure.in:  check for function stpcpy.
+	* gm2/gm2-libs/config-target:  rebuilt.
+	* gm2/gm2-libs/config-host:  rebuilt.
+	* gm2/gm2-libs/config-host.in:  added check for stpcpy.
+	* gm2/gm2config.h.in:  
+	* testsuite/gm2/isolib/run/pass/testio2.mod:  added debugging printf.
+	* gm2/gm2-libs-iso/TextIO.mod:  fixed bug in ReadToken so that the token
+	  terminates with a white space or null.
+
 2015-05-29      Gaius Mulley <gaius@gnu.org>
 
 	* Solaris build fixes.
@@ -9227,7 +9239,7 @@
 	* gm2/p2c/p2c-src/src/funcs.c:  (proc_throw) new function.
 	* gm2/p2c/p2c-src/src/trans.h:  define name_THROW.
 	* gm2/make-config.in:  new file.
-	
+
 2008-08-11       Gaius Mulley <gaius@gnu.org>
 
         * gm2/bnf/m2-3.bnf:  call BuildReThrow after statement sequence

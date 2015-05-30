@@ -53,3 +53,5 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 #undef RANLIB_PATH
 #endif
 
+/* Define to 1 if you have the `stpcmp' function. */
+#undef HAVE_STPCMP

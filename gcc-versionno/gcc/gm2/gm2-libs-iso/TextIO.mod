@@ -180,7 +180,7 @@ BEGIN
    i := 0 ;
    WHILE (i<=h) AND CanRead(cid) DO
       ReadChar(cid, s[i]) ;
-      IF s[i]=ASCII.nul
+      IF (s[i]=ASCII.nul) OR CharClass.IsWhiteSpace(s[i])
       THEN
          SetResult(cid, i, s, TRUE) ;
          RETURN

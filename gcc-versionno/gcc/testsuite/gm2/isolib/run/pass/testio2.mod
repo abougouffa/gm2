@@ -46,6 +46,7 @@ BEGIN
    IF Length(s)#Length('some')
    THEN
       printf("failed reading third string\n") ;
+      printf("should have only read 'some' and we read '%s' instead\n", s) ;
       exit(3)
    END
 END testio2.
