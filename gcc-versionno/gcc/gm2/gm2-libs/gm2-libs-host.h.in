@@ -192,6 +192,9 @@
 /* Define to 1 if you have the `strtold' function. */
 #undef HAVE_STRTOLD
 
+/* Define to 1 if you have the `stpcpy' function. */
+#undef HAVE_STPCPY
+
 /* Define to 1 if you have the <sys/errno.h> header file. */
 #undef HAVE_SYS_ERRNO_H
 

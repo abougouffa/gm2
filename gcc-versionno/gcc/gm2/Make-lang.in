@@ -89,7 +89,7 @@ else
 endif
 
 
-HAVE_STPCPY= $(SHELL ( grep define $(objdir)/gm2/gm2config.h | grep HAVE_STPCPY ))
+HAVE_STPCPY := $(strip $(shell (grep define $(objdir)/auto-host.h | grep HAVE_DECL_STPCPY)))
 
 ifeq ($(strip $(HAVE_STPCPY)),)
 STPCPY = --lib ../../libiberty/stpcpy.o

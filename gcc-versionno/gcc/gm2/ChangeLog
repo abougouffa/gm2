@@ -5,10 +5,12 @@
 	* gm2/gm2-libs/config-target:  rebuilt.
 	* gm2/gm2-libs/config-host:  rebuilt.
 	* gm2/gm2-libs/config-host.in:  added check for stpcpy.
-	* gm2/gm2config.h.in:  
+	* gm2/gm2config.h.in:  added check for stpcpy.
 	* testsuite/gm2/isolib/run/pass/testio2.mod:  added debugging printf.
 	* gm2/gm2-libs-iso/TextIO.mod:  fixed bug in ReadToken so that the token
 	  terminates with a white space or null.
+	* gm2/Make-lang.in:  added dynamic test to check for HAVE_STPCPY.
+	* gm2/gm2-libs/gm2-libs-host.h.in:  added check for stpcpy.
 
 2015-05-29      Gaius Mulley <gaius@gnu.org>
 
