@@ -146,23 +146,35 @@ void wrapc_getnameuidgid (char *name, int *uid, int *gid)
 
 int wrapc_signbit (double r)
 {
+#if defined(HAVE_SIGNBIT)
   /* signbit is a macro which tests its argument against sizeof(float),
      sizeof(double) */
   return signbit (r);
+#else
+  return 0;
+#endif
 }
 
 int wrapc_signbitl (long double r)
 {
+#if defined(HAVE_SIGNBITL)
   /* signbit is a macro which tests its argument against sizeof(float),
      sizeof(double) */
-  return signbit (r);
+  return signbitl (r);
+#else
+  return 0;
+#endif
 }
 
 int wrapc_signbitf (float r)
 {
+#if defined(HAVE_SIGNBITF)
   /* signbit is a macro which tests its argument against sizeof(float),
      sizeof(double) */
-  return signbit (r);
+  return signbitf (r);
+#else
+  return 0;
+#endif
 }
 
 /*

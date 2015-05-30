@@ -263,6 +263,10 @@ GM2_CHECK_LIB([c],[unlink],[UNLINK])
 GM2_CHECK_LIB([c],[wait],[WAIT])
 GM2_CHECK_LIB([c],[write],[WRITE])
 
+GM2_CHECK_LIB([m],[signbit],[SIGNBIT])
+GM2_CHECK_LIB([m],[signbitf],[SIGNBITF])
+GM2_CHECK_LIB([m],[signbitl],[SIGNBITL])
+
 
 CC_FOR_BUILD=${CC_FOR_BUILD:-gcc}
 AC_SUBST(CC_FOR_BUILD)

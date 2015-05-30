@@ -88,7 +88,7 @@ else
             stage1/gm2/cpp$(exeext)
 endif
 
-
+# STPCPY = --lib ../../libiberty/stpcpy.o
 
 TEXISRC = $(objdir)/gm2/images/gnu.eps \
           $(srcdir)/gm2/gm2.texi \
@@ -1829,7 +1829,10 @@ gm2/ppg$(exeext): gm2/p2c/p2c-src/src/libp2c.a gm2/boot-bin/mklink gm2/boot-bin/
 	../$(M2LINK) -s --name mod_init.c ../$(srcdir)/gm2/init/ppginit ; \
 	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
 	M2PATH=". gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
-	../$(M2LINK) -l --lib p2c/p2c-src/src/libp2c.a --lib ../../libiberty/safe-ctype.o --name ppg.lnk ../$(srcdir)/gm2/init/ppginit ; \
+	../$(M2LINK) -l --lib p2c/p2c-src/src/libp2c.a \
+           --lib ../../libiberty/safe-ctype.o \
+           $(STPCPY) \
+           --name ppg.lnk ../$(srcdir)/gm2/init/ppginit ; \
 	$(SHELL) ppg.lnk ; \
 	$(RM) ppg.lnk ; \
 	if [ -x a$(exeext) ] ; then \
@@ -1853,7 +1856,10 @@ gm2/pg$(exeext): gm2/gm2-auto gm2/ppg$(exeext) gm2/gm2-auto/pg.mod \
 	../$(M2LINK) -s --name mod_init.c ../gm2/gm2-auto/pginit ; \
 	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
 	M2PATH="gm2-auto . gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
-	../$(M2LINK) -l --lib p2c/p2c-src/src/libp2c.a --lib ../../libiberty/safe-ctype.o --name pg.lnk ../gm2/gm2-auto/pginit ; \
+	../$(M2LINK) -l --lib p2c/p2c-src/src/libp2c.a \
+           --lib ../../libiberty/safe-ctype.o \
+           $(STPCPY) \
+           --name pg.lnk ../gm2/gm2-auto/pginit ; \
 	$(SHELL) pg.lnk ; \
 	$(RM) pg.lnk ; \
 	if [ -x a$(exeext) ] ; then \
@@ -1891,7 +1897,11 @@ buildpge: verifypg-e
 	../$(M2LINK) -s --name mod_init.c gm2-auto/pgeinit ; \
 	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
 	M2PATH="gm2-auto . gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
-	../$(M2LINK) -l --lib p2c/p2c-src/src/libp2c.a --lib ../../libiberty/safe-ctype.o --name pge.lnk gm2-auto/pgeinit ; \
+	../$(M2LINK) -l \
+          --lib p2c/p2c-src/src/libp2c.a \
+          --lib ../../libiberty/safe-ctype.o \
+           $(STPCPY) \
+          --name pge.lnk gm2-auto/pgeinit ; \
 	$(SHELL) pge.lnk ; \
 	$(RM) pge.lnk ; \
 	if [ -x a$(exeext) ] ; then \

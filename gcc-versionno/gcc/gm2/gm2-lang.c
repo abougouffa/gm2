@@ -345,8 +345,10 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
     /* handled by the driver */
     return 1;
   case OPT_version:
+    M2Options_DisplayVersion (FALSE);
+    return 1;
   case OPT_fgm2_version:
-    M2Options_DisplayVersion ();
+    M2Options_DisplayVersion (FALSE);
     return 1;
   case OPT_O:
     M2Options_SetOptimizing (value);

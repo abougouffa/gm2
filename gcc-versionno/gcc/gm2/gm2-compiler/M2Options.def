@@ -134,7 +134,7 @@ VAR
    DisplayVersion - displays the version of the compiler.
 *)
 
-PROCEDURE DisplayVersion ;
+PROCEDURE DisplayVersion (mustExit: BOOLEAN) ;
 
 
 (*

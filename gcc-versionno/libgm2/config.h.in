@@ -135,6 +135,15 @@
 /* Define to 1 if you have the <signal.h> header file. */
 #undef HAVE_SIGNAL_H
 
+/* function signbit exists */
+#undef HAVE_SIGNBIT
+
+/* function signbitf exists */
+#undef HAVE_SIGNBITF
+
+/* function signbitl exists */
+#undef HAVE_SIGNBITL
+
 /* function stat exists */
 #undef HAVE_STAT
 

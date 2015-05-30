@@ -138,6 +138,33 @@ BEGIN
    SetResult(cid, i, s, FALSE)
 END ReadString ;
 
+
+(*
+   SkipSpaces - skips any spaces.
+*)
+
+PROCEDURE SkipSpaces (cid: IOChan.ChanId) ;
+VAR
+   ch : CHAR ;
+   res: IOConsts.ReadResults ;
+BEGIN
+   WHILE CanRead(cid) DO
+      IOChan.Look(cid, ch, res) ;
+      IF res=IOConsts.allRight
+      THEN
+         IF CharClass.IsWhiteSpace(ch)
+         THEN
+            IOChan.Skip(cid)
+         ELSE
+            RETURN
+         END
+      ELSE
+         RETURN
+      END
+   END
+END SkipSpaces ;
+
+
 PROCEDURE ReadToken (cid: IOChan.ChanId; VAR s: ARRAY OF CHAR);
   (* Skips leading spaces, and then removes characters from
      the input stream cid before the next space or line mark,
@@ -148,11 +175,12 @@ PROCEDURE ReadToken (cid: IOChan.ChanId; VAR s: ARRAY OF CHAR);
 VAR
    i, h: CARDINAL ;
 BEGIN
+   SkipSpaces(cid) ;
    h := HIGH(s) ;
    i := 0 ;
    WHILE (i<=h) AND CanRead(cid) DO
       ReadChar(cid, s[i]) ;
-      IF CharClass.IsWhiteSpace(s[i])
+      IF s[i]=ASCII.nul
       THEN
          SetResult(cid, i, s, TRUE) ;
          RETURN

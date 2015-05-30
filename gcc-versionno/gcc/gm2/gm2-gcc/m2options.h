@@ -89,7 +89,7 @@ EXTERN void M2Options_CppArg (const char *opt, const char *arg, int joined);
 EXTERN void M2Options_SetWholeProgram (int value);
 EXTERN void M2Options_FinaliseOptions (void);
 
-EXTERN void M2Options_DisplayVersion (void);
+EXTERN void M2Options_DisplayVersion (int mustExit);
 
 #undef EXTERN
 #endif

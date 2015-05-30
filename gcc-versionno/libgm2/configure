@@ -19012,6 +19012,214 @@ $as_echo "#define HAVE_WRITE 1" >>confdefs.h
 
 
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking m library for signbit" >&5
+$as_echo_n "checking m2 front end checking m library for signbit... " >&6; }
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for signbit in -lm" >&5
+$as_echo_n "checking for signbit in -lm... " >&6; }
+if test "${ac_cv_lib_m_signbit+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lm  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char signbit ();
+int
+main ()
+{
+return signbit ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_m_signbit=yes
+else
+  ac_cv_lib_m_signbit=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_m_signbit" >&5
+$as_echo "$ac_cv_lib_m_signbit" >&6; }
+if test "x$ac_cv_lib_m_signbit" = x""yes; then :
+
+$as_echo "#define HAVE_SIGNBIT 1" >>confdefs.h
+
+else
+
+  $as_echo "#undef HAVE_SIGNBIT" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_m_signbit" = xyes; then
+
+$as_echo "#define HAVE_SIGNBIT 1" >>confdefs.h
+
+    elif test "x$ac_cv_func_signbit" = xyes; then
+
+$as_echo "#define HAVE_SIGNBIT 1" >>confdefs.h
+
+    else
+
+  $as_echo "#undef HAVE_SIGNBIT" >>confdefs.h
+
+    fi
+  fi
+
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking m library for signbitf" >&5
+$as_echo_n "checking m2 front end checking m library for signbitf... " >&6; }
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for signbitf in -lm" >&5
+$as_echo_n "checking for signbitf in -lm... " >&6; }
+if test "${ac_cv_lib_m_signbitf+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lm  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char signbitf ();
+int
+main ()
+{
+return signbitf ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_m_signbitf=yes
+else
+  ac_cv_lib_m_signbitf=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_m_signbitf" >&5
+$as_echo "$ac_cv_lib_m_signbitf" >&6; }
+if test "x$ac_cv_lib_m_signbitf" = x""yes; then :
+
+$as_echo "#define HAVE_SIGNBITF 1" >>confdefs.h
+
+else
+
+  $as_echo "#undef HAVE_SIGNBITF" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_m_signbitf" = xyes; then
+
+$as_echo "#define HAVE_SIGNBITF 1" >>confdefs.h
+
+    elif test "x$ac_cv_func_signbitf" = xyes; then
+
+$as_echo "#define HAVE_SIGNBITF 1" >>confdefs.h
+
+    else
+
+  $as_echo "#undef HAVE_SIGNBITF" >>confdefs.h
+
+    fi
+  fi
+
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking m2 front end checking m library for signbitl" >&5
+$as_echo_n "checking m2 front end checking m library for signbitl... " >&6; }
+  if test x$gcc_no_link != xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for signbitl in -lm" >&5
+$as_echo_n "checking for signbitl in -lm... " >&6; }
+if test "${ac_cv_lib_m_signbitl+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lm  $LIBS"
+if test x$gcc_no_link = xyes; then
+  as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
+fi
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char signbitl ();
+int
+main ()
+{
+return signbitl ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_m_signbitl=yes
+else
+  ac_cv_lib_m_signbitl=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_m_signbitl" >&5
+$as_echo "$ac_cv_lib_m_signbitl" >&6; }
+if test "x$ac_cv_lib_m_signbitl" = x""yes; then :
+
+$as_echo "#define HAVE_SIGNBITL 1" >>confdefs.h
+
+else
+
+  $as_echo "#undef HAVE_SIGNBITL" >>confdefs.h
+
+fi
+
+  else
+    if test "x$ac_cv_lib_m_signbitl" = xyes; then
+
+$as_echo "#define HAVE_SIGNBITL 1" >>confdefs.h
+
+    elif test "x$ac_cv_func_signbitl" = xyes; then
+
+$as_echo "#define HAVE_SIGNBITL 1" >>confdefs.h
+
+    else
+
+  $as_echo "#undef HAVE_SIGNBITL" >>confdefs.h
+
+    fi
+  fi
+
+
+
 CC_FOR_BUILD=${CC_FOR_BUILD:-gcc}
 
 

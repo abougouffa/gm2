@@ -82,6 +82,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #  include <stdlib.h>
 #endif
 
+#if defined(HAVE_ERRNO_H)
+#  include <errno.h>
+#endif
+
 #if defined(HAVE_SYS_ERRNO_H)
 #  include <sys/errno.h>
 #endif
@@ -107,12 +111,12 @@ double dtoa_strtod (const char *s, int *error)
   char *endp;
   double d;
 
-#if defined(HAVE_SYS_ERRNO_H)
+#if defined(HAVE_ERRNO_H)
   errno = 0;
 #endif
   d = strtod (s, &endp);
   if (endp != NULL && (*endp == '\0'))
-#if defined(HAVE_SYS_ERRNO_H)
+#if defined(HAVE_ERRNO_H)
     *error = (errno != 0);
 #else
     *error = FALSE;

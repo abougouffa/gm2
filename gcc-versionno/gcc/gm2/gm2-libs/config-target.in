@@ -137,4 +137,8 @@ AC_CHECK_LIB(m, exp10, [AC_DEFINE([HAVE_EXP10],[1],[Define to 1 if your system h
 AC_CHECK_LIB(m, exp10f, [AC_DEFINE([HAVE_EXP10F],[1],[Define to 1 if your system has 'exp10f'.])])
 AC_CHECK_LIB(m, exp10l, [AC_DEFINE([HAVE_EXP10L],[1],[Define to 1 if your system has 'exp10l'.])])
 
+AC_CHECK_LIB(m, signbit, [AC_DEFINE([HAVE_SIGNBIT],[1],[Define to 1 if your system has 'signbit'.])])
+AC_CHECK_LIB(m, signbitf, [AC_DEFINE([HAVE_SIGNBITF],[1],[Define to 1 if your system has 'signbitf'.])])
+AC_CHECK_LIB(m, signbitl, [AC_DEFINE([HAVE_SIGNBITL],[1],[Define to 1 if your system has 'signbitl'.])])
+
 AC_OUTPUT

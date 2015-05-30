@@ -78,9 +78,9 @@ cat <<EOF > gm2version.c
 #include "config.h"
 #include "system.h"
 
-void gm2_version (void);
+void gm2_version (int need_to_exit);
 
-void gm2_version (void)
+void gm2_version (int need_to_exit)
 {
    printf("GNU Modula-2  ${GM2VERSION}  (`date '+%Y%m%d'`)\n");
    printf("  grafted onto GCC ${GCCVERSION}\n");
@@ -88,7 +88,8 @@ void gm2_version (void)
    printf("License GPLv2: GNU GPL version 2 or later <http://gnu.org/licenses/gpl.html>\n") ;
    printf("This is free software: you are free to change and redistribute it.\n") ;
    printf("There is NO WARRANTY, to the extent permitted by law.\n") ;
-   exit(0);
+   if (need_to_exit)
+     exit (0);
 }
 EOF
 }

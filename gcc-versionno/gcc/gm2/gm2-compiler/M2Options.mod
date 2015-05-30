@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011
+                 2010, 2011, 2012, 2013, 2014, 2015
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -104,7 +104,7 @@ END DSdbExit ;
    DisplayVersion - displays the version of the compiler.
 *)
 
-PROCEDURE DisplayVersion ;
+PROCEDURE DisplayVersion (mustExit: BOOLEAN) ;
 VAR
    s: String ;
 BEGIN
@@ -119,7 +119,10 @@ BEGIN
    printf0('License GPLv2: GNU GPL version 2 or later <http://gnu.org/licenses/gpl.html>\n') ;
    printf0('This is free software: you are free to change and redistribute it.\n') ;
    printf0('There is NO WARRANTY, to the extent permitted by law.\n') ;
-   exit(0)
+   IF mustExit
+   THEN
+      exit(0)
+   END
 END DisplayVersion ;
 
 

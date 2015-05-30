@@ -1,3 +1,61 @@
+2015-05-29      Gaius Mulley <gaius@gnu.org>
+
+	* Solaris build fixes.
+	* gm2/Make-lang.in:  added place holder for the stpcpy rule.
+	  Added --lib $(STPCPY) to $(M2LINK) so that the Solaris 10 build
+	  succeeds.
+  	* gm2/gm2-libs-ch/wrapc.c:  added #if defined()
+	  to check for the presence of SIGNBIT, SIGNBITL and SIGNBITF.
+  	* gm2/gm2-libs/config-host:  rebuilt.
+  	* gm2/gm2-libs/config-host.in:  added checks for SIGNBIT, SIGNBITL
+	  and SIGNBITF against libm.
+  	* gm2/gm2-libs/config-target:  rebuilt.
+  	* gm2/gm2-libs/config-target.in:  added checks for SIGNBIT, SIGNBITL
+	  and SIGNBITF against libm.
+  	* gm2/gm2spec.c:  fixed many const char issues so that it can be built
+	  with g++.
+	* gm2/config.h.in:  added #undefs for SIGNBIT, SIGNBITL and SIGNBITF.
+	* gm2/configure:  rebuilt.
+	* gm2/configure.ac:  added checks for SIGNBIT, SIGNBITL
+	  and SIGNBITF against libm.
+	* gm2/libpim/dtoa.c:  added conditional compilation tests for
+	  HAVE_ERRNO_H.
+	* gm2/libpim/ldtoa.c:  added conditional compilation tests for
+	  HAVE_ERRNO_H.
+	* gm2/libpim/wrapc.c:  added conditional compilation tests for
+	  SIGNBIT, SIGNBITL and SIGNBITF.
+
+2015-05-29      Gaius Mulley <gaius@gnu.org>
+
+	* Linking fixes (-v).
+	* This fixes a bug reported by Christoph Schlegel and many others.
+	* Linking would fail when -v was present on the command line.
+	* gm2/gm2-compiler/M2Options.def:  new parameter to DisplayVersion
+	  (mustExit).  Necessary to ensure the -v works in the linking phase.
+  	* gm2/gm2-compiler/M2Options.mod:  implement the new parameter
+	  to DisplayVersion (mustExit).
+  	* gm2/gm2-gcc/m2options.h:  update the prototype for DisplayVersion.
+	  This occurred because -v was rewritten to --version by gm2spec.c
+	  and --version called exit.
+  	* gm2/gm2-lang.c:  call DisplayVersion but request it does not
+	  exit.
+	* gm2/gm2spec.c:  pass TRUE when handling -fgm2-version (to force
+	  an exit).  Pass FALSE when handling --version to suppress the
+	  exit.
+  	* gm2/gm2version.h:  updated the prototype for gm2_version.
+
+2015-05-29      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-iso/TextIO.mod:  new procedure SkipSpaces.
+	  ReadToken calls SkipSpaces, this fixes a bug reported by:
+  	  (D.E.Evans <sinuhe@gnu.org>).
+
+  	* gm2/lang-specs.h:  fixed dates and tidied up the spec code so
+	  that many rules are broken down into obvious stages with
+	  inputs and outputs.
+  	* gm2/tools-src/makeversion:  changed to reflect the new gm2_version
+	  which has a parameter, mustExit.
+
 2015-05-04      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge:  more interim checkins.

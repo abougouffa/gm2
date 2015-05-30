@@ -1,6 +1,6 @@
 /* Specific flags and argument handling of the GNU Modula-2 front-end.
  * Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *               2010, 2011, 2012, 2013
+ *               2010, 2011, 2012, 2013, 2014, 2015
  *               Free Software Foundation, Inc.
 
 This file is part of GNU Modula-2.
@@ -126,22 +126,21 @@ static void scan_for_link_args (unsigned int *in_decoded_options_count, struct c
 static void add_link_from_include (struct cl_decoded_option **in_options, int include);
 static void add_lib (size_t opt_index, const char *lib, int joined);
 static void check_gm2_root (void);
-static char *add_include (char *prev, const char *libpath, char *library);
+static const char *add_include (const char *prev, const char *libpath, const char *library);
 static const char *gen_gm2_prefix (const char *gm2_root);
 static const char *gen_gm2_libexec (const char *path);
-static const char *get_prefix (void);
 static const char *get_libexec (void);
 static void insert_option (unsigned int *in_decoded_options_count, struct cl_decoded_option **in_decoded_options, unsigned int position);
 #if defined (DEBUGGING)
 static void printOption (const char *desc, struct cl_decoded_option **in_decoded_options, int i);
 #endif
-static char *gen_link_path (char *libpath, char *dialect);
+static const char *gen_link_path (const char *libpath, const char *dialect);
 
 void fe_save_switch (const char *opt, size_t n_args, const char *const *args, bool validated);
 
 
 typedef struct object_list {
-  const char *name;
+  char *name;
   struct object_list *next;
 } object_list;
 
@@ -288,17 +287,6 @@ void add_exec_prefix (void)
 }
 
 static
-const char *get_prefix (void)
-{
-  const char *prefix = getenv (GM2_PREFIX_ENV);
-
-  if (prefix == NULL || (strcmp (prefix, "") == 0))
-    return PREFIX;
-  else
-    return prefix;
-}
-
-static
 const char *get_libexec (void)
 {
   const char *libexec = getenv (GM2_LIBEXEC_ENV);
@@ -321,7 +309,7 @@ static void
 remember_object (const char *s)
 {
   object_list *n = (object_list *) xmalloc (sizeof (object_list));
-  n->name = s;
+  n->name = xstrdup (s);
   n->next = head_objects;
   head_objects = n;
 }
@@ -551,8 +539,8 @@ add_default_combination (const char *libpath,
  *  gen_link_path - 
  */
 
-static char *
-gen_link_path (char *libpath, char *dialect)
+static const char *
+gen_link_path (const char *libpath, const char *dialect)
 {
   return add_include (NULL, libpath, dialect);
 }
@@ -569,7 +557,7 @@ add_default_archives (const char *libpath,
 		      struct cl_decoded_option **in_decoded_options,
 		      unsigned int position)
 {
-  char *prev;
+  const char *prev;
   const char *l = libraries;
   const char *e;
   char *c;
@@ -587,7 +575,7 @@ add_default_archives (const char *libpath,
       l = NULL;
     }
     else {
-      c = strndup (l, e-l);
+      c = xstrndup (l, e-l);
       l = e+1;
     }
     add_default_combination (libpath, c, in_decoded_options_count, in_decoded_options, position+libcount);
@@ -595,7 +583,7 @@ add_default_archives (const char *libpath,
     prev = gen_link_path (libpath, c);
 
     fe_generate_option (OPT_L, prev, TRUE);
-    free((void *)c);
+    free (c);
   } while ((l != NULL) && (l[0] != (char)0));
 }
 
@@ -604,7 +592,7 @@ add_default_archives (const char *libpath,
  *                       the, which, libs.
  */
 
-static char *
+static const char *
 build_include_path (const char *prev, const char *libpath, const char *library)
 {
   char  sepstr[2];
@@ -641,8 +629,8 @@ build_include_path (const char *prev, const char *libpath, const char *library)
  *                The new path is returned.
  */
 
-static char *
-add_include (char *prev, const char *libpath, char *library)
+static const char *
+add_include (const char *prev, const char *libpath, const char *library)
 {
   if (library == NULL)
     return prev;
@@ -662,8 +650,8 @@ add_default_includes (const char *libpath,
 {
   const char *l = libraries;
   const char *e;
-  char *prev;
-  char *c;
+  const char *prev;
+  const char *c;
 
   if (envpath == NULL || (strlen (envpath) == 0))
     prev = NULL;
@@ -677,11 +665,13 @@ add_default_includes (const char *libpath,
       l = NULL;
     }
     else {
-      c = strndup(l, e-l);
+      c = xstrndup(l, e-l);
       l = e+1;
     }
     prev = add_include (prev, libpath, c);
-    free((void *)c);
+#if 0
+    free (c);
+#endif
   } while ((l != NULL) && (l[0] != (char)0));
 
   fe_generate_option (OPT_I, prev, TRUE);
@@ -749,7 +739,7 @@ add_default_fobjects (const char *prev,
 {
   const char *l = libraries;
   const char *e;
-  char *c;
+  const char *c;
 
   if (envpath != NULL && (strcmp (envpath, "") != 0))
     fe_generate_option (OPT_I, envpath, TRUE);
@@ -761,11 +751,13 @@ add_default_fobjects (const char *prev,
       l = NULL;
     }
     else {
-      c = strndup (l, e-l);
+      c = xstrndup (l, e-l);
       l = e+1;
     }
     add_fobject_path (prev, libpath, c);
+#if 0
     free (c);
+#endif
   } while ((l != NULL) && (l[0] != (char)0));
 }
 
@@ -1126,8 +1118,10 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
       libraries = arg;
     if (opt == OPT_fmod_)
       seen_module_extension = TRUE;
-    if ((opt == OPT_version) || (opt == OPT_fgm2_version))
-      gm2_version();
+    if (opt == OPT_version)
+      gm2_version (TRUE);
+    if (opt == OPT_fgm2_version)
+      gm2_version (FALSE);
     if (opt == OPT_x) {
       seen_x_flag = TRUE;
       language = arg;

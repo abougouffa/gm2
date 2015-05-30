@@ -20,7 +20,7 @@ the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
 #if defined(__cplusplus)
-extern "C" void gm2_version (void);
+extern "C" void gm2_version (int need_to_exit);
 #else
-extern void gm2_version (void);
+extern void gm2_version (int need_to_exit);
 #endif
