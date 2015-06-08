@@ -32,7 +32,7 @@ EXPORT QUALIFIED (* types *)
                  File,
                  (* procedures *)
                  OpenToRead, OpenToWrite, OpenForRandom, Close,
-                 EOF, EOLN, IsNoError, Exists, IsActive,
+                 EOF, EOLN, WasEOLN, IsNoError, Exists, IsActive,
                  exists, openToRead, openToWrite, openForRandom,
                  SetPositionFromBeginning,
                  SetPositionFromEnd,
@@ -45,6 +45,7 @@ EXPORT QUALIFIED (* types *)
                  FlushBuffer,
                  GetUnixFileDescriptor,
                  GetFileName, getFileName, getFileNameLength,
+                 FlushOutErr,
                  (* variables *)
                  StdIn, StdOut, StdErr ;
 
@@ -194,11 +195,20 @@ PROCEDURE EOF (f: File) : BOOLEAN ;
 
 
 (*
-   EOLN - tests to see whether a file, f, is upon a newline.
-          It does NOT consume the newline.
+   EOLN - tests to see whether a file, f, is about to read a newline.
+          It does NOT consume the newline.  It reads the next character
+          and then immediately unreads the character.
 *)
 
 PROCEDURE EOLN (f: File) : BOOLEAN ;
+
+
+(*
+   WasEOLN - tests to see whether a file, f, has just read a newline
+             character.
+*)
+
+PROCEDURE WasEOLN (f: File) : BOOLEAN ;
 
 
 (*
@@ -214,8 +224,8 @@ PROCEDURE ReadChar (f: File) : CHAR ;
    UnReadChar - replaces a character, ch, back into file, f.
                 This character must have been read by ReadChar
                 and it does not allow successive calls.  It may
-                only be called if the previous read was successful
-                or end of file was seen.
+                only be called if the previous read was successful,
+                end of file or end of line seen.
 *)
 
 PROCEDURE UnReadChar (f: File ; ch: CHAR) ;
@@ -312,6 +322,13 @@ PROCEDURE getFileName (f: File) : ADDRESS ;
 *)
 
 PROCEDURE getFileNameLength (f: File) : CARDINAL ;
+
+
+(*
+   FlushOutErr - flushes, StdOut, and, StdErr.
+*)
+
+PROCEDURE FlushOutErr ;
 
 
 END FIO.

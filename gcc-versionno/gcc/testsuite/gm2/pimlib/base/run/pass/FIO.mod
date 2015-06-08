@@ -1607,6 +1607,12 @@ BEGIN
 END FlushOutErr ;
 
 
+PROCEDURE WasEOLN (f: File) : BOOLEAN ;
+BEGIN
+   RETURN FALSE
+END WasEOLN ;
+
+
 (*
    Init - initialize the modules, global variables.
 *)

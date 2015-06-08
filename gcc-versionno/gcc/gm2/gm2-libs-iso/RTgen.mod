@@ -1,4 +1,4 @@
-(* Copyright (C) 2008, 2009, 2010
+(* Copyright (C) 2008, 2009, 2010, 2011, 2012
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -161,28 +161,36 @@ END checkPreRead ;
 
 
 (*
-   checkPostRead - only checks whether an error occurred.
-                   The result is not set as the result is
-                   set prior to a read occuring.
+   checkPostRead - checks whether an error occurred and sets
+                   the result status.  This must only be called
+                   after a read.
 *)
 
 PROCEDURE checkPostRead (g: ChanDev; d: DeviceTablePtr) ;
 BEGIN
    checkErrno(g, d) ;
+   setReadResult(g, d)
+END checkPostRead ;
+
+
 (*
+   setReadResult -
+*)
+
+PROCEDURE setReadResult (g: ChanDev; d: DeviceTablePtr) ;
+BEGIN
    WITH d^ DO
-      IF isEOLN(g^.genif, d)
-      THEN
-         result := IOConsts.endOfLine
-      ELSIF isEOF(g^.genif, d)
+      IF isEOF(g^.genif, d)
       THEN
          result := IOConsts.endOfInput
+      ELSIF isEOLN(g^.genif, d)
+      THEN
+         result := IOConsts.endOfLine
       ELSE
          result := IOConsts.allRight
       END
    END
-*)
-END checkPostRead ;
+END setReadResult ;
 
 
 PROCEDURE checkPreWrite (g: ChanDev; d: DeviceTablePtr) ;
@@ -266,6 +274,8 @@ PROCEDURE doLook (g: ChanDev;
                   d: DeviceTablePtr;
                   VAR ch: CHAR;
                   VAR r: ReadResults) ;
+VAR
+   old: ReadResults ;
 BEGIN
    checkValid(g, d) ;
    WITH d^ DO
@@ -274,16 +284,13 @@ BEGIN
       IF (result=IOConsts.allRight) OR (result=IOConsts.notKnown) OR
          (result=IOConsts.endOfLine) 
       THEN
+         old := result ;
          ch := doReadChar(g^.genif, d) ;
-         IF isEOF(g^.genif, d)
-         THEN
-            result := IOConsts.endOfInput
-         ELSE
-            ch := doUnReadChar(g^.genif, d, ch) ;
-            checkPostRead(g, d)
-         END
-      END ;
-      r := result
+         setReadResult(g, d) ;
+         r := result ;
+         ch := doUnReadChar(g^.genif, d, ch) ;
+         result := old
+      END
    END
 END doLook ;
 
@@ -306,22 +313,18 @@ BEGIN
 END doSkip ;
 
 
+(*
+   doSkipLook - read a character, ignore it.  Read another and unread it
+                return the new character.
+*)
+
 PROCEDURE doSkipLook (g: ChanDev;
                       d: DeviceTablePtr;
                       VAR ch: CHAR;
                       VAR r: ReadResults) ;
 BEGIN
-   checkValid(g, d) ;
-   WITH d^ DO
-      RTgen.doLook(g, d, ch, result) ;
-      IF (result=IOConsts.allRight) OR (result=IOConsts.notKnown) OR
-         (result=IOConsts.endOfLine)
-      THEN
-         ch := doUnReadChar(g^.genif, d, ch) ;
-         checkPostRead(g, d)
-      END ;
-      r := result
-   END
+   doSkip(g, d) ;
+   doLook(g, d, ch, r)
 END doSkipLook ;
 
 
@@ -349,24 +352,27 @@ VAR
 BEGIN
    checkValid(g, d) ;
    checkFlags(read+text, d) ;
-   WITH d^ DO
-      INCL(flags, textFlag) ;
-      checkPreRead(g, d, FALSE, FALSE) ;
-      charsRead := 0 ;
-      REPEAT
-         IF doRBytes(g^.genif, d, to, maxChars, i)
-         THEN
-            INC(charsRead, i) ;
-            INC(to, i) ;
-            DEC(maxChars, i)
-         ELSE
-            checkErrno(g, d) ;
-            (* if our target system does not support errno then we *)
-            RAISEdevException(cid, did, notAvailable,
-                              'textread unrecoverable errno')
-         END
-      UNTIL (maxChars=0) OR isEOF(g^.genif, d) ;
-      checkPostRead(g, d)
+   IF maxChars>0
+   THEN
+      WITH d^ DO
+         INCL(flags, textFlag) ;
+         checkPreRead(g, d, FALSE, FALSE) ;
+         charsRead := 0 ;
+         REPEAT
+            IF doRBytes(g^.genif, d, to, maxChars, i)
+            THEN
+               INC(charsRead, i) ;
+               INC(to, i) ;
+               DEC(maxChars, i)
+            ELSE
+               checkErrno(g, d) ;
+               (* if our target system does not support errno then we *)
+               RAISEdevException(cid, did, notAvailable,
+                                 'textread unrecoverable errno')
+            END
+         UNTIL (maxChars=0) OR isEOF(g^.genif, d) ;
+         checkPostRead(g, d)
+      END
    END
 END doReadText ;
 
@@ -409,24 +415,27 @@ VAR
 BEGIN
    checkValid(g, d) ;
    checkFlags(read+raw, d) ;
-   WITH d^ DO
-      INCL(flags, rawFlag) ;
-      checkPreRead(g, d, FALSE, TRUE) ;
-      locsRead := 0 ;
-      REPEAT
-         IF doRBytes(g^.genif, d, to, maxLocs, i)
-         THEN
-            INC(locsRead, i) ;
-            INC(to, i) ;
-            DEC(maxLocs, i)
-         ELSE
-            checkErrno(g, d) ;
-            (* if our target system does not support errno then we *)
-            RAISEdevException(cid, did, notAvailable,
-                              'rawread unrecoverable errno')
-         END
-      UNTIL (maxLocs=0) OR isEOF(g^.genif, d) ;
-      checkPostRead(g, d)
+   IF maxLocs>0
+   THEN
+      WITH d^ DO
+         INCL(flags, rawFlag) ;
+         checkPreRead(g, d, FALSE, TRUE) ;
+         locsRead := 0 ;
+         REPEAT
+            IF doRBytes(g^.genif, d, to, maxLocs, i)
+            THEN
+               INC(locsRead, i) ;
+               INC(to, i) ;
+               DEC(maxLocs, i)
+            ELSE
+               checkErrno(g, d) ;
+               (* if our target system does not support errno then we *)
+               RAISEdevException(cid, did, notAvailable,
+                                 'rawread unrecoverable errno')
+            END
+         UNTIL (maxLocs=0) OR isEOF(g^.genif, d) ;
+         checkPostRead(g, d)
+      END
    END
 END doReadLocs ;
 

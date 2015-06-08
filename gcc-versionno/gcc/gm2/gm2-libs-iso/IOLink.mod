@@ -307,12 +307,14 @@ PROCEDURE RAISEdevException (cid: IOChan.ChanId; did: DeviceId;
 *)
 BEGIN
    checkValidDevice(did) ;
-   IF RTentity.IsIn(dids, cid)
-   THEN
-      EXCEPTIONS.RAISE(iolink, ORD(x), s)
-   ELSE
-      EXCEPTIONS.RAISE(iolink, ORD(IOChan.wrongDevice),
-                       'IOLink.RAISEdevException: channel does not belong to device')
+   WITH did^ DO
+      IF RTentity.IsIn(cids, cid)
+      THEN
+         EXCEPTIONS.RAISE(iolink, ORD(x), s)
+      ELSE
+         EXCEPTIONS.RAISE(iolink, ORD(IOChan.wrongDevice),
+                          'IOLink.RAISEdevException: channel does not belong to device')
+      END
    END
 END RAISEdevException ;
 

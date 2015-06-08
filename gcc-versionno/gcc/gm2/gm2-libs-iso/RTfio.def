@@ -90,14 +90,14 @@ PROCEDURE dowriteln (g: GenDevIF; d: DeviceTablePtr) : BOOLEAN ;
 
 
 (*
-   iseof - returns TRUE if end of file is seen.
+   iseof - returns TRUE if end of file has been seen.
 *)
 
 PROCEDURE iseof (g: GenDevIF; d: DeviceTablePtr) : BOOLEAN ;
 
 
 (*
-   iseoln - returns TRUE if end of line is seen.
+   iseoln - returns TRUE if end of line has been seen.
 *)
 
 PROCEDURE iseoln (g: GenDevIF; d: DeviceTablePtr) : BOOLEAN ;

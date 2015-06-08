@@ -25,6 +25,7 @@ FROM DynamicStrings IMPORT String, char, KillString, Length ;
 FROM StringConvert IMPORT IntegerToString, CardinalToString ;
 FROM WholeConv IMPORT ScanInt, ScanCard ;
 FROM StringChan IMPORT writeString ;
+FROM IOConsts IMPORT ReadResults ;
 
 
 (* Input and output of whole numbers in decimal text form
@@ -82,11 +83,15 @@ BEGIN
    THEN
       IF negative
       THEN
-         IF c=MAX(INTEGER)+1
+         IF c=VAL(CARDINAL, MAX(INTEGER))+1
          THEN
             int := MIN(INTEGER)
-         ELSE
+         ELSIF c<=VAL(CARDINAL, MAX(INTEGER))
+         THEN
             int := -VAL(INTEGER, c)
+         ELSE
+            (* overflow *)
+            IOChan.SetReadResult(cid, outOfRange)
          END
       ELSE
          int := c

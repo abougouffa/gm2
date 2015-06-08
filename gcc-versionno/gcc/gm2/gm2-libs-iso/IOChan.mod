@@ -88,11 +88,11 @@ BEGIN
             result := IOConsts.endOfInput
          ELSIF (ChanConsts.readFlag IN flags) AND (ChanConsts.textFlag IN flags)
          THEN
-            doLook(dtp, ch, result)
+            doLook(dtp, ch, res)
          ELSE
-            result := IOConsts.wrongFormat
+            res := IOConsts.wrongFormat
          END ;
-         res := result
+         result := res
       END
    END
 END Look ;

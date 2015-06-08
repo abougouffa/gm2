@@ -32,12 +32,15 @@ TYPE
    PtrToPtrToChar = POINTER TO PtrToChar ;
 
 (*
-#define InitString(X) InitStringDB(X, __FILE__, __LINE__)
-#define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
-#define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
-#define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
-#define Dup(X) DupDB(X, __FILE__, __LINE__)
-#define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+#undef GM2_DEBUG_SARGS
+if defined(GM2_DEBUG_SARGS)
+#  define InitString(X) InitStringDB(X, __FILE__, __LINE__)
+#  define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
+#  define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
+#  define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
+#  define Dup(X) DupDB(X, __FILE__, __LINE__)
+#  define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+#endif
 *)
 
 

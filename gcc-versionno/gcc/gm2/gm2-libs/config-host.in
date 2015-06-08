@@ -101,16 +101,28 @@ dnl
 dnl  now check for specific types
 dnl
 
-AC_CACHE_CHECK([for timeval],HAVE_TIMEVAL,[
-AC_TRY_COMPILE([
-#include <sys/types.h>
+AC_CHECK_SIZEOF([long])
+
+dnl this routine has been adopted from the GNU emacs20 distrubution
+AC_MSG_CHECKING(for struct timeval)
+AC_TRY_COMPILE([#ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
-],
-[struct timeval tbuf; tbuf.tv_sec = 0; tbuf.tv_usec = 1; exit(0);],
-HAVE_TIMEVAL=yes,HAVE_TIMEVAL=no,)])
-if test x"$HAVE_TIMEVAL" = x"yes"; then
-    AC_DEFINE(HAVE_TIMEVAL, 1, [have found timeval in sys/time.h])
-fi
+#include <time.h>
+#else
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
+#endif], [static struct timeval x; x.tv_sec = x.tv_usec;],
+  [AC_MSG_RESULT(yes)
+   HAVE_TIMEVAL=yes
+   AC_DEFINE([HAVE_TIMEVAL], [1], [struct timeval exists])],
+  [AC_MSG_RESULT(no)
+   HAVE_TIMEVAL=no]
+   AC_DEFINE([HAVE_TIMEVAL], [1], [struct timeval exists]))
+
+
 # AC_CHECK_TYPES(time_t)
 
 
@@ -123,5 +135,9 @@ AC_CHECK_LIB(pth, pth_uctx_create, [],
 AC_CHECK_LIB(m, exp10, [AC_DEFINE([HAVE_EXP10],[1],[Define to 1 if your system has 'exp10'.])])
 AC_CHECK_LIB(m, exp10f, [AC_DEFINE([HAVE_EXP10F],[1],[Define to 1 if your system has 'exp10f'.])])
 AC_CHECK_LIB(m, exp10l, [AC_DEFINE([HAVE_EXP10L],[1],[Define to 1 if your system has 'exp10l'.])])
+
+AC_CHECK_LIB(m, signbit, [AC_DEFINE([HAVE_SIGNBIT],[1],[Define to 1 if your system has 'signbit'.])])
+AC_CHECK_LIB(m, signbitf, [AC_DEFINE([HAVE_SIGNBITF],[1],[Define to 1 if your system has 'signbitf'.])])
+AC_CHECK_LIB(m, signbitl, [AC_DEFINE([HAVE_SIGNBITL],[1],[Define to 1 if your system has 'signbitl'.])])
 
 AC_OUTPUT

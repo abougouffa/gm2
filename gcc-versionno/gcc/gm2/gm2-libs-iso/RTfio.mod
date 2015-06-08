@@ -23,7 +23,7 @@ FROM RTio IMPORT GetFile ;
 FROM errno IMPORT geterrno ;
 
 FROM FIO IMPORT File, ReadChar, UnReadChar, WriteChar, ReadNBytes, WriteNBytes, IsActive,
-                WriteLine, EOF, EOLN, IsNoError ;
+                WriteLine, EOF, WasEOLN, IsNoError ;
 
 
 (*
@@ -123,7 +123,7 @@ END dowriteln ;
 
 
 (*
-   iseof - returns TRUE if end of file is seen.
+   iseof - returns TRUE if end of file has been seen.
 *)
 
 PROCEDURE iseof (g: GenDevIF; d: DeviceTablePtr) : BOOLEAN ;
@@ -147,7 +147,7 @@ VAR
 BEGIN
    WITH d^ DO
       f := GetFile(cid) ;
-      RETURN( EOLN(f) )
+      RETURN( WasEOLN(f) )
    END
 END iseoln ;
 

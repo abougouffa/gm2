@@ -84,7 +84,7 @@ END sign ;
 
 PROCEDURE succ (x: LONGREAL) : LONGREAL ;
 BEGIN
-   RETURN nextafterl(x, huge_vall(x))
+   RETURN nextafterl(x, huge_vall())
 END succ ;
 
 
@@ -100,7 +100,7 @@ END succ ;
 
 PROCEDURE ulp (x: LONGREAL) : LONGREAL ;
 BEGIN
-   IF x<huge_vall(x)
+   IF x<huge_vall()
    THEN
       RETURN succ(x)-x
    ELSE
@@ -115,7 +115,7 @@ END ulp ;
 
 PROCEDURE pred (x: LONGREAL) : LONGREAL ;
 BEGIN
-   RETURN nextafterl(x, -huge_vall(x))
+   RETURN nextafterl(x, -huge_vall())
 END pred ;
 
 

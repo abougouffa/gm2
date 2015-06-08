@@ -18,7 +18,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE Indexing ;
 
-FROM libc IMPORT memset, memcpy ;
+FROM libc IMPORT memset, memmove ;
 FROM Storage IMPORT ALLOCATE, REALLOCATE, DEALLOCATE ;
 FROM SYSTEM IMPORT TSIZE, ADDRESS, WORD, BYTE ;
 
@@ -165,12 +165,16 @@ BEGIN
 *)
                REALLOCATE(ArrayStart, ArraySize) ;
                (* and initialize the remainder of the array to NIL *)
-               b := memset(ArrayStart+oldSize, 0, ArraySize-oldSize)
+               b := ArrayStart ;
+               INC(b, oldSize) ;
+               b := memset(b, 0, ArraySize-oldSize)
             END ;
             High := n
          END
       END ;
-      p := ArrayStart + ((n-Low)*TSIZE(ADDRESS)) ;
+      b := ArrayStart ;
+      INC(b, (n-Low)*TSIZE(ADDRESS)) ;
+      p := b;
       p^ := a ;
       IF Debug
       THEN
@@ -197,7 +201,8 @@ BEGIN
       THEN
          HALT
       END ;
-      b := ArrayStart + ((n-Low)*TSIZE(ADDRESS)) ;
+      b := ArrayStart ;
+      INC(b, (n-Low)*TSIZE(ADDRESS)) ;
       p := VAL(PtrToAddress, b) ;
       IF Debug
       THEN
@@ -257,7 +262,7 @@ BEGIN
          INC(b, TSIZE(ADDRESS)) ;
          IF p^=a
          THEN
-            p := memcpy(p, b, (High-j)*TSIZE(ADDRESS)) ;
+            p := memmove(p, b, (High-j)*TSIZE(ADDRESS)) ;
             DEC(High)
          END ;
          INC(j)

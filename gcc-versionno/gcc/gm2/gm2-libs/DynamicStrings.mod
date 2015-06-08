@@ -282,10 +282,13 @@ END DSdbExit ;
 
 
 (*
-#define DSdbEnter doDSdbEnter
-#define DSdbExit  doDSdbExit
-#define CheckOn   TRUE
-#define TraceOn   TRUE
+#undef GM2_DEBUG_DYNAMICSTINGS
+#if defined(GM2_DEBUG_DYNAMICSTINGS)
+#  define DSdbEnter doDSdbEnter
+#  define DSdbExit  doDSdbExit
+#  define CheckOn   TRUE
+#  define TraceOn   TRUE
+#endif
 *)
 
 

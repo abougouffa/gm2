@@ -25,6 +25,7 @@ FROM DynamicStrings IMPORT String, char, KillString, Length ;
 FROM StringConvert IMPORT LongIntegerToString, LongCardinalToString ;
 FROM WholeConv IMPORT ScanInt, ScanCard ;
 FROM StringChan IMPORT writeString ;
+FROM IOConsts IMPORT ReadResults ;
 
 
 (* Input and output of whole numbers in decimal text form
@@ -85,8 +86,12 @@ BEGIN
          IF c=VAL(LONGCARD, MAX(LONGINT))+1
          THEN
             int := MIN(LONGINT)
-         ELSE
+         ELSIF c<=VAL(LONGCARD, MAX(LONGINT))
+         THEN
             int := -VAL(LONGINT, c)
+         ELSE
+            (* overflow *)
+            IOChan.SetReadResult(cid, outOfRange)
          END
       ELSE
          int := c

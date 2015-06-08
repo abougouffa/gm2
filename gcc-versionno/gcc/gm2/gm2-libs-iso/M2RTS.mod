@@ -136,8 +136,14 @@ BEGIN
       CallExit := TRUE ;
       ExitValue := exitcode
    END ;
-   isHalting := TRUE ;
-   ExecuteTerminationProcedures ;
+   IF isHalting
+   THEN
+      (* double HALT found *)
+      exit(-1)
+   ELSE
+      isHalting := TRUE ;
+      ExecuteTerminationProcedures ;
+   END ;
    IF CallExit
    THEN
       exit(ExitValue)

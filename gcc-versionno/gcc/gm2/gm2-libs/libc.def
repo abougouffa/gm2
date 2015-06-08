@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
+                 2010, 2011, 2012, 2013, 2014, 2015
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -40,11 +40,11 @@ EXPORT UNQUALIFIED time_t, timeb, tm, ptrToTM,
                    perror, creat,
                    getcwd, chown, strlen, strcpy, strncpy,
                    unlink, setenv,
-                   memcpy, memset, printf, realloc,
+                   memcpy, memset, memmove, printf, realloc,
                    rand, srand,
                    time, localtime, ftime,
                    shutdown, rename, setjmp, longjmp, atexit,
-                   ttyname ;
+                   ttyname, sleep ;
 
 TYPE
    time_t = LONGINT ;
@@ -338,6 +338,20 @@ PROCEDURE memset (s: ADDRESS; c: INTEGER; size: CARDINAL) : ADDRESS ;
 
 
 (*
+   memmove - copy memory areas which may overlap
+
+   SYNOPSIS
+
+   #include <string.h>
+
+   void *memmove(void *dest, const void *src, size_t n);
+   It returns dest.
+*)
+
+PROCEDURE memmove (dest, src: ADDRESS; size: CARDINAL) : ADDRESS ;
+
+
+(*
    int printf(const char *format, ...);
 *)
 
@@ -441,6 +455,13 @@ PROCEDURE atexit (proc: PROC) ;
 *)
 
 PROCEDURE ttyname (filedes: INTEGER) : ADDRESS ;
+
+
+(*
+   sleep - calling thread sleeps for seconds.
+*)
+
+PROCEDURE sleep (seconds: CARDINAL) : [ CARDINAL ] ;
 
 
 END libc.
