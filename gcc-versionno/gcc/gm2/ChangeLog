@@ -1,3 +1,46 @@
+2015-06-08      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/configure:  rebuilt.
+	* gm2/gm2-libs-ch/sckt.c:  backport from 4.7.4.
+	* gm2/gm2-libs-ch/wrapc.c:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/ConvStringLong.mod:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/ConvStringReal.mod:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/IOChan.mod:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/IOLink.mod:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/LongConv.mod:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/LongWholeIO.mod:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/LowLong.mod:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/LowReal.mod:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/LowShort.mod:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/M2RTS.mod:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/ProgramArgs.mod:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/RTfio.def:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/RTfio.mod:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/RTgen.mod:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/RawIO.mod:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/ShortWholeIO.mod:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/Storage.mod:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/TextIO.mod:  backport from 4.7.4.
+	* gm2/gm2-libs-iso/WholeIO.mod:  backport from 4.7.4.
+	* gm2/gm2-libs/Builtins.def:  backport from 4.7.4.
+	* gm2/gm2-libs/Builtins.mod:  backport from 4.7.4.
+	* gm2/gm2-libs/DynamicStrings.mod:  backport from 4.7.4.
+	* gm2/gm2-libs/FIO.def:  backport from 4.7.4.
+	* gm2/gm2-libs/FIO.mod:  backport from 4.7.4.
+	* gm2/gm2-libs/FormatStrings.mod:  backport from 4.7.4.
+	* gm2/gm2-libs/FpuIO.mod:  backport from 4.7.4.
+	* gm2/gm2-libs/Indexing.mod:  backport from 4.7.4.
+	* gm2/gm2-libs/M2RTS.mod:  backport from 4.7.4.
+	* gm2/gm2-libs/SArgs.mod:  backport from 4.7.4.
+	* gm2/gm2-libs/SEnvironment.mod:  backport from 4.7.4.
+	* gm2/gm2-libs/SFIO.mod:  backport from 4.7.4.
+	* gm2/gm2-libs/StringConvert.mod:  backport from 4.7.4.
+	* gm2/gm2-libs/config-host:  rebuilt.
+	* gm2/gm2-libs/config-host.in:  backport from 4.7.4.
+	* gm2/gm2-libs/config-target:  rebuilt.
+	* gm2/gm2-libs/config-target.in:  backport from 4.7.4.
+	* gm2/gm2-libs/libc.def:  backport from 4.7.4.
+
 2013-12-09      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-coroutines/SYSTEM.def: added definition
