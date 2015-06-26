@@ -476,6 +476,24 @@ class htmlDevice:
             self.raw("</dd>")
             self.tableRightOpen = False
     #
+    #  itemizeBegin
+    #
+    def itemizeBegin(self):
+        self._end()
+        self.raw("<ul type=disc>")
+    #
+    #  itemizeEnd
+    #
+    def itemizeEnd(self):
+        self._end()
+        self.raw("</ul>")
+    #
+    #  item
+    #
+    def item(self):
+        self._end()
+        self.raw("<li>")
+    #
     #  emitTitle
     #
     def emitTitle (self):

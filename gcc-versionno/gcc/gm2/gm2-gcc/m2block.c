@@ -471,11 +471,19 @@ m2block_pushFunctionScope (tree fndecl)
    *  allow multiple consecutive pushes of the same scope
    */
 
+#if 1
+  if (current_binding_level != NULL && (current_binding_level->fndecl == fndecl)) {
+    current_binding_level->count++;
+    return;
+  }
+#else
   if ((current_binding_level && current_binding_level->fndecl != NULL) && (fndecl != NULL))
     if (current_binding_level->fndecl == fndecl) {
       current_binding_level->count++;
       return;
-    }
+  }
+#endif
+
 
   /*
    *  firstly check to see that fndecl is not already on the binding stack.
@@ -521,7 +529,11 @@ m2block_popFunctionScope (void)
     printf("popFunctionScope\n");
 #endif
 
+#if 1
+  if (current_binding_level->count>0) {
+#else
   if (fndecl != NULL && current_binding_level->count>0) {
+#endif
     /*
      *  multiple pushes have occurred of the same function scope (and ignored),
      *  pop them likewise.
@@ -566,6 +578,12 @@ m2block_popGlobalScope (void)
 {
   ASSERT_CONDITION (current_binding_level->is_global);   /* expecting global scope */
   ASSERT_CONDITION (current_binding_level == global_binding_level);
+
+  if (current_binding_level->count > 0) {
+    current_binding_level->count--;
+    return;
+  }
+    
   current_binding_level = current_binding_level->next;
 #if defined(DEBUGGING)
   printf("popGlobalScope\n");

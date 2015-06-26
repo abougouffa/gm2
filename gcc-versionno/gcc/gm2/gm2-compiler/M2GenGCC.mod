@@ -406,7 +406,7 @@ PROCEDURE CodeIfNotEqu (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeIfNotIn (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeIfIn (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeIndrX (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeXIndr (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeXIndr (quad: CARDINAL; op1, type, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeCall (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeDirectCall (tokenno: CARDINAL; procedure: CARDINAL); FORWARD ;
 PROCEDURE CodeIndirectCall (tokenno: CARDINAL; ProcVar: CARDINAL); FORWARD ;
@@ -428,7 +428,7 @@ PROCEDURE CodeCoerce (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE FoldCast (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeCast (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE FoldConvert (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeConvert (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeConvert (quad: CARDINAL; lhs, type, rhs: CARDINAL); FORWARD ;
 PROCEDURE CodeMath (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeSetShift (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeSetRotate (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
@@ -2076,6 +2076,38 @@ END StringToChar ;
 
 
 (*
+   ConvertTo - 
+*)
+
+PROCEDURE ConvertTo (t: Tree; type, op3: CARDINAL) : Tree ;
+BEGIN
+   IF SkipType(type)#SkipType(GetType(op3))
+   THEN
+      IF IsConst(op3) AND (NOT IsConstString(op3))
+      THEN
+         PushValue(op3) ;
+         RETURN( BuildConvert(Mod2Gcc(type), t, FALSE) )
+      END
+   END ;
+   RETURN( t )
+END ConvertTo ;
+
+
+(*
+   ConvertRHS - convert (t, rhs) into, type.  (t, rhs) refer to the
+                same entity t is a GCC Tree and, rhs, is a Modula-2
+                symbol.  It checks for char and strings
+                first and then the remaining types.
+*)
+
+PROCEDURE ConvertRHS (t: Tree; type, rhs: CARDINAL) : Tree ;
+BEGIN
+   t := StringToChar(Mod2Gcc(rhs), type, rhs) ;
+   RETURN( ConvertTo(t, type, rhs) )
+END ConvertRHS ;
+
+
+(*
    ConvertForComparison - converts, sym, into a tree which is type compatible with, with.
 *)
 
@@ -2993,6 +3025,18 @@ END CodeInitAddress ;
 
 
 (*
+   IsWord - return TRUE if type is SYSTEM.WORD, or any of the sized WORD,
+            (SYSTEM.WORD32 etc).
+*)
+
+PROCEDURE IsWord (type: CARDINAL) : BOOLEAN ;
+BEGIN
+   type := SkipType(type) ;
+   RETURN( (type=Word) OR IsWordN(type) )
+END IsWord ;
+
+
+(*
 ------------------------------------------------------------------------------
    := Operator
 ------------------------------------------------------------------------------
@@ -3034,7 +3078,7 @@ BEGIN
                                               BuildAddr(location, Mod2Gcc(op1), FALSE),
                                               BuildAddr(location, Mod2Gcc(op3), FALSE),
                                               BuildSize(location, Mod2Gcc(op1), FALSE)))
-      ELSIF (SkipType(GetType(op1))=Word) AND Iso AND
+      ELSIF IsWord(SkipType(GetType(op1))) AND Iso AND
             (SkipType(GetType(op3))#SkipType(GetType(op1)))
       THEN
          (* in ISO the WORD type is defined as an ARRAY of BYTEs *)
@@ -5581,38 +5625,49 @@ END FoldConvert ;
 
 
 (*
-   CodeConvert - Converts op3 to type op2 placing the result into
-                 op1.
+   CodeConvert - Converts, rhs, to, type, placing the result into lhs.
                  Convert will, if need be, alter the machine representation
                  of op3 to comply with TYPE op2.
 *)
 
-PROCEDURE CodeConvert (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+PROCEDURE CodeConvert (quad: CARDINAL; lhs, type, rhs: CARDINAL) ;
 VAR
    t, tl, tr: Tree ;
    location : location_t ;
 BEGIN
    (* firstly ensure that constant literals are declared *)
-   DeclareConstant(CurrentQuadToken, op3) ;
-   DeclareConstructor(quad, op3) ;
+   DeclareConstant(CurrentQuadToken, rhs) ;
+   DeclareConstructor(quad, rhs) ;
    location := TokenToLocation(QuadToTokenNo(quad)) ;
 
-   tl := LValueToGenericPtr(op2) ;
-   IF IsProcedure(op3)
+   tl := LValueToGenericPtr(type) ;
+   IF IsProcedure(rhs)
    THEN
-      tr := BuildAddr(location, Mod2Gcc(op3), FALSE)
+      tr := BuildAddr(location, Mod2Gcc(rhs), FALSE)
    ELSE
-      tr := LValueToGenericPtr(op3)
+      tr := LValueToGenericPtr(rhs) ;
+      tr := ConvertRHS(tr, type, rhs)
    END ;
-   IF IsConst(op1)
+   IF IsConst(lhs)
    THEN
       (* fine, we can take advantage of this and fold constant *)
-      PutConst(op1, op2) ;
-      tl := Mod2Gcc(SkipType(op2)) ;
-      ConstantKnownAndUsed(op1,
-                           BuildConvert(tl, Mod2Gcc(op3), TRUE))
+      PutConst(lhs, rhs) ;
+      tl := Mod2Gcc(SkipType(type)) ;
+      ConstantKnownAndUsed(lhs,
+                           BuildConvert(tl, Mod2Gcc(rhs), TRUE))
+(*
+   ELSIF IsWord(SkipType(GetType(lhs))) AND Iso AND
+         (SkipType(GetType(rhs))#SkipType(GetType(lhs)))
+   THEN
+      (* in ISO the WORD type is defined as an ARRAY of BYTEs *)
+      t := BuildAssignmentTree(location,
+                               BuildIndirect(location,
+                                             BuildAddr(location, Mod2Gcc(lhs), FALSE),
+                                             GetWordType()),
+                               BuildConvert(GetWordType(), Mod2Gcc(rhs), FALSE))
+*)
    ELSE
-      t := BuildAssignmentTree(location, Mod2Gcc(op1), BuildConvert(tl, tr, TRUE))
+      t := BuildAssignmentTree(location, Mod2Gcc(lhs), BuildConvert(tl, tr, TRUE))
    END
 END CodeConvert ;
 
@@ -6769,6 +6824,7 @@ BEGIN
 END CodeIndrX ;
 
 
+
 (*
 ------------------------------------------------------------------------------
    XIndr Operator           *a = b
@@ -6779,7 +6835,7 @@ END CodeIndrX ;
    (op2 is the type of the data being indirectly copied)
 *)
 
-PROCEDURE CodeXIndr (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+PROCEDURE CodeXIndr (quad: CARDINAL; op1, type, op3: CARDINAL) ;
 VAR
    op3t, t : Tree ;
    tokenno : CARDINAL ;
@@ -6795,7 +6851,7 @@ BEGIN
 
       Mem[Mem[Op1]] := Mem[Op3]
    *)
-   IF IsProcType(SkipType(op2))
+   IF IsProcType(SkipType(type))
    THEN
       t := BuildAssignmentTree(location, BuildIndirect(location, Mod2Gcc(op1), GetPointerType()), Mod2Gcc(op3))
    ELSIF IsConstString(op3) AND (GetStringLength(op3)=0) AND (GetMode(op1)=LeftValue)
@@ -6811,12 +6867,12 @@ BEGIN
                                StringToChar(Mod2Gcc(op3), Char, op3))
    ELSIF IsConstString(op3) AND (SkipTypeAndSubrange(GetType(op1))#Char)
    THEN
-      DoCopyString(tokenno, t, op3t, op2, op3) ;
+      DoCopyString(tokenno, t, op3t, type, op3) ;
       AddStatement(MaybeDebugBuiltinMemcpy(location, Mod2Gcc(op1), BuildAddr(location, op3t, FALSE), t))
    ELSE
       t := BuildAssignmentTree(location,
-                               BuildIndirect(location, Mod2Gcc(op1), Mod2Gcc(op2)),
-                               StringToChar(Mod2Gcc(op3), op2, op3))
+                               BuildIndirect(location, Mod2Gcc(op1), Mod2Gcc(type)),
+                               ConvertRHS(Mod2Gcc(op3), type, op3))
    END
 END CodeXIndr ;
 

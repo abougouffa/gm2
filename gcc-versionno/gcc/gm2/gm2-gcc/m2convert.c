@@ -480,6 +480,8 @@ m2convert_BuildConvert (tree type, tree value, int checkOverflow)
       && (m2expr_StringLength (value) <= 1)
       && (m2tree_IsOrdinal (type)))
     value = doOrdinal (value);
+  else if (TREE_CODE (value) == FUNCTION_DECL && TREE_TYPE (value) != type)
+    value = m2expr_BuildAddr (0, value, FALSE);
 
   if (checkOverflow)
     return convert_and_check (type, value);

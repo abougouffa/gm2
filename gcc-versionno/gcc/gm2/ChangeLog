@@ -1,3 +1,23 @@
+2015-06-26      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  ConvertTo (New procedure function).
+	  ConvertRHS (New procedure function).  IsWord (New procedure function).
+	  CodeConvert changed names of pararmeters and introduced call to
+	  ConvertRHS.  CodeXIndr changed names of pararmeters and introduced
+	  call to ConvertRHS.  This allows ISO WORD (an array of bytes) to
+	  be converted into CARDINAL.
+	* gm2/gm2-gcc/m2block.c:  allow multiple calls to pushGlobalScope
+	  and multiple calls to popGlobalScope.
+	* gm2-gcc/m2convert.c:  check for FUNCTION_DECL in value and if so
+	  use its address.
+	* gm2/gm2.texi:  updated web pages in light of the unordered list
+	  now implemented correctly in the python translation tool.
+	  Removed many old news entries.
+	* gm2/www/tools/texi2tr/src/outputdev.py:  implement unordered list.
+	* gm2/www/tools/texi2tr/src/texi2tr.py:  check for 'itemize' and
+	  'enumerate'
+	* testsuite/lib/gm2.exp:  corrected LD_LIBRARY_PATH calculation
+	  by testing each library in turn.
 
 2015-05-30      Gaius Mulley <gaius@gnu.org>
 

@@ -756,6 +756,9 @@ def isTableSpecifier (s):
 def isEnumSpecifier (s):
     return s[0] == 'enumerate'
 
+def isItemizeSpecifier (s):
+    return s[0] == 'itemize'
+
 def is_int(s):
     try:
         int(s)
@@ -769,6 +772,34 @@ def incrementSpecifier ():
         tableSpecifier[0][1] = "%d" % (int(tableSpecifier[0][1])+1)
     else:
         tableSpecifier[0][1] = chr(ord(tableSpecifier[0][1])+1)
+
+#
+#  doItemize - collect the format specifier and emit the start
+#
+
+def doItemize (content, state):
+    global html
+    if state == ignore:
+        return doConsume(content, state, 'itemize')
+    else:
+        html.end()
+        pushSpecifier('itemize', content)
+        pushState('itemize', state)
+        html.itemizeBegin()
+        html.noBegin()
+        return "", state
+
+#
+#  doItemizeEnd - terminates the current itemize
+#
+
+def doItemizeEnd (state):
+    global html
+    if state != ignore:
+        html.noEnd()
+        popSpecifier()
+        html.itemizeEnd()
+        html.paraBegin()
 
 #
 #  doTable - collect the format specifier and emit the start
@@ -808,19 +839,43 @@ def doItem (content, state):
     if state == ignore:
         return skipLine (content, state)
     else:
+        if isItemizeSpecifier(getSpecifier()):
+            html.noEnd()
+            html.item()
+            html.noBegin()
+        else:
+            html.end()  # shuts down a para
+            html.tableRightEnd()
+            html.tableLeftBegin()
+            if isEnumSpecifier(getSpecifier()):
+                stop()
+                scanFor(getSpecifier ()[1] + ' ' + content, state)
+                incrementSpecifier()
+            else:
+                scanFor(getSpecifier ()[1] + '{' + content + '}', state)
+                html.tableLeftEnd()
+            html.tableRightBegin()
+            html.paraBegin()
+        return "", state
+
+#
+#
+#
+
+def doBullet (content, state):
+    global html
+    if state == ignore:
+        return skipLine (content, state)
+    else:
         html.end()  # shuts down a para
         html.tableRightEnd()
         html.tableLeftBegin()
-        if isEnumSpecifier(getSpecifier()):
-            stop()
-            scanFor(getSpecifier ()[1] + ' ' + content, state)
-            incrementSpecifier()
-        else:
-            scanFor(getSpecifier ()[1] + '{' + content + '}', state)
+        scanFor(content, state)
         html.tableLeftEnd()
         html.tableRightBegin()
         html.paraBegin()
         return "", state
+
 
 #
 #  doEnumerate - collect the enumeration specifier and emit the start
@@ -1013,6 +1068,7 @@ def generateSectionIndex (html):
 
 def populateFunctions ():
     global functions
+    functions['bullet'] = doBullet
     functions['bye'] = doBye
     functions['c'] = doComment
     functions['center'] = doPass
@@ -1038,6 +1094,8 @@ def populateFunctions ():
     functions['ifhtml'] = doIfhtml
     functions['ifinfo'] = doIfinfo
     functions['item'] = doItem
+    functions['itemize'] = doItemize
+    endFunctions['itemize'] = doItemizeEnd
     functions['menu'] = doMenu
     endFunctions['menu'] = doMenuEnd
     functions['node'] = doNode

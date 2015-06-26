@@ -93,7 +93,8 @@ proc gm2_init { args } {
 
     set gm2_link_libraries "";
     set GCC_UNDER_TEST [lookfor_file $tmpdir xgm2];
-    append GCC_UNDER_TEST " " -B[file dirname $tmpdir] " " $args;
+    append GCC_UNDER_TEST " " -B[file dirname $tmpdir] " " ${args};
+    send_log "GCC_UNDER_TEST is ${GCC_UNDER_TEST}\n"
 
     if ![info exists tmpdir] then {
 	set tmpdir /tmp;
@@ -215,9 +216,18 @@ proc gm2_link_flags { paths } {
 	    append flags " -L${gccpath}/libstdc++-v3/src/.libs "
 	    append ld_library_path ":${gccpath}/libstdc++-v3/src/.libs"
 	}
-	if [file exists "${gccpath}/libgm2/.libs/libgm2.a"] {
-	    append flags " -L${gccpath}/libgm2/.libs "
-	    append ld_library_path ":${gccpath}/libgm2/.libs"
+
+	foreach d [list libmin libulm libpim libcor liblog libiso] {
+	    foreach l [list libmin libulm libgm2 libcor liblog libiso] {
+		send_log "ld_library_path was ${ld_library_path}\n"
+		send_log "looking for ${gccpath}/${d}/.libs/${l}.a\n"
+		if [file exists "${gccpath}/libgm2/${d}/.libs/${l}.a"] {
+		    send_log "good found ${gccpath}/libgm2/${d}/.libs/${l}.a\n"
+		    append flags " -L${gccpath}/libgm2/${d}/.libs "
+		    append ld_library_path ":${gccpath}/libgm2/${d}/.libs"
+		}
+		send_log "ld_library_path is ${ld_library_path}\n"
+	    }
 	}
     }
 

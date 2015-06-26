@@ -115,23 +115,21 @@ The GNU Modula-2 compiler is compliant with the PIM2, PIM3, PIM4 and
 ISO dialects.  Also implemented are a complete set of free ISO
 libraries and PIM libraries.
 
-@footnote{The four dialects commonly referred to are:
-@table @strong
-@item
-PIM2 'Programming in Modula-2'
-2nd Edition, Springer Verlag, 1982, 1983 by Niklaus Wirth (PIM2).
-@item
-PIM3
-'Programming in Modula-2', 3rd Corrected Edition, Springer Verlag,
-1985 (PIM3)
-@item
-PIM4 'Programming in Modula-2', 4th Edition, Springer Verlag, 1988
-(@uref{http://freepages.modula2.org/report4/modula-2.html, PIM4})
-@item
-ISO the ISO Modula-2 language as defined in 'ISO/IEC Information
+@footnote{The four Modula-2 dialects supported are defined in the following
+references:
+
+PIM2: 'Programming in Modula-2', 2nd Edition, Springer Verlag, 1982,
+1983 by Niklaus Wirth (PIM2).
+
+PIM3: 'Programming in Modula-2', 3rd Corrected Edition, Springer Verlag,
+1985 (PIM3).
+
+PIM4: 'Programming in Modula-2', 4th Edition, Springer Verlag, 1988
+(@uref{http://freepages.modula2.org/report4/modula-2.html, PIM4}).
+
+ISO: the ISO Modula-2 language as defined in 'ISO/IEC Information
 technology - programming languages - part 1: Modula-2 Language,
 ISO/IEC 10514-1 (1996)'
-@end table
 }
 
 @node Why use GNU Modula-2, Release map, What is GNU Modula-2, Using
@@ -213,50 +211,30 @@ source tree.
 @section News
 
 @table @code
-@item
-gm2 1.1.3 was released on April 15 2015.  gm2-1.1.3 passes all regression
+@item gm2 1.1.3
+was released on April 15 2015.  gm2-1.1.3 passes all regression
 tests on Debian Wheezy (x86_64) and (i686).  Also passes all regression tests
 under Debian Jessie (x86_64).  It also builds on armv7l Ubuntu Trusty Tahr.
-@item
-gm2 1.1.1 was released on January 26 2015.  gm2-1.1.1 passes all regression
+@item gm2 1.1.1
+was released on January 26 2015.  gm2-1.1.1 passes all regression
 tests on Debian Wheezy (x86_64) and (i686).  Also passes all regression tests
 under Debian Jessie (x86_64).
-@item
-gm2 1.1.0 was released on January 02 2015.  gm2-1.1.0 passes all regression
+@item gm2 1.1.0
+was released on January 02 2015.  gm2-1.1.0 passes all regression
 tests on Debian Wheezy (x86_64) and (i686).
-@item
-gm2 1.0.9 Beta was released on September 23 2014, all regressions passed on
+@item gm2 1.0.9
+Beta was released on September 23 2014, all regressions passed on
 x86_64 Debian Wheezy.
-@item
-gm2 1.0.4 was released on September 30 2011.  This is a bug fix
-release.
-@item
-gm2 1.0 was released on December 11 2010.
-@item
-all regression tests pass on the x86_64 and x86_32 debian platforms.
-There are 1673 individual tests and each test is compiled with varying
-options resulting in a total of 10040 test cases).
-@item
-the ISO Modula-2 language is now complete.
-@item
-the ISO libraries are also complete.
-@item
-all outstanding bugs reported on the above platforms have been fixed.
-@item
-builds under OSX leopard and snow leopard using \f[I]macports\f[P]
-(although there are regression test failures on these platforms).
-@item
-builds under Sparc Solaris LP64 and passes most of the regression tests
-(39 failures out of 9200).
-@item
-now builds under Cygwin (however at present -O3 does not work on this platform
-and also swig and Modula-2 have not been seen to work together yet).
+@item gm2 1.0.4
+was released on September 30 2011.  This is a bug fix release.
+@item gm2 1.0
+was released on December 11 2010.
 @end table
 
 @node Features, Documentation, News, Using
 @section GNU Modula-2 Features
 
-@table @code
+@itemize @bullet
 
 @item
 the compiler currently complies with Programming in Modula-2 Edition
@@ -319,7 +297,7 @@ available through the @samp{-flibs=pim-coroutines,pim} switch).
 can be built as a cross compiler (for embedded microprocessors
 such as the AVR and the ARM).
 
-@end table
+@end itemize
 
 @node Documentation, Regression tests, Features, Using
 @section Documentation
@@ -346,15 +324,10 @@ the mailing list.
 @node Limitations, Creating packages, Regression tests, Using
 @section Limitations
 
-@table @code
-
-@item
 Logitech compatibility library is incomplete.  The principle modules
 for this platform exist however for a comprehensive list of completed
 modules please check the documentation
 @url{gm2.html}.
-
-@end table
 
 @node Creating packages, Objectives, Limitations, Using
 @section Creating a deb package for GNU Modula-2
@@ -364,7 +337,7 @@ GNU Modula-2.  There are probably other ways to build Debian packages
 but this method works well enough to produce the binary and source
 packages described in earlier sections.
 
-@table @code
+@itemize @bullet
 @item
 firstly you need to create a pbuilder environment.  I used the excellent
 @url{http://people.connexer.com/~roberto/howtos/debcustomize} tutorial.
@@ -426,14 +399,14 @@ which are available as a trivial script
 Once this completes you should have a binary package and a
 corresponding documentation package available in the directory
 @file{/usr/local/src/results}.
-@end table
+@end itemize
 
 @node Objectives, FAQ, Creating packages, Using
 @section Objectives
 
 Here follows the objectives of GNU Modula-2:
 
-@table @code
+@itemize @bullet
 
 @item
 The intention of GNU Modula-2 is to provide a production modula-2
@@ -459,7 +432,7 @@ Exploit the features of GCC.
 
 @item
 Listen to the requests of the users.
-@end table
+@end itemize
 
 @node FAQ, Community, Objectives, Using
 @section FAQ
@@ -480,27 +453,20 @@ Python exceptions.
 
 @subsection Why not copy the C++ exception handing code into the Modula-2 runtime thus saving the necessity to build the C++ compiler?
 
-@table @code
-
-@item
 The C++ compiler is needed to compile the underlying \f[C]main()\f[P]
 function.
 
-@item
-there appear to be differing versions of the exception
-handling code (we are using v3) and it would be expensive to maintain
-the gm2 version and keep it in sync with the particular version of
-gcc which is being used.
+There appear to be differing versions of the exception handling code
+(we are using v3) and it would be expensive to maintain the gm2
+version and keep it in sync with the particular version of gcc which
+is being used.
 
-@item
-it would also mean a duplication of code and this would be frowned upon
-when GNU Modula-2 is grafted into the main GCC tree.
+It would also mean a duplication of code and this creates an obstacle
+to placing GNU Modula-2 into the main GCC tree.
 
-@item
-there is talk about the gcc @samp{libbackend.a} being reimplemented
+The gcc @samp{libbackend.a} is being reimplemented
 in C++ and therefore in future releases it will be necessary to build
 @samp{-lstdc++} anyway.
-@end table
 
 @node Community, Other languages, FAQ, Using
 @section Community
@@ -2889,8 +2855,8 @@ There are two gcc releases upon which gm2 can be grafted.  These are listed
 below together with their status.
 
 @table @code
-@item
-gcc-4.7 stable, see next but one section for building details.
+@item gcc-4.7
+stable see next but one section for building details.
 @end table
 
 @node Building on gcc 4.1.2, Building on gcc 4.7, Building, Top
