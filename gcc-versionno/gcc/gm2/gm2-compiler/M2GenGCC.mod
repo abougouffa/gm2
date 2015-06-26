@@ -5651,7 +5651,7 @@ BEGIN
    IF IsConst(lhs)
    THEN
       (* fine, we can take advantage of this and fold constant *)
-      PutConst(lhs, rhs) ;
+      PutConst(lhs, type) ;
       tl := Mod2Gcc(SkipType(type)) ;
       ConstantKnownAndUsed(lhs,
                            BuildConvert(tl, Mod2Gcc(rhs), TRUE))

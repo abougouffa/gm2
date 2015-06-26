@@ -18,6 +18,7 @@
 	  'enumerate'
 	* testsuite/lib/gm2.exp:  corrected LD_LIBRARY_PATH calculation
 	  by testing each library in turn.
+	* gm2/gm2-compiler/M2GenGCC.mod:  corrected type for rhs.
 
 2015-05-30      Gaius Mulley <gaius@gnu.org>
 
