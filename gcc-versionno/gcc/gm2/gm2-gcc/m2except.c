@@ -456,7 +456,7 @@ gm2_build_throw (location_t location, tree exp)
       tree tmp;
 
       exp = m2expr_FoldAndStrip (convert (m2type_GetIntegerType (), m2expr_FoldAndStrip (exp)));
-      exp = m2expr_GetIntegerOne ();
+      exp = m2expr_GetIntegerOne (location);
 
       /* Allocate the space for the exception.  */
       allocate_expr = do_allocate_exception (location, TREE_TYPE (exp));

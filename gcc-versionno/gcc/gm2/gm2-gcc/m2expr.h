@@ -20,7 +20,7 @@ EXTERN void m2expr_BuildBinaryForeachWordDo (location_t location,
 					     tree (*binop)(location_t, tree, tree, int),
 					     int is_op1lvalue, int is_op2lvalue, int is_op3lvalue,
 					     int is_op1const, int is_op2const, int is_op3const);
-EXTERN tree m2expr_BuildCmplx (tree type, tree real, tree imag);
+EXTERN tree m2expr_BuildCmplx (location_t location, tree type, tree real, tree imag);
 EXTERN tree m2expr_BuildIm (tree op1);
 EXTERN tree m2expr_BuildRe (tree op1);
 EXTERN tree m2expr_BuildAbs (location_t location, tree t);
@@ -112,6 +112,9 @@ EXTERN tree m2expr_BuildLRL (location_t location, tree op1, tree op2, int needco
 EXTERN tree m2expr_BuildLRR (location_t location, tree op1, tree op2, int needconvert);
 EXTERN tree m2expr_BuildMult (location_t location, tree op1, tree op2, int needconvert);
 
+EXTERN tree m2expr_BuildRRotate (location_t location, tree op1, tree nBits, int needconvert);
+EXTERN tree m2expr_BuildLRotate (location_t location, tree op1, tree nBits, int needconvert);
+
 EXTERN tree m2expr_BuildMask (location_t location, tree nBits, int needconvert);
 EXTERN tree m2expr_BuildLRLn (location_t location, tree op1, tree op2, tree nBits, int  needconvert);
 EXTERN tree m2expr_BuildLRRn (location_t location, tree op1, tree op2, tree nBits, int needconvert);
@@ -126,14 +129,14 @@ EXTERN void m2expr_BuildBinarySetDo (location_t location, tree settype, tree op1
 EXTERN tree m2expr_GetSizeOf (location_t location, tree type);
 EXTERN tree m2expr_GetSizeOfInBits (tree type);
 
-EXTERN tree m2expr_GetCardinalZero (void);
-EXTERN tree m2expr_GetCardinalOne (void);
-EXTERN tree m2expr_GetIntegerZero (void);
-EXTERN tree m2expr_GetIntegerOne (void);
-EXTERN tree m2expr_GetWordZero (void);
-EXTERN tree m2expr_GetWordOne (void);
-EXTERN tree m2expr_GetPointerZero (void);
-EXTERN tree m2expr_GetPointerOne (void);
+EXTERN tree m2expr_GetCardinalZero (location_t location);
+EXTERN tree m2expr_GetCardinalOne (location_t location);
+EXTERN tree m2expr_GetIntegerZero (location_t location);
+EXTERN tree m2expr_GetIntegerOne (location_t location);
+EXTERN tree m2expr_GetWordZero (location_t location);
+EXTERN tree m2expr_GetWordOne (location_t location);
+EXTERN tree m2expr_GetPointerZero (location_t location);
+EXTERN tree m2expr_GetPointerOne (location_t location);
 
 #if 0
 EXTERN tree m2expr_GetBooleanTrue (void);

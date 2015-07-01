@@ -87,15 +87,15 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 void
 m2treelib_do_jump_if_bit (location_t location, enum tree_code code, tree word, tree bit, char *label)
 {
-  word = m2convert_ToWord (word);
-  bit = m2convert_ToWord (bit);
+  word = m2convert_ToWord (location, word);
+  bit = m2convert_ToWord (location, bit);
   m2statement_DoJump (location,
 		      m2expr_build_binary_op (location, code,
 					      m2expr_build_binary_op (location, BIT_AND_EXPR,
 								      word,
-								      m2expr_BuildLSL (location, m2expr_GetWordOne(), bit, FALSE),
+								      m2expr_BuildLSL (location, m2expr_GetWordOne (location), bit, FALSE),
 								      FALSE),
-					      m2expr_GetWordZero (), FALSE),
+					      m2expr_GetWordZero (location), FALSE),
 		      NULL, label);
 }
 
@@ -128,7 +128,6 @@ build_modify_expr (location_t location, tree lhs, enum tree_code modifycode, tre
 #if 0
   bool npc;
 #endif
-
 
   ASSERT_CONDITION (modifycode == NOP_EXPR);
 
@@ -264,10 +263,11 @@ tree m2treelib_DoCall (location_t location, tree rettype, tree funcptr, tree par
   tree l = param_list;
   int i;
 
-  for (i = 0; i < n; i++) {
-    argarray[i] = TREE_VALUE (l);
-    l = TREE_CHAIN (l);
-  }
+  for (i = 0; i < n; i++)
+    {
+      argarray[i] = TREE_VALUE (l);
+      l = TREE_CHAIN (l);
+    }
   return build_call_array_loc (location, rettype, funcptr, n, argarray);
 }
 
@@ -408,7 +408,7 @@ m2treelib_get_set_value (location_t location, tree p, tree field, int is_const, 
       ASSERT_CONDITION (code == RECORD_TYPE || (code == POINTER_TYPE && (TREE_CODE (TREE_TYPE (type)) == RECORD_TYPE)));
       value = m2expr_BuildComponentRef (op, field);
     }
-  value = m2convert_ToBitset (value);
+  value = m2convert_ToBitset (location, value);
   return value;
 }
 
@@ -434,7 +434,7 @@ m2treelib_get_set_address (location_t location, tree op1, int is_lvalue)
 tree
 m2treelib_get_set_field_lhs (location_t location, tree p, tree field)
 {
-  return m2expr_BuildAddr (location, m2convert_ToBitset (m2expr_BuildComponentRef (p, field)), FALSE);
+  return m2expr_BuildAddr (location, m2convert_ToBitset (location, m2expr_BuildComponentRef (p, field)), FALSE);
 }
 
 
@@ -445,7 +445,7 @@ m2treelib_get_set_field_lhs (location_t location, tree p, tree field)
 tree
 m2treelib_get_set_field_rhs (location_t location, tree p, tree field)
 {
-  return m2convert_ToBitset (m2expr_BuildComponentRef (p, field));
+  return m2convert_ToBitset (location, m2expr_BuildComponentRef (p, field));
 }
 
 

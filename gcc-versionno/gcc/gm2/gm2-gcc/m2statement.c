@@ -261,7 +261,7 @@ m2statement_BuildAssignmentTree (location_t location, tree des, tree expr)
 	result = build2 (MODIFY_EXPR, TREE_TYPE (des), des, expr);
       else
 	result = build2 (MODIFY_EXPR, TREE_TYPE (des), des,
-			 m2convert_BuildConvert (TREE_TYPE (des), expr, FALSE));
+			 m2convert_BuildConvert (location, TREE_TYPE (des), expr, FALSE));
     }
 
   TREE_SIDE_EFFECTS (result) = 1;
@@ -719,7 +719,7 @@ m2statement_BuildExcludeVarConst (location_t location,
 							     m2treelib_get_rvalue (location, op1, type, is_lvalue),
 							     m2expr_BuildSetNegate (location,
 										    m2expr_BuildLSL (location,
-												     m2expr_GetWordOne(), op2, FALSE),
+												     m2expr_GetWordOne(location), op2, FALSE),
 										    FALSE),
 							     FALSE));
   else {
@@ -733,7 +733,7 @@ m2statement_BuildExcludeVarConst (location_t location,
 				     m2expr_BuildLogicalAnd (location,
 							     m2treelib_get_set_field_rhs (location, op1, field),
 							     m2expr_BuildSetNegate (location,
-										    m2expr_BuildLSL (location, m2expr_GetWordOne(), op2, FALSE),
+										    m2expr_BuildLSL (location, m2expr_GetWordOne(location), op2, FALSE),
 										    FALSE),
 							     FALSE));
   }
@@ -756,8 +756,8 @@ m2statement_BuildExcludeVarVar (location_t location,
   ASSERT_BOOL (is_lvalue);
   /* calculate the index from the first bit, ie bit 0 represents low value */
   tree index = m2expr_BuildSub (location,
-				m2convert_ToInteger (varel),
-                                m2convert_ToInteger (low), FALSE);
+				m2convert_ToInteger (location, varel),
+                                m2convert_ToInteger (location, low), FALSE);
 
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
@@ -765,7 +765,7 @@ m2statement_BuildExcludeVarVar (location_t location,
 				     m2treelib_get_rvalue (location, varset, type, is_lvalue),
 				     m2expr_BuildLogicalAnd (location,
 							     m2treelib_get_rvalue (location, varset, type, is_lvalue),
-							     m2expr_BuildSetNegate (location, m2expr_BuildLSL (location, m2expr_GetWordOne(), m2convert_ToWord (index), FALSE),
+							     m2expr_BuildSetNegate (location, m2expr_BuildLSL (location, m2expr_GetWordOne(location), m2convert_ToWord (location, index), FALSE),
 										    FALSE),
 							     FALSE));
   else {
@@ -781,7 +781,7 @@ m2statement_BuildExcludeVarVar (location_t location,
 
     /* calculate the address of the word we are interested in */
     p1 = m2expr_BuildAddAddress (location,
-				 m2convert_convertToPtr (p1),
+				 m2convert_convertToPtr (location, p1),
 				 m2expr_BuildMult (location,
 						   word_index, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT),
 						   FALSE));
@@ -790,15 +790,15 @@ m2statement_BuildExcludeVarVar (location_t location,
 				 m2expr_BuildIndirect (location, p1, m2type_GetBitsetType ()),
 				 m2expr_BuildSetNegate (location,
 							m2expr_BuildLSL (location,
-									 m2expr_GetWordOne (),
-									 m2convert_ToWord (offset_into_word), FALSE),
+									 m2expr_GetWordOne (location),
+									 m2convert_ToWord (location, offset_into_word), FALSE),
 							FALSE),
 				 FALSE);
 
     /* set bit offset_into_word within the word pointer at by p1 */
     m2statement_BuildAssignmentTree (location,
 				     m2expr_BuildIndirect (location, p1, m2type_GetBitsetType()),
-				     m2convert_ToBitset (v1));
+				     m2convert_ToBitset (location, v1));
   }
 }
 
@@ -825,7 +825,7 @@ m2statement_BuildIncludeVarConst (location_t location,
 				     m2expr_BuildLogicalOr (location,
 							    m2treelib_get_rvalue (location, op1, type, is_lvalue),
 							    m2expr_BuildLSL (location,
-									     m2expr_GetWordOne(), m2convert_ToWord (op2), FALSE),
+									     m2expr_GetWordOne(location), m2convert_ToWord (location, op2), FALSE),
 							    FALSE));
   else {
     tree fieldlist = TYPE_FIELDS (type);
@@ -837,7 +837,7 @@ m2statement_BuildIncludeVarConst (location_t location,
 				     m2treelib_get_set_field_des (location, op1, field),
 				     m2expr_BuildLogicalOr (location,
 							    m2treelib_get_set_field_rhs (location, op1, field),
-							    m2expr_BuildLSL (location, m2expr_GetWordOne(), m2convert_ToWord (op2), FALSE),
+							    m2expr_BuildLSL (location, m2expr_GetWordOne(location), m2convert_ToWord (location, op2), FALSE),
 							    FALSE));
   }
 }
@@ -859,19 +859,20 @@ m2statement_BuildIncludeVarVar (location_t location,
   ASSERT_BOOL (is_lvalue);
   /* calculate the index from the first bit, ie bit 0 represents low value */
   tree index = m2expr_BuildSub (location,
-				m2convert_ToInteger (varel),
-				m2convert_ToInteger (low), FALSE);
-  tree indexw = m2convert_ToWord (index);
+				m2convert_ToInteger (location, varel),
+				m2convert_ToInteger (location, low), FALSE);
+  tree indexw = m2convert_ToWord (location, index);
 
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
     m2statement_BuildAssignmentTree (location,
 				     m2treelib_get_rvalue (location, varset, type, is_lvalue),
-				     m2convert_ToBitset (m2expr_BuildLogicalOr (location,
+				     m2convert_ToBitset (location,
+							 m2expr_BuildLogicalOr (location,
 										m2treelib_get_rvalue (location,
 												      varset, type, is_lvalue),
 										m2expr_BuildLSL (location,
-												 m2expr_GetWordOne(), indexw, FALSE),
+												 m2expr_GetWordOne (location), indexw, FALSE),
 										FALSE)));
   else {
     tree p1               = m2treelib_get_set_address (location, varset, is_lvalue);
@@ -879,7 +880,8 @@ m2statement_BuildIncludeVarVar (location_t location,
     tree word_index       = m2expr_BuildDivTrunc (location,
 						  index, m2decl_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
     /* calculate the bit in this word */
-    tree offset_into_word = m2convert_BuildConvert (m2type_GetWordType (),
+    tree offset_into_word = m2convert_BuildConvert (location,
+						    m2type_GetWordType (),
 						    m2expr_BuildModTrunc (location,
 									  index, m2decl_BuildIntegerConstant (SET_WORD_SIZE), FALSE),
 						    FALSE);
@@ -887,19 +889,19 @@ m2statement_BuildIncludeVarVar (location_t location,
 
     /* calculate the address of the word we are interested in */
     p1 = m2expr_BuildAddAddress (location,
-				 m2convert_convertToPtr (p1),
+				 m2convert_convertToPtr (location, p1),
 				 m2expr_BuildMult (location,
 						   word_index, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT),
 						   FALSE));
     v1 = m2expr_BuildLogicalOr (location,
 				m2expr_BuildIndirect (location, p1, m2type_GetBitsetType ()),
-				m2convert_ToBitset (m2expr_BuildLSL (location, m2expr_GetWordOne(), offset_into_word, FALSE)),
+				m2convert_ToBitset (location, m2expr_BuildLSL (location, m2expr_GetWordOne(location), offset_into_word, FALSE)),
 				FALSE);
 
     /* set bit offset_into_word within the word pointer at by p1 */
     m2statement_BuildAssignmentTree (location,
 				     m2expr_BuildIndirect (location, p1, m2type_GetBitsetType ()),
-				     m2convert_ToBitset (v1));
+				     m2convert_ToBitset (location, v1));
   }
 }
 
@@ -1044,7 +1046,7 @@ m2statement_BuildReturnValueCode (location_t location, tree fndecl, tree value)
     t = build2 (MODIFY_EXPR,
 		TREE_TYPE (DECL_RESULT (fndecl)),
 		DECL_RESULT (fndecl),
-		m2convert_BuildConvert (TREE_TYPE (DECL_RESULT (fndecl)), value, FALSE));
+		m2convert_BuildConvert (location, TREE_TYPE (DECL_RESULT (fndecl)), value, FALSE));
   
   ret_stmt = build_stmt (location, RETURN_EXPR, t);
   add_stmt (location, ret_stmt);

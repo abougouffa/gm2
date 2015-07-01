@@ -28,28 +28,28 @@ PROCEDURE init (location: location_t) ;
 PROCEDURE CompareTrees (e1: Tree; e2: Tree) : INTEGER ;
 
 
-PROCEDURE GetPointerOne () : Tree ;
+PROCEDURE GetPointerOne (location: location_t) : Tree ;
 
 
-PROCEDURE GetPointerZero () : Tree ;
+PROCEDURE GetPointerZero (location: location_t) : Tree ;
 
 
-PROCEDURE GetWordOne () : Tree ;
+PROCEDURE GetWordOne (location: location_t) : Tree ;
 
 
-PROCEDURE GetWordZero () : Tree ;
+PROCEDURE GetWordZero (location: location_t) : Tree ;
 
 
-PROCEDURE GetIntegerOne () : Tree ;
+PROCEDURE GetIntegerOne (location: location_t) : Tree ;
 
 
-PROCEDURE GetIntegerZero () : Tree ;
+PROCEDURE GetIntegerZero (location: location_t) : Tree ;
 
 
-PROCEDURE GetCardinalOne () : Tree ;
+PROCEDURE GetCardinalOne (location: location_t) : Tree ;
 
 
-PROCEDURE GetCardinalZero () : Tree ;
+PROCEDURE GetCardinalZero (location: location_t) : Tree ;
 
 
 PROCEDURE GetSizeOfInBits (type: Tree) : Tree ;
@@ -537,7 +537,7 @@ PROCEDURE BuildIm (op1: Tree) : Tree ;
     BuildCmplx - builds an expression for the function CMPLX.
 *)
 
-PROCEDURE BuildCmplx (type: Tree; real: Tree; imag: Tree) : Tree ;
+PROCEDURE BuildCmplx (location: location_t; type: Tree; real: Tree; imag: Tree) : Tree ;
 
 
 (*

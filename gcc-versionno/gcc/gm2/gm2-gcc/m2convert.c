@@ -73,7 +73,10 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "m2tree.h"
 #include "m2treelib.h"
 #include "m2block.h"
+#include "m2expr.h"
 #include "m2convert.h"
+
+static tree const_to_ISO_type (location_t location, tree expr, tree iso_type);
 
 
 /*
@@ -458,19 +461,55 @@ doOrdinal (tree value)
 }
 
 
+static int
+converting_ISO_generic (location_t location, tree type, tree value, tree generic_type, tree *result)
+{
+  tree value_type = m2tree_skip_type_decl (TREE_TYPE (value));
+
+  if (value_type == type)
+    /*
+     *  we let the caller deal with this
+     */
+    return FALSE;
+
+  if ((TREE_CODE (value) == INTEGER_CST)
+      && (type == generic_type))
+    {
+      *result = const_to_ISO_type (location, value, generic_type);
+      return TRUE;
+    }
+
+  if (value_type == generic_type)
+    {
+      tree pt = build_pointer_type (type);
+      tree a = build1 (ADDR_EXPR, pt, value);
+      tree t = build1 (INDIRECT_REF, type, a);
+      *result = build1 (NOP_EXPR, type, t);
+      return TRUE;
+    }
+  else if (type == generic_type)
+    {
+      tree pt = build_pointer_type (type);
+      tree a = build1 (ADDR_EXPR, pt, value);
+      tree t = build1 (INDIRECT_REF, type, a);
+      *result = build1 (NOP_EXPR, type, t);
+      return TRUE;
+    }
+  return FALSE;
+}
+
+
 /*
- *  BuildConvert - build and return tree VAL(op1, op2)
- *                 where op1 is the type to which op2
- *                 is to be converted.
+ *  BuildConvert - build and return tree VAL (type, value).
  *                 checkOverflow determines whether we
  *                 should suppress overflow checking.
  */
 
 tree
-m2convert_BuildConvert (tree type, tree value, int checkOverflow)
+m2convert_BuildConvert (location_t location, tree type, tree value, int checkOverflow)
 {
-  enum tree_code code = TREE_CODE (value);
   type = m2tree_skip_type_decl (type);
+  tree t;
 
   value = fold (value);
   STRIP_NOPS (value);
@@ -483,6 +522,12 @@ m2convert_BuildConvert (tree type, tree value, int checkOverflow)
   else if (TREE_CODE (value) == FUNCTION_DECL && TREE_TYPE (value) != type)
     value = m2expr_BuildAddr (0, value, FALSE);
 
+  if (converting_ISO_generic (location, type, value, m2type_GetISOWordType (), &t) ||
+      converting_ISO_generic (location, type, value, m2type_GetM2Word16 (), &t) ||
+      converting_ISO_generic (location, type, value, m2type_GetM2Word32 (), &t) ||
+      converting_ISO_generic (location, type, value, m2type_GetM2Word64 (), &t))
+    return t;
+
   if (checkOverflow)
     return convert_and_check (type, value);
   else
@@ -491,7 +536,62 @@ m2convert_BuildConvert (tree type, tree value, int checkOverflow)
 
 
 /*
- *  ConvertConstantAndCheck - in Modula-2 sementics: return( VAL(type, expr) )
+ *  const_to_ISO_type - perform VAL (iso_type, expr).
+ *                      The iso_type will be declared by the SYSTEM module
+ *                      as:
+ *                      TYPE iso_type = ARRAY [0..n] OF LOC
+ *
+ *                      this function will store a constant into the iso_type
+ *                      in the correct endian order.  It converts the expr
+ *                      into a unsigned int or signed int and then
+ *                      strips it a byte at a time.
+ */
+
+static tree
+const_to_ISO_type (location_t location, tree expr, tree iso_type)
+{
+  tree byte;
+  m2type_Constructor c;
+  tree i = m2decl_BuildIntegerConstant (0);
+  tree n = m2expr_GetSizeOf (location, iso_type);
+  tree max_uint = m2decl_BuildIntegerConstant (256);
+
+  while (m2expr_CompareTrees (i, n) < 0)
+    {
+      max_uint = m2expr_BuildMult (location, max_uint, m2decl_BuildIntegerConstant (256), FALSE);
+      i = m2expr_BuildAdd (location, i, m2decl_BuildIntegerConstant (1), FALSE);
+    }
+  max_uint = m2expr_BuildDivFloor (location, max_uint, m2decl_BuildIntegerConstant (2), FALSE);
+
+  if (m2expr_CompareTrees (expr, m2decl_BuildIntegerConstant (0)) < 0)
+    expr = m2expr_BuildAdd (location, expr, max_uint, FALSE);
+    
+  i = m2decl_BuildIntegerConstant (0);
+  c = m2type_BuildStartArrayConstructor (iso_type);
+  while (m2expr_CompareTrees (i, n) < 0)
+    {
+      byte = m2expr_BuildModTrunc (location, expr, m2decl_BuildIntegerConstant (256), FALSE);
+      if (BYTES_BIG_ENDIAN)
+	m2type_BuildArrayConstructorElement (c,
+					     m2convert_ToLoc (location, byte),
+					     m2expr_BuildSub (location,
+							      m2expr_BuildSub (location, n, i, FALSE),
+							      m2decl_BuildIntegerConstant (1),
+							      FALSE));
+      else
+	m2type_BuildArrayConstructorElement (c, m2convert_ToLoc (location, byte), i);
+
+      i = m2expr_BuildAdd (location, i, m2decl_BuildIntegerConstant (1), FALSE);
+      expr = m2expr_BuildDivFloor (location, expr, m2decl_BuildIntegerConstant (256), FALSE);
+    }
+
+  return m2type_BuildEndArrayConstructor (c);  
+}
+
+
+/*
+ *  ConvertConstantAndCheck - in Modula-2 sementics: RETURN( VAL(type, expr) )
+ *
  *                            Only to be used for a constant expr,
  *                            overflow checking is performed. 
  */
@@ -499,15 +599,27 @@ m2convert_BuildConvert (tree type, tree value, int checkOverflow)
 tree
 m2convert_ConvertConstantAndCheck (location_t location, tree type, tree expr)
 {
+  tree etype;
   expr = fold (expr);
   STRIP_NOPS (expr);
   expr = m2expr_FoldAndStrip (expr);
+  etype = TREE_TYPE (expr);
 
   m2assert_AssertLocation (location);
+  if (etype == type)
+    return expr;
+
   if (TREE_CODE (expr) == FUNCTION_DECL)
     expr = m2expr_BuildAddr (location, expr, FALSE);
-  return convert_and_check (m2tree_skip_type_decl (type),
-			    m2expr_FoldAndStrip (expr));
+
+  type = m2tree_skip_type_decl (type);
+  if (type == m2type_GetISOWordType ()
+      || type == m2type_GetM2Word16 ()
+      || type == m2type_GetM2Word32 ()
+      || type == m2type_GetM2Word64 ())
+    return const_to_ISO_type (location, expr, type);
+  
+  return convert_and_check (type, m2expr_FoldAndStrip (expr));
 }
 
 
@@ -517,9 +629,9 @@ m2convert_ConvertConstantAndCheck (location_t location, tree type, tree expr)
  */
 
 tree
-m2convert_ToWord (tree expr)
+m2convert_ToWord (location_t location, tree expr)
 {
-  return m2convert_BuildConvert (m2type_GetWordType(), expr, FALSE);
+  return m2convert_BuildConvert (location, m2type_GetWordType(), expr, FALSE);
 }
 
 
@@ -528,9 +640,9 @@ m2convert_ToWord (tree expr)
  */
 
 tree
-m2convert_ToCardinal (tree expr)
+m2convert_ToCardinal (location_t location, tree expr)
 {
-  return m2convert_BuildConvert (m2type_GetCardinalType (), expr, FALSE);
+  return m2convert_BuildConvert (location, m2type_GetCardinalType (), expr, FALSE);
 }
 
 
@@ -539,12 +651,12 @@ m2convert_ToCardinal (tree expr)
  */
 
 tree
-m2convert_convertToPtr (tree type)
+m2convert_convertToPtr (location_t location, tree type)
 {
   if (TREE_CODE (TREE_TYPE (type)) == POINTER_TYPE)
     return type;
   else
-    return m2convert_BuildConvert (m2type_GetPointerType (), type, FALSE);
+    return m2convert_BuildConvert (location, m2type_GetPointerType (), type, FALSE);
 }
 
 
@@ -553,9 +665,9 @@ m2convert_convertToPtr (tree type)
  */
 
 tree
-m2convert_ToInteger (tree expr)
+m2convert_ToInteger (location_t location, tree expr)
 {
-  return m2convert_BuildConvert (m2type_GetIntegerType (), expr, FALSE);
+  return m2convert_BuildConvert (location, m2type_GetIntegerType (), expr, FALSE);
 }
 
 
@@ -564,7 +676,43 @@ m2convert_ToInteger (tree expr)
  */
 
 tree
-m2convert_ToBitset (tree expr)
+m2convert_ToBitset (location_t location, tree expr)
 {
-  return m2convert_BuildConvert (m2type_GetBitsetType (), expr, FALSE);
+  return m2convert_BuildConvert (location, m2type_GetBitsetType (), expr, FALSE);
+}
+
+
+/*
+ *  ToLoc - convert an expression, expr, to a LOC.
+ */
+
+tree
+m2convert_ToLoc (location_t location, tree expr)
+{
+  return m2convert_BuildConvert (location, m2type_GetISOByteType (), expr, FALSE);
+}
+
+
+/*
+ *  GenericToType - converts, expr, into, type, providing that expr is
+ *                  a generic system type (byte, word etc).  Otherwise
+ *                  expr is returned unaltered.
+ */
+
+tree
+m2convert_GenericToType (location_t location, tree type, tree expr)
+{
+  tree etype = TREE_TYPE (expr);
+
+  type = m2tree_skip_type_decl (type);
+  if (type == etype)
+    return expr;
+
+  if (type == m2type_GetISOWordType ()
+      || type == m2type_GetM2Word16 ()
+      || type == m2type_GetM2Word32 ()
+      || type == m2type_GetM2Word64 ())
+    return const_to_ISO_type (location, expr, type);
+
+  return expr;
 }

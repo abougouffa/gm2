@@ -39,15 +39,17 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #      endif
 #  endif
 
-EXTERN tree m2convert_BuildConvert (tree type, tree value, int checkOverflow);
-EXTERN tree m2convert_ConvertToPtr (tree p);
+EXTERN tree m2convert_BuildConvert (location_t location, tree type, tree value, int checkOverflow);
+EXTERN tree m2convert_ConvertToPtr (location_t location_t, tree p);
 EXTERN tree m2convert_ConvertString (tree type, tree expr);
 EXTERN tree m2convert_ConvertConstantAndCheck (location_t location, tree type, tree expr);
-EXTERN tree m2convert_convertToPtr (tree type);
-EXTERN tree m2convert_ToCardinal (tree expr);
-EXTERN tree m2convert_ToInteger (tree expr);
-EXTERN tree m2convert_ToWord (tree expr);
-EXTERN tree m2convert_ToBitset (tree expr);
+EXTERN tree m2convert_convertToPtr (location_t location, tree type);
+EXTERN tree m2convert_ToCardinal (location_t location, tree expr);
+EXTERN tree m2convert_ToInteger (location_t location, tree expr);
+EXTERN tree m2convert_ToWord (location_t location, tree expr);
+EXTERN tree m2convert_ToBitset (location_t location, tree expr);
+EXTERN tree m2convert_ToLoc (location_t location, tree expr);
+EXTERN tree m2convert_GenericToType (location_t location, tree type, tree expr);
 
 #  undef EXTERN
 #endif

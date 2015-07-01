@@ -25,7 +25,7 @@ FROM SymbolTable IMPORT NulSym, GetLowestType, PutReadQuad, RemoveReadQuad,
                         IsRecord, IsPointer, IsArray, IsProcType, IsConstLit,
                         IsAModula2Type, IsUnbounded, IsEnumeration, GetMode,
                         IsConstString, MakeConstLit, SkipType, IsProcedure,
-                        IsParameter,
+                        IsParameter, GetDeclaredMod,
                         ModeOfAddr ;
 
 FROM m2tree IMPORT Tree ;
@@ -174,18 +174,21 @@ END IsEqual ;
 *)
 
 PROCEDURE IsGreaterOrEqualConversion (l: CARDINAL; d, e: CARDINAL) : BOOLEAN ;
+VAR
+   location: location_t ;
 BEGIN
+   location := TokenToLocation(GetDeclaredMod(l)) ;
    IF GetType(d)=NulSym
    THEN
       IF GetType(e)=NulSym
       THEN
          RETURN( IsGreaterOrEqual(Mod2Gcc(l), LValueToGenericPtr(e)) )
       ELSE
-         RETURN( IsGreaterOrEqual(BuildConvert(Mod2Gcc(SkipType(GetType(e))), Mod2Gcc(l), FALSE),
+         RETURN( IsGreaterOrEqual(BuildConvert(location, Mod2Gcc(SkipType(GetType(e))), Mod2Gcc(l), FALSE),
                                   LValueToGenericPtr(e)) )
       END
    ELSE
-      RETURN( IsGreaterOrEqual(BuildConvert(Mod2Gcc(SkipType(GetType(d))), Mod2Gcc(l), FALSE),
+      RETURN( IsGreaterOrEqual(BuildConvert(location, Mod2Gcc(SkipType(GetType(d))), Mod2Gcc(l), FALSE),
                                LValueToGenericPtr(e)) )
    END
 END IsGreaterOrEqualConversion ;
@@ -196,18 +199,21 @@ END IsGreaterOrEqualConversion ;
 *)
 
 PROCEDURE IsEqualConversion (l: CARDINAL; d, e: CARDINAL) : BOOLEAN ;
+VAR
+   location: location_t ;
 BEGIN
+   location := TokenToLocation(GetDeclaredMod(l)) ;
    IF GetType(d)=NulSym
    THEN
       IF GetType(e)=NulSym
       THEN
          RETURN( IsEqual(Mod2Gcc(l), LValueToGenericPtr(e)) )
       ELSE
-         RETURN( IsEqual(BuildConvert(Mod2Gcc(SkipType(GetType(e))), Mod2Gcc(l), FALSE),
+         RETURN( IsEqual(BuildConvert(location, Mod2Gcc(SkipType(GetType(e))), Mod2Gcc(l), FALSE),
                          LValueToGenericPtr(e)) )
       END
    ELSE
-      RETURN( IsEqual(BuildConvert(Mod2Gcc(SkipType(GetType(d))), Mod2Gcc(l), FALSE),
+      RETURN( IsEqual(BuildConvert(location, Mod2Gcc(SkipType(GetType(d))), Mod2Gcc(l), FALSE),
                       LValueToGenericPtr(e)) )
    END
 END IsEqualConversion ;
@@ -914,8 +920,8 @@ BEGIN
          max := GetMaxFrom(location, Mod2Gcc(t)) ;
          min := GetMinFrom(location, Mod2Gcc(t))
       END ;
-      max := BuildConvert(Mod2Gcc(t), max, FALSE) ;
-      min := BuildConvert(Mod2Gcc(t), min, FALSE) ;
+      max := BuildConvert(location, Mod2Gcc(t), max, FALSE) ;
+      min := BuildConvert(location, Mod2Gcc(t), min, FALSE) ;
       RETURN( TRUE )
    ELSE
       RETURN( FALSE )
@@ -1046,7 +1052,7 @@ BEGIN
          IF GccKnowsAbout(expr) AND IsConst(expr) AND
             GetMinMax(tokenno, desLowestType, min, max)
          THEN
-            IF OutOfRange(tokenno, GetIntegerZero(), expr, max, desLowestType)
+            IF OutOfRange(tokenno, GetIntegerZero(location), expr, max, desLowestType)
             THEN
                MetaErrorT2(tokenNo,
                            'operand to INC {%2Wa} exceeds the range of type {%1ts} of the designator {%1a}',
@@ -1056,7 +1062,7 @@ BEGIN
             THEN
                t := BuildSub(location,
                              max,
-                             BuildConvert(Mod2Gcc(desLowestType), Mod2Gcc(expr), FALSE),
+                             BuildConvert(location, Mod2Gcc(desLowestType), Mod2Gcc(expr), FALSE),
                              FALSE) ;
                PushIntegerTree(Mod2Gcc(des)) ;
                PushIntegerTree(t) ;
@@ -1097,7 +1103,7 @@ BEGIN
          IF GccKnowsAbout(expr) AND IsConst(expr) AND
             GetMinMax(tokenno, desLowestType, min, max)
          THEN
-            IF OutOfRange(tokenno, GetIntegerZero(), expr, max, desLowestType)
+            IF OutOfRange(tokenno, GetIntegerZero(location), expr, max, desLowestType)
             THEN
                MetaErrorT2(tokenNo,
                            'operand to DEC {%2Wa} exceeds the range of type {%1ts} of the designator {%1a}',
@@ -1106,7 +1112,7 @@ BEGIN
             ELSIF GccKnowsAbout(des) AND IsConst(des) AND GccKnowsAbout(desLowestType)
             THEN
                t := BuildSub(location,
-                             BuildConvert(Mod2Gcc(desLowestType), Mod2Gcc(expr), FALSE),
+                             BuildConvert(location, Mod2Gcc(desLowestType), Mod2Gcc(expr), FALSE),
                              min,
                              FALSE) ;
                PushIntegerTree(Mod2Gcc(des)) ;
@@ -1298,10 +1304,10 @@ BEGIN
                GccKnowsAbout(expr) AND IsConst(expr) AND
                GetMinMax(tokenno, ofType, min, max)
             THEN
-               min := BuildConvert(GetIntegerType(), min, FALSE) ;
-               max := BuildConvert(GetIntegerType(), max, FALSE) ;
+               min := BuildConvert(location, GetIntegerType(), min, FALSE) ;
+               max := BuildConvert(location, GetIntegerType(), max, FALSE) ;
                shiftMax := BuildAdd(location, BuildSub(location, max, min, FALSE),
-                                    GetIntegerOne(),
+                                    GetIntegerOne(location),
                                     FALSE) ;
                shiftMin := BuildNegate(location, shiftMax, FALSE) ;
                IF OutOfRange(tokenno, shiftMin, expr, shiftMax, desLowestType)
@@ -1349,11 +1355,11 @@ BEGIN
                GccKnowsAbout(expr) AND IsConst(expr) AND
                GetMinMax(tokenno, ofType, min, max)
             THEN
-               min := BuildConvert(GetIntegerType(), min, FALSE) ;
-               max := BuildConvert(GetIntegerType(), max, FALSE) ;
+               min := BuildConvert(location, GetIntegerType(), min, FALSE) ;
+               max := BuildConvert(location, GetIntegerType(), max, FALSE) ;
                rotateMax := BuildAdd(location,
                                      BuildSub(location, max, min, FALSE),
-                                     GetIntegerOne(),
+                                     GetIntegerOne(location),
                                      FALSE) ;
                rotateMin := BuildNegate(location, rotateMax, FALSE) ;
                IF OutOfRange(tokenno, rotateMin, expr, rotateMax, desLowestType)
@@ -1700,7 +1706,9 @@ PROCEDURE FoldDynamicArraySubscript (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL
 VAR
    p          : Range ;
    t, min, max: Tree ;
+   location   : location_t ;
 BEGIN
+   location := TokenToLocation(tokenno) ;
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
       TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
@@ -1708,7 +1716,7 @@ BEGIN
       THEN
          IF GccKnowsAbout(expr) AND IsConst(expr)
          THEN
-            IF IsGreater(GetIntegerZero(), BuildConvert(GetIntegerType(), Mod2Gcc(expr), FALSE))
+            IF IsGreater(GetIntegerZero(location), BuildConvert(location, GetIntegerType(), Mod2Gcc(expr), FALSE))
             THEN
                MetaErrorT3(tokenNo,
                            'index {%2Wa} out of range found while attempting to access an element of a dynamic array {%1a} in the {%3N} array subscript',
@@ -1973,7 +1981,7 @@ VAR
 BEGIN
    location := TokenToLocation(tokenno) ;
    BuildParam(location,
-              BuildConvert(Mod2Gcc(Address),
+              BuildConvert(location, Mod2Gcc(Address),
                            BuildAddr(location, BuildStringConstant(string(s), Length(s)),
                                      FALSE), FALSE))
 END BuildStringParam ;
@@ -2103,12 +2111,12 @@ BEGIN
             THEN
                IF IsGreater(desMin, exprMin)
                THEN
-                  condition := BuildLessThan(location, DeReferenceLValue(tokenNo, expr), BuildConvert(Mod2Gcc(exprLowestType), desMin, FALSE)) ;
+                  condition := BuildLessThan(location, DeReferenceLValue(tokenNo, expr), BuildConvert(location, Mod2Gcc(exprLowestType), desMin, FALSE)) ;
                   AddStatement(BuildIfCallHandler(condition, r, scopeDesc, TRUE))
                END ;
                IF IsGreater(exprMax, desMax)
                THEN
-                  condition := BuildGreaterThan(location, DeReferenceLValue(tokenNo, expr), BuildConvert(Mod2Gcc(exprLowestType), desMax, FALSE)) ;
+                  condition := BuildGreaterThan(location, DeReferenceLValue(tokenNo, expr), BuildConvert(location, Mod2Gcc(exprLowestType), desMax, FALSE)) ;
                   AddStatement(BuildIfCallHandler(condition, r, scopeDesc, TRUE))
                END
             ELSE
@@ -2141,12 +2149,12 @@ BEGIN
          IF GetMinMax(tokenNo, desLowestType, desMin, desMax)
          THEN
             condition := BuildLessThan(location,
-                                       BuildConvert(Mod2Gcc(desLowestType),
+                                       BuildConvert(location, Mod2Gcc(desLowestType),
                                                     DeReferenceLValue(tokenNo, expr), FALSE),
                                        desMin) ;
             AddStatement(BuildIfCallHandler(condition, r, scopeDesc, TRUE)) ;
             condition := BuildGreaterThan(location,
-                                          BuildConvert(Mod2Gcc(desLowestType),
+                                          BuildConvert(location, Mod2Gcc(desLowestType),
                                                        DeReferenceLValue(tokenNo, expr), FALSE),
                                           desMax) ;
             AddStatement(BuildIfCallHandler(condition, r, scopeDesc, TRUE))
@@ -2239,13 +2247,13 @@ BEGIN
          THEN
             IF GetMinMax(tokenno, desLowestType, desMin, desMax)
             THEN
-               e := BuildConvert(GetTreeType(desMin), DeReferenceLValue(tokenno, expr), FALSE) ;
+               e := BuildConvert(location, GetTreeType(desMin), DeReferenceLValue(tokenno, expr), FALSE) ;
                IfOutsideLimitsDo(tokenNo,
-                                 BuildConvert(GetTreeType(desMin), GetIntegerZero(), FALSE),
+                                 BuildConvert(location, GetTreeType(desMin), GetIntegerZero(location), FALSE),
                                  e, desMax, r, scopeDesc) ;
                t := BuildSub(location,
                              desMax,
-                             BuildConvert(Mod2Gcc(desLowestType), e, FALSE),
+                             BuildConvert(location, Mod2Gcc(desLowestType), e, FALSE),
                              FALSE) ;
                condition := BuildGreaterThan(location, Mod2Gcc(des), t) ;
                AddStatement(BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
@@ -2282,11 +2290,11 @@ BEGIN
          THEN
             IF GetMinMax(tokenno, desLowestType, desMin, desMax)
             THEN
-               e := BuildConvert(GetTreeType(desMin), DeReferenceLValue(tokenno, expr), FALSE) ;
+               e := BuildConvert(location, GetTreeType(desMin), DeReferenceLValue(tokenno, expr), FALSE) ;
                IfOutsideLimitsDo(tokenNo,
-                                 BuildConvert(GetTreeType(desMin), GetIntegerZero(), FALSE),
+                                 BuildConvert(location, GetTreeType(desMin), GetIntegerZero(location), FALSE),
                                  e, desMax, r, scopeDesc) ;
-               t := BuildSub(location, BuildConvert(Mod2Gcc(desLowestType), e, FALSE),
+               t := BuildSub(location, BuildConvert(location, Mod2Gcc(desLowestType), e, FALSE),
                              desMin,
                              FALSE) ;
                condition := BuildLessThan(location, Mod2Gcc(des), t) ;
@@ -2325,12 +2333,12 @@ BEGIN
          THEN
             IF GetMinMax(tokenno, desLowestType, desMin, desMax)
             THEN
-               e := BuildConvert(GetTreeType(desMin), DeReferenceLValue(tokenno, expr), FALSE) ;
+               e := BuildConvert(location, GetTreeType(desMin), DeReferenceLValue(tokenno, expr), FALSE) ;
                IfOutsideLimitsDo(tokenNo, desMin, e, desMax, r, scopeDesc)
 (*  this should not be used for incl/excl as des is a set type
                t := BuildSub(location,
                              desMax,
-                             BuildConvert(Mod2Gcc(desLowestType), e, FALSE),
+                             BuildConvert(location, Mod2Gcc(desLowestType), e, FALSE),
                              FALSE) ;
                condition := BuildGreaterThan(Mod2Gcc(des), t) ;
                AddStatement(BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
@@ -2372,14 +2380,14 @@ BEGIN
             IF GetMinMax(tokenno, ofType, desMin, desMax)
             THEN
                location := TokenToLocation(tokenNo) ;
-               desMin := BuildConvert(GetIntegerType(), desMin, FALSE) ;
-               desMax := BuildConvert(GetIntegerType(), desMax, FALSE) ;
+               desMin := BuildConvert(location, GetIntegerType(), desMin, FALSE) ;
+               desMax := BuildConvert(location, GetIntegerType(), desMax, FALSE) ;
                shiftMax := BuildAdd(location,
                                     BuildSub(location, desMax, desMin, FALSE),
-                                    GetIntegerOne(),
+                                    GetIntegerOne(location),
                                     FALSE) ;
                shiftMin := BuildNegate(location, shiftMax, FALSE) ;
-               e := BuildConvert(GetIntegerType(), DeReferenceLValue(tokenno, expr), FALSE) ;
+               e := BuildConvert(location, GetIntegerType(), DeReferenceLValue(tokenno, expr), FALSE) ;
                IfOutsideLimitsDo(tokenNo, shiftMin, e, shiftMax, r, scopeDesc)
             END
          ELSE
@@ -2399,7 +2407,9 @@ PROCEDURE CodeStaticArraySubscript (tokenno: CARDINAL;
 VAR
    p             : Range ;
    desMin, desMax: Tree ;
+   location      : location_t ;
 BEGIN
+   location := TokenToLocation(tokenno) ;
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
       TryDeclareConstant(tokenNo, expr) ;
@@ -2408,7 +2418,7 @@ BEGIN
          IF GetMinMax(tokenno, desLowestType, desMin, desMax)
          THEN
             IfOutsideLimitsDo(tokenno, desMin,
-                              BuildConvert(GetTreeType(desMin), DeReferenceLValue(tokenno, expr), FALSE),
+                              BuildConvert(location, GetTreeType(desMin), DeReferenceLValue(tokenno, expr), FALSE),
                               desMax, r, scopeDesc)
          ELSE
             InternalError('should have resolved the bounds of the static array', __FILE__, __LINE__)
@@ -2431,7 +2441,9 @@ VAR
    p            : Range ;
    condition,
    high, e      : Tree ;
+   location     : location_t ;
 BEGIN
+   location := TokenToLocation(tokenno) ;
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
       TryDeclareConstant(tokenNo, expr) ;
@@ -2440,9 +2452,9 @@ BEGIN
       THEN
          UnboundedType := GetType(des) ;
          Assert(IsUnbounded(UnboundedType)) ;
-         high := BuildConvert(GetIntegerType(), GetHighFromUnbounded(dimension, des), FALSE) ;
-         e := BuildConvert(GetIntegerType(), DeReferenceLValue(tokenno, expr), FALSE) ;
-         IfOutsideLimitsDo(tokenNo, GetIntegerZero(), e, high, r, scopeDesc)
+         high := BuildConvert(location, GetIntegerType(), GetHighFromUnbounded(dimension, des), FALSE) ;
+         e := BuildConvert(location, GetIntegerType(), DeReferenceLValue(tokenno, expr), FALSE) ;
+         IfOutsideLimitsDo(tokenNo, GetIntegerZero(location), e, high, r, scopeDesc)
       ELSE
          InternalError('should have resolved these types', __FILE__, __LINE__)
       END
@@ -2589,14 +2601,14 @@ BEGIN
    location := TokenToLocation(tokenNo) ;
    WITH p^ DO
       inc := DeReferenceLValue(tokenNo, expr) ;
-      ez := BuildConvert(Mod2Gcc(exprLowestType), GetIntegerZero(), FALSE) ;
-      dz := BuildConvert(Mod2Gcc(desLowestType), GetIntegerZero(), FALSE) ;
+      ez := BuildConvert(location, Mod2Gcc(exprLowestType), GetIntegerZero(location), FALSE) ;
+      dz := BuildConvert(location, Mod2Gcc(desLowestType), GetIntegerZero(location), FALSE) ;
 
       c1 := BuildGreaterThanOrEqual(location, inc, ez) ;
       (* if (inc >= 0)                                           [c1] *)
       c2 := BuildGreaterThanOrEqual(location, Mod2Gcc(des), dz) ;
       (*    if (des >= 0)                                        [c2] *)
-      lg1 := BuildConvert(Mod2Gcc(desLowestType), inc, FALSE) ;
+      lg1 := BuildConvert(location, Mod2Gcc(desLowestType), inc, FALSE) ;
       room := BuildSub(location, dmax, Mod2Gcc(des), FALSE) ;
       c3 := BuildGreaterThan(location, lg1, room) ;           (* [c3]  *)
       (* WarnIf(IsTrue(c1) AND IsTrue(c2) AND IsTrue(c3), scopeDesc) ; --implement me-- *)
@@ -2607,9 +2619,9 @@ BEGIN
       (* else *)
       (*    (* inc < 0 *)                                        [s4]  *)
       (*    if (des <= val(desLowestType, emax)                  [c4]  *)
-      c4 := BuildLessThanOrEqual(location, Mod2Gcc(des), BuildConvert(Mod2Gcc(desLowestType), emax, FALSE)) ;
+      c4 := BuildLessThanOrEqual(location, Mod2Gcc(des), BuildConvert(location, Mod2Gcc(desLowestType), emax, FALSE)) ;
       (*    (* des <= MAX(exprLowestType) *) *)
-      desoftypee := BuildConvert(Mod2Gcc(exprLowestType), Mod2Gcc(des), FALSE) ;
+      desoftypee := BuildConvert(location, Mod2Gcc(exprLowestType), Mod2Gcc(des), FALSE) ;
       c5 := BuildEqualTo(location, desoftypee, emin) ;        (* [c5]  *)
       s5 := BuildIfCallHandler(c5, r, scopeDesc, FALSE) ;
       (*       if des = emin  *)
@@ -2624,7 +2636,7 @@ BEGIN
       (*         end                                                   *)
       (*      else                                                     *)
       (*         lg2 = VAL(desLowestType, -inc)                  [s8]  *)
-      lg2 := BuildConvert(Mod2Gcc(desLowestType), BuildNegate(location, inc, FALSE), FALSE) ;
+      lg2 := BuildConvert(location, Mod2Gcc(desLowestType), BuildNegate(location, inc, FALSE), FALSE) ;
       (*         if lg2 > des                                          *)
       (*             error                                             *)
       c8 := BuildGreaterThan(location, lg2, Mod2Gcc(des)) ;
@@ -2709,7 +2721,7 @@ BEGIN
 *)
       t := Mod2Gcc(des) ;
       location := TokenToLocation(tokenNo) ;
-      condition := BuildEqualTo(location, BuildConvert(GetPointerType(), t, FALSE), GetPointerZero()) ;
+      condition := BuildEqualTo(location, BuildConvert(location, GetPointerType(), t, FALSE), GetPointerZero(location)) ;
       AddStatement(BuildIfCallHandler(condition, r, scopeDesc, TRUE))
    END
 END CodeNil ;
@@ -2736,7 +2748,7 @@ BEGIN
          location := TokenToLocation(tokenno) ;
          e := ZConstToTypedConst(LValueToGenericPtr(expr), expr, des) ;
          condition := BuildLessThanOrEqual(location,
-                                           e, BuildConvert(Mod2Gcc(SkipType(GetType(des))),
+                                           e, BuildConvert(location, Mod2Gcc(SkipType(GetType(des))),
                                                            Mod2Gcc(MakeConstLit(MakeKey('0'))), FALSE)) ;
          AddStatement(BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
       ELSE
@@ -2767,7 +2779,7 @@ BEGIN
          location := TokenToLocation(tokenno) ;
          e := ZConstToTypedConst(LValueToGenericPtr(expr), expr, des) ;
          condition := BuildEqualTo(location,
-                                   e, BuildConvert(GetTreeType(e),
+                                   e, BuildConvert(location, GetTreeType(e),
                                                    Mod2Gcc(MakeConstLit(MakeKey('0'))), FALSE)) ;
          AddStatement(BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
       ELSE

@@ -861,23 +861,23 @@ BEGIN
    r := NIL ;
    i := 0 ;
    WHILE (i<GetBitsPerBitset()) AND
-         (CompareTrees(GetIntegerZero(), t)#0) DO
-      IF CompareTrees(GetIntegerOne(),
-                      BuildLogicalAnd(l, t, GetIntegerOne(), FALSE))=0
+         (CompareTrees(GetIntegerZero(l), t)#0) DO
+      IF CompareTrees(GetIntegerOne(l),
+                      BuildLogicalAnd(l, t, GetIntegerOne(l), FALSE))=0
       THEN
          PushCard(i) ;
          c := Val(tokenno, SkipType(sym), PopIntegerTree()) ;
          DeclareConstant(tokenno, c) ;
          r := AddRange(r, c, c)
       END ;
-      t := BuildLSR(l, t, GetIntegerOne(), FALSE) ;
+      t := BuildLSR(l, t, GetIntegerOne(l), FALSE) ;
       INC(i)
    END ;
    SortElements(tokenno, r) ;
    CombineElements(tokenno, r) ;
    v := New() ;
    WITH v^ DO
-      location        := TokenToLocation(tokenno) ;
+      location        := l ;
       type            := set ;
       constructorType := sym ;
       areAllConstants := FALSE ;
@@ -4743,7 +4743,9 @@ VAR
    high, low: CARDINAL ;
    value,
    indice   : Tree ;
+   location : location_t ;
 BEGIN
+   location := TokenToLocation(tokenno) ;
    GetArrayLimits(baseType, low, high) ;
    l := 0 ;
    s := NIL ;
@@ -4778,12 +4780,12 @@ BEGIN
          ELSE
             letter := Slice(s, i, 0)
          END ;
-         value := BuildCharConstant(string(letter)) ;
+         value := BuildCharConstant(location, string(letter)) ;
       ELSE
          letter := InitStringChar(nul) ;
-         value := BuildCharConstant(string(letter))
+         value := BuildCharConstant(location, string(letter))
       END ;
-      value := ConvertConstantAndCheck(TokenToLocation(tokenno), Mod2Gcc(arrayType), value) ;
+      value := ConvertConstantAndCheck(location, Mod2Gcc(arrayType), value) ;
       letter := KillString(letter) ;
       BuildArrayConstructorElement(cons, value, indice) ;
       PushValue(low) ;
@@ -4939,12 +4941,12 @@ BEGIN
    REPEAT
       IF t=Tree(NIL)
       THEN
-         t := BuildLSL(location, GetWordOne(), ToWord(i), FALSE)
+         t := BuildLSL(location, GetWordOne(location), ToWord(location, i), FALSE)
       ELSE
-         t := BuildLogicalOr(location, t, BuildLSL(location, GetWordOne(), ToWord(i), FALSE), FALSE)
+         t := BuildLogicalOr(location, t, BuildLSL(location, GetWordOne(location), ToWord(location, i), FALSE), FALSE)
       END ;
       PushIntegerTree(i) ;
-      PushIntegerTree(GetIntegerOne()) ;
+      PushIntegerTree(GetIntegerOne(location)) ;
       Addn ;
       i := PopIntegerTree() ;
       PushIntegerTree(i) ;
@@ -4968,24 +4970,25 @@ VAR
    r1, r2  : CARDINAL ;
    location: location_t ;
 BEGIN
-   low := ToInteger(low) ;
-   high := ToInteger(high) ;
+   location := TokenToLocation(tokenno) ;
+   low := ToInteger(location, low) ;
+   high := ToInteger(location, high) ;
    n := 1 ;
-   t := GetCardinalZero() ;
+   t := GetCardinalZero(location) ;
    WHILE GetRange(v, n, r1, r2) DO
       PushValue(r1) ;
-      tl := ToInteger(PopIntegerTree()) ;
+      tl := ToInteger(location, PopIntegerTree()) ;
       PushValue(r2) ;
-      th := ToInteger(PopIntegerTree()) ;
+      th := ToInteger(location, PopIntegerTree()) ;
       IF IsIntersectionTree(tokenno, tl, th, low, high)
       THEN
-         tl := ToCardinal(SubTree(MaxTree(tokenno, tl, low), low)) ;
-         th := ToCardinal(SubTree(MinTree(tokenno, th, high), low)) ;
+         tl := ToCardinal(location, SubTree(MaxTree(tokenno, tl, low), low)) ;
+         th := ToCardinal(location, SubTree(MinTree(tokenno, th, high), low)) ;
          t := BuildLogicalOr(location, t, BuildRange(tokenno, tl, th), FALSE)
       END ;
       INC(n)
    END ;
-   RETURN( ToBitset(t) )
+   RETURN( ToBitset(location, t) )
 END BuildBitset ;
 
 

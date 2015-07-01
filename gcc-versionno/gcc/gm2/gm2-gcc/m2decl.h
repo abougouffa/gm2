@@ -59,7 +59,6 @@ EXTERN tree m2decl_DeclareKnownVariable (location_t location, char *name, tree t
 					 int imported, int istemporary,
 					 int isglobal, tree scope);
 
-EXTERN tree m2decl_BuildCharConstant (char *string);
 EXTERN tree m2decl_BuildStringConstantType (int length, const char *string, tree type);
 EXTERN tree m2decl_BuildIntegerConstant (int value);
 

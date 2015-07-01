@@ -20,7 +20,7 @@ PROCEDURE BuildSubrangeType (location: location_t; name: ADDRESS; type: Tree; lo
     BuildCharConstant - creates a character constant given a, string.
 *)
 
-PROCEDURE BuildCharConstant (string: ADDRESS) : Tree ;
+PROCEDURE BuildCharConstant (location: location_t; string: ADDRESS) : Tree ;
 
 
 (*

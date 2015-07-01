@@ -122,10 +122,10 @@ m2expr_StringLength (tree string)
 
 static
 tree
-CheckAddressToCardinal (tree op)
+CheckAddressToCardinal (location_t location, tree op)
 {
   if (m2type_IsAddress (TREE_TYPE (op)))
-    return m2convert_BuildConvert (m2type_GetCardinalAddressType (), op, FALSE);
+    return m2convert_BuildConvert (location, m2type_GetCardinalAddressType (), op, FALSE);
   return op;
 }
 
@@ -144,8 +144,8 @@ m2expr_BuildAdd (location_t location, tree op1, tree op2, int needconvert)
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
 
-  op1 = CheckAddressToCardinal (op1);
-  op2 = CheckAddressToCardinal (op2);
+  op1 = CheckAddressToCardinal (location, op1);
+  op2 = CheckAddressToCardinal (location, op2);
 
   t = m2expr_build_binary_op (location, PLUS_EXPR, op1, op2, needconvert);
   return m2expr_FoldAndStrip (t);
@@ -166,8 +166,8 @@ m2expr_BuildSub (location_t location, tree op1, tree op2, int needconvert)
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
 
-  op1 = CheckAddressToCardinal (op1);
-  op2 = CheckAddressToCardinal (op2);
+  op1 = CheckAddressToCardinal (location, op1);
+  op2 = CheckAddressToCardinal (location, op2);
 
   t = m2expr_build_binary_op (location, MINUS_EXPR, op1, op2, needconvert);
   return m2expr_FoldAndStrip (t);
@@ -188,8 +188,8 @@ m2expr_BuildDivTrunc (location_t location, tree op1, tree op2, int needconvert)
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
 
-  op1 = CheckAddressToCardinal (op1);
-  op2 = CheckAddressToCardinal (op2);
+  op1 = CheckAddressToCardinal (location, op1);
+  op2 = CheckAddressToCardinal (location, op2);
 
   t = m2expr_build_binary_op (location, TRUNC_DIV_EXPR, op1, op2, needconvert);
   return m2expr_FoldAndStrip (t);
@@ -210,8 +210,8 @@ m2expr_BuildModTrunc (location_t location, tree op1, tree op2, int needconvert)
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
 
-  op1 = CheckAddressToCardinal (op1);
-  op2 = CheckAddressToCardinal (op2);
+  op1 = CheckAddressToCardinal (location, op1);
+  op2 = CheckAddressToCardinal (location, op2);
 
   t = m2expr_build_binary_op (location, TRUNC_MOD_EXPR, op1, op2, needconvert);
   return m2expr_FoldAndStrip (t);
@@ -232,8 +232,8 @@ m2expr_BuildDivFloor (location_t location, tree op1, tree op2, int needconvert)
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
 
-  op1 = CheckAddressToCardinal (op1);
-  op2 = CheckAddressToCardinal (op2);
+  op1 = CheckAddressToCardinal (location, op1);
+  op2 = CheckAddressToCardinal (location, op2);
 
   t = m2expr_build_binary_op (location, FLOOR_DIV_EXPR, op1, op2, needconvert);
   return m2expr_FoldAndStrip (t);
@@ -274,8 +274,8 @@ m2expr_BuildModFloor (location_t location, tree op1, tree op2, int needconvert)
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
 
-  op1 = CheckAddressToCardinal (op1);
-  op2 = CheckAddressToCardinal (op2);
+  op1 = CheckAddressToCardinal (location, op1);
+  op2 = CheckAddressToCardinal (location, op2);
 
   t = m2expr_build_binary_op (location, FLOOR_MOD_EXPR, op1, op2, needconvert);
   return m2expr_FoldAndStrip (t);
@@ -359,35 +359,35 @@ m2expr_BuildLogicalShift (location_t location, tree op1, tree op2, tree op3,
   op2 = m2expr_FoldAndStrip (op2);
   op3 = m2expr_FoldAndStrip (op3);
   if (TREE_CODE (op3) == INTEGER_CST) {
-    op2 = m2convert_ToWord (op2);
+    op2 = m2convert_ToWord (location, op2);
     if (tree_int_cst_sgn (op3) < 0)
       res = m2expr_BuildLSR (location, op2,
-                             m2convert_ToWord (m2expr_BuildNegate (location, op3, needconvert)),
+                             m2convert_ToWord (location, m2expr_BuildNegate (location, op3, needconvert)),
                              needconvert);
     else
-      res = m2expr_BuildLSL (location, op2, m2convert_ToWord (op3), needconvert);
-    res = m2convert_BuildConvert (m2tree_skip_type_decl (TREE_TYPE (op1)), res, FALSE);
+      res = m2expr_BuildLSL (location, op2, m2convert_ToWord (location, op3), needconvert);
+    res = m2convert_BuildConvert (location, m2tree_skip_type_decl (TREE_TYPE (op1)), res, FALSE);
     m2statement_BuildAssignmentTree (location, op1, res);
   }
   else {
     char *labelElseName = createUniqueLabel ();
     char *labelEndName  = createUniqueLabel ();
     tree  is_less       = m2expr_BuildLessThan (location,
-						m2convert_ToInteger (op3),
-						m2expr_GetIntegerZero ());
+						m2convert_ToInteger (location, op3),
+						m2expr_GetIntegerZero (location));
 
     m2statement_DoJump (location, is_less, NULL, labelElseName);
-    op2 = m2convert_ToWord (op2);
-    op3 = m2convert_ToWord (op3);
+    op2 = m2convert_ToWord (location, op2);
+    op3 = m2convert_ToWord (location, op3);
     res = m2expr_BuildLSL (location, op2, op3, needconvert);
-    res = m2convert_BuildConvert (m2tree_skip_type_decl (TREE_TYPE (op1)), res, FALSE);
+    res = m2convert_BuildConvert (location, m2tree_skip_type_decl (TREE_TYPE (op1)), res, FALSE);
     m2statement_BuildAssignmentTree (location, op1, res);
     m2statement_BuildGoto (location, labelEndName);
     m2statement_DeclareLabel (location, labelElseName);
     res = m2expr_BuildLSR (location, op2,
                            m2expr_BuildNegate (location, op3, needconvert),
                            needconvert);
-    res = m2convert_BuildConvert (m2tree_skip_type_decl (TREE_TYPE (op1)), res, FALSE);
+    res = m2convert_BuildConvert (location, m2tree_skip_type_decl (TREE_TYPE (op1)), res, FALSE);
     m2statement_BuildAssignmentTree (location, op1, res);
     m2statement_DeclareLabel (location, labelEndName);
   }
@@ -440,9 +440,9 @@ m2expr_BuildLRR (location_t location, tree op1, tree op2, int needconvert)
 tree
 m2expr_BuildMask (location_t location, tree nBits, int needconvert)
 {
-  tree mask = m2expr_BuildLSL (location, m2expr_GetIntegerOne (), nBits, needconvert);
+  tree mask = m2expr_BuildLSL (location, m2expr_GetIntegerOne (location), nBits, needconvert);
   m2assert_AssertLocation (location);
-  return m2expr_BuildSub (location, mask, m2expr_GetIntegerOne (), needconvert);
+  return m2expr_BuildSub (location, mask, m2expr_GetIntegerOne (location), needconvert);
 }
 
 
@@ -498,8 +498,8 @@ m2expr_BuildLRLn (location_t location, tree op1, tree op2, tree nBits,
    *  ensure we wrap the rotate
    */
   op2min = m2expr_BuildModTrunc (location,
-				 m2convert_ToCardinal (op2),
-				 m2convert_ToCardinal (nBits), needconvert);
+				 m2convert_ToCardinal (location, op2),
+				 m2convert_ToCardinal (location, nBits), needconvert);
   /*
    *  optimize if we are we going to rotate a TSIZE(BITSET) set
    */
@@ -518,7 +518,7 @@ m2expr_BuildLRLn (location_t location, tree op1, tree op2, tree nBits,
     left = m2expr_BuildLogicalAnd (location, left, mask, needconvert);
     right = m2expr_BuildLSR (location, 
 			     op1, m2expr_BuildSub (location,
-						   m2convert_ToCardinal (nBits), op2min, needconvert),
+						   m2convert_ToCardinal (location, nBits), op2min, needconvert),
                              needconvert);
     return m2expr_BuildLogicalOr (location, left, right, needconvert);
   }
@@ -540,8 +540,8 @@ m2expr_BuildLRRn (location_t location, tree op1, tree op2, tree nBits, int needc
    *  ensure we wrap the rotate
    */
   op2min = m2expr_BuildModTrunc (location,
-				 m2convert_ToCardinal (op2),
-				 m2convert_ToCardinal (nBits),
+				 m2convert_ToCardinal (location, op2),
+				 m2convert_ToCardinal (location, nBits),
 				 needconvert);
   /*
    *  optimize if we are we going to rotate a TSIZE(BITSET) set
@@ -560,7 +560,7 @@ m2expr_BuildLRRn (location_t location, tree op1, tree op2, tree nBits, int needc
     right = m2expr_BuildLSR (location, op1, op2min, needconvert);
     left = m2expr_BuildLSL (location,
 			    op1, m2expr_BuildSub (location,
-						  m2convert_ToCardinal (nBits), op2min, needconvert),
+						  m2convert_ToCardinal (location, nBits), op2min, needconvert),
                             needconvert);
     left = m2expr_BuildLogicalAnd (location, left, mask, needconvert);
     return m2expr_BuildLogicalOr (location, left, right, needconvert);
@@ -596,8 +596,8 @@ m2expr_BuildLogicalRotate (location_t location,
     char *labelElseName = createUniqueLabel ();
     char *labelEndName  = createUniqueLabel ();
     tree  is_less       = m2expr_BuildLessThan (location,
-						m2convert_ToInteger (op3),
-						m2expr_GetIntegerZero ());
+						m2convert_ToInteger (location, op3),
+						m2expr_GetIntegerZero (location));
 
     m2statement_DoJump (location, is_less, NULL, labelElseName);
     res = m2expr_BuildLRLn (location, op2, op3, nBits, needconvert);
@@ -677,9 +677,9 @@ m2expr_BuildBinarySetDo (location_t location, tree settype, tree op1, tree op2, 
   else {
     tree result;
     tree high = m2expr_BuildSub (location,
-				 m2convert_ToCardinal (m2expr_BuildDivTrunc (location, size,
-									     m2expr_GetSizeOf (location, m2type_GetBitsetType ()), FALSE)),
-                                 m2expr_GetCardinalOne (), FALSE);
+				 m2convert_ToCardinal (location, m2expr_BuildDivTrunc (location, size,
+										       m2expr_GetSizeOf (location, m2type_GetBitsetType ()), FALSE)),
+                                 m2expr_GetCardinalOne (location), FALSE);
 
     /*
      * if op3 is constant
@@ -694,7 +694,7 @@ m2expr_BuildBinarySetDo (location_t location, tree settype, tree op1, tree op2, 
         op3 = m2expr_BuildNegate (location, op3, FALSE);
       else
         is_left = TRUE;
-      op3 = m2convert_BuildConvert (m2type_GetM2CardinalType (), op3, FALSE);
+      op3 = m2convert_BuildConvert (location, m2type_GetM2CardinalType (), op3, FALSE);
     }
 
     /*
@@ -707,20 +707,22 @@ m2expr_BuildBinarySetDo (location_t location, tree settype, tree op1, tree op2, 
 
     /* parameter 4 amount */
     m2statement_BuildParam (location,
-			    m2convert_BuildConvert (m2type_GetM2IntegerType(),
+			    m2convert_BuildConvert (location,
+						    m2type_GetM2IntegerType(),
 						    m2treelib_get_rvalue (location,
 								op3, m2tree_skip_type_decl (TREE_TYPE (op3)),
 								is_op3lvalue), FALSE));
 
     /* parameter 3 nBits */
     m2statement_BuildParam (location,
-			    m2convert_BuildConvert (m2type_GetM2CardinalType(), m2expr_FoldAndStrip (nBits), FALSE));
+			    m2convert_BuildConvert (location,
+						    m2type_GetM2CardinalType(), m2expr_FoldAndStrip (nBits), FALSE));
 
     /* parameter 2 destination set */
     m2statement_BuildParam (location,
 			    buildUnboundedArrayOf (unbounded,
 						   m2treelib_get_set_address (location, op1, 
-								    is_op1lvalue),
+									      is_op1lvalue),
 						   high));
 
     /* parameter 1 source set */
@@ -1052,7 +1054,8 @@ m2expr_BuildSetNegate (location_t location, tree op1, int needconvert)
   m2assert_AssertLocation (location);
 
   return m2expr_build_binary_op (location, BIT_XOR_EXPR,
-				 m2convert_BuildConvert (m2type_GetWordType (),
+				 m2convert_BuildConvert (location,
+							 m2type_GetWordType (),
 							 m2expr_FoldAndStrip (op1), FALSE),
 				 set_full_complement,
 				 needconvert);
@@ -1071,8 +1074,8 @@ m2expr_BuildMult (location_t location, tree op1, tree op2, int needconvert)
 
   m2assert_AssertLocation (location);
 
-  op1 = CheckAddressToCardinal (op1);
-  op2 = CheckAddressToCardinal (op2);
+  op1 = CheckAddressToCardinal (location, op1);
+  op2 = CheckAddressToCardinal (location, op2);
 
   return m2expr_build_binary_op (location, MULT_EXPR,
 				 op1, op2, needconvert);
@@ -1147,20 +1150,20 @@ calcNbits (location_t location, tree min, tree max)
   
   if (t == NULL)
     {
-      if (m2expr_CompareTrees (min, m2expr_GetIntegerZero ()) < 0)
+      if (m2expr_CompareTrees (min, m2expr_GetIntegerZero (location)) < 0)
 	{
-	  min = m2expr_BuildAdd (location, min, m2expr_GetIntegerOne (), FALSE);
+	  min = m2expr_BuildAdd (location, min, m2expr_GetIntegerOne (location), FALSE);
 	  min = fold (m2expr_BuildNegate (location, min, FALSE));
 	  negative = TRUE;
 	}
-      if (m2expr_CompareTrees (max, m2expr_GetIntegerZero ()) < 0)
+      if (m2expr_CompareTrees (max, m2expr_GetIntegerZero (location)) < 0)
 	{
 	  max = fold (m2expr_BuildNegate (location, max, FALSE));
 	  negative = TRUE;
 	}
       t = noBitsRequired (getMax (min, max));
       if (negative)
-	t = m2expr_BuildAdd (location, t, m2expr_GetIntegerOne (), FALSE);
+	t = m2expr_BuildAdd (location, t, m2expr_GetIntegerOne (location), FALSE);
     }
   return t;
 }
@@ -1184,11 +1187,11 @@ m2expr_BuildTBitSize (location_t location, tree type)
     return m2expr_BuildTBitSize (location, TREE_TYPE (type));
   case INTEGER_TYPE:
   case ENUMERAL_TYPE:
-    max = m2convert_BuildConvert (m2type_GetIntegerType (), TYPE_MAX_VALUE (type), FALSE);
-    min = m2convert_BuildConvert (m2type_GetIntegerType (), TYPE_MIN_VALUE (type), FALSE);
+    max = m2convert_BuildConvert (location, m2type_GetIntegerType (), TYPE_MAX_VALUE (type), FALSE);
+    min = m2convert_BuildConvert (location, m2type_GetIntegerType (), TYPE_MIN_VALUE (type), FALSE);
     return calcNbits (location, min, max);
   case BOOLEAN_TYPE:
-    return m2expr_GetIntegerOne ();
+    return m2expr_GetIntegerOne (location);
   default:
     return m2expr_BuildMult (location,
 			     m2expr_GetSizeOf (location, type),
@@ -1226,10 +1229,6 @@ m2expr_BuildAddr (location_t location, tree op1, int needconvert ATTRIBUTE_UNUSE
 
   if (! gm2_mark_addressable (op1))
     error_at (location, "cannot take the address of this expression");
-
-#if 0
-  op1 = m2convert_BuildConvert (type, op1, FALSE);
-#endif
 
   result = build1 (ADDR_EXPR, ptrType, op1);
   protected_set_expr_location (result, location);
@@ -1312,7 +1311,8 @@ m2expr_BuildOffset (location_t location,
   m2assert_AssertLocation (location);
 
   if (DECL_CONTEXT (field) == record)
-    return m2convert_BuildConvert (m2type_GetIntegerType (),
+    return m2convert_BuildConvert (location,
+				   m2type_GetIntegerType (),
 				   m2expr_BuildAdd (location,
 						    DECL_FIELD_OFFSET (field),
 						    m2expr_BuildDivTrunc (location,
@@ -1324,7 +1324,8 @@ m2expr_BuildOffset (location_t location,
   else {
     tree r1 = DECL_CONTEXT (field);
     tree r2 = determinePenultimateField (record, field);
-    return m2convert_BuildConvert (m2type_GetIntegerType (),
+    return m2convert_BuildConvert (location,
+				   m2type_GetIntegerType (),
 				   m2expr_BuildAdd (location,
 						    m2expr_BuildOffset (location, r1, field, needconvert),
 						    m2expr_BuildOffset (location, record, r2, needconvert),
@@ -1358,8 +1359,8 @@ m2expr_BuildLogicalOr (location_t location, tree op1, tree op2,
 {
   m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, BIT_IOR_EXPR,
-				 m2convert_BuildConvert (m2type_GetWordType (), op1, FALSE),
-				 m2convert_BuildConvert (m2type_GetWordType (), op2, FALSE), needconvert);
+				 m2convert_BuildConvert (location, m2type_GetWordType (), op1, FALSE),
+				 m2convert_BuildConvert (location, m2type_GetWordType (), op2, FALSE), needconvert);
 }
 
 
@@ -1373,8 +1374,8 @@ m2expr_BuildLogicalAnd (location_t location, tree op1, tree op2,
 {
   m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, BIT_AND_EXPR,
-				 m2convert_BuildConvert (m2type_GetWordType (), op1, FALSE),
-				 m2convert_BuildConvert (m2type_GetWordType (), op2, FALSE), needconvert);
+				 m2convert_BuildConvert (location, m2type_GetWordType (), op1, FALSE),
+				 m2convert_BuildConvert (location, m2type_GetWordType (), op2, FALSE), needconvert);
 }
 
 
@@ -1388,8 +1389,8 @@ m2expr_BuildSymmetricDifference (location_t location, tree op1, tree op2,
 {
   m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, BIT_XOR_EXPR,
-				 m2convert_BuildConvert (m2type_GetWordType (), op1, FALSE),
-				 m2convert_BuildConvert (m2type_GetWordType (), op2, FALSE), needconvert);
+				 m2convert_BuildConvert (location, m2type_GetWordType (), op1, FALSE),
+				 m2convert_BuildConvert (location, m2type_GetWordType (), op2, FALSE), needconvert);
 }
 
 
@@ -1405,7 +1406,7 @@ m2expr_BuildLogicalDifference (location_t location, tree op1, tree op2,
 {
   m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, BIT_AND_EXPR,
-				 m2convert_BuildConvert (m2type_GetWordType (), op1, FALSE),
+				 m2convert_BuildConvert (location, m2type_GetWordType (), op1, FALSE),
 				 m2expr_BuildSetNegate (location, op2, needconvert),
 				 needconvert);
 }
@@ -1436,7 +1437,7 @@ base_type (tree type)
  */
 
 static tree
-boolean_enum_to_unsigned (tree t)
+boolean_enum_to_unsigned (location_t location, tree t)
 {
   tree type = TREE_TYPE (t);
 
@@ -1445,9 +1446,9 @@ boolean_enum_to_unsigned (tree t)
     return convert (integer_type_node, t);
 #endif
   if (TREE_CODE (base_type (type)) == BOOLEAN_TYPE)
-    return m2convert_BuildConvert (unsigned_type_node, t, FALSE);
+    return m2convert_BuildConvert (location, unsigned_type_node, t, FALSE);
   else if (TREE_CODE (base_type (type)) == ENUMERAL_TYPE)
-    return m2convert_BuildConvert (unsigned_type_node, t, FALSE);
+    return m2convert_BuildConvert (location, unsigned_type_node, t, FALSE);
   else
     return t;
 }
@@ -1480,7 +1481,7 @@ static tree
 convert_for_comparison (location_t location, tree op)
 {
   m2assert_AssertLocation (location);
-  op = boolean_enum_to_unsigned (op);
+  op = boolean_enum_to_unsigned (location, op);
 
   op = check_for_comparison (location, op, m2type_GetISOWordType (), m2type_GetWordType ());
   op = check_for_comparison (location, op, m2type_GetM2Word16 (), m2type_GetM2Cardinal16 ());
@@ -1500,8 +1501,8 @@ m2expr_BuildLessThan (location_t location, tree op1, tree op2)
 {
   m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, LT_EXPR,
-				 boolean_enum_to_unsigned (op1),
-				 boolean_enum_to_unsigned (op2), TRUE);
+				 boolean_enum_to_unsigned (location, op1),
+				 boolean_enum_to_unsigned (location, op2), TRUE);
 }
 
 
@@ -1514,8 +1515,8 @@ m2expr_BuildGreaterThan (location_t location, tree op1, tree op2)
 {
   m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, GT_EXPR,
-				 boolean_enum_to_unsigned (op1),
-				 boolean_enum_to_unsigned (op2), TRUE);
+				 boolean_enum_to_unsigned (location, op1),
+				 boolean_enum_to_unsigned (location, op2), TRUE);
 }
 
 
@@ -1528,8 +1529,8 @@ m2expr_BuildLessThanOrEqual (location_t location, tree op1, tree op2)
 {
   m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, LE_EXPR,
-				 boolean_enum_to_unsigned (op1),
-				 boolean_enum_to_unsigned (op2), TRUE);
+				 boolean_enum_to_unsigned (location, op1),
+				 boolean_enum_to_unsigned (location, op2), TRUE);
 }
 
 
@@ -1542,8 +1543,8 @@ m2expr_BuildGreaterThanOrEqual (location_t location, tree op1, tree op2)
 {
   m2assert_AssertLocation (location);
   return m2expr_build_binary_op (location, GE_EXPR,
-				 boolean_enum_to_unsigned (op1),
-				 boolean_enum_to_unsigned (op2), TRUE);
+				 boolean_enum_to_unsigned (location, op1),
+				 boolean_enum_to_unsigned (location, op2), TRUE);
 }
 
 
@@ -1699,8 +1700,8 @@ m2expr_BuildIfVarInVar (location_t location,
   tree size = m2expr_GetSizeOf (location, type);
   /* calculate the index from the first bit, ie bit 0 represents low value */
   tree index = m2expr_BuildSub (location,
-				m2convert_BuildConvert (m2type_GetIntegerType(), varel, FALSE),
-                                m2convert_BuildConvert (m2type_GetIntegerType(), low, FALSE), FALSE);
+				m2convert_BuildConvert (location, m2type_GetIntegerType(), varel, FALSE),
+                                m2convert_BuildConvert (location, m2type_GetIntegerType(), low, FALSE), FALSE);
 
   m2assert_AssertLocation (location);
 
@@ -1718,7 +1719,7 @@ m2expr_BuildIfVarInVar (location_t location,
 								   FALSE));
 
     /* calculate the address of the word we are interested in */
-    p1 = m2expr_BuildAddAddress (location, m2convert_convertToPtr (p1), p2);
+    p1 = m2expr_BuildAddAddress (location, m2convert_convertToPtr (location, p1), p2);
 
     /* fetch the word, extract the bit and test for != 0 */
     m2treelib_do_jump_if_bit (location, NE_EXPR, m2expr_BuildIndirect (location, p1, m2type_GetBitsetType ()), offset_into_word, label);
@@ -1741,8 +1742,8 @@ m2expr_BuildIfNotVarInVar (location_t location,
   tree size = m2expr_GetSizeOf (location, type);
   /* calculate the index from the first bit, ie bit 0 represents low value */
   tree index = m2expr_BuildSub (location,
-				m2convert_BuildConvert (m2type_GetIntegerType(), m2expr_FoldAndStrip (varel), FALSE),
-                                m2convert_BuildConvert (m2type_GetIntegerType(), m2expr_FoldAndStrip (low), FALSE), FALSE);
+				m2convert_BuildConvert (location, m2type_GetIntegerType(), m2expr_FoldAndStrip (varel), FALSE),
+                                m2convert_BuildConvert (location, m2type_GetIntegerType(), m2expr_FoldAndStrip (low), FALSE), FALSE);
 
   index = m2expr_FoldAndStrip (index);
   m2assert_AssertLocation (location);
@@ -1908,7 +1909,7 @@ m2expr_BuildIndirect (location_t location ATTRIBUTE_UNUSED, tree target, tree ty
 
   m2assert_AssertLocation (location);
 
-  return build1 (INDIRECT_REF, t1, m2convert_BuildConvert (t2, target, FALSE));
+  return build1 (INDIRECT_REF, t1, m2convert_BuildConvert (location, t2, target, FALSE));
 }
 
 
@@ -2091,7 +2092,7 @@ m2expr_BuildIm (tree op1)
  */
 
 tree
-m2expr_BuildCmplx (tree type, tree real, tree imag)
+m2expr_BuildCmplx (location_t location, tree type, tree real, tree imag)
 {
   tree scalor;
   real = m2expr_FoldAndStrip (real);
@@ -2100,9 +2101,9 @@ m2expr_BuildCmplx (tree type, tree real, tree imag)
   scalor = TREE_TYPE (type);
 
   if (scalor != TREE_TYPE (real))
-    real = m2convert_BuildConvert (scalor, real, FALSE);
+    real = m2convert_BuildConvert (location, scalor, real, FALSE);
   if (scalor != TREE_TYPE (imag))
-    imag = m2convert_BuildConvert (scalor, imag, FALSE);
+    imag = m2convert_BuildConvert (location, scalor, imag, FALSE);
 
   if ((TREE_CODE (real) == REAL_CST) && (TREE_CODE (imag) == REAL_CST))
     return build_complex (type, real, imag);
@@ -2494,51 +2495,51 @@ m2expr_GetSizeOf (location_t location, tree type)
 }
 
 tree
-m2expr_GetIntegerZero (void)
+m2expr_GetIntegerZero (location_t location ATTRIBUTE_UNUSED)
 {
   return integer_zero_node;
 }
 
 tree
-m2expr_GetIntegerOne (void)
+m2expr_GetIntegerOne (location_t location ATTRIBUTE_UNUSED)
 {
   return integer_one_node;
 }
 
 tree
-m2expr_GetCardinalOne (void)
+m2expr_GetCardinalOne (location_t location)
 {
-  return m2convert_ToCardinal (integer_one_node);
+  return m2convert_ToCardinal (location, integer_one_node);
 }
 
 tree
-m2expr_GetCardinalZero (void)
+m2expr_GetCardinalZero (location_t location)
 {
-  return m2convert_ToCardinal (integer_zero_node);
+  return m2convert_ToCardinal (location, integer_zero_node);
 }
 
 tree
-m2expr_GetWordZero (void)
+m2expr_GetWordZero (location_t location)
 {
-  return m2convert_ToWord (integer_zero_node);
+  return m2convert_ToWord (location, integer_zero_node);
 }
 
 tree
-m2expr_GetWordOne (void)
+m2expr_GetWordOne (location_t location)
 {
-  return m2convert_ToWord (integer_one_node);
+  return m2convert_ToWord (location, integer_one_node);
 }
 
 tree
-m2expr_GetPointerZero (void)
+m2expr_GetPointerZero (location_t location)
 {
-  return m2convert_convertToPtr (integer_zero_node);
+  return m2convert_convertToPtr (location, integer_zero_node);
 }
 
 tree
-m2expr_GetPointerOne (void)
+m2expr_GetPointerOne (location_t location)
 {
-  return m2convert_convertToPtr (integer_one_node);
+  return m2convert_convertToPtr (location, integer_one_node);
 }
 
 
@@ -2557,8 +2558,8 @@ build_set_full_complement (location_t location)
   for (i=0; i<SET_WORD_SIZE; i++) {
     value = m2expr_BuildLogicalOr(location, value,
                                   m2expr_BuildLSL (location,
-						   m2expr_GetWordOne(),
-                                                   m2convert_BuildConvert (m2type_GetWordType (), m2decl_BuildIntegerConstant (i), FALSE),
+						   m2expr_GetWordOne(location),
+                                                   m2convert_BuildConvert (location, m2type_GetWordType (), m2decl_BuildIntegerConstant (i), FALSE),
                                                    FALSE),
                                   FALSE);
   }

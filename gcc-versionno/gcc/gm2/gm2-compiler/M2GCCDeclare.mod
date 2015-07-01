@@ -143,7 +143,7 @@ FROM M2ALU IMPORT Addn, Sub, Equ, GreEqu, Gre, Less, PushInt, PushCard, ConvertT
 
 FROM M2Batch IMPORT IsSourceSeen, GetModuleFile, IsModuleSeen, LookupModule ;
 FROM m2tree IMPORT Tree ;
-FROM m2linemap IMPORT location_t ;
+FROM m2linemap IMPORT location_t, BuiltinsLocation ;
 
 FROM m2decl IMPORT BuildIntegerConstant, BuildStringConstant, BuildStartFunctionDeclaration,
                    BuildParameterDeclaration, BuildEndFunctionDeclaration,
@@ -1643,8 +1643,11 @@ END DeclareConstantFromTree ;
 *)
 
 PROCEDURE DeclareCharConstant (sym: CARDINAL) ;
+VAR
+   location: location_t ;
 BEGIN
-   PreAddModGcc(sym, BuildCharConstant(KeyToCharStar(GetString(sym)))) ;
+   location := TokenToLocation(GetDeclaredMod(sym)) ;
+   PreAddModGcc(sym, BuildCharConstant(location, KeyToCharStar(GetString(sym)))) ;
    WatchRemoveList(sym, todolist) ;
    WatchIncludeList(sym, fullydeclared)
 END DeclareCharConstant ;
@@ -1655,7 +1658,10 @@ END DeclareCharConstant ;
 *)
 
 PROCEDURE DeclareStringConstant (sym: CARDINAL) ;
+VAR
+   location: location_t ;
 BEGIN
+   location := TokenToLocation(GetDeclaredMod(sym)) ;
    PreAddModGcc(sym, BuildStringConstant(KeyToCharStar(GetString(sym)),
                                          GetStringLength(sym))) ;
    WatchRemoveList(sym, todolist) ;
@@ -1674,7 +1680,9 @@ END DeclareStringConstant ;
 PROCEDURE PromoteToString (tokenno: CARDINAL; sym: CARDINAL) : Tree ;
 VAR
    size: CARDINAL ;
+   location: location_t ;
 BEGIN
+   location := TokenToLocation(GetDeclaredMod(sym)) ;
    DeclareConstant(tokenno, sym) ;
    size := GetStringLength(sym) ;
    IF size>1
@@ -1956,11 +1964,11 @@ BEGIN
          ELSIF IsRealType(SkipType(GetType(sym)))
          THEN
             type := SkipType(GetType(sym)) ;
-            DeclareConstantFromTree(sym, BuildConvert(Mod2Gcc(type), PopRealTree(), FALSE))
+            DeclareConstantFromTree(sym, BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopRealTree(), FALSE))
          ELSIF IsAComplexType(SkipType(GetType(sym)))
          THEN
             type := SkipType(GetType(sym)) ;
-            DeclareConstantFromTree(sym, BuildConvert(Mod2Gcc(type), PopComplexTree(), FALSE))
+            DeclareConstantFromTree(sym, BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopComplexTree(), FALSE))
          ELSE
             IF GetType(sym)=NulSym
             THEN
@@ -1968,13 +1976,10 @@ BEGIN
             ELSE
                type := SkipType(GetType(sym))
             END ;
-            DeclareConstantFromTree(sym, BuildConvert(Mod2Gcc(type), PopIntegerTree(), FALSE))
+            DeclareConstantFromTree(sym, BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopIntegerTree(), FALSE))
          END
       ELSE
-         TraverseDependants(sym) ;
-(*
-         WatchIncludeList(sym, todolist)
-*)
+         TraverseDependants(sym)
       END
    END
 END TryDeclareConst ;
@@ -2028,7 +2033,7 @@ BEGIN
             DeclareConstantFromTree(sym, PopIntegerTree())
          ELSE
             DeclareConstantFromTree(sym,
-                                    BuildConvert(Mod2Gcc(type), PopIntegerTree(), FALSE))
+                                    BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopIntegerTree(), FALSE))
          END
       END
    END ;
@@ -3234,7 +3239,7 @@ END DeclareDefaultTypes ;
 
 PROCEDURE DeclareDefaultConstants ;
 BEGIN
-   AddModGcc(Nil, GetPointerZero()) ;
+   AddModGcc(Nil, GetPointerZero(BuiltinsLocation ())) ;
    IncludeElementIntoSet(FullyDeclared, Nil)
 END DeclareDefaultConstants ;
 
@@ -4376,10 +4381,10 @@ BEGIN
    high := GetTypeMax(type) ;
    highLimit := BuildSub(location, Mod2Gcc(high), Mod2Gcc(low), FALSE) ;
    (* --fixme-- we need to check that low <= WORDLENGTH *)
-   highLimit := BuildLSL(location, GetIntegerOne(), highLimit, FALSE) ;
-   range := BuildSmallestTypeRange(location, GetIntegerZero(), highLimit) ;
+   highLimit := BuildLSL(location, GetIntegerOne(location), highLimit, FALSE) ;
+   range := BuildSmallestTypeRange(location, GetIntegerZero(location), highLimit) ;
    gccsym := BuildSubrangeType(location, KeyToCharStar(GetFullSymName(sym)),
-                               range, GetIntegerZero(), highLimit) ;
+                               range, GetIntegerZero(location), highLimit) ;
    AddModGcc(equiv, gccsym)
 END DeclarePackedSet ;
 
@@ -4561,8 +4566,9 @@ BEGIN
    i := 1 ;
    FieldList := Tree(NIL) ;
    RecordType := DoStartDeclaration(Sym, BuildStartRecord) ;
-   byteOffset := GetIntegerZero() ;
-   bitOffset := GetIntegerZero() ;
+   location := TokenToLocation(GetDeclaredMod(Sym)) ;
+   byteOffset := GetIntegerZero(location) ;
+   bitOffset := GetIntegerZero(location) ;
    REPEAT
       Field := GetNth(Sym, i) ;
       IF Field#NulSym
@@ -4642,8 +4648,9 @@ BEGIN
    i := 1 ;
    FieldList := Tree(NIL) ;
    VarientType := DoStartDeclaration(sym, BuildStartVarient) ;
-   byteOffset := GetIntegerZero() ;
-   bitOffset := GetIntegerZero() ;
+   location := TokenToLocation(GetDeclaredMod(sym)) ;
+   byteOffset := GetIntegerZero(location) ;
+   bitOffset := GetIntegerZero(location) ;
    WHILE GetNth(sym, i)#NulSym DO
       Field := GetNth(sym, i) ;
       IF IsRecordField(Field) AND IsRecordFieldAVarientTag(Field) AND (GetSymName(Field)=NulName)
@@ -4661,7 +4668,6 @@ BEGIN
    WatchRemoveList(sym, partiallydeclared) ;
    WatchRemoveList(sym, heldbyalignment) ;
    WatchRemoveList(sym, finishedalignment) ;
-   location := TokenToLocation(GetDeclaredMod(sym)) ;
    VarientType := BuildEndVarient(location, VarientType, FieldList, IsDeclaredPacked(sym)) ;
    RETURN( VarientType )
 END DeclareVarient ;
@@ -4682,12 +4688,13 @@ VAR
    GccFieldType: Tree ;
    location    : location_t ;
 BEGIN
+   location := TokenToLocation(GetDeclaredMod(sym)) ;
    i := 1 ;
    VarientList := Tree(NIL) ;
    VarientType := DoStartDeclaration(sym, BuildStartFieldVarient) ;
    (* no need to store the [sym, RecordType] tuple as it is stored by DeclareRecord which calls us *)
-   byteOffset := GetIntegerZero() ;
-   bitOffset := GetIntegerZero() ;
+   byteOffset := GetIntegerZero(location) ;
+   bitOffset := GetIntegerZero(location) ;
    WHILE GetNth(sym, i)#NulSym DO
       f := GetNth(sym, i) ;
       IF IsFieldVarient(f) AND IsEmptyFieldVarient(f)
@@ -4703,7 +4710,6 @@ BEGIN
       INC(i)
    END ;
    WatchRemoveList(sym, partiallydeclared) ;
-   location := TokenToLocation(GetDeclaredMod(sym)) ;
    GccFieldType := BuildEndFieldVarient(location, VarientType, VarientList, IsDeclaredPacked(sym)) ;
    RETURN( GccFieldType )
 END DeclareFieldVarient ;

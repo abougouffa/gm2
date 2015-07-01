@@ -9,28 +9,28 @@ FROM m2linemap IMPORT location_t ;
             a WORD.
 *)
 
-PROCEDURE ToWord (expr: Tree) : Tree ;
+PROCEDURE ToWord (location: location_t; expr: Tree) : Tree ;
 
 
 (*
    ToCardinal - convert an expression, expr, to a CARDINAL.
 *)
 
-PROCEDURE ToCardinal (expr: Tree) : Tree ;
+PROCEDURE ToCardinal (location: location_t; expr: Tree) : Tree ;
 
 
 (*
    ToInteger - convert an expression, expr, to an INTEGER.
 *)
 
-PROCEDURE ToInteger (expr: Tree) : Tree ;
+PROCEDURE ToInteger (location: location_t; expr: Tree) : Tree ;
 
 
 (*
    ToBitset - convert an expression, expr, to a BITSET.
 *)
 
-PROCEDURE ToBitset (expr: Tree) : Tree ;
+PROCEDURE ToBitset (location: location_t; expr: Tree) : Tree ;
 
 
 (*
@@ -41,14 +41,12 @@ PROCEDURE ConvertToPtr (p: Tree) : Tree ;
 
 
 (*
-    BuildConvert - build and return tree VAL(op1, op2)
-                   where op1 is the type to which op2
-                   is to be converted.
+    BuildConvert - build and return tree VAL(type, value)
                    checkOverflow determines whether we
                    should suppress overflow checking.
 *)
 
-PROCEDURE BuildConvert (op1: Tree; op2: Tree; checkOverflow: BOOLEAN) : Tree ;
+PROCEDURE BuildConvert (location: location_t; type: Tree; value: Tree; checkOverflow: BOOLEAN) : Tree ;
 
 
 (*
@@ -65,6 +63,15 @@ PROCEDURE ConvertConstantAndCheck (location: location_t; type: Tree; expr: Tree)
 *)
 
 PROCEDURE ConvertString (type, expr: Tree) : Tree ;
+
+
+(*
+   GenericToType - converts, expr, into, type, providing that expr is
+                   a generic system type (byte, word etc).  Otherwise
+                   expr is returned unaltered.
+*)
+
+PROCEDURE GenericToType (location: location_t; type, expr: Tree) : Tree ;
 
 
 END m2convert.

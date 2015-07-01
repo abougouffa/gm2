@@ -47,11 +47,6 @@ PROCEDURE BuildIntegerConstant (value: INTEGER) : Tree ;
 PROCEDURE BuildStringConstantType (length: INTEGER; string: ADDRESS; type: Tree) : Tree ;
 
 
-
-PROCEDURE BuildCharConstant (string: ADDRESS) : Tree ;
-
-
-
 (*
     DeclareKnownVariable - declares a variable in scope,
                            funcscope. Note that the global variable,

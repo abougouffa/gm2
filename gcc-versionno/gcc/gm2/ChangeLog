@@ -1,3 +1,70 @@
+2015-07-01      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-gcc/m2convert.c:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+	  converting_ISO_generic (New procedure function).
+	  const_to_ISO_type (New procedure function).
+	  ConvertConstantAndCheck call const_to_ISO_type.
+	  GenericToType (New procedure function).
+	  These changes allow for much improved location references inside
+	  type conversions and expressions.  They also implement ISO WORD
+	  assignment from a constant integer or constant cardinal.
+	* gm2/gm2-compiler/M2ALU.mod:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+	* gm2/gm2-compiler/M2GenGCC.mod:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+	* gm2/gm2-compiler/M2Range.mod:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+	* gm2/gm2-gcc/m2convert.def:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+	* gm2/gm2-gcc/m2convert.h:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+	* gm2/gm2-gcc/m2decl.def:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+	* gm2/gm2-gcc/m2decl.h:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+	* gm2/gm2-gcc/m2except.c:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+	* gm2/gm2-gcc/m2expr.c:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+	* gm2/gm2-gcc/m2expr.def:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+	* gm2/gm2-gcc/m2expr.h:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+	* gm2/gm2-gcc/m2statement.c:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+	* gm2/gm2-gcc/m2treelib.c:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+	* gm2/gm2-gcc/m2type.c:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+	* gm2/gm2-gcc/m2type.def:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+	* gm2/gm2-gcc/m2type.h:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+	* gm2/gm2-lang.c:  change all calls to BuildConvert,
+	  GetIntegerOne, GetIntegerZero, GetWordOne, GetWordZero, GetCardinalOne,
+	  GetCardinalZero to have an extra location parameter.
+
 2015-06-26      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  ConvertTo (New procedure function).

@@ -65,6 +65,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "m2builtins.h"
 #include "m2convert.h"
 #include "m2except.h"
+#include "m2linemap.h"
 
 #undef USE_BOOLEAN
 static int broken_set_debugging_info = TRUE;
@@ -367,10 +368,10 @@ build_m2_type_node_by_array (tree arrayType, tree low, tree high, int fetype)
 
 static
 tree
-build_m2_word16_type_node (int loc)
+build_m2_word16_type_node (location_t location, int loc)
 {
   return build_m2_type_node_by_array (m2type_GetISOLocType (),
-				      m2expr_GetIntegerZero (), m2expr_GetIntegerOne (),
+				      m2expr_GetIntegerZero (location), m2expr_GetIntegerOne (location),
 				      loc);
 }
 
@@ -381,10 +382,10 @@ build_m2_word16_type_node (int loc)
 
 static
 tree
-build_m2_word32_type_node (int loc)
+build_m2_word32_type_node (location_t location, int loc)
 {
   return build_m2_type_node_by_array (m2type_GetISOLocType (),
-				      m2expr_GetIntegerZero (), m2decl_BuildIntegerConstant (3),
+				      m2expr_GetIntegerZero (location), m2decl_BuildIntegerConstant (3),
 				      loc);
 }
 
@@ -395,10 +396,10 @@ build_m2_word32_type_node (int loc)
 
 static
 tree
-build_m2_word64_type_node (int loc)
+build_m2_word64_type_node (location_t location, int loc)
 {
   return build_m2_type_node_by_array (m2type_GetISOLocType (),
-				      m2expr_GetIntegerZero (), m2decl_BuildIntegerConstant (7),
+				      m2expr_GetIntegerZero (location), m2decl_BuildIntegerConstant (7),
 				      loc);
 }
 
@@ -1051,7 +1052,7 @@ m2type_GetBooleanTrue (void)
 #if defined(USE_BOOLEAN)
   return boolean_true_node;
 #else
-  return m2expr_GetIntegerOne ();
+  return m2expr_GetIntegerOne (m2linemap_BuiltinsLocation ());
 #endif
 }
 
@@ -1066,7 +1067,7 @@ m2type_GetBooleanFalse (void)
 #if defined(USE_BOOLEAN)
   return boolean_false_node;
 #else
-  return m2expr_GetIntegerZero ();
+  return m2expr_GetIntegerZero (m2linemap_BuiltinsLocation ());
 #endif
 }
 
@@ -1250,10 +1251,10 @@ m2type_BuildSetTypeFromSubrange (location_t location,
       TYPE_MAX_VALUE (settype) = TYPE_MAX_VALUE (m2type_GetWordType ());
     else
       TYPE_MAX_VALUE (settype) = m2expr_FoldAndStrip (m2expr_BuildSub (location,
-								       m2expr_BuildLSL (location, m2expr_GetWordOne(), noelements, FALSE),
-                                                                       m2expr_GetIntegerOne (),
+								       m2expr_BuildLSL (location, m2expr_GetWordOne(location), noelements, FALSE),
+                                                                       m2expr_GetIntegerOne (location),
                                                                        FALSE));
-    TYPE_MIN_VALUE (settype) = m2expr_GetIntegerZero (),
+    TYPE_MIN_VALUE (settype) = m2expr_GetIntegerZero (location),
 
     layout_type (settype);
     ASSERT((COMPLETE_TYPE_P (settype)), settype);
@@ -1350,7 +1351,7 @@ m2type_BuildSmallestTypeRange (location_t location, tree low, tree high)
   high = fold (high);
   bits = fold (noBitsRequired (m2expr_BuildAdd (location,
 						m2expr_BuildSub (location, high, low, FALSE),
-						m2expr_GetIntegerOne (),
+						m2expr_GetIntegerOne (location),
 						FALSE)));
   return build_m2_specific_size_type (location,
 				      INTEGER_TYPE, TREE_INT_CST_LOW (bits),
@@ -1636,10 +1637,10 @@ build_m2_iso_word_node (location_t location, int loc)
     c = m2type_GetISOLocType ();
   else
     c = gm2_build_array_type (m2type_GetISOLocType (),
-			      m2type_BuildArrayIndexType (m2expr_GetIntegerZero (),
+			      m2type_BuildArrayIndexType (m2expr_GetIntegerZero (location),
 							  (m2expr_BuildSub (location,
 									    m2decl_BuildIntegerConstant (m2decl_GetBitsPerInt ()/BITS_PER_UNIT),
-									    m2expr_GetIntegerOne (),
+									    m2expr_GetIntegerOne (location),
 									    FALSE))),
 			      loc);
   return c;
@@ -1648,7 +1649,7 @@ build_m2_iso_word_node (location_t location, int loc)
 
 static
 tree
-build_m2_iso_byte_node (int loc)
+build_m2_iso_byte_node (location_t location, int loc)
 {
   tree c;
 
@@ -1662,7 +1663,7 @@ build_m2_iso_byte_node (int loc)
     c = m2type_GetISOLocType ();
   else
     c = gm2_build_array_type (m2type_GetISOLocType (),
-			      m2type_BuildArrayIndexType (m2expr_GetIntegerZero (),
+			      m2type_BuildArrayIndexType (m2expr_GetIntegerZero (location),
 							  m2decl_BuildIntegerConstant (BITS_PER_UNIT/8)),
 			      loc);
   return c;
@@ -1679,11 +1680,11 @@ m2type_InitSystemTypes (location_t location, int loc)
   m2assert_AssertLocation (location);
 
   m2_iso_word_type_node = build_m2_iso_word_node (location, loc);
-  m2_iso_byte_type_node = build_m2_iso_byte_node (loc);
+  m2_iso_byte_type_node = build_m2_iso_byte_node (location, loc);
 
-  m2_word16_type_node = build_m2_word16_type_node (loc);
-  m2_word32_type_node = build_m2_word32_type_node (loc);
-  m2_word64_type_node = build_m2_word64_type_node (loc);
+  m2_word16_type_node = build_m2_word16_type_node (location, loc);
+  m2_word32_type_node = build_m2_word32_type_node (location, loc);
+  m2_word64_type_node = build_m2_word64_type_node (location, loc);
 }
 
 
@@ -2245,7 +2246,7 @@ m2type_GetMinFrom (location_t location, tree type)
     return fold (m2expr_BuildNegate (location, fold (m2builtins_BuiltInHugeValShort (location)),
                                      FALSE));
   if (type == ptr_type_node)
-    return m2expr_GetPointerZero ();
+    return m2expr_GetPointerZero (location);
 
   return TYPE_MIN_VALUE (m2tree_skip_type_decl (type));
 }
@@ -2269,8 +2270,8 @@ m2type_GetMaxFrom (location_t location, tree type)
     return fold (m2builtins_BuiltInHugeValShort (location));
   if (type == ptr_type_node)
     return fold (m2expr_BuildSub (location,
-				  m2expr_GetPointerZero (),
-                                  m2expr_GetPointerOne (),
+				  m2expr_GetPointerZero (location),
+                                  m2expr_GetPointerOne (location),
                                   FALSE));
 
   return TYPE_MAX_VALUE (m2tree_skip_type_decl (type));
@@ -2829,12 +2830,12 @@ m2type_BuildArrayStringConstructor (location_t location, tree arrayType, tree st
   struct struct_constructor *c = (struct struct_constructor *) m2type_BuildStartArrayConstructor (arrayType);
 
   m2assert_AssertLocation (location);
-  n = m2expr_GetIntegerZero ();
+  n = m2expr_GetIntegerZero (location);
   while (m2expr_CompareTrees (n, length) < 0) {
-    val = m2convert_BuildConvert (type, m2type_BuildCharConstant (&p[i]), FALSE);
+    val = m2convert_BuildConvert (location, type, m2type_BuildCharConstant (location, &p[i]), FALSE);
     m2type_BuildArrayConstructorElement (c, val, n);
     i += 1;
-    n = m2expr_BuildAdd (location, n, m2expr_GetIntegerOne (), FALSE);
+    n = m2expr_BuildAdd (location, n, m2expr_GetIntegerOne (location), FALSE);
   }
   return m2type_BuildEndArrayConstructor (c);
 }
@@ -2848,8 +2849,8 @@ tree
 m2type_BuildSubrangeType (location_t location, char *name, tree type, tree lowval, tree highval)
 {
   tree btype = m2tree_skip_type_decl (type);
-  tree lo = copy_node (m2convert_BuildConvert (btype, m2expr_FoldAndStrip (lowval), FALSE));
-  tree hi = copy_node (m2convert_BuildConvert (btype, m2expr_FoldAndStrip (highval), FALSE));
+  tree lo = copy_node (m2convert_BuildConvert (location, btype, m2expr_FoldAndStrip (lowval), FALSE));
+  tree hi = copy_node (m2convert_BuildConvert (location, btype, m2expr_FoldAndStrip (highval), FALSE));
   tree id = build_range_type (btype, lo, hi);
 
   m2assert_AssertLocation (location);
@@ -2876,7 +2877,7 @@ m2type_BuildSubrangeType (location_t location, char *name, tree type, tree lowva
  */
 
 tree
-m2type_BuildCharConstant (const char *string)
+m2type_BuildCharConstant (location_t location, const char *string)
 {
   int result        = (int) string[0];
   tree id;
@@ -2895,7 +2896,7 @@ m2type_BuildCharConstant (const char *string)
                                    >> (HOST_BITS_PER_WIDE_INT - num_bits)));
 #endif
   id = build_int_cst (char_type_node, result);
-  id = m2convert_BuildConvert (m2type_GetM2CharType (), id, FALSE);
+  id = m2convert_BuildConvert (location, m2type_GetM2CharType (), id, FALSE);
   return m2block_RememberConstant (id);
 }
 
@@ -3079,12 +3080,12 @@ m2type_BuildEndRecord (location_t location, tree record, tree fieldlist, int isP
      to be bound now.  */
   if (cur_stmt_list && variably_modified_type_p (record, NULL))
 #endif
-    // --fixme-- this is the problem area I think ... check this later!
+    // --fixme-- this is the problem area I think ... check this later!  --really-- --fixme--
   d = build_decl (location, TYPE_DECL, NULL, record);
   TYPE_STUB_DECL (record) = d;
   s = build_stmt (location, DECL_EXPR, d);
 #if 0
-  m2block_pushDecl (s);
+  m2block_pushDecl (s);   // --fixme-- is this required?  What about, s?
 #endif
 
   /* Finish debugging output for this type.  This must be done after we have called build_decl */
@@ -3325,7 +3326,7 @@ m2type_BuildNumberOfArrayElements (location_t location, tree arrayType)
   tree low = TYPE_MIN_VALUE (index);
   tree elements = m2expr_BuildAdd (location,
 				   m2expr_BuildSub (location, high, low, FALSE),
-				   m2expr_GetIntegerOne (), FALSE);
+				   m2expr_GetIntegerOne (location), FALSE);
   m2assert_AssertLocation (location);
   return elements;
 }

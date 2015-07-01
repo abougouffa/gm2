@@ -51,8 +51,10 @@ Boston, MA 02110-1301, USA.  */
 #include "dynamicstrings.h"
 #include "m2options.h"
 #include "gm2version.h"
+#include "m2convert.h"
 #include "init.h"
 #include "../gm2-tree.h"
+
 
 static int insideCppArgs = FALSE;
 
@@ -854,6 +856,9 @@ gm2_langhook_eh_personality (void)
 tree
 convert (tree type, tree expr)
 {
+  location_t location = m2linemap_UnknownLocation ();
+    // DECL_SOURCE_LOCATION (type);
+
   if (type == error_mark_node
       || expr == error_mark_node
       || TREE_TYPE (expr) == error_mark_node)
@@ -869,17 +874,17 @@ convert (tree type, tree expr)
     {
     case VOID_TYPE:
     case BOOLEAN_TYPE:
-      return fold_convert (type, expr);
+      return fold_convert (type, m2convert_GenericToType (location, type, expr));
     case INTEGER_TYPE:
-      return fold (convert_to_integer (type, expr));
+      return fold (convert_to_integer (type, m2convert_GenericToType (location, type, expr)));
     case POINTER_TYPE:
-      return fold (convert_to_pointer (type, expr));
+      return fold (convert_to_pointer (type, m2convert_GenericToType (location, type, expr)));
     case REAL_TYPE:
-      return fold (convert_to_real (type, expr));
+      return fold (convert_to_real (type, m2convert_GenericToType (location, type, expr)));
     case COMPLEX_TYPE:
-      return fold (convert_to_complex (type, expr));
+      return fold (convert_to_complex (type, m2convert_GenericToType (location, type, expr)));
     case ENUMERAL_TYPE:
-      return fold (convert_to_integer (type, expr));
+      return fold (convert_to_integer (type, m2convert_GenericToType (location, type, expr)));
     default:
       break;
     }

@@ -39,6 +39,8 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #      endif
 #   endif
 
+typedef void* m2type_Constructor;
+
 EXTERN tree m2type_BuildStartArrayType (tree index_type, tree elt_type, int type);
 EXTERN void m2type_PutArrayType (tree array, tree type);
 EXTERN tree m2type_BuildEndArrayType (tree arraytype, tree elementtype, tree indextype, int type);
@@ -172,7 +174,7 @@ EXTERN void m2type_BuildRecordConstructorElement (void *p, tree value);
 EXTERN void *m2type_BuildStartArrayConstructor (tree type);
 EXTERN tree m2type_BuildEndArrayConstructor (void *p);
 EXTERN void m2type_BuildArrayConstructorElement (void *p, tree value, tree indice);
-EXTERN tree m2type_BuildCharConstant (const char *string);
+EXTERN tree m2type_BuildCharConstant (location_t location, const char *string);
 EXTERN tree m2type_BuildSubrangeType (location_t location, char *name, tree type, tree lowval, tree highval);
 EXTERN tree m2type_gm2_unsigned_type (tree type);
 EXTERN tree m2type_gm2_signed_type (tree type);
