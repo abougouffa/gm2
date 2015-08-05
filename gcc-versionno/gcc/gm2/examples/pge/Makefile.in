@@ -116,8 +116,11 @@ libpgeif.la:  $(PGELIBSOURCES:%.mod=%.lo) buffers.lo
            -rpath `pwd` -lgm2 -liso -lgcc -lstdc++ -lpth -lc -lm -o libpgeif.la 
 	cp .libs/libpgeif.so _pgeif.so
 
-pytest: libpgeif.la
+output.raw: libpgeif.la
 	PYTHONPATH=.:$(srcdir) python $(srcdir)/examples/exampleBoxes.py
+
+playback: output.raw
+	PYTHONPATH=.:$(srcdir) python $(srcdir)/pgeplayback.py
 
 foo: circles.m $(OBJECTS)
 	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/foo.mod

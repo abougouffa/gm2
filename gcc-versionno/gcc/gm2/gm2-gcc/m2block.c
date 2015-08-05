@@ -796,11 +796,13 @@ tree m2block_pushDecl (tree decl)
   TREE_CHAIN (decl) = current_binding_level->names;
   current_binding_level->names = decl;
 
+#if 0
   /* For the declaration of a type, set its name if it is not already set. */
 
   if (TREE_CODE (decl) == TYPE_DECL
       && TYPE_NAME (TREE_TYPE (decl)) == 0)
     TYPE_NAME (TREE_TYPE (decl)) = DECL_NAME (decl);
+#endif
 
   assert_global_names ();
 

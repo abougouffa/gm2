@@ -464,7 +464,6 @@ def handleEvents (f):
     return f
               
 
-
 #
 #  readFile - opens up file, name, and proceeds to interpret
 #             the sequence of commands.

@@ -1101,6 +1101,8 @@ m2type_GetCardinalAddressType (void)
 
 /*
  *  noBitsRequired - returns the number of bits required to contain, values.
+ *                   How many bits are required to represent all numbers between:
+ *                   0..values-1
  */
 
 static tree
@@ -1109,7 +1111,8 @@ noBitsRequired (tree values)
   int bits = tree_floor_log2 (values);
 
   if (integer_pow2p (values))
-    return m2decl_BuildIntegerConstant (bits+1);
+    /* remember we start counting from zero.  */
+    return m2decl_BuildIntegerConstant (bits);
   else
     return m2decl_BuildIntegerConstant (bits+1);
 }
@@ -2342,7 +2345,6 @@ gm2_start_enum (location_t location, tree name, int ispacked)
   TYPE_STUB_DECL (enumtype) = m2block_pushDecl (build_decl (location,
 							    TYPE_DECL, NULL_TREE, enumtype));
 
-
   return enumtype;
 }
 
@@ -2355,7 +2357,7 @@ gm2_start_enum (location_t location, tree name, int ispacked)
 
 static
 tree
-gm2_finish_enum (tree enumtype, tree values)
+gm2_finish_enum (location_t location, tree enumtype, tree values)
 {
   tree pair, tem;
   tree minnode = 0, maxnode = 0;
@@ -2386,15 +2388,13 @@ gm2_finish_enum (tree enumtype, tree values)
   precision = MAX (tree_int_cst_min_precision (minnode, unsign),
 		   tree_int_cst_min_precision (maxnode, unsign));
 
-  if (TYPE_PACKED (enumtype) || precision > TYPE_PRECISION (integer_type_node))
+  if (precision > TYPE_PRECISION (integer_type_node))
     {
-      tem = m2type_gm2_type_for_size (precision, unsign);
-      if (tem == NULL)
-	{
-	  warning (0, "enumeration values exceed range of largest integer");
-	  tem = long_long_integer_type_node;
-	}
+      warning (0, "enumeration values exceed range of integer");
+      tem = long_long_integer_type_node;
     }
+  else if (TYPE_PACKED (enumtype))
+    tem = m2type_BuildSmallestTypeRange (location, minnode, maxnode);
   else
     tem = unsign ? unsigned_type_node : integer_type_node;
 
@@ -2491,9 +2491,9 @@ m2type_BuildStartEnumeration (location_t location, char *name, int ispacked)
  */
 
 tree
-m2type_BuildEndEnumeration (tree enumtype, tree enumvalues)
+m2type_BuildEndEnumeration (location_t location, tree enumtype, tree enumvalues)
 {
-  tree finished ATTRIBUTE_UNUSED = gm2_finish_enum (enumtype, enumvalues);
+  tree finished ATTRIBUTE_UNUSED = gm2_finish_enum (location, enumtype, enumvalues);
   return enumtype;
 }
 

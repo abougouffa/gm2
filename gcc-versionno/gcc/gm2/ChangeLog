@@ -1,3 +1,20 @@
+2015-08-05      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/Makefile.in:  new rule for playback and output.raw.
+	* the following changes fix bugs in packed enumeration types.  Test code
+	  is given in the regression testsuite.
+	* gm2/extensions/run/pass/packedrecord.mod:  new file.
+	* gm2/extensions/run/pass/packedrecord2.mod:  new file.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  change call to BuildEndEnumeration
+	  to pass three parameters.
+	* gm2/gm2-gcc/m2type.c:  noBitsRequired bug fixed for the case where
+	  values is a power of two.  gm2_finish_enum introduce extra parameter
+	  location so that we can generate a call to m2type_BuildSmallestTypeRange
+	  if the enumeration is packed.  m2type_BuildEndEnumeration change call
+	  to gm2_finish_enum to include extra parameter.
+	* gm2/gm2-gcc/m2type.def:  change definition of BuildEndEnumeration.
+	* gm2/gm2-gcc/m2type.h:  change prototype of BuildEndEnumeration.
+
 2015-07-01      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-gcc/m2convert.c:  change all calls to BuildConvert,

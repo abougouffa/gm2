@@ -125,7 +125,7 @@ PROCEDURE BuildEnumerator (location: location_t; name: ADDRESS; value: Tree;
                           list, enumvalues, and returns a enumeration type tree.
 *)
 
-PROCEDURE BuildEndEnumeration (type: Tree; enumvalues: Tree) : Tree ;
+PROCEDURE BuildEndEnumeration (location: location_t; type: Tree; enumvalues: Tree) : Tree ;
 
 
 (*

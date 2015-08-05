@@ -160,7 +160,7 @@ EXTERN tree m2type_GetMinFrom (location_t location, tree type);
 EXTERN tree m2type_GetMaxFrom (location_t location, tree type);
 EXTERN void m2type_BuildTypeDeclaration (location_t location, tree type);
 EXTERN tree m2type_BuildStartEnumeration (location_t location, char *name, int ispacked);
-EXTERN tree m2type_BuildEndEnumeration (tree enumtype, tree enumvalues);
+EXTERN tree m2type_BuildEndEnumeration (location_t location, tree enumtype, tree enumvalues);
 EXTERN tree m2type_BuildEnumerator (location_t location, char *name, tree value, tree *enumvalues);
 EXTERN tree m2type_BuildPointerType (tree totype);
 EXTERN tree m2type_BuildConstPointerType (tree totype);

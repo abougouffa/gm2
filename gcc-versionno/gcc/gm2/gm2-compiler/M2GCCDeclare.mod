@@ -3576,7 +3576,7 @@ BEGIN
    location := TokenToLocation(GetDeclaredMod(sym)) ;
    gccenum := BuildStartEnumeration(location, KeyToCharStar(GetFullSymName(sym)), FALSE) ;
    enumlist := GetEnumList(sym) ;
-   RETURN( BuildEndEnumeration(gccenum, enumlist) )
+   RETURN( BuildEndEnumeration(location, gccenum, enumlist) )
 END DeclareEnumeration ;
 
 
@@ -4424,7 +4424,7 @@ BEGIN
    gccenum := BuildStartEnumeration(location, KeyToCharStar(GetFullSymName(sym)), TRUE) ;
    ForeachLocalSymDo(sym, DeclarePackedFieldEnumeration) ;
    enumlist := GetEnumList(equiv) ;
-   gccenum := BuildEndEnumeration(gccenum, enumlist) ;
+   gccenum := BuildEndEnumeration(location, gccenum, enumlist) ;
    AddModGcc(equiv, gccenum)
 END DeclarePackedEnumeration ;
 
