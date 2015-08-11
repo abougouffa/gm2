@@ -47,6 +47,7 @@ CONST
    nextCID    =    8 ;
    MaxColours = 4096 ;
    FPS        =   30 ;
+   DebugTrace = FALSE ;
 
 TYPE
    SetOfColours = SET OF [0..MaxColours] ;
@@ -96,12 +97,21 @@ PROCEDURE registerColour (cid: Colour; r, g, b: Fract) : Colour ;
 BEGIN
    IF cid IN registered
    THEN
-      printf ("colour %d already registered\n", cid);
+      IF DebugTrace
+      THEN
+         printf ("colour %d already registered\n", cid)
+      END
    ELSE
       checkOpened ;
-      printf ("register colour %d\n", cid);
+      IF DebugTrace
+      THEN
+         printf ("register colour %d\n", cid)
+      END ;
       INCL(registered, cid) ;
-      printf ("  output rc command\n");
+      IF DebugTrace
+      THEN
+         printf ("  output rc command\n")
+      END ;
       RawIO.Write (cfile, "rc") ;
       writeShort (cfile, cid) ;
       writeFract (cfile, r) ;
@@ -305,7 +315,10 @@ PROCEDURE emptyFbuffer ;
 BEGIN
    IF device=buffer
    THEN
-      printf ("rewrite\n");
+      IF DebugTrace
+      THEN
+         printf ("rewrite\n")
+      END ;
       MemStream.Rewrite (ffile)
    END
 END emptyFbuffer ;
@@ -320,7 +333,10 @@ PROCEDURE emptyCbuffer ;
 BEGIN
    IF device=buffer
    THEN
-      printf ("rewrite\n");
+      IF DebugTrace
+      THEN
+         printf ("rewrite\n")
+      END ;
       MemStream.Rewrite (cfile)
    END
 END emptyCbuffer ;
@@ -480,8 +496,11 @@ PROCEDURE getFrameBuffer (VAR start: ADDRESS; VAR length: CARDINAL; VAR used: CA
 BEGIN
    start := fbufferStart ;
    length := fbufferLength ;
-   used := fbufferUsed
-   ; printf ("getFrameBuffer (addr = 0x%p, length = %d, used = %d)\n", start, length, used)
+   used := fbufferUsed ;
+   IF DebugTrace
+   THEN
+      printf ("getFrameBuffer (addr = 0x%p, length = %d, used = %d)\n", start, length, used)
+   END
 END getFrameBuffer ;
 
 
@@ -493,8 +512,11 @@ PROCEDURE getColourBuffer (VAR start: ADDRESS; VAR length: CARDINAL; VAR used: C
 BEGIN
    start := cbufferStart ;
    length := cbufferLength ;
-   used := cbufferUsed
-   ; printf ("getColourBuffer (addr = 0x%p, length = %d, used = %d)\n", start, length, used)
+   used := cbufferUsed ;
+   IF DebugTrace
+   THEN
+      printf ("getColourBuffer (addr = 0x%p, length = %d, used = %d)\n", start, length, used)
+   END
 END getColourBuffer ;
 
 

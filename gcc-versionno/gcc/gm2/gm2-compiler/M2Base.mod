@@ -1408,9 +1408,13 @@ BEGIN
    ELSE
       mt1 := FindMetaType(t1) ;
       mt2 := FindMetaType(t2) ;
-      IF (mt1=unknown) OR (mt2=unknown)
+      IF mt1=unknown
       THEN
-         RETURN( no )
+         RETURN( second )
+      END ;
+      IF mt2=unknown
+      THEN
+         RETURN( first )
       END ;
          
       CASE kind OF

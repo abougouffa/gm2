@@ -47,6 +47,7 @@ CONST
    MaxPolygonPoints       =     6 ;
    DefaultFramesPerSecond =   100.0 ;
    Debugging              = FALSE ;
+   DebugTrace             = FALSE ;
    BufferedTime           =     0.1 ;
    InactiveTime           =     1.0 ;  (* the time we keep simulating after all collision events have expired *)
 
@@ -933,29 +934,38 @@ VAR
    i, n: CARDINAL ;
    optr: Object ;
 BEGIN
-   printf ("start drawFrame\n");
+   IF DebugTrace
+   THEN
+      printf ("start drawFrame\n")
+   END ;
    IF writeTimeDelay
    THEN
       writeTime (currentTime-lastDrawTime)
    END ;
    lastDrawTime := currentTime ;
    dt := currentTime-lastCollisionTime ;
-   printf ("before drawBoarder\n");
+   IF DebugTrace
+   THEN
+      printf ("before drawBoarder\n")
+   END ;
    drawBoarder(black()) ;
-   printf ("after drawBoarder\n");
+   IF DebugTrace
+   THEN
+      printf ("after drawBoarder\n")
+   END ;
    n := HighIndice(objects) ;
    i := 1 ;
    WHILE i<=n DO
       optr := GetIndice(objects, i) ;
       IF (optr#NIL) AND (NOT optr^.deleted)
       THEN
-         printf ("before doDrawFrame\n");
+         (* printf ("before doDrawFrame\n"); *)
          doDrawFrame(optr, dt) ;
-         printf ("after doDrawFrame\n");
+         (* printf ("after doDrawFrame\n"); *)
       END ;
       INC(i)
    END ;
-   printf ("end drawFrame\n");
+   (* printf ("end drawFrame\n"); *)
 END drawFrame ;
 
 
@@ -965,20 +975,38 @@ END drawFrame ;
 
 PROCEDURE drawFrameEvent (e: eventQueue) ;
 BEGIN
-   printf ("start drawFrameEvent\n");
+   IF DebugTrace
+   THEN
+      printf ("start drawFrameEvent\n")
+   END ;
    frameNote ;
-   printf ("before drawFrame\n");
+   IF DebugTrace
+   THEN
+      printf ("before drawFrame\n")
+   END ;
    drawFrame ;
-   printf ("before flipBuffer\n");
+   IF DebugTrace
+   THEN
+      printf ("before flipBuffer\n")
+   END ;
    flipBuffer ;
-   printf ("before addEvent\n");
+   IF DebugTrace
+   THEN
+      printf ("before addEvent\n")
+   END ;
    addEvent(1.0/framesPerSecond, drawFrameEvent) ;
    (* *)
 
-   printf ("collectAll\n");
-   (* collectAll *)
+   IF DebugTrace
+   THEN
+      printf ("collectAll\n")
+   END ;
+   collectAll ;
    (* *)
-   printf ("end drawFrameEvent\n");
+   IF DebugTrace
+   THEN
+      printf ("end drawFrameEvent\n")
+   END
 END drawFrameEvent ;
 
 
@@ -3448,10 +3476,16 @@ BEGIN
    checkOpened ;
    IF eventQ#NIL
    THEN
-      printf ("before writeEvent\n");
+      IF DebugTrace
+      THEN
+         printf ("before writeEvent\n")
+      END ;
       (* gdbif.sleepSpin ; *)
       writeEvent (eventQ) ;
-      printf ("after writeEvent\n");
+      IF DebugTrace
+      THEN
+         printf ("after writeEvent\n");
+      END
    END
 END recordEvent ;
 
@@ -3470,10 +3504,16 @@ BEGIN
       printf ("processEvent before pumpQueue\n")
    END ;
    pumpQueue ;
-   printf ("before doNextEvent\n");
-   printQueue ;
+   IF DebugTrace
+   THEN
+      printf ("before doNextEvent\n");
+      printQueue
+   END ;
    dt := doNextEvent() ;
-   printf ("finished doNextEvent\n")
+   IF DebugTrace
+   THEN
+      printf ("finished doNextEvent\n")
+   END
 END processEvent ;
 
 
@@ -3532,7 +3572,10 @@ END killQueue ;
 
 PROCEDURE writeCircles (c: cDesc) ;
 BEGIN
-   printf ("writeCircleCircle %d %d\n", c.cid1, c.cid2) ;
+   IF DebugTrace
+   THEN
+      printf ("writeCircleCircle %d %d\n", c.cid1, c.cid2)
+   END ;
    writeCoord (file, c.cPoint) ;
    writeCard (file, c.cid1) ;
    writeCard (file, c.cid2)
@@ -3555,7 +3598,10 @@ END writeKind ;
 
 PROCEDURE writeCirclePolygon (c: cpDesc) ;
 BEGIN
-   printf ("writeCirclePolygon %d %d\n", c.pid, c.cid) ;
+   IF DebugTrace
+   THEN
+      printf ("writeCirclePolygon %d %d\n", c.pid, c.cid)
+   END ;
    writeCoord (file, c.cPoint) ;
    writeCard (file, c.pid) ;
    writeCard (file, c.cid) ;
@@ -3569,7 +3615,10 @@ END writeCirclePolygon ;
 
 PROCEDURE writePolygonPolygon (p: ppDesc) ;
 BEGIN
-   printf ("writePolygonPolygon %d %d\n", p.pid1, p.pid2) ;
+   IF DebugTrace
+   THEN
+      printf ("writePolygonPolygon %d %d\n", p.pid1, p.pid2)
+   END ;
    writeCoord (file, p.cPoint) ;
    writeCard (file, p.pid1) ;
    writeCard (file, p.pid2) ;
@@ -3609,10 +3658,16 @@ END writeDesc ;
 PROCEDURE writeEvent (e: eventQueue) ;
 BEGIN
    MemStream.Rewrite (file) ;
-   printf ("time of next event in twoDsim is %g\n", e^.time);
-   displayEvent (e);
+   IF DebugTrace
+   THEN
+      printf ("time of next event in twoDsim is %g\n", e^.time);
+      displayEvent (e)
+   END ;
    WITH e^ DO
-      printf ("check time is %g\n", time);
+      IF DebugTrace
+      THEN
+         printf ("check time is %g\n", time)
+      END ;
       writeReal (file, time) ;
       writeDesc (ePtr)
    END
@@ -3657,9 +3712,12 @@ BEGIN
    length := bufferLength ;
    used := bufferUsed ;
    f := bufferStart ;
-   printf ("event buffer ptr = 0x%p, length = %d, used = %d\n", start, length, used);
-   printf ("ptr to real is %g\n", f^) ;
-   memDump (start, 8)
+   IF DebugTrace
+   THEN
+      printf ("event buffer ptr = 0x%p, length = %d, used = %d\n", start, length, used);
+      printf ("ptr to real is %g\n", f^) ;
+      memDump (start, 8)
+   END
 END getEventBuffer ;
 
 

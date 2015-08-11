@@ -1,3 +1,14 @@
+2015-08-11      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/README:  corrected README to reflect prefered method of obtaining
+	  tar.gz file.  Also improved the text.  Removed the build instructions
+	  and replaced it with a reference to the documentation.
+	* gm2/examples/pge/deviceIf.mod:  added DebugTrace feature.
+	* gm2/examples/pge/twoDsim.mod:  added DebugTrace feature.
+	* gm2/examples/pge/world.mod:  useGroff by default.
+	* gm2/gm2-compiler/M2Base.mod:  fixed bug to allow BYTE to be parameter
+	  compatible with any BYTE sized type (including packed RECORD).
+
 2015-08-05      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/Makefile.in:  new rule for playback and output.raw.
