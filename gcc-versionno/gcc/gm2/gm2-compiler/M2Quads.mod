@@ -237,7 +237,7 @@ FROM m2builtins IMPORT GetBuiltinTypeInfoType ;
 CONST
    DebugStackOn = TRUE ;
    DebugVarients = FALSE ;
-   BreakAtQuad = 2140 ;
+   BreakAtQuad = 2581 ;
 
 TYPE
    ConstructorFrame = POINTER TO constructorFrame ;
@@ -8344,7 +8344,7 @@ BEGIN
          n := GetSymName(Var) ;
          WriteFormat1('undeclared variable found in CONVERT (%a)', n)
       ELSIF (IsSet(Type) OR IsEnumeration(Type) OR IsSubrange(Type) OR
-             IsType(Type) OR IsPointer(Type) OR IsProcType(Type)) AND
+             IsType(Type) OR IsPointer(Type) OR IsProcType(Type) OR IsRecord(Type)) AND
             (IsVar(Var) OR IsConst(Var) OR IsProcedure(Var))
       THEN
          PopN(NoOfParam+1) ;    (* destroy arguments to this function *)

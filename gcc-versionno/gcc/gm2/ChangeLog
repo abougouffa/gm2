@@ -1,3 +1,14 @@
+2015-08-14      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  modified debugging hooks.
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildConvert) allow record types
+	  to be converted as they might fit into a generic type.
+	* gm2/gm2-gcc/m2convert.c:  (same_size_types)  New function.
+	  (converting_ISO_generic) only convert using short hand generic
+	  types if they are the correct size.  (const_to_ISO_aggregate_type)
+	  New function.
+	* gm2/gm2-lang.c:  (convert) simplified.
+
 2015-08-11      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/README:  corrected README to reflect prefered method of obtaining

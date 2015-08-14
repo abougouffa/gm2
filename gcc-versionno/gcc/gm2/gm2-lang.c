@@ -870,21 +870,22 @@ convert (tree type, tree expr)
   if (TYPE_MAIN_VARIANT (type) == TYPE_MAIN_VARIANT (TREE_TYPE (expr)))
     return fold_convert (type, expr);
 
+  expr = m2convert_GenericToType (location, type, expr);
   switch (TREE_CODE (type))
     {
     case VOID_TYPE:
     case BOOLEAN_TYPE:
-      return fold_convert (type, m2convert_GenericToType (location, type, expr));
+      return fold_convert (type, expr);
     case INTEGER_TYPE:
-      return fold (convert_to_integer (type, m2convert_GenericToType (location, type, expr)));
+      return fold (convert_to_integer (type, expr));
     case POINTER_TYPE:
-      return fold (convert_to_pointer (type, m2convert_GenericToType (location, type, expr)));
+      return fold (convert_to_pointer (type, expr));
     case REAL_TYPE:
-      return fold (convert_to_real (type, m2convert_GenericToType (location, type, expr)));
+      return fold (convert_to_real (type, expr));
     case COMPLEX_TYPE:
-      return fold (convert_to_complex (type, m2convert_GenericToType (location, type, expr)));
+      return fold (convert_to_complex (type, expr));
     case ENUMERAL_TYPE:
-      return fold (convert_to_integer (type, m2convert_GenericToType (location, type, expr)));
+      return fold (convert_to_integer (type, expr));
     default:
       break;
     }

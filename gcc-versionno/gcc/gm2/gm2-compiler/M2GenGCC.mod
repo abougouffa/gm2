@@ -1933,8 +1933,6 @@ END CodeReturnValue ;
 
 PROCEDURE CodeCall (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CheckStop(quad) ;
-
    (*
       op  : CallOp
       op3 : Procedure
@@ -2623,7 +2621,7 @@ PROCEDURE stop ; BEGIN END stop ;
 
 PROCEDURE CheckStop (q: CARDINAL) ;
 BEGIN
-   IF q=483
+   IF q=3827
    THEN
       stop
    END
@@ -5674,6 +5672,8 @@ VAR
    t, tl, tr: Tree ;
    location : location_t ;
 BEGIN
+   CheckStop(quad) ;
+
    (* firstly ensure that constant literals are declared *)
    DeclareConstant(CurrentQuadToken, rhs) ;
    DeclareConstructor(quad, rhs) ;

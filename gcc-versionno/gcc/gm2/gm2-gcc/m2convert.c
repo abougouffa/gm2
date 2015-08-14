@@ -77,6 +77,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "m2convert.h"
 
 static tree const_to_ISO_type (location_t location, tree expr, tree iso_type);
+static tree const_to_ISO_aggregate_type (location_t location, tree expr, tree iso_type);
 
 
 /*
@@ -462,6 +463,16 @@ doOrdinal (tree value)
 
 
 static int
+same_size_types (location_t location, tree t1, tree t2)
+{
+  tree n1 = m2expr_GetSizeOf (location, t1);
+  tree n2 = m2expr_GetSizeOf (location, t2);
+
+  return m2expr_CompareTrees (n1, n2) == 0;
+}
+
+
+static int
 converting_ISO_generic (location_t location, tree type, tree value, tree generic_type, tree *result)
 {
   tree value_type = m2tree_skip_type_decl (TREE_TYPE (value));
@@ -479,21 +490,24 @@ converting_ISO_generic (location_t location, tree type, tree value, tree generic
       return TRUE;
     }
 
-  if (value_type == generic_type)
+  if (same_size_types (location, type, value_type))
     {
-      tree pt = build_pointer_type (type);
-      tree a = build1 (ADDR_EXPR, pt, value);
-      tree t = build1 (INDIRECT_REF, type, a);
-      *result = build1 (NOP_EXPR, type, t);
-      return TRUE;
-    }
-  else if (type == generic_type)
-    {
-      tree pt = build_pointer_type (type);
-      tree a = build1 (ADDR_EXPR, pt, value);
-      tree t = build1 (INDIRECT_REF, type, a);
-      *result = build1 (NOP_EXPR, type, t);
-      return TRUE;
+      if (value_type == generic_type)
+	{
+	  tree pt = build_pointer_type (type);
+	  tree a = build1 (ADDR_EXPR, pt, value);
+	  tree t = build1 (INDIRECT_REF, type, a);
+	  *result = build1 (NOP_EXPR, type, t);
+	  return TRUE;
+	}
+	else if (type == generic_type)
+	  {
+	    tree pt = build_pointer_type (type);
+	    tree a = build1 (ADDR_EXPR, pt, value);
+	    tree t = build1 (INDIRECT_REF, type, a);
+	    *result = build1 (NOP_EXPR, type, t);
+	    return TRUE;
+	  }
     }
   return FALSE;
 }
@@ -522,7 +536,10 @@ m2convert_BuildConvert (location_t location, tree type, tree value, int checkOve
   else if (TREE_CODE (value) == FUNCTION_DECL && TREE_TYPE (value) != type)
     value = m2expr_BuildAddr (0, value, FALSE);
 
-  if (converting_ISO_generic (location, type, value, m2type_GetISOWordType (), &t) ||
+  if (converting_ISO_generic (location, type, value, m2type_GetByteType (), &t) ||
+      converting_ISO_generic (location, type, value, m2type_GetISOLocType (), &t) ||
+      converting_ISO_generic (location, type, value, m2type_GetISOByteType (), &t) ||
+      converting_ISO_generic (location, type, value, m2type_GetISOWordType (), &t) ||
       converting_ISO_generic (location, type, value, m2type_GetM2Word16 (), &t) ||
       converting_ISO_generic (location, type, value, m2type_GetM2Word32 (), &t) ||
       converting_ISO_generic (location, type, value, m2type_GetM2Word64 (), &t))
@@ -537,18 +554,36 @@ m2convert_BuildConvert (location_t location, tree type, tree value, int checkOve
 
 /*
  *  const_to_ISO_type - perform VAL (iso_type, expr).
- *                      The iso_type will be declared by the SYSTEM module
- *                      as:
- *                      TYPE iso_type = ARRAY [0..n] OF LOC
- *
- *                      this function will store a constant into the iso_type
- *                      in the correct endian order.  It converts the expr
- *                      into a unsigned int or signed int and then
- *                      strips it a byte at a time.
  */
 
 static tree
 const_to_ISO_type (location_t location, tree expr, tree iso_type)
+{
+  tree n = m2expr_GetSizeOf (location, iso_type);
+
+  if ((m2expr_CompareTrees (n, m2decl_BuildIntegerConstant (1)) == 0)
+      && (iso_type == m2type_GetByteType ()
+	  || iso_type == m2type_GetISOLocType ()
+	  || iso_type == m2type_GetISOByteType ()))
+    return build1 (NOP_EXPR, iso_type, expr);
+  return const_to_ISO_aggregate_type (location, expr, iso_type);
+}
+
+
+/*
+ *  const_to_ISO_aggregate_type - perform VAL (iso_type, expr).
+ *                                The iso_type will be declared by the SYSTEM module
+ *                                as:
+ *                                TYPE iso_type = ARRAY [0..n] OF LOC
+ *
+ *                                this function will store a constant into the iso_type
+ *                                in the correct endian order.  It converts the expr
+ *                                into a unsigned int or signed int and then
+ *                                strips it a byte at a time.
+ */
+
+static tree
+const_to_ISO_aggregate_type (location_t location, tree expr, tree iso_type)
 {
   tree byte;
   m2type_Constructor c;
@@ -613,7 +648,10 @@ m2convert_ConvertConstantAndCheck (location_t location, tree type, tree expr)
     expr = m2expr_BuildAddr (location, expr, FALSE);
 
   type = m2tree_skip_type_decl (type);
-  if (type == m2type_GetISOWordType ()
+  if (type == m2type_GetByteType ()
+      || type == m2type_GetISOLocType ()
+      || type == m2type_GetISOByteType ()
+      || type == m2type_GetISOWordType ()
       || type == m2type_GetM2Word16 ()
       || type == m2type_GetM2Word32 ()
       || type == m2type_GetM2Word64 ())
