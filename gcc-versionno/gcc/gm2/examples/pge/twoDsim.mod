@@ -3732,8 +3732,6 @@ VAR
 BEGIN
    IF NOT fileOpened
    THEN
-      (* gdbif.sleepSpin ; *)
-
       fileOpened := TRUE ;
       MemStream.OpenWrite (file, write+raw, res, bufferStart, bufferLength, bufferUsed, TRUE) ;
       IF res#opened

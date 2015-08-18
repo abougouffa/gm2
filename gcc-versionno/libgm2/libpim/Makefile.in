@@ -103,7 +103,7 @@ am__objects_1 = ASCII.lo IO.lo Args.lo M2RTS.lo Assertion.lo \
 	NumberIO.lo Break.lo SYSTEM.lo CmdArgs.lo Scan.lo StrCase.lo \
 	FIO.lo StrIO.lo StrLib.lo TimeString.lo Environment.lo \
 	FpuIO.lo Debug.lo SysStorage.lo Storage.lo StdIO.lo \
-	SEnvironment.lo DynamicStrings.lo SFIO.lo SArgs.lo \
+	SEnvironment.lo DynamicStrings.lo SFIO.lo SArgs.lo SCmdArgs.lo \
 	PushBackInput.lo StringConvert.lo FormatStrings.lo Builtins.lo \
 	MathLib0.lo M2EXCEPTION.lo RTExceptions.lo SMathLib0.lo \
 	RTint.lo COROUTINES.lo Indexing.lo LMathLib0.lo LegacyReal.lo \
@@ -358,7 +358,8 @@ M2MODS = ASCII.mod IO.mod \
        SysStorage.mod Storage.mod \
        StdIO.mod SEnvironment.mod \
        DynamicStrings.mod SFIO.mod \
-       SArgs.mod PushBackInput.mod \
+       SArgs.mod SCmdArgs.mod \
+       PushBackInput.mod \
        StringConvert.mod FormatStrings.mod \
        Builtins.mod MathLib0.mod \
        M2EXCEPTION.mod RTExceptions.mod \
@@ -384,7 +385,8 @@ M2DEFS = Args.def   ASCII.def \
          MathLib0.def  MemUtils.def \
          NumberIO.def  PushBackInput.def \
          RTExceptions.def  RTint.def \
-         SArgs.def  Scan.def \
+         SArgs.def  SCmdArgs.def \
+         Scan.def \
          sckt.def  Selective.def \
          SEnvironment.def  SFIO.def \
          SMathLib0.def  StdIO.def \

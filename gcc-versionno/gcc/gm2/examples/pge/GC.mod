@@ -25,6 +25,7 @@ FROM SYSTEM IMPORT ADDRESS ;
 FROM libc IMPORT printf, memset ;
 FROM DynamicStrings IMPORT string ;
 
+IMPORT gdbif ;
 
 CONST
    EnableChecking = TRUE ;
@@ -80,6 +81,7 @@ BEGIN
       bytes := noOfBytes ;
       desc := typeName ;
       walkp := p ;
+      callbacks := NIL ;
       freeList := NIL ;
       next := headOfGarbage ;
    END ;
@@ -110,6 +112,7 @@ END RunCallBacks ;
 
 PROCEDURE collectAll ;
 BEGIN
+   (* gdbif.sleepSpin ; *)
    walkRootsAll ;
    unMarkAll ;
    walkRootsAll ;

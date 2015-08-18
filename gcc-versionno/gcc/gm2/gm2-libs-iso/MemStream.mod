@@ -455,6 +455,7 @@ BEGIN
       doFlush := flush ;
       doFree := handlefree
    END ;
+   res := opened ;
    RETURN( c )
 END newCidWrite ;
 
@@ -536,6 +537,7 @@ BEGIN
       doFlush := flush ;
       doFree := handlefree
    END ;
+   res := opened ;
    RETURN( c )
 END newCidRead ;
 

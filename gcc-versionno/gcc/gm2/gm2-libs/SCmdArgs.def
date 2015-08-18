@@ -17,17 +17,18 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
 
-DEFINITION MODULE CmdArgs ;
+DEFINITION MODULE SCmdArgs ;
 
 (*
-   Title      : CmdArgs
+   Title      : SCmdArgs
    Author     : Gaius Mulley
-   Date       : 7/11/87
-   LastEdit   : 7/11/87
+   Date       : Mon Aug 17 01:02:12 2015
    System     : UNIX (GNU Modula-2)
-   Description: CmdArgs - implements procedures to retrieve arguments from
+   Description: SCmdArgs - implements procedures to retrieve arguments from
                 a string.
 *)
+
+FROM DynamicStrings IMPORT String ;
 
 EXPORT QUALIFIED GetArg, Narg ;
 
@@ -37,8 +38,8 @@ EXPORT QUALIFIED GetArg, Narg ;
             the success of the operation is returned.
 *)
 
-PROCEDURE GetArg (CmdLine: ARRAY OF CHAR;
-                  n: CARDINAL; VAR Argi: ARRAY OF CHAR) : BOOLEAN ;
+PROCEDURE GetArg (CmdLine: String;
+                  n: CARDINAL; VAR Argi: String) : BOOLEAN ;
 
 
 (*
@@ -46,7 +47,7 @@ PROCEDURE GetArg (CmdLine: ARRAY OF CHAR;
           command line, CmdLine.
 *)
 
-PROCEDURE Narg (CmdLine: ARRAY OF CHAR) : CARDINAL ;
+PROCEDURE Narg (CmdLine: String) : CARDINAL ;
 
 
-END CmdArgs.
+END SCmdArgs.

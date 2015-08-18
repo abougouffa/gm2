@@ -1,3 +1,16 @@
+2015-08-18      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/GC.mod:  (gdbif) imported to aid debugging.
+	  Initialised callbacks to NIL (bugfix).
+	* gm2/examples/pge/twoDsim.mod:  removed debugging hook.
+	* gm2/examples/shared/Makefile.in:  corrected dates.
+	* gm2/gm2-libs-iso/MemStream.mod:  assign res to opened (bugfix).
+	* gm2/gm2-libs/CmdArgs.def:  corrected dates.
+	* gm2/gm2-libs/CmdArgs.mod:  corrected dates.
+	* libgm2/libpim/Makefile.am:  added SCmdArgs.def to be installed.
+	* libgm2/libpim/Makefile.am:  added SCmdArgs.mod to be built and
+	  installed.
+
 2015-08-14      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  modified debugging hooks.

@@ -95,7 +95,8 @@ M2MODS = ASCII.mod IO.mod \
        SysStorage.mod Storage.mod \
        StdIO.mod SEnvironment.mod \
        DynamicStrings.mod SFIO.mod \
-       SArgs.mod PushBackInput.mod \
+       SArgs.mod SCmdArgs.mod \
+       PushBackInput.mod \
        StringConvert.mod FormatStrings.mod \
        Builtins.mod MathLib0.mod \
        M2EXCEPTION.mod RTExceptions.mod \
@@ -121,7 +122,8 @@ M2DEFS = Args.def   ASCII.def \
          MathLib0.def  MemUtils.def \
          NumberIO.def  PushBackInput.def \
          RTExceptions.def  RTint.def \
-         SArgs.def  Scan.def \
+         SArgs.def  SCmdArgs.def \
+         Scan.def \
          sckt.def  Selective.def \
          SEnvironment.def  SFIO.def \
          SMathLib0.def  StdIO.def \
