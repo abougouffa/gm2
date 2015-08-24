@@ -3015,7 +3015,7 @@ VAR
 BEGIN
    (* DeclareDefaultType will declare a new identifier as a type of, gcctype, if it has not already been
       declared by gccgm2.c *)
-   location := TokenToLocation(GetDeclaredMod(sym)) ;
+   location := BuiltinsLocation () ;
    t := GetDefaultType(location, KeyToCharStar(MakeKey(name)), gcctype) ;
    AddModGcc(sym, t) ;
    IncludeElementIntoSet(FullyDeclared, sym) ;

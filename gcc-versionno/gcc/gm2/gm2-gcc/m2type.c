@@ -2828,11 +2828,18 @@ m2type_BuildArrayStringConstructor (location_t location, tree arrayType, tree st
   const char *p = TREE_STRING_POINTER (str);
   tree type = m2tree_skip_type_decl (TREE_TYPE (arrayType));
   struct struct_constructor *c = (struct struct_constructor *) m2type_BuildStartArrayConstructor (arrayType);
+  char nul[1];
+  int len = strlen (p);
+
+  nul[0] = (char)0;
 
   m2assert_AssertLocation (location);
   n = m2expr_GetIntegerZero (location);
   while (m2expr_CompareTrees (n, length) < 0) {
-    val = m2convert_BuildConvert (location, type, m2type_BuildCharConstant (location, &p[i]), FALSE);
+    if (i < len)
+      val = m2convert_BuildConvert (location, type, m2type_BuildCharConstant (location, &p[i]), FALSE);
+    else
+      val = m2type_BuildCharConstant (location, &nul[0]);
     m2type_BuildArrayConstructorElement (c, val, n);
     i += 1;
     n = m2expr_BuildAdd (location, n, m2expr_GetIntegerOne (location), FALSE);

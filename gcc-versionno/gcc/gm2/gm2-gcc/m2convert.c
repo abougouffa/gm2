@@ -514,6 +514,56 @@ converting_ISO_generic (location_t location, tree type, tree value, tree generic
 
 
 /*
+ *  convert_char_to_array - convert a single char, value, into an type.  The type will be
+ *                          array [..] of char.  The array type returned will have nuls
+ *                          appended to pad the single char to the correct array length.
+ */
+
+static
+tree
+convert_char_to_array (location_t location, tree type, tree value)
+{
+  tree i = m2decl_BuildIntegerConstant (0);
+  struct struct_constructor *c = (struct struct_constructor *) m2type_BuildStartArrayConstructor (type);
+  tree n = m2type_GetArrayNoOfElements (location, type);
+  char nul[1];
+
+  nul[0] = (char)0;
+
+  /* store the initial char.  */
+  m2type_BuildArrayConstructorElement (c, value, i);
+  i = m2expr_BuildAdd (location, i, m2decl_BuildIntegerConstant (1), FALSE);
+
+  /* now pad out the remaining elements with nul chars.  */
+  while (m2expr_CompareTrees (i, n) < 0)
+    {
+      m2type_BuildArrayConstructorElement (c,
+					   m2type_BuildCharConstant (location, &nul[0]),
+					   i);
+      i = m2expr_BuildAdd (location, i, m2decl_BuildIntegerConstant (1), FALSE);
+    }
+  return m2type_BuildEndArrayConstructor (c);
+}
+
+
+/*
+ *  convert_string_to_array - convert a STRING_CST into an array type.
+ *                            array [..] of char.  The array constant returned
+ *                            will have nuls appended to pad the contents to the
+ *                            correct length.
+ */
+
+static
+tree
+convert_string_to_array (location_t location, tree type, tree value)
+{
+  tree n = m2type_GetArrayNoOfElements (location, type);
+
+  return m2type_BuildArrayStringConstructor (location, type, value, n);
+}
+
+
+/*
  *  BuildConvert - build and return tree VAL (type, value).
  *                 checkOverflow determines whether we
  *                 should suppress overflow checking.
@@ -544,6 +594,18 @@ m2convert_BuildConvert (location_t location, tree type, tree value, int checkOve
       converting_ISO_generic (location, type, value, m2type_GetM2Word32 (), &t) ||
       converting_ISO_generic (location, type, value, m2type_GetM2Word64 (), &t))
     return t;
+
+  if (TREE_CODE (type) == ARRAY_TYPE
+      && TREE_TYPE (type) == m2type_GetM2CharType ())
+    {
+      if (TREE_TYPE (value) == m2type_GetM2CharType ())
+	/* passing a const char to an array [..] of char.  So we convert const char into
+	   the correct length string.  */
+	return convert_char_to_array (location, type, value);
+      if (TREE_CODE (value) == STRING_CST)
+	/* convert a string into an array constant, padding with zeros if necessary.  */
+	return convert_string_to_array (location, type, value);
+    }
 
   if (checkOverflow)
     return convert_and_check (type, value);

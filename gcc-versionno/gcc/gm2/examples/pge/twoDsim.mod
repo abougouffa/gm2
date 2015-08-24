@@ -46,8 +46,8 @@ IMPORT gdbif ;
 CONST
    MaxPolygonPoints       =     6 ;
    DefaultFramesPerSecond =   100.0 ;
-   Debugging              = FALSE ;
-   DebugTrace             = FALSE ;
+   Debugging              =  TRUE ;
+   DebugTrace             =  TRUE ;
    BufferedTime           =     0.1 ;
    InactiveTime           =     1.0 ;  (* the time we keep simulating after all collision events have expired *)
 
@@ -158,7 +158,6 @@ VAR
    maxId             : CARDINAL ;
    lastDrawTime,
    lastCollisionTime,
-   collisionTime,
    currentTime,
    replayPerSecond,
    framesPerSecond   : REAL ;
@@ -242,6 +241,7 @@ BEGIN
    WITH o^ DO
       i := 0 ;
       printf("polygon mass %g colour %d\n", p.mass, p.col) ;
+      Assert (p.nPoints<=8) ;
       WHILE i<p.nPoints DO
          printf("  line (%g,%g)\n", p.points[i].x, p.points[i].y) ;
          INC(i)
@@ -270,6 +270,16 @@ BEGIN
       END
    END
 END dumpRotating ;
+
+
+(*
+   checkDeleted - 
+*)
+
+PROCEDURE checkDeleted (o: Object) ;
+BEGIN
+   Assert(NOT o^.deleted)
+END checkDeleted ;
 
 
 (*
@@ -561,24 +571,30 @@ END circle ;
 
 PROCEDURE get_xpos (id: CARDINAL) : REAL ;
 VAR
-   optr: Object ;
+   dt    : REAL ;
+   optr  : Object ;
+   po,
+   vc, ac: Coord ;
 BEGIN
-   id := newObject(polygonOb) ;
+(*
+   updatePhysics (currentTime-lastCollisionTime) ;
+   lastCollisionTime := currentTime ;
+*)
+   dt := currentTime-lastCollisionTime ;
+   printf ("dt = %f\n", dt) ;
    optr := GetIndice(objects, id) ;
+   checkDeleted(optr) ;
    WITH optr^ DO
-      IF deleted
-      THEN
-         printf ("get_xpos: object has been deleted\n");
-         HALT
+      vc := getVelCoord(optr) ;
+      ac := getAccelCoord(optr) ;
+      CASE object OF
+
+      polygonOb:  po := newPositionCoord(p.points[0], vc, ac, dt) ;
+                  RETURN po.x
+
       ELSE
-         CASE object OF
-
-         polygonOb:  RETURN p.points[0].x
-
-         ELSE
-            printf ("get_xpos: only expecting polygon\n");
-            HALT
-         END
+         printf ("get_xpos: only expecting polygon\n");
+         HALT
       END
    END
 END get_xpos ;
@@ -590,24 +606,29 @@ END get_xpos ;
 
 PROCEDURE get_ypos (id: CARDINAL) : REAL ;
 VAR
-   optr: Object ;
+   dt    : REAL ;
+   optr  : Object ;
+   po,
+   vc, ac: Coord ;
 BEGIN
-   id := newObject(polygonOb) ;
+(*
+   updatePhysics (currentTime-lastCollisionTime) ;
+   lastCollisionTime := currentTime ;
+*)
+   dt := currentTime-lastCollisionTime ;
    optr := GetIndice(objects, id) ;
+   checkDeleted(optr) ;
    WITH optr^ DO
-      IF deleted
-      THEN
-         printf ("get_ypos: object has been deleted\n");
-         HALT
+      vc := getVelCoord(optr) ;
+      ac := getAccelCoord(optr) ;
+      CASE object OF
+
+      polygonOb:  po := newPositionCoord(p.points[0], vc, ac, dt) ;
+                  RETURN po.y
+
       ELSE
-         CASE object OF
-
-         polygonOb:  RETURN p.points[0].y
-
-         ELSE
-            printf ("get_ypos: only expecting polygon\n");
-            HALT
-         END
+         printf ("get_ypos: only expecting polygon\n");
+         HALT
       END
    END
 END get_ypos ;
@@ -709,6 +730,7 @@ VAR
    i   : CARDINAL ;
 BEGIN
    optr := GetIndice(objects, id) ;
+   checkDeleted(optr) ;
    IF optr^.object=polygonOb
    THEN
       NEW(nptr) ;
@@ -740,6 +762,7 @@ BEGIN
    IF NOT nearZero(angle)
    THEN
       optr := GetIndice(objects, id) ;
+      checkDeleted(optr) ;
       IF optr^.fixed
       THEN
          printf("object %d is fixed and therefore cannot be given an angular velocity\n",
@@ -861,6 +884,7 @@ END drawBackground ;
 
 PROCEDURE getVelCoord (o: Object) : Coord ;
 BEGIN
+   checkDeleted(o) ;
    WITH o^ DO
       IF fixed OR stationary
       THEN
@@ -878,6 +902,7 @@ END getVelCoord ;
 
 PROCEDURE getAccelCoord (o: Object) : Coord ;
 BEGIN
+   checkDeleted(o) ;
    WITH o^ DO
       IF fixed OR stationary
       THEN
@@ -899,6 +924,7 @@ VAR
    vc, ac: Coord ;
    po    : ARRAY [0..MaxPolygonPoints] OF Coord ;
 BEGIN
+   checkDeleted(optr) ;
    vc := getVelCoord(optr) ;
    ac := getAccelCoord(optr) ;
    WITH optr^ DO
@@ -959,6 +985,7 @@ BEGIN
       optr := GetIndice(objects, i) ;
       IF (optr#NIL) AND (NOT optr^.deleted)
       THEN
+         DumpObject (optr) ;
          (* printf ("before doDrawFrame\n"); *)
          doDrawFrame(optr, dt) ;
          (* printf ("after doDrawFrame\n"); *)
@@ -1017,10 +1044,13 @@ END drawFrameEvent ;
 PROCEDURE updateRPolygon (optr: Object; dt: REAL) ;
 BEGIN
    WITH optr^ DO
-      r.cOfG.x := newPositionScalar(r.cOfG.x, vx, ax, dt) ;
-      r.cOfG.y := newPositionScalar(r.cOfG.y, vy, ay+simulatedGravity, dt) ;
-      vx := vx + ax*dt ;
-      vy := vy + (ay+simulatedGravity)*dt
+      IF NOT deleted
+      THEN
+         r.cOfG.x := newPositionScalar(r.cOfG.x, vx, ax, dt) ;
+         r.cOfG.y := newPositionScalar(r.cOfG.y, vy, ay+simulatedGravity, dt) ;
+         vx := vx + ax*dt ;
+         vy := vy + (ay+simulatedGravity)*dt
+      END
    END
 END updateRPolygon ;
 
@@ -1693,8 +1723,6 @@ PROCEDURE physicsCollision (e: eventQueue) ;
 VAR
    id1, id2    : Object ;
 BEGIN
-   collisionTime := currentTime ;
-
    WITH e^.ePtr^ DO
       CASE etype OF
 
@@ -3129,8 +3157,8 @@ PROCEDURE resetQueue ;
 VAR
    c, f, e: eventQueue ;
 BEGIN
-   c := NIL ;
-   f := NIL ;
+   c := NIL ;  (* collision event *)
+   f := NIL ;  (* draw frame event *)
    e := eventQ ;
    WHILE e#NIL DO
       IF e^.ePtr=NIL
@@ -3428,6 +3456,17 @@ END timeUntil ;
 
 
 (*
+   dumpTime - 
+*)
+
+PROCEDURE dumpTime ;
+BEGIN
+   printf ("  absolute time is %f\n", currentTime);
+   printf ("  last collision time is %f\n", lastCollisionTime)
+END dumpTime ;
+
+
+(*
    skipTime - attempts to skip, t, seconds.  It returns the amount
               of time actually skipped.  This function will not skip
               past the next event.
@@ -3437,10 +3476,14 @@ PROCEDURE skipTime (t: REAL) : REAL ;
 VAR
    dt: REAL ;
 BEGIN
-   pumpQueue ;
+   printf ("skipTime %f\n", t) ;
+   dumpTime ;
+   pumpQueue ; 
    IF eventQ=NIL
    THEN
-      printf ("no events in the queue\n") ;
+      printf ("  no events in the queue\n") ;
+      dumpTime ;
+      printf ("finishing skipTime\n") ;
       RETURN 0.0
    ELSE
       IF t > eventQ^.time
@@ -3462,6 +3505,8 @@ BEGIN
             eventQ^.time := eventQ^.time - t
          END
       END ;
+      dumpTime ;
+      printf ("finishing skipTime\n") ;
       RETURN dt
    END
 END skipTime ;
@@ -3499,6 +3544,7 @@ PROCEDURE processEvent ;
 VAR
    dt: REAL ;
 BEGIN
+   (* gdbif.sleepSpin ; *)
    IF Debugging
    THEN
       printf ("processEvent before pumpQueue\n")
@@ -3538,8 +3584,19 @@ VAR
    optr: Object ;
 BEGIN
    optr := GetIndice(objects, id) ;
+   IF DebugTrace
+   THEN
+      printf ("rm %d\n", id) ;
+      printf ("here is the world before rm\n") ;
+      dumpWorld
+   END ;
    WITH optr^ DO
       deleted := TRUE
+   END ;
+   IF DebugTrace
+   THEN
+      printf ("rm complete, here is the world after rm\n");
+      dumpWorld
    END ;
    RETURN( id )
 END rm ;
@@ -3832,13 +3889,12 @@ BEGIN
    freeEvents := NIL ;
    freeDesc := NIL ;
    currentTime := 0.0 ;
-   collisionTime := -1.0 ;
    lastCollisionTime := 0.0 ;
    drawCollisionFrame := TRUE ;
    drawPrediction := FALSE ;
    fileOpened := FALSE ;
    writeTimeDelay := TRUE ;
-(*   gdbif.sleepSpin *)
+   (* gdbif.sleepSpin *)
 END Init ;
 
 

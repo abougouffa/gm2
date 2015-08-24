@@ -72,6 +72,7 @@ class object:
         self.param = None
         self.kg = None
         self.collisionWith = []
+        self.collisionp = None
         self.w = 0
         self.c = None
 
@@ -190,7 +191,10 @@ class object:
 
     def rm (self):
         if not self.deleted:
+            printf ("calling pgeif.rm\n")
             self.o = pgeif.rm (self.o)
+            self.deleted = True
+            printf ("returned from pgeif.rm\n")
 
     def _check_not_deleted (self, message):
         if self.deleted:
@@ -204,7 +208,8 @@ class object:
     def collision (self, between):
         print "collision seen, between:", between
         if self.collisionWith == []:
-            self.collisionp (self)
+            if self.collisionp != None:
+                self.collisionp (self)
         else:
             for c in self.collisionWith:
                 for b in between:
@@ -212,7 +217,8 @@ class object:
                         break
             else:
                 return
-            self.collisionp (self)
+            if self.collisionp != None:
+                self.collisionp (self)
 
     def get_param (self):
         return self.param
@@ -407,7 +413,9 @@ class event:
         if self._edata == None:
             printf ("expecting some event data\n")
         else:
+            printf ("*********** current time is %f ***********\n", pgeif.get_time ())
             self.__etime = unpackReal (self._edata) # 8 bytes REAL
+            printf ("*********** event time is %f *************\n", self.__etime)
             if t == collision_event:
                 self.__etype = unpackCard (self._edata[8:12]) # 4 bytes etype
                 self.__point = unpackPoint (self._edata[12:])
@@ -419,6 +427,12 @@ class event:
                 if self.__etype == 2 or self.__etype == 3:
                     # circle/polygon collision or polygon/polygon collision
                     self.__kind = unpackCard (self._edata[36:])
+                printf ("collision event created which indicates a collision in %f seconds\n", self.__etime)
+            else:
+                printf ("unknown event %d in %f seconds\n", t, self.__etime)
+            printf ("moving time forward until this event\n")
+            pgeif.skip_until (self.__etime)
+            printf ("current time is now %f\n", pgeif.get_time ())
     def _set_frame_contents (self, data, length):
         self._fData = data
         self._flength = length
@@ -426,8 +440,9 @@ class event:
         self._cData = data
         self._clength = length
     def _process (self):
-        printf ("about to call process_event\n")
+        printf ("_flush_delay\n")
         _flush_delay ()
+        printf ("about to call process_event\n")
         pgeif.process_event ();
         printf ("find out which event\n")
         if self._type == frame_event:
@@ -442,7 +457,8 @@ class event:
             pgeif.empty_fbuffer ()
             pgeif.empty_cbuffer ()
         elif self._type == collision_event:
-            printf ("collision event seen!!\n")
+            printf ("collision event seen, in %f seconds\n", self.__etime)
+            # pgeif.skip_until (self.__etime)
             collision (self._between ())
     def _check (self, et):
         if self._type != et:

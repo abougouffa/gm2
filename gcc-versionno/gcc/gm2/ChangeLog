@@ -1,3 +1,45 @@
+2015-08-24      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/examples/exampleBoxes.py:  much more debugging
+	  added.
+	* gm2/examples/pge/pge.py:  more debugging added.  Also correct
+	  lack of initialiser bugs.  Many diagnostics added.
+	* gm2/examples/pge/pgeif.def:  added ValueOutOfRange exception.
+	* gm2/examples/pge/pgeif.i:  added skip_until procedure.
+	* gm2/examples/pge/pgeif.mod:  (check_range) New function
+	  procedure.  get_xpos, get_ypos, box, poly3, poly4, poly5
+	  and poly6 all use check_range to check parameter values.
+	* gm2/examples/pge/twoDsim.mod:  added more trace information
+	  and test for object deletion.
+	* gm2/gm2-compiler/M2Base.mod:  added two more metatypes, rec
+	  and array.  Check for these meta types and add their
+	  characteristics into the assignment and expression matrices.
+	  This allows ARRAY and RECORD of the correct size to be compatible
+	  with WORD, BYTE, LOC etc.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  use BuiltinsLocation during
+	  the construction of the base types.
+	* gm2/gm2-compiler/M2GenGCC.mod:  added internal debugging.
+	  (CodeIndirectCall) skip type aliases for the return type.
+	* gm2/gm2-compiler/M2Scope.mod:  added internal debugging.
+	* gm2/gm2-compiler/SymbolTable.mod:  added missing initialisation
+	  for ScopeQuad.  This allows cc1gm2 to be run without errors by
+	  valgrind.
+	* gm2/gm2-gcc/m2convert.c:  convert_char_to_array (New function).
+	  convert_string_to_array (New function).  BuildConvert changed
+	  to detect whether a const lit char or string is required to be
+	  converted into a fixed string length.  This fixes a bug reported.
+	* gm2/gm2-gcc/m2statement.c:  tidied up code and fixed bug in
+	  (BuildReturnValueCode).  This fixes a bug exposed by
+	  testsuite/gm2/pim/pass/typeequiv.mod.
+	* gm2/gm2-gcc/m2type.c:  (BuildArrayStringConstructor) now adds
+	  multiple nuls to the end of a string if length exceeds string.
+	* gm2/gm2-libs/MemUtils.def:  tidied up formatting.
+	* gm2/p2c/p2c-src/src/pexpr.c:  fixed bug so that constant strings
+	  have a LOW indice of 0 not 1.
+	* gm2/pim/pass/typeequiv.mod:  corrected date.
+	* gm2/pim/pass/typeequiv2.mod:  corrected date.
+	* gm2/pim/pass/typeequiv3.mod:  corrected date.
+
 2015-08-18      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/GC.mod:  (gdbif) imported to aid debugging.

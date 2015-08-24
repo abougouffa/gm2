@@ -888,7 +888,7 @@ int firstarg, ismacro;
 			makeexpr_addr(ex->args[ex->nargs-1]);
 		} else if (tp2->kind == TK_STRING) {
 		    ex->args[fakenum++] =
-			makeexpr_arglong(makeexpr_long(1), integer16 != 1);
+		      makeexpr_arglong(makeexpr_long(0), integer16 != 1);  /* was 1 (gaius)  */
 		    ex->args[fakenum++] =
 			makeexpr_arglong(strmax_func(ex->args[ex->nargs-1]),
 					 integer16 != 1);

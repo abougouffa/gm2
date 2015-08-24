@@ -19,10 +19,12 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE M2Scope ;
 
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
+FROM M2Debug IMPORT Assert ;
+FROM NameKey IMPORT Name ;
 
 FROM SymbolTable IMPORT IsProcedure, IsDefImp, GetProcedureQuads, GetScope,
                         GetProcedureScope, IsModule, IsModuleWithinProcedure,
-                        NulSym ;
+                        GetSymName, NulSym ;
 
 FROM M2Options IMPORT DisplayQuadruples ;
 FROM M2Printf IMPORT printf1 ;
@@ -30,6 +32,8 @@ FROM M2Quads IMPORT QuadOperator, GetFirstQuad, GetNextQuad, GetQuad, DisplayQua
 FROM M2StackWord IMPORT StackOfWord, InitStackWord, KillStackWord,
                         PopWord, PushWord, PeepWord ;
 
+CONST
+   Debugging = FALSE ;
 
 TYPE
    ScopeBlock = POINTER TO scopeblock ;
@@ -186,9 +190,23 @@ VAR
    op1, op2, op3: CARDINAL ;
    First        : BOOLEAN ;
    s            : StackOfWord ;
+   n            : Name ;
 BEGIN
    s := InitStackWord() ;
+   IF Debugging
+   THEN
+      n := GetSymName(proc) ;
+      printf1("GetProcQuads for %a\n", n)
+   END ;
+   Assert(IsProcedure(proc)) ;
    GetProcedureQuads(proc, scope, start, end) ;
+   IF Debugging
+   THEN
+      printf1(" proc %d\n", proc) ;
+      printf1(" scope %d\n", scope) ;
+      printf1(" start %d\n", start) ;
+      printf1(" end %d\n", end)
+   END ;
    PushWord(s, 0) ;
    First := FALSE ;
    i := scope ;

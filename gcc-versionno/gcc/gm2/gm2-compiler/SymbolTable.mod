@@ -3067,8 +3067,9 @@ BEGIN
             Scope := GetCurrentScope() ; (* Scope of procedure.           *)
             InitTree(Unresolved) ;       (* All symbols currently         *)
                                          (* unresolved in this procedure. *)
-            StartQuad := 0 ;             (* Index into list of quads.     *)
-            EndQuad := 0 ;
+            ScopeQuad := 0 ;             (* Index into list of quads,     *)
+            StartQuad := 0 ;             (* defining the scope, start and *)
+            EndQuad := 0 ;               (* end of the procedure.         *)
             Reachable := FALSE ;         (* Procedure not known to be     *)
                                          (* reachable.                    *)
             SavePriority := FALSE ;      (* Does procedure need to save   *)

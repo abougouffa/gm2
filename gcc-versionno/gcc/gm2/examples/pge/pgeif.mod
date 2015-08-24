@@ -28,6 +28,7 @@ FROM Indexing IMPORT Index, InitIndex, GetIndice, PutIndice, HighIndice, Include
 FROM Fractions IMPORT Fract, putReal ;
 FROM deviceIf IMPORT Colour ;
 FROM libc IMPORT printf, exit ;
+FROM roots IMPORT nearZero ;
 
 
 TYPE
@@ -241,12 +242,30 @@ END gravity ;
 
 
 (*
+   check_range - 
+*)
+
+PROCEDURE check_range (r: REAL) : REAL ;
+BEGIN
+   IF nearZero (r) OR nearZero (r-1.0)
+   THEN
+      RETURN r
+   ELSIF (r>0.0) AND (r<1.0)
+   THEN
+      RETURN r
+   ELSE
+      THROW (ORD (ValueOutOfRange))
+   END
+END check_range ;
+
+
+(*
    get_xpos - returns the first point, x, coordinate of object.
 *)
 
 PROCEDURE get_xpos (id: CARDINAL) : REAL ;
 BEGIN
-   RETURN twoDsim.get_xpos (lookupDef (object, id))
+   RETURN check_range (twoDsim.get_xpos (lookupDef (object, id)))
 END get_xpos ;
 
 
@@ -256,7 +275,7 @@ END get_xpos ;
 
 PROCEDURE get_ypos (id: CARDINAL) : REAL ;
 BEGIN
-   RETURN twoDsim.get_xpos (lookupDef (object, id))
+   RETURN check_range (twoDsim.get_xpos (lookupDef (object, id)))
 END get_ypos ;
 
 
@@ -265,7 +284,13 @@ END get_ypos ;
 *)
 
 PROCEDURE box (x0, y0, i, j: REAL; c: CARDINAL) : CARDINAL ;
+VAR
+   k: REAL ;
 BEGIN
+   k := check_range (x0) ;
+   k := check_range (y0) ;
+   k := check_range (x0+i) ;
+   k := check_range (y0+j) ;
    RETURN trace (addDef (object, twoDsim.box (x0, y0, i, j,
                                               lookupDef (colour, c))),
                  "box")
@@ -278,7 +303,16 @@ END box ;
 *)
 
 PROCEDURE poly3 (x0, y0, x1, y1, x2, y2: REAL; c: CARDINAL) : CARDINAL ;
+VAR
+   k: REAL ;
 BEGIN
+   k := check_range (x0) ;
+   k := check_range (y0) ;
+   k := check_range (x1) ;
+   k := check_range (y1) ;
+   k := check_range (x2) ;
+   k := check_range (y2) ;
+
    RETURN trace (addDef (object,
                          twoDsim.poly3 (x0, y0, x1, y1, x2, y2,
                                         lookupDef (colour, c))),
@@ -292,7 +326,18 @@ END poly3 ;
 *)
 
 PROCEDURE poly4 (x0, y0, x1, y1, x2, y2, x3, y3: REAL; c: CARDINAL) : CARDINAL ;
+VAR
+   k: REAL ;
 BEGIN
+   k := check_range (x0) ;
+   k := check_range (y0) ;
+   k := check_range (x1) ;
+   k := check_range (y1) ;
+   k := check_range (x2) ;
+   k := check_range (y2) ;
+   k := check_range (x3) ;
+   k := check_range (y3) ;
+
    RETURN trace (addDef (object,
                          twoDsim.poly4 (x0, y0, x1, y1, x2, y2, x3, y3,
                                         lookupDef (colour, c))),
@@ -306,7 +351,20 @@ END poly4 ;
 *)
 
 PROCEDURE poly5 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4: REAL; c: CARDINAL) : CARDINAL ;
+VAR
+   k: REAL ;
 BEGIN
+   k := check_range (x0) ;
+   k := check_range (y0) ;
+   k := check_range (x1) ;
+   k := check_range (y1) ;
+   k := check_range (x2) ;
+   k := check_range (y2) ;
+   k := check_range (x3) ;
+   k := check_range (y3) ;
+   k := check_range (x4) ;
+   k := check_range (y4) ;
+
    RETURN trace (addDef (object,
                          twoDsim.poly5 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4,
                                         lookupDef (colour, c))),
@@ -320,7 +378,22 @@ END poly5 ;
 *)
 
 PROCEDURE poly6 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5: REAL; c: CARDINAL) : CARDINAL ;
+VAR
+   k: REAL ;
 BEGIN
+   k := check_range (x0) ;
+   k := check_range (y0) ;
+   k := check_range (x1) ;
+   k := check_range (y1) ;
+   k := check_range (x2) ;
+   k := check_range (y2) ;
+   k := check_range (x3) ;
+   k := check_range (y3) ;
+   k := check_range (x4) ;
+   k := check_range (y4) ;
+   k := check_range (x5) ;
+   k := check_range (y5) ;
+
    RETURN trace (addDef (object,
                          twoDsim.poly6 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5,
                                         lookupDef (colour, c))),

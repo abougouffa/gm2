@@ -286,6 +286,9 @@ m2statement_BuildGoto (location_t location, char *name)
   m2assert_AssertLocation (location);
   TREE_USED (label) = 1;
   add_stmt (location, build1 (GOTO_EXPR, void_type_node, label));
+#if 0
+  printf ("goto %s\n", name);
+#endif
 }
 
 
@@ -310,6 +313,9 @@ m2statement_DeclareLabel (location_t location, char *name)
 
   m2assert_AssertLocation (location);
   add_stmt (location, build1 (LABEL_EXPR, void_type_node, label));
+#if 0
+  printf ("label %s\n", name);
+#endif
 }
 
 
@@ -1037,17 +1043,13 @@ m2statement_BuildReturnValueCode (location_t location, tree fndecl, tree value)
   tree t;
 
   m2assert_AssertLocation (location);
-  if (TREE_CODE (TREE_TYPE (value)) == FUNCTION_TYPE)
-    t = build2 (MODIFY_EXPR,
-		TREE_TYPE (DECL_RESULT (fndecl)),
-		DECL_RESULT (fndecl),
-		build1 (CONVERT_EXPR, ptr_type_node, value));
-  else
-    t = build2 (MODIFY_EXPR,
-		TREE_TYPE (DECL_RESULT (fndecl)),
-		DECL_RESULT (fndecl),
-		m2convert_BuildConvert (location, TREE_TYPE (DECL_RESULT (fndecl)), value, FALSE));
-  
+  t = build2 (MODIFY_EXPR,
+	      TREE_TYPE (DECL_RESULT (fndecl)),
+	      DECL_RESULT (fndecl),
+	      m2convert_BuildConvert (location,
+				      m2tree_skip_type_decl (TREE_TYPE (DECL_RESULT (fndecl))),
+				      value, FALSE));
+
   ret_stmt = build_stmt (location, RETURN_EXPR, t);
   add_stmt (location, ret_stmt);
 }

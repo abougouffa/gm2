@@ -1617,7 +1617,12 @@ BEGIN
    *)
    DoJump(location, BuildGreaterThan(location, ta, td), NIL, string(fLabel)) ;
    DoJump(location, BuildLessThan(location, tb, tc), NIL, string(fLabel)) ;
-   BuildGoto(location, string(tLabel))
+   BuildGoto(location, string(tLabel)) ;
+   IF CascadedDebugging
+   THEN
+      printf1('label used %s\n', tLabel) ;
+      printf1('label used %s\n', fLabel)
+   END
 END DoIsIntersection ;
 
 
@@ -1659,9 +1664,9 @@ BEGIN
             nLabel := CreateLabelProcedureN(proc, "n", UnboundedLabelNo, j) ;
             IF CascadedDebugging
             THEN
-               printf1('label %s\n', nLabel)
+               printf1('label declared %s\n', nLabel)
             END ;
-            DeclareLabel(location, string(nLabel))
+            DeclareLabel(location, string(nLabel)) ;
          END ;
          tc := GetParamAddress(proc, GetItemFromList(mustCheck, j)) ;
          td := BuildConvert(TokenToLocation(tokenno),
@@ -1671,18 +1676,36 @@ BEGIN
          tLabel := CreateLabelProcedureN(proc, "t", UnboundedLabelNo, j+1) ;
          fLabel := CreateLabelProcedureN(proc, "f", UnboundedLabelNo, j+1) ;
          DoIsIntersection(tokenno, ta, tb, tc, td, tLabel, fLabel) ;
+         IF CascadedDebugging
+         THEN
+            printf1('label declared %s\n', tLabel)
+         END ;
          DeclareLabel(location, string(tLabel)) ;
          MakeCopyAndUse(tokenno, proc, param, i) ;
          IF j<n
          THEN
             nLabel := CreateLabelProcedureN(proc, "n", UnboundedLabelNo, n+1) ;
-            BuildGoto(location, string(nLabel))
+            BuildGoto(location, string(nLabel)) ;
+            IF CascadedDebugging
+            THEN
+               printf1('goto %s\n', nLabel)
+            END
+         END ;
+         IF CascadedDebugging
+         THEN
+            printf1('label declared %s\n', fLabel)
          END ;
          DeclareLabel(location, string(fLabel)) ;
          INC(j)
       END ;
+(*
       nLabel := CreateLabelProcedureN(proc, "fin", UnboundedLabelNo, n+1) ;
+      IF CascadedDebugging
+      THEN
+         printf1('label declared %s\n', nLabel)
+      END ;
       DeclareLabel(location, string(nLabel))
+*)
    END
 END BuildCascadedIfThenElsif ;
 
@@ -2023,7 +2046,7 @@ VAR
    location  : location_t ;
 BEGIN
    location := TokenToLocation(tokenno) ;
-   proc := GetType(ProcVar) ;
+   proc := SkipType(GetType(ProcVar)) ;
    IF GetType(proc)=NulSym
    THEN
       ReturnType := Tree(NIL)

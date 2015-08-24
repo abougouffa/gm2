@@ -38,11 +38,11 @@ EXPORT UNQUALIFIED ExceptionKind,
                    is_collision, is_frame, time_until, get_time, rm,
                    batch, use_buffer, empty_cbuffer, empty_fbuffer,
                    use_time_delay, dump_world, draw_collision, l2h, h2l,
-                   get_xpos, get_ypos ;
+                   get_xpos, get_ypos, skip_until ;
 
 
 TYPE
-   ExceptionKind = (IncorrectType, IdOutOfBounds) ;
+   ExceptionKind = (IncorrectType, IdOutOfBounds, ValueOutOfRange) ;
 
 
 (*
