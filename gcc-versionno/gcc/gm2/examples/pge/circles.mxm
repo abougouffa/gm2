@@ -25,10 +25,12 @@ finalise {
    (* end of included code *)
 }
 
+
 // and lastly the maxima code
 {
-   ((a + b*t + c*t^2/2) - (d + e*t + f*t^2/2))^2 + 
-   ((g + h*t + i*t^2/2) - (j + k*t + l*t^2/2))^2 - m^2;
+  ((a  + c   * t + e   * t^2 / 2.0) - (b  + d   * t +   f * t^2 / 2.0))^2 +
+  ((g  + k   * t + m   * t^2 / 2.0) - (h  + l   * t +   n * t^2 / 2.0))^2 -
+  (o+p)^2;
    ratsimp(%);
    collectterms(%,t);   //  put it into polynomial form
    % * 4;               //  and lastly remove the divide by 4

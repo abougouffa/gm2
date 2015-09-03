@@ -212,11 +212,9 @@ PROCEDURE AssertRDebug (a, b: REAL; message: ARRAY OF CHAR) ;
 VAR
    copy: ARRAY [0..10] OF CHAR ;
 BEGIN
-   StrCopy(message, copy) ;
-   IF nearZero(a-b)
+   IF NOT nearZero(a-b)
    THEN
-      printf("%s passed\n", ADR(copy))
-   ELSE
+      StrCopy(message, copy) ;
       printf("%s failed  %g should equal %g difference is %g\n", ADR(copy), a, b, a-b)
    END
 END AssertRDebug ;
@@ -1846,7 +1844,7 @@ END getObjectValues ;
 *)
 
 PROCEDURE maximaCircleCollision (VAR array: ARRAY OF REAL;
-                                 a, b, c, d, e, f, g, h, i, j, k, l, m: REAL) ;
+                                 a, b, c, d, e, f, g, h, k, l, m, n, o, p: REAL) ;
 BEGIN
 #  include "circles.m"
 END maximaCircleCollision ;
@@ -1896,9 +1894,7 @@ BEGIN
    E := 4.0*sqr(h)-8.0*g*h+4.0*sqr(g)+4.0*sqr(b)-8.0*a*b+4.0*sqr(a)-sqr(2.0*(p+o)) ;
 
    maximaCircleCollision (array,
-                          a, c, e, g, k, m,
-                          b, d, f, h, l, n,
-                          o + p) ;
+                          a, b, c, d, e, f, g, h, k, l, m, n, o, p) ;
 
    AssertRDebug(array[4], A, "A") ;
    AssertRDebug(array[3], B, "B") ;
@@ -2889,7 +2885,7 @@ END findCollisionLineRPoint ;
 
 
 (*
-   findCollisionLineRLine - 
+   findCollisionLineRLine - find the time of collision between line, iPtr, and rotating line, rPtr.
 *)
 
 PROCEDURE findCollisionLineRLine (iPtr, rPtr: Object; i, j: CARDINAL; VAR edesc: eventDesc; VAR tc: REAL) ;
@@ -2907,8 +2903,6 @@ BEGIN
    findCollisionLineRPoint(rPtr, iPtr, j, i, edesc, tc)
    
 END findCollisionLineRLine ;
-
-
 
 
 (*
@@ -2937,9 +2931,14 @@ END findCollisionPolygonPolygon ;
 
 (*
    findCollisionPolygonRPolygon - find the smallest positive time (if any) between the polygons, iPtr
-                                  and rPtr colliding.  rPtr is a rotating polygon.
+                                  and rPtr colliding.
+                                  rPtr is a rotating polygon and iPtr is not rotating.
                                   If a collision if found then, tc, is assigned to the time and the
                                   event descriptor is filled in.
+                                  We check possible collision times between all lines of both polygons,
+                                  we separate out the rotating polygon from non rotating polygon
+                                  as the collision equations only generate a polynomial order 4 rather
+                                  than order 8 if both are rotating.
 *)
 
 PROCEDURE findCollisionPolygonRPolygon (iPtr, rPtr: Object; VAR edesc: eventDesc; VAR tc: REAL) ;

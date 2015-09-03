@@ -1,6 +1,6 @@
 2015-09-03      Gaius Mulley <gaius@gnu.org>
 
-	* gm2/Make-lang.in:  fixed dates and version number.
+	* gm2/Make-lang.in:  fixed dates and gcc version number (4.7.4).
 	* gm2/Makefile.in:  fixed dates.
 	* gm2/c.flex:  fixed dates.
 	* gm2/configure.in;  fixed dates and version number.
@@ -14,6 +14,16 @@
 	  and include machine generated source, compare results of both.
 	* gm2/gm2-lang.c:  handle -I option inside cpp args.
 	* gm2/m2.flex:  corrected dates.
+	* gm2/gm2-compiler/M2Preprocess.mod:  removed unnecessary printf
+	  and corrected dates.
+	* released GM2 1.1.5
+	* gm2/gm2.texi:  updated release map.
+	* gm2/version.c:  1.1.5.
+	* gm2/configure.in;  1.1.5.
+	* gm2/gm2-libs/config-host.in:  1.1.5.
+	* gm2/gm2-libs/config-target.in:  1.1.5.
+	* gm2/gm2-libs/config-host:  rebuilt.
+	* gm2/gm2-libs/config-target:  rebuilt.
 
 2015-08-24      Gaius Mulley <gaius@gnu.org>
 
