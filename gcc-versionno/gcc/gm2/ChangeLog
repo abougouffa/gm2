@@ -1,4 +1,4 @@
-2015-08-03      Gaius Mulley <gaius@gnu.org>
+2015-09-03      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  fixed dates and version number.
 	* gm2/Makefile.in:  fixed dates.

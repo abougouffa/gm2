@@ -111,7 +111,6 @@ BEGIN
       THEN
          fprintf1(StdOut, "%s\n", commandLine)
       END ;
-      printf ("command line is: %s\n", string(commandLine)); 
       IF system(string(commandLine))#0
       THEN
          fprintf1(StdErr, 'C preprocessor failed when preprocessing %s\n', filename) ;
