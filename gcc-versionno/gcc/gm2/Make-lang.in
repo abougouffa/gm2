@@ -1,6 +1,6 @@
 # Top level -*- makefile -*- fragment for GNU GM2.
 #   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-#                 2010, 2011, 2012, 2013, 2014
+#                 2010, 2011, 2012, 2013, 2014, 2015
 #                 Free Software Foundation, Inc.
 
 #This file is part of GNU CC.
@@ -497,7 +497,7 @@ P2C=gm2/boot-bin/p2c$(exeext) -c $(srcdir)/gm2/p2crc \
  -I$(srcdir)/gm2/gm2-gcc/%s.def \
  -M0 -q
 M2LINK=gm2/boot-bin/mklink$(exeext)
-GCC-VERSION=4.7.3
+GCC-VERSION=4.7.4
 GM2_O=
 GM2_O_S3=-O
 GM2_OS=-Os -O2

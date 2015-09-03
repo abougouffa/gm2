@@ -56,7 +56,9 @@ class parse:
     #
 
     def parseMaximaOutput (self, lines):
-        p = mxmmaxima.parse(self.filename, self.lineno, self.language, string.join(lines, ''))
+        l = string.join(lines, '')
+        print "maxima produced:", l
+        p = mxmmaxima.parse(self.filename, self.lineno, self.language, l)
         m = p.getPolynomials(self.nTerms)
         if m != None:
             if self.nTerms == len(m):
@@ -84,30 +86,14 @@ class parse:
             return line == sequence
 
 
-    #
-    #  getLastMaxima - returns the last equation maxima generated.
-    #
-
-    def getLastMaxima (self, lines):
-        l = []
-        if self.seen(lines[-1], '(%i'):
-            lines = lines[:-1]
-            while not self.seen(lines[-1], '(%i'):
-                l = [lines[-1]] + l
-                lines = lines[:-1]
-        if self.seen(l[0], '(%o'):
-            i = 0
-            while (i<len(l[0])) and (l[0][i] != ' '):
-                i += 1
-            l[0] = l[0][i:]
-        elif len(l)>=1:
-            if self.seen(l[1], '(%o'):
-                i = 0
-                while (i<len(l[1])) and (l[1][i] != ' '):
-                    i += 1
-                l[0] = l[0][i:]
-                l[1] = l[1][i:]
-        return l
+    def writeEmbedded (self, f):
+        lines = self.embedded[-1]
+        for l in lines.split ('\n'):
+            line = l.lstrip().rstrip()
+            f.write(line + '\n')
+            print line
+        f.write('stringout("outfile.m",%);\n')
+        f.write('quit();\n')
 
 
     #
@@ -118,22 +104,24 @@ class parse:
         i = self.makeTemporary()
         o = self.makeTemporary()
         f = open(i, 'w')
-        f.write(self.embedded[-1])
+        self.writeEmbedded (f)
         f.close()
         c = 'maxima -b %s > %s\n' % (i, o)
         m = []
         if os.system(c) == 0:
+            c = "rm %s\n" % o
+            os.system(c)
             if verbose:
                 printf("maxima completed successfully\n")
+            o = "outfile.m"
             m = open(o, 'r').readlines()
-            m = self.getLastMaxima(m)
             if verbose:
+                print "output from maxima is:"
                 print string.join(m, '')
             c = "rm %s\n" % i
             os.system(c)
             c = "rm %s\n" % o
             os.system(c)
-            # sys.exit(0)  # --fixme-- just testing
         else:
             c = 'maxima -b %s\n' % i
             os.system(c)

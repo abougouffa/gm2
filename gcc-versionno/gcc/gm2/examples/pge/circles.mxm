@@ -2,7 +2,7 @@
 //  circle/circle collision equations which form a 4 term polynomial.
 // 
 
-polynomial terms 5         // 5 terms
+polynomial terms 5     // 5 terms if we consider t^0 t^1 t^2 t^3 and t^4
 
 //  Modula-2 declaration for the terms and smallest positive root value.
 
@@ -28,9 +28,8 @@ finalise {
 // and lastly the maxima code
 {
    ((a + b*t + c*t^2/2) - (d + e*t + f*t^2/2))^2 + 
-   ((g + h*t + i*t^2/2) - (j + k*t + l*t^2/2))^2 - (m+n)^2;
+   ((g + h*t + i*t^2/2) - (j + k*t + l*t^2/2))^2 - m^2;
    ratsimp(%);
    collectterms(%,t);   //  put it into polynomial form
    % * 4;               //  and lastly remove the divide by 4
-   quit();
 }

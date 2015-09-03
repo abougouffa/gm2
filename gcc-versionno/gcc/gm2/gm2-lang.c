@@ -186,7 +186,14 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
   switch (code) {
 
   case OPT_I:
-    M2Options_SetSearchPath (arg);
+    if (insideCppArgs)
+      {
+	const struct cl_option *option = &cl_options[scode];
+	const char *opt = (const char *) option->opt_text;
+	M2Options_CppArg(opt, arg, TRUE);
+      }
+    else
+      M2Options_SetSearchPath (arg);
     return 1;
   case OPT_fiso:
     M2Options_SetISO (value);

@@ -37,6 +37,7 @@ FROM MathLib0 IMPORT pi ;
 FROM IOChan IMPORT ChanId ;
 FROM ChanConsts IMPORT read, write, raw, text, OpenResults ;
 FROM NetworkOrder IMPORT writeCard, writeFract, writePoint, writeShort, writeReal, writeCoord ;
+FROM StrLib IMPORT StrCopy ;
 
 IMPORT MemStream ;
 IMPORT deviceIf ;
@@ -208,12 +209,15 @@ END AssertR ;
 *)
 
 PROCEDURE AssertRDebug (a, b: REAL; message: ARRAY OF CHAR) ;
+VAR
+   copy: ARRAY [0..10] OF CHAR ;
 BEGIN
+   StrCopy(message, copy) ;
    IF nearZero(a-b)
    THEN
-      printf("%s passed\n", ADR(message))
+      printf("%s passed\n", ADR(copy))
    ELSE
-      printf("%s failed  %g should equal %g difference is %g\n", ADR(message), a, b, a-b)
+      printf("%s failed  %g should equal %g difference is %g\n", ADR(copy), a, b, a-b)
    END
 END AssertRDebug ;
 
@@ -1842,9 +1846,9 @@ END getObjectValues ;
 *)
 
 PROCEDURE maximaCircleCollision (VAR array: ARRAY OF REAL;
-                                 a, b, c, d, e, f, g, h, i, j, k, l, m, n: REAL) ;
+                                 a, b, c, d, e, f, g, h, i, j, k, l, m: REAL) ;
 BEGIN
-(* #  include "circles.m" *)
+#  include "circles.m"
 END maximaCircleCollision ;
 
 
@@ -1891,18 +1895,17 @@ BEGIN
    D := (8.0*h-8.0*g)*l+(8.0*g-8.0*h)*k+(8.0*b-8.0*a)*d+(8.0*a-8.0*b)*c ;
    E := 4.0*sqr(h)-8.0*g*h+4.0*sqr(g)+4.0*sqr(b)-8.0*a*b+4.0*sqr(a)-sqr(2.0*(p+o)) ;
 
-(*
    maximaCircleCollision (array,
                           a, c, e, g, k, m,
                           b, d, f, h, l, n,
-                          o, p) ;
+                          o + p) ;
 
    AssertRDebug(array[4], A, "A") ;
    AssertRDebug(array[3], B, "B") ;
    AssertRDebug(array[2], C, "C") ;
    AssertRDebug(array[1], D, "D") ;
    AssertRDebug(array[0], E, "E") ;
-*)
+
    (* now solve for values of t which satisfy   At^4 + Bt^3 + Ct^2 + Dt^1 + Et^0 = 0 *)
    IF findQuartic(A, B, C, D, E, t)
    THEN

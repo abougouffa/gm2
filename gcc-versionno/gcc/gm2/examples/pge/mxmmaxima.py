@@ -9,8 +9,10 @@ from mxmutils import *
 import mxmstack
 import sys
 
-tokens   = [ '(', ')', '-', '+', '*', '/', '^', '<eof>' ]
+tokens   = [ '(', ')', '-', '+', '*', '/', '^', ';' ]
 
+def mystop ():
+    pass
 
 class parse:
     #
@@ -22,15 +24,16 @@ class parse:
         self.contents = content
         self.powerpos = 0
         self.columnNo = 0
-        self.curpos = self.skipLine(self.powerpos)
+        self.curpos = 0
         self.lineOffset = line
-        self.lineNo = 2
+        self.lineNo = 1
         self.startpos = self.curpos
-        self.expressionStack = mxmstack.stack(None)  # self.internalError)
-        self.tokenStack = mxmstack.stack(None)       # self.internalError)
+        self.expressionStack = mxmstack.stack(None)
+        self.tokenStack = mxmstack.stack(None)
         self.lang = lang
         self.tok = self.getNext()
         self.terms = []
+
 
     def getPolynomials (self, nTerms):
         if self.expression():
@@ -43,14 +46,45 @@ class parse:
 
 
     #
-    #  skipLine - returns the position of the next line.
+    #  isWhite - returns True if s[i] is white space.  If i exceeds
+    #            the length of s, False is returned.
     #
 
-    def skipLine (self, pos):
-        while (pos<len(self.contents)) and (self.contents[pos] != '\n'):
-            pos += 1
-        pos += 1
-        return pos
+    def isWhite (self, s, i):
+        if i<len(s):
+            return (s[i]==' ') or (s[i] == '\n') or (s[i] == '\t')
+        else:
+            return False
+
+
+    #
+    #  collectText - returns the text found.
+    #
+
+    def collectText (self):
+        self.tok = self.tokenStack.pop()
+        if (self.tok != None) and (self.tok != ""):
+            return self.tok
+        if self.curpos >= len(self.contents) or self.contents[self.curpos] == ';':
+            self.tok = ";"
+            self.pos = self.curpos
+            return self.tok
+        if self.contents[self.curpos] in tokens:
+            self.pos = self.curpos
+            self.curpos += 1
+            self.columnNo += 1
+            self.tok = self.contents[self.pos]
+            return self.tok
+
+        # curpos index onto non token (literal or variable)
+        self.pos = self.curpos
+        while True:
+            if self.contents[self.curpos] in tokens:
+                self.tok = self.contents[self.pos:self.curpos]
+                self.columnNo += len(self.tok)
+                return self.tok
+            else:
+                self.curpos += 1
 
 
     #
@@ -72,82 +106,13 @@ class parse:
     def skipWhite (self):
         while self.isWhite(self.contents, self.curpos):
             if self.contents[self.curpos] == '\n':
-                self.assertBlank()
-                self.lineNo += 2
+                self.lineNo += 1
                 self.columnNo = 0
                 self.curpos += 1
-                self.powerpos = self.curpos
-                self.curpos = self.skipLine(self.curpos)
                 self.startpos = self.curpos
             else:
                 self.curpos += 1
                 self.columnNo += 1
-
-
-    #
-    #  checkPower - checks to see if the token is raised to a power
-    #
-
-    def checkPower (self):
-        end = self.skipLine(self.powerpos)
-        if (self.powerpos+self.columnNo<end) and (not self.isWhite(self.contents, self.powerpos+self.columnNo)):
-            power = ""
-            i = self.powerpos+self.columnNo
-            while not self.isWhite(self.contents, i):
-                power += self.contents[self.powerpos+self.columnNo]
-                # replace self.powerpos+self.columnNo with a " "
-                self.contents = self.contents[:self.powerpos+self.columnNo] + " " + self.contents[self.powerpos+self.columnNo+1:]
-                i += 1
-            if (len(power)>0) and (not isdigit(power[0])):
-                self.internalError('bad power')
-            return power
-        return None
-
-
-    #
-    #  assertBlank - asserts the current line self.contents is blank.
-    #
-
-    def assertBlank (self):
-        i = self.powerpos
-        while self.contents[i] != '\n':
-            if self.isWhite(self.contents, i):
-                i += 1
-            else:
-                self.internalError("powers should have been removed")
-                sys.exit(1)
-
-
-    #
-    #  collectText - returns the text found.
-    #
-
-    def collectText (self):
-        self.tok = self.tokenStack.pop()
-        if (self.tok != None) and (self.tok != ""):
-            return self.tok
-        self.pos = self.curpos
-        self.seentoken = False
-        while (not self.seentoken) and (not self.isWhite(self.contents, self.curpos)):
-            if self.curpos >= len(self.contents):
-                return "<eof>"
-            if self.contents[self.curpos] in tokens:
-                self.seentoken = True
-                if self.curpos==self.pos:
-                    self.curpos += 1
-                    self.columnNo += 1
-            else:
-                self.curpos += 1
-                self.columnNo += 1
-        self.tok = self.contents[self.pos:self.curpos]
-        #
-        #  check powers
-        #
-        power = self.checkPower()
-        if (power != None) and (power != ""):
-            self.tokenStack.push(power)
-            self.tokenStack.push("^")
-        return self.tok
 
 
     #
@@ -157,8 +122,8 @@ class parse:
     def getNext (self):
         self.skipWhite()
         token = self.collectText()
+        printf("token is '%s'\n", token)
         # self.printToken(token)
-        # printf("token is '%s'\n", token)
         return token
 
 
@@ -169,10 +134,11 @@ class parse:
     def expression (self):
         if self.unaryOrTerm():
             while self.addOperator():
-                op = self.stack.pop()
-                l = self.stack.pop()
+                mystop ()
+                op = self.expressionStack.pop()
+                l = self.expressionStack.pop()
                 self.term()
-                r = self.stack.pop()
+                r = self.expressionStack.pop()
                 t = tree(op, self.lang, self.internalError)
                 t.operands([l, r])
                 t.out()
@@ -182,15 +148,15 @@ class parse:
 
 
     #
-    #  unaryOrTerm := "+" simpleExpr | "-" simpleExpr | simpleExpr =:
+    #  unaryOrTerm := "+" factor | "-" factor | simpleExpr =:
     #
             
     def unaryOrTerm (self):
         if self.seenToken("+"):
-            self.simpleExpr()
+            self.factor()
             return True
         elif self.seenToken("-"):
-            self.simpleExpr()
+            self.factor()
             l = self.expressionStack.pop()
             t = tree('-', self.lang, self.internalError)
             t.operands([l])
@@ -274,19 +240,26 @@ class parse:
 
     def factor (self):
         if self.seenToken('('):
+            print "factor -> ( expression )"
             self.expression()
             self.expect(')')
+            print "factor True"
             return True
         elif self.litorvar():
             if self.seenToken('^'):
+                print "factor ^ "
                 l = self.expressionStack.pop()
                 self.factor()
                 r = self.expressionStack.pop()
                 t = tree('^', self.lang, None)
                 t.operands([l, r])
                 self.expressionStack.push(t)
+            else:
+                print "not seen ^"
+            print "factor True"
             return True
         else:
+            print "factor False"
             return False
 
 
@@ -316,10 +289,6 @@ class parse:
             return False
 
 
-    def mystop (self):
-        pass
-
-
     #
     #  expect - expects a token, t.
     #
@@ -337,7 +306,6 @@ class parse:
     #
 
     def internalError (self, message):
-        stop()
         self.syntaxError(message)
 
 
@@ -346,13 +314,8 @@ class parse:
     #
 
     def syntaxError (self, message):
-        printHeader(self.inputFile, self.lineNo-1)
-        i = self.skipLine(self.powerpos)
-        print self.contents[self.powerpos:i]
-
         printHeader(self.inputFile, self.lineNo)
-        i = self.skipLine(self.startpos)
-        print self.contents[self.startpos:i]
+        print self.contents
 
         j = self.columnNo-len(self.tok)
         s = " " * j
@@ -370,12 +333,7 @@ class parse:
 
     def printToken (self, token):
         printHeader(self.inputFile, self.lineNo-1)
-        i = self.skipLine(self.powerpos)
-        print self.contents[self.powerpos:i]
-
-        printHeader(self.inputFile, self.lineNo)
-        i = self.skipLine(self.startpos)
-        print self.contents[self.startpos:i]
+        print self.contents
 
         j = self.columnNo-len(token)
         s = " " * j

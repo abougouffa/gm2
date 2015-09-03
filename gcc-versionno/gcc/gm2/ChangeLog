@@ -1,3 +1,20 @@
+2015-08-03      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  fixed dates and version number.
+	* gm2/Makefile.in:  fixed dates.
+	* gm2/c.flex:  fixed dates.
+	* gm2/configure.in;  fixed dates and version number.
+	* gm2/examples/pge/Makefile.in:  fixed compile rule to include machine
+	  generated source.
+	* gm2/examples/pge/circles.mxm:  simplified equation.
+	* gm2/examples/pge/mxmmaxima.py:  many interim bug fixes.
+	* gm2/examples/pge/mxmparser.py:  many interim bug fixes.
+	* gm2/examples/pge/mxmtree.py:  many interim bug fixes.
+	* gm2/examples/pge/twoDsim.mod:  improved debugging asserts
+	  and include machine generated source, compare results of both.
+	* gm2/gm2-lang.c:  handle -I option inside cpp args.
+	* gm2/m2.flex:  corrected dates.
+
 2015-08-24      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/examples/exampleBoxes.py:  much more debugging

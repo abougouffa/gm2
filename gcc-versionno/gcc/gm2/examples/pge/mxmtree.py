@@ -52,9 +52,44 @@ class tree:
 
     def operands (self, o):
         self.kind = node
+        print "adding operands", o
         self.operands = o
         if self.lang == "":
             self.error('must set lang by calling the tree constructor')
+
+    def debug (self):
+        global output
+
+        output = ""
+        self._debug_tree ()
+        if self.lang == "m2":
+            printf ("(* debug of the tree:  ")
+            printf (output)
+            printf ("  *)\n")
+        if self.lang == "c":
+            printf ("/* debug of the tree:  ")
+            printf (output)
+            printf ("  */\n")
+
+    def _debug_tree (self):
+        global output
+
+        if self.kind == atom:
+            output += self.name
+        elif self.kind == node:
+            output += ' ('
+            if len (self.operands) == 1:
+                output += self.name
+                self.operands[0]._debug_tree ()
+            else:
+                for i, o in enumerate (self.operands):
+                    if o is None:
+                        output += "None"
+                    else:
+                        o._debug_tree ()
+                        if i < len (self.operands)-1:
+                            output += self.name
+            output += ') '
 
     def out (self):
         global output
@@ -103,19 +138,19 @@ class tree:
     def doM2Power (self):
         global output
         if self.isToPower('2'):
-            output += ' sqr ('
+            output += ' sqr('
             self.operands[0].lang_m2()
             output += ') '
         elif self.isToPower('3'):
-            output += ' cub ('
+            output += ' cub('
             self.operands[0].lang_m2()
             output += ') '
         elif self.isToPower('4'):
-            output += ' quart ('
+            output += ' quart('
             self.operands[0].lang_m2()
             output += ') '
         else:
-            output += ' topower ('
+            output += ' topower('
             self.operands[0].lang_m2()
             output += ', '
             self.operands[1].lang_m2()
@@ -261,6 +296,7 @@ class tree:
     def reduce (self):
         global node
 
+        return
         if self.isNode():
             self.associative('*')
             self.associative('+')
@@ -272,7 +308,7 @@ class tree:
 
     #
     #  collectPolynomial - return the expression for the nth Term, nTerm, in the expression.
-    #                      The polynomials _must_ be collected in heightest order first
+    #                      The polynomials _must_ be collected in highest order first
     #                      as the tree is destructively returned.  When nTerm == 0 the
     #                      remainder of the tree is returned.
     #
@@ -280,6 +316,7 @@ class tree:
     def collectPolynomial (self, nTerm, variable):
         global output
 
+        self.debug ()
         output = ""
         if nTerm == 0:
             stop()

@@ -27,7 +27,7 @@ FROM DynamicStrings IMPORT string, InitString, Mark, KillString, EqualArray, Ini
 
 FROM choosetemp IMPORT make_temp_file ;
 FROM pexecute IMPORT pexecute ;
-FROM libc IMPORT system, exit, unlink ;
+FROM libc IMPORT system, exit, unlink, printf ;
 FROM Lists IMPORT List, InitList, KillList, IncludeItemIntoList, ForeachItemInListDo ;
 FROM M2RTS IMPORT InstallTerminationProcedure ;
 FROM FIO IMPORT StdErr, StdOut ;
@@ -111,6 +111,7 @@ BEGIN
       THEN
          fprintf1(StdOut, "%s\n", commandLine)
       END ;
+      printf ("command line is: %s\n", string(commandLine)); 
       IF system(string(commandLine))#0
       THEN
          fprintf1(StdErr, 'C preprocessor failed when preprocessing %s\n', filename) ;

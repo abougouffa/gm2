@@ -75,7 +75,7 @@ all: force
 $(srcdir)/twoDsim.mod: circles.m
 
 twoDsim.o: $(srcdir)/twoDsim.mod
-	gm2 -fcpp $(GM2FLAGS) -c $< -o $@
+	gm2 -I. -fcpp $(GM2FLAGS) -c $< -o $@
 
 %.o:  $(srcdir)/%.mod
 	gm2 $(GM2FLAGS) -c $< -o $@
@@ -84,7 +84,7 @@ twoDsim.o: $(srcdir)/twoDsim.mod
 	gcc -g -c $< -o $@
 
 %.lo:  $(srcdir)/%.mod
-	libtool --tag=CC --mode=compile gm2 -g -fiso -fextended-opaque -I$(srcdir) -c $< -o $@
+	libtool --tag=CC --mode=compile gm2 -fcpp -g -fiso -fextended-opaque -I. -I$(srcdir) -c $< -o $@
 
 %.lo:  $(srcdir)/%.c
 	libtool --tag=CC --mode=compile gcc -g -I$(srcdir) -c $< -o $@
@@ -126,7 +126,7 @@ foo: circles.m $(OBJECTS)
 	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/foo.mod
 
 bounce: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/bounce.mod
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/bounce.mod
 
 bounce2: $(OBJECTS)
 	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/bounce2.mod
