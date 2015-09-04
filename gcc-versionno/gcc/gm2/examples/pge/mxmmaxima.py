@@ -134,7 +134,6 @@ class parse:
     def expression (self):
         if self.unaryOrTerm():
             while self.addOperator():
-                mystop ()
                 op = self.expressionStack.pop()
                 l = self.expressionStack.pop()
                 self.term()
@@ -148,23 +147,45 @@ class parse:
 
 
     #
-    #  unaryOrTerm := "+" factor | "-" factor | simpleExpr =:
+    #  unaryOrTerm := "+" unarySimpleExpr | "-" unarySimpleExpr | simpleExpr =:
     #
             
     def unaryOrTerm (self):
         if self.seenToken("+"):
-            self.factor()
-            return True
+            return self.unarySimpleExpr("+")
         elif self.seenToken("-"):
-            self.factor()
-            l = self.expressionStack.pop()
-            t = tree('-', self.lang, self.internalError)
-            t.operands([l])
-            self.expressionStack.push(t)
-            return True
+            return self.unarySimpleExpr("-")
         else:
             return self.simpleExpr()
 
+
+    #
+    #
+    #
+
+    def unarySimpleExpr (self, op):
+        if self.term():
+            if op == '-':
+                l = self.expressionStack.pop()
+                t = tree('-', self.lang, self.internalError)
+                t.operands([l])
+                self.expressionStack.push(t)
+            self.simpleExprFinal()
+            return True
+        else:
+            return False
+
+
+    def simpleExprFinal (self):
+        while self.addOperator():
+            if self.term():
+                r = self.expressionStack.pop()
+                operator = self.expressionStack.pop()
+                l = self.expressionStack.pop()
+                t = tree(operator, self.lang, self.internalError)
+                t.operands([l, r])
+                self.expressionStack.push(t)
+            
 
     #
     #  simpleExpr := constTerm { addOperator constTerm } =:
@@ -172,14 +193,7 @@ class parse:
 
     def simpleExpr (self):
         if self.term():
-            while self.addOperator():
-                if self.term():
-                    r = self.expressionStack.pop()
-                    operator = self.expressionStack.pop()
-                    l = self.expressionStack.pop()
-                    t = tree(operator, self.lang, self.internalError)
-                    t.operands([l, r])
-                    self.expressionStack.push(t)
+            self.simpleExprFinal()
             return True
         return False
                 
@@ -297,7 +311,7 @@ class parse:
         if t == self.tok:
             self.tok = self.getNext()
         else:
-            internalError('expecting token ' + t + ' but found ' + self.tok)
+            self.internalError('expecting token ' + t + ' but found ' + self.tok)
 
 
     #
@@ -314,6 +328,7 @@ class parse:
     #
 
     def syntaxError (self, message):
+        mystop ()
         printHeader(self.inputFile, self.lineNo)
         print self.contents
 

@@ -1,3 +1,18 @@
+2015-09-04      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/Makefile.in:  added -I to link rule.
+	* gm2/examples/pge/mxmmaxima.py:  corrected unary -, + handling.
+	* gm2/examples/pge/mxmtree.py:  corrected output and fixed bug
+	  with class field.
+	* gm2/examples/pge/rotating-circles.mxm:  removed quit command.
+	* gm2/examples/pge/rotating-line.mxm:  removed equality and quit
+	  command.
+	* gm2/examples/pge/twoDsim.mod:  introduced comment for
+	  getPolygonPoint.
+	* gm2/www/tools/texi2tr/html/download.html:  updated download version.
+	* gm2/www/tools/texi2tr/html/release.html:  updated stable release
+          version.
+
 2015-09-03      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  fixed dates and gcc version number (4.7.4).

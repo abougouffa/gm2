@@ -64,11 +64,11 @@ class tree:
         self._debug_tree ()
         if self.lang == "m2":
             printf ("(* debug of the tree:  ")
-            printf (output)
+            print output,
             printf ("  *)\n")
         if self.lang == "c":
             printf ("/* debug of the tree:  ")
-            printf (output)
+            print output,
             printf ("  */\n")
 
     def _debug_tree (self):
@@ -194,7 +194,7 @@ class tree:
     #
 
     def findPolynomial (self, nTerm, variable):
-        global node
+        global node, output
 
         if self.kind == node:
             if self.name == '*':
@@ -212,7 +212,7 @@ class tree:
             for o in self.operands:
                 if o.findPolynomial (nTerm, variable):
                     if i > 0 and self.name == '-':
-                        self.output = '-' + self.output
+                        output = '-' + output
                 i += 1
         return False
 

@@ -9,7 +9,7 @@
 //  Then we compare the X position of the point and whether this intersects
 //  the line.
 //
-//  GM  2012, 2013
+//  GM  2012, 2013, 2014, 2015
 //
 
 polynomial terms 5
@@ -17,9 +17,7 @@ polynomial terms 5
 //  Modula-2 declaration for the terms and smallest positive root value.
 
 initialise {
-VAR
-   a: ARRAY [0..4] OF REAL ;
-BEGIN
+
 }
 
 //  where max2code must place each polynomial term
@@ -33,7 +31,7 @@ term 4 {   a[4] := }    //  * t^4
 //  how Modula-2 solves the quartic root.
 
 finalise {
-   t := findSmallestPositiveRoot(a)
+
 }
 
 // and lastly the maxima code
@@ -77,10 +75,9 @@ load(format)$
 /* we multiply the equation by 64 on both sides to remove a division  */
 
 ((a + b*t + c*t^2/2 + d * S(e*t+f)) -
- (g + h*t + i*t^2/2 + j * S(k*t+l))) * 64 = 0 ;
+ (g + h*t + i*t^2/2 + j * S(k*t+l))) * 64 ;
 
 expand(%);
 ratsimp(%);
 format(%, %poly(t));
-quit();
 }

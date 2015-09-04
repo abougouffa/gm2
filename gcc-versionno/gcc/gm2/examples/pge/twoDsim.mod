@@ -2723,7 +2723,11 @@ END findCollisionLineLine ;
 
 
 (*
-   getPolygonRPoint - 
+   getPolygonRPoint - get the point on rotating polygon, o.  i determines the point number (1..npoints).
+                      pol is the polar coord relative offset from the cofg of the polygon.
+                      u is the initial velocity.
+                      a is the acceleration.
+                      w is the angle of rotation.
 *)
 
 PROCEDURE getPolygonRPoint (i: CARDINAL; o: Object; VAR cofg, u, a: Coord; VAR w: REAL; VAR pol: Polar) ;

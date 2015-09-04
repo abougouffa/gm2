@@ -109,5 +109,4 @@ A^2 + B^2 - Z^2;
 collectterms(%,t);
 ratsimp(%);
 format(%, %poly(t));
-quit();
 }

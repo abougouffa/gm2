@@ -72,7 +72,7 @@ all: force
 %.m:  $(srcdir)/%.mxm
 	python $(srcdir)/max2code.py -o $@ $<
 
-$(srcdir)/twoDsim.mod: circles.m
+$(srcdir)/twoDsim.mod: circles.m rotating-line.m
 
 twoDsim.o: $(srcdir)/twoDsim.mod
 	gm2 -I. -fcpp $(GM2FLAGS) -c $< -o $@
@@ -129,45 +129,45 @@ bounce: $(OBJECTS)
 	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/bounce.mod
 
 bounce2: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/bounce2.mod
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/bounce2.mod
 
 bounce3: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/bounce3.mod
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/bounce3.mod
 
 bounce4: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/bounce4.mod
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/bounce4.mod
 
 bounce5: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/bounce5.mod
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/bounce5.mod
 
 bagatelle: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/bagatelle.mod
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/bagatelle.mod
 
 elc: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/elc.mod
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/elc.mod
 
 line: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/line.mod
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/line.mod
 
 wallh: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/wallh.mod
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/wallh.mod
 
 boxes: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/boxes.mod
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/boxes.mod
 
 ramps: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/ramps.mod
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/ramps.mod
 
 ramps2: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/ramps2.mod
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/ramps2.mod
 
 slope: $(OBJECTS)
 	$(RM) *.ms *.png
-	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/slope.mod
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/slope.mod
 
 stairs: $(OBJECTS)
 	$(RM) *.ms *.png
-	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/stairs.mod
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/stairs.mod
 
 py: $(OBJECTS)
 	$(RM) *.ms *.png
@@ -175,7 +175,7 @@ py: $(OBJECTS)
 
 para: $(OBJECTS)
 	$(RM) *.ms *.png
-	gm2 $(GM2FLAGS) -fonlylink para.mod && ./a.out
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink para.mod && ./a.out
 	./produce-avi
 
 wallv: $(OBJECTS)
@@ -190,14 +190,14 @@ wall: $(OBJECTS)
 
 snooker: $(OBJECTS)
 	$(RM) *.ms *.png
-	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/snooker.mod
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/snooker.mod
 
 npn: $(OBJECTS)
 	$(RM) *.ms *.png
-	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/npn.mod && ./a.out
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/npn.mod && ./a.out
 
 test: $(OBJECTS)
-	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/test.mod && ./a.out
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/test.mod && ./a.out
 
 transforms: rotating-circles.asc rotating-line.asc
 
