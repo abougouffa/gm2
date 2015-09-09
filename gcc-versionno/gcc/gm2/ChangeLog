@@ -1,3 +1,22 @@
+2015-09-09      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/examples/exampleBoxes.py:  interim checkin.
+	* gm2/examples/pge/pge.py:  get_xvel, get_yvel, get_xaccel,
+	  get_yaccel, process_event new methods.
+	* gm2/examples/pge/pgeif.def:  get_xvel, get_yvel, get_xaccel,
+	  get_yaccel (New procedure functions).
+	* gm2/examples/pge/pgeif.i:  get_xvel, get_yvel, get_xaccel,
+	  get_yaccel (New functions).
+	* gm2/examples/pge/pgeif.mod:  get_xvel, get_yvel, get_xaccel,
+	  get_yaccel (Implement new procedure functions).
+	* gm2/examples/pge/pgeplayback.py:  added -V option, added -o
+	  option.  Added ability to create a movie with sound effects
+	  using sox and mencoder.
+	* gm2/examples/pge/twoDsim.def:  get_xvel, get_yvel, get_xaccel,
+	  get_yaccel (New procedure functions).
+	* gm2/examples/pge/twoDsim.mod:  get_xvel, get_yvel, get_xaccel,
+	  get_yaccel (Implement new procedure functions).
+
 2015-09-04      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/Makefile.in:  added -I to link rule.

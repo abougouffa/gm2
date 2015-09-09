@@ -139,7 +139,7 @@ class object:
         self._check_type ([box_t, circle_t], "assign an acceleration to a")
         self._check_not_fixed ("assign an acceleration")
         self._check_not_deleted ("an acceleration")
-        self.o = pgeif.accel (self.o, vx, vy)
+        self.o = pgeif.accel (self.o, ax, ay)
         return self
 
     def fix (self):
@@ -247,6 +247,22 @@ class object:
     def get_ypos (self):
         self._check_type ([box_t, circle_t], "get the ypos")
         return pgeif.get_ypos (self.o)
+
+    def get_xvel (self):
+        self._check_type ([box_t, circle_t], "get the xvel")
+        return pgeif.get_xvel (self.o)
+
+    def get_yvel (self):
+        self._check_type ([box_t, circle_t], "get the yvel")
+        return pgeif.get_yvel (self.o)
+
+    def get_xaccel (self):
+        self._check_type ([box_t, circle_t], "get the xaccel")
+        return pgeif.get_xaccel (self.o)
+
+    def get_yaccel (self):
+        self._check_type ([box_t, circle_t], "get the yaccel")
+        return pgeif.get_yaccel (self.o)
 
 
 def rgb (r, g, b):
@@ -730,3 +746,7 @@ def _flush_delay ():
 def delay (t):
     global lastDelay
     lastDelay += t
+
+
+def process_event ():
+    pgeif.process_event ()

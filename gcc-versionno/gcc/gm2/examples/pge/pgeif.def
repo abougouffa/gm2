@@ -38,7 +38,8 @@ EXPORT UNQUALIFIED ExceptionKind,
                    is_collision, is_frame, time_until, get_time, rm,
                    batch, use_buffer, empty_cbuffer, empty_fbuffer,
                    use_time_delay, dump_world, draw_collision, l2h, h2l,
-                   get_xpos, get_ypos, skip_until ;
+                   get_xpos, get_ypos, get_xvel, get_yvel,
+                   get_xaccel, get_yaccel, skip_until ;
 
 
 TYPE
@@ -254,6 +255,34 @@ PROCEDURE get_xpos (id: CARDINAL) : REAL ;
 *)
 
 PROCEDURE get_ypos (id: CARDINAL) : REAL ;
+
+
+(*
+   get_xvel - returns the X velocity of object.
+*)
+
+PROCEDURE get_xvel (id: CARDINAL) : REAL ;
+
+
+(*
+   get_yvel - returns the Y velocity of object.
+*)
+
+PROCEDURE get_yvel (id: CARDINAL) : REAL ;
+
+
+(*
+   get_xaccel - returns the X acceleration of object.
+*)
+
+PROCEDURE get_xaccel (id: CARDINAL) : REAL ;
+
+
+(*
+   get_yaccel - returns the Y acceleration of object.
+*)
+
+PROCEDURE get_yaccel (id: CARDINAL) : REAL ;
 
 
 (*

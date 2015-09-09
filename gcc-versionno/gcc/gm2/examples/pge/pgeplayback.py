@@ -39,6 +39,11 @@ writtenColours    = []
 margin            = 1.0
 header            = 1.0
 groffBox          = 5.0   # number of inches width and height
+verbose           = False
+progress          = True
+outputName        = 'pge.avi'
+soxSound          = []
+
 
 class myfile:
     def __init__ (self, name):
@@ -53,7 +58,7 @@ class myfile:
             return b
         else:
             printf ("eof in %s reached\n", self.name)
-            sys.exit (1)
+            finish (1)
     def seek (self, pos):
         printf ("seeking to %d\n", pos)
         self.pos = pos
@@ -114,26 +119,31 @@ def flip (y):
 
 def load_sound(name):
     class NoneSound:
-        def play(self):
+        def play (self):
             pass
-    if not pygame.mixer or not pygame.mixer.get_init():
-        return NoneSound()
+    if not pygame.mixer or not pygame.mixer.get_init ():
+        return NoneSound ()
     try:
-        sound = pygame.mixer.Sound(name)
+        sound = pygame.mixer.Sound (name)
     except pygame.error, message:
         print 'cannot load sound file:', name
-        return NoneSound()
+        return NoneSound ()
     return sound
 
 
-def doPlay (f):
-    global sounds, wantedFrame, frameNo
-
+def getSoundName (f):
     name = ""
     b = f.read (1)
     while b != '\0':
         name += b
         b = f.read (1)
+    return name
+
+
+def doPlay (f):
+    global sounds, wantedFrame, frameNo
+
+    name = getSoundName (f)
     print "need to play", name
     if not sounds.has_key (name):
         sounds[name] = load_sound (name)
@@ -480,7 +490,6 @@ def readFile (name):
     header = struct.unpack ("3s", f.read (3))[0]
     while header and len (header) > 0:
         header = header[:2]
-        print header
         if call.has_key (header):
             f = call[header] (f)
             pc = f.pos
@@ -525,14 +534,20 @@ def grSleep (f):
 
 
 def usage (code):
-    printf ("pgeplayback [-v][-d][-m][-f][-t delay] filename.raw\n")
+    printf ("pgeplayback [-v][-V][-d][-m][-f][-t delay] filename.raw\n")
+    printf ("            -v  display version and exit\n")
+    printf ("            -V  turn on verbose\n")
+    printf ("            -d  turn on debugging\n")
+    printf ("            -m  generate a movie from the filename.raw\n")
+    printf ("            -f  display in full screen\n")
     sys.exit (code)
 
 
 def handleOptions ():
-    global debugging, fullscreen, movie, delay
+    global debugging, fullscreen, movie, delay, verbose, outputName
+
     try:
-       optlist, l = getopt.getopt(sys.argv[1:], ':a:b:dhfmv')
+       optlist, l = getopt.getopt(sys.argv[1:], ':a:b:dhfmo:vV')
        for opt in optlist:
            if opt[0] == '-a':
                delay = -float (opt[1])
@@ -546,9 +561,13 @@ def handleOptions ():
                usage (0)
            elif opt[0] == '-m':
                movie = True
+           elif opt[0] == '-o':
+               outputName = opt[1]
            elif opt[0] == '-v':
                printf ("pgeplayback version " + versionNumber + "\n")
                sys.exit (0)
+           elif opt[0] == '-V':
+               verbose = True
        if l != []:
            return l[0]
 
@@ -557,10 +576,22 @@ def handleOptions ():
     return "output.raw"
 
 
-def initMovie ():
-    global tmpdir
+def doSystem (s):
+    global verbose
 
+    if verbose:
+        print s
+    os.system (s)
+
+
+def initMovie ():
+    global tmpdir, progress
+
+    printf ("please be patient, generating a movie might take some time\n")
+    if progress:
+        printf ("progress will be noted by . for every 100 frames\n")
     tmpdir = "tmpdir"
+    os.system ("rm -rf " + tmpdir)
     os.system ("mkdir -p " + tmpdir)
 
 
@@ -577,15 +608,17 @@ def grFlipBuffer (f):
     global outf, frameNo, writtenColours
 
     num = "%08d" % frameNo
-
     outf.close ()
     writtenColours = []
-    os.system ("groff " + num + ".ms > " + num + ".ps")
-    os.system ("gs -dNOPAUSE -sDEVICE=pnmraw -sOutputFile=" + num + ".pnm -dGraphicsAlphaBits=4 -q -dBATCH " + num +  ".ps > /dev/null 2>&1")
-    os.system ("pnmcrop -quiet < " + num + ".pnm | pnmtopng > e" + num + ".png 2> /dev/null")
-    os.system ("convert e" + num + ".png -type truecolor " + num + ".png 2> /dev/null")
-    os.system ("rm -f t" + num + ".pnm " + num + ".ps e" + num + ".png")
-    os.system ("rm -f " + num + ".pnm " + num + ".ms ")
+    s = os.path.join (tmpdir, num)
+    e = os.path.join (tmpdir, "e" + num)
+    t = os.path.join (tmpdir, "t" + num)
+    doSystem ("groff " + s + ".ms > " + s + ".ps")
+    doSystem ("gs -dNOPAUSE -sDEVICE=pnmraw -sOutputFile=" + s + ".pnm -dGraphicsAlphaBits=4 -q -dBATCH " + s +  ".ps > /dev/null 2>&1")
+    doSystem ("pnmcrop -quiet < " + s + ".pnm | pnmtopng > " + e + ".png 2> /dev/null")
+    doSystem ("convert " + e + ".png -type truecolor " + s + ".png 2> /dev/null")
+    doSystem ("rm -f " + t + ".pnm " + s + ".ps " + e + ".png")
+    doSystem ("rm -f " + s + ".pnm " + s + ".ms ")
     return f
 
 
@@ -604,23 +637,49 @@ def writeColour (c):
 
 
 def grFrameNote (f):
-    global frameNo, outf
+    global frameNo, outf, tmpdir, progress
 
     f, frameNo = readCard (f)
-    outf = open ("%08d.ms" % frameNo, "w")
+    s = "%08d.ms" % frameNo
+    s = os.path.join (tmpdir, s)
+    outf = open (s, "w")
+    if progress and ((frameNo % 100) == 0):
+        sys.stdout.write (".")
+        sys.stdout.flush ()
     return f
 
 
 def finishMovie ():
-    global fps
+    global fps, tmpdir, frameNo, outputName, verbose, soxSound
 
-    s = "mencoder \"mf://f*.png\" -mf w=600:h=600:fps=%d:type=png -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o pge.avi" % fps
-    os.system (s)
+    verbose = True
+    f = os.path.join (tmpdir, '*.png')
+    if soxSound == []:
+        s = "mencoder \"mf://" + f + "\" -mf w=600:h=600:fps=%d:type=png -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o %s" % (fps, outputName)
+    else:
+        printf ("generating sound effect file\n")
+        commandArgs = ""
+        print soxSound
+        audio = "audio.wav"
+        for t, s in soxSound:
+            frameSound = "%6d.wav" % t
+            command = "sox " + s + " " + frameSound + " pad %3f"
+            command = command % (float (t)/float (fps))
+            doSystem (command)
+            commandArgs += " "
+            commandArgs += frameSound
+
+        doSystem ("sox -m " + commandArgs + " " + audio)
+        command = "mencoder -audiofile %s \"mf://" + f + "\" -mf w=600:h=600:fps=%d:type=png -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o %s"
+        s = command % (audio, fps, outputName)
+    printf ("generated %d frames, movie will run for %d seconds\n", frameNo, frameNo / fps)
+    doSystem (s)
 
 
-def finish ():
+def finish (code):
     if movie:
         finishMovie ()
+    sys.exit (code)
         
 
 #
@@ -792,7 +851,16 @@ def grExit (f):
     return f
 
 
+def genSilence ():
+    global frameNo
+    s = "sox -n -r 48000 silence.wav trim 0.0 0.250"
+
+
 def grPlay (f):
+    global soxSound, frameNo
+
+    name = getSoundName (f)
+    soxSound += [[frameNo, name]]
     return f
 
 
@@ -832,7 +900,7 @@ def main ():
         call['fn'] = doFrameNote
         call['ms'] = doMessage
     readFile (filename)
-    finish ()
+    finish (0)
 
 
 main ()

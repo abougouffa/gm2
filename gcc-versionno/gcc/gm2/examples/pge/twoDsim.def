@@ -97,6 +97,34 @@ PROCEDURE get_ypos (id: CARDINAL) : REAL ;
 
 
 (*
+   get_xvel - returns the x velocity of object.
+*)
+
+PROCEDURE get_xvel (id: CARDINAL) : REAL ;
+
+
+(*
+   get_yvel - returns the y velocity of object.
+*)
+
+PROCEDURE get_yvel (id: CARDINAL) : REAL ;
+
+
+(*
+   get_xaccel - returns the x acceleration of object.
+*)
+
+PROCEDURE get_xaccel (id: CARDINAL) : REAL ;
+
+
+(*
+   get_yaccel - returns the y acceleration of object.
+*)
+
+PROCEDURE get_yaccel (id: CARDINAL) : REAL ;
+
+
+(*
    mass - specify the mass of an object and return the, id.
 *)
 

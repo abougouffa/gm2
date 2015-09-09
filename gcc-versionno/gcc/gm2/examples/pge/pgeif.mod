@@ -275,8 +275,48 @@ END get_xpos ;
 
 PROCEDURE get_ypos (id: CARDINAL) : REAL ;
 BEGIN
-   RETURN check_range (twoDsim.get_xpos (lookupDef (object, id)))
+   RETURN check_range (twoDsim.get_ypos (lookupDef (object, id)))
 END get_ypos ;
+
+
+(*
+   get_xvel - returns the X velocity of object.
+*)
+
+PROCEDURE get_xvel (id: CARDINAL) : REAL ;
+BEGIN
+   RETURN twoDsim.get_xvel (lookupDef (object, id))
+END get_xvel ;
+
+
+(*
+   get_yvel - returns the Y velocity of object.
+*)
+
+PROCEDURE get_yvel (id: CARDINAL) : REAL ;
+BEGIN
+   RETURN twoDsim.get_yvel (lookupDef (object, id))
+END get_yvel ;
+
+
+(*
+   get_xaccel - returns the X accelaration of object.
+*)
+
+PROCEDURE get_xaccel (id: CARDINAL) : REAL ;
+BEGIN
+   RETURN twoDsim.get_xaccel (lookupDef (object, id))
+END get_xaccel ;
+
+
+(*
+   get_yaccel - returns the Y accelaration of object.
+*)
+
+PROCEDURE get_yaccel (id: CARDINAL) : REAL ;
+BEGIN
+   RETURN twoDsim.get_yaccel (lookupDef (object, id))
+END get_yaccel ;
 
 
 (*

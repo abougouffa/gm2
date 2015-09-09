@@ -36,8 +36,8 @@ def placeBoarders (thickness, color):
     e2 = pge.box (0.0, 0.0, thickness, 1.0, color).fix ()
     e3 = pge.box (1.0-thickness, 0.0, thickness, 1.0, color).fix ()
     e4 = pge.box (0.0, 1.0-thickness, 1.0, thickness, color).fix ()
-    for e in [e1, e2, e3, e4]:
-        e.on_collision (play_wood)
+    #for e in [e1, e2, e3, e4]:
+    #    e.on_collision (play_wood)
     return e1, e2, e3, e4
 
 
@@ -48,6 +48,8 @@ def placeBall (x, y, r):
 def crate (x, y, w):
     c = pge.box (x, y, w, w, wood_dark).on_collision (crate_split).set_param (6).mass (1.0)
 
+def is_odd (e):
+    return (e % 2) == 1
 
 def crate_split (p):
     global gap
@@ -67,8 +69,9 @@ def crate_split (p):
             print "crate piece completely gone"
             # at the end of 6 collisions the crates disappear
             p.rm ()
-            play_crack (p)
-        elif e % 2 == 1:
+            # play_crack (p)
+        elif is_odd (e):
+            pge.process_event ()  # update the velocities of objects (immediately after collision)
             print "crate sub divides"
             # subdivide into smaller crates, every odd bounce
             m = p.get_mass ()
@@ -81,9 +84,12 @@ def crate_split (p):
             print "get_xpos"
             x = p.get_xpos ()
             pge.dump_world ()
-            print "get_ypos"
             y = p.get_ypos ()
-            print "**************** x, y, w, wg = ", x, y, w, wg
+            vx = p.get_xvel ()
+            vy = p.get_yvel ()
+            ax = p.get_xaccel ()
+            ay = p.get_yaccel ()
+            print "**************** x, y, w, wg = ", x, y, w, wg, vx, vy, ax, ay
             pge.dump_world ()
             print "rm", p
             p.rm ()
@@ -91,17 +97,17 @@ def crate_split (p):
             pge.dump_world ()
             for v in [[0, 0], [0, w], [w, 0], [w, w]]:
                 print "creating sub box", v, "gap =", wg
-                b = pge.box (v[0]+x, v[1]+y, wg, wg, c).mass (m).on_collision (crate_split)
+                b = pge.box (v[0]+x, v[1]+y, wg, wg, c).mass (m).on_collision (crate_split).velocity (vx, vy).accel (ax, ay)
                 print "set_param", e-1
                 b.set_param (e-1)
                 pge.dump_world ()
             print "play_crack", p
-            play_crack (p)
+            # play_crack (p)
         else:
             print "crate bounces without breaking"
             # allow collision (bounce) without splitting every even bounce
             p.set_param (e-1)
-            play_bounce (p)
+            # play_bounce (p)
 
 def main ():
     c = pge.circle (0.5, 0.5, 0.3, white, -1)

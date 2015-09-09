@@ -48,6 +48,10 @@ extern "C" unsigned int box (double x0, double y0, double i, double j, unsigned 
 
 extern "C" double get_xpos (unsigned int id);
 extern "C" double get_ypos (unsigned int id);
+extern "C" double get_xvel (unsigned int id);
+extern "C" double get_yvel (unsigned int id);
+extern "C" double get_xaccel (unsigned int id);
+extern "C" double get_yaccel (unsigned int id);
 
 extern "C" void gravity (double g);
 
@@ -92,6 +96,10 @@ extern "C" unsigned int box (double x0, double y0, double i, double j, unsigned 
 
 extern "C" double get_xpos (unsigned int id);
 extern "C" double get_ypos (unsigned int id);
+extern "C" double get_xvel (unsigned int id);
+extern "C" double get_yvel (unsigned int id);
+extern "C" double get_xaccel (unsigned int id);
+extern "C" double get_yaccel (unsigned int id);
 
 extern "C" void gravity (double g);
 extern "C" unsigned int purple (void);

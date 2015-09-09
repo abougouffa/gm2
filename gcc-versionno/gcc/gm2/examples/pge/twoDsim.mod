@@ -280,7 +280,10 @@ END dumpRotating ;
 
 PROCEDURE checkDeleted (o: Object) ;
 BEGIN
-   Assert(NOT o^.deleted)
+   IF o^.deleted
+   THEN
+      printf ("object %d has been deleted, should not be accessing it now\n", o^.id)
+   END
 END checkDeleted ;
 
 
@@ -575,24 +578,20 @@ PROCEDURE get_xpos (id: CARDINAL) : REAL ;
 VAR
    dt    : REAL ;
    optr  : Object ;
-   po,
-   vc, ac: Coord ;
 BEGIN
 (*
-   updatePhysics (currentTime-lastCollisionTime) ;
+   dt := currentTime-lastCollisionTime ;
+   printf ("get_xpos:  dt = %f\n", dt) ;
+   updatePhysics (dt) ;
    lastCollisionTime := currentTime ;
 *)
-   dt := currentTime-lastCollisionTime ;
-   printf ("dt = %f\n", dt) ;
-   optr := GetIndice(objects, id) ;
-   checkDeleted(optr) ;
+
+   optr := GetIndice (objects, id) ;
+   checkDeleted (optr) ;
    WITH optr^ DO
-      vc := getVelCoord(optr) ;
-      ac := getAccelCoord(optr) ;
       CASE object OF
 
-      polygonOb:  po := newPositionCoord(p.points[0], vc, ac, dt) ;
-                  RETURN po.x
+      polygonOb:  RETURN p.points[0].x
 
       ELSE
          printf ("get_xpos: only expecting polygon\n");
@@ -610,23 +609,21 @@ PROCEDURE get_ypos (id: CARDINAL) : REAL ;
 VAR
    dt    : REAL ;
    optr  : Object ;
-   po,
-   vc, ac: Coord ;
 BEGIN
 (*
-   updatePhysics (currentTime-lastCollisionTime) ;
+   dt := currentTime-lastCollisionTime ;
+   printf ("get_ypos:  dt = %f\n", dt) ;
+   updatePhysics (dt) ;
    lastCollisionTime := currentTime ;
 *)
-   dt := currentTime-lastCollisionTime ;
-   optr := GetIndice(objects, id) ;
-   checkDeleted(optr) ;
+
+   optr := GetIndice (objects, id) ;
+   checkDeleted (optr) ;
    WITH optr^ DO
-      vc := getVelCoord(optr) ;
-      ac := getAccelCoord(optr) ;
       CASE object OF
 
-      polygonOb:  po := newPositionCoord(p.points[0], vc, ac, dt) ;
-                  RETURN po.y
+      polygonOb:  printf ("get_ypos (%d) = %f\n", id, p.points[0].y) ;
+                  RETURN p.points[0].y
 
       ELSE
          printf ("get_ypos: only expecting polygon\n");
@@ -634,6 +631,62 @@ BEGIN
       END
    END
 END get_ypos ;
+
+
+(*
+   get_xvel - returns the x velocity of object.
+*)
+
+PROCEDURE get_xvel (id: CARDINAL) : REAL ;
+VAR
+   optr: Object ;
+BEGIN
+   optr := GetIndice (objects, id) ;
+   checkDeleted (optr) ;
+   RETURN optr^.vx
+END get_xvel ;
+
+
+(*
+   get_yvel - returns the y velocity of object.
+*)
+
+PROCEDURE get_yvel (id: CARDINAL) : REAL ;
+VAR
+   optr: Object ;
+BEGIN
+   optr := GetIndice (objects, id) ;
+   checkDeleted (optr) ;
+   RETURN optr^.vy
+END get_yvel ;
+
+
+(*
+   get_xaccel - returns the x acceleration of object.
+*)
+
+PROCEDURE get_xaccel (id: CARDINAL) : REAL ;
+VAR
+   optr: Object ;
+BEGIN
+   optr := GetIndice (objects, id) ;
+   checkDeleted (optr) ;
+   RETURN optr^.ax
+END get_xaccel ;
+
+
+(*
+   get_yaccel - returns the y acceleration of object.
+*)
+
+PROCEDURE get_yaccel (id: CARDINAL) : REAL ;
+VAR
+   optr: Object ;
+BEGIN
+   optr := GetIndice (objects, id) ;
+   checkDeleted (optr) ;
+   RETURN optr^.ay
+END get_yaccel ;
 
 
 (*
@@ -1024,14 +1077,13 @@ BEGIN
       printf ("before addEvent\n")
    END ;
    addEvent(1.0/framesPerSecond, drawFrameEvent) ;
-   (* *)
 
    IF DebugTrace
    THEN
       printf ("collectAll\n")
    END ;
    collectAll ;
-   (* *)
+
    IF DebugTrace
    THEN
       printf ("end drawFrameEvent\n")
@@ -1067,11 +1119,16 @@ VAR
    nvy: REAL ;
    i  : CARDINAL ;
 BEGIN
+   IF dt>0.0
+   THEN
+      printf ("start updatePolygon found dt > 0.0  (%f)\n", dt) ;
+      dumpWorld
+   END ;
    WITH optr^ DO
       IF NOT deleted
       THEN
          i := 0 ;
-         (* new
+         (* new *)
          WHILE i<p.nPoints DO
             (* polygon points.[i].x *)
             p.points[i].x := newPositionScalar(p.points[i].x, vx, ax, dt) ;
@@ -1082,9 +1139,9 @@ BEGIN
          END ;
          vx := vx + ax*dt ;
          vy := vy + (ay+simulatedGravity)*dt ;
-         *)
+         (* *)
 
-         (* old *)
+         (* old
          nvx := vx + ax*dt ;
          nvy := vy + (ay+simulatedGravity)*dt ;
          WHILE i<p.nPoints DO
@@ -1097,8 +1154,13 @@ BEGIN
          END ;
          vx := nvx ;
          vy := nvy
-         (* *)
+         *)
       END
+   END ;
+   IF dt>0.0
+   THEN
+      printf ("end updatePolygon found dt > 0.0  (%f)\n", dt) ;
+      dumpWorld
    END
 END updatePolygon ;
 
