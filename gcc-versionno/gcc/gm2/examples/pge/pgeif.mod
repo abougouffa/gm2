@@ -245,16 +245,21 @@ END gravity ;
    check_range - 
 *)
 
-PROCEDURE check_range (r: REAL) : REAL ;
+PROCEDURE check_range (r: REAL; function, param: ARRAY OF CHAR) : REAL ;
 BEGIN
-   IF nearZero (r) OR nearZero (r-1.0)
+   IF nearZero (r)
    THEN
-      RETURN r
+      RETURN 0.0
+   ELSIF nearZero (r-1.0)
+   THEN
+      RETURN 1.0
    ELSIF (r>0.0) AND (r<1.0)
    THEN
       RETURN r
    ELSE
-      THROW (ORD (ValueOutOfRange))
+      printf ("%s: parameter value %s is out of range (%g) (using 0.0)\n", ADR(function), ADR(param), r) ;
+      RETURN 0.0
+      (* THROW (ORD (ValueOutOfRange)) *)
    END
 END check_range ;
 
@@ -265,7 +270,8 @@ END check_range ;
 
 PROCEDURE get_xpos (id: CARDINAL) : REAL ;
 BEGIN
-   RETURN check_range (twoDsim.get_xpos (lookupDef (object, id)))
+   RETURN check_range (twoDsim.get_xpos (lookupDef (object, id)),
+                       __FUNCTION__, "id")
 END get_xpos ;
 
 
@@ -275,7 +281,8 @@ END get_xpos ;
 
 PROCEDURE get_ypos (id: CARDINAL) : REAL ;
 BEGIN
-   RETURN check_range (twoDsim.get_ypos (lookupDef (object, id)))
+   RETURN check_range (twoDsim.get_ypos (lookupDef (object, id)),
+                       __FUNCTION__, "id")
 END get_ypos ;
 
 
@@ -327,10 +334,10 @@ PROCEDURE box (x0, y0, i, j: REAL; c: CARDINAL) : CARDINAL ;
 VAR
    k: REAL ;
 BEGIN
-   k := check_range (x0) ;
-   k := check_range (y0) ;
-   k := check_range (x0+i) ;
-   k := check_range (y0+j) ;
+   x0 := check_range (x0, __FUNCTION__, "x0") ;
+   y0 := check_range (y0, __FUNCTION__, "y0") ;
+   k := check_range (x0+i, __FUNCTION__, "x0+i") ;
+   k := check_range (y0+j, __FUNCTION__, "y0+j") ;
    RETURN trace (addDef (object, twoDsim.box (x0, y0, i, j,
                                               lookupDef (colour, c))),
                  "box")
@@ -346,12 +353,12 @@ PROCEDURE poly3 (x0, y0, x1, y1, x2, y2: REAL; c: CARDINAL) : CARDINAL ;
 VAR
    k: REAL ;
 BEGIN
-   k := check_range (x0) ;
-   k := check_range (y0) ;
-   k := check_range (x1) ;
-   k := check_range (y1) ;
-   k := check_range (x2) ;
-   k := check_range (y2) ;
+   x0 := check_range (x0, __FUNCTION__, "x0") ;
+   y0 := check_range (y0, __FUNCTION__, "y0") ;
+   x1 := check_range (x1, __FUNCTION__, "x1") ;
+   y1 := check_range (y1, __FUNCTION__, "y1") ;
+   x2 := check_range (x2, __FUNCTION__, "x2") ;
+   y2 := check_range (y2, __FUNCTION__, "y2") ;
 
    RETURN trace (addDef (object,
                          twoDsim.poly3 (x0, y0, x1, y1, x2, y2,
@@ -369,14 +376,14 @@ PROCEDURE poly4 (x0, y0, x1, y1, x2, y2, x3, y3: REAL; c: CARDINAL) : CARDINAL ;
 VAR
    k: REAL ;
 BEGIN
-   k := check_range (x0) ;
-   k := check_range (y0) ;
-   k := check_range (x1) ;
-   k := check_range (y1) ;
-   k := check_range (x2) ;
-   k := check_range (y2) ;
-   k := check_range (x3) ;
-   k := check_range (y3) ;
+   x0 := check_range (x0, __FUNCTION__, "x0") ;
+   y0 := check_range (y0, __FUNCTION__, "y0") ;
+   x1 := check_range (x1, __FUNCTION__, "x1") ;
+   y1 := check_range (y1, __FUNCTION__, "y1") ;
+   x2 := check_range (x2, __FUNCTION__, "x2") ;
+   y2 := check_range (y2, __FUNCTION__, "y2") ;
+   x3 := check_range (x3, __FUNCTION__, "x3") ;
+   y3 := check_range (y3, __FUNCTION__, "y3") ;
 
    RETURN trace (addDef (object,
                          twoDsim.poly4 (x0, y0, x1, y1, x2, y2, x3, y3,
@@ -394,16 +401,16 @@ PROCEDURE poly5 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4: REAL; c: CARDINAL) : CA
 VAR
    k: REAL ;
 BEGIN
-   k := check_range (x0) ;
-   k := check_range (y0) ;
-   k := check_range (x1) ;
-   k := check_range (y1) ;
-   k := check_range (x2) ;
-   k := check_range (y2) ;
-   k := check_range (x3) ;
-   k := check_range (y3) ;
-   k := check_range (x4) ;
-   k := check_range (y4) ;
+   x0 := check_range (x0, __FUNCTION__, "x0") ;
+   y0 := check_range (y0, __FUNCTION__, "y0") ;
+   x1 := check_range (x1, __FUNCTION__, "x1") ;
+   y1 := check_range (y1, __FUNCTION__, "y1") ;
+   x2 := check_range (x2, __FUNCTION__, "x2") ;
+   y2 := check_range (y2, __FUNCTION__, "y2") ;
+   x3 := check_range (x3, __FUNCTION__, "x3") ;
+   y3 := check_range (y3, __FUNCTION__, "y3") ;
+   x4 := check_range (x4, __FUNCTION__, "x4") ;
+   y4 := check_range (y4, __FUNCTION__, "y4") ;
 
    RETURN trace (addDef (object,
                          twoDsim.poly5 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4,
@@ -421,18 +428,18 @@ PROCEDURE poly6 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5: REAL; c: CARDIN
 VAR
    k: REAL ;
 BEGIN
-   k := check_range (x0) ;
-   k := check_range (y0) ;
-   k := check_range (x1) ;
-   k := check_range (y1) ;
-   k := check_range (x2) ;
-   k := check_range (y2) ;
-   k := check_range (x3) ;
-   k := check_range (y3) ;
-   k := check_range (x4) ;
-   k := check_range (y4) ;
-   k := check_range (x5) ;
-   k := check_range (y5) ;
+   x0 := check_range (x0, __FUNCTION__, "x0") ;
+   y0 := check_range (y0, __FUNCTION__, "y0") ;
+   x1 := check_range (x1, __FUNCTION__, "x1") ;
+   y1 := check_range (y1, __FUNCTION__, "y1") ;
+   x2 := check_range (x2, __FUNCTION__, "x2") ;
+   y2 := check_range (y2, __FUNCTION__, "y2") ;
+   x3 := check_range (x3, __FUNCTION__, "x3") ;
+   y3 := check_range (y3, __FUNCTION__, "y3") ;
+   x4 := check_range (x4, __FUNCTION__, "x4") ;
+   y4 := check_range (y4, __FUNCTION__, "y4") ;
+   x5 := check_range (x5, __FUNCTION__, "x5") ;
+   y5 := check_range (y5, __FUNCTION__, "y5") ;
 
    RETURN trace (addDef (object,
                          twoDsim.poly6 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5,

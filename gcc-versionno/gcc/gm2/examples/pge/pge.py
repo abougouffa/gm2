@@ -299,6 +299,21 @@ def box (x, y, w, h, c, level = 0):
     return ob
 
 
+def poly3 (x0, y0, x1, y1, x2, y2, c, level = 0):
+    c._param_colour ("seventh parameter to box is expected to be a colour")
+    if level == 0:
+        id = pgeif.poly3 (x0, y0, x1, y1, x2, y2, c._get_colour ())
+        ob = object (box_t, id)
+        ob._set_width (None)
+        ob.c = c
+        printf ("poly3 ")
+        _register (id, ob)
+    else:
+        ob = object (fb_box_t, [x0, y0, x1, y1, x2, y2, pgeif.h2l (c._get_colour ())])
+        _add (ob, level)
+    return ob
+
+
 def _add (ob, level):
     global foreground, background
 

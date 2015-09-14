@@ -26,7 +26,7 @@ FROM deviceIf IMPORT Colour, red, blue, green, yellow, purple, defineColour ;
 FROM Fractions IMPORT Fract, initFract, zero, one, two, cardinal, negate, div, pi, half ;
 FROM Points IMPORT Point, initPoint ;
 
-FROM macroObjects IMPORT Macro, circle, moveTo, up, down, left, right, rotate,
+FROM macroObjects IMPORT Macro, circle, moveTo, up, down, left, right,
                          append, translate, rootMacro, dup, unRootMacro, initMacro, rectangle,
                          triangle, angledRect ;
 

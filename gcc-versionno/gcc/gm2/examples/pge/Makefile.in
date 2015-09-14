@@ -119,8 +119,11 @@ libpgeif.la:  $(PGELIBSOURCES:%.mod=%.lo) buffers.lo
 output.raw: libpgeif.la
 	PYTHONPATH=.:$(srcdir) python $(srcdir)/examples/exampleBoxes.py
 
-playback: output.raw
+playback: force
 	PYTHONPATH=.:$(srcdir) python $(srcdir)/pgeplayback.py
+
+boxes.raw:  libpgeif.la
+	PYTHONPATH=.:$(srcdir) python $(srcdir)/examples/boxes.py
 
 foo: circles.m $(OBJECTS)
 	gm2 $(GM2FLAGS) -fonlylink $(srcdir)/foo.mod

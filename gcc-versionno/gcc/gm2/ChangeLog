@@ -1,3 +1,26 @@
+2015-09-14      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/Makefile.in:  add boxes.raw and removed
+	  dependancy output.raw from playback.
+	* gm2/examples/pge/bounce.mod:  remove rotate.
+	* gm2/examples/pge/boxes.mod:  changed output device.
+	* gm2/examples/pge/examples/exampleBoxes.py:  changed sound
+	  file examples.  Changed crate example.
+	* gm2/examples/pge/pge.py:  added poly3 method.
+	* gm2/examples/pge/pgeif.mod:  check_range attempts to prevent
+	  round off errors and changed to provide a better descriptive
+	  error message.
+	* gm2/examples/pge/pgeplayback.py:  changes to allow generation
+	  of a movie with appropriate sounds effects.
+	* gm2/examples/pge/polar.def:  new procedure function rotatePolar.
+	* gm2/examples/pge/polar.mod:  implement new procedure function
+	  rotatePolar.
+	* gm2/examples/pge/twoDsim.def:  define new procedure function
+	  rvel.
+	* gm2/examples/pge/twoDsim.mod:  major changes to the definition
+	  of the polygon data structures, now use a c of g and polar
+	  coordinates to describe polygon.  Removed rpolygon.
+
 2015-09-09      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/examples/exampleBoxes.py:  interim checkin.

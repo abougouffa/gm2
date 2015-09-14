@@ -168,10 +168,17 @@ PROCEDURE accel (id: CARDINAL; ax, ay: REAL) : CARDINAL ;
 
 
 (*
-   rotate - rotates object with a angular velocity, angle.
+   rotate - gives object, id, an initial orientation.
 *)
 
 PROCEDURE rotate (id: CARDINAL; angle: REAL) : CARDINAL ;
+
+
+(*
+   rvel - gives object, id, an angular velocity, angle.
+*)
+
+PROCEDURE rvel (id: CARDINAL; angle: REAL) : CARDINAL ;
 
 
 (*

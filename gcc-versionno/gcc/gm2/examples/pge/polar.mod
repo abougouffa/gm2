@@ -119,4 +119,15 @@ BEGIN
 END coordToPolar ;
 
 
+(*
+   rotatePolar - return a polar coordinate after rotating it by, w, radians.
+*)
+
+PROCEDURE rotatePolar (p: Polar; w: REAL) : Polar ;
+BEGIN
+   p.w := p.w + w ;
+   RETURN p
+END rotatePolar ;
+
+
 END polar.

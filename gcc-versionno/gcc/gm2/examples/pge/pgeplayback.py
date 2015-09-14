@@ -27,6 +27,7 @@ maxColour         = 0
 sounds            = {}
 singleStep        = False
 frameNo           = 0
+soundNo           = 0
 wantedFrame       = 1
 movie             = False
 tmpdir            = ""
@@ -310,7 +311,7 @@ def readColourRaw (f):
 
 def readColour (f):
     f, c = readColourRaw (f)
-    print "colour value", c
+    debugf ("colour value %d\n", c)
     col = idTOcol[c]
     return f, col
 
@@ -387,9 +388,10 @@ def doExit (f):
 
 
 def doFrameNote (f):
-    global frameNo, pc
+    global frameNo, pc, soundNo
 
     f, frameNo = readCard (f)
+    soundNo = 0
     f.record_pos (pc, frameNo)
     return f
 
@@ -484,6 +486,7 @@ def readFile (name):
 
     wantedFrame = 1
     frameNo = 1
+    soundNo = 0
     f = myfile (name)
     pc = f.pos
     f = handleEvents (f)
@@ -640,6 +643,7 @@ def grFrameNote (f):
     global frameNo, outf, tmpdir, progress
 
     f, frameNo = readCard (f)
+    soundNo = 0
     s = "%08d.ms" % frameNo
     s = os.path.join (tmpdir, s)
     outf = open (s, "w")
@@ -661,8 +665,8 @@ def finishMovie ():
         commandArgs = ""
         print soxSound
         audio = "audio.wav"
-        for t, s in soxSound:
-            frameSound = "%6d.wav" % t
+        for t, s, n in soxSound:
+            frameSound = "%6d-%3d.wav" % (t, n)
             command = "sox " + s + " " + frameSound + " pad %3f"
             command = command % (float (t)/float (fps))
             doSystem (command)
@@ -857,10 +861,10 @@ def genSilence ():
 
 
 def grPlay (f):
-    global soxSound, frameNo
+    global soxSound, frameNo, soundNo
 
     name = getSoundName (f)
-    soxSound += [[frameNo, name]]
+    soxSound += [[frameNo, name, soundNo]]
     return f
 
 

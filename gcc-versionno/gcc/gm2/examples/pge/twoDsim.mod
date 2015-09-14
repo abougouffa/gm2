@@ -30,7 +30,7 @@ FROM Points IMPORT Point, initPoint ;
 FROM GC IMPORT collectAll ;
 FROM coord IMPORT Coord, initCoord, normaliseCoord, perpendiculars, scaleCoord,
                   subCoord, addCoord, lengthCoord, rotateCoord, dotProd ;
-FROM polar IMPORT Polar, initPolar, polarToCoord, coordToPolar ;
+FROM polar IMPORT Polar, initPolar, polarToCoord, coordToPolar, rotatePolar ;
 FROM history IMPORT isDuplicate, removeOlderHistory, forgetHistory, purge, occurred ;
 FROM delay IMPORT getActualFPS ;
 FROM MathLib0 IMPORT pi ;
@@ -47,13 +47,13 @@ IMPORT gdbif ;
 CONST
    MaxPolygonPoints       =     6 ;
    DefaultFramesPerSecond =   100.0 ;
-   Debugging              =  TRUE ;
+   Debugging              = FALSE ;
    DebugTrace             =  TRUE ;
    BufferedTime           =     0.1 ;
    InactiveTime           =     1.0 ;  (* the time we keep simulating after all collision events have expired *)
 
 TYPE
-   ObjectType = (polygonOb, circleOb, pivotOb, rpolygonOb) ;
+   ObjectType = (polygonOb, circleOb, pivotOb) ;
 
    eventType = (frameEvent, circlesEvent, circlePolygonEvent, polygonPolygonEvent) ;
 
@@ -99,19 +99,19 @@ TYPE
                            END ;
 
    Object = POINTER TO RECORD
-                          id             : CARDINAL ;
+                          id              : CARDINAL ;
                           deleted,
                           fixed,
-                          stationary     : BOOLEAN ;
-                          vx, vy, ax, ay : REAL ;
-                          angularVelocity: REAL ;
+                          stationary      : BOOLEAN ;
+                          vx, vy, ax, ay  : REAL ;
+                          angleOrientation,
+                          angularVelocity : REAL ;
 
                           CASE object: ObjectType OF
 
                           polygonOb :  p: Polygon |
                           circleOb  :  c: Circle |
-                          pivotOb   :  v: Pivot |
-                          rpolygonOb:  r: RotatingPolygon
+                          pivotOb   :  v: Pivot
 
                           END
                        END ;
@@ -131,18 +131,11 @@ TYPE
 
    Polygon = RECORD
                 nPoints: CARDINAL ;
-                points : ARRAY [0..MaxPolygonPoints] OF Coord ;
+                points : ARRAY [0..MaxPolygonPoints] OF Polar ;
                 mass   : REAL ;
                 col    : Colour ;
+                cOfG   : Coord ;
              END ;
-
-   RotatingPolygon = RECORD
-                        nPoints: CARDINAL ;
-                        points : ARRAY [0..MaxPolygonPoints] OF Polar ;
-                        mass   : REAL ;
-                        col    : Colour ;
-                        cOfG   : Coord ;
-                     END ;
 
    eventProc = PROCEDURE (eventQueue) ;
 
@@ -238,40 +231,18 @@ END dumpCircle ;
 
 PROCEDURE dumpPolygon (o: Object) ;
 VAR
-   i: CARDINAL ;
-BEGIN
-   WITH o^ DO
-      i := 0 ;
-      printf("polygon mass %g colour %d\n", p.mass, p.col) ;
-      Assert (p.nPoints<=8) ;
-      WHILE i<p.nPoints DO
-         printf("  line (%g,%g)\n", p.points[i].x, p.points[i].y) ;
-         INC(i)
-      END
-   END
-END dumpPolygon ;
-
-
-(*
-   dumpRotating - 
-*)
-
-PROCEDURE dumpRotating (o: Object) ;
-VAR
    i : CARDINAL ;
    c0: Coord ;
 BEGIN
    WITH o^ DO
-      i := 0 ;
-      printf("rotating polygon mass %g colour %d\n", r.mass, r.col) ;
-      printf("  c of g  (%g,%g)\n", r.cOfG.x, r.cOfG.y) ;
-      WHILE i<p.nPoints DO
-         c0 := addCoord(r.cOfG, polarToCoord(r.points[i])) ;
-         printf("  point at (%g,%g)\n", c0.x, c0.y) ;
-         INC(i)
+      printf ("polygon mass %g colour %d\n", p.mass, p.col) ;
+      printf ("  c of g  (%g,%g)\n", p.cOfG.x, p.cOfG.y) ;
+      FOR i := 0 TO p.nPoints-1 DO
+         c0 := addCoord (p.cOfG, polarToCoord (rotatePolar (p.points[i], angleOrientation))) ;
+         printf("  point at (%g,%g)\n", c0.x, c0.y)
       END
    END
-END dumpRotating ;
+END dumpPolygon ;
 
 
 (*
@@ -310,14 +281,16 @@ BEGIN
          ELSIF NOT nearZero(angularVelocity)
          THEN
             printf(" and has a rotating velocity of %g\n", angularVelocity)
+         ELSIF NOT nearZero(angleOrientation)
+         THEN
+            printf(" and its current orientation is %g\n", angleOrientation)
          END
       END ;
       CASE object OF
 
-      circleOb  :  dumpCircle(o) |
-      polygonOb :  dumpPolygon(o) |
-      pivotOb   :  printf("pivot\n") |
-      rpolygonOb:  dumpRotating(o)
+      circleOb  :  dumpCircle (o) |
+      polygonOb :  dumpPolygon (o) |
+      pivotOb   :  printf ("pivot\n")
 
       ELSE
       END ;
@@ -360,16 +333,17 @@ BEGIN
    INC(maxId) ;
    NEW(optr) ;
    WITH optr^ DO
-      id              := maxId ;
-      deleted         := FALSE ;
-      fixed           := FALSE ;
-      stationary      := FALSE ;
-      object          := type ;
-      vx              := 0.0 ;
-      vy              := 0.0 ;
-      ax              := 0.0 ;
-      ay              := 0.0 ;
-      angularVelocity := 0.0
+      id               := maxId ;
+      deleted          := FALSE ;
+      fixed            := FALSE ;
+      stationary       := FALSE ;
+      object           := type ;
+      vx               := 0.0 ;
+      vy               := 0.0 ;
+      ax               := 0.0 ;
+      ay               := 0.0 ;
+      angularVelocity  := 0.0 ;
+      angleOrientation := 0.0
    END ;
    PutIndice(objects, maxId, optr) ;
    RETURN( maxId )
@@ -388,53 +362,60 @@ END box ;
 
 (*
    poly3 - place a triangle in the world at:
-           (x0,y0),(x1,y1),(x2,y2)
+           (x0,y0), (x1,y1), (x2,y2)
 *)
 
 PROCEDURE poly3 (x0, y0, x1, y1, x2, y2: REAL; colour: Colour) : CARDINAL ;
 VAR
-   id: CARDINAL ;
-   optr: Object ;
+   id, i: CARDINAL ;
+   optr : Object ;
+   co   : ARRAY [0..2] OF Coord ;
 BEGIN
-   id := newObject(polygonOb) ;
-   optr := GetIndice(objects, id) ;
+   printf ("begin poly3 (%g, %g, %g, %g, %g, %g)\n",
+           x0, y0, x1, y1, x2, y2);
+   id := newObject (polygonOb) ;
+   optr := GetIndice (objects, id) ;
+   co[0] := initCoord (x0, y0) ;
+   co[1] := initCoord (x1, y1) ;
+   co[2] := initCoord (x2, y2) ;
    WITH optr^ DO
       p.nPoints := 3 ;
-      p.points[0].x := x0 ;
-      p.points[0].y := y0 ;
-      p.points[1].x := x1 ;
-      p.points[1].y := y1 ;
-      p.points[2].x := x2 ;
-      p.points[2].y := y2 ;
+      p.cOfG := calculateCofG (p.nPoints, co) ;
+      FOR i := 0 TO p.nPoints-1 DO
+         p.points[i] := coordToPolar (subCoord(co[i], p.cOfG))
+      END ;
       p.col := colour ;
       p.mass := 0.0
    END ;
+   printf ("end poly3\n");
+   dumpWorld ;
    RETURN id
 END poly3 ;
 
 
 (*
    poly4 - place a quadrangle in the world at:
-           (x0,y0),(x1,y1),(x2,y2),(x3,y3)
+           (x0,y0), (x1,y1), (x2,y2), (x3,y3)
 *)
 
 PROCEDURE poly4 (x0, y0, x1, y1, x2, y2, x3, y3: REAL; colour: Colour) : CARDINAL ;
 VAR
-   id: CARDINAL ;
-   optr: Object ;
+   id, i: CARDINAL ;
+   optr : Object ;
+   co   : ARRAY [0..3] OF Coord ;
 BEGIN
    id := newObject(polygonOb) ;
    optr := GetIndice(objects, id) ;
+   co[0] := initCoord (x0, y0) ;
+   co[1] := initCoord (x1, y1) ;
+   co[2] := initCoord (x2, y2) ;
+   co[3] := initCoord (x3, y3) ;
    WITH optr^ DO
       p.nPoints := 4 ;
-      p.points[0].x := x0 ;
-      p.points[0].y := y0 ;
-      p.points[1].x := x1 ;
-      p.points[1].y := y1 ;
-      p.points[2].x := x2 ;
-      p.points[2].y := y2 ;
-      p.points[3].x := x3 ;
-      p.points[3].y := y3 ;
+      p.cOfG := calculateCofG (p.nPoints, co) ;
+      FOR i := 0 TO p.nPoints-1 DO
+         p.points[i] := coordToPolar (subCoord(co[i], p.cOfG))
+      END ;
       p.col := colour ;
       p.mass := 0.0
    END ;
@@ -444,28 +425,28 @@ END poly4 ;
 
 (*
    poly5 - place a pentagon in the world at:
-           (x0,y0),(x1,y1),(x2,y2),(x3,y3),(x4,y4)
+           (x0,y0), (x1,y1), (x2,y2), (x3,y3), (x4,y4)
 *)
 
 PROCEDURE poly5 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4: REAL; colour: Colour) : CARDINAL ;
 VAR
-   id  : CARDINAL ;
-   optr: Object ;
+   id, i: CARDINAL ;
+   optr : Object ;
+   co   : ARRAY [0..4] OF Coord ;
 BEGIN
    id := newObject(polygonOb) ;
    optr := GetIndice(objects, id) ;
+   co[0] := initCoord (x0, y0) ;
+   co[1] := initCoord (x1, y1) ;
+   co[2] := initCoord (x2, y2) ;
+   co[3] := initCoord (x3, y3) ;
+   co[4] := initCoord (x4, y4) ;
    WITH optr^ DO
       p.nPoints := 5 ;
-      p.points[0].x := x0 ;
-      p.points[0].y := y0 ;
-      p.points[1].x := x1 ;
-      p.points[1].y := y1 ;
-      p.points[2].x := x2 ;
-      p.points[2].y := y2 ;
-      p.points[3].x := x2 ;
-      p.points[3].y := y2 ;
-      p.points[4].x := x2 ;
-      p.points[4].y := y2 ;
+      p.cOfG := calculateCofG (p.nPoints, co) ;
+      FOR i := 0 TO p.nPoints-1 DO
+         p.points[i] := coordToPolar (subCoord(co[i], p.cOfG))
+      END ;
       p.col := colour ;
       p.mass := 0.0
    END ;
@@ -480,25 +461,24 @@ END poly5 ;
 
 PROCEDURE poly6 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5: REAL; colour: Colour) : CARDINAL ;
 VAR
-   id  : CARDINAL ;
-   optr: Object ;
+   id, i: CARDINAL ;
+   optr : Object ;
+   co   : ARRAY [0..5] OF Coord ;
 BEGIN
-   id := newObject(pivotOb) ;
+   id := newObject(polygonOb) ;
    optr := GetIndice(objects, id) ;
+   co[0] := initCoord (x0, y0) ;
+   co[1] := initCoord (x1, y1) ;
+   co[2] := initCoord (x2, y2) ;
+   co[3] := initCoord (x3, y3) ;
+   co[4] := initCoord (x4, y4) ;
+   co[5] := initCoord (x5, y5) ;
    WITH optr^ DO
       p.nPoints := 6 ;
-      p.points[0].x := x0 ;
-      p.points[0].y := y0 ;
-      p.points[1].x := x1 ;
-      p.points[1].y := y1 ;
-      p.points[2].x := x2 ;
-      p.points[2].y := y2 ;
-      p.points[3].x := x2 ;
-      p.points[3].y := y2 ;
-      p.points[4].x := x2 ;
-      p.points[4].y := y2 ;
-      p.points[5].x := x2 ;
-      p.points[5].y := y2 ;
+      p.cOfG := calculateCofG (p.nPoints, co) ;
+      FOR i := 0 TO p.nPoints-1 DO
+         p.points[i] := coordToPolar (subCoord(co[i], p.cOfG))
+      END ;
       p.col := colour ;
       p.mass := 0.0
    END ;
@@ -521,8 +501,7 @@ BEGIN
       CASE object OF
 
       polygonOb :  p.mass := m |
-      circleOb  :  c.mass := m |
-      rpolygonOb:  r.mass := m
+      circleOb  :  c.mass := m
 
       ELSE
       END
@@ -571,7 +550,7 @@ END circle ;
 
 
 (*
-   get_xpos - returns the first point, x, coordinate of object.
+   get_xpos - returns the x coordinate of the center of gravity of object, id.
 *)
 
 PROCEDURE get_xpos (id: CARDINAL) : REAL ;
@@ -591,7 +570,8 @@ BEGIN
    WITH optr^ DO
       CASE object OF
 
-      polygonOb:  RETURN p.points[0].x
+      polygonOb:  RETURN p.cOfG.x |
+      circleOb :  RETURN c.pos.x
 
       ELSE
          printf ("get_xpos: only expecting polygon\n");
@@ -622,8 +602,8 @@ BEGIN
    WITH optr^ DO
       CASE object OF
 
-      polygonOb:  printf ("get_ypos (%d) = %f\n", id, p.points[0].y) ;
-                  RETURN p.points[0].y
+      polygonOb:  RETURN p.cOfG.y |
+      circleOb :  RETURN c.pos.y
 
       ELSE
          printf ("get_ypos: only expecting polygon\n");
@@ -757,27 +737,92 @@ END accel ;
 
 PROCEDURE calculateCofG (n: CARDINAL; p: ARRAY OF Coord) : Coord ;
 VAR
-   x, y: REAL ;
-   r   : REAL ;
-   i   : CARDINAL ;
+   A, B,
+   C, D,
+   a, x, y: REAL ;
+   i, j   : CARDINAL ;
 BEGIN
-   x := p[0].x ;
-   y := p[0].y ;
-   i := 1 ;
-   WHILE i<n DO
-      x := x + p[i].x ;
-      y := y + p[i].y ;
-      INC(i)
+   a := calcArea (n, p) * 6.0 ;
+   x := 0.0 ;
+   y := 0.0 ;
+   IF Debugging
+   THEN
+      printf ("calculateCofG begin:  %d points\n", n);
+      FOR i := 0 TO n-1 DO
+         printf ("%d:   %g, %g\n", i, p[i].x, p[i].y)
+      END
    END ;
-   r := VAL(REAL, n) ;
-   RETURN initCoord(x/r, y/r)
+   FOR i := 0 TO n-1 DO
+      j := (i+1) MOD n ;
+      IF Debugging
+      THEN
+         printf ("x = %g,  y = %g\n", x, y);
+         A := (p[i].x + p[j].x) ;
+         B := (p[i].x * p[j].y - p[j].x * p[i].y) ;
+         C := (p[i].y + p[j].y) ;
+         D := (p[i].x * p[j].y - p[j].x * p[i].y) ;
+         printf ("A = %g,  B = %g\n", A, B);
+         printf ("C = %g,  D = %g\n", A, B);
+         printf ("A * B = %g,  C * D = %g\n", A*B, C*D)
+      END ;
+      x := x + (p[i].x + p[j].x) * (p[i].x * p[j].y - p[j].x * p[i].y) ;
+      y := y + (p[i].y + p[j].y) * (p[i].x * p[j].y - p[j].x * p[i].y)
+   END ;
+   IF Debugging
+   THEN
+      printf ("cofg = %g, %g\n", x/a, y/a)
+   END ;
+   RETURN initCoord(x/a, y/a)
 END calculateCofG ;
+
+
+(*
+   calcArea - 
+*)
+
+PROCEDURE calcArea (n: CARDINAL; p: ARRAY OF Coord) : REAL ;
+VAR
+   i, j   : CARDINAL ;
+   a, r, b: REAL ;
+BEGIN
+   a := 0.0 ;
+   IF Debugging
+   THEN
+      printf ("calculating area: ")
+   END ;
+   FOR i := 0 TO n-1 DO
+      IF Debugging
+      THEN
+         printf ("(%g, %g) ", p[i].x, p[i].y)
+      END ;
+      j := (i+1) MOD n ;
+      r := (p[i].x * p[j].y) ;
+      b := (p[i].y * p[j].x) ;
+      IF Debugging
+      THEN
+         printf (" [x1 x y1 = %g x %g = %g = r] ", 
+                 p[i].x, p[j].y, r);
+         printf (" [x1 x y1 = %g x %g = %g = b] ", 
+                 p[i].y, p[j].x, b)
+      END ;
+      a := a + r - b ;
+      IF Debugging
+      THEN
+         printf (" [a = %g] ", a)
+      END
+   END ;
+   IF Debugging
+   THEN
+      printf ("end area = %g\n", a / 2.0)
+   END ;
+   RETURN a / 2.0
+END calcArea ;
 
 
 (*
    toRPolygon - convert polygon, id, into a rotating polygon.
 *)
-
+(*
 PROCEDURE toRPolygon (id: CARDINAL) ;
 VAR
    nptr,
@@ -804,10 +849,11 @@ BEGIN
       DISPOSE(nptr)
    END
 END toRPolygon ;
+*)
 
 
 (*
-   rotate - rotates object with a angular velocity, angle.
+   rotate - gives object, id, an initial orientation.
 *)
 
 PROCEDURE rotate (id: CARDINAL; angle: REAL) : CARDINAL ;
@@ -823,12 +869,35 @@ BEGIN
          printf("object %d is fixed and therefore cannot be given an angular velocity\n",
                 id)
       ELSE
-         toRPolygon(id) ;
-         optr^.angularVelocity := angle
+         optr^.angleOrientation := angle
       END
    END ;
    RETURN id
 END rotate ;
+
+
+(*
+   rvel - gives object, id, an angular velocity, angle.
+*)
+
+PROCEDURE rvel (id: CARDINAL; angle: REAL) : CARDINAL ;
+VAR
+   optr: Object ;
+BEGIN
+   IF NOT nearZero(angle)
+   THEN
+      optr := GetIndice(objects, id) ;
+      checkDeleted(optr) ;
+      IF optr^.fixed
+      THEN
+         printf("object %d is fixed and therefore cannot be given an angular velocity\n",
+                id)
+      ELSE
+         optr^.angularVelocity := angle
+      END
+   END ;
+   RETURN id
+END rvel ;
 
 
 (*
@@ -895,7 +964,12 @@ VAR
    i     : CARDINAL ;
 BEGIN
    FOR i := 0 TO n-1 DO
-      points[i] := c2p(p[i])
+      IF Debugging
+      THEN
+         printf ("polygon point %d: %g, %g\n",
+                 i, p[i].x, p[i].y)
+      END ;
+      points[i] := c2p(p[i]) ;
    END ;
    glyphPolygon(n, points, TRUE, zero(), c)
 END doPolygon ;
@@ -976,29 +1050,42 @@ END getAccelCoord ;
 PROCEDURE doDrawFrame (optr: Object; dt: REAL) ;
 VAR
    i     : CARDINAL ;
+   co,
    vc, ac: Coord ;
    po    : ARRAY [0..MaxPolygonPoints] OF Coord ;
 BEGIN
+   printf ("doDrawFrame (%g)\n", dt);
    checkDeleted(optr) ;
    vc := getVelCoord(optr) ;
    ac := getAccelCoord(optr) ;
    WITH optr^ DO
       CASE object OF
 
-      circleOb  :  doCircle(newPositionCoord(c.pos, vc, ac, dt), c.r, c.col) |
-      polygonOb :  i := 0 ;
-                   WHILE i<p.nPoints DO
-                      po[i] := newPositionCoord(p.points[i], vc, ac, dt) ;
-                      INC(i)
-                   END ;
-                   doPolygon(p.nPoints, po, p.col) |
-      pivotOb   :  |
-      rpolygonOb:  i := 0 ;
-                   WHILE i<r.nPoints DO
-                      po[i] := newPositionRotationCoord(r.cOfG, vc, ac, dt, angularVelocity, r.points[i]) ;
-                      INC(i)
-                   END ;
-                   doPolygon(r.nPoints, po, r.col)
+      circleOb :  doCircle(newPositionCoord(c.pos, vc, ac, dt), c.r, c.col) |
+      pivotOb  :  |
+      polygonOb:  (* gdbif.sleepSpin ; *)
+                  FOR i := 0 TO p.nPoints-1 DO
+                     po[i] := newPositionRotationCoord (p.cOfG, vc, ac, dt,
+                                                        angularVelocity, angleOrientation, p.points[i]) ;
+                     IF Debugging
+                     THEN
+                        printf ("po[%d].x = %g, po[%d].y = %g\n", i, po[i].x, i, po[i].y)
+                     END ;
+                     co := addCoord (p.cOfG, polarToCoord (rotatePolar (p.points[i], angleOrientation))) ;
+                     IF Debugging
+                     THEN
+                        printf (" [co.x = %g, co.y = %g]\n", co.x, co.y)
+                     END ;
+                     IF nearZero (dt)
+                     THEN
+                        IF (NOT nearZero (co.x-po[i].x)) OR (NOT nearZero (co.y-po[i].y))
+                        THEN
+                           printf ("these values should be the same\n") ;
+                           exit (1)
+                        END
+                     END
+                  END ;
+                  doPolygon (p.nPoints, po, p.col)
 
       END
    END
@@ -1092,21 +1179,20 @@ END drawFrameEvent ;
 
 
 (*
-   updateRPolygon - 
+   incRadians - return (a + b) mod 2pi.   The value returned will be between 0..2pi
 *)
 
-PROCEDURE updateRPolygon (optr: Object; dt: REAL) ;
+PROCEDURE incRadians (a, b: REAL) : REAL ;
 BEGIN
-   WITH optr^ DO
-      IF NOT deleted
-      THEN
-         r.cOfG.x := newPositionScalar(r.cOfG.x, vx, ax, dt) ;
-         r.cOfG.y := newPositionScalar(r.cOfG.y, vy, ay+simulatedGravity, dt) ;
-         vx := vx + ax*dt ;
-         vy := vy + (ay+simulatedGravity)*dt
-      END
-   END
-END updateRPolygon ;
+   a := a + b ;
+   WHILE a < 0.0 DO
+      a := a + (2.0 * pi)
+   END ;
+   WHILE a > (2.0 * pi) DO
+      a := a - (2.0 * pi)
+   END ;
+   RETURN a
+END incRadians ;
 
 
 (*
@@ -1114,53 +1200,16 @@ END updateRPolygon ;
 *)
 
 PROCEDURE updatePolygon (optr: Object; dt: REAL) ;
-VAR
-   nvx,
-   nvy: REAL ;
-   i  : CARDINAL ;
 BEGIN
-   IF dt>0.0
-   THEN
-      printf ("start updatePolygon found dt > 0.0  (%f)\n", dt) ;
-      dumpWorld
-   END ;
    WITH optr^ DO
       IF NOT deleted
       THEN
-         i := 0 ;
-         (* new *)
-         WHILE i<p.nPoints DO
-            (* polygon points.[i].x *)
-            p.points[i].x := newPositionScalar(p.points[i].x, vx, ax, dt) ;
-
-            (* and points[i].y *)
-            p.points[i].y := newPositionScalar(p.points[i].y, vy, ay+simulatedGravity, dt) ;
-            INC(i)
-         END ;
+         p.cOfG.x := newPositionScalar(p.cOfG.x, vx, ax, dt) ;
+         p.cOfG.y := newPositionScalar(p.cOfG.y, vy, ay+simulatedGravity, dt) ;
          vx := vx + ax*dt ;
-         vy := vy + (ay+simulatedGravity)*dt ;
-         (* *)
-
-         (* old
-         nvx := vx + ax*dt ;
-         nvy := vy + (ay+simulatedGravity)*dt ;
-         WHILE i<p.nPoints DO
-            (* polygon points.[i].x *)
-            p.points[i].x := p.points[i].x+dt*(vx+nvx)/2.0 ;
-
-            (* and points[i].y *)
-            p.points[i].y := p.points[i].y+dt*(vy+nvy)/2.0 ;
-            INC(i)
-         END ;
-         vx := nvx ;
-         vy := nvy
-         *)
+         vy := vy + (ay+simulatedGravity) * dt ;
+         angleOrientation := incRadians (angleOrientation, angularVelocity * dt)
       END
-   END ;
-   IF dt>0.0
-   THEN
-      printf ("end updatePolygon found dt > 0.0  (%f)\n", dt) ;
-      dumpWorld
    END
 END updatePolygon ;
 
@@ -1186,21 +1235,9 @@ BEGIN
          c.pos.x := newPositionScalar(c.pos.x, vx, ax, dt) ;
          vx := vx + ax*dt ;
 
-         (*
-         vn := vx + ax*dt ;
-         c.pos.x := c.pos.x+dt*(vx+vn)/2.0 ;
-         vx := vn ;
-         *)
-
          (* update vy and pos.y *)
          c.pos.y := newPositionScalar(c.pos.y, vy, ay+simulatedGravity, dt) ;
-         vy := vy + (ay+simulatedGravity)*dt ;
-         
-         (*
-         vn := vy + (ay+simulatedGravity)*dt ;
-         c.pos.y := c.pos.y+dt*(vy+vn)/2.0 ;
-         vy := vn
-         *)
+         vy := vy + (ay+simulatedGravity) * dt
       END
    END
 END updateCircle ;
@@ -1219,8 +1256,7 @@ BEGIN
 
          polygonOb :  updatePolygon(optr, dt) |
          circleOb  :  updateCircle(optr, dt) |
-         pivotOb   :  |
-         rpolygonOb:  updateRPolygon(optr, dt)
+         pivotOb   :
 
          END
       END
@@ -1392,10 +1428,6 @@ BEGIN
             circleOb  :  IF c.mass=0.0
                          THEN
                             printf("circle %d is not fixed and does not have a mass\n", optr^.id)
-                         END |
-            rpolygonOb:  IF r.mass=0.0
-                         THEN
-                            printf("rotating polygon %d is not fixed and does not have a mass\n", optr^.id)
                          END
 
             ELSE
@@ -1595,7 +1627,10 @@ END collideMovableCircles ;
 
 
 (*
-   circleCollision - 
+   circleCollision - call fixed or movable circle collision depending upon whether
+                     one or two circles are fixed.
+                     Apart from taking into account rotation of either circle this
+                     is complete.
 *)
 
 PROCEDURE circleCollision (iptr, jptr: Object) ;
@@ -1666,7 +1701,7 @@ BEGIN
 
          corner:  IF cPtr^.fixed
                   THEN
-                     (* fixed circle against moving polygon *)
+                     (* moving polygon hits a fixed circle *)
                      (* --fixme--   to do later *)
                   ELSIF pPtr^.fixed
                   THEN
@@ -2194,16 +2229,26 @@ END newPositionScalar ;
                                   initial Y velocity is     :   u
                                   Y acceleration is         :   a
                                   angular velocity          :   w
+                                  orientation               :   o
                                   polar coord position rel
                                   to cofg is                :   p
 *)
 
-PROCEDURE newPositionRotationSinScalar (c, u, a, t, w: REAL; p: Polar) : REAL ;
+PROCEDURE newPositionRotationSinScalar (c, u, a, t, w, o: REAL; p: Polar) : REAL ;
 VAR
    O: REAL ;
 BEGIN
+   IF Debugging
+   THEN
+      printf ("c = %g, u = %g, a = %g, t = %g\n", c, u, a, t)
+   END ;
    O := newPositionScalar(c, u, a, t) ;
-   RETURN O + p.r * sin(w*t + p.w)
+   IF Debugging
+   THEN
+      printf ("O = %g, p.r = %g, p.w = %g, sin (w*t + o + p.w) = %g\n",
+              O, p.r, p.w, sin (w*t + o + p.w))
+   END ;
+   RETURN O + p.r * sin(w*t + o + p.w)
 END newPositionRotationSinScalar ;
 
 
@@ -2214,16 +2259,17 @@ END newPositionRotationSinScalar ;
                                   initial X velocity is     :   u
                                   X acceleration is         :   a
                                   angular velocity          :   w
+                                  orientation               :   o
                                   polar coord position rel
                                   to cofg is                :   p
 *)
 
-PROCEDURE newPositionRotationCosScalar (c, u, a, t, w: REAL; p: Polar) : REAL ;
+PROCEDURE newPositionRotationCosScalar (c, u, a, t, w, o: REAL; p: Polar) : REAL ;
 VAR
    O: REAL ;
 BEGIN
    O := newPositionScalar(c, u, a, t) ;
-   RETURN O + p.r * cos(w*t + p.w)
+   RETURN O + p.r * cos(w*t + o + p.w)
 END newPositionRotationCosScalar ;
 
 
@@ -2241,6 +2287,7 @@ END newPositionCoord ;
 (*
    newPositionRotationCoord - calculates the new position of point, c+v, in the future.
                               Given angular velocity         : w
+                                    orientation              : o
                                     time                     : t
                                     initial vel              : u
                                     accel                    : a
@@ -2248,10 +2295,14 @@ END newPositionCoord ;
                                     polar coord of the point : p
 *)
 
-PROCEDURE newPositionRotationCoord (c, u, a: Coord; t, w: REAL; p: Polar) : Coord ;
+PROCEDURE newPositionRotationCoord (c, u, a: Coord; t, w, o: REAL; p: Polar) : Coord ;
 BEGIN
-   RETURN initCoord(newPositionRotationSinScalar(c.x, u.x, a.x, t, w, p),
-                    newPositionRotationCosScalar(c.y, u.y, a.y, t, w, p))
+   IF Debugging
+   THEN
+      printf ("t = %g, w = %g, o = %g\n", t, w, o)
+   END ;
+   RETURN initCoord (newPositionRotationCosScalar (c.x, u.x, a.x, t, w, o, p),
+                     newPositionRotationSinScalar (c.y, u.y, a.y, t, w, o, p))
 END newPositionRotationCoord ;
 
 
@@ -2598,7 +2649,9 @@ END findEarlierCircleEdgeCollision ;
    getPolygonLine - assigns, p1, p2, with the, line, coordinates of polygon, pPtr.
 *)
 
-PROCEDURE getPolygonLine (line: CARDINAL; pPtr: Object; VAR p1, p2: Coord) ;
+PROCEDURE getPolygonLine (line: CARDINAL; pPtr: Object; VAR c1, c2: Coord) ;
+VAR
+   p1, p2: Polar ;
 BEGIN
    WITH pPtr^ DO
       IF line=pPtr^.p.nPoints
@@ -2608,7 +2661,9 @@ BEGIN
       ELSE
          p1 := pPtr^.p.points[line-1] ;
          p2 := pPtr^.p.points[line]
-      END
+      END ;
+      c1 := addCoord(p.cOfG, polarToCoord (rotatePolar (p1, angleOrientation))) ;
+      c2 := addCoord(p.cOfG, polarToCoord (rotatePolar (p2, angleOrientation)))
    END
 END getPolygonLine ;
 
@@ -2720,10 +2775,8 @@ VAR
 BEGIN
    Assert(cPtr^.object=circleOb) ;
    WITH pPtr^ DO
-      i := 1 ;
-      WHILE i<=p.nPoints DO
+      FOR i := 1 TO p.nPoints DO
          findCollisionCircleLine(cPtr, pPtr, i, cPtr^.c.pos, cPtr^.c.r, edesc, tc, makeCirclesPolygonDesc) ;
-         INC(i)
       END
    END
 END findCollisionCirclePolygon ;
@@ -2792,6 +2845,7 @@ END findCollisionLineLine ;
                       w is the angle of rotation.
 *)
 
+(*
 PROCEDURE getPolygonRPoint (i: CARDINAL; o: Object; VAR cofg, u, a: Coord; VAR w: REAL; VAR pol: Polar) ;
 BEGIN
    WITH o^ DO
@@ -2813,6 +2867,7 @@ BEGIN
       END
    END
 END getPolygonRPoint ;
+*)
 
 
 (*
@@ -3011,6 +3066,7 @@ PROCEDURE findCollisionPolygonRPolygon (iPtr, rPtr: Object; VAR edesc: eventDesc
 VAR
    i, j: CARDINAL ;
 BEGIN
+(*
    Assert(iPtr#rPtr) ;
    i := 1 ;
    WHILE i<=iPtr^.p.nPoints DO
@@ -3021,6 +3077,7 @@ BEGIN
       END ;
       INC(i)
    END
+*)
 END findCollisionPolygonRPolygon ;
 
 
@@ -3044,12 +3101,6 @@ BEGIN
       ELSIF (iptr^.object=polygonOb) AND (jptr^.object=polygonOb)
       THEN
          findCollisionPolygonPolygon(jptr, iptr, edesc, tc)
-      ELSIF (iptr^.object=polygonOb) AND (jptr^.object=rpolygonOb)
-      THEN
-         findCollisionPolygonRPolygon(iptr, jptr, edesc, tc)
-      ELSIF (iptr^.object=rpolygonOb) AND (jptr^.object=polygonOb)
-      THEN
-         findCollisionPolygonRPolygon(jptr, iptr, edesc, tc)
       END
    END
 END findCollision ;

@@ -57,4 +57,11 @@ PROCEDURE polarToCoord (p: Polar) : Coord ;
 PROCEDURE coordToPolar (c: Coord) : Polar ;
 
 
+(*
+   rotatePolar - return a polar coordinate after rotating it by, w, radians.
+*)
+
+PROCEDURE rotatePolar (p: Polar; w: REAL) : Polar ;
+
+
 END polar.

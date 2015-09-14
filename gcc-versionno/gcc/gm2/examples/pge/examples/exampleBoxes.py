@@ -21,13 +21,15 @@ gap = 0.01
 
 
 def play_wood (o):
-    pge.play ("/home/gaius/Sandpit/penguin-tower/sounds/brokenglass.wav")
+    print "play_wood - wants to play bounce.wav"
+    pge.play ("/home/gaius/Sandpit/cluedo/sounds/bounce.wav")
 
 def play_crack (o):
-    pge.play ("/home/gaius/Sandpit/penguin-tower/sounds/brokenglass.wav")
+    print "play_crack - wants to play crack-single.wav"
+    pge.play ("/home/gaius/Sandpit/penguin-tower/sounds/crack-single.wav")
 
 def play_bounce (o):
-    print "callback has been called"
+    print "play_bounce - wants to play cardsnap.wav"
     pge.play ("/home/gaius/Sandpit/cluedo/sounds/cardsnap.wav")
 
 def placeBoarders (thickness, color):
@@ -36,8 +38,8 @@ def placeBoarders (thickness, color):
     e2 = pge.box (0.0, 0.0, thickness, 1.0, color).fix ()
     e3 = pge.box (1.0-thickness, 0.0, thickness, 1.0, color).fix ()
     e4 = pge.box (0.0, 1.0-thickness, 1.0, thickness, color).fix ()
-    #for e in [e1, e2, e3, e4]:
-    #    e.on_collision (play_wood)
+    for e in [e1, e2, e3, e4]:
+        e.on_collision (play_wood)
     return e1, e2, e3, e4
 
 
@@ -46,7 +48,7 @@ def placeBall (x, y, r):
 
 
 def crate (x, y, w):
-    c = pge.box (x, y, w, w, wood_dark).on_collision (crate_split).set_param (6).mass (1.0)
+    c = pge.box (x, y, w, w, wood_dark).on_collision (crate_split).set_param ([6, w]).mass (1.0)
 
 def is_odd (e):
     return (e % 2) == 1
@@ -56,21 +58,20 @@ def crate_split (p):
 
     print "crate_split", p
     pge.dump_world ()
-    w = p.get_width () / 2
+    e = p.get_param ()
+    print "after get_param"
+    w = e[1] / 2
     wg = w - gap
     if wg<0.0:
         print "error gap must be >= 0.0 and not", wg
         sys.exit (1)
-    e = p.get_param ()
-    print "after get_param"
-    pge.dump_world ()
     if e != None:
-        if e == 0:
+        if e[0] == 0:
             print "crate piece completely gone"
             # at the end of 6 collisions the crates disappear
             p.rm ()
-            # play_crack (p)
-        elif is_odd (e):
+            play_crack (p)
+        elif is_odd (e[0]):
             pge.process_event ()  # update the velocities of objects (immediately after collision)
             print "crate sub divides"
             # subdivide into smaller crates, every odd bounce
@@ -81,10 +82,11 @@ def crate_split (p):
             c = p.get_colour ()
             print "colour of crate is", c
             pge.dump_world ()
+            print e
             print "get_xpos"
-            x = p.get_xpos ()
+            x = p.get_xpos () - e[1]/2
             pge.dump_world ()
-            y = p.get_ypos ()
+            y = p.get_ypos () - e[1]/2
             vx = p.get_xvel ()
             vy = p.get_yvel ()
             ax = p.get_xaccel ()
@@ -98,16 +100,16 @@ def crate_split (p):
             for v in [[0, 0], [0, w], [w, 0], [w, w]]:
                 print "creating sub box", v, "gap =", wg
                 b = pge.box (v[0]+x, v[1]+y, wg, wg, c).mass (m).on_collision (crate_split).velocity (vx, vy).accel (ax, ay)
-                print "set_param", e-1
-                b.set_param (e-1)
+                print "set_param", [e[0]-1, w]
+                b.set_param ([e[0]-1, w])
                 pge.dump_world ()
             print "play_crack", p
-            # play_crack (p)
+            play_crack (p)
         else:
             print "crate bounces without breaking"
             # allow collision (bounce) without splitting every even bounce
-            p.set_param (e-1)
-            # play_bounce (p)
+            p.set_param ([e[0]-1, e[1]])
+            play_bounce (p)
 
 def main ():
     c = pge.circle (0.5, 0.5, 0.3, white, -1)
