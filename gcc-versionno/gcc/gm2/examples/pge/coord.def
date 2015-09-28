@@ -48,9 +48,20 @@ PROCEDURE normaliseCoord (c: Coord) : Coord ;
 
 (*
    perpendiculars - fill in c1 and c2 which are the two perpendicular values to, c.
+                    c1 is the one defined by Hill 1994 where c is rotated
+                    90 degrees anticlockwise.
 *)
 
 PROCEDURE perpendiculars (c: Coord; VAR c1, c2: Coord) ;
+
+
+(*
+   perpendicular - return the perpendicular of, c.
+                   This is the one defined by Hill 1994 where c is rotated
+                   90 degrees anticlockwise.
+*)
+
+PROCEDURE perpendicular (c: Coord) : Coord ;
 
 
 (*

@@ -49,24 +49,24 @@ VAR
 BEGIN
    CASE n OF
 
-   3:  o := twoDsim.poly3(getReal(p[0].x), getReal(p[0].y),
-                          getReal(p[1].x), getReal(p[1].y), 
-                          getReal(p[2].x), getReal(p[2].y), c) |
-   4:  o := twoDsim.poly4(getReal(p[0].x), getReal(p[0].y),
-                          getReal(p[1].x), getReal(p[1].y), 
-                          getReal(p[2].x), getReal(p[2].y),
-                          getReal(p[3].x), getReal(p[3].y), c) |
-   5:  o := twoDsim.poly5(getReal(p[0].x), getReal(p[0].y),
-                          getReal(p[1].x), getReal(p[1].y), 
-                          getReal(p[2].x), getReal(p[2].y),
-                          getReal(p[3].x), getReal(p[3].y),
-                          getReal(p[4].x), getReal(p[4].y), c) |
-   6:  o := twoDsim.poly6(getReal(p[0].x), getReal(p[0].y),
-                          getReal(p[1].x), getReal(p[1].y), 
-                          getReal(p[2].x), getReal(p[2].y),
-                          getReal(p[3].x), getReal(p[3].y),
-                          getReal(p[4].x), getReal(p[4].y),
-                          getReal(p[5].x), getReal(p[5].y), c)
+   3:  o := twoDsim.poly3 (getReal(p[0].x), getReal(p[0].y),
+                           getReal(p[1].x), getReal(p[1].y), 
+                           getReal(p[2].x), getReal(p[2].y), c) |
+   4:  o := twoDsim.poly4 (getReal(p[0].x), getReal(p[0].y),
+                           getReal(p[1].x), getReal(p[1].y), 
+                           getReal(p[2].x), getReal(p[2].y),
+                           getReal(p[3].x), getReal(p[3].y), c) |
+   5:  o := twoDsim.poly5 (getReal(p[0].x), getReal(p[0].y),
+                           getReal(p[1].x), getReal(p[1].y), 
+                           getReal(p[2].x), getReal(p[2].y),
+                           getReal(p[3].x), getReal(p[3].y),
+                           getReal(p[4].x), getReal(p[4].y), c) |
+   6:  o := twoDsim.poly6 (getReal(p[0].x), getReal(p[0].y),
+                           getReal(p[1].x), getReal(p[1].y), 
+                           getReal(p[2].x), getReal(p[2].y),
+                           getReal(p[3].x), getReal(p[3].y),
+                           getReal(p[4].x), getReal(p[4].y),
+                           getReal(p[5].x), getReal(p[5].y), c)
 
    ELSE
       printf("too many sides to the polygon, max 6 allowed\n") ;
@@ -74,11 +74,11 @@ BEGIN
    END ;
    IF pFixed
    THEN
-      o := twoDsim.fix(o)
+      o := twoDsim.fix (o)
    ELSE
-      o := twoDsim.mass(o, getReal(defaultMass)) ;
-      o := twoDsim.velocity(o, getReal(defaultVelocity.x), getReal(defaultVelocity.y)) ;
-      o := twoDsim.rotate(o, defaultRotation)
+      o := twoDsim.mass (o, getReal(defaultMass)) ;
+      o := twoDsim.velocity (o, getReal(defaultVelocity.x), getReal(defaultVelocity.y)) ;
+      o := twoDsim.rotate (o, defaultRotation)
    END
 END ppolygon ;
 
@@ -91,14 +91,14 @@ PROCEDURE pcircle (pos: Point; fill: BOOLEAN; thick: Fract; rad: Fract; c: Colou
 VAR
    o: CARDINAL ;
 BEGIN
-   o := twoDsim.circle(getReal(pos.x), getReal(pos.y), getReal(rad), c) ;
+   o := twoDsim.circle (getReal (pos.x), getReal (pos.y), getReal (rad), c) ;
    IF pFixed
    THEN
-      o := twoDsim.fix(o)
+      o := twoDsim.fix (o)
    ELSE
-      o := twoDsim.mass(o, getReal(defaultMass)) ;
-      o := twoDsim.velocity(o, getReal(defaultVelocity.x), getReal(defaultVelocity.y)) ;
-      o := twoDsim.rotate(o, defaultRotation)
+      o := twoDsim.mass (o, getReal (defaultMass)) ;
+      o := twoDsim.velocity (o, getReal (defaultVelocity.x), getReal (defaultVelocity.y)) ;
+      o := twoDsim.rotate (o, defaultRotation)
    END
 END pcircle ;
 
@@ -110,7 +110,7 @@ END pcircle ;
 PROCEDURE populate (m: Macro; fixed, solid: BOOLEAN) ;
 BEGIN
    pFixed := fixed ;
-   macroObjects.runCallBacks(m, ppolygon, pcircle)
+   macroObjects.runCallBacks (m, ppolygon, pcircle)
 END populate ;
 
 
@@ -120,8 +120,8 @@ END populate ;
 
 PROCEDURE mass (m: Fract) ;
 BEGIN
-   defaultMass := unroot(defaultMass) ;
-   defaultMass := root(m)
+   defaultMass := unroot (defaultMass) ;
+   defaultMass := root (m)
 END mass ;
 
 
@@ -131,8 +131,8 @@ END mass ;
 
 PROCEDURE velocity (v: Point) ;
 BEGIN
-   defaultVelocity := unRootPoint(defaultVelocity) ;
-   defaultVelocity := rootPoint(v)
+   defaultVelocity := unRootPoint (defaultVelocity) ;
+   defaultVelocity := rootPoint (v)
 END velocity ;
 
 
@@ -142,7 +142,7 @@ END velocity ;
 
 PROCEDURE rotate (r: Fract) ;
 BEGIN
-   defaultRotation := getReal(r)
+   defaultRotation := getReal (r)
 END rotate ;
 
 
@@ -152,21 +152,21 @@ END rotate ;
 
 PROCEDURE init (groff: BOOLEAN) ;
 BEGIN
-   defaultMass := root(one()) ;
-   defaultVelocity := rootPoint(initPoint(zero(), zero())) ;
+   defaultMass := root (one()) ;
+   defaultVelocity := rootPoint (initPoint (zero (), zero ())) ;
    IF groff
    THEN
       useGroff ;
-      configDevice(initPoint(one(), one()),
-                   initPoint(cardinal(5), cardinal(5)),
-                   FPSgroff) ;
-      twoDsim.fps(FLOAT(FPSgroff))
+      configDevice (initPoint (one (), one ()),
+                    initPoint (cardinal (5), cardinal (5)),
+                    FPSgroff) ;
+      twoDsim.fps (FLOAT (FPSgroff))
    ELSE
       useRPC ;
-      configDevice(initPoint(one(), one()),
-                   initPoint(cardinal(1000), cardinal(1000)),
-                   FPSpy) ;
-      twoDsim.fps(FLOAT(FPSpy))
+      configDevice (initPoint (one (), one ()),
+                    initPoint(cardinal (1000), cardinal (1000)),
+                    FPSpy) ;
+      twoDsim.fps (FLOAT (FPSpy))
    END
 END init ;
 

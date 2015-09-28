@@ -28,7 +28,7 @@ FROM roots IMPORT findQuartic, findQuadratic, findAllRootsQuartic, nearZero ;
 FROM Fractions IMPORT Fract, zero, one, putReal, initFract ;
 FROM Points IMPORT Point, initPoint ;
 FROM GC IMPORT collectAll ;
-FROM coord IMPORT Coord, initCoord, normaliseCoord, perpendiculars, scaleCoord,
+FROM coord IMPORT Coord, initCoord, normaliseCoord, perpendiculars, perpendicular, scaleCoord,
                   subCoord, addCoord, lengthCoord, rotateCoord, dotProd ;
 FROM polar IMPORT Polar, initPolar, polarToCoord, coordToPolar, rotatePolar ;
 FROM history IMPORT isDuplicate, removeOlderHistory, forgetHistory, purge, occurred ;
@@ -47,7 +47,7 @@ IMPORT gdbif ;
 CONST
    MaxPolygonPoints       =     6 ;
    DefaultFramesPerSecond =   100.0 ;
-   Debugging              = FALSE ;
+   Debugging              =  TRUE ;
    DebugTrace             =  TRUE ;
    BufferedTime           =     0.1 ;
    InactiveTime           =     1.0 ;  (* the time we keep simulating after all collision events have expired *)
@@ -57,7 +57,7 @@ TYPE
 
    eventType = (frameEvent, circlesEvent, circlePolygonEvent, polygonPolygonEvent) ;
 
-   descP = PROCEDURE (eventDesc, CARDINAL, CARDINAL, CARDINAL, CARDINAL, Coord) : eventDesc ;
+   descP = PROCEDURE (eventDesc, CARDINAL, CARDINAL, CARDINAL, CARDINAL, whereHit, whereHit, Coord) : eventDesc ;
 
    cDesc = RECORD
               cPoint    : Coord ;      (* where in the 2D world does this collision happen *)
@@ -67,7 +67,7 @@ TYPE
    cpDesc = RECORD
                cPoint  : Coord ;       (* where in the 2D world does this collision happen *)
                pid, cid: CARDINAL ;    (* id of the circle and polygon which will collide *)
-               kind    : whereHit ;    (* does the circle hit the corner or edge?   *)
+               wpid    : whereHit ;    (* does the circle hit the corner or edge of pid  *)
                lineNo  : CARDINAL ;    (* if the edge is hit then this value will be 1..nPoints *)
                                        (* indicating that p[lineNo-1] p[lineNo] is the line which is hit *)
                pointNo : CARDINAL ;    (* if the corner is hit then this value will be 1..nPoints *)
@@ -78,9 +78,10 @@ TYPE
                cPoint  : Coord ;       (* where in the 2D world does this collision happen *)
                pid1,                   (* one of pid1 corners will hit pid2.  *)
                pid2    : CARDINAL ;
-               kind    : whereHit ;    (* does pid1 hit the corner or edge of pid2? *)
-               pointNo,                (* pointNo is the point of pid1 which collides with pid2. *)
-               lineCorner: CARDINAL ;  (* If the edge is hit then this value will be 1..nPoints *)
+               wpid1,                  (* where does the collision occur on pid1 and pid2  *)
+               wpid2   : whereHit ;
+               lineCorner1,
+               lineCorner2: CARDINAL ; (* If the edge is hit then this value will be 1..nPoints *)
                                        (* indicating that p[lineCorner-1] p[lineCorner] is the line which is hit *)
                                        (* if the corner is hit then this value will be 1..nPoints *)
                                        (* indicating that p[lineCorner-1] is the corner which is hit *)
@@ -104,6 +105,7 @@ TYPE
                           fixed,
                           stationary      : BOOLEAN ;
                           vx, vy, ax, ay  : REAL ;
+                          inertia,
                           angleOrientation,
                           angularVelocity : REAL ;
 
@@ -178,7 +180,7 @@ PROCEDURE Assert (b: BOOLEAN) ;
 BEGIN
    IF NOT b
    THEN
-      printf("error assert failed\n") ;
+      printf ("error assert failed\n") ;
       HALT
    END
 END Assert ;
@@ -190,9 +192,9 @@ END Assert ;
 
 PROCEDURE AssertR (a, b: REAL) ;
 BEGIN
-   IF NOT nearZero(a-b)
+   IF NOT nearZero (a-b)
    THEN
-      printf("error assert failed: %g should equal %g difference is %g\n", a, b, a-b)
+      printf ("error assert failed: %g should equal %g difference is %g\n", a, b, a-b)
    END
 END AssertR ;
 
@@ -205,10 +207,10 @@ PROCEDURE AssertRDebug (a, b: REAL; message: ARRAY OF CHAR) ;
 VAR
    copy: ARRAY [0..10] OF CHAR ;
 BEGIN
-   IF NOT nearZero(a-b)
+   IF NOT nearZero (a-b)
    THEN
-      StrCopy(message, copy) ;
-      printf("%s failed  %g should equal %g difference is %g\n", ADR(copy), a, b, a-b)
+      StrCopy (message, copy) ;
+      printf ("%s failed  %g should equal %g difference is %g\n", ADR(copy), a, b, a-b)
    END
 END AssertRDebug ;
 
@@ -220,7 +222,7 @@ END AssertRDebug ;
 PROCEDURE dumpCircle (o: Object) ;
 BEGIN
    WITH o^ DO
-      printf("circle at (%g, %g) radius %g mass %g colour %d\n", c.pos.x, c.pos.y, c.r, c.mass, c.col)
+      printf ("circle at (%g, %g) radius %g mass %g colour %d\n", c.pos.x, c.pos.y, c.r, c.mass, c.col)
    END
 END dumpCircle ;
 
@@ -239,7 +241,7 @@ BEGIN
       printf ("  c of g  (%g,%g)\n", p.cOfG.x, p.cOfG.y) ;
       FOR i := 0 TO p.nPoints-1 DO
          c0 := addCoord (p.cOfG, polarToCoord (rotatePolar (p.points[i], angleOrientation))) ;
-         printf("  point at (%g,%g)\n", c0.x, c0.y)
+         printf ("  point at (%g,%g)\n", c0.x, c0.y)
       END
    END
 END dumpPolygon ;
@@ -265,25 +267,25 @@ END checkDeleted ;
 PROCEDURE DumpObject (o: Object) ;
 BEGIN
    WITH o^ DO
-      printf("object %d ", id) ;
+      printf ("object %d ", id) ;
       IF deleted
       THEN
-         printf("is deleted\n") ;
+         printf ("is deleted\n") ;
          RETURN
       ELSIF fixed
       THEN
-         printf("is fixed ")
+         printf ("is fixed ")
       ELSE
-         printf("is movable ") ;
+         printf ("is movable ") ;
          IF stationary
          THEN
-            printf("but is now stationary ")
-         ELSIF NOT nearZero(angularVelocity)
+            printf ("but is now stationary ")
+         ELSIF NOT nearZero (angularVelocity)
          THEN
-            printf(" and has a rotating velocity of %g\n", angularVelocity)
-         ELSIF NOT nearZero(angleOrientation)
+            printf (" and has a rotating velocity of %g\n", angularVelocity)
+         ELSIF NOT nearZero (angleOrientation)
          THEN
-            printf(" and its current orientation is %g\n", angleOrientation)
+            printf (" and its current orientation is %g\n", angleOrientation)
          END
       END ;
       CASE object OF
@@ -296,7 +298,7 @@ BEGIN
       END ;
       IF (NOT fixed) AND (NOT stationary)
       THEN
-         printf("    velocity (%g, %g) acceleration (%g, %g)\n", vx, vy, ax, ay)
+         printf ("    velocity (%g, %g) acceleration (%g, %g)\n", vx, vy, ax, ay)
       END
    END
 END DumpObject ;
@@ -308,7 +310,7 @@ END DumpObject ;
 
 PROCEDURE c2p (c: Coord) : Point ;
 BEGIN
-   RETURN initPoint(putReal(c.x), putReal(c.y))
+   RETURN initPoint (putReal (c.x), putReal (c.y))
 END c2p ;
 
 
@@ -343,15 +345,17 @@ BEGIN
       ax               := 0.0 ;
       ay               := 0.0 ;
       angularVelocity  := 0.0 ;
-      angleOrientation := 0.0
+      angleOrientation := 0.0 ;
+      inertia          := 0.0
    END ;
-   PutIndice(objects, maxId, optr) ;
-   RETURN( maxId )
+   PutIndice (objects, maxId, optr) ;
+   RETURN maxId
 END newObject ;
 
 
 (*
-   box - place a box in the world at (x0,y0),(x0+i,y0+j)
+   box - place a box in the world at (x0,y0), (x0+i,y0),
+         (x0+i, y0+j), (x0, y0+j).
 *)
 
 PROCEDURE box (x0, y0, i, j: REAL; colour: Colour) : CARDINAL ;
@@ -382,10 +386,10 @@ BEGIN
       p.nPoints := 3 ;
       p.cOfG := calculateCofG (p.nPoints, co) ;
       FOR i := 0 TO p.nPoints-1 DO
-         p.points[i] := coordToPolar (subCoord(co[i], p.cOfG))
+         p.points[i] := coordToPolar (subCoord (co[i], p.cOfG))
       END ;
       p.col := colour ;
-      p.mass := 0.0
+      p.mass := 0.0 ;
    END ;
    printf ("end poly3\n");
    dumpWorld ;
@@ -395,7 +399,8 @@ END poly3 ;
 
 (*
    poly4 - place a quadrangle in the world at:
-           (x0,y0), (x1,y1), (x2,y2), (x3,y3)
+           (x0,y0), (x1,y1), (x2,y2), (x3,y3)  the points must be in order,
+           either anticlockwise or clockwise.
 *)
 
 PROCEDURE poly4 (x0, y0, x1, y1, x2, y2, x3, y3: REAL; colour: Colour) : CARDINAL ;
@@ -426,6 +431,7 @@ END poly4 ;
 (*
    poly5 - place a pentagon in the world at:
            (x0,y0), (x1,y1), (x2,y2), (x3,y3), (x4,y4)
+           the points must be in order, either anticlockwise or clockwise.
 *)
 
 PROCEDURE poly5 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4: REAL; colour: Colour) : CARDINAL ;
@@ -456,7 +462,8 @@ END poly5 ;
 
 (*
    poly6 - place a hexagon in the world at:
-           (x0,y0),(x1,y1),(x2,y2),(x3,y3),(x4,y4),(x5,y5)
+           (x0,y0), (x1,y1), (x2,y2), (x3,y3), (x4,y4), (x5,y5)
+           the points must be in order, either anticlockwise or clockwise.
 *)
 
 PROCEDURE poly6 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5: REAL; colour: Colour) : CARDINAL ;
@@ -504,7 +511,8 @@ BEGIN
       circleOb  :  c.mass := m
 
       ELSE
-      END
+      END ;
+      calcInertia (optr)
    END ;
    RETURN id
 END mass ;
@@ -518,7 +526,7 @@ PROCEDURE fix (id: CARDINAL) : CARDINAL ;
 VAR
    optr: Object ;
 BEGIN
-   optr := GetIndice(objects, id) ;
+   optr := GetIndice (objects, id) ;
    WITH optr^ DO
       fixed := TRUE
    END ;
@@ -536,8 +544,8 @@ VAR
    id  : CARDINAL ;
    optr: Object ;
 BEGIN
-   id := newObject(circleOb) ;
-   optr := GetIndice(objects, id) ;
+   id := newObject (circleOb) ;
+   optr := GetIndice (objects, id) ;
    WITH optr^ DO
       c.pos.x := x0 ;
       c.pos.y := y0 ;
@@ -678,8 +686,8 @@ VAR
    id  : CARDINAL ;
    optr: Object ;
 BEGIN
-   id := newObject(pivotOb) ;
-   optr := GetIndice(objects, id) ;
+   id := newObject (pivotOb) ;
+   optr := GetIndice (objects, id) ;
    WITH optr^ DO
       v.pos.x := x0 ;
       v.pos.y := y0 ;
@@ -697,7 +705,7 @@ PROCEDURE velocity (id: CARDINAL; vx, vy: REAL) : CARDINAL ;
 VAR
    optr: Object ;
 BEGIN
-   optr := GetIndice(objects, id) ;
+   optr := GetIndice (objects, id) ;
    IF optr^.fixed
    THEN
       printf("object %d is fixed and therefore cannot be given a velocity\n",
@@ -718,7 +726,7 @@ PROCEDURE accel (id: CARDINAL; ax, ay: REAL) : CARDINAL ;
 VAR
    optr: Object ;
 BEGIN
-   optr := GetIndice(objects, id) ;
+   optr := GetIndice (objects, id) ;
    IF optr^.fixed
    THEN
       printf("object %d is fixed and therefore cannot be given an acceleration\n",
@@ -772,7 +780,7 @@ BEGIN
    THEN
       printf ("cofg = %g, %g\n", x/a, y/a)
    END ;
-   RETURN initCoord(x/a, y/a)
+   RETURN initCoord (x/a, y/a)
 END calculateCofG ;
 
 
@@ -860,10 +868,10 @@ PROCEDURE rotate (id: CARDINAL; angle: REAL) : CARDINAL ;
 VAR
    optr: Object ;
 BEGIN
-   IF NOT nearZero(angle)
+   IF NOT nearZero (angle)
    THEN
-      optr := GetIndice(objects, id) ;
-      checkDeleted(optr) ;
+      optr := GetIndice (objects, id) ;
+      checkDeleted (optr) ;
       IF optr^.fixed
       THEN
          printf("object %d is fixed and therefore cannot be given an angular velocity\n",
@@ -886,8 +894,8 @@ VAR
 BEGIN
    IF NOT nearZero(angle)
    THEN
-      optr := GetIndice(objects, id) ;
-      checkDeleted(optr) ;
+      optr := GetIndice (objects, id) ;
+      checkDeleted (optr) ;
       IF optr^.fixed
       THEN
          printf("object %d is fixed and therefore cannot be given an angular velocity\n",
@@ -916,7 +924,7 @@ END fps ;
 
 PROCEDURE debugCircle (p: Coord; r: REAL; c: Colour) ;
 BEGIN
-   glyphCircle(c2p(p), TRUE, zero(), putReal(r), c)
+   glyphCircle (c2p (p), TRUE, zero (), putReal (r), c)
 END debugCircle ;
 
 
@@ -925,12 +933,20 @@ END debugCircle ;
 *)
 
 PROCEDURE debugLine (p1, p2: Coord) ;
+CONST
+   thickness = 0.002 ;
 VAR
-   p: ARRAY [0..1] OF Point ;
+   p      : ARRAY [0..3] OF Point ;
+   dy, dxy: Coord ;
 BEGIN
-   p[0] := c2p(p1) ;
-   p[1] := c2p(p2) ;
-   glyphPolygon(2, p, FALSE, initFract(0, 1, 16), yellow())
+   sortLine (p1, p2) ;
+   dy := initCoord (0.0, thickness * 2.0) ;
+   dxy := initCoord (thickness, thickness) ;
+   p[0] := c2p (subCoord (p1, dxy)) ;
+   p[1] := c2p (addCoord (subCoord (p1, dxy), dy)) ;
+   p[2] := c2p (addCoord (p2, dxy)) ;
+   p[3] := c2p (subCoord (addCoord (p2, dxy), dy)) ;
+   glyphPolygon (4, p, TRUE, zero (), yellow ())
 END debugLine ;
 
 
@@ -950,7 +966,7 @@ END replayRate ;
 
 PROCEDURE doCircle (p: Coord; r: REAL; c: Colour) ;
 BEGIN
-   glyphCircle(c2p(p), TRUE, zero(), putReal(r), c)
+   glyphCircle (c2p (p), TRUE, zero (), putReal (r), c)
 END doCircle ;
 
 
@@ -969,9 +985,9 @@ BEGIN
          printf ("polygon point %d: %g, %g\n",
                  i, p[i].x, p[i].y)
       END ;
-      points[i] := c2p(p[i]) ;
+      points[i] := c2p (p[i]) ;
    END ;
-   glyphPolygon(n, points, TRUE, zero(), c)
+   glyphPolygon (n, points, TRUE, zero (), c)
 END doPolygon ;
 
 
@@ -983,11 +999,11 @@ PROCEDURE drawBoarder (c: Colour) ;
 VAR
    p: ARRAY [0..3] OF Point ;
 BEGIN
-   p[0] := initPoint(zero(), zero()) ;
-   p[1] := initPoint(one(), zero()) ;
-   p[2] := initPoint(one(), one()) ;
-   p[3] := initPoint(zero(), one()) ;
-   glyphPolygon(4, p, FALSE, initFract(0, 1, 100), c)
+   p[0] := initPoint(zero(), zero ()) ;
+   p[1] := initPoint(one(), zero ()) ;
+   p[2] := initPoint(one(), one ()) ;
+   p[3] := initPoint(zero(), one ()) ;
+   glyphPolygon(4, p, FALSE, initFract (0, 1, 100), c)
 END drawBoarder ;
 
 
@@ -999,11 +1015,11 @@ PROCEDURE drawBackground (c: Colour) ;
 VAR
    p: ARRAY [0..3] OF Point ;
 BEGIN
-   p[0] := initPoint(zero(), zero()) ;
-   p[1] := initPoint(one(), zero()) ;
-   p[2] := initPoint(one(), one()) ;
-   p[3] := initPoint(zero(), one()) ;
-   glyphPolygon(4, p, TRUE, zero(), c)
+   p[0] := initPoint (zero (), zero ()) ;
+   p[1] := initPoint (one (), zero ()) ;
+   p[2] := initPoint (one (), one ()) ;
+   p[3] := initPoint (zero (), one ()) ;
+   glyphPolygon (4, p, TRUE, zero (), c)
 END drawBackground ;
 
 
@@ -1013,13 +1029,13 @@ END drawBackground ;
 
 PROCEDURE getVelCoord (o: Object) : Coord ;
 BEGIN
-   checkDeleted(o) ;
+   checkDeleted (o) ;
    WITH o^ DO
       IF fixed OR stationary
       THEN
-         RETURN initCoord(0.0, 0.0)
+         RETURN initCoord (0.0, 0.0)
       ELSE
-         RETURN initCoord(vx, vy)
+         RETURN initCoord (vx, vy)
       END
    END
 END getVelCoord ;
@@ -1035,9 +1051,9 @@ BEGIN
    WITH o^ DO
       IF fixed OR stationary
       THEN
-         RETURN initCoord(0.0, 0.0)
+         RETURN initCoord (0.0, 0.0)
       ELSE
-         RETURN initCoord(ax, ay+simulatedGravity)
+         RETURN initCoord (ax, ay+simulatedGravity)
       END
    END
 END getAccelCoord ;
@@ -1055,13 +1071,13 @@ VAR
    po    : ARRAY [0..MaxPolygonPoints] OF Coord ;
 BEGIN
    printf ("doDrawFrame (%g)\n", dt);
-   checkDeleted(optr) ;
-   vc := getVelCoord(optr) ;
-   ac := getAccelCoord(optr) ;
+   checkDeleted (optr) ;
+   vc := getVelCoord (optr) ;
+   ac := getAccelCoord (optr) ;
    WITH optr^ DO
       CASE object OF
 
-      circleOb :  doCircle(newPositionCoord(c.pos, vc, ac, dt), c.r, c.col) |
+      circleOb :  doCircle (newPositionCoord (c.pos, vc, ac, dt), c.r, c.col) |
       pivotOb  :  |
       polygonOb:  (* gdbif.sleepSpin ; *)
                   FOR i := 0 TO p.nPoints-1 DO
@@ -1185,11 +1201,16 @@ END drawFrameEvent ;
 PROCEDURE incRadians (a, b: REAL) : REAL ;
 BEGIN
    a := a + b ;
-   WHILE a < 0.0 DO
-      a := a + (2.0 * pi)
-   END ;
-   WHILE a > (2.0 * pi) DO
-      a := a - (2.0 * pi)
+   IF nearZero (a)
+   THEN
+      a := 0.0
+   ELSE
+      WHILE a < 0.0 DO
+         a := a + (2.0 * pi)
+      END ;
+      WHILE a > (2.0 * pi) DO
+         a := a - (2.0 * pi)
+      END
    END ;
    RETURN a
 END incRadians ;
@@ -1204,8 +1225,8 @@ BEGIN
    WITH optr^ DO
       IF NOT deleted
       THEN
-         p.cOfG.x := newPositionScalar(p.cOfG.x, vx, ax, dt) ;
-         p.cOfG.y := newPositionScalar(p.cOfG.y, vy, ay+simulatedGravity, dt) ;
+         p.cOfG.x := newPositionScalar (p.cOfG.x, vx, ax, dt) ;
+         p.cOfG.y := newPositionScalar (p.cOfG.y, vy, ay+simulatedGravity, dt) ;
          vx := vx + ax*dt ;
          vy := vy + (ay+simulatedGravity) * dt ;
          angleOrientation := incRadians (angleOrientation, angularVelocity * dt)
@@ -1254,8 +1275,8 @@ BEGIN
       THEN
          CASE object OF
 
-         polygonOb :  updatePolygon(optr, dt) |
-         circleOb  :  updateCircle(optr, dt) |
+         polygonOb :  updatePolygon (optr, dt) |
+         circleOb  :  updateCircle (optr, dt) |
          pivotOb   :
 
          END
@@ -1291,36 +1312,42 @@ END updatePhysics ;
 PROCEDURE displayEvent (e: eventQueue) ;
 BEGIN
    WITH e^ DO
-      printf("%g %p ", time, p);
-      IF p=VAL(eventProc, drawFrameEvent)
+      printf ("%g %p ", time, p);
+      IF p=VAL (eventProc, drawFrameEvent)
       THEN
-         printf("drawFrameEvent\n")
+         printf ("drawFrameEvent\n")
       ELSIF p=VAL(eventProc, doCollision)
       THEN
-         printf("doCollision ")
+         printf ("doCollision ")
       ELSE
-         printf("unknown event ")
+         printf ("unknown event ")
       END ;
       IF ePtr#NIL
       THEN
          WITH ePtr^ DO
             CASE etype OF
             
-            frameEvent         :   printf("display frame event\n") |
-            circlesEvent       :   printf("circle %d and circle %d colliding event\n", cc.cid1, cc.cid2) |
-            circlePolygonEvent :   printf("circle %d and polygon %d colliding event\n", cp.cid, cp.pid) ;
-                                   IF cp.kind=corner
+            frameEvent         :   printf ("display frame event\n") |
+            circlesEvent       :   printf ("circle %d and circle %d colliding event\n", cc.cid1, cc.cid2) |
+            circlePolygonEvent :   printf ("circle %d and polygon %d colliding event\n", cp.cid, cp.pid) ;
+                                   IF cp.wpid=corner
                                    THEN
-                                      printf("  hits polygon corner %d\n", cp.pointNo)
+                                      printf ("  hits polygon on its corner %d\n", cp.pointNo)
                                    ELSE
-                                      printf("  hits polygon line %d\n", cp.lineNo)
+                                      printf ("  hits polygon on its edge %d\n", cp.lineNo)
                                    END |
-            polygonPolygonEvent:   printf("polygon %d and polygon %d colliding event\n", pp.pid1, pp.pid2) ;
-                                   IF pp.kind=corner
+            polygonPolygonEvent:   printf ("polygon %d and polygon %d colliding event\n", pp.pid1, pp.pid2) ;
+                                   IF pp.wpid1=corner
                                    THEN
-                                      printf("  corner %d hits polygons corner %d\n", pp.pointNo, pp.lineCorner)
+                                      printf ("  polygon (%d) corner %d hits", pp.pid1, pp.lineCorner1)
                                    ELSE
-                                      printf("  corner %d hits polygons line %d\n", pp.pointNo, pp.lineCorner)
+                                      printf ("  polygon (%d) edge %d hits ", pp.pid1, pp.lineCorner1)
+                                   END ;
+                                   IF pp.wpid2=corner
+                                   THEN
+                                      printf (" polygon (%d) on corner %d\n", pp.pid2, pp.lineCorner2)
+                                   ELSE
+                                      printf (" polygon (%d) on edge %d\n", pp.pid2, pp.lineCorner2)
                                    END
 
             END
@@ -1338,11 +1365,11 @@ PROCEDURE printQueue ;
 VAR
    e: eventQueue ;
 BEGIN
-   printf("The event queue\n");
-   printf("===============\n");
+   printf ("The event queue\n");
+   printf ("===============\n");
    e := eventQ ;
    WHILE e#NIL DO
-      displayEvent(e) ;
+      displayEvent (e) ;
       e := e^.next
    END
 END printQueue ;
@@ -1358,12 +1385,12 @@ VAR
    nextTime: CARDINAL ;
    fps     : CARDINAL ;
 BEGIN
-   lastTime := TRUNC(currentTime*10.0) ;
-   nextTime := TRUNC((currentTime+dt)*10.0) ;
+   lastTime := TRUNC (currentTime*10.0) ;
+   nextTime := TRUNC ((currentTime+dt)*10.0) ;
    IF lastTime#nextTime
    THEN
-      fps := getActualFPS() ;
-      printf("%d.%d seconds simulated, fps: %d\n", nextTime DIV 10, nextTime MOD 10, fps)
+      fps := getActualFPS () ;
+      printf ("%d.%d seconds simulated, fps: %d\n", nextTime DIV 10, nextTime MOD 10, fps)
    END
 END updateStats ;
 
@@ -1389,13 +1416,13 @@ BEGIN
       dt := e^.time ;
       p  := e^.p ;
       currentTime := currentTime + dt ;
-      Assert((p=VAL(eventProc, drawFrameEvent)) OR
-             (p=VAL(eventProc, doCollision)) OR
-             (p=VAL(eventProc, debugFrame))) ;
-      p(e) ;
-      disposeDesc(e^.ePtr) ;
-      disposeEvent(e) ;
-      updateStats(dt) ;
+      Assert ((p=VAL(eventProc, drawFrameEvent)) OR
+              (p=VAL(eventProc, doCollision)) OR
+              (p=VAL(eventProc, debugFrame))) ;
+      p (e) ;
+      disposeDesc (e^.ePtr) ;
+      disposeEvent (e) ;
+      updateStats (dt) ;
       RETURN dt
    END
 END doNextEvent ;
@@ -1412,10 +1439,10 @@ VAR
    error: BOOLEAN ;
 BEGIN
    error := FALSE ;
-   n := HighIndice(objects) ;
+   n := HighIndice (objects) ;
    i := 1 ;
    WHILE i<=n DO
-      optr := GetIndice(objects, i) ;
+      optr := GetIndice (objects, i) ;
       WITH optr^ DO
          IF (NOT fixed) AND (NOT deleted)
          THEN
@@ -1423,11 +1450,11 @@ BEGIN
 
             polygonOb :  IF p.mass=0.0
                          THEN
-                            printf("polygon %d is not fixed and does not have a mass\n", optr^.id)
+                            printf ("polygon %d is not fixed and does not have a mass\n", optr^.id)
                          END |
             circleOb  :  IF c.mass=0.0
                          THEN
-                            printf("circle %d is not fixed and does not have a mass\n", optr^.id)
+                            printf ("circle %d is not fixed and does not have a mass\n", optr^.id)
                          END
 
             ELSE
@@ -1467,7 +1494,7 @@ BEGIN
    THEN
       c.x := 0.0
    END ;
-   IF nearZero(c.y)
+   IF nearZero (c.y)
    THEN
       c.y := 0.0
    END ;
@@ -1481,8 +1508,8 @@ END checkZeroCoord ;
 
 PROCEDURE inElastic (VAR v: REAL) ;
 BEGIN
-   v := v * 0.98 ;  (* 0.98 *)
-   checkZero(v)
+   v := v * 0.98 ;
+   checkZero (v)
 END inElastic ;
 
 
@@ -1496,12 +1523,12 @@ BEGIN
    WITH o^ DO
       IF (NOT fixed) AND (NOT deleted)
       THEN
-         inElastic(vx) ;
-         inElastic(vy) ;
-         stationary := nearZero(vx) AND nearZero(vy) ;
+         inElastic (vx) ;
+         inElastic (vy) ;
+         stationary := nearZero (vx) AND nearZero (vy) ;
          IF stationary
          THEN
-            DumpObject(o)
+            DumpObject (o)
          END
       END
    END
@@ -1518,7 +1545,7 @@ BEGIN
    THEN
       IF Debugging
       THEN
-         printf("bumped into a stationary object\n")
+         printf ("bumped into a stationary object\n")
       END ;
       a^.vy := 1.0 ;
       IF a^.c.pos.x<b^.c.pos.x
@@ -1531,11 +1558,11 @@ BEGIN
       a^.stationary := FALSE ;
       IF Debugging
       THEN
-         DumpObject(a)
+         DumpObject (a)
       END
    ELSIF b^.stationary AND (NOT b^.deleted)
    THEN
-      checkStationaryCollision(b, a)
+      checkStationaryCollision (b, a)
    END
 END checkStationaryCollision ;
 
@@ -1547,7 +1574,7 @@ END checkStationaryCollision ;
 
 PROCEDURE collideFixedCircles (movable, fixed: Object) ;
 BEGIN
-   collideAgainstFixedCircle(movable, fixed^.c.pos)
+   collideAgainstFixedCircle (movable, fixed^.c.pos)
 END collideFixedCircles ;
 
 
@@ -1567,7 +1594,7 @@ BEGIN
    (* calculate normal collision value *)
    c.x := movable^.c.pos.x - center.x ;
    c.y := movable^.c.pos.y - center.y ;
-   r := sqrt(c.x*c.x+c.y*c.y) ;
+   r := sqrt (c.x*c.x+c.y*c.y) ;
    normalCollision.x := c.x/r ;
    normalCollision.y := c.y/r ;
    relativeVelocity.x := movable^.vx ;
@@ -1600,7 +1627,7 @@ BEGIN
    (* calculate normal collision value *)
    c.x := iptr^.c.pos.x - jptr^.c.pos.x ;
    c.y := iptr^.c.pos.y - jptr^.c.pos.y ;
-   r := sqrt(c.x*c.x+c.y*c.y) ;
+   r := sqrt (c.x*c.x+c.y*c.y) ;
    normalCollision.x := c.x/r ;
    normalCollision.y := c.y/r ;
    relativeVelocity.x := iptr^.vx - jptr^.vx ;
@@ -1618,10 +1645,10 @@ BEGIN
    jptr^.vx := jptr^.vx - (j * normalCollision.x) / jptr^.c.mass ;
    jptr^.vy := jptr^.vy - (j * normalCollision.y) / jptr^.c.mass ;
 
-   checkStationaryCollision(iptr, jptr) ;
+   checkStationaryCollision (iptr, jptr) ;
 
-   checkStationary(iptr) ;
-   checkStationary(jptr)
+   checkStationary (iptr) ;
+   checkStationary (jptr)
 
 END collideMovableCircles ;
 
@@ -1637,12 +1664,12 @@ PROCEDURE circleCollision (iptr, jptr: Object) ;
 BEGIN
    IF iptr^.fixed
    THEN
-      collideFixedCircles(jptr, iptr)
+      collideFixedCircles (jptr, iptr)
    ELSIF jptr^.fixed
    THEN
-      collideFixedCircles(iptr, jptr)
+      collideFixedCircles (iptr, jptr)
    ELSE
-      collideMovableCircles(iptr, jptr)
+      collideMovableCircles (iptr, jptr)
    END
 END circleCollision ;
 
@@ -1665,17 +1692,17 @@ VAR
    n1, n2, v1, vel: Coord ;
 BEGIN
    (* firstly we need to find the normal to the line *)
-   sortLine(p1, p2) ;    (* p1 and p2 are the start end positions of the line *)
+   sortLine (p1, p2) ;    (* p1 and p2 are the start end positions of the line *)
 
-   v1 := subCoord(p2, p1) ;     (* v1 is the vector p1 -> p2 *)
+   v1 := subCoord (p2, p1) ;     (* v1 is the vector p1 -> p2 *)
 
-   perpendiculars(v1, n1, n2) ;  (* n1 and n2 are normal vectors to the vector v1 *)
+   perpendiculars (v1, n1, n2) ;  (* n1 and n2 are normal vectors to the vector v1 *)
 
    (* use n1 *)
-   n1 := normaliseCoord(n1) ;
-   vel := initCoord(cPtr^.vx, cPtr^.vy) ;   (* vel is the initial velocity *)
+   n1 := normaliseCoord (n1) ;
+   vel := initCoord (cPtr^.vx, cPtr^.vy) ;   (* vel is the initial velocity *)
 
-   vel := addCoord(scaleCoord(n1, -2.0 * dotProd(vel, n1)), vel) ;  (* now it is the final velocity *)
+   vel := addCoord (scaleCoord (n1, -2.0 * dotProd (vel, n1)), vel) ;  (* now it is the final velocity *)
 
    cPtr^.vx := vel.x ;   (* update velocity of object, cPtr *)
    cPtr^.vy := vel.y ;
@@ -1694,10 +1721,11 @@ VAR
    ln    : CARDINAL ;
    p1, p2: Coord ;
 BEGIN
+   stop ;
    WITH e^.ePtr^ DO
       IF etype=circlePolygonEvent
       THEN
-         CASE cp.kind OF
+         CASE cp.wpid OF
 
          corner:  IF cPtr^.fixed
                   THEN
@@ -1706,7 +1734,7 @@ BEGIN
                   ELSIF pPtr^.fixed
                   THEN
                      (* moving circle hits fixed polygon corner *)
-                     collideAgainstFixedCircle(cPtr, e^.ePtr^.cp.cPoint)
+                     collideAgainstFixedCircle (cPtr, e^.ePtr^.cp.cPoint)
                   ELSE
                      (* both moving, to do later --fixme-- *)
                   END |
@@ -1718,8 +1746,8 @@ BEGIN
                   THEN
                      (* moving circle hits fixed polygon, on the edge *)
                      ln := e^.ePtr^.cp.lineNo ;
-                     getPolygonLine(ln, pPtr, p1, p2) ;
-                     collideCircleAgainstFixedEdge(cPtr, p1, p2)
+                     getPolygonLine (ln, pPtr, p1, p2) ;
+                     collideCircleAgainstFixedEdge (cPtr, p1, p2)
                   ELSE
                      (* both moving, to do later --fixme-- *)
                   END
@@ -1740,23 +1768,101 @@ BEGIN
    collideAgainstFixedCircle(o, collision) ;
    IF Debugging
    THEN
-      DumpObject(o)
+      DumpObject (o)
    END
 END collidePolygonAgainstFixedCircle ;
 
 
 (*
-   collidePolygonAgainstFixedEdge - 
+   collidePolygonAgainstFixedEdge - p1, p2 is the fixed edge and, o, is the
+                                    moving polygon.
 *)
 
 PROCEDURE collidePolygonAgainstFixedEdge (o: Object; p1, p2: Coord) ;
 BEGIN
-   collideCircleAgainstFixedEdge(o, p1, p2) ;
+   (* find the point of collision, this is the mid point along
+      the shortest intersection between, o, and p1->p2.  *)
+   
+   collideCircleAgainstFixedEdge (o, p1, p2) ;
    IF Debugging
    THEN
-      DumpObject(o)
+      DumpObject (o)
    END
 END collidePolygonAgainstFixedEdge ;
+
+
+(*
+   rotationalVelocity - return a vector containing the velocity
+                        if polygon is rotating at angular speed, w,
+                        and non rotation speed is, u and the relative
+                        position is, r.
+*)
+
+PROCEDURE rotationalVelocity (w: REAL; u, r: Coord) : Coord ;
+BEGIN
+   RETURN addCoord (u, scaleCoord (r, w))
+END rotationalVelocity ;
+
+
+(*
+   calcInertia - calculate the inertia of a polygon.
+*)
+
+PROCEDURE calcInertia (id: Object) ;
+VAR
+   ci, cj: Coord ;
+   top,
+   bot,
+   t, b  : REAL ;
+   i, j  : CARDINAL ;
+BEGIN
+   IF id^.object=polygonOb
+   THEN
+      WITH id^ DO
+         top := 0.0 ;
+         bot := 0.0 ;
+         FOR i := 0 TO p.nPoints-1 DO
+            j := (i+1) MOD p.nPoints ;
+            ci := addCoord (p.cOfG, polarToCoord (rotatePolar (p.points[i], angleOrientation))) ;
+            cj := addCoord (p.cOfG, polarToCoord (rotatePolar (p.points[j], angleOrientation))) ;
+            t := (sqr (ci.x) + sqr (ci.y) + ci.x*cj.x + ci.y*cj.y + sqr (cj.x) + sqr (cj.y)) *
+                 (ci.x * cj.y - cj.x * ci.y) ;
+            top := top + t ;
+            b := ci.x * cj.y - cj.x * ci.y ;
+            bot := bot + b
+         END
+      END ;
+      id^.inertia := (id^.p.mass * top) / (bot * 6.0)
+   ELSE
+      id^.inertia := 0.0
+   END
+END calcInertia ;
+
+
+(*
+   updatePolygonVelocity - update both linear and angular velocities of
+                           object, o, using impulse, j.
+                           n is the perpendicular to the impact.
+                           rp is the distance of the c of g of an object,
+                           o, to the point of collision.
+*)
+
+PROCEDURE updatePolygonVelocity (o: Object; j: REAL; n, rpn: Coord) ;
+VAR
+   va: Coord ;
+BEGIN
+   IF NOT o^.fixed
+   THEN
+      (* linear velocity update.   (eq 8a)  *)
+      va := initCoord (o^.vx, o^.vy) ;
+      va := addCoord (va, scaleCoord (n, j/o^.p.mass)) ;
+      o^.vx := va.x ;
+      o^.vy := va.y ;
+
+      (* angular velocity update.  (eq 8b)  *)
+      o^.angularVelocity := o^.angularVelocity + dotProd (rpn, scaleCoord (n, j)) / o^.angularVelocity
+   END
+END updatePolygonVelocity ;
 
 
 (*
@@ -1765,8 +1871,15 @@ END collidePolygonAgainstFixedEdge ;
 
 PROCEDURE polygonPolygonCollision (e: eventQueue; id1, id2: Object) ;
 VAR
-   ln    : CARDINAL ;
-   p1, p2: Coord ;
+   rapn, rbpn,
+   p1, p2,
+   n, n2,
+   v1,
+   va,  vb,
+   vap, vbp,
+   vab, rap,
+   rbp, p    : Coord ;
+   j, I, m   : REAL ;
 BEGIN
    IF Debugging
    THEN
@@ -1774,42 +1887,61 @@ BEGIN
       DumpObject(id1) ;
       DumpObject(id2)
    END ;
-   WITH e^.ePtr^ DO
-      IF etype=polygonPolygonEvent
-      THEN
-         CASE pp.kind OF
+   Assert (e^.ePtr^.etype=polygonPolygonEvent) ;
+   p := e^.ePtr^.pp.cPoint ;
 
-         corner:  IF id1^.fixed
-                  THEN
-                     (* id2 is moving and hit a fixed polygon, id1, on the corner *)
-                     collidePolygonAgainstFixedCircle(id2, e^.ePtr^.pp.cPoint)
-                  ELSIF id2^.fixed
-                  THEN
-                     (* id1 is moving and hit a fixed polygon, id2, on the corner *)
-                     collidePolygonAgainstFixedCircle(id1, e^.ePtr^.pp.cPoint)
-                  ELSE
-                     (* both moving, to do later --fixme-- *)
-                  END |
-         edge  :  IF id1^.fixed
-                  THEN
-                     (* id2 is moving and hits a fixed polygon, id1, on the edge *)
-                     ln := e^.ePtr^.pp.lineCorner ;
-                     getPolygonLine(ln, id1, p1, p2) ;
-                     collidePolygonAgainstFixedEdge(id2, p1, p2)
-                  ELSIF id2^.fixed
-                  THEN
-                     (* id1 is moving and hits a fixed polygon, id2, on the edge *)
-                     ln := e^.ePtr^.pp.lineCorner ;
-                     getPolygonLine(ln, id2, p1, p2) ;
-                     collidePolygonAgainstFixedEdge(id1, p1, p2)
-                  ELSE
-                     (* both moving, to do later --fixme-- *)
-                  END
-        END
-     ELSE
-        HALT  (* should be circlePolygonEvent *)
-     END
-   END
+   frameNote ;      (* ****************** *)
+   drawFrame ;      (* ****************** *)
+
+   IF (e^.ePtr^.pp.wpid1=edge) AND (e^.ePtr^.pp.wpid2=edge)
+   THEN
+      printf ("the edges of two polygon collide\n");
+      getPolygonLine (e^.ePtr^.pp.lineCorner1, GetIndice (objects, e^.ePtr^.pp.pid1), p1, p2) ;
+      sortLine (p1, p2) ;           (* p1 and p2 are the start end positions of the line  *)
+      v1 := subCoord (p2, p1) ;     (* v1 is the vector p1 -> p2  *)
+      perpendiculars (v1, n, n2) ;  (* n and n2 are normal vectors to the vector v1  *)
+      (* n needs to point into id1.  *)
+      debugLine (p1, p2)
+   ELSIF e^.ePtr^.pp.wpid1=edge
+   THEN
+      (* corner collision.  *)
+      printf ("the edge of polygon collides with corner of polygon\n");
+   ELSIF e^.ePtr^.pp.wpid2=edge
+   THEN
+      printf ("the edge of polygon collides with corner of polygon\n");
+   ELSE
+      printf ("the corners of two polygon collide\n");
+   END ;
+
+   debugCircle (id1^.p.cOfG, 0.002, yellow ()) ;          (* ******************  c of g for id1            *)
+   debugCircle (id2^.p.cOfG, 0.002, purple ()) ;          (* ******************  c of g for id2            *)
+   (* debugCircle (getPolygonCoord (id1, e^.ePtr^.pp.pointNo), 0.002, white ()) ; *)
+                                                          (* ******************  point on id1 of collision *)
+
+   vap := rotationalVelocity (id1^.angularVelocity, initCoord (id1^.vx, id1^.vy), subCoord (p, id1^.p.cOfG)) ;
+   vbp := rotationalVelocity (id2^.angularVelocity, initCoord (id2^.vx, id2^.vy), subCoord (p, id2^.p.cOfG)) ;
+   vab := subCoord (vap, vbp) ;
+   
+   IF id1^.fixed
+   THEN
+      I := 0.0 ;
+      m := 0.0
+   ELSE
+      rap := subCoord (p, id1^.p.cOfG) ;
+      I := sqr (dotProd (perpendicular (rap), n)) / id1^.inertia ;
+      m := 1.0 / id1^.p.mass
+   END ;
+   IF NOT id2^.fixed
+   THEN
+      I := I + sqr (dotProd (perpendicular (rbp), n)) / id2^.inertia ;
+      m := m + 1.0 / id2^.p.mass
+   END ;
+
+   flipBuffer ;      (* ****************** *)
+
+   j := (-(1.0) * dotProd (vab, n)) / (dotProd (n, n) * m + I) ;
+   updatePolygonVelocity (id1, j, n, rapn) ;
+   updatePolygonVelocity (id2, -j, n, rbpn)
 END polygonPolygonCollision ;
 
 
@@ -1943,7 +2075,7 @@ END getObjectValues ;
 PROCEDURE maximaCircleCollision (VAR array: ARRAY OF REAL;
                                  a, b, c, d, e, f, g, h, k, l, m, n, o, p: REAL) ;
 BEGIN
-#  include "circles.m"
+(* #  include "circles.m" *)
 END maximaCircleCollision ;
 
 
@@ -1989,24 +2121,25 @@ BEGIN
    C := (4.0*h-4.0*g)*n+(4.0*g-4.0*h)*m+4.0*sqr(l)-8.0*k*l+4.0*sqr(k)+(4.0*b-4.0*a)*f+(4.0*a-4.0*b)*e+4.0*sqr(d)-8.0*c*d+4.0*sqr(c) ;
    D := (8.0*h-8.0*g)*l+(8.0*g-8.0*h)*k+(8.0*b-8.0*a)*d+(8.0*a-8.0*b)*c ;
    E := 4.0*sqr(h)-8.0*g*h+4.0*sqr(g)+4.0*sqr(b)-8.0*a*b+4.0*sqr(a)-sqr(2.0*(p+o)) ;
-
+(*
    maximaCircleCollision (array,
                           a, b, c, d, e, f, g, h, k, l, m, n, o, p) ;
 
-   AssertRDebug(array[4], A, "A") ;
-   AssertRDebug(array[3], B, "B") ;
-   AssertRDebug(array[2], C, "C") ;
-   AssertRDebug(array[1], D, "D") ;
-   AssertRDebug(array[0], E, "E") ;
+   AssertRDebug (array[4], A, "A") ;
+   AssertRDebug (array[3], B, "B") ;
+   AssertRDebug (array[2], C, "C") ;
+   AssertRDebug (array[1], D, "D") ;
+   AssertRDebug (array[0], E, "E") ;
+*)
 
    (* now solve for values of t which satisfy   At^4 + Bt^3 + Ct^2 + Dt^1 + Et^0 = 0 *)
-   IF findQuartic(A, B, C, D, E, t)
+   IF findQuartic (A, B, C, D, E, t)
    THEN
       T := A*(sqr(t)*sqr(t))+B*(sqr(t)*t)+C*sqr(t)+D*t+E ;
       IF Debugging
       THEN
-         printf("%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\n",
-                A, B, C, D, E, T, t)
+         printf ("%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\n",
+                 A, B, C, D, E, T, t)
       END ;
       (* remember tc is -1.0 initially, to force it to be set once *)
       IF ((tc<0.0) OR (t<tc)) AND (NOT nearZero(t))
@@ -2139,7 +2272,7 @@ BEGIN
                              a, b, c, d, e, f, g, h, k, l, m, n, o, p)
    THEN
       tc := t ;
-      edesc := makeCirclesDesc(edesc, iptr^.id, jptr^.id)
+      edesc := makeCirclesDesc (edesc, iptr^.id, jptr^.id)
    END
 END findCollisionCircles ;
 
@@ -2158,23 +2291,21 @@ END stop ;
 *)
 
 PROCEDURE makeCirclesPolygonDesc (edesc: eventDesc; cid, pid: CARDINAL;
-                                  lineNo, pointNo: CARDINAL; collisionPoint: Coord) : eventDesc ;
+                                  lineNo, pointNo: CARDINAL;
+                                  wpid1, wpid2: whereHit;
+                                  collisionPoint: Coord) : eventDesc ;
 BEGIN
+   Assert (wpid1=corner) ;  (* circle must always be treated as corner.  *)
    IF edesc=NIL
    THEN
-      edesc := newDesc()
+      edesc := newDesc ()
    END ;
    WITH edesc^ DO
       edesc^.etype := circlePolygonEvent ;
       edesc^.cp.pid := pid ;
       edesc^.cp.cid := cid ;
       edesc^.cp.cPoint := collisionPoint ;
-      IF lineNo=0
-      THEN
-         edesc^.cp.kind := corner
-      ELSE
-         edesc^.cp.kind := edge
-      END ;
+      edesc^.cp.wpid := wpid2 ;
       edesc^.cp.lineNo := lineNo ;
       edesc^.cp.pointNo := pointNo
    END ;
@@ -2186,6 +2317,7 @@ END makeCirclesPolygonDesc ;
    checkIfPointHits - return TRUE if t0 is either the first hit found or
                       is sooner than, tc.  It determines a hit by working out
                       the final position of partical:
+
                       x = s + ut + 1/2a t^2
 
                       if x>=0.0 and x <= length then it hits.
@@ -2196,10 +2328,10 @@ VAR
    x: REAL ;
 BEGIN
    (* if t is later than tc, then we don't care as we already have found an earlier hit *)
-   IF ((timeOfPrevCollision=-1) OR (t<timeOfPrevCollision)) AND (NOT nearZero(timeOfPrevCollision))
+   IF ((timeOfPrevCollision=-1) OR (t<timeOfPrevCollision)) AND (NOT nearZero (timeOfPrevCollision))
    THEN
       (* at time, t, what is the value of x ? *)
-      x := newPositionScalar(s, u, a, t) ;
+      x := newPositionScalar (s, u, a, t) ;
 
       (* if x lies between 0 .. length then it hits! *)
       IF (x>=0.0) AND (x<=length)
@@ -2248,7 +2380,7 @@ BEGIN
       printf ("O = %g, p.r = %g, p.w = %g, sin (w*t + o + p.w) = %g\n",
               O, p.r, p.w, sin (w*t + o + p.w))
    END ;
-   RETURN O + p.r * sin(w*t + o + p.w)
+   RETURN O + p.r * sin (w*t + o + p.w)
 END newPositionRotationSinScalar ;
 
 
@@ -2268,8 +2400,8 @@ PROCEDURE newPositionRotationCosScalar (c, u, a, t, w, o: REAL; p: Polar) : REAL
 VAR
    O: REAL ;
 BEGIN
-   O := newPositionScalar(c, u, a, t) ;
-   RETURN O + p.r * cos(w*t + o + p.w)
+   O := newPositionScalar (c, u, a, t) ;
+   RETURN O + p.r * cos (w*t + o + p.w)
 END newPositionRotationCosScalar ;
 
 
@@ -2279,8 +2411,8 @@ END newPositionRotationCosScalar ;
 
 PROCEDURE newPositionCoord (c, u, a: Coord; t: REAL) : Coord ;
 BEGIN
-   RETURN initCoord(newPositionScalar(c.x, u.x, a.x, t),
-                    newPositionScalar(c.y, u.y, a.y, t))
+   RETURN initCoord (newPositionScalar (c.x, u.x, a.x, t),
+                     newPositionScalar (c.y, u.y, a.y, t))
 END newPositionCoord ;
 
 
@@ -2314,13 +2446,13 @@ PROCEDURE hLine (p1, p2: Coord; c: Colour) ;
 VAR
    p: ARRAY [0..1] OF Point ;
 BEGIN
-   p1 := scaleCoord(p1, 0.5) ;
-   p2 := scaleCoord(p2, 0.5) ;
-   p1 := addCoord(p1, initCoord(0.5, 0.5)) ;
-   p2 := addCoord(p2, initCoord(0.5, 0.5)) ;
-   p[0] := c2p(p1) ;
-   p[1] := c2p(p2) ;
-   glyphPolygon(2, p, FALSE, initFract(0, 1, 16), c)
+   p1 := scaleCoord (p1, 0.5) ;
+   p2 := scaleCoord (p2, 0.5) ;
+   p1 := addCoord (p1, initCoord (0.5, 0.5)) ;
+   p2 := addCoord (p2, initCoord (0.5, 0.5)) ;
+   p[0] := c2p (p1) ;
+   p[1] := c2p (p2) ;
+   glyphPolygon (2, p, FALSE, initFract (0, 1, 16), c)
 END hLine ;
 
 
@@ -2330,9 +2462,9 @@ END hLine ;
 
 PROCEDURE hPoint (p: Coord; c: Colour) ;
 BEGIN
-   p := scaleCoord(p, 0.5) ;
-   p := addCoord(p, initCoord(0.5, 0.5)) ;
-   glyphCircle(c2p(p), TRUE, zero(), putReal(0.05), c)
+   p := scaleCoord (p, 0.5) ;
+   p := addCoord (p, initCoord(0.5, 0.5)) ;
+   glyphCircle (c2p (p), TRUE, zero (), putReal (0.05), c)
 END hPoint ;
 
 
@@ -2342,9 +2474,9 @@ END hPoint ;
 
 PROCEDURE hCircle (p: Coord; r: REAL; c: Colour) ;
 BEGIN
-   p := scaleCoord(p, 0.5) ;
-   p := addCoord(p, initCoord(0.5, 0.5)) ;
-   glyphCircle(c2p(p), TRUE, zero(), putReal(r), c)
+   p := scaleCoord (p, 0.5) ;
+   p := addCoord (p, initCoord (0.5, 0.5)) ;
+   glyphCircle (c2p (p), TRUE, zero (), putReal (r), c)
 END hCircle ;
 
 
@@ -2354,9 +2486,9 @@ END hCircle ;
 
 PROCEDURE hVec (p: Coord; c: Colour) ;
 BEGIN
-   p := normaliseCoord(p) ;
-   hLine(initCoord(0.0, 0.0), initCoord(p.x, 0.0), c) ;
-   hLine(initCoord(0.0, 0.0), initCoord(0.0, p.y), c)
+   p := normaliseCoord (p) ;
+   hLine (initCoord (0.0, 0.0), initCoord (p.x, 0.0), c) ;
+   hLine (initCoord (0.0, 0.0), initCoord (0.0, p.y), c)
 END hVec ;
 
 
@@ -2367,7 +2499,7 @@ END hVec ;
 PROCEDURE hFlush ;
 BEGIN
    frameNote ;
-   drawBoarder(black()) ;
+   drawBoarder (black ()) ;
    flipBuffer ;
    collectAll
 END hFlush ;
@@ -2381,13 +2513,13 @@ PROCEDURE checkPointCollision (VAR timeOfPrevCollision: REAL; t, length, cx, rvx
                                c, cvel, caccel: Coord; VAR collisionPoint: Coord;
                                id1, id2: CARDINAL) : BOOLEAN ;
 BEGIN
-   IF checkIfPointHits(timeOfPrevCollision, t, length, cx, rvx, rax)
+   IF checkIfPointHits (timeOfPrevCollision, t, length, cx, rvx, rax)
    THEN
       (* a hit, find where *)
-      collisionPoint := newPositionCoord(c, cvel, caccel, t) ;
+      collisionPoint := newPositionCoord (c, cvel, caccel, t) ;
       
       (* return TRUE providing that we do not already know about it *)
-      IF isDuplicate(currentTime, t, id1, id2, edge, edge)
+      IF isDuplicate (currentTime, t, id1, id2, edge, edge)
       THEN
          RETURN FALSE
       ELSE
@@ -2420,35 +2552,35 @@ VAR
    hypot, theta: REAL ;
 BEGIN
    (* we pretend that the line is stationary, by computing the relative velocity and acceleration *)
-   rvel := subCoord(cvel, lvel) ;
-   raccel := subCoord(caccel, laccel) ;
+   rvel := subCoord (cvel, lvel) ;
+   raccel := subCoord (caccel, laccel) ;
    IF Debugging
    THEN
-      printf("relative vel  (%g, %g),  accel (%g, %g)\n", rvel.x, rvel.y, raccel.x, raccel.y)
+      printf ("relative vel  (%g, %g),  accel (%g, %g)\n", rvel.x, rvel.y, raccel.x, raccel.y)
    END ;
 
    (* now translate p1 onto the origin *)
-   p3 := subCoord(p2, p1) ;
-   hypot := lengthCoord(p3) ;
+   p3 := subCoord (p2, p1) ;
+   hypot := lengthCoord (p3) ;
    (* we have a line from 0, 0 to hypot, 0 *)
 
    (* now find theta the angle of the vector, p3 *)
    theta := asin(p3.y / hypot) ;
    IF Debugging
    THEN
-      printf("rotating line by %g degrees  (length of line is %g)\n", 180.0*theta/3.14159, hypot)
+      printf ("rotating line by %g degrees  (length of line is %g)\n", 180.0*theta/3.14159, hypot)
    END ;
 
-   c0 := subCoord(c, p1) ;             (* translate c by the same as the line *)
-   c1 := rotateCoord(c0, -theta) ;     (* and rotate point, c0. *)
-   rvel := rotateCoord(rvel, -theta) ; (* and relative velocity *)
-   raccel := rotateCoord(raccel, -theta) ; (* and relative acceleration *)
+   c0 := subCoord (c, p1) ;             (* translate c by the same as the line *)
+   c1 := rotateCoord (c0, -theta) ;     (* and rotate point, c0. *)
+   rvel := rotateCoord (rvel, -theta) ; (* and relative velocity *)
+   raccel := rotateCoord (raccel, -theta) ; (* and relative acceleration *)
 
-   raccel := checkZeroCoord(raccel) ;
-   rvel := checkZeroCoord(rvel) ;
+   raccel := checkZeroCoord (raccel) ;
+   rvel := checkZeroCoord (rvel) ;
    IF Debugging
    THEN
-      printf("after rotation we have relative vel  (%g, %g),  accel (%g, %g)\n", rvel.x, rvel.y, raccel.x, raccel.y)
+      printf ("after rotation we have relative vel  (%g, %g),  accel (%g, %g)\n", rvel.x, rvel.y, raccel.x, raccel.y)
    END ;
 
    IF FALSE
@@ -2568,7 +2700,7 @@ END sortLine ;
 
 PROCEDURE findEarlierCircleEdgeCollision (VAR timeOfCollision: REAL;
                                           cid, pid: CARDINAL;
-                                          line: CARDINAL;
+                                          lineP, lineC: CARDINAL;
                                           VAR edesc: eventDesc;
                                           center: Coord; radius: REAL;
                                           velCircle, accelCircle: Coord;
@@ -2579,70 +2711,81 @@ VAR
    p3, p4, p5, p6: Coord ;
    collisonPoint : Coord ;
 BEGIN
-   sortLine(p1, p2) ;
-   (* create the vector p1 -> p2 *)
-   v1 := subCoord(p2, p1) ;
+   sortLine (p1, p2) ;
+   (* create the vector p1 -> p2.  *)
+   v1 := subCoord (p2, p1) ;
 
-   (* compute the normal for v1, normalise it, and multiply by radius *)
-   perpendiculars(v1, d1, d2) ;
-   d1 := scaleCoord(normaliseCoord(d1), radius) ;
-   d2 := scaleCoord(normaliseCoord(d2), radius) ;
+   (* compute the normal for v1, normalise it, and multiply by radius.  *)
+   perpendiculars (v1, d1, d2) ;
+   d1 := scaleCoord (normaliseCoord (d1), radius) ;
+   d2 := scaleCoord (normaliseCoord (d2), radius) ;
 
-   (* now add d1, d2 to p1 to obtain p3, p4 *)
-   p3 := addCoord(p1, d1) ;
-   p4 := addCoord(p1, d2) ;
+   (* now add d1, d2 to p1 to obtain p3, p4.  *)
+   p3 := addCoord (p1, d1) ;
+   p4 := addCoord (p1, d2) ;
 
-   (* now add d1 and d2 to p2 to get p5 and p6 *)
-   p5 := addCoord(p2, d1) ;
-   p6 := addCoord(p2, d2) ;
+   (* now add d1 and d2 to p2 to get p5 and p6.  *)
+   p5 := addCoord (p2, d1) ;
+   p6 := addCoord (p2, d2) ;
    
-   (* we now have two lines p3 -> p5   and  p4 -> p6 *)
+   (* we now have two lines p3 -> p5   and  p4 -> p6.  *)
 
-   (* ok, now we only need to find when line between p3, p5 hits the centre of the circle *)
-   IF earlierPointLineCollision(timeOfCollision, center, velCircle, accelCircle,
-                                p3, p5, velLine, accelLine, collisonPoint, cid, pid)
+   (* ok, now we only need to find when line between p3, p5 hits the centre of the circle.  *)
+   IF earlierPointLineCollision (timeOfCollision, center, velCircle, accelCircle,
+                                 p3, p5, velLine, accelLine, collisonPoint, cid, pid)
    THEN
-      (* circle hits line, p1, in tc seconds *)
+      (* circle hits line, p1, in tc seconds.  *)
       IF Debugging
       THEN
-         printf("circle hits line (%g, %g) (%g, %g) in %g\n", p1.x, p1.y, p2.x, p2.y, timeOfCollision)
+         printf ("circle hits line (%g, %g) (%g, %g) in %g\n", p1.x, p1.y, p2.x, p2.y, timeOfCollision)
       END ;
-      edesc := createDesc(edesc, cid, pid, line, 0, collisonPoint) ;
+      edesc := createDesc (edesc, cid, pid, lineP, lineC, corner, edge, collisonPoint) ;
       IF drawPrediction
       THEN
          frameNote ;
          drawFrame ;
-         debugCircle(center, radius, white ()) ;
-         debugLine(p3, p5) ;
-         debugCircle(collisonPoint, 0.02, white ()) ;
+         debugCircle (center, 0.02, white ()) ;
+         debugLine (p3, p5) ;
+         debugCircle (collisonPoint, 0.02, white ()) ;
          flipBuffer ;
          collectAll
       END
    END ;
 
-   (* ok, now we only need to find when line between p4, p6 hits the centre of the circle *)
+   (* ok, now we only need to find when line between p4, p6 hits the centre of the circle.  *)
    IF earlierPointLineCollision(timeOfCollision, center, velCircle, accelCircle,
                                 p4, p6, velLine, accelLine, collisonPoint, cid, pid)
    THEN
       (* circle hits line, p1, in tc seconds *)
       IF Debugging
       THEN
-         printf("circle hits line (%g, %g) (%g, %g) in %g\n", p1.x, p1.y, p2.x, p2.y, timeOfCollision)
+         printf ("circle hits line (%g, %g) (%g, %g) in %g\n", p1.x, p1.y, p2.x, p2.y, timeOfCollision)
       END ;
-      edesc := createDesc(edesc, cid, pid, line, 0, collisonPoint) ;
+      edesc := createDesc (edesc, cid, pid, lineP, lineC, corner, edge, collisonPoint) ;
       IF drawPrediction
       THEN
          frameNote ;
          drawFrame ;
-         debugCircle(center, radius, white ()) ;
-         debugLine(p4, p6) ;
-         debugCircle(collisonPoint, 0.02, white ()) ;
+         debugCircle (center, 0.02, white ()) ;
+         debugLine (p4, p6) ;
+         debugCircle (collisonPoint, 0.02, white ()) ;
          flipBuffer ;
          collectAll
       END
    END
-   
 END findEarlierCircleEdgeCollision ;
+
+
+(*
+   getPolygonCoord - 
+*)
+
+PROCEDURE getPolygonCoord (pPtr: Object; pointno: CARDINAL) : Coord ;
+BEGIN
+   WITH pPtr^ DO
+      RETURN addCoord (p.cOfG, polarToCoord (rotatePolar (p.points[pointno], angleOrientation)))
+   END
+END getPolygonCoord ;
 
 
 (*
@@ -2650,31 +2793,28 @@ END findEarlierCircleEdgeCollision ;
 *)
 
 PROCEDURE getPolygonLine (line: CARDINAL; pPtr: Object; VAR c1, c2: Coord) ;
-VAR
-   p1, p2: Polar ;
 BEGIN
    WITH pPtr^ DO
+      c1 := getPolygonCoord (pPtr, line-1) ;
       IF line=pPtr^.p.nPoints
       THEN
-         p1 := pPtr^.p.points[line-1] ;
-         p2 := pPtr^.p.points[0]
+         c2 := getPolygonCoord (pPtr, 0)
       ELSE
-         p1 := pPtr^.p.points[line-1] ;
-         p2 := pPtr^.p.points[line]
-      END ;
-      c1 := addCoord(p.cOfG, polarToCoord (rotatePolar (p1, angleOrientation))) ;
-      c2 := addCoord(p.cOfG, polarToCoord (rotatePolar (p2, angleOrientation)))
+         c2 := getPolygonCoord (pPtr, line)
+      END
    END
 END getPolygonLine ;
 
    
 (*
-   findCollisionCircleLine - find the time (if any) between line number, l, in polygon, pPtr,
-                             and the circle, cPtr.
+   findCollisionCircleLine - find the time (if any) between line number, lineP, in polygon, pPtr,
+                             and the circle, cPtr.  cPtr can also be a polygon in which case lineC
+                             is the particular line under question.  Line on line collision is broken
+                             down into circle line calls which allows for code reuse.
 *)
 
 PROCEDURE findCollisionCircleLine (cPtr, pPtr: Object;
-                                   l: CARDINAL; center: Coord; radius: REAL;
+                                   lineP, lineC: CARDINAL; center: Coord; radius: REAL;
                                    VAR edesc: eventDesc; VAR timeOfCollision: REAL; createDesc: descP) ;
 VAR
    velCircle, accelCircle,
@@ -2687,7 +2827,7 @@ BEGIN
    cid := cPtr^.id ;
    pid := pPtr^.id ;
 
-   getPolygonLine(l, pPtr, p1, p2) ;
+   getPolygonLine (lineP, pPtr, p1, p2) ;
 
    (* we perform 4 checks.
 
@@ -2699,66 +2839,66 @@ BEGIN
          the smallest positive time is the time of the next collision.
     *)
 
-   getObjectValues(cPtr, cvx, cvy, cax, cay) ;
-   getObjectValues(pPtr, pvx, pvy, pax, pay) ;
+   getObjectValues (cPtr, cvx, cvy, cax, cay) ;
+   getObjectValues (pPtr, pvx, pvy, pax, pay) ;
 
    (* i *)
-   IF earlierCircleCollision(t, timeOfCollision,
-                             p1.x, center.x, pvx, cvx, pax, cax,
-                             p1.y, center.y, pvy, cvy, pay, cay, radius, 0.0)
+   IF earlierCircleCollision (t, timeOfCollision,
+                              p1.x, center.x, pvx, cvx, pax, cax,
+                              p1.y, center.y, pvy, cvy, pay, cay, radius, 0.0)
    THEN
-      (* circle hits corner of the line, p1, in tc seconds *)
+      (* circle hits corner of the line, p1, in tc seconds.  *)
       IF Debugging
       THEN
-         printf("circle hits corner at %g, %g  in %g\n", p1.x, p1.y, t)
+         printf ("circle hits corner at %g, %g  in %g\n", p1.x, p1.y, t)
       END ;
       timeOfCollision := t ;
-      edesc := createDesc(edesc, cid, pid, 0, l, p1) ;  (* point no, l *)
+      edesc := createDesc (edesc, cid, pid, lineP, lineC, corner, corner, p1) ;  (* point no, lineC.  *)
       IF drawPrediction
       THEN
          frameNote ;
          drawFrame ;
-         debugCircle(center, r, white ()) ;
-         debugCircle(p1, 0.02, white ()) ;
+         debugCircle (center, 0.02, white ()) ;
+         debugCircle (p1, 0.02, white ()) ;
          flipBuffer ;
          collectAll
       END
    END ;
 
    (* ii *)
-   IF earlierCircleCollision(t, timeOfCollision,
-                             p2.x, center.x, pvx, cvx, pax, cax,
-                             p2.y, center.y, pvy, cvy, pay, cay, radius, 0.0)
+   IF earlierCircleCollision (t, timeOfCollision,
+                              p2.x, center.x, pvx, cvx, pax, cax,
+                              p2.y, center.y, pvy, cvy, pay, cay, radius, 0.0)
    THEN
-      (* circle hits corner of the line, p2, in tc seconds *)
+      (* circle hits corner of the line, p2, in tc seconds.  *)
       IF Debugging
       THEN
-         printf("circle hits corner at %g, %g  in %g\n", p2.x, p2.y, t)
+         printf ("circle hits corner at %g, %g  in %g  (lineP+1)\n", p2.x, p2.y, t)
       END ;
       timeOfCollision := t ;
-      edesc := createDesc(edesc, cid, pid, 0, l+1, p2) ;  (* point no, l+1 *)
+      edesc := createDesc (edesc, cid, pid, lineP+1, lineC, corner, corner, p2) ;  (* point no, lineP+1.  *)
       IF drawPrediction
       THEN
          frameNote ;
          drawFrame ;
-         debugCircle(cPtr^.c.pos, r, white ()) ;
-         debugCircle(p2, 0.02, white ()) ;
+         debugCircle (cPtr^.c.pos, 0.02, white ()) ;
+         debugCircle (p2, 0.02, white ()) ;
          flipBuffer ;
          collectAll
       END
    END ;
 
-   velCircle   := initCoord(cvx, cvy) ;
-   accelCircle := initCoord(cax, cay) ;
-   velLine     := initCoord(pvx, pvy) ;
-   accelLine   := initCoord(pax, pay) ;
+   velCircle   := initCoord (cvx, cvy) ;
+   accelCircle := initCoord (cax, cay) ;
+   velLine     := initCoord (pvx, pvy) ;
+   accelLine   := initCoord (pax, pay) ;
 
    (* iii and iv *)
-   findEarlierCircleEdgeCollision(timeOfCollision,
-                                  cid, pid,
-                                  l, edesc,
-                                  center, radius, velCircle, accelCircle,
-                                  p1, p2, velLine, accelLine, createDesc)
+   findEarlierCircleEdgeCollision (timeOfCollision,
+                                   cid, pid,
+                                   lineP, lineC, edesc,
+                                   center, radius, velCircle, accelCircle,
+                                   p1, p2, velLine, accelLine, createDesc)
                              
 END findCollisionCircleLine ;
 
@@ -2773,10 +2913,10 @@ PROCEDURE findCollisionCirclePolygon (cPtr, pPtr: Object; VAR edesc: eventDesc; 
 VAR
    i: CARDINAL ;
 BEGIN
-   Assert(cPtr^.object=circleOb) ;
+   Assert (cPtr^.object=circleOb) ;
    WITH pPtr^ DO
       FOR i := 1 TO p.nPoints DO
-         findCollisionCircleLine(cPtr, pPtr, i, cPtr^.c.pos, cPtr^.c.r, edesc, tc, makeCirclesPolygonDesc) ;
+         findCollisionCircleLine (cPtr, pPtr, i, 0, cPtr^.c.pos, cPtr^.c.r, edesc, tc, makeCirclesPolygonDesc)
       END
    END
 END findCollisionCirclePolygon ;
@@ -2788,24 +2928,22 @@ END findCollisionCirclePolygon ;
 *)
 
 PROCEDURE makePolygonPolygon (edesc: eventDesc; id1, id2: CARDINAL;
-                              lineNo, pointNo: CARDINAL; collisionPoint: Coord) : eventDesc ;
+                              lineCorner1, lineCorner2: CARDINAL;
+                              wpid1, wpid2: whereHit;
+                              collisionPoint: Coord) : eventDesc ;
 BEGIN
    IF edesc=NIL
    THEN
-      edesc := newDesc()
+      edesc := newDesc ()
    END ;
    edesc^.etype := polygonPolygonEvent ;
    edesc^.pp.cPoint := collisionPoint ;
    edesc^.pp.pid1 := id1 ;
    edesc^.pp.pid2 := id2 ;
-   IF lineNo=0
-   THEN
-      edesc^.pp.kind := corner
-   ELSE
-      edesc^.pp.kind := edge
-   END ;
-   edesc^.pp.lineCorner := lineNo ;
-   edesc^.pp.pointNo := pointNo ;
+   edesc^.pp.wpid1 := wpid1 ;
+   edesc^.pp.wpid2 := wpid2 ;
+   edesc^.pp.lineCorner1 := lineCorner1 ;
+   edesc^.pp.lineCorner2 := lineCorner2 ;
    RETURN edesc
 END makePolygonPolygon ;
 
@@ -2814,25 +2952,25 @@ END makePolygonPolygon ;
    findCollisionLineLine - 
 *)
 
-PROCEDURE findCollisionLineLine (iPtr, jPtr: Object; i, j: CARDINAL; VAR edesc: eventDesc; VAR tc: REAL) ;
+PROCEDURE findCollisionLineLine (iPtr, jPtr: Object; iLine, jLine: CARDINAL; VAR edesc: eventDesc; VAR tc: REAL) ;
 VAR
    i0, i1,
    j0, j1: Coord ;
 BEGIN
-   getPolygonLine(i, iPtr, i0, i1) ;
-   getPolygonLine(j, jPtr, j0, j1) ;
+   getPolygonLine (iLine, iPtr, i0, i1) ;
+   getPolygonLine (jLine, jPtr, j0, j1) ;
 
-   (* test i0 crossing line j *)
-   findCollisionCircleLine(iPtr, jPtr, j, i0, 0.0, edesc, tc, makePolygonPolygon) ;
+   (* test i0 crossing jLine *)
+   findCollisionCircleLine (iPtr, jPtr, iLine, jLine, i0, 0.0, edesc, tc, makePolygonPolygon) ;
 
    (* test i1 crossing line j *)
-   findCollisionCircleLine(iPtr, jPtr, j, i1, 0.0, edesc, tc, makePolygonPolygon) ;
+   findCollisionCircleLine (iPtr, jPtr, iLine, jLine, i1, 0.0, edesc, tc, makePolygonPolygon) ;
    
    (* test j0 crossing line i *)
-   findCollisionCircleLine(jPtr, iPtr, i, j0, 0.0, edesc, tc, makePolygonPolygon) ;
+   findCollisionCircleLine (jPtr, iPtr, iLine, jLine, j0, 0.0, edesc, tc, makePolygonPolygon) ;
 
    (* test j1 crossing line i *)
-   findCollisionCircleLine(jPtr, iPtr, i, j1, 0.0, edesc, tc, makePolygonPolygon)
+   findCollisionCircleLine (jPtr, iPtr, iLine, jLine, j1, 0.0, edesc, tc, makePolygonPolygon)
 
 END findCollisionLineLine ;
 
@@ -2997,11 +3135,11 @@ BEGIN
    getPolygonRPoint(j, rPtr, rcofg, ju, ja, jw, jp, jpos) ;
 *)
    (* now we ask when/if point jp crosses line p1, p2 *)
-   findEarliestCollisionRLineRPoint(iPtr, rPtr, i, j, edesc, tc,
-                                    p1.y, iu.y, ia.y, offset, iw, o,
-                                    jpos.y, ju.y, ja.y, jp.r, jw, jp.w,
-                                    p1, p2)
-   
+   findEarliestCollisionRLineRPoint (iPtr, rPtr, i, j, edesc, tc,
+                                     p1.y, iu.y, ia.y, offset, iw, o,
+                                     jpos.y, ju.y, ja.y, jp.r, jw, jp.w,
+                                     p1, p2)
+
 END findCollisionLineRPoint ;
 
 
@@ -3012,16 +3150,16 @@ END findCollisionLineRPoint ;
 PROCEDURE findCollisionLineRLine (iPtr, rPtr: Object; i, j: CARDINAL; VAR edesc: eventDesc; VAR tc: REAL) ;
 BEGIN
    (* test point rj-1 crossing line i *)
-   findCollisionLineRPoint(iPtr, rPtr, i, j-1, edesc, tc) ;
+   findCollisionLineRPoint (iPtr, rPtr, i, j-1, edesc, tc) ;
 
    (* test point rj crossing line i *)
-   findCollisionLineRPoint(iPtr, rPtr, i, j, edesc, tc) ;
+   findCollisionLineRPoint (iPtr, rPtr, i, j, edesc, tc) ;
 
    (* test point ii-1 crossing line j *)
-   findCollisionLineRPoint(rPtr, iPtr, j, i-1, edesc, tc) ;
+   findCollisionLineRPoint (rPtr, iPtr, j, i-1, edesc, tc) ;
 
    (* test point ii crossing line j *)
-   findCollisionLineRPoint(rPtr, iPtr, j, i, edesc, tc)
+   findCollisionLineRPoint (rPtr, iPtr, j, i, edesc, tc)
    
 END findCollisionLineRLine ;
 
@@ -3037,15 +3175,15 @@ PROCEDURE findCollisionPolygonPolygon (iPtr, jPtr: Object; VAR edesc: eventDesc;
 VAR
    i, j: CARDINAL ;
 BEGIN
-   Assert(iPtr#jPtr) ;
+   Assert (iPtr#jPtr) ;
    i := 1 ;
    WHILE i<=iPtr^.p.nPoints DO
       j := 1 ;
       WHILE j<=jPtr^.p.nPoints DO
-         findCollisionLineLine(iPtr, jPtr, i, j, edesc, tc) ;
-         INC(j)
+         findCollisionLineLine (iPtr, jPtr, i, j, edesc, tc) ;
+         INC (j)
       END ;
-      INC(i)
+      INC (i)
    END
 END findCollisionPolygonPolygon ;
 
@@ -3067,15 +3205,15 @@ VAR
    i, j: CARDINAL ;
 BEGIN
 (*
-   Assert(iPtr#rPtr) ;
+   Assert (iPtr#rPtr) ;
    i := 1 ;
    WHILE i<=iPtr^.p.nPoints DO
       j := 1 ;
       WHILE j<=rPtr^.r.nPoints DO
-         findCollisionLineRLine(iPtr, rPtr, i, j, edesc, tc) ;
-         INC(j)
+         findCollisionLineRLine (iPtr, rPtr, i, j, edesc, tc) ;
+         INC (j)
       END ;
-      INC(i)
+      INC (i)
    END
 *)
 END findCollisionPolygonRPolygon ;
@@ -3091,16 +3229,16 @@ BEGIN
    THEN
       IF (iptr^.object=circleOb) AND (jptr^.object=circleOb)
       THEN
-         findCollisionCircles(iptr, jptr, edesc, tc)
+         findCollisionCircles (iptr, jptr, edesc, tc)
       ELSIF (iptr^.object=circleOb) AND (jptr^.object=polygonOb)
       THEN
-         findCollisionCirclePolygon(iptr, jptr, edesc, tc)
+         findCollisionCirclePolygon (iptr, jptr, edesc, tc)
       ELSIF (iptr^.object=polygonOb) AND (jptr^.object=circleOb)
       THEN
-         findCollisionCirclePolygon(jptr, iptr, edesc, tc)
+         findCollisionCirclePolygon (jptr, iptr, edesc, tc)
       ELSIF (iptr^.object=polygonOb) AND (jptr^.object=polygonOb)
       THEN
-         findCollisionPolygonPolygon(jptr, iptr, edesc, tc)
+         findCollisionPolygonPolygon (jptr, iptr, edesc, tc)
       END
    END
 END findCollision ;
@@ -3112,7 +3250,7 @@ END findCollision ;
 
 PROCEDURE debugFrame (e: eventQueue) ;
 BEGIN
-   drawBackground(yellow()) ;
+   drawBackground (yellow ()) ;
    drawFrame
 END debugFrame ;
 
@@ -3125,14 +3263,14 @@ PROCEDURE addDebugging (t: REAL; edesc: eventDesc) ;
 VAR
    e: eventQueue ;
 BEGIN
-   e := newEvent() ;
+   e := newEvent () ;
    WITH e^ DO
       time := t ;
       p := debugFrame ;
       ePtr := edesc ;
       next := NIL
    END ;
-   addRelative(e)
+   addRelative (e)
 END addDebugging ;
 
 
@@ -3145,9 +3283,9 @@ BEGIN
    WITH edesc^ DO
       CASE etype OF
 
-      circlesEvent       :  occurred(currentTime+tc, cc.cid1, cc.cid2) |
-      circlePolygonEvent :  occurred(currentTime+tc, cp.pid, cp.cid) |
-      polygonPolygonEvent:  occurred(currentTime+tc, pp.pid1, pp.pid2)
+      circlesEvent       :  occurred (currentTime+tc, cc.cid1, cc.cid2) |
+      circlePolygonEvent :  occurred (currentTime+tc, cp.pid, cp.cid) |
+      polygonPolygonEvent:  occurred (currentTime+tc, pp.pid1, pp.pid2)
 
       END
    END ;
@@ -3174,8 +3312,8 @@ BEGIN
       Assert(f=e) ;
       IF before=NIL
       THEN
-         Assert(eventQ=f) ;
-         Assert(eventQ=e) ;
+         Assert (eventQ=f) ;
+         Assert (eventQ=e) ;
          eventQ := eventQ^.next ;
          IF eventQ#NIL
          THEN
@@ -3188,7 +3326,7 @@ BEGIN
             e^.next^.time := e^.next^.time + e^.time
          END
       END ;
-      disposeEvent(e)
+      disposeEvent (e)
    END
 END subEvent ;
 
@@ -3203,9 +3341,9 @@ VAR
 BEGIN
    e := eventQ ;
    WHILE e#NIL DO
-      IF e^.p=VAL(eventProc, doCollision)
+      IF e^.p=VAL (eventProc, doCollision)
       THEN
-         subEvent(e) ;
+         subEvent (e) ;
          RETURN
       ELSE
          e := e^.next ;
@@ -3227,21 +3365,21 @@ VAR
    iptr, jptr: Object ;
    edesc     : eventDesc ;
 BEGIN
-   n := HighIndice(objects) ;
+   n := HighIndice (objects) ;
    i := 1 ;
    removeCollisionEvent ;
    edesc := NIL ;
    tc := -1.0 ;
    WHILE i<=n DO
-      iptr := GetIndice(objects, i) ;
+      iptr := GetIndice (objects, i) ;
       IF NOT iptr^.deleted
       THEN
          j := 1+i ;
          WHILE j<=n DO
-            jptr := GetIndice(objects, j) ;
+            jptr := GetIndice (objects, j) ;
             IF (iptr#jptr) AND (NOT jptr^.deleted)
             THEN
-               findCollision(iptr, jptr, edesc, tc)
+               findCollision (iptr, jptr, edesc, tc)
             END ;
             INC(j)
          END
@@ -3253,7 +3391,7 @@ BEGIN
       addCollisionEvent (tc, doCollision, edesc) ;
       rememberCollision (tc, edesc)
    ELSE
-      printf("no more collisions found\n")
+      printf ("no more collisions found\n")
    END
 END addNextCollisionEvent ;
 
@@ -3290,14 +3428,13 @@ BEGIN
    END ;
    IF f=NIL
    THEN
-      addEvent(0.0, drawFrameEvent)
+      addEvent (0.0, drawFrameEvent)
    END ;
    IF c=NIL
    THEN
       addNextCollisionEvent
    END
 END resetQueue ;
-
 
 
 (*
@@ -3315,10 +3452,10 @@ BEGIN
       pumpQueue ;
       printQueue ;
       WHILE s<t DO
-         dt := doNextEvent() ;
+         dt := doNextEvent () ;
          s := s + dt
       END ;
-      updatePhysics(currentTime-lastCollisionTime) ;
+      updatePhysics (currentTime-lastCollisionTime) ;
       printQueue ;
       lastCollisionTime := currentTime
    END
@@ -3484,14 +3621,14 @@ BEGIN
    THEN
       printf("collision will occur in %g simulated seconds\n", t)
    END ;
-   e := newEvent() ;
+   e := newEvent () ;
    WITH e^ DO
       time := t ;
       p := dop ;
       ePtr := edesc ;
       next := NIL
    END ;
-   addRelative(e)
+   addRelative (e)
 END addCollisionEvent ;
 
 
@@ -3501,7 +3638,7 @@ END addCollisionEvent ;
 
 PROCEDURE getTime () : REAL ;
 BEGIN
-   RETURN( currentTime )
+   RETURN currentTime
 END getTime ;
 
 
@@ -3513,14 +3650,14 @@ PROCEDURE isEvent (t: eventType) : BOOLEAN ;
 BEGIN
    IF eventQ=NIL
    THEN
-      RETURN( FALSE )
+      RETURN FALSE
    ELSE
       WITH eventQ^ DO
          IF ePtr=NIL
          THEN
-            RETURN( FALSE )
+            RETURN FALSE
          ELSE
-            RETURN( ePtr^.etype=t )
+            RETURN ePtr^.etype=t
          END
       END
    END
@@ -3538,8 +3675,8 @@ BEGIN
       printf ("isCollision before pumpQueue\n")
    END ;
    pumpQueue ;
-   RETURN( isEvent(circlesEvent) OR isEvent(circlePolygonEvent) OR
-           isEvent(polygonPolygonEvent) )
+   RETURN isEvent(circlesEvent) OR isEvent(circlePolygonEvent) OR
+          isEvent(polygonPolygonEvent)
 END isCollision ;
 
 
@@ -3554,7 +3691,7 @@ BEGIN
       printf ("isFrame before pumpQueue\n")
    END ;
    pumpQueue ;
-   RETURN( NOT isCollision() )
+   RETURN NOT isCollision ()
 END isFrame ;
 
 
@@ -3567,9 +3704,9 @@ BEGIN
    pumpQueue ;
    IF eventQ=NIL
    THEN
-      RETURN( 0.0 )
+      RETURN 0.0
    ELSE
-      RETURN( eventQ^.time )
+      RETURN eventQ^.time
    END
 END timeUntil ;
 
@@ -3608,14 +3745,14 @@ BEGIN
       IF t > eventQ^.time
       THEN
          dt := eventQ^.time ;
-         IF NOT nearZero(dt)
+         IF NOT nearZero (dt)
          THEN
             currentTime := currentTime + dt
          END ;
          eventQ^.time := 0.0
       ELSE
          dt := eventQ^.time - t ;
-         IF nearZero(dt)
+         IF nearZero (dt)
          THEN
             currentTime := currentTime + eventQ^.time ;
             eventQ^.time := 0.0
@@ -3648,7 +3785,7 @@ BEGIN
       writeEvent (eventQ) ;
       IF DebugTrace
       THEN
-         printf ("after writeEvent\n");
+         printf ("after writeEvent\n")
       END
    END
 END recordEvent ;
@@ -3674,7 +3811,7 @@ BEGIN
       printf ("before doNextEvent\n");
       printQueue
    END ;
-   dt := doNextEvent() ;
+   dt := doNextEvent () ;
    IF DebugTrace
    THEN
       printf ("finished doNextEvent\n")
@@ -3702,7 +3839,7 @@ PROCEDURE rm (id: CARDINAL) : CARDINAL ;
 VAR
    optr: Object ;
 BEGIN
-   optr := GetIndice(objects, id) ;
+   optr := GetIndice (objects, id) ;
    IF DebugTrace
    THEN
       printf ("rm %d\n", id) ;
@@ -3714,10 +3851,10 @@ BEGIN
    END ;
    IF DebugTrace
    THEN
-      printf ("rm complete, here is the world after rm\n");
+      printf ("rm complete, here is the world after rm\n") ;
       dumpWorld
    END ;
-   RETURN( id )
+   RETURN id
 END rm ;
 
 
@@ -3764,7 +3901,7 @@ END writeCircles ;
 
 PROCEDURE writeKind (k: whereHit) ;
 BEGIN
-   writeCard (file, ORD(k))
+   writeCard (file, ORD (k))
 END writeKind ;
 
 
@@ -3781,7 +3918,7 @@ BEGIN
    writeCoord (file, c.cPoint) ;
    writeCard (file, c.pid) ;
    writeCard (file, c.cid) ;
-   writeKind (c.kind)
+   writeKind (c.wpid)
 END writeCirclePolygon ;
 
 
@@ -3798,7 +3935,8 @@ BEGIN
    writeCoord (file, p.cPoint) ;
    writeCard (file, p.pid1) ;
    writeCard (file, p.pid2) ;
-   writeKind (p.kind)
+   writeKind (p.wpid1) ;
+   writeKind (p.wpid2)
 END writePolygonPolygon ;
 
 
@@ -3810,10 +3948,10 @@ PROCEDURE writeDesc (p: eventDesc) ;
 BEGIN
    IF p=NIL
    THEN
-      writeCard (file, ORD(frameEvent))
+      writeCard (file, ORD (frameEvent))
    ELSE
       WITH p^ DO
-         writeCard (file, ORD(etype)) ;
+         writeCard (file, ORD (etype)) ;
          CASE etype OF
 
          frameEvent         :  |
@@ -3987,8 +4125,8 @@ BEGIN
    n := HighIndice(objects) ;
    i := 1 ;
    WHILE i<=n DO
-      DumpObject (GetIndice(objects, i)) ;
-      INC(i)
+      DumpObject (GetIndice (objects, i)) ;
+      INC (i)
    END
 END dumpWorld ;
 
@@ -4000,7 +4138,7 @@ END dumpWorld ;
 PROCEDURE Init ;
 BEGIN
    maxId := 0 ;
-   objects := InitIndex(1) ;
+   objects := InitIndex (1) ;
    framesPerSecond := DefaultFramesPerSecond ;
    replayPerSecond := 0.0 ;
    simulatedGravity := 0.0 ;

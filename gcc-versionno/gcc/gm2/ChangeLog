@@ -1,5 +1,19 @@
 2015-09-14      Gaius Mulley <gaius@gnu.org>
 
+	* gm2/examples/pge/Makefile.in:  new example circle added.
+	* gm2/examples/pge/coord.def:  new procedure function
+	  perpendicular.
+	* gm2/examples/pge/coord.mod:  implemented new procedure
+	  function perpendicular.
+	* gm2/examples/pge/polar.mod:  cosmetic spaces added.
+	* gm2/examples/pge/popWorld.mod:  cosmetic spaces added.
+	* gm2/examples/pge/twoDsim.mod:  many cosmetic changes
+	  and also more explicit parameters which determine if
+	  edge or corner was in collision.  First cut of the polygon
+	  collision reaction implemented.
+
+2015-09-14      Gaius Mulley <gaius@gnu.org>
+
 	* gm2/examples/pge/Makefile.in:  add boxes.raw and removed
 	  dependancy output.raw from playback.
 	* gm2/examples/pge/bounce.mod:  remove rotate.

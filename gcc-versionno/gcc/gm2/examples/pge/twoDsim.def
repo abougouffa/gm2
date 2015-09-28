@@ -44,7 +44,8 @@ PROCEDURE gravity (g: REAL) ;
 
 
 (*
-   box - place a box in the world at (x0,y0),(x0+i,y0+j)
+   box - place a box in the world at (x0,y0), (x0+i,y0),
+         (x0+i, y0+j), (x0, y0+j).
 *)
 
 PROCEDURE box (x0, y0, i, j: REAL; colour: Colour) : CARDINAL ;
@@ -59,8 +60,9 @@ PROCEDURE poly3 (x0, y0, x1, y1, x2, y2: REAL; colour: Colour) : CARDINAL ;
 
 
 (*
-   poly4 - place a rectangle in the world at:
-           (x0,y0),(x1,y1),(x2,y2),(x3,y3)
+   poly4 - place a quadrangle in the world at:
+           (x0,y0), (x1,y1), (x2,y2), (x3,y3)  the points must be in order,
+           either anticlockwise or clockwise.
 *)
 
 PROCEDURE poly4 (x0, y0, x1, y1, x2, y2, x3, y3: REAL; colour: Colour) : CARDINAL ;
@@ -68,7 +70,8 @@ PROCEDURE poly4 (x0, y0, x1, y1, x2, y2, x3, y3: REAL; colour: Colour) : CARDINA
 
 (*
    poly5 - place a pentagon in the world at:
-           (x0,y0),(x1,y1),(x2,y2),(x3,y3),(x4,y4)
+           (x0,y0), (x1,y1), (x2,y2), (x3,y3), (x4,y4)
+           the points must be in order, either anticlockwise or clockwise.
 *)
 
 PROCEDURE poly5 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4: REAL; colour: Colour) : CARDINAL ;
@@ -76,7 +79,8 @@ PROCEDURE poly5 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4: REAL; colour: Colour) :
 
 (*
    poly6 - place a hexagon in the world at:
-           (x0,y0),(x1,y1),(x2,y2),(x3,y3),(x4,y4),(x5,y5)
+           (x0,y0), (x1,y1), (x2,y2), (x3,y3), (x4,y4), (x5,y5)
+           the points must be in order, either anticlockwise or clockwise.
 *)
 
 PROCEDURE poly6 (x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5: REAL; colour: Colour) : CARDINAL ;

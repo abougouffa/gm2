@@ -70,7 +70,7 @@ END initPolar ;
 
 PROCEDURE polarToCoord (p: Polar) : Coord ;
 BEGIN
-   RETURN initCoord(p.r * cos(p.w), p.r * sin(p.w))
+   RETURN initCoord (p.r * cos (p.w), p.r * sin (p.w))
 END polarToCoord ;
 
 
@@ -80,7 +80,7 @@ END polarToCoord ;
 
 PROCEDURE assertEqual (c1, c2: Coord) ;
 BEGIN
-   Assert(nearZero(c1.x-c2.x) AND nearZero(c1.y-c2.y))
+   Assert (nearZero (c1.x-c2.x) AND nearZero (c1.y-c2.y))
 END assertEqual ;
 
 
@@ -93,28 +93,28 @@ VAR
    r: REAL ;
    p: Polar ;
 BEGIN
-   r := sqrt(sqr(c.x) + sqr(c.y)) ;
+   r := sqrt (sqr (c.x) + sqr (c.y)) ;
    IF nearZero(r)
    THEN
-      p := initPolar(0.0, 0.0)
+      p := initPolar (0.0, 0.0)
    ELSIF (c.x>=0.0) AND (c.y>=0.0)
    THEN
       (* quadrant 1 *)
-      p := initPolar(r, asin(c.y/r))
+      p := initPolar (r, asin(c.y/r))
    ELSIF (c.x<0.0) AND (c.y>=0.0)
    THEN
       (* quadrant 2 *)
-      p := initPolar(r, pi-asin(c.y/r))
+      p := initPolar (r, pi-asin (c.y/r))
    ELSIF (c.x<0.0) AND (c.y<0.0)
    THEN
       (* quadrant 3 *)
-      p := initPolar(r, pi+asin(-c.y/r))
+      p := initPolar (r, pi+asin (-c.y/r))
    ELSIF (c.x>=0.0) AND (c.y<0.0)
    THEN
       (* quadrant 4 *)
-      p := initPolar(r, 2.0*pi-asin(-c.y/r))
+      p := initPolar (r, 2.0*pi-asin (-c.y/r))
    END ;
-   assertEqual(polarToCoord(p), c) ;
+   assertEqual (polarToCoord (p), c) ;
    RETURN p
 END coordToPolar ;
 

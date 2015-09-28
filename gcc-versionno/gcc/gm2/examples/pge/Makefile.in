@@ -25,7 +25,7 @@ SOURCES = \
           roots.mod coord.mod polar.mod history.mod stairs.mod rpc.mod \
           snooker.mod wall.mod npn.mod wallv.mod slope.mod para.mod testpy.mod \
           deviceIf.mod ramps.mod ramps2.mod boxes.mod wallh.mod bounce.mod line.mod bounce2.mod \
-          bounce3.mod bounce4.mod bounce5.mod bagatelle.mod elc.mod
+          bounce3.mod bounce4.mod bounce5.mod bagatelle.mod elc.mod rboxes.mod circle.mod
 
 
 PGELIBSOURCES = macroObjects.mod Points.mod Fractions.mod PolyMatrix3D.mod \
@@ -154,6 +154,12 @@ line: $(OBJECTS)
 
 wallh: $(OBJECTS)
 	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/wallh.mod
+
+rboxes: $(OBJECTS)
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/rboxes.mod
+
+circle: $(OBJECTS)
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/circle.mod
 
 boxes: $(OBJECTS)
 	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/boxes.mod

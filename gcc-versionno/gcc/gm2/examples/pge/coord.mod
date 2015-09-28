@@ -61,9 +61,21 @@ END normaliseCoord ;
 
 PROCEDURE perpendiculars (c: Coord; VAR c1, c2: Coord) ;
 BEGIN
-   c1 := initCoord(-c.y, c.x) ;
-   c2 := initCoord(c.y, -c.x)
+   c1 := initCoord (-c.y, c.x) ;
+   c2 := initCoord (c.y, -c.x)
 END perpendiculars ;
+
+
+(*
+   perpendicular - return the perpendicular of, c.
+                   This is the one defined by Hill 1994 where, c, is rotated
+                   90 degrees anticlockwise.
+*)
+
+PROCEDURE perpendicular (c: Coord) : Coord ;
+BEGIN
+   RETURN initCoord (-c.y, c.x)
+END perpendicular ;
 
 
 (*
