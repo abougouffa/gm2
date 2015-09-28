@@ -1,4 +1,4 @@
-2015-09-14      Gaius Mulley <gaius@gnu.org>
+2015-09-28      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/Makefile.in:  new example circle added.
 	* gm2/examples/pge/coord.def:  new procedure function
@@ -11,6 +11,11 @@
 	  and also more explicit parameters which determine if
 	  edge or corner was in collision.  First cut of the polygon
 	  collision reaction implemented.
+	* gm2/gm2.texi:  removed duplication switch.
+	* gm2/gm2-gcc/m2linemap.c:  use xstrdup to preserve filename
+	  from being garbage collected.  This fixes a critical bug
+	  in the debugging output of large source files when -fcpp
+	  was used.
 
 2015-09-14      Gaius Mulley <gaius@gnu.org>
 

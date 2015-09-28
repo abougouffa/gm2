@@ -737,7 +737,7 @@ turns on all runtime checks.  This is the same as invoking
 GNU Modula-2 using the command options
 @code{-fnil} @code{-frange} @code{-findex}
 @c @code{-fwholevalue}  --fixme-- add this when working
-@code{-fwholediv} @code{-fcase} @code{-freturn} @code{-fcase}.
+@code{-fwholediv} @code{-fcase} @code{-freturn}.
 
 @item -fno-exceptions
 turns off all generation of exception handling code and no references

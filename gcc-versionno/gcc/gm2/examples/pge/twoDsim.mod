@@ -1407,7 +1407,7 @@ VAR
 BEGIN
    IF eventQ=NIL
    THEN
-      printf("no more events on the event queue\n") ;
+      printf ("no more events on the event queue\n") ;
       exit (1);
       RETURN 0.0
    ELSE
@@ -1448,11 +1448,11 @@ BEGIN
          THEN
             CASE object OF
 
-            polygonOb :  IF p.mass=0.0
+            polygonOb :  IF nearZero (p.mass)
                          THEN
                             printf ("polygon %d is not fixed and does not have a mass\n", optr^.id)
                          END |
-            circleOb  :  IF c.mass=0.0
+            circleOb  :  IF nearZero (c.mass)
                          THEN
                             printf ("circle %d is not fixed and does not have a mass\n", optr^.id)
                          END
@@ -1465,7 +1465,7 @@ BEGIN
    END ;
    IF error
    THEN
-      exit(1)
+      exit (1)
    END
 END checkObjects ;
 
@@ -1909,9 +1909,17 @@ BEGIN
    ELSIF e^.ePtr^.pp.wpid2=edge
    THEN
       printf ("the edge of polygon collides with corner of polygon\n");
+      Assert (e^.ePtr^.pp.wpid1=corner) ;
+      getPolygonLine (e^.ePtr^.pp.lineCorner1, GetIndice (objects, e^.ePtr^.pp.pid1), p1, p2) ;
+      sortLine (p1, p2) ;           (* p1 and p2 are the start end positions of the line  *)
+      v1 := subCoord (p2, p1) ;     (* v1 is the vector p1 -> p2  *)
+      perpendiculars (v1, n, n2) ;  (* n and n2 are normal vectors to the vector v1  *)
+      (* n needs to point into id1.  *)
+      debugLine (p1, p2)
    ELSE
       printf ("the corners of two polygon collide\n");
    END ;
+
 
    debugCircle (id1^.p.cOfG, 0.002, yellow ()) ;          (* ******************  c of g for id1            *)
    debugCircle (id2^.p.cOfG, 0.002, purple ()) ;          (* ******************  c of g for id2            *)
@@ -2075,7 +2083,7 @@ END getObjectValues ;
 PROCEDURE maximaCircleCollision (VAR array: ARRAY OF REAL;
                                  a, b, c, d, e, f, g, h, k, l, m, n, o, p: REAL) ;
 BEGIN
-(* #  include "circles.m" *)
+#  include "circles.m"
 END maximaCircleCollision ;
 
 
@@ -2121,7 +2129,7 @@ BEGIN
    C := (4.0*h-4.0*g)*n+(4.0*g-4.0*h)*m+4.0*sqr(l)-8.0*k*l+4.0*sqr(k)+(4.0*b-4.0*a)*f+(4.0*a-4.0*b)*e+4.0*sqr(d)-8.0*c*d+4.0*sqr(c) ;
    D := (8.0*h-8.0*g)*l+(8.0*g-8.0*h)*k+(8.0*b-8.0*a)*d+(8.0*a-8.0*b)*c ;
    E := 4.0*sqr(h)-8.0*g*h+4.0*sqr(g)+4.0*sqr(b)-8.0*a*b+4.0*sqr(a)-sqr(2.0*(p+o)) ;
-(*
+
    maximaCircleCollision (array,
                           a, b, c, d, e, f, g, h, k, l, m, n, o, p) ;
 
@@ -2130,7 +2138,6 @@ BEGIN
    AssertRDebug (array[2], C, "C") ;
    AssertRDebug (array[1], D, "D") ;
    AssertRDebug (array[0], E, "E") ;
-*)
 
    (* now solve for values of t which satisfy   At^4 + Bt^3 + Ct^2 + Dt^1 + Et^0 = 0 *)
    IF findQuartic (A, B, C, D, E, t)

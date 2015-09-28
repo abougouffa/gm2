@@ -1,4 +1,4 @@
-/* Copyright (C) 2012, 2013.
+/* Copyright (C) 2012, 2013, 2014, 2015.
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -112,9 +112,9 @@ m2statement_BuildStartFunctionCode (tree fndecl, int isexported, int isinline)
 
   /* This function exists in static storage.
      (This does not mean `static' in the C sense!)  */
-  TREE_STATIC (fndecl)     = 1;
-  TREE_PUBLIC (fndecl)     = isexported;
-  TREE_ADDRESSABLE(fndecl) = 1;  /* (--fixme-- not sure about this) */
+  TREE_STATIC (fndecl)      = 1;
+  TREE_PUBLIC (fndecl)      = isexported;
+  TREE_ADDRESSABLE (fndecl) = 1;  /* (--fixme-- not sure about this) */
   DECL_DECLARED_INLINE_P (fndecl) = 0; /* isinline; */
 
   init_function_start (fndecl);

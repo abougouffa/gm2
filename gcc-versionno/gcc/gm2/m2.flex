@@ -163,8 +163,8 @@ extern  void  yylex                   (void);
                            }
 <LINE2>[ \t]*              { updatepos(); }
 <LINE2>\n                  { M2LexBuf_SetFile(filename); updatepos(); BEGIN INITIAL; }
-<LINE2>2[ \t]*\n           { M2LexBuf_PopFile(filename); updatepos(); BEGIN INITIAL; }
-<LINE2>1[ \t]*\n           { M2LexBuf_PushFile(filename); updatepos(); BEGIN INITIAL; }
+<LINE2>2[ \t]*\n           { M2LexBuf_SetFile(filename); updatepos(); BEGIN INITIAL; }
+<LINE2>1[ \t]*\n           { M2LexBuf_SetFile(filename); updatepos(); BEGIN INITIAL; }
 
 \n[^\#].*                  { consumeLine(); /* printf("found: %s\n", currentLine->linebuf); */ }
 \n                         { consumeLine(); /* printf("found: %s\n", currentLine->linebuf); */ }
@@ -703,6 +703,8 @@ int m2flex_GetColumnNo (void)
   else
     return 0;
 }
+
+static void stop (void) {}
 
 /*
  *  m2flex_GetLocation - returns the gcc location_t of the current token.

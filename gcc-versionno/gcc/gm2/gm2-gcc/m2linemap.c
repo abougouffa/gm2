@@ -78,7 +78,7 @@ m2linemap_StartFile (char *filename, unsigned int linebegin)
 {
   if (inFile)
     m2linemap_EndFile ();
-  linemap_add (line_table, LC_ENTER, 0, filename, linebegin);
+  linemap_add (line_table, LC_ENTER, 0, xstrdup (filename), linebegin);
   inFile = TRUE;
 }
 
