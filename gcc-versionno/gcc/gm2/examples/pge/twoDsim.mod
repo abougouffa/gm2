@@ -51,6 +51,7 @@ CONST
    DebugTrace             =  TRUE ;
    BufferedTime           =     0.1 ;
    InactiveTime           =     1.0 ;  (* the time we keep simulating after all collision events have expired *)
+   Elasticity             =     0.98 ; (* how elastic are the collisions?                                     *)
 
 TYPE
    ObjectType = (polygonOb, circleOb, pivotOb) ;
@@ -107,7 +108,8 @@ TYPE
                           vx, vy, ax, ay  : REAL ;
                           inertia,
                           angleOrientation,
-                          angularVelocity : REAL ;
+                          angularVelocity,
+                          angularMomentum : REAL ;
 
                           CASE object: ObjectType OF
 
@@ -345,6 +347,7 @@ BEGIN
       ax               := 0.0 ;
       ay               := 0.0 ;
       angularVelocity  := 0.0 ;
+      angularMomentum  := 0.0 ;
       angleOrientation := 0.0 ;
       inertia          := 0.0
    END ;
@@ -409,8 +412,8 @@ VAR
    optr : Object ;
    co   : ARRAY [0..3] OF Coord ;
 BEGIN
-   id := newObject(polygonOb) ;
-   optr := GetIndice(objects, id) ;
+   id := newObject (polygonOb) ;
+   optr := GetIndice (objects, id) ;
    co[0] := initCoord (x0, y0) ;
    co[1] := initCoord (x1, y1) ;
    co[2] := initCoord (x2, y2) ;
@@ -1450,11 +1453,13 @@ BEGIN
 
             polygonOb :  IF nearZero (p.mass)
                          THEN
-                            printf ("polygon %d is not fixed and does not have a mass\n", optr^.id)
+                            printf ("polygon %d is not fixed and does not have a mass\n", optr^.id) ;
+                            error := TRUE
                          END |
             circleOb  :  IF nearZero (c.mass)
                          THEN
-                            printf ("circle %d is not fixed and does not have a mass\n", optr^.id)
+                            printf ("circle %d is not fixed and does not have a mass\n", optr^.id) ;
+                            error := TRUE
                          END
 
             ELSE
@@ -1508,7 +1513,7 @@ END checkZeroCoord ;
 
 PROCEDURE inElastic (VAR v: REAL) ;
 BEGIN
-   v := v * 0.98 ;
+   v := v * Elasticity ;
    checkZero (v)
 END inElastic ;
 
@@ -1528,6 +1533,8 @@ BEGIN
          stationary := nearZero (vx) AND nearZero (vy) ;
          IF stationary
          THEN
+            vx := 0.0 ;
+            vy := 0.0 ;
             DumpObject (o)
          END
       END
@@ -1536,7 +1543,10 @@ END checkStationary ;
 
 
 (*
-   checkStationaryCollision - 
+   checkStationaryCollision - stationary object, a, has been bumped by
+                              moving object, b.  We move a slightly and
+                              give it an initial velocity and change its
+                              state from stationary to moving.
 *)
 
 PROCEDURE checkStationaryCollision (a, b: Object) ;
@@ -1689,25 +1699,20 @@ END circleCollision ;
 
 PROCEDURE collideCircleAgainstFixedEdge (cPtr: Object; p1, p2: Coord) ;
 VAR
-   n1, n2, v1, vel: Coord ;
+   l, vel: Coord ;
 BEGIN
    (* firstly we need to find the normal to the line *)
    sortLine (p1, p2) ;    (* p1 and p2 are the start end positions of the line *)
 
-   v1 := subCoord (p2, p1) ;     (* v1 is the vector p1 -> p2 *)
-
-   perpendiculars (v1, n1, n2) ;  (* n1 and n2 are normal vectors to the vector v1 *)
-
-   (* use n1 *)
-   n1 := normaliseCoord (n1) ;
+   l := subCoord (p2, p1) ;     (* l is the vector p1 -> p2 *)
    vel := initCoord (cPtr^.vx, cPtr^.vy) ;   (* vel is the initial velocity *)
 
-   vel := addCoord (scaleCoord (n1, -2.0 * dotProd (vel, n1)), vel) ;  (* now it is the final velocity *)
+   vel := reflect (vel, l) ;
 
    cPtr^.vx := vel.x ;   (* update velocity of object, cPtr *)
    cPtr^.vy := vel.y ;
 
-   checkStationary(cPtr)
+   checkStationary (cPtr)
 
 END collideCircleAgainstFixedEdge ;
 
@@ -1760,12 +1765,13 @@ END circlePolygonCollision ;
 
 
 (*
-   collidePolygonAgainstFixedCircle - 
+   collidePolygonAgainstFixedCircle - polygon, o, is moving and has hit
+                                      a fixed circle at position, collision.
 *)
 
 PROCEDURE collidePolygonAgainstFixedCircle (o: Object; collision: Coord) ;
 BEGIN
-   collideAgainstFixedCircle(o, collision) ;
+   collideAgainstFixedCircle (o, collision) ;
    IF Debugging
    THEN
       DumpObject (o)
@@ -1834,7 +1840,7 @@ BEGIN
       END ;
       id^.inertia := (id^.p.mass * top) / (bot * 6.0)
    ELSE
-      id^.inertia := 0.0
+      id^.inertia := id^.c.mass
    END
 END calcInertia ;
 
@@ -1851,35 +1857,131 @@ PROCEDURE updatePolygonVelocity (o: Object; j: REAL; n, rpn: Coord) ;
 VAR
    va: Coord ;
 BEGIN
-   IF NOT o^.fixed
-   THEN
-      (* linear velocity update.   (eq 8a)  *)
-      va := initCoord (o^.vx, o^.vy) ;
-      va := addCoord (va, scaleCoord (n, j/o^.p.mass)) ;
-      o^.vx := va.x ;
-      o^.vy := va.y ;
+   (* linear velocity update.   (eq 8a)  *)
+   va := initCoord (o^.vx, o^.vy) ;
+   va := addCoord (va, scaleCoord (n, j/o^.p.mass)) ;
+   o^.vx := va.x ;
+   o^.vy := va.y ;
 
-      (* angular velocity update.  (eq 8b)  *)
-      o^.angularVelocity := o^.angularVelocity + dotProd (rpn, scaleCoord (n, j)) / o^.angularVelocity
-   END
+   (* angular velocity update.  (eq 8b)  *)
+   o^.angularVelocity := o^.angularVelocity + dotProd (rpn, scaleCoord (n, j)) / o^.inertia
 END updatePolygonVelocity ;
 
 
 (*
-   polygonPolygonCollision - 
+   polygonPolygonCollision - two polygons collide, we call the appropriate routines
+                             depending upon whether one polygon is fixed.
 *)
 
 PROCEDURE polygonPolygonCollision (e: eventQueue; id1, id2: Object) ;
+BEGIN
+   collidePolygonAgainstMovingPolygon (e, id1, id2)
+(*
+   IF id1^.fixed
+   THEN
+      collidePolygonAgainstFixedPolygon (e, id2, id1)
+   ELSIF id2^.fixed
+   THEN
+      collidePolygonAgainstFixedPolygon (e, id1, id2)
+   ELSE
+      collidePolygonAgainstMovingPolygon (e, id1, id2)
+   END
+*)
+END polygonPolygonCollision ;
+
+
+(*
+   reflect - reflect velocity, v, off line, l.
+
+             V = 2 * (-I . n ) * n + I
+
+             where:
+
+             I is the initial velocity vector
+             V is the final velocity vector
+             n is the normal to the line, l.
+*)
+
+PROCEDURE reflect (v, l: Coord) : Coord ;
 VAR
-   rapn, rbpn,
+   n: Coord ;
+BEGIN
+   n := perpendicular (l) ;
+   n := normaliseCoord (n) ;
+   RETURN addCoord (scaleCoord (n, -2.0 * dotProd (v, n)), v)
+END reflect ;
+
+
+(*
+   collidePolygonAgainstFixedPolygon - id1 is moving and id2 is fixed.
+*)
+
+PROCEDURE collidePolygonAgainstFixedPolygon (e: eventQueue; id1, id2: Object) ;
+VAR
+   I, m,
+   j     : REAL ;
+   l,
+   n, rap,
+   rapn,
    p1, p2,
+   p, v  : Coord ;   (* point of collision  *)
+BEGIN
+   Assert (NOT id1^.fixed) ;
+   Assert (id2^.fixed) ;
+   Assert (e^.ePtr^.etype=polygonPolygonEvent) ;
+
+   printf ("collidePolygonAgainstFixedPolygon\n");
+   drawFrame ;      (* ****************** *)
+
+   p := e^.ePtr^.pp.cPoint ;
+   IF e^.ePtr^.pp.wpid2=edge
+   THEN
+      getPolygonLine (e^.ePtr^.pp.lineCorner2, GetIndice (objects, e^.ePtr^.pp.pid2), p1, p2) ;
+      l := subCoord (p2, p1) ;
+      debugLine (p1, p2)
+   ELSE
+      (* hits corner, so we use the normal from the corner to the C of G of he polygon.  *)
+      l := subCoord (p, id2^.p.cOfG)
+   END ;
+   v := rotationalVelocity (id1^.angularVelocity, initCoord (id1^.vx, id1^.vy), subCoord (p, id1^.p.cOfG)) ;
+
+   rap := subCoord (p, id1^.p.cOfG) ;
+   rapn := perpendicular (rap) ;
+   I := sqr (dotProd (rapn, n)) / id1^.inertia ;
+   m := 1.0 / id1^.p.mass ;
+
+   debugCircle (id1^.p.cOfG, 0.002, yellow ()) ;          (* ******************  c of g for id1            *)
+   debugCircle (id2^.p.cOfG, 0.002, purple ()) ;          (* ******************  c of g for id2            *)
+
+   j := (-(1.0) * dotProd (v, n)) / (dotProd (n, n) * m + I) ;
+   updatePolygonVelocity (id1, -j, n, rapn) ;
+
+   flipBuffer ;      (* ****************** *)
+   
+END collidePolygonAgainstFixedPolygon ;
+
+
+(*
+   collidePolygonAgainstMovingPolygon - both, id1, and, id2, are moving.
+*)
+
+PROCEDURE collidePolygonAgainstMovingPolygon (e: eventQueue; id1, id2: Object) ;
+VAR
+   p1, p2,
+   p,
    n, n2,
    v1,
    va,  vb,
    vap, vbp,
-   vab, rap,
-   rbp, p    : Coord ;
-   j, I, m   : REAL ;
+   vab,
+   rap, rbp,
+   sum,
+   vF1, vF2   : Coord ;
+   ca, cb,
+   denominator,
+   vabDotN,
+   modifiedVel,
+   j1, j2, m  : REAL ;
 BEGIN
    IF Debugging
    THEN
@@ -1906,12 +2008,19 @@ BEGIN
    THEN
       (* corner collision.  *)
       printf ("the edge of polygon collides with corner of polygon\n");
+      Assert (e^.ePtr^.pp.wpid2=corner) ;
+
+      getPolygonLine (e^.ePtr^.pp.lineCorner2, GetIndice (objects, e^.ePtr^.pp.pid2), p1, p2) ;
+      v1 := subCoord (p2, p1) ;     (* v1 is the vector p1 -> p2  *)
+      perpendiculars (v1, n, n2) ;  (* n and n2 are normal vectors to the vector v1  *)
+      (* n needs to point into id1.  *)
+      debugLine (p1, p2)
    ELSIF e^.ePtr^.pp.wpid2=edge
    THEN
       printf ("the edge of polygon collides with corner of polygon\n");
       Assert (e^.ePtr^.pp.wpid1=corner) ;
+
       getPolygonLine (e^.ePtr^.pp.lineCorner1, GetIndice (objects, e^.ePtr^.pp.pid1), p1, p2) ;
-      sortLine (p1, p2) ;           (* p1 and p2 are the start end positions of the line  *)
       v1 := subCoord (p2, p1) ;     (* v1 is the vector p1 -> p2  *)
       perpendiculars (v1, n, n2) ;  (* n and n2 are normal vectors to the vector v1  *)
       (* n needs to point into id1.  *)
@@ -1920,37 +2029,103 @@ BEGIN
       printf ("the corners of two polygon collide\n");
    END ;
 
-
    debugCircle (id1^.p.cOfG, 0.002, yellow ()) ;          (* ******************  c of g for id1            *)
    debugCircle (id2^.p.cOfG, 0.002, purple ()) ;          (* ******************  c of g for id2            *)
    (* debugCircle (getPolygonCoord (id1, e^.ePtr^.pp.pointNo), 0.002, white ()) ; *)
                                                           (* ******************  point on id1 of collision *)
 
-   vap := rotationalVelocity (id1^.angularVelocity, initCoord (id1^.vx, id1^.vy), subCoord (p, id1^.p.cOfG)) ;
-   vbp := rotationalVelocity (id2^.angularVelocity, initCoord (id2^.vx, id2^.vy), subCoord (p, id2^.p.cOfG)) ;
+   (* calculate relative velocity.  *)
+   rap := subCoord (p, id1^.p.cOfG) ;
+   rbp := subCoord (p, id2^.p.cOfG) ;
+   vap := addCoord (initCoord (id1^.vx, id1^.vy), scaleCoord (rap, id1^.angularVelocity)) ;
+   vbp := addCoord (initCoord (id2^.vx, id2^.vy), scaleCoord (rap, id2^.angularVelocity)) ;
    vab := subCoord (vap, vbp) ;
-   
+
+   (* calculate impulse factor.  *)
    IF id1^.fixed
    THEN
-      I := 0.0 ;
       m := 0.0
    ELSE
-      rap := subCoord (p, id1^.p.cOfG) ;
-      I := sqr (dotProd (perpendicular (rap), n)) / id1^.inertia ;
-      m := 1.0 / id1^.p.mass
+      m := 1.0/id1^.p.mass
    END ;
    IF NOT id2^.fixed
    THEN
-      I := I + sqr (dotProd (perpendicular (rbp), n)) / id2^.inertia ;
-      m := m + 1.0 / id2^.p.mass
+      m := m + 1.0/id2^.p.mass
    END ;
 
-   flipBuffer ;      (* ****************** *)
+   denominator := m * dotProd (n, n) ;
 
-   j := (-(1.0) * dotProd (vab, n)) / (dotProd (n, n) * m + I) ;
-   updatePolygonVelocity (id1, j, n, rapn) ;
-   updatePolygonVelocity (id2, -j, n, rbpn)
-END polygonPolygonCollision ;
+   (* calculate angular factors.  *)
+
+   IF id1^.fixed
+   THEN
+      ca := 0.0
+   ELSE
+      ca := sqr (dotProd (perpendicular (rap), n)) / id1^.inertia
+   END ;
+   
+   IF id2^.fixed
+   THEN
+      cb := 0.0
+   ELSE
+      cb := sqr (dotProd (perpendicular (rbp), n)) / id2^.inertia
+   END ;
+
+   denominator := denominator + ca + cb ;
+
+   (* calculate total impulse of collision, j.  *)
+   
+   vabDotN := dotProd (vab, n) ;
+   printf ("vabDotN = %g\n", vabDotN) ;
+
+   modifiedVel := vabDotN / denominator ;
+   j1 := -(1.0 + Elasticity) * modifiedVel ;
+   j2 := (1.0 + Elasticity) * modifiedVel ;
+
+   printf ("j1 = %g, j2 = %g\n", j1, j2);
+
+   (* update the velocities.  *)
+
+   IF NOT id1^.fixed
+   THEN
+      vF1 := addCoord (initCoord (id1^.vx, id1^.vy), scaleCoord (n, j1/id1^.p.mass)) ;
+      id1^.vx := vF1.x ;
+      id1^.vy := vF1.y
+   END ;
+
+   IF NOT id2^.fixed
+   THEN
+      vF2 := addCoord (initCoord (id2^.vx, id2^.vy), scaleCoord (n, j2/id2^.p.mass)) ;
+      id2^.vx := vF2.x ;
+      id2^.vy := vF2.y
+   END ;
+
+   (* update the angular velocities.  *)
+
+   IF id1^.fixed
+   THEN
+      j2 := j2 * 2.0
+   END ;
+   IF id2^.fixed
+   THEN
+      j1 := j1 * 2.0
+   END ;
+
+   IF NOT id1^.fixed
+   THEN
+      id1^.angularMomentum := id1^.angularMomentum + dotProd (rap, scaleCoord (n, j1)) ;
+      id1^.angularVelocity := (1.0 / id1^.inertia) * id1^.angularMomentum
+   END ;
+
+   IF NOT id2^.fixed
+   THEN
+      id2^.angularMomentum := id2^.angularMomentum + dotProd (rbp, scaleCoord (n, j2)) ;
+      id2^.angularVelocity := (1.0 / id2^.inertia) * id2^.angularMomentum
+   END ;
+
+   flipBuffer      (* ****************** *)
+
+END collidePolygonAgainstMovingPolygon ;
 
 
 (*
@@ -2139,7 +2314,7 @@ BEGIN
    AssertRDebug (array[1], D, "D") ;
    AssertRDebug (array[0], E, "E") ;
 
-   (* now solve for values of t which satisfy   At^4 + Bt^3 + Ct^2 + Dt^1 + Et^0 = 0 *)
+   (* now solve for values of t which satisfy   At^4 + Bt^3 + Ct^2 + Dt^1 + Et^0 = 0  *)
    IF findQuartic (A, B, C, D, E, t)
    THEN
       T := A*(sqr(t)*sqr(t))+B*(sqr(t)*t)+C*sqr(t)+D*t+E ;
@@ -2911,6 +3086,103 @@ END findCollisionCircleLine ;
 
 
 (*
+   findCollisionCircleRLine - find the time (if any) between line number, lineP, in polygon, pPtr,
+                              and the circle, cPtr.  cPtr can also be a polygon in which case lineC
+                              is the particular line under question.  Line on line collision is broken
+                              down into circle line calls which allows for code reuse.
+*)
+
+PROCEDURE findCollisionCircleRLine (cPtr, pPtr: Object;
+                                    lineP, lineC: CARDINAL; center: Coord; radius: REAL;
+                                    VAR edesc: eventDesc; VAR timeOfCollision: REAL; createDesc: descP) ;
+VAR
+   velCircle, accelCircle,
+   velLine, accelLine,
+   p1, p2                       : Coord ;
+   cx, cy, r, cvx, cvy, cax, cay,
+   pvx, pvy, pax, pay, t        : REAL ;
+   cid, pid                     : CARDINAL ;
+BEGIN
+   cid := cPtr^.id ;
+   pid := pPtr^.id ;
+
+   getPolygonLine (lineP, pPtr, p1, p2) ;
+
+   (* we perform 4 checks.
+
+         (i) and (ii)     pretend the circle has radius 0.0 and see if it hits two new circles at
+                          point, p1, and, p2 with the original radius.
+         (iii) and (iv)   now draw two lines between the edge of the two new circles and see if the
+                          center of the original circle intersects with either line.
+
+         the smallest positive time is the time of the next collision.
+    *)
+
+   getObjectValues (cPtr, cvx, cvy, cax, cay) ;
+   getObjectValues (pPtr, pvx, pvy, pax, pay) ;
+
+   (* i *)
+   IF earlierCircleCollision (t, timeOfCollision,
+                              p1.x, center.x, pvx, cvx, pax, cax,
+                              p1.y, center.y, pvy, cvy, pay, cay, radius, 0.0)
+   THEN
+      (* circle hits corner of the line, p1, in tc seconds.  *)
+      IF Debugging
+      THEN
+         printf ("circle hits corner at %g, %g  in %g\n", p1.x, p1.y, t)
+      END ;
+      timeOfCollision := t ;
+      edesc := createDesc (edesc, cid, pid, lineP, lineC, corner, corner, p1) ;  (* point no, lineC.  *)
+      IF drawPrediction
+      THEN
+         frameNote ;
+         drawFrame ;
+         debugCircle (center, 0.02, white ()) ;
+         debugCircle (p1, 0.02, white ()) ;
+         flipBuffer ;
+         collectAll
+      END
+   END ;
+
+   (* ii *)
+   IF earlierCircleCollision (t, timeOfCollision,
+                              p2.x, center.x, pvx, cvx, pax, cax,
+                              p2.y, center.y, pvy, cvy, pay, cay, radius, 0.0)
+   THEN
+      (* circle hits corner of the line, p2, in tc seconds.  *)
+      IF Debugging
+      THEN
+         printf ("circle hits corner at %g, %g  in %g  (lineP+1)\n", p2.x, p2.y, t)
+      END ;
+      timeOfCollision := t ;
+      edesc := createDesc (edesc, cid, pid, lineP+1, lineC, corner, corner, p2) ;  (* point no, lineP+1.  *)
+      IF drawPrediction
+      THEN
+         frameNote ;
+         drawFrame ;
+         debugCircle (cPtr^.c.pos, 0.02, white ()) ;
+         debugCircle (p2, 0.02, white ()) ;
+         flipBuffer ;
+         collectAll
+      END
+   END ;
+
+   velCircle   := initCoord (cvx, cvy) ;
+   accelCircle := initCoord (cax, cay) ;
+   velLine     := initCoord (pvx, pvy) ;
+   accelLine   := initCoord (pax, pay) ;
+
+   (* iii and iv *)
+   findEarlierCircleEdgeCollision (timeOfCollision,
+                                   cid, pid,
+                                   lineP, lineC, edesc,
+                                   center, radius, velCircle, accelCircle,
+                                   p1, p2, velLine, accelLine, createDesc)
+                             
+END findCollisionCircleRLine ;
+
+
+(*
    findCollisionCirclePolygon - find the smallest positive time (if any) between the polygon and circle.
                                 If a collision if found then, tc, is assigned to the time and cid, pid
                                 are set to the circle id and polygon id respectively.
@@ -2922,8 +3194,15 @@ VAR
 BEGIN
    Assert (cPtr^.object=circleOb) ;
    WITH pPtr^ DO
-      FOR i := 1 TO p.nPoints DO
-         findCollisionCircleLine (cPtr, pPtr, i, 0, cPtr^.c.pos, cPtr^.c.r, edesc, tc, makeCirclesPolygonDesc)
+      IF angularVelocity=0.0
+      THEN
+         FOR i := 1 TO p.nPoints DO
+            findCollisionCircleLine (cPtr, pPtr, i, 0, cPtr^.c.pos, cPtr^.c.r, edesc, tc, makeCirclesPolygonDesc)
+         END
+      ELSE
+         FOR i := 1 TO p.nPoints DO
+            findCollisionCircleRLine (cPtr, pPtr, i, 0, cPtr^.c.pos, cPtr^.c.r, edesc, tc, makeCirclesPolygonDesc)
+         END
       END
    END
 END findCollisionCirclePolygon ;

@@ -149,6 +149,9 @@ bagatelle: $(OBJECTS)
 elc: $(OBJECTS)
 	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/elc.mod
 
+elc2: $(OBJECTS)
+	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/elc2.mod
+
 line: $(OBJECTS)
 	gm2 -fcpp -I. $(GM2FLAGS) -fonlylink $(srcdir)/line.mod
 

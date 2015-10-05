@@ -1,3 +1,12 @@
+2015-10-05      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/Makefile.in:  added new rule for elc2.mod
+	* gm2/examples/pge/coord.mod:  tidied up formatting.
+	* gm2/examples/pge/twoDsim.mod:  added Elasticity constant,
+	  angularMomentum for objects.  New procedure function (reflect).
+          collidePolygonAgainstMovingPolygon (rewritten).
+	  Interim checkin.
+
 2015-09-28      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/Makefile.in:  new example circle added.

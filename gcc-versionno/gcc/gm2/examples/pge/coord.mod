@@ -96,7 +96,7 @@ END scaleCoord ;
 
 PROCEDURE subCoord (a, b: Coord) : Coord ;
 BEGIN
-   RETURN initCoord(a.x-b.x, a.y-b.y)
+   RETURN initCoord (a.x-b.x, a.y-b.y)
 END subCoord ;
 
 
@@ -106,7 +106,7 @@ END subCoord ;
 
 PROCEDURE addCoord (a, b: Coord) : Coord ;
 BEGIN
-   RETURN initCoord(a.x+b.x, a.y+b.y)
+   RETURN initCoord (a.x+b.x, a.y+b.y)
 END addCoord ;
 
 
@@ -116,7 +116,7 @@ END addCoord ;
 
 PROCEDURE lengthCoord (c: Coord) : REAL ;
 BEGIN
-   RETURN sqrt(c.x*c.x + c.y*c.y)
+   RETURN sqrt (c.x*c.x + c.y*c.y)
 END lengthCoord ;
 
 
@@ -126,8 +126,8 @@ END lengthCoord ;
 
 PROCEDURE rotateCoord (c: Coord; theta: REAL) : Coord ;
 BEGIN
-   RETURN initCoord(c.x * cos(theta) - c.y * sin(theta),
-                    c.x * sin(theta) + c.y * cos(theta))
+   RETURN initCoord (c.x * cos (theta) - c.y * sin (theta),
+                     c.x * sin (theta) + c.y * cos (theta))
 END rotateCoord ;
 
 
