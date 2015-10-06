@@ -72,7 +72,7 @@ all: force
 %.m:  $(srcdir)/%.mxm
 	python $(srcdir)/max2code.py -o $@ $<
 
-$(srcdir)/twoDsim.mod: circles.m rotating-line.m
+$(srcdir)/twoDsim.mod: circles.m rotating-line.m rotating-circles.m
 
 twoDsim.o: $(srcdir)/twoDsim.mod
 	gm2 -I. -fcpp $(GM2FLAGS) -c $< -o $@

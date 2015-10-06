@@ -128,6 +128,8 @@ class tree:
                         self.error('expecting ^ to have two operands only')
                     self.doM2Power()
                 else:
+                    if len (output)>0 and output[-1]==')':
+                        output += ' + '
                     output += '('
                     l[0].lang_m2()
                     for o in self.operands[1:]:
@@ -147,6 +149,22 @@ class tree:
             output += ') '
         elif self.isToPower('4'):
             output += ' quart('
+            self.operands[0].lang_m2()
+            output += ') '
+        elif self.isToPower('5'):
+            output += ' pent('
+            self.operands[0].lang_m2()
+            output += ') '
+        elif self.isToPower('6'):
+            output += ' hex('
+            self.operands[0].lang_m2()
+            output += ') '
+        elif self.isToPower('7'):
+            output += ' sept('
+            self.operands[0].lang_m2()
+            output += ') '
+        elif self.isToPower('8'):
+            output += ' oct('
             self.operands[0].lang_m2()
             output += ') '
         else:
@@ -211,8 +229,9 @@ class tree:
             i = 0
             for o in self.operands:
                 if o.findPolynomial (nTerm, variable):
-                    if i > 0 and self.name == '-':
-                        output = '-' + output
+                    if i > 0:
+                        if self.name == '-':
+                            output = '-' + output
                 i += 1
         return False
 

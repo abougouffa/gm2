@@ -147,7 +147,7 @@ class parse:
         else:
             f = open (self.outputFile, 'w')
         f.write(self.embedded[0])
-
+        
         for i in range(1, len(self.embedded)-2):
             f.write(self.embedded[i])
             f.write(self.polynomials[i-1])

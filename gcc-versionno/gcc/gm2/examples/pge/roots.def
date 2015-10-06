@@ -28,7 +28,17 @@ DEFINITION MODULE roots ;
     Description: find the roots to quadratics and quartic equations.
 *)
 
-EXPORT QUALIFIED findQuadratic, findQuartic, findAllRootsQuartic, nearZero ;
+EXPORT QUALIFIED findQuadratic, findQuartic, findAllRootsQuartic, findOctic, nearZero ;
+
+
+(*
+   findOctic - returns TRUE if a root >= 0 exists for the equation:
+
+                 8     7    6    5    4    3    2
+               ax  + bx + cx + dx + ex + fx + gx + hx + i = 0
+*)
+
+PROCEDURE findOctic (a, b, c, d, e, f, g, h, i: REAL; VAR x0: REAL) : BOOLEAN ;
 
 
 (*

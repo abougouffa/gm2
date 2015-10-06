@@ -24,7 +24,7 @@ FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, HighIndice ;
 FROM libc IMPORT printf, exit ;
 FROM deviceIf IMPORT flipBuffer, frameNote, glyphCircle, glyphPolygon, writeTime, blue, red, black, yellow, purple, white ;
 FROM libm IMPORT sqrt, asin, sin, cos ;
-FROM roots IMPORT findQuartic, findQuadratic, findAllRootsQuartic, nearZero ;
+FROM roots IMPORT findQuartic, findQuadratic, findAllRootsQuartic, findOctic, nearZero ;
 FROM Fractions IMPORT Fract, zero, one, putReal, initFract ;
 FROM Points IMPORT Point, initPoint ;
 FROM GC IMPORT collectAll ;
@@ -2212,6 +2212,46 @@ END quad ;
 
 
 (*
+   pent - 
+*)
+
+PROCEDURE pent (v: REAL) : REAL ;
+BEGIN
+   RETURN quad (v) * v
+END pent ;
+
+
+(*
+   hex - 
+*)
+
+PROCEDURE hex (v: REAL) : REAL ;
+BEGIN
+   RETURN cub (v) * cub (v)
+END hex ;
+
+
+(*
+   sept - 
+*)
+
+PROCEDURE sept (v: REAL) : REAL ;
+BEGIN
+   RETURN quad (v) * cub (v)
+END sept ;
+
+
+(*
+   oct - 
+*)
+
+PROCEDURE oct (v: REAL) : REAL ;
+BEGIN
+   RETURN quad (v) * quad (v)
+END oct ;
+
+
+(*
    getCircleValues - assumes, o, is a circle and retrieves:
                      center    (x, y)
                      radius    radius
@@ -2249,6 +2289,128 @@ BEGIN
       ay := o^.ay + simulatedGravity
    END
 END getObjectValues ;
+
+
+(*
+   getObjectOrbitingValues - 
+*)
+
+PROCEDURE getObjectOrbitingValues (o: Object; VAR r, w: REAL; VAR cofg: Coord) ;
+BEGIN
+   WITH o^ DO
+      r := angleOrientation ;
+      w := angularVelocity ;
+      CASE object OF
+
+      polygonOb:  cofg := p.cOfG |
+      circleOb :  cofg := c.pos
+
+      ELSE
+         HALT
+      END
+   END
+END getObjectOrbitingValues ;
+
+
+(*
+   maximaCircleCollisionOrbiting - 
+   x1 y1 x2 y2
+
+   a, g, l, r       is  initial position of the point (not the c of g)
+   b, h, m, s       is  initial velocity
+   c, i, n, u       is  acceleration
+   e, k, p, v       is  angular velocity
+   f, q, k, w       is  the initial angular offset for the center of circle relative to the c of g.
+                    The c of g is the center of the orbit.
+   d,    o          the distance of the point from the c of g.
+*)
+
+PROCEDURE maximaCircleCollisionOrbiting (VAR array: ARRAY OF REAL;
+                                         a, b, c, d, e, f,
+                                         g, h, i, j, k,
+                                         l, m, n, o, p, q,
+                                         r, s, u, v, w,
+                                         x               : REAL) ;
+BEGIN
+(* #  include "rotating-circles.m" *)
+END maximaCircleCollisionOrbiting ;
+
+
+(*
+   earlierCircleCollisionOrbiting - 
+
+           t          is the time of this collision (if any)
+           tc         is the time of the next collision.
+
+           c1p        is the initial position of the center of circle 1.
+                      This may not be the c of g of this circle if it is in orbit.
+           c1radius   is the radius of the circle.
+           c1r        rotational offset of point 1.
+           c1cofg     center of gravity of point 1.
+           c1w        rotational angular velocity of point 1.
+           c1a        acceleration of point 1.
+
+           c2p        is the initial position of the center of circle 2.
+                      This may not be the c of g of this circle if it is in orbit.
+           c2radius   is the radius of the circle.
+           c2r        rotational offset of point 2.
+           c2cofg     center of gravity of point 2.
+           c2w        rotational angular velocity of point 2.
+           c2a        acceleration of point 2.
+*)
+
+PROCEDURE earlierCircleCollisionOrbiting (VAR t, tc: REAL;
+                                          c1p: Coord; c1radius: REAL;
+                                          c1r, c1w: REAL; c1cofg, c1v, c1a,
+                                          c2p: Coord; c2radius: REAL;
+                                          c2r, c2w: REAL; c2cofg, c2v, c2a: Coord) : BOOLEAN ;
+VAR
+   d1, d2,
+   A, B, C, D, E, F, G, H, I, T: REAL ;
+   array                       : ARRAY [0..8] OF REAL ;
+BEGIN
+   d1 := lengthCoord (subCoord (c1p, c1cofg)) ;
+   d2 := lengthCoord (subCoord (c2p, c2cofg)) ;
+
+   maximaCircleCollisionOrbiting (array,
+                                  (* describe line 1 by its X coordinates.  *)
+                                  c1p.x, c1v.x, c1a.x, d1, c1w, c1r,
+                                  (* describe line 2 by its X coordinates.  *)
+                                  c2p.x, c2v.x, c2a.x, c2w, c2r,
+                                  (* describe line 1 by its Y coordinates.  *)
+                                  c1p.y, c1v.y, c1a.y, d2, c1w, c1r,
+                                  (* describe line 2 by its Y coordinates.  *)
+                                  c2p.y, c2v.y, c2a.y, c2w, c2r,
+                                  c1radius+c2radius) ;
+
+   A := array[8] ;
+   B := array[7] ;
+   C := array[6] ;
+   D := array[5] ;
+   E := array[4] ;
+   F := array[3] ;
+   G := array[2] ;
+   H := array[1] ;
+   I := array[0] ;
+
+   (* now solve for values of t which satisfy:
+      At^8 + Bt^7 + Ct^6 + Dt^5 + Et^4 + Ft^3 + Gt^2 + Ht + I = 0  *)
+   IF findOctic (A, B, C, D, E, F, G, H, I, t)
+   THEN
+      T := A*oct(t) + B*sept(t) + C*hex(t) + D*pent(t) + E*quad(t) + F*cub(t) + G*sqr(t) + H*t + I ;
+      IF Debugging
+      THEN
+         printf ("%gt^8 + %gt^7 +%gt^6 + %gt^5 + %gt^4 + %gt^3 + %gt^2 + %gt + %g = %g    (t=%g)\n",
+                 A, B, C, D, E, F, G, H, I, T, t)
+      END ;
+      (* remember tc is -1.0 initially, to force it to be set once.  *)
+      IF ((tc<0.0) OR (t<tc)) AND (NOT nearZero (t))
+      THEN
+         RETURN TRUE
+      END
+   END ;
+   RETURN FALSE
+END earlierCircleCollisionOrbiting ;
 
 
 (*
@@ -2993,6 +3155,8 @@ END getPolygonLine ;
                              and the circle, cPtr.  cPtr can also be a polygon in which case lineC
                              is the particular line under question.  Line on line collision is broken
                              down into circle line calls which allows for code reuse.
+
+                             Neither cPtr or pPtr are orbiting.
 *)
 
 PROCEDURE findCollisionCircleLine (cPtr, pPtr: Object;
@@ -3086,21 +3250,24 @@ END findCollisionCircleLine ;
 
 
 (*
-   findCollisionCircleRLine - find the time (if any) between line number, lineP, in polygon, pPtr,
-                              and the circle, cPtr.  cPtr can also be a polygon in which case lineC
-                              is the particular line under question.  Line on line collision is broken
-                              down into circle line calls which allows for code reuse.
+   findCollisionCircleLineOrbiting - find the time (if any) between line number, lineP, in polygon, pPtr,
+                                     and the circle, cPtr.  cPtr can also be a polygon in which case lineC
+                                     is the particular line under question.  Line on line collision is broken
+                                     down into circle line calls which allows for code reuse.
+
+                                     Either cPtr or pPtr or both are orbiting.
 *)
 
-PROCEDURE findCollisionCircleRLine (cPtr, pPtr: Object;
-                                    lineP, lineC: CARDINAL; center: Coord; radius: REAL;
-                                    VAR edesc: eventDesc; VAR timeOfCollision: REAL; createDesc: descP) ;
+PROCEDURE findCollisionCircleLineOrbiting (cPtr, pPtr: Object;
+                                           lineP, lineC: CARDINAL; center: Coord; radius: REAL;
+                                           VAR edesc: eventDesc; VAR timeOfCollision: REAL; createDesc: descP) ;
 VAR
-   velCircle, accelCircle,
-   velLine, accelLine,
+   t,
+   cr, cw,
+   pr, pw                       : REAL ;
+   cv, ca, ccofg,
+   pv, pa, pcofg,
    p1, p2                       : Coord ;
-   cx, cy, r, cvx, cvy, cax, cay,
-   pvx, pvy, pax, pay, t        : REAL ;
    cid, pid                     : CARDINAL ;
 BEGIN
    cid := cPtr^.id ;
@@ -3118,18 +3285,20 @@ BEGIN
          the smallest positive time is the time of the next collision.
     *)
 
-   getObjectValues (cPtr, cvx, cvy, cax, cay) ;
-   getObjectValues (pPtr, pvx, pvy, pax, pay) ;
+   getObjectValues (cPtr, cv.x, cv.y, ca.x, ca.y) ;
+   getObjectValues (pPtr, pv.x, pv.y, pa.x, pa.y) ;
+   getObjectOrbitingValues (cPtr, cr, cw, ccofg) ;
+   getObjectOrbitingValues (pPtr, pr, pw, pcofg) ;
 
    (* i *)
-   IF earlierCircleCollision (t, timeOfCollision,
-                              p1.x, center.x, pvx, cvx, pax, cax,
-                              p1.y, center.y, pvy, cvy, pay, cay, radius, 0.0)
+   IF earlierCircleCollisionOrbiting (t, timeOfCollision,
+                                      center, radius, cr, cw, ccofg, cv, ca,
+                                      p1, 0.0, pr, pw, pcofg, pv, pa)
    THEN
       (* circle hits corner of the line, p1, in tc seconds.  *)
       IF Debugging
       THEN
-         printf ("circle hits corner at %g, %g  in %g\n", p1.x, p1.y, t)
+         printf ("circle hits corner at %g, %g  in %g seconds\n", p1.x, p1.y, t)
       END ;
       timeOfCollision := t ;
       edesc := createDesc (edesc, cid, pid, lineP, lineC, corner, corner, p1) ;  (* point no, lineC.  *)
@@ -3145,14 +3314,14 @@ BEGIN
    END ;
 
    (* ii *)
-   IF earlierCircleCollision (t, timeOfCollision,
-                              p2.x, center.x, pvx, cvx, pax, cax,
-                              p2.y, center.y, pvy, cvy, pay, cay, radius, 0.0)
+   IF earlierCircleCollisionOrbiting (t, timeOfCollision,
+                                      center, radius, cr, cw, ccofg, cv, ca,
+                                      p2, 0.0, pr, pw, pcofg, pv, pa)
    THEN
       (* circle hits corner of the line, p2, in tc seconds.  *)
       IF Debugging
       THEN
-         printf ("circle hits corner at %g, %g  in %g  (lineP+1)\n", p2.x, p2.y, t)
+         printf ("circle hits corner at %g, %g  in %g seconds  (lineP+1)\n", p2.x, p2.y, t)
       END ;
       timeOfCollision := t ;
       edesc := createDesc (edesc, cid, pid, lineP+1, lineC, corner, corner, p2) ;  (* point no, lineP+1.  *)
@@ -3167,19 +3336,16 @@ BEGIN
       END
    END ;
 
-   velCircle   := initCoord (cvx, cvy) ;
-   accelCircle := initCoord (cax, cay) ;
-   velLine     := initCoord (pvx, pvy) ;
-   accelLine   := initCoord (pax, pay) ;
-
+(* got to here
    (* iii and iv *)
-   findEarlierCircleEdgeCollision (timeOfCollision,
-                                   cid, pid,
-                                   lineP, lineC, edesc,
-                                   center, radius, velCircle, accelCircle,
-                                   p1, p2, velLine, accelLine, createDesc)
+   findEarlierCircleEdgeCollisionOrbiting (timeOfCollision,
+                                           cid, pid,
+                                           lineP, lineC, edesc,
+                                           center, radius, cv, ca, cr, cw,
+                                           p1, p2, pv, pa, pr, pw, createDesc)
+*)
                              
-END findCollisionCircleRLine ;
+END findCollisionCircleLineOrbiting ;
 
 
 (*
@@ -3193,16 +3359,15 @@ VAR
    i: CARDINAL ;
 BEGIN
    Assert (cPtr^.object=circleOb) ;
-   WITH pPtr^ DO
-      IF angularVelocity=0.0
-      THEN
-         FOR i := 1 TO p.nPoints DO
-            findCollisionCircleLine (cPtr, pPtr, i, 0, cPtr^.c.pos, cPtr^.c.r, edesc, tc, makeCirclesPolygonDesc)
-         END
-      ELSE
-         FOR i := 1 TO p.nPoints DO
-            findCollisionCircleRLine (cPtr, pPtr, i, 0, cPtr^.c.pos, cPtr^.c.r, edesc, tc, makeCirclesPolygonDesc)
-         END
+   Assert (pPtr^.object=polygonOb) ;
+   IF isOrbiting (pPtr)
+   THEN
+      FOR i := 1 TO pPtr^.p.nPoints DO
+         findCollisionCircleLineOrbiting (cPtr, pPtr, i, 0, cPtr^.c.pos, cPtr^.c.r, edesc, tc, makeCirclesPolygonDesc)
+      END
+   ELSE
+      FOR i := 1 TO pPtr^.p.nPoints DO
+         findCollisionCircleLine (cPtr, pPtr, i, 0, cPtr^.c.pos, cPtr^.c.r, edesc, tc, makeCirclesPolygonDesc)
       END
    END
 END findCollisionCirclePolygon ;
@@ -3235,10 +3400,57 @@ END makePolygonPolygon ;
 
 
 (*
-   findCollisionLineLine - 
+   isOrbiting - return TRUE if object, o, is rotating.
+*)
+
+PROCEDURE isOrbiting (o: Object) : BOOLEAN ;
+BEGIN
+   RETURN NOT nearZero (o^.angularVelocity)
+END isOrbiting ;
+
+
+(*
+   findCollisionLineLine - find the smallest time in the future when two lines collide.
+                           The event descriptor, edesc, will contain the description of the collision
+                           and, tc, the time of collision in the future.
 *)
 
 PROCEDURE findCollisionLineLine (iPtr, jPtr: Object; iLine, jLine: CARDINAL; VAR edesc: eventDesc; VAR tc: REAL) ;
+BEGIN
+   IF isOrbiting (iPtr) OR isOrbiting (jPtr)
+   THEN
+      findCollisionLineLineOrbiting (iPtr, jPtr, iLine, jLine, edesc, tc)
+   ELSE
+      findCollisionLineLineNonOrbiting (iPtr, jPtr, iLine, jLine, edesc, tc)
+   END
+END findCollisionLineLine ;
+
+
+
+PROCEDURE findCollisionLineLineOrbiting (iPtr, jPtr: Object; iLine, jLine: CARDINAL; VAR edesc: eventDesc; VAR tc: REAL) ;
+VAR
+   i0, i1,
+   j0, j1: Coord ;
+BEGIN
+   getPolygonLine (iLine, iPtr, i0, i1) ;
+   getPolygonLine (jLine, jPtr, j0, j1) ;
+
+   (* test i0 crossing jLine *)
+   findCollisionCircleLineOrbiting (iPtr, jPtr, iLine, jLine, i0, 0.0, edesc, tc, makePolygonPolygon) ;
+
+   (* test i1 crossing line j *)
+   findCollisionCircleLineOrbiting (iPtr, jPtr, iLine, jLine, i1, 0.0, edesc, tc, makePolygonPolygon) ;
+   
+   (* test j0 crossing line i *)
+   findCollisionCircleLineOrbiting (jPtr, iPtr, iLine, jLine, j0, 0.0, edesc, tc, makePolygonPolygon) ;
+
+   (* test j1 crossing line i *)
+   findCollisionCircleLineOrbiting (jPtr, iPtr, iLine, jLine, j1, 0.0, edesc, tc, makePolygonPolygon)
+
+END findCollisionLineLineOrbiting ;
+
+
+PROCEDURE findCollisionLineLineNonOrbiting (iPtr, jPtr: Object; iLine, jLine: CARDINAL; VAR edesc: eventDesc; VAR tc: REAL) ;
 VAR
    i0, i1,
    j0, j1: Coord ;
@@ -3258,7 +3470,7 @@ BEGIN
    (* test j1 crossing line i *)
    findCollisionCircleLine (jPtr, iPtr, iLine, jLine, j1, 0.0, edesc, tc, makePolygonPolygon)
 
-END findCollisionLineLine ;
+END findCollisionLineLineNonOrbiting ;
 
 
 (*

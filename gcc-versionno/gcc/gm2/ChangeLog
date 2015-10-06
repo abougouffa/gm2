@@ -1,3 +1,27 @@
+2015-10-06      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/Makefile.in:  build rotating-circles.m.
+	* gm2/examples/pge/mxmparser.py:  formatting change.
+	* gm2/examples/pge/mxmtree.py:  add terms and call pent, hex,
+	  sept, oct for powers 5..8.
+	* gm2/examples/pge/roots.def:  findOctic new procedure function.
+	* gm2/examples/pge/roots.mod:  findOctic new procedure function
+	  wrapper implemented.
+	* gm2/examples/pge/rotating-circles.mxm:  corrected terms and
+	  renamed some of the variables.
+	* gm2/examples/pge/rotating-line.mxm:  tidied up comments.
+	* gm2/examples/pge/twoDsim.mod:  new procedure functions,
+	  pent, hex, sept, oct.  New procedure getObjectOrbitingValues.
+	  New procedure maximaCircleCollisionOrbiting.  New procedure
+	  function earlierCircleCollisionOrbiting.  New procedure
+	  findCollisionCircleLineOrbiting.  Removed
+	  findCollisionCircleRLine.  findCollisionCirclePolygon call
+	  appropriate routine depending upon whether the polygon is
+	  orbiting.  New procedure function, isOrbiting.
+	  findCollisionLineLine call appropriate routine depending
+	  upon whether polygon is orbiting.  New procedure
+	  findCollisionLineLineOrbiting.
+
 2015-10-05      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/pge/Makefile.in:  added new rule for elc2.mod

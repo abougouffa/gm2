@@ -129,12 +129,12 @@ BEGIN
     *  (cos(x) + i sin(x))^r = cos(rx) + i sin(rx) 
     *)
 
-   radius := rsqrt(RE(c) * RE(c) + IM(c) * IM(c)) ;
-   angle := atan2(IM(c), RE(c)) ;
-   radiusr := pow(radius, r) ;
+   radius := rsqrt (RE(c) * RE(c) + IM(c) * IM(c)) ;
+   angle := atan2 (IM(c), RE(c)) ;
+   radiusr := pow (radius, r) ;
 
-   RETURN CMPLX(radiusr * cos(angle*r),
-                radiusr * sin(angle*r))
+   RETURN CMPLX (radiusr * cos (angle*r),
+                 radiusr * sin (angle*r))
 END cpower ;
 
 
@@ -144,7 +144,7 @@ END cpower ;
 
 PROCEDURE csqrt (c: COMPLEX) : COMPLEX ;
 BEGIN
-   RETURN cpower(c, 1.0/2.0)
+   RETURN cpower (c, 1.0/2.0)
 END csqrt ;
 
 
@@ -174,7 +174,7 @@ END ccub ;
 
 PROCEDURE ccubr (c: COMPLEX) : COMPLEX ;
 BEGIN
-   RETURN cpower(c, 1.0/3.0)
+   RETURN cpower (c, 1.0/3.0)
 END ccubr ;
 
 
@@ -201,10 +201,10 @@ BEGIN
          RETURN TRUE
       END
    ELSE
-      discriminant := sqr(b) - 4.0*a*c ;
+      discriminant := sqr (b) - 4.0*a*c ;
       IF discriminant>0.0
       THEN
-         q := rsqrt(discriminant) ;
+         q := rsqrt (discriminant) ;
          x0 := (-b + q) / (2.0 * a) ;
          x1 := (-b - q) / (2.0 * a) ;
          RETURN TRUE
@@ -236,9 +236,9 @@ VAR
    X   : ARRAY [1..2] OF REAL ;
 BEGIN
    i := 0 ;
-   IF nearZero(a)
+   IF nearZero (a)
    THEN
-      IF findQuadratic(b, c, d, X[1], X[2])
+      IF findQuadratic (b, c, d, X[1], X[2])
       THEN
          i := 2
       END
@@ -365,6 +365,19 @@ BEGIN
       printf("assert failed\n")
    END
 END Assert ;
+
+
+(*
+   findOctic - returns TRUE if a root >= 0 exists for the equation:
+
+                 8     7    6    5    4    3    2
+               ax  + bx + cx + dx + ex + fx + gx + hx + i = 0
+*)
+
+PROCEDURE findOctic (a, b, c, d, e, f, g, h, i: REAL; VAR x0: REAL) : BOOLEAN ;
+BEGIN
+   RETURN FALSE
+END findOctic ;
 
 
 PROCEDURE test ;

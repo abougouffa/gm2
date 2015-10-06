@@ -7,7 +7,9 @@
 //  position of the line are the same.
 //
 //  Then we compare the X position of the point and whether this intersects
-//  the line.
+//  the line.  This is used to solve (iii) and (iv) in
+//  findCollisionCircleLineOrbiting.  Note that to solve (i) and (ii)
+//  we need rotating-circles.mxm.
 //
 //  GM  2012, 2013, 2014, 2015
 //
@@ -34,14 +36,14 @@ finalise {
 
 }
 
-// and lastly the maxima code
+// and lastly the maxima code.
 
 {
-/* cos taylors expansion up to the 3rd term */
+/* cos taylors expansion up to the 3rd term.  */
 
 O(X) := ''1 - X^2/2 + X^4/4 ;
 
-/* define sin using cos, as it uses smaller powers */
+/* define sin using cos, as it uses smaller powers.  */
 
 S(X) := ''O(%pi/2-X) ;
 
@@ -72,7 +74,7 @@ S(X) := ''O(%pi/2-X) ;
 
 load(format)$
 
-/* we multiply the equation by 64 on both sides to remove a division  */
+/* we multiply the equation by 64 on both sides to remove a division.  */
 
 ((a + b*t + c*t^2/2 + d * S(e*t+f)) -
  (g + h*t + i*t^2/2 + j * S(k*t+l))) * 64 ;

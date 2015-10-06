@@ -4,7 +4,7 @@
 //  GM  2012
 //
 
-polynomial terms 8         // 8 terms
+polynomial terms 9         // 9 terms
 
 //  Modula-2 declaration for the terms and smallest positive root value.
 
@@ -31,23 +31,23 @@ finalise {
 
 // and lastly the maxima code
 {
-// cos taylors expansion up to the 3rd term
+//  cos taylors expansion up to the 3rd term.
 
 O(X) := ''1 - X^2/2 + X^4/4 ;
 
-// define sin using cos, as it uses smaller powers
+//  define sin using cos, as it uses smaller powers.
 
 S(X) := ''O(%pi/2-X) ;
 
 //
-//  now compute the distance appart of the two circles and subtract the square of
-//  the sum of the radii.  When this is zero we have a collision.
+//   now compute the distance appart of the two circles and subtract the square of
+//   the sum of the radii.  When this is zero we have a collision.
 //
-//  (relative X position)^2 + (relative Y position)^2 = sum of radii ^2
-//                                                    = Z^2
-//  A^2 + B^2                                         = Z^2
-//  A^2 + B^2 - Z^2                                   = 0
-//  
+//   (relative X position)^2 + (relative Y position)^2 = sum of radii ^2
+//                                                     = Z^2
+//   A^2 + B^2                                         = Z^2
+//   A^2 + B^2 - Z^2                                   = 0
+//
 //  x position for circle 1 is defined as:
 //
 //  C = (a + b*t + c*t^2/2 + d*O(e*t+f))
@@ -86,27 +86,23 @@ S(X) := ''O(%pi/2-X) ;
 //  now expand for A^2 + B^2 - z^2
 //  and collect like terms of t
 //
-
 //
-//  ((a + b*t + c*t^2/2 + d * O(e * t + f)) - (g + h * t + i * t^2/2 + j * S(k*t+l)))^2 +
-//  ((m + n*t + o*t^2/2 + p * O(q * t + r)) - (s + u * t + v * t^2/2 + w * S(x*t+y)))^2 - z^2 ;
+//
+//  ((a + b*t + c*t^2/2 + d * O(e * t + f)) - (g + h * t + i * t^2/2 + d * S(j*t+k)))^2 +
+//  ((l + m*t + n*t^2/2 + o * O(p * t + q)) - (r + s * t + u * t^2/2 + o * S(v*t+w)))^2 - x^2 ;
 //
 
-C: (a + b*t + c*t^2/2 + d*O(e*t+f));
-D: (m + n*t + o*t^2/2 + d*S(p*t+q));
-E: (g + h*t + i*t^2/2 + j*O(k*t+l));
-F: (r + s*t + u*t^2/2 + j*S(v*t+w));
-A: (C - E);
-B: (D - F);
-Z: (x+z);
+C : (a + b*t + c*t^2/2 + d*O(e*t+f));
+D : (g + h*t + i*t^2/2 + d*S(j*t+k));
+E : (l + m*t + n*t^2/2 + o*O(p*t+q));
+F : (r + s*t + u*t^2/2 + o*S(v*t+w));
+A : (C - E);
+B : (D - F);
+Z : (x);
 
-/* put them all together */
+  // put them all together.
 
-load(format)$
-
-A^2 + B^2 - Z^2;
-
-collectterms(%,t);
-ratsimp(%);
-format(%, %poly(t));
+  A^2 + B^2 - Z^2;
+  ratsimp(%);
+  collectterms(%,t);
 }
