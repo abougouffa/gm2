@@ -47,8 +47,8 @@ IMPORT gdbif ;
 CONST
    MaxPolygonPoints       =     6 ;
    DefaultFramesPerSecond =   100.0 ;
-   Debugging              =  TRUE ;
-   DebugTrace             =  TRUE ;
+   Debugging              = FALSE ;
+   DebugTrace             = FALSE ;
    BufferedTime           =     0.1 ;
    InactiveTime           =     1.0 ;  (* the time we keep simulating after all collision events have expired *)
    Elasticity             =     0.98 ; (* how elastic are the collisions?                                     *)
@@ -378,8 +378,11 @@ VAR
    optr : Object ;
    co   : ARRAY [0..2] OF Coord ;
 BEGIN
-   printf ("begin poly3 (%g, %g, %g, %g, %g, %g)\n",
-           x0, y0, x1, y1, x2, y2);
+   IF Debugging
+   THEN
+      printf ("begin poly3 (%g, %g, %g, %g, %g, %g)\n",
+              x0, y0, x1, y1, x2, y2)
+   END ;
    id := newObject (polygonOb) ;
    optr := GetIndice (objects, id) ;
    co[0] := initCoord (x0, y0) ;
@@ -394,8 +397,11 @@ BEGIN
       p.col := colour ;
       p.mass := 0.0 ;
    END ;
-   printf ("end poly3\n");
-   dumpWorld ;
+   IF Debugging
+   THEN
+      printf ("end poly3\n");
+      dumpWorld
+   END ;
    RETURN id
 END poly3 ;
 
@@ -1073,7 +1079,10 @@ VAR
    vc, ac: Coord ;
    po    : ARRAY [0..MaxPolygonPoints] OF Coord ;
 BEGIN
-   printf ("doDrawFrame (%g)\n", dt);
+   IF DebugTrace
+   THEN
+      printf ("doDrawFrame (%g)\n", dt)
+   END ;
    checkDeleted (optr) ;
    vc := getVelCoord (optr) ;
    ac := getAccelCoord (optr) ;
@@ -1146,7 +1155,10 @@ BEGIN
       optr := GetIndice(objects, i) ;
       IF (optr#NIL) AND (NOT optr^.deleted)
       THEN
-         DumpObject (optr) ;
+         IF Debugging
+         THEN
+            DumpObject (optr)
+         END ;
          (* printf ("before doDrawFrame\n"); *)
          doDrawFrame(optr, dt) ;
          (* printf ("after doDrawFrame\n"); *)
@@ -1535,7 +1547,10 @@ BEGIN
          THEN
             vx := 0.0 ;
             vy := 0.0 ;
-            DumpObject (o)
+            IF Debugging
+            THEN
+               DumpObject (o)
+            END
          END
       END
    END
@@ -1930,7 +1945,10 @@ BEGIN
    Assert (id2^.fixed) ;
    Assert (e^.ePtr^.etype=polygonPolygonEvent) ;
 
-   printf ("collidePolygonAgainstFixedPolygon\n");
+   IF Debugging
+   THEN
+      printf ("collidePolygonAgainstFixedPolygon\n")
+   END ;
    drawFrame ;      (* ****************** *)
 
    p := e^.ePtr^.pp.cPoint ;
@@ -1997,7 +2015,10 @@ BEGIN
 
    IF (e^.ePtr^.pp.wpid1=edge) AND (e^.ePtr^.pp.wpid2=edge)
    THEN
-      printf ("the edges of two polygon collide\n");
+      IF Debugging
+      THEN
+         printf ("the edges of two polygon collide\n")
+      END ;
       getPolygonLine (e^.ePtr^.pp.lineCorner1, GetIndice (objects, e^.ePtr^.pp.pid1), p1, p2) ;
       sortLine (p1, p2) ;           (* p1 and p2 are the start end positions of the line  *)
       v1 := subCoord (p2, p1) ;     (* v1 is the vector p1 -> p2  *)
@@ -2007,7 +2028,10 @@ BEGIN
    ELSIF e^.ePtr^.pp.wpid1=edge
    THEN
       (* corner collision.  *)
-      printf ("the edge of polygon collides with corner of polygon\n");
+      IF Debugging
+      THEN
+         printf ("the edge of polygon collides with corner of polygon\n")
+      END ;
       Assert (e^.ePtr^.pp.wpid2=corner) ;
 
       getPolygonLine (e^.ePtr^.pp.lineCorner2, GetIndice (objects, e^.ePtr^.pp.pid2), p1, p2) ;
@@ -2017,7 +2041,10 @@ BEGIN
       debugLine (p1, p2)
    ELSIF e^.ePtr^.pp.wpid2=edge
    THEN
-      printf ("the edge of polygon collides with corner of polygon\n");
+      IF Debugging
+      THEN
+         printf ("the edge of polygon collides with corner of polygon\n")
+      END ;
       Assert (e^.ePtr^.pp.wpid1=corner) ;
 
       getPolygonLine (e^.ePtr^.pp.lineCorner1, GetIndice (objects, e^.ePtr^.pp.pid1), p1, p2) ;
@@ -2076,13 +2103,19 @@ BEGIN
    (* calculate total impulse of collision, j.  *)
    
    vabDotN := dotProd (vab, n) ;
-   printf ("vabDotN = %g\n", vabDotN) ;
+   IF Debugging
+   THEN
+      printf ("vabDotN = %g\n", vabDotN)
+   END ;
 
    modifiedVel := vabDotN / denominator ;
    j1 := -(1.0 + Elasticity) * modifiedVel ;
    j2 := (1.0 + Elasticity) * modifiedVel ;
 
-   printf ("j1 = %g, j2 = %g\n", j1, j2);
+   IF Debugging
+   THEN
+      printf ("j1 = %g, j2 = %g\n", j1, j2)
+   END ;
 
    (* update the velocities.  *)
 
@@ -4230,8 +4263,11 @@ PROCEDURE skipTime (t: REAL) : REAL ;
 VAR
    dt: REAL ;
 BEGIN
-   printf ("skipTime %f\n", t) ;
-   dumpTime ;
+   IF Debugging
+   THEN
+      printf ("skipTime %f\n", t) ;
+      dumpTime
+   END ;
    pumpQueue ; 
    IF eventQ=NIL
    THEN
@@ -4259,8 +4295,11 @@ BEGIN
             eventQ^.time := eventQ^.time - t
          END
       END ;
-      dumpTime ;
-      printf ("finishing skipTime\n") ;
+      IF Debugging
+      THEN
+         dumpTime ;
+         printf ("finishing skipTime\n")
+      END ;
       RETURN dt
    END
 END skipTime ;
