@@ -132,7 +132,7 @@ END dropBall ;
 VAR
    light, dark: Colour ;
 BEGIN
-   popWorld.init(FALSE) ;
+   popWorld.init(TRUE) ;
    light := defineColour(initFract(0, 166, 256),
                          initFract(0, 124, 256),
                          initFract(0, 54, 256)) ;

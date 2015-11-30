@@ -22,7 +22,7 @@ MODULE stairs ;
 IMPORT popWorld ;
 IMPORT twoDsim ;
 
-FROM deviceGroff IMPORT Colour, red, blue, green ;
+FROM deviceIf IMPORT Colour, red, blue, green ;
 FROM Fractions IMPORT Fract, initFract, zero, one, two, cardinal, negate ;
 FROM Points IMPORT Point, initPoint ;
 
@@ -81,10 +81,10 @@ END dropBall ;
 VAR
    size: Fract ;
 BEGIN
-   popWorld.init(FALSE) ;
+   popWorld.init(TRUE) ;
    size := initFract(0, 1, 21) ;
    placeStairs ;
    dropBall ;
    twoDsim.gravity(-9.81) ;
-   twoDsim.simulateFor(3.0)
+   twoDsim.simulateFor(7.0)
 END stairs.

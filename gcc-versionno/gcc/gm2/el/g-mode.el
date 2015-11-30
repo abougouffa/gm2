@@ -1,5 +1,6 @@
 ;; Copyright (C) 1985, 1986, 1987, 2001, 2002, 2003, 2004,
-;;               2005, 2006, 2007, 2008, 2009, 2010, 2011
+;;               2005, 2006, 2007, 2008, 2009, 2010, 2011,
+;;               2012, 2013, 2014, 2015
 ;; Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -397,7 +398,7 @@
     (if (get-buffer "*Modula-2-Help*")
 	(kill-buffer "*Modula-2-Help*"))
     (switch-to-buffer "*Modula-2-Help*")
-    
+
     (insert
 "This is a mode intended to support program development in Modula-2.
 All control constructs of Modula-2 can be reached by typing
@@ -456,7 +457,7 @@ Control-C followed by the first character of the construct.
 (defun m2-fsf-copyright ()
   "emit the a copyright notice providing m2-assign-future is set."
   (if m2-assign-future
-      (insert "(* Copyright (C) 2011 Free Software Foundation, Inc. *)\n")))
+      (insert "(* Copyright (C) 2015 Free Software Foundation, Inc.  *)\n")))
 
 (defun m2-fsf-gpl-notice ()
   "emit the fsf gpl notice at the relevant position."
@@ -475,7 +476,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA. *)\n\n"))
+Boston, MA 02110-1301, USA.  *)\n\n"))
 
 (defun m2-fsf-lgpl-notice ()
   "emit the fsf notice at the relevant position."
@@ -494,7 +495,7 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA  02110-1301  USA *)\n\n"))
+Boston, MA  02110-1301  USA.  *)\n\n"))
 
 (defun m2-fsf-notice ()
   "if the m2-assign-future is set then prompt the user for 'g'pl or 'l'gpl."
@@ -504,7 +505,7 @@ Boston, MA  02110-1301  USA *)\n\n"))
 	(if (string-equal type "l")
 	    (m2-fsf-lgpl-notice)
 	  (m2-fsf-gpl-notice)))))
-  
+
 (defun m2-definition ()
   "Build skeleton DEFINITION MODULE, prompting for the <module name>."
   (interactive)
@@ -944,7 +945,7 @@ FROM StdIO IMPORT Write, Read ;
 	    (forward-char -1))
 	(setq carry-on (and (> (point) 1)
 			    (not (looking-at "(\\*"))))))))
-    
+
 (defun m2-indent ()
   "calculates the indentation for the current line."
   (interactive)
@@ -1157,7 +1158,7 @@ FROM StdIO IMPORT Write, Read ;
 	  (insert "       "))
       (if (looking-at " ")
 	  (delete-char 1)))))
-	  
+
 (defun m2-old-calculate-indent ()
   "calculates the indentation required for the current source line."
   (interactive)
@@ -1527,7 +1528,7 @@ FROM StdIO IMPORT Write, Read ;
 		(setq m2-in-comment (not (m2-run-forward-over-comments m2-point))))))
       (forward-char 1)))
   m2-in-comment)))
-	 
+
 (defun m2-run-forward-over-comments (lim)
   "moves over a comment and returns true if we are not in a comment"
   (interactive)
@@ -1747,7 +1748,7 @@ FROM StdIO IMPORT Write, Read ;
   '("AND" "ARRAY" "BEGIN" "BY" "CASE" "CONST" "DEFINITION" "DIV"
     "DO" "ELSE" "ELSIF" "END" "EXCEPT" "EXIT" "EXPORT" "FINALLY"
     "FOR" "FROM" "IF" "IMPLEMENTATION" "IMPORT" "IN" "LOOP" "MOD"
-    "MODULE" "NOT" "OF" "OR" "PACKED" "PACKEDSET" "POINTER" "PROCEDURE" 
+    "MODULE" "NOT" "OF" "OR" "PACKED" "PACKEDSET" "POINTER" "PROCEDURE"
     "QUALIFIED" "UNQUALIFIED" "RECORD" "REM" "REPEAT" "RETRY"
     "RETURN" "SET" "THEN" "TO" "TYPE" "UNTIL" "VAR" "WHILE"
     "WITH" "ASM" "VOLATILE")

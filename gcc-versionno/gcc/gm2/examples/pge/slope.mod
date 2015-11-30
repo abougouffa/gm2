@@ -1,4 +1,5 @@
-(* Copyright (C) 2012 Free Software Foundation, Inc. *)
+(* Copyright (C) 2012, 2013, 2014, 2015
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -115,7 +116,7 @@ VAR
    size       : Fract ;
    light, dark: Colour ;
 BEGIN
-   popWorld.init(FALSE) ;
+   popWorld.init(TRUE) ;
    light := defineColour(initFract(0, 166, 256),
                          initFract(0, 124, 256),
                          initFract(0, 54, 256)) ;

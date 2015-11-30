@@ -125,7 +125,7 @@ extern  void  yylex                   (void);
 %%
 
 "(*"                       { updatepos();
-                             commentLevel=1; pushLine(); skippos(); 
+                             commentLevel=1; pushLine(); skippos();
 			     BEGIN COMMENT; }
 <COMMENT>"*)"              { endOfComment(); }
 <COMMENT>"(*"              { commentLevel++; pushLine(); updatepos(); skippos(); }
@@ -283,6 +283,7 @@ VOLATILE                   { updatepos(); M2LexBuf_AddTok(M2Reserved_volatiletok
 
 
 (([0-9]*\.[0-9]+)(E[+-]?[0-9]+)?) { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_realtok, yytext); return; }
+[0-9]*\.E[+-]?[0-9]+       { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_realtok, yytext); return; }
 [a-zA-Z_][a-zA-Z0-9_]*     { checkFunction(); updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_identtok, yytext); return; }
 [0-9]+                     { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_integertok, yytext); return; }
 [0-9]+B                    { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_integertok, yytext); return; }

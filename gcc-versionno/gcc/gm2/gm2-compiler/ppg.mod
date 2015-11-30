@@ -69,12 +69,12 @@ TYPE
    SetDesc        = POINTER TO setdesc ;
    setdesc        =            RECORD
                                   next          : SetDesc ;
-                                  CASE type: ElementType OF 
+                                  CASE type: ElementType OF
 
                                   idel  : ident : IdentDesc |
                                   tokel,
                                   litel : string: Name
-                                  
+
                                   END
                                END ;
 
@@ -141,7 +141,7 @@ TYPE
                                   opt,
                                   mult: expr  : ExpressionDesc |
                                   m2  : code  : CodeDesc ;
-                                  
+
                                   END
                                END ;
 
@@ -332,7 +332,7 @@ VAR
    ErrorProcArray,
    ErrorProcString    : Name ;       (* the name of the error procedures *)
    FileName           : ARRAY [0..MaxFileName] OF CHAR ;
-
+   OnLineStart,
    BeginningOfLine    : BOOLEAN ;
    Indent             : CARDINAL ;
    EmittedVar         : BOOLEAN ;    (* have we written VAR yet?                   *)
@@ -400,7 +400,7 @@ END Format1 ;
 
 
 (*
-   WarnError1 - 
+   WarnError1 -
 *)
 
 PROCEDURE WarnError1 (a: ARRAY OF CHAR; n: WORD) ;
@@ -413,7 +413,7 @@ END WarnError1 ;
 
 
 (*
-   PrettyFollow - 
+   PrettyFollow -
 *)
 
 PROCEDURE PrettyFollow (start, end: ARRAY OF CHAR; f: FollowDesc) ;
@@ -607,7 +607,7 @@ END NewProduction ;
 
 
 (*
-   NewFactor - 
+   NewFactor -
 *)
 
 PROCEDURE NewFactor () : FactorDesc ;
@@ -796,6 +796,7 @@ PROCEDURE WriteCodeHunkList (l: CodeHunk) ;
 BEGIN
    IF l#NIL
    THEN
+      OnLineStart := FALSE ;
       (* recursion *)
       WITH l^ DO
          WriteCodeHunkList(next) ;
@@ -814,12 +815,13 @@ BEGIN
    WHILE n>0 DO
       Write(' ') ;
       DEC(n)
-   END
+   END ;
+   OnLineStart := FALSE
 END WriteIndent ;
 
 
 (*
-   CheckWrite - 
+   CheckWrite -
 *)
 
 PROCEDURE CheckWrite (ch: CHAR; VAR curpos: CARDINAL; left: CARDINAL; VAR seentext: BOOLEAN) ;
@@ -1091,7 +1093,7 @@ BEGIN
 END StartModName ;
 
 (*
-   EndModName    := 
+   EndModName    :=
 *)
 
 PROCEDURE EndModName () : BOOLEAN ;
@@ -1154,7 +1156,7 @@ END SyntaxError ;
 
 
 (*
-   SyntaxCheck - 
+   SyntaxCheck -
 *)
 
 PROCEDURE SyntaxCheck (stop: BITSET) ;
@@ -1167,7 +1169,7 @@ END SyntaxCheck ;
 
 
 (*
-   Expect - 
+   Expect -
 *)
 
 PROCEDURE Expect (t: TokenType; stop: BITSET) ;
@@ -1276,7 +1278,7 @@ END StartModName ;
 
 
 (*
-   EndModName    := 
+   EndModName    :=
 *)
 
 PROCEDURE EndModName (stop: BITSET) ;
@@ -1511,7 +1513,7 @@ END Special ;
                                END ;
                                TailProduction^.first := LastSetDesc ;
                               %
-                           } '}' 
+                           } '}'
 *)
 
 PROCEDURE First () : BOOLEAN ;
@@ -1544,7 +1546,7 @@ END First ;
 
 
 (*
-   Follow := 'follow' '{' { LitOrTokenOrIdent  } '}' 
+   Follow := 'follow' '{' { LitOrTokenOrIdent  } '}'
 *)
 
 PROCEDURE Follow () : BOOLEAN ;
@@ -1596,7 +1598,7 @@ END Follow ;
                                   ident  := CurrentIdent ;
                                END ;
                               %
-                        
+
 *)
 
 PROCEDURE LitOrTokenOrIdent () : BOOLEAN ;
@@ -1648,7 +1650,7 @@ END LitOrTokenOrIdent ;
 
 
 (*
-   Literal - 
+   Literal -
 *)
 
 PROCEDURE Literal () : BOOLEAN ;
@@ -2122,7 +2124,7 @@ END BackPatchExpression ;
 
 
 (*
-   BackPatchSet - 
+   BackPatchSet -
 *)
 
 PROCEDURE BackPatchSet (s: SetDesc) ;
@@ -2156,7 +2158,7 @@ END BackPatchIdentToDefinitions ;
 
 
 (*
-   CalculateFirstAndFollow - 
+   CalculateFirstAndFollow -
 *)
 
 PROCEDURE CalculateFirstAndFollow (p: ProductionDesc) ;
@@ -2182,7 +2184,7 @@ END CalculateFirstAndFollow ;
 
 
 (*
-   ForeachRuleDo - 
+   ForeachRuleDo -
 *)
 
 PROCEDURE ForeachRuleDo (p: DoProcedure) ;
@@ -2196,7 +2198,7 @@ END ForeachRuleDo ;
 
 
 (*
-   WhileNotCompleteDo - 
+   WhileNotCompleteDo -
 *)
 
 PROCEDURE WhileNotCompleteDo (p: DoProcedure) ;
@@ -2225,7 +2227,7 @@ END NewLine ;
 
 
 (*
-   CheckNewLine - 
+   CheckNewLine -
 *)
 
 PROCEDURE CheckNewLine (Left: CARDINAL) ;
@@ -2260,7 +2262,7 @@ END IndentString ;
 
 
 (*
-   PrettyPara - 
+   PrettyPara -
 *)
 
 PROCEDURE PrettyPara (c1, c2: ARRAY OF CHAR; e: ExpressionDesc; Left: CARDINAL) ;
@@ -2275,7 +2277,7 @@ END PrettyPara ;
 
 
 (*
-   WriteKeyTexinfo - 
+   WriteKeyTexinfo -
 *)
 
 PROCEDURE WriteKeyTexinfo (s: Name) ;
@@ -2305,7 +2307,7 @@ END WriteKeyTexinfo ;
 
 
 (*
-   PrettyCommentFactor - 
+   PrettyCommentFactor -
 *)
 
 PROCEDURE PrettyCommentFactor (f: FactorDesc; Left: CARDINAL) ;
@@ -2420,7 +2422,7 @@ END PeepFactor ;
 
 
 (*
-   PrettyCommentTerm - 
+   PrettyCommentTerm -
 *)
 
 PROCEDURE PrettyCommentTerm (t: TermDesc; Left: CARDINAL) ;
@@ -2444,7 +2446,7 @@ END PrettyCommentTerm ;
 
 
 (*
-   PrettyCommentExpression - 
+   PrettyCommentExpression -
 *)
 
 PROCEDURE PrettyCommentExpression (e: ExpressionDesc; Left: CARDINAL) ;
@@ -2458,7 +2460,7 @@ END PrettyCommentExpression ;
 
 
 (*
-   PrettyCommentStatement - 
+   PrettyCommentStatement -
 *)
 
 PROCEDURE PrettyCommentStatement (s: StatementDesc; Left: CARDINAL) ;
@@ -2559,8 +2561,13 @@ BEGIN
    IF (NOT SuppressFileLineTag) AND (line#LastLineNo)
    THEN
       LastLineNo := line ;
+      IF NOT OnLineStart
+      THEN
+         WriteLn
+      END ;
       WriteString('# ') ; WriteCard(line, 0) ; WriteString(' "') ; WriteString(FileName) ; Write('"') ;
-      WriteLn
+      WriteLn ;
+      OnLineStart := TRUE
    END
 END EmitFileLineTag ;
 
@@ -2587,7 +2594,7 @@ END EmitRule ;
 
 
 (*
-   CodeCondition - 
+   CodeCondition -
 *)
 
 PROCEDURE CodeCondition (m: m2condition) ;
@@ -2626,7 +2633,8 @@ BEGIN
 
    ELSE
       Halt('unrecognised m2condition', __LINE__, __FILE__)
-   END
+   END ;
+   OnLineStart := TRUE
 END CodeThenDo ;
 
 
@@ -2637,6 +2645,7 @@ END CodeThenDo ;
 PROCEDURE CodeElseEnd (end: ARRAY OF CHAR; consumed: BOOLEAN; f: FactorDesc; inopt: BOOLEAN) ;
 BEGIN
    WriteLn ;
+   OnLineStart := TRUE ;
    EmitFileLineTag(f^.line) ;
    IF NOT inopt
    THEN
@@ -2649,7 +2658,7 @@ BEGIN
          Write('(') ;
          WITH f^ DO
             CASE type OF
-            
+
             id  :  Write("'") ; WriteKey(ident^.name) ; WriteString(' - expected') ; WriteString("') ;") |
             lit :  IF MakeKey("'")=string
                    THEN
@@ -2674,7 +2683,8 @@ BEGIN
       WriteLn
    END ;
    IndentString(end) ;
-   WriteLn
+   WriteLn ;
+   OnLineStart := TRUE
 END CodeElseEnd ;
 
 
@@ -2686,6 +2696,7 @@ PROCEDURE CodeEnd (m: m2condition; t: TermDesc; consumed: BOOLEAN; f: FactorDesc
 BEGIN
    DEC(Indent, 3) ;
    WriteLn ;
+   OnLineStart := TRUE ;
    CASE m OF
 
    m2none :  IF t=NIL
@@ -2704,7 +2715,8 @@ BEGIN
 
    ELSE
       Halt('unrecognised m2condition', __LINE__, __FILE__)
-   END
+   END ;
+   OnLineStart := FALSE
 END CodeEnd ;
 
 
@@ -2727,13 +2739,14 @@ BEGIN
       IndentString('') ;
       WriteCodeHunkListIndent(code^.code, code^.indent, curpos, left, seentext) ;
       WriteString(' ;') ;
-      WriteLn
+      WriteLn ;
+      OnLineStart := TRUE
    END
 END EmitNonVarCode ;
 
 
 (*
-   ChainOn - 
+   ChainOn -
 *)
 
 PROCEDURE ChainOn (codeStack, f: FactorDesc) : FactorDesc ;
@@ -2756,7 +2769,7 @@ END ChainOn ;
 
 
 (*
-   FlushCode - 
+   FlushCode -
 *)
 
 PROCEDURE FlushCode (VAR codeStack: FactorDesc) ;
@@ -2764,22 +2777,25 @@ BEGIN
    IF codeStack#NIL
    THEN
       NewLine(Indent) ; WriteString('(* begin flushing code *)') ;
+      OnLineStart := FALSE ;
       WHILE codeStack#NIL DO
          NewLine(Indent) ; EmitNonVarCode(codeStack^.code, 0, Indent) ; NewLine(Indent) ;
          codeStack := codeStack^.pushed ;
          IF codeStack#NIL
          THEN
-            WriteString(' (* again flushing code *)') ; WriteLn
+            WriteString(' (* again flushing code *)') ; WriteLn ;
+            OnLineStart := TRUE
          END
       END ;
-      NewLine(Indent) ; 
-      WriteString('(* end flushing code *)')
+      NewLine(Indent) ;
+      WriteString('(* end flushing code *)') ;
+      OnLineStart := FALSE
    END
 END FlushCode ;
 
 
 (*
-   CodeFactor - 
+   CodeFactor -
 *)
 
 PROCEDURE CodeFactor (f: FactorDesc; t: TermDesc; l, n: m2condition; inopt, inwhile, consumed: BOOLEAN; codeStack: FactorDesc) ;
@@ -2789,7 +2805,8 @@ BEGIN
       IF (* ((l=m2elsif) OR (l=m2if) OR (l=m2none)) AND *) (NOT inwhile) AND (NOT inopt)
       THEN
          WriteLn ;
-         IndentString('RETURN( TRUE )')
+         IndentString('RETURN( TRUE )') ;
+         OnLineStart := FALSE
       END
    ELSE
       WITH f^ DO
@@ -2856,10 +2873,12 @@ BEGIN
       THEN
          m := m2if ;
          IndentString('ELSE') ; WriteLn ;
+         OnLineStart := TRUE ;
          INC(Indent, 3) ;
          CodeFactor(t^.factor, t^.next, m2none, m2none, inopt, inwhile, consumed, codeStack) ;
          DEC(Indent, 3) ;
-         IndentString('END ;') ; WriteLn
+         IndentString('END ;') ; WriteLn ;
+         OnLineStart := TRUE
       ELSE
          CodeFactor(t^.factor, t^.next, m2none, m, inopt, inwhile, consumed, codeStack)
       END ;
@@ -2874,7 +2893,7 @@ END CodeTerm ;
 
 
 (*
-   CodeExpression - 
+   CodeExpression -
 *)
 
 PROCEDURE CodeExpression (e: ExpressionDesc; m: m2condition; inopt, inwhile, consumed: BOOLEAN; codeStack: FactorDesc) ;
@@ -2888,7 +2907,7 @@ END CodeExpression ;
 
 
 (*
-   CodeStatement - 
+   CodeStatement -
 *)
 
 PROCEDURE CodeStatement (s: StatementDesc; m: m2condition) ;
@@ -2918,8 +2937,10 @@ BEGIN
       WriteString(' () : BOOLEAN ;') ;
       VarProduction(p) ;
       WriteLn ;
+      OnLineStart := TRUE ;
       EmitFileLineTag(p^.line) ;
-      IndentString('BEGIN') ;
+      IndentString('BEGIN') ; WriteLn ;
+      OnLineStart := FALSE ;
       EmitFileLineTag(p^.line) ;
       Indent := 3 ;
       CodeStatement(p^.statement, m2none) ;
@@ -2937,7 +2958,7 @@ END CodeProduction ;
 
 
 (*
-   RecoverCondition - 
+   RecoverCondition -
 *)
 
 PROCEDURE RecoverCondition (m: m2condition) ;
@@ -2996,7 +3017,7 @@ BEGIN
    WHILE to#NIL DO
       WITH to^ DO
          CASE type OF
-         
+
          tokel:  IF (high=0) OR IsBetween(string, low, high)
                  THEN
                     INC(n)
@@ -3075,7 +3096,7 @@ END EmitIsInSubSet ;
 
 
 (*
-   EmitIsInFirst - 
+   EmitIsInFirst -
 *)
 
 PROCEDURE EmitIsInFirst (to: SetDesc; m: m2condition) ;
@@ -3116,7 +3137,7 @@ END EmitIsInFirst ;
 
 
 (*
-   FlushCode - 
+   FlushCode -
 *)
 
 PROCEDURE FlushRecoverCode (VAR codeStack: FactorDesc) ;
@@ -3132,7 +3153,7 @@ END FlushRecoverCode ;
 
 
 (*
-   RecoverFactor - 
+   RecoverFactor -
 *)
 
 PROCEDURE RecoverFactor (f: FactorDesc; m: m2condition; codeStack: FactorDesc) ;
@@ -3350,7 +3371,7 @@ END RecoverTerm ;
 
 
 (*
-   RecoverExpression - 
+   RecoverExpression -
 *)
 
 PROCEDURE RecoverExpression (e: ExpressionDesc; new, old: m2condition) ;
@@ -3364,7 +3385,7 @@ END RecoverExpression ;
 
 
 (*
-   RecoverStatement - 
+   RecoverStatement -
 *)
 
 PROCEDURE RecoverStatement (s: StatementDesc; m: m2condition) ;
@@ -3383,7 +3404,7 @@ END RecoverStatement ;
 
 PROCEDURE EmitFirstFactor (f: FactorDesc; low, high: CARDINAL) ;
 BEGIN
-   
+
 END EmitFirstFactor ;
 
 
@@ -3653,7 +3674,7 @@ END EmitStopParametersAndFollow ;
 
 
 (*
-   EmitFirstAsParameters - 
+   EmitFirstAsParameters -
 *)
 
 PROCEDURE EmitFirstAsParameters (f: FactorDesc) ;
@@ -3678,6 +3699,7 @@ BEGIN
       BeginningOfLine := TRUE ;
       Indent := 0 ;
       WriteLn ;
+      OnLineStart := FALSE ;
       EmitFileLineTag(p^.line) ;
       IndentString('PROCEDURE ') ;
       WriteKey(GetDefinitionName(p)) ;
@@ -3686,9 +3708,11 @@ BEGIN
       WriteString(') ;') ;
       VarProduction(p) ;
       WriteLn ;
+      OnLineStart := FALSE ;
       EmitFileLineTag(p^.line) ;
       Indent := 0 ;
       IndentString('BEGIN') ; WriteLn ;
+      OnLineStart := FALSE ;
       EmitFileLineTag(p^.line) ;
       Indent := 3 ;
       RecoverStatement(p^.statement, m2none) ;
@@ -3768,7 +3792,7 @@ END FindStr ;
 
 
 (*
-   WriteUpto - 
+   WriteUpto -
 *)
 
 PROCEDURE WriteUpto (code, upto: CodeHunk; limit: CARDINAL) ;
@@ -3814,7 +3838,7 @@ END CheckForVar ;
 
 
 (*
-   VarFactor - 
+   VarFactor -
 *)
 
 PROCEDURE VarFactor (f: FactorDesc) ;
@@ -3852,7 +3876,7 @@ END VarTerm ;
 
 
 (*
-   VarExpression - 
+   VarExpression -
 *)
 
 PROCEDURE VarExpression (e: ExpressionDesc) ;
@@ -3865,7 +3889,7 @@ END VarExpression ;
 
 
 (*
-   VarStatement - 
+   VarStatement -
 *)
 
 PROCEDURE VarStatement (s: StatementDesc) ;
@@ -3977,7 +4001,7 @@ END AddSet ;
 
 
 (*
-   OrSet - 
+   OrSet -
 *)
 
 PROCEDURE OrSet (VAR to: SetDesc; from: SetDesc) ;
@@ -3990,7 +4014,7 @@ BEGIN
          litel:  AddSet(to, GetSymKey(Aliases, string)) |
          idel :  WarnError('not expecting ident in first symbol list') ;
                  WasNoError := FALSE
-         
+
          ELSE
             Halt('unknown element in enumeration type', __LINE__, __FILE__)
          END
@@ -4001,7 +4025,7 @@ END OrSet ;
 
 
 (*
-   CalcFirstFactor - 
+   CalcFirstFactor -
 *)
 
 PROCEDURE CalcFirstFactor (f: FactorDesc; from: ProductionDesc; VAR to: SetDesc) ;
@@ -4055,7 +4079,7 @@ END CalcFirstTerm ;
 
 
 (*
-   CalcFirstExpression - 
+   CalcFirstExpression -
 *)
 
 PROCEDURE CalcFirstExpression (e: ExpressionDesc; from: ProductionDesc; VAR to: SetDesc) ;
@@ -4068,7 +4092,7 @@ END CalcFirstExpression ;
 
 
 (*
-   CalcFirstStatement - 
+   CalcFirstStatement -
 *)
 
 PROCEDURE CalcFirstStatement (s: StatementDesc; from: ProductionDesc; VAR to: SetDesc) ;
@@ -4112,7 +4136,7 @@ END CalcFirstProduction ;
 
 
 (*
-   WorkOutFollow - 
+   WorkOutFollow -
 *)
 
 PROCEDURE WorkOutFollowFactor (f: FactorDesc; VAR followset: SetDesc; after: SetDesc) ;
@@ -4177,7 +4201,7 @@ END WorkOutFollowTerm ;
 
 
 (*
-   WorkOutFollowExpression - 
+   WorkOutFollowExpression -
 *)
 
 PROCEDURE WorkOutFollowExpression (e: ExpressionDesc; VAR followset: SetDesc; after: SetDesc) ;
@@ -4202,7 +4226,7 @@ END CollectFollow ;
 
 
 (*
-   CalcFollowFactor - 
+   CalcFollowFactor -
 *)
 
 PROCEDURE CalcFollowFactor (f: FactorDesc; after: SetDesc) ;
@@ -4264,7 +4288,7 @@ END CalcFollowTerm ;
 
 
 (*
-   CalcFollowExpression - 
+   CalcFollowExpression -
 *)
 
 PROCEDURE CalcFollowExpression (e: ExpressionDesc; after: SetDesc) ;
@@ -4309,7 +4333,7 @@ END CalcFollowProduction ;
 
 
 (*
-   CalcEpsilonFactor - 
+   CalcEpsilonFactor -
 *)
 
 PROCEDURE CalcEpsilonFactor (f: FactorDesc) ;
@@ -4367,7 +4391,7 @@ END CalcEpsilonTerm ;
 
 
 (*
-   CalcEpsilonExpression - 
+   CalcEpsilonExpression -
 *)
 
 PROCEDURE CalcEpsilonExpression (e: ExpressionDesc) ;
@@ -4460,7 +4484,7 @@ END CalcEpsilonProduction ;
 
 
 (*
-   CalcReachEndFactor - 
+   CalcReachEndFactor -
 *)
 
 PROCEDURE CalcReachEndFactor (f: FactorDesc) : TraverseResult ;
@@ -4551,7 +4575,7 @@ END CalcReachEndTerm ;
 
 
 (*
-   CalcReachEndExpression - 
+   CalcReachEndExpression -
 *)
 
 PROCEDURE CalcReachEndExpression (e: ExpressionDesc) ;
@@ -4571,7 +4595,7 @@ END CalcReachEndExpression ;
 
 
 (*
-   CalcReachEndStatement - 
+   CalcReachEndStatement -
 *)
 
 PROCEDURE CalcReachEndStatement (s: StatementDesc) ;
@@ -4624,7 +4648,7 @@ END CalcReachEndProduction ;
 
 
 (*
-   EmptyFactor - 
+   EmptyFactor -
 *)
 
 PROCEDURE EmptyFactor (f: FactorDesc) : BOOLEAN ;
@@ -4674,7 +4698,7 @@ END EmptyTerm ;
 
 
 (*
-   EmptyExpression - 
+   EmptyExpression -
 *)
 
 PROCEDURE EmptyExpression (e: ExpressionDesc) : BOOLEAN ;
@@ -4724,7 +4748,7 @@ END EmptyProduction ;
 
 
 (*
-   EmitFDLNotice - 
+   EmitFDLNotice -
 *)
 
 PROCEDURE EmitFDLNotice ;
@@ -4753,7 +4777,7 @@ END EmitRules ;
 
 
 (*
-   DescribeElement - 
+   DescribeElement -
 *)
 
 PROCEDURE DescribeElement (name: WORD) ;
@@ -4811,7 +4835,7 @@ END EmitInTestStop ;
 
 
 (*
-   DescribeStopElement - 
+   DescribeStopElement -
 *)
 
 PROCEDURE DescribeStopElement (name: WORD) ;
@@ -4854,7 +4878,7 @@ END DescribeStopElement ;
 
 
 (*
-   EmitDescribeStop - 
+   EmitDescribeStop -
 *)
 
 PROCEDURE EmitDescribeStop ;
@@ -4910,7 +4934,7 @@ END EmitDescribeStop ;
 
 
 (*
-   EmitDescribeError - 
+   EmitDescribeError -
 *)
 
 PROCEDURE EmitDescribeError ;
@@ -5076,12 +5100,12 @@ BEGIN
          END
       UNTIL h=NIL ;
       s := NIL
-   END      
+   END
 END DisposeSetDesc ;
 
 
 (*
-   OptionalFactor - 
+   OptionalFactor -
 *)
 
 PROCEDURE OptionalFactor (f: FactorDesc) : BOOLEAN ;
@@ -5155,7 +5179,7 @@ END OptionalTerm ;
 
 
 (*
-   OptionalExpression - 
+   OptionalExpression -
 *)
 
 PROCEDURE OptionalExpression (e: ExpressionDesc) : BOOLEAN ;
@@ -5185,7 +5209,7 @@ END OptionalStatement ;
 
 
 (*
-   OptionalProduction - 
+   OptionalProduction -
 *)
 
 PROCEDURE OptionalProduction (p: ProductionDesc) : BOOLEAN ;
@@ -5200,7 +5224,7 @@ END OptionalProduction ;
 
 
 (*
-   CheckFirstFollow - 
+   CheckFirstFollow -
 *)
 
 PROCEDURE CheckFirstFollow (f: FactorDesc; after: FactorDesc) : BOOLEAN ;
@@ -5233,7 +5257,7 @@ END CheckFirstFollow ;
 
 
 (*
-   ConstrainedEmptyFactor - 
+   ConstrainedEmptyFactor -
 *)
 
 PROCEDURE ConstrainedEmptyFactor (f: FactorDesc) : BOOLEAN ;
@@ -5288,7 +5312,7 @@ END ConstrainedEmptyTerm ;
 
 
 (*
-   ConstrainedEmptyExpression - 
+   ConstrainedEmptyExpression -
 *)
 
 PROCEDURE ConstrainedEmptyExpression (e: ExpressionDesc) : BOOLEAN ;
@@ -5333,7 +5357,7 @@ END ConstrainedEmptyProduction ;
 
 
 (*
-   TestForLALR1 - 
+   TestForLALR1 -
 *)
 
 PROCEDURE TestForLALR1 (p: ProductionDesc) ;
@@ -5418,7 +5442,7 @@ END PostProcessRules ;
 
 
 (*
-   ParseArgs - 
+   ParseArgs -
 *)
 
 PROCEDURE ParseArgs ;
@@ -5508,6 +5532,7 @@ BEGIN
    ErrorProcString   := MakeKey('ErrorS') ;
    TokenTypeProc     := MakeKey('GetCurrentTokenType()') ;
    SymIsProc         := MakeKey('SymIs') ;
+   OnLineStart       := TRUE ;
    ParseArgs ;
    WasNoError := Main() ;             (* this line will be manipulated by sed in buildpg *)
    IF WasNoError
@@ -5524,6 +5549,7 @@ BEGIN
          ELSE
             WriteString('(* it is advisable not to edit this file as it was automatically generated from the grammer file ') ;
             WriteString(FileName) ; WriteString(' *)') ; WriteLn ;
+            OnLineStart := FALSE ;
             EmitFileLineTag(LinePrologue) ;
             BeginningOfLine := TRUE ;
             WriteCodeHunkList(CodePrologue) ;
