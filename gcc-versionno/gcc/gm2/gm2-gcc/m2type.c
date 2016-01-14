@@ -33,6 +33,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "tm_p.h"
 #include "flags.h"
 #include <stdio.h>
+#include <float.h>
 
 
 /*
@@ -338,7 +339,7 @@ m2type_BuildArrayIndexType (tree low, tree high)
     error("low bound for the array is outside the ztype limits");
   if (m2expr_TreeOverflow (sizehigh))
     error("high bound for the array is outside the ztype limits");
-  
+
   return build_range_type (m2_z_type_node,
 			   m2expr_FoldAndStrip (sizelow),
 			   m2expr_FoldAndStrip (sizehigh));
@@ -586,7 +587,7 @@ m2type_GetM2Word64 (void)
 tree
 m2type_GetM2Word32 (void)
 {
-  return m2_word32_type_node;  
+  return m2_word32_type_node;
 }
 
 
@@ -1249,7 +1250,7 @@ m2type_BuildSetTypeFromSubrange (location_t location,
                               convert_type_to_range (subrangeType), 0);
     if (m2expr_CompareTrees (noelements, m2decl_BuildIntegerConstant (SET_WORD_SIZE)) > 0)
       error("internal error: not expecting an internal set type to have more bits than a machine word");
-  
+
     if (m2expr_CompareTrees (noelements, m2decl_BuildIntegerConstant (SET_WORD_SIZE)) == 0)
       TYPE_MAX_VALUE (settype) = TYPE_MAX_VALUE (m2type_GetWordType ());
     else
@@ -1261,7 +1262,7 @@ m2type_BuildSetTypeFromSubrange (location_t location,
 
     layout_type (settype);
     ASSERT((COMPLETE_TYPE_P (settype)), settype);
-    
+
     if ((name == NULL) || (strcmp(name, "") == 0))
       /* no modula-2 name */
       return settype;
@@ -1437,7 +1438,7 @@ m2type_BuildEndFunctionType (tree func, tree return_type, int uses_varargs)
     return_type = m2tree_skip_type_decl (return_type);
 
   if (uses_varargs)
-    {    
+    {
 #if 0
       last = param_type_list;
       if (param_type_list != NULL_TREE)
@@ -1503,7 +1504,7 @@ m2type_InitFunctionTypeParameters (void)
 
 
 /*
- *  gm2_finish_decl - 
+ *  gm2_finish_decl -
  */
 
 static
@@ -1557,7 +1558,7 @@ gm2_finish_decl (location_t location, tree decl)
             DECL_DEFER_OUTPUT (decl) = 1;
           rest_of_decl_compilation (decl, true, 0);
         }
-  
+
 
       if (!DECL_FILE_SCOPE_P (decl))
         {
@@ -1852,7 +1853,7 @@ build_m2_iso_loc_node (void)
   tree c;
 
   /* Define `LOC' as specified in ISO m2 */
-  
+
   c = make_node (INTEGER_TYPE);
   TYPE_PRECISION (c) = BITS_PER_UNIT;
   TYPE_SIZE (c) = 0;
@@ -2198,10 +2199,10 @@ m2type_DeclareKnownType (location_t location, char *name, tree type)
  *                   Checks to see whether the type name has already been declared as a
  *                   default type and if so it returns this declaration. Otherwise it
  *                   declares the type. In Modula-2 this is equivalent to:
- *                   
+ *
  *                   TYPE
  *                      name = type ;
- *                   
+ *
  *                   We need this function as the initialization to gccgm2.c will
  *                   declare C default types and _some_ M2 default types.
  */
@@ -2220,12 +2221,25 @@ m2type_GetDefaultType (location_t location, char *name, tree type)
       if (TYPE_NAME (prev) == NULL)
         TYPE_NAME (prev) = get_identifier (name);
       prev = TREE_TYPE (prev);
-    } 
+    }
     t  = m2type_DeclareKnownType (location, name, type);
     return t;
   }
   else
     return id;
+}
+
+
+tree
+do_min_real (tree type)
+{
+  REAL_VALUE_TYPE r;
+  char buf[128];
+  enum machine_mode mode = TYPE_MODE (type);
+
+  get_max_float (REAL_MODE_FORMAT (mode), buf, sizeof (buf));
+  real_from_string (&r, buf);
+  return build1 (NEGATE_EXPR, type, build_real (type, r));
 }
 
 
@@ -2240,20 +2254,29 @@ m2type_GetMinFrom (location_t location, tree type)
   m2assert_AssertLocation (location);
 
   if (type == m2_real_type_node || type == m2type_GetRealType())
-    return fold (m2expr_BuildNegate (location, fold (m2builtins_BuiltInHugeVal (location)),
-                                     FALSE));
+    return do_min_real (type);
   if (type == m2_long_real_type_node || type == m2type_GetLongRealType())
-    return fold (m2expr_BuildNegate (location, fold (m2builtins_BuiltInHugeValLong (location)),
-                                     FALSE));
+    return do_min_real (type);
   if (type == m2_short_real_type_node || type == m2type_GetShortRealType())
-    return fold (m2expr_BuildNegate (location, fold (m2builtins_BuiltInHugeValShort (location)),
-                                     FALSE));
+    return do_min_real (type);
   if (type == ptr_type_node)
     return m2expr_GetPointerZero (location);
 
   return TYPE_MIN_VALUE (m2tree_skip_type_decl (type));
 }
 
+
+tree
+do_max_real (tree type)
+{
+  REAL_VALUE_TYPE r;
+  char buf[128];
+  enum machine_mode mode = TYPE_MODE (type);
+
+  get_max_float (REAL_MODE_FORMAT (mode), buf, sizeof (buf));
+  real_from_string (&r, buf);
+  return build_real (type, r);
+}
 
 /*
  *  GetMaxFrom - given a, type, return a constant representing the maximum
@@ -2266,11 +2289,11 @@ m2type_GetMaxFrom (location_t location, tree type)
   m2assert_AssertLocation (location);
 
   if (type == m2_real_type_node || type == m2type_GetRealType ())
-    return fold (m2builtins_BuiltInHugeVal (location));
+    return do_max_real (type);
   if (type == m2_long_real_type_node || type == m2type_GetLongRealType())
-    return fold (m2builtins_BuiltInHugeValLong (location));
+    return do_max_real (type);
   if (type == m2_short_real_type_node || type == m2type_GetShortRealType())
-    return fold (m2builtins_BuiltInHugeValShort (location));
+    return do_max_real (type);
   if (type == ptr_type_node)
     return fold (m2expr_BuildSub (location,
 				  m2expr_GetPointerZero (location),
@@ -2317,8 +2340,8 @@ tree
 gm2_start_enum (location_t location, tree name, int ispacked)
 {
   tree enumtype = make_node (ENUMERAL_TYPE);
-  
-  m2assert_AssertLocation (location);  
+
+  m2assert_AssertLocation (location);
   if (TYPE_VALUES (enumtype) != 0)
     {
       /* This enum is a named one that has been declared already.  */
@@ -2655,7 +2678,7 @@ m2type_BuildSetConstructorElement (void *p, tree value)
     internal_error ("set type does not take another integer value");
     return;
   }
-  
+
   c->constructor_element_list = tree_cons (c->constructor_fields, value, c->constructor_element_list);
   c->constructor_fields = TREE_CHAIN (c->constructor_fields);
 }
@@ -2770,7 +2793,7 @@ m2type_BuildEndArrayConstructor (void *p)
 {
   struct struct_constructor *c = (struct struct_constructor *)p;
   tree constructor;
-  
+
   constructor = build_constructor (c->constructor_type, c->constructor_elements);
   TREE_CONSTANT (constructor) = TRUE;
   TREE_STATIC (constructor) = TRUE;
@@ -3131,7 +3154,7 @@ m2type_BuildStartFieldRecord (location_t location, char *name, tree type)
 {
   tree field, declarator;
 
-  m2assert_AssertLocation (location);  
+  m2assert_AssertLocation (location);
   if ((name == NULL) || (strcmp(name, "") == 0))
     declarator = NULL_TREE;
   else

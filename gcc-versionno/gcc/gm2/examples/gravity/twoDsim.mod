@@ -89,7 +89,7 @@ VAR
 
 
 (*
-   Assert - 
+   Assert -
 *)
 
 PROCEDURE Assert (b: BOOLEAN) ;
@@ -103,7 +103,7 @@ END Assert ;
 
 
 (*
-   AssertR - 
+   AssertR -
 *)
 
 PROCEDURE AssertR (a, b: REAL) ;
@@ -116,7 +116,7 @@ END AssertR ;
 
 
 (*
-   dumpCircle - 
+   dumpCircle -
 *)
 
 PROCEDURE dumpCircle (o: Object) ;
@@ -128,7 +128,7 @@ END dumpCircle ;
 
 
 (*
-   dumpPolygon - 
+   dumpPolygon -
 *)
 
 PROCEDURE dumpPolygon (o: Object) ;
@@ -137,7 +137,7 @@ VAR
 BEGIN
    WITH o^ DO
       i := 0 ;
-      printf("polygon at (%g, %g) mass %g\n", p.pos.x, p.pos.y, p.mass);
+      printf("polygon at (%g, %g) mass %g\n", p.pos.x, p.pos.y, p.mass) ;
       WHILE i<p.nPoints DO
          printf("  line (%g,%g)\n", p.points[i].x, p.points[i].y) ;
          INC(i)
@@ -147,7 +147,7 @@ END dumpPolygon ;
 
 
 (*
-   DumpObject - 
+   DumpObject -
 *)
 
 PROCEDURE DumpObject (o: Object) ;
@@ -468,7 +468,7 @@ END replayRate ;
 
 
 (*
-   getColour - 
+   getColour -
 *)
 
 PROCEDURE getColour (i: CARDINAL; e: eventQueue) : Colour ;
@@ -511,7 +511,7 @@ END getColour ;
 
 
 (*
-   drawFrame - 
+   drawFrame -
 *)
 
 PROCEDURE drawFrame (e: eventQueue) ;
@@ -540,7 +540,7 @@ END drawFrame ;
 
 
 (*
-   drawFrameEvent - 
+   drawFrameEvent -
 *)
 
 PROCEDURE drawFrameEvent (e: eventQueue) ;
@@ -551,7 +551,7 @@ END drawFrameEvent ;
 
 
 (*
-   updatePolygon - 
+   updatePolygon -
 *)
 
 PROCEDURE updatePolygon (optr: Object; dt: REAL) ;
@@ -572,7 +572,7 @@ END updatePolygon ;
 
 
 (*
-   updateCircle - 
+   updateCircle -
 *)
 
 PROCEDURE updateCircle (optr: Object; dt: REAL) ;
@@ -593,7 +593,7 @@ END updateCircle ;
 
 
 (*
-   updateOb - 
+   updateOb -
 *)
 
 PROCEDURE updateOb (optr: Object; dt: REAL) ;
@@ -635,7 +635,7 @@ END updatePhysics ;
 
 
 (*
-   displayEvent - 
+   displayEvent -
 *)
 
 PROCEDURE displayEvent (e: eventQueue) ;
@@ -675,7 +675,7 @@ END printEvent ;
 
 
 (*
-   doNextEvent - 
+   doNextEvent -
 *)
 
 PROCEDURE doNextEvent () : REAL ;
@@ -708,7 +708,7 @@ END doNextEvent ;
 
 
 (*
-   checkObjects - 
+   checkObjects -
 *)
 
 PROCEDURE checkObjects ;
@@ -739,7 +739,7 @@ END checkObjects ;
 
 
 (*
-   collideFixedCircles - 
+   collideFixedCircles -
 *)
 
 PROCEDURE collideFixedCircles (movable, fixed: Object) ;
@@ -770,7 +770,7 @@ END collideFixedCircles ;
 
 
 (*
-   collideMovableCircles - 
+   collideMovableCircles -
 *)
 
 PROCEDURE collideMovableCircles (iptr, jptr: Object) ;
@@ -803,7 +803,7 @@ END collideMovableCircles ;
 
 
 (*
-   circleCollision - 
+   circleCollision -
 *)
 
 PROCEDURE circleCollision (iptr, jptr: Object) ;
@@ -856,7 +856,7 @@ END physicsCollision ;
 
 
 (*
-   doCollision - 
+   doCollision -
 *)
 
 PROCEDURE doCollision (e: eventQueue) ;
@@ -868,7 +868,7 @@ END doCollision ;
 
 
 (*
-   sqr - 
+   sqr -
 *)
 
 PROCEDURE sqr (v: REAL) : REAL ;
@@ -878,7 +878,7 @@ END sqr ;
 
 
 (*
-   findCollisionCircles - 
+   findCollisionCircles -
 
    using:
 
@@ -1032,7 +1032,7 @@ END findCollisionCircles ;
 
 
 (*
-   findCollision - 
+   findCollision -
 *)
 
 PROCEDURE findCollision (iptr, jptr: Object; VAR ic, jc: CARDINAL; VAR tc: REAL) ;
@@ -1079,7 +1079,7 @@ END addDebugging ;
 
 
 (*
-   addNextCollisionEvent - 
+   addNextCollisionEvent -
 *)
 
 PROCEDURE addNextCollisionEvent ;
@@ -1140,7 +1140,7 @@ END simulateFor ;
 
 
 (*
-   newEvent - 
+   newEvent -
 *)
 
 PROCEDURE newEvent () : eventQueue ;
@@ -1196,7 +1196,7 @@ END addRelative ;
 
 
 (*
-   addEvent - 
+   addEvent -
 *)
 
 PROCEDURE addEvent (t: REAL; dop: eventProc) ;
@@ -1216,7 +1216,7 @@ END addEvent ;
 
 
 (*
-   addCollisionEvent - 
+   addCollisionEvent -
 *)
 
 PROCEDURE addCollisionEvent (t: REAL; dop: eventProc; a, b: CARDINAL) ;
@@ -1258,7 +1258,7 @@ END killQueue ;
 
 
 (*
-   Init - 
+   Init -
 *)
 
 PROCEDURE Init ;

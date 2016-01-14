@@ -106,7 +106,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetString, GetStringLength, IsConstString,
                         GetAlignment, IsDeclaredPacked, PutDeclaredPacked,
                         GetDefaultRecordFieldAlignment, IsDeclaredPackedResolved,
-                        GetPackedEquivalent, 
+                        GetPackedEquivalent,
                         GetParameterShadowVar,
                         GetUnboundedRecordType,
                         ForeachOAFamily, GetOAFamily,
@@ -156,7 +156,7 @@ FROM m2type IMPORT MarkFunctionReferenced, BuildStartRecord, BuildStartVarient, 
                    GetBooleanFalse, BuildSubrangeType, GetM2ZType, GetM2RType, GetM2CType,
                    GetM2CardinalType, GetM2IntegerType, GetM2CharType, GetISOLocType,
                    GetISOByteType, GetISOWordType, GetByteType, GetWordType, GetProcType, GetPointerType,
-                   GetM2LongIntType, GetM2LongCardType, GetM2ShortIntType, GetM2ShortCardType, 
+                   GetM2LongIntType, GetM2LongCardType, GetM2ShortIntType, GetM2ShortCardType,
                    GetM2LongRealType, GetM2ShortRealType, GetM2RealType, GetBitnumType, GetBitsetType,
                    GetM2ComplexType, GetM2ComplexType, GetM2LongComplexType, GetM2ShortComplexType,
                    GetM2Integer8, GetM2Integer16, GetM2Integer32, GetM2Integer64, GetM2Cardinal8,
@@ -310,7 +310,7 @@ PROCEDURE mystop ; BEGIN END mystop ;
 
 
 (*
-   PrintSym - 
+   PrintSym -
 *)
 
 PROCEDURE PrintSym (sym: WORD) ;
@@ -320,7 +320,7 @@ END PrintSym ;
 
 
 (*
-   DebugSet - 
+   DebugSet -
 *)
 
 PROCEDURE DebugSet (a: ARRAY OF CHAR; l: Set) ;
@@ -333,7 +333,7 @@ END DebugSet ;
 
 
 (*
-   DebugSets - 
+   DebugSets -
 *)
 
 PROCEDURE DebugSets ;
@@ -349,7 +349,7 @@ END DebugSets ;
 
 
 (*
-   DebugNumber - 
+   DebugNumber -
 *)
 
 PROCEDURE DebugNumber (a: ARRAY OF CHAR; s: Set) ;
@@ -363,7 +363,7 @@ END DebugNumber ;
 
 
 (*
-   FindSetNumbers - 
+   FindSetNumbers -
 *)
 
 PROCEDURE FindSetNumbers (VAR t, a, p, f, n, b: CARDINAL) : BOOLEAN ;
@@ -389,7 +389,7 @@ END FindSetNumbers ;
 
 
 (*
-   DebugSets - 
+   DebugSets -
 *)
 
 PROCEDURE DebugSetNumbers ;
@@ -422,7 +422,7 @@ END AddSymToWatch ;
 
 
 (*
-   TryFindSymbol - 
+   TryFindSymbol -
 *)
 
 PROCEDURE TryFindSymbol (module, symname: ARRAY OF CHAR) : CARDINAL ;
@@ -443,7 +443,7 @@ END TryFindSymbol ;
 
 
 (*
-   doInclude - 
+   doInclude -
 *)
 
 PROCEDURE doInclude (l: Set; a: ARRAY OF CHAR; sym: CARDINAL) ;
@@ -507,7 +507,7 @@ END WatchIncludeList ;
 
 
 (*
-   doExclude - 
+   doExclude -
 *)
 
 PROCEDURE doExclude (l: Set; a: ARRAY OF CHAR; sym: CARDINAL) ;
@@ -567,7 +567,7 @@ END WatchRemoveList ;
 
 
 (*
-   GetEnumList - 
+   GetEnumList -
 *)
 
 PROCEDURE GetEnumList (sym: CARDINAL) : Tree ;
@@ -582,7 +582,7 @@ END GetEnumList ;
 
 
 (*
-   PutEnumList - 
+   PutEnumList -
 *)
 
 PROCEDURE PutEnumList (sym: CARDINAL; enumlist: Tree) ;
@@ -666,7 +666,7 @@ END ArrayComponentsDeclared ;
 
 
 (*
-   GetRecordOfVarient - 
+   GetRecordOfVarient -
 *)
 
 PROCEDURE GetRecordOfVarient (sym: CARDINAL) : CARDINAL ;
@@ -682,7 +682,7 @@ END GetRecordOfVarient ;
 
 
 (*
-   CanDeclareRecordKind - 
+   CanDeclareRecordKind -
 *)
 
 PROCEDURE CanDeclareRecordKind (sym: CARDINAL) : BOOLEAN ;
@@ -715,7 +715,7 @@ END DeclareRecordKind ;
 
 
 (*
-   CanDeclareRecord - 
+   CanDeclareRecord -
 *)
 
 PROCEDURE CanDeclareRecord (sym: CARDINAL) : BOOLEAN ;
@@ -732,7 +732,7 @@ END CanDeclareRecord ;
 
 
 (*
-   FinishDeclareRecord - 
+   FinishDeclareRecord -
 *)
 
 PROCEDURE FinishDeclareRecord (sym: CARDINAL) ;
@@ -822,7 +822,7 @@ END DeclareTypePartially ;
 
 
 (*
-   CanDeclareArrayAsNil - 
+   CanDeclareArrayAsNil -
 *)
 
 PROCEDURE CanDeclareArrayAsNil (sym: CARDINAL) : BOOLEAN ;
@@ -832,7 +832,7 @@ END CanDeclareArrayAsNil ;
 
 
 (*
-   DeclareArrayAsNil - 
+   DeclareArrayAsNil -
 *)
 
 PROCEDURE DeclareArrayAsNil (sym: CARDINAL) ;
@@ -843,7 +843,7 @@ END DeclareArrayAsNil ;
 
 
 (*
-   CanDeclareArrayPartially - 
+   CanDeclareArrayPartially -
 *)
 
 PROCEDURE CanDeclareArrayPartially (sym: CARDINAL) : BOOLEAN ;
@@ -864,7 +864,7 @@ END CanDeclareArrayPartially ;
 
 
 (*
-   DeclareArrayPartially - 
+   DeclareArrayPartially -
 *)
 
 PROCEDURE DeclareArrayPartially (sym: CARDINAL) ;
@@ -876,7 +876,7 @@ END DeclareArrayPartially ;
 
 
 (*
-   CanDeclarePointerToNilArray - 
+   CanDeclarePointerToNilArray -
 *)
 
 PROCEDURE CanDeclarePointerToNilArray (sym: CARDINAL) : BOOLEAN ;
@@ -886,7 +886,7 @@ END CanDeclarePointerToNilArray ;
 
 
 (*
-   DeclarePointerToNilArray - 
+   DeclarePointerToNilArray -
 *)
 
 PROCEDURE DeclarePointerToNilArray (sym: CARDINAL) ;
@@ -897,7 +897,7 @@ END DeclarePointerToNilArray ;
 
 
 (*
-   CanPromotePointerFully - 
+   CanPromotePointerFully -
 *)
 
 PROCEDURE CanPromotePointerFully (sym: CARDINAL) : BOOLEAN ;
@@ -907,7 +907,7 @@ END CanPromotePointerFully ;
 
 
 (*
-   PromotePointerFully - 
+   PromotePointerFully -
 *)
 
 PROCEDURE PromotePointerFully (sym: CARDINAL) ;
@@ -1321,7 +1321,7 @@ END WriteRule ;
 
 
 (*
-   Body - 
+   Body -
 *)
 
 PROCEDURE Body (sym: CARDINAL) ;
@@ -1379,7 +1379,7 @@ END ForeachTryDeclare ;
 
 
 (*
-   testThis - 
+   testThis -
 *)
 
 PROCEDURE testThis ;
@@ -1886,7 +1886,7 @@ BEGIN
       ELSE
          TryDeclareConst(tokenno, sym)
       END
-   END 
+   END
 END TryDeclareConstant ;
 
 
@@ -1909,7 +1909,7 @@ BEGIN
       Assert((type#NulSym) OR (NOT (IsConstructor(sym) OR IsConstSet(sym)))) ;
       t := DeclareConst(tokenno, sym) ;
       Assert(t#NIL)
-   END 
+   END
 END DeclareConstant ;
 
 
@@ -2061,7 +2061,7 @@ VAR
 
 
 (*
-   WalkFamilyOfUnbounded - 
+   WalkFamilyOfUnbounded -
 *)
 
 PROCEDURE WalkFamilyOfUnbounded (oaf: CARDINAL; dim: CARDINAL; unbounded: CARDINAL) ;
@@ -2071,7 +2071,7 @@ END WalkFamilyOfUnbounded ;
 
 
 (*
-   WalkAssociatedUnbounded - 
+   WalkAssociatedUnbounded -
 *)
 
 PROCEDURE WalkAssociatedUnbounded (sym: CARDINAL; p: WalkAction) ;
@@ -2088,7 +2088,7 @@ END WalkAssociatedUnbounded ;
 
 
 (*
-   WalkProcedureParameterDependants - 
+   WalkProcedureParameterDependants -
 *)
 
 PROCEDURE WalkProcedureParameterDependants (sym: CARDINAL; p: WalkAction) ;
@@ -2178,7 +2178,7 @@ END WalkDependants ;
 
 
 (*
-   TraverseDependantsInner - 
+   TraverseDependantsInner -
 *)
 
 PROCEDURE TraverseDependantsInner (sym: WORD) ;
@@ -2239,7 +2239,7 @@ END WalkTypeInfo ;
 
 
 (*
-   DeclareUnboundedProcedureParameters - 
+   DeclareUnboundedProcedureParameters -
 *)
 
 PROCEDURE DeclareUnboundedProcedureParameters (sym: WORD) ;
@@ -2275,7 +2275,7 @@ END DeclareUnboundedProcedureParameters ;
 
 
 (*
-   WalkUnboundedProcedureParameters - 
+   WalkUnboundedProcedureParameters -
 *)
 
 PROCEDURE WalkUnboundedProcedureParameters (sym: WORD) ;
@@ -2408,7 +2408,7 @@ END IsProcedureGccNested ;
 
 
 (*
-   IsExternal - 
+   IsExternal -
 *)
 
 PROCEDURE IsExternal (sym: CARDINAL) : BOOLEAN ;
@@ -2456,7 +2456,7 @@ END IsExternalToWholeProgram ;
 
 
 (*
-   DeclareProcedureToGccWholeProgram - 
+   DeclareProcedureToGccWholeProgram -
 *)
 
 PROCEDURE DeclareProcedureToGccWholeProgram (Sym: CARDINAL) ;
@@ -2528,7 +2528,7 @@ END DeclareProcedureToGccWholeProgram ;
 
 
 (*
-   DeclareProcedureToGccSeparateProgram - 
+   DeclareProcedureToGccSeparateProgram -
 *)
 
 PROCEDURE DeclareProcedureToGccSeparateProgram (Sym: CARDINAL) ;
@@ -2656,7 +2656,7 @@ END FoldConstants ;
 
 
 (*
-   DeclareTypesConstantsProceduresInRange - 
+   DeclareTypesConstantsProceduresInRange -
 *)
 
 PROCEDURE DeclareTypesConstantsProceduresInRange (start, end: CARDINAL) ;
@@ -2698,7 +2698,7 @@ END SkipModuleScope ;
 
 
 (*
-   PushBinding - 
+   PushBinding -
 *)
 
 PROCEDURE PushBinding (scope: CARDINAL) ;
@@ -2714,7 +2714,7 @@ END PushBinding ;
 
 
 (*
-   PopBinding - 
+   PopBinding -
 *)
 
 PROCEDURE PopBinding (scope: CARDINAL) ;
@@ -2734,7 +2734,7 @@ END PopBinding ;
 
 
 (*
-   DeclareTypesConstantsProcedures - 
+   DeclareTypesConstantsProcedures -
 *)
 
 PROCEDURE DeclareTypesConstantsProcedures (scope: CARDINAL) ;
@@ -2818,7 +2818,7 @@ END DeclareModuleInit ;
 
 
 (*
-   StartDeclareProcedureScope - 
+   StartDeclareProcedureScope -
 *)
 
 PROCEDURE StartDeclareProcedureScope (scope: CARDINAL) ;
@@ -2837,7 +2837,7 @@ END StartDeclareProcedureScope ;
 
 
 (*
-   StartDeclareModuleScopeSeparate - 
+   StartDeclareModuleScopeSeparate -
 *)
 
 PROCEDURE StartDeclareModuleScopeSeparate (scope: CARDINAL) ;
@@ -2871,7 +2871,7 @@ END StartDeclareModuleScopeSeparate ;
 
 
 (*
-   StartDeclareModuleScopeWholeProgram - 
+   StartDeclareModuleScopeWholeProgram -
 *)
 
 PROCEDURE StartDeclareModuleScopeWholeProgram (scope: CARDINAL) ;
@@ -2905,7 +2905,7 @@ END StartDeclareModuleScopeWholeProgram ;
 
 
 (*
-   StartDeclareModuleScope - 
+   StartDeclareModuleScope -
 *)
 
 PROCEDURE StartDeclareModuleScope (scope: CARDINAL) ;
@@ -2929,7 +2929,7 @@ VAR
 BEGIN
    (* AddSymToWatch(TryFindSymbol('IOLink', 'DeviceId')) ; *)
    (* AddSymToWatch(819) ; *)
-   (* 
+   (*
    AddSymToWatch(2125) ;  (* watch goes here *)
    DebugSets ;
     *)
@@ -3149,7 +3149,7 @@ BEGIN
       DeclareDefaultType(Byte     , "BYTE"        , GetByteType()) ;
       DeclareDefaultType(Word     , "WORD"        , GetWordType())
    END ;
-   
+
    DeclareDefaultType(Proc        , "PROC"        , GetProcType()) ;
    DeclareDefaultType(Address     , "ADDRESS"     , GetPointerType()) ;
    DeclareDefaultType(LongInt     , "LONGINT"     , GetM2LongIntType()) ;
@@ -3193,7 +3193,7 @@ END DeclareDefaultSimpleTypes ;
 
 
 (*
-   DeclarePackedBoolean - 
+   DeclarePackedBoolean -
 *)
 
 PROCEDURE DeclarePackedBoolean ;
@@ -3207,7 +3207,7 @@ END DeclarePackedBoolean ;
 
 
 (*
-   DeclarePackedDefaultSimpleTypes - 
+   DeclarePackedDefaultSimpleTypes -
 *)
 
 PROCEDURE DeclarePackedDefaultSimpleTypes ;
@@ -3328,7 +3328,7 @@ END FindOuterModule ;
 
 
 (*
-   DoVariableDeclaration - 
+   DoVariableDeclaration -
 *)
 
 PROCEDURE DoVariableDeclaration (var: CARDINAL; name: ADDRESS;
@@ -3525,7 +3525,7 @@ END DeclareModuleVariables ;
 
 
 (*
-   DeclareFieldValue - 
+   DeclareFieldValue -
 *)
 
 PROCEDURE DeclareFieldValue (sym: CARDINAL; value: Tree; VAR list: Tree) : Tree ;
@@ -3600,7 +3600,7 @@ END DeclareSubrange ;
 
 
 (*
-   IncludeGetNth - 
+   IncludeGetNth -
 *)
 
 PROCEDURE IncludeGetNth (l: List; sym: CARDINAL) ;
@@ -3623,7 +3623,7 @@ END IncludeGetNth ;
 
 
 (*
-   IncludeType - 
+   IncludeType -
 *)
 
 PROCEDURE IncludeType (l: List; sym: CARDINAL) ;
@@ -3650,7 +3650,7 @@ END IncludeType ;
 
 
 (*
-   IncludeSubscript - 
+   IncludeSubscript -
 *)
 
 PROCEDURE IncludeSubscript (l: List; sym: CARDINAL) ;
@@ -3669,7 +3669,7 @@ END IncludeSubscript ;
 
 
 (*
-   PrintLocalSymbol - 
+   PrintLocalSymbol -
 *)
 
 PROCEDURE PrintLocalSymbol (sym: CARDINAL) ;
@@ -3679,7 +3679,7 @@ END PrintLocalSymbol ;
 
 
 (*
-   PrintLocalSymbols - 
+   PrintLocalSymbols -
 *)
 
 PROCEDURE PrintLocalSymbols (sym: CARDINAL) ;
@@ -3691,7 +3691,7 @@ END PrintLocalSymbols ;
 
 
 (*
-   IncludeGetVarient - 
+   IncludeGetVarient -
 *)
 
 PROCEDURE IncludeGetVarient (l: List; sym: CARDINAL) ;
@@ -3750,7 +3750,7 @@ END PrintDeclared ;
 
 
 (*
-   PrintAlignment - 
+   PrintAlignment -
 *)
 
 PROCEDURE PrintAlignment (sym: CARDINAL) ;
@@ -3769,7 +3769,7 @@ END PrintAlignment ;
 
 
 (*
-   IncludeGetParent - 
+   IncludeGetParent -
 *)
 
 PROCEDURE IncludeGetParent (l: List; sym: CARDINAL) ;
@@ -3782,7 +3782,7 @@ END IncludeGetParent ;
 
 
 (*
-   PrintDecl - 
+   PrintDecl -
 *)
 
 PROCEDURE PrintDecl (sym: CARDINAL) ;
@@ -4020,7 +4020,7 @@ BEGIN
       printf2('sym %d IsTuple (%a)', sym, n) ;
       low := GetNth(sym, 1) ;
       high := GetNth(sym, 2) ;
-      printf2('%d, %d\n', low, high)      
+      printf2('%d, %d\n', low, high)
    ELSIF IsGnuAsm(sym)
    THEN
       IF IsGnuAsmVolatile(sym)
@@ -4085,7 +4085,7 @@ END PrintSymbol ;
 
 
 (*
-   PrintTerse - 
+   PrintTerse -
 *)
 
 PROCEDURE PrintTerse (sym: CARDINAL) ;
@@ -4215,7 +4215,7 @@ END PrintTerse ;
 
 
 (*
-   CheckAlignment - 
+   CheckAlignment -
 *)
 
 PROCEDURE CheckAlignment (type: Tree; sym: CARDINAL) : Tree ;
@@ -4237,7 +4237,7 @@ END CheckAlignment ;
 
 
 (*
-   CheckPragma - 
+   CheckPragma -
 *)
 
 PROCEDURE CheckPragma (type: Tree; sym: CARDINAL) : Tree ;
@@ -4324,7 +4324,7 @@ END RecordNotPacked ;
 
 
 (*
-   DetermineIfRecordPacked - 
+   DetermineIfRecordPacked -
 *)
 
 PROCEDURE DetermineIfRecordPacked (sym: CARDINAL) ;
@@ -4342,7 +4342,7 @@ END DetermineIfRecordPacked ;
 
 
 (*
-   DeclarePackedSubrange - 
+   DeclarePackedSubrange -
 *)
 
 PROCEDURE DeclarePackedSubrange (equiv, sym: CARDINAL) ;
@@ -4362,7 +4362,7 @@ END DeclarePackedSubrange ;
 
 
 (*
-   DeclarePackedSet - 
+   DeclarePackedSet -
 *)
 
 PROCEDURE DeclarePackedSet (equiv, sym: CARDINAL) ;
@@ -4411,7 +4411,7 @@ END DeclarePackedFieldEnumeration ;
 
 
 (*
-   DeclarePackedEnumeration - 
+   DeclarePackedEnumeration -
 *)
 
 PROCEDURE DeclarePackedEnumeration (equiv, sym: CARDINAL) ;
@@ -4430,7 +4430,7 @@ END DeclarePackedEnumeration ;
 
 
 (*
-   DeclarePackedType - 
+   DeclarePackedType -
 *)
 
 PROCEDURE DeclarePackedType (equiv, sym: CARDINAL) ;
@@ -4473,7 +4473,7 @@ END doDeclareEquivalent ;
 
 
 (*
-   PossiblyPacked - 
+   PossiblyPacked -
 *)
 
 PROCEDURE PossiblyPacked (sym: CARDINAL; isPacked: BOOLEAN) : Tree ;
@@ -4613,7 +4613,7 @@ END DeclareRecord ;
 
 
 (*
-   DeclareRecordField - 
+   DeclareRecordField -
 *)
 
 PROCEDURE DeclareRecordField (sym: CARDINAL) : Tree ;
@@ -4674,7 +4674,7 @@ END DeclareVarient ;
 
 
 (*
-   DeclareFieldVarient - 
+   DeclareFieldVarient -
 *)
 
 PROCEDURE DeclareFieldVarient (sym: CARDINAL) : Tree ;
@@ -4752,7 +4752,7 @@ END DeclareUnbounded ;
 
 
 (*
-   BuildIndex - 
+   BuildIndex -
 *)
 
 PROCEDURE BuildIndex (sym: CARDINAL) : Tree ;
@@ -4883,7 +4883,7 @@ END FindMinMaxEnum ;
 
 
 (*
-   GetTypeMin - 
+   GetTypeMin -
 *)
 
 PROCEDURE GetTypeMin (type: CARDINAL) : CARDINAL ;
@@ -4922,7 +4922,7 @@ END GetTypeMin ;
 
 
 (*
-   GetTypeMax - 
+   GetTypeMax -
 *)
 
 PROCEDURE GetTypeMax (type: CARDINAL) : CARDINAL ;
@@ -5337,7 +5337,7 @@ END IsSubrangeDependants ;
 
 
 (*
-   WalkComponentDependants - 
+   WalkComponentDependants -
 *)
 
 PROCEDURE WalkComponentDependants (sym: CARDINAL; p: WalkAction) ;
@@ -5364,7 +5364,7 @@ END WalkComponentDependants ;
 
 
 (*
-   IsComponentDependants - 
+   IsComponentDependants -
 *)
 
 PROCEDURE IsComponentDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
@@ -5561,7 +5561,7 @@ END WalkRecordDependants ;
 
 
 (*
-   WalkRecordFieldDependants - 
+   WalkRecordFieldDependants -
 *)
 
 PROCEDURE WalkRecordFieldDependants (sym: CARDINAL; p: WalkAction) ;
@@ -5579,7 +5579,7 @@ END WalkRecordFieldDependants ;
 
 
 (*
-   WalkVarient - 
+   WalkVarient -
 *)
 
 PROCEDURE WalkVarient (sym: CARDINAL; p: WalkAction) ;
@@ -5627,7 +5627,7 @@ END WalkRecordDependants2 ;
 
 
 (*
-   IsVarientAlignment - 
+   IsVarientAlignment -
 *)
 
 PROCEDURE IsVarientAlignment (sym: CARDINAL; q: IsAction) : BOOLEAN ;
@@ -5671,7 +5671,7 @@ END IsVarientDependants ;
 
 
 (*
-   WalkVarientAlignment - 
+   WalkVarientAlignment -
 *)
 
 PROCEDURE WalkVarientAlignment (sym: CARDINAL; p: WalkAction) ;
@@ -5753,7 +5753,7 @@ END IsVarientFieldDependants ;
 
 
 (*
-   WalkVarientFieldDependants - 
+   WalkVarientFieldDependants -
 *)
 
 PROCEDURE WalkVarientFieldDependants (sym: CARDINAL; p: WalkAction) ;
@@ -5906,7 +5906,7 @@ END WalkSetDependants ;
 
 
 (*
-   IsProcTypeDependants - 
+   IsProcTypeDependants -
 *)
 
 PROCEDURE IsProcTypeDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
@@ -5967,7 +5967,7 @@ END WalkProcTypeDependants ;
 
 
 (*
-   IsProcedureDependants - 
+   IsProcedureDependants -
 *)
 
 PROCEDURE IsProcedureDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
@@ -6114,7 +6114,7 @@ END PoisonSymbols ;
 
 
 (*
-   ConstantKnownAndUsed - 
+   ConstantKnownAndUsed -
 *)
 
 PROCEDURE ConstantKnownAndUsed (sym: CARDINAL; t: Tree) ;

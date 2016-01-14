@@ -115,11 +115,11 @@ m2decl_DeclareKnownVariable (location_t location, char *name, tree type, int exp
   TREE_STATIC (decl) = isglobal;
   TREE_PUBLIC (decl) = exported || imported;
 
-#if 0  
+#if 0
   if (isglobal && (scope == NULL_TREE)) {
     TREE_PUBLIC (decl) = exported;
     TREE_STATIC (decl) = isglobal;           /* declaration and definition */
-  } 
+  }
   else if (imported) {
     TREE_STATIC (decl) = isglobal;
     TREE_PUBLIC (decl) = 1;
@@ -131,8 +131,8 @@ m2decl_DeclareKnownVariable (location_t location, char *name, tree type, int exp
 #endif
 
   /* The variable was not declared by GCC, but by the front end  */
-  DECL_ARTIFICIAL (decl) = 0;
-  DECL_IGNORED_P (decl) = 0; // istemporary;
+  DECL_ARTIFICIAL (decl) = istemporary;
+  DECL_IGNORED_P (decl) = istemporary;
 
   DECL_CONTEXT (decl) = scope;
 
@@ -191,9 +191,9 @@ m2decl_DeclareKnownConstant (location_t location, tree type, tree value)
   m2expr_ConstantExpressionWarning (value);
   type = m2tree_skip_type_decl (type);
   layout_type (type);
-  
+
   decl = build_decl (location, CONST_DECL, id, type);
-    
+
   DECL_INITIAL (decl) = value;
   TREE_TYPE (decl)    = type;
 
@@ -310,7 +310,7 @@ m2decl_BuildEndFunctionDeclaration (location_t location_begin, location_t locati
 #if 0
 /* not needed? */
 /*
- *  RememberVariables - 
+ *  RememberVariables -
  */
 
 static void
@@ -366,7 +366,7 @@ m2decl_BuildConstLiteralNumber (const char *str, unsigned int base)
   overflow = m2expr_interpret_integer (str, base,
 				       &low, (HOST_WIDE_INT *) &high);
   m2decl_DetermineSizeOfConstant (str, base, &needLong, &needUnsigned);
-  
+
   if (needUnsigned && needLong)
     type = m2type_GetM2LongCardType ();
   else

@@ -1,3 +1,15 @@
+2016-01-14      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/gravity/Makefile.in:  converting Makefile.in
+	to use libtool.
+	* gm2/examples/gravity/twoDsim.mod:  removed tabs.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  removed tabs.
+	* gm2/gm2-gcc/m2decl.c:  set DECL_ARTIFICIAL and
+          DECL_IGNORED_P for temporary variables.  (do_min_tree)
+          (do_max_tree) new functions which are called by GetMinFrom
+          and GetMaxFrom respectively.  This fixes a bug reported by
+	  Michael Riedl.
+
 2015-11-30      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/gravity/twoDsim.mod:  fixed syntax error.
