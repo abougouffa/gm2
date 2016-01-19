@@ -45,37 +45,36 @@ OBJ_PATH=.:../../gm2-libs-iso:../../gm2/gm2-libs
 XGM2=../../../xgm2 -B../../../
 XGCC=../../../xgcc -B../../../
 
+LIBTOOL=$(gm2tardir)/libgm2/libtool
+
 PYTHON_VERSION=2.7
+
 
 all: force
 	@echo "you need to use 'make pre-install' to build the examples using the locally built compiler"
 	@echo "you can run the example by typing 'make run'"
 
 pre-install: libtwoDsim.la
-	$(XGM2) $(GM2FLAGS) -fiso -I$(SRC_PATH_SO) -c $(srcdir)/deviceGnuPic.mod
-	$(XGM2) $(GM2FLAGS) -fiso -I$(SRC_PATH_SO) -c $(srcdir)/roots.mod
-	$(XGM2) $(GM2FLAGS) -fiso -c -fswig -I$(SRC_PATH_SO) $(srcdir)/twoDsim.mod
-	swig -c++ -python twoDsim.i
-	$(XGPP) -c -fPIC twoDsim_wrap.cxx -I/usr/include/python$(PYTHON_VERSION)
-	$(XGM2) -fonlylink -fiso -I$(SRC_PATH_SO) -fobject-path=$(OBJ_PATH_SO) -fPIC -fshared -shared \
-            $(srcdir)/twoDsim.mod twoDsim_wrap.o -o _twoDsim.so
 
 run: pre-install
 	PYTHONPATH=`pwd` python $(srcdir)/testsim2.py
 	$(SHELL) $(srcdir)/produce-avi
 
 libtwoDsim.la:  $(TWODSIM:%.mod=%.lo)
-	$(XGM2) $(GM2FLAGS) -fiso -c -fswig -I$(SRC_PATH_SO) $(srcdir)/twoDsim.mod
+	$(XGM2) $(GM2FLAGS) -fiso -c -fswig -I$(SRC_PATH_PIM) $(srcdir)/twoDsim.mod
 	swig -outdir . -o twoDsim_wrap.cxx -c++ -python twoDsim.i
-	libtool --tag=CC --mode=compile g++ -g -c twoDsim_wrap.cxx -I/usr/include/python$(PYTHON_VERSION) -o twoDsim_wrap.lo
+	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c twoDsim_wrap.cxx -I/usr/include/python$(PYTHON_VERSION) -o twoDsim_wrap.lo
 	gm2 -c -g -I$(SRC_PATH_PIM) -fmakelist $(srcdir)/twoDsim.mod
 	gm2 -c -g -I$(SRC_PATH_PIM) -fmakeinit -fshared $(srcdir)/twoDsim.mod
-	libtool --tag=CC --mode=compile g++ -g -c _m2_twoDsim.cpp -o _m2_twoDsim.lo
-	libtool --tag=CC --mode=link gcc -g _m2_twoDsim.lo $(TWODSIM:%.mod=%.lo) \
+	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c _m2_twoDsim.cpp -o _m2_twoDsim.lo
+	$(LIBTOOL) --tag=CC --mode=link gcc -g _m2_twoDsim.lo $(TWODSIM:%.mod=%.lo) \
             twoDsim_wrap.lo \
            -L$(prefix)/lib64 \
            -rpath `pwd` -lgm2 -liso -lgcc -lstdc++ -lpth -lc -lm -o libtwoDsim.la
 	cp .libs/libtwoDsim.so _twoDsim.so
+
+%.lo:  $(srcdir)/%.mod
+	$(LIBTOOL) --tag=CC --mode=compile gm2 -fcpp -g -fiso -fextended-opaque -I. -I$(srcdir) -c $< -o $@
 
 clean: force
 	$(RM) *.o a.out *.i *.pyc *_wrap.cxx *.so *_m2.cpp twoDsim.py *.png *.ms *.lo movie.avi

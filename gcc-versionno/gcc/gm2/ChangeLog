@@ -1,3 +1,8 @@
+2016-01-19      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/gravity/Makefile.in:  rewritten to use libtool
+	  when generating the shared library.
+
 2016-01-14      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/gravity/Makefile.in:  converting Makefile.in
