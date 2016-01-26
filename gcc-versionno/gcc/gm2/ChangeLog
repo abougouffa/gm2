@@ -1,3 +1,8 @@
+2016-01-26      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/gravity/Makefile.in:  introduced LIBDIR which is
+	  set dynamically to reflect the host architecture.
+
 2016-01-19      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/gravity/Makefile.in:  rewritten to use libtool

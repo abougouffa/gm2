@@ -47,6 +47,13 @@ XGCC=../../../xgcc -B../../../
 
 LIBTOOL=$(gm2tardir)/libgm2/libtool
 
+HOST_ARCH=$(shell arch)
+ifeq ($(HOST_ARCH),x86_64)
+LIBDIR=$(prefix)/lib64
+else
+LIBDIR=$(prefix)/lib
+endif
+
 PYTHON_VERSION=2.7
 
 
@@ -63,13 +70,14 @@ run: pre-install
 libtwoDsim.la:  $(TWODSIM:%.mod=%.lo)
 	$(XGM2) $(GM2FLAGS) -fiso -c -fswig -I$(SRC_PATH_PIM) $(srcdir)/twoDsim.mod
 	swig -outdir . -o twoDsim_wrap.cxx -c++ -python twoDsim.i
-	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c twoDsim_wrap.cxx -I/usr/include/python$(PYTHON_VERSION) -o twoDsim_wrap.lo
+	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c twoDsim_wrap.cxx -I/usr/include/python$(PYTHON_VERSION) -o twoDsi
+m_wrap.lo
 	gm2 -c -g -I$(SRC_PATH_PIM) -fmakelist $(srcdir)/twoDsim.mod
 	gm2 -c -g -I$(SRC_PATH_PIM) -fmakeinit -fshared $(srcdir)/twoDsim.mod
 	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c _m2_twoDsim.cpp -o _m2_twoDsim.lo
 	$(LIBTOOL) --tag=CC --mode=link gcc -g _m2_twoDsim.lo $(TWODSIM:%.mod=%.lo) \
             twoDsim_wrap.lo \
-           -L$(prefix)/lib64 \
+           -L$(LIBDIR) \
            -rpath `pwd` -lgm2 -liso -lgcc -lstdc++ -lpth -lc -lm -o libtwoDsim.la
 	cp .libs/libtwoDsim.so _twoDsim.so
 
