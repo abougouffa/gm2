@@ -516,7 +516,7 @@ END ConvertQuadsToTree ;
 
 
 (*
-   IsCompilingMainModule - 
+   IsCompilingMainModule -
 *)
 
 PROCEDURE IsCompilingMainModule (sym: CARDINAL) : BOOLEAN ;
@@ -956,7 +956,7 @@ END CodeRestoreException ;
 
 
 (*
-   PushScope - 
+   PushScope -
 *)
 
 PROCEDURE PushScope (sym: CARDINAL) ;
@@ -966,7 +966,7 @@ END PushScope ;
 
 
 (*
-   PopScope - 
+   PopScope -
 *)
 
 PROCEDURE PopScope ;
@@ -1333,7 +1333,7 @@ VAR
    UnboundedType,
    ArrayType    : CARDINAL ;
    i, n         : CARDINAL ;
-   location     : location_t; 
+   location     : location_t;
 BEGIN
    location := TokenToLocation(tokenno) ;
    UnboundedType := GetType(param) ;
@@ -1350,7 +1350,7 @@ BEGIN
                               GetCardinalOne(location),
                               FALSE),
                      t, FALSE) ;
-      (* remember we must add one as HIGH(a) means we can legally reference a[HIGH(a)] *)      
+      (* remember we must add one as HIGH(a) means we can legally reference a[HIGH(a)] *)
       INC(i)
    END ;
    RETURN( BuildConvert(TokenToLocation(tokenno),
@@ -1364,7 +1364,7 @@ END GetSizeOfHighFromUnbounded ;
 
 
 (*
-   MaybeDebugBuiltinAlloca - 
+   MaybeDebugBuiltinAlloca -
 *)
 
 PROCEDURE MaybeDebugBuiltinAlloca (location: location_t; high: Tree) : Tree ;
@@ -1382,7 +1382,7 @@ END MaybeDebugBuiltinAlloca ;
 
 
 (*
-   MaybeDebugBuiltinMemcpy - 
+   MaybeDebugBuiltinMemcpy -
 *)
 
 PROCEDURE MaybeDebugBuiltinMemcpy (location: location_t; src, dest, nbytes: Tree) : Tree ;
@@ -1415,7 +1415,7 @@ END MaybeDebugBuiltinMemcpy ;
 
 PROCEDURE MakeCopyAndUse (tokenno: CARDINAL; proc, param, i: CARDINAL) ;
 VAR
-   location     : location_t; 
+   location     : location_t;
    UnboundedType,
    ArrayType    : CARDINAL ;
    t,
@@ -1433,7 +1433,7 @@ BEGIN
    High := GetSizeOfHighFromUnbounded(tokenno, param) ;
    Addr := GetAddressOfUnbounded(param) ;
    Type := Mod2Gcc(GetType(param)) ;
-   
+
    NewArray := MaybeDebugBuiltinAlloca(location, High) ;
    NewArray := MaybeDebugBuiltinMemcpy(location, NewArray, Addr, High) ;
 
@@ -2104,7 +2104,7 @@ END StringToChar ;
 
 
 (*
-   ConvertTo - 
+   ConvertTo -
 *)
 
 PROCEDURE ConvertTo (t: Tree; type, op3: CARDINAL) : Tree ;
@@ -2210,7 +2210,7 @@ END IsConstant ;
 
 
 (*
-   CheckConvertCoerceParameter - 
+   CheckConvertCoerceParameter -
 *)
 
 PROCEDURE CheckConvertCoerceParameter (tokenno: CARDINAL; op1, op2, op3: CARDINAL) : Tree ;
@@ -2255,7 +2255,7 @@ BEGIN
       RETURN( BuildConvert(location, Mod2Gcc(ParamType),
                            StringToChar(Mod2Gcc(op3), ParamType, op3),
                            FALSE) )
-   ELSIF (OperandType#NulSym) AND IsCoerceableParameter(OperandType) AND (OperandType#ParamType)
+   ELSIF IsConstString(op3) OR ((OperandType#NulSym) AND IsCoerceableParameter(OperandType) AND (OperandType#ParamType))
    THEN
       RETURN( BuildConvert(location, Mod2Gcc(ParamType), Mod2Gcc(op3), FALSE) )
    ELSE
@@ -2820,7 +2820,7 @@ END CodeCatchEnd ;
 
 
 (*
-   DescribeTypeError - 
+   DescribeTypeError -
 *)
 
 PROCEDURE DescribeTypeError (token: CARDINAL;
@@ -2883,7 +2883,7 @@ END DefaultConvertGM2 ;
 
 
 (*
-   GetTypeMode - 
+   GetTypeMode -
 *)
 
 PROCEDURE GetTypeMode (sym: CARDINAL) : CARDINAL ;
@@ -3037,7 +3037,7 @@ END checkArrayElements ;
 
 
 (*
-   CodeInitAddress - 
+   CodeInitAddress -
 *)
 
 PROCEDURE CodeInitAddress (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
@@ -3289,7 +3289,7 @@ END FoldBinary ;
 
 
 (*
-   ConvertBinaryOperands - 
+   ConvertBinaryOperands -
 *)
 
 PROCEDURE ConvertBinaryOperands (VAR tl, tr: Tree; type, op2, op3: CARDINAL) ;
@@ -3343,7 +3343,7 @@ BEGIN
 
    type := MixTypes(FindType(op2), FindType(op3), QuadToTokenNo(quad)) ;
    ConvertBinaryOperands(tl, tr, type, op2, op3) ;
-   
+
    tv := binop(location, tl, tr, TRUE) ;
    CheckOrResetOverflow(CurrentQuadToken, tv, MustCheckOverflow(quad)) ;
    IF IsConst(op1)
@@ -3537,7 +3537,7 @@ END CodeMult ;
 
 
 (*
-   BinaryOperandRealFamily - 
+   BinaryOperandRealFamily -
 *)
 
 PROCEDURE BinaryOperandRealFamily (op: CARDINAL) : BOOLEAN ;
@@ -3679,7 +3679,7 @@ END CodeModFloor ;
 
 
 (*
-   FoldBuiltinConst - 
+   FoldBuiltinConst -
 *)
 
 PROCEDURE FoldBuiltinConst (tokenno: CARDINAL; p: WalkAction;
@@ -3876,7 +3876,7 @@ END FoldStandardFunction ;
 
 
 (*
-   CodeStandardFunction - 
+   CodeStandardFunction -
 *)
 
 PROCEDURE CodeStandardFunction (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
@@ -4090,7 +4090,7 @@ BEGIN
    TryDeclareConstant(tokenno, op2) ;
    TryDeclareConstant(tokenno, op3) ;
    location := TokenToLocation(QuadToTokenNo(quad)) ;
-   
+
    IF IsConst(op2) AND IsConstSet(op2) AND
       IsConst(op3) AND IsConstSet(op3) AND
       IsConst(op1)
@@ -5158,7 +5158,7 @@ END CodeRecordField ;
 
 
 (*
-   BuildHighFromChar - 
+   BuildHighFromChar -
 *)
 
 PROCEDURE BuildHighFromChar (operand: CARDINAL) : Tree ;
@@ -5166,12 +5166,12 @@ VAR
    location: location_t ;
 BEGIN
    location := TokenToLocation(GetDeclaredMod(operand)) ;
-   RETURN( GetCardinalZero(location) )   
+   RETURN( GetCardinalZero(location) )
 END BuildHighFromChar ;
 
 
 (*
-   SkipToArray - 
+   SkipToArray -
 *)
 
 PROCEDURE SkipToArray (operand, dim: CARDINAL) : CARDINAL ;
@@ -5191,7 +5191,7 @@ END SkipToArray ;
 
 
 (*
-   BuildHighFromArray - 
+   BuildHighFromArray -
 *)
 
 PROCEDURE BuildHighFromArray (tokenno: CARDINAL; dim, operand: CARDINAL) : Tree ;
@@ -5235,7 +5235,7 @@ END BuildHighFromArray ;
 
 
 (*
-   BuildHighFromString - 
+   BuildHighFromString -
 *)
 
 PROCEDURE BuildHighFromString (operand: CARDINAL) : Tree ;
@@ -6017,7 +6017,7 @@ END CheckReferenced ;
 
 
 (*
-   CodeIfSetLess - 
+   CodeIfSetLess -
 *)
 
 PROCEDURE CodeIfSetLess (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
@@ -6116,7 +6116,7 @@ END CodeIfLess ;
 
 
 (*
-   CodeIfSetGre - 
+   CodeIfSetGre -
 *)
 
 PROCEDURE CodeIfSetGre (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
@@ -6216,7 +6216,7 @@ END CodeIfGre ;
 
 
 (*
-   CodeIfSetLessEqu - 
+   CodeIfSetLessEqu -
 *)
 
 PROCEDURE CodeIfSetLessEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
@@ -6316,7 +6316,7 @@ END CodeIfLessEqu ;
 
 
 (*
-   CodeIfSetGreEqu - 
+   CodeIfSetGreEqu -
 *)
 
 PROCEDURE CodeIfSetGreEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
@@ -6451,7 +6451,7 @@ BEGIN
              NIL, string(CreateLabelName(op3)))
    ELSE
       falselabel := string(Sprintf1(Mark(InitString('.Lset%dcomp')), quad)) ;
-      
+
       BuildForeachWordInSetDoIfExpr(location,
                                     Mod2Gcc(settype),
                                     Mod2Gcc(op1), Mod2Gcc(op2),

@@ -1,3 +1,10 @@
+2016-02-19      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  CheckConvertCoerceParameter
+          checks to see if an actual parameter is a constant string
+          and if so calls BuildConvert.  This fixes a bug reported by
+	  <Georg.Lokowandt@t-online.de> (bug5.mod).
+
 2016-01-26      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/gravity/Makefile.in:  introduced LIBDIR which is
