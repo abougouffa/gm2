@@ -1,3 +1,11 @@
+2016-02-22      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/configure:  rebuilt.
+	* gm2/configure.in:  version number change to 1.1.6.
+	* gm2/gm2-libs/config-host.in:  version number change to 1.1.6.
+	* gm2/gm2-libs/config-target.in:  version number change to 1.1.6.
+	* gm2/version.c:  version number change to 1.1.6.
+
 2016-02-19      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  CheckConvertCoerceParameter
