@@ -1,3 +1,8 @@
+2016-02-25      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/gravity/Makefile.in:  fixed linewrap in
+	  libtwoDsim.la.
+
 2016-02-22      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/configure:  rebuilt.

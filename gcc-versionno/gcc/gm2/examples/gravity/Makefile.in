@@ -70,8 +70,7 @@ run: pre-install
 libtwoDsim.la:  $(TWODSIM:%.mod=%.lo)
 	$(XGM2) $(GM2FLAGS) -fiso -c -fswig -I$(SRC_PATH_PIM) $(srcdir)/twoDsim.mod
 	swig -outdir . -o twoDsim_wrap.cxx -c++ -python twoDsim.i
-	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c twoDsim_wrap.cxx -I/usr/include/python$(PYTHON_VERSION) -o twoDsi
-m_wrap.lo
+	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c twoDsim_wrap.cxx -I/usr/include/python$(PYTHON_VERSION) -o twoDsim_wrap.lo
 	gm2 -c -g -I$(SRC_PATH_PIM) -fmakelist $(srcdir)/twoDsim.mod
 	gm2 -c -g -I$(SRC_PATH_PIM) -fmakeinit -fshared $(srcdir)/twoDsim.mod
 	$(LIBTOOL) --tag=CC --mode=compile g++ -g -c _m2_twoDsim.cpp -o _m2_twoDsim.lo
