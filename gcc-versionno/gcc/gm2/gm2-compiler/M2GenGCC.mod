@@ -3084,6 +3084,57 @@ END HaveDifferentTypes ;
 
 
 (*
+   checkRecordTypes - returns TRUE if op1 is not a record or if the record
+                      is the same type as op2.
+*)
+
+PROCEDURE checkRecordTypes (quad: CARDINAL; op1, op2: CARDINAL) : BOOLEAN ;
+VAR
+   t1, t2: CARDINAL ;
+BEGIN
+   IF (GetType(op1)=NulSym) OR (GetMode(op1)=LeftValue)
+   THEN
+      RETURN( TRUE )
+   ELSE
+      t1 := SkipType(GetType(op1)) ;
+      IF IsRecord(t1)
+      THEN
+         IF GetType(op2)=NulSym
+         THEN
+            MetaErrorT2(QuadToTokenNo(quad), 'cannot assign an operand of type {%1ts} to a record type {%2tsa}', op2, op1) ;
+            RETURN( FALSE )
+         ELSE
+            t2 := SkipType(GetType(op2)) ;
+	    IF t1=t2
+            THEN
+               RETURN( TRUE )
+            ELSE
+               MetaErrorT2(QuadToTokenNo(quad), 'cannot assign an operand of type {%1ts} to a record type {%2tsa}', op2, op1) ;
+	       RETURN( FALSE )
+            END
+         END
+      END
+   END ;
+   RETURN( TRUE )
+END checkRecordTypes ;
+
+
+(*
+   checkBecomes - returns TRUE if the checks pass.
+*)
+
+PROCEDURE checkBecomes (quad: CARDINAL; op1, op2: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF (NOT checkArrayElements(quad, op1, op2)) OR
+      (NOT checkRecordTypes(quad, op1, op2))
+   THEN
+      RETURN( FALSE )
+   END ;
+   RETURN( TRUE )
+END checkBecomes ;
+
+
+(*
 ------------------------------------------------------------------------------
    := Operator
 ------------------------------------------------------------------------------
@@ -3126,7 +3177,7 @@ BEGIN
                                               BuildAddr(location, Mod2Gcc(op3), FALSE),
                                               BuildSize(location, Mod2Gcc(op1), FALSE)))
       ELSE
-         IF checkArrayElements(quad, op1, op3)
+         IF checkBecomes(quad, op1, op3)
          THEN
             t := BuildAssignmentTree(location,
                                      Mod2Gcc(op1),

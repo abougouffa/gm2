@@ -1,3 +1,10 @@
+2016-03-03      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  checkRecordTypes new procedure
+	function.  checkBecomes new procedure function.  CodeBecomes
+	use checkBecomes.  This fixes a bug reported by
+        <Georg.Lokowandt@t-online.de> (bug6.mod).
+
 2016-02-25      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/gravity/Makefile.in:  fixed linewrap in
