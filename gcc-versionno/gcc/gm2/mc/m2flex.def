@@ -1,0 +1,86 @@
+(* Copyright (C) 2015
+                 Free Software Foundation, Inc.  *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  *)
+
+DEFINITION MODULE m2flex ;
+
+(*
+    Title      : m2flex
+    Author     : Gaius Mulley
+    System     : UNIX (GNU Modula-2)
+    Date       : Tue Jul 31 17:46:41 2001
+    Last edit  : $Date: 2013/02/11 14:45:17 $
+    Revision   : $Version$
+    Description: provides a Modula-2 definition module for the C lexical
+                 analysis flex file m2.flex
+*)
+
+FROM SYSTEM IMPORT ADDRESS ;
+
+
+(*
+   CloseSource - provided for semantic sugar
+*)
+
+PROCEDURE CloseSource ;
+
+
+(*
+   OpenSource - returns TRUE if file, s, can be opened and
+                all tokens are taken from this file.
+*)
+
+PROCEDURE OpenSource (s: ADDRESS) : BOOLEAN ;
+
+
+(*
+   GetToken - returns the ADDRESS of the next token.
+*)
+
+PROCEDURE GetToken () : ADDRESS ;
+
+
+(*
+   GetLineNo - returns the current line number.
+*)
+
+PROCEDURE GetLineNo () : CARDINAL ;
+
+
+(*
+   GetColumnNo - returns the column where the current token starts.
+*)
+
+PROCEDURE GetColumnNo () : CARDINAL ;
+
+
+(*
+   M2Error - displays the error message, s, after the code line and pointer
+             to the erroneous token.
+*)
+
+PROCEDURE M2Error (s: ADDRESS) ;
+
+
+(*
+   GetTotalLines - returns the total number of lines parsed.
+*)
+
+PROCEDURE GetTotalLines () : CARDINAL ;
+
+
+END m2flex.

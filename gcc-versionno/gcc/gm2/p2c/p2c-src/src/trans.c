@@ -944,8 +944,6 @@ char **argv;
 }
 
 
-
-
 int outmem()
 {
     fprintf(stderr, "p2c: Out of memory!\n");
@@ -1550,8 +1548,4 @@ int size;
 #endif  /* TEST_MALLOC */
 
 
-
-
 /* End. */
-
-

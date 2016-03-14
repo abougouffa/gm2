@@ -118,7 +118,6 @@ Static int showingsourcecode = 0;
 #define BIGBADNESS  (1e20)
 
 
-
 void setup_out()
 {
     end_source();
@@ -145,7 +144,6 @@ void setup_out()
 }
 
 
-
 void select_outfile(fp)
 FILE *fp;
 {
@@ -167,7 +165,6 @@ FILE *fp;
 }
 
 
-
 void start_source()
 {
     if (!showingsourcecode) {
@@ -176,6 +173,7 @@ void start_source()
     }
 }
 
+
 void end_source()
 {
     if (showingsourcecode) {
@@ -183,7 +181,6 @@ void end_source()
 	showingsourcecode = 0;
     }
 }
-
 
 
 int line_start()
@@ -308,12 +305,10 @@ int col;
 }
 
 
-
 void eatblanklines()
 {
     eatblanks = 1;
 }
-
 
 
 Static void flush_outbuf(numbreaks, breakpos, breakindent,
@@ -513,7 +508,6 @@ int first, last;
 }
 
 
-
 Static void makeedit(pos, ch)
 int pos, ch;
 {
@@ -523,6 +517,7 @@ int pos, ch;
     outbuf[pos] = ch;
     numedits++;
 }
+
 
 Static void unedit()
 {
@@ -1031,9 +1026,11 @@ long getcurtime()
 }
 
 
+void mystop ()
+{}
 
 void output(msg)
-register char *msg;
+     char *msg;
 {
     unsigned char ch;
     double savelimit;
@@ -1041,6 +1038,9 @@ register char *msg;
     long alts;
     long time0, time0a, time1;
 
+    if (strcmp (msg, "next") == 0)
+      mystop ();
+    
     debughook();
     if (! outf)
       return;
@@ -1181,14 +1181,12 @@ register char *msg;
 }
 
 
-
 void out_n_spaces(n)
 int n;
 {
     while (--n >= 0)
 	output(" ");
 }
-
 
 
 void out_spaces(spc, over, len, delta)
@@ -1226,8 +1224,6 @@ int spc, over, len, delta;
 	out_n_spaces(n);
     }
 }
-
-
 
 
 void testlinebreaker(lev, fn)
@@ -1284,16 +1280,12 @@ char *fn;
 }
 
 
-
-
-
 void outsection(size)
 int size;
 {
     if (size > sectionsize)
         sectionsize = size;
 }
-
 
 
 int isembedcomment(cmt)
@@ -1442,7 +1434,6 @@ int serial, indent;
     } else
 	output("\n");
 }
-
 
 
 void flushcomments(cmt, kind, serial)

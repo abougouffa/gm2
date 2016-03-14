@@ -1,4 +1,4 @@
-/* Copyright (C) 2012
+/* Copyright (C) 2012, 2013, 2014, 2015, 2016
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -23,36 +23,8 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA.
 */
 
+#include "gcc-consolidation.h"
 
-#include "config.h"
-#include "system.h"
-#include "coretypes.h"
-#include "tm.h"
-#include "tree.h"
-#include "toplev.h"
-#include "tm_p.h"
-#include "flags.h"
-#include <stdio.h>
-#include <float.h>
-
-
-/*
- *  utilize some of the C build routines
- */
-
-#include "c-tree.h"
-#include "rtl.h"
-#include "function.h"
-#include "expr.h"
-#include "output.h"
-#include "ggc.h"
-#include "intl.h"
-#include "convert.h"
-#include "target.h"
-#include "debug.h"
-#include "diagnostic.h"
-#include "except.h"
-#include "libfuncs.h"
 #include "../gm2-tree.h"
 #include "../gm2-lang.h"
 
@@ -67,6 +39,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "m2convert.h"
 #include "m2except.h"
 #include "m2linemap.h"
+#include "m2treelib.h"
 
 #undef USE_BOOLEAN
 static int broken_set_debugging_info = TRUE;
@@ -99,7 +72,7 @@ struct_constructor {
    *  constructor_elements, used by an ARRAY initializer all
    *  elements are held in reverse order.
    */
-  VEC(constructor_elt,gc) *constructor_elements;
+  vec<constructor_elt, va_gc> *constructor_elements;
   /*
    *  level, the next level down in the constructor stack.
    */
@@ -185,7 +158,7 @@ gm2_canonicalize_array (tree index_type, int type)
       else
         l = l->next;
     }
-  l = (array_desc *) ggc_alloc_array_desc ();
+  l = ggc_alloc<array_desc> ();
   l->next = list_of_arrays;
   l->type = type;
   l->index = index_type;
@@ -1604,7 +1577,6 @@ m2type_BuildVariableArrayAndDeclare (location_t location,
   tree decl;
 
   m2assert_AssertLocation (location);
-  C_TYPE_VARIABLE_SIZE (arraytype) = TRUE;
   decl = build_decl (location, VAR_DECL, id, arraytype);
 
   DECL_EXTERNAL(decl) = FALSE;
@@ -1613,12 +1585,11 @@ m2type_BuildVariableArrayAndDeclare (location_t location,
   TREE_USED (arraytype) = TRUE;
   TREE_USED (decl) = TRUE;
 
-  C_DECL_VARIABLE_SIZE (decl) = TRUE;
   m2block_pushDecl (decl);
 
   gm2_finish_decl (location, indextype);
   gm2_finish_decl (location, arraytype);
-  add_stmt (build_stmt (location, DECL_EXPR, decl));
+  add_stmt (location, build_stmt (location, DECL_EXPR, decl));
 
   return decl;
 }
@@ -2384,7 +2355,8 @@ gm2_finish_enum (location_t location, tree enumtype, tree values)
 {
   tree pair, tem;
   tree minnode = 0, maxnode = 0;
-  int precision, unsign;
+  int precision;
+  signop sign;
 
   /* Calculate the maximum value of any enumerator in this type.  */
 
@@ -2407,9 +2379,9 @@ gm2_finish_enum (location_t location, tree enumtype, tree values)
      as one of the integral types - the narrowest one that fits, except
      that normally we only go as narrow as int - and signed iff any of
      the values are negative.  */
-  unsign = (tree_int_cst_sgn (minnode) >= 0);
-  precision = MAX (tree_int_cst_min_precision (minnode, unsign),
-		   tree_int_cst_min_precision (maxnode, unsign));
+  sign = (tree_int_cst_sgn (minnode) >= 0) ? UNSIGNED : SIGNED;
+  precision = MAX (tree_int_cst_min_precision (minnode, sign),
+		   tree_int_cst_min_precision (maxnode, sign));
 
   if (precision > TYPE_PRECISION (integer_type_node))
     {
@@ -2419,7 +2391,7 @@ gm2_finish_enum (location_t location, tree enumtype, tree values)
   else if (TYPE_PACKED (enumtype))
     tem = m2type_BuildSmallestTypeRange (location, minnode, maxnode);
   else
-    tem = unsign ? unsigned_type_node : integer_type_node;
+    tem = sign == UNSIGNED ? unsigned_type_node : integer_type_node;
 
   TYPE_MIN_VALUE (enumtype) = TYPE_MIN_VALUE (tem);
   TYPE_MAX_VALUE (enumtype) = TYPE_MAX_VALUE (tem);
@@ -2618,8 +2590,7 @@ static
 struct struct_constructor *
 push_constructor (void)
 {
-  struct struct_constructor *p =
-    (struct struct_constructor *) ggc_alloc_struct_constructor ();
+  struct struct_constructor *p = ggc_alloc<struct_constructor> ();
 
   p->level = top_constructor;
   top_constructor = p;
@@ -2655,7 +2626,7 @@ m2type_BuildStartSetConstructor (tree type)
   p->constructor_type = type;
   p->constructor_fields = TYPE_FIELDS (type);
   p->constructor_element_list = NULL_TREE;
-  p->constructor_elements = NULL;
+  vec_alloc (p->constructor_elements, 1);
   return (void *)p;
 }
 
@@ -2728,7 +2699,7 @@ m2type_BuildStartRecordConstructor (tree type)
   p->constructor_type = type;
   p->constructor_fields = TYPE_FIELDS (type);
   p->constructor_element_list = NULL_TREE;
-  p->constructor_elements = NULL;
+  vec_alloc (p->constructor_elements, 1);
   return (void *)p;
 }
 
@@ -2778,7 +2749,7 @@ m2type_BuildStartArrayConstructor (tree type)
   p->constructor_type = type;
   p->constructor_fields = TREE_TYPE (type);
   p->constructor_element_list = NULL_TREE;
-  p->constructor_elements = NULL;
+  vec_alloc (p->constructor_elements, 1);
   return (void *)p;
 }
 
@@ -2813,7 +2784,7 @@ m2type_BuildArrayConstructorElement (void *p, tree value,
                                      tree indice)
 {
   struct struct_constructor *c = (struct struct_constructor *)p;
-  constructor_elt *celt;
+  constructor_elt celt;
 
   if (value == NULL_TREE) {
     internal_error ("array cannot be initialized with a NULL_TREE");
@@ -2830,9 +2801,9 @@ m2type_BuildArrayConstructorElement (void *p, tree value,
     return;
   }
 
-  celt = VEC_safe_push (constructor_elt, gc, c->constructor_elements, NULL);
-  celt->index = indice;
-  celt->value = value;
+  celt.index = indice;
+  celt.value = value;
+  vec_safe_push (c->constructor_elements, celt);
 }
 
 
@@ -3077,7 +3048,6 @@ m2type_BuildEndRecord (location_t location, tree record, tree fieldlist, int isP
       if (isPacked) {
         DECL_PACKED (x) = 1;
 	DECL_BIT_FIELD (x) = 1;
-	SET_DECL_C_BIT_FIELD (x);
       }
     }
 
@@ -3099,9 +3069,6 @@ m2type_BuildEndRecord (location_t location, tree record, tree fieldlist, int isP
       TYPE_LANG_SPECIFIC (x) = TYPE_LANG_SPECIFIC (record);
       TYPE_ALIGN (x) = TYPE_ALIGN (record);
       TYPE_USER_ALIGN (x) = TYPE_USER_ALIGN (record);
-      C_TYPE_FIELDS_READONLY (x) = C_TYPE_FIELDS_READONLY (record);
-      C_TYPE_FIELDS_VOLATILE (x) = C_TYPE_FIELDS_VOLATILE (record);
-      C_TYPE_VARIABLE_SIZE (x) = C_TYPE_VARIABLE_SIZE (record);
     }
 
 #if 0
@@ -3367,10 +3334,10 @@ m2type_BuildNumberOfArrayElements (location_t location, tree arrayType)
  */
 
 void
-m2type_AddStatement (tree t)
+m2type_AddStatement (location_t location, tree t)
 {
   if (t != NULL_TREE)
-    add_stmt (t);
+    add_stmt (location, t);
 }
 
 

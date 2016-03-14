@@ -37,32 +37,10 @@ Boston, MA 02110-1301, USA.  */
 #include "gimple.h"
 
 
-/* Language-dependent contents of a type.  */
-
-struct GTY(()) lang_type
-{
-  char dummy;
-};
-
-/* Language-dependent contents of a decl.  */
-
-struct GTY(()) lang_decl
-{
-  char dummy;
-};
-
 /* Language-dependent contents of an identifier.  */
 
-/* The limbo_value is used for block level extern declarations, which need
-   to be type checked against subsequent extern declarations.  They can't
-   be referenced after they fall out of scope, so they can't be global.
-
-   The rid_code field is used for keywords.  It is in all
-   lang_identifier nodes, because some keywords are only special in a
-   particular context.  */
-
-struct GTY(()) lang_identifier
-{
+struct GTY(())
+lang_identifier {
   struct tree_identifier common;
 };
 

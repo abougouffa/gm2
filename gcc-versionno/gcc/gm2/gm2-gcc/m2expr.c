@@ -1,4 +1,4 @@
-/* Copyright (C) 2012.
+/* Copyright (C) 2012, 2013, 2014, 2015.
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -24,34 +24,8 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 */
 
 
-#include "config.h"
-#include "system.h"
-#include "coretypes.h"
-#include "tm.h"
-#include "tree.h"
-#include "toplev.h"
-#include "tm_p.h"
-#include "flags.h"
-#include <stdio.h>
+#include "gcc-consolidation.h"
 
-
-/*
- *  utilize some of the C build routines
- */
-
-#include "c-tree.h"
-#include "rtl.h"
-#include "function.h"
-#include "expr.h"
-#include "output.h"
-#include "ggc.h"
-#include "intl.h"
-#include "convert.h"
-#include "target.h"
-#include "debug.h"
-#include "diagnostic.h"
-#include "except.h"
-#include "libfuncs.h"
 #include "../gm2-tree.h"
 #include "../gm2-lang.h"
 #include "m2convert.h"
@@ -740,7 +714,7 @@ m2expr_BuildBinarySetDo (location_t location, tree settype, tree op1, tree op2, 
         result = m2statement_BuildProcedureCallTree (location, rightproc, NULL_TREE);
     else
       result = m2statement_BuildProcedureCallTree (location, varproc, NULL_TREE);
-    add_stmt (result);
+    add_stmt (location, result);
   }
 }
 
@@ -1874,7 +1848,7 @@ m2expr_BuildArray (tree type, tree array, tree index, tree lowIndice)
  */
 
 tree
-m2expr_BuildComponentRef (tree record, tree field)
+m2expr_BuildComponentRef (location_t location, tree record, tree field)
 { 
   tree recordType = m2tree_skip_reference_type (m2tree_skip_type_decl (TREE_TYPE (record)));
 
@@ -1882,7 +1856,8 @@ m2expr_BuildComponentRef (tree record, tree field)
     return build3 (COMPONENT_REF, TREE_TYPE (field), record, field, NULL_TREE);
   else {
     tree f = determinePenultimateField (recordType, field);
-    return m2expr_BuildComponentRef (m2expr_BuildComponentRef (record, f), field);
+    return m2expr_BuildComponentRef (location,
+				     m2expr_BuildComponentRef (location, record, f), field);
   }
 }
 
@@ -1989,13 +1964,19 @@ m2expr_DetermineSign (tree e)
 
 static
 tree
-build_int_2_type (int low, int hi, tree type)
+build_int_2_type (HOST_WIDE_INT low, HOST_WIDE_INT hi, tree type)
 {
-  tree t = make_node (INTEGER_CST);
-  TREE_INT_CST_LOW(t) = low;
-  TREE_INT_CST_HIGH(t) = hi;
-  TREE_TYPE(t) = type;
-  return t;
+  tree value;
+  HOST_WIDE_INT ival[3];
+
+  ival[0] = low;
+  ival[1] = hi;
+  ival[2] = 0;
+
+  widest_int wval = widest_int::from_array (ival, 3);
+  value = wide_int_to_tree (type, wval);
+
+  return value;
 }
 
 
@@ -2231,7 +2212,7 @@ append_digit (unsigned HOST_WIDE_INT *low, HOST_WIDE_INT *high,
 
 /*
  *  interpret_integer - converts an integer constant into two integer
- *                      constants. Heavily borrowed from gcc/cppexp.c.
+ *                      constants.  Heavily borrowed from gcc/cppexp.c.
  */
 
 int

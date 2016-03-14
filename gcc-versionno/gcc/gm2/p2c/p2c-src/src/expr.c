@@ -444,6 +444,8 @@ int n;
     ex->val.s = NULL;
     ex->kind = kind;
     ex->nargs = n;
+    if (kind == EK_CAST)
+      stop ();
     return ex;
 }
 
@@ -470,11 +472,11 @@ Expr *arg1, *arg2;
 {
     Expr *ex;
 
-    ex = makeexpr(kind, 2);
+    ex = makeexpr (kind, 2);
     ex->val.type = type;
     ex->args[0] = arg1;
     ex->args[1] = arg2;
-    if (debug>2) { fprintf(outf,"makeexpr_bin returns "); dumpexpr(ex); fprintf(outf,"\n"); }
+    if (debug>2) { fprintf (outf,"makeexpr_bin returns "); dumpexpr (ex); fprintf (outf,"\n"); }
     return ex;
 }
 
@@ -1284,9 +1286,6 @@ Expr *ex;
 }
 
 
-
-
-
 Static Expr *docast(a, type)
 Expr *a;
 Type *type;
@@ -1369,36 +1368,38 @@ Type *type;
 }
 
 
-
-Expr *makeexpr_cast(a, type)
+Expr *makeexpr_cast (a, type)
 Expr *a;
 Type *type;
 {
     Expr *ex;
 
     if (debug>2) { fprintf(outf,"makeexpr_cast("); dumpexpr(a); fprintf(outf,", "); dumptypename(type, 1); fprintf(outf,")\n"); }
+    if (cplus11 && a->kind == EK_FUNCTION && is_opaque (type))
+      return makeexpr_un (EK_CAST, type, a);
+      
     if (a->val.type == type)
-        return a;
-    ex = docast(a, type);
+      return a;
+    
+    ex = docast (a, type);
     if (ex)
         return ex;
     if (a->kind == EK_CAST &&
         a->args[0]->val.type->kind == TK_POINTER &&
-        similartypes(type, a->args[0]->val.type)) {
-        a = grabarg(a, 0);
+        similartypes (type, a->args[0]->val.type)) {
+        a = grabarg (a, 0);
         a->val.type = type;
         return a;
     }
     if ((a->kind == EK_CAST &&
          ((a->val.type->kind == TK_POINTER && type->kind == TK_POINTER) ||
-          (ord_type(a->val.type)->kind == TK_INTEGER && ord_type(type)->kind == TK_INTEGER))) ||
-        similartypes(type, a->val.type)) {
+          (ord_type (a->val.type)->kind == TK_INTEGER && ord_type(type)->kind == TK_INTEGER))) ||
+        similartypes (type, a->val.type)) {
         a->val.type = type;
         return a;
     }
-    return makeexpr_un(EK_CAST, type, a);
+    return makeexpr_un (EK_CAST, type, a);
 }
-
 
 
 Expr *gentle_cast(a, type)
@@ -1421,20 +1422,29 @@ Type *type;
       return makeexpr_cast(a, type);
     }
 
+    if (cplus11 && (is_opaque (type) || is_opaque (a->val.type)))
+      return makeexpr_cast (a, type);
+
+    if (a->val.type != type) {
+      if (cplus11 && is_pointer_type (type) && is_pointer_type (a->val.type))
+	return makeexpr_cast (a, type);
+    }
+
     if ((type == tp_word || a->val.type == tp_word) && modula2)
       return makeexpr_cast(a, type);
 
     if (a->val.type->kind == TK_POINTER && type->kind == TK_POINTER) {
+      if (! cplus11)
         if (voidstar && (type == tp_anyptr || a->val.type == tp_anyptr)) {
-            if (type == tp_anyptr && a->kind == EK_CAST &&
-                a->args[0]->val.type->kind == TK_POINTER)
-                return a->args[0];    /* remove explicit cast since casting implicitly */
-            return a;                 /* casting to/from "void *" */
+	  if (type == tp_anyptr && a->kind == EK_CAST &&
+	      a->args[0]->val.type->kind == TK_POINTER)
+	    return a->args[0];    /* remove explicit cast since casting implicitly */
+	  return a;                 /* casting to/from "void *" */
         }
-        return makeexpr_cast(a, type);
+      return makeexpr_cast (a, type);
     }
     if (type->kind == TK_STRING)
-        return makeexpr_stringify(a);
+      return makeexpr_stringify(a);
     if (type->kind == TK_ARRAY &&
 	(a->val.type->kind == TK_STRING ||
 	 a->val.type->kind == TK_CHAR) &&
@@ -1824,6 +1834,35 @@ Expr *ex;
     }
 }
 
+
+Expr *makeexpr_ptrcast(a, tolong)
+Expr *a;
+int tolong;
+{
+    Expr *ex;
+    Type *type;
+
+    if (sizeof_int >= 32)
+        return a;
+    type = ord_type(a->val.type);
+    if (type->kind != TK_INTEGER && type->kind != TK_SMALLSET)
+        return a;
+    a = makeexpr_unlongcast(a);
+    if (tolong) {
+        ex = dolongcast(a, 1);
+    } else {
+        ex = dolongcast(copyexpr(a), 0);
+        if (ex) {
+            if (!dolongcast(ex, 2)) {
+                freeexpr(ex);
+                ex = NULL;
+            }
+        }
+    }
+    if (ex)
+        return ex;
+    return makeexpr_un(EK_CAST, (tolong) ? tp_integer : tp_int, a);
+}
 
 
 
@@ -4681,15 +4720,16 @@ Expr *a, *b;
 	if (ISCONST(b->kind) && ISCONST(a->args[1]->kind))
 	    b->val.i <<= a->args[1]->val.i;
 	else
-	    b = makeexpr_bin(EK_LSH, b->val.type, b, a->args[1]);
-	return makeexpr_assign(a->args[0], b);
+	    b = makeexpr_bin (EK_LSH, b->val.type, b, a->args[1]);
+	return makeexpr_assign (a->args[0], b);
     }
-    if (isarithkind(a->kind))
+    if (isarithkind (a->kind))
 	warning("Invalid assignment [168]");
-    return makeexpr_bin(EK_ASSIGN, a->val.type, a, makeexpr_unlongcast(b));
+
+    b = makeexpr_unlongcast (b);
+    b = check_cast_needed (a, b);
+    return makeexpr_bin (EK_ASSIGN, a->val.type, a, b);
 }
-
-
 
 
 Expr *makeexpr_comma(a, b)
@@ -4706,8 +4746,6 @@ Expr *a, *b;
     a->val.type = type;
     return a;
 }
-
-
 
 
 int strmax(ex)
@@ -4751,8 +4789,6 @@ Expr *ex;
 }
 
 
-
-
 int strhasnull(val)
 Value val;
 {
@@ -4766,7 +4802,6 @@ Value val;
 }
 
 
-
 int istempsprintf(ex)
 Expr *ex;
 {
@@ -4776,7 +4811,6 @@ Expr *ex;
             ex->args[1]->kind == EK_CONST &&
             ex->args[1]->val.type->kind == TK_STRING);
 }
-
 
 
 Expr *makeexpr_sprintfify(ex)
@@ -4847,7 +4881,6 @@ Expr *ex;
 }
 
 
-
 Expr *makeexpr_unsprintfify(ex)
 Expr *ex;
 {
@@ -4883,7 +4916,6 @@ Expr *ex;
 }
 
 
-
 /* Returns >= 0 iff unsprintfify would return a string constant */
 
 int sprintflength(ex, allownulls)
@@ -4913,7 +4945,6 @@ int allownulls;
     }
     return len;
 }
-
 
 
 Expr *makeexpr_concat(a, b, usesprintf)
@@ -5027,7 +5058,6 @@ int usesprintf;
 }
 
 
-
 Expr *cleansprintf(ex)
 Expr *ex;
 {
@@ -5089,7 +5119,6 @@ Expr *ex;
 }
 
 
-
 Expr *makeexpr_substring(vex, ex, exi, exj)
 Expr *vex, *ex, *exi, *exj;
 {
@@ -5102,8 +5131,6 @@ Expr *vex, *ex, *exi, *exj;
                                           exj,
                                           ex));
 }
-
-
 
 
 Expr *makeexpr_dot(ex, mp)
@@ -5148,7 +5175,6 @@ Meaning *mp;
 }
 
 
-
 Expr *makeexpr_dotq(ex, name, type)
 Expr *ex;
 char *name;
@@ -5158,7 +5184,6 @@ Type *type;
     ex->val.s = stralloc(name);
     return ex;
 }
-
 
 
 Expr *strmax_func(ex)
@@ -5201,8 +5226,6 @@ Expr *ex;
 }
 
 
-
-
 Expr *makeexpr_nil()
 {
     Expr *ex;
@@ -5215,7 +5238,6 @@ Expr *makeexpr_nil()
 }
 
 
-
 Expr *makeexpr_ctx(ctx)
 Meaning *ctx;
 {
@@ -5226,8 +5248,6 @@ Meaning *ctx;
     ex->val.i = (long)ctx;
     return ex;
 }
-
-
 
 
 Expr *force_signed(ex)
@@ -5355,7 +5375,6 @@ int pasc;
             return 0;
     }
 }
-
 
 
 Static Value eval_expr_either(ex, pasc)
@@ -5582,7 +5601,6 @@ Expr *ex;
 }
 
 
-
 int expr_is_const(ex)
 Expr *ex;
 {
@@ -5630,9 +5648,6 @@ Expr *ex;
 }
 
 
-
-
-
 Expr *eatcasts(ex)
 Expr *ex;
 {
@@ -5641,12 +5656,4 @@ Expr *ex;
     return ex;
 }
 
-
-
-
-
 /* End. */
-
-
-
-

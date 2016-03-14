@@ -26,34 +26,8 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA.
 */
 
-#include "config.h"
-#include "system.h"
-#include "coretypes.h"
-#include "tm.h"
-#include "tree.h"
-#include "toplev.h"
-#include "tm_p.h"
-#include "flags.h"
-#include <stdio.h>
+#include "gcc-consolidation.h"
 
-
-/*
- *  utilize some of the C build routines
- */
-
-#include "c-tree.h"
-#include "rtl.h"
-#include "function.h"
-#include "expr.h"
-#include "output.h"
-#include "ggc.h"
-#include "intl.h"
-#include "convert.h"
-#include "target.h"
-#include "debug.h"
-#include "diagnostic.h"
-#include "except.h"
-#include "libfuncs.h"
 #include "../gm2-tree.h"
 
 
@@ -74,6 +48,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "m2tree.h"
 #include "m2statement.h"
 #include "m2block.h"
+#include "m2treelib.h"
 
 /* local prototypes */
 
@@ -445,10 +420,8 @@ gm2_build_throw (location_t location, tree exp)
   m2assert_AssertLocation (location);
 
   if (exp == NULL_TREE)
-    {
       /* rethrow the current exception */
-      return build1 (THROW_EXPR, void_type_node, do_rethrow (location));
-    }
+    exp = build1 (THROW_EXPR, void_type_node, do_rethrow (location));
   else
     {
       tree object, ptr;
@@ -483,10 +456,10 @@ gm2_build_throw (location_t location, tree exp)
       /* Tack on the initialization stuff.  */
       exp = build2 (COMPOUND_EXPR, TREE_TYPE (tmp), exp, tmp);
       exp = build1 (THROW_EXPR, void_type_node, exp);
-      SET_EXPR_LOCATION (exp, location);
-
-      return exp;
     }
+
+  SET_EXPR_LOCATION (exp, location);
+  return exp;
 }
 
 /*
@@ -499,6 +472,8 @@ m2except_BuildThrow (location_t location, tree expr)
 {
   expr = gm2_build_throw (location, expr);
 
+  ASSERT ((TREE_CODE (expr) != CLEANUP_POINT_EXPR), expr);
+#if 0
   /* Simplification of inner statement expressions, compound exprs,
      etc can result in us already having an EXPR_STMT.  */
   if (TREE_CODE (expr) != CLEANUP_POINT_EXPR)
@@ -507,6 +482,7 @@ m2except_BuildThrow (location_t location, tree expr)
 	expr = build_stmt (input_location, EXPR_STMT, expr);
       expr = maybe_cleanup_point_expr_void (expr);
     }
+#endif
   
   return expr;
 }
@@ -606,7 +582,7 @@ begin_handler (location_t location)
 
   m2assert_AssertLocation (location);
   r = build_stmt (location, HANDLER, NULL_TREE, NULL_TREE);
-  add_stmt (r);
+  add_stmt (location, r);
 
   HANDLER_BODY (r) = m2block_begin_statement_list ();
 
@@ -696,7 +672,7 @@ finish_expr_stmt (location_t location, tree expr)
 	    expr = build_stmt (location, EXPR_STMT, expr);
 	  expr = maybe_cleanup_point_expr_void (expr);
 	}
-      r = add_stmt (expr);
+      r = add_stmt (location, expr);
     }
 
   return r;

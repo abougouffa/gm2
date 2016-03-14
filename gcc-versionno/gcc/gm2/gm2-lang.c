@@ -1,7 +1,7 @@
 /* Language-dependent hooks for GNU Modula-2.
    Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
                  2011, 2012, 2013, 2014
- *               Free Software Foundation, Inc.
+                 Free Software Foundation, Inc.
    Contributed by Gaius Mulley <gaius@glam.ac.uk>
 
 This file is part of GNU CC.
@@ -21,27 +21,15 @@ along with GNU CC; see the file COPYING.  If not, write to
 the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
-#include "config.h"
-#include "system.h"
-#include "ansidecl.h"
-#include "coretypes.h"
-#include "opts.h"
-#include "tree.h"
-#include "gimple.h"
-#include "ggc.h"
+
+#include "gm2-gcc/gcc-consolidation.h"
+
+#include "langhooks-def.h"	/* FIXME: for lhd_set_decl_assembler_name */
+#include "tree-pass.h"		/* FIXME: only for PROP_gimple_any */
 #include "toplev.h"
 #include "debug.h"
-#include "options.h"
-#include "flags.h"
-#include "convert.h"
-#include "diagnostic.h"
-#include "langhooks.h"
-#include "langhooks-def.h"
-#include "except.h"
-#include "target.h"
-#include "common/common-target.h"
+
 #include "opts.h"
-#include "cgraph.h"
 
 #include <mpfr.h>
 
@@ -52,9 +40,10 @@ Boston, MA 02110-1301, USA.  */
 #include "m2options.h"
 #include "gm2version.h"
 #include "m2convert.h"
+#include "m2linemap.h"
 #include "init.h"
 #include "../gm2-tree.h"
-
+#include "convert.h"
 
 static int insideCppArgs = FALSE;
 
@@ -113,60 +102,61 @@ gm2_langhook_init_options_struct (struct gcc_options *opts)
   init_FrontEndInit ();
 }
 
-/* Infrastructure for a VEC of unsigned int values.  */
-
-typedef unsigned int gm2_bool;
+/* Infrastructure for a VEC of bool values.  */
 
 /* This array determines whether the filename is associated with
    the C preprocessor.  */
 
-DEF_VEC_I(gm2_bool);
-DEF_VEC_ALLOC_I(gm2_bool, heap);
-static VEC(gm2_bool,heap) *filename_cpp;
+static vec<bool> filename_cpp;
+			  
 
 void
 gm2_langhook_init_options (unsigned int decoded_options_count,
 			   struct cl_decoded_option *decoded_options)
 {
   unsigned int i;
-  unsigned int in_cpp_args = FALSE;
+  bool in_cpp_args = false;
 
-  filename_cpp = VEC_alloc (gm2_bool, heap, decoded_options_count);
+  // filename_cpp = ggc_vec_alloc<bool> (decoded_options_count);
 
   for (i = 1; i < decoded_options_count; i++)
     {
       switch (decoded_options[i].opt_index)
 	{
 	case OPT_fcppbegin:
-	  in_cpp_args = TRUE;
+	  in_cpp_args = true;
 	  break;
 	case OPT_fcppend:
-	  in_cpp_args = FALSE;
+	  in_cpp_args = false;
 	  break;
 	case OPT_SPECIAL_input_file:
 	case OPT_SPECIAL_program_name:
-	  VEC_quick_push (gm2_bool, filename_cpp, in_cpp_args);
+	  filename_cpp.safe_push (in_cpp_args);
 	}
     }
-  VEC_quick_push (gm2_bool, filename_cpp, FALSE);
+  filename_cpp.safe_push (false);
 }
 
 
-static unsigned int is_cpp_filename (unsigned int i)
+static bool is_cpp_filename (unsigned int i)
 {
-  return VEC_index (gm2_bool, filename_cpp, i);
+  gcc_assert (i < filename_cpp.length ());
+  return filename_cpp[i];
 }
 
-/* Infrastructure for a VEC of char * pointers.  */
+#if 0
+/* Infrastructure for a vector of char * pointers.  */
 
 typedef const char *gm2_char_p;
-DEF_VEC_P(gm2_char_p);
-DEF_VEC_ALLOC_P(gm2_char_p, heap);
 
 /* The list of directories to search after all the Go specific
    directories have been searched.  */
 
-// static VEC(gm2_char_p, heap) *gm2_search_dirs;
+static vec<gm2_char_p> gm2_search_dirs;
+
+/* The list of directories to search after all the gm2 specific
+   directories have been searched.  */
+#endif
 
 /* Handle gm2 specific options.  Return 0 if we didn't do anything.  */
 
@@ -401,20 +391,6 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
 static bool
 gm2_langhook_post_options (const char **pfilename ATTRIBUTE_UNUSED)
 {
-#if 0
-  unsigned int ix;
-  const char *dir;
-
-  gcc_assert (num_in_fnames > 0);
-
-  FOR_EACH_VEC_ELT (gm2_char_p, gm2_search_dirs, ix, dir)
-    gm2_add_search_path (dir);
-  VEC_free (gm2_char_p, heap, gm2_search_dirs);
-  gm2_search_dirs = NULL;
-
-  if (flag_excess_precision_cmdline == EXCESS_PRECISION_DEFAULT)
-    flag_excess_precision_cmdline = EXCESS_PRECISION_STANDARD;
-#endif
   flag_excess_precision_cmdline = EXCESS_PRECISION_FAST;
   M2Options_SetCC1Quiet (quiet_flag);
   M2Options_FinaliseOptions ();
@@ -450,10 +426,7 @@ static tree
 gm2_langhook_type_for_mode (enum machine_mode mode, int unsignedp)
 {
   tree type;
-  /* Go has no vector types.  Build them here.  FIXME: It does not
-     make sense for the middle-end to ask the frontend for a type
-     which the frontend does not support.  However, at least for now
-     it is required.  See PR 46805.  */
+
   if (VECTOR_MODE_P (mode))
     {
       tree inner;
@@ -464,9 +437,40 @@ gm2_langhook_type_for_mode (enum machine_mode mode, int unsignedp)
       return NULL_TREE;
     }
 
-  type = gm2_type_for_mode (mode, unsignedp);
-  if (type)
-    return type;
+  // FIXME: This static_cast should be in machmode.h.
+  enum mode_class mc = static_cast<enum mode_class>(GET_MODE_CLASS(mode));
+  if (mc == MODE_INT)
+    return gm2_langhook_type_for_size(GET_MODE_BITSIZE(mode), unsignedp);
+  else if (mc == MODE_FLOAT)
+    {
+      switch (GET_MODE_BITSIZE (mode))
+	{
+	case 32:
+	  return float_type_node;
+	case 64:
+	  return double_type_node;
+	default:
+	  // We have to check for long double in order to support
+	  // i386 excess precision.
+	  if (mode == TYPE_MODE(long_double_type_node))
+	    return long_double_type_node;
+	}
+    }
+  else if (mc == MODE_COMPLEX_FLOAT)
+    {
+      switch (GET_MODE_BITSIZE (mode))
+	{
+	case 64:
+	  return complex_float_type_node;
+	case 128:
+	  return complex_double_type_node;
+	default:
+	  // We have to check for long double in order to support
+	  // i386 excess precision.
+	  if (mode == TYPE_MODE(complex_long_double_type_node))
+	    return complex_long_double_type_node;
+	}
+    }
 
 #if HOST_BITS_PER_WIDE_INT >= 64
   /* The middle-end and some backends rely on TImode being supported
@@ -480,211 +484,6 @@ gm2_langhook_type_for_mode (enum machine_mode mode, int unsignedp)
     }
 #endif
   return NULL_TREE;
-}
-
-/* Return a data type that has machine mode MODE.
-   If the mode is an integer,
-   then UNSIGNEDP selects between signed and unsigned types.
-   If the mode is a fixed-point mode,
-   then UNSIGNEDP selects between saturating and nonsaturating types.  */
-
-tree
-gm2_type_for_mode (enum machine_mode mode, int unsignedp)
-{
-  if (mode == TYPE_MODE (integer_type_node))
-    return unsignedp ? unsigned_type_node : integer_type_node;
-
-  if (mode == TYPE_MODE (signed_char_type_node))
-    return unsignedp ? unsigned_char_type_node : signed_char_type_node;
-
-  if (mode == TYPE_MODE (short_integer_type_node))
-    return unsignedp ? short_unsigned_type_node : short_integer_type_node;
-
-  if (mode == TYPE_MODE (long_integer_type_node))
-    return unsignedp ? long_unsigned_type_node : long_integer_type_node;
-
-  if (mode == TYPE_MODE (long_long_integer_type_node))
-    return unsignedp ? long_long_unsigned_type_node : long_long_integer_type_node;
-
-  if (int128_integer_type_node
-      && mode == TYPE_MODE (int128_integer_type_node))
-    return unsignedp ? int128_unsigned_type_node : int128_integer_type_node;
-
-#if 0
-  if (mode == TYPE_MODE (widest_integer_literal_type_node))
-    return unsignedp ? widest_unsigned_literal_type_node
-		     : widest_integer_literal_type_node;
-#endif
-
-  if (mode == QImode)
-    return unsignedp ? unsigned_intQI_type_node : intQI_type_node;
-
-  if (mode == HImode)
-    return unsignedp ? unsigned_intHI_type_node : intHI_type_node;
-
-  if (mode == SImode)
-    return unsignedp ? unsigned_intSI_type_node : intSI_type_node;
-
-  if (mode == DImode)
-    return unsignedp ? unsigned_intDI_type_node : intDI_type_node;
-
-#if HOST_BITS_PER_WIDE_INT >= 64
-  if (mode == TYPE_MODE (intTI_type_node))
-    return unsignedp ? unsigned_intTI_type_node : intTI_type_node;
-#endif
-
-  if (mode == TYPE_MODE (float_type_node))
-    return float_type_node;
-
-  if (mode == TYPE_MODE (double_type_node))
-    return double_type_node;
-
-  if (mode == TYPE_MODE (long_double_type_node))
-    return long_double_type_node;
-
-  if (mode == TYPE_MODE (void_type_node))
-    return void_type_node;
-
-  if (mode == TYPE_MODE (build_pointer_type (char_type_node)))
-    return (unsignedp
-	    ? make_unsigned_type (GET_MODE_PRECISION (mode))
-	    : make_signed_type (GET_MODE_PRECISION (mode)));
-
-  if (mode == TYPE_MODE (build_pointer_type (integer_type_node)))
-    return (unsignedp
-	    ? make_unsigned_type (GET_MODE_PRECISION (mode))
-	    : make_signed_type (GET_MODE_PRECISION (mode)));
-
-  if (COMPLEX_MODE_P (mode))
-    {
-      enum machine_mode inner_mode;
-      tree inner_type;
-
-      if (mode == TYPE_MODE (complex_float_type_node))
-	return complex_float_type_node;
-      if (mode == TYPE_MODE (complex_double_type_node))
-	return complex_double_type_node;
-      if (mode == TYPE_MODE (complex_long_double_type_node))
-	return complex_long_double_type_node;
-
-      if (mode == TYPE_MODE (complex_integer_type_node) && !unsignedp)
-	return complex_integer_type_node;
-
-      inner_mode = GET_MODE_INNER (mode);
-      inner_type = gm2_type_for_mode (inner_mode, unsignedp);
-      if (inner_type != NULL_TREE)
-	return build_complex_type (inner_type);
-    }
-  else if (VECTOR_MODE_P (mode))
-    {
-      enum machine_mode inner_mode = GET_MODE_INNER (mode);
-      tree inner_type = gm2_type_for_mode (inner_mode, unsignedp);
-      if (inner_type != NULL_TREE)
-	return build_vector_type_for_mode (inner_type, mode);
-    }
-
-  if (mode == TYPE_MODE (dfloat32_type_node))
-    return dfloat32_type_node;
-  if (mode == TYPE_MODE (dfloat64_type_node))
-    return dfloat64_type_node;
-  if (mode == TYPE_MODE (dfloat128_type_node))
-    return dfloat128_type_node;
-
-  if (ALL_SCALAR_FIXED_POINT_MODE_P (mode))
-    {
-      if (mode == TYPE_MODE (short_fract_type_node))
-	return unsignedp ? sat_short_fract_type_node : short_fract_type_node;
-      if (mode == TYPE_MODE (fract_type_node))
-	return unsignedp ? sat_fract_type_node : fract_type_node;
-      if (mode == TYPE_MODE (long_fract_type_node))
-	return unsignedp ? sat_long_fract_type_node : long_fract_type_node;
-      if (mode == TYPE_MODE (long_long_fract_type_node))
-	return unsignedp ? sat_long_long_fract_type_node
-			 : long_long_fract_type_node;
-
-      if (mode == TYPE_MODE (unsigned_short_fract_type_node))
-	return unsignedp ? sat_unsigned_short_fract_type_node
-			 : unsigned_short_fract_type_node;
-      if (mode == TYPE_MODE (unsigned_fract_type_node))
-	return unsignedp ? sat_unsigned_fract_type_node
-			 : unsigned_fract_type_node;
-      if (mode == TYPE_MODE (unsigned_long_fract_type_node))
-	return unsignedp ? sat_unsigned_long_fract_type_node
-			 : unsigned_long_fract_type_node;
-      if (mode == TYPE_MODE (unsigned_long_long_fract_type_node))
-	return unsignedp ? sat_unsigned_long_long_fract_type_node
-			 : unsigned_long_long_fract_type_node;
-
-      if (mode == TYPE_MODE (short_accum_type_node))
-	return unsignedp ? sat_short_accum_type_node : short_accum_type_node;
-      if (mode == TYPE_MODE (accum_type_node))
-	return unsignedp ? sat_accum_type_node : accum_type_node;
-      if (mode == TYPE_MODE (long_accum_type_node))
-	return unsignedp ? sat_long_accum_type_node : long_accum_type_node;
-      if (mode == TYPE_MODE (long_long_accum_type_node))
-	return unsignedp ? sat_long_long_accum_type_node
-			 : long_long_accum_type_node;
-
-      if (mode == TYPE_MODE (unsigned_short_accum_type_node))
-	return unsignedp ? sat_unsigned_short_accum_type_node
-			 : unsigned_short_accum_type_node;
-      if (mode == TYPE_MODE (unsigned_accum_type_node))
-	return unsignedp ? sat_unsigned_accum_type_node
-			 : unsigned_accum_type_node;
-      if (mode == TYPE_MODE (unsigned_long_accum_type_node))
-	return unsignedp ? sat_unsigned_long_accum_type_node
-			 : unsigned_long_accum_type_node;
-      if (mode == TYPE_MODE (unsigned_long_long_accum_type_node))
-	return unsignedp ? sat_unsigned_long_long_accum_type_node
-			 : unsigned_long_long_accum_type_node;
-
-      if (mode == QQmode)
-	return unsignedp ? sat_qq_type_node : qq_type_node;
-      if (mode == HQmode)
-	return unsignedp ? sat_hq_type_node : hq_type_node;
-      if (mode == SQmode)
-	return unsignedp ? sat_sq_type_node : sq_type_node;
-      if (mode == DQmode)
-	return unsignedp ? sat_dq_type_node : dq_type_node;
-      if (mode == TQmode)
-	return unsignedp ? sat_tq_type_node : tq_type_node;
-
-      if (mode == UQQmode)
-	return unsignedp ? sat_uqq_type_node : uqq_type_node;
-      if (mode == UHQmode)
-	return unsignedp ? sat_uhq_type_node : uhq_type_node;
-      if (mode == USQmode)
-	return unsignedp ? sat_usq_type_node : usq_type_node;
-      if (mode == UDQmode)
-	return unsignedp ? sat_udq_type_node : udq_type_node;
-      if (mode == UTQmode)
-	return unsignedp ? sat_utq_type_node : utq_type_node;
-
-      if (mode == HAmode)
-	return unsignedp ? sat_ha_type_node : ha_type_node;
-      if (mode == SAmode)
-	return unsignedp ? sat_sa_type_node : sa_type_node;
-      if (mode == DAmode)
-	return unsignedp ? sat_da_type_node : da_type_node;
-      if (mode == TAmode)
-	return unsignedp ? sat_ta_type_node : ta_type_node;
-
-      if (mode == UHAmode)
-	return unsignedp ? sat_uha_type_node : uha_type_node;
-      if (mode == USAmode)
-	return unsignedp ? sat_usa_type_node : usa_type_node;
-      if (mode == UDAmode)
-	return unsignedp ? sat_uda_type_node : uda_type_node;
-      if (mode == UTAmode)
-	return unsignedp ? sat_uta_type_node : uta_type_node;
-    }
-#if 0
-  for (t = registered_builtin_types; t; t = TREE_CHAIN (t))
-    if (TYPE_MODE (TREE_VALUE (t)) == mode
-	&& !!unsignedp == !!TYPE_UNSIGNED (TREE_VALUE (t)))
-      return TREE_VALUE (t);
-#endif
-  return 0;
 }
 
 /* Record a builtin function.  We just ignore builtin functions.  */
@@ -726,6 +525,7 @@ gm2_langhook_getdecls (void)
   return NULL;
 }
 
+#if 0
 static void
 m2_write_global_declarations (tree globals)
 {
@@ -734,25 +534,20 @@ m2_write_global_declarations (tree globals)
   for (decl = globals; decl; decl = DECL_CHAIN (decl))
     rest_of_decl_compilation (decl, 1, 1);
 }
+#endif
 
 /* Write out globals.  */
 
 static void
 gm2_langhook_write_globals (void)
 {
-  int i;
-  tree t;
-
   m2block_finishGlobals ();
 
+#if 0
   /* Process all file scopes in this compilation, and the external_scope,
      through wrapup_global_declarations and check_global_declarations.  */
-  FOR_EACH_VEC_ELT (tree, all_translation_units, i, t)
+  FOR_EACH_VEC_ELT (all_translation_units, i, t)
     m2_write_global_declarations (BLOCK_VARS (DECL_INITIAL (t)));
-  // m2_write_global_declarations (BLOCK_VARS (ext_block));
-
-  //   write_global_declarations ();
-#if 1
   /* in the future it is likely that GCC will call this automatically.
      Until then we must do this.
   */
@@ -901,17 +696,6 @@ convert (tree type, tree expr)
 }
 
 
-#if 0
-/* Convert an identifier for use in an error message.  */
-
-const char *
-gm2_localize_identifier (const char *ident)
-{
-  return identifier_to_locale (ident);
-}
-#endif
-
-
 /* Mark EXP saying that we need to be able to take the
    address of it; it should not be allocated in a register.
    Returns true if successful.  */
@@ -963,46 +747,39 @@ gm2_mark_addressable (tree exp)
 tree
 gm2_type_for_size (unsigned int bits, int unsignedp)
 {
-  if (bits == TYPE_PRECISION (integer_type_node))
-    return unsignedp ? unsigned_type_node : integer_type_node;
+  tree type;
 
-  if (bits == TYPE_PRECISION (signed_char_type_node))
-    return unsignedp ? unsigned_char_type_node : signed_char_type_node;
-
-  if (bits == TYPE_PRECISION (short_integer_type_node))
-    return unsignedp ? short_unsigned_type_node : short_integer_type_node;
-
-  if (bits == TYPE_PRECISION (long_integer_type_node))
-    return unsignedp ? long_unsigned_type_node : long_integer_type_node;
-
-  if (bits == TYPE_PRECISION (long_long_integer_type_node))
-    return (unsignedp ? long_long_unsigned_type_node
-	    : long_long_integer_type_node);
-
-  if (int128_integer_type_node
-      && bits == TYPE_PRECISION (int128_integer_type_node))
-    return (unsignedp ? int128_unsigned_type_node
-	    : int128_integer_type_node);
-
-#if 0
-  if (bits == TYPE_PRECISION (widest_integer_literal_type_node))
-    return (unsignedp ? widest_unsigned_literal_type_node
-	    : widest_integer_literal_type_node);
-#endif
-
-  if (bits <= TYPE_PRECISION (intQI_type_node))
-    return unsignedp ? unsigned_intQI_type_node : intQI_type_node;
-
-  if (bits <= TYPE_PRECISION (intHI_type_node))
-    return unsignedp ? unsigned_intHI_type_node : intHI_type_node;
-
-  if (bits <= TYPE_PRECISION (intSI_type_node))
-    return unsignedp ? unsigned_intSI_type_node : intSI_type_node;
-
-  if (bits <= TYPE_PRECISION (intDI_type_node))
-    return unsignedp ? unsigned_intDI_type_node : intDI_type_node;
-
-  return 0;
+  if (unsignedp)
+    {
+      if (bits == INT_TYPE_SIZE)
+        type = unsigned_type_node;
+      else if (bits == CHAR_TYPE_SIZE)
+        type = unsigned_char_type_node;
+      else if (bits == SHORT_TYPE_SIZE)
+        type = short_unsigned_type_node;
+      else if (bits == LONG_TYPE_SIZE)
+        type = long_unsigned_type_node;
+      else if (bits == LONG_LONG_TYPE_SIZE)
+        type = long_long_unsigned_type_node;
+      else
+        type = make_unsigned_type(bits);
+    }
+  else
+    {
+      if (bits == INT_TYPE_SIZE)
+        type = integer_type_node;
+      else if (bits == CHAR_TYPE_SIZE)
+        type = signed_char_type_node;
+      else if (bits == SHORT_TYPE_SIZE)
+        type = short_integer_type_node;
+      else if (bits == LONG_TYPE_SIZE)
+        type = long_integer_type_node;
+      else if (bits == LONG_LONG_TYPE_SIZE)
+        type = long_long_integer_type_node;
+      else
+        type = make_signed_type(bits);
+    }
+  return type;
 }
 
 

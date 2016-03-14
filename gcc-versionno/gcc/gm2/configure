@@ -2774,7 +2774,7 @@ else
   pth_found=0
 fi
 
-if test $pth_found == 0 ; then
+if test $pth_found = 0 ; then
    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: libpth is likely required during linking if the compiler is to be used natively." >&5
 $as_echo "$as_me: WARNING: libpth is likely required during linking if the compiler is to be used natively." >&2;}
 fi

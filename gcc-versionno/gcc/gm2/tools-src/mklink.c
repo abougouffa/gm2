@@ -349,7 +349,7 @@ static void ParseFileStartup (void)
       printf("   exit(0);\n");
     }
     printf("   return(0);\n");
-    printf("\}\n");
+    printf("}\n");
 }
 
 

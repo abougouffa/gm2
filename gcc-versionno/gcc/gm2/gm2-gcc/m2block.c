@@ -1,4 +1,4 @@
-/* Copyright (C) 2012, 2013
+/* Copyright (C) 2012, 2013, 2014, 2015
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -23,43 +23,13 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA.
 */
 
-
-#include "config.h"
-#include "system.h"
-#include "coretypes.h"
-#include "tm.h"
-#include "tree.h"
-#include "toplev.h"
-#include "tm_p.h"
-#include "flags.h"
-#include <stdio.h>
-
-
-/*
- *  utilize some of the C build routines
- */
-
-#include "c-tree.h"
-#include "rtl.h"
-#include "function.h"
-#include "expr.h"
-#include "output.h"
-#include "ggc.h"
-#include "intl.h"
-#include "convert.h"
-#include "target.h"
-#include "debug.h"
-#include "diagnostic.h"
-#include "except.h"
-#include "libfuncs.h"
-#include "../gm2-tree.h"
-#include "tree-iterator.h"
-
+#include "gcc-consolidation.h"
 
 #define m2block_c
 #include "m2block.h"
 #include "m2assert.h"
 #include "m2tree.h"
+#include "m2treelib.h"
 
 
 /* For each binding contour we allocate a binding_level structure which records
@@ -87,22 +57,23 @@ binding_level {
        module scope.  In which case fndecl will be NULL_TREE.  */
     int is_global;
 
-    /* The context of the binding level, for a function binding level this will be
-       the same as fndecl, however for a global binding level this is a
-       translation_unit.  */
+    /* The context of the binding level, for a function binding level
+       this will be the same as fndecl, however for a global binding
+       level this is a translation_unit.  */
     tree context;
 
-    /* The binding level below this one.  This field is only used when the binding level
-       has been pushed by pushFunctionScope.
-    */
+    /* The binding level below this one.  This field is only used when
+       the binding level has been pushed by pushFunctionScope.
+     */
     struct binding_level *next;
 
     /* All binding levels are placed onto this list.
      */
     struct binding_level *list;
 
-    /* A varray of trees, which represent the statement stack. */
-    VEC(tree,gc) *m2_stmt_stack;
+    /* A varray of trees, which represent the list of statement sequences.
+     */
+    vec<tree, va_gc> *m2_statements;
 
     /* A list of constants (only kept in the global binding level).
        Constants need to be kept through the life of the compilation,
@@ -120,8 +91,9 @@ binding_level {
     */
     tree types;
 
-    /* A list of all DECL_EXPR created within this binding level.  This will
-       be prepended to the statement list once the binding level (scope is finished).
+    /* A list of all DECL_EXPR created within this binding level.  This
+       will be prepended to the statement list once the binding level
+       (scope is finished).
     */
     tree decl;
 
@@ -139,10 +111,6 @@ binding_level {
 
 static GTY(()) struct binding_level *current_binding_level;
 
-/* A chain of binding_level structures awaiting reuse.  */
-
-static GTY(()) struct binding_level *free_binding_level;
-
 /* The outermost binding level, for names of file scope.
    This is created when the compiler is started and exists
    through the entire run.  */
@@ -152,12 +120,6 @@ static GTY(()) struct binding_level *global_binding_level;
 /* The head of the binding level lists.
  */
 static GTY(()) struct binding_level *head_binding_level;
-
-/* Binding level structures are initialized by copying this one.  */
-
-static struct binding_level clear_binding_level
-= {NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0};
-
 
 /* The current statement tree.  */
 
@@ -225,47 +187,45 @@ m2block_getLabel (location_t location, char *name)
 
 
 static
+void init_binding_level (struct binding_level *l)
+{
+  l->fndecl = NULL;
+  l->names = NULL;
+  l->is_global = 0;
+  l->context = NULL;
+  l->next = NULL;
+  l->list = NULL;
+  vec_alloc (l->m2_statements, 1);
+  l->constants = NULL;
+  l->init_functions = NULL;
+  l->types = NULL;
+  l->decl = NULL;
+  l->labels = NULL;
+  l->count = 0;
+}
+
+
+static
 struct binding_level *
 newLevel (void)
 {
-  struct binding_level *newlevel;
+  struct binding_level *newlevel = ggc_alloc<binding_level> ();
 
-  if (free_binding_level == NULL)
-    newlevel = (struct binding_level *) ggc_alloc_binding_level ();
-  else
-    {
-      newlevel = free_binding_level;
-      free_binding_level = free_binding_level->next;
-    }
-  *newlevel = clear_binding_level;
-  newlevel->m2_stmt_stack = VEC_alloc(tree, gc, 1);
+  init_binding_level (newlevel);
 
-   /* now we push_statement_list (begin_statement_list ())) */
-  VEC_safe_push (tree, gc, newlevel->m2_stmt_stack, m2block_begin_statement_list ());
+  /* now we a push_statement_list.  */
+  vec_safe_push (newlevel->m2_statements, m2block_begin_statement_list ());
   return newlevel;
 }
-
-#if 0
-static
-void disposeLevel (void)
-{
-  struct binding_level *b;
-
-  b = current_binding_level;
-  current_binding_level = current_binding_level->next;
-  b->next = free_binding_level;
-  free_binding_level = b;
-}
-#endif
 
 
 tree *
 m2block_cur_stmt_list_addr (void)
 {
   ASSERT_CONDITION (current_binding_level != NULL);
-
-  return (VEC_address (tree, current_binding_level->m2_stmt_stack)
-	  + VEC_length (tree, current_binding_level->m2_stmt_stack) - 1);
+  int l = vec_safe_length (current_binding_level->m2_statements) - 1;
+  
+  return &(*current_binding_level->m2_statements)[l];
 }
 
 tree
@@ -287,7 +247,7 @@ int
 m2block_is_building_stmt_list (void)
 {
   ASSERT_CONDITION (current_binding_level != NULL);
-  return !VEC_empty (tree, current_binding_level->m2_stmt_stack);
+  return !vec_safe_is_empty (current_binding_level->m2_statements);
 }
 
 
@@ -300,7 +260,7 @@ tree
 m2block_push_statement_list (tree t)
 {
   ASSERT_CONDITION (current_binding_level != NULL);
-  VEC_safe_push (tree, gc, current_binding_level->m2_stmt_stack, t);
+  vec_safe_push (current_binding_level->m2_statements, t);
   return t;
 }
 
@@ -315,7 +275,7 @@ m2block_pop_statement_list (void)
 {
   ASSERT_CONDITION (current_binding_level != NULL);
   {
-    tree t = VEC_pop (tree, current_binding_level->m2_stmt_stack);
+    tree t = current_binding_level->m2_statements->pop ();
 
     return t;
   }
@@ -351,50 +311,6 @@ m2block_end_statement_list (tree t)
 }
 
 
-/* Build a generic statement based on the given type of node and
-   arguments. Similar to `build_nt', except that we set
-   EXPR_LOCATION to LOC. */
-/* ??? This should be obsolete with the lineno_stmt productions
-   in the grammar.  */
-
-tree
-build_stmt (location_t loc, enum tree_code code, ...)
-{
-  tree ret;
-  int length, i;
-  va_list p;
-  bool side_effects;
-
-  /* This function cannot be used to construct variably-sized nodes.  */
-  gcc_assert (TREE_CODE_CLASS (code) != tcc_vl_exp);
-
-  va_start (p, code);
-
-  ret = make_node (code);
-  TREE_TYPE (ret) = void_type_node;
-  length = TREE_CODE_LENGTH (code);
-  SET_EXPR_LOCATION (ret, loc);
-
-  /* TREE_SIDE_EFFECTS will already be set for statements with
-     implicit side effects.  Here we make sure it is set for other
-     expressions by checking whether the parameters have side
-     effects.  */
-
-  side_effects = false;
-  for (i = 0; i < length; i++)
-    {
-      tree t = va_arg (p, tree);
-      if (t && !TYPE_P (t))
-	side_effects |= TREE_SIDE_EFFECTS (t);
-      TREE_OPERAND (ret, i) = t;
-    }
-
-  TREE_SIDE_EFFECTS (ret) |= side_effects;
-
-  va_end (p);
-  return ret;
-}
-
 tree
 add_stmt (tree t)
 {
@@ -408,14 +324,9 @@ add_stmt (tree t)
     }
 
 #if 0
-  /* Add T to the statement-tree.  Non-side-effect statements need to be
-     recorded during statement expressions.  */
-  if (!building_stmt_list_p ())
-    m2block_begin_statement_list ();
-#endif
-
   if (code == LABEL_EXPR || code == CASE_LABEL_EXPR)
     STATEMENT_LIST_HAS_LABEL (m2block_cur_stmt_list()) = 1;
+#endif
 
   append_to_statement_list_force (t, m2block_cur_stmt_list_addr ());
 
@@ -659,6 +570,7 @@ m2block_finishFunctionDecl (location_t location, tree fndecl)
 }
 
 
+#if 0
 static int
 is_variable_in (tree fndecl, const char *name)
 {
@@ -677,10 +589,11 @@ is_variable_in (tree fndecl, const char *name)
 	  return TRUE;
   return FALSE;
 }
+#endif
 
 
+#if 0
 static void stop (void) {}
-
 
 static void
 check_trigger (tree fndecl, const char *name)
@@ -697,6 +610,7 @@ check_trigger (tree fndecl, const char *name)
     if (is_variable_in (fndecl, name))
       stop ();
 }
+#endif
 
 
 /*
@@ -754,7 +668,7 @@ m2block_finishFunctionCode (tree fndecl)
 }
 
 
-tree
+void
 m2block_finishGlobals (void)
 {
   tree context = global_binding_level->context;
@@ -768,13 +682,6 @@ m2block_finishGlobals (void)
 
   DECL_INITIAL (context) = block;
   BLOCK_SUPERCONTEXT (block) = context;
-
-#if 0
-  for (; p; p = TREE_CHAIN (p)) {
-    if (TREE_CODE (p) == VAR_DECL)
-      wrapup_global_declaration_2 (p);
-  }
-#endif
 }
 
 
@@ -814,7 +721,7 @@ tree m2block_pushDecl (tree decl)
  *                it is not already present.
  */
 
-tree m2block_includeDecl (tree decl)
+void m2block_includeDecl (tree decl)
 {
   tree p = current_binding_level->names;
 
@@ -978,7 +885,6 @@ m2block_GetGlobalContext (void)
 void
 m2block_init (void)
 {
-  free_binding_level = NULL;
   global_binding_level = newLevel ();
   global_binding_level->context = build_translation_unit_decl (NULL);
   global_binding_level->is_global = TRUE;

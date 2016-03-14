@@ -1,0 +1,77 @@
+(* Copyright (C) 2015 Free Software Foundation, Inc.  *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  *)
+
+DEFINITION MODULE mcOptions ;
+
+(*
+    Title      : mcOptions
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Tue Nov 17 13:43:00 2015
+    Revision   : $Version$
+    Description: handles the options for mc.
+*)
+
+FROM DynamicStrings IMPORT String ;
+
+
+(*
+   handleOptions - iterates over all options setting appropriate
+                   values and returns the single source file
+                   if found at the end of the arguments.
+*)
+
+PROCEDURE handleOptions () : String ;
+
+
+(*
+   getQuiet - return the value of quiet.
+*)
+
+PROCEDURE getQuiet () : BOOLEAN ;
+
+
+(*
+   getVerbose - return the value of verbose.
+*)
+
+PROCEDURE getVerbose () : BOOLEAN ;
+
+
+(*
+   getInternalDebugging - return the value of internalDebugging.
+*)
+
+PROCEDURE getInternalDebugging () : BOOLEAN ;
+
+
+(*
+   CppCommandLine - returns the Cpp command line and all arguments.
+*)
+
+PROCEDURE getCppCommandLine () : String ;
+
+
+(*
+   getOutputFile - sets the output filename to output.
+*)
+
+PROCEDURE getOutputFile () : String ;
+
+
+END mcOptions.

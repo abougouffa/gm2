@@ -1,3 +1,78 @@
+2016-03-14      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  generate cpp version stub.  Use $(COMPILER)
+          rather than $(CC).  Removed all trailing whitespace.  Added
+          rules for building mc.
+	* gm2/configure.in:  corrected test (=) rather than (==).
+	* gm2/configure:  rebuilt.
+	* gm2/gm2-compiler/M2Comp.mod:  updated dates and removed trailing
+          white space.
+	* gm2/gm2-compiler/M2Error.mod:  updated dates and removed trailing
+          white space.
+	* gm2/gm2-compiler/M2LexBuf.mod:  corrected spacing at the end of
+          a comment.
+	* gm2/gm2-compiler/NameKey.mod:  corrected spacing at the end of
+          a comment.
+	* gm2/gm2-gcc/m2assert.c:  use #include "gcc-consolidation.h" to
+          hold all gcc related header files.
+	* gm2/gm2-gcc/m2block.c:  use #include "gcc-consolidation.h" to
+          hold all gcc related header files.  Change binding level code
+          from C to C++.
+	* gm2/gm2-gcc/m2builtins.c:  use #include "gcc-consolidation.h" to
+          hold all gcc related header files.
+	* gm2/gm2-gcc/m2convert.c:  use #include "gcc-consolidation.h" to
+          hold all gcc related header files.  Many changes to bring it
+          up to gcc-5.2.0.
+	* gm2/gm2-gcc/m2decl.c:  use #include "gcc-consolidation.h" to
+          hold all gcc related header files.
+	* gm2/gm2-gcc/m2except.c:  use #include "gcc-consolidation.h" to
+          hold all gcc related header files.  Minor changes to bring it into
+	  line with gcc-5.2.0.
+        * gm2/gm2-gcc/m2expr.c:  use #include "gcc-consolidation.h" to
+          hold all gcc related header files.  Minor changes to bring it into
+          line with gcc-5.2.0.
+	* gm2/gm2-gcc/m2linemap.c:  use #include "gcc-consolidation.h" to
+          hold all gcc related header files.
+	* gm2/gm2-gcc/m2misc.c:  use #include "gcc-consolidation.h" to
+          hold all gcc related header files.
+	* gm2/gm2-gcc/m2statement.c:  use #include "gcc-consolidation.h" to
+          hold all gcc related header files.  C++ changes in gimplifiation
+          of nested procedure functions.
+	* gm2/gm2-gcc/m2top.c:  use #include "gcc-consolidation.h" to
+          hold all gcc related header files.
+	* gm2/gm2-gcc/m2tree.c:  use #include "gcc-consolidation.h" to
+          hold all gcc related header files.
+	* gm2/gm2-gcc/m2treelib.c:  use #include "gcc-consolidation.h" to
+          hold all gcc related header files.  Many changes to convert C to C++
+          and statement related data structure and methods have changed.
+	* gm2/gm2-gcc/m2type.c:  use #include "gcc-consolidation.h" to
+          hold all gcc related header files.  Many changes to convert C to C++
+          and statement related data structure and methods have changed.
+	* gm2/gm2-lang.c:  Many changes to convert C to C++
+          and statement related data structure and methods have changed.
+          Many changes to bring code into gcc-5.2.0.
+	* gm2/gm2-lang.h:  changes to bring code into gcc-5.2.0.
+	* gm2/gm2-libs/DynamicStrings.def:  additional dates.
+	* gm2/gm2-libs/DynamicStrings.mod:  define desState and use it in
+          descriptor.
+	* gm2/gm2-libs/Indexing.def:  new procedure (DeleteIndice).
+	* gm2/gm2-libs/Indexing.mod:  new field Used.  New procedure
+          (DeleteIndice).
+	* gm2/gm2-libs/SYSTEM.def:  additional dates.
+	* gm2/gm2-libs/TimeString.def:  removed trailing white space.
+	* gm2/gm2spec.c:  extra parameter to fe_save_switch  (used).
+	* gm2/gm2version.h:  simplified conditional compilation.
+	* gm2/lang.opt:  made options complient with gcc-5.2.0.
+	* gm2/m2.flex:  use gm2-gcc/gcc-consolidation.h.  Fix int/unsigned int
+          and cast of strings so that g++ will compile flex
+	  generated output file.
+	* gm2/m2pp.c:  use gm2-gcc/gcc-consolidation.h rather than
+	  a list of include files.  Changed to make it gcc-5.2.0 complient.
+	* gm2/tools-src/makeversion:  generate C++ gm2_version function if
+	  the new option, -p, is used.  -p new option implemented.
+	* gm2/tools-src/mklink.c:  fix typo.
+	* testsuite/gm2/pim/pass/enum.mod:  new test code.
+
 2016-03-03      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  checkRecordTypes new procedure

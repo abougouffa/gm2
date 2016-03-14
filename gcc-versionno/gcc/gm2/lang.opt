@@ -87,7 +87,7 @@ turns on all software runtime checking (an abbreviation for -fnil -frange -finde
 
 fexceptions
 Modula-2
-turns on all exception generating code (the default)
+; Documented in common.opt
 
 fextended-opaque
 Modula-2
@@ -227,7 +227,7 @@ extra compile time semantic checking, typically tries to catch bad style
 
 Wpedantic
 Modula-2
-compiler checks nested WITH statements (referencing same type) and multiple identical imports
+; Documented in common.opt
 
 Wpedantic-param-names
 Modula-2

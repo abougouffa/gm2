@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011, 2012, 2013, 2014, 2015
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -231,7 +231,7 @@ END WarnFormat0 ;
 
 
 (*
-   DoFormat1 - 
+   DoFormat1 -
 *)
 
 PROCEDURE DoFormat1 (a: ARRAY OF CHAR; w: ARRAY OF BYTE) : String ;
@@ -282,7 +282,7 @@ END WarnFormat1 ;
 
 
 (*
-   DoFormat2 - 
+   DoFormat2 -
 *)
 
 PROCEDURE DoFormat2 (a: ARRAY OF CHAR; w1, w2: ARRAY OF BYTE) : String ;
@@ -360,7 +360,7 @@ BEGIN
       INCL(b, 3)
    END ;
    CASE b OF
-   
+
    {}     :  s := Sprintf3(Mark(InitString(a)), w1, w2, w3) |
    {1}    :  s := Sprintf3(Mark(InitString(a)), s1, w2, w3) |
    {2}    :  s := Sprintf3(Mark(InitString(a)), w1, s2, w3) |

@@ -1,5 +1,5 @@
 /* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *               2010
+ *               2010, 2011, 2012, 2013, 2014, 2015
  *               Free Software Foundation, Inc. */
 /* This file is part of GNU Modula-2.
 
@@ -30,7 +30,6 @@ static void stop () {}
 
 #define PROTO_PARSE_C
 #include "trans.h"
-
 
 
 Static short candeclare;
@@ -96,15 +95,11 @@ int comma;
 }
 
 
-
 void echoprocname(mp)
 Meaning *mp;
 {
     echoword(mp->name, 1);
 }
-
-
-
 
 
 Static void forward_decl(func, isextern)
@@ -179,8 +174,6 @@ register Stmt *sp;
 }
 
 
-
-
 Stmt *makestmt(kind)
 enum stmtkind kind;
 {
@@ -195,9 +188,10 @@ enum stmtkind kind;
     sp->exp2 = NULL;
     sp->exp3 = NULL;
     sp->serial = curserial = ++serialcount;
+    if (kind == SK_ASSIGN)
+      stop ();
     return sp;
 }
-
 
 
 Stmt *makestmt_call(call)
@@ -209,151 +203,191 @@ Expr *call;
 }
 
 
-
-Stmt *makestmt_assign(lhs, rhs)
-Expr *lhs, *rhs;
+int is_opaque (t)
+     Type *t;
 {
-    Stmt *sp = makestmt(SK_ASSIGN);
-    sp->exp1 = makeexpr_assign(lhs, rhs);
-    return sp;
+  enum typekind k = t->kind;
+
+  return (k == TK_OPAQUE);
 }
 
 
+int is_pointer_type (t)
+     Type *t;
+{
+  enum typekind k = t->kind;
 
-Stmt *makestmt_if(cond, thn, els)
+  return ((k == TK_VOID)
+	  || (k == TK_FUNCTION)
+	  || (k == TK_CPROCPTR)
+	  || (k == TK_PROCPTR)
+	  || (k == TK_OPAQUE)
+	  || (k == TK_POINTER));
+}
+
+
+Expr *check_cast_needed (lhs, rhs)
+Expr *lhs, *rhs;
+{
+  if (cplus11 && is_pointer_type (rhs->val.type))
+    return makeexpr_cast (rhs, lhs->val.type);
+  return rhs;
+}
+
+
+#if 0
+Expr *check_cast_needed2 (mp, ep)
+  Meaning *mp;
+  Expr *ep;
+{
+  if (cplus11) {
+    if ((is_opaque (mp->type) && (is_opaque (ep->val.type))) &&
+	(mp->type == ep->val.type) &&
+	((mp->kind == MK_PARAM) || (mp->kind == MK_VARPARAM)))
+      /*
+       *  we must cast opaque types as parameters are (void *).
+       */
+      return makeexpr_un (EK_CAST, mp->type, ep);
+  }
+  return ep;
+}
+#endif
+    
+
+Stmt *makestmt_assign (lhs, rhs)
+Expr *lhs, *rhs;
+{
+  Stmt *sp = makestmt (SK_ASSIGN);
+
+  sp->exp1 = makeexpr_assign (lhs, rhs);
+  return sp;
+}
+
+
+Stmt *makestmt_if (cond, thn, els)
 Expr *cond;
 Stmt *thn, *els;
 {
-    Stmt *sp = makestmt(SK_IF);
-    sp->exp1 = cond;
-    sp->stm1 = thn;
-    sp->stm2 = els;
-    return sp;
+  Stmt *sp = makestmt (SK_IF);
+  sp->exp1 = cond;
+  sp->stm1 = thn;
+  sp->stm2 = els;
+  return sp;
 }
-
 
 
 Stmt *makestmt_seq(s1, s2)
 Stmt *s1, *s2;
 {
-    Stmt *s1a;
+  Stmt *s1a;
 
-    if (!s1)
-        return s2;
-    if (!s2)
-        return s1;
-    for (s1a = s1; s1a->next; s1a = s1a->next) ;
-    s1a->next = s2;
+  if (!s1)
+    return s2;
+  if (!s2)
     return s1;
+  for (s1a = s1; s1a->next; s1a = s1a->next) ;
+  s1a->next = s2;
+  return s1;
 }
-
 
 
 Stmt *copystmt(sp)
 Stmt *sp;
 {
-    Stmt *sp2;
+  Stmt *sp2;
 
-    if (sp) {
-        sp2 = makestmt(sp->kind);
-        sp2->stm1 = copystmt(sp->stm1);
-        sp2->stm2 = copystmt(sp->stm2);
-        sp2->exp1 = copyexpr(sp->exp1);
-        sp2->exp2 = copyexpr(sp->exp2);
-        sp2->exp3 = copyexpr(sp->exp3);
-        return sp2;
-    } else
-        return NULL;
+  if (sp) {
+    sp2 = makestmt(sp->kind);
+    sp2->stm1 = copystmt(sp->stm1);
+    sp2->stm2 = copystmt(sp->stm2);
+    sp2->exp1 = copyexpr(sp->exp1);
+    sp2->exp2 = copyexpr(sp->exp2);
+    sp2->exp3 = copyexpr(sp->exp3);
+    return sp2;
+  } else
+    return NULL;
 }
-
 
 
 void nukestmt(sp)
 Stmt *sp;
 {
-    if (sp) {
-        sp->kind = SK_ASSIGN;
-        sp->exp1 = makeexpr_long(0);
-    }
+  if (sp) {
+    sp->kind = SK_ASSIGN;
+    sp->exp1 = makeexpr_long(0);
+  }
 }
-
 
 
 void splicestmt(sp, spnew)
 Stmt *sp, *spnew;
 {
-    Stmt *snext;
+  Stmt *snext;
 
-    if (spnew) {
-	snext = sp->next;
-	*sp = *spnew;
-	while (sp->next)
-	    sp = sp->next;
-	sp->next = snext;
-    } else
-	nukestmt(sp);
+  if (spnew) {
+    snext = sp->next;
+    *sp = *spnew;
+    while (sp->next)
+      sp = sp->next;
+    sp->next = snext;
+  } else
+    nukestmt(sp);
 }
-
 
 
 int stmtcount(sp)
 Stmt *sp;
 {
-    int i = 0;
+  int i = 0;
 
-    while (sp) {
-        i += 1 + stmtcount(sp->stm1) + stmtcount(sp->stm2);
-        sp = sp->next;
-    }
-    return i;
+  while (sp) {
+    i += 1 + stmtcount(sp->stm1) + stmtcount(sp->stm2);
+    sp = sp->next;
+  }
+  return i;
 }
-
-
-
 
 
 Stmt *close_files_to_ctx(ctx)
 Meaning *ctx;
 {
-    Meaning *ctx2, *mp;
-    Stmt *splist = NULL, *sp;
+  Meaning *ctx2, *mp;
+  Stmt *splist = NULL, *sp;
 
-    ctx2 = curctx;
-    while (ctx2 && ctx2 != ctx && ctx2->kind == MK_FUNCTION) {
-	for (mp = ctx2->cbase; mp; mp = mp->cnext) {
-	    if (mp->kind == MK_VAR &&
-		isfiletype(mp->type, -1) && !mp->istemporary) {
-		var_reference(mp);
-		sp = makestmt_if(makeexpr_rel(EK_NE,
-					      filebasename(makeexpr_var(mp)),
-					      makeexpr_nil()),
-				 makestmt_call(
-				     makeexpr_bicall_1("fclose", tp_void,
-						       filebasename(makeexpr_var(mp)))),
-				 NULL);
-		splist = makestmt_seq(splist, sp);
-	    }
-	}
-	ctx2 = ctx2->ctx;
+  ctx2 = curctx;
+  while (ctx2 && ctx2 != ctx && ctx2->kind == MK_FUNCTION) {
+    for (mp = ctx2->cbase; mp; mp = mp->cnext) {
+      if (mp->kind == MK_VAR &&
+	  isfiletype(mp->type, -1) && !mp->istemporary) {
+	var_reference(mp);
+	sp = makestmt_if(makeexpr_rel(EK_NE,
+				      filebasename(makeexpr_var(mp)),
+				      makeexpr_nil()),
+			 makestmt_call(
+				       makeexpr_bicall_1("fclose", tp_void,
+							 filebasename(makeexpr_var(mp)))),
+			 NULL);
+	splist = makestmt_seq(splist, sp);
+      }
     }
-    return splist;
+    ctx2 = ctx2->ctx;
+  }
+  return splist;
 }
-
-
 
 
 int simplewith(ex)
 Expr *ex;
 {
-    switch (ex->kind) {
-        case EK_VAR:
-        case EK_CONST:
-            return 1;
-        case EK_DOT:
-            return simplewith(ex->args[0]);
-        default:
-            return 0;
-    }
+  switch (ex->kind) {
+  case EK_VAR:
+  case EK_CONST:
+    return 1;
+  case EK_DOT:
+    return simplewith(ex->args[0]);
+  default:
+    return 0;
+  }
 }
 
 
@@ -361,42 +395,38 @@ int simplefor(sp, ex)
 Stmt *sp;
 Expr *ex;
 {
-    return (exprspeed(sp->exp2) <= 3 &&
-            !checkexprchanged(sp->stm1, sp->exp2) &&
-	    !exproccurs(sp->exp2, ex));
+  return (exprspeed(sp->exp2) <= 3 &&
+	  !checkexprchanged(sp->stm1, sp->exp2) &&
+	  !exproccurs(sp->exp2, ex));
 }
-
 
 
 int tryfuncmacro(exp, mp)
 Expr **exp;
 Meaning *mp;
 {
-    char *name;
-    Strlist *lp;
-    Expr *ex = *exp, *ex2;
-
-    ex2 = (mp) ? mp->constdefn : NULL;
-    if (!ex2) {
-	if (ex->kind == EK_BICALL || ex->kind == EK_NAME)
-	    name = ex->val.s;
-	else if (ex->kind == EK_FUNCTION)
-	    name = ((Meaning *)ex->val.i)->name;
-	else
-	    return 0;
-	lp = strlist_cifind(funcmacros, name);
-	ex2 = (lp) ? (Expr *)lp->value : NULL;
-    }
-    if (ex2) {
-        *exp = replacemacargs(copyexpr(ex2), ex);
-	freeexpr(ex);
-        return 1;
-    }
-    return 0;
+  char *name;
+  Strlist *lp;
+  Expr *ex = *exp, *ex2;
+  
+  ex2 = (mp) ? mp->constdefn : NULL;
+  if (!ex2) {
+    if (ex->kind == EK_BICALL || ex->kind == EK_NAME)
+      name = ex->val.s;
+    else if (ex->kind == EK_FUNCTION)
+      name = ((Meaning *)ex->val.i)->name;
+    else
+      return 0;
+    lp = strlist_cifind(funcmacros, name);
+    ex2 = (lp) ? (Expr *)lp->value : NULL;
+  }
+  if (ex2) {
+    *exp = replacemacargs(copyexpr(ex2), ex);
+    freeexpr(ex);
+    return 1;
+  }
+  return 0;
 }
-
-
-
 
 
 #define addstmt(kind)   \
@@ -409,7 +439,6 @@ Meaning *mp;
     sflags &= ~SF_FIRST
 
 
-
 #define SF_FUNC    0x1
 #define SF_SAVESER 0x2
 #define SF_FIRST   0x4
@@ -418,765 +447,767 @@ Meaning *mp;
 #define SF_INIT    0x20
 #define SF_FINI    0x40
 
+
 Static Stmt *p_stmt(slist, sflags)
 Stmt *slist;
 int sflags;
 {
-    Stmt *sbase = NULL, **spp = &sbase, **spp2, **spp3, **savespp;
-    Stmt *defsp, **defsphook;
-    Stmt *sp;
-    Stmt *sp2;
-    long li1, li2, firstserial = 0, saveserial = 0, saveserial2;
-    int i, forfixed, offset, line1, line2, toobig, isunsafe;
-    Token savetok;
-    char *name;
-    Expr *ep, *ep2, *ep3, *forstep, *range, *swexpr, *trueswexpr;
-    Type *tp;
-    Meaning *mp, *tvar, *tempmark;
-    Symbol *sym;
-    enum exprkind ekind;
-    Stmt *(*prochandler)();
-    Strlist *cmt;
+  Stmt *sbase = NULL, **spp = &sbase, **spp2, **spp3, **savespp;
+  Stmt *defsp, **defsphook;
+  Stmt *sp;
+  Stmt *sp2;
+  long li1, li2, firstserial = 0, saveserial = 0, saveserial2;
+  int i, forfixed, offset, line1, line2, toobig, isunsafe;
+  Token savetok;
+  char *name;
+  Expr *ep, *ep2, *ep3, *forstep, *range, *swexpr, *trueswexpr;
+  Type *tp;
+  Meaning *mp, *tvar, *tempmark;
+  Symbol *sym;
+  enum exprkind ekind;
+  Stmt *(*prochandler)();
+  Strlist *cmt;
 
-    tempmark = markstmttemps();
-again:
-    while (findlabelsym()) {
-        newstmt(SK_LABEL);
-        sp->exp1 = makeexpr_name(format_s(name_LABEL, curtokmeaning->name), tp_integer);
-        gettok();
-        wneedtok(TOK_COLON);
-    }
-    firstserial = curserial;
-    checkkeyword(TOK_TRY);
-    checkkeyword(TOK_INLINE);
-    checkkeyword(TOK_LOOP);
-    checkkeyword(TOK_RETURN);
-    if (modula2) {
-	if (sflags & SF_SAVESER)
-	    goto stmtSeq;
-    }
-    switch (curtok) {
-        case TOK_BEGIN:
-        case TOK_FINALLY:
-        stmtSeq:
-	    if (sflags & (SF_FUNC|SF_SAVESER|SF_INIT|SF_FINI)) {
-		saveserial = curserial;
-		cmt = grabcomment(CMT_ONBEGIN);
-		if (sflags & SF_FUNC)
-		    cmt = fixbeginendcomment(cmt);
-		strlist_mix(&curcomments, cmt);
-	    }
-	    i = sflags & SF_FIRST;
-	    /*
-	     *  skip over block start token
-	     */
-	    if (modula2) {
-	      if (curtok == TOK_BEGIN)
-		gettok();
-	      else if ((sflags & SF_FINI) && (curtok == TOK_FINALLY))
-		gettok();
-	    }
-            do {
-		if (modula2) {
-		    if (curtok == TOK_SEMI)
-			gettok();
-		    checkkeyword(TOK_ELSIF);
-		    if (curtok == TOK_ELSE || curtok == TOK_ELSIF || curtok == TOK_FINALLY)
-			break;
-		} else
-		    gettok();
-                *spp = p_stmt(sbase, i);
-		i = 0;
-                while (*spp)
-                    spp = &((*spp)->next);
-            } while (curtok == TOK_SEMI);
-	    if (sflags & (SF_FUNC|SF_SAVESER|SF_INIT|SF_FINI)) {
-		cmt = grabcomment(CMT_ONEND);
-		changecomments(cmt, -1, -1, -1, saveserial);
-		if (sflags & (SF_FUNC|SF_INIT|SF_FINI))
-		    cmt = fixbeginendcomment(cmt);
-		strlist_mix(&curcomments, cmt);
-		if (sflags & (SF_FUNC|SF_INIT|SF_FINI))
-		    changecomments(curcomments, -1, saveserial, -1, 10000);
-		curserial = saveserial;
-	    }
-	    checkkeyword(TOK_ELSIF);
-	    if (modula2 && (sflags & SF_IF)) {
-		break;
-	    }
-	    if (curtok == TOK_VBAR)
-		break;
-	    if (modula2 && (sflags & SF_CASE)) {
-		break;
-	    }
-	    if (modula2 && (sflags & SF_INIT) && (curtok == TOK_FINALLY))
-	      break;
-	    if (modula2 && (sflags & (SF_INIT|SF_FINI)) && (curtok == TOK_END))
-	      break;
-            if (!wneedtok(TOK_END))
-		skippasttoken(TOK_END);
-            break;
-
-        case TOK_CASE:
-            gettok();
-            swexpr = trueswexpr = p_ord_expr();
-            if (nosideeffects(swexpr, 1)) {
-                tvar = NULL;
-            } else {
-                tvar = makestmttempvar(swexpr->val.type, name_TEMP);
-                swexpr = makeexpr_var(tvar);
-            }
-            savespp = spp;
-            newstmt(SK_CASE);
-	    saveserial2 = curserial;
-            sp->exp1 = trueswexpr;
-            spp2 = &sp->stm1;
-            tp = swexpr->val.type;
-            defsp = NULL;
-            defsphook = &defsp;
-            if (!wneedtok(TOK_OF)) {
-		skippasttoken(TOK_END);
-		break;
-	    }
-	    i = 1;
-	    while (curtok == TOK_VBAR)
-		gettok();
-	    checkkeyword(TOK_OTHERWISE);
-            while (curtok != TOK_END && curtok != TOK_OTHERWISE && curtok != TOK_ELSE) {
-                spp3 = spp2;
-		saveserial = curserial;
-                *spp2 = sp = makestmt(SK_CASELABEL);
-		steal_comments(saveserial, sp->serial, i);
-                spp2 = &sp->next;
-                range = NULL;
-                toobig = 0;
-                for (;;) {
-                    ep = gentle_cast(p_expr(tp), tp);
-                    if (curtok == TOK_DOTS) {
-                        li1 = ord_value(eval_expr(ep));
-                        gettok();
-                        ep2 = gentle_cast(p_expr(tp), tp);
-                        li2 = ord_value(eval_expr(ep2));
-                        range = makeexpr_or(range,
-                                            makeexpr_range(copyexpr(swexpr),
-                                                           ep, ep2, 1));
-                        if (li2 - li1 >= caselimit)
-                            toobig = 1;
-                        if (!toobig) {
-                            for (;;) {
-                                sp->exp1 = makeexpr_val(make_ord(tp, li1));
-                                if (li1 >= li2) break;
-                                li1++;
-				serialcount--;   /* make it reuse the count */
-                                sp->stm1 = makestmt(SK_CASELABEL);
-                                sp = sp->stm1;
-                            }
-                        }
-                    } else {
-                        sp->exp1 = copyexpr(ep);
-                        range = makeexpr_or(range,
-                                            makeexpr_rel(EK_EQ, 
-                                                         copyexpr(swexpr),
-                                                         ep));
-                    }
-                    if (curtok == TOK_COMMA) {
-                        gettok();
-			serialcount--;   /* make it reuse the count */
-                        sp->stm1 = makestmt(SK_CASELABEL);
-                        sp = sp->stm1;
-                    } else
-                        break;
-                }
-                wneedtok(TOK_COLON);
-                if (toobig) {
-                    free_stmt(*spp3);
-                    spp2 = spp3;
-                    *defsphook = makestmt_if(range, p_stmt(NULL, SF_CASE | SF_SAVESER),
-					     NULL);
-                    if (defsphook != &defsp && elseif != 0)
-                        (*defsphook)->exp2 = makeexpr_long(1);
-                    defsphook = &((*defsphook)->stm2);
-                } else {
-                    freeexpr(range);
-                    sp->stm1 = p_stmt(NULL, SF_CASE | SF_SAVESER);
-                }
-		i = 0;
-		checkkeyword(TOK_OTHERWISE);
-                if (curtok != TOK_END && curtok != TOK_OTHERWISE && curtok != TOK_ELSE) {
-		    if (curtok == TOK_VBAR) {
-			while (curtok == TOK_VBAR)
-			    gettok();
-		    } else
-			wneedtok(TOK_SEMI);
-		    checkkeyword(TOK_OTHERWISE);
-		}
-            }
-            if (defsp) {
-                *spp2 = defsp;
-                spp2 = defsphook;
-                if (tvar) {
-                    sp = makestmt_assign(makeexpr_var(tvar), trueswexpr);
-                    sp->next = *savespp;
-                    *savespp = sp;
-                    sp->next->exp1 = swexpr;
-                }
-            } else {
-                if (tvar) {
-                    canceltempvar(tvar);
-                    freeexpr(swexpr);
-                }
-            }
-            if (curtok == TOK_OTHERWISE || curtok == TOK_ELSE) {
-                gettok();
-                while (curtok == TOK_SEMI)
-                    gettok();
-/*		changecomments(curcomments, CMT_TRAIL, curserial,
-			                    CMT_POST, -1);   */
-		i = SF_FIRST;
-		if (curtok == TOK_END)
-		  /* user has an empty ELSE END body, ensure we have an empty "default: break" */
-		  *spp2 = makestmt(SK_NOCASECHECK);
-		else {
-		  do {
-                    *spp2 = p_stmt(NULL, SF_CASE | i);
-                    while (*spp2)
-		      spp2 = &((*spp2)->next);
-		    i = 0;
-                    if (curtok != TOK_SEMI)
-		      break;
-                    gettok();
-		  } while (curtok != TOK_END);
-		}
-                if (!wexpecttok(TOK_END))
-		    skiptotoken(TOK_END);
-            } else if (casecheck == 1 || (casecheck == 2 && range_flag)) {
-                *spp2 = makestmt(SK_CASECHECK);
-            }
-	    curserial = saveserial2;
-	    strlist_mix(&curcomments, grabcomment(CMT_ONEND));
-            gettok();
-            break;
-
-        case TOK_FOR:
-            forfixed = fixedflag;
-            gettok();
-            newstmt(SK_FOR);
-            ep = p_expr(tp_integer);
-            if (!wneedtok(TOK_ASSIGN)) {
-		skippasttoken(TOK_DO);
-		break;
-	    }
-            ep2 = makeexpr_charcast(p_expr(ep->val.type));
-            if (curtok != TOK_DOWNTO) {
-		if (!wexpecttok(TOK_TO)) {
-		    skippasttoken(TOK_DO);
-		    break;
-		}
-	    }
-            savetok = curtok;
-            gettok();
-            sp->exp2 = makeexpr_charcast(p_expr(ep->val.type));
-	    checkkeyword(TOK_BY);
-	    if (curtok == TOK_BY) {
-		gettok();
-		forstep = p_expr(tp_integer);
-		i = possiblesigns(forstep);
-		if ((i & 5) == 5) {
-		    if (expr_is_neg(forstep)) {
-			ekind = EK_GE;
-			note("Assuming FOR loop step is negative [252]");
-		    } else {
-			ekind = EK_LE;
-			note("Assuming FOR loop step is positive [252]");
-		    }
-		} else {
-		    if (!(i & 1))
-			ekind = EK_LE;
-		    else
-			ekind = EK_GE;
-		}
-	    } else {
-		if (savetok == TOK_DOWNTO) {
-		    ekind = EK_GE;
-		    forstep = makeexpr_long(-1);
-		} else {
-		    ekind = EK_LE;
-		    forstep = makeexpr_long(1);
-		}
-	    }
-            tvar = NULL;
-	    swexpr = NULL;
-            if (ep->kind == EK_VAR) {
-                tp = findbasetype(ep->val.type, ODECL_NOPRES);
-                if ((tp == tp_char || tp == tp_schar || tp == tp_uchar ||
-                     tp == tp_abyte || tp == tp_sbyte || tp == tp_ubyte ||
-		     tp == tp_boolean) &&
-                    ((checkconst(sp->exp2, 0) &&
-		      tp != tp_sbyte && tp != tp_schar) ||
-                     checkconst(sp->exp2, -128) ||
-                     (checkconst(sp->exp2, 127) &&
-		      tp != tp_ubyte && tp != tp_uchar) ||
-                     checkconst(sp->exp2, 255) ||
-                     (tp == tp_char &&
-                      (useAnyptrMacros == 1 || unsignedchar != 1) &&
-                      isliteralconst(sp->exp2, NULL) == 2 &&
-                      sp->exp2->val.i >= 128))) {
-                    swexpr = ep;
-                    tvar = makestmttempvar(tp_sshort, name_TEMP);
-                    ep = makeexpr_var(tvar);
-                } else if (((tp == tp_sshort &&
-                             (checkconst(sp->exp2, -32768) ||
-                              checkconst(sp->exp2, 32767))) ||
-                            (tp == tp_ushort &&
-                             (checkconst(sp->exp2, 0) ||
-                              checkconst(sp->exp2, 65535))))) {
-                    swexpr = ep;
-                    tvar = makestmttempvar(tp_integer, name_TEMP);
-                    ep = makeexpr_var(tvar);
-		  } else if ((tp == tp_unsigned) && (expr_is_neg(forstep))) {
-		    /*
-		       this modification prevents for indices from
-		       being CARDINAL when we have a negative step value.
-
-		       Reason:  FOR i := 10 TO 0 BY -1 DO
-		       when i is a CARDINAL the C translation is:
-
-		       unsigned long i;
-
-                       for (i=10; i>=0; i--) {
-		       }
-
-		       which the C compiler will legitimately translate
-                       into an infinite loop!
-		     */
-                    swexpr = ep;
-                    tvar = makestmttempvar(tp_integer, name_TEMP);
-                    ep = makeexpr_var(tvar);
-                } else if (tp == tp_integer &&
-			   (checkconst(sp->exp2, LONG_MAX) ||
-			    (sp->exp2->kind == EK_VAR &&
-			     sp->exp2->val.i == (long)mp_maxint))) {
-                    swexpr = ep;
-                    tvar = makestmttempvar(tp_unsigned, name_TEMP);
-                    ep = makeexpr_var(tvar);
-                }
-            }
-	    sp->exp3 = makeexpr_assign(copyexpr(ep),
-				       makeexpr_inc(copyexpr(ep),
-						    copyexpr(forstep)));
-            wneedtok(TOK_DO);
-            forfixed = (fixedflag != forfixed);
-            mp = makestmttempvar(ep->val.type, name_FOR);
-            sp->stm1 = p_stmt(NULL, SF_SAVESER);
-            if (tvar) {
-                if (checkexprchanged(sp->stm1, swexpr))
-                    note(format_s("Rewritten FOR loop won't work if it meddles with %s [253]",
-                                  ((Meaning *)swexpr->val.i)->name));
-                sp->stm1 = makestmt_seq(makestmt_assign(swexpr, makeexpr_var(tvar)),
-                                        sp->stm1);
-            } else if (offsetforloops && ep->kind == EK_VAR) {
-		offset = checkvaroffset(sp->stm1, (Meaning *)ep->val.i);
-		if (offset != 0) {
-		    ep3 = makeexpr_inc(copyexpr(ep), makeexpr_long(-offset));
-		    replaceexpr(sp->stm1, ep, ep3);
-		    freeexpr(ep3);
-		    ep2 = makeexpr_plus(ep2, makeexpr_long(offset));
-		    sp->exp2 = makeexpr_inc(sp->exp2, makeexpr_long(offset));
-		}
-	    }
-            if (!exprsame(ep, ep2, 1))
-                sp->exp1 = makeexpr_assign(copyexpr(ep), copyexpr(ep2));
-	    isunsafe = ((!nodependencies(ep2, 2) &&
-			 !nosideeffects(sp->exp2, 1)) ||
-			(!nodependencies(sp->exp2, 2) &&
-			 !nosideeffects(ep2, 1)));
-            if (forfixed || (simplefor(sp, ep) && !isunsafe)) {
-                canceltempvar(mp);
-                sp->exp2 = makeexpr_rel(ekind, ep, sp->exp2);
-            } else {
-		ep3 = makeexpr_neg(copyexpr(forstep));
-		if ((checkconst(forstep, 1) || checkconst(forstep, -1)) &&
-		    sp->exp2->kind == EK_PLUS &&
-		    exprsame(sp->exp2->args[sp->exp2->nargs-1], ep3, 2)) {
-		    sp->exp2 = makeexpr_inc(sp->exp2, forstep);
-		} else {
-		    freeexpr(forstep);
-		    freeexpr(ep3);
-		    ep3 = makeexpr_long(0);
-		}
-		if (forevalorder && isunsafe) {
-		    if (exprdepends(sp->exp2, ep)) {
-			tvar = makestmttempvar(mp->type, name_TEMP);
-			sp->exp1 = makeexpr_comma(
-				     makeexpr_comma(
-				       makeexpr_assign(makeexpr_var(tvar),
-						       copyexpr(ep2)),
-				       makeexpr_assign(makeexpr_var(mp),
-						       sp->exp2)),
-				     makeexpr_assign(copyexpr(ep),
-						     makeexpr_var(tvar)));
-		    } else
-			sp->exp1 = makeexpr_comma(
-				     sp->exp1,
-				     makeexpr_assign(makeexpr_var(mp),
-						     sp->exp2));
-		} else {
-		    if (isunsafe)
-			note("Evaluating FOR loop limit before initial value [315]");
-		    sp->exp1 = makeexpr_comma(
-			         makeexpr_assign(makeexpr_var(mp),
-						 sp->exp2),
-			         sp->exp1);
-		}
-		sp->exp2 = makeexpr_inc(makeexpr_var(mp), ep3);
-                sp->exp2 = makeexpr_rel(ekind, ep, sp->exp2);
-            }
-	    freeexpr(ep2);
-            break;
-
-        case TOK_GOTO:
-            gettok();
-            if (findlabelsym()) {
-                if (curtokmeaning->ctx != curctx) {
-		    curtokmeaning->val.i = 1;
-		    *spp = close_files_to_ctx(curtokmeaning->ctx);
-		    while (*spp)
-			spp = &((*spp)->next);
-		    newstmt(SK_ASSIGN);
-		    var_reference(curtokmeaning->xnext);
-		    if (curtokmeaning->ctx->kind == MK_MODULE &&
-			!curtokmeaning->xnext->wasdeclared) {
-			outsection(minorspace);
-			declarevar(curtokmeaning->xnext, 0x7);
-			curtokmeaning->xnext->wasdeclared = 1;
-			outsection(minorspace);
-		    }
-		    sp->exp1 = makeexpr_bicall_2("longjmp", tp_void,
-						 makeexpr_var(curtokmeaning->xnext),
-						 makeexpr_long(1));
-		} else {
-		    newstmt(SK_GOTO);
-		    sp->exp1 = makeexpr_name(format_s(name_LABEL,
-						      curtokmeaning->name),
-					     tp_integer);
-		}
-            } else {
-                warning("Expected a label [263]");
-	    }
-	    gettok();
-            break;
-
-        case TOK_IF:
-            gettok();
-            newstmt(SK_IF);
-	    saveserial = curserial;
-	    curserial = ++serialcount;
-            sp->exp1 = p_expr(tp_boolean);
-            wneedtok(TOK_THEN);
-            sp->stm1 = p_stmt(NULL, SF_SAVESER|SF_IF);
-	    changecomments(curcomments, -1, saveserial+1, -1, saveserial);
-	    checkkeyword(TOK_ELSIF);
-	    while (curtok == TOK_ELSIF) {
-		gettok();
-		sp->stm2 = makestmt(SK_IF);
-		sp = sp->stm2;
-		sp->exp1 = p_expr(tp_boolean);
-		wneedtok(TOK_THEN);
-		sp->stm1 = p_stmt(NULL, SF_SAVESER|SF_IF);
-		sp->exp2 = makeexpr_long(1);
-	    }
-	    if (curtok == TOK_ELSE) {
-                line1 = inf_lnum;
-		strlist_mix(&curcomments, grabcomment(CMT_ONELSE));
-                gettok();
-                line2 = (curtok == TOK_IF) ? inf_lnum : -1;
-		saveserial2 = curserial;
-                sp->stm2 = p_stmt(NULL, SF_SAVESER|SF_IF);
-		changecomments(curcomments, -1, saveserial2, -1, saveserial+1);
-                if (sp->stm2 && sp->stm2->kind == SK_IF &&
-		    !sp->stm2->next && !modula2) {
-                    sp->stm2->exp2 = makeexpr_long(elseif > 0 ||
-                                                   (elseif < 0 && line1 == line2));
-                }
-            }
-	    if (modula2)
-		wneedtok(TOK_END);
-	    curserial = saveserial;
-            break;
-
-        case TOK_INLINE:
-            gettok();
-            note("Inline assembly language encountered [254]");
-            if (curtok != TOK_LPAR) {   /* Macintosh style */
-		newstmt(SK_ASSIGN);
-		sp->exp1 = makeexpr_bicall_1("inline", tp_void,
-					     p_expr(tp_integer));
-		break;
-	    }
-            do {
-                name = getinlinepart();
-                if (!*name)
-                    break;
-                newstmt(SK_ASSIGN);
-                sp->exp1 = makeexpr_bicall_1("asm", tp_void,
-                            makeexpr_string(format_s(" inline %s", name)));
-                gettok();
-            } while (curtok == TOK_SLASH);
-            skipcloseparen();
-            break;
-
-	case TOK_LOOP:
-	    gettok();
-	    newstmt(SK_WHILE);
-	    sp->exp1 = makeexpr_long(1);
-            sp->stm1 = p_stmt(NULL, SF_SAVESER);
-	    break;
-
-        case TOK_REPEAT:
-            newstmt(SK_REPEAT);
-	    saveserial = curserial;
-            spp2 = &(sp->stm1);
-	    i = SF_FIRST;
-            do {
-                gettok();
-                *spp2 = p_stmt(sp->stm1, i);
-		i = 0;
-                while (*spp2)
-                    spp2 = &((*spp2)->next);
-            } while (curtok == TOK_SEMI);
-            if (!wneedtok(TOK_UNTIL))
-		skippasttoken(TOK_UNTIL);
-            sp->exp1 = makeexpr_not(p_expr(tp_boolean));
-	    curserial = saveserial;
-	    strlist_mix(&curcomments, grabcomment(CMT_ONEND));
-            break;
-
-	case TOK_RETURN:
-	    gettok();
-	    newstmt(SK_RETURN);
-	    if (curctx->isfunction) {
-		sp->exp1 = gentle_cast(p_expr(curctx->cbase->type),
-				       curctx->cbase->type);
-	    }
-	    break;
-
-        case TOK_TRY:
-	    findsymbol("RECOVER")->flags &= ~KWPOSS;
-            newstmt(SK_TRY);
-            sp->exp1 = makeexpr_long(++trycount);
-            spp2 = &(sp->stm1);
-	    i = SF_FIRST;
-            do {
-                gettok();
-                *spp2 = p_stmt(sp->stm1, i);
-		i = 0;
-                while (*spp2)
-                    spp2 = &((*spp2)->next);
-            } while (curtok == TOK_SEMI);
-            if (!wneedtok(TOK_RECOVER))
-		skippasttoken(TOK_RECOVER);
-            sp->stm2 = p_stmt(NULL, SF_SAVESER);
-            break;
-
-        case TOK_WHILE:
-            gettok();
-            newstmt(SK_WHILE);
-            sp->exp1 = p_expr(tp_boolean);
-            wneedtok(TOK_DO);
-            sp->stm1 = p_stmt(NULL, SF_SAVESER);
-            break;
-
-        case TOK_WITH:
-            gettok();
-            if (withlevel >= MAXWITHS-1)
-                error("Too many nested WITHs");
-            ep = p_expr(NULL);
-            if (ep->val.type->kind != TK_RECORD)
-                warning("Argument of WITH is not a RECORD [264]");
-            withlist[withlevel] = ep->val.type;
-            if (simplewith(ep)) {
-                withexprs[withlevel] = ep;
-                mp = NULL;
-            } else {           /* need to save a temporary pointer */
-                tp = makepointertype(ep->val.type);
-                mp = makestmttempvar(tp, name_WITH);
-                withexprs[withlevel] = makeexpr_hat(makeexpr_var(mp), 0);
-            }
-            withlevel++;
-            if (curtok == TOK_COMMA) {
-                curtok = TOK_WITH;
-                sp2 = p_stmt(NULL, sflags & SF_FIRST);
-            } else {
-	      if ((modula2) && (curtok == TOK_DO)) {
-		curtok = TOK_BEGIN;
-	      } else {
-		wneedtok(TOK_DO);
-	      }
-	      sp2 = p_stmt(NULL, sflags & SF_FIRST);
-            }
-            withlevel--;
-            if (mp) {    /* if "with p^" for constant p, don't need temp ptr */
-                if (ep->kind == EK_HAT && ep->args[0]->kind == EK_VAR &&
-                    !checkvarchanged(sp2, (Meaning *)ep->args[0]->val.i)) {
-                    replaceexpr(sp2, withexprs[withlevel]->args[0],
-                                     ep->args[0]);
-                    freeexpr(ep);
-                    canceltempvar(mp);
-                } else {
-                    newstmt(SK_ASSIGN);
-                    sp->exp1 = makeexpr_assign(makeexpr_var(mp),
-                                               makeexpr_addr(ep));
-                }
-            }
-            freeexpr(withexprs[withlevel]);
-            *spp = sp2;
-            while (*spp)
-                spp = &((*spp)->next);
-            break;
-
-        case TOK_INCLUDE:
-            badinclude();
-            goto again;
-
-	case TOK_ADDR:   /* flakey Turbo "@procptr := anyptr" assignment */
-	    newstmt(SK_ASSIGN);
-	    ep = p_expr(tp_void);
-	    if (wneedtok(TOK_ASSIGN))
-		sp->exp1 = makeexpr_assign(ep, p_expr(ep->val.type));
-	    else
-		sp->exp1 = ep;
-	    break;
-
-        case TOK_IDENT:
-            mp = curtokmeaning;
-	    if (mp == NULL) {
-	      error(format_s("undefined symbol %s", curtoksym->name));
-	    }
-	    if (mp == mp_str_hp)
-		mp = curtokmeaning = mp_str_turbo;
-	    if (mp == mp_val_modula)
-		mp = curtokmeaning = mp_val_turbo;
-	    if (mp == mp_blockread_ucsd)
-		mp = curtokmeaning = mp_blockread_turbo;
-	    if (mp == mp_blockwrite_ucsd)
-		mp = curtokmeaning = mp_blockwrite_turbo;
-	    if (mp == mp_dec_dec)
-		mp = curtokmeaning = mp_dec_turbo;
-            if (!mp) {
-                sym = curtoksym;     /* make a guess at what the undefined name is... */
-                name = stralloc(curtokcase);
-                gettok();
-                newstmt(SK_ASSIGN);
-                if (curtok == TOK_ASSIGN) {
-                    gettok();
-                    ep = p_expr(NULL);
-                    mp = addmeaning(sym, MK_VAR);
-                    mp->name = name;
-                    mp->type = ep->val.type;
-                    sp->exp1 = makeexpr_assign(makeexpr_var(mp), ep);
-                } else if (curtok == TOK_HAT || curtok == TOK_ADDR ||
-                           curtok == TOK_LBR || curtok == TOK_DOT) {
-                    ep = makeexpr_name(name, tp_integer);
-                    ep = fake_dots_n_hats(ep);
-                    if (wneedtok(TOK_ASSIGN))
-			sp->exp1 = makeexpr_assign(ep, p_expr(NULL));
-		    else
-			sp->exp1 = ep;
-                } else if (curtok == TOK_LPAR) {
-                    ep = makeexpr_bicall_0(name, tp_void);
-                    do {
-                        gettok();
-                        insertarg(&ep, ep->nargs, p_expr(NULL));
-                    } while (curtok == TOK_COMMA);
-                    skipcloseparen();
-                    sp->exp1 = ep;
-                } else {
-                    sp->exp1 = makeexpr_bicall_0(name, tp_void);
-                }
-		if (!tryfuncmacro(&sp->exp1, NULL))
-		    undefsym(sym);
-            } else if (mp->kind == MK_FUNCTION && !mp->isfunction) {
-                mp->refcount++;
-                gettok();
-                ep = p_funccall(mp);
-                if (!mp->constdefn)
-                    need_forward_decl(mp);
-                if (has_handler(mp) && !(mp->sym->flags & LEAVEALONE) &&
-                                   !mp->constdefn) {
-                    prochandler = (Stmt *(*)())mp->procedure_handler_expr;
-                    *spp = (*prochandler)(ep, slist);
-                    while (*spp)
-                        spp = &((*spp)->next);
-                } else {
-                    newstmt(SK_ASSIGN);
-                    sp->exp1 = ep;
-                }
-            } else if (mp->kind == MK_SPECIAL) {
-                gettok();
-                if (has_handler(mp) && !mp->isfunction) {
-                    if ((mp->sym->flags & LEAVEALONE) || mp->constdefn) {
-                        ep = makeexpr_bicall_0(mp->name, tp_void);
-                        if (curtok == TOK_LPAR) {
-                            do {
-                                gettok();
-                                insertarg(&ep, ep->nargs, p_expr(NULL));
-                            } while (curtok == TOK_COMMA);
-                            skipcloseparen();
-                        }
-                        newstmt(SK_ASSIGN);
-			tryfuncmacro(&ep, mp);
-			sp->exp1 = ep;
-                    } else {
-		      if (mp->procedure_handler_meaning)
-			*spp = (*mp->procedure_handler_meaning)(mp);
-		      else if (mp->procedure_handler_expr)
-			*spp = (*mp->procedure_handler_expr)(NULL);
-
-		      while (*spp)
-			spp = &((*spp)->next);
-                    }
-                } else
-                    symclass(curtoksym);
-            } else {
-                newstmt(SK_ASSIGN);
-                if (curtokmeaning->kind == MK_FUNCTION &&
-		    peeknextchar() != '(') {
-                    mp = curctx;
-                    while (mp && mp != curtokmeaning)
-                        mp = mp->ctx;
-                    if (mp)
-                        curtokmeaning = curtokmeaning->cbase;
-                }
-                ep = p_expr(tp_void);
-#if 0
-		if (!(ep->kind == EK_SPCALL ||
-		      (ep->kind == EK_COND &&
-		       ep->args[1]->kind == EK_SPCALL)))
-		    wexpecttok(TOK_ASSIGN);
-#endif
-		if (curtok == TOK_ASSIGN) {
-		    gettok();
-		    if (curtok == TOK_IDENT && !strcicmp(curtokbuf, "ZERO") &&
-			!curtokmeaning) {   /* VAX Pascal foolishness */
-			gettok();
-			ep2 = makeexpr_sizeof(copyexpr(ep), 0);
-			sp->exp1 = makeexpr_bicall_3("memset", tp_void,
-						     makeexpr_addr(ep),
-						     makeexpr_long(0), ep2);
-		    } else
-			sp->exp1 = makeexpr_assign(ep, p_expr(ep->val.type));
-		} else
-		    sp->exp1 = ep;
-            }
-            break;
-
-	default:
-	    break;    /* null statement */
-    }
-    freestmttemps(tempmark);
+  tempmark = markstmttemps();
+ again:
+  while (findlabelsym()) {
+    newstmt(SK_LABEL);
+    sp->exp1 = makeexpr_name(format_s(name_LABEL, curtokmeaning->name), tp_integer);
+    gettok();
+    wneedtok(TOK_COLON);
+  }
+  firstserial = curserial;
+  checkkeyword(TOK_TRY);
+  checkkeyword(TOK_INLINE);
+  checkkeyword(TOK_LOOP);
+  checkkeyword(TOK_RETURN);
+  if (modula2) {
     if (sflags & SF_SAVESER)
-	curserial = firstserial;
-    return sbase;
+      goto stmtSeq;
+  }
+  switch (curtok) {
+  case TOK_BEGIN:
+  case TOK_FINALLY:
+  stmtSeq:
+    if (sflags & (SF_FUNC|SF_SAVESER|SF_INIT|SF_FINI)) {
+      saveserial = curserial;
+      cmt = grabcomment(CMT_ONBEGIN);
+      if (sflags & SF_FUNC)
+	cmt = fixbeginendcomment(cmt);
+      strlist_mix(&curcomments, cmt);
+    }
+    i = sflags & SF_FIRST;
+    /*
+     *  skip over block start token
+     */
+    if (modula2) {
+      if (curtok == TOK_BEGIN)
+	gettok();
+      else if ((sflags & SF_FINI) && (curtok == TOK_FINALLY))
+	gettok();
+    }
+    do {
+      if (modula2) {
+	if (curtok == TOK_SEMI)
+	  gettok();
+	checkkeyword(TOK_ELSIF);
+	if (curtok == TOK_ELSE || curtok == TOK_ELSIF || curtok == TOK_FINALLY)
+	  break;
+      } else
+	gettok();
+      *spp = p_stmt(sbase, i);
+      i = 0;
+      while (*spp)
+	spp = &((*spp)->next);
+    } while (curtok == TOK_SEMI);
+    if (sflags & (SF_FUNC|SF_SAVESER|SF_INIT|SF_FINI)) {
+      cmt = grabcomment(CMT_ONEND);
+      changecomments(cmt, -1, -1, -1, saveserial);
+      if (sflags & (SF_FUNC|SF_INIT|SF_FINI))
+	cmt = fixbeginendcomment(cmt);
+      strlist_mix(&curcomments, cmt);
+      if (sflags & (SF_FUNC|SF_INIT|SF_FINI))
+	changecomments(curcomments, -1, saveserial, -1, 10000);
+      curserial = saveserial;
+    }
+    checkkeyword(TOK_ELSIF);
+    if (modula2 && (sflags & SF_IF)) {
+      break;
+    }
+    if (curtok == TOK_VBAR)
+      break;
+    if (modula2 && (sflags & SF_CASE)) {
+      break;
+    }
+    if (modula2 && (sflags & SF_INIT) && (curtok == TOK_FINALLY))
+      break;
+    if (modula2 && (sflags & (SF_INIT|SF_FINI)) && (curtok == TOK_END))
+      break;
+    if (!wneedtok(TOK_END))
+      skippasttoken(TOK_END);
+    break;
+
+  case TOK_CASE:
+    gettok();
+    swexpr = trueswexpr = p_ord_expr();
+    if (nosideeffects(swexpr, 1)) {
+      tvar = NULL;
+    } else {
+      tvar = makestmttempvar(swexpr->val.type, name_TEMP);
+      swexpr = makeexpr_var(tvar);
+    }
+    savespp = spp;
+    newstmt(SK_CASE);
+    saveserial2 = curserial;
+    sp->exp1 = trueswexpr;
+    spp2 = &sp->stm1;
+    tp = swexpr->val.type;
+    defsp = NULL;
+    defsphook = &defsp;
+    if (!wneedtok(TOK_OF)) {
+      skippasttoken(TOK_END);
+      break;
+    }
+    i = 1;
+    while (curtok == TOK_VBAR)
+      gettok();
+    checkkeyword(TOK_OTHERWISE);
+    while (curtok != TOK_END && curtok != TOK_OTHERWISE && curtok != TOK_ELSE) {
+      spp3 = spp2;
+      saveserial = curserial;
+      *spp2 = sp = makestmt(SK_CASELABEL);
+      steal_comments(saveserial, sp->serial, i);
+      spp2 = &sp->next;
+      range = NULL;
+      toobig = 0;
+      for (;;) {
+	ep = gentle_cast(p_expr(tp), tp);
+	if (curtok == TOK_DOTS) {
+	  li1 = ord_value(eval_expr(ep));
+	  gettok();
+	  ep2 = gentle_cast(p_expr(tp), tp);
+	  li2 = ord_value(eval_expr(ep2));
+	  range = makeexpr_or(range,
+			      makeexpr_range(copyexpr(swexpr),
+					     ep, ep2, 1));
+	  if (li2 - li1 >= caselimit)
+	    toobig = 1;
+	  if (!toobig) {
+	    for (;;) {
+	      sp->exp1 = makeexpr_val(make_ord(tp, li1));
+	      if (li1 >= li2) break;
+	      li1++;
+	      serialcount--;   /* make it reuse the count */
+	      sp->stm1 = makestmt(SK_CASELABEL);
+	      sp = sp->stm1;
+	    }
+	  }
+	} else {
+	  sp->exp1 = copyexpr(ep);
+	  range = makeexpr_or(range,
+			      makeexpr_rel(EK_EQ, 
+					   copyexpr(swexpr),
+					   ep));
+	}
+	if (curtok == TOK_COMMA) {
+	  gettok();
+	  serialcount--;   /* make it reuse the count */
+	  sp->stm1 = makestmt(SK_CASELABEL);
+	  sp = sp->stm1;
+	} else
+	  break;
+      }
+      wneedtok(TOK_COLON);
+      if (toobig) {
+	free_stmt(*spp3);
+	spp2 = spp3;
+	*defsphook = makestmt_if(range, p_stmt(NULL, SF_CASE | SF_SAVESER),
+				 NULL);
+	if (defsphook != &defsp && elseif != 0)
+	  (*defsphook)->exp2 = makeexpr_long(1);
+	defsphook = &((*defsphook)->stm2);
+      } else {
+	freeexpr(range);
+	sp->stm1 = p_stmt(NULL, SF_CASE | SF_SAVESER);
+      }
+      i = 0;
+      checkkeyword(TOK_OTHERWISE);
+      if (curtok != TOK_END && curtok != TOK_OTHERWISE && curtok != TOK_ELSE) {
+	if (curtok == TOK_VBAR) {
+	  while (curtok == TOK_VBAR)
+	    gettok();
+	} else
+	  wneedtok(TOK_SEMI);
+	checkkeyword(TOK_OTHERWISE);
+      }
+    }
+    if (defsp) {
+      *spp2 = defsp;
+      spp2 = defsphook;
+      if (tvar) {
+	sp = makestmt_assign(makeexpr_var(tvar), trueswexpr);
+	sp->next = *savespp;
+	*savespp = sp;
+	sp->next->exp1 = swexpr;
+      }
+    } else {
+      if (tvar) {
+	canceltempvar(tvar);
+	freeexpr(swexpr);
+      }
+    }
+    if (curtok == TOK_OTHERWISE || curtok == TOK_ELSE) {
+      gettok();
+      while (curtok == TOK_SEMI)
+	gettok();
+      /*		changecomments(curcomments, CMT_TRAIL, curserial,
+			CMT_POST, -1);   */
+      i = SF_FIRST;
+      if (curtok == TOK_END)
+	/* user has an empty ELSE END body, ensure we have an empty "default: break" */
+	*spp2 = makestmt(SK_NOCASECHECK);
+      else {
+	do {
+	  *spp2 = p_stmt(NULL, SF_CASE | i);
+	  while (*spp2)
+	    spp2 = &((*spp2)->next);
+	  i = 0;
+	  if (curtok != TOK_SEMI)
+	    break;
+	  gettok();
+	} while (curtok != TOK_END);
+      }
+      if (!wexpecttok(TOK_END))
+	skiptotoken(TOK_END);
+    } else if (casecheck == 1 || (casecheck == 2 && range_flag)) {
+      *spp2 = makestmt(SK_CASECHECK);
+    }
+    curserial = saveserial2;
+    strlist_mix(&curcomments, grabcomment(CMT_ONEND));
+    gettok();
+    break;
+
+  case TOK_FOR:
+    forfixed = fixedflag;
+    gettok();
+    newstmt(SK_FOR);
+    ep = p_expr(tp_integer);
+    if (!wneedtok(TOK_ASSIGN)) {
+      skippasttoken(TOK_DO);
+      break;
+    }
+    ep2 = makeexpr_charcast(p_expr(ep->val.type));
+    if (curtok != TOK_DOWNTO) {
+      if (!wexpecttok(TOK_TO)) {
+	skippasttoken(TOK_DO);
+	break;
+      }
+    }
+    savetok = curtok;
+    gettok();
+    sp->exp2 = makeexpr_charcast(p_expr(ep->val.type));
+    checkkeyword(TOK_BY);
+    if (curtok == TOK_BY) {
+      gettok();
+      forstep = p_expr(tp_integer);
+      i = possiblesigns(forstep);
+      if ((i & 5) == 5) {
+	if (expr_is_neg(forstep)) {
+	  ekind = EK_GE;
+	  note("Assuming FOR loop step is negative [252]");
+	} else {
+	  ekind = EK_LE;
+	  note("Assuming FOR loop step is positive [252]");
+	}
+      } else {
+	if (!(i & 1))
+	  ekind = EK_LE;
+	else
+	  ekind = EK_GE;
+      }
+    } else {
+      if (savetok == TOK_DOWNTO) {
+	ekind = EK_GE;
+	forstep = makeexpr_long(-1);
+      } else {
+	ekind = EK_LE;
+	forstep = makeexpr_long(1);
+      }
+    }
+    tvar = NULL;
+    swexpr = NULL;
+    if (ep->kind == EK_VAR) {
+      tp = findbasetype(ep->val.type, ODECL_NOPRES);
+      if ((tp == tp_char || tp == tp_schar || tp == tp_uchar ||
+	   tp == tp_abyte || tp == tp_sbyte || tp == tp_ubyte ||
+	   tp == tp_boolean) &&
+	  ((checkconst(sp->exp2, 0) &&
+	    tp != tp_sbyte && tp != tp_schar) ||
+	   checkconst(sp->exp2, -128) ||
+	   (checkconst(sp->exp2, 127) &&
+	    tp != tp_ubyte && tp != tp_uchar) ||
+	   checkconst(sp->exp2, 255) ||
+	   (tp == tp_char &&
+	    (useAnyptrMacros == 1 || unsignedchar != 1) &&
+	    isliteralconst(sp->exp2, NULL) == 2 &&
+	    sp->exp2->val.i >= 128))) {
+	swexpr = ep;
+	tvar = makestmttempvar(tp_sshort, name_TEMP);
+	ep = makeexpr_var(tvar);
+      } else if (((tp == tp_sshort &&
+		   (checkconst(sp->exp2, -32768) ||
+		    checkconst(sp->exp2, 32767))) ||
+		  (tp == tp_ushort &&
+		   (checkconst(sp->exp2, 0) ||
+		    checkconst(sp->exp2, 65535))))) {
+	swexpr = ep;
+	tvar = makestmttempvar(tp_integer, name_TEMP);
+	ep = makeexpr_var(tvar);
+      } else if ((tp == tp_unsigned) && (expr_is_neg(forstep))) {
+	/*
+	  this modification prevents for indices from
+	  being CARDINAL when we have a negative step value.
+
+	  Reason:  FOR i := 10 TO 0 BY -1 DO
+	  when i is a CARDINAL the C translation is:
+
+	  unsigned long i;
+
+	  for (i=10; i>=0; i--) {
+	  }
+
+	  which the C compiler will legitimately translate
+	  into an infinite loop!
+	*/
+	swexpr = ep;
+	tvar = makestmttempvar(tp_integer, name_TEMP);
+	ep = makeexpr_var(tvar);
+      } else if (tp == tp_integer &&
+		 (checkconst(sp->exp2, LONG_MAX) ||
+		  (sp->exp2->kind == EK_VAR &&
+		   sp->exp2->val.i == (long)mp_maxint))) {
+	swexpr = ep;
+	tvar = makestmttempvar(tp_unsigned, name_TEMP);
+	ep = makeexpr_var(tvar);
+      }
+    }
+    sp->exp3 = makeexpr_assign(copyexpr(ep),
+			       makeexpr_inc(copyexpr(ep),
+					    copyexpr(forstep)));
+    wneedtok(TOK_DO);
+    forfixed = (fixedflag != forfixed);
+    mp = makestmttempvar(ep->val.type, name_FOR);
+    sp->stm1 = p_stmt(NULL, SF_SAVESER);
+    if (tvar) {
+      if (checkexprchanged(sp->stm1, swexpr))
+	note(format_s("Rewritten FOR loop won't work if it meddles with %s [253]",
+		      ((Meaning *)swexpr->val.i)->name));
+      sp->stm1 = makestmt_seq(makestmt_assign(swexpr, makeexpr_var(tvar)),
+			      sp->stm1);
+    } else if (offsetforloops && ep->kind == EK_VAR) {
+      offset = checkvaroffset(sp->stm1, (Meaning *)ep->val.i);
+      if (offset != 0) {
+	ep3 = makeexpr_inc(copyexpr(ep), makeexpr_long(-offset));
+	replaceexpr(sp->stm1, ep, ep3);
+	freeexpr(ep3);
+	ep2 = makeexpr_plus(ep2, makeexpr_long(offset));
+	sp->exp2 = makeexpr_inc(sp->exp2, makeexpr_long(offset));
+      }
+    }
+    if (!exprsame(ep, ep2, 1))
+      sp->exp1 = makeexpr_assign(copyexpr(ep), copyexpr(ep2));
+    isunsafe = ((!nodependencies(ep2, 2) &&
+		 !nosideeffects(sp->exp2, 1)) ||
+		(!nodependencies(sp->exp2, 2) &&
+		 !nosideeffects(ep2, 1)));
+    if (forfixed || (simplefor(sp, ep) && !isunsafe)) {
+      canceltempvar(mp);
+      sp->exp2 = makeexpr_rel(ekind, ep, sp->exp2);
+    } else {
+      ep3 = makeexpr_neg(copyexpr(forstep));
+      if ((checkconst(forstep, 1) || checkconst(forstep, -1)) &&
+	  sp->exp2->kind == EK_PLUS &&
+	  exprsame(sp->exp2->args[sp->exp2->nargs-1], ep3, 2)) {
+	sp->exp2 = makeexpr_inc(sp->exp2, forstep);
+      } else {
+	freeexpr(forstep);
+	freeexpr(ep3);
+	ep3 = makeexpr_long(0);
+      }
+      if (forevalorder && isunsafe) {
+	if (exprdepends(sp->exp2, ep)) {
+	  tvar = makestmttempvar(mp->type, name_TEMP);
+	  sp->exp1 = makeexpr_comma(
+				    makeexpr_comma(
+						   makeexpr_assign(makeexpr_var(tvar),
+								   copyexpr(ep2)),
+						   makeexpr_assign(makeexpr_var(mp),
+								   sp->exp2)),
+				    makeexpr_assign(copyexpr(ep),
+						    makeexpr_var(tvar)));
+	} else
+	  sp->exp1 = makeexpr_comma(
+				    sp->exp1,
+				    makeexpr_assign(makeexpr_var(mp),
+						    sp->exp2));
+      } else {
+	if (isunsafe)
+	  note("Evaluating FOR loop limit before initial value [315]");
+	sp->exp1 = makeexpr_comma(
+				  makeexpr_assign(makeexpr_var(mp),
+						  sp->exp2),
+				  sp->exp1);
+      }
+      sp->exp2 = makeexpr_inc(makeexpr_var(mp), ep3);
+      sp->exp2 = makeexpr_rel(ekind, ep, sp->exp2);
+    }
+    freeexpr(ep2);
+    break;
+
+  case TOK_GOTO:
+    gettok();
+    if (findlabelsym()) {
+      if (curtokmeaning->ctx != curctx) {
+	curtokmeaning->val.i = 1;
+	*spp = close_files_to_ctx(curtokmeaning->ctx);
+	while (*spp)
+	  spp = &((*spp)->next);
+	newstmt(SK_ASSIGN);
+	var_reference(curtokmeaning->xnext);
+	if (curtokmeaning->ctx->kind == MK_MODULE &&
+	    !curtokmeaning->xnext->wasdeclared) {
+	  outsection(minorspace);
+	  declarevar(curtokmeaning->xnext, 0x7);
+	  curtokmeaning->xnext->wasdeclared = 1;
+	  outsection(minorspace);
+	}
+	sp->exp1 = makeexpr_bicall_2("longjmp", tp_void,
+				     makeexpr_var(curtokmeaning->xnext),
+				     makeexpr_long(1));
+      } else {
+	newstmt(SK_GOTO);
+	sp->exp1 = makeexpr_name(format_s(name_LABEL,
+					  curtokmeaning->name),
+				 tp_integer);
+      }
+    } else {
+      warning("Expected a label [263]");
+    }
+    gettok();
+    break;
+
+  case TOK_IF:
+    gettok();
+    newstmt(SK_IF);
+    saveserial = curserial;
+    curserial = ++serialcount;
+    sp->exp1 = p_expr(tp_boolean);
+    wneedtok(TOK_THEN);
+    sp->stm1 = p_stmt(NULL, SF_SAVESER|SF_IF);
+    changecomments(curcomments, -1, saveserial+1, -1, saveserial);
+    checkkeyword(TOK_ELSIF);
+    while (curtok == TOK_ELSIF) {
+      gettok();
+      sp->stm2 = makestmt(SK_IF);
+      sp = sp->stm2;
+      sp->exp1 = p_expr(tp_boolean);
+      wneedtok(TOK_THEN);
+      sp->stm1 = p_stmt(NULL, SF_SAVESER|SF_IF);
+      sp->exp2 = makeexpr_long(1);
+    }
+    if (curtok == TOK_ELSE) {
+      line1 = inf_lnum;
+      strlist_mix(&curcomments, grabcomment(CMT_ONELSE));
+      gettok();
+      line2 = (curtok == TOK_IF) ? inf_lnum : -1;
+      saveserial2 = curserial;
+      sp->stm2 = p_stmt(NULL, SF_SAVESER|SF_IF);
+      changecomments(curcomments, -1, saveserial2, -1, saveserial+1);
+      if (sp->stm2 && sp->stm2->kind == SK_IF &&
+	  !sp->stm2->next && !modula2) {
+	sp->stm2->exp2 = makeexpr_long(elseif > 0 ||
+				       (elseif < 0 && line1 == line2));
+      }
+    }
+    if (modula2)
+      wneedtok(TOK_END);
+    curserial = saveserial;
+    break;
+
+  case TOK_INLINE:
+    gettok();
+    note("Inline assembly language encountered [254]");
+    if (curtok != TOK_LPAR) {   /* Macintosh style */
+      newstmt(SK_ASSIGN);
+      sp->exp1 = makeexpr_bicall_1("inline", tp_void,
+				   p_expr(tp_integer));
+      break;
+    }
+    do {
+      name = getinlinepart();
+      if (!*name)
+	break;
+      newstmt(SK_ASSIGN);
+      sp->exp1 = makeexpr_bicall_1("asm", tp_void,
+				   makeexpr_string(format_s(" inline %s", name)));
+      gettok();
+    } while (curtok == TOK_SLASH);
+    skipcloseparen();
+    break;
+
+  case TOK_LOOP:
+    gettok();
+    newstmt(SK_WHILE);
+    sp->exp1 = makeexpr_long(1);
+    sp->stm1 = p_stmt(NULL, SF_SAVESER);
+    break;
+
+  case TOK_REPEAT:
+    newstmt(SK_REPEAT);
+    saveserial = curserial;
+    spp2 = &(sp->stm1);
+    i = SF_FIRST;
+    do {
+      gettok();
+      *spp2 = p_stmt(sp->stm1, i);
+      i = 0;
+      while (*spp2)
+	spp2 = &((*spp2)->next);
+    } while (curtok == TOK_SEMI);
+    if (!wneedtok(TOK_UNTIL))
+      skippasttoken(TOK_UNTIL);
+    sp->exp1 = makeexpr_not(p_expr(tp_boolean));
+    curserial = saveserial;
+    strlist_mix(&curcomments, grabcomment(CMT_ONEND));
+    break;
+
+  case TOK_RETURN:
+    gettok();
+    newstmt(SK_RETURN);
+    if (curctx->isfunction) {
+      sp->exp1 = gentle_cast(p_expr(curctx->cbase->type),
+			     curctx->cbase->type);
+    }
+    break;
+
+  case TOK_TRY:
+    findsymbol("RECOVER")->flags &= ~KWPOSS;
+    newstmt(SK_TRY);
+    sp->exp1 = makeexpr_long(++trycount);
+    spp2 = &(sp->stm1);
+    i = SF_FIRST;
+    do {
+      gettok();
+      *spp2 = p_stmt(sp->stm1, i);
+      i = 0;
+      while (*spp2)
+	spp2 = &((*spp2)->next);
+    } while (curtok == TOK_SEMI);
+    if (!wneedtok(TOK_RECOVER))
+      skippasttoken(TOK_RECOVER);
+    sp->stm2 = p_stmt(NULL, SF_SAVESER);
+    break;
+
+  case TOK_WHILE:
+    gettok();
+    newstmt(SK_WHILE);
+    sp->exp1 = p_expr(tp_boolean);
+    wneedtok(TOK_DO);
+    sp->stm1 = p_stmt(NULL, SF_SAVESER);
+    break;
+
+  case TOK_WITH:
+    gettok();
+    if (withlevel >= MAXWITHS-1)
+      error("Too many nested WITHs");
+    ep = p_expr(NULL);
+    if (ep->val.type->kind != TK_RECORD)
+      warning("Argument of WITH is not a RECORD [264]");
+    withlist[withlevel] = ep->val.type;
+    if (simplewith(ep)) {
+      withexprs[withlevel] = ep;
+      mp = NULL;
+    } else {           /* need to save a temporary pointer */
+      tp = makepointertype(ep->val.type);
+      mp = makestmttempvar(tp, name_WITH);
+      withexprs[withlevel] = makeexpr_hat(makeexpr_var(mp), 0);
+    }
+    withlevel++;
+    if (curtok == TOK_COMMA) {
+      curtok = TOK_WITH;
+      sp2 = p_stmt(NULL, sflags & SF_FIRST);
+    } else {
+      if ((modula2) && (curtok == TOK_DO)) {
+	curtok = TOK_BEGIN;
+      } else {
+	wneedtok(TOK_DO);
+      }
+      sp2 = p_stmt(NULL, sflags & SF_FIRST);
+    }
+    withlevel--;
+    if (mp) {    /* if "with p^" for constant p, don't need temp ptr */
+      if (ep->kind == EK_HAT && ep->args[0]->kind == EK_VAR &&
+	  !checkvarchanged(sp2, (Meaning *)ep->args[0]->val.i)) {
+	replaceexpr(sp2, withexprs[withlevel]->args[0],
+		    ep->args[0]);
+	freeexpr(ep);
+	canceltempvar(mp);
+      } else {
+	newstmt(SK_ASSIGN);
+	sp->exp1 = makeexpr_assign(makeexpr_var(mp),
+				   makeexpr_addr(ep));
+      }
+    }
+    freeexpr(withexprs[withlevel]);
+    *spp = sp2;
+    while (*spp)
+      spp = &((*spp)->next);
+    break;
+
+  case TOK_INCLUDE:
+    badinclude();
+    goto again;
+
+  case TOK_ADDR:   /* flakey Turbo "@procptr := anyptr" assignment */
+    newstmt(SK_ASSIGN);
+    ep = p_expr(tp_void);
+    if (wneedtok(TOK_ASSIGN))
+      sp->exp1 = makeexpr_assign(ep, p_expr(ep->val.type));
+    else
+      sp->exp1 = ep;
+    break;
+
+  case TOK_IDENT:
+    mp = curtokmeaning;
+    if (mp == NULL) {
+      error(format_s("undefined symbol %s", curtoksym->name));
+    }
+    if (mp == mp_str_hp)
+      mp = curtokmeaning = mp_str_turbo;
+    if (mp == mp_val_modula)
+      mp = curtokmeaning = mp_val_turbo;
+    if (mp == mp_blockread_ucsd)
+      mp = curtokmeaning = mp_blockread_turbo;
+    if (mp == mp_blockwrite_ucsd)
+      mp = curtokmeaning = mp_blockwrite_turbo;
+    if (mp == mp_dec_dec)
+      mp = curtokmeaning = mp_dec_turbo;
+    if (!mp) {
+      sym = curtoksym;     /* make a guess at what the undefined name is... */
+      name = stralloc(curtokcase);
+      gettok();
+      newstmt(SK_ASSIGN);
+      if (curtok == TOK_ASSIGN) {
+	gettok();
+	ep = p_expr(NULL);
+	mp = addmeaning(sym, MK_VAR);
+	mp->name = name;
+	mp->type = ep->val.type;
+	sp->exp1 = makeexpr_assign(makeexpr_var(mp), ep);
+      } else if (curtok == TOK_HAT || curtok == TOK_ADDR ||
+		 curtok == TOK_LBR || curtok == TOK_DOT) {
+	ep = makeexpr_name(name, tp_integer);
+	ep = fake_dots_n_hats(ep);
+	if (wneedtok(TOK_ASSIGN))
+	  sp->exp1 = makeexpr_assign(ep, p_expr(NULL));
+	else
+	  sp->exp1 = ep;
+      } else if (curtok == TOK_LPAR) {
+	ep = makeexpr_bicall_0(name, tp_void);
+	do {
+	  gettok();
+	  insertarg(&ep, ep->nargs, p_expr(NULL));
+	} while (curtok == TOK_COMMA);
+	skipcloseparen();
+	sp->exp1 = ep;
+      } else {
+	sp->exp1 = makeexpr_bicall_0(name, tp_void);
+      }
+      if (!tryfuncmacro(&sp->exp1, NULL))
+	undefsym(sym);
+    } else if (mp->kind == MK_FUNCTION && !mp->isfunction) {
+      mp->refcount++;
+      gettok();
+      ep = p_funccall(mp);
+      if (!mp->constdefn)
+	need_forward_decl(mp);
+      if (has_handler(mp) && !(mp->sym->flags & LEAVEALONE) &&
+	  !mp->constdefn) {
+	prochandler = (Stmt *(*)())mp->procedure_handler_expr;
+	*spp = (*prochandler)(ep, slist);
+	while (*spp)
+	  spp = &((*spp)->next);
+      } else {
+	newstmt(SK_ASSIGN);
+	sp->exp1 = ep;
+      }
+    } else if (mp->kind == MK_SPECIAL) {
+      gettok();
+      if (has_handler(mp) && !mp->isfunction) {
+	if ((mp->sym->flags & LEAVEALONE) || mp->constdefn) {
+	  ep = makeexpr_bicall_0(mp->name, tp_void);
+	  if (curtok == TOK_LPAR) {
+	    do {
+	      gettok();
+	      insertarg(&ep, ep->nargs, p_expr(NULL));
+	    } while (curtok == TOK_COMMA);
+	    skipcloseparen();
+	  }
+	  newstmt(SK_ASSIGN);
+	  tryfuncmacro(&ep, mp);
+	  sp->exp1 = ep;
+	} else {
+	  if (mp->procedure_handler_meaning)
+	    *spp = (*mp->procedure_handler_meaning)(mp);
+	  else if (mp->procedure_handler_expr)
+	    *spp = (*mp->procedure_handler_expr)(NULL);
+
+	  while (*spp)
+	    spp = &((*spp)->next);
+	}
+      } else
+	symclass(curtoksym);
+    } else {
+      newstmt(SK_ASSIGN);
+      if (curtokmeaning->kind == MK_FUNCTION &&
+	  peeknextchar() != '(') {
+	mp = curctx;
+	while (mp && mp != curtokmeaning)
+	  mp = mp->ctx;
+	if (mp)
+	  curtokmeaning = curtokmeaning->cbase;
+      }
+      ep = p_expr(tp_void);
+#if 0
+      if (!(ep->kind == EK_SPCALL ||
+	    (ep->kind == EK_COND &&
+	     ep->args[1]->kind == EK_SPCALL)))
+	wexpecttok(TOK_ASSIGN);
+#endif
+      if (curtok == TOK_ASSIGN) {
+	gettok();
+	if (curtok == TOK_IDENT && !strcicmp(curtokbuf, "ZERO") &&
+	    !curtokmeaning) {   /* VAX Pascal foolishness */
+	  gettok();
+	  ep2 = makeexpr_sizeof(copyexpr(ep), 0);
+	  sp->exp1 = makeexpr_bicall_3("memset", tp_void,
+				       makeexpr_addr(ep),
+				       makeexpr_long(0), ep2);
+	} else {
+	  sp->exp1 = makeexpr_assign (ep, p_expr(ep->val.type));
+	}
+      } else
+	sp->exp1 = ep;
+    }
+    break;
+
+  default:
+    break;    /* null statement */
+  }
+  freestmttemps(tempmark);
+  if (sflags & SF_SAVESER)
+    curserial = firstserial;
+  return sbase;
 }
 
 
@@ -1927,16 +1958,10 @@ Meaning *mp;
 
 
 
-
-
-
-
-
 /* Do various simple (sometimes necessary) massages on the statements */
 
 
 Static Stmt bogusreturn = { SK_RETURN, NULL, NULL, NULL, NULL, NULL, NULL };
-
 
 
 Static int isescape(ex)
@@ -2216,7 +2241,6 @@ Expr *ex;
 }
 
 
-
 Expr *chg_printf(ex)
 Expr *ex;
 {
@@ -2271,10 +2295,6 @@ Expr *ex, *ex2;
 }
 
 
-
-
-
-
 void eatstmt(spp)
 Stmt **spp;
 {
@@ -2287,7 +2307,6 @@ Stmt **spp;
 }
 
 
-
 int haslabels(sp)
 Stmt *sp;
 {
@@ -2297,7 +2316,6 @@ Stmt *sp;
         return 1;
     return (sp->kind == SK_LABEL);
 }
-
 
 
 void fixblock(spp, thereturn)
@@ -2459,8 +2477,8 @@ Stmt **spp, *thereturn;
 				        sp->exp1->args[1]->val.type) {
 				    tvar = maketempvar(sp->exp1->args[1]->val.type,
 							   name_TEMP);
-				    sp2 = makestmt_assign(makeexpr_var(tvar),
-							  sp->exp1->args[2]);
+				    sp2 = makestmt_assign (makeexpr_var (tvar),
+							   sp->exp1->args[2]);
 				    sp2->next = sp;
 				    *spp = sp2;
 				    sp->exp1->args[2] = makeexpr_var(tvar);
@@ -2762,8 +2780,6 @@ Stmt **spp, *thereturn;
 }
 
 
-
-
 /* Convert comma expressions into multiple statements */
 
 Static int checkcomma_expr(spp, exp)
@@ -2837,7 +2853,6 @@ Expr **exp;
 
     }
 }
-
 
 
 Static void checkcommas(spp)
@@ -3013,7 +3028,6 @@ Meaning *mp;
 }
 
 
-
 int checkexprchanged(sp, ex)
 Stmt *sp;
 Expr *ex;
@@ -3047,9 +3061,6 @@ Expr *ex;
 	    return 0;
     }
 }
-
-
-
 
 
 /* Check if a variable always occurs with a certain offset added, e.g. "i+1" */
@@ -3425,7 +3436,7 @@ Meaning *func;
 	if (func->type->basetype->kind == TK_OPAQUE)
 	  output("void *");
 	else
-	  outbasetype(func->type, 0);
+	  outbasetype (func->type, 0);
     }
     if (anywords) {
         if (newlinefunctions)

@@ -831,41 +831,39 @@ void forget_ctx(ctx, all)
 Meaning *ctx;
 int all;
 {
-    register Meaning *mp, **mpprev, *mp2, **mpp2;
+  Meaning *mp, **mpprev, *mp2, **mpp2;
 
-    if (ctx->kind == MK_FUNCTION && ctx->isfunction && ctx->cbase)
-	mpprev = &ctx->cbase->cnext;   /* Skip return-value variable */
-    else
-	mpprev = &ctx->cbase;
-    while ((mp = *mpprev) != NULL) {
-	if (all ||
-	    (mp->kind != MK_PARAM &&
-	     mp->kind != MK_VARPARAM)) {
-	    *mpprev = mp->cnext;
-	    mpp2 = &mp->sym->mbase;
-	    while ((mp2 = *mpp2) != NULL && mp2 != mp)
-		mpp2 = &mp2->snext;
-	    if (mp2)
-		*mpp2 = mp2->snext;
-	    if (mp->kind == MK_CONST)
-		free_value(&mp->val);
-	    freeexpr(mp->constdefn);
-	    if (mp->cbase)
-		forget_ctx(mp, 1);
-	    if (mp->kind == MK_FUNCTION && mp->val.i)
-		free_stmt((Stmt *)mp->val.i);
-	    strlist_empty(&mp->comments);
-	    if (mp->name)
-		FREE(mp->name);
-	    if (mp->othername)
-		FREE(mp->othername);
-	    FREE(mp);
-	} else
-	    mpprev = &mp->cnext;
-    }
+  if (ctx->kind == MK_FUNCTION && ctx->isfunction && ctx->cbase)
+    mpprev = &ctx->cbase->cnext;   /* Skip return-value variable */
+  else
+    mpprev = &ctx->cbase;
+  while ((mp = *mpprev) != NULL) {
+    if (all ||
+	(mp->kind != MK_PARAM &&
+	 mp->kind != MK_VARPARAM)) {
+      *mpprev = mp->cnext;
+      mpp2 = &mp->sym->mbase;
+      while ((mp2 = *mpp2) != NULL && mp2 != mp)
+	mpp2 = &mp2->snext;
+      if (mp2)
+	*mpp2 = mp2->snext;
+      if (mp->kind == MK_CONST)
+	free_value(&mp->val);
+      freeexpr(mp->constdefn);
+      if (mp->cbase)
+	forget_ctx(mp, 1);
+      if (mp->kind == MK_FUNCTION && mp->val.i)
+	free_stmt((Stmt *)mp->val.i);
+      strlist_empty(&mp->comments);
+      if (mp->name)
+	FREE(mp->name);
+      if (mp->othername)
+	FREE(mp->othername);
+      FREE(mp);
+    } else
+      mpprev = &mp->cnext;
+  }
 }
-
-
 
 
 void handle_nameof()
@@ -891,7 +889,6 @@ void handle_nameof()
     }
     strlist_empty(&nameoflist);
 }
-
 
 
 Static void initmeaning(mp)
@@ -934,7 +931,6 @@ Meaning *mp;
     mp->bufferedfile = 0;
     mp->comments = NULL;
 }
-
 
 
 int issafename(sp, isglobal, isdefine)
@@ -1159,7 +1155,6 @@ enum meaningkind kind, namekind;
 }
 
 
-
 Meaning *addmeaningas(sym, kind, namekind)
 Symbol *sym;
 enum meaningkind kind, namekind;
@@ -1378,8 +1373,7 @@ int maybe;
 }
 
 
-
-Type *findbasetype_(type, flags)
+Type *findbasetype_ (type, flags)
 Type *type;
 int flags;
 {
@@ -1518,7 +1512,9 @@ int flags;
 		return type;
 
             case TK_OPAQUE:
-                return findbasetype(type->basetype, flags);
+	      if (((flags & ODECL_ALIAS) != 0) && (type->c_uses_alias))
+		return findbasetype (type->alias, flags);
+	      return findbasetype (type->basetype, flags);
 
             default:
                 return type;
@@ -1528,7 +1524,7 @@ int flags;
 }
 
 
-Type *findbasetype(type, flags)
+Type *findbasetype (type, flags)
 Type *type;
 int flags;
 {
@@ -1541,9 +1537,8 @@ int flags;
 	fprintf(outf, "\n");
 	return type;
     }
-    return findbasetype_(type, flags);
+    return findbasetype_ (type, flags);
 }
-
 
 
 Expr *arraysize(tp, incskipped)
@@ -1573,7 +1568,6 @@ int incskipped;
         return ex;
     }
 }
-
 
 
 Type *promote_type(tp)
@@ -1649,6 +1643,30 @@ Meaning *mp;
 #endif
 
 
+static Type *set_opaque (actual, aliased)
+     Type *actual;
+     Type *aliased;
+{
+  actual->alias = aliased;
+  actual->c_uses_alias = 1;
+  return actual;
+}
+
+
+Static Type *check_if_opaque_param (mp, tp)
+     Meaning *mp;
+     Type *tp;
+{
+  if ((mp->kind == MK_VARPARAM) && (tp->basetype->kind == TK_OPAQUE))
+    /* force parameters to use void **, but remember the Modula-2 type as an alias.  */
+    tp = set_opaque (tp, makepointertype (tp_anyptr));
+  else if ((mp->kind == MK_PARAM) && (tp->kind == TK_OPAQUE))
+    /* force parameters to use void *, but remember the Modula-2 type as an alias.  */
+    tp = set_opaque (tp, tp_anyptr);
+  return tp;
+}
+
+
 Static void declare_args(type, isheader, isforward)
 Type *type;
 int isheader, isforward;
@@ -1695,16 +1713,13 @@ int isheader, isforward;
 		}
                 name = (mp->othername && isheader) ? mp->othername : mp->name;
                 tp = (mp->othername) ? mp->rectype : mp->type;
-#if 1
-		if ((mp->kind == MK_VARPARAM) && (tp->basetype->kind == TK_OPAQUE))
-		  tp = makepointertype(tp_anyptr);  /* force parameters to use void */
-		else if ((mp->kind == MK_PARAM) && (tp->kind == TK_OPAQUE))
-		  tp = tp_anyptr;  /* force parameters to use void */
-#endif
-                if (!showtypes) {
-                    output(name);
+
+		tp = check_if_opaque_param (mp, tp);
+
+                if (showtypes == 0) {
+                    output (name);
                 } else {
-		    output(storageclassname(varstorageclass(mp)));
+		    output (storageclassname(varstorageclass(mp)));
 		    if (!shownames || (isforward && *name == '_')) {
 			out_type(tp, 1);
 		    } else {
@@ -1719,7 +1734,7 @@ int isheader, isforward;
 
 		      if (dopromote)
 			tp = promote_type(tp);
-		      outbasetype(tp, ODECL_CHARSTAR|ODECL_FREEARRAY|ODECL_NOPRES);
+		      outbasetype(tp, ODECL_CHARSTAR|ODECL_FREEARRAY|ODECL_NOPRES|ODECL_ALIAS);
 		      output(" ");
 		      outdeclarator(tp, name,
 				    ODECL_CHARSTAR|ODECL_FREEARRAY|ODECL_NOPRES);
@@ -1796,180 +1811,189 @@ int isheader, isforward;
 }
 
 
+void mystop2 ()
+{}
+
+
 void outdeclarator(type, name, flags)
 Type *type;
 char *name;
 int flags;
 {
-    int i, depth, anyptrs, anyarrays;
-    Expr *dimen[30];
-    Expr *ex, *maxv;
-    Type *tp, *functype, *basetype;
-    Expr funcdummy;   /* yow */
+  int i, depth, anyptrs, anyarrays;
+  Expr *dimen[30];
+  Expr *ex, *maxv;
+  Type *tp, *functype, *basetype;
+  Expr funcdummy;   /* yow */
 
-    anyptrs = 0;
-    anyarrays = 0;
-    functype = NULL;
-    basetype = findbasetype(type, flags);
-    for (depth = 0, tp = type; tp && tp != basetype; tp = tp->basetype) {
-        switch (tp->kind) {
+  if (strcmp (name, "next") == 0)
+    mystop2 ();
+    
+  anyptrs = 0;
+  anyarrays = 0;
+  functype = NULL;
+  basetype = findbasetype(type, flags);
+  for (depth = 0, tp = type; tp && tp != basetype; tp = tp->basetype) {
+    switch (tp->kind) {
 
-            case TK_OPAQUE:
-	      if (flags & ODECL_HEADER)
-		break ;
-	      continue;
+    case TK_OPAQUE:
+#if 1
+      if (flags & ODECL_HEADER)
+#endif
+	break ;
+      continue;
 
-            case TK_POINTER:
-                if (tp->basetype) {
-                    switch (tp->basetype->kind) {
+    case TK_POINTER:
+      if (tp->basetype) {
+	switch (tp->basetype->kind) {
 
-		        case TK_VOID:
-			    if (tp->basetype == tp_void &&
-				tp_special_anyptr) {
-				tp = tp_special_anyptr;
-				continue;
-			    }
-			    break;
+	case TK_VOID:
+	  if (tp->basetype == tp_void &&
+	      tp_special_anyptr) {
+	    tp = tp_special_anyptr;
+	    continue;
+	  }
+	  break;
 
-                        case TK_ARRAY:    /* ptr to array of x => ptr to x */
-                        case TK_STRING:   /*                or => array of x */
-                        case TK_SET:
-			    if (stararrays == 1 ||
-				!(flags & ODECL_FREEARRAY) ||
-				(tp->basetype->structdefd &&
-				 stararrays != 2)) {
-				tp = tp->basetype;
-				flags &= ~ODECL_CHARSTAR;
-			    } else {
-				continue;
-			    }
-                            break;
+	case TK_ARRAY:    /* ptr to array of x => ptr to x */
+	case TK_STRING:   /*                or => array of x */
+	case TK_SET:
+	  if (stararrays == 1 ||
+	      !(flags & ODECL_FREEARRAY) ||
+	      (tp->basetype->structdefd &&
+	       stararrays != 2)) {
+	    tp = tp->basetype;
+	    flags &= ~ODECL_CHARSTAR;
+	  } else {
+	    continue;
+	  }
+	  break;
 
-			default:
-			    break;
-                    }
-                }
-                dimen[depth++] = NULL;
-                anyptrs++;
-		if (tp->kind == TK_POINTER &&
-		    tp->fbase && tp->fbase->wasdeclared)
-		    break;
-                continue;
+	default:
+	  break;
+	}
+      }
+      dimen[depth++] = NULL;
+      anyptrs++;
+      if (tp->kind == TK_POINTER &&
+	  tp->fbase && tp->fbase->wasdeclared)
+	break;
+      continue;
 
-            case TK_ARRAY:
-		flags &= ~ODECL_CHARSTAR;
-                if (tp->meaning && tp->meaning->kind == MK_TYPE &&
-                    tp->meaning->wasdeclared)
-                    break;
-		if (tp->structdefd) {    /* conformant array */
-		    if (!variablearrays &&
-			!(tp->basetype->kind == TK_ARRAY &&
-			  tp->basetype->structdefd))   /* avoid mult. notes */
-			note("Conformant array code may not work in all compilers [101]");
-		}
-                ex = arraysize(tp, 1);
-                if (!ex)
-                    ex = makeexpr_name("", tp_integer);
-                dimen[depth++] = ex;
-		anyarrays++;
-		if (tp->fbase && tp->fbase->wasdeclared)
-		    break;
-                continue;
+    case TK_ARRAY:
+      flags &= ~ODECL_CHARSTAR;
+      if (tp->meaning && tp->meaning->kind == MK_TYPE &&
+	  tp->meaning->wasdeclared)
+	break;
+      if (tp->structdefd) {    /* conformant array */
+	if (!variablearrays &&
+	    !(tp->basetype->kind == TK_ARRAY &&
+	      tp->basetype->structdefd))   /* avoid mult. notes */
+	  note("Conformant array code may not work in all compilers [101]");
+      }
+      ex = arraysize(tp, 1);
+      if (!ex)
+	ex = makeexpr_name("", tp_integer);
+      dimen[depth++] = ex;
+      anyarrays++;
+      if (tp->fbase && tp->fbase->wasdeclared)
+	break;
+      continue;
 
-            case TK_SET:
-                ord_range_expr(tp->indextype, NULL, &maxv);
-                maxv = enum_to_int(copyexpr(maxv));
-                if (ord_type(maxv->val.type)->kind == TK_CHAR)
-                    maxv->val.type = tp_integer;
-                dimen[depth++] = makeexpr_plus(makeexpr_div(maxv, makeexpr_setbits()),
-                                               makeexpr_long(2));
-                break;
+    case TK_SET:
+      ord_range_expr(tp->indextype, NULL, &maxv);
+      maxv = enum_to_int(copyexpr(maxv));
+      if (ord_type(maxv->val.type)->kind == TK_CHAR)
+	maxv->val.type = tp_integer;
+      dimen[depth++] = makeexpr_plus(makeexpr_div(maxv, makeexpr_setbits()),
+				     makeexpr_long(2));
+      break;
 
-            case TK_STRING:
-                if ((flags & ODECL_CHARSTAR) && stararrays == 1) {
-                    dimen[depth++] = NULL;
-                } else {
-                    ord_range_expr(tp->indextype, NULL, &maxv);
-                    dimen[depth++] = makeexpr_plus(copyexpr(maxv), makeexpr_long(1));
-                }
-                continue;
+    case TK_STRING:
+      if ((flags & ODECL_CHARSTAR) && stararrays == 1) {
+	dimen[depth++] = NULL;
+      } else {
+	ord_range_expr(tp->indextype, NULL, &maxv);
+	dimen[depth++] = makeexpr_plus(copyexpr(maxv), makeexpr_long(1));
+      }
+      continue;
 
-            case TK_FILE:
-                break;
+    case TK_FILE:
+      break;
 
-	    case TK_CPROCPTR:
-		dimen[depth++] = NULL;
-		anyptrs++;
-		if (procptrprototypes)
-		    continue;
-                dimen[depth++] = &funcdummy;
-		break;
+    case TK_CPROCPTR:
+      dimen[depth++] = NULL;
+      anyptrs++;
+      if (procptrprototypes)
+	continue;
+      dimen[depth++] = &funcdummy;
+      break;
 
-            case TK_FUNCTION:
-                dimen[depth++] = &funcdummy;
-                if (!functype)
-                    functype = tp;
-                continue;
+    case TK_FUNCTION:
+      dimen[depth++] = &funcdummy;
+      if (!functype)
+	functype = tp;
+      continue;
 
-	    default:
-		break;
-        }
-        break;
+    default:
+      break;
     }
-    if (!*name && depth && (spaceexprs > 0 ||
-                            (spaceexprs != 0 && !dimen[depth-1])))
-        output(" ");    /* spacing for abstract declarator */
-    if ((flags & ODECL_FUNCTION) && anyptrs)
-        output(" ");
-    if (anyarrays > 1 && !(flags & ODECL_FUNCTION))
-	output("\003");
+    break;
+  }
+  if (!*name && depth && (spaceexprs > 0 ||
+			  (spaceexprs != 0 && !dimen[depth-1])))
+    output(" ");    /* spacing for abstract declarator */
+  if ((flags & ODECL_FUNCTION) && anyptrs)
+    output(" ");
+  if (anyarrays > 1 && !(flags & ODECL_FUNCTION))
+    output("\003");
+  if (0 && (depth == 0) && (tp->kind == TK_OPAQUE))
+    output("*");
+  else {
     for (i = depth; --i >= 0; ) {
-        if (!dimen[i])
-            output("*");
-        if (i > 0 &&
-            ((dimen[i] && !dimen[i-1]) ||
-             (dimen[i-1] && !dimen[i] && extraparens > 0)))
-            output("(");
+      if (!dimen[i])
+	output("*");
+      if (i > 0 &&
+	  ((dimen[i] && !dimen[i-1]) ||
+	   (dimen[i-1] && !dimen[i] && extraparens > 0)))
+	output("(");
     }
-    if (flags & ODECL_FUNCTION)
-        output("\n");
-    if (anyarrays > 1 && (flags & ODECL_FUNCTION))
-	output("\003");
-    output(name);
-    for (i = 0; i < depth; i++) {
-        if (i > 0 &&
-            ((dimen[i] && !dimen[i-1]) ||
-             (dimen[i-1] && !dimen[i] && extraparens > 0)))
-            output(")");
-        if (dimen[i]) {
-            if (dimen[i] == &funcdummy) {
-		if (lookback(1) == ')')
-		    output("\002");
-		if (functype)
-		    declare_args(functype, (flags & ODECL_HEADER) != 0,
-				           (flags & ODECL_FORWARD) != 0);
-		else if (spacefuncs)
-		    output(" ()");
-		else
-		    output("()");
-            } else {
-		if (lookback(1) == ']')
-		    output("\002");
-                output("[");
-                if (!(flags & ODECL_FREEARRAY) || stararrays == 0 || i > 0)
-                    out_expr(dimen[i]);
-                freeexpr(dimen[i]);
-                output("]");
-            }
-        }
+  }
+  if (flags & ODECL_FUNCTION)
+    output("\n");
+  if (anyarrays > 1 && (flags & ODECL_FUNCTION))
+    output("\003");
+  output(name);
+  for (i = 0; i < depth; i++) {
+    if (i > 0 &&
+	((dimen[i] && !dimen[i-1]) ||
+	 (dimen[i-1] && !dimen[i] && extraparens > 0)))
+      output(")");
+    if (dimen[i]) {
+      if (dimen[i] == &funcdummy) {
+	if (lookback(1) == ')')
+	  output("\002");
+	if (functype)
+	  declare_args(functype, (flags & ODECL_HEADER) != 0,
+		       (flags & ODECL_FORWARD) != 0);
+	else if (spacefuncs)
+	  output(" ()");
+	else
+	  output("()");
+      } else {
+	if (lookback(1) == ']')
+	  output("\002");
+	output("[");
+	if (!(flags & ODECL_FREEARRAY) || stararrays == 0 || i > 0)
+	  out_expr(dimen[i]);
+	freeexpr(dimen[i]);
+	output("]");
+      }
     }
-    if (anyarrays > 1)
-	output("\004");
+  }
+  if (anyarrays > 1)
+    output("\004");
 }
-
-
-
-
 
 
 /* Find out if types t1 and t2 will work out to be the same C type,
@@ -2114,7 +2138,6 @@ int args, flags;
 }
 
 
-
 void declarefiles(fnames)
 Strlist *fnames;
 {
@@ -2193,7 +2216,8 @@ Meaning *mp;
 	if (mp->dtype)
 	    output(mp->dtype->name);
 	else
-	    outbasetype(mp->type, 0);
+	  outbasetype(mp->type, 0);
+	
         output(" \005");
 	for (;;) {
 	    if (mp->dtype)
@@ -2234,7 +2258,7 @@ Meaning *mp;
         }
         while (mp) {
             mp0 = mp->ctx;
-            num = ord_value(mp->val);
+            num = ord_value (mp->val);
             while (mp && mp->ctx == mp0)
                 mp = mp->cnext;
             if (mp0) {
@@ -2271,7 +2295,6 @@ Meaning *mp;
 }
 
 
-
 void declarebigfile(type)
 Type *type;
 {
@@ -2290,25 +2313,18 @@ Type *type;
 }
 
 
-
-void outbasetype(type, flags)
+void outbasetype (type, flags)
 Type *type;
 int flags;
 {
     Meaning *mp;
     int saveindent;
 
-    type = findbasetype(type, flags | ODECL_DECL);
+    type = findbasetype (type, flags | ODECL_DECL);
     if (type->preserved && type->meaning->wasdeclared) {
-	output(type->meaning->name);
+	output (type->meaning->name);
 	return;
     }
-#if 0
-    if (type == tp_anyptr) {
-      output("void *");
-      return;
-    }
-#endif
 
     switch (type->kind) {
 
@@ -2408,17 +2424,17 @@ int flags;
                     case TK_ENUM:
                         output("enum {\n");
 			saveindent = outindent;
-			moreindent(tabsize);
-			moreindent(structindent);
+			moreindent (tabsize);
+			moreindent (structindent);
                         mp = type->fbase;
                         while (mp) {
-                            output(mp->name);
+                            output (mp->name);
                             mp = mp->xnext;
                             if (mp) {
 				if (spacecommas)
-				    output(",\001 ");
+				    output (",\001 ");
 				else
-				    output(",\001");
+				    output (",\001");
 			    }
                         }
                         outindent = saveindent;
@@ -2461,7 +2477,6 @@ int flags;
 }
 
 
-
 void out_type(type, witharrays)
 Type *type;
 int witharrays;
@@ -2471,8 +2486,6 @@ int witharrays;
     outbasetype(type, 0);
     outdeclarator(type, "", 0);    /* write an "abstract declarator" */
 }
-
-
 
 
 int varstorageclass(mp)
@@ -2549,7 +2562,6 @@ int i;
     }
     return scname;
 }
-
 
 
 Static int var_mixable;
@@ -2635,8 +2647,6 @@ int which;    /* 0x1=header, 0x2=body, 0x4=trailer, 0x8=in varstruct */
 }
 
 
-
-
 Static int checkvarmacdef(ex, mp)
 Expr *ex;
 Meaning *mp;
@@ -2660,7 +2670,7 @@ Meaning *mp;
 }
 
 
-int checkvarmac(mp)
+int checkvarmac (mp)
 Meaning *mp;
 {
     if (mp->kind != MK_VARMAC && mp->kind != MK_FUNCTION)
@@ -2760,7 +2770,6 @@ int invarstruct;
 }
 
 
-
 void redeclarevars(ctx)
 Meaning *ctx;
 {
@@ -2773,9 +2782,6 @@ Meaning *ctx;
         }                           /*  with its initializer */
     }
 }
-
-
-
 
 
 void out_argdecls(ftype)
@@ -2857,8 +2863,6 @@ Type *ftype;
 }
 
 
-
-
 void makevarstruct(func)
 Meaning *func;
 {
@@ -2891,10 +2895,6 @@ Meaning *func;
 }
 
 
-
-
-
-
 Type *maketype(kind)
 enum typekind kind;
 {
@@ -2908,14 +2908,14 @@ enum typekind kind;
     tp->fbase = NULL;
     tp->smin = NULL;
     tp->smax = NULL;
+    tp->alias = NULL;
     tp->issigned = 0;
     tp->dumped = 0;
     tp->structdefd = 0;
     tp->preserved = 0;
+    tp->c_uses_alias = 0;
     return tp;
 }
-
-
 
 
 Type *makesubrangetype(type, smin, smax)
@@ -3121,7 +3121,6 @@ int mode;
 }
 
 
-
 Static void fielddecl(mp, type, tp2, val, ispacked, aligned)
 Meaning *mp;
 Type **type, **tp2;
@@ -3197,6 +3196,7 @@ Meaning *firstmp, *stopmp;
     }
 }
 
+
 static void tryrealignfields(firstmp)
 Meaning *firstmp;
 {
@@ -3222,7 +3222,6 @@ Meaning *firstmp;
 }
 
 
-
 void decl_comments(mp)
 Meaning *mp;
 {
@@ -3241,9 +3240,6 @@ Meaning *mp;
 	    mp->refcount++;   /* force it to be included if it has comments */
     }
 }
-
-
-
 
 
 Static void p_fieldlist(tp, flast, ispacked, tname)
@@ -3651,8 +3647,6 @@ Meaning ***confp;
 	return tp_integer;
     }
 }
-
-
 
 
 /* VAX Pascal: */
@@ -4068,7 +4062,7 @@ Meaning *tname;
 	    break;
 
         case TOK_IDENT:
-            if (!curtokmeaning) {
+            if (curtokmeaning == NULL) {
                 undefsym(curtoksym);
                 tp = tp_integer;
                 mp = addmeaning(curtoksym, MK_TYPE);
@@ -4176,9 +4170,6 @@ Meaning *tname;
 }
 
 
-
-
-
 Type *p_funcdecl(isfunc, istype)
 int *isfunc, istype;
 {
@@ -4191,7 +4182,7 @@ int *isfunc, istype;
   Token savetok;
   Strlist *l1;
   int opt_arg = 0;
-  
+
   varargflag = 0;
   if (*isfunc || modula2) {
     sym = findsymbol(format_s(name_RETV, curctx->name));
@@ -4358,10 +4349,10 @@ int *isfunc, istype;
 	     */
 	    firstmp->type->basetype = basetype;
 	    if (parkind == MK_VARPARAM)
-	      firstmp->type = makepointertype(firstmp->type);
+	      firstmp->type = makepointertype (firstmp->type);
 	  } else {
 	    if (parkind == MK_VARPARAM)
-	      firstmp->type = makepointertype(tp);
+	      firstmp->type = makepointertype (tp);
 	    else
 	      firstmp->type = tp;
 	  }
@@ -4411,7 +4402,7 @@ int *isfunc, istype;
        *  parse the GNU Modula-2 extension for optional return value
        *  and treat it as a normal return value for a normal function.
        *  This needs to be extended if GM2 is ever to use this feature
-       *  the compiler itself.
+       *  in the compiler itself.
        */
       if (modula2 && (curtok == TOK_LBR)) {
 	gettok();
@@ -4451,9 +4442,6 @@ int *isfunc, istype;
     type->basetype = tp_void;
   return type;
 }
-
-
-
 
 
 Symbol *findlabelsym()
@@ -4509,9 +4497,6 @@ void p_labeldecl()
 }
 
 
-
-
-
 Meaning *findfieldname(sym, variants, nvars)
 Symbol *sym;
 Meaning **variants;
@@ -4538,8 +4523,6 @@ int *nvars;
     }
     return NULL;
 }
-
-
 
 
 Expr *p_constrecord(type, style)
@@ -4679,8 +4662,6 @@ ignorefield:
 }
 
 
-
-
 Expr *p_constarray(type, style)
 Type *type;
 int style;
@@ -4766,8 +4747,6 @@ int style;
 }
 
 
-
-
 Expr *p_conststring(type, style)
 Type *type;
 int style;
@@ -4787,8 +4766,6 @@ int style;
 	skippasttoken(close);
     return ex;
 }
-
-
 
 
 Expr *p_subconst(type, style)
@@ -4844,7 +4821,6 @@ int style;
     }
     return gentle_cast(p_expr(type), type);
 }
-
 
 
 void p_constdecl()
@@ -5034,8 +5010,6 @@ void p_constdecl()
 }
 
 
-
-
 void declaresubtypes(mp)
 Meaning *mp;
 {
@@ -5205,6 +5179,7 @@ int outflag;
     }
 }
 
+
 void p_typedecl()
 {
     Meaning *mp;
@@ -5225,7 +5200,7 @@ void p_typedecl()
        */
       if (modula2 &&
 	  (isalreadydefined(curtoksym)) && (curtoksym->mbase) && (curtoksym->mbase->type->kind == TK_OPAQUE)) {
-	/* opaque is being defined */
+	/* opaque is being defined.  */
 	mp = curtoksym->mbase;
 	mp->type->meaning = mp;
 	mp->wasdeclared = 0;
@@ -5236,7 +5211,7 @@ void p_typedecl()
       gettok();
       decl_comments(mp);
       if (curtok == TOK_SEMI) {
-	mp->type = makeopaquetype(tp_anyptr);    /* Modula-2 opaque type, not declared in full */
+	mp->type = makeopaquetype (tp_anyptr);    /* Modula-2 opaque type, not declared in full.  */
       } else {
 	if (!wneedtok(TOK_EQ)) {
 	  skippasttoken(TOK_SEMI);

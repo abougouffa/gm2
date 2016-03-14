@@ -1,3 +1,7 @@
+2016-03-14      Gaius Mulley <gaius@gnu.org>
+
+	* libgm2/libpim/wrapc.c:  corrected spacing.
+
 2014-12-24      Gaius Mulley <gaius@gnu.org>
 
 	* libgm2/sckt.c:  added conditional import of

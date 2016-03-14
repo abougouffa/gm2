@@ -68,8 +68,8 @@ EXTERN tree *m2block_cur_stmt_list_addr (void);
 EXTERN int m2block_is_building_stmt_list (void);
 EXTERN tree m2block_GetGlobals (void);
 EXTERN tree m2block_GetGlobalContext (void);
-EXTERN tree m2block_finishGlobals (void);
-EXTERN tree m2block_includeDecl (tree);
+EXTERN void m2block_finishGlobals (void);
+EXTERN void m2block_includeDecl (tree);
 
 EXTERN void m2block_init (void);
 
