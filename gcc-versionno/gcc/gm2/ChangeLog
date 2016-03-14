@@ -1,5 +1,62 @@
 2016-03-14      Gaius Mulley <gaius@gnu.org>
 
+	* gm2/bnf/mc-1.bnf:  new file.
+	* gm2/bnf/mc-2.bnf:  new file.
+	* gm2/bnf/mc-3.bnf:  new file.
+	* gm2/gm2-gcc/gcc-consolidation.h:  new file.
+	* gm2/mc/Indexing.def:  new file.
+	* gm2/mc/Indexing.mod:  new file.
+	* gm2/mc/README:  new file.
+	* gm2/mc/alists.def:  new file.
+	* gm2/mc/alists.mod:  new file.
+	* gm2/mc/decl.def:  new file.
+	* gm2/mc/decl.mod:  new file.
+	* gm2/mc/decl.mod-extra:  new file.
+	* gm2/mc/lists.def:  new file.
+	* gm2/mc/lists.mod:  new file.
+	* gm2/mc/m2flex.def:  new file.
+	* gm2/mc/mc.flex:  new file.
+	* gm2/mc/mcComp.def:  new file.
+	* gm2/mc/mcComp.mod:  new file.
+	* gm2/mc/mcDebug.def:  new file.
+	* gm2/mc/mcDebug.mod:  new file.
+	* gm2/mc/mcError.def:  new file.
+	* gm2/mc/mcError.mod:  new file.
+	* gm2/mc/mcFileName.def:  new file.
+	* gm2/mc/mcFileName.mod:  new file.
+	* gm2/mc/mcLexBuf.def:  new file.
+	* gm2/mc/mcLexBuf.h:  new file.
+	* gm2/mc/mcLexBuf.mod:  new file.
+	* gm2/mc/mcMetaError.def:  new file.
+	* gm2/mc/mcMetaError.mod:  new file.
+	* gm2/mc/mcOptions.def:  new file.
+	* gm2/mc/mcOptions.mod:  new file.
+	* gm2/mc/mcPreprocess.def:  new file.
+	* gm2/mc/mcPreprocess.mod:  new file.
+	* gm2/mc/mcPrintf.def:  new file.
+	* gm2/mc/mcPrintf.mod:  new file.
+	* gm2/mc/mcQuiet.def:  new file.
+	* gm2/mc/mcQuiet.mod:  new file.
+	* gm2/mc/mcReserved.def:  new file.
+	* gm2/mc/mcReserved.h:  new file.
+	* gm2/mc/mcReserved.mod:  new file.
+	* gm2/mc/mcSearch.def:  new file.
+	* gm2/mc/mcSearch.mod:  new file.
+	* gm2/mc/mcStack.def:  new file.
+	* gm2/mc/mcStack.mod:  new file.
+	* gm2/mc/mcflex.def:  new file.
+	* gm2/mc/mcp1.def:  new file.
+	* gm2/mc/mcp2.def:  new file.
+	* gm2/mc/mcp3.def:  new file.
+	* gm2/mc/nameKey.def:  new file.
+	* gm2/mc/nameKey.mod:  new file.
+	* gm2/mc/symbolKey.def:  new file.
+	* gm2/mc/symbolKey.mod:  new file.
+	* gm2/mc/top.mod:  new file.
+	* gm2/mc/varargs.def:  new file.
+	* gm2/mc/varargs.mod:  new file.
+	* gm2/mc/wlists.def:  new file.
+	* gm2/mc/wlists.mod:  new file.
 	* gm2/Make-lang.in:  generate cpp version stub.  Use $(COMPILER)
           rather than $(CC).  Removed all trailing whitespace.  Added
           rules for building mc.
