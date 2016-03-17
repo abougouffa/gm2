@@ -5,6 +5,8 @@ AC_CONFIG_SRCDIR([version.c])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 GM2_HARNESS_GCC_OPTION
+GM2_HARNESS_DEV_OPTION
+GM2_HARNESS_CACHE_OPTION
 
 dnl check for critical dependencies
 AC_PATH_PROG(GIT, git, /usr/bin/git, $PATH:/usr/bin)
