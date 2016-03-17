@@ -258,13 +258,11 @@ typedef struct S_strlist {
 } Strlist;
 
 
-
 typedef struct S_value {
     struct S_type *type;
     long i;
     char *s;
 } Value;
-
 
 
 /* "Symbol" notes:
@@ -593,19 +591,22 @@ const char *typekindnames[(int)TK_LAST] = {
 #endif /*DEFDUMPS*/
 
 typedef struct S_type {
-    enum typekind kind;        /* Kind of type */
-    struct S_type *basetype;   /* (above) */
-    struct S_type *indextype;  /* (above) */
+    enum typekind kind;         /* Kind of type */
+    struct S_type *basetype;    /* (above) */
+    struct S_type *indextype;   /* (above) */
     struct S_type *pointertype; /* Pointer to this type */
-    struct S_meaning *meaning; /* Name of this type, if any */
-    struct S_meaning *fbase;   /* (above) */
-    struct S_expr *smin;       /* (above) */
-    struct S_expr *smax;       /* (above) */
-    unsigned issigned:1,       /* (above) */
-             dumped:1,         /* Has been dumped (for debugging) */
-             structdefd:1,     /* (above) */
-             preserved:1;      /* Declared with preservetypes = 1 */
-    short escale;              /* (above) */
+    struct S_meaning *meaning;  /* Name of this type, if any */
+    struct S_meaning *fbase;    /* (above) */
+    struct S_expr *smin;        /* (above) */
+    struct S_expr *smax;        /* (above) */
+    struct S_type *alias;       /* is this type aliased to another */
+                                /* eg opaque uses (void *) for (foo*)  */
+    unsigned issigned:1,        /* (above) */
+             dumped:1,          /* Has been dumped (for debugging) */
+             structdefd:1,      /* (above) */
+             preserved:1,       /* Declared with preservetypes = 1 */
+             c_uses_alias:1;    /* C declaration uses alias.  */
+    short escale;               /* (above) */
 } Type;
 
 
@@ -923,7 +924,7 @@ typedef struct S_meaning {
              constqual:1,      /* Object has C "const" qualifier */
              language_C:1,     /* module is implemented in C */
              isfinially:1,     /* are we building the finally section? */
-             dummy19:1, 
+             dummy19:1,
 	     dummy20:1, dummy21:1, dummy22:1, dummy23:1, dummy24:1, dummy25:1, 
 	     dummy26:1, dummy27:1, dummy28:1, dummy29:1, dummy30:1, dummy31:1;
     Value val;		       /* (above) */
@@ -948,6 +949,7 @@ typedef struct S_meaning {
 #define ODECL_FORWARD       0x10
 #define ODECL_DECL	    0x20
 #define ODECL_NOPRES	    0x40
+#define ODECL_ALIAS	    0x80
 
 
 /* Flags for fixexpr(): */
@@ -1021,6 +1023,7 @@ extern short hpux_lang, integer16, doublereals, pascalenumsize;
 extern short needsignedbyte, unsignedchar, importall;
 extern short nestedcomments, pascalsignif, pascalcasesens;
 extern short dollar_idents, ignorenonalpha, modula2, edition;
+extern short cplus11;
 extern short ansiC, cplus, signedchars, signedfield, signedshift;
 extern short hassignedchar, voidstar, symcase, ucconsts, csignif;
 extern short copystructs, usevextern, implementationmodules;
@@ -1212,6 +1215,7 @@ struct rcstruct {
 /* TARGET LANGUAGE */
      {  'S', 'T', "ANSIC",           (anyptr) &ansiC,            -1, },
      {  'S', 'T', "C++",             (anyptr) &cplus,            -1, },
+     {  'S', 'T', "C++11",           (anyptr) &cplus11,           0, },
      {  'S', 'T', "VOID*",           (anyptr) &voidstar,         -1, },
      {  'S', 'T', "HASSIGNEDCHAR",   (anyptr) &hassignedchar,    -1, },
      {  'S', 'V', "CASTNULL",        (anyptr) &castnull,         -1, },
@@ -1766,12 +1770,9 @@ extern Strlist *attrlist;
 #endif
 
 
-
-
 /* Function declarations are created automatically by "makeproto" */
 
 #include "p2c.hdrs"
-
 #include "p2c.proto"
 
 

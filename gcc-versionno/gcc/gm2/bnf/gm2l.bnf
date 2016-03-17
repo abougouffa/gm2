@@ -1,5 +1,5 @@
 -- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
---               2011, 2012, 2013, 2014
+--               2011, 2012, 2013, 2014, 2015
 -- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
@@ -7,12 +7,12 @@
 -- the terms of the GNU General Public License as published by the Free
 -- Software Foundation; either version 3, or (at your option) any later
 -- version.
--- 
+--
 -- GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
 -- WARRANTY; without even the implied warranty of MERCHANTABILITY or
 -- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 -- for more details.
--- 
+--
 -- You should have received a copy of the GNU General Public License along
 -- with gm2; see the file COPYING.  If not, write to the Free Software
 -- Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -22,7 +22,7 @@
 % module gm2l begin
 MODULE gm2l ;
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 2011, 2012, 2013, 2014
+                 2011, 2012, 2013, 2014, 2015
    Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
@@ -30,12 +30,12 @@ GNU Modula-2 is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
 Software Foundation; either version 3, or (at your option) any later
 version.
- 
+
 GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
- 
+
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
@@ -103,7 +103,7 @@ TYPE
                ForC       : BOOLEAN ;
                next       : Source ;
             END ;
- 
+
    BlockInfoPtr = POINTER TO BlockInfo ;
    BlockInfo    = RECORD
                      LocalModules,                (* locally declared modules at the current level  *)
@@ -166,7 +166,7 @@ END ExamineCompilationUnit ;
 
 
 (*
-   BeginBlock - 
+   BeginBlock -
 *)
 
 PROCEDURE BeginBlock ;
@@ -184,7 +184,7 @@ END BeginBlock ;
 
 
 (*
-   EndBlock - 
+   EndBlock -
 *)
 
 PROCEDURE EndBlock ;
@@ -326,7 +326,7 @@ END ScanImport ;
 
 
 (*
-   ErrorArray - 
+   ErrorArray -
 *)
 
 PROCEDURE ErrorArray (a: ARRAY OF CHAR) ;
@@ -336,7 +336,7 @@ END ErrorArray ;
 
 
 (*
-   ErrorString - 
+   ErrorString -
 *)
 
 PROCEDURE ErrorString (s: String) ;
@@ -377,7 +377,7 @@ END SyntaxError ;
 
 
 (*
-   SyntaxCheck - 
+   SyntaxCheck -
 *)
 
 PROCEDURE SyntaxCheck (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
@@ -417,7 +417,7 @@ BEGIN
       s2 := SetOfStop2{t}
    END ;
    str := DescribeStop(s0, s1, s2) ;
-   
+
    str := ConCat(InitString('syntax error,'), Mark(str)) ;
    ErrorString(str)
 END WarnMissingToken ;
@@ -442,7 +442,7 @@ END MissingToken ;
 
 
 (*
-   CheckAndInsert - 
+   CheckAndInsert -
 *)
 
 PROCEDURE CheckAndInsert (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) : BOOLEAN ;
@@ -461,7 +461,7 @@ END CheckAndInsert ;
 
 
 (*
-   InStopSet 
+   InStopSet
 *)
 
 PROCEDURE InStopSet (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) : BOOLEAN ;
@@ -511,7 +511,7 @@ END PeepToken ;
 
 
 (*
-   Expect - 
+   Expect -
 *)
 
 PROCEDURE Expect (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
@@ -1025,21 +1025,21 @@ FileUnit :=                                                                  % B
               ImplementationOrProgramModule )                                % EndBlock %
          =:
 
-ProgramModule := "MODULE" 
+ProgramModule := "MODULE"
                   Ident
 
                   [ Priority ] ";"
 
                   { Import
-                  }       
+                  }
                   Block Ident "."
                =:
 
 ImplementationModule := "IMPLEMENTATION" "MODULE"
                          Ident
-                         [ Priority ] ";"        
-                         { Import               
-                           }                     
+                         [ Priority ] ";"
+                         { Import
+                           }
                          Block Ident "."
                       =:
 
@@ -1049,8 +1049,8 @@ DefinitionModule := "DEFINITION" "MODULE" [ "FOR" str                       % pS
                                           ]
                     Ident
                     ";"
-                    { Import             
-                             } [ Export  
+                    { Import
+                             } [ Export
                                         ]
                   =:
 
@@ -1249,7 +1249,7 @@ WithStatement := "WITH" Designator "DO" StatementSequence "END" =:
 ProcedureDeclaration := ProcedureHeading ";" ( ProcedureBlock Ident ) =:
 
 DefineBuiltinProcedure := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")"
-                          | "__INLINE__" 
+                          | "__INLINE__"
                           | % (* epsilon *) %
                        =:
 
@@ -1321,9 +1321,9 @@ ModuleDeclaration := "MODULE"
                      [ Priority ] ";"
                      { ImportInner
                                    } [ Export
-                                              ]     
+                                              ]
                                                                             % BeginBlock %
-                       Block      
+                       Block
                        Ident                                                % EndBlock %
                      =:
 

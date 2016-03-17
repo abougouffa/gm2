@@ -169,6 +169,10 @@ Void*                    1      # 1=use "void *" for anyptr's
                                 # 0=use "char *" for anyptr's
                                 # default=1 if AnsiC=1 or C++=1
 
+C++11                    1      # 1=Generate c++ 2011 standard conforming output.
+                                # 0=generate C code.
+				# default=0
+
 HasSignedChar                   # 1="signed char" and "signed int" are legal
                                 # 0="signed ..." is not supported
                                 # default=1 if AnsiC=1

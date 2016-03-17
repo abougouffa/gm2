@@ -1,6 +1,6 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011, 2012, 2013, 2014
-                 Free Software Foundation, Inc. *)
+                 2010, 2011, 2012, 2013, 2014, 2015
+                 Free Software Foundation, Inc.  *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -15,7 +15,7 @@ for more details.
 
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  *)
 
 IMPLEMENTATION MODULE M2Comp ;
 
@@ -111,7 +111,7 @@ END CompilingProgramModule ;
 
 
 (*
-   NeedToParseImplementation - 
+   NeedToParseImplementation -
 *)
 
 PROCEDURE NeedToParseImplementation (sym: CARDINAL) : BOOLEAN ;
@@ -129,15 +129,15 @@ END NeedToParseImplementation ;
 PROCEDURE Compile (s: String) ;
 BEGIN
    DoPass0(s) ;
-   FlushWarnings ; FlushErrors ; 
+   FlushWarnings ; FlushErrors ;
    ResetForNewPass ;
    qprintf0('Pass 1: scopes, enumerated types, imports and exports\n') ;
    DoPass1 ;
-   FlushWarnings ; FlushErrors ; 
+   FlushWarnings ; FlushErrors ;
    qprintf0('Pass 2: constants and types\n') ;
    ResetForNewPass ;
    DoPass2 ;
-   FlushWarnings ; FlushErrors ; 
+   FlushWarnings ; FlushErrors ;
    qprintf0('Pass C: aggregate constants\n') ;
    ResetForNewPass ;
    DoPassC ;
@@ -145,7 +145,7 @@ BEGIN
    qprintf0('Pass 3: quadruple generation\n') ;
    ResetForNewPass ;
    DoPass3 ;
-   FlushWarnings ; FlushErrors ; 
+   FlushWarnings ; FlushErrors ;
    qprintf0('Pass 4: gcc tree generation\n') ;
    Code ;
    FlushWarnings ; FlushErrors
@@ -221,7 +221,7 @@ END PeepInto ;
 
 
 (*
-   DoPass0 - 
+   DoPass0 -
 *)
 
 PROCEDURE DoPass0 (s: String) ;

@@ -1,4 +1,4 @@
-/* Copyright (C) 2012.
+/* Copyright (C) 2012, 2013, 2014, 2015.
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -23,38 +23,8 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA.
 */
 
+#include "gcc-consolidation.h"
 
-#include "config.h"
-#include "system.h"
-#include "coretypes.h"
-#include "tm.h"
-#include "tree.h"
-#include "toplev.h"
-#include "tm_p.h"
-#include "flags.h"
-#include <stdio.h>
-
-
-/*
- *  utilize some of the C build routines
- */
-
-#include "rtl.h"
-#include "function.h"
-#include "expr.h"
-#include "output.h"
-#include "ggc.h"
-#include "intl.h"
-#include "convert.h"
-#include "target.h"
-#include "debug.h"
-#include "diagnostic.h"
-#include "except.h"
-#include "libfuncs.h"
-#include "tree-iterator.h"
-#include "tree-dump.h"
-#include "gimple.h"
-#include "cgraph.h"
 #include "../gm2-tree.h"
 #include "../gm2-lang.h"
 
@@ -125,9 +95,6 @@ build_modify_expr (location_t location, tree lhs, enum tree_code modifycode, tre
   tree rhs_semantic_type = NULL_TREE;
   tree lhstype = TREE_TYPE (lhs);
   tree olhstype = lhstype;
-#if 0
-  bool npc;
-#endif
 
   ASSERT_CONDITION (modifycode == NOP_EXPR);
 
@@ -138,23 +105,6 @@ build_modify_expr (location_t location, tree lhs, enum tree_code modifycode, tre
     }
 
   newrhs = rhs;
-
-#if 0
-  if (TREE_CODE (lhs) == C_MAYBE_CONST_EXPR)
-    {
-      tree inner = build_modify_expr (location, C_MAYBE_CONST_EXPR_EXPR (lhs),
-				      lhs_origtype, modifycode, rhs_loc, rhs,
-				      rhs_origtype);
-      if (inner == error_mark_node)
-	return error_mark_node;
-      result = build2 (C_MAYBE_CONST_EXPR, TREE_TYPE (inner),
-		       C_MAYBE_CONST_EXPR_PRE (lhs), inner);
-      gcc_assert (!C_MAYBE_CONST_EXPR_INT_OPERANDS (lhs));
-      C_MAYBE_CONST_EXPR_NON_CONST (result) = 1;
-      protected_set_expr_location (result, location);
-      return result;
-    }
-#endif
 
   /* If storing into a structure or union member,
      it has probably been given type `int'.
@@ -177,22 +127,10 @@ build_modify_expr (location_t location, tree lhs, enum tree_code modifycode, tre
       TREE_TYPE (lhs) = lhstype;
     }
 
-#if 0
-  /* Convert new value to destination type.  Fold it first, then
-     restore any excess precision information, for the sake of
-     conversion warnings.  */
-
-  npc = null_pointer_constant_p (newrhs);
-  newrhs = c_fully_fold (newrhs, false, NULL);
-#endif
   newrhs = fold (newrhs);
 
   if (rhs_semantic_type)
     newrhs = build1 (EXCESS_PRECISION_EXPR, rhs_semantic_type, newrhs);
-#if 0
-  newrhs = convert_for_assignment (location, lhstype, newrhs, rhs_origtype,
-				   ic_assign, npc, NULL_TREE, NULL_TREE, 0);
-#endif
 
   /* Scan operands.  */
 
@@ -207,19 +145,11 @@ build_modify_expr (location_t location, tree lhs, enum tree_code modifycode, tre
 
   ASSERT_CONDITION (olhstype == TREE_TYPE (result));
   /* in Modula-2 I'm assuming this will be true
-     this maybe wrong, but at least I'll know about it soon.  If true then we do not need to implement
-     convert_for_assignment - which is huge.
+     this maybe wrong, but at least I'll know about it soon.
+     If true then we do not need to implement
+     convert_for_assignment - which is a huge win.
   */
 
-  if (olhstype == TREE_TYPE (result))
-    return result;
-
-#if 0
-  result = convert_for_assignment (location, olhstype, result, rhs_origtype,
-				   ic_assign, false, NULL_TREE, NULL_TREE, 0);
-
-  protected_set_expr_location (result, location);
-#endif
   return result;
 }
 
@@ -384,21 +314,26 @@ tree
 m2treelib_get_set_value (location_t location, tree p, tree field, int is_const, int is_lvalue, tree op, unsigned int fieldNo)
 {
   tree value;
+  constructor_elt *ce;
 
   ASSERT_BOOL (is_const);
   ASSERT_BOOL (is_lvalue);
   if (is_const) {
     ASSERT_CONDITION (is_lvalue == FALSE);
-    gcc_assert( !VEC_empty (constructor_elt, CONSTRUCTOR_ELTS (op)));
-    unsigned int size = VEC_length (constructor_elt, CONSTRUCTOR_ELTS (op));
+    gcc_assert( !vec_safe_is_empty (CONSTRUCTOR_ELTS (op)));
+    unsigned int size = vec_safe_length (CONSTRUCTOR_ELTS (op));
     if (size < fieldNo)
       internal_error ("field number exceeds definition of set");
-    value = VEC_index (constructor_elt, CONSTRUCTOR_ELTS (op), fieldNo)->value;
+    if (vec_safe_iterate (CONSTRUCTOR_ELTS (op), fieldNo, &ce))
+      value = ce->value;
+    else
+      internal_error ("field number out of range trying to access set element");
   }
   else if (is_lvalue)
     {
       ASSERT_CONDITION (TREE_CODE (TREE_TYPE (p)) == POINTER_TYPE);
-      value = m2expr_BuildComponentRef (m2expr_BuildIndirect (location, p, TREE_TYPE (p)), field);
+      value = m2expr_BuildComponentRef (location,
+					m2expr_BuildIndirect (location, p, TREE_TYPE (p)), field);
     }
   else
     {
@@ -406,7 +341,7 @@ m2treelib_get_set_value (location_t location, tree p, tree field, int is_const, 
       enum tree_code code = TREE_CODE (type);
 
       ASSERT_CONDITION (code == RECORD_TYPE || (code == POINTER_TYPE && (TREE_CODE (TREE_TYPE (type)) == RECORD_TYPE)));
-      value = m2expr_BuildComponentRef (op, field);
+      value = m2expr_BuildComponentRef (location, op, field);
     }
   value = m2convert_ToBitset (location, value);
   return value;
@@ -434,7 +369,8 @@ m2treelib_get_set_address (location_t location, tree op1, int is_lvalue)
 tree
 m2treelib_get_set_field_lhs (location_t location, tree p, tree field)
 {
-  return m2expr_BuildAddr (location, m2convert_ToBitset (location, m2expr_BuildComponentRef (p, field)), FALSE);
+  return m2expr_BuildAddr (location, m2convert_ToBitset (location,
+							 m2expr_BuildComponentRef (location, p, field)), FALSE);
 }
 
 
@@ -445,7 +381,8 @@ m2treelib_get_set_field_lhs (location_t location, tree p, tree field)
 tree
 m2treelib_get_set_field_rhs (location_t location, tree p, tree field)
 {
-  return m2convert_ToBitset (location, m2expr_BuildComponentRef (p, field));
+  return m2convert_ToBitset (location,
+			     m2expr_BuildComponentRef (location, p, field));
 }
 
 
@@ -456,7 +393,7 @@ m2treelib_get_set_field_rhs (location_t location, tree p, tree field)
 tree
 m2treelib_get_set_field_des (location_t location, tree p, tree field)
 {
-  return m2expr_BuildComponentRef (p, field);
+  return m2expr_BuildComponentRef (location, p, field);
 }
 
 
@@ -473,4 +410,65 @@ m2treelib_get_set_address_if_var (location_t location, tree op, int is_lvalue, i
     return NULL;
   else
     return m2treelib_get_set_address (location, op, is_lvalue);
+}
+
+
+/*
+ *  add_stmt - t is a statement.  Add it to the statement-tree.
+ */
+
+tree
+add_stmt (location_t location, tree t)
+{
+  if (CAN_HAVE_LOCATION_P (t))
+    if (! EXPR_HAS_LOCATION (t))
+      SET_EXPR_LOCATION (t, location);
+
+  append_to_statement_list_force (t, m2block_cur_stmt_list_addr ());
+  return t;
+}
+
+
+/* taken from gcc/c-semantics.c */
+/* Build a generic statement based on the given type of node and
+   arguments. Similar to `build_nt', except that we set
+   EXPR_LOCATION to LOC. */
+
+tree
+build_stmt (location_t loc, enum tree_code code, ...)
+{
+  tree ret;
+  int length, i;
+  va_list p;
+  bool side_effects;
+
+  m2assert_AssertLocation (loc);
+  /* This function cannot be used to construct variably-sized nodes.  */
+  gcc_assert (TREE_CODE_CLASS (code) != tcc_vl_exp);
+
+  va_start (p, code);
+
+  ret = make_node (code);
+  TREE_TYPE (ret) = void_type_node;
+  length = TREE_CODE_LENGTH (code);
+  SET_EXPR_LOCATION (ret, loc);
+
+  /* TREE_SIDE_EFFECTS will already be set for statements with
+     implicit side effects.  Here we make sure it is set for other
+     expressions by checking whether the parameters have side
+     effects.  */
+
+  side_effects = false;
+  for (i = 0; i < length; i++)
+    {
+      tree t = va_arg (p, tree);
+      if (t && !TYPE_P (t))
+	side_effects |= TREE_SIDE_EFFECTS (t);
+      TREE_OPERAND (ret, i) = t;
+    }
+
+  TREE_SIDE_EFFECTS (ret) |= side_effects;
+
+  va_end (p);
+  return ret;
 }

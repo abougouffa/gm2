@@ -47,5 +47,8 @@ EXTERN tree m2treelib_get_set_field_rhs (location_t location, tree p, tree field
 EXTERN tree m2treelib_get_set_address_if_var (location_t location, tree op, int is_lvalue, int is_const);
 EXTERN tree m2treelib_get_set_field_des (location_t location, tree p, tree field);
 
+EXTERN tree add_stmt (location_t location, tree t);
+EXTERN tree build_stmt (location_t loc, enum tree_code code, ...);
+
 #undef EXTERN
 #endif

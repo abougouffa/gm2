@@ -181,5 +181,5 @@ int wrapc_signbitf (float r)
    init - init/finish functions for the module
 */
 
-void _M2_wrapc_init() {}
-void _M2_wrapc_finish() {}
+void _M2_wrapc_init () {}
+void _M2_wrapc_finish () {}

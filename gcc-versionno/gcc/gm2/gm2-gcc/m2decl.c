@@ -1,4 +1,4 @@
-/* Copyright (C) 2012
+/* Copyright (C) 2012, 2013, 2014, 2015, 2016
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -23,35 +23,8 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA.
 */
 
+#include "gcc-consolidation.h"
 
-#include "config.h"
-#include "system.h"
-#include "coretypes.h"
-#include "tm.h"
-#include "tree.h"
-#include "toplev.h"
-#include "tm_p.h"
-#include "flags.h"
-#include <stdio.h>
-
-
-/*
- *  utilize some of the C build routines
- */
-
-#include "c-tree.h"
-#include "rtl.h"
-#include "function.h"
-#include "expr.h"
-#include "output.h"
-#include "ggc.h"
-#include "intl.h"
-#include "convert.h"
-#include "target.h"
-#include "debug.h"
-#include "diagnostic.h"
-#include "except.h"
-#include "libfuncs.h"
 #include "../gm2-tree.h"
 #include "../gm2-lang.h"
 
@@ -62,6 +35,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "m2type.h"
 #include "m2tree.h"
 #include "m2block.h"
+#include "m2treelib.h"
 
 
 /*
@@ -162,9 +136,6 @@ m2decl_DeclareKnownVariable (location_t location, char *name, tree type, int exp
   if ((TREE_PUBLIC (decl) == 0) && DECL_EXTERNAL (decl))
     internal_error ("inconsistant because PUBLIC_DECL(decl) == 0 && DECL_EXTERNAL(decl) == 1");
 
-#if 0
-  if (! isglobal)
-#endif
   m2block_addDeclExpr (build_stmt (location, DECL_EXPR, decl));
 
   return decl;
@@ -344,6 +315,8 @@ m2decl_DetermineSizeOfConstant (const char *str, unsigned int base,
     *needsUnsigned = (high < 0);
   else
     *needsUnsigned = (low < 0);
+  if (overflow)
+    error("constant too large");
 }
 
 
@@ -360,11 +333,16 @@ m2decl_BuildConstLiteralNumber (const char *str, unsigned int base)
   tree value, type;
   unsigned HOST_WIDE_INT low;
   HOST_WIDE_INT high;
+  HOST_WIDE_INT ival[3];
+  int overflow = m2expr_interpret_integer (str, base, &low, &high);
   int needLong, needUnsigned;
-  int overflow;
 
-  overflow = m2expr_interpret_integer (str, base,
-				       &low, (HOST_WIDE_INT *) &high);
+  ival[0] = low;
+  ival[1] = high;
+  ival[2] = 0;
+
+  widest_int wval = widest_int::from_array (ival, 3);
+
   m2decl_DetermineSizeOfConstant (str, base, &needLong, &needUnsigned);
 
   if (needUnsigned && needLong)
@@ -372,9 +350,9 @@ m2decl_BuildConstLiteralNumber (const char *str, unsigned int base)
   else
     type = m2type_GetM2LongIntType ();
 
-  value = build_int_cst_wide (type, low, high);
+  value = wide_int_to_tree (type, wval);
 
-  if (m2expr_TreeOverflow (value))
+  if (overflow || m2expr_TreeOverflow (value))
     error("constant too large");
 
   return m2block_RememberConstant (value);

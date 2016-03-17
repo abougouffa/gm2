@@ -17,36 +17,7 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 
-#include "config.h"
-#include "system.h"
-#include "coretypes.h"
-#include "input.h"
-#include "tm.h"
-#include "tree.h"
-#include "toplev.h"
-#include "tm_p.h"
-#include "flags.h"
-#include "tree-inline.h"
-#include "real.h"
-#include "float.h"
-
-#include <stdio.h>
-
-/*
- *  utilize some of the C build routines
- */
-
-#include "rtl.h"
-#include "function.h"
-#include "expr.h"
-#include "output.h"
-#include "ggc.h"
-#include "intl.h"
-#include "convert.h"
-#include "target.h"
-#include "debug.h"
-#include "diagnostic.h"
-#include "langhooks.h"
+#include "gcc-consolidation.h"
 
 #include "m2tree.h"
 #include "m2block.h"

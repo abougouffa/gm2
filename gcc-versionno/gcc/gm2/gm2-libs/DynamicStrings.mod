@@ -57,12 +57,14 @@ TYPE
                      debug   : DebugInfo ;
                   END ;
 
+   desState = (inuse, marked, onlist, poisoned) ;
+
    descriptor = RECORD
                    charStarUsed : BOOLEAN ;     (* can we garbage collect this? *)
                    charStar     : ADDRESS ;
                    charStarSize : CARDINAL ;
                    charStarValid: BOOLEAN ;
-                   state        : (inuse, marked, onlist, poisoned) ;
+                   state        : desState ;
                    garbage      : String ;      (* temporary strings to be destroyed
                                                    once this string is killed *)
                 END ;

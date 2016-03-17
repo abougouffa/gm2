@@ -953,7 +953,6 @@ int firstarg, ismacro;
 }
 
 
-
 Expr *replacemacargs(ex, fex)
 Expr *ex, *fex;
 {
@@ -1333,7 +1332,7 @@ Type *target;
 			 (target->kind != TK_PROCPTR &&
 			  target->kind != TK_CPROCPTR))) {
                         ex = p_funccall(mp);
-                        if (!mp->constdefn) {
+                        if (mp->constdefn == NULL) {
                             if (has_handler(mp) && !(mp->sym->flags & LEAVEALONE))
 			      ex = (*mp->function_handler_expr)(ex);
 			}
@@ -2662,12 +2661,6 @@ int env;
 }
 
 
-
-
-
-
-
-
 /* Output an expression */
 
 
@@ -2831,40 +2824,44 @@ int address;
 }
 
 
-
 void out_var(mp, prec)
 Meaning *mp;
 int prec;
 {
-    switch (mp->kind) {
+  switch (mp->kind) {
 
-        case MK_CONST:
-            output(mp->name);
-            return;
-
-        case MK_VAR:
-        case MK_VARREF:
-        case MK_VARMAC:
-        case MK_PARAM:
-        case MK_VARPARAM:
-            if (mp->varstructflag) {
-		output("\003");
-                out_ctx(mp->ctx, 0);
-		output(mp->name);
-		output("\004");
-	    } else
-		output(mp->name);
-            return;
-
-	default:
-	    if (mp->name)
-		output(mp->name);
-	    else
-		intwarning("out_var", "mp->sym == NULL [308]");
-	    return;
+  case MK_CONST:
+#if 0
+    if (cplus11 && mp->type && mp->type->kind == TK_ENUM) {
+      out_type (mp->type, 0);
+      output ("::");
     }
-}
+#endif
+    output (mp->name);
+    return;
 
+  case MK_VAR:
+  case MK_VARREF:
+  case MK_VARMAC:
+  case MK_PARAM:
+  case MK_VARPARAM:
+    if (mp->varstructflag) {
+      output("\003");
+      out_ctx(mp->ctx, 0);
+      output(mp->name);
+      output("\004");
+    } else
+      output(mp->name);
+    return;
+	  
+  default:
+    if (mp->name)
+      output(mp->name);
+    else
+      intwarning("out_var", "mp->sym == NULL [308]");
+    return;
+  }
+}
 
 
 Static int scanfield(variants, unions, lev, mp, field)
@@ -2925,6 +2922,29 @@ Meaning *mp;
 }
 
 
+static void out_cpp_cast (type, ex)
+     Type *type;
+     Expr *ex;
+{
+  if (is_pointer_type (type)) {
+    output("reinterpret_cast<");
+    out_type(type, ODECL_ALIAS);
+    output(">(");
+    wrexpr(ex, 15);
+  }
+  else if (is_pointer_type (ex->val.type)) {
+    output("reinterpret_cast<");
+    out_type(type, ODECL_ALIAS);
+    output("&>(");
+    wrexpr(ex, 15);
+  } else {
+    output("static_cast<");
+    out_type(type, ODECL_ALIAS);
+    output(">(");
+    wrexpr(ex, 15);
+  }
+  output(")");
+}
 
 
 Static void wrexpr(ex, prec)
@@ -3223,23 +3243,34 @@ int prec;
 
         case EK_CAST:
         case EK_ACTCAST:
-            if (similartypes(ex->val.type, ex->args[0]->val.type)) {
-                wrexpr(ex->args[0], prec);
-            } else if (ord_type(ex->args[0]->val.type)->kind == TK_ENUM &&
-                       ex->val.type == tp_int && !useenum) {
-                wrexpr(ex->args[0], prec);
-            } else {
-                setprec2(14);
-                output("(");
-                out_type(ex->val.type, 0);
-                output(")\002");
-                EXTRASPACE();
-                if (extraparens != 0)
-                    wrexpr(ex->args[0], 15);
-                else
-                    wrexpr(ex->args[0], subprec-1);
-            }
-            break;
+	  if (cplus11 && ex->args[0]->kind == EK_FUNCTION && is_opaque (ex->val.type)) {
+	    output("reinterpret_cast<");
+	    out_type(ex->val.type, ODECL_ALIAS);
+	    output(">(");
+	    wrexpr(ex->args[0], 15);
+	    output(")");
+	  }
+	  else if (similartypes(ex->val.type, ex->args[0]->val.type)) {
+	    wrexpr(ex->args[0], prec);
+	  } else if (ord_type(ex->args[0]->val.type)->kind == TK_ENUM &&
+		     ex->val.type == tp_int && !useenum) {
+	    wrexpr(ex->args[0], prec);
+	  } else {
+	    setprec2(14);
+	    if (cplus11)
+	      out_cpp_cast (ex->val.type, ex->args[0]);
+	    else {
+	      output("(");
+	      out_type(ex->val.type, 0);
+	      output(")\002");
+	      EXTRASPACE();
+	      if (extraparens != 0)
+		wrexpr(ex->args[0], 15);
+	      else
+		wrexpr(ex->args[0], subprec-1);
+	    }
+	  }
+	  break;
 
         case EK_LITCAST:
             setprec2(14);

@@ -136,7 +136,7 @@ static void printOption (const char *desc, struct cl_decoded_option **in_decoded
 #endif
 static const char *gen_link_path (const char *libpath, const char *dialect);
 
-void fe_save_switch (const char *opt, size_t n_args, const char *const *args, bool validated);
+void fe_save_switch (const char *opt, size_t n_args, const char *const *args, bool validated, bool known);
 
 
 typedef struct object_list {
@@ -194,7 +194,7 @@ static void fe_generate_option (size_t opt_index, const char *arg, int joined)
     newopt = concat (opt, arg, NULL);
 
   if (arg == NULL || joined)
-    fe_save_switch (newopt, 0, NULL, 1);
+    fe_save_switch (newopt, 0, NULL, 1, 0);
   else
     {
       const char **x = (const char **) XCNEWVEC (const char **, 2);
@@ -203,7 +203,7 @@ static void fe_generate_option (size_t opt_index, const char *arg, int joined)
       x[1] = NULL;
 
       assert (opt_index != OPT_l);
-      fe_save_switch (newopt, 1, x, 1);
+      fe_save_switch (newopt, 1, x, 1, 0);
     }
 }
 

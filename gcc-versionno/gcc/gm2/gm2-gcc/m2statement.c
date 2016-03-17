@@ -23,42 +23,10 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA.
 */
 
+#include "gcc-consolidation.h"
 
-#include "config.h"
-#include "system.h"
-#include "coretypes.h"
-#include "tm.h"
-#include "tree.h"
-#include "toplev.h"
-#include "tm_p.h"
-#include "flags.h"
-#include <stdio.h>
-
-
-/*
- *  utilize some of the C build routines
- */
-
-#include "rtl.h"
-#include "function.h"
-#include "expr.h"
-#include "output.h"
-#include "ggc.h"
-#include "intl.h"
-#include "convert.h"
-#include "target.h"
-#include "debug.h"
-#include "diagnostic.h"
-#include "except.h"
-#include "libfuncs.h"
-#include "tree-iterator.h"
-#include "tree-dump.h"
-#include "gimple.h"
-#include "cgraph.h"
-#include "function.h"
 #include "../gm2-tree.h"
 #include "../gm2-lang.h"
-
 
 /*
  *
@@ -124,18 +92,6 @@ m2statement_BuildStartFunctionCode (tree fndecl, int isexported, int isinline)
 
 
 static void
-gm2_gimplify_function_parameters (tree fndecl)
-{
-#if 0
-  tree parm;
-
-  for (parm = DECL_ARGUMENTS (fndecl); parm ; parm = TREE_CHAIN (parm))
-    gimplify_type_sizes (TREE_TYPE (parm), &DECL_SAVED_TREE (fndecl));
-#endif
-}
-
-
-static void
 gm2_gimplify_function_node (tree fndecl)
 {
   /* Convert all nested functions to GIMPLE now.  We do things in this order
@@ -144,14 +100,10 @@ gm2_gimplify_function_node (tree fndecl)
   struct cgraph_node *cgn;
   
   dump_function (TDI_original, fndecl);
-#if 1
-  /* do we need this in 4.7.1 ? --fixme-- */
-  gm2_gimplify_function_parameters (fndecl);
-#endif
   gimplify_function_tree (fndecl);
   dump_function (TDI_generic, fndecl);
   
-  cgn = cgraph_get_create_node (fndecl);
+  cgn = cgraph_node::get (fndecl);
   for (cgn = cgn->nested; cgn; cgn = cgn->next_nested)
     gm2_gimplify_function_node (cgn->decl);
 }
@@ -176,7 +128,7 @@ m2statement_BuildEndFunctionCode (tree fndecl, int nested)
 
   m2block_finishFunctionCode (fndecl);
 
-  cgraph_finalize_function (fndecl, nested);
+  cgraph_node::finalize_function (fndecl, nested);
 
   m2block_popFunctionScope ();
 }
@@ -219,23 +171,6 @@ m2statement_SetEndLocation (location_t location)
 {
   if (cfun != NULL)
     cfun->function_end_locus = location;
-}
-
-
-/*
- *  add_stmt - t is a statement.  Add it to the statement-tree.
- */
-
-static
-tree
-add_stmt (location_t location, tree t)
-{
-  if (CAN_HAVE_LOCATION_P (t))
-    if (! EXPR_HAS_LOCATION (t))
-      SET_EXPR_LOCATION (t, location);
-
-  append_to_statement_list_force (t, m2block_cur_stmt_list_addr ());
-  return t;
 }
 
 
@@ -292,6 +227,7 @@ m2statement_BuildGoto (location_t location, char *name)
 }
 
 
+#if 0
 static tree mylabel;
 static tree *mycontext;
 
@@ -300,6 +236,7 @@ static void mywatch (tree label)
   mylabel = label;
   mycontext = &DECL_CONTEXT (label);
 }
+#endif
 
 
 /*
@@ -464,6 +401,7 @@ m2statement_BuildIndirectProcedureCallTree (location_t location, tree procedure,
 }
 
 
+#if 0
 static
 tree
 tree_used (tree t)
@@ -471,6 +409,8 @@ tree_used (tree t)
   TREE_USED (t) = 1;
   return t;
 }
+#endif
+
 
 /*
  *  BuildFunctValue - generates code for value := last_function(foobar);
@@ -576,53 +516,6 @@ tree
 m2statement_GetCurrentFunction (void)
 {
   return current_function_decl;
-}
-
-
-/* taken from gcc/c-semantics.c */
-/* Build a generic statement based on the given type of node and
-   arguments. Similar to `build_nt', except that we set
-   EXPR_LOCATION to LOC. */
-/* ??? This should be obsolete with the lineno_stmt productions
-   in the grammar.  */
-
-static tree
-build_stmt (location_t loc, enum tree_code code, ...)
-{
-  tree ret;
-  int length, i;
-  va_list p;
-  bool side_effects;
-
-  m2assert_AssertLocation (loc);
-  /* This function cannot be used to construct variably-sized nodes.  */
-  gcc_assert (TREE_CODE_CLASS (code) != tcc_vl_exp);
-
-  va_start (p, code);
-
-  ret = make_node (code);
-  TREE_TYPE (ret) = void_type_node;
-  length = TREE_CODE_LENGTH (code);
-  SET_EXPR_LOCATION (ret, loc);
-
-  /* TREE_SIDE_EFFECTS will already be set for statements with
-     implicit side effects.  Here we make sure it is set for other
-     expressions by checking whether the parameters have side
-     effects.  */
-
-  side_effects = false;
-  for (i = 0; i < length; i++)
-    {
-      tree t = va_arg (p, tree);
-      if (t && !TYPE_P (t))
-	side_effects |= TREE_SIDE_EFFECTS (t);
-      TREE_OPERAND (ret, i) = t;
-    }
-
-  TREE_SIDE_EFFECTS (ret) |= side_effects;
-
-  va_end (p);
-  return ret;
 }
 
 

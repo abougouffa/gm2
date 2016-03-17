@@ -31,7 +31,7 @@ EXTERN int m2expr_AreConstantsEqual (tree e1, tree e2);
 EXTERN int m2expr_IsFalse (tree t);
 EXTERN int m2expr_IsTrue (tree t);
 EXTERN tree m2expr_BuildIndirect (location_t location, tree target, tree type);
-EXTERN tree m2expr_BuildComponentRef (tree record, tree field);
+EXTERN tree m2expr_BuildComponentRef (location_t location, tree record, tree field);
 EXTERN tree m2expr_BuildArray (tree type, tree array, tree index, tree lowIndice);
 EXTERN void m2expr_BuildIfNotInRangeGoto (location_t location, tree var, tree low, tree high, char *label);
 EXTERN void m2expr_BuildIfInRangeGoto (location_t location, tree var, tree low, tree high, char *label);

@@ -1,4 +1,5 @@
-/* Copyright (C) 2006, 2007, 2008, 2009, 2010
+/* Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013
+ *               2014, 2015
  *               Free Software Foundation, Inc. */
 /* This file is part of GNU Modula-2.
 
@@ -24,7 +25,9 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
  */
 
 /* Copyright (C) 1989, 1990, 1991, 1992, 1993, 1994, 1995,
- * 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+ *               1996, 1997, 1998, 1999, 2000, 2001, 2002,
+ *               2003, 2004, 2005, 2006, 2007, 2008, 2009,
+ *               2010, 2011, 2012, 2013, 2014, 2015.
  * Free Software Foundation.
  *
  * Written by Dave Gillespie, daveg@csvax.cs.caltech.edu.  Version 1.20.
@@ -43,9 +46,15 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 #   include "auto-host.h"
 #   include "ansidecl.h"
 #   include "p2c-src/src/p2c-config.h"
+#   if !defined(USE_MALLOC)
+#      include "gm2-gcc/gcc-consolidation.h"
+#   endif
 #endif
 
-#  include "system.h"
+#if !defined(USE_MALLOC)
+#   include "hwint.h"
+#   include "system.h"
+#endif
 
 #  define Signed    signed
 #  define Void      void      /* Void f() = procedure */
@@ -92,6 +101,9 @@ extern Anyptr __MallocTemp__;
 #  define FreeR(p)    (free((Anyptr)(p)))    /* used if arg is an rvalue */
 #  define Free(p)     (free((Anyptr)(p)), (p)=NULL)
 #endif
+
+#    define Malloc(n)   (ggc_internal_cleared_alloc (n))
+#    define Free(p)     (ggc_free((Anyptr)(p)), (p)=NULL)
 
 typedef struct {
     Anyptr proc, link;

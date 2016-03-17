@@ -1,4 +1,4 @@
-/* Copyright (C) 2012.
+/* Copyright (C) 2012, 2013, 2014, 2015.
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -23,39 +23,8 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA.
 */
 
+#include "gcc-consolidation.h"
 
-#include "config.h"
-#include "system.h"
-#include "coretypes.h"
-#include "tm.h"
-#include "tree.h"
-#include "toplev.h"
-#include "tm_p.h"
-#include "flags.h"
-#include <stdio.h>
-
-
-/*
- *  utilize some of the C build routines
- */
-
-#include "rtl.h"
-#include "function.h"
-#include "expr.h"
-#include "output.h"
-#include "ggc.h"
-#include "intl.h"
-#include "convert.h"
-#include "target.h"
-#include "debug.h"
-#include "diagnostic.h"
-#include "except.h"
-#include "libfuncs.h"
-#include "tree-iterator.h"
-#include "tree-dump.h"
-#include "gimple.h"
-#include "cgraph.h"
-#include "function.h"
 #include "../gm2-tree.h"
 #include "../gm2-lang.h"
 
@@ -80,6 +49,17 @@ static tree const_to_ISO_type (location_t location, tree expr, tree iso_type);
 static tree const_to_ISO_aggregate_type (location_t location, tree expr, tree iso_type);
 
 
+/* These enumerators are possible types of unsafe conversions.
+   SAFE_CONVERSION The conversion is safe
+   UNSAFE_OTHER Another type of conversion with problems
+   UNSAFE_SIGN Conversion between signed and unsigned integers
+    which are all warned about immediately, so this is unused
+   UNSAFE_REAL Conversions that reduce the precision of reals
+    including conversions from reals to integers
+ */
+enum conversion_safety { SAFE_CONVERSION = 0, UNSAFE_OTHER, UNSAFE_SIGN, UNSAFE_REAL };
+
+
 /*
  *  ConvertString - converts string, expr, into a string
  *                  of type, type.
@@ -97,26 +77,24 @@ m2convert_ConvertString (tree type, tree expr)
 /*
  *  (taken from c-common.c and trimmed for Modula-2)
  *
- *  Checks if expression EXPR of real/integer type cannot be converted 
- *  to the real/integer type TYPE. Function returns true when:
- *      * EXPR is a constant which cannot be exactly converted to TYPE 
- *      * EXPR is not a constant and size of EXPR's type > than size of TYPE, 
- *        for EXPR type and TYPE being both integers or both real.
- *      * EXPR is not a constant of real type and TYPE is an integer.  
- *      * EXPR is not a constant of integer type which cannot be 
- *        exactly converted to real type.  
- *  Function allows conversions between types of different signedness and
- *  does not return true in that case.  Function can produce signedness
- *  warnings if PRODUCE_WARNS is true.
+ *  Checks if expression EXPR of real/integer type cannot be converted
+ *  to the real/integer type TYPE. Function returns non-zero when:
+ *	* EXPR is a constant which cannot be exactly converted to TYPE.
+ *	* EXPR is not a constant and size of EXPR's type > than size of TYPE,
+	  for EXPR type and TYPE being both integers or both real.
+ *      * EXPR is not a constant of real type and TYPE is an integer.
+ *      * EXPR is not a constant of integer type which cannot be
+ *        exactly converted to real type.
+ *   Function allows conversions between types of different signedness and
+  can return SAFE_CONVERSION (zero) in that case.  Function can produce
+ *   signedness warnings if PRODUCE_WARNS is true.
  */
 
-static
-bool
-unsafe_conversion_p (tree type, tree expr, bool produce_warns)
+enum conversion_safety
+unsafe_conversion_p (location_t loc, tree type, tree expr, bool produce_warns)
 {
-  bool give_warning = false;
+  enum conversion_safety give_warning = SAFE_CONVERSION; /* is 0 or false */
   tree expr_type = TREE_TYPE (expr);
-  location_t loc = EXPR_LOC_OR_HERE (expr);
 
   if (TREE_CODE (expr) == REAL_CST || TREE_CODE (expr) == INTEGER_CST)
     {
@@ -126,7 +104,7 @@ unsafe_conversion_p (tree type, tree expr, bool produce_warns)
 	  && TREE_CODE (type) == INTEGER_TYPE)
 	{
 	  if (!real_isinteger (TREE_REAL_CST_PTR (expr), TYPE_MODE (expr_type)))
-	    give_warning = true;
+	    give_warning = UNSAFE_REAL;
 	}
       /* Warn for an integer constant that does not fit into integer type.  */
       else if (TREE_CODE (expr_type) == INTEGER_TYPE
@@ -137,17 +115,17 @@ unsafe_conversion_p (tree type, tree expr, bool produce_warns)
 	      && tree_int_cst_sgn (expr) < 0)
 	    {
 	      if (produce_warns)
-		warning_at (loc, OPT_Wsign_conversion, "negative INTEGER"
-			    " implicitly converted to a CARDINAL type");
+		warning_at (loc, OPT_Wsign_conversion, "negative integer"
+			    " implicitly converted to unsigned type");
 	    }
 	  else if (!TYPE_UNSIGNED (type) && TYPE_UNSIGNED (expr_type))
 	    {
 	      if (produce_warns)
-		warning_at (loc, OPT_Wsign_conversion, "conversion of CARDINAL"
-			    " constant value to negative INTEGER");
+		warning_at (loc, OPT_Wsign_conversion, "conversion of unsigned"
+			    " constant value to negative integer");
 	    }
 	  else
-	    give_warning = true;
+	    give_warning = UNSAFE_OTHER;
 	}
       else if (TREE_CODE (type) == REAL_TYPE)
 	{
@@ -156,7 +134,7 @@ unsafe_conversion_p (tree type, tree expr, bool produce_warns)
 	    {
 	      REAL_VALUE_TYPE a = real_value_from_int_cst (0, expr);
 	      if (!exact_real_truncate (TYPE_MODE (type), &a))
-		give_warning = true;
+		give_warning = UNSAFE_REAL;
 	    }
 	  /* Warn for a real constant that does not fit into a smaller
 	     real type.  */
@@ -165,7 +143,7 @@ unsafe_conversion_p (tree type, tree expr, bool produce_warns)
 	    {
 	      REAL_VALUE_TYPE a = TREE_REAL_CST (expr);
 	      if (!exact_real_truncate (TYPE_MODE (type), &a))
-		give_warning = true;
+		give_warning = UNSAFE_REAL;
 	    }
 	}
     }
@@ -174,7 +152,8 @@ unsafe_conversion_p (tree type, tree expr, bool produce_warns)
       /* Warn for real types converted to integer types.  */
       if (TREE_CODE (expr_type) == REAL_TYPE
 	  && TREE_CODE (type) == INTEGER_TYPE)
-	give_warning = true;
+	give_warning = UNSAFE_REAL;
+
 #if 0
       else if (TREE_CODE (expr_type) == INTEGER_TYPE
 	       && TREE_CODE (type) == INTEGER_TYPE)
@@ -206,13 +185,13 @@ unsafe_conversion_p (tree type, tree expr, bool produce_warns)
 		     that fits in the target type, then the type of the
 		     other operand does not matter. */
 		  if ((TREE_CODE (op0) == INTEGER_CST
-		       && int_fits_type_p (op0, gm2_signed_type (type))
-		       && int_fits_type_p (op0, gm2_unsigned_type (type)))
+		       && int_fits_type_p (op0, c_common_signed_type (type))
+		       && int_fits_type_p (op0, c_common_unsigned_type (type)))
 		      || (TREE_CODE (op1) == INTEGER_CST
-			  && int_fits_type_p (op1, gm2_signed_type (type))
+			  && int_fits_type_p (op1, c_common_signed_type (type))
 			  && int_fits_type_p (op1,
-					      gm2_unsigned_type (type))))
-		    return false;
+					      c_common_unsigned_type (type))))
+		    return SAFE_CONVERSION;
 		  /* If constant is unsigned and fits in the target
 		     type, then the result will also fit.  */
 		  else if ((TREE_CODE (op0) == INTEGER_CST
@@ -221,12 +200,12 @@ unsafe_conversion_p (tree type, tree expr, bool produce_warns)
 			   || (TREE_CODE (op1) == INTEGER_CST
 			       && unsigned1
 			       && int_fits_type_p (op1, type)))
-		    return false;
+		    return SAFE_CONVERSION;
 		}
 	    }
 	  /* Warn for integer types converted to smaller integer types.  */
 	  if (TYPE_PRECISION (type) < TYPE_PRECISION (expr_type))
-	    give_warning = true;
+	    give_warning = UNSAFE_OTHER;
 
 	  /* When they are the same width but different signedness,
 	     then the value may change.  */
@@ -262,14 +241,14 @@ unsafe_conversion_p (tree type, tree expr, bool produce_warns)
 
 	  if (!exact_real_truncate (TYPE_MODE (type), &real_low_bound)
 	      || !exact_real_truncate (TYPE_MODE (type), &real_high_bound))
-	    give_warning = true;
+	    give_warning = UNSAFE_OTHER;
 	}
 
       /* Warn for real types converted to smaller real types.  */
       else if (TREE_CODE (expr_type) == REAL_TYPE
 	       && TREE_CODE (type) == REAL_TYPE
 	       && TYPE_PRECISION (type) < TYPE_PRECISION (expr_type))
-	give_warning = true;
+	give_warning = UNSAFE_REAL;
 #endif
     }
 
@@ -285,12 +264,12 @@ unsafe_conversion_p (tree type, tree expr, bool produce_warns)
  */
 
 static void
-conversion_warning (tree type, tree expr)
+conversion_warning (location_t loc, tree type, tree expr)
 {
   tree expr_type = TREE_TYPE (expr);
-  location_t loc = EXPR_LOC_OR_HERE (expr);
+  enum conversion_safety conversion_kind;
 
-  if (!warn_conversion && !warn_sign_conversion)
+  if (!warn_conversion && !warn_sign_conversion && !warn_float_conversion)
     return;
 
   switch (TREE_CODE (expr))
@@ -312,12 +291,17 @@ conversion_warning (tree type, tree expr)
 	 it does change the value.  */
       if (TYPE_PRECISION (type) == 1 && !TYPE_UNSIGNED (type))
 	warning_at (loc, OPT_Wconversion,
-		    "conversion to %qT from BOOLEAN expression", type);
+		    "conversion to %qT from boolean expression", type);
       return;
 
     case REAL_CST:
     case INTEGER_CST:
-      if (unsafe_conversion_p (type, expr, true))
+      conversion_kind = unsafe_conversion_p (loc, type, expr, true);
+      if (conversion_kind == UNSAFE_REAL)
+	warning_at (loc, OPT_Wfloat_conversion,
+		    "conversion to %qT alters %qT constant value",
+		    type, expr_type);
+      else if (conversion_kind)
 	warning_at (loc, OPT_Wconversion,
 		    "conversion to %qT alters %qT constant value",
 		    type, expr_type);
@@ -325,32 +309,28 @@ conversion_warning (tree type, tree expr)
 
     case COND_EXPR:
       {
-	/* In case of COND_EXPR, if both operands are constants or
-	   COND_EXPR, then we do not care about the type of COND_EXPR,
-	   only about the conversion of each operand.  */
-	tree op1 = TREE_OPERAND (expr, 1);
-	tree op2 = TREE_OPERAND (expr, 2);
-
-	if ((TREE_CODE (op1) == REAL_CST || TREE_CODE (op1) == INTEGER_CST
-	     || TREE_CODE (op1) == COND_EXPR)
-	    && (TREE_CODE (op2) == REAL_CST || TREE_CODE (op2) == INTEGER_CST
-		|| TREE_CODE (op2) == COND_EXPR))
-	  {
-	    conversion_warning (type, op1);
-	    conversion_warning (type, op2);
-	    return;
-	  }
-	/* Fall through.  */
+        /* In case of COND_EXPR, we do not care about the type of
+           COND_EXPR, only about the conversion of each operand.  */
+        tree op1 = TREE_OPERAND (expr, 1);
+        tree op2 = TREE_OPERAND (expr, 2);
+        
+        conversion_warning (loc, type, op1);
+        conversion_warning (loc, type, op2);
+        return;
       }
 
     default: /* 'expr' is not a constant.  */
-      if (unsafe_conversion_p (type, expr, true))
+      conversion_kind = unsafe_conversion_p (loc, type, expr, true);
+      if (conversion_kind == UNSAFE_REAL)
+	warning_at (loc, OPT_Wfloat_conversion,
+		    "conversion to %qT from %qT may alter its value",
+		    type, expr_type);
+      else if (conversion_kind)
 	warning_at (loc, OPT_Wconversion,
 		    "conversion to %qT from %qT may alter its value",
 		    type, expr_type);
     }
 }
-
 
 /*
  *  (taken from c-common.c and trimmed for Modula-2)
@@ -360,8 +340,9 @@ conversion_warning (tree type, tree expr)
  *  convert_and_check and cp_convert_and_check.
  */
 
-static void
-warnings_for_convert_and_check (tree type, tree expr, tree result)
+void
+warnings_for_convert_and_check (location_t loc, tree type, tree expr,
+				tree result)
 {
   if (TREE_CODE (expr) == INTEGER_CST
       && (TREE_CODE (type) == INTEGER_TYPE
@@ -378,30 +359,31 @@ warnings_for_convert_and_check (tree type, tree expr, tree result)
           /* This detects cases like converting -129 or 256 to
              unsigned char.  */
           if (!int_fits_type_p (expr, m2type_gm2_signed_type (type)))
-            warning (OPT_Woverflow,
-                     "large INTEGER based constant implicitly truncated to a fit into a smaller CARDINAL based type");
+            warning_at (loc, OPT_Woverflow,
+			"large integer implicitly truncated to unsigned type");
           else
-            conversion_warning (type, expr);
+            conversion_warning (loc, type, expr);
         }
       else if (!int_fits_type_p (expr, m2type_gm2_unsigned_type (type)))
-	warning (OPT_Woverflow,
+	warning_at (loc, OPT_Woverflow,
 		 "overflow in implicit constant conversion");
       /* No warning for converting 0x80000000 to int.  */
-      else if ((TREE_CODE (TREE_TYPE (expr)) != INTEGER_TYPE
-		|| TYPE_PRECISION (TREE_TYPE (expr))
-		!= TYPE_PRECISION (type)))
-	warning (OPT_Woverflow,
-		 "overflow in implicit constant conversion");
+      else if (pedantic
+	       && (TREE_CODE (TREE_TYPE (expr)) != INTEGER_TYPE
+		   || TYPE_PRECISION (TREE_TYPE (expr))
+		   != TYPE_PRECISION (type)))
+	warning_at (loc, OPT_Woverflow,
+		    "overflow in implicit constant conversion");
 
       else
-	conversion_warning (type, expr);
+	conversion_warning (loc, type, expr);
     }
   else if ((TREE_CODE (result) == INTEGER_CST
 	    || TREE_CODE (result) == FIXED_CST) && TREE_OVERFLOW (result))
-    warning (OPT_Woverflow,
-             "overflow in implicit constant conversion");
+    warning_at (loc, OPT_Woverflow,
+		"overflow in implicit constant conversion");
   else
-    conversion_warning (type, expr);
+    conversion_warning (loc, type, expr);
 }
 
 
@@ -415,7 +397,7 @@ warnings_for_convert_and_check (tree type, tree expr, tree result)
 
 static
 tree
-convert_and_check (tree type, tree expr)
+convert_and_check (location_t loc, tree type, tree expr)
 {
   tree result;
   tree expr_for_warning;
@@ -441,7 +423,7 @@ convert_and_check (tree type, tree expr)
 
   if (!TREE_OVERFLOW_P (expr)
       && result != error_mark_node)
-    warnings_for_convert_and_check (type, expr_for_warning, result);
+    warnings_for_convert_and_check (loc, type, expr_for_warning, result);
 
   return result;
 }
@@ -608,7 +590,7 @@ m2convert_BuildConvert (location_t location, tree type, tree value, int checkOve
     }
 
   if (checkOverflow)
-    return convert_and_check (type, value);
+    return convert_and_check (location, type, value);
   else
     return convert (type, value);
 }
@@ -719,7 +701,7 @@ m2convert_ConvertConstantAndCheck (location_t location, tree type, tree expr)
       || type == m2type_GetM2Word64 ())
     return const_to_ISO_type (location, expr, type);
   
-  return convert_and_check (type, m2expr_FoldAndStrip (expr));
+  return convert_and_check (location, type, m2expr_FoldAndStrip (expr));
 }
 
 

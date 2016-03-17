@@ -19,6 +19,7 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "gm2-gcc/gcc-consolidation.h"
 #include <p2c/p2c.h>
 
 #include "GM2Reserved.h"
@@ -54,7 +55,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
   struct lineInfo {
     char            *linebuf;          /* line contents */
-    int              linelen;          /* length */
+    unsigned int     linelen;          /* length */
     int              tokenpos;         /* start position of token within line */
     int              toklen;           /* a copy of yylen (length of token) */
     int              nextpos;          /* position after token */
@@ -365,7 +366,7 @@ static void handleDate (void)
 static void handleFunction (void)
 {
   if (currentFunction == NULL)
-    M2LexBuf_AddTokCharStar(M2Reserved_stringtok, (void *)"\"\"");
+    M2LexBuf_AddTokCharStar(M2Reserved_stringtok, const_cast<char *>("\"\""));
   else if (currentFunction->module) {
     char *s = (char *) alloca(strlen(yytext) +
 			      strlen("\"module  initialization\"") + 1);
@@ -704,8 +705,6 @@ int m2flex_GetColumnNo (void)
   else
     return 0;
 }
-
-static void stop (void) {}
 
 /*
  *  m2flex_GetLocation - returns the gcc location_t of the current token.

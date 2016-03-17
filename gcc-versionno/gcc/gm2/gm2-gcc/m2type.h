@@ -1,4 +1,4 @@
-/* Copyright (C) 2012
+/* Copyright (C) 2012, 2013, 2014, 2015
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -48,7 +48,7 @@ EXTERN tree m2type_GetArrayNoOfElements (location_t location, tree arraytype);
 EXTERN tree m2type_BuildArrayIndexType (tree low, tree high);
 EXTERN void m2type_GarbageCollect (void);
 EXTERN void m2type_MarkFunctionReferenced (tree f);
-EXTERN void m2type_AddStatement (tree t);
+EXTERN void m2type_AddStatement (location_t location, tree t);
 EXTERN tree m2type_BuildNumberOfArrayElements (location_t location, tree arrayType);
 EXTERN tree m2type_BuildPackedFieldRecord (location_t location, char *name, tree fieldtype);
 EXTERN tree m2type_SetRecordFieldOffset (tree field, tree byteOffset, tree bitOffset, tree fieldtype, tree nbits);

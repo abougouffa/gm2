@@ -26,43 +26,8 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA.
 */
 
-#include "config.h"
-#include "system.h"
+#include "gm2-gcc/gcc-consolidation.h"
 
-#include "coretypes.h"
-#include "line-map.h"
-#include "input.h"
-#include "tm.h"
-#include "version.h"
-
-#include "tree.h"
-#include "toplev.h"
-#include "tm_p.h"
-#include "flags.h"
-#include "tree-inline.h"
-#include "output.h"
-#include "pointer-set.h"
-#include "tree-iterator.h"
-
-#include <stdio.h>
-
-/*
- *  utilize some of the C build routines
- */
-
-#include "c-tree.h"
-#include "rtl.h"
-#include "function.h"
-#include "expr.h"
-#include "output.h"
-#include "ggc.h"
-#include "intl.h"
-#include "convert.h"
-#include "target.h"
-#include "debug.h"
-#include "diagnostic.h"
-#include "except.h"
-#include "libfuncs.h"
 #include "gm2-tree.h"
 #include "gm2-lang.h"
 
@@ -74,7 +39,6 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #if defined(CPP)
 #  include "cp-tree.h"
 #endif
-
 
 #define M2PP_C
 #include "gm2/m2pp.h"
@@ -788,7 +752,7 @@ m2pp_module_block (pretty *s, tree t)
 	break;
 
       default:
-	m2pp_unknown (s, __FUNCTION__, tree_code_name[TREE_CODE (t)]);
+	m2pp_unknown (s, __FUNCTION__, get_tree_code_name(TREE_CODE (t)));
       }
     }
 }
@@ -1488,7 +1452,7 @@ m2pp_type (pretty *s, tree t)
       m2pp_complex (s, t);
       break;
     default:
-      m2pp_unknown (s, __FUNCTION__, tree_code_name[TREE_CODE (t)]);
+      m2pp_unknown (s, __FUNCTION__, get_tree_code_name (TREE_CODE (t)));
     }
 }
 
@@ -1780,7 +1744,7 @@ m2pp_simple_type (pretty *s, tree t)
       m2pp_complex (s, t);
       break;
     default:
-      m2pp_unknown (s, __FUNCTION__, tree_code_name[TREE_CODE (t)]);
+      m2pp_unknown (s, __FUNCTION__, get_tree_code_name (TREE_CODE (t)));
     }
 }
 
@@ -2133,7 +2097,7 @@ m2pp_simple_expression (pretty *s, tree t)
       m2pp_bit_ior_expr (s, t);
       break;
     default:
-      m2pp_unknown (s, __FUNCTION__, tree_code_name[code]);
+      m2pp_unknown (s, __FUNCTION__, get_tree_code_name (code));
     }
 }
 
@@ -2443,7 +2407,7 @@ m2pp_statement (pretty *s, tree t)
       m2pp_print (s, "<ERROR CODE>\n");
       break;
     default:
-      m2pp_unknown (s, __FUNCTION__, tree_code_name[TREE_CODE (t)]);
+      m2pp_unknown (s, __FUNCTION__, get_tree_code_name (TREE_CODE (t)));
     }
 }
 
