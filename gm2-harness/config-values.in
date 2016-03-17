@@ -1,7 +1,7 @@
 GCC=@gccrelease@
 GITURL=git://git.sv.gnu.org/gm2.git
 BUILDDIR=build
-DOWNLOADDIR=download
+DOWNLOADDIR=@cachedir@
 SOURCEDIR=sources
 GCCURL=ftp://ftp.mirrorservice.org/sites/sources.redhat.com/pub/gcc/releases/
 PREFIX=@prefix@

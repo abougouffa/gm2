@@ -15,4 +15,5 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA. */
+
 #define version_string  "1.0"
