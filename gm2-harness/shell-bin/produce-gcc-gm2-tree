@@ -2,6 +2,7 @@
 
 source config-values
 BRANCH=""
+BRANCHOPT=""
 
 
 #
@@ -10,13 +11,16 @@ BRANCH=""
 
 function checkGCC () {
     case ${GCC} in
-	4.1.? )  BRANCH="-b gcc_4_1_2_gm2" ;;
-	4.7.? )  BRANCH="-b gcc_4_7_4_gm2" ;;
-	5.2.0 )  BRANCH="-b gcc_5_2_0_gm2" ;;
-	5.3.0 )  BRANCH="-b gcc_5_3_0_gm2" ;;
+	4.1.? )  BRANCH="gcc_4_1_2_gm2" ;;
+	4.7.? )  BRANCH="gcc_4_7_4_gm2" ;;
+	5.2.0 )  BRANCH="gcc_5_2_0_gm2" ;;
+	5.3.0 )  BRANCH="gcc_5_3_0_gm2" ;;
 	none  )  BRANCH="" ;;
 	*     )  echo "it is unlikely that GNU Modula-2 will work with gcc-${GCC}" ;;
     esac
+    if [ "${BRANCH}" != "" ] ; then
+	BRANCHOPT="-b ${BRANCH}"
+    fi
 }
 
 
@@ -36,8 +40,10 @@ function checkok () {
 
 function git-clone () {
     checkok "git clone ${GITURL} ${BRANCH}" "git clone source code"
+    checkok "cd gm2"
+    checkok "git checkout ${BRANCH}"
+    checkok "cd .."
 }
-
 
 
 function unpackgcc () {
