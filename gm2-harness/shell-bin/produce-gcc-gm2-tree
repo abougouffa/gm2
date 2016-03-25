@@ -40,7 +40,7 @@ function checkok () {
 
 function git-clone () {
     checkGCC
-    checkok "git clone ${GITURL} ${BRANCH}" "git clone source code"
+    checkok "git clone ${GITURL} ${BRANCHOPT}" "git clone source code"
     checkok "cd gm2"
     checkok "git checkout ${BRANCH}"
     checkok "cd .."
