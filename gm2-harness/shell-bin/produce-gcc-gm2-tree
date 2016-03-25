@@ -2,6 +2,7 @@
 
 source config-values
 BRANCH=""
+BRANCHOPT=""
 
 
 #
@@ -10,10 +11,16 @@ BRANCH=""
 
 function checkGCC () {
     case ${GCC} in
-	4.1.? )  BRANCH="-b gcc_4_1_2_gm2" ;;
-	4.7.? )  BRANCH="" ;;
+	4.1.? )  BRANCH="gcc_4_1_2_gm2" ;;
+	4.7.? )  BRANCH="gcc_4_7_4_gm2" ;;
+	5.2.0 )  BRANCH="gcc_5_2_0_gm2" ;;
+	5.3.0 )  BRANCH="gcc_5_3_0_gm2" ;;
+	none  )  BRANCH="" ;;
 	*     )  echo "it is unlikely that GNU Modula-2 will work with gcc-${GCC}" ;;
     esac
+    if [ "${BRANCH}" != "" ] ; then
+	BRANCHOPT="-b ${BRANCH}"
+    fi
 }
 
 
@@ -22,7 +29,6 @@ function checkGCC () {
 #
 
 function checkok () {
-    echo $1
     if $1 ; then
         echo "$2: passed"
     else
@@ -33,9 +39,12 @@ function checkok () {
 
 
 function git-clone () {
-    checkok "git clone ${GITURL} ${BRANCH}" "git clone source code"
+    checkGCC
+    checkok "git clone ${GITURL} ${BRANCHOPT}" "git clone source code"
+    checkok "cd gm2" "cd gm2"
+    checkok "git checkout ${BRANCH}"
+    checkok "cd .." "cd .."
 }
-
 
 
 function unpackgcc () {
@@ -85,8 +94,6 @@ function checkPatchGCC () {
    fi
 }
 
-
-checkGCC
 
 mkdir -p ${DOWNLOADDIR} ${SOURCEDIR}
 echo "this will remove `pwd`/${SOURCEDIR}/gm2"
