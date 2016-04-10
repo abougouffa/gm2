@@ -25,7 +25,7 @@ FROM DynamicStrings IMPORT string, InitString, Mark, KillString, EqualArray, Ini
                            Dup, ConCat, ConCatChar, RIndex, Slice ;
 
 FROM libc IMPORT system, exit, unlink, printf ;
-FROM lists IMPORT list, initList, killList, includeItemIntoList, foreachItemInListDo ;
+FROM alists IMPORT alist, initList, killList, includeItemIntoList, foreachItemInListDo ;
 FROM M2RTS IMPORT InstallTerminationProcedure ;
 FROM FIO IMPORT StdErr, StdOut ;
 FROM mcPrintf IMPORT fprintf1 ;
@@ -33,7 +33,7 @@ FROM mcOptions IMPORT getVerbose, getCppCommandLine ;
 
 
 VAR
-   listOfFiles: list ;
+   listOfFiles: alist ;
 
 
 (*

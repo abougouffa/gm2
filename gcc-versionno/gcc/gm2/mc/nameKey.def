@@ -72,7 +72,7 @@ PROCEDURE getKey (key: Name; VAR a: ARRAY OF CHAR) ;
    lengthKey - returns the length of a Key.
 *)
 
-PROCEDURE lengthKey (Key: Name) : CARDINAL ;
+PROCEDURE lengthKey (key: Name) : CARDINAL ;
 
 
 (*

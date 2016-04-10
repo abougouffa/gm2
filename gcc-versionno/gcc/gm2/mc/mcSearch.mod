@@ -268,13 +268,13 @@ END setModExtension ;
                     Number         ::= 0..9
 *)
 
-PROCEDURE initSearchPath (Path: String) ;
+PROCEDURE initSearchPath (path: String) ;
 BEGIN
    IF InitialPath#NIL
    THEN
       InitialPath := KillString (InitialPath)
    END ;
-   InitialPath := Path
+   InitialPath := path
 END initSearchPath ;
 
 

@@ -396,26 +396,26 @@ END writeFormat3 ;
    newError - creates and returns a new error handle.
 *)
 
-PROCEDURE newError (AtTokenNo: CARDINAL) : error ;
+PROCEDURE newError (atTokenNo: CARDINAL) : error ;
 VAR
    e, f: error ;
 BEGIN
    NEW (e) ;
    WITH e^ DO
       s      := NIL ;
-      token  := AtTokenNo ;
+      token  := atTokenNo ;
       next   := NIL ;
       parent := NIL ;
       child  := NIL ;
       fatal  := TRUE
    END ;
-   IF (head=NIL) OR (head^.token>AtTokenNo)
+   IF (head=NIL) OR (head^.token>atTokenNo)
    THEN
       e^.next := head ;
       head    := e
    ELSE
       f := head ;
-      WHILE (f^.next#NIL) AND (f^.next^.token<AtTokenNo) DO
+      WHILE (f^.next#NIL) AND (f^.next^.token<atTokenNo) DO
          f := f^.next
       END ;
       e^.next := f^.next ;

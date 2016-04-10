@@ -70,7 +70,7 @@ PROCEDURE getSymKey (t: symbolTree; name: Name) : ADDRESS ;
                SymKey is the value stored with name.
 *)
 
-PROCEDURE putSymKey (t: symbolTree; name: Name; SymKey: ADDRESS) ;
+PROCEDURE putSymKey (t: symbolTree; name: Name; key: ADDRESS) ;
 
 
 (*

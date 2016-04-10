@@ -92,7 +92,7 @@ PROCEDURE writeFormat3 (a: ARRAY OF CHAR; w1, w2, w3: ARRAY OF BYTE) ;
    newError - creates and returns a new error handle.
 *)
 
-PROCEDURE newError (AtTokenNo: CARDINAL) : error ;
+PROCEDURE newError (atTokenNo: CARDINAL) : error ;
 
 
 (*
@@ -100,7 +100,7 @@ PROCEDURE newError (AtTokenNo: CARDINAL) : error ;
                 A warning will not stop compilation.
 *)
 
-PROCEDURE newWarning (AtTokenNo: CARDINAL) : error ;
+PROCEDURE newWarning (atTokenNo: CARDINAL) : error ;
 
 
 (*
@@ -108,7 +108,7 @@ PROCEDURE newWarning (AtTokenNo: CARDINAL) : error ;
                 is associated with, e, and is chained onto the end of, e.
 *)
 
-PROCEDURE chainError (AtTokenNo: CARDINAL; e: error) : error ;
+PROCEDURE chainError (atTokenNo: CARDINAL; e: error) : error ;
 
 
 (*

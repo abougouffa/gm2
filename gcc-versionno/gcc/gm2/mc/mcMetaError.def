@@ -98,7 +98,7 @@ FROM DynamicStrings IMPORT String ;
    then := [ ':' ebnf ] =:
 *)
 
-PROCEDURE metaError1 (m: ARRAY OF CHAR; n: ARRAY OF BYTE) ;
+PROCEDURE metaError1 (m: ARRAY OF CHAR; s: ARRAY OF BYTE) ;
 PROCEDURE metaError2 (m: ARRAY OF CHAR; s1, s2: ARRAY OF BYTE) ;
 PROCEDURE metaError3 (m: ARRAY OF CHAR; s1, s2, s3: ARRAY OF BYTE) ;
 PROCEDURE metaError4 (m: ARRAY OF CHAR; s1, s2, s3, s4: ARRAY OF BYTE) ;
