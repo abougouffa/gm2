@@ -71,7 +71,7 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 makeArray, putUnbounded, getCardinal, makeBinaryTok, makeUnaryTok,
 		 makeRecord, isRecord, isRecordField, isVarientField, makeVarient,
 		 addFieldsToRecord, isVarient, buildVarientSelector,
- 		 buildVarientFieldRecord,
+ 		 buildVarientFieldRecord, makeVarDecl,
 		 makeIdentList, putIdent, addVarParameters, addNonVarParameters,
 		 lookupInScope, import, lookupExported, isImp, isModule, isConst,
 		 makeLiteralInt, makeLiteralReal, makeString, getBuiltinConst,
@@ -931,14 +931,23 @@ VariableDeclaration := VarIdentList ":"
                        Type Alignment
                      =:
 
-DefVarIdent := Ident
+DefVarIdent :=                                                          % VAR n: node ; %
+                                                                        % n := pop () %
+               Ident                                                    % checkDuplicate (putIdent (n, curident)) %
+	                                                                % n := push (n) %
                      [ "[" ConstExpression "]" ]
              =:
 
-DefVarIdentList := DefVarIdent { "," DefVarIdent }
+DefVarIdentList :=                                                      % VAR n: node ; %
+                                                                        % n := makeIdentList () %
+                                                                        % n := push (n) %
+                   DefVarIdent { "," DefVarIdent }
                  =:
 
-DefVariableDeclaration := DefVarIdentList ":" Type Alignment
+DefVariableDeclaration :=                                               % VAR v, d: node ; %
+                          DefVarIdentList                               % v := pop () %
+			                  ":" Type                      % d := makeVarDecl (v, pop ()) %
+			                           Alignment
                         =:
 
 Designator := PushQualident
@@ -1165,8 +1174,8 @@ FormalType :=                                                         % VAR c: C
 
 ModuleDeclaration := "MODULE" Ident [ Priority ] ";"
                         { Import } [ Export ]
-                      Block Ident
-                     =:
+                        Block Ident
+                   =:
 
 Priority := "[" ConstExpression "]" =:
 
