@@ -1,0 +1,790 @@
+(* Copyright (C) 2015, 2016
+   Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)
+
+DEFINITION MODULE decl ;
+
+(*
+    Title      : decl
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Thu Nov 19 17:16:13 2015
+    Revision   : $Version$
+    Description: provides an interface to decl.
+*)
+
+FROM nameKey IMPORT Name ;
+FROM symbolKey IMPORT performOperation ;
+FROM mcReserved IMPORT toktype ;
+
+TYPE
+   node ;
+   isNodeF = PROCEDURE (node) : BOOLEAN ;
+
+
+(*
+   getDeclaredMod - returns the token number associated with the nodes declaration
+                    in the implementation or program module.
+*)
+
+PROCEDURE getDeclaredMod (n: node) : CARDINAL ;
+
+
+(*
+   getDeclaredDef - returns the token number associated with the nodes declaration
+                    in the definition module.
+*)
+
+PROCEDURE getDeclaredDef (n: node) : CARDINAL ;
+
+
+(*
+   getFirstUsed - returns the token number associated with the first use of
+                  node, n.
+*)
+
+PROCEDURE getFirstUsed (n: node) : CARDINAL ;
+
+
+(*
+   isDef - return TRUE if node, n, is a definition module.
+*)
+
+PROCEDURE isDef (n: node) : BOOLEAN ;
+
+
+(*
+   isImp - return TRUE if node, n, is an implementation module.
+*)
+
+PROCEDURE isImp (n: node) : BOOLEAN ;
+
+
+(*
+   resetEnumPos - resets the index into the saved list of enums inside
+                  module, n.
+*)
+
+PROCEDURE resetEnumPos (n: node) ;
+
+
+(*
+   getNextEnum - returns the next enumeration node.
+*)
+
+PROCEDURE getNextEnum () : node ;
+
+
+(*
+   isModule - return TRUE if node, n, is a program module.
+*)
+
+PROCEDURE isModule (n: node) : BOOLEAN ;
+
+
+(*
+   isMainModule - return TRUE if node, n, is the main module specified
+                  by the source file.  This might be a definition,
+                  implementation or program module.
+*)
+
+PROCEDURE isMainModule (n: node) : BOOLEAN ;
+
+
+(*
+   setMainModule - sets node, n, as the main module to be compiled.
+*)
+
+PROCEDURE setMainModule (n: node) ;
+
+
+(*
+   setCurrentModule - sets node, n, as the current module being compiled.
+*)
+
+PROCEDURE setCurrentModule (n: node) ;
+
+
+(*
+   lookupDef - returns a definition module node named, n.
+*)
+
+PROCEDURE lookupDef (n: Name) : node ;
+
+
+(*
+   lookupImp - returns an implementation module node named, n.
+*)
+
+PROCEDURE lookupImp (n: Name) : node ;
+
+
+(*
+   lookupModule - returns a module node named, n.
+*)
+
+PROCEDURE lookupModule (n: Name) : node ;
+
+
+(*
+   lookupInScope - looks up a symbol named, n, from, scope.
+*)
+
+PROCEDURE lookupInScope (scope: node; n: Name) : node ;
+
+
+(*
+   isConst - returns TRUE if node, n, is a const.
+*)
+
+PROCEDURE isConst (n: node) : BOOLEAN ;
+
+
+(*
+   isType - returns TRUE if node, n, is a type.
+*)
+
+PROCEDURE isType (n: node) : BOOLEAN ;
+
+
+(*
+   putType - places, exp, as the type alias to des.
+             TYPE des = exp ;
+*)
+
+PROCEDURE putType (des, exp: node) ;
+
+
+(*
+   getType - returns the type associated with node, n.
+*)
+
+PROCEDURE getType (n: node) : node ;
+
+
+(*
+   skipType - skips over type aliases.
+*)
+
+PROCEDURE skipType (n: node) : node ;
+
+
+(*
+   putTypeHidden - marks type, des, as being a hidden type.
+                   TYPE des ;
+*)
+
+PROCEDURE putTypeHidden (des: node) ;
+
+
+(*
+   isTypeHidden - returns TRUE if type, n, is hidden.
+*)
+
+PROCEDURE isTypeHidden (n: node) : BOOLEAN ;
+
+
+(*
+   isVar - returns TRUE if node, n, is a type.
+*)
+
+PROCEDURE isVar (n: node) : BOOLEAN ;
+
+
+(*
+   isTemporary - returns TRUE if node, n, is a variable and temporary.
+*)
+
+PROCEDURE isTemporary (n: node) : BOOLEAN ;
+
+
+(*
+   isExported - returns TRUE if symbol, n, is exported from
+                the definition module.
+*)
+
+PROCEDURE isExported (n: node) : BOOLEAN ;
+
+
+(*
+   getDeclScope - returns the node representing the
+                  current declaration scope.
+*)
+
+PROCEDURE getDeclScope () : node ;
+
+
+(*
+   getScope - returns the scope associated with node, n.
+*)
+
+PROCEDURE getScope (n: node) : node ;
+
+
+(*
+   isLiteral - returns TRUE if, n, is a literal.
+*)
+
+PROCEDURE isLiteral (n: node) : BOOLEAN ;
+
+
+(*
+   isConstSet - returns TRUE if, n, is a constant set.
+*)
+
+PROCEDURE isConstSet (n: node) : BOOLEAN ;
+
+
+(*
+   isEnumerationField - returns TRUE if, n, is an enumeration field.
+*)
+
+PROCEDURE isEnumerationField (n: node) : BOOLEAN ;
+
+
+(*
+   isEnumeration - returns TRUE if node, n, is an enumeration type.
+*)
+
+PROCEDURE isEnumeration (n: node) : BOOLEAN ;
+
+
+(*
+   isUnbounded - returns TRUE if, n, is an unbounded array.
+*)
+
+PROCEDURE isUnbounded (n: node) : BOOLEAN ;
+
+
+(*
+   isParameter - returns TRUE if, n, is a parameter.
+*)
+
+PROCEDURE isParameter (n: node) : BOOLEAN ;
+
+
+(*
+   isVarParam - returns TRUE if, n, is a var parameter.
+*)
+
+PROCEDURE isVarParam (n: node) : BOOLEAN ;
+
+
+(*
+   isParam - returns TRUE if, n, is a non var parameter.
+*)
+
+PROCEDURE isParam (n: node) : BOOLEAN ;
+
+
+(*
+   isNonVarParam - is an alias to isParam.
+*)
+
+PROCEDURE isNonVarParam (n: node) : BOOLEAN ;
+
+
+(*
+   isRecord - returns TRUE if, n, is a record.
+*)
+
+PROCEDURE isRecord (n: node) : BOOLEAN ;
+
+
+(*
+   isRecordField - returns TRUE if, n, is a record field.
+*)
+
+PROCEDURE isRecordField (n: node) : BOOLEAN ;
+
+
+(*
+   isVarientField - returns TRUE if, n, is a varient field.
+*)
+
+PROCEDURE isVarientField (n: node) : BOOLEAN ;
+
+
+(*
+   isArray - returns TRUE if, n, is an array.
+*)
+
+PROCEDURE isArray (n: node) : BOOLEAN ;
+
+
+(*
+   isProcType - returns TRUE if, n, is a procedure type.
+*)
+
+PROCEDURE isProcType (n: node) : BOOLEAN ;
+
+
+(*
+   isPointer - returns TRUE if, n, is a pointer.
+*)
+
+PROCEDURE isPointer (n: node) : BOOLEAN ;
+
+
+(*
+   isProcedure - returns TRUE if, n, is a procedure.
+*)
+
+PROCEDURE isProcedure (n: node) : BOOLEAN ;
+
+
+(*
+   isVarient - returns TRUE if, n, is a varient record.
+*)
+
+PROCEDURE isVarient (n: node) : BOOLEAN ;
+
+
+(*
+   isSet - returns TRUE if, n, is a set type.
+*)
+
+PROCEDURE isSet (n: node) : BOOLEAN ;
+
+
+(*
+   isSubrange - returns TRUE if, n, is a subrange type.
+*)
+
+PROCEDURE isSubrange (n: node) : BOOLEAN ;
+
+
+(*
+   isZtype - returns TRUE if, n, is the Z type.
+*)
+
+PROCEDURE isZtype (n: node) : BOOLEAN ;
+
+
+(*
+   isRtype - returns TRUE if, n, is the R type.
+*)
+
+PROCEDURE isRtype (n: node) : BOOLEAN ;
+
+
+(*
+   makeConst - create, initialise and return a const node.
+*)
+
+PROCEDURE makeConst (n: Name) : node ;
+
+
+(*
+   putConst - places value, v, into node, n.
+*)
+
+PROCEDURE putConst (n: node; v: node) ;
+
+
+(*
+   makeType - create, initialise and return a type node.
+*)
+
+PROCEDURE makeType (n: Name) : node ;
+
+
+(*
+   makeVar - create, initialise and return a var node.
+*)
+
+PROCEDURE makeVar (n: Name) : node ;
+
+
+(*
+   putVar - places, type, as the type for var.
+*)
+
+PROCEDURE putVar (var, type, decl: node) ;
+
+
+(*
+   makeVarDecl - creates a variable declaration list from
+                 identlist, i, and, type, in the current scope.
+*)
+
+PROCEDURE makeVarDecl (i: node; type: node) : node ;
+
+
+(*
+   makeEnum - creates an enumerated type and returns the node.
+*)
+
+PROCEDURE makeEnum () : node ;
+
+
+(*
+   makeEnumField - returns an enumeration field, named, n.
+*)
+
+PROCEDURE makeEnumField (e: node; n: Name) : node ;
+
+
+(*
+   makeSubrange - returns a subrange node, built from range: low..high.
+*)
+
+PROCEDURE makeSubrange (low, high: node) : node ;
+
+
+(*
+   putSubrangeType - assigns, type, to the subrange type, sub.
+*)
+
+PROCEDURE putSubrangeType (sub, type: node) ;
+
+
+(*
+   makePointer - returns a pointer of, type, node.
+*)
+
+PROCEDURE makePointer (type: node) : node ;
+
+
+(*
+   makeSet - returns a set of, type, node.
+*)
+
+PROCEDURE makeSet (type: node) : node ;
+
+
+(*
+   makeArray - returns a node representing ARRAY subrange OF type.
+*)
+
+PROCEDURE makeArray (subr, type: node) : node ;
+
+
+(*
+   putUnbounded - sets array, n, as unbounded.
+*)
+
+PROCEDURE putUnbounded (n: node) ;
+
+
+(*
+   makeRecord - creates and returns a record node.
+*)
+
+PROCEDURE makeRecord () : node ;
+
+
+(*
+   makeVarient - creates a new symbol, a varient symbol for record or varient field
+                 symbol, r.
+*)
+
+PROCEDURE makeVarient (r: node) : node ;
+
+
+(*
+   addFieldsToRecord - adds fields, i, of type, t, into a record, r.
+                       It returns, r.
+*)
+
+PROCEDURE addFieldsToRecord (r, v, i, t: node) : node ;
+
+
+(*
+   buildVarientSelector - builds a field of name, tag, of, type, t, varient, r.
+*)
+
+PROCEDURE buildVarientSelector (r, v: node; tag: Name; type: node) ;
+
+
+(*
+   buildVarientFieldRecord - builds a varient field into a varient symbol, v.
+                             The varient field is returned.
+*)
+
+PROCEDURE buildVarientFieldRecord (v: node) : node ;
+
+
+(*
+   getSymName - returns the name of symbol, n.
+*)
+
+PROCEDURE getSymName (n: node) : Name ;
+
+
+(*
+   import - attempts to add node, n, into the scope of module, m.
+            It might fail due to a name clash in which case the
+            previous named symbol is returned.  On success, n,
+            is returned.
+*)
+
+PROCEDURE import (m, n: node) : node ;
+
+
+(*
+   lookupExported - attempts to lookup a node named, i, from definition
+                    module, n.  The node is returned if found.
+                    NIL is returned if not found.
+*)
+
+PROCEDURE lookupExported (n: node; i: Name) : node ;
+
+
+(*
+   lookupSym - returns the symbol named, n, from the scope stack.
+*)
+
+PROCEDURE lookupSym (n: Name) : node ;
+
+
+(*
+   addImportedModule - add module, i, to be imported by, m.
+*)
+
+PROCEDURE addImportedModule (m, i: node) ;
+
+
+(*
+   setSource - sets the source filename for module, n, to s.
+*)
+
+PROCEDURE setSource (n: node; s: Name) ;
+
+
+(*
+   getSource - returns the source filename for module, n.
+*)
+
+PROCEDURE getSource (n: node) : Name ;
+
+
+(*
+   getMainModule - returns the main module node.
+*)
+
+PROCEDURE getMainModule () : node ;
+
+
+(*
+   getCurrentModule - returns the current module being compiled.
+*)
+
+PROCEDURE getCurrentModule () : node ;
+
+
+(*
+   foreachDefModuleDo - foreach definition node, n, in the module universe,
+                        call p (n).
+*)
+
+PROCEDURE foreachDefModuleDo (p: performOperation) ;
+
+
+(*
+   enterScope - pushes symbol, n, to the scope stack.
+*)
+
+PROCEDURE enterScope (n: node) ;
+
+
+(*
+   leaveScope - removes the top level scope and all enumeration transparent scopes.
+*)
+
+PROCEDURE leaveScope ;
+
+
+(*
+   makeProcedure - create, initialise and return a procedure node.
+*)
+
+PROCEDURE makeProcedure (n: Name) : node ;
+
+
+(*
+   makeProcType - returns a proctype node.
+*)
+
+PROCEDURE makeProcType () : node ;
+
+
+(*
+   putProcTypeOptReturn - sets, proc, to have an optional return type.
+*)
+
+PROCEDURE putProcTypeOptReturn (proc: node) ;
+
+
+(*
+   putProcTypeReturn - sets the return type of, proc, to, type.
+*)
+
+PROCEDURE putProcTypeReturn (proc, type: node) ;
+
+
+(*
+   makeVarParameter - returns a var parameter node with namelist and type.
+                      Where the parameters are declared as l: type.
+*)
+
+PROCEDURE makeVarParameter (l: node; type: node) : node ;
+
+
+(*
+   makeNonVarParameter - returns a non var parameter node with namelist and type.
+                         Where the parameters are declared as l: type.
+*)
+
+PROCEDURE makeNonVarParameter (l: node; type: node) : node ;
+
+
+(*
+   makeIdentList - returns a node which will be used to maintain an ident list.
+*)
+
+PROCEDURE makeIdentList () : node ;
+
+
+(*
+   putIdent - places ident, i, into identlist, n.
+*)
+
+PROCEDURE putIdent (n: node; i: Name) : BOOLEAN ;
+
+
+(*
+   addVarParameters - adds the identlist, i, of, type, to be VAR parameters
+                      in procedure, n.
+*)
+
+PROCEDURE addVarParameters (n: node; i: node; type: node) ;
+
+
+(*
+   addNonVarParameters - adds the identlist, i, of, type, to be parameters
+                         in procedure, n.
+*)
+
+PROCEDURE addNonVarParameters (n: node; i: node; type: node) ;
+
+
+(*
+   makeVarargs - returns a varargs node.
+*)
+
+PROCEDURE makeVarargs () : node ;
+
+
+(*
+   isVarargs - returns TRUE if, n, is a varargs node.
+*)
+
+PROCEDURE isVarargs (n: node) : BOOLEAN ;
+
+
+(*
+   addParameter - adds a parameter, param, to procedure or proctype, proc.
+*)
+
+PROCEDURE addParameter (proc, param: node) ;
+
+
+(*
+   makeBinaryTok - creates and returns a boolean type node with,
+                   l, and, r, nodes.
+*)
+
+PROCEDURE makeBinaryTok (op: toktype; l, r: node) : node ;
+
+
+(*
+   makeUnaryTok - creates and returns a boolean type node with,
+                  e, node.
+*)
+
+PROCEDURE makeUnaryTok (op: toktype; e: node) : node ;
+
+
+(*
+   getCardinal - returns the cardinal type node.
+*)
+
+PROCEDURE getCardinal () : node ;
+
+
+(*
+   makeLiteralInt - creates and returns a literal node based on an integer type.
+*)
+
+PROCEDURE makeLiteralInt (n: Name) : node ;
+
+
+(*
+   makeLiteralReal - creates and returns a literal node based on a real type.
+*)
+
+PROCEDURE makeLiteralReal (n: Name) : node ;
+
+
+(*
+   makeString - creates and returns a node containing string, n.
+*)
+
+PROCEDURE makeString (n: Name) : node ;
+
+
+(*
+   getBuiltinConst - creates and returns a builtin const if available.
+*)
+
+PROCEDURE getBuiltinConst (n: Name) : node ;
+
+
+(*
+   setLangC - set the target language as ansi C.
+*)
+
+PROCEDURE setLangC ;
+
+
+(*
+   setLangCP - set the target language as C++.
+*)
+
+PROCEDURE setLangCP ;
+
+
+(*
+   setLangM2 - set the target language as Modula-2.
+*)
+
+PROCEDURE setLangM2 ;
+
+
+(*
+   out - walks the tree of node declarations for the main module
+         and writes the output to the outputFile specified in
+         mcOptions.  It outputs the declarations in the language
+         specified above.
+*)
+
+PROCEDURE out ;
+
+
+END decl.
