@@ -70,7 +70,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
   static int                  isDefinitionModule=FALSE;
   static int                  totalLines=0;
 
-        void mcflex_M2Error           (const char *);
+        void mcflex_mcError           (const char *);
 static  void pushLine                 (void);
 static  void popLine                  (void);
 static  void finishedLine             (void);

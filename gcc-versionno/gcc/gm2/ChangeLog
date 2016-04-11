@@ -16,6 +16,8 @@
 	* gm2/mc/mcSearch.def:  consistant parameter declarations.
 	* gm2/mc/mcSearch.mod:  consistant parameter declarations.
 	* gm2/mc/nameKey.def:  consistant parameter declarations.
+	* gm2/bnf/mc-3.bnf:  fix variable declarations in definition modules.
+	* gm2/mc/mc.flex:  correct prototype.
 
 2016-03-14      Gaius Mulley <gaius@gnu.org>
 
