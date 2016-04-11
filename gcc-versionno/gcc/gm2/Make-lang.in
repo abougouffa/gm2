@@ -1624,7 +1624,13 @@ gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-compiler-boot/%.def
 #
 BOOTGM2VERSION=4.7.4
 PGE=${HOME}/GM2/graft-${BOOTGM2VERSION}/build-${BOOTGM2VERSION}/gcc/gm2/pge
-BOOTGM2=${HOME}/GM2/graft-${BOOTGM2VERSION}/build-${BOOTGM2VERSION}/gcc/xgm2 -B${HOME}/GM2/graft-${BOOTGM2VERSION}/build-${BOOTGM2VERSION}/gcc
+BOOTGM2=gm2
+
+MCOPTIONS=-g -c -fsources -fcpp
+MCLINK=-g -fmodules -c
+MCLINK=-g
+GM2SYS=/opt/gm2/lib/gcc/x86_64-linux-gnu/4.7.4/m2/pim
+GM2PATH=$(srcdir)/gm2/mc:$(GM2SYS):$(srcdir)/gm2:gm2/gm2-auto:$(srcdir)/gm2/gm2-libs
 
 mc:  mc-devel
 
@@ -1636,25 +1642,67 @@ mc-autogen: force
 
 
 #
-#  mc-autogen - compiles mc using gm2
+#  mc-devel - compiles mc using gm2
 #
 
 mc-devel: gm2/boot-bin/mc-devel$(exeext)
 
 gm2/boot-bin/mc-devel$(exeext): $(objdir)/gm2/gm2-auto/mcp1.mod \
                                 $(objdir)/gm2/gm2-auto/mcp2.mod \
-                                $(objdir)/gm2/gm2-auto/mcp3.mod
+                                $(objdir)/gm2/gm2-auto/mcp3.mod \
+                                mcflex.c
+	gcc -I$(srcdir)/gm2/mc -c -g mcflex.c
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/decl.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcPretty.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/top.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcStack.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/varargs.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcMetaError.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcOptions.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcComp.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) gm2/gm2-auto/mcp1.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) gm2/gm2-auto/mcp2.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) gm2/gm2-auto/mcp3.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/wlists.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/alists.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/symbolKey.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcReserved.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/nameKey.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcSearch.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcFileName.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcLexBuf.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcQuiet.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcError.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcDebug.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcPrintf.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/Indexing.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcPreprocess.mod
+	cp $(srcdir)/gm2/init/mcinit top.lst
+	$(BOOTGM2) $(MCLINK) -I. -fonlylink -I$(GM2PATH) -fuselist $(srcdir)/gm2/mc/top.mod -o mc
+
+gm2/boot-bin/mc-opt$(exeext): $(objdir)/gm2/gm2-auto/mcp1.mod \
+                                $(objdir)/gm2/gm2-auto/mcp2.mod \
+                                $(objdir)/gm2/gm2-auto/mcp3.mod \
+                                mcflex.c
+	g++ -I$(srcdir)/gm2/mc -c -g mcflex.c
 	$(BOOTGM2) -fsources -fm2-whole-program -g -I$(srcdir)/gm2/mc:$(objdir)/gm2/gm2-auto:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/mc $(srcdir)/gm2/mc/top.mod
 
+mcflex.c: $(srcdir)/gm2/mc/mc.flex
+	flex -t $< > $@
+
 $(objdir)/gm2/gm2-auto/mcp1.mod: $(srcdir)/gm2/bnf/mc-1.bnf
-	$(PGE) $< > $@
+	$(PGE) -l $< > $@
 
 $(objdir)/gm2/gm2-auto/mcp2.mod: $(srcdir)/gm2/bnf/mc-2.bnf
-	$(PGE) $< > $@
+	$(PGE) -l $< > $@
 
 $(objdir)/gm2/gm2-auto/mcp3.mod: $(srcdir)/gm2/bnf/mc-3.bnf
-	$(PGE) $< > $@
+	$(PGE) -l $< > $@
 
+gm2-bootstrap: mc-devel
+	for i in $(HOME)/GM2/graft-5.2.0/ds-examples/*.def ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/gm2/gm2-libs $$i ; done
+	for i in $(srcdir)/gm2/gm2-libs/*.def ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/gm2/gm2-libs $$i ; done
+	for i in $(srcdir)/gm2/gm2-compiler/*.def ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/gm2/gm2-libs:$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-gcc $$i ; done
 
 #
 #  mc-bootstrap - compiles mc using the C version previously

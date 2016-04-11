@@ -122,7 +122,7 @@ PROCEDURE getTokenNo () : CARDINAL ;
                    depth exceeds the file nesting level.
 *)
 
-PROCEDURE tokenToLineNo (TokenNo: CARDINAL; depth: CARDINAL) : CARDINAL ;
+PROCEDURE tokenToLineNo (tokenNo: CARDINAL; depth: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -141,7 +141,7 @@ PROCEDURE getColumnNo () : CARDINAL ;
                      depth exceeds the file nesting level.
 *)
 
-PROCEDURE tokenToColumnNo (TokenNo: CARDINAL; depth: CARDINAL) : CARDINAL ;
+PROCEDURE tokenToColumnNo (tokenNo: CARDINAL; depth: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -152,7 +152,7 @@ PROCEDURE tokenToColumnNo (TokenNo: CARDINAL; depth: CARDINAL) : CARDINAL ;
                            is requested.
 *)
 
-PROCEDURE findFileNameFromToken (TokenNo: CARDINAL; depth: CARDINAL) : String ;
+PROCEDURE findFileNameFromToken (tokenNo: CARDINAL; depth: CARDINAL) : String ;
 
 
 (*

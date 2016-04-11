@@ -66,7 +66,7 @@ PROCEDURE prependSearchPath (path: String) ;
 *)
 
 PROCEDURE findSourceFile (FileName: String;
-                          VAR FullPath: String) : BOOLEAN ;
+                          VAR fullPath: String) : BOOLEAN ;
 
 
 (*
@@ -76,7 +76,7 @@ PROCEDURE findSourceFile (FileName: String;
                        then FALSE is returned and FullPath is set to NIL.
 *)
 
-PROCEDURE findSourceDefFile (Stem: String; VAR FullPath: String) : BOOLEAN ;
+PROCEDURE findSourceDefFile (stem: String; VAR fullPath: String) : BOOLEAN ;
 
 
 (*
@@ -86,7 +86,7 @@ PROCEDURE findSourceDefFile (Stem: String; VAR FullPath: String) : BOOLEAN ;
                        then FALSE is returned and FullPath is set to NIL.
 *)
 
-PROCEDURE findSourceModFile (Stem: String; VAR FullPath: String) : BOOLEAN ;
+PROCEDURE findSourceModFile (stem: String; VAR fullPath: String) : BOOLEAN ;
 
 
 (*

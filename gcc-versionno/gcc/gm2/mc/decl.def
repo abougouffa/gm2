@@ -412,6 +412,21 @@ PROCEDURE makeVar (n: Name) : node ;
 
 
 (*
+   putVar - places, type, as the type for var.
+*)
+
+PROCEDURE putVar (var, type, decl: node) ;
+
+
+(*
+   makeVarDecl - creates a variable declaration list from
+                 identlist, i, and, type, in the current scope.
+*)
+
+PROCEDURE makeVarDecl (i: node; type: node) : node ;
+
+
+(*
    makeEnum - creates an enumerated type and returns the node.
 *)
 

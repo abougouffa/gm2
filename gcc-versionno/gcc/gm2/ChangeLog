@@ -1,3 +1,22 @@
+2016-04-11      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  new very simple rules for mc-devel and
+          initial attempt at gm2-bootstrap using mc.
+	* gm2/mc/decl.def:  implement variable declarations.
+	* gm2/mc/decl.mod:  many changes to implement pass 3 and
+	  the output of recursive data structures.
+	* gm2/mc/mcError.def:  fixed parameter declarations so that they
+	  match their implementation counterparts.
+	* gm2/mc/mcError.mod:  consistant parameter declarations.
+	* gm2/mc/mcLexBuf.def:  fixed parameter declarations so that they
+	  match their implementation counterparts.
+	* gm2/mc/mcMetaError.def:  fixed parameter declarations so that
+          they match their implementation counterparts.
+	* gm2/mc/mcPreprocess.mod:  use alists rather than lists.
+	* gm2/mc/mcSearch.def:  consistant parameter declarations.
+	* gm2/mc/mcSearch.mod:  consistant parameter declarations.
+	* gm2/mc/nameKey.def:  consistant parameter declarations.
+
 2016-03-14      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/mc-1.bnf:  new file.
