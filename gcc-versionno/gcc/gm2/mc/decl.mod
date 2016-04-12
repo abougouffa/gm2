@@ -580,6 +580,16 @@ END isModule ;
 
 
 (*
+   isImpOrModule - returns TRUE if, n, is a program module or implementation module.
+*)
+
+PROCEDURE isImpOrModule (n: node) : BOOLEAN ;
+BEGIN
+   RETURN isImp (n) OR isModule (n)
+END isImpOrModule ;
+
+
+(*
    isProcedure - returns TRUE if node, n, is a procedure.
 *)
 
@@ -1454,6 +1464,23 @@ BEGIN
    END ;
    RETURN addToScope (d)
 END makeProcedure ;
+
+
+(*
+   putReturnType - assigns, type, to the procedure or proctype, p.
+*)
+
+PROCEDURE putReturnType (p: node; type: node) ;
+BEGIN
+   assert (p#NIL) ;
+   assert (isProcedure (p) OR isProcType (p)) ;
+   IF p^.kind = procedure
+   THEN
+      p^.procedureF.returnType := type
+   ELSE
+      p^.proctypeF.returnType := type
+   END
+END putReturnType ;
 
 
 (*
@@ -4117,6 +4144,25 @@ END outDeclsDefC ;
 
 
 (*
+   outDeclsImpC -
+*)
+
+PROCEDURE outDeclsImpC (p: pretty; s: scopeT) ;
+BEGIN
+   simplifyTypes (s) ;
+
+   doP := p ;
+   ForeachIndiceInIndexDo (s.constants, doPopulate) ;
+   ForeachIndiceInIndexDo (s.variables, doPopulate) ;
+   ForeachIndiceInIndexDo (s.types, doPopulate) ;
+
+   topologicallyOutC ;
+
+   ForeachIndiceInIndexDo (s.procedures, doPrototypeC)
+END outDeclsImpC ;
+
+
+(*
    output -
 *)
 
@@ -4842,8 +4888,32 @@ END outDefC ;
 *)
 
 PROCEDURE outImpC (p: pretty; n: node) ;
+VAR
+   s: String ;
 BEGIN
+   s := InitStringCharStar (keyToCharStar (getSource (n))) ;
+   print (p, "/* automatically created by mc from ") ; prints (p, s) ; print (p, ".  */\n\n") ;
+   s := KillString (s) ;
+   s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
+   (* we don't want to include the .h file for this implementation module.  *)
+   print (p, "#define _") ; prints (p, s) ; print (p, "_H\n") ;
+   print (p, "#define _") ; prints (p, s) ; print (p, "_C\n\n") ;
 
+   doP := p ;
+   ForeachIndiceInIndexDo (n^.impF.importedModules, doIncludeC) ;
+
+   print (p, "\n") ;
+
+   IF procUsed
+   THEN
+      print (p, "#   if !defined (PROC_D)\n") ;
+      print (p, "#      defined PROC_D\n") ;
+      print (p, "#      typedef struct { void (*proc)(void); } PROC;\n") ;
+      print (p, "#   endif\n\n")
+   END ;
+
+   outDeclsImpC (p, n^.impF.decls) ;
+   s := KillString (s)
 END outImpC ;
 
 

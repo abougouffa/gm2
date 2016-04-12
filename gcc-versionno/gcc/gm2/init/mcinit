@@ -52,6 +52,7 @@ RTExceptions
 # mcp1    3 gm2/gm2-auto/mcp1.mod
 # mcp2    3 gm2/gm2-auto/mcp2.mod
 # mcp3    3 gm2/gm2-auto/mcp3.mod
+# mcp4    3 gm2/gm2-auto/mcp4.mod
 # mcSearch    3 ../../gcc-5.2.0/gcc/gm2/mc/mcSearch.mod
 # mcComp    2 ../../gcc-5.2.0/gcc/gm2/mc/mcComp.mod
 # top    1 ../../gcc-5.2.0/gcc/gm2/mc/top.mod
@@ -103,6 +104,7 @@ mcQuiet
 mcp1
 mcp2
 mcp3
+mcp4
 mcSearch
 mcComp
 top

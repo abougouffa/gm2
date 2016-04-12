@@ -1650,6 +1650,7 @@ mc-devel: gm2/boot-bin/mc-devel$(exeext)
 gm2/boot-bin/mc-devel$(exeext): $(objdir)/gm2/gm2-auto/mcp1.mod \
                                 $(objdir)/gm2/gm2-auto/mcp2.mod \
                                 $(objdir)/gm2/gm2-auto/mcp3.mod \
+                                $(objdir)/gm2/gm2-auto/mcp4.mod \
                                 mcflex.c
 	gcc -I$(srcdir)/gm2/mc -c -g mcflex.c
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/decl.mod
@@ -1663,6 +1664,7 @@ gm2/boot-bin/mc-devel$(exeext): $(objdir)/gm2/gm2-auto/mcp1.mod \
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) gm2/gm2-auto/mcp1.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) gm2/gm2-auto/mcp2.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) gm2/gm2-auto/mcp3.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) gm2/gm2-auto/mcp4.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/wlists.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/alists.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/symbolKey.mod
@@ -1683,6 +1685,7 @@ gm2/boot-bin/mc-devel$(exeext): $(objdir)/gm2/gm2-auto/mcp1.mod \
 gm2/boot-bin/mc-opt$(exeext): $(objdir)/gm2/gm2-auto/mcp1.mod \
                                 $(objdir)/gm2/gm2-auto/mcp2.mod \
                                 $(objdir)/gm2/gm2-auto/mcp3.mod \
+                                $(objdir)/gm2/gm2-auto/mcp4.mod \
                                 mcflex.c
 	g++ -I$(srcdir)/gm2/mc -c -g mcflex.c
 	$(BOOTGM2) -fsources -fm2-whole-program -g -I$(srcdir)/gm2/mc:$(objdir)/gm2/gm2-auto:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/mc $(srcdir)/gm2/mc/top.mod
@@ -1699,10 +1702,15 @@ $(objdir)/gm2/gm2-auto/mcp2.mod: $(srcdir)/gm2/bnf/mc-2.bnf
 $(objdir)/gm2/gm2-auto/mcp3.mod: $(srcdir)/gm2/bnf/mc-3.bnf
 	$(PGE) -l $< > $@
 
+$(objdir)/gm2/gm2-auto/mcp4.mod: $(srcdir)/gm2/bnf/mc-4.bnf
+	$(PGE) -l $< > $@
+
 gm2-bootstrap: mc-devel
+	./mc -I../../gcc-5.2.0/gcc/gm2/gm2-libs ../../gcc-5.2.0/gcc/gm2/gm2-libs/Args.mod
 	for i in $(HOME)/GM2/graft-5.2.0/ds-examples/*.def ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/gm2/gm2-libs $$i ; done
 	for i in $(srcdir)/gm2/gm2-libs/*.def ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/gm2/gm2-libs $$i ; done
 	for i in $(srcdir)/gm2/gm2-compiler/*.def ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/gm2/gm2-libs:$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-gcc $$i ; done
+	for i in $(srcdir)/gm2/gm2-libs/*.mod ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/gm2/gm2-libs:$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-gcc $$i ; done
 
 #
 #  mc-bootstrap - compiles mc using the C version previously

@@ -76,6 +76,13 @@ PROCEDURE isImp (n: node) : BOOLEAN ;
 
 
 (*
+   isImpOrModule - returns TRUE if, n, is a program module or implementation module.
+*)
+
+PROCEDURE isImpOrModule (n: node) : BOOLEAN ;
+
+
+(*
    resetEnumPos - resets the index into the saved list of enums inside
                   module, n.
 *)
@@ -632,10 +639,10 @@ PROCEDURE putProcTypeOptReturn (proc: node) ;
 
 
 (*
-   putProcTypeReturn - sets the return type of, proc, to, type.
+   putReturnType - assigns, type, to the procedure or proctype, p.
 *)
 
-PROCEDURE putProcTypeReturn (proc, type: node) ;
+PROCEDURE putReturnType (p: node; type: node) ;
 
 
 (*

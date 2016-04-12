@@ -64,7 +64,7 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 enterScope, leaveScope,
 		 addImportedModule, getCurrentModule,
 		 makeEnum, makeEnumField, putType, lookupSym, isDef, makeSubrange,
-                 makeSet, makePointer, makeProcType, putProcTypeReturn,
+                 makeSet, makePointer, makeProcType, putReturnType,
 		 putProcTypeOptReturn, addParameter,
 		 makeVarargs, makeVarParameter, makeNonVarParameter,
 		 putSubrangeType, putConst,
@@ -905,9 +905,9 @@ FormalTypeList := "(" ( ")" FormalReturn |
 
 FormalReturn := [ ":" OptReturnType ] =:
 
-OptReturnType := "[" PushQualident                                     % putProcTypeReturn (curproc, pop ()) %
+OptReturnType := "[" PushQualident                                     % putReturnType (curproc, pop ()) %
                                                                        % putProcTypeOptReturn (curproc) %
-                               "]" | PushQualident                     % putProcTypeReturn (curproc, pop ()) %
+                               "]" | PushQualident                     % putReturnType (curproc, pop ()) %
 	       =:
 
 ProcedureParameters := ProcedureParameter                              % addParameter (curproc, pop ()) %

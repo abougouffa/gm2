@@ -24,7 +24,7 @@ FROM FIO IMPORT StdErr ;
 FROM libc IMPORT exit ;
 
 FROM decl IMPORT node, isNodeF, isDef, isImp, isModule, isMainModule,
-                 setMainModule, setCurrentModule, getSource,
+                 setMainModule, setCurrentModule, getSource, isImpOrModule,
                  lookupDef, lookupModule, lookupImp, setSource, getSymName,
 		 foreachDefModuleDo, getMainModule, out ;
 
@@ -43,6 +43,7 @@ IMPORT mcflex ;
 IMPORT mcp1 ;
 IMPORT mcp2 ;
 IMPORT mcp3 ;
+IMPORT mcp4 ;
 
 
 FROM mcError IMPORT writeFormat0, flushErrors, flushWarnings ;
@@ -73,17 +74,27 @@ BEGIN
    n := initParser (s) ;
    doPass (TRUE, TRUE, 1, p1, 'lexical analysis, modules, root decls and C preprocessor') ;
    doPass (TRUE, TRUE, 2, p2, '[definition modules] type equivalence and enumeration types') ;
-   doPass (TRUE, TRUE, 3, p3, '[definition modules] import lists, constants, types, variables and procedures') ;
-(*
+   doPass (TRUE, TRUE, 3, p3, '[definition modules] import lists, constants, types, variables and procedure declarations') ;
+
    IF NOT isDef (n)
    THEN
-      qprintf0 ('Parse implementation or program module\n') ;
-      doPass (FALSE, FALSE, p4, 4, 'imports and constants') ;
-      doPass (FALSE, FALSE, p5, 5, 'import lists, constants, types, variables and procedures') ;
-      doPass (FALSE, FALSE, p6, 6, 'build tree of all procedure and module initialisation code') ;
-      qprintf0 ('walk tree converting it to C/C++\n')
-   END
-*)
+      IF isImp (n)
+      THEN
+         qprintf0 ('Parse implementation module\n') ;
+         doPass (FALSE, TRUE, 4, p4, '[implementation module] import lists, constants types, variables and procedure declarations') ;
+         (*
+          doPass (FALSE, FALSE, 5, p5, '[implementation module] build code tree for all procedures and module initialisations')
+          *)
+      ELSE
+         qprintf0 ('Parse program module\n') ;
+         doPass (FALSE, FALSE, 4, p4, '[program module] import lists, constants types, variables and procedure declarations') ;
+         (*
+          doPass (FALSE, FALSE, 5, p5, '[program module] build code tree for all procedures and module initialisations')
+          *)
+      END ;
+   END ;
+
+   qprintf0 ('walk tree converting it to C/C++\n') ;
    out
 END doCompile ;
 
@@ -226,6 +237,16 @@ PROCEDURE p3 (n: node) ;
 BEGIN
    pass (3, n, mcp3.CompilationUnit, isDef, openDef)
 END p3 ;
+
+
+(*
+   p4 - wrap the pass procedure with the correct parameter values.
+*)
+
+PROCEDURE p4 (n: node) ;
+BEGIN
+   pass (4, n, mcp4.CompilationUnit, isImpOrModule, openMod)
+END p4 ;
 
 
 (*

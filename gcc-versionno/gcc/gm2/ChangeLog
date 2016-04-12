@@ -1,3 +1,11 @@
+2016-04-12      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added mc-4.bnf to be built.
+	* gm2/bnf/mc-3.bnf:  bug fixes so that return results are recorded from procedure functions.
+	* gm2/init/mcinit:  added mcp4.
+	* gm2/mc/decl.mod:  more development.
+	* gm2/mc/mcComp.mod:  include pass 4.
+
 2016-04-11      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  new very simple rules for mc-devel and
