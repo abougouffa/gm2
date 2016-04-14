@@ -537,8 +537,7 @@ Qualident :=
 ConstantDeclaration := Ident "=" ConstExpression
                      =:
 
-ConstExpression := SimpleConstExpr [ Relation SimpleConstExpr ]
-                 =:
+ConstExpression := SimpleConstExpr [ Relation SimpleConstExpr ] =:
 
 Relation := "="
             | "#"
@@ -550,8 +549,7 @@ Relation := "="
             | "IN"
          =:
 
-SimpleConstExpr := UnaryOrConstTerm { AddOperator ConstTerm
-                                    } =:
+SimpleConstExpr := UnaryOrConstTerm { AddOperator ConstTerm } =:
 
 UnaryOrConstTerm := "+"
                     ConstTerm
@@ -881,7 +879,8 @@ RetryStatement := "RETRY"
 AssignmentOrProcedureCall := Designator
                              ( ":=" Expression
                                 |
-                                  [ ActualParameters ] )
+                                  ActualParameters |                     % (* epsilon *) %
+                             )
                            =:
 
 -- these two break LL1 as both start with a Designator

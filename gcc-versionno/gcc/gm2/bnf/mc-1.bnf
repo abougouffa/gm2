@@ -68,6 +68,7 @@ CONST
 VAR
    WasNoError: BOOLEAN ;
    curident  : Name ;
+   curproc,
    curmodule : node ;
 
 
@@ -533,9 +534,6 @@ Qualident :=
              Ident { "." Ident }
            =:
 
-ConstantDeclaration := Ident "=" ConstExpression
-                     =:
-
 ConstExpression := SimpleConstExpr [ Relation SimpleConstExpr ]
                  =:
 
@@ -792,27 +790,14 @@ ProcedureParameters := ProcedureParameter
 
 ProcedureParameter := "..." | "VAR" FormalType | FormalType =:
 
-
-VarIdent := Ident [ "[" ConstExpression "]" ]
-          =:
-
-VarIdentList := VarIdent { "," VarIdent }
-              =:
-
-VariableDeclaration := VarIdentList ":"
-                       Type Alignment
-                     =:
-
-DefVarIdent := Ident		                                     % VAR n: node ; %
+VarIdent := Ident		                                     % VAR n: node ; %
                                                                      % n := makeVar (curident) %
-                     [ "[" ConstExpression "]" ]
+                  [ "[" ConstExpression "]" ]
              =:
 
-DefVarIdentList := DefVarIdent { "," DefVarIdent }
-                 =:
+VarIdentList := VarIdent { "," VarIdent } =:
 
-DefVariableDeclaration := DefVarIdentList ":" Type Alignment
-                        =:
+VariableDeclaration := VarIdentList ":" Type Alignment =:
 
 Designator := Qualident
               { SubDesignator } =:
@@ -880,10 +865,10 @@ RetryStatement := "RETRY"
                 =:
 
 AssignmentOrProcedureCall := Designator
-                             ( ":=" Expression
-                                |
-                                  [ ActualParameters ] )
-                           =:
+                             ( ":=" Expression |
+                                    ActualParameters |                     % (* epsilon *) %
+                             )
+			   =:
 
 -- these two break LL1 as both start with a Designator
 -- ProcedureCall := Designator [ ActualParameters ] =:
@@ -953,14 +938,15 @@ ProcedureDeclaration := ProcedureHeading ";" ProcedureBlock
                         Ident
                       =:
 
-ProcedureIdent := Ident                                                   % VAR n: node ; %
-                                                                          % n := makeProcedure (curident) %
+ProcedureIdent := Ident                                                   % curproc := makeProcedure (curident) %
                 =:
 
 DefineBuiltinProcedure := [ "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" | "__INLINE__" ]
                       =:
 
-ProcedureHeading := "PROCEDURE" DefineBuiltinProcedure ( ProcedureIdent [ FormalParameters ] )
+ProcedureHeading := "PROCEDURE"
+                    DefineBuiltinProcedure ( ProcedureIdent               % enterScope (curproc) %
+                                             [ FormalParameters ] )
                   =:
 
 Builtin := [ "__BUILTIN__" | "__INLINE__" ] =:
@@ -971,7 +957,7 @@ DefProcedureHeading := "PROCEDURE" Builtin ( ProcedureIdent [ DefFormalParameter
 -- introduced procedure block so we can produce more informative
 -- error messages
 
-ProcedureBlock := { Declaration } [ "BEGIN" ProcedureBlockBody ] "END"
+ProcedureBlock := { Declaration } [ "BEGIN" ProcedureBlockBody ] "END"    % leaveScope %
                 =:
 
 Block := { Declaration } InitialBlock FinalBlock "END"
@@ -1063,14 +1049,14 @@ DefTypeDeclaration := { Ident                                          % VAR n: 
                         ( ";" | "=" Type Alignment ";" ) }
 		    =:
 
-DefConstantDeclaration := Ident                                        % VAR n: node ; %
-		                                                       % n := makeConst (curident) %
-                                "=" ConstExpression
-                        =:
+ConstantDeclaration := Ident                                           % VAR n: node ; %
+	                                                               % n := makeConst (curident) %
+                             "=" ConstExpression
+                     =:
 
-Definition := "CONST" { DefConstantDeclaration ";" } |
+Definition := "CONST" { ConstantDeclaration ";" } |
               "TYPE" { DefTypeDeclaration } |
-              "VAR" { DefVariableDeclaration ";" } |
+              "VAR" { VariableDeclaration ";" } |
               DefProcedureHeading ";" =:
 
 AsmStatement := 'ASM' [ 'VOLATILE' ] '(' AsmOperands ')' =:

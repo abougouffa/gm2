@@ -2395,6 +2395,23 @@ END lookupBase ;
 
 
 (*
+   out2 -
+*)
+
+PROCEDURE out2 (a: ARRAY OF CHAR; n: Name; s: node) ;
+VAR
+   m, m1, m2: String ;
+BEGIN
+   m1 := InitStringCharStar (keyToCharStar (n)) ;
+   m2 := getString (s) ;
+   m := Sprintf2 (InitString (a), m1, m2) ;
+   m := KillString (WriteS (StdOut, m)) ;
+   m1 := KillString (m1) ;
+   m2 := KillString (m2)
+END out2 ;
+
+
+(*
    lookupSym - returns the symbol named, n, from the scope stack.
 *)
 
@@ -2405,15 +2422,20 @@ VAR
 BEGIN
    l := LowIndice (scopeStack) ;
    h := HighIndice (scopeStack) ;
+   printf ("enter lookupSym\n");
+   printf (" total stacked scopes [%d]\n", h) ;
    WHILE h>=l DO
+      printf (" [%d]\n", h) ;
       s := GetIndice (scopeStack, h) ;
       m := lookupInScope (s, n) ;
+      out2 (" search for symbol name %s in scope %s\n", n, s) ;
       IF m#NIL
       THEN
          RETURN m
       END ;
       DEC (h)
    END ;
+   printf ("leave lookupSym\n");
    RETURN lookupBase (n)
 END lookupSym ;
 
@@ -3962,7 +3984,10 @@ PROCEDURE doVarC (n: node) ;
 VAR
    s: node ;
 BEGIN
-   print (doP, "EXTERN") ; setNeedSpace (doP) ;
+   IF isDef (getMainModule ())
+   THEN
+      print (doP, "EXTERN") ; setNeedSpace (doP)
+   END ;
    s := NIL ;
    doTypeC (doP, getType (n), s) ;
    setNeedSpace (doP) ;
@@ -3980,7 +4005,11 @@ VAR
    p, q: node ;
 BEGIN
    assert (isProcedure (n)) ;
-   noSpace (doP) ; outText (doP, "EXTERN") ; setNeedSpace (doP) ;
+   noSpace (doP) ;
+   IF isDef (getMainModule ())
+   THEN
+      outText (doP, "EXTERN") ; setNeedSpace (doP)
+   END ;
    q := NIL ;
    doTypeC (doP, n^.procedureF.returnType, q) ; setNeedSpace (doP) ;
    doFQNameC (doP, n) ;
@@ -4137,7 +4166,9 @@ BEGIN
    ForeachIndiceInIndexDo (s.variables, doPopulate) ;
    ForeachIndiceInIndexDo (s.types, doPopulate) ;
 
-   topologicallyOutC ;
+   topologicallyOutC (doConstC, doTypesC, doVarC,
+                      outputPartial,
+                      doNone, doCompletePartialC, doNone) ;
 
    ForeachIndiceInIndexDo (s.procedures, doPrototypeC)
 END outDeclsDefC ;
@@ -4156,8 +4187,11 @@ BEGIN
    ForeachIndiceInIndexDo (s.variables, doPopulate) ;
    ForeachIndiceInIndexDo (s.types, doPopulate) ;
 
-   topologicallyOutC ;
+   topologicallyOutC (doConstC, doTypesC, doVarC,
+                      outputPartial,
+                      doNone, doCompletePartialC, doNone) ;
 
+   outText (p, "\n") ;
    ForeachIndiceInIndexDo (s.procedures, doPrototypeC)
 END outDeclsImpC ;
 
@@ -4712,7 +4746,7 @@ END outputHidden ;
    tryPartial -
 *)
 
-PROCEDURE tryPartial (n: node) : BOOLEAN ;
+PROCEDURE tryPartial (n: node; pt: nodeProcedure) : BOOLEAN ;
 VAR
    q: node ;
 BEGIN
@@ -4721,7 +4755,7 @@ BEGIN
       q := getType (n) ;
       IF (q#NIL) AND (isArray (q) OR isRecord (q) OR isProcType (q))
       THEN
-         outputPartial (n) ;
+         pt (n) ;
 	 RETURN TRUE
       END
    END ;
@@ -4760,7 +4794,7 @@ END outputPartial ;
    tryOutputTodo -
 *)
 
-PROCEDURE tryOutputTodo ;
+PROCEDURE tryOutputTodo (c, t, v, pt: nodeProcedure) ;
 VAR
    i, n: CARDINAL ;
    d   : node ;
@@ -4769,13 +4803,13 @@ BEGIN
    n := alists.noOfItemsInList (todoQ) ;
    WHILE i<=n DO
       d := alists.getItemFromList (todoQ, i) ;
-      IF tryComplete (d, doConstC, doTypesC, doVarC)
+      IF tryComplete (d, c, t, v)
       THEN
          alists.removeItemFromList (todoQ, d) ;
 	 alists.includeItemIntoList (doneQ, d) ;
          i := 1 ;
          n := alists.noOfItemsInList (todoQ)
-      ELSIF tryPartial (d)
+      ELSIF tryPartial (d, pt)
       THEN
          alists.removeItemFromList (todoQ, d) ;
          alists.includeItemIntoList (partialQ, d) ;
@@ -4792,7 +4826,7 @@ END tryOutputTodo ;
    tryOutputPartial -
 *)
 
-PROCEDURE tryOutputPartial ;
+PROCEDURE tryOutputPartial (c, t, v: nodeProcedure) ;
 VAR
    i, n: CARDINAL ;
    d   : node ;
@@ -4801,7 +4835,7 @@ BEGIN
    n := alists.noOfItemsInList (partialQ) ;
    WHILE i<=n DO
       d := alists.getItemFromList (partialQ, i) ;
-      IF tryComplete (d, doNone, doCompletePartialC, doNone)
+      IF tryComplete (d, c, t, v)
       THEN
          alists.removeItemFromList (partialQ, d) ;
          i := 1 ;
@@ -4817,7 +4851,8 @@ END tryOutputPartial ;
    topologicallyOutC -
 *)
 
-PROCEDURE topologicallyOutC ;
+PROCEDURE topologicallyOutC (c, t, v, tp,
+                             pc, pt, pv: nodeProcedure) ;
 VAR
    tol, pal,
    to,  pa : CARDINAL ;
@@ -4827,8 +4862,8 @@ BEGIN
    to := alists.noOfItemsInList (todoQ) ;
    pa := alists.noOfItemsInList (partialQ) ;
    WHILE (tol#to) OR (pal#pa) DO
-      tryOutputTodo ;
-      tryOutputPartial ;
+      tryOutputTodo (c, t, v, tp) ;
+      tryOutputPartial (pc, pt, pv) ;
       tol := to ;
       pal := pa ;
       to := alists.noOfItemsInList (todoQ) ;

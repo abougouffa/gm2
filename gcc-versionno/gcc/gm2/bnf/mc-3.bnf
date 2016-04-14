@@ -1018,7 +1018,8 @@ RetryStatement := "RETRY"
 AssignmentOrProcedureCall := Designator
                              ( ":=" Expression
                                 |
-                                  [ ActualParameters ] )
+                                  ActualParameters |                     % (* epsilon *) %
+                             )
                            =:
 
 -- these two break LL1 as both start with a Designator

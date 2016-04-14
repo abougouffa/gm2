@@ -1,3 +1,13 @@
+2016-04-14      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  changed gm2-bootstrap test.
+	* gm2/bnf/mc-1.bnf:  changed variable creation so that both
+	def and mod declare variables.  Added epsilon instead of [].
+	Added scope handling to procedures.  Allowed implementation and
+	program modules to be passed.
+	* gm2/bnf/mc-2.bnf:  Added epsilon instead of [].  Tidied up.
+	* gm2/mc/decl.mod:  continued development and debugging.
+
 2016-04-12      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  added mc-4.bnf to be built.

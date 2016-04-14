@@ -215,7 +215,12 @@ END initParser ;
 
 PROCEDURE p1 (n: node) ;
 BEGIN
-   pass (1, n, mcp1.CompilationUnit, isDef, openDef)
+   IF isDef (n)
+   THEN
+      pass (1, n, mcp1.CompilationUnit, isDef, openDef)
+   ELSE
+      pass (1, n, mcp1.CompilationUnit, isImpOrModule, openMod)
+   END
 END p1 ;
 
 
