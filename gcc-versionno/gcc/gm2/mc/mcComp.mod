@@ -26,7 +26,8 @@ FROM libc IMPORT exit ;
 FROM decl IMPORT node, isNodeF, isDef, isImp, isModule, isMainModule,
                  setMainModule, setCurrentModule, getSource, isImpOrModule,
                  lookupDef, lookupModule, lookupImp, setSource, getSymName,
-		 foreachDefModuleDo, getMainModule, out ;
+		 foreachDefModuleDo, getMainModule, out, setVisited,
+		 unsetVisited, isVisited ;
 
 FROM symbolKey IMPORT performOperation ;
 
@@ -230,7 +231,12 @@ END p1 ;
 
 PROCEDURE p2 (n: node) ;
 BEGIN
-   pass (2, n, mcp2.CompilationUnit, isDef, openDef)
+   IF isDef (n)
+   THEN
+      pass (2, n, mcp2.CompilationUnit, isDef, openDef)
+   ELSE
+      pass (2, n, mcp2.CompilationUnit, isImpOrModule, openMod)
+   END
 END p2 ;
 
 
@@ -353,8 +359,9 @@ END openMod ;
 PROCEDURE pass (no: CARDINAL; n: node; f: parserFunction;
                 isnode: isNodeF; open: openFunction) ;
 BEGIN
-   IF isnode (n)
+   IF isnode (n) AND (NOT isVisited (n))
    THEN
+      setVisited (n) ;
       IF open (n, TRUE)
       THEN
          IF NOT f ()
@@ -386,8 +393,14 @@ BEGIN
     *  dependencies) but only if the main module is not a definition
     *  module.
     *)
-   IF parseMain AND (NOT isDef (getMainModule ()))
+   foreachDefModuleDo (unsetVisited) ;
+   IF parseMain
    THEN
+      unsetVisited (getMainModule ()) ;
+      IF parseDefs AND isImp (getMainModule ())
+      THEN
+         p (lookupDef (getSymName (getMainModule ())))
+      END ;
       p (getMainModule ())
    END ;
    IF parseDefs

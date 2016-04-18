@@ -1129,7 +1129,7 @@ ExceptionalPart := StatementSequence
                  =:
 
 Declaration := "CONST" { ConstantDeclaration ";" } |
-               "TYPE" { TypeDeclaration ";" } |
+               "TYPE" { TypeDeclaration } |
                "VAR" { VariableDeclaration ";" } |
                ProcedureDeclaration ";" |
                ModuleDeclaration ";" =:

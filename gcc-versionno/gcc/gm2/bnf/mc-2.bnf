@@ -72,6 +72,7 @@ VAR
    curident  : Name ;
    typeDes,
    typeExp,
+   curproc,
    curmodule : node ;
 
 
@@ -506,15 +507,14 @@ ProgramModule := "MODULE"
 
 ImplementationModule := "IMPLEMENTATION" "MODULE"
                          Ident                                         % curmodule := lookupImp (curident) %
-		                                                       % enterScope (curmodule) %
-
-
+			                                               % enterScope (lookupDef (curident)) %
+                                                                       % enterScope (curmodule) %
                          [ Priority
                          ] ";"
                          { Import }
                          Block
                          Ident                                         % checkEndName (curmodule, curident, 'implementation module') %
-                                                                       % leaveScope %
+                                                                       % leaveScope ; leaveScope %
                          "."
                       =:
 
@@ -635,7 +635,7 @@ TypeDeclaration := Ident
                          "=" Type Alignment
                  =:
 
-Type := ( SimpleType | ArrayType
+Type := ( DefSimpleType | ArrayType
           | RecordType
           | SetType
           | PointerType
@@ -951,12 +951,14 @@ ProcedureDeclaration := ProcedureHeading ";" ProcedureBlock
                         Ident
                       =:
 
-ProcedureIdent := Ident =:
+ProcedureIdent := Ident                                                   % curproc := lookupSym (curident) %
+                =:
 
 DefineBuiltinProcedure := [ "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" | "__INLINE__" ]
                       =:
 
-ProcedureHeading := "PROCEDURE" DefineBuiltinProcedure ( ProcedureIdent [ FormalParameters ] )
+ProcedureHeading := "PROCEDURE" DefineBuiltinProcedure ( ProcedureIdent            % enterScope (curproc) %
+                                                         [ FormalParameters ] )
                   =:
 
 Builtin := [ "__BUILTIN__" | "__INLINE__" ] =:
@@ -967,7 +969,7 @@ DefProcedureHeading := "PROCEDURE" Builtin ( ProcedureIdent [ DefFormalParameter
 -- introduced procedure block so we can produce more informative
 -- error messages
 
-ProcedureBlock := { Declaration } [ "BEGIN" ProcedureBlockBody ] "END"
+ProcedureBlock := { Declaration } [ "BEGIN" ProcedureBlockBody ] "END"    % leaveScope %
                 =:
 
 Block := { Declaration } InitialBlock FinalBlock "END"

@@ -56,7 +56,7 @@ FROM mcLexBuf IMPORT currentstring, currenttoken, getToken, insertToken,
                      insertTokenAndRewind, getTokenNo ;
 
 FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
-                 makeProcedure, makeType, makeVar, makeConst,
+                 makeProcedure, makeType, makeTypeImp, makeVar, makeConst,
 		 enterScope, leaveScope,
 		 addImportedModule, getCurrentModule ;
 
@@ -506,15 +506,14 @@ ProgramModule := "MODULE"
 
 ImplementationModule := "IMPLEMENTATION" "MODULE"
                          Ident                                         % curmodule := lookupImp (curident) %
-		                                                       % enterScope (curmodule) %
-
-
+			                                               % enterScope (lookupDef (curident)) %
+                                                                       % enterScope (curmodule) %
                          [ Priority
                          ] ";"
                          { Import }
                          Block
                          Ident                                         % checkEndName (curmodule, curident, 'implementation module') %
-                                                                       % leaveScope %
+                                                                       % leaveScope ; leaveScope %
                          "."
                       =:
 
@@ -631,7 +630,7 @@ AlignmentExpression := "(" ConstExpression ")" =:
 Alignment := [ ByteAlignment ] =:
 
 TypeDeclaration := Ident                                             % VAR n: node ; %
-                                                                     % n := makeType (curident) %
+                                                                     % n := makeTypeImp (curident) %
                          "=" Type Alignment
                  =:
 

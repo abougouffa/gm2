@@ -83,6 +83,27 @@ PROCEDURE isImpOrModule (n: node) : BOOLEAN ;
 
 
 (*
+   isVisited - returns TRUE if the node was visited.
+*)
+
+PROCEDURE isVisited (n: node) : BOOLEAN ;
+
+
+(*
+   unsetVisited - unset the visited flag on a def/imp/module node.
+*)
+
+PROCEDURE unsetVisited (n: node) ;
+
+
+(*
+   setVisited - set the visited flag on a def/imp/module node.
+*)
+
+PROCEDURE setVisited (n: node) ;
+
+
+(*
    resetEnumPos - resets the index into the saved list of enums inside
                   module, n.
 *)
@@ -409,6 +430,14 @@ PROCEDURE putConst (n: node; v: node) ;
 *)
 
 PROCEDURE makeType (n: Name) : node ;
+
+
+(*
+   makeTypeImp - lookup a type in the definition module
+                 and return it.  Otherwise create a new type.
+*)
+
+PROCEDURE makeTypeImp (n: Name) : node ;
 
 
 (*

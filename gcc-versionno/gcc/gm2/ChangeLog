@@ -1,3 +1,19 @@
+2016-04-18      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  new rule mc-autogen.
+	* gm2/bnf/mc-1.bnf:  fixed scope tracking for implementation module.
+	  Use makeTypeImp during type declaration in implementation module.
+	* gm2/bnf/mc-2.bnf:  fixed scope tracking for implementation module.
+	* gm2/bnf/mc-3.bnf:  corrected grammar during type declaration.
+	* gm2/mc/decl.def:   isVisited (new procedure function).  unsetVisited,
+	  setVisited (new procedure).  makeTypeImp (new procedure function).
+	* gm2/mc/decl.mod:  implement isVisited, unsetVisited, setVisited,
+	  makeTypeImp.  Many bug fixes to topological output of declarations.
+          All type declarations including recursive declarations are now
+          implemented.
+	* gm2/mc/mcComp.mod:  parse implementation module during pass 1
+	  and pass 2.
+
 2016-04-14      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  changed gm2-bootstrap test.

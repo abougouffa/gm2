@@ -28,7 +28,7 @@ FROM SFIO IMPORT OpenToWrite, WriteS ;
 FROM FIO IMPORT File, Close, FlushBuffer, StdOut, WriteLine, WriteChar ;
 FROM DynamicStrings IMPORT String, InitString, EqualArray, InitStringCharStar, KillString ;
 FROM mcOptions IMPORT getOutputFile ;
-FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
+FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM libc IMPORT printf ;
 FROM mcMetaError IMPORT metaError1, metaError2, metaErrors1, metaErrors2 ;
 FROM StrLib IMPORT StrEqual ;
@@ -49,7 +49,9 @@ FROM wlists IMPORT wlist ;
 
 CONST
    indentation = 3 ;
-   ignoreFQ = TRUE ;
+   ignoreFQ    = TRUE ;
+   debugScopes = FALSE ;
+   traceOn     = FALSE ;
 
 TYPE
    language = (ansiC, ansiCP, pim4) ;
@@ -409,6 +411,7 @@ TYPE
                     decls            :  scopeT ;
                     beginStatements,
                     finallyStatements:  node ;
+		    visited          :  BOOLEAN ;
                  END ;
 
        defT = RECORD
@@ -420,6 +423,7 @@ TYPE
                  enums            :  Index ;
                  enumCount        :  CARDINAL ;
                  decls            :  scopeT ;
+                 visited          :  BOOLEAN ;
               END ;
 
        impT = RECORD
@@ -432,6 +436,7 @@ TYPE
                  finallyStatements:  node ;
 		 definitionModule :  node ;
                  decls            :  scopeT ;
+                 visited          :  BOOLEAN ;
               END ;
 
        where = RECORD
@@ -444,7 +449,7 @@ TYPE
 
        nodeProcedure = PROCEDURE (node) ;
 
-       dependentState = (completed, blocked, recursive) ;
+       dependentState = (completed, blocked, partial, recursive) ;
 
 
 VAR
@@ -456,6 +461,7 @@ VAR
    unitsperwordN,
    mainModule,
    currentModule,
+   defModule,
    systemN,
    addressN,
    byteN,
@@ -544,6 +550,54 @@ PROCEDURE getFirstUsed (n: node) : CARDINAL ;
 BEGIN
    RETURN n^.at.firstUsed
 END getFirstUsed ;
+
+
+(*
+   setVisited - set the visited flag on a def/imp/module node.
+*)
+
+PROCEDURE setVisited (n: node) ;
+BEGIN
+   CASE n^.kind OF
+
+   def   :  n^.defF.visited := TRUE |
+   imp   :  n^.impF.visited := TRUE |
+   module:  n^.moduleF.visited := TRUE
+
+   END
+END setVisited ;
+
+
+(*
+   unsetVisited - unset the visited flag on a def/imp/module node.
+*)
+
+PROCEDURE unsetVisited (n: node) ;
+BEGIN
+   CASE n^.kind OF
+
+   def   :  n^.defF.visited := FALSE |
+   imp   :  n^.impF.visited := FALSE |
+   module:  n^.moduleF.visited := FALSE
+
+   END
+END unsetVisited ;
+
+
+(*
+   isVisited - returns TRUE if the node was visited.
+*)
+
+PROCEDURE isVisited (n: node) : BOOLEAN ;
+BEGIN
+   CASE n^.kind OF
+
+   def   :  RETURN n^.defF.visited |
+   imp   :  RETURN n^.impF.visited |
+   module:  RETURN n^.moduleF.visited
+
+   END
+END isVisited ;
 
 
 (*
@@ -1039,7 +1093,8 @@ BEGIN
       defF.importedModules := InitIndex (1) ;
       defF.enums := InitIndex (1) ;
       defF.enumCount := 0 ;
-      initDecls (defF.decls)
+      initDecls (defF.decls) ;
+      defF.visited := FALSE
    END ;
    RETURN d
 END makeDef ;
@@ -1063,7 +1118,8 @@ BEGIN
       initDecls (impF.decls) ;
       impF.beginStatements := NIL ;
       impF.finallyStatements := NIL ;
-      impF.definitionModule := NIL
+      impF.definitionModule := NIL ;
+      impF.visited := FALSE
    END ;
    RETURN d
 END makeImp ;
@@ -1086,7 +1142,8 @@ BEGIN
       moduleF.enumCount := 0 ;
       initDecls (moduleF.decls) ;
       moduleF.beginStatements := NIL ;
-      moduleF.finallyStatements := NIL
+      moduleF.finallyStatements := NIL ;
+      moduleF.visited := FALSE
    END ;
    RETURN d
 END makeModule ;
@@ -1380,6 +1437,33 @@ BEGIN
    END ;
    RETURN addToScope (d)
 END makeType ;
+
+
+(*
+   makeTypeImp - lookup a type in the definition module
+                 and return it.  Otherwise create a new type.
+*)
+
+PROCEDURE makeTypeImp (n: Name) : node ;
+VAR
+   d: node ;
+BEGIN
+   d := lookupSym (n) ;
+   IF d#NIL
+   THEN
+      d^.typeF.isHidden := FALSE ;
+      RETURN addToScope (d)
+   ELSE
+      d := newNode (type) ;
+      WITH d^ DO
+         typeF.name := n ;
+         typeF.type := NIL ;
+         typeF.scope := getDeclScope () ;
+         typeF.isHidden := FALSE
+      END ;
+      RETURN addToScope (d)
+   END
+END makeTypeImp ;
 
 
 (*
@@ -2395,20 +2479,55 @@ END lookupBase ;
 
 
 (*
+   dumpScopes -
+*)
+
+PROCEDURE dumpScopes ;
+VAR
+   h: CARDINAL ;
+   s: node ;
+BEGIN
+   h := HighIndice (scopeStack) ;
+   printf ("total scopes stacked %d\n", h);
+
+   WHILE h>=1 DO
+      s := GetIndice (scopeStack, h) ;
+      out2 (" scope [%d] is %s\n", h, s) ;
+      DEC (h)
+   END
+END dumpScopes ;
+
+
+(*
    out2 -
 *)
 
-PROCEDURE out2 (a: ARRAY OF CHAR; n: Name; s: node) ;
+PROCEDURE out2 (a: ARRAY OF CHAR; c: CARDINAL; s: node) ;
+VAR
+   m, m1: String ;
+BEGIN
+   m1 := getString (s) ;
+   m := Sprintf2 (InitString (a), c, m1) ;
+   m := KillString (WriteS (StdOut, m)) ;
+   m1 := KillString (m1)
+END out2 ;
+
+
+(*
+   out3 -
+*)
+
+PROCEDURE out3 (a: ARRAY OF CHAR; l: CARDINAL; n: Name; s: node) ;
 VAR
    m, m1, m2: String ;
 BEGIN
    m1 := InitStringCharStar (keyToCharStar (n)) ;
    m2 := getString (s) ;
-   m := Sprintf2 (InitString (a), m1, m2) ;
+   m := Sprintf3 (InitString (a), l, m1, m2) ;
    m := KillString (WriteS (StdOut, m)) ;
    m1 := KillString (m1) ;
    m2 := KillString (m2)
-END out2 ;
+END out3 ;
 
 
 (*
@@ -2422,20 +2541,29 @@ VAR
 BEGIN
    l := LowIndice (scopeStack) ;
    h := HighIndice (scopeStack) ;
-   printf ("enter lookupSym\n");
-   printf (" total stacked scopes [%d]\n", h) ;
+
+   IF debugScopes
+   THEN
+      printf ("enter lookupSym (scopes %d)\n", h)
+   END ;
+
    WHILE h>=l DO
-      printf (" [%d]\n", h) ;
       s := GetIndice (scopeStack, h) ;
       m := lookupInScope (s, n) ;
-      out2 (" search for symbol name %s in scope %s\n", n, s) ;
+      IF debugScopes
+      THEN
+         out3 (" [%d] search for symbol name %s in scope %s\n", h, n, s)
+      END ;
       IF m#NIL
       THEN
          RETURN m
       END ;
       DEC (h)
    END ;
-   printf ("leave lookupSym\n");
+   IF debugScopes
+   THEN
+      printf ("leave lookupSym\n")
+   END ;
    RETURN lookupBase (n)
 END lookupSym ;
 
@@ -3459,7 +3587,7 @@ BEGIN
          WHILE c <= t DO
             doTypeNameC (p, ptype) ;
             i := wlists.getItemFromList (l, c) ;
-	    setNeedSpace (p) ;
+            setNeedSpace (p) ;
             doNamesC (p, i) ;
 	    doHighC (p, ptype, i) ;
             IF c<t
@@ -3905,7 +4033,8 @@ BEGIN
       doEnumerationC (p, n)
    ELSIF isType (n)
    THEN
-      doFQNameC (p, n)
+      doFQNameC (p, n) ;
+      setNeedSpace (p)
       (* doTypeAliasC (p, n, n) *)  (* type, n, has a name, so we choose this over, m.  *)
 (*
    ELSIF isProcType (n) OR isArray (n) OR isRecord (n)
@@ -4036,13 +4165,16 @@ END doPrototypeC ;
 
 
 (*
-   doPopulate - adds, n, to the todo list.
+   addTodo - adds, n, to the todo list.
 *)
 
-PROCEDURE doPopulate (n: node) ;
+PROCEDURE addTodo (n: node) ;
 BEGIN
-   alists.includeItemIntoList (todoQ, n)
-END doPopulate ;
+   IF NOT alists.isItemInList (partialQ, n)
+   THEN
+      alists.includeItemIntoList (todoQ, n)
+   END
+END addTodo ;
 
 
 (*
@@ -4160,11 +4292,9 @@ END simplifyTypes ;
 PROCEDURE outDeclsDefC (p: pretty; s: scopeT) ;
 BEGIN
    simplifyTypes (s) ;
+   includeDefSyms (s) ;
 
    doP := p ;
-   ForeachIndiceInIndexDo (s.constants, doPopulate) ;
-   ForeachIndiceInIndexDo (s.variables, doPopulate) ;
-   ForeachIndiceInIndexDo (s.types, doPopulate) ;
 
    topologicallyOutC (doConstC, doTypesC, doVarC,
                       outputPartial,
@@ -4172,6 +4302,55 @@ BEGIN
 
    ForeachIndiceInIndexDo (s.procedures, doPrototypeC)
 END outDeclsDefC ;
+
+
+(*
+   includeDefSyms -
+*)
+
+PROCEDURE includeDefSyms (s: scopeT) ;
+BEGIN
+   ForeachIndiceInIndexDo (s.constants, addTodo) ;
+   ForeachIndiceInIndexDo (s.variables, addTodo) ;
+   ForeachIndiceInIndexDo (s.types, addTodo)
+END includeDefSyms ;
+
+
+(*
+   addExternal - only adds, n, if this symbol is external to the
+                 implementation module and is not a hidden type.
+*)
+
+PROCEDURE addExternal (n: node) ;
+BEGIN
+   IF (getScope (n) = defModule) AND isType (n) AND isTypeHidden (n)
+   THEN
+      (* do nothing.  *)
+   ELSE
+      addTodo (n)
+   END
+END addExternal ;
+
+
+(*
+   includeDefSymbols -
+*)
+
+PROCEDURE includeDefSymbols (n: node) ;
+VAR
+   d: node ;
+BEGIN
+   IF isImp (n)
+   THEN
+      defModule := lookupDef (getSymName (n)) ;
+      IF defModule#NIL
+      THEN
+         simplifyTypes (defModule^.defF.decls) ;
+         includeDefSyms (defModule^.defF.decls) ;
+	 foreachNodeDo (defModule^.defF.decls.symbols, addExternal)
+      END
+   END
+END includeDefSymbols ;
 
 
 (*
@@ -4183,9 +4362,9 @@ BEGIN
    simplifyTypes (s) ;
 
    doP := p ;
-   ForeachIndiceInIndexDo (s.constants, doPopulate) ;
-   ForeachIndiceInIndexDo (s.variables, doPopulate) ;
-   ForeachIndiceInIndexDo (s.types, doPopulate) ;
+   ForeachIndiceInIndexDo (s.constants, addTodo) ;
+   ForeachIndiceInIndexDo (s.variables, addTodo) ;
+   ForeachIndiceInIndexDo (s.types, addTodo) ;
 
    topologicallyOutC (doConstC, doTypesC, doVarC,
                       outputPartial,
@@ -4236,7 +4415,7 @@ END allDependants ;
 
 PROCEDURE walkDependants (l: alist; n: node) : dependentState ;
 BEGIN
-   IF (n=NIL) OR alists.isItemInList (doneQ, n) OR alists.isItemInList (partialQ, n)
+   IF (n=NIL) OR alists.isItemInList (doneQ, n)
    THEN
       RETURN completed
    ELSIF alists.isItemInList (l, n)
@@ -4258,10 +4437,14 @@ VAR
    t: node ;
 BEGIN
    t := getType (n) ;
-   IF alists.isItemInList (doneQ, t) OR alists.isItemInList (partialQ, t)
+   IF alists.isItemInList (doneQ, t)
    THEN
       RETURN completed
+   ELSIF alists.isItemInList (partialQ, t)
+   THEN
+      RETURN blocked
    ELSE
+      queueBlocked (t) ;
       RETURN blocked
    END
 END walkType ;
@@ -4284,6 +4467,7 @@ BEGIN
       s := walkDependants (l, q) ;
       IF s#completed
       THEN
+         addTodo (n) ;
          RETURN s
       END ;
       INC (i)
@@ -4304,15 +4488,32 @@ END walkVarient ;
 
 
 (*
+   queueBlocked -
+*)
+
+PROCEDURE queueBlocked (n: node) ;
+BEGIN
+   IF NOT (alists.isItemInList (doneQ, n) OR alists.isItemInList (partialQ, n))
+   THEN
+      addTodo (n)
+   END
+END queueBlocked ;
+
+
+(*
    walkVar -
 *)
 
 PROCEDURE walkVar (l: alist; n: node) : dependentState ;
+VAR
+   t: node ;
 BEGIN
-   IF alists.isItemInList (doneQ, getType (n))
+   t := getType (n) ;
+   IF alists.isItemInList (doneQ, t)
    THEN
       RETURN completed
    ELSE
+      queueBlocked (t) ;
       RETURN blocked
    END
 END walkVar ;
@@ -4401,8 +4602,18 @@ END walkSubscript ;
 *)
 
 PROCEDURE walkPointer (l: alist; n: node) : dependentState ;
+VAR
+   t: node ;
 BEGIN
-   RETURN walkDependants (l, getType (n))
+   (* if the type of, n, is done or partial then we can output pointer.  *)
+   t := getType (n) ;
+   IF alists.isItemInList (partialQ, t)
+   THEN
+      (* pointer to partial can always generate a complete type.  *)
+      RETURN completed
+   ELSE
+      RETURN walkType (l, n)
+   END
 END walkPointer ;
 
 
@@ -4464,8 +4675,16 @@ END walkParam ;
 *)
 
 PROCEDURE walkRecordField (l: alist; n: node) : dependentState ;
+VAR
+   t: node ;
 BEGIN
-   RETURN walkDependants (l, getType (n))
+   t := getType (n) ;
+   IF alists.isItemInList (partialQ, t)
+   THEN
+      RETURN blocked
+   ELSE
+      RETURN walkDependants (l, t)
+   END
 END walkRecordField ;
 
 
@@ -4730,6 +4949,76 @@ END tryComplete ;
 
 
 (*
+   tryCompleteFromPartial -
+*)
+
+PROCEDURE tryCompleteFromPartial (n: node; t: nodeProcedure) : BOOLEAN ;
+BEGIN
+   IF isType (n) AND (getType (n)#NIL) AND isPointer (getType (n)) AND (allDependants (getType (n)) = completed)
+   THEN
+      (* alists.includeItemIntoList (partialQ, getType (n)) ; *)
+      outputHiddenComplete (n) ;
+      RETURN TRUE
+   ELSIF allDependants (n) = completed
+   THEN
+      t (n) ;
+      RETURN TRUE
+   END ;
+   RETURN FALSE
+END tryCompleteFromPartial ;
+
+
+(*
+   dumpQ -
+*)
+
+PROCEDURE dumpQ (q: ARRAY OF CHAR; l: alist) ;
+VAR
+   m   : String ;
+   n   : node ;
+   d,
+   h, i: CARDINAL ;
+BEGIN
+   m := Sprintf0 (InitString ('Queue ')) ;
+   m := KillString (WriteS (StdOut, m)) ;
+   m := Sprintf0 (InitString (q)) ;
+   m := KillString (WriteS (StdOut, m)) ;
+   m := Sprintf0 (InitString ('\n')) ;
+   m := KillString (WriteS (StdOut, m)) ;
+   i := 1 ;
+   h := alists.noOfItemsInList (l) ;
+   WHILE i<=h DO
+      n := alists.getItemFromList (l, i) ;
+      d := VAL (CARDINAL, n) ;
+      m := Sprintf1 (InitString (' %d'), d) ;
+      m := KillString (WriteS (StdOut, m)) ;
+      INC (i)
+   END ;
+   m := Sprintf0 (InitString ('\n')) ;
+   m := KillString (WriteS (StdOut, m))
+END dumpQ ;
+
+
+(*
+   dumpLists -
+*)
+
+PROCEDURE dumpLists ;
+VAR
+   m: String ;
+BEGIN
+   IF traceOn
+   THEN
+      m := Sprintf0 (InitString ('\n')) ;
+      m := KillString (WriteS (StdOut, m)) ;
+      dumpQ ('todo', todoQ) ;
+      dumpQ ('partial', partialQ) ;
+      dumpQ ('done', doneQ)
+   END
+END dumpLists ;
+
+
+(*
    outputHidden -
 *)
 
@@ -4740,6 +5029,23 @@ BEGIN
    outText (doP, "   typedef void *") ; doFQNameC (doP, n) ; outText (doP, ";\n") ;
    outText (doP, "#endif\n\n")
 END outputHidden ;
+
+
+(*
+   outputHiddenComplete -
+*)
+
+PROCEDURE outputHiddenComplete (n: node) ;
+VAR
+   t: node ;
+BEGIN
+   assert (isType (n)) ;
+   t := getType (n) ;
+   assert (isPointer (t)) ;
+   outText (doP, "#define ") ; doFQNameC (doP, n) ; outText (doP, "_D\n") ;
+   outText (doP, "typedef ") ; doTypeNameC (doP, getType (t)) ;
+   setNeedSpace (doP) ; outText (doP, "*") ; doFQNameC (doP, n) ; outText (doP, ";\n")
+END outputHiddenComplete ;
 
 
 (*
@@ -4826,7 +5132,7 @@ END tryOutputTodo ;
    tryOutputPartial -
 *)
 
-PROCEDURE tryOutputPartial (c, t, v: nodeProcedure) ;
+PROCEDURE tryOutputPartial (t: nodeProcedure) ;
 VAR
    i, n: CARDINAL ;
    d   : node ;
@@ -4835,7 +5141,7 @@ BEGIN
    n := alists.noOfItemsInList (partialQ) ;
    WHILE i<=n DO
       d := alists.getItemFromList (partialQ, i) ;
-      IF tryComplete (d, c, t, v)
+      IF tryCompleteFromPartial (d, t)
       THEN
          alists.removeItemFromList (partialQ, d) ;
          i := 1 ;
@@ -4862,13 +5168,15 @@ BEGIN
    to := alists.noOfItemsInList (todoQ) ;
    pa := alists.noOfItemsInList (partialQ) ;
    WHILE (tol#to) OR (pal#pa) DO
+      dumpLists ;
       tryOutputTodo (c, t, v, tp) ;
-      tryOutputPartial (pc, pt, pv) ;
+      tryOutputPartial (pt) ;
       tol := to ;
       pal := pa ;
       to := alists.noOfItemsInList (todoQ) ;
       pa := alists.noOfItemsInList (partialQ)
-   END
+   END ;
+   dumpLists
 END topologicallyOutC ;
 
 
@@ -4947,6 +5255,7 @@ BEGIN
       print (p, "#   endif\n\n")
    END ;
 
+   includeDefSymbols (n) ;
    outDeclsImpC (p, n^.impF.decls) ;
    s := KillString (s)
 END outImpC ;
