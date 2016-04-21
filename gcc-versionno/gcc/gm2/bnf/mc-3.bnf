@@ -62,10 +62,9 @@ FROM mcLexBuf IMPORT currentstring, currenttoken, getToken, insertToken,
 FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
                  putTypeHidden,
 		 enterScope, leaveScope,
-		 addImportedModule, getCurrentModule,
 		 makeEnum, makeEnumField, putType, lookupSym, isDef, makeSubrange,
                  makeSet, makePointer, makeProcType, putReturnType,
-		 putProcTypeOptReturn, addParameter,
+		 putProcTypeOptReturn, addParameter, paramEnter, paramLeave,
 		 makeVarargs, makeVarParameter, makeNonVarParameter,
 		 putSubrangeType, putConst,
 		 makeArray, putUnbounded, getCardinal, makeBinaryTok, makeUnaryTok,
@@ -490,21 +489,6 @@ BEGIN
    Expect(realtok, stopset0, stopset1, stopset2)
 END Real ;
 
-
-(*
-   registerImport - looks up module, ident, and adds it to the
-                    current module import list.
-*)
-
-PROCEDURE registerImport (ident: Name) ;
-VAR
-   n: node ;
-BEGIN
-   n := lookupDef (ident) ;
-   addImportedModule (getCurrentModule (), n)
-END registerImport ;
-
-
 % module mcp3 end
 END mcp3.
 % rules
@@ -640,6 +624,7 @@ ProgramModule := "MODULE"
 
 ImplementationModule := "IMPLEMENTATION" "MODULE"
                          Ident                                         % curmodule := lookupImp (curident) %
+                                                                       % enterScope (lookupDef (curident)) %
 		                                                       % enterScope (curmodule) %
        								       % resetEnumPos (curmodule) %
                          [ Priority
@@ -647,7 +632,7 @@ ImplementationModule := "IMPLEMENTATION" "MODULE"
                          { Import }
                          Block
                          Ident                                         % checkEndName (curmodule, curident, 'implementation module') %
-                                                                       % leaveScope %
+                                                                       % leaveScope ; leaveScope %
                          "."
                       =:
 
@@ -655,13 +640,6 @@ ImplementationOrProgramModule := ImplementationModule | ProgramModule
                                =:
 
 Number := Integer | Real =:
-
---
---  Qualident needs some care as we must only parse module.module.ident
---  and not ident.recordfield.  We leave the ident.recordfield to be parsed by
---  SubDesignator.  Note that Qualident is called by SubDesignator so if
---  IsAutoPushOff then we just consume tokens.
---
 
 Qualident :=
              Ident { "." Ident }
@@ -950,7 +928,7 @@ DefVariableDeclaration :=                                               % VAR v,
 			                           Alignment
                         =:
 
-Designator := PushQualident
+Designator := Qualident
               { SubDesignator } =:
 
 SubDesignator := "."
@@ -988,7 +966,7 @@ Factor := Number | string | SetOrDesignatorOrFunction |
           | ConstAttribute
                                 ) =:
 
-SetOrDesignatorOrFunction := PushQualident
+SetOrDesignatorOrFunction := Qualident
                               [ Constructor |
                                 SimpleDes [ ActualParameters ]
                               ]                                |
@@ -1021,10 +999,6 @@ AssignmentOrProcedureCall := Designator
                                   ActualParameters |                     % (* epsilon *) %
                              )
                            =:
-
--- these two break LL1 as both start with a Designator
--- ProcedureCall := Designator [ ActualParameters ] =:
--- Assignment := Designator ":=" Expression =:
 
 StatementSequence := Statement { ";" Statement }
                   =:
@@ -1087,11 +1061,15 @@ WithStatement := "WITH" Designator "DO"
                =:
 
 ProcedureDeclaration := ProcedureHeading ";" ProcedureBlock
-                        Ident
+                        Ident                                          % leaveScope %
                       =:
 
 ProcedureIdent := Ident                                                % curproc := lookupSym (curident) %
+                                                                       % enterScope (curproc) %
                 =:
+
+DefProcedureIdent := Ident                                             % curproc := lookupSym (curident) %
+                   =:
 
 DefineBuiltinProcedure := [ "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" | "__INLINE__" ]
                       =:
@@ -1101,7 +1079,7 @@ ProcedureHeading := "PROCEDURE" DefineBuiltinProcedure ( ProcedureIdent [ Formal
 
 Builtin := [ "__BUILTIN__" | "__INLINE__" ] =:
 
-DefProcedureHeading := "PROCEDURE" Builtin ( ProcedureIdent [ DefFormalParameters ] )
+DefProcedureHeading := "PROCEDURE" Builtin ( DefProcedureIdent [ DefFormalParameters ] )
                      =:
 
 -- introduced procedure block so we can produce more informative
@@ -1134,11 +1112,15 @@ Declaration := "CONST" { ConstantDeclaration ";" } |
                ProcedureDeclaration ";" |
                ModuleDeclaration ";" =:
 
-DefFormalParameters := "(" [ DefMultiFPSection ] ")" FormalReturn =:
+DefFormalParameters := "("                                            % paramEnter (curproc) %
+                           [ DefMultiFPSection ] ")"                  % paramLeave (curproc) %
+			                             FormalReturn =:
 
 DefMultiFPSection := DefExtendedFP | FPSection [ ";" DefMultiFPSection ] =:
 
-FormalParameters := "(" [ MultiFPSection ] ")" FormalReturn =:
+FormalParameters := "("                                               % paramEnter (curproc) %
+                        [ MultiFPSection ] ")"                        % paramLeave (curproc) %
+			                       FormalReturn =:
 
 MultiFPSection := ExtendedFP | FPSection [ ";" MultiFPSection ] =:
 
@@ -1191,27 +1173,21 @@ FromIdentList := Ident                                                 % importI
 		                   }
            =:
 
-DefFromImport := "FROM" Ident                                          % frommodule := lookupDef (curident) %
-                              "IMPORT" FromIdentList ";"
+FromImport := "FROM" Ident                                             % frommodule := lookupDef (curident) %
+                           "IMPORT" FromIdentList ";"
                =:
-
-FromImport := "FROM" Ident "IMPORT" IdentList ";"
-            =:
-
 
 ImportModuleList := Ident { "," Ident } =:
 
 WithoutFromImport := "IMPORT" ImportModuleList ";"
                    =:
 
-ImportDef := DefFromImport | WithoutFromImport =:
-
 Import := FromImport | WithoutFromImport =:
 
 DefinitionModule := "DEFINITION" "MODULE" [ "FOR" string ] Ident ";"   % curmodule := lookupDef (curident) %
     		                                                       % enterScope (curmodule) %
                                                                        % resetEnumPos (curmodule) %
-                      { ImportDef } [ Export ]
+                      { Import } [ Export ]
                       { Definition }
                     "END" Ident "."                                    % checkEndName (curmodule, curident, 'definition module') %
                                                                        % leaveScope %
@@ -1259,8 +1235,7 @@ Type := SimpleType | ArrayType | RecordType | SetType |
       =:
 
 TypeDeclaration := { Ident                                                % typeDes := lookupSym (curident) %
-                           ( ";"                                          % putTypeHidden (typeDes) %
-                                 | "=" Type                               % putType (typeDes, pop ()) %
+                           ( ";" | "=" Type                               % putType (typeDes, pop ()) %
 			                       Alignment ";" ) }
 		    =:
 

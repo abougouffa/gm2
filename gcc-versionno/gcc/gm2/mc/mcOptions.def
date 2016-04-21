@@ -74,4 +74,11 @@ PROCEDURE getCppCommandLine () : String ;
 PROCEDURE getOutputFile () : String ;
 
 
+(*
+   getExtendedOpaque - return the extendedOpaque value.
+*)
+
+PROCEDURE getExtendedOpaque () : BOOLEAN ;
+
+
 END mcOptions.

@@ -57,7 +57,7 @@ FROM mcLexBuf IMPORT currentstring, currenttoken, getToken, insertToken,
 
 FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
                  makeProcedure, makeType, makeTypeImp, makeVar, makeConst,
-		 enterScope, leaveScope,
+		 enterScope, leaveScope, putTypeHidden,
 		 addImportedModule, getCurrentModule ;
 
 
@@ -363,12 +363,12 @@ END Real ;
                     current module import list.
 *)
 
-PROCEDURE registerImport (ident: Name) ;
+PROCEDURE registerImport (ident: Name; scoped: BOOLEAN) ;
 VAR
    n: node ;
 BEGIN
    n := lookupDef (ident) ;
-   addImportedModule (getCurrentModule (), n)
+   addImportedModule (getCurrentModule (), n, scoped)
 END registerImport ;
 
 
@@ -1020,12 +1020,12 @@ Export := "EXPORT" ( "QUALIFIED"
                                  IdentList |
                      IdentList ) ";" =:
 
-FromImport := "FROM" Ident					       % registerImport (curident) %
+FromImport := "FROM" Ident					       % registerImport (curident, FALSE) %
                            "IMPORT" IdentList ";"
             =:
 
-ImportModuleList := Ident                                              % registerImport (curident) %
-                          { "," Ident                                  % registerImport (curident) %
+ImportModuleList := Ident                                              % registerImport (curident, TRUE) %
+                          { "," Ident                                  % registerImport (curident, TRUE) %
 			              }
                   =:
 
@@ -1045,7 +1045,8 @@ DefinitionModule := "DEFINITION" "MODULE" [ "FOR" string ] Ident ";"   % curmodu
 
 DefTypeDeclaration := { Ident                                          % VAR n: node ; %
 		                                                       % n := makeType (curident) %
-                        ( ";" | "=" Type Alignment ";" ) }
+                        ( ";"                                          % putTypeHidden (n) %
+			      | "=" Type Alignment ";" ) }
 		    =:
 
 ConstantDeclaration := Ident                                           % VAR n: node ; %

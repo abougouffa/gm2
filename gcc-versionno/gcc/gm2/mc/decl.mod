@@ -84,7 +84,7 @@ TYPE
 	    neg,
 	    cast, val,
 	    plus, sub, div, mod,
-	    adr, size, ord,
+	    adr, size, tsize, ord,
 	    componentref, indirect,
 	    equal, notequal, less, greater, greequal, lessequal,
 	    lsl, lsr, lor, land, lnot, lxor,
@@ -170,7 +170,8 @@ TYPE
 			 not,
 			 neg,
                          adr,
-                         size            :  unaryF           : unaryT |
+                         size,
+			 tsize           :  unaryF           : unaryT |
 			 identlist       :  identlistF       : identlistT |
 			 vardecl         :  vardeclF         : vardeclT
 
@@ -375,9 +376,11 @@ TYPE
                        decls     :  scopeT ;
                        scope     :  node ;
                        parameters:  Index ;
+		       checking,
                        returnopt,
 		       optarg,
 		       vararg    :  BOOLEAN ;
+		       paramcount:  CARDINAL ;
 		       returnType:  node ;
                        statements:  node ;
                     END ;
@@ -417,6 +420,7 @@ TYPE
        defT = RECORD
                  name             :  Name ;
                  source           :  Name ;
+		 hasHidden,
                  forC             :  BOOLEAN ;
                  exported,
                  importedModules,
@@ -466,6 +470,9 @@ VAR
    addressN,
    byteN,
    wordN,
+   adrN,
+   sizeN,
+   tsizeN,
    booleanN,
    procN,
    charN,
@@ -517,6 +524,17 @@ BEGIN
       RETURN d
    END
 END newNode ;
+
+
+(*
+   disposeNode - dispose node, n.
+*)
+
+PROCEDURE disposeNode (VAR n: node) ;
+BEGIN
+   DISPOSE (n) ;
+   n := NIL
+END disposeNode ;
 
 
 (*
@@ -1088,6 +1106,7 @@ BEGIN
    WITH d^ DO
       defF.name := n ;
       defF.source := NulName ;
+      defF.hasHidden := FALSE ;
       defF.forC := FALSE ;
       defF.exported := InitIndex (1) ;
       defF.importedModules := InitIndex (1) ;
@@ -1269,6 +1288,11 @@ BEGIN
       HALT
    ELSE
       IncludeIndiceIntoIndex (scopeStack, n)
+   END ;
+   IF debugScopes
+   THEN
+      printf ("enter scope\n") ;
+      dumpScopes
    END
 END enterScope ;
 
@@ -1284,7 +1308,12 @@ VAR
 BEGIN
    i := HighIndice (scopeStack) ;
    n := GetIndice (scopeStack, i) ;
-   RemoveIndiceFromIndex (scopeStack, n)
+   RemoveIndiceFromIndex (scopeStack, n) ;
+   IF debugScopes
+   THEN
+      printf ("leave scope\n") ;
+      dumpScopes
+   END
 END leaveScope ;
 
 
@@ -1380,10 +1409,26 @@ END addToScope ;
 
 
 (*
-   addImportedModule - add module, i, to be imported by, m.
+   addModuleToScope - adds module, i, to module, m, scope.
 *)
 
-PROCEDURE addImportedModule (m, i: node) ;
+PROCEDURE addModuleToScope (m, i: node) ;
+BEGIN
+   assert (getDeclScope () = m) ;
+   IF lookupSym (getSymName (i))=NIL
+   THEN
+      i := addToScope (i)
+   END
+END addModuleToScope ;
+
+
+(*
+   addImportedModule - add module, i, to be imported by, m.
+                       If scoped then module, i, is added to the
+                       module, m, scope.
+*)
+
+PROCEDURE addImportedModule (m, i: node; scoped: BOOLEAN) ;
 BEGIN
    assert (isDef (i) OR isModule (i)) ;
    IF isDef (m)
@@ -1397,6 +1442,10 @@ BEGIN
       IncludeIndiceIntoIndex (m^.moduleF.importedModules, i)
    ELSE
       HALT
+   END ;
+   IF scoped
+   THEN
+      addModuleToScope (m, i)
    END
 END addImportedModule ;
 
@@ -1534,20 +1583,48 @@ PROCEDURE makeProcedure (n: Name) : node ;
 VAR
    d: node ;
 BEGIN
-   d := newNode (procedure) ;
-   WITH d^ DO
-      procedureF.name := n ;
-      initDecls (procedureF.decls) ;
-      procedureF.scope := getDeclScope () ;
-      procedureF.parameters := InitIndex (1) ;
-      procedureF.returnopt := FALSE ;
-      procedureF.optarg := FALSE ;
-      procedureF.vararg := FALSE ;
-      procedureF.returnType := NIL ;
-      procedureF.statements := NIL
+   d := lookupSym (n) ;
+   IF d=NIL
+   THEN
+      d := newNode (procedure) ;
+      WITH d^ DO
+         procedureF.name := n ;
+         initDecls (procedureF.decls) ;
+         procedureF.scope := getDeclScope () ;
+         procedureF.parameters := InitIndex (1) ;
+         procedureF.returnopt := FALSE ;
+         procedureF.optarg := FALSE ;
+         procedureF.vararg := FALSE ;
+         procedureF.checking := FALSE ;
+	 procedureF.paramcount := 0 ;
+         procedureF.returnType := NIL ;
+         procedureF.statements := NIL ;
+      END
    END ;
    RETURN addToScope (d)
 END makeProcedure ;
+
+
+(*
+   paramEnter - reset the parameter count.
+*)
+
+PROCEDURE paramEnter (n: node) ;
+BEGIN
+   assert (isProcedure (n)) ;
+   n^.procedureF.paramcount := 0
+END paramEnter ;
+
+
+(*
+   paramLeave - set paramater checking to TRUE from now onwards.
+*)
+
+PROCEDURE paramLeave (n: node) ;
+BEGIN
+   assert (isProcedure (n)) ;
+   n^.procedureF.checking := TRUE
+END paramLeave ;
 
 
 (*
@@ -1735,6 +1812,17 @@ END putIdent ;
 
 
 (*
+   checkParameters -
+*)
+
+PROCEDURE checkParameters (p: node; i: node; type: node; var: BOOLEAN) ;
+BEGIN
+   (* do check.  *)
+   disposeNode (i)
+END checkParameters ;
+
+
+(*
    addVarParameters - adds the identlist, i, of, type, to be VAR parameters
                       in procedure, n.
 *)
@@ -1745,8 +1833,13 @@ VAR
 BEGIN
    assert (isIdentList (i)) ;
    assert (isProcedure (n)) ;
-   p := makeVarParameter (i, type) ;
-   IncludeIndiceIntoIndex (n^.procedureF.parameters, p)
+   IF n^.procedureF.checking
+   THEN
+      checkParameters (n, i, type, TRUE)
+   ELSE
+      p := makeVarParameter (i, type) ;
+      IncludeIndiceIntoIndex (n^.procedureF.parameters, p)
+   END
 END addVarParameters ;
 
 
@@ -1761,8 +1854,13 @@ VAR
 BEGIN
    assert (isIdentList (i)) ;
    assert (isProcedure (n)) ;
-   p := makeNonVarParameter (i, type) ;
-   IncludeIndiceIntoIndex (n^.procedureF.parameters, p)
+   IF n^.procedureF.checking
+   THEN
+      checkParameters (n, i, type, FALSE)
+   ELSE
+      p := makeNonVarParameter (i, type) ;
+      IncludeIndiceIntoIndex (n^.procedureF.parameters, p)
+   END
 END addNonVarParameters ;
 
 
@@ -2330,10 +2428,15 @@ END putType ;
 *)
 
 PROCEDURE putTypeHidden (des: node) ;
+VAR
+   s: node ;
 BEGIN
    assert (des#NIL) ;
    assert (isType (des)) ;
-   des^.typeF.isHidden := TRUE
+   des^.typeF.isHidden := TRUE ;
+   s := getScope (des) ;
+   assert (isDef (s)) ;
+   s^.defF.hasHidden := TRUE
 END putTypeHidden ;
 
 
@@ -2347,6 +2450,17 @@ BEGIN
    assert (isType (n)) ;
    RETURN n^.typeF.isHidden
 END isTypeHidden ;
+
+
+(*
+   hasHidden - returns TRUE if module, n, has a hidden type.
+*)
+
+PROCEDURE hasHidden (n: node) : BOOLEAN ;
+BEGIN
+   assert (isDef (n)) ;
+   RETURN n^.defF.hasHidden
+END hasHidden ;
 
 
 (*
@@ -2542,11 +2656,6 @@ BEGIN
    l := LowIndice (scopeStack) ;
    h := HighIndice (scopeStack) ;
 
-   IF debugScopes
-   THEN
-      printf ("enter lookupSym (scopes %d)\n", h)
-   END ;
-
    WHILE h>=l DO
       s := GetIndice (scopeStack, h) ;
       m := lookupInScope (s, n) ;
@@ -2559,10 +2668,6 @@ BEGIN
          RETURN m
       END ;
       DEC (h)
-   END ;
-   IF debugScopes
-   THEN
-      printf ("leave lookupSym\n")
    END ;
    RETURN lookupBase (n)
 END lookupSym ;
@@ -2639,15 +2744,16 @@ BEGIN
       div,
       mod,
       neg,
-      adr,
-      size,
       indirect,
       equal,
       notequal,
       less,
       greater,
       greequal,
-      lessequal       :  RETURN NulName
+      lessequal       :  RETURN NulName |
+      adr             :  RETURN makeKey ('ADR') |
+      size            :  RETURN makeKey ('SIZE') |
+      tsize           :  RETURN makeKey ('TSIZE')
 
       END
    END
@@ -2671,10 +2777,11 @@ BEGIN
       not,
       neg,
       adr,
-      size:  WITH unaryF DO
-                arg := e ;
-                resultType := res
-             END
+      size,
+      tsize:  WITH unaryF DO
+                 arg := e ;
+                 resultType := res
+              END
 
       END
    END ;
@@ -2792,6 +2899,15 @@ BEGIN
    ELSIF op=ortok
    THEN
       RETURN makeBinary (or, l, r, booleanN)
+   ELSIF op=plustok
+   THEN
+      RETURN makeBinary (plus, l, r, booleanN)   (* incorrect type *)
+   ELSIF op=minustok
+   THEN
+      RETURN makeBinary (sub, l, r, booleanN)
+   ELSIF op=divtok
+   THEN
+      RETURN makeBinary (div, l, r, booleanN)
    ELSE
       HALT  (* most likely op needs a clause as above.  *)
    END
@@ -2922,7 +3038,8 @@ BEGIN
       ord,
       neg,
       adr,
-      size            :  RETURN unaryF.resultType |
+      size,
+      tsize           :  RETURN unaryF.resultType |
       equal,
       notequal,
       less,
@@ -3022,16 +3139,17 @@ BEGIN
       sub,
       div,
       mod             :  RETURN NIL |
-      neg,
-      adr,
-      size            :  RETURN NIL |
+      neg             :  RETURN NIL |
       indirect,
       equal,
       notequal,
       less,
       greater,
       greequal,
-      lessequal       :  RETURN NIL
+      lessequal       :  RETURN NIL |
+      adr,
+      size,
+      tsize           :  RETURN systemN
 
       END
    END
@@ -3047,6 +3165,17 @@ PROCEDURE foreachDefModuleDo (p: performOperation) ;
 BEGIN
    ForeachIndiceInIndexDo (defUniverseI, p)
 END foreachDefModuleDo ;
+
+
+(*
+   foreachModModuleDo - foreach implementation or module node, n, in the module universe,
+                        call p (n).
+*)
+
+PROCEDURE foreachModModuleDo (p: performOperation) ;
+BEGIN
+   ForeachIndiceInIndexDo (modUniverseI, p)
+END foreachModModuleDo ;
 
 
 (*
@@ -3302,6 +3431,7 @@ BEGIN
       not         :  doUnary (p, 'NOT', unaryF.arg, unaryF.resultType) |
       adr         :  doUnary (p, 'ADR', unaryF.arg, unaryF.resultType) |
       size        :  doUnary (p, 'SIZE', unaryF.arg, unaryF.resultType) |
+      tsize       :  doUnary (p, 'TSIZE', unaryF.arg, unaryF.resultType) |
       ord         :  doUnary (p, 'ORD', unaryF.arg, unaryF.resultType) |
       indirect    :  doPostUnary (p, '^', unaryF.arg) |
       equal       :  doBinary (p, '=', binaryF.left, binaryF.right) |
@@ -3697,12 +3827,22 @@ BEGIN
       IF isProcType (m)
       THEN
          doProcTypeC (doP, n, m)
-      ELSE
+      ELSIF isType (m) OR isPointer (m)
+      THEN
          outText (doP, "typedef") ; setNeedSpace (doP) ;
          doTypeC (doP, m, m) ;
-         setNeedSpace (doP) ;
+	 IF isType (m)
+         THEN
+            setNeedSpace (doP)
+         END ;
          doTypeNameC (doP, n) ;
          outText (doP, ";\n\n")
+      ELSE
+         outText (doP, " /* odd seen ") ;
+         doTypeC (doP, m, m) ;
+	 outText (doP, " and ") ;
+         doTypeNameC (doP, n) ;
+         outText (doP, " */\n\n")
       END
    END
 END doTypesC ;
@@ -4138,6 +4278,9 @@ BEGIN
    IF isDef (getMainModule ())
    THEN
       outText (doP, "EXTERN") ; setNeedSpace (doP)
+   ELSIF NOT isExported (n)
+   THEN
+      outText (doP, "static") ; setNeedSpace (doP)
    END ;
    q := NIL ;
    doTypeC (doP, n^.procedureF.returnType, q) ; setNeedSpace (doP) ;
@@ -4170,7 +4313,9 @@ END doPrototypeC ;
 
 PROCEDURE addTodo (n: node) ;
 BEGIN
-   IF NOT alists.isItemInList (partialQ, n)
+   IF (n#NIL) AND
+      (NOT alists.isItemInList (partialQ, n)) AND
+      (NOT alists.isItemInList (doneQ, n))
    THEN
       alists.includeItemIntoList (todoQ, n)
    END
@@ -4292,7 +4437,7 @@ END simplifyTypes ;
 PROCEDURE outDeclsDefC (p: pretty; s: scopeT) ;
 BEGIN
    simplifyTypes (s) ;
-   includeDefSyms (s) ;
+   includeSyms (s) ;
 
    doP := p ;
 
@@ -4305,15 +4450,15 @@ END outDeclsDefC ;
 
 
 (*
-   includeDefSyms -
+   includeSyms -
 *)
 
-PROCEDURE includeDefSyms (s: scopeT) ;
+PROCEDURE includeSyms (s: scopeT) ;
 BEGIN
    ForeachIndiceInIndexDo (s.constants, addTodo) ;
    ForeachIndiceInIndexDo (s.variables, addTodo) ;
    ForeachIndiceInIndexDo (s.types, addTodo)
-END includeDefSyms ;
+END includeSyms ;
 
 
 (*
@@ -4346,7 +4491,7 @@ BEGIN
       IF defModule#NIL
       THEN
          simplifyTypes (defModule^.defF.decls) ;
-         includeDefSyms (defModule^.defF.decls) ;
+         includeSyms (defModule^.defF.decls) ;
 	 foreachNodeDo (defModule^.defF.decls.symbols, addExternal)
       END
    END
@@ -4360,11 +4505,9 @@ END includeDefSymbols ;
 PROCEDURE outDeclsImpC (p: pretty; s: scopeT) ;
 BEGIN
    simplifyTypes (s) ;
+   includeSyms (s) ;
 
    doP := p ;
-   ForeachIndiceInIndexDo (s.constants, addTodo) ;
-   ForeachIndiceInIndexDo (s.variables, addTodo) ;
-   ForeachIndiceInIndexDo (s.types, addTodo) ;
 
    topologicallyOutC (doConstC, doTypesC, doVarC,
                       outputPartial,
@@ -4677,13 +4820,19 @@ END walkParam ;
 PROCEDURE walkRecordField (l: alist; n: node) : dependentState ;
 VAR
    t: node ;
+   s: dependentState ;
 BEGIN
    t := getType (n) ;
    IF alists.isItemInList (partialQ, t)
    THEN
       RETURN blocked
+   ELSIF alists.isItemInList (doneQ, t)
+   THEN
+      RETURN completed
    ELSE
-      RETURN walkDependants (l, t)
+      addTodo (t) ;
+      s := walkDependants (l, t) ;
+      RETURN blocked
    END
 END walkRecordField ;
 
@@ -4910,6 +5059,7 @@ BEGIN
       neg,
       adr,
       size,
+      tsize,
       indirect        :  RETURN walkUnary (l, n) |
       equal,
       notequal,
@@ -5387,11 +5537,17 @@ BEGIN
    addressN := makeBase (address) ;
    byteN := makeBase (byte) ;
    wordN := makeBase (word) ;
+   adrN := makeBase (adr) ;
+   sizeN := makeBase (size) ;
+   tsizeN := makeBase (tsize) ;
 
    enterScope (systemN) ;
    addressN := addToScope (addressN) ;
    byteN := addToScope (byteN) ;
    wordN := addToScope (wordN) ;
+   adrN := addToScope (adrN) ;
+   sizeN := addToScope (sizeN) ;
+   tsizeN := addToScope (tsizeN) ;
    leaveScope ;
 
    addDone (addressN) ;

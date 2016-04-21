@@ -228,6 +228,13 @@ PROCEDURE isTypeHidden (n: node) : BOOLEAN ;
 
 
 (*
+   hasHidden - returns TRUE if module, n, has a hidden type.
+*)
+
+PROCEDURE hasHidden (n: node) : BOOLEAN ;
+
+
+(*
    isVar - returns TRUE if node, n, is a type.
 *)
 
@@ -591,9 +598,11 @@ PROCEDURE lookupSym (n: Name) : node ;
 
 (*
    addImportedModule - add module, i, to be imported by, m.
+                       If scoped then module, i, is added to the
+                       module, m, scope.
 *)
 
-PROCEDURE addImportedModule (m, i: node) ;
+PROCEDURE addImportedModule (m, i: node; scoped: BOOLEAN) ;
 
 
 (*
@@ -630,6 +639,14 @@ PROCEDURE getCurrentModule () : node ;
 *)
 
 PROCEDURE foreachDefModuleDo (p: performOperation) ;
+
+
+(*
+   foreachModModuleDo - foreach implementation or module node, n, in the module universe,
+                        call p (n).
+*)
+
+PROCEDURE foreachModModuleDo (p: performOperation) ;
 
 
 (*
@@ -688,6 +705,20 @@ PROCEDURE makeVarParameter (l: node; type: node) : node ;
 *)
 
 PROCEDURE makeNonVarParameter (l: node; type: node) : node ;
+
+
+(*
+   paramEnter - reset the parameter count.
+*)
+
+PROCEDURE paramEnter (n: node) ;
+
+
+(*
+   paramLeave - set paramater checking to TRUE from now onwards.
+*)
+
+PROCEDURE paramLeave (n: node) ;
 
 
 (*

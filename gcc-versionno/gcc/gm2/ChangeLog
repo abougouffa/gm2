@@ -1,3 +1,25 @@
+2016-04-21      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/mc-1.bnf:  distinguish between from module import and
+          import module.  Call putTypeHidden for a hidden type.
+	* gm2/bnf/mc-2.bnf:  distinguish between from module import and
+          import module.  Follow scopes during procedures.  No longer
+	  call registerImport.
+	* gm2/bnf/mc-3.bnf:  remove registerImport.  Ensure that the
+          definition module scope is visible below the implementation
+          module.  Use Qualident rather than PushQualident for non
+	  data structure based rules.
+	* gm2/mc/decl.def:  hasHidden, foreachModModuleDo, paramEnter,
+          paramLeave (new procedures).  addImportedModule changed to include
+          and extra parameter.
+	* gm2/mc/decl.mod:  added tsize node.  Many changes implementing
+	  the above and bug fixing topological sort algorithm.
+        * gm2/mc/mcComp.mod:  changes to allow --extended-opaque to take
+          effect.  The implementation module for each definition module which
+	  defines an opaque type will be parsed.
+        * gm2/mc/mcOptions.def:  introduce --extended-opaque option.
+	* gm2/mc/mcOptions.mod:  record --extended-opaque option.
+
 2016-04-18      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  new rule mc-autogen.

@@ -30,9 +30,10 @@ FROM DynamicStrings IMPORT String, Length, InitString, Mark, Slice, EqualArray,
                            InitStringCharStar, ConCatChar, ConCat, KillString,
                            Dup, string, char ;
 CONST
-   YEAR = '2015' ;
+   YEAR = '2016' ;
 
 VAR
+   extendedOpaque,
    internalDebugging,
    verbose,
    quiet            : BOOLEAN ;
@@ -64,18 +65,20 @@ END displayVersion ;
 
 PROCEDURE displayHelp ;
 BEGIN
-   printf0 ("usage: mc [--cpp] [-g] [--quiet] [-q] [-v] [--verbose] [--version] [--help] [-h] [-Ipath] [--olang=c] [--olang=c++] [--olang=m2] filename\n") ;
-   printf0 ("  --cpp        preprocess through the C preprocessor\n") ;
-   printf0 ("  -g           emit debugging directives in the output language") ;
-   printf0 (" so that the debugger will refer to the source\n") ;
-   printf0 ("  -q --quiet   no output unless an error occurs\n") ;
-   printf0 ("  -v --verbose display preprocessor if invoked\n") ;
-   printf0 ("  --version    display version and exit\n") ;
-   printf0 ("  -h --help    display this help message\n") ;
-   printf0 ("  -Ipath       set the module search path\n") ;
-   printf0 ("  --olang=c    generate ansi C output\n") ;
-   printf0 ("  --olang=c++  generate ansi C++ output\n") ;
-   printf0 ("  --olang=m2   generate PIM4 output\n") ;
+   printf0 ("usage: mc [--cpp] [-g] [--quiet] [--extended-opaque] [-q] [-v] [--verbose] [--version] [--help] [-h] [-Ipath] [--olang=c] [--olang=c++] [--olang=m2] filename\n") ;
+   printf0 ("  --cpp               preprocess through the C preprocessor\n") ;
+   printf0 ("  -g                  emit debugging directives in the output language") ;
+   printf0 ("                      so that the debugger will refer to the source\n") ;
+   printf0 ("  -q --quiet          no output unless an error occurs\n") ;
+   printf0 ("  -v --verbose        display preprocessor if invoked\n") ;
+   printf0 ("  --version           display version and exit\n") ;
+   printf0 ("  -h --help           display this help message\n") ;
+   printf0 ("  -Ipath              set the module search path\n") ;
+   printf0 ("  --olang=c           generate ansi C output\n") ;
+   printf0 ("  --olang=c++         generate ansi C++ output\n") ;
+   printf0 ("  --olang=m2          generate PIM4 output\n") ;
+   printf0 ("  --extended-opaque   parse definition and implementation modules to\n") ;
+   printf0 ("                      generate full type debugging of opaque types\n") ;
    exit (0)
 END displayHelp ;
 
@@ -161,6 +164,26 @@ PROCEDURE getVerbose () : BOOLEAN ;
 BEGIN
    RETURN verbose
 END getVerbose ;
+
+
+(*
+   setExtendedOpaque - set extendedOpaque to value.
+*)
+
+PROCEDURE setExtendedOpaque (value: BOOLEAN) ;
+BEGIN
+   extendedOpaque := value
+END setExtendedOpaque ;
+
+
+(*
+   getExtendedOpaque - return the extendedOpaque value.
+*)
+
+PROCEDURE getExtendedOpaque () : BOOLEAN ;
+BEGIN
+   RETURN extendedOpaque
+END getExtendedOpaque ;
 
 
 (*
@@ -266,6 +289,9 @@ BEGIN
    ELSIF optionIs ("-o=", arg)
    THEN
       setOutputFile (Slice (arg, 3, 0))
+   ELSIF optionIs ("--extended-opaque", arg)
+   THEN
+      setExtendedOpaque (TRUE)
    END
 END handleOption ;
 
@@ -302,6 +328,7 @@ BEGIN
    internalDebugging := FALSE ;
    quiet := FALSE ;
    verbose := FALSE ;
+   extendedOpaque := FALSE ;
    cppArgs := InitString ('') ;
    cppProgram := InitString ('') ;
    outputFile := InitString ('-')

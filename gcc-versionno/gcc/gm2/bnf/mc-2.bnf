@@ -364,12 +364,12 @@ END Real ;
                     current module import list.
 *)
 
-PROCEDURE registerImport (ident: Name) ;
+PROCEDURE registerImport (ident: Name; scoped: BOOLEAN) ;
 VAR
    n: node ;
 BEGIN
    n := lookupDef (ident) ;
-   addImportedModule (getCurrentModule (), n)
+   addImportedModule (getCurrentModule (), n, scoped)
 END registerImport ;
 
 
@@ -969,7 +969,7 @@ DefProcedureHeading := "PROCEDURE" Builtin ( ProcedureIdent [ DefFormalParameter
 -- introduced procedure block so we can produce more informative
 -- error messages
 
-ProcedureBlock := { Declaration } [ "BEGIN" ProcedureBlockBody ] "END"    % leaveScope %
+ProcedureBlock := { Declaration } [ "BEGIN" ProcedureBlockBody ] "END"             % leaveScope %
                 =:
 
 Block := { Declaration } InitialBlock FinalBlock "END"
@@ -1033,13 +1033,10 @@ Export := "EXPORT" ( "QUALIFIED"
                                  IdentList |
                      IdentList ) ";" =:
 
-FromImport := "FROM" Ident					       % registerImport (curident) %
-                           "IMPORT" IdentList ";"
+FromImport := "FROM" Ident "IMPORT" IdentList ";"
             =:
 
-ImportModuleList := Ident                                              % registerImport (curident) %
-                          { "," Ident                                  % registerImport (curident) %
-			              }
+ImportModuleList := Ident { "," Ident }
                   =:
 
 WithoutFromImport := "IMPORT" ImportModuleList ";"
