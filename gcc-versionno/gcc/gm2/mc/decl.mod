@@ -26,8 +26,8 @@ FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM nameKey IMPORT NulName, makeKey, lengthKey, makekey, keyToCharStar ;
 FROM SFIO IMPORT OpenToWrite, WriteS ;
 FROM FIO IMPORT File, Close, FlushBuffer, StdOut, WriteLine, WriteChar ;
-FROM DynamicStrings IMPORT String, InitString, EqualArray, InitStringCharStar, KillString ;
-FROM mcOptions IMPORT getOutputFile ;
+FROM DynamicStrings IMPORT String, InitString, EqualArray, InitStringCharStar, KillString, ConCat ;
+FROM mcOptions IMPORT getOutputFile, getDebugTopological ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM libc IMPORT printf ;
 FROM mcMetaError IMPORT metaError1, metaError2, metaErrors1, metaErrors2 ;
@@ -51,7 +51,6 @@ CONST
    indentation = 3 ;
    ignoreFQ    = TRUE ;
    debugScopes = FALSE ;
-   traceOn     = FALSE ;
 
 TYPE
    language = (ansiC, ansiCP, pim4) ;
@@ -2682,6 +2681,9 @@ BEGIN
    WITH n^ DO
       CASE kind OF
 
+      nil             :  RETURN makeKey ('NIL') |
+      true            :  RETURN makeKey ('TRUE') |
+      false           :  RETURN makeKey ('FALSE') |
       address         :  RETURN makeKey ('ADDRESS') |
       byte            :  RETURN makeKey ('BYTE') |
       word            :  RETURN makeKey ('WORD') |
@@ -2706,21 +2708,21 @@ BEGIN
       record          :  RETURN NulName |
       varient         :  RETURN NulName |
       var             :  RETURN varF.name |
-      enumeration     :  HALT |
-      subrange        :  HALT |
-      pointer         :  HALT |
-      array           :  HALT |
+      enumeration     :  RETURN NulName |
+      subrange        :  RETURN NulName |
+      pointer         :  RETURN NulName |
+      array           :  RETURN NulName |
       string          :  RETURN stringF.name |
       const           :  RETURN constF.name |
       literal         :  RETURN literalF.name |
-      varparam        :  HALT |
-      param           :  HALT |
+      varparam        :  RETURN NulName |
+      param           :  RETURN NulName |
       recordfield     :  RETURN recordfieldF.name |
       varientfield    :  RETURN varientfieldF.name |
       enumerationfield:  RETURN enumerationfieldF.name |
-      set             :  HALT |
-      proctype        :  HALT |
-      subscript       :  HALT |
+      set             :  RETURN NulName |
+      proctype        :  RETURN NulName |
+      subscript       :  RETURN NulName |
       (* blocks.  *)
       procedure       :  RETURN procedureF.name |
       def             :  RETURN defF.name |
@@ -2755,6 +2757,8 @@ BEGIN
       size            :  RETURN makeKey ('SIZE') |
       tsize           :  RETURN makeKey ('TSIZE')
 
+      ELSE
+         HALT
       END
    END
 END getSymName ;
@@ -2858,10 +2862,20 @@ BEGIN
       integer,
       longint,
       shortint,
+      real,
+      longreal,
+      shortreal,
       bitset,
+      boolean,
+      proc,
       ztype,
-      rtype   :  (* legal kind.  *) |
+      rtype,
+      adr,
+      size,
+      tsize    :  (* legal kind.  *) |
 
+      ELSE
+         HALT
       END
    END ;
    RETURN n
@@ -3842,6 +3856,8 @@ BEGIN
          doTypeC (doP, m, m) ;
 	 outText (doP, " and ") ;
          doTypeNameC (doP, n) ;
+         outText (doP, " ") ;
+	 outTextS (doP, gen (n)) ;
          outText (doP, " */\n\n")
       END
    END
@@ -4789,7 +4805,8 @@ BEGIN
       THEN
          RETURN s
       END
-   END
+   END ;
+   RETURN completed
 END walkConst ;
 
 
@@ -5119,6 +5136,128 @@ END tryCompleteFromPartial ;
 
 
 (*
+   genKind - returns a string depending upon the kind of node, n.
+*)
+
+PROCEDURE genKind (n: node) : String ;
+BEGIN
+   CASE n^.kind OF
+
+   (* types, no need to generate a kind string as it it contained in the name.  *)
+   nil,
+   true,
+   false,
+   address,
+   byte,
+   word,
+   char,
+   cardinal,
+   longcard,
+   shortcard,
+   integer,
+   longint,
+   shortint,
+   real,
+   longreal,
+   shortreal,
+   bitset,
+   boolean,
+   proc,
+   ztype,
+   rtype           :  RETURN NIL |
+
+   (* language features and compound type attributes.  *)
+   type            :  RETURN InitString ('type') |
+   record          :  RETURN InitString ('record') |
+   varient         :  RETURN InitString ('varient') |
+   var             :  RETURN InitString ('var') |
+   enumeration     :  RETURN InitString ('enumeration') |
+   subrange        :  RETURN InitString ('subrange') |
+   array           :  RETURN InitString ('array') |
+   subscript       :  RETURN InitString ('subscript') |
+   string          :  RETURN InitString ('string') |
+   const           :  RETURN InitString ('const') |
+   literal         :  RETURN InitString ('literal') |
+   varparam        :  RETURN InitString ('varparam') |
+   param           :  RETURN InitString ('param') |
+   varargs         :  RETURN InitString ('varargs') |
+   pointer         :  RETURN InitString ('pointer') |
+   recordfield     :  RETURN InitString ('recordfield') |
+   varientfield    :  RETURN InitString ('varientfield') |
+   enumerationfield:  RETURN InitString ('enumerationfield') |
+   set             :  RETURN InitString ('set') |
+   proctype        :  RETURN InitString ('proctype') |
+   (* blocks.  *)
+   procedure       :  RETURN InitString ('procedure') |
+   def             :  RETURN InitString ('def') |
+   imp             :  RETURN InitString ('imp') |
+   module          :  RETURN InitString ('module') |
+   (* statements.  *)
+   loop            :  RETURN InitString ('loop') |
+   while           :  RETURN InitString ('while') |
+   for             :  RETURN InitString ('for') |
+   repeat          :  RETURN InitString ('repeat') |
+   assignment      :  RETURN InitString ('assignment') |
+   call            :  RETURN InitString ('call') |
+   if              :  RETURN InitString ('if') |
+   elsif           :  RETURN InitString ('elsif') |
+   (* expressions.  *)
+   neg             :  RETURN InitString ('neg') |
+   cast            :  RETURN InitString ('cast') |
+   val             :  RETURN InitString ('val') |
+   plus            :  RETURN InitString ('plus') |
+   sub             :  RETURN InitString ('sub') |
+   div             :  RETURN InitString ('div') |
+   mod             :  RETURN InitString ('mod') |
+   adr             :  RETURN InitString ('adr') |
+   size            :  RETURN InitString ('size') |
+   tsize           :  RETURN InitString ('tsize') |
+   ord             :  RETURN InitString ('ord') |
+   componentref    :  RETURN InitString ('componentref') |
+   indirect        :  RETURN InitString ('indirect') |
+   equal           :  RETURN InitString ('equal') |
+   notequal        :  RETURN InitString ('notequal') |
+   less            :  RETURN InitString ('less') |
+   greater         :  RETURN InitString ('greater') |
+   greequal        :  RETURN InitString ('greequal') |
+   lessequal       :  RETURN InitString ('lessequal') |
+   lsl             :  RETURN InitString ('lsl') |
+   lsr             :  RETURN InitString ('lsr') |
+   lor             :  RETURN InitString ('lor') |
+   land            :  RETURN InitString ('land') |
+   lnot            :  RETURN InitString ('lnot') |
+   lxor            :  RETURN InitString ('lxor') |
+   and             :  RETURN InitString ('and') |
+   or              :  RETURN InitString ('or') |
+   not             :  RETURN InitString ('not') |
+   identlist       :  RETURN InitString ('identlist') |
+   vardecl         :  RETURN InitString ('vardecl')
+
+   END ;
+   HALT
+END genKind ;
+
+
+(*
+   gen - generate a small string describing node, n.
+*)
+
+PROCEDURE gen (n: node) : String ;
+VAR
+   s: String ;
+   d: CARDINAL ;
+BEGIN
+   d := VAL (CARDINAL, n) ;
+   s := Sprintf1 (InitString ('< %d '), d) ;  (* use 0x%x once FormatStrings has been released.  *)
+   s := ConCat (s, genKind (n)) ;
+   s := ConCat (s, InitString (' ')) ;
+   s := ConCat (s, getFQstring (n)) ;
+   s := ConCat (s, InitString (' >')) ;
+   RETURN s
+END gen ;
+
+
+(*
    dumpQ -
 *)
 
@@ -5139,9 +5278,7 @@ BEGIN
    h := alists.noOfItemsInList (l) ;
    WHILE i<=h DO
       n := alists.getItemFromList (l, i) ;
-      d := VAL (CARDINAL, n) ;
-      m := Sprintf1 (InitString (' %d'), d) ;
-      m := KillString (WriteS (StdOut, m)) ;
+      m := KillString (WriteS (StdOut, gen (n))) ;
       INC (i)
    END ;
    m := Sprintf0 (InitString ('\n')) ;
@@ -5157,7 +5294,7 @@ PROCEDURE dumpLists ;
 VAR
    m: String ;
 BEGIN
-   IF traceOn
+   IF getDebugTopological ()
    THEN
       m := Sprintf0 (InitString ('\n')) ;
       m := KillString (WriteS (StdOut, m)) ;
@@ -5294,6 +5431,7 @@ BEGIN
       IF tryCompleteFromPartial (d, t)
       THEN
          alists.removeItemFromList (partialQ, d) ;
+         alists.includeItemIntoList (doneQ, d) ;
          i := 1 ;
          DEC (n)
       ELSE
@@ -5320,6 +5458,7 @@ BEGIN
    WHILE (tol#to) OR (pal#pa) DO
       dumpLists ;
       tryOutputTodo (c, t, v, tp) ;
+      dumpLists ;
       tryOutputPartial (pt) ;
       tol := to ;
       pal := pa ;
@@ -5538,7 +5677,6 @@ BEGIN
    byteN := makeBase (byte) ;
    wordN := makeBase (word) ;
    adrN := makeBase (adr) ;
-   sizeN := makeBase (size) ;
    tsizeN := makeBase (tsize) ;
 
    enterScope (systemN) ;
@@ -5546,7 +5684,6 @@ BEGIN
    byteN := addToScope (byteN) ;
    wordN := addToScope (wordN) ;
    adrN := addToScope (adrN) ;
-   sizeN := addToScope (sizeN) ;
    tsizeN := addToScope (tsizeN) ;
    leaveScope ;
 
@@ -5584,6 +5721,8 @@ BEGIN
    trueN := makeBase (true) ;
    falseN := makeBase (false) ;
 
+   sizeN := makeBase (size) ;
+
    putSymKey (baseSymbols, makeKey ('BOOLEAN'), booleanN) ;
    putSymKey (baseSymbols, makeKey ('PROC'), procN) ;
    putSymKey (baseSymbols, makeKey ('CHAR'), charN) ;
@@ -5601,6 +5740,7 @@ BEGIN
    putSymKey (baseSymbols, makeKey ('NIL'), nilN) ;
    putSymKey (baseSymbols, makeKey ('TRUE'), trueN) ;
    putSymKey (baseSymbols, makeKey ('FALSE'), falseN) ;
+   putSymKey (baseSymbols, makeKey ('SIZE'), sizeN) ;
 
    addDone (booleanN) ;
    addDone (charN) ;

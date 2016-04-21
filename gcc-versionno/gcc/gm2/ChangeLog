@@ -19,6 +19,16 @@
 	  defines an opaque type will be parsed.
         * gm2/mc/mcOptions.def:  introduce --extended-opaque option.
 	* gm2/mc/mcOptions.mod:  record --extended-opaque option.
+	* gm2/Make-lang.in:  alter MCOPTIONS to include runtime checking.
+	* gm2/gm2-libs/FormatStrings.mod:  implement %x as a format
+          specifier.
+	* gm2/gm2-libs/SFIO.mod:  WriteS check that s is not NIL.
+	* gm2/mc/decl.mod:  topological sort bugfix.  Implemented
+          data structure debugging which can be turned on via
+          --debug-top.  Many bug fixes and tidying up.
+	* gm2/mc/mcOptions.mod:  record --debug-top option.
+	* gm2/mc/mcOptions.def:  getDebugTopological (new
+	  procedure function).
 
 2016-04-18      Gaius Mulley <gaius@gnu.org>
 

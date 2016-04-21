@@ -81,4 +81,19 @@ PROCEDURE getOutputFile () : String ;
 PROCEDURE getExtendedOpaque () : BOOLEAN ;
 
 
+(*
+   setDebugTopological - sets the flag debugTopological to value.
+*)
+
+PROCEDURE setDebugTopological (value: BOOLEAN) ;
+
+
+(*
+   getDebugTopological - returns the flag value of the command
+                         line option --debug-top.
+*)
+
+PROCEDURE getDebugTopological () : BOOLEAN ;
+
+
 END mcOptions.

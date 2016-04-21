@@ -103,7 +103,10 @@ PROCEDURE WriteS (file: File; s: String) : String ;
 VAR
    nBytes: CARDINAL ;
 BEGIN
-   nBytes := WriteNBytes(file, Length(s), string(s)) ;
+   IF s#NIL
+   THEN
+      nBytes := WriteNBytes(file, Length(s), string(s))
+   END ;
    RETURN( s )
 END WriteS ;
 

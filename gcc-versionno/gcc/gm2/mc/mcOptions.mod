@@ -33,6 +33,7 @@ CONST
    YEAR = '2016' ;
 
 VAR
+   debugTopological,
    extendedOpaque,
    internalDebugging,
    verbose,
@@ -79,6 +80,7 @@ BEGIN
    printf0 ("  --olang=m2          generate PIM4 output\n") ;
    printf0 ("  --extended-opaque   parse definition and implementation modules to\n") ;
    printf0 ("                      generate full type debugging of opaque types\n") ;
+   printf0 ("  --debug-top         debug topological data structure resolving (internal)\n") ;
    exit (0)
 END displayHelp ;
 
@@ -217,6 +219,27 @@ END getInternalDebugging ;
 
 
 (*
+   setDebugTopological - sets the flag debugTopological to value.
+*)
+
+PROCEDURE setDebugTopological (value: BOOLEAN) ;
+BEGIN
+   debugTopological := value
+END setDebugTopological ;
+
+
+(*
+   getDebugTopological - returns the flag value of the command
+                         line option --debug-top.
+*)
+
+PROCEDURE getDebugTopological () : BOOLEAN ;
+BEGIN
+   RETURN debugTopological
+END getDebugTopological ;
+
+
+(*
    optionIs - returns TRUE if the first len (right) characters
               match left.
 *)
@@ -292,6 +315,9 @@ BEGIN
    ELSIF optionIs ("--extended-opaque", arg)
    THEN
       setExtendedOpaque (TRUE)
+   ELSIF optionIs ("--debug-top", arg)
+   THEN
+      setDebugTopological (TRUE)
    END
 END handleOption ;
 
@@ -329,6 +355,7 @@ BEGIN
    quiet := FALSE ;
    verbose := FALSE ;
    extendedOpaque := FALSE ;
+   debugTopological := FALSE ;
    cppArgs := InitString ('') ;
    cppProgram := InitString ('') ;
    outputFile := InitString ('-')
