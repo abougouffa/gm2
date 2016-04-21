@@ -4815,8 +4815,16 @@ END walkConst ;
 *)
 
 PROCEDURE walkVarParam (l: alist; n: node) : dependentState ;
+VAR
+   t: node ;
 BEGIN
-   RETURN walkDependants (l, getType (n))
+   t := getType (n) ;
+   IF alists.isItemInList (partialQ, t)
+   THEN
+      (* parameter can be issued from a partial.  *)
+      RETURN completed
+   END ;
+   RETURN walkDependants (l, t)
 END walkVarParam ;
 
 
@@ -4825,8 +4833,16 @@ END walkVarParam ;
 *)
 
 PROCEDURE walkParam (l: alist; n: node) : dependentState ;
+VAR
+   t: node ;
 BEGIN
-   RETURN walkDependants (l, getType (n))
+   t := getType (n) ;
+   IF alists.isItemInList (partialQ, t)
+   THEN
+      (* parameter can be issued from a partial.  *)
+      RETURN completed
+   END ;
+   RETURN walkDependants (l, t)
 END walkParam ;
 
 
@@ -4907,11 +4923,18 @@ END walkSet ;
 PROCEDURE walkProcType (l: alist; n: node) : dependentState ;
 VAR
    s: dependentState ;
+   t: node ;
 BEGIN
-   s := walkDependants (l, getType (n)) ;
-   IF s#completed
+   t := getType (n) ;
+   IF alists.isItemInList (partialQ, t)
    THEN
-      RETURN s
+      (* proctype can be generated from partial types.  *)
+   ELSE
+      s := walkDependants (l, t) ;
+      IF s#completed
+      THEN
+         RETURN s
+      END
    END ;
    RETURN walkParameters (l, n^.proctypeF.parameters)
 END walkProcType ;

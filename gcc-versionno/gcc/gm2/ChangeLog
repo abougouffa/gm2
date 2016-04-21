@@ -28,7 +28,9 @@
           --debug-top.  Many bug fixes and tidying up.
 	* gm2/mc/mcOptions.mod:  record --debug-top option.
 	* gm2/mc/mcOptions.def:  getDebugTopological (new
-	  procedure function).
+          procedure function).
+	* gm2/mc/decl.mod:  bug fix to allow proctypes and
+	  parameters to be generated from partial declarations.a
 
 2016-04-18      Gaius Mulley <gaius@gnu.org>
 
