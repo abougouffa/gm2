@@ -1,3 +1,12 @@
+2016-04-23      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  rewrite of mc-autogen which currently tests
+	  the translation of the library modules required by mc.
+	* gm2/bnf/mc-1.bnf:  bug fix to allow procedures to be declared
+	  in both definition and implementation modules.
+	* gm2/bnf/mc-3.bnf:  interim change prior to fixing a bug in
+          the varient record handling.
+
 2016-04-21      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/mc-1.bnf:  distinguish between from module import and

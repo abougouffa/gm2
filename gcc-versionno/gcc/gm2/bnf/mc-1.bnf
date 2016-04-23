@@ -56,6 +56,7 @@ FROM mcLexBuf IMPORT currentstring, currenttoken, getToken, insertToken,
                      insertTokenAndRewind, getTokenNo ;
 
 FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
+                 lookupSym,
                  makeProcedure, makeType, makeTypeImp, makeVar, makeConst,
 		 enterScope, leaveScope, putTypeHidden,
 		 addImportedModule, getCurrentModule ;
@@ -937,7 +938,15 @@ ProcedureDeclaration := ProcedureHeading ";" ProcedureBlock
                         Ident
                       =:
 
-ProcedureIdent := Ident                                                   % curproc := makeProcedure (curident) %
+DefProcedureIdent := Ident                                                % curproc := makeProcedure (curident) %
+                   =:
+
+ProcedureIdent := Ident                                                   % curproc := lookupSym (curident) ;
+                                                                            IF curproc=NIL
+                                                                            THEN
+                                                                               curproc := makeProcedure (curident)
+                                                                            END
+									  %
                 =:
 
 DefineBuiltinProcedure := [ "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" | "__INLINE__" ]
@@ -950,7 +959,7 @@ ProcedureHeading := "PROCEDURE"
 
 Builtin := [ "__BUILTIN__" | "__INLINE__" ] =:
 
-DefProcedureHeading := "PROCEDURE" Builtin ( ProcedureIdent [ DefFormalParameters ] )
+DefProcedureHeading := "PROCEDURE" Builtin ( DefProcedureIdent [ DefFormalParameters ] )
                      =:
 
 -- introduced procedure block so we can produce more informative

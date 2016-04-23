@@ -96,4 +96,18 @@ PROCEDURE setDebugTopological (value: BOOLEAN) ;
 PROCEDURE getDebugTopological () : BOOLEAN ;
 
 
+(*
+   getHPrefix - saves the H file prefix.
+*)
+
+PROCEDURE getHPrefix () : String ;
+
+
+(*
+   getIgnoreFQ - returns the ignorefq flag.
+*)
+
+PROCEDURE getIgnoreFQ () : BOOLEAN ;
+
+
 END mcOptions.

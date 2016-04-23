@@ -27,7 +27,7 @@ FROM nameKey IMPORT NulName, makeKey, lengthKey, makekey, keyToCharStar ;
 FROM SFIO IMPORT OpenToWrite, WriteS ;
 FROM FIO IMPORT File, Close, FlushBuffer, StdOut, WriteLine, WriteChar ;
 FROM DynamicStrings IMPORT String, InitString, EqualArray, InitStringCharStar, KillString, ConCat ;
-FROM mcOptions IMPORT getOutputFile, getDebugTopological ;
+FROM mcOptions IMPORT getOutputFile, getDebugTopological, getHPrefix, getIgnoreFQ ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM libc IMPORT printf ;
 FROM mcMetaError IMPORT metaError1, metaError2, metaErrors1, metaErrors2 ;
@@ -49,7 +49,6 @@ FROM wlists IMPORT wlist ;
 
 CONST
    indentation = 3 ;
-   ignoreFQ    = TRUE ;
    debugScopes = FALSE ;
 
 TYPE
@@ -2943,7 +2942,7 @@ BEGIN
       RETURN makeUnary (plus, e, NIL)
    ELSIF op=minustok
    THEN
-      RETURN makeUnary (sub, e, NIL)
+      RETURN makeUnary (neg, e, NIL)
    ELSE
       HALT  (* most likely op needs a clause as above.  *)
    END
@@ -3258,10 +3257,12 @@ BEGIN
    IF isDef (n)
    THEN
       s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
-      print (doP, '#   include "G') ;
+      print (doP, '#   include "') ;
+      prints (doP, getHPrefix ()) ;
       prints (doP, s) ;
       print (doP, '.h"\n') ;
-      s := KillString (s)
+      s := KillString (s) ;
+      foreachNodeDo (n^.defF.decls.symbols, addDone)
    ELSE
       HALT
    END
@@ -3296,7 +3297,7 @@ PROCEDURE getFQstring (n: node) : String ;
 VAR
    i, s: String ;
 BEGIN
-   IF (getScope (n)=NIL) OR ignoreFQ
+   IF (getScope (n)=NIL) OR getIgnoreFQ ()
    THEN
       RETURN InitStringCharStar (keyToCharStar (getSymName (n)))
    ELSE
@@ -3851,7 +3852,24 @@ BEGIN
          END ;
          doTypeNameC (doP, n) ;
          outText (doP, ";\n\n")
+      ELSIF isEnumeration (m)
+      THEN
+         outText (doP, "typedef") ; setNeedSpace (doP) ;
+         doTypeC (doP, m, m) ;
+         setNeedSpace (doP) ;
+	 doTypeNameC (doP, n) ;
+         outText (doP, ";\n\n")
       ELSE
+         outText (doP, "typedef") ; setNeedSpace (doP) ;
+         doTypeC (doP, m, m) ;
+	 IF isType (m)
+         THEN
+            setNeedSpace (doP)
+         END ;
+         doTypeNameC (doP, n) ;
+         outText (doP, ";\n\n")
+      END
+      (*
          outText (doP, " /* odd seen ") ;
          doTypeC (doP, m, m) ;
 	 outText (doP, " and ") ;
@@ -3859,7 +3877,7 @@ BEGIN
          outText (doP, " ") ;
 	 outTextS (doP, gen (n)) ;
          outText (doP, " */\n\n")
-      END
+       *)
    END
 END doTypesC ;
 
@@ -4272,6 +4290,9 @@ BEGIN
    IF isDef (getMainModule ())
    THEN
       print (doP, "EXTERN") ; setNeedSpace (doP)
+   ELSIF NOT isExported (n)
+   THEN
+      print (doP, "static") ; setNeedSpace (doP)
    END ;
    s := NIL ;
    doTypeC (doP, getType (n), s) ;
@@ -4728,7 +4749,8 @@ BEGIN
       THEN
          RETURN s
       END
-   END
+   END ;
+   RETURN completed
 END walkSubrange ;
 
 
@@ -5335,7 +5357,7 @@ END dumpLists ;
 PROCEDURE outputHidden (n: node) ;
 BEGIN
    outText (doP, "#if !defined (") ; doFQNameC (doP, n) ; outText (doP, "_D)\n") ;
-   outText (doP, "#  defined ") ; doFQNameC (doP, n) ; outText (doP, "_D\n") ;
+   outText (doP, "#  define ") ; doFQNameC (doP, n) ; outText (doP, "_D\n") ;
    outText (doP, "   typedef void *") ; doFQNameC (doP, n) ; outText (doP, ";\n") ;
    outText (doP, "#endif\n\n")
 END outputHidden ;
@@ -5493,6 +5515,22 @@ END topologicallyOutC ;
 
 
 (*
+   checkProcUsed -
+*)
+
+PROCEDURE checkProcUsed (p: pretty) ;
+BEGIN
+   IF procUsed
+   THEN
+      print (p, "#   if !defined (PROC_D)\n") ;
+      print (p, "#      define PROC_D\n") ;
+      print (p, "       typedef struct { void (*proc)(void); } PROC;\n") ;
+      print (p, "#   endif\n\n")
+   END
+END checkProcUsed ;
+
+
+(*
    outDefC -
 *)
 
@@ -5521,13 +5559,7 @@ BEGIN
    print (p, "#      endif\n") ;
    print (p, "#   endif\n\n") ;
 
-   IF procUsed
-   THEN
-      print (p, "#   if !defined (PROC_D)\n") ;
-      print (p, "#      defined PROC_D\n") ;
-      print (p, "#      typedef struct { void (*proc)(void); } PROC;\n") ;
-      print (p, "#   endif\n\n")
-   END ;
+   checkProcUsed (p) ;
 
    outDeclsDefC (p, n^.defF.decls) ;
 
@@ -5559,13 +5591,7 @@ BEGIN
 
    print (p, "\n") ;
 
-   IF procUsed
-   THEN
-      print (p, "#   if !defined (PROC_D)\n") ;
-      print (p, "#      defined PROC_D\n") ;
-      print (p, "#      typedef struct { void (*proc)(void); } PROC;\n") ;
-      print (p, "#   endif\n\n")
-   END ;
+   checkProcUsed (p) ;
 
    includeDefSymbols (n) ;
    outDeclsImpC (p, n^.impF.decls) ;

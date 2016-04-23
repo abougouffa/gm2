@@ -184,6 +184,7 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot \
                  $(objdir)/gm2/gm2-libs-pim \
                  $(objdir)/gm2/gm2-libs-coroutines \
                  $(objdir)/gm2/gm2-libs-min \
+                 $(objdir)/gm2/mc-boot \
                  stage1/gm2 stage2/gm2 stage3/gm2 stage4/gm2
 
 # gt-gm2-gm2-lang.h gtype-gm2.h gt-gm2-gccgm2.h gt-gm2-m2builtins.h gt-gm2-m2except.h: s-gtype; @true
@@ -1713,11 +1714,43 @@ gm2-bootstrap: mc-devel
 	for i in $(srcdir)/gm2/gm2-compiler/*.def ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/gm2/gm2-libs:$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-gcc $$i ; done
 	for i in $(srcdir)/gm2/gm2-libs/*.mod ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/gm2/gm2-libs:$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-gcc $$i ; done
 
-mc-autogen: mc-devel $(GM2_DIRS)
-	for i in $(srcdir)/gm2/gm2-libs/*.def ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/gm2/gm2-libs $$i -o gm2/gm2-libs-boot/G`basename $$i .def`.h ; done
-	for i in $(srcdir)/gm2/gm2-libs/*.mod ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/gm2/gm2-libs $$i -o gm2/gm2-libs-boot/`basename $$i .mod`.c ; done
-	for i in $(srcdir)/gm2/gm2-compiler/*.def ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/gm2/gm2-libs:$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-gcc $$i -o gm2/gm2-compiler-boot/G`basename $$i .def`.h ; done
-	for i in $(srcdir)/gm2/gm2-compiler/*.mod ; do echo $$i ; ./mc -I../../gcc-5.2.0/gcc/gm2/gm2-libs:$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-gcc $$i -o gm2/gm2-compiler-boot/`basename $$i .def`.c ; done
+MC-LIB-DEFS = Args.def ASCII.def Assertion.def Break.def  \
+              CmdArgs.def Debug.def \
+              dtoa.def DynamicStrings.def Environment.def \
+              errno.def FIO.def FormatStrings.def FpuIO.def \
+              Indexing.def IO.def ldtoa.def libc.def \
+              libm.def M2EXCEPTION.def M2RTS.def \
+              MemUtils.def NumberIO.def PushBackInput.def \
+              RTExceptions.def RTint.def SArgs.def \
+              SFIO.def StdIO.def Storage.def StrCase.def \
+              StringConvert.def StrIO.def StrLib.def \
+              SysExceptions.def SysStorage.def \
+              SYSTEM.def TimeString.def \
+              UnixArgs.def
+
+MC-DEFS = alists.def  decl.def  Indexing.def  lists.def  m2flex.def \
+               mcComp.def  mcDebug.def  mcError.def  mcFileName.def \
+               mcflex.def  mcLexBuf.def  mcMetaError.def  mcOptions.def \
+               mcp1.def   mcp2.def  mcp3.def  mcp4.def  mcPreprocess.def \
+               mcPretty.def  mcPrintf.def  mcQuiet.def  mcReserved.def \
+               mcSearch.def  mcStack.def  nameKey.def  symbolKey.def \
+               varargs.def  wlists.def
+
+BUILD-MC-BOOT-H =  $(MC-LIB-DEFS:%.def=gm2/mc-boot/$(SRC_PREFIX)%.h) \
+                   $(MC-DEFS:%.def=gm2/mc-boot/$(SRC_PREFIX)%.h)
+
+$(objdir)/gm2/mc-boot:
+	mkdir gm2/mc-boot
+
+mc-autogen: mc-devel $(GM2_DIRS) $(BUILD-MC-BOOT-H)
+	for i in gm2/mc-boot/*.h ; do echo "#include \"`basename $$i .h`.h\"" > gm2/mc-boot/f.c ; echo "main () {}" >> gm2/mc-boot/f.c ; echo "compiling $$i" ; gcc -g -c -o /tmp/f.o gm2/mc-boot/f.c ; done
+
+
+gm2/mc-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/mc/%.def
+	./mc -I$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/mc --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
+
+gm2/mc-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def
+	./mc -I$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/mc --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
 #
 #  mc-bootstrap - compiles mc using the C version previously

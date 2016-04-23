@@ -20,7 +20,7 @@ IMPLEMENTATION MODULE mcOptions ;
 
 FROM SArgs IMPORT GetArg, Narg ;
 FROM mcSearch IMPORT prependSearchPath ;
-FROM libc IMPORT exit ;
+FROM libc IMPORT exit, printf ;
 FROM mcPrintf IMPORT printf0 ;
 FROM Debug IMPORT Halt ;
 FROM StrLib IMPORT StrLen ;
@@ -33,11 +33,13 @@ CONST
    YEAR = '2016' ;
 
 VAR
+   ignoreFQ,
    debugTopological,
    extendedOpaque,
    internalDebugging,
    verbose,
    quiet            : BOOLEAN ;
+   hPrefix,
    outputFile,
    cppArgs,
    cppProgram       : String ;
@@ -66,7 +68,7 @@ END displayVersion ;
 
 PROCEDURE displayHelp ;
 BEGIN
-   printf0 ("usage: mc [--cpp] [-g] [--quiet] [--extended-opaque] [-q] [-v] [--verbose] [--version] [--help] [-h] [-Ipath] [--olang=c] [--olang=c++] [--olang=m2] filename\n") ;
+   printf0 ("usage: mc [--cpp] [-g] [--quiet] [--extended-opaque] [-q] [-v] [--verbose] [--version] [--help] [-h] [-Ipath] [--olang=c] [--olang=c++] [--olang=m2] [--debug-top] [--h-file-prefix=foo] [-o=foo] filename\n") ;
    printf0 ("  --cpp               preprocess through the C preprocessor\n") ;
    printf0 ("  -g                  emit debugging directives in the output language") ;
    printf0 ("                      so that the debugger will refer to the source\n") ;
@@ -81,6 +83,9 @@ BEGIN
    printf0 ("  --extended-opaque   parse definition and implementation modules to\n") ;
    printf0 ("                      generate full type debugging of opaque types\n") ;
    printf0 ("  --debug-top         debug topological data structure resolving (internal)\n") ;
+   printf0 ("  --h-file-prefix=foo set the h file prefix to foo\n") ;
+   printf0 ("  -o=foo              set the output file to foo\n") ;
+   printf0 ("  filename            the source file must be the last option\n") ;
    exit (0)
 END displayHelp ;
 
@@ -240,6 +245,46 @@ END getDebugTopological ;
 
 
 (*
+   setHPrefix - saves the H file prefix.
+*)
+
+PROCEDURE setHPrefix (s: String) ;
+BEGIN
+   hPrefix := s
+END setHPrefix ;
+
+
+(*
+   getHPrefix - saves the H file prefix.
+*)
+
+PROCEDURE getHPrefix () : String ;
+BEGIN
+   RETURN hPrefix
+END getHPrefix ;
+
+
+(*
+   setIgnoreFQ - sets the ignorefq flag.
+*)
+
+PROCEDURE setIgnoreFQ (value: BOOLEAN) ;
+BEGIN
+   ignoreFQ := value
+END setIgnoreFQ ;
+
+
+(*
+   getIgnoreFQ - returns the ignorefq flag.
+*)
+
+PROCEDURE getIgnoreFQ () : BOOLEAN ;
+BEGIN
+   RETURN ignoreFQ
+END getIgnoreFQ ;
+
+
+(*
    optionIs - returns TRUE if the first len (right) characters
               match left.
 *)
@@ -318,6 +363,12 @@ BEGIN
    ELSIF optionIs ("--debug-top", arg)
    THEN
       setDebugTopological (TRUE)
+   ELSIF optionIs ("--h-file-prefix=", arg)
+   THEN
+      setHPrefix (Slice (arg, 16, 0))
+   ELSIF optionIs ("--ignore-fq", arg)
+   THEN
+      setIgnoreFQ (TRUE)
    END
 END handleOption ;
 
@@ -356,6 +407,8 @@ BEGIN
    verbose := FALSE ;
    extendedOpaque := FALSE ;
    debugTopological := FALSE ;
+   ignoreFQ := FALSE ;
+   hPrefix := InitString ('') ;
    cppArgs := InitString ('') ;
    cppProgram := InitString ('') ;
    outputFile := InitString ('-')

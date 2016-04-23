@@ -848,7 +848,7 @@ TagIdent :=  Ident |                                                    % curide
 CaseTag :=                                                              % VAR tagident: Name ; q, v, w: node ; %
                                                                         % w := pop () ; v := peep () ; w := push (w) %
 									% assert (isVarient (w)) %
-									% assert (isVarient (v)) %
+									% assert ((v=NIL) OR isVarient (v)) %
            TagIdent                                                     % tagident := curident %
                      ( ":" PushQualident                                % q := pop () %
 		                         |                              % q := NIL %
