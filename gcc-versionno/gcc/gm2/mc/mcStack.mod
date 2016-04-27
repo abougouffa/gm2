@@ -114,4 +114,14 @@ BEGIN
 END replace ;
 
 
+(*
+   depth - returns the depth of the stack.
+*)
+
+PROCEDURE depth (s: stack) : CARDINAL ;
+BEGIN
+   RETURN s^.count
+END depth ;
+
+
 END mcStack.

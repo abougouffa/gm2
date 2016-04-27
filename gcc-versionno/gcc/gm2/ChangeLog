@@ -1,3 +1,17 @@
+2016-04-27      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  force the mc-boot rule.
+	* gm2/bnf/mc-3.bnf:  many bug fixes and finished implementing
+          record/varient record handling.
+	* gm2/mc/decl.def:  add second parameter to
+          buildVarientFieldRecord.
+	* gm2/mc/decl.mod:  min, max new nodes.  makeArray skip type.
+          buildVarientFieldRecord add second parameter and use it.
+          Many features added and code added.
+	* gm2/mc/mcOptions.mod:  new option --ignore-fq.
+	* gm2/mc/mcStack.def:  depth (New procedure function).
+	* gm2/mc/mcStack.mod:  implemented depth.
+
 2016-04-23      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  rewrite of mc-autogen which currently tests

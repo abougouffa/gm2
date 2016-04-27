@@ -69,4 +69,11 @@ PROCEDURE pop (s: stack) : ADDRESS ;
 PROCEDURE replace (s: stack; a: ADDRESS) : ADDRESS ;
 
 
+(*
+   depth - returns the depth of the stack.
+*)
+
+PROCEDURE depth (s: stack) : CARDINAL ;
+
+
 END mcStack.

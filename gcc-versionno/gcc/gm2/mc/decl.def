@@ -560,7 +560,7 @@ PROCEDURE buildVarientSelector (r, v: node; tag: Name; type: node) ;
                              The varient field is returned.
 *)
 
-PROCEDURE buildVarientFieldRecord (v: node) : node ;
+PROCEDURE buildVarientFieldRecord (v: node; p: node) : node ;
 
 
 (*

@@ -83,6 +83,7 @@ TYPE
 	    cast, val,
 	    plus, sub, div, mod,
 	    adr, size, tsize, ord,
+	    min, max,
 	    componentref, indirect,
 	    equal, notequal, less, greater, greequal, lessequal,
 	    lsl, lsr, lor, land, lnot, lxor,
@@ -169,7 +170,9 @@ TYPE
 			 neg,
                          adr,
                          size,
-			 tsize           :  unaryF           : unaryT |
+			 tsize,
+			 min,
+			 max             :  unaryF           : unaryT |
 			 identlist       :  identlistF       : identlistT |
 			 vardecl         :  vardeclF         : vardeclT
 
@@ -471,6 +474,8 @@ VAR
    adrN,
    sizeN,
    tsizeN,
+   minN,
+   maxN,
    booleanN,
    procN,
    charN,
@@ -481,6 +486,7 @@ VAR
    longintN,
    shortintN,
    bitsetN,
+   bitnumN,
    ztypeN,
    rtypeN,
    realN,
@@ -1926,9 +1932,10 @@ END makePointer ;
 
 PROCEDURE makeArray (subr, type: node) : node ;
 VAR
-   n: node ;
+   n, s: node ;
 BEGIN
-   assert (isSubrange (subr) OR isOrdinal (subr)) ;
+   s := skipType (subr) ;
+   assert (isSubrange (s) OR isOrdinal (s)) ;
    n := newNode (array) ;
    n^.arrayF.subr := subr ;
    n^.arrayF.type := type ;
@@ -2034,11 +2041,12 @@ END makeVarient ;
                              The varient field is returned.
 *)
 
-PROCEDURE buildVarientFieldRecord (v: node) : node ;
+PROCEDURE buildVarientFieldRecord (v: node; p: node) : node ;
 VAR
    f: node ;
 BEGIN
-   f := makeVarientField (v) ;
+   assert (isVarient (v)) ;
+   f := makeVarientField (v, p) ;
    assert (isVarientField (f)) ;
    putFieldVarient (f, v) ;
    RETURN f
@@ -2050,14 +2058,14 @@ END buildVarientFieldRecord ;
                       The new varient field is returned.
 *)
 
-PROCEDURE makeVarientField (v: node) : node ;
+PROCEDURE makeVarientField (v: node; p: node) : node ;
 VAR
    n: node ;
 BEGIN
    n := newNode (varientfield) ;
    WITH n^.varientfieldF DO
       name := NulName ;
-      parent := NIL ;
+      parent := p ;
       varient := v ;
       listOfSons := InitIndex (1) ;
       scope := getDeclScope ()
@@ -2139,37 +2147,25 @@ END putFieldRecord ;
 
 
 (*
-   buildVarientSelector - builds a field of name, tag, of, type, t, varient, r.
+   buildVarientSelector - builds a field of name, tag, of, type onto:
+                          record or varient field, r.
+                          varient, v.
 *)
 
 PROCEDURE buildVarientSelector (r, v: node; tag: Name; type: node) ;
 VAR
    f: node ;
 BEGIN
-   assert (NOT isRecord (r)) ;
-   IF isVarient (r)
+   assert (isRecord (r) OR isVarientField (r)) ;
+   IF isRecord (r) OR isVarientField (r)
    THEN
-      f := getParent (r) ;
       IF (type=NIL) AND (tag=NulName)
       THEN
          metaError1 ('expecting a tag field in the declaration of a varient record {%1Ua}', r)
       ELSIF type=NIL
       THEN
-         putVarientTag (r, lookupSym (tag))
-      ELSE
-         f := putFieldRecord (f, tag, type, v) ;
-         putVarientTag (r, f)
-      END
-   ELSE
-      assert (isVarientField (r)) ;
-      assert (isVarient (v)) ;
-      putFieldVarient (r, v) ;
-      IF (type=NIL) AND (tag=NulName)
-      THEN
-         metaError1 ('expecting a tag field in the declaration of a varient record {%1Ua}', r)
-      ELSIF type=NIL
-      THEN
-         putVarientTag (v, lookupSym (tag))
+         f := lookupSym (tag) ;
+         putVarientTag (v, f)
       ELSE
          f := putFieldRecord (r, tag, type, v) ;
          putVarientTag (v, f)
@@ -2209,23 +2205,6 @@ BEGIN
 
    varient:  v^.varientF.tag := tag
 
-   END ;
-   (* now ensure that if tag is a recordfield then it must be
-      placed before the varient symbol in its parent listOfSons.
-      This keeps the record fields in order as we want the tag
-      before the C union.
-   *)
-   IF isRecordField (tag)
-   THEN
-      tag^.recordfieldF.tag := TRUE ;
-      p := getParent(v) ;
-      CASE p^.kind OF
-
-      varient     : ensureOrder (p^.varientF.listOfSons, tag, v) |
-      varientfield: ensureOrder (p^.varientfieldF.listOfSons, tag, v) |
-      record      : ensureOrder (p^.recordF.listOfSons, tag, v)
-
-      END
    END
 END putVarientTag ;
 
@@ -2374,7 +2353,7 @@ VAR
    f: node ;
 BEGIN
    assert (isEnumeration (e)) ;
-   f := getSymKey (e^.enumerationF.localSymbols, n) ;
+   f := lookupSym (n) ;
    IF f=NIL
    THEN
       f := newNode (enumerationfield) ;
@@ -2388,7 +2367,8 @@ BEGIN
       END ;
       INC (e^.enumerationF.noOfElements) ;
       assert (GetIndice (e^.enumerationF.listOfSons, e^.enumerationF.noOfElements) = f) ;
-      RETURN f
+
+      RETURN addToScope (f)
    ELSE
       metaErrors2 ('cannot create enumeration field {%1k} as the name is already in use',
                    '{%2DMad} was declared elsewhere', n, f)
@@ -2608,6 +2588,26 @@ BEGIN
       DEC (h)
    END
 END dumpScopes ;
+
+
+(*
+   out1 -
+*)
+
+PROCEDURE out1 (a: ARRAY OF CHAR; s: node) ;
+VAR
+   m: String ;
+BEGIN
+   m := getFQstring (s) ;
+   IF EqualArray (m, '')
+   THEN
+      m := KillString (m) ;
+      m := Sprintf1 (InitString ('[%d]'), VAL (CARDINAL, s))
+   END ;
+   m := Sprintf1 (InitString (a), m) ;
+   m := KillString (WriteS (StdOut, m)) ;
+   m := KillString (m)
+END out1 ;
 
 
 (*
@@ -2871,7 +2871,9 @@ BEGIN
       rtype,
       adr,
       size,
-      tsize    :  (* legal kind.  *) |
+      tsize,
+      min,
+      max     :  (* legal kind.  *) |
 
       ELSE
          HALT
@@ -3430,6 +3432,16 @@ END doConstExpr ;
 
 
 (*
+   doEnumerationField -
+*)
+
+PROCEDURE doEnumerationField (p: pretty; n: node) ;
+BEGIN
+   doFQNameC (p, n)
+END doEnumerationField ;
+
+
+(*
    doExprC -
 *)
 
@@ -3439,31 +3451,32 @@ BEGIN
    WITH n^ DO
       CASE kind OF
 
-      nil         :  outText (p, 'NIL') |
-      true        :  outText (p, 'TRUE') |
-      false       :  outText (p, 'FALSE') |
-      neg         :  doUnary (p, '-', unaryF.arg, unaryF.resultType) |
-      not         :  doUnary (p, 'NOT', unaryF.arg, unaryF.resultType) |
-      adr         :  doUnary (p, 'ADR', unaryF.arg, unaryF.resultType) |
-      size        :  doUnary (p, 'SIZE', unaryF.arg, unaryF.resultType) |
-      tsize       :  doUnary (p, 'TSIZE', unaryF.arg, unaryF.resultType) |
-      ord         :  doUnary (p, 'ORD', unaryF.arg, unaryF.resultType) |
-      indirect    :  doPostUnary (p, '^', unaryF.arg) |
-      equal       :  doBinary (p, '=', binaryF.left, binaryF.right) |
-      notequal    :  doBinary (p, '#', binaryF.left, binaryF.right) |
-      less        :  doBinary (p, '<', binaryF.left, binaryF.right) |
-      greater     :  doBinary (p, '>', binaryF.left, binaryF.right) |
-      greequal    :  doBinary (p, '>=', binaryF.left, binaryF.right) |
-      lessequal   :  doBinary (p, '<=', binaryF.left, binaryF.right) |
-      componentref:  doBinary (p, '.', binaryF.left, binaryF.right) |
-      cast        :  doPreBinary (p, 'CAST', binaryF.left, binaryF.right) |
-      val         :  doPreBinary (p, 'VAL', binaryF.left, binaryF.right) |
-      plus        :  doBinary (p, '+', binaryF.left, binaryF.right) |
-      sub         :  doBinary (p, '-', binaryF.left, binaryF.right) |
-      div         :  doBinary (p, '/', binaryF.left, binaryF.right) |
-      mod         :  doBinary (p, 'MOD', binaryF.left, binaryF.right) |
-      literal     :  doLiteral (p, n) |
-      const       :  doConstExpr (p, n)
+      nil             :  outText (p, 'NIL') |
+      true            :  outText (p, 'TRUE') |
+      false           :  outText (p, 'FALSE') |
+      neg             :  doUnary (p, '-', unaryF.arg, unaryF.resultType) |
+      not             :  doUnary (p, 'NOT', unaryF.arg, unaryF.resultType) |
+      adr             :  doUnary (p, 'ADR', unaryF.arg, unaryF.resultType) |
+      size            :  doUnary (p, 'SIZE', unaryF.arg, unaryF.resultType) |
+      tsize           :  doUnary (p, 'TSIZE', unaryF.arg, unaryF.resultType) |
+      ord             :  doUnary (p, 'ORD', unaryF.arg, unaryF.resultType) |
+      indirect        :  doPostUnary (p, '^', unaryF.arg) |
+      equal           :  doBinary (p, '=', binaryF.left, binaryF.right) |
+      notequal        :  doBinary (p, '#', binaryF.left, binaryF.right) |
+      less            :  doBinary (p, '<', binaryF.left, binaryF.right) |
+      greater         :  doBinary (p, '>', binaryF.left, binaryF.right) |
+      greequal        :  doBinary (p, '>=', binaryF.left, binaryF.right) |
+      lessequal       :  doBinary (p, '<=', binaryF.left, binaryF.right) |
+      componentref    :  doBinary (p, '.', binaryF.left, binaryF.right) |
+      cast            :  doPreBinary (p, 'CAST', binaryF.left, binaryF.right) |
+      val             :  doPreBinary (p, 'VAL', binaryF.left, binaryF.right) |
+      plus            :  doBinary (p, '+', binaryF.left, binaryF.right) |
+      sub             :  doBinary (p, '-', binaryF.left, binaryF.right) |
+      div             :  doBinary (p, '/', binaryF.left, binaryF.right) |
+      mod             :  doBinary (p, 'MOD', binaryF.left, binaryF.right) |
+      literal         :  doLiteral (p, n) |
+      const           :  doConstExpr (p, n) |
+      enumerationfield:  doEnumerationField (p, n)
 
       END
    END
@@ -3966,15 +3979,144 @@ END doCompletePartialArray ;
 
 
 (*
+   lookupConst -
+*)
+
+PROCEDURE lookupConst (type: node; n: Name) : node ;
+BEGIN
+   RETURN makeLiteralInt (n)
+END lookupConst ;
+
+
+(*
+   doMin -
+*)
+
+PROCEDURE doMin (n: node) : node ;
+BEGIN
+   IF n=booleanN
+   THEN
+      RETURN falseN
+   ELSIF n=integerN
+   THEN
+      RETURN lookupConst (integerN, makeKey ('-2147483648'))
+   ELSIF n=cardinalN
+   THEN
+      RETURN lookupConst (cardinalN, makeKey ('0'))
+   ELSIF n=charN
+   THEN
+      RETURN lookupConst (charN, makeKey ('0'))
+   ELSIF n=bitsetN
+   THEN
+      RETURN lookupConst (bitnumN, makeKey ('0'))
+   ELSIF n=byteN
+   THEN
+      RETURN lookupConst (byteN, makeKey ('0'))
+   ELSIF n=wordN
+   THEN
+      RETURN lookupConst (wordN, makeKey ('0'))
+   ELSIF n=addressN
+   THEN
+      RETURN lookupConst (addressN, makeKey ('0'))
+   ELSE
+      HALT  (* finish the cacading elsif statement.  *)
+   END
+END doMin ;
+
+
+(*
+   doMax -
+*)
+
+PROCEDURE doMax (n: node) : node ;
+BEGIN
+   IF n=booleanN
+   THEN
+      RETURN trueN
+   ELSIF n=integerN
+   THEN
+      RETURN lookupConst (integerN, makeKey ('2147483647'))
+   ELSIF n=cardinalN
+   THEN
+      RETURN lookupConst (cardinalN, makeKey ('4294967295'))
+   ELSIF n=charN
+   THEN
+      RETURN lookupConst (charN, makeKey ('255'))
+   ELSIF n=bitsetN
+   THEN
+      RETURN lookupConst (bitnumN, makeKey ('31'))
+   ELSIF n=byteN
+   THEN
+      RETURN lookupConst (byteN, makeKey ('255'))
+   ELSIF n=wordN
+   THEN
+      RETURN lookupConst (wordN, makeKey ('4294967295'))
+   ELSIF n=addressN
+   THEN
+      metaError1 ('trying to obtain MAX ({%1ad}) is illegal', n) ;
+      RETURN NIL
+   ELSE
+      HALT  (* finish the cacading elsif statement.  *)
+   END
+END doMax ;
+
+
+(*
+   getMax -
+*)
+
+PROCEDURE getMax (n: node) : node ;
+BEGIN
+   IF isSubrange (n)
+   THEN
+      RETURN n^.subrangeF.high
+   ELSE
+      assert (isOrdinal (n)) ;
+      RETURN doMax (n)
+   END
+END getMax ;
+
+
+(*
+   getMin -
+*)
+
+PROCEDURE getMin (n: node) : node ;
+BEGIN
+   IF isSubrange (n)
+   THEN
+      RETURN n^.subrangeF.low
+   ELSE
+      assert (isOrdinal (n)) ;
+      RETURN doMin (n)
+   END
+END getMin ;
+
+
+(*
    doSubrC -
 *)
 
 PROCEDURE doSubrC (p: pretty; s: node) ;
+VAR
+   low, high: node ;
 BEGIN
-   doExprC (p, s^.subrangeF.high) ;
-   outText (p, "-") ;
-   doExprC (p, s^.subrangeF.low) ;
-   outText (p, "+1")
+   s := skipType (s) ;
+   IF isOrdinal (s)
+   THEN
+      low := getMin (s) ;
+      high := getMax (s) ;
+      doExprC (p, high) ;
+      outText (p, "-") ;
+      doExprC (p, low) ;
+      outText (p, "+1")
+   ELSE
+      assert (isSubrange (s)) ;
+      doExprC (p, s^.subrangeF.high) ;
+      outText (p, "-") ;
+      doExprC (p, s^.subrangeF.low) ;
+      outText (p, "+1")
+   END
 END doSubrC ;
 
 
@@ -4188,6 +4330,33 @@ END doRecordC ;
 
 
 (*
+   isNegative - returns TRUE if expression, n, is negative.
+*)
+
+PROCEDURE isNegative (n: node) : BOOLEAN ;
+BEGIN
+   (* --fixme-- needs to be completed.  *)
+   RETURN FALSE
+END isNegative ;
+
+
+(*
+   doSubrangeC -
+*)
+
+PROCEDURE doSubrangeC (p: pretty; n: node) ;
+BEGIN
+   assert (isSubrange (n)) ;
+   IF isNegative (n^.subrangeF.low)
+   THEN
+      outText (p, "int") ; setNeedSpace (p)
+   ELSE
+      outText (p, "unsigned int") ; setNeedSpace (p)
+   END
+END doSubrangeC ;
+
+
+(*
    doTypeC -
 *)
 
@@ -4227,7 +4396,11 @@ BEGIN
    ELSIF isPointer (n)
    THEN
       doPointerC (p, n, m)
+   ELSIF isSubrange (n)
+   THEN
+      doSubrangeC (p, n)
    ELSE
+      (* --fixme--  *)
       print (p, "to do ...  typedef etc etc ") ; doFQNameC (p, n) ; print (p, ";\n")
    END
 END doTypeC ;
@@ -4661,8 +4834,27 @@ END walkRecord ;
 *)
 
 PROCEDURE walkVarient (l: alist; n: node) : dependentState ;
+VAR
+   s   : dependentState ;
+   i, t: CARDINAL ;
+   q   : node ;
 BEGIN
-   HALT ;
+   s := walkDependants (l, n^.varientF.tag) ;
+   IF s#completed
+   THEN
+      RETURN s
+   END ;
+   i := LowIndice (n^.varientF.listOfSons) ;
+   t := HighIndice (n^.varientF.listOfSons) ;
+   WHILE i<=t DO
+      q := GetIndice (n^.varientF.listOfSons, i) ;
+      s := walkDependants (l, q) ;
+      IF s#completed
+      THEN
+         RETURN s
+      END ;
+      INC (i)
+   END ;
    RETURN completed
 END walkVarient ;
 
@@ -5487,6 +5679,44 @@ END tryOutputPartial ;
 
 
 (*
+   debugList -
+*)
+
+PROCEDURE debugList (a: ARRAY OF CHAR; l: alist) ;
+VAR
+   i, h: CARDINAL ;
+   n   : node ;
+BEGIN
+   h := alists.noOfItemsInList (l) ;
+   IF h>0
+   THEN
+      outText (doP, a) ;
+      outText (doP, ' still contains node(s)\n') ;
+      i := 1 ;
+      REPEAT
+         n := alists.getItemFromList (l, i) ;
+	 dbg (n) ;
+         INC (i)
+      UNTIL i > h
+   END
+END debugList ;
+
+
+(*
+   debugLists -
+*)
+
+PROCEDURE debugLists ;
+BEGIN
+   IF getDebugTopological ()
+   THEN
+      debugList ('todo', todoQ) ;
+      debugList ('partial', partialQ)
+   END
+END debugLists ;
+
+
+(*
    topologicallyOutC -
 *)
 
@@ -5510,7 +5740,8 @@ BEGIN
       to := alists.noOfItemsInList (todoQ) ;
       pa := alists.noOfItemsInList (partialQ)
    END ;
-   dumpLists
+   dumpLists ;
+   debugLists
 END topologicallyOutC ;
 
 
@@ -5715,6 +5946,205 @@ END addDone ;
 
 
 (*
+   dbgAdd -
+*)
+
+PROCEDURE dbgAdd (l: alist; n: node) : node ;
+BEGIN
+   IF n#NIL
+   THEN
+      alists.includeItemIntoList (l, n)
+   END ;
+   RETURN n
+END dbgAdd ;
+
+
+(*
+   dbgType -
+*)
+
+PROCEDURE dbgType (l: alist; n: node) ;
+VAR
+   t: node ;
+BEGIN
+   t := dbgAdd (l, getType (n)) ;
+   out1 ("<%s type", n) ;
+   out1 (", type = %s>\n", t)
+END dbgType ;
+
+
+(*
+   dbgPointer -
+*)
+
+PROCEDURE dbgPointer (l: alist; n: node) ;
+VAR
+   t: node ;
+BEGIN
+   t := dbgAdd (l, getType (n)) ;
+   out1 ("<%s pointer", n) ;
+   out1 (" to %s>\n", t)
+END dbgPointer ;
+
+
+(*
+   dbgRecord -
+*)
+
+PROCEDURE dbgRecord (l: alist; n: node) ;
+VAR
+   i, t: CARDINAL ;
+   q   : node ;
+BEGIN
+   out1 ("<%s record:\n", n) ;
+   i := LowIndice (n^.recordF.listOfSons) ;
+   t := HighIndice (n^.recordF.listOfSons) ;
+   WHILE i<=t DO
+      q := GetIndice (n^.recordF.listOfSons, i) ;
+      IF isRecordField (q)
+      THEN
+         out1 (" <recordfield %s", q)
+      ELSIF isVarientField (q)
+      THEN
+         out1 (" <varientfield %s", q)
+      ELSIF isVarient (q)
+      THEN
+         out1 (" <varient %s", q)
+      ELSE
+         HALT
+      END ;
+      q := dbgAdd (l, getType (q)) ;
+      out1 (": %s>\n", q) ;
+      INC (i)
+   END ;
+   outText (doP, ">\n")
+END dbgRecord ;
+
+
+(*
+   dbgVarient -
+*)
+
+PROCEDURE dbgVarient (l: alist; n: node) ;
+VAR
+   i, t: CARDINAL ;
+   q   : node ;
+BEGIN
+   out1 ("<%s varient: ", n) ;
+   out1 ("tag %s", n^.varientF.tag) ;
+   q := getType (n^.varientF.tag) ;
+   IF q=NIL
+   THEN
+      outText (doP, "\n")
+   ELSE
+      out1 (": %s\n", q) ;
+      q := dbgAdd (l, q)
+   END ;
+   i := LowIndice (n^.varientF.listOfSons) ;
+   t := HighIndice (n^.varientF.listOfSons) ;
+   WHILE i<=t DO
+      q := GetIndice (n^.varientF.listOfSons, i) ;
+      IF isRecordField (q)
+      THEN
+         out1 (" <recordfield %s", q)
+      ELSIF isVarientField (q)
+      THEN
+         out1 (" <varientfield %s", q)
+      ELSIF isVarient (q)
+      THEN
+         out1 (" <varient %s", q)
+      ELSE
+         HALT
+      END ;
+      q := dbgAdd (l, getType (q)) ;
+      out1 (": %s>\n", q) ;
+      INC (i)
+   END ;
+   outText (doP, ">\n")
+END dbgVarient ;
+
+
+(*
+   dbgEnumeration -
+*)
+
+PROCEDURE dbgEnumeration (l: alist; n: node) ;
+VAR
+   e   : node ;
+   i, h: CARDINAL ;
+BEGIN
+   outText (doP, "< enumeration ") ;
+   i := LowIndice (n^.enumerationF.listOfSons) ;
+   h := HighIndice (n^.enumerationF.listOfSons) ;
+   WHILE i<=h DO
+      e := GetIndice (n^.enumerationF.listOfSons, i) ;
+      out1 ("%s, ", e) ;
+      INC (i)
+   END ;
+   outText (doP, ">\n")
+END dbgEnumeration ;
+
+
+(*
+   doDbg -
+*)
+
+PROCEDURE doDbg (l: alist; n: node) ;
+BEGIN
+   IF n=NIL
+   THEN
+      (* do nothing.  *)
+   ELSIF isType (n)
+   THEN
+      dbgType (l, n)
+   ELSIF isRecord (n)
+   THEN
+      dbgRecord (l, n)
+   ELSIF isVarient (n)
+   THEN
+      dbgVarient (l, n)
+   ELSIF isEnumeration (n)
+   THEN
+      dbgEnumeration (l, n)
+   ELSIF isPointer (n)
+   THEN
+      dbgPointer (l, n)
+   END
+END doDbg ;
+
+
+(*
+   dbg -
+*)
+
+PROCEDURE dbg (n: node) ;
+VAR
+   l: alist ;
+   o: pretty ;
+   f: File ;
+   s: String ;
+   i: CARDINAL ;
+BEGIN
+   o := doP ;
+   f := outputFile ;
+   outputFile := StdOut ;
+   doP := initPretty (write, writeln) ;
+
+   l := alists.initList () ;
+   alists.includeItemIntoList (l, n) ;
+   i := 1 ;
+   out1 ("dbg (%s)\n", n) ;
+   REPEAT
+      n := alists.getItemFromList (l, i) ;
+      doDbg (l, n) ;
+      INC (i)
+   UNTIL i>alists.noOfItemsInList (l) ;
+   doP := o ;
+   outputFile := f
+END dbg ;
+
+
+(*
    makeSystem -
 *)
 
@@ -5743,6 +6173,23 @@ END makeSystem ;
 
 
 (*
+   makeBitnum -
+*)
+
+PROCEDURE makeBitnum () : node ;
+VAR
+   b: node ;
+BEGIN
+   b := newNode (subrange) ;
+   b^.subrangeF.type := NIL ;
+   b^.subrangeF.scope := NIL ;
+   b^.subrangeF.low := lookupConst (b, makeKey ('0')) ;
+   b^.subrangeF.high := lookupConst (b, makeKey ('31')) ;
+   RETURN b
+END makeBitnum ;
+
+
+(*
    makeBaseSymbols -
 *)
 
@@ -5760,6 +6207,7 @@ BEGIN
    longintN := makeBase (longint) ;
    shortintN := makeBase (shortint) ;
    bitsetN := makeBase (bitset) ;
+   bitnumN := makeBitnum () ;
    ztypeN := makeBase (ztype) ;
    rtypeN := makeBase (rtype) ;
    realN := makeBase (real) ;
@@ -5771,6 +6219,8 @@ BEGIN
    falseN := makeBase (false) ;
 
    sizeN := makeBase (size) ;
+   minN := makeBase (min) ;
+   maxN := makeBase (max) ;
 
    putSymKey (baseSymbols, makeKey ('BOOLEAN'), booleanN) ;
    putSymKey (baseSymbols, makeKey ('PROC'), procN) ;
@@ -5790,6 +6240,8 @@ BEGIN
    putSymKey (baseSymbols, makeKey ('TRUE'), trueN) ;
    putSymKey (baseSymbols, makeKey ('FALSE'), falseN) ;
    putSymKey (baseSymbols, makeKey ('SIZE'), sizeN) ;
+   putSymKey (baseSymbols, makeKey ('MIN'), minN) ;
+   putSymKey (baseSymbols, makeKey ('MAX'), maxN) ;
 
    addDone (booleanN) ;
    addDone (charN) ;

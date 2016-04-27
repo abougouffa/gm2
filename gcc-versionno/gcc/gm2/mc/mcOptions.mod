@@ -85,6 +85,7 @@ BEGIN
    printf0 ("  --debug-top         debug topological data structure resolving (internal)\n") ;
    printf0 ("  --h-file-prefix=foo set the h file prefix to foo\n") ;
    printf0 ("  -o=foo              set the output file to foo\n") ;
+   printf0 ("  --ignore-fq         do not generate fully qualified idents\n") ;
    printf0 ("  filename            the source file must be the last option\n") ;
    exit (0)
 END displayHelp ;

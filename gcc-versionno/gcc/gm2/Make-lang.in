@@ -1739,8 +1739,9 @@ MC-DEFS = alists.def  decl.def  Indexing.def  lists.def  m2flex.def \
 BUILD-MC-BOOT-H =  $(MC-LIB-DEFS:%.def=gm2/mc-boot/$(SRC_PREFIX)%.h) \
                    $(MC-DEFS:%.def=gm2/mc-boot/$(SRC_PREFIX)%.h)
 
-$(objdir)/gm2/mc-boot:
-	mkdir gm2/mc-boot
+$(objdir)/gm2/mc-boot: force
+	mkdir -p gm2/mc-boot
+	$(RM) gm2/mc-boot/*h
 
 mc-autogen: mc-devel $(GM2_DIRS) $(BUILD-MC-BOOT-H)
 	for i in gm2/mc-boot/*.h ; do echo "#include \"`basename $$i .h`.h\"" > gm2/mc-boot/f.c ; echo "main () {}" >> gm2/mc-boot/f.c ; echo "compiling $$i" ; gcc -g -c -o /tmp/f.o gm2/mc-boot/f.c ; done

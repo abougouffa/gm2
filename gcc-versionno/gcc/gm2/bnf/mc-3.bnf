@@ -134,6 +134,16 @@ END peep ;
 
 
 (*
+   depth - returns the depth of the stack.
+*)
+
+PROCEDURE depth () : CARDINAL ;
+BEGIN
+   RETURN mcStack.depth (stk)
+END depth ;
+
+
+(*
    checkDuplicate -
 *)
 
@@ -818,53 +828,79 @@ FieldListSequence := FieldListStatement { ";" FieldListStatement } =:
 
 FieldListStatement := [ FieldList ] =:
 
-FieldList :=                                                            % VAR r, i, f, t, n, v, w: node ; %
+FieldList :=                                                            % VAR r, i, f, t, n, v, w: node ; d: CARDINAL ; %
+                                                                        % d := depth () %
                                                                         % v := pop () ; assert ((v=NIL) OR isVarient (v)) %
                                                                         % r := peep () ; assert (isRecord (r) OR isVarientField (r)) %
 									% v := push (v) %
-									% assert (((v=NIL) AND isRecord (r)) OR ((v#NIL) AND isRecordField (r))) %
+									% assert (((v=NIL) AND isRecord (r)) OR ((v#NIL) AND isVarientField (r))) %
              PushIdentList ":"                                          % i := pop () %
                                Type                                     % t := pop () %
 			            RecordFieldPragma                   % r := addFieldsToRecord (r, v, i, t) %
+                                                                        % assert (d=depth ()) %
              |
                "CASE"                                                   % (* addRecordToList *) %
+                                                                        % d := depth () %
                                                                         % v := pop () ; assert ((v=NIL) OR isVarient (v)) %
                                                                         % r := peep () ; assert (isRecord (r) OR isVarientField (r)) %
 									% v := push (v) %
 									% assert (((v=NIL) AND isRecord (r)) OR ((v#NIL) AND isRecordField (r))) %
                                                                         % w := push (makeVarient (r)) %
+									% assert (d = depth () - 1) %
                                                                         % (* addVarientToList *) %
                       CaseTag "OF"
-                                   Varient { "|" Varient }
+      									% assert (d = depth () - 1) %
+                                   Varient				% assert (d = depth () - 1) %
+				           { "|" Varient		% assert (d = depth () - 1) %
+					                 }
+                                                                        % w := peep () ; assert (isVarient (w)) %
+                                                                        % assert (d = depth () - 1) %
               [ "ELSE"
-									% f := push (buildVarientFieldRecord (w)) %
-                      FieldListSequence                                 % f := pop () %
-              ] "END"                                                   % w := pop () %
+                      FieldListSequence
+              ] "END"                                                   % w := pop () ; assert (isVarient (w)) %
+                                                                        % assert (d=depth ()) %
            =:
 
 TagIdent :=  Ident |                                                    % curident := NulName %
           =:
 
-CaseTag :=                                                              % VAR tagident: Name ; q, v, w: node ; %
-                                                                        % w := pop () ; v := peep () ; w := push (w) %
+CaseTag :=                                                              % VAR tagident: Name ; q, v, w, r: node ; %
+                                                                        % w := pop () ; v := pop () ; r := peep () ; v := push (v) ; w := push (w) %
 									% assert (isVarient (w)) %
 									% assert ((v=NIL) OR isVarient (v)) %
+									% assert (isRecord (r) OR isVarientField (r)) %
+									% assert (isVarient (push (pop ()))) %
            TagIdent                                                     % tagident := curident %
                      ( ":" PushQualident                                % q := pop () %
+     									% assert (isVarient (push (pop ()))) %
 		                         |                              % q := NIL %
-                     )                                                  % buildVarientSelector (v, w, tagident, q) %
+                                           )                            % buildVarientSelector (r, w, tagident, q) %
          =:
 
-Varient :=                                                              % VAR v, f: node ; %
-                                                                        % v := peep () %
-            [                                                           % f := push (buildVarientFieldRecord (v)) %
-              VarientCaseLabelList ":" FieldListSequence                % f := pop () %
-                                                         ]
+Varient :=                                                              % VAR p, r, v, f: node ; d: CARDINAL ; %
+                                                                        % d := depth () %
+                                                                        % v := pop () ; assert (isVarient (v)) %
+									% r := pop () %
+                                                                        % p := peep () %
+									% r := push (r) %
+            [                                                           % f := push (buildVarientFieldRecord (v, p)) %
+	                                                                % v := push (v) %
+              VarientCaseLabelList ":" FieldListSequence                % v := pop () %
+	                                                                % f := pop () %
+	                                                                % assert (isVarientField (f)) %
+									% assert (isVarient (v)) %
+									% v := push (v) %
+                                                         ]              % assert (isVarient (peep ())) %
+                                                                        % assert (d=depth ()) %
                                                            =:
 
 VarientCaseLabelList := VarientCaseLabels { "," VarientCaseLabels } =:
 
-VarientCaseLabels := ConstExpression [ ".." ConstExpression ]
+VarientCaseLabels :=                                                    % VAR l, h: node ; %
+                                                                        % h := NIL %
+                     ConstExpression                                    % l := pop () %
+                                     [ ".." ConstExpression             % h := pop () %
+				                            ]           % (* l, h  could be saved if necessary.  *) %
                    =:
 
 SetType := ( "SET" | "PACKEDSET" ) "OF" SimpleType                     % VAR n: node ; %
