@@ -26,7 +26,7 @@ FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM nameKey IMPORT NulName, makeKey, lengthKey, makekey, keyToCharStar ;
 FROM SFIO IMPORT OpenToWrite, WriteS ;
 FROM FIO IMPORT File, Close, FlushBuffer, StdOut, WriteLine, WriteChar ;
-FROM DynamicStrings IMPORT String, InitString, EqualArray, InitStringCharStar, KillString, ConCat ;
+FROM DynamicStrings IMPORT String, InitString, EqualArray, InitStringCharStar, KillString, ConCat, Mark ;
 FROM mcOptions IMPORT getOutputFile, getDebugTopological, getHPrefix, getIgnoreFQ ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM libc IMPORT printf ;
@@ -34,7 +34,8 @@ FROM mcMetaError IMPORT metaError1, metaError2, metaErrors1, metaErrors2 ;
 FROM StrLib IMPORT StrEqual ;
 
 FROM mcPretty IMPORT pretty, initPretty, dupPretty, killPretty, print, prints,
-                     setNeedSpace, noSpace, setindent, getindent ;
+                     setNeedSpace, noSpace, setindent, getindent, getcurpos,
+		     pushPretty, popPretty ;
 
 FROM Indexing IMPORT Index, InitIndex, ForeachIndiceInIndexDo,
                      IncludeIndiceIntoIndex, IsIndiceInIndex,
@@ -48,8 +49,9 @@ FROM wlists IMPORT wlist ;
 
 
 CONST
-   indentation = 3 ;
-   debugScopes = FALSE ;
+   indentation  = 3 ;
+   indentationC = 2 ;
+   debugScopes  = FALSE ;
 
 TYPE
    language = (ansiC, ansiCP, pim4) ;
@@ -191,10 +193,11 @@ TYPE
                   END ;
 
        typeT = RECORD
-                  name    :  Name ;
-		  type    :  node ;
-		  scope   :  node ;
-		  isHidden:  BOOLEAN ;
+                  name      :  Name ;
+		  type      :  node ;
+		  scope     :  node ;
+		  isHidden,
+		  isInternal:  BOOLEAN ;
                END ;
 
        recordT = RECORD
@@ -298,6 +301,7 @@ TYPE
                           name      :  Name ;
 			  parent    :  node ;
 			  varient   :  node ;
+                          simple    :  BOOLEAN ;
 			  listOfSons:  Index ;
 			  scope     :  node ;
                        END ;
@@ -1156,7 +1160,7 @@ PROCEDURE makeModule (n: Name) : node ;
 VAR
    d: node ;
 BEGIN
-   d := newNode (mod) ;
+   d := newNode (module) ;
    WITH d^ DO
       moduleF.name := n ;
       moduleF.source := NulName ;
@@ -1240,9 +1244,9 @@ BEGIN
    WITH n^ DO
       CASE kind OF
 
-      def:  defF.source := s |
-      mod:  moduleF.source := s |
-      imp:  impF.source := s
+      def   :  defF.source := s |
+      module:  moduleF.source := s |
+      imp   :  impF.source := s
 
       END
    END
@@ -1258,9 +1262,9 @@ BEGIN
    WITH n^ DO
       CASE kind OF
 
-      def:  RETURN defF.source |
-      mod:  RETURN moduleF.source |
-      imp:  RETURN impF.source
+      def   :  RETURN defF.source |
+      module:  RETURN moduleF.source |
+      imp   :  RETURN impF.source
 
       END
    END
@@ -1486,7 +1490,8 @@ BEGIN
       typeF.name := n ;
       typeF.type := NIL ;
       typeF.scope := getDeclScope () ;
-      typeF.isHidden := FALSE
+      typeF.isHidden := FALSE ;
+      typeF.isInternal := FALSE
    END ;
    RETURN addToScope (d)
 END makeType ;
@@ -2067,6 +2072,7 @@ BEGIN
       name := NulName ;
       parent := p ;
       varient := v ;
+      simple := FALSE ;
       listOfSons := InitIndex (1) ;
       scope := getDeclScope ()
    END ;
@@ -2142,6 +2148,12 @@ BEGIN
    n^.recordfieldF.parent := r ;
    n^.recordfieldF.varient := v ;
    n^.recordfieldF.tag := FALSE ;
+   (*
+   IF r^.kind=record
+   THEN
+      doRecordM2 (doP, r)
+   END ;
+   *)
    RETURN n
 END putFieldRecord ;
 
@@ -2168,6 +2180,8 @@ BEGIN
          putVarientTag (v, f)
       ELSE
          f := putFieldRecord (r, tag, type, v) ;
+	 assert (isRecordField (f)) ;
+         f^.recordfieldF.tag := TRUE ;
          putVarientTag (v, f)
       END
    END
@@ -2439,6 +2453,30 @@ BEGIN
    assert (isDef (n)) ;
    RETURN n^.defF.hasHidden
 END hasHidden ;
+
+
+(*
+   putTypeInternal - marks type, des, as being an internally generated type.
+*)
+
+PROCEDURE putTypeInternal (des: node) ;
+BEGIN
+   assert (des#NIL) ;
+   assert (isType (des)) ;
+   des^.typeF.isInternal := TRUE
+END putTypeInternal ;
+
+
+(*
+   isTypeInternal - returns TRUE if type, n, is internal.
+*)
+
+PROCEDURE isTypeInternal (n: node) : BOOLEAN ;
+BEGIN
+   assert (n#NIL) ;
+   assert (isType (n)) ;
+   RETURN n^.typeF.isInternal
+END isTypeInternal ;
 
 
 (*
@@ -3344,6 +3382,16 @@ BEGIN
    HALT
 END doNone ;
 
+
+(*
+   doNothing - does nothing!
+*)
+
+PROCEDURE doNothing (n: node) ;
+BEGIN
+END doNothing ;
+
+
 (*
    doConstC -
 *)
@@ -3586,26 +3634,81 @@ END outText ;
 
 
 (*
+   outKm2 -
+*)
+
+PROCEDURE outKm2 (p: pretty; a: ARRAY OF CHAR) : pretty ;
+VAR
+   i: CARDINAL ;
+   s: String ;
+BEGIN
+   IF StrEqual (a, 'RECORD')
+   THEN
+      p := pushPretty (p) ;
+      i := getcurpos (p) ;
+      setindent (p, i) ;
+      outText (p, a) ;
+      p := pushPretty (p) ;
+      setindent (p, i + indentation)
+   ELSIF StrEqual (a, 'END')
+   THEN
+      p := popPretty (p) ;
+      outText (p, a) ;
+      p := popPretty (p)
+   END ;
+   RETURN p
+END outKm2 ;
+
+
+(*
+   outKc -
+*)
+
+PROCEDURE outKc (p: pretty; a: ARRAY OF CHAR) : pretty ;
+VAR
+   i   : INTEGER ;
+   c   : CARDINAL ;
+   s, t: String ;
+BEGIN
+   s := InitString (a) ;
+   i := DynamicStrings.Index (s, '\', 0) ;
+   IF i=-1
+   THEN
+      t := NIL
+   ELSE
+      t := DynamicStrings.Slice (s, i, 0) ;
+      s := DynamicStrings.Slice (Mark (s), 0, i)
+   END ;
+   IF DynamicStrings.char (s, 0)='{'
+   THEN
+      p := pushPretty (p) ;
+      c := getcurpos (p) ;
+      setindent (p, c) ;
+      outTextS (p, s) ;
+      p := pushPretty (p) ;
+      setindent (p, c + indentationC)
+   ELSIF DynamicStrings.char (s, 0)='}'
+   THEN
+      p := popPretty (p) ;
+      outTextS (p, s) ;
+      p := popPretty (p)
+   END ;
+   outTextS (p, t) ;
+   t := KillString (t) ;
+   s := KillString (s) ;
+   RETURN p
+END outKc ;
+
+
+(*
    outTextS -
 *)
 
 PROCEDURE outTextS (p: pretty; s: String) ;
 BEGIN
-   IF (s # NIL) AND (NOT EqualArray (s, ''))
+   IF s # NIL
    THEN
-      s := Sprintf0 (s) ;
-      prints (p, s) ;
-      (*
-      IF isPunct (DynamicStrings.char (s, -1))
-      THEN
-         outputState := punct
-      ELSIF isWhite (DynamicStrings.char (s, -1))
-      THEN
-         outputState := space
-      ELSE
-         outputState := text
-      END
-      *)
+      prints (p, s)
    END
 END outTextS ;
 
@@ -3696,6 +3799,16 @@ BEGIN
    outTextS (p, s) ;
    s := KillString (s)
 END doFQNameC ;
+
+
+(*
+   doNameM2 -
+*)
+
+PROCEDURE doNameM2 (p: pretty; n: node) ;
+BEGIN
+   doNameC (p, n)
+END doNameM2 ;
 
 
 (*
@@ -3928,28 +4041,36 @@ PROCEDURE doCompletePartialRecord (p: pretty; t, r: node) ;
 VAR
    i, h: CARDINAL ;
    f   : node ;
-   q   : pretty ;
 BEGIN
    assert (isRecord (r)) ;
    assert (isType (t)) ;
    outText (p, "struct") ; setNeedSpace (p) ;
    doFQNameC (p, t) ;
-   outText (p, "_r {\n") ;
-   q := dupPretty (p) ;
+   outText (p, "_r") ; setNeedSpace (p) ;
+   p := outKc (p, "{\n") ;
    i := LowIndice (r^.recordF.listOfSons) ;
    h := HighIndice (r^.recordF.listOfSons) ;
-   setindent (q, getindent (q)+indentation) ;
    WHILE i<=h DO
       f := GetIndice (r^.recordF.listOfSons, i) ;
       IF isRecordField (f)
       THEN
-         setNeedSpace (q) ;
-         doRecordFieldC (q, f)
+         IF NOT f^.recordfieldF.tag
+         THEN
+            setNeedSpace (p) ;
+            doRecordFieldC (p, f) ;
+            outText (p, ";\n")
+         END
+      ELSIF isVarient (f)
+      THEN
+         doVarientC (p, f) ;
+         outText (p, ";\n")
+      ELSIF isVarientField (f)
+      THEN
+         doVarientFieldC (p, f)
       END ;
       INC (i)
    END ;
-   killPretty (q) ;
-   outText (p, "};\n\n")
+   p := outKc (p, "};\n\n")
 END doCompletePartialRecord ;
 
 
@@ -4294,9 +4415,100 @@ BEGIN
    m := NIL ;
    setNeedSpace (p) ;
    doTypeC (p, f^.recordfieldF.type, m) ;
-   doNameC (p, f) ;
-   outText (p, ";\n")
+   doNameC (p, f)
 END doRecordFieldC ;
+
+
+(*
+   doVarientFieldC -
+*)
+
+PROCEDURE doVarientFieldC (p: pretty; n: node) ;
+VAR
+   i, t: CARDINAL ;
+   q   : node ;
+BEGIN
+   assert (isVarientField (n)) ;
+   IF NOT n^.varientfieldF.simple
+   THEN
+      outText (p, "struct") ; setNeedSpace (p) ;
+      p := outKc (p, "{\n")
+   END ;
+   i := LowIndice (n^.varientfieldF.listOfSons) ;
+   t := HighIndice (n^.varientfieldF.listOfSons) ;
+   WHILE i<=t DO
+      q := GetIndice (n^.varientfieldF.listOfSons, i) ;
+      IF isRecordField (q)
+      THEN
+         IF NOT q^.recordfieldF.tag
+         THEN
+            doRecordFieldC (p, q) ;
+            outText (p, ";\n")
+         END
+      ELSIF isVarient (q)
+      THEN
+         doVarientC (p, q) ;
+         outText (p, ";\n")
+      ELSE
+         HALT
+      END ;
+      INC (i)
+   END ;
+   IF NOT n^.varientfieldF.simple
+   THEN
+      p := outKc (p, "};\n")
+   END
+END doVarientFieldC ;
+
+
+(*
+   doVarientC -
+*)
+
+PROCEDURE doVarientC (p: pretty; n: node) ;
+VAR
+   i, t: CARDINAL ;
+   q   : node ;
+BEGIN
+   assert (isVarient (n)) ;
+   IF n^.varientF.tag # NIL
+   THEN
+      IF isRecordField (n^.varientF.tag)
+      THEN
+         doRecordFieldC (p, n^.varientF.tag) ;
+	 outText (p, ";  /* case tag */\n")
+      ELSIF isVarientField (n^.varientF.tag)
+      THEN
+         HALT
+         (* doVarientFieldC (p, n^.varientF.tag) *)
+      ELSE
+         HALT
+      END
+   END ;
+   outText (p, "union") ;
+   setNeedSpace (p) ;
+   p := outKc (p, "{\n") ;
+   i := LowIndice (n^.varientF.listOfSons) ;
+   t := HighIndice (n^.varientF.listOfSons) ;
+   WHILE i<=t DO
+      q := GetIndice (n^.varientF.listOfSons, i) ;
+      IF isRecordField (q)
+      THEN
+         IF NOT q^.recordfieldF.tag
+         THEN
+            doRecordFieldC (p, q) ;
+            outText (p, ";\n")
+         END
+      ELSIF isVarientField (q)
+      THEN
+         doVarientFieldC (p, q)
+      ELSE
+         HALT
+      END ;
+      INC (i)
+   END ;
+   p := outKc (p, "}")
+END doVarientC ;
 
 
 (*
@@ -4307,25 +4519,36 @@ PROCEDURE doRecordC (p: pretty; n: node; VAR m: node) ;
 VAR
    i, h: CARDINAL ;
    f   : node ;
-   q   : pretty ;
 BEGIN
    assert (isRecord (n)) ;
-   outText (p, "struct {") ;
-   q := dupPretty (p) ;
+   outText (p, "struct") ;
+   setNeedSpace (p) ;
+   p := outKc (p, "{") ;
    i := LowIndice (n^.recordF.listOfSons) ;
    h := HighIndice (n^.recordF.listOfSons) ;
-   setindent (q, getindent (q)+indentation) ;
+   setindent (p, getcurpos (p) + indentation) ;
    outText (p, "\n") ;
    WHILE i<=h DO
       f := GetIndice (n^.recordF.listOfSons, i) ;
       IF isRecordField (f)
       THEN
-         doRecordFieldC (q, f)
+         IF NOT f^.recordfieldF.tag
+         THEN
+            doRecordFieldC (p, f) ;
+            outText (p, ";\n")
+         END
+      ELSIF isVarient (f)
+      THEN
+         doVarientC (p, f) ;
+         outText (p, ";\n")
+      ELSIF isVarientField (f)
+      THEN
+         doVarientFieldC (p, f)
       END ;
       INC (i)
    END ;
-   killPretty (q) ;
-   outText (p, "}") ; setNeedSpace (p)
+   p := outKc (p, "}") ;
+   setNeedSpace (p)
 END doRecordC ;
 
 
@@ -4527,6 +4750,8 @@ BEGIN
       (NOT alists.isItemInList (partialQ, n)) AND
       (NOT alists.isItemInList (doneQ, n))
    THEN
+      assert (NOT isVarient (n)) ;
+      assert (NOT isVarientField (n)) ;
       alists.includeItemIntoList (todoQ, n)
    END
 END addTodo ;
@@ -4553,7 +4778,7 @@ END tempName ;
    simplifyType -
 *)
 
-PROCEDURE simplifyType (VAR p: node) ;
+PROCEDURE simplifyType (l: alist; VAR p: node) ;
 VAR
    o: node ;
 BEGIN
@@ -4563,6 +4788,7 @@ BEGIN
       enterScope (getScope (p)) ;
       p := makeType (tempName ()) ;
       putType (p, o) ;
+      putTypeInternal (p) ;
       leaveScope ;
       simplified := FALSE
    END
@@ -4573,7 +4799,7 @@ END simplifyType ;
    simplifyRecord -
 *)
 
-PROCEDURE simplifyRecord (n: node) ;
+PROCEDURE simplifyRecord (l: alist; n: node) ;
 VAR
    i, t: CARDINAL ;
    q   : node ;
@@ -4582,36 +4808,96 @@ BEGIN
    t := HighIndice (n^.recordF.listOfSons) ;
    WHILE i<=t DO
       q := GetIndice (n^.recordF.listOfSons, i) ;
-      simplifyNode (q) ;
+      simplifyNode (l, q) ;
       INC (i)
    END
 END simplifyRecord ;
 
 
 (*
-   simplifyNode -
+   simplifyVarient -
 *)
 
-PROCEDURE simplifyNode (n: node) ;
+PROCEDURE simplifyVarient (l: alist; n: node) ;
+VAR
+   i, t: CARDINAL ;
+   q   : node ;
+BEGIN
+   simplifyNode (l, n^.varientF.tag) ;
+   i := LowIndice (n^.varientF.listOfSons) ;
+   t := HighIndice (n^.varientF.listOfSons) ;
+   WHILE i<=t DO
+      q := GetIndice (n^.varientF.listOfSons, i) ;
+      simplifyNode (l, q) ;
+      INC (i)
+   END
+END simplifyVarient ;
+
+
+(*
+   simplifyVarientField -
+*)
+
+PROCEDURE simplifyVarientField (l: alist; n: node) ;
+VAR
+   i, t: CARDINAL ;
+   q   : node ;
+BEGIN
+   i := LowIndice (n^.varientfieldF.listOfSons) ;
+   t := HighIndice (n^.varientfieldF.listOfSons) ;
+   WHILE i<=t DO
+      q := GetIndice (n^.varientfieldF.listOfSons, i) ;
+      simplifyNode (l, q) ;
+      INC (i)
+   END
+END simplifyVarientField ;
+
+
+(*
+   doSimplifyNode -
+*)
+
+PROCEDURE doSimplifyNode (l: alist; n: node) ;
 BEGIN
    IF n=NIL
    THEN
       (* nothing.  *)
    ELSIF isType (n)
    THEN
-      simplifyNode (getType (n))
+      (* no need to simplify a type.  *)
+      simplifyNode (l, getType (n))
    ELSIF isVar (n)
    THEN
-      simplifyType (n^.varF.type)
+      simplifyType (l, n^.varF.type)
    ELSIF isRecord (n)
    THEN
-      simplifyRecord (n)
+      simplifyRecord (l, n)
    ELSIF isRecordField (n)
    THEN
-      simplifyType (n^.recordfieldF.type)
+      simplifyType (l, n^.recordfieldF.type)
    ELSIF isArray (n)
    THEN
-      simplifyType (n^.arrayF.type)
+      simplifyType (l, n^.arrayF.type)
+   ELSIF isVarient (n)
+   THEN
+      simplifyVarient (l, n)
+   ELSIF isVarientField (n)
+   THEN
+      simplifyVarientField (l, n)
+   END
+END doSimplifyNode ;
+
+
+(*
+   simplifyNode -
+*)
+
+PROCEDURE simplifyNode (l: alist; n: node) ;
+BEGIN
+   IF NOT alists.isItemInList (l, n)
+   THEN
+      alists.includeItemIntoList (l, n) ;
+      doSimplifyNode (l, n)
    END
 END simplifyNode ;
 
@@ -4621,8 +4907,12 @@ END simplifyNode ;
 *)
 
 PROCEDURE doSimplify (n: node) ;
+VAR
+   l: alist ;
 BEGIN
-   simplifyNode (n)
+   l := alists.initList () ;
+   simplifyNode (l, n) ;
+   alists.killList (l)
 END doSimplify ;
 
 
@@ -4651,9 +4941,9 @@ BEGIN
 
    doP := p ;
 
-   topologicallyOutC (doConstC, doTypesC, doVarC,
-                      outputPartial,
-                      doNone, doCompletePartialC, doNone) ;
+   topologicallyOut (doConstC, doTypesC, doVarC,
+                     outputPartial,
+                     doNone, doCompletePartialC, doNone) ;
 
    ForeachIndiceInIndexDo (s.procedures, doPrototypeC)
 END outDeclsDefC ;
@@ -4719,9 +5009,9 @@ BEGIN
 
    doP := p ;
 
-   topologicallyOutC (doConstC, doTypesC, doVarC,
-                      outputPartial,
-                      doNone, doCompletePartialC, doNone) ;
+   topologicallyOut (doConstC, doTypesC, doVarC,
+                     outputPartial,
+                     doNone, doCompletePartialC, doNone) ;
 
    outText (p, "\n") ;
    ForeachIndiceInIndexDo (s.procedures, doPrototypeC)
@@ -4804,27 +5094,119 @@ END walkType ;
 
 
 (*
+   db -
+*)
+
+PROCEDURE db (a: ARRAY OF CHAR; n: node) ;
+BEGIN
+   IF getDebugTopological ()
+   THEN
+      outText (doP, a) ;
+      IF n#NIL
+      THEN
+         outTextS (doP, gen (n))
+      END
+   END
+END db ;
+
+
+(*
+   dbt -
+*)
+
+PROCEDURE dbt (a: ARRAY OF CHAR) ;
+BEGIN
+   IF getDebugTopological ()
+   THEN
+      outText (doP, a)
+   END
+END dbt ;
+
+
+(*
+   dbs -
+*)
+
+PROCEDURE dbs (s: dependentState; n: node) ;
+BEGIN
+   IF getDebugTopological ()
+   THEN
+      CASE s OF
+
+      completed:  outText (doP, '{completed ') |
+      blocked  :  outText (doP, '{blocked ') |
+      partial  :  outText (doP, '{partial ') |
+      recursive:  outText (doP, '{recursive ')
+
+      END ;
+      IF n#NIL
+      THEN
+         outTextS (doP, gen (n))
+      END ;
+      outText (doP, '}\n')
+   END
+END dbs ;
+
+
+(*
+   dbq -
+*)
+
+PROCEDURE dbq (n: node) ;
+BEGIN
+   IF getDebugTopological ()
+   THEN
+      IF alists.isItemInList (todoQ, n)
+      THEN
+         db ('{T', n) ; outText (doP, '}')
+      ELSIF alists.isItemInList (partialQ, n)
+      THEN
+         db ('{P', n) ; outText (doP, '}')
+      ELSIF alists.isItemInList (doneQ, n)
+      THEN
+         db ('{D', n) ; outText (doP, '}')
+      END
+   END
+END dbq ;
+
+
+(*
    walkRecord -
 *)
 
 PROCEDURE walkRecord (l: alist; n: node) : dependentState ;
 VAR
    s   : dependentState ;
+   o,
    i, t: CARDINAL ;
    q   : node ;
 BEGIN
    i := LowIndice (n^.recordF.listOfSons) ;
    t := HighIndice (n^.recordF.listOfSons) ;
+   db ('\nwalking ', n) ; o := getindent (doP) ; setindent (doP, getcurpos (doP)+3) ;
+   dbq (n) ;
    WHILE i<=t DO
       q := GetIndice (n^.recordF.listOfSons, i) ;
-      s := walkDependants (l, q) ;
-      IF s#completed
+      db ('', q) ;
+      IF isRecordField (q) AND q^.recordfieldF.tag
       THEN
-         addTodo (n) ;
-         RETURN s
+         (* do nothing as it is a tag selector processed in the varient.  *)
+      ELSE
+         s := walkDependants (l, q) ;
+         IF s#completed
+         THEN
+            dbs (s, q) ;
+            addTodo (n) ;
+            dbq (n) ;
+            db ('\n', NIL) ;
+            setindent (doP, o) ;
+            RETURN s
+         END
       END ;
       INC (i)
    END ;
+   db ('{completed', n) ; dbt ('}\n') ;
+   setindent (doP, o) ;
    RETURN completed
 END walkRecord ;
 
@@ -4839,22 +5221,30 @@ VAR
    i, t: CARDINAL ;
    q   : node ;
 BEGIN
+   db ('\nwalking', n) ;
    s := walkDependants (l, n^.varientF.tag) ;
    IF s#completed
    THEN
+      dbs (s, n^.varientF.tag) ;
+      dbq (n^.varientF.tag) ;
+      db ('\n', NIL) ;
       RETURN s
    END ;
    i := LowIndice (n^.varientF.listOfSons) ;
    t := HighIndice (n^.varientF.listOfSons) ;
    WHILE i<=t DO
       q := GetIndice (n^.varientF.listOfSons, i) ;
+      db ('', q) ;
       s := walkDependants (l, q) ;
       IF s#completed
       THEN
+         dbs (s, q) ;
+         db ('\n', NIL) ;
          RETURN s
       END ;
       INC (i)
    END ;
+   db ('{completed', n) ; dbt ('}\n') ;
    RETURN completed
 END walkVarient ;
 
@@ -5069,16 +5459,22 @@ VAR
    t: node ;
    s: dependentState ;
 BEGIN
+   assert (isRecordField (n)) ;
    t := getType (n) ;
    IF alists.isItemInList (partialQ, t)
    THEN
-      RETURN blocked
+      (* dbs (blocked, n) ; *)
+      RETURN completed  (* blocked *)
    ELSIF alists.isItemInList (doneQ, t)
    THEN
+      dbs (completed, n) ;
       RETURN completed
    ELSE
       addTodo (t) ;
-      s := walkDependants (l, t) ;
+      dbs (blocked, n) ;
+      dbq (n) ;
+      dbq (t) ;
+      (*  s := walkDependants (l, t) *)
       RETURN blocked
    END
 END walkRecordField ;
@@ -5102,10 +5498,13 @@ BEGIN
       s := walkDependants (l, q) ;
       IF s#completed
       THEN
+         dbs (s, n) ;
          RETURN s
       END ;
       INC (i)
    END ;
+   n^.varientfieldF.simple := (t=1) ;
+   dbs (s, n) ;
    RETURN s
 END walkVarientField ;
 
@@ -5695,7 +6094,7 @@ BEGIN
       i := 1 ;
       REPEAT
          n := alists.getItemFromList (l, i) ;
-	 dbg (n) ;
+         dbg (n) ;
          INC (i)
       UNTIL i > h
    END
@@ -5717,11 +6116,11 @@ END debugLists ;
 
 
 (*
-   topologicallyOutC -
+   topologicallyOut -
 *)
 
-PROCEDURE topologicallyOutC (c, t, v, tp,
-                             pc, pt, pv: nodeProcedure) ;
+PROCEDURE topologicallyOut (c, t, v, tp,
+                            pc, pt, pv: nodeProcedure) ;
 VAR
    tol, pal,
    to,  pa : CARDINAL ;
@@ -5742,7 +6141,7 @@ BEGIN
    END ;
    dumpLists ;
    debugLists
-END topologicallyOutC ;
+END topologicallyOut ;
 
 
 (*
@@ -5872,12 +6271,663 @@ END outCP ;
 
 
 (*
+   doIncludeM2 - include modules in module, n.
+*)
+
+PROCEDURE doIncludeM2 (n: node) ;
+VAR
+   s: String ;
+BEGIN
+   s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
+   print (doP, 'IMPORT ') ;
+   prints (doP, s) ;
+   print (doP, ' ;\n') ;
+   s := KillString (s) ;
+
+   IF isDef (n)
+   THEN
+      foreachNodeDo (n^.defF.decls.symbols, addDone)
+   ELSIF isImp (n)
+   THEN
+      foreachNodeDo (n^.impF.decls.symbols, addDone)
+   ELSIF isModule (n)
+   THEN
+      foreachNodeDo (n^.moduleF.decls.symbols, addDone)
+   END
+END doIncludeM2 ;
+
+
+(*
+   doConstM2 -
+*)
+
+PROCEDURE doConstM2 (n: node) ;
+BEGIN
+   print (doP, "CONST\n") ;
+   doFQNameC (doP, n) ;
+   setNeedSpace (doP) ;
+   doExprC (doP, n^.constF.value) ;
+   print (doP, '\n')
+END doConstM2 ;
+
+
+(*
+   doProcTypeM2 -
+*)
+
+PROCEDURE doProcTypeM2 (p: pretty; n: node) ;
+BEGIN
+   outText (p, "proc type to do..")
+END doProcTypeM2 ;
+
+
+(*
+   doRecordFieldM2 -
+*)
+
+PROCEDURE doRecordFieldM2 (p: pretty; f: node) ;
+BEGIN
+   doNameM2 (p, f) ;
+   outText (p, ":") ;
+   setNeedSpace (p) ;
+   doTypeM2 (p, getType (f)) ;
+   setNeedSpace (p)
+END doRecordFieldM2 ;
+
+
+(*
+   doVarientFieldM2 -
+*)
+
+PROCEDURE doVarientFieldM2 (p: pretty; n: node) ;
+VAR
+   i, t: CARDINAL ;
+   q   : node ;
+BEGIN
+   assert (isVarientField (n)) ;
+   doNameM2 (p, n) ;
+   outText (p, ":") ;
+   setNeedSpace (p) ;
+   i := LowIndice (n^.varientfieldF.listOfSons) ;
+   t := HighIndice (n^.varientfieldF.listOfSons) ;
+   WHILE i<=t DO
+      q := GetIndice (n^.varientfieldF.listOfSons, i) ;
+      IF isRecordField (q)
+      THEN
+         doRecordFieldM2 (p, q) ;
+         outText (p, ";\n")
+      ELSIF isVarient (q)
+      THEN
+         doVarientM2 (p, q) ;
+         outText (p, ";\n")
+      ELSE
+         HALT
+      END ;
+      INC (i)
+   END
+END doVarientFieldM2 ;
+
+
+(*
+   doVarientM2 -
+*)
+
+PROCEDURE doVarientM2 (p: pretty; n: node) ;
+VAR
+   i, t: CARDINAL ;
+   q   : node ;
+BEGIN
+   assert (isVarient (n)) ;
+   outText (p, "CASE") ; setNeedSpace (p) ;
+   IF n^.varientF.tag # NIL
+   THEN
+      IF isRecordField (n^.varientF.tag)
+      THEN
+         doRecordFieldM2 (p, n^.varientF.tag)
+      ELSIF isVarientField (n^.varientF.tag)
+      THEN
+         doVarientFieldM2 (p, n^.varientF.tag)
+      ELSE
+         HALT
+      END
+   END ;
+   setNeedSpace (p) ;
+   outText (p, "OF\n") ;
+   i := LowIndice (n^.varientF.listOfSons) ;
+   t := HighIndice (n^.varientF.listOfSons) ;
+   WHILE i<=t DO
+      q := GetIndice (n^.varientF.listOfSons, i) ;
+      IF isRecordField (q)
+      THEN
+         IF NOT q^.recordfieldF.tag
+         THEN
+            doRecordFieldM2 (p, q) ;
+            outText (p, ";\n")
+         END
+      ELSIF isVarientField (q)
+      THEN
+         doVarientFieldM2 (p, q)
+      ELSE
+         HALT
+      END ;
+      INC (i)
+   END ;
+   outText (p, "END") ; setNeedSpace (p)
+END doVarientM2 ;
+
+
+(*
+   doRecordM2 -
+*)
+
+PROCEDURE doRecordM2 (p: pretty; n: node) ;
+VAR
+   i, h: CARDINAL ;
+   f   : node ;
+BEGIN
+   assert (isRecord (n)) ;
+   p := outKm2 (p, "RECORD") ;
+   i := LowIndice (n^.recordF.listOfSons) ;
+   h := HighIndice (n^.recordF.listOfSons) ;
+   outText (p, "\n") ;
+   WHILE i<=h DO
+      f := GetIndice (n^.recordF.listOfSons, i) ;
+      IF isRecordField (f)
+      THEN
+         IF NOT f^.recordfieldF.tag
+         THEN
+            doRecordFieldM2 (p, f) ;
+            outText (p, ";\n")
+         END
+      ELSIF isVarient (f)
+      THEN
+         doVarientM2 (p, f) ;
+         outText (p, ";\n")
+      ELSIF isVarientField (f)
+      THEN
+         doVarientFieldM2 (p, f)
+      END ;
+      INC (i)
+   END ;
+   p := outKm2 (p, "END") ; setNeedSpace (p)
+END doRecordM2 ;
+
+
+(*
+   doPointerM2 -
+*)
+
+PROCEDURE doPointerM2 (p: pretty; n: node) ;
+BEGIN
+   outText (p, "POINTER TO") ;
+   setNeedSpace (doP) ;
+   doTypeM2 (p, getType (n)) ;
+   setNeedSpace (p) ;
+   outText (p, ";\n")
+END doPointerM2 ;
+
+
+(*
+   doTypeAliasM2 -
+*)
+
+PROCEDURE doTypeAliasM2 (p: pretty; n: node) ;
+BEGIN
+   doTypeNameC (p, n) ;
+   setNeedSpace (p) ;
+   outText (doP, "=") ;
+   setNeedSpace (p) ;
+   doTypeM2 (p, getType (n)) ;
+   setNeedSpace (p) ;
+   outText (p, "\n")
+END doTypeAliasM2 ;
+
+
+(*
+   doEnumerationM2 -
+*)
+
+PROCEDURE doEnumerationM2 (p: pretty; n: node) ;
+VAR
+   i, h: CARDINAL ;
+   s   : node ;
+   t   : String ;
+BEGIN
+   outText (p, "(") ;
+   i := LowIndice (n^.enumerationF.listOfSons) ;
+   h := HighIndice (n^.enumerationF.listOfSons) ;
+   WHILE i <= h DO
+      s := GetIndice (n^.enumerationF.listOfSons, i) ;
+      doFQNameC (p, s) ;
+      IF i < h
+      THEN
+         outText (p, ",") ; setNeedSpace (p)
+      END ;
+      INC (i)
+   END ;
+   outText (p, ")")
+END doEnumerationM2 ;
+
+
+(*
+   doBaseM2 -
+*)
+
+PROCEDURE doBaseM2 (p: pretty; n: node) ;
+BEGIN
+   CASE n^.kind OF
+
+   char,
+   cardinal,
+   longcard,
+   shortcard,
+   integer,
+   longint,
+   shortint,
+   real,
+   longreal,
+   shortreal,
+   bitset,
+   boolean,
+   proc     :  doNameM2 (p, n)
+
+   END ;
+   setNeedSpace (p)
+END doBaseM2 ;
+
+
+(*
+   doSystemM2 -
+*)
+
+PROCEDURE doSystemM2 (p: pretty; n: node) ;
+BEGIN
+   CASE n^.kind OF
+
+   address,
+   byte   ,
+   word   :  doNameM2 (p, n)
+
+   END
+END doSystemM2 ;
+
+
+(*
+   doTypeM2 -
+*)
+
+PROCEDURE doTypeM2 (p: pretty; n: node) ;
+BEGIN
+   IF isBase (n)
+   THEN
+      doBaseM2 (p, n)
+   ELSIF isSystem (n)
+   THEN
+      doSystemM2 (p, n)
+   ELSIF isType (n)
+   THEN
+      doTypeAliasM2 (p, n)
+   ELSIF isProcType (n)
+   THEN
+      doProcTypeM2 (p, n)
+   ELSIF isPointer (n)
+   THEN
+      doPointerM2 (p, n)
+   ELSIF isEnumeration (n)
+   THEN
+      doEnumerationM2 (p, n)
+   ELSIF isRecord (n)
+   THEN
+      doRecordM2 (p, n)
+   END
+END doTypeM2 ;
+
+
+(*
+   doTypesM2 -
+*)
+
+PROCEDURE doTypesM2 (n: node) ;
+VAR
+   m: node ;
+BEGIN
+   outText (doP, "TYPE\n") ;
+   doTypeM2 (doP, n)
+END doTypesM2 ;
+
+
+(*
+   doVarM2 -
+*)
+
+PROCEDURE doVarM2 (n: node) ;
+BEGIN
+   assert (isVar (n)) ;
+   doNameC (doP, n) ;
+   outText (doP, ":") ;
+   setNeedSpace (doP) ;
+   doTypeM2 (doP, getType (n)) ;
+   setNeedSpace (doP) ;
+   outText (doP, ";\n")
+END doVarM2 ;
+
+
+(*
+   doVarsM2 -
+*)
+
+PROCEDURE doVarsM2 (n: node) ;
+VAR
+   m: node ;
+BEGIN
+   outText (doP, "VAR\n") ;
+   doVarM2 (n)
+END doVarsM2 ;
+
+
+(*
+   doTypeNameM2 -
+*)
+
+PROCEDURE doTypeNameM2 (p: pretty; n: node) ;
+BEGIN
+   doNameM2 (p, n)
+END doTypeNameM2 ;
+
+
+(*
+   doParamM2 -
+*)
+
+PROCEDURE doParamM2 (p: pretty; n: node) ;
+VAR
+   ptype: node ;
+   i    : Name ;
+   c, t : CARDINAL ;
+   l    : wlist ;
+BEGIN
+   assert (isParam (n)) ;
+   ptype := getType (n) ;
+   IF n^.paramF.namelist = NIL
+   THEN
+      doTypeNameM2 (p, ptype)
+   ELSE
+      assert (isIdentList (n^.paramF.namelist)) ;
+      l := n^.paramF.namelist^.identlistF.names ;
+      IF l=NIL
+      THEN
+         doTypeNameM2 (p, ptype)
+      ELSE
+         t := wlists.noOfItemsInList (l) ;
+         c := 1 ;
+         WHILE c <= t DO
+            i := wlists.getItemFromList (l, c) ;
+            setNeedSpace (p) ;
+            doNamesC (p, i) ;
+            IF c<t
+            THEN
+               outText (p, ',') ; setNeedSpace (p)
+            END ;
+            INC (c)
+         END ;
+         outText (p, ':') ; setNeedSpace (p) ;
+         doTypeNameM2 (p, ptype)
+      END
+   END
+END doParamM2 ;
+
+
+(*
+   doVarParamM2 -
+*)
+
+PROCEDURE doVarParamM2 (p: pretty; n: node) ;
+VAR
+   ptype: node ;
+   i    : Name ;
+   c, t : CARDINAL ;
+   l    : wlist ;
+BEGIN
+   assert (isVarParam (n)) ;
+   outText (p, 'VAR') ; setNeedSpace (p) ;
+   ptype := getType (n) ;
+   IF n^.varparamF.namelist = NIL
+   THEN
+      doTypeNameM2 (p, ptype)
+   ELSE
+      assert (isIdentList (n^.varparamF.namelist)) ;
+      l := n^.varparamF.namelist^.identlistF.names ;
+      IF l=NIL
+      THEN
+         doTypeNameM2 (p, ptype)
+      ELSE
+         t := wlists.noOfItemsInList (l) ;
+         c := 1 ;
+         WHILE c <= t DO
+            i := wlists.getItemFromList (l, c) ;
+            setNeedSpace (p) ;
+            doNamesC (p, i) ;
+            IF c<t
+            THEN
+               outText (p, ',') ; setNeedSpace (p)
+            END ;
+            INC (c)
+         END ;
+         outText (p, ':') ; setNeedSpace (p) ;
+         doTypeNameM2 (p, ptype)
+      END
+   END
+END doVarParamM2 ;
+
+
+(*
+   doParameterM2 -
+*)
+
+PROCEDURE doParameterM2 (p: pretty; n: node) ;
+BEGIN
+   IF isParam (n)
+   THEN
+      doParamM2 (p, n)
+   ELSIF isVarParam (n)
+   THEN
+      doVarParamM2 (p, n)
+   ELSIF isVarargs (n)
+   THEN
+      print (p, "...")
+   END
+END doParameterM2 ;
+
+
+(*
+   doPrototypeM2 -
+*)
+
+PROCEDURE doPrototypeM2 (n: node) ;
+VAR
+   i, h: CARDINAL ;
+   p   : node ;
+BEGIN
+   assert (isProcedure (n)) ;
+   noSpace (doP) ;
+
+   doNameM2 (doP, n) ;
+   setNeedSpace (doP) ;
+   outText (doP, "(") ;
+   i := LowIndice (n^.procedureF.parameters) ;
+   h := HighIndice (n^.procedureF.parameters) ;
+   WHILE i <= h DO
+      p := GetIndice (n^.procedureF.parameters, i) ;
+      doParameterM2 (doP, p) ;
+      noSpace (doP) ;
+      IF i < h
+      THEN
+         print (doP, ";") ; setNeedSpace (doP)
+      END ;
+      INC (i)
+   END ;
+   outText (doP, ")") ;
+   IF n^.procedureF.returnType#NIL
+   THEN
+      setNeedSpace (doP) ;
+      outText (doP, ":") ;
+      doTypeM2 (doP, n^.procedureF.returnType) ; setNeedSpace (doP)
+   END ;
+   outText (doP, ";\n")
+END doPrototypeM2 ;
+
+
+(*
+   outputPartialM2 - just writes out record, array, and proctypes.
+                     No need for forward declarations in Modula-2
+                     but we need to keep topological sort happy.
+                     So when asked to output partial we emit the
+                     full type for these types and then do nothing
+                     when trying to complete partial to full.
+*)
+
+PROCEDURE outputPartialM2 (n: node) ;
+VAR
+   q: node ;
+BEGIN
+   q := getType (n) ;
+   IF isRecord (q)
+   THEN
+      doTypeM2 (doP, n)
+   ELSIF isArray (q)
+   THEN
+      doTypeM2 (doP, n)
+   ELSIF isProcType (q)
+   THEN
+      doTypeM2 (doP, n)
+   END
+END outputPartialM2 ;
+
+
+(*
+   outDeclsDefM2 -
+*)
+
+PROCEDURE outDeclsDefM2 (p: pretty; s: scopeT) ;
+BEGIN
+   simplifyTypes (s) ;
+   includeSyms (s) ;
+
+   doP := p ;
+
+   topologicallyOut (doConstM2, doTypesM2, doVarsM2,
+                     outputPartialM2,
+                     doNothing, doNothing, doNothing) ;
+
+   ForeachIndiceInIndexDo (s.procedures, doPrototypeM2)
+END outDeclsDefM2 ;
+
+
+(*
+   outDefM2 -
+*)
+
+PROCEDURE outDefM2 (p: pretty; n: node) ;
+VAR
+   s: String ;
+BEGIN
+   s := InitStringCharStar (keyToCharStar (getSource (n))) ;
+   print (p, "(* automatically created by mc from ") ; prints (p, s) ; print (p, ".  *)\n\n") ;
+   s := KillString (s) ;
+   s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
+   print (p, "DEFINITION MODULE ") ; prints (p, s) ; print (p, " ;\n\n") ;
+
+   doP := p ;
+   ForeachIndiceInIndexDo (n^.defF.importedModules, doIncludeM2) ;
+
+   print (p, "\n") ;
+
+   outDeclsDefM2 (p, n^.defF.decls) ;
+
+   print (p, "\n") ;
+   print (p, "END ") ;
+   prints (p, s) ;
+   print (p, ".\n") ;
+   s := KillString (s)
+END outDefM2 ;
+
+
+(*
+   outDeclsImpM2 -
+*)
+
+PROCEDURE outDeclsImpM2 (p: pretty; s: scopeT) ;
+BEGIN
+   simplifyTypes (s) ;
+   includeSyms (s) ;
+
+   doP := p ;
+
+   topologicallyOut (doConstM2, doTypesM2, doVarM2,
+                     doNothing,
+                     doNothing, doNothing, doNothing) ;
+
+   outText (p, "\n") ;
+   ForeachIndiceInIndexDo (s.procedures, doPrototypeC)
+END outDeclsImpM2 ;
+
+
+(*
+   outImpM2 -
+*)
+
+PROCEDURE outImpM2 (p: pretty; n: node) ;
+VAR
+   s: String ;
+BEGIN
+   s := InitStringCharStar (keyToCharStar (getSource (n))) ;
+   print (p, "(* automatically created by mc from ") ; prints (p, s) ; print (p, ".  *)\n\n") ;
+   print (p, "IMPLEMENTATION MODULE ") ; prints (p, s) ; print (p, " ;\n\n") ;
+
+   doP := p ;
+   ForeachIndiceInIndexDo (n^.impF.importedModules, doIncludeM2) ;
+   print (p, "\n") ;
+
+   includeDefSymbols (n) ;
+   outDeclsImpM2 (p, n^.impF.decls) ;
+
+   print (p, "\n") ;
+   print (p, "END ") ;
+   prints (p, s) ;
+   print (p, ".\n") ;
+
+   s := KillString (s)
+END outImpM2 ;
+
+
+(*
+   outModuleM2 -
+*)
+
+PROCEDURE outModuleM2 (p: pretty; n: node) ;
+BEGIN
+
+END outModuleM2 ;
+
+
+(*
    outM2 -
 *)
 
 PROCEDURE outM2 (p: pretty; n: node) ;
 BEGIN
-
+   IF isDef (n)
+   THEN
+      outDefM2 (p, n)
+   ELSIF isImp (n)
+   THEN
+      outImpM2 (p, n)
+   ELSIF isModule (n)
+   THEN
+      outModuleM2 (p, n)
+   ELSE
+      HALT
+   END
 END outM2 ;
 
 
@@ -6303,7 +7353,9 @@ BEGIN
    lang := ansiC ;
    outputState := punct ;
    tempCount := 0 ;
-   procUsed := FALSE
+   procUsed := FALSE ;
+   outputFile := StdOut ;
+   doP := initPretty (write, writeln)
 END init ;
 
 

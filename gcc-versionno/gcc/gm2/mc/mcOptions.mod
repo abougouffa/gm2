@@ -345,7 +345,7 @@ BEGIN
       displayVersion (TRUE)
    ELSIF optionIs ("--olang=", arg)
    THEN
-      setLang (Slice (arg, 10, 0))
+      setLang (Slice (arg, 8, 0))
    ELSIF optionIs ("-I", arg)
    THEN
       setSearchPath (Slice (arg, 2, 0))

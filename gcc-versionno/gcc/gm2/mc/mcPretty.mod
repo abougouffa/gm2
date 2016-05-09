@@ -30,6 +30,7 @@ TYPE
                           needsIndent: BOOLEAN ;
                           curPos,
 		          indent     : CARDINAL ;
+			  stacked    : pretty ;
                        END ;
 
 
@@ -48,7 +49,8 @@ BEGIN
       needsSpace := FALSE ;
       needsIndent := FALSE ;
       curPos := 0 ;
-      indent := 0
+      indent := 0 ;
+      stacked := NIL
    END ;
    RETURN p
 END initPretty ;
@@ -78,6 +80,37 @@ BEGIN
    DISPOSE (p) ;
    p := NIL
 END killPretty ;
+
+
+(*
+   pushPretty - duplicate, p.  Push, p, and return the duplicate.
+*)
+
+PROCEDURE pushPretty (p: pretty) : pretty ;
+VAR
+   q: pretty ;
+BEGIN
+   q := dupPretty (p) ;
+   q^.stacked := p ;
+   RETURN q
+END pushPretty ;
+
+
+(*
+   popPretty - pops the pretty object from the stack.
+*)
+
+PROCEDURE popPretty (p: pretty) : pretty ;
+VAR
+   q: pretty ;
+BEGIN
+   q := p^.stacked ;
+   q^.needsIndent := p^.needsIndent ;
+   q^.needsSpace := p^.needsSpace ;
+   q^.curPos := p^.curPos ;
+   killPretty (p) ;
+   RETURN q
+END popPretty ;
 
 
 (*
@@ -158,15 +191,14 @@ PROCEDURE flushIndent (p: pretty) ;
 VAR
    i: CARDINAL ;
 BEGIN
-   IF p^.needsSpace
+   flushSpace (p) ;
+   IF p^.needsIndent
    THEN
-      i := 0 ;
-      WHILE i<p^.indent DO
+      WHILE p^.curPos<p^.indent DO
          p^.write (' ') ;
-         INC (i)
+         INC (p^.curPos)
       END ;
-      p^.needsSpace := FALSE ;
-      INC (p^.curPos, p^.indent)
+      p^.needsIndent := FALSE
    END
 END flushIndent ;
 
@@ -200,12 +232,14 @@ BEGIN
       IF (i+2<=l) AND (char (s, i)='\') AND (char (s, i+1)='n')
       THEN
          p^.needsIndent := TRUE ;
+         p^.needsSpace := FALSE ;
          p^.curPos := 0 ;
          p^.writeln ;
          INC (i)
       ELSE
          flushIndent (p) ;
-         p^.write (char (s, i))
+         p^.write (char (s, i)) ;
+         INC (p^.curPos)
       END ;
       INC (i)
    END

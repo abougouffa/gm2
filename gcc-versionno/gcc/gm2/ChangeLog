@@ -1,3 +1,14 @@
+2016-05-09      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/mc/decl.mod:  many changes and bug fixes.  Modula-2 output
+	  of data structures implemented and pretty printing of M2, C
+          data structures implemented.
+	* gm2/mc/mcOptions.mod:  corrected --olang= processing.
+	* gm2/mc/mcPretty.def:  pushPretty and popPretty
+          (New procedure functions) defined.
+	* gm2/mc/mcPretty.mod:  pushPretty and popPretty
+          (New procedure functions) implemented.
+
 2016-04-27      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  force the mc-boot rule.
