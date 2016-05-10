@@ -1,3 +1,16 @@
+2016-05-10      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/mc/decl.mod:  write and writeln call FlushBuffer
+	  as a debugging aid.  tempName returns a String.
+          makeIntermediateType new procedure function.
+          simplifyType call tempName and makeIntermediateType.
+          doSimplifyNode also simplifies pointer types.
+          outDeclsDefC outputs constants, types and then variables.
+          walkPointer returns completed if the type is partial or done.
+          walkVarientField returns partial if field type is on the partialQ.
+          tryPartial moves pointer types.
+          outputPartial moves over pointer types and issues '*' accordingly.
+
 2016-05-09      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/mc/decl.mod:  many changes and bug fixes.  Modula-2 output

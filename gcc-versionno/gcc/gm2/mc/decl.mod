@@ -3272,7 +3272,8 @@ END closeOutput ;
 
 PROCEDURE write (ch: CHAR) ;
 BEGIN
-   WriteChar (outputFile, ch)
+   WriteChar (outputFile, ch) ;
+   FlushBuffer (outputFile)
 END write ;
 
 
@@ -3282,7 +3283,8 @@ END write ;
 
 PROCEDURE writeln ;
 BEGIN
-   WriteLine (outputFile)
+   WriteLine (outputFile) ;
+   FlushBuffer (outputFile)
 END writeln ;
 
 
@@ -4761,17 +4763,31 @@ END addTodo ;
    tempName -
 *)
 
-PROCEDURE tempName () : Name ;
-VAR
-   s: String ;
-   n: Name ;
+PROCEDURE tempName () : String ;
 BEGIN
    INC (tempCount) ;
-   s := Sprintf1 (InitString ("_T%d"), tempCount) ;
-   n := makekey (DynamicStrings.string (s)) ;
-   s := KillString (s) ;
-   RETURN n
+   RETURN Sprintf1 (InitString ("_T%d"), tempCount) ;
 END tempName ;
+
+
+(*
+   makeIntermediateType -
+*)
+
+PROCEDURE makeIntermediateType (s: String; p: node) : node ;
+VAR
+   n: Name ;
+   o: node ;
+BEGIN
+   n := makekey (DynamicStrings.string (s)) ;
+   enterScope (getScope (p)) ;
+   o := p ;
+   p := makeType (makekey (DynamicStrings.string (s))) ;
+   putType (p, o) ;
+   putTypeInternal (p) ;
+   leaveScope ;
+   RETURN p
+END makeIntermediateType ;
 
 
 (*
@@ -4780,16 +4796,13 @@ END tempName ;
 
 PROCEDURE simplifyType (l: alist; VAR p: node) ;
 VAR
-   o: node ;
+   s: String ;
 BEGIN
    IF (p#NIL) AND (isRecord (p) OR isArray (p) OR isProcType (p))
    THEN
-      o := p ;
-      enterScope (getScope (p)) ;
-      p := makeType (tempName ()) ;
-      putType (p, o) ;
-      putTypeInternal (p) ;
-      leaveScope ;
+      s := tempName () ;
+      p := makeIntermediateType (s, p) ;
+      s := KillString (s) ;
       simplified := FALSE
    END
 END simplifyType ;
@@ -4884,6 +4897,9 @@ BEGIN
    ELSIF isVarientField (n)
    THEN
       simplifyVarientField (l, n)
+   ELSIF isPointer (n)
+   THEN
+      simplifyType (l, n^.pointerF.type)
    END
 END doSimplifyNode ;
 
@@ -4945,6 +4961,13 @@ BEGIN
                      outputPartial,
                      doNone, doCompletePartialC, doNone) ;
 
+   (* try and output types, constants before variables.  *)
+   ForeachIndiceInIndexDo (s.variables, addTodo) ;
+
+   topologicallyOut (doConstC, doTypesC, doVarC,
+                     outputPartial,
+                     doNone, doCompletePartialC, doNone) ;
+
    ForeachIndiceInIndexDo (s.procedures, doPrototypeC)
 END outDeclsDefC ;
 
@@ -4956,7 +4979,6 @@ END outDeclsDefC ;
 PROCEDURE includeSyms (s: scopeT) ;
 BEGIN
    ForeachIndiceInIndexDo (s.constants, addTodo) ;
-   ForeachIndiceInIndexDo (s.variables, addTodo) ;
    ForeachIndiceInIndexDo (s.types, addTodo)
 END includeSyms ;
 
@@ -5370,13 +5392,12 @@ VAR
 BEGIN
    (* if the type of, n, is done or partial then we can output pointer.  *)
    t := getType (n) ;
-   IF alists.isItemInList (partialQ, t)
+   IF alists.isItemInList (partialQ, t) OR alists.isItemInList (doneQ, t)
    THEN
       (* pointer to partial can always generate a complete type.  *)
       RETURN completed
-   ELSE
-      RETURN walkType (l, n)
-   END
+   END ;
+   RETURN walkType (l, n)
 END walkPointer ;
 
 
@@ -5463,8 +5484,8 @@ BEGIN
    t := getType (n) ;
    IF alists.isItemInList (partialQ, t)
    THEN
-      (* dbs (blocked, n) ; *)
-      RETURN completed  (* blocked *)
+      dbs (partial, n) ;
+      RETURN partial
    ELSIF alists.isItemInList (doneQ, t)
    THEN
       dbs (completed, n) ;
@@ -5503,7 +5524,7 @@ BEGIN
       END ;
       INC (i)
    END ;
-   n^.varientfieldF.simple := (t=1) ;
+   n^.varientfieldF.simple := (t <= 1) ;
    dbs (s, n) ;
    RETURN s
 END walkVarientField ;
@@ -5982,10 +6003,14 @@ BEGIN
    IF (n#NIL) AND isType (n)
    THEN
       q := getType (n) ;
+      WHILE isPointer (q) DO
+         q := getType (q)
+      END ;
       IF (q#NIL) AND (isArray (q) OR isRecord (q) OR isProcType (q))
       THEN
          pt (n) ;
-	 RETURN TRUE
+         addTodo (q) ;
+         RETURN TRUE
       END
    END ;
    RETURN FALSE
@@ -5998,22 +6023,35 @@ END tryPartial ;
 
 PROCEDURE outputPartial (n: node) ;
 VAR
+   s: String ;
    q: node ;
+   i: CARDINAL ;
 BEGIN
    q := getType (n) ;
+   i := 0 ;
+   WHILE isPointer (q) DO
+      q := getType (q) ;
+      INC (i)
+   END ;
    outText (doP, "typedef struct") ; setNeedSpace (doP) ;
-   doFQNameC (doP, n) ;
+   s := getFQstring (n) ;
    IF isRecord (q)
    THEN
-      outText (doP, "_r")
+      s := ConCat (s, Mark (InitString ("_r")))
    ELSIF isArray (q)
    THEN
-      outText (doP, "_a")
+      s := ConCat (s, Mark (InitString ("_a")))
    ELSIF isProcType (q)
    THEN
-      outText (doP, "_p")
+      s := ConCat (s, Mark (InitString ("_p")))
    END ;
+   outTextS (doP, s) ;
    setNeedSpace (doP) ;
+   s := KillString (s) ;
+   WHILE i>0 DO
+      outText (doP, "*") ;
+      DEC (i)
+   END ;
    doFQNameC (doP, n) ;
    outText (doP, ";\n\n")
 END outputPartial ;
