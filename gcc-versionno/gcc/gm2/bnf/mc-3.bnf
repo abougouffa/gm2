@@ -729,7 +729,7 @@ ConstString := string                                                   % VAR n:
                                                                         % n := push (makeString (curstring)) %
              =:
 
-ComponentElement := ConstExpression [ ".." ConstExpression ]
+ComponentElement := Expression [ ".." Expression ]
                   =:
 
 ComponentValue := ComponentElement [ 'BY' ConstExpression ]

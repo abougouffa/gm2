@@ -1,3 +1,14 @@
+2016-05-11      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added rules to bootstrap mc mod files.
+	* gm2/bnf/mc-3.bnf:  use Expression rather than ConstExpression in
+          ComponentElement.
+	* gm2/mc/decl.mod:  added mult, throw nodes.  Fixed ord to be a unary
+          operator.  doSetC (New procedure).  includeSyms renamed includeConstType.
+          includeVarProcedure (New procedure).  includeDefConstType (New procedure).
+          Export size from SYSTEM.  Attempt to declare const/types before
+          var/procedures.
+
 2016-05-10      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/mc/decl.mod:  write and writeln call FlushBuffer

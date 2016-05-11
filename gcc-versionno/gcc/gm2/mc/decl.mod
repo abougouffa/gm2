@@ -27,7 +27,7 @@ FROM nameKey IMPORT NulName, makeKey, lengthKey, makekey, keyToCharStar ;
 FROM SFIO IMPORT OpenToWrite, WriteS ;
 FROM FIO IMPORT File, Close, FlushBuffer, StdOut, WriteLine, WriteChar ;
 FROM DynamicStrings IMPORT String, InitString, EqualArray, InitStringCharStar, KillString, ConCat, Mark ;
-FROM mcOptions IMPORT getOutputFile, getDebugTopological, getHPrefix, getIgnoreFQ ;
+FROM mcOptions IMPORT getOutputFile, getDebugTopological, getHPrefix, getIgnoreFQ, getExtendedOpaque ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM libc IMPORT printf ;
 FROM mcMetaError IMPORT metaError1, metaError2, metaErrors1, metaErrors2 ;
@@ -83,8 +83,8 @@ TYPE
 	    (* expressions.  *)
 	    neg,
 	    cast, val,
-	    plus, sub, div, mod,
-	    adr, size, tsize, ord,
+	    plus, sub, div, mod, mult,
+	    adr, size, tsize, ord, throw,
 	    min, max,
 	    componentref, indirect,
 	    equal, notequal, less, greater, greequal, lessequal,
@@ -165,9 +165,11 @@ TYPE
                          plus,
                          sub,
                          div,
-			 mod             :  binaryF          : binaryT |
+			 mod,
+			 mult            :  binaryF          : binaryT |
 			 indirect,
                          ord,
+			 throw,
 			 not,
 			 neg,
                          adr,
@@ -478,6 +480,7 @@ VAR
    adrN,
    sizeN,
    tsizeN,
+   throwN,
    minN,
    maxN,
    booleanN,
@@ -777,7 +780,8 @@ VAR
    i, h: CARDINAL ;
 BEGIN
    assert (isDef (m) OR isModule (m) OR isImp (m)) ;
-   IF isEnumeration (n)
+   n := skipType (n) ;
+   IF (n#NIL) AND isEnumeration (n)
    THEN
       i := LowIndice (n^.enumerationF.listOfSons) ;
       h := HighIndice (n^.enumerationF.listOfSons) ;
@@ -2775,13 +2779,13 @@ BEGIN
       assignment      :  RETURN NulName |
       (* expressions.  *)
       componentref,
-      ord,
       cast,
       val,
       plus,
       sub,
       div,
       mod,
+      mult,
       neg,
       indirect,
       equal,
@@ -2792,7 +2796,9 @@ BEGIN
       lessequal       :  RETURN NulName |
       adr             :  RETURN makeKey ('ADR') |
       size            :  RETURN makeKey ('SIZE') |
-      tsize           :  RETURN makeKey ('TSIZE')
+      tsize           :  RETURN makeKey ('TSIZE') |
+      ord             :  RETURN makeKey ('ORD') |
+      throw           :  RETURN makeKey ('THROW')
 
       ELSE
          HALT
@@ -2852,14 +2858,13 @@ BEGIN
       and,
       or,
       componentref,
-      ord,
       cast,
       val,
       plus,
       sub,
       div,
       mod,
-      neg :  WITH binaryF DO
+      mult:  WITH binaryF DO
                 left := l ;
                 right := r ;
                 resultType := res
@@ -2908,6 +2913,8 @@ BEGIN
       ztype,
       rtype,
       adr,
+      ord,
+      throw,
       size,
       tsize,
       min,
@@ -2961,6 +2968,9 @@ BEGIN
    ELSIF op=divtok
    THEN
       RETURN makeBinary (div, l, r, booleanN)
+   ELSIF op=timestok
+   THEN
+      RETURN makeBinary (mult, l, r, booleanN)
    ELSE
       HALT  (* most likely op needs a clause as above.  *)
    END
@@ -3068,6 +3078,7 @@ BEGIN
       subscript       :  RETURN subscriptF.type |
       (* blocks.  *)
       procedure       :  RETURN procedureF.returnType |
+      throw           :  RETURN NIL |
       def,
       imp,
       module,
@@ -3086,9 +3097,9 @@ BEGIN
       plus,
       sub,
       div,
-      mod             :  RETURN binaryF.resultType |
+      mod,
+      mult            :  RETURN binaryF.resultType |
       indirect,
-      ord,
       neg,
       adr,
       size,
@@ -3098,7 +3109,8 @@ BEGIN
       less,
       greater,
       greequal,
-      lessequal       :  RETURN booleanN
+      lessequal       :  RETURN booleanN |
+      ord             :  RETURN cardinalN
 
       END
    END ;
@@ -3191,7 +3203,8 @@ BEGIN
       plus,
       sub,
       div,
-      mod             :  RETURN NIL |
+      mod,
+      mult            :  RETURN NIL |
       neg             :  RETURN NIL |
       indirect,
       equal,
@@ -3202,7 +3215,8 @@ BEGIN
       lessequal       :  RETURN NIL |
       adr,
       size,
-      tsize           :  RETURN systemN
+      tsize,
+      throw           :  RETURN systemN
 
       END
    END
@@ -3524,9 +3538,13 @@ BEGIN
       sub             :  doBinary (p, '-', binaryF.left, binaryF.right) |
       div             :  doBinary (p, '/', binaryF.left, binaryF.right) |
       mod             :  doBinary (p, 'MOD', binaryF.left, binaryF.right) |
+      mult            :  doBinary (p, '*', binaryF.left, binaryF.right) |
       literal         :  doLiteral (p, n) |
       const           :  doConstExpr (p, n) |
-      enumerationfield:  doEnumerationField (p, n)
+      enumerationfield:  doEnumerationField (p, n) |
+      string          :  doString (p, n) |
+      max             :  doUnary (p, 'MAX', unaryF.arg, unaryF.resultType) |
+      min             :  doUnary (p, 'MIN', unaryF.arg, unaryF.resultType) |
 
       END
    END
@@ -3582,6 +3600,9 @@ VAR
 BEGIN
    assert (isString (n)) ;
    s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
+   outTextS (p, s) ;
+   s := KillString (s)
+   (*
    IF DynamicStrings.Index (s, '"', 0)=-1
    THEN
       outText (p, '"') ;
@@ -3595,6 +3616,7 @@ BEGIN
    ELSE
       metaError1 ('illegal string {%1k}', n)
    END
+   *)
 END doString ;
 
 
@@ -4582,6 +4604,18 @@ END doSubrangeC ;
 
 
 (*
+   doSetC - generates a C type which holds the set.
+            Currently we only support sets of size WORD.
+*)
+
+PROCEDURE doSetC (p: pretty; n: node) ;
+BEGIN
+   assert (isSet (n)) ;
+   outText (p, "unsigned int") ; setNeedSpace (p)
+END doSetC ;
+
+
+(*
    doTypeC -
 *)
 
@@ -4624,6 +4658,9 @@ BEGIN
    ELSIF isSubrange (n)
    THEN
       doSubrangeC (p, n)
+   ELSIF isSet (n)
+   THEN
+      doSetC (p, n)
    ELSE
       (* --fixme--  *)
       print (p, "to do ...  typedef etc etc ") ; doFQNameC (p, n) ; print (p, ";\n")
@@ -4953,7 +4990,7 @@ END simplifyTypes ;
 PROCEDURE outDeclsDefC (p: pretty; s: scopeT) ;
 BEGIN
    simplifyTypes (s) ;
-   includeSyms (s) ;
+   includeConstType (s) ;
 
    doP := p ;
 
@@ -4961,8 +4998,8 @@ BEGIN
                      outputPartial,
                      doNone, doCompletePartialC, doNone) ;
 
-   (* try and output types, constants before variables.  *)
-   ForeachIndiceInIndexDo (s.variables, addTodo) ;
+   (* try and output types, constants before variables and procedures.  *)
+   includeVarProcedure (s) ;
 
    topologicallyOut (doConstC, doTypesC, doVarC,
                      outputPartial,
@@ -4973,14 +5010,25 @@ END outDeclsDefC ;
 
 
 (*
-   includeSyms -
+   includeConstType -
 *)
 
-PROCEDURE includeSyms (s: scopeT) ;
+PROCEDURE includeConstType (s: scopeT) ;
 BEGIN
    ForeachIndiceInIndexDo (s.constants, addTodo) ;
    ForeachIndiceInIndexDo (s.types, addTodo)
-END includeSyms ;
+END includeConstType ;
+
+
+(*
+   includeVarProcedure -
+*)
+
+PROCEDURE includeVarProcedure (s: scopeT) ;
+BEGIN
+   ForeachIndiceInIndexDo (s.procedures, addTodo) ;
+   ForeachIndiceInIndexDo (s.variables, addTodo)
+END includeVarProcedure ;
 
 
 (*
@@ -4990,7 +5038,8 @@ END includeSyms ;
 
 PROCEDURE addExternal (n: node) ;
 BEGIN
-   IF (getScope (n) = defModule) AND isType (n) AND isTypeHidden (n)
+   IF (getScope (n) = defModule) AND isType (n) AND
+      isTypeHidden (n) AND (NOT getExtendedOpaque ())
    THEN
       (* do nothing.  *)
    ELSE
@@ -5000,10 +5049,10 @@ END addExternal ;
 
 
 (*
-   includeDefSymbols -
+   includeDefConstType -
 *)
 
-PROCEDURE includeDefSymbols (n: node) ;
+PROCEDURE includeDefConstType (n: node) ;
 VAR
    d: node ;
 BEGIN
@@ -5013,11 +5062,32 @@ BEGIN
       IF defModule#NIL
       THEN
          simplifyTypes (defModule^.defF.decls) ;
-         includeSyms (defModule^.defF.decls) ;
+         includeConstType (defModule^.defF.decls) ;
 	 foreachNodeDo (defModule^.defF.decls.symbols, addExternal)
       END
    END
-END includeDefSymbols ;
+END includeDefConstType ;
+
+
+(*
+   includeDefVarProcedure -
+*)
+
+PROCEDURE includeDefVarProcedure (n: node) ;
+VAR
+   d: node ;
+BEGIN
+   IF isImp (n)
+   THEN
+      defModule := lookupDef (getSymName (n)) ;
+      IF defModule#NIL
+      THEN
+         simplifyTypes (defModule^.defF.decls) ;
+         includeVarProcedure (defModule^.defF.decls) ;
+	 foreachNodeDo (defModule^.defF.decls.symbols, addExternal)
+      END
+   END
+END includeDefVarProcedure ;
 
 
 (*
@@ -5027,7 +5097,7 @@ END includeDefSymbols ;
 PROCEDURE outDeclsImpC (p: pretty; s: scopeT) ;
 BEGIN
    simplifyTypes (s) ;
-   includeSyms (s) ;
+   includeConstType (s) ;
 
    doP := p ;
 
@@ -5035,7 +5105,13 @@ BEGIN
                      outputPartial,
                      doNone, doCompletePartialC, doNone) ;
 
-   outText (p, "\n") ;
+   (* try and output types, constants before variables and procedures.  *)
+   includeVarProcedure (s) ;
+
+   topologicallyOut (doConstC, doTypesC, doVarC,
+                     outputPartial,
+                     doNone, doCompletePartialC, doNone) ;
+
    ForeachIndiceInIndexDo (s.procedures, doPrototypeC)
 END outDeclsImpC ;
 
@@ -5669,6 +5745,7 @@ BEGIN
    WITH n^ DO
       CASE kind OF
 
+      varargs,
       address,
       byte,
       word,
@@ -5729,7 +5806,8 @@ BEGIN
       plus,
       sub,
       div,
-      mod             :  RETURN walkBinary (l, n) |
+      mod,
+      mult            :  RETURN walkBinary (l, n) |
       neg,
       adr,
       size,
@@ -5866,6 +5944,7 @@ BEGIN
    sub             :  RETURN InitString ('sub') |
    div             :  RETURN InitString ('div') |
    mod             :  RETURN InitString ('mod') |
+   mult            :  RETURN InitString ('mult') |
    adr             :  RETURN InitString ('adr') |
    size            :  RETURN InitString ('size') |
    tsize           :  RETURN InitString ('tsize') |
@@ -6261,7 +6340,7 @@ BEGIN
 
    checkProcUsed (p) ;
 
-   includeDefSymbols (n) ;
+   includeDefConstType (n) ;
    outDeclsImpC (p, n^.impF.decls) ;
    s := KillString (s)
 END outImpC ;
@@ -6849,9 +6928,15 @@ END outputPartialM2 ;
 PROCEDURE outDeclsDefM2 (p: pretty; s: scopeT) ;
 BEGIN
    simplifyTypes (s) ;
-   includeSyms (s) ;
+   includeConstType (s) ;
 
    doP := p ;
+
+   topologicallyOut (doConstM2, doTypesM2, doVarsM2,
+                     outputPartialM2,
+                     doNothing, doNothing, doNothing) ;
+
+   includeVarProcedure (s) ;
 
    topologicallyOut (doConstM2, doTypesM2, doVarsM2,
                      outputPartialM2,
@@ -6897,12 +6982,18 @@ END outDefM2 ;
 PROCEDURE outDeclsImpM2 (p: pretty; s: scopeT) ;
 BEGIN
    simplifyTypes (s) ;
-   includeSyms (s) ;
+   includeConstType (s) ;
 
    doP := p ;
 
    topologicallyOut (doConstM2, doTypesM2, doVarM2,
-                     doNothing,
+                     outputPartialM2,
+                     doNothing, doNothing, doNothing) ;
+
+   includeVarProcedure (s) ;
+
+   topologicallyOut (doConstM2, doTypesM2, doVarsM2,
+                     outputPartialM2,
                      doNothing, doNothing, doNothing) ;
 
    outText (p, "\n") ;
@@ -6926,7 +7017,7 @@ BEGIN
    ForeachIndiceInIndexDo (n^.impF.importedModules, doIncludeM2) ;
    print (p, "\n") ;
 
-   includeDefSymbols (n) ;
+   includeDefConstType (n) ;
    outDeclsImpM2 (p, n^.impF.decls) ;
 
    print (p, "\n") ;
@@ -7245,6 +7336,7 @@ BEGIN
    wordN := makeBase (word) ;
    adrN := makeBase (adr) ;
    tsizeN := makeBase (tsize) ;
+   throwN := makeBase (throw) ;
 
    enterScope (systemN) ;
    addressN := addToScope (addressN) ;
@@ -7252,6 +7344,10 @@ BEGIN
    wordN := addToScope (wordN) ;
    adrN := addToScope (adrN) ;
    tsizeN := addToScope (tsizeN) ;
+   throwN := addToScope (throwN) ;
+
+   assert (sizeN#NIL) ;  (* assumed to be built already.  *)
+   sizeN := addToScope (sizeN) ;  (* also export size from system.  *)
    leaveScope ;
 
    addDone (addressN) ;
