@@ -1,3 +1,25 @@
+2016-05-16      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added mcp5.mod to be built and linked into mc.
+          Removed SysExceptions from being built as part of the bootstrap
+          for mc.  mc does not need it as SysExceptions is a gm2 runtime
+          library.  Removed reference to m2flex.def in MC-DEFS.  Removed
+          mcflex.mod from MC-MODS.
+	* gm2/init/mcinit:  added mcp5 to be linked and initialised.
+	* gm2/mc/README:  corrected the pass description, now that pass 3
+          is used by .def and .mod files.  Thus there is no need for pass 6.
+          Pass 5 functionality now contains the old pass 6 description.
+	* gm2/mc/decl.mod:  new kind funcfixup to allow fixups to be applied
+          between constant functions and their parameters (possibly types).
+          (eg. MAX(typename)).  Created a fixupInfo record which is used by
+          enum fixups and constant function fixups.
+	* gm2/mc/mcComp.mod:  enable pass 5.
+	* At this point mc should handle constants, all data types and
+          generate a tree of nodes representing them.  All procedure prototypes
+          are known.  All that is left to do is build a tree of nodes
+          representing the code and then walk the tree generating
+	  C11 or C++ code.
+
 2016-05-11      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  added rules to bootstrap mc mod files.

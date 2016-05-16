@@ -74,7 +74,7 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 makeIdentList, putIdent, addVarParameters, addNonVarParameters,
 		 lookupInScope, import, lookupExported, isImp, isModule, isConst,
 		 makeLiteralInt, makeLiteralReal, makeString, getBuiltinConst,
-		 getNextEnum, resetEnumPos ;
+		 getNextEnum, resetEnumPos, makeFuncFixup ;
 
 
 CONST
@@ -742,15 +742,15 @@ Constructor := '{'
                   [ ArraySetRecordValue ]
                '}' =:
 
-ConstSetOrQualidentOrFunction := PushQualident
-                                 [ Constructor | ConstActualParameters
-                                                                       ]
+ConstSetOrQualidentOrFunction := PushQualident                          % VAR n: node ; %
+                                 [ Constructor
+				               | ConstActualParameters
+					                                % n := push (makeFuncFixup (pop ())) %
+                                                                      ]
                                    |
                                      Constructor =:
 
-ConstActualParameters :=
-                         ActualParameters
-                       =:
+ConstActualParameters := "(" [ ExpList ] ")" =:
 
 ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "("
                   ConstAttributeExpression

@@ -46,6 +46,7 @@ IMPORT mcp1 ;
 IMPORT mcp2 ;
 IMPORT mcp3 ;
 IMPORT mcp4 ;
+IMPORT mcp5 ;
 
 
 FROM mcError IMPORT writeFormat0, flushErrors, flushWarnings ;
@@ -84,16 +85,12 @@ BEGIN
       IF isImp (n)
       THEN
          qprintf0 ('Parse implementation module\n') ;
-         doPass (FALSE, TRUE, 4, p4, '[implementation module] import lists, constants types, variables and procedure declarations') ;
-         (*
-          doPass (FALSE, FALSE, 5, p5, '[implementation module] build code tree for all procedures and module initialisations')
-          *)
+         doPass (FALSE, TRUE, 4, p4, '[implementation module] import lists, constants, types, variables and procedure declarations') ;
+         doPass (FALSE, TRUE, 5, p5, '[implementation module] build code tree for all procedures and module initialisations')
       ELSE
          qprintf0 ('Parse program module\n') ;
-         doPass (FALSE, FALSE, 4, p4, '[program module] import lists, constants types, variables and procedure declarations') ;
-         (*
-          doPass (FALSE, FALSE, 5, p5, '[program module] build code tree for all procedures and module initialisations')
-          *)
+         doPass (FALSE, TRUE, 4, p4, '[program module] import lists, constants, types, variables and procedure declarations') ;
+         doPass (FALSE, TRUE, 5, p5, '[program module] build code tree for all procedures and module initialisations')
       END ;
    END ;
 
@@ -256,13 +253,6 @@ END p2 ;
 
 PROCEDURE p3 (n: node) ;
 BEGIN
-(*
-   pass (3, n, mcp3.CompilationUnit, isDef, openDef) ;
-   IF isDef (n) AND hasHidden (n) AND getExtendedOpaque ()
-   THEN
-      pass (3, lookupImp (getSymName (n)), mcp3.CompilationUnit, isImp, openMod)
-   END
-*)
    IF isDef (n)
    THEN
       pass (3, n, mcp3.CompilationUnit, isDef, openDef) ;
@@ -284,6 +274,16 @@ PROCEDURE p4 (n: node) ;
 BEGIN
    pass (4, n, mcp4.CompilationUnit, isImpOrModule, openMod)
 END p4 ;
+
+
+(*
+   p5 - wrap the pass procedure with the correct parameter values.
+*)
+
+PROCEDURE p5 (n: node) ;
+BEGIN
+   pass (5, n, mcp5.CompilationUnit, isImpOrModule, openMod)
+END p5 ;
 
 
 (*

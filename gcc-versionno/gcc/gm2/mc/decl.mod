@@ -57,6 +57,7 @@ TYPE
    language = (ansiC, ansiCP, pim4) ;
 
    nodeT = (
+            funcfixup,
             (* base constants.  *)
 	    nil, true, false,
             (* system types.  *)
@@ -94,6 +95,7 @@ TYPE
     node = POINTER TO RECORD
                          CASE kind: nodeT OF
 
+                         funcfixup       : funcfixupF: funcfixupT |
                          (* base constants.  *)
                          nil,
 			 true,
@@ -183,6 +185,15 @@ TYPE
                          END ;
                          at:  where ;
                       END ;
+
+       fixupInfo = RECORD
+                      count: CARDINAL ;
+                      info : Index ;
+                   END ;
+
+       funcfixupT = RECORD
+                       func:  node ;
+                    END ;
 
        identlistT = RECORD
                        names:  wlist ;
@@ -415,9 +426,9 @@ TYPE
        moduleT = RECORD
                     name             :  Name ;
                     source           :  Name ;
-                    importedModules,
-                    enums            :  Index ;
-                    enumCount        :  CARDINAL ;
+                    importedModules  :  Index ;
+                    funcFixup,
+                    enumFixup        :  fixupInfo ;
                     decls            :  scopeT ;
                     beginStatements,
                     finallyStatements:  node ;
@@ -430,9 +441,9 @@ TYPE
 		 hasHidden,
                  forC             :  BOOLEAN ;
                  exported,
-                 importedModules,
-                 enums            :  Index ;
-                 enumCount        :  CARDINAL ;
+                 importedModules  :  Index ;
+                 funcFixup,
+                 enumFixup        :  fixupInfo ;
                  decls            :  scopeT ;
                  visited          :  BOOLEAN ;
               END ;
@@ -440,9 +451,9 @@ TYPE
        impT = RECORD
                  name             :  Name ;
                  source           :  Name ;
-                 importedModules,
-                 enums            :  Index ;
-                 enumCount        :  CARDINAL ;
+                 importedModules  :  Index ;
+                 funcFixup,
+                 enumFixup        :  fixupInfo ;
                  beginStatements,
                  finallyStatements:  node ;
 		 definitionModule :  node ;
@@ -1107,6 +1118,20 @@ END getCurrentModule ;
 
 
 (*
+   initFixupInfo -
+*)
+
+PROCEDURE initFixupInfo () : fixupInfo ;
+VAR
+   f: fixupInfo ;
+BEGIN
+   f.count := 0 ;
+   f.info := InitIndex (1) ;
+   RETURN f
+END initFixupInfo ;
+
+
+(*
    makeDef - returns a definition module node named, n.
 *)
 
@@ -1122,8 +1147,8 @@ BEGIN
       defF.forC := FALSE ;
       defF.exported := InitIndex (1) ;
       defF.importedModules := InitIndex (1) ;
-      defF.enums := InitIndex (1) ;
-      defF.enumCount := 0 ;
+      defF.funcFixup := initFixupInfo () ;
+      defF.enumFixup := initFixupInfo () ;
       initDecls (defF.decls) ;
       defF.visited := FALSE
    END ;
@@ -1144,8 +1169,8 @@ BEGIN
       impF.name := n ;
       impF.source := NulName ;
       impF.importedModules := InitIndex (1) ;
-      impF.enums := InitIndex (1) ;
-      impF.enumCount := 0 ;
+      impF.funcFixup := initFixupInfo () ;
+      impF.enumFixup := initFixupInfo () ;
       initDecls (impF.decls) ;
       impF.beginStatements := NIL ;
       impF.finallyStatements := NIL ;
@@ -1169,8 +1194,8 @@ BEGIN
       moduleF.name := n ;
       moduleF.source := NulName ;
       moduleF.importedModules := InitIndex (1) ;
-      moduleF.enums := InitIndex (1) ;
-      moduleF.enumCount := 0 ;
+      moduleF.funcFixup := initFixupInfo () ;
+      moduleF.enumFixup := initFixupInfo () ;
       initDecls (moduleF.decls) ;
       moduleF.beginStatements := NIL ;
       moduleF.finallyStatements := NIL ;
@@ -1460,6 +1485,98 @@ BEGIN
       addModuleToScope (m, i)
    END
 END addImportedModule ;
+
+
+(*
+   addFuncFixupToModule -
+*)
+
+PROCEDURE addFuncFixupToModule (m, n: node) ;
+BEGIN
+   assert (isFuncFixup (n)) ;
+   assert (isModule (m) OR isDef (m) OR isImp (m)) ;
+   IF isModule (m)
+   THEN
+      IncludeIndiceIntoIndex (m^.moduleF.enumFixup.info, n)
+   ELSIF isDef (m)
+   THEN
+      IncludeIndiceIntoIndex (m^.defF.enumFixup.info, n)
+   ELSIF isImp (m)
+   THEN
+      IncludeIndiceIntoIndex (m^.impF.enumFixup.info, n)
+   END
+END addFuncFixupToModule ;
+
+
+(*
+   isFuncFixup - returns TRUE if, n, is a funcfixup node.
+*)
+
+PROCEDURE isFuncFixup (n: node) : BOOLEAN ;
+BEGIN
+   RETURN n^.kind = funcfixup
+END isFuncFixup ;
+
+
+(*
+   makeFuncFixup - creates a function fixup node and returns this node.
+                   It is also added to the current module.
+                   Used during p3 and p4.
+*)
+
+PROCEDURE makeFuncFixup (n: node) : node ;
+VAR
+   d: node ;
+BEGIN
+   d := newNode (funcfixup) ;
+   d^.funcfixupF.func := n ;
+   addFuncFixupToModule (currentModule, d) ;
+   RETURN d
+END makeFuncFixup ;
+
+
+(*
+   getNextFuncFixup - returns the next funcfixup node.
+                      Used during p5.
+*)
+
+PROCEDURE getNextFuncFixup () : node ;
+BEGIN
+   assert (isDef (currentModule) OR isImp (currentModule) OR isModule (currentModule)) ;
+   WITH currentModule^ DO
+      IF isDef (currentModule)
+      THEN
+         RETURN getNextFixup (defF.funcFixup)
+      ELSIF isImp (currentModule)
+      THEN
+         RETURN getNextFixup (impF.funcFixup)
+      ELSIF isModule (currentModule)
+      THEN
+         RETURN getNextFixup (moduleF.funcFixup)
+      END
+   END
+END getNextFuncFixup ;
+
+
+(*
+   resetFuncFixup - resets the index into the saved list of funcfixups inside
+                    module, n.
+*)
+
+PROCEDURE resetFuncFixup (n: node) ;
+BEGIN
+   assert (isDef (n) OR isImp (n) OR isModule (n)) ;
+   IF isDef (n)
+   THEN
+      n^.defF.funcFixup.count := 0
+   ELSIF isImp (n)
+   THEN
+      n^.impF.funcFixup.count := 0
+   ELSIF isModule (n)
+   THEN
+      n^.moduleF.funcFixup.count := 0
+   END
+END resetFuncFixup ;
 
 
 (*
@@ -2282,15 +2399,26 @@ BEGIN
    assert (isModule (m) OR isDef (m) OR isImp (m)) ;
    IF isModule (m)
    THEN
-      IncludeIndiceIntoIndex (m^.moduleF.enums, e)
+      IncludeIndiceIntoIndex (m^.moduleF.enumFixup.info, e)
    ELSIF isDef (m)
    THEN
-      IncludeIndiceIntoIndex (m^.defF.enums, e)
+      IncludeIndiceIntoIndex (m^.defF.enumFixup.info, e)
    ELSIF isImp (m)
    THEN
-      IncludeIndiceIntoIndex (m^.impF.enums, e)
+      IncludeIndiceIntoIndex (m^.impF.enumFixup.info, e)
    END
 END addEnumToModule ;
+
+
+(*
+   getNextFixup -
+*)
+
+PROCEDURE getNextFixup (VAR f: fixupInfo) : node ;
+BEGIN
+   INC (f.count) ;
+   RETURN GetIndice (f.info, f.count)
+END getNextFixup ;
 
 
 (*
@@ -2305,16 +2433,13 @@ BEGIN
    WITH currentModule^ DO
       IF isDef (currentModule)
       THEN
-         INC (defF.enumCount) ;
-         n := GetIndice (defF.enums, defF.enumCount)
+         RETURN getNextFixup (defF.enumFixup)
       ELSIF isImp (currentModule)
       THEN
-         INC (impF.enumCount) ;
-         n := GetIndice (impF.enums, impF.enumCount)
+         RETURN getNextFixup (impF.enumFixup)
       ELSIF isModule (currentModule)
       THEN
-         INC (moduleF.enumCount) ;
-         n := GetIndice (moduleF.enums, moduleF.enumCount)
+         RETURN getNextFixup (moduleF.enumFixup)
       END
    END ;
    RETURN n
@@ -2331,13 +2456,13 @@ BEGIN
    assert (isDef (n) OR isImp (n) OR isModule (n)) ;
    IF isDef (n)
    THEN
-      n^.defF.enumCount := 0
+      n^.defF.enumFixup.count := 0
    ELSIF isImp (n)
    THEN
-      n^.impF.enumCount := 0
+      n^.impF.enumFixup.count := 0
    ELSIF isModule (n)
    THEN
-      n^.moduleF.enumCount := 0
+      n^.moduleF.enumFixup.count := 0
    END
 END resetEnumPos ;
 
@@ -2798,7 +2923,10 @@ BEGIN
       size            :  RETURN makeKey ('SIZE') |
       tsize           :  RETURN makeKey ('TSIZE') |
       ord             :  RETURN makeKey ('ORD') |
-      throw           :  RETURN makeKey ('THROW')
+      throw           :  RETURN makeKey ('THROW') |
+      max             :  RETURN makeKey ('MAX') |
+      min             :  RETURN makeKey ('MIN') |
+      funcfixup       :  RETURN makeKey ('FUNCFIXUP')
 
       ELSE
          HALT
@@ -3216,7 +3344,10 @@ BEGIN
       adr,
       size,
       tsize,
-      throw           :  RETURN systemN
+      throw           :  RETURN systemN |
+      min,
+      max,
+      funcfixup       :  RETURN NIL
 
       END
    END
@@ -3506,6 +3637,20 @@ END doEnumerationField ;
 
 
 (*
+   doFuncFixup -
+*)
+
+PROCEDURE doFuncFixup (p: pretty; n: node) ;
+BEGIN
+   assert (isFuncFixup (n)) ;
+   outText (p, 'funcfixup (') ;
+   doFQNameC (p, n^.funcfixupF.func) ;
+   outText (p, ')') ;
+   setNeedSpace (p)
+END doFuncFixup ;
+
+
+(*
    doExprC -
 *)
 
@@ -3545,6 +3690,7 @@ BEGIN
       string          :  doString (p, n) |
       max             :  doUnary (p, 'MAX', unaryF.arg, unaryF.resultType) |
       min             :  doUnary (p, 'MIN', unaryF.arg, unaryF.resultType) |
+      funcfixup       :  doFuncFixup (p, n)
 
       END
    END
@@ -5745,6 +5891,7 @@ BEGIN
    WITH n^ DO
       CASE kind OF
 
+      throw,          (* --fixme--  *)
       varargs,
       address,
       byte,

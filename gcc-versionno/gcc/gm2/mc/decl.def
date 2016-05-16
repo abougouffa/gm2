@@ -824,6 +824,22 @@ PROCEDURE getBuiltinConst (n: Name) : node ;
 
 
 (*
+   makeFuncFixup - creates a function fixup node and returns this node.
+                   It is also added to the current module.
+                   Used during p3 and p4.
+*)
+
+PROCEDURE makeFuncFixup (n: node) : node ;
+
+
+(*
+   isFuncFixup - returns TRUE if, n, is a funcfixup node.
+*)
+
+PROCEDURE isFuncFixup (n: node) : BOOLEAN ;
+
+
+(*
    setLangC - set the target language as ansi C.
 *)
 

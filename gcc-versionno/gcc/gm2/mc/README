@@ -33,7 +33,6 @@ Pass 2
    [Done]
 
 Pass 3
-   skip over implementation or program module.
    parse definition modules
       process the import lists for the def
       introducing the symbol from another modules export list.
@@ -41,25 +40,25 @@ Pass 3
       mark any opaque type.
       [Done]
       complete const/type/var/procedure declarations.
-   at this point all definition module symbols are completely finished.
+      at this point all definition module symbols are completely finished.
+   parse implementation or program module.
+      process the import lists for the mod
+      introducing the symbol from another modules export list.
+        remembering to populate the enum and all fields if they are imported.
+      mark any opaque type.
+      complete const/type/var/procedure declarations.
 
 Pass 4
    only parse the implementation or program module
-   handle imports (remember to populate the enum and all fields if they are imported).
    build const definitions
       associate the const type with its declaration
+   build type definitions
+   at this point const/types should be completely declared for the
+   implementation/program module
 
 Pass 5
    only parse the implementation or program module
-   build type definitions
-      check the const type used to define types if appropriate
-   at this point const/types should be completely declared for the implementation/program
-   module.
-
-Pass 6
-   only parse the implementation or program module
    build a tree for all procedure and main init code.
-
 
 
 for each exported symbol, s

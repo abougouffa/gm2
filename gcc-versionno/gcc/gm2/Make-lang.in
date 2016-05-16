@@ -1652,6 +1652,7 @@ gm2/boot-bin/mc-devel$(exeext): $(objdir)/gm2/gm2-auto/mcp1.mod \
                                 $(objdir)/gm2/gm2-auto/mcp2.mod \
                                 $(objdir)/gm2/gm2-auto/mcp3.mod \
                                 $(objdir)/gm2/gm2-auto/mcp4.mod \
+                                $(objdir)/gm2/gm2-auto/mcp5.mod \
                                 mcflex.c
 	gcc -I$(srcdir)/gm2/mc -c -g mcflex.c
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/decl.mod
@@ -1666,6 +1667,7 @@ gm2/boot-bin/mc-devel$(exeext): $(objdir)/gm2/gm2-auto/mcp1.mod \
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) gm2/gm2-auto/mcp2.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) gm2/gm2-auto/mcp3.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) gm2/gm2-auto/mcp4.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) gm2/gm2-auto/mcp5.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/wlists.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/alists.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/symbolKey.mod
@@ -1687,6 +1689,7 @@ gm2/boot-bin/mc-opt$(exeext): $(objdir)/gm2/gm2-auto/mcp1.mod \
                                 $(objdir)/gm2/gm2-auto/mcp2.mod \
                                 $(objdir)/gm2/gm2-auto/mcp3.mod \
                                 $(objdir)/gm2/gm2-auto/mcp4.mod \
+                                $(objdir)/gm2/gm2-auto/mcp5.mod \
                                 mcflex.c
 	g++ -I$(srcdir)/gm2/mc -c -g mcflex.c
 	$(BOOTGM2) -fsources -fm2-whole-program -g -I$(srcdir)/gm2/mc:$(objdir)/gm2/gm2-auto:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/mc $(srcdir)/gm2/mc/top.mod
@@ -1704,6 +1707,9 @@ $(objdir)/gm2/gm2-auto/mcp3.mod: $(srcdir)/gm2/bnf/mc-3.bnf
 	$(PGE) -l $< > $@
 
 $(objdir)/gm2/gm2-auto/mcp4.mod: $(srcdir)/gm2/bnf/mc-4.bnf
+	$(PGE) -l $< > $@
+
+$(objdir)/gm2/gm2-auto/mcp5.mod: $(srcdir)/gm2/bnf/mc-5.bnf
 	$(PGE) -l $< > $@
 
 gm2-bootstrap: mc-devel
@@ -1739,10 +1745,10 @@ MC-LIB-MODS = Args.mod ASCII.mod Assertion.mod Break.mod  \
               SArgs.mod \
               SFIO.mod StdIO.mod Storage.mod StrCase.mod \
               StringConvert.mod StrIO.mod StrLib.mod \
-              SysExceptions.def SysStorage.mod \
+              SysStorage.mod \
               SYSTEM.mod TimeString.mod
 
-MC-DEFS = alists.def  decl.def  Indexing.def  lists.def  m2flex.def \
+MC-DEFS = alists.def  decl.def  Indexing.def  lists.def  \
                mcComp.def  mcDebug.def  mcError.def  mcFileName.def \
                mcflex.def  mcLexBuf.def  mcMetaError.def  mcOptions.def \
                mcp1.def   mcp2.def  mcp3.def  mcp4.def  mcPreprocess.def \
@@ -1750,9 +1756,9 @@ MC-DEFS = alists.def  decl.def  Indexing.def  lists.def  m2flex.def \
                mcSearch.def  mcStack.def  nameKey.def  symbolKey.def \
                varargs.def  wlists.def
 
-MC-MODS = alists.mod  decl.mod  Indexing.mod  lists.mod  m2flex.mod \
+MC-MODS = alists.mod  decl.mod  Indexing.mod  lists.mod \
                mcComp.mod  mcDebug.mod  mcError.mod  mcFileName.mod \
-               mcflex.mod  mcLexBuf.mod  mcMetaError.mod  mcOptions.mod \
+               mcLexBuf.mod  mcMetaError.mod  mcOptions.mod \
                mcPreprocess.mod \
                mcPretty.mod  mcPrintf.mod  mcQuiet.mod  mcReserved.mod \
                mcSearch.mod  mcStack.mod  nameKey.mod  symbolKey.mod \
