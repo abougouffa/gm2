@@ -824,6 +824,14 @@ PROCEDURE getBuiltinConst (n: Name) : node ;
 
 
 (*
+   resetFuncFixup - resets the index into the saved list of funcfixups inside
+                    module, n.
+*)
+
+PROCEDURE resetFuncFixup (n: node) ;
+
+
+(*
    makeFuncFixup - creates a function fixup node and returns this node.
                    It is also added to the current module.
                    Used during p3 and p4.
@@ -837,6 +845,34 @@ PROCEDURE makeFuncFixup (n: node) : node ;
 *)
 
 PROCEDURE isFuncFixup (n: node) : BOOLEAN ;
+
+
+(*
+   makeExpList - creates and returns an expList node.
+*)
+
+PROCEDURE makeExpList () : node ;
+
+
+(*
+   isExpList - returns TRUE if, n, is an explist node.
+*)
+
+PROCEDURE isExpList (n: node) : BOOLEAN ;
+
+
+(*
+   putExpList - places, expression, e, within the explist, n.
+*)
+
+PROCEDURE putExpList (n: node; e: node) ;
+
+
+(*
+   applyFuncFixup - applies the next fixup in the module with node, p.
+*)
+
+PROCEDURE applyFuncFixup (p: node) ;
 
 
 (*

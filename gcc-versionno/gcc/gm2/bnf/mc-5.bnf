@@ -73,7 +73,8 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 makeIdentList, putIdent, addVarParameters, addNonVarParameters,
 		 lookupInScope, import, lookupExported, isImp, isModule, isConst,
 		 makeLiteralInt, makeLiteralReal, makeString, getBuiltinConst,
-		 getNextEnum, resetEnumPos, makeFuncFixup ;
+		 getNextEnum, makeFuncFixup, applyFuncFixup,
+		 makeExpList, putExpList, isExpList, resetFuncFixup ;
 
 
 CONST
@@ -619,10 +620,8 @@ FileUnit := DefinitionModule | ImplementationOrProgramModule
 ProgramModule := "MODULE"
                   Ident                                                % curmodule := lookupModule (curident) %
 		                                                       % enterScope (curmodule) %
-								       % resetEnumPos (curmodule) %
-                  [ Priority
-                  ]
-                  ";"
+								       % resetFuncFixup (curmodule) %
+                  [ Priority ] ";"
                   { Import }
                   Block
                   Ident                                                % checkEndName (curmodule, curident, 'program module') %
@@ -635,9 +634,8 @@ ImplementationModule := "IMPLEMENTATION" "MODULE"
                          Ident                                         % curmodule := lookupImp (curident) %
 			                                               % enterScope (lookupDef (curident)) %
                                                                        % enterScope (curmodule) %
-       								       % resetEnumPos (curmodule) %
-                         [ Priority
-                         ] ";"
+       								       % resetFuncFixup (curmodule) %
+                         [ Priority ] ";"
                          { Import }
                          Block
                          Ident                                         % checkEndName (curmodule, curident, 'implementation module') %
@@ -645,31 +643,15 @@ ImplementationModule := "IMPLEMENTATION" "MODULE"
                          "."
                       =:
 
-ImplementationOrProgramModule := ImplementationModule | ProgramModule
-                               =:
+ImplementationOrProgramModule := ImplementationModule | ProgramModule =:
 
 Number := Integer | Real =:
 
-Qualident :=
-             Ident { "." Ident }
-           =:
+Qualident := Ident { "." Ident } =:
 
-ConstantDeclaration :=                                                  % VAR d, e: node ; %
-                       Ident                                            % d := lookupSym (curident) %
-		             "=" ConstExpression                        % e := pop () %
-			                                                % assert (isConst (d)) %
-                                                                        % putConst (d, e) %
-                     =:
+ConstantDeclaration := Ident "=" ConstExpression =:
 
-ConstExpression := SimpleConstExpr                                      % VAR l, r: node ; op: toktype ; %
-                                                                        % op := currenttoken %
-                                   [ Relation
-				              SimpleConstExpr
-				                                        % r := pop () %
-									% l := pop () %
-									% l := push (makeBinaryTok (op, l, r)) %
-				                              ]
-                 =:
+ConstExpression := SimpleConstExpr [ Relation SimpleConstExpr ] =:
 
 Relation := "="
             | "#"
@@ -681,33 +663,24 @@ Relation := "="
             | "IN"
          =:
 
-SimpleConstExpr :=                                                      % VAR op: toktype ; n: node ; %
-                   UnaryOrConstTerm                                     % n := pop () %
-		                    {                                   % op := currenttoken %
-                                      AddOperator ConstTerm             % n := makeBinaryTok (op, n, pop ()) %
-                                                            }           % n := push (n) %
-							      =:
+SimpleConstExpr := UnaryOrConstTerm { AddOperator ConstTerm } =:
 
-UnaryOrConstTerm :=                                                     % VAR n: node ; %
+UnaryOrConstTerm :=
                     "+"
-                    ConstTerm                                           % n := push (makeUnaryTok (plustok, pop ())) %
+                    ConstTerm
                     |
                     "-"
-                    ConstTerm                                           % n := push (makeUnaryTok (minustok, pop ())) %
+                    ConstTerm
                     |
-                    ConstTerm =:
+                    ConstTerm
+		  =:
 
 AddOperator :=   "+"
                | "-"
                | "OR"
-            =:
+             =:
 
-ConstTerm :=                                                            % VAR op: toktype ; n: node ; %
-             ConstFactor                                                % n := pop () %
-                         {                                              % op := currenttoken %
-			   MulOperator ConstFactor                      % n := makeBinaryTok (op, n, pop ()) %
-                                                   }                    % n := push (n) %
-						     =:
+ConstTerm := ConstFactor { MulOperator ConstFactor } =:
 
 MulOperator := "*"
                | "/"
@@ -724,9 +697,7 @@ ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
 
 -- to help satisfy LL1
 
-ConstString := string                                                   % VAR n: node ; %
-                                                                        % n := push (makeString (curstring)) %
-             =:
+ConstString := string =:
 
 ComponentElement := Expression [ ".." Expression ]
                   =:
@@ -741,26 +712,31 @@ Constructor := '{'
                   [ ArraySetRecordValue ]
                '}' =:
 
-ConstSetOrQualidentOrFunction := PushQualident                          % VAR n: node ; %
+ConstSetOrQualidentOrFunction := Qualident
                                  [ Constructor
 				               | ConstActualParameters
-					                                % n := push (makeFuncFixup (pop ())) %
+					                                % applyFuncFixup (pop ()) %
                                                                       ]
                                    |
                                      Constructor =:
 
-ConstActualParameters := "(" [ ExpList ] ")" =:
+ConstActualParameters := "("                                            % VAR n: node ; %
+                                                                        % n := push (makeExpList ()) %
+                             [ ConstExpList ] ")" =:
+
+ConstExpList :=                                                         % VAR p, n: node ; %
+                                                                        % p := peep () %
+									% assert (isExpList (p)) %
+                Expression                                              % putExpList (p, pop ()) %
+                           { "," Expression                             % putExpList (p, pop ()) %
+			                    }
+              =:
 
 ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "("
                   ConstAttributeExpression
                   ")" ")" =:
 
-ConstAttributeExpression :=
-                            Ident                                       % VAR n: node ; %
-			                                                % n := push (getBuiltinConst (curident)) %
-                                  | "<" Qualident ',' Ident
-                                                              ">"
-                          =:
+ConstAttributeExpression := Ident | "<" Qualident ',' Ident ">" =:
 
 -- Set := [ Qualident ] "{" [ Element { "," Element } ] "}" =:
 
@@ -779,40 +755,15 @@ Alignment := [ ByteAlignment ] =:
 IdentList := Ident { "," Ident }
            =:
 
-PushIdentList :=                                                        % VAR n: node ; %
-                                                                        % n := makeIdentList () %
-                 Ident                                                  % checkDuplicate (putIdent (n, curident)) %
-		       { "," Ident                                      % checkDuplicate (putIdent (n, curident)) %
-		                   }                                    % n := push (n) %
-               =:
+SubrangeType := "[" ConstExpression ".." ConstExpression "]" =:
 
-SubrangeType := "[" ConstExpression  ".." ConstExpression               % VAR low, high: node ; %
-                                                                        % high := pop () %
-									% low := pop () %
-									% typeExp := push (makeSubrange (low, high)) %
-                                                          "]"
-              =:
+ArrayType := "ARRAY" SimpleType { "," SimpleType } "OF" Type =:
 
-ArrayType := "ARRAY"                                                    % VAR c: CARDINAL ; n: node ; %
-                                                                        % c := 0 %
-                     SimpleType                                         % INC (c) %
-                                { ","
-                                      SimpleType                        % INC (c) %
-                                                 } "OF"
-                                                        Type            % n := push (makeIndexedArray (c, pop ())) %
-           =:
-
-RecordType := "RECORD"                                                  % VAR n: node ; %
-                                                                        % n := push (makeRecord ()) %
-                                                                        % n := push (NIL)    (* no varient *) %
-                       [ DefaultRecordAttributes ]
-		       FieldListSequence                                % assert (pop ()=NIL) %
+RecordType := "RECORD" [ DefaultRecordAttributes ]
+		       FieldListSequence
 	      "END" =:
 
-DefaultRecordAttributes := '<*'
-                                AttributeExpression
-
-                                                    '*>' =:
+DefaultRecordAttributes := '<*' AttributeExpression '*>' =:
 
 RecordFieldPragma := [ '<*' FieldPragmaExpression
                             { ',' FieldPragmaExpression } '*>' ] =:
@@ -827,134 +778,55 @@ FieldListSequence := FieldListStatement { ";" FieldListStatement } =:
 
 FieldListStatement := [ FieldList ] =:
 
-FieldList :=                                                            % VAR r, i, f, t, n, v, w: node ; d: CARDINAL ; %
-                                                                        % d := depth () %
-                                                                        % v := pop () ; assert ((v=NIL) OR isVarient (v)) %
-                                                                        % r := peep () ; assert (isRecord (r) OR isVarientField (r)) %
-									% v := push (v) %
-									% assert (((v=NIL) AND isRecord (r)) OR ((v#NIL) AND isVarientField (r))) %
-             PushIdentList ":"                                          % i := pop () %
-                               Type                                     % t := pop () %
-			            RecordFieldPragma                   % r := addFieldsToRecord (r, v, i, t) %
-                                                                        % assert (d=depth ()) %
-             |
-               "CASE"                                                   % (* addRecordToList *) %
-                                                                        % d := depth () %
-                                                                        % v := pop () ; assert ((v=NIL) OR isVarient (v)) %
-                                                                        % r := peep () ; assert (isRecord (r) OR isVarientField (r)) %
-									% v := push (v) %
-									% assert (((v=NIL) AND isRecord (r)) OR ((v#NIL) AND isRecordField (r))) %
-                                                                        % w := push (makeVarient (r)) %
-									% assert (d = depth () - 1) %
-                                                                        % (* addVarientToList *) %
-                      CaseTag "OF"
-      									% assert (d = depth () - 1) %
-                                   Varient				% assert (d = depth () - 1) %
-				           { "|" Varient		% assert (d = depth () - 1) %
-					                 }
-                                                                        % w := peep () ; assert (isVarient (w)) %
-                                                                        % assert (d = depth () - 1) %
+FieldList := IdentList ":" Type RecordFieldPragma
+             | "CASE" CaseTag "OF" Varient { "|" Varient }
               [ "ELSE"
                       FieldListSequence
-              ] "END"                                                   % w := pop () ; assert (isVarient (w)) %
-                                                                        % assert (d=depth ()) %
+              ] "END"
            =:
 
 TagIdent :=  Ident |                                                    % curident := NulName %
           =:
 
-CaseTag :=                                                              % VAR tagident: Name ; q, v, w, r: node ; %
-                                                                        % w := pop () ; v := pop () ; r := peep () ; v := push (v) ; w := push (w) %
-									% assert (isVarient (w)) %
-									% assert ((v=NIL) OR isVarient (v)) %
-									% assert (isRecord (r) OR isVarientField (r)) %
-									% assert (isVarient (push (pop ()))) %
-           TagIdent                                                     % tagident := curident %
-                     ( ":" PushQualident                                % q := pop () %
-     									% assert (isVarient (push (pop ()))) %
-		                         |                              % q := NIL %
-                                           )                            % buildVarientSelector (r, w, tagident, q) %
+CaseTag := TagIdent [ ":" Qualident ]
          =:
 
-Varient :=                                                              % VAR p, r, v, f: node ; d: CARDINAL ; %
-                                                                        % d := depth () %
-                                                                        % v := pop () ; assert (isVarient (v)) %
-									% r := pop () %
-                                                                        % p := peep () %
-									% r := push (r) %
-            [                                                           % f := push (buildVarientFieldRecord (v, p)) %
-	                                                                % v := push (v) %
-              VarientCaseLabelList ":" FieldListSequence                % v := pop () %
-	                                                                % f := pop () %
-	                                                                % assert (isVarientField (f)) %
-									% assert (isVarient (v)) %
-									% v := push (v) %
-                                                         ]              % assert (isVarient (peep ())) %
-                                                                        % assert (d=depth ()) %
-                                                           =:
+Varient :=  [ VarientCaseLabelList ":" FieldListSequence ] =:
 
 VarientCaseLabelList := VarientCaseLabels { "," VarientCaseLabels } =:
 
-VarientCaseLabels :=                                                    % VAR l, h: node ; %
-                                                                        % h := NIL %
-                     ConstExpression                                    % l := pop () %
-                                     [ ".." ConstExpression             % h := pop () %
-				                            ]           % (* l, h  could be saved if necessary.  *) %
+VarientCaseLabels := ConstExpression [ ".." ConstExpression ]
                    =:
 
-SetType := ( "SET" | "PACKEDSET" ) "OF" SimpleType                     % VAR n: node ; %
-                                                                       % n := push (makeSet (pop ())) %
-         =:
+SetType := ( "SET" | "PACKEDSET" ) "OF" SimpleType =:
 
-PointerType := "POINTER" "TO" Type                                     % VAR n: node ; %
-                                                                       % n := push (makePointer (pop ())) %
-             =:
+PointerType := "POINTER" "TO" Type =:
 
-ProcedureType := "PROCEDURE"                                           % curproc := push (makeProcType ()) %
-                             [ FormalTypeList ] =:
+ProcedureType := "PROCEDURE" [ FormalTypeList ] =:
 
 FormalTypeList := "(" ( ")" FormalReturn |
                         ProcedureParameters ")" FormalReturn ) =:
 
 FormalReturn := [ ":" OptReturnType ] =:
 
-OptReturnType := "[" PushQualident                                     % putReturnType (curproc, pop ()) %
-                                                                       % putProcTypeOptReturn (curproc) %
-                               "]" | PushQualident                     % putReturnType (curproc, pop ()) %
+OptReturnType := "[" Qualident "]" | Qualident
 	       =:
 
-ProcedureParameters := ProcedureParameter                              % addParameter (curproc, pop ()) %
-                       { "," ProcedureParameter                        % addParameter (curproc, pop ()) %
-		                                } =:
+ProcedureParameters := ProcedureParameter
+                       { "," ProcedureParameter } =:
 
-ProcedureParameter := "..."                                            % VAR n: node ; %
-                                                                       % n := push (makeVarargs ()) %
-                            | "VAR" FormalType                         % n := push (makeVarParameter (NIL, pop ())) %
-			                       | FormalType            % n := push (makeNonVarParameter (NIL, pop ())) %
-					                    =:
+ProcedureParameter := "..." | "VAR" FormalType | FormalType =:
 
 
-VarIdent :=                                                            % VAR n: node ; %
-                                                                       % n := pop () %
-               Ident                                                   % checkDuplicate (putIdent (n, curident)) %
-	                                                               % n := push (n) %
-                     [ "[" ConstExpression "]" ]
+VarIdent := Ident [ "[" ConstExpression "]" ]
           =:
 
-VarIdentList :=                                                        % VAR n: node ; %
-                                                                       % n := makeIdentList () %
-                                                                       % n := push (n) %
-                   VarIdent { "," VarIdent }
-              =:
+VarIdentList := VarIdent { "," VarIdent }  =:
 
-VariableDeclaration :=                                                 % VAR v, d: node ; %
-                        VarIdentList                                   % v := pop () %
-			             ":" Type                          % d := makeVarDecl (v, pop ()) %
-			                      Alignment
+VariableDeclaration :=  VarIdentList ":" Type Alignment
                      =:
 
-Designator := Qualident
-              { SubDesignator } =:
+Designator := Qualident { SubDesignator } =:
 
 SubDesignator := "."
                  Ident
@@ -991,7 +863,7 @@ Factor := Number | string | SetOrDesignatorOrFunction |
           | ConstAttribute
                                 ) =:
 
-SetOrDesignatorOrFunction := Qualident
+SetOrDesignatorOrFunction := PushQualident
                               [ Constructor |
                                 SimpleDes [ ActualParameters ]
                               ]                                |
@@ -1155,34 +1027,21 @@ MultiFPSection := ExtendedFP | FPSection [ ";" MultiFPSection ] =:
 
 FPSection := NonVarFPSection | VarFPSection =:
 
-DefExtendedFP := DefOptArg | "..."                                    % addParameter (curproc, makeVarargs ()) %
-                                   =:
+DefExtendedFP := DefOptArg | "..." =:
 
-ExtendedFP := OptArg | "..."
-                             =:
+ExtendedFP := OptArg | "..." =:
 
-VarFPSection := "VAR" PushIdentList                                   % VAR l, t: node ; %
-                                    ":" FormalType                    % t := pop () %
-				                                      % l := pop () %
-                                                                      % addVarParameters (curproc, l, t) %
+VarFPSection := "VAR" IdentList ":" FormalType
               =:
 
-NonVarFPSection := PushIdentList                                      % VAR l, t: node ; %
-                                 ":" FormalType                       % t := pop () %
-				                                      % l := pop () %
-								      % addNonVarParameters (curproc, l, t) %
+NonVarFPSection := IdentList ":" FormalType
                  =:
 
 OptArg := "[" Ident ":" FormalType [ "=" ConstExpression ] "]" =:
 
 DefOptArg := "[" Ident ":" FormalType "=" ConstExpression "]" =:
 
-FormalType :=                                                         % VAR c: CARDINAL ; %
-                                                                      % VAR n, a, s: node ; %
-                                                                      % c := 0 %
-              { "ARRAY" "OF"                                          % INC (c) %
-	                     } PushQualident                          % pushNunbounded (c) %
-	    =:
+FormalType := { "ARRAY" "OF" } Qualident =:
 
 ModuleDeclaration := "MODULE" Ident [ Priority ] ";"
                         { Import } [ Export ]
@@ -1197,13 +1056,9 @@ Export := "EXPORT" ( "QUALIFIED"
                                  IdentList |
                      IdentList ) ";" =:
 
-FromIdentList := Ident                                                 % importInto (frommodule, curident, curmodule) %
-                       { "," Ident                                     % importInto (frommodule, curident, curmodule) %
-		                   }
-           =:
+FromIdentList := Ident { "," Ident } =:
 
-FromImport := "FROM" Ident                                             % frommodule := lookupDef (curident) %
-                           "IMPORT" FromIdentList ";"
+FromImport := "FROM" Ident "IMPORT" FromIdentList ";"
             =:
 
 ImportModuleList := Ident { "," Ident } =:
@@ -1215,7 +1070,7 @@ Import := FromImport | WithoutFromImport =:
 
 DefinitionModule := "DEFINITION" "MODULE" [ "FOR" string ] Ident ";"   % curmodule := lookupDef (curident) %
     		                                                       % enterScope (curmodule) %
-                                                                       % resetEnumPos (curmodule) %
+                                                                       % resetFuncFixup (curmodule) %
                       { Import } [ Export ]
                       { Definition }
                     "END" Ident "."                                    % checkEndName (curmodule, curident, 'definition module') %
@@ -1240,21 +1095,13 @@ PushQualident := Ident                                                 % typeExp
 			          ]
               =:
 
-OptSubrange := [ SubrangeType
-                                                                       % VAR q, s: node ; %
-                                                                       % s := pop () %
-                                                                       % q := pop () %
-								       % putSubrangeType (s, q) %
-								       % typeExp := push (s) %
-                                 ]
-                =:
+OptSubrange := [ SubrangeType ]  =:
 
-TypeEquiv := PushQualident OptSubrange =:
+TypeEquiv := Qualident OptSubrange =:
 
 EnumIdentList := Ident { "," Ident } =:
 
-Enumeration := "(" EnumIdentList                                       % typeExp := push (getNextEnum ()) %
-                                    ")" =:
+Enumeration := "(" EnumIdentList ")" =:
 
 SimpleType := TypeEquiv | Enumeration | SubrangeType =:
 
@@ -1262,9 +1109,7 @@ Type := SimpleType | ArrayType | RecordType | SetType |
         PointerType | ProcedureType
       =:
 
-TypeDeclaration := { Ident                                                % typeDes := lookupSym (curident) %
-                           ( ";" | "=" Type                               % putType (typeDes, pop ()) %
-			                       Alignment ";" ) }
+TypeDeclaration := { Ident ( ";" | "=" Type    Alignment ";" ) }
 		    =:
 
 Definition := "CONST" { ConstantDeclaration ";" } |

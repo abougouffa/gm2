@@ -1,3 +1,18 @@
+2016-05-17      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/mc-5.bnf:  introduce func fixups.  Removed all
+          constant expression procedures.  Removed all type
+          generation procedures.  Removed all import processing
+          as this should be done in previous passes.
+	* gm2/mc/decl.def:  (resetFuncFixup) new procedure.
+          (makeExpList) new procedure function.  (putExpList) new
+          procedure.  (applyFuncFixup) new procedure.
+	* gm2/mc/decl.mod:  (explist) new kind.  (resetFuncFixup)
+	  implemented new procedure.
+          (makeExpList) implemented new procedure function.
+          (putExpList) implemented new procedure.
+          (applyFuncFixup) implemented new procedure.
+
 2016-05-16      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  added mcp5.mod to be built and linked into mc.

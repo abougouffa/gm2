@@ -39,7 +39,8 @@ FROM mcPretty IMPORT pretty, initPretty, dupPretty, killPretty, print, prints,
 
 FROM Indexing IMPORT Index, InitIndex, ForeachIndiceInIndexDo,
                      IncludeIndiceIntoIndex, IsIndiceInIndex,
-		     HighIndice, LowIndice, GetIndice, RemoveIndiceFromIndex ;
+		     HighIndice, LowIndice, GetIndice, RemoveIndiceFromIndex,
+		     PutIndice ;
 
 IMPORT DynamicStrings ;
 IMPORT alists, wlists ;
@@ -58,6 +59,7 @@ TYPE
 
    nodeT = (
             funcfixup,
+	    explist,
             (* base constants.  *)
 	    nil, true, false,
             (* system types.  *)
@@ -96,6 +98,7 @@ TYPE
                          CASE kind: nodeT OF
 
                          funcfixup       : funcfixupF: funcfixupT |
+			 explist         : explistF: explistT |
                          (* base constants.  *)
                          nil,
 			 true,
@@ -194,6 +197,10 @@ TYPE
        funcfixupT = RECORD
                        func:  node ;
                     END ;
+
+       explistT = RECORD
+                     exp:  Index ;
+                  END ;
 
        identlistT = RECORD
                        names:  wlist ;
@@ -1497,13 +1504,13 @@ BEGIN
    assert (isModule (m) OR isDef (m) OR isImp (m)) ;
    IF isModule (m)
    THEN
-      IncludeIndiceIntoIndex (m^.moduleF.enumFixup.info, n)
+      IncludeIndiceIntoIndex (m^.moduleF.funcFixup.info, n)
    ELSIF isDef (m)
    THEN
-      IncludeIndiceIntoIndex (m^.defF.enumFixup.info, n)
+      IncludeIndiceIntoIndex (m^.defF.funcFixup.info, n)
    ELSIF isImp (m)
    THEN
-      IncludeIndiceIntoIndex (m^.impF.enumFixup.info, n)
+      IncludeIndiceIntoIndex (m^.impF.funcFixup.info, n)
    END
 END addFuncFixupToModule ;
 
@@ -1577,6 +1584,169 @@ BEGIN
       n^.moduleF.funcFixup.count := 0
    END
 END resetFuncFixup ;
+
+
+(*
+   setUnary - sets a unary node to contain, arg, a, and type, t.
+*)
+
+PROCEDURE setUnary (u: node; k: nodeT; a, t: node) ;
+BEGIN
+   CASE k OF
+
+   indirect,
+   ord,
+   throw,
+   not,
+   neg,
+   adr,
+   size,
+   tsize,
+   min,
+   max     :  u^.kind := k ;
+              u^.unaryF.arg := a ;
+	      u^.unaryF.resultType := t
+
+   END
+END setUnary ;
+
+
+(*
+   fixupCast -
+*)
+
+PROCEDURE fixupCast (fix, p, type: node) ;
+BEGIN
+   IF expListLen (p) # 1
+   THEN
+      metaError1 ('only one parameter can be passed in the conversion to type {%1a}', type)
+   ELSE
+      setUnary (fix, cast, getExpList (p, 0), type)
+   END
+END fixupCast ;
+
+
+(*
+   fixupConstFunc -
+*)
+
+PROCEDURE fixupConstFunc (fix: node; k: nodeT; p, func: node) ;
+VAR
+   p0: node ;
+BEGIN
+   IF expListLen (p) # 1
+   THEN
+      metaError1 ('only one parameter can be passed to the function {%1a}', func)
+   ELSE
+      p0 := getExpList (p, 0) ;
+      CASE k OF
+
+      min,
+      max  :  setUnary (fix, k, p0, getType (p0)) |
+      size :  setUnary (fix, k, p0, cardinalN) |
+      tsize:  setUnary (fix, k, p0, cardinalN) |
+      ord  :  setUnary (fix, k, p0, cardinalN) |
+      val  :  setUnary (fix, k, getExpList (p, 1), p0)
+
+      ELSE
+         metaError1 ('not expecting function {%1a} to be called in a constant expression', func)
+      END
+   END
+END fixupConstFunc ;
+
+
+(*
+   applyFuncFixup - applies the next fixup in the module with node, p.
+*)
+
+PROCEDURE applyFuncFixup (p: node) ;
+VAR
+   fix, func: node ;
+BEGIN
+   assert (isExpList (p)) ;
+   fix := getNextFuncFixup () ;
+   assert (isFuncFixup (fix)) ;
+   func := fix^.funcfixupF.func ;
+   IF isBase (func) OR isType (func)
+   THEN
+      fixupCast (fix, p, func)
+   ELSE
+      fixupConstFunc (fix, func^.kind, p, func)
+   END
+END applyFuncFixup ;
+
+
+(*
+   makeExpList - creates and returns an expList node.
+*)
+
+PROCEDURE makeExpList () : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (explist) ;
+   n^.explistF.exp := InitIndex (1) ;
+   RETURN n
+END makeExpList ;
+
+
+(*
+   isExpList - returns TRUE if, n, is an explist node.
+*)
+
+PROCEDURE isExpList (n: node) : BOOLEAN ;
+BEGIN
+   assert (n # NIL) ;
+   RETURN n^.kind = explist
+END isExpList ;
+
+
+(*
+   putExpList - places, expression, e, within the explist, n.
+*)
+
+PROCEDURE putExpList (n: node; e: node) ;
+BEGIN
+   assert (n # NIL) ;
+   assert (isExpList (n)) ;
+   PutIndice (n^.explistF.exp, HighIndice (n^.explistF.exp) + 1, e)
+END putExpList ;
+
+
+(*
+   isFuncFixup - returns TRUE if, n, is a funcfixup node.
+*)
+
+PROCEDURE isFuncFixup (n: node) : BOOLEAN ;
+BEGIN
+   assert (n # NIL) ;
+   RETURN n^.kind = funcfixup
+END isFuncFixup ;
+
+
+(*
+   getExpList - returns the, n, th argument in an explist.
+*)
+
+PROCEDURE getExpList (p: node; n: CARDINAL) : node ;
+BEGIN
+   assert (p#NIL) ;
+   assert (isExpList (p)) ;
+   assert (n < HighIndice (p^.explistF.exp)) ;
+   RETURN GetIndice (p^.explistF.exp, n+1)
+END getExpList ;
+
+
+(*
+   expListLen - returns the length of explist, p.
+*)
+
+PROCEDURE expListLen (p: node) : CARDINAL ;
+BEGIN
+   assert (p#NIL) ;
+   assert (isExpList (p)) ;
+   RETURN HighIndice (p^.explistF.exp)
+END expListLen ;
 
 
 (*
