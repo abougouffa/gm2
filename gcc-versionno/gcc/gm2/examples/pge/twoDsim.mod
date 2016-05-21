@@ -175,7 +175,7 @@ VAR
 
 
 (*
-   Assert - 
+   Assert -
 *)
 
 PROCEDURE Assert (b: BOOLEAN) ;
@@ -189,7 +189,7 @@ END Assert ;
 
 
 (*
-   AssertR - 
+   AssertR -
 *)
 
 PROCEDURE AssertR (a, b: REAL) ;
@@ -202,7 +202,7 @@ END AssertR ;
 
 
 (*
-   AssertRDebug - 
+   AssertRDebug -
 *)
 
 PROCEDURE AssertRDebug (a, b: REAL; message: ARRAY OF CHAR) ;
@@ -218,7 +218,7 @@ END AssertRDebug ;
 
 
 (*
-   dumpCircle - 
+   dumpCircle -
 *)
 
 PROCEDURE dumpCircle (o: Object) ;
@@ -230,7 +230,7 @@ END dumpCircle ;
 
 
 (*
-   dumpPolygon - 
+   dumpPolygon -
 *)
 
 PROCEDURE dumpPolygon (o: Object) ;
@@ -250,7 +250,7 @@ END dumpPolygon ;
 
 
 (*
-   checkDeleted - 
+   checkDeleted -
 *)
 
 PROCEDURE checkDeleted (o: Object) ;
@@ -263,7 +263,7 @@ END checkDeleted ;
 
 
 (*
-   DumpObject - 
+   DumpObject -
 *)
 
 PROCEDURE DumpObject (o: Object) ;
@@ -749,7 +749,7 @@ END accel ;
 
 
 (*
-   calculateCofG - 
+   calculateCofG -
 *)
 
 PROCEDURE calculateCofG (n: CARDINAL; p: ARRAY OF Coord) : Coord ;
@@ -794,7 +794,7 @@ END calculateCofG ;
 
 
 (*
-   calcArea - 
+   calcArea -
 *)
 
 PROCEDURE calcArea (n: CARDINAL; p: ARRAY OF Coord) : REAL ;
@@ -817,9 +817,9 @@ BEGIN
       b := (p[i].y * p[j].x) ;
       IF Debugging
       THEN
-         printf (" [x1 x y1 = %g x %g = %g = r] ", 
+         printf (" [x1 x y1 = %g x %g = %g = r] ",
                  p[i].x, p[j].y, r);
-         printf (" [x1 x y1 = %g x %g = %g = b] ", 
+         printf (" [x1 x y1 = %g x %g = %g = b] ",
                  p[i].y, p[j].x, b)
       END ;
       a := a + r - b ;
@@ -980,7 +980,7 @@ END doCircle ;
 
 
 (*
-   doPolygon - 
+   doPolygon -
 *)
 
 PROCEDURE doPolygon (n: CARDINAL; p: ARRAY OF Coord; c: Colour) ;
@@ -1001,7 +1001,7 @@ END doPolygon ;
 
 
 (*
-   drawBoarder - 
+   drawBoarder -
 *)
 
 PROCEDURE drawBoarder (c: Colour) ;
@@ -1017,7 +1017,7 @@ END drawBoarder ;
 
 
 (*
-   drawBackground - 
+   drawBackground -
 *)
 
 PROCEDURE drawBackground (c: Colour) ;
@@ -1069,7 +1069,7 @@ END getAccelCoord ;
 
 
 (*
-   doDrawFrame - 
+   doDrawFrame -
 *)
 
 PROCEDURE doDrawFrame (optr: Object; dt: REAL) ;
@@ -1121,7 +1121,7 @@ END doDrawFrame ;
 
 
 (*
-   drawFrame - 
+   drawFrame -
 *)
 
 PROCEDURE drawFrame ;
@@ -1170,7 +1170,7 @@ END drawFrame ;
 
 
 (*
-   drawFrameEvent - 
+   drawFrameEvent -
 *)
 
 PROCEDURE drawFrameEvent (e: eventQueue) ;
@@ -1232,7 +1232,7 @@ END incRadians ;
 
 
 (*
-   updatePolygon - 
+   updatePolygon -
 *)
 
 PROCEDURE updatePolygon (optr: Object; dt: REAL) ;
@@ -1251,7 +1251,7 @@ END updatePolygon ;
 
 
 (*
-   updateCircle - 
+   updateCircle -
 *)
 
 PROCEDURE updateCircle (optr: Object; dt: REAL) ;
@@ -1280,7 +1280,7 @@ END updateCircle ;
 
 
 (*
-   updateOb - 
+   updateOb -
 *)
 
 PROCEDURE updateOb (optr: Object; dt: REAL) ;
@@ -1321,7 +1321,7 @@ END updatePhysics ;
 
 
 (*
-   displayEvent - 
+   displayEvent -
 *)
 
 PROCEDURE displayEvent (e: eventQueue) ;
@@ -1341,7 +1341,7 @@ BEGIN
       THEN
          WITH ePtr^ DO
             CASE etype OF
-            
+
             frameEvent         :   printf ("display frame event\n") |
             circlesEvent       :   printf ("circle %d and circle %d colliding event\n", cc.cid1, cc.cid2) |
             circlePolygonEvent :   printf ("circle %d and polygon %d colliding event\n", cp.cid, cp.pid) ;
@@ -1391,7 +1391,7 @@ END printQueue ;
 
 
 (*
-   updateStats - 
+   updateStats -
 *)
 
 PROCEDURE updateStats (dt: REAL) ;
@@ -1411,7 +1411,7 @@ END updateStats ;
 
 
 (*
-   doNextEvent - 
+   doNextEvent -
 *)
 
 PROCEDURE doNextEvent () : REAL ;
@@ -1444,7 +1444,7 @@ END doNextEvent ;
 
 
 (*
-   checkObjects - 
+   checkObjects -
 *)
 
 PROCEDURE checkObjects ;
@@ -1488,7 +1488,7 @@ END checkObjects ;
 
 
 (*
-   checkZero - 
+   checkZero -
 *)
 
 PROCEDURE checkZero (VAR v: REAL) ;
@@ -1502,7 +1502,7 @@ END checkZero ;
 
 
 (*
-   checkZeroCoord - 
+   checkZeroCoord -
 *)
 
 PROCEDURE checkZeroCoord (c: Coord) : Coord ;
@@ -1520,7 +1520,7 @@ END checkZeroCoord ;
 
 
 (*
-   inElastic - 
+   inElastic -
 *)
 
 PROCEDURE inElastic (VAR v: REAL) ;
@@ -1640,7 +1640,7 @@ END collideAgainstFixedCircle ;
 
 
 (*
-   collideMovableCircles - 
+   collideMovableCircles -
 *)
 
 PROCEDURE collideMovableCircles (iptr, jptr: Object) ;
@@ -1733,7 +1733,7 @@ END collideCircleAgainstFixedEdge ;
 
 
 (*
-   circlePolygonCollision - 
+   circlePolygonCollision -
 *)
 
 PROCEDURE circlePolygonCollision (e: eventQueue; cPtr, pPtr: Object) ;
@@ -1803,7 +1803,7 @@ PROCEDURE collidePolygonAgainstFixedEdge (o: Object; p1, p2: Coord) ;
 BEGIN
    (* find the point of collision, this is the mid point along
       the shortest intersection between, o, and p1->p2.  *)
-   
+
    collideCircleAgainstFixedEdge (o, p1, p2) ;
    IF Debugging
    THEN
@@ -1975,7 +1975,7 @@ BEGIN
    updatePolygonVelocity (id1, -j, n, rapn) ;
 
    flipBuffer ;      (* ****************** *)
-   
+
 END collidePolygonAgainstFixedPolygon ;
 
 
@@ -2090,7 +2090,7 @@ BEGIN
    ELSE
       ca := sqr (dotProd (perpendicular (rap), n)) / id1^.inertia
    END ;
-   
+
    IF id2^.fixed
    THEN
       cb := 0.0
@@ -2101,7 +2101,7 @@ BEGIN
    denominator := denominator + ca + cb ;
 
    (* calculate total impulse of collision, j.  *)
-   
+
    vabDotN := dotProd (vab, n) ;
    IF Debugging
    THEN
@@ -2193,7 +2193,7 @@ END physicsCollision ;
 
 
 (*
-   doCollision - 
+   doCollision -
 *)
 
 PROCEDURE doCollision (e: eventQueue) ;
@@ -2215,7 +2215,7 @@ END doCollision ;
 
 
 (*
-   sqr - 
+   sqr -
 *)
 
 PROCEDURE sqr (v: REAL) : REAL ;
@@ -2225,7 +2225,7 @@ END sqr ;
 
 
 (*
-   cub - 
+   cub -
 *)
 
 PROCEDURE cub (v: REAL) : REAL ;
@@ -2235,7 +2235,7 @@ END cub ;
 
 
 (*
-   quad - 
+   quad -
 *)
 
 PROCEDURE quad (v: REAL) : REAL ;
@@ -2245,7 +2245,7 @@ END quad ;
 
 
 (*
-   pent - 
+   pent -
 *)
 
 PROCEDURE pent (v: REAL) : REAL ;
@@ -2255,7 +2255,7 @@ END pent ;
 
 
 (*
-   hex - 
+   hex -
 *)
 
 PROCEDURE hex (v: REAL) : REAL ;
@@ -2265,7 +2265,7 @@ END hex ;
 
 
 (*
-   sept - 
+   sept -
 *)
 
 PROCEDURE sept (v: REAL) : REAL ;
@@ -2275,7 +2275,7 @@ END sept ;
 
 
 (*
-   oct - 
+   oct -
 *)
 
 PROCEDURE oct (v: REAL) : REAL ;
@@ -2325,7 +2325,7 @@ END getObjectValues ;
 
 
 (*
-   getObjectOrbitingValues - 
+   getObjectOrbitingValues -
 *)
 
 PROCEDURE getObjectOrbitingValues (o: Object; VAR r, w: REAL; VAR cofg: Coord) ;
@@ -2346,7 +2346,7 @@ END getObjectOrbitingValues ;
 
 
 (*
-   maximaCircleCollisionOrbiting - 
+   maximaCircleCollisionOrbiting -
    x1 y1 x2 y2
 
    a, g, l, r       is  initial position of the point (not the c of g)
@@ -2370,7 +2370,7 @@ END maximaCircleCollisionOrbiting ;
 
 
 (*
-   earlierCircleCollisionOrbiting - 
+   earlierCircleCollisionOrbiting -
 
            t          is the time of this collision (if any)
            tc         is the time of the next collision.
@@ -2447,7 +2447,7 @@ END earlierCircleCollisionOrbiting ;
 
 
 (*
-   maximaCircleCollision - 
+   maximaCircleCollision -
 *)
 
 PROCEDURE maximaCircleCollision (VAR array: ARRAY OF REAL;
@@ -2529,7 +2529,7 @@ END earlierCircleCollision ;
 
 
 (*
-   findCollisionCircles - 
+   findCollisionCircles -
 
    using:
 
@@ -2655,7 +2655,7 @@ END findCollisionCircles ;
 
 
 (*
-   stop - 
+   stop -
 *)
 
 PROCEDURE stop ;
@@ -2883,7 +2883,7 @@ END hFlush ;
 
 
 (*
-   checkPointCollision - 
+   checkPointCollision -
 *)
 
 PROCEDURE checkPointCollision (VAR timeOfPrevCollision: REAL; t, length, cx, rvx, rax: REAL;
@@ -2894,7 +2894,7 @@ BEGIN
    THEN
       (* a hit, find where *)
       collisionPoint := newPositionCoord (c, cvel, caccel, t) ;
-      
+
       (* return TRUE providing that we do not already know about it *)
       IF isDuplicate (currentTime, t, id1, id2, edge, edge)
       THEN
@@ -3104,7 +3104,7 @@ BEGIN
    (* now add d1 and d2 to p2 to get p5 and p6.  *)
    p5 := addCoord (p2, d1) ;
    p6 := addCoord (p2, d2) ;
-   
+
    (* we now have two lines p3 -> p5   and  p4 -> p6.  *)
 
    (* ok, now we only need to find when line between p3, p5 hits the centre of the circle.  *)
@@ -3154,7 +3154,7 @@ END findEarlierCircleEdgeCollision ;
 
 
 (*
-   getPolygonCoord - 
+   getPolygonCoord -
 *)
 
 PROCEDURE getPolygonCoord (pPtr: Object; pointno: CARDINAL) : Coord ;
@@ -3182,7 +3182,7 @@ BEGIN
    END
 END getPolygonLine ;
 
-   
+
 (*
    findCollisionCircleLine - find the time (if any) between line number, lineP, in polygon, pPtr,
                              and the circle, cPtr.  cPtr can also be a polygon in which case lineC
@@ -3278,7 +3278,7 @@ BEGIN
                                    lineP, lineC, edesc,
                                    center, radius, velCircle, accelCircle,
                                    p1, p2, velLine, accelLine, createDesc)
-                             
+
 END findCollisionCircleLine ;
 
 
@@ -3377,7 +3377,7 @@ BEGIN
                                            center, radius, cv, ca, cr, cw,
                                            p1, p2, pv, pa, pr, pw, createDesc)
 *)
-                             
+
 END findCollisionCircleLineOrbiting ;
 
 
@@ -3473,7 +3473,7 @@ BEGIN
 
    (* test i1 crossing line j *)
    findCollisionCircleLineOrbiting (iPtr, jPtr, iLine, jLine, i1, 0.0, edesc, tc, makePolygonPolygon) ;
-   
+
    (* test j0 crossing line i *)
    findCollisionCircleLineOrbiting (jPtr, iPtr, iLine, jLine, j0, 0.0, edesc, tc, makePolygonPolygon) ;
 
@@ -3496,7 +3496,7 @@ BEGIN
 
    (* test i1 crossing line j *)
    findCollisionCircleLine (iPtr, jPtr, iLine, jLine, i1, 0.0, edesc, tc, makePolygonPolygon) ;
-   
+
    (* test j0 crossing line i *)
    findCollisionCircleLine (jPtr, iPtr, iLine, jLine, j0, 0.0, edesc, tc, makePolygonPolygon) ;
 
@@ -3555,7 +3555,7 @@ END Abs ;
 
 
 (*
-   findAllTimesOfCollisionRLineRPoint - 
+   findAllTimesOfCollisionRLineRPoint -
                                                        4         4   4
                                              - ((16 j k  - 16 d e ) t
 
@@ -3584,7 +3584,7 @@ END Abs ;
                                               - 16 d f  + 32 %pi d f  + (32 - 24 %pi ) d f  + (8 %pi  - 32 %pi) d f
 
                                                       4        2
-                                              + (- %pi  + 8 %pi  - 64) d - 64 a)/64 = 0         
+                                              + (- %pi  + 8 %pi  - 64) d - 64 a)/64 = 0
 *)
 
 PROCEDURE findAllTimesOfCollisionRLineRPoint (a, b, c, d, e, f,
@@ -3625,18 +3625,18 @@ BEGIN
    (* when do the Y values of line, i, equal Y values for point, j? *)
    l := Abs(p2.x - p1.x) ;
    AssertR(p1.y, p2.y) ;
-   
+
    n := findAllTimesOfCollisionRLineRPoint(si, ui, ai, ri, wi, oi,
                                            sj, uj, aj, rj, wj, oj,
                                            t) ;
    k := 0 ;
-   getPolygonRPoint(j, jPtr, cofg, u, 
+   getPolygonRPoint(j, jPtr, cofg, u,
    WHILE k<n DO
       (* at time t[k], do the X value of point, j, intersect with line, i *)
       IF t[k]>=0.0
       THEN
-         IF 
-         x := newPositionRotationCosScalar(getCofG(jPtr), 
+         IF
+         x := newPositionRotationCosScalar(getCofG(jPtr),
       END ;
       INC(k)
    END
@@ -3645,7 +3645,7 @@ END findEarliestCollisionRLineRPoint ;
 
 
 (*
-   findCollisionLineRPoint - 
+   findCollisionLineRPoint -
 *)
 
 PROCEDURE findCollisionLineRPoint (iPtr, rPtr: Object; i, j: CARDINAL; VAR edesc: eventDesc; VAR tc: REAL) ;
@@ -3691,7 +3691,7 @@ BEGIN
 
    (* test point ii crossing line j *)
    findCollisionLineRPoint (rPtr, iPtr, j, i, edesc, tc)
-   
+
 END findCollisionLineRLine ;
 
 
@@ -3751,7 +3751,7 @@ END findCollisionPolygonRPolygon ;
 
 
 (*
-   findCollision - 
+   findCollision -
 *)
 
 PROCEDURE findCollision (iptr, jptr: Object; VAR edesc: eventDesc; VAR tc: REAL) ;
@@ -3806,7 +3806,7 @@ END addDebugging ;
 
 
 (*
-   rememberCollision - 
+   rememberCollision -
 *)
 
 PROCEDURE rememberCollision (tc: REAL; edesc: eventDesc) ;
@@ -3863,7 +3863,7 @@ END subEvent ;
 
 
 (*
-   removeCollisionEvent - 
+   removeCollisionEvent -
 *)
 
 PROCEDURE removeCollisionEvent ;
@@ -3885,7 +3885,7 @@ END removeCollisionEvent ;
 
 
 (*
-   addNextCollisionEvent - 
+   addNextCollisionEvent -
 *)
 
 PROCEDURE addNextCollisionEvent ;
@@ -3938,7 +3938,7 @@ END skipFor ;
 
 
 (*
-   resetQueue - 
+   resetQueue -
 *)
 
 PROCEDURE resetQueue ;
@@ -4243,7 +4243,7 @@ END timeUntil ;
 
 
 (*
-   dumpTime - 
+   dumpTime -
 *)
 
 PROCEDURE dumpTime ;
@@ -4268,7 +4268,7 @@ BEGIN
       printf ("skipTime %f\n", t) ;
       dumpTime
    END ;
-   pumpQueue ; 
+   pumpQueue ;
    IF eventQ=NIL
    THEN
       printf ("  no events in the queue\n") ;
@@ -4306,7 +4306,7 @@ END skipTime ;
 
 
 (*
-   recordEvent - 
+   recordEvent -
 *)
 
 PROCEDURE recordEvent ;
@@ -4417,7 +4417,7 @@ END killQueue ;
 
 
 (*
-   writeCircles - 
+   writeCircles -
 *)
 
 PROCEDURE writeCircles (c: cDesc) ;
@@ -4433,7 +4433,7 @@ END writeCircles ;
 
 
 (*
-   writeKind - 
+   writeKind -
 *)
 
 PROCEDURE writeKind (k: whereHit) ;
@@ -4443,7 +4443,7 @@ END writeKind ;
 
 
 (*
-   writeCirclePolygon - 
+   writeCirclePolygon -
 *)
 
 PROCEDURE writeCirclePolygon (c: cpDesc) ;
@@ -4460,7 +4460,7 @@ END writeCirclePolygon ;
 
 
 (*
-   writePolygonPolygon - 
+   writePolygonPolygon -
 *)
 
 PROCEDURE writePolygonPolygon (p: ppDesc) ;
@@ -4478,7 +4478,7 @@ END writePolygonPolygon ;
 
 
 (*
-   writeDesc - 
+   writeDesc -
 *)
 
 PROCEDURE writeDesc (p: eventDesc) ;
@@ -4526,7 +4526,7 @@ END writeEvent ;
 
 
 (*
-   memDump - 
+   memDump -
 *)
 
 PROCEDURE memDump (a: ADDRESS; len: CARDINAL) ;
@@ -4669,7 +4669,7 @@ END dumpWorld ;
 
 
 (*
-   Init - 
+   Init -
 *)
 
 PROCEDURE Init ;

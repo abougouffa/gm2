@@ -63,7 +63,7 @@ TYPE
             (* base constants.  *)
 	    nil, true, false,
             (* system types.  *)
-   	    address, byte, word,
+   	    address, loc, byte, word,
             (* base types.  *)
 	    char,
 	    cardinal, longcard, shortcard,
@@ -105,6 +105,7 @@ TYPE
 			 false,
 			 (* system types.  *)
                          address,
+			 loc,
                          byte,
 			 word            :  |
                          (* base types.  *)
@@ -234,11 +235,13 @@ TYPE
                   END ;
 
        varT = RECORD
-                 name         :  Name ;
-		 type         :  node ;
-		 decl         :  node ;
-		 scope        :  node ;
-		 isInitialised:  BOOLEAN ;
+                 name          :  Name ;
+		 type          :  node ;
+		 decl          :  node ;
+		 scope         :  node ;
+		 isInitialised,
+		 isParameter,
+		 isVarParameter:  BOOLEAN ;
               END ;
 
        enumerationT = RECORD
@@ -401,6 +404,7 @@ TYPE
                        decls     :  scopeT ;
                        scope     :  node ;
                        parameters:  Index ;
+		       built,
 		       checking,
                        returnopt,
 		       optarg,
@@ -493,6 +497,7 @@ VAR
    defModule,
    systemN,
    addressN,
+   locN,
    byteN,
    wordN,
    adrN,
@@ -1829,7 +1834,9 @@ BEGIN
       varF.type := NIL ;
       varF.decl := NIL ;
       varF.scope := getDeclScope () ;
-      varF.isInitialised := FALSE
+      varF.isInitialised := FALSE ;
+      varF.isParameter := FALSE ;
+      varF.isVarParameter := FALSE
    END ;
    RETURN addToScope (d)
 END makeVar ;
@@ -1846,6 +1853,19 @@ BEGIN
    var^.varF.type := type ;
    var^.varF.decl := decl
 END putVar ;
+
+
+(*
+   putVarBool - assigns the three booleans associated with a variable.
+*)
+
+PROCEDURE putVarBool (v: node; init, param, isvar: BOOLEAN) ;
+BEGIN
+   assert (isVar (v)) ;
+   v^.varF.isInitialised := init ;
+   v^.varF.isParameter := param ;
+   v^.varF.isVarParameter := isvar
+END putVarBool ;
 
 
 (*
@@ -1876,6 +1896,42 @@ END makeVarDecl ;
 
 
 (*
+   makeVariablesFromParameters - creates variables which are really parameters.
+*)
+
+PROCEDURE makeVariablesFromParameters (proc, id, type: node; isvar: BOOLEAN) ;
+VAR
+   v   : node ;
+   i, n: CARDINAL ;
+   m   : Name ;
+   s   : String ;
+BEGIN
+   assert (isProcedure (proc)) ;
+   assert (isIdentList (id)) ;
+   i := 1 ;
+   n := wlists.noOfItemsInList (id^.identlistF.names) ;
+   WHILE i<=n DO
+      m := wlists.getItemFromList (id^.identlistF.names, i) ;
+      v := makeVar (m) ;
+      putVar (v, type, NIL) ;
+      putVarBool (v, TRUE, TRUE, isvar) ;
+      IF debugScopes
+      THEN
+         printf ("adding parameter variable into top scope\n") ;
+         dumpScopes ;
+         printf (" variable name is: ") ;
+         s := InitStringCharStar (keyToCharStar (m)) ;
+         IF KillString (WriteS (StdOut, s))=NIL
+         THEN
+         END ;
+         printf ("\n")
+      END ;
+      INC (i)
+   END
+END makeVariablesFromParameters ;
+
+
+(*
    makeProcedure - create, initialise and return a procedure node.
 *)
 
@@ -1892,6 +1948,7 @@ BEGIN
          initDecls (procedureF.decls) ;
          procedureF.scope := getDeclScope () ;
          procedureF.parameters := InitIndex (1) ;
+	 procedureF.built := FALSE ;
          procedureF.returnopt := FALSE ;
          procedureF.optarg := FALSE ;
          procedureF.vararg := FALSE ;
@@ -1923,7 +1980,11 @@ END paramEnter ;
 PROCEDURE paramLeave (n: node) ;
 BEGIN
    assert (isProcedure (n)) ;
-   n^.procedureF.checking := TRUE
+   n^.procedureF.checking := TRUE ;
+   IF isImp (currentModule) OR isModule (currentModule)
+   THEN
+      n^.procedureF.built := TRUE
+   END
 END paramLeave ;
 
 
@@ -2069,6 +2130,30 @@ BEGIN
 END addParameter ;
 
 
+VAR
+   globalNode: node ;
+
+(*
+   setwatch -
+*)
+
+PROCEDURE setwatch (n: node) : BOOLEAN ;
+BEGIN
+   globalNode := n ;
+   RETURN TRUE
+END setwatch ;
+
+
+(*
+   runwatch -
+*)
+
+PROCEDURE runwatch () : BOOLEAN ;
+BEGIN
+   RETURN globalNode^.kind = identlist
+END runwatch ;
+
+
 (*
    makeIdentList - returns a node which will be used to maintain an ident list.
 *)
@@ -2123,6 +2208,20 @@ END checkParameters ;
 
 
 (*
+   checkMakeVariables -
+*)
+
+PROCEDURE checkMakeVariables (n, i, type: node; isvar: BOOLEAN) ;
+BEGIN
+   IF (isImp (currentModule) OR isModule (currentModule)) AND
+      (NOT n^.procedureF.built)
+   THEN
+      makeVariablesFromParameters (n, i, type, isvar)
+   END
+END checkMakeVariables ;
+
+
+(*
    addVarParameters - adds the identlist, i, of, type, to be VAR parameters
                       in procedure, n.
 *)
@@ -2133,13 +2232,14 @@ VAR
 BEGIN
    assert (isIdentList (i)) ;
    assert (isProcedure (n)) ;
+   checkMakeVariables (n, i, type, TRUE) ;
    IF n^.procedureF.checking
    THEN
-      checkParameters (n, i, type, TRUE)
+      checkParameters (n, i, type, TRUE)  (* will destroy, i.  *)
    ELSE
       p := makeVarParameter (i, type) ;
-      IncludeIndiceIntoIndex (n^.procedureF.parameters, p)
-   END
+      IncludeIndiceIntoIndex (n^.procedureF.parameters, p) ;
+   END ;
 END addVarParameters ;
 
 
@@ -2154,13 +2254,14 @@ VAR
 BEGIN
    assert (isIdentList (i)) ;
    assert (isProcedure (n)) ;
+   checkMakeVariables (n, i, type, FALSE) ;
    IF n^.procedureF.checking
    THEN
-      checkParameters (n, i, type, FALSE)
+      checkParameters (n, i, type, FALSE)  (* will destroy, i.  *)
    ELSE
       p := makeNonVarParameter (i, type) ;
       IncludeIndiceIntoIndex (n^.procedureF.parameters, p)
-   END
+   END ;
 END addNonVarParameters ;
 
 
@@ -2994,12 +3095,16 @@ BEGIN
    WHILE h>=l DO
       s := GetIndice (scopeStack, h) ;
       m := lookupInScope (s, n) ;
-      IF debugScopes
+      IF debugScopes AND (m=NIL)
       THEN
          out3 (" [%d] search for symbol name %s in scope %s\n", h, n, s)
       END ;
       IF m#NIL
       THEN
+         IF debugScopes
+         THEN
+            out3 (" [%d] search for symbol name %s in scope %s (found)\n", h, n, s)
+         END ;
          RETURN m
       END ;
       DEC (h)
@@ -3021,6 +3126,7 @@ BEGIN
       true            :  RETURN makeKey ('TRUE') |
       false           :  RETURN makeKey ('FALSE') |
       address         :  RETURN makeKey ('ADDRESS') |
+      loc             :  RETURN makeKey ('LOC') |
       byte            :  RETURN makeKey ('BYTE') |
       word            :  RETURN makeKey ('WORD') |
       (* base types.  *)
@@ -3193,6 +3299,7 @@ BEGIN
       true,
       false,
       address,
+      loc,
       byte,
       word,
       char,
@@ -3306,6 +3413,7 @@ BEGIN
    CASE n^.kind OF
 
    address,
+   loc,
    byte,
    word,
    char,
@@ -3336,6 +3444,7 @@ BEGIN
       true,
       false           :  RETURN booleanN |
       address         :  RETURN n |
+      loc             :  RETURN n |
       byte            :  RETURN n |
       word            :  RETURN n |
       (* base types.  *)
@@ -3442,6 +3551,7 @@ BEGIN
       true,
       false           :  RETURN NIL |
       address,
+      loc,
       byte,
       word            :  RETURN systemN |
       (* base types.  *)
@@ -4470,6 +4580,9 @@ BEGIN
    ELSIF n=bitsetN
    THEN
       RETURN lookupConst (bitnumN, makeKey ('0'))
+   ELSIF n=locN
+   THEN
+      RETURN lookupConst (locN, makeKey ('0'))
    ELSIF n=byteN
    THEN
       RETURN lookupConst (byteN, makeKey ('0'))
@@ -4506,6 +4619,9 @@ BEGIN
    ELSIF n=bitsetN
    THEN
       RETURN lookupConst (bitnumN, makeKey ('31'))
+   ELSIF n=locN
+   THEN
+      RETURN lookupConst (locN, makeKey ('255'))
    ELSIF n=byteN
    THEN
       RETURN lookupConst (byteN, makeKey ('255'))
@@ -4686,6 +4802,7 @@ BEGIN
    CASE n^.kind OF
 
    address:  RETURN TRUE |
+   loc    :  RETURN TRUE |
    byte   :  RETURN TRUE |
    word   :  RETURN TRUE
 
@@ -4704,7 +4821,8 @@ BEGIN
    CASE n^.kind OF
 
    address:  outText (p, 'void *') |
-   byte   :  outText (p, 'char') ; setNeedSpace (p) |
+   loc    :  outText (p, 'unsigned char') ; setNeedSpace (p) |
+   byte   :  outText (p, 'unsigned char') ; setNeedSpace (p) |
    word   :  outText (p, 'unsigned int') ; setNeedSpace (p)
 
    END
@@ -6064,6 +6182,7 @@ BEGIN
       throw,          (* --fixme--  *)
       varargs,
       address,
+      loc,
       byte,
       word,
       (* base types.  *)
@@ -6200,6 +6319,7 @@ BEGIN
    true,
    false,
    address,
+   loc,
    byte,
    word,
    char,
@@ -6979,6 +7099,7 @@ BEGIN
    CASE n^.kind OF
 
    address,
+   loc,
    byte   ,
    word   :  doNameM2 (p, n)
 
@@ -7649,6 +7770,7 @@ BEGIN
    systemN := lookupDef (makeKey ('SYSTEM')) ;
 
    addressN := makeBase (address) ;
+   locN := makeBase (loc) ;
    byteN := makeBase (byte) ;
    wordN := makeBase (word) ;
    adrN := makeBase (adr) ;
@@ -7657,6 +7779,7 @@ BEGIN
 
    enterScope (systemN) ;
    addressN := addToScope (addressN) ;
+   locN := addToScope (locN) ;
    byteN := addToScope (byteN) ;
    wordN := addToScope (wordN) ;
    adrN := addToScope (adrN) ;
@@ -7668,6 +7791,7 @@ BEGIN
    leaveScope ;
 
    addDone (addressN) ;
+   addDone (locN) ;
    addDone (byteN) ;
    addDone (wordN)
 END makeSystem ;

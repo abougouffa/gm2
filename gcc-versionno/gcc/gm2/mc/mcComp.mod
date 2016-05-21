@@ -86,11 +86,15 @@ BEGIN
       THEN
          qprintf0 ('Parse implementation module\n') ;
          doPass (FALSE, TRUE, 4, p4, '[implementation module] import lists, constants, types, variables and procedure declarations') ;
+         (*
          doPass (FALSE, TRUE, 5, p5, '[implementation module] build code tree for all procedures and module initialisations')
+          *)
       ELSE
          qprintf0 ('Parse program module\n') ;
          doPass (FALSE, TRUE, 4, p4, '[program module] import lists, constants, types, variables and procedure declarations') ;
+         (*
          doPass (FALSE, TRUE, 5, p5, '[program module] build code tree for all procedures and module initialisations')
+          *)
       END ;
    END ;
 

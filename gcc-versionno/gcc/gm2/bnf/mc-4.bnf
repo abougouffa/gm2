@@ -878,11 +878,12 @@ CaseTag :=                                                              % VAR ta
 
 Varient :=                                                              % VAR p, r, v, f: node ; d: CARDINAL ; %
                                                                         % d := depth () %
-                                                                        % v := pop () ; assert (isVarient (v)) %
+                                                                        % assert (isVarient (peep ())) %
+            [                                                           % v := pop () ; assert (isVarient (v)) %
 									% r := pop () %
                                                                         % p := peep () %
 									% r := push (r) %
-            [                                                           % f := push (buildVarientFieldRecord (v, p)) %
+                                                                        % f := push (buildVarientFieldRecord (v, p)) %
 	                                                                % v := push (v) %
               VarientCaseLabelList ":" FieldListSequence                % v := pop () %
 	                                                                % f := pop () %
@@ -1251,10 +1252,14 @@ OptSubrange := [ SubrangeType
 
 TypeEquiv := PushQualident OptSubrange =:
 
-EnumIdentList := Ident { "," Ident } =:
+EnumIdentList :=                                                       % VAR n, f: node ; %
+                                                                       % n := makeEnum () %
+                    Ident                                              % f := makeEnumField (n, curident) %
+		          { "," Ident                                  % f := makeEnumField (n, curident) %
+			              }                                % n := push (n) %
+                  =:
 
-Enumeration := "(" EnumIdentList                                       % typeExp := push (getNextEnum ()) %
-                                    ")" =:
+Enumeration := "(" EnumIdentList ")" =:
 
 SimpleType := TypeEquiv | Enumeration | SubrangeType =:
 
@@ -1267,8 +1272,49 @@ TypeDeclaration := { Ident                                                % type
 			                       Alignment ";" ) }
 		    =:
 
-Definition := "CONST" { ConstantDeclaration ";" } |
-              "TYPE" { TypeDeclaration } |
+
+DefQualident :=
+                Ident                                                  % typeExp := lookupSym (curident) %
+                      [ "."                                            % IF NOT isDef (typeExp)
+                                                                         THEN
+									    ErrorArray ('the first component of this qualident must be a definition module')
+                                                                         END %
+		            Ident                                      % typeExp := lookupInScope (typeExp, curident) ;
+			                                                 IF typeExp=NIL
+                                                                         THEN
+                                                                            ErrorArray ('identifier not found in definition module')
+                                                                         END %
+			          ]
+              =:
+
+DefTypeEquiv := DefQualident OptSubrange =:
+
+DefEnumIdentList :=                                                     % VAR n, f: node ; %
+                                                                        % n := makeEnum () %
+                    Ident                                               % f := makeEnumField (n, curident) %
+		          { "," Ident                                   % f := makeEnumField (n, curident) %
+			              }                                 % n := push (n) %
+                  =:
+
+DefEnumeration := "(" DefEnumIdentList ")" =:
+
+DefSimpleType := DefTypeEquiv | DefEnumeration | SubrangeType
+	       =:
+
+DefType := DefSimpleType | ArrayType | RecordType | SetType |
+           PointerType | ProcedureType
+         =:
+
+DefTypeDeclaration := { Ident                                           % typeDes := lookupSym (curident) %
+                        ( ";" | "=" DefType Alignment ";" ) }
+		    =:
+
+DefConstantDeclaration := Ident
+                                "=" ConstExpression
+                        =:
+
+Definition := "CONST" { DefConstantDeclaration ";" } |
+              "TYPE" { DefTypeDeclaration } |
               "VAR" { VariableDeclaration ";" } |
               DefProcedureHeading ";" =:
 

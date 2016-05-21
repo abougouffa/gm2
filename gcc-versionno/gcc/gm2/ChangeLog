@@ -1,3 +1,16 @@
+2016-05-21      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/mc-2.bnf:  create enums for .mod files as well as .def files.
+	* gm2/bnf/mc-3.bnf:  fixed bug, make empty varient leave the stack alone.
+	* gm2/bnf/mc-4.bnf:  likewise applied to pass 4.  Create enums
+          for .mod files.  DefQualident, DefTypeEquiv, DefEnumIdentList,
+          DefEnumeration, DefSimpleType, new rules introduced and used.
+	* gm2/examples/pge/twoDsim.mod:  right hand white space removed.
+	* gm2/mc/decl.mod:  loc introduced.  Parameter building and
+	variable shadowing introduced.
+	* gm2/mc/mcComp.mod:  commented out p5.
+	* gm2/mc/wlists.mod:  renamed maxNoOfElements and noOfElements.
+
 2016-05-17      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/mc-5.bnf:  introduce func fixups.  Removed all

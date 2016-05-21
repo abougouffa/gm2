@@ -644,7 +644,14 @@ Type := ( DefSimpleType | ArrayType
 
 SimpleType := Qualident [ SubrangeType ] | Enumeration | SubrangeType =:
 
-Enumeration := "(" ( IdentList )
+EnumIdentList :=                                                        % VAR n, f: node ; %
+                                                                        % n := makeEnum () %
+                    Ident                                               % f := makeEnumField (n, curident) %
+		          { "," Ident                                   % f := makeEnumField (n, curident) %
+			              }
+                  =:
+
+Enumeration := "(" ( EnumIdentList )
                ")"
              =:
 

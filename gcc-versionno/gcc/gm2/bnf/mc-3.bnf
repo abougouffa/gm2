@@ -879,11 +879,12 @@ CaseTag :=                                                              % VAR ta
 
 Varient :=                                                              % VAR p, r, v, f: node ; d: CARDINAL ; %
                                                                         % d := depth () %
-                                                                        % v := pop () ; assert (isVarient (v)) %
+                                                                        % assert (isVarient (peep ())) %
+            [                                                           % v := pop () ; assert (isVarient (v)) %
 									% r := pop () %
                                                                         % p := peep () %
 									% r := push (r) %
-            [                                                           % f := push (buildVarientFieldRecord (v, p)) %
+                                                                        % f := push (buildVarientFieldRecord (v, p)) %
 	                                                                % v := push (v) %
               VarientCaseLabelList ":" FieldListSequence                % v := pop () %
 	                                                                % f := pop () %
