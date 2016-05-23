@@ -443,6 +443,7 @@ TYPE
                     decls            :  scopeT ;
                     beginStatements,
                     finallyStatements:  node ;
+                    enumsComplete,
 		    visited          :  BOOLEAN ;
                  END ;
 
@@ -456,6 +457,7 @@ TYPE
                  funcFixup,
                  enumFixup        :  fixupInfo ;
                  decls            :  scopeT ;
+		 enumsComplete,
                  visited          :  BOOLEAN ;
               END ;
 
@@ -469,6 +471,7 @@ TYPE
                  finallyStatements:  node ;
 		 definitionModule :  node ;
                  decls            :  scopeT ;
+                 enumsComplete,
                  visited          :  BOOLEAN ;
               END ;
 
@@ -1162,6 +1165,7 @@ BEGIN
       defF.funcFixup := initFixupInfo () ;
       defF.enumFixup := initFixupInfo () ;
       initDecls (defF.decls) ;
+      defF.enumsComplete := FALSE ;
       defF.visited := FALSE
    END ;
    RETURN d
@@ -1187,6 +1191,7 @@ BEGIN
       impF.beginStatements := NIL ;
       impF.finallyStatements := NIL ;
       impF.definitionModule := NIL ;
+      impF.enumsComplete := FALSE ;
       impF.visited := FALSE
    END ;
    RETURN d
@@ -1211,6 +1216,7 @@ BEGIN
       initDecls (moduleF.decls) ;
       moduleF.beginStatements := NIL ;
       moduleF.finallyStatements := NIL ;
+      moduleF.enumsComplete := FALSE ;
       moduleF.visited := FALSE
    END ;
    RETURN d
@@ -1589,6 +1595,48 @@ BEGIN
       n^.moduleF.funcFixup.count := 0
    END
 END resetFuncFixup ;
+
+
+(*
+   resetFuncFixup - resets the index into the saved list of funcfixups inside
+                    module, n.
+*)
+
+PROCEDURE resetFuncFixup (n: node) ;
+BEGIN
+   assert (isDef (n) OR isImp (n) OR isModule (n)) ;
+   IF isDef (n)
+   THEN
+      n^.defF.funcFixup.count := 0
+   ELSIF isImp (n)
+   THEN
+      n^.impF.funcFixup.count := 0
+   ELSIF isModule (n)
+   THEN
+      n^.moduleF.funcFixup.count := 0
+   END
+END resetFuncFixup ;
+
+
+(*
+   completedEnum -
+*)
+
+PROCEDURE completedEnum (n: node) ;
+BEGIN
+   assert (isDef (n) OR isImp (n) OR isModule (n)) ;
+   IF isDef (n)
+   THEN
+      n^.defF.enumsComplete := TRUE
+   ELSIF isImp (n)
+   THEN
+      n^.impF.enumsComplete := TRUE
+   ELSIF isModule (n)
+   THEN
+      n^.moduleF.enumsComplete := TRUE
+   END
+END completedEnum ;
+
 
 
 (*
@@ -2666,7 +2714,7 @@ END putUnbounded ;
 
 PROCEDURE addEnumToModule (m, e: node) ;
 BEGIN
-   assert (isEnumeration (e)) ;
+   assert (isEnumeration (e) OR isEnumerationField (e)) ;
    assert (isModule (m) OR isDef (m) OR isImp (m)) ;
    IF isModule (m)
    THEN
@@ -2739,10 +2787,42 @@ END resetEnumPos ;
 
 
 (*
-   makeEnum - creates an enumerated type and returns the node.
+   getEnumsComplete - gets the field from the def or imp or module, n.
 *)
 
-PROCEDURE makeEnum () : node ;
+PROCEDURE getEnumsComplete (n: node) : BOOLEAN ;
+BEGIN
+   CASE n^.kind OF
+
+   def   :  RETURN n^.defF.enumsComplete |
+   imp   :  RETURN n^.impF.enumsComplete |
+   module:  RETURN n^.moduleF.enumsComplete
+
+   END
+END getEnumsComplete ;
+
+
+(*
+   setEnumsComplete - sets the field inside the def or imp or module, n.
+*)
+
+PROCEDURE setEnumsComplete (n: node) ;
+BEGIN
+   CASE n^.kind OF
+
+   def   :  n^.defF.enumsComplete := TRUE |
+   imp   :  n^.impF.enumsComplete := TRUE |
+   module:  n^.moduleF.enumsComplete := TRUE
+
+   END
+END setEnumsComplete ;
+
+
+(*
+   doMakeEnum -
+*)
+
+PROCEDURE doMakeEnum () : node ;
 VAR
    e: node ;
 BEGIN
@@ -2755,14 +2835,29 @@ BEGIN
    END ;
    addEnumToModule (currentModule, e) ;
    RETURN e
+END doMakeEnum ;
+
+
+(*
+   makeEnum - creates an enumerated type and returns the node.
+*)
+
+PROCEDURE makeEnum () : node ;
+BEGIN
+   IF (currentModule#NIL) AND getEnumsComplete (currentModule)
+   THEN
+      RETURN getNextEnum ()
+   ELSE
+      RETURN doMakeEnum ()
+   END
 END makeEnum ;
 
 
 (*
-   makeEnumField - returns an enumeration field, named, n.
+   doMakeEnumField -
 *)
 
-PROCEDURE makeEnumField (e: node; n: Name) : node ;
+PROCEDURE doMakeEnumField (e: node; n: Name) : node ;
 VAR
    f: node ;
 BEGIN
@@ -2781,11 +2876,27 @@ BEGIN
       END ;
       INC (e^.enumerationF.noOfElements) ;
       assert (GetIndice (e^.enumerationF.listOfSons, e^.enumerationF.noOfElements) = f) ;
+      addEnumToModule (currentModule, f) ;
 
       RETURN addToScope (f)
    ELSE
       metaErrors2 ('cannot create enumeration field {%1k} as the name is already in use',
                    '{%2DMad} was declared elsewhere', n, f)
+   END
+END doMakeEnumField ;
+
+
+(*
+   makeEnumField - returns an enumeration field, named, n.
+*)
+
+PROCEDURE makeEnumField (e: node; n: Name) : node ;
+BEGIN
+   IF (currentModule#NIL) AND getEnumsComplete (currentModule)
+   THEN
+      RETURN getNextEnum ()
+   ELSE
+      RETURN doMakeEnumField (e, n)
    END
 END makeEnumField ;
 
@@ -6179,6 +6290,7 @@ BEGIN
    WITH n^ DO
       CASE kind OF
 
+      funcfixup,
       throw,          (* --fixme--  *)
       varargs,
       address,

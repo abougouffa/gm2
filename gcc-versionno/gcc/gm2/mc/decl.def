@@ -104,6 +104,20 @@ PROCEDURE setVisited (n: node) ;
 
 
 (*
+   setEnumsComplete - sets the field inside the def or imp or module, n.
+*)
+
+PROCEDURE setEnumsComplete (n: node) ;
+
+
+(*
+   getEnumsComplete - gets the field from the def or imp or module, n.
+*)
+
+PROCEDURE getEnumsComplete (n: node) : BOOLEAN ;
+
+
+(*
    resetEnumPos - resets the index into the saved list of enums inside
                   module, n.
 *)

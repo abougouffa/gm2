@@ -23,7 +23,7 @@ DEFINITION MODULE pgeif ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Mon Oct 27 10:58:46 2014
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides a swig interface to the pge 2D game engine.
                  The parameters to the functions are deliberately chosen
                  to be swig/python friendly.
@@ -37,9 +37,14 @@ EXPORT UNQUALIFIED ExceptionKind,
                    velocity, accel, rotate, process_event,
                    is_collision, is_frame, time_until, get_time, rm,
                    batch, use_buffer, empty_cbuffer, empty_fbuffer,
-                   use_time_delay, dump_world, draw_collision, l2h, h2l,
-                   get_xpos, get_ypos, get_xvel, get_yvel,
-                   get_xaccel, get_yaccel, skip_until ;
+                   use_time_delay, dump_world, check_objects,
+                   draw_collision, l2h, h2l,
+                   get_xpos, get_ypos,
+		   get_xvel, get_yvel,
+                   get_xaccel, get_yaccel,
+   		   put_xvel, put_yvel,
+		   put_xaccel, put_yaccel,
+		   skip_until ;
 
 
 TYPE
@@ -286,6 +291,34 @@ PROCEDURE get_yaccel (id: CARDINAL) : REAL ;
 
 
 (*
+   put_xvel - assigns the X velocity of object.
+*)
+
+PROCEDURE put_xvel (id: CARDINAL; r: REAL) ;
+
+
+(*
+   put_yvel - assigns the Y velocity of object.
+*)
+
+PROCEDURE put_yvel (id: CARDINAL; r: REAL) ;
+
+
+(*
+   put_xaccel - assigns the X acceleration of object.
+*)
+
+PROCEDURE put_xaccel (id: CARDINAL; r: REAL) ;
+
+
+(*
+   put_yaccel - assigns the Y acceleration of object.
+*)
+
+PROCEDURE put_yaccel (id: CARDINAL; r: REAL) ;
+
+
+(*
    batch - use the batch device to record the output frames.
 *)
 
@@ -333,6 +366,14 @@ PROCEDURE draw_collision (actual, predict: BOOLEAN) ;
 *)
 
 PROCEDURE dump_world ;
+
+
+(*
+   check_objects - perform a check to make sure that all non fixed
+                   objects have a mass.
+*)
+
+PROCEDURE check_objects ;
 
 
 (*

@@ -1,4 +1,4 @@
--- Copyright (C) 2015
+-- Copyright (C) 2015, 2016
 -- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
@@ -23,7 +23,7 @@
 -- pg takes this file and produces a top down parser for Modula-2.
 --
 % module mcp2 begin
-(* Copyright (C) 2015
+(* Copyright (C) 2015, 2016
    Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
@@ -60,7 +60,7 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 enterScope, leaveScope,
 		 addImportedModule, getCurrentModule,
 		 makeEnum, makeEnumField, putType, lookupSym, isDef,
-		 lookupInScope ;
+		 lookupInScope, setEnumsComplete ;
 
 
 CONST
@@ -501,7 +501,7 @@ ProgramModule := "MODULE"
                   Block
                   Ident                                                % checkEndName (curmodule, curident, 'program module') %
 		                                                       % leaveScope %
-
+		                                                       % setEnumsComplete (curmodule) %
                   "."
                   =:
 
@@ -515,6 +515,7 @@ ImplementationModule := "IMPLEMENTATION" "MODULE"
                          Block
                          Ident                                         % checkEndName (curmodule, curident, 'implementation module') %
                                                                        % leaveScope ; leaveScope %
+		                                                       % setEnumsComplete (curmodule) %
                          "."
                       =:
 
@@ -1057,6 +1058,7 @@ DefinitionModule := "DEFINITION" "MODULE" [ "FOR" string ] Ident ";"   % curmodu
                       { Definition }
                     "END" Ident "."                                    % checkEndName (curmodule, curident, 'definition module') %
                                                                        % leaveScope %
+		                                                       % setEnumsComplete (curmodule) %
                   =:
 
 DefQualident :=

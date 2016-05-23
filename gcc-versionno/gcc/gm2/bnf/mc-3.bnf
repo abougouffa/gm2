@@ -23,7 +23,7 @@
 -- pg takes this file and produces a top down parser for Modula-2.
 --
 % module mcp3 begin
-(* Copyright (C) 2015
+(* Copyright (C) 2015, 2016
    Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
@@ -62,7 +62,7 @@ FROM mcLexBuf IMPORT currentstring, currenttoken, getToken, insertToken,
 FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
                  putTypeHidden,
 		 enterScope, leaveScope,
-		 makeEnum, makeEnumField, putType, lookupSym, isDef, makeSubrange,
+		 putType, lookupSym, isDef, makeSubrange,
                  makeSet, makePointer, makeProcType, putReturnType,
 		 putProcTypeOptReturn, addParameter, paramEnter, paramLeave,
 		 makeVarargs, makeVarParameter, makeNonVarParameter,
@@ -74,7 +74,7 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 makeIdentList, putIdent, addVarParameters, addNonVarParameters,
 		 lookupInScope, import, lookupExported, isImp, isModule, isConst,
 		 makeLiteralInt, makeLiteralReal, makeString, getBuiltinConst,
-		 getNextEnum, resetEnumPos, makeFuncFixup ;
+		 getNextEnum, resetEnumPos, makeConstExp ;
 
 
 CONST
@@ -662,14 +662,9 @@ ConstantDeclaration :=                                                  % VAR d,
                                                                         % putConst (d, e) %
                      =:
 
-ConstExpression := SimpleConstExpr                                      % VAR l, r: node ; op: toktype ; %
-                                                                        % op := currenttoken %
-                                   [ Relation
-				              SimpleConstExpr
-				                                        % r := pop () %
-									% l := pop () %
-									% l := push (makeBinaryTok (op, l, r)) %
-				                              ]
+ConstExpression := SimpleConstExpr                                      % VAR n: node ; %
+                                   [ Relation SimpleConstExpr ]
+				                                        % n := push (makeConstExp ()) %
                  =:
 
 Relation := "="
@@ -682,33 +677,13 @@ Relation := "="
             | "IN"
          =:
 
-SimpleConstExpr :=                                                      % VAR op: toktype ; n: node ; %
-                   UnaryOrConstTerm                                     % n := pop () %
-		                    {                                   % op := currenttoken %
-                                      AddOperator ConstTerm             % n := makeBinaryTok (op, n, pop ()) %
-                                                            }           % n := push (n) %
-							      =:
+SimpleConstExpr := UnaryOrConstTerm { AddOperator ConstTerm } =:
 
-UnaryOrConstTerm :=                                                     % VAR n: node ; %
-                    "+"
-                    ConstTerm                                           % n := push (makeUnaryTok (plustok, pop ())) %
-                    |
-                    "-"
-                    ConstTerm                                           % n := push (makeUnaryTok (minustok, pop ())) %
-                    |
-                    ConstTerm =:
+UnaryOrConstTerm := "+" ConstTerm | "-" ConstTerm | ConstTerm =:
 
-AddOperator :=   "+"
-               | "-"
-               | "OR"
-            =:
+AddOperator := "+" | "-" | "OR" =:
 
-ConstTerm :=                                                            % VAR op: toktype ; n: node ; %
-             ConstFactor                                                % n := pop () %
-                         {                                              % op := currenttoken %
-			   MulOperator ConstFactor                      % n := makeBinaryTok (op, n, pop ()) %
-                                                   }                    % n := push (n) %
-						     =:
+ConstTerm := ConstFactor { MulOperator ConstFactor } =:
 
 MulOperator := "*"
                | "/"
@@ -725,30 +700,20 @@ ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
 
 -- to help satisfy LL1
 
-ConstString := string                                                   % VAR n: node ; %
-                                                                        % n := push (makeString (curstring)) %
-             =:
+ConstString := string =:
 
-ComponentElement := Expression [ ".." Expression ]
-                  =:
+ComponentElement := Expression [ ".." Expression ] =:
 
-ComponentValue := ComponentElement [ 'BY' ConstExpression ]
-                =:
+ComponentValue := ComponentElement [ 'BY' ConstExpression ] =:
 
-ArraySetRecordValue := ComponentValue { ',' ComponentValue }
-                     =:
+ArraySetRecordValue := ComponentValue { ',' ComponentValue } =:
 
-Constructor := '{'
-                  [ ArraySetRecordValue ]
-               '}' =:
+Constructor := '{'[ ArraySetRecordValue ] '}' =:
 
-ConstSetOrQualidentOrFunction := PushQualident                          % VAR n: node ; %
-                                 [ Constructor
-				               | ConstActualParameters
-					                                % n := push (makeFuncFixup (pop ())) %
-                                                                      ]
-                                   |
-                                     Constructor =:
+ConstSetOrQualidentOrFunction := Qualident
+                                    [ Constructor |
+				      ConstActualParameters
+				    ] | Constructor =:
 
 ConstActualParameters := "(" [ ExpList ] ")" =:
 
@@ -756,20 +721,14 @@ ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "("
                   ConstAttributeExpression
                   ")" ")" =:
 
-ConstAttributeExpression :=
-                            Ident                                       % VAR n: node ; %
-			                                                % n := push (getBuiltinConst (curident)) %
-                                  | "<" Qualident ',' Ident
-                                                              ">"
-                          =:
+ConstAttributeExpression := Ident | "<" Qualident ',' Ident ">" =:
 
 -- Set := [ Qualident ] "{" [ Element { "," Element } ] "}" =:
 
 Element := ConstExpression [ ".." ConstExpression ]
          =:
 
-ByteAlignment := '<*' AttributeExpression '*>'
-               =:
+ByteAlignment := '<*' AttributeExpression '*>' =:
 
 OptAlignmentExpression := [ AlignmentExpression ] =:
 
@@ -936,7 +895,9 @@ ProcedureParameter := "..."                                            % VAR n: 
 					                    =:
 
 
-VarIdent := Ident [ "[" ConstExpression "]" ]
+VarIdent := Ident [ "[" ConstExpression                                % VAR n: node ; %
+                                                                       % n := pop () %
+                                        "]" ]
           =:
 
 VarIdentList := VarIdent { "," VarIdent }
@@ -946,11 +907,12 @@ VariableDeclaration := VarIdentList ":"
                        Type Alignment
                      =:
 
-DefVarIdent :=                                                          % VAR n: node ; %
+DefVarIdent :=                                                          % VAR n, a: node ; %
                                                                         % n := pop () %
                Ident                                                    % checkDuplicate (putIdent (n, curident)) %
 	                                                                % n := push (n) %
-                     [ "[" ConstExpression "]" ]
+                     [ "[" ConstExpression                              % a := pop ()  (* could store, a, into, n.  *) %
+		                           "]" ]
              =:
 
 DefVarIdentList :=                                                      % VAR n: node ; %
@@ -1068,7 +1030,10 @@ Case := [ CaseLabelList ":" StatementSequence ]
 
 CaseLabelList := CaseLabels { "," CaseLabels } =:
 
-CaseLabels := ConstExpression [ ".." ConstExpression ]
+CaseLabels := ConstExpression                                 % VAR n: node ; %
+                                                              % n := pop () %
+                              [ ".." ConstExpression          % n := pop () %
+			                             ]
             =:
 
 WhileStatement := "WHILE" Expression "DO"
@@ -1081,8 +1046,10 @@ RepeatStatement := "REPEAT"
 	           "UNTIL" Expression
                  =:
 
-ForStatement :=
-                "FOR" Ident ":=" Expression "TO" Expression [ "BY" ConstExpression ] "DO"
+ForStatement :=                                               % VAR n: node ; %
+                "FOR" Ident ":=" Expression "TO" Expression
+		    [ "BY" ConstExpression                    % n := pop () %
+		                           ] "DO"
                     StatementSequence
                 "END"
               =:
@@ -1181,9 +1148,13 @@ NonVarFPSection := PushIdentList                                      % VAR l, t
 								      % addNonVarParameters (curproc, l, t) %
                  =:
 
-OptArg := "[" Ident ":" FormalType [ "=" ConstExpression ] "]" =:
+OptArg :=                                                             % VAR n: node ; %
+          "[" Ident ":" FormalType [ "=" ConstExpression              % n := pop () %
+                                                         ] "]" =:
 
-DefOptArg := "[" Ident ":" FormalType "=" ConstExpression "]" =:
+DefOptArg :=                                                          % VAR n: node ; %
+             "[" Ident ":" FormalType "=" ConstExpression             % n := pop () %
+	                                                  "]" =:
 
 FormalType :=                                                         % VAR c: CARDINAL ; %
                                                                       % VAR n, a, s: node ; %
@@ -1197,7 +1168,9 @@ ModuleDeclaration := "MODULE" Ident [ Priority ] ";"
                         Block Ident
                    =:
 
-Priority := "[" ConstExpression "]" =:
+Priority :=                                                           % VAR n: node ; %
+            "[" ConstExpression                                       % n := pop () %
+	                        "]" =:
 
 Export := "EXPORT" ( "QUALIFIED"
                                  IdentList |

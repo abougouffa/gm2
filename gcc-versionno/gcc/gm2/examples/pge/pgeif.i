@@ -28,6 +28,7 @@ extern "C" void use_buffer (void);
 extern "C" void use_time_delay (unsigned int on) ;
 extern "C" void draw_collision (unsigned int actual, unsigned int predict);
 extern "C" void dump_world (void);
+extern "C" void check_objects (void);
 extern "C" unsigned int rm (unsigned int id);
 extern "C" double get_time (void);
 extern "C" double time_until (void);
@@ -52,6 +53,11 @@ extern "C" double get_xvel (unsigned int id);
 extern "C" double get_yvel (unsigned int id);
 extern "C" double get_xaccel (unsigned int id);
 extern "C" double get_yaccel (unsigned int id);
+
+extern "C" void put_xvel (unsigned int id, double d);
+extern "C" void put_yvel (unsigned int id, double d);
+extern "C" void put_xaccel (unsigned int id, double d);
+extern "C" void put_yaccel (unsigned int id, double d);
 
 extern "C" void gravity (double g);
 
@@ -76,6 +82,7 @@ extern "C" void use_buffer (void);
 extern "C" void use_time_delay (unsigned int on) ;
 extern "C" void draw_collision (unsigned int actual, unsigned int predict);
 extern "C" void dump_world (void);
+extern "C" void check_objects (void);
 extern "C" unsigned int rm (unsigned int id);
 extern "C" double get_time (void);
 extern "C" double time_until (void);
@@ -100,6 +107,11 @@ extern "C" double get_xvel (unsigned int id);
 extern "C" double get_yvel (unsigned int id);
 extern "C" double get_xaccel (unsigned int id);
 extern "C" double get_yaccel (unsigned int id);
+
+extern "C" void put_xvel (unsigned int id, double d);
+extern "C" void put_yvel (unsigned int id, double d);
+extern "C" void put_xaccel (unsigned int id, double d);
+extern "C" void put_yaccel (unsigned int id, double d);
 
 extern "C" void gravity (double g);
 extern "C" unsigned int purple (void);

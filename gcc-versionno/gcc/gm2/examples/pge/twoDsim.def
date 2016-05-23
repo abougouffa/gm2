@@ -23,7 +23,7 @@ DEFINITION MODULE twoDsim ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Fri Jun 13 13:22:12 2008
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: implements a very simple two dimensional physical
                  simulation world.
 *)
@@ -126,6 +126,34 @@ PROCEDURE get_xaccel (id: CARDINAL) : REAL ;
 *)
 
 PROCEDURE get_yaccel (id: CARDINAL) : REAL ;
+
+
+(*
+   put_xvel - assigns the x velocity of object.
+*)
+
+PROCEDURE put_xvel (id: CARDINAL; r: REAL) ;
+
+
+(*
+   put_yvel - assigns the y velocity of object.
+*)
+
+PROCEDURE put_yvel (id: CARDINAL; r: REAL) ;
+
+
+(*
+   put_xaccel - assigns the x acceleration of object.
+*)
+
+PROCEDURE put_xaccel (id: CARDINAL; r: REAL) ;
+
+
+(*
+   put_yaccel - assigns the y acceleration of object.
+*)
+
+PROCEDURE put_yaccel (id: CARDINAL; r: REAL) ;
 
 
 (*
@@ -310,6 +338,15 @@ PROCEDURE drawCollisionFrames (actual, predict: BOOLEAN) ;
 *)
 
 PROCEDURE dumpWorld ;
+
+
+(*
+   checkObjects - perform a check to make sure that all non fixed objects have a mass.
+                  If an object does not have a mass then an error message is written
+                  and the library exits with exit code 1.
+*)
+
+PROCEDURE checkObjects ;
 
 
 END twoDsim.

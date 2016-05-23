@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 /*
  *  buffers - wrap the event buffer contents into a binary string.
  */

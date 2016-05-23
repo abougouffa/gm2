@@ -45,7 +45,7 @@ VAR
 
 
 (*
-   trace - 
+   trace -
 *)
 
 PROCEDURE trace (id: CARDINAL; name: ARRAY OF CHAR) : CARDINAL ;
@@ -56,7 +56,7 @@ END trace ;
 
 
 (*
-   Assert - 
+   Assert -
 *)
 
 PROCEDURE Assert (b: BOOLEAN) ;
@@ -80,7 +80,7 @@ END init ;
 
 
 (*
-   newDef - 
+   newDef -
 *)
 
 PROCEDURE newDef (t: TypeOfDef; d: CARDINAL) : def ;
@@ -242,7 +242,7 @@ END gravity ;
 
 
 (*
-   check_range - 
+   check_range -
 *)
 
 PROCEDURE check_range (r: REAL; function, param: ARRAY OF CHAR) : REAL ;
@@ -324,6 +324,46 @@ PROCEDURE get_yaccel (id: CARDINAL) : REAL ;
 BEGIN
    RETURN twoDsim.get_yaccel (lookupDef (object, id))
 END get_yaccel ;
+
+
+(*
+   put_xvel - assigns the X velocity of object.
+*)
+
+PROCEDURE put_xvel (id: CARDINAL; r: REAL) ;
+BEGIN
+   twoDsim.put_xvel (lookupDef (object, id), r)
+END put_xvel ;
+
+
+(*
+   put_yvel - assigns the Y velocity of object.
+*)
+
+PROCEDURE put_yvel (id: CARDINAL; r: REAL) ;
+BEGIN
+   twoDsim.put_yvel (lookupDef (object, id), r)
+END put_yvel ;
+
+
+(*
+   put_xaccel - assigns the X accelaration of object.
+*)
+
+PROCEDURE put_xaccel (id: CARDINAL; r: REAL) ;
+BEGIN
+   twoDsim.put_xaccel (lookupDef (object, id), r)
+END put_xaccel ;
+
+
+(*
+   put_yaccel - assigns the Y accelaration of object.
+*)
+
+PROCEDURE put_yaccel (id: CARDINAL; r: REAL) ;
+BEGIN
+   twoDsim.put_yaccel (lookupDef (object, id), r)
+END put_yaccel ;
 
 
 (*
@@ -685,6 +725,17 @@ PROCEDURE dump_world ;
 BEGIN
    twoDsim.dumpWorld
 END dump_world ;
+
+
+(*
+   check_objects - perform a check to make sure that all non fixed
+                   objects have a mass.
+*)
+
+PROCEDURE check_objects ;
+BEGIN
+   twoDsim.checkObjects
+END check_objects ;
 
 
 (*

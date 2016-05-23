@@ -687,6 +687,68 @@ END get_yaccel ;
 
 
 (*
+   put_xvel - assigns the x velocity of object.
+*)
+
+PROCEDURE put_xvel (id: CARDINAL; r: REAL) ;
+VAR
+   optr: Object ;
+BEGIN
+   optr := GetIndice (objects, id) ;
+   checkDeleted (optr) ;
+   optr^.vx := r ;
+   killQueue ;
+   resetQueue ;
+   recordEvent
+END put_xvel ;
+
+
+(*
+   put_yvel - assigns the y velocity of object.
+*)
+
+PROCEDURE put_yvel (id: CARDINAL; r: REAL) ;
+VAR
+   optr: Object ;
+BEGIN
+   optr := GetIndice (objects, id) ;
+   checkDeleted (optr) ;
+   optr^.vy := r ;
+   killQueue ;
+   resetQueue ;
+   recordEvent
+END put_yvel ;
+
+
+(*
+   put_xaccel - assigns the x acceleration of object.
+*)
+
+PROCEDURE put_xaccel (id: CARDINAL; r: REAL) ;
+VAR
+   optr: Object ;
+BEGIN
+   optr := GetIndice (objects, id) ;
+   checkDeleted (optr) ;
+   optr^.ax := r
+END put_xaccel ;
+
+
+(*
+   put_yaccel - assigns the y acceleration of object.
+*)
+
+PROCEDURE put_yaccel (id: CARDINAL; r: REAL) ;
+VAR
+   optr: Object ;
+BEGIN
+   optr := GetIndice (objects, id) ;
+   checkDeleted (optr) ;
+   optr^.ay := r
+END put_yaccel ;
+
+
+(*
    pivot - pivot an object to position, (x0, y0).
 *)
 
@@ -1444,7 +1506,7 @@ END doNextEvent ;
 
 
 (*
-   checkObjects -
+   checkObjects - perform a check to make sure that all non fixed objects have a mass.
 *)
 
 PROCEDURE checkObjects ;
@@ -1741,7 +1803,6 @@ VAR
    ln    : CARDINAL ;
    p1, p2: Coord ;
 BEGIN
-   stop ;
    WITH e^.ePtr^ DO
       IF etype=circlePolygonEvent
       THEN
@@ -1751,17 +1812,20 @@ BEGIN
                   THEN
                      (* moving polygon hits a fixed circle *)
                      (* --fixme--   to do later *)
+                     HALT
                   ELSIF pPtr^.fixed
                   THEN
-                     (* moving circle hits fixed polygon corner *)
+                                         (* moving circle hits fixed polygon corner *)
                      collideAgainstFixedCircle (cPtr, e^.ePtr^.cp.cPoint)
                   ELSE
                      (* both moving, to do later --fixme-- *)
+                     HALT
                   END |
          edge  :  IF cPtr^.fixed
                   THEN
                      (* fixed circle against moving polygon *)
                      (* --fixme--   to do later *)
+                     HALT
                   ELSIF pPtr^.fixed
                   THEN
                      (* moving circle hits fixed polygon, on the edge *)
@@ -1770,6 +1834,7 @@ BEGIN
                      collideCircleAgainstFixedEdge (cPtr, p1, p2)
                   ELSE
                      (* both moving, to do later --fixme-- *)
+                     HALT
                   END
         END
      ELSE
@@ -3976,6 +4041,9 @@ PROCEDURE simulateFor (t: REAL) ;
 VAR
    s, dt: REAL ;
 BEGIN
+   (*
+   gdbif.sleepSpin ;
+   *)
    s := 0.0 ;
    checkObjects ;
    IF s<t

@@ -73,7 +73,7 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 makeIdentList, putIdent, addVarParameters, addNonVarParameters,
 		 lookupInScope, import, lookupExported, isImp, isModule, isConst,
 		 makeLiteralInt, makeLiteralReal, makeString, getBuiltinConst,
-		 getNextEnum, resetEnumPos, makeFuncFixup ;
+		 getNextEnum, resetEnumPos, makeFuncFixup, setEnumsComplete ;
 
 
 CONST
@@ -627,6 +627,7 @@ ProgramModule := "MODULE"
                   Block
                   Ident                                                % checkEndName (curmodule, curident, 'program module') %
 		                                                       % leaveScope %
+								       % setEnumsComplete (curmodule) %
 
                   "."
                   =:
@@ -642,6 +643,7 @@ ImplementationModule := "IMPLEMENTATION" "MODULE"
                          Block
                          Ident                                         % checkEndName (curmodule, curident, 'implementation module') %
                                                                        % leaveScope ; leaveScope %
+								       % setEnumsComplete (curmodule) %
                          "."
                       =:
 
@@ -738,7 +740,7 @@ ArraySetRecordValue := ComponentValue { ',' ComponentValue }
                      =:
 
 Constructor := '{'
-                  [ ArraySetRecordValue ]
+                   [ ArraySetRecordValue ]
                '}' =:
 
 ConstSetOrQualidentOrFunction := PushQualident                          % VAR n: node ; %
@@ -1221,6 +1223,7 @@ DefinitionModule := "DEFINITION" "MODULE" [ "FOR" string ] Ident ";"   % curmodu
                       { Definition }
                     "END" Ident "."                                    % checkEndName (curmodule, curident, 'definition module') %
                                                                        % leaveScope %
+								       % setEnumsComplete (curmodule) %
                   =:
 
 PushQualident := Ident                                                 % typeExp := push (lookupSym (curident)) %
