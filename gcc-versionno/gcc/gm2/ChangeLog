@@ -25,7 +25,6 @@
 	  and val as base procedure functions.
 	* gm2/mc/mcComp.mod:  always invoke pass4, temporarily short circuit
 	  pass 5.
-	* gm2/mc/mcError.mod:
 
 2016-05-23      Gaius Mulley <gaius@gnu.org>
 
