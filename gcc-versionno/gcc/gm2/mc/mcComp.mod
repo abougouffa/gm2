@@ -77,19 +77,18 @@ VAR
 BEGIN
    n := initParser (s) ;
    doPass (TRUE, TRUE, 1, p1, 'lexical analysis, modules, root decls and C preprocessor') ;
-   doPass (TRUE, TRUE, 2, p2, '[definition modules] type equivalence and enumeration types') ;
-   doPass (TRUE, TRUE, 3, p3, '[definition modules] import lists, constants, types, variables and procedure declarations') ;
+   doPass (TRUE, TRUE, 2, p2, '[all modules] type equivalence and enumeration types') ;
+   doPass (TRUE, TRUE, 3, p3, '[all modules] import lists, types, variables and procedure declarations') ;
+   doPass (TRUE, TRUE, 4, p4, '[all modules] constant expressions') ;
 
    IF NOT isDef (n)
    THEN
       IF isImp (n)
       THEN
          qprintf0 ('Parse implementation module\n') ;
-         doPass (FALSE, TRUE, 4, p4, '[implementation module] import lists, constants, types, variables and procedure declarations') ;
          doPass (FALSE, TRUE, 5, p5, '[implementation module] build code tree for all procedures and module initialisations')
       ELSE
          qprintf0 ('Parse program module\n') ;
-         doPass (FALSE, TRUE, 4, p4, '[program module] import lists, constants, types, variables and procedure declarations') ;
          doPass (FALSE, TRUE, 5, p5, '[program module] build code tree for all procedures and module initialisations')
       END ;
    END ;
@@ -272,7 +271,16 @@ END p3 ;
 
 PROCEDURE p4 (n: node) ;
 BEGIN
-   pass (4, n, mcp4.CompilationUnit, isImpOrModule, openMod)
+   IF isDef (n)
+   THEN
+      pass (4, n, mcp4.CompilationUnit, isDef, openDef) ;
+      IF hasHidden (n) AND getExtendedOpaque ()
+      THEN
+         pass (4, lookupImp (getSymName (n)), mcp4.CompilationUnit, isImp, openMod)
+      END
+   ELSE
+      pass (4, n, mcp4.CompilationUnit, isImpOrModule, openMod)
+   END
 END p4 ;
 
 
@@ -282,6 +290,7 @@ END p4 ;
 
 PROCEDURE p5 (n: node) ;
 BEGIN
+   RETURN ;
    pass (5, n, mcp5.CompilationUnit, isImpOrModule, openMod)
 END p5 ;
 

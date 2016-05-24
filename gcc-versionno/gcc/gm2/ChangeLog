@@ -1,3 +1,32 @@
+2016-05-24      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/mc-3.bnf:  integer, real no longer push a value to the stack.
+          call setConstExpComplete at the end of the pass.  Remove result of the
+	  constexpression.   Add many asserts to aid debugging.
+	* gm2/bnf/mc-4.bnf:  remove calls to setEnumsComplete.  Call fixupConstExp
+	  in ConstExpression.  Call makeFuncCall in ConstSetOrQualident.
+          Remove all type generation building.  Remove import handling.
+	* gm2/bnf/mc-5.bnf:  remove all references to resetFuncFixup.
+	  Remove call to applyFuncFixup.
+	* gm2/gm2-libs/DynamicStrings.mod:  trip whitespace.
+	* gm2/mc/alists.mod:  correct indentation.
+	* gm2/mc/decl.def:  remove resetFuncFixup, replace it with makeExpList.
+          remove makeFuncFixup and replace with isExpList.  Remove isFuncFixup
+          and replace with putExpList.  Remove makeExpList and replace with
+          makeConstExp.  Remove isExpList and replace it with getNextConstExp.
+	  Remove putExpList and replace with setConstExpComplete.
+          fixupConstExp (new procedure function).  Remove applyFuncFixup
+	  and replace with makeFuncCall.
+	* gm2/mc/decl.mod:  added funccall, constexp and chr to nodeK.
+          Also modified all associated procedure functions.  Replaced
+          funcFixup with constFixup.  Added constsComplete to definition,
+          implementation and program modules.  Only generate #include
+          if the getExtendedOpaque switch is not set.  Initialise ord, chr
+	  and val as base procedure functions.
+	* gm2/mc/mcComp.mod:  always invoke pass4, temporarily short circuit
+	  pass 5.
+	* gm2/mc/mcError.mod:
+
 2016-05-23      Gaius Mulley <gaius@gnu.org>
 
 	* interim checkin:

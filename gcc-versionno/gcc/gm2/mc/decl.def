@@ -838,30 +838,6 @@ PROCEDURE getBuiltinConst (n: Name) : node ;
 
 
 (*
-   resetFuncFixup - resets the index into the saved list of funcfixups inside
-                    module, n.
-*)
-
-PROCEDURE resetFuncFixup (n: node) ;
-
-
-(*
-   makeFuncFixup - creates a function fixup node and returns this node.
-                   It is also added to the current module.
-                   Used during p3 and p4.
-*)
-
-PROCEDURE makeFuncFixup (n: node) : node ;
-
-
-(*
-   isFuncFixup - returns TRUE if, n, is a funcfixup node.
-*)
-
-PROCEDURE isFuncFixup (n: node) : BOOLEAN ;
-
-
-(*
    makeExpList - creates and returns an expList node.
 *)
 
@@ -883,10 +859,38 @@ PROCEDURE putExpList (n: node; e: node) ;
 
 
 (*
-   applyFuncFixup - applies the next fixup in the module with node, p.
+   makeConstExp - returns a constexp node.
 *)
 
-PROCEDURE applyFuncFixup (p: node) ;
+PROCEDURE makeConstExp () : node ;
+
+
+(*
+   getNextConstExp - returns the next constexp node.
+*)
+
+PROCEDURE getNextConstExp () : node ;
+
+
+(*
+   setConstExpComplete - sets the field inside the def or imp or module, n.
+*)
+
+PROCEDURE setConstExpComplete (n: node) ;
+
+
+(*
+   fixupConstExp - assign fixup expression, e, into the argument of, c.
+*)
+
+PROCEDURE fixupConstExp (c, e: node) : node ;
+
+
+(*
+   makeFuncCall - builds a function call to c with param list, n.
+*)
+
+PROCEDURE makeFuncCall (c, n: node) : node ;
 
 
 (*

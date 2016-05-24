@@ -58,8 +58,7 @@ TYPE
    language = (ansiC, ansiCP, pim4) ;
 
    nodeT = (
-            funcfixup,
-	    explist,
+            explist, funccall,
             (* base constants.  *)
 	    nil, true, false,
             (* system types.  *)
@@ -84,10 +83,11 @@ TYPE
 	    assignment, call,
 	    if, elsif,
 	    (* expressions.  *)
+	    constexp,
 	    neg,
 	    cast, val,
 	    plus, sub, div, mod, mult,
-	    adr, size, tsize, ord, throw,
+	    adr, size, tsize, ord, chr, throw,
 	    min, max,
 	    componentref, indirect,
 	    equal, notequal, less, greater, greequal, lessequal,
@@ -97,7 +97,6 @@ TYPE
     node = POINTER TO RECORD
                          CASE kind: nodeT OF
 
-                         funcfixup       : funcfixupF: funcfixupT |
 			 explist         : explistF: explistT |
                          (* base constants.  *)
                          nil,
@@ -173,7 +172,9 @@ TYPE
                          div,
 			 mod,
 			 mult            :  binaryF          : binaryT |
+			 constexp,
 			 indirect,
+			 chr,
                          ord,
 			 throw,
 			 not,
@@ -184,7 +185,8 @@ TYPE
 			 min,
 			 max             :  unaryF           : unaryT |
 			 identlist       :  identlistF       : identlistT |
-			 vardecl         :  vardeclF         : vardeclT
+			 vardecl         :  vardeclF         : vardeclT |
+                         funccall        :  funccallF        : funccallT
 
                          END ;
                          at:  where ;
@@ -195,10 +197,6 @@ TYPE
                       info : Index ;
                    END ;
 
-       funcfixupT = RECORD
-                       func:  node ;
-                    END ;
-
        explistT = RECORD
                      exp:  Index ;
                   END ;
@@ -206,6 +204,12 @@ TYPE
        identlistT = RECORD
                        names:  wlist ;
                     END ;
+
+       funccallT = RECORD
+                      function: node ;
+		      args    : node ;
+		      type    : node ;
+                   END ;
 
        vardeclT = RECORD
                      names:  wlist ;
@@ -438,12 +442,13 @@ TYPE
                     name             :  Name ;
                     source           :  Name ;
                     importedModules  :  Index ;
-                    funcFixup,
+                    constFixup,
                     enumFixup        :  fixupInfo ;
                     decls            :  scopeT ;
                     beginStatements,
                     finallyStatements:  node ;
                     enumsComplete,
+		    constsComplete,
 		    visited          :  BOOLEAN ;
                  END ;
 
@@ -454,10 +459,11 @@ TYPE
                  forC             :  BOOLEAN ;
                  exported,
                  importedModules  :  Index ;
-                 funcFixup,
+                 constFixup,
                  enumFixup        :  fixupInfo ;
                  decls            :  scopeT ;
 		 enumsComplete,
+                 constsComplete,
                  visited          :  BOOLEAN ;
               END ;
 
@@ -465,13 +471,14 @@ TYPE
                  name             :  Name ;
                  source           :  Name ;
                  importedModules  :  Index ;
-                 funcFixup,
+                 constFixup,
                  enumFixup        :  fixupInfo ;
                  beginStatements,
                  finallyStatements:  node ;
 		 definitionModule :  node ;
                  decls            :  scopeT ;
                  enumsComplete,
+                 constsComplete,
                  visited          :  BOOLEAN ;
               END ;
 
@@ -507,6 +514,9 @@ VAR
    sizeN,
    tsizeN,
    throwN,
+   chrN,
+   ordN,
+   valN,
    minN,
    maxN,
    booleanN,
@@ -1162,10 +1172,11 @@ BEGIN
       defF.forC := FALSE ;
       defF.exported := InitIndex (1) ;
       defF.importedModules := InitIndex (1) ;
-      defF.funcFixup := initFixupInfo () ;
+      defF.constFixup := initFixupInfo () ;
       defF.enumFixup := initFixupInfo () ;
       initDecls (defF.decls) ;
       defF.enumsComplete := FALSE ;
+      defF.constsComplete := FALSE ;
       defF.visited := FALSE
    END ;
    RETURN d
@@ -1185,13 +1196,14 @@ BEGIN
       impF.name := n ;
       impF.source := NulName ;
       impF.importedModules := InitIndex (1) ;
-      impF.funcFixup := initFixupInfo () ;
+      impF.constFixup := initFixupInfo () ;
       impF.enumFixup := initFixupInfo () ;
       initDecls (impF.decls) ;
       impF.beginStatements := NIL ;
       impF.finallyStatements := NIL ;
       impF.definitionModule := NIL ;
       impF.enumsComplete := FALSE ;
+      impF.constsComplete := FALSE ;
       impF.visited := FALSE
    END ;
    RETURN d
@@ -1211,12 +1223,13 @@ BEGIN
       moduleF.name := n ;
       moduleF.source := NulName ;
       moduleF.importedModules := InitIndex (1) ;
-      moduleF.funcFixup := initFixupInfo () ;
+      moduleF.constFixup := initFixupInfo () ;
       moduleF.enumFixup := initFixupInfo () ;
       initDecls (moduleF.decls) ;
       moduleF.beginStatements := NIL ;
       moduleF.finallyStatements := NIL ;
       moduleF.enumsComplete := FALSE ;
+      moduleF.constsComplete := FALSE ;
       moduleF.visited := FALSE
    END ;
    RETURN d
@@ -1506,119 +1519,6 @@ END addImportedModule ;
 
 
 (*
-   addFuncFixupToModule -
-*)
-
-PROCEDURE addFuncFixupToModule (m, n: node) ;
-BEGIN
-   assert (isFuncFixup (n)) ;
-   assert (isModule (m) OR isDef (m) OR isImp (m)) ;
-   IF isModule (m)
-   THEN
-      IncludeIndiceIntoIndex (m^.moduleF.funcFixup.info, n)
-   ELSIF isDef (m)
-   THEN
-      IncludeIndiceIntoIndex (m^.defF.funcFixup.info, n)
-   ELSIF isImp (m)
-   THEN
-      IncludeIndiceIntoIndex (m^.impF.funcFixup.info, n)
-   END
-END addFuncFixupToModule ;
-
-
-(*
-   isFuncFixup - returns TRUE if, n, is a funcfixup node.
-*)
-
-PROCEDURE isFuncFixup (n: node) : BOOLEAN ;
-BEGIN
-   RETURN n^.kind = funcfixup
-END isFuncFixup ;
-
-
-(*
-   makeFuncFixup - creates a function fixup node and returns this node.
-                   It is also added to the current module.
-                   Used during p3 and p4.
-*)
-
-PROCEDURE makeFuncFixup (n: node) : node ;
-VAR
-   d: node ;
-BEGIN
-   d := newNode (funcfixup) ;
-   d^.funcfixupF.func := n ;
-   addFuncFixupToModule (currentModule, d) ;
-   RETURN d
-END makeFuncFixup ;
-
-
-(*
-   getNextFuncFixup - returns the next funcfixup node.
-                      Used during p5.
-*)
-
-PROCEDURE getNextFuncFixup () : node ;
-BEGIN
-   assert (isDef (currentModule) OR isImp (currentModule) OR isModule (currentModule)) ;
-   WITH currentModule^ DO
-      IF isDef (currentModule)
-      THEN
-         RETURN getNextFixup (defF.funcFixup)
-      ELSIF isImp (currentModule)
-      THEN
-         RETURN getNextFixup (impF.funcFixup)
-      ELSIF isModule (currentModule)
-      THEN
-         RETURN getNextFixup (moduleF.funcFixup)
-      END
-   END
-END getNextFuncFixup ;
-
-
-(*
-   resetFuncFixup - resets the index into the saved list of funcfixups inside
-                    module, n.
-*)
-
-PROCEDURE resetFuncFixup (n: node) ;
-BEGIN
-   assert (isDef (n) OR isImp (n) OR isModule (n)) ;
-   IF isDef (n)
-   THEN
-      n^.defF.funcFixup.count := 0
-   ELSIF isImp (n)
-   THEN
-      n^.impF.funcFixup.count := 0
-   ELSIF isModule (n)
-   THEN
-      n^.moduleF.funcFixup.count := 0
-   END
-END resetFuncFixup ;
-
-
-(*
-   resetFuncFixup - resets the index into the saved list of funcfixups inside
-                    module, n.
-*)
-
-PROCEDURE resetFuncFixup (n: node) ;
-BEGIN
-   assert (isDef (n) OR isImp (n) OR isModule (n)) ;
-   IF isDef (n)
-   THEN
-      n^.defF.funcFixup.count := 0
-   ELSIF isImp (n)
-   THEN
-      n^.impF.funcFixup.count := 0
-   ELSIF isModule (n)
-   THEN
-      n^.moduleF.funcFixup.count := 0
-   END
-END resetFuncFixup ;
-
-
-(*
    completedEnum -
 *)
 
@@ -1647,7 +1547,9 @@ PROCEDURE setUnary (u: node; k: nodeT; a, t: node) ;
 BEGIN
    CASE k OF
 
+   constexp,
    indirect,
+   chr,
    ord,
    throw,
    not,
@@ -1662,144 +1564,6 @@ BEGIN
 
    END
 END setUnary ;
-
-
-(*
-   fixupCast -
-*)
-
-PROCEDURE fixupCast (fix, p, type: node) ;
-BEGIN
-   IF expListLen (p) # 1
-   THEN
-      metaError1 ('only one parameter can be passed in the conversion to type {%1a}', type)
-   ELSE
-      setUnary (fix, cast, getExpList (p, 0), type)
-   END
-END fixupCast ;
-
-
-(*
-   fixupConstFunc -
-*)
-
-PROCEDURE fixupConstFunc (fix: node; k: nodeT; p, func: node) ;
-VAR
-   p0: node ;
-BEGIN
-   IF expListLen (p) # 1
-   THEN
-      metaError1 ('only one parameter can be passed to the function {%1a}', func)
-   ELSE
-      p0 := getExpList (p, 0) ;
-      CASE k OF
-
-      min,
-      max  :  setUnary (fix, k, p0, getType (p0)) |
-      size :  setUnary (fix, k, p0, cardinalN) |
-      tsize:  setUnary (fix, k, p0, cardinalN) |
-      ord  :  setUnary (fix, k, p0, cardinalN) |
-      val  :  setUnary (fix, k, getExpList (p, 1), p0)
-
-      ELSE
-         metaError1 ('not expecting function {%1a} to be called in a constant expression', func)
-      END
-   END
-END fixupConstFunc ;
-
-
-(*
-   applyFuncFixup - applies the next fixup in the module with node, p.
-*)
-
-PROCEDURE applyFuncFixup (p: node) ;
-VAR
-   fix, func: node ;
-BEGIN
-   assert (isExpList (p)) ;
-   fix := getNextFuncFixup () ;
-   assert (isFuncFixup (fix)) ;
-   func := fix^.funcfixupF.func ;
-   IF isBase (func) OR isType (func)
-   THEN
-      fixupCast (fix, p, func)
-   ELSE
-      fixupConstFunc (fix, func^.kind, p, func)
-   END
-END applyFuncFixup ;
-
-
-(*
-   makeExpList - creates and returns an expList node.
-*)
-
-PROCEDURE makeExpList () : node ;
-VAR
-   n: node ;
-BEGIN
-   n := newNode (explist) ;
-   n^.explistF.exp := InitIndex (1) ;
-   RETURN n
-END makeExpList ;
-
-
-(*
-   isExpList - returns TRUE if, n, is an explist node.
-*)
-
-PROCEDURE isExpList (n: node) : BOOLEAN ;
-BEGIN
-   assert (n # NIL) ;
-   RETURN n^.kind = explist
-END isExpList ;
-
-
-(*
-   putExpList - places, expression, e, within the explist, n.
-*)
-
-PROCEDURE putExpList (n: node; e: node) ;
-BEGIN
-   assert (n # NIL) ;
-   assert (isExpList (n)) ;
-   PutIndice (n^.explistF.exp, HighIndice (n^.explistF.exp) + 1, e)
-END putExpList ;
-
-
-(*
-   isFuncFixup - returns TRUE if, n, is a funcfixup node.
-*)
-
-PROCEDURE isFuncFixup (n: node) : BOOLEAN ;
-BEGIN
-   assert (n # NIL) ;
-   RETURN n^.kind = funcfixup
-END isFuncFixup ;
-
-
-(*
-   getExpList - returns the, n, th argument in an explist.
-*)
-
-PROCEDURE getExpList (p: node; n: CARDINAL) : node ;
-BEGIN
-   assert (p#NIL) ;
-   assert (isExpList (p)) ;
-   assert (n < HighIndice (p^.explistF.exp)) ;
-   RETURN GetIndice (p^.explistF.exp, n+1)
-END getExpList ;
-
-
-(*
-   expListLen - returns the length of explist, p.
-*)
-
-PROCEDURE expListLen (p: node) : CARDINAL ;
-BEGIN
-   assert (p#NIL) ;
-   assert (isExpList (p)) ;
-   RETURN HighIndice (p^.explistF.exp)
-END expListLen ;
 
 
 (*
@@ -2708,6 +2472,17 @@ END putUnbounded ;
 
 
 (*
+   isConstExp -
+*)
+
+PROCEDURE isConstExp (c: node) : BOOLEAN ;
+BEGIN
+   assert (c#NIL) ;
+   RETURN c^.kind = constexp
+END isConstExp ;
+
+
+(*
    addEnumToModule - adds enumeration type, e, into the list of enums
                      in module, m.
 *)
@@ -2910,6 +2685,225 @@ BEGIN
    assert (n#NIL) ;
    RETURN n^.kind = enumeration
 END isEnumeration ;
+
+
+(*
+   makeExpList - creates and returns an expList node.
+*)
+
+PROCEDURE makeExpList () : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (explist) ;
+   n^.explistF.exp := InitIndex (1) ;
+   RETURN n
+END makeExpList ;
+
+
+(*
+   isExpList - returns TRUE if, n, is an explist node.
+*)
+
+PROCEDURE isExpList (n: node) : BOOLEAN ;
+BEGIN
+   assert (n # NIL) ;
+   RETURN n^.kind = explist
+END isExpList ;
+
+
+(*
+   putExpList - places, expression, e, within the explist, n.
+*)
+
+PROCEDURE putExpList (n: node; e: node) ;
+BEGIN
+   assert (n # NIL) ;
+   assert (isExpList (n)) ;
+   PutIndice (n^.explistF.exp, HighIndice (n^.explistF.exp) + 1, e)
+END putExpList ;
+
+
+(*
+   getExpList - returns the, n, th argument in an explist.
+*)
+
+PROCEDURE getExpList (p: node; n: CARDINAL) : node ;
+BEGIN
+   assert (p#NIL) ;
+   assert (isExpList (p)) ;
+   assert (n < HighIndice (p^.explistF.exp)) ;
+   RETURN GetIndice (p^.explistF.exp, n+1)
+END getExpList ;
+
+
+(*
+   expListLen - returns the length of explist, p.
+*)
+
+PROCEDURE expListLen (p: node) : CARDINAL ;
+BEGIN
+   assert (p#NIL) ;
+   assert (isExpList (p)) ;
+   RETURN HighIndice (p^.explistF.exp)
+END expListLen ;
+
+
+(*
+   getConstExpComplete - gets the field from the def or imp or module, n.
+*)
+
+PROCEDURE getConstExpComplete (n: node) : BOOLEAN ;
+BEGIN
+   CASE n^.kind OF
+
+   def   :  RETURN n^.defF.constsComplete |
+   imp   :  RETURN n^.impF.constsComplete |
+   module:  RETURN n^.moduleF.constsComplete
+
+   END
+END getConstExpComplete ;
+
+
+(*
+   setConstExpComplete - sets the field inside the def or imp or module, n.
+*)
+
+PROCEDURE setConstExpComplete (n: node) ;
+BEGIN
+   CASE n^.kind OF
+
+   def   :  n^.defF.constsComplete := TRUE |
+   imp   :  n^.impF.constsComplete := TRUE |
+   module:  n^.moduleF.constsComplete := TRUE
+
+   END
+END setConstExpComplete ;
+
+
+(*
+   getNextConstExp - returns the next constexp node.
+*)
+
+PROCEDURE getNextConstExp () : node ;
+VAR
+   n: node ;
+BEGIN
+   assert (isDef (currentModule) OR isImp (currentModule) OR isModule (currentModule)) ;
+   WITH currentModule^ DO
+      IF isDef (currentModule)
+      THEN
+         RETURN getNextFixup (defF.constFixup)
+      ELSIF isImp (currentModule)
+      THEN
+         RETURN getNextFixup (impF.constFixup)
+      ELSIF isModule (currentModule)
+      THEN
+         RETURN getNextFixup (moduleF.constFixup)
+      END
+   END ;
+   RETURN n
+END getNextConstExp ;
+
+
+(*
+   resetConstExpPos - resets the index into the saved list of constexps inside
+                      module, n.
+*)
+
+PROCEDURE resetConstExpPos (n: node) ;
+BEGIN
+   assert (isDef (n) OR isImp (n) OR isModule (n)) ;
+   IF isDef (n)
+   THEN
+      n^.defF.constFixup.count := 0
+   ELSIF isImp (n)
+   THEN
+      n^.impF.constFixup.count := 0
+   ELSIF isModule (n)
+   THEN
+      n^.moduleF.constFixup.count := 0
+   END
+END resetConstExpPos ;
+
+
+(*
+   addConstToModule - adds const exp, e, into the list of constant
+                      expressions in module, m.
+*)
+
+PROCEDURE addConstToModule (m, e: node) ;
+BEGIN
+   assert (isModule (m) OR isDef (m) OR isImp (m)) ;
+   IF isModule (m)
+   THEN
+      IncludeIndiceIntoIndex (m^.moduleF.constFixup.info, e)
+   ELSIF isDef (m)
+   THEN
+      IncludeIndiceIntoIndex (m^.defF.constFixup.info, e)
+   ELSIF isImp (m)
+   THEN
+      IncludeIndiceIntoIndex (m^.impF.constFixup.info, e)
+   END
+END addConstToModule ;
+
+
+(*
+   doMakeConstExp -
+*)
+
+PROCEDURE doMakeConstExp () : node ;
+VAR
+   c: node ;
+BEGIN
+   c := makeUnary (constexp, NIL, NIL) ;
+   addConstToModule (currentModule, c) ;
+   RETURN c
+END doMakeConstExp ;
+
+
+(*
+   makeConstExp - returns a constexp node.
+*)
+
+PROCEDURE makeConstExp () : node ;
+BEGIN
+   IF (currentModule#NIL) AND getConstExpComplete (currentModule)
+   THEN
+      RETURN getNextConstExp ()
+   ELSE
+      RETURN doMakeConstExp ()
+   END
+END makeConstExp ;
+
+
+(*
+   fixupConstExp - assign fixup expression, e, into the argument of, c.
+*)
+
+PROCEDURE fixupConstExp (c, e: node) : node ;
+BEGIN
+   assert (isConstExp (c)) ;
+   c^.unaryF.arg := e ;
+   RETURN c
+END fixupConstExp ;
+
+
+(*
+   makeFuncCall - builds a function call to c with param list, n.
+*)
+
+PROCEDURE makeFuncCall (c, n: node) : node ;
+VAR
+   f: node ;
+BEGIN
+   assert (isExpList (n)) ;
+   f := newNode (funccall) ;
+   f^.funccallF.function := c ;
+   f^.funccallF.args := n ;
+   f^.funccallF.type := NIL ;
+   RETURN f
+END makeFuncCall ;
 
 
 (*
@@ -3290,6 +3284,7 @@ BEGIN
       elsif,
       assignment      :  RETURN NulName |
       (* expressions.  *)
+      constexp,
       componentref,
       cast,
       val,
@@ -3309,11 +3304,11 @@ BEGIN
       adr             :  RETURN makeKey ('ADR') |
       size            :  RETURN makeKey ('SIZE') |
       tsize           :  RETURN makeKey ('TSIZE') |
+      chr             :  RETURN makeKey ('CHR') |
       ord             :  RETURN makeKey ('ORD') |
       throw           :  RETURN makeKey ('THROW') |
       max             :  RETURN makeKey ('MAX') |
-      min             :  RETURN makeKey ('MIN') |
-      funcfixup       :  RETURN makeKey ('FUNCFIXUP')
+      min             :  RETURN makeKey ('MIN')
 
       ELSE
          HALT
@@ -3336,6 +3331,7 @@ BEGIN
       kind := k ;
       CASE kind OF
 
+      constexp,
       not,
       neg,
       adr,
@@ -3429,10 +3425,12 @@ BEGIN
       ztype,
       rtype,
       adr,
+      chr,
       ord,
       throw,
       size,
       tsize,
+      val,
       min,
       max     :  (* legal kind.  *) |
 
@@ -3617,6 +3615,7 @@ BEGIN
       div,
       mod,
       mult            :  RETURN binaryF.resultType |
+      constexp,
       indirect,
       neg,
       adr,
@@ -3628,7 +3627,8 @@ BEGIN
       greater,
       greequal,
       lessequal       :  RETURN booleanN |
-      ord             :  RETURN cardinalN
+      ord             :  RETURN cardinalN |
+      chr             :  RETURN charN
 
       END
    END ;
@@ -3716,6 +3716,7 @@ BEGIN
       assignment      :  RETURN NIL |
       (* expressions.  *)
       componentref,
+      chr,
       ord,
       cast,
       val,
@@ -3725,6 +3726,7 @@ BEGIN
       mod,
       mult            :  RETURN NIL |
       neg             :  RETURN NIL |
+      constexp,
       indirect,
       equal,
       notequal,
@@ -3737,8 +3739,7 @@ BEGIN
       tsize,
       throw           :  RETURN systemN |
       min,
-      max,
-      funcfixup       :  RETURN NIL
+      max             :  RETURN NIL
 
       END
    END
@@ -4028,20 +4029,6 @@ END doEnumerationField ;
 
 
 (*
-   doFuncFixup -
-*)
-
-PROCEDURE doFuncFixup (p: pretty; n: node) ;
-BEGIN
-   assert (isFuncFixup (n)) ;
-   outText (p, 'funcfixup (') ;
-   doFQNameC (p, n^.funcfixupF.func) ;
-   outText (p, ')') ;
-   setNeedSpace (p)
-END doFuncFixup ;
-
-
-(*
    doExprC -
 *)
 
@@ -4054,12 +4041,14 @@ BEGIN
       nil             :  outText (p, 'NIL') |
       true            :  outText (p, 'TRUE') |
       false           :  outText (p, 'FALSE') |
+      constexp        :  doUnary (p, '', unaryF.arg, unaryF.resultType) |
       neg             :  doUnary (p, '-', unaryF.arg, unaryF.resultType) |
       not             :  doUnary (p, 'NOT', unaryF.arg, unaryF.resultType) |
       adr             :  doUnary (p, 'ADR', unaryF.arg, unaryF.resultType) |
       size            :  doUnary (p, 'SIZE', unaryF.arg, unaryF.resultType) |
       tsize           :  doUnary (p, 'TSIZE', unaryF.arg, unaryF.resultType) |
       ord             :  doUnary (p, 'ORD', unaryF.arg, unaryF.resultType) |
+      chr             :  doUnary (p, 'CHR', unaryF.arg, unaryF.resultType) |
       indirect        :  doPostUnary (p, '^', unaryF.arg) |
       equal           :  doBinary (p, '=', binaryF.left, binaryF.right) |
       notequal        :  doBinary (p, '#', binaryF.left, binaryF.right) |
@@ -4081,7 +4070,6 @@ BEGIN
       string          :  doString (p, n) |
       max             :  doUnary (p, 'MAX', unaryF.arg, unaryF.resultType) |
       min             :  doUnary (p, 'MIN', unaryF.arg, unaryF.resultType) |
-      funcfixup       :  doFuncFixup (p, n)
 
       END
    END
@@ -6290,7 +6278,6 @@ BEGIN
    WITH n^ DO
       CASE kind OF
 
-      funcfixup,
       throw,          (* --fixme--  *)
       varargs,
       address,
@@ -6348,6 +6335,7 @@ BEGIN
       assignment      :  HALT |
       (* expressions.  *)
       componentref    :  RETURN walkBinary (l, n) |
+      chr,
       ord             :  RETURN walkUnary (l, n) |
       cast,
       val,
@@ -6356,6 +6344,7 @@ BEGIN
       div,
       mod,
       mult            :  RETURN walkBinary (l, n) |
+      constexp,
       neg,
       adr,
       size,
@@ -6486,6 +6475,7 @@ BEGIN
    if              :  RETURN InitString ('if') |
    elsif           :  RETURN InitString ('elsif') |
    (* expressions.  *)
+   constexp        :  RETURN InitString ('constexp') |
    neg             :  RETURN InitString ('neg') |
    cast            :  RETURN InitString ('cast') |
    val             :  RETURN InitString ('val') |
@@ -6497,6 +6487,7 @@ BEGIN
    adr             :  RETURN InitString ('adr') |
    size            :  RETURN InitString ('size') |
    tsize           :  RETURN InitString ('tsize') |
+   chr             :  RETURN InitString ('chr') |
    ord             :  RETURN InitString ('ord') |
    componentref    :  RETURN InitString ('componentref') |
    indirect        :  RETURN InitString ('indirect') |
@@ -6877,15 +6868,20 @@ BEGIN
    s := InitStringCharStar (keyToCharStar (getSource (n))) ;
    print (p, "/* automatically created by mc from ") ; prints (p, s) ; print (p, ".  */\n\n") ;
    s := KillString (s) ;
-   s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
-   (* we don't want to include the .h file for this implementation module.  *)
-   print (p, "#define _") ; prints (p, s) ; print (p, "_H\n") ;
-   print (p, "#define _") ; prints (p, s) ; print (p, "_C\n\n") ;
 
-   doP := p ;
-   ForeachIndiceInIndexDo (n^.impF.importedModules, doIncludeC) ;
+   IF getExtendedOpaque ()
+   THEN
+      printf ("/*  --extended-opaque seen therefore no #include will be used and everything will be declared in full.  */\n")
+   ELSE
+      s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
+      (* we don't want to include the .h file for this implementation module.  *)
+      print (p, "#define _") ; prints (p, s) ; print (p, "_H\n") ;
+      print (p, "#define _") ; prints (p, s) ; print (p, "_C\n\n") ;
 
-   print (p, "\n") ;
+      doP := p ;
+      ForeachIndiceInIndexDo (n^.impF.importedModules, doIncludeC) ;
+      print (p, "\n")
+   END ;
 
    checkProcUsed (p) ;
 
@@ -7958,6 +7954,9 @@ BEGIN
    sizeN := makeBase (size) ;
    minN := makeBase (min) ;
    maxN := makeBase (max) ;
+   ordN := makeBase (ord) ;
+   valN := makeBase (val) ;
+   chrN := makeBase (chr) ;
 
    putSymKey (baseSymbols, makeKey ('BOOLEAN'), booleanN) ;
    putSymKey (baseSymbols, makeKey ('PROC'), procN) ;
@@ -7979,6 +7978,9 @@ BEGIN
    putSymKey (baseSymbols, makeKey ('SIZE'), sizeN) ;
    putSymKey (baseSymbols, makeKey ('MIN'), minN) ;
    putSymKey (baseSymbols, makeKey ('MAX'), maxN) ;
+   putSymKey (baseSymbols, makeKey ('ORD'), ordN) ;
+   putSymKey (baseSymbols, makeKey ('VAL'), valN) ;
+   putSymKey (baseSymbols, makeKey ('CHR'), chrN) ;
 
    addDone (booleanN) ;
    addDone (charN) ;

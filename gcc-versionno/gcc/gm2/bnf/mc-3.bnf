@@ -74,7 +74,7 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 makeIdentList, putIdent, addVarParameters, addNonVarParameters,
 		 lookupInScope, import, lookupExported, isImp, isModule, isConst,
 		 makeLiteralInt, makeLiteralReal, makeString, getBuiltinConst,
-		 getNextEnum, resetEnumPos, makeConstExp ;
+		 getNextEnum, resetEnumPos, makeConstExp, setConstExpComplete ;
 
 
 CONST
@@ -479,10 +479,7 @@ END string ;
 *)
 
 PROCEDURE Integer (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
-VAR
-   n: node ;
 BEGIN
-   n := push (makeLiteralInt (makekey (currentstring))) ;
    Expect(integertok, stopset0, stopset1, stopset2)
 END Integer ;
 
@@ -492,10 +489,7 @@ END Integer ;
 *)
 
 PROCEDURE Real (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
-VAR
-   n: node ;
 BEGIN
-   n := push (makeLiteralReal (makekey (currentstring))) ;
    Expect(realtok, stopset0, stopset1, stopset2)
 END Real ;
 
@@ -627,6 +621,7 @@ ProgramModule := "MODULE"
                   { Import }
                   Block
                   Ident                                                % checkEndName (curmodule, curident, 'program module') %
+   		                                                       % setConstExpComplete (curmodule) %
 		                                                       % leaveScope %
 
                   "."
@@ -642,6 +637,7 @@ ImplementationModule := "IMPLEMENTATION" "MODULE"
                          { Import }
                          Block
                          Ident                                         % checkEndName (curmodule, curident, 'implementation module') %
+ 		                                                       % setConstExpComplete (curmodule) %
                                                                        % leaveScope ; leaveScope %
                          "."
                       =:
@@ -694,8 +690,10 @@ MulOperator := "*"
                | "&"
             =:
 
-ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
-               "(" ConstExpression ")" | "NOT" ConstFactor
+ConstFactor :=                                                        % VAR n: node ; %
+               Number | ConstString | ConstSetOrQualidentOrFunction |
+               "(" ConstExpression                                    % n := pop () %
+	                           ")" | "NOT" ConstFactor
                | ConstAttribute =:
 
 -- to help satisfy LL1
@@ -704,7 +702,9 @@ ConstString := string =:
 
 ComponentElement := Expression [ ".." Expression ] =:
 
-ComponentValue := ComponentElement [ 'BY' ConstExpression ] =:
+ComponentValue :=                                                    % VAR n: node ; %
+                  ComponentElement [ 'BY' ConstExpression            % n := pop () %
+                                                          ] =:
 
 ArraySetRecordValue := ComponentValue { ',' ComponentValue } =:
 
@@ -725,14 +725,15 @@ ConstAttributeExpression := Ident | "<" Qualident ',' Ident ">" =:
 
 -- Set := [ Qualident ] "{" [ Element { "," Element } ] "}" =:
 
-Element := ConstExpression [ ".." ConstExpression ]
-         =:
+-- Element := ConstExpression [ ".." ConstExpression ] =:
 
 ByteAlignment := '<*' AttributeExpression '*>' =:
 
 OptAlignmentExpression := [ AlignmentExpression ] =:
 
-AlignmentExpression := "(" ConstExpression ")" =:
+AlignmentExpression :=                                                  % VAR n: node ; %
+                       "(" ConstExpression                              % n := pop () %
+                                           ")" =:
 
 Alignment := [ ByteAlignment ] =:
 
@@ -746,14 +747,18 @@ PushIdentList :=                                                        % VAR n:
 		                   }                                    % n := push (n) %
                =:
 
-SubrangeType := "[" ConstExpression  ".." ConstExpression               % VAR low, high: node ; %
-                                                                        % high := pop () %
-									% low := pop () %
+SubrangeType :=                                                         % VAR low, high: node ; d: CARDINAL ; %
+                "["                                                     % d := depth () %
+		    ConstExpression					% low := pop () %
+                                                                        % assert (d = depth ()) %
+		                    ".." ConstExpression                % high := pop () %
+                                                                        % assert (d = depth ()) %
 									% typeExp := push (makeSubrange (low, high)) %
+                                                                        % assert (d = depth () - 1) %
                                                           "]"
               =:
 
-ArrayType := "ARRAY"                                                    % VAR c: CARDINAL ; n: node ; %
+ArrayType := "ARRAY"                                                    % VAR c: CARDINAL ; t, n: node ; %
                                                                         % c := 0 %
                      SimpleType                                         % INC (c) %
                                 { ","
@@ -779,9 +784,13 @@ RecordFieldPragma := [ '<*' FieldPragmaExpression
 
 FieldPragmaExpression := Ident PragmaConstExpression =:
 
-PragmaConstExpression := [ '(' ConstExpression ')' ] =:
+PragmaConstExpression :=                                                % VAR n: node ; %
+                         [ '(' ConstExpression                          % n := pop () %
+			                       ')' ] =:
 
-AttributeExpression := Ident '(' ConstExpression ')' =:
+AttributeExpression :=                                                  % VAR n: node ; %
+                       Ident '(' ConstExpression                        % n := pop () %
+		                                 ')' =:
 
 FieldListSequence := FieldListStatement { ";" FieldListStatement } =:
 
@@ -792,10 +801,14 @@ FieldList :=                                                            % VAR r,
                                                                         % v := pop () ; assert ((v=NIL) OR isVarient (v)) %
                                                                         % r := peep () ; assert (isRecord (r) OR isVarientField (r)) %
 									% v := push (v) %
+                                                                        % assert (d=depth ()) %
 									% assert (((v=NIL) AND isRecord (r)) OR ((v#NIL) AND isVarientField (r))) %
-             PushIdentList ":"                                          % i := pop () %
-                               Type                                     % t := pop () %
-			            RecordFieldPragma                   % r := addFieldsToRecord (r, v, i, t) %
+             PushIdentList ":"                                          % assert (d=depth () - 1) %
+                                                                        % i := pop () %
+                               Type                                     % assert (d=depth () - 1) %
+                                                                        % t := pop () %
+			            RecordFieldPragma                   % assert (d=depth ()) %
+				                                        % r := addFieldsToRecord (r, v, i, t) %
                                                                         % assert (d=depth ()) %
              |
                "CASE"                                                   % (* addRecordToList *) %
@@ -1200,6 +1213,7 @@ DefinitionModule := "DEFINITION" "MODULE" [ "FOR" string ] Ident ";"   % curmodu
                       { Import } [ Export ]
                       { Definition }
                     "END" Ident "."                                    % checkEndName (curmodule, curident, 'definition module') %
+		                                                       % setConstExpComplete (curmodule) %
                                                                        % leaveScope %
                   =:
 
@@ -1238,7 +1252,10 @@ EnumIdentList := Ident { "," Ident } =:
 Enumeration := "(" EnumIdentList                                       % typeExp := push (getNextEnum ()) %
                                     ")" =:
 
-SimpleType := TypeEquiv | Enumeration | SubrangeType =:
+SimpleType :=                                                          % VAR d: CARDINAL ; %
+                                                                       % d := depth () %
+              ( TypeEquiv | Enumeration | SubrangeType )               % assert (d = depth () - 1) %
+	    =:
 
 Type := SimpleType | ArrayType | RecordType | SetType |
         PointerType | ProcedureType

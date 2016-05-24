@@ -73,8 +73,8 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 makeIdentList, putIdent, addVarParameters, addNonVarParameters,
 		 lookupInScope, import, lookupExported, isImp, isModule, isConst,
 		 makeLiteralInt, makeLiteralReal, makeString, getBuiltinConst,
-		 getNextEnum, makeFuncFixup, applyFuncFixup,
-		 makeExpList, putExpList, isExpList, resetFuncFixup ;
+		 getNextEnum,
+		 makeExpList, putExpList, isExpList ;
 
 
 CONST
@@ -620,7 +620,6 @@ FileUnit := DefinitionModule | ImplementationOrProgramModule
 ProgramModule := "MODULE"
                   Ident                                                % curmodule := lookupModule (curident) %
 		                                                       % enterScope (curmodule) %
-								       % resetFuncFixup (curmodule) %
                   [ Priority ] ";"
                   { Import }
                   Block
@@ -634,7 +633,6 @@ ImplementationModule := "IMPLEMENTATION" "MODULE"
                          Ident                                         % curmodule := lookupImp (curident) %
 			                                               % enterScope (lookupDef (curident)) %
                                                                        % enterScope (curmodule) %
-       								       % resetFuncFixup (curmodule) %
                          [ Priority ] ";"
                          { Import }
                          Block
@@ -714,9 +712,7 @@ Constructor := '{'
 
 ConstSetOrQualidentOrFunction := Qualident
                                  [ Constructor
-				               | ConstActualParameters
-					                                % applyFuncFixup (pop ()) %
-                                                                      ]
+				               | ConstActualParameters ]
                                    |
                                      Constructor =:
 
@@ -1070,7 +1066,6 @@ Import := FromImport | WithoutFromImport =:
 
 DefinitionModule := "DEFINITION" "MODULE" [ "FOR" string ] Ident ";"   % curmodule := lookupDef (curident) %
     		                                                       % enterScope (curmodule) %
-                                                                       % resetFuncFixup (curmodule) %
                       { Import } [ Export ]
                       { Definition }
                     "END" Ident "."                                    % checkEndName (curmodule, curident, 'definition module') %
