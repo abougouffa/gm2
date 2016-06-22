@@ -290,7 +290,6 @@ END p4 ;
 
 PROCEDURE p5 (n: node) ;
 BEGIN
-   RETURN ;
    pass (5, n, mcp5.CompilationUnit, isImpOrModule, openMod)
 END p5 ;
 

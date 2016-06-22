@@ -1,3 +1,41 @@
+2016-06-22      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/mc-3.bnf:  merged definition and module variable declaration
+	  rules.  Always pop the return result from ConstExpression.
+	* gm2/bnf/mc-4.bnf:  no longer declare variables in pass 4.
+	* gm2/bnf/mc-5.bnf:  major changes which include generation of if/then/else/elsif
+          for loops, while loops, repeat loops.  With statements handled.  Expressions are
+          built and constant expressions retieved from a previous pass.  Debugging
+	  aids also built.  Function/procedure call handled.  Return statement handled.
+	* gm2/mc/decl.def:  New procedures: addOptParameter, isOptarg, makeComponentRef, makeDeRef,
+          makeArrayRef, resetConstExpPos, makeStatementSequence, isStatementSequence,
+          addStatement, makeReturn, isReturn, putReturn, makeWhile, putWhile,
+          isWhile, makeAssignment, putBegin, makeExit, makeComment, makeIf,
+          isIf, makeElsif, isElsif, putElse, makeFor, isFor, putFor, makeRepeat,
+          isRepeat, putRepeat declared and exported.
+	* gm2/mc/decl.mod:  new node types, exit, return, stmtseq, comment, new
+          dispose, inc, dec, incl, excl, optarg, throw, deref added.
+          New procedures:  isLocal, addProcedureToScope, addParameter, isOptarg,
+          makeOptParameter, addOptParameter, makeFuncCall, isFuncCall, makeComponentRef,
+          makeArrayRef, makeDeRef, makeBinaryTok, getFQstring, needsParen, doUnary,
+          doUnary, doBinary, doBinary, doPreBinary, doPreBinary, doExprM2, doVar,
+          doOptargC, doPrototypeC, doProcedureHeadingC, doPrototypeC,
+          outDeclsDefC, outDeclsDefC, includeVar, joinProcedures, doStatementSequenceC,
+          isSingleStatement, doCommentC, doExitC, doReturnC, doAssignmentC,
+          doCompoundStmt, doElsifC, noElse, doIfC, doForC, doRepeatC,
+          doFuncArgsC, doFuncCallC, doStatementsC, doLocalDeclsC, doProcedureC,
+          outProceduresC, walkOptarg, outImpInitC, outModuleC, outModuleInitC,
+          outModuleC, outC, dbgVar, dbgArray, makeStatementSequence,
+          addStatement, isStatementSequence, makeReturn,
+          isReturn, putReturn, makeWhile, putWhile,
+          isWhile, makeAssignment, isAssignment, putBegin, makeExit,
+          isExit, makeComment, isComment, makeIf, isIf, makeElsif,
+          isElsif, putElse, makeFor, isFor, putFor, makeRepeat, isRepeat,
+          putRepeat and makeM2rts added.
+	* gm2/mc/mcComp.mod:  reintroduce pass 5.
+	* gm2/mc/mcStack.def:  new procedure access declared.
+	* gm2/mc/mcStack.mod:  new procedure access implemented.
+
 2016-05-24      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/mc-3.bnf:  integer, real no longer push a value to the stack.

@@ -76,4 +76,14 @@ PROCEDURE replace (s: stack; a: ADDRESS) : ADDRESS ;
 PROCEDURE depth (s: stack) : CARDINAL ;
 
 
+(*
+   access - returns the, i, th stack element.
+            The top of stack is defined by:
+
+            access (s, depth (s)).
+*)
+
+PROCEDURE access (s: stack; i: CARDINAL) : ADDRESS ;
+
+
 END mcStack.

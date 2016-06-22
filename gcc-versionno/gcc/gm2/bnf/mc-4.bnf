@@ -851,23 +851,16 @@ ProcedureParameters := ProcedureParameter
 ProcedureParameter := "..." | "VAR" FormalType | FormalType =:
 
 
-VarIdent :=                                                            % VAR n: node ; %
+VarIdent := Ident [ "[" ConstExpression                                % VAR n: node ; %
                                                                        % n := pop () %
-               Ident                                                   % checkDuplicate (putIdent (n, curident)) %
-	                                                               % n := push (n) %
-                     [ "[" ConstExpression "]" ]
+                                        "]" ]
           =:
 
-VarIdentList :=                                                        % VAR n: node ; %
-                                                                       % n := makeIdentList () %
-                                                                       % n := push (n) %
-                   VarIdent { "," VarIdent }
+VarIdentList := VarIdent { "," VarIdent }
               =:
 
-VariableDeclaration :=                                                 % VAR v, d: node ; %
-                        VarIdentList                                   % v := pop () %
-			             ":" Type                          % d := makeVarDecl (v, pop ()) %
-			                      Alignment
+VariableDeclaration := VarIdentList ":"
+                       Type Alignment
                      =:
 
 Designator := Qualident

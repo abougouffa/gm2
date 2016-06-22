@@ -349,6 +349,22 @@ PROCEDURE isNonVarParam (n: node) : BOOLEAN ;
 
 
 (*
+   addOptParameter - returns an optarg which has been created and added to
+                     procedure node, proc.  It has a name, id, and, type,
+                     and an initial value, init.
+*)
+
+PROCEDURE addOptParameter (proc: node; id: Name; type, init: node) : node ;
+
+
+(*
+   isOptarg - returns TRUE if, n, is an optarg.
+*)
+
+PROCEDURE isOptarg (n: node) : BOOLEAN ;
+
+
+(*
    isRecord - returns TRUE if, n, is a record.
 *)
 
@@ -803,6 +819,29 @@ PROCEDURE makeUnaryTok (op: toktype; e: node) : node ;
 
 
 (*
+   makeComponentRef - build a componentref node which accesses, field,
+                      within, record, rec.
+*)
+
+PROCEDURE makeComponentRef (rec, field: node) : node ;
+
+
+(*
+   makeDeRef - dereferences the pointer defined by, n.
+*)
+
+PROCEDURE makeDeRef (n: node) : node ;
+
+
+(*
+   makeArrayRef - build an arrayref node which access element,
+                  index, in, array.
+*)
+
+PROCEDURE makeArrayRef (array, index: node) : node ;
+
+
+(*
    getCardinal - returns the cardinal type node.
 *)
 
@@ -887,10 +926,201 @@ PROCEDURE fixupConstExp (c, e: node) : node ;
 
 
 (*
+   resetConstExpPos - resets the index into the saved list of constexps inside
+                      module, n.
+*)
+
+PROCEDURE resetConstExpPos (n: node) ;
+
+
+(*
    makeFuncCall - builds a function call to c with param list, n.
 *)
 
 PROCEDURE makeFuncCall (c, n: node) : node ;
+
+
+(*
+   makeStatementSequence - create and return a statement sequence node.
+*)
+
+PROCEDURE makeStatementSequence () : node ;
+
+
+(*
+   isStatementSequence - returns TRUE if node, n, is a statement sequence.
+*)
+
+PROCEDURE isStatementSequence (n: node) : BOOLEAN ;
+
+
+(*
+   addStatement - adds node, n, as a statement to statememt sequence, s.
+*)
+
+PROCEDURE addStatement (s: node; n: node) ;
+
+
+(*
+   makeReturn - creates and returns a return node.
+*)
+
+PROCEDURE makeReturn () : node ;
+
+
+(*
+   isReturn - returns TRUE if node, n, is a return.
+*)
+
+PROCEDURE isReturn (n: node) : BOOLEAN ;
+
+
+(*
+   putReturn - assigns node, e, as the expression on the return node.
+*)
+
+PROCEDURE putReturn (n: node; e: node) ;
+
+
+(*
+   makeWhile - creates and returns a while node.
+*)
+
+PROCEDURE makeWhile () : node ;
+
+
+(*
+   putWhile - places an expression, e, and statement sequence, s, into the while
+              node, n.
+*)
+
+PROCEDURE putWhile (n: node; e, s: node) ;
+
+
+(*
+   isWhile - returns TRUE if node, n, is a while.
+*)
+
+PROCEDURE isWhile (n: node) : BOOLEAN ;
+
+
+(*
+   makeAssignment - creates and returns an assignment node.
+                    The designator is, d, and expression, e.
+*)
+
+PROCEDURE makeAssignment (d, e: node) : node ;
+
+
+(*
+   putBegin - assigns statements, s, to be the normal part in
+              block, b.  The block may be a procedure or module,
+              or implementation node.
+*)
+
+PROCEDURE putBegin (b: node; s: node) ;
+
+
+(*
+   makeExit - creates and returns an exit node.
+*)
+
+PROCEDURE makeExit () : node ;
+
+
+(*
+   makeComment - creates and returns a comment node.
+*)
+
+PROCEDURE makeComment (a: ARRAY OF CHAR) : node ;
+
+
+(*
+   makeIf - creates and returns an if node.  The if node
+            will have expression, e, and statement sequence, s,
+            as the then component.
+*)
+
+PROCEDURE makeIf (e, s: node) : node ;
+
+
+(*
+   isIf - returns TRUE if, n, is an if node.
+*)
+
+PROCEDURE isIf (n: node) : BOOLEAN ;
+
+
+(*
+   makeElsif - creates and returns an elsif node.
+               This node has an expression, e, and statement
+               sequence, s.
+*)
+
+PROCEDURE makeElsif (i, e, s: node) : node ;
+
+
+(*
+   isElsif - returns TRUE if node, n, is an elsif node.
+*)
+
+PROCEDURE isElsif (n: node) : BOOLEAN ;
+
+
+(*
+   putElse - the else is grafted onto the if/elsif node, i,
+             and the statement sequence will be, s.
+*)
+
+PROCEDURE putElse (i, s: node) ;
+
+
+(*
+   makeFor - creates and returns a for node.
+*)
+
+PROCEDURE makeFor () : node ;
+
+
+(*
+   isFor - returns TRUE if node, n, is a for node.
+*)
+
+PROCEDURE isFor (n: node) : BOOLEAN ;
+
+
+(*
+   putFor - assigns the fields of the for node with
+            ident, i,
+            start, s,
+            end, e,
+            increment, i,
+            statements, sq.
+*)
+
+PROCEDURE putFor (f, i, s, e, b, sq: node) ;
+
+
+(*
+   makeRepeat - creates and returns a repeat node.
+*)
+
+PROCEDURE makeRepeat () : node ;
+
+
+(*
+   isRepeat - returns TRUE if node, n, is a repeat node.
+*)
+
+PROCEDURE isRepeat (n: node) : BOOLEAN ;
+
+
+(*
+   putRepeat - places statements, s, and expression, e, into
+               repeat statement, n.
+*)
+
+PROCEDURE putRepeat (n, s, e: node) ;
 
 
 (*

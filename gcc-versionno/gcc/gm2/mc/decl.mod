@@ -53,12 +53,14 @@ CONST
    indentation  = 3 ;
    indentationC = 2 ;
    debugScopes  = FALSE ;
+   debugDecl    = FALSE ;
 
 TYPE
    language = (ansiC, ansiCP, pim4) ;
 
-   nodeT = (
-            explist, funccall,
+   nodeT = (explist, funccall,
+            exit, return, stmtseq, comment,
+            new, dispose, inc, dec, incl, excl,
             (* base constants.  *)
 	    nil, true, false,
             (* system types.  *)
@@ -73,7 +75,7 @@ TYPE
 	    (* language features and compound type attributes.  *)
             type, record, varient, var, enumeration,
             subrange, array, subscript,
-            string, const, literal, varparam, param, varargs,
+            string, const, literal, varparam, param, varargs, optarg,
 	    pointer, recordfield, varientfield, enumerationfield,
             set, proctype,
 	    (* blocks.  *)
@@ -87,9 +89,9 @@ TYPE
 	    neg,
 	    cast, val,
 	    plus, sub, div, mod, mult,
-	    adr, size, tsize, ord, chr, throw,
+	    adr, size, tsize, ord, chr, high, throw,
 	    min, max,
-	    componentref, indirect,
+            componentref, arrayref, deref,
 	    equal, notequal, less, greater, greequal, lessequal,
 	    lsl, lsr, lor, land, lnot, lxor,
 	    and, or, not, identlist, vardecl) ;
@@ -98,6 +100,10 @@ TYPE
                          CASE kind: nodeT OF
 
 			 explist         : explistF: explistT |
+                         exit            : exitF   : exitT |
+			 return          : returnF : returnT |
+			 stmtseq         : stmtF   : stmtT |
+			 comment         : commentF: commentT |
                          (* base constants.  *)
                          nil,
 			 true,
@@ -138,6 +144,7 @@ TYPE
 			 varparam        :  varparamF        : varparamT |
                          param           :  paramF           : paramT |
 			 varargs         :  varargsF         : varargsT |
+			 optarg          :  optargF          : optargT |
 			 pointer         :  pointerF         : pointerT |
                          recordfield     :  recordfieldF     : recordfieldT |
 			 varientfield    :  varientfieldF    : varientfieldT |
@@ -158,13 +165,14 @@ TYPE
                          elsif           :  elsifF           : elsifT |
 			 assignment      :  assignmentF      : assignmentT |
                          (* expressions.  *)
+                         componentref    :  componentrefF    : componentrefT |
+ 			 arrayref        :  arrayrefF        : arrayrefT |
                          equal,
                          notequal,
 			 less,
 			 greater,
 			 greequal,
 			 lessequal,
-                         componentref,
                          cast,
                          val,
                          plus,
@@ -173,8 +181,9 @@ TYPE
 			 mod,
 			 mult            :  binaryF          : binaryT |
 			 constexp,
-			 indirect,
+			 deref,
 			 chr,
+                         high,
                          ord,
 			 throw,
 			 not,
@@ -210,6 +219,21 @@ TYPE
 		      args    : node ;
 		      type    : node ;
                    END ;
+
+       commentT = RECORD
+                     content:  String ;
+                  END ;
+
+       stmtT = RECORD
+                  statements:  Index ;
+               END ;
+
+       returnT = RECORD
+                    exp:  node ;
+                 END ;
+
+       exitT = RECORD
+               END ;
 
        vardeclT = RECORD
                      names:  wlist ;
@@ -310,6 +334,13 @@ TYPE
                      scope    :  node ;
                   END ;
 
+       optargT = RECORD
+                    namelist  :  node ;
+		    type      :  node ;
+		    scope     :  node ;
+		    init      :  node ;
+                 END ;
+
        pointerT = RECORD
                      type :  node ;
                      scope:  node ;
@@ -345,11 +376,17 @@ TYPE
                  scope:  node ;
               END ;
 
-       componentT = RECORD
-                       rec       :  node ;
-                       field     :  node ;
-		       resultType:  node ;
-                    END ;
+       componentrefT = RECORD
+                          rec       :  node ;
+                          field     :  node ;
+                          resultType:  node ;
+                       END ;
+
+       arrayrefT = RECORD
+                      array     :  node ;
+                      index     :  node ;
+                      resultType:  node ;
+                   END ;
 
        assignmentT = RECORD
                         des,
@@ -385,8 +422,9 @@ TYPE
                 END ;
 
        forT = RECORD
-                 assignment,
-                 expr,
+                 des,
+                 start,
+		 end,
                  increment,
                  statements:  node ;
               END ;
@@ -404,25 +442,25 @@ TYPE
                 END ;
 
        procedureT = RECORD
-                       name      :  Name ;
-                       decls     :  scopeT ;
-                       scope     :  node ;
-                       parameters:  Index ;
+                       name           :  Name ;
+                       decls          :  scopeT ;
+                       scope          :  node ;
+                       parameters     :  Index ;
 		       built,
 		       checking,
                        returnopt,
-		       optarg,
-		       vararg    :  BOOLEAN ;
-		       paramcount:  CARDINAL ;
-		       returnType:  node ;
-                       statements:  node ;
+		       vararg         :  BOOLEAN ;
+		       paramcount     :  CARDINAL ;
+                       optarg         :  node ;
+		       returnType     :  node ;
+                       beginStatements:  node ;
                     END ;
 
        proctypeT = RECORD
                       parameters:  Index ;
                       returnopt,
-                      optarg,
                       vararg    :  BOOLEAN ;
+                      optarg    :  node ;
 		      scope     :  node ;
                       returnType:  node ;
                    END ;
@@ -513,6 +551,15 @@ VAR
    adrN,
    sizeN,
    tsizeN,
+   newN,
+   disposeN,
+   incN,
+   decN,
+   inclN,
+   exclN,
+   highN,
+   m2rtsN,
+   haltN,
    throwN,
    chrN,
    ordN,
@@ -784,6 +831,23 @@ BEGIN
    END ;
    RETURN FALSE
 END isExported ;
+
+
+(*
+   isLocal - returns TRUE if symbol, n, is locally declared in a procedure.
+*)
+
+PROCEDURE isLocal (n: node) : BOOLEAN ;
+VAR
+   s: node ;
+BEGIN
+   s := getScope (n) ;
+   IF s#NIL
+   THEN
+      RETURN isProcedure (s)
+   END ;
+   RETURN FALSE
+END isLocal ;
 
 
 (*
@@ -1430,7 +1494,12 @@ BEGIN
       IncludeIndiceIntoIndex (decls.types, d)
    ELSIF isProcedure (d)
    THEN
-      IncludeIndiceIntoIndex (decls.procedures, d)
+      IncludeIndiceIntoIndex (decls.procedures, d) ;
+      IF debugDecl
+      THEN
+         printf ("%d procedures on the dynamic array\n",
+                 HighIndice (decls.procedures))
+      END
    END ;
    RETURN d
 END addTo ;
@@ -1460,16 +1529,40 @@ BEGIN
    s := GetIndice (scopeStack, i) ;
    IF isProcedure (s)
    THEN
+      IF debugDecl
+      THEN
+         outText (doP, "adding ") ;
+         doNameC (doP, n) ;
+         outText (doP, " to procedure\n")
+      END ;
       RETURN addTo (s^.procedureF.decls, n)
    ELSIF isModule (s)
    THEN
+      IF debugDecl
+      THEN
+         outText (doP, "adding ") ;
+         doNameC (doP, n) ;
+         outText (doP, " to module\n")
+      END ;
       RETURN addTo (s^.moduleF.decls, n)
    ELSIF isDef (s)
    THEN
+      IF debugDecl
+      THEN
+         outText (doP, "adding ") ;
+         doNameC (doP, n) ;
+         outText (doP, " to definition module\n")
+      END ;
       export (s, n) ;
       RETURN addTo (s^.defF.decls, n)
    ELSIF isImp (s)
    THEN
+      IF debugDecl
+      THEN
+         outText (doP, "adding ") ;
+         doNameC (doP, n) ;
+         outText (doP, " to implementation module\n")
+      END ;
       RETURN addTo (s^.impF.decls, n)
    END ;
    HALT
@@ -1548,9 +1641,10 @@ BEGIN
    CASE k OF
 
    constexp,
-   indirect,
+   deref,
    chr,
    ord,
+   high,
    throw,
    not,
    neg,
@@ -1744,6 +1838,28 @@ END makeVariablesFromParameters ;
 
 
 (*
+   addProcedureToScope -
+*)
+
+PROCEDURE addProcedureToScope (d: node; n: Name) : node ;
+VAR
+   m: node ;
+   i: CARDINAL ;
+BEGIN
+   i := HighIndice (scopeStack) ;
+   m := GetIndice (scopeStack, i) ;
+   IF isDef (m) AND
+      (getSymName (m) = makeKey ('M2RTS')) AND
+      (getSymName (d) = makeKey ('HALT'))
+   THEN
+      haltN := d ;
+      putSymKey (baseSymbols, n, haltN)
+   END ;
+   RETURN addToScope (d)
+END addProcedureToScope ;
+
+
+(*
    makeProcedure - create, initialise and return a procedure node.
 *)
 
@@ -1762,15 +1878,15 @@ BEGIN
          procedureF.parameters := InitIndex (1) ;
 	 procedureF.built := FALSE ;
          procedureF.returnopt := FALSE ;
-         procedureF.optarg := FALSE ;
+         procedureF.optarg := NIL ;
          procedureF.vararg := FALSE ;
          procedureF.checking := FALSE ;
 	 procedureF.paramcount := 0 ;
          procedureF.returnType := NIL ;
-         procedureF.statements := NIL ;
+         procedureF.beginStatements := NIL
       END
    END ;
-   RETURN addToScope (d)
+   RETURN addProcedureToScope (d, n)
 END makeProcedure ;
 
 
@@ -1830,7 +1946,7 @@ BEGIN
       proctypeF.scope := getDeclScope () ;
       proctypeF.parameters := InitIndex (1) ;
       proctypeF.returnopt := FALSE ;
-      proctypeF.optarg := FALSE ;
+      proctypeF.optarg := NIL ;
       proctypeF.vararg := FALSE ;
       proctypeF.returnType := NIL
    END ;
@@ -1924,26 +2040,85 @@ END isVarargs ;
 
 PROCEDURE addParameter (proc, param: node) ;
 BEGIN
-   assert (isVarargs (param) OR isParam (param) OR isVarParam (param)) ;
+   assert (isVarargs (param) OR isParam (param) OR isVarParam (param) OR isOptarg (param)) ;
    CASE proc^.kind OF
 
    procedure:  IncludeIndiceIntoIndex (proc^.procedureF.parameters, param) ;
                IF isVarargs (param)
                THEN
                   proc^.procedureF.vararg := TRUE
+               END ;
+	       IF isOptarg (param)
+               THEN
+                  proc^.procedureF.optarg := param
                END |
    proctype :  IncludeIndiceIntoIndex (proc^.proctypeF.parameters, param) ;
                IF isVarargs (param)
                THEN
                   proc^.proctypeF.vararg := TRUE
+               END ;
+               IF isOptarg (param)
+               THEN
+                  proc^.proctypeF.optarg := param
                END
 
    END
 END addParameter ;
 
 
+(*
+   isOptarg - returns TRUE if, n, is an optarg.
+*)
+
+PROCEDURE isOptarg (n: node) : BOOLEAN ;
+BEGIN
+   RETURN n^.kind = optarg
+END isOptarg ;
+
+
+(*
+   makeOptParameter - creates and returns an optarg.
+*)
+
+PROCEDURE makeOptParameter (l, type, init: node) : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (optarg) ;
+   n^.optargF.namelist := l ;
+   n^.optargF.type := type ;
+   n^.optargF.init := init ;
+   n^.optargF.scope := NIL ;
+   RETURN n
+END makeOptParameter ;
+
+
+(*
+   addOptParameter - returns an optarg which has been created and added to
+                     procedure node, proc.  It has a name, id, and, type,
+                     and an initial value, init.
+*)
+
+PROCEDURE addOptParameter (proc: node; id: Name; type, init: node) : node ;
+VAR
+   p, l: node ;
+BEGIN
+   assert (isProcedure (proc)) ;
+   l := makeIdentList () ;
+   assert (putIdent (l, id)) ;
+   checkMakeVariables (proc, l, type, FALSE) ;
+   IF NOT proc^.procedureF.checking
+   THEN
+      p := makeOptParameter (l, type, init) ;
+      addParameter (proc, p)
+   END ;
+   RETURN p
+END addOptParameter ;
+
+
 VAR
    globalNode: node ;
+
 
 (*
    setwatch -
@@ -2897,13 +3072,24 @@ PROCEDURE makeFuncCall (c, n: node) : node ;
 VAR
    f: node ;
 BEGIN
-   assert (isExpList (n)) ;
+   assert ((n=NIL) OR isExpList (n)) ;
    f := newNode (funccall) ;
    f^.funccallF.function := c ;
    f^.funccallF.args := n ;
    f^.funccallF.type := NIL ;
    RETURN f
 END makeFuncCall ;
+
+
+(*
+   isFuncCall - returns TRUE if, n, is a function/procedure call.
+*)
+
+PROCEDURE isFuncCall (n: node) : BOOLEAN ;
+BEGIN
+   assert (n # NIL) ;
+   RETURN n^.kind = funccall
+END isFuncCall ;
 
 
 (*
@@ -3090,7 +3276,8 @@ BEGIN
    def      :  RETURN getSymKey (scope^.defF.decls.symbols, n) |
    module   :  RETURN getSymKey (scope^.moduleF.decls.symbols, n) |
    imp      :  RETURN getSymKey (scope^.impF.decls.symbols, n) |
-   procedure:  RETURN getSymKey (scope^.procedureF.decls.symbols, n)
+   procedure:  RETURN getSymKey (scope^.procedureF.decls.symbols, n) |
+   record   :  RETURN getSymKey (scope^.recordF.localSymbols, n)
 
    END
 END lookupInScope ;
@@ -3227,6 +3414,12 @@ BEGIN
    WITH n^ DO
       CASE kind OF
 
+      new             :  RETURN makeKey ('NEW') |
+      dispose         :  RETURN makeKey ('DISPOSE') |
+      inc             :  RETURN makeKey ('INC') |
+      dec             :  RETURN makeKey ('DEC') |
+      incl            :  RETURN makeKey ('INCL') |
+      excl            :  RETURN makeKey ('EXCL') |
       nil             :  RETURN makeKey ('NIL') |
       true            :  RETURN makeKey ('TRUE') |
       false           :  RETURN makeKey ('FALSE') |
@@ -3264,6 +3457,7 @@ BEGIN
       literal         :  RETURN literalF.name |
       varparam        :  RETURN NulName |
       param           :  RETURN NulName |
+      optarg          :  RETURN NulName |
       recordfield     :  RETURN recordfieldF.name |
       varientfield    :  RETURN varientfieldF.name |
       enumerationfield:  RETURN enumerationfieldF.name |
@@ -3285,6 +3479,8 @@ BEGIN
       assignment      :  RETURN NulName |
       (* expressions.  *)
       constexp,
+      deref,
+      arrayref,
       componentref,
       cast,
       val,
@@ -3294,7 +3490,6 @@ BEGIN
       mod,
       mult,
       neg,
-      indirect,
       equal,
       notequal,
       less,
@@ -3306,6 +3501,7 @@ BEGIN
       tsize           :  RETURN makeKey ('TSIZE') |
       chr             :  RETURN makeKey ('CHR') |
       ord             :  RETURN makeKey ('ORD') |
+      high            :  RETURN makeKey ('HIGH') |
       throw           :  RETURN makeKey ('THROW') |
       max             :  RETURN makeKey ('MAX') |
       min             :  RETURN makeKey ('MIN')
@@ -3331,6 +3527,10 @@ BEGIN
       kind := k ;
       CASE kind OF
 
+      deref,
+      high,
+      chr,
+      ord,
       constexp,
       not,
       neg,
@@ -3368,7 +3568,6 @@ BEGIN
       lessequal,
       and,
       or,
-      componentref,
       cast,
       val,
       plus,
@@ -3388,6 +3587,54 @@ END makeBinary ;
 
 
 (*
+   makeComponentRef - build a componentref node which accesses, field,
+                      within, record, rec.
+*)
+
+PROCEDURE makeComponentRef (rec, field: node) : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (componentref) ;
+   n^.componentrefF.rec := rec ;
+   n^.componentrefF.field := field ;
+   n^.componentrefF.resultType := getType (field) ;
+   RETURN n
+END makeComponentRef ;
+
+
+(*
+   makeArrayRef - build an arrayref node which access element,
+                  index, in, array.
+*)
+
+PROCEDURE makeArrayRef (array, index: node) : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (arrayref) ;
+   n^.arrayrefF.array := array ;
+   n^.arrayrefF.index := index ;
+   n^.arrayrefF.resultType := getType (array) ;
+   RETURN n
+END makeArrayRef ;
+
+
+(*
+   makeDeRef - dereferences the pointer defined by, n.
+*)
+
+PROCEDURE makeDeRef (n: node) : node ;
+VAR
+   t: node ;
+BEGIN
+   t := skipType (getType (n)) ;
+   assert (isPointer (t)) ;
+   RETURN makeUnary (deref, n, getType (t))
+END makeDeRef ;
+
+
+(*
    makeBase - create a base type or constant.
               It only supports the base types and constants
               enumerated below.
@@ -3402,6 +3649,12 @@ BEGIN
       kind := k ;
       CASE k OF
 
+      new,
+      dispose,
+      inc,
+      dec,
+      incl,
+      excl,
       nil,
       true,
       false,
@@ -3427,6 +3680,7 @@ BEGIN
       adr,
       chr,
       ord,
+      high,
       throw,
       size,
       tsize,
@@ -3449,7 +3703,10 @@ END makeBase ;
 
 PROCEDURE makeBinaryTok (op: toktype; l, r: node) : node ;
 BEGIN
-   IF op=lesstok
+   IF op=equaltok
+   THEN
+      RETURN makeBinary (equal, l, r, booleanN)
+   ELSIF op=lesstok
    THEN
       RETURN makeBinary (lessequal, l, r, booleanN)
    ELSIF op=equal
@@ -3467,6 +3724,9 @@ BEGIN
    ELSIF op=greaterequaltok
    THEN
       RETURN makeBinary (greequal, l, r, booleanN)
+   ELSIF op=lessequaltok
+   THEN
+      RETURN makeBinary (lessequal, l, r, booleanN)
    ELSIF op=andtok
    THEN
       RETURN makeBinary (and, l, r, booleanN)
@@ -3549,6 +3809,12 @@ BEGIN
    WITH n^ DO
       CASE kind OF
 
+      new,
+      dispose,
+      inc,
+      dec,
+      incl,
+      excl            :  RETURN NIL |
       nil             :  RETURN addressN |
       true,
       false           :  RETURN booleanN |
@@ -3585,6 +3851,7 @@ BEGIN
       literal         :  RETURN literalF.type |
       varparam        :  RETURN varparamF.type |
       param           :  RETURN paramF.type |
+      optarg          :  RETURN optargF.type |
       pointer         :  RETURN pointerF.type |
       recordfield     :  RETURN recordfieldF.type |
       varientfield    :  RETURN n |
@@ -3607,7 +3874,6 @@ BEGIN
       elsif,
       assignment      :  HALT |
       (* expressions.  *)
-      componentref,
       cast,
       val,
       plus,
@@ -3616,7 +3882,7 @@ BEGIN
       mod,
       mult            :  RETURN binaryF.resultType |
       constexp,
-      indirect,
+      deref,
       neg,
       adr,
       size,
@@ -3627,8 +3893,11 @@ BEGIN
       greater,
       greequal,
       lessequal       :  RETURN booleanN |
+      high            :  RETURN cardinalN |
       ord             :  RETURN cardinalN |
-      chr             :  RETURN charN
+      chr             :  RETURN charN |
+      arrayref        :  RETURN arrayrefF.resultType |
+      componentref    :  RETURN componentrefF.resultType
 
       END
    END ;
@@ -3658,6 +3927,12 @@ BEGIN
    WITH n^ DO
       CASE kind OF
 
+      new,
+      dispose,
+      inc,
+      dec,
+      incl,
+      excl,
       nil,
       true,
       false           :  RETURN NIL |
@@ -3694,6 +3969,7 @@ BEGIN
       literal         :  RETURN NIL |
       varparam        :  RETURN varparamF.scope |
       param           :  RETURN paramF.scope |
+      optarg          :  RETURN optargF.scope |
       pointer         :  RETURN pointerF.scope |
       recordfield     :  RETURN recordfieldF.scope |
       varientfield    :  RETURN varientfieldF.scope |
@@ -3716,8 +3992,10 @@ BEGIN
       assignment      :  RETURN NIL |
       (* expressions.  *)
       componentref,
+      arrayref,
       chr,
       ord,
+      high,
       cast,
       val,
       plus,
@@ -3727,7 +4005,7 @@ BEGIN
       mult            :  RETURN NIL |
       neg             :  RETURN NIL |
       constexp,
-      indirect,
+      deref,
       equal,
       notequal,
       less,
@@ -3876,7 +4154,7 @@ PROCEDURE getFQstring (n: node) : String ;
 VAR
    i, s: String ;
 BEGIN
-   IF (getScope (n)=NIL) OR getIgnoreFQ ()
+   IF (NOT isExported (n)) OR getIgnoreFQ ()
    THEN
       RETURN InitStringCharStar (keyToCharStar (getSymName (n)))
    ELSE
@@ -3946,22 +4224,79 @@ END doConstC ;
 
 
 (*
+   needsParen - returns TRUE if expression, n, needs to be enclosed in ().
+*)
+
+PROCEDURE needsParen (n: node) : BOOLEAN ;
+BEGIN
+   assert (n#NIL) ;
+   WITH n^ DO
+      CASE kind OF
+
+      nil,
+      true,
+      false           :  RETURN FALSE |
+      constexp        :  RETURN needsParen (unaryF.arg) |
+      neg             :  RETURN needsParen (unaryF.arg) |
+      not             :  RETURN needsParen (unaryF.arg) |
+      adr,
+      size,
+      tsize,
+      ord,
+      chr,
+      high            :  RETURN FALSE |
+      deref           :  RETURN FALSE |
+      equal,
+      notequal,
+      less,
+      greater,
+      greequal,
+      lessequal       :  RETURN TRUE |
+      componentref    :  RETURN FALSE |
+      cast            :  RETURN TRUE |
+      val             :  RETURN TRUE |
+      plus,
+      sub,
+      div,
+      mod,
+      mult            :  RETURN TRUE |
+      literal,
+      const,
+      enumerationfield,
+      string          :  RETURN FALSE |
+      max             :  RETURN TRUE |
+      min             :  RETURN TRUE |
+      var             :  RETURN FALSE
+
+      END
+   END ;
+   RETURN TRUE
+END needsParen ;
+
+
+
+(*
    doUnary -
 *)
 
-PROCEDURE doUnary (p: pretty; op: ARRAY OF CHAR; expr, type: node) ;
+PROCEDURE doUnary (p: pretty; op: ARRAY OF CHAR; expr, type: node; l, r: BOOLEAN) ;
 BEGIN
+   IF l
+   THEN
+      setNeedSpace (p)
+   END ;
    print (p, op) ;
-   setNeedSpace (p) ;
-   IF StrEqual (op, 'ADR') OR StrEqual (op, 'SIZE') OR StrEqual (op, 'ORD')
+   IF r
+   THEN
+      setNeedSpace (p)
+   END ;
+   IF needsParen (expr)
    THEN
       outText (p, '(') ;
       doExprC (p, expr) ;
       outText (p, ')')
    ELSE
-      outText (p, '(') ;
-      doExprC (p, expr) ;
-      outText (p, ')')
+      doExprC (p, expr)
    END
 END doUnary ;
 
@@ -3970,15 +4305,33 @@ END doUnary ;
    doBinary -
 *)
 
-PROCEDURE doBinary (p: pretty; op: ARRAY OF CHAR; left, right: node) ;
+PROCEDURE doBinary (p: pretty; op: ARRAY OF CHAR; left, right: node; l, r: BOOLEAN) ;
 BEGIN
-   outText (p, '(') ;
-   doExprC (p, left) ;
-   outText (p, ')') ;
+   IF needsParen (left)
+   THEN
+      outText (p, '(') ;
+      doExprC (p, left) ;
+      outText (p, ')')
+   ELSE
+      doExprC (p, left)
+   END ;
+   IF l
+   THEN
+      setNeedSpace (p)
+   END ;
    outText (p, op) ;
-   outText (p, '(') ;
-   doExprC (p, right) ;
-   outText (p, ')')
+   IF r
+   THEN
+      setNeedSpace (p)
+   END ;
+   IF needsParen (right)
+   THEN
+      outText (p, '(') ;
+      doExprC (p, right) ;
+      outText (p, ')')
+   ELSE
+      doExprC (p, right)
+   END
 END doBinary ;
 
 
@@ -3997,12 +4350,21 @@ END doPostUnary ;
    doPreBinary -
 *)
 
-PROCEDURE doPreBinary (p: pretty; op: ARRAY OF CHAR; left, right: node) ;
+PROCEDURE doPreBinary (p: pretty; op: ARRAY OF CHAR; left, right: node; l, r: BOOLEAN) ;
 BEGIN
+   IF l
+   THEN
+      setNeedSpace (p)
+   END ;
    outText (p, op) ;
+   IF r
+   THEN
+      setNeedSpace (p)
+   END ;
    outText (p, '(') ;
    doExprC (p, left) ;
    outText (p, ',') ;
+   setNeedSpace (p) ;
    doExprC (p, right) ;
    outText (p, ')')
 END doPreBinary ;
@@ -4038,42 +4400,107 @@ BEGIN
    WITH n^ DO
       CASE kind OF
 
-      nil             :  outText (p, 'NIL') |
+      nil             :  outText (p, 'NULL') |
       true            :  outText (p, 'TRUE') |
       false           :  outText (p, 'FALSE') |
-      constexp        :  doUnary (p, '', unaryF.arg, unaryF.resultType) |
-      neg             :  doUnary (p, '-', unaryF.arg, unaryF.resultType) |
-      not             :  doUnary (p, 'NOT', unaryF.arg, unaryF.resultType) |
-      adr             :  doUnary (p, 'ADR', unaryF.arg, unaryF.resultType) |
-      size            :  doUnary (p, 'SIZE', unaryF.arg, unaryF.resultType) |
-      tsize           :  doUnary (p, 'TSIZE', unaryF.arg, unaryF.resultType) |
-      ord             :  doUnary (p, 'ORD', unaryF.arg, unaryF.resultType) |
-      chr             :  doUnary (p, 'CHR', unaryF.arg, unaryF.resultType) |
-      indirect        :  doPostUnary (p, '^', unaryF.arg) |
-      equal           :  doBinary (p, '=', binaryF.left, binaryF.right) |
-      notequal        :  doBinary (p, '#', binaryF.left, binaryF.right) |
-      less            :  doBinary (p, '<', binaryF.left, binaryF.right) |
-      greater         :  doBinary (p, '>', binaryF.left, binaryF.right) |
-      greequal        :  doBinary (p, '>=', binaryF.left, binaryF.right) |
-      lessequal       :  doBinary (p, '<=', binaryF.left, binaryF.right) |
-      componentref    :  doBinary (p, '.', binaryF.left, binaryF.right) |
-      cast            :  doPreBinary (p, 'CAST', binaryF.left, binaryF.right) |
-      val             :  doPreBinary (p, 'VAL', binaryF.left, binaryF.right) |
-      plus            :  doBinary (p, '+', binaryF.left, binaryF.right) |
-      sub             :  doBinary (p, '-', binaryF.left, binaryF.right) |
-      div             :  doBinary (p, '/', binaryF.left, binaryF.right) |
-      mod             :  doBinary (p, 'MOD', binaryF.left, binaryF.right) |
-      mult            :  doBinary (p, '*', binaryF.left, binaryF.right) |
+      constexp        :  doUnary (p, '', unaryF.arg, unaryF.resultType, FALSE, FALSE) |
+      neg             :  doUnary (p, '-', unaryF.arg, unaryF.resultType, FALSE, FALSE) |
+      not             :  doUnary (p, '!', unaryF.arg, unaryF.resultType, FALSE, TRUE) |
+      adr             :  doUnary (p, '&', unaryF.arg, unaryF.resultType, TRUE, FALSE) |
+      size            :  doUnary (p, 'sizeof', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      tsize           :  doUnary (p, 'sizeof', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      ord             :  doUnary (p, 'ORD', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      chr             :  doUnary (p, 'CHR', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      high            :  doUnary (p, 'HIGH', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      deref           :  doPostUnary (p, '^', unaryF.arg) |
+      equal           :  doBinary (p, '==', binaryF.left, binaryF.right, TRUE, TRUE) |
+      notequal        :  doBinary (p, '!=', binaryF.left, binaryF.right, TRUE, TRUE) |
+      less            :  doBinary (p, '<', binaryF.left, binaryF.right, TRUE, TRUE) |
+      greater         :  doBinary (p, '>', binaryF.left, binaryF.right, TRUE, TRUE) |
+      greequal        :  doBinary (p, '>=', binaryF.left, binaryF.right, TRUE, TRUE) |
+      lessequal       :  doBinary (p, '<=', binaryF.left, binaryF.right, TRUE, TRUE) |
+      componentref    :  doBinary (p, '.', binaryF.left, binaryF.right, FALSE, FALSE) |
+      cast            :  doPreBinary (p, 'CAST', binaryF.left, binaryF.right, TRUE, TRUE) |
+      val             :  doPreBinary (p, 'VAL', binaryF.left, binaryF.right, TRUE, TRUE) |
+      plus            :  doBinary (p, '+', binaryF.left, binaryF.right, FALSE, FALSE) |
+      sub             :  doBinary (p, '-', binaryF.left, binaryF.right, FALSE, FALSE) |
+      div             :  doBinary (p, '/', binaryF.left, binaryF.right, FALSE, FALSE) |
+      mod             :  doBinary (p, 'MOD', binaryF.left, binaryF.right, TRUE, TRUE) |
+      mult            :  doBinary (p, '*', binaryF.left, binaryF.right, FALSE, FALSE) |
+      and             :  doBinary (p, '&&', binaryF.left, binaryF.right, TRUE, TRUE) |
+      or              :  doBinary (p, '||', binaryF.left, binaryF.right, TRUE, TRUE) |
       literal         :  doLiteral (p, n) |
       const           :  doConstExpr (p, n) |
       enumerationfield:  doEnumerationField (p, n) |
       string          :  doString (p, n) |
-      max             :  doUnary (p, 'MAX', unaryF.arg, unaryF.resultType) |
-      min             :  doUnary (p, 'MIN', unaryF.arg, unaryF.resultType) |
+      max             :  doUnary (p, 'MAX', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      min             :  doUnary (p, 'MIN', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      var             :  doVar (p, n)
 
       END
    END
 END doExprC ;
+
+
+(*
+   doExprM2 -
+*)
+
+PROCEDURE doExprM2 (p: pretty; n: node) ;
+BEGIN
+   assert (n#NIL) ;
+   WITH n^ DO
+      CASE kind OF
+
+      nil             :  outText (p, 'NIL') |
+      true            :  outText (p, 'TRUE') |
+      false           :  outText (p, 'FALSE') |
+      constexp        :  doUnary (p, '', unaryF.arg, unaryF.resultType, FALSE, FALSE) |
+      neg             :  doUnary (p, '-', unaryF.arg, unaryF.resultType, FALSE, FALSE) |
+      not             :  doUnary (p, 'NOT', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      adr             :  doUnary (p, 'ADR', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      size            :  doUnary (p, 'SIZE', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      tsize           :  doUnary (p, 'TSIZE', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      ord             :  doUnary (p, 'ORD', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      chr             :  doUnary (p, 'CHR', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      high            :  doUnary (p, 'HIGH', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      deref           :  doPostUnary (p, '^', unaryF.arg) |
+      equal           :  doBinary (p, '=', binaryF.left, binaryF.right, TRUE, TRUE) |
+      notequal        :  doBinary (p, '#', binaryF.left, binaryF.right, TRUE, TRUE) |
+      less            :  doBinary (p, '<', binaryF.left, binaryF.right, TRUE, TRUE) |
+      greater         :  doBinary (p, '>', binaryF.left, binaryF.right, TRUE, TRUE) |
+      greequal        :  doBinary (p, '>=', binaryF.left, binaryF.right, TRUE, TRUE) |
+      lessequal       :  doBinary (p, '<=', binaryF.left, binaryF.right, TRUE, TRUE) |
+      componentref    :  doBinary (p, '.', binaryF.left, binaryF.right, FALSE, FALSE) |
+      cast            :  doPreBinary (p, 'CAST', binaryF.left, binaryF.right, TRUE, TRUE) |
+      val             :  doPreBinary (p, 'VAL', binaryF.left, binaryF.right, TRUE, TRUE) |
+      plus            :  doBinary (p, '+', binaryF.left, binaryF.right, FALSE, FALSE) |
+      sub             :  doBinary (p, '-', binaryF.left, binaryF.right, FALSE, FALSE) |
+      div             :  doBinary (p, '/', binaryF.left, binaryF.right, FALSE, FALSE) |
+      mod             :  doBinary (p, 'MOD', binaryF.left, binaryF.right, TRUE, TRUE) |
+      mult            :  doBinary (p, '*', binaryF.left, binaryF.right, FALSE, FALSE) |
+      literal         :  doLiteral (p, n) |
+      const           :  doConstExpr (p, n) |
+      enumerationfield:  doEnumerationField (p, n) |
+      string          :  doString (p, n) |
+      max             :  doUnary (p, 'MAX', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      min             :  doUnary (p, 'MIN', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      var             :  doVar (p, n)
+
+      END
+   END
+END doExprM2 ;
+
+
+(*
+   doVar -
+*)
+
+PROCEDURE doVar (p: pretty; n: node) ;
+BEGIN
+   assert (isVar (n)) ;
+   doFQNameC (p, n)
+END doVar ;
 
 
 (*
@@ -4473,6 +4900,32 @@ END doVarParamC ;
 
 
 (*
+   doOptargC -
+*)
+
+PROCEDURE doOptargC (p: pretty; n: node) ;
+VAR
+   ptype: node ;
+   i    : Name ;
+   t    : CARDINAL ;
+   l    : wlist ;
+BEGIN
+   assert (isOptarg (n)) ;
+   ptype := getType (n) ;
+   assert (n^.optargF.namelist # NIL) ;
+   assert (isIdentList (n^.paramF.namelist)) ;
+   l := n^.paramF.namelist^.identlistF.names ;
+   assert (l # NIL) ;
+   t := wlists.noOfItemsInList (l) ;
+   assert (t = 1) ;
+   doTypeNameC (p, ptype) ;
+   i := wlists.getItemFromList (l, 1) ;
+   setNeedSpace (p) ;
+   doNamesC (p, i)
+END doOptargC ;
+
+
+(*
    doParameterC -
 *)
 
@@ -4487,6 +4940,9 @@ BEGIN
    ELSIF isVarargs (n)
    THEN
       print (p, "...")
+   ELSIF isOptarg (n)
+   THEN
+      doOptargC (p, n)
    END
 END doParameterC ;
 
@@ -5258,7 +5714,7 @@ BEGIN
    IF isDef (getMainModule ())
    THEN
       print (doP, "EXTERN") ; setNeedSpace (doP)
-   ELSIF NOT isExported (n)
+   ELSIF (NOT isExported (n)) AND (NOT isLocal (n))
    THEN
       print (doP, "static") ; setNeedSpace (doP)
    END ;
@@ -5270,10 +5726,10 @@ END doVarC ;
 
 
 (*
-   doPrototypeC -
+   doProcedureHeadingC -
 *)
 
-PROCEDURE doPrototypeC (n: node) ;
+PROCEDURE doProcedureHeadingC (n: node) ;
 VAR
    i, h: CARDINAL ;
    p, q: node ;
@@ -5308,7 +5764,18 @@ BEGIN
    THEN
       outText (doP, "void")
    END ;
-   print (doP, ");\n")
+   print (doP, ")")
+END doProcedureHeadingC ;
+
+
+(*
+   doPrototypeC -
+*)
+
+PROCEDURE doPrototypeC (n: node) ;
+BEGIN
+   doProcedureHeadingC (n) ;
+   print (doP, ";\n")
 END doPrototypeC ;
 
 
@@ -5520,8 +5987,11 @@ END simplifyTypes ;
    outDeclsDefC -
 *)
 
-PROCEDURE outDeclsDefC (p: pretty; s: scopeT) ;
+PROCEDURE outDeclsDefC (p: pretty; n: node) ;
+VAR
+   s: scopeT ;
 BEGIN
+   s := n^.defF.decls ;
    simplifyTypes (s) ;
    includeConstType (s) ;
 
@@ -5532,7 +6002,7 @@ BEGIN
                      doNone, doCompletePartialC, doNone) ;
 
    (* try and output types, constants before variables and procedures.  *)
-   includeVarProcedure (s) ;
+   includeDefVarProcedure (n) ;
 
    topologicallyOut (doConstC, doTypesC, doVarC,
                      outputPartial,
@@ -5562,6 +6032,16 @@ BEGIN
    ForeachIndiceInIndexDo (s.procedures, addTodo) ;
    ForeachIndiceInIndexDo (s.variables, addTodo)
 END includeVarProcedure ;
+
+
+(*
+   includeVar -
+*)
+
+PROCEDURE includeVar (s: scopeT) ;
+BEGIN
+   ForeachIndiceInIndexDo (s.variables, addTodo)
+END includeVar ;
 
 
 (*
@@ -5603,6 +6083,27 @@ END includeDefConstType ;
 
 
 (*
+   joinProcedures - copies procedures from definition module,
+                    d, into implementation module, i.
+*)
+
+PROCEDURE joinProcedures (i, d: node) ;
+VAR
+   h, j: CARDINAL ;
+BEGIN
+   assert (isDef (d)) ;
+   assert (isImp (i)) ;
+   j := 1 ;
+   h := HighIndice (d^.defF.decls.procedures) ;
+   WHILE j<=h DO
+      IncludeIndiceIntoIndex (i^.impF.decls.procedures,
+                              GetIndice (d^.defF.decls.procedures, j)) ;
+      INC (j)
+   END
+END joinProcedures ;
+
+
+(*
    includeDefVarProcedure -
 *)
 
@@ -5615,9 +6116,11 @@ BEGIN
       defModule := lookupDef (getSymName (n)) ;
       IF defModule#NIL
       THEN
+(*
+         includeVar (defModule^.defF.decls) ;
          simplifyTypes (defModule^.defF.decls) ;
-         includeVarProcedure (defModule^.defF.decls) ;
-	 foreachNodeDo (defModule^.defF.decls.symbols, addExternal)
+*)
+         joinProcedures (n, defModule)
       END
    END
 END includeDefVarProcedure ;
@@ -5647,6 +6150,392 @@ BEGIN
 
    ForeachIndiceInIndexDo (s.procedures, doPrototypeC)
 END outDeclsImpC ;
+
+
+(*
+   doStatementSequenceC -
+*)
+
+PROCEDURE doStatementSequenceC (p: pretty; s: node) ;
+VAR
+   i, h: CARDINAL ;
+BEGIN
+   assert (isStatementSequence (s)) ;
+   h := HighIndice (s^.stmtF.statements) ;
+   i := 1 ;
+   WHILE i<=h DO
+      doStatementsC (p, GetIndice (s^.stmtF.statements, i)) ;
+      INC (i)
+   END
+END doStatementSequenceC ;
+
+
+(*
+   isSingleStatement - returns TRUE if the statement sequence, s, has
+                       only one statement.
+*)
+
+PROCEDURE isSingleStatement (s: node) : BOOLEAN ;
+BEGIN
+   assert (isStatementSequence (s)) ;
+   RETURN HighIndice (s^.stmtF.statements) = 1
+END isSingleStatement ;
+
+
+(*
+   doCommentC -
+*)
+
+PROCEDURE doCommentC (p: pretty; s: node) ;
+BEGIN
+   assert (isComment (s)) ;
+   outText (p, "/* ") ;
+   outTextS (p, s^.commentF.content) ;
+   outText (p, "  */\n")
+END doCommentC ;
+
+
+(*
+   doExitC -
+*)
+
+PROCEDURE doExitC (p: pretty; s: node) ;
+BEGIN
+   assert (isExit (s)) ;
+   outText (p, "/* exit.  */\n")
+END doExitC ;
+
+
+(*
+   doReturnC -
+*)
+
+PROCEDURE doReturnC (p: pretty; s: node) ;
+BEGIN
+   assert (isReturn (s)) ;
+   outText (p, "return") ;
+   IF s^.returnF.exp#NIL
+   THEN
+      setNeedSpace (p) ;
+      doExprC (p, s^.returnF.exp)
+   END ;
+   outText (p, ";\n")
+END doReturnC ;
+
+
+(*
+   doAssignmentC -
+*)
+
+PROCEDURE doAssignmentC (p: pretty; s: node) ;
+BEGIN
+   assert (isAssignment (s)) ;
+   doExprC (p, s^.assignmentF.des) ;
+   setNeedSpace (p) ;
+   outText (p, "=") ;
+   setNeedSpace (p) ;
+   doExprC (p, s^.assignmentF.expr) ;
+   outText (p, ";\n")
+END doAssignmentC ;
+
+
+(*
+   doCompoundStmt -
+*)
+
+PROCEDURE doCompoundStmt (p: pretty; s: node) ;
+VAR
+   c: CARDINAL ;
+BEGIN
+   IF s = NIL
+   THEN
+      p := pushPretty (p) ;
+      c := getindent (p) ;
+      setindent (p, c + indentationC) ;
+      outText (p, ";  /* empty.  */\n") ;
+      p := popPretty (p)
+   ELSIF isStatementSequence (s) AND isSingleStatement (s)
+   THEN
+      p := pushPretty (p) ;
+      c := getindent (p) ;
+      setindent (p, c + indentationC) ;
+      doStatementSequenceC (p, s) ;
+      p := popPretty (p)
+   ELSE
+      p := outKc (p, "{\n") ;
+      doStatementSequenceC (p, s) ;
+      p := outKc (p, "}\n")
+   END
+END doCompoundStmt ;
+
+
+(*
+   doElsifC -
+*)
+
+PROCEDURE doElsifC (p: pretty; s: node) ;
+BEGIN
+   assert (isElsif (s)) ;
+   outText (p, "else if") ;
+   setNeedSpace (p) ;
+   outText (p, "(") ;
+   doExprC (p, s^.elsifF.expr) ;
+   outText (p, ")\n") ;
+   doCompoundStmt (p, s^.elsifF.then) ;
+   assert ((s^.elsifF.else = NIL) OR (s^.elsifF.elsif = NIL)) ;
+   IF s^.elsifF.else # NIL
+   THEN
+      outText (p, "else\n") ;
+      doCompoundStmt (p, s^.elsifF.else)
+   ELSIF s^.elsifF.elsif # NIL
+   THEN
+      doElsifC (p, s^.elsifF.elsif)
+   END
+END doElsifC ;
+
+
+(*
+   noElse - returns TRUE if, n, is an if statement which has no else component.
+*)
+
+PROCEDURE noElse (n: node) : BOOLEAN ;
+BEGIN
+   IF n # NIL
+   THEN
+      IF isStatementSequence (n) AND isSingleStatement (n)
+      THEN
+         n := GetIndice (n^.stmtF.statements, 1) ;
+         RETURN (n # NIL) AND isIf (n) AND (n^.ifF.else = NIL) AND (n^.ifF.elsif = NIL)
+      END
+   END ;
+   RETURN FALSE
+END noElse ;
+
+
+(*
+   doIfC -
+*)
+
+PROCEDURE doIfC (p: pretty; s: node) ;
+BEGIN
+   assert (isIf (s)) ;
+   outText (p, "if") ;
+   setNeedSpace (p) ;
+   outText (p, "(") ;
+   doExprC (p, s^.ifF.expr) ;
+   outText (p, ")\n") ;
+   IF noElse (s^.ifF.then)
+   THEN
+      (* avoid dangling else.  *)
+      outText (p, "{\n") ;
+      p := pushPretty (p) ;
+      setindent (p, getindent (p) + indentationC) ;
+      outText (p, "/* avoid dangling else.  */\n") ;
+      doStatementSequenceC (p, s^.ifF.then) ;
+      p := popPretty (p) ;
+      outText (p, "}\n")
+   ELSE
+      doCompoundStmt (p, s^.ifF.then)
+   END ;
+   assert ((s^.ifF.else = NIL) OR (s^.ifF.elsif = NIL)) ;
+   IF s^.ifF.else # NIL
+   THEN
+      outText (p, "else\n") ;
+      doCompoundStmt (p, s^.ifF.else)
+   ELSIF s^.ifF.elsif # NIL
+   THEN
+      doElsifC (p, s^.ifF.elsif)
+   END
+END doIfC ;
+
+
+(*
+   doForC -
+*)
+
+PROCEDURE doForC (p: pretty; s: node) ;
+BEGIN
+   assert (isFor (s)) ;
+   outText (p, "for (") ;
+   doExprC (p, s^.forF.des) ;
+   outText (p, "=") ;
+   doExprC (p, s^.forF.start) ;
+   outText (p, ";") ;
+   setNeedSpace (p) ;
+   doExprC (p, s^.forF.des) ;
+   outText (p, "<=") ;
+   doExprC (p, s^.forF.end) ;
+   outText (p, ";") ;
+   setNeedSpace (p) ;
+   IF s^.forF.increment = NIL
+   THEN
+      doExprC (p, s^.forF.des) ;
+      outText (p, "++")
+   ELSE
+      doExprC (p, s^.forF.des) ;
+      outText (p, "=") ;
+      doExprC (p, s^.forF.des) ;
+      outText (p, "+") ;
+      doExprC (p, s^.forF.increment)
+   END ;
+   outText (p, ")\n") ;
+   doCompoundStmt (p, s^.forF.statements)
+END doForC ;
+
+
+(*
+   doRepeatC -
+*)
+
+PROCEDURE doRepeatC (p: pretty; s: node) ;
+BEGIN
+   assert (isRepeat (s)) ;
+   outText (p, "do {\n") ;
+   p := pushPretty (p) ;
+   setindent (p, getindent (p) + indentationC) ;
+   doStatementSequenceC (p, s^.repeatF.statements) ;
+   p := popPretty (p) ;
+   outText (p, "} while (! (") ;
+   doExprC (p, s^.repeatF.expr) ;
+   outText (p, "));\n")
+END doRepeatC ;
+
+
+(*
+   doFuncArgsC -
+*)
+
+PROCEDURE doFuncArgsC (p: pretty; s: node) ;
+VAR
+   i, n: CARDINAL ;
+BEGIN
+   outText (p, "(") ;
+   IF s^.funccallF.args # NIL
+   THEN
+      i := 1 ;
+      n := expListLen (s^.funccallF.args) ;
+      WHILE i<=n DO
+         doExprC (p, getExpList (s^.funccallF.args, i)) ;
+         IF i<n
+         THEN
+            outText (p, ",") ;
+            setNeedSpace (p)
+         END ;
+         INC (i)
+      END
+   END ;
+   outText (p, ")")
+END doFuncArgsC ;
+
+
+(*
+   doFuncCallC -
+*)
+
+PROCEDURE doFuncCallC (p: pretty; n: node) ;
+BEGIN
+   assert (isFuncCall (n)) ;
+   doFQNameC (p, n^.funccallF.function) ;
+   setNeedSpace (p) ;
+   doFuncArgsC (p, n) ;
+   outText (p, ";\n")
+END doFuncCallC ;
+
+
+(*
+   doStatementsC -
+*)
+
+PROCEDURE doStatementsC (p: pretty; s: node) ;
+BEGIN
+   IF isStatementSequence (s)
+   THEN
+      doStatementSequenceC (p, s)
+   ELSIF isComment (s)
+   THEN
+      doCommentC (p, s)
+   ELSIF isExit (s)
+   THEN
+      doExitC (p, s)
+   ELSIF isReturn (s)
+   THEN
+      doReturnC (p, s)
+   ELSIF isAssignment (s)
+   THEN
+      doAssignmentC (p, s)
+   ELSIF isIf (s)
+   THEN
+      doIfC (p, s)
+   ELSIF isFor (s)
+   THEN
+      doForC (p, s)
+   ELSIF isRepeat (s)
+   THEN
+      doRepeatC (p, s)
+   ELSIF isFuncCall (s)
+   THEN
+      doFuncCallC (p, s)
+   ELSE
+      HALT  (* need to handle another s^.kind.  *)
+   END
+END doStatementsC ;
+
+
+(*
+   doLocalDeclsC -
+*)
+
+PROCEDURE doLocalDeclsC (p: pretty; s: scopeT) ;
+BEGIN
+   simplifyTypes (s) ;
+   includeConstType (s) ;
+
+   doP := p ;
+
+   topologicallyOut (doConstC, doTypesC, doVarC,
+                     outputPartial,
+                     doNone, doCompletePartialC, doNone) ;
+
+   (* try and output types, constants before variables and procedures.  *)
+   includeVarProcedure (s) ;
+
+   topologicallyOut (doConstC, doTypesC, doVarC,
+                     outputPartial,
+                     doNone, doCompletePartialC, doNone)
+END doLocalDeclsC ;
+
+
+(*
+   doProcedureC -
+*)
+
+PROCEDURE doProcedureC (n: node) ;
+BEGIN
+   outText (doP, "\n") ;
+   doProcedureHeadingC (n) ;
+   outText (doP, "\n") ;
+   doP := outKc (doP, "{\n") ;
+   doLocalDeclsC (doP, n^.procedureF.decls) ;
+   outText (doP, "\n") ;
+   doStatementsC (doP, n^.procedureF.beginStatements) ;
+   doP := outKc (doP, "}\n")
+END doProcedureC ;
+
+
+(*
+   outProceduresC -
+*)
+
+PROCEDURE outProceduresC (p: pretty; s: scopeT) ;
+BEGIN
+   doP := p ;
+   IF debugDecl
+   THEN
+      printf ("seen %d procedures\n", HighIndice (s.procedures))
+   END ;
+
+   ForeachIndiceInIndexDo (s.procedures, doProcedureC)
+END outProceduresC ;
 
 
 (*
@@ -6081,6 +6970,24 @@ END walkParam ;
 
 
 (*
+   walkOptarg -
+*)
+
+PROCEDURE walkOptarg (l: alist; n: node) : dependentState ;
+VAR
+   t: node ;
+BEGIN
+   t := getType (n) ;
+   IF alists.isItemInList (partialQ, t)
+   THEN
+      (* parameter can be issued from a partial.  *)
+      RETURN completed
+   END ;
+   RETURN walkDependants (l, t)
+END walkOptarg ;
+
+
+(*
    walkRecordField -
 *)
 
@@ -6314,6 +7221,7 @@ BEGIN
       literal         :  RETURN completed |
       varparam        :  RETURN walkVarParam (l, n) |
       param           :  RETURN walkParam (l, n) |
+      optarg          :  RETURN walkOptarg (l, n) |
       recordfield     :  RETURN walkRecordField (l, n) |
       varientfield    :  RETURN walkVarientField (l, n) |
       enumerationfield:  RETURN walkEnumerationField (l, n) |
@@ -6336,7 +7244,8 @@ BEGIN
       (* expressions.  *)
       componentref    :  RETURN walkBinary (l, n) |
       chr,
-      ord             :  RETURN walkUnary (l, n) |
+      ord,
+      high            :  RETURN walkUnary (l, n) |
       cast,
       val,
       plus,
@@ -6349,7 +7258,7 @@ BEGIN
       adr,
       size,
       tsize,
-      indirect        :  RETURN walkUnary (l, n) |
+      deref        :  RETURN walkUnary (l, n) |
       equal,
       notequal,
       less,
@@ -6489,8 +7398,10 @@ BEGIN
    tsize           :  RETURN InitString ('tsize') |
    chr             :  RETURN InitString ('chr') |
    ord             :  RETURN InitString ('ord') |
+   high            :  RETURN InitString ('high') |
    componentref    :  RETURN InitString ('componentref') |
-   indirect        :  RETURN InitString ('indirect') |
+   arrayref        :  RETURN InitString ('arrayref') |
+   deref           :  RETURN InitString ('deref') |
    equal           :  RETURN InitString ('equal') |
    notequal        :  RETURN InitString ('notequal') |
    less            :  RETURN InitString ('less') |
@@ -6818,6 +7729,24 @@ END checkProcUsed ;
 
 
 (*
+   outImpInitC -
+*)
+
+PROCEDURE outImpInitC (p: pretty; n: node) ;
+BEGIN
+   outText (p, "\n") ;
+   outText (p, "void") ;
+   setNeedSpace (p) ;
+   doFQNameC (p, n) ;
+   setNeedSpace (p) ;
+   outText (p, "(int argc, char *argv[])\n") ;
+   p := outKc (p, "{\n") ;
+   doStatementsC (p, n^.impF.beginStatements) ;
+   p := outKc (p, "}\n")
+END outImpInitC ;
+
+
+(*
    outDefC -
 *)
 
@@ -6848,7 +7777,7 @@ BEGIN
 
    checkProcUsed (p) ;
 
-   outDeclsDefC (p, n^.defF.decls) ;
+   outDeclsDefC (p, n) ;
 
    print (p, "\n") ;
    print (p, "#   undef EXTERN\n") ;
@@ -6886,9 +7815,56 @@ BEGIN
    checkProcUsed (p) ;
 
    includeDefConstType (n) ;
+   includeDefVarProcedure (n) ;
    outDeclsImpC (p, n^.impF.decls) ;
+   outProceduresC (p, n^.impF.decls) ;
+   outImpInitC (p, n) ;
    s := KillString (s)
 END outImpC ;
+
+
+(*
+   outDeclsModuleC -
+*)
+
+PROCEDURE outDeclsModuleC (p: pretty; s: scopeT) ;
+BEGIN
+   simplifyTypes (s) ;
+   includeConstType (s) ;
+
+   doP := p ;
+
+   topologicallyOut (doConstC, doTypesC, doVarC,
+                     outputPartial,
+                     doNone, doCompletePartialC, doNone) ;
+
+   (* try and output types, constants before variables and procedures.  *)
+   includeVarProcedure (s) ;
+
+   topologicallyOut (doConstC, doTypesC, doVarC,
+                     outputPartial,
+                     doNone, doCompletePartialC, doNone) ;
+
+   ForeachIndiceInIndexDo (s.procedures, doPrototypeC)
+END outDeclsModuleC ;
+
+
+(*
+   outModuleInitC -
+*)
+
+PROCEDURE outModuleInitC (p: pretty; n: node) ;
+BEGIN
+   outText (p, "\n") ;
+   outText (p, "void") ;
+   setNeedSpace (p) ;
+   doFQNameC (p, n) ;
+   setNeedSpace (p) ;
+   outText (p, "(int argc, char *argv[])\n") ;
+   p := outKc (p, "{\n") ;
+   doStatementsC (p, n^.moduleF.beginStatements) ;
+   p := outKc (p, "}\n")
+END outModuleInitC ;
 
 
 (*
@@ -6896,8 +7872,27 @@ END outImpC ;
 *)
 
 PROCEDURE outModuleC (p: pretty; n: node) ;
+VAR
+   s: String ;
 BEGIN
+   s := InitStringCharStar (keyToCharStar (getSource (n))) ;
+   print (p, "/* automatically created by mc from ") ; prints (p, s) ; print (p, ".  */\n\n") ;
+   s := KillString (s) ;
 
+   IF getExtendedOpaque ()
+   THEN
+      printf ("/*  --extended-opaque seen therefore no #include will be used and everything will be declared in full.  */\n")
+   ELSE
+      doP := p ;
+      ForeachIndiceInIndexDo (n^.impF.importedModules, doIncludeC) ;
+      print (p, "\n")
+   END ;
+
+   checkProcUsed (p) ;
+
+   outDeclsModuleC (p, n^.moduleF.decls) ;
+   outProceduresC (p, n^.moduleF.decls) ;
+   outModuleInitC (p, n)
 END outModuleC ;
 
 
@@ -7811,6 +8806,34 @@ END dbgEnumeration ;
 
 
 (*
+   dbgVar -
+*)
+
+PROCEDURE dbgVar (l: alist; n: node) ;
+VAR
+   t: node ;
+BEGIN
+   t := dbgAdd (l, getType (n)) ;
+   out1 ("<%s var", n) ;
+   out1 (", type = %s>\n", t)
+END dbgVar ;
+
+
+(*
+   dbgArray -
+*)
+
+PROCEDURE dbgArray (l: alist; n: node) ;
+VAR
+   t: node ;
+BEGIN
+   t := dbgAdd (l, getType (n)) ;
+   out1 ("<%s array", n) ;
+   out1 (" of %s>\n", t)
+END dbgArray ;
+
+
+(*
    doDbg -
 *)
 
@@ -7834,6 +8857,12 @@ BEGIN
    ELSIF isPointer (n)
    THEN
       dbgPointer (l, n)
+   ELSIF isArray (n)
+   THEN
+      dbgArray (l, n)
+   ELSIF isVar (n)
+   THEN
+      dbgVar (l, n)
    END
 END doDbg ;
 
@@ -7870,6 +8899,385 @@ END dbg ;
 
 
 (*
+   makeStatementSequence - create and return a statement sequence node.
+*)
+
+PROCEDURE makeStatementSequence () : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (stmtseq) ;
+   n^.stmtF.statements := InitIndex (1) ;
+   RETURN n
+END makeStatementSequence ;
+
+
+(*
+   addStatement - adds node, n, as a statement to statememt sequence, s.
+*)
+
+PROCEDURE addStatement (s: node; n: node) ;
+BEGIN
+   assert (isStatementSequence (s)) ;
+   PutIndice (s^.stmtF.statements, HighIndice (s^.stmtF.statements) + 1, n)
+END addStatement ;
+
+
+(*
+   isStatementSequence - returns TRUE if node, n, is a statement sequence.
+*)
+
+PROCEDURE isStatementSequence (n: node) : BOOLEAN ;
+BEGIN
+   RETURN n^.kind = stmtseq
+END isStatementSequence ;
+
+
+(*
+   makeReturn - creates and returns a return node.
+*)
+
+PROCEDURE makeReturn () : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (return) ;
+   n^.returnF.exp := NIL ;
+   RETURN n
+END makeReturn ;
+
+
+(*
+   isReturn - returns TRUE if node, n, is a return.
+*)
+
+PROCEDURE isReturn (n: node) : BOOLEAN ;
+BEGIN
+   assert (n # NIL) ;
+   RETURN n^.kind = return
+END isReturn ;
+
+
+(*
+   putReturn - assigns node, e, as the expression on the return node.
+*)
+
+PROCEDURE putReturn (n: node; e: node) ;
+BEGIN
+   assert (isReturn (n)) ;
+   n^.returnF.exp := e
+END putReturn ;
+
+
+(*
+   makeWhile - creates and returns a while node.
+*)
+
+PROCEDURE makeWhile () : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (while) ;
+   n^.whileF.expr := NIL ;
+   n^.whileF.statements := NIL ;
+   RETURN n
+END makeWhile ;
+
+
+(*
+   putWhile - places an expression, e, and statement sequence, s, into the while
+              node, n.
+*)
+
+PROCEDURE putWhile (n: node; e, s: node) ;
+BEGIN
+   assert (isWhile (n)) ;
+   n^.whileF.expr := e ;
+   n^.whileF.statements := s
+END putWhile ;
+
+
+(*
+   isWhile - returns TRUE if node, n, is a while.
+*)
+
+PROCEDURE isWhile (n: node) : BOOLEAN ;
+BEGIN
+   RETURN n^.kind = while
+END isWhile ;
+
+
+(*
+   makeAssignment - creates and returns an assignment node.
+                    The designator is, d, and expression, e.
+*)
+
+PROCEDURE makeAssignment (d, e: node) : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (assignment) ;
+   n^.assignmentF.des := d ;
+   n^.assignmentF.expr := e ;
+   RETURN n
+END makeAssignment ;
+
+
+(*
+   isAssignment -
+*)
+
+PROCEDURE isAssignment (n: node) : BOOLEAN ;
+BEGIN
+   RETURN n^.kind = assignment
+END isAssignment ;
+
+
+(*
+   putBegin - assigns statements, s, to be the normal part in
+              block, b.  The block may be a procedure or module,
+              or implementation node.
+*)
+
+PROCEDURE putBegin (b: node; s: node) ;
+BEGIN
+   assert (isImp (b) OR isProcedure (b) OR isModule (b)) ;
+   CASE b^.kind OF
+
+   imp      :  b^.impF.beginStatements := s |
+   module   :  b^.moduleF.beginStatements := s |
+   procedure:  b^.procedureF.beginStatements := s
+
+   END
+END putBegin ;
+
+
+(*
+   makeExit - creates and returns an exit node.
+*)
+
+PROCEDURE makeExit () : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (exit) ;
+   (* fill in later --fixme--.  *)
+   RETURN n
+END makeExit ;
+
+
+(*
+   isExit - returns TRUE if node, n, is an exit.
+*)
+
+PROCEDURE isExit (n: node) : BOOLEAN ;
+BEGIN
+   assert (n # NIL) ;
+   RETURN n^.kind = exit
+END isExit ;
+
+
+(*
+   makeComment - creates and returns a comment node.
+*)
+
+PROCEDURE makeComment (a: ARRAY OF CHAR) : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (comment) ;
+   n^.commentF.content := InitString (a) ;
+   RETURN n
+END makeComment ;
+
+
+(*
+   isComment - returns TRUE if node, n, is a comment.
+*)
+
+PROCEDURE isComment (n: node) : BOOLEAN ;
+BEGIN
+   assert (n # NIL) ;
+   RETURN n^.kind = comment
+END isComment ;
+
+
+(*
+   makeIf - creates and returns an if node.  The if node
+            will have expression, e, and statement sequence, s,
+            as the then component.
+*)
+
+PROCEDURE makeIf (e, s: node) : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (if) ;
+   n^.ifF.expr := e ;
+   n^.ifF.then := s ;
+   n^.ifF.else := NIL ;
+   n^.ifF.elsif := NIL ;
+   RETURN n
+END makeIf ;
+
+
+(*
+   isIf - returns TRUE if, n, is an if node.
+*)
+
+PROCEDURE isIf (n: node) : BOOLEAN ;
+BEGIN
+   RETURN n^.kind = if
+END isIf ;
+
+
+(*
+   makeElsif - creates and returns an elsif node.
+               This node has an expression, e, and statement
+               sequence, s.
+*)
+
+PROCEDURE makeElsif (i, e, s: node) : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (elsif) ;
+   n^.elsifF.expr := e ;
+   n^.elsifF.then := s ;
+   n^.elsifF.elsif := NIL ;
+   n^.elsifF.else := NIL ;
+   assert (isIf (i) OR isElsif (i)) ;
+   IF isIf (i)
+   THEN
+      i^.ifF.elsif := n ;
+      assert (i^.ifF.else = NIL)
+   ELSE
+      i^.elsifF.elsif := n ;
+      assert (i^.elsifF.else = NIL)
+   END ;
+   RETURN n
+END makeElsif ;
+
+
+(*
+   isElsif - returns TRUE if node, n, is an elsif node.
+*)
+
+PROCEDURE isElsif (n: node) : BOOLEAN ;
+BEGIN
+   RETURN n^.kind = elsif
+END isElsif ;
+
+
+(*
+   putElse - the else is grafted onto the if/elsif node, i,
+             and the statement sequence will be, s.
+*)
+
+PROCEDURE putElse (i, s: node) ;
+BEGIN
+   assert (isIf (i) OR isElsif (i)) ;
+   IF isIf (i)
+   THEN
+      assert (i^.ifF.elsif = NIL) ;
+      assert (i^.ifF.else = NIL) ;
+      i^.ifF.else := s
+   ELSE
+      assert (i^.elsifF.elsif = NIL) ;
+      assert (i^.elsifF.else = NIL) ;
+      i^.elsifF.else := s
+   END
+END putElse ;
+
+
+(*
+   makeFor - creates and returns a for node.
+*)
+
+PROCEDURE makeFor () : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (for) ;
+   n^.forF.des := NIL ;
+   n^.forF.start := NIL ;
+   n^.forF.end := NIL ;
+   n^.forF.increment := NIL ;
+   n^.forF.statements := NIL ;
+   RETURN n
+END makeFor ;
+
+
+(*
+   isFor - returns TRUE if node, n, is a for node.
+*)
+
+PROCEDURE isFor (n: node) : BOOLEAN ;
+BEGIN
+   assert (n # NIL) ;
+   RETURN n^.kind = for
+END isFor ;
+
+
+(*
+   putFor - assigns the fields of the for node with
+            ident, i,
+            start, s,
+            end, e,
+            increment, i,
+            statements, sq.
+*)
+
+PROCEDURE putFor (f, i, s, e, b, sq: node) ;
+BEGIN
+   assert (isFor (f)) ;
+   f^.forF.des := i ;
+   f^.forF.start := s ;
+   f^.forF.end := e ;
+   f^.forF.increment := b ;
+   f^.forF.statements := sq
+END putFor ;
+
+
+(*
+   makeRepeat - creates and returns a repeat node.
+*)
+
+PROCEDURE makeRepeat () : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (repeat) ;
+   n^.repeatF.expr := NIL ;
+   n^.repeatF.statements := NIL ;
+   RETURN n
+END makeRepeat ;
+
+
+(*
+   isRepeat - returns TRUE if node, n, is a repeat node.
+*)
+
+PROCEDURE isRepeat (n: node) : BOOLEAN ;
+BEGIN
+   assert (n # NIL) ;
+   RETURN n^.kind = repeat
+END isRepeat ;
+
+
+(*
+   putRepeat - places statements, s, and expression, e, into
+               repeat statement, n.
+*)
+
+PROCEDURE putRepeat (n, s, e: node) ;
+BEGIN
+   n^.repeatF.expr := e ;
+   n^.repeatF.statements := s
+END putRepeat ;
+
+
+(*
    makeSystem -
 *)
 
@@ -7903,6 +9311,16 @@ BEGIN
    addDone (byteN) ;
    addDone (wordN)
 END makeSystem ;
+
+
+(*
+   makeM2rts -
+*)
+
+PROCEDURE makeM2rts ;
+BEGIN
+   m2rtsN := lookupDef (makeKey ('M2RTS'))
+END makeM2rts ;
 
 
 (*
@@ -7957,6 +9375,13 @@ BEGIN
    ordN := makeBase (ord) ;
    valN := makeBase (val) ;
    chrN := makeBase (chr) ;
+   newN := makeBase (new) ;
+   disposeN := makeBase (dispose) ;
+   incN := makeBase (inc) ;
+   decN := makeBase (dec) ;
+   inclN := makeBase (incl) ;
+   exclN := makeBase (excl) ;
+   highN := makeBase (high) ;
 
    putSymKey (baseSymbols, makeKey ('BOOLEAN'), booleanN) ;
    putSymKey (baseSymbols, makeKey ('PROC'), procN) ;
@@ -7981,6 +9406,13 @@ BEGIN
    putSymKey (baseSymbols, makeKey ('ORD'), ordN) ;
    putSymKey (baseSymbols, makeKey ('VAL'), valN) ;
    putSymKey (baseSymbols, makeKey ('CHR'), chrN) ;
+   putSymKey (baseSymbols, makeKey ('NEW'), newN) ;
+   putSymKey (baseSymbols, makeKey ('DISPOSE'), disposeN) ;
+   putSymKey (baseSymbols, makeKey ('INC'), incN) ;
+   putSymKey (baseSymbols, makeKey ('DEC'), decN) ;
+   putSymKey (baseSymbols, makeKey ('INCL'), inclN) ;
+   putSymKey (baseSymbols, makeKey ('EXCL'), exclN) ;
+   putSymKey (baseSymbols, makeKey ('HIGH'), highN) ;
 
    addDone (booleanN) ;
    addDone (charN) ;
@@ -8028,6 +9460,9 @@ END makeBuiltins ;
 
 PROCEDURE init ;
 BEGIN
+   lang := ansiC ;
+   outputFile := StdOut ;
+   doP := initPretty (write, writeln) ;
    todoQ := alists.initList () ;
    partialQ := alists.initList () ;
    doneQ := alists.initList () ;
@@ -8039,12 +9474,10 @@ BEGIN
    makeBaseSymbols ;
    makeSystem ;
    makeBuiltins ;
-   lang := ansiC ;
+   makeM2rts ;
    outputState := punct ;
    tempCount := 0 ;
-   procUsed := FALSE ;
-   outputFile := StdOut ;
-   doP := initPretty (write, writeln)
+   procUsed := FALSE
 END init ;
 
 

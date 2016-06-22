@@ -65,16 +65,25 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
                  makeSet, makePointer, makeProcType, putReturnType,
 		 putProcTypeOptReturn, addParameter,
 		 makeVarargs, makeVarParameter, makeNonVarParameter,
-		 putSubrangeType, putConst,
+		 putSubrangeType, putConst, getType, skipType,
 		 makeArray, putUnbounded, getCardinal, makeBinaryTok, makeUnaryTok,
 		 makeRecord, isRecord, isRecordField, isVarientField, makeVarient,
 		 addFieldsToRecord, isVarient, buildVarientSelector,
- 		 buildVarientFieldRecord, makeVarDecl, paramEnter, paramLeave,
+ 		 buildVarientFieldRecord, paramEnter, paramLeave,
 		 makeIdentList, putIdent, addVarParameters, addNonVarParameters,
 		 lookupInScope, import, lookupExported, isImp, isModule, isConst,
 		 makeLiteralInt, makeLiteralReal, makeString, getBuiltinConst,
-		 getNextEnum,
-		 makeExpList, putExpList, isExpList ;
+		 getNextEnum, makeComponentRef, makeArrayRef, makeDeRef,
+		 makeExpList, putExpList, isExpList, isArray, isPointer, isVar,
+		 isConst, isParameter,
+		 makeStatementSequence, addStatement, putBegin,
+		 makeReturn, putReturn, makeExit, makeComment,
+		 isStatementSequence, isWhile, makeWhile, putWhile,
+		 makeAssignment, makeFuncCall, isReturn,
+		 makeIf, makeElsif, putElse, isIf,
+		 makeFor, putFor, isFor,
+		 makeRepeat, putRepeat,
+		 resetConstExpPos, getNextConstExp ;
 
 
 CONST
@@ -87,10 +96,42 @@ VAR
    curident   : Name ;
    curproc,
    frommodule,
+   qualid,
    typeDes,
    typeExp,
    curmodule  : node ;
+   stmtStk,
+   withStk,
    stk        : stack ;
+
+
+(*
+   followNode -
+*)
+
+PROCEDURE followNode (n: node) ;
+BEGIN
+   IF isVar (n)
+   THEN
+      printf0 ("variable: ")
+   ELSIF isParameter (n)
+   THEN
+      printf0 ("parameter: ")
+   END ;
+   n := skipType (getType (n)) ;
+   IF isArray (n)
+   THEN
+      printf0 ("array\n")
+   ELSIF isPointer (n)
+   THEN
+      printf0 ("pointer\n")
+   ELSIF isRecord (n)
+   THEN
+      printf0 ("record\n")
+   ELSE
+      printf0 ("other\n")
+   END
+END followNode ;
 
 
 (*
@@ -151,6 +192,103 @@ PROCEDURE checkDuplicate (b: BOOLEAN) ;
 BEGIN
 
 END checkDuplicate ;
+
+
+(*
+   isQualident - returns TRUE if, n, is a qualident.
+*)
+
+PROCEDURE isQualident (n: node) : BOOLEAN ;
+VAR
+   type: node ;
+BEGIN
+   IF isDef (n)
+   THEN
+      RETURN TRUE
+   ELSE
+      type := skipType (getType (n)) ;
+      RETURN (type # NIL) AND isRecord (type)
+   END ;
+   RETURN FALSE
+END isQualident ;
+
+
+
+(*
+   startWith -
+*)
+
+PROCEDURE startWith (n: node) ;
+BEGIN
+   n := mcStack.push (withStk, n)
+END startWith ;
+
+
+(*
+   endWith -
+*)
+
+PROCEDURE endWith ;
+VAR
+   n: node ;
+BEGIN
+   n := mcStack.pop (withStk)
+END endWith ;
+
+
+(*
+   lookupWithSym -
+*)
+
+PROCEDURE lookupWithSym (i: Name) : node ;
+VAR
+   d      : CARDINAL ;
+   n, m, t: node ;
+BEGIN
+   d := mcStack.depth (withStk) ;
+   WHILE d # 0 DO
+      n := mcStack.access (withStk, d) ;
+      t := skipType (getType (n)) ;
+      m := lookupInScope (t, i) ;
+      IF m # NIL
+      THEN
+         RETURN makeComponentRef (n, m)
+      END ;
+      DEC (d)
+   END ;
+   RETURN lookupSym (i)
+END lookupWithSym ;
+
+
+(*
+   pushStmt - push a node, n, to the statement stack and return node, n.
+*)
+
+PROCEDURE pushStmt (n: node) : node ;
+BEGIN
+   RETURN mcStack.push (stmtStk, n)
+END pushStmt ;
+
+
+(*
+   popStmt - pop the top node from the statement stack.
+*)
+
+PROCEDURE popStmt () : node ;
+BEGIN
+   RETURN mcStack.pop (stmtStk)
+END popStmt ;
+
+
+(*
+   peepStmt - return the top node from the statement stack,
+              but leave the stack unchanged.
+*)
+
+PROCEDURE peepStmt () : node ;
+BEGIN
+   RETURN pushStmt (popStmt ())
+END peepStmt ;
 
 
 PROCEDURE ErrorString (s: String) ;
@@ -445,9 +583,13 @@ END Expect ;
 PROCEDURE CompilationUnit () : BOOLEAN ;
 BEGIN
    stk := mcStack.init () ;
+   withStk := mcStack.init () ;
+   stmtStk := mcStack.init () ;
    WasNoError := TRUE ;
    FileUnit(SetOfStop0{eoftok}, SetOfStop1{}, SetOfStop2{}) ;
    mcStack.kill (stk) ;
+   mcStack.kill (withStk) ;
+   mcStack.kill (stmtStk) ;
    RETURN WasNoError
 END CompilationUnit ;
 
@@ -620,6 +762,7 @@ FileUnit := DefinitionModule | ImplementationOrProgramModule
 ProgramModule := "MODULE"
                   Ident                                                % curmodule := lookupModule (curident) %
 		                                                       % enterScope (curmodule) %
+								       % resetConstExpPos (curmodule) %
                   [ Priority ] ";"
                   { Import }
                   Block
@@ -633,6 +776,7 @@ ImplementationModule := "IMPLEMENTATION" "MODULE"
                          Ident                                         % curmodule := lookupImp (curident) %
 			                                               % enterScope (lookupDef (curident)) %
                                                                        % enterScope (curmodule) %
+                                                                       % resetConstExpPos (curmodule) %
                          [ Priority ] ";"
                          { Import }
                          Block
@@ -643,13 +787,25 @@ ImplementationModule := "IMPLEMENTATION" "MODULE"
 
 ImplementationOrProgramModule := ImplementationModule | ProgramModule =:
 
+ConstInteger := Integer                                                % VAR i: node ; %
+                                                                       % i := pop () %
+	      =:
+
+ConstReal := Real                                                      % VAR r: node ; %
+                                                                       % r := pop () %
+	      =:
+
+ConstNumber := ConstInteger | ConstReal =:
+
 Number := Integer | Real =:
 
 Qualident := Ident { "." Ident } =:
 
 ConstantDeclaration := Ident "=" ConstExpression =:
 
-ConstExpression := SimpleConstExpr [ Relation SimpleConstExpr ] =:
+ConstExpression :=                                                     % VAR c: node ; %
+                                                                       % c := push (getNextConstExp ()) %
+                   SimpleConstExpr [ Relation SimpleConstExpr ] =:
 
 Relation := "="
             | "#"
@@ -689,7 +845,7 @@ MulOperator := "*"
                | "&"
             =:
 
-ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
+ConstFactor := ConstNumber | ConstString | ConstSetOrQualidentOrFunction |
                "(" ConstExpression ")" | "NOT" ConstFactor
                | ConstAttribute =:
 
@@ -822,58 +978,117 @@ VarIdentList := VarIdent { "," VarIdent }  =:
 VariableDeclaration :=  VarIdentList ":" Type Alignment
                      =:
 
-Designator := Qualident { SubDesignator } =:
+Designator := PushQualident { SubDesignator } =:
 
-SubDesignator := "."
-                 Ident
-                 | "[" ArrayExpList
-                   "]"
-                 | "^"
+SubDesignator :=                                                        % VAR n, field, type: node ; %
+                                                                        % n := peep () %
+									% type := skipType (getType (n)) %
+                 ( "."
+                   Ident                                                % IF isRecord (type)
+                                                                          THEN
+                                                                             field := lookupInScope (type, curident) ;
+                                                                             IF field = NIL
+                                                                             THEN
+                                                                                metaError2 ('field {%1k} cannot be found in record {%2ad}', curident, type)
+                                                                             ELSE
+                                                                                n := replace (makeComponentRef (n, field))
+                                                                             END
+                                                                          ELSE
+                                                                             metaError2 ('attempting to access a field {%1k} from {%2ad} which does not have a record type', curident, type)
+                                                                          END %
+
+                   | "[" ArrayExpList                                   % IF isArray (type)
+                                                                          THEN
+                                                                             n := replace (makeArrayRef (n, pop ()))
+                                                                          ELSE
+                                                                             metaError1 ('attempting to access an array but the expression is not an array but a {%1d}', type)
+                                                                          END %
+                     "]"
+                   | "^"                                                % IF isPointer (type)
+                                                                          THEN
+                                                                             n := replace (makeDeRef (n))
+                                                                          ELSE
+                                                                             metaError1 ('attempting to dereference a pointer but the expression is not a pointer but a {%1d}', type)
+                                                                          END %
+		  )
                =:
 
-ArrayExpList :=
-                Expression
+ArrayExpList :=                                                         % VAR l: node ; %
+                                                                        % l := push (makeExpList ()) %
+                Expression                                              % putExpList (l, pop ()) %
                 { ","
-                   Expression
+                   Expression                                           % putExpList (l, pop ()) %
                 }
               =:
 
-ExpList := Expression { "," Expression }
+ExpList :=                                                              % VAR p, n: node ; %
+                                                                        % p := peep () %
+									% assert (isExpList (p)) %
+                Expression                                              % putExpList (p, pop ()) %
+                           { "," Expression                             % putExpList (p, pop ()) %
+			                    }
          =:
 
-Expression := SimpleExpression [ Relation SimpleExpression ]
+
+Expression :=                                                           % VAR c, l, r: node ; op: toktype ; %
+              SimpleExpression                                          % op := currenttoken %
+	                       [ Relation                               % l := pop () %
+			                  SimpleExpression              % r := pop () %
+					                                % r := push (makeBinaryTok (op, l, r)) %
+					                   ]
            =:
 
-SimpleExpression := UnaryOrTerm { AddOperator Term } =:
+SimpleExpression :=                                                     % VAR op: toktype ; n: node ; %
+                    UnaryOrTerm {                                       % op := currenttoken %
+		                                                        % n := pop () %
+				  AddOperator Term                      % n := push (makeBinaryTok (op, n, pop ())) %
+					           }
+						     =:
 
-UnaryOrTerm := "+" Term
-               | "-" Term
+UnaryOrTerm :=                                                          % VAR n: node ; %
+               "+" Term                                                 % n := push (makeUnaryTok (plustok, pop ())) %
+               | "-" Term                                               % n := push (makeUnaryTok (minustok, pop ())) %
                | Term
 	     =:
 
-Term := Factor { MulOperator Factor
-               } =:
+Term :=                                                                 % VAR op: toktype ; n: node ; %
+        Factor {                                                        % op := currenttoken %
+	         MulOperator                                            % n := pop () %
+		             Factor                                     % n := push (makeBinaryTok (op, n, pop ())) %
+                                    } =:
 
 Factor := Number | string | SetOrDesignatorOrFunction |
           "(" Expression ")" | "NOT" ( Factor
           | ConstAttribute
                                 ) =:
 
-SetOrDesignatorOrFunction := PushQualident
+SetOrDesignatorOrFunction := PushQualident                               % VAR q, p, n: node ; %
                               [ Constructor |
-                                SimpleDes [ ActualParameters ]
+                                SimpleDes
+				          [                              % q := pop () %
+					    ActualParameters             % p := pop () %
+					                                 % p := push (makeFuncCall (q, p)) %
+					                     ]
                               ]                                |
                               Constructor =:
 
 -- SimpleDes := { "." Ident | "[" ExpList "]" | "^" } =:
 SimpleDes := { SubDesignator } =:
 
-ActualParameters := "(" [ ExpList ] ")" =:
+ActualParameters := "("                                                  % VAR n: node ; %
+                                                                         % n := push (makeExpList ()) %
+                        [ ExpList ] ")" =:
 
-ExitStatement := "EXIT"
+
+ExitStatement :=                                                         % VAR n: node ; %
+                 "EXIT"                                                  % n := pushStmt (makeExit ()) %
                =:
 
-ReturnStatement := "RETURN" [ Expression ]
+ReturnStatement :=                                                       % VAR n: node ; %
+                                                                         % n := pushStmt (makeReturn ()) %
+                   "RETURN" [ Expression                                 % putReturn (n, pop ()) %
+		                         ]
+					                                 % assert (isReturn (peepStmt ())) %
                  =:
 
 Statement := [ AssignmentOrProcedureCall | IfStatement | CaseStatement |
@@ -883,13 +1098,17 @@ Statement := [ AssignmentOrProcedureCall | IfStatement | CaseStatement |
              ]
           =:
 
-RetryStatement := "RETRY"
+RetryStatement :=                                                        % VAR s: node ; %
+                                                                         % s := pushStmt (makeComment ("retry")) %
+                  "RETRY"
                 =:
 
-AssignmentOrProcedureCall := Designator
-                             ( ":=" Expression
+AssignmentOrProcedureCall :=                                             % VAR d, a, p: node ; %
+                             Designator                                  % d := pop () %
+                             ( ":=" Expression                           % a := pushStmt (makeAssignment (d, pop ())) %
                                 |
-                                  ActualParameters |                     % (* epsilon *) %
+                                  ActualParameters                       % a := pushStmt (makeFuncCall (d, pop ())) %
+				                   |                     % a := pushStmt (makeFuncCall (d, NIL)) %
                              )
                            =:
 
@@ -897,22 +1116,32 @@ AssignmentOrProcedureCall := Designator
 -- ProcedureCall := Designator [ ActualParameters ] =:
 -- Assignment := Designator ":=" Expression =:
 
-StatementSequence := Statement { ";" Statement }
+StatementSequence :=                                                     % VAR s: node ; %
+                                                                         % s := pushStmt (makeStatementSequence ()) %
+		                                                         % assert (isStatementSequence (peepStmt ())) %
+                     Statement		                                 % addStatement (s, popStmt ()) %
+		                                                         % assert (isStatementSequence (peepStmt ())) %
+		               { ";"
+		                     Statement		                 % addStatement (s, popStmt ()) %
+		                                                         % assert (isStatementSequence (peepStmt ())) %
+				               }
                   =:
 
-IfStatement := "IF"
-                    Expression "THEN"
-                StatementSequence
+IfStatement :=                                                           % VAR i: node ; %
+               "IF" Expression "THEN" StatementSequence                  % i := pushStmt (makeIf (pop (), popStmt ())) %
               { "ELSIF"
 
                         Expression "THEN"
-                                          StatementSequence
+                                          StatementSequence              % i := makeElsif (i, pop (), popStmt ()) %
               }
               [ "ELSE"
-                      StatementSequence ] "END"
+                      StatementSequence                                  % putElse (i, popStmt ()) %
+		                        ] "END"                          % assert (isIf (peepStmt ())) %
             =:
 
-CaseStatement := "CASE"
+CaseStatement :=                                                         % VAR s: node ; %
+                                                                         % s := pushStmt (makeComment ("case")) %
+                 "CASE"
                         Expression
                                    "OF" Case { "|" Case }
                  CaseEndStatement
@@ -931,41 +1160,54 @@ CaseLabelList := CaseLabels { "," CaseLabels } =:
 CaseLabels := ConstExpression [ ".." ConstExpression ]
             =:
 
-WhileStatement := "WHILE" Expression "DO"
-                      StatementSequence
-		  "END"
+WhileStatement :=                                                        % VAR s, w, e: node ; %
+                                                                         % w := pushStmt (makeWhile ()) %
+                  "WHILE" Expression "DO"                                % e := pop () %
+                      StatementSequence                                  % s := popStmt () %
+		  "END"                                                  % (* assert (isStatementSequence (peepStmt ())) *) %
+		                                                         % putWhile (w, e, s) %
                 =:
 
-RepeatStatement := "REPEAT"
-                       StatementSequence
-	           "UNTIL" Expression
+RepeatStatement :=                                                       % VAR r, s: node ; %
+                                                                         % r := pushStmt (makeRepeat ()) %
+                   "REPEAT"
+                       StatementSequence                                 % s := popStmt () %
+	           "UNTIL" Expression                                    % putRepeat (r, s, pop ()) %
                  =:
 
-ForStatement :=
-                "FOR" Ident ":=" Expression "TO" Expression [ "BY" ConstExpression ] "DO"
-                    StatementSequence
+ForStatement :=                                                          % VAR f, i, s, e, b: node ; %
+                                                                         % b := NIL %
+                                                                         % f := pushStmt (makeFor ()) %
+                "FOR" Ident                                              % i := lookupWithSym (curident) %
+		            ":=" Expression                              % s := pop () %
+			                    "TO" Expression              % e := pop () %
+		    [ "BY" ConstExpression                               % b := pop () %
+		                           ] "DO"
+                    StatementSequence                                    % putFor (f, i, s, e, b, popStmt ()) %
                 "END"
               =:
 
-LoopStatement := "LOOP"
+LoopStatement :=                                                         % VAR s: node ; %
+                                                                         % s := pushStmt (makeComment ("loop")) %
+                 "LOOP"
                       StatementSequence
                  "END"
                =:
 
-WithStatement := "WITH" Designator "DO"
+WithStatement := "WITH" Designator "DO"                                  % startWith (pop ()) %
                      StatementSequence
-                 "END"
+                 "END"                                                   % endWith %
                =:
 
 ProcedureDeclaration := ProcedureHeading ";" ProcedureBlock
-                        Ident                                          % leaveScope %
+                        Ident                                            % leaveScope %
                       =:
 
-ProcedureIdent := Ident                                                % curproc := lookupSym (curident) %
-                                                                       % enterScope (curproc) %
+ProcedureIdent := Ident                                                  % curproc := lookupSym (curident) %
+                                                                         % enterScope (curproc) %
                 =:
 
-DefProcedureIdent := Ident                                             % curproc := lookupSym (curident) %
+DefProcedureIdent := Ident                                               % curproc := lookupSym (curident) %
                    =:
 
 DefineBuiltinProcedure := [ "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" | "__INLINE__" ]
@@ -996,9 +1238,14 @@ InitialBlockBody := NormalPart [ "EXCEPT" ExceptionalPart ] =:
 
 FinalBlockBody := NormalPart [ "EXCEPT" ExceptionalPart ] =:
 
-ProcedureBlockBody := NormalPart [ "EXCEPT" ExceptionalPart ] =:
+ProcedureBlockBody := ProcedureNormalPart
+                      [ "EXCEPT" ExceptionalPart ] =:
 
-NormalPart := StatementSequence =:
+ProcedureNormalPart := StatementSequence                               % putBegin (curproc, popStmt ()) %
+                     =:
+
+NormalPart := StatementSequence                                        % putBegin (curmodule, popStmt ()) %
+            =:
 
 ExceptionalPart := StatementSequence
                  =:
@@ -1009,14 +1256,14 @@ Declaration := "CONST" { ConstantDeclaration ";" } |
                ProcedureDeclaration ";" |
                ModuleDeclaration ";" =:
 
-DefFormalParameters := "("                                            % paramEnter (curproc) %
-                           [ DefMultiFPSection ] ")"                  % paramLeave (curproc) %
+DefFormalParameters := "("                                             % paramEnter (curproc) %
+                           [ DefMultiFPSection ] ")"                   % paramLeave (curproc) %
 			                             FormalReturn =:
 
 DefMultiFPSection := DefExtendedFP | FPSection [ ";" DefMultiFPSection ] =:
 
-FormalParameters := "("                                               % paramEnter (curproc) %
-                        [ MultiFPSection ] ")"                        % paramLeave (curproc) %
+FormalParameters := "("                                                % paramEnter (curproc) %
+                        [ MultiFPSection ] ")"                         % paramLeave (curproc) %
 			                       FormalReturn =:
 
 MultiFPSection := ExtendedFP | FPSection [ ";" MultiFPSection ] =:
@@ -1064,29 +1311,42 @@ WithoutFromImport := "IMPORT" ImportModuleList ";"
 
 Import := FromImport | WithoutFromImport =:
 
-DefinitionModule := "DEFINITION" "MODULE" [ "FOR" string ] Ident ";"   % curmodule := lookupDef (curident) %
-    		                                                       % enterScope (curmodule) %
+DefinitionModule := "DEFINITION" "MODULE" [ "FOR" string ] Ident ";"    % curmodule := lookupDef (curident) %
+     		                                                        % enterScope (curmodule) %
                       { Import } [ Export ]
                       { Definition }
-                    "END" Ident "."                                    % checkEndName (curmodule, curident, 'definition module') %
-                                                                       % leaveScope %
+                    "END" Ident "."                                     % checkEndName (curmodule, curident, 'definition module') %
+                                                                        % leaveScope %
                   =:
 
-PushQualident := Ident                                                 % typeExp := push (lookupSym (curident)) %
-		                                                       % IF typeExp = NIL
-                                                                         THEN
-                                                                            metaError1 ('the symbol {%1k} is not visible in this scope (or any other nested scope)', curident)
-                                                                         END %
+PushQualident :=                                                        % VAR type, field: node ; %
+                 Ident                                                  % qualid := push (lookupWithSym (curident)) %
+		                                                        % IF qualid = NIL
+                                                                          THEN
+                                                                             metaError1 ('the symbol {%1k} is not visible in this scope (or any other nested scope)', curident)
+                                                                          END %
 		      [ "."
-		                                                       % IF NOT isDef (typeExp)
-                                                                         THEN
-									    ErrorArray ('the first component of this qualident must be a definition module')
-                                                                         END %
-		            Ident                                      % typeExp := replace (lookupInScope (typeExp, curident)) ;
-			                                                 IF typeExp=NIL
-                                                                         THEN
-                                                                            ErrorArray ('identifier not found in definition module')
-                                                                         END %
+		                                                        % IF NOT isQualident (qualid)
+                                                                          THEN
+                                                                             ErrorArray ('the first component of this qualident must be a definition module or a parameter/variable/constant which has record type')
+                                                                          END %
+		            Ident                                       % IF isDef (qualid)
+                                                                          THEN
+                                                                             qualid := replace (lookupInScope (qualid, curident))
+                                                                          ELSE
+                                                                             type := skipType (getType (qualid)) ;
+                                                                             field := lookupInScope (type, curident) ;
+									     IF field = NIL
+                                                                             THEN
+                                                                                metaError2 ('field {%1k} cannot be found in {%2ad}', curident, qualid)
+                                                                             ELSE
+                                                                                qualid := replace (makeComponentRef (qualid, field))
+                                                                             END
+                                                                          END ;
+                                                                          IF qualid = NIL
+                                                                          THEN
+                                                                             metaError1 ('qualified component of the identifier {%1k} cannot be found', curident)
+                                                                          END %
 			          ]
               =:
 
@@ -1112,7 +1372,9 @@ Definition := "CONST" { ConstantDeclaration ";" } |
               "VAR" { VariableDeclaration ";" } |
               DefProcedureHeading ";" =:
 
-AsmStatement := 'ASM' [ 'VOLATILE' ] '(' AsmOperands ')' =:
+AsmStatement :=                                                      % VAR s: node ; %
+                                                                     % s := pushStmt (makeComment ("asm")) %
+                'ASM' [ 'VOLATILE' ] '(' AsmOperands ')' =:
 
 AsmOperands := string [ AsmOperandSpec ]
              =:
