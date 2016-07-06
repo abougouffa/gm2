@@ -1,3 +1,23 @@
+2016-07-06      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/mc-5.bnf:  ConstExpList introduce more asserts.
+          ArrayExpList introduce more asserts.  ExpList introduce more asserts.
+          Term, Factor generate an expression.  ExitStatement introduce
+          an assert.  Statement allow empty statements to be produced.
+	  StatementSequence introduce assert.
+	* gm2/mc/decl.mod:  introduce ABS intrinsic.  isVarDecl,
+          identListLen, isArrayRef, isZero, doArrayRef, doProcedure,
+          doStringC, outCard, doSubtractC, checkDeclareUnboundedParamCopyC,
+          checkUnboundedParamCopyC, doUnboundedParamCopyC,
+          addVariablesTodo, addTypesTodo, simplifyVar, doWhileC, doFuncHighC,
+          doMultiplyBySize, doTotype, doFuncUnbounded, doFuncParamC,
+          getNthParamType, doAdrC, doIncDecC, doInclC, doExclC, doNewC,
+          doDisposeC, isIntrinsic, doIntrinsicC, getFuncFromExpr,
+          doFuncExprC, doLocalVarC, addParamDone, includeParameters
+	  (New procedure).
+	* gm2/mc/mcPretty.def:  getseekpos, getcurline (New procedure functions).
+	* gm2/mc/mcPretty.mod:  getseekpos, getcurline (implemented).
+
 2016-06-22      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/mc-3.bnf:  merged definition and module variable declaration

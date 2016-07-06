@@ -880,7 +880,9 @@ ConstExpList :=                                                         % VAR p,
                                                                         % p := peep () %
 									% assert (isExpList (p)) %
                 Expression                                              % putExpList (p, pop ()) %
+                                                                        % assert (isExpList (peep ())) %
                            { "," Expression                             % putExpList (p, pop ()) %
+                                                                        % assert (isExpList (peep ())) %
 			                    }
               =:
 
@@ -1016,8 +1018,10 @@ SubDesignator :=                                                        % VAR n,
 ArrayExpList :=                                                         % VAR l: node ; %
                                                                         % l := push (makeExpList ()) %
                 Expression                                              % putExpList (l, pop ()) %
+                                                                        % assert (isExpList (peep ())) %
                 { ","
                    Expression                                           % putExpList (l, pop ()) %
+                                                                        % assert (isExpList (peep ())) %
                 }
               =:
 
@@ -1025,7 +1029,9 @@ ExpList :=                                                              % VAR p,
                                                                         % p := peep () %
 									% assert (isExpList (p)) %
                 Expression                                              % putExpList (p, pop ()) %
+                                                                        % assert (isExpList (peep ())) %
                            { "," Expression                             % putExpList (p, pop ()) %
+                                                                        % assert (isExpList (peep ())) %
 			                    }
          =:
 
@@ -1057,7 +1063,11 @@ Term :=                                                                 % VAR op
 		             Factor                                     % n := push (makeBinaryTok (op, n, pop ())) %
                                     } =:
 
-Factor := Number | string | SetOrDesignatorOrFunction |
+PushString := string                                                    % VAR n: node ; %
+                                                                        % n := push (makeString (curstring)) %
+            =:
+
+Factor := Number | PushString | SetOrDesignatorOrFunction |
           "(" Expression ")" | "NOT" ( Factor
           | ConstAttribute
                                 ) =:
@@ -1077,7 +1087,8 @@ SimpleDes := { SubDesignator } =:
 
 ActualParameters := "("                                                  % VAR n: node ; %
                                                                          % n := push (makeExpList ()) %
-                        [ ExpList ] ")" =:
+                        [ ExpList ] ")"                                  % assert (isExpList (peep ())) %
+		  =:
 
 
 ExitStatement :=                                                         % VAR n: node ; %
@@ -1091,11 +1102,12 @@ ReturnStatement :=                                                       % VAR n
 					                                 % assert (isReturn (peepStmt ())) %
                  =:
 
-Statement := [ AssignmentOrProcedureCall | IfStatement | CaseStatement |
+Statement := ( AssignmentOrProcedureCall | IfStatement | CaseStatement |
                WhileStatement | RepeatStatement | LoopStatement |
                ForStatement | WithStatement | AsmStatement |
-               ExitStatement | ReturnStatement | RetryStatement
-             ]
+               ExitStatement | ReturnStatement | RetryStatement |        % VAR s: node ; %
+	                                                                 % s := pushStmt (NIL) %
+	     )
           =:
 
 RetryStatement :=                                                        % VAR s: node ; %
@@ -1116,13 +1128,12 @@ AssignmentOrProcedureCall :=                                             % VAR d
 -- ProcedureCall := Designator [ ActualParameters ] =:
 -- Assignment := Designator ":=" Expression =:
 
-StatementSequence :=                                                     % VAR s: node ; %
+StatementSequence :=                                                     % VAR s, t: node ; %
                                                                          % s := pushStmt (makeStatementSequence ()) %
 		                                                         % assert (isStatementSequence (peepStmt ())) %
                      Statement		                                 % addStatement (s, popStmt ()) %
 		                                                         % assert (isStatementSequence (peepStmt ())) %
-		               { ";"
-		                     Statement		                 % addStatement (s, popStmt ()) %
+		               { ";" Statement		                 % addStatement (s, popStmt ()) %
 		                                                         % assert (isStatementSequence (peepStmt ())) %
 				               }
                   =:

@@ -27,6 +27,7 @@ FROM nameKey IMPORT NulName, makeKey, lengthKey, makekey, keyToCharStar ;
 FROM SFIO IMPORT OpenToWrite, WriteS ;
 FROM FIO IMPORT File, Close, FlushBuffer, StdOut, WriteLine, WriteChar ;
 FROM DynamicStrings IMPORT String, InitString, EqualArray, InitStringCharStar, KillString, ConCat, Mark ;
+FROM StringConvert IMPORT CardinalToString ;
 FROM mcOptions IMPORT getOutputFile, getDebugTopological, getHPrefix, getIgnoreFQ, getExtendedOpaque ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM libc IMPORT printf ;
@@ -35,12 +36,13 @@ FROM StrLib IMPORT StrEqual ;
 
 FROM mcPretty IMPORT pretty, initPretty, dupPretty, killPretty, print, prints,
                      setNeedSpace, noSpace, setindent, getindent, getcurpos,
+		     getseekpos, getcurline,
 		     pushPretty, popPretty ;
 
 FROM Indexing IMPORT Index, InitIndex, ForeachIndiceInIndexDo,
                      IncludeIndiceIntoIndex, IsIndiceInIndex,
 		     HighIndice, LowIndice, GetIndice, RemoveIndiceFromIndex,
-		     PutIndice ;
+		     PutIndice, InBounds ;
 
 IMPORT DynamicStrings ;
 IMPORT alists, wlists ;
@@ -89,7 +91,7 @@ TYPE
 	    neg,
 	    cast, val,
 	    plus, sub, div, mod, mult,
-	    adr, size, tsize, ord, chr, high, throw,
+	    adr, size, tsize, ord, chr, abs, high, throw,
 	    min, max,
             componentref, arrayref, deref,
 	    equal, notequal, less, greater, greequal, lessequal,
@@ -182,6 +184,7 @@ TYPE
 			 mult            :  binaryF          : binaryT |
 			 constexp,
 			 deref,
+			 abs,
 			 chr,
                          high,
                          ord,
@@ -562,6 +565,7 @@ VAR
    haltN,
    throwN,
    chrN,
+   absN,
    ordN,
    valN,
    minN,
@@ -1643,6 +1647,7 @@ BEGIN
    constexp,
    deref,
    chr,
+   abs,
    ord,
    high,
    throw,
@@ -1799,6 +1804,16 @@ BEGIN
    END ;
    RETURN d
 END makeVarDecl ;
+
+
+(*
+   isVarDecl - returns TRUE if, n, is a vardecl node.
+*)
+
+PROCEDURE isVarDecl (n: node) : BOOLEAN ;
+BEGIN
+   RETURN n^.kind = vardecl
+END isVarDecl ;
 
 
 (*
@@ -2181,6 +2196,22 @@ BEGIN
       RETURN TRUE
    END
 END putIdent ;
+
+
+(*
+   identListLen - returns the length of identlist.
+*)
+
+PROCEDURE identListLen (n: node) : CARDINAL ;
+BEGIN
+   IF n=NIL
+   THEN
+      RETURN 0
+   ELSE
+      assert (isIdentList (n)) ;
+      RETURN wlists.noOfItemsInList (n^.identlistF.names)
+   END
+END identListLen ;
 
 
 (*
@@ -2907,8 +2938,8 @@ PROCEDURE getExpList (p: node; n: CARDINAL) : node ;
 BEGIN
    assert (p#NIL) ;
    assert (isExpList (p)) ;
-   assert (n < HighIndice (p^.explistF.exp)) ;
-   RETURN GetIndice (p^.explistF.exp, n+1)
+   assert (n <= HighIndice (p^.explistF.exp)) ;
+   RETURN GetIndice (p^.explistF.exp, n)
 END getExpList ;
 
 
@@ -3235,7 +3266,7 @@ BEGIN
    WITH m^ DO
       stringF.name := n ;
       stringF.length := lengthKey (n) ;
-      stringF.isCharCompatible := (stringF.length = 1)
+      stringF.isCharCompatible := (stringF.length <= 1)
    END ;
    RETURN m
 END makeString ;
@@ -3500,6 +3531,7 @@ BEGIN
       size            :  RETURN makeKey ('SIZE') |
       tsize           :  RETURN makeKey ('TSIZE') |
       chr             :  RETURN makeKey ('CHR') |
+      abs             :  RETURN makeKey ('ABS') |
       ord             :  RETURN makeKey ('ORD') |
       high            :  RETURN makeKey ('HIGH') |
       throw           :  RETURN makeKey ('THROW') |
@@ -3530,6 +3562,7 @@ BEGIN
       deref,
       high,
       chr,
+      abs,
       ord,
       constexp,
       not,
@@ -3621,6 +3654,17 @@ END makeArrayRef ;
 
 
 (*
+   isArrayRef - returns TRUE if the node was an arrayref.
+*)
+
+PROCEDURE isArrayRef (n: node) : BOOLEAN ;
+BEGIN
+   assert (n # NIL) ;
+   RETURN n^.kind = arrayref
+END isArrayRef ;
+
+
+(*
    makeDeRef - dereferences the pointer defined by, n.
 *)
 
@@ -3679,6 +3723,7 @@ BEGIN
       rtype,
       adr,
       chr,
+      abs,
       ord,
       high,
       throw,
@@ -3735,16 +3780,19 @@ BEGIN
       RETURN makeBinary (or, l, r, booleanN)
    ELSIF op=plustok
    THEN
-      RETURN makeBinary (plus, l, r, booleanN)   (* incorrect type *)
+      RETURN makeBinary (plus, l, r, NIL)
    ELSIF op=minustok
    THEN
-      RETURN makeBinary (sub, l, r, booleanN)
+      RETURN makeBinary (sub, l, r, NIL)
    ELSIF op=divtok
    THEN
-      RETURN makeBinary (div, l, r, booleanN)
+      RETURN makeBinary (div, l, r, NIL)
    ELSIF op=timestok
    THEN
-      RETURN makeBinary (mult, l, r, booleanN)
+      RETURN makeBinary (mult, l, r, NIL)
+   ELSIF op=modtok
+   THEN
+      RETURN makeBinary (mod, l, r, NIL)
    ELSE
       HALT  (* most likely op needs a clause as above.  *)
    END
@@ -3881,6 +3929,7 @@ BEGIN
       div,
       mod,
       mult            :  RETURN binaryF.resultType |
+      abs,
       constexp,
       deref,
       neg,
@@ -4266,13 +4315,16 @@ BEGIN
       string          :  RETURN FALSE |
       max             :  RETURN TRUE |
       min             :  RETURN TRUE |
-      var             :  RETURN FALSE
+      var             :  RETURN FALSE |
+      arrayref        :  RETURN FALSE |
+      and,
+      or              :  RETURN TRUE |
+      funccall        :  RETURN TRUE
 
       END
    END ;
    RETURN TRUE
 END needsParen ;
-
 
 
 (*
@@ -4391,6 +4443,70 @@ END doEnumerationField ;
 
 
 (*
+   isZero - returns TRUE if node, n, is zero.
+*)
+
+PROCEDURE isZero (n: node) : BOOLEAN ;
+BEGIN
+   IF isConstExp (n)
+   THEN
+      RETURN isZero (n^.unaryF.arg)
+   END ;
+   RETURN getSymName (n)=makeKey ('0')
+END isZero ;
+
+
+(*
+   doArrayRef -
+*)
+
+PROCEDURE doArrayRef (p: pretty; n: node) ;
+VAR
+   t   : node ;
+   i, c: CARDINAL ;
+BEGIN
+   assert (n # NIL) ;
+   assert (isArrayRef (n)) ;
+   doExprC (p, n^.arrayrefF.array) ;
+   t := skipType (getType (n^.arrayrefF.array)) ;
+   assert (isArray (t)) ;
+   IF NOT isUnbounded (t)
+   THEN
+      outText (p, '.array')
+   END ;
+   outText (p, '[') ;
+   i := 1 ;
+   c := expListLen (n^.arrayrefF.index) ;
+   assert (c = 1) ;
+   WHILE i<=c DO
+      doExprC (p, getExpList (n^.arrayrefF.index, i)) ;
+      IF NOT isUnbounded (t)
+      THEN
+         doSubtractC (p, getMin (t^.arrayF.subr))
+      END ;
+      INC (i) ;
+      IF i<c
+      THEN
+         outText (p, ",") ;
+         setNeedSpace (p)
+      END
+   END ;
+   outText (p, ']')
+END doArrayRef ;
+
+
+(*
+   doProcedure -
+*)
+
+PROCEDURE doProcedure (p: pretty; n: node) ;
+BEGIN
+   assert (isProcedure (n)) ;
+   doFQNameC (p, n)
+END doProcedure ;
+
+
+(*
    doExprC -
 *)
 
@@ -4432,10 +4548,13 @@ BEGIN
       literal         :  doLiteral (p, n) |
       const           :  doConstExpr (p, n) |
       enumerationfield:  doEnumerationField (p, n) |
-      string          :  doString (p, n) |
+      string          :  doStringC (p, n) |
       max             :  doUnary (p, 'MAX', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       min             :  doUnary (p, 'MIN', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
-      var             :  doVar (p, n)
+      var             :  doVar (p, n) |
+      arrayref        :  doArrayRef (p, n) |
+      funccall        :  doFuncExprC (p, n) |
+      procedure       :  doProcedure (p, n)
 
       END
    END
@@ -4554,6 +4673,7 @@ BEGIN
    s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
    outTextS (p, s) ;
    s := KillString (s)
+   ; HALT
    (*
    IF DynamicStrings.Index (s, '"', 0)=-1
    THEN
@@ -4570,6 +4690,51 @@ BEGIN
    END
    *)
 END doString ;
+
+
+(*
+   doStringC -
+*)
+
+PROCEDURE doStringC (p: pretty; n: node) ;
+VAR
+   s: String ;
+BEGIN
+   assert (isString (n)) ;
+   s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
+   IF DynamicStrings.Length (s)>3
+   THEN
+      IF DynamicStrings.Index (s, '"', 0)=-1
+      THEN
+         s := DynamicStrings.Slice (s, 1, -1) ;
+         outText (p, '"') ;
+         outTextS (p, s) ;
+         outText (p, '"')
+      ELSIF DynamicStrings.Index (s, "'", 0)=-1
+      THEN
+         s := DynamicStrings.Slice (s, 1, -1) ;
+         outText (p, '"') ;
+         outTextS (p, s) ;
+         outText (p, '"')
+      ELSE
+         metaError1 ('illegal string {%1k}', n)
+      END
+   ELSIF DynamicStrings.Length (s) = 3
+   THEN
+      s := DynamicStrings.Slice (s, 1, -1) ;
+      outText (p, "'") ;
+      IF DynamicStrings.char (s, 0) = "'"
+      THEN
+         outText (p, "\'")
+      ELSE
+         outTextS (p, s)
+      END ;
+      outText (p, "'")
+   ELSE
+      outText (p, "'\0'")
+   END ;
+   s := KillString (s)
+END doStringC ;
 
 
 (*
@@ -4687,6 +4852,20 @@ BEGIN
       prints (p, s)
    END
 END outTextS ;
+
+
+(*
+   outCard -
+*)
+
+PROCEDURE outCard (p: pretty; c: CARDINAL) ;
+VAR
+   s: String ;
+BEGIN
+   s := CardinalToString (c, 0, ' ', 10, FALSE) ;
+   outTextS (p, s) ;
+   s := KillString (s)
+END outCard ;
 
 
 (*
@@ -4836,7 +5015,11 @@ BEGIN
             i := wlists.getItemFromList (l, c) ;
             setNeedSpace (p) ;
             doNamesC (p, i) ;
-	    doHighC (p, ptype, i) ;
+            IF isArray (ptype) AND isUnbounded (ptype)
+            THEN
+               outText (p, '_')
+            END ;
+            doHighC (p, ptype, i) ;
             IF c<t
             THEN
                outText (p, ',') ; setNeedSpace (p)
@@ -5226,6 +5409,20 @@ END getMin ;
 
 
 (*
+   doSubtractC -
+*)
+
+PROCEDURE doSubtractC (p: pretty; s: node) ;
+BEGIN
+   IF NOT isZero (s)
+   THEN
+      outText (p, "-") ;
+      doExprC (p, s)
+   END
+END doSubtractC ;
+
+
+(*
    doSubrC -
 *)
 
@@ -5239,15 +5436,18 @@ BEGIN
       low := getMin (s) ;
       high := getMax (s) ;
       doExprC (p, high) ;
-      outText (p, "-") ;
-      doExprC (p, low) ;
+      doSubtractC (p, low) ;
       outText (p, "+1")
    ELSE
       assert (isSubrange (s)) ;
-      doExprC (p, s^.subrangeF.high) ;
-      outText (p, "-") ;
-      doExprC (p, s^.subrangeF.low) ;
-      outText (p, "+1")
+      IF (s^.subrangeF.high = NIL) OR (s^.subrangeF.low = NIL)
+      THEN
+         doSubrC (p, getType (s))
+      ELSE
+         doExprC (p, s^.subrangeF.high) ;
+         doSubtractC (p, s^.subrangeF.low) ;
+         outText (p, "+1")
+      END
    END
 END doSubrC ;
 
@@ -5769,6 +5969,110 @@ END doProcedureHeadingC ;
 
 
 (*
+   checkDeclareUnboundedParamCopyC -
+*)
+
+PROCEDURE checkDeclareUnboundedParamCopyC (p: pretty; n: node) : BOOLEAN ;
+VAR
+   t   : node ;
+   i, c: CARDINAL ;
+   l   : wlist ;
+   seen: BOOLEAN ;
+BEGIN
+   seen := FALSE ;
+   t := getType (n) ;
+   l := n^.paramF.namelist^.identlistF.names ;
+   IF isArray (t) AND isUnbounded (t) AND (l#NIL)
+   THEN
+      t := getType (t) ;
+      c := wlists.noOfItemsInList (l) ;
+      i := 1 ;
+      WHILE i <= c DO
+         doTypeNameC (p, t) ;
+         setNeedSpace (p) ;
+         doNamesC (p, wlists.getItemFromList (l, i)) ;
+         outText (p, '[_');
+         doNamesC (p, wlists.getItemFromList (l, i)) ;
+         outText (p, '_high+1];\n');
+         seen := TRUE ;
+         INC (i)
+      END
+   END ;
+   RETURN seen
+END checkDeclareUnboundedParamCopyC ;
+
+
+(*
+   checkUnboundedParamCopyC -
+*)
+
+PROCEDURE checkUnboundedParamCopyC (p: pretty; n: node) ;
+VAR
+   t   : node ;
+   i, c: CARDINAL ;
+   l   : wlist ;
+BEGIN
+   t := getType (n) ;
+   l := n^.paramF.namelist^.identlistF.names ;
+   IF isArray (t) AND isUnbounded (t) AND (l#NIL)
+   THEN
+      c := wlists.noOfItemsInList (l) ;
+      i := 1 ;
+      WHILE i <= c DO
+         outText (p, 'memcpy (') ;
+         doNamesC (p, wlists.getItemFromList (l, i)) ;
+         outText (p, ',') ;
+         setNeedSpace (p) ;
+         doNamesC (p, wlists.getItemFromList (l, i)) ;
+         outText (p, '_, _') ;
+         doNamesC (p, wlists.getItemFromList (l, i)) ;
+         outText (p, '_high);\n') ;
+         INC (i)
+      END
+   END
+END checkUnboundedParamCopyC ;
+
+
+(*
+   doUnboundedParamCopyC -
+*)
+
+PROCEDURE doUnboundedParamCopyC (p: pretty; n: node) ;
+VAR
+   i, h: CARDINAL ;
+   q   : node ;
+   seen: BOOLEAN ;
+BEGIN
+   assert (isProcedure (n)) ;
+   i := LowIndice (n^.procedureF.parameters) ;
+   h := HighIndice (n^.procedureF.parameters) ;
+   seen := FALSE ;
+   WHILE i <= h DO
+      q := GetIndice (n^.procedureF.parameters, i) ;
+      IF isParam (q)
+      THEN
+         seen := checkDeclareUnboundedParamCopyC (p, q) OR seen
+      END ;
+      INC (i)
+   END ;
+   IF seen
+   THEN
+      outText (p, "\n") ;
+      outText (p, "/* make a local copy of each unbounded array.  */\n") ;
+      i := LowIndice (n^.procedureF.parameters) ;
+      WHILE i <= h DO
+         q := GetIndice (n^.procedureF.parameters, i) ;
+         IF isParam (q)
+         THEN
+            checkUnboundedParamCopyC (p, q)
+         END ;
+         INC (i)
+      END
+   END
+END doUnboundedParamCopyC ;
+
+
+(*
    doPrototypeC -
 *)
 
@@ -5794,6 +6098,40 @@ BEGIN
       alists.includeItemIntoList (todoQ, n)
    END
 END addTodo ;
+
+
+(*
+   addVariablesTodo -
+*)
+
+PROCEDURE addVariablesTodo (n: node) ;
+BEGIN
+   IF isVar (n)
+   THEN
+      IF n^.varF.isParameter OR n^.varF.isVarParameter
+      THEN
+         addDone (n) ;
+         addDone (getType (n))
+      ELSE
+         addTodo (n)
+      END
+   END
+END addVariablesTodo ;
+
+
+(*
+   addTypesTodo -
+*)
+
+PROCEDURE addTypesTodo (n: node) ;
+BEGIN
+   IF isUnbounded (n)
+   THEN
+      addDone (n)
+   ELSE
+      addTodo (n)
+   END
+END addTypesTodo ;
 
 
 (*
@@ -5835,7 +6173,7 @@ PROCEDURE simplifyType (l: alist; VAR p: node) ;
 VAR
    s: String ;
 BEGIN
-   IF (p#NIL) AND (isRecord (p) OR isArray (p) OR isProcType (p))
+   IF (p#NIL) AND (isRecord (p) OR isArray (p) OR isProcType (p)) AND (NOT isUnbounded (p))
    THEN
       s := tempName () ;
       p := makeIntermediateType (s, p) ;
@@ -5843,6 +6181,38 @@ BEGIN
       simplified := FALSE
    END
 END simplifyType ;
+
+
+(*
+   simplifyVar -
+*)
+
+PROCEDURE simplifyVar (l: alist; n: node) ;
+VAR
+   i, t: CARDINAL ;
+   v,
+   d, o: node ;
+BEGIN
+   assert (isVar (n)) ;
+   o := n^.varF.type ;
+   simplifyType (l, n^.varF.type) ;
+   IF o # n^.varF.type
+   THEN
+      (* simplification has occurred, make sure that all other variables of this type
+         use the new type.  *)
+      d := n^.varF.decl ;
+      assert (isVarDecl (d)) ;
+      t := wlists.noOfItemsInList (d^.vardeclF.names) ;
+      i := 1 ;
+      WHILE i<=t DO
+         v := lookupInScope (n^.varF.scope, wlists.getItemFromList (d^.vardeclF.names, i)) ;
+         assert (isVar (v)) ;
+         v^.varF.type := n^.varF.type ;
+         INC (i)
+      END
+   END
+END simplifyVar ;
+
 
 
 (*
@@ -5918,7 +6288,7 @@ BEGIN
       simplifyNode (l, getType (n))
    ELSIF isVar (n)
    THEN
-      simplifyType (l, n^.varF.type)
+      simplifyVar (l, n)
    ELSIF isRecord (n)
    THEN
       simplifyRecord (l, n)
@@ -6019,7 +6389,7 @@ END outDeclsDefC ;
 PROCEDURE includeConstType (s: scopeT) ;
 BEGIN
    ForeachIndiceInIndexDo (s.constants, addTodo) ;
-   ForeachIndiceInIndexDo (s.types, addTodo)
+   ForeachIndiceInIndexDo (s.types, addTypesTodo)
 END includeConstType ;
 
 
@@ -6030,7 +6400,7 @@ END includeConstType ;
 PROCEDURE includeVarProcedure (s: scopeT) ;
 BEGIN
    ForeachIndiceInIndexDo (s.procedures, addTodo) ;
-   ForeachIndiceInIndexDo (s.variables, addTodo)
+   ForeachIndiceInIndexDo (s.variables, addVariablesTodo)
 END includeVarProcedure ;
 
 
@@ -6244,27 +6614,29 @@ END doAssignmentC ;
 *)
 
 PROCEDURE doCompoundStmt (p: pretty; s: node) ;
-VAR
-   c: CARDINAL ;
 BEGIN
    IF s = NIL
    THEN
       p := pushPretty (p) ;
-      c := getindent (p) ;
-      setindent (p, c + indentationC) ;
+      setindent (p, getindent (p) + indentationC) ;
       outText (p, ";  /* empty.  */\n") ;
       p := popPretty (p)
    ELSIF isStatementSequence (s) AND isSingleStatement (s)
    THEN
       p := pushPretty (p) ;
-      c := getindent (p) ;
-      setindent (p, c + indentationC) ;
+      setindent (p, getindent (p) + indentationC) ;
       doStatementSequenceC (p, s) ;
       p := popPretty (p)
    ELSE
-      p := outKc (p, "{\n") ;
+      p := pushPretty (p) ;
+      setindent (p, getindent (p) + indentationC) ;
+      outText (p, "{\n") ;
+      p := pushPretty (p) ;
+      setindent (p, getindent (p) + indentationC) ;
       doStatementSequenceC (p, s) ;
-      p := outKc (p, "}\n")
+      p := popPretty (p) ;
+      outText (p, "}\n") ;
+      p := popPretty (p)
    END
 END doCompoundStmt ;
 
@@ -6402,20 +6774,219 @@ END doRepeatC ;
 
 
 (*
+   doWhileC -
+*)
+
+PROCEDURE doWhileC (p: pretty; s: node) ;
+BEGIN
+   assert (isWhile (s)) ;
+   outText (p, "while (") ;
+   doExprC (p, s^.whileF.expr) ;
+   outText (p, ")\n") ;
+   doCompoundStmt (p, s^.whileF.statements)
+END doWhileC ;
+
+
+(*
+   doFuncHighC -
+*)
+
+PROCEDURE doFuncHighC (p: pretty; a: node) ;
+VAR
+   s, n: node ;
+BEGIN
+   IF isLiteral (a) AND (getType (a) = charN)
+   THEN
+      outCard (p, 1)
+   ELSIF isString (a)
+   THEN
+      outCard (p, a^.stringF.length-2)
+   ELSIF isUnbounded (getType (a))
+   THEN
+      doExprC (p, a) ;
+      outText (p, '_high')
+   ELSIF isArray (skipType (getType (a)))
+   THEN
+      n := skipType (getType (a)) ;
+      s := n^.arrayF.subr ;
+      IF isZero (getMin (s))
+      THEN
+         doExprC (p, getMax (s))
+      ELSE
+         outText (p, '(') ;
+         doExprC (p, getMax (s)) ;
+         doSubtractC (p, getMin (s)) ;
+         outText (p, ')')
+      END
+   ELSE
+      n := getType (a) ;
+      HALT
+   END
+END doFuncHighC ;
+
+
+(*
+   doMultiplyBySize -
+*)
+
+PROCEDURE doMultiplyBySize (p: pretty; a: node) ;
+BEGIN
+   IF (a # charN) AND (a # byteN) AND (a # locN)
+   THEN
+      setNeedSpace (p) ;
+      outText (p, '* sizeof (') ;
+      doTypeNameC (p, a) ;
+      outText (p, ')')
+   END
+END doMultiplyBySize ;
+
+
+(*
+   doTotype -
+*)
+
+PROCEDURE doTotype (p: pretty; a, t: node) ;
+BEGIN
+   IF (NOT isString (a)) AND (NOT isLiteral (a))
+   THEN
+      IF isVar (a)
+      THEN
+         a := getType (a) ;
+         IF isArray (a)
+         THEN
+            doMultiplyBySize (p, skipType (getType (a)))
+         END
+      END
+   END ;
+   IF t = wordN
+   THEN
+      setNeedSpace (p) ;
+      outText (p, '/ sizeof (') ;
+      doTypeNameC (p, wordN) ;
+      outText (p, ')')
+   END
+END doTotype ;
+
+
+(*
+   doFuncUnbounded -
+*)
+
+PROCEDURE doFuncUnbounded (p: pretty; a, t: node) ;
+VAR
+   h: node ;
+   s: String ;
+BEGIN
+   IF isLiteral (a) AND (getType (a) = charN)
+   THEN
+      outText (p, '"\0') ;
+      s := InitStringCharStar (keyToCharStar (a^.literalF.name)) ;
+      s := DynamicStrings.Slice (DynamicStrings.Mark (s), 0, -1) ;
+      outTextS (p, s) ;
+      outText (p, '"') ;
+      s := KillString (s)
+   ELSIF isString (a)
+   THEN
+      outText (p, '"') ;
+      s := InitStringCharStar (keyToCharStar (a^.stringF.name)) ;
+      s := DynamicStrings.Slice (DynamicStrings.Mark (s), 1, -1) ;
+      outTextS (p, s) ;
+      outText (p, '"') ;
+      s := KillString (s)
+   ELSIF NOT isUnbounded (getType (a))
+   THEN
+      outText (p, '&') ;
+      doExprC (p, a)
+   ELSE
+      doExprC (p, a)
+   END ;
+   outText (p, ',') ;
+   setNeedSpace (p) ;
+   doFuncHighC (p, a) ;
+   doTotype (p, a, t)
+END doFuncUnbounded ;
+
+
+(*
+   doFuncParamC -
+*)
+
+PROCEDURE doFuncParamC (p: pretty; a, b: node) ;
+BEGIN
+   IF b = NIL
+   THEN
+      doExprC (p, a)
+   ELSE
+      IF isUnbounded (b)
+      THEN
+         doFuncUnbounded (p, a, b)
+      ELSE
+         doExprC (p, a)
+      END
+   END
+END doFuncParamC ;
+
+
+(*
+   getNthParamType - return the type of parameter, i, in list, l.
+                     If the parameter is a vararg NIL is returned.
+*)
+
+PROCEDURE getNthParamType (l: Index; i: CARDINAL) : node ;
+VAR
+   p      : node ;
+   j, k, h: CARDINAL ;
+BEGIN
+   IF l # NIL
+   THEN
+      j := LowIndice (l) ;
+      h := HighIndice (l) ;
+      WHILE j <= h DO
+         p := GetIndice (l, j) ;
+         IF isParam (p)
+         THEN
+            k := identListLen (p^.paramF.namelist)
+         ELSIF isVarParam (p)
+         THEN
+            k := identListLen (p^.varparamF.namelist)
+         ELSE
+            assert (isVarargs (p)) ;
+            RETURN NIL
+         END ;
+         IF i <= k
+         THEN
+            RETURN getType (p)
+         ELSE
+            DEC (i, k) ;
+            INC (j)
+         END
+      END
+   END ;
+   RETURN NIL
+END getNthParamType ;
+
+
+(*
    doFuncArgsC -
 *)
 
-PROCEDURE doFuncArgsC (p: pretty; s: node) ;
+PROCEDURE doFuncArgsC (p: pretty; s: node; l: Index; needParen: BOOLEAN) ;
 VAR
+   a, b: node ;
    i, n: CARDINAL ;
 BEGIN
-   outText (p, "(") ;
+   IF needParen
+   THEN
+      outText (p, "(")
+   END ;
    IF s^.funccallF.args # NIL
    THEN
       i := 1 ;
       n := expListLen (s^.funccallF.args) ;
       WHILE i<=n DO
-         doExprC (p, getExpList (s^.funccallF.args, i)) ;
+         a := getExpList (s^.funccallF.args, i) ;
+         b := getNthParamType (l, i) ;
+         doFuncParamC (p, a, b) ;
          IF i<n
          THEN
             outText (p, ",") ;
@@ -6424,8 +6995,205 @@ BEGIN
          INC (i)
       END
    END ;
-   outText (p, ")")
+   IF needParen
+   THEN
+      outText (p, ")")
+   END
 END doFuncArgsC ;
+
+
+(*
+   doAdrC -
+*)
+
+PROCEDURE doAdrC (p: pretty; n: node) ;
+BEGIN
+   assert (isFuncCall (n)) ;
+   IF n^.funccallF.args # NIL
+   THEN
+      IF expListLen (n^.funccallF.args) = 1
+      THEN
+         IF NOT isString (getExpList (n^.funccallF.args, 1))
+         THEN
+            outText (p, "&")
+         END ;
+         doExprC (p, getExpList (n^.funccallF.args, 1))
+      END
+   ELSE
+
+   END
+END doAdrC ;
+
+
+(*
+   doIncDecC -
+*)
+
+PROCEDURE doIncDecC (p: pretty; n: node; op: ARRAY OF CHAR) ;
+BEGIN
+   assert (isFuncCall (n)) ;
+   IF n^.funccallF.args # NIL
+   THEN
+      doExprC (p, getExpList (n^.funccallF.args, 1)) ;
+      setNeedSpace (p) ;
+      outText (p, op) ;
+      setNeedSpace (p) ;
+      IF expListLen (n^.funccallF.args) = 1
+      THEN
+         outText (p, '1')
+      ELSE
+         doExprC (p, getExpList (n^.funccallF.args, 2))
+      END
+   END
+END doIncDecC ;
+
+
+(*
+   doInclC -
+*)
+
+PROCEDURE doInclC (p: pretty; n: node) ;
+BEGIN
+
+END doInclC ;
+
+
+(*
+   doExclC -
+*)
+
+PROCEDURE doExclC (p: pretty; n: node) ;
+BEGIN
+
+END doExclC ;
+
+
+(*
+   doNewC -
+*)
+
+PROCEDURE doNewC (p: pretty; n: node) ;
+BEGIN
+
+END doNewC ;
+
+
+(*
+   doDisposeC -
+*)
+
+PROCEDURE doDisposeC (p: pretty; n: node) ;
+BEGIN
+
+END doDisposeC ;
+
+
+(*
+   isIntrinsic - returns if, n, is an instrinsic procedure.
+*)
+
+PROCEDURE isIntrinsic (n: node) : BOOLEAN ;
+BEGIN
+   CASE n^.funccallF.function^.kind OF
+
+   adr,
+   size,
+   tsize,
+   ord,
+   chr,
+   high,
+   inc,
+   dec,
+   incl,
+   excl,
+   new,
+   dispose:  RETURN TRUE
+
+   ELSE
+      RETURN FALSE
+   END
+END isIntrinsic ;
+
+
+(*
+   doIntrinsicC -
+*)
+
+PROCEDURE doIntrinsicC (p: pretty; n: node) ;
+BEGIN
+   CASE n^.funccallF.function^.kind OF
+
+   adr:    doAdrC (p, n) |
+   size,
+   tsize:  outText (p, "sizeof") ;
+           setNeedSpace (p) ;
+           doFuncArgsC (p, n, NIL, TRUE) |
+   ord:    outText (p, "(unsigned int)") ;
+           setNeedSpace (p) ;
+           doFuncArgsC (p, n, NIL, TRUE) |
+   chr:    outText (p, "(char)") ;
+           setNeedSpace (p) ;
+           doFuncArgsC (p, n, NIL, TRUE) |
+   high:   outText (p, "_") ;
+           doFuncArgsC (p, n, NIL, FALSE) ;
+           outText (p, "_high") |
+   inc:    doIncDecC (p, n, "+=") |
+   dec:    doIncDecC (p, n, "-=") |
+   incl:   doInclC (p, n) |
+   excl:   doExclC (p, n) |
+   new:    doNewC (p, n) |
+   dispose: doDisposeC (p, n)
+
+   END
+END doIntrinsicC ;
+
+
+(*
+   getFuncFromExpr -
+*)
+
+PROCEDURE getFuncFromExpr (n: node) : node ;
+BEGIN
+   n := skipType (getType (n)) ;
+   WHILE (n # procN) AND (NOT isProcType (n)) DO
+      n := skipType (getType (n))
+   END ;
+   RETURN n
+END getFuncFromExpr ;
+
+
+(*
+   doFuncExprC -
+*)
+
+PROCEDURE doFuncExprC (p: pretty; n: node) ;
+VAR
+   t: node ;
+BEGIN
+   assert (isFuncCall (n)) ;
+   IF isProcedure (n^.funccallF.function)
+   THEN
+      doFQNameC (p, n^.funccallF.function) ;
+      setNeedSpace (p) ;
+      doFuncArgsC (p, n, n^.funccallF.function^.procedureF.parameters, TRUE)
+   ELSIF isIntrinsic (n)
+   THEN
+      doIntrinsicC (p, n)
+   ELSE
+      outText (p, "(*") ;
+      doExprC (p, n^.funccallF.function) ;
+      outText (p, ")") ;
+      setNeedSpace (p) ;
+      t := getFuncFromExpr (n^.funccallF.function) ;
+      IF t = procN
+      THEN
+         doFuncArgsC (p, n, NIL, TRUE)
+      ELSE
+         assert (isProcType (t)) ;
+         doFuncArgsC (p, n, t^.proctypeF.parameters, TRUE)
+      END
+   END
+END doFuncExprC ;
 
 
 (*
@@ -6434,10 +7202,7 @@ END doFuncArgsC ;
 
 PROCEDURE doFuncCallC (p: pretty; n: node) ;
 BEGIN
-   assert (isFuncCall (n)) ;
-   doFQNameC (p, n^.funccallF.function) ;
-   setNeedSpace (p) ;
-   doFuncArgsC (p, n) ;
+   doFuncExprC (p, n) ;
    outText (p, ";\n")
 END doFuncCallC ;
 
@@ -6448,7 +7213,10 @@ END doFuncCallC ;
 
 PROCEDURE doStatementsC (p: pretty; s: node) ;
 BEGIN
-   IF isStatementSequence (s)
+   IF s = NIL
+   THEN
+      (* do nothing.  *)
+   ELSIF isStatementSequence (s)
    THEN
       doStatementSequenceC (p, s)
    ELSIF isComment (s)
@@ -6472,6 +7240,9 @@ BEGIN
    ELSIF isRepeat (s)
    THEN
       doRepeatC (p, s)
+   ELSIF isWhile (s)
+   THEN
+      doWhileC (p, s)
    ELSIF isFuncCall (s)
    THEN
       doFuncCallC (p, s)
@@ -6482,10 +7253,24 @@ END doStatementsC ;
 
 
 (*
-   doLocalDeclsC -
+   doLocalVarC -
 *)
 
-PROCEDURE doLocalDeclsC (p: pretty; s: scopeT) ;
+PROCEDURE doLocalVarC (p: pretty; s: scopeT) ;
+BEGIN
+   includeVarProcedure (s) ;
+
+   topologicallyOut (doConstC, doTypesC, doVarC,
+                     outputPartial,
+                     doNone, doCompletePartialC, doNone)
+END doLocalVarC ;
+
+
+(*
+   doLocalConstTypesC -
+*)
+
+PROCEDURE doLocalConstTypesC (p: pretty; s: scopeT) ;
 BEGIN
    simplifyTypes (s) ;
    includeConstType (s) ;
@@ -6496,13 +7281,32 @@ BEGIN
                      outputPartial,
                      doNone, doCompletePartialC, doNone) ;
 
-   (* try and output types, constants before variables and procedures.  *)
-   includeVarProcedure (s) ;
+END doLocalConstTypesC ;
 
-   topologicallyOut (doConstC, doTypesC, doVarC,
-                     outputPartial,
-                     doNone, doCompletePartialC, doNone)
-END doLocalDeclsC ;
+
+(*
+   addParamDone -
+*)
+
+PROCEDURE addParamDone (n: node) ;
+BEGIN
+   IF isVar (n) AND n^.varF.isParameter
+   THEN
+      addDone (n) ;
+      addDone (getType (n))
+   END
+END addParamDone ;
+
+
+(*
+   includeParameters -
+*)
+
+PROCEDURE includeParameters (n: node) ;
+BEGIN
+   assert (isProcedure (n)) ;
+   ForeachIndiceInIndexDo (n^.procedureF.decls.variables, addParamDone)
+END includeParameters ;
 
 
 (*
@@ -6510,13 +7314,25 @@ END doLocalDeclsC ;
 *)
 
 PROCEDURE doProcedureC (n: node) ;
+VAR
+   s: CARDINAL ;
 BEGIN
    outText (doP, "\n") ;
+   includeParameters (n) ;
+   doLocalConstTypesC (doP, n^.procedureF.decls) ;
    doProcedureHeadingC (n) ;
    outText (doP, "\n") ;
    doP := outKc (doP, "{\n") ;
-   doLocalDeclsC (doP, n^.procedureF.decls) ;
-   outText (doP, "\n") ;
+
+   s := getcurline (doP) ;
+   doLocalVarC (doP, n^.procedureF.decls) ;
+   doUnboundedParamCopyC (doP, n) ;
+
+   IF s # getcurline (doP)
+   THEN
+      outText (doP, "\n")
+   END ;
+
    doStatementsC (doP, n^.procedureF.beginStatements) ;
    doP := outKc (doP, "}\n")
 END doProcedureC ;
@@ -7258,7 +8074,7 @@ BEGIN
       adr,
       size,
       tsize,
-      deref        :  RETURN walkUnary (l, n) |
+      deref           :  RETURN walkUnary (l, n) |
       equal,
       notequal,
       less,
@@ -7737,7 +8553,9 @@ BEGIN
    outText (p, "\n") ;
    outText (p, "void") ;
    setNeedSpace (p) ;
+   outText (p, "_M2_") ;
    doFQNameC (p, n) ;
+   outText (p, "_init") ;
    setNeedSpace (p) ;
    outText (p, "(int argc, char *argv[])\n") ;
    p := outKc (p, "{\n") ;
@@ -7858,7 +8676,9 @@ BEGIN
    outText (p, "\n") ;
    outText (p, "void") ;
    setNeedSpace (p) ;
+   outText (p, "_M2_") ;
    doFQNameC (p, n) ;
+   outText (p, "_init") ;
    setNeedSpace (p) ;
    outText (p, "(int argc, char *argv[])\n") ;
    p := outKc (p, "{\n") ;
@@ -8918,8 +9738,11 @@ END makeStatementSequence ;
 
 PROCEDURE addStatement (s: node; n: node) ;
 BEGIN
-   assert (isStatementSequence (s)) ;
-   PutIndice (s^.stmtF.statements, HighIndice (s^.stmtF.statements) + 1, n)
+   IF n#NIL
+   THEN
+      assert (isStatementSequence (s)) ;
+      PutIndice (s^.stmtF.statements, HighIndice (s^.stmtF.statements) + 1, n)
+   END
 END addStatement ;
 
 
@@ -9375,6 +10198,7 @@ BEGIN
    ordN := makeBase (ord) ;
    valN := makeBase (val) ;
    chrN := makeBase (chr) ;
+   absN := makeBase (abs) ;
    newN := makeBase (new) ;
    disposeN := makeBase (dispose) ;
    incN := makeBase (inc) ;
@@ -9406,6 +10230,7 @@ BEGIN
    putSymKey (baseSymbols, makeKey ('ORD'), ordN) ;
    putSymKey (baseSymbols, makeKey ('VAL'), valN) ;
    putSymKey (baseSymbols, makeKey ('CHR'), chrN) ;
+   putSymKey (baseSymbols, makeKey ('ABS'), absN) ;
    putSymKey (baseSymbols, makeKey ('NEW'), newN) ;
    putSymKey (baseSymbols, makeKey ('DISPOSE'), disposeN) ;
    putSymKey (baseSymbols, makeKey ('INC'), incN) ;

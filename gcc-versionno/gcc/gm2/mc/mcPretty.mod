@@ -28,6 +28,8 @@ TYPE
 			  writeln    : writeLnProc ;
                           needsSpace,
                           needsIndent: BOOLEAN ;
+			  seekPos,
+			  curLine,
                           curPos,
 		          indent     : CARDINAL ;
 			  stacked    : pretty ;
@@ -49,6 +51,8 @@ BEGIN
       needsSpace := FALSE ;
       needsIndent := FALSE ;
       curPos := 0 ;
+      curLine := 0 ;
+      seekPos := 0 ;
       indent := 0 ;
       stacked := NIL
    END ;
@@ -108,6 +112,8 @@ BEGIN
    q^.needsIndent := p^.needsIndent ;
    q^.needsSpace := p^.needsSpace ;
    q^.curPos := p^.curPos ;
+   q^.seekPos := p^.seekPos ;
+   q^.curLine := p^.curLine ;
    killPretty (p) ;
    RETURN q
 END popPretty ;
@@ -149,6 +155,26 @@ END getcurpos ;
 
 
 (*
+   getcurline - returns the current line number.
+*)
+
+PROCEDURE getcurline (s: pretty) : CARDINAL ;
+BEGIN
+   RETURN s^.curLine
+END getcurline ;
+
+
+(*
+   getseekpos - returns the seek position.
+*)
+
+PROCEDURE getseekpos (s: pretty) : CARDINAL ;
+BEGIN
+   RETURN s^.seekPos
+END getseekpos ;
+
+
+(*
    setneedSpace - sets needSpace flag to TRUE.
 *)
 
@@ -178,7 +204,8 @@ BEGIN
    THEN
       p^.write (' ') ;
       p^.needsSpace := FALSE ;
-      INC (p^.curPos)
+      INC (p^.curPos) ;
+      INC (p^.seekPos)
    END
 END flushSpace ;
 
@@ -196,7 +223,8 @@ BEGIN
    THEN
       WHILE p^.curPos<p^.indent DO
          p^.write (' ') ;
-         INC (p^.curPos)
+         INC (p^.curPos) ;
+         INC (p^.seekPos)
       END ;
       p^.needsIndent := FALSE
    END
@@ -235,11 +263,14 @@ BEGIN
          p^.needsSpace := FALSE ;
          p^.curPos := 0 ;
          p^.writeln ;
+         INC (p^.seekPos) ;
+         INC (p^.curLine) ;
          INC (i)
       ELSE
          flushIndent (p) ;
          p^.write (char (s, i)) ;
-         INC (p^.curPos)
+         INC (p^.curPos) ;
+         INC (p^.seekPos)
       END ;
       INC (i)
    END

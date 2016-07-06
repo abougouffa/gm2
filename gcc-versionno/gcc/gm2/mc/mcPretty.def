@@ -93,6 +93,20 @@ PROCEDURE getcurpos (s: pretty) : CARDINAL ;
 
 
 (*
+   getseekpos - returns the seek position.
+*)
+
+PROCEDURE getseekpos (s: pretty) : CARDINAL ;
+
+
+(*
+   getcurline - returns the current line number.
+*)
+
+PROCEDURE getcurline (s: pretty) : CARDINAL ;
+
+
+(*
    setNeedSpace - sets needSpace flag to TRUE.
 *)
 
