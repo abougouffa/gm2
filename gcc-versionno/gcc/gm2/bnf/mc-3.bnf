@@ -658,6 +658,11 @@ ConstantDeclaration :=                                                  % VAR d,
                                                                         % putConst (d, e) %
                      =:
 
+ConstExpressionNop := SimpleConstExpr                                   % VAR n: node ; %
+                                      [ Relation SimpleConstExpr ]
+				                                        % n := makeConstExp () %
+                    =:
+
 ConstExpression := SimpleConstExpr                                      % VAR n: node ; %
                                    [ Relation SimpleConstExpr ]
 				                                        % n := push (makeConstExp ()) %
@@ -690,21 +695,17 @@ MulOperator := "*"
                | "&"
             =:
 
-ConstFactor :=                                                        % VAR n: node ; %
-               Number | ConstString | ConstSetOrQualidentOrFunction |
-               "(" ConstExpression                                    % n := pop () %
-	                           ")" | "NOT" ConstFactor
+ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
+               "(" ConstExpressionNop ")" | "NOT" ConstFactor
                | ConstAttribute =:
 
 -- to help satisfy LL1
 
 ConstString := string =:
 
-ComponentElement := Expression [ ".." Expression ] =:
+ComponentElement := ConstExpressionNop [ ".." ConstExpressionNop ] =:
 
-ComponentValue :=                                                    % VAR n: node ; %
-                  ComponentElement [ 'BY' ConstExpression            % n := pop () %
-                                                          ] =:
+ComponentValue := ComponentElement [ 'BY' ConstExpressionNop ] =:
 
 ArraySetRecordValue := ComponentValue { ',' ComponentValue } =:
 
@@ -715,7 +716,9 @@ ConstSetOrQualidentOrFunction := Qualident
 				      ConstActualParameters
 				    ] | Constructor =:
 
-ConstActualParameters := "(" [ ExpList ] ")" =:
+ConstActualParameters := "(" [ ConstExpList ] ")" =:
+
+ConstExpList := ConstExpressionNop { "," ConstExpressionNop } =:
 
 ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "("
                   ConstAttributeExpression
@@ -723,17 +726,11 @@ ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "("
 
 ConstAttributeExpression := Ident | "<" Qualident ',' Ident ">" =:
 
--- Set := [ Qualident ] "{" [ Element { "," Element } ] "}" =:
-
--- Element := ConstExpression [ ".." ConstExpression ] =:
-
 ByteAlignment := '<*' AttributeExpression '*>' =:
 
 OptAlignmentExpression := [ AlignmentExpression ] =:
 
-AlignmentExpression :=                                                  % VAR n: node ; %
-                       "(" ConstExpression                              % n := pop () %
-                                           ")" =:
+AlignmentExpression := "(" ConstExpressionNop ")" =:
 
 Alignment := [ ByteAlignment ] =:
 
@@ -784,13 +781,9 @@ RecordFieldPragma := [ '<*' FieldPragmaExpression
 
 FieldPragmaExpression := Ident PragmaConstExpression =:
 
-PragmaConstExpression :=                                                % VAR n: node ; %
-                         [ '(' ConstExpression                          % n := pop () %
-			                       ')' ] =:
+PragmaConstExpression := [ '(' ConstExpressionNop ')' ] =:
 
-AttributeExpression :=                                                  % VAR n: node ; %
-                       Ident '(' ConstExpression                        % n := pop () %
-		                                 ')' =:
+AttributeExpression := Ident '(' ConstExpressionNop ')' =:
 
 FieldListSequence := FieldListStatement { ";" FieldListStatement } =:
 
@@ -1031,10 +1024,7 @@ Case := [ CaseLabelList ":" StatementSequence ]
 
 CaseLabelList := CaseLabels { "," CaseLabels } =:
 
-CaseLabels := ConstExpression                                 % VAR n: node ; %
-                                                              % n := pop () %
-                              [ ".." ConstExpression          % n := pop () %
-			                             ]
+CaseLabels := ConstExpressionNop [ ".." ConstExpressionNop ]
             =:
 
 WhileStatement := "WHILE" Expression "DO"
@@ -1047,11 +1037,9 @@ RepeatStatement := "REPEAT"
 	           "UNTIL" Expression
                  =:
 
-ForStatement :=                                               % VAR n: node ; %
-                "FOR" Ident ":=" Expression "TO" Expression
-		    [ "BY" ConstExpression                    % n := pop () %
-		                           ] "DO"
-                    StatementSequence
+ForStatement := "FOR" Ident ":=" Expression "TO" Expression
+		    [ "BY" ConstExpressionNop ] "DO"
+                       StatementSequence
                 "END"
               =:
 
@@ -1178,9 +1166,7 @@ ModuleDeclaration := "MODULE" Ident [ Priority ] ";"
                         Block Ident
                    =:
 
-Priority :=                                                           % VAR n: node ; %
-            "[" ConstExpression                                       % n := pop () %
-	                        "]" =:
+Priority := "[" ConstExpressionNop "]" =:
 
 Export := "EXPORT" ( "QUALIFIED"
                                  IdentList |

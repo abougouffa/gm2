@@ -870,6 +870,38 @@ PROCEDURE makeString (n: Name) : node ;
 
 
 (*
+   makeSetValue - creates and returns a setvalue node.
+*)
+
+PROCEDURE makeSetValue () : node ;
+
+
+(*
+   isSetValue - returns TRUE if, n, is a setvalue node.
+*)
+
+PROCEDURE isSetValue (n: node) : BOOLEAN ;
+
+
+(*
+   putSetValue - assigns the type, t, to the set value, n.  The
+                 node, n, is returned.
+*)
+
+PROCEDURE putSetValue (n, t: node) : node ;
+
+
+(*
+   includeSetValue - includes the range l..h into the setvalue.
+                     h might be NIL indicating that a single element
+                       is to be included into the set.
+                     n is returned.
+*)
+
+PROCEDURE includeSetValue (n: node; l, h: node) : node ;
+
+
+(*
    getBuiltinConst - creates and returns a builtin const if available.
 *)
 

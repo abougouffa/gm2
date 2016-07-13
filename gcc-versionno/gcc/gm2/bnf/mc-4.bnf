@@ -73,7 +73,9 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 makeIdentList, putIdent, addVarParameters, addNonVarParameters,
 		 lookupInScope, import, lookupExported, isImp, isModule, isConst,
 		 makeLiteralInt, makeLiteralReal, makeString, getBuiltinConst,
-		 getNextConstExp, fixupConstExp, makeFuncCall ;
+		 getNextConstExp, fixupConstExp, makeFuncCall,
+		 makeExpList, putExpList, isExpList,
+		 makeSetValue, putSetValue, includeSetValue ;
 
 
 CONST
@@ -728,29 +730,51 @@ ConstString := string                                                   % VAR n:
                                                                         % n := push (makeString (curstring)) %
              =:
 
-ComponentElement := Expression [ ".." Expression ]
-                  =:
+ConstComponentElement := ConstExpression                                % VAR l, h, n: node ; %
+                                                                        % l := pop () %
+									% h := NIL %
+                                         [ ".." ConstExpression         % h := pop () %
+					                                % ErrorArray ('implementation restriction range is not allowed') %
+					                        ]       % n := push (includeSetValue (pop (), l, h)) %
+                       =:
 
-ComponentValue := ComponentElement [ 'BY' ConstExpression ]
-                =:
-
-ArraySetRecordValue := ComponentValue { ',' ComponentValue }
+ConstComponentValue := ConstComponentElement [ 'BY'                     % ErrorArray ('implementation restriction BY not allowed') %
+                                                    ConstExpression ]
                      =:
 
-Constructor := '{'
-                   [ ArraySetRecordValue ]
-               '}' =:
+ConstArraySetRecordValue := ConstComponentValue { ',' ConstComponentValue }
+                          =:
+
+ConstConstructor := '{'                                                 % VAR n: node ; %
+                                                                        % n := push (makeSetValue ()) %
+                        [ ConstArraySetRecordValue ]
+                    '}' =:
 
 ConstSetOrQualidentOrFunction := PushQualident                          % VAR q, p, n: node ; %
-                                 [ Constructor
+                                 [ ConstConstructor                     % p := pop () %
+				                                        % q := pop () %
+									% n := push (putSetValue (q, p)) %
                                                | ConstActualParameters  % p := pop () %
                                                                         % q := pop () %
 					                                % n := push (makeFuncCall (q, p)) %
                                                                       ]
                                  |
-                                   Constructor =:
+                                   ConstConstructor =:
 
-ConstActualParameters := "(" [ ExpList ] ")" =:
+ConstActualParameters := "("                                             % VAR n: node ; %
+                                                                         % n := push (makeExpList ()) %
+                             [ ConstExpList ] ")"                        % assert (isExpList (peep ())) %
+                       =:
+
+ConstExpList :=                                                         % VAR p, n: node ; %
+                                                                        % p := peep () %
+                                                                        % assert (isExpList (p)) %
+                ConstExpression                                         % putExpList (p, pop ()) %
+                                                                        % assert (isExpList (peep ())) %
+                                { "," ConstExpression                   % putExpList (p, pop ()) %
+                                                                        % assert (isExpList (peep ())) %
+                                                      }
+              =:
 
 ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "("
                   ConstAttributeExpression
@@ -762,11 +786,6 @@ ConstAttributeExpression :=
                                   | "<" Qualident ',' Ident
                                                               ">"
                           =:
-
--- Set := [ Qualident ] "{" [ Element { "," Element } ] "}" =:
-
-Element := ConstExpression [ ".." ConstExpression ]
-         =:
 
 ByteAlignment := '<*' AttributeExpression '*>'
                =:
@@ -900,6 +919,20 @@ Factor := Number | string | SetOrDesignatorOrFunction |
           "(" Expression ")" | "NOT" ( Factor
           | ConstAttribute
                                 ) =:
+
+ComponentElement := Expression
+                               [ ".." Expression                        % ErrorArray ('implementation restriction range not allowed') %
+			                         ]
+                  =:
+
+ComponentValue := ComponentElement [ 'BY'                               % ErrorArray ('implementation restriction BY not allowed') %
+                                          Expression ]
+                =:
+
+ArraySetRecordValue := ComponentValue { ',' ComponentValue }
+                     =:
+
+Constructor := '{' [ ArraySetRecordValue ] '}' =:
 
 SetOrDesignatorOrFunction := Qualident
                               [ Constructor |

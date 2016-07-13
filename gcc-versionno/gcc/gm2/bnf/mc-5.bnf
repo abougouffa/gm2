@@ -83,7 +83,8 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 makeIf, makeElsif, putElse, isIf,
 		 makeFor, putFor, isFor,
 		 makeRepeat, putRepeat,
-		 resetConstExpPos, getNextConstExp ;
+		 resetConstExpPos, getNextConstExp,
+		 makeSetValue, putSetValue, includeSetValue ;
 
 
 CONST
@@ -801,7 +802,11 @@ Number := Integer | Real =:
 
 Qualident := Ident { "." Ident } =:
 
-ConstantDeclaration := Ident "=" ConstExpression =:
+ConstantDeclaration := Ident "=" ConstExpressionNop =:
+
+ConstExpressionNop :=                                                  % VAR c: node ; %
+                                                                       % c := getNextConstExp () %
+                      SimpleConstExpr [ Relation SimpleConstExpr ] =:
 
 ConstExpression :=                                                     % VAR c: node ; %
                                                                        % c := push (getNextConstExp ()) %
@@ -846,44 +851,35 @@ MulOperator := "*"
             =:
 
 ConstFactor := ConstNumber | ConstString | ConstSetOrQualidentOrFunction |
-               "(" ConstExpression ")" | "NOT" ConstFactor
+               "(" ConstExpressionNop ")" | "NOT" ConstFactor
                | ConstAttribute =:
 
 -- to help satisfy LL1
 
 ConstString := string =:
 
-ComponentElement := Expression [ ".." Expression ]
+ConstComponentElement := ConstExpressionNop [ ".." ConstExpressionNop ]
                   =:
 
-ComponentValue := ComponentElement [ 'BY' ConstExpression ]
-                =:
-
-ArraySetRecordValue := ComponentValue { ',' ComponentValue }
+ConstComponentValue := ConstComponentElement [ 'BY' ConstExpressionNop ]
                      =:
 
-Constructor := '{'
-                  [ ArraySetRecordValue ]
-               '}' =:
+ConstArraySetRecordValue := ConstComponentValue { ',' ConstComponentValue }
+                          =:
+
+ConstConstructor := '{'
+                       [ ConstArraySetRecordValue ]
+                    '}' =:
 
 ConstSetOrQualidentOrFunction := Qualident
-                                 [ Constructor
+                                 [ ConstConstructor
 				               | ConstActualParameters ]
                                    |
-                                     Constructor =:
+                                     ConstConstructor =:
 
-ConstActualParameters := "("                                            % VAR n: node ; %
-                                                                        % n := push (makeExpList ()) %
-                             [ ConstExpList ] ")" =:
+ConstActualParameters := "(" [ ConstExpList ] ")" =:
 
-ConstExpList :=                                                         % VAR p, n: node ; %
-                                                                        % p := peep () %
-									% assert (isExpList (p)) %
-                Expression                                              % putExpList (p, pop ()) %
-                                                                        % assert (isExpList (peep ())) %
-                           { "," Expression                             % putExpList (p, pop ()) %
-                                                                        % assert (isExpList (peep ())) %
-			                    }
+ConstExpList := ConstExpressionNop { "," ConstExpressionNop }
               =:
 
 ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "("
@@ -892,24 +888,19 @@ ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "("
 
 ConstAttributeExpression := Ident | "<" Qualident ',' Ident ">" =:
 
--- Set := [ Qualident ] "{" [ Element { "," Element } ] "}" =:
-
-Element := ConstExpression [ ".." ConstExpression ]
-         =:
-
 ByteAlignment := '<*' AttributeExpression '*>'
                =:
 
 OptAlignmentExpression := [ AlignmentExpression ] =:
 
-AlignmentExpression := "(" ConstExpression ")" =:
+AlignmentExpression := "(" ConstExpressionNop ")" =:
 
 Alignment := [ ByteAlignment ] =:
 
 IdentList := Ident { "," Ident }
            =:
 
-SubrangeType := "[" ConstExpression ".." ConstExpression "]" =:
+SubrangeType := "[" ConstExpressionNop ".." ConstExpressionNop "]" =:
 
 ArrayType := "ARRAY" SimpleType { "," SimpleType } "OF" Type =:
 
@@ -924,9 +915,9 @@ RecordFieldPragma := [ '<*' FieldPragmaExpression
 
 FieldPragmaExpression := Ident PragmaConstExpression =:
 
-PragmaConstExpression := [ '(' ConstExpression ')' ] =:
+PragmaConstExpression := [ '(' ConstExpressionNop ')' ] =:
 
-AttributeExpression := Ident '(' ConstExpression ')' =:
+AttributeExpression := Ident '(' ConstExpressionNop ')' =:
 
 FieldListSequence := FieldListStatement { ";" FieldListStatement } =:
 
@@ -949,7 +940,7 @@ Varient :=  [ VarientCaseLabelList ":" FieldListSequence ] =:
 
 VarientCaseLabelList := VarientCaseLabels { "," VarientCaseLabels } =:
 
-VarientCaseLabels := ConstExpression [ ".." ConstExpression ]
+VarientCaseLabels := ConstExpressionNop [ ".." ConstExpressionNop ]
                    =:
 
 SetType := ( "SET" | "PACKEDSET" ) "OF" SimpleType =:
@@ -972,7 +963,7 @@ ProcedureParameters := ProcedureParameter
 ProcedureParameter := "..." | "VAR" FormalType | FormalType =:
 
 
-VarIdent := Ident [ "[" ConstExpression "]" ]
+VarIdent := Ident [ "[" ConstExpressionNop "]" ]
           =:
 
 VarIdentList := VarIdent { "," VarIdent }  =:
@@ -1072,8 +1063,31 @@ Factor := Number | PushString | SetOrDesignatorOrFunction |
           | ConstAttribute
                                 ) =:
 
+ComponentElement := Expression                                          % VAR l, h, n: node ; %
+                                                                        % l := pop () %
+									% h := NIL %
+                                         [ ".." Expression              % h := pop () %
+					                                % ErrorArray ('implementation restriction range is not allowed') %
+					                   ]            % n := push (includeSetValue (pop (), l, h)) %
+                       =:
+
+ComponentValue := ComponentElement [ 'BY'                               % ErrorArray ('implementation restriction BY not allowed') %
+                                          Expression ]
+                =:
+
+ArraySetRecordValue := ComponentValue { ',' ComponentValue }
+                     =:
+
+Constructor := '{'                                                      % VAR n: node ; %
+                                                                        % n := push (makeSetValue ()) %
+                        [ ArraySetRecordValue ]
+               '}' =:
+
 SetOrDesignatorOrFunction := PushQualident                               % VAR q, p, n: node ; %
-                              [ Constructor |
+                              [ Constructor                              % p := pop () %
+				                                         % q := pop () %
+					                                 % n := push (putSetValue (q, p)) %
+                                            |
                                 SimpleDes
 				          [                              % q := pop () %
 					    ActualParameters             % p := pop () %
@@ -1291,9 +1305,9 @@ VarFPSection := "VAR" IdentList ":" FormalType
 NonVarFPSection := IdentList ":" FormalType
                  =:
 
-OptArg := "[" Ident ":" FormalType [ "=" ConstExpression ] "]" =:
+OptArg := "[" Ident ":" FormalType [ "=" ConstExpressionNop ] "]" =:
 
-DefOptArg := "[" Ident ":" FormalType "=" ConstExpression "]" =:
+DefOptArg := "[" Ident ":" FormalType "=" ConstExpressionNop "]" =:
 
 FormalType := { "ARRAY" "OF" } Qualident =:
 
@@ -1302,7 +1316,7 @@ ModuleDeclaration := "MODULE" Ident [ Priority ] ";"
                         Block Ident
                    =:
 
-Priority := "[" ConstExpression "]" =:
+Priority := "[" ConstExpressionNop "]" =:
 
 Export := "EXPORT" ( "QUALIFIED"
                                  IdentList |

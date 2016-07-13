@@ -1,3 +1,75 @@
+2016-07-13      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/mc-3.bnf:  ConstExpressionNop (New production).
+          ConstFactor (use ConstSetOrQualidentOrFunction).
+          ComponentElement (use ConstExpressionNop).
+          ConstActualParameters (use ConstExpList).
+          ConstExpList (use ConstExpressionNop).
+          AlignmentExpression (use ConstExpressionNop).
+          PragmaConstExpression (use ConstExpressionNop).
+          AttributeExpression (use ConstExpressionNop).
+          CaseLabels (use ConstExpressionNop).
+          ForStatement (use ConstExpressionNop).
+          Priority (use ConstExpressionNop).
+	* gm2/bnf/mc-4.bnf:  ConstComponentValue (New production).
+          ConstComponentElement (New production).
+          ConstComponentValue (New production).
+          ConstArraySetRecordValue (New production).
+          ConstConstructor (New production).
+          ConstActualParameters (New production).
+          ConstExpList (New production).
+          Constructor, ArraySetRecordValue, ComponentValue,
+          ComponentElement (Productions now do nothing).
+	* gm2/bnf/mc-5.bnf:  ConstExpressionNop (New production).
+          ConstantDeclaration (use ConstExpressionNop).
+          ConstExpression (use ConstExpressionNop).
+          ConstComponentElement (new production).
+          ConstArraySetRecordValue (new production).
+          ConstConstructor (new production).
+          ConstActualParameters (new production).
+          ConstExpList (new production).
+          AlignmentExpression (use ConstExpressionNop).
+          SubrangeType (use ConstExpressionNop).
+          AttributeExpression (use ConstExpressionNop).
+          VarientCaseLabels (use ConstExpressionNop).
+          VarIdent (use ConstExpressionNop).
+          ComponentElement (new production).
+          ComponentValue (new production).
+          ArraySetRecordValue (new production).
+          Constructor (new production).
+          OptArg (new production).
+          DefOptArg (new production).
+          Priority (new production).
+	* gm2/mc/decl.def:  makeSetValue (New procedure function).
+          isSetValue (new procedure function).
+          putSetValue (new procedure function).
+          includeSetValue (new procedure function).
+	* gm2/mc/decl.mod:  in (New node kind).
+          setvalue (New node kind).
+          makeSetValue (Implement procedure function).
+          isSetValue (Implement procedure function).
+          putSetValue (Implement procedure function).
+          includeSetValue (Implement procedure function).
+          isAnyType (New procedure function).
+          makeCast (New procedure function).
+          isUnary (New procedure function).
+          isDeref (New procedure function).
+          doSetExprType (New procedure function).
+          getMaxMinType (New procedure function).
+          doGetFuncType (New procedure function).
+          getExprType (New procedure function).
+          doGetLastOp (New procedure function).
+          getLastOp (New procedure function).
+          doComponentRefC (New procedure).
+          doSetValueC (New procedure).
+          doInC (New procedure).
+          doNewC (completed).
+          doDisposeC (completed).
+          doAbsC (New procedure).
+          doValC (New procedure).
+          doMinC (New procedure).
+          doMaxC (New procedure).
+
 2016-07-06      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/mc-5.bnf:  ConstExpList introduce more asserts.
