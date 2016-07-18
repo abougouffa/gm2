@@ -74,6 +74,7 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 lookupInScope, import, lookupExported, isImp, isModule, isConst,
 		 makeLiteralInt, makeLiteralReal, makeString, getBuiltinConst,
 		 getNextEnum, makeComponentRef, makeArrayRef, makeDeRef,
+		 makePointerRef,
 		 makeExpList, putExpList, isExpList, isArray, isPointer, isVar,
 		 isConst, isParameter,
 		 makeStatementSequence, addStatement, putBegin,
@@ -84,7 +85,10 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 makeFor, putFor, isFor,
 		 makeRepeat, putRepeat,
 		 resetConstExpPos, getNextConstExp,
-		 makeSetValue, putSetValue, includeSetValue ;
+		 makeSetValue, putSetValue, includeSetValue,
+		 makeCase, putCaseExpression, putCaseElse,
+		 putCaseStatement, makeCaseList, putCaseRange,
+		 dupExpr ;
 
 
 CONST
@@ -253,6 +257,7 @@ BEGIN
       m := lookupInScope (t, i) ;
       IF m # NIL
       THEN
+         n := dupExpr (n) ;
          RETURN makeComponentRef (n, m)
       END ;
       DEC (d)
@@ -997,14 +1002,42 @@ SubDesignator :=                                                        % VAR n,
                                                                              metaError1 ('attempting to access an array but the expression is not an array but a {%1d}', type)
                                                                           END %
                      "]"
-                   | "^"                                                % IF isPointer (type)
+                   | SubPointer
+                 )
+               =:
+
+SubPointer :=                                                           % VAR n, field, type: node ; %
+                                                                        % n := peep () %
+									% type := skipType (getType (n)) %
+              "^" ( "." Ident                                           % IF isPointer (type)
+                                                                          THEN
+									     type := skipType (getType (type)) ;
+									     IF isRecord (type)
+                                                                             THEN
+                                                                                field := lookupInScope (type, curident) ;
+                                                                                IF field = NIL
+                                                                                THEN
+                                                                                   metaError2 ('field {%1k} cannot be found in record {%2ad}', curident, type)
+                                                                                ELSE
+                                                                                   n := replace (makePointerRef (n, field))
+                                                                                END
+                                                                             ELSE
+                                                                                metaError2 ('attempting to access a field {%1k} from {%2ad} which does not have a record type', curident, type)
+                                                                             END
+                                                                          ELSE
+                                                                             metaError2 ('trying to dereference {%1k} which was not declared as a pointer but a {%2tad}', n, n)
+                                                                          END %
+
+                                   |                                    % IF isPointer (type)
                                                                           THEN
                                                                              n := replace (makeDeRef (n))
                                                                           ELSE
                                                                              metaError1 ('attempting to dereference a pointer but the expression is not a pointer but a {%1d}', type)
                                                                           END %
-		  )
-               =:
+                                      )
+            =:
+
+
 
 ArrayExpList :=                                                         % VAR l: node ; %
                                                                         % l := push (makeExpList ()) %
@@ -1164,25 +1197,39 @@ IfStatement :=                                                           % VAR i
 		                        ] "END"                          % assert (isIf (peepStmt ())) %
             =:
 
-CaseStatement :=                                                         % VAR s: node ; %
-                                                                         % s := pushStmt (makeComment ("case")) %
+CaseStatement :=                                                         % VAR s, e: node ; %
+                                                                         % s := pushStmt (makeCase ()) %
                  "CASE"
-                        Expression
+                        Expression                                       % s := putCaseExpression (s, pop ()) %
                                    "OF" Case { "|" Case }
                  CaseEndStatement
                =:
 
-CaseEndStatement := "END"
+CaseEndStatement :=                                                      % VAR c: node ; %
+                                                                         % c := peepStmt () %
+                    "END"
                     | "ELSE"
-                           StatementSequence "END"
+                             StatementSequence                           % c := putCaseElse (c, popStmt ()) %
+                                               "END"
                  =:
 
-Case := [ CaseLabelList ":" StatementSequence ]
+Case := [ CaseLabelList ":"                                              % VAR l, c: node ; %
+                                                                         % l := pop () %
+									 % c := peepStmt () %
+                            StatementSequence                            % c := putCaseStatement (c, l, popStmt ()) %
+			                      ]
       =:
 
-CaseLabelList := CaseLabels { "," CaseLabels } =:
+CaseLabelList :=                                                         % VAR l: node ; %
+                                                                         % l := push (makeCaseList ()) %
+                 CaseLabels { "," CaseLabels } =:
 
-CaseLabels := ConstExpression [ ".." ConstExpression ]
+CaseLabels :=                                                            % VAR lo, hi, l: node ; %
+                                                                         % lo := NIL ; hi := NIL %
+									 % l := peep () %
+              ConstExpression                                            % lo := pop () %
+	                      [ ".." ConstExpression                     % hi := pop () %
+			                             ]                   % l := putCaseRange (l, lo, hi) %
             =:
 
 WhileStatement :=                                                        % VAR s, w, e: node ; %

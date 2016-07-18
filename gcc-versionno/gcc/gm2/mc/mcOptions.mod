@@ -33,6 +33,9 @@ CONST
    YEAR = '2016' ;
 
 VAR
+   caseRuntime,
+   arrayRuntime,
+   returnRuntime,
    ignoreFQ,
    debugTopological,
    extendedOpaque,
@@ -403,6 +406,9 @@ END handleOptions ;
 
 
 BEGIN
+   caseRuntime := FALSE ;
+   arrayRuntime := FALSE ;
+   returnRuntime := FALSE ;
    internalDebugging := FALSE ;
    quiet := FALSE ;
    verbose := FALSE ;

@@ -84,6 +84,7 @@ TYPE
 	    procedure, def, imp, module,
 	    (* statements.  *)
             loop, while, for, repeat,
+	    case, caselabellist, caselist, range,
 	    assignment, call,
 	    if, elsif,
 	    (* expressions.  *)
@@ -93,7 +94,7 @@ TYPE
 	    plus, sub, div, mod, mult, in,
 	    adr, size, tsize, ord, chr, abs, high, throw,
 	    min, max,
-            componentref, arrayref, deref,
+            componentref, pointerref, arrayref, deref,
 	    equal, notequal, less, greater, greequal, lessequal,
 	    lsl, lsr, lor, land, lnot, lxor,
 	    and, or, not, identlist, vardecl, setvalue) ;
@@ -163,12 +164,17 @@ TYPE
                          while           :  whileF           : whileT |
                          for             :  forF             : forT |
                          repeat          :  repeatF          : repeatT |
+			 case            :  caseF            : caseT |
+                         caselabellist   :  caselabellistF   : caselabellistT |
+			 caselist        :  caselistF        : caselistT |
+			 range           :  rangeF           : rangeT |
                          if              :  ifF              : ifT |
                          elsif           :  elsifF           : elsifT |
 			 assignment      :  assignmentF      : assignmentT |
                          (* expressions.  *)
-                         componentref    :  componentrefF    : componentrefT |
  			 arrayref        :  arrayrefF        : arrayrefT |
+                         pointerref      :  pointerrefF      : pointerrefT |
+                         componentref    :  componentrefF    : componentrefT |
 			 and,
 			 or,
                          equal,
@@ -394,6 +400,12 @@ TYPE
                           resultType:  node ;
                        END ;
 
+       pointerrefT = RECORD
+                        ptr       :  node ;
+                        field     :  node ;
+                        resultType:  node ;
+                     END ;
+
        arrayrefT = RECORD
                       array     :  node ;
                       index     :  node ;
@@ -431,6 +443,26 @@ TYPE
        repeatT = RECORD
                    expr,
                    statements:  node ;
+                END ;
+
+       caseT = RECORD
+                  expression   :  node ;
+                  caseLabelList:  Index ;
+		  else         :  node ;
+               END ;
+
+       caselabellistT = RECORD
+                           caseList  :  node ;
+			   statements:  node ;
+                        END ;
+
+       caselistT = RECORD
+                      rangePairs:  Index ;
+                   END ;
+
+       rangeT = RECORD
+                   lo,
+                   hi:  node ;
                 END ;
 
        forT = RECORD
@@ -3766,11 +3798,10 @@ END makeBinary ;
 
 
 (*
-   makeComponentRef - build a componentref node which accesses, field,
-                      within, record, rec.
+   doMakeComponentRef -
 *)
 
-PROCEDURE makeComponentRef (rec, field: node) : node ;
+PROCEDURE doMakeComponentRef (rec, field: node) : node ;
 VAR
    n: node ;
 BEGIN
@@ -3779,7 +3810,70 @@ BEGIN
    n^.componentrefF.field := field ;
    n^.componentrefF.resultType := getType (field) ;
    RETURN n
+END doMakeComponentRef ;
+
+
+(*
+   makeComponentRef - build a componentref node which accesses, field,
+                      within, record, rec.
+*)
+
+PROCEDURE makeComponentRef (rec, field: node) : node ;
+VAR
+   n, a: node ;
+BEGIN
+   n := getLastOp (rec) ;
+   IF (n#NIL) AND isDeref (n) AND (getType (rec) = skipType (getType (n)))
+   THEN
+      a := n^.unaryF.arg ;
+      n^.kind := pointerref ;
+      n^.pointerrefF.ptr := a ;
+      n^.pointerrefF.field := field ;
+      n^.pointerrefF.resultType := getType (field) ;
+      RETURN n
+   ELSE
+      RETURN doMakeComponentRef (rec, field)
+   END
 END makeComponentRef ;
+
+
+(*
+   isComponentRef -
+*)
+
+PROCEDURE isComponentRef (n: node) : BOOLEAN ;
+BEGIN
+   assert (n # NIL) ;
+   RETURN n^.kind = componentref
+END isComponentRef ;
+
+
+(*
+   makePointerRef - build a pointerref node which accesses, field,
+                    within, pointer to record, ptr.
+*)
+
+PROCEDURE makePointerRef (ptr, field: node) : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (pointerref) ;
+   n^.pointerrefF.ptr := ptr ;
+   n^.pointerrefF.field := field ;
+   n^.pointerrefF.resultType := getType (field) ;
+   RETURN n
+END makePointerRef ;
+
+
+(*
+   isPointerRef - returns TRUE if, n, is a pointerref node.
+*)
+
+PROCEDURE isPointerRef (n: node) : BOOLEAN ;
+BEGIN
+   assert (n # NIL) ;
+   RETURN n^.kind = pointerref
+END isPointerRef ;
 
 
 (*
@@ -4105,6 +4199,7 @@ BEGIN
       chr             :  RETURN charN |
       arrayref        :  RETURN arrayrefF.resultType |
       componentref    :  RETURN componentrefF.resultType |
+      pointerref      :  RETURN pointerrefF.resultType |
       funccall        :  RETURN funccallF.type |
       setvalue        :  RETURN setvalueF.type
 
@@ -4297,6 +4392,7 @@ BEGIN
       not             :  RETURN doSetExprType (unaryF.resultType, booleanN) |
       arrayref        :  RETURN arrayrefF.resultType |
       componentref    :  RETURN componentrefF.resultType |
+      pointerref      :  RETURN pointerrefF.resultType |
       funccall        :  RETURN doSetExprType (funccallF.type, doGetFuncType (n)) |
       setvalue        :  RETURN setvalueF.type
 
@@ -4410,6 +4506,7 @@ BEGIN
       assignment      :  RETURN NIL |
       (* expressions.  *)
       componentref,
+      pointerref,
       arrayref,
       chr,
       ord,
@@ -4672,6 +4769,7 @@ BEGIN
       greequal,
       lessequal       :  RETURN TRUE |
       componentref    :  RETURN FALSE |
+      pointerref      :  RETURN FALSE |
       cast            :  RETURN TRUE |
       val             :  RETURN TRUE |
       plus,
@@ -4739,6 +4837,70 @@ END doUnary ;
 
 
 (*
+   doSetSub - perform  l & (~ r)
+*)
+
+PROCEDURE doSetSub (p: pretty; left, right: node) ;
+BEGIN
+   IF needsParen (left)
+   THEN
+      outText (p, '(') ;
+      doExprC (p, left) ;
+      outText (p, ')')
+   ELSE
+      doExprC (p, left)
+   END ;
+   setNeedSpace (p) ;
+   outText (p, '&') ;
+   setNeedSpace (p) ;
+   IF needsParen (right)
+   THEN
+      outText (p, '(~(') ;
+      doExprC (p, right) ;
+      outText (p, '))')
+   ELSE
+      outText (p, '(~') ;
+      doExprC (p, right) ;
+      outText (p, ')')
+   END
+END doSetSub ;
+
+
+(*
+   doPolyBinary -
+*)
+
+PROCEDURE doPolyBinary (p: pretty; op: nodeT; left, right: node; l, r: BOOLEAN) ;
+VAR
+   lt, rt: node ;
+BEGIN
+   lt := getExprType (left) ;
+   rt := getExprType (right) ;
+   IF ((lt # NIL) AND isSet (lt)) OR
+      ((rt # NIL) AND isSet (rt))
+   THEN
+      CASE op OF
+
+      plus:  doBinary (p, '|', left, right, l, r) |
+      sub :  doSetSub (p, left, right) |
+      mult:  doBinary (p, '&', left, right, l, r) |
+      div :  doBinary (p, '^', left, right, l, r)
+
+      END
+   ELSE
+      CASE op OF
+
+      plus:  doBinary (p, '+', left, right, l, r) |
+      sub :  doBinary (p, '-', left, right, l, r) |
+      mult:  doBinary (p, '*', left, right, l, r) |
+      div :  doBinary (p, '/', left, right, l, r)
+
+      END
+   END
+END doPolyBinary ;
+
+
+(*
    doBinary -
 *)
 
@@ -4784,6 +4946,18 @@ END doPostUnary ;
 
 
 (*
+   doDeRefC -
+*)
+
+PROCEDURE doDeRefC (p: pretty; expr: node) ;
+BEGIN
+   outText (p, '(*') ;
+   doExprC (p, expr) ;
+   outText (p, ')')
+END doDeRefC ;
+
+
+(*
    doGetLastOp - returns, a, if b is a terminal otherwise walk right.
 *)
 
@@ -4811,7 +4985,8 @@ BEGIN
       greater         :  RETURN doGetLastOp (b, binaryF.right) |
       greequal        :  RETURN doGetLastOp (b, binaryF.right) |
       lessequal       :  RETURN doGetLastOp (b, binaryF.right) |
-      componentref    :  RETURN doGetLastOp (b, binaryF.right) |
+      componentref    :  RETURN doGetLastOp (b, componentrefF.field) |
+      pointerref      :  RETURN doGetLastOp (b, pointerrefF.field) |
       cast            :  RETURN doGetLastOp (b, binaryF.right) |
       val             :  RETURN doGetLastOp (b, binaryF.right) |
       plus            :  RETURN doGetLastOp (b, binaryF.right) |
@@ -4856,13 +5031,21 @@ END getLastOp ;
 PROCEDURE doComponentRefC (p: pretty; l, r: node) ;
 BEGIN
    doExprC (p, l) ;
-   l := getLastOp (l) ;
-   IF (l=NIL) OR (NOT isDeref (l))
-   THEN
-      outText (p, '.')
-   END ;
+   outText (p, '.') ;
    doExprC (p, r)
 END doComponentRefC ;
+
+
+(*
+   doPointerRefC -
+*)
+
+PROCEDURE doPointerRefC (p: pretty; l, r: node) ;
+BEGIN
+   doExprC (p, l) ;
+   outText (p, '->') ;
+   doExprC (p, r)
+END doPointerRefC ;
 
 
 (*
@@ -5101,21 +5284,22 @@ BEGIN
       ord             :  doUnary (p, 'ORD', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       chr             :  doUnary (p, 'CHR', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       high            :  doUnary (p, 'HIGH', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
-      deref           :  doPostUnary (p, '->', unaryF.arg) |
+      deref           :  doDeRefC (p, unaryF.arg) |
       equal           :  doBinary (p, '==', binaryF.left, binaryF.right, TRUE, TRUE) |
       notequal        :  doBinary (p, '!=', binaryF.left, binaryF.right, TRUE, TRUE) |
       less            :  doBinary (p, '<', binaryF.left, binaryF.right, TRUE, TRUE) |
       greater         :  doBinary (p, '>', binaryF.left, binaryF.right, TRUE, TRUE) |
       greequal        :  doBinary (p, '>=', binaryF.left, binaryF.right, TRUE, TRUE) |
       lessequal       :  doBinary (p, '<=', binaryF.left, binaryF.right, TRUE, TRUE) |
-      componentref    :  doComponentRefC (p, binaryF.left, binaryF.right) |
+      componentref    :  doComponentRefC (p, componentrefF.rec, componentrefF.field) |
+      pointerref      :  doPointerRefC (p, pointerrefF.ptr, pointerrefF.field) |
       cast            :  doCastC (p, binaryF.left, binaryF.right) |
       val             :  doPreBinary (p, 'VAL', binaryF.left, binaryF.right, TRUE, TRUE) |
-      plus            :  doBinary (p, '+', binaryF.left, binaryF.right, FALSE, FALSE) |
-      sub             :  doBinary (p, '-', binaryF.left, binaryF.right, FALSE, FALSE) |
-      div             :  doBinary (p, '/', binaryF.left, binaryF.right, FALSE, FALSE) |
+      plus            :  doPolyBinary (p, plus, binaryF.left, binaryF.right, FALSE, FALSE) |
+      sub             :  doPolyBinary (p, sub, binaryF.left, binaryF.right, FALSE, FALSE) |
+      div             :  doPolyBinary (p, div, binaryF.left, binaryF.right, FALSE, FALSE) |
       mod             :  doBinary (p, 'MOD', binaryF.left, binaryF.right, TRUE, TRUE) |
-      mult            :  doBinary (p, '*', binaryF.left, binaryF.right, FALSE, FALSE) |
+      mult            :  doPolyBinary (p, mult, binaryF.left, binaryF.right, FALSE, FALSE) |
       in              :  doInC (p, binaryF.left, binaryF.right) |
       and             :  doBinary (p, '&&', binaryF.left, binaryF.right, TRUE, TRUE) |
       or              :  doBinary (p, '||', binaryF.left, binaryF.right, TRUE, TRUE) |
@@ -5179,7 +5363,8 @@ BEGIN
       greater         :  doBinary (p, '>', binaryF.left, binaryF.right, TRUE, TRUE) |
       greequal        :  doBinary (p, '>=', binaryF.left, binaryF.right, TRUE, TRUE) |
       lessequal       :  doBinary (p, '<=', binaryF.left, binaryF.right, TRUE, TRUE) |
-      componentref    :  doBinary (p, '.', binaryF.left, binaryF.right, FALSE, FALSE) |
+      componentref    :  doBinary (p, '.', componentrefF.rec, componentrefF.field, FALSE, FALSE) |
+      pointerref      :  doBinary (p, '^.', pointerrefF.ptr, pointerrefF.field, FALSE, FALSE) |
       cast            :  doPreBinary (p, 'CAST', binaryF.left, binaryF.right, TRUE, TRUE) |
       val             :  doPreBinary (p, 'VAL', binaryF.left, binaryF.right, TRUE, TRUE) |
       plus            :  doBinary (p, '+', binaryF.left, binaryF.right, FALSE, FALSE) |
@@ -5207,7 +5392,14 @@ END doExprM2 ;
 PROCEDURE doVar (p: pretty; n: node) ;
 BEGIN
    assert (isVar (n)) ;
-   doFQNameC (p, n)
+   IF n^.varF.isVarParameter
+   THEN
+      outText (p, '(*') ;
+      doFQNameC (p, n) ;
+      outText (p, ')')
+   ELSE
+      doFQNameC (p, n)
+   END
 END doVar ;
 
 
@@ -5487,6 +5679,20 @@ BEGIN
    outTextS (p, s) ;
    s := KillString (s)
 END outCard ;
+
+
+(*
+   outTextN -
+*)
+
+PROCEDURE outTextN (p: pretty; n: Name) ;
+VAR
+   s: String ;
+BEGIN
+   s := InitStringCharStar (keyToCharStar (n)) ;
+   prints (p, s) ;
+   s := KillString (s)
+END outTextN ;
 
 
 (*
@@ -8050,6 +8256,337 @@ END doFuncCallC ;
 
 
 (*
+   doCaseStatementC -
+*)
+
+PROCEDURE doCaseStatementC (p: pretty; n: node; needBreak: BOOLEAN) ;
+BEGIN
+   p := pushPretty (p) ;
+   setindent (p, getindent (p) + indentationC) ;
+   doStatementSequenceC (p, n) ;
+   IF needBreak
+   THEN
+      outText (p, "break;\n")
+   END ;
+   p := popPretty (p)
+END doCaseStatementC ;
+
+
+(*
+   doExceptionC -
+*)
+
+PROCEDURE doExceptionC (p: pretty; a: ARRAY OF CHAR; n: node) ;
+BEGIN
+   outText (p, a) ;
+   setNeedSpace (p) ;
+   outText (p, '("') ;
+   outTextN (p, getSource (getMainModule ())) ;
+   outText (p, '",') ;
+   setNeedSpace (p) ;
+   outCard (p, 0) ;   (* replace with getLineNo (n).  *)
+   outText (p, ',') ;
+   setNeedSpace (p) ;
+   outCard (p, 0) ;   (* replace with getColumnNo (n).  *)
+   outText (p, ');\n') ;
+END doExceptionC ;
+
+
+(*
+   doRangeListC -
+*)
+
+PROCEDURE doRangeListC (p: pretty; c: node) ;
+VAR
+   r   : node ;
+   i, h: CARDINAL ;
+BEGIN
+   assert (isCaseList (c)) ;
+   i := 1 ;
+   h := HighIndice (c^.caselistF.rangePairs) ;
+   WHILE i<=h DO
+      r := GetIndice (c^.caselistF.rangePairs, i) ;
+      assert ((r^.rangeF.hi = NIL) OR (r^.rangeF.lo = r^.rangeF.hi)) ;
+      outText (p, "case") ;
+      setNeedSpace (p) ;
+      doExprC (p, r^.rangeF.lo) ;
+      outText (p, ":\n") ;
+      INC (i)
+   END
+END doRangeListC ;
+
+
+(*
+   doRangeIfListC -
+*)
+
+PROCEDURE doRangeIfListC (p: pretty; e, c: node) ;
+VAR
+   r   : node ;
+   i, h: CARDINAL ;
+BEGIN
+   assert (isCaseList (c)) ;
+   i := 1 ;
+   h := HighIndice (c^.caselistF.rangePairs) ;
+   WHILE i<=h DO
+      r := GetIndice (c^.caselistF.rangePairs, i) ;
+      IF (r^.rangeF.lo # r^.rangeF.hi) AND (r^.rangeF.hi # NIL)
+      THEN
+         outText (p, "((") ;
+         doExprC (p, e) ;
+         setNeedSpace (p) ;
+         outText (p, ">=") ;
+         setNeedSpace (p) ;
+         doExprC (p, r^.rangeF.lo) ;
+         outText (p, ")") ;
+         setNeedSpace (p) ;
+         outText (p, "&&") ;
+         outText (p, "(") ;
+         doExprC (p, e) ;
+         setNeedSpace (p) ;
+         outText (p, ">=") ;
+         setNeedSpace (p) ;
+         doExprC (p, r^.rangeF.hi) ;
+         outText (p, "))")
+      ELSE
+         outText (p, "(") ;
+         doExprC (p, e) ;
+         setNeedSpace (p) ;
+         outText (p, "==") ;
+         setNeedSpace (p) ;
+         doExprC (p, r^.rangeF.lo) ;
+         outText (p, ")")
+      END ;
+      IF i<h
+      THEN
+         setNeedSpace (p) ;
+         outText (p, "||") ;
+         setNeedSpace (p)
+      END ;
+      INC (i)
+   END
+END doRangeIfListC ;
+
+
+(*
+   doCaseLabels -
+*)
+
+PROCEDURE doCaseLabels (p: pretty; n: node; needBreak: BOOLEAN) ;
+BEGIN
+   assert (isCaseLabelList (n)) ;
+   doRangeListC (p, n^.caselabellistF.caseList) ;
+   p := pushPretty (p) ;
+   setindent (p, getindent (p) + indentationC) ;
+   doStatementSequenceC (p, n^.caselabellistF.statements) ;
+   IF needBreak
+   THEN
+      outText (p, "break;\n\n")
+   END ;
+   p := popPretty (p)
+END doCaseLabels ;
+
+
+(*
+   doCaseLabelListC -
+*)
+
+PROCEDURE doCaseLabelListC (p: pretty; n: node; haveElse: BOOLEAN) ;
+VAR
+   i, h: CARDINAL ;
+   c   : node ;
+BEGIN
+   assert (isCase (n)) ;
+   i := 1 ;
+   h := HighIndice (n^.caseF.caseLabelList) ;
+   WHILE i<=h DO
+      c := GetIndice (n^.caseF.caseLabelList, i) ;
+      doCaseLabels (p, c, (i<h) OR haveElse) ;
+      INC (i)
+   END
+END doCaseLabelListC ;
+
+
+(*
+   doCaseIfLabels -
+*)
+
+PROCEDURE doCaseIfLabels (p: pretty; e, n: node; first: BOOLEAN) ;
+BEGIN
+   assert (isCaseLabelList (n)) ;
+   IF NOT first
+   THEN
+      outText (p, "else") ;
+      setNeedSpace (p) ;
+   END ;
+   outText (p, "if") ;
+   setNeedSpace (p) ;
+   outText (p, "(") ;
+   doRangeIfListC (p, e, n^.caselabellistF.caseList) ;
+   outText (p, ")\n") ;
+   doStatementSequenceC (p, n^.caselabellistF.statements)
+END doCaseIfLabels ;
+
+
+(*
+   doCaseIfLabelListC -
+*)
+
+PROCEDURE doCaseIfLabelListC (p: pretty; n: node) ;
+VAR
+   i, h: CARDINAL ;
+   c   : node ;
+BEGIN
+   assert (isCase (n)) ;
+   i := 1 ;
+   h := HighIndice (n^.caseF.caseLabelList) ;
+   WHILE i<=h DO
+      c := GetIndice (n^.caseF.caseLabelList, i) ;
+      doCaseIfLabels (p, n^.caseF.expression, c, i>1) ;
+      INC (i)
+   END
+END doCaseIfLabelListC ;
+
+
+(*
+   doCaseElseC -
+*)
+
+PROCEDURE doCaseElseC (p: pretty; n: node) ;
+BEGIN
+   assert (isCase (n)) ;
+   IF n^.caseF.else = NIL
+   THEN
+      IF TRUE
+      THEN
+         outText (p, "default:\n") ;
+         p := pushPretty (p) ;
+         setindent (p, getindent (p) + indentationC) ;
+         doExceptionC (p, 'CaseException', n) ;
+         p := popPretty (p)
+      END
+   ELSE
+      outText (p, "default:\n") ;
+      doCaseStatementC (p, n^.caseF.else, FALSE)
+   END
+END doCaseElseC ;
+
+
+(*
+   doCaseIfElseC -
+*)
+
+PROCEDURE doCaseIfElseC (p: pretty; n: node) ;
+BEGIN
+   assert (isCase (n)) ;
+   IF n^.caseF.else = NIL
+   THEN
+      IF TRUE
+      THEN
+         outText (p, "\n") ;
+         outText (p, "else {\n") ;
+         p := pushPretty (p) ;
+         setindent (p, getindent (p) + indentationC) ;
+         doExceptionC (p, 'CaseException', n) ;
+         p := popPretty (p) ;
+         outText (p, "}\n")
+      END
+   ELSE
+      outText (p, "\n") ;
+      outText (p, "else {\n") ;
+      doCaseStatementC (p, n^.caseF.else, FALSE) ;
+      outText (p, "}\n")
+   END
+END doCaseIfElseC ;
+
+
+(*
+   canUseSwitchCaseLabels - returns TRUE if all the case labels are
+                            single values and not ranges.
+*)
+
+PROCEDURE canUseSwitchCaseLabels (n: node) : BOOLEAN ;
+VAR
+   i, h: CARDINAL ;
+   r, l: node ;
+BEGIN
+   assert (isCaseLabelList (n)) ;
+   l := n^.caselabellistF.caseList ;
+   i := 1 ;
+   h := HighIndice (l^.caselistF.rangePairs) ;
+   WHILE i<=h DO
+      r := GetIndice (l^.caselistF.rangePairs, i) ;
+      IF (r^.rangeF.hi # NIL) AND (r^.rangeF.lo # r^.rangeF.hi)
+      THEN
+         RETURN FALSE
+      END ;
+      INC (i)
+   END ;
+   RETURN TRUE
+END canUseSwitchCaseLabels ;
+
+
+(*
+   canUseSwitch - returns TRUE if the case statement can be implement
+                  by a switch statement.  This will be TRUE if all case
+                  selectors are single values rather than ranges.
+*)
+
+PROCEDURE canUseSwitch (n: node) : BOOLEAN ;
+VAR
+   i, h: CARDINAL ;
+   c   : node ;
+BEGIN
+   assert (isCase (n)) ;
+   i := 1 ;
+   h := HighIndice (n^.caseF.caseLabelList) ;
+   WHILE i<=h DO
+      c := GetIndice (n^.caseF.caseLabelList, i) ;
+      IF NOT canUseSwitchCaseLabels (c)
+      THEN
+         RETURN FALSE
+      END ;
+      INC (i)
+   END ;
+   RETURN TRUE
+END canUseSwitch ;
+
+
+(*
+   doCaseC -
+*)
+
+PROCEDURE doCaseC (p: pretty; n: node) ;
+VAR
+   i: CARDINAL ;
+BEGIN
+   assert (isCase (n)) ;
+   IF canUseSwitch (n)
+   THEN
+      i := getindent (p) ;
+      outText (p, "switch") ;
+      setNeedSpace (p) ;
+      outText (p, "(") ;
+      doExprC (p, n^.caseF.expression) ;
+      p := pushPretty (p) ;
+      outText (p, ")") ;
+      setindent (p, i + indentationC) ;
+      outText (p, "\n{\n") ;
+      p := pushPretty (p) ;
+      setindent (p, getindent (p) + indentationC) ;
+      doCaseLabelListC (p, n, n^.caseF.else # NIL) ;
+      doCaseElseC (p, n) ;
+      p := popPretty (p) ;
+      outText (p, "}\n") ;
+      p := popPretty (p)
+   ELSE
+      doCaseIfLabelListC (p, n) ;
+      doCaseIfElseC (p, n)
+   END
+END doCaseC ;
+
+
+(*
    doStatementsC -
 *)
 
@@ -8088,6 +8625,9 @@ BEGIN
    ELSIF isFuncCall (s)
    THEN
       doFuncCallC (p, s)
+   ELSIF isCase (s)
+   THEN
+      doCaseC (p, s)
    ELSE
       HALT  (* need to handle another s^.kind.  *)
    END
@@ -8843,6 +9383,56 @@ END walkBinary ;
 
 
 (*
+   walkComponentRef -
+*)
+
+PROCEDURE walkComponentRef (l: alist; n: node) : dependentState ;
+VAR
+   s: dependentState ;
+BEGIN
+   WITH n^.componentrefF DO
+      s := walkDependants (l, rec) ;
+      IF s#completed
+      THEN
+         RETURN s
+      END ;
+      s := walkDependants (l, field) ;
+      IF s#completed
+      THEN
+         RETURN s
+      END ;
+      RETURN walkDependants (l, resultType)
+   END
+END walkComponentRef ;
+
+
+(*
+   walkPointerRef -
+*)
+
+PROCEDURE walkPointerRef (l: alist; n: node) : dependentState ;
+VAR
+   s: dependentState ;
+BEGIN
+   WITH n^.pointerrefF DO
+      s := walkDependants (l, ptr) ;
+      IF s#completed
+      THEN
+         RETURN s
+      END ;
+      s := walkDependants (l, field) ;
+      IF s#completed
+      THEN
+         RETURN s
+      END ;
+      RETURN walkDependants (l, resultType)
+   END
+END walkPointerRef ;
+
+
+
+
+(*
    doDependants - return the dependentState depending upon whether
                   all dependants have been declared.
 *)
@@ -8909,7 +9499,8 @@ BEGIN
       elsif,
       assignment      :  HALT |
       (* expressions.  *)
-      componentref    :  RETURN walkBinary (l, n) |
+      componentref    :  RETURN walkComponentRef (l, n) |
+      pointerref      :  RETURN walkPointerRef (l, n) |
       chr,
       ord,
       high            :  RETURN walkUnary (l, n) |
@@ -9068,6 +9659,7 @@ BEGIN
    ord             :  RETURN InitString ('ord') |
    high            :  RETURN InitString ('high') |
    componentref    :  RETURN InitString ('componentref') |
+   pointerref      :  RETURN InitString ('pointerref') |
    arrayref        :  RETURN InitString ('arrayref') |
    deref           :  RETURN InitString ('deref') |
    equal           :  RETURN InitString ('equal') |
@@ -10950,6 +11542,398 @@ BEGIN
    n^.repeatF.expr := e ;
    n^.repeatF.statements := s
 END putRepeat ;
+
+
+(*
+   makeCase - builds and returns a case statement node.
+*)
+
+PROCEDURE makeCase () : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (case) ;
+   n^.caseF.expression := NIL ;
+   n^.caseF.caseLabelList := InitIndex (1) ;
+   n^.caseF.else := NIL ;
+   RETURN n
+END makeCase ;
+
+
+(*
+   isCase - returns TRUE if node, n, is a case statement.
+*)
+
+PROCEDURE isCase (n: node) : BOOLEAN ;
+BEGIN
+   assert (n # NIL) ;
+   RETURN n^.kind = case
+END isCase ;
+
+
+(*
+   putCaseExpression - places expression, e, into case statement, n.
+                       n is returned.
+*)
+
+PROCEDURE putCaseExpression (n: node; e: node) : node ;
+BEGIN
+   assert (isCase (n)) ;
+   n^.caseF.expression := e ;
+   RETURN n
+END putCaseExpression ;
+
+
+(*
+   putCaseElse - places else statement, e, into case statement, n.
+                 n is returned.
+*)
+
+PROCEDURE putCaseElse (n: node; e: node) : node ;
+BEGIN
+   assert (isCase (n)) ;
+   n^.caseF.else := e ;
+   RETURN n
+END putCaseElse ;
+
+
+(*
+   putCaseStatement - places a caselist, l, and associated
+                      statement sequence, s, into case statement, n.
+                      n is returned.
+*)
+
+PROCEDURE putCaseStatement (n: node; l: node; s: node) : node ;
+BEGIN
+   assert (isCase (n)) ;
+   assert (isCaseList (l)) ;
+   IncludeIndiceIntoIndex (n^.caseF.caseLabelList, makeCaseLabelList (l, s)) ;
+   RETURN n
+END putCaseStatement ;
+
+
+(*
+   makeCaseLabelList - creates and returns a caselabellist node.
+*)
+
+PROCEDURE makeCaseLabelList (l, s: node) : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (caselabellist) ;
+   n^.caselabellistF.caseList := l ;
+   n^.caselabellistF.statements := s ;
+   RETURN n
+END makeCaseLabelList ;
+
+
+(*
+   isCaseLabelList - returns TRUE if, n, is a caselabellist.
+*)
+
+PROCEDURE isCaseLabelList (n: node) : BOOLEAN ;
+BEGIN
+   assert (n # NIL) ;
+   RETURN n^.kind = caselabellist
+END isCaseLabelList ;
+
+
+(*
+   makeCaseList - creates and returns a case statement node.
+*)
+
+PROCEDURE makeCaseList () : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (caselist) ;
+   n^.caselistF.rangePairs := InitIndex (1) ;
+   RETURN n
+END makeCaseList ;
+
+
+(*
+   isCaseList - returns TRUE if, n, is a case list.
+*)
+
+PROCEDURE isCaseList (n: node) : BOOLEAN ;
+BEGIN
+   assert (n # NIL) ;
+   RETURN n^.kind = caselist
+END isCaseList ;
+
+
+(*
+   putCaseRange - places the case range lo..hi into caselist, n.
+*)
+
+PROCEDURE putCaseRange (n: node; lo, hi: node) : node ;
+BEGIN
+   assert (isCaseList (n)) ;
+   IncludeIndiceIntoIndex (n^.caselistF.rangePairs, makeRange (lo, hi)) ;
+   RETURN n
+END putCaseRange ;
+
+
+(*
+   makeRange - creates and returns a case range.
+*)
+
+PROCEDURE makeRange (lo, hi: node) : node ;
+VAR
+   n: node ;
+BEGIN
+   n := newNode (range) ;
+   n^.rangeF.lo := lo ;
+   n^.rangeF.hi := hi ;
+   RETURN n
+END makeRange ;
+
+
+(*
+   isRange - returns TRUE if node, n, is a range.
+*)
+
+PROCEDURE isRange (n: node) : BOOLEAN ;
+BEGIN
+   assert (n # NIL) ;
+   RETURN n^.kind = range
+END isRange ;
+
+
+(*
+   dupExplist -
+*)
+
+PROCEDURE dupExplist (n: node) : node ;
+VAR
+   m: node ;
+   i: CARDINAL ;
+BEGIN
+   assert (isExpList (n)) ;
+   m := makeExpList () ;
+   i := LowIndice (n^.explistF.exp) ;
+   WHILE i <= HighIndice (n^.explistF.exp) DO
+      putExpList (m, dupExpr (GetIndice (n^.explistF.exp, i))) ;
+      INC (i)
+   END ;
+   RETURN m
+END dupExplist ;
+
+
+(*
+   dupArrayref -
+*)
+
+PROCEDURE dupArrayref (n: node) : node ;
+BEGIN
+   assert (isArrayRef (n)) ;
+   RETURN makeArrayRef (dupExpr (n^.arrayrefF.array), dupExpr (n^.arrayrefF.index))
+END dupArrayref ;
+
+
+(*
+   dupPointerref -
+*)
+
+PROCEDURE dupPointerref (n: node) : node ;
+BEGIN
+   assert (isPointerRef (n)) ;
+   RETURN makePointerRef (dupExpr (n^.pointerrefF.ptr), dupExpr (n^.pointerrefF.field))
+END dupPointerref ;
+
+
+(*
+   dupComponentref -
+*)
+
+PROCEDURE dupComponentref (n: node) : node ;
+BEGIN
+   assert (isComponentRef (n)) ;
+   RETURN doMakeComponentRef (dupExpr (n^.componentrefF.rec), dupExpr (n^.componentrefF.field))
+END dupComponentref ;
+
+
+(*
+   dupBinary -
+*)
+
+PROCEDURE dupBinary (n: node) : node ;
+BEGIN
+   (* assert (isBinary (n)) ; *)
+   RETURN makeBinary (n^.kind,
+                      dupExpr (n^.binaryF.left), dupExpr (n^.binaryF.right),
+                      n^.binaryF.resultType)
+END dupBinary ;
+
+
+(*
+   dupUnary -
+*)
+
+PROCEDURE dupUnary (n: node) : node ;
+BEGIN
+   (* assert (isUnary (n)) ; *)
+   RETURN makeUnary (n^.kind, dupExpr (n^.unaryF.arg), n^.unaryF.resultType)
+END dupUnary ;
+
+
+(*
+   dupFunccall -
+*)
+
+PROCEDURE dupFunccall (n: node) : node ;
+VAR
+   m: node ;
+BEGIN
+   assert (isFuncCall (n)) ;
+   m := makeFuncCall (dupExpr (n^.funccallF.function), dupExpr (n^.funccallF.args)) ;
+   m^.funccallF.type := n^.funccallF.type ;
+   RETURN m
+END dupFunccall ;
+
+
+(*
+   dupSetValue -
+*)
+
+PROCEDURE dupSetValue (n: node) : node ;
+VAR
+   m: node ;
+   i: CARDINAL ;
+BEGIN
+   m := newNode (setvalue) ;
+   m^.setvalueF.type := n^.setvalueF.type ;
+   i := LowIndice (n^.setvalueF.values) ;
+   WHILE i <= HighIndice (n^.setvalueF.values) DO
+      m := putSetValue (m, dupExpr (GetIndice (n^.setvalueF.values, i))) ;
+      INC (i)
+   END ;
+   RETURN m
+END dupSetValue ;
+
+
+(*
+   dupExpr - duplicate the expression nodes, it does not duplicate
+             variables, literals, constants but only the expression
+             operators (including function calls and parameter lists).
+*)
+
+PROCEDURE dupExpr (n: node) : node ;
+BEGIN
+   assert (n # NIL) ;
+   CASE n^.kind OF
+
+   explist         : RETURN dupExplist (n) |
+   exit,
+   return,
+   stmtseq,
+   comment         : HALT |  (* should not be duplicating code.  *)
+   (* base constants.  *)
+   nil,
+   true,
+   false,
+   (* system types.  *)
+   address,
+   loc,
+   byte,
+   word            :  |
+   (* base types.  *)
+   boolean,
+   proc,
+   char,
+   integer,
+   cardinal,
+   longcard,
+   shortcard,
+   longint,
+   shortint,
+   real,
+   longreal,
+   shortreal,
+   bitset,
+   ztype,
+   rtype           :  RETURN n |
+   (* language features and compound type attributes.  *)
+   type,
+   record,
+   varient,
+   var,
+   enumeration,
+   subrange,
+   subscript,
+   array,
+   string,
+   const,
+   literal,
+   varparam,
+   param,
+   varargs,
+   optarg,
+   pointer,
+   recordfield,
+   varientfield,
+   enumerationfield,
+   set,
+   proctype        :  RETURN n |
+   (* blocks.  *)
+   procedure,
+   def,
+   imp,
+   module          :  RETURN n |
+   (* statements.  *)
+   loop,
+   while,
+   for,
+   repeat,
+   case,
+   caselabellist,
+   caselist,
+   range,
+   if,
+   elsif,
+   assignment      :  RETURN n |
+   (* expressions.  *)
+   arrayref        :  RETURN dupArrayref (n) |
+   pointerref      :  RETURN dupPointerref (n) |
+   componentref    :  RETURN dupComponentref (n) |
+   and,
+   or,
+   equal,
+   notequal,
+   less,
+   greater,
+   greequal,
+   lessequal,
+   cast,
+   val,
+   plus,
+   sub,
+   div,
+   mod,
+   mult,
+   in              :  RETURN dupBinary (n) |
+   constexp,
+   deref,
+   abs,
+   chr,
+   high,
+   ord,
+   throw,
+   not,
+   neg,
+   adr,
+   size,
+   tsize,
+   min,
+   max             :  RETURN dupUnary (n) |
+   identlist       :  RETURN n |
+   vardecl         :  RETURN n |
+   funccall        :  RETURN dupFunccall (n) |
+   setvalue        :  RETURN dupSetValue (n)
+
+   END
+END dupExpr ;
 
 
 (*

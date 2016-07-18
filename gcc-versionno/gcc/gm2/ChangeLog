@@ -1,3 +1,33 @@
+2016-07-18      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/mc-5.bnf:  duplicate the with expression before
+          calling makeCompenentRef.  SubPointer (New production).
+          CaseStatement (New production).  Case (New production).
+          CaseLabelList (New production).  CaseLabels
+	  (New production).
+	* gm2/mc/decl.def:  makePointerRef (New procedure
+          function).  isPointerRef (New procedure function).
+          getLastOp (New procedure function).
+          makeCase (New procedure function).
+          isCase (New procedure function).
+          putCaseExpression (New procedure function).
+          makeCaseLabelList (New procedure function).
+          isCaseLabelList (New procedure function).
+          makeCaseList (New procedure function).
+          isCaseList (New procedure function).
+          putCaseRange (New procedure function).
+          makeRange (New procedure function).
+          isRange (New procedure function).
+          dupExpr (New procedure function).
+	* gm2/mc/decl.mod:  implement above.
+          Case statements implemented.  With statements bug fixed
+          by duplicating the with expression.  pointerref
+          introduced and componentref is replaced by pointerref
+          if it is preceeded by a deref.  Polymorphic + - / * binary
+	  operators are implemented.
+	* gm2/mc/mcOptions.mod:  added case, array, return
+	  option variables.
+
 2016-07-13      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/mc-3.bnf:  ConstExpressionNop (New production).

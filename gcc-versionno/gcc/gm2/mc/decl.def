@@ -827,6 +827,21 @@ PROCEDURE makeComponentRef (rec, field: node) : node ;
 
 
 (*
+   makePointerRef - build a pointerref node which accesses, field,
+                    within, pointer to record, ptr.
+*)
+
+PROCEDURE makePointerRef (ptr, field: node) : node ;
+
+
+(*
+   isPointerRef - returns TRUE if, n, is a pointerref node.
+*)
+
+PROCEDURE isPointerRef (n: node) : BOOLEAN ;
+
+
+(*
    makeDeRef - dereferences the pointer defined by, n.
 *)
 
@@ -839,6 +854,13 @@ PROCEDURE makeDeRef (n: node) : node ;
 *)
 
 PROCEDURE makeArrayRef (array, index: node) : node ;
+
+
+(*
+   getLastOp - return the right most non leaf node.
+*)
+
+PROCEDURE getLastOp (n: node) : node ;
 
 
 (*
@@ -1153,6 +1175,103 @@ PROCEDURE isRepeat (n: node) : BOOLEAN ;
 *)
 
 PROCEDURE putRepeat (n, s, e: node) ;
+
+
+(*
+   makeCase - builds and returns a case statement node.
+*)
+
+PROCEDURE makeCase () : node ;
+
+
+(*
+   isCase - returns TRUE if node, n, is a case statement.
+*)
+
+PROCEDURE isCase (n: node) : BOOLEAN ;
+
+
+(*
+   putCaseExpression - places expression, e, into case statement, n.
+                       n is returned.
+*)
+
+PROCEDURE putCaseExpression (n: node; e: node) : node ;
+
+
+(*
+   putCaseElse - places else statement, e, into case statement, n.
+                 n is returned.
+*)
+
+PROCEDURE putCaseElse (n: node; e: node) : node ;
+
+
+(*
+   putCaseStatement - places a caselist, l, and associated
+                      statement sequence, s, into case statement, n.
+                      n is returned.
+*)
+
+PROCEDURE putCaseStatement (n: node; l: node; s: node) : node ;
+
+
+(*
+   makeCaseLabelList - creates and returns a caselabellist node.
+*)
+
+PROCEDURE makeCaseLabelList (l, s: node) : node ;
+
+
+(*
+   isCaseLabelList - returns TRUE if, n, is a caselabellist.
+*)
+
+PROCEDURE isCaseLabelList (n: node) : BOOLEAN ;
+
+
+(*
+   makeCaseList - creates and returns a case statement node.
+*)
+
+PROCEDURE makeCaseList () : node ;
+
+
+(*
+   isCaseList - returns TRUE if, n, is a case list.
+*)
+
+PROCEDURE isCaseList (n: node) : BOOLEAN ;
+
+
+(*
+   putCaseRange - places the case range lo..hi into caselist, n.
+*)
+
+PROCEDURE putCaseRange (n: node; lo, hi: node) : node ;
+
+
+(*
+   makeRange - creates and returns a case range.
+*)
+
+PROCEDURE makeRange (lo, hi: node) : node ;
+
+
+(*
+   isRange - returns TRUE if node, n, is a range.
+*)
+
+PROCEDURE isRange (n: node) : BOOLEAN ;
+
+
+(*
+   dupExpr - duplicate the expression nodes, it does not duplicate
+             variables, literals, constants but only the expression
+             operators (including function calls and parameter lists).
+*)
+
+PROCEDURE dupExpr (n: node) : node ;
 
 
 (*
