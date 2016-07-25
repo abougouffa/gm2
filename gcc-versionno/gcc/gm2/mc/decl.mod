@@ -32,6 +32,7 @@ FROM mcOptions IMPORT getOutputFile, getDebugTopological, getHPrefix, getIgnoreF
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM libc IMPORT printf ;
 FROM mcMetaError IMPORT metaError1, metaError2, metaErrors1, metaErrors2 ;
+FROM mcLexBuf IMPORT findFileNameFromToken, tokenToLineNo, tokenToColumnNo ;
 FROM StrLib IMPORT StrEqual ;
 
 FROM mcPretty IMPORT pretty, initPretty, dupPretty, killPretty, print, prints,
@@ -92,7 +93,7 @@ TYPE
 	    neg,
 	    cast, val,
 	    plus, sub, div, mod, mult, in,
-	    adr, size, tsize, ord, chr, abs, high, throw,
+	    adr, size, tsize, ord, float, trunc, chr, abs, high, throw,
 	    min, max,
             componentref, pointerref, arrayref, deref,
 	    equal, notequal, less, greater, greequal, lessequal,
@@ -197,6 +198,8 @@ TYPE
 			 chr,
                          high,
                          ord,
+			 float,
+			 trunc,
 			 throw,
 			 not,
 			 neg,
@@ -251,6 +254,7 @@ TYPE
                  END ;
 
        exitT = RECORD
+                  loop:  node ;
                END ;
 
        vardeclT = RECORD
@@ -294,6 +298,7 @@ TYPE
 			 noOfElements: CARDINAL ;
                          localSymbols: symbolTree ;
 			 listOfSons  : Index ;
+                         low, high   : node ;
 			 scope       : node ;
                       END ;
 
@@ -433,6 +438,7 @@ TYPE
 
        loopT = RECORD
                   statements:  node ;
+		  labelno   :  CARDINAL ;  (* 0 means no label.  *)
                END ;
 
        whileT = RECORD
@@ -607,6 +613,8 @@ VAR
    throwN,
    chrN,
    absN,
+   floatN,
+   truncN,
    ordN,
    valN,
    minN,
@@ -1689,6 +1697,8 @@ BEGIN
    deref,
    chr,
    abs,
+   float,
+   trunc,
    ord,
    high,
    throw,
@@ -2907,7 +2917,9 @@ BEGIN
       enumerationF.noOfElements := 0 ;
       enumerationF.localSymbols := initTree () ;
       enumerationF.scope := getDeclScope () ;
-      enumerationF.listOfSons := InitIndex (1)
+      enumerationF.listOfSons := InitIndex (1) ;
+      enumerationF.low := NIL ;
+      enumerationF.high := NIL ;
    END ;
    addEnumToModule (currentModule, e) ;
    RETURN e
@@ -2953,6 +2965,11 @@ BEGIN
       INC (e^.enumerationF.noOfElements) ;
       assert (GetIndice (e^.enumerationF.listOfSons, e^.enumerationF.noOfElements) = f) ;
       addEnumToModule (currentModule, f) ;
+      IF e^.enumerationF.low = NIL
+      THEN
+         e^.enumerationF.low := f
+      END ;
+      e^.enumerationF.high := f ;
 
       RETURN addToScope (f)
    ELSE
@@ -3505,12 +3522,14 @@ END dumpScopes ;
 PROCEDURE out1 (a: ARRAY OF CHAR; s: node) ;
 VAR
    m: String ;
+   d: CARDINAL ;
 BEGIN
    m := getFQstring (s) ;
    IF EqualArray (m, '')
    THEN
+      d := VAL (CARDINAL, s) ;
       m := KillString (m) ;
-      m := Sprintf1 (InitString ('[%d]'), VAL (CARDINAL, s))
+      m := Sprintf1 (InitString ('[%d]'), d)
    END ;
    m := Sprintf1 (InitString (a), m) ;
    m := KillString (WriteS (StdOut, m)) ;
@@ -3681,10 +3700,13 @@ BEGIN
       chr             :  RETURN makeKey ('CHR') |
       abs             :  RETURN makeKey ('ABS') |
       ord             :  RETURN makeKey ('ORD') |
+      float           :  RETURN makeKey ('FLOAT') |
+      trunc           :  RETURN makeKey ('TRUNC') |
       high            :  RETURN makeKey ('HIGH') |
       throw           :  RETURN makeKey ('THROW') |
       max             :  RETURN makeKey ('MAX') |
-      min             :  RETURN makeKey ('MIN')
+      min             :  RETURN makeKey ('MIN') |
+      funccall        :  RETURN NulName
 
       ELSE
          HALT
@@ -3702,11 +3724,14 @@ BEGIN
    assert (n # NIL) ;
    CASE n^.kind OF
 
+   throw,
    deref,
    high,
    chr,
    abs,
    ord,
+   float,
+   trunc,
    constexp,
    not,
    neg,
@@ -3736,11 +3761,14 @@ BEGIN
       kind := k ;
       CASE kind OF
 
+      throw,
       deref,
       high,
       chr,
       abs,
       ord,
+      float,
+      trunc,
       constexp,
       not,
       neg,
@@ -3758,10 +3786,88 @@ END makeUnary ;
 
 
 (*
+   isLeafString - returns TRUE if n is a leaf node which is a string constant.
+*)
+
+PROCEDURE isLeafString (n: node) : BOOLEAN ;
+BEGIN
+   RETURN isString (n) OR
+          (isLiteral (n) AND (getType (n) = charN)) OR
+	  (isConst (n) AND (getExprType (n) = charN))
+END isLeafString ;
+
+
+(*
+   getStringContents -
+*)
+
+PROCEDURE getStringContents (n: node) : String ;
+BEGIN
+   IF isConst (n)
+   THEN
+      RETURN getStringContents (n^.constF.value)
+   ELSIF isLiteral (n)
+   THEN
+      HALT ;  (* --fixme--  finish this.  *)
+      RETURN NIL
+   ELSIF isString (n)
+   THEN
+      RETURN getString (n)
+   ELSIF isConstExp (n)
+   THEN
+      RETURN getStringContents (n^.unaryF.arg)
+   END ;
+   HALT
+END getStringContents ;
+
+
+(*
+   foldBinary -
+*)
+
+PROCEDURE foldBinary (k: nodeT; l, r: node; res: node) : node ;
+VAR
+   n : node ;
+   ls,
+   rs: String ;
+BEGIN
+   n := NIL ;
+   IF (k = plus) AND isLeafString (l) AND isLeafString (r)
+   THEN
+      ls := getStringContents (l) ;
+      rs := getStringContents (r) ;
+      ls := DynamicStrings.Add (ls, rs) ;
+      n := makeString (makekey (DynamicStrings.string (ls))) ;
+      ls := DynamicStrings.KillString (ls) ;
+      rs := DynamicStrings.KillString (rs)
+   END ;
+   RETURN n
+END foldBinary ;
+
+
+(*
    makeBinary - create a binary node with left/right/result type:  l, r and res.
 *)
 
 PROCEDURE makeBinary (k: nodeT; l, r: node; res: node) : node ;
+VAR
+   n: node ;
+BEGIN
+   n := foldBinary (k, l, r, res) ;
+   IF n = NIL
+   THEN
+      n := doMakeBinary (k, l, r, res)
+   END ;
+   RETURN n
+END makeBinary ;
+
+
+(*
+   doMakeBinary - returns a binary node containing left/right/result values
+                  l, r, res, with a node operator, k.
+*)
+
+PROCEDURE doMakeBinary (k: nodeT; l, r: node; res: node) : node ;
 VAR
    n: node ;
 BEGIN
@@ -3794,7 +3900,7 @@ BEGIN
       END
    END ;
    RETURN n
-END makeBinary ;
+END doMakeBinary ;
 
 
 (*
@@ -3822,8 +3928,10 @@ PROCEDURE makeComponentRef (rec, field: node) : node ;
 VAR
    n, a: node ;
 BEGIN
+(*
    n := getLastOp (rec) ;
-   IF (n#NIL) AND isDeref (n) AND (getType (rec) = skipType (getType (n)))
+   IF (n#NIL) AND (isDeref (n) OR isPointerRef (n)) AND
+      (skipType (getType (rec)) = skipType (getType (n)))
    THEN
       a := n^.unaryF.arg ;
       n^.kind := pointerref ;
@@ -3831,6 +3939,18 @@ BEGIN
       n^.pointerrefF.field := field ;
       n^.pointerrefF.resultType := getType (field) ;
       RETURN n
+   ELSE
+      RETURN doMakeComponentRef (rec, field)
+   END
+*)
+   IF isDeref (rec)
+   THEN
+      a := rec^.unaryF.arg ;
+      rec^.kind := pointerref ;
+      rec^.pointerrefF.ptr := a ;
+      rec^.pointerrefF.field := field ;
+      rec^.pointerrefF.resultType := getType (field) ;
+      RETURN rec
    ELSE
       RETURN doMakeComponentRef (rec, field)
    END
@@ -3878,7 +3998,8 @@ END isPointerRef ;
 
 (*
    makeArrayRef - build an arrayref node which access element,
-                  index, in, array.
+                  index, in, array.  array is a variable/expression/constant
+                  which has a type array.
 *)
 
 PROCEDURE makeArrayRef (array, index: node) : node ;
@@ -3888,7 +4009,7 @@ BEGIN
    n := newNode (arrayref) ;
    n^.arrayrefF.array := array ;
    n^.arrayrefF.index := index ;
-   n^.arrayrefF.resultType := getType (array) ;
+   n^.arrayrefF.resultType := getType (getType (array)) ;
    RETURN n
 END makeArrayRef ;
 
@@ -3975,6 +4096,8 @@ BEGIN
       adr,
       chr,
       abs,
+      float,
+      trunc,
       ord,
       high,
       throw,
@@ -4039,6 +4162,9 @@ BEGIN
    THEN
       RETURN makeBinary (mod, l, r, NIL)
    ELSIF op=intok
+   THEN
+      RETURN makeBinary (in, l, r, NIL)
+   ELSIF op=dividetok
    THEN
       RETURN makeBinary (in, l, r, NIL)
    ELSE
@@ -4194,6 +4320,8 @@ BEGIN
       greater,
       greequal,
       lessequal       :  RETURN booleanN |
+      trunc           :  RETURN integerN |
+      float           :  RETURN realN |
       high            :  RETURN cardinalN |
       ord             :  RETURN cardinalN |
       chr             :  RETURN charN |
@@ -4270,6 +4398,8 @@ BEGIN
       adr    :  RETURN addressN |
       size,
       tsize,
+      float  :  RETURN realN |
+      trunc  :  RETURN integerN |
       ord    :  RETURN cardinalN |
       chr    :  RETURN charN |
       abs    :  RETURN getExprType (getExpList (n^.funccallF.args, 1)) |
@@ -4336,7 +4466,7 @@ BEGIN
       subrange        :  RETURN subrangeF.type |
       array           :  RETURN arrayF.type |
       string          :  RETURN charN |
-      const           :  RETURN constF.type |
+      const           :  RETURN doSetExprType (constF.type, getExprType (constF.value)) |
       literal         :  RETURN literalF.type |
       varparam        :  RETURN varparamF.type |
       param           :  RETURN paramF.type |
@@ -4388,6 +4518,8 @@ BEGIN
       tsize           :  RETURN doSetExprType (unaryF.resultType, cardinalN) |
       high,
       ord             :  RETURN doSetExprType (unaryF.resultType, cardinalN) |
+      float           :  RETURN doSetExprType (unaryF.resultType, realN) |
+      trunc           :  RETURN doSetExprType (unaryF.resultType, integerN) |
       chr             :  RETURN doSetExprType (unaryF.resultType, charN) |
       not             :  RETURN doSetExprType (unaryF.resultType, booleanN) |
       arrayref        :  RETURN arrayrefF.resultType |
@@ -4510,6 +4642,8 @@ BEGIN
       arrayref,
       chr,
       ord,
+      float,
+      trunc,
       high,
       cast,
       val,
@@ -4759,6 +4893,8 @@ BEGIN
       size,
       tsize,
       ord,
+      float,
+      trunc,
       chr,
       high            :  RETURN FALSE |
       deref           :  RETURN FALSE |
@@ -4790,6 +4926,7 @@ BEGIN
       or              :  RETURN TRUE |
       funccall        :  RETURN TRUE |
       recordfield     :  RETURN FALSE |
+      type,
       char,
       cardinal,
       longcard,
@@ -4802,7 +4939,8 @@ BEGIN
       shortreal,
       bitset,
       boolean,
-      proc            :  RETURN FALSE
+      proc            :  RETURN FALSE |
+      setvalue        :  RETURN FALSE
 
       END
    END ;
@@ -4976,6 +5114,8 @@ BEGIN
       size            :  RETURN doGetLastOp (b, unaryF.arg) |
       tsize           :  RETURN doGetLastOp (b, unaryF.arg) |
       ord             :  RETURN doGetLastOp (b, unaryF.arg) |
+      float,
+      trunc           :  RETURN doGetLastOp (b, unaryF.arg) |
       chr             :  RETURN doGetLastOp (b, unaryF.arg) |
       high            :  RETURN doGetLastOp (b, unaryF.arg) |
       deref           :  RETURN doGetLastOp (b, unaryF.arg) |
@@ -5117,11 +5257,13 @@ VAR
 BEGIN
    assert (n # NIL) ;
    assert (isArrayRef (n)) ;
-   doExprC (p, n^.arrayrefF.array) ;
    t := skipType (getType (n^.arrayrefF.array)) ;
-   assert (isArray (t)) ;
-   IF NOT isUnbounded (t)
+   IF isUnbounded (t)
    THEN
+      outTextN (p, getSymName (n^.arrayrefF.array))
+   ELSE
+      doExprC (p, n^.arrayrefF.array) ;
+      assert (isArray (t)) ;
       outText (p, '.array')
    END ;
    outText (p, '[') ;
@@ -5260,6 +5402,31 @@ END doInC ;
 
 
 (*
+   doThrowC -
+*)
+
+PROCEDURE doThrowC (p: pretty; n: node) ;
+BEGIN
+   assert (isFuncCall (n)) ;
+   IF n^.funccallF.args = NIL
+   THEN
+      HALT
+   ELSE
+      IF expListLen (n^.funccallF.args) = 1
+      THEN
+         outText (p, "throw") ;
+         setNeedSpace (p) ;
+         outText (p, '(') ;
+         doExprC (p, getExpList (n^.funccallF.args, 1)) ;
+         outText (p, ')')
+      ELSE
+         HALT (* metaError0 ('expecting a single parameter to THROW') *)
+      END
+   END
+END doThrowC ;
+
+
+(*
    doExprC -
 *)
 
@@ -5281,6 +5448,8 @@ BEGIN
       adr             :  doUnary (p, '&', unaryF.arg, unaryF.resultType, TRUE, FALSE) |
       size            :  doUnary (p, 'sizeof', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       tsize           :  doUnary (p, 'sizeof', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      trunc           :  doUnary (p, 'TRUNC', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      float           :  doUnary (p, 'FLOAT', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       ord             :  doUnary (p, 'ORD', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       chr             :  doUnary (p, 'CHR', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       high            :  doUnary (p, 'HIGH', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
@@ -5327,7 +5496,13 @@ BEGIN
       shortreal,
       bitset,
       boolean,
-      proc            :  doBaseC (p, n)
+      proc            :  doBaseC (p, n) |
+      address,
+      loc,
+      byte,
+      word            :  doSystemC (p, n) |
+      type            :  doTypeNameC (p, n) |
+      pointer         :  doTypeNameC (p, n)
 
       END
    END
@@ -5353,6 +5528,8 @@ BEGIN
       adr             :  doUnary (p, 'ADR', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       size            :  doUnary (p, 'SIZE', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       tsize           :  doUnary (p, 'TSIZE', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      float           :  doUnary (p, 'FLOAT', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      trunc           :  doUnary (p, 'TRUNC', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       ord             :  doUnary (p, 'ORD', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       chr             :  doUnary (p, 'CHR', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       high            :  doUnary (p, 'HIGH', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
@@ -5463,6 +5640,7 @@ BEGIN
 END doLiteral ;
 
 
+
 (*
    isString - returns TRUE if node, n, is a string.
 *)
@@ -5506,6 +5684,42 @@ END doString ;
 
 
 (*
+   outCstring -
+*)
+
+PROCEDURE outCstring (p: pretty; s: String) ;
+VAR
+   t   : String ;
+   l, i: INTEGER ;
+   ch  : CHAR ;
+BEGIN
+   l := 0 ;
+   REPEAT
+      i := DynamicStrings.Index (s, '\', l) ;
+      IF i = -1
+      THEN
+         i := DynamicStrings.Length (s) ;
+         WHILE l < i DO
+            t := DynamicStrings.InitStringChar (DynamicStrings.char (s, l)) ;
+            outTextS (p, t) ;
+            t := KillString (t) ;
+            INC (l)
+         END
+      ELSE
+         WHILE l < i DO
+            t := DynamicStrings.InitStringChar (DynamicStrings.char (s, l)) ;
+            outTextS (p, t) ;
+            t := KillString (t) ;
+            INC (l)
+         END ;
+         outText (p, '\') ;
+         INC (l)
+      END
+   UNTIL i = l
+END outCstring ;
+
+
+(*
    doStringC -
 *)
 
@@ -5521,13 +5735,13 @@ BEGIN
       THEN
          s := DynamicStrings.Slice (s, 1, -1) ;
          outText (p, '"') ;
-         outTextS (p, s) ;
+         outCstring (p, s) ;
          outText (p, '"')
       ELSIF DynamicStrings.Index (s, "'", 0)=-1
       THEN
          s := DynamicStrings.Slice (s, 1, -1) ;
          outText (p, '"') ;
-         outTextS (p, s) ;
+         outCstring (p, s) ;
          outText (p, '"')
       ELSE
          metaError1 ('illegal string {%1k}', n)
@@ -5798,16 +6012,13 @@ END doNameM2 ;
 *)
 
 PROCEDURE doHighC (p: pretty; a: node; n: Name) ;
-VAR
-   s: String ;
 BEGIN
    IF isArray (a) AND isUnbounded (a)
    THEN
       (* need to display high.  *)
       print (p, ",") ; setNeedSpace (p) ;
       doTypeNameC (p, cardinalN) ; setNeedSpace (p) ;
-      s := InitStringCharStar (keyToCharStar (n)) ;
-      print (p, "_") ; prints (p, s) ; print (p, "_high")
+      print (p, "_") ; outTextN (p, n) ; print (p, "_high")
    END
 END doHighC ;
 
@@ -6144,6 +6355,12 @@ BEGIN
    ELSIF n=cardinalN
    THEN
       RETURN lookupConst (cardinalN, makeKey ('0'))
+   ELSIF n=longintN
+   THEN
+      RETURN lookupConst (longintN, makeKey ('LONG_MIN'))
+   ELSIF n=longcardN
+   THEN
+      RETURN lookupConst (longcardN, makeKey ('0'))
    ELSIF n=charN
    THEN
       RETURN lookupConst (charN, makeKey ('0'))
@@ -6183,6 +6400,12 @@ BEGIN
    ELSIF n=cardinalN
    THEN
       RETURN lookupConst (cardinalN, makeKey ('4294967295'))
+   ELSIF n=longintN
+   THEN
+      RETURN lookupConst (longintN, makeKey ('LONG_MAX'))
+   ELSIF n=longcardN
+   THEN
+      RETURN lookupConst (longcardN, makeKey ('ULONG_MAX'))
    ELSIF n=charN
    THEN
       RETURN lookupConst (charN, makeKey ('255'))
@@ -6217,6 +6440,9 @@ BEGIN
    IF isSubrange (n)
    THEN
       RETURN n^.subrangeF.high
+   ELSIF isEnumeration (n)
+   THEN
+      RETURN n^.enumerationF.high
    ELSE
       assert (isOrdinal (n)) ;
       RETURN doMax (n)
@@ -6233,6 +6459,9 @@ BEGIN
    IF isSubrange (n)
    THEN
       RETURN n^.subrangeF.low
+   ELSIF isEnumeration (n)
+   THEN
+      RETURN n^.enumerationF.low
    ELSE
       assert (isOrdinal (n)) ;
       RETURN doMin (n)
@@ -7398,17 +7627,6 @@ END doCommentC ;
 
 
 (*
-   doExitC -
-*)
-
-PROCEDURE doExitC (p: pretty; s: node) ;
-BEGIN
-   assert (isExit (s)) ;
-   outText (p, "/* exit.  */\n")
-END doExitC ;
-
-
-(*
    doReturnC -
 *)
 
@@ -7635,7 +7853,7 @@ BEGIN
       outCard (p, a^.stringF.length-2)
    ELSIF isUnbounded (getType (a))
    THEN
-      doExprC (p, a) ;
+      outTextN (p, getSymName (a)) ;
       outText (p, '_high')
    ELSIF isArray (skipType (getType (a)))
    THEN
@@ -7728,7 +7946,7 @@ BEGIN
       outText (p, '"') ;
       s := InitStringCharStar (keyToCharStar (a^.stringF.name)) ;
       s := DynamicStrings.Slice (DynamicStrings.Mark (s), 1, -1) ;
-      outTextS (p, s) ;
+      outCstring (p, s) ;
       outText (p, '"') ;
       s := KillString (s)
    ELSIF NOT isUnbounded (getType (a))
@@ -7842,6 +8060,30 @@ END doFuncArgsC ;
 
 
 (*
+   doAdrArgC -
+*)
+
+PROCEDURE doAdrArgC (p: pretty; n: node) ;
+BEGIN
+   IF isDeref (n)
+   THEN
+      (* & and * cancel each other out.  *)
+      doExprC (p, n^.unaryF.arg)
+   ELSIF isVar (n) AND (n^.varF.isVarParameter)
+   THEN
+      (* & and * cancel each other out.  *)
+      outTextN (p, getSymName (n))   (* --fixme-- does the caller need to cast it?  *)
+   ELSE
+      IF NOT isString (n)
+      THEN
+         outText (p, "&")
+      END ;
+      doExprC (p, n)
+   END
+END doAdrArgC ;
+
+
+(*
    doAdrC -
 *)
 
@@ -7852,11 +8094,7 @@ BEGIN
    THEN
       IF expListLen (n^.funccallF.args) = 1
       THEN
-         IF NOT isString (getExpList (n^.funccallF.args, 1))
-         THEN
-            outText (p, "&")
-         END ;
-         doExprC (p, getExpList (n^.funccallF.args, 1))
+         doAdrArgC (p, getExpList (n^.funccallF.args, 1))
       END
    ELSE
 
@@ -8142,6 +8380,8 @@ BEGIN
    adr,
    size,
    tsize,
+   float,
+   trunc,
    ord,
    chr,
    abs,
@@ -8151,7 +8391,8 @@ BEGIN
    incl,
    excl,
    new,
-   dispose:  RETURN TRUE
+   dispose,
+   throw  :  RETURN TRUE
 
    ELSE
       RETURN FALSE
@@ -8173,6 +8414,12 @@ BEGIN
    tsize:  outText (p, "sizeof") ;
            setNeedSpace (p) ;
            doFuncArgsC (p, n, NIL, TRUE) |
+   float:  outText (p, "(double)") ;
+           setNeedSpace (p) ;
+           doFuncArgsC (p, n, NIL, TRUE) |
+   trunc:  outText (p, "(int)") ;
+           setNeedSpace (p) ;
+           doFuncArgsC (p, n, NIL, TRUE) |
    ord:    outText (p, "(unsigned int)") ;
            setNeedSpace (p) ;
            doFuncArgsC (p, n, NIL, TRUE) |
@@ -8180,9 +8427,7 @@ BEGIN
            setNeedSpace (p) ;
            doFuncArgsC (p, n, NIL, TRUE) |
    abs:    doAbsC (p, n) |
-   high:   outText (p, "_") ;
-           doFuncArgsC (p, n, NIL, FALSE) ;
-           outText (p, "_high") |
+   high:   doFuncHighC (p, getExpList (n^.funccallF.args, 1)) |
    inc:    doIncDecC (p, n, "+=") |
    dec:    doIncDecC (p, n, "-=") |
    incl:   doInclC (p, n) |
@@ -8190,7 +8435,8 @@ BEGIN
    new:    doNewC (p, n) |
    dispose: doDisposeC (p, n) |
    min:    doMinC (p, n) |
-   max:    doMaxC (p, n)
+   max:    doMaxC (p, n) |
+   throw:  doThrowC (p, n)
 
    END
 END doIntrinsicC ;
@@ -8277,17 +8523,20 @@ END doCaseStatementC ;
 *)
 
 PROCEDURE doExceptionC (p: pretty; a: ARRAY OF CHAR; n: node) ;
+VAR
+   w: CARDINAL ;
 BEGIN
+   w := getDeclaredMod (n) ;
    outText (p, a) ;
    setNeedSpace (p) ;
    outText (p, '("') ;
-   outTextN (p, getSource (getMainModule ())) ;
+   outTextS (p, findFileNameFromToken (w, 0)) ;
    outText (p, '",') ;
    setNeedSpace (p) ;
-   outCard (p, 0) ;   (* replace with getLineNo (n).  *)
+   outCard (p, tokenToLineNo (w, 0)) ;
    outText (p, ',') ;
    setNeedSpace (p) ;
-   outCard (p, 0) ;   (* replace with getColumnNo (n).  *)
+   outCard (p, tokenToColumnNo (w, 0)) ;
    outText (p, ');\n') ;
 END doExceptionC ;
 
@@ -8459,14 +8708,14 @@ BEGIN
    THEN
       IF TRUE
       THEN
-         outText (p, "default:\n") ;
+         outText (p, "\ndefault:\n") ;
          p := pushPretty (p) ;
          setindent (p, getindent (p) + indentationC) ;
          doExceptionC (p, 'CaseException', n) ;
          p := popPretty (p)
       END
    ELSE
-      outText (p, "default:\n") ;
+      outText (p, "\ndefault:\n") ;
       doCaseStatementC (p, n^.caseF.else, FALSE)
    END
 END doCaseElseC ;
@@ -8587,6 +8836,34 @@ END doCaseC ;
 
 
 (*
+   doLoopC -
+*)
+
+PROCEDURE doLoopC (p: pretty; s: node) ;
+BEGIN
+   assert (isLoop (s)) ;
+   outText (p, 'for (;;)\n') ;
+   outText (p, "{\n") ;
+   p := pushPretty (p) ;
+   setindent (p, getindent (p) + indentationC) ;
+   doStatementSequenceC (p, s^.loopF.statements) ;
+   p := popPretty (p) ;
+   outText (p, "}\n")
+END doLoopC ;
+
+
+(*
+   doExitC -
+*)
+
+PROCEDURE doExitC (p: pretty; s: node) ;
+BEGIN
+   assert (isExit (s)) ;
+   outText (p, "/* exit.  */\n")
+END doExitC ;
+
+
+(*
    doStatementsC -
 *)
 
@@ -8628,6 +8905,12 @@ BEGIN
    ELSIF isCase (s)
    THEN
       doCaseC (p, s)
+   ELSIF isLoop (s)
+   THEN
+      doLoopC (p, s)
+   ELSIF isExit (s)
+   THEN
+      doExitC (p, s)
    ELSE
       HALT  (* need to handle another s^.kind.  *)
    END
@@ -9503,6 +9786,8 @@ BEGIN
       pointerref      :  RETURN walkPointerRef (l, n) |
       chr,
       ord,
+      float,
+      trunc,
       high            :  RETURN walkUnary (l, n) |
       cast,
       val,
@@ -9657,6 +9942,8 @@ BEGIN
    tsize           :  RETURN InitString ('tsize') |
    chr             :  RETURN InitString ('chr') |
    ord             :  RETURN InitString ('ord') |
+   float           :  RETURN InitString ('float') |
+   trunc           :  RETURN InitString ('trunc') |
    high            :  RETURN InitString ('high') |
    componentref    :  RETURN InitString ('componentref') |
    pointerref      :  RETURN InitString ('pointerref') |
@@ -11323,13 +11610,15 @@ END putBegin ;
    makeExit - creates and returns an exit node.
 *)
 
-PROCEDURE makeExit () : node ;
+PROCEDURE makeExit (l: node; n: CARDINAL) : node ;
 VAR
-   n: node ;
+   e: node ;
 BEGIN
-   n := newNode (exit) ;
-   (* fill in later --fixme--.  *)
-   RETURN n
+   assert (isLoop (l)) ;
+   e := newNode (exit) ;
+   e^.exitF.loop := l ;
+   l^.loopF.labelno := n ;
+   RETURN e
 END makeExit ;
 
 
@@ -11342,6 +11631,43 @@ BEGIN
    assert (n # NIL) ;
    RETURN n^.kind = exit
 END isExit ;
+
+
+(*
+   makeLoop - creates and returns a loop node.
+*)
+
+PROCEDURE makeLoop () : node ;
+VAR
+   l: node ;
+BEGIN
+   l := newNode (loop) ;
+   l^.loopF.statements := NIL ;
+   l^.loopF.labelno := 0 ;
+   RETURN l
+END makeLoop ;
+
+
+(*
+   putLoop - places statement sequence, s, into loop, l.
+*)
+
+PROCEDURE putLoop (l, s: node) ;
+BEGIN
+   assert (isLoop (l)) ;
+   l^.loopF.statements := s
+END putLoop ;
+
+
+(*
+   isLoop - returns TRUE if, n, is a loop node.
+*)
+
+PROCEDURE isLoop (n: node) : BOOLEAN ;
+BEGIN
+   assert (n # NIL) ;
+   RETURN n^.kind = loop
+END isLoop ;
 
 
 (*
@@ -11918,6 +12244,8 @@ BEGIN
    abs,
    chr,
    high,
+   float,
+   trunc,
    ord,
    throw,
    not,
@@ -12031,6 +12359,8 @@ BEGIN
    sizeN := makeBase (size) ;
    minN := makeBase (min) ;
    maxN := makeBase (max) ;
+   floatN := makeBase (float) ;
+   truncN := makeBase (trunc) ;
    ordN := makeBase (ord) ;
    valN := makeBase (val) ;
    chrN := makeBase (chr) ;
@@ -12063,6 +12393,8 @@ BEGIN
    putSymKey (baseSymbols, makeKey ('SIZE'), sizeN) ;
    putSymKey (baseSymbols, makeKey ('MIN'), minN) ;
    putSymKey (baseSymbols, makeKey ('MAX'), maxN) ;
+   putSymKey (baseSymbols, makeKey ('FLOAT'), floatN) ;
+   putSymKey (baseSymbols, makeKey ('TRUNC'), truncN) ;
    putSymKey (baseSymbols, makeKey ('ORD'), ordN) ;
    putSymKey (baseSymbols, makeKey ('VAL'), valN) ;
    putSymKey (baseSymbols, makeKey ('CHR'), chrN) ;

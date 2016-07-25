@@ -88,7 +88,7 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 makeSetValue, putSetValue, includeSetValue,
 		 makeCase, putCaseExpression, putCaseElse,
 		 putCaseStatement, makeCaseList, putCaseRange,
-		 dupExpr ;
+		 dupExpr, makeLoop, putLoop, isLoop ;
 
 
 CONST
@@ -105,6 +105,8 @@ VAR
    typeDes,
    typeExp,
    curmodule  : node ;
+   loopNo     : CARDINAL ;
+   loopStk,
    stmtStk,
    withStk,
    stk        : stack ;
@@ -295,6 +297,37 @@ PROCEDURE peepStmt () : node ;
 BEGIN
    RETURN pushStmt (popStmt ())
 END peepStmt ;
+
+
+(*
+   pushLoop - push a node, n, to the loop stack and return node, n.
+*)
+
+PROCEDURE pushLoop (n: node) : node ;
+BEGIN
+   RETURN mcStack.push (loopStk, n)
+END pushLoop ;
+
+
+(*
+   popLoop - pop the top node from the loop stack.
+*)
+
+PROCEDURE popLoop () : node ;
+BEGIN
+   RETURN mcStack.pop (loopStk)
+END popLoop ;
+
+
+(*
+   peepLoop - return the top node from the loop stack,
+              but leave the stack unchanged.
+*)
+
+PROCEDURE peepLoop () : node ;
+BEGIN
+   RETURN pushLoop (popLoop ())
+END peepLoop ;
 
 
 PROCEDURE ErrorString (s: String) ;
@@ -591,11 +624,14 @@ BEGIN
    stk := mcStack.init () ;
    withStk := mcStack.init () ;
    stmtStk := mcStack.init () ;
+   loopStk := mcStack.init () ;
+   loopNo := 0 ;
    WasNoError := TRUE ;
    FileUnit(SetOfStop0{eoftok}, SetOfStop1{}, SetOfStop2{}) ;
    mcStack.kill (stk) ;
    mcStack.kill (withStk) ;
    mcStack.kill (stmtStk) ;
+   mcStack.kill (loopStk) ;
    RETURN WasNoError
 END CompilationUnit ;
 
@@ -877,8 +913,7 @@ ConstConstructor := '{'
                     '}' =:
 
 ConstSetOrQualidentOrFunction := Qualident
-                                 [ ConstConstructor
-				               | ConstActualParameters ]
+                                 [ ConstConstructor | ConstActualParameters ]
                                    |
                                      ConstConstructor =:
 
@@ -1119,7 +1154,7 @@ Constructor := '{'                                                      % VAR n:
 SetOrDesignatorOrFunction := PushQualident                               % VAR q, p, n: node ; %
                               [ Constructor                              % p := pop () %
 				                                         % q := pop () %
-					                                 % n := push (putSetValue (q, p)) %
+					                                 % n := push (putSetValue (p, q)) %
                                             |
                                 SimpleDes
 				          [                              % q := pop () %
@@ -1139,7 +1174,13 @@ ActualParameters := "("                                                  % VAR n
 
 
 ExitStatement :=                                                         % VAR n: node ; %
-                 "EXIT"                                                  % n := pushStmt (makeExit ()) %
+                 "EXIT"
+                                                                         % IF loopNo = 0
+                                                                           THEN
+                                                                              ErrorArray ('EXIT can only be used inside a LOOP statement')
+                                                                           ELSE
+                                                                              n := pushStmt (makeExit (peepLoop (), loopNo))
+                                                                           END %
                =:
 
 ReturnStatement :=                                                       % VAR n: node ; %
@@ -1206,9 +1247,9 @@ CaseStatement :=                                                         % VAR s
                =:
 
 CaseEndStatement :=                                                      % VAR c: node ; %
-                                                                         % c := peepStmt () %
                     "END"
-                    | "ELSE"
+                      | "ELSE"
+                                                                         % c := peepStmt () %
                              StatementSequence                           % c := putCaseElse (c, popStmt ()) %
                                                "END"
                  =:
@@ -1259,11 +1300,14 @@ ForStatement :=                                                          % VAR f
                 "END"
               =:
 
-LoopStatement :=                                                         % VAR s: node ; %
-                                                                         % s := pushStmt (makeComment ("loop")) %
-                 "LOOP"
-                      StatementSequence
-                 "END"
+LoopStatement :=                                                         % VAR l, s: node ; %
+                 "LOOP"                                                  % l := pushStmt (pushLoop (makeLoop ())) %
+		                                                         % INC (loopNo) %
+                      StatementSequence                                  % s := popStmt () %
+		                                                         % putLoop (l, s) %
+		                                                         % DEC (loopNo) %
+                 "END"                                                   % l := popLoop () %
+		                                                         % assert (isLoop (peepStmt ())) %
                =:
 
 WithStatement := "WITH" Designator "DO"                                  % startWith (pop ()) %

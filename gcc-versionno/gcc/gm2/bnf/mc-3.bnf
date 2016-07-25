@@ -663,9 +663,10 @@ ConstExpressionNop := SimpleConstExpr                                   % VAR n:
 				                                        % n := makeConstExp () %
                     =:
 
-ConstExpression := SimpleConstExpr                                      % VAR n: node ; %
-                                   [ Relation SimpleConstExpr ]
+ConstExpression :=                                                      % VAR n: node ; %
 				                                        % n := push (makeConstExp ()) %
+                   SimpleConstExpr
+                                   [ Relation SimpleConstExpr ]
                  =:
 
 Relation := "="

@@ -75,7 +75,8 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 makeLiteralInt, makeLiteralReal, makeString, getBuiltinConst,
 		 getNextConstExp, fixupConstExp, makeFuncCall,
 		 makeExpList, putExpList, isExpList,
-		 makeSetValue, putSetValue, includeSetValue ;
+		 makeSetValue, putSetValue, includeSetValue,
+		 resetConstExpPos ;
 
 
 CONST
@@ -620,6 +621,7 @@ FileUnit := DefinitionModule | ImplementationOrProgramModule
 ProgramModule := "MODULE"
                   Ident                                                % curmodule := lookupModule (curident) %
 		                                                       % enterScope (curmodule) %
+                                                                       % resetConstExpPos (curmodule) %
                   [ Priority
                   ]
                   ";"
@@ -635,6 +637,7 @@ ImplementationModule := "IMPLEMENTATION" "MODULE"
                          Ident                                         % curmodule := lookupImp (curident) %
 			                                               % enterScope (lookupDef (curident)) %
                                                                        % enterScope (curmodule) %
+                                                                       % resetConstExpPos (curmodule) %
                          [ Priority
                          ] ";"
                          { Import }
@@ -660,8 +663,9 @@ ConstantDeclaration :=                                                  % VAR d,
                                                                         % putConst (d, e) %
                      =:
 
-ConstExpression :=                                                      % VAR c, l, r: node ; op: toktype ; %
-                                                                        % c := getNextConstExp () %
+ConstExpression :=                                                      % VAR c, l, r: node ; op: toktype ; d: CARDINAL ; %
+                                                                        % d := depth () %
+                                                                        % c := push (getNextConstExp ()) %
                    SimpleConstExpr
                                                                         % op := currenttoken %
                                    [ Relation
@@ -670,7 +674,8 @@ ConstExpression :=                                                      % VAR c,
 									% l := pop () %
 									% l := push (makeBinaryTok (op, l, r)) %
 				                              ]
-							                % c := push (fixupConstExp (c, pop ())) %
+							                % c := replace (fixupConstExp (c, pop ())) %
+									% assert (d+1 = depth ()) %
                  =:
 
 Relation := "="
@@ -750,16 +755,22 @@ ConstConstructor := '{'                                                 % VAR n:
                         [ ConstArraySetRecordValue ]
                     '}' =:
 
-ConstSetOrQualidentOrFunction := PushQualident                          % VAR q, p, n: node ; %
+ConstSetOrQualidentOrFunction :=                                        % VAR q, p, n: node ; d: CARDINAL ; %
+                                                                        % d := depth () %
+                                 PushQualident
+                                                                        % assert (d+1 = depth ()) %
                                  [ ConstConstructor                     % p := pop () %
 				                                        % q := pop () %
 									% n := push (putSetValue (q, p)) %
+                                                                        % assert (d+1 = depth ()) %
                                                | ConstActualParameters  % p := pop () %
                                                                         % q := pop () %
 					                                % n := push (makeFuncCall (q, p)) %
+									% assert (d+1 = depth ()) %
                                                                       ]
-                                 |
-                                   ConstConstructor =:
+                                 |                                      % d := depth () %
+                                   ConstConstructor                     % assert (d+1 = depth ()) %
+			       =:
 
 ConstActualParameters := "("                                             % VAR n: node ; %
                                                                          % n := push (makeExpList ()) %
@@ -770,6 +781,7 @@ ConstExpList :=                                                         % VAR p,
                                                                         % p := peep () %
                                                                         % assert (isExpList (p)) %
                 ConstExpression                                         % putExpList (p, pop ()) %
+		                                                        % assert (p = peep ()) %
                                                                         % assert (isExpList (peep ())) %
                                 { "," ConstExpression                   % putExpList (p, pop ()) %
                                                                         % assert (isExpList (peep ())) %
@@ -1139,6 +1151,7 @@ Import := FromImport | WithoutFromImport =:
 
 DefinitionModule := "DEFINITION" "MODULE" [ "FOR" string ] Ident ";"   % curmodule := lookupDef (curident) %
     		                                                       % enterScope (curmodule) %
+                                                                       % resetConstExpPos (curmodule) %
                       { Import } [ Export ]
                       { Definition }
                     "END" Ident "."                                    % checkEndName (curmodule, curident, 'definition module') %

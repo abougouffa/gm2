@@ -1746,7 +1746,7 @@ MC-LIB-MODS = Args.mod ASCII.mod Assertion.mod Break.mod  \
               SFIO.mod StdIO.mod Storage.mod StrCase.mod \
               StringConvert.mod StrIO.mod StrLib.mod \
               SysStorage.mod \
-              SYSTEM.mod TimeString.mod
+              TimeString.mod
 
 MC-DEFS = alists.def  decl.def  Indexing.def  lists.def  \
                mcComp.def  mcDebug.def  mcError.def  mcFileName.def \

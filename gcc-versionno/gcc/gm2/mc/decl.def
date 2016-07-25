@@ -1079,7 +1079,35 @@ PROCEDURE putBegin (b: node; s: node) ;
    makeExit - creates and returns an exit node.
 *)
 
-PROCEDURE makeExit () : node ;
+PROCEDURE makeExit (l: node; n: CARDINAL) : node ;
+
+
+(*
+   isExit - returns TRUE if node, n, is an exit.
+*)
+
+PROCEDURE isExit (n: node) : BOOLEAN ;
+
+
+(*
+   makeLoop - creates and returns a loop node.
+*)
+
+PROCEDURE makeLoop () : node ;
+
+
+(*
+   isLoop - returns TRUE if, n, is a loop node.
+*)
+
+PROCEDURE isLoop (n: node) : BOOLEAN ;
+
+
+(*
+   putLoop - places statement sequence, s, into loop, l.
+*)
+
+PROCEDURE putLoop (l, s: node) ;
 
 
 (*

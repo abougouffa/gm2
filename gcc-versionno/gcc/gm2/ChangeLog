@@ -1,3 +1,26 @@
+2016-07-25      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  removed SYSTEM.mod from the list of
+	  modules to be converted by mc.
+	* gm2/bnf/mc-3.bnf:  ConstExpression pushes a makeConstExp.
+	* gm2/bnf/mc-4.bnf:  ConstExpression gets a constexp.
+	  Reset constexp index for every new file.
+          ConstSetOrQualidentOrFunction
+          many asserts added and production statement order bug fixed.
+          ConstActualParameters added assert.
+	* gm2/bnf/mc-5.bnf:  implement LOOP END.  Fix bugs in the
+	  construction of set values.
+	* gm2/mc/decl.def:  makeExit, isExit, makeLoop, isLoop
+	  (New procedure functions).
+	* gm2/mc/decl.mod:  generate accurate error messages based
+          on node declaration position.  Implement FLOAT and TRUNC.
+          Fix MAX (enum) and MIN (enum).  Allow + to join two strings.
+          Bugfix for pointer ref, deref combinations.  Fix type
+          in makeArrayRef.  THROW implemented.  Fix string escape
+          sequences.  Fix MAX/MIN (LONGINT/LONGCARD).  Fix ADR
+          to spot & * cancel each other.  doExceptionC generate
+	  line/file/column location from the node declaration.
+
 2016-07-18      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/mc-5.bnf:  duplicate the with expression before
