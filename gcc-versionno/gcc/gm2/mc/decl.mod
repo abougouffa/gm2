@@ -47,6 +47,7 @@ FROM Indexing IMPORT Index, InitIndex, ForeachIndiceInIndexDo,
 
 IMPORT DynamicStrings ;
 IMPORT alists, wlists ;
+IMPORT keyc ;
 
 FROM alists IMPORT alist ;
 FROM wlists IMPORT wlist ;
@@ -4558,6 +4559,11 @@ END getExprType ;
 PROCEDURE skipType (n: node) : node ;
 BEGIN
    WHILE (n#NIL) AND isType (n) DO
+      IF getType (n) = NIL
+      THEN
+         (* this will occur if, n, is an opaque type.  *)
+         RETURN n
+      END ;
       n := getType (n)
    END ;
    RETURN n
@@ -5427,6 +5433,39 @@ END doThrowC ;
 
 
 (*
+   outNull -
+*)
+
+PROCEDURE outNull (p: pretty) ;
+BEGIN
+   keyc.useNull ;
+   outText (p, 'NULL')
+END outNull ;
+
+
+(*
+   outTrue -
+*)
+
+PROCEDURE outTrue (p: pretty) ;
+BEGIN
+   keyc.useTrue ;
+   outText (p, 'TRUE')
+END outTrue ;
+
+
+(*
+   outFalse -
+*)
+
+PROCEDURE outFalse (p: pretty) ;
+BEGIN
+   keyc.useNull ;
+   outText (p, 'FALSE')
+END outFalse ;
+
+
+(*
    doExprC -
 *)
 
@@ -5439,9 +5478,9 @@ BEGIN
    WITH n^ DO
       CASE kind OF
 
-      nil             :  outText (p, 'NULL') |
-      true            :  outText (p, 'TRUE') |
-      false           :  outText (p, 'FALSE') |
+      nil             :  outNull (p) |
+      true            :  outTrue (p) |
+      false           :  outFalse (p) |
       constexp        :  doUnary (p, '', unaryF.arg, unaryF.resultType, FALSE, FALSE) |
       neg             :  doUnary (p, '-', unaryF.arg, unaryF.resultType, FALSE, FALSE) |
       not             :  doUnary (p, '!', unaryF.arg, unaryF.resultType, FALSE, TRUE) |
@@ -6651,14 +6690,36 @@ END doSystemC ;
 
 PROCEDURE doArrayC (p: pretty; n: node) ;
 VAR
-   t, s: node ;
+   t, s, u: node ;
 BEGIN
    assert (isArray (n)) ;
    t := n^.arrayF.type ;
-   s := NIL ;
-   doTypeC (p, t, s) ;
-   setNeedSpace (p) ;
-   outText (p, "*")
+   s := n^.arrayF.subr ;
+   u := NIL ;
+   IF s=NIL
+   THEN
+      doTypeC (p, t, u) ;
+      setNeedSpace (p) ;
+      outText (p, "*")
+   ELSE
+      outText (p, "struct") ;
+      setNeedSpace (p) ;
+      outText (p, "{") ;
+      setNeedSpace (p) ;
+      doTypeC (p, t, u) ;
+      setNeedSpace (p) ;
+      outText (p, "array[") ;
+      IF isZero (getMin (s))
+      THEN
+         doExprC (p, getMax (s))
+      ELSE
+         doExprC (p, getMax (s)) ;
+         doSubtractC (p, getMin (s))
+      END ;
+      outText (p, "];") ;
+      setNeedSpace (p) ;
+      outText (p, "}")
+   END
 END doArrayC ;
 
 
@@ -7080,6 +7141,7 @@ BEGIN
       c := wlists.noOfItemsInList (l) ;
       i := 1 ;
       WHILE i <= c DO
+         keyc.useMemcpy ;
          outText (p, 'memcpy (') ;
          doNamesC (p, wlists.getItemFromList (l, i)) ;
          outText (p, ',') ;
@@ -7172,7 +7234,7 @@ BEGIN
       IF n^.varF.isParameter OR n^.varF.isVarParameter
       THEN
          addDone (n) ;
-         addDone (getType (n))
+         addTodo (getType (n))
       ELSE
          addTodo (n)
       END
@@ -7853,6 +7915,7 @@ BEGIN
       outCard (p, a^.stringF.length-2)
    ELSIF isUnbounded (getType (a))
    THEN
+      outText (p, '_') ;
       outTextN (p, getSymName (a)) ;
       outText (p, '_high')
    ELSIF isArray (skipType (getType (a)))
@@ -7928,38 +7991,43 @@ END doTotype ;
    doFuncUnbounded -
 *)
 
-PROCEDURE doFuncUnbounded (p: pretty; a, t: node) ;
+PROCEDURE doFuncUnbounded (p: pretty; actual, formal: node) ;
 VAR
    h: node ;
    s: String ;
 BEGIN
-   IF isLiteral (a) AND (getType (a) = charN)
+   assert (isUnbounded (formal)) ;
+   IF isLiteral (actual) AND (getType (actual) = charN)
    THEN
       outText (p, '"\0') ;
-      s := InitStringCharStar (keyToCharStar (a^.literalF.name)) ;
+      s := InitStringCharStar (keyToCharStar (actual^.literalF.name)) ;
       s := DynamicStrings.Slice (DynamicStrings.Mark (s), 0, -1) ;
       outTextS (p, s) ;
       outText (p, '"') ;
       s := KillString (s)
-   ELSIF isString (a)
+   ELSIF isString (actual)
    THEN
       outText (p, '"') ;
-      s := InitStringCharStar (keyToCharStar (a^.stringF.name)) ;
+      s := InitStringCharStar (keyToCharStar (actual^.stringF.name)) ;
       s := DynamicStrings.Slice (DynamicStrings.Mark (s), 1, -1) ;
       outCstring (p, s) ;
       outText (p, '"') ;
       s := KillString (s)
-   ELSIF NOT isUnbounded (getType (a))
+   ELSIF NOT isUnbounded (getType (actual))
    THEN
       outText (p, '&') ;
-      doExprC (p, a)
+      doExprC (p, actual) ;
+      IF isArray (skipType (getType (actual)))
+      THEN
+         outText (p, '.array[0]')
+      END
    ELSE
-      doExprC (p, a)
+      doExprC (p, actual)
    END ;
    outText (p, ',') ;
    setNeedSpace (p) ;
-   doFuncHighC (p, a) ;
-   doTotype (p, a, t)
+   doFuncHighC (p, actual) ;
+   doTotype (p, actual, formal)
 END doFuncUnbounded ;
 
 
@@ -7967,17 +8035,24 @@ END doFuncUnbounded ;
    doFuncParamC -
 *)
 
-PROCEDURE doFuncParamC (p: pretty; a, b: node) ;
+PROCEDURE doFuncParamC (p: pretty; actual, formal: node) ;
+VAR
+   type: node ;
 BEGIN
-   IF b = NIL
+   IF formal = NIL
    THEN
-      doExprC (p, a)
+      doExprC (p, actual)
    ELSE
-      IF isUnbounded (b)
+      type := getType (formal) ;
+      IF isUnbounded (type)
       THEN
-         doFuncUnbounded (p, a, b)
+         doFuncUnbounded (p, actual, type)
       ELSE
-         doExprC (p, a)
+         IF isVarParam (formal)
+         THEN
+            outText (p, '&')
+         END ;
+         doExprC (p, actual)
       END
    END
 END doFuncParamC ;
@@ -7989,6 +8064,24 @@ END doFuncParamC ;
 *)
 
 PROCEDURE getNthParamType (l: Index; i: CARDINAL) : node ;
+VAR
+   p: node ;
+BEGIN
+   p := getNthParam (l, i) ;
+   IF p # NIL
+   THEN
+      RETURN getType (p)
+   END ;
+   RETURN NIL
+END getNthParamType ;
+
+
+(*
+   getNthParam - return the parameter, i, in list, l.
+                 If the parameter is a vararg NIL is returned.
+*)
+
+PROCEDURE getNthParam (l: Index; i: CARDINAL) : node ;
 VAR
    p      : node ;
    j, k, h: CARDINAL ;
@@ -8011,7 +8104,7 @@ BEGIN
          END ;
          IF i <= k
          THEN
-            RETURN getType (p)
+            RETURN p
          ELSE
             DEC (i, k) ;
             INC (j)
@@ -8019,7 +8112,7 @@ BEGIN
       END
    END ;
    RETURN NIL
-END getNthParamType ;
+END getNthParam ;
 
 
 (*
@@ -8041,7 +8134,7 @@ BEGIN
       n := expListLen (s^.funccallF.args) ;
       WHILE i<=n DO
          a := getExpList (s^.funccallF.args, i) ;
-         b := getNthParamType (l, i) ;
+         b := getNthParam (l, i) ;
          doFuncParamC (p, a, b) ;
          IF i<n
          THEN
@@ -8208,6 +8301,7 @@ BEGIN
          doTypeNameC (p, getType (getExpList (n^.funccallF.args, 1))) ;
          outText (p, ')') ;
          setNeedSpace (p) ;
+         keyc.useMalloc ;
          outText (p, 'malloc') ;
          setNeedSpace (p) ;
          t := skipType (getType (getExpList (n^.funccallF.args, 1))) ;
@@ -8241,6 +8335,7 @@ BEGIN
    ELSE
       IF expListLen (n^.funccallF.args) = 1
       THEN
+         keyc.useFree ;
          outText (p, 'free') ;
          setNeedSpace (p) ;
          outText (p, '(') ;
@@ -8476,7 +8571,7 @@ BEGIN
    ELSE
       outText (p, "(*") ;
       doExprC (p, n^.funccallF.function) ;
-      outText (p, ")") ;
+      outText (p, ".proc)") ;
       setNeedSpace (p) ;
       t := getFuncFromExpr (n^.funccallF.function) ;
       IF t = procN
@@ -10361,7 +10456,7 @@ BEGIN
       print (p, "\n")
    END ;
 
-   checkProcUsed (p) ;
+   keyc.genDefs (p) ;
 
    includeDefConstType (n) ;
    includeDefVarProcedure (n) ;

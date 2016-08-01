@@ -1682,6 +1682,7 @@ gm2/boot-bin/mc-devel$(exeext): $(objdir)/gm2/gm2-auto/mcp1.mod \
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcPrintf.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/Indexing.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcPreprocess.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/keyc.mod
 	cp $(srcdir)/gm2/init/mcinit top.lst
 	$(BOOTGM2) $(MCLINK) -I. -fonlylink -I$(GM2PATH) -fuselist $(srcdir)/gm2/mc/top.mod -o mc
 
@@ -1748,15 +1749,16 @@ MC-LIB-MODS = Args.mod ASCII.mod Assertion.mod Break.mod  \
               SysStorage.mod \
               TimeString.mod
 
-MC-DEFS = alists.def  decl.def  Indexing.def  lists.def  \
+MC-DEFS = alists.def  decl.def  Indexing.def  keyc.def  lists.def  \
                mcComp.def  mcDebug.def  mcError.def  mcFileName.def \
                mcflex.def  mcLexBuf.def  mcMetaError.def  mcOptions.def \
-               mcp1.def   mcp2.def  mcp3.def  mcp4.def  mcPreprocess.def \
+               mcp1.def  mcp2.def  mcp3.def  mcp4.def  mcp5.def  \
+               mcPreprocess.def \
                mcPretty.def  mcPrintf.def  mcQuiet.def  mcReserved.def \
                mcSearch.def  mcStack.def  nameKey.def  symbolKey.def \
                varargs.def  wlists.def
 
-MC-MODS = alists.mod  decl.mod  Indexing.mod  lists.mod \
+MC-MODS = alists.mod  decl.mod  Indexing.mod  keyc.mod  lists.mod \
                mcComp.mod  mcDebug.mod  mcError.mod  mcFileName.mod \
                mcLexBuf.mod  mcMetaError.mod  mcOptions.mod \
                mcPreprocess.mod \
@@ -1764,7 +1766,7 @@ MC-MODS = alists.mod  decl.mod  Indexing.mod  lists.mod \
                mcSearch.mod  mcStack.mod  nameKey.mod  symbolKey.mod \
                varargs.mod  wlists.mod
 
-MC-AUTO-MODS = mcp1.mod   mcp2.mod  mcp3.mod  mcp4.mod
+MC-AUTO-MODS = mcp1.mod   mcp2.mod  mcp3.mod  mcp4.mod  mcp5.mod
 
 BUILD-MC-BOOT-H =  $(MC-LIB-DEFS:%.def=gm2/mc-boot/$(SRC_PREFIX)%.h) \
                    $(MC-DEFS:%.def=gm2/mc-boot/$(SRC_PREFIX)%.h)
@@ -1772,12 +1774,15 @@ BUILD-MC-BOOT-H =  $(MC-LIB-DEFS:%.def=gm2/mc-boot/$(SRC_PREFIX)%.h) \
 BUILD-MC-BOOT-C =  $(MC-LIB-MODS:%.mod=gm2/mc-boot/$(SRC_PREFIX)%.c) \
                    $(MC-MODS:%.mod=gm2/mc-boot/$(SRC_PREFIX)%.c)
 
+BUILD-MC-BOOT-AUTO-C = $(MC-AUTO-MODS:%.mod=gm2/mc-boot/$(SRC_PREFIX)%.c)
+
+
 $(objdir)/gm2/mc-boot: force
 	mkdir -p gm2/mc-boot
 	$(RM) gm2/mc-boot/*h
 
-mc-autogen: mc-devel $(GM2_DIRS) $(BUILD-MC-BOOT-H) $(BUILD-MC-BOOT-C) # $(BUILD-MC-BOOT-AUTO-C)
-	for i in gm2/mc-boot/*.h ; do echo "#include \"`basename $$i .h`.h\"" > gm2/mc-boot/f.c ; echo "main () {}" >> gm2/mc-boot/f.c ; echo "compiling $$i" ; gcc -g -c -o /tmp/f.o gm2/mc-boot/f.c ; done
+mc-autogen: mc-devel $(GM2_DIRS) $(BUILD-MC-BOOT-H) $(BUILD-MC-BOOT-C) \
+            $(BUILD-MC-BOOT-AUTO-C)
 
 
 gm2/mc-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/mc/%.def
@@ -1790,6 +1795,9 @@ gm2/mc-boot/$(SRC_PREFIX)%.c: $(srcdir)/gm2/mc/%.mod
 	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso --extended-opaque --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
 gm2/mc-boot/$(SRC_PREFIX)%.c: $(srcdir)/gm2/gm2-libs/%.mod
+	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso --extended-opaque --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
+
+gm2/mc-boot/$(SRC_PREFIX)%.c: gm2/gm2-auto/%.mod
 	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso --extended-opaque --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
 

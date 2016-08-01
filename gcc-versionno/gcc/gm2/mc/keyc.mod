@@ -18,54 +18,188 @@ Boston, MA 02110-1301, USA.  *)
 
 IMPLEMENTATION MODULE keyc ;
 
-
-TYPE
-   dictionary = POINTER TO RECORD
-                              scope: node ;
-			      : symbolTree ;
-                           END ;
+FROM mcPretty IMPORT pretty, print, prints, setNeedSpace, noSpace ;
 
 
-(*
-   declare - declares an object of name, s, in the current scope.
-             The (possibly translated) name is returned.
-*)
-
-PROCEDURE declare (s: String) : String ;
-BEGIN
-   RETURN s
-END declare ;
+VAR
+   seenFree,
+   seenMalloc,
+   seenProc,
+   seenTrue,
+   seenFalse,
+   seenNull,
+   seenMemcpy: BOOLEAN ;
 
 
 (*
-   declareGlobal - declare an object of name, s, in the global scope.
-                   The (possibly translated) name is returned.
+   useFree - indicate we have used free.
 *)
 
-PROCEDURE declareGlobal (s: String) : String ;
+PROCEDURE useFree ;
 BEGIN
-   RETURN s
-END declareGlobal ;
+   seenFree := TRUE
+END useFree ;
 
 
 (*
-   enter - enter procedure scope, n.
+   useMalloc - indicate we have used malloc.
 *)
 
-PROCEDURE enter (n: node) ;
+PROCEDURE useMalloc ;
 BEGIN
-
-END enter ;
+   seenMalloc := TRUE
+END useMalloc ;
 
 
 (*
-   leave - leave scope, n.
+   useProc - indicate we have used proc.
 *)
 
-PROCEDURE leave (n: node) ;
+PROCEDURE useProc ;
 BEGIN
+   seenProc := TRUE
+END useProc ;
 
-END leave ;
+
+(*
+   useTrue - indicate we have used TRUE.
+*)
+
+PROCEDURE useTrue ;
+BEGIN
+   seenTrue := TRUE
+END useTrue ;
+
+
+(*
+   useFalse - indicate we have used FALSE.
+*)
+
+PROCEDURE useFalse ;
+BEGIN
+   seenFalse := TRUE
+END useFalse ;
+
+
+(*
+   useNull - indicate we have used NULL.
+*)
+
+PROCEDURE useNull ;
+BEGIN
+   seenNull := TRUE
+END useNull ;
+
+
+(*
+   useMemcpy - indicate we have used memcpy.
+*)
+
+PROCEDURE useMemcpy ;
+BEGIN
+   seenMemcpy := TRUE
+END useMemcpy ;
+
+
+(*
+   checkFreeMalloc -
+*)
+
+PROCEDURE checkFreeMalloc (p: pretty) ;
+BEGIN
+   IF seenFree OR seenMalloc
+   THEN
+      print (p, "#include <stdlib.h>\n")
+   END
+END checkFreeMalloc ;
+
+
+(*
+   checkProc -
+*)
+
+PROCEDURE checkProc (p: pretty) ;
+BEGIN
+   IF seenProc
+   THEN
+      print (p, "#   if !defined (PROC_D)\n") ;
+      print (p, "#      define PROC_D\n") ;
+      print (p, "       typedef struct { void (*proc)(void); } PROC;\n") ;
+      print (p, "#   endif\n\n")
+   END
+END checkProc ;
+
+
+(*
+   checkTrue -
+*)
+
+PROCEDURE checkTrue (p: pretty) ;
+BEGIN
+   IF seenTrue
+   THEN
+      print (p, "#   if !defined (TRUE)\n") ;
+      print (p, "#      define TRUE (1==1)\n") ;
+      print (p, "#   endif\n\n")
+   END
+END checkTrue ;
+
+
+(*
+   checkFalse -
+*)
+
+PROCEDURE checkFalse (p: pretty) ;
+BEGIN
+   IF seenTrue
+   THEN
+      print (p, "#   if !defined (FALSE)\n") ;
+      print (p, "#      define FALSE (1==0)\n") ;
+      print (p, "#   endif\n\n")
+   END
+END checkFalse ;
+
+
+(*
+   checkNull -
+*)
+
+PROCEDURE checkNull (p: pretty) ;
+BEGIN
+   IF seenNull
+   THEN
+      print (p, "#include <stddef.h>\n")
+   END
+END checkNull ;
+
+
+(*
+   checkMemcpy -
+*)
+
+PROCEDURE checkMemcpy (p: pretty) ;
+BEGIN
+   IF seenMemcpy
+   THEN
+      print (p, "#include <string.h>\n")
+   END
+END checkMemcpy ;
+
+
+(*
+   genDefs - generate definitions or includes for all
+             macros and prototypes used.
+*)
+
+PROCEDURE genDefs (p: pretty) ;
+BEGIN
+   checkFreeMalloc (p) ;
+   checkProc (p) ;
+   checkTrue (p) ;
+   checkFalse (p) ;
+   checkNull (p) ;
+   checkMemcpy (p)
+END genDefs ;
 
 
 (*
@@ -74,9 +208,13 @@ END leave ;
 
 PROCEDURE init ;
 BEGIN
-
-   initKeywords ;
-   initMacros
+   seenFree := TRUE ;
+   seenMalloc := TRUE ;
+   seenProc := TRUE ;
+   seenTrue := TRUE ;
+   seenFalse := TRUE ;
+   seenNull := TRUE ;
+   seenMemcpy := TRUE
 END init ;
 
 

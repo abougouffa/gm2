@@ -28,6 +28,64 @@ DEFINITION MODULE keyc ;
                  avoid C namespace clashes.
 *)
 
+FROM mcPretty IMPORT pretty ;
+
+
+(*
+   useFree - indicate we have used free.
+*)
+
+PROCEDURE useFree ;
+
+
+(*
+   useMalloc - indicate we have used malloc.
+*)
+
+PROCEDURE useMalloc ;
+
+
+(*
+   useProc - indicate we have used proc.
+*)
+
+PROCEDURE useProc ;
+
+
+(*
+   useTrue - indicate we have used TRUE.
+*)
+
+PROCEDURE useTrue ;
+
+
+(*
+   useFalse - indicate we have used FALSE.
+*)
+
+PROCEDURE useFalse ;
+
+
+(*
+   useNull - indicate we have used NULL.
+*)
+
+PROCEDURE useNull ;
+
+
+(*
+   useMemcpy - indicate we have used memcpy.
+*)
+
+PROCEDURE useMemcpy ;
+
+
+(*
+   genDefs - generate definitions or includes for all
+             macros and prototypes used.
+*)
+
+PROCEDURE genDefs (p: pretty) ;
 
 
 END keyc.

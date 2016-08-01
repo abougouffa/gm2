@@ -1,3 +1,18 @@
+2016-08-01      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  introduce rules to build new module keyc.
+          New rules to attempt to build the C generated version of mc.
+	* gm2/init/mcinit:  added keyc to the list of modules to be
+          linked.
+	* gm2/mc/decl.mod:  changed skipType to detect an opaque type
+          and not skip to NIL if this is the case.  outNull, outTrue,
+          outFalse, (New procedures).  doArrayC fixed bug in declaring
+          static arrays.  doFuncUnbounded changed parameter names and
+          fixed a static array being passed to an unbounded parameter.
+          getNthParam (New procedure function).
+	* gm2/mc/keyc.def:  New file.
+	* gm2/mc/keyc.mod:  New file.
+
 2016-07-25      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  removed SYSTEM.mod from the list of
