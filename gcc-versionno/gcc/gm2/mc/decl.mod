@@ -650,7 +650,7 @@ VAR
    todoQ,
    partialQ,
    doneQ         : alist ;
-   procUsed,
+   mustVisitScope,
    simplified    : BOOLEAN ;
    tempCount     : CARDINAL ;
 
@@ -3490,7 +3490,7 @@ BEGIN
    m := getSymKey (baseSymbols, n) ;
    IF m=procN
    THEN
-      procUsed := TRUE
+      keyc.useProc
    END ;
    RETURN m
 END lookupBase ;
@@ -4579,6 +4579,12 @@ BEGIN
    WITH n^ DO
       CASE kind OF
 
+      stmtseq,
+      exit,
+      return,
+      comment,
+      identlist,
+      setvalue,
       new,
       dispose,
       inc,
@@ -4635,6 +4641,7 @@ BEGIN
       imp,
       module,
       (* statements.  *)
+      case,
       loop,
       while,
       for,
@@ -4660,6 +4667,15 @@ BEGIN
       mult,
       in              :  RETURN NIL |
       neg             :  RETURN NIL |
+      lsl,
+      lsr,
+      lor,
+      land,
+      lnot,
+      lxor,
+      and,
+      or,
+      not,
       constexp,
       deref,
       equal,
@@ -4673,7 +4689,14 @@ BEGIN
       tsize,
       throw           :  RETURN systemN |
       min,
-      max             :  RETURN NIL
+      max             :  RETURN NIL |
+      vardecl         :  RETURN vardeclF.scope |
+      funccall        :  RETURN NIL |
+      explist         :  RETURN NIL |
+      caselabellist   :  RETURN NIL |
+      caselist        :  RETURN NIL |
+      range           :  RETURN NIL |
+      varargs         :  RETURN varargsF.scope
 
       END
    END
@@ -5336,9 +5359,11 @@ END doCastC ;
 
 PROCEDURE doSetValueC (p: pretty; n: node) ;
 VAR
+   lo  : node ;
    i, h: CARDINAL ;
 BEGIN
    assert (isSetValue (n)) ;
+   lo := getSetLow (n) ;
    IF n^.setvalueF.type # NIL
    THEN
       outText (p, '(') ;
@@ -5359,14 +5384,10 @@ BEGIN
          setNeedSpace (p) ;
          outText (p, '<<') ;
          setNeedSpace (p) ;
-         IF needsParen (GetIndice (n^.setvalueF.values, i))
-         THEN
-            outText (p, '(') ;
-            doExprC (p, GetIndice (n^.setvalueF.values, i)) ;
-            outText (p, ')')
-         ELSE
-            doExprC (p, GetIndice (n^.setvalueF.values, i))
-         END ;
+         outText (p, '(') ;
+         doExprC (p, GetIndice (n^.setvalueF.values, i)) ;
+         doSubtractC (p, lo) ;
+         outText (p, ')') ;
          outText (p, ')') ;
          IF i<h
          THEN
@@ -5382,17 +5403,45 @@ END doSetValueC ;
 
 
 (*
+   getSetLow - returns the low value of the set type from
+               expression, n.
+*)
+
+PROCEDURE getSetLow (n: node) : node ;
+VAR
+   type: node ;
+BEGIN
+   IF getType (n) = NIL
+   THEN
+      RETURN makeLiteralInt (makeKey ('0'))
+   ELSE
+      type := skipType (getType (n)) ;
+      IF isSet (type)
+      THEN
+         RETURN getMin (skipType (getType (type)))
+      ELSE
+         RETURN makeLiteralInt (makeKey ('0'))
+      END
+   END
+END getSetLow ;
+
+
+(*
    doInC - performs (((1 << (l)) & (r)) != 0)
 *)
 
 PROCEDURE doInC (p: pretty; l, r: node) ;
+VAR
+   lo: node ;
 BEGIN
+   lo := getSetLow (r) ;
    outText (p, '(((1') ;
    setNeedSpace (p) ;
    outText (p, '<<') ;
    setNeedSpace (p) ;
    outText (p, '(') ;
    doExprC (p, l) ;
+   doSubtractC (p, lo) ;
    outText (p, '))') ;
    setNeedSpace (p) ;
    outText (p, '&') ;
@@ -7538,6 +7587,39 @@ END includeVar ;
 
 
 (*
+   includeExternals -
+*)
+
+PROCEDURE includeExternals (n: node) ;
+VAR
+   l: alist ;
+BEGIN
+   l := alists.initList () ;
+   visitNode (l, n, addExported) ;
+   alists.killList (l)
+END includeExternals ;
+
+
+(*
+   addExported -
+*)
+
+PROCEDURE addExported (n: node) ;
+VAR
+   s: node ;
+BEGIN
+   s := getScope (n) ;
+   IF (s # NIL) AND isDef (s) AND (s # defModule)
+   THEN
+      IF isType (s) OR isVar (s) OR isConst (s)
+      THEN
+         addTodo (n)
+      END
+   END
+END addExported ;
+
+
+(*
    addExternal - only adds, n, if this symbol is external to the
                  implementation module and is not a hidden type.
 *)
@@ -8223,6 +8305,8 @@ END doIncDecC ;
 *)
 
 PROCEDURE doInclC (p: pretty; n: node) ;
+VAR
+   lo: node ;
 BEGIN
    assert (isFuncCall (n)) ;
    IF n^.funccallF.args # NIL
@@ -8230,6 +8314,7 @@ BEGIN
       IF expListLen (n^.funccallF.args) = 2
       THEN
          doExprC (p, getExpList (n^.funccallF.args, 1)) ;
+         lo := getSetLow (getExpList (n^.funccallF.args, 1)) ;
          setNeedSpace (p) ;
          outText (p, '|=') ;
          setNeedSpace (p) ;
@@ -8239,6 +8324,7 @@ BEGIN
          setNeedSpace (p) ;
          outText (p, '(') ;
          doExprC (p, getExpList (n^.funccallF.args, 2)) ;
+         doSubtractC (p, lo) ;
          setNeedSpace (p) ;
          outText (p, '))')
       ELSE
@@ -8253,6 +8339,8 @@ END doInclC ;
 *)
 
 PROCEDURE doExclC (p: pretty; n: node) ;
+VAR
+   lo: node ;
 BEGIN
    assert (isFuncCall (n)) ;
    IF n^.funccallF.args # NIL
@@ -8260,6 +8348,7 @@ BEGIN
       IF expListLen (n^.funccallF.args) = 2
       THEN
          doExprC (p, getExpList (n^.funccallF.args, 1)) ;
+         lo := getSetLow (getExpList (n^.funccallF.args, 1)) ;
          setNeedSpace (p) ;
          outText (p, '&=') ;
          setNeedSpace (p) ;
@@ -8269,6 +8358,7 @@ BEGIN
          setNeedSpace (p) ;
          outText (p, '(') ;
          doExprC (p, getExpList (n^.funccallF.args, 2)) ;
+         doSubtractC (p, lo) ;
          setNeedSpace (p) ;
          outText (p, ')))')
       ELSE
@@ -9956,6 +10046,790 @@ END tryCompleteFromPartial ;
 
 
 (*
+   visitUnary -
+*)
+
+PROCEDURE visitUnary (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   WITH n^.unaryF DO
+      visitNode (v, arg, p) ;
+      visitNode (v, resultType, p)
+   END
+END visitUnary ;
+
+
+(*
+   visitBinary -
+*)
+
+PROCEDURE visitBinary (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   WITH n^.binaryF DO
+      visitNode (v, left, p) ;
+      visitNode (v, right, p) ;
+      visitNode (v, resultType, p)
+   END
+END visitBinary ;
+
+
+(*
+   visitBoolean -
+*)
+
+PROCEDURE visitBoolean (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   visitNode (v, falseN, p) ;
+   visitNode (v, trueN, p)
+END visitBoolean ;
+
+
+(*
+   visitScope -
+*)
+
+PROCEDURE visitScope (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   IF mustVisitScope
+   THEN
+      visitNode (v, n, p)
+   END
+END visitScope ;
+
+
+(*
+   visitType -
+*)
+
+PROCEDURE visitType (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isType (n)) ;
+   visitNode (v, n^.typeF.type, p) ;
+   visitScope (v, n^.typeF.scope, p)
+END visitType ;
+
+
+(*
+   visitIndex -
+*)
+
+PROCEDURE visitIndex (v: alist; i: Index; p: nodeProcedure) ;
+VAR
+   j, h: CARDINAL ;
+BEGIN
+   j := 1 ;
+   h := HighIndice (i) ;
+   WHILE j <= h DO
+      visitNode (v, GetIndice (i, j), p) ;
+      INC (j)
+   END
+END visitIndex ;
+
+
+(*
+   visitRecord -
+*)
+
+PROCEDURE visitRecord (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isRecord (n)) ;
+   visitScope (v, n^.recordF.scope, p) ;
+   visitIndex (v, n^.recordF.listOfSons, p)
+END visitRecord ;
+
+
+(*
+   visitVarient -
+*)
+
+PROCEDURE visitVarient (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isVarient (n)) ;
+   visitIndex (v, n^.varientF.listOfSons, p) ;
+   visitNode (v, n^.varientF.varient, p) ;
+   visitNode (v, n^.varientF.tag, p) ;
+   visitScope (v, n^.varientF.scope, p)
+END visitVarient ;
+
+
+(*
+   visitVar -
+*)
+
+PROCEDURE visitVar (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isVar (n)) ;
+   visitNode (v, n^.varF.type, p) ;
+   visitNode (v, n^.varF.decl, p) ;
+   visitScope (v, n^.varF.scope, p)
+END visitVar ;
+
+
+(*
+   visitEnumeration -
+*)
+
+PROCEDURE visitEnumeration (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isEnumeration (n)) ;
+   visitIndex (v, n^.enumerationF.listOfSons, p) ;
+   visitScope (v, n^.enumerationF.scope, p)
+END visitEnumeration ;
+
+
+(*
+   visitSubrange -
+*)
+
+PROCEDURE visitSubrange (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isSubrange (n)) ;
+   visitNode (v, n^.subrangeF.low, p) ;
+   visitNode (v, n^.subrangeF.high, p) ;
+   visitNode (v, n^.subrangeF.type, p) ;
+   visitScope (v, n^.subrangeF.scope, p)
+END visitSubrange ;
+
+
+(*
+   visitPointer -
+*)
+
+PROCEDURE visitPointer (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isPointer (n)) ;
+   visitNode (v, n^.pointerF.type, p) ;
+   visitScope (v, n^.pointerF.scope, p)
+END visitPointer ;
+
+
+(*
+   visitArray -
+*)
+
+PROCEDURE visitArray (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isArray (n)) ;
+   visitNode (v, n^.arrayF.subr, p) ;
+   visitNode (v, n^.arrayF.type, p) ;
+   visitScope (v, n^.arrayF.scope, p)
+END visitArray ;
+
+
+(*
+   visitConst -
+*)
+
+PROCEDURE visitConst (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isConst (n)) ;
+   visitNode (v, n^.constF.type, p) ;
+   visitNode (v, n^.constF.value, p) ;
+   visitScope (v, n^.constF.scope, p)
+END visitConst ;
+
+
+(*
+   visitVarParam -
+*)
+
+PROCEDURE visitVarParam (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isVarParam (n)) ;
+   visitNode (v, n^.varparamF.namelist, p) ;
+   visitNode (v, n^.varparamF.type, p) ;
+   visitScope (v, n^.varparamF.scope, p)
+END visitVarParam ;
+
+
+(*
+   visitParam -
+*)
+
+PROCEDURE visitParam (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isParam (n)) ;
+   visitNode (v, n^.paramF.namelist, p) ;
+   visitNode (v, n^.paramF.type, p) ;
+   visitScope (v, n^.paramF.scope, p)
+END visitParam ;
+
+
+(*
+   visitOptarg -
+*)
+
+PROCEDURE visitOptarg (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isOptarg (n)) ;
+   visitNode (v, n^.optargF.namelist, p) ;
+   visitNode (v, n^.optargF.type, p) ;
+   visitNode (v, n^.optargF.init, p) ;
+   visitScope (v, n^.optargF.scope, p)
+END visitOptarg ;
+
+
+(*
+   visitRecordField -
+*)
+
+PROCEDURE visitRecordField (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isRecordField (n)) ;
+   visitNode (v, n^.recordfieldF.type, p) ;
+   visitNode (v, n^.recordfieldF.parent, p) ;
+   visitNode (v, n^.recordfieldF.varient, p) ;
+   visitScope (v, n^.recordfieldF.scope, p)
+END visitRecordField ;
+
+
+(*
+   visitVarientField -
+*)
+
+PROCEDURE visitVarientField (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isVarientField (n)) ;
+   visitNode (v, n^.varientfieldF.parent, p) ;
+   visitNode (v, n^.varientfieldF.varient, p) ;
+   visitIndex (v, n^.varientfieldF.listOfSons, p) ;
+   visitScope (v, n^.varientfieldF.scope, p)
+END visitVarientField ;
+
+
+(*
+   visitEnumerationField -
+*)
+
+PROCEDURE visitEnumerationField (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isEnumerationField (n)) ;
+   visitNode (v, n^.enumerationfieldF.type, p) ;
+   visitScope (v, n^.enumerationfieldF.scope, p)
+END visitEnumerationField ;
+
+
+(*
+   visitSet -
+*)
+
+PROCEDURE visitSet (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isSet (n)) ;
+   visitNode (v, n^.setF.type, p) ;
+   visitScope (v, n^.setF.scope, p)
+END visitSet ;
+
+
+(*
+   visitProcType -
+*)
+
+PROCEDURE visitProcType (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isProcType (n)) ;
+   visitIndex (v, n^.proctypeF.parameters, p) ;
+   visitNode (v, n^.proctypeF.optarg, p) ;
+   visitNode (v, n^.proctypeF.returnType, p) ;
+   visitScope (v, n^.proctypeF.scope, p)
+END visitProcType ;
+
+
+(*
+   visitSubscript -
+*)
+
+PROCEDURE visitSubscript (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+(*
+   assert (isSubscript (n)) ;
+   visitNode (v, n^.subscriptF.type, p) ;
+   visitNode (v, n^.subscriptF.expr, p)
+*)
+END visitSubscript ;
+
+
+(*
+   visitDecls -
+*)
+
+PROCEDURE visitDecls (v: alist; s: scopeT; p: nodeProcedure) ;
+BEGIN
+   visitIndex (v, s.constants, p) ;
+   visitIndex (v, s.types, p) ;
+   visitIndex (v, s.procedures, p) ;
+   visitIndex (v, s.variables, p)
+END visitDecls ;
+
+
+(*
+   visitProcedure -
+*)
+
+PROCEDURE visitProcedure (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isProcedure (n)) ;
+   visitDecls (v, n^.procedureF.decls, p) ;
+   visitScope (v, n^.procedureF.scope, p) ;
+   visitIndex (v, n^.procedureF.parameters, p) ;
+   visitNode (v, n^.procedureF.optarg, p) ;
+   visitNode (v, n^.procedureF.returnType, p) ;
+   visitNode (v, n^.procedureF.beginStatements, p)
+END visitProcedure ;
+
+
+(*
+   visitDef -
+*)
+
+PROCEDURE visitDef (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isDef (n)) ;
+   visitDecls (v, n^.defF.decls, p)
+END visitDef ;
+
+
+(*
+   visitImp -
+*)
+
+PROCEDURE visitImp (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isImp (n)) ;
+   visitDecls (v, n^.impF.decls, p) ;
+   visitNode (v, n^.impF.beginStatements, p) ;
+   visitNode (v, n^.impF.finallyStatements, p)
+   (* --fixme-- do we need to visit definitionModule?  *)
+END visitImp ;
+
+
+(*
+   visitModule -
+*)
+
+PROCEDURE visitModule (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isModule (n)) ;
+   visitDecls (v, n^.moduleF.decls, p) ;
+   visitNode (v, n^.moduleF.beginStatements, p) ;
+   visitNode (v, n^.moduleF.finallyStatements, p)
+END visitModule ;
+
+
+(*
+   visitLoop -
+*)
+
+PROCEDURE visitLoop (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isLoop (n)) ;
+   visitNode (v, n^.loopF.statements, p)
+END visitLoop ;
+
+
+(*
+   visitWhile -
+*)
+
+PROCEDURE visitWhile (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isWhile (n)) ;
+   visitNode (v, n^.whileF.expr, p) ;
+   visitNode (v, n^.whileF.statements, p)
+END visitWhile ;
+
+
+(*
+   visitRepeat -
+*)
+
+PROCEDURE visitRepeat (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isRepeat (n)) ;
+   visitNode (v, n^.repeatF.expr, p) ;
+   visitNode (v, n^.repeatF.statements, p)
+END visitRepeat ;
+
+
+(*
+   visitCase -
+*)
+
+PROCEDURE visitCase (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isCase (n)) ;
+   visitNode (v, n^.caseF.expression, p) ;
+   visitIndex (v, n^.caseF.caseLabelList, p) ;
+   visitNode (v, n^.caseF.else, p)
+END visitCase ;
+
+
+(*
+   visitCaseLabelList -
+*)
+
+PROCEDURE visitCaseLabelList (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isCaseLabelList (n)) ;
+   visitNode (v, n^.caselabellistF.caseList, p) ;
+   visitNode (v, n^.caselabellistF.statements, p)
+END visitCaseLabelList ;
+
+
+(*
+   visitCaseList -
+*)
+
+PROCEDURE visitCaseList (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isCaseList (n)) ;
+   visitIndex (v, n^.caselistF.rangePairs, p)
+END visitCaseList ;
+
+
+(*
+   visitRange -
+*)
+
+PROCEDURE visitRange (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isRange (n)) ;
+   visitNode (v, n^.rangeF.lo, p) ;
+   visitNode (v, n^.rangeF.hi, p)
+END visitRange ;
+
+
+(*
+   visitIf -
+*)
+
+PROCEDURE visitIf (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isIf (n)) ;
+   visitNode (v, n^.ifF.expr, p) ;
+   visitNode (v, n^.ifF.elsif, p) ;
+   visitNode (v, n^.ifF.then, p) ;
+   visitNode (v, n^.ifF.else, p)
+END visitIf ;
+
+
+(*
+   visitElsIf -
+*)
+
+PROCEDURE visitElsif (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isElsif (n)) ;
+   visitNode (v, n^.elsifF.expr, p) ;
+   visitNode (v, n^.elsifF.elsif, p) ;
+   visitNode (v, n^.elsifF.then, p) ;
+   visitNode (v, n^.elsifF.else, p)
+END visitElsif ;
+
+
+(*
+   visitFor -
+*)
+
+PROCEDURE visitFor (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isFor (n)) ;
+   visitNode (v, n^.forF.des, p) ;
+   visitNode (v, n^.forF.start, p) ;
+   visitNode (v, n^.forF.end, p) ;
+   visitNode (v, n^.forF.increment, p) ;
+   visitNode (v, n^.forF.statements, p)
+END visitFor ;
+
+
+(*
+   visitAssignment -
+*)
+
+PROCEDURE visitAssignment (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isAssignment (n)) ;
+   visitNode (v, n^.assignmentF.des, p) ;
+   visitNode (v, n^.assignmentF.expr, p)
+END visitAssignment ;
+
+
+(*
+   visitComponentRef -
+*)
+
+PROCEDURE visitComponentRef (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isComponentRef (n)) ;
+   visitNode (v, n^.componentrefF.rec, p) ;
+   visitNode (v, n^.componentrefF.field, p) ;
+   visitNode (v, n^.componentrefF.resultType, p)
+END visitComponentRef ;
+
+
+(*
+   visitPointerRef -
+*)
+
+PROCEDURE visitPointerRef (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isPointerRef (n)) ;
+   visitNode (v, n^.pointerrefF.ptr, p) ;
+   visitNode (v, n^.pointerrefF.field, p) ;
+   visitNode (v, n^.pointerrefF.resultType, p)
+END visitPointerRef ;
+
+
+(*
+   visitArrayRef -
+*)
+
+PROCEDURE visitArrayRef (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isArrayRef (n)) ;
+   visitNode (v, n^.arrayrefF.array, p) ;
+   visitNode (v, n^.arrayrefF.index, p) ;
+   visitNode (v, n^.arrayrefF.resultType, p)
+END visitArrayRef ;
+
+
+(*
+   visitFunccall -
+*)
+
+PROCEDURE visitFunccall (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isFuncCall (n)) ;
+   visitNode (v, n^.funccallF.function, p) ;
+   visitNode (v, n^.funccallF.args, p) ;
+   visitNode (v, n^.funccallF.type, p)
+END visitFunccall ;
+
+
+(*
+   visitVarDecl -
+*)
+
+PROCEDURE visitVarDecl (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isVarDecl (n)) ;
+   visitNode (v, n^.vardeclF.type, p) ;
+   visitScope (v, n^.vardeclF.scope, p)
+END visitVarDecl ;
+
+
+(*
+   visitExplist -
+*)
+
+PROCEDURE visitExplist (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isExpList (n)) ;
+   visitIndex (v, n^.explistF.exp, p)
+END visitExplist ;
+
+
+(*
+   visitExit -
+*)
+
+PROCEDURE visitExit (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isExit (n)) ;
+   visitNode (v, n^.exitF.loop, p)
+END visitExit ;
+
+
+(*
+   visitReturn -
+*)
+
+PROCEDURE visitReturn (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isReturn (n)) ;
+   visitNode (v, n^.returnF.exp, p)
+END visitReturn ;
+
+
+(*
+   visitStmtSeq -
+*)
+
+PROCEDURE visitStmtSeq (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isStatementSequence (n)) ;
+   visitIndex (v, n^.stmtF.statements, p)
+END visitStmtSeq ;
+
+
+(*
+   visitVarargs -
+*)
+
+PROCEDURE visitVarargs (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isVarargs (n)) ;
+   visitScope (v, n^.varargsF.scope, p)
+END visitVarargs ;
+
+
+(*
+   visitSetValue -
+*)
+
+PROCEDURE visitSetValue (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (isSetValue (n)) ;
+   visitNode (v, n^.setvalueF.type, p) ;
+   visitIndex (v, n^.setvalueF.values, p)
+END visitSetValue ;
+
+
+(*
+   visitDependants - helper procedure function called from visitNode.
+                     node n has just been visited, this procedure will
+                     visit node, n, dependants.
+*)
+
+PROCEDURE visitDependants (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   assert (n # NIL) ;
+   assert (alists.isItemInList (v, n)) ;
+   CASE n^.kind OF
+
+   explist         :  visitExplist (v, n, p) |
+   funccall        :  visitFunccall (v, n, p) |
+   exit            :  visitExit (v, n, p) |
+   return          :  visitReturn (v, n, p) |
+   stmtseq         :  visitStmtSeq (v, n, p) |
+   new             :  (* handled in funccall.  *) |
+   dispose         :  (* handled in funccall.  *) |
+   inc             :  (* handled in funccall.  *) |
+   dec             :  (* handled in funccall.  *) |
+   incl            :  (* handled in funccall.  *) |
+   excl            :  (* handled in funccall.  *) |
+   boolean         :  visitBoolean (v, n, p) |
+   nil,
+   false,
+   true            :  |
+   varargs         :  visitVarargs (v, n, p) |
+   address,
+   loc,
+   byte,
+   word,
+   (* base types.  *)
+   char,
+   cardinal,
+   longcard,
+   shortcard,
+   integer,
+   longint,
+   shortint,
+   real,
+   longreal,
+   shortreal,
+   bitset,
+   ztype,
+   rtype,
+   proc            :  |
+   (* language features and compound type attributes.  *)
+   type            :  visitType (v, n, p) |
+   record          :  visitRecord (v, n, p) |
+   varient         :  visitVarient (v, n, p) |
+   var             :  visitVar (v, n, p) |
+   enumeration     :  visitEnumeration (v, n, p) |
+   subrange        :  visitSubrange (v, n, p) |
+   pointer         :  visitPointer (v, n, p) |
+   array           :  visitArray (v, n, p) |
+   string          :  |
+   const           :  visitConst (v, n, p) |
+   literal         :  |
+   varparam        :  visitVarParam (v, n, p) |
+   param           :  visitParam (v, n, p) |
+   optarg          :  visitOptarg (v, n, p) |
+   recordfield     :  visitRecordField (v, n, p) |
+   varientfield    :  visitVarientField (v, n, p) |
+   enumerationfield:  visitEnumerationField (v, n, p) |
+   set             :  visitSet (v, n, p) |
+   proctype        :  visitProcType (v, n, p) |
+   subscript       :  visitSubscript (v, n, p) |
+   (* blocks.  *)
+   procedure       :  visitProcedure (v, n, p) |
+   def             :  visitDef (v, n, p) |
+   imp             :  visitImp (v, n, p) |
+   module          :  visitModule (v, n, p) |
+   (* statements.  *)
+   loop            :  visitLoop (v, n, p) |
+   while           :  visitWhile (v, n, p) |
+   for             :  visitFor (v, n, p) |
+   repeat          :  visitRepeat (v, n, p) |
+   case            :  visitCase (v, n, p) |
+   caselabellist   :  visitCaseLabelList (v, n, p) |
+   caselist        :  visitCaseList (v, n, p) |
+   range           :  visitRange (v, n, p) |
+   if              :  visitIf (v, n, p) |
+   elsif           :  visitElsif (v, n, p) |
+   assignment      :  visitAssignment (v, n, p) |
+   (* expressions.  *)
+   componentref    :  visitComponentRef (v, n, p) |
+   pointerref      :  visitPointerRef (v, n, p) |
+   arrayref        :  visitArrayRef (v, n, p) |
+   equal,
+   notequal,
+   less,
+   greater,
+   greequal,
+   lessequal,
+   and,
+   or,
+   in,
+   cast,
+   val,
+   plus,
+   sub,
+   div,
+   mod,
+   mult            :  visitBinary (v, n, p) |
+   abs,
+   chr,
+   high,
+   ord,
+   float,
+   trunc,
+   not,
+   neg,
+   adr,
+   size,
+   tsize,
+   min,
+   max,
+   throw,
+   deref           :  visitUnary (v, n, p) |
+   identlist,
+   constexp        :  |
+   vardecl         :  visitVarDecl (v, n, p) |
+   setvalue        :  visitSetValue (v, n, p)
+
+   END
+END visitDependants ;
+
+
+(*
+   visitNode - visits node, n, if it is not already in the alist, v.
+               It calls p(n) if the node is unvisited.
+*)
+
+PROCEDURE visitNode (v: alist; n: node; p: nodeProcedure) ;
+BEGIN
+   IF (n#NIL) AND (NOT alists.isItemInList (v, n))
+   THEN
+      alists.includeItemIntoList (v, n) ;
+      p (n) ;
+      visitDependants (v, n, p)
+   END
+END visitNode ;
+
+
+(*
    genKind - returns a string depending upon the kind of node, n.
 *)
 
@@ -10355,22 +11229,6 @@ END topologicallyOut ;
 
 
 (*
-   checkProcUsed -
-*)
-
-PROCEDURE checkProcUsed (p: pretty) ;
-BEGIN
-   IF procUsed
-   THEN
-      print (p, "#   if !defined (PROC_D)\n") ;
-      print (p, "#      define PROC_D\n") ;
-      print (p, "       typedef struct { void (*proc)(void); } PROC;\n") ;
-      print (p, "#   endif\n\n")
-   END
-END checkProcUsed ;
-
-
-(*
    outImpInitC -
 *)
 
@@ -10419,7 +11277,7 @@ BEGIN
    print (p, "#      endif\n") ;
    print (p, "#   endif\n\n") ;
 
-   checkProcUsed (p) ;
+   keyc.genDefs (p) ;
 
    outDeclsDefC (p, n) ;
 
@@ -10444,6 +11302,7 @@ BEGIN
 
    IF getExtendedOpaque ()
    THEN
+      includeExternals (n) ;
       printf ("/*  --extended-opaque seen therefore no #include will be used and everything will be declared in full.  */\n")
    ELSE
       s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
@@ -10527,6 +11386,7 @@ BEGIN
 
    IF getExtendedOpaque ()
    THEN
+      includeExternals (n) ;
       printf ("/*  --extended-opaque seen therefore no #include will be used and everything will be declared in full.  */\n")
    ELSE
       doP := p ;
@@ -10534,7 +11394,7 @@ BEGIN
       print (p, "\n")
    END ;
 
-   checkProcUsed (p) ;
+   keyc.genDefs (p) ;
 
    outDeclsModuleC (p, n^.moduleF.decls) ;
    outProceduresC (p, n^.moduleF.decls) ;
@@ -12565,7 +13425,7 @@ BEGIN
    makeM2rts ;
    outputState := punct ;
    tempCount := 0 ;
-   procUsed := FALSE
+   mustVisitScope := FALSE
 END init ;
 
 
