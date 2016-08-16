@@ -63,7 +63,7 @@ TYPE
    language = (ansiC, ansiCP, pim4) ;
 
    nodeT = (explist, funccall,
-            exit, return, stmtseq, comment,
+            exit, return, stmtseq, comment, halt,
             new, dispose, inc, dec, incl, excl,
             (* base constants.  *)
 	    nil, true, false,
@@ -3707,7 +3707,8 @@ BEGIN
       throw           :  RETURN makeKey ('THROW') |
       max             :  RETURN makeKey ('MAX') |
       min             :  RETURN makeKey ('MIN') |
-      funccall        :  RETURN NulName
+      funccall        :  RETURN NulName |
+      identlist       :  RETURN NulName
 
       ELSE
          HALT
@@ -4405,6 +4406,7 @@ BEGIN
       chr    :  RETURN charN |
       abs    :  RETURN getExprType (getExpList (n^.funccallF.args, 1)) |
       high   :  RETURN cardinalN |
+      halt,
       inc,
       dec,
       incl,
@@ -4419,7 +4421,6 @@ BEGIN
 END doGetFuncType ;
 
 
-
 (*
    doGetExprType - works out the type which is associated with node, n.
 *)
@@ -4429,6 +4430,7 @@ BEGIN
    WITH n^ DO
       CASE kind OF
 
+      halt,
       new,
       dispose,
       inc,
@@ -4585,6 +4587,7 @@ BEGIN
       comment,
       identlist,
       setvalue,
+      halt,
       new,
       dispose,
       inc,
@@ -5555,7 +5558,7 @@ BEGIN
       plus            :  doPolyBinary (p, plus, binaryF.left, binaryF.right, FALSE, FALSE) |
       sub             :  doPolyBinary (p, sub, binaryF.left, binaryF.right, FALSE, FALSE) |
       div             :  doPolyBinary (p, div, binaryF.left, binaryF.right, FALSE, FALSE) |
-      mod             :  doBinary (p, 'MOD', binaryF.left, binaryF.right, TRUE, TRUE) |
+      mod             :  doBinary (p, '%', binaryF.left, binaryF.right, TRUE, TRUE) |
       mult            :  doPolyBinary (p, mult, binaryF.left, binaryF.right, FALSE, FALSE) |
       in              :  doInC (p, binaryF.left, binaryF.right) |
       and             :  doBinary (p, '&&', binaryF.left, binaryF.right, TRUE, TRUE) |
@@ -5772,38 +5775,47 @@ END doString ;
 
 
 (*
-   outCstring -
+   doEscapeC -
 *)
 
-PROCEDURE outCstring (p: pretty; s: String) ;
+PROCEDURE doEscapeC (s: String; ch: CHAR) : String ;
 VAR
-   t   : String ;
+   t, r: String ;
    l, i: INTEGER ;
-   ch  : CHAR ;
 BEGIN
    l := 0 ;
+   r := InitString ('') ;
    REPEAT
-      i := DynamicStrings.Index (s, '\', l) ;
+      i := DynamicStrings.Index (s, ch, l) ;
       IF i = -1
       THEN
          i := DynamicStrings.Length (s) ;
          WHILE l < i DO
             t := DynamicStrings.InitStringChar (DynamicStrings.char (s, l)) ;
-            outTextS (p, t) ;
+            r := DynamicStrings.ConCat (r, t) ;
             t := KillString (t) ;
             INC (l)
          END
       ELSE
          WHILE l < i DO
             t := DynamicStrings.InitStringChar (DynamicStrings.char (s, l)) ;
-            outTextS (p, t) ;
+            r := DynamicStrings.ConCat (r, t) ;
             t := KillString (t) ;
             INC (l)
          END ;
-         outText (p, '\') ;
+         r := DynamicStrings.ConCatChar (r, '\') ;
          INC (l)
       END
-   UNTIL i = l
+   UNTIL i = l ;
+   RETURN r
+END doEscapeC ;
+
+
+(*
+   outCstring -
+*)
+
+PROCEDURE outCstring (p: pretty; s: String) ;
 END outCstring ;
 
 
@@ -5841,6 +5853,9 @@ BEGIN
       IF DynamicStrings.char (s, 0) = "'"
       THEN
          outText (p, "\'")
+      ELSIF DynamicStrings.char (s, 0) = "\"
+      THEN
+         outText (p, "\\")
       ELSE
          outTextS (p, s)
       END ;
@@ -7611,7 +7626,7 @@ BEGIN
    s := getScope (n) ;
    IF (s # NIL) AND isDef (s) AND (s # defModule)
    THEN
-      IF isType (s) OR isVar (s) OR isConst (s)
+      IF isType (n) OR isVar (n) OR isConst (n)
       THEN
          addTodo (n)
       END
@@ -7697,6 +7712,10 @@ BEGIN
 *)
          joinProcedures (n, defModule)
       END
+   ELSIF isDef (n)
+   THEN
+      includeVar (n^.defF.decls) ;
+      simplifyTypes (n^.defF.decls)
    END
 END includeDefVarProcedure ;
 
@@ -8079,6 +8098,11 @@ VAR
    s: String ;
 BEGIN
    assert (isUnbounded (formal)) ;
+   outText (p, '(') ;
+   doTypeC (p, getType (formal), formal) ;
+   setNeedSpace (p) ;
+   outText (p, '*)') ;
+   setNeedSpace (p) ;
    IF isLiteral (actual) AND (getType (actual) = charN)
    THEN
       outText (p, '"\0') ;
@@ -8095,22 +8119,60 @@ BEGIN
       outCstring (p, s) ;
       outText (p, '"') ;
       s := KillString (s)
-   ELSIF NOT isUnbounded (getType (actual))
+   ELSIF isUnbounded (getType (actual))
    THEN
+      doFQNameC (p, actual)
+      (* doExprC (p, actual).  *)
+   ELSE
       outText (p, '&') ;
       doExprC (p, actual) ;
       IF isArray (skipType (getType (actual)))
       THEN
          outText (p, '.array[0]')
       END
-   ELSE
-      doExprC (p, actual)
    END ;
    outText (p, ',') ;
    setNeedSpace (p) ;
    doFuncHighC (p, actual) ;
    doTotype (p, actual, formal)
 END doFuncUnbounded ;
+
+
+(*
+   doProcedureParamC -
+*)
+
+PROCEDURE doProcedureParamC (p: pretty; actual, formal: node) ;
+BEGIN
+   outText (p, '(') ;
+   doTypeNameC (p, getType (formal)) ;
+   outText (p, ')') ;
+   setNeedSpace (p) ;
+   outText (p, '{') ;
+   doExprC (p, actual) ;
+   outText (p, '}')
+END doProcedureParamC ;
+
+
+(*
+   doAdrExprC -
+*)
+
+PROCEDURE doAdrExprC (p: pretty; n: node) ;
+BEGIN
+   IF isDeref (n)
+   THEN
+      (* (* no point in issuing & ( * n )  *) *)
+      doExprC (p, n^.unaryF.arg)
+   ELSIF isVar (n) AND n^.varF.isVarParameter
+   THEN
+      (* (* no point in issuing & ( * n )  *) *)
+      doFQNameC (p, n)
+   ELSE
+      outText (p, '&') ;
+      doExprC (p, n)
+   END
+END doAdrExprC ;
 
 
 (*
@@ -8125,16 +8187,27 @@ BEGIN
    THEN
       doExprC (p, actual)
    ELSE
-      type := getType (formal) ;
+      type := skipType (getType (formal)) ;
       IF isUnbounded (type)
       THEN
          doFuncUnbounded (p, actual, type)
       ELSE
-         IF isVarParam (formal)
+         IF isProcType (type) AND isProcedure (actual)
          THEN
-            outText (p, '&')
-         END ;
-         doExprC (p, actual)
+            IF isVarParam (formal)
+            THEN
+               metaError1 ('{%1MDad} cannot be passed as a VAR parameter', actual)
+            ELSE
+               doProcedureParamC (p, actual, formal)
+            END
+         ELSE
+            IF isVarParam (formal)
+            THEN
+               doAdrExprC (p, actual)
+            ELSE
+               doExprC (p, actual)
+            END
+         END
       END
    END
 END doFuncParamC ;
@@ -8232,6 +8305,43 @@ BEGIN
       outText (p, ")")
    END
 END doFuncArgsC ;
+
+
+(*
+   doProcTypeArgsC -
+*)
+
+PROCEDURE doProcTypeArgsC (p: pretty; s: node; args: Index; needParen: BOOLEAN) ;
+VAR
+   a, b: node ;
+   i, n: CARDINAL ;
+BEGIN
+   IF needParen
+   THEN
+      outText (p, "(")
+   END ;
+   IF s^.funccallF.args # NIL
+   THEN
+      i := 1 ;
+      n := expListLen (s^.funccallF.args) ;
+      WHILE i<=n DO
+         a := getExpList (s^.funccallF.args, i) ;
+         b := GetIndice (args, i) ;
+         doFuncParamC (p, a, b) ;
+         IF i<n
+         THEN
+            outText (p, ",") ;
+            setNeedSpace (p)
+         END ;
+         INC (i)
+      END
+   END ;
+   IF needParen
+   THEN
+      noSpace (p) ;
+      outText (p, ")")
+   END
+END doProcTypeArgsC ;
 
 
 (*
@@ -8558,6 +8668,7 @@ PROCEDURE isIntrinsic (n: node) : BOOLEAN ;
 BEGIN
    CASE n^.funccallF.function^.kind OF
 
+   halt,
    max,
    min,
    cast,
@@ -8580,9 +8691,33 @@ BEGIN
    throw  :  RETURN TRUE
 
    ELSE
-      RETURN FALSE
+      RETURN isFuncCall (n) AND (n^.funccallF.function = haltN)
    END
 END isIntrinsic ;
+
+
+(*
+   doHalt -
+*)
+
+PROCEDURE doHalt (p: pretty; n: node) ;
+BEGIN
+   assert (isFuncCall (n)) ;
+   IF (n^.funccallF.args = NIL) OR (expListLen (n^.funccallF.args) = 0)
+   THEN
+      outText (p, 'M2RTS_HALT') ;
+      setNeedSpace (p) ;
+      outText (p, '(0)')
+   ELSIF expListLen (n^.funccallF.args) = 1
+   THEN
+      outText (p, ' /* yes */ ') ;
+      outText (p, 'M2RTS_HALT') ;
+      setNeedSpace (p) ;
+      outText (p, '(') ;
+      doExprC (p, getExpList (n^.funccallF.args, 1)) ;
+      outText (p, ')')
+   END
+END doHalt ;
 
 
 (*
@@ -8591,8 +8726,14 @@ END isIntrinsic ;
 
 PROCEDURE doIntrinsicC (p: pretty; n: node) ;
 BEGIN
+   IF n^.funccallF.function = haltN
+   THEN
+      doHalt (p, n) ;
+      RETURN
+   END ;
    CASE n^.funccallF.function^.kind OF
 
+   halt:   doHalt (p, n) |
    val:    doValC (p, n) |
    adr:    doAdrC (p, n) |
    size,
@@ -8650,14 +8791,14 @@ VAR
    t: node ;
 BEGIN
    assert (isFuncCall (n)) ;
-   IF isProcedure (n^.funccallF.function)
+   IF isIntrinsic (n)
+   THEN
+      doIntrinsicC (p, n)
+   ELSIF isProcedure (n^.funccallF.function)
    THEN
       doFQNameC (p, n^.funccallF.function) ;
       setNeedSpace (p) ;
       doFuncArgsC (p, n, n^.funccallF.function^.procedureF.parameters, TRUE)
-   ELSIF isIntrinsic (n)
-   THEN
-      doIntrinsicC (p, n)
    ELSE
       outText (p, "(*") ;
       doExprC (p, n^.funccallF.function) ;
@@ -8666,10 +8807,10 @@ BEGIN
       t := getFuncFromExpr (n^.funccallF.function) ;
       IF t = procN
       THEN
-         doFuncArgsC (p, n, NIL, TRUE)
+         doProcTypeArgsC (p, n, NIL, TRUE)
       ELSE
          assert (isProcType (t)) ;
-         doFuncArgsC (p, n, t^.proctypeF.parameters, TRUE)
+         doProcTypeArgsC (p, n, t^.proctypeF.parameters, TRUE)
       END
    END
 END doFuncExprC ;
@@ -8901,7 +9042,7 @@ BEGIN
       END
    ELSE
       outText (p, "\ndefault:\n") ;
-      doCaseStatementC (p, n^.caseF.else, FALSE)
+      doCaseStatementC (p, n^.caseF.else, TRUE)
    END
 END doCaseElseC ;
 
@@ -9898,8 +10039,6 @@ BEGIN
 END walkPointerRef ;
 
 
-
-
 (*
    doDependants - return the dependentState depending upon whether
                   all dependants have been declared.
@@ -10701,6 +10840,7 @@ BEGIN
    exit            :  visitExit (v, n, p) |
    return          :  visitReturn (v, n, p) |
    stmtseq         :  visitStmtSeq (v, n, p) |
+   halt            :  (* handled in funccall.  *) |
    new             :  (* handled in funccall.  *) |
    dispose         :  (* handled in funccall.  *) |
    inc             :  (* handled in funccall.  *) |

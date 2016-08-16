@@ -1733,7 +1733,8 @@ MC-LIB-DEFS = Args.def ASCII.def Assertion.def Break.def  \
               StringConvert.def StrIO.def StrLib.def \
               SysExceptions.def SysStorage.def \
               SYSTEM.def TimeString.def \
-              UnixArgs.def
+              UnixArgs.def wrapc.def \
+              pth.def COROUTINES.def Selective.def termios.def
 
 MC-LIB-MODS = Args.mod ASCII.mod Assertion.mod Break.mod  \
               CmdArgs.mod Debug.mod \
@@ -1783,22 +1784,33 @@ $(objdir)/gm2/mc-boot: force
 
 mc-autogen: mc-devel $(GM2_DIRS) $(BUILD-MC-BOOT-H) $(BUILD-MC-BOOT-C) \
             $(BUILD-MC-BOOT-AUTO-C)
+	cd gm2/mc-boot ; for i in *.c ; do gcc -g -c $$i ; done
+	@echo -n "built "
+	@cd gm2/mc-boot ; ls *.o | wc -l
+	@echo -n "out of "
+	@cd gm2/mc-boot ; ls *.c | wc -l
+	@echo "modules"
 
+# EXTENDED_OPAQUE = --extended-opaque
+EXTENDED_OPAQUE =
 
 gm2/mc-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/mc/%.def
-	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
+	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
 gm2/mc-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def
-	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
+	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
 gm2/mc-boot/$(SRC_PREFIX)%.c: $(srcdir)/gm2/mc/%.mod
-	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso --extended-opaque --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
+	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
 gm2/mc-boot/$(SRC_PREFIX)%.c: $(srcdir)/gm2/gm2-libs/%.mod
-	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso --extended-opaque --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
+	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
+
+gm2/mc-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs-iso/%.def
+	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
 gm2/mc-boot/$(SRC_PREFIX)%.c: gm2/gm2-auto/%.mod
-	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
+	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
 
 #
