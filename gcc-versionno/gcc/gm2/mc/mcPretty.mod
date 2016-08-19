@@ -277,4 +277,26 @@ BEGIN
 END prints ;
 
 
+(*
+   raw - print out string, s, without any translation of
+         escape sequences.
+*)
+
+PROCEDURE raw (p: pretty; s: String) ;
+VAR
+   l, i: CARDINAL ;
+BEGIN
+   l := Length (s) ;
+   i := 0 ;
+   flushSpace (p) ;
+   flushIndent (p) ;
+   WHILE i < l DO
+      p^.write (char (s, i)) ;
+      INC (p^.curPos) ;
+      INC (p^.seekPos) ;
+      INC (i)
+   END
+END raw ;
+
+
 END mcPretty.

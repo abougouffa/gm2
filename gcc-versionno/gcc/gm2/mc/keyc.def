@@ -29,6 +29,9 @@ DEFINITION MODULE keyc ;
 *)
 
 FROM mcPretty IMPORT pretty ;
+FROM DynamicStrings IMPORT String ;
+FROM decl IMPORT node ;
+FROM nameKey IMPORT Name ;
 
 
 (*
@@ -81,11 +84,147 @@ PROCEDURE useMemcpy ;
 
 
 (*
+   useIntMin - indicate we have used INT_MIN.
+*)
+
+PROCEDURE useIntMin ;
+
+
+(*
+   useUIntMin - indicate we have used UINT_MIN.
+*)
+
+PROCEDURE useUIntMin ;
+
+
+(*
+   useLongMin - indicate we have used LONG_MIN.
+*)
+
+PROCEDURE useLongMin ;
+
+
+(*
+   useULongMin - indicate we have used ULONG_MIN.
+*)
+
+PROCEDURE useULongMin ;
+
+
+(*
+   useCharMin - indicate we have used CHAR_MIN.
+*)
+
+PROCEDURE useCharMin ;
+
+
+(*
+   useUCharMin - indicate we have used UCHAR_MIN.
+*)
+
+PROCEDURE useUCharMin ;
+
+
+(*
+   useIntMax - indicate we have used INT_MAX.
+*)
+
+PROCEDURE useIntMax ;
+
+
+(*
+   useUIntMax - indicate we have used UINT_MAX.
+*)
+
+PROCEDURE useUIntMax ;
+
+
+(*
+   useLongMax - indicate we have used LONG_MAX.
+*)
+
+PROCEDURE useLongMax ;
+
+
+(*
+   useULongMax - indicate we have used ULONG_MAX.
+*)
+
+PROCEDURE useULongMax ;
+
+
+(*
+   useCharMax - indicate we have used CHAR_MAX.
+*)
+
+PROCEDURE useCharMax ;
+
+
+(*
+   useUCharMax - indicate we have used UChar_MAX.
+*)
+
+PROCEDURE useUCharMax ;
+
+
+(*
+   useLabs - indicate we have used labs.
+*)
+
+PROCEDURE useLabs ;
+
+
+(*
+   useAbs - indicate we have used abs.
+*)
+
+PROCEDURE useAbs ;
+
+
+(*
+   useFabs - indicate we have used fabs.
+*)
+
+PROCEDURE useFabs ;
+
+
+(*
+   useFabsl - indicate we have used fabsl.
+*)
+
+PROCEDURE useFabsl ;
+
+
+(*
    genDefs - generate definitions or includes for all
              macros and prototypes used.
 *)
 
 PROCEDURE genDefs (p: pretty) ;
+
+
+(*
+   enterScope - enter a scope defined by, n.
+*)
+
+PROCEDURE enterScope (n: node) ;
+
+
+(*
+   leaveScope - leave the scope defined by, n.
+*)
+
+PROCEDURE leaveScope (n: node) ;
+
+
+(*
+   cname - attempts to declare a symbol with name, n, in the
+           current scope.  If there is no conflict with the
+           target language then NIL is returned, otherwise
+           a mangled name is returned as a String.
+*)
+
+PROCEDURE cname (n: Name) : String ;
 
 
 END keyc.

@@ -1,3 +1,17 @@
+2016-08-19      Gaius Mulley <gaius@gnu.org>
+
+	* gcc/gm2/Make-lang.in:  included mcStream.def and
+          mcStream.mod to be compiled and linked to produce mc.
+	* gm2/init/mcinit:  updated link and init list to include
+          mcStream.
+	* gm2/mc/decl.mod:  many, many bug fixes which now allow
+	  self translation of 53 of the 58 modules.
+
+2016-08-16      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added mcStream.def and mcStream.mod
+	  to the build list for mc.
+
 2016-08-16      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  added wrapc.def pth.def COROUTINES.def

@@ -33,9 +33,9 @@ FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM libc IMPORT printf ;
 FROM mcMetaError IMPORT metaError1, metaError2, metaErrors1, metaErrors2 ;
 FROM mcLexBuf IMPORT findFileNameFromToken, tokenToLineNo, tokenToColumnNo ;
-FROM StrLib IMPORT StrEqual ;
+FROM StrLib IMPORT StrEqual, StrLen ;
 
-FROM mcPretty IMPORT pretty, initPretty, dupPretty, killPretty, print, prints,
+FROM mcPretty IMPORT pretty, initPretty, dupPretty, killPretty, print, prints, raw,
                      setNeedSpace, noSpace, setindent, getindent, getcurpos,
 		     getseekpos, getcurline,
 		     pushPretty, popPretty ;
@@ -48,6 +48,7 @@ FROM Indexing IMPORT Index, InitIndex, ForeachIndiceInIndexDo,
 IMPORT DynamicStrings ;
 IMPORT alists, wlists ;
 IMPORT keyc ;
+IMPORT mcStream ;
 
 FROM alists IMPORT alist ;
 FROM wlists IMPORT wlist ;
@@ -93,7 +94,7 @@ TYPE
 	    constexp,
 	    neg,
 	    cast, val,
-	    plus, sub, div, mod, mult, in,
+	    plus, sub, div, mod, mult, divide, in,
 	    adr, size, tsize, ord, float, trunc, chr, abs, high, throw,
 	    min, max,
             componentref, pointerref, arrayref, deref,
@@ -192,6 +193,7 @@ TYPE
                          div,
 			 mod,
 			 mult,
+			 divide,
 			 in              :  binaryF          : binaryT |
 			 constexp,
 			 deref,
@@ -326,6 +328,8 @@ TYPE
                     name            :  Name ;
 		    length          :  CARDINAL ;
 		    isCharCompatible:  BOOLEAN ;
+		    cstring         :  String ;
+		    clength         :  CARDINAL ;
                  END ;
 
        literalT = RECORD
@@ -3431,7 +3435,9 @@ BEGIN
    WITH m^ DO
       stringF.name := n ;
       stringF.length := lengthKey (n) ;
-      stringF.isCharCompatible := (stringF.length <= 1)
+      stringF.isCharCompatible := (stringF.length <= 3) ;
+      stringF.cstring := toCstring (n) ;
+      stringF.clength := lenCstring (stringF.cstring)
    END ;
    RETURN m
 END makeString ;
@@ -3687,6 +3693,7 @@ BEGIN
       div,
       mod,
       mult,
+      divide,
       in,
       neg,
       equal,
@@ -3893,6 +3900,7 @@ BEGIN
       div,
       mod,
       mult,
+      divide,
       in  :  WITH binaryF DO
                 left := l ;
                 right := r ;
@@ -4168,7 +4176,7 @@ BEGIN
       RETURN makeBinary (in, l, r, NIL)
    ELSIF op=dividetok
    THEN
-      RETURN makeBinary (in, l, r, NIL)
+      RETURN makeBinary (divide, l, r, NIL)
    ELSE
       HALT  (* most likely op needs a clause as above.  *)
    END
@@ -4304,7 +4312,8 @@ BEGIN
       sub,
       div,
       mod,
-      mult            :  RETURN binaryF.resultType |
+      mult,
+      divide          :  RETURN binaryF.resultType |
       in              :  RETURN booleanN |
       abs,
       constexp,
@@ -4502,7 +4511,8 @@ BEGIN
       sub,
       div,
       mod,
-      mult            :  RETURN doSetExprType (binaryF.resultType, mixTypes (getExprType (binaryF.left), getExprType (binaryF.right))) |
+      mult,
+      divide          :  RETURN doSetExprType (binaryF.resultType, mixTypes (getExprType (binaryF.left), getExprType (binaryF.right))) |
       in,
       and,
       or,
@@ -4668,6 +4678,7 @@ BEGIN
       div,
       mod,
       mult,
+      divide,
       in              :  RETURN NIL |
       neg             :  RETURN NIL |
       lsl,
@@ -4742,7 +4753,8 @@ BEGIN
       outputFile := StdOut
    ELSE
       outputFile := OpenToWrite (s)
-   END
+   END ;
+   mcStream.setDest (outputFile)
 END openOutput ;
 
 
@@ -4755,7 +4767,7 @@ VAR
    s: String ;
 BEGIN
    s := getOutputFile () ;
-   FlushBuffer (outputFile) ;
+   outputFile := mcStream.combine () ;
    IF NOT EqualArray (s, '-')
    THEN
       Close (outputFile)
@@ -4945,6 +4957,7 @@ BEGIN
       div,
       mod,
       mult,
+      divide,
       in              :  RETURN TRUE |
       literal,
       const,
@@ -5051,19 +5064,19 @@ BEGIN
    THEN
       CASE op OF
 
-      plus:  doBinary (p, '|', left, right, l, r) |
-      sub :  doSetSub (p, left, right) |
-      mult:  doBinary (p, '&', left, right, l, r) |
-      div :  doBinary (p, '^', left, right, l, r)
+      plus   :  doBinary (p, '|', left, right, l, r) |
+      sub    :  doSetSub (p, left, right) |
+      mult   :  doBinary (p, '&', left, right, l, r) |
+      divide :  doBinary (p, '^', left, right, l, r)
 
       END
    ELSE
       CASE op OF
 
-      plus:  doBinary (p, '+', left, right, l, r) |
-      sub :  doBinary (p, '-', left, right, l, r) |
-      mult:  doBinary (p, '*', left, right, l, r) |
-      div :  doBinary (p, '/', left, right, l, r)
+      plus   :  doBinary (p, '+', left, right, l, r) |
+      sub    :  doBinary (p, '-', left, right, l, r) |
+      mult   :  doBinary (p, '*', left, right, l, r) |
+      divide :  doBinary (p, '/', left, right, l, r)
 
       END
    END
@@ -5166,6 +5179,7 @@ BEGIN
       div             :  RETURN doGetLastOp (b, binaryF.right) |
       mod             :  RETURN doGetLastOp (b, binaryF.right) |
       mult            :  RETURN doGetLastOp (b, binaryF.right) |
+      divide          :  RETURN doGetLastOp (b, binaryF.right) |
       in              :  RETURN doGetLastOp (b, binaryF.right) |
       and             :  RETURN doGetLastOp (b, binaryF.right) |
       or              :  RETURN doGetLastOp (b, binaryF.right) |
@@ -5512,7 +5526,7 @@ END outTrue ;
 
 PROCEDURE outFalse (p: pretty) ;
 BEGIN
-   keyc.useNull ;
+   keyc.useFalse ;
    outText (p, 'FALSE')
 END outFalse ;
 
@@ -5557,9 +5571,10 @@ BEGIN
       val             :  doPreBinary (p, 'VAL', binaryF.left, binaryF.right, TRUE, TRUE) |
       plus            :  doPolyBinary (p, plus, binaryF.left, binaryF.right, FALSE, FALSE) |
       sub             :  doPolyBinary (p, sub, binaryF.left, binaryF.right, FALSE, FALSE) |
-      div             :  doPolyBinary (p, div, binaryF.left, binaryF.right, FALSE, FALSE) |
+      div             :  doBinary (p, '/', binaryF.left, binaryF.right, TRUE, TRUE) |
       mod             :  doBinary (p, '%', binaryF.left, binaryF.right, TRUE, TRUE) |
       mult            :  doPolyBinary (p, mult, binaryF.left, binaryF.right, FALSE, FALSE) |
+      divide          :  doPolyBinary (p, divide, binaryF.left, binaryF.right, FALSE, FALSE) |
       in              :  doInC (p, binaryF.left, binaryF.right) |
       and             :  doBinary (p, '&&', binaryF.left, binaryF.right, TRUE, TRUE) |
       or              :  doBinary (p, '||', binaryF.left, binaryF.right, TRUE, TRUE) |
@@ -5637,9 +5652,10 @@ BEGIN
       val             :  doPreBinary (p, 'VAL', binaryF.left, binaryF.right, TRUE, TRUE) |
       plus            :  doBinary (p, '+', binaryF.left, binaryF.right, FALSE, FALSE) |
       sub             :  doBinary (p, '-', binaryF.left, binaryF.right, FALSE, FALSE) |
-      div             :  doBinary (p, '/', binaryF.left, binaryF.right, FALSE, FALSE) |
+      div             :  doBinary (p, 'DIV', binaryF.left, binaryF.right, TRUE, TRUE) |
       mod             :  doBinary (p, 'MOD', binaryF.left, binaryF.right, TRUE, TRUE) |
       mult            :  doBinary (p, '*', binaryF.left, binaryF.right, FALSE, FALSE) |
+      divide          :  doBinary (p, '/', binaryF.left, binaryF.right, FALSE, FALSE) |
       literal         :  doLiteral (p, n) |
       const           :  doConstExpr (p, n) |
       enumerationfield:  doEnumerationField (p, n) |
@@ -5781,41 +5797,136 @@ END doString ;
 PROCEDURE doEscapeC (s: String; ch: CHAR) : String ;
 VAR
    t, r: String ;
+   h,
    l, i: INTEGER ;
 BEGIN
    l := 0 ;
    r := InitString ('') ;
+   i := DynamicStrings.Index (s, ch, l) ;
    REPEAT
-      i := DynamicStrings.Index (s, ch, l) ;
       IF i = -1
       THEN
-         i := DynamicStrings.Length (s) ;
-         WHILE l < i DO
-            t := DynamicStrings.InitStringChar (DynamicStrings.char (s, l)) ;
-            r := DynamicStrings.ConCat (r, t) ;
-            t := KillString (t) ;
-            INC (l)
-         END
+         RETURN DynamicStrings.ConCat (r, Mark (DynamicStrings.Slice (s, l, 0)))
       ELSE
          WHILE l < i DO
-            t := DynamicStrings.InitStringChar (DynamicStrings.char (s, l)) ;
-            r := DynamicStrings.ConCat (r, t) ;
-            t := KillString (t) ;
+            r := DynamicStrings.ConCatChar (r, DynamicStrings.char (s, l)) ;
             INC (l)
          END ;
          r := DynamicStrings.ConCatChar (r, '\') ;
+         r := DynamicStrings.ConCatChar (r, DynamicStrings.char (s, i)) ;
+         assert (l = i) ;
          INC (l)
-      END
-   UNTIL i = l ;
+      END ;
+      i := DynamicStrings.Index (s, ch, l)
+   UNTIL i = -1 ;
    RETURN r
 END doEscapeC ;
+
+
+(*
+   escapeContentsC -
+*)
+
+PROCEDURE escapeContentsC (s: String; ch: CHAR) : String ;
+BEGIN
+   RETURN doEscapeC (s, ch)
+END escapeContentsC ;
+
+
+(*
+   replaceChar - replace every occurance of, ch, by, a and return modified string, s.
+*)
+
+PROCEDURE replaceChar (s: String; ch: CHAR; a: ARRAY OF CHAR) : String ;
+VAR
+   i: INTEGER ;
+BEGIN
+   i := 0 ;
+   LOOP
+      i := DynamicStrings.Index (s, ch, i) ;
+      IF i >= 0
+      THEN
+         s := ConCat (ConCat (DynamicStrings.Slice (s, 0, i), Mark (InitString (a))), DynamicStrings.Slice (s, i+1, 0)) ;
+         INC (i, StrLen (a))
+      ELSE
+         RETURN s
+      END
+   END
+END replaceChar ;
+
+
+(*
+   toCstring - translates string, n, into a C string
+               and returns the new String.
+*)
+
+PROCEDURE toCstring (n: Name) : String ;
+VAR
+   s: String ;
+BEGIN
+   s := DynamicStrings.Slice (InitStringCharStar (keyToCharStar (n)), 1, -1) ;
+   RETURN replaceChar (escapeContentsC (escapeContentsC (s, '\'), '"'), lf, '\n')
+END toCstring ;
+
+
+(*
+   countChar -
+*)
+
+PROCEDURE countChar (s: String; ch: CHAR) : CARDINAL ;
+VAR
+   i: INTEGER ;
+   c: CARDINAL ;
+BEGIN
+   c := 0 ;
+   i := 0 ;
+   LOOP
+      i := DynamicStrings.Index (s, ch, i) ;
+      IF i >= 0
+      THEN
+         INC (i) ;
+         INC (c)
+      ELSE
+         RETURN c
+      END
+   END
+END countChar ;
+
+
+(*
+   lenCstring -
+*)
+
+PROCEDURE lenCstring (s: String) : CARDINAL ;
+BEGIN
+   RETURN DynamicStrings.Length (s) - countChar (s, '\')
+END lenCstring ;
 
 
 (*
    outCstring -
 *)
 
-PROCEDURE outCstring (p: pretty; s: String) ;
+PROCEDURE outCstring (p: pretty; s: node; aString: BOOLEAN) ;
+BEGIN
+   IF aString
+   THEN
+      outText (p, '"') ;
+      outRawS (p, s^.stringF.cstring) ;
+      outText (p, '"')
+   ELSE
+      outText (p, "'") ;
+      IF DynamicStrings.char (s^.stringF.cstring, 0) = "'"
+      THEN
+         outText (p, "\'")
+      ELSIF DynamicStrings.char (s^.stringF.cstring, 0) = "\"
+      THEN
+         outText (p, "\\")
+      ELSE
+         outRawS (p, s^.stringF.cstring)
+      END ;
+      outText (p, "'")
+   END
 END outCstring ;
 
 
@@ -5828,6 +5939,8 @@ VAR
    s: String ;
 BEGIN
    assert (isString (n)) ;
+   outCstring (p, n, NOT n^.stringF.isCharCompatible)
+(*
    s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
    IF DynamicStrings.Length (s)>3
    THEN
@@ -5864,6 +5977,7 @@ BEGIN
       outText (p, "'\0'")
    END ;
    s := KillString (s)
+*)
 END doStringC ;
 
 
@@ -5902,6 +6016,16 @@ BEGIN
    outTextS (p, s) ;
    s := KillString (s)
 END outText ;
+
+
+(*
+   outRawS -
+*)
+
+PROCEDURE outRawS (p: pretty; s: String) ;
+BEGIN
+   raw (p, s)
+END outRawS ;
 
 
 (*
@@ -6454,34 +6578,42 @@ BEGIN
       RETURN falseN
    ELSIF n=integerN
    THEN
-      RETURN lookupConst (integerN, makeKey ('-2147483648'))
+      keyc.useIntMin ;
+      RETURN lookupConst (integerN, makeKey ('INT_MIN'))
    ELSIF n=cardinalN
    THEN
-      RETURN lookupConst (cardinalN, makeKey ('0'))
+      keyc.useUIntMin ;
+      RETURN lookupConst (cardinalN, makeKey ('UINT_MIN'))
    ELSIF n=longintN
    THEN
+      keyc.useLongMin ;
       RETURN lookupConst (longintN, makeKey ('LONG_MIN'))
    ELSIF n=longcardN
    THEN
-      RETURN lookupConst (longcardN, makeKey ('0'))
+      keyc.useULongMin ;
+      RETURN lookupConst (longcardN, makeKey ('LONG_MIN'))
    ELSIF n=charN
    THEN
-      RETURN lookupConst (charN, makeKey ('0'))
+      keyc.useCharMin ;
+      RETURN lookupConst (charN, makeKey ('CHAR_MIN'))
    ELSIF n=bitsetN
    THEN
       RETURN lookupConst (bitnumN, makeKey ('0'))
    ELSIF n=locN
    THEN
-      RETURN lookupConst (locN, makeKey ('0'))
+      keyc.useUCharMin ;
+      RETURN lookupConst (locN, makeKey ('UCHAR_MIN'))
    ELSIF n=byteN
    THEN
-      RETURN lookupConst (byteN, makeKey ('0'))
+      keyc.useUCharMin ;
+      RETURN lookupConst (byteN, makeKey ('UCHAR_MIN'))
    ELSIF n=wordN
    THEN
-      RETURN lookupConst (wordN, makeKey ('0'))
+      keyc.useUIntMin ;
+      RETURN lookupConst (wordN, makeKey ('UCHAR_MIN'))
    ELSIF n=addressN
    THEN
-      RETURN lookupConst (addressN, makeKey ('0'))
+      RETURN lookupConst (addressN, makeKey ('((void *) 0)'))
    ELSE
       HALT  (* finish the cacading elsif statement.  *)
    END
@@ -6499,31 +6631,39 @@ BEGIN
       RETURN trueN
    ELSIF n=integerN
    THEN
-      RETURN lookupConst (integerN, makeKey ('2147483647'))
+      keyc.useIntMax ;
+      RETURN lookupConst (integerN, makeKey ('INT_MAX'))
    ELSIF n=cardinalN
    THEN
-      RETURN lookupConst (cardinalN, makeKey ('4294967295'))
+      keyc.useUIntMax ;
+      RETURN lookupConst (cardinalN, makeKey ('UINT_MAX'))
    ELSIF n=longintN
    THEN
+      keyc.useLongMax ;
       RETURN lookupConst (longintN, makeKey ('LONG_MAX'))
    ELSIF n=longcardN
    THEN
+      keyc.useULongMax ;
       RETURN lookupConst (longcardN, makeKey ('ULONG_MAX'))
    ELSIF n=charN
    THEN
-      RETURN lookupConst (charN, makeKey ('255'))
+      keyc.useCharMax ;
+      RETURN lookupConst (charN, makeKey ('CHAR_MAX'))
    ELSIF n=bitsetN
    THEN
-      RETURN lookupConst (bitnumN, makeKey ('31'))
+      RETURN lookupConst (bitnumN, makeKey ('(sizeof (unsigned int)*8)'))
    ELSIF n=locN
    THEN
-      RETURN lookupConst (locN, makeKey ('255'))
+      keyc.useUCharMax ;
+      RETURN lookupConst (locN, makeKey ('UCHAR_MAX'))
    ELSIF n=byteN
    THEN
-      RETURN lookupConst (byteN, makeKey ('255'))
+      keyc.useUCharMax ;
+      RETURN lookupConst (byteN, makeKey ('UCHAR_MAX'))
    ELSIF n=wordN
    THEN
-      RETURN lookupConst (wordN, makeKey ('4294967295'))
+      keyc.useUIntMax ;
+      RETURN lookupConst (wordN, makeKey ('UINT_MAX'))
    ELSIF n=addressN
    THEN
       metaError1 ('trying to obtain MAX ({%1ad}) is illegal', n) ;
@@ -7616,6 +7756,16 @@ END includeExternals ;
 
 
 (*
+   checkSystemInclude -
+*)
+
+PROCEDURE checkSystemInclude (n: node) ;
+BEGIN
+
+END checkSystemInclude ;
+
+
+(*
    addExported -
 *)
 
@@ -8113,12 +8263,7 @@ BEGIN
       s := KillString (s)
    ELSIF isString (actual)
    THEN
-      outText (p, '"') ;
-      s := InitStringCharStar (keyToCharStar (actual^.stringF.name)) ;
-      s := DynamicStrings.Slice (DynamicStrings.Mark (s), 1, -1) ;
-      outCstring (p, s) ;
-      outText (p, '"') ;
-      s := KillString (s)
+      outCstring (p, actual, TRUE)
    ELSIF isUnbounded (getType (actual))
    THEN
       doFQNameC (p, actual)
@@ -8149,6 +8294,10 @@ BEGIN
    outText (p, ')') ;
    setNeedSpace (p) ;
    outText (p, '{') ;
+   outText (p, '(') ;
+   doFQNameC (p, getType (formal)) ;
+   outText (p, '_t)') ;
+   setNeedSpace (p) ;
    doExprC (p, actual) ;
    outText (p, '}')
 END doProcedureParamC ;
@@ -8176,6 +8325,55 @@ END doAdrExprC ;
 
 
 (*
+   typePair -
+*)
+
+PROCEDURE typePair (a, b, x, y: node) : BOOLEAN ;
+BEGIN
+   RETURN ((a = x) AND (b = y)) OR ((a = y) AND (b = x))
+END typePair ;
+
+
+(*
+   needsCast -
+*)
+
+PROCEDURE needsCast (at, ft: node) : BOOLEAN ;
+BEGIN
+   IF (at = nilN) OR
+      (at = ft) OR
+      typePair (at, ft, cardinalN, wordN)
+   THEN
+      RETURN FALSE
+   ELSE
+      RETURN TRUE
+   END
+END needsCast ;
+
+
+(*
+   checkSystemCast - checks to see if we are passing to/from
+                     a system generic type (WORD, BYTE, ADDRESS)
+                     and if so emit a cast.
+*)
+
+PROCEDURE checkSystemCast (p: pretty; actual, formal: node) ;
+VAR
+   at, ft: node ;
+BEGIN
+   at := getExprType (actual) ;
+   ft := getType (formal) ;
+   IF needsCast (at, ft)
+   THEN
+      outText (p, '(') ;
+      doTypeNameC (p, ft) ;
+      outText (p, ')') ;
+      setNeedSpace (p)
+   END
+END checkSystemCast ;
+
+
+(*
    doFuncParamC -
 *)
 
@@ -8192,7 +8390,7 @@ BEGIN
       THEN
          doFuncUnbounded (p, actual, type)
       ELSE
-         IF isProcType (type) AND isProcedure (actual)
+         IF ((type = procN) OR isProcType (type)) AND isProcedure (actual)
          THEN
             IF isVarParam (formal)
             THEN
@@ -8201,6 +8399,7 @@ BEGIN
                doProcedureParamC (p, actual, formal)
             END
          ELSE
+            checkSystemCast (p, actual, formal) ;
             IF isVarParam (formal)
             THEN
                doAdrExprC (p, actual)
@@ -8276,8 +8475,8 @@ END getNthParam ;
 
 PROCEDURE doFuncArgsC (p: pretty; s: node; l: Index; needParen: BOOLEAN) ;
 VAR
-   a, b: node ;
-   i, n: CARDINAL ;
+   actual, formal: node ;
+   i, n          : CARDINAL ;
 BEGIN
    IF needParen
    THEN
@@ -8288,9 +8487,9 @@ BEGIN
       i := 1 ;
       n := expListLen (s^.funccallF.args) ;
       WHILE i<=n DO
-         a := getExpList (s^.funccallF.args, i) ;
-         b := getNthParam (l, i) ;
-         doFuncParamC (p, a, b) ;
+         actual := getExpList (s^.funccallF.args, i) ;
+         formal := getNthParam (l, i) ;
+         doFuncParamC (p, actual, formal) ;
          IF i<n
          THEN
             outText (p, ",") ;
@@ -8565,15 +8764,19 @@ BEGIN
    END ;
    IF t = longintN
    THEN
+      keyc.useLabs ;
       outText (p, "labs")
    ELSIF t = integerN
    THEN
+      keyc.useAbs ;
       outText (p, "abs")
    ELSIF t = realN
    THEN
+      keyc.useFabs ;
       outText (p, "fabs")
    ELSIF t = longrealN
    THEN
+      keyc.useFabsl ;
       outText (p, "fabsl")
    ELSE
       HALT
@@ -8710,7 +8913,6 @@ BEGIN
       outText (p, '(0)')
    ELSIF expListLen (n^.funccallF.args) = 1
    THEN
-      outText (p, ' /* yes */ ') ;
       outText (p, 'M2RTS_HALT') ;
       setNeedSpace (p) ;
       outText (p, '(') ;
@@ -8728,42 +8930,42 @@ PROCEDURE doIntrinsicC (p: pretty; n: node) ;
 BEGIN
    IF n^.funccallF.function = haltN
    THEN
-      doHalt (p, n) ;
-      RETURN
-   END ;
-   CASE n^.funccallF.function^.kind OF
+      doHalt (p, n)
+   ELSE
+      CASE n^.funccallF.function^.kind OF
 
-   halt:   doHalt (p, n) |
-   val:    doValC (p, n) |
-   adr:    doAdrC (p, n) |
-   size,
-   tsize:  outText (p, "sizeof") ;
-           setNeedSpace (p) ;
-           doFuncArgsC (p, n, NIL, TRUE) |
-   float:  outText (p, "(double)") ;
-           setNeedSpace (p) ;
-           doFuncArgsC (p, n, NIL, TRUE) |
-   trunc:  outText (p, "(int)") ;
-           setNeedSpace (p) ;
-           doFuncArgsC (p, n, NIL, TRUE) |
-   ord:    outText (p, "(unsigned int)") ;
-           setNeedSpace (p) ;
-           doFuncArgsC (p, n, NIL, TRUE) |
-   chr:    outText (p, "(char)") ;
-           setNeedSpace (p) ;
-           doFuncArgsC (p, n, NIL, TRUE) |
-   abs:    doAbsC (p, n) |
-   high:   doFuncHighC (p, getExpList (n^.funccallF.args, 1)) |
-   inc:    doIncDecC (p, n, "+=") |
-   dec:    doIncDecC (p, n, "-=") |
-   incl:   doInclC (p, n) |
-   excl:   doExclC (p, n) |
-   new:    doNewC (p, n) |
-   dispose: doDisposeC (p, n) |
-   min:    doMinC (p, n) |
-   max:    doMaxC (p, n) |
-   throw:  doThrowC (p, n)
+      halt:   doHalt (p, n) |
+      val:    doValC (p, n) |
+      adr:    doAdrC (p, n) |
+      size,
+      tsize:  outText (p, "sizeof") ;
+              setNeedSpace (p) ;
+              doFuncArgsC (p, n, NIL, TRUE) |
+      float:  outText (p, "(double)") ;
+              setNeedSpace (p) ;
+              doFuncArgsC (p, n, NIL, TRUE) |
+      trunc:  outText (p, "(int)") ;
+              setNeedSpace (p) ;
+              doFuncArgsC (p, n, NIL, TRUE) |
+      ord:    outText (p, "(unsigned int)") ;
+              setNeedSpace (p) ;
+              doFuncArgsC (p, n, NIL, TRUE) |
+      chr:    outText (p, "(char)") ;
+              setNeedSpace (p) ;
+              doFuncArgsC (p, n, NIL, TRUE) |
+      abs:    doAbsC (p, n) |
+      high:   doFuncHighC (p, getExpList (n^.funccallF.args, 1)) |
+      inc:    doIncDecC (p, n, "+=") |
+      dec:    doIncDecC (p, n, "-=") |
+      incl:   doInclC (p, n) |
+      excl:   doExclC (p, n) |
+      new:    doNewC (p, n) |
+      dispose: doDisposeC (p, n) |
+      min:    doMinC (p, n) |
+      max:    doMaxC (p, n) |
+      throw:  doThrowC (p, n)
 
+      END
    END
 END doIntrinsicC ;
 
@@ -9243,6 +9445,8 @@ BEGIN
 END doStatementsC ;
 
 
+PROCEDURE stop ; END stop ;
+
 (*
    doLocalVarC -
 *)
@@ -9250,6 +9454,7 @@ END doStatementsC ;
 PROCEDURE doLocalVarC (p: pretty; s: scopeT) ;
 BEGIN
    includeVarProcedure (s) ;
+   debugLists ;
 
    topologicallyOut (doConstC, doTypesC, doVarC,
                      outputPartial,
@@ -10119,7 +10324,8 @@ BEGIN
       sub,
       div,
       mod,
-      mult            :  RETURN walkBinary (l, n) |
+      mult,
+      divide          :  RETURN walkBinary (l, n) |
       constexp,
       neg,
       adr,
@@ -10928,7 +11134,8 @@ BEGIN
    sub,
    div,
    mod,
-   mult            :  visitBinary (v, n, p) |
+   mult,
+   divide          :  visitBinary (v, n, p) |
    abs,
    chr,
    high,
@@ -11046,6 +11253,7 @@ BEGIN
    div             :  RETURN InitString ('div') |
    mod             :  RETURN InitString ('mod') |
    mult            :  RETURN InitString ('mult') |
+   divide          :  RETURN InitString ('divide') |
    adr             :  RETURN InitString ('adr') |
    size            :  RETURN InitString ('size') |
    tsize           :  RETURN InitString ('tsize') |
@@ -11260,17 +11468,16 @@ BEGIN
       THEN
          alists.removeItemFromList (todoQ, d) ;
 	 alists.includeItemIntoList (doneQ, d) ;
-         i := 1 ;
-         n := alists.noOfItemsInList (todoQ)
+         i := 1
       ELSIF tryPartial (d, pt)
       THEN
          alists.removeItemFromList (todoQ, d) ;
          alists.includeItemIntoList (partialQ, d) ;
-         i := 1 ;
-         n := alists.noOfItemsInList (todoQ)
+         i := 1
       ELSE
          INC (i)
-      END
+      END ;
+      n := alists.noOfItemsInList (todoQ)
    END
 END tryOutputTodo ;
 
@@ -11396,12 +11603,15 @@ PROCEDURE outDefC (p: pretty; n: node) ;
 VAR
    s: String ;
 BEGIN
+   outputFile := mcStream.openFrag (1) ;  (* first fragment.  *)
    s := InitStringCharStar (keyToCharStar (getSource (n))) ;
    print (p, "/* automatically created by mc from ") ; prints (p, s) ; print (p, ".  */\n\n") ;
    s := KillString (s) ;
    s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
    print (p, "\n#if !defined (_") ; prints (p, s) ; print (p, "_H)\n") ;
    print (p, "#   define _") ; prints (p, s) ; print (p, "_H\n\n") ;
+
+   outputFile := mcStream.openFrag (3) ;  (* third fragment.  *)
 
    doP := p ;
    ForeachIndiceInIndexDo (n^.defF.importedModules, doIncludeC) ;
@@ -11417,13 +11627,15 @@ BEGIN
    print (p, "#      endif\n") ;
    print (p, "#   endif\n\n") ;
 
-   keyc.genDefs (p) ;
-
    outDeclsDefC (p, n) ;
 
    print (p, "\n") ;
    print (p, "#   undef EXTERN\n") ;
    print (p, "#endif\n") ;
+
+   outputFile := mcStream.openFrag (2) ;  (* second fragment.  *)
+   keyc.genDefs (p) ;
+
    s := KillString (s)
 END outDefC ;
 
@@ -11436,10 +11648,12 @@ PROCEDURE outImpC (p: pretty; n: node) ;
 VAR
    s: String ;
 BEGIN
+   outputFile := mcStream.openFrag (1) ;  (* first fragment.  *)
    s := InitStringCharStar (keyToCharStar (getSource (n))) ;
    print (p, "/* automatically created by mc from ") ; prints (p, s) ; print (p, ".  */\n\n") ;
    s := KillString (s) ;
 
+   outputFile := mcStream.openFrag (3) ;  (* third fragment.  *)
    IF getExtendedOpaque ()
    THEN
       includeExternals (n) ;
@@ -11455,13 +11669,15 @@ BEGIN
       print (p, "\n")
    END ;
 
-   keyc.genDefs (p) ;
-
    includeDefConstType (n) ;
    includeDefVarProcedure (n) ;
    outDeclsImpC (p, n^.impF.decls) ;
    outProceduresC (p, n^.impF.decls) ;
    outImpInitC (p, n) ;
+
+   outputFile := mcStream.openFrag (2) ;  (* second fragment.  *)
+   keyc.genDefs (p) ;
+
    s := KillString (s)
 END outImpC ;
 
@@ -11520,10 +11736,12 @@ PROCEDURE outModuleC (p: pretty; n: node) ;
 VAR
    s: String ;
 BEGIN
+   outputFile := mcStream.openFrag (1) ;  (* first fragment.  *)
    s := InitStringCharStar (keyToCharStar (getSource (n))) ;
    print (p, "/* automatically created by mc from ") ; prints (p, s) ; print (p, ".  */\n\n") ;
    s := KillString (s) ;
 
+   outputFile := mcStream.openFrag (3) ;  (* third fragment.  *)
    IF getExtendedOpaque ()
    THEN
       includeExternals (n) ;
@@ -11534,11 +11752,12 @@ BEGIN
       print (p, "\n")
    END ;
 
-   keyc.genDefs (p) ;
-
    outDeclsModuleC (p, n^.moduleF.decls) ;
    outProceduresC (p, n^.moduleF.decls) ;
-   outModuleInitC (p, n)
+   outModuleInitC (p, n) ;
+
+   outputFile := mcStream.openFrag (2) ;  (* second fragment.  *)
+   keyc.genDefs (p)
 END outModuleC ;
 
 
@@ -13333,6 +13552,7 @@ BEGIN
    div,
    mod,
    mult,
+   divide,
    in              :  RETURN dupBinary (n) |
    constexp,
    deref,

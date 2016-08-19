@@ -1656,6 +1656,7 @@ gm2/boot-bin/mc-devel$(exeext): $(objdir)/gm2/gm2-auto/mcp1.mod \
                                 mcflex.c
 	gcc -I$(srcdir)/gm2/mc -c -g mcflex.c
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/decl.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcStream.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcPretty.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/top.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcStack.mod
@@ -1756,7 +1757,8 @@ MC-DEFS = alists.def  decl.def  Indexing.def  keyc.def  lists.def  \
                mcp1.def  mcp2.def  mcp3.def  mcp4.def  mcp5.def  \
                mcPreprocess.def \
                mcPretty.def  mcPrintf.def  mcQuiet.def  mcReserved.def \
-               mcSearch.def  mcStack.def  nameKey.def  symbolKey.def \
+               mcSearch.def  mcStack.def  mcStream.def \
+               nameKey.def  symbolKey.def \
                varargs.def  wlists.def
 
 MC-MODS = alists.mod  decl.mod  Indexing.mod  keyc.mod  lists.mod \
@@ -1764,7 +1766,8 @@ MC-MODS = alists.mod  decl.mod  Indexing.mod  keyc.mod  lists.mod \
                mcLexBuf.mod  mcMetaError.mod  mcOptions.mod \
                mcPreprocess.mod \
                mcPretty.mod  mcPrintf.mod  mcQuiet.mod  mcReserved.mod \
-               mcSearch.mod  mcStack.mod  nameKey.mod  symbolKey.mod \
+               mcSearch.mod  mcStack.mod  mcStream.mod \
+               nameKey.mod  symbolKey.mod \
                varargs.mod  wlists.mod
 
 MC-AUTO-MODS = mcp1.mod   mcp2.mod  mcp3.mod  mcp4.mod  mcp5.mod

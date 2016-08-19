@@ -19,9 +19,43 @@ Boston, MA 02110-1301, USA.  *)
 IMPLEMENTATION MODULE keyc ;
 
 FROM mcPretty IMPORT pretty, print, prints, setNeedSpace, noSpace ;
+FROM Storage IMPORT ALLOCATE ;
+FROM DynamicStrings IMPORT InitString, KillString, ConCat, ConCatChar,
+                           Mark, string, InitStringCharStar ;
+FROM symbolKey IMPORT symbolTree, getSymKey, putSymKey, initTree, killTree ;
+FROM nameKey IMPORT makeKey, makekey, keyToCharStar ;
 
+
+TYPE
+   scope = POINTER TO RECORD
+                         scoped : node ;
+			 symbols: symbolTree ;
+			 next   : scope ;
+                      END ;
 
 VAR
+   stack,
+   freeList  : scope ;
+   keywords,
+   macros    : symbolTree ;
+
+   seenIntMin,
+   seenUIntMin,
+   seenLongMin,
+   seenULongMin,
+   seenCharMin,
+   seenUCharMin,
+   seenIntMax,
+   seenUIntMax,
+   seenLongMax,
+   seenULongMax,
+   seenCharMax,
+   seenUCharMax,
+   seenLabs,
+   seenAbs,
+   seenFabs,
+   seenFabsl,
+
    seenFree,
    seenMalloc,
    seenProc,
@@ -102,6 +136,216 @@ END useMemcpy ;
 
 
 (*
+   useIntMin - indicate we have used INT_MIN.
+*)
+
+PROCEDURE useIntMin ;
+BEGIN
+   seenIntMin := TRUE
+END useIntMin ;
+
+
+(*
+   useUIntMin - indicate we have used UINT_MIN.
+*)
+
+PROCEDURE useUIntMin ;
+BEGIN
+   seenUIntMin := TRUE
+END useUIntMin ;
+
+
+(*
+   useLongMin - indicate we have used LONG_MIN.
+*)
+
+PROCEDURE useLongMin ;
+BEGIN
+   seenLongMin := TRUE
+END useLongMin ;
+
+
+(*
+   useULongMin - indicate we have used ULONG_MIN.
+*)
+
+PROCEDURE useULongMin ;
+BEGIN
+   seenULongMin := TRUE
+END useULongMin ;
+
+
+(*
+   useCharMin - indicate we have used CHAR_MIN.
+*)
+
+PROCEDURE useCharMin ;
+BEGIN
+   seenCharMin := TRUE
+END useCharMin ;
+
+
+(*
+   useUCharMin - indicate we have used UCHAR_MIN.
+*)
+
+PROCEDURE useUCharMin ;
+BEGIN
+   seenUCharMin := TRUE
+END useUCharMin ;
+
+
+(*
+   useUIntMin - indicate we have used UINT_MIN.
+*)
+
+PROCEDURE useUIntMin ;
+BEGIN
+   seenUIntMin := TRUE
+END useUIntMin ;
+
+
+(*
+   useIntMax - indicate we have used INT_MAX.
+*)
+
+PROCEDURE useIntMax ;
+BEGIN
+   seenIntMax := TRUE
+END useIntMax ;
+
+
+(*
+   useUIntMax - indicate we have used UINT_MAX.
+*)
+
+PROCEDURE useUIntMax ;
+BEGIN
+   seenUIntMax := TRUE
+END useUIntMax ;
+
+
+(*
+   useLongMax - indicate we have used LONG_MAX.
+*)
+
+PROCEDURE useLongMax ;
+BEGIN
+   seenLongMax := TRUE
+END useLongMax ;
+
+
+(*
+   useULongMax - indicate we have used ULONG_MAX.
+*)
+
+PROCEDURE useULongMax ;
+BEGIN
+   seenULongMax := TRUE
+END useULongMax ;
+
+
+(*
+   useCharMax - indicate we have used CHAR_MAX.
+*)
+
+PROCEDURE useCharMax ;
+BEGIN
+   seenCharMax := TRUE
+END useCharMax ;
+
+
+(*
+   useUCharMax - indicate we have used UChar_MAX.
+*)
+
+PROCEDURE useUCharMax ;
+BEGIN
+   seenUCharMax := TRUE
+END useUCharMax ;
+
+
+(*
+   useUIntMax - indicate we have used UINT_MAX.
+*)
+
+PROCEDURE useUIntMax ;
+BEGIN
+   seenUIntMax := TRUE
+END useUIntMax ;
+
+
+(*
+   useLabs - indicate we have used labs.
+*)
+
+PROCEDURE useLabs ;
+BEGIN
+   seenLabs := TRUE
+END useLabs ;
+
+
+(*
+   useAbs - indicate we have used abs.
+*)
+
+PROCEDURE useAbs ;
+BEGIN
+   seenAbs := TRUE
+END useAbs ;
+
+
+(*
+   useFabs - indicate we have used fabs.
+*)
+
+PROCEDURE useFabs ;
+BEGIN
+   seenFabs := TRUE
+END useFabs ;
+
+
+(*
+   useFabsl - indicate we have used fabsl.
+*)
+
+PROCEDURE useFabsl ;
+BEGIN
+   seenFabsl := TRUE
+END useFabsl ;
+
+
+(*
+   checkAbs - check to see if the abs family have been used.
+*)
+
+PROCEDURE checkAbs (p: pretty) ;
+BEGIN
+   IF seenLabs OR seenAbs OR seenFabs OR seenFabsl
+   THEN
+      print (p, "#include <stdlib.h>\n")
+   END
+END checkAbs ;
+
+
+(*
+   checkLimits -
+*)
+
+PROCEDURE checkLimits (p: pretty) ;
+BEGIN
+   IF seenMemcpy OR seenIntMin OR seenUIntMin OR
+      seenLongMin OR seenULongMin OR seenCharMin OR
+      seenUCharMin OR seenUIntMin OR seenIntMax OR
+      seenUIntMax OR seenLongMax OR seenULongMax OR
+      seenCharMax OR seenUCharMax OR seenUIntMax
+   THEN
+      print (p, "#include <limits.h>\n")
+   END
+END checkLimits ;
+
+
+(*
    checkFreeMalloc -
 *)
 
@@ -124,7 +368,8 @@ BEGIN
    THEN
       print (p, "#   if !defined (PROC_D)\n") ;
       print (p, "#      define PROC_D\n") ;
-      print (p, "       typedef struct { void (*proc)(void); } PROC;\n") ;
+      print (p, "       typedef void (*PROC_t) (void);\n") ;
+      print (p, "       typedef struct { PROC_t proc; } PROC;\n") ;
       print (p, "#   endif\n\n")
    END
 END checkProc ;
@@ -151,7 +396,7 @@ END checkTrue ;
 
 PROCEDURE checkFalse (p: pretty) ;
 BEGIN
-   IF seenTrue
+   IF seenFalse
    THEN
       print (p, "#   if !defined (FALSE)\n") ;
       print (p, "#      define FALSE (1==0)\n") ;
@@ -198,8 +443,226 @@ BEGIN
    checkTrue (p) ;
    checkFalse (p) ;
    checkNull (p) ;
-   checkMemcpy (p)
+   checkMemcpy (p) ;
+   checkLimits (p) ;
+   checkAbs (p)
 END genDefs ;
+
+
+(*
+   new -
+*)
+
+PROCEDURE new (n: node) : scope ;
+VAR
+   s: scope ;
+BEGIN
+   IF freeList = NIL
+   THEN
+      NEW (s)
+   ELSE
+      s := freeList ;
+      freeList := freeList^.next
+   END ;
+   RETURN s
+END new ;
+
+
+(*
+   enterScope - enter a scope defined by, n.
+*)
+
+PROCEDURE enterScope (n: node) ;
+VAR
+   s: scope ;
+BEGIN
+   s := new (n) ;
+   WITH s^ DO
+      scoped := n ;
+      symbols := initTree () ;
+      next := stack
+   END
+END enterScope ;
+
+
+(*
+   leaveScope - leave the scope defined by, n.
+*)
+
+PROCEDURE leaveScope (n: node) ;
+VAR
+   s: scope ;
+BEGIN
+   IF n = stack^.scoped
+   THEN
+      s := stack ;
+      stack := stack^.next ;
+      WITH s^ DO
+         scoped := NIL ;
+         killTree (symbols) ;
+         next := NIL
+      END
+   ELSE
+      HALT
+   END
+END leaveScope ;
+
+
+(*
+   mangle1 - returns TRUE if name is unique if we add _
+             to its end.
+*)
+
+PROCEDURE mangle1 (n: Name; VAR m: String) : BOOLEAN ;
+BEGIN
+   m := KillString (m) ;
+   m := InitStringCharStar (keyToCharStar (n)) ;
+   m := ConCatChar (m, '_') ;
+   RETURN NOT clash (makekey (string (m)))
+END mangle1 ;
+
+
+(*
+   mangle2 - returns TRUE if name is unique if we prepend _
+             to, n.
+*)
+
+PROCEDURE mangle2 (n: Name; VAR m: String) : BOOLEAN ;
+BEGIN
+   m := KillString (m) ;
+   m := InitStringCharStar (keyToCharStar (n)) ;
+   m := ConCat (InitString ('_'), Mark (m)) ;
+   RETURN NOT clash (makekey (string (m)))
+END mangle2 ;
+
+
+(*
+   mangleN - keep adding '_' to the end of n until it
+             no longer clashes.
+*)
+
+PROCEDURE mangleN (n: Name; VAR m: String) : BOOLEAN ;
+BEGIN
+   m := KillString (m) ;
+   m := InitStringCharStar (keyToCharStar (n)) ;
+   LOOP
+      m := ConCatChar (m, '_') ;
+      IF NOT clash (makekey (string (m)))
+      THEN
+         RETURN TRUE
+      END
+   END
+END mangleN ;
+
+
+(*
+   clash - returns TRUE if there is a clash with name, n,
+           in the current scope or C keywords or C macros.
+*)
+
+PROCEDURE clash (n: Name) : BOOLEAN ;
+BEGIN
+   RETURN (getSymKey (macros, n) # NIL) OR
+          (getSymKey (keywords, n) # NIL) OR
+          (getSymKey (stack^.symbols, n) # NIL)
+END clash ;
+
+
+(*
+   cname - attempts to declare a symbol with name, n, in the
+           current scope.  If there is no conflict with the
+           target language then NIL is returned, otherwise
+           a mangled name is returned as a String.
+*)
+
+PROCEDURE cname (n: Name) : String ;
+VAR
+   m: String ;
+BEGIN
+   m := NIL ;
+   IF clash (n)
+   THEN
+      IF mangle1 (n, m) OR mangle2 (n, m) OR mangleN (n, m)
+      THEN
+         (* no longer a clash with, m, so add it to the current scope.  *)
+         n := makekey (string (m)) ;
+         putSymKey (stack^.symbols, n, m)
+      ELSE
+         (* mangleN must always succeed.  *)
+         HALT
+      END
+   ELSE
+      (* no clash, add it to the current scope.  *)
+      putSymKey (stack^.symbols, n, InitStringCharStar (keyToCharStar (n)))
+   END ;
+   RETURN m
+END cname ;
+
+
+(*
+   add -
+*)
+
+PROCEDURE add (s: symbolTree; a: ARRAY OF CHAR) ;
+BEGIN
+   putSymKey (s, makeKey (a), InitString (a))
+END add ;
+
+
+(*
+   initMacros -
+*)
+
+PROCEDURE initMacros ;
+BEGIN
+   macros := initTree () ;
+   add (macros, 'FILE') ;
+   add (macros, 'stdio') ;
+   add (macros, 'stdout') ;
+   add (macros, 'stderr')
+END initMacros ;
+
+
+(*
+   initKeywords -
+*)
+
+PROCEDURE initKeywords ;
+BEGIN
+   keywords := initTree () ;
+   add (keywords, 'auto') ;
+   add (keywords, 'break') ;
+   add (keywords, 'case') ;
+   add (keywords, 'char') ;
+   add (keywords, 'const') ;
+   add (keywords, 'continue') ;
+   add (keywords, 'default') ;
+   add (keywords, 'do') ;
+   add (keywords, 'double') ;
+   add (keywords, 'else') ;
+   add (keywords, 'enum') ;
+   add (keywords, 'extern') ;
+   add (keywords, 'float') ;
+   add (keywords, 'for') ;
+   add (keywords, 'goto') ;
+   add (keywords, 'if') ;
+   add (keywords, 'int') ;
+   add (keywords, 'long') ;
+   add (keywords, 'register') ;
+   add (keywords, 'return') ;
+   add (keywords, 'short') ;
+   add (keywords, 'signed') ;
+   add (keywords, 'sizeof') ;
+   add (keywords, 'static') ;
+   add (keywords, 'struct') ;
+   add (keywords, 'switch') ;
+   add (keywords, 'typedef') ;
+   add (keywords, 'union') ;
+   add (keywords, 'unsigned') ;
+   add (keywords, 'void') ;
+   add (keywords, 'volatile') ;
+   add (keywords, 'while')
+END initKeywords ;
 
 
 (*
@@ -208,13 +671,36 @@ END genDefs ;
 
 PROCEDURE init ;
 BEGIN
-   seenFree := TRUE ;
-   seenMalloc := TRUE ;
-   seenProc := TRUE ;
-   seenTrue := TRUE ;
-   seenFalse := TRUE ;
-   seenNull := TRUE ;
-   seenMemcpy := TRUE
+   seenFree := FALSE ;
+   seenMalloc := FALSE ;
+   seenProc := FALSE ;
+   seenTrue := FALSE ;
+   seenFalse := FALSE ;
+   seenNull := FALSE ;
+   seenMemcpy := FALSE ;
+   seenIntMin := FALSE ;
+   seenUIntMin := FALSE ;
+   seenLongMin := FALSE ;
+   seenULongMin := FALSE ;
+   seenCharMin := FALSE ;
+   seenUCharMin := FALSE ;
+   seenUIntMin := FALSE ;
+   seenIntMax := FALSE ;
+   seenUIntMax := FALSE ;
+   seenLongMax := FALSE ;
+   seenULongMax := FALSE ;
+   seenCharMax := FALSE ;
+   seenUCharMax := FALSE ;
+   seenUIntMax := FALSE ;
+   seenLabs := FALSE ;
+   seenAbs := FALSE ;
+   seenFabs := FALSE ;
+   seenFabsl := FALSE ;
+
+   stack := NIL ;
+   freeList := NIL ;
+   initKeywords ;
+   initMacros
 END init ;
 
 

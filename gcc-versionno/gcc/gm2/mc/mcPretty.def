@@ -134,4 +134,12 @@ PROCEDURE print (p: pretty; a: ARRAY OF CHAR) ;
 PROCEDURE prints (p: pretty; s: String) ;
 
 
+(*
+   raw - print out string, s, without any translation of
+         escape sequences.
+*)
+
+PROCEDURE raw (p: pretty; s: String) ;
+
+
 END mcPretty.
