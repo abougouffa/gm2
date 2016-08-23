@@ -1,6 +1,6 @@
 ;; Copyright (C) 1985, 1986, 1987, 2001, 2002, 2003, 2004,
 ;;               2005, 2006, 2007, 2008, 2009, 2010, 2011,
-;;               2012, 2013, 2014, 2015
+;;               2012, 2013, 2014, 2015, 2016
 ;; Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -512,7 +512,7 @@ Boston, MA  02110-1301  USA.  *)\n\n"))
   (m2-fsf-copyright)
   (m2-fsf-notice)
   (insert "DEFINITION MODULE ")
-  (insert (substring (buffer-name) 0 -4) " ;\n")
+  (insert (substring (buffer-name) 0 -4) " ;  (*!m2pim*)\n")
   (insert "\n\n\nEND " (substring (buffer-name) 0 -4) ".\n")
   (previous-line 3)
   (m2-header))
@@ -594,7 +594,7 @@ Boston, MA  02110-1301  USA.  *)\n\n"))
   (let ((type (read-string "(i)mplementation or (m)odule: ")))
     (if (string-equal type "i")
 	(insert "IMPLEMENTATION "))
-    (insert "MODULE " (substring (buffer-name) 0 -4) " ;\n\n")
+    (insert "MODULE " (substring (buffer-name) 0 -4) " ;   (*!m2pim*)\n\n")
     (insert "\n\n")
     (if (string-equal type "m")
 	(insert "BEGIN\n\n"))

@@ -1,3 +1,13 @@
+2016-08-22      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/el/g-mode.el:  updated dates and also introduced
+          dialect comment after the module name.  Currently
+          hard wired to (*!m2pim*).
+	* gm2/mc/decl.def:  added dialect comment.
+	* gm2/mc/decl.mod:  added dialect comment.  Fixed bug in
+          case statements which use ranges.
+	  Self translation of 54 of the 58 modules occur.
+
 2016-08-19      Gaius Mulley <gaius@gnu.org>
 
 	* gcc/gm2/Make-lang.in:  included mcStream.def and

@@ -17,7 +17,7 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA. *)
 
-IMPLEMENTATION MODULE decl ;
+IMPLEMENTATION MODULE decl ; (*!m2pim*)
 
 FROM ASCII IMPORT lf, tab ;
 FROM symbolKey IMPORT symbolTree, initTree, getSymKey, putSymKey, foreachNodeDo ;
@@ -9111,6 +9111,7 @@ BEGIN
       THEN
          outText (p, "((") ;
          doExprC (p, e) ;
+         outText (p, ")") ;
          setNeedSpace (p) ;
          outText (p, ">=") ;
          setNeedSpace (p) ;
@@ -9118,16 +9119,19 @@ BEGIN
          outText (p, ")") ;
          setNeedSpace (p) ;
          outText (p, "&&") ;
-         outText (p, "(") ;
-         doExprC (p, e) ;
          setNeedSpace (p) ;
-         outText (p, ">=") ;
+         outText (p, "((") ;
+         doExprC (p, e) ;
+         outText (p, ")") ;
+         setNeedSpace (p) ;
+         outText (p, "<=") ;
          setNeedSpace (p) ;
          doExprC (p, r^.rangeF.hi) ;
-         outText (p, "))")
+         outText (p, ")")
       ELSE
-         outText (p, "(") ;
+         outText (p, "((") ;
          doExprC (p, e) ;
+         outText (p, ")") ;
          setNeedSpace (p) ;
          outText (p, "==") ;
          setNeedSpace (p) ;
@@ -9188,10 +9192,11 @@ END doCaseLabelListC ;
    doCaseIfLabels -
 *)
 
-PROCEDURE doCaseIfLabels (p: pretty; e, n: node; first: BOOLEAN) ;
+PROCEDURE doCaseIfLabels (p: pretty; e, n: node;
+                          i, h: CARDINAL) ;
 BEGIN
    assert (isCaseLabelList (n)) ;
-   IF NOT first
+   IF i > 1
    THEN
       outText (p, "else") ;
       setNeedSpace (p) ;
@@ -9201,7 +9206,14 @@ BEGIN
    outText (p, "(") ;
    doRangeIfListC (p, e, n^.caselabellistF.caseList) ;
    outText (p, ")\n") ;
-   doStatementSequenceC (p, n^.caselabellistF.statements)
+   IF h = 1
+   THEN
+      doCompoundStmt (p, n^.caselabellistF.statements)
+   ELSE
+      outText (p, "{\n") ;
+      doStatementSequenceC (p, n^.caselabellistF.statements) ;
+      outText (p, "}\n")
+   END
 END doCaseIfLabels ;
 
 
@@ -9219,7 +9231,7 @@ BEGIN
    h := HighIndice (n^.caseF.caseLabelList) ;
    WHILE i<=h DO
       c := GetIndice (n^.caseF.caseLabelList, i) ;
-      doCaseIfLabels (p, n^.caseF.expression, c, i>1) ;
+      doCaseIfLabels (p, n^.caseF.expression, c, i, h) ;
       INC (i)
    END
 END doCaseIfLabelListC ;
