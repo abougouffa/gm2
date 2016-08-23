@@ -1,4 +1,4 @@
-2016-08-22      Gaius Mulley <gaius@gnu.org>
+2016-08-23      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/el/g-mode.el:  updated dates and also introduced
           dialect comment after the module name.  Currently
@@ -6,7 +6,10 @@
 	* gm2/mc/decl.def:  added dialect comment.
 	* gm2/mc/decl.mod:  added dialect comment.  Fixed bug in
           case statements which use ranges.
-	  Self translation of 54 of the 58 modules occur.
+          Self translation of 54 of the 58 modules occur.
+	* gm2/mc/decl.mod:  introduce cnameT for declarations
+          which might conflict with C keywords.  Currently only
+	  record fields use cnames.  55 of the 58 module translate.
 
 2016-08-19      Gaius Mulley <gaius@gnu.org>
 

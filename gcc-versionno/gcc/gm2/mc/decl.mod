@@ -381,6 +381,7 @@ TYPE
 			 parent :  node ;
 			 varient:  node ;
 			 scope  :  node ;
+			 cname  :  cnameT ;
                       END ;
 
        varientfieldT = RECORD
@@ -587,6 +588,10 @@ TYPE
 
        dependentState = (completed, blocked, partial, recursive) ;
 
+       cnameT = RECORD
+                   name :  Name ;
+                   init :  BOOLEAN ;
+                END ;
 
 VAR
    outputFile    : File ;
@@ -1689,7 +1694,6 @@ BEGIN
 END completedEnum ;
 
 
-
 (*
    setUnary - sets a unary node to contain, arg, a, and type, t.
 *)
@@ -2668,6 +2672,7 @@ BEGIN
    n^.recordfieldF.parent := r ;
    n^.recordfieldF.varient := v ;
    n^.recordfieldF.tag := FALSE ;
+   initCname (n^.recordfieldF.cname) ;
    (*
    IF r^.kind=record
    THEN
@@ -5350,7 +5355,7 @@ END doProcedure ;
 
 PROCEDURE doRecordfield (p: pretty; n: node) ;
 BEGIN
-   doNameC (p, n)
+   doDNameC (p, n, FALSE)
 END doRecordfield ;
 
 
@@ -6211,6 +6216,74 @@ END doNameC ;
 
 
 (*
+   initCname -
+*)
+
+PROCEDURE initCname (VAR c: cnameT) ;
+BEGIN
+   c.init := FALSE
+END initCname ;
+
+
+(*
+   doCname -
+*)
+
+PROCEDURE doCname (n: Name; VAR c: cnameT; scopes: BOOLEAN) : Name ;
+VAR
+   s: String ;
+BEGIN
+   IF c.init
+   THEN
+      RETURN c.name
+   ELSE
+      c.init := TRUE ;
+      s := keyc.cname (n, scopes) ;
+      IF s=NIL
+      THEN
+         c.name := n
+      ELSE
+         c.name := makekey (DynamicStrings.string (s)) ;
+         s := KillString (s)
+      END ;
+      RETURN c.name
+   END
+END doCname ;
+
+
+(*
+   getDName -
+*)
+
+PROCEDURE getDName (n: node; scopes: BOOLEAN) : Name ;
+VAR
+   m: Name ;
+BEGIN
+   m := getSymName (n) ;
+   CASE n^.kind OF
+
+   recordfield:  RETURN doCname (m, n^.recordfieldF.cname, scopes)
+
+   ELSE
+   END ;
+   RETURN m
+END getDName ;
+
+
+(*
+   doDNameC -
+*)
+
+PROCEDURE doDNameC (p: pretty; n: node; scopes: BOOLEAN) ;
+BEGIN
+   IF (n#NIL) AND (getSymName (n)#NulName)
+   THEN
+      doNamesC (p, getDName (n, scopes))
+   END
+END doDNameC ;
+
+
+(*
    doFQNameC -
 *)
 
@@ -6954,7 +7027,7 @@ BEGIN
    m := NIL ;
    setNeedSpace (p) ;
    doTypeC (p, f^.recordfieldF.type, m) ;
-   doNameC (p, f)
+   doDNameC (p, f, FALSE)
 END doRecordFieldC ;
 
 
@@ -7405,8 +7478,10 @@ END doUnboundedParamCopyC ;
 
 PROCEDURE doPrototypeC (n: node) ;
 BEGIN
+   keyc.enterScope (n) ;
    doProcedureHeadingC (n) ;
-   print (doP, ";\n")
+   print (doP, ";\n") ;
+   keyc.leaveScope (n)
 END doPrototypeC ;
 
 
@@ -7539,7 +7614,6 @@ BEGIN
       END
    END
 END simplifyVar ;
-
 
 
 (*
@@ -9527,6 +9601,9 @@ VAR
 BEGIN
    outText (doP, "\n") ;
    includeParameters (n) ;
+
+   keyc.enterScope (n) ;
+
    doProcedureHeadingC (n) ;
    outText (doP, "\n") ;
    doP := outKc (doP, "{\n") ;
@@ -9541,7 +9618,8 @@ BEGIN
    END ;
 
    doStatementsC (doP, n^.procedureF.beginStatements) ;
-   doP := outKc (doP, "}\n")
+   doP := outKc (doP, "}\n") ;
+   keyc.leaveScope (n)
 END doProcedureC ;
 
 
@@ -11779,6 +11857,7 @@ END outModuleC ;
 
 PROCEDURE outC (p: pretty; n: node) ;
 BEGIN
+   keyc.enterScope (n) ;
    IF isDef (n)
    THEN
       outDefC (p, n)
@@ -11790,7 +11869,8 @@ BEGIN
       outModuleC (p, n)
    ELSE
       HALT
-   END
+   END ;
+   keyc.leaveScope (n)
 END outC ;
 
 

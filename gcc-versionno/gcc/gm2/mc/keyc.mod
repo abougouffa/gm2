@@ -481,7 +481,8 @@ BEGIN
       scoped := n ;
       symbols := initTree () ;
       next := stack
-   END
+   END ;
+   stack := s
 END enterScope ;
 
 
@@ -513,12 +514,12 @@ END leaveScope ;
              to its end.
 *)
 
-PROCEDURE mangle1 (n: Name; VAR m: String) : BOOLEAN ;
+PROCEDURE mangle1 (n: Name; VAR m: String; scopes: BOOLEAN) : BOOLEAN ;
 BEGIN
    m := KillString (m) ;
    m := InitStringCharStar (keyToCharStar (n)) ;
    m := ConCatChar (m, '_') ;
-   RETURN NOT clash (makekey (string (m)))
+   RETURN NOT clash (makekey (string (m)), scopes)
 END mangle1 ;
 
 
@@ -527,12 +528,12 @@ END mangle1 ;
              to, n.
 *)
 
-PROCEDURE mangle2 (n: Name; VAR m: String) : BOOLEAN ;
+PROCEDURE mangle2 (n: Name; VAR m: String; scopes: BOOLEAN) : BOOLEAN ;
 BEGIN
    m := KillString (m) ;
    m := InitStringCharStar (keyToCharStar (n)) ;
    m := ConCat (InitString ('_'), Mark (m)) ;
-   RETURN NOT clash (makekey (string (m)))
+   RETURN NOT clash (makekey (string (m)), scopes)
 END mangle2 ;
 
 
@@ -541,13 +542,13 @@ END mangle2 ;
              no longer clashes.
 *)
 
-PROCEDURE mangleN (n: Name; VAR m: String) : BOOLEAN ;
+PROCEDURE mangleN (n: Name; VAR m: String; scopes: BOOLEAN) : BOOLEAN ;
 BEGIN
    m := KillString (m) ;
    m := InitStringCharStar (keyToCharStar (n)) ;
    LOOP
       m := ConCatChar (m, '_') ;
-      IF NOT clash (makekey (string (m)))
+      IF NOT clash (makekey (string (m)), scopes)
       THEN
          RETURN TRUE
       END
@@ -560,11 +561,14 @@ END mangleN ;
            in the current scope or C keywords or C macros.
 *)
 
-PROCEDURE clash (n: Name) : BOOLEAN ;
+PROCEDURE clash (n: Name; scopes: BOOLEAN) : BOOLEAN ;
 BEGIN
-   RETURN (getSymKey (macros, n) # NIL) OR
-          (getSymKey (keywords, n) # NIL) OR
-          (getSymKey (stack^.symbols, n) # NIL)
+   IF (getSymKey (macros, n) # NIL) OR
+      (getSymKey (keywords, n) # NIL)
+   THEN
+      RETURN TRUE
+   END ;
+   RETURN scopes AND (getSymKey (stack^.symbols, n) # NIL)
 END clash ;
 
 
@@ -573,25 +577,32 @@ END clash ;
            current scope.  If there is no conflict with the
            target language then NIL is returned, otherwise
            a mangled name is returned as a String.
+           If scopes is FALSE then only the keywords and
+           macros are detected for a clash (all scoping
+           is ignored).
 *)
 
-PROCEDURE cname (n: Name) : String ;
+PROCEDURE cname (n: Name; scopes: BOOLEAN) : String ;
 VAR
    m: String ;
 BEGIN
    m := NIL ;
-   IF clash (n)
+   IF clash (n, scopes)
    THEN
-      IF mangle1 (n, m) OR mangle2 (n, m) OR mangleN (n, m)
+      IF mangle1 (n, m, scopes) OR mangle2 (n, m, scopes) OR mangleN (n, m, scopes)
       THEN
-         (* no longer a clash with, m, so add it to the current scope.  *)
-         n := makekey (string (m)) ;
-         putSymKey (stack^.symbols, n, m)
+         IF scopes
+         THEN
+            (* no longer a clash with, m, so add it to the current scope.  *)
+            n := makekey (string (m)) ;
+            putSymKey (stack^.symbols, n, m)
+         END
       ELSE
          (* mangleN must always succeed.  *)
          HALT
       END
-   ELSE
+   ELSIF scopes
+   THEN
       (* no clash, add it to the current scope.  *)
       putSymKey (stack^.symbols, n, InitStringCharStar (keyToCharStar (n)))
    END ;

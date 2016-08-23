@@ -222,9 +222,12 @@ PROCEDURE leaveScope (n: node) ;
            current scope.  If there is no conflict with the
            target language then NIL is returned, otherwise
            a mangled name is returned as a String.
+           If scopes is FALSE then only the keywords and
+           macros are detected for a clash (all scoping
+           is ignored).
 *)
 
-PROCEDURE cname (n: Name) : String ;
+PROCEDURE cname (n: Name; scopes: BOOLEAN) : String ;
 
 
 END keyc.
