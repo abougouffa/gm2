@@ -35,6 +35,13 @@ FROM nameKey IMPORT Name ;
 
 
 (*
+   useStorage - indicate we have used storage.
+*)
+
+PROCEDURE useStorage ;
+
+
+(*
    useFree - indicate we have used free.
 *)
 

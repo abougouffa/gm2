@@ -74,7 +74,8 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 makeIdentList, putIdent, addVarParameters, addNonVarParameters,
 		 lookupInScope, import, lookupExported, isImp, isModule, isConst,
 		 makeLiteralInt, makeLiteralReal, makeString, getBuiltinConst,
-		 getNextEnum, resetEnumPos, makeConstExp, setConstExpComplete ;
+		 getNextEnum, resetEnumPos, makeConstExp, setConstExpComplete,
+		 makeEnum, makeEnumField ;
 
 
 CONST
@@ -1231,10 +1232,14 @@ OptSubrange := [ SubrangeType
 
 TypeEquiv := PushQualident OptSubrange =:
 
-EnumIdentList := Ident { "," Ident } =:
+EnumIdentList :=                                                        % VAR f: node ; %
+                                                                        % typeExp := push (makeEnum ()) %
+                    Ident                                               % f := makeEnumField (typeExp, curident) %
+		          { "," Ident                                   % f := makeEnumField (typeExp, curident) %
+			              }
+                  =:
 
-Enumeration := "(" EnumIdentList                                       % typeExp := push (getNextEnum ()) %
-                                    ")" =:
+Enumeration := "(" EnumIdentList ")" =:
 
 SimpleType :=                                                          % VAR d: CARDINAL ; %
                                                                        % d := depth () %

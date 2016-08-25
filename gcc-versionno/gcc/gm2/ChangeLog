@@ -1,3 +1,22 @@
+2016-08-25      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/mc-3.bnf:  process enumeration types and fields
+          (as per pass 2).
+	* gm2/mc/decl.mod:  (getNextEnum) assert enumerationField
+          or enumeration type is returned.  (doLiteralC) detect
+          and handle octal integer literals.
+          (isStatementSequenceEmpty)  New procedure function.
+          (isSingleStatement) rewritten and bug fixed.
+          (containsStatement)  New procedure function.
+          (noElse)  handle dangling else.  Also ignore empty
+          else statements.  (doNewC)  use ALLOCATE rather than
+          malloc.  (doFreeC)  use DEALLOCATE rather than free.
+          (needsCast)  returns FALSE if C base types are the same.
+	* gm2/mc/keyc.def:  (useStorage)  New procedure function.
+	* gm2/mc/keyc.mod:  (useStorage)  Implement new procedure
+          function.  (checkStorage) New procedure.  (genDefs)
+	  call checkStorage.
+
 2016-08-23      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/el/g-mode.el:  updated dates and also introduced

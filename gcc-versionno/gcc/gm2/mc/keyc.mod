@@ -24,6 +24,7 @@ FROM DynamicStrings IMPORT InitString, KillString, ConCat, ConCatChar,
                            Mark, string, InitStringCharStar ;
 FROM symbolKey IMPORT symbolTree, getSymKey, putSymKey, initTree, killTree ;
 FROM nameKey IMPORT makeKey, makekey, keyToCharStar ;
+FROM mcOptions IMPORT getHPrefix ;
 
 
 TYPE
@@ -58,11 +59,22 @@ VAR
 
    seenFree,
    seenMalloc,
+   seenStorage,
    seenProc,
    seenTrue,
    seenFalse,
    seenNull,
    seenMemcpy: BOOLEAN ;
+
+
+(*
+   useStorage - indicate we have used storage.
+*)
+
+PROCEDURE useStorage ;
+BEGIN
+   seenStorage := TRUE
+END useStorage ;
 
 
 (*
@@ -359,6 +371,21 @@ END checkFreeMalloc ;
 
 
 (*
+   checkStorage -
+*)
+
+PROCEDURE checkStorage (p: pretty) ;
+BEGIN
+   IF seenStorage
+   THEN
+      print (p, '#   include "') ;
+      prints (p, getHPrefix ()) ;
+      print (p, 'Storage.h"\n')
+   END
+END checkStorage ;
+
+
+(*
    checkProc -
 *)
 
@@ -445,7 +472,8 @@ BEGIN
    checkNull (p) ;
    checkMemcpy (p) ;
    checkLimits (p) ;
-   checkAbs (p)
+   checkAbs (p) ;
+   checkStorage (p)
 END genDefs ;
 
 
@@ -684,6 +712,7 @@ PROCEDURE init ;
 BEGIN
    seenFree := FALSE ;
    seenMalloc := FALSE ;
+   seenStorage := FALSE ;
    seenProc := FALSE ;
    seenTrue := FALSE ;
    seenFalse := FALSE ;

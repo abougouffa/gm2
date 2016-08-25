@@ -2844,19 +2844,22 @@ PROCEDURE getNextEnum () : node ;
 VAR
    n: node ;
 BEGIN
+   n := NIL ;
    assert (isDef (currentModule) OR isImp (currentModule) OR isModule (currentModule)) ;
    WITH currentModule^ DO
       IF isDef (currentModule)
       THEN
-         RETURN getNextFixup (defF.enumFixup)
+         n := getNextFixup (defF.enumFixup)
       ELSIF isImp (currentModule)
       THEN
-         RETURN getNextFixup (impF.enumFixup)
+         n := getNextFixup (impF.enumFixup)
       ELSIF isModule (currentModule)
       THEN
-         RETURN getNextFixup (moduleF.enumFixup)
+         n := getNextFixup (moduleF.enumFixup)
       END
    END ;
+   assert (n # NIL) ;
+   assert (isEnumeration (n) OR isEnumerationField (n)) ;
    RETURN n
 END getNextEnum ;
 
@@ -5718,6 +5721,10 @@ BEGIN
    THEN
       outText (p, "0x") ;
       s := DynamicStrings.Slice (DynamicStrings.Mark (s), 0, -1)
+   ELSIF DynamicStrings.char (s, -1) = 'B'
+   THEN
+      outText (p, "0") ;
+      s := DynamicStrings.Slice (DynamicStrings.Mark (s), 0, -1)
    END ;
    outTextS (p, s) ;
    s := KillString (s)
@@ -7251,7 +7258,8 @@ BEGIN
       doSetC (p, n)
    ELSE
       (* --fixme--  *)
-      print (p, "to do ...  typedef etc etc ") ; doFQNameC (p, n) ; print (p, ";\n")
+      print (p, "to do ...  typedef etc etc ") ; doFQNameC (p, n) ; print (p, ";\n") ;
+      HALT
    END
 END doTypeC ;
 
@@ -7989,14 +7997,33 @@ END doStatementSequenceC ;
 
 
 (*
+   isStatementSequenceEmpty -
+*)
+
+PROCEDURE isStatementSequenceEmpty (s: node) : BOOLEAN ;
+BEGIN
+   assert (isStatementSequence (s)) ;
+   RETURN HighIndice (s^.stmtF.statements) = 0
+END isStatementSequenceEmpty ;
+
+
+(*
    isSingleStatement - returns TRUE if the statement sequence, s, has
                        only one statement.
 *)
 
 PROCEDURE isSingleStatement (s: node) : BOOLEAN ;
+VAR
+   h: CARDINAL ;
 BEGIN
    assert (isStatementSequence (s)) ;
-   RETURN HighIndice (s^.stmtF.statements) = 1
+   h := HighIndice (s^.stmtF.statements) ;
+   IF (h = 0) OR (h > 1)
+   THEN
+      RETURN FALSE
+   END ;
+   s := GetIndice (s^.stmtF.statements, 1) ;
+   RETURN (NOT isStatementSequence (s)) OR isSingleStatement (s)
 END isSingleStatement ;
 
 
@@ -8047,12 +8074,22 @@ END doAssignmentC ;
 
 
 (*
+   containsStatement -
+*)
+
+PROCEDURE containsStatement (s: node) : BOOLEAN ;
+BEGIN
+   RETURN (s # NIL) AND isStatementSequence (s) AND (NOT isStatementSequenceEmpty (s))
+END containsStatement ;
+
+
+(*
    doCompoundStmt -
 *)
 
 PROCEDURE doCompoundStmt (p: pretty; s: node) ;
 BEGIN
-   IF s = NIL
+   IF (s = NIL) OR (isStatementSequence (s) AND isStatementSequenceEmpty (s))
    THEN
       p := pushPretty (p) ;
       setindent (p, getindent (p) + indentationC) ;
@@ -8092,11 +8129,11 @@ BEGIN
    outText (p, ")\n") ;
    doCompoundStmt (p, s^.elsifF.then) ;
    assert ((s^.elsifF.else = NIL) OR (s^.elsifF.elsif = NIL)) ;
-   IF s^.elsifF.else # NIL
+   IF containsStatement (s^.elsifF.else)
    THEN
       outText (p, "else\n") ;
       doCompoundStmt (p, s^.elsifF.else)
-   ELSIF s^.elsifF.elsif # NIL
+   ELSIF containsStatement (s^.elsifF.elsif)
    THEN
       doElsifC (p, s^.elsifF.elsif)
    END
@@ -8104,17 +8141,23 @@ END doElsifC ;
 
 
 (*
-   noElse - returns TRUE if, n, is an if statement which has no else component.
+   noElse - returns TRUE if, n, is a statement sequence which contains  if statement which has no else component.
 *)
 
 PROCEDURE noElse (n: node) : BOOLEAN ;
 BEGIN
    IF n # NIL
    THEN
-      IF isStatementSequence (n) AND isSingleStatement (n)
+      IF isStatementSequence (n)
       THEN
-         n := GetIndice (n^.stmtF.statements, 1) ;
-         RETURN (n # NIL) AND isIf (n) AND (n^.ifF.else = NIL) AND (n^.ifF.elsif = NIL)
+         IF isStatementSequenceEmpty (n)
+         THEN
+            RETURN FALSE
+         ELSIF isSingleStatement (n)
+         THEN
+            n := GetIndice (n^.stmtF.statements, 1) ;
+            RETURN (n # NIL) AND isIf (n) AND (n^.ifF.else = NIL) AND (n^.ifF.elsif = NIL)
+         END
       END
    END ;
    RETURN FALSE
@@ -8133,7 +8176,9 @@ BEGIN
    outText (p, "(") ;
    doExprC (p, s^.ifF.expr) ;
    outText (p, ")\n") ;
-   IF noElse (s^.ifF.then)
+   IF noElse (s^.ifF.then) AND
+      (containsStatement (s^.ifF.else) OR
+       containsStatement (s^.ifF.elsif))
    THEN
       (* avoid dangling else.  *)
       outText (p, "{\n") ;
@@ -8147,11 +8192,11 @@ BEGIN
       doCompoundStmt (p, s^.ifF.then)
    END ;
    assert ((s^.ifF.else = NIL) OR (s^.ifF.elsif = NIL)) ;
-   IF s^.ifF.else # NIL
+   IF containsStatement (s^.ifF.else)
    THEN
       outText (p, "else\n") ;
       doCompoundStmt (p, s^.ifF.else)
-   ELSIF s^.ifF.elsif # NIL
+   ELSIF containsStatement (s^.ifF.elsif)
    THEN
       doElsifC (p, s^.ifF.elsif)
    END
@@ -8416,7 +8461,16 @@ PROCEDURE needsCast (at, ft: node) : BOOLEAN ;
 BEGIN
    IF (at = nilN) OR
       (at = ft) OR
-      typePair (at, ft, cardinalN, wordN)
+      typePair (at, ft, cardinalN, wordN) OR
+      typePair (at, ft, cardinalN, ztypeN) OR
+      typePair (at, ft, integerN, ztypeN) OR
+      typePair (at, ft, longcardN, ztypeN) OR
+      typePair (at, ft, shortcardN, ztypeN) OR
+      typePair (at, ft, longintN, ztypeN) OR
+      typePair (at, ft, shortintN, ztypeN) OR
+      typePair (at, ft, realN, rtypeN) OR
+      typePair (at, ft, longrealN, rtypeN) OR
+      typePair (at, ft, shortrealN, rtypeN)
    THEN
       RETURN FALSE
    ELSE
@@ -8766,22 +8820,20 @@ BEGIN
    ELSE
       IF expListLen (n^.funccallF.args) = 1
       THEN
+         keyc.useStorage ;
+         outText (p, 'Storage_ALLOCATE') ;
+         setNeedSpace (p) ;
+         outText (p, '((void **)') ;
+         setNeedSpace (p) ;
+         outText (p, '&') ;
          doExprC (p, getExpList (n^.funccallF.args, 1)) ;
-         setNeedSpace (p) ;
-         outText (p, '=') ;
-         setNeedSpace (p) ;
-         outText (p, '(') ;
-         doTypeNameC (p, getType (getExpList (n^.funccallF.args, 1))) ;
-         outText (p, ')') ;
-         setNeedSpace (p) ;
-         keyc.useMalloc ;
-         outText (p, 'malloc') ;
+         outText (p, ',') ;
          setNeedSpace (p) ;
          t := skipType (getType (getExpList (n^.funccallF.args, 1))) ;
          IF isPointer (t)
          THEN
             t := getType (t) ;
-            outText (p, '(sizeof') ;
+            outText (p, 'sizeof') ;
             setNeedSpace (p) ;
             outText (p, '(') ;
             doTypeNameC (p, t) ;
@@ -8800,6 +8852,8 @@ END doNewC ;
 *)
 
 PROCEDURE doDisposeC (p: pretty; n: node) ;
+VAR
+   t: node ;
 BEGIN
    assert (isFuncCall (n)) ;
    IF n^.funccallF.args = NIL
@@ -8808,12 +8862,28 @@ BEGIN
    ELSE
       IF expListLen (n^.funccallF.args) = 1
       THEN
-         keyc.useFree ;
-         outText (p, 'free') ;
+         keyc.useStorage ;
+         outText (p, 'Storage_DEALLOCATE') ;
          setNeedSpace (p) ;
-         outText (p, '(') ;
+         outText (p, '((void **)') ;
+         setNeedSpace (p) ;
+         outText (p, '&') ;
          doExprC (p, getExpList (n^.funccallF.args, 1)) ;
-         outText (p, ')')
+         outText (p, ',') ;
+         setNeedSpace (p) ;
+         t := skipType (getType (getExpList (n^.funccallF.args, 1))) ;
+         IF isPointer (t)
+         THEN
+            t := getType (t) ;
+            outText (p, 'sizeof') ;
+            setNeedSpace (p) ;
+            outText (p, '(') ;
+            doTypeNameC (p, t) ;
+            noSpace (p) ;
+            outText (p, '))')
+         ELSE
+            metaError1 ('expecting a pointer type variable as the argument to DISPOSE, rather than {%1ad}', t)
+         END
       ELSE
          HALT (* metaError0 ('expecting a single parameter to DISPOSE') *)
       END
