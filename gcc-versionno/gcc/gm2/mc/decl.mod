@@ -398,6 +398,7 @@ TYPE
                               type :  node ;
 			      scope:  node ;
                               value:  CARDINAL ;
+                              cname:  cnameT ;
                            END ;
 
        setT = RECORD
@@ -2973,7 +2974,8 @@ BEGIN
          enumerationfieldF.name := n ;
          enumerationfieldF.type := e ;
          enumerationfieldF.scope := getDeclScope () ;
-         enumerationfieldF.value := e^.enumerationF.noOfElements
+         enumerationfieldF.value := e^.enumerationF.noOfElements ;
+         initCname (enumerationfieldF.cname)
       END ;
       INC (e^.enumerationF.noOfElements) ;
       assert (GetIndice (e^.enumerationF.listOfSons, e^.enumerationF.noOfElements) = f) ;
@@ -4868,6 +4870,26 @@ END getFQstring ;
 
 
 (*
+   getFQDstring -
+*)
+
+PROCEDURE getFQDstring (n: node; scopes: BOOLEAN) : String ;
+VAR
+   i, s: String ;
+BEGIN
+   IF (NOT isExported (n)) OR getIgnoreFQ ()
+   THEN
+      RETURN InitStringCharStar (keyToCharStar (getDName (n, scopes)))
+   ELSE
+      (* we assume a qualified name will never conflict.  *)
+      i := InitStringCharStar (keyToCharStar (getSymName (n))) ;
+      s := InitStringCharStar (keyToCharStar (getSymName (getScope (n)))) ;
+      RETURN Sprintf2 (InitString ("%s_%s"), s, i)
+   END
+END getFQDstring ;
+
+
+(*
    getString - returns the name as a string.
 *)
 
@@ -6184,7 +6206,7 @@ BEGIN
    h := HighIndice (n^.enumerationF.listOfSons) ;
    WHILE i <= h DO
       s := GetIndice (n^.enumerationF.listOfSons, i) ;
-      doFQNameC (p, s) ;
+      doFQDNameC (p, s, FALSE) ;
       IF i < h
       THEN
          outText (p, ",") ; setNeedSpace (p)
@@ -6269,7 +6291,8 @@ BEGIN
    m := getSymName (n) ;
    CASE n^.kind OF
 
-   recordfield:  RETURN doCname (m, n^.recordfieldF.cname, scopes)
+   recordfield     :  RETURN doCname (m, n^.recordfieldF.cname, scopes) |
+   enumerationfield:  RETURN doCname (m, n^.enumerationfieldF.cname, scopes)
 
    ELSE
    END ;
@@ -6288,6 +6311,20 @@ BEGIN
       doNamesC (p, getDName (n, scopes))
    END
 END doDNameC ;
+
+
+(*
+   doFQDNameC -
+*)
+
+PROCEDURE doFQDNameC (p: pretty; n: node; scopes: BOOLEAN) ;
+VAR
+   s: String ;
+BEGIN
+   s := getFQDstring (n, scopes) ;
+   outTextS (p, s) ;
+   s := KillString (s)
+END doFQDNameC ;
 
 
 (*
@@ -11731,7 +11768,21 @@ BEGIN
       pa := alists.noOfItemsInList (partialQ)
    END ;
    dumpLists ;
-   debugLists
+   debugLists ;
+   IF alists.noOfItemsInList (todoQ) > 0
+   THEN
+      outText (doP, "/* at the end of topological sort and items exist in the todoQ.  */\n") ;
+      outText (doP, "/*\n") ;
+      debugList ('todo', todoQ) ;
+      outText (doP, "\n*/\n")
+   END ;
+   IF alists.noOfItemsInList (partialQ) > 0
+   THEN
+      outText (doP, "/* at the end of topological sort and items exist in the partialQ.  */\n") ;
+      outText (doP, "/*\n") ;
+      debugList ('partial', partialQ) ;
+      outText (doP, "\n*/\n")
+   END
 END topologicallyOut ;
 
 
