@@ -2,7 +2,19 @@
 
 	* gm2/Make-lang.in:  extra space introduced.
 	* gm2/mc/decl.mod:  detect cyclic dependancy problem and
-	  issue appropriate error message and abort translation.
+          issue appropriate error message and abort translation.
+	* gm2/Make-lang.in:  specific rule to build
+          gm2/mc-boot/$(SRC_PREFIX)decl.c
+	* gm2/mc/decl.mod:  (doEnumerationField) use doFQDNameC
+          instead of doFQNameC.  (doRecordNameC) New procedure.
+          (doTypeNameC) use doRecordNameC.  (doPrototypeC) only
+	  generate the prototype if the	procedure is not exported.
+          (runIncludeDefConstType)  New procedure.
+          (foreachModuleDo)  New procedure.  (walkArray) also walk
+          the subr field.  (runSimplifyTypes)  New procedure.
+          (runPrototypeExported)  New procedure.  (runPrototypeDefC)
+          New procedure.  (outImpC) rewritten to fix bugs if
+	  getExtendedOpaque was used.
 
 2016-08-27      Gaius Mulley <gaius@gnu.org>
 

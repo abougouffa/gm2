@@ -5317,7 +5317,7 @@ END doConstExpr ;
 
 PROCEDURE doEnumerationField (p: pretty; n: node) ;
 BEGIN
-   doFQNameC (p, n)
+   doFQDNameC (p, n, FALSE)
 END doEnumerationField ;
 
 
@@ -6550,9 +6550,6 @@ PROCEDURE doTypesC (n: node) ;
 VAR
    m: node ;
 BEGIN
-   outText (doP, "/* declaring ") ;
-   doFQNameC (doP, n) ;
-   outText (doP, " */\n") ;
    IF isType (n)
    THEN
       m := getType (n) ;
@@ -7328,6 +7325,21 @@ END doArrayNameC ;
 
 
 (*
+   doRecordNameC -
+*)
+
+PROCEDURE doRecordNameC (p: pretty; n: node) ;
+VAR
+   s: String ;
+BEGIN
+   s := getFQstring (n) ;
+   s := ConCat (s, Mark (InitString ("_r"))) ;
+   outTextS (p, s) ;
+   s := KillString (s)
+END doRecordNameC ;
+
+
+(*
    doTypeNameC -
 *)
 
@@ -7357,6 +7369,9 @@ BEGIN
    ELSIF isArray (n)
    THEN
       doArrayNameC (p, n)
+   ELSIF isRecord (n)
+   THEN
+      doRecordNameC (p, n)
    ELSE
       print (p, "some other kind of name required\n") ;
       stop
@@ -7540,10 +7555,13 @@ END doUnboundedParamCopyC ;
 
 PROCEDURE doPrototypeC (n: node) ;
 BEGIN
-   keyc.enterScope (n) ;
-   doProcedureHeadingC (n) ;
-   print (doP, ";\n") ;
-   keyc.leaveScope (n)
+   IF NOT isExported (n)
+   THEN
+      keyc.enterScope (n) ;
+      doProcedureHeadingC (n) ;
+      print (doP, ";\n") ;
+      keyc.leaveScope (n)
+   END
 END doPrototypeC ;
 
 
@@ -7959,6 +7977,23 @@ END includeDefConstType ;
 
 
 (*
+   runIncludeDefConstType -
+*)
+
+PROCEDURE runIncludeDefConstType (n: node) ;
+VAR
+   d: node ;
+BEGIN
+   IF isDef (n)
+   THEN
+      simplifyTypes (n^.defF.decls) ;
+      includeConstType (n^.defF.decls) ;
+      foreachNodeDo (n^.defF.decls.symbols, addExternal)
+   END
+END runIncludeDefConstType ;
+
+
+(*
    joinProcedures - copies procedures from definition module,
                     d, into implementation module, i.
 *)
@@ -8007,6 +8042,17 @@ END includeDefVarProcedure ;
 
 
 (*
+   foreachModuleDo -
+*)
+
+PROCEDURE foreachModuleDo (n: node; p: performOperation) ;
+BEGIN
+   foreachDefModuleDo (p) ;
+   foreachModModuleDo (p)
+END foreachModuleDo ;
+
+
+(*
    outDeclsImpC -
 *)
 
@@ -8028,7 +8074,6 @@ BEGIN
                      outputPartial,
                      doNone, doCompletePartialC, doNone) ;
 
-   ForeachIndiceInIndexDo (s.procedures, doPrototypeC)
 END outDeclsImpC ;
 
 
@@ -10129,8 +10174,17 @@ END walkPointer ;
 *)
 
 PROCEDURE walkArray (l: alist; n: node) : dependentState ;
+VAR
+   s: dependentState ;
 BEGIN
-   RETURN walkDependants (l, getType (n))
+   WITH n^.arrayF DO
+      s := walkDependants (l, type) ;
+      IF s#completed
+      THEN
+         RETURN s
+      END ;
+      RETURN walkDependants (l, subr)
+   END
 END walkArray ;
 
 
@@ -11786,6 +11840,7 @@ BEGIN
    END ;
    dumpLists ;
    debugLists ;
+(*
    IF alists.noOfItemsInList (todoQ) > 0
    THEN
       stop ;
@@ -11800,7 +11855,12 @@ BEGIN
       outText (doP, "/*\n") ;
       debugList ('partial', partialQ) ;
       outText (doP, "\n*/\n")
+   END ;
+   IF (alists.noOfItemsInList (partialQ) > 0) OR (alists.noOfItemsInList (todoQ) > 0)
+   THEN
+      errorAbort0 ('internal error: terminating compilation')
    END
+*)
 END topologicallyOut ;
 
 
@@ -11822,6 +11882,25 @@ BEGIN
    doStatementsC (p, n^.impF.beginStatements) ;
    p := outKc (p, "}\n")
 END outImpInitC ;
+
+
+(*
+   runSimplifyTypes -
+*)
+
+PROCEDURE runSimplifyTypes (n: node) ;
+BEGIN
+   IF isImp (n)
+   THEN
+      simplifyTypes (n^.impF.decls)
+   ELSIF isModule (n)
+   THEN
+      simplifyTypes (n^.moduleF.decls)
+   ELSIF isDef (n)
+   THEN
+      simplifyTypes (n^.defF.decls)
+   END
+END runSimplifyTypes ;
 
 
 (*
@@ -11857,6 +11936,7 @@ BEGIN
    print (p, "#   endif\n\n") ;
 
    outDeclsDefC (p, n) ;
+   runPrototypeDefC (n) ;
 
    print (p, "\n") ;
    print (p, "#   undef EXTERN\n") ;
@@ -11870,12 +11950,42 @@ END outDefC ;
 
 
 (*
+   runPrototypeExported -
+*)
+
+PROCEDURE runPrototypeExported (n: node) ;
+BEGIN
+   IF isExported (n)
+   THEN
+      keyc.enterScope (n) ;
+      doProcedureHeadingC (n) ;
+      print (doP, ";\n") ;
+      keyc.leaveScope (n)
+   END
+END runPrototypeExported ;
+
+
+(*
+   runPrototypeDefC -
+*)
+
+PROCEDURE runPrototypeDefC (n: node) ;
+BEGIN
+   IF isDef (n)
+   THEN
+      ForeachIndiceInIndexDo (n^.defF.decls.procedures, runPrototypeExported)
+   END
+END runPrototypeDefC ;
+
+
+(*
    outImpC -
 *)
 
 PROCEDURE outImpC (p: pretty; n: node) ;
 VAR
-   s: String ;
+   s        : String ;
+   defModule: node ;
 BEGIN
    outputFile := mcStream.openFrag (1) ;  (* first fragment.  *)
    s := InitStringCharStar (keyToCharStar (getSource (n))) ;
@@ -11886,7 +11996,12 @@ BEGIN
    IF getExtendedOpaque ()
    THEN
       includeExternals (n) ;
-      printf ("/*  --extended-opaque seen therefore no #include will be used and everything will be declared in full.  */\n")
+      foreachModuleDo (n, runSimplifyTypes) ;
+      printf ("/*  --extended-opaque seen therefore no #include will be used and everything will be declared in full.  */\n") ;
+      foreachDefModuleDo (runIncludeDefConstType) ;
+      includeDefVarProcedure (n) ;
+      outDeclsImpC (p, n^.impF.decls) ;
+      foreachDefModuleDo (runPrototypeDefC)
    ELSE
       s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
       (* we don't want to include the .h file for this implementation module.  *)
@@ -11895,12 +12010,20 @@ BEGIN
 
       doP := p ;
       ForeachIndiceInIndexDo (n^.impF.importedModules, doIncludeC) ;
-      print (p, "\n")
+      print (p, "\n") ;
+      includeDefConstType (n) ;
+      includeDefVarProcedure (n) ;
+      outDeclsImpC (p, n^.impF.decls) ;
+
+      defModule := lookupDef (getSymName (n)) ;
+      IF defModule # NIL
+      THEN
+         runPrototypeDefC (defModule)
+      END
    END ;
 
-   includeDefConstType (n) ;
-   includeDefVarProcedure (n) ;
-   outDeclsImpC (p, n^.impF.decls) ;
+   ForeachIndiceInIndexDo (n^.impF.decls.procedures, doPrototypeC) ;
+
    outProceduresC (p, n^.impF.decls) ;
    outImpInitC (p, n) ;
 
