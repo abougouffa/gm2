@@ -32,6 +32,7 @@ FROM mcOptions IMPORT getOutputFile, getDebugTopological, getHPrefix, getIgnoreF
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM libc IMPORT printf ;
 FROM mcMetaError IMPORT metaError1, metaError2, metaErrors1, metaErrors2 ;
+FROM mcError IMPORT errorAbort0, flushErrors ;
 FROM mcLexBuf IMPORT findFileNameFromToken, tokenToLineNo, tokenToColumnNo ;
 FROM StrLib IMPORT StrEqual, StrLen ;
 
@@ -3533,6 +3534,19 @@ END dumpScopes ;
 
 
 (*
+   out0 -
+*)
+
+PROCEDURE out0 (a: ARRAY OF CHAR) ;
+VAR
+   m: String ;
+BEGIN
+   m := Sprintf0 (InitString (a)) ;
+   m := KillString (WriteS (StdOut, m))
+END out0 ;
+
+
+(*
    out1 -
 *)
 
@@ -3549,8 +3563,7 @@ BEGIN
       m := Sprintf1 (InitString ('[%d]'), d)
    END ;
    m := Sprintf1 (InitString (a), m) ;
-   m := KillString (WriteS (StdOut, m)) ;
-   m := KillString (m)
+   m := KillString (WriteS (StdOut, m))
 END out1 ;
 
 
@@ -4823,7 +4836,7 @@ BEGIN
       prints (doP, s) ;
       print (doP, '.h"\n') ;
       s := KillString (s) ;
-      foreachNodeDo (n^.defF.decls.symbols, addDone)
+      foreachNodeDo (n^.defF.decls.symbols, addDoneDef)
    ELSE
       HALT
    END
@@ -6537,6 +6550,9 @@ PROCEDURE doTypesC (n: node) ;
 VAR
    m: node ;
 BEGIN
+   outText (doP, "/* declaring ") ;
+   doFQNameC (doP, n) ;
+   outText (doP, " */\n") ;
    IF isType (n)
    THEN
       m := getType (n) ;
@@ -7342,7 +7358,8 @@ BEGIN
    THEN
       doArrayNameC (p, n)
    ELSE
-      print (p, "some other kind of name required\n")
+      print (p, "some other kind of name required\n") ;
+      stop
    END
 END doTypeNameC ;
 
@@ -11771,6 +11788,7 @@ BEGIN
    debugLists ;
    IF alists.noOfItemsInList (todoQ) > 0
    THEN
+      stop ;
       outText (doP, "/* at the end of topological sort and items exist in the todoQ.  */\n") ;
       outText (doP, "/*\n") ;
       debugList ('todo', todoQ) ;
@@ -12738,9 +12756,42 @@ END setLangM2 ;
 *)
 
 PROCEDURE addDone (n: node) ;
+VAR
+   s: String ;
 BEGIN
-   alists.includeItemIntoList (doneQ, n)
+(*
+   outText (doP, "/* doneQ ") ;
+   doFQNameC (doP, n) ;
+   outText (doP, " */\n") ;
+*)
+   alists.includeItemIntoList (doneQ, n) ;
+(*
+   s := getFQstring (n) ;
+   IF EqualArray (s, 'decl_node')
+   THEN
+      stop
+   END ;
+   s := KillString (s)
+*)
 END addDone ;
+
+
+(*
+   addDoneDef - adds node, n, to the doneQ providing
+                it is not an opaque of the main module we are compiling.
+*)
+
+PROCEDURE addDoneDef (n: node) ;
+BEGIN
+   IF lookupImp (getSymName (getScope (n))) = getMainModule ()
+   THEN
+      metaError1 ('cyclic dependancy found between another module using {%1ad} from the definition module of the implementation main being compiled, use the --extended-opaque option to compile', n) ;
+      flushErrors ;
+      errorAbort0 ('terminating compilation')
+   ELSE
+      addDone (n)
+   END
+END addDoneDef ;
 
 
 (*
@@ -12767,7 +12818,12 @@ VAR
 BEGIN
    t := dbgAdd (l, getType (n)) ;
    out1 ("<%s type", n) ;
-   out1 (", type = %s>\n", t)
+   IF t = NIL
+   THEN
+      out0 (", type = NIL\n")
+   ELSE
+      out1 (", type = %s>\n", t)
+   END
 END dbgType ;
 
 

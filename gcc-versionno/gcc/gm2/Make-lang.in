@@ -1794,6 +1794,7 @@ mc-autogen: mc-devel $(GM2_DIRS) $(BUILD-MC-BOOT-H) $(BUILD-MC-BOOT-C) \
 	@cd gm2/mc-boot ; ls *.c | wc -l
 	@echo "modules"
 
+
 # EXTENDED_OPAQUE = --extended-opaque
 EXTENDED_OPAQUE =
 
