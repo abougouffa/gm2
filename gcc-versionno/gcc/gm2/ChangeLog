@@ -1,3 +1,13 @@
+2016-08-02      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/mc/decl.mod:  (out1) use safe type conversion
+          from pointer into cardinal.  (gen) use safe type
+          conversion from pointer into cardinal.
+          (topologicallyOut) use populateTodo to ensure that
+          all enumeration and constants are declared prior to
+          the datatypes which depend upon them.  (dbgSubrange)
+	  New procedure.
+
 2016-08-31      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  extra space introduced.

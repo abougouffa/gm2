@@ -3558,7 +3558,7 @@ BEGIN
    m := getFQstring (s) ;
    IF EqualArray (m, '')
    THEN
-      d := VAL (CARDINAL, s) ;
+      d := VAL (CARDINAL, VAL (LONGCARD, s)) ;
       m := KillString (m) ;
       m := Sprintf1 (InitString ('[%d]'), d)
    END ;
@@ -4952,11 +4952,15 @@ END doNothing ;
 
 PROCEDURE doConstC (n: node) ;
 BEGIN
-   print (doP, "#   define ") ;
-   doFQNameC (doP, n) ;
-   setNeedSpace (doP) ;
-   doExprC (doP, n^.constF.value) ;
-   print (doP, '\n')
+   IF NOT alists.isItemInList (doneQ, n)
+   THEN
+      print (doP, "#   define ") ;
+      doFQNameC (doP, n) ;
+      setNeedSpace (doP) ;
+      doExprC (doP, n^.constF.value) ;
+      print (doP, '\n') ;
+      alists.includeItemIntoList (doneQ, n)
+   END
 END doConstC ;
 
 
@@ -5402,14 +5406,27 @@ END doRecordfield ;
 *)
 
 PROCEDURE doCastC (p: pretty; t, e: node) ;
+VAR
+   et: node ;
 BEGIN
    outText (p, '(') ;
    doTypeNameC (p, t) ;
    outText (p, ')') ;
    setNeedSpace (p) ;
-   outText (p, '(') ;
-   doExprC (p, e) ;
-   outText (p, ')')
+   et := skipType (getType (e)) ;
+   IF (et # NIL) AND isProcType (et) AND isProcType (skipType (t))
+   THEN
+      outText (p, '{(') ;
+      doFQNameC (p, t) ;
+      outText (p, '_t)') ;
+      setNeedSpace (p) ;
+      doExprC (p, e) ;
+      outText (p, '.proc}')
+   ELSE
+      outText (p, '(') ;
+      doExprC (p, e) ;
+      outText (p, ')')
+   END
 END doCastC ;
 
 
@@ -8606,24 +8623,34 @@ END checkSystemCast ;
 
 PROCEDURE doFuncParamC (p: pretty; actual, formal: node) ;
 VAR
-   type: node ;
+   ft, at: node ;
 BEGIN
    IF formal = NIL
    THEN
       doExprC (p, actual)
    ELSE
-      type := skipType (getType (formal)) ;
-      IF isUnbounded (type)
+      ft := skipType (getType (formal)) ;
+      IF isUnbounded (ft)
       THEN
-         doFuncUnbounded (p, actual, type)
+         doFuncUnbounded (p, actual, ft)
       ELSE
-         IF ((type = procN) OR isProcType (type)) AND isProcedure (actual)
+         IF ((ft = procN) OR isProcType (ft)) AND
+            isProcedure (actual)
          THEN
             IF isVarParam (formal)
             THEN
                metaError1 ('{%1MDad} cannot be passed as a VAR parameter', actual)
             ELSE
                doProcedureParamC (p, actual, formal)
+            END
+         ELSIF isVar (actual) AND isProcType (skipType (getType (actual))) AND (getType (actual) # getType (formal))
+         THEN
+            IF isVarParam (formal)
+            THEN
+               metaError2 ('{%1MDad} cannot be passed as a VAR parameter as the parameter requires a cast to the formal type {%2MDtad}',
+                           actual, formal)
+            ELSE
+               doCastC (p, getType (formal), actual)
             END
          ELSE
             checkSystemCast (p, actual, formal) ;
@@ -10716,6 +10743,10 @@ END visitScope ;
 PROCEDURE visitType (v: alist; n: node; p: nodeProcedure) ;
 BEGIN
    assert (isType (n)) ;
+   IF getSymName (n) = makeKey ('alist')
+   THEN
+      stop
+   END ;
    visitNode (v, n^.typeF.type, p) ;
    visitScope (v, n^.typeF.scope, p)
 END visitType ;
@@ -11418,9 +11449,9 @@ BEGIN
    min,
    max,
    throw,
+   constexp,
    deref           :  visitUnary (v, n, p) |
-   identlist,
-   constexp        :  |
+   identlist       :  |
    vardecl         :  visitVarDecl (v, n, p) |
    setvalue        :  visitSetValue (v, n, p)
 
@@ -11566,7 +11597,7 @@ VAR
    s: String ;
    d: CARDINAL ;
 BEGIN
-   d := VAL (CARDINAL, n) ;
+   d := VAL (CARDINAL, VAL (LONGCARD, n)) ;
    s := Sprintf1 (InitString ('< %d '), d) ;  (* use 0x%x once FormatStrings has been released.  *)
    s := ConCat (s, genKind (n)) ;
    s := ConCat (s, InitString (' ')) ;
@@ -11815,6 +11846,51 @@ END debugLists ;
 
 
 (*
+   addEnumConst -
+*)
+
+PROCEDURE addEnumConst (n: node) ;
+VAR
+   s: String ;
+BEGIN
+   IF isConst (n) OR isEnumeration (n)
+   THEN
+(*
+      outText (doP, "/* adding ") ;
+      s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
+      prints (doP, s) ;
+      s := KillString (s) ;
+      outText (doP, "*/\n") ;
+*)
+      addTodo (n)
+   END
+END addEnumConst ;
+
+
+(*
+   populateTodo -
+*)
+
+PROCEDURE populateTodo (p: nodeProcedure) ;
+VAR
+   n   : node ;
+   i, h: CARDINAL ;
+   l   : alist ;
+BEGIN
+   h := alists.noOfItemsInList (todoQ) ;
+   i := 1 ;
+   WHILE i <= h DO
+      n := alists.getItemFromList (todoQ, i) ;
+      l := alists.initList () ;
+      visitNode (l, n, p) ;
+      alists.killList (l) ;
+      h := alists.noOfItemsInList (todoQ) ;
+      INC (i)
+   END
+END populateTodo ;
+
+
+(*
    topologicallyOut -
 *)
 
@@ -11824,6 +11900,7 @@ VAR
    tol, pal,
    to,  pa : CARDINAL ;
 BEGIN
+   populateTodo (addEnumConst) ;
    tol := 0 ;
    pal := 0 ;
    to := alists.noOfItemsInList (todoQ) ;
@@ -13077,6 +13154,22 @@ END dbgVar ;
 
 
 (*
+   dbgSubrange -
+*)
+
+PROCEDURE dbgSubrange (l: alist; n: node) ;
+BEGIN
+   IF n^.subrangeF.low = NIL
+   THEN
+      out1 ('%s', n^.subrangeF.type)
+   ELSE
+      out1 ('[%s', n^.subrangeF.low) ;
+      out1 ('..%s]', n^.subrangeF.high)
+   END
+END dbgSubrange ;
+
+
+(*
    dbgArray -
 *)
 
@@ -13085,7 +13178,11 @@ VAR
    t: node ;
 BEGIN
    t := dbgAdd (l, getType (n)) ;
-   out1 ("<%s array", n) ;
+   out1 ("<%s array ", n) ;
+   IF n^.arrayF.subr # NIL
+   THEN
+      dbgSubrange (l, n^.arrayF.subr)
+   END ;
    out1 (" of %s>\n", t)
 END dbgArray ;
 
@@ -13099,6 +13196,9 @@ BEGIN
    IF n=NIL
    THEN
       (* do nothing.  *)
+   ELSIF isSubrange (n)
+   THEN
+      dbgSubrange (l, n)
    ELSIF isType (n)
    THEN
       dbgType (l, n)
