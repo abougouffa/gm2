@@ -658,7 +658,13 @@ BEGIN
    add (macros, 'FILE') ;
    add (macros, 'stdio') ;
    add (macros, 'stdout') ;
-   add (macros, 'stderr')
+   add (macros, 'stderr') ;
+   add (macros, 'write') ;
+   add (macros, 'read') ;
+   add (macros, 'exit') ;
+   add (macros, 'abs') ;
+   add (macros, 'optarg') ;
+   add (macros, 'div')
 END initMacros ;
 
 

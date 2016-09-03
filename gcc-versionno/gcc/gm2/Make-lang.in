@@ -1770,7 +1770,7 @@ MC-MODS = alists.mod  decl.mod  Indexing.mod  keyc.mod  lists.mod \
                nameKey.mod  symbolKey.mod \
                varargs.mod  wlists.mod
 
-MC-AUTO-MODS = mcp1.mod   mcp2.mod  mcp3.mod  mcp4.mod  mcp5.mod
+MC-AUTO-MODS = mcp1.mod  mcp2.mod  mcp3.mod  mcp4.mod  mcp5.mod
 
 BUILD-MC-BOOT-H =  $(MC-LIB-DEFS:%.def=gm2/mc-boot/$(SRC_PREFIX)%.h) \
                    $(MC-DEFS:%.def=gm2/mc-boot/$(SRC_PREFIX)%.h)

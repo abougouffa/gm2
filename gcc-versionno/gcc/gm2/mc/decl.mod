@@ -1366,6 +1366,28 @@ END makeModule ;
 
 
 (*
+   putDefForC - the definition module was defined FOR "C".
+*)
+
+PROCEDURE putDefForC (n: node) ;
+BEGIN
+   (* --fixme-- currently disabled.  *)
+   assert (isDef (n)) ;
+   (* n^.defF.forC := TRUE *)
+END putDefForC ;
+
+
+(*
+   isDefForC - returns TRUE if the definition module was defined FOR "C".
+*)
+
+PROCEDURE isDefForC (n: node) : BOOLEAN ;
+BEGIN
+   RETURN isDef (n) AND n^.defF.forC
+END isDefForC ;
+
+
+(*
    lookupDef - returns a definition module node named, n.
 *)
 
@@ -4828,18 +4850,25 @@ PROCEDURE doIncludeC (n: node) ;
 VAR
    s: String ;
 BEGIN
-   IF isDef (n)
+   s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
+   IF isDefForC (n)
    THEN
-      s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
+      print (doP, '#   include "mc-') ;
+      prints (doP, s) ;
+      print (doP, '.h"\n') ;
+      foreachNodeDo (n^.defF.decls.symbols, addDoneDef)
+   ELSIF getExtendedOpaque ()
+   THEN
+      (* no include in this case.  *)
+   ELSIF isDef (n)
+   THEN
       print (doP, '#   include "') ;
       prints (doP, getHPrefix ()) ;
       prints (doP, s) ;
       print (doP, '.h"\n') ;
-      s := KillString (s) ;
       foreachNodeDo (n^.defF.decls.symbols, addDoneDef)
-   ELSE
-      HALT
-   END
+   END ;
+   s := KillString (s)
 END doIncludeC ;
 
 
@@ -4871,7 +4900,7 @@ PROCEDURE getFQstring (n: node) : String ;
 VAR
    i, s: String ;
 BEGIN
-   IF (NOT isExported (n)) OR getIgnoreFQ ()
+   IF (NOT isExported (n)) OR getIgnoreFQ () OR isDefForC (getScope (n))
    THEN
       RETURN InitStringCharStar (keyToCharStar (getSymName (n)))
    ELSE
@@ -7438,7 +7467,7 @@ BEGIN
    END ;
    q := NIL ;
    doTypeC (doP, n^.procedureF.returnType, q) ; setNeedSpace (doP) ;
-   doFQNameC (doP, n) ;
+   doFQDNameC (doP, n, FALSE) ;
    setNeedSpace (doP) ;
    outText (doP, "(") ;
    i := LowIndice (n^.procedureF.parameters) ;
@@ -7574,10 +7603,13 @@ PROCEDURE doPrototypeC (n: node) ;
 BEGIN
    IF NOT isExported (n)
    THEN
-      keyc.enterScope (n) ;
-      doProcedureHeadingC (n) ;
-      print (doP, ";\n") ;
-      keyc.leaveScope (n)
+      IF NOT (getExtendedOpaque () AND isDefForC (getScope (n)))
+      THEN
+         keyc.enterScope (n) ;
+         doProcedureHeadingC (n) ;
+         print (doP, ";\n") ;
+         keyc.leaveScope (n)
+      END
    END
 END doPrototypeC ;
 
@@ -8477,7 +8509,7 @@ END doTotype ;
    doFuncUnbounded -
 *)
 
-PROCEDURE doFuncUnbounded (p: pretty; actual, formal: node) ;
+PROCEDURE doFuncUnbounded (p: pretty; actual, formal, func: node) ;
 VAR
    h: node ;
    s: String ;
@@ -8511,10 +8543,13 @@ BEGIN
          outText (p, '.array[0]')
       END
    END ;
-   outText (p, ',') ;
-   setNeedSpace (p) ;
-   doFuncHighC (p, actual) ;
-   doTotype (p, actual, formal)
+   IF NOT isDefForC (getScope (func))
+   THEN
+      outText (p, ',') ;
+      setNeedSpace (p) ;
+      doFuncHighC (p, actual) ;
+      doTotype (p, actual, formal)
+   END
 END doFuncUnbounded ;
 
 
@@ -8621,7 +8656,7 @@ END checkSystemCast ;
    doFuncParamC -
 *)
 
-PROCEDURE doFuncParamC (p: pretty; actual, formal: node) ;
+PROCEDURE doFuncParamC (p: pretty; actual, formal, func: node) ;
 VAR
    ft, at: node ;
 BEGIN
@@ -8632,7 +8667,7 @@ BEGIN
       ft := skipType (getType (formal)) ;
       IF isUnbounded (ft)
       THEN
-         doFuncUnbounded (p, actual, ft)
+         doFuncUnbounded (p, actual, ft, func)
       ELSE
          IF ((ft = procN) OR isProcType (ft)) AND
             isProcedure (actual)
@@ -8743,7 +8778,7 @@ BEGIN
       WHILE i<=n DO
          actual := getExpList (s^.funccallF.args, i) ;
          formal := getNthParam (l, i) ;
-         doFuncParamC (p, actual, formal) ;
+         doFuncParamC (p, actual, formal, s^.funccallF.function) ;
          IF i<n
          THEN
             outText (p, ",") ;
@@ -8780,7 +8815,7 @@ BEGIN
       WHILE i<=n DO
          a := getExpList (s^.funccallF.args, i) ;
          b := GetIndice (args, i) ;
-         doFuncParamC (p, a, b) ;
+         doFuncParamC (p, a, b, s^.funccallF.function) ;
          IF i<n
          THEN
             outText (p, ",") ;
@@ -12072,6 +12107,9 @@ BEGIN
    outputFile := mcStream.openFrag (3) ;  (* third fragment.  *)
    IF getExtendedOpaque ()
    THEN
+      doP := p ;
+      (* ForeachIndiceInIndexDo (n^.impF.importedModules, doIncludeC) ; *)
+
       includeExternals (n) ;
       foreachModuleDo (n, runSimplifyTypes) ;
       printf ("/*  --extended-opaque seen therefore no #include will be used and everything will be declared in full.  */\n") ;

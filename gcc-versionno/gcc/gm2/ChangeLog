@@ -1,3 +1,17 @@
+2016-08-03      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  tidied up spacing.
+	* gm2/bnf/mc-1.bnf:  handle DEFINITION FOR "C".
+	* gm2/mc/decl.def:  (putDefForC)  New procedure.
+	* gm2/mc/decl.mod:  (putDefForC)  New procedure
+          implemented.  (isDefForC)  New procedure function.
+          (doIncludeC)  include mc-<module>.h for DEFINITION
+          FOR "C".  Do not qualify names if they were defined
+          in DEFINITION FOR "C" modules.  Also disable high
+          parameter.  Disabled handling of DEFINITION FOR "C".
+	* gm2/mc/keyc.mod:  added write, read, exit, abs,
+	  optarg, div to the list of names to avoid.
+
 2016-08-02      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/mc/decl.mod:  (out1) use safe type conversion

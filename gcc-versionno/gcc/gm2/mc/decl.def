@@ -184,6 +184,13 @@ PROCEDURE lookupModule (n: Name) : node ;
 
 
 (*
+   putDefForC - the definition module was defined FOR "C".
+*)
+
+PROCEDURE putDefForC (n: node) ;
+
+
+(*
    lookupInScope - looks up a symbol named, n, from, scope.
 *)
 
