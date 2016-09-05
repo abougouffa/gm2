@@ -1,4 +1,18 @@
-2016-08-03      Gaius Mulley <gaius@gnu.org>
+2016-09-05      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  removal of Indexing.mod from
+          the list of library files as it is included in the
+          project files.  Many new rules to build the bootstrap
+          version of mc.
+	* gm2/gm2-libs-ch/Selective.c:  tidied up spacing.
+	* gm2/gm2-libs-ch/UnixArgs.c:  tidied up spacing.
+	* gm2/gm2-libs-ch/wrapc.c:  tidied up spacing.
+	* gm2/mc-boot/libc.c:  deleted file.
+	* gm2/mc-boot/Glibc.c:  new file.
+	* gm2/mc-boot/GSelective.c:  new file.
+	* gm2/mc-boot/Gmcrts.c:  new file.
+
+2016-09-03      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  tidied up spacing.
 	* gm2/bnf/mc-1.bnf:  handle DEFINITION FOR "C".
@@ -12,7 +26,7 @@
 	* gm2/mc/keyc.mod:  added write, read, exit, abs,
 	  optarg, div to the list of names to avoid.
 
-2016-08-02      Gaius Mulley <gaius@gnu.org>
+2016-09-02      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/mc/decl.mod:  (out1) use safe type conversion
           from pointer into cardinal.  (gen) use safe type

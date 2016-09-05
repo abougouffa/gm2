@@ -56,7 +56,7 @@ int wrapc_filesize (int f, unsigned int *low, unsigned int *high)
 
 
 /*
- *   filemtime - returns the mtime of a file, f.
+ *  filemtime - returns the mtime of a file, f.
  */
 
 int wrapc_filemtime (int f)

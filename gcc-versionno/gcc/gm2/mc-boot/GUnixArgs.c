@@ -1,4 +1,4 @@
-/* Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
+/* Copyright (C) 2016
  *               Free Software Foundation, Inc. */
 /* This file is part of GNU Modula-2.
 
@@ -14,15 +14,16 @@ Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.  */
 
 int	UnixArgs_ArgC;
 char	**UnixArgs_ArgV;
 
 void _M2_UnixArgs_init (int argc, char *argv[])
 {
-	UnixArgs_ArgC = argc;
-	UnixArgs_ArgV = argv;
+  UnixArgs_ArgC = argc;
+  UnixArgs_ArgV = argv;
 }
 
 void _M2_UnixArgs_finish (int argc, char *argv[])

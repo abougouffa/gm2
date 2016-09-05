@@ -444,6 +444,7 @@ gm2.clean:
 	-rm -f gm2/*.lst gm2/$(basename $(GM2-TOOLS-MOD)) gm2/gm2m
 	-rm -f -r gm2/boot-bin gm2/p2c/p2c-src/home
 	-rm -f gm2/boot-bin/mklink$(exeext) gm2/boot-bin/p2c$(exeext)
+	-rm -f gm2/boot-bin/mc$(exeext)
 	-rm -f gm2/pg-e$(exeext) gm2/pge$(exeext)
 	-rm -f gm2/gm2-auto/*.c gm2/gm2-auto/*~ gm2/gm2-auto/pginit
 	-rm -f gm2/gm2-libiberty/*.h gm2/gm2-libiberty/*~
@@ -1726,7 +1727,7 @@ MC-LIB-DEFS = Args.def ASCII.def Assertion.def Break.def  \
               CmdArgs.def Debug.def \
               dtoa.def DynamicStrings.def Environment.def \
               errno.def FIO.def FormatStrings.def FpuIO.def \
-              Indexing.def IO.def ldtoa.def libc.def \
+              IO.def ldtoa.def libc.def \
               libm.def M2EXCEPTION.def M2RTS.def \
               MemUtils.def NumberIO.def PushBackInput.def \
               RTExceptions.def RTint.def SArgs.def \
@@ -1741,7 +1742,7 @@ MC-LIB-MODS = Args.mod ASCII.mod Assertion.mod Break.mod  \
               CmdArgs.mod Debug.mod \
               DynamicStrings.mod Environment.mod \
               FIO.mod FormatStrings.mod FpuIO.mod \
-              Indexing.mod IO.mod \
+              IO.mod \
               RTExceptions.mod RTint.mod \
               M2EXCEPTION.mod M2RTS.mod \
               MemUtils.mod NumberIO.mod PushBackInput.mod \
@@ -1750,6 +1751,8 @@ MC-LIB-MODS = Args.mod ASCII.mod Assertion.mod Break.mod  \
               StringConvert.mod StrIO.mod StrLib.mod \
               SysStorage.mod \
               TimeString.mod
+
+MC-LIB-BOOT-C = $(MC-LIB-MODS:%.mod=%.c)
 
 MC-DEFS = alists.def  decl.def  Indexing.def  keyc.def  lists.def  \
                mcComp.def  mcDebug.def  mcError.def  mcFileName.def \
@@ -1772,6 +1775,11 @@ MC-MODS = alists.mod  decl.mod  Indexing.mod  keyc.mod  lists.mod \
 
 MC-AUTO-MODS = mcp1.mod  mcp2.mod  mcp3.mod  mcp4.mod  mcp5.mod
 
+MC-BOOT-C = $(MC-MODS:%.mod=%.c) $(MC-AUTO-MODS:%.mod=%.c)
+
+MC-INTERFACE-C = libc.c mcrts.c UnixArgs.c Selective.c termios.c \
+                 SysExceptions.c
+
 BUILD-MC-BOOT-H =  $(MC-LIB-DEFS:%.def=gm2/mc-boot/$(SRC_PREFIX)%.h) \
                    $(MC-DEFS:%.def=gm2/mc-boot/$(SRC_PREFIX)%.h)
 
@@ -1780,10 +1788,14 @@ BUILD-MC-BOOT-C =  $(MC-LIB-MODS:%.mod=gm2/mc-boot/$(SRC_PREFIX)%.c) \
 
 BUILD-MC-BOOT-AUTO-C = $(MC-AUTO-MODS:%.mod=gm2/mc-boot/$(SRC_PREFIX)%.c)
 
+BUILD-MC-BOOT-O =  $(MC-LIB-BOOT-C:%.c=gm2/mc-boot/$(SRC_PREFIX)%.o) \
+                   $(MC-BOOT-C:%.c=gm2/mc-boot/$(SRC_PREFIX)%.o)
+
+BUILD-MC-INTERFACE-O = $(MC-INTERFACE-C:%.c=gm2/mc-boot/$(SRC_PREFIX)%.o)
+
 
 $(objdir)/gm2/mc-boot: force
 	mkdir -p gm2/mc-boot
-	$(RM) gm2/mc-boot/*h
 
 mc-autogen: mc-devel $(GM2_DIRS) $(BUILD-MC-BOOT-H) $(BUILD-MC-BOOT-C) \
             $(BUILD-MC-BOOT-AUTO-C)
@@ -1818,6 +1830,8 @@ gm2/mc-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs-iso/%.def
 gm2/mc-boot/$(SRC_PREFIX)%.c: gm2/gm2-auto/%.mod
 	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
+gm2/mc-boot/$(SRC_PREFIX)%.o: gm2/mc-boot/$(SRC_PREFIX)%.c
+	$(CC) -g -c $< -o $@
 
 #
 #  mc-bootstrap - compiles mc using the C version previously
@@ -1825,7 +1839,10 @@ gm2/mc-boot/$(SRC_PREFIX)%.c: gm2/gm2-auto/%.mod
 #                 files are checked into git.
 #
 
-mc-bootstrap: force
+mc-bootstrap: $(GM2_DIRS) gm2/boot-bin/mc$(exeext)
+
+gm2/boot-bin/mc$(exeext): $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O)
+	$(CC) -g -o $@ $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) mcflex.o
 
 
 #

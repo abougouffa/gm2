@@ -1,4 +1,4 @@
-/* Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
+/* Copyright (C) 2016
  *               Free Software Foundation, Inc. */
 /* This file is part of GNU Modula-2.
 
@@ -14,14 +14,28 @@ Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA */
+
 /*
  *
  * Implementation module in C.
  *
  */
 
-#include <p2c/p2c.h>
+#include <sys/select.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+#include <stdarg.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#define HAVE_SELECT
 
 /*
    PROCEDURE Select (nooffds: CARDINAL;
