@@ -63,12 +63,21 @@ static void doWrite (int fd, FIO_File f, char ch)
   if (fdState.array[fd].IsRaw)
   {
     /* avoid dangling else.  */
-    if (fdState.array[fd].IsEof)
+    if (! fdState.array[fd].IsEof)
       for (;;)
       {
         r = libc_write (FIO_GetUnixFileDescriptor (f), &ch, 1);
         if (r == 1)
           return;
+        else if (r == -1)
+          {
+            r = errno_geterrno ();
+            if ((r != errno_EAGAIN) && (r != errno_EINTR))
+              {
+                fdState.array[fd].IsEof = TRUE;
+                return;
+              }
+          }
       }
   }
   else
@@ -144,6 +153,16 @@ void IO_Read (char *ch)
         r = libc_read (FIO_GetUnixFileDescriptor (FIO_StdIn), ch, 1);
         if (r == 1)
           return;
+        else if (r == -1)
+          {
+            r = errno_geterrno ();
+            if (r != errno_EAGAIN)
+              {
+                fdState.array[0].IsEof = TRUE;
+                (*ch) = ASCII_eof;
+                return;
+              }
+          }
       }
   else
     (*ch) = FIO_ReadChar (FIO_StdIn);
@@ -236,4 +255,8 @@ void IO_EchoOff (int fd, unsigned int input)
 void _M2_IO_init (int argc, char *argv[])
 {
   Init ();
+}
+
+void _M2_IO_finish (int argc, char *argv[])
+{
 }

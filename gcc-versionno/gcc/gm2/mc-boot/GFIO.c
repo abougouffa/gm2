@@ -425,7 +425,7 @@ static void HandleEscape (char *dest, unsigned int _dest_high, char *src_, unsig
   char src[_src_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (src, src_, _src_high);
+  memcpy (src, src_, _src_high+1);
 
   if (((((*i)+1) < HighSrc) && (src[(*i)] == '\\')) && ((*j) < HighDest))
     if (src[(*i)+1] == 'n')
@@ -433,6 +433,19 @@ static void HandleEscape (char *dest, unsigned int _dest_high, char *src_, unsig
         dest[(*j)] = ASCII_nl;
         (*j) += 1;
         (*i) += 2;
+      }
+    else if (src[(*i)+1] == 't')
+      {
+        dest[(*j)] = ASCII_tab;
+        (*j) += 1;
+        (*i) += 2;
+      }
+    else
+      {
+        (*i) += 1;
+        dest[(*j)] = src[(*i)];
+        (*j) += 1;
+        (*i) += 1;
       }
 }
 
@@ -442,7 +455,7 @@ static void Cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, uns
   unsigned char b[_b_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (b, b_, _b_high);
+  memcpy (b, b_, _b_high+1);
 
   if ((_a_high) == (_b_high))
     for (i=0; i<=_a_high; i++)
@@ -467,8 +480,8 @@ static void StringFormat1 (char *dest, unsigned int _dest_high, char *src_, unsi
   unsigned char w[_w_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (src, src_, _src_high);
-  memcpy (w, w_, _w_high);
+  memcpy (src, src_, _src_high+1);
+  memcpy (w, w_, _w_high+1);
 
   HighSrc = StrLib_StrLen ((char *) src, _src_high);
   HighDest = _dest_high;
@@ -498,6 +511,21 @@ static void StringFormat1 (char *dest, unsigned int _dest_high, char *src_, unsi
         j = StrLib_StrLen ((char *) dest, _dest_high);
         i += 2;
       }
+    else if (src[i+1] == 'd')
+      {
+        dest[j] = ASCII_nul;
+        Cast ((unsigned char *) &c, sizeof (c), (unsigned char *) w, _w_high);
+        NumberIO_CardToStr (c, 0, (char *) &str.array[0], MaxErrorString);
+        StrLib_StrConCat ((char *) dest, _dest_high, (char *) &str.array[0], MaxErrorString, (char *) dest, _dest_high);
+        j = StrLib_StrLen ((char *) dest, _dest_high);
+        i += 2;
+      }
+    else
+      {
+        dest[j] = src[i];
+        i += 1;
+        j += 1;
+      }
   while (((i < HighSrc) && (src[i] != ASCII_nul)) && (j < HighDest))
     if (src[i] == '\\')
       HandleEscape ((char *) dest, _dest_high, (char *) src, _src_high, &i, &j, HighSrc, HighDest);
@@ -516,7 +544,7 @@ static void FormatError (char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   FIO_WriteString (FIO_StdErr, (char *) a, _a_high);
 }
@@ -531,8 +559,8 @@ static void FormatError1 (char *a_, unsigned int _a_high, unsigned char *w_, uns
   unsigned char w[_w_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w, w_, _w_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w, w_, _w_high+1);
 
   StringFormat1 ((char *) &s.array[0], MaxErrorString, (char *) a, _a_high, (unsigned char *) w, _w_high);
   FormatError ((char *) &s.array[0], MaxErrorString);
@@ -549,9 +577,9 @@ static void FormatError2 (char *a_, unsigned int _a_high, unsigned char *w1_, un
   unsigned char w2[_w2_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w1, w1_, _w1_high);
-  memcpy (w2, w2_, _w2_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w1, w1_, _w1_high+1);
+  memcpy (w2, w2_, _w2_high+1);
 
   StringFormat1 ((char *) &s.array[0], MaxErrorString, (char *) a, _a_high, (unsigned char *) w1, _w1_high);
   FormatError1 ((char *) &s.array[0], MaxErrorString, (unsigned char *) w2, _w2_high);
@@ -567,19 +595,40 @@ static void CheckAccess (FIO_File f, FileUsage use, unsigned int towrite)
       if (fd == NULL)
         {
           if (f != FIO_StdErr)
-            FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\", 96);
+            FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
           M2RTS_HALT (0);
         }
       else
         if ((use == openedforwrite) && (fd->usage == openedforread))
           {
-            FormatError1 ((char *) "this file (%s) has been opened for reading but is now being written\\", 69, (unsigned char *) &fd->name.address, sizeof (fd->name.address));
+            FormatError1 ((char *) "this file (%s) has been opened for reading but is now being written\\n", 69, (unsigned char *) &fd->name.address, sizeof (fd->name.address));
             M2RTS_HALT (0);
           }
+        else if ((use == openedforread) && (fd->usage == openedforwrite))
+          {
+            FormatError1 ((char *) "this file (%s) has been opened for writing but is now being read\\n", 66, (unsigned char *) &fd->name.address, sizeof (fd->name.address));
+            M2RTS_HALT (0);
+          }
+        else if (fd->state == connectionfailure)
+          {
+            FormatError1 ((char *) "this file (%s) was not successfully opened\\n", 44, (unsigned char *) &fd->name.address, sizeof (fd->name.address));
+            M2RTS_HALT (0);
+          }
+        else if (towrite != fd->output)
+          if (fd->output)
+            {
+              FormatError1 ((char *) "this file (%s) was opened for writing but is now being read\\n", 61, (unsigned char *) &fd->name.address, sizeof (fd->name.address));
+              M2RTS_HALT (0);
+            }
+          else
+            {
+              FormatError1 ((char *) "this file (%s) was opened for reading but is now being written\\n", 64, (unsigned char *) &fd->name.address, sizeof (fd->name.address));
+              M2RTS_HALT (0);
+            }
     }
   else
     {
-      FormatError ((char *) "this file has not been opened successfully\\", 44);
+      FormatError ((char *) "this file has not been opened successfully\\n", 44);
       M2RTS_HALT (0);
     }
 }
@@ -659,7 +708,7 @@ static void PreInitialize (FIO_File f, char *fname_, unsigned int _fname_high, F
   char fname[_fname_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (fname, fname_, _fname_high);
+  memcpy (fname, fname_, _fname_high+1);
 
   if ((InitializeFile (f, &fname, StrLib_StrLen ((char *) fname, _fname_high), state, use, towrite, bufsize)) == f)
     {
@@ -690,7 +739,7 @@ static void Init (void)
   PreInitialize (FIO_StdOut, (char *) "<stdout>", 8, (FileStatus) successful, (FileUsage) openedforwrite, TRUE, 1, MaxBufferLength);
   FIO_StdErr = 3;
   PreInitialize (FIO_StdErr, (char *) "<stderr>", 8, (FileStatus) successful, (FileUsage) openedforwrite, TRUE, 2, MaxBufferLength);
-  if (M2RTS_InstallTerminationProcedure ((PROC ) {(PROC_t) FIO_FlushOutErr}))
+  if (! (M2RTS_InstallTerminationProcedure ((PROC ) {(PROC_t) FIO_FlushOutErr})))
     M2RTS_HALT (0);
 }
 
@@ -720,7 +769,7 @@ unsigned int FIO_Exists (char *fname_, unsigned int _fname_high)
   char fname[_fname_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (fname, fname_, _fname_high);
+  memcpy (fname, fname_, _fname_high+1);
 
   return FIO_exists (&fname, StrLib_StrLen ((char *) fname, _fname_high));
 }
@@ -730,7 +779,7 @@ FIO_File FIO_OpenToRead (char *fname_, unsigned int _fname_high)
   char fname[_fname_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (fname, fname_, _fname_high);
+  memcpy (fname, fname_, _fname_high+1);
 
   return FIO_openToRead (&fname, StrLib_StrLen ((char *) fname, _fname_high));
 }
@@ -740,7 +789,7 @@ FIO_File FIO_OpenToWrite (char *fname_, unsigned int _fname_high)
   char fname[_fname_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (fname, fname_, _fname_high);
+  memcpy (fname, fname_, _fname_high+1);
 
   return FIO_openToWrite (&fname, StrLib_StrLen ((char *) fname, _fname_high));
 }
@@ -750,7 +799,7 @@ FIO_File FIO_OpenForRandom (char *fname_, unsigned int _fname_high, unsigned int
   char fname[_fname_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (fname, fname_, _fname_high);
+  memcpy (fname, fname_, _fname_high+1);
 
   return FIO_openForRandom (&fname, StrLib_StrLen ((char *) fname, _fname_high), towrite, newfile);
 }
@@ -768,7 +817,7 @@ void FIO_Close (FIO_File f)
           if (fd->unixfd >= 0)
             if ((libc_close (fd->unixfd)) != 0)
               {
-                FormatError1 ((char *) "failed to close file (%s)\\", 27, (unsigned char *) &fd->name.address, sizeof (fd->name.address));
+                FormatError1 ((char *) "failed to close file (%s)\\n", 27, (unsigned char *) &fd->name.address, sizeof (fd->name.address));
                 fd->state = failed;
               }
           if (fd->name.address != NULL)
@@ -1038,7 +1087,7 @@ void FIO_UnReadChar (FIO_File f, char ch)
               }
             else
               if (fd->buffer->filled == fd->buffer->size)
-                FormatError1 ((char *) "performing too many UnReadChar calls on file (%d)\\", 51, (unsigned char *) &f, sizeof (f));
+                FormatError1 ((char *) "performing too many UnReadChar calls on file (%d)\\n", 51, (unsigned char *) &f, sizeof (f));
               else
                 {
                   n = fd->buffer->filled-fd->buffer->position;
@@ -1051,7 +1100,7 @@ void FIO_UnReadChar (FIO_File f, char ch)
           }
       }
       else
-        FormatError1 ((char *) "UnReadChar can only be called if the previous read was successful or end of file, error on file (%d)\\", 102, (unsigned char *) &f, sizeof (f));
+        FormatError1 ((char *) "UnReadChar can only be called if the previous read was successful or end of file, error on file (%d)\\n", 102, (unsigned char *) &f, sizeof (f));
     }
 }
 
@@ -1066,7 +1115,7 @@ void FIO_WriteString (FIO_File f, char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   l = StrLib_StrLen ((char *) a, _a_high);
   if ((FIO_WriteNBytes (f, l, &a)) != l)
@@ -1085,7 +1134,7 @@ void FIO_ReadString (FIO_File f, char *a, unsigned int _a_high)
   do {
     ch = FIO_ReadChar (f);
     if (i <= high)
-      if (((ch == ASCII_nl) || (FIO_IsNoError (f))) || (FIO_EOF (f)))
+      if (((ch == ASCII_nl) || (! (FIO_IsNoError (f)))) || (FIO_EOF (f)))
         {
           a[i] = ASCII_nul;
           i += 1;
@@ -1095,7 +1144,7 @@ void FIO_ReadString (FIO_File f, char *a, unsigned int _a_high)
           a[i] = ch;
           i += 1;
         }
-  } while (! ((((ch == ASCII_nl) || (i > high)) || (FIO_IsNoError (f))) || (FIO_EOF (f))));
+  } while (! ((((ch == ASCII_nl) || (i > high)) || (! (FIO_IsNoError (f)))) || (FIO_EOF (f))));
 }
 
 void FIO_WriteCardinal (FIO_File f, unsigned int c)
@@ -1121,7 +1170,7 @@ int FIO_GetUnixFileDescriptor (FIO_File f)
       if (fd != NULL)
         return fd->unixfd;
     }
-  FormatError1 ((char *) "file %d has not been opened or is out of range\\", 48, (unsigned char *) &f, sizeof (f));
+  FormatError1 ((char *) "file %d has not been opened or is out of range\\n", 48, (unsigned char *) &f, sizeof (f));
   return -1;
 }
 
@@ -1209,7 +1258,7 @@ long int FIO_FindPosition (FIO_File f)
     {
       fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
       if (fd != NULL)
-        if ((fd->buffer == NULL) || fd->buffer->valid)
+        if ((fd->buffer == NULL) || ! fd->buffer->valid)
           return fd->abspos;
         else
           return fd->buffer->bufstart+((long int ) (fd->buffer->position));
@@ -1228,7 +1277,7 @@ void FIO_GetFileName (FIO_File f, char *a, unsigned int _a_high)
       fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
       if (fd == NULL)
         {
-          FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\", 96);
+          FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
           M2RTS_HALT (0);
         }
       else
@@ -1257,7 +1306,7 @@ void * FIO_getFileName (FIO_File f)
       fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
       if (fd == NULL)
         {
-          FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\", 96);
+          FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
           M2RTS_HALT (0);
         }
       else
@@ -1274,7 +1323,7 @@ unsigned int FIO_getFileNameLength (FIO_File f)
       fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
       if (fd == NULL)
         {
-          FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\", 96);
+          FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
           M2RTS_HALT (0);
         }
       else
@@ -1291,6 +1340,11 @@ void FIO_FlushOutErr (void)
 }
 
 void _M2_FIO_init (int argc, char *argv[])
+{
+  Init ();
+}
+
+void _M2_FIO_finish (int argc, char *argv[])
 {
   FIO_FlushOutErr ();
 }

@@ -285,7 +285,7 @@ static void writeString (char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   i = libc_write (1, &a, (int ) StrLib_StrLen ((char *) a, _a_high));
 }
@@ -327,6 +327,16 @@ static void writeLongcard (long unsigned int l)
       writeLongcard (l / 16);
       writeLongcard (l % 16);
     }
+  else if (l < 10)
+    {
+      ch = (char) (((unsigned int) ('0'))+((unsigned int ) (l)));
+      i = libc_write (1, &ch, 1);
+    }
+  else if (l < 16)
+    {
+      ch = (char) ((((unsigned int) ('a'))+((unsigned int ) (l)))-10);
+      i = libc_write (1, &ch, 1);
+    }
 }
 
 static void writeAddress (void * a)
@@ -351,8 +361,8 @@ static DynamicStrings_String AssignDebug (DynamicStrings_String s, char *file_, 
   char proc[_proc_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (file, file_, _file_high);
-  memcpy (proc, proc_, _proc_high);
+  memcpy (file, file_, _file_high+1);
+  memcpy (proc, proc_, _proc_high+1);
 
   f = &file;
   p = &proc;
@@ -486,7 +496,7 @@ static void SubDebugInfo (DynamicStrings_String s)
 {
   if (IsOnDeallocated (s))
     {
-      Assertion_Assert (DebugOn);
+      Assertion_Assert (! DebugOn);
       return;
     }
   if (IsOnAllocated (s))
@@ -495,7 +505,7 @@ static void SubDebugInfo (DynamicStrings_String s)
       AddDeallocated (s);
     }
   else
-    Assertion_Assert (DebugOn);
+    Assertion_Assert (! DebugOn);
 }
 
 static void AddDebugInfo (DynamicStrings_String s)
@@ -514,7 +524,7 @@ static void ConcatContents (Contents *c, char *a_, unsigned int _a_high, unsigne
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   i = (*c).len;
   while ((o < h) && (i < MaxBuf))
@@ -681,6 +691,10 @@ static void DumpStringSynopsis (DynamicStrings_String s)
   DumpState (s);
   if (IsOnAllocated (s))
     writeString ((char *) " globally allocated", 19);
+  else if (IsOnDeallocated (s))
+    writeString ((char *) " globally deallocated", 21);
+  else
+    writeString ((char *) " globally unknown", 17);
   writeLn ();
 }
 
@@ -707,7 +721,7 @@ static void DumpString (DynamicStrings_String s)
 
 static void Init (void)
 {
-  if (Initialized)
+  if (! Initialized)
     {
       Initialized = TRUE;
       frameHead = NULL;
@@ -721,7 +735,7 @@ DynamicStrings_String DynamicStrings_InitString (char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   Storage_ALLOCATE ((void **) &s, sizeof (stringRecord));
   s->contents.len = 0;
@@ -751,20 +765,22 @@ DynamicStrings_String DynamicStrings_KillString (DynamicStrings_String s)
       if (CheckOn)
         if (IsOnAllocated (s))
           SubAllocated (s);
+        else if (IsOnDeallocated (s))
+          SubDeallocated (s);
       if (s->head != NULL)
         {
           s->head->state = poisoned;
           s->head->garbage = DynamicStrings_KillString (s->head->garbage);
-          if (PoisonOn)
+          if (! PoisonOn)
             DeallocateCharStar (s);
-          if (PoisonOn)
+          if (! PoisonOn)
             {
               Storage_DEALLOCATE ((void **) &s->head, sizeof (descriptor));
               s->head = NULL;
             }
         }
       t = DynamicStrings_KillString (s->contents.next);
-      if (PoisonOn)
+      if (! PoisonOn)
         Storage_DEALLOCATE ((void **) &s, sizeof (stringRecord));
     }
   return NULL;
@@ -842,6 +858,19 @@ DynamicStrings_String DynamicStrings_ConCat (DynamicStrings_String a, DynamicStr
     }
   if (a == b)
     return DynamicStrings_ConCat (a, DynamicStrings_Mark (DynamicStrings_Dup (b)));
+  else if (a != NULL)
+    {
+      a = AddToGarbage (a, b);
+      MarkInvalid (a);
+      t = a;
+      while (b != NULL)
+        {
+          while ((t->contents.len == MaxBuf) && (t->contents.next != NULL))
+            t = t->contents.next;
+          ConcatContents (&t->contents, (char *) &b->contents.buf.array[0], (MaxBuf-1), b->contents.len, 0);
+          b = b->contents.next;
+        }
+    }
   if ((a == NULL) && (b != NULL))
     M2RTS_HALT (0);
   return a;
@@ -967,7 +996,7 @@ unsigned int DynamicStrings_EqualArray (DynamicStrings_String s, char *a_, unsig
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   if (PoisonOn)
     s = CheckPoisoned (s);
@@ -1127,6 +1156,8 @@ DynamicStrings_String DynamicStrings_RemoveComment (DynamicStrings_String s, cha
   i = DynamicStrings_Index (s, comment, 0);
   if (i == 0)
     s = DynamicStrings_InitString ((char *) "", 0);
+  else if (i > 0)
+    s = DynamicStrings_RemoveWhitePostfix (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, i));
   if (TraceOn)
     s = AssignDebug (s, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.mod", 51, 1509, (char *) "RemoveComment", 13);
   return s;
@@ -1260,10 +1291,10 @@ void * DynamicStrings_string (DynamicStrings_String s)
     return NULL;
   else
     {
-      if (s->head->charStarValid)
+      if (! s->head->charStarValid)
         {
           l = DynamicStrings_Length (s);
-          if (s->head->charStarUsed && (s->head->charStarSize > l))
+          if (! (s->head->charStarUsed && (s->head->charStarSize > l)))
             {
               DeallocateCharStar (s);
               Storage_ALLOCATE (&s->head->charStar, l+1);
@@ -1296,8 +1327,8 @@ DynamicStrings_String DynamicStrings_InitStringDB (char *a_, unsigned int _a_hig
   char file[_file_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (file, file_, _file_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (file, file_, _file_high+1);
 
   return AssignDebug (DynamicStrings_InitString ((char *) a, _a_high), (char *) file, _file_high, line, (char *) "InitString", 10);
 }
@@ -1307,7 +1338,7 @@ DynamicStrings_String DynamicStrings_InitStringCharStarDB (void * a, char *file_
   char file[_file_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (file, file_, _file_high);
+  memcpy (file, file_, _file_high+1);
 
   return AssignDebug (DynamicStrings_InitStringCharStar (a), (char *) file, _file_high, line, (char *) "InitStringCharStar", 18);
 }
@@ -1317,7 +1348,7 @@ DynamicStrings_String DynamicStrings_InitStringCharDB (char ch, char *file_, uns
   char file[_file_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (file, file_, _file_high);
+  memcpy (file, file_, _file_high+1);
 
   return AssignDebug (DynamicStrings_InitStringChar (ch), (char *) file, _file_high, line, (char *) "InitStringChar", 14);
 }
@@ -1327,7 +1358,7 @@ DynamicStrings_String DynamicStrings_MultDB (DynamicStrings_String s, unsigned i
   char file[_file_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (file, file_, _file_high);
+  memcpy (file, file_, _file_high+1);
 
   return AssignDebug (DynamicStrings_Mult (s, n), (char *) file, _file_high, line, (char *) "Mult", 4);
 }
@@ -1337,7 +1368,7 @@ DynamicStrings_String DynamicStrings_DupDB (DynamicStrings_String s, char *file_
   char file[_file_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (file, file_, _file_high);
+  memcpy (file, file_, _file_high+1);
 
   return AssignDebug (DynamicStrings_Dup (s), (char *) file, _file_high, line, (char *) "Dup", 3);
 }
@@ -1347,7 +1378,7 @@ DynamicStrings_String DynamicStrings_SliceDB (DynamicStrings_String s, int low, 
   char file[_file_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (file, file_, _file_high);
+  memcpy (file, file_, _file_high+1);
 
   DSdbEnter ();
   s = AssignDebug (DynamicStrings_Slice (s, low, high), (char *) file, _file_high, line, (char *) "Slice", 5);
@@ -1393,9 +1424,9 @@ DynamicStrings_String DynamicStrings_PopAllocationExemption (unsigned int halt, 
           s = frameHead->alloc;
           while (s != NULL)
             {
-              if (((e == s) || (IsOnGarbage (e, s))) || (IsOnGarbage (s, e)))
+              if (! (((e == s) || (IsOnGarbage (e, s))) || (IsOnGarbage (s, e))))
                 {
-                  if (b)
+                  if (! b)
                     {
                       writeString ((char *) "the following strings have been lost", 36);
                       writeLn ();
@@ -1417,4 +1448,8 @@ void _M2_DynamicStrings_init (int argc, char *argv[])
 {
   Initialized = FALSE;
   Init ();
+}
+
+void _M2_DynamicStrings_finish (int argc, char *argv[])
+{
 }

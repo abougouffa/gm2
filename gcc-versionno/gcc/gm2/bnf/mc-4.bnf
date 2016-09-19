@@ -725,8 +725,12 @@ MulOperator := "*"
                | "&"
             =:
 
+NotConstFactor := "NOT" ConstFactor                                     % VAR n: node ; %
+                                                                        % n := push (makeUnaryTok (nottok, pop ())) %
+                =:
+
 ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
-               "(" ConstExpression ")" | "NOT" ConstFactor
+               "(" ConstExpression ")" | NotConstFactor
                | ConstAttribute =:
 
 -- to help satisfy LL1

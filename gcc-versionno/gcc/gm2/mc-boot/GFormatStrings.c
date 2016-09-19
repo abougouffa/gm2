@@ -67,7 +67,7 @@ static void Cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, uns
   unsigned char b[_b_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (b, b_, _b_high);
+  memcpy (b, b_, _b_high+1);
 
   if ((_a_high) == (_b_high))
     for (i=0; i<=_a_high; i++)
@@ -94,6 +94,10 @@ static DynamicStrings_String HandleEscape (DynamicStrings_String s)
       ch = DynamicStrings_char (s, i+1);
       if (ch == 'n')
         d = DynamicStrings_ConCat (d, DynamicStrings_Mark (DynamicStrings_InitStringChar (ASCII_nl)));
+      else if (ch == 't')
+        d = DynamicStrings_ConCat (d, DynamicStrings_Mark (DynamicStrings_InitStringChar (ASCII_tab)));
+      else
+        d = DynamicStrings_ConCat (d, DynamicStrings_Mark (DynamicStrings_InitStringChar (ch)));
       i += 2;
       j = i;
       i = DynamicStrings_Index (s, '\\', (unsigned int ) (i));
@@ -119,7 +123,7 @@ static DynamicStrings_String FormatString (DynamicStrings_String s, unsigned cha
   unsigned char w[_w_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (w, w_, _w_high);
+  memcpy (w, w_, _w_high+1);
 
   DSdbEnter ();
   i = 0;
@@ -168,6 +172,23 @@ static DynamicStrings_String FormatString (DynamicStrings_String s, unsigned cha
               p = DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) " ", 1)), (unsigned int ) width-((int ) (DynamicStrings_Length (p)))), DynamicStrings_Mark (p));
           s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), DynamicStrings_Mark (p)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
         }
+      else if (ch == 'd')
+        {
+          Cast ((unsigned char *) &c, sizeof (c), (unsigned char *) w, _w_high);
+          s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), StringConvert_IntegerToString (c, (unsigned int ) width, leader, FALSE, 10, FALSE)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
+        }
+      else if (ch == 'x')
+        {
+          Cast ((unsigned char *) &u, sizeof (u), (unsigned char *) w, _w_high);
+          s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), StringConvert_CardinalToString (u, (unsigned int ) width, leader, 16, TRUE)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
+        }
+      else if (ch == 'u')
+        {
+          Cast ((unsigned char *) &u, sizeof (u), (unsigned char *) w, _w_high);
+          s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), StringConvert_CardinalToString (u, (unsigned int ) width, leader, 10, FALSE)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
+        }
+      else
+        s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), DynamicStrings_Mark (DynamicStrings_InitStringChar (ch))), DynamicStrings_Mark (DynamicStrings_Slice (s, j+1, 0)));
     }
   else
     s = DynamicStrings_Dup (s);
@@ -188,7 +209,7 @@ DynamicStrings_String FormatStrings_Sprintf1 (DynamicStrings_String s, unsigned 
   unsigned char w[_w_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (w, w_, _w_high);
+  memcpy (w, w_, _w_high+1);
 
   DSdbEnter ();
   s = FormatString (HandleEscape (s), (unsigned char *) w, _w_high);
@@ -202,8 +223,8 @@ DynamicStrings_String FormatStrings_Sprintf2 (DynamicStrings_String s, unsigned 
   unsigned char w2[_w2_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (w1, w1_, _w1_high);
-  memcpy (w2, w2_, _w2_high);
+  memcpy (w1, w1_, _w1_high+1);
+  memcpy (w2, w2_, _w2_high+1);
 
   DSdbEnter ();
   s = FormatString (FormatString (HandleEscape (s), (unsigned char *) w1, _w1_high), (unsigned char *) w2, _w2_high);
@@ -218,9 +239,9 @@ DynamicStrings_String FormatStrings_Sprintf3 (DynamicStrings_String s, unsigned 
   unsigned char w3[_w3_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (w1, w1_, _w1_high);
-  memcpy (w2, w2_, _w2_high);
-  memcpy (w3, w3_, _w3_high);
+  memcpy (w1, w1_, _w1_high+1);
+  memcpy (w2, w2_, _w2_high+1);
+  memcpy (w3, w3_, _w3_high+1);
 
   DSdbEnter ();
   s = FormatString (FormatString (FormatString (HandleEscape (s), (unsigned char *) w1, _w1_high), (unsigned char *) w2, _w2_high), (unsigned char *) w3, _w3_high);
@@ -236,10 +257,10 @@ DynamicStrings_String FormatStrings_Sprintf4 (DynamicStrings_String s, unsigned 
   unsigned char w4[_w4_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (w1, w1_, _w1_high);
-  memcpy (w2, w2_, _w2_high);
-  memcpy (w3, w3_, _w3_high);
-  memcpy (w4, w4_, _w4_high);
+  memcpy (w1, w1_, _w1_high+1);
+  memcpy (w2, w2_, _w2_high+1);
+  memcpy (w3, w3_, _w3_high+1);
+  memcpy (w4, w4_, _w4_high+1);
 
   DSdbEnter ();
   s = FormatString (FormatString (FormatString (FormatString (HandleEscape (s), (unsigned char *) w1, _w1_high), (unsigned char *) w2, _w2_high), (unsigned char *) w3, _w3_high), (unsigned char *) w4, _w4_high);
@@ -248,5 +269,9 @@ DynamicStrings_String FormatStrings_Sprintf4 (DynamicStrings_String s, unsigned 
 }
 
 void _M2_FormatStrings_init (int argc, char *argv[])
+{
+}
+
+void _M2_FormatStrings_finish (int argc, char *argv[])
 {
 }

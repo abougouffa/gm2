@@ -52,7 +52,7 @@ static void cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, uns
   unsigned char b[_b_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (b, b_, _b_high);
+  memcpy (b, b_, _b_high+1);
 
   if ((_a_high) == (_b_high))
     for (i=0; i<=_a_high; i++)
@@ -93,7 +93,7 @@ void mcPrintf_printf0 (char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   mcPrintf_fprintf0 (FIO_StdOut, (char *) a, _a_high);
 }
@@ -104,8 +104,8 @@ void mcPrintf_printf1 (char *a_, unsigned int _a_high, unsigned char *w_, unsign
   unsigned char w[_w_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w, w_, _w_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w, w_, _w_high+1);
 
   mcPrintf_fprintf1 (FIO_StdOut, (char *) a, _a_high, (unsigned char *) w, _w_high);
 }
@@ -117,9 +117,9 @@ void mcPrintf_printf2 (char *a_, unsigned int _a_high, unsigned char *w1_, unsig
   unsigned char w2[_w2_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w1, w1_, _w1_high);
-  memcpy (w2, w2_, _w2_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w1, w1_, _w1_high+1);
+  memcpy (w2, w2_, _w2_high+1);
 
   mcPrintf_fprintf2 (FIO_StdOut, (char *) a, _a_high, (unsigned char *) w1, _w1_high, (unsigned char *) w2, _w2_high);
 }
@@ -132,10 +132,10 @@ void mcPrintf_printf3 (char *a_, unsigned int _a_high, unsigned char *w1_, unsig
   unsigned char w3[_w3_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w1, w1_, _w1_high);
-  memcpy (w2, w2_, _w2_high);
-  memcpy (w3, w3_, _w3_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w1, w1_, _w1_high+1);
+  memcpy (w2, w2_, _w2_high+1);
+  memcpy (w3, w3_, _w3_high+1);
 
   mcPrintf_fprintf3 (FIO_StdOut, (char *) a, _a_high, (unsigned char *) w1, _w1_high, (unsigned char *) w2, _w2_high, (unsigned char *) w3, _w3_high);
 }
@@ -149,11 +149,11 @@ void mcPrintf_printf4 (char *a_, unsigned int _a_high, unsigned char *w1_, unsig
   unsigned char w4[_w4_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w1, w1_, _w1_high);
-  memcpy (w2, w2_, _w2_high);
-  memcpy (w3, w3_, _w3_high);
-  memcpy (w4, w4_, _w4_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w1, w1_, _w1_high+1);
+  memcpy (w2, w2_, _w2_high+1);
+  memcpy (w3, w3_, _w3_high+1);
+  memcpy (w4, w4_, _w4_high+1);
 
   mcPrintf_fprintf4 (FIO_StdOut, (char *) a, _a_high, (unsigned char *) w1, _w1_high, (unsigned char *) w2, _w2_high, (unsigned char *) w3, _w3_high, (unsigned char *) w4, _w4_high);
 }
@@ -163,7 +163,7 @@ void mcPrintf_fprintf0 (FIO_File file, char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   if ((DynamicStrings_KillString (SFIO_WriteS (file, FormatStrings_Sprintf0 (DynamicStrings_InitString ((char *) a, _a_high))))) == NULL)
     ;  /* empty.  */
@@ -178,8 +178,8 @@ void mcPrintf_fprintf1 (FIO_File file, char *a_, unsigned int _a_high, unsigned 
   unsigned char w[_w_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w, w_, _w_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w, w_, _w_high+1);
 
   if (TranslateNameToCharStar ((char *) a, _a_high, 1))
     {
@@ -209,9 +209,9 @@ void mcPrintf_fprintf2 (FIO_File file, char *a_, unsigned int _a_high, unsigned 
   unsigned char w2[_w2_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w1, w1_, _w1_high);
-  memcpy (w2, w2_, _w2_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w1, w1_, _w1_high+1);
+  memcpy (w2, w2_, _w2_high+1);
 
   b = (unsigned int) 0;
   if (TranslateNameToCharStar ((char *) a, _a_high, 1))
@@ -267,10 +267,10 @@ void mcPrintf_fprintf3 (FIO_File file, char *a_, unsigned int _a_high, unsigned 
   unsigned char w3[_w3_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w1, w1_, _w1_high);
-  memcpy (w2, w2_, _w2_high);
-  memcpy (w3, w3_, _w3_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w1, w1_, _w1_high+1);
+  memcpy (w2, w2_, _w2_high+1);
+  memcpy (w3, w3_, _w3_high+1);
 
   b = (unsigned int) 0;
   if (TranslateNameToCharStar ((char *) a, _a_high, 1))
@@ -350,11 +350,11 @@ void mcPrintf_fprintf4 (FIO_File file, char *a_, unsigned int _a_high, unsigned 
   unsigned char w4[_w4_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w1, w1_, _w1_high);
-  memcpy (w2, w2_, _w2_high);
-  memcpy (w3, w3_, _w3_high);
-  memcpy (w4, w4_, _w4_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w1, w1_, _w1_high+1);
+  memcpy (w2, w2_, _w2_high+1);
+  memcpy (w3, w3_, _w3_high+1);
+  memcpy (w4, w4_, _w4_high+1);
 
   b = (unsigned int) 0;
   if (TranslateNameToCharStar ((char *) a, _a_high, 1))
@@ -457,5 +457,9 @@ void mcPrintf_fprintf4 (FIO_File file, char *a_, unsigned int _a_high, unsigned 
 }
 
 void _M2_mcPrintf_init (int argc, char *argv[])
+{
+}
+
+void _M2_mcPrintf_finish (int argc, char *argv[])
 {
 }

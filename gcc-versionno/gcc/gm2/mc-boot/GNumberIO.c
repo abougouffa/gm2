@@ -167,7 +167,7 @@ void NumberIO_StrToCard (char *a_, unsigned int _a_high, unsigned int *x)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   StrLib_StrRemoveWhitePrefix ((char *) a, _a_high, (char *) a, _a_high);
   higha = StrLib_StrLen ((char *) a, _a_high);
@@ -195,7 +195,7 @@ void NumberIO_StrToCard (char *a_, unsigned int _a_high, unsigned int *x)
           }
         else
           ok = FALSE;
-      } while (! (ok));
+      } while (! (! ok));
     }
 }
 
@@ -248,7 +248,7 @@ void NumberIO_StrToHex (char *a_, unsigned int _a_high, unsigned int *x)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   NumberIO_StrToHexInt ((char *) a, _a_high, &i);
   (*x) = (unsigned int ) (i);
@@ -322,7 +322,7 @@ void NumberIO_StrToInt (char *a_, unsigned int _a_high, int *x)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   StrLib_StrRemoveWhitePrefix ((char *) a, _a_high, (char *) a, _a_high);
   higha = StrLib_StrLen ((char *) a, _a_high);
@@ -334,8 +334,12 @@ void NumberIO_StrToInt (char *a_, unsigned int _a_high, int *x)
       if (a[i] == '-')
         {
           i += 1;
-          Negative = Negative;
+          Negative = ! Negative;
         }
+      else if ((a[i] < '0') || (a[i] > '9'))
+        i += 1;
+      else
+        ok = FALSE;
     else
       ok = FALSE;
   (*x) = 0;
@@ -355,7 +359,7 @@ void NumberIO_StrToInt (char *a_, unsigned int _a_high, int *x)
           }
         else
           ok = FALSE;
-      } while (! (ok));
+      } while (! (! ok));
     }
 }
 
@@ -427,7 +431,7 @@ void NumberIO_StrToOct (char *a_, unsigned int _a_high, unsigned int *x)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   NumberIO_StrToOctInt ((char *) a, _a_high, &i);
   (*x) = (unsigned int ) (i);
@@ -501,7 +505,7 @@ void NumberIO_StrToBin (char *a_, unsigned int _a_high, unsigned int *x)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   NumberIO_StrToBinInt ((char *) a, _a_high, &i);
   (*x) = (unsigned int ) (i);
@@ -515,7 +519,7 @@ void NumberIO_StrToBinInt (char *a_, unsigned int _a_high, int *x)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   StrLib_StrRemoveWhitePrefix ((char *) a, _a_high, (char *) a, _a_high);
   higha = StrLib_StrLen ((char *) a, _a_high);
@@ -543,7 +547,7 @@ void NumberIO_StrToBinInt (char *a_, unsigned int _a_high, int *x)
           }
         else
           ok = FALSE;
-      } while (! (ok));
+      } while (! (! ok));
     }
 }
 
@@ -555,7 +559,7 @@ void NumberIO_StrToHexInt (char *a_, unsigned int _a_high, int *x)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   StrLib_StrRemoveWhitePrefix ((char *) a, _a_high, (char *) a, _a_high);
   higha = StrLib_StrLen ((char *) a, _a_high);
@@ -576,6 +580,8 @@ void NumberIO_StrToHexInt (char *a_, unsigned int _a_high, int *x)
       do {
         if ((a[i] >= '0') && (a[i] <= '9'))
           (*x) = (0x010*(*x))+((int ) (((unsigned int) (a[i]))-((unsigned int) ('0'))));
+        else if ((a[i] >= 'A') && (a[i] <= 'F'))
+          (*x) = (0x010*(*x))+((int ) ((((unsigned int) (a[i]))-((unsigned int) ('A')))+10));
         if (i < higha)
           {
             i += 1;
@@ -584,7 +590,7 @@ void NumberIO_StrToHexInt (char *a_, unsigned int _a_high, int *x)
           }
         else
           ok = FALSE;
-      } while (! (ok));
+      } while (! (! ok));
     }
 }
 
@@ -596,7 +602,7 @@ void NumberIO_StrToOctInt (char *a_, unsigned int _a_high, int *x)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   StrLib_StrRemoveWhitePrefix ((char *) a, _a_high, (char *) a, _a_high);
   higha = StrLib_StrLen ((char *) a, _a_high);
@@ -624,10 +630,14 @@ void NumberIO_StrToOctInt (char *a_, unsigned int _a_high, int *x)
           }
         else
           ok = FALSE;
-      } while (! (ok));
+      } while (! (! ok));
     }
 }
 
 void _M2_NumberIO_init (int argc, char *argv[])
+{
+}
+
+void _M2_NumberIO_finish (int argc, char *argv[])
 {
 }

@@ -14,3 +14,7 @@
 void _M2_Break_init (int argc, char *argv[])
 {
 }
+
+void _M2_Break_finish (int argc, char *argv[])
+{
+}

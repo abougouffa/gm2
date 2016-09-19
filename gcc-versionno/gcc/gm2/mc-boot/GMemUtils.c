@@ -65,3 +65,7 @@ void MemUtils_MemZero (void * a, unsigned int length)
 void _M2_MemUtils_init (int argc, char *argv[])
 {
 }
+
+void _M2_MemUtils_finish (int argc, char *argv[])
+{
+}

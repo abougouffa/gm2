@@ -45,8 +45,8 @@ void StrLib_StrConCat (char *a_, unsigned int _a_high, char *b_, unsigned int _b
   char b[_b_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (b, b_, _b_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (b, b_, _b_high+1);
 
   Highb = StrLib_StrLen ((char *) b, _b_high);
   Highc = _c_high;
@@ -72,8 +72,8 @@ unsigned int StrLib_StrLess (char *a_, unsigned int _a_high, char *b_, unsigned 
   char b[_b_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (b, b_, _b_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (b, b_, _b_high+1);
 
   Higha = StrLib_StrLen ((char *) a, _a_high);
   Highb = StrLib_StrLen ((char *) b, _b_high);
@@ -82,6 +82,8 @@ unsigned int StrLib_StrLess (char *a_, unsigned int _a_high, char *b_, unsigned 
     {
       if (a[i] < b[i])
         return TRUE;
+      else if (a[i] > b[i])
+        return FALSE;
       i += 1;
     }
   return Higha < Highb;
@@ -96,8 +98,8 @@ unsigned int StrLib_StrEqual (char *a_, unsigned int _a_high, char *b_, unsigned
   char b[_b_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (b, b_, _b_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (b, b_, _b_high+1);
 
   higha = _a_high;
   highb = _b_high;
@@ -108,7 +110,7 @@ unsigned int StrLib_StrEqual (char *a_, unsigned int _a_high, char *b_, unsigned
         return FALSE;
       i += 1;
     }
-  return ((i <= higha) && (a[i] != ASCII_nul)) || ((i <= highb) && (b[i] != ASCII_nul));
+  return ! (((i <= higha) && (a[i] != ASCII_nul)) || ((i <= highb) && (b[i] != ASCII_nul)));
 }
 
 unsigned int StrLib_StrLen (char *a_, unsigned int _a_high)
@@ -118,7 +120,7 @@ unsigned int StrLib_StrLen (char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   Len = 0;
   High = _a_high;
@@ -135,7 +137,7 @@ void StrLib_StrCopy (char *a_, unsigned int _a_high, char *b, unsigned int _b_hi
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   n = 0;
   Higha = StrLib_StrLen ((char *) a, _a_high);
@@ -159,8 +161,8 @@ unsigned int StrLib_IsSubString (char *a_, unsigned int _a_high, char *b_, unsig
   char b[_b_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (b, b_, _b_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (b, b_, _b_high+1);
 
   LengthA = StrLib_StrLen ((char *) a, _a_high);
   LengthB = StrLib_StrLen ((char *) b, _b_high);
@@ -188,7 +190,7 @@ void StrLib_StrRemoveWhitePrefix (char *a_, unsigned int _a_high, char *b, unsig
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   i = 0;
   j = 0;
@@ -207,5 +209,9 @@ void StrLib_StrRemoveWhitePrefix (char *a_, unsigned int _a_high, char *b, unsig
 }
 
 void _M2_StrLib_init (int argc, char *argv[])
+{
+}
+
+void _M2_StrLib_finish (int argc, char *argv[])
 {
 }

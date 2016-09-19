@@ -56,10 +56,11 @@ FROM wlists IMPORT wlist ;
 
 
 CONST
-   indentation  = 3 ;
-   indentationC = 2 ;
-   debugScopes  = FALSE ;
-   debugDecl    = FALSE ;
+   indentation   = 3 ;
+   indentationC  = 2 ;
+   debugScopes   = FALSE ;
+   debugDecl     = FALSE ;
+   caseException =  TRUE ;
 
 TYPE
    language = (ansiC, ansiCP, pim4) ;
@@ -5133,10 +5134,10 @@ PROCEDURE doPolyBinary (p: pretty; op: nodeT; left, right: node; l, r: BOOLEAN) 
 VAR
    lt, rt: node ;
 BEGIN
-   lt := getExprType (left) ;
-   rt := getExprType (right) ;
-   IF ((lt # NIL) AND isSet (lt)) OR
-      ((rt # NIL) AND isSet (rt))
+   lt := skipType (getExprType (left)) ;
+   rt := skipType (getExprType (right)) ;
+   IF ((lt # NIL) AND (isSet (lt) OR isBitset (lt))) OR
+      ((rt # NIL) AND (isSet (rt) OR isBitset (rt)))
    THEN
       CASE op OF
 
@@ -5893,26 +5894,41 @@ VAR
    h,
    l, i: INTEGER ;
 BEGIN
+   h := DynamicStrings.Length (s) ;
    l := 0 ;
    r := InitString ('') ;
    i := DynamicStrings.Index (s, ch, l) ;
-   REPEAT
+   LOOP
       IF i = -1
       THEN
          RETURN DynamicStrings.ConCat (r, Mark (DynamicStrings.Slice (s, l, 0)))
       ELSE
+         (* move, l, up to the found index, i.  *)
          WHILE l < i DO
             r := DynamicStrings.ConCatChar (r, DynamicStrings.char (s, l)) ;
             INC (l)
          END ;
-         r := DynamicStrings.ConCatChar (r, '\') ;
-         r := DynamicStrings.ConCatChar (r, DynamicStrings.char (s, i)) ;
-         assert (l = i) ;
-         INC (l)
+	 IF (ch = '\') AND (i < h) AND (DynamicStrings.char (s, i+1) = '\')
+         THEN
+            (* escape character is itself escaped.  *)
+	    l := i+2 ;  (* move over both.  *)
+            r := DynamicStrings.ConCatChar (r, '\') ;
+            r := DynamicStrings.ConCatChar (r, '\')
+         ELSE
+            (* check to see if the character was escaped.  *)
+            IF (i>0) AND (DynamicStrings.char (s, i-1) = '\')
+            THEN
+               (* yes, it was escaped so do not escape it again.  *)
+            ELSE
+               r := DynamicStrings.ConCatChar (r, '\') ;
+               r := DynamicStrings.ConCatChar (r, DynamicStrings.char (s, i))
+            END ;
+            assert (l = i) ;
+            INC (l)
+         END
       END ;
       i := DynamicStrings.Index (s, ch, l)
-   UNTIL i = -1 ;
-   RETURN r
+   END
 END doEscapeC ;
 
 
@@ -5958,7 +5974,8 @@ VAR
    s: String ;
 BEGIN
    s := DynamicStrings.Slice (InitStringCharStar (keyToCharStar (n)), 1, -1) ;
-   RETURN replaceChar (escapeContentsC (escapeContentsC (s, '\'), '"'), lf, '\n')
+   RETURN escapeContentsC (escapeContentsC (s, '\'), '"')
+   (* RETURN replaceChar (escapeContentsC (s, '"'), lf, '\n') *)
 END toCstring ;
 
 
@@ -7268,6 +7285,16 @@ END doRecordC ;
 
 
 (*
+   isBitset -
+*)
+
+PROCEDURE isBitset (n: node) : BOOLEAN ;
+BEGIN
+   RETURN n = bitsetN
+END isBitset ;
+
+
+(*
    isNegative - returns TRUE if expression, n, is negative.
 *)
 
@@ -7540,6 +7567,7 @@ BEGIN
    THEN
       c := wlists.noOfItemsInList (l) ;
       i := 1 ;
+      t := skipType (getType (t)) ;
       WHILE i <= c DO
          keyc.useMemcpy ;
          outText (p, 'memcpy (') ;
@@ -7547,9 +7575,20 @@ BEGIN
          outText (p, ',') ;
          setNeedSpace (p) ;
          doNamesC (p, wlists.getItemFromList (l, i)) ;
-         outText (p, '_, _') ;
-         doNamesC (p, wlists.getItemFromList (l, i)) ;
-         outText (p, '_high);\n') ;
+         outText (p, '_, ') ;
+         IF (t = charN) OR (t = byteN) OR (t = locN)
+         THEN
+            outText (p, '_') ;
+            doNamesC (p, wlists.getItemFromList (l, i)) ;
+            outText (p, '_high+1);\n')
+         ELSE
+            outText (p, '(_') ;
+            doNamesC (p, wlists.getItemFromList (l, i)) ;
+            outText (p, '_high+1)') ;
+            setNeedSpace (p) ;
+            doMultiplyBySize (p, t) ;
+            outText (p, ');\n')
+         END ;
          INC (i)
       END
    END
@@ -8281,7 +8320,7 @@ BEGIN
    THEN
       outText (p, "else\n") ;
       doCompoundStmt (p, s^.elsifF.else)
-   ELSIF containsStatement (s^.elsifF.elsif)
+   ELSIF (s^.elsifF.elsif#NIL) AND isElsif (s^.elsifF.elsif)
    THEN
       doElsifC (p, s^.elsifF.elsif)
    END
@@ -8344,7 +8383,7 @@ BEGIN
    THEN
       outText (p, "else\n") ;
       doCompoundStmt (p, s^.ifF.else)
-   ELSIF containsStatement (s^.ifF.elsif)
+   ELSIF (s^.ifF.elsif#NIL) AND isElsif (s^.ifF.elsif)
    THEN
       doElsifC (p, s^.ifF.elsif)
    END
@@ -9487,7 +9526,7 @@ BEGIN
    h := HighIndice (n^.caseF.caseLabelList) ;
    WHILE i<=h DO
       c := GetIndice (n^.caseF.caseLabelList, i) ;
-      doCaseLabels (p, c, (i<h) OR haveElse) ;
+      doCaseLabels (p, c, (i<h) OR haveElse OR caseException) ;
       INC (i)
    END
 END doCaseLabelListC ;
@@ -9551,7 +9590,7 @@ BEGIN
    assert (isCase (n)) ;
    IF n^.caseF.else = NIL
    THEN
-      IF TRUE
+      IF caseException
       THEN
          outText (p, "\ndefault:\n") ;
          p := pushPretty (p) ;
@@ -11992,6 +12031,17 @@ BEGIN
    outText (p, "(int argc, char *argv[])\n") ;
    p := outKc (p, "{\n") ;
    doStatementsC (p, n^.impF.beginStatements) ;
+   p := outKc (p, "}\n") ;
+   outText (p, "\n") ;
+   outText (p, "void") ;
+   setNeedSpace (p) ;
+   outText (p, "_M2_") ;
+   doFQNameC (p, n) ;
+   outText (p, "_finish") ;
+   setNeedSpace (p) ;
+   outText (p, "(int argc, char *argv[])\n") ;
+   p := outKc (p, "{\n") ;
+   doStatementsC (p, n^.impF.finallyStatements) ;
    p := outKc (p, "}\n")
 END outImpInitC ;
 
@@ -12191,6 +12241,17 @@ BEGIN
    outText (p, "(int argc, char *argv[])\n") ;
    p := outKc (p, "{\n") ;
    doStatementsC (p, n^.moduleF.beginStatements) ;
+   p := outKc (p, "}\n") ;
+   outText (p, "\n") ;
+   outText (p, "void") ;
+   setNeedSpace (p) ;
+   outText (p, "_M2_") ;
+   doFQNameC (p, n) ;
+   outText (p, "_finish") ;
+   setNeedSpace (p) ;
+   outText (p, "(int argc, char *argv[])\n") ;
+   p := outKc (p, "{\n") ;
+   doStatementsC (p, n^.moduleF.finallyStatements) ;
    p := outKc (p, "}\n")
 END outModuleInitC ;
 
@@ -12211,15 +12272,22 @@ BEGIN
    outputFile := mcStream.openFrag (3) ;  (* third fragment.  *)
    IF getExtendedOpaque ()
    THEN
+      doP := p ;
       includeExternals (n) ;
-      printf ("/*  --extended-opaque seen therefore no #include will be used and everything will be declared in full.  */\n")
+      foreachModuleDo (n, runSimplifyTypes) ;
+      printf ("/*  --extended-opaque seen therefore no #include will be used and everything will be declared in full.  */\n") ;
+      foreachDefModuleDo (runIncludeDefConstType) ;
+      outDeclsModuleC (p, n^.impF.decls) ;
+      foreachDefModuleDo (runPrototypeDefC)
    ELSE
       doP := p ;
       ForeachIndiceInIndexDo (n^.impF.importedModules, doIncludeC) ;
-      print (p, "\n")
+      print (p, "\n") ;
+      outDeclsModuleC (p, n^.moduleF.decls)
    END ;
 
-   outDeclsModuleC (p, n^.moduleF.decls) ;
+   ForeachIndiceInIndexDo (n^.moduleF.decls.procedures, doPrototypeC) ;
+
    outProceduresC (p, n^.moduleF.decls) ;
    outModuleInitC (p, n) ;
 
@@ -13448,6 +13516,24 @@ BEGIN
 
    END
 END putBegin ;
+
+
+(*
+   putFinally - assigns statements, s, to be the final part in
+                block, b.  The block may be a module
+                or implementation node.
+*)
+
+PROCEDURE putFinally (b: node; s: node) ;
+BEGIN
+   assert (isImp (b) OR isProcedure (b) OR isModule (b)) ;
+   CASE b^.kind OF
+
+   imp      :  b^.impF.finallyStatements := s |
+   module   :  b^.moduleF.finallyStatements := s
+
+   END
+END putFinally ;
 
 
 (*

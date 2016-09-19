@@ -37,3 +37,7 @@ void TimeString_GetTimeString (char *a, unsigned int _a_high)
 void _M2_TimeString_init (int argc, char *argv[])
 {
 }
+
+void _M2_TimeString_finish (int argc, char *argv[])
+{
+}

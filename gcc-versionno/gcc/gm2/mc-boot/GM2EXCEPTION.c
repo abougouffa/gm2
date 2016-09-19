@@ -43,3 +43,7 @@ void _M2_M2EXCEPTION_init (int argc, char *argv[])
 {
   RTExceptions_SetExceptionBlock (RTExceptions_InitExceptionBlock ());
 }
+
+void _M2_M2EXCEPTION_finish (int argc, char *argv[])
+{
+}

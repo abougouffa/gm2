@@ -83,18 +83,18 @@ static void doCompile (DynamicStrings_String s)
   doPass (TRUE, TRUE, 2, (symbolKey_performOperation) {(symbolKey_performOperation_t) p2}, (char *) "[all modules] type equivalence and enumeration types", 52);
   doPass (TRUE, TRUE, 3, (symbolKey_performOperation) {(symbolKey_performOperation_t) p3}, (char *) "[all modules] import lists, types, variables and procedure declarations", 71);
   doPass (TRUE, TRUE, 4, (symbolKey_performOperation) {(symbolKey_performOperation_t) p4}, (char *) "[all modules] constant expressions", 34);
-  if (decl_isDef (n))
+  if (! (decl_isDef (n)))
     if (decl_isImp (n))
       {
-        mcQuiet_qprintf0 ((char *) "Parse implementation module\\", 29);
+        mcQuiet_qprintf0 ((char *) "Parse implementation module\\n", 29);
         doPass (FALSE, TRUE, 5, (symbolKey_performOperation) {(symbolKey_performOperation_t) p5}, (char *) "[implementation module] build code tree for all procedures and module initialisations", 85);
       }
     else
       {
-        mcQuiet_qprintf0 ((char *) "Parse program module\\", 22);
+        mcQuiet_qprintf0 ((char *) "Parse program module\\n", 22);
         doPass (FALSE, TRUE, 5, (symbolKey_performOperation) {(symbolKey_performOperation_t) p5}, (char *) "[program module] build code tree for all procedures and module initialisations", 78);
       }
-  mcQuiet_qprintf0 ((char *) "walk tree converting it to C/C++\\", 34);
+  mcQuiet_qprintf0 ((char *) "walk tree converting it to C/C++\\n", 34);
   decl_out ();
 }
 
@@ -125,6 +125,24 @@ static decl_node examineCompilationUnit (void)
           else
             mcflex_mcError (DynamicStrings_string (DynamicStrings_InitString ((char *) "MODULE missing after DEFINITION keyword", 39)));
         }
+      else if (mcLexBuf_currenttoken == mcReserved_implementationtok)
+        {
+          mcLexBuf_getToken ();
+          if (mcLexBuf_currenttoken == mcReserved_moduletok)
+            {
+              mcLexBuf_getToken ();
+              if (mcLexBuf_currenttoken == mcReserved_identtok)
+                return decl_lookupImp (nameKey_makekey (mcLexBuf_currentstring));
+            }
+          else
+            mcflex_mcError (DynamicStrings_string (DynamicStrings_InitString ((char *) "MODULE missing after IMPLEMENTATION keyword", 43)));
+        }
+      else if (mcLexBuf_currenttoken == mcReserved_moduletok)
+        {
+          mcLexBuf_getToken ();
+          if (mcLexBuf_currenttoken == mcReserved_identtok)
+            return decl_lookupModule (nameKey_makekey (mcLexBuf_currentstring));
+        }
       mcLexBuf_getToken ();
     }
   mcflex_mcError (DynamicStrings_string (DynamicStrings_InitString ((char *) "failed to find module name", 26)));
@@ -148,14 +166,14 @@ static decl_node peepInto (DynamicStrings_String s)
     }
   else
     {
-      mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to open %s\\", 19, (unsigned char *) &s, sizeof (s));
+      mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to open %s\\n", 19, (unsigned char *) &s, sizeof (s));
       libc_exit (1);
     }
 }
 
 static decl_node initParser (DynamicStrings_String s)
 {
-  mcQuiet_qprintf1 ((char *) "Compiling: %s\\", 15, (unsigned char *) &s, sizeof (s));
+  mcQuiet_qprintf1 ((char *) "Compiling: %s\\n", 15, (unsigned char *) &s, sizeof (s));
   return peepInto (s);
 }
 
@@ -216,13 +234,13 @@ static unsigned int doOpen (decl_node n, DynamicStrings_String symName, DynamicS
 {
   DynamicStrings_String postProcessed;
 
-  mcQuiet_qprintf2 ((char *) "   Module %-20s : %s\\", 22, (unsigned char *) &symName, sizeof (symName), (unsigned char *) &fileName, sizeof (fileName));
+  mcQuiet_qprintf2 ((char *) "   Module %-20s : %s\\n", 22, (unsigned char *) &symName, sizeof (symName), (unsigned char *) &fileName, sizeof (fileName));
   postProcessed = mcPreprocess_preprocessModule (fileName);
   decl_setSource (n, nameKey_makekey (DynamicStrings_string (postProcessed)));
   decl_setCurrentModule (n);
   if (mcLexBuf_openSource (postProcessed))
     return TRUE;
-  mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to open %s\\", 19, (unsigned char *) &fileName, sizeof (fileName));
+  mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to open %s\\n", 19, (unsigned char *) &fileName, sizeof (fileName));
   if (exitOnFailure)
     libc_exit (1);
   return FALSE;
@@ -239,9 +257,9 @@ static unsigned int openDef (decl_node n, unsigned int exitOnFailure)
   if (sourceName == nameKey_NulName)
   {
     /* avoid dangling else.  */
-    if (mcSearch_findSourceDefFile (symName, &fileName))
+    if (! (mcSearch_findSourceDefFile (symName, &fileName)))
       {
-        mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to find definition module %s.def\\", 41, (unsigned char *) &symName, sizeof (symName));
+        mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to find definition module %s.def\\n", 41, (unsigned char *) &symName, sizeof (symName));
         if (exitOnFailure)
           libc_exit (1);
       }
@@ -262,12 +280,12 @@ static unsigned int openMod (decl_node n, unsigned int exitOnFailure)
   if (sourceName == nameKey_NulName)
   {
     /* avoid dangling else.  */
-    if (mcSearch_findSourceModFile (symName, &fileName))
+    if (! (mcSearch_findSourceModFile (symName, &fileName)))
       {
         if (decl_isImp (n))
-          mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to find implementation module %s.mod\\", 45, (unsigned char *) &symName, sizeof (symName));
+          mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to find implementation module %s.mod\\n", 45, (unsigned char *) &symName, sizeof (symName));
         else
-          mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to find program module %s.mod\\", 38, (unsigned char *) &symName, sizeof (symName));
+          mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to find program module %s.mod\\n", 38, (unsigned char *) &symName, sizeof (symName));
         if (exitOnFailure)
           libc_exit (1);
       }
@@ -279,12 +297,12 @@ static unsigned int openMod (decl_node n, unsigned int exitOnFailure)
 
 static void pass (unsigned int no, decl_node n, parserFunction f, decl_isNodeF isnode, openFunction open)
 {
-  if (((*isnode.proc) (n)) && (decl_isVisited (n)))
+  if (((*isnode.proc) (n)) && (! (decl_isVisited (n))))
     {
       decl_setVisited (n);
       if ((*open.proc) (n, TRUE))
         {
-          if ((*f.proc) ())
+          if (! ((*f.proc) ()))
             {
               mcError_writeFormat0 ((char *) "compilation failed", 18);
               mcLexBuf_closeSource ();
@@ -301,11 +319,11 @@ static void doPass (unsigned int parseDefs, unsigned int parseMain, unsigned int
   char desc[_desc_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (desc, desc_, _desc_high);
+  memcpy (desc, desc_, _desc_high+1);
 
   setToPassNo (no);
   descs = DynamicStrings_InitString ((char *) desc, _desc_high);
-  mcQuiet_qprintf2 ((char *) "Pass %d: %s\\", 13, (unsigned char *) &no, sizeof (no), (unsigned char *) &descs, sizeof (descs));
+  mcQuiet_qprintf2 ((char *) "Pass %d: %s\\n", 13, (unsigned char *) &no, sizeof (no), (unsigned char *) &descs, sizeof (descs));
   decl_foreachDefModuleDo ((symbolKey_performOperation) {(symbolKey_performOperation_t) decl_unsetVisited});
   decl_foreachModModuleDo ((symbolKey_performOperation) {(symbolKey_performOperation_t) decl_unsetVisited});
   if (parseMain)
@@ -341,4 +359,8 @@ void mcComp_compile (DynamicStrings_String s)
 void _M2_mcComp_init (int argc, char *argv[])
 {
   init ();
+}
+
+void _M2_mcComp_finish (int argc, char *argv[])
+{
 }

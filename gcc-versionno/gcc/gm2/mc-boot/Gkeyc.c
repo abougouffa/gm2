@@ -121,19 +121,19 @@ static void init (void);
 static void checkAbs (mcPretty_pretty p)
 {
   if (((seenLabs || seenAbs) || seenFabs) || seenFabsl)
-    mcPretty_print (p, (char *) "#include <stdlib.h>\\", 21);
+    mcPretty_print (p, (char *) "#include <stdlib.h>\\n", 21);
 }
 
 static void checkLimits (mcPretty_pretty p)
 {
   if ((((((((((((((seenMemcpy || seenIntMin) || seenUIntMin) || seenLongMin) || seenULongMin) || seenCharMin) || seenUCharMin) || seenUIntMin) || seenIntMax) || seenUIntMax) || seenLongMax) || seenULongMax) || seenCharMax) || seenUCharMax) || seenUIntMax)
-    mcPretty_print (p, (char *) "#include <limits.h>\\", 21);
+    mcPretty_print (p, (char *) "#include <limits.h>\\n", 21);
 }
 
 static void checkFreeMalloc (mcPretty_pretty p)
 {
   if (seenFree || seenMalloc)
-    mcPretty_print (p, (char *) "#include <stdlib.h>\\", 21);
+    mcPretty_print (p, (char *) "#include <stdlib.h>\\n", 21);
 }
 
 static void checkStorage (mcPretty_pretty p)
@@ -142,7 +142,7 @@ static void checkStorage (mcPretty_pretty p)
     {
       mcPretty_print (p, (char *) "#   include \"", 13);
       mcPretty_prints (p, mcOptions_getHPrefix ());
-      mcPretty_print (p, (char *) "Storage.h\"", 12);
+      mcPretty_print (p, (char *) "Storage.h\"\\n", 12);
     }
 }
 
@@ -150,11 +150,11 @@ static void checkProc (mcPretty_pretty p)
 {
   if (seenProc)
     {
-      mcPretty_print (p, (char *) "#   if !defined (PROC_D)\\", 26);
-      mcPretty_print (p, (char *) "#      define PROC_D\\", 22);
-      mcPretty_print (p, (char *) "       typedef void (*PROC_t) (void);\\", 39);
-      mcPretty_print (p, (char *) "       typedef struct { PROC_t proc; } PROC;\\", 46);
-      mcPretty_print (p, (char *) "#   endif\\n\\", 13);
+      mcPretty_print (p, (char *) "#   if !defined (PROC_D)\\n", 26);
+      mcPretty_print (p, (char *) "#      define PROC_D\\n", 22);
+      mcPretty_print (p, (char *) "       typedef void (*PROC_t) (void);\\n", 39);
+      mcPretty_print (p, (char *) "       typedef struct { PROC_t proc; } PROC;\\n", 46);
+      mcPretty_print (p, (char *) "#   endif\\n\\n", 13);
     }
 }
 
@@ -162,9 +162,9 @@ static void checkTrue (mcPretty_pretty p)
 {
   if (seenTrue)
     {
-      mcPretty_print (p, (char *) "#   if !defined (TRUE)\\", 24);
-      mcPretty_print (p, (char *) "#      define TRUE (1==1)\\", 27);
-      mcPretty_print (p, (char *) "#   endif\\n\\", 13);
+      mcPretty_print (p, (char *) "#   if !defined (TRUE)\\n", 24);
+      mcPretty_print (p, (char *) "#      define TRUE (1==1)\\n", 27);
+      mcPretty_print (p, (char *) "#   endif\\n\\n", 13);
     }
 }
 
@@ -172,22 +172,22 @@ static void checkFalse (mcPretty_pretty p)
 {
   if (seenFalse)
     {
-      mcPretty_print (p, (char *) "#   if !defined (FALSE)\\", 25);
-      mcPretty_print (p, (char *) "#      define FALSE (1==0)\\", 28);
-      mcPretty_print (p, (char *) "#   endif\\n\\", 13);
+      mcPretty_print (p, (char *) "#   if !defined (FALSE)\\n", 25);
+      mcPretty_print (p, (char *) "#      define FALSE (1==0)\\n", 28);
+      mcPretty_print (p, (char *) "#   endif\\n\\n", 13);
     }
 }
 
 static void checkNull (mcPretty_pretty p)
 {
   if (seenNull)
-    mcPretty_print (p, (char *) "#include <stddef.h>\\", 21);
+    mcPretty_print (p, (char *) "#include <stddef.h>\\n", 21);
 }
 
 static void checkMemcpy (mcPretty_pretty p)
 {
   if (seenMemcpy)
-    mcPretty_print (p, (char *) "#include <string.h>\\", 21);
+    mcPretty_print (p, (char *) "#include <string.h>\\n", 21);
 }
 
 static scope new (decl_node n)
@@ -209,7 +209,7 @@ static unsigned int mangle1 (nameKey_Name n, DynamicStrings_String *m, unsigned 
   (*m) = DynamicStrings_KillString ((*m));
   (*m) = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n));
   (*m) = DynamicStrings_ConCatChar ((*m), '_');
-  return clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes);
+  return ! (clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes));
 }
 
 static unsigned int mangle2 (nameKey_Name n, DynamicStrings_String *m, unsigned int scopes)
@@ -217,7 +217,7 @@ static unsigned int mangle2 (nameKey_Name n, DynamicStrings_String *m, unsigned 
   (*m) = DynamicStrings_KillString ((*m));
   (*m) = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n));
   (*m) = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "_", 1), DynamicStrings_Mark ((*m)));
-  return clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes);
+  return ! (clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes));
 }
 
 static unsigned int mangleN (nameKey_Name n, DynamicStrings_String *m, unsigned int scopes)
@@ -227,7 +227,7 @@ static unsigned int mangleN (nameKey_Name n, DynamicStrings_String *m, unsigned 
   for (;;)
   {
     (*m) = DynamicStrings_ConCatChar ((*m), '_');
-    if (clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes))
+    if (! (clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes)))
       return TRUE;
   }
 }
@@ -244,7 +244,7 @@ static void add (symbolKey_symbolTree s, char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   symbolKey_putSymKey (s, nameKey_makeKey ((char *) a, _a_high), (void *) DynamicStrings_InitString ((char *) a, _a_high));
 }
@@ -512,10 +512,16 @@ DynamicStrings_String keyc_cname (nameKey_Name n, unsigned int scopes)
     }
     else
       M2RTS_HALT (0);
+  else if (scopes)
+    symbolKey_putSymKey (stack->symbols, n, (void *) DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
   return m;
 }
 
 void _M2_keyc_init (int argc, char *argv[])
 {
   init ();
+}
+
+void _M2_keyc_finish (int argc, char *argv[])
+{
 }

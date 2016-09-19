@@ -92,7 +92,7 @@ static void cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, uns
   unsigned char b[_b_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (b, b_, _b_high);
+  memcpy (b, b_, _b_high+1);
 
   if ((_a_high) == (_b_high))
     for (i=0; i<=_a_high; i++)
@@ -160,18 +160,18 @@ static void outString (DynamicStrings_String file, unsigned int line, unsigned i
       StdIO_Write ((*p));
       p += 1;
     }
-  if (newline)
+  if (! newline)
     {
       if (Xcode)
         {
-          if (space)
+          if (! space)
             StdIO_Write (' ');
           mcPrintf_printf1 ((char *) "(pos: %d)", 9, (unsigned char *) &col, sizeof (col));
         }
       StdIO_Write (ASCII_nl);
     }
   FIO_FlushBuffer (FIO_StdOut);
-  if (Debugging)
+  if (! Debugging)
     {
       s = DynamicStrings_KillString (s);
       leader = DynamicStrings_KillString (leader);
@@ -186,8 +186,8 @@ static DynamicStrings_String doFormat1 (char *a_, unsigned int _a_high, unsigned
   unsigned char w[_w_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w, w_, _w_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w, w_, _w_high+1);
 
   if (translateNameToCharStar ((char *) a, _a_high, 1))
     {
@@ -212,9 +212,9 @@ static DynamicStrings_String doFormat2 (char *a_, unsigned int _a_high, unsigned
   unsigned char w2[_w2_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w1, w1_, _w1_high);
-  memcpy (w2, w2_, _w2_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w1, w1_, _w1_high+1);
+  memcpy (w2, w2_, _w2_high+1);
 
   b = (unsigned int) 0;
   if (translateNameToCharStar ((char *) a, _a_high, 1))
@@ -269,10 +269,10 @@ static DynamicStrings_String doFormat3 (char *a_, unsigned int _a_high, unsigned
   unsigned char w3[_w3_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w1, w1_, _w1_high);
-  memcpy (w2, w2_, _w2_high);
-  memcpy (w3, w3_, _w3_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w1, w1_, _w1_high+1);
+  memcpy (w2, w2_, _w2_high+1);
+  memcpy (w3, w3_, _w3_high+1);
 
   b = (unsigned int) 0;
   if (translateNameToCharStar ((char *) a, _a_high, 1))
@@ -355,9 +355,9 @@ static void checkIncludes (unsigned int token, unsigned int depth)
       else
         mcPrintf_printf2 ((char *) "                 from %s:%d", 27, (unsigned char *) &included, sizeof (included), (unsigned char *) &lineno, sizeof (lineno));
       if ((mcLexBuf_findFileNameFromToken (token, depth+2)) == NULL)
-        mcPrintf_printf0 ((char *) ":\\", 3);
+        mcPrintf_printf0 ((char *) ":\\n", 3);
       else
-        mcPrintf_printf0 ((char *) ",\\", 3);
+        mcPrintf_printf0 ((char *) ",\\n", 3);
       checkIncludes (token, depth+1);
     }
 }
@@ -385,7 +385,7 @@ static unsigned int flushAll (mcError_error e, unsigned int FatalStatus)
         }
       f = e;
       e = e->next;
-      if (Debugging)
+      if (! Debugging)
         {
           f->s = DynamicStrings_KillString (f->s);
           Storage_DEALLOCATE ((void **) &f, sizeof (_T1));
@@ -400,10 +400,10 @@ void mcError_internalError (char *a_, unsigned int _a_high, char *file_, unsigne
   char file[_file_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (file, file_, _file_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (file, file_, _file_high+1);
 
-  if (inInternal)
+  if (! inInternal)
     {
       inInternal = TRUE;
       mcError_flushErrors ();
@@ -419,7 +419,7 @@ void mcError_writeFormat0 (char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   e = mcError_newError (mcLexBuf_getTokenNo ());
   e->s = FormatStrings_Sprintf0 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)));
@@ -432,8 +432,8 @@ void mcError_writeFormat1 (char *a_, unsigned int _a_high, unsigned char *w_, un
   unsigned char w[_w_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w, w_, _w_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w, w_, _w_high+1);
 
   e = mcError_newError (mcLexBuf_getTokenNo ());
   e->s = doFormat1 ((char *) a, _a_high, (unsigned char *) w, _w_high);
@@ -447,9 +447,9 @@ void mcError_writeFormat2 (char *a_, unsigned int _a_high, unsigned char *w1_, u
   unsigned char w2[_w2_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w1, w1_, _w1_high);
-  memcpy (w2, w2_, _w2_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w1, w1_, _w1_high+1);
+  memcpy (w2, w2_, _w2_high+1);
 
   e = mcError_newError (mcLexBuf_getTokenNo ());
   e->s = doFormat2 ((char *) a, _a_high, (unsigned char *) w1, _w1_high, (unsigned char *) w2, _w2_high);
@@ -464,10 +464,10 @@ void mcError_writeFormat3 (char *a_, unsigned int _a_high, unsigned char *w1_, u
   unsigned char w3[_w3_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w1, w1_, _w1_high);
-  memcpy (w2, w2_, _w2_high);
-  memcpy (w3, w3_, _w3_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w1, w1_, _w1_high+1);
+  memcpy (w2, w2_, _w2_high+1);
+  memcpy (w3, w3_, _w3_high+1);
 
   e = mcError_newError (mcLexBuf_getTokenNo ());
   e->s = doFormat3 ((char *) a, _a_high, (unsigned char *) w1, _w1_high, (unsigned char *) w2, _w2_high, (unsigned char *) w3, _w3_high);
@@ -535,7 +535,7 @@ void mcError_errorFormat0 (mcError_error e, char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   if (e->s == NULL)
     e->s = FormatStrings_Sprintf0 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)));
@@ -550,8 +550,8 @@ void mcError_errorFormat1 (mcError_error e, char *a_, unsigned int _a_high, unsi
   unsigned char w[_w_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w, w_, _w_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w, w_, _w_high+1);
 
   s1 = doFormat1 ((char *) a, _a_high, (unsigned char *) w, _w_high);
   if (e->s == NULL)
@@ -568,9 +568,9 @@ void mcError_errorFormat2 (mcError_error e, char *a_, unsigned int _a_high, unsi
   unsigned char w2[_w2_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w1, w1_, _w1_high);
-  memcpy (w2, w2_, _w2_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w1, w1_, _w1_high+1);
+  memcpy (w2, w2_, _w2_high+1);
 
   s1 = doFormat2 ((char *) a, _a_high, (unsigned char *) w1, _w1_high, (unsigned char *) w2, _w2_high);
   if (e->s == NULL)
@@ -588,10 +588,10 @@ void mcError_errorFormat3 (mcError_error e, char *a_, unsigned int _a_high, unsi
   unsigned char w3[_w3_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w1, w1_, _w1_high);
-  memcpy (w2, w2_, _w2_high);
-  memcpy (w3, w3_, _w3_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w1, w1_, _w1_high+1);
+  memcpy (w2, w2_, _w2_high+1);
+  memcpy (w3, w3_, _w3_high+1);
 
   s1 = doFormat3 ((char *) a, _a_high, (unsigned char *) w1, _w1_high, (unsigned char *) w2, _w2_high, (unsigned char *) w3, _w3_high);
   if (e->s == NULL)
@@ -659,7 +659,7 @@ void mcError_warnFormat0 (char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   e = mcError_newWarning (mcLexBuf_getTokenNo ());
   e->s = FormatStrings_Sprintf0 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)));
@@ -672,8 +672,8 @@ void mcError_warnFormat1 (char *a_, unsigned int _a_high, unsigned char *w_, uns
   unsigned char w[_w_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (w, w_, _w_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (w, w_, _w_high+1);
 
   e = mcError_newWarning (mcLexBuf_getTokenNo ());
   e->s = doFormat1 ((char *) a, _a_high, (unsigned char *) w, _w_high);
@@ -683,8 +683,8 @@ void mcError_flushErrors (void)
 {
   if (DebugTrace)
     {
-      mcPrintf_printf0 ((char *) "\\nFlushing all errors\\", 23);
-      mcPrintf_printf0 ((char *) "===================\\", 21);
+      mcPrintf_printf0 ((char *) "\\nFlushing all errors\\n", 23);
+      mcPrintf_printf0 ((char *) "===================\\n", 21);
     }
   if (flushAll (head, TRUE))
     {
@@ -704,12 +704,12 @@ void mcError_errorAbort0 (char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   mcError_flushWarnings ();
-  if (StrLib_StrEqual ((char *) a, _a_high, (char *) "", 0))
+  if (! (StrLib_StrEqual ((char *) a, _a_high, (char *) "", 0)))
     mcError_writeFormat0 ((char *) a, _a_high);
-  if (flushAll (head, TRUE))
+  if (! (flushAll (head, TRUE)))
     {
       mcError_writeFormat0 ((char *) "unidentified error", 18);
       if (flushAll (head, TRUE))
@@ -722,4 +722,8 @@ void mcError_errorAbort0 (char *a_, unsigned int _a_high)
 void _M2_mcError_init (int argc, char *argv[])
 {
   init ();
+}
+
+void _M2_mcError_finish (int argc, char *argv[])
+{
 }

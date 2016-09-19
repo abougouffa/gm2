@@ -22,6 +22,7 @@
 #   include "Glibc.h"
 #   include "GStorage.h"
 #   include "GSYSTEM.h"
+#   include "GmcDebug.h"
 
 typedef struct Indexing_IndexProcedure_p Indexing_IndexProcedure;
 
@@ -120,7 +121,7 @@ void Indexing_PutIndice (Indexing_Index i, unsigned int n, void * a)
   void * b;
   unsigned int * * p;
 
-  if (Indexing_InBounds (i, n))
+  if (! (Indexing_InBounds (i, n)))
     if (n < i->Low)
       M2RTS_HALT (0);
     else
@@ -152,13 +153,13 @@ void * Indexing_GetIndice (Indexing_Index i, unsigned int n)
   PtrToByte b;
   PtrToAddress p;
 
-  if (Indexing_InBounds (i, n))
+  if (! (Indexing_InBounds (i, n)))
     M2RTS_HALT (0);
   b = i->ArrayStart;
   b += (n-i->Low)*(sizeof (void *));
   p = (PtrToAddress) (b);
   if (i->Debug)
-    if (((n < 32) && ((((1 << (n)) & (i->Map)) != 0))) && ((*p) != NULL))
+    if (((n < 32) && (! ((((1 << (n)) & (i->Map)) != 0)))) && ((*p) != NULL))
       M2RTS_HALT (0);
   return (*p);
 }
@@ -222,7 +223,7 @@ void Indexing_DeleteIndice (Indexing_Index i, unsigned int j)
 
 void Indexing_IncludeIndiceIntoIndex (Indexing_Index i, void * a)
 {
-  if (Indexing_IsIndiceInIndex (i, a))
+  if (! (Indexing_IsIndiceInIndex (i, a)))
     if (i->Used == 0)
       Indexing_PutIndice (i, Indexing_LowIndice (i), a);
     else
@@ -232,8 +233,10 @@ void Indexing_IncludeIndiceIntoIndex (Indexing_Index i, void * a)
 void Indexing_ForeachIndiceInIndexDo (Indexing_Index i, Indexing_IndexProcedure p)
 {
   unsigned int j;
+  Indexing_IndexProcedure q;
 
   j = Indexing_LowIndice (i);
+  q = p;
   while (j <= (Indexing_HighIndice (i)))
     {
       (*p.proc) (Indexing_GetIndice (i, j));
@@ -242,5 +245,9 @@ void Indexing_ForeachIndiceInIndexDo (Indexing_Index i, Indexing_IndexProcedure 
 }
 
 void _M2_Indexing_init (int argc, char *argv[])
+{
+}
+
+void _M2_Indexing_finish (int argc, char *argv[])
 {
 }

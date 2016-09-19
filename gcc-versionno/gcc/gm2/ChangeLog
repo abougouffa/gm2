@@ -1,3 +1,11 @@
+2016-09-19      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  many new rules to deal with the
+          bootstrapping of mc.
+	* gm2/bnf/mc-3.bnf:  removed unnecessary imports.
+	* gm2/bnf/mc-4.bnf:  implement NOT.
+	* gm2/bnf/mc-5.bnf:  implement NOT and final body.
+
 2016-09-05      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  removal of Indexing.mod from

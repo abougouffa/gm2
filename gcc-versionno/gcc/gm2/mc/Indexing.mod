@@ -21,6 +21,7 @@ IMPLEMENTATION MODULE Indexing ;
 FROM libc IMPORT memset, memmove ;
 FROM Storage IMPORT ALLOCATE, REALLOCATE, DEALLOCATE ;
 FROM SYSTEM IMPORT TSIZE, ADDRESS, WORD, BYTE ;
+FROM mcDebug IMPORT assert ;
 
 CONST
    MinSize = 128 ;
@@ -325,11 +326,14 @@ END IncludeIndiceIntoIndex ;
 PROCEDURE ForeachIndiceInIndexDo (i: Index; p: IndexProcedure) ;
 VAR
    j: CARDINAL ;
+   q: IndexProcedure ;
 BEGIN
-   j := LowIndice(i) ;
-   WHILE j<=HighIndice(i) DO
-      p(GetIndice(i, j)) ;
-      INC(j)
+   j := LowIndice (i) ;
+   q := p ;
+   WHILE j <= HighIndice (i) DO
+      (* assert (q = p) ; *)
+      p (GetIndice (i, j)) ;
+      INC (j)
    END
 END ForeachIndiceInIndexDo ;
 

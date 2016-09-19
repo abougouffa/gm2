@@ -38,7 +38,7 @@ static unsigned int GetNextArg (char *CmdLine_, unsigned int _CmdLine_high, unsi
   char CmdLine[_CmdLine_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (CmdLine, CmdLine_, _CmdLine_high);
+  memcpy (CmdLine, CmdLine_, _CmdLine_high+1);
 
   HighA = _Arg_high;
   HighC = StrLib_StrLen ((char *) CmdLine, _CmdLine_high);
@@ -52,6 +52,14 @@ static unsigned int GetNextArg (char *CmdLine_, unsigned int _CmdLine_high, unsi
         CopyUntil ((char *) CmdLine, _CmdLine_high, CmdIndex, HighC, (char *) Arg, _Arg_high, &ArgIndex, HighA, squote);
         (*CmdIndex) += 1;
       }
+    else if (DoubleQuote (CmdLine[(*CmdIndex)]))
+      {
+        (*CmdIndex) += 1;
+        CopyUntil ((char *) CmdLine, _CmdLine_high, CmdIndex, HighC, (char *) Arg, _Arg_high, &ArgIndex, HighA, dquote);
+        (*CmdIndex) += 1;
+      }
+    else
+      CopyUntilSpace ((char *) CmdLine, _CmdLine_high, CmdIndex, HighC, (char *) Arg, _Arg_high, &ArgIndex, HighA);
   while (((*CmdIndex) < HighC) && (Space (CmdLine[(*CmdIndex)])))
     (*CmdIndex) += 1;
   if (ArgIndex < HighA)
@@ -64,9 +72,9 @@ static void CopyUntilSpace (char *From_, unsigned int _From_high, unsigned int *
   char From[_From_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (From, From_, _From_high);
+  memcpy (From, From_, _From_high+1);
 
-  while ((((*FromIndex) < FromHigh) && ((*ToIndex) < ToHigh)) && (Space (From[(*FromIndex)])))
+  while ((((*FromIndex) < FromHigh) && ((*ToIndex) < ToHigh)) && (! (Space (From[(*FromIndex)]))))
     CopyChar ((char *) From, _From_high, FromIndex, FromHigh, (char *) To, _To_high, ToIndex, ToHigh);
 }
 
@@ -75,7 +83,7 @@ static void CopyUntil (char *From_, unsigned int _From_high, unsigned int *FromI
   char From[_From_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (From, From_, _From_high);
+  memcpy (From, From_, _From_high+1);
 
   while ((((*FromIndex) < FromHigh) && ((*ToIndex) < ToHigh)) && (From[(*FromIndex)] != UntilChar))
     CopyChar ((char *) From, _From_high, FromIndex, FromHigh, (char *) To, _To_high, ToIndex, ToHigh);
@@ -86,7 +94,7 @@ static void CopyChar (char *From_, unsigned int _From_high, unsigned int *FromIn
   char From[_From_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (From, From_, _From_high);
+  memcpy (From, From_, _From_high+1);
 
   if (((*FromIndex) < FromHigh) && ((*ToIndex) < ToHigh))
     {
@@ -129,14 +137,14 @@ unsigned int CmdArgs_GetArg (char *CmdLine_, unsigned int _CmdLine_high, unsigne
   char CmdLine[_CmdLine_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (CmdLine, CmdLine_, _CmdLine_high);
+  memcpy (CmdLine, CmdLine_, _CmdLine_high+1);
 
   Index = 0;
   i = 0;
   do {
     Another = GetNextArg ((char *) CmdLine, _CmdLine_high, &Index, (char *) Argi, _Argi_high);
     i += 1;
-  } while (! ((i > n) || Another));
+  } while (! ((i > n) || ! Another));
   return i > n;
 }
 
@@ -150,7 +158,7 @@ unsigned int CmdArgs_Narg (char *CmdLine_, unsigned int _CmdLine_high)
   char CmdLine[_CmdLine_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (CmdLine, CmdLine_, _CmdLine_high);
+  memcpy (CmdLine, CmdLine_, _CmdLine_high+1);
 
   ArgNo = 0;
   while (CmdArgs_GetArg ((char *) CmdLine, _CmdLine_high, ArgNo, (char *) &a.array[0], 1000))
@@ -159,5 +167,9 @@ unsigned int CmdArgs_Narg (char *CmdLine_, unsigned int _CmdLine_high)
 }
 
 void _M2_CmdArgs_init (int argc, char *argv[])
+{
+}
+
+void _M2_CmdArgs_finish (int argc, char *argv[])
 {
 }

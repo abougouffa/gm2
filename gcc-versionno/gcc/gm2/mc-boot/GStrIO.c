@@ -69,6 +69,54 @@ void StrIO_ReadString (char *a, unsigned int _a_high)
           Erase ();
           n -= 1;
         }
+    else if (ch == ASCII_nak)
+      while (n > 0)
+        {
+          Erase ();
+          n -= 1;
+        }
+    else if (ch == ASCII_etb)
+      if (n == 0)
+        Echo (ASCII_bel);
+      else if (AlphaNum (a[n-1]))
+        do {
+          Erase ();
+          n -= 1;
+        } while (! ((n == 0) || (! (AlphaNum (a[n-1])))));
+      else
+        {
+          Erase ();
+          n -= 1;
+        }
+    else if (n <= high)
+      if ((ch == ASCII_cr) || (ch == ASCII_lf))
+        {
+          a[n] = ASCII_nul;
+          n += 1;
+        }
+      else if (ch == ASCII_ff)
+        {
+          a[0] = ch;
+          if (high > 0)
+            a[1] = ASCII_nul;
+          ch = ASCII_cr;
+        }
+      else if (ch >= ' ')
+        {
+          Echo (ch);
+          a[n] = ch;
+          n += 1;
+        }
+      else if (ch == ASCII_eof)
+        {
+          a[n] = ch;
+          n += 1;
+          ch = ASCII_cr;
+          if (n <= high)
+            a[n] = ASCII_nul;
+        }
+    else if (ch != ASCII_cr)
+      Echo (ASCII_bel);
   } while (! ((ch == ASCII_cr) || (ch == ASCII_lf)));
 }
 
@@ -79,7 +127,7 @@ void StrIO_WriteString (char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   high = _a_high;
   n = 0;
@@ -93,4 +141,8 @@ void StrIO_WriteString (char *a_, unsigned int _a_high)
 void _M2_StrIO_init (int argc, char *argv[])
 {
   IsATTY = FALSE;
+}
+
+void _M2_StrIO_finish (int argc, char *argv[])
+{
 }

@@ -157,7 +157,7 @@ static void DumpPendingQueue (void)
   unsigned int s;
   unsigned int m;
 
-  libc_printf ((char *) "Pending queue\\", 15);
+  libc_printf ((char *) "Pending queue\\n", 15);
   for (p=COROUTINES_UnassignedPriority; p<=7; p++)
     {
       libc_printf ((char *) "[%d]  ", 6, p);
@@ -166,9 +166,15 @@ static void DumpPendingQueue (void)
         {
           if ((v->type == input) || (v->type == output))
             libc_printf ((char *) "(fd=%d) (vec=%d)", 16, v->File, v->no);
+          else if (v->type == time)
+            {
+              Selective_GetTime (v->rel, &s, &m);
+              Assertion_Assert (m < Microseconds);
+              libc_printf ((char *) "time (%d.%6d secs)\\n", 20, s, m);
+            }
           v = v->pending;
         }
-      libc_printf ((char *) " \\", 3);
+      libc_printf ((char *) " \\n", 3);
     }
 }
 
@@ -259,7 +265,7 @@ unsigned int RTint_InitInputVector (int fd, unsigned int pri)
   Vector v;
 
   if (Debugging)
-    libc_printf ((char *) "InitInputVector fd = %d priority = %d\\", 39, fd, pri);
+    libc_printf ((char *) "InitInputVector fd = %d priority = %d\\n", 39, fd, pri);
   v = FindVector (fd, (VectorType) input);
   if (v == NULL)
     {
@@ -381,7 +387,7 @@ void RTint_IncludeVector (unsigned int vec)
         {
           v->pending = Pending.array[v->priority-(COROUTINES_UnassignedPriority)];
           Pending.array[v->priority-(COROUTINES_UnassignedPriority)] = v;
-          if ((v->type == time) && v->queued)
+          if ((v->type == time) && ! v->queued)
             {
               v->queued = TRUE;
               r = Selective_GetTimeOfDay (v->abs_);
@@ -397,7 +403,7 @@ void RTint_IncludeVector (unsigned int vec)
   else
     {
       if (Debugging)
-        libc_printf ((char *) "odd vector %d (fd %d) is already attached to the pending queue\\", 64, vec, v->File);
+        libc_printf ((char *) "odd vector %d (fd %d) is already attached to the pending queue\\n", 64, vec, v->File);
       stop ();
     }
 }
@@ -477,10 +483,12 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
                         Selective_GetTime (v->abs_, &s, &m);
                         Assertion_Assert (m < Microseconds);
                         if (Debugging)
-                          libc_printf ((char *) "shortest delay is %d.%d\\", 25, s, m);
+                          libc_printf ((char *) "shortest delay is %d.%d\\n", 25, s, m);
                         Selective_SetTime (t, s, m);
                         found = TRUE;
                       }
+                    break;
+
 
                   default:
                     CaseException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 20, 0);
@@ -489,11 +497,11 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
             }
           p -= 1;
         }
-      if (untilInterrupt)
+      if (! untilInterrupt)
         Selective_SetTime (t, 0, 0);
-      if (((untilInterrupt && (i == NULL)) && (o == NULL)) && found)
+      if (((untilInterrupt && (i == NULL)) && (o == NULL)) && ! found)
         M2RTS_Halt ((char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.mod", 42, 592, (char *) "Listen", 6, (char *) "deadlock found, no more processes to run and no interrupts active", 65);
-      if (((found && (maxFd == -1)) && (i == NULL)) && (o == NULL))
+      if (((! found && (maxFd == -1)) && (i == NULL)) && (o == NULL))
         {
           t = Selective_KillTime (t);
           return;
@@ -509,7 +517,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
           SubTime (&s, &m, t, b4);
           Selective_SetTime (t, s, m);
           if (Debugging)
-            libc_printf ((char *) "select waiting for %u.%u seconds\\", 34, s, m);
+            libc_printf ((char *) "select waiting for %u.%u seconds\\n", 34, s, m);
           do {
             r = pth_pth_select (maxFd+1, (void *) i, (void *) o, NULL, (void *) t);
             if (r == -1)
@@ -542,7 +550,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
                       {
                         if (Debugging)
                           {
-                            libc_printf ((char *) "read (fd=%d) is ready (vec=%d)\\", 32, v->File, v->no);
+                            libc_printf ((char *) "read (fd=%d) is ready (vec=%d)\\n", 32, v->File, v->no);
                             DumpPendingQueue ();
                           }
                         (*call.proc) (v->no, v->priority, v->arg);
@@ -554,7 +562,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
                       {
                         if (Debugging)
                           {
-                            libc_printf ((char *) "write (fd=%d) is ready (vec=%d)\\", 33, v->File, v->no);
+                            libc_printf ((char *) "write (fd=%d) is ready (vec=%d)\\n", 33, v->File, v->no);
                             DumpPendingQueue ();
                           }
                         (*call.proc) (v->no, v->priority, v->arg);
@@ -574,18 +582,22 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
                             Assertion_Assert (afm < Microseconds);
                             Selective_GetTime (b4, &b4s, &b4m);
                             Assertion_Assert (b4m < Microseconds);
-                            libc_printf ((char *) "waited %d.%d + %d.%d now is %d.%d\\", 35, s, m, b4s, b4m, afs, afm);
+                            libc_printf ((char *) "waited %d.%d + %d.%d now is %d.%d\\n", 35, s, m, b4s, b4m, afs, afm);
                           }
                         if (IsGreaterEqual (after, v->abs_))
                           {
                             if (Debugging)
                               {
                                 DumpPendingQueue ();
-                                libc_printf ((char *) "time has expired calling despatcher\\", 37);
+                                libc_printf ((char *) "time has expired calling despatcher\\n", 37);
                               }
                             (*call.proc) (v->no, v->priority, v->arg);
                           }
+                        else if (Debugging)
+                          libc_printf ((char *) "must wait longer as time has not expired\\n", 42);
                       }
+                    break;
+
 
                   default:
                     CaseException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 20, 0);
@@ -610,4 +622,8 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
 void _M2_RTint_init (int argc, char *argv[])
 {
   Init ();
+}
+
+void _M2_RTint_finish (int argc, char *argv[])
+{
 }

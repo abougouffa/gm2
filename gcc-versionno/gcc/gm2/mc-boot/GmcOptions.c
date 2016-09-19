@@ -70,35 +70,35 @@ static void handleOption (DynamicStrings_String arg);
 
 static void displayVersion (unsigned int mustExit)
 {
-  mcPrintf_printf0 ((char *) "Copyright (C) ''2016'' Free Software Foundation, Inc.\\", 55);
-  mcPrintf_printf0 ((char *) "License GPLv2: GNU GPL version 2 or later <http://gnu.org/licenses/gpl.html>\\", 78);
-  mcPrintf_printf0 ((char *) "This is free software: you are free to change and redistribute it.\\", 68);
-  mcPrintf_printf0 ((char *) "There is NO WARRANTY, to the extent permitted by law.\\", 55);
+  mcPrintf_printf0 ((char *) "Copyright (C) ''2016'' Free Software Foundation, Inc.\\n", 55);
+  mcPrintf_printf0 ((char *) "License GPLv2: GNU GPL version 2 or later <http://gnu.org/licenses/gpl.html>\\n", 78);
+  mcPrintf_printf0 ((char *) "This is free software: you are free to change and redistribute it.\\n", 68);
+  mcPrintf_printf0 ((char *) "There is NO WARRANTY, to the extent permitted by law.\\n", 55);
   if (mustExit)
     libc_exit (0);
 }
 
 static void displayHelp (void)
 {
-  mcPrintf_printf0 ((char *) "usage: mc [--cpp] [-g] [--quiet] [--extended-opaque] [-q] [-v] [--verbose] [--version] [--help] [-h] [-Ipath] [--olang=c] [--olang=c++] [--olang=m2] [--debug-top] [--h-file-prefix=foo] [-o=foo] filename\\", 204);
-  mcPrintf_printf0 ((char *) "  --cpp               preprocess through the C preprocessor\\", 61);
+  mcPrintf_printf0 ((char *) "usage: mc [--cpp] [-g] [--quiet] [--extended-opaque] [-q] [-v] [--verbose] [--version] [--help] [-h] [-Ipath] [--olang=c] [--olang=c++] [--olang=m2] [--debug-top] [--h-file-prefix=foo] [-o=foo] filename\\n", 204);
+  mcPrintf_printf0 ((char *) "  --cpp               preprocess through the C preprocessor\\n", 61);
   mcPrintf_printf0 ((char *) "  -g                  emit debugging directives in the output language", 70);
-  mcPrintf_printf0 ((char *) "                      so that the debugger will refer to the source\\", 69);
-  mcPrintf_printf0 ((char *) "  -q --quiet          no output unless an error occurs\\", 56);
-  mcPrintf_printf0 ((char *) "  -v --verbose        display preprocessor if invoked\\", 55);
-  mcPrintf_printf0 ((char *) "  --version           display version and exit\\", 48);
-  mcPrintf_printf0 ((char *) "  -h --help           display this help message\\", 49);
-  mcPrintf_printf0 ((char *) "  -Ipath              set the module search path\\", 50);
-  mcPrintf_printf0 ((char *) "  --olang=c           generate ansi C output\\", 46);
-  mcPrintf_printf0 ((char *) "  --olang=c++         generate ansi C++ output\\", 48);
-  mcPrintf_printf0 ((char *) "  --olang=m2          generate PIM4 output\\", 44);
-  mcPrintf_printf0 ((char *) "  --extended-opaque   parse definition and implementation modules to\\", 70);
-  mcPrintf_printf0 ((char *) "                      generate full type debugging of opaque types\\", 68);
-  mcPrintf_printf0 ((char *) "  --debug-top         debug topological data structure resolving (internal)\\", 77);
-  mcPrintf_printf0 ((char *) "  --h-file-prefix=foo set the h file prefix to foo\\", 52);
-  mcPrintf_printf0 ((char *) "  -o=foo              set the output file to foo\\", 50);
-  mcPrintf_printf0 ((char *) "  --ignore-fq         do not generate fully qualified idents\\", 62);
-  mcPrintf_printf0 ((char *) "  filename            the source file must be the last option\\", 63);
+  mcPrintf_printf0 ((char *) "                      so that the debugger will refer to the source\\n", 69);
+  mcPrintf_printf0 ((char *) "  -q --quiet          no output unless an error occurs\\n", 56);
+  mcPrintf_printf0 ((char *) "  -v --verbose        display preprocessor if invoked\\n", 55);
+  mcPrintf_printf0 ((char *) "  --version           display version and exit\\n", 48);
+  mcPrintf_printf0 ((char *) "  -h --help           display this help message\\n", 49);
+  mcPrintf_printf0 ((char *) "  -Ipath              set the module search path\\n", 50);
+  mcPrintf_printf0 ((char *) "  --olang=c           generate ansi C output\\n", 46);
+  mcPrintf_printf0 ((char *) "  --olang=c++         generate ansi C++ output\\n", 48);
+  mcPrintf_printf0 ((char *) "  --olang=m2          generate PIM4 output\\n", 44);
+  mcPrintf_printf0 ((char *) "  --extended-opaque   parse definition and implementation modules to\\n", 70);
+  mcPrintf_printf0 ((char *) "                      generate full type debugging of opaque types\\n", 68);
+  mcPrintf_printf0 ((char *) "  --debug-top         debug topological data structure resolving (internal)\\n", 77);
+  mcPrintf_printf0 ((char *) "  --h-file-prefix=foo set the h file prefix to foo\\n", 52);
+  mcPrintf_printf0 ((char *) "  -o=foo              set the output file to foo\\n", 50);
+  mcPrintf_printf0 ((char *) "  --ignore-fq         do not generate fully qualified idents\\n", 62);
+  mcPrintf_printf0 ((char *) "  filename            the source file must be the last option\\n", 63);
   libc_exit (0);
 }
 
@@ -148,22 +148,57 @@ static unsigned int optionIs (char *left_, unsigned int _left_high, DynamicStrin
   char left[_left_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (left, left_, _left_high);
+  memcpy (left, left_, _left_high+1);
 
   if ((DynamicStrings_Length (right)) == (StrLib_StrLen ((char *) left, _left_high)))
     return DynamicStrings_EqualArray (right, (char *) left, _left_high);
+  else if ((DynamicStrings_Length (right)) > (StrLib_StrLen ((char *) left, _left_high)))
+    {
+      s = DynamicStrings_Mark (DynamicStrings_Slice (right, 0, (int ) StrLib_StrLen ((char *) left, _left_high)));
+      return DynamicStrings_EqualArray (s, (char *) left, _left_high);
+    }
+  else
+    return FALSE;
 }
 
 static void setLang (DynamicStrings_String arg)
 {
   if (optionIs ((char *) "c", 1, arg))
     decl_setLangC ();
+  else if (optionIs ((char *) "c++", 3, arg))
+    decl_setLangCP ();
+  else if (optionIs ((char *) "m2", 2, arg))
+    decl_setLangM2 ();
+  else
+    displayHelp ();
 }
 
 static void handleOption (DynamicStrings_String arg)
 {
   if ((optionIs ((char *) "--quiet", 7, arg)) || (optionIs ((char *) "-q", 2, arg)))
     setQuiet (TRUE);
+  else if ((optionIs ((char *) "--verbose", 9, arg)) || (optionIs ((char *) "-v", 2, arg)))
+    setVerbose (TRUE);
+  else if (optionIs ((char *) "--version", 9, arg))
+    displayVersion (TRUE);
+  else if (optionIs ((char *) "--olang=", 8, arg))
+    setLang (DynamicStrings_Slice (arg, 8, 0));
+  else if (optionIs ((char *) "-I", 2, arg))
+    setSearchPath (DynamicStrings_Slice (arg, 2, 0));
+  else if ((optionIs ((char *) "--help", 6, arg)) || (optionIs ((char *) "-h", 2, arg)))
+    displayHelp ();
+  else if (optionIs ((char *) "--cpp", 5, arg))
+    cppProgram = DynamicStrings_InitString ((char *) "cpp", 3);
+  else if (optionIs ((char *) "-o=", 3, arg))
+    setOutputFile (DynamicStrings_Slice (arg, 3, 0));
+  else if (optionIs ((char *) "--extended-opaque", 17, arg))
+    setExtendedOpaque (TRUE);
+  else if (optionIs ((char *) "--debug-top", 11, arg))
+    mcOptions_setDebugTopological (TRUE);
+  else if (optionIs ((char *) "--h-file-prefix=", 16, arg))
+    setHPrefix (DynamicStrings_Slice (arg, 16, 0));
+  else if (optionIs ((char *) "--ignore-fq", 11, arg))
+    setIgnoreFQ (TRUE);
 }
 
 DynamicStrings_String mcOptions_handleOptions (void)
@@ -260,4 +295,8 @@ void _M2_mcOptions_init (int argc, char *argv[])
   cppArgs = DynamicStrings_InitString ((char *) "", 0);
   cppProgram = DynamicStrings_InitString ((char *) "", 0);
   outputFile = DynamicStrings_InitString ((char *) "-", 1);
+}
+
+void _M2_mcOptions_finish (int argc, char *argv[])
+{
 }

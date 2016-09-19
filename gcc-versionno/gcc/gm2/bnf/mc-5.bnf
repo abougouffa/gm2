@@ -77,7 +77,7 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 makePointerRef,
 		 makeExpList, putExpList, isExpList, isArray, isPointer, isVar,
 		 isConst, isParameter,
-		 makeStatementSequence, addStatement, putBegin,
+		 makeStatementSequence, addStatement, putBegin, putFinally,
 		 makeReturn, putReturn, makeExit, makeComment,
 		 isStatementSequence, isWhile, makeWhile, putWhile,
 		 makeAssignment, makeFuncCall, isReturn,
@@ -891,8 +891,12 @@ MulOperator := "*"
                | "&"
             =:
 
+NotConstFactor := "NOT" ConstFactor                                     % VAR n: node ; %
+                                                                        % n := push (makeUnaryTok (nottok, pop ())) %
+                =:
+
 ConstFactor := ConstNumber | ConstString | ConstSetOrQualidentOrFunction |
-               "(" ConstExpressionNop ")" | "NOT" ConstFactor
+               "(" ConstExpressionNop ")" | NotConstFactor
                | ConstAttribute =:
 
 -- to help satisfy LL1
@@ -1127,8 +1131,10 @@ PushString := string                                                    % VAR n:
             =:
 
 Factor := Number | PushString | SetOrDesignatorOrFunction |
-          "(" Expression ")" | "NOT" ( Factor
+          "(" Expression ")" | "NOT" ( Factor                           % VAR n: node ; %
+                                                                        % n := push (makeUnaryTok (nottok, pop ())) %
           | ConstAttribute
+                                                                        % n := push (makeUnaryTok (nottok, pop ())) %
                                 ) =:
 
 ComponentElement := Expression                                          % VAR l, h, n: node ; %
@@ -1350,9 +1356,11 @@ InitialBlock := [ "BEGIN" InitialBlockBody ] =:
 
 FinalBlock := [ "FINALLY" FinalBlockBody ] =:
 
-InitialBlockBody := NormalPart [ "EXCEPT" ExceptionalPart ] =:
+InitialBlockBody := NormalPart                                         % putBegin (curmodule, popStmt ()) %
+                               [ "EXCEPT" ExceptionalPart ] =:
 
-FinalBlockBody := NormalPart [ "EXCEPT" ExceptionalPart ] =:
+FinalBlockBody := NormalPart                                           % putFinally (curmodule, popStmt ()) %
+                             [ "EXCEPT" ExceptionalPart ] =:
 
 ProcedureBlockBody := ProcedureNormalPart
                       [ "EXCEPT" ExceptionalPart ] =:
@@ -1360,7 +1368,7 @@ ProcedureBlockBody := ProcedureNormalPart
 ProcedureNormalPart := StatementSequence                               % putBegin (curproc, popStmt ()) %
                      =:
 
-NormalPart := StatementSequence                                        % putBegin (curmodule, popStmt ()) %
+NormalPart := StatementSequence
             =:
 
 ExceptionalPart := StatementSequence

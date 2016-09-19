@@ -177,6 +177,7 @@ EXTERN void decl_putWhile (decl_node n, decl_node e, decl_node s);
 EXTERN unsigned int decl_isWhile (decl_node n);
 EXTERN decl_node decl_makeAssignment (decl_node d, decl_node e);
 EXTERN void decl_putBegin (decl_node b, decl_node s);
+EXTERN void decl_putFinally (decl_node b, decl_node s);
 EXTERN decl_node decl_makeExit (decl_node l, unsigned int n);
 EXTERN unsigned int decl_isExit (decl_node n);
 EXTERN decl_node decl_makeLoop (void);

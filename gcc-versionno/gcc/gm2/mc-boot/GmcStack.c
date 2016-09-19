@@ -97,3 +97,7 @@ void * mcStack_access (mcStack_stack s, unsigned int i)
 void _M2_mcStack_init (int argc, char *argv[])
 {
 }
+
+void _M2_mcStack_finish (int argc, char *argv[])
+{
+}

@@ -37,8 +37,8 @@ void Debug_Halt (char *Message_, unsigned int _Message_high, unsigned int LineNo
   char Module[_Module_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (Message, Message_, _Message_high);
-  memcpy (Module, Module_, _Module_high);
+  memcpy (Message, Message_, _Message_high+1);
+  memcpy (Module, Module_, _Module_high+1);
 
   Debug_DebugString ((char *) Module, _Module_high);
   NumberIO_CardToStr (LineNo, 0, (char *) &No.array[0], MaxNoOfDigits);
@@ -46,7 +46,7 @@ void Debug_Halt (char *Message_, unsigned int _Message_high, unsigned int LineNo
   Debug_DebugString ((char *) &No.array[0], MaxNoOfDigits);
   Debug_DebugString ((char *) ":", 1);
   Debug_DebugString ((char *) Message, _Message_high);
-  Debug_DebugString ((char *) "\\", 2);
+  Debug_DebugString ((char *) "\\n", 2);
   M2RTS_HALT (0);
 }
 
@@ -57,7 +57,7 @@ void Debug_DebugString (char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   high = _a_high;
   n = 0;
@@ -72,6 +72,11 @@ void Debug_DebugString (char *a_, unsigned int _a_high)
               WriteLn ();
               n += 1;
             }
+          else if (a[n+1] == '\\')
+            {
+              StdIO_Write ('\\');
+              n += 1;
+            }
       }
       else
         StdIO_Write (a[n]);
@@ -80,5 +85,9 @@ void Debug_DebugString (char *a_, unsigned int _a_high)
 }
 
 void _M2_Debug_init (int argc, char *argv[])
+{
+}
+
+void _M2_Debug_finish (int argc, char *argv[])
 {
 }

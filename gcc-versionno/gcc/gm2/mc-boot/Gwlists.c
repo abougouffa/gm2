@@ -95,6 +95,13 @@ void wlists_putItemIntoList (wlists_wlist l, unsigned int c)
       l->noOfElements += 1;
       l->elements.array[l->noOfElements-1] = c;
     }
+  else if (l->next != NULL)
+    wlists_putItemIntoList (l->next, c);
+  else
+    {
+      l->next = wlists_initList ();
+      wlists_putItemIntoList (l->next, c);
+    }
 }
 
 unsigned int wlists_getItemFromList (wlists_wlist l, unsigned int n)
@@ -147,7 +154,7 @@ unsigned int wlists_noOfItemsInList (wlists_wlist l)
 
 void wlists_includeItemIntoList (wlists_wlist l, unsigned int c)
 {
-  if (wlists_isItemInList (l, c))
+  if (! (wlists_isItemInList (l, c)))
     wlists_putItemIntoList (l, c);
 }
 
@@ -226,5 +233,9 @@ wlists_wlist wlists_duplicateList (wlists_wlist l)
 }
 
 void _M2_wlists_init (int argc, char *argv[])
+{
+}
+
+void _M2_wlists_finish (int argc, char *argv[])
 {
 }

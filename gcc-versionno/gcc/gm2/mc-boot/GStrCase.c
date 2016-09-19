@@ -27,7 +27,7 @@ void StrCase_StrToUpperCase (char *a_, unsigned int _a_high, char *b, unsigned i
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   higha = StrLib_StrLen ((char *) a, _a_high);
   highb = _b_high;
@@ -49,7 +49,7 @@ void StrCase_StrToLowerCase (char *a_, unsigned int _a_high, char *b, unsigned i
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   higha = StrLib_StrLen ((char *) a, _a_high);
   highb = _b_high;
@@ -78,5 +78,9 @@ char StrCase_Lower (char ch)
 }
 
 void _M2_StrCase_init (int argc, char *argv[])
+{
+}
+
+void _M2_StrCase_finish (int argc, char *argv[])
 {
 }

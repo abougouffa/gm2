@@ -95,6 +95,13 @@ void alists_putItemIntoList (alists_alist l, void * c)
       l->noOfelements += 1;
       l->elements.array[l->noOfelements-1] = c;
     }
+  else if (l->next != NULL)
+    alists_putItemIntoList (l->next, c);
+  else
+    {
+      l->next = alists_initList ();
+      alists_putItemIntoList (l->next, c);
+    }
 }
 
 void * alists_getItemFromList (alists_alist l, unsigned int n)
@@ -147,7 +154,7 @@ unsigned int alists_noOfItemsInList (alists_alist l)
 
 void alists_includeItemIntoList (alists_alist l, void * c)
 {
-  if (alists_isItemInList (l, c))
+  if (! (alists_isItemInList (l, c)))
     alists_putItemIntoList (l, c);
 }
 
@@ -226,5 +233,9 @@ alists_alist alists_duplicateList (alists_alist l)
 }
 
 void _M2_alists_init (int argc, char *argv[])
+{
+}
+
+void _M2_alists_finish (int argc, char *argv[])
 {
 }

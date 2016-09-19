@@ -66,10 +66,10 @@ DynamicStrings_String mcPreprocess_preprocessModule (DynamicStrings_String filen
       commandLine = DynamicStrings_Dup (command);
       commandLine = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Dup (commandLine), ' '), filename), DynamicStrings_Mark (DynamicStrings_InitString ((char *) " -o ", 4))), tempfile);
       if (mcOptions_getVerbose ())
-        mcPrintf_fprintf1 (FIO_StdOut, (char *) "%s\\", 4, (unsigned char *) &commandLine, sizeof (commandLine));
+        mcPrintf_fprintf1 (FIO_StdOut, (char *) "%s\\n", 4, (unsigned char *) &commandLine, sizeof (commandLine));
       if ((libc_system (DynamicStrings_string (commandLine))) != 0)
         {
-          mcPrintf_fprintf1 (FIO_StdErr, (char *) "C preprocessor failed when preprocessing %s\\", 45, (unsigned char *) &filename, sizeof (filename));
+          mcPrintf_fprintf1 (FIO_StdErr, (char *) "C preprocessor failed when preprocessing %s\\n", 45, (unsigned char *) &filename, sizeof (filename));
           libc_exit (1);
         }
       commandLine = DynamicStrings_KillString (commandLine);
@@ -80,6 +80,10 @@ DynamicStrings_String mcPreprocess_preprocessModule (DynamicStrings_String filen
 void _M2_mcPreprocess_init (int argc, char *argv[])
 {
   listOfFiles = alists_initList ();
-  if (M2RTS_InstallTerminationProcedure ((PROC ) {(PROC_t) removeFiles}))
+  if (! (M2RTS_InstallTerminationProcedure ((PROC ) {(PROC_t) removeFiles})))
     M2RTS_HALT (0);
+}
+
+void _M2_mcPreprocess_finish (int argc, char *argv[])
+{
 }

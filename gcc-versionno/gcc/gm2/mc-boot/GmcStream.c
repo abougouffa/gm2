@@ -89,7 +89,7 @@ static void copy (ptrToFile p)
       s = DynamicStrings_InitStringCharStar (FIO_getFileName (f));
       FIO_Close (f);
       f = SFIO_OpenToRead (s);
-      while (FIO_EOF (f))
+      while (! (FIO_EOF (f)))
         {
           b = FIO_ReadNBytes (f, maxBuffer, &buffer);
           b = FIO_WriteNBytes (destFile, b, &buffer);
@@ -118,7 +118,7 @@ void mcStream_setDest (FIO_File f)
 
 FIO_File mcStream_combine (void)
 {
-  if (seenDest)
+  if (! seenDest)
     M2RTS_HALT (0);
   Indexing_ForeachIndiceInIndexDo (frag, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) copy});
   removeFiles ();
@@ -130,4 +130,8 @@ void _M2_mcStream_init (int argc, char *argv[])
   listOfFiles = alists_initList ();
   seenDest = FALSE;
   frag = Indexing_InitIndex (1);
+}
+
+void _M2_mcStream_finish (int argc, char *argv[])
+{
 }

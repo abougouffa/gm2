@@ -56,7 +56,7 @@ DynamicStrings_String SFIO_ReadS (FIO_File file)
   unsigned int c;
 
   s = DynamicStrings_InitString ((char *) "", 0);
-  while (((FIO_EOLN (file)) && (FIO_EOF (file))) && (FIO_IsNoError (file)))
+  while (((! (FIO_EOLN (file))) && (! (FIO_EOF (file)))) && (FIO_IsNoError (file)))
     s = DynamicStrings_ConCatChar (s, FIO_ReadChar (file));
   if (FIO_EOLN (file))
     if ((FIO_ReadChar (file)) == ASCII_nul)
@@ -65,5 +65,9 @@ DynamicStrings_String SFIO_ReadS (FIO_File file)
 }
 
 void _M2_SFIO_init (int argc, char *argv[])
+{
+}
+
+void _M2_SFIO_finish (int argc, char *argv[])
 {
 }

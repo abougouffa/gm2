@@ -73,3 +73,7 @@ void SysStorage_Init (void)
 void _M2_SysStorage_init (int argc, char *argv[])
 {
 }
+
+void _M2_SysStorage_finish (int argc, char *argv[])
+{
+}

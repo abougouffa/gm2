@@ -95,6 +95,13 @@ void lists_putItemIntoList (lists_list l, void * c)
       l->noOfelements += 1;
       l->elements.array[l->noOfelements-1] = c;
     }
+  else if (l->next != NULL)
+    lists_putItemIntoList (l->next, c);
+  else
+    {
+      l->next = lists_initList ();
+      lists_putItemIntoList (l->next, c);
+    }
 }
 
 void * lists_getItemFromList (lists_list l, unsigned int n)
@@ -147,7 +154,7 @@ unsigned int lists_noOfItemsInList (lists_list l)
 
 void lists_includeItemIntoList (lists_list l, void * c)
 {
-  if (lists_isItemInList (l, c))
+  if (! (lists_isItemInList (l, c)))
     lists_putItemIntoList (l, c);
 }
 
@@ -226,5 +233,9 @@ lists_list lists_duplicateList (lists_list l)
 }
 
 void _M2_lists_init (int argc, char *argv[])
+{
+}
+
+void _M2_lists_finish (int argc, char *argv[])
 {
 }

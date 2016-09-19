@@ -68,6 +68,11 @@ static void findNodeAndParentInTree (symbolKey_symbolTree t, nameKey_Name n, sym
           (*father) = (*child);
           (*child) = (*child)->left;
         }
+      else if (n > (*child)->name)
+        {
+          (*father) = (*child);
+          (*child) = (*child)->right;
+        }
     } while (! (((*child) == NULL) || (n == (*child)->name)));
 }
 
@@ -141,6 +146,11 @@ void symbolKey_putSymKey (symbolKey_symbolTree t, nameKey_Name name, void * key)
             Storage_ALLOCATE ((void **) &child, sizeof (_T1));
             father->left = child;
           }
+        else if (name > father->name)
+          {
+            Storage_ALLOCATE ((void **) &child, sizeof (_T1));
+            father->right = child;
+          }
       child->right = NULL;
       child->left = NULL;
       child->key = key;
@@ -206,5 +216,9 @@ void symbolKey_foreachNodeDo (symbolKey_symbolTree t, symbolKey_performOperation
 }
 
 void _M2_symbolKey_init (int argc, char *argv[])
+{
+}
+
+void _M2_symbolKey_finish (int argc, char *argv[])
 {
 }

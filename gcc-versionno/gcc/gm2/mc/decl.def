@@ -1083,6 +1083,15 @@ PROCEDURE putBegin (b: node; s: node) ;
 
 
 (*
+   putFinally - assigns statements, s, to be the final part in
+                block, b.  The block may be a module
+                or implementation node.
+*)
+
+PROCEDURE putFinally (b: node; s: node) ;
+
+
+(*
    makeExit - creates and returns an exit node.
 *)
 

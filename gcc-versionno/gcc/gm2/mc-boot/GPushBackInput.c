@@ -74,7 +74,7 @@ FIO_File PushBackInput_Open (char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   Init ();
   StrLib_StrCopy ((char *) a, _a_high, (char *) &FileName.array[0], MaxFileName);
@@ -94,13 +94,13 @@ char PushBackInput_GetCh (FIO_File f)
     }
   else
     {
-      if ((FIO_EOF (f)) || (FIO_IsNoError (f)))
+      if ((FIO_EOF (f)) || (! (FIO_IsNoError (f))))
         ch = ASCII_nul;
       else
         {
           do {
             ch = FIO_ReadChar (f);
-          } while (! (((ch != ASCII_cr) || (FIO_EOF (f))) || (FIO_IsNoError (f))));
+          } while (! (((ch != ASCII_cr) || (FIO_EOF (f))) || (! (FIO_IsNoError (f)))));
           if (ch == ASCII_lf)
             {
               Column = 0;
@@ -133,7 +133,7 @@ void PushBackInput_PutString (FIO_File f, char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   l = StrLib_StrLen ((char *) a, _a_high);
   while (l > 0)
@@ -149,7 +149,7 @@ void PushBackInput_Error (char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   StdIO_PushOutput ((StdIO_ProcWrite) {(StdIO_ProcWrite_t) ErrChar});
   StrIO_WriteString ((char *) &FileName.array[0], MaxFileName);
@@ -168,7 +168,7 @@ void PushBackInput_WarnError (char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   StdIO_PushOutput ((StdIO_ProcWrite) {(StdIO_ProcWrite_t) ErrChar});
   StrIO_WriteString ((char *) &FileName.array[0], MaxFileName);
@@ -241,4 +241,8 @@ void _M2_PushBackInput_init (int argc, char *argv[])
 {
   PushBackInput_SetDebug (FALSE);
   Init ();
+}
+
+void _M2_PushBackInput_finish (int argc, char *argv[])
+{
 }

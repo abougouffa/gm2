@@ -197,7 +197,7 @@ static void killList (void)
   sourceList l;
   sourceList k;
 
-  if (currentUsed && (currentSource != NULL))
+  if (! currentUsed && (currentSource != NULL))
     {
       l = currentSource;
       do {
@@ -211,328 +211,328 @@ static void killList (void)
 static void displayToken (void)
 {
   if (mcLexBuf_currenttoken == mcReserved_identtok)
-    mcPrintf_printf1 ((char *) "currenttoken = %a\\", 19, (unsigned char *) &mcLexBuf_currentstring, sizeof (mcLexBuf_currentstring));
+    mcPrintf_printf1 ((char *) "currenttoken = %a\\n", 19, (unsigned char *) &mcLexBuf_currentstring, sizeof (mcLexBuf_currentstring));
   else
     switch (mcLexBuf_currenttoken)
       {
         case mcReserved_eoftok:
-          mcPrintf_printf0 ((char *) "eoftok\\", 8);
+          mcPrintf_printf0 ((char *) "eoftok\\n", 8);
           break;
 
         case mcReserved_plustok:
-          mcPrintf_printf0 ((char *) "plustok\\", 9);
+          mcPrintf_printf0 ((char *) "plustok\\n", 9);
           break;
 
         case mcReserved_minustok:
-          mcPrintf_printf0 ((char *) "minustok\\", 10);
+          mcPrintf_printf0 ((char *) "minustok\\n", 10);
           break;
 
         case mcReserved_timestok:
-          mcPrintf_printf0 ((char *) "timestok\\", 10);
+          mcPrintf_printf0 ((char *) "timestok\\n", 10);
           break;
 
         case mcReserved_dividetok:
-          mcPrintf_printf0 ((char *) "dividetok\\", 11);
+          mcPrintf_printf0 ((char *) "dividetok\\n", 11);
           break;
 
         case mcReserved_becomestok:
-          mcPrintf_printf0 ((char *) "becomestok\\", 12);
+          mcPrintf_printf0 ((char *) "becomestok\\n", 12);
           break;
 
         case mcReserved_ambersandtok:
-          mcPrintf_printf0 ((char *) "ambersandtok\\", 14);
+          mcPrintf_printf0 ((char *) "ambersandtok\\n", 14);
           break;
 
         case mcReserved_periodtok:
-          mcPrintf_printf0 ((char *) "periodtok\\", 11);
+          mcPrintf_printf0 ((char *) "periodtok\\n", 11);
           break;
 
         case mcReserved_commatok:
-          mcPrintf_printf0 ((char *) "commatok\\", 10);
+          mcPrintf_printf0 ((char *) "commatok\\n", 10);
           break;
 
         case mcReserved_semicolontok:
-          mcPrintf_printf0 ((char *) "semicolontok\\", 14);
+          mcPrintf_printf0 ((char *) "semicolontok\\n", 14);
           break;
 
         case mcReserved_lparatok:
-          mcPrintf_printf0 ((char *) "lparatok\\", 10);
+          mcPrintf_printf0 ((char *) "lparatok\\n", 10);
           break;
 
         case mcReserved_rparatok:
-          mcPrintf_printf0 ((char *) "rparatok\\", 10);
+          mcPrintf_printf0 ((char *) "rparatok\\n", 10);
           break;
 
         case mcReserved_lsbratok:
-          mcPrintf_printf0 ((char *) "lsbratok\\", 10);
+          mcPrintf_printf0 ((char *) "lsbratok\\n", 10);
           break;
 
         case mcReserved_rsbratok:
-          mcPrintf_printf0 ((char *) "rsbratok\\", 10);
+          mcPrintf_printf0 ((char *) "rsbratok\\n", 10);
           break;
 
         case mcReserved_lcbratok:
-          mcPrintf_printf0 ((char *) "lcbratok\\", 10);
+          mcPrintf_printf0 ((char *) "lcbratok\\n", 10);
           break;
 
         case mcReserved_rcbratok:
-          mcPrintf_printf0 ((char *) "rcbratok\\", 10);
+          mcPrintf_printf0 ((char *) "rcbratok\\n", 10);
           break;
 
         case mcReserved_uparrowtok:
-          mcPrintf_printf0 ((char *) "uparrowtok\\", 12);
+          mcPrintf_printf0 ((char *) "uparrowtok\\n", 12);
           break;
 
         case mcReserved_singlequotetok:
-          mcPrintf_printf0 ((char *) "singlequotetok\\", 16);
+          mcPrintf_printf0 ((char *) "singlequotetok\\n", 16);
           break;
 
         case mcReserved_equaltok:
-          mcPrintf_printf0 ((char *) "equaltok\\", 10);
+          mcPrintf_printf0 ((char *) "equaltok\\n", 10);
           break;
 
         case mcReserved_hashtok:
-          mcPrintf_printf0 ((char *) "hashtok\\", 9);
+          mcPrintf_printf0 ((char *) "hashtok\\n", 9);
           break;
 
         case mcReserved_lesstok:
-          mcPrintf_printf0 ((char *) "lesstok\\", 9);
+          mcPrintf_printf0 ((char *) "lesstok\\n", 9);
           break;
 
         case mcReserved_greatertok:
-          mcPrintf_printf0 ((char *) "greatertok\\", 12);
+          mcPrintf_printf0 ((char *) "greatertok\\n", 12);
           break;
 
         case mcReserved_lessgreatertok:
-          mcPrintf_printf0 ((char *) "lessgreatertok\\", 16);
+          mcPrintf_printf0 ((char *) "lessgreatertok\\n", 16);
           break;
 
         case mcReserved_lessequaltok:
-          mcPrintf_printf0 ((char *) "lessequaltok\\", 14);
+          mcPrintf_printf0 ((char *) "lessequaltok\\n", 14);
           break;
 
         case mcReserved_greaterequaltok:
-          mcPrintf_printf0 ((char *) "greaterequaltok\\", 17);
+          mcPrintf_printf0 ((char *) "greaterequaltok\\n", 17);
           break;
 
         case mcReserved_periodperiodtok:
-          mcPrintf_printf0 ((char *) "periodperiodtok\\", 17);
+          mcPrintf_printf0 ((char *) "periodperiodtok\\n", 17);
           break;
 
         case mcReserved_colontok:
-          mcPrintf_printf0 ((char *) "colontok\\", 10);
+          mcPrintf_printf0 ((char *) "colontok\\n", 10);
           break;
 
         case mcReserved_doublequotestok:
-          mcPrintf_printf0 ((char *) "doublequotestok\\", 17);
+          mcPrintf_printf0 ((char *) "doublequotestok\\n", 17);
           break;
 
         case mcReserved_bartok:
-          mcPrintf_printf0 ((char *) "bartok\\", 8);
+          mcPrintf_printf0 ((char *) "bartok\\n", 8);
           break;
 
         case mcReserved_andtok:
-          mcPrintf_printf0 ((char *) "andtok\\", 8);
+          mcPrintf_printf0 ((char *) "andtok\\n", 8);
           break;
 
         case mcReserved_arraytok:
-          mcPrintf_printf0 ((char *) "arraytok\\", 10);
+          mcPrintf_printf0 ((char *) "arraytok\\n", 10);
           break;
 
         case mcReserved_begintok:
-          mcPrintf_printf0 ((char *) "begintok\\", 10);
+          mcPrintf_printf0 ((char *) "begintok\\n", 10);
           break;
 
         case mcReserved_bytok:
-          mcPrintf_printf0 ((char *) "bytok\\", 7);
+          mcPrintf_printf0 ((char *) "bytok\\n", 7);
           break;
 
         case mcReserved_casetok:
-          mcPrintf_printf0 ((char *) "casetok\\", 9);
+          mcPrintf_printf0 ((char *) "casetok\\n", 9);
           break;
 
         case mcReserved_consttok:
-          mcPrintf_printf0 ((char *) "consttok\\", 10);
+          mcPrintf_printf0 ((char *) "consttok\\n", 10);
           break;
 
         case mcReserved_definitiontok:
-          mcPrintf_printf0 ((char *) "definitiontok\\", 15);
+          mcPrintf_printf0 ((char *) "definitiontok\\n", 15);
           break;
 
         case mcReserved_divtok:
-          mcPrintf_printf0 ((char *) "divtok\\", 8);
+          mcPrintf_printf0 ((char *) "divtok\\n", 8);
           break;
 
         case mcReserved_dotok:
-          mcPrintf_printf0 ((char *) "dotok\\", 7);
+          mcPrintf_printf0 ((char *) "dotok\\n", 7);
           break;
 
         case mcReserved_elsetok:
-          mcPrintf_printf0 ((char *) "elsetok\\", 9);
+          mcPrintf_printf0 ((char *) "elsetok\\n", 9);
           break;
 
         case mcReserved_elsiftok:
-          mcPrintf_printf0 ((char *) "elsiftok\\", 10);
+          mcPrintf_printf0 ((char *) "elsiftok\\n", 10);
           break;
 
         case mcReserved_endtok:
-          mcPrintf_printf0 ((char *) "endtok\\", 8);
+          mcPrintf_printf0 ((char *) "endtok\\n", 8);
           break;
 
         case mcReserved_exittok:
-          mcPrintf_printf0 ((char *) "exittok\\", 9);
+          mcPrintf_printf0 ((char *) "exittok\\n", 9);
           break;
 
         case mcReserved_exporttok:
-          mcPrintf_printf0 ((char *) "exporttok\\", 11);
+          mcPrintf_printf0 ((char *) "exporttok\\n", 11);
           break;
 
         case mcReserved_fortok:
-          mcPrintf_printf0 ((char *) "fortok\\", 8);
+          mcPrintf_printf0 ((char *) "fortok\\n", 8);
           break;
 
         case mcReserved_fromtok:
-          mcPrintf_printf0 ((char *) "fromtok\\", 9);
+          mcPrintf_printf0 ((char *) "fromtok\\n", 9);
           break;
 
         case mcReserved_iftok:
-          mcPrintf_printf0 ((char *) "iftok\\", 7);
+          mcPrintf_printf0 ((char *) "iftok\\n", 7);
           break;
 
         case mcReserved_implementationtok:
-          mcPrintf_printf0 ((char *) "implementationtok\\", 19);
+          mcPrintf_printf0 ((char *) "implementationtok\\n", 19);
           break;
 
         case mcReserved_importtok:
-          mcPrintf_printf0 ((char *) "importtok\\", 11);
+          mcPrintf_printf0 ((char *) "importtok\\n", 11);
           break;
 
         case mcReserved_intok:
-          mcPrintf_printf0 ((char *) "intok\\", 7);
+          mcPrintf_printf0 ((char *) "intok\\n", 7);
           break;
 
         case mcReserved_looptok:
-          mcPrintf_printf0 ((char *) "looptok\\", 9);
+          mcPrintf_printf0 ((char *) "looptok\\n", 9);
           break;
 
         case mcReserved_modtok:
-          mcPrintf_printf0 ((char *) "modtok\\", 8);
+          mcPrintf_printf0 ((char *) "modtok\\n", 8);
           break;
 
         case mcReserved_moduletok:
-          mcPrintf_printf0 ((char *) "moduletok\\", 11);
+          mcPrintf_printf0 ((char *) "moduletok\\n", 11);
           break;
 
         case mcReserved_nottok:
-          mcPrintf_printf0 ((char *) "nottok\\", 8);
+          mcPrintf_printf0 ((char *) "nottok\\n", 8);
           break;
 
         case mcReserved_oftok:
-          mcPrintf_printf0 ((char *) "oftok\\", 7);
+          mcPrintf_printf0 ((char *) "oftok\\n", 7);
           break;
 
         case mcReserved_ortok:
-          mcPrintf_printf0 ((char *) "ortok\\", 7);
+          mcPrintf_printf0 ((char *) "ortok\\n", 7);
           break;
 
         case mcReserved_pointertok:
-          mcPrintf_printf0 ((char *) "pointertok\\", 12);
+          mcPrintf_printf0 ((char *) "pointertok\\n", 12);
           break;
 
         case mcReserved_proceduretok:
-          mcPrintf_printf0 ((char *) "proceduretok\\", 14);
+          mcPrintf_printf0 ((char *) "proceduretok\\n", 14);
           break;
 
         case mcReserved_qualifiedtok:
-          mcPrintf_printf0 ((char *) "qualifiedtok\\", 14);
+          mcPrintf_printf0 ((char *) "qualifiedtok\\n", 14);
           break;
 
         case mcReserved_unqualifiedtok:
-          mcPrintf_printf0 ((char *) "unqualifiedtok\\", 16);
+          mcPrintf_printf0 ((char *) "unqualifiedtok\\n", 16);
           break;
 
         case mcReserved_recordtok:
-          mcPrintf_printf0 ((char *) "recordtok\\", 11);
+          mcPrintf_printf0 ((char *) "recordtok\\n", 11);
           break;
 
         case mcReserved_repeattok:
-          mcPrintf_printf0 ((char *) "repeattok\\", 11);
+          mcPrintf_printf0 ((char *) "repeattok\\n", 11);
           break;
 
         case mcReserved_returntok:
-          mcPrintf_printf0 ((char *) "returntok\\", 11);
+          mcPrintf_printf0 ((char *) "returntok\\n", 11);
           break;
 
         case mcReserved_settok:
-          mcPrintf_printf0 ((char *) "settok\\", 8);
+          mcPrintf_printf0 ((char *) "settok\\n", 8);
           break;
 
         case mcReserved_thentok:
-          mcPrintf_printf0 ((char *) "thentok\\", 9);
+          mcPrintf_printf0 ((char *) "thentok\\n", 9);
           break;
 
         case mcReserved_totok:
-          mcPrintf_printf0 ((char *) "totok\\", 7);
+          mcPrintf_printf0 ((char *) "totok\\n", 7);
           break;
 
         case mcReserved_typetok:
-          mcPrintf_printf0 ((char *) "typetok\\", 9);
+          mcPrintf_printf0 ((char *) "typetok\\n", 9);
           break;
 
         case mcReserved_untiltok:
-          mcPrintf_printf0 ((char *) "untiltok\\", 10);
+          mcPrintf_printf0 ((char *) "untiltok\\n", 10);
           break;
 
         case mcReserved_vartok:
-          mcPrintf_printf0 ((char *) "vartok\\", 8);
+          mcPrintf_printf0 ((char *) "vartok\\n", 8);
           break;
 
         case mcReserved_whiletok:
-          mcPrintf_printf0 ((char *) "whiletok\\", 10);
+          mcPrintf_printf0 ((char *) "whiletok\\n", 10);
           break;
 
         case mcReserved_withtok:
-          mcPrintf_printf0 ((char *) "withtok\\", 9);
+          mcPrintf_printf0 ((char *) "withtok\\n", 9);
           break;
 
         case mcReserved_asmtok:
-          mcPrintf_printf0 ((char *) "asmtok\\", 8);
+          mcPrintf_printf0 ((char *) "asmtok\\n", 8);
           break;
 
         case mcReserved_volatiletok:
-          mcPrintf_printf0 ((char *) "volatiletok\\", 13);
+          mcPrintf_printf0 ((char *) "volatiletok\\n", 13);
           break;
 
         case mcReserved_periodperiodperiodtok:
-          mcPrintf_printf0 ((char *) "periodperiodperiodtok\\", 23);
+          mcPrintf_printf0 ((char *) "periodperiodperiodtok\\n", 23);
           break;
 
         case mcReserved_datetok:
-          mcPrintf_printf0 ((char *) "datetok\\", 9);
+          mcPrintf_printf0 ((char *) "datetok\\n", 9);
           break;
 
         case mcReserved_linetok:
-          mcPrintf_printf0 ((char *) "linetok\\", 9);
+          mcPrintf_printf0 ((char *) "linetok\\n", 9);
           break;
 
         case mcReserved_filetok:
-          mcPrintf_printf0 ((char *) "filetok\\", 9);
+          mcPrintf_printf0 ((char *) "filetok\\n", 9);
           break;
 
         case mcReserved_integertok:
-          mcPrintf_printf0 ((char *) "integertok\\", 12);
+          mcPrintf_printf0 ((char *) "integertok\\n", 12);
           break;
 
         case mcReserved_identtok:
-          mcPrintf_printf0 ((char *) "identtok\\", 10);
+          mcPrintf_printf0 ((char *) "identtok\\n", 10);
           break;
 
         case mcReserved_realtok:
-          mcPrintf_printf0 ((char *) "realtok\\", 9);
+          mcPrintf_printf0 ((char *) "realtok\\n", 9);
           break;
 
         case mcReserved_stringtok:
-          mcPrintf_printf0 ((char *) "stringtok\\", 11);
+          mcPrintf_printf0 ((char *) "stringtok\\n", 11);
           break;
 
 
@@ -588,6 +588,19 @@ static void addTokToList (mcReserved_toktype t, nameKey_Name n, int i, unsigned 
         ;  /* empty.  */
       listOfTokens.tail = listOfTokens.head;
       listOfTokens.tail->len = 0;
+    }
+  else if (listOfTokens.tail->len == MaxBucketSize)
+    {
+      mcDebug_assert (listOfTokens.tail->next == NULL);
+      Storage_ALLOCATE ((void **) &listOfTokens.tail->next, sizeof (_T2));
+      if (listOfTokens.tail->next == NULL)
+        ;  /* empty.  */
+      else
+        {
+          listOfTokens.tail = listOfTokens.tail->next;
+          listOfTokens.tail->len = 0;
+        }
+      listOfTokens.lastBucketOffset += MaxBucketSize;
     }
   listOfTokens.tail->next = NULL;
   listOfTokens.tail->buf.array[listOfTokens.tail->len].token = t;
@@ -844,7 +857,7 @@ DynamicStrings_String mcLexBuf_getFileName (void)
 
 void mcLexBuf_addTok (mcReserved_toktype t)
 {
-  if ((t == mcReserved_eoftok) && (isLastTokenEof ()))
+  if (! ((t == mcReserved_eoftok) && (isLastTokenEof ())))
     {
       addTokToList (t, (nameKey_Name) nameKey_NulName, 0, mcflex_getLineNo (), mcflex_getColumnNo (), currentSource);
       currentUsed = TRUE;
@@ -892,7 +905,7 @@ void mcLexBuf_pushFile (void * filename)
       {
         l = currentSource;
         do {
-          mcPrintf_printf3 ((char *) "name = %s, line = %d, col = %d\\", 32, (unsigned char *) &l->name, sizeof (l->name), (unsigned char *) &l->line, sizeof (l->line), (unsigned char *) &l->col, sizeof (l->col));
+          mcPrintf_printf3 ((char *) "name = %s, line = %d, col = %d\\n", 32, (unsigned char *) &l->name, sizeof (l->name), (unsigned char *) &l->line, sizeof (l->line), (unsigned char *) &l->col, sizeof (l->col));
           l = l->right;
         } while (! (l == currentSource));
       }
@@ -908,7 +921,7 @@ void mcLexBuf_popFile (void * filename)
       l = currentSource->left;
       subFrom (l);
       Storage_DEALLOCATE ((void **) &l, sizeof (_T1));
-      if ((currentSource->left != currentSource) && (DynamicStrings_Equal (currentSource->name, DynamicStrings_Mark (DynamicStrings_InitStringCharStar (filename)))))
+      if ((currentSource->left != currentSource) && (! (DynamicStrings_Equal (currentSource->name, DynamicStrings_Mark (DynamicStrings_InitStringCharStar (filename))))))
         ;  /* empty.  */
     }
 }
@@ -916,4 +929,8 @@ void mcLexBuf_popFile (void * filename)
 void _M2_mcLexBuf_init (int argc, char *argv[])
 {
   init ();
+}
+
+void _M2_mcLexBuf_finish (int argc, char *argv[])
+{
 }

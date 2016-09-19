@@ -47,3 +47,7 @@ unsigned int Args_Narg (void)
 void _M2_Args_init (int argc, char *argv[])
 {
 }
+
+void _M2_Args_finish (int argc, char *argv[])
+{
+}

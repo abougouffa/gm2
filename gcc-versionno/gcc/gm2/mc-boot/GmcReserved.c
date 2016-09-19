@@ -16,3 +16,7 @@ typedef enum {mcReserved_eoftok, mcReserved_plustok, mcReserved_minustok, mcRese
 void _M2_mcReserved_init (int argc, char *argv[])
 {
 }
+
+void _M2_mcReserved_finish (int argc, char *argv[])
+{
+}

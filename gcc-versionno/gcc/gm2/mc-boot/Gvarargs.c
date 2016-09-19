@@ -146,7 +146,7 @@ varargs_vararg varargs_start1 (unsigned char *a_, unsigned int _a_high)
   unsigned char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   Storage_ALLOCATE ((void **) &v, sizeof (_T1));
   v->i = 0;
@@ -167,8 +167,8 @@ varargs_vararg varargs_start2 (unsigned char *a_, unsigned int _a_high, unsigned
   unsigned char b[_b_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (b, b_, _b_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (b, b_, _b_high+1);
 
   Storage_ALLOCATE ((void **) &v, sizeof (_T1));
   v->i = 0;
@@ -194,9 +194,9 @@ varargs_vararg varargs_start3 (unsigned char *a_, unsigned int _a_high, unsigned
   unsigned char c[_c_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (b, b_, _b_high);
-  memcpy (c, c_, _c_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (b, b_, _b_high+1);
+  memcpy (c, c_, _c_high+1);
 
   Storage_ALLOCATE ((void **) &v, sizeof (_T1));
   v->i = 0;
@@ -227,10 +227,10 @@ varargs_vararg varargs_start4 (unsigned char *a_, unsigned int _a_high, unsigned
   unsigned char d[_d_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
-  memcpy (b, b_, _b_high);
-  memcpy (c, c_, _c_high);
-  memcpy (d, d_, _d_high);
+  memcpy (a, a_, _a_high+1);
+  memcpy (b, b_, _b_high+1);
+  memcpy (c, c_, _c_high+1);
+  memcpy (d, d_, _d_high+1);
 
   Storage_ALLOCATE ((void **) &v, sizeof (_T1));
   v->i = 0;
@@ -255,5 +255,9 @@ varargs_vararg varargs_start4 (unsigned char *a_, unsigned int _a_high, unsigned
 }
 
 void _M2_varargs_init (int argc, char *argv[])
+{
+}
+
+void _M2_varargs_finish (int argc, char *argv[])
 {
 }

@@ -79,6 +79,11 @@ static nameKey_Name doMakeKey (ptrToChar n, unsigned int higha)
           Storage_ALLOCATE ((void **) &child, sizeof (_T1));
           father->left = child;
         }
+      else if (result == greater)
+        {
+          Storage_ALLOCATE ((void **) &child, sizeof (_T1));
+          father->right = child;
+        }
       child->right = NULL;
       child->left = NULL;
       lastIndice += 1;
@@ -107,6 +112,15 @@ static comparison compare (ptrToChar pi, nameKey_Name j)
   while ((c1 != ASCII_nul) || (c2 != ASCII_nul))
     if (c1 < c2)
       return less;
+    else if (c1 > c2)
+      return greater;
+    else
+      {
+        pi += 1;
+        pj += 1;
+        c1 = (*pi);
+        c2 = (*pj);
+      }
   return equal;
 }
 
@@ -127,6 +141,11 @@ static comparison findNodeAndParentInTree (ptrToChar n, nameNode *child, nameNod
             (*father) = (*child);
             (*child) = (*child)->left;
           }
+        else if (result == greater)
+          {
+            (*father) = (*child);
+            (*child) = (*child)->right;
+          }
       } while (! (((*child) == NULL) || (result == equal)));
       return result;
     }
@@ -141,7 +160,7 @@ nameKey_Name nameKey_makeKey (char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   higha = StrLib_StrLen ((char *) a, _a_high);
   Storage_ALLOCATE ((void *) &p, higha+1);
@@ -239,7 +258,7 @@ unsigned int nameKey_isKey (char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   child = binaryTree->left;
   if (child != NULL)
@@ -253,6 +272,20 @@ unsigned int nameKey_isKey (char *a_, unsigned int _a_high)
             {
               child = child->left;
               i = higha;
+            }
+          else if (a[i] > (*p))
+            {
+              child = child->right;
+              i = higha;
+            }
+          else
+            {
+              if ((a[i] == ASCII_nul) || (i == higha))
+                if ((*p) == ASCII_nul)
+                  return TRUE;
+                else
+                  child = child->left;
+              p += 1;
             }
           i += 1;
         }
@@ -303,7 +336,7 @@ unsigned int nameKey_isSameExcludingCase (nameKey_Name key1, nameKey_Name key2)
 
 void * nameKey_keyToCharStar (nameKey_Name key)
 {
-  if ((key == nameKey_NulName) || (Indexing_InBounds (keyIndex, (unsigned int ) key)))
+  if ((key == nameKey_NulName) || (! (Indexing_InBounds (keyIndex, (unsigned int ) key))))
     return NULL;
   else
     return Indexing_GetIndice (keyIndex, (unsigned int ) key);
@@ -315,4 +348,8 @@ void _M2_nameKey_init (int argc, char *argv[])
   keyIndex = Indexing_InitIndex (1);
   Storage_ALLOCATE ((void **) &binaryTree, sizeof (_T1));
   binaryTree->left = NULL;
+}
+
+void _M2_nameKey_finish (int argc, char *argv[])
+{
 }

@@ -53,3 +53,7 @@
 void _M2_ASCII_init (int argc, char *argv[])
 {
 }
+
+void _M2_ASCII_finish (int argc, char *argv[])
+{
+}

@@ -15,7 +15,7 @@ void Assertion_Assert (unsigned int Condition);
 
 void Assertion_Assert (unsigned int Condition)
 {
-  if (Condition)
+  if (! Condition)
     {
       StrIO_WriteString ((char *) "assert failed - halting system", 30);
       StrIO_WriteLn ();
@@ -24,5 +24,9 @@ void Assertion_Assert (unsigned int Condition)
 }
 
 void _M2_Assertion_init (int argc, char *argv[])
+{
+}
+
+void _M2_Assertion_finish (int argc, char *argv[])
 {
 }

@@ -55,3 +55,7 @@ DynamicStrings_String mcFileName_extractModule (DynamicStrings_String filename)
 void _M2_mcFileName_init (int argc, char *argv[])
 {
 }
+
+void _M2_mcFileName_finish (int argc, char *argv[])
+{
+}

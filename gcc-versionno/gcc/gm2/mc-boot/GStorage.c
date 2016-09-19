@@ -39,3 +39,7 @@ unsigned int Storage_Available (unsigned int Size)
 void _M2_Storage_init (int argc, char *argv[])
 {
 }
+
+void _M2_Storage_finish (int argc, char *argv[])
+{
+}

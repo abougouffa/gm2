@@ -76,7 +76,7 @@ static void ErrorString (char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   n = libc_write (2, &a, (int ) StrLib_StrLen ((char *) a, _a_high));
 }
@@ -161,9 +161,9 @@ void M2RTS_Halt (char *file_, unsigned int _file_high, unsigned int line, char *
   char description[_description_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (file, file_, _file_high);
-  memcpy (function, function_, _function_high);
-  memcpy (description, description_, _description_high);
+  memcpy (file, file_, _file_high+1);
+  memcpy (function, function_, _function_high+1);
+  memcpy (description, description_, _description_high+1);
 
   M2RTS_ErrorMessage ((char *) description, _description_high, (char *) file, _file_high, line, (char *) function, _function_high);
   M2RTS_HALT (0);
@@ -186,16 +186,16 @@ void M2RTS_ErrorMessage (char *message_, unsigned int _message_high, char *file_
   char function[_function_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (message, message_, _message_high);
-  memcpy (file, file_, _file_high);
-  memcpy (function, function_, _function_high);
+  memcpy (message, message_, _message_high+1);
+  memcpy (file, file_, _file_high+1);
+  memcpy (function, function_, _function_high+1);
 
   ErrorString ((char *) file, _file_high);
   ErrorString ((char *) ":", 1);
   NumberIO_CardToStr (line, 0, (char *) &LineNo.array[0], 10);
   ErrorString ((char *) &LineNo.array[0], 10);
   ErrorString ((char *) ":", 1);
-  if (StrLib_StrEqual ((char *) function, _function_high, (char *) "", 0))
+  if (! (StrLib_StrEqual ((char *) function, _function_high, (char *) "", 0)))
     {
       ErrorString ((char *) "in ", 3);
       ErrorString ((char *) function, _function_high);
@@ -215,7 +215,7 @@ unsigned int M2RTS_Length (char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   l = 0;
   h = _a_high;
@@ -331,4 +331,8 @@ void _M2_M2RTS_init (int argc, char *argv[])
   ExitValue = 0;
   isHalting = FALSE;
   CallExit = FALSE;
+}
+
+void _M2_M2RTS_finish (int argc, char *argv[])
+{
 }

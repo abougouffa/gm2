@@ -67,7 +67,7 @@ void FpuIO_StrToReal (char *a_, unsigned int _a_high, double *x)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   FpuIO_StrToLongReal ((char *) a, _a_high, &lr);
   (*x) = (double ) (lr);
@@ -110,7 +110,7 @@ void FpuIO_StrToLongReal (char *a_, unsigned int _a_high, long double *x)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   s = DynamicStrings_InitString ((char *) a, _a_high);
   (*x) = StringConvert_StringToLongreal (s, &found);
@@ -155,7 +155,7 @@ void FpuIO_StrToLongInt (char *a_, unsigned int _a_high, long int *x)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   s = DynamicStrings_InitString ((char *) a, _a_high);
   (*x) = StringConvert_StringToLongInteger (s, 10, &found);
@@ -172,5 +172,9 @@ void FpuIO_LongIntToStr (long int x, unsigned int n, char *a, unsigned int _a_hi
 }
 
 void _M2_FpuIO_init (int argc, char *argv[])
+{
+}
+
+void _M2_FpuIO_finish (int argc, char *argv[])
 {
 }

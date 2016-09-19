@@ -123,7 +123,7 @@ static void ErrorString (char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   n = libc_write (2, &a, (int ) StrLib_StrLen ((char *) a, _a_high));
 }
@@ -549,6 +549,11 @@ void * RTExceptions_GetExceptionSource (void)
 }
 
 void _M2_RTExceptions_init (int argc, char *argv[])
+{
+  Init ();
+}
+
+void _M2_RTExceptions_finish (int argc, char *argv[])
 {
   TidyUp ();
 }

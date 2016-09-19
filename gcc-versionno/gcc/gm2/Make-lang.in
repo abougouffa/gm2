@@ -185,6 +185,8 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot \
                  $(objdir)/gm2/gm2-libs-coroutines \
                  $(objdir)/gm2/gm2-libs-min \
                  $(objdir)/gm2/mc-boot \
+                 $(objdir)/gm2/mc-boot-ch \
+                 $(objdir)/gm2/mc-boot-gen \
                  stage1/gm2 stage2/gm2 stage3/gm2 stage4/gm2
 
 # gt-gm2-gm2-lang.h gtype-gm2.h gt-gm2-gccgm2.h gt-gm2-m2builtins.h gt-gm2-m2except.h: s-gtype; @true
@@ -1634,13 +1636,30 @@ MCLINK=-g
 GM2SYS=/opt/gm2/lib/gcc/x86_64-linux-gnu/4.7.4/m2/pim
 GM2PATH=$(srcdir)/gm2/mc:$(GM2SYS):$(srcdir)/gm2:gm2/gm2-auto:$(srcdir)/gm2/gm2-libs
 
-mc:  mc-devel
+mc:  $(GM2_DIRS) mc-clean mc-devel
+
 
 #
 #  mc-autogen - converts itself into C
 #
 
-mc-autogen: force
+mc-push: force
+	cp -p gm2/mc-boot-gen/*.c $(srcdir)/gm2/mc-boot/
+	cp -p gm2/mc-boot-gen/*.h $(srcdir)/gm2/mc-boot/
+
+mc-clean: force
+	$(RM) gm2/mc-boot-gen/*.[ch]
+
+mc-maintainer: mc-clean mc-autogen mc-push mc-bootstrap
+
+mc-verify:  mc-bootstrap mc-clean mc-stage2
+
+
+mc-stage2:  force
+	gm2/boot-bin/mc$(exeext) -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=gm2/mc-boot-gen/GmcStream.c $(srcdir)/gm2/mc/mcStream.mod
+	gm2/boot-bin/mc$(exeext) -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=gm2/mc-boot-gen/Gdecl.c $(srcdir)/gm2/mc/decl.mod
+	if diff gm2/mc-boot-gen/Gdecl.c $(srcdir)/gm2/mc-boot/Gdecl.c ; then echo "passed" ; else echo "failed" ; fi
+
 
 
 #
@@ -1771,79 +1790,94 @@ MC-MODS = alists.mod  decl.mod  Indexing.mod  keyc.mod  lists.mod \
                mcPretty.mod  mcPrintf.mod  mcQuiet.mod  mcReserved.mod \
                mcSearch.mod  mcStack.mod  mcStream.mod \
                nameKey.mod  symbolKey.mod \
-               varargs.mod  wlists.mod
+               varargs.mod  wlists.mod top.mod
 
 MC-AUTO-MODS = mcp1.mod  mcp2.mod  mcp3.mod  mcp4.mod  mcp5.mod
 
 MC-BOOT-C = $(MC-MODS:%.mod=%.c) $(MC-AUTO-MODS:%.mod=%.c)
 
 MC-INTERFACE-C = libc.c mcrts.c UnixArgs.c Selective.c termios.c \
-                 SysExceptions.c
+                 SysExceptions.c ldtoa.c dtoa.c wrapc.c pth.c \
+                 SYSTEM.c errno.c
 
-BUILD-MC-BOOT-H =  $(MC-LIB-DEFS:%.def=gm2/mc-boot/$(SRC_PREFIX)%.h) \
-                   $(MC-DEFS:%.def=gm2/mc-boot/$(SRC_PREFIX)%.h)
+BUILD-MC-BOOT-H =  $(MC-LIB-DEFS:%.def=gm2/mc-boot-gen/$(SRC_PREFIX)%.h) \
+                   $(MC-DEFS:%.def=gm2/mc-boot-gen/$(SRC_PREFIX)%.h)
 
-BUILD-MC-BOOT-C =  $(MC-LIB-MODS:%.mod=gm2/mc-boot/$(SRC_PREFIX)%.c) \
-                   $(MC-MODS:%.mod=gm2/mc-boot/$(SRC_PREFIX)%.c)
+BUILD-MC-BOOT-C =  $(MC-LIB-MODS:%.mod=gm2/mc-boot-gen/$(SRC_PREFIX)%.c) \
+                   $(MC-MODS:%.mod=gm2/mc-boot-gen/$(SRC_PREFIX)%.c)
 
-BUILD-MC-BOOT-AUTO-C = $(MC-AUTO-MODS:%.mod=gm2/mc-boot/$(SRC_PREFIX)%.c)
+BUILD-MC-BOOT-AUTO-C = $(MC-AUTO-MODS:%.mod=gm2/mc-boot-gen/$(SRC_PREFIX)%.c)
 
 BUILD-MC-BOOT-O =  $(MC-LIB-BOOT-C:%.c=gm2/mc-boot/$(SRC_PREFIX)%.o) \
                    $(MC-BOOT-C:%.c=gm2/mc-boot/$(SRC_PREFIX)%.o)
 
-BUILD-MC-INTERFACE-O = $(MC-INTERFACE-C:%.c=gm2/mc-boot/$(SRC_PREFIX)%.o)
+BUILD-MC-INTERFACE-O = $(MC-INTERFACE-C:%.c=gm2/mc-boot-ch/$(SRC_PREFIX)%.o)
 
 
 $(objdir)/gm2/mc-boot: force
-	mkdir -p gm2/mc-boot
+	mkdir -p $@
 
-mc-autogen: mc-devel $(GM2_DIRS) $(BUILD-MC-BOOT-H) $(BUILD-MC-BOOT-C) \
+$(objdir)/gm2/mc-boot-ch: force
+	mkdir -p $@
+
+$(objdir)/gm2/mc-boot-gen: force
+	mkdir -p $@
+
+mc-autogen: $(GM2_DIRS) mc-clean mc-devel \
+            $(BUILD-MC-BOOT-H) $(BUILD-MC-BOOT-C) \
             $(BUILD-MC-BOOT-AUTO-C)
-	cd gm2/mc-boot ; for i in *.c ; do gcc -g -c $$i ; done
+	cd gm2/mc-boot-gen ; for i in *.c ; do gcc -g -c $$i ; done
 	@echo -n "built "
-	@cd gm2/mc-boot ; ls *.o | wc -l
+	@cd gm2/mc-boot-gen ; ls *.o | wc -l
 	@echo -n "out of "
-	@cd gm2/mc-boot ; ls *.c | wc -l
+	@cd gm2/mc-boot-gen ; ls *.c | wc -l
 	@echo "modules"
 
 # EXTENDED_OPAQUE = --extended-opaque
 EXTENDED_OPAQUE =
 
-gm2/mc-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/mc/%.def
+gm2/mc-boot-gen/$(SRC_PREFIX)%.h: $(srcdir)/gm2/mc/%.def
 	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
-gm2/mc-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def
+gm2/mc-boot-gen/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def
 	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
-gm2/mc-boot/$(SRC_PREFIX)decl.c: $(srcdir)/gm2/mc/decl.mod
+gm2/mc-boot-gen/$(SRC_PREFIX)decl.c: $(srcdir)/gm2/mc/decl.mod
 	./mc --extended-opaque -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
-gm2/mc-boot/$(SRC_PREFIX)%.c: $(srcdir)/gm2/mc/%.mod
+gm2/mc-boot-gen/$(SRC_PREFIX)%.c: $(srcdir)/gm2/mc/%.mod
 	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
-gm2/mc-boot/$(SRC_PREFIX)%.c: $(srcdir)/gm2/gm2-libs/%.mod
+gm2/mc-boot-gen/$(SRC_PREFIX)%.c: $(srcdir)/gm2/gm2-libs/%.mod
 	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
-gm2/mc-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs-iso/%.def
+gm2/mc-boot-gen/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs-iso/%.def
 	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
-gm2/mc-boot/$(SRC_PREFIX)%.c: gm2/gm2-auto/%.mod
+gm2/mc-boot-gen/$(SRC_PREFIX)%.c: gm2/gm2-auto/%.mod
 	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
 gm2/mc-boot/$(SRC_PREFIX)%.o: gm2/mc-boot/$(SRC_PREFIX)%.c
 	$(CC) -g -c $< -o $@
 
+gm2/mc-boot-ch/$(SRC_PREFIX)%.o: gm2/mc-boot-ch/$(SRC_PREFIX)%.c
+	$(CC) -g -c $< -o $@
+
 #
 #  mc-bootstrap - compiles mc using the C version previously
 #                 generated by mc-autogen.  These autogenerated
-#                 files are checked into git.
+#                 files will be checked into git by the maintainer.
 #
 
-mc-bootstrap: $(GM2_DIRS) gm2/boot-bin/mc$(exeext)
+mc-bootstrap: $(GM2_DIRS) mc-clean gm2/boot-bin/mc$(exeext)
 
-gm2/boot-bin/mc$(exeext): $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O)
-	$(CC) -g -o $@ $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) mcflex.o
+gm2/boot-bin/mc$(exeext): $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) gm2/mc-boot/main.o
+	$(CC) -g -o $@ $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) gm2/mc-boot/main.o mcflex.o -lm -lpth
 
+gm2/mc-boot/main.o: $(M2LINK) $(srcdir)/gm2/init/mcinit
+	$(M2LINK) -s --exit --name mainmcinit.c $(srcdir)/gm2/init/mcinit
+	mv mainmcinit.c gm2/mc-boot/main.c
+	$(CC) -g -c -o $@ gm2/mc-boot/main.c
 
 #
 #  now for the rules which build objects in the gm2-compiler-paranoid gm2-libs-paranoid directories

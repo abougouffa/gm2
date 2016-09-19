@@ -178,3 +178,7 @@ void _M2_mcSearch_init (int argc, char *argv[])
 {
   Init ();
 }
+
+void _M2_mcSearch_finish (int argc, char *argv[])
+{
+}

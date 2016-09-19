@@ -92,7 +92,7 @@ static void internalFormat (DynamicStrings_String s, int i, char *m_, unsigned i
   char m[_m_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (m, m_, _m_high);
+  memcpy (m, m_, _m_high+1);
 
   e = mcError_newError (mcLexBuf_getTokenNo ());
   s = SFIO_WriteS (FIO_StdOut, s);
@@ -211,6 +211,13 @@ static DynamicStrings_String doName (unsigned int bol, varargs_vararg sym, Dynam
         (*quotes) = FALSE;
         return DynamicStrings_ConCat (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "the ZType", 9)));
       }
+    else if (decl_isRtype (n))
+      {
+        (*quotes) = FALSE;
+        return DynamicStrings_ConCat (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "the RType", 9)));
+      }
+    else
+      return doAscii (bol, sym, o);
 }
 
 static DynamicStrings_String doQualified (unsigned int bol, varargs_vararg sym, DynamicStrings_String o)
@@ -363,7 +370,9 @@ static DynamicStrings_String ConCatWord (DynamicStrings_String a, DynamicStrings
 {
   if (((DynamicStrings_Length (a)) == 1) && ((DynamicStrings_char (a, 0)) == 'a'))
     a = x (a, DynamicStrings_ConCatChar (a, 'n'));
-  if (((DynamicStrings_Length (a)) > 0) && (isWhite (DynamicStrings_char (a, -1))))
+  else if ((((DynamicStrings_Length (a)) > 1) && ((DynamicStrings_char (a, -1)) == 'a')) && (isWhite (DynamicStrings_char (a, -2))))
+    a = x (a, DynamicStrings_ConCatChar (a, 'n'));
+  if (((DynamicStrings_Length (a)) > 0) && (! (isWhite (DynamicStrings_char (a, -1)))))
     a = x (a, DynamicStrings_ConCatChar (a, ' '));
   return x (a, DynamicStrings_ConCat (a, b));
 }
@@ -372,6 +381,51 @@ static DynamicStrings_String symDesc (decl_node n, DynamicStrings_String o)
 {
   if (decl_isLiteral (n))
     return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "literal", 7)));
+  else if (decl_isConstSet (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "constant set", 12)));
+  else if (decl_isConst (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "constant", 8)));
+  else if (decl_isArray (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "array", 5)));
+  else if (decl_isVar (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "variable", 8)));
+  else if (decl_isEnumeration (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "enumeration type", 16)));
+  else if (decl_isEnumerationField (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "enumeration field", 17)));
+  else if (decl_isUnbounded (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "unbounded parameter", 19)));
+  else if (decl_isProcType (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "procedure type", 14)));
+  else if (decl_isProcedure (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "procedure", 9)));
+  else if (decl_isPointer (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "pointer", 7)));
+  else if (decl_isParameter (n))
+    if (decl_isVarParam (n))
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "var parameter", 13)));
+    else
+      return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "parameter", 9)));
+  else if (decl_isType (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "type", 4)));
+  else if (decl_isRecord (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "record", 6)));
+  else if (decl_isRecordField (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "record field", 12)));
+  else if (decl_isVarient (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "varient record", 14)));
+  else if (decl_isModule (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "module", 6)));
+  else if (decl_isDef (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "definition module", 17)));
+  else if (decl_isImp (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "implementation module", 21)));
+  else if (decl_isSet (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "set", 3)));
+  else if (decl_isSubrange (n))
+    return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "subrange", 8)));
+  else
+    return o;
 }
 
 static DynamicStrings_String doDesc (unsigned int bol, varargs_vararg sym, DynamicStrings_String o, unsigned int *quotes)
@@ -393,7 +447,7 @@ static DynamicStrings_String addQuoted (DynamicStrings_String r, DynamicStrings_
 {
   if ((DynamicStrings_Length (o)) > 0)
     {
-      if (isWhite (DynamicStrings_char (r, -1)))
+      if (! (isWhite (DynamicStrings_char (r, -1))))
         r = x (r, DynamicStrings_ConCatChar (r, ' '));
       if (quotes)
         r = x (r, DynamicStrings_ConCatChar (r, '\''));
@@ -588,7 +642,7 @@ static void ebnf (mcError_error *e, errorType *t, DynamicStrings_String *r, Dyna
 
 
           default:
-            if ((((isWhite (DynamicStrings_char (s, (*i)))) && ((DynamicStrings_Length ((*r))) > 0)) && (isWhite (DynamicStrings_char ((*r), -1)))) || (isWhite (DynamicStrings_char (s, (*i)))))
+            if ((((isWhite (DynamicStrings_char (s, (*i)))) && ((DynamicStrings_Length ((*r))) > 0)) && (! (isWhite (DynamicStrings_char ((*r), -1))))) || (! (isWhite (DynamicStrings_char (s, (*i))))))
               (*r) = x ((*r), DynamicStrings_ConCatChar ((*r), DynamicStrings_char (s, (*i))));
             break;
         }
@@ -620,8 +674,8 @@ static void wrapErrors (unsigned int tok, char *m1_, unsigned int _m1_high, char
   char m2[_m2_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (m1, m1_, _m1_high);
-  memcpy (m2, m2_, _m2_high);
+  memcpy (m1, m1_, _m1_high+1);
+  memcpy (m2, m2_, _m2_high+1);
 
   e = NULL;
   t = newerror;
@@ -645,8 +699,8 @@ void mcMetaError_metaError1 (char *m_, unsigned int _m_high, unsigned char *s_, 
   unsigned char s[_s_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (m, m_, _m_high);
-  memcpy (s, s_, _s_high);
+  memcpy (m, m_, _m_high+1);
+  memcpy (s, s_, _s_high+1);
 
   mcMetaError_metaErrorT1 (mcLexBuf_getTokenNo (), (char *) m, _m_high, (unsigned char *) s, _s_high);
 }
@@ -658,9 +712,9 @@ void mcMetaError_metaError2 (char *m_, unsigned int _m_high, unsigned char *s1_,
   unsigned char s2[_s2_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (m, m_, _m_high);
-  memcpy (s1, s1_, _s1_high);
-  memcpy (s2, s2_, _s2_high);
+  memcpy (m, m_, _m_high+1);
+  memcpy (s1, s1_, _s1_high+1);
+  memcpy (s2, s2_, _s2_high+1);
 
   mcMetaError_metaErrorT2 (mcLexBuf_getTokenNo (), (char *) m, _m_high, (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high);
 }
@@ -673,10 +727,10 @@ void mcMetaError_metaError3 (char *m_, unsigned int _m_high, unsigned char *s1_,
   unsigned char s3[_s3_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (m, m_, _m_high);
-  memcpy (s1, s1_, _s1_high);
-  memcpy (s2, s2_, _s2_high);
-  memcpy (s3, s3_, _s3_high);
+  memcpy (m, m_, _m_high+1);
+  memcpy (s1, s1_, _s1_high+1);
+  memcpy (s2, s2_, _s2_high+1);
+  memcpy (s3, s3_, _s3_high+1);
 
   mcMetaError_metaErrorT3 (mcLexBuf_getTokenNo (), (char *) m, _m_high, (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high);
 }
@@ -690,11 +744,11 @@ void mcMetaError_metaError4 (char *m_, unsigned int _m_high, unsigned char *s1_,
   unsigned char s4[_s4_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (m, m_, _m_high);
-  memcpy (s1, s1_, _s1_high);
-  memcpy (s2, s2_, _s2_high);
-  memcpy (s3, s3_, _s3_high);
-  memcpy (s4, s4_, _s4_high);
+  memcpy (m, m_, _m_high+1);
+  memcpy (s1, s1_, _s1_high+1);
+  memcpy (s2, s2_, _s2_high+1);
+  memcpy (s3, s3_, _s3_high+1);
+  memcpy (s4, s4_, _s4_high+1);
 
   mcMetaError_metaErrorT4 (mcLexBuf_getTokenNo (), (char *) m, _m_high, (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high, (unsigned char *) s4, _s4_high);
 }
@@ -706,9 +760,9 @@ void mcMetaError_metaErrors1 (char *m1_, unsigned int _m1_high, char *m2_, unsig
   unsigned char s[_s_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (m1, m1_, _m1_high);
-  memcpy (m2, m2_, _m2_high);
-  memcpy (s, s_, _s_high);
+  memcpy (m1, m1_, _m1_high+1);
+  memcpy (m2, m2_, _m2_high+1);
+  memcpy (s, s_, _s_high+1);
 
   mcMetaError_metaErrorsT1 (mcLexBuf_getTokenNo (), (char *) m1, _m1_high, (char *) m2, _m2_high, (unsigned char *) s, _s_high);
 }
@@ -721,10 +775,10 @@ void mcMetaError_metaErrors2 (char *m1_, unsigned int _m1_high, char *m2_, unsig
   unsigned char s2[_s2_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (m1, m1_, _m1_high);
-  memcpy (m2, m2_, _m2_high);
-  memcpy (s1, s1_, _s1_high);
-  memcpy (s2, s2_, _s2_high);
+  memcpy (m1, m1_, _m1_high+1);
+  memcpy (m2, m2_, _m2_high+1);
+  memcpy (s1, s1_, _s1_high+1);
+  memcpy (s2, s2_, _s2_high+1);
 
   mcMetaError_metaErrorsT2 (mcLexBuf_getTokenNo (), (char *) m1, _m1_high, (char *) m2, _m2_high, (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high);
 }
@@ -738,11 +792,11 @@ void mcMetaError_metaErrors3 (char *m1_, unsigned int _m1_high, char *m2_, unsig
   unsigned char s3[_s3_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (m1, m1_, _m1_high);
-  memcpy (m2, m2_, _m2_high);
-  memcpy (s1, s1_, _s1_high);
-  memcpy (s2, s2_, _s2_high);
-  memcpy (s3, s3_, _s3_high);
+  memcpy (m1, m1_, _m1_high+1);
+  memcpy (m2, m2_, _m2_high+1);
+  memcpy (s1, s1_, _s1_high+1);
+  memcpy (s2, s2_, _s2_high+1);
+  memcpy (s3, s3_, _s3_high+1);
 
   mcMetaError_metaErrorsT3 (mcLexBuf_getTokenNo (), (char *) m1, _m1_high, (char *) m2, _m2_high, (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high);
 }
@@ -757,12 +811,12 @@ void mcMetaError_metaErrors4 (char *m1_, unsigned int _m1_high, char *m2_, unsig
   unsigned char s4[_s4_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (m1, m1_, _m1_high);
-  memcpy (m2, m2_, _m2_high);
-  memcpy (s1, s1_, _s1_high);
-  memcpy (s2, s2_, _s2_high);
-  memcpy (s3, s3_, _s3_high);
-  memcpy (s4, s4_, _s4_high);
+  memcpy (m1, m1_, _m1_high+1);
+  memcpy (m2, m2_, _m2_high+1);
+  memcpy (s1, s1_, _s1_high+1);
+  memcpy (s2, s2_, _s2_high+1);
+  memcpy (s3, s3_, _s3_high+1);
+  memcpy (s4, s4_, _s4_high+1);
 
   mcMetaError_metaErrorsT4 (mcLexBuf_getTokenNo (), (char *) m1, _m1_high, (char *) m2, _m2_high, (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high, (unsigned char *) s4, _s4_high);
 }
@@ -773,8 +827,8 @@ void mcMetaError_metaErrorT1 (unsigned int tok, char *m_, unsigned int _m_high, 
   unsigned char s[_s_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (m, m_, _m_high);
-  memcpy (s, s_, _s_high);
+  memcpy (m, m_, _m_high+1);
+  memcpy (s, s_, _s_high+1);
 
   mcMetaError_metaErrorStringT1 (tok, DynamicStrings_InitString ((char *) m, _m_high), (unsigned char *) s, _s_high);
 }
@@ -786,9 +840,9 @@ void mcMetaError_metaErrorT2 (unsigned int tok, char *m_, unsigned int _m_high, 
   unsigned char s2[_s2_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (m, m_, _m_high);
-  memcpy (s1, s1_, _s1_high);
-  memcpy (s2, s2_, _s2_high);
+  memcpy (m, m_, _m_high+1);
+  memcpy (s1, s1_, _s1_high+1);
+  memcpy (s2, s2_, _s2_high+1);
 
   mcMetaError_metaErrorStringT2 (tok, DynamicStrings_InitString ((char *) m, _m_high), (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high);
 }
@@ -801,10 +855,10 @@ void mcMetaError_metaErrorT3 (unsigned int tok, char *m_, unsigned int _m_high, 
   unsigned char s3[_s3_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (m, m_, _m_high);
-  memcpy (s1, s1_, _s1_high);
-  memcpy (s2, s2_, _s2_high);
-  memcpy (s3, s3_, _s3_high);
+  memcpy (m, m_, _m_high+1);
+  memcpy (s1, s1_, _s1_high+1);
+  memcpy (s2, s2_, _s2_high+1);
+  memcpy (s3, s3_, _s3_high+1);
 
   mcMetaError_metaErrorStringT3 (tok, DynamicStrings_InitString ((char *) m, _m_high), (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high);
 }
@@ -818,11 +872,11 @@ void mcMetaError_metaErrorT4 (unsigned int tok, char *m_, unsigned int _m_high, 
   unsigned char s4[_s4_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (m, m_, _m_high);
-  memcpy (s1, s1_, _s1_high);
-  memcpy (s2, s2_, _s2_high);
-  memcpy (s3, s3_, _s3_high);
-  memcpy (s4, s4_, _s4_high);
+  memcpy (m, m_, _m_high+1);
+  memcpy (s1, s1_, _s1_high+1);
+  memcpy (s2, s2_, _s2_high+1);
+  memcpy (s3, s3_, _s3_high+1);
+  memcpy (s4, s4_, _s4_high+1);
 
   mcMetaError_metaErrorStringT4 (tok, DynamicStrings_InitString ((char *) m, _m_high), (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high, (unsigned char *) s4, _s4_high);
 }
@@ -835,9 +889,9 @@ void mcMetaError_metaErrorsT1 (unsigned int tok, char *m1_, unsigned int _m1_hig
   unsigned char s[_s_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (m1, m1_, _m1_high);
-  memcpy (m2, m2_, _m2_high);
-  memcpy (s, s_, _s_high);
+  memcpy (m1, m1_, _m1_high+1);
+  memcpy (m2, m2_, _m2_high+1);
+  memcpy (s, s_, _s_high+1);
 
   sym = varargs_start1 ((unsigned char *) s, _s_high);
   wrapErrors (tok, (char *) m1, _m1_high, (char *) m2, _m2_high, sym);
@@ -853,10 +907,10 @@ void mcMetaError_metaErrorsT2 (unsigned int tok, char *m1_, unsigned int _m1_hig
   unsigned char s2[_s2_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (m1, m1_, _m1_high);
-  memcpy (m2, m2_, _m2_high);
-  memcpy (s1, s1_, _s1_high);
-  memcpy (s2, s2_, _s2_high);
+  memcpy (m1, m1_, _m1_high+1);
+  memcpy (m2, m2_, _m2_high+1);
+  memcpy (s1, s1_, _s1_high+1);
+  memcpy (s2, s2_, _s2_high+1);
 
   sym = varargs_start2 ((unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high);
   wrapErrors (tok, (char *) m1, _m1_high, (char *) m2, _m2_high, sym);
@@ -873,11 +927,11 @@ void mcMetaError_metaErrorsT3 (unsigned int tok, char *m1_, unsigned int _m1_hig
   unsigned char s3[_s3_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (m1, m1_, _m1_high);
-  memcpy (m2, m2_, _m2_high);
-  memcpy (s1, s1_, _s1_high);
-  memcpy (s2, s2_, _s2_high);
-  memcpy (s3, s3_, _s3_high);
+  memcpy (m1, m1_, _m1_high+1);
+  memcpy (m2, m2_, _m2_high+1);
+  memcpy (s1, s1_, _s1_high+1);
+  memcpy (s2, s2_, _s2_high+1);
+  memcpy (s3, s3_, _s3_high+1);
 
   sym = varargs_start3 ((unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high);
   wrapErrors (tok, (char *) m1, _m1_high, (char *) m2, _m2_high, sym);
@@ -895,12 +949,12 @@ void mcMetaError_metaErrorsT4 (unsigned int tok, char *m1_, unsigned int _m1_hig
   unsigned char s4[_s4_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (m1, m1_, _m1_high);
-  memcpy (m2, m2_, _m2_high);
-  memcpy (s1, s1_, _s1_high);
-  memcpy (s2, s2_, _s2_high);
-  memcpy (s3, s3_, _s3_high);
-  memcpy (s4, s4_, _s4_high);
+  memcpy (m1, m1_, _m1_high+1);
+  memcpy (m2, m2_, _m2_high+1);
+  memcpy (s1, s1_, _s1_high+1);
+  memcpy (s2, s2_, _s2_high+1);
+  memcpy (s3, s3_, _s3_high+1);
+  memcpy (s4, s4_, _s4_high+1);
 
   sym = varargs_start4 ((unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high, (unsigned char *) s4, _s4_high);
   wrapErrors (tok, (char *) m1, _m1_high, (char *) m2, _m2_high, sym);
@@ -912,7 +966,7 @@ void mcMetaError_metaErrorString1 (DynamicStrings_String m, unsigned char *s_, u
   unsigned char s[_s_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (s, s_, _s_high);
+  memcpy (s, s_, _s_high+1);
 
   mcMetaError_metaErrorStringT1 (mcLexBuf_getTokenNo (), m, (unsigned char *) s, _s_high);
 }
@@ -923,8 +977,8 @@ void mcMetaError_metaErrorString2 (DynamicStrings_String m, unsigned char *s1_, 
   unsigned char s2[_s2_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (s1, s1_, _s1_high);
-  memcpy (s2, s2_, _s2_high);
+  memcpy (s1, s1_, _s1_high+1);
+  memcpy (s2, s2_, _s2_high+1);
 
   mcMetaError_metaErrorStringT2 (mcLexBuf_getTokenNo (), m, (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high);
 }
@@ -936,9 +990,9 @@ void mcMetaError_metaErrorString3 (DynamicStrings_String m, unsigned char *s1_, 
   unsigned char s3[_s3_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (s1, s1_, _s1_high);
-  memcpy (s2, s2_, _s2_high);
-  memcpy (s3, s3_, _s3_high);
+  memcpy (s1, s1_, _s1_high+1);
+  memcpy (s2, s2_, _s2_high+1);
+  memcpy (s3, s3_, _s3_high+1);
 
   mcMetaError_metaErrorStringT3 (mcLexBuf_getTokenNo (), m, (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high);
 }
@@ -951,10 +1005,10 @@ void mcMetaError_metaErrorString4 (DynamicStrings_String m, unsigned char *s1_, 
   unsigned char s4[_s4_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (s1, s1_, _s1_high);
-  memcpy (s2, s2_, _s2_high);
-  memcpy (s3, s3_, _s3_high);
-  memcpy (s4, s4_, _s4_high);
+  memcpy (s1, s1_, _s1_high+1);
+  memcpy (s2, s2_, _s2_high+1);
+  memcpy (s3, s3_, _s3_high+1);
+  memcpy (s4, s4_, _s4_high+1);
 
   mcMetaError_metaErrorStringT4 (mcLexBuf_getTokenNo (), m, (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high, (unsigned char *) s4, _s4_high);
 }
@@ -968,7 +1022,7 @@ void mcMetaError_metaErrorStringT1 (unsigned int tok, DynamicStrings_String m, u
   unsigned char s[_s_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (s, s_, _s_high);
+  memcpy (s, s_, _s_high+1);
 
   e = NULL;
   sym = varargs_start1 ((unsigned char *) s, _s_high);
@@ -989,8 +1043,8 @@ void mcMetaError_metaErrorStringT2 (unsigned int tok, DynamicStrings_String m, u
   unsigned char s2[_s2_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (s1, s1_, _s1_high);
-  memcpy (s2, s2_, _s2_high);
+  memcpy (s1, s1_, _s1_high+1);
+  memcpy (s2, s2_, _s2_high+1);
 
   e = NULL;
   sym = varargs_start2 ((unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high);
@@ -1012,9 +1066,9 @@ void mcMetaError_metaErrorStringT3 (unsigned int tok, DynamicStrings_String m, u
   unsigned char s3[_s3_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (s1, s1_, _s1_high);
-  memcpy (s2, s2_, _s2_high);
-  memcpy (s3, s3_, _s3_high);
+  memcpy (s1, s1_, _s1_high+1);
+  memcpy (s2, s2_, _s2_high+1);
+  memcpy (s3, s3_, _s3_high+1);
 
   e = NULL;
   sym = varargs_start3 ((unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high);
@@ -1037,10 +1091,10 @@ void mcMetaError_metaErrorStringT4 (unsigned int tok, DynamicStrings_String m, u
   unsigned char s4[_s4_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (s1, s1_, _s1_high);
-  memcpy (s2, s2_, _s2_high);
-  memcpy (s3, s3_, _s3_high);
-  memcpy (s4, s4_, _s4_high);
+  memcpy (s1, s1_, _s1_high+1);
+  memcpy (s2, s2_, _s2_high+1);
+  memcpy (s3, s3_, _s3_high+1);
+  memcpy (s4, s4_, _s4_high+1);
 
   e = NULL;
   sym = varargs_start4 ((unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high, (unsigned char *) s4, _s4_high);
@@ -1052,5 +1106,9 @@ void mcMetaError_metaErrorStringT4 (unsigned int tok, DynamicStrings_String m, u
 }
 
 void _M2_mcMetaError_init (int argc, char *argv[])
+{
+}
+
+void _M2_mcMetaError_finish (int argc, char *argv[])
 {
 }

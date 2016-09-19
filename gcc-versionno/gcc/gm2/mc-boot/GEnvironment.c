@@ -27,7 +27,7 @@ unsigned int Environment_GetEnvironment (char *Env_, unsigned int _Env_high, cha
   char Env[_Env_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (Env, Env_, _Env_high);
+  memcpy (Env, Env_, _Env_high+1);
 
   i = 0;
   High = _a_high;
@@ -44,5 +44,9 @@ unsigned int Environment_GetEnvironment (char *Env_, unsigned int _Env_high, cha
 }
 
 void _M2_Environment_init (int argc, char *argv[])
+{
+}
+
+void _M2_Environment_finish (int argc, char *argv[])
 {
 }

@@ -195,7 +195,7 @@ void mcPretty_print (mcPretty_pretty p, char *a_, unsigned int _a_high)
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
-  memcpy (a, a_, _a_high);
+  memcpy (a, a_, _a_high+1);
 
   s = DynamicStrings_InitString ((char *) a, _a_high);
   mcPretty_prints (p, s);
@@ -252,5 +252,9 @@ void mcPretty_raw (mcPretty_pretty p, DynamicStrings_String s)
 }
 
 void _M2_mcPretty_init (int argc, char *argv[])
+{
+}
+
+void _M2_mcPretty_finish (int argc, char *argv[])
 {
 }
