@@ -10,6 +10,7 @@
 #define _Assertion_C
 
 #   include "GStrIO.h"
+#   include "GM2RTS.h"
 
 void Assertion_Assert (unsigned int Condition);
 

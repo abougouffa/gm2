@@ -499,7 +499,7 @@ static void StringFormat1 (char *dest, unsigned int _dest_high, char *src_, unsi
   if ((((i+1) < HighSrc) && (src[i] == '%')) && (j < HighDest))
     if (src[i+1] == 's')
       {
-        Cast ((unsigned char *) &p, sizeof (p), (unsigned char *) w, _w_high);
+        Cast ((unsigned char *) &p, (sizeof (p)-1), (unsigned char *) w, _w_high);
         while ((j < HighDest) && ((*p) != ASCII_nul))
           {
             dest[j] = (*p);
@@ -514,7 +514,7 @@ static void StringFormat1 (char *dest, unsigned int _dest_high, char *src_, unsi
     else if (src[i+1] == 'd')
       {
         dest[j] = ASCII_nul;
-        Cast ((unsigned char *) &c, sizeof (c), (unsigned char *) w, _w_high);
+        Cast ((unsigned char *) &c, (sizeof (c)-1), (unsigned char *) w, _w_high);
         NumberIO_CardToStr (c, 0, (char *) &str.array[0], MaxErrorString);
         StrLib_StrConCat ((char *) dest, _dest_high, (char *) &str.array[0], MaxErrorString, (char *) dest, _dest_high);
         j = StrLib_StrLen ((char *) dest, _dest_high);
@@ -601,28 +601,28 @@ static void CheckAccess (FIO_File f, FileUsage use, unsigned int towrite)
       else
         if ((use == openedforwrite) && (fd->usage == openedforread))
           {
-            FormatError1 ((char *) "this file (%s) has been opened for reading but is now being written\\n", 69, (unsigned char *) &fd->name.address, sizeof (fd->name.address));
+            FormatError1 ((char *) "this file (%s) has been opened for reading but is now being written\\n", 69, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
             M2RTS_HALT (0);
           }
         else if ((use == openedforread) && (fd->usage == openedforwrite))
           {
-            FormatError1 ((char *) "this file (%s) has been opened for writing but is now being read\\n", 66, (unsigned char *) &fd->name.address, sizeof (fd->name.address));
+            FormatError1 ((char *) "this file (%s) has been opened for writing but is now being read\\n", 66, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
             M2RTS_HALT (0);
           }
         else if (fd->state == connectionfailure)
           {
-            FormatError1 ((char *) "this file (%s) was not successfully opened\\n", 44, (unsigned char *) &fd->name.address, sizeof (fd->name.address));
+            FormatError1 ((char *) "this file (%s) was not successfully opened\\n", 44, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
             M2RTS_HALT (0);
           }
         else if (towrite != fd->output)
           if (fd->output)
             {
-              FormatError1 ((char *) "this file (%s) was opened for writing but is now being read\\n", 61, (unsigned char *) &fd->name.address, sizeof (fd->name.address));
+              FormatError1 ((char *) "this file (%s) was opened for writing but is now being read\\n", 61, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
               M2RTS_HALT (0);
             }
           else
             {
-              FormatError1 ((char *) "this file (%s) was opened for reading but is now being written\\n", 64, (unsigned char *) &fd->name.address, sizeof (fd->name.address));
+              FormatError1 ((char *) "this file (%s) was opened for reading but is now being written\\n", 64, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
               M2RTS_HALT (0);
             }
     }
@@ -817,7 +817,7 @@ void FIO_Close (FIO_File f)
           if (fd->unixfd >= 0)
             if ((libc_close (fd->unixfd)) != 0)
               {
-                FormatError1 ((char *) "failed to close file (%s)\\n", 27, (unsigned char *) &fd->name.address, sizeof (fd->name.address));
+                FormatError1 ((char *) "failed to close file (%s)\\n", 27, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
                 fd->state = failed;
               }
           if (fd->name.address != NULL)
@@ -1087,7 +1087,7 @@ void FIO_UnReadChar (FIO_File f, char ch)
               }
             else
               if (fd->buffer->filled == fd->buffer->size)
-                FormatError1 ((char *) "performing too many UnReadChar calls on file (%d)\\n", 51, (unsigned char *) &f, sizeof (f));
+                FormatError1 ((char *) "performing too many UnReadChar calls on file (%d)\\n", 51, (unsigned char *) &f, (sizeof (f)-1));
               else
                 {
                   n = fd->buffer->filled-fd->buffer->position;
@@ -1100,7 +1100,7 @@ void FIO_UnReadChar (FIO_File f, char ch)
           }
       }
       else
-        FormatError1 ((char *) "UnReadChar can only be called if the previous read was successful or end of file, error on file (%d)\\n", 102, (unsigned char *) &f, sizeof (f));
+        FormatError1 ((char *) "UnReadChar can only be called if the previous read was successful or end of file, error on file (%d)\\n", 102, (unsigned char *) &f, (sizeof (f)-1));
     }
 }
 
@@ -1149,14 +1149,14 @@ void FIO_ReadString (FIO_File f, char *a, unsigned int _a_high)
 
 void FIO_WriteCardinal (FIO_File f, unsigned int c)
 {
-  FIO_WriteAny (f, (unsigned char *) &c, sizeof (c));
+  FIO_WriteAny (f, (unsigned char *) &c, (sizeof (c)-1));
 }
 
 unsigned int FIO_ReadCardinal (FIO_File f)
 {
   unsigned int c;
 
-  FIO_ReadAny (f, (unsigned char *) &c, sizeof (c));
+  FIO_ReadAny (f, (unsigned char *) &c, (sizeof (c)-1));
   return c;
 }
 
@@ -1170,7 +1170,7 @@ int FIO_GetUnixFileDescriptor (FIO_File f)
       if (fd != NULL)
         return fd->unixfd;
     }
-  FormatError1 ((char *) "file %d has not been opened or is out of range\\n", 48, (unsigned char *) &f, sizeof (f));
+  FormatError1 ((char *) "file %d has not been opened or is out of range\\n", 48, (unsigned char *) &f, (sizeof (f)-1));
   return -1;
 }
 

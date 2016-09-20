@@ -13,6 +13,7 @@
 
 #   include "GStorage.h"
 #   include "GIndexing.h"
+#   include "GM2RTS.h"
 
 typedef struct _T1_r _T1;
 

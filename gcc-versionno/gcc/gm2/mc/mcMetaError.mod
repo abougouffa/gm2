@@ -238,8 +238,11 @@ BEGIN
       THEN
          quotes := FALSE ;
          RETURN ConCat (o, Mark (InitString ('the RType')))
+      ELSIF getSymName (n) # NulName
+      THEN
+         RETURN ConCat (o, InitStringCharStar (keyToCharStar (getSymName (n))))
       ELSE
-         RETURN doAscii (bol, sym, o)
+         RETURN o
       END
    END
 END doName ;

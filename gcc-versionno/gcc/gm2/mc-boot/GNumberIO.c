@@ -23,6 +23,7 @@
 #   include "GASCII.h"
 #   include "GStrIO.h"
 #   include "GStrLib.h"
+#   include "GM2RTS.h"
 
 #   define MaxLineLength 79
 #   define MaxDigits 20

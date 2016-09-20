@@ -30,6 +30,7 @@
 #   include "GStrLib.h"
 #   include "Glibc.h"
 #   include "GASCII.h"
+#   include "GM2RTS.h"
 
 #   define nameKey_NulName 0
 typedef unsigned int nameKey_Name;

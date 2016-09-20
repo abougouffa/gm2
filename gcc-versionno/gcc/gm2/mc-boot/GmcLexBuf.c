@@ -29,6 +29,7 @@
 #   include "GmcReserved.h"
 #   include "GmcPrintf.h"
 #   include "GmcDebug.h"
+#   include "GM2RTS.h"
 
 int mcLexBuf_currentinteger;
 unsigned int mcLexBuf_currentcolumn;
@@ -211,7 +212,7 @@ static void killList (void)
 static void displayToken (void)
 {
   if (mcLexBuf_currenttoken == mcReserved_identtok)
-    mcPrintf_printf1 ((char *) "currenttoken = %a\\n", 19, (unsigned char *) &mcLexBuf_currentstring, sizeof (mcLexBuf_currentstring));
+    mcPrintf_printf1 ((char *) "currenttoken = %a\\n", 19, (unsigned char *) &mcLexBuf_currentstring, (sizeof (mcLexBuf_currentstring)-1));
   else
     switch (mcLexBuf_currenttoken)
       {
@@ -548,7 +549,7 @@ static void updateFromBucket (tokenBucket b, unsigned int offset)
   mcLexBuf_currentcolumn = b->buf.array[offset].col;
   mcLexBuf_currentinteger = b->buf.array[offset].int_;
   if (Debugging)
-    mcPrintf_printf3 ((char *) "line %d (# %d  %d) ", 19, (unsigned char *) &b->buf.array[offset].line, sizeof (b->buf.array[offset].line), (unsigned char *) &offset, sizeof (offset), (unsigned char *) &currentTokNo, sizeof (currentTokNo));
+    mcPrintf_printf3 ((char *) "line %d (# %d  %d) ", 19, (unsigned char *) &b->buf.array[offset].line, (sizeof (b->buf.array[offset].line)-1), (unsigned char *) &offset, (sizeof (offset)-1), (unsigned char *) &currentTokNo, (sizeof (currentTokNo)-1));
 }
 
 static void syncOpenWithBuffer (void)
@@ -880,7 +881,7 @@ void mcLexBuf_addTokInteger (mcReserved_toktype t, int i)
 
   l = mcflex_getLineNo ();
   c = mcflex_getColumnNo ();
-  s = FormatStrings_Sprintf1 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) "%d", 2)), (unsigned char *) &i, sizeof (i));
+  s = FormatStrings_Sprintf1 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) "%d", 2)), (unsigned char *) &i, (sizeof (i)-1));
   addTokToList (t, nameKey_makekey (DynamicStrings_string (s)), i, l, c, currentSource);
   s = DynamicStrings_KillString (s);
   currentUsed = TRUE;
@@ -905,7 +906,7 @@ void mcLexBuf_pushFile (void * filename)
       {
         l = currentSource;
         do {
-          mcPrintf_printf3 ((char *) "name = %s, line = %d, col = %d\\n", 32, (unsigned char *) &l->name, sizeof (l->name), (unsigned char *) &l->line, sizeof (l->line), (unsigned char *) &l->col, sizeof (l->col));
+          mcPrintf_printf3 ((char *) "name = %s, line = %d, col = %d\\n", 32, (unsigned char *) &l->name, (sizeof (l->name)-1), (unsigned char *) &l->line, (sizeof (l->line)-1), (unsigned char *) &l->col, (sizeof (l->col)-1));
           l = l->right;
         } while (! (l == currentSource));
       }

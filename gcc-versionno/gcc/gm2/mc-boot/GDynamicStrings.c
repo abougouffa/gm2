@@ -27,6 +27,7 @@
 #   include "GAssertion.h"
 #   include "GSYSTEM.h"
 #   include "GASCII.h"
+#   include "GM2RTS.h"
 
 #   define MaxBuf 127
 #   define PoisonOn FALSE

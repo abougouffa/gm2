@@ -331,7 +331,7 @@ BEGIN
    j := LowIndice (i) ;
    q := p ;
    WHILE j <= HighIndice (i) DO
-      (* assert (q = p) ; *)
+      assert (q = p) ;
       p (GetIndice (i, j)) ;
       INC (j)
    END

@@ -16,6 +16,7 @@
 #   include "GStorage.h"
 #   include "Glibc.h"
 #   include "GSYSTEM.h"
+#   include "GM2RTS.h"
 
 #   define MaxArg 4
 typedef struct argDesc_r argDesc;

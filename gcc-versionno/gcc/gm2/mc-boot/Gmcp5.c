@@ -431,12 +431,12 @@ static void importInto (decl_node m, nameKey_Name name, decl_node current)
   mcDebug_assert (((decl_isDef (current)) || (decl_isModule (current))) || (decl_isImp (current)));
   s = decl_lookupExported (m, name);
   if (s == NULL)
-    mcMetaError_metaError2 ((char *) "{%1k} was not exported from definition module {%2a}", 51, (unsigned char *) &name, sizeof (name), (unsigned char *) &m, sizeof (m));
+    mcMetaError_metaError2 ((char *) "{%1k} was not exported from definition module {%2a}", 51, (unsigned char *) &name, (sizeof (name)-1), (unsigned char *) &m, (sizeof (m)-1));
   else
     {
       o = decl_import (current, s);
       if (s != o)
-        mcMetaError_metaError2 ((char *) "{%1ad} cannot be imported into the current module as it causes a name clash with {%2ad}", 87, (unsigned char *) &s, sizeof (s), (unsigned char *) &o, sizeof (o));
+        mcMetaError_metaError2 ((char *) "{%1ad} cannot be imported into the current module as it causes a name clash with {%2ad}", 87, (unsigned char *) &s, (sizeof (s)-1), (unsigned char *) &o, (sizeof (o)-1));
     }
 }
 
@@ -2139,12 +2139,12 @@ static void SubDesignator (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
         {
           field = decl_lookupInScope (type, curident);
           if (field == NULL)
-            mcMetaError_metaError2 ((char *) "field {%1k} cannot be found in record {%2ad}", 44, (unsigned char *) &curident, sizeof (curident), (unsigned char *) &type, sizeof (type));
+            mcMetaError_metaError2 ((char *) "field {%1k} cannot be found in record {%2ad}", 44, (unsigned char *) &curident, (sizeof (curident)-1), (unsigned char *) &type, (sizeof (type)-1));
           else
             n = replace (decl_makeComponentRef (n, field));
         }
       else
-        mcMetaError_metaError2 ((char *) "attempting to access a field {%1k} from {%2ad} which does not have a record type", 80, (unsigned char *) &curident, sizeof (curident), (unsigned char *) &type, sizeof (type));
+        mcMetaError_metaError2 ((char *) "attempting to access a field {%1k} from {%2ad} which does not have a record type", 80, (unsigned char *) &curident, (sizeof (curident)-1), (unsigned char *) &type, (sizeof (type)-1));
     }
   else if (mcLexBuf_currenttoken == mcReserved_lsbratok)
     {
@@ -2153,7 +2153,7 @@ static void SubDesignator (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
       if (decl_isArray (type))
         n = replace (decl_makeArrayRef (n, pop ()));
       else
-        mcMetaError_metaError1 ((char *) "attempting to access an array but the expression is not an array but a {%1d}", 76, (unsigned char *) &type, sizeof (type));
+        mcMetaError_metaError1 ((char *) "attempting to access an array but the expression is not an array but a {%1d}", 76, (unsigned char *) &type, (sizeof (type)-1));
       Expect ((mcReserved_toktype) mcReserved_rsbratok, stopset0, stopset1, stopset2);
     }
   else if (mcLexBuf_currenttoken == mcReserved_uparrowtok)
@@ -2182,21 +2182,21 @@ static void SubPointer (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
             {
               field = decl_lookupInScope (type, curident);
               if (field == NULL)
-                mcMetaError_metaError2 ((char *) "field {%1k} cannot be found in record {%2ad}", 44, (unsigned char *) &curident, sizeof (curident), (unsigned char *) &type, sizeof (type));
+                mcMetaError_metaError2 ((char *) "field {%1k} cannot be found in record {%2ad}", 44, (unsigned char *) &curident, (sizeof (curident)-1), (unsigned char *) &type, (sizeof (type)-1));
               else
                 n = replace (decl_makePointerRef (n, field));
             }
           else
-            mcMetaError_metaError2 ((char *) "attempting to access a field {%1k} from {%2ad} which does not have a record type", 80, (unsigned char *) &curident, sizeof (curident), (unsigned char *) &type, sizeof (type));
+            mcMetaError_metaError2 ((char *) "attempting to access a field {%1k} from {%2ad} which does not have a record type", 80, (unsigned char *) &curident, (sizeof (curident)-1), (unsigned char *) &type, (sizeof (type)-1));
         }
       else
-        mcMetaError_metaError2 ((char *) "trying to dereference {%1k} which was not declared as a pointer but a {%2tad}", 77, (unsigned char *) &n, sizeof (n), (unsigned char *) &n, sizeof (n));
+        mcMetaError_metaError2 ((char *) "trying to dereference {%1k} which was not declared as a pointer but a {%2tad}", 77, (unsigned char *) &n, (sizeof (n)-1), (unsigned char *) &n, (sizeof (n)-1));
     }
   else
     if (decl_isPointer (type))
       n = replace (decl_makeDeRef (n));
     else
-      mcMetaError_metaError1 ((char *) "attempting to dereference a pointer but the expression is not a pointer but a {%1d}", 83, (unsigned char *) &type, sizeof (type));
+      mcMetaError_metaError1 ((char *) "attempting to dereference a pointer but the expression is not a pointer but a {%1d}", 83, (unsigned char *) &type, (sizeof (type)-1));
 }
 
 static void ArrayExpList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
@@ -3223,7 +3223,7 @@ static void PushQualident (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
   Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok))), stopset1, stopset2);
   qualid = push (lookupWithSym (curident));
   if (qualid == NULL)
-    mcMetaError_metaError1 ((char *) "the symbol {%1k} is not visible in this scope (or any other nested scope)", 73, (unsigned char *) &curident, sizeof (curident));
+    mcMetaError_metaError1 ((char *) "the symbol {%1k} is not visible in this scope (or any other nested scope)", 73, (unsigned char *) &curident, (sizeof (curident)-1));
   if (mcLexBuf_currenttoken == mcReserved_periodtok)
     {
       Expect ((mcReserved_toktype) mcReserved_periodtok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
@@ -3237,12 +3237,12 @@ static void PushQualident (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
           type = decl_skipType (decl_getType (qualid));
           field = decl_lookupInScope (type, curident);
           if (field == NULL)
-            mcMetaError_metaError2 ((char *) "field {%1k} cannot be found in {%2ad}", 37, (unsigned char *) &curident, sizeof (curident), (unsigned char *) &qualid, sizeof (qualid));
+            mcMetaError_metaError2 ((char *) "field {%1k} cannot be found in {%2ad}", 37, (unsigned char *) &curident, (sizeof (curident)-1), (unsigned char *) &qualid, (sizeof (qualid)-1));
           else
             qualid = replace (decl_makeComponentRef (qualid, field));
         }
       if (qualid == NULL)
-        mcMetaError_metaError1 ((char *) "qualified component of the identifier {%1k} cannot be found", 59, (unsigned char *) &curident, sizeof (curident));
+        mcMetaError_metaError1 ((char *) "qualified component of the identifier {%1k} cannot be found", 59, (unsigned char *) &curident, (sizeof (curident)-1));
     }
 }
 

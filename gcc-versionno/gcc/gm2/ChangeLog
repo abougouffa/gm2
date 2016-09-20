@@ -1,3 +1,43 @@
+2016-09-20      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  removed all references to p2c.
+          Use mc to build gm2 rather than p2c and replaced
+          rules.  Also modified the list of the library modules
+          required during bootstrapping gm2.  Many changes
+	to all bootstrap rules.
+	* gm2/gm2-libs-boot/SYSTEM.def:  removed file.
+	* gm2/mc-boot/GAssertion.c:  rebuilt.
+	* gm2/mc-boot/GDebug.c:  rebuilt.
+	* gm2/mc-boot/GDynamicStrings.c:  rebuilt.
+	* gm2/mc-boot/GDynamicStrings.c:  rebuilt.
+	* gm2/mc-boot/GFIO.c:  rebuilt.
+	* gm2/mc-boot/GFormatStrings.c:  rebuilt.
+	* gm2/mc-boot/GIndexing.c:  rebuilt.
+	* gm2/mc-boot/GNumberIO.c:  rebuilt.
+	* gm2/mc-boot/GStdIO.c:  rebuilt.
+	* gm2/mc-boot/Gdecl.c:  rebuilt.
+	* gm2/mc-boot/Gkeyc.c:  rebuilt.
+	* gm2/mc-boot/GmcComp.c:  rebuilt.
+	* gm2/mc-boot/GmcError.c:  rebuilt.
+	* gm2/mc-boot/GmcLexBuf.c:  rebuilt.
+	* gm2/mc-boot/GmcMetaError.c:  rebuilt.
+	* gm2/mc-boot/GmcPreprocess.c:  rebuilt.
+	* gm2/mc-boot/GmcPrintf.c:  rebuilt.
+	* gm2/mc-boot/GmcStack.c:  rebuilt.
+	* gm2/mc-boot/GmcStream.c:  rebuilt.
+	* gm2/mc-boot/Gmcp1.c:  rebuilt.
+	* gm2/mc-boot/Gmcp2.c:  rebuilt.
+	* gm2/mc-boot/Gmcp3.c:  rebuilt.
+	* gm2/mc-boot/Gmcp4.c:  rebuilt.
+	* gm2/mc-boot/Gmcp5.c:  rebuilt.
+	* gm2/mc-boot/GnameKey.c:  rebuilt.
+	* gm2/mc-boot/Gvarargs.c:  rebuilt.
+	* gm2/mc/Indexing.mod:  added assert.
+	* gm2/mc/decl.mod:  fixed bug to allow comparison
+	  of proctypes.
+	* gm2/mc/mcMetaError.mod:  fixed bug to allow nameless
+	  symbols to unalter the error string.
+
 2016-09-19      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  many new rules to deal with the

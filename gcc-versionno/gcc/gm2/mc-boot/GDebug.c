@@ -15,6 +15,7 @@
 #   include "GNumberIO.h"
 #   include "GStdIO.h"
 #   include "Glibc.h"
+#   include "GM2RTS.h"
 
 #   define MaxNoOfDigits 12
 void Debug_Halt (char *Message_, unsigned int _Message_high, unsigned int LineNo, char *Module_, unsigned int _Module_high);

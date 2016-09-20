@@ -3302,6 +3302,12 @@ VAR
    f: node ;
 BEGIN
    assert ((n=NIL) OR isExpList (n)) ;
+   IF (c = haltN) AND
+      (getMainModule () # lookupDef (makeKey ('M2RTS'))) AND
+      (getMainModule () # lookupImp (makeKey ('M2RTS')))
+   THEN
+      addImportedModule (getMainModule (), lookupDef (makeKey ('M2RTS')), FALSE)
+   END ;
    IF isAnyType (c)
    THEN
       RETURN makeCast (c, n)
@@ -5141,19 +5147,19 @@ BEGIN
    THEN
       CASE op OF
 
-      plus   :  doBinary (p, '|', left, right, l, r) |
+      plus   :  doBinary (p, '|', left, right, l, r, FALSE) |
       sub    :  doSetSub (p, left, right) |
-      mult   :  doBinary (p, '&', left, right, l, r) |
-      divide :  doBinary (p, '^', left, right, l, r)
+      mult   :  doBinary (p, '&', left, right, l, r, FALSE) |
+      divide :  doBinary (p, '^', left, right, l, r, FALSE)
 
       END
    ELSE
       CASE op OF
 
-      plus   :  doBinary (p, '+', left, right, l, r) |
-      sub    :  doBinary (p, '-', left, right, l, r) |
-      mult   :  doBinary (p, '*', left, right, l, r) |
-      divide :  doBinary (p, '/', left, right, l, r)
+      plus   :  doBinary (p, '+', left, right, l, r, FALSE) |
+      sub    :  doBinary (p, '-', left, right, l, r, FALSE) |
+      mult   :  doBinary (p, '*', left, right, l, r, FALSE) |
+      divide :  doBinary (p, '/', left, right, l, r, FALSE)
 
       END
    END
@@ -5164,15 +5170,15 @@ END doPolyBinary ;
    doBinary -
 *)
 
-PROCEDURE doBinary (p: pretty; op: ARRAY OF CHAR; left, right: node; l, r: BOOLEAN) ;
+PROCEDURE doBinary (p: pretty; op: ARRAY OF CHAR; left, right: node; l, r, unpackProc: BOOLEAN) ;
 BEGIN
    IF needsParen (left)
    THEN
       outText (p, '(') ;
-      doExprC (p, left) ;
+      doExprCup (p, left, unpackProc) ;
       outText (p, ')')
    ELSE
-      doExprC (p, left)
+      doExprCup (p, left, unpackProc)
    END ;
    IF l
    THEN
@@ -5186,10 +5192,10 @@ BEGIN
    IF needsParen (right)
    THEN
       outText (p, '(') ;
-      doExprC (p, right) ;
+      doExprCup (p, right, unpackProc) ;
       outText (p, ')')
    ELSE
-      doExprC (p, right)
+      doExprCup (p, right, unpackProc)
    END
 END doBinary ;
 
@@ -5649,25 +5655,25 @@ BEGIN
       chr             :  doUnary (p, 'CHR', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       high            :  doUnary (p, 'HIGH', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       deref           :  doDeRefC (p, unaryF.arg) |
-      equal           :  doBinary (p, '==', binaryF.left, binaryF.right, TRUE, TRUE) |
-      notequal        :  doBinary (p, '!=', binaryF.left, binaryF.right, TRUE, TRUE) |
-      less            :  doBinary (p, '<', binaryF.left, binaryF.right, TRUE, TRUE) |
-      greater         :  doBinary (p, '>', binaryF.left, binaryF.right, TRUE, TRUE) |
-      greequal        :  doBinary (p, '>=', binaryF.left, binaryF.right, TRUE, TRUE) |
-      lessequal       :  doBinary (p, '<=', binaryF.left, binaryF.right, TRUE, TRUE) |
+      equal           :  doBinary (p, '==', binaryF.left, binaryF.right, TRUE, TRUE, TRUE) |
+      notequal        :  doBinary (p, '!=', binaryF.left, binaryF.right, TRUE, TRUE, TRUE) |
+      less            :  doBinary (p, '<', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
+      greater         :  doBinary (p, '>', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
+      greequal        :  doBinary (p, '>=', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
+      lessequal       :  doBinary (p, '<=', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
       componentref    :  doComponentRefC (p, componentrefF.rec, componentrefF.field) |
       pointerref      :  doPointerRefC (p, pointerrefF.ptr, pointerrefF.field) |
       cast            :  doCastC (p, binaryF.left, binaryF.right) |
       val             :  doPreBinary (p, 'VAL', binaryF.left, binaryF.right, TRUE, TRUE) |
       plus            :  doPolyBinary (p, plus, binaryF.left, binaryF.right, FALSE, FALSE) |
       sub             :  doPolyBinary (p, sub, binaryF.left, binaryF.right, FALSE, FALSE) |
-      div             :  doBinary (p, '/', binaryF.left, binaryF.right, TRUE, TRUE) |
-      mod             :  doBinary (p, '%', binaryF.left, binaryF.right, TRUE, TRUE) |
+      div             :  doBinary (p, '/', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
+      mod             :  doBinary (p, '%', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
       mult            :  doPolyBinary (p, mult, binaryF.left, binaryF.right, FALSE, FALSE) |
       divide          :  doPolyBinary (p, divide, binaryF.left, binaryF.right, FALSE, FALSE) |
       in              :  doInC (p, binaryF.left, binaryF.right) |
-      and             :  doBinary (p, '&&', binaryF.left, binaryF.right, TRUE, TRUE) |
-      or              :  doBinary (p, '||', binaryF.left, binaryF.right, TRUE, TRUE) |
+      and             :  doBinary (p, '&&', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
+      or              :  doBinary (p, '||', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
       literal         :  doLiteralC (p, n) |
       const           :  doConstExpr (p, n) |
       enumerationfield:  doEnumerationField (p, n) |
@@ -5706,6 +5712,26 @@ END doExprC ;
 
 
 (*
+   doExprCup -
+*)
+
+PROCEDURE doExprCup (p: pretty; n: node; unpackProc: BOOLEAN) ;
+VAR
+   t: node ;
+BEGIN
+   doExprC (p, n) ;
+   IF unpackProc
+   THEN
+      t := skipType (getExprType (n)) ;
+      IF (t = procN) OR isProcType (t)
+      THEN
+         outText (p, '.proc')
+      END
+   END
+END doExprCup ;
+
+
+(*
    doExprM2 -
 *)
 
@@ -5730,22 +5756,22 @@ BEGIN
       chr             :  doUnary (p, 'CHR', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       high            :  doUnary (p, 'HIGH', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       deref           :  doPostUnary (p, '^', unaryF.arg) |
-      equal           :  doBinary (p, '=', binaryF.left, binaryF.right, TRUE, TRUE) |
-      notequal        :  doBinary (p, '#', binaryF.left, binaryF.right, TRUE, TRUE) |
-      less            :  doBinary (p, '<', binaryF.left, binaryF.right, TRUE, TRUE) |
-      greater         :  doBinary (p, '>', binaryF.left, binaryF.right, TRUE, TRUE) |
-      greequal        :  doBinary (p, '>=', binaryF.left, binaryF.right, TRUE, TRUE) |
-      lessequal       :  doBinary (p, '<=', binaryF.left, binaryF.right, TRUE, TRUE) |
-      componentref    :  doBinary (p, '.', componentrefF.rec, componentrefF.field, FALSE, FALSE) |
-      pointerref      :  doBinary (p, '^.', pointerrefF.ptr, pointerrefF.field, FALSE, FALSE) |
+      equal           :  doBinary (p, '=', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
+      notequal        :  doBinary (p, '#', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
+      less            :  doBinary (p, '<', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
+      greater         :  doBinary (p, '>', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
+      greequal        :  doBinary (p, '>=', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
+      lessequal       :  doBinary (p, '<=', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
+      componentref    :  doBinary (p, '.', componentrefF.rec, componentrefF.field, FALSE, FALSE, FALSE) |
+      pointerref      :  doBinary (p, '^.', pointerrefF.ptr, pointerrefF.field, FALSE, FALSE, FALSE) |
       cast            :  doPreBinary (p, 'CAST', binaryF.left, binaryF.right, TRUE, TRUE) |
       val             :  doPreBinary (p, 'VAL', binaryF.left, binaryF.right, TRUE, TRUE) |
-      plus            :  doBinary (p, '+', binaryF.left, binaryF.right, FALSE, FALSE) |
-      sub             :  doBinary (p, '-', binaryF.left, binaryF.right, FALSE, FALSE) |
-      div             :  doBinary (p, 'DIV', binaryF.left, binaryF.right, TRUE, TRUE) |
-      mod             :  doBinary (p, 'MOD', binaryF.left, binaryF.right, TRUE, TRUE) |
-      mult            :  doBinary (p, '*', binaryF.left, binaryF.right, FALSE, FALSE) |
-      divide          :  doBinary (p, '/', binaryF.left, binaryF.right, FALSE, FALSE) |
+      plus            :  doBinary (p, '+', binaryF.left, binaryF.right, FALSE, FALSE, FALSE) |
+      sub             :  doBinary (p, '-', binaryF.left, binaryF.right, FALSE, FALSE, FALSE) |
+      div             :  doBinary (p, 'DIV', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
+      mod             :  doBinary (p, 'MOD', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
+      mult            :  doBinary (p, '*', binaryF.left, binaryF.right, FALSE, FALSE, FALSE) |
+      divide          :  doBinary (p, '/', binaryF.left, binaryF.right, FALSE, FALSE, FALSE) |
       literal         :  doLiteral (p, n) |
       const           :  doConstExpr (p, n) |
       enumerationfield:  doEnumerationField (p, n) |
@@ -5839,7 +5865,6 @@ BEGIN
    outTextS (p, s) ;
    s := KillString (s)
 END doLiteral ;
-
 
 
 (*
@@ -8251,7 +8276,7 @@ END doReturnC ;
 PROCEDURE doAssignmentC (p: pretty; s: node) ;
 BEGIN
    assert (isAssignment (s)) ;
-   doExprC (p, s^.assignmentF.des) ;
+   doExprCup (p, s^.assignmentF.des, isProcedure (s^.assignmentF.expr)) ;
    setNeedSpace (p) ;
    outText (p, "=") ;
    setNeedSpace (p) ;
@@ -8466,7 +8491,7 @@ VAR
 BEGIN
    IF isLiteral (a) AND (getType (a) = charN)
    THEN
-      outCard (p, 1)
+      outCard (p, 0)
    ELSIF isString (a)
    THEN
       outCard (p, a^.stringF.length-2)
@@ -8490,11 +8515,11 @@ BEGIN
       END
    ELSE
       (* output sizeof (a) in bytes for the high.  *)
-      outText (p, 'sizeof') ;
+      outText (p, '(sizeof') ;
       setNeedSpace (p) ;
       outText (p, '(') ;
       doExprC (p, a) ;
-      outText (p, ')')
+      outText (p, ')-1)')
    END
 END doFuncHighC ;
 

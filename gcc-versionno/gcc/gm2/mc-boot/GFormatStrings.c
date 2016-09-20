@@ -23,6 +23,7 @@
 #   include "GStringConvert.h"
 #   include "GASCII.h"
 #   include "GSYSTEM.h"
+#   include "GM2RTS.h"
 
 DynamicStrings_String FormatStrings_Sprintf0 (DynamicStrings_String s);
 DynamicStrings_String FormatStrings_Sprintf1 (DynamicStrings_String s, unsigned char *w_, unsigned int _w_high);
@@ -162,7 +163,7 @@ static DynamicStrings_String FormatString (DynamicStrings_String s, unsigned cha
             }
           else
             {
-              Cast ((unsigned char *) &p, sizeof (p), (unsigned char *) w, _w_high);
+              Cast ((unsigned char *) &p, (sizeof (p)-1), (unsigned char *) w, _w_high);
               p = DynamicStrings_Dup (p);
             }
           if ((width > 0) && (((int ) (DynamicStrings_Length (p))) < width))
@@ -174,17 +175,17 @@ static DynamicStrings_String FormatString (DynamicStrings_String s, unsigned cha
         }
       else if (ch == 'd')
         {
-          Cast ((unsigned char *) &c, sizeof (c), (unsigned char *) w, _w_high);
+          Cast ((unsigned char *) &c, (sizeof (c)-1), (unsigned char *) w, _w_high);
           s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), StringConvert_IntegerToString (c, (unsigned int ) width, leader, FALSE, 10, FALSE)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
         }
       else if (ch == 'x')
         {
-          Cast ((unsigned char *) &u, sizeof (u), (unsigned char *) w, _w_high);
+          Cast ((unsigned char *) &u, (sizeof (u)-1), (unsigned char *) w, _w_high);
           s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), StringConvert_CardinalToString (u, (unsigned int ) width, leader, 16, TRUE)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
         }
       else if (ch == 'u')
         {
-          Cast ((unsigned char *) &u, sizeof (u), (unsigned char *) w, _w_high);
+          Cast ((unsigned char *) &u, (sizeof (u)-1), (unsigned char *) w, _w_high);
           s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), StringConvert_CardinalToString (u, (unsigned int ) width, leader, 10, FALSE)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
         }
       else

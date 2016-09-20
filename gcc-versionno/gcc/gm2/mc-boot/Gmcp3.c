@@ -309,12 +309,12 @@ static void importInto (decl_node m, nameKey_Name name, decl_node current)
   mcDebug_assert (((decl_isDef (current)) || (decl_isModule (current))) || (decl_isImp (current)));
   s = decl_lookupExported (m, name);
   if (s == NULL)
-    mcMetaError_metaError2 ((char *) "{%1k} was not exported from definition module {%2a}", 51, (unsigned char *) &name, sizeof (name), (unsigned char *) &m, sizeof (m));
+    mcMetaError_metaError2 ((char *) "{%1k} was not exported from definition module {%2a}", 51, (unsigned char *) &name, (sizeof (name)-1), (unsigned char *) &m, (sizeof (m)-1));
   else
     {
       o = decl_import (current, s);
       if (s != o)
-        mcMetaError_metaError2 ((char *) "{%1ad} cannot be imported into the current module as it causes a name clash with {%2ad}", 87, (unsigned char *) &s, sizeof (s), (unsigned char *) &o, sizeof (o));
+        mcMetaError_metaError2 ((char *) "{%1ad} cannot be imported into the current module as it causes a name clash with {%2ad}", 87, (unsigned char *) &s, (sizeof (s)-1), (unsigned char *) &o, (sizeof (o)-1));
     }
 }
 
@@ -2985,7 +2985,7 @@ static void PushQualident (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
   Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok))), stopset1, stopset2);
   typeExp = push (decl_lookupSym (curident));
   if (typeExp == NULL)
-    mcMetaError_metaError1 ((char *) "the symbol {%1k} is not visible in this scope (or any other nested scope)", 73, (unsigned char *) &curident, sizeof (curident));
+    mcMetaError_metaError1 ((char *) "the symbol {%1k} is not visible in this scope (or any other nested scope)", 73, (unsigned char *) &curident, (sizeof (curident)-1));
   if (mcLexBuf_currenttoken == mcReserved_periodtok)
     {
       Expect ((mcReserved_toktype) mcReserved_periodtok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));

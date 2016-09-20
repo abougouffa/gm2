@@ -23,6 +23,7 @@
 #   include "GStorage.h"
 #   include "GSYSTEM.h"
 #   include "GmcDebug.h"
+#   include "GM2RTS.h"
 
 typedef struct Indexing_IndexProcedure_p Indexing_IndexProcedure;
 
@@ -239,6 +240,7 @@ void Indexing_ForeachIndiceInIndexDo (Indexing_Index i, Indexing_IndexProcedure 
   q = p;
   while (j <= (Indexing_HighIndice (i)))
     {
+      mcDebug_assert (q.proc == p.proc);
       (*p.proc) (Indexing_GetIndice (i, j));
       j += 1;
     }

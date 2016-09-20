@@ -28,6 +28,7 @@
 #   include "GStorage.h"
 #   include "Galists.h"
 #   include "GSFIO.h"
+#   include "GM2RTS.h"
 
 #   define maxBuffer 4096
 typedef FIO_File *ptrToFile;
@@ -68,7 +69,7 @@ static FIO_File createTemporaryFile (unsigned int id)
   FIO_File f;
 
   s = DynamicStrings_InitString ((char *) "/tmp/frag%d.frag", 16);
-  s = removeLater (FormatStrings_Sprintf1 (s, (unsigned char *) &id, sizeof (id)));
+  s = removeLater (FormatStrings_Sprintf1 (s, (unsigned char *) &id, (sizeof (id)-1)));
   f = SFIO_OpenToWrite (s);
   return f;
 }

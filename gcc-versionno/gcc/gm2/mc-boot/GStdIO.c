@@ -10,6 +10,7 @@
 #define _StdIO_C
 
 #   include "GIO.h"
+#   include "GM2RTS.h"
 
 typedef struct StdIO_ProcWrite_p StdIO_ProcWrite;
 

@@ -27,6 +27,7 @@
 #   include "GsymbolKey.h"
 #   include "GnameKey.h"
 #   include "GmcOptions.h"
+#   include "GM2RTS.h"
 
 #if !defined (decl_node_D)
 #  define decl_node_D

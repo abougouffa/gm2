@@ -66,10 +66,10 @@ DynamicStrings_String mcPreprocess_preprocessModule (DynamicStrings_String filen
       commandLine = DynamicStrings_Dup (command);
       commandLine = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Dup (commandLine), ' '), filename), DynamicStrings_Mark (DynamicStrings_InitString ((char *) " -o ", 4))), tempfile);
       if (mcOptions_getVerbose ())
-        mcPrintf_fprintf1 (FIO_StdOut, (char *) "%s\\n", 4, (unsigned char *) &commandLine, sizeof (commandLine));
+        mcPrintf_fprintf1 (FIO_StdOut, (char *) "%s\\n", 4, (unsigned char *) &commandLine, (sizeof (commandLine)-1));
       if ((libc_system (DynamicStrings_string (commandLine))) != 0)
         {
-          mcPrintf_fprintf1 (FIO_StdErr, (char *) "C preprocessor failed when preprocessing %s\\n", 45, (unsigned char *) &filename, sizeof (filename));
+          mcPrintf_fprintf1 (FIO_StdErr, (char *) "C preprocessor failed when preprocessing %s\\n", 45, (unsigned char *) &filename, (sizeof (filename)-1));
           libc_exit (1);
         }
       commandLine = DynamicStrings_KillString (commandLine);

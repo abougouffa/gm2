@@ -140,7 +140,7 @@ static DynamicStrings_String doNumber (unsigned int bol, varargs_vararg sym, Dyn
     {
       (*quotes) = FALSE;
       varargs_next (sym, bol);
-      varargs_arg (sym, (unsigned char *) &c, sizeof (c));
+      varargs_arg (sym, (unsigned char *) &c, (sizeof (c)-1));
       return DynamicStrings_ConCat (o, StringConvert_ctos (c, 0, ' '));
     }
 }
@@ -155,7 +155,7 @@ static DynamicStrings_String doCount (unsigned int bol, varargs_vararg sym, Dyna
     {
       (*quotes) = FALSE;
       varargs_next (sym, bol);
-      varargs_arg (sym, (unsigned char *) &c, sizeof (c));
+      varargs_arg (sym, (unsigned char *) &c, (sizeof (c)-1));
       o = DynamicStrings_ConCat (o, StringConvert_ctos (c, 0, ' '));
       if (((c % 100) >= 11) && ((c % 100) <= 13))
         o = DynamicStrings_ConCat (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "th", 2)));
@@ -190,7 +190,7 @@ static DynamicStrings_String doAscii (unsigned int bol, varargs_vararg sym, Dyna
   decl_node n;
 
   varargs_next (sym, bol);
-  varargs_arg (sym, (unsigned char *) &n, sizeof (n));
+  varargs_arg (sym, (unsigned char *) &n, (sizeof (n)-1));
   if (((DynamicStrings_Length (o)) > 0) || (decl_isTemporary (n)))
     return o;
   else
@@ -202,7 +202,7 @@ static DynamicStrings_String doName (unsigned int bol, varargs_vararg sym, Dynam
   decl_node n;
 
   varargs_next (sym, bol);
-  varargs_arg (sym, (unsigned char *) &n, sizeof (n));
+  varargs_arg (sym, (unsigned char *) &n, (sizeof (n)-1));
   if (((DynamicStrings_Length (o)) > 0) || (decl_isTemporary (n)))
     return o;
   else
@@ -216,8 +216,10 @@ static DynamicStrings_String doName (unsigned int bol, varargs_vararg sym, Dynam
         (*quotes) = FALSE;
         return DynamicStrings_ConCat (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "the RType", 9)));
       }
+    else if ((decl_getSymName (n)) != nameKey_NulName)
+      return DynamicStrings_ConCat (o, DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n))));
     else
-      return doAscii (bol, sym, o);
+      return o;
 }
 
 static DynamicStrings_String doQualified (unsigned int bol, varargs_vararg sym, DynamicStrings_String o)
@@ -227,13 +229,13 @@ static DynamicStrings_String doQualified (unsigned int bol, varargs_vararg sym, 
   varargs_vararg mod;
 
   varargs_next (sym, bol);
-  varargs_arg (sym, (unsigned char *) &n, sizeof (n));
+  varargs_arg (sym, (unsigned char *) &n, (sizeof (n)-1));
   if (((DynamicStrings_Length (o)) > 0) || (decl_isTemporary (n)))
     return o;
   else
     {
       s = decl_getScope (n);
-      mod = varargs_start1 ((unsigned char *) &s, sizeof (s));
+      mod = varargs_start1 ((unsigned char *) &s, (sizeof (s)-1));
       if ((decl_isDef (s)) && (decl_isExported (n)))
         {
           o = x (o, doAscii (0, mod, o));
@@ -252,14 +254,14 @@ static DynamicStrings_String doType (unsigned int bol, varargs_vararg *sym, Dyna
   decl_node n;
 
   varargs_next ((*sym), bol);
-  varargs_arg ((*sym), (unsigned char *) &n, sizeof (n));
+  varargs_arg ((*sym), (unsigned char *) &n, (sizeof (n)-1));
   if (((DynamicStrings_Length (o)) > 0) || ((decl_getType (n)) == NULL))
     return o;
   else
     {
       n = decl_skipType (decl_getType (n));
       varargs_next ((*sym), bol);
-      varargs_replace ((*sym), (unsigned char *) &n, sizeof (n));
+      varargs_replace ((*sym), (unsigned char *) &n, (sizeof (n)-1));
       return x (o, doAscii (bol, (*sym), o));
     }
 }
@@ -269,14 +271,14 @@ static DynamicStrings_String doSkipType (unsigned int bol, varargs_vararg *sym, 
   decl_node n;
 
   varargs_next ((*sym), bol);
-  varargs_arg ((*sym), (unsigned char *) &n, sizeof (n));
+  varargs_arg ((*sym), (unsigned char *) &n, (sizeof (n)-1));
   if ((DynamicStrings_Length (o)) > 0)
     return o;
   else
     {
       n = decl_skipType (decl_getType (n));
       varargs_next ((*sym), bol);
-      varargs_replace ((*sym), (unsigned char *) &n, sizeof (n));
+      varargs_replace ((*sym), (unsigned char *) &n, (sizeof (n)-1));
       if ((decl_getSymName (n)) == nameKey_NulName)
         return o;
       else
@@ -293,7 +295,7 @@ static DynamicStrings_String doKey (unsigned int bol, varargs_vararg sym, Dynami
   else
     {
       varargs_next (sym, bol);
-      varargs_arg (sym, (unsigned char *) &n, sizeof (n));
+      varargs_arg (sym, (unsigned char *) &n, (sizeof (n)-1));
       return DynamicStrings_ConCat (o, DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
     }
 }
@@ -304,7 +306,7 @@ static mcError_error doError (mcError_error e, errorType t, unsigned int tok)
     {
       case chained:
         if (e == NULL)
-          mcError_internalError ((char *) "should not be chaining an error onto an empty error note", 56, (char *) "../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.mod", 42, 353);
+          mcError_internalError ((char *) "should not be chaining an error onto an empty error note", 56, (char *) "../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.mod", 42, 356);
         else
           e = mcError_chainError (tok, e);
         break;
@@ -321,7 +323,7 @@ static mcError_error doError (mcError_error e, errorType t, unsigned int tok)
 
 
       default:
-        mcError_internalError ((char *) "unexpected enumeration value", 28, (char *) "../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.mod", 42, 367);
+        mcError_internalError ((char *) "unexpected enumeration value", 28, (char *) "../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.mod", 42, 370);
         break;
     }
   return e;
@@ -334,7 +336,7 @@ static mcError_error doDeclaredDef (mcError_error e, errorType t, unsigned int b
   if (bol <= (varargs_nargs (sym)))
     {
       varargs_next (sym, bol);
-      varargs_arg (sym, (unsigned char *) &n, sizeof (n));
+      varargs_arg (sym, (unsigned char *) &n, (sizeof (n)-1));
       e = doError (e, t, decl_getDeclaredDef (n));
     }
   return e;
@@ -347,7 +349,7 @@ static mcError_error doDeclaredMod (mcError_error e, errorType t, unsigned int b
   if (bol <= (varargs_nargs (sym)))
     {
       varargs_next (sym, bol);
-      varargs_arg (sym, (unsigned char *) &n, sizeof (n));
+      varargs_arg (sym, (unsigned char *) &n, (sizeof (n)-1));
       e = doError (e, t, decl_getDeclaredMod (n));
     }
   return e;
@@ -360,7 +362,7 @@ static mcError_error doUsed (mcError_error e, errorType t, unsigned int bol, var
   if (bol <= (varargs_nargs (sym)))
     {
       varargs_next (sym, bol);
-      varargs_arg (sym, (unsigned char *) &n, sizeof (n));
+      varargs_arg (sym, (unsigned char *) &n, (sizeof (n)-1));
       e = doError (e, t, decl_getFirstUsed (n));
     }
   return e;
@@ -435,7 +437,7 @@ static DynamicStrings_String doDesc (unsigned int bol, varargs_vararg sym, Dynam
   if ((DynamicStrings_Length (o)) == 0)
     {
       varargs_next (sym, bol);
-      varargs_arg (sym, (unsigned char *) &n, sizeof (n));
+      varargs_arg (sym, (unsigned char *) &n, (sizeof (n)-1));
       o = symDesc (n, o);
       if ((DynamicStrings_Length (o)) > 0)
         (*quotes) = FALSE;

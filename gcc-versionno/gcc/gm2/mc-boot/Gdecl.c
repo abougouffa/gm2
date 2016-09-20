@@ -1600,7 +1600,7 @@ static unsigned int needsParen (decl_node n);
 static void doUnary (mcPretty_pretty p, char *op_, unsigned int _op_high, decl_node expr, decl_node type, unsigned int l, unsigned int r);
 static void doSetSub (mcPretty_pretty p, decl_node left, decl_node right);
 static void doPolyBinary (mcPretty_pretty p, nodeT op, decl_node left, decl_node right, unsigned int l, unsigned int r);
-static void doBinary (mcPretty_pretty p, char *op_, unsigned int _op_high, decl_node left, decl_node right, unsigned int l, unsigned int r);
+static void doBinary (mcPretty_pretty p, char *op_, unsigned int _op_high, decl_node left, decl_node right, unsigned int l, unsigned int r, unsigned int unpackProc);
 static void doPostUnary (mcPretty_pretty p, char *op_, unsigned int _op_high, decl_node expr);
 static void doDeRefC (mcPretty_pretty p, decl_node expr);
 static decl_node doGetLastOp (decl_node a, decl_node b);
@@ -1622,6 +1622,7 @@ static void outNull (mcPretty_pretty p);
 static void outTrue (mcPretty_pretty p);
 static void outFalse (mcPretty_pretty p);
 static void doExprC (mcPretty_pretty p, decl_node n);
+static void doExprCup (mcPretty_pretty p, decl_node n, unsigned int unpackProc);
 static void doExprM2 (mcPretty_pretty p, decl_node n);
 static void doVar (mcPretty_pretty p, decl_node n);
 static void doLiteralC (mcPretty_pretty p, decl_node n);
@@ -2014,7 +2015,7 @@ static void importEnumFields (decl_node m, decl_node n)
           e = Indexing_GetIndice (n->enumerationF.listOfSons, i);
           r = decl_import (m, e);
           if (e != r)
-            mcMetaError_metaError2 ((char *) "enumeration field {%1ad} cannot be imported implicitly into {%2d} due to a name clash", 85, (unsigned char *) &e, sizeof (e), (unsigned char *) &m, sizeof (m));
+            mcMetaError_metaError2 ((char *) "enumeration field {%1ad} cannot be imported implicitly into {%2d} due to a name clash", 85, (unsigned char *) &e, (sizeof (e)-1), (unsigned char *) &m, (sizeof (m)-1));
           i += 1;
         }
     }
@@ -2112,8 +2113,8 @@ static decl_node addTo (scopeT *decls, decl_node d)
       symbolKey_putSymKey ((*decls).symbols, n, (void *) d);
     else
       {
-        mcMetaError_metaError1 ((char *) "{%1DMad} was declared", 21, (unsigned char *) &d, sizeof (d));
-        mcMetaError_metaError1 ((char *) "{%1k} and is being declared again", 33, (unsigned char *) &n, sizeof (n));
+        mcMetaError_metaError1 ((char *) "{%1DMad} was declared", 21, (unsigned char *) &d, (sizeof (d)-1));
+        mcMetaError_metaError1 ((char *) "{%1k} and is being declared again", 33, (unsigned char *) &n, (sizeof (n)-1));
       }
   if (decl_isConst (d))
     Indexing_IncludeIndiceIntoIndex ((*decls).constants, (void *) d);
@@ -2408,7 +2409,7 @@ static decl_node putFieldRecord (decl_node r, nameKey_Name tag, decl_node type, 
           else
             {
               f = symbolKey_getSymKey (r->recordF.localSymbols, tag);
-              mcMetaError_metaErrors1 ((char *) "field record {%1Dad} has already been declared", 46, (char *) "field record duplicate", 22, (unsigned char *) &f, sizeof (f));
+              mcMetaError_metaErrors1 ((char *) "field record {%1Dad} has already been declared", 46, (char *) "field record duplicate", 22, (unsigned char *) &f, (sizeof (f)-1));
             }
         break;
 
@@ -2563,7 +2564,7 @@ static decl_node doMakeEnumField (decl_node e, nameKey_Name n)
       return addToScope (f);
     }
   else
-    mcMetaError_metaErrors2 ((char *) "cannot create enumeration field {%1k} as the name is already in use", 67, (char *) "{%2DMad} was declared elsewhere", 31, (unsigned char *) &n, sizeof (n), (unsigned char *) &f, sizeof (f));
+    mcMetaError_metaErrors2 ((char *) "cannot create enumeration field {%1k} as the name is already in use", 67, (char *) "{%2DMad} was declared elsewhere", 31, (unsigned char *) &n, (sizeof (n)-1), (unsigned char *) &f, (sizeof (f)-1));
 }
 
 static decl_node getExpList (decl_node p, unsigned int n)
@@ -2733,9 +2734,9 @@ static void out1 (char *a_, unsigned int _a_high, decl_node s)
     {
       d = (unsigned int ) ((long unsigned int ) (s));
       m = DynamicStrings_KillString (m);
-      m = FormatStrings_Sprintf1 (DynamicStrings_InitString ((char *) "[%d]", 4), (unsigned char *) &d, sizeof (d));
+      m = FormatStrings_Sprintf1 (DynamicStrings_InitString ((char *) "[%d]", 4), (unsigned char *) &d, (sizeof (d)-1));
     }
-  m = FormatStrings_Sprintf1 (DynamicStrings_InitString ((char *) a, _a_high), (unsigned char *) &m, sizeof (m));
+  m = FormatStrings_Sprintf1 (DynamicStrings_InitString ((char *) a, _a_high), (unsigned char *) &m, (sizeof (m)-1));
   m = DynamicStrings_KillString (SFIO_WriteS (FIO_StdOut, m));
 }
 
@@ -2749,7 +2750,7 @@ static void out2 (char *a_, unsigned int _a_high, unsigned int c, decl_node s)
   memcpy (a, a_, _a_high+1);
 
   m1 = getString (s);
-  m = FormatStrings_Sprintf2 (DynamicStrings_InitString ((char *) a, _a_high), (unsigned char *) &c, sizeof (c), (unsigned char *) &m1, sizeof (m1));
+  m = FormatStrings_Sprintf2 (DynamicStrings_InitString ((char *) a, _a_high), (unsigned char *) &c, (sizeof (c)-1), (unsigned char *) &m1, (sizeof (m1)-1));
   m = DynamicStrings_KillString (SFIO_WriteS (FIO_StdOut, m));
   m1 = DynamicStrings_KillString (m1);
 }
@@ -2766,7 +2767,7 @@ static void out3 (char *a_, unsigned int _a_high, unsigned int l, nameKey_Name n
 
   m1 = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n));
   m2 = getString (s);
-  m = FormatStrings_Sprintf3 (DynamicStrings_InitString ((char *) a, _a_high), (unsigned char *) &l, sizeof (l), (unsigned char *) &m1, sizeof (m1), (unsigned char *) &m2, sizeof (m2));
+  m = FormatStrings_Sprintf3 (DynamicStrings_InitString ((char *) a, _a_high), (unsigned char *) &l, (sizeof (l)-1), (unsigned char *) &m1, (sizeof (m1)-1), (unsigned char *) &m2, (sizeof (m2)-1));
   m = DynamicStrings_KillString (SFIO_WriteS (FIO_StdOut, m));
   m1 = DynamicStrings_KillString (m1);
   m2 = DynamicStrings_KillString (m2);
@@ -3520,7 +3521,7 @@ static DynamicStrings_String getFQstring (decl_node n)
     {
       i = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n)));
       s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (decl_getScope (n))));
-      return FormatStrings_Sprintf2 (DynamicStrings_InitString ((char *) "%s_%s", 5), (unsigned char *) &s, sizeof (s), (unsigned char *) &i, sizeof (i));
+      return FormatStrings_Sprintf2 (DynamicStrings_InitString ((char *) "%s_%s", 5), (unsigned char *) &s, (sizeof (s)-1), (unsigned char *) &i, (sizeof (i)-1));
     }
 }
 
@@ -3535,7 +3536,7 @@ static DynamicStrings_String getFQDstring (decl_node n, unsigned int scopes)
     {
       i = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n)));
       s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (decl_getScope (n))));
-      return FormatStrings_Sprintf2 (DynamicStrings_InitString ((char *) "%s_%s", 5), (unsigned char *) &s, sizeof (s), (unsigned char *) &i, sizeof (i));
+      return FormatStrings_Sprintf2 (DynamicStrings_InitString ((char *) "%s_%s", 5), (unsigned char *) &s, (sizeof (s)-1), (unsigned char *) &i, (sizeof (i)-1));
     }
 }
 
@@ -3766,7 +3767,7 @@ static void doPolyBinary (mcPretty_pretty p, nodeT op, decl_node left, decl_node
     switch (op)
       {
         case plus:
-          doBinary (p, (char *) "|", 1, left, right, l, r);
+          doBinary (p, (char *) "|", 1, left, right, l, r, FALSE);
           break;
 
         case sub:
@@ -3774,11 +3775,11 @@ static void doPolyBinary (mcPretty_pretty p, nodeT op, decl_node left, decl_node
           break;
 
         case mult:
-          doBinary (p, (char *) "&", 1, left, right, l, r);
+          doBinary (p, (char *) "&", 1, left, right, l, r, FALSE);
           break;
 
         case divide:
-          doBinary (p, (char *) "^", 1, left, right, l, r);
+          doBinary (p, (char *) "^", 1, left, right, l, r, FALSE);
           break;
 
 
@@ -3789,19 +3790,19 @@ static void doPolyBinary (mcPretty_pretty p, nodeT op, decl_node left, decl_node
     switch (op)
       {
         case plus:
-          doBinary (p, (char *) "+", 1, left, right, l, r);
+          doBinary (p, (char *) "+", 1, left, right, l, r, FALSE);
           break;
 
         case sub:
-          doBinary (p, (char *) "-", 1, left, right, l, r);
+          doBinary (p, (char *) "-", 1, left, right, l, r, FALSE);
           break;
 
         case mult:
-          doBinary (p, (char *) "*", 1, left, right, l, r);
+          doBinary (p, (char *) "*", 1, left, right, l, r, FALSE);
           break;
 
         case divide:
-          doBinary (p, (char *) "/", 1, left, right, l, r);
+          doBinary (p, (char *) "/", 1, left, right, l, r, FALSE);
           break;
 
 
@@ -3810,7 +3811,7 @@ static void doPolyBinary (mcPretty_pretty p, nodeT op, decl_node left, decl_node
       }
 }
 
-static void doBinary (mcPretty_pretty p, char *op_, unsigned int _op_high, decl_node left, decl_node right, unsigned int l, unsigned int r)
+static void doBinary (mcPretty_pretty p, char *op_, unsigned int _op_high, decl_node left, decl_node right, unsigned int l, unsigned int r, unsigned int unpackProc)
 {
   char op[_op_high+1];
 
@@ -3820,11 +3821,11 @@ static void doBinary (mcPretty_pretty p, char *op_, unsigned int _op_high, decl_
   if (needsParen (left))
     {
       outText (p, (char *) "(", 1);
-      doExprC (p, left);
+      doExprCup (p, left, unpackProc);
       outText (p, (char *) ")", 1);
     }
   else
-    doExprC (p, left);
+    doExprCup (p, left, unpackProc);
   if (l)
     mcPretty_setNeedSpace (p);
   outText (p, (char *) op, _op_high);
@@ -3833,11 +3834,11 @@ static void doBinary (mcPretty_pretty p, char *op_, unsigned int _op_high, decl_
   if (needsParen (right))
     {
       outText (p, (char *) "(", 1);
-      doExprC (p, right);
+      doExprCup (p, right, unpackProc);
       outText (p, (char *) ")", 1);
     }
   else
-    doExprC (p, right);
+    doExprCup (p, right, unpackProc);
 }
 
 static void doPostUnary (mcPretty_pretty p, char *op_, unsigned int _op_high, decl_node expr)
@@ -4361,27 +4362,27 @@ static void doExprC (mcPretty_pretty p, decl_node n)
         break;
 
       case equal:
-        doBinary (p, (char *) "==", 2, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        doBinary (p, (char *) "==", 2, n->binaryF.left, n->binaryF.right, TRUE, TRUE, TRUE);
         break;
 
       case notequal:
-        doBinary (p, (char *) "!=", 2, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        doBinary (p, (char *) "!=", 2, n->binaryF.left, n->binaryF.right, TRUE, TRUE, TRUE);
         break;
 
       case less:
-        doBinary (p, (char *) "<", 1, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        doBinary (p, (char *) "<", 1, n->binaryF.left, n->binaryF.right, TRUE, TRUE, FALSE);
         break;
 
       case greater:
-        doBinary (p, (char *) ">", 1, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        doBinary (p, (char *) ">", 1, n->binaryF.left, n->binaryF.right, TRUE, TRUE, FALSE);
         break;
 
       case greequal:
-        doBinary (p, (char *) ">=", 2, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        doBinary (p, (char *) ">=", 2, n->binaryF.left, n->binaryF.right, TRUE, TRUE, FALSE);
         break;
 
       case lessequal:
-        doBinary (p, (char *) "<=", 2, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        doBinary (p, (char *) "<=", 2, n->binaryF.left, n->binaryF.right, TRUE, TRUE, FALSE);
         break;
 
       case componentref:
@@ -4409,11 +4410,11 @@ static void doExprC (mcPretty_pretty p, decl_node n)
         break;
 
       case div_:
-        doBinary (p, (char *) "/", 1, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        doBinary (p, (char *) "/", 1, n->binaryF.left, n->binaryF.right, TRUE, TRUE, FALSE);
         break;
 
       case mod:
-        doBinary (p, (char *) "%", 1, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        doBinary (p, (char *) "%", 1, n->binaryF.left, n->binaryF.right, TRUE, TRUE, FALSE);
         break;
 
       case mult:
@@ -4429,11 +4430,11 @@ static void doExprC (mcPretty_pretty p, decl_node n)
         break;
 
       case and:
-        doBinary (p, (char *) "&&", 2, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        doBinary (p, (char *) "&&", 2, n->binaryF.left, n->binaryF.right, TRUE, TRUE, FALSE);
         break;
 
       case or:
-        doBinary (p, (char *) "||", 2, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        doBinary (p, (char *) "||", 2, n->binaryF.left, n->binaryF.right, TRUE, TRUE, FALSE);
         break;
 
       case literal:
@@ -4521,6 +4522,19 @@ static void doExprC (mcPretty_pretty p, decl_node n)
     }
 }
 
+static void doExprCup (mcPretty_pretty p, decl_node n, unsigned int unpackProc)
+{
+  decl_node t;
+
+  doExprC (p, n);
+  if (unpackProc)
+    {
+      t = decl_skipType (getExprType (n));
+      if ((t == procN) || (decl_isProcType (t)))
+        outText (p, (char *) ".proc", 5);
+    }
+}
+
 static void doExprM2 (mcPretty_pretty p, decl_node n)
 {
   mcDebug_assert (n != NULL);
@@ -4587,35 +4601,35 @@ static void doExprM2 (mcPretty_pretty p, decl_node n)
         break;
 
       case equal:
-        doBinary (p, (char *) "=", 1, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        doBinary (p, (char *) "=", 1, n->binaryF.left, n->binaryF.right, TRUE, TRUE, FALSE);
         break;
 
       case notequal:
-        doBinary (p, (char *) "#", 1, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        doBinary (p, (char *) "#", 1, n->binaryF.left, n->binaryF.right, TRUE, TRUE, FALSE);
         break;
 
       case less:
-        doBinary (p, (char *) "<", 1, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        doBinary (p, (char *) "<", 1, n->binaryF.left, n->binaryF.right, TRUE, TRUE, FALSE);
         break;
 
       case greater:
-        doBinary (p, (char *) ">", 1, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        doBinary (p, (char *) ">", 1, n->binaryF.left, n->binaryF.right, TRUE, TRUE, FALSE);
         break;
 
       case greequal:
-        doBinary (p, (char *) ">=", 2, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        doBinary (p, (char *) ">=", 2, n->binaryF.left, n->binaryF.right, TRUE, TRUE, FALSE);
         break;
 
       case lessequal:
-        doBinary (p, (char *) "<=", 2, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        doBinary (p, (char *) "<=", 2, n->binaryF.left, n->binaryF.right, TRUE, TRUE, FALSE);
         break;
 
       case componentref:
-        doBinary (p, (char *) ".", 1, n->componentrefF.rec, n->componentrefF.field, FALSE, FALSE);
+        doBinary (p, (char *) ".", 1, n->componentrefF.rec, n->componentrefF.field, FALSE, FALSE, FALSE);
         break;
 
       case pointerref:
-        doBinary (p, (char *) "^.", 2, n->pointerrefF.ptr, n->pointerrefF.field, FALSE, FALSE);
+        doBinary (p, (char *) "^.", 2, n->pointerrefF.ptr, n->pointerrefF.field, FALSE, FALSE, FALSE);
         break;
 
       case cast:
@@ -4627,27 +4641,27 @@ static void doExprM2 (mcPretty_pretty p, decl_node n)
         break;
 
       case plus:
-        doBinary (p, (char *) "+", 1, n->binaryF.left, n->binaryF.right, FALSE, FALSE);
+        doBinary (p, (char *) "+", 1, n->binaryF.left, n->binaryF.right, FALSE, FALSE, FALSE);
         break;
 
       case sub:
-        doBinary (p, (char *) "-", 1, n->binaryF.left, n->binaryF.right, FALSE, FALSE);
+        doBinary (p, (char *) "-", 1, n->binaryF.left, n->binaryF.right, FALSE, FALSE, FALSE);
         break;
 
       case div_:
-        doBinary (p, (char *) "DIV", 3, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        doBinary (p, (char *) "DIV", 3, n->binaryF.left, n->binaryF.right, TRUE, TRUE, FALSE);
         break;
 
       case mod:
-        doBinary (p, (char *) "MOD", 3, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        doBinary (p, (char *) "MOD", 3, n->binaryF.left, n->binaryF.right, TRUE, TRUE, FALSE);
         break;
 
       case mult:
-        doBinary (p, (char *) "*", 1, n->binaryF.left, n->binaryF.right, FALSE, FALSE);
+        doBinary (p, (char *) "*", 1, n->binaryF.left, n->binaryF.right, FALSE, FALSE, FALSE);
         break;
 
       case divide:
-        doBinary (p, (char *) "/", 1, n->binaryF.left, n->binaryF.right, FALSE, FALSE);
+        doBinary (p, (char *) "/", 1, n->binaryF.left, n->binaryF.right, FALSE, FALSE, FALSE);
         break;
 
       case literal:
@@ -5522,7 +5536,7 @@ static decl_node doMax (decl_node n)
     }
   else if (n == addressN)
     {
-      mcMetaError_metaError1 ((char *) "trying to obtain MAX ({%1ad}) is illegal", 40, (unsigned char *) &n, sizeof (n));
+      mcMetaError_metaError1 ((char *) "trying to obtain MAX ({%1ad}) is illegal", 40, (unsigned char *) &n, (sizeof (n)-1));
       return NULL;
     }
   else
@@ -6285,7 +6299,7 @@ static void addTypesTodo (decl_node n)
 static DynamicStrings_String tempName (void)
 {
   tempCount += 1;
-  return FormatStrings_Sprintf1 (DynamicStrings_InitString ((char *) "_T%d", 4), (unsigned char *) &tempCount, sizeof (tempCount));
+  return FormatStrings_Sprintf1 (DynamicStrings_InitString ((char *) "_T%d", 4), (unsigned char *) &tempCount, (sizeof (tempCount)-1));
 }
 
 static decl_node makeIntermediateType (DynamicStrings_String s, decl_node p)
@@ -6636,7 +6650,7 @@ static void doReturnC (mcPretty_pretty p, decl_node s)
 static void doAssignmentC (mcPretty_pretty p, decl_node s)
 {
   mcDebug_assert (isAssignment (s));
-  doExprC (p, s->assignmentF.des);
+  doExprCup (p, s->assignmentF.des, decl_isProcedure (s->assignmentF.expr));
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "=", 1);
   mcPretty_setNeedSpace (p);
@@ -6801,7 +6815,7 @@ static void doFuncHighC (mcPretty_pretty p, decl_node a)
   decl_node n;
 
   if ((decl_isLiteral (a)) && ((decl_getType (a)) == charN))
-    outCard (p, 1);
+    outCard (p, 0);
   else if (isString (a))
     outCard (p, a->stringF.length-2);
   else if (decl_isUnbounded (decl_getType (a)))
@@ -6826,11 +6840,11 @@ static void doFuncHighC (mcPretty_pretty p, decl_node a)
     }
   else
     {
-      outText (p, (char *) "sizeof", 6);
+      outText (p, (char *) "(sizeof", 7);
       mcPretty_setNeedSpace (p);
       outText (p, (char *) "(", 1);
       doExprC (p, a);
-      outText (p, (char *) ")", 1);
+      outText (p, (char *) ")-1)", 4);
     }
 }
 
@@ -6977,12 +6991,12 @@ static void doFuncParamC (mcPretty_pretty p, decl_node actual, decl_node formal,
       else
         if (((ft == procN) || (decl_isProcType (ft))) && (decl_isProcedure (actual)))
           if (decl_isVarParam (formal))
-            mcMetaError_metaError1 ((char *) "{%1MDad} cannot be passed as a VAR parameter", 44, (unsigned char *) &actual, sizeof (actual));
+            mcMetaError_metaError1 ((char *) "{%1MDad} cannot be passed as a VAR parameter", 44, (unsigned char *) &actual, (sizeof (actual)-1));
           else
             doProcedureParamC (p, actual, formal);
         else if (((decl_isVar (actual)) && (decl_isProcType (decl_skipType (decl_getType (actual))))) && ((decl_getType (actual)) != (decl_getType (formal))))
           if (decl_isVarParam (formal))
-            mcMetaError_metaError2 ((char *) "{%1MDad} cannot be passed as a VAR parameter as the parameter requires a cast to the formal type {%2MDtad}", 106, (unsigned char *) &actual, sizeof (actual), (unsigned char *) &formal, sizeof (formal));
+            mcMetaError_metaError2 ((char *) "{%1MDad} cannot be passed as a VAR parameter as the parameter requires a cast to the formal type {%2MDtad}", 106, (unsigned char *) &actual, (sizeof (actual)-1), (unsigned char *) &formal, (sizeof (formal)-1));
           else
             doCastC (p, decl_getType (formal), actual);
         else
@@ -7235,7 +7249,7 @@ static void doNewC (mcPretty_pretty p, decl_node n)
             outText (p, (char *) "))", 2);
           }
         else
-          mcMetaError_metaError1 ((char *) "expecting a pointer type variable as the argument to NEW, rather than {%1ad}", 76, (unsigned char *) &t, sizeof (t));
+          mcMetaError_metaError1 ((char *) "expecting a pointer type variable as the argument to NEW, rather than {%1ad}", 76, (unsigned char *) &t, (sizeof (t)-1));
       }
 }
 
@@ -7270,7 +7284,7 @@ static void doDisposeC (mcPretty_pretty p, decl_node n)
             outText (p, (char *) "))", 2);
           }
         else
-          mcMetaError_metaError1 ((char *) "expecting a pointer type variable as the argument to DISPOSE, rather than {%1ad}", 80, (unsigned char *) &t, sizeof (t));
+          mcMetaError_metaError1 ((char *) "expecting a pointer type variable as the argument to DISPOSE, rather than {%1ad}", 80, (unsigned char *) &t, (sizeof (t)-1));
       }
     else
       M2RTS_HALT (0);
@@ -9698,7 +9712,7 @@ static DynamicStrings_String gen (decl_node n)
   unsigned int d;
 
   d = (unsigned int ) ((long unsigned int ) (n));
-  s = FormatStrings_Sprintf1 (DynamicStrings_InitString ((char *) "< %d ", 5), (unsigned char *) &d, sizeof (d));
+  s = FormatStrings_Sprintf1 (DynamicStrings_InitString ((char *) "< %d ", 5), (unsigned char *) &d, (sizeof (d)-1));
   s = DynamicStrings_ConCat (s, genKind (n));
   s = DynamicStrings_ConCat (s, DynamicStrings_InitString ((char *) " ", 1));
   s = DynamicStrings_ConCat (s, getFQstring (n));
@@ -10731,7 +10745,7 @@ static void addDoneDef (decl_node n)
 {
   if ((decl_lookupImp (decl_getSymName (decl_getScope (n)))) == (decl_getMainModule ()))
     {
-      mcMetaError_metaError1 ((char *) "cyclic dependancy found between another module using {%1ad} from the definition module of the implementation main being compiled, use the --extended-opaque option to compile", 173, (unsigned char *) &n, sizeof (n));
+      mcMetaError_metaError1 ((char *) "cyclic dependancy found between another module using {%1ad} from the definition module of the implementation main being compiled, use the --extended-opaque option to compile", 173, (unsigned char *) &n, (sizeof (n)-1));
       mcError_flushErrors ();
       mcError_errorAbort0 ((char *) "terminating compilation", 23);
     }
@@ -12450,7 +12464,7 @@ decl_node decl_addFieldsToRecord (decl_node r, decl_node v, decl_node i, decl_no
       if (fj == NULL)
         fj = putFieldRecord (r, fn, t, v);
       else
-        mcMetaError_metaErrors2 ((char *) "record field {%1ad} has already been declared inside a {%2Dd} {%2a}", 67, (char *) "attempting to declare a duplicate record field", 46, (unsigned char *) &fj, sizeof (fj), (unsigned char *) &p, sizeof (p));
+        mcMetaError_metaErrors2 ((char *) "record field {%1ad} has already been declared inside a {%2Dd} {%2a}", 67, (char *) "attempting to declare a duplicate record field", 46, (unsigned char *) &fj, (sizeof (fj)-1), (unsigned char *) &p, (sizeof (p)-1));
       j += 1;
     }
   return r;
@@ -12463,7 +12477,7 @@ void decl_buildVarientSelector (decl_node r, decl_node v, nameKey_Name tag, decl
   mcDebug_assert ((decl_isRecord (r)) || (decl_isVarientField (r)));
   if ((decl_isRecord (r)) || (decl_isVarientField (r)))
     if ((type == NULL) && (tag == nameKey_NulName))
-      mcMetaError_metaError1 ((char *) "expecting a tag field in the declaration of a varient record {%1Ua}", 67, (unsigned char *) &r, sizeof (r));
+      mcMetaError_metaError1 ((char *) "expecting a tag field in the declaration of a varient record {%1Ua}", 67, (unsigned char *) &r, (sizeof (r)-1));
     else if (type == NULL)
       {
         f = decl_lookupSym (tag);
@@ -13447,6 +13461,8 @@ decl_node decl_makeFuncCall (decl_node c, decl_node n)
   decl_node f;
 
   mcDebug_assert ((n == NULL) || (decl_isExpList (n)));
+  if (((c == haltN) && ((decl_getMainModule ()) != (decl_lookupDef (nameKey_makeKey ((char *) "M2RTS", 5))))) && ((decl_getMainModule ()) != (decl_lookupImp (nameKey_makeKey ((char *) "M2RTS", 5)))))
+    decl_addImportedModule (decl_getMainModule (), decl_lookupDef (nameKey_makeKey ((char *) "M2RTS", 5)), FALSE);
   if (isAnyType (c))
     return makeCast (c, n);
   else

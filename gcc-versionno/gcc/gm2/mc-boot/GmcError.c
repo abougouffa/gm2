@@ -136,9 +136,9 @@ static void outString (DynamicStrings_String file, unsigned int line, unsigned i
 
   col += 1;
   if (Xcode)
-    leader = FormatStrings_Sprintf2 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) "%s:%d:", 6)), (unsigned char *) &file, sizeof (file), (unsigned char *) &line, sizeof (line));
+    leader = FormatStrings_Sprintf2 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) "%s:%d:", 6)), (unsigned char *) &file, (sizeof (file)-1), (unsigned char *) &line, (sizeof (line)-1));
   else
-    leader = FormatStrings_Sprintf3 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) "%s:%d:%d:", 9)), (unsigned char *) &file, sizeof (file), (unsigned char *) &line, sizeof (line), (unsigned char *) &col, sizeof (col));
+    leader = FormatStrings_Sprintf3 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) "%s:%d:%d:", 9)), (unsigned char *) &file, (sizeof (file)-1), (unsigned char *) &line, (sizeof (line)-1), (unsigned char *) &col, (sizeof (col)-1));
   p = DynamicStrings_string (s);
   newline = TRUE;
   space = FALSE;
@@ -156,7 +156,7 @@ static void outString (DynamicStrings_String file, unsigned int line, unsigned i
       newline = (*p) == ASCII_nl;
       space = (*p) == ' ';
       if (newline && Xcode)
-        mcPrintf_printf1 ((char *) "(pos: %d)", 9, (unsigned char *) &col, sizeof (col));
+        mcPrintf_printf1 ((char *) "(pos: %d)", 9, (unsigned char *) &col, (sizeof (col)-1));
       StdIO_Write ((*p));
       p += 1;
     }
@@ -166,7 +166,7 @@ static void outString (DynamicStrings_String file, unsigned int line, unsigned i
         {
           if (! space)
             StdIO_Write (' ');
-          mcPrintf_printf1 ((char *) "(pos: %d)", 9, (unsigned char *) &col, sizeof (col));
+          mcPrintf_printf1 ((char *) "(pos: %d)", 9, (unsigned char *) &col, (sizeof (col)-1));
         }
       StdIO_Write (ASCII_nl);
     }
@@ -191,9 +191,9 @@ static DynamicStrings_String doFormat1 (char *a_, unsigned int _a_high, unsigned
 
   if (translateNameToCharStar ((char *) a, _a_high, 1))
     {
-      cast ((unsigned char *) &n, sizeof (n), (unsigned char *) w, _w_high);
+      cast ((unsigned char *) &n, (sizeof (n)-1), (unsigned char *) w, _w_high);
       s = DynamicStrings_Mark (DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
-      s = FormatStrings_Sprintf1 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) &s, sizeof (s));
+      s = FormatStrings_Sprintf1 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) &s, (sizeof (s)-1));
     }
   else
     s = FormatStrings_Sprintf1 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) w, _w_high);
@@ -219,13 +219,13 @@ static DynamicStrings_String doFormat2 (char *a_, unsigned int _a_high, unsigned
   b = (unsigned int) 0;
   if (translateNameToCharStar ((char *) a, _a_high, 1))
     {
-      cast ((unsigned char *) &n, sizeof (n), (unsigned char *) w1, _w1_high);
+      cast ((unsigned char *) &n, (sizeof (n)-1), (unsigned char *) w1, _w1_high);
       s1 = DynamicStrings_Mark (DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
       b |= (1 << (1 ));
     }
   if (translateNameToCharStar ((char *) a, _a_high, 2))
     {
-      cast ((unsigned char *) &n, sizeof (n), (unsigned char *) w2, _w2_high);
+      cast ((unsigned char *) &n, (sizeof (n)-1), (unsigned char *) w2, _w2_high);
       s2 = DynamicStrings_Mark (DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
       b |= (1 << (2 ));
     }
@@ -236,15 +236,15 @@ static DynamicStrings_String doFormat2 (char *a_, unsigned int _a_high, unsigned
         break;
 
       case (unsigned int) ((1 << (1))):
-        s = FormatStrings_Sprintf2 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) &s1, sizeof (s1), (unsigned char *) w2, _w2_high);
+        s = FormatStrings_Sprintf2 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) &s1, (sizeof (s1)-1), (unsigned char *) w2, _w2_high);
         break;
 
       case (unsigned int) ((1 << (2))):
-        s = FormatStrings_Sprintf2 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) w1, _w1_high, (unsigned char *) &s2, sizeof (s2));
+        s = FormatStrings_Sprintf2 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) w1, _w1_high, (unsigned char *) &s2, (sizeof (s2)-1));
         break;
 
       case (unsigned int) ((1 << (1)) | (1 << (2))):
-        s = FormatStrings_Sprintf2 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) &s1, sizeof (s1), (unsigned char *) &s2, sizeof (s2));
+        s = FormatStrings_Sprintf2 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) &s1, (sizeof (s1)-1), (unsigned char *) &s2, (sizeof (s2)-1));
         break;
 
 
@@ -277,19 +277,19 @@ static DynamicStrings_String doFormat3 (char *a_, unsigned int _a_high, unsigned
   b = (unsigned int) 0;
   if (translateNameToCharStar ((char *) a, _a_high, 1))
     {
-      cast ((unsigned char *) &n, sizeof (n), (unsigned char *) w1, _w1_high);
+      cast ((unsigned char *) &n, (sizeof (n)-1), (unsigned char *) w1, _w1_high);
       s1 = DynamicStrings_Mark (DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
       b |= (1 << (1 ));
     }
   if (translateNameToCharStar ((char *) a, _a_high, 2))
     {
-      cast ((unsigned char *) &n, sizeof (n), (unsigned char *) w2, _w2_high);
+      cast ((unsigned char *) &n, (sizeof (n)-1), (unsigned char *) w2, _w2_high);
       s2 = DynamicStrings_Mark (DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
       b |= (1 << (2 ));
     }
   if (translateNameToCharStar ((char *) a, _a_high, 3))
     {
-      cast ((unsigned char *) &n, sizeof (n), (unsigned char *) w3, _w3_high);
+      cast ((unsigned char *) &n, (sizeof (n)-1), (unsigned char *) w3, _w3_high);
       s3 = DynamicStrings_Mark (DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
       b |= (1 << (3 ));
     }
@@ -300,31 +300,31 @@ static DynamicStrings_String doFormat3 (char *a_, unsigned int _a_high, unsigned
         break;
 
       case (unsigned int) ((1 << (1))):
-        s = FormatStrings_Sprintf3 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) &s1, sizeof (s1), (unsigned char *) w2, _w2_high, (unsigned char *) w3, _w3_high);
+        s = FormatStrings_Sprintf3 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) &s1, (sizeof (s1)-1), (unsigned char *) w2, _w2_high, (unsigned char *) w3, _w3_high);
         break;
 
       case (unsigned int) ((1 << (2))):
-        s = FormatStrings_Sprintf3 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) w1, _w1_high, (unsigned char *) &s2, sizeof (s2), (unsigned char *) w3, _w3_high);
+        s = FormatStrings_Sprintf3 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) w1, _w1_high, (unsigned char *) &s2, (sizeof (s2)-1), (unsigned char *) w3, _w3_high);
         break;
 
       case (unsigned int) ((1 << (1)) | (1 << (2))):
-        s = FormatStrings_Sprintf3 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) &s1, sizeof (s1), (unsigned char *) &s2, sizeof (s2), (unsigned char *) w3, _w3_high);
+        s = FormatStrings_Sprintf3 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) &s1, (sizeof (s1)-1), (unsigned char *) &s2, (sizeof (s2)-1), (unsigned char *) w3, _w3_high);
         break;
 
       case (unsigned int) ((1 << (3))):
-        s = FormatStrings_Sprintf3 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) w1, _w1_high, (unsigned char *) w2, _w2_high, (unsigned char *) &s3, sizeof (s3));
+        s = FormatStrings_Sprintf3 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) w1, _w1_high, (unsigned char *) w2, _w2_high, (unsigned char *) &s3, (sizeof (s3)-1));
         break;
 
       case (unsigned int) ((1 << (1)) | (1 << (3))):
-        s = FormatStrings_Sprintf3 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) &s1, sizeof (s1), (unsigned char *) w2, _w2_high, (unsigned char *) &s3, sizeof (s3));
+        s = FormatStrings_Sprintf3 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) &s1, (sizeof (s1)-1), (unsigned char *) w2, _w2_high, (unsigned char *) &s3, (sizeof (s3)-1));
         break;
 
       case (unsigned int) ((1 << (2)) | (1 << (3))):
-        s = FormatStrings_Sprintf3 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) w1, _w1_high, (unsigned char *) &s2, sizeof (s2), (unsigned char *) &s3, sizeof (s3));
+        s = FormatStrings_Sprintf3 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) w1, _w1_high, (unsigned char *) &s2, (sizeof (s2)-1), (unsigned char *) &s3, (sizeof (s3)-1));
         break;
 
       case (unsigned int) ((1 << (1)) | (1 << (2)) | (1 << (3))):
-        s = FormatStrings_Sprintf3 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) &s1, sizeof (s1), (unsigned char *) &s2, sizeof (s2), (unsigned char *) &s3, sizeof (s3));
+        s = FormatStrings_Sprintf3 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) &s1, (sizeof (s1)-1), (unsigned char *) &s2, (sizeof (s2)-1), (unsigned char *) &s3, (sizeof (s3)-1));
         break;
 
 
@@ -351,9 +351,9 @@ static void checkIncludes (unsigned int token, unsigned int depth)
     {
       lineno = mcLexBuf_tokenToLineNo (token, depth+1);
       if (depth == 0)
-        mcPrintf_printf2 ((char *) "In file included from %s:%d", 27, (unsigned char *) &included, sizeof (included), (unsigned char *) &lineno, sizeof (lineno));
+        mcPrintf_printf2 ((char *) "In file included from %s:%d", 27, (unsigned char *) &included, (sizeof (included)-1), (unsigned char *) &lineno, (sizeof (lineno)-1));
       else
-        mcPrintf_printf2 ((char *) "                 from %s:%d", 27, (unsigned char *) &included, sizeof (included), (unsigned char *) &lineno, sizeof (lineno));
+        mcPrintf_printf2 ((char *) "                 from %s:%d", 27, (unsigned char *) &included, (sizeof (included)-1), (unsigned char *) &lineno, (sizeof (lineno)-1));
       if ((mcLexBuf_findFileNameFromToken (token, depth+2)) == NULL)
         mcPrintf_printf0 ((char *) ":\\n", 3);
       else
