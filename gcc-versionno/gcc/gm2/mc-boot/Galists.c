@@ -232,10 +232,10 @@ alists_alist alists_duplicateList (alists_alist l)
   return m;
 }
 
-void _M2_alists_init (int argc, char *argv[])
+void _M2_alists_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_alists_finish (int argc, char *argv[])
+void _M2_alists_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

@@ -215,10 +215,10 @@ void symbolKey_foreachNodeDo (symbolKey_symbolTree t, symbolKey_performOperation
   searchAndDo (t->left, p);
 }
 
-void _M2_symbolKey_init (int argc, char *argv[])
+void _M2_symbolKey_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_symbolKey_finish (int argc, char *argv[])
+void _M2_symbolKey_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

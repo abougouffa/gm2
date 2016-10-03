@@ -52,10 +52,10 @@ DynamicStrings_String mcFileName_extractModule (DynamicStrings_String filename)
     return DynamicStrings_Slice (filename, i+1, 0);
 }
 
-void _M2_mcFileName_init (int argc, char *argv[])
+void _M2_mcFileName_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_mcFileName_finish (int argc, char *argv[])
+void _M2_mcFileName_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

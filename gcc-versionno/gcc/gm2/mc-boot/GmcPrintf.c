@@ -457,10 +457,10 @@ void mcPrintf_fprintf4 (FIO_File file, char *a_, unsigned int _a_high, unsigned 
     ;  /* empty.  */
 }
 
-void _M2_mcPrintf_init (int argc, char *argv[])
+void _M2_mcPrintf_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_mcPrintf_finish (int argc, char *argv[])
+void _M2_mcPrintf_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

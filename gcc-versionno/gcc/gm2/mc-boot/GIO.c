@@ -252,11 +252,11 @@ void IO_EchoOff (int fd, unsigned int input)
   term = termios_KillTermios (term);
 }
 
-void _M2_IO_init (int argc, char *argv[])
+void _M2_IO_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   Init ();
 }
 
-void _M2_IO_finish (int argc, char *argv[])
+void _M2_IO_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

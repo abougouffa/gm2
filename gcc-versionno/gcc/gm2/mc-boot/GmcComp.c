@@ -356,11 +356,11 @@ void mcComp_compile (DynamicStrings_String s)
     doCompile (s);
 }
 
-void _M2_mcComp_init (int argc, char *argv[])
+void _M2_mcComp_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   init ();
 }
 
-void _M2_mcComp_finish (int argc, char *argv[])
+void _M2_mcComp_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

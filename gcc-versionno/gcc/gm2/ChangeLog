@@ -1,3 +1,20 @@
+2016-10-03      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  instruct mc to generate g++ compilient C code.
+	* gm2/gm2-gcc/m2treelib.def:  remove multiple definition of
+          get_set_field_rhs and import ADDRESS.
+	* gm2/gm2.texi:  trimmed spaces.
+	* gm2/m2.flex:  use __attribute__((unused)) in init/finish
+	functions.
+	* gm2/mc-boot:  rebuilt.
+	* gm2/mc/decl.mod:  handle C char.  Strings of 1 character
+          are encoded as C strings and also C chars.  (checkPtr)
+          New procedure function.  (doExprCastC)  New procedure
+          function.  init/finish functions all use __attribute__((unused)).
+          (outCP) removed.
+	* gm2/mc/mcOptions.mod:  fixed bug by rearranging order of option
+	  processing.
+
 2016-09-20      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  removed all references to p2c.

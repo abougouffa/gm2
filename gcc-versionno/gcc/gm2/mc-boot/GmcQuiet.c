@@ -95,10 +95,10 @@ void mcQuiet_qprintf4 (char *a_, unsigned int _a_high, unsigned char *w1_, unsig
     mcPrintf_printf4 ((char *) a, _a_high, (unsigned char *) w1, _w1_high, (unsigned char *) w2, _w2_high, (unsigned char *) w3, _w3_high, (unsigned char *) w4, _w4_high);
 }
 
-void _M2_mcQuiet_init (int argc, char *argv[])
+void _M2_mcQuiet_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_mcQuiet_finish (int argc, char *argv[])
+void _M2_mcQuiet_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

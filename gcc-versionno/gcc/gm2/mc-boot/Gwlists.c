@@ -232,10 +232,10 @@ wlists_wlist wlists_duplicateList (wlists_wlist l)
   return m;
 }
 
-void _M2_wlists_init (int argc, char *argv[])
+void _M2_wlists_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_wlists_finish (int argc, char *argv[])
+void _M2_wlists_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

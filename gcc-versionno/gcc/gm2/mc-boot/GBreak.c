@@ -11,10 +11,10 @@
 
 
 
-void _M2_Break_init (int argc, char *argv[])
+void _M2_Break_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_Break_finish (int argc, char *argv[])
+void _M2_Break_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

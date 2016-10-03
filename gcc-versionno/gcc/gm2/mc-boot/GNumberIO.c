@@ -635,10 +635,10 @@ void NumberIO_StrToOctInt (char *a_, unsigned int _a_high, int *x)
     }
 }
 
-void _M2_NumberIO_init (int argc, char *argv[])
+void _M2_NumberIO_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_NumberIO_finish (int argc, char *argv[])
+void _M2_NumberIO_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

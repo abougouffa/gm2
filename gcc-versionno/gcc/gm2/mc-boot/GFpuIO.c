@@ -171,10 +171,10 @@ void FpuIO_LongIntToStr (long int x, unsigned int n, char *a, unsigned int _a_hi
   s = DynamicStrings_KillString (s);
 }
 
-void _M2_FpuIO_init (int argc, char *argv[])
+void _M2_FpuIO_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_FpuIO_finish (int argc, char *argv[])
+void _M2_FpuIO_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

@@ -650,12 +650,12 @@ static DynamicStrings_String DescribeStop (SetOfStop0 stopset0, SetOfStop1 stops
     }
   if ((((1 << (mcReserved_doublequotestok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (message, ' '), '`'), '\\'), '\''), ',');
+      message = DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (message, ' '), '`'), '"'), '\''), ',');
       n += 1;
     }
   if ((((1 << (mcReserved_singlequotetok-mcReserved_eoftok)) & (stopset0)) != 0))
     {
-      message = DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (message, ' '), '\\'), '\''), '\\'), ',');
+      message = DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (message, ' '), '"'), '\''), '"'), ',');
       n += 1;
     }
   if ((((1 << (mcReserved_greatertok-mcReserved_eoftok)) & (stopset0)) != 0))
@@ -1041,11 +1041,11 @@ static void DescribeError (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
         break;
 
       case mcReserved_doublequotestok:
-        str = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (DynamicStrings_InitString ((char *) "syntax error, found '", 21), '\\'), '\''), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (DynamicStrings_InitString ((char *) "syntax error, found '", 21), '"'), '\''), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_singlequotetok:
-        str = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (DynamicStrings_InitString ((char *) "syntax error, found \"", 21), '\''), '\\'), DynamicStrings_Mark (str));
+        str = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_ConCatChar (DynamicStrings_InitString ((char *) "syntax error, found \"", 21), '\''), '"'), DynamicStrings_Mark (str));
         break;
 
       case mcReserved_greatertok:
@@ -3108,10 +3108,10 @@ unsigned int mcp1_CompilationUnit (void)
   return WasNoError;
 }
 
-void _M2_mcp1_init (int argc, char *argv[])
+void _M2_mcp1_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_mcp1_finish (int argc, char *argv[])
+void _M2_mcp1_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

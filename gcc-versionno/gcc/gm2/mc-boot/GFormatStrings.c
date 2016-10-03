@@ -269,10 +269,10 @@ DynamicStrings_String FormatStrings_Sprintf4 (DynamicStrings_String s, unsigned 
   return s;
 }
 
-void _M2_FormatStrings_init (int argc, char *argv[])
+void _M2_FormatStrings_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_FormatStrings_finish (int argc, char *argv[])
+void _M2_FormatStrings_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

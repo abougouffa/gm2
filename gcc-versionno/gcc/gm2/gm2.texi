@@ -1,4 +1,4 @@
-\input texinfo 
+\input texinfo
 @c -*-texinfo-*-
 
 @c
@@ -18,7 +18,7 @@
 
 @c Part 2: Titlepage and Copyright
 
-@c The titlepage segment does not appear in the Info file. 
+@c The titlepage segment does not appear in the Info file.
 @titlepage
 @sp 10
 @comment The title is printed in a large font.
@@ -191,7 +191,7 @@ This section attempts to give an idea of which releases points are
 likely in the future. Clearly this is a fairly fluid release map but
 hopefully it is more helpful than omitting it altogether. Please note
 that this is not set in stone and if you wish to see something
-different please email @email{gaius@@gnu.org} with your ideas. 
+different please email @email{gaius@@gnu.org} with your ideas.
 
 @table @code
 
@@ -211,6 +211,15 @@ source tree.
 @section News
 
 @table @code
+@item Talk given at The GNU Tools Cauldron
+here is a talk on GNU Modula-2 given at
+@url{https://gcc.gnu.org/wiki/cauldron2016,The GNU Tools Cauldron},
+Hebden Bridge on 9th September 2016.
+The title is, ``GNU Modula-2 status, whole
+program optimisation and language interoperability''
+[@url{http://floppsie.comp.glam.ac.uk/Papers/paper22/gaius-gcc-cauldron-2016.pdf,slides}
+and @url{https://www.youtube.com/watch?v=8GMyxwHdr1E,video}].
+
 @item gm2 1.1.5
 was released on September 3 2015, passes all regression tests and has
 many bug fixes applied.  Arrays and Records can be assigned to and from
@@ -480,7 +489,7 @@ in C++ and therefore in future releases it will be necessary to build
 You can subscribe to the GNU Modula-2 mailing by sending an
 email to:
 @email{gm2-subscribe@@nongnu.org}
-or by 
+or by
 @url{http://lists.nongnu.org/mailman/listinfo/gm2}.
 The mailing list contents can be viewed
 @url{http://lists.gnu.org/archive/html/gm2}.
@@ -914,7 +923,7 @@ a message.  It will check that @code{FOR} loop indices are not used
 outside the end of this loop without being reset.
 
 @item -Wpedantic-param-names
-procedure parameter names are checked in the definition module 
+procedure parameter names are checked in the definition module
 against their implementation module counterpart. This is not
 necessary in ISO or PIM versions of Modula-2, but it can be
 extremely useful, as long as code is intentionally
@@ -1703,7 +1712,7 @@ PROCEDURE NEWCOROUTINE (procBody: PROC; workspace: SYSTEM.ADDRESS;
                         size: CARDINAL; VAR cr: COROUTINE;
                         [initProtection: PROTECTION]);
 BEGIN
-   
+
 END NEWCOROUTINE ;
 @end example
 
@@ -2001,7 +2010,7 @@ The third step is to link all these @file{.lo} files.
 @example
 libtool --mode=link gcc -g _m2_c.lo a.lo b.lo c.lo \
         -L$(prefix)/lib64 \
-        -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libabc.la 
+        -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libabc.la
 @end example
 
 At this point the shared library @file{libabc.so} will have been
@@ -2044,7 +2053,7 @@ libtool --tag=CC --mode=compile g++ -g -c NumberIO_wrap.cxx -I/usr/include/pytho
 
 libtool --mode=link gcc -g _m2_NumberIO.lo NumberIO_wrap.lo \
    -L$(yourprefix)/lib64 \
-   -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libNumberIO.la 
+   -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libNumberIO.la
 cp .libs/libNumberIO.so _NumberIO.so
 @end example
 
@@ -2324,7 +2333,7 @@ Finally the application is linked into a shared library:
 $ libtool --mode=link gcc -g _m2_twoDsim.lo twoDsim_wrap.lo \
   roots.lo deviceGnuPic.lo \
    -L$(yourprefix)/lib64 \
-   -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libtwoDsim.la 
+   -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libtwoDsim.la
 cp .libs/libtwoDsim.so _twoDsim.so
 @end example
 
@@ -2809,7 +2818,7 @@ your @file{/etc/apt/sources.list} file.
 #  GNU Modula-2 repo
 #
 
-deb http://floppsie.comp.glam.ac.uk/debian/ jessie main 
+deb http://floppsie.comp.glam.ac.uk/debian/ jessie main
 deb-src http://floppsie.comp.glam.ac.uk/debian/ jessie main
 @end example
 
@@ -3110,7 +3119,7 @@ archive.  Assuming that both the @file{gcc-@value{version-GCC}} and
 @file{gm2} directories are at the same level, you can graft @file{gm2}
 onto @file{gcc-@value{version-GCC}} by:
 
-@example   
+@example
 $ mkdir -p combined/gm2
 $ mv gcc-@value{version-GCC} combined/gm2/gcc-versionno
 $ tar cf - gm2 | ( cd combined ; tar xf - )
@@ -3460,7 +3469,7 @@ Modula-2 compiler.
 @section Section and subsections
 @printindex cp
 
-@node Functions, , Contents, 
+@node Functions, , Contents,
 @section Function, constants, types, ebnf indices.
 @end ifhtml
 

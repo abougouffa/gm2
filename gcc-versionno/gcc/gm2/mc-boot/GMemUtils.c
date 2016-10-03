@@ -62,10 +62,10 @@ void MemUtils_MemZero (void * a, unsigned int length)
     }
 }
 
-void _M2_MemUtils_init (int argc, char *argv[])
+void _M2_MemUtils_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_MemUtils_finish (int argc, char *argv[])
+void _M2_MemUtils_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

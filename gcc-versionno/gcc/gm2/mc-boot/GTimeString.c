@@ -34,10 +34,10 @@ void TimeString_GetTimeString (char *a, unsigned int _a_high)
     a[i] = ASCII_nul;
 }
 
-void _M2_TimeString_init (int argc, char *argv[])
+void _M2_TimeString_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_TimeString_finish (int argc, char *argv[])
+void _M2_TimeString_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

@@ -51,10 +51,10 @@ unsigned int SArgs_Narg (void)
   return UnixArgs_ArgC;
 }
 
-void _M2_SArgs_init (int argc, char *argv[])
+void _M2_SArgs_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_SArgs_finish (int argc, char *argv[])
+void _M2_SArgs_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

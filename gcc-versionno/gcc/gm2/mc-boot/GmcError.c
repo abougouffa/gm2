@@ -719,11 +719,11 @@ void mcError_errorAbort0 (char *a_, unsigned int _a_high)
   M2RTS_HALT (0);
 }
 
-void _M2_mcError_init (int argc, char *argv[])
+void _M2_mcError_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   init ();
 }
 
-void _M2_mcError_finish (int argc, char *argv[])
+void _M2_mcError_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

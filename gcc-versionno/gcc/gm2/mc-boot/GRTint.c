@@ -619,11 +619,11 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
     }
 }
 
-void _M2_RTint_init (int argc, char *argv[])
+void _M2_RTint_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   Init ();
 }
 
-void _M2_RTint_finish (int argc, char *argv[])
+void _M2_RTint_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

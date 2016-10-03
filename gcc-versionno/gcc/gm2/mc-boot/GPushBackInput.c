@@ -237,12 +237,12 @@ unsigned int PushBackInput_GetCurrentLine (void)
   return LineNo;
 }
 
-void _M2_PushBackInput_init (int argc, char *argv[])
+void _M2_PushBackInput_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   PushBackInput_SetDebug (FALSE);
   Init ();
 }
 
-void _M2_PushBackInput_finish (int argc, char *argv[])
+void _M2_PushBackInput_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

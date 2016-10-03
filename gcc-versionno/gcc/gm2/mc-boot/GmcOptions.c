@@ -163,10 +163,10 @@ static unsigned int optionIs (char *left_, unsigned int _left_high, DynamicStrin
 
 static void setLang (DynamicStrings_String arg)
 {
-  if (optionIs ((char *) "c", 1, arg))
-    decl_setLangC ();
-  else if (optionIs ((char *) "c++", 3, arg))
+  if (optionIs ((char *) "c++", 3, arg))
     decl_setLangCP ();
+  else if (optionIs ((char *) "c", 1, arg))
+    decl_setLangC ();
   else if (optionIs ((char *) "m2", 2, arg))
     decl_setLangM2 ();
   else
@@ -280,7 +280,7 @@ unsigned int mcOptions_getIgnoreFQ (void)
   return ignoreFQ;
 }
 
-void _M2_mcOptions_init (int argc, char *argv[])
+void _M2_mcOptions_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   caseRuntime = FALSE;
   arrayRuntime = FALSE;
@@ -297,6 +297,6 @@ void _M2_mcOptions_init (int argc, char *argv[])
   outputFile = DynamicStrings_InitString ((char *) "-", 1);
 }
 
-void _M2_mcOptions_finish (int argc, char *argv[])
+void _M2_mcOptions_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

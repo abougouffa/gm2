@@ -77,13 +77,13 @@ DynamicStrings_String mcPreprocess_preprocessModule (DynamicStrings_String filen
     }
 }
 
-void _M2_mcPreprocess_init (int argc, char *argv[])
+void _M2_mcPreprocess_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   listOfFiles = alists_initList ();
   if (! (M2RTS_InstallTerminationProcedure ((PROC ) {(PROC_t) removeFiles})))
     M2RTS_HALT (0);
 }
 
-void _M2_mcPreprocess_finish (int argc, char *argv[])
+void _M2_mcPreprocess_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

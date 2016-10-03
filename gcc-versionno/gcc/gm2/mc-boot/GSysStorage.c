@@ -70,10 +70,10 @@ void SysStorage_Init (void)
 {
 }
 
-void _M2_SysStorage_init (int argc, char *argv[])
+void _M2_SysStorage_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_SysStorage_finish (int argc, char *argv[])
+void _M2_SysStorage_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

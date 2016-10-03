@@ -106,7 +106,7 @@ StdIO_ProcRead StdIO_GetCurrentInput (void)
     M2RTS_HALT (0);
 }
 
-void _M2_StdIO_init (int argc, char *argv[])
+void _M2_StdIO_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   StackWPtr = 0;
   StackWPtr = 0;
@@ -114,6 +114,6 @@ void _M2_StdIO_init (int argc, char *argv[])
   StdIO_PushInput ((StdIO_ProcRead) {(StdIO_ProcRead_t) IO_Read});
 }
 
-void _M2_StdIO_finish (int argc, char *argv[])
+void _M2_StdIO_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

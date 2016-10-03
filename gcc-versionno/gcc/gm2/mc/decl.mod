@@ -332,6 +332,7 @@ TYPE
 		    isCharCompatible:  BOOLEAN ;
 		    cstring         :  String ;
 		    clength         :  CARDINAL ;
+		    cchar           :  String ;
                  END ;
 
        literalT = RECORD
@@ -1865,6 +1866,31 @@ END putVarBool ;
 
 
 (*
+   checkPtr - in C++ we need to create a typedef for a pointer
+              in case we need to use reinterpret_cast.
+*)
+
+PROCEDURE checkPtr (n: node) : node ;
+VAR
+   s: String ;
+   p: node ;
+BEGIN
+   IF lang = ansiCP
+   THEN
+      IF isPointer (n)
+      THEN
+         s := tempName () ;
+         p := makeType (makekey (DynamicStrings.string (s))) ;
+         putType (p, n) ;
+         s := KillString (s) ;
+	 RETURN p
+      END
+   END ;
+   RETURN n
+END checkPtr ;
+
+
+(*
    makeVarDecl -
 *)
 
@@ -1873,6 +1899,7 @@ VAR
    d, v: node ;
    j, n: CARDINAL ;
 BEGIN
+   type := checkPtr (type) ;
    d := newNode (vardecl) ;
    WITH d^ DO
       vardeclF.names := i^.identlistF.names ;
@@ -3477,7 +3504,13 @@ BEGIN
       stringF.length := lengthKey (n) ;
       stringF.isCharCompatible := (stringF.length <= 3) ;
       stringF.cstring := toCstring (n) ;
-      stringF.clength := lenCstring (stringF.cstring)
+      stringF.clength := lenCstring (stringF.cstring) ;
+      IF stringF.isCharCompatible
+      THEN
+         stringF.cchar := toCchar (n)
+      ELSE
+         stringF.cchar := NIL
+      END
    END ;
    RETURN m
 END makeString ;
@@ -3880,6 +3913,48 @@ BEGIN
    END ;
    HALT
 END getStringContents ;
+
+
+(*
+   addNames -
+*)
+
+PROCEDURE addNames (a, b: node) : Name ;
+VAR
+   sa, sb: String ;
+   n     : Name ;
+BEGIN
+   sa := DynamicStrings.InitStringCharStar (keyToCharStar (getSymName (a))) ;
+   sb := DynamicStrings.InitStringCharStar (keyToCharStar (getSymName (b))) ;
+   sa := ConCat (sa, sb) ;
+   n := makekey (DynamicStrings.string (sa)) ;
+   sa := KillString (sa) ;
+   sb := KillString (sb) ;
+   RETURN n
+END addNames ;
+
+
+(*
+   resolveString -
+*)
+
+PROCEDURE resolveString (n: node) : node ;
+BEGIN
+   WHILE isConst (n) OR isConstExp (n) DO
+      IF isConst (n)
+      THEN
+         n := n^.constF.value
+      ELSE
+         n := n^.unaryF.arg
+      END
+   END ;
+   IF n^.kind = plus
+   THEN
+      n := makeString (addNames (resolveString (n^.binaryF.left),
+                                 resolveString (n^.binaryF.right)))
+   END ;
+   RETURN n
+END resolveString ;
 
 
 (*
@@ -6005,6 +6080,19 @@ END toCstring ;
 
 
 (*
+   toCchar -
+*)
+
+PROCEDURE toCchar (n: Name) : String ;
+VAR
+   s: String ;
+BEGIN
+   s := DynamicStrings.Slice (InitStringCharStar (keyToCharStar (n)), 1, -1) ;
+   RETURN escapeContentsC (escapeContentsC (s, '\'), "'")
+END toCchar ;
+
+
+(*
    countChar -
 *)
 
@@ -6051,15 +6139,7 @@ BEGIN
       outText (p, '"')
    ELSE
       outText (p, "'") ;
-      IF DynamicStrings.char (s^.stringF.cstring, 0) = "'"
-      THEN
-         outText (p, "\'")
-      ELSIF DynamicStrings.char (s^.stringF.cstring, 0) = "\"
-      THEN
-         outText (p, "\\")
-      ELSE
-         outRawS (p, s^.stringF.cstring)
-      END ;
+      outRawS (p, s^.stringF.cchar) ;
       outText (p, "'")
    END
 END outCstring ;
@@ -8270,6 +8350,32 @@ END doReturnC ;
 
 
 (*
+   doExprCastC -
+*)
+
+PROCEDURE doExprCastC (p: pretty; e, type: node) ;
+BEGIN
+   IF type # getType (e)
+   THEN
+      (* potentially a cast is required.  *)
+      IF (isPointer (type) OR (type = addressN))
+      THEN
+         IF lang = ansiCP
+         THEN
+            outText (p, 'reinterpret_cast<') ;
+            doTypeNameC (p, type) ;
+            outText (p, '> (') ;
+            doExprC (p, e) ;
+	    outText (p, ')') ;
+            RETURN
+         END
+      END
+   END ;
+   doExprC (p, e)
+END doExprCastC ;
+
+
+(*
    doAssignmentC -
 *)
 
@@ -8280,7 +8386,7 @@ BEGIN
    setNeedSpace (p) ;
    outText (p, "=") ;
    setNeedSpace (p) ;
-   doExprC (p, s^.assignmentF.expr) ;
+   doExprCastC (p, s^.assignmentF.expr, getType (s^.assignmentF.des)) ;
    outText (p, ";\n")
 END doAssignmentC ;
 
@@ -8495,6 +8601,9 @@ BEGIN
    ELSIF isString (a)
    THEN
       outCard (p, a^.stringF.length-2)
+   ELSIF isConst (a) AND isString (a^.constF.value)
+   THEN
+      doFuncHighC (p, a^.constF.value)
    ELSIF isUnbounded (getType (a))
    THEN
       outText (p, '_') ;
@@ -8594,6 +8703,11 @@ BEGIN
       s := KillString (s)
    ELSIF isString (actual)
    THEN
+      outCstring (p, actual, TRUE)
+   ELSIF isConst (actual)
+   THEN
+      actual := resolveString (actual) ;
+      assert (isString (actual)) ;
       outCstring (p, actual, TRUE)
    ELSIF isUnbounded (getType (actual))
    THEN
@@ -12053,7 +12167,7 @@ BEGIN
    doFQNameC (p, n) ;
    outText (p, "_init") ;
    setNeedSpace (p) ;
-   outText (p, "(int argc, char *argv[])\n") ;
+   outText (p, "(__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])\n") ;
    p := outKc (p, "{\n") ;
    doStatementsC (p, n^.impF.beginStatements) ;
    p := outKc (p, "}\n") ;
@@ -12064,7 +12178,7 @@ BEGIN
    doFQNameC (p, n) ;
    outText (p, "_finish") ;
    setNeedSpace (p) ;
-   outText (p, "(int argc, char *argv[])\n") ;
+   outText (p, "(__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])\n") ;
    p := outKc (p, "{\n") ;
    doStatementsC (p, n^.impF.finallyStatements) ;
    p := outKc (p, "}\n")
@@ -12263,7 +12377,7 @@ BEGIN
    doFQNameC (p, n) ;
    outText (p, "_init") ;
    setNeedSpace (p) ;
-   outText (p, "(int argc, char *argv[])\n") ;
+   outText (p, "(__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])\n") ;
    p := outKc (p, "{\n") ;
    doStatementsC (p, n^.moduleF.beginStatements) ;
    p := outKc (p, "}\n") ;
@@ -12274,7 +12388,7 @@ BEGIN
    doFQNameC (p, n) ;
    outText (p, "_finish") ;
    setNeedSpace (p) ;
-   outText (p, "(int argc, char *argv[])\n") ;
+   outText (p, "(__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])\n") ;
    p := outKc (p, "{\n") ;
    doStatementsC (p, n^.moduleF.finallyStatements) ;
    p := outKc (p, "}\n")
@@ -12342,16 +12456,6 @@ BEGIN
    END ;
    keyc.leaveScope (n)
 END outC ;
-
-
-(*
-   outCP -
-*)
-
-PROCEDURE outCP (p: pretty; n: node) ;
-BEGIN
-
-END outCP ;
 
 
 (*
@@ -13044,7 +13148,7 @@ BEGIN
    CASE lang OF
 
    ansiC :  outC (p, getMainModule ()) |
-   ansiCP:  outCP (p, getMainModule ()) |
+   ansiCP:  outC (p, getMainModule ()) |
    pim4  :  outM2 (p, getMainModule ())
 
    END ;

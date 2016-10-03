@@ -208,10 +208,10 @@ void StrLib_StrRemoveWhitePrefix (char *a_, unsigned int _a_high, char *b, unsig
     b[j] = ASCII_nul;
 }
 
-void _M2_StrLib_init (int argc, char *argv[])
+void _M2_StrLib_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_StrLib_finish (int argc, char *argv[])
+void _M2_StrLib_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

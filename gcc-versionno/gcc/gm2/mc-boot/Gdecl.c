@@ -442,6 +442,7 @@ struct stringT_r {
                    unsigned int isCharCompatible;
                    DynamicStrings_String cstring;
                    unsigned int clength;
+                   DynamicStrings_String cchar;
                  };
 
 struct literalT_r {
@@ -1526,6 +1527,7 @@ static void addModuleToScope (decl_node m, decl_node i);
 static void completedEnum (decl_node n);
 static void setUnary (decl_node u, nodeT k, decl_node a, decl_node t);
 static void putVarBool (decl_node v, unsigned int init, unsigned int param, unsigned int isvar);
+static decl_node checkPtr (decl_node n);
 static unsigned int isVarDecl (decl_node n);
 static void makeVariablesFromParameters (decl_node proc, decl_node id, decl_node type, unsigned int isvar);
 static decl_node addProcedureToScope (decl_node d, nameKey_Name n);
@@ -1569,6 +1571,8 @@ static unsigned int isUnary (decl_node n);
 static decl_node makeUnary (nodeT k, decl_node e, decl_node res);
 static unsigned int isLeafString (decl_node n);
 static DynamicStrings_String getStringContents (decl_node n);
+static nameKey_Name addNames (decl_node a, decl_node b);
+static decl_node resolveString (decl_node n);
 static decl_node foldBinary (nodeT k, decl_node l, decl_node r, decl_node res);
 static decl_node makeBinary (nodeT k, decl_node l, decl_node r, decl_node res);
 static decl_node doMakeBinary (nodeT k, decl_node l, decl_node r, decl_node res);
@@ -1633,6 +1637,7 @@ static DynamicStrings_String doEscapeC (DynamicStrings_String s, char ch);
 static DynamicStrings_String escapeContentsC (DynamicStrings_String s, char ch);
 static DynamicStrings_String replaceChar (DynamicStrings_String s, char ch, char *a_, unsigned int _a_high);
 static DynamicStrings_String toCstring (nameKey_Name n);
+static DynamicStrings_String toCchar (nameKey_Name n);
 static unsigned int countChar (DynamicStrings_String s, char ch);
 static unsigned int lenCstring (DynamicStrings_String s);
 static void outCstring (mcPretty_pretty p, decl_node s, unsigned int aString);
@@ -1732,6 +1737,7 @@ static unsigned int isStatementSequenceEmpty (decl_node s);
 static unsigned int isSingleStatement (decl_node s);
 static void doCommentC (mcPretty_pretty p, decl_node s);
 static void doReturnC (mcPretty_pretty p, decl_node s);
+static void doExprCastC (mcPretty_pretty p, decl_node e, decl_node type);
 static void doAssignmentC (mcPretty_pretty p, decl_node s);
 static unsigned int containsStatement (decl_node s);
 static void doCompoundStmt (mcPretty_pretty p, decl_node s);
@@ -1908,7 +1914,6 @@ static void outDeclsModuleC (mcPretty_pretty p, scopeT s);
 static void outModuleInitC (mcPretty_pretty p, decl_node n);
 static void outModuleC (mcPretty_pretty p, decl_node n);
 static void outC (mcPretty_pretty p, decl_node n);
-static void outCP (mcPretty_pretty p, decl_node n);
 static void doIncludeM2 (decl_node n);
 static void doConstM2 (decl_node n);
 static void doProcTypeM2 (mcPretty_pretty p, decl_node n);
@@ -2243,6 +2248,23 @@ static void putVarBool (decl_node v, unsigned int init, unsigned int param, unsi
   v->varF.isInitialised = init;
   v->varF.isParameter = param;
   v->varF.isVarParameter = isvar;
+}
+
+static decl_node checkPtr (decl_node n)
+{
+  DynamicStrings_String s;
+  decl_node p;
+
+  if (lang == ansiCP)
+    if (decl_isPointer (n))
+      {
+        s = tempName ();
+        p = decl_makeType (nameKey_makekey (DynamicStrings_string (s)));
+        decl_putType (p, n);
+        s = DynamicStrings_KillString (s);
+        return p;
+      }
+  return n;
 }
 
 static unsigned int isVarDecl (decl_node n)
@@ -2856,6 +2878,33 @@ static DynamicStrings_String getStringContents (decl_node n)
   else if (isConstExp (n))
     return getStringContents (n->unaryF.arg);
   M2RTS_HALT (0);
+}
+
+static nameKey_Name addNames (decl_node a, decl_node b)
+{
+  DynamicStrings_String sa;
+  DynamicStrings_String sb;
+  nameKey_Name n;
+
+  sa = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (a)));
+  sb = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (b)));
+  sa = DynamicStrings_ConCat (sa, sb);
+  n = nameKey_makekey (DynamicStrings_string (sa));
+  sa = DynamicStrings_KillString (sa);
+  sb = DynamicStrings_KillString (sb);
+  return n;
+}
+
+static decl_node resolveString (decl_node n)
+{
+  while ((decl_isConst (n)) || (isConstExp (n)))
+    if (decl_isConst (n))
+      n = n->constF.value;
+    else
+      n = n->unaryF.arg;
+  if (n->kind == plus)
+    n = decl_makeString (addNames (resolveString (n->binaryF.left), resolveString (n->binaryF.right)));
+  return n;
 }
 
 static decl_node foldBinary (nodeT k, decl_node l, decl_node r, decl_node res)
@@ -4858,7 +4907,15 @@ static DynamicStrings_String toCstring (nameKey_Name n)
   DynamicStrings_String s;
 
   s = DynamicStrings_Slice (DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)), 1, -1);
-  return escapeContentsC (escapeContentsC (s, '\\'), '\\');
+  return escapeContentsC (escapeContentsC (s, '\\'), '"');
+}
+
+static DynamicStrings_String toCchar (nameKey_Name n)
+{
+  DynamicStrings_String s;
+
+  s = DynamicStrings_Slice (DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)), 1, -1);
+  return escapeContentsC (escapeContentsC (s, '\\'), '\'');
 }
 
 static unsigned int countChar (DynamicStrings_String s, char ch)
@@ -4897,12 +4954,7 @@ static void outCstring (mcPretty_pretty p, decl_node s, unsigned int aString)
   else
     {
       outText (p, (char *) "'", 1);
-      if ((DynamicStrings_char (s->stringF.cstring, 0)) == '\'')
-        outText (p, (char *) "\\'", 2);
-      else if ((DynamicStrings_char (s->stringF.cstring, 0)) == '\\')
-        outText (p, (char *) "\\", 2);
-      else
-        outRawS (p, s->stringF.cstring);
+      outRawS (p, s->stringF.cchar);
       outText (p, (char *) "'", 1);
     }
 }
@@ -6647,6 +6699,22 @@ static void doReturnC (mcPretty_pretty p, decl_node s)
   outText (p, (char *) ";\\n", 3);
 }
 
+static void doExprCastC (mcPretty_pretty p, decl_node e, decl_node type)
+{
+  if (type != (decl_getType (e)))
+    if ((decl_isPointer (type)) || (type == addressN))
+      if (lang == ansiCP)
+        {
+          outText (p, (char *) "reinterpret_cast<", 17);
+          doTypeNameC (p, type);
+          outText (p, (char *) "> (", 3);
+          doExprC (p, e);
+          outText (p, (char *) ")", 1);
+          return;
+        }
+  doExprC (p, e);
+}
+
 static void doAssignmentC (mcPretty_pretty p, decl_node s)
 {
   mcDebug_assert (isAssignment (s));
@@ -6654,7 +6722,7 @@ static void doAssignmentC (mcPretty_pretty p, decl_node s)
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "=", 1);
   mcPretty_setNeedSpace (p);
-  doExprC (p, s->assignmentF.expr);
+  doExprCastC (p, s->assignmentF.expr, decl_getType (s->assignmentF.des));
   outText (p, (char *) ";\\n", 3);
 }
 
@@ -6818,6 +6886,8 @@ static void doFuncHighC (mcPretty_pretty p, decl_node a)
     outCard (p, 0);
   else if (isString (a))
     outCard (p, a->stringF.length-2);
+  else if ((decl_isConst (a)) && (isString (a->constF.value)))
+    doFuncHighC (p, a->constF.value);
   else if (decl_isUnbounded (decl_getType (a)))
     {
       outText (p, (char *) "_", 1);
@@ -6901,6 +6971,12 @@ static void doFuncUnbounded (mcPretty_pretty p, decl_node actual, decl_node form
     }
   else if (isString (actual))
     outCstring (p, actual, TRUE);
+  else if (decl_isConst (actual))
+    {
+      actual = resolveString (actual);
+      mcDebug_assert (isString (actual));
+      outCstring (p, actual, TRUE);
+    }
   else if (decl_isUnbounded (decl_getType (actual)))
     doFQNameC (p, actual);
   else
@@ -9998,7 +10074,7 @@ static void outImpInitC (mcPretty_pretty p, decl_node n)
   doFQNameC (p, n);
   outText (p, (char *) "_init", 5);
   mcPretty_setNeedSpace (p);
-  outText (p, (char *) "(int argc, char *argv[])\\n", 26);
+  outText (p, (char *) "(__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])\\n", 74);
   p = outKc (p, (char *) "{\\n", 3);
   doStatementsC (p, n->impF.beginStatements);
   p = outKc (p, (char *) "}\\n", 3);
@@ -10009,7 +10085,7 @@ static void outImpInitC (mcPretty_pretty p, decl_node n)
   doFQNameC (p, n);
   outText (p, (char *) "_finish", 7);
   mcPretty_setNeedSpace (p);
-  outText (p, (char *) "(int argc, char *argv[])\\n", 26);
+  outText (p, (char *) "(__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])\\n", 74);
   p = outKc (p, (char *) "{\\n", 3);
   doStatementsC (p, n->impF.finallyStatements);
   p = outKc (p, (char *) "}\\n", 3);
@@ -10154,7 +10230,7 @@ static void outModuleInitC (mcPretty_pretty p, decl_node n)
   doFQNameC (p, n);
   outText (p, (char *) "_init", 5);
   mcPretty_setNeedSpace (p);
-  outText (p, (char *) "(int argc, char *argv[])\\n", 26);
+  outText (p, (char *) "(__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])\\n", 74);
   p = outKc (p, (char *) "{\\n", 3);
   doStatementsC (p, n->moduleF.beginStatements);
   p = outKc (p, (char *) "}\\n", 3);
@@ -10165,7 +10241,7 @@ static void outModuleInitC (mcPretty_pretty p, decl_node n)
   doFQNameC (p, n);
   outText (p, (char *) "_finish", 7);
   mcPretty_setNeedSpace (p);
-  outText (p, (char *) "(int argc, char *argv[])\\n", 26);
+  outText (p, (char *) "(__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])\\n", 74);
   p = outKc (p, (char *) "{\\n", 3);
   doStatementsC (p, n->moduleF.finallyStatements);
   p = outKc (p, (char *) "}\\n", 3);
@@ -10218,10 +10294,6 @@ static void outC (mcPretty_pretty p, decl_node n)
   else
     M2RTS_HALT (0);
   keyc_leaveScope (n);
-}
-
-static void outCP (mcPretty_pretty p, decl_node n)
-{
 }
 
 static void doIncludeM2 (decl_node n)
@@ -12304,6 +12376,7 @@ decl_node decl_makeVarDecl (decl_node i, decl_node type)
   unsigned int j;
   unsigned int n;
 
+  type = checkPtr (type);
   d = newNode ((nodeT) vardecl);
   d->vardeclF.names = i->identlistF.names;
   d->vardeclF.type = type;
@@ -13325,6 +13398,10 @@ decl_node decl_makeString (nameKey_Name n)
   m->stringF.isCharCompatible = m->stringF.length <= 3;
   m->stringF.cstring = toCstring (n);
   m->stringF.clength = lenCstring (m->stringF.cstring);
+  if (m->stringF.isCharCompatible)
+    m->stringF.cchar = toCchar (n);
+  else
+    m->stringF.cchar = NULL;
   return m;
 }
 
@@ -14040,7 +14117,7 @@ void decl_out (void)
         break;
 
       case ansiCP:
-        outCP (p, decl_getMainModule ());
+        outC (p, decl_getMainModule ());
         break;
 
       case pim4:
@@ -14054,11 +14131,11 @@ void decl_out (void)
   closeOutput ();
 }
 
-void _M2_decl_init (int argc, char *argv[])
+void _M2_decl_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   init ();
 }
 
-void _M2_decl_finish (int argc, char *argv[])
+void _M2_decl_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

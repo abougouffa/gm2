@@ -174,11 +174,11 @@ void mcSearch_setModExtension (DynamicStrings_String ext)
   Mod = DynamicStrings_Dup (ext);
 }
 
-void _M2_mcSearch_init (int argc, char *argv[])
+void _M2_mcSearch_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   Init ();
 }
 
-void _M2_mcSearch_finish (int argc, char *argv[])
+void _M2_mcSearch_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

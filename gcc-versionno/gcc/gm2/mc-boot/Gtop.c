@@ -17,11 +17,11 @@ static void init (void)
   mcComp_compile (mcOptions_handleOptions ());
 }
 
-void _M2_top_init (int argc, char *argv[])
+void _M2_top_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   init ();
 }
 
-void _M2_top_finish (int argc, char *argv[])
+void _M2_top_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

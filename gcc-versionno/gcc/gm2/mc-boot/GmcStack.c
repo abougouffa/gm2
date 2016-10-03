@@ -95,10 +95,10 @@ void * mcStack_access (mcStack_stack s, unsigned int i)
     return Indexing_GetIndice (s->list, i);
 }
 
-void _M2_mcStack_init (int argc, char *argv[])
+void _M2_mcStack_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_mcStack_finish (int argc, char *argv[])
+void _M2_mcStack_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

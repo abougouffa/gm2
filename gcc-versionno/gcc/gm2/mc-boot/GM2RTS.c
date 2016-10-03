@@ -324,7 +324,7 @@ void M2RTS_NoException (void * filename, unsigned int line, unsigned int column,
   RTExceptions_Raise ((unsigned int) (M2EXCEPTION_exException), filename, line, column, scope, "M2Expection was called when no there was no outstanding exception to be returned");
 }
 
-void _M2_M2RTS_init (int argc, char *argv[])
+void _M2_M2RTS_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   iPtr = 0;
   tPtr = 0;
@@ -333,6 +333,6 @@ void _M2_M2RTS_init (int argc, char *argv[])
   CallExit = FALSE;
 }
 
-void _M2_M2RTS_finish (int argc, char *argv[])
+void _M2_M2RTS_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

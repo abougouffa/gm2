@@ -43,10 +43,10 @@ unsigned int Environment_GetEnvironment (char *Env_, unsigned int _Env_high, cha
   return Addr != NULL;
 }
 
-void _M2_Environment_init (int argc, char *argv[])
+void _M2_Environment_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_Environment_finish (int argc, char *argv[])
+void _M2_Environment_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

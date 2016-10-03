@@ -126,13 +126,13 @@ FIO_File mcStream_combine (void)
   return destFile;
 }
 
-void _M2_mcStream_init (int argc, char *argv[])
+void _M2_mcStream_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   listOfFiles = alists_initList ();
   seenDest = FALSE;
   frag = Indexing_InitIndex (1);
 }
 
-void _M2_mcStream_finish (int argc, char *argv[])
+void _M2_mcStream_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

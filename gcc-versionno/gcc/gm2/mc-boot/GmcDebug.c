@@ -38,10 +38,10 @@ void mcDebug_writeDebug (char *a_, unsigned int _a_high)
     }
 }
 
-void _M2_mcDebug_init (int argc, char *argv[])
+void _M2_mcDebug_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_mcDebug_finish (int argc, char *argv[])
+void _M2_mcDebug_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

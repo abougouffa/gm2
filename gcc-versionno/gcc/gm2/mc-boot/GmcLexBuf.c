@@ -927,11 +927,11 @@ void mcLexBuf_popFile (void * filename)
     }
 }
 
-void _M2_mcLexBuf_init (int argc, char *argv[])
+void _M2_mcLexBuf_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   init ();
 }
 
-void _M2_mcLexBuf_finish (int argc, char *argv[])
+void _M2_mcLexBuf_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

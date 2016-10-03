@@ -251,10 +251,10 @@ void mcPretty_raw (mcPretty_pretty p, DynamicStrings_String s)
     }
 }
 
-void _M2_mcPretty_init (int argc, char *argv[])
+void _M2_mcPretty_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_mcPretty_finish (int argc, char *argv[])
+void _M2_mcPretty_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

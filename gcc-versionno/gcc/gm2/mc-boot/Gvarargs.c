@@ -255,10 +255,10 @@ varargs_vararg varargs_start4 (unsigned char *a_, unsigned int _a_high, unsigned
   return v;
 }
 
-void _M2_varargs_init (int argc, char *argv[])
+void _M2_varargs_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_varargs_finish (int argc, char *argv[])
+void _M2_varargs_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

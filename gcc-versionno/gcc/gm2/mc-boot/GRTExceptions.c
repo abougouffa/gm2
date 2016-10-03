@@ -548,12 +548,12 @@ void * RTExceptions_GetExceptionSource (void)
   return currentSource;
 }
 
-void _M2_RTExceptions_init (int argc, char *argv[])
+void _M2_RTExceptions_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   Init ();
 }
 
-void _M2_RTExceptions_finish (int argc, char *argv[])
+void _M2_RTExceptions_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   TidyUp ();
 }

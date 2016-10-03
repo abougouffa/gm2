@@ -138,11 +138,11 @@ void StrIO_WriteString (char *a_, unsigned int _a_high)
     }
 }
 
-void _M2_StrIO_init (int argc, char *argv[])
+void _M2_StrIO_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   IsATTY = FALSE;
 }
 
-void _M2_StrIO_finish (int argc, char *argv[])
+void _M2_StrIO_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

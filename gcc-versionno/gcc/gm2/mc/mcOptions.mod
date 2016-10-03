@@ -316,12 +316,13 @@ END optionIs ;
 
 PROCEDURE setLang (arg: String) ;
 BEGIN
-   IF optionIs ("c", arg)
-   THEN
-      setLangC
-   ELSIF optionIs ("c++", arg)
+   (* must check the longest distinctive string first.  *)
+   IF optionIs ("c++", arg)
    THEN
       setLangCP
+   ELSIF optionIs ("c", arg)
+   THEN
+      setLangC
    ELSIF optionIs ("m2", arg)
    THEN
       setLangM2

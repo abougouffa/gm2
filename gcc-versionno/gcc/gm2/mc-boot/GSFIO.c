@@ -64,10 +64,10 @@ DynamicStrings_String SFIO_ReadS (FIO_File file)
   return s;
 }
 
-void _M2_SFIO_init (int argc, char *argv[])
+void _M2_SFIO_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_SFIO_finish (int argc, char *argv[])
+void _M2_SFIO_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

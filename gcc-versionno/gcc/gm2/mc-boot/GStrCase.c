@@ -77,10 +77,10 @@ char StrCase_Lower (char ch)
   return ch;
 }
 
-void _M2_StrCase_init (int argc, char *argv[])
+void _M2_StrCase_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_StrCase_finish (int argc, char *argv[])
+void _M2_StrCase_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

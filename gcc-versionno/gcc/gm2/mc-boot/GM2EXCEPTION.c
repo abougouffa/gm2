@@ -39,11 +39,11 @@ unsigned int M2EXCEPTION_IsM2Exception (void)
   return (RTExceptions_GetNumber (e)) != (UINT_MAX);
 }
 
-void _M2_M2EXCEPTION_init (int argc, char *argv[])
+void _M2_M2EXCEPTION_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   RTExceptions_SetExceptionBlock (RTExceptions_InitExceptionBlock ());
 }
 
-void _M2_M2EXCEPTION_finish (int argc, char *argv[])
+void _M2_M2EXCEPTION_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

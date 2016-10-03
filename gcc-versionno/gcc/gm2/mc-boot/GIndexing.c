@@ -246,10 +246,10 @@ void Indexing_ForeachIndiceInIndexDo (Indexing_Index i, Indexing_IndexProcedure 
     }
 }
 
-void _M2_Indexing_init (int argc, char *argv[])
+void _M2_Indexing_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_Indexing_finish (int argc, char *argv[])
+void _M2_Indexing_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

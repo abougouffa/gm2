@@ -1339,12 +1339,12 @@ void FIO_FlushOutErr (void)
     FIO_FlushBuffer (FIO_StdErr);
 }
 
-void _M2_FIO_init (int argc, char *argv[])
+void _M2_FIO_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   Init ();
 }
 
-void _M2_FIO_finish (int argc, char *argv[])
+void _M2_FIO_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   FIO_FlushOutErr ();
 }

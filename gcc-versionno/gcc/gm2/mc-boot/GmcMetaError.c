@@ -1107,10 +1107,10 @@ void mcMetaError_metaErrorStringT4 (unsigned int tok, DynamicStrings_String m, u
   varargs_end (&sym);
 }
 
-void _M2_mcMetaError_init (int argc, char *argv[])
+void _M2_mcMetaError_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_mcMetaError_finish (int argc, char *argv[])
+void _M2_mcMetaError_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

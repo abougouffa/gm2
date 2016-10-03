@@ -518,11 +518,11 @@ DynamicStrings_String keyc_cname (nameKey_Name n, unsigned int scopes)
   return m;
 }
 
-void _M2_keyc_init (int argc, char *argv[])
+void _M2_keyc_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   init ();
 }
 
-void _M2_keyc_finish (int argc, char *argv[])
+void _M2_keyc_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

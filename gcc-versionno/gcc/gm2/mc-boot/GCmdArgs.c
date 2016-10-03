@@ -17,7 +17,7 @@
 #   define esc '\\'
 #   define space ' '
 #   define squote '\''
-#   define dquote '\\'
+#   define dquote '"'
 #   define tab ' '
 unsigned int CmdArgs_GetArg (char *CmdLine_, unsigned int _CmdLine_high, unsigned int n, char *Argi, unsigned int _Argi_high);
 unsigned int CmdArgs_Narg (char *CmdLine_, unsigned int _CmdLine_high);
@@ -166,10 +166,10 @@ unsigned int CmdArgs_Narg (char *CmdLine_, unsigned int _CmdLine_high)
   return ArgNo;
 }
 
-void _M2_CmdArgs_init (int argc, char *argv[])
+void _M2_CmdArgs_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_CmdArgs_finish (int argc, char *argv[])
+void _M2_CmdArgs_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

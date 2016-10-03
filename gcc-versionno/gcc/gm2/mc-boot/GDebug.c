@@ -85,10 +85,10 @@ void Debug_DebugString (char *a_, unsigned int _a_high)
     }
 }
 
-void _M2_Debug_init (int argc, char *argv[])
+void _M2_Debug_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_Debug_finish (int argc, char *argv[])
+void _M2_Debug_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

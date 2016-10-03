@@ -343,7 +343,7 @@ void * nameKey_keyToCharStar (nameKey_Name key)
     return Indexing_GetIndice (keyIndex, (unsigned int ) key);
 }
 
-void _M2_nameKey_init (int argc, char *argv[])
+void _M2_nameKey_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   lastIndice = 0;
   keyIndex = Indexing_InitIndex (1);
@@ -351,6 +351,6 @@ void _M2_nameKey_init (int argc, char *argv[])
   binaryTree->left = NULL;
 }
 
-void _M2_nameKey_finish (int argc, char *argv[])
+void _M2_nameKey_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

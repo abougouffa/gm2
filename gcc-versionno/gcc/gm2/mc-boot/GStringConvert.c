@@ -916,10 +916,10 @@ DynamicStrings_String StringConvert_ToDecimalPlaces (DynamicStrings_String s, un
     return s;
 }
 
-void _M2_StringConvert_init (int argc, char *argv[])
+void _M2_StringConvert_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
 
-void _M2_StringConvert_finish (int argc, char *argv[])
+void _M2_StringConvert_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }

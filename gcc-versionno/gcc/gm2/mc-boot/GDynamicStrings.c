@@ -1445,12 +1445,12 @@ DynamicStrings_String DynamicStrings_PopAllocationExemption (unsigned int halt, 
   return e;
 }
 
-void _M2_DynamicStrings_init (int argc, char *argv[])
+void _M2_DynamicStrings_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   Initialized = FALSE;
   Init ();
 }
 
-void _M2_DynamicStrings_finish (int argc, char *argv[])
+void _M2_DynamicStrings_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
 }
