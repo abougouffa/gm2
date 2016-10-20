@@ -24,6 +24,7 @@ def placeBoarders (thickness, color):
     e4 = pge.box (0.0, 1.0-thickness, 1.0, thickness, color).fix ()
     return e1, e2, e3, e4
 
+
 def placeBall (x, y, r):
     return pge.circle (x, y, r, metal)
 
@@ -34,7 +35,7 @@ def placeTriangle (p0, p1, p2):
 
 
 def main ():
-    c = placeBall (0.8, 0.8, 0.1)
+    c = placeBall (0.41, 0.89, 0.05).mass (1)
     l = placeTriangle ([0.3, 0.3], [0.5, 0.3], [0.4, 0.4])
     b1, b2, b3, b4 = placeBoarders (boarder, wood_dark)
     print "before run"

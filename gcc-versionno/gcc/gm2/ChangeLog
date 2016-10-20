@@ -1,3 +1,20 @@
+2016-10-20      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/pge/MemStream.mod:  many changes and bug fixes to
+	  shared library example.
+	* gm2/examples/pge/MemStream.mod:  ditto.
+	* gm2/examples/pge/NetworkOrder.mod:  ditto.
+	* gm2/examples/pge/deviceIf.mod:  ditto.
+	* gm2/examples/pge/examples/triangle.py:  ditto.
+	* gm2/examples/pge/history.def:  ditto.
+	* gm2/examples/pge/history.mod:  ditto.
+	* gm2/examples/pge/pgeif.def:  ditto.
+	* gm2/examples/pge/pgeif.mod:  ditto.
+	* gm2/examples/pge/roots.def:  ditto.
+	* gm2/examples/pge/roots.mod:  ditto.
+	* gm2/examples/pge/twoDsim.def:  ditto.
+	* gm2/examples/pge/twoDsim.mod:  ditto.
+
 2016-10-03      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  instruct mc to generate g++ compilient C code.

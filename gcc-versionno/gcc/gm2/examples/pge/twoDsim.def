@@ -157,6 +157,33 @@ PROCEDURE put_yaccel (id: CARDINAL; r: REAL) ;
 
 
 (*
+   apply_impulse - apply an impulse to object, id,
+                   along the vector [x, y] with magnitude, m.
+                   Nothing happens if the object is fixed.
+                   Currently only circles can have impulses
+                   applied.
+*)
+
+PROCEDURE apply_impulse (id: CARDINAL; x, y: REAL; m: REAL) ;
+
+
+(*
+   moving_towards - returns TRUE if object, id, is moving towards
+                    a point x, y.
+*)
+
+PROCEDURE moving_towards (id: CARDINAL; x, y: REAL) : BOOLEAN ;
+
+
+(*
+   set_colour - set the colour of object, id, to colour.
+                id must be a box or circle.
+*)
+
+PROCEDURE set_colour (id: CARDINAL; colour: Colour) ;
+
+
+(*
    mass - specify the mass of an object and return the, id.
 *)
 
@@ -176,13 +203,6 @@ PROCEDURE fix (id: CARDINAL) : CARDINAL ;
 *)
 
 PROCEDURE circle (x0, y0, radius: REAL; colour: Colour) : CARDINAL ;
-
-
-(*
-   pivot - pivot an object at position, (x0,y0).
-*)
-
-PROCEDURE pivot (x0, y0: REAL; id1: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -280,6 +300,21 @@ PROCEDURE isFrame () : BOOLEAN ;
 
 
 (*
+   isFunction - returns TRUE if the next event is a function event.
+*)
+
+PROCEDURE isFunction () : BOOLEAN ;
+
+
+(*
+   createFunctionEvent - creates a function event at time, t,
+                         in the future.
+*)
+
+PROCEDURE createFunctionEvent (t: REAL; id: CARDINAL) ;
+
+
+(*
    rm - delete this object from the simulated world.
         The same id is returned.
 *)
@@ -331,6 +366,13 @@ PROCEDURE useTimeDelay (on: BOOLEAN) ;
 *)
 
 PROCEDURE drawCollisionFrames (actual, predict: BOOLEAN) ;
+
+
+(*
+   setCollisionColour - assigns, c, as the colour for objects colliding.
+*)
+
+PROCEDURE setCollisionColour (c: Colour) ;
 
 
 (*

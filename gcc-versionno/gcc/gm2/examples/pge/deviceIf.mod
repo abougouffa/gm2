@@ -76,7 +76,7 @@ VAR
 
 
 (*
-   checkOpened - 
+   checkOpened -
 *)
 
 PROCEDURE checkOpened ;
@@ -90,7 +90,7 @@ END checkOpened ;
 
 
 (*
-   registerColour - 
+   registerColour -
 *)
 
 PROCEDURE registerColour (cid: Colour; r, g, b: Fract) : Colour ;
@@ -193,7 +193,7 @@ END purple ;
 
 
 (*
-   writeColour - 
+   writeColour -
 *)
 
 PROCEDURE writeColour (c: Colour) ;
@@ -279,14 +279,15 @@ END glyphCircle ;
 
 PROCEDURE flipBuffer ;
 BEGIN
+   IF DebugTrace
+   THEN
+      printf ("deviceIf: flipBuffer \n")
+   END ;
    IF device=none
    THEN
       useBuffer
    END ;
-   IF device=groff
-   THEN
-      RawIO.Write (ffile, "fb")
-   END
+   RawIO.Write (ffile, "fb")
 END flipBuffer ;
 
 
@@ -300,7 +301,7 @@ BEGIN
    IF device=groff
    THEN
       RawIO.Write (ffile, "fn") ;
-      writeCard (ffile, nextFrame)
+      writeCard (ffile, nextFrame) ;
    END ;
    INC(nextFrame)
 END frameNote ;
@@ -459,7 +460,7 @@ END finish ;
 
 
 (*
-   scaleX - 
+   scaleX -
 *)
 
 PROCEDURE scaleX (x: Fract) : Fract ;
@@ -535,7 +536,7 @@ END configDevice ;
 
 
 (*
-   markConfig - 
+   markConfig -
 *)
 
 PROCEDURE markConfig (e: entity) ;
@@ -557,7 +558,7 @@ END markConfig ;
 
 
 (*
-   Init - 
+   Init -
 *)
 
 PROCEDURE Init ;

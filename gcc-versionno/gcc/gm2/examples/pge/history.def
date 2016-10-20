@@ -23,7 +23,7 @@ DEFINITION MODULE history ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Wed Oct 24 12:43:32 2012
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides a mechanism for maintaining a collision history.
 *)
 
@@ -34,7 +34,8 @@ FROM twoDsim IMPORT whereHit ;
 (*
    isDuplicate - returns TRUE if the collision at, position,
                  and, time, has occurred before.
-                 The time must be the absolute time of the collision.
+                 The time (currentTime+relTime) must be the absolute
+                 time of the collision.
 *)
 
 PROCEDURE isDuplicate (currentTime, relTime: REAL;
@@ -42,35 +43,37 @@ PROCEDURE isDuplicate (currentTime, relTime: REAL;
 
 
 (*
-   occurred - mark the collision as having occurred.
+   forgetFuture - destroy the anticipated future queue.
+*)
+
+PROCEDURE forgetFuture ;
+
+
+(*
+   occurred - mark the collision as having occurred at, currentTime, between, objects
+              id1 and id2.  This collision is placed onto the past queue.
+              If the event described by id1, id2 at, time, is also present
+              on the future queue it is removed.
 *)
 
 PROCEDURE occurred (currentTime: REAL; id1, id2: CARDINAL) ;
 
 
 (*
-   purge - remove all collision history which has never occurred.
+   anticipate - anticipate a collision at time, aTime, in the future.
+                A duplicate will ignored.  A non duplicate
+                collision will be placed onto the futureQ.
 *)
 
-PROCEDURE purge ;
+PROCEDURE anticipate (aTime: REAL; id1, id2: CARDINAL) ;
 
 
 (*
-   removeOlderHistory - remove older entries than, currentTime.
-                        This should only be called once a collision
-                        has been found, we need to do this as we assume
-                        any future event may be null and void after an
-                        earlier collision.
+   isPair - are (a, b) the same as (x, y) or
+             is (a, b) the same as (y, x)
 *)
 
-PROCEDURE removeOlderHistory (currentTime: REAL) ;
-
-
-(*
-   forgetHistory - forget the complete history list.
-*)
-
-PROCEDURE forgetHistory ;
+PROCEDURE isPair (a, b, x, y: CARDINAL) : BOOLEAN ;
 
 
 END history.
