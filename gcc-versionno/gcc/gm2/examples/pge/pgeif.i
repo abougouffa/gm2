@@ -27,6 +27,8 @@ extern "C" void batch (void);
 extern "C" void use_buffer (void);
 extern "C" void use_time_delay (unsigned int on) ;
 extern "C" void draw_collision (unsigned int actual, unsigned int predict);
+extern "C" void set_collision_colour (unsigned int c);
+
 extern "C" void dump_world (void);
 extern "C" void check_objects (void);
 extern "C" unsigned int rm (unsigned int id);
@@ -34,6 +36,9 @@ extern "C" double get_time (void);
 extern "C" double time_until (void);
 extern "C" unsigned int is_frame (void);
 extern "C" unsigned int is_collision (void);
+extern "C" unsigned int is_function (void);
+extern "C" void create_function_event (double t, unsigned int id);
+
 extern "C" void process_event (void);
 extern "C" unsigned int rotate (unsigned int id, double angle);
 extern "C" unsigned int accel (unsigned int id, double ax, double ay);
@@ -54,10 +59,13 @@ extern "C" double get_yvel (unsigned int id);
 extern "C" double get_xaccel (unsigned int id);
 extern "C" double get_yaccel (unsigned int id);
 
+extern "C" void apply_impulse (unsigned int id, double x, double y, double m);
+extern "C" int moving_towards (unsigned int id, double x, double y);
 extern "C" void put_xvel (unsigned int id, double d);
 extern "C" void put_yvel (unsigned int id, double d);
 extern "C" void put_xaccel (unsigned int id, double d);
 extern "C" void put_yaccel (unsigned int id, double d);
+extern "C" void set_colour (unsigned int id, unsigned int c);
 
 extern "C" void gravity (double g);
 
@@ -72,6 +80,7 @@ extern "C" unsigned int rgb (double r, double g, double b);
 extern "C" unsigned int l2h (unsigned int id);
 extern "C" unsigned int h2l (unsigned int id);
 extern "C" double skip_until (double t);
+extern "C" void fps (double t);
 %}
 
 extern "C" void empty_cbuffer (void);
@@ -81,6 +90,8 @@ extern "C" void batch (void);
 extern "C" void use_buffer (void);
 extern "C" void use_time_delay (unsigned int on) ;
 extern "C" void draw_collision (unsigned int actual, unsigned int predict);
+extern "C" void set_collision_colour (unsigned int c);
+
 extern "C" void dump_world (void);
 extern "C" void check_objects (void);
 extern "C" unsigned int rm (unsigned int id);
@@ -88,6 +99,9 @@ extern "C" double get_time (void);
 extern "C" double time_until (void);
 extern "C" unsigned int is_frame (void);
 extern "C" unsigned int is_collision (void);
+extern "C" unsigned int is_function (void);
+extern "C" void create_function_event (double t, unsigned int id);
+
 extern "C" void process_event (void);
 extern "C" unsigned int rotate (unsigned int id, double angle);
 extern "C" unsigned int accel (unsigned int id, double ax, double ay);
@@ -108,10 +122,14 @@ extern "C" double get_yvel (unsigned int id);
 extern "C" double get_xaccel (unsigned int id);
 extern "C" double get_yaccel (unsigned int id);
 
+extern "C" void apply_impulse (unsigned int id, double x, double y, double m);
+extern "C" int moving_towards (unsigned int id, double x, double y);
 extern "C" void put_xvel (unsigned int id, double d);
 extern "C" void put_yvel (unsigned int id, double d);
 extern "C" void put_xaccel (unsigned int id, double d);
 extern "C" void put_yaccel (unsigned int id, double d);
+
+extern "C" void set_colour (unsigned int id, unsigned int c);
 
 extern "C" void gravity (double g);
 extern "C" unsigned int purple (void);
@@ -130,3 +148,4 @@ extern "C" double skip_until (double t);
 extern "C" void get_cbuf (char **s, int *slen);
 extern "C" void get_ebuf (char **s, int *slen);
 extern "C" void get_fbuf (char **s, int *slen);
+extern "C" void fps (double t);

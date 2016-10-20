@@ -122,7 +122,7 @@ class parse:
     def getNext (self):
         self.skipWhite()
         token = self.collectText()
-        printf("token is '%s'\n", token)
+        # printf("token is '%s'\n", token)
         # self.printToken(token)
         return token
 
@@ -254,14 +254,14 @@ class parse:
 
     def factor (self):
         if self.seenToken('('):
-            print "factor -> ( expression )"
+            # print "factor -> ( expression )"
             self.expression()
             self.expect(')')
-            print "factor True"
+            # print "factor True"
             return True
         elif self.litorvar():
             if self.seenToken('^'):
-                print "factor ^ "
+                # print "factor ^ "
                 l = self.expressionStack.pop()
                 self.factor()
                 r = self.expressionStack.pop()
@@ -269,11 +269,12 @@ class parse:
                 t.operands([l, r])
                 self.expressionStack.push(t)
             else:
-                print "not seen ^"
-            print "factor True"
+                # print "not seen ^"
+                pass
+            # print "factor True"
             return True
         else:
-            print "factor False"
+            # print "factor False"
             return False
 
 

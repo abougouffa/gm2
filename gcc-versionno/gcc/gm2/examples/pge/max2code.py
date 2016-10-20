@@ -36,7 +36,7 @@ def parseArgs ():
     except getopt.GetoptError:
         usage(1)
 
-    print optlist
+    # print optlist
     for opt in optlist:
         if opt[0] == '-h':
             usage(0)

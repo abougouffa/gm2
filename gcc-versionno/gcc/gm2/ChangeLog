@@ -14,6 +14,17 @@
 	* gm2/examples/pge/roots.mod:  ditto.
 	* gm2/examples/pge/twoDsim.def:  ditto.
 	* gm2/examples/pge/twoDsim.mod:  ditto.
+	* gm2/examples/pge/buffers.c:  ditto.
+	* gm2/examples/pge/max2code.py:  fixed options.
+	* gm2/examples/pge/mxmmaxima.py:  removed debugging trace.
+	* gm2/examples/pge/mxmparser.py:  removed debugging trace.
+	* gm2/examples/pge/mxmtree.py:  removed debugging trace.
+	* gm2/examples/pge/pge.py:  huge number of changes.
+	* gm2/examples/pge/pgeif.i:  changes to the python interface.
+	* gm2/examples/pge/pgeplayback.py:  many bug fixes to allow
+          single stepping.
+	* gm2/examples/pge/pgepygame.py:  minor changes and removal
+	  of spacing.
 
 2016-10-03      Gaius Mulley <gaius@gnu.org>
 
