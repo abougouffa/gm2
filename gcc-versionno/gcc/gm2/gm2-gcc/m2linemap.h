@@ -30,7 +30,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #      if defined(__GNUG__)
 #         define EXTERN extern "C"
 #      else
-#         define EXTERN 
+#         define EXTERN
 #      endif
 #   else
 #      if defined(__GNUG__)
@@ -42,7 +42,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include "input.h"
 
-EXTERN void m2linemap_StartFile (char *filename, unsigned int linebegin);
+EXTERN void m2linemap_StartFile (void *filename, unsigned int linebegin);
 EXTERN void m2linemap_EndFile (void);
 EXTERN void m2linemap_StartLine (unsigned int linenumber, unsigned int linesize);
 EXTERN location_t m2linemap_GetLocationColumn (unsigned int column);

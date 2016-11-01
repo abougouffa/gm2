@@ -20,13 +20,11 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #include "gm2-gcc/gcc-consolidation.h"
-#include <p2c/p2c.h>
 
 #include "GM2Reserved.h"
 #include "GM2LexBuf.h"
 #include "input.h"
 #include "m2options.h"
-#include "m2linemap.h"
 
 #if defined(GM2USEGGC)
 #  include "ggc.h"
