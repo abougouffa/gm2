@@ -8357,12 +8357,19 @@ PROCEDURE doExprCastC (p: pretty; e, type: node) ;
 BEGIN
    IF type # getType (e)
    THEN
-      (* potentially a cast is required.  *)
-      IF (isPointer (type) OR (type = addressN))
+      IF lang = ansiCP
       THEN
-         IF lang = ansiCP
+         (* potentially a cast is required.  *)
+         IF (isPointer (type) OR (type = addressN))
          THEN
             outText (p, 'reinterpret_cast<') ;
+            doTypeNameC (p, type) ;
+            outText (p, '> (') ;
+            doExprC (p, e) ;
+	    outText (p, ')') ;
+            RETURN
+         ELSE
+            outText (p, 'static_cast<') ;
             doTypeNameC (p, type) ;
             outText (p, '> (') ;
             doExprC (p, e) ;

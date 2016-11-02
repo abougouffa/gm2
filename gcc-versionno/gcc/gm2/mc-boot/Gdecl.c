@@ -6702,10 +6702,19 @@ static void doReturnC (mcPretty_pretty p, decl_node s)
 static void doExprCastC (mcPretty_pretty p, decl_node e, decl_node type)
 {
   if (type != (decl_getType (e)))
-    if ((decl_isPointer (type)) || (type == addressN))
-      if (lang == ansiCP)
+    if (lang == ansiCP)
+      if ((decl_isPointer (type)) || (type == addressN))
         {
           outText (p, (char *) "reinterpret_cast<", 17);
+          doTypeNameC (p, type);
+          outText (p, (char *) "> (", 3);
+          doExprC (p, e);
+          outText (p, (char *) ")", 1);
+          return;
+        }
+      else
+        {
+          outText (p, (char *) "static_cast<", 12);
           doTypeNameC (p, type);
           outText (p, (char *) "> (", 3);
           doExprC (p, e);

@@ -1,3 +1,9 @@
+2016-11-02      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/mc-boot/Gdecl.c:  regenerated.
+	* gm2/mc/decl.mod:  generate a static_cast.  This fixes a
+	  bug in the translation of Args.mod.
+
 2016-11-01      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-gcc/m2linemap.h:  changed prototype of StartFile to
