@@ -1,3 +1,14 @@
+2016-11-11      Gaius Mulley <gaius@gnu.org>
+
+	* updates for the shared library example pge.
+	* gm2/examples/pge/Fractions.mod:  removed unnecessary spaces.
+	* gm2/examples/pge/history.def:  major changes to history of collision.
+	* gm2/examples/pge/history.mod:  major changes to history of collision.
+	* gm2/examples/pge/roots.def:  new procedure function nearCoord.
+	* gm2/examples/pge/roots.mod:  new procedure function nearCoord.
+	* gm2/examples/pge/twoDsim.mod:  huge changes to include interpenetration
+          testing.
+
 2016-11-02      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/mc-boot/Gdecl.c:  regenerated.

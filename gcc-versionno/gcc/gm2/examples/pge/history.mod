@@ -19,7 +19,7 @@ Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE history ;
 
 FROM Storage IMPORT ALLOCATE ;
-FROM roots IMPORT nearZero, nearSame ;
+FROM roots IMPORT nearZero, nearSame, nearCoord ;
 FROM libc IMPORT printf ;
 
 CONST
@@ -33,6 +33,7 @@ TYPE
                          id2        : CARDINAL ;
                          where1,
                          where2     : whereHit ;
+			 cp         : Coord ;
                          t          : REAL ;
                          next       : hList ;
                       END ;
@@ -135,6 +136,7 @@ BEGIN
    RETURN nearZero (a^.t-b^.t) AND
            isPair (a^.id1, a^.id2, b^.id1, b^.id2) AND
            (a^.where1 = b^.where1) AND (a^.where2 = b^.where2)
+           AND nearCoord (a^.cp, b^.cp)
 END isSame ;
 
 
@@ -159,12 +161,13 @@ END disposeAll ;
    init - fill in the fields of, n, and return n.
 *)
 
-PROCEDURE init (n: hList; time: REAL; id1, id2: CARDINAL; w1, w2: whereHit) : hList ;
+PROCEDURE init (n: hList; time: REAL; id1, id2: CARDINAL; w1, w2: whereHit; cp: Coord) : hList ;
 BEGIN
    n^.id1 := id1 ;
    n^.id2 := id2 ;
    n^.where1 := w1 ;
    n^.where2 := w2 ;
+   n^.cp := cp ;
    n^.t := time ;
    n^.next := NIL ;
    RETURN n
@@ -172,14 +175,14 @@ END init ;
 
 
 (*
-   isDuplicate - returns TRUE if the collision at, position,
+   isDuplicate - returns TRUE if the collision at, cp,
                  and, time, has occurred before.
                  The time (currentTime+relTime) must be the absolute
                  time of the collision.
 *)
 
 PROCEDURE isDuplicate (currentTime, relTime: REAL;
-                       id1, id2: CARDINAL; w1, w2: whereHit) : BOOLEAN ;
+                       id1, id2: CARDINAL; w1, w2: whereHit; cp: Coord) : BOOLEAN ;
 VAR
    h, n: hList ;
 BEGIN
@@ -187,7 +190,7 @@ BEGIN
    THEN
       dumpLists
    END ;
-   n := init (newHList (), currentTime+relTime, id1, id2, w1, w2) ;
+   n := init (newHList (), currentTime+relTime, id1, id2, w1, w2, cp) ;
    IF Debugging
    THEN
       printf ("checking for duplicates of: ") ;
@@ -226,12 +229,12 @@ END forgetFuture ;
 
 (*
    occurred - mark the collision as having occurred at, currentTime, between, objects
-              id1 and id2.  This collision is placed onto the past queue.
+              id1 and id2 at position, cp.  This collision is placed onto the past queue.
               If the event described by id1, id2 at, time, is also present
               on the future queue it is removed.
 *)
 
-PROCEDURE occurred (currentTime: REAL; id1, id2: CARDINAL) ;
+PROCEDURE occurred (currentTime: REAL; id1, id2: CARDINAL; cp: Coord) ;
 VAR
    n: hList ;
 BEGIN
@@ -239,7 +242,7 @@ BEGIN
    THEN
       dumpLists
    END ;
-   n := init (newHList(), currentTime, id1, id2, edge, edge) ;
+   n := init (newHList(), currentTime, id1, id2, edge, edge, cp) ;
    IF Debugging
    THEN
       printf ("collision has occurred ") ;
@@ -260,12 +263,13 @@ END occurred ;
 
 
 (*
-   anticipate - anticipate a collision at time, aTime, in the future.
+   anticipate - anticipate a collision at time, aTime, in the future at
+                position, cp.
                 A duplicate will ignored.  A non duplicate
                 collision will be placed onto the futureQ.
 *)
 
-PROCEDURE anticipate (aTime: REAL; id1, id2: CARDINAL) ;
+PROCEDURE anticipate (aTime: REAL; id1, id2: CARDINAL; cp: Coord) ;
 VAR
    n: hList ;
 BEGIN
@@ -273,7 +277,7 @@ BEGIN
    THEN
       dumpLists
    END ;
-   n := init (newHList(), aTime, id1, id2, edge, edge) ;
+   n := init (newHList(), aTime, id1, id2, edge, edge, cp) ;
    IF Debugging
    THEN
       printf ("anticipated collision at: ") ;

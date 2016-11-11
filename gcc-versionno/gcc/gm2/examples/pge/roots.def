@@ -28,8 +28,10 @@ DEFINITION MODULE roots ;
     Description: find the roots to quadratics and quartic equations.
 *)
 
+FROM coord IMPORT Coord ;
+
 EXPORT QUALIFIED findQuadratic, findQuartic, findAllRootsQuartic, findOctic,
-                 nearZero, nearSame, setTrace ;
+                 nearZero, nearSame, nearCoord, setTrace ;
 
 
 (*
@@ -88,6 +90,13 @@ PROCEDURE nearZero (r: REAL) : BOOLEAN ;
 *)
 
 PROCEDURE nearSame (a, b: REAL) : BOOLEAN ;
+
+
+(*
+   nearCoord - returns TRUE if position, a, is very close to, b.
+*)
+
+PROCEDURE nearCoord (a, b: Coord) : BOOLEAN ;
 
 
 (*

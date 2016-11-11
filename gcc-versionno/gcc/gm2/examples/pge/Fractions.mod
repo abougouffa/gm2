@@ -28,6 +28,9 @@ FROM SYSTEM IMPORT ADR, ADDRESS, TSIZE ;
 FROM ASCII IMPORT nul, tab, lf ;
 FROM DynamicStrings IMPORT InitString ;
 
+CONST
+   runRegression = FALSE ;
+
 TYPE
    doProcedure = PROCEDURE (Fract) : BOOLEAN ;
 
@@ -164,7 +167,7 @@ VAR
 
 
 (*
-   writeCard - 
+   writeCard -
 *)
 
 PROCEDURE writeCard (c: CARDINAL) ;
@@ -184,7 +187,7 @@ END writeCard ;
 
 
 (*
-   writeAddress - 
+   writeAddress -
 *)
 
 PROCEDURE writeAddress (a: ADDRESS) ;
@@ -194,7 +197,7 @@ END writeAddress ;
 
 
 (*
-   writeNspace - 
+   writeNspace -
 *)
 
 PROCEDURE writeNspace (n: CARDINAL) ;
@@ -235,7 +238,7 @@ END isConst ;
 
 
 (*
-   isSpecialConst - 
+   isSpecialConst -
 *)
 
 PROCEDURE isSpecialConst (f: Fract) : BOOLEAN ;
@@ -286,7 +289,7 @@ END writeCstring ;
 
 
 (*
-   writeLongcard - 
+   writeLongcard -
 *)
 
 PROCEDURE writeLongcard (c: LONGCARD) ;
@@ -306,7 +309,7 @@ END writeLongcard ;
 
 
 (*
-   writeLongint - 
+   writeLongint -
 *)
 
 PROCEDURE writeLongint (i: LONGINT) ;
@@ -446,7 +449,7 @@ END oneOverN ;
 
 
 (*
-   root2 - 
+   root2 -
 *)
 
 PROCEDURE root2 () : Fract ;
@@ -699,7 +702,7 @@ BEGIN
       l^.demon := l^.demon * lg ;
       r^.num :=  r^.num * rg ;
       r^.demon := l^.demon * rg
-   END 
+   END
 END equalDemon ;
 
 
@@ -724,7 +727,7 @@ BEGIN
       g := gcd(l^.demon, r^.demon) ;
       lg := r^.demon DIV g ;
       rg := l^.demon DIV g ;
-      
+
       l^.num := (l^.num * lg) + (r^.num * rg) ;
       l^.demon := l^.demon * lg ;
       l := simplify(l)   (* handles carry *)
@@ -800,7 +803,7 @@ BEGIN
       g := gcd(l^.demon, r^.demon) ;
       lg := r^.demon DIV g ;
       rg := l^.demon DIV g ;
-      
+
       IF (l^.num * lg) >= (r^.num * rg)
       THEN
          (* no need to borrow *)
@@ -1342,7 +1345,7 @@ BEGIN
    mark(f) ;
    WITH f^ DO
       CASE special OF
-      
+
       NONE,
       PI,
       E,
@@ -1374,7 +1377,7 @@ END walkFract ;
 
 
 (*
-   walkExpr - 
+   walkExpr -
 *)
 
 PROCEDURE walkExpr (f: Fract; p: doProcedure) : BOOLEAN ;
@@ -1383,7 +1386,7 @@ VAR
 BEGIN
    WITH f^ DO
       CASE special OF
-      
+
       NONE,
       PI,
       E,
@@ -1454,7 +1457,7 @@ PROCEDURE doRules (f: Fract) : BOOLEAN ;
 BEGIN
    WITH f^ DO
       CASE special OF
-      
+
       NONE : RETURN doFract(f) |
       PI,
       E,
@@ -1519,7 +1522,7 @@ BEGIN
          oCos,
          oTan,
          oNegate:  RETURN areEqual(l^.left, r^.left)
-         
+
          ELSE
             HALT
          END
@@ -1905,7 +1908,7 @@ BEGIN
    THEN
       RETURN TRUE
    END ;
-   
+
    RETURN modified
 END doTan ;
 
@@ -2207,7 +2210,7 @@ END writeDecimal ;
 
 
 (*
-   flush - 
+   flush -
 *)
 
 PROCEDURE flush (f: Fract) : Fract ;
@@ -2254,7 +2257,7 @@ END dup ;
 
 
 (*
-   dupc - 
+   dupc -
 *)
 
 PROCEDURE dupc (f: Fract) : Fract ;
@@ -2276,7 +2279,7 @@ END dupc ;
 
 
 (*
-   dups - 
+   dups -
 *)
 
 PROCEDURE dups (f: Fract) : Fract ;
@@ -2336,7 +2339,7 @@ END dupExpr ;
 
 
 (*
-   sinc - 
+   sinc -
 *)
 
 PROCEDURE sinc (x: Fract) : Fract ;
@@ -2362,7 +2365,7 @@ END sin ;
 
 
 (*
-   tanc - 
+   tanc -
 *)
 
 PROCEDURE tanc (f: Fract) : Fract ;
@@ -2561,7 +2564,7 @@ END putReal ;
 
 
 (*
-   walkFractEntity - 
+   walkFractEntity -
 *)
 
 PROCEDURE walkFractEntity (e: entity) ;
@@ -2640,5 +2643,8 @@ END regressionTest ;
 
 BEGIN
    init ;
-   regressionTest
+   IF runRegression
+   THEN
+      regressionTest
+   END
 END Fractions.

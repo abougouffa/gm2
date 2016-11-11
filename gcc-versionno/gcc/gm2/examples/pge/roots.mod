@@ -109,8 +109,8 @@ PROCEDURE cnearZero (c: COMPLEX) : BOOLEAN ;
 VAR
    r: REAL ;
 BEGIN
-   r := rsqrt(sqr(RE(c))+sqr(IM(c))) ;
-   RETURN nearZero(r)
+   r := rsqrt (sqr (RE(c)) + sqr (IM (c))) ;
+   RETURN nearZero (r)
 END cnearZero ;
 
 
@@ -120,8 +120,18 @@ END cnearZero ;
 
 PROCEDURE isReal (c: COMPLEX) : BOOLEAN ;
 BEGIN
-   RETURN nearZero(IM(c))
+   RETURN nearZero (IM (c))
 END isReal ;
+
+
+(*
+   nearCoord - returns TRUE if position, a, is very close to, b.
+*)
+
+PROCEDURE nearCoord (a, b: Coord) : BOOLEAN ;
+BEGIN
+   RETURN nearSame (a.x, b.x) AND nearSame (a.y, b.y)
+END nearCoord ;
 
 
 (*

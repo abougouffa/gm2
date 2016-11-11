@@ -24,7 +24,7 @@ FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, HighIndice ;
 FROM libc IMPORT printf, exit ;
 FROM deviceIf IMPORT flipBuffer, frameNote, glyphCircle, glyphPolygon, writeTime, blue, red, black, yellow, purple, white ;
 FROM libm IMPORT sqrt, asin, sin, cos, atan ;
-FROM roots IMPORT findQuartic, findQuadratic, findAllRootsQuartic, findOctic, nearZero, setTrace ;
+FROM roots IMPORT findQuartic, findQuadratic, findAllRootsQuartic, findOctic, nearZero, nearCoord, nearSame, setTrace ;
 FROM Fractions IMPORT Fract, zero, one, putReal, initFract ;
 FROM Points IMPORT Point, initPoint ;
 FROM GC IMPORT collectAll ;
@@ -118,6 +118,7 @@ TYPE
                           angleOrientation,
                           angularVelocity,
                           angularMomentum : REAL ;
+			  interpen        : CARDINAL ;
 
                           CASE object: ObjectType OF
 
@@ -359,7 +360,8 @@ BEGIN
       angularVelocity  := 0.0 ;
       angularMomentum  := 0.0 ;
       angleOrientation := 0.0 ;
-      inertia          := 0.0
+      inertia          := 0.0 ;
+      interpen         := 0
    END ;
    PutIndice (objects, maxId, optr) ;
    RETURN maxId
@@ -636,7 +638,10 @@ PROCEDURE get_xvel (id: CARDINAL) : REAL ;
 VAR
    optr: Object ;
 BEGIN
-   printf ("get_xvel for object %d\n", id) ;
+   IF trace
+   THEN
+      printf ("get_xvel for object %d\n", id)
+   END ;
    down ;
    optr := GetIndice (objects, id) ;
    checkDeleted (optr) ;
@@ -654,7 +659,10 @@ PROCEDURE get_yvel (id: CARDINAL) : REAL ;
 VAR
    optr: Object ;
 BEGIN
-   printf ("get_yvel for object %d\n", id) ;
+   IF trace
+   THEN
+      printf ("get_yvel for object %d\n", id)
+   END ;
    down ;
    updatePhysics ;
    optr := GetIndice (objects, id) ;
@@ -956,49 +964,281 @@ END objectExists ;
    doCheckInterpenCircleCircle -
 *)
 
-PROCEDURE doCheckInterpenCircleCircle (fixed, movable: Object) ;
+PROCEDURE doCheckInterpenCircleCircle (fixed, movable: Object) : CARDINAL ;
 VAR
-   d : Coord ;
+   d, v: Coord ;
    h1,
-   h0: REAL ;
+   h0  : REAL ;
 BEGIN
-   d := subCoord (fixed^.c.pos, movable^.c.pos) ;
+   d := subCoord (movable^.c.pos, fixed^.c.pos) ;
    h0 := fixed^.c.r + movable^.c.r ;
    h1 := sqrt (d.x*d.x + d.y*d.y) ;
-   IF h0>h1
+   IF h0 > h1
    THEN
-      printf ("interpen found two circles interpenetrating  %d, %d\n", fixed^.id, movable^.id)
-   END
+      IF trace
+      THEN
+         printf ("interpen found two moving circles interpenetrating %d, %d   h0 = %g, h1 = %g\n", fixed^.id, movable^.id, h0, h1)
+      END ;
+      (* adjust movable circle.  *)
+      v := scaleCoord (normaliseCoord (d), h0) ;
+      movable^.c.pos := addCoord (fixed^.c.pos, v) ;
+      (* checkStationary (movable) ; *)
+      movable^.vx := movable^.vx + v.x * (h0-h1)/h0 ;
+      movable^.vy := movable^.vy + v.y * (h0-h1)/h0 ;  (* give it a little push as well.  *)
+
+      INC (movable^.interpen) ;
+      RETURN movable^.interpen
+   END ;
+   RETURN 0
 END doCheckInterpenCircleCircle ;
 
 
 (*
-   doCheckInterpen -
+   doCheckInterpenCircleCircleMoving -
 *)
 
-PROCEDURE doCheckInterpen (iptr, jptr: Object) ;
+PROCEDURE doCheckInterpenCircleCircleMoving (c1, c2: Object) : CARDINAL ;
+VAR
+   d, v: Coord ;
+   h1,
+   h0  : REAL ;
+BEGIN
+   d := subCoord (c2^.c.pos, c1^.c.pos) ;
+   h0 := c1^.c.r + c2^.c.r ;
+   h1 := sqrt (d.x*d.x + d.y*d.y) ;
+   IF h0 > h1
+   THEN
+      IF trace
+      THEN
+         printf ("interpen found two moving circles interpenetrating %d, %d   h0 = %g, h1 = %g\n", c1^.id, c2^.id, h0, h1)
+      END ;
+      (* we should really adjust the circle with the lowest interpen value.  *)
+      v := scaleCoord (normaliseCoord (d), h0) ;
+      c2^.c.pos := addCoord (c1^.c.pos, v) ;
+      c2^.vx := c2^.vx + v.x * (h0-h1)/h0 ;
+      c2^.vy := c2^.vy + v.y * (h0-h1)/h0 ;  (* give it a little push as well.  *)
+
+      (* checkStationary (c2) ; *)
+      (* checkStationary (c1) ; *)
+      INC (c2^.interpen) ;
+      RETURN c2^.interpen
+   END ;
+   RETURN 0
+END doCheckInterpenCircleCircleMoving ;
+
+
+(*
+   distanceLinePoint - c is a point.  p1->p2 is the line in question.
+                       p3 is assigned to the closest point on the line
+                       to the point, c.  d is the distance from c to p3.
+                       TRUE is returned if the point, c, lies above or
+                       below the line once the line is rotated onto the x
+                       axis.  (The point, c, would also rotated to solve
+                       this question).
+*)
+
+PROCEDURE distanceLinePoint (c, p1, p2: Coord; VAR p3: Coord; VAR d: REAL) : BOOLEAN ;
+VAR
+   A, B, C, D,
+   dot, lengthSq,
+   normalised   : REAL ;
+BEGIN
+   A := c.x - p1.x ;
+   B := c.y - p1.y ;
+   C := p2.x - p1.x ;
+   D := p2.y - p1.y ;
+   dot := A * C + B * D ;
+   lengthSq := sqr (C) + sqr (D) ;
+   normalised := -1.0 ;
+   IF NOT nearZero (lengthSq)
+   THEN
+      (* the dot product divided by length squared
+         gives you the projection distance from p1.
+         This is the fraction of the line that the point c
+         is the closest.  *)
+      normalised := dot / lengthSq
+   END ;
+   IF normalised < 0.0
+   THEN
+      (* misses line.  *)
+      p3 := p1 ;
+      RETURN FALSE
+   ELSIF normalised > 1.0
+   THEN
+      (* misses line.  *)
+      p3 := p2 ;
+      RETURN FALSE
+   END ;
+   p3 := checkZeroCoord (initCoord (p1.x + normalised * C,
+                                    p1.y + normalised * D)) ;
+
+   d := lengthCoord (subCoord (c, p3)) ;
+   RETURN TRUE
+END distanceLinePoint ;
+
+
+(*
+   checkLimits -
+*)
+
+PROCEDURE checkLimits (c: Coord; r: REAL) : Coord ;
+BEGIN
+   IF c.x-r < 0.0
+   THEN
+      c.x := r
+   ELSIF c.x+r > 1.0
+   THEN
+      c.x := 1.0-r
+   END ;
+   IF c.y-r < 0.0
+   THEN
+      c.y := r
+   ELSIF c.y+r > 1.0
+   THEN
+      c.y := 1.0-r
+   END ;
+   RETURN c
+END checkLimits ;
+
+
+(*
+   doCheckInterpenCirclePolygon -
+*)
+
+PROCEDURE doCheckInterpenCirclePolygon (iptr, jptr: Object) : CARDINAL ;
+VAR
+   d, r  : REAL ;
+   i, n  : CARDINAL ;
+   v,
+   c, p1,
+   p2, p3: Coord ;
+BEGIN
+   Assert (iptr^.object = circleOb, __LINE__) ;
+   Assert (jptr^.object = polygonOb, __LINE__) ;
+   c := checkZeroCoord (iptr^.c.pos) ;
+   r := iptr^.c.r ;
+   n := jptr^.p.nPoints ;
+   i := 1 ;
+   WHILE i <= n DO
+      getPolygonLine (i, jptr, p1, p2) ;
+      IF distanceLinePoint (c, p1, p2, p3, d) AND (NOT nearZero (r-d)) AND (r > d)
+      THEN
+         (* circle collides with line and point, p3, is the closest
+            point on line, p1->p2 to, c.  *)
+         IF NOT iptr^.fixed
+         THEN
+            (* circle is not fixed, move it.  *)
+	    IF nearZero (d)
+            THEN
+               (*
+               printf ("circle old position %g, %g\n",
+                       iptr^.c.pos.x, iptr^.c.pos.y) ;
+               printf ("line p1 = %g, %g -> %g, %g and point %g, %g nearest point %g, %g\n",
+                       p1.x, p1.y, p2.x, p2.y, c.x, c.y, p3.x, p3.y) ;
+               printf ("seen collision between circle and line, adjusting %d using polygon cofg\n",
+                       iptr^.id) ;
+               *)
+	       (* as d is zero we move the circle a radius distance away from the line
+                  along the projection of the polygon's cofg and p3  *)
+	       (*
+               v := subCoord (jptr^.p.cOfG, p3) ;
+	       d := lengthCoord (v) ;
+               v := scaleCoord (v, (r+d)/d) ;
+               iptr^.c.pos := addCoord (jptr^.p.cOfG, v) ;
+               *)
+               printf ("distance is nearzero, seen collision between circle and line, new position %g, %g\n",
+                       iptr^.c.pos.x, iptr^.c.pos.y)
+            ELSE
+               (*
+               printf ("line p1 = %g, %g -> %g, %g and point %g, %g nearest point %g, %g\n",
+                       p1.x, p1.y, p2.x, p2.y, c.x, c.y, p3.x, p3.y) ;
+               printf ("seen collision between circle and line, adjusting %d\n",
+                       iptr^.id) ;
+               printf ("radius = %g, distance = %g\n", r, d) ;
+               printf ("seen collision between circle and line, old position %g, %g\n",
+                       iptr^.c.pos.x, iptr^.c.pos.y) ;
+                *)
+               v := subCoord (c, p3) ;
+               v := checkZeroCoord (scaleCoord (v, r/d)) ;
+	       (*
+               printf ("v = %g, %g   p3 = %g, %g\n", v.x, v.y, p3.x, p3.y) ;
+               *)
+               iptr^.c.pos := checkZeroCoord (addCoord (p3, v)) ;
+               checkStationary (iptr) ;
+	       (*
+               IF iptr^.stationary
+               THEN
+                  printf ("seen collision between circle and line, new position %g, %g  (now stationary)\n",
+                           iptr^.c.pos.x, iptr^.c.pos.y)
+               ELSE
+                  (*
+                  iptr^.vx := iptr^.vx - v.x ;
+                  iptr^.vy := iptr^.vy - v.y ;  (* give it a little push as well.  *)
+		  *)
+                  printf ("seen collision between circle and line, new position %g, %g, velocity %g, %g  (pushing it by: %g, %g)\n",
+                           iptr^.c.pos.x, iptr^.c.pos.y, iptr^.vx, iptr^.vy, v.x, v.y)
+               END
+	       *)
+            END ;
+            iptr^.c.pos := checkLimits (iptr^.c.pos, r) ;
+            INC (iptr^.interpen) ;
+            RETURN iptr^.interpen
+         END
+      END ;
+      INC (i)
+   END ;
+   iptr^.c.pos := checkLimits (iptr^.c.pos, r) ;
+   RETURN 0
+END doCheckInterpenCirclePolygon ;
+
+
+(*
+   doCheckInterpenPolygon -
+*)
+
+PROCEDURE doCheckInterpenPolygon (iptr, jptr: Object) : CARDINAL ;
+BEGIN
+   IF (iptr^.object = circleOb) AND (jptr^.object = polygonOb)
+   THEN
+      RETURN doCheckInterpenCirclePolygon (iptr, jptr)
+   ELSIF (iptr^.object = polygonOb) AND (jptr^.object = circleOb)
+   THEN
+      RETURN doCheckInterpenCirclePolygon (jptr, iptr)
+   END ;
+   RETURN 0
+END doCheckInterpenPolygon ;
+
+
+(*
+   doCheckInterpenCircle -
+*)
+
+PROCEDURE doCheckInterpenCircle (iptr, jptr: Object) : CARDINAL ;
 BEGIN
    IF (iptr^.object = circleOb) AND (jptr^.object = circleOb)
    THEN
       IF iptr^.fixed AND (NOT jptr^.fixed)
       THEN
-         doCheckInterpenCircleCircle (iptr, jptr)
+         RETURN doCheckInterpenCircleCircle (iptr, jptr)
       ELSIF (NOT iptr^.fixed) AND jptr^.fixed
       THEN
-         doCheckInterpenCircleCircle (jptr, iptr)
+         RETURN doCheckInterpenCircleCircle (jptr, iptr)
+      ELSE
+         RETURN doCheckInterpenCircleCircleMoving (iptr, jptr)
       END
-   END
-END doCheckInterpen ;
+   END ;
+   RETURN 0
+END doCheckInterpenCircle ;
 
 
 (*
-   checkInterpen -
+   initInterpen -
 *)
 
-PROCEDURE checkInterpen ;
+PROCEDURE initInterpen ;
 VAR
-   n, i, j   : CARDINAL ;
-   iptr, jptr: Object ;
+   n, i: CARDINAL ;
+   iptr: Object ;
 BEGIN
    n := HighIndice (objects) ;
    i := 1 ;
@@ -1006,19 +1246,137 @@ BEGIN
       iptr := GetIndice (objects, i) ;
       IF objectExists (iptr)
       THEN
-         j := 1+1 ;
-         WHILE j<=n DO
-            jptr := GetIndice (objects, j) ;
-	    IF objectExists (jptr)
-            THEN
-               doCheckInterpen (iptr, jptr)
-            END ;
-            INC (j)
+         iptr^.interpen := 0
+      END ;
+      INC (i)
+   END
+END initInterpen ;
+
+
+(*
+   max - return the maximum of a and b.
+*)
+
+PROCEDURE max (a, b: CARDINAL) : CARDINAL ;
+BEGIN
+   IF a > b
+   THEN
+      RETURN a
+   ELSE
+      RETURN b
+   END
+END max ;
+
+
+(*
+   checkInterpenCircle -
+*)
+
+PROCEDURE checkInterpenCircle ;
+VAR
+   n, i, j, c: CARDINAL ;
+   iptr, jptr: Object ;
+BEGIN
+   initInterpen ;
+   n := HighIndice (objects) ;
+   REPEAT
+      c := 0 ;
+      i := 1 ;
+      WHILE i<=n DO
+         iptr := GetIndice (objects, i) ;
+         IF objectExists (iptr)
+         THEN
+            j := i+1 ;
+            WHILE j<=n DO
+               jptr := GetIndice (objects, j) ;
+               IF objectExists (jptr)
+               THEN
+                  c := max (doCheckInterpenCircle (iptr, jptr), c)
+               END ;
+               INC (j)
+            END
+         END ;
+         INC (i)
+      END ;
+      (* keep going until no interpentration was found or there is a cycle found.  *)
+   UNTIL (c>=n) OR (c=0)
+END checkInterpenCircle ;
+
+
+(*
+   checkInterpenPolygon -
+*)
+
+PROCEDURE checkInterpenPolygon ;
+VAR
+   n, i, j, c: CARDINAL ;
+   iptr, jptr: Object ;
+BEGIN
+   initInterpen ;
+   n := HighIndice (objects) ;
+   REPEAT
+      c := 0 ;
+      i := 1 ;
+      WHILE i<=n DO
+         iptr := GetIndice (objects, i) ;
+         IF objectExists (iptr)
+         THEN
+            j := i+1 ;
+            WHILE j<=n DO
+               jptr := GetIndice (objects, j) ;
+               IF objectExists (jptr)
+               THEN
+                  c := max (doCheckInterpenPolygon (iptr, jptr), c)
+               END ;
+               INC (j)
+            END
+         END ;
+         INC (i)
+      END ;
+      (* keep going until no interpentration was found or there is a cycle found.  *)
+   UNTIL (c>=n) OR (c=0)
+END checkInterpenPolygon ;
+
+
+(*
+   checkInterpen -
+*)
+
+PROCEDURE checkInterpen ;
+BEGIN
+   (* firstly we move circles away from polygons.  *)
+   checkInterpenPolygon ;
+   (* then we move circles away from circles.  *)
+   checkInterpenCircle
+END checkInterpen ;
+
+
+(*
+   resetStationary -
+*)
+
+PROCEDURE resetStationary ;
+VAR
+   n, i: CARDINAL ;
+   iptr: Object ;
+BEGIN
+   n := HighIndice (objects) ;
+   i := 1 ;
+   WHILE i<=n DO
+      iptr := GetIndice (objects, i) ;
+      IF objectExists (iptr)
+      THEN
+         IF iptr^.stationary
+         THEN
+            (* unset stationary, but ensure velocity is zero.  *)
+            iptr^.vx := 0.0 ;
+            iptr^.vy := 0.0 ;
+            iptr^.stationary := FALSE
          END
       END ;
       INC (i)
    END
-END checkInterpen ;
+END resetStationary ;
 
 
 (*
@@ -2002,25 +2360,43 @@ END inElastic ;
 
 
 (*
+   nearZeroVelocity - returns TRUE if, r, is close to 0.0
+*)
+
+PROCEDURE nearZeroVelocity (r: REAL) : BOOLEAN ;
+BEGIN
+   IF r>=0.0
+   THEN
+      RETURN r<0.01
+   ELSE
+      RETURN (-r)<0.01
+   END
+END nearZeroVelocity ;
+
+
+(*
    checkStationary - checks to see if object, o, should be put into
                      the stationary state.
 *)
 
 PROCEDURE checkStationary (o: Object) ;
 BEGIN
-   WITH o^ DO
-      IF (NOT fixed) AND (NOT deleted)
-      THEN
-         inElastic (vx) ;
-         inElastic (vy) ;
-         stationary := nearZero (vx) AND nearZero (vy) ;
-         IF stationary
+   IF objectExists (o)
+   THEN
+      WITH o^ DO
+         IF NOT fixed
          THEN
-            vx := 0.0 ;
-            vy := 0.0 ;
-            IF Debugging
+            inElastic (vx) ;
+            inElastic (vy) ;
+            stationary := nearZeroVelocity (vx) AND nearZeroVelocity (vy) ;
+            IF stationary
             THEN
-               DumpObject (o)
+               vx := 0.0 ;
+               vy := 0.0 ;
+               IF Debugging
+               THEN
+                  DumpObject (o)
+               END
             END
          END
       END
@@ -2041,8 +2417,9 @@ BEGIN
    THEN
       IF Debugging
       THEN
-         printf ("bumped into a stationary object\n")
+         printf ("object %d has bumped into a stationary object %d\n", b^.id, a^.id)
       END ;
+      (* gdbif.sleepSpin ; *)
       a^.vy := 1.0 ;
       IF a^.c.pos.x<b^.c.pos.x
       THEN
@@ -2966,11 +3343,13 @@ END maximaCircleCollision ;
 *)
 
 PROCEDURE earlierCircleCollision (edesc: eventDesc; id1, id2: CARDINAL;
-                                  VAR t: REAL; bestTimeOfCollision: REAL;
+                                  VAR t: REAL; bestTimeOfCollision: REAL; VAR cp: Coord;
                                   a, b, c, d, e, f, g, h, k, l, m, n, o, p: REAL) : BOOLEAN ;
 VAR
    A, B, C, D, E, T: REAL ;
    array           : ARRAY [0..4] OF REAL ;
+   c1, c2, cp1, cp2,
+   v12, r12        : Coord;
 BEGIN
    (* thanks to wxmaxima  (expand ; factor ; ratsimp) *)
 
@@ -2996,18 +3375,55 @@ BEGIN
       IF Debugging
       THEN
          printf ("%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\n",
-                 A, B, C, D, E, T, t)
+                 A, B, C, D, E, T, t) ;
+         printf ("found collision at %g\n", t)
       END ;
-      printf ("found collision at %g\n", t) ;
       Assert (t >= 0.0, __LINE__) ;
       (* remember edesc = NIL if bestTimeOfCollision is unassigned.  *)
       IF (edesc=NIL) OR (t<bestTimeOfCollision)
       THEN
-         (* found a value of t which is better than bestTimeOfCollision, but it might be a duplicate collision.  *)
-         IF NOT isDuplicate (currentTime, t, id1, id2, edge, edge)
+         c1 := newPositionCoord (initCoord (a, g),
+                                 initCoord (c, k),
+                                 initCoord (e, m), t) ;
+         c2 := newPositionCoord (initCoord (b, h),
+                                 initCoord (d, l),
+                                 initCoord (f, n), t) ;
+         v12 := subCoord (c1, c2) ;
+	 Assert (nearCoord (c1, addCoord (c2, v12)), __LINE__) ;
+	 cp2 := addCoord (c2, scaleCoord (v12, o/(o+p))) ;
+         cp1 := subCoord (c1, scaleCoord (v12, p/(o+p))) ;
+	 cp := cp2 ;
+
+	 IF nearSame (lengthCoord (v12), o+p)
          THEN
-            (* ok, this has not been seen before.  *)
-            RETURN TRUE
+	    (*
+            printf ("\nc1 = %g, %g\n", c1.x, c1.y) ;
+            printf ("c2 = %g, %g\n", c2.x, c2.y) ;
+            printf ("o = %g, p = %g\n", o, p) ;
+            printf ("cp2 = %g, %g\n", cp2.x, cp2.y) ;
+            printf ("v12 = c1 - c2 = %g, %g\n", v12.x, v12.y) ;
+	    r12 := scaleCoord (v12, o/(o+p)) ;
+	    printf ("r12 = v12 scaled by %g = %g, %g\n", o/(o+p), r12.x, r12.y) ;
+            printf ("cp1 = c2 + r12 = %g, %g\n", cp1.x, cp1.y) ;
+            *)
+            Assert (nearCoord (cp1, cp2), __LINE__) ;
+	    (*
+	    IF nearCoord (cp1, cp2)
+            THEN
+               printf ("good cp1 and cp2 are the same\n")
+            ELSE
+               printf ("fail cp1 and cp2 are not the same\n")
+            END ;
+            *)
+            (* Assert (nearCoord (cp1, cp2), __LINE__) ; *)
+            (* found a value of t which is better than bestTimeOfCollision, but it might be a duplicate collision.  *)
+            IF NOT isDuplicate (currentTime, t, id1, id2, edge, edge, cp)
+            THEN
+               (* ok, this has not been seen before.  *)
+               RETURN TRUE
+            END
+         ELSE
+            printf ("false the collisions points do not touch ignoring = %g, %g\n", cp.x, cp.y)
          END
       END
    END ;
@@ -3106,6 +3522,7 @@ VAR
    m, n, o, p, t: REAL ;
    i, j         : CARDINAL ;
    T            : REAL ;
+   cp           : Coord ;
 BEGIN
 (*
    DumpObject(iptr) ;
@@ -3125,6 +3542,7 @@ BEGIN
    (*
         b         xj
         h         yj
+        p         rj
         d         vxj
         l         vyj
         f         ajx
@@ -3133,11 +3551,11 @@ BEGIN
 
    getCircleValues (jptr, b, h, p, d, l, f, n) ;
    IF earlierCircleCollision (edesc, iptr^.id, jptr^.id,
-                              t, tc,
+                              t, tc, cp,
                               a, b, c, d, e, f, g, h, k, l, m, n, o, p)
    THEN
       tc := t ;
-      edesc := makeCirclesDesc (edesc, iptr^.id, jptr^.id)
+      edesc := makeCirclesDesc (edesc, iptr^.id, jptr^.id, cp)
    END
 END findCollisionCircles ;
 
@@ -3414,7 +3832,7 @@ BEGIN
       collisionPoint := newPositionCoord (c, cvel, caccel, t) ;
 
       (* return TRUE providing that we do not already know about it *)
-      IF isDuplicate (currentTime, t, id1, id2, edge, edge)
+      IF isDuplicate (currentTime, t, id1, id2, edge, edge, collisionPoint)
       THEN
          IF trace
          THEN
@@ -3748,7 +4166,7 @@ END findEarlierCircleEdgeCollision ;
 PROCEDURE getPolygonCoord (pPtr: Object; pointno: CARDINAL) : Coord ;
 BEGIN
    WITH pPtr^ DO
-      RETURN addCoord (p.cOfG, polarToCoord (rotatePolar (p.points[pointno], angleOrientation)))
+      RETURN checkZeroCoord (addCoord (p.cOfG, polarToCoord (rotatePolar (p.points[pointno], angleOrientation))))
    END
 END getPolygonCoord ;
 
@@ -3786,7 +4204,7 @@ PROCEDURE findCollisionCircleLine (cPtr, pPtr: Object;
 VAR
    velCircle, accelCircle,
    velLine, accelLine,
-   p1, p2                       : Coord ;
+   p1, p2, cp                   : Coord ;
    cx, cy, r, cvx, cvy, cax, cay,
    pvx, pvy, pax, pay, t        : REAL ;
    cid, pid                     : CARDINAL ;
@@ -3811,7 +4229,7 @@ BEGIN
 
    (* i *)
    IF earlierCircleCollision (edesc, cid, pid,
-                              t, timeOfCollision,
+                              t, timeOfCollision, cp,
                               p1.x, center.x, pvx, cvx, pax, cax,
                               p1.y, center.y, pvy, cvy, pay, cay, radius, 0.0)
    THEN
@@ -3835,7 +4253,7 @@ BEGIN
 
    (* ii *)
    IF earlierCircleCollision (edesc, cid, pid,
-                              t, timeOfCollision,
+                              t, timeOfCollision, cp,
                               p2.x, center.x, pvx, cvx, pax, cax,
                               p2.y, center.y, pvy, cvy, pay, cay, radius, 0.0)
    THEN
@@ -4416,9 +4834,9 @@ BEGIN
    WITH edesc^ DO
       CASE etype OF
 
-      circlesEvent       :  anticipate (currentTime+tc, cc.cid1, cc.cid2) |
-      circlePolygonEvent :  anticipate (currentTime+tc, cp.pid, cp.cid) |
-      polygonPolygonEvent:  anticipate (currentTime+tc, pp.pid1, pp.pid2)
+      circlesEvent       :  anticipate (currentTime+tc, cc.cid1, cc.cid2, cc.cPoint) |
+      circlePolygonEvent :  anticipate (currentTime+tc, cp.pid, cp.cid, cp.cPoint) |
+      polygonPolygonEvent:  anticipate (currentTime+tc, pp.pid1, pp.pid2, pp.cPoint)
 
       END
    END
@@ -4434,9 +4852,9 @@ BEGIN
    WITH edesc^ DO
       CASE etype OF
 
-      circlesEvent       :  occurred (currentTime, cc.cid1, cc.cid2) |
-      circlePolygonEvent :  occurred (currentTime, cp.pid, cp.cid) |
-      polygonPolygonEvent:  occurred (currentTime, pp.pid1, pp.pid2)
+      circlesEvent       :  occurred (currentTime, cc.cid1, cc.cid2, cc.cPoint) |
+      circlePolygonEvent :  occurred (currentTime, cp.pid, cp.cid, cp.cPoint) |
+      polygonPolygonEvent:  occurred (currentTime, pp.pid1, pp.pid2, pp.cPoint)
 
       END
    END
@@ -4694,15 +5112,14 @@ END newEvent ;
    makeCirclesDesc - return a eventDesc which describes two circles colliding.
 *)
 
-PROCEDURE makeCirclesDesc (VAR edesc: eventDesc; cid1, cid2: CARDINAL) : eventDesc ;
+PROCEDURE makeCirclesDesc (VAR edesc: eventDesc; cid1, cid2: CARDINAL; cp: Coord) : eventDesc ;
 BEGIN
    IF edesc=NIL
    THEN
       edesc := newDesc()
    END ;
    edesc^.etype := circlesEvent ;
-   edesc^.cc.cPoint.x := 0.0 ;
-   edesc^.cc.cPoint.y := 0.0 ;
+   edesc^.cc.cPoint := cp ;
    edesc^.cc.cid1 := cid1 ;
    edesc^.cc.cid2 := cid2 ;
    RETURN edesc
@@ -5098,6 +5515,7 @@ BEGIN
       printf ("rm complete, here is the world after rm\n") ;
       dumpWorld
    END ;
+   resetStationary ;
    up ;
    RETURN id
 END rm ;
