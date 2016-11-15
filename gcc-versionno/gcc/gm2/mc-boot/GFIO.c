@@ -52,9 +52,11 @@ typedef struct fds_r fds;
 
 typedef fds *FileDescriptor;
 
-typedef enum {successful, outofmemory, toomanyfilesopen, failed, connectionfailure, endofline, endoffile} FileStatus;
+typedef struct _T1_a _T1;
 
 typedef char *PtrToChar;
+
+typedef enum {successful, outofmemory, toomanyfilesopen, failed, connectionfailure, endofline, endoffile} FileStatus;
 
 typedef enum {unused, openedforread, openedforwrite, openedforrandom} FileUsage;
 
@@ -71,9 +73,10 @@ struct buf_r {
                unsigned int filled;
                unsigned int size;
                unsigned int left;
-               struct { char array[MaxBufferLength]; } *contents;
+               _T1 *contents;
              };
 
+struct _T1_a { char array[MaxBufferLength+1]; };
 struct fds_r {
                int unixfd;
                NameInfo name;
@@ -466,15 +469,15 @@ static void Cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, uns
 
 static void StringFormat1 (char *dest, unsigned int _dest_high, char *src_, unsigned int _src_high, unsigned char *w_, unsigned int _w_high)
 {
-  typedef struct _T1_a _T1;
+  typedef struct _T2_a _T2;
 
-  struct _T1_a { char array[MaxErrorString+1]; };
+  struct _T2_a { char array[MaxErrorString+1]; };
   unsigned int HighSrc;
   unsigned int HighDest;
   unsigned int c;
   unsigned int i;
   unsigned int j;
-  _T1 str;
+  _T2 str;
   char * p;
   char src[_src_high+1];
   unsigned char w[_w_high+1];
@@ -551,10 +554,10 @@ static void FormatError (char *a_, unsigned int _a_high)
 
 static void FormatError1 (char *a_, unsigned int _a_high, unsigned char *w_, unsigned int _w_high)
 {
-  typedef struct _T2_a _T2;
+  typedef struct _T3_a _T3;
 
-  struct _T2_a { char array[MaxErrorString+1]; };
-  _T2 s;
+  struct _T3_a { char array[MaxErrorString+1]; };
+  _T3 s;
   char a[_a_high+1];
   unsigned char w[_w_high+1];
 
@@ -568,10 +571,10 @@ static void FormatError1 (char *a_, unsigned int _a_high, unsigned char *w_, uns
 
 static void FormatError2 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high)
 {
-  typedef struct _T3_a _T3;
+  typedef struct _T4_a _T4;
 
-  struct _T3_a { char array[MaxErrorString+1]; };
-  _T3 s;
+  struct _T4_a { char array[MaxErrorString+1]; };
+  _T4 s;
   char a[_a_high+1];
   unsigned char w1[_w1_high+1];
   unsigned char w2[_w2_high+1];

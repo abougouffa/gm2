@@ -14,7 +14,13 @@
 
 #   define MaxArgs 255
 #   define MaxString 4096
-static struct { struct { char array[MaxString]; } * array[MaxArgs]; } * Source;
+typedef struct _T1_a _T1;
+
+typedef struct _T2_a _T2;
+
+struct _T1_a { _T2 * array[MaxArgs+1]; };
+struct _T2_a { char array[MaxString+1]; };
+static _T1 * Source;
 unsigned int Args_GetArg (char *a, unsigned int _a_high, unsigned int i);
 unsigned int Args_Narg (void);
 

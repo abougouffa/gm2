@@ -6561,6 +6561,11 @@ VAR
 BEGIN
    assert (isParam (n)) ;
    ptype := getType (n) ;
+   IF isArray (ptype) AND isUnbounded (ptype) AND (lang = ansiCP)
+   THEN
+      outText (p, "const") ;
+      setNeedSpace (p)
+   END ;
    IF n^.paramF.namelist = NIL
    THEN
       doTypeNameC (p, ptype)
@@ -7518,6 +7523,16 @@ END doRecordNameC ;
 
 
 (*
+   doPointerNameC -
+*)
+
+PROCEDURE doPointerNameC (p: pretty; n: node) ;
+BEGIN
+   doTypeNameC (p, getType (n)) ; setNeedSpace (p) ; outText (p, "*")
+END doPointerNameC ;
+
+
+(*
    doTypeNameC -
 *)
 
@@ -7550,8 +7565,11 @@ BEGIN
    ELSIF isRecord (n)
    THEN
       doRecordNameC (p, n)
+   ELSIF isPointer (n)
+   THEN
+      doPointerNameC (p, n)
    ELSE
-      print (p, "some other kind of name required\n") ;
+      print (p, "is type unknown required\n") ;
       stop
    END
 END doTypeNameC ;
@@ -7854,7 +7872,8 @@ BEGIN
       p := makeIntermediateType (s, p) ;
       s := KillString (s) ;
       simplified := FALSE
-   END
+   END ;
+   simplifyNode (l, p)
 END simplifyType ;
 
 
@@ -8359,6 +8378,7 @@ BEGIN
    THEN
       IF lang = ansiCP
       THEN
+         stop ;
          (* potentially a cast is required.  *)
          IF (isPointer (type) OR (type = addressN))
          THEN
@@ -8529,6 +8549,77 @@ END doIfC ;
 
 
 (*
+   doForIncCP -
+*)
+
+PROCEDURE doForIncCP (p: pretty; s: node) ;
+VAR
+   t: node ;
+BEGIN
+   assert (isFor (s)) ;
+   t := skipType (getType (s^.forF.des)) ;
+   IF isEnumeration (t)
+   THEN
+      IF s^.forF.increment = NIL
+      THEN
+         doExprC (p, s^.forF.des) ;
+         outText (p, "= static_cast<") ;
+         doTypeNameC (p, getType (s^.forF.des)) ;
+         outText (p, ">(static_cast<int>(") ;
+         doExprC (p, s^.forF.des) ;
+         outText (p, "+1))")
+      ELSE
+         doExprC (p, s^.forF.des) ;
+         outText (p, "= static_cast<") ;
+         doTypeNameC (p, getType (s^.forF.des)) ;
+         outText (p, ">(static_cast<int>(") ;
+         doExprC (p, s^.forF.des) ;
+         outText (p, "+") ;
+         doExprC (p, s^.forF.increment) ;
+         outText (p, "))")
+      END
+   ELSE
+      doForIncC (p, s)
+   END
+END doForIncCP ;
+
+
+(*
+   doForIncC -
+*)
+
+PROCEDURE doForIncC (p: pretty; s: node) ;
+BEGIN
+   IF s^.forF.increment = NIL
+   THEN
+      doExprC (p, s^.forF.des) ;
+      outText (p, "++")
+   ELSE
+      doExprC (p, s^.forF.des) ;
+      outText (p, "=") ;
+      doExprC (p, s^.forF.des) ;
+      outText (p, "+") ;
+      doExprC (p, s^.forF.increment)
+   END
+END doForIncC ;
+
+
+(*
+   doForInc -
+*)
+
+PROCEDURE doForInc (p: pretty; s: node) ;
+BEGIN
+   IF lang = ansiCP
+   THEN
+      doForIncCP (p, s)
+   ELSE
+      doForIncC (p, s)
+   END
+END doForInc ;
+
+
+(*
    doForC -
 *)
 
@@ -8546,17 +8637,7 @@ BEGIN
    doExprC (p, s^.forF.end) ;
    outText (p, ";") ;
    setNeedSpace (p) ;
-   IF s^.forF.increment = NIL
-   THEN
-      doExprC (p, s^.forF.des) ;
-      outText (p, "++")
-   ELSE
-      doExprC (p, s^.forF.des) ;
-      outText (p, "=") ;
-      doExprC (p, s^.forF.des) ;
-      outText (p, "+") ;
-      doExprC (p, s^.forF.increment)
-   END ;
+   doForInc (p, s) ;
    outText (p, ")\n") ;
    doCompoundStmt (p, s^.forF.statements)
 END doForC ;
@@ -8821,7 +8902,7 @@ END needsCast ;
                      and if so emit a cast.
 *)
 
-PROCEDURE checkSystemCast (p: pretty; actual, formal: node) ;
+PROCEDURE checkSystemCast (p: pretty; actual, formal: node) : CARDINAL ;
 VAR
    at, ft: node ;
 BEGIN
@@ -8829,12 +8910,35 @@ BEGIN
    ft := getType (formal) ;
    IF needsCast (at, ft)
    THEN
-      outText (p, '(') ;
-      doTypeNameC (p, ft) ;
-      outText (p, ')') ;
-      setNeedSpace (p)
-   END
+      IF lang = ansiCP
+      THEN
+         IF isString (actual) AND (skipType (ft) = addressN)
+         THEN
+            outText (p, "const_cast<void*> (reinterpret_cast<const void*> (") ;
+	    RETURN 2
+         END
+      ELSE
+         outText (p, '(') ;
+         doTypeNameC (p, ft) ;
+         outText (p, ')') ;
+         setNeedSpace (p)
+      END
+   END ;
+   RETURN 0
 END checkSystemCast ;
+
+
+(*
+   emitN -
+*)
+
+PROCEDURE emitN (p: pretty; a: ARRAY OF CHAR; n: CARDINAL) ;
+BEGIN
+   WHILE n>0 DO
+      outText (p, a) ;
+      DEC (n)
+   END
+END emitN ;
 
 
 (*
@@ -8844,6 +8948,7 @@ END checkSystemCast ;
 PROCEDURE doFuncParamC (p: pretty; actual, formal, func: node) ;
 VAR
    ft, at: node ;
+   lbr   : CARDINAL ;
 BEGIN
    IF formal = NIL
    THEN
@@ -8873,13 +8978,14 @@ BEGIN
                doCastC (p, getType (formal), actual)
             END
          ELSE
-            checkSystemCast (p, actual, formal) ;
+            lbr := checkSystemCast (p, actual, formal) ;
             IF isVarParam (formal)
             THEN
                doAdrExprC (p, actual)
             ELSE
                doExprC (p, actual)
-            END
+            END ;
+            emitN (p, ")", lbr)
          END
       END
    END
@@ -9032,11 +9138,21 @@ BEGIN
       (* & and * cancel each other out.  *)
       outTextN (p, getSymName (n))   (* --fixme-- does the caller need to cast it?  *)
    ELSE
-      IF NOT isString (n)
+      IF isString (n)
       THEN
-         outText (p, "&")
-      END ;
-      doExprC (p, n)
+         IF lang = ansiCP
+         THEN
+            outText (p, "const_cast<void*> (reinterpret_cast<const void*>") ;
+            outText (p, "(") ;
+            doExprC (p, n) ;
+            outText (p, "))")
+         ELSE
+            doExprC (p, n)
+         END
+      ELSE
+         outText (p, "&") ;
+         doExprC (p, n)
+      END
    END
 END doAdrArgC ;
 
@@ -10963,10 +11079,6 @@ END visitScope ;
 PROCEDURE visitType (v: alist; n: node; p: nodeProcedure) ;
 BEGIN
    assert (isType (n)) ;
-   IF getSymName (n) = makeKey ('alist')
-   THEN
-      stop
-   END ;
    visitNode (v, n^.typeF.type, p) ;
    visitScope (v, n^.typeF.scope, p)
 END visitType ;

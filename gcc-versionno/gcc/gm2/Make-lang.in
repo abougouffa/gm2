@@ -97,6 +97,8 @@ else
 STPCPY =
 endif
 
+CPP_GM2=-fpermissive -DIN_GCC
+
 TEXISRC = $(objdir)/gm2/images/gnu.eps \
           $(srcdir)/gm2/gm2.texi \
           gm2/gm2-libs.texi \
@@ -1030,12 +1032,11 @@ MYCFLAGS= -g -DIN_GCC -fno-rtti -fasynchronous-unwind-tables -W -Wall -Wno-narro
 
 gm2/gm2-libs-boot/%.o: $(srcdir)/gm2/gm2-libs-boot/%.mod
 	$(MC) -o=gm2/gm2-libs-boot/$*.c $(srcdir)/gm2/gm2-libs-boot/$*.mod
-	touch $@
-	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) gm2/gm2-libs-boot/$*.c -o $@  # may need some includes  was ALL_COMPILERFLAGS
+	$(COMPILER) -c $(CPP_GM2) $(CFLAGS) gm2/gm2-libs-boot/$*.c -o $@
 
 gm2/gm2-libs-boot/%.o: $(srcdir)/gm2/gm2-libs/%.mod
 	$(MC) -o=gm2/gm2-libs-boot/$*.c $(srcdir)/gm2/gm2-libs/$*.mod
-	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) gm2/gm2-libs-boot/$*.c -o $@
+	$(COMPILER) -c $(CPP_GM2) $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) gm2/gm2-libs-boot/$*.c -o $@
 
 gm2/gm2-libs-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def
 	$(MC) -o=$@ $(srcdir)/gm2/gm2-libs/$*.def
@@ -1067,7 +1068,7 @@ gm2/gm2-libs-boot/SysExceptions.o: $(srcdir)/gm2/gm2-libs-ch/SysExceptions.c \
 
 gm2/gm2-libs-boot/SysStorage.o: $(srcdir)/gm2/gm2-libs/SysStorage.mod
 	$(MC) -o=gm2/gm2-libs-boot/SysStorage.c $(srcdir)/gm2/gm2-libs/SysStorage.mod
-	$(CC) -DIN_GCC -DUSE_MALLOC -c -fpermissive $(CFLAGS) $(ALL_CPPFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) gm2/gm2-libs-boot/SysStorage.c -o gm2/gm2-libs-boot/SysStorage.o
+	$(COMPILER) -DIN_GCC -c -fpermissive $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) gm2/gm2-libs-boot/SysStorage.c -o gm2/gm2-libs-boot/SysStorage.o
 
 gm2/gm2-compiler-boot/ppg.o: $(srcdir)/gm2/gm2-compiler/ppg.mod
 	$(MC) -o=gm2/gm2-compiler-boot/ppg.c $(srcdir)/gm2/gm2-compiler/ppg.mod

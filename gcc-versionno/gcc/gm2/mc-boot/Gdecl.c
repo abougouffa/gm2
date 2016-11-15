@@ -25,9 +25,9 @@ typedef struct mcPretty_writeProc_p mcPretty_writeProc;
 
 typedef struct mcPretty_writeLnProc_p mcPretty_writeLnProc;
 
-typedef struct _T4_r _T4;
+typedef struct _T8_r _T8;
 
-typedef _T4 *mcPretty_pretty;
+typedef _T8 *mcPretty_pretty;
 
 typedef unsigned int FIO_File;
 
@@ -35,11 +35,11 @@ FIO_File FIO_StdOut;
 typedef struct symbolKey_performOperation_p symbolKey_performOperation;
 
 #   define ASCII_tab ASCII_ht
-typedef struct _T6_r _T6;
+typedef struct _T9_r _T9;
 
-typedef struct _T9_a _T9;
+typedef struct _T10_a _T10;
 
-typedef _T6 *alists_alist;
+typedef _T9 *alists_alist;
 
 #   define ASCII_ht (char) 011
 #   define ASCII_lf ASCII_nl
@@ -98,9 +98,9 @@ typedef libc_tm *libc_ptrToTM;
 
 typedef struct libc_timeb_r libc_timeb;
 
-typedef struct _T3_r _T3;
+typedef struct _T7_r _T7;
 
-typedef _T3 *mcError_error;
+typedef _T7 *mcError_error;
 
 int mcLexBuf_currentinteger;
 unsigned int mcLexBuf_currentcolumn;
@@ -248,27 +248,27 @@ typedef enum {text, punct, space} outputStates;
 
 typedef _T1 *decl_node;
 
+typedef struct _T4_r _T4;
+
+typedef _T4 *symbolKey_symbolTree;
+
 typedef struct _T2_r _T2;
-
-typedef _T2 *symbolKey_symbolTree;
-
-typedef struct _T5_r _T5;
 
 typedef struct stringRecord_r stringRecord;
 
 typedef struct Contents_r Contents;
 
-typedef struct _T8_a _T8;
+typedef struct _T3_a _T3;
 
-typedef _T5 *Indexing_Index;
+typedef _T2 *Indexing_Index;
 
 typedef stringRecord *DynamicStrings_String;
 
-typedef struct _T7_r _T7;
+typedef struct _T5_r _T5;
 
-typedef struct _T10_a _T10;
+typedef struct _T6_a _T6;
 
-typedef _T7 *wlists_wlist;
+typedef _T5 *wlists_wlist;
 
 typedef void (*mcPretty_writeProc_t) (char);
 struct mcPretty_writeProc_p { mcPretty_writeProc_t proc; };
@@ -279,7 +279,7 @@ struct mcPretty_writeLnProc_p { mcPretty_writeLnProc_t proc; };
 typedef void (*symbolKey_performOperation_t) (void *);
 struct symbolKey_performOperation_p { symbolKey_performOperation_t proc; };
 
-struct _T9_a { void * array[MaxnoOfelements-1+1]; };
+struct _T10_a { void * array[MaxnoOfelements-1+1]; };
 typedef void (*Indexing_IndexProcedure_t) (void *);
 struct Indexing_IndexProcedure_p { Indexing_IndexProcedure_t proc; };
 
@@ -310,7 +310,7 @@ struct libc_timeb_r {
                       short unsigned int dstflag;
                     };
 
-struct _T3_r {
+struct _T7_r {
                mcError_error parent;
                mcError_error child;
                mcError_error next;
@@ -627,14 +627,14 @@ struct cnameT_r {
                   unsigned int init;
                 };
 
-struct _T2_r {
+struct _T4_r {
                nameKey_Name name;
                void *key;
                symbolKey_symbolTree left;
                symbolKey_symbolTree right;
              };
 
-struct _T5_r {
+struct _T2_r {
                void *ArrayStart;
                unsigned int ArraySize;
                unsigned int Used;
@@ -644,9 +644,9 @@ struct _T5_r {
                unsigned int Map;
              };
 
-struct _T8_a { char array[(MaxBuf-1)+1]; };
-struct _T10_a { unsigned int array[maxNoOfElements-1+1]; };
-struct _T4_r {
+struct _T3_a { char array[(MaxBuf-1)+1]; };
+struct _T6_a { unsigned int array[maxNoOfElements-1+1]; };
+struct _T8_r {
                mcPretty_writeProc write_;
                mcPretty_writeLnProc writeln;
                unsigned int needsSpace;
@@ -658,9 +658,9 @@ struct _T4_r {
                mcPretty_pretty stacked;
              };
 
-struct _T6_r {
+struct _T9_r {
                unsigned int noOfelements;
-               _T9 elements;
+               _T10 elements;
                alists_alist next;
              };
 
@@ -742,14 +742,14 @@ struct impT_r {
               };
 
 struct Contents_r {
-                    _T8 buf;
+                    _T3 buf;
                     unsigned int len;
                     DynamicStrings_String next;
                   };
 
-struct _T7_r {
+struct _T5_r {
                unsigned int noOfElements;
-               _T10 elements;
+               _T6 elements;
                wlists_wlist next;
              };
 
@@ -1697,6 +1697,7 @@ static void doSetC (mcPretty_pretty p, decl_node n);
 static void doTypeC (mcPretty_pretty p, decl_node n, decl_node *m);
 static void doArrayNameC (mcPretty_pretty p, decl_node n);
 static void doRecordNameC (mcPretty_pretty p, decl_node n);
+static void doPointerNameC (mcPretty_pretty p, decl_node n);
 static void doTypeNameC (mcPretty_pretty p, decl_node n);
 static void doVarC (decl_node n);
 static void doProcedureHeadingC (decl_node n);
@@ -1744,6 +1745,9 @@ static void doCompoundStmt (mcPretty_pretty p, decl_node s);
 static void doElsifC (mcPretty_pretty p, decl_node s);
 static unsigned int noElse (decl_node n);
 static void doIfC (mcPretty_pretty p, decl_node s);
+static void doForIncCP (mcPretty_pretty p, decl_node s);
+static void doForIncC (mcPretty_pretty p, decl_node s);
+static void doForInc (mcPretty_pretty p, decl_node s);
 static void doForC (mcPretty_pretty p, decl_node s);
 static void doRepeatC (mcPretty_pretty p, decl_node s);
 static void doWhileC (mcPretty_pretty p, decl_node s);
@@ -1755,7 +1759,8 @@ static void doProcedureParamC (mcPretty_pretty p, decl_node actual, decl_node fo
 static void doAdrExprC (mcPretty_pretty p, decl_node n);
 static unsigned int typePair (decl_node a, decl_node b, decl_node x, decl_node y);
 static unsigned int needsCast (decl_node at, decl_node ft);
-static void checkSystemCast (mcPretty_pretty p, decl_node actual, decl_node formal);
+static unsigned int checkSystemCast (mcPretty_pretty p, decl_node actual, decl_node formal);
+static void emitN (mcPretty_pretty p, char *a_, unsigned int _a_high, unsigned int n);
 static void doFuncParamC (mcPretty_pretty p, decl_node actual, decl_node formal, decl_node func);
 static decl_node getNthParamType (Indexing_Index l, unsigned int i);
 static decl_node getNthParam (Indexing_Index l, unsigned int i);
@@ -5240,6 +5245,11 @@ static void doParamC (mcPretty_pretty p, decl_node n)
 
   mcDebug_assert (decl_isParam (n));
   ptype = decl_getType (n);
+  if (((decl_isArray (ptype)) && (decl_isUnbounded (ptype))) && (lang == ansiCP))
+    {
+      outText (p, (char *) "const", 5);
+      mcPretty_setNeedSpace (p);
+    }
   if (n->paramF.namelist == NULL)
     doTypeNameC (p, ptype);
   else
@@ -6104,6 +6114,13 @@ static void doRecordNameC (mcPretty_pretty p, decl_node n)
   s = DynamicStrings_KillString (s);
 }
 
+static void doPointerNameC (mcPretty_pretty p, decl_node n)
+{
+  doTypeNameC (p, decl_getType (n));
+  mcPretty_setNeedSpace (p);
+  outText (p, (char *) "*", 1);
+}
+
 static void doTypeNameC (mcPretty_pretty p, decl_node n)
 {
   DynamicStrings_String t;
@@ -6127,9 +6144,11 @@ static void doTypeNameC (mcPretty_pretty p, decl_node n)
     doArrayNameC (p, n);
   else if (decl_isRecord (n))
     doRecordNameC (p, n);
+  else if (decl_isPointer (n))
+    doPointerNameC (p, n);
   else
     {
-      mcPretty_print (p, (char *) "some other kind of name required\\n", 34);
+      mcPretty_print (p, (char *) "is type unknown required\\n", 26);
       stop ();
     }
 }
@@ -6380,6 +6399,7 @@ static void simplifyType (alists_alist l, decl_node *p)
       s = DynamicStrings_KillString (s);
       simplified = FALSE;
     }
+  simplifyNode (l, (*p));
 }
 
 static void simplifyVar (alists_alist l, decl_node n)
@@ -6703,24 +6723,27 @@ static void doExprCastC (mcPretty_pretty p, decl_node e, decl_node type)
 {
   if (type != (decl_getType (e)))
     if (lang == ansiCP)
-      if ((decl_isPointer (type)) || (type == addressN))
-        {
-          outText (p, (char *) "reinterpret_cast<", 17);
-          doTypeNameC (p, type);
-          outText (p, (char *) "> (", 3);
-          doExprC (p, e);
-          outText (p, (char *) ")", 1);
-          return;
-        }
-      else
-        {
-          outText (p, (char *) "static_cast<", 12);
-          doTypeNameC (p, type);
-          outText (p, (char *) "> (", 3);
-          doExprC (p, e);
-          outText (p, (char *) ")", 1);
-          return;
-        }
+      {
+        stop ();
+        if ((decl_isPointer (type)) || (type == addressN))
+          {
+            outText (p, (char *) "reinterpret_cast<", 17);
+            doTypeNameC (p, type);
+            outText (p, (char *) "> (", 3);
+            doExprC (p, e);
+            outText (p, (char *) ")", 1);
+            return;
+          }
+        else
+          {
+            outText (p, (char *) "static_cast<", 12);
+            doTypeNameC (p, type);
+            outText (p, (char *) "> (", 3);
+            doExprC (p, e);
+            outText (p, (char *) ")", 1);
+            return;
+          }
+      }
   doExprC (p, e);
 }
 
@@ -6833,6 +6856,62 @@ static void doIfC (mcPretty_pretty p, decl_node s)
     doElsifC (p, s->ifF.elsif);
 }
 
+static void doForIncCP (mcPretty_pretty p, decl_node s)
+{
+  decl_node t;
+
+  mcDebug_assert (decl_isFor (s));
+  t = decl_skipType (decl_getType (s->forF.des));
+  if (decl_isEnumeration (t))
+    if (s->forF.increment == NULL)
+      {
+        doExprC (p, s->forF.des);
+        outText (p, (char *) "= static_cast<", 14);
+        doTypeNameC (p, decl_getType (s->forF.des));
+        outText (p, (char *) ">(static_cast<int>(", 19);
+        doExprC (p, s->forF.des);
+        outText (p, (char *) "+1))", 4);
+      }
+    else
+      {
+        doExprC (p, s->forF.des);
+        outText (p, (char *) "= static_cast<", 14);
+        doTypeNameC (p, decl_getType (s->forF.des));
+        outText (p, (char *) ">(static_cast<int>(", 19);
+        doExprC (p, s->forF.des);
+        outText (p, (char *) "+", 1);
+        doExprC (p, s->forF.increment);
+        outText (p, (char *) "))", 2);
+      }
+  else
+    doForIncC (p, s);
+}
+
+static void doForIncC (mcPretty_pretty p, decl_node s)
+{
+  if (s->forF.increment == NULL)
+    {
+      doExprC (p, s->forF.des);
+      outText (p, (char *) "++", 2);
+    }
+  else
+    {
+      doExprC (p, s->forF.des);
+      outText (p, (char *) "=", 1);
+      doExprC (p, s->forF.des);
+      outText (p, (char *) "+", 1);
+      doExprC (p, s->forF.increment);
+    }
+}
+
+static void doForInc (mcPretty_pretty p, decl_node s)
+{
+  if (lang == ansiCP)
+    doForIncCP (p, s);
+  else
+    doForIncC (p, s);
+}
+
 static void doForC (mcPretty_pretty p, decl_node s)
 {
   mcDebug_assert (decl_isFor (s));
@@ -6847,19 +6926,7 @@ static void doForC (mcPretty_pretty p, decl_node s)
   doExprC (p, s->forF.end);
   outText (p, (char *) ";", 1);
   mcPretty_setNeedSpace (p);
-  if (s->forF.increment == NULL)
-    {
-      doExprC (p, s->forF.des);
-      outText (p, (char *) "++", 2);
-    }
-  else
-    {
-      doExprC (p, s->forF.des);
-      outText (p, (char *) "=", 1);
-      doExprC (p, s->forF.des);
-      outText (p, (char *) "+", 1);
-      doExprC (p, s->forF.increment);
-    }
+  doForInc (p, s);
   outText (p, (char *) ")\\n", 3);
   doCompoundStmt (p, s->forF.statements);
 }
@@ -7045,7 +7112,7 @@ static unsigned int needsCast (decl_node at, decl_node ft)
     return TRUE;
 }
 
-static void checkSystemCast (mcPretty_pretty p, decl_node actual, decl_node formal)
+static unsigned int checkSystemCast (mcPretty_pretty p, decl_node actual, decl_node formal)
 {
   decl_node at;
   decl_node ft;
@@ -7053,11 +7120,36 @@ static void checkSystemCast (mcPretty_pretty p, decl_node actual, decl_node form
   at = getExprType (actual);
   ft = decl_getType (formal);
   if (needsCast (at, ft))
+    if (lang == ansiCP)
     {
-      outText (p, (char *) "(", 1);
-      doTypeNameC (p, ft);
-      outText (p, (char *) ")", 1);
-      mcPretty_setNeedSpace (p);
+      /* avoid dangling else.  */
+      if ((isString (actual)) && ((decl_skipType (ft)) == addressN))
+        {
+          outText (p, (char *) "const_cast<void*> (reinterpret_cast<const void*> (", 50);
+          return 2;
+        }
+    }
+    else
+      {
+        outText (p, (char *) "(", 1);
+        doTypeNameC (p, ft);
+        outText (p, (char *) ")", 1);
+        mcPretty_setNeedSpace (p);
+      }
+  return 0;
+}
+
+static void emitN (mcPretty_pretty p, char *a_, unsigned int _a_high, unsigned int n)
+{
+  char a[_a_high+1];
+
+  /* make a local copy of each unbounded array.  */
+  memcpy (a, a_, _a_high+1);
+
+  while (n > 0)
+    {
+      outText (p, (char *) a, _a_high);
+      n -= 1;
     }
 }
 
@@ -7065,6 +7157,7 @@ static void doFuncParamC (mcPretty_pretty p, decl_node actual, decl_node formal,
 {
   decl_node ft;
   decl_node at;
+  unsigned int lbr;
 
   if (formal == NULL)
     doExprC (p, actual);
@@ -7086,11 +7179,12 @@ static void doFuncParamC (mcPretty_pretty p, decl_node actual, decl_node formal,
             doCastC (p, decl_getType (formal), actual);
         else
           {
-            checkSystemCast (p, actual, formal);
+            lbr = checkSystemCast (p, actual, formal);
             if (decl_isVarParam (formal))
               doAdrExprC (p, actual);
             else
               doExprC (p, actual);
+            emitN (p, (char *) ")", 1, lbr);
           }
     }
 }
@@ -7213,11 +7307,21 @@ static void doAdrArgC (mcPretty_pretty p, decl_node n)
   else if ((decl_isVar (n)) && n->varF.isVarParameter)
     outTextN (p, decl_getSymName (n));
   else
-    {
-      if (! (isString (n)))
+    if (isString (n))
+      if (lang == ansiCP)
+        {
+          outText (p, (char *) "const_cast<void*> (reinterpret_cast<const void*>", 48);
+          outText (p, (char *) "(", 1);
+          doExprC (p, n);
+          outText (p, (char *) "))", 2);
+        }
+      else
+        doExprC (p, n);
+    else
+      {
         outText (p, (char *) "&", 1);
-      doExprC (p, n);
-    }
+        doExprC (p, n);
+      }
 }
 
 static void doAdrC (mcPretty_pretty p, decl_node n)
@@ -8822,8 +8926,6 @@ static void visitScope (alists_alist v, decl_node n, nodeProcedure p)
 static void visitType (alists_alist v, decl_node n, nodeProcedure p)
 {
   mcDebug_assert (decl_isType (n));
-  if ((decl_getSymName (n)) == (nameKey_makeKey ((char *) "alist", 5)))
-    stop ();
   visitNode (v, n->typeF.type, p);
   visitScope (v, n->typeF.scope, p);
 }

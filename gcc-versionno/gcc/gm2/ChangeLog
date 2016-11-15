@@ -1,3 +1,13 @@
+2016-11-15      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  changes to mc rules so we use less
+	  aggresive warning options for g++.
+	* gm2/mc/decl.mod:  changes to the cpp backend to
+	  implement casts.
+	* gm2/mc-boot/GArgs.c:  regenerated.
+	* gm2/mc-boot/GFIO.c:  regenerated.
+	* gm2/mc-boot/Gdecl.c:  regenerated.
+
 2016-11-11      Gaius Mulley <gaius@gnu.org>
 
 	* updates for the shared library example pge.
