@@ -9177,6 +9177,38 @@ END doAdrC ;
 
 
 (*
+   doInc -
+*)
+
+PROCEDURE doInc (p: pretty; n: node) ;
+BEGIN
+   assert (isFuncCall (n)) ;
+   IF lang = ansiCP
+   THEN
+      doIncDecCP (p, n, "+")
+   ELSE
+      doIncDecC (p, n, "+=")
+   END
+END doInc ;
+
+
+(*
+   doDec -
+*)
+
+PROCEDURE doDec (p: pretty; n: node) ;
+BEGIN
+   assert (isFuncCall (n)) ;
+   IF lang = ansiCP
+   THEN
+      doIncDecCP (p, n, "-")
+   ELSE
+      doIncDecC (p, n, "-=")
+   END
+END doDec ;
+
+
+(*
    doIncDecC -
 *)
 
@@ -9197,6 +9229,53 @@ BEGIN
       END
    END
 END doIncDecC ;
+
+
+(*
+   doIncDecCP -
+*)
+
+PROCEDURE doIncDecCP (p: pretty; n: node; op: ARRAY OF CHAR) ;
+VAR
+   type: node ;
+BEGIN
+   assert (isFuncCall (n)) ;
+   IF n^.funccallF.args # NIL
+   THEN
+      doExprC (p, getExpList (n^.funccallF.args, 1)) ;
+      setNeedSpace (p) ;
+      type := getType (getExpList (n^.funccallF.args, 1)) ;
+      IF isPointer (type) OR (type = addressN)
+      THEN
+         (* cast to (char * ) and then back again after the arithmetic is complete.  *)
+         outText (p, "=") ;
+	 setNeedSpace (p) ;
+         outText (p, 'reinterpret_cast<') ;
+         doTypeNameC (p, type) ;
+         outText (p, '> (reinterpret_cast<char *> (') ;
+         doExprC (p, getExpList (n^.funccallF.args, 1)) ;
+         outText (p, ')') ;
+         outText (p, op) ;
+         IF expListLen (n^.funccallF.args) = 1
+         THEN
+            outText (p, '1')
+         ELSE
+            doExprC (p, getExpList (n^.funccallF.args, 2))
+         END ;
+         outText (p, ')')
+      ELSE
+         outText (p, op) ;
+         outText (p, "=") ;
+         setNeedSpace (p) ;
+         IF expListLen (n^.funccallF.args) = 1
+         THEN
+            outText (p, '1')
+         ELSE
+            doExprC (p, getExpList (n^.funccallF.args, 2))
+         END
+      END
+   END
+END doIncDecCP ;
 
 
 (*
@@ -9561,8 +9640,8 @@ BEGIN
               doFuncArgsC (p, n, NIL, TRUE) |
       abs:    doAbsC (p, n) |
       high:   doFuncHighC (p, getExpList (n^.funccallF.args, 1)) |
-      inc:    doIncDecC (p, n, "+=") |
-      dec:    doIncDecC (p, n, "-=") |
+      inc:    doInc (p, n) |
+      dec:    doDec (p, n) |
       incl:   doInclC (p, n) |
       excl:   doExclC (p, n) |
       new:    doNewC (p, n) |

@@ -1525,6 +1525,15 @@ mc-maintainer: mc-clean mc-autogen mc-push mc-bootstrap
 
 mc-verify:  mc-bootstrap mc-clean mc-stage2
 
+mc-clean-libs: force
+	$(RM) gm2/gm2-libs-boot/*
+
+mc-test:  mc-clean mc-bootstrap mc-clean-libs $(BUILD-LIBS-BOOT)
+
+mc-help:  force
+	@echo "mc-maintainer   produces a new mc C version in the source tree (takes longer)"
+	@echo "mc-test         builds the mc from the C version and attempts to build gm2 libraries"
+	@echo "mc              builds mc from Modula-2 sources, quickly"
 
 mc-stage2:  force
 	gm2/boot-bin/mc$(exeext) -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=gm2/mc-boot-gen/GmcStream.c $(srcdir)/gm2/mc/mcStream.mod

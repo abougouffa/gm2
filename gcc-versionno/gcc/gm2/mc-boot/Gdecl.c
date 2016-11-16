@@ -1768,7 +1768,10 @@ static void doFuncArgsC (mcPretty_pretty p, decl_node s, Indexing_Index l, unsig
 static void doProcTypeArgsC (mcPretty_pretty p, decl_node s, Indexing_Index args, unsigned int needParen);
 static void doAdrArgC (mcPretty_pretty p, decl_node n);
 static void doAdrC (mcPretty_pretty p, decl_node n);
+static void doInc (mcPretty_pretty p, decl_node n);
+static void doDec (mcPretty_pretty p, decl_node n);
 static void doIncDecC (mcPretty_pretty p, decl_node n, char *op_, unsigned int _op_high);
+static void doIncDecCP (mcPretty_pretty p, decl_node n, char *op_, unsigned int _op_high);
 static void doInclC (mcPretty_pretty p, decl_node n);
 static void doExclC (mcPretty_pretty p, decl_node n);
 static void doNewC (mcPretty_pretty p, decl_node n);
@@ -7332,6 +7335,24 @@ static void doAdrC (mcPretty_pretty p, decl_node n)
       doAdrArgC (p, getExpList (n->funccallF.args, 1));
 }
 
+static void doInc (mcPretty_pretty p, decl_node n)
+{
+  mcDebug_assert (isFuncCall (n));
+  if (lang == ansiCP)
+    doIncDecCP (p, n, (char *) "+", 1);
+  else
+    doIncDecC (p, n, (char *) "+=", 2);
+}
+
+static void doDec (mcPretty_pretty p, decl_node n)
+{
+  mcDebug_assert (isFuncCall (n));
+  if (lang == ansiCP)
+    doIncDecCP (p, n, (char *) "-", 1);
+  else
+    doIncDecC (p, n, (char *) "-=", 2);
+}
+
 static void doIncDecC (mcPretty_pretty p, decl_node n, char *op_, unsigned int _op_high)
 {
   char op[_op_high+1];
@@ -7350,6 +7371,49 @@ static void doIncDecC (mcPretty_pretty p, decl_node n, char *op_, unsigned int _
         outText (p, (char *) "1", 1);
       else
         doExprC (p, getExpList (n->funccallF.args, 2));
+    }
+}
+
+static void doIncDecCP (mcPretty_pretty p, decl_node n, char *op_, unsigned int _op_high)
+{
+  decl_node type;
+  char op[_op_high+1];
+
+  /* make a local copy of each unbounded array.  */
+  memcpy (op, op_, _op_high+1);
+
+  mcDebug_assert (isFuncCall (n));
+  if (n->funccallF.args != NULL)
+    {
+      doExprC (p, getExpList (n->funccallF.args, 1));
+      mcPretty_setNeedSpace (p);
+      type = decl_getType (getExpList (n->funccallF.args, 1));
+      if ((decl_isPointer (type)) || (type == addressN))
+        {
+          outText (p, (char *) "=", 1);
+          mcPretty_setNeedSpace (p);
+          outText (p, (char *) "reinterpret_cast<", 17);
+          doTypeNameC (p, type);
+          outText (p, (char *) "> (reinterpret_cast<char *> (", 29);
+          doExprC (p, getExpList (n->funccallF.args, 1));
+          outText (p, (char *) ")", 1);
+          outText (p, (char *) op, _op_high);
+          if ((expListLen (n->funccallF.args)) == 1)
+            outText (p, (char *) "1", 1);
+          else
+            doExprC (p, getExpList (n->funccallF.args, 2));
+          outText (p, (char *) ")", 1);
+        }
+      else
+        {
+          outText (p, (char *) op, _op_high);
+          outText (p, (char *) "=", 1);
+          mcPretty_setNeedSpace (p);
+          if ((expListLen (n->funccallF.args)) == 1)
+            outText (p, (char *) "1", 1);
+          else
+            doExprC (p, getExpList (n->funccallF.args, 2));
+        }
     }
 }
 
@@ -7685,11 +7749,11 @@ static void doIntrinsicC (mcPretty_pretty p, decl_node n)
           break;
 
         case inc:
-          doIncDecC (p, n, (char *) "+=", 2);
+          doInc (p, n);
           break;
 
         case dec:
-          doIncDecC (p, n, (char *) "-=", 2);
+          doDec (p, n);
           break;
 
         case incl:

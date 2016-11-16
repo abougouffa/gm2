@@ -1,3 +1,11 @@
+2016-11-16      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  New rules (mc-clean-libs) (mc-test)
+          and (mc-help).
+	* gm2/mc/decl.mod:  doInc, doDec, doIncDecCP (New procedures)
+          which fix the pointer arithmetic in INC/DEC for C++.
+	* gm2/mc-boot:  regenerated.
+
 2016-11-15      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  changes to mc rules so we use less
