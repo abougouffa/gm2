@@ -237,7 +237,8 @@ TYPE
                    END ;
 
        identlistT = RECORD
-                       names:  wlist ;
+                       names : wlist ;
+		       cnamed: BOOLEAN ;
                     END ;
 
        funccallT = RECORD
@@ -297,6 +298,7 @@ TYPE
 		 isInitialised,
 		 isParameter,
 		 isVarParameter:  BOOLEAN ;
+                 cname         :  cnameT ;
               END ;
 
        enumerationT = RECORD
@@ -514,6 +516,7 @@ TYPE
                        optarg         :  node ;
 		       returnType     :  node ;
                        beginStatements:  node ;
+                       cname          :  cnameT ;
                     END ;
 
        proctypeT = RECORD
@@ -1833,7 +1836,8 @@ BEGIN
       varF.scope := getDeclScope () ;
       varF.isInitialised := FALSE ;
       varF.isParameter := FALSE ;
-      varF.isVarParameter := FALSE
+      varF.isVarParameter := FALSE ;
+      initCname (varF.cname)
    END ;
    RETURN addToScope (d)
 END makeVar ;
@@ -2010,7 +2014,8 @@ BEGIN
          procedureF.checking := FALSE ;
 	 procedureF.paramcount := 0 ;
          procedureF.returnType := NIL ;
-         procedureF.beginStatements := NIL
+         procedureF.beginStatements := NIL ;
+         initCname (procedureF.cname)
       END
    END ;
    RETURN addProcedureToScope (d, n)
@@ -2044,20 +2049,35 @@ END paramLeave ;
 
 
 (*
-   putReturnType - assigns, type, to the procedure or proctype, p.
+   putReturnType - sets the return type of procedure or proctype, proc, to, type.
 *)
 
-PROCEDURE putReturnType (p: node; type: node) ;
+PROCEDURE putReturnType (proc, type: node) ;
 BEGIN
-   assert (p#NIL) ;
-   assert (isProcedure (p) OR isProcType (p)) ;
-   IF p^.kind = procedure
+   assert (isProcedure (proc) OR isProcType (proc)) ;
+   IF isProcedure (proc)
    THEN
-      p^.procedureF.returnType := type
+      proc^.procedureF.returnType := type
    ELSE
-      p^.proctypeF.returnType := type
+      proc^.proctypeF.returnType := type
    END
 END putReturnType ;
+
+
+(*
+   putOptReturn - sets, proctype or procedure, proc, to have an optional return type.
+*)
+
+PROCEDURE putOptReturn (proc: node) ;
+BEGIN
+   assert (isProcedure (proc) OR isProcType (proc)) ;
+   IF isProcedure (proc)
+   THEN
+      proc^.procedureF.returnopt := TRUE
+   ELSE
+      proc^.proctypeF.returnopt := TRUE
+   END
+END putOptReturn ;
 
 
 (*
@@ -2087,6 +2107,7 @@ END makeProcType ;
 
 PROCEDURE putProcTypeReturn (proc, type: node) ;
 BEGIN
+   assert (isProcType (proc)) ;
    proc^.proctypeF.returnType := type
 END putProcTypeReturn ;
 
@@ -2097,6 +2118,7 @@ END putProcTypeReturn ;
 
 PROCEDURE putProcTypeOptReturn (proc: node) ;
 BEGIN
+   assert (isProcType (proc)) ;
    proc^.proctypeF.returnopt := TRUE
 END putProcTypeOptReturn ;
 
@@ -2105,7 +2127,7 @@ END putProcTypeOptReturn ;
    makeNonVarParameter - returns a non var parameter node with, name: type.
 *)
 
-PROCEDURE makeNonVarParameter (l: node; type: node) : node ;
+PROCEDURE makeNonVarParameter (l: node; type, proc: node) : node ;
 VAR
    d: node ;
 BEGIN
@@ -2113,7 +2135,7 @@ BEGIN
    d := newNode (param) ;
    d^.paramF.namelist := l ;
    d^.paramF.type := type ;
-   d^.paramF.scope := NIL ;
+   d^.paramF.scope := proc ;
    d^.paramF.isUnbounded := FALSE ;
    RETURN d
 END makeNonVarParameter ;
@@ -2123,7 +2145,7 @@ END makeNonVarParameter ;
    makeVarParameter - returns a var parameter node with, name: type.
 *)
 
-PROCEDURE makeVarParameter (l: node; type: node) : node ;
+PROCEDURE makeVarParameter (l: node; type, proc: node) : node ;
 VAR
    d: node ;
 BEGIN
@@ -2131,7 +2153,7 @@ BEGIN
    d := newNode (varparam) ;
    d^.varparamF.namelist := l ;
    d^.varparamF.type := type ;
-   d^.varparamF.scope := NIL ;
+   d^.varparamF.scope := proc ;
    d^.varparamF.isUnbounded := FALSE ;
    RETURN d
 END makeVarParameter ;
@@ -2278,6 +2300,7 @@ VAR
 BEGIN
    n := newNode (identlist) ;
    n^.identlistF.names := wlists.initList () ;
+   n^.identlistF.cnamed := FALSE ;
    RETURN n
 END makeIdentList ;
 
@@ -2336,6 +2359,32 @@ BEGIN
    disposeNode (i)
 END checkParameters ;
 
+(*
+(*
+   avoidCnames - checks each name in, n, against C reserved
+                 keywords and macros.
+*)
+
+PROCEDURE avoidCnames (n: node) ;
+VAR
+   i, j: CARDINAL ;
+BEGIN
+   assert (isIdentList (n)) ;
+   IF NOT n^.identlistF.cnamed
+   THEN
+      n^.identlistF.cnamed := TRUE ;
+      j := wlists.noOfItemsInList (n^.identlistF.names) ;
+      i := 1 ;
+      WHILE i<=j DO
+         wlists.replaceItemInList (n^.identlistF.names,
+                                   i,
+                                   keyc.cnamen (wlists.getItemFromList (n^.identlistF.names, i), FALSE)) ;
+         INC (i)
+      END
+   END
+END avoidCnames ;
+*)
+
 
 (*
    checkMakeVariables -
@@ -2347,7 +2396,7 @@ BEGIN
       (NOT n^.procedureF.built)
    THEN
       makeVariablesFromParameters (n, i, type, isvar)
-   END
+   END ;
 END checkMakeVariables ;
 
 
@@ -2367,7 +2416,7 @@ BEGIN
    THEN
       checkParameters (n, i, type, TRUE)  (* will destroy, i.  *)
    ELSE
-      p := makeVarParameter (i, type) ;
+      p := makeVarParameter (i, type, n) ;
       IncludeIndiceIntoIndex (n^.procedureF.parameters, p) ;
    END ;
 END addVarParameters ;
@@ -2389,7 +2438,7 @@ BEGIN
    THEN
       checkParameters (n, i, type, FALSE)  (* will destroy, i.  *)
    ELSE
-      p := makeNonVarParameter (i, type) ;
+      p := makeNonVarParameter (i, type, n) ;
       IncludeIndiceIntoIndex (n^.procedureF.parameters, p)
    END ;
 END addNonVarParameters ;
@@ -5498,7 +5547,7 @@ END doArrayRef ;
 PROCEDURE doProcedure (p: pretty; n: node) ;
 BEGIN
    assert (isProcedure (n)) ;
-   doFQNameC (p, n)
+   doFQDNameC (p, n, TRUE)
 END doProcedure ;
 
 
@@ -5870,10 +5919,10 @@ BEGIN
    IF n^.varF.isVarParameter
    THEN
       outText (p, '(*') ;
-      doFQNameC (p, n) ;
+      doFQDNameC (p, n, TRUE) ;
       outText (p, ')')
    ELSE
-      doFQNameC (p, n)
+      doFQDNameC (p, n, TRUE)
    END
 END doVar ;
 
@@ -6472,6 +6521,8 @@ BEGIN
    m := getSymName (n) ;
    CASE n^.kind OF
 
+   procedure       :  RETURN doCname (m, n^.procedureF.cname, scopes) |
+   var             :  RETURN doCname (m, n^.varF.cname, scopes) |
    recordfield     :  RETURN doCname (m, n^.recordfieldF.cname, scopes) |
    enumerationfield:  RETURN doCname (m, n^.enumerationfieldF.cname, scopes)
 
@@ -6549,11 +6600,50 @@ END doHighC ;
 
 
 (*
+   doParamConstCast -
+*)
+
+PROCEDURE doParamConstCast (p: pretty; n: node) ;
+VAR
+   ptype: node ;
+BEGIN
+   ptype := getType (n) ;
+   IF isArray (ptype) AND isUnbounded (ptype) AND (lang = ansiCP)
+   THEN
+      outText (p, "const") ;
+      setNeedSpace (p)
+   END
+END doParamConstCast ;
+
+
+(*
+   getParameterVariable - returns the variable which shadows the parameter
+                          named, m, in parameter block, n.
+*)
+
+PROCEDURE getParameterVariable (n: node; m: Name) : node ;
+VAR
+   p: node ;
+BEGIN
+   assert (isParam (n) OR isVarParam (n)) ;
+   IF isParam (n)
+   THEN
+      p := n^.paramF.scope
+   ELSE
+      p := n^.varparamF.scope
+   END ;
+   assert (isProcedure (p)) ;
+   RETURN lookupInScope (p, m)
+END getParameterVariable ;
+
+
+(*
    doParamC -
 *)
 
 PROCEDURE doParamC (p: pretty; n: node) ;
 VAR
+   v,
    ptype: node ;
    i    : Name ;
    c, t : CARDINAL ;
@@ -6561,24 +6651,22 @@ VAR
 BEGIN
    assert (isParam (n)) ;
    ptype := getType (n) ;
-   IF isArray (ptype) AND isUnbounded (ptype) AND (lang = ansiCP)
-   THEN
-      outText (p, "const") ;
-      setNeedSpace (p)
-   END ;
    IF n^.paramF.namelist = NIL
    THEN
+      doParamConstCast (p, n) ;
       doTypeNameC (p, ptype)
    ELSE
       assert (isIdentList (n^.paramF.namelist)) ;
       l := n^.paramF.namelist^.identlistF.names ;
       IF l=NIL
       THEN
+         doParamConstCast (p, n) ;
          doTypeNameC (p, ptype)
       ELSE
          t := wlists.noOfItemsInList (l) ;
          c := 1 ;
          WHILE c <= t DO
+            doParamConstCast (p, n) ;
             doTypeNameC (p, ptype) ;
             i := wlists.getItemFromList (l, c) ;
             IF isArray (ptype) AND isUnbounded (ptype)
@@ -6587,7 +6675,13 @@ BEGIN
             ELSE
                setNeedSpace (p)
             END ;
-            doNamesC (p, i) ;
+            v := getParameterVariable (n, i) ;
+            IF v=NIL
+            THEN
+               doNamesC (p, keyc.cnamen (i, TRUE))
+            ELSE
+               doFQDNameC (p, v, TRUE)
+            END ;
             IF isArray (ptype) AND isUnbounded (ptype)
             THEN
                outText (p, '_')
@@ -6610,6 +6704,7 @@ END doParamC ;
 
 PROCEDURE doVarParamC (p: pretty; n: node) ;
 VAR
+   v,
    ptype: node ;
    i    : Name ;
    c, t : CARDINAL ;
@@ -6642,7 +6737,13 @@ BEGIN
                outText (p, "*")
             END ;
             i := wlists.getItemFromList (l, c) ;
-            doNamesC (p, i) ;
+            v := getParameterVariable (n, i) ;
+            IF v=NIL
+            THEN
+               doNamesC (p, keyc.cnamen (i, TRUE))
+            ELSE
+               doFQDNameC (p, v, TRUE)
+            END ;
             doHighC (p, ptype, i) ;
             IF c<t
             THEN
@@ -7593,7 +7694,8 @@ BEGIN
    s := NIL ;
    doTypeC (doP, getType (n), s) ;
    setNeedSpace (doP) ;
-   doFQNameC (doP, n) ; print (doP, ";\n")
+   doFQDNameC (doP, n, FALSE) ;
+   print (doP, ";\n")
 END doVarC ;
 
 
@@ -7616,6 +7718,7 @@ BEGIN
       outText (doP, "static") ; setNeedSpace (doP)
    END ;
    q := NIL ;
+   (* printf ("procedure name is %s\n", keyToCharStar (getSymName (n))) ; *)
    doTypeC (doP, n^.procedureF.returnType, q) ; setNeedSpace (doP) ;
    doFQDNameC (doP, n, FALSE) ;
    setNeedSpace (doP) ;
@@ -8770,13 +8873,18 @@ END doTotype ;
    doFuncUnbounded -
 *)
 
-PROCEDURE doFuncUnbounded (p: pretty; actual, formal, func: node) ;
+PROCEDURE doFuncUnbounded (p: pretty; actual, formalParam, formal, func: node) ;
 VAR
    h: node ;
    s: String ;
 BEGIN
    assert (isUnbounded (formal)) ;
    outText (p, '(') ;
+   IF (lang = ansiCP) AND isParam (formalParam)
+   THEN
+      outText (p, "const") ;
+      setNeedSpace (p)
+   END ;
    doTypeC (p, getType (formal), formal) ;
    setNeedSpace (p) ;
    outText (p, '*)') ;
@@ -8957,7 +9065,7 @@ BEGIN
       ft := skipType (getType (formal)) ;
       IF isUnbounded (ft)
       THEN
-         doFuncUnbounded (p, actual, ft, func)
+         doFuncUnbounded (p, actual, formal, ft, func)
       ELSE
          IF ((ft = procN) OR isProcType (ft)) AND
             isProcedure (actual)
@@ -9683,7 +9791,7 @@ BEGIN
       doIntrinsicC (p, n)
    ELSIF isProcedure (n^.funccallF.function)
    THEN
-      doFQNameC (p, n^.funccallF.function) ;
+      doFQDNameC (p, n^.funccallF.function, TRUE) ;
       setNeedSpace (p) ;
       doFuncArgsC (p, n, n^.funccallF.function^.procedureF.parameters, TRUE)
    ELSE
@@ -13370,7 +13478,8 @@ END setLangC ;
 
 PROCEDURE setLangCP ;
 BEGIN
-   lang := ansiCP
+   lang := ansiCP ;
+   keyc.cp
 END setLangCP ;
 
 

@@ -95,6 +95,15 @@ PROCEDURE removeItemFromList (l: wlist; c: WORD) ;
 
 
 (*
+   replaceItemInList - replace the nth WORD in wlist, l.
+                       The first item in a wlists is at index, 1.
+                       If the index, n, is out of range nothing is changed.
+*)
+
+PROCEDURE replaceItemInList (l: wlist; n: CARDINAL; w: WORD) ;
+
+
+(*
    isItemInList - returns true if a WORD, c, was found in wlist, l.
 *)
 

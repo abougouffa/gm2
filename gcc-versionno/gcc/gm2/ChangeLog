@@ -1,3 +1,41 @@
+2016-11-24      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  updated rules to build handbuilt modules to use
+	  new path.  Attempt to build compiler using mc.
+	* gm2/bnf/mc-3.bnf:  use putOptReturn rather than
+	  putProcTypeOptReturn.
+	* gm2/bnf/mc-4.bnf:  use putOptReturn rather than
+	  putProcTypeOptReturn.
+	* gm2/bnf/mc-5.bnf:  use putOptReturn rather than
+	  putProcTypeOptReturn.
+	* gm2/gm2-libs-ch/SysExceptions.c:  use header file gm2-libs-host.h.
+	* gm2/gm2-libs-ch/dtoa.c:  use header file gm2-libs-host.h.
+	* gm2/gm2-libs-ch/errno.c:  use header file gm2-libs-host.h.
+	* gm2/gm2-libs-ch/ldtoa.c:  use header file gm2-libs-host.h.
+	* gm2/gm2-libs-ch/termios.c:  use header file gm2-libs-host.h.
+	* gm2/gm2-libs-ch/wrapc.c:  use header file gm2-libs-host.h.
+	* gm2/gm2-libs/libc.def:  removed white space.
+	* gm2/mc-boot/Gdecl.c:  rebuilt.
+	* gm2/mc-boot/Gdecl.h:  rebuilt.
+	* gm2/mc-boot/Gkeyc.c:  rebuilt.
+	* gm2/mc-boot/Gkeyc.h:  rebuilt.
+	* gm2/mc-boot/Gmcp3.c:  rebuilt.
+	* gm2/mc-boot/GsymbolKey.c:  rebuilt.
+	* gm2/mc-boot/Gwlists.c:  rebuilt.
+	* gm2/mc-boot/Gwlists.h:  rebuilt.
+	* gm2/mc/decl.def:  replace putProcTypeOptReturn with putReturnType.
+	  New procedure putOptReturn.
+	* gm2/mc/decl.mod:  implement putReturnType and putOptReturn.
+          Fix bug in parameter declaration to use safe C names.
+	  Also ensure that all variables are also safe from C names.
+	* gm2/mc/keyc.def:  cnamen (New procedure function).  cp
+	  (New procedure).
+	* gm2/mc/keyc.mod:  implement cnamen (New procedure function).  cp
+	  (New procedure).
+	* gm2/mc/symbolKey.mod:  getSymKey returns NulKey if the tree is NIL.
+	* gm2/mc/wlists.def:  replaceItemInList (New procedure).
+	* gm2/mc/wlists.mod:  implement replaceItemInList.
+
 2016-11-16      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  New rules (mc-clean-libs) (mc-test)

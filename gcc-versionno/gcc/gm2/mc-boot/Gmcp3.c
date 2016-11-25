@@ -2042,7 +2042,7 @@ static void OptReturnType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
       Expect ((mcReserved_toktype) mcReserved_lsbratok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
       PushQualident (stopset0|(SetOfStop0) ((1 << (mcReserved_rsbratok-mcReserved_eoftok))), stopset1, stopset2);
       decl_putReturnType (curproc, pop ());
-      decl_putProcTypeOptReturn (curproc);
+      decl_putOptReturn (curproc);
       Expect ((mcReserved_toktype) mcReserved_rsbratok, stopset0, stopset1, stopset2);
     }
   else if (mcLexBuf_currenttoken == mcReserved_identtok)
@@ -2079,12 +2079,12 @@ static void ProcedureParameter (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfS
     {
       Expect ((mcReserved_toktype) mcReserved_vartok, stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_arraytok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
       FormalType (stopset0, stopset1, stopset2);
-      n = push (decl_makeVarParameter ((decl_node) NULL, pop ()));
+      n = push (decl_makeVarParameter ((decl_node) NULL, pop (), curproc));
     }
   else if ((mcLexBuf_currenttoken == mcReserved_arraytok) || (mcLexBuf_currenttoken == mcReserved_identtok))
     {
       FormalType (stopset0, stopset1, stopset2);
-      n = push (decl_makeNonVarParameter ((decl_node) NULL, pop ()));
+      n = push (decl_makeNonVarParameter ((decl_node) NULL, pop (), curproc));
     }
   else
     ErrorArray ((char *) "expecting one of: ARRAY identifier VAR ...", 42);

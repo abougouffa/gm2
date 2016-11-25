@@ -67,6 +67,28 @@ END killList ;
 
 
 (*
+   replaceItemInList - replace the nth WORD in wlist, l.
+                       The first item in a wlists is at index, 1.
+                       If the index, n, is out of range nothing is changed.
+*)
+
+PROCEDURE replaceItemInList (l: wlist; n: CARDINAL; w: WORD) ;
+BEGIN
+   WHILE l#NIL DO
+      WITH l^ DO
+         IF n<=noOfElements
+         THEN
+            elements[n] := w
+         ELSE
+            DEC (n, noOfElements)
+         END
+      END ;
+      l := l^.next
+   END
+END replaceItemInList ;
+
+
+(*
    putItemIntoList - places an WORD, c, into wlist, l.
 *)
 

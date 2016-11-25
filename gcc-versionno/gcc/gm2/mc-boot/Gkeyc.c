@@ -48,6 +48,7 @@ static scope stack;
 static scope freeList;
 static symbolKey_symbolTree keywords;
 static symbolKey_symbolTree macros;
+static unsigned int initializedCP;
 static unsigned int seenIntMin;
 static unsigned int seenUIntMin;
 static unsigned int seenLongMin;
@@ -100,6 +101,8 @@ void keyc_genDefs (mcPretty_pretty p);
 void keyc_enterScope (decl_node n);
 void keyc_leaveScope (decl_node n);
 DynamicStrings_String keyc_cname (nameKey_Name n, unsigned int scopes);
+nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes);
+void keyc_cp (void);
 static void checkAbs (mcPretty_pretty p);
 static void checkLimits (mcPretty_pretty p);
 static void checkFreeMalloc (mcPretty_pretty p);
@@ -114,6 +117,7 @@ static unsigned int mangle1 (nameKey_Name n, DynamicStrings_String *m, unsigned 
 static unsigned int mangle2 (nameKey_Name n, DynamicStrings_String *m, unsigned int scopes);
 static unsigned int mangleN (nameKey_Name n, DynamicStrings_String *m, unsigned int scopes);
 static unsigned int clash (nameKey_Name n, unsigned int scopes);
+static void initCP (void);
 static void add (symbolKey_symbolTree s, char *a_, unsigned int _a_high);
 static void initMacros (void);
 static void initKeywords (void);
@@ -240,6 +244,14 @@ static unsigned int clash (nameKey_Name n, unsigned int scopes)
   return scopes && ((symbolKey_getSymKey (stack->symbols, n)) != NULL);
 }
 
+static void initCP (void)
+{
+  add (macros, (char *) "true", 4);
+  add (macros, (char *) "false", 5);
+  add (keywords, (char *) "new", 3);
+  add (keywords, (char *) "delete", 6);
+}
+
 static void add (symbolKey_symbolTree s, char *a_, unsigned int _a_high)
 {
   char a[_a_high+1];
@@ -330,6 +342,7 @@ static void init (void)
   seenAbs = FALSE;
   seenFabs = FALSE;
   seenFabsl = FALSE;
+  initializedCP = FALSE;
   stack = NULL;
   freeList = NULL;
   initKeywords ();
@@ -516,6 +529,35 @@ DynamicStrings_String keyc_cname (nameKey_Name n, unsigned int scopes)
   else if (scopes)
     symbolKey_putSymKey (stack->symbols, n, (void *) DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
   return m;
+}
+
+nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes)
+{
+  DynamicStrings_String m;
+
+  m = NULL;
+  if (clash (n, scopes))
+    if (((mangle1 (n, &m, scopes)) || (mangle2 (n, &m, scopes))) || (mangleN (n, &m, scopes)))
+      {
+        n = nameKey_makekey (DynamicStrings_string (m));
+        if (scopes)
+          symbolKey_putSymKey (stack->symbols, n, (void *) m);
+      }
+    else
+      M2RTS_HALT (0);
+  else if (scopes)
+    symbolKey_putSymKey (stack->symbols, n, (void *) DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
+  m = DynamicStrings_KillString (m);
+  return n;
+}
+
+void keyc_cp (void)
+{
+  if (! initializedCP)
+    {
+      initializedCP = TRUE;
+      initCP ();
+    }
 }
 
 void _M2_keyc_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

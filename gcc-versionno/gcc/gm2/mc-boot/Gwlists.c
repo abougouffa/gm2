@@ -48,6 +48,7 @@ unsigned int wlists_getIndexOfList (wlists_wlist l, unsigned int c);
 unsigned int wlists_noOfItemsInList (wlists_wlist l);
 void wlists_includeItemIntoList (wlists_wlist l, unsigned int c);
 void wlists_removeItemFromList (wlists_wlist l, unsigned int c);
+void wlists_replaceItemInList (wlists_wlist l, unsigned int n, unsigned int w);
 unsigned int wlists_isItemInList (wlists_wlist l, unsigned int c);
 void wlists_foreachItemInListDo (wlists_wlist l, wlists_performOperation p);
 wlists_wlist wlists_duplicateList (wlists_wlist l);
@@ -182,6 +183,18 @@ void wlists_removeItemFromList (wlists_wlist l, unsigned int c)
       } while (! ((l == NULL) || found));
       if (found)
         removeItem (p, l, i);
+    }
+}
+
+void wlists_replaceItemInList (wlists_wlist l, unsigned int n, unsigned int w)
+{
+  while (l != NULL)
+    {
+      if (n <= l->noOfElements)
+        l->elements.array[n-1] = w;
+      else
+        n -= l->noOfElements;
+      l = l->next;
     }
 }
 

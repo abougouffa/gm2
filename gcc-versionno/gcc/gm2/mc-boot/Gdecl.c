@@ -347,6 +347,7 @@ struct setvalueT_r {
 
 struct identlistT_r {
                       wlists_wlist names;
+                      unsigned int cnamed;
                     };
 
 struct funccallT_r {
@@ -397,16 +398,6 @@ struct varientT_r {
                     decl_node tag;
                     decl_node scope;
                   };
-
-struct varT_r {
-                nameKey_Name name;
-                decl_node type;
-                decl_node decl;
-                decl_node scope;
-                unsigned int isInitialised;
-                unsigned int isParameter;
-                unsigned int isVarParameter;
-              };
 
 struct enumerationT_r {
                         unsigned int noOfElements;
@@ -664,6 +655,17 @@ struct _T9_r {
                alists_alist next;
              };
 
+struct varT_r {
+                nameKey_Name name;
+                decl_node type;
+                decl_node decl;
+                decl_node scope;
+                unsigned int isInitialised;
+                unsigned int isParameter;
+                unsigned int isVarParameter;
+                cnameT cname;
+              };
+
 struct recordfieldT_r {
                         nameKey_Name name;
                         decl_node type;
@@ -695,6 +697,7 @@ struct procedureT_r {
                       decl_node optarg_;
                       decl_node returnType;
                       decl_node beginStatements;
+                      cnameT cname;
                     };
 
 struct moduleT_r {
@@ -1038,10 +1041,10 @@ void decl_enterScope (decl_node n);
 void decl_leaveScope (void);
 decl_node decl_makeProcedure (nameKey_Name n);
 decl_node decl_makeProcType (void);
-void decl_putProcTypeOptReturn (decl_node proc);
-void decl_putReturnType (decl_node p, decl_node type);
-decl_node decl_makeVarParameter (decl_node l, decl_node type);
-decl_node decl_makeNonVarParameter (decl_node l, decl_node type);
+void decl_putReturnType (decl_node proc, decl_node type);
+void decl_putOptReturn (decl_node proc);
+decl_node decl_makeVarParameter (decl_node l, decl_node type, decl_node proc);
+decl_node decl_makeNonVarParameter (decl_node l, decl_node type, decl_node proc);
 void decl_paramEnter (decl_node n);
 void decl_paramLeave (decl_node n);
 decl_node decl_makeIdentList (void);
@@ -1429,6 +1432,7 @@ unsigned int wlists_getIndexOfList (wlists_wlist l, unsigned int c);
 unsigned int wlists_noOfItemsInList (wlists_wlist l);
 void wlists_includeItemIntoList (wlists_wlist l, unsigned int c);
 void wlists_removeItemFromList (wlists_wlist l, unsigned int c);
+void wlists_replaceItemInList (wlists_wlist l, unsigned int n, unsigned int w);
 unsigned int wlists_isItemInList (wlists_wlist l, unsigned int c);
 void wlists_foreachItemInListDo (wlists_wlist l, wlists_performOperation p);
 wlists_wlist wlists_duplicateList (wlists_wlist l);
@@ -1460,6 +1464,8 @@ void keyc_genDefs (mcPretty_pretty p);
 void keyc_enterScope (decl_node n);
 void keyc_leaveScope (decl_node n);
 DynamicStrings_String keyc_cname (nameKey_Name n, unsigned int scopes);
+nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes);
+void keyc_cp (void);
 FIO_File mcStream_openFrag (unsigned int id);
 void mcStream_setDest (FIO_File f);
 FIO_File mcStream_combine (void);
@@ -1532,6 +1538,7 @@ static unsigned int isVarDecl (decl_node n);
 static void makeVariablesFromParameters (decl_node proc, decl_node id, decl_node type, unsigned int isvar);
 static decl_node addProcedureToScope (decl_node d, nameKey_Name n);
 static void putProcTypeReturn (decl_node proc, decl_node type);
+static void putProcTypeOptReturn (decl_node proc);
 static decl_node makeOptParameter (decl_node l, decl_node type, decl_node init);
 static unsigned int setwatch (decl_node n);
 static unsigned int runwatch (void);
@@ -1590,7 +1597,7 @@ static decl_node doGetExprType (decl_node n);
 static decl_node getExprType (decl_node n);
 static void openOutput (void);
 static void closeOutput (void);
-static void write (char ch);
+static void write_ (char ch);
 static void writeln (void);
 static void doIncludeC (decl_node n);
 static decl_node getSymScope (decl_node n);
@@ -1663,6 +1670,8 @@ static void doFQDNameC (mcPretty_pretty p, decl_node n, unsigned int scopes);
 static void doFQNameC (mcPretty_pretty p, decl_node n);
 static void doNameM2 (mcPretty_pretty p, decl_node n);
 static void doHighC (mcPretty_pretty p, decl_node a, nameKey_Name n);
+static void doParamConstCast (mcPretty_pretty p, decl_node n);
+static decl_node getParameterVariable (decl_node n, nameKey_Name m);
 static void doParamC (mcPretty_pretty p, decl_node n);
 static void doVarParamC (mcPretty_pretty p, decl_node n);
 static void doOptargC (mcPretty_pretty p, decl_node n);
@@ -1754,7 +1763,7 @@ static void doWhileC (mcPretty_pretty p, decl_node s);
 static void doFuncHighC (mcPretty_pretty p, decl_node a);
 static void doMultiplyBySize (mcPretty_pretty p, decl_node a);
 static void doTotype (mcPretty_pretty p, decl_node a, decl_node t);
-static void doFuncUnbounded (mcPretty_pretty p, decl_node actual, decl_node formal, decl_node func);
+static void doFuncUnbounded (mcPretty_pretty p, decl_node actual, decl_node formalParam, decl_node formal, decl_node func);
 static void doProcedureParamC (mcPretty_pretty p, decl_node actual, decl_node formal);
 static void doAdrExprC (mcPretty_pretty p, decl_node n);
 static unsigned int typePair (decl_node a, decl_node b, decl_node x, decl_node y);
@@ -2329,7 +2338,14 @@ static decl_node addProcedureToScope (decl_node d, nameKey_Name n)
 
 static void putProcTypeReturn (decl_node proc, decl_node type)
 {
+  mcDebug_assert (decl_isProcType (proc));
   proc->proctypeF.returnType = type;
+}
+
+static void putProcTypeOptReturn (decl_node proc)
+{
+  mcDebug_assert (decl_isProcType (proc));
+  proc->proctypeF.returnopt = TRUE;
 }
 
 static decl_node makeOptParameter (decl_node l, decl_node type, decl_node init)
@@ -3503,7 +3519,7 @@ static void closeOutput (void)
     FIO_Close (outputFile);
 }
 
-static void write (char ch)
+static void write_ (char ch)
 {
   FIO_WriteChar (outputFile, ch);
   FIO_FlushBuffer (outputFile);
@@ -4193,7 +4209,7 @@ static void doArrayRef (mcPretty_pretty p, decl_node n)
 static void doProcedure (mcPretty_pretty p, decl_node n)
 {
   mcDebug_assert (decl_isProcedure (n));
-  doFQNameC (p, n);
+  doFQDNameC (p, n, TRUE);
 }
 
 static void doRecordfield (mcPretty_pretty p, decl_node n)
@@ -4761,11 +4777,11 @@ static void doVar (mcPretty_pretty p, decl_node n)
   if (n->varF.isVarParameter)
     {
       outText (p, (char *) "(*", 2);
-      doFQNameC (p, n);
+      doFQDNameC (p, n, TRUE);
       outText (p, (char *) ")", 1);
     }
   else
-    doFQNameC (p, n);
+    doFQDNameC (p, n, TRUE);
 }
 
 static void doLiteralC (mcPretty_pretty p, decl_node n)
@@ -5180,6 +5196,14 @@ static nameKey_Name getDName (decl_node n, unsigned int scopes)
   m = decl_getSymName (n);
   switch (n->kind)
     {
+      case procedure:
+        return doCname (m, &n->procedureF.cname, scopes);
+        break;
+
+      case var:
+        return doCname (m, &n->varF.cname, scopes);
+        break;
+
       case recordfield:
         return doCname (m, &n->recordfieldF.cname, scopes);
         break;
@@ -5238,8 +5262,34 @@ static void doHighC (mcPretty_pretty p, decl_node a, nameKey_Name n)
     }
 }
 
+static void doParamConstCast (mcPretty_pretty p, decl_node n)
+{
+  decl_node ptype;
+
+  ptype = decl_getType (n);
+  if (((decl_isArray (ptype)) && (decl_isUnbounded (ptype))) && (lang == ansiCP))
+    {
+      outText (p, (char *) "const", 5);
+      mcPretty_setNeedSpace (p);
+    }
+}
+
+static decl_node getParameterVariable (decl_node n, nameKey_Name m)
+{
+  decl_node p;
+
+  mcDebug_assert ((decl_isParam (n)) || (decl_isVarParam (n)));
+  if (decl_isParam (n))
+    p = n->paramF.scope;
+  else
+    p = n->varparamF.scope;
+  mcDebug_assert (decl_isProcedure (p));
+  return decl_lookupInScope (p, m);
+}
+
 static void doParamC (mcPretty_pretty p, decl_node n)
 {
+  decl_node v;
   decl_node ptype;
   nameKey_Name i;
   unsigned int c;
@@ -5248,32 +5298,38 @@ static void doParamC (mcPretty_pretty p, decl_node n)
 
   mcDebug_assert (decl_isParam (n));
   ptype = decl_getType (n);
-  if (((decl_isArray (ptype)) && (decl_isUnbounded (ptype))) && (lang == ansiCP))
-    {
-      outText (p, (char *) "const", 5);
-      mcPretty_setNeedSpace (p);
-    }
   if (n->paramF.namelist == NULL)
-    doTypeNameC (p, ptype);
+    {
+      doParamConstCast (p, n);
+      doTypeNameC (p, ptype);
+    }
   else
     {
       mcDebug_assert (isIdentList (n->paramF.namelist));
       l = n->paramF.namelist->identlistF.names;
       if (l == NULL)
-        doTypeNameC (p, ptype);
+        {
+          doParamConstCast (p, n);
+          doTypeNameC (p, ptype);
+        }
       else
         {
           t = wlists_noOfItemsInList (l);
           c = 1;
           while (c <= t)
             {
+              doParamConstCast (p, n);
               doTypeNameC (p, ptype);
               i = wlists_getItemFromList (l, c);
               if ((decl_isArray (ptype)) && (decl_isUnbounded (ptype)))
                 mcPretty_noSpace (p);
               else
                 mcPretty_setNeedSpace (p);
-              doNamesC (p, i);
+              v = getParameterVariable (n, i);
+              if (v == NULL)
+                doNamesC (p, keyc_cnamen (i, TRUE));
+              else
+                doFQDNameC (p, v, TRUE);
               if ((decl_isArray (ptype)) && (decl_isUnbounded (ptype)))
                 outText (p, (char *) "_", 1);
               doHighC (p, ptype, i);
@@ -5290,6 +5346,7 @@ static void doParamC (mcPretty_pretty p, decl_node n)
 
 static void doVarParamC (mcPretty_pretty p, decl_node n)
 {
+  decl_node v;
   decl_node ptype;
   nameKey_Name i;
   unsigned int c;
@@ -5326,7 +5383,11 @@ static void doVarParamC (mcPretty_pretty p, decl_node n)
                   outText (p, (char *) "*", 1);
                 }
               i = wlists_getItemFromList (l, c);
-              doNamesC (p, i);
+              v = getParameterVariable (n, i);
+              if (v == NULL)
+                doNamesC (p, keyc_cnamen (i, TRUE));
+              else
+                doFQDNameC (p, v, TRUE);
               doHighC (p, ptype, i);
               if (c < t)
                 {
@@ -6173,7 +6234,7 @@ static void doVarC (decl_node n)
   s = NULL;
   doTypeC (doP, decl_getType (n), &s);
   mcPretty_setNeedSpace (doP);
-  doFQNameC (doP, n);
+  doFQDNameC (doP, n, FALSE);
   mcPretty_print (doP, (char *) ";\\n", 3);
 }
 
@@ -7028,13 +7089,18 @@ static void doTotype (mcPretty_pretty p, decl_node a, decl_node t)
     }
 }
 
-static void doFuncUnbounded (mcPretty_pretty p, decl_node actual, decl_node formal, decl_node func)
+static void doFuncUnbounded (mcPretty_pretty p, decl_node actual, decl_node formalParam, decl_node formal, decl_node func)
 {
   decl_node h;
   DynamicStrings_String s;
 
   mcDebug_assert (decl_isUnbounded (formal));
   outText (p, (char *) "(", 1);
+  if ((lang == ansiCP) && (decl_isParam (formalParam)))
+    {
+      outText (p, (char *) "const", 5);
+      mcPretty_setNeedSpace (p);
+    }
   doTypeC (p, decl_getType (formal), &formal);
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "*)", 2);
@@ -7168,7 +7234,7 @@ static void doFuncParamC (mcPretty_pretty p, decl_node actual, decl_node formal,
     {
       ft = decl_skipType (decl_getType (formal));
       if (decl_isUnbounded (ft))
-        doFuncUnbounded (p, actual, ft, func);
+        doFuncUnbounded (p, actual, formal, ft, func);
       else
         if (((ft == procN) || (decl_isProcType (ft))) && (decl_isProcedure (actual)))
           if (decl_isVarParam (formal))
@@ -7807,7 +7873,7 @@ static void doFuncExprC (mcPretty_pretty p, decl_node n)
     doIntrinsicC (p, n);
   else if (decl_isProcedure (n->funccallF.function))
     {
-      doFQNameC (p, n->funccallF.function);
+      doFQDNameC (p, n->funccallF.function, TRUE);
       mcPretty_setNeedSpace (p);
       doFuncArgsC (p, n, n->funccallF.function->procedureF.parameters, TRUE);
     }
@@ -11173,7 +11239,7 @@ static void dbg (decl_node n)
   o = doP;
   f = outputFile;
   outputFile = FIO_StdOut;
-  doP = mcPretty_initPretty ((mcPretty_writeProc) {(mcPretty_writeProc_t) write}, (mcPretty_writeLnProc) {(mcPretty_writeLnProc_t) writeln});
+  doP = mcPretty_initPretty ((mcPretty_writeProc) {(mcPretty_writeProc_t) write_}, (mcPretty_writeLnProc) {(mcPretty_writeLnProc_t) writeln});
   l = alists_initList ();
   alists_includeItemIntoList (l, (void *) n);
   i = 1;
@@ -11418,7 +11484,7 @@ static void init (void)
 {
   lang = ansiC;
   outputFile = FIO_StdOut;
-  doP = mcPretty_initPretty ((mcPretty_writeProc) {(mcPretty_writeProc_t) write}, (mcPretty_writeLnProc) {(mcPretty_writeLnProc_t) writeln});
+  doP = mcPretty_initPretty ((mcPretty_writeProc) {(mcPretty_writeProc_t) write_}, (mcPretty_writeLnProc) {(mcPretty_writeLnProc_t) writeln});
   todoQ = alists_initList ();
   partialQ = alists_initList ();
   doneQ = alists_initList ();
@@ -12533,6 +12599,7 @@ decl_node decl_makeVar (nameKey_Name n)
   d->varF.isInitialised = FALSE;
   d->varF.isParameter = FALSE;
   d->varF.isVarParameter = FALSE;
+  initCname (&d->varF.cname);
   return addToScope (d);
 }
 
@@ -13257,6 +13324,7 @@ decl_node decl_makeProcedure (nameKey_Name n)
       d->procedureF.paramcount = 0;
       d->procedureF.returnType = NULL;
       d->procedureF.beginStatements = NULL;
+      initCname (&d->procedureF.cname);
     }
   return addProcedureToScope (d, n);
 }
@@ -13275,22 +13343,25 @@ decl_node decl_makeProcType (void)
   return d;
 }
 
-void decl_putProcTypeOptReturn (decl_node proc)
+void decl_putReturnType (decl_node proc, decl_node type)
 {
-  proc->proctypeF.returnopt = TRUE;
-}
-
-void decl_putReturnType (decl_node p, decl_node type)
-{
-  mcDebug_assert (p != NULL);
-  mcDebug_assert ((decl_isProcedure (p)) || (decl_isProcType (p)));
-  if (p->kind == procedure)
-    p->procedureF.returnType = type;
+  mcDebug_assert ((decl_isProcedure (proc)) || (decl_isProcType (proc)));
+  if (decl_isProcedure (proc))
+    proc->procedureF.returnType = type;
   else
-    p->proctypeF.returnType = type;
+    proc->proctypeF.returnType = type;
 }
 
-decl_node decl_makeVarParameter (decl_node l, decl_node type)
+void decl_putOptReturn (decl_node proc)
+{
+  mcDebug_assert ((decl_isProcedure (proc)) || (decl_isProcType (proc)));
+  if (decl_isProcedure (proc))
+    proc->procedureF.returnopt = TRUE;
+  else
+    proc->proctypeF.returnopt = TRUE;
+}
+
+decl_node decl_makeVarParameter (decl_node l, decl_node type, decl_node proc)
 {
   decl_node d;
 
@@ -13298,12 +13369,12 @@ decl_node decl_makeVarParameter (decl_node l, decl_node type)
   d = newNode ((nodeT) varparam);
   d->varparamF.namelist = l;
   d->varparamF.type = type;
-  d->varparamF.scope = NULL;
+  d->varparamF.scope = proc;
   d->varparamF.isUnbounded = FALSE;
   return d;
 }
 
-decl_node decl_makeNonVarParameter (decl_node l, decl_node type)
+decl_node decl_makeNonVarParameter (decl_node l, decl_node type, decl_node proc)
 {
   decl_node d;
 
@@ -13311,7 +13382,7 @@ decl_node decl_makeNonVarParameter (decl_node l, decl_node type)
   d = newNode ((nodeT) param);
   d->paramF.namelist = l;
   d->paramF.type = type;
-  d->paramF.scope = NULL;
+  d->paramF.scope = proc;
   d->paramF.isUnbounded = FALSE;
   return d;
 }
@@ -13336,6 +13407,7 @@ decl_node decl_makeIdentList (void)
 
   n = newNode ((nodeT) identlist);
   n->identlistF.names = wlists_initList ();
+  n->identlistF.cnamed = FALSE;
   return n;
 }
 
@@ -13362,7 +13434,7 @@ void decl_addVarParameters (decl_node n, decl_node i, decl_node type)
     checkParameters (n, i, type, TRUE);
   else
     {
-      p = decl_makeVarParameter (i, type);
+      p = decl_makeVarParameter (i, type, n);
       Indexing_IncludeIndiceIntoIndex (n->procedureF.parameters, (void *) p);
     }
 }
@@ -13378,7 +13450,7 @@ void decl_addNonVarParameters (decl_node n, decl_node i, decl_node type)
     checkParameters (n, i, type, FALSE);
   else
     {
-      p = decl_makeNonVarParameter (i, type);
+      p = decl_makeNonVarParameter (i, type, n);
       Indexing_IncludeIndiceIntoIndex (n->procedureF.parameters, (void *) p);
     }
 }
@@ -14272,6 +14344,7 @@ void decl_setLangC (void)
 void decl_setLangCP (void)
 {
   lang = ansiCP;
+  keyc_cp ();
 }
 
 void decl_setLangM2 (void)
@@ -14284,7 +14357,7 @@ void decl_out (void)
   mcPretty_pretty p;
 
   openOutput ();
-  p = mcPretty_initPretty ((mcPretty_writeProc) {(mcPretty_writeProc_t) write}, (mcPretty_writeLnProc) {(mcPretty_writeLnProc_t) writeln});
+  p = mcPretty_initPretty ((mcPretty_writeProc) {(mcPretty_writeProc_t) write_}, (mcPretty_writeLnProc) {(mcPretty_writeLnProc_t) writeln});
   switch (lang)
     {
       case ansiC:

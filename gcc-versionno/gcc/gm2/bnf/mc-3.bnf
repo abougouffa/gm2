@@ -63,8 +63,9 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
                  putTypeHidden,
 		 enterScope, leaveScope,
 		 putType, lookupSym, isDef, makeSubrange,
-                 makeSet, makePointer, makeProcType, putReturnType,
-		 putProcTypeOptReturn, addParameter, paramEnter, paramLeave,
+                 makeSet, makePointer, makeProcType,
+		 putReturnType, putOptReturn,
+		 addParameter, paramEnter, paramLeave,
 		 makeVarargs, makeVarParameter, makeNonVarParameter,
 		 putSubrangeType, putConst,
 		 makeArray, putUnbounded, getCardinal,
@@ -888,7 +889,7 @@ FormalTypeList := "(" ( ")" FormalReturn |
 FormalReturn := [ ":" OptReturnType ] =:
 
 OptReturnType := "[" PushQualident                                     % putReturnType (curproc, pop ()) %
-                                                                       % putProcTypeOptReturn (curproc) %
+                                                                       % putOptReturn (curproc) %
                                "]" | PushQualident                     % putReturnType (curproc, pop ()) %
 	       =:
 
@@ -898,8 +899,8 @@ ProcedureParameters := ProcedureParameter                              % addPara
 
 ProcedureParameter := "..."                                            % VAR n: node ; %
                                                                        % n := push (makeVarargs ()) %
-                            | "VAR" FormalType                         % n := push (makeVarParameter (NIL, pop ())) %
-			                       | FormalType            % n := push (makeNonVarParameter (NIL, pop ())) %
+                            | "VAR" FormalType                         % n := push (makeVarParameter (NIL, pop (), curproc)) %
+			                       | FormalType            % n := push (makeNonVarParameter (NIL, pop (), curproc)) %
 					                    =:
 
 

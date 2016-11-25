@@ -237,4 +237,24 @@ PROCEDURE leaveScope (n: node) ;
 PROCEDURE cname (n: Name; scopes: BOOLEAN) : String ;
 
 
+(*
+   cnamen - attempts to declare a symbol with name, n, in the
+            current scope.  If there is no conflict with the
+            target language then NIL is returned, otherwise
+            a mangled name is returned as a Name
+            If scopes is FALSE then only the keywords and
+            macros are detected for a clash (all scoping
+            is ignored).
+*)
+
+PROCEDURE cnamen (n: Name; scopes: BOOLEAN) : Name ;
+
+
+(*
+   cp - include C++ keywords and standard declarations to avoid.
+*)
+
+PROCEDURE cp ;
+
+
 END keyc.

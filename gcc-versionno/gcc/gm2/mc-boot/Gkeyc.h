@@ -53,6 +53,8 @@ EXTERN void keyc_genDefs (mcPretty_pretty p);
 EXTERN void keyc_enterScope (decl_node n);
 EXTERN void keyc_leaveScope (decl_node n);
 EXTERN DynamicStrings_String keyc_cname (nameKey_Name n, unsigned int scopes);
+EXTERN nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes);
+EXTERN void keyc_cp (void);
 
 #   undef EXTERN
 #endif

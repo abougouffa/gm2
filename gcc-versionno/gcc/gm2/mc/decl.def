@@ -715,17 +715,17 @@ PROCEDURE makeProcType () : node ;
 
 
 (*
-   putProcTypeOptReturn - sets, proc, to have an optional return type.
+   putReturnType - sets the return type of procedure or proctype, proc, to, type.
 *)
 
-PROCEDURE putProcTypeOptReturn (proc: node) ;
+PROCEDURE putReturnType (proc, type: node) ;
 
 
 (*
-   putReturnType - assigns, type, to the procedure or proctype, p.
+   putOptReturn - sets, proctype or procedure, proc, to have an optional return type.
 *)
 
-PROCEDURE putReturnType (p: node; type: node) ;
+PROCEDURE putOptReturn (proc: node) ;
 
 
 (*
@@ -733,7 +733,7 @@ PROCEDURE putReturnType (p: node; type: node) ;
                       Where the parameters are declared as l: type.
 *)
 
-PROCEDURE makeVarParameter (l: node; type: node) : node ;
+PROCEDURE makeVarParameter (l: node; type, proc: node) : node ;
 
 
 (*
@@ -741,7 +741,7 @@ PROCEDURE makeVarParameter (l: node; type: node) : node ;
                          Where the parameters are declared as l: type.
 *)
 
-PROCEDURE makeNonVarParameter (l: node; type: node) : node ;
+PROCEDURE makeNonVarParameter (l: node; type, proc: node) : node ;
 
 
 (*

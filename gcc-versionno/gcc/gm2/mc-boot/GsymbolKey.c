@@ -59,7 +59,7 @@ static void findNodeAndParentInTree (symbolKey_symbolTree t, nameKey_Name n, sym
 {
   (*father) = t;
   if (t == NULL)
-    Debug_Halt ((char *) "parameter t should never be NIL", 31, 195, (char *) "../../gcc-5.2.0/gcc/gm2/mc/symbolKey.mod", 40);
+    Debug_Halt ((char *) "parameter t should never be NIL", 31, 200, (char *) "../../gcc-5.2.0/gcc/gm2/mc/symbolKey.mod", 40);
   (*child) = t->left;
   if ((*child) != NULL)
     do {
@@ -120,11 +120,16 @@ void * symbolKey_getSymKey (symbolKey_symbolTree t, nameKey_Name name)
   symbolKey_symbolTree father;
   symbolKey_symbolTree child;
 
-  findNodeAndParentInTree (t, name, &child, &father);
-  if (child == NULL)
+  if (t == NULL)
     return symbolKey_NulKey;
   else
-    return child->key;
+    {
+      findNodeAndParentInTree (t, name, &child, &father);
+      if (child == NULL)
+        return symbolKey_NulKey;
+      else
+        return child->key;
+    }
 }
 
 void symbolKey_putSymKey (symbolKey_symbolTree t, nameKey_Name name, void * key)
@@ -157,7 +162,7 @@ void symbolKey_putSymKey (symbolKey_symbolTree t, nameKey_Name name, void * key)
       child->name = name;
     }
   else
-    Debug_Halt ((char *) "symbol already stored", 21, 111, (char *) "../../gcc-5.2.0/gcc/gm2/mc/symbolKey.mod", 40);
+    Debug_Halt ((char *) "symbol already stored", 21, 116, (char *) "../../gcc-5.2.0/gcc/gm2/mc/symbolKey.mod", 40);
 }
 
 void symbolKey_delSymKey (symbolKey_symbolTree t, nameKey_Name name)
@@ -197,7 +202,7 @@ void symbolKey_delSymKey (symbolKey_symbolTree t, nameKey_Name name)
         Storage_DEALLOCATE ((void **) &child, sizeof (_T1));
       }
   else
-    Debug_Halt ((char *) "trying to delete a symbol that is not in the tree - the compiler never expects this to occur", 92, 178, (char *) "../../gcc-5.2.0/gcc/gm2/mc/symbolKey.mod", 40);
+    Debug_Halt ((char *) "trying to delete a symbol that is not in the tree - the compiler never expects this to occur", 92, 183, (char *) "../../gcc-5.2.0/gcc/gm2/mc/symbolKey.mod", 40);
 }
 
 unsigned int symbolKey_isEmptyTree (symbolKey_symbolTree t)

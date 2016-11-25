@@ -40,6 +40,7 @@ EXTERN unsigned int wlists_getIndexOfList (wlists_wlist l, unsigned int c);
 EXTERN unsigned int wlists_noOfItemsInList (wlists_wlist l);
 EXTERN void wlists_includeItemIntoList (wlists_wlist l, unsigned int c);
 EXTERN void wlists_removeItemFromList (wlists_wlist l, unsigned int c);
+EXTERN void wlists_replaceItemInList (wlists_wlist l, unsigned int n, unsigned int w);
 EXTERN unsigned int wlists_isItemInList (wlists_wlist l, unsigned int c);
 EXTERN void wlists_foreachItemInListDo (wlists_wlist l, wlists_performOperation p);
 EXTERN wlists_wlist wlists_duplicateList (wlists_wlist l);

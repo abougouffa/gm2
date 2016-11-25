@@ -17,9 +17,29 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 
-#include <p2c/p2c.h>
+#define GM2
 
-#include <math.h>
+#include "gm2-libs-host.h"
+
+#if defined(HAVE_STDIO_H)
+#  include <stdio.h>
+#endif
+
+#if defined(HAVE_SYS_TIME_H)
+#  include <sys/time.h>
+#endif
+
+#if defined(HAVE_TIME_H)
+#  include <time.h>
+#endif
+
+#if defined(HAVE_SYS_STAT_H)
+#  include <sys/stat.h>
+#endif
+
+#if defined(HAVE_MATH_H)
+#  include <math.h>
+#endif
 
 
 /*

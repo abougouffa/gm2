@@ -40,6 +40,8 @@ VAR
    keywords,
    macros    : symbolTree ;
 
+   initializedCP,
+
    seenIntMin,
    seenUIntMin,
    seenLongMin,
@@ -639,6 +641,73 @@ END cname ;
 
 
 (*
+   cnamen - attempts to declare a symbol with name, n, in the
+            current scope.  If there is no conflict with the
+            target language then NIL is returned, otherwise
+            a mangled name is returned as a Name
+            If scopes is FALSE then only the keywords and
+            macros are detected for a clash (all scoping
+            is ignored).
+*)
+
+PROCEDURE cnamen (n: Name; scopes: BOOLEAN) : Name ;
+VAR
+   m: String ;
+BEGIN
+   m := NIL ;
+   IF clash (n, scopes)
+   THEN
+      IF mangle1 (n, m, scopes) OR mangle2 (n, m, scopes) OR mangleN (n, m, scopes)
+      THEN
+         n := makekey (string (m)) ;
+         IF scopes
+         THEN
+            (* no longer a clash with, m, so add it to the current scope.  *)
+            putSymKey (stack^.symbols, n, m)
+         END
+      ELSE
+         (* mangleN must always succeed.  *)
+         HALT
+      END
+   ELSIF scopes
+   THEN
+      (* no clash, add it to the current scope.  *)
+      putSymKey (stack^.symbols, n, InitStringCharStar (keyToCharStar (n)))
+   END ;
+   m := KillString (m) ;
+   RETURN n
+END cnamen ;
+
+
+(*
+   cp - include C++ keywords and standard declarations to avoid.
+*)
+
+PROCEDURE cp ;
+BEGIN
+   IF NOT initializedCP
+   THEN
+      initializedCP := TRUE ;
+      initCP
+   END
+END cp ;
+
+
+(*
+   initCP - add the extra keywords and standard definitions used by C++.
+*)
+
+PROCEDURE initCP ;
+BEGIN
+   add (macros, 'true') ;
+   add (macros, 'false') ;
+
+   add (keywords, 'new') ;
+   add (keywords, 'delete')
+END initCP ;
+
+
+(*
    add -
 *)
 
@@ -706,7 +775,7 @@ BEGIN
    add (keywords, 'unsigned') ;
    add (keywords, 'void') ;
    add (keywords, 'volatile') ;
-   add (keywords, 'while')
+   add (keywords, 'while') ;
 END initKeywords ;
 
 
@@ -742,6 +811,7 @@ BEGIN
    seenAbs := FALSE ;
    seenFabs := FALSE ;
    seenFabsl := FALSE ;
+   initializedCP := FALSE ;
 
    stack := NIL ;
    freeList := NIL ;

@@ -1041,17 +1041,17 @@ gm2/gm2-libs-boot/%.o: $(srcdir)/gm2/gm2-libs/%.mod
 gm2/gm2-libs-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def
 	$(MC) -o=$@ $(srcdir)/gm2/gm2-libs/$*.def
 
-gm2/gm2-libs-boot/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h
-	$(CC) -c -DIN_GCC $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+gm2/gm2-libs-boot/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h gm2/gm2-libs/gm2-libs-host.h
+	$(CC) -c -DIN_GCC $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
-gm2/gm2-libs-boot/UnixArgs.o: $(srcdir)/gm2/gm2-libs-ch/UnixArgs.c gm2/gm2-libs-boot/$(SRC_PREFIX)UnixArgs.h
-	$(CC) -c -DIN_GCC $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+gm2/gm2-libs-boot/UnixArgs.o: $(srcdir)/gm2/gm2-libs-ch/UnixArgs.c gm2/gm2-libs-boot/$(SRC_PREFIX)UnixArgs.h gm2/gm2-libs/gm2-libs-host.h
+	$(CC) -c -DIN_GCC $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
-gm2/gm2-libs-boot/choosetemp.o: gm2/gm2-libs-ch/choosetemp.c gm2/gm2-libiberty/Gchoosetemp.h
-	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
+gm2/gm2-libs-boot/choosetemp.o: gm2/gm2-libs-ch/choosetemp.c gm2/gm2-libiberty/Gchoosetemp.h gm2/gm2-libs/gm2-libs-host.h
+	$(CC) -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
 
-gm2/gm2-libs-boot/errno.o: $(srcdir)/gm2/gm2-libs-ch/errno.c gm2/gm2-libs-boot/$(SRC_PREFIX)errno.h
-	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+gm2/gm2-libs-boot/errno.o: $(srcdir)/gm2/gm2-libs-ch/errno.c gm2/gm2-libs-boot/$(SRC_PREFIX)errno.h gm2/gm2-libs/gm2-libs-host.h
+	$(CC) -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-boot/dtoa.o: $(srcdir)/gm2/gm2-libs-ch/dtoa.c gm2/gm2-libs/gm2-libs-host.h
 	$(CC) -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
@@ -1060,11 +1060,11 @@ gm2/gm2-libs-boot/ldtoa.o: $(srcdir)/gm2/gm2-libs-ch/ldtoa.c gm2/gm2-libs/gm2-li
 	$(CC) -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-boot/termios.o: $(srcdir)/gm2/gm2-libs-ch/termios.c gm2/gm2-libs-boot/$(SRC_PREFIX)termios.h
-	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(CC) -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-boot/SysExceptions.o: $(srcdir)/gm2/gm2-libs-ch/SysExceptions.c \
                                   gm2/gm2-libs-boot/$(SRC_PREFIX)SysExceptions.h
-	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(CC) -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-boot/SysStorage.o: $(srcdir)/gm2/gm2-libs/SysStorage.mod
 	$(MC) -o=gm2/gm2-libs-boot/SysStorage.c $(srcdir)/gm2/gm2-libs/SysStorage.mod
@@ -1456,7 +1456,7 @@ gm2/gm2-libs-coroutines/SO/%.o: gm2/gm2-libs-coroutines/%.mod
 gm2/gm2-libs-coroutines/SO_O2/%.o: gm2/gm2-libs-coroutines/%.mod
 	$(XGM2_1) $(SO_O2) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-libs-coroutines:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim:$(srcdir)/gm2/gm2-libs-iso $< -o $@
 
-gm2/gm2-libs-boot/libgm2.a: gm2/boot-bin/pc$(exeext) $(BUILD-LIBS-BOOT)
+gm2/gm2-libs-boot/libgm2.a: gm2/boot-bin/mc$(exeext) $(BUILD-LIBS-BOOT)
 	$(AR) cr $@ $(GM2-LIBS-BOOT-MODS:%.mod=gm2/gm2-libs-boot/%.o) \
                     $(GM2-LIBS-BOOT-C:%.c=gm2/gm2-libs-boot/%.o)
 	$(RANLIB) $@
@@ -1528,7 +1528,7 @@ mc-verify:  mc-bootstrap mc-clean mc-stage2
 mc-clean-libs: force
 	$(RM) gm2/gm2-libs-boot/*
 
-mc-test:  mc-clean mc-bootstrap mc-clean-libs $(BUILD-LIBS-BOOT)
+mc-test:  mc-clean mc-bootstrap mc-clean-libs $(BUILD-LIBS-BOOT) $(BUILD-COMPILER-BOOT)
 
 mc-help:  force
 	@echo "mc-maintainer   produces a new mc C version in the source tree (takes longer)"
