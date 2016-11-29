@@ -764,10 +764,13 @@ DynamicStrings_String DynamicStrings_KillString (DynamicStrings_String s)
   if (s != NULL)
     {
       if (CheckOn)
+      {
+        /* avoid gcc warning by using compound statement even if not strictly necessary.  */
         if (IsOnAllocated (s))
           SubAllocated (s);
         else if (IsOnDeallocated (s))
           SubDeallocated (s);
+      }
       if (s->head != NULL)
         {
           s->head->state = poisoned;

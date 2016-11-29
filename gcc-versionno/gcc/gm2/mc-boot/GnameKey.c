@@ -282,10 +282,13 @@ unsigned int nameKey_isKey (char *a_, unsigned int _a_high)
           else
             {
               if ((a[i] == ASCII_nul) || (i == higha))
+              {
+                /* avoid gcc warning by using compound statement even if not strictly necessary.  */
                 if ((*p) == ASCII_nul)
                   return TRUE;
                 else
                   child = child->left;
+              }
               p += 1;
             }
           i += 1;

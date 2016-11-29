@@ -8604,12 +8604,56 @@ BEGIN
          ELSIF isSingleStatement (n)
          THEN
             n := GetIndice (n^.stmtF.statements, 1) ;
-            RETURN (n # NIL) AND isIf (n) AND (n^.ifF.else = NIL) AND (n^.ifF.elsif = NIL)
+	    RETURN noIfElse (n)
          END
       END
    END ;
    RETURN FALSE
 END noElse ;
+
+
+(*
+   noIfElse -
+*)
+
+PROCEDURE noIfElse (n: node) : BOOLEAN ;
+BEGIN
+   RETURN (n # NIL) AND isIf (n) AND (n^.ifF.else = NIL) AND (n^.ifF.elsif = NIL)
+END noIfElse ;
+
+
+(*
+   hasIfElse -
+*)
+
+PROCEDURE hasIfElse (n: node) : BOOLEAN ;
+BEGIN
+   IF n # NIL
+   THEN
+      IF isStatementSequence (n)
+      THEN
+         IF isStatementSequenceEmpty (n)
+         THEN
+            RETURN FALSE
+         ELSIF isSingleStatement (n)
+         THEN
+            n := GetIndice (n^.stmtF.statements, 1) ;
+	    RETURN isIfElse (n)
+         END
+      END
+   END ;
+   RETURN FALSE
+END hasIfElse ;
+
+
+(*
+   isIfElse -
+*)
+
+PROCEDURE isIfElse (n: node) : BOOLEAN ;
+BEGIN
+   RETURN (n # NIL) AND isIf (n) AND ((n^.ifF.else # NIL) OR (n^.ifF.elsif # NIL))
+END isIfElse ;
 
 
 (*
@@ -8633,6 +8677,17 @@ BEGIN
       p := pushPretty (p) ;
       setindent (p, getindent (p) + indentationC) ;
       outText (p, "/* avoid dangling else.  */\n") ;
+      doStatementSequenceC (p, s^.ifF.then) ;
+      p := popPretty (p) ;
+      outText (p, "}\n")
+   ELSIF noIfElse (s) AND hasIfElse (s^.ifF.then)
+   THEN
+      (* gcc does not like legal non dangling else, as it is poor style.
+         So we will avoid getting a warning.  *)
+      outText (p, "{\n") ;
+      p := pushPretty (p) ;
+      setindent (p, getindent (p) + indentationC) ;
+      outText (p, "/* avoid gcc warning by using compound statement even if not strictly necessary.  */\n") ;
       doStatementSequenceC (p, s^.ifF.then) ;
       p := popPretty (p) ;
       outText (p, "}\n")

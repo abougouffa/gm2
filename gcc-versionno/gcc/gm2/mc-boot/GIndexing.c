@@ -123,6 +123,8 @@ void Indexing_PutIndice (Indexing_Index i, unsigned int n, void * a)
   unsigned int * * p;
 
   if (! (Indexing_InBounds (i, n)))
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if (n < i->Low)
       M2RTS_HALT (0);
     else
@@ -139,6 +141,7 @@ void Indexing_PutIndice (Indexing_Index i, unsigned int n, void * a)
           }
         i->High = n;
       }
+  }
   b = i->ArrayStart;
   b += (n-i->Low)*(sizeof (void *));
   p = b;
@@ -225,10 +228,13 @@ void Indexing_DeleteIndice (Indexing_Index i, unsigned int j)
 void Indexing_IncludeIndiceIntoIndex (Indexing_Index i, void * a)
 {
   if (! (Indexing_IsIndiceInIndex (i, a)))
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if (i->Used == 0)
       Indexing_PutIndice (i, Indexing_LowIndice (i), a);
     else
       Indexing_PutIndice (i, (Indexing_HighIndice (i))+1, a);
+  }
 }
 
 void Indexing_ForeachIndiceInIndexDo (Indexing_Index i, Indexing_IndexProcedure p)

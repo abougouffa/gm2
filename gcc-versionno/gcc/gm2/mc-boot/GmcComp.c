@@ -84,6 +84,8 @@ static void doCompile (DynamicStrings_String s)
   doPass (TRUE, TRUE, 3, (symbolKey_performOperation) {(symbolKey_performOperation_t) p3}, (char *) "[all modules] import lists, types, variables and procedure declarations", 71);
   doPass (TRUE, TRUE, 4, (symbolKey_performOperation) {(symbolKey_performOperation_t) p4}, (char *) "[all modules] constant expressions", 34);
   if (! (decl_isDef (n)))
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if (decl_isImp (n))
       {
         mcQuiet_qprintf0 ((char *) "Parse implementation module\\n", 29);
@@ -94,6 +96,7 @@ static void doCompile (DynamicStrings_String s)
         mcQuiet_qprintf0 ((char *) "Parse program module\\n", 22);
         doPass (FALSE, TRUE, 5, (symbolKey_performOperation) {(symbolKey_performOperation_t) p5}, (char *) "[program module] build code tree for all procedures and module initialisations", 78);
       }
+  }
   mcQuiet_qprintf0 ((char *) "walk tree converting it to C/C++\\n", 34);
   decl_out ();
 }

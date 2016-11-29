@@ -68,6 +68,8 @@ void Debug_DebugString (char *a_, unsigned int _a_high)
       {
         /* avoid dangling else.  */
         if ((n+1) <= high)
+        {
+          /* avoid gcc warning by using compound statement even if not strictly necessary.  */
           if (a[n+1] == 'n')
             {
               WriteLn ();
@@ -78,6 +80,7 @@ void Debug_DebugString (char *a_, unsigned int _a_high)
               StdIO_Write ('\\');
               n += 1;
             }
+        }
       }
       else
         StdIO_Write (a[n]);

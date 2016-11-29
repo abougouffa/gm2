@@ -1,3 +1,26 @@
+2016-11-29      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/mc-boot/GCmdArgs.c:  regenerated.
+	* gm2/mc-boot/GDebug.c:  regenerated.
+	* gm2/mc-boot/GDynamicStrings.c:  regenerated.
+	* gm2/mc-boot/GDynamicStrings.c:  regenerated.
+	* gm2/mc-boot/GFIO.c:  regenerated.
+	* gm2/mc-boot/GFormatStrings.c:  regenerated.
+	* gm2/mc-boot/GIndexing.c:  regenerated.
+	* gm2/mc-boot/GStringConvert.c:  regenerated.
+	* gm2/mc-boot/Gdecl.c:  regenerated.
+	* gm2/mc-boot/GmcComp.c:  regenerated.
+	* gm2/mc-boot/GmcOptions.c:  regenerated.
+	* gm2/mc-boot/Gmcp1.c:  regenerated.
+	* gm2/mc-boot/Gmcp2.c:  regenerated.
+	* gm2/mc-boot/Gmcp3.c:  regenerated.
+	* gm2/mc-boot/Gmcp4.c:  regenerated.
+	* gm2/mc-boot/Gmcp5.c:  regenerated.
+	* gm2/mc-boot/GnameKey.c:  regenerated.
+	* gm2/mc/decl.mod:  (noIfElse)  New procedure function.  (hasIfElse)
+          New procedure function.  (doIfC)  changed to issue braces to avoid
+	  a gcc warning.
+
 2016-11-24      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  updated rules to build handbuilt modules to use

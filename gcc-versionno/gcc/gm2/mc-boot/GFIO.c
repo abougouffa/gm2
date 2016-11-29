@@ -293,6 +293,8 @@ static int ReadFromBuffer (FIO_File f, void * a, unsigned int nBytes)
       fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
       if ((fd->buffer != NULL) && fd->buffer->valid)
         if (fd->buffer->left > 0)
+        {
+          /* avoid gcc warning by using compound statement even if not strictly necessary.  */
           if (nBytes == 1)
             {
               p = a;
@@ -315,6 +317,7 @@ static int ReadFromBuffer (FIO_File f, void * a, unsigned int nBytes)
               total += n;
               return total;
             }
+        }
       if (nBytes > 0)
         {
           result = libc_read (fd->unixfd, a, (int ) (nBytes));
@@ -431,6 +434,8 @@ static void HandleEscape (char *dest, unsigned int _dest_high, char *src_, unsig
   memcpy (src, src_, _src_high+1);
 
   if (((((*i)+1) < HighSrc) && (src[(*i)] == '\\')) && ((*j) < HighDest))
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if (src[(*i)+1] == 'n')
       {
         dest[(*j)] = ASCII_nl;
@@ -450,6 +455,7 @@ static void HandleEscape (char *dest, unsigned int _dest_high, char *src_, unsig
         (*j) += 1;
         (*i) += 1;
       }
+  }
 }
 
 static void Cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, unsigned int _b_high)
@@ -500,6 +506,8 @@ static void StringFormat1 (char *dest, unsigned int _dest_high, char *src_, unsi
         j += 1;
       }
   if ((((i+1) < HighSrc) && (src[i] == '%')) && (j < HighDest))
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if (src[i+1] == 's')
       {
         Cast ((unsigned char *) &p, (sizeof (p)-1), (unsigned char *) w, _w_high);
@@ -529,6 +537,7 @@ static void StringFormat1 (char *dest, unsigned int _dest_high, char *src_, unsi
         i += 1;
         j += 1;
       }
+  }
   while (((i < HighSrc) && (src[i] != ASCII_nul)) && (j < HighDest))
     if (src[i] == '\\')
       HandleEscape ((char *) dest, _dest_high, (char *) src, _src_high, &i, &j, HighSrc, HighDest);
@@ -1137,6 +1146,8 @@ void FIO_ReadString (FIO_File f, char *a, unsigned int _a_high)
   do {
     ch = FIO_ReadChar (f);
     if (i <= high)
+    {
+      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
       if (((ch == ASCII_nl) || (! (FIO_IsNoError (f)))) || (FIO_EOF (f)))
         {
           a[i] = ASCII_nul;
@@ -1147,6 +1158,7 @@ void FIO_ReadString (FIO_File f, char *a, unsigned int _a_high)
           a[i] = ch;
           i += 1;
         }
+    }
   } while (! ((((ch == ASCII_nl) || (i > high)) || (! (FIO_IsNoError (f)))) || (FIO_EOF (f))));
 }
 

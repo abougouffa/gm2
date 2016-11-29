@@ -1494,12 +1494,15 @@ static void ConstSetOrQualidentOrFunction (SetOfStop0 stopset0, SetOfStop1 stops
     {
       Qualident (stopset0|(SetOfStop0) ((1 << (mcReserved_lcbratok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
       if ((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))))) != 0)))
+      {
+        /* avoid gcc warning by using compound statement even if not strictly necessary.  */
         if (mcLexBuf_currenttoken == mcReserved_lcbratok)
           Constructor (stopset0, stopset1, stopset2);
         else if (mcLexBuf_currenttoken == mcReserved_lparatok)
           ConstActualParameters (stopset0, stopset1, stopset2);
         else
           ErrorArray ((char *) "expecting one of: ( {", 21);
+      }
     }
   else if (mcLexBuf_currenttoken == mcReserved_lcbratok)
     Constructor (stopset0, stopset1, stopset2);
@@ -2026,12 +2029,15 @@ static void SilentConstSetOrQualidentOrFunction (SetOfStop0 stopset0, SetOfStop1
     {
       Qualident (stopset0|(SetOfStop0) ((1 << (mcReserved_lcbratok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
       if ((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))))) != 0)))
+      {
+        /* avoid gcc warning by using compound statement even if not strictly necessary.  */
         if (mcLexBuf_currenttoken == mcReserved_lcbratok)
           SilentConstructor (stopset0, stopset1, stopset2);
         else if (mcLexBuf_currenttoken == mcReserved_lparatok)
           SilentActualParameters (stopset0, stopset1, stopset2);
         else
           ErrorArray ((char *) "expecting one of: ( {", 21);
+      }
     }
   else
     ErrorArray ((char *) "expecting one of: identifier {", 30);
@@ -2343,6 +2349,8 @@ static void SetOrDesignatorOrFunction (SetOfStop0 stopset0, SetOfStop1 stopset1,
     {
       Qualident (stopset0|(SetOfStop0) ((1 << (mcReserved_lcbratok-mcReserved_eoftok)) | (1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
       if ((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))))) != 0)))
+      {
+        /* avoid gcc warning by using compound statement even if not strictly necessary.  */
         if (mcLexBuf_currenttoken == mcReserved_lcbratok)
           Constructor (stopset0, stopset1, stopset2);
         else if ((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_periodtok-mcReserved_eoftok))))) != 0)))
@@ -2353,6 +2361,7 @@ static void SetOrDesignatorOrFunction (SetOfStop0 stopset0, SetOfStop1 stopset1,
           }
         else
           ErrorArray ((char *) "expecting one of: ( ^ [ . {", 27);
+      }
     }
   else if (mcLexBuf_currenttoken == mcReserved_lcbratok)
     Constructor (stopset0, stopset1, stopset2);
@@ -2389,6 +2398,8 @@ static void ReturnStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop
 static void Statement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if ((((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_exittok-mcReserved_arraytok)) | (1 << (mcReserved_fortok-mcReserved_arraytok)) | (1 << (mcReserved_looptok-mcReserved_arraytok)) | (1 << (mcReserved_casetok-mcReserved_arraytok)) | (1 << (mcReserved_iftok-mcReserved_arraytok))))) != 0))) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_retrytok-mcReserved_recordtok)) | (1 << (mcReserved_returntok-mcReserved_recordtok)) | (1 << (mcReserved_asmtok-mcReserved_recordtok)) | (1 << (mcReserved_withtok-mcReserved_recordtok)) | (1 << (mcReserved_repeattok-mcReserved_recordtok)) | (1 << (mcReserved_whiletok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))))) != 0))))
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if (mcLexBuf_currenttoken == mcReserved_identtok)
       AssignmentOrProcedureCall (stopset0, stopset1, stopset2);
     else if (mcLexBuf_currenttoken == mcReserved_iftok)
@@ -2415,6 +2426,7 @@ static void Statement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
       RetryStatement (stopset0, stopset1, stopset2);
     else
       ErrorArray ((char *) "expecting one of: RETRY RETURN EXIT ASM WITH FOR LOOP REPEAT WHILE CASE IF identifier", 85);
+  }
 }
 
 static void RetryStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
@@ -2591,6 +2603,8 @@ static void ProcedureIdent (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
 static void DefineBuiltinProcedure (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_inlinetok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok))))) != 0)))
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if (mcLexBuf_currenttoken == mcReserved_attributetok)
       {
         Expect ((mcReserved_toktype) mcReserved_attributetok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_builtintok-mcReserved_recordtok))));
@@ -2605,6 +2619,7 @@ static void DefineBuiltinProcedure (SetOfStop0 stopset0, SetOfStop1 stopset1, Se
       Expect ((mcReserved_toktype) mcReserved_inlinetok, stopset0, stopset1, stopset2);
     else
       ErrorArray ((char *) "expecting one of: __INLINE__ __ATTRIBUTE__", 42);
+  }
 }
 
 static void ProcedureHeading (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
@@ -2620,12 +2635,15 @@ static void ProcedureHeading (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
 static void Builtin (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_inlinetok-mcReserved_recordtok)) | (1 << (mcReserved_builtintok-mcReserved_recordtok))))) != 0)))
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if (mcLexBuf_currenttoken == mcReserved_builtintok)
       Expect ((mcReserved_toktype) mcReserved_builtintok, stopset0, stopset1, stopset2);
     else if (mcLexBuf_currenttoken == mcReserved_inlinetok)
       Expect ((mcReserved_toktype) mcReserved_inlinetok, stopset0, stopset1, stopset2);
     else
       ErrorArray ((char *) "expecting one of: __INLINE__ __BUILTIN__", 40);
+  }
 }
 
 static void DefProcedureHeading (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
@@ -3016,10 +3034,13 @@ static void DefQualident (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 s
 static void DefOptSubrange (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_lsbratok)
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if (mcLexBuf_currenttoken == mcReserved_lsbratok)
       SubrangeType (stopset0, stopset1, stopset2);
     else
       decl_putType (typeDes, typeExp);
+  }
 }
 
 static void DefTypeEquiv (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)

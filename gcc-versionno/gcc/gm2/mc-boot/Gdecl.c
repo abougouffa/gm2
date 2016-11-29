@@ -1753,6 +1753,9 @@ static unsigned int containsStatement (decl_node s);
 static void doCompoundStmt (mcPretty_pretty p, decl_node s);
 static void doElsifC (mcPretty_pretty p, decl_node s);
 static unsigned int noElse (decl_node n);
+static unsigned int noIfElse (decl_node n);
+static unsigned int hasIfElse (decl_node n);
+static unsigned int isIfElse (decl_node n);
 static void doIfC (mcPretty_pretty p, decl_node s);
 static void doForIncCP (mcPretty_pretty p, decl_node s);
 static void doForIncC (mcPretty_pretty p, decl_node s);
@@ -2131,6 +2134,8 @@ static decl_node addTo (scopeT *decls, decl_node d)
 
   n = decl_getSymName (d);
   if (n != nameKey_NulName)
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if ((symbolKey_getSymKey ((*decls).symbols, n)) == NULL)
       symbolKey_putSymKey ((*decls).symbols, n, (void *) d);
     else
@@ -2138,6 +2143,7 @@ static decl_node addTo (scopeT *decls, decl_node d)
         mcMetaError_metaError1 ((char *) "{%1DMad} was declared", 21, (unsigned char *) &d, (sizeof (d)-1));
         mcMetaError_metaError1 ((char *) "{%1k} and is being declared again", 33, (unsigned char *) &n, (sizeof (n)-1));
       }
+  }
   if (decl_isConst (d))
     Indexing_IncludeIndiceIntoIndex ((*decls).constants, (void *) d);
   else if (decl_isVar (d))
@@ -2450,6 +2456,8 @@ static decl_node putFieldRecord (decl_node r, nameKey_Name tag, decl_node type, 
       case record:
         Indexing_IncludeIndiceIntoIndex (r->recordF.listOfSons, (void *) n);
         if (tag != nameKey_NulName)
+        {
+          /* avoid gcc warning by using compound statement even if not strictly necessary.  */
           if ((symbolKey_getSymKey (r->recordF.localSymbols, tag)) == nameKey_NulName)
             symbolKey_putSymKey (r->recordF.localSymbols, tag, (void *) n);
           else
@@ -2457,6 +2465,7 @@ static decl_node putFieldRecord (decl_node r, nameKey_Name tag, decl_node type, 
               f = symbolKey_getSymKey (r->recordF.localSymbols, tag);
               mcMetaError_metaErrors1 ((char *) "field record {%1Dad} has already been declared", 46, (char *) "field record duplicate", 22, (unsigned char *) &f, (sizeof (f)-1));
             }
+        }
         break;
 
       case varientfield:
@@ -6025,6 +6034,8 @@ static void doVarientC (mcPretty_pretty p, decl_node n)
 
   mcDebug_assert (decl_isVarient (n));
   if (n->varientF.tag != NULL)
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if (decl_isRecordField (n->varientF.tag))
       {
         doRecordFieldC (p, n->varientF.tag);
@@ -6034,6 +6045,7 @@ static void doVarientC (mcPretty_pretty p, decl_node n)
       M2RTS_HALT (0);
     else
       M2RTS_HALT (0);
+  }
   outText (p, (char *) "union", 5);
   mcPretty_setNeedSpace (p);
   p = outKc (p, (char *) "{\\n", 3);
@@ -6414,6 +6426,8 @@ static void addTodo (decl_node n)
 static void addVariablesTodo (decl_node n)
 {
   if (decl_isVar (n))
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if (n->varF.isParameter || n->varF.isVarParameter)
       {
         addDone (n);
@@ -6421,6 +6435,7 @@ static void addVariablesTodo (decl_node n)
       }
     else
       addTodo (n);
+  }
 }
 
 static void addTypesTodo (decl_node n)
@@ -6880,14 +6895,44 @@ static unsigned int noElse (decl_node n)
 {
   if (n != NULL)
     if (decl_isStatementSequence (n))
+    {
+      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
       if (isStatementSequenceEmpty (n))
         return FALSE;
       else if (isSingleStatement (n))
         {
           n = Indexing_GetIndice (n->stmtF.statements, 1);
-          return (((n != NULL) && (decl_isIf (n))) && (n->ifF.else_ == NULL)) && (n->ifF.elsif == NULL);
+          return noIfElse (n);
         }
+    }
   return FALSE;
+}
+
+static unsigned int noIfElse (decl_node n)
+{
+  return (((n != NULL) && (decl_isIf (n))) && (n->ifF.else_ == NULL)) && (n->ifF.elsif == NULL);
+}
+
+static unsigned int hasIfElse (decl_node n)
+{
+  if (n != NULL)
+    if (decl_isStatementSequence (n))
+    {
+      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      if (isStatementSequenceEmpty (n))
+        return FALSE;
+      else if (isSingleStatement (n))
+        {
+          n = Indexing_GetIndice (n->stmtF.statements, 1);
+          return isIfElse (n);
+        }
+    }
+  return FALSE;
+}
+
+static unsigned int isIfElse (decl_node n)
+{
+  return ((n != NULL) && (decl_isIf (n))) && ((n->ifF.else_ != NULL) || (n->ifF.elsif != NULL));
 }
 
 static void doIfC (mcPretty_pretty p, decl_node s)
@@ -6904,6 +6949,16 @@ static void doIfC (mcPretty_pretty p, decl_node s)
       p = mcPretty_pushPretty (p);
       mcPretty_setindent (p, (mcPretty_getindent (p))+indentationC);
       outText (p, (char *) "/* avoid dangling else.  */\\n", 29);
+      doStatementSequenceC (p, s->ifF.then);
+      p = mcPretty_popPretty (p);
+      outText (p, (char *) "}\\n", 3);
+    }
+  else if ((noIfElse (s)) && (hasIfElse (s->ifF.then)))
+    {
+      outText (p, (char *) "{\\n", 3);
+      p = mcPretty_pushPretty (p);
+      mcPretty_setindent (p, (mcPretty_getindent (p))+indentationC);
+      outText (p, (char *) "/* avoid gcc warning by using compound statement even if not strictly necessary.  */\\n", 86);
       doStatementSequenceC (p, s->ifF.then);
       p = mcPretty_popPretty (p);
       outText (p, (char *) "}\\n", 3);
@@ -7189,6 +7244,8 @@ static unsigned int checkSystemCast (mcPretty_pretty p, decl_node actual, decl_n
   at = getExprType (actual);
   ft = decl_getType (formal);
   if (needsCast (at, ft))
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if (lang == ansiCP)
     {
       /* avoid dangling else.  */
@@ -7205,6 +7262,7 @@ static unsigned int checkSystemCast (mcPretty_pretty p, decl_node actual, decl_n
         outText (p, (char *) ")", 1);
         mcPretty_setNeedSpace (p);
       }
+  }
   return 0;
 }
 
@@ -7489,6 +7547,8 @@ static void doInclC (mcPretty_pretty p, decl_node n)
 
   mcDebug_assert (isFuncCall (n));
   if (n->funccallF.args != NULL)
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if ((expListLen (n->funccallF.args)) == 2)
       {
         doExprC (p, getExpList (n->funccallF.args, 1));
@@ -7508,6 +7568,7 @@ static void doInclC (mcPretty_pretty p, decl_node n)
       }
     else
       M2RTS_HALT (0);
+  }
 }
 
 static void doExclC (mcPretty_pretty p, decl_node n)
@@ -7516,6 +7577,8 @@ static void doExclC (mcPretty_pretty p, decl_node n)
 
   mcDebug_assert (isFuncCall (n));
   if (n->funccallF.args != NULL)
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if ((expListLen (n->funccallF.args)) == 2)
       {
         doExprC (p, getExpList (n->funccallF.args, 1));
@@ -7535,6 +7598,7 @@ static void doExclC (mcPretty_pretty p, decl_node n)
       }
     else
       M2RTS_HALT (0);
+  }
 }
 
 static void doNewC (mcPretty_pretty p, decl_node n)
@@ -8422,6 +8486,8 @@ static void dbs (dependentState s, decl_node n)
 static void dbq (decl_node n)
 {
   if (mcOptions_getDebugTopological ())
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if (alists_isItemInList (todoQ, (void *) n))
       {
         db ((char *) "{T", 2, n);
@@ -8437,6 +8503,7 @@ static void dbq (decl_node n)
         db ((char *) "{D", 2, n);
         outText (doP, (char *) "}", 1);
       }
+  }
 }
 
 static dependentState walkRecord (alists_alist l, decl_node n)
@@ -10618,12 +10685,15 @@ static void doVarientM2 (mcPretty_pretty p, decl_node n)
   outText (p, (char *) "CASE", 4);
   mcPretty_setNeedSpace (p);
   if (n->varientF.tag != NULL)
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if (decl_isRecordField (n->varientF.tag))
       doRecordFieldM2 (p, n->varientF.tag);
     else if (decl_isVarientField (n->varientF.tag))
       doVarientFieldM2 (p, n->varientF.tag);
     else
       M2RTS_HALT (0);
+  }
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "OF\\n", 4);
   i = Indexing_LowIndice (n->varientF.listOfSons);
@@ -12791,6 +12861,8 @@ void decl_buildVarientSelector (decl_node r, decl_node v, nameKey_Name tag, decl
 
   mcDebug_assert ((decl_isRecord (r)) || (decl_isVarientField (r)));
   if ((decl_isRecord (r)) || (decl_isVarientField (r)))
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if ((type == NULL) && (tag == nameKey_NulName))
       mcMetaError_metaError1 ((char *) "expecting a tag field in the declaration of a varient record {%1Ua}", 67, (unsigned char *) &r, (sizeof (r)-1));
     else if (type == NULL)
@@ -12805,6 +12877,7 @@ void decl_buildVarientSelector (decl_node r, decl_node v, nameKey_Name tag, decl
         f->recordfieldF.tag = TRUE;
         putVarientTag (v, f);
       }
+  }
 }
 
 decl_node decl_buildVarientFieldRecord (decl_node v, decl_node p)

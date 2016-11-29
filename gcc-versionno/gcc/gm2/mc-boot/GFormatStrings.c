@@ -167,10 +167,13 @@ static DynamicStrings_String FormatString (DynamicStrings_String s, unsigned cha
               p = DynamicStrings_Dup (p);
             }
           if ((width > 0) && (((int ) (DynamicStrings_Length (p))) < width))
+          {
+            /* avoid gcc warning by using compound statement even if not strictly necessary.  */
             if (left)
               p = DynamicStrings_ConCat (p, DynamicStrings_Mark (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) " ", 1)), (unsigned int ) width-((int ) (DynamicStrings_Length (p))))));
             else
               p = DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) " ", 1)), (unsigned int ) width-((int ) (DynamicStrings_Length (p)))), DynamicStrings_Mark (p));
+          }
           s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), DynamicStrings_Mark (p)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
         }
       else if (ch == 'd')

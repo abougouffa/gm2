@@ -46,6 +46,8 @@ static unsigned int GetNextArg (char *CmdLine_, unsigned int _CmdLine_high, unsi
   while (((*CmdIndex) < HighC) && (Space (CmdLine[(*CmdIndex)])))
     (*CmdIndex) += 1;
   if ((*CmdIndex) < HighC)
+  {
+    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if (SingleQuote (CmdLine[(*CmdIndex)]))
       {
         (*CmdIndex) += 1;
@@ -60,6 +62,7 @@ static unsigned int GetNextArg (char *CmdLine_, unsigned int _CmdLine_high, unsi
       }
     else
       CopyUntilSpace ((char *) CmdLine, _CmdLine_high, CmdIndex, HighC, (char *) Arg, _Arg_high, &ArgIndex, HighA);
+  }
   while (((*CmdIndex) < HighC) && (Space (CmdLine[(*CmdIndex)])))
     (*CmdIndex) += 1;
   if (ArgIndex < HighA)
