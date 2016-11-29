@@ -19,7 +19,9 @@
 	* gm2/mc-boot/GnameKey.c:  regenerated.
 	* gm2/mc/decl.mod:  (noIfElse)  New procedure function.  (hasIfElse)
           New procedure function.  (doIfC)  changed to issue braces to avoid
-	  a gcc warning.
+          a gcc warning.
+	* gm2/mc-boot-ch:  New directory and files containing handbuilt
+	  C and header files.
 
 2016-11-24      Gaius Mulley <gaius@gnu.org>
 
