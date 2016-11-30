@@ -995,14 +995,14 @@ void FIO_WriteAny (FIO_File f, unsigned char *a, unsigned int _a_high)
 {
   CheckAccess (f, (FileUsage) openedforwrite, TRUE);
   if ((BufferedWrite (f, _a_high, a)) == (_a_high))
-    ;  /* empty.  */
+    {}  /* empty.  */
 }
 
 void FIO_WriteChar (FIO_File f, char ch)
 {
   CheckAccess (f, (FileUsage) openedforwrite, TRUE);
   if ((BufferedWrite (f, (unsigned int ) sizeof (ch), &ch)) == (sizeof (ch)))
-    ;  /* empty.  */
+    {}  /* empty.  */
 }
 
 unsigned int FIO_EOF (FIO_File f)
@@ -1131,7 +1131,7 @@ void FIO_WriteString (FIO_File f, char *a_, unsigned int _a_high)
 
   l = StrLib_StrLen ((char *) a, _a_high);
   if ((FIO_WriteNBytes (f, l, &a)) != l)
-    ;  /* empty.  */
+    {}  /* empty.  */
 }
 
 void FIO_ReadString (FIO_File f, char *a, unsigned int _a_high)

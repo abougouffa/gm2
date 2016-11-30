@@ -2320,7 +2320,7 @@ static void makeVariablesFromParameters (decl_node proc, decl_node id, decl_node
           libc_printf ((char *) " variable name is: ", 19);
           s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (m));
           if ((DynamicStrings_KillString (SFIO_WriteS (FIO_StdOut, s))) == NULL)
-            ;  /* empty.  */
+            {}  /* empty.  */
           libc_printf ((char *) "\\n", 2);
         }
       i += 1;
@@ -3553,7 +3553,7 @@ static void doIncludeC (decl_node n)
       symbolKey_foreachNodeDo (n->defF.decls.symbols, (symbolKey_performOperation) {(symbolKey_performOperation_t) addDoneDef});
     }
   else if (mcOptions_getExtendedOpaque ())
-    ;  /* empty.  */
+    {}  /* empty.  */
   else if (decl_isDef (n))
     {
       mcPretty_print (doP, (char *) "#   include \"", 13);
@@ -4894,7 +4894,7 @@ static DynamicStrings_String doEscapeC (DynamicStrings_String s, char ch)
         else
           {
             if ((i > 0) && ((DynamicStrings_char (s, i-1)) == '\\'))
-              ;  /* empty.  */
+              {}  /* empty.  */
             else
               {
                 r = DynamicStrings_ConCatChar (r, '\\');
@@ -6560,7 +6560,7 @@ static void simplifyVarientField (alists_alist l, decl_node n)
 static void doSimplifyNode (alists_alist l, decl_node n)
 {
   if (n == NULL)
-    ;  /* empty.  */
+    {}  /* empty.  */
   else if (decl_isType (n))
     simplifyNode (l, decl_getType (n));
   else if (decl_isVar (n))
@@ -6663,7 +6663,7 @@ static void addExported (decl_node n)
 static void addExternal (decl_node n)
 {
   if (((((decl_getScope (n)) == defModule) && (decl_isType (n))) && (decl_isTypeHidden (n))) && (! (mcOptions_getExtendedOpaque ())))
-    ;  /* empty.  */
+    {}  /* empty.  */
   else
     addTodo (n);
 }
@@ -6848,7 +6848,7 @@ static void doCompoundStmt (mcPretty_pretty p, decl_node s)
     {
       p = mcPretty_pushPretty (p);
       mcPretty_setindent (p, (mcPretty_getindent (p))+indentationC);
-      outText (p, (char *) ";  /* empty.  */\\n", 18);
+      outText (p, (char *) "{}  /* empty.  */\\n", 19);
       p = mcPretty_popPretty (p);
     }
   else if ((decl_isStatementSequence (s)) && (isSingleStatement (s)))
@@ -7247,18 +7247,36 @@ static unsigned int checkSystemCast (mcPretty_pretty p, decl_node actual, decl_n
   {
     /* avoid gcc warning by using compound statement even if not strictly necessary.  */
     if (lang == ansiCP)
-    {
-      /* avoid dangling else.  */
-      if ((isString (actual)) && ((decl_skipType (ft)) == addressN))
-        {
-          outText (p, (char *) "const_cast<void*> (reinterpret_cast<const void*> (", 50);
-          return 2;
-        }
-    }
+      {
+        if ((isString (actual)) && ((decl_skipType (ft)) == addressN))
+          {
+            outText (p, (char *) "const_cast<void*> (reinterpret_cast<const void*> (", 50);
+            return 2;
+          }
+        else if ((decl_isPointer (decl_skipType (ft))) || ((decl_skipType (ft)) == addressN))
+          {
+            outText (p, (char *) "reinterpret_cast<", 17);
+            doTypeNameC (p, ft);
+            if (decl_isVarParam (formal))
+              outText (p, (char *) "*", 1);
+            outText (p, (char *) "> (", 3);
+          }
+        else
+          {
+            outText (p, (char *) "static_cast<", 12);
+            doTypeNameC (p, ft);
+            if (decl_isVarParam (formal))
+              outText (p, (char *) "*", 1);
+            outText (p, (char *) "> (", 3);
+          }
+        return 1;
+      }
     else
       {
         outText (p, (char *) "(", 1);
         doTypeNameC (p, ft);
+        if (decl_isVarParam (formal))
+          outText (p, (char *) "*", 1);
         outText (p, (char *) ")", 1);
         mcPretty_setNeedSpace (p);
       }
@@ -8281,7 +8299,7 @@ static void doExitC (mcPretty_pretty p, decl_node s)
 static void doStatementsC (mcPretty_pretty p, decl_node s)
 {
   if (s == NULL)
-    ;  /* empty.  */
+    {}  /* empty.  */
   else if (decl_isStatementSequence (s))
     doStatementSequenceC (p, s);
   else if (isComment (s))
@@ -8525,7 +8543,7 @@ static dependentState walkRecord (alists_alist l, decl_node n)
       q = Indexing_GetIndice (n->recordF.listOfSons, i);
       db ((char *) "", 0, q);
       if ((decl_isRecordField (q)) && q->recordfieldF.tag)
-        ;  /* empty.  */
+        {}  /* empty.  */
       else
         {
           s = walkDependants (l, q);
@@ -8786,7 +8804,7 @@ static dependentState walkProcType (alists_alist l, decl_node n)
 
   t = decl_getType (n);
   if (alists_isItemInList (partialQ, (void *) t))
-    ;  /* empty.  */
+    {}  /* empty.  */
   else
     {
       s = walkDependants (l, t);
@@ -11279,7 +11297,7 @@ static void dbgArray (alists_alist l, decl_node n)
 static void doDbg (alists_alist l, decl_node n)
 {
   if (n == NULL)
-    ;  /* empty.  */
+    {}  /* empty.  */
   else if (decl_isSubrange (n))
     dbgSubrange (l, n);
   else if (decl_isType (n))

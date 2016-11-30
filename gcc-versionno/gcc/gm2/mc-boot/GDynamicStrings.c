@@ -369,11 +369,11 @@ static DynamicStrings_String AssignDebug (DynamicStrings_String s, char *file_, 
   p = &proc;
   Storage_ALLOCATE (&s->debug.file, (StrLib_StrLen ((char *) file, _file_high))+1);
   if ((libc_strncpy (s->debug.file, f, (StrLib_StrLen ((char *) file, _file_high))+1)) == NULL)
-    ;  /* empty.  */
+    {}  /* empty.  */
   s->debug.line = line;
   Storage_ALLOCATE (&s->debug.proc, (StrLib_StrLen ((char *) proc, _proc_high))+1);
   if ((libc_strncpy (s->debug.proc, p, (StrLib_StrLen ((char *) proc, _proc_high))+1)) == NULL)
-    ;  /* empty.  */
+    {}  /* empty.  */
   return s;
 }
 
@@ -1408,7 +1408,7 @@ void DynamicStrings_PushAllocation (void)
 void DynamicStrings_PopAllocation (unsigned int halt)
 {
   if ((DynamicStrings_PopAllocationExemption (halt, (DynamicStrings_String) NULL)) == NULL)
-    ;  /* empty.  */
+    {}  /* empty.  */
 }
 
 DynamicStrings_String DynamicStrings_PopAllocationExemption (unsigned int halt, DynamicStrings_String e)

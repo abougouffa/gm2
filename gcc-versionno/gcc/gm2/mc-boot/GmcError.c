@@ -379,7 +379,7 @@ static unsigned int flushAll (mcError_error e, unsigned int FatalStatus)
             e->s = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) " warning: ", 10), DynamicStrings_Mark (e->s));
           outString (mcLexBuf_findFileNameFromToken (e->token, 0), mcLexBuf_tokenToLineNo (e->token, 0), mcLexBuf_tokenToColumnNo (e->token, 0), e->s);
           if ((e->child != NULL) && (flushAll (e->child, FatalStatus)))
-            ;  /* empty.  */
+            {}  /* empty.  */
           e->s = NULL;
           written = TRUE;
         }
@@ -696,7 +696,7 @@ void mcError_flushErrors (void)
 void mcError_flushWarnings (void)
 {
   if (flushAll (head, FALSE))
-    ;  /* empty.  */
+    {}  /* empty.  */
 }
 
 void mcError_errorAbort0 (char *a_, unsigned int _a_high)
@@ -713,7 +713,7 @@ void mcError_errorAbort0 (char *a_, unsigned int _a_high)
     {
       mcError_writeFormat0 ((char *) "unidentified error", 18);
       if (flushAll (head, TRUE))
-        ;  /* empty.  */
+        {}  /* empty.  */
     }
   M2RTS_ExitOnHalt (1);
   M2RTS_HALT (0);

@@ -87,7 +87,7 @@ static void doWrite (int fd, FIO_File f, char ch)
 static void setFlag (termios_TERMIOS t, termios_Flag f, unsigned int b)
 {
   if (termios_SetFlag (t, f, b))
-    ;  /* empty.  */
+    {}  /* empty.  */
 }
 
 static void doraw (termios_TERMIOS term)

@@ -586,7 +586,7 @@ static void addTokToList (mcReserved_toktype t, nameKey_Name n, int i, unsigned 
     {
       Storage_ALLOCATE ((void **) &listOfTokens.head, sizeof (_T2));
       if (listOfTokens.head == NULL)
-        ;  /* empty.  */
+        {}  /* empty.  */
       listOfTokens.tail = listOfTokens.head;
       listOfTokens.tail->len = 0;
     }
@@ -595,7 +595,7 @@ static void addTokToList (mcReserved_toktype t, nameKey_Name n, int i, unsigned 
       mcDebug_assert (listOfTokens.tail->next == NULL);
       Storage_ALLOCATE ((void **) &listOfTokens.tail->next, sizeof (_T2));
       if (listOfTokens.tail->next == NULL)
-        ;  /* empty.  */
+        {}  /* empty.  */
       else
         {
           listOfTokens.tail = listOfTokens.tail->next;
@@ -923,7 +923,7 @@ void mcLexBuf_popFile (void * filename)
       subFrom (l);
       Storage_DEALLOCATE ((void **) &l, sizeof (_T1));
       if ((currentSource->left != currentSource) && (! (DynamicStrings_Equal (currentSource->name, DynamicStrings_Mark (DynamicStrings_InitStringCharStar (filename))))))
-        ;  /* empty.  */
+        {}  /* empty.  */
     }
 }
 

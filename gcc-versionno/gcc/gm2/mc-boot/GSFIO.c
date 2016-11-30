@@ -60,7 +60,7 @@ DynamicStrings_String SFIO_ReadS (FIO_File file)
     s = DynamicStrings_ConCatChar (s, FIO_ReadChar (file));
   if (FIO_EOLN (file))
     if ((FIO_ReadChar (file)) == ASCII_nul)
-      ;  /* empty.  */
+      {}  /* empty.  */
   return s;
 }
 

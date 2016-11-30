@@ -55,7 +55,7 @@ static DynamicStrings_String removeLater (DynamicStrings_String filename)
 static void removeNow (DynamicStrings_String s)
 {
   if ((libc_unlink (DynamicStrings_string (s))) != 0)
-    ;  /* empty.  */
+    {}  /* empty.  */
 }
 
 static void removeFiles (void)

@@ -42,7 +42,7 @@ static void removeFile (void * a)
 
   s = a;
   if ((libc_unlink (DynamicStrings_string (s))) != 0)
-    ;  /* empty.  */
+    {}  /* empty.  */
 }
 
 static void removeFiles (void)

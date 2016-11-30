@@ -167,7 +167,7 @@ void mcPrintf_fprintf0 (FIO_File file, char *a_, unsigned int _a_high)
   memcpy (a, a_, _a_high+1);
 
   if ((DynamicStrings_KillString (SFIO_WriteS (file, FormatStrings_Sprintf0 (DynamicStrings_InitString ((char *) a, _a_high))))) == NULL)
-    ;  /* empty.  */
+    {}  /* empty.  */
 }
 
 void mcPrintf_fprintf1 (FIO_File file, char *a_, unsigned int _a_high, unsigned char *w_, unsigned int _w_high)
@@ -195,7 +195,7 @@ void mcPrintf_fprintf1 (FIO_File file, char *a_, unsigned int _a_high, unsigned 
       s = FormatStrings_Sprintf1 (t, (unsigned char *) w, _w_high);
     }
   if ((DynamicStrings_KillString (SFIO_WriteS (file, s))) == NULL)
-    ;  /* empty.  */
+    {}  /* empty.  */
 }
 
 void mcPrintf_fprintf2 (FIO_File file, char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high)
@@ -251,7 +251,7 @@ void mcPrintf_fprintf2 (FIO_File file, char *a_, unsigned int _a_high, unsigned 
         break;
     }
   if ((DynamicStrings_KillString (SFIO_WriteS (file, s))) == NULL)
-    ;  /* empty.  */
+    {}  /* empty.  */
 }
 
 void mcPrintf_fprintf3 (FIO_File file, char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high)
@@ -332,7 +332,7 @@ void mcPrintf_fprintf3 (FIO_File file, char *a_, unsigned int _a_high, unsigned 
         break;
     }
   if ((DynamicStrings_KillString (SFIO_WriteS (file, s))) == NULL)
-    ;  /* empty.  */
+    {}  /* empty.  */
 }
 
 void mcPrintf_fprintf4 (FIO_File file, char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high, unsigned char *w4_, unsigned int _w4_high)
@@ -454,7 +454,7 @@ void mcPrintf_fprintf4 (FIO_File file, char *a_, unsigned int _a_high, unsigned 
         break;
     }
   if ((DynamicStrings_KillString (SFIO_WriteS (file, s))) == NULL)
-    ;  /* empty.  */
+    {}  /* empty.  */
 }
 
 void _M2_mcPrintf_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

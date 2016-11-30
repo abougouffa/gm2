@@ -95,7 +95,7 @@ static nameKey_Name doMakeKey (ptrToChar n, unsigned int higha)
     }
   else
     {
-      Storage_DEALLOCATE ((void *) &n, higha+1);
+      Storage_DEALLOCATE ((void **) &n, higha+1);
       k = child->key;
     }
   return k;
@@ -164,7 +164,7 @@ nameKey_Name nameKey_makeKey (char *a_, unsigned int _a_high)
   memcpy (a, a_, _a_high+1);
 
   higha = StrLib_StrLen ((char *) a, _a_high);
-  Storage_ALLOCATE ((void *) &p, higha+1);
+  Storage_ALLOCATE ((void **) &p, higha+1);
   if (p == NULL)
     M2RTS_HALT (0);
   else
@@ -195,7 +195,7 @@ nameKey_Name nameKey_makekey (void * a)
   else
     {
       higha = libc_strlen (a);
-      Storage_ALLOCATE ((void *) &p, higha+1);
+      Storage_ALLOCATE ((void **) &p, higha+1);
       if (p == NULL)
         M2RTS_HALT (0);
       else

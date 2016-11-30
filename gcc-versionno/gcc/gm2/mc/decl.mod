@@ -8483,7 +8483,7 @@ BEGIN
       THEN
          stop ;
          (* potentially a cast is required.  *)
-         IF (isPointer (type) OR (type = addressN))
+         IF isPointer (type) OR (type = addressN)
          THEN
             outText (p, 'reinterpret_cast<') ;
             doTypeNameC (p, type) ;
@@ -8541,7 +8541,7 @@ BEGIN
    THEN
       p := pushPretty (p) ;
       setindent (p, getindent (p) + indentationC) ;
-      outText (p, ";  /* empty.  */\n") ;
+      outText (p, "{}  /* empty.  */\n") ;
       p := popPretty (p)
    ELSIF isStatementSequence (s) AND isSingleStatement (s)
    THEN
@@ -9079,10 +9079,32 @@ BEGIN
          THEN
             outText (p, "const_cast<void*> (reinterpret_cast<const void*> (") ;
 	    RETURN 2
-         END
+         ELSIF isPointer (skipType (ft)) OR (skipType (ft) = addressN)
+         THEN
+            outText (p, 'reinterpret_cast<') ;
+            doTypeNameC (p, ft) ;
+	    IF isVarParam (formal)
+            THEN
+               outText (p, '*')
+            END ;
+            outText (p, '> (')
+         ELSE
+            outText (p, 'static_cast<') ;
+            doTypeNameC (p, ft) ;
+            IF isVarParam (formal)
+            THEN
+               outText (p, '*')
+            END ;
+            outText (p, '> (')
+         END ;
+         RETURN 1
       ELSE
          outText (p, '(') ;
          doTypeNameC (p, ft) ;
+	 IF isVarParam (formal)
+         THEN
+            outText (p, '*')
+         END ;
          outText (p, ')') ;
          setNeedSpace (p)
       END
