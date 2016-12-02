@@ -6,6 +6,7 @@
        typedef struct { PROC_t proc; } PROC;
 #   endif
 
+#include "Gmcrts.h"
 #define _Args_H
 #define _Args_C
 
@@ -43,11 +44,13 @@ unsigned int Args_GetArg (char *a, unsigned int _a_high, unsigned int i)
   if (j <= High)
     a[j] = ASCII_nul;
   return i < UnixArgs_ArgC;
+  ReturnException ("", 0, 0);
 }
 
 unsigned int Args_Narg (void)
 {
   return UnixArgs_ArgC;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/Args.def", 20, 0);
 }
 
 void _M2_Args_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

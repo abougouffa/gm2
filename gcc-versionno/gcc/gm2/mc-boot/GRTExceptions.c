@@ -14,6 +14,7 @@
 #include <string.h>
 #include <limits.h>
 #   include "GStorage.h"
+#include "Gmcrts.h"
 #define _RTExceptions_H
 #define _RTExceptions_C
 
@@ -139,6 +140,7 @@ static Handler findHandler (RTExceptions_EHBlock e, unsigned int number)
     return NULL;
   else
     return h;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 19, 0);
 }
 
 static void InvokeHandler (void)
@@ -182,6 +184,7 @@ static void * stripPath (void * s)
     else
       p += 1;
   return f;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 19, 0);
 }
 
 static void addFile (void * s, unsigned int *i)
@@ -231,6 +234,7 @@ static RTExceptions_EHBlock New (void)
       freeEHB = freeEHB->right;
     }
   return e;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 19, 0);
 }
 
 static Handler NewHandler (void)
@@ -245,6 +249,7 @@ static Handler NewHandler (void)
       freeHandler = freeHandler->right;
     }
   return h;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 19, 0);
 }
 
 static Handler KillHandler (Handler h)
@@ -252,6 +257,7 @@ static Handler KillHandler (Handler h)
   h->right = freeHandler;
   freeHandler = h;
   return NULL;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 19, 0);
 }
 
 static Handler KillHandlers (Handler h)
@@ -259,6 +265,7 @@ static Handler KillHandlers (Handler h)
   h->left->right = freeHandler;
   freeHandler = h;
   return NULL;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 19, 0);
 }
 
 static Handler InitHandler (Handler h, Handler l, Handler r, Handler s, unsigned int number, RTExceptions_ProcedureHandler proc)
@@ -269,6 +276,7 @@ static Handler InitHandler (Handler h, Handler l, Handler r, Handler s, unsigned
   h->left = l;
   h->stack = s;
   return h;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 19, 0);
 }
 
 static void SubHandler (Handler h)
@@ -423,21 +431,25 @@ void RTExceptions_SetExceptionBlock (RTExceptions_EHBlock source)
 RTExceptions_EHBlock RTExceptions_GetExceptionBlock (void)
 {
   return currentEHB;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 19, 0);
 }
 
 void * RTExceptions_GetTextBuffer (RTExceptions_EHBlock e)
 {
   return &e->buffer;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 19, 0);
 }
 
 unsigned int RTExceptions_GetTextBufferSize (RTExceptions_EHBlock e)
 {
   return sizeof (e->buffer);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 19, 0);
 }
 
 unsigned int RTExceptions_GetNumber (RTExceptions_EHBlock source)
 {
   return source->number;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 19, 0);
 }
 
 RTExceptions_EHBlock RTExceptions_InitExceptionBlock (void)
@@ -451,6 +463,7 @@ RTExceptions_EHBlock RTExceptions_InitExceptionBlock (void)
   e->handlers->left = e->handlers;
   e->right = e;
   return e;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 19, 0);
 }
 
 RTExceptions_EHBlock RTExceptions_KillExceptionBlock (RTExceptions_EHBlock e)
@@ -459,6 +472,7 @@ RTExceptions_EHBlock RTExceptions_KillExceptionBlock (RTExceptions_EHBlock e)
   e->right = freeEHB;
   freeEHB = e;
   return NULL;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 19, 0);
 }
 
 void RTExceptions_PushHandler (RTExceptions_EHBlock e, unsigned int number, RTExceptions_ProcedureHandler p)
@@ -513,6 +527,7 @@ void RTExceptions_BaseExceptionsThrow (void)
 unsigned int RTExceptions_IsInExceptionState (void)
 {
   return inException;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 19, 0);
 }
 
 unsigned int RTExceptions_SetExceptionState (unsigned int to)
@@ -522,6 +537,7 @@ unsigned int RTExceptions_SetExceptionState (unsigned int to)
   old = inException;
   inException = to;
   return old;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 19, 0);
 }
 
 void RTExceptions_SwitchExceptionState (unsigned int *from, unsigned int to)
@@ -536,6 +552,7 @@ RTExceptions_EHBlock RTExceptions_GetBaseExceptionBlock (void)
     M2RTS_Halt ((char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.mod", 49, 589, (char *) "GetBaseExceptionBlock", 21, (char *) "currentEHB has not been initialized yet", 39);
   else
     return currentEHB;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 19, 0);
 }
 
 void RTExceptions_SetExceptionSource (void * source)
@@ -546,6 +563,7 @@ void RTExceptions_SetExceptionSource (void * source)
 void * RTExceptions_GetExceptionSource (void)
 {
   return currentSource;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTExceptions.def", 19, 0);
 }
 
 void _M2_RTExceptions_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

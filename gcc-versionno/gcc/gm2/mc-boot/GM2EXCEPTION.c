@@ -7,6 +7,7 @@
 #   endif
 
 #include <limits.h>
+#include "Gmcrts.h"
 #define _M2EXCEPTION_H
 #define _M2EXCEPTION_C
 
@@ -29,6 +30,7 @@ M2EXCEPTION_M2Exceptions M2EXCEPTION_M2Exception (void)
     RTExceptions_Raise ((unsigned int) (M2EXCEPTION_exException), "../../gcc-5.2.0/gcc/gm2/gm2-libs/M2EXCEPTION.mod", 39, 6, "M2Exception", "current coroutine is not in the exceptional execution state");
   else
     return (M2EXCEPTION_M2Exceptions) (n);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/M2EXCEPTION.def", 10, 0);
 }
 
 unsigned int M2EXCEPTION_IsM2Exception (void)
@@ -37,6 +39,7 @@ unsigned int M2EXCEPTION_IsM2Exception (void)
 
   e = RTExceptions_GetExceptionBlock ();
   return (RTExceptions_GetNumber (e)) != (UINT_MAX);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/M2EXCEPTION.def", 10, 0);
 }
 
 void _M2_M2EXCEPTION_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

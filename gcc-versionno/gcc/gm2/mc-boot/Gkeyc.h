@@ -49,6 +49,7 @@ EXTERN void keyc_useLabs (void);
 EXTERN void keyc_useAbs (void);
 EXTERN void keyc_useFabs (void);
 EXTERN void keyc_useFabsl (void);
+EXTERN void keyc_useException (void);
 EXTERN void keyc_genDefs (mcPretty_pretty p);
 EXTERN void keyc_enterScope (decl_node n);
 EXTERN void keyc_leaveScope (decl_node n);

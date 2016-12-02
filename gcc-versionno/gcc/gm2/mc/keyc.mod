@@ -66,7 +66,8 @@ VAR
    seenTrue,
    seenFalse,
    seenNull,
-   seenMemcpy: BOOLEAN ;
+   seenMemcpy,
+   seenException: BOOLEAN ;
 
 
 (*
@@ -461,6 +462,29 @@ END checkMemcpy ;
 
 
 (*
+   useException - use the exceptions module, mcrts.
+*)
+
+PROCEDURE useException ;
+BEGIN
+   seenException := TRUE
+END useException ;
+
+
+(*
+   checkException - check to see if exceptions were used.
+*)
+
+PROCEDURE checkException (p: pretty) ;
+BEGIN
+   IF seenException
+   THEN
+      print (p, '#include "Gmcrts.h"\n')
+   END
+END checkException ;
+
+
+(*
    genDefs - generate definitions or includes for all
              macros and prototypes used.
 *)
@@ -475,7 +499,8 @@ BEGIN
    checkMemcpy (p) ;
    checkLimits (p) ;
    checkAbs (p) ;
-   checkStorage (p)
+   checkStorage (p) ;
+   checkException (p)
 END genDefs ;
 
 
@@ -811,6 +836,7 @@ BEGIN
    seenAbs := FALSE ;
    seenFabs := FALSE ;
    seenFabsl := FALSE ;
+   seenException := FALSE ;
    initializedCP := FALSE ;
 
    stack := NIL ;

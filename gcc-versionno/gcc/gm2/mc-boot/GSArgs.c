@@ -15,6 +15,7 @@
 #   endif
 
 #include <stddef.h>
+#include "Gmcrts.h"
 #define _SArgs_H
 #define _SArgs_C
 
@@ -44,11 +45,13 @@ unsigned int SArgs_GetArg (DynamicStrings_String *s, unsigned int i)
       (*s) = NULL;
       return FALSE;
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/SArgs.def", 20, 0);
 }
 
 unsigned int SArgs_Narg (void)
 {
   return UnixArgs_ArgC;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/SArgs.def", 20, 0);
 }
 
 void _M2_SArgs_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

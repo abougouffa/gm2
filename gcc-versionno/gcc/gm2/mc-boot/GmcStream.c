@@ -16,6 +16,7 @@
 
 #include <stddef.h>
 #   include "GStorage.h"
+#include "Gmcrts.h"
 #define _mcStream_H
 #define _mcStream_C
 
@@ -50,6 +51,7 @@ static DynamicStrings_String removeLater (DynamicStrings_String filename)
 {
   alists_includeItemIntoList (listOfFiles, (void *) filename);
   return filename;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcStream.def", 19, 0);
 }
 
 static void removeNow (DynamicStrings_String s)
@@ -72,6 +74,7 @@ static FIO_File createTemporaryFile (unsigned int id)
   s = removeLater (FormatStrings_Sprintf1 (s, (unsigned char *) &id, (sizeof (id)-1)));
   f = SFIO_OpenToWrite (s);
   return f;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcStream.def", 19, 0);
 }
 
 static void copy (ptrToFile p)
@@ -109,6 +112,7 @@ FIO_File mcStream_openFrag (unsigned int id)
   (*p) = f;
   Indexing_PutIndice (frag, id, (void *) p);
   return f;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcStream.def", 19, 0);
 }
 
 void mcStream_setDest (FIO_File f)
@@ -124,6 +128,7 @@ FIO_File mcStream_combine (void)
   Indexing_ForeachIndiceInIndexDo (frag, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) copy});
   removeFiles ();
   return destFile;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcStream.def", 19, 0);
 }
 
 void _M2_mcStream_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

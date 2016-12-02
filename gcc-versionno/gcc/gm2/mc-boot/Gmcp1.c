@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
+#include "Gmcrts.h"
 #define _mcp1_H
 #define _mcp1_C
 
@@ -723,6 +724,7 @@ static DynamicStrings_String DescribeStop (SetOfStop0 stopset0, SetOfStop1 stops
       message = DynamicStrings_KillString (message);
     }
   return str;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp1.def", 19, 0);
 }
 
 static void DescribeError (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
@@ -1158,6 +1160,7 @@ static unsigned int CheckAndInsert (mcReserved_toktype t, SetOfStop0 stopset0, S
     }
   else
     return FALSE;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp1.def", 19, 0);
 }
 
 static unsigned int InStopSet (mcReserved_toktype t, SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
@@ -1166,6 +1169,7 @@ static unsigned int InStopSet (mcReserved_toktype t, SetOfStop0 stopset0, SetOfS
     return TRUE;
   else
     return FALSE;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp1.def", 19, 0);
 }
 
 static void PeepToken (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
@@ -3124,6 +3128,7 @@ unsigned int mcp1_CompilationUnit (void)
   WasNoError = TRUE;
   FileUnit ((SetOfStop0) ((1 << (mcReserved_eoftok-mcReserved_eoftok))), (SetOfStop1) 0, (SetOfStop2) 0);
   return WasNoError;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp1.def", 19, 0);
 }
 
 void _M2_mcp1_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

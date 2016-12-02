@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include <limits.h>
 #   include "GStorage.h"
+#include "Gmcrts.h"
 #define _RTint_H
 #define _RTint_C
 
@@ -89,6 +90,7 @@ static int Max (int i, int j)
     return i;
   else
     return j;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 20, 0);
 }
 
 static int Min (int i, int j)
@@ -97,6 +99,7 @@ static int Min (int i, int j)
     return i;
   else
     return j;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 20, 0);
 }
 
 static Vector FindVector (int fd, VectorType t)
@@ -111,6 +114,7 @@ static Vector FindVector (int fd, VectorType t)
       v = v->exists;
     }
   return NULL;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 20, 0);
 }
 
 static Vector FindVectorNo (unsigned int vec)
@@ -121,6 +125,7 @@ static Vector FindVectorNo (unsigned int vec)
   while ((v != NULL) && (v->no != vec))
     v = v->exists;
   return v;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 20, 0);
 }
 
 static Vector FindPendingVector (unsigned int vec)
@@ -137,6 +142,7 @@ static Vector FindPendingVector (unsigned int vec)
         return v;
     }
   return NULL;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 20, 0);
 }
 
 static void AddFd (Selective_SetOfFd *s, int *max, int fd)
@@ -215,6 +221,7 @@ static unsigned int IsGreaterEqual (Selective_Timeval a, Selective_Timeval b)
   Selective_GetTime (b, &bs, &bm);
   Assertion_Assert (bm < Microseconds);
   return (as > bs) || ((as == bs) && (am >= bm));
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 20, 0);
 }
 
 static void SubTime (unsigned int *s, unsigned int *m, Selective_Timeval a, Selective_Timeval b)
@@ -283,6 +290,7 @@ unsigned int RTint_InitInputVector (int fd, unsigned int pri)
     }
   else
     return v->no;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 20, 0);
 }
 
 unsigned int RTint_InitOutputVector (int fd, unsigned int pri)
@@ -306,6 +314,7 @@ unsigned int RTint_InitOutputVector (int fd, unsigned int pri)
     }
   else
     return v->no;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 20, 0);
 }
 
 unsigned int RTint_InitTimeVector (unsigned int micro, unsigned int secs, unsigned int pri)
@@ -326,6 +335,7 @@ unsigned int RTint_InitTimeVector (unsigned int micro, unsigned int secs, unsign
   v->queued = FALSE;
   Exists = v;
   return VecNo;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 20, 0);
 }
 
 void RTint_ReArmTimeVector (unsigned int vec, unsigned int micro, unsigned int secs)
@@ -368,6 +378,7 @@ void * RTint_AttachVector (unsigned int vec, void * p)
       v->arg = p;
       return l;
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 20, 0);
 }
 
 void RTint_IncludeVector (unsigned int vec)

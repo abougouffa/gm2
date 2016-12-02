@@ -203,6 +203,13 @@ PROCEDURE useFabsl ;
 
 
 (*
+   useException - use the exceptions module, mcrts.
+*)
+
+PROCEDURE useException ;
+
+
+(*
    genDefs - generate definitions or includes for all
              macros and prototypes used.
 *)

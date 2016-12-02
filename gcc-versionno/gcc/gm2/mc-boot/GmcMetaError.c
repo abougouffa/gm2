@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
+#include "Gmcrts.h"
 #define _mcMetaError_H
 #define _mcMetaError_C
 
@@ -112,11 +113,13 @@ static DynamicStrings_String x (DynamicStrings_String a, DynamicStrings_String b
   if (a != b)
     mcError_internalError ((char *) "different string returned", 25, (char *) "../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.mod", 42, 110);
   return a;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static unsigned int isWhite (char ch)
 {
   return ch == ' ';
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static void then (mcError_error *e, errorType *t, DynamicStrings_String *r, DynamicStrings_String s, varargs_vararg sym, int *i, int l, DynamicStrings_String o, unsigned int positive)
@@ -143,6 +146,7 @@ static DynamicStrings_String doNumber (unsigned int bol, varargs_vararg sym, Dyn
       varargs_arg (sym, (unsigned char *) &c, (sizeof (c)-1));
       return DynamicStrings_ConCat (o, StringConvert_ctos (c, 0, ' '));
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static DynamicStrings_String doCount (unsigned int bol, varargs_vararg sym, DynamicStrings_String o, unsigned int *quotes)
@@ -183,6 +187,7 @@ static DynamicStrings_String doCount (unsigned int bol, varargs_vararg sym, Dyna
       }
       return o;
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static DynamicStrings_String doAscii (unsigned int bol, varargs_vararg sym, DynamicStrings_String o)
@@ -195,6 +200,7 @@ static DynamicStrings_String doAscii (unsigned int bol, varargs_vararg sym, Dyna
     return o;
   else
     return DynamicStrings_ConCat (o, DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n))));
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static DynamicStrings_String doName (unsigned int bol, varargs_vararg sym, DynamicStrings_String o, unsigned int *quotes)
@@ -220,6 +226,7 @@ static DynamicStrings_String doName (unsigned int bol, varargs_vararg sym, Dynam
       return DynamicStrings_ConCat (o, DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n))));
     else
       return o;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static DynamicStrings_String doQualified (unsigned int bol, varargs_vararg sym, DynamicStrings_String o)
@@ -247,6 +254,7 @@ static DynamicStrings_String doQualified (unsigned int bol, varargs_vararg sym, 
       varargs_end (&mod);
       return o;
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static DynamicStrings_String doType (unsigned int bol, varargs_vararg *sym, DynamicStrings_String o)
@@ -264,6 +272,7 @@ static DynamicStrings_String doType (unsigned int bol, varargs_vararg *sym, Dyna
       varargs_replace ((*sym), (unsigned char *) &n, (sizeof (n)-1));
       return x (o, doAscii (bol, (*sym), o));
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static DynamicStrings_String doSkipType (unsigned int bol, varargs_vararg *sym, DynamicStrings_String o)
@@ -284,6 +293,7 @@ static DynamicStrings_String doSkipType (unsigned int bol, varargs_vararg *sym, 
       else
         return x (o, doAscii (bol, (*sym), o));
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static DynamicStrings_String doKey (unsigned int bol, varargs_vararg sym, DynamicStrings_String o)
@@ -298,6 +308,7 @@ static DynamicStrings_String doKey (unsigned int bol, varargs_vararg sym, Dynami
       varargs_arg (sym, (unsigned char *) &n, (sizeof (n)-1));
       return DynamicStrings_ConCat (o, DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static mcError_error doError (mcError_error e, errorType t, unsigned int tok)
@@ -327,6 +338,7 @@ static mcError_error doError (mcError_error e, errorType t, unsigned int tok)
         break;
     }
   return e;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static mcError_error doDeclaredDef (mcError_error e, errorType t, unsigned int bol, varargs_vararg sym)
@@ -340,6 +352,7 @@ static mcError_error doDeclaredDef (mcError_error e, errorType t, unsigned int b
       e = doError (e, t, decl_getDeclaredDef (n));
     }
   return e;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static mcError_error doDeclaredMod (mcError_error e, errorType t, unsigned int bol, varargs_vararg sym)
@@ -353,6 +366,7 @@ static mcError_error doDeclaredMod (mcError_error e, errorType t, unsigned int b
       e = doError (e, t, decl_getDeclaredMod (n));
     }
   return e;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static mcError_error doUsed (mcError_error e, errorType t, unsigned int bol, varargs_vararg sym)
@@ -366,6 +380,7 @@ static mcError_error doUsed (mcError_error e, errorType t, unsigned int bol, var
       e = doError (e, t, decl_getFirstUsed (n));
     }
   return e;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static DynamicStrings_String ConCatWord (DynamicStrings_String a, DynamicStrings_String b)
@@ -377,6 +392,7 @@ static DynamicStrings_String ConCatWord (DynamicStrings_String a, DynamicStrings
   if (((DynamicStrings_Length (a)) > 0) && (! (isWhite (DynamicStrings_char (a, -1)))))
     a = x (a, DynamicStrings_ConCatChar (a, ' '));
   return x (a, DynamicStrings_ConCat (a, b));
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static DynamicStrings_String symDesc (decl_node n, DynamicStrings_String o)
@@ -428,6 +444,7 @@ static DynamicStrings_String symDesc (decl_node n, DynamicStrings_String o)
     return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "subrange", 8)));
   else
     return o;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static DynamicStrings_String doDesc (unsigned int bol, varargs_vararg sym, DynamicStrings_String o, unsigned int *quotes)
@@ -443,6 +460,7 @@ static DynamicStrings_String doDesc (unsigned int bol, varargs_vararg sym, Dynam
         (*quotes) = FALSE;
     }
   return o;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static DynamicStrings_String addQuoted (DynamicStrings_String r, DynamicStrings_String o, unsigned int quotes)
@@ -458,6 +476,7 @@ static DynamicStrings_String addQuoted (DynamicStrings_String r, DynamicStrings_
         r = x (r, DynamicStrings_ConCatChar (r, '\''));
     }
   return r;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static void op (mcError_error *e, errorType *t, DynamicStrings_String *r, DynamicStrings_String s, varargs_vararg sym, int *i, int l, unsigned int bol, unsigned int positive)
@@ -664,6 +683,7 @@ static DynamicStrings_String doFormat (mcError_error *e, errorType *t, DynamicSt
   ebnf (e, t, &r, s, sym, &i, l);
   s = DynamicStrings_KillString (s);
   return r;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def", 19, 0);
 }
 
 static void wrapErrors (unsigned int tok, char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, varargs_vararg sym)

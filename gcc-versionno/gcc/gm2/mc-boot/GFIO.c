@@ -18,6 +18,7 @@
 #include <string.h>
 #include <limits.h>
 #   include "GStorage.h"
+#include "Gmcrts.h"
 #define _FIO_H
 #define _FIO_C
 
@@ -150,6 +151,7 @@ static unsigned int Max (unsigned int a, unsigned int b)
     return a;
   else
     return b;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 static unsigned int Min (unsigned int a, unsigned int b)
@@ -158,6 +160,7 @@ static unsigned int Min (unsigned int a, unsigned int b)
     return a;
   else
     return b;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 static FIO_File GetNextFreeDescriptor (void)
@@ -183,6 +186,7 @@ static FIO_File GetNextFreeDescriptor (void)
         return f;
       }
   }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 static void SetState (FIO_File f, FileStatus s)
@@ -254,6 +258,7 @@ static FIO_File InitializeFile (FIO_File f, void * fname, unsigned int flength, 
         }
     }
   return f;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 static void ConnectToUnix (FIO_File f, unsigned int towrite, unsigned int newfile)
@@ -349,6 +354,7 @@ static int ReadFromBuffer (FIO_File f, void * a, unsigned int nBytes)
     }
   else
     return -1;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 static int BufferedRead (FIO_File f, unsigned int nBytes, void * a)
@@ -424,6 +430,7 @@ static int BufferedRead (FIO_File f, unsigned int nBytes, void * a)
     }
   else
     return -1;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 static void HandleEscape (char *dest, unsigned int _dest_high, char *src_, unsigned int _src_high, unsigned int *i, unsigned int *j, unsigned int HighSrc, unsigned int HighDest)
@@ -711,6 +718,7 @@ static int BufferedWrite (FIO_File f, unsigned int nBytes, void * a)
         }
     }
   return -1;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 static void PreInitialize (FIO_File f, char *fname_, unsigned int _fname_high, FileStatus state, FileUsage use, unsigned int towrite, int osfd, unsigned int bufsize)
@@ -766,6 +774,7 @@ unsigned int FIO_IsNoError (FIO_File f)
       fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
       return (fd != NULL) && (((fd->state == successful) || (fd->state == endoffile)) || (fd->state == endofline));
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 unsigned int FIO_IsActive (FIO_File f)
@@ -774,6 +783,7 @@ unsigned int FIO_IsActive (FIO_File f)
     return FALSE;
   else
     return (Indexing_GetIndice (FileInfo, (unsigned int ) f)) != NULL;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 unsigned int FIO_Exists (char *fname_, unsigned int _fname_high)
@@ -784,6 +794,7 @@ unsigned int FIO_Exists (char *fname_, unsigned int _fname_high)
   memcpy (fname, fname_, _fname_high+1);
 
   return FIO_exists (&fname, StrLib_StrLen ((char *) fname, _fname_high));
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 FIO_File FIO_OpenToRead (char *fname_, unsigned int _fname_high)
@@ -794,6 +805,7 @@ FIO_File FIO_OpenToRead (char *fname_, unsigned int _fname_high)
   memcpy (fname, fname_, _fname_high+1);
 
   return FIO_openToRead (&fname, StrLib_StrLen ((char *) fname, _fname_high));
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 FIO_File FIO_OpenToWrite (char *fname_, unsigned int _fname_high)
@@ -804,6 +816,7 @@ FIO_File FIO_OpenToWrite (char *fname_, unsigned int _fname_high)
   memcpy (fname, fname_, _fname_high+1);
 
   return FIO_openToWrite (&fname, StrLib_StrLen ((char *) fname, _fname_high));
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 FIO_File FIO_OpenForRandom (char *fname_, unsigned int _fname_high, unsigned int towrite, unsigned int newfile)
@@ -814,6 +827,7 @@ FIO_File FIO_OpenForRandom (char *fname_, unsigned int _fname_high, unsigned int
   memcpy (fname, fname_, _fname_high+1);
 
   return FIO_openForRandom (&fname, StrLib_StrLen ((char *) fname, _fname_high), towrite, newfile);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 void FIO_Close (FIO_File f)
@@ -862,6 +876,7 @@ unsigned int FIO_exists (void * fname, unsigned int flength)
       FIO_Close (f);
       return FALSE;
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 FIO_File FIO_openToRead (void * fname, unsigned int flength)
@@ -877,6 +892,7 @@ FIO_File FIO_openToRead (void * fname, unsigned int flength)
       ConnectToUnix (f, FALSE, FALSE);
     }
   return f;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 FIO_File FIO_openToWrite (void * fname, unsigned int flength)
@@ -892,6 +908,7 @@ FIO_File FIO_openToWrite (void * fname, unsigned int flength)
       ConnectToUnix (f, TRUE, TRUE);
     }
   return f;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 FIO_File FIO_openForRandom (void * fname, unsigned int flength, unsigned int towrite, unsigned int newfile)
@@ -907,6 +924,7 @@ FIO_File FIO_openForRandom (void * fname, unsigned int flength, unsigned int tow
       ConnectToUnix (f, towrite, newfile);
     }
   return f;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 void FIO_FlushBuffer (FIO_File f)
@@ -952,6 +970,7 @@ unsigned int FIO_ReadNBytes (FIO_File f, unsigned int nBytes, void * a)
     }
   else
     return 0;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 void FIO_ReadAny (FIO_File f, unsigned char *a, unsigned int _a_high)
@@ -989,6 +1008,7 @@ unsigned int FIO_WriteNBytes (FIO_File f, unsigned int nBytes, void * a)
         }
     }
   return 0;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 void FIO_WriteAny (FIO_File f, unsigned char *a, unsigned int _a_high)
@@ -1017,6 +1037,7 @@ unsigned int FIO_EOF (FIO_File f)
         return fd->state == endoffile;
     }
   return TRUE;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 unsigned int FIO_EOLN (FIO_File f)
@@ -1038,6 +1059,7 @@ unsigned int FIO_EOLN (FIO_File f)
           }
     }
   return FALSE;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 unsigned int FIO_WasEOLN (FIO_File f)
@@ -1052,6 +1074,7 @@ unsigned int FIO_WasEOLN (FIO_File f)
       fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
       return (fd != NULL) && (fd->state == endofline);
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 char FIO_ReadChar (FIO_File f)
@@ -1066,6 +1089,7 @@ char FIO_ReadChar (FIO_File f)
     }
   else
     return ASCII_nul;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 void FIO_UnReadChar (FIO_File f, char ch)
@@ -1173,6 +1197,7 @@ unsigned int FIO_ReadCardinal (FIO_File f)
 
   FIO_ReadAny (f, (unsigned char *) &c, (sizeof (c)-1));
   return c;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 int FIO_GetUnixFileDescriptor (FIO_File f)
@@ -1187,6 +1212,7 @@ int FIO_GetUnixFileDescriptor (FIO_File f)
     }
   FormatError1 ((char *) "file %d has not been opened or is out of range\\n", 48, (unsigned char *) &f, (sizeof (f)-1));
   return -1;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 void FIO_SetPositionFromBeginning (FIO_File f, long int pos)
@@ -1279,6 +1305,7 @@ long int FIO_FindPosition (FIO_File f)
           return fd->buffer->bufstart+((long int ) (fd->buffer->position));
     }
   return 0;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 void FIO_GetFileName (FIO_File f, char *a, unsigned int _a_high)
@@ -1327,6 +1354,7 @@ void * FIO_getFileName (FIO_File f)
       else
         return fd->name.address;
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 unsigned int FIO_getFileNameLength (FIO_File f)
@@ -1344,6 +1372,7 @@ unsigned int FIO_getFileNameLength (FIO_File f)
       else
         return fd->name.size;
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
 }
 
 void FIO_FlushOutErr (void)

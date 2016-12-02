@@ -18,6 +18,7 @@
 #include <string.h>
 #include <limits.h>
 #include <stdlib.h>
+#include "Gmcrts.h"
 #define _StringConvert_H
 #define _StringConvert_C
 
@@ -93,6 +94,7 @@ static unsigned int Max (unsigned int a, unsigned int b)
     return a;
   else
     return b;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 static unsigned int Min (unsigned int a, unsigned int b)
@@ -101,6 +103,7 @@ static unsigned int Min (unsigned int a, unsigned int b)
     return a;
   else
     return b;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 static long unsigned int LongMin (long unsigned int a, long unsigned int b)
@@ -109,11 +112,13 @@ static long unsigned int LongMin (long unsigned int a, long unsigned int b)
     return a;
   else
     return b;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 static unsigned int IsDigit (char ch)
 {
   return (ch >= '0') && (ch <= '9');
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 static unsigned int IsDecimalDigitValid (char ch, unsigned int base, unsigned int *c)
@@ -125,6 +130,7 @@ static unsigned int IsDecimalDigitValid (char ch, unsigned int base, unsigned in
     }
   else
     return FALSE;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 static unsigned int IsHexidecimalDigitValid (char ch, unsigned int base, unsigned int *c)
@@ -141,6 +147,7 @@ static unsigned int IsHexidecimalDigitValid (char ch, unsigned int base, unsigne
     }
   else
     return FALSE;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 static unsigned int IsDecimalDigitValidLong (char ch, unsigned int base, long unsigned int *c)
@@ -152,6 +159,7 @@ static unsigned int IsDecimalDigitValidLong (char ch, unsigned int base, long un
     }
   else
     return FALSE;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 static unsigned int IsHexidecimalDigitValidLong (char ch, unsigned int base, long unsigned int *c)
@@ -168,6 +176,7 @@ static unsigned int IsHexidecimalDigitValidLong (char ch, unsigned int base, lon
     }
   else
     return FALSE;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 static unsigned int IsDecimalDigitValidShort (char ch, unsigned int base, short unsigned int *c)
@@ -179,6 +188,7 @@ static unsigned int IsDecimalDigitValidShort (char ch, unsigned int base, short 
     }
   else
     return FALSE;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 static unsigned int IsHexidecimalDigitValidShort (char ch, unsigned int base, short unsigned int *c)
@@ -195,6 +205,7 @@ static unsigned int IsHexidecimalDigitValidShort (char ch, unsigned int base, sh
     }
   else
     return FALSE;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 static long double ToThePower10 (long double v, int power)
@@ -215,6 +226,7 @@ static long double ToThePower10 (long double v, int power)
         i -= 1;
       }
   return v;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 static unsigned int DetermineSafeTruncation (void)
@@ -230,18 +242,21 @@ static unsigned int DetermineSafeTruncation (void)
       LogPower += 1;
     }
   return LogPower;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 static DynamicStrings_String rtos (double r, unsigned int TotalWidth, unsigned int FractionWidth)
 {
   M2RTS_HALT (0);
   return NULL;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 static DynamicStrings_String lrtos (long double r, unsigned int TotalWidth, unsigned int FractionWidth)
 {
   M2RTS_HALT (0);
   return NULL;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 static DynamicStrings_String doDecimalPlaces (DynamicStrings_String s, unsigned int n)
@@ -326,6 +341,7 @@ static DynamicStrings_String doDecimalPlaces (DynamicStrings_String s, unsigned 
       s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, point), '.'), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), point, 0)));
   }
   return s;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 static DynamicStrings_String doSigFig (DynamicStrings_String s, unsigned int n)
@@ -418,6 +434,7 @@ static DynamicStrings_String doSigFig (DynamicStrings_String s, unsigned int n)
       s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, point), '.'), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), point, 0)));
   }
   return s;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 static DynamicStrings_String carryOne (DynamicStrings_String s, unsigned int i)
@@ -444,6 +461,7 @@ static DynamicStrings_String carryOne (DynamicStrings_String s, unsigned int i)
           s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, (int ) i), (char) (((unsigned int) (DynamicStrings_char (s, (int ) i)))+1)), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), (int ) i+1, 0)));
     }
   return s;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 DynamicStrings_String StringConvert_IntegerToString (int i, unsigned int width, char padding, unsigned int sign, unsigned int base, unsigned int lower)
@@ -483,6 +501,7 @@ DynamicStrings_String StringConvert_IntegerToString (int i, unsigned int width, 
   if (width > (DynamicStrings_Length (s)))
     return DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar (padding)), width-(DynamicStrings_Length (s))), DynamicStrings_Mark (s));
   return s;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 DynamicStrings_String StringConvert_CardinalToString (unsigned int c, unsigned int width, char padding, unsigned int base, unsigned int lower)
@@ -503,6 +522,7 @@ DynamicStrings_String StringConvert_CardinalToString (unsigned int c, unsigned i
   if (width > (DynamicStrings_Length (s)))
     return DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar (padding)), width-(DynamicStrings_Length (s))), s);
   return s;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 int StringConvert_StringToInteger (DynamicStrings_String s, unsigned int base, unsigned int *found)
@@ -536,6 +556,7 @@ int StringConvert_StringToInteger (DynamicStrings_String s, unsigned int base, u
     return -((int ) (Min (((unsigned int ) (INT_MAX))+1, c)));
   else
     return (int ) (Min ((unsigned int ) INT_MAX, c));
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 unsigned int StringConvert_StringToCardinal (DynamicStrings_String s, unsigned int base, unsigned int *found)
@@ -560,6 +581,7 @@ unsigned int StringConvert_StringToCardinal (DynamicStrings_String s, unsigned i
     }
   s = DynamicStrings_KillString (s);
   return c;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 DynamicStrings_String StringConvert_LongIntegerToString (long int i, unsigned int width, char padding, unsigned int sign, unsigned int base, unsigned int lower)
@@ -599,6 +621,7 @@ DynamicStrings_String StringConvert_LongIntegerToString (long int i, unsigned in
   if (width > (DynamicStrings_Length (s)))
     return DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar (padding)), width-(DynamicStrings_Length (s))), s);
   return s;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 long int StringConvert_StringToLongInteger (DynamicStrings_String s, unsigned int base, unsigned int *found)
@@ -632,6 +655,7 @@ long int StringConvert_StringToLongInteger (DynamicStrings_String s, unsigned in
     return -((long int ) (LongMin (((long unsigned int ) (LONG_MAX))+1, c)));
   else
     return (long int ) (LongMin ((long unsigned int ) LONG_MAX, c));
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 DynamicStrings_String StringConvert_LongCardinalToString (long unsigned int c, unsigned int width, char padding, unsigned int base, unsigned int lower)
@@ -652,6 +676,7 @@ DynamicStrings_String StringConvert_LongCardinalToString (long unsigned int c, u
   if (width > (DynamicStrings_Length (s)))
     return DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar (padding)), width-(DynamicStrings_Length (s))), s);
   return s;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 long unsigned int StringConvert_StringToLongCardinal (DynamicStrings_String s, unsigned int base, unsigned int *found)
@@ -676,6 +701,7 @@ long unsigned int StringConvert_StringToLongCardinal (DynamicStrings_String s, u
     }
   s = DynamicStrings_KillString (s);
   return c;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 DynamicStrings_String StringConvert_ShortCardinalToString (short unsigned int c, unsigned int width, char padding, unsigned int base, unsigned int lower)
@@ -696,6 +722,7 @@ DynamicStrings_String StringConvert_ShortCardinalToString (short unsigned int c,
   if (width > (DynamicStrings_Length (s)))
     return DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar (padding)), width-(DynamicStrings_Length (s))), s);
   return s;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 short unsigned int StringConvert_StringToShortCardinal (DynamicStrings_String s, unsigned int base, unsigned int *found)
@@ -720,6 +747,7 @@ short unsigned int StringConvert_StringToShortCardinal (DynamicStrings_String s,
     }
   s = DynamicStrings_KillString (s);
   return c;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 int StringConvert_stoi (DynamicStrings_String s)
@@ -727,16 +755,19 @@ int StringConvert_stoi (DynamicStrings_String s)
   unsigned int found;
 
   return StringConvert_StringToInteger (s, 10, &found);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 DynamicStrings_String StringConvert_itos (int i, unsigned int width, char padding, unsigned int sign)
 {
   return StringConvert_IntegerToString (i, width, padding, sign, 10, FALSE);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 DynamicStrings_String StringConvert_ctos (unsigned int c, unsigned int width, char padding)
 {
   return StringConvert_CardinalToString (c, width, padding, 10, FALSE);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 unsigned int StringConvert_stoc (DynamicStrings_String s)
@@ -744,6 +775,7 @@ unsigned int StringConvert_stoc (DynamicStrings_String s)
   unsigned int found;
 
   return StringConvert_StringToCardinal (s, 10, &found);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 int StringConvert_hstoi (DynamicStrings_String s)
@@ -751,6 +783,7 @@ int StringConvert_hstoi (DynamicStrings_String s)
   unsigned int found;
 
   return StringConvert_StringToInteger (s, 16, &found);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 int StringConvert_ostoi (DynamicStrings_String s)
@@ -758,6 +791,7 @@ int StringConvert_ostoi (DynamicStrings_String s)
   unsigned int found;
 
   return StringConvert_StringToInteger (s, 8, &found);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 int StringConvert_bstoi (DynamicStrings_String s)
@@ -765,6 +799,7 @@ int StringConvert_bstoi (DynamicStrings_String s)
   unsigned int found;
 
   return StringConvert_StringToInteger (s, 2, &found);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 unsigned int StringConvert_hstoc (DynamicStrings_String s)
@@ -772,6 +807,7 @@ unsigned int StringConvert_hstoc (DynamicStrings_String s)
   unsigned int found;
 
   return StringConvert_StringToCardinal (s, 16, &found);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 unsigned int StringConvert_ostoc (DynamicStrings_String s)
@@ -779,6 +815,7 @@ unsigned int StringConvert_ostoc (DynamicStrings_String s)
   unsigned int found;
 
   return StringConvert_StringToCardinal (s, 8, &found);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 unsigned int StringConvert_bstoc (DynamicStrings_String s)
@@ -786,6 +823,7 @@ unsigned int StringConvert_bstoc (DynamicStrings_String s)
   unsigned int found;
 
   return StringConvert_StringToCardinal (s, 2, &found);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 long double StringConvert_StringToLongreal (DynamicStrings_String s, unsigned int *found)
@@ -798,6 +836,7 @@ long double StringConvert_StringToLongreal (DynamicStrings_String s, unsigned in
   s = DynamicStrings_KillString (s);
   (*found) = ! error;
   return value;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 DynamicStrings_String StringConvert_LongrealToString (long double x, unsigned int TotalWidth, unsigned int FractionWidth)
@@ -872,6 +911,7 @@ DynamicStrings_String StringConvert_LongrealToString (long double x, unsigned in
   if ((DynamicStrings_Length (s)) < TotalWidth)
     s = DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar (' ')), TotalWidth-(DynamicStrings_Length (s))), DynamicStrings_Mark (s));
   return s;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 double StringConvert_stor (DynamicStrings_String s)
@@ -879,6 +919,7 @@ double StringConvert_stor (DynamicStrings_String s)
   unsigned int found;
 
   return (double ) (StringConvert_StringToLongreal (s, &found));
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 long double StringConvert_stolr (DynamicStrings_String s)
@@ -886,6 +927,7 @@ long double StringConvert_stolr (DynamicStrings_String s)
   unsigned int found;
 
   return StringConvert_StringToLongreal (s, &found);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 DynamicStrings_String StringConvert_ToSigFig (DynamicStrings_String s, unsigned int n)
@@ -908,6 +950,7 @@ DynamicStrings_String StringConvert_ToSigFig (DynamicStrings_String s, unsigned 
         s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), poTen-(DynamicStrings_Length (s)))));
       return s;
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 DynamicStrings_String StringConvert_ToDecimalPlaces (DynamicStrings_String s, unsigned int n)
@@ -929,6 +972,7 @@ DynamicStrings_String StringConvert_ToDecimalPlaces (DynamicStrings_String s, un
     return DynamicStrings_Slice (DynamicStrings_Mark (s), 0, -1);
   else
     return s;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.def", 20, 0);
 }
 
 void _M2_StringConvert_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

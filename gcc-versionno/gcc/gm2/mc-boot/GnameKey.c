@@ -18,6 +18,7 @@
 #include <string.h>
 #include <limits.h>
 #   include "GStorage.h"
+#include "Gmcrts.h"
 #define _nameKey_H
 #define _nameKey_C
 
@@ -99,6 +100,7 @@ static nameKey_Name doMakeKey (ptrToChar n, unsigned int higha)
       k = child->key;
     }
   return k;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/nameKey.def", 19, 0);
 }
 
 static comparison compare (ptrToChar pi, nameKey_Name j)
@@ -123,6 +125,7 @@ static comparison compare (ptrToChar pi, nameKey_Name j)
         c2 = (*pj);
       }
   return equal;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/nameKey.def", 19, 0);
 }
 
 static comparison findNodeAndParentInTree (ptrToChar n, nameNode *child, nameNode *father)
@@ -150,6 +153,7 @@ static comparison findNodeAndParentInTree (ptrToChar n, nameNode *child, nameNod
       } while (! (((*child) == NULL) || (result == equal)));
       return result;
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/nameKey.def", 19, 0);
 }
 
 nameKey_Name nameKey_makeKey (char *a_, unsigned int _a_high)
@@ -180,6 +184,7 @@ nameKey_Name nameKey_makeKey (char *a_, unsigned int _a_high)
       (*p) = ASCII_nul;
       return doMakeKey (n, higha);
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/nameKey.def", 19, 0);
 }
 
 nameKey_Name nameKey_makekey (void * a)
@@ -214,6 +219,7 @@ nameKey_Name nameKey_makekey (void * a)
           return doMakeKey (n, higha);
         }
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/nameKey.def", 19, 0);
 }
 
 void nameKey_getKey (nameKey_Name key, char *a, unsigned int _a_high)
@@ -248,6 +254,7 @@ unsigned int nameKey_lengthKey (nameKey_Name key)
       p += 1;
     }
   return i;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/nameKey.def", 19, 0);
 }
 
 unsigned int nameKey_isKey (char *a_, unsigned int _a_high)
@@ -295,6 +302,7 @@ unsigned int nameKey_isKey (char *a_, unsigned int _a_high)
         }
     } while (! (child == NULL));
   return FALSE;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/nameKey.def", 19, 0);
 }
 
 void nameKey_writeKey (nameKey_Name key)
@@ -336,6 +344,7 @@ unsigned int nameKey_isSameExcludingCase (nameKey_Name key1, nameKey_Name key2)
           return FALSE;
       return c1 == c2;
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/nameKey.def", 19, 0);
 }
 
 void * nameKey_keyToCharStar (nameKey_Name key)
@@ -344,6 +353,7 @@ void * nameKey_keyToCharStar (nameKey_Name key)
     return NULL;
   else
     return Indexing_GetIndice (keyIndex, (unsigned int ) key);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/nameKey.def", 19, 0);
 }
 
 void _M2_nameKey_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

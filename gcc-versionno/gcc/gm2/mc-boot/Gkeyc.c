@@ -18,6 +18,7 @@
 #include <string.h>
 #include <limits.h>
 #   include "GStorage.h"
+#include "Gmcrts.h"
 #define _keyc_H
 #define _keyc_C
 
@@ -73,6 +74,7 @@ static unsigned int seenTrue;
 static unsigned int seenFalse;
 static unsigned int seenNull;
 static unsigned int seenMemcpy;
+static unsigned int seenException;
 void keyc_useStorage (void);
 void keyc_useFree (void);
 void keyc_useMalloc (void);
@@ -97,6 +99,7 @@ void keyc_useLabs (void);
 void keyc_useAbs (void);
 void keyc_useFabs (void);
 void keyc_useFabsl (void);
+void keyc_useException (void);
 void keyc_genDefs (mcPretty_pretty p);
 void keyc_enterScope (decl_node n);
 void keyc_leaveScope (decl_node n);
@@ -112,6 +115,7 @@ static void checkTrue (mcPretty_pretty p);
 static void checkFalse (mcPretty_pretty p);
 static void checkNull (mcPretty_pretty p);
 static void checkMemcpy (mcPretty_pretty p);
+static void checkException (mcPretty_pretty p);
 static scope new (decl_node n);
 static unsigned int mangle1 (nameKey_Name n, DynamicStrings_String *m, unsigned int scopes);
 static unsigned int mangle2 (nameKey_Name n, DynamicStrings_String *m, unsigned int scopes);
@@ -195,6 +199,12 @@ static void checkMemcpy (mcPretty_pretty p)
     mcPretty_print (p, (char *) "#include <string.h>\\n", 21);
 }
 
+static void checkException (mcPretty_pretty p)
+{
+  if (seenException)
+    mcPretty_print (p, (char *) "#include \"Gmcrts.h\"\\n", 21);
+}
+
 static scope new (decl_node n)
 {
   scope s;
@@ -207,6 +217,7 @@ static scope new (decl_node n)
       freeList = freeList->next;
     }
   return s;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/keyc.def", 19, 0);
 }
 
 static unsigned int mangle1 (nameKey_Name n, DynamicStrings_String *m, unsigned int scopes)
@@ -215,6 +226,7 @@ static unsigned int mangle1 (nameKey_Name n, DynamicStrings_String *m, unsigned 
   (*m) = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n));
   (*m) = DynamicStrings_ConCatChar ((*m), '_');
   return ! (clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes));
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/keyc.def", 19, 0);
 }
 
 static unsigned int mangle2 (nameKey_Name n, DynamicStrings_String *m, unsigned int scopes)
@@ -223,6 +235,7 @@ static unsigned int mangle2 (nameKey_Name n, DynamicStrings_String *m, unsigned 
   (*m) = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n));
   (*m) = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "_", 1), DynamicStrings_Mark ((*m)));
   return ! (clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes));
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/keyc.def", 19, 0);
 }
 
 static unsigned int mangleN (nameKey_Name n, DynamicStrings_String *m, unsigned int scopes)
@@ -235,6 +248,7 @@ static unsigned int mangleN (nameKey_Name n, DynamicStrings_String *m, unsigned 
     if (! (clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes)))
       return TRUE;
   }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/keyc.def", 19, 0);
 }
 
 static unsigned int clash (nameKey_Name n, unsigned int scopes)
@@ -242,6 +256,7 @@ static unsigned int clash (nameKey_Name n, unsigned int scopes)
   if (((symbolKey_getSymKey (macros, n)) != NULL) || ((symbolKey_getSymKey (keywords, n)) != NULL))
     return TRUE;
   return scopes && ((symbolKey_getSymKey (stack->symbols, n)) != NULL);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/keyc.def", 19, 0);
 }
 
 static void initCP (void)
@@ -342,6 +357,7 @@ static void init (void)
   seenAbs = FALSE;
   seenFabs = FALSE;
   seenFabsl = FALSE;
+  seenException = FALSE;
   initializedCP = FALSE;
   stack = NULL;
   freeList = NULL;
@@ -469,6 +485,11 @@ void keyc_useFabsl (void)
   seenFabsl = TRUE;
 }
 
+void keyc_useException (void)
+{
+  seenException = TRUE;
+}
+
 void keyc_genDefs (mcPretty_pretty p)
 {
   checkFreeMalloc (p);
@@ -480,6 +501,7 @@ void keyc_genDefs (mcPretty_pretty p)
   checkLimits (p);
   checkAbs (p);
   checkStorage (p);
+  checkException (p);
 }
 
 void keyc_enterScope (decl_node n)
@@ -529,6 +551,7 @@ DynamicStrings_String keyc_cname (nameKey_Name n, unsigned int scopes)
   else if (scopes)
     symbolKey_putSymKey (stack->symbols, n, (void *) DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
   return m;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/keyc.def", 19, 0);
 }
 
 nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes)
@@ -549,6 +572,7 @@ nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes)
     symbolKey_putSymKey (stack->symbols, n, (void *) DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
   m = DynamicStrings_KillString (m);
   return n;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/keyc.def", 19, 0);
 }
 
 void keyc_cp (void)

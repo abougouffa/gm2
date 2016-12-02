@@ -12,6 +12,7 @@
 
 #include <stddef.h>
 #   include "GStorage.h"
+#include "Gmcrts.h"
 #define _symbolKey_H
 #define _symbolKey_C
 
@@ -82,6 +83,7 @@ static unsigned int searchForAny (symbolKey_symbolTree t, symbolKey_isSymbol p)
     return FALSE;
   else
     return (((*p.proc) (t->key)) || (searchForAny (t->left, p))) || (searchForAny (t->right, p));
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/symbolKey.def", 19, 0);
 }
 
 static void searchAndDo (symbolKey_symbolTree t, symbolKey_performOperation p)
@@ -102,6 +104,7 @@ symbolKey_symbolTree symbolKey_initTree (void)
   t->left = NULL;
   t->right = NULL;
   return t;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/symbolKey.def", 19, 0);
 }
 
 void symbolKey_killTree (symbolKey_symbolTree *t)
@@ -130,6 +133,7 @@ void * symbolKey_getSymKey (symbolKey_symbolTree t, nameKey_Name name)
       else
         return child->key;
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/symbolKey.def", 19, 0);
 }
 
 void symbolKey_putSymKey (symbolKey_symbolTree t, nameKey_Name name, void * key)
@@ -208,11 +212,13 @@ void symbolKey_delSymKey (symbolKey_symbolTree t, nameKey_Name name)
 unsigned int symbolKey_isEmptyTree (symbolKey_symbolTree t)
 {
   return t->left == NULL;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/symbolKey.def", 19, 0);
 }
 
 unsigned int symbolKey_doesTreeContainAny (symbolKey_symbolTree t, symbolKey_isSymbol p)
 {
   return searchForAny (t->left, p);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/symbolKey.def", 19, 0);
 }
 
 void symbolKey_foreachNodeDo (symbolKey_symbolTree t, symbolKey_performOperation p)

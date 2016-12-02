@@ -14,6 +14,7 @@
 #      define FALSE (1==0)
 #   endif
 
+#include "Gmcrts.h"
 #define _IO_H
 #define _IO_C
 
@@ -54,6 +55,7 @@ static void Init (void);
 static unsigned int IsDefaultFd (int fd)
 {
   return (fd <= MaxDefaultFd) && (fd >= 0);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/IO.def", 20, 0);
 }
 
 static void doWrite (int fd, FIO_File f, char ch)

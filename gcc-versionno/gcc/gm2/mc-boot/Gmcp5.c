@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
+#include "Gmcrts.h"
 #define _mcp5_H
 #define _mcp5_C
 
@@ -271,26 +272,31 @@ static void followNode (decl_node n)
 static decl_node push (decl_node n)
 {
   return mcStack_push (stk, (void *) n);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp5.def", 19, 0);
 }
 
 static decl_node pop (void)
 {
   return mcStack_pop (stk);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp5.def", 19, 0);
 }
 
 static decl_node replace (decl_node n)
 {
   return mcStack_replace (stk, (void *) n);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp5.def", 19, 0);
 }
 
 static decl_node peep (void)
 {
   return push (pop ());
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp5.def", 19, 0);
 }
 
 static unsigned int depth (void)
 {
   return mcStack_depth (stk);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp5.def", 19, 0);
 }
 
 static void checkDuplicate (unsigned int b)
@@ -309,6 +315,7 @@ static unsigned int isQualident (decl_node n)
       return (type != NULL) && (decl_isRecord (type));
     }
   return FALSE;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp5.def", 19, 0);
 }
 
 static void startWith (decl_node n)
@@ -344,36 +351,43 @@ static decl_node lookupWithSym (nameKey_Name i)
       d -= 1;
     }
   return decl_lookupSym (i);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp5.def", 19, 0);
 }
 
 static decl_node pushStmt (decl_node n)
 {
   return mcStack_push (stmtStk, (void *) n);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp5.def", 19, 0);
 }
 
 static decl_node popStmt (void)
 {
   return mcStack_pop (stmtStk);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp5.def", 19, 0);
 }
 
 static decl_node peepStmt (void)
 {
   return pushStmt (popStmt ());
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp5.def", 19, 0);
 }
 
 static decl_node pushLoop (decl_node n)
 {
   return mcStack_push (loopStk, (void *) n);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp5.def", 19, 0);
 }
 
 static decl_node popLoop (void)
 {
   return mcStack_pop (loopStk);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp5.def", 19, 0);
 }
 
 static decl_node peepLoop (void)
 {
   return pushLoop (popLoop ());
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp5.def", 19, 0);
 }
 
 static void ErrorString (DynamicStrings_String s)
@@ -420,6 +434,7 @@ static decl_node makeIndexedArray (unsigned int c, decl_node t)
       c -= 1;
     }
   return t;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp5.def", 19, 0);
 }
 
 static void importInto (decl_node m, nameKey_Name name, decl_node current)
@@ -924,6 +939,7 @@ static DynamicStrings_String DescribeStop (SetOfStop0 stopset0, SetOfStop1 stops
       message = DynamicStrings_KillString (message);
     }
   return str;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp5.def", 19, 0);
 }
 
 static void DescribeError (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
@@ -1359,6 +1375,7 @@ static unsigned int CheckAndInsert (mcReserved_toktype t, SetOfStop0 stopset0, S
     }
   else
     return FALSE;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp5.def", 19, 0);
 }
 
 static unsigned int InStopSet (mcReserved_toktype t, SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
@@ -1367,6 +1384,7 @@ static unsigned int InStopSet (mcReserved_toktype t, SetOfStop0 stopset0, SetOfS
     return TRUE;
   else
     return FALSE;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp5.def", 19, 0);
 }
 
 static void PeepToken (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
@@ -3468,6 +3486,7 @@ unsigned int mcp5_CompilationUnit (void)
   mcStack_kill (&stmtStk);
   mcStack_kill (&loopStk);
   return WasNoError;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp5.def", 19, 0);
 }
 
 void _M2_mcp5_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

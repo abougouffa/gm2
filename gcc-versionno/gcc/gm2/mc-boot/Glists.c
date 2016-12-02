@@ -16,6 +16,7 @@
 
 #include <stddef.h>
 #   include "GStorage.h"
+#include "Gmcrts.h"
 #define _lists_H
 #define _lists_C
 
@@ -76,6 +77,7 @@ lists_list lists_initList (void)
   l->noOfelements = 0;
   l->next = NULL;
   return l;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/lists.def", 19, 0);
 }
 
 void lists_killList (lists_list *l)
@@ -115,6 +117,7 @@ void * lists_getItemFromList (lists_list l, unsigned int n)
       l = l->next;
     }
   return 0;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/lists.def", 19, 0);
 }
 
 unsigned int lists_getIndexOfList (lists_list l, void * c)
@@ -133,6 +136,7 @@ unsigned int lists_getIndexOfList (lists_list l, void * c)
           i += 1;
       return l->noOfelements+(lists_getIndexOfList (l->next, c));
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/lists.def", 19, 0);
 }
 
 unsigned int lists_noOfItemsInList (lists_list l)
@@ -150,6 +154,7 @@ unsigned int lists_noOfItemsInList (lists_list l)
       } while (! (l == NULL));
       return t;
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/lists.def", 19, 0);
 }
 
 void lists_includeItemIntoList (lists_list l, void * c)
@@ -199,6 +204,7 @@ unsigned int lists_isItemInList (lists_list l, void * c)
     l = l->next;
   } while (! (l == NULL));
   return FALSE;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/lists.def", 19, 0);
 }
 
 void lists_foreachItemInListDo (lists_list l, symbolKey_performOperation p)
@@ -230,6 +236,7 @@ lists_list lists_duplicateList (lists_list l)
       i += 1;
     }
   return m;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/lists.def", 19, 0);
 }
 
 void _M2_lists_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

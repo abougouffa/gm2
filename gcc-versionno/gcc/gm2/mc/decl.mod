@@ -56,11 +56,12 @@ FROM wlists IMPORT wlist ;
 
 
 CONST
-   indentation   = 3 ;
-   indentationC  = 2 ;
-   debugScopes   = FALSE ;
-   debugDecl     = FALSE ;
-   caseException =  TRUE ;
+   indentation     = 3 ;
+   indentationC    = 2 ;
+   debugScopes     = FALSE ;
+   debugDecl       = FALSE ;
+   caseException   = TRUE ;
+   returnException = TRUE ;
 
 TYPE
    language = (ansiC, ansiCP, pim4) ;
@@ -2565,7 +2566,7 @@ VAR
    n, s: node ;
 BEGIN
    s := skipType (subr) ;
-   assert (isSubrange (s) OR isOrdinal (s)) ;
+   assert (isSubrange (s) OR isOrdinal (s) OR isEnumeration (s)) ;
    n := newNode (array) ;
    n^.arrayF.subr := subr ;
    n^.arrayF.type := type ;
@@ -7146,6 +7147,13 @@ BEGIN
       doExprC (p, high) ;
       doSubtractC (p, low) ;
       outText (p, "+1")
+   ELSIF isEnumeration (s)
+   THEN
+      low := getMin (s) ;
+      high := getMax (s) ;
+      doExprC (p, high) ;
+      doSubtractC (p, low) ;
+      outText (p, "+1")
    ELSE
       assert (isSubrange (s)) ;
       IF (s^.subrangeF.high = NIL) OR (s^.subrangeF.low = NIL)
@@ -9940,6 +9948,45 @@ END doExceptionC ;
 
 
 (*
+   doExceptionCP -
+*)
+
+PROCEDURE doExceptionCP (p: pretty; a: ARRAY OF CHAR; n: node) ;
+VAR
+   w: CARDINAL ;
+BEGIN
+   w := getDeclaredMod (n) ;
+   outText (p, a) ;
+   setNeedSpace (p) ;
+   outText (p, '("') ;
+   outTextS (p, findFileNameFromToken (w, 0)) ;
+   outText (p, '",') ;
+   setNeedSpace (p) ;
+   outCard (p, tokenToLineNo (w, 0)) ;
+   outText (p, ',') ;
+   setNeedSpace (p) ;
+   outCard (p, tokenToColumnNo (w, 0)) ;
+   outText (p, ');\n') ;
+END doExceptionCP ;
+
+
+(*
+   doException -
+*)
+
+PROCEDURE doException (p: pretty; a: ARRAY OF CHAR; n: node) ;
+BEGIN
+   keyc.useException ;
+   IF lang = ansiCP
+   THEN
+      doExceptionCP (p, a, n)
+   ELSE
+      doExceptionC (p, a, n)
+   END
+END doException ;
+
+
+(*
    doRangeListC -
 *)
 
@@ -10121,7 +10168,7 @@ BEGIN
          outText (p, "\ndefault:\n") ;
          p := pushPretty (p) ;
          setindent (p, getindent (p) + indentationC) ;
-         doExceptionC (p, 'CaseException', n) ;
+         doException (p, 'CaseException', n) ;
          p := popPretty (p)
       END
    ELSE
@@ -10146,7 +10193,7 @@ BEGIN
          outText (p, "else {\n") ;
          p := pushPretty (p) ;
          setindent (p, getindent (p) + indentationC) ;
-         doExceptionC (p, 'CaseException', n) ;
+         doException (p, 'CaseException', n) ;
          p := popPretty (p) ;
          outText (p, "}\n")
       END
@@ -10414,6 +10461,13 @@ BEGIN
    END ;
 
    doStatementsC (doP, n^.procedureF.beginStatements) ;
+   IF n^.procedureF.returnType # NIL
+   THEN
+      IF returnException
+      THEN
+         doException (doP, 'ReturnException', n)
+      END
+   END ;
    doP := outKc (doP, "}\n") ;
    keyc.leaveScope (n)
 END doProcedureC ;

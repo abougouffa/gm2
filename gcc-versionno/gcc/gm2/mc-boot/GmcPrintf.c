@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
+#include "Gmcrts.h"
 #define _mcPrintf_H
 #define _mcPrintf_C
 
@@ -45,6 +46,7 @@ static unsigned int TranslateNameToCharStar (char *a, unsigned int _a_high, unsi
 static unsigned int isDigit (char ch)
 {
   return (ch >= '0') && (ch <= '9');
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcPrintf.def", 19, 0);
 }
 
 static void cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, unsigned int _b_high)
@@ -87,6 +89,7 @@ static unsigned int TranslateNameToCharStar (char *a, unsigned int _a_high, unsi
       i += 1;
     }
   return FALSE;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcPrintf.def", 19, 0);
 }
 
 void mcPrintf_printf0 (char *a_, unsigned int _a_high)

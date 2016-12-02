@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
+#include "Gmcrts.h"
 #define _mcOptions_H
 #define _mcOptions_C
 
@@ -159,6 +160,7 @@ static unsigned int optionIs (char *left_, unsigned int _left_high, DynamicStrin
     }
   else
     return FALSE;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcOptions.def", 19, 0);
 }
 
 static void setLang (DynamicStrings_String arg)
@@ -220,21 +222,25 @@ DynamicStrings_String mcOptions_handleOptions (void)
       i += 1;
     }
   return NULL;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcOptions.def", 19, 0);
 }
 
 unsigned int mcOptions_getQuiet (void)
 {
   return quiet;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcOptions.def", 19, 0);
 }
 
 unsigned int mcOptions_getVerbose (void)
 {
   return verbose;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcOptions.def", 19, 0);
 }
 
 unsigned int mcOptions_getInternalDebugging (void)
 {
   return internalDebugging;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcOptions.def", 19, 0);
 }
 
 DynamicStrings_String mcOptions_getCppCommandLine (void)
@@ -251,16 +257,19 @@ DynamicStrings_String mcOptions_getCppCommandLine (void)
         s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (s, ' '), DynamicStrings_Mark (DynamicStrings_InitString ((char *) "-quiet", 6)));
       return s;
     }
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcOptions.def", 19, 0);
 }
 
 DynamicStrings_String mcOptions_getOutputFile (void)
 {
   return outputFile;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcOptions.def", 19, 0);
 }
 
 unsigned int mcOptions_getExtendedOpaque (void)
 {
   return extendedOpaque;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcOptions.def", 19, 0);
 }
 
 void mcOptions_setDebugTopological (unsigned int value)
@@ -271,16 +280,19 @@ void mcOptions_setDebugTopological (unsigned int value)
 unsigned int mcOptions_getDebugTopological (void)
 {
   return debugTopological;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcOptions.def", 19, 0);
 }
 
 DynamicStrings_String mcOptions_getHPrefix (void)
 {
   return hPrefix;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcOptions.def", 19, 0);
 }
 
 unsigned int mcOptions_getIgnoreFQ (void)
 {
   return ignoreFQ;
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcOptions.def", 19, 0);
 }
 
 void _M2_mcOptions_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
