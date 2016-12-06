@@ -8,7 +8,6 @@
 
 #include <string.h>
 #include <limits.h>
-#include "Gmcrts.h"
 #define _CmdArgs_H
 #define _CmdArgs_C
 
@@ -69,7 +68,6 @@ static unsigned int GetNextArg (char *CmdLine_, unsigned int _CmdLine_high, unsi
   if (ArgIndex < HighA)
     Arg[ArgIndex] = ASCII_nul;
   return (*CmdIndex) < HighC;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/CmdArgs.def", 20, 0);
 }
 
 static void CopyUntilSpace (char *From_, unsigned int _From_high, unsigned int *FromIndex, unsigned int FromHigh, char *To, unsigned int _To_high, unsigned int *ToIndex, unsigned int ToHigh)
@@ -117,25 +115,21 @@ static void CopyChar (char *From_, unsigned int _From_high, unsigned int *FromIn
 static unsigned int Escape (char ch)
 {
   return ch == esc;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/CmdArgs.def", 20, 0);
 }
 
 static unsigned int Space (char ch)
 {
   return (ch == space) || (ch == tab);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/CmdArgs.def", 20, 0);
 }
 
 static unsigned int DoubleQuote (char ch)
 {
   return ch == dquote;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/CmdArgs.def", 20, 0);
 }
 
 static unsigned int SingleQuote (char ch)
 {
   return ch == squote;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/CmdArgs.def", 20, 0);
 }
 
 unsigned int CmdArgs_GetArg (char *CmdLine_, unsigned int _CmdLine_high, unsigned int n, char *Argi, unsigned int _Argi_high)
@@ -155,7 +149,6 @@ unsigned int CmdArgs_GetArg (char *CmdLine_, unsigned int _CmdLine_high, unsigne
     i += 1;
   } while (! ((i > n) || ! Another));
   return i > n;
-  ReturnException ("", 0, 0);
 }
 
 unsigned int CmdArgs_Narg (char *CmdLine_, unsigned int _CmdLine_high)
@@ -174,7 +167,6 @@ unsigned int CmdArgs_Narg (char *CmdLine_, unsigned int _CmdLine_high)
   while (CmdArgs_GetArg ((char *) CmdLine, _CmdLine_high, ArgNo, (char *) &a.array[0], 1000))
     ArgNo += 1;
   return ArgNo;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/CmdArgs.def", 20, 0);
 }
 
 void _M2_CmdArgs_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

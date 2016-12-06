@@ -1552,7 +1552,7 @@ mc-verify:  mc-clean mc-bootstrap mc
               if diff mcout.c mcout.m2 > /dev/null ; then \
                  echo "[passed]" ; \
               else \
-                 echo "[failed]" ; \
+                 echo "[*** failed ***]" ; \
                  diff mcout.c mcout.m2 > $$i.mc-diff ; \
               fi \
            fi ; \

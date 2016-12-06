@@ -18,7 +18,6 @@
 #include <string.h>
 #include <limits.h>
 #   include "GStorage.h"
-#include "Gmcrts.h"
 #define _mcPretty_H
 #define _mcPretty_C
 
@@ -112,7 +111,6 @@ mcPretty_pretty mcPretty_initPretty (mcPretty_writeProc w, mcPretty_writeLnProc 
   p->indent = 0;
   p->stacked = NULL;
   return p;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcPretty.def", 19, 0);
 }
 
 mcPretty_pretty mcPretty_dupPretty (mcPretty_pretty p)
@@ -122,7 +120,6 @@ mcPretty_pretty mcPretty_dupPretty (mcPretty_pretty p)
   Storage_ALLOCATE ((void **) &q, sizeof (_T1));
   (*q) = (*p);
   return q;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcPretty.def", 19, 0);
 }
 
 void mcPretty_killPretty (mcPretty_pretty *p)
@@ -138,7 +135,6 @@ mcPretty_pretty mcPretty_pushPretty (mcPretty_pretty p)
   q = mcPretty_dupPretty (p);
   q->stacked = p;
   return q;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcPretty.def", 19, 0);
 }
 
 mcPretty_pretty mcPretty_popPretty (mcPretty_pretty p)
@@ -153,13 +149,11 @@ mcPretty_pretty mcPretty_popPretty (mcPretty_pretty p)
   q->curLine = p->curLine;
   mcPretty_killPretty (&p);
   return q;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcPretty.def", 19, 0);
 }
 
 unsigned int mcPretty_getindent (mcPretty_pretty p)
 {
   return p->indent;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcPretty.def", 19, 0);
 }
 
 void mcPretty_setindent (mcPretty_pretty p, unsigned int n)
@@ -173,19 +167,16 @@ unsigned int mcPretty_getcurpos (mcPretty_pretty s)
     return s->curPos+1;
   else
     return s->curPos;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcPretty.def", 19, 0);
 }
 
 unsigned int mcPretty_getseekpos (mcPretty_pretty s)
 {
   return s->seekPos;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcPretty.def", 19, 0);
 }
 
 unsigned int mcPretty_getcurline (mcPretty_pretty s)
 {
   return s->curLine;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcPretty.def", 19, 0);
 }
 
 void mcPretty_setNeedSpace (mcPretty_pretty s)

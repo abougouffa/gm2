@@ -18,7 +18,6 @@
 #include <string.h>
 #include <limits.h>
 #   include "GStorage.h"
-#include "Gmcrts.h"
 #define _DynamicStrings_H
 #define _DynamicStrings_C
 
@@ -263,7 +262,6 @@ static unsigned int Capture (DynamicStrings_String s)
 {
   captured = s;
   return 1;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 static unsigned int Min (unsigned int a, unsigned int b)
@@ -272,7 +270,6 @@ static unsigned int Min (unsigned int a, unsigned int b)
     return a;
   else
     return b;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 static unsigned int Max (unsigned int a, unsigned int b)
@@ -281,7 +278,6 @@ static unsigned int Max (unsigned int a, unsigned int b)
     return a;
   else
     return b;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 static void writeString (char *a_, unsigned int _a_high)
@@ -379,7 +375,6 @@ static DynamicStrings_String AssignDebug (DynamicStrings_String s, char *file_, 
   if ((libc_strncpy (s->debug.proc, p, (StrLib_StrLen ((char *) proc, _proc_high))+1)) == NULL)
     {}  /* empty.  */
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 static unsigned int IsOn (DynamicStrings_String list, DynamicStrings_String s)
@@ -387,7 +382,6 @@ static unsigned int IsOn (DynamicStrings_String list, DynamicStrings_String s)
   while ((list != s) && (list != NULL))
     list = list->debug.next;
   return list == s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 static void AddTo (DynamicStrings_String *list, DynamicStrings_String s)
@@ -448,7 +442,6 @@ static unsigned int IsOnAllocated (DynamicStrings_String s)
       f = f->next;
   } while (! (f == NULL));
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 static unsigned int IsOnDeallocated (DynamicStrings_String s)
@@ -464,7 +457,6 @@ static unsigned int IsOnDeallocated (DynamicStrings_String s)
       f = f->next;
   } while (! (f == NULL));
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 static void SubAllocated (DynamicStrings_String s)
@@ -575,7 +567,6 @@ static DynamicStrings_String CheckPoisoned (DynamicStrings_String s)
   if (((PoisonOn && (s != NULL)) && (s->head != NULL)) && (s->head->state == poisoned))
     M2RTS_HALT (0);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 static void MarkInvalid (DynamicStrings_String s)
@@ -641,7 +632,6 @@ static DynamicStrings_String AddToGarbage (DynamicStrings_String a, DynamicStrin
         SubDebugInfo (b);
     }
   return a;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 static unsigned int IsOnGarbage (DynamicStrings_String e, DynamicStrings_String s)
@@ -653,13 +643,11 @@ static unsigned int IsOnGarbage (DynamicStrings_String e, DynamicStrings_String 
       else
         e = e->head->garbage;
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 static unsigned int IsWhite (char ch)
 {
   return (ch == ' ') || (ch == ASCII_tab);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 static void DumpState (DynamicStrings_String s)
@@ -765,7 +753,6 @@ DynamicStrings_String DynamicStrings_InitString (char *a_, unsigned int _a_high)
   if (TraceOn)
     s = AssignDebug (s, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.mod", 51, 750, (char *) "InitString", 10);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_KillString (DynamicStrings_String s)
@@ -801,7 +788,6 @@ DynamicStrings_String DynamicStrings_KillString (DynamicStrings_String s)
         Storage_DEALLOCATE ((void **) &s, sizeof (stringRecord));
     }
   return NULL;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 void DynamicStrings_Fin (DynamicStrings_String s)
@@ -830,7 +816,6 @@ DynamicStrings_String DynamicStrings_InitStringCharStar (void * a)
   if (TraceOn)
     s = AssignDebug (s, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.mod", 51, 949, (char *) "InitStringCharStar", 18);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_InitStringChar (char ch)
@@ -847,7 +832,6 @@ DynamicStrings_String DynamicStrings_InitStringChar (char ch)
   if (TraceOn)
     s = AssignDebug (s, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.mod", 51, 969, (char *) "InitStringChar", 14);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_Mark (DynamicStrings_String s)
@@ -857,7 +841,6 @@ DynamicStrings_String DynamicStrings_Mark (DynamicStrings_String s)
   if ((s != NULL) && (s->head->state == inuse))
     s->head->state = marked;
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 unsigned int DynamicStrings_Length (DynamicStrings_String s)
@@ -866,7 +849,6 @@ unsigned int DynamicStrings_Length (DynamicStrings_String s)
     return 0;
   else
     return s->contents.len+(DynamicStrings_Length (s->contents.next));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_ConCat (DynamicStrings_String a, DynamicStrings_String b)
@@ -896,7 +878,6 @@ DynamicStrings_String DynamicStrings_ConCat (DynamicStrings_String a, DynamicStr
   if ((a == NULL) && (b != NULL))
     M2RTS_HALT (0);
   return a;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_ConCatChar (DynamicStrings_String a, char ch)
@@ -917,7 +898,6 @@ DynamicStrings_String DynamicStrings_ConCatChar (DynamicStrings_String a, char c
     t = t->contents.next;
   ConcatContents (&t->contents, (char *) &b.array[0], 1, 1, 0);
   return a;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_Assign (DynamicStrings_String a, DynamicStrings_String b)
@@ -933,7 +913,6 @@ DynamicStrings_String DynamicStrings_Assign (DynamicStrings_String a, DynamicStr
       a->contents.len = 0;
     }
   return DynamicStrings_ConCat (a, b);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_Dup (DynamicStrings_String s)
@@ -944,7 +923,6 @@ DynamicStrings_String DynamicStrings_Dup (DynamicStrings_String s)
   if (TraceOn)
     s = AssignDebug (s, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.mod", 51, 1165, (char *) "Dup", 3);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_Add (DynamicStrings_String a, DynamicStrings_String b)
@@ -958,7 +936,6 @@ DynamicStrings_String DynamicStrings_Add (DynamicStrings_String a, DynamicString
   if (TraceOn)
     a = AssignDebug (a, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.mod", 51, 1185, (char *) "Add", 3);
   return a;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 unsigned int DynamicStrings_Equal (DynamicStrings_String a, DynamicStrings_String b)
@@ -993,7 +970,6 @@ unsigned int DynamicStrings_Equal (DynamicStrings_String a, DynamicStrings_Strin
     }
   else
     return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 unsigned int DynamicStrings_EqualCharStar (DynamicStrings_String s, void * a)
@@ -1016,7 +992,6 @@ unsigned int DynamicStrings_EqualCharStar (DynamicStrings_String s, void * a)
       t = DynamicStrings_KillString (t);
       return FALSE;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 unsigned int DynamicStrings_EqualArray (DynamicStrings_String s, char *a_, unsigned int _a_high)
@@ -1043,7 +1018,6 @@ unsigned int DynamicStrings_EqualArray (DynamicStrings_String s, char *a_, unsig
       t = DynamicStrings_KillString (t);
       return FALSE;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_Mult (DynamicStrings_String s, unsigned int n)
@@ -1057,7 +1031,6 @@ DynamicStrings_String DynamicStrings_Mult (DynamicStrings_String s, unsigned int
   if (TraceOn)
     s = AssignDebug (s, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.mod", 51, 1312, (char *) "Mult", 4);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_Slice (DynamicStrings_String s, int low, int high)
@@ -1116,7 +1089,6 @@ DynamicStrings_String DynamicStrings_Slice (DynamicStrings_String s, int low, in
   if (TraceOn)
     d = AssignDebug (d, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.mod", 51, 1397, (char *) "Slice", 5);
   return d;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 int DynamicStrings_Index (DynamicStrings_String s, char ch, unsigned int o)
@@ -1146,7 +1118,6 @@ int DynamicStrings_Index (DynamicStrings_String s, char ch, unsigned int o)
       s = s->contents.next;
     }
   return -1;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 int DynamicStrings_RIndex (DynamicStrings_String s, char ch, unsigned int o)
@@ -1180,7 +1151,6 @@ int DynamicStrings_RIndex (DynamicStrings_String s, char ch, unsigned int o)
       s = s->contents.next;
     }
   return j;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_RemoveComment (DynamicStrings_String s, char comment)
@@ -1195,7 +1165,6 @@ DynamicStrings_String DynamicStrings_RemoveComment (DynamicStrings_String s, cha
   if (TraceOn)
     s = AssignDebug (s, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.mod", 51, 1509, (char *) "RemoveComment", 13);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_RemoveWhitePrefix (DynamicStrings_String s)
@@ -1209,7 +1178,6 @@ DynamicStrings_String DynamicStrings_RemoveWhitePrefix (DynamicStrings_String s)
   if (TraceOn)
     s = AssignDebug (s, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.mod", 51, 1621, (char *) "RemoveWhitePrefix", 17);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_RemoveWhitePostfix (DynamicStrings_String s)
@@ -1223,7 +1191,6 @@ DynamicStrings_String DynamicStrings_RemoveWhitePostfix (DynamicStrings_String s
   if (TraceOn)
     s = AssignDebug (s, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.mod", 51, 1643, (char *) "RemoveWhitePostfix", 18);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_ToUpper (DynamicStrings_String s)
@@ -1250,7 +1217,6 @@ DynamicStrings_String DynamicStrings_ToUpper (DynamicStrings_String s)
         }
     }
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_ToLower (DynamicStrings_String s)
@@ -1277,7 +1243,6 @@ DynamicStrings_String DynamicStrings_ToLower (DynamicStrings_String s)
         }
     }
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 void DynamicStrings_CopyOut (char *a, unsigned int _a_high, DynamicStrings_String s)
@@ -1315,7 +1280,6 @@ char DynamicStrings_char (DynamicStrings_String s, int i)
     return ASCII_nul;
   else
     return s->contents.buf.array[c];
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 void * DynamicStrings_string (DynamicStrings_String s)
@@ -1359,7 +1323,6 @@ void * DynamicStrings_string (DynamicStrings_String s)
         }
       return s->head->charStar;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_InitStringDB (char *a_, unsigned int _a_high, char *file_, unsigned int _file_high, unsigned int line)
@@ -1372,7 +1335,6 @@ DynamicStrings_String DynamicStrings_InitStringDB (char *a_, unsigned int _a_hig
   memcpy (file, file_, _file_high+1);
 
   return AssignDebug (DynamicStrings_InitString ((char *) a, _a_high), (char *) file, _file_high, line, (char *) "InitString", 10);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_InitStringCharStarDB (void * a, char *file_, unsigned int _file_high, unsigned int line)
@@ -1383,7 +1345,6 @@ DynamicStrings_String DynamicStrings_InitStringCharStarDB (void * a, char *file_
   memcpy (file, file_, _file_high+1);
 
   return AssignDebug (DynamicStrings_InitStringCharStar (a), (char *) file, _file_high, line, (char *) "InitStringCharStar", 18);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_InitStringCharDB (char ch, char *file_, unsigned int _file_high, unsigned int line)
@@ -1394,7 +1355,6 @@ DynamicStrings_String DynamicStrings_InitStringCharDB (char ch, char *file_, uns
   memcpy (file, file_, _file_high+1);
 
   return AssignDebug (DynamicStrings_InitStringChar (ch), (char *) file, _file_high, line, (char *) "InitStringChar", 14);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_MultDB (DynamicStrings_String s, unsigned int n, char *file_, unsigned int _file_high, unsigned int line)
@@ -1405,7 +1365,6 @@ DynamicStrings_String DynamicStrings_MultDB (DynamicStrings_String s, unsigned i
   memcpy (file, file_, _file_high+1);
 
   return AssignDebug (DynamicStrings_Mult (s, n), (char *) file, _file_high, line, (char *) "Mult", 4);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_DupDB (DynamicStrings_String s, char *file_, unsigned int _file_high, unsigned int line)
@@ -1416,7 +1375,6 @@ DynamicStrings_String DynamicStrings_DupDB (DynamicStrings_String s, char *file_
   memcpy (file, file_, _file_high+1);
 
   return AssignDebug (DynamicStrings_Dup (s), (char *) file, _file_high, line, (char *) "Dup", 3);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 DynamicStrings_String DynamicStrings_SliceDB (DynamicStrings_String s, int low, int high, char *file_, unsigned int _file_high, unsigned int line)
@@ -1430,7 +1388,6 @@ DynamicStrings_String DynamicStrings_SliceDB (DynamicStrings_String s, int low, 
   s = AssignDebug (DynamicStrings_Slice (s, low, high), (char *) file, _file_high, line, (char *) "Slice", 5);
   DSdbExit (s);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 void DynamicStrings_PushAllocation (void)
@@ -1489,7 +1446,6 @@ DynamicStrings_String DynamicStrings_PopAllocationExemption (unsigned int halt, 
       frameHead = frameHead->next;
     }
   return e;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.def", 21, 0);
 }
 
 void _M2_DynamicStrings_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

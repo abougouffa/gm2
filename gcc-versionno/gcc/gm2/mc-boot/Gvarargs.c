@@ -10,7 +10,6 @@
 #include <string.h>
 #include <limits.h>
 #   include "GStorage.h"
-#include "Gmcrts.h"
 #define _varargs_H
 #define _varargs_C
 
@@ -56,7 +55,6 @@ varargs_vararg varargs_start4 (unsigned char *a_, unsigned int _a_high, unsigned
 unsigned int varargs_nargs (varargs_vararg v)
 {
   return v->nArgs;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/varargs.def", 19, 0);
 }
 
 void varargs_arg (varargs_vararg v, unsigned char *a, unsigned int _a_high)
@@ -109,7 +107,6 @@ varargs_vararg varargs_copy (varargs_vararg v)
       c->arg.array[j].len = v->arg.array[j].len;
     }
   return c;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/varargs.def", 19, 0);
 }
 
 void varargs_replace (varargs_vararg v, unsigned char *a, unsigned int _a_high)
@@ -161,7 +158,6 @@ varargs_vararg varargs_start1 (unsigned char *a_, unsigned int _a_high)
   v->arg.array[0].ptr = v->contents;
   v->arg.array[0].len = v->size;
   return v;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/varargs.def", 19, 0);
 }
 
 varargs_vararg varargs_start2 (unsigned char *a_, unsigned int _a_high, unsigned char *b_, unsigned int _b_high)
@@ -188,7 +184,6 @@ varargs_vararg varargs_start2 (unsigned char *a_, unsigned int _a_high, unsigned
   v->arg.array[1].ptr = p;
   v->arg.array[1].len = (_b_high)+1;
   return v;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/varargs.def", 19, 0);
 }
 
 varargs_vararg varargs_start3 (unsigned char *a_, unsigned int _a_high, unsigned char *b_, unsigned int _b_high, unsigned char *c_, unsigned int _c_high)
@@ -221,7 +216,6 @@ varargs_vararg varargs_start3 (unsigned char *a_, unsigned int _a_high, unsigned
   v->arg.array[2].ptr = p;
   v->arg.array[2].len = (_c_high)+1;
   return v;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/varargs.def", 19, 0);
 }
 
 varargs_vararg varargs_start4 (unsigned char *a_, unsigned int _a_high, unsigned char *b_, unsigned int _b_high, unsigned char *c_, unsigned int _c_high, unsigned char *d_, unsigned int _d_high)
@@ -259,7 +253,6 @@ varargs_vararg varargs_start4 (unsigned char *a_, unsigned int _a_high, unsigned
   v->arg.array[3].ptr = p;
   v->arg.array[3].len = (_c_high)+1;
   return v;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/varargs.def", 19, 0);
 }
 
 void _M2_varargs_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

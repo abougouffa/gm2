@@ -16,7 +16,6 @@
 
 #include <stddef.h>
 #   include "GStorage.h"
-#include "Gmcrts.h"
 #define _Indexing_H
 #define _Indexing_C
 
@@ -78,7 +77,6 @@ Indexing_Index Indexing_InitIndex (unsigned int low)
   i->Used = 0;
   i->Map = (unsigned int) 0;
   return i;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/Indexing.def", 19, 0);
 }
 
 Indexing_Index Indexing_KillIndex (Indexing_Index i)
@@ -86,14 +84,12 @@ Indexing_Index Indexing_KillIndex (Indexing_Index i)
   Storage_DEALLOCATE (&i->ArrayStart, i->ArraySize);
   Storage_DEALLOCATE ((void **) &i, sizeof (_T1));
   return NULL;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/Indexing.def", 19, 0);
 }
 
 Indexing_Index Indexing_DebugIndex (Indexing_Index i)
 {
   i->Debug = TRUE;
   return i;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/Indexing.def", 19, 0);
 }
 
 unsigned int Indexing_InBounds (Indexing_Index i, unsigned int n)
@@ -102,7 +98,6 @@ unsigned int Indexing_InBounds (Indexing_Index i, unsigned int n)
     M2RTS_HALT (0);
   else
     return (n >= i->Low) && (n <= i->High);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/Indexing.def", 19, 0);
 }
 
 unsigned int Indexing_HighIndice (Indexing_Index i)
@@ -111,7 +106,6 @@ unsigned int Indexing_HighIndice (Indexing_Index i)
     M2RTS_HALT (0);
   else
     return i->High;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/Indexing.def", 19, 0);
 }
 
 unsigned int Indexing_LowIndice (Indexing_Index i)
@@ -120,7 +114,6 @@ unsigned int Indexing_LowIndice (Indexing_Index i)
     M2RTS_HALT (0);
   else
     return i->Low;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/Indexing.def", 19, 0);
 }
 
 void Indexing_PutIndice (Indexing_Index i, unsigned int n, void * a)
@@ -173,7 +166,6 @@ void * Indexing_GetIndice (Indexing_Index i, unsigned int n)
     if (((n < 32) && (! ((((1 << (n)) & (i->Map)) != 0)))) && ((*p) != NULL))
       M2RTS_HALT (0);
   return (*p);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/Indexing.def", 19, 0);
 }
 
 unsigned int Indexing_IsIndiceInIndex (Indexing_Index i, void * a)
@@ -193,7 +185,6 @@ unsigned int Indexing_IsIndiceInIndex (Indexing_Index i, void * a)
       j += 1;
     }
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/Indexing.def", 19, 0);
 }
 
 void Indexing_RemoveIndiceFromIndex (Indexing_Index i, void * a)

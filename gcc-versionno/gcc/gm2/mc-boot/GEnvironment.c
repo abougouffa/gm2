@@ -9,7 +9,6 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
-#include "Gmcrts.h"
 #define _Environment_H
 #define _Environment_C
 
@@ -42,7 +41,6 @@ unsigned int Environment_GetEnvironment (char *Env_, unsigned int _Env_high, cha
   if (i < High)
     a[i] = ASCII_nul;
   return Addr != NULL;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/Environment.def", 20, 0);
 }
 
 void _M2_Environment_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

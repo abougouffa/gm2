@@ -816,7 +816,8 @@ DefVarIdent := Ident
 DefVarIdentList := DefVarIdent { "," DefVarIdent }
                  =:
 
-DefVariableDeclaration := DefVarIdentList ":" Type Alignment
+DefVariableDeclaration :=                                               % typeDes := NIL %
+                          DefVarIdentList ":" Type Alignment
                         =:
 
 Designator := Qualident
@@ -1085,7 +1086,7 @@ DefEnumIdentList :=                                                     % VAR n,
                                                                         % n := makeEnum () %
                     Ident                                               % f := makeEnumField (n, curident) %
 		          { "," Ident                                   % f := makeEnumField (n, curident) %
-			              }                                 % putType (typeDes, n) %
+                                                                 }      % IF typeDes # NIL THEN putType (typeDes, n) END %
                   =:
 
 DefEnumeration := "(" DefEnumIdentList ")" =:

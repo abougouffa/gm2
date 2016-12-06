@@ -39,7 +39,6 @@ unsigned int M2EXCEPTION_IsM2Exception (void)
 
   e = RTExceptions_GetExceptionBlock ();
   return (RTExceptions_GetNumber (e)) != (UINT_MAX);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/M2EXCEPTION.def", 10, 0);
 }
 
 void _M2_M2EXCEPTION_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

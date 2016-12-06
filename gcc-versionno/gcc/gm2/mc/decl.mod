@@ -3900,29 +3900,34 @@ PROCEDURE makeUnary (k: nodeT; e: node; res: node) : node ;
 VAR
    n: node ;
 BEGIN
-   NEW (n) ;
-   WITH n^ DO
-      kind := k ;
-      CASE kind OF
+   IF k=plus
+   THEN
+      RETURN e
+   ELSE
+      NEW (n) ;
+      WITH n^ DO
+         kind := k ;
+         CASE kind OF
 
-      throw,
-      deref,
-      high,
-      chr,
-      abs,
-      ord,
-      float,
-      trunc,
-      constexp,
-      not,
-      neg,
-      adr,
-      size,
-      tsize:  WITH unaryF DO
-                 arg := e ;
-                 resultType := res
-              END
+         throw,
+         deref,
+         high,
+         chr,
+         abs,
+         ord,
+         float,
+         trunc,
+         constexp,
+         not,
+         neg,
+         adr,
+         size,
+         tsize:  WITH unaryF DO
+                    arg := e ;
+                    resultType := res
+                 END
 
+         END
       END
    END ;
    RETURN n
@@ -5523,19 +5528,21 @@ BEGIN
    outText (p, '[') ;
    i := 1 ;
    c := expListLen (n^.arrayrefF.index) ;
-   assert (c = 1) ;
    WHILE i<=c DO
       doExprC (p, getExpList (n^.arrayrefF.index, i)) ;
-      IF NOT isUnbounded (t)
+      IF isUnbounded (t)
       THEN
-         doSubtractC (p, getMin (t^.arrayF.subr))
+         assert (c = 1)
+      ELSE
+         doSubtractC (p, getMin (t^.arrayF.subr)) ;
+	 IF i<c
+         THEN
+            assert (isArray (t)) ;
+            outText (p, '].array[') ;
+            t := skipType (getType (t))
+         END
       END ;
-      INC (i) ;
-      IF i<c
-      THEN
-         outText (p, ",") ;
-         setNeedSpace (p)
-      END
+      INC (i)
    END ;
    outText (p, ']')
 END doArrayRef ;
@@ -7085,6 +7092,7 @@ END doMax ;
 
 PROCEDURE getMax (n: node) : node ;
 BEGIN
+   n := skipType (n) ;
    IF isSubrange (n)
    THEN
       RETURN n^.subrangeF.high
@@ -7104,6 +7112,7 @@ END getMax ;
 
 PROCEDURE getMin (n: node) : node ;
 BEGIN
+   n := skipType (n) ;
    IF isSubrange (n)
    THEN
       RETURN n^.subrangeF.low
@@ -9656,6 +9665,9 @@ BEGIN
    THEN
       keyc.useFabsl ;
       outText (p, "fabsl")
+   ELSIF t = cardinalN
+   THEN
+      (* do nothing.  *)
    ELSE
       HALT
    END ;
@@ -10435,6 +10447,166 @@ END includeParameters ;
 
 
 (*
+   isHalt -
+*)
+
+PROCEDURE isHalt (n: node) : BOOLEAN ;
+BEGIN
+   RETURN (n^.funccallF.function = haltN) OR (n^.funccallF.function^.kind = halt)
+END isHalt ;
+
+
+(*
+   isReturnOrHalt -
+*)
+
+PROCEDURE isReturnOrHalt (n: node) : BOOLEAN ;
+BEGIN
+   RETURN isHalt (n) OR isReturn (n)
+END isReturnOrHalt ;
+
+
+(*
+   isLastStatementReturn -
+*)
+
+PROCEDURE isLastStatementReturn (n: node) : BOOLEAN ;
+BEGIN
+   RETURN isLastStatement (n, isReturnOrHalt)
+END isLastStatementReturn ;
+
+
+(*
+   isLastStatementSequence -
+*)
+
+PROCEDURE isLastStatementSequence (n: node; q: isNodeF) : BOOLEAN ;
+VAR
+   h  : CARDINAL ;
+BEGIN
+   assert (isStatementSequence (n)) ;
+   h := HighIndice (n^.stmtF.statements) ;
+   IF h > 0
+   THEN
+      RETURN isLastStatement (GetIndice (n^.stmtF.statements, h), q)
+   END ;
+   RETURN FALSE
+END isLastStatementSequence ;
+
+
+(*
+   isLastStatementIf -
+*)
+
+PROCEDURE isLastStatementIf (n: node; q: isNodeF) : BOOLEAN ;
+VAR
+   ret: BOOLEAN ;
+BEGIN
+   assert (isIf (n)) ;
+   ret := TRUE ;
+   IF (n^.ifF.elsif # NIL) AND ret
+   THEN
+      ret := isLastStatement (n^.ifF.elsif, q)
+   END ;
+   IF (n^.ifF.then # NIL) AND ret
+   THEN
+      ret := isLastStatement (n^.ifF.then, q)
+   END ;
+   IF (n^.ifF.else # NIL) AND ret
+   THEN
+      ret := isLastStatement (n^.ifF.else, q)
+   END ;
+   RETURN ret
+END isLastStatementIf ;
+
+
+(*
+   isLastStatementElsif -
+*)
+
+PROCEDURE isLastStatementElsif (n: node; q: isNodeF) : BOOLEAN ;
+VAR
+   ret: BOOLEAN ;
+BEGIN
+   assert (isElsif (n)) ;
+   ret := TRUE ;
+   IF (n^.elsifF.elsif # NIL) AND ret
+   THEN
+      ret := isLastStatement (n^.elsifF.elsif, q)
+   END ;
+   IF (n^.elsifF.then # NIL) AND ret
+   THEN
+      ret := isLastStatement (n^.elsifF.then, q)
+   END ;
+   IF (n^.elsifF.else # NIL) AND ret
+   THEN
+      ret := isLastStatement (n^.elsifF.else, q)
+   END ;
+   RETURN ret
+END isLastStatementElsif ;
+
+
+(*
+   isLastStatementCase -
+*)
+
+PROCEDURE isLastStatementCase (n: node; q: isNodeF) : BOOLEAN ;
+VAR
+   ret : BOOLEAN ;
+   i, h: CARDINAL ;
+   c   : node ;
+BEGIN
+   ret := TRUE ;
+   assert (isCase (n)) ;
+   i := 1 ;
+   h := HighIndice (n^.caseF.caseLabelList) ;
+   WHILE i<=h DO
+      c := GetIndice (n^.caseF.caseLabelList, i) ;
+      assert (isCaseLabelList (c)) ;
+      ret := ret AND isLastStatement (c^.caselabellistF.statements, q) ;
+      INC (i)
+   END ;
+   IF n^.caseF.else # NIL
+   THEN
+      ret := ret AND isLastStatement (n^.caseF.else, q)
+   END ;
+   RETURN ret
+END isLastStatementCase ;
+
+
+(*
+   isLastStatement - returns TRUE if the last statement in, n, is, q.
+*)
+
+PROCEDURE isLastStatement (n: node; q: isNodeF) : BOOLEAN ;
+VAR
+   ret: BOOLEAN ;
+BEGIN
+   IF isStatementSequence (n)
+   THEN
+      RETURN isLastStatementSequence (n, q)
+   ELSIF isProcedure (n)
+   THEN
+      assert (isProcedure (n)) ;
+      RETURN isLastStatement (n^.procedureF.beginStatements, q)
+   ELSIF isIf (n)
+   THEN
+      RETURN isLastStatementIf (n, q)
+   ELSIF isElsif (n)
+   THEN
+      RETURN isLastStatementElsif (n, q)
+   ELSIF isCase (n)
+   THEN
+      RETURN isLastStatementCase (n, q)
+   ELSIF q (n)
+   THEN
+      RETURN TRUE
+   END ;
+   RETURN FALSE
+END isLastStatement ;
+
+
+(*
    doProcedureC -
 *)
 
@@ -10463,7 +10635,7 @@ BEGIN
    doStatementsC (doP, n^.procedureF.beginStatements) ;
    IF n^.procedureF.returnType # NIL
    THEN
-      IF returnException
+      IF returnException AND (NOT isLastStatementReturn (n))
       THEN
          doException (doP, 'ReturnException', n)
       END
@@ -14644,6 +14816,21 @@ END dupSetValue ;
 
 PROCEDURE dupExpr (n: node) : node ;
 BEGIN
+   IF n = NIL
+   THEN
+      RETURN NIL
+   ELSE
+      RETURN doDupExpr (n)
+   END
+END dupExpr ;
+
+
+(*
+   doDupExpr -
+*)
+
+PROCEDURE doDupExpr (n: node) : node ;
+BEGIN
    assert (n # NIL) ;
    CASE n^.kind OF
 
@@ -14660,7 +14847,7 @@ BEGIN
    address,
    loc,
    byte,
-   word            :  |
+   word,
    (* base types.  *)
    boolean,
    proc,
@@ -14759,7 +14946,7 @@ BEGIN
    setvalue        :  RETURN dupSetValue (n)
 
    END
-END dupExpr ;
+END doDupExpr ;
 
 
 (*

@@ -16,7 +16,6 @@
 
 #include <string.h>
 #include <limits.h>
-#include "Gmcrts.h"
 #define _FormatStrings_H
 #define _FormatStrings_C
 
@@ -61,7 +60,6 @@ static void DSdbExit (DynamicStrings_String s)
 static unsigned int IsDigit (char ch)
 {
   return (ch >= '0') && (ch <= '9');
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FormatStrings.def", 19, 0);
 }
 
 static void Cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, unsigned int _b_high)
@@ -108,7 +106,6 @@ static DynamicStrings_String HandleEscape (DynamicStrings_String s)
   s = DynamicStrings_ConCat (d, DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), j, 0)));
   DSdbExit (s);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FormatStrings.def", 19, 0);
 }
 
 static DynamicStrings_String FormatString (DynamicStrings_String s, unsigned char *w_, unsigned int _w_high)
@@ -201,7 +198,6 @@ static DynamicStrings_String FormatString (DynamicStrings_String s, unsigned cha
     s = DynamicStrings_Dup (s);
   DSdbExit (s);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FormatStrings.def", 19, 0);
 }
 
 DynamicStrings_String FormatStrings_Sprintf0 (DynamicStrings_String s)
@@ -210,7 +206,6 @@ DynamicStrings_String FormatStrings_Sprintf0 (DynamicStrings_String s)
   s = HandleEscape (s);
   DSdbExit (s);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FormatStrings.def", 19, 0);
 }
 
 DynamicStrings_String FormatStrings_Sprintf1 (DynamicStrings_String s, unsigned char *w_, unsigned int _w_high)
@@ -224,7 +219,6 @@ DynamicStrings_String FormatStrings_Sprintf1 (DynamicStrings_String s, unsigned 
   s = FormatString (HandleEscape (s), (unsigned char *) w, _w_high);
   DSdbExit (s);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FormatStrings.def", 19, 0);
 }
 
 DynamicStrings_String FormatStrings_Sprintf2 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high)
@@ -240,7 +234,6 @@ DynamicStrings_String FormatStrings_Sprintf2 (DynamicStrings_String s, unsigned 
   s = FormatString (FormatString (HandleEscape (s), (unsigned char *) w1, _w1_high), (unsigned char *) w2, _w2_high);
   DSdbExit (s);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FormatStrings.def", 19, 0);
 }
 
 DynamicStrings_String FormatStrings_Sprintf3 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high)
@@ -258,7 +251,6 @@ DynamicStrings_String FormatStrings_Sprintf3 (DynamicStrings_String s, unsigned 
   s = FormatString (FormatString (FormatString (HandleEscape (s), (unsigned char *) w1, _w1_high), (unsigned char *) w2, _w2_high), (unsigned char *) w3, _w3_high);
   DSdbExit (s);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FormatStrings.def", 19, 0);
 }
 
 DynamicStrings_String FormatStrings_Sprintf4 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high, unsigned char *w4_, unsigned int _w4_high)
@@ -278,7 +270,6 @@ DynamicStrings_String FormatStrings_Sprintf4 (DynamicStrings_String s, unsigned 
   s = FormatString (FormatString (FormatString (FormatString (HandleEscape (s), (unsigned char *) w1, _w1_high), (unsigned char *) w2, _w2_high), (unsigned char *) w3, _w3_high), (unsigned char *) w4, _w4_high);
   DSdbExit (s);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FormatStrings.def", 19, 0);
 }
 
 void _M2_FormatStrings_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

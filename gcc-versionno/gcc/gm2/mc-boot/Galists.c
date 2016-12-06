@@ -16,7 +16,6 @@
 
 #include <stddef.h>
 #   include "GStorage.h"
-#include "Gmcrts.h"
 #define _alists_H
 #define _alists_C
 
@@ -77,7 +76,6 @@ alists_alist alists_initList (void)
   l->noOfelements = 0;
   l->next = NULL;
   return l;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/alists.def", 19, 0);
 }
 
 void alists_killList (alists_alist *l)
@@ -117,7 +115,6 @@ void * alists_getItemFromList (alists_alist l, unsigned int n)
       l = l->next;
     }
   return 0;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/alists.def", 19, 0);
 }
 
 unsigned int alists_getIndexOfList (alists_alist l, void * c)
@@ -136,7 +133,6 @@ unsigned int alists_getIndexOfList (alists_alist l, void * c)
           i += 1;
       return l->noOfelements+(alists_getIndexOfList (l->next, c));
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/alists.def", 19, 0);
 }
 
 unsigned int alists_noOfItemsInList (alists_alist l)
@@ -154,7 +150,6 @@ unsigned int alists_noOfItemsInList (alists_alist l)
       } while (! (l == NULL));
       return t;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/alists.def", 19, 0);
 }
 
 void alists_includeItemIntoList (alists_alist l, void * c)
@@ -204,7 +199,6 @@ unsigned int alists_isItemInList (alists_alist l, void * c)
     l = l->next;
   } while (! (l == NULL));
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/alists.def", 19, 0);
 }
 
 void alists_foreachItemInListDo (alists_alist l, alists_performOperation p)
@@ -236,7 +230,6 @@ alists_alist alists_duplicateList (alists_alist l)
       i += 1;
     }
   return m;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/alists.def", 19, 0);
 }
 
 void _M2_alists_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

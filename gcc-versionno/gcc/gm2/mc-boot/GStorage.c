@@ -6,7 +6,6 @@
        typedef struct { PROC_t proc; } PROC;
 #   endif
 
-#include "Gmcrts.h"
 #define _Storage_H
 #define _Storage_C
 
@@ -35,7 +34,6 @@ void Storage_REALLOCATE (void * *a, unsigned int Size)
 unsigned int Storage_Available (unsigned int Size)
 {
   return SysStorage_Available (Size);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/Storage.def", 20, 0);
 }
 
 void _M2_Storage_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

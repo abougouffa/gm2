@@ -16,7 +16,6 @@
 
 #include <stddef.h>
 #   include "GStorage.h"
-#include "Gmcrts.h"
 #define _wlists_H
 #define _wlists_C
 
@@ -78,7 +77,6 @@ wlists_wlist wlists_initList (void)
   l->noOfElements = 0;
   l->next = NULL;
   return l;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/wlists.def", 19, 0);
 }
 
 void wlists_killList (wlists_wlist *l)
@@ -118,7 +116,6 @@ unsigned int wlists_getItemFromList (wlists_wlist l, unsigned int n)
       l = l->next;
     }
   return 0;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/wlists.def", 19, 0);
 }
 
 unsigned int wlists_getIndexOfList (wlists_wlist l, unsigned int c)
@@ -137,7 +134,6 @@ unsigned int wlists_getIndexOfList (wlists_wlist l, unsigned int c)
           i += 1;
       return l->noOfElements+(wlists_getIndexOfList (l->next, c));
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/wlists.def", 19, 0);
 }
 
 unsigned int wlists_noOfItemsInList (wlists_wlist l)
@@ -155,7 +151,6 @@ unsigned int wlists_noOfItemsInList (wlists_wlist l)
       } while (! (l == NULL));
       return t;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/wlists.def", 19, 0);
 }
 
 void wlists_includeItemIntoList (wlists_wlist l, unsigned int c)
@@ -217,7 +212,6 @@ unsigned int wlists_isItemInList (wlists_wlist l, unsigned int c)
     l = l->next;
   } while (! (l == NULL));
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/wlists.def", 19, 0);
 }
 
 void wlists_foreachItemInListDo (wlists_wlist l, wlists_performOperation p)
@@ -249,7 +243,6 @@ wlists_wlist wlists_duplicateList (wlists_wlist l)
       i += 1;
     }
   return m;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/wlists.def", 19, 0);
 }
 
 void _M2_wlists_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

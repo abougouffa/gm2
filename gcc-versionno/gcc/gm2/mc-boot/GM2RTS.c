@@ -16,7 +16,6 @@
 
 #include <string.h>
 #include <limits.h>
-#include "Gmcrts.h"
 #define _M2RTS_H
 #define _M2RTS_C
 
@@ -104,7 +103,6 @@ unsigned int M2RTS_InstallTerminationProcedure (PROC p)
       tPtr += 1;
       return TRUE;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/M2RTS.def", 20, 0);
 }
 
 void M2RTS_ExecuteInitialProcedures (void)
@@ -129,7 +127,6 @@ unsigned int M2RTS_InstallInitialProcedure (PROC p)
       iPtr += 1;
       return TRUE;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/M2RTS.def", 20, 0);
 }
 
 void M2RTS_Terminate (void)
@@ -225,7 +222,6 @@ unsigned int M2RTS_Length (char *a_, unsigned int _a_high)
   while ((l <= h) && (a[l] != ASCII_nul))
     l += 1;
   return l;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/M2RTS.def", 20, 0);
 }
 
 void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int column, void * scope)

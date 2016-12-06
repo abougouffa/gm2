@@ -15,7 +15,6 @@
 #   endif
 
 #include <stddef.h>
-#include "Gmcrts.h"
 #define _SysStorage_H
 #define _SysStorage_C
 
@@ -65,7 +64,6 @@ unsigned int SysStorage_Available (unsigned int Size)
       libc_free (a);
       return TRUE;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/SysStorage.def", 19, 0);
 }
 
 void SysStorage_Init (void)

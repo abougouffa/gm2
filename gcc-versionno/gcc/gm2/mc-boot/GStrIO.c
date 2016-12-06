@@ -12,7 +12,6 @@
 
 #include <string.h>
 #include <limits.h>
-#include "Gmcrts.h"
 #define _StrIO_H
 #define _StrIO_C
 
@@ -44,7 +43,6 @@ static void Echo (char ch)
 static unsigned int AlphaNum (char ch)
 {
   return (((ch >= 'a') && (ch <= 'z')) || ((ch >= 'A') && (ch <= 'Z'))) || ((ch >= '0') && (ch <= '9'));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StrIO.def", 20, 0);
 }
 
 void StrIO_WriteLn (void)

@@ -181,7 +181,6 @@ static decl_node initParser (DynamicStrings_String s)
 {
   mcQuiet_qprintf1 ((char *) "Compiling: %s\\n", 15, (unsigned char *) &s, (sizeof (s)-1));
   return peepInto (s);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcComp.def", 19, 0);
 }
 
 static void p1 (decl_node n)
@@ -251,7 +250,6 @@ static unsigned int doOpen (decl_node n, DynamicStrings_String symName, DynamicS
   if (exitOnFailure)
     libc_exit (1);
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcComp.def", 19, 0);
 }
 
 static unsigned int openDef (decl_node n, unsigned int exitOnFailure)
@@ -275,7 +273,6 @@ static unsigned int openDef (decl_node n, unsigned int exitOnFailure)
   else
     fileName = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (sourceName));
   return doOpen (n, symName, fileName, exitOnFailure);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcComp.def", 19, 0);
 }
 
 static unsigned int openMod (decl_node n, unsigned int exitOnFailure)
@@ -302,7 +299,6 @@ static unsigned int openMod (decl_node n, unsigned int exitOnFailure)
   else
     fileName = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (sourceName));
   return doOpen (n, symName, fileName, exitOnFailure);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcComp.def", 19, 0);
 }
 
 static void pass (unsigned int no, decl_node n, parserFunction f, decl_isNodeF isnode, openFunction open)

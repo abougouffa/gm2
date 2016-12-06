@@ -17,7 +17,6 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
-#include "Gmcrts.h"
 #define _mcp2_H
 #define _mcp2_C
 
@@ -737,7 +736,6 @@ static DynamicStrings_String DescribeStop (SetOfStop0 stopset0, SetOfStop1 stops
       message = DynamicStrings_KillString (message);
     }
   return str;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp2.def", 19, 0);
 }
 
 static void DescribeError (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
@@ -1173,7 +1171,6 @@ static unsigned int CheckAndInsert (mcReserved_toktype t, SetOfStop0 stopset0, S
     }
   else
     return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp2.def", 19, 0);
 }
 
 static unsigned int InStopSet (mcReserved_toktype t, SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
@@ -1182,7 +1179,6 @@ static unsigned int InStopSet (mcReserved_toktype t, SetOfStop0 stopset0, SetOfS
     return TRUE;
   else
     return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp2.def", 19, 0);
 }
 
 static void PeepToken (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
@@ -2219,6 +2215,7 @@ static void DefVarIdentList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop
 
 static void DefVariableDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
+  typeDes = NULL;
   DefVarIdentList (stopset0|(SetOfStop0) ((1 << (mcReserved_colontok-mcReserved_eoftok))), stopset1, stopset2);
   Expect ((mcReserved_toktype) mcReserved_colontok, stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_pointertok-mcReserved_arraytok)) | (1 << (mcReserved_packedsettok-mcReserved_arraytok)) | (1 << (mcReserved_oftok-mcReserved_arraytok)) | (1 << (mcReserved_arraytok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_settok-mcReserved_recordtok)) | (1 << (mcReserved_recordtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))));
   Type (stopset0|(SetOfStop0) ((1 << (mcReserved_ldirectivetok-mcReserved_eoftok))), stopset1, stopset2);
@@ -3067,7 +3064,8 @@ static void DefEnumIdentList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
       Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_commatok-mcReserved_eoftok))), stopset1, stopset2);
       f = decl_makeEnumField (n, curident);
     }
-  decl_putType (typeDes, n);
+  if (typeDes != NULL)
+    decl_putType (typeDes, n);
 }
 
 static void DefEnumeration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
@@ -3254,7 +3252,6 @@ unsigned int mcp2_CompilationUnit (void)
   WasNoError = TRUE;
   FileUnit ((SetOfStop0) ((1 << (mcReserved_eoftok-mcReserved_eoftok))), (SetOfStop1) 0, (SetOfStop2) 0);
   return WasNoError;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp2.def", 19, 0);
 }
 
 void _M2_mcp2_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

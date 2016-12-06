@@ -217,7 +217,6 @@ static scope new (decl_node n)
       freeList = freeList->next;
     }
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/keyc.def", 19, 0);
 }
 
 static unsigned int mangle1 (nameKey_Name n, DynamicStrings_String *m, unsigned int scopes)
@@ -226,7 +225,6 @@ static unsigned int mangle1 (nameKey_Name n, DynamicStrings_String *m, unsigned 
   (*m) = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n));
   (*m) = DynamicStrings_ConCatChar ((*m), '_');
   return ! (clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/keyc.def", 19, 0);
 }
 
 static unsigned int mangle2 (nameKey_Name n, DynamicStrings_String *m, unsigned int scopes)
@@ -235,7 +233,6 @@ static unsigned int mangle2 (nameKey_Name n, DynamicStrings_String *m, unsigned 
   (*m) = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n));
   (*m) = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "_", 1), DynamicStrings_Mark ((*m)));
   return ! (clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/keyc.def", 19, 0);
 }
 
 static unsigned int mangleN (nameKey_Name n, DynamicStrings_String *m, unsigned int scopes)
@@ -256,7 +253,6 @@ static unsigned int clash (nameKey_Name n, unsigned int scopes)
   if (((symbolKey_getSymKey (macros, n)) != NULL) || ((symbolKey_getSymKey (keywords, n)) != NULL))
     return TRUE;
   return scopes && ((symbolKey_getSymKey (stack->symbols, n)) != NULL);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/keyc.def", 19, 0);
 }
 
 static void initCP (void)
@@ -551,7 +547,6 @@ DynamicStrings_String keyc_cname (nameKey_Name n, unsigned int scopes)
   else if (scopes)
     symbolKey_putSymKey (stack->symbols, n, (void *) DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
   return m;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/keyc.def", 19, 0);
 }
 
 nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes)
@@ -572,7 +567,6 @@ nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes)
     symbolKey_putSymKey (stack->symbols, n, (void *) DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
   m = DynamicStrings_KillString (m);
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/keyc.def", 19, 0);
 }
 
 void keyc_cp (void)

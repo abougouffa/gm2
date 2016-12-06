@@ -18,7 +18,6 @@
 #include <string.h>
 #include <limits.h>
 #   include "GStorage.h"
-#include "Gmcrts.h"
 #define _mcError_H
 #define _mcError_C
 
@@ -125,7 +124,6 @@ static unsigned int translateNameToCharStar (char *a, unsigned int _a_high, unsi
       i += 1;
     }
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcError.def", 19, 0);
 }
 
 static void outString (DynamicStrings_String file, unsigned int line, unsigned int col, DynamicStrings_String s)
@@ -200,7 +198,6 @@ static DynamicStrings_String doFormat1 (char *a_, unsigned int _a_high, unsigned
   else
     s = FormatStrings_Sprintf1 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)), (unsigned char *) w, _w_high);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcError.def", 19, 0);
 }
 
 static DynamicStrings_String doFormat2 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high)
@@ -256,7 +253,6 @@ static DynamicStrings_String doFormat2 (char *a_, unsigned int _a_high, unsigned
         break;
     }
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcError.def", 19, 0);
 }
 
 static DynamicStrings_String doFormat3 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high)
@@ -337,7 +333,6 @@ static DynamicStrings_String doFormat3 (char *a_, unsigned int _a_high, unsigned
         break;
     }
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcError.def", 19, 0);
 }
 
 static void init (void)
@@ -397,7 +392,6 @@ static unsigned int flushAll (mcError_error e, unsigned int FatalStatus)
         }
     } while (! (e == NULL));
   return written;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcError.def", 19, 0);
 }
 
 void mcError_internalError (char *a_, unsigned int _a_high, char *file_, unsigned int _file_high, unsigned int line)
@@ -505,7 +499,6 @@ mcError_error mcError_newError (unsigned int atTokenNo)
       f->next = e;
     }
   return e;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcError.def", 19, 0);
 }
 
 mcError_error mcError_newWarning (unsigned int atTokenNo)
@@ -515,7 +508,6 @@ mcError_error mcError_newWarning (unsigned int atTokenNo)
   e = mcError_newError (atTokenNo);
   e->fatal = FALSE;
   return e;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcError.def", 19, 0);
 }
 
 mcError_error mcError_chainError (unsigned int atTokenNo, mcError_error e)
@@ -536,7 +528,6 @@ mcError_error mcError_chainError (unsigned int atTokenNo, mcError_error e)
       e->child = f;
     }
   return f;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcError.def", 19, 0);
 }
 
 void mcError_errorFormat0 (mcError_error e, char *a_, unsigned int _a_high)

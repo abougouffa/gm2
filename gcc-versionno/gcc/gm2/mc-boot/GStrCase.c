@@ -8,7 +8,6 @@
 
 #include <string.h>
 #include <limits.h>
-#include "Gmcrts.h"
 #define _StrCase_H
 #define _StrCase_C
 
@@ -69,7 +68,6 @@ char StrCase_Cap (char ch)
   if ((ch >= 'a') && (ch <= 'z'))
     ch = (char) ((((unsigned int) (ch))-((unsigned int) ('a')))+((unsigned int) ('A')));
   return ch;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StrCase.def", 20, 0);
 }
 
 char StrCase_Lower (char ch)
@@ -77,7 +75,6 @@ char StrCase_Lower (char ch)
   if ((ch >= 'A') && (ch <= 'Z'))
     ch = (char) ((((unsigned int) (ch))-((unsigned int) ('A')))+((unsigned int) ('a')));
   return ch;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StrCase.def", 20, 0);
 }
 
 void _M2_StrCase_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

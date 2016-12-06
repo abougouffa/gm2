@@ -8,7 +8,6 @@
 
 #include <stddef.h>
 #   include "GStorage.h"
-#include "Gmcrts.h"
 #define _mcStack_H
 #define _mcStack_C
 
@@ -41,7 +40,6 @@ mcStack_stack mcStack_init (void)
   s->list = Indexing_InitIndex (1);
   s->count = 0;
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcStack.def", 19, 0);
 }
 
 void mcStack_kill (mcStack_stack *s)
@@ -59,7 +57,6 @@ void * mcStack_push (mcStack_stack s, void * a)
     Indexing_PutIndice (s->list, (Indexing_HighIndice (s->list))+1, a);
   s->count += 1;
   return a;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcStack.def", 19, 0);
 }
 
 void * mcStack_pop (mcStack_stack s)
@@ -75,7 +72,6 @@ void * mcStack_pop (mcStack_stack s)
       Indexing_DeleteIndice (s->list, Indexing_HighIndice (s->list));
       return a;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcStack.def", 19, 0);
 }
 
 void * mcStack_replace (mcStack_stack s, void * a)
@@ -84,13 +80,11 @@ void * mcStack_replace (mcStack_stack s, void * a)
 
   b = mcStack_pop (s);
   return mcStack_push (s, a);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcStack.def", 19, 0);
 }
 
 unsigned int mcStack_depth (mcStack_stack s)
 {
   return s->count;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcStack.def", 19, 0);
 }
 
 void * mcStack_access (mcStack_stack s, unsigned int i)
@@ -99,7 +93,6 @@ void * mcStack_access (mcStack_stack s, unsigned int i)
     M2RTS_HALT (0);
   else
     return Indexing_GetIndice (s->list, i);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcStack.def", 19, 0);
 }
 
 void _M2_mcStack_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

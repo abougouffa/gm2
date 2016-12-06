@@ -7,7 +7,6 @@
 #   endif
 
 #include <stddef.h>
-#include "Gmcrts.h"
 #define _SFIO_H
 #define _SFIO_C
 
@@ -25,25 +24,21 @@ DynamicStrings_String SFIO_ReadS (FIO_File file);
 unsigned int SFIO_Exists (DynamicStrings_String fname)
 {
   return FIO_exists (DynamicStrings_string (fname), DynamicStrings_Length (fname));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/SFIO.def", 20, 0);
 }
 
 FIO_File SFIO_OpenToRead (DynamicStrings_String fname)
 {
   return FIO_openToRead (DynamicStrings_string (fname), DynamicStrings_Length (fname));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/SFIO.def", 20, 0);
 }
 
 FIO_File SFIO_OpenToWrite (DynamicStrings_String fname)
 {
   return FIO_openToWrite (DynamicStrings_string (fname), DynamicStrings_Length (fname));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/SFIO.def", 20, 0);
 }
 
 FIO_File SFIO_OpenForRandom (DynamicStrings_String fname, unsigned int towrite, unsigned int newfile)
 {
   return FIO_openForRandom (DynamicStrings_string (fname), DynamicStrings_Length (fname), towrite, newfile);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/SFIO.def", 20, 0);
 }
 
 DynamicStrings_String SFIO_WriteS (FIO_File file, DynamicStrings_String s)
@@ -53,7 +48,6 @@ DynamicStrings_String SFIO_WriteS (FIO_File file, DynamicStrings_String s)
   if (s != NULL)
     nBytes = FIO_WriteNBytes (file, DynamicStrings_Length (s), DynamicStrings_string (s));
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/SFIO.def", 20, 0);
 }
 
 DynamicStrings_String SFIO_ReadS (FIO_File file)
@@ -68,7 +62,6 @@ DynamicStrings_String SFIO_ReadS (FIO_File file)
     if ((FIO_ReadChar (file)) == ASCII_nul)
       {}  /* empty.  */
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/SFIO.def", 20, 0);
 }
 
 void _M2_SFIO_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

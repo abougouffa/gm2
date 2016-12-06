@@ -13,7 +13,6 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
-#include "Gmcrts.h"
 #define _PushBackInput_H
 #define _PushBackInput_C
 
@@ -80,7 +79,6 @@ FIO_File PushBackInput_Open (char *a_, unsigned int _a_high)
   Init ();
   StrLib_StrCopy ((char *) a, _a_high, (char *) &FileName.array[0], MaxFileName);
   return FIO_OpenToRead ((char *) a, _a_high);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/PushBackInput.def", 20, 0);
 }
 
 char PushBackInput_GetCh (FIO_File f)
@@ -115,7 +113,6 @@ char PushBackInput_GetCh (FIO_File f)
         StdIO_Write (ch);
       return ch;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/PushBackInput.def", 20, 0);
 }
 
 char PushBackInput_PutCh (FIO_File f, char ch)
@@ -128,7 +125,6 @@ char PushBackInput_PutCh (FIO_File f, char ch)
   else
     Debug_Halt ((char *) "max push back stack exceeded, increase MaxPushBackStack", 55, 126, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/PushBackInput.mod", 50);
   return ch;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/PushBackInput.def", 20, 0);
 }
 
 void PushBackInput_PutString (FIO_File f, char *a_, unsigned int _a_high)
@@ -221,7 +217,6 @@ void PushBackInput_Close (FIO_File f)
 unsigned int PushBackInput_GetExitStatus (void)
 {
   return ExitStatus;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/PushBackInput.def", 20, 0);
 }
 
 void PushBackInput_SetDebug (unsigned int d)
@@ -235,13 +230,11 @@ unsigned int PushBackInput_GetColumnPosition (void)
     return 0;
   else
     return Column-StackPtr;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/PushBackInput.def", 20, 0);
 }
 
 unsigned int PushBackInput_GetCurrentLine (void)
 {
   return LineNo;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/PushBackInput.def", 20, 0);
 }
 
 void _M2_PushBackInput_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

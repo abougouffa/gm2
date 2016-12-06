@@ -6,7 +6,6 @@
        typedef struct { PROC_t proc; } PROC;
 #   endif
 
-#include "Gmcrts.h"
 #define _mcPreprocess_H
 #define _mcPreprocess_C
 
@@ -29,14 +28,12 @@ static void removeFiles (void);
 static DynamicStrings_String makeTempFile (DynamicStrings_String ext)
 {
   return DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "/tmp/mctemp.", 12), ext);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcPreprocess.def", 19, 0);
 }
 
 static DynamicStrings_String onExitDelete (DynamicStrings_String filename)
 {
   alists_includeItemIntoList (listOfFiles, (void *) DynamicStrings_Dup (filename));
   return filename;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcPreprocess.def", 19, 0);
 }
 
 static void removeFile (void * a)
@@ -78,7 +75,6 @@ DynamicStrings_String mcPreprocess_preprocessModule (DynamicStrings_String filen
       commandLine = DynamicStrings_KillString (commandLine);
       return onExitDelete (tempfile);
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcPreprocess.def", 19, 0);
 }
 
 void _M2_mcPreprocess_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

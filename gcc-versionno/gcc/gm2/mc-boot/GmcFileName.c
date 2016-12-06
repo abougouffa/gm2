@@ -6,7 +6,6 @@
        typedef struct { PROC_t proc; } PROC;
 #   endif
 
-#include "Gmcrts.h"
 #define _mcFileName_H
 #define _mcFileName_C
 
@@ -27,13 +26,11 @@ DynamicStrings_String mcFileName_calculateFileName (DynamicStrings_String module
     return DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (module, 0, MaxFileName), '.'), extension);
   else
     return DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (module, 0, (MaxFileName-(DynamicStrings_Length (extension)))-1), '.'), extension);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcFileName.def", 19, 0);
 }
 
 DynamicStrings_String mcFileName_calculateStemName (DynamicStrings_String module)
 {
   return DynamicStrings_Slice (module, 0, MaxStemName);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcFileName.def", 19, 0);
 }
 
 DynamicStrings_String mcFileName_extractExtension (DynamicStrings_String filename, DynamicStrings_String ext)
@@ -42,7 +39,6 @@ DynamicStrings_String mcFileName_extractExtension (DynamicStrings_String filenam
     return DynamicStrings_Slice (filename, 0, (int ) -(DynamicStrings_Length (ext)));
   else
     return filename;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcFileName.def", 19, 0);
 }
 
 DynamicStrings_String mcFileName_extractModule (DynamicStrings_String filename)
@@ -54,7 +50,6 @@ DynamicStrings_String mcFileName_extractModule (DynamicStrings_String filename)
     return DynamicStrings_Dup (filename);
   else
     return DynamicStrings_Slice (filename, i+1, 0);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcFileName.def", 19, 0);
 }
 
 void _M2_mcFileName_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

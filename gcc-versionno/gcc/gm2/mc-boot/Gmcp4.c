@@ -17,7 +17,6 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
-#include "Gmcrts.h"
 #define _mcp4_H
 #define _mcp4_C
 
@@ -240,31 +239,26 @@ static void TrashList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
 static decl_node push (decl_node n)
 {
   return mcStack_push (stk, (void *) n);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp4.def", 19, 0);
 }
 
 static decl_node pop (void)
 {
   return mcStack_pop (stk);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp4.def", 19, 0);
 }
 
 static decl_node replace (decl_node n)
 {
   return mcStack_replace (stk, (void *) n);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp4.def", 19, 0);
 }
 
 static decl_node peep (void)
 {
   return push (pop ());
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp4.def", 19, 0);
 }
 
 static unsigned int depth (void)
 {
   return mcStack_depth (stk);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp4.def", 19, 0);
 }
 
 static void checkDuplicate (unsigned int b)
@@ -315,7 +309,6 @@ static decl_node makeIndexedArray (unsigned int c, decl_node t)
       c -= 1;
     }
   return t;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp4.def", 19, 0);
 }
 
 static void importInto (decl_node m, nameKey_Name name, decl_node current)
@@ -820,7 +813,6 @@ static DynamicStrings_String DescribeStop (SetOfStop0 stopset0, SetOfStop1 stops
       message = DynamicStrings_KillString (message);
     }
   return str;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp4.def", 19, 0);
 }
 
 static void DescribeError (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
@@ -1256,7 +1248,6 @@ static unsigned int CheckAndInsert (mcReserved_toktype t, SetOfStop0 stopset0, S
     }
   else
     return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp4.def", 19, 0);
 }
 
 static unsigned int InStopSet (mcReserved_toktype t, SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
@@ -1265,7 +1256,6 @@ static unsigned int InStopSet (mcReserved_toktype t, SetOfStop0 stopset0, SetOfS
     return TRUE;
   else
     return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp4.def", 19, 0);
 }
 
 static void PeepToken (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
@@ -3254,7 +3244,6 @@ unsigned int mcp4_CompilationUnit (void)
   FileUnit ((SetOfStop0) ((1 << (mcReserved_eoftok-mcReserved_eoftok))), (SetOfStop1) 0, (SetOfStop2) 0);
   mcStack_kill (&stk);
   return WasNoError;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcp4.def", 19, 0);
 }
 
 void _M2_mcp4_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

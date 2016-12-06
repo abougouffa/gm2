@@ -6,7 +6,6 @@
        typedef struct { PROC_t proc; } PROC;
 #   endif
 
-#include "Gmcrts.h"
 #define _StdIO_H
 #define _StdIO_C
 
@@ -78,7 +77,6 @@ StdIO_ProcWrite StdIO_GetCurrentOutput (void)
     return StackW.array[StackWPtr];
   else
     M2RTS_HALT (0);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StdIO.def", 20, 0);
 }
 
 void StdIO_PushInput (StdIO_ProcRead p)
@@ -106,7 +104,6 @@ StdIO_ProcRead StdIO_GetCurrentInput (void)
     return StackR.array[StackRPtr];
   else
     M2RTS_HALT (0);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StdIO.def", 20, 0);
 }
 
 void _M2_StdIO_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

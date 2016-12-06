@@ -47,10 +47,10 @@ typedef _T9 *alists_alist;
 #   define ASCII_nl (char) 012
 typedef struct Indexing_IndexProcedure_p Indexing_IndexProcedure;
 
-#   define SYSTEM_BITSPERBYTE 8
-#   define SYSTEM_BYTESPERWORD 4
 typedef struct decl_isNodeF_p decl_isNodeF;
 
+#   define SYSTEM_BITSPERBYTE 8
+#   define SYSTEM_BYTESPERWORD 4
 #   define symbolKey_NulKey NULL
 typedef struct symbolKey_isSymbol_p symbolKey_isSymbol;
 
@@ -1824,6 +1824,14 @@ static void doLocalVarC (mcPretty_pretty p, scopeT s);
 static void doLocalConstTypesC (mcPretty_pretty p, scopeT s);
 static void addParamDone (decl_node n);
 static void includeParameters (decl_node n);
+static unsigned int isHalt (decl_node n);
+static unsigned int isReturnOrHalt (decl_node n);
+static unsigned int isLastStatementReturn (decl_node n);
+static unsigned int isLastStatementSequence (decl_node n, decl_isNodeF q);
+static unsigned int isLastStatementIf (decl_node n, decl_isNodeF q);
+static unsigned int isLastStatementElsif (decl_node n, decl_isNodeF q);
+static unsigned int isLastStatementCase (decl_node n, decl_isNodeF q);
+static unsigned int isLastStatement (decl_node n, decl_isNodeF q);
 static void doProcedureC (decl_node n);
 static void outProceduresC (mcPretty_pretty p, scopeT s);
 static void output (decl_node n, nodeProcedure c, nodeProcedure t, nodeProcedure v);
@@ -1990,6 +1998,7 @@ static decl_node dupBinary (decl_node n);
 static decl_node dupUnary (decl_node n);
 static decl_node dupFunccall (decl_node n);
 static decl_node dupSetValue (decl_node n);
+static decl_node doDupExpr (decl_node n);
 static void makeSystem (void);
 static void makeM2rts (void);
 static decl_node makeBitnum (void);
@@ -2009,7 +2018,6 @@ static decl_node newNode (nodeT k)
       d->kind = k;
       return d;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void disposeNode (decl_node *n)
@@ -2026,7 +2034,6 @@ static unsigned int isLocal (decl_node n)
   if (s != NULL)
     return decl_isProcedure (s);
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void importEnumFields (decl_node m, decl_node n)
@@ -2060,7 +2067,6 @@ static fixupInfo initFixupInfo (void)
   f.count = 0;
   f.info = Indexing_InitIndex (1);
   return f;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node makeDef (nameKey_Name n)
@@ -2081,7 +2087,6 @@ static decl_node makeDef (nameKey_Name n)
   d->defF.constsComplete = FALSE;
   d->defF.visited = FALSE;
   return d;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node makeImp (nameKey_Name n)
@@ -2102,7 +2107,6 @@ static decl_node makeImp (nameKey_Name n)
   d->impF.constsComplete = FALSE;
   d->impF.visited = FALSE;
   return d;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node makeModule (nameKey_Name n)
@@ -2122,13 +2126,11 @@ static decl_node makeModule (nameKey_Name n)
   d->moduleF.constsComplete = FALSE;
   d->moduleF.visited = FALSE;
   return d;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int isDefForC (decl_node n)
 {
   return (decl_isDef (n)) && n->defF.forC;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void initDecls (scopeT *decls)
@@ -2169,7 +2171,6 @@ static decl_node addTo (scopeT *decls, decl_node d)
         libc_printf ((char *) "%d procedures on the dynamic array\\n", 36, Indexing_HighIndice ((*decls).procedures));
     }
   return d;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void export (decl_node d, decl_node n)
@@ -2227,7 +2228,6 @@ static decl_node addToScope (decl_node n)
       return addTo (&s->impF.decls, n);
     }
   M2RTS_HALT (0);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void addModuleToScope (decl_node m, decl_node i)
@@ -2302,13 +2302,11 @@ static decl_node checkPtr (decl_node n)
         return p;
       }
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int isVarDecl (decl_node n)
 {
   return n->kind == vardecl;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void makeVariablesFromParameters (decl_node proc, decl_node id, decl_node type, unsigned int isvar)
@@ -2356,7 +2354,6 @@ static decl_node addProcedureToScope (decl_node d, nameKey_Name n)
       symbolKey_putSymKey (baseSymbols, n, (void *) haltN);
     }
   return addToScope (d);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void putProcTypeReturn (decl_node proc, decl_node type)
@@ -2381,26 +2378,22 @@ static decl_node makeOptParameter (decl_node l, decl_node type, decl_node init)
   n->optargF.init = init;
   n->optargF.scope = NULL;
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int setwatch (decl_node n)
 {
   globalNode = n;
   return TRUE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int runwatch (void)
 {
   return globalNode->kind == identlist;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int isIdentList (decl_node n)
 {
   return n->kind == identlist;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int identListLen (decl_node n)
@@ -2412,7 +2405,6 @@ static unsigned int identListLen (decl_node n)
       mcDebug_assert (isIdentList (n));
       return wlists_noOfItemsInList (n->identlistF.names);
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void checkParameters (decl_node p, decl_node i, decl_node type, unsigned int var)
@@ -2438,7 +2430,6 @@ static decl_node makeVarientField (decl_node v, decl_node p)
   n->varientfieldF.listOfSons = Indexing_InitIndex (1);
   n->varientfieldF.scope = decl_getDeclScope ();
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void putFieldVarient (decl_node f, decl_node v)
@@ -2510,7 +2501,6 @@ static decl_node putFieldRecord (decl_node r, nameKey_Name tag, decl_node type, 
   n->recordfieldF.tag = FALSE;
   initCname (&n->recordfieldF.cname);
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void ensureOrder (Indexing_Index i, decl_node a, decl_node b)
@@ -2558,7 +2548,6 @@ static decl_node getParent (decl_node n)
       default:
         CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node getRecord (decl_node n)
@@ -2578,14 +2567,12 @@ static decl_node getRecord (decl_node n)
       default:
         CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int isConstExp (decl_node c)
 {
   mcDebug_assert (c != NULL);
   return c->kind == constexp;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void addEnumToModule (decl_node m, decl_node e)
@@ -2604,7 +2591,6 @@ static decl_node getNextFixup (fixupInfo *f)
 {
   (*f).count += 1;
   return Indexing_GetIndice ((*f).info, (*f).count);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node doMakeEnum (void)
@@ -2620,7 +2606,6 @@ static decl_node doMakeEnum (void)
   e->enumerationF.high = NULL;
   addEnumToModule (currentModule, e);
   return e;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node doMakeEnumField (decl_node e, nameKey_Name n)
@@ -2658,7 +2643,6 @@ static decl_node getExpList (decl_node p, unsigned int n)
   mcDebug_assert (decl_isExpList (p));
   mcDebug_assert (n <= (Indexing_HighIndice (p->explistF.exp)));
   return Indexing_GetIndice (p->explistF.exp, n);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int expListLen (decl_node p)
@@ -2666,7 +2650,6 @@ static unsigned int expListLen (decl_node p)
   mcDebug_assert (p != NULL);
   mcDebug_assert (decl_isExpList (p));
   return Indexing_HighIndice (p->explistF.exp);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int getConstExpComplete (decl_node n)
@@ -2689,7 +2672,6 @@ static unsigned int getConstExpComplete (decl_node n)
       default:
         CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void addConstToModule (decl_node m, decl_node e)
@@ -2710,7 +2692,6 @@ static decl_node doMakeConstExp (void)
   c = makeUnary ((nodeT) constexp, (decl_node) NULL, (decl_node) NULL);
   addConstToModule (currentModule, c);
   return c;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int isAnyType (decl_node n)
@@ -2741,7 +2722,6 @@ static unsigned int isAnyType (decl_node n)
         return FALSE;
         break;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node makeCast (decl_node c, decl_node p)
@@ -2751,14 +2731,12 @@ static decl_node makeCast (decl_node c, decl_node p)
     return makeBinary ((nodeT) cast, c, getExpList (p, 1), c);
   else
     M2RTS_HALT (0);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int isFuncCall (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == funccall;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void putTypeInternal (decl_node des)
@@ -2773,7 +2751,6 @@ static unsigned int isTypeInternal (decl_node n)
   mcDebug_assert (n != NULL);
   mcDebug_assert (decl_isType (n));
   return n->typeF.isInternal;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node lookupBase (nameKey_Name n)
@@ -2784,7 +2761,6 @@ static decl_node lookupBase (nameKey_Name n)
   if (m == procN)
     keyc_useProc ();
   return m;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void dumpScopes (void)
@@ -2896,47 +2872,49 @@ static unsigned int isUnary (decl_node n)
         return FALSE;
         break;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node makeUnary (nodeT k, decl_node e, decl_node res)
 {
   decl_node n;
 
-  Storage_ALLOCATE ((void **) &n, sizeof (_T1));
-  n->kind = k;
-  switch (n->kind)
+  if (k == plus)
+    return e;
+  else
     {
-      case throw:
-      case deref:
-      case high:
-      case chr:
-      case abs_:
-      case ord:
-      case float_:
-      case trunc:
-      case constexp:
-      case not:
-      case neg:
-      case adr:
-      case size:
-      case tsize:
-        n->unaryF.arg = e;
-        n->unaryF.resultType = res;
-        break;
+      Storage_ALLOCATE ((void **) &n, sizeof (_T1));
+      n->kind = k;
+      switch (n->kind)
+        {
+          case throw:
+          case deref:
+          case high:
+          case chr:
+          case abs_:
+          case ord:
+          case float_:
+          case trunc:
+          case constexp:
+          case not:
+          case neg:
+          case adr:
+          case size:
+          case tsize:
+            n->unaryF.arg = e;
+            n->unaryF.resultType = res;
+            break;
 
 
-      default:
-        CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
+          default:
+            CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
+        }
     }
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int isLeafString (decl_node n)
 {
   return ((isString (n)) || ((decl_isLiteral (n)) && ((decl_getType (n)) == charN))) || ((decl_isConst (n)) && ((getExprType (n)) == charN));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static DynamicStrings_String getStringContents (decl_node n)
@@ -2953,7 +2931,6 @@ static DynamicStrings_String getStringContents (decl_node n)
   else if (isConstExp (n))
     return getStringContents (n->unaryF.arg);
   M2RTS_HALT (0);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static nameKey_Name addNames (decl_node a, decl_node b)
@@ -2969,7 +2946,6 @@ static nameKey_Name addNames (decl_node a, decl_node b)
   sa = DynamicStrings_KillString (sa);
   sb = DynamicStrings_KillString (sb);
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node resolveString (decl_node n)
@@ -2982,7 +2958,6 @@ static decl_node resolveString (decl_node n)
   if (n->kind == plus)
     n = decl_makeString (addNames (resolveString (n->binaryF.left), resolveString (n->binaryF.right)));
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node foldBinary (nodeT k, decl_node l, decl_node r, decl_node res)
@@ -3002,7 +2977,6 @@ static decl_node foldBinary (nodeT k, decl_node l, decl_node r, decl_node res)
       rs = DynamicStrings_KillString (rs);
     }
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node makeBinary (nodeT k, decl_node l, decl_node r, decl_node res)
@@ -3013,7 +2987,6 @@ static decl_node makeBinary (nodeT k, decl_node l, decl_node r, decl_node res)
   if (n == NULL)
     n = doMakeBinary (k, l, r, res);
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node doMakeBinary (nodeT k, decl_node l, decl_node r, decl_node res)
@@ -3051,7 +3024,6 @@ static decl_node doMakeBinary (nodeT k, decl_node l, decl_node r, decl_node res)
         CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
     }
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node doMakeComponentRef (decl_node rec, decl_node field)
@@ -3063,28 +3035,24 @@ static decl_node doMakeComponentRef (decl_node rec, decl_node field)
   n->componentrefF.field = field;
   n->componentrefF.resultType = decl_getType (field);
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int isComponentRef (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == componentref;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int isArrayRef (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == arrayref;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int isDeref (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == deref;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node makeBase (nodeT k)
@@ -3144,7 +3112,6 @@ static decl_node makeBase (nodeT k)
         break;
     }
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int isOrdinal (decl_node n)
@@ -3171,7 +3138,6 @@ static unsigned int isOrdinal (decl_node n)
         return FALSE;
         break;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node mixTypes (decl_node a, decl_node b)
@@ -3179,7 +3145,6 @@ static decl_node mixTypes (decl_node a, decl_node b)
   if ((a == addressN) || (b == addressN))
     return addressN;
   return a;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node doSetExprType (decl_node *t, decl_node n)
@@ -3187,7 +3152,6 @@ static decl_node doSetExprType (decl_node *t, decl_node n)
   if ((*t) == NULL)
     (*t) = n;
   return (*t);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node getMaxMinType (decl_node n)
@@ -3196,7 +3160,6 @@ static decl_node getMaxMinType (decl_node n)
     return decl_getType (n);
   else
     return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node doGetFuncType (decl_node n)
@@ -3261,7 +3224,6 @@ static decl_node doGetFuncType (decl_node n)
       }
   else
     return doSetExprType (&n->funccallF.type, decl_getType (n->funccallF.function));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node doGetExprType (decl_node n)
@@ -3552,7 +3514,6 @@ static decl_node doGetExprType (decl_node n)
         CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
     }
   M2RTS_HALT (0);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node getExprType (decl_node n)
@@ -3563,7 +3524,6 @@ static decl_node getExprType (decl_node n)
   if (t == NULL)
     t = doGetExprType (n);
   return t;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void openOutput (void)
@@ -3650,7 +3610,6 @@ static decl_node getSymScope (decl_node n)
         CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
     }
   M2RTS_HALT (0);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static DynamicStrings_String getFQstring (decl_node n)
@@ -3666,7 +3625,6 @@ static DynamicStrings_String getFQstring (decl_node n)
       s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (decl_getScope (n))));
       return FormatStrings_Sprintf2 (DynamicStrings_InitString ((char *) "%s_%s", 5), (unsigned char *) &s, (sizeof (s)-1), (unsigned char *) &i, (sizeof (i)-1));
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static DynamicStrings_String getFQDstring (decl_node n, unsigned int scopes)
@@ -3682,7 +3640,6 @@ static DynamicStrings_String getFQDstring (decl_node n, unsigned int scopes)
       s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (decl_getScope (n))));
       return FormatStrings_Sprintf2 (DynamicStrings_InitString ((char *) "%s_%s", 5), (unsigned char *) &s, (sizeof (s)-1), (unsigned char *) &i, (sizeof (i)-1));
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static DynamicStrings_String getString (decl_node n)
@@ -3691,7 +3648,6 @@ static DynamicStrings_String getString (decl_node n)
     return DynamicStrings_InitString ((char *) "", 0);
   else
     return DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n)));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doNone (decl_node n)
@@ -3851,7 +3807,6 @@ static unsigned int needsParen (decl_node n)
         CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
     }
   return TRUE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doUnary (mcPretty_pretty p, char *op_, unsigned int _op_high, decl_node expr, decl_node type, unsigned int l, unsigned int r)
@@ -4191,7 +4146,6 @@ static decl_node doGetLastOp (decl_node a, decl_node b)
       default:
         CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doComponentRefC (mcPretty_pretty p, decl_node l, decl_node r)
@@ -4243,7 +4197,6 @@ static unsigned int isZero (decl_node n)
   if (isConstExp (n))
     return isZero (n->unaryF.arg);
   return (decl_getSymName (n)) == (nameKey_makeKey ((char *) "0", 1));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doArrayRef (mcPretty_pretty p, decl_node n)
@@ -4266,18 +4219,22 @@ static void doArrayRef (mcPretty_pretty p, decl_node n)
   outText (p, (char *) "[", 1);
   i = 1;
   c = expListLen (n->arrayrefF.index);
-  mcDebug_assert (c == 1);
   while (i <= c)
     {
       doExprC (p, getExpList (n->arrayrefF.index, i));
-      if (! (decl_isUnbounded (t)))
-        doSubtractC (p, getMin (t->arrayF.subr));
-      i += 1;
-      if (i < c)
+      if (decl_isUnbounded (t))
+        mcDebug_assert (c == 1);
+      else
         {
-          outText (p, (char *) ",", 1);
-          mcPretty_setNeedSpace (p);
+          doSubtractC (p, getMin (t->arrayF.subr));
+          if (i < c)
+            {
+              mcDebug_assert (decl_isArray (t));
+              outText (p, (char *) "].array[", 8);
+              t = decl_skipType (decl_getType (t));
+            }
         }
+      i += 1;
     }
   outText (p, (char *) "]", 1);
 }
@@ -4379,7 +4336,6 @@ static decl_node getSetLow (decl_node n)
       else
         return decl_makeLiteralInt (nameKey_makeKey ((char *) "0", 1));
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doInC (mcPretty_pretty p, decl_node l, decl_node r)
@@ -4917,7 +4873,6 @@ static unsigned int isString (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == string;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doString (mcPretty_pretty p, decl_node n)
@@ -4981,7 +4936,6 @@ static DynamicStrings_String doEscapeC (DynamicStrings_String s, char ch)
 static DynamicStrings_String escapeContentsC (DynamicStrings_String s, char ch)
 {
   return doEscapeC (s, ch);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static DynamicStrings_String replaceChar (DynamicStrings_String s, char ch, char *a_, unsigned int _a_high)
@@ -5013,7 +4967,6 @@ static DynamicStrings_String toCstring (nameKey_Name n)
 
   s = DynamicStrings_Slice (DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)), 1, -1);
   return escapeContentsC (escapeContentsC (s, '\\'), '"');
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static DynamicStrings_String toCchar (nameKey_Name n)
@@ -5022,7 +4975,6 @@ static DynamicStrings_String toCchar (nameKey_Name n)
 
   s = DynamicStrings_Slice (DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)), 1, -1);
   return escapeContentsC (escapeContentsC (s, '\\'), '\'');
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int countChar (DynamicStrings_String s, char ch)
@@ -5049,7 +5001,6 @@ static unsigned int countChar (DynamicStrings_String s, char ch)
 static unsigned int lenCstring (DynamicStrings_String s)
 {
   return (DynamicStrings_Length (s))-(countChar (s, '\\'));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void outCstring (mcPretty_pretty p, decl_node s, unsigned int aString)
@@ -5079,13 +5030,11 @@ static void doStringC (mcPretty_pretty p, decl_node n)
 static unsigned int isPunct (char ch)
 {
   return (((((((((ch == '.') || (ch == '(')) || (ch == ')')) || (ch == '^')) || (ch == ':')) || (ch == ';')) || (ch == '{')) || (ch == '}')) || (ch == ',')) || (ch == '*');
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int isWhite (char ch)
 {
   return ((ch == ' ') || (ch == ASCII_tab)) || (ch == ASCII_lf);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void outText (mcPretty_pretty p, char *a_, unsigned int _a_high)
@@ -5131,7 +5080,6 @@ static mcPretty_pretty outKm2 (mcPretty_pretty p, char *a_, unsigned int _a_high
       p = mcPretty_popPretty (p);
     }
   return p;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static mcPretty_pretty outKc (mcPretty_pretty p, char *a_, unsigned int _a_high)
@@ -5173,7 +5121,6 @@ static mcPretty_pretty outKc (mcPretty_pretty p, char *a_, unsigned int _a_high)
   t = DynamicStrings_KillString (t);
   s = DynamicStrings_KillString (s);
   return p;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void outTextS (mcPretty_pretty p, DynamicStrings_String s)
@@ -5276,7 +5223,6 @@ static nameKey_Name doCname (nameKey_Name n, cnameT *c, unsigned int scopes)
         }
       return (*c).name;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static nameKey_Name getDName (decl_node n, unsigned int scopes)
@@ -5307,7 +5253,6 @@ static nameKey_Name getDName (decl_node n, unsigned int scopes)
         break;
     }
   return m;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doDNameC (mcPretty_pretty p, decl_node n, unsigned int scopes)
@@ -5376,7 +5321,6 @@ static decl_node getParameterVariable (decl_node n, nameKey_Name m)
     p = n->varparamF.scope;
   mcDebug_assert (decl_isProcedure (p));
   return decl_lookupInScope (p, m);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doParamC (mcPretty_pretty p, decl_node n)
@@ -5652,7 +5596,6 @@ static void doCompletePartialArray (mcPretty_pretty p, decl_node t, decl_node r)
 static decl_node lookupConst (decl_node type, nameKey_Name n)
 {
   return decl_makeLiteralInt (n);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node doMin (decl_node n)
@@ -5705,7 +5648,6 @@ static decl_node doMin (decl_node n)
     return lookupConst (addressN, nameKey_makeKey ((char *) "((void *) 0)", 12));
   else
     M2RTS_HALT (0);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node doMax (decl_node n)
@@ -5761,11 +5703,11 @@ static decl_node doMax (decl_node n)
     }
   else
     M2RTS_HALT (0);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node getMax (decl_node n)
 {
+  n = decl_skipType (n);
   if (decl_isSubrange (n))
     return n->subrangeF.high;
   else if (decl_isEnumeration (n))
@@ -5775,11 +5717,11 @@ static decl_node getMax (decl_node n)
       mcDebug_assert (isOrdinal (n));
       return doMax (n);
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node getMin (decl_node n)
 {
+  n = decl_skipType (n);
   if (decl_isSubrange (n))
     return n->subrangeF.low;
   else if (decl_isEnumeration (n))
@@ -5789,7 +5731,6 @@ static decl_node getMin (decl_node n)
       mcDebug_assert (isOrdinal (n));
       return doMin (n);
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doSubtractC (mcPretty_pretty p, decl_node s)
@@ -5904,7 +5845,6 @@ static unsigned int isBase (decl_node n)
         return FALSE;
         break;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doBaseC (mcPretty_pretty p, decl_node n)
@@ -5995,7 +5935,6 @@ static unsigned int isSystem (decl_node n)
         return FALSE;
         break;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doSystemC (mcPretty_pretty p, decl_node n)
@@ -6206,13 +6145,11 @@ static void doRecordC (mcPretty_pretty p, decl_node n, decl_node *m)
 static unsigned int isBitset (decl_node n)
 {
   return n == bitsetN;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int isNegative (decl_node n)
 {
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doSubrangeC (mcPretty_pretty p, decl_node n)
@@ -6423,7 +6360,6 @@ static unsigned int checkDeclareUnboundedParamCopyC (mcPretty_pretty p, decl_nod
         }
     }
   return seen;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void checkUnboundedParamCopyC (mcPretty_pretty p, decl_node n)
@@ -6551,7 +6487,6 @@ static DynamicStrings_String tempName (void)
 {
   tempCount += 1;
   return FormatStrings_Sprintf1 (DynamicStrings_InitString ((char *) "_T%d", 4), (unsigned char *) &tempCount, (sizeof (tempCount)-1));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node makeIntermediateType (DynamicStrings_String s, decl_node p)
@@ -6567,7 +6502,6 @@ static decl_node makeIntermediateType (DynamicStrings_String s, decl_node p)
   putTypeInternal (p);
   decl_leaveScope ();
   return p;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void simplifyType (alists_alist l, decl_node *p)
@@ -6867,7 +6801,6 @@ static unsigned int isStatementSequenceEmpty (decl_node s)
 {
   mcDebug_assert (decl_isStatementSequence (s));
   return (Indexing_HighIndice (s->stmtF.statements)) == 0;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int isSingleStatement (decl_node s)
@@ -6880,7 +6813,6 @@ static unsigned int isSingleStatement (decl_node s)
     return FALSE;
   s = Indexing_GetIndice (s->stmtF.statements, 1);
   return (! (decl_isStatementSequence (s))) || (isSingleStatement (s));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doCommentC (mcPretty_pretty p, decl_node s)
@@ -6945,7 +6877,6 @@ static void doAssignmentC (mcPretty_pretty p, decl_node s)
 static unsigned int containsStatement (decl_node s)
 {
   return ((s != NULL) && (decl_isStatementSequence (s))) && (! (isStatementSequenceEmpty (s)));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doCompoundStmt (mcPretty_pretty p, decl_node s)
@@ -7012,13 +6943,11 @@ static unsigned int noElse (decl_node n)
         }
     }
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int noIfElse (decl_node n)
 {
   return (((n != NULL) && (decl_isIf (n))) && (n->ifF.else_ == NULL)) && (n->ifF.elsif == NULL);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int hasIfElse (decl_node n)
@@ -7036,13 +6965,11 @@ static unsigned int hasIfElse (decl_node n)
         }
     }
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int isIfElse (decl_node n)
 {
   return ((n != NULL) && (decl_isIf (n))) && ((n->ifF.else_ != NULL) || (n->ifF.elsif != NULL));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doIfC (mcPretty_pretty p, decl_node s)
@@ -7336,7 +7263,6 @@ static void doAdrExprC (mcPretty_pretty p, decl_node n)
 static unsigned int typePair (decl_node a, decl_node b, decl_node x, decl_node y)
 {
   return ((a == x) && (b == y)) || ((a == y) && (b == x));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int needsCast (decl_node at, decl_node ft)
@@ -7345,7 +7271,6 @@ static unsigned int needsCast (decl_node at, decl_node ft)
     return FALSE;
   else
     return TRUE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int checkSystemCast (mcPretty_pretty p, decl_node actual, decl_node formal)
@@ -7394,7 +7319,6 @@ static unsigned int checkSystemCast (mcPretty_pretty p, decl_node actual, decl_n
       }
   }
   return 0;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void emitN (mcPretty_pretty p, char *a_, unsigned int _a_high, unsigned int n)
@@ -7455,7 +7379,6 @@ static decl_node getNthParamType (Indexing_Index l, unsigned int i)
   if (p != NULL)
     return decl_getType (p);
   return NULL;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node getNthParam (Indexing_Index l, unsigned int i)
@@ -7491,7 +7414,6 @@ static decl_node getNthParam (Indexing_Index l, unsigned int i)
         }
     }
   return NULL;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doFuncArgsC (mcPretty_pretty p, decl_node s, Indexing_Index l, unsigned int needParen)
@@ -7835,6 +7757,8 @@ static void doAbsC (mcPretty_pretty p, decl_node n)
       keyc_useFabsl ();
       outText (p, (char *) "fabsl", 5);
     }
+  else if (t == cardinalN)
+    {}  /* empty.  */
   else
     M2RTS_HALT (0);
   mcPretty_setNeedSpace (p);
@@ -7932,7 +7856,6 @@ static unsigned int isIntrinsic (decl_node n)
         return (isFuncCall (n)) && (n->funccallF.function == haltN);
         break;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doHalt (mcPretty_pretty p, decl_node n)
@@ -8060,7 +7983,6 @@ static decl_node getFuncFromExpr (decl_node n)
   while ((n != procN) && (! (decl_isProcType (n))))
     n = decl_skipType (decl_getType (n));
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doFuncExprC (mcPretty_pretty p, decl_node n)
@@ -8379,7 +8301,6 @@ static unsigned int canUseSwitchCaseLabels (decl_node n)
       i += 1;
     }
   return TRUE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int canUseSwitch (decl_node n)
@@ -8399,7 +8320,6 @@ static unsigned int canUseSwitch (decl_node n)
       i += 1;
     }
   return TRUE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void doCaseC (mcPretty_pretty p, decl_node n)
@@ -8519,6 +8439,107 @@ static void includeParameters (decl_node n)
   Indexing_ForeachIndiceInIndexDo (n->procedureF.decls.variables, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) addParamDone});
 }
 
+static unsigned int isHalt (decl_node n)
+{
+  return (n->funccallF.function == haltN) || (n->funccallF.function->kind == halt);
+}
+
+static unsigned int isReturnOrHalt (decl_node n)
+{
+  return (isHalt (n)) || (decl_isReturn (n));
+}
+
+static unsigned int isLastStatementReturn (decl_node n)
+{
+  return isLastStatement (n, (decl_isNodeF) {(decl_isNodeF_t) isReturnOrHalt});
+}
+
+static unsigned int isLastStatementSequence (decl_node n, decl_isNodeF q)
+{
+  unsigned int h;
+
+  mcDebug_assert (decl_isStatementSequence (n));
+  h = Indexing_HighIndice (n->stmtF.statements);
+  if (h > 0)
+    return isLastStatement ((decl_node) Indexing_GetIndice (n->stmtF.statements, h), q);
+  return FALSE;
+}
+
+static unsigned int isLastStatementIf (decl_node n, decl_isNodeF q)
+{
+  unsigned int ret;
+
+  mcDebug_assert (decl_isIf (n));
+  ret = TRUE;
+  if ((n->ifF.elsif != NULL) && ret)
+    ret = isLastStatement (n->ifF.elsif, q);
+  if ((n->ifF.then != NULL) && ret)
+    ret = isLastStatement (n->ifF.then, q);
+  if ((n->ifF.else_ != NULL) && ret)
+    ret = isLastStatement (n->ifF.else_, q);
+  return ret;
+}
+
+static unsigned int isLastStatementElsif (decl_node n, decl_isNodeF q)
+{
+  unsigned int ret;
+
+  mcDebug_assert (decl_isElsif (n));
+  ret = TRUE;
+  if ((n->elsifF.elsif != NULL) && ret)
+    ret = isLastStatement (n->elsifF.elsif, q);
+  if ((n->elsifF.then != NULL) && ret)
+    ret = isLastStatement (n->elsifF.then, q);
+  if ((n->elsifF.else_ != NULL) && ret)
+    ret = isLastStatement (n->elsifF.else_, q);
+  return ret;
+}
+
+static unsigned int isLastStatementCase (decl_node n, decl_isNodeF q)
+{
+  unsigned int ret;
+  unsigned int i;
+  unsigned int h;
+  decl_node c;
+
+  ret = TRUE;
+  mcDebug_assert (decl_isCase (n));
+  i = 1;
+  h = Indexing_HighIndice (n->caseF.caseLabelList);
+  while (i <= h)
+    {
+      c = Indexing_GetIndice (n->caseF.caseLabelList, i);
+      mcDebug_assert (decl_isCaseLabelList (c));
+      ret = ret && (isLastStatement (c->caselabellistF.statements, q));
+      i += 1;
+    }
+  if (n->caseF.else_ != NULL)
+    ret = ret && (isLastStatement (n->caseF.else_, q));
+  return ret;
+}
+
+static unsigned int isLastStatement (decl_node n, decl_isNodeF q)
+{
+  unsigned int ret;
+
+  if (decl_isStatementSequence (n))
+    return isLastStatementSequence (n, q);
+  else if (decl_isProcedure (n))
+    {
+      mcDebug_assert (decl_isProcedure (n));
+      return isLastStatement (n->procedureF.beginStatements, q);
+    }
+  else if (decl_isIf (n))
+    return isLastStatementIf (n, q);
+  else if (decl_isElsif (n))
+    return isLastStatementElsif (n, q);
+  else if (decl_isCase (n))
+    return isLastStatementCase (n, q);
+  else if ((*q.proc) (n))
+    return TRUE;
+  return FALSE;
+}
+
 static void doProcedureC (decl_node n)
 {
   unsigned int s;
@@ -8537,7 +8558,7 @@ static void doProcedureC (decl_node n)
     outText (doP, (char *) "\\n", 2);
   doStatementsC (doP, n->procedureF.beginStatements);
   if (n->procedureF.returnType != NULL)
-    if (returnException)
+    if (returnException && (! (isLastStatementReturn (n))))
       doException (doP, (char *) "ReturnException", 15, n);
   doP = outKc (doP, (char *) "}\\n", 3);
   keyc_leaveScope (n);
@@ -8570,7 +8591,6 @@ static dependentState allDependants (decl_node n)
   s = walkDependants (l, n);
   alists_killList (&l);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkDependants (alists_alist l, decl_node n)
@@ -8584,7 +8604,6 @@ static dependentState walkDependants (alists_alist l, decl_node n)
       alists_includeItemIntoList (l, (void *) n);
       return doDependants (l, n);
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkType (alists_alist l, decl_node n)
@@ -8601,7 +8620,6 @@ static dependentState walkType (alists_alist l, decl_node n)
       queueBlocked (t);
       return blocked;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void db (char *a_, unsigned int _a_high, decl_node n)
@@ -8724,7 +8742,6 @@ static dependentState walkRecord (alists_alist l, decl_node n)
   dbt ((char *) "}\\n", 3);
   mcPretty_setindent (doP, o);
   return completed;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkVarient (alists_alist l, decl_node n)
@@ -8761,7 +8778,6 @@ static dependentState walkVarient (alists_alist l, decl_node n)
   db ((char *) "{completed", 10, n);
   dbt ((char *) "}\\n", 3);
   return completed;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void queueBlocked (decl_node n)
@@ -8782,7 +8798,6 @@ static dependentState walkVar (alists_alist l, decl_node n)
       queueBlocked (t);
       return blocked;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkEnumeration (alists_alist l, decl_node n)
@@ -8804,7 +8819,6 @@ static dependentState walkEnumeration (alists_alist l, decl_node n)
       i += 1;
     }
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkSubrange (alists_alist l, decl_node n)
@@ -8821,7 +8835,6 @@ static dependentState walkSubrange (alists_alist l, decl_node n)
   if (s != completed)
     return s;
   return completed;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkSubscript (alists_alist l, decl_node n)
@@ -8835,7 +8848,6 @@ static dependentState walkSubscript (alists_alist l, decl_node n)
   if (s != completed)
     return s;
   return completed;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkPointer (alists_alist l, decl_node n)
@@ -8846,7 +8858,6 @@ static dependentState walkPointer (alists_alist l, decl_node n)
   if ((alists_isItemInList (partialQ, (void *) t)) || (alists_isItemInList (doneQ, (void *) t)))
     return completed;
   return walkType (l, n);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkArray (alists_alist l, decl_node n)
@@ -8857,7 +8868,6 @@ static dependentState walkArray (alists_alist l, decl_node n)
   if (s != completed)
     return s;
   return walkDependants (l, n->arrayF.subr);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkConst (alists_alist l, decl_node n)
@@ -8871,7 +8881,6 @@ static dependentState walkConst (alists_alist l, decl_node n)
   if (s != completed)
     return s;
   return completed;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkVarParam (alists_alist l, decl_node n)
@@ -8882,7 +8891,6 @@ static dependentState walkVarParam (alists_alist l, decl_node n)
   if (alists_isItemInList (partialQ, (void *) t))
     return completed;
   return walkDependants (l, t);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkParam (alists_alist l, decl_node n)
@@ -8893,7 +8901,6 @@ static dependentState walkParam (alists_alist l, decl_node n)
   if (alists_isItemInList (partialQ, (void *) t))
     return completed;
   return walkDependants (l, t);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkOptarg (alists_alist l, decl_node n)
@@ -8904,7 +8911,6 @@ static dependentState walkOptarg (alists_alist l, decl_node n)
   if (alists_isItemInList (partialQ, (void *) t))
     return completed;
   return walkDependants (l, t);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkRecordField (alists_alist l, decl_node n)
@@ -8932,7 +8938,6 @@ static dependentState walkRecordField (alists_alist l, decl_node n)
       dbq (t);
       return blocked;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkVarientField (alists_alist l, decl_node n)
@@ -8959,19 +8964,16 @@ static dependentState walkVarientField (alists_alist l, decl_node n)
   n->varientfieldF.simple = t <= 1;
   dbs (s, n);
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkEnumerationField (alists_alist l, decl_node n)
 {
   return completed;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkSet (alists_alist l, decl_node n)
 {
   return walkDependants (l, decl_getType (n));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkProcType (alists_alist l, decl_node n)
@@ -8989,7 +8991,6 @@ static dependentState walkProcType (alists_alist l, decl_node n)
         return s;
     }
   return walkParameters (l, n->proctypeF.parameters);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkProcedure (alists_alist l, decl_node n)
@@ -9000,7 +9001,6 @@ static dependentState walkProcedure (alists_alist l, decl_node n)
   if (s != completed)
     return s;
   return walkParameters (l, n->procedureF.parameters);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkParameters (alists_alist l, Indexing_Index p)
@@ -9021,13 +9021,11 @@ static dependentState walkParameters (alists_alist l, Indexing_Index p)
       i += 1;
     }
   return completed;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkFuncCall (alists_alist l, decl_node n)
 {
   return completed;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkUnary (alists_alist l, decl_node n)
@@ -9038,7 +9036,6 @@ static dependentState walkUnary (alists_alist l, decl_node n)
   if (s != completed)
     return s;
   return walkDependants (l, n->unaryF.resultType);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkBinary (alists_alist l, decl_node n)
@@ -9052,7 +9049,6 @@ static dependentState walkBinary (alists_alist l, decl_node n)
   if (s != completed)
     return s;
   return walkDependants (l, n->binaryF.resultType);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkComponentRef (alists_alist l, decl_node n)
@@ -9066,7 +9062,6 @@ static dependentState walkComponentRef (alists_alist l, decl_node n)
   if (s != completed)
     return s;
   return walkDependants (l, n->componentrefF.resultType);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState walkPointerRef (alists_alist l, decl_node n)
@@ -9080,7 +9075,6 @@ static dependentState walkPointerRef (alists_alist l, decl_node n)
   if (s != completed)
     return s;
   return walkDependants (l, n->pointerrefF.resultType);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static dependentState doDependants (alists_alist l, decl_node n)
@@ -9261,7 +9255,6 @@ static dependentState doDependants (alists_alist l, decl_node n)
       default:
         CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int tryComplete (decl_node n, nodeProcedure c, nodeProcedure t, nodeProcedure v)
@@ -9282,7 +9275,6 @@ static unsigned int tryComplete (decl_node n, nodeProcedure c, nodeProcedure t, 
       return TRUE;
     }
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int tryCompleteFromPartial (decl_node n, nodeProcedure t)
@@ -9298,7 +9290,6 @@ static unsigned int tryCompleteFromPartial (decl_node n, nodeProcedure t)
       return TRUE;
     }
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void visitUnary (alists_alist v, decl_node n, nodeProcedure p)
@@ -10294,7 +10285,6 @@ static DynamicStrings_String genKind (decl_node n)
         CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
     }
   M2RTS_HALT (0);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static DynamicStrings_String gen (decl_node n)
@@ -10309,7 +10299,6 @@ static DynamicStrings_String gen (decl_node n)
   s = DynamicStrings_ConCat (s, getFQstring (n));
   s = DynamicStrings_ConCat (s, DynamicStrings_InitString ((char *) " >", 2));
   return s;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void dumpQ (char *q_, unsigned int _q_high, alists_alist l)
@@ -10405,7 +10394,6 @@ static unsigned int tryPartial (decl_node n, nodeProcedure pt)
         }
     }
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void outputPartial (decl_node n)
@@ -11350,7 +11338,6 @@ static decl_node dbgAdd (alists_alist l, decl_node n)
   if (n != NULL)
     alists_includeItemIntoList (l, (void *) n);
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void dbgType (alists_alist l, decl_node n)
@@ -11536,14 +11523,12 @@ static void dbg (decl_node n)
 static unsigned int isAssignment (decl_node n)
 {
   return n->kind == assignment;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static unsigned int isComment (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == comment;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node dupExplist (decl_node n)
@@ -11560,40 +11545,34 @@ static decl_node dupExplist (decl_node n)
       i += 1;
     }
   return m;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node dupArrayref (decl_node n)
 {
   mcDebug_assert (isArrayRef (n));
   return decl_makeArrayRef (decl_dupExpr (n->arrayrefF.array), decl_dupExpr (n->arrayrefF.index));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node dupPointerref (decl_node n)
 {
   mcDebug_assert (decl_isPointerRef (n));
   return decl_makePointerRef (decl_dupExpr (n->pointerrefF.ptr), decl_dupExpr (n->pointerrefF.field));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node dupComponentref (decl_node n)
 {
   mcDebug_assert (isComponentRef (n));
   return doMakeComponentRef (decl_dupExpr (n->componentrefF.rec), decl_dupExpr (n->componentrefF.field));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node dupBinary (decl_node n)
 {
   return makeBinary (n->kind, decl_dupExpr (n->binaryF.left), decl_dupExpr (n->binaryF.right), n->binaryF.resultType);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node dupUnary (decl_node n)
 {
   return makeUnary (n->kind, decl_dupExpr (n->unaryF.arg), n->unaryF.resultType);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node dupFunccall (decl_node n)
@@ -11604,7 +11583,6 @@ static decl_node dupFunccall (decl_node n)
   m = decl_makeFuncCall (decl_dupExpr (n->funccallF.function), decl_dupExpr (n->funccallF.args));
   m->funccallF.type = n->funccallF.type;
   return m;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static decl_node dupSetValue (decl_node n)
@@ -11621,7 +11599,165 @@ static decl_node dupSetValue (decl_node n)
       i += 1;
     }
   return m;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
+}
+
+static decl_node doDupExpr (decl_node n)
+{
+  mcDebug_assert (n != NULL);
+  switch (n->kind)
+    {
+      case explist:
+        return dupExplist (n);
+        break;
+
+      case exit_:
+      case return_:
+      case stmtseq:
+      case comment:
+        M2RTS_HALT (0);
+        break;
+
+      case nil:
+      case true:
+      case false:
+      case address:
+      case loc:
+      case byte:
+      case word:
+      case boolean:
+      case proc:
+      case char_:
+      case integer:
+      case cardinal:
+      case longcard:
+      case shortcard:
+      case longint:
+      case shortint:
+      case real:
+      case longreal:
+      case shortreal:
+      case bitset:
+      case ztype:
+      case rtype:
+        return n;
+        break;
+
+      case type:
+      case record:
+      case varient:
+      case var:
+      case enumeration:
+      case subrange:
+      case subscript:
+      case array:
+      case string:
+      case const_:
+      case literal:
+      case varparam:
+      case param:
+      case varargs:
+      case optarg_:
+      case pointer:
+      case recordfield:
+      case varientfield:
+      case enumerationfield:
+      case set:
+      case proctype:
+        return n;
+        break;
+
+      case procedure:
+      case def:
+      case imp:
+      case module:
+        return n;
+        break;
+
+      case loop:
+      case while_:
+      case for_:
+      case repeat:
+      case case_:
+      case caselabellist:
+      case caselist:
+      case range:
+      case if_:
+      case elsif:
+      case assignment:
+        return n;
+        break;
+
+      case arrayref:
+        return dupArrayref (n);
+        break;
+
+      case pointerref:
+        return dupPointerref (n);
+        break;
+
+      case componentref:
+        return dupComponentref (n);
+        break;
+
+      case and:
+      case or:
+      case equal:
+      case notequal:
+      case less:
+      case greater:
+      case greequal:
+      case lessequal:
+      case cast:
+      case val:
+      case plus:
+      case sub:
+      case div_:
+      case mod:
+      case mult:
+      case divide:
+      case in:
+        return dupBinary (n);
+        break;
+
+      case constexp:
+      case deref:
+      case abs_:
+      case chr:
+      case high:
+      case float_:
+      case trunc:
+      case ord:
+      case throw:
+      case not:
+      case neg:
+      case adr:
+      case size:
+      case tsize:
+      case min:
+      case max:
+        return dupUnary (n);
+        break;
+
+      case identlist:
+        return n;
+        break;
+
+      case vardecl:
+        return n;
+        break;
+
+      case funccall:
+        return dupFunccall (n);
+        break;
+
+      case setvalue:
+        return dupSetValue (n);
+        break;
+
+
+      default:
+        CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
+    }
 }
 
 static void makeSystem (void)
@@ -11666,7 +11802,6 @@ static decl_node makeBitnum (void)
   b->subrangeF.low = lookupConst (b, nameKey_makeKey ((char *) "0", 1));
   b->subrangeF.high = lookupConst (b, nameKey_makeKey ((char *) "31", 2));
   return b;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 static void makeBaseSymbols (void)
@@ -11796,39 +11931,33 @@ static void init (void)
 unsigned int decl_getDeclaredMod (decl_node n)
 {
   return n->at.modDeclared;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_getDeclaredDef (decl_node n)
 {
   return n->at.defDeclared;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_getFirstUsed (decl_node n)
 {
   return n->at.firstUsed;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isDef (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == def;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isImp (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == imp;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isImpOrModule (decl_node n)
 {
   return (decl_isImp (n)) || (decl_isModule (n));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isVisited (decl_node n)
@@ -11851,7 +11980,6 @@ unsigned int decl_isVisited (decl_node n)
       default:
         CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_unsetVisited (decl_node n)
@@ -11940,7 +12068,6 @@ unsigned int decl_getEnumsComplete (decl_node n)
       default:
         CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_resetEnumPos (decl_node n)
@@ -11969,21 +12096,18 @@ decl_node decl_getNextEnum (void)
   mcDebug_assert (n != NULL);
   mcDebug_assert ((decl_isEnumeration (n)) || (decl_isEnumerationField (n)));
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isModule (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == module;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isMainModule (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n == mainModule;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_setMainModule (decl_node n)
@@ -12010,7 +12134,6 @@ decl_node decl_lookupDef (nameKey_Name n)
       Indexing_IncludeIndiceIntoIndex (defUniverseI, (void *) d);
     }
   return d;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_lookupImp (nameKey_Name n)
@@ -12026,7 +12149,6 @@ decl_node decl_lookupImp (nameKey_Name n)
     }
   mcDebug_assert (! (decl_isModule (m)));
   return m;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_lookupModule (nameKey_Name n)
@@ -12042,7 +12164,6 @@ decl_node decl_lookupModule (nameKey_Name n)
     }
   mcDebug_assert (! (decl_isImp (m)));
   return m;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_putDefForC (decl_node n)
@@ -12078,21 +12199,18 @@ decl_node decl_lookupInScope (decl_node scope, nameKey_Name n)
       default:
         CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isConst (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == const_;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isType (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == type;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_putType (decl_node des, decl_node exp)
@@ -12383,7 +12501,6 @@ decl_node decl_getType (decl_node n)
         CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
     }
   M2RTS_HALT (0);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_skipType (decl_node n)
@@ -12395,7 +12512,6 @@ decl_node decl_skipType (decl_node n)
       n = decl_getType (n);
     }
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_putTypeHidden (decl_node des)
@@ -12415,27 +12531,23 @@ unsigned int decl_isTypeHidden (decl_node n)
   mcDebug_assert (n != NULL);
   mcDebug_assert (decl_isType (n));
   return n->typeF.isHidden;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_hasHidden (decl_node n)
 {
   mcDebug_assert (decl_isDef (n));
   return n->defF.hasHidden;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isVar (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == var;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isTemporary (decl_node n)
 {
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isExported (decl_node n)
@@ -12456,7 +12568,6 @@ unsigned int decl_isExported (decl_node n)
           break;
       }
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_getDeclScope (void)
@@ -12465,7 +12576,6 @@ decl_node decl_getDeclScope (void)
 
   i = Indexing_HighIndice (scopeStack);
   return Indexing_GetIndice (scopeStack, i);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_getScope (decl_node n)
@@ -12702,14 +12812,12 @@ decl_node decl_getScope (decl_node n)
       default:
         CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isLiteral (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == literal;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isConstSet (decl_node n)
@@ -12718,55 +12826,47 @@ unsigned int decl_isConstSet (decl_node n)
   if ((decl_isLiteral (n)) || (decl_isConst (n)))
     return decl_isSet (decl_skipType (decl_getType (n)));
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isEnumerationField (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == enumerationfield;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isEnumeration (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == enumeration;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isUnbounded (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return (n->kind == array) && n->arrayF.isUnbounded;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isParameter (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return (n->kind == param) || (n->kind == varparam);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isVarParam (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == varparam;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isParam (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == param;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isNonVarParam (decl_node n)
 {
   return decl_isParam (n);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_addOptParameter (decl_node proc, nameKey_Name id, decl_node type, decl_node init)
@@ -12784,95 +12884,81 @@ decl_node decl_addOptParameter (decl_node proc, nameKey_Name id, decl_node type,
       decl_addParameter (proc, p);
     }
   return p;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isOptarg (decl_node n)
 {
   return n->kind == optarg_;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isRecord (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == record;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isRecordField (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == recordfield;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isVarientField (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == varientfield;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isArray (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == array;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isProcType (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == proctype;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isPointer (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == pointer;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isProcedure (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == procedure;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isVarient (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == varient;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isSet (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == set;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isSubrange (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == subrange;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isZtype (decl_node n)
 {
   return n == ztypeN;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isRtype (decl_node n)
 {
   return n == rtypeN;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeConst (nameKey_Name n)
@@ -12885,7 +12971,6 @@ decl_node decl_makeConst (nameKey_Name n)
   d->constF.scope = decl_getDeclScope ();
   d->constF.value = NULL;
   return addToScope (d);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_putConst (decl_node n, decl_node v)
@@ -12905,7 +12990,6 @@ decl_node decl_makeType (nameKey_Name n)
   d->typeF.isHidden = FALSE;
   d->typeF.isInternal = FALSE;
   return addToScope (d);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeTypeImp (nameKey_Name n)
@@ -12927,7 +13011,6 @@ decl_node decl_makeTypeImp (nameKey_Name n)
       d->typeF.isHidden = FALSE;
       return addToScope (d);
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeVar (nameKey_Name n)
@@ -12944,7 +13027,6 @@ decl_node decl_makeVar (nameKey_Name n)
   d->varF.isVarParameter = FALSE;
   initCname (&d->varF.cname);
   return addToScope (d);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_putVar (decl_node var, decl_node type, decl_node decl)
@@ -12977,7 +13059,6 @@ decl_node decl_makeVarDecl (decl_node i, decl_node type)
       j += 1;
     }
   return d;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeEnum (void)
@@ -12986,7 +13067,6 @@ decl_node decl_makeEnum (void)
     return decl_getNextEnum ();
   else
     return doMakeEnum ();
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeEnumField (decl_node e, nameKey_Name n)
@@ -12995,7 +13075,6 @@ decl_node decl_makeEnumField (decl_node e, nameKey_Name n)
     return decl_getNextEnum ();
   else
     return doMakeEnumField (e, n);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeSubrange (decl_node low, decl_node high)
@@ -13008,7 +13087,6 @@ decl_node decl_makeSubrange (decl_node low, decl_node high)
   n->subrangeF.type = NULL;
   n->subrangeF.scope = decl_getDeclScope ();
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_putSubrangeType (decl_node sub, decl_node type)
@@ -13025,7 +13103,6 @@ decl_node decl_makePointer (decl_node type)
   n->pointerF.type = type;
   n->pointerF.scope = decl_getDeclScope ();
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeSet (decl_node type)
@@ -13036,7 +13113,6 @@ decl_node decl_makeSet (decl_node type)
   n->setF.type = type;
   n->setF.scope = decl_getDeclScope ();
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeArray (decl_node subr, decl_node type)
@@ -13052,7 +13128,6 @@ decl_node decl_makeArray (decl_node subr, decl_node type)
   n->arrayF.scope = decl_getDeclScope ();
   n->arrayF.isUnbounded = FALSE;
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_putUnbounded (decl_node n)
@@ -13070,7 +13145,6 @@ decl_node decl_makeRecord (void)
   n->recordF.listOfSons = Indexing_InitIndex (1);
   n->recordF.scope = decl_getDeclScope ();
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeVarient (decl_node r)
@@ -13100,7 +13174,6 @@ decl_node decl_makeVarient (decl_node r)
         CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
     }
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_addFieldsToRecord (decl_node r, decl_node v, decl_node i, decl_node t)
@@ -13136,7 +13209,6 @@ decl_node decl_addFieldsToRecord (decl_node r, decl_node v, decl_node i, decl_no
       j += 1;
     }
   return r;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_buildVarientSelector (decl_node r, decl_node v, nameKey_Name tag, decl_node type)
@@ -13173,7 +13245,6 @@ decl_node decl_buildVarientFieldRecord (decl_node v, decl_node p)
   mcDebug_assert (decl_isVarientField (f));
   putFieldVarient (f, v);
   return f;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 nameKey_Name decl_getSymName (decl_node n)
@@ -13482,7 +13553,6 @@ nameKey_Name decl_getSymName (decl_node n)
         M2RTS_HALT (0);
         break;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_import (decl_node m, decl_node n)
@@ -13517,7 +13587,6 @@ decl_node decl_import (decl_node m, decl_node n)
       return n;
     }
   return r;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_lookupExported (decl_node n, nameKey_Name i)
@@ -13529,7 +13598,6 @@ decl_node decl_lookupExported (decl_node n, nameKey_Name i)
   if ((r != NULL) && (decl_isExported (r)))
     return r;
   return NULL;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_lookupSym (nameKey_Name n)
@@ -13556,7 +13624,6 @@ decl_node decl_lookupSym (nameKey_Name n)
       h -= 1;
     }
   return lookupBase (n);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_addImportedModule (decl_node m, decl_node i, unsigned int scoped)
@@ -13616,19 +13683,16 @@ nameKey_Name decl_getSource (decl_node n)
       default:
         CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_getMainModule (void)
 {
   return mainModule;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_getCurrentModule (void)
 {
   return currentModule;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_foreachDefModuleDo (symbolKey_performOperation p)
@@ -13692,7 +13756,6 @@ decl_node decl_makeProcedure (nameKey_Name n)
       initCname (&d->procedureF.cname);
     }
   return addProcedureToScope (d, n);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeProcType (void)
@@ -13707,7 +13770,6 @@ decl_node decl_makeProcType (void)
   d->proctypeF.vararg = FALSE;
   d->proctypeF.returnType = NULL;
   return d;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_putReturnType (decl_node proc, decl_node type)
@@ -13739,7 +13801,6 @@ decl_node decl_makeVarParameter (decl_node l, decl_node type, decl_node proc)
   d->varparamF.scope = proc;
   d->varparamF.isUnbounded = FALSE;
   return d;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeNonVarParameter (decl_node l, decl_node type, decl_node proc)
@@ -13753,7 +13814,6 @@ decl_node decl_makeNonVarParameter (decl_node l, decl_node type, decl_node proc)
   d->paramF.scope = proc;
   d->paramF.isUnbounded = FALSE;
   return d;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_paramEnter (decl_node n)
@@ -13778,7 +13838,6 @@ decl_node decl_makeIdentList (void)
   n->identlistF.names = wlists_initList ();
   n->identlistF.cnamed = FALSE;
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_putIdent (decl_node n, nameKey_Name i)
@@ -13791,7 +13850,6 @@ unsigned int decl_putIdent (decl_node n, nameKey_Name i)
       wlists_putItemIntoList (n->identlistF.names, (unsigned int ) i);
       return TRUE;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_addVarParameters (decl_node n, decl_node i, decl_node type)
@@ -13833,13 +13891,11 @@ decl_node decl_makeVarargs (void)
   d = newNode ((nodeT) varargs);
   d->varargsF.scope = NULL;
   return d;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isVarargs (decl_node n)
 {
   return n->kind == varargs;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_addParameter (decl_node proc, decl_node param)
@@ -13903,7 +13959,6 @@ decl_node decl_makeBinaryTok (mcReserved_toktype op, decl_node l, decl_node r)
     return makeBinary ((nodeT) divide, l, r, (decl_node) NULL);
   else
     M2RTS_HALT (0);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeUnaryTok (mcReserved_toktype op, decl_node e)
@@ -13916,7 +13971,6 @@ decl_node decl_makeUnaryTok (mcReserved_toktype op, decl_node e)
     return makeUnary ((nodeT) neg, e, (decl_node) NULL);
   else
     M2RTS_HALT (0);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeComponentRef (decl_node rec, decl_node field)
@@ -13935,7 +13989,6 @@ decl_node decl_makeComponentRef (decl_node rec, decl_node field)
     }
   else
     return doMakeComponentRef (rec, field);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makePointerRef (decl_node ptr, decl_node field)
@@ -13947,14 +14000,12 @@ decl_node decl_makePointerRef (decl_node ptr, decl_node field)
   n->pointerrefF.field = field;
   n->pointerrefF.resultType = decl_getType (field);
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isPointerRef (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == pointerref;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeDeRef (decl_node n)
@@ -13964,7 +14015,6 @@ decl_node decl_makeDeRef (decl_node n)
   t = decl_skipType (decl_getType (n));
   mcDebug_assert (decl_isPointer (t));
   return makeUnary ((nodeT) deref, n, decl_getType (t));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeArrayRef (decl_node array, decl_node index)
@@ -13976,19 +14026,16 @@ decl_node decl_makeArrayRef (decl_node array, decl_node index)
   n->arrayrefF.index = index;
   n->arrayrefF.resultType = decl_getType (decl_getType (array));
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_getLastOp (decl_node n)
 {
   return doGetLastOp (n, n);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_getCardinal (void)
 {
   return cardinalN;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeLiteralInt (nameKey_Name n)
@@ -14005,7 +14052,6 @@ decl_node decl_makeLiteralInt (nameKey_Name n)
     m->literalF.type = ztypeN;
   s = DynamicStrings_KillString (s);
   return m;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeLiteralReal (nameKey_Name n)
@@ -14016,7 +14062,6 @@ decl_node decl_makeLiteralReal (nameKey_Name n)
   m->literalF.name = n;
   m->literalF.type = rtypeN;
   return m;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeString (nameKey_Name n)
@@ -14034,7 +14079,6 @@ decl_node decl_makeString (nameKey_Name n)
   else
     m->stringF.cchar = NULL;
   return m;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeSetValue (void)
@@ -14045,14 +14089,12 @@ decl_node decl_makeSetValue (void)
   n->setvalueF.type = bitsetN;
   n->setvalueF.values = Indexing_InitIndex (1);
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isSetValue (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == setvalue;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_putSetValue (decl_node n, decl_node t)
@@ -14060,7 +14102,6 @@ decl_node decl_putSetValue (decl_node n, decl_node t)
   mcDebug_assert (decl_isSetValue (n));
   n->setvalueF.type = t;
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_includeSetValue (decl_node n, decl_node l, decl_node h)
@@ -14068,7 +14109,6 @@ decl_node decl_includeSetValue (decl_node n, decl_node l, decl_node h)
   mcDebug_assert (decl_isSetValue (n));
   Indexing_IncludeIndiceIntoIndex (n->setvalueF.values, (void *) l);
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_getBuiltinConst (nameKey_Name n)
@@ -14083,7 +14123,6 @@ decl_node decl_getBuiltinConst (nameKey_Name n)
     return unitsperwordN;
   else
     return NULL;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeExpList (void)
@@ -14093,14 +14132,12 @@ decl_node decl_makeExpList (void)
   n = newNode ((nodeT) explist);
   n->explistF.exp = Indexing_InitIndex (1);
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isExpList (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == explist;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_putExpList (decl_node n, decl_node e)
@@ -14116,7 +14153,6 @@ decl_node decl_makeConstExp (void)
     return decl_getNextConstExp ();
   else
     return doMakeConstExp ();
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_getNextConstExp (void)
@@ -14131,7 +14167,6 @@ decl_node decl_getNextConstExp (void)
   else if (decl_isModule (currentModule))
     return getNextFixup (&currentModule->moduleF.constFixup);
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_setConstExpComplete (decl_node n)
@@ -14161,7 +14196,6 @@ decl_node decl_fixupConstExp (decl_node c, decl_node e)
   mcDebug_assert (isConstExp (c));
   c->unaryF.arg = e;
   return c;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_resetConstExpPos (decl_node n)
@@ -14192,7 +14226,6 @@ decl_node decl_makeFuncCall (decl_node c, decl_node n)
       f->funccallF.type = NULL;
       return f;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeStatementSequence (void)
@@ -14202,13 +14235,11 @@ decl_node decl_makeStatementSequence (void)
   n = newNode ((nodeT) stmtseq);
   n->stmtF.statements = Indexing_InitIndex (1);
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isStatementSequence (decl_node n)
 {
   return n->kind == stmtseq;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_addStatement (decl_node s, decl_node n)
@@ -14227,14 +14258,12 @@ decl_node decl_makeReturn (void)
   n = newNode ((nodeT) return_);
   n->returnF.exp = NULL;
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isReturn (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == return_;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_putReturn (decl_node n, decl_node e)
@@ -14251,7 +14280,6 @@ decl_node decl_makeWhile (void)
   n->whileF.expr = NULL;
   n->whileF.statements = NULL;
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_putWhile (decl_node n, decl_node e, decl_node s)
@@ -14264,7 +14292,6 @@ void decl_putWhile (decl_node n, decl_node e, decl_node s)
 unsigned int decl_isWhile (decl_node n)
 {
   return n->kind == while_;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeAssignment (decl_node d, decl_node e)
@@ -14275,7 +14302,6 @@ decl_node decl_makeAssignment (decl_node d, decl_node e)
   n->assignmentF.des = d;
   n->assignmentF.expr = e;
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_putBegin (decl_node b, decl_node s)
@@ -14329,14 +14355,12 @@ decl_node decl_makeExit (decl_node l, unsigned int n)
   e->exitF.loop = l;
   l->loopF.labelno = n;
   return e;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isExit (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == exit_;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeLoop (void)
@@ -14347,14 +14371,12 @@ decl_node decl_makeLoop (void)
   l->loopF.statements = NULL;
   l->loopF.labelno = 0;
   return l;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isLoop (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == loop;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_putLoop (decl_node l, decl_node s)
@@ -14374,7 +14396,6 @@ decl_node decl_makeComment (char *a_, unsigned int _a_high)
   n = newNode ((nodeT) comment);
   n->commentF.content = DynamicStrings_InitString ((char *) a, _a_high);
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeIf (decl_node e, decl_node s)
@@ -14387,13 +14408,11 @@ decl_node decl_makeIf (decl_node e, decl_node s)
   n->ifF.else_ = NULL;
   n->ifF.elsif = NULL;
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isIf (decl_node n)
 {
   return n->kind == if_;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeElsif (decl_node i, decl_node e, decl_node s)
@@ -14417,13 +14436,11 @@ decl_node decl_makeElsif (decl_node i, decl_node e, decl_node s)
       mcDebug_assert (i->elsifF.else_ == NULL);
     }
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isElsif (decl_node n)
 {
   return n->kind == elsif;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_putElse (decl_node i, decl_node s)
@@ -14454,14 +14471,12 @@ decl_node decl_makeFor (void)
   n->forF.increment = NULL;
   n->forF.statements = NULL;
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isFor (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == for_;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_putFor (decl_node f, decl_node i, decl_node s, decl_node e, decl_node b, decl_node sq)
@@ -14482,14 +14497,12 @@ decl_node decl_makeRepeat (void)
   n->repeatF.expr = NULL;
   n->repeatF.statements = NULL;
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isRepeat (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == repeat;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 void decl_putRepeat (decl_node n, decl_node s, decl_node e)
@@ -14507,14 +14520,12 @@ decl_node decl_makeCase (void)
   n->caseF.caseLabelList = Indexing_InitIndex (1);
   n->caseF.else_ = NULL;
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isCase (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == case_;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_putCaseExpression (decl_node n, decl_node e)
@@ -14522,7 +14533,6 @@ decl_node decl_putCaseExpression (decl_node n, decl_node e)
   mcDebug_assert (decl_isCase (n));
   n->caseF.expression = e;
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_putCaseElse (decl_node n, decl_node e)
@@ -14530,7 +14540,6 @@ decl_node decl_putCaseElse (decl_node n, decl_node e)
   mcDebug_assert (decl_isCase (n));
   n->caseF.else_ = e;
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_putCaseStatement (decl_node n, decl_node l, decl_node s)
@@ -14539,7 +14548,6 @@ decl_node decl_putCaseStatement (decl_node n, decl_node l, decl_node s)
   mcDebug_assert (decl_isCaseList (l));
   Indexing_IncludeIndiceIntoIndex (n->caseF.caseLabelList, (void *) decl_makeCaseLabelList (l, s));
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeCaseLabelList (decl_node l, decl_node s)
@@ -14550,14 +14558,12 @@ decl_node decl_makeCaseLabelList (decl_node l, decl_node s)
   n->caselabellistF.caseList = l;
   n->caselabellistF.statements = s;
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isCaseLabelList (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == caselabellist;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeCaseList (void)
@@ -14567,14 +14573,12 @@ decl_node decl_makeCaseList (void)
   n = newNode ((nodeT) caselist);
   n->caselistF.rangePairs = Indexing_InitIndex (1);
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isCaseList (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == caselist;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_putCaseRange (decl_node n, decl_node lo, decl_node hi)
@@ -14582,7 +14586,6 @@ decl_node decl_putCaseRange (decl_node n, decl_node lo, decl_node hi)
   mcDebug_assert (decl_isCaseList (n));
   Indexing_IncludeIndiceIntoIndex (n->caselistF.rangePairs, (void *) decl_makeRange (lo, hi));
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_makeRange (decl_node lo, decl_node hi)
@@ -14593,176 +14596,20 @@ decl_node decl_makeRange (decl_node lo, decl_node hi)
   n->rangeF.lo = lo;
   n->rangeF.hi = hi;
   return n;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 unsigned int decl_isRange (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == range;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
 
 decl_node decl_dupExpr (decl_node n)
 {
-  mcDebug_assert (n != NULL);
-  switch (n->kind)
-    {
-      case explist:
-        return dupExplist (n);
-        break;
-
-      case exit_:
-      case return_:
-      case stmtseq:
-      case comment:
-        M2RTS_HALT (0);
-        break;
-
-      case nil:
-      case true:
-      case false:
-      case address:
-      case loc:
-      case byte:
-      case word:
-        break;
-
-      case boolean:
-      case proc:
-      case char_:
-      case integer:
-      case cardinal:
-      case longcard:
-      case shortcard:
-      case longint:
-      case shortint:
-      case real:
-      case longreal:
-      case shortreal:
-      case bitset:
-      case ztype:
-      case rtype:
-        return n;
-        break;
-
-      case type:
-      case record:
-      case varient:
-      case var:
-      case enumeration:
-      case subrange:
-      case subscript:
-      case array:
-      case string:
-      case const_:
-      case literal:
-      case varparam:
-      case param:
-      case varargs:
-      case optarg_:
-      case pointer:
-      case recordfield:
-      case varientfield:
-      case enumerationfield:
-      case set:
-      case proctype:
-        return n;
-        break;
-
-      case procedure:
-      case def:
-      case imp:
-      case module:
-        return n;
-        break;
-
-      case loop:
-      case while_:
-      case for_:
-      case repeat:
-      case case_:
-      case caselabellist:
-      case caselist:
-      case range:
-      case if_:
-      case elsif:
-      case assignment:
-        return n;
-        break;
-
-      case arrayref:
-        return dupArrayref (n);
-        break;
-
-      case pointerref:
-        return dupPointerref (n);
-        break;
-
-      case componentref:
-        return dupComponentref (n);
-        break;
-
-      case and:
-      case or:
-      case equal:
-      case notequal:
-      case less:
-      case greater:
-      case greequal:
-      case lessequal:
-      case cast:
-      case val:
-      case plus:
-      case sub:
-      case div_:
-      case mod:
-      case mult:
-      case divide:
-      case in:
-        return dupBinary (n);
-        break;
-
-      case constexp:
-      case deref:
-      case abs_:
-      case chr:
-      case high:
-      case float_:
-      case trunc:
-      case ord:
-      case throw:
-      case not:
-      case neg:
-      case adr:
-      case size:
-      case tsize:
-      case min:
-      case max:
-        return dupUnary (n);
-        break;
-
-      case identlist:
-        return n;
-        break;
-
-      case vardecl:
-        return n;
-        break;
-
-      case funccall:
-        return dupFunccall (n);
-        break;
-
-      case setvalue:
-        return dupSetValue (n);
-        break;
-
-
-      default:
-        CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
-    }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
+  if (n == NULL)
+    return NULL;
+  else
+    return doDupExpr (n);
 }
 
 void decl_setLangC (void)

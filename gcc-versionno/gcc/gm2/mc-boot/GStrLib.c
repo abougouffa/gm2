@@ -16,7 +16,6 @@
 
 #include <string.h>
 #include <limits.h>
-#include "Gmcrts.h"
 #define _StrLib_H
 #define _StrLib_C
 
@@ -34,7 +33,6 @@ static unsigned int IsWhite (char ch);
 static unsigned int IsWhite (char ch)
 {
   return (ch == ' ') || (ch == ASCII_tab);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StrLib.def", 20, 0);
 }
 
 void StrLib_StrConCat (char *a_, unsigned int _a_high, char *b_, unsigned int _b_high, char *c, unsigned int _c_high)
@@ -89,7 +87,6 @@ unsigned int StrLib_StrLess (char *a_, unsigned int _a_high, char *b_, unsigned 
       i += 1;
     }
   return Higha < Highb;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StrLib.def", 20, 0);
 }
 
 unsigned int StrLib_StrEqual (char *a_, unsigned int _a_high, char *b_, unsigned int _b_high)
@@ -114,7 +111,6 @@ unsigned int StrLib_StrEqual (char *a_, unsigned int _a_high, char *b_, unsigned
       i += 1;
     }
   return ! (((i <= higha) && (a[i] != ASCII_nul)) || ((i <= highb) && (b[i] != ASCII_nul)));
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StrLib.def", 20, 0);
 }
 
 unsigned int StrLib_StrLen (char *a_, unsigned int _a_high)
@@ -131,7 +127,6 @@ unsigned int StrLib_StrLen (char *a_, unsigned int _a_high)
   while ((Len <= High) && (a[Len] != ASCII_nul))
     Len += 1;
   return Len;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StrLib.def", 20, 0);
 }
 
 void StrLib_StrCopy (char *a_, unsigned int _a_high, char *b, unsigned int _b_high)
@@ -184,7 +179,6 @@ unsigned int StrLib_IsSubString (char *a_, unsigned int _a_high, char *b_, unsig
           i += 1;
       }
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/StrLib.def", 20, 0);
 }
 
 void StrLib_StrRemoveWhitePrefix (char *a_, unsigned int _a_high, char *b, unsigned int _b_high)

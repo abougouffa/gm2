@@ -16,7 +16,6 @@
 
 #include <stddef.h>
 #   include "GStorage.h"
-#include "Gmcrts.h"
 #define _mcLexBuf_H
 #define _mcLexBuf_C
 
@@ -163,7 +162,6 @@ static sourceList newElement (void * s)
       l->right = NULL;
     }
   return l;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcLexBuf.def", 19, 0);
 }
 
 static sourceList newList (void)
@@ -175,7 +173,6 @@ static sourceList newList (void)
   l->right = l;
   l->name = NULL;
   return l;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcLexBuf.def", 19, 0);
 }
 
 static void checkIfNeedToDuplicate (void)
@@ -575,7 +572,6 @@ static tokenBucket findtokenBucket (unsigned int *tokenNo)
       b = b->next;
     }
   return NULL;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcLexBuf.def", 19, 0);
 }
 
 static void stop (void)
@@ -638,7 +634,6 @@ static unsigned int isLastTokenEof (void)
       return b->buf.array[b->len-1].token == mcReserved_eoftok;
     }
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcLexBuf.def", 19, 0);
 }
 
 unsigned int mcLexBuf_openSource (DynamicStrings_String s)
@@ -658,7 +653,6 @@ unsigned int mcLexBuf_openSource (DynamicStrings_String s)
       }
     else
       return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcLexBuf.def", 19, 0);
 }
 
 void mcLexBuf_closeSource (void)
@@ -759,7 +753,6 @@ void mcLexBuf_insertTokenAndRewind (mcReserved_toktype token)
 unsigned int mcLexBuf_getPreviousTokenLineNo (void)
 {
   return mcLexBuf_getLineNo ();
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcLexBuf.def", 19, 0);
 }
 
 unsigned int mcLexBuf_getLineNo (void)
@@ -768,7 +761,6 @@ unsigned int mcLexBuf_getLineNo (void)
     return 0;
   else
     return mcLexBuf_tokenToLineNo (mcLexBuf_getTokenNo (), 0);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcLexBuf.def", 19, 0);
 }
 
 unsigned int mcLexBuf_getTokenNo (void)
@@ -777,7 +769,6 @@ unsigned int mcLexBuf_getTokenNo (void)
     return 0;
   else
     return currentTokNo-1;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcLexBuf.def", 19, 0);
 }
 
 unsigned int mcLexBuf_tokenToLineNo (unsigned int tokenNo, unsigned int depth)
@@ -803,7 +794,6 @@ unsigned int mcLexBuf_tokenToLineNo (unsigned int tokenNo, unsigned int depth)
           }
         return l->line;
       }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcLexBuf.def", 19, 0);
 }
 
 unsigned int mcLexBuf_getColumnNo (void)
@@ -812,7 +802,6 @@ unsigned int mcLexBuf_getColumnNo (void)
     return 0;
   else
     return mcLexBuf_tokenToColumnNo (mcLexBuf_getTokenNo (), 0);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcLexBuf.def", 19, 0);
 }
 
 unsigned int mcLexBuf_tokenToColumnNo (unsigned int tokenNo, unsigned int depth)
@@ -838,7 +827,6 @@ unsigned int mcLexBuf_tokenToColumnNo (unsigned int tokenNo, unsigned int depth)
           }
         return l->col;
       }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcLexBuf.def", 19, 0);
 }
 
 DynamicStrings_String mcLexBuf_findFileNameFromToken (unsigned int tokenNo, unsigned int depth)
@@ -861,13 +849,11 @@ DynamicStrings_String mcLexBuf_findFileNameFromToken (unsigned int tokenNo, unsi
         }
       return l->name;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcLexBuf.def", 19, 0);
 }
 
 DynamicStrings_String mcLexBuf_getFileName (void)
 {
   return mcLexBuf_findFileNameFromToken (mcLexBuf_getTokenNo (), 0);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcLexBuf.def", 19, 0);
 }
 
 void mcLexBuf_addTok (mcReserved_toktype t)

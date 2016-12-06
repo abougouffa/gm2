@@ -15,7 +15,6 @@
 #   endif
 
 #include <stddef.h>
-#include "Gmcrts.h"
 #define _mcSearch_H
 #define _mcSearch_C
 
@@ -131,7 +130,6 @@ unsigned int mcSearch_findSourceFile (DynamicStrings_String FileName, DynamicStr
   newpath = DynamicStrings_KillString (newpath);
   completeSearchPath = DynamicStrings_KillString (completeSearchPath);
   return FALSE;
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcSearch.def", 19, 0);
 }
 
 unsigned int mcSearch_findSourceDefFile (DynamicStrings_String stem, DynamicStrings_String *fullPath)
@@ -147,7 +145,6 @@ unsigned int mcSearch_findSourceDefFile (DynamicStrings_String stem, DynamicStri
     }
   f = mcFileName_calculateFileName (stem, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "def", 3)));
   return mcSearch_findSourceFile (f, fullPath);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcSearch.def", 19, 0);
 }
 
 unsigned int mcSearch_findSourceModFile (DynamicStrings_String stem, DynamicStrings_String *fullPath)
@@ -163,7 +160,6 @@ unsigned int mcSearch_findSourceModFile (DynamicStrings_String stem, DynamicStri
     }
   f = mcFileName_calculateFileName (stem, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "mod", 3)));
   return mcSearch_findSourceFile (f, fullPath);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcSearch.def", 19, 0);
 }
 
 void mcSearch_setDefExtension (DynamicStrings_String ext)
