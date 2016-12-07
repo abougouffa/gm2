@@ -1,5 +1,29 @@
 2016-12-06      Gaius Mulley <gaius@gnu.org>
 
+	* gm2/Make-lang.in:  regenerated.
+	* gm2/mc-boot/GCmdArgs.c:  regenerated.
+	* gm2/mc-boot/GDebug.c:  regenerated.
+	* gm2/mc-boot/GDynamicStrings.c:  regenerated.
+	* gm2/mc-boot/GFIO.c:  regenerated.
+	* gm2/mc-boot/GFormatStrings.c:  regenerated.
+	* gm2/mc-boot/GIO.c:  regenerated.
+	* gm2/mc-boot/GIndexing.c:  regenerated.
+	* gm2/mc-boot/GStringConvert.c:  regenerated.
+	* gm2/mc-boot/Gdecl.c:  regenerated.
+	* gm2/mc-boot/Gkeyc.c:  regenerated.
+	* gm2/mc-boot/GmcComp.c:  regenerated.
+	* gm2/mc-boot/GmcOptions.c:  regenerated.
+	* gm2/mc-boot/Gmcp1.c:  regenerated.
+	* gm2/mc-boot/Gmcp2.c:  regenerated.
+	* gm2/mc-boot/Gmcp3.c:  regenerated.
+	* gm2/mc-boot/Gmcp4.c:  regenerated.
+	* gm2/mc-boot/Gmcp5.c:  regenerated.
+	* gm2/mc-boot/GnameKey.c:  regenerated.
+	* gm2/mc/decl.mod:  fix bug in dangling else.
+	* gm2/tools-src/mklink.c:  allow the link to occur with g++ and gcc.
+
+2016-12-06      Gaius Mulley <gaius@gnu.org>
+
 	* gm2/Make-lang.in:  improved verify rule.
 	* gm2/bnf/mc-2.bnf:  fixed bug declaring variables of an enumerated type.
 	* gm2/mc-boot/GArgs.c:  regenerated.

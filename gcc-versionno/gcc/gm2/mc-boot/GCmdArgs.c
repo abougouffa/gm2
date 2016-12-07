@@ -46,23 +46,23 @@ static unsigned int GetNextArg (char *CmdLine_, unsigned int _CmdLine_high, unsi
   while (((*CmdIndex) < HighC) && (Space (CmdLine[(*CmdIndex)])))
     (*CmdIndex) += 1;
   if ((*CmdIndex) < HighC)
-  {
-    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-    if (SingleQuote (CmdLine[(*CmdIndex)]))
-      {
-        (*CmdIndex) += 1;
-        CopyUntil ((char *) CmdLine, _CmdLine_high, CmdIndex, HighC, (char *) Arg, _Arg_high, &ArgIndex, HighA, squote);
-        (*CmdIndex) += 1;
-      }
-    else if (DoubleQuote (CmdLine[(*CmdIndex)]))
-      {
-        (*CmdIndex) += 1;
-        CopyUntil ((char *) CmdLine, _CmdLine_high, CmdIndex, HighC, (char *) Arg, _Arg_high, &ArgIndex, HighA, dquote);
-        (*CmdIndex) += 1;
-      }
-    else
-      CopyUntilSpace ((char *) CmdLine, _CmdLine_high, CmdIndex, HighC, (char *) Arg, _Arg_high, &ArgIndex, HighA);
-  }
+    {
+      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      if (SingleQuote (CmdLine[(*CmdIndex)]))
+        {
+          (*CmdIndex) += 1;
+          CopyUntil ((char *) CmdLine, _CmdLine_high, CmdIndex, HighC, (char *) Arg, _Arg_high, &ArgIndex, HighA, squote);
+          (*CmdIndex) += 1;
+        }
+      else if (DoubleQuote (CmdLine[(*CmdIndex)]))
+        {
+          (*CmdIndex) += 1;
+          CopyUntil ((char *) CmdLine, _CmdLine_high, CmdIndex, HighC, (char *) Arg, _Arg_high, &ArgIndex, HighA, dquote);
+          (*CmdIndex) += 1;
+        }
+      else
+        CopyUntilSpace ((char *) CmdLine, _CmdLine_high, CmdIndex, HighC, (char *) Arg, _Arg_high, &ArgIndex, HighA);
+    }
   while (((*CmdIndex) < HighC) && (Space (CmdLine[(*CmdIndex)])))
     (*CmdIndex) += 1;
   if (ArgIndex < HighA)

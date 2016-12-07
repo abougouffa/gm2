@@ -61,25 +61,25 @@ static void doWrite (int fd, FIO_File f, char ch)
   int r;
 
   if (fdState.array[fd].IsRaw)
-  {
-    /* avoid dangling else.  */
-    if (! fdState.array[fd].IsEof)
-      for (;;)
-      {
-        r = libc_write (FIO_GetUnixFileDescriptor (f), &ch, 1);
-        if (r == 1)
-          return;
-        else if (r == -1)
-          {
-            r = errno_geterrno ();
-            if ((r != errno_EAGAIN) && (r != errno_EINTR))
-              {
-                fdState.array[fd].IsEof = TRUE;
-                return;
-              }
-          }
-      }
-  }
+    {
+      /* avoid dangling else.  */
+      if (! fdState.array[fd].IsEof)
+        for (;;)
+        {
+          r = libc_write (FIO_GetUnixFileDescriptor (f), &ch, 1);
+          if (r == 1)
+            return;
+          else if (r == -1)
+            {
+              r = errno_geterrno ();
+              if ((r != errno_EAGAIN) && (r != errno_EINTR))
+                {
+                  fdState.array[fd].IsEof = TRUE;
+                  return;
+                }
+            }
+        }
+    }
   else
     FIO_WriteChar (f, ch);
 }

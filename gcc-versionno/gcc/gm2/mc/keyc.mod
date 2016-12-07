@@ -479,7 +479,7 @@ PROCEDURE checkException (p: pretty) ;
 BEGIN
    IF seenException
    THEN
-      print (p, '#include "Gmcrts.h"\n')
+      print (p, '#   include "Gmcrts.h"\n')
    END
 END checkException ;
 

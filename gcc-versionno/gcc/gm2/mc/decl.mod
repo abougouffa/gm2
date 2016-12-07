@@ -8504,6 +8504,7 @@ BEGIN
          THEN
             outText (p, 'reinterpret_cast<') ;
             doTypeNameC (p, type) ;
+            noSpace (p) ;
             outText (p, '> (') ;
             doExprC (p, e) ;
 	    outText (p, ')') ;
@@ -8511,6 +8512,7 @@ BEGIN
          ELSE
             outText (p, 'static_cast<') ;
             doTypeNameC (p, type) ;
+            noSpace (p) ;
             outText (p, '> (') ;
             doExprC (p, e) ;
 	    outText (p, ')') ;
@@ -8606,30 +8608,6 @@ END doElsifC ;
 
 
 (*
-   noElse - returns TRUE if, n, is a statement sequence which contains  if statement which has no else component.
-*)
-
-PROCEDURE noElse (n: node) : BOOLEAN ;
-BEGIN
-   IF n # NIL
-   THEN
-      IF isStatementSequence (n)
-      THEN
-         IF isStatementSequenceEmpty (n)
-         THEN
-            RETURN FALSE
-         ELSIF isSingleStatement (n)
-         THEN
-            n := GetIndice (n^.stmtF.statements, 1) ;
-	    RETURN noIfElse (n)
-         END
-      END
-   END ;
-   RETURN FALSE
-END noElse ;
-
-
-(*
    noIfElse -
 *)
 
@@ -8674,6 +8652,31 @@ END isIfElse ;
 
 
 (*
+   hasIfAndNoElse - returns TRUE if statement, n, is a single statement
+                    which is an IF and it has no else statement.
+*)
+
+PROCEDURE hasIfAndNoElse (n: node) : BOOLEAN ;
+BEGIN
+   IF n # NIL
+   THEN
+      IF isStatementSequence (n)
+      THEN
+         IF isStatementSequenceEmpty (n)
+         THEN
+            RETURN FALSE
+         ELSIF isSingleStatement (n)
+         THEN
+            n := GetIndice (n^.stmtF.statements, 1) ;
+	    RETURN noIfElse (n)
+         END
+      END
+   END ;
+   RETURN FALSE
+END hasIfAndNoElse ;
+
+
+(*
    doIfC -
 *)
 
@@ -8685,29 +8688,34 @@ BEGIN
    outText (p, "(") ;
    doExprC (p, s^.ifF.expr) ;
    outText (p, ")\n") ;
-   IF noElse (s^.ifF.then) AND
-      (containsStatement (s^.ifF.else) OR
-       containsStatement (s^.ifF.elsif))
+   IF hasIfAndNoElse (s^.ifF.then) AND
+      ((s^.ifF.else # NIL) OR (s^.ifF.elsif # NIL))
    THEN
       (* avoid dangling else.  *)
+      p := pushPretty (p) ;
+      setindent (p, getindent (p) + indentationC) ;
       outText (p, "{\n") ;
       p := pushPretty (p) ;
       setindent (p, getindent (p) + indentationC) ;
       outText (p, "/* avoid dangling else.  */\n") ;
       doStatementSequenceC (p, s^.ifF.then) ;
       p := popPretty (p) ;
-      outText (p, "}\n")
+      outText (p, "}\n") ;
+      p := popPretty (p)
    ELSIF noIfElse (s) AND hasIfElse (s^.ifF.then)
    THEN
       (* gcc does not like legal non dangling else, as it is poor style.
          So we will avoid getting a warning.  *)
+      p := pushPretty (p) ;
+      setindent (p, getindent (p) + indentationC) ;
       outText (p, "{\n") ;
       p := pushPretty (p) ;
       setindent (p, getindent (p) + indentationC) ;
       outText (p, "/* avoid gcc warning by using compound statement even if not strictly necessary.  */\n") ;
       doStatementSequenceC (p, s^.ifF.then) ;
       p := popPretty (p) ;
-      outText (p, "}\n")
+      outText (p, "}\n") ;
+      p := popPretty (p)
    ELSE
       doCompoundStmt (p, s^.ifF.then)
    END ;
@@ -8740,6 +8748,7 @@ BEGIN
          doExprC (p, s^.forF.des) ;
          outText (p, "= static_cast<") ;
          doTypeNameC (p, getType (s^.forF.des)) ;
+	 noSpace (p) ;
          outText (p, ">(static_cast<int>(") ;
          doExprC (p, s^.forF.des) ;
          outText (p, "+1))")
@@ -8747,6 +8756,7 @@ BEGIN
          doExprC (p, s^.forF.des) ;
          outText (p, "= static_cast<") ;
          doTypeNameC (p, getType (s^.forF.des)) ;
+         noSpace (p) ;
          outText (p, ">(static_cast<int>(") ;
          doExprC (p, s^.forF.des) ;
          outText (p, "+") ;
@@ -9104,6 +9114,7 @@ BEGIN
             THEN
                outText (p, '*')
             END ;
+            noSpace (p) ;
             outText (p, '> (')
          ELSE
             outText (p, 'static_cast<') ;
@@ -9112,6 +9123,7 @@ BEGIN
             THEN
                outText (p, '*')
             END ;
+            noSpace (p) ;
             outText (p, '> (')
          END ;
          RETURN 1
@@ -9122,6 +9134,7 @@ BEGIN
          THEN
             outText (p, '*')
          END ;
+         noSpace (p) ;
          outText (p, ')') ;
          setNeedSpace (p)
       END
@@ -9454,8 +9467,10 @@ BEGIN
 	 setNeedSpace (p) ;
          outText (p, 'reinterpret_cast<') ;
          doTypeNameC (p, type) ;
+         noSpace (p) ;
          outText (p, '> (reinterpret_cast<char *> (') ;
          doExprC (p, getExpList (n^.funccallF.args, 1)) ;
+         noSpace (p) ;
          outText (p, ')') ;
          outText (p, op) ;
          IF expListLen (n^.funccallF.args) = 1

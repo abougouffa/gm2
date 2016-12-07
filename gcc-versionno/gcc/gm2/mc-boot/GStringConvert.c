@@ -318,13 +318,13 @@ static DynamicStrings_String doDecimalPlaces (DynamicStrings_String s, unsigned 
         s = DynamicStrings_ConCat (s, DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), (unsigned int ) point-l));
     }
   if (point >= 0)
-  {
-    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-    if (point == 0)
-      s = DynamicStrings_ConCat (DynamicStrings_InitStringChar ('.'), DynamicStrings_Mark (s));
-    else
-      s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, point), '.'), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), point, 0)));
-  }
+    {
+      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      if (point == 0)
+        s = DynamicStrings_ConCat (DynamicStrings_InitStringChar ('.'), DynamicStrings_Mark (s));
+      else
+        s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, point), '.'), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), point, 0)));
+    }
   return s;
 }
 
@@ -410,13 +410,13 @@ static DynamicStrings_String doSigFig (DynamicStrings_String s, unsigned int n)
         s = DynamicStrings_ConCat (s, DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), (unsigned int ) point-l));
     }
   if (point >= 0)
-  {
-    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-    if (point == 0)
-      s = DynamicStrings_ConCat (DynamicStrings_InitStringChar ('.'), DynamicStrings_Mark (s));
-    else
-      s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, point), '.'), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), point, 0)));
-  }
+    {
+      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      if (point == 0)
+        s = DynamicStrings_ConCat (DynamicStrings_InitStringChar ('.'), DynamicStrings_Mark (s));
+      else
+        s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, point), '.'), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), point, 0)));
+    }
   return s;
 }
 
@@ -424,25 +424,25 @@ static DynamicStrings_String carryOne (DynamicStrings_String s, unsigned int i)
 {
   if (i >= 0)
     if (IsDigit (DynamicStrings_char (s, (int ) i)))
-    {
-      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-      if ((DynamicStrings_char (s, (int ) i)) == '9')
-        if (i == 0)
-          {
-            s = DynamicStrings_ConCat (DynamicStrings_InitStringChar ('1'), DynamicStrings_Mark (s));
-            return s;
-          }
+      {
+        /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+        if ((DynamicStrings_char (s, (int ) i)) == '9')
+          if (i == 0)
+            {
+              s = DynamicStrings_ConCat (DynamicStrings_InitStringChar ('1'), DynamicStrings_Mark (s));
+              return s;
+            }
+          else
+            {
+              s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, (int ) i), '0'), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), (int ) i+1, 0)));
+              return carryOne (s, i-1);
+            }
         else
-          {
-            s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, (int ) i), '0'), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), (int ) i+1, 0)));
-            return carryOne (s, i-1);
-          }
-      else
-        if (i == 0)
-          s = DynamicStrings_ConCat (DynamicStrings_InitStringChar ((char) (((unsigned int) (DynamicStrings_char (s, (int ) i)))+1)), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), (int ) i+1, 0)));
-        else
-          s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, (int ) i), (char) (((unsigned int) (DynamicStrings_char (s, (int ) i)))+1)), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), (int ) i+1, 0)));
-    }
+          if (i == 0)
+            s = DynamicStrings_ConCat (DynamicStrings_InitStringChar ((char) (((unsigned int) (DynamicStrings_char (s, (int ) i)))+1)), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), (int ) i+1, 0)));
+          else
+            s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, (int ) i), (char) (((unsigned int) (DynamicStrings_char (s, (int ) i)))+1)), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), (int ) i+1, 0)));
+      }
   return s;
 }
 
@@ -848,27 +848,27 @@ DynamicStrings_String StringConvert_LongrealToString (long double x, unsigned in
         s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) "0", 1)), (unsigned int ) ((int ) (FractionWidth))-(l-point))));
     }
   if ((DynamicStrings_Length (s)) > TotalWidth)
-  {
-    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-    if (TotalWidth > 0)
-      if (sign)
-        {
-          s = DynamicStrings_Slice (DynamicStrings_Mark (StringConvert_ToDecimalPlaces (s, FractionWidth)), 0, (int ) TotalWidth-1);
-          s = DynamicStrings_ConCat (DynamicStrings_InitStringChar ('-'), DynamicStrings_Mark (s));
-          sign = FALSE;
-        }
+    {
+      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      if (TotalWidth > 0)
+        if (sign)
+          {
+            s = DynamicStrings_Slice (DynamicStrings_Mark (StringConvert_ToDecimalPlaces (s, FractionWidth)), 0, (int ) TotalWidth-1);
+            s = DynamicStrings_ConCat (DynamicStrings_InitStringChar ('-'), DynamicStrings_Mark (s));
+            sign = FALSE;
+          }
+        else
+          s = DynamicStrings_Slice (DynamicStrings_Mark (StringConvert_ToDecimalPlaces (s, FractionWidth)), 0, (int ) TotalWidth);
       else
-        s = DynamicStrings_Slice (DynamicStrings_Mark (StringConvert_ToDecimalPlaces (s, FractionWidth)), 0, (int ) TotalWidth);
-    else
-      if (sign)
-        {
+        if (sign)
+          {
+            s = StringConvert_ToDecimalPlaces (s, FractionWidth);
+            s = DynamicStrings_ConCat (DynamicStrings_InitStringChar ('-'), DynamicStrings_Mark (s));
+            sign = FALSE;
+          }
+        else
           s = StringConvert_ToDecimalPlaces (s, FractionWidth);
-          s = DynamicStrings_ConCat (DynamicStrings_InitStringChar ('-'), DynamicStrings_Mark (s));
-          sign = FALSE;
-        }
-      else
-        s = StringConvert_ToDecimalPlaces (s, FractionWidth);
-  }
+    }
   if ((DynamicStrings_Length (s)) < TotalWidth)
     s = DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar (' ')), TotalWidth-(DynamicStrings_Length (s))), DynamicStrings_Mark (s));
   return s;
@@ -917,13 +917,13 @@ DynamicStrings_String StringConvert_ToDecimalPlaces (DynamicStrings_String s, un
   Assert ((IsDigit (DynamicStrings_char (s, 0))) || ((DynamicStrings_char (s, 0)) == '.'), (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/StringConvert.mod", 50, 1067, (char *) "ToDecimalPlaces", 15);
   point = DynamicStrings_Index (s, '.', 0);
   if (point < 0)
-  {
-    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-    if (n > 0)
-      return DynamicStrings_ConCat (DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_InitStringChar ('.'))), DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), n));
-    else
-      return s;
-  }
+    {
+      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      if (n > 0)
+        return DynamicStrings_ConCat (DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_InitStringChar ('.'))), DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), n));
+      else
+        return s;
+    }
   s = doDecimalPlaces (s, n);
   if (((DynamicStrings_Length (s)) > 0) && ((DynamicStrings_char (s, -1)) == '.'))
     return DynamicStrings_Slice (DynamicStrings_Mark (s), 0, -1);

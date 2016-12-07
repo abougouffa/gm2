@@ -295,31 +295,31 @@ static int ReadFromBuffer (FIO_File f, void * a, unsigned int nBytes)
       fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
       if ((fd->buffer != NULL) && fd->buffer->valid)
         if (fd->buffer->left > 0)
-        {
-          /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-          if (nBytes == 1)
-            {
-              p = a;
-              (*p) = (*fd->buffer->contents).array[fd->buffer->position];
-              fd->buffer->left -= 1;
-              fd->buffer->position += 1;
-              nBytes = 0;
-              return 1;
-            }
-          else
-            {
-              n = Min (fd->buffer->left, nBytes);
-              t = fd->buffer->address;
-              t += fd->buffer->position;
-              p = libc_memcpy (a, t, n);
-              fd->buffer->left -= n;
-              fd->buffer->position += n;
-              a += n;
-              nBytes -= n;
-              total += n;
-              return total;
-            }
-        }
+          {
+            /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+            if (nBytes == 1)
+              {
+                p = a;
+                (*p) = (*fd->buffer->contents).array[fd->buffer->position];
+                fd->buffer->left -= 1;
+                fd->buffer->position += 1;
+                nBytes = 0;
+                return 1;
+              }
+            else
+              {
+                n = Min (fd->buffer->left, nBytes);
+                t = fd->buffer->address;
+                t += fd->buffer->position;
+                p = libc_memcpy (a, t, n);
+                fd->buffer->left -= n;
+                fd->buffer->position += n;
+                a += n;
+                nBytes -= n;
+                total += n;
+                return total;
+              }
+          }
       if (nBytes > 0)
         {
           result = libc_read (fd->unixfd, a, (int ) (nBytes));
@@ -436,28 +436,28 @@ static void HandleEscape (char *dest, unsigned int _dest_high, char *src_, unsig
   memcpy (src, src_, _src_high+1);
 
   if (((((*i)+1) < HighSrc) && (src[(*i)] == '\\')) && ((*j) < HighDest))
-  {
-    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-    if (src[(*i)+1] == 'n')
-      {
-        dest[(*j)] = ASCII_nl;
-        (*j) += 1;
-        (*i) += 2;
-      }
-    else if (src[(*i)+1] == 't')
-      {
-        dest[(*j)] = ASCII_tab;
-        (*j) += 1;
-        (*i) += 2;
-      }
-    else
-      {
-        (*i) += 1;
-        dest[(*j)] = src[(*i)];
-        (*j) += 1;
-        (*i) += 1;
-      }
-  }
+    {
+      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      if (src[(*i)+1] == 'n')
+        {
+          dest[(*j)] = ASCII_nl;
+          (*j) += 1;
+          (*i) += 2;
+        }
+      else if (src[(*i)+1] == 't')
+        {
+          dest[(*j)] = ASCII_tab;
+          (*j) += 1;
+          (*i) += 2;
+        }
+      else
+        {
+          (*i) += 1;
+          dest[(*j)] = src[(*i)];
+          (*j) += 1;
+          (*i) += 1;
+        }
+    }
 }
 
 static void Cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, unsigned int _b_high)
@@ -508,38 +508,38 @@ static void StringFormat1 (char *dest, unsigned int _dest_high, char *src_, unsi
         j += 1;
       }
   if ((((i+1) < HighSrc) && (src[i] == '%')) && (j < HighDest))
-  {
-    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-    if (src[i+1] == 's')
-      {
-        Cast ((unsigned char *) &p, (sizeof (p)-1), (unsigned char *) w, _w_high);
-        while ((j < HighDest) && ((*p) != ASCII_nul))
-          {
-            dest[j] = (*p);
-            j += 1;
-            p += 1;
-          }
-        if (j < HighDest)
+    {
+      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      if (src[i+1] == 's')
+        {
+          Cast ((unsigned char *) &p, (sizeof (p)-1), (unsigned char *) w, _w_high);
+          while ((j < HighDest) && ((*p) != ASCII_nul))
+            {
+              dest[j] = (*p);
+              j += 1;
+              p += 1;
+            }
+          if (j < HighDest)
+            dest[j] = ASCII_nul;
+          j = StrLib_StrLen ((char *) dest, _dest_high);
+          i += 2;
+        }
+      else if (src[i+1] == 'd')
+        {
           dest[j] = ASCII_nul;
-        j = StrLib_StrLen ((char *) dest, _dest_high);
-        i += 2;
-      }
-    else if (src[i+1] == 'd')
-      {
-        dest[j] = ASCII_nul;
-        Cast ((unsigned char *) &c, (sizeof (c)-1), (unsigned char *) w, _w_high);
-        NumberIO_CardToStr (c, 0, (char *) &str.array[0], MaxErrorString);
-        StrLib_StrConCat ((char *) dest, _dest_high, (char *) &str.array[0], MaxErrorString, (char *) dest, _dest_high);
-        j = StrLib_StrLen ((char *) dest, _dest_high);
-        i += 2;
-      }
-    else
-      {
-        dest[j] = src[i];
-        i += 1;
-        j += 1;
-      }
-  }
+          Cast ((unsigned char *) &c, (sizeof (c)-1), (unsigned char *) w, _w_high);
+          NumberIO_CardToStr (c, 0, (char *) &str.array[0], MaxErrorString);
+          StrLib_StrConCat ((char *) dest, _dest_high, (char *) &str.array[0], MaxErrorString, (char *) dest, _dest_high);
+          j = StrLib_StrLen ((char *) dest, _dest_high);
+          i += 2;
+        }
+      else
+        {
+          dest[j] = src[i];
+          i += 1;
+          j += 1;
+        }
+    }
   while (((i < HighSrc) && (src[i] != ASCII_nul)) && (j < HighDest))
     if (src[i] == '\\')
       HandleEscape ((char *) dest, _dest_high, (char *) src, _src_high, &i, &j, HighSrc, HighDest);
@@ -1082,37 +1082,37 @@ void FIO_UnReadChar (FIO_File f, char ch)
     {
       fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
       if (((fd->state == successful) || (fd->state == endoffile)) || (fd->state == endofline))
-      {
-        /* avoid dangling else.  */
-        if ((fd->buffer != NULL) && fd->buffer->valid)
-          {
-            if (fd->state == endoffile)
-              {
-                fd->buffer->position = MaxBufferLength;
-                fd->buffer->left = 0;
-                fd->buffer->filled = 0;
-                fd->state = successful;
-              }
-            if (fd->buffer->position > 0)
-              {
-                fd->buffer->position -= 1;
-                fd->buffer->left += 1;
-                (*fd->buffer->contents).array[fd->buffer->position] = ch;
-              }
-            else
-              if (fd->buffer->filled == fd->buffer->size)
-                FormatError1 ((char *) "performing too many UnReadChar calls on file (%d)\\n", 51, (unsigned char *) &f, (sizeof (f)-1));
-              else
+        {
+          /* avoid dangling else.  */
+          if ((fd->buffer != NULL) && fd->buffer->valid)
+            {
+              if (fd->state == endoffile)
                 {
-                  n = fd->buffer->filled-fd->buffer->position;
-                  b = &(*fd->buffer->contents).array[fd->buffer->position];
-                  a = &(*fd->buffer->contents).array[fd->buffer->position+1];
-                  a = libc_memcpy (a, b, n);
-                  fd->buffer->filled += 1;
+                  fd->buffer->position = MaxBufferLength;
+                  fd->buffer->left = 0;
+                  fd->buffer->filled = 0;
+                  fd->state = successful;
+                }
+              if (fd->buffer->position > 0)
+                {
+                  fd->buffer->position -= 1;
+                  fd->buffer->left += 1;
                   (*fd->buffer->contents).array[fd->buffer->position] = ch;
                 }
-          }
-      }
+              else
+                if (fd->buffer->filled == fd->buffer->size)
+                  FormatError1 ((char *) "performing too many UnReadChar calls on file (%d)\\n", 51, (unsigned char *) &f, (sizeof (f)-1));
+                else
+                  {
+                    n = fd->buffer->filled-fd->buffer->position;
+                    b = &(*fd->buffer->contents).array[fd->buffer->position];
+                    a = &(*fd->buffer->contents).array[fd->buffer->position+1];
+                    a = libc_memcpy (a, b, n);
+                    fd->buffer->filled += 1;
+                    (*fd->buffer->contents).array[fd->buffer->position] = ch;
+                  }
+            }
+        }
       else
         FormatError1 ((char *) "UnReadChar can only be called if the previous read was successful or end of file, error on file (%d)\\n", 102, (unsigned char *) &f, (sizeof (f)-1));
     }
@@ -1148,19 +1148,19 @@ void FIO_ReadString (FIO_File f, char *a, unsigned int _a_high)
   do {
     ch = FIO_ReadChar (f);
     if (i <= high)
-    {
-      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-      if (((ch == ASCII_nl) || (! (FIO_IsNoError (f)))) || (FIO_EOF (f)))
-        {
-          a[i] = ASCII_nul;
-          i += 1;
-        }
-      else
-        {
-          a[i] = ch;
-          i += 1;
-        }
-    }
+      {
+        /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+        if (((ch == ASCII_nl) || (! (FIO_IsNoError (f)))) || (FIO_EOF (f)))
+          {
+            a[i] = ASCII_nul;
+            i += 1;
+          }
+        else
+          {
+            a[i] = ch;
+            i += 1;
+          }
+      }
   } while (! ((((ch == ASCII_nl) || (i > high)) || (! (FIO_IsNoError (f)))) || (FIO_EOF (f))));
 }
 

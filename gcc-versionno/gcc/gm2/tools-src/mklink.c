@@ -7,16 +7,16 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * GNU Modula-2 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with GNU Modula-2; see the file COPYING.  If not, write to the
  * Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA. 
+ * 02110-1301, USA.
  */
 
 /*
@@ -91,7 +91,7 @@ static void CopyUntilEolInto (char *Buffer);
 static void FindObject (char *Name);
 static int  IsExists (char *Name);
 
-/* Global variables */ 
+/* Global variables */
 
 static char      *NameOfFile        = NULL;
 static char      *NameOfMain        = "main";
@@ -106,6 +106,7 @@ static int        ExitNeeded        = TRUE;
 static char      *libraries         = NULL;
 static functList *head              = NULL;
 static functList *tail              = NULL;
+static int        GCCCommand        = FALSE;  /* FALSE = g++, TRUE = gcc.  */
 
 
 /*
@@ -138,7 +139,7 @@ main (int argc, char *argv[])
 	} else if (strcmp(argv[1], "-s") == 0) {
 	    LinkCommandLine = FALSE;
 	} else {
-	    fprintf(stderr, "Usage: mklink (-l|-s) [--pg|-p] [--lib library] [--main name] [--exit] --name filename <modulelistfile>\n");
+	    fprintf(stderr, "Usage: mklink (-l|-s) [--gcc|--g++] [--pg|-p] [--lib library] [--main name] [--exit] --name filename <modulelistfile>\n");
 	    fprintf(stderr, "       must supply -l or -s option\n");
 	    exit(1);
 	}
@@ -146,7 +147,11 @@ main (int argc, char *argv[])
 	ProfilePGCommand = FALSE;
 	i = 2;
 	while (i<argc-1) {
-	  if (strcmp(argv[i], "--pg") == 0) {
+	  if (strcmp(argv[i], "--g++") == 0) {
+	    GCCCommand = FALSE;
+	  } else if (strcmp(argv[i], "--gcc") == 0) {
+	    GCCCommand = TRUE;
+	  } else if (strcmp(argv[i], "--pg") == 0) {
 	    ProfilePGCommand = TRUE;
 	  } else if (strcmp(argv[i], "-p") == 0) {
 	    ProfilePCommand = TRUE;
@@ -166,12 +171,12 @@ main (int argc, char *argv[])
 	}
 	ParseFile(argv[i]);
     } else {
-        fprintf(stderr, "Usage: mklink (-l|-s) [--pg|-p] [--lib library] [--main name] [--exit] --name filename <modulelistfile>\n");
+        fprintf(stderr, "Usage: mklink (-l|-s) [--gcc|--g++] [--pg|-p] [--lib library] [--main name] [--exit] --name filename <modulelistfile>\n");
 	exit(1);
     }
     if (NameOfFile == NULL) {
       fprintf(stderr, "mklink must have a --name argument\n");
-      fprintf(stderr, "Usage: mklink (-l|-s) [--pg|-p] [--lib library] [--main name] [--exit] --name filename <modulelistfile>\n");
+      fprintf(stderr, "Usage: mklink (-l|-s) [--gcc|--g++] [--pg|-p] [--lib library] [--main name] [--exit] --name filename <modulelistfile>\n");
       exit(1);
     }
     exit(0);
@@ -207,9 +212,12 @@ static void ParseFileLinkCommand (void)
   char *c = NULL;
 
   s = getenv("CC");
-  if (s == NULL)
-    printf("gcc -g");
-  else
+  if (s == NULL) {
+    if (GCCCommand)
+      printf("gcc -g");
+    else
+      printf("g++ -g");
+  } else
     printf("%s -g", s);
 
   l = getenv("LDFLAGS");
@@ -310,7 +318,7 @@ void add_function (char *name)
     tail->next = p;
     tail       = p;
     tail->next = NULL;
-  }    
+  }
 }
 
 
@@ -610,7 +618,7 @@ static int GetSingleChar (char *ch)
 
 }
 
-    
+
 /*
    InRange - returns true if Element is within the range Min..Max.
 */

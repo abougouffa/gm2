@@ -85,19 +85,19 @@ static void doCompile (DynamicStrings_String s)
   doPass (TRUE, TRUE, 3, (symbolKey_performOperation) {(symbolKey_performOperation_t) p3}, (char *) "[all modules] import lists, types, variables and procedure declarations", 71);
   doPass (TRUE, TRUE, 4, (symbolKey_performOperation) {(symbolKey_performOperation_t) p4}, (char *) "[all modules] constant expressions", 34);
   if (! (decl_isDef (n)))
-  {
-    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-    if (decl_isImp (n))
-      {
-        mcQuiet_qprintf0 ((char *) "Parse implementation module\\n", 29);
-        doPass (FALSE, TRUE, 5, (symbolKey_performOperation) {(symbolKey_performOperation_t) p5}, (char *) "[implementation module] build code tree for all procedures and module initialisations", 85);
-      }
-    else
-      {
-        mcQuiet_qprintf0 ((char *) "Parse program module\\n", 22);
-        doPass (FALSE, TRUE, 5, (symbolKey_performOperation) {(symbolKey_performOperation_t) p5}, (char *) "[program module] build code tree for all procedures and module initialisations", 78);
-      }
-  }
+    {
+      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      if (decl_isImp (n))
+        {
+          mcQuiet_qprintf0 ((char *) "Parse implementation module\\n", 29);
+          doPass (FALSE, TRUE, 5, (symbolKey_performOperation) {(symbolKey_performOperation_t) p5}, (char *) "[implementation module] build code tree for all procedures and module initialisations", 85);
+        }
+      else
+        {
+          mcQuiet_qprintf0 ((char *) "Parse program module\\n", 22);
+          doPass (FALSE, TRUE, 5, (symbolKey_performOperation) {(symbolKey_performOperation_t) p5}, (char *) "[program module] build code tree for all procedures and module initialisations", 78);
+        }
+    }
   mcQuiet_qprintf0 ((char *) "walk tree converting it to C/C++\\n", 34);
   decl_out ();
 }
@@ -261,15 +261,15 @@ static unsigned int openDef (decl_node n, unsigned int exitOnFailure)
   sourceName = decl_getSource (n);
   symName = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n)));
   if (sourceName == nameKey_NulName)
-  {
-    /* avoid dangling else.  */
-    if (! (mcSearch_findSourceDefFile (symName, &fileName)))
-      {
-        mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to find definition module %s.def\\n", 41, (unsigned char *) &symName, (sizeof (symName)-1));
-        if (exitOnFailure)
-          libc_exit (1);
-      }
-  }
+    {
+      /* avoid dangling else.  */
+      if (! (mcSearch_findSourceDefFile (symName, &fileName)))
+        {
+          mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to find definition module %s.def\\n", 41, (unsigned char *) &symName, (sizeof (symName)-1));
+          if (exitOnFailure)
+            libc_exit (1);
+        }
+    }
   else
     fileName = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (sourceName));
   return doOpen (n, symName, fileName, exitOnFailure);
@@ -284,18 +284,18 @@ static unsigned int openMod (decl_node n, unsigned int exitOnFailure)
   sourceName = decl_getSource (n);
   symName = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n)));
   if (sourceName == nameKey_NulName)
-  {
-    /* avoid dangling else.  */
-    if (! (mcSearch_findSourceModFile (symName, &fileName)))
-      {
-        if (decl_isImp (n))
-          mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to find implementation module %s.mod\\n", 45, (unsigned char *) &symName, (sizeof (symName)-1));
-        else
-          mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to find program module %s.mod\\n", 38, (unsigned char *) &symName, (sizeof (symName)-1));
-        if (exitOnFailure)
-          libc_exit (1);
-      }
-  }
+    {
+      /* avoid dangling else.  */
+      if (! (mcSearch_findSourceModFile (symName, &fileName)))
+        {
+          if (decl_isImp (n))
+            mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to find implementation module %s.mod\\n", 45, (unsigned char *) &symName, (sizeof (symName)-1));
+          else
+            mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to find program module %s.mod\\n", 38, (unsigned char *) &symName, (sizeof (symName)-1));
+          if (exitOnFailure)
+            libc_exit (1);
+        }
+    }
   else
     fileName = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (sourceName));
   return doOpen (n, symName, fileName, exitOnFailure);

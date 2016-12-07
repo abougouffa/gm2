@@ -2035,10 +2035,10 @@ gm2/ppg$(exeext): gm2/boot-bin/mklink gm2/boot-bin/mc \
             echo "hmm already built" ; \
         fi ; \
 	cd gm2 ; \
-	../$(M2LINK) -s --name mod_init.c ../$(srcdir)/gm2/init/ppginit ; \
-	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
+	../$(M2LINK) -s --g++ --name mod_init.c ../$(srcdir)/gm2/init/ppginit ; \
+	$(COMPILER) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
 	M2PATH=". gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
-	../$(M2LINK) -l \
+	../$(M2LINK) -l --g++ \
            --lib ../../libiberty/safe-ctype.o \
            $(STPCPY) \
            --name ppg.lnk ../$(srcdir)/gm2/init/ppginit ; \
@@ -2062,10 +2062,10 @@ gm2/pg$(exeext): gm2/gm2-auto gm2/ppg$(exeext) gm2/gm2-auto/pg.mod \
 	sed -e 's/ppg/pg/' < $(srcdir)/gm2/init/ppginit > gm2/gm2-auto/pginit
 	$(MAKE) gm2/gm2-auto/pg.o
 	$(QUIAT)cd gm2 ; \
-	../$(M2LINK) -s --name mod_init.c ../gm2/gm2-auto/pginit ; \
-	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
+	../$(M2LINK) -s --g++ --name mod_init.c ../gm2/gm2-auto/pginit ; \
+	$(COMPILER) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
 	M2PATH="gm2-auto . gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
-	../$(M2LINK) -l \
+	../$(M2LINK) -l --g++ \
            --lib ../../libiberty/safe-ctype.o \
            $(STPCPY) \
            --name pg.lnk ../gm2/gm2-auto/pginit ; \
@@ -2103,10 +2103,10 @@ buildpge: verifypg-e
 	$(MAKE) gm2/gm2-auto/pge.o
 	sed -e 's/ppg/pge/' < $(srcdir)/gm2/init/ppginit > gm2/gm2-auto/pgeinit
 	$(QUIAT)cd gm2 ; \
-	../$(M2LINK) -s --name mod_init.c gm2-auto/pgeinit ; \
-	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
+	../$(M2LINK) -s --g++ --name mod_init.c gm2-auto/pgeinit ; \
+	$(COMPILER) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
 	M2PATH="gm2-auto . gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
-	../$(M2LINK) -l \
+	../$(M2LINK) -l --g++ \
           --lib ../../libiberty/safe-ctype.o \
            $(STPCPY) \
           --name pge.lnk gm2-auto/pgeinit ; \

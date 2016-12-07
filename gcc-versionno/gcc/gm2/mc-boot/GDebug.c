@@ -65,23 +65,23 @@ void Debug_DebugString (char *a_, unsigned int _a_high)
   while ((n <= high) && (a[n] != ASCII_nul))
     {
       if (a[n] == '\\')
-      {
-        /* avoid dangling else.  */
-        if ((n+1) <= high)
         {
-          /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-          if (a[n+1] == 'n')
+          /* avoid dangling else.  */
+          if ((n+1) <= high)
             {
-              WriteLn ();
-              n += 1;
-            }
-          else if (a[n+1] == '\\')
-            {
-              StdIO_Write ('\\');
-              n += 1;
+              /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+              if (a[n+1] == 'n')
+                {
+                  WriteLn ();
+                  n += 1;
+                }
+              else if (a[n+1] == '\\')
+                {
+                  StdIO_Write ('\\');
+                  n += 1;
+                }
             }
         }
-      }
       else
         StdIO_Write (a[n]);
       n += 1;

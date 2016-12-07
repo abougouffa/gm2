@@ -123,25 +123,25 @@ void Indexing_PutIndice (Indexing_Index i, unsigned int n, void * a)
   unsigned int * * p;
 
   if (! (Indexing_InBounds (i, n)))
-  {
-    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-    if (n < i->Low)
-      M2RTS_HALT (0);
-    else
-      {
-        oldSize = i->ArraySize;
-        while (((n-i->Low)*(sizeof (void *))) >= i->ArraySize)
-          i->ArraySize = i->ArraySize*2;
-        if (oldSize != i->ArraySize)
-          {
-            Storage_REALLOCATE (&i->ArrayStart, i->ArraySize);
-            b = i->ArrayStart;
-            b += oldSize;
-            b = libc_memset (b, 0, i->ArraySize-oldSize);
-          }
-        i->High = n;
-      }
-  }
+    {
+      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      if (n < i->Low)
+        M2RTS_HALT (0);
+      else
+        {
+          oldSize = i->ArraySize;
+          while (((n-i->Low)*(sizeof (void *))) >= i->ArraySize)
+            i->ArraySize = i->ArraySize*2;
+          if (oldSize != i->ArraySize)
+            {
+              Storage_REALLOCATE (&i->ArrayStart, i->ArraySize);
+              b = i->ArrayStart;
+              b += oldSize;
+              b = libc_memset (b, 0, i->ArraySize-oldSize);
+            }
+          i->High = n;
+        }
+    }
   b = i->ArrayStart;
   b += (n-i->Low)*(sizeof (void *));
   p = b;
@@ -228,13 +228,13 @@ void Indexing_DeleteIndice (Indexing_Index i, unsigned int j)
 void Indexing_IncludeIndiceIntoIndex (Indexing_Index i, void * a)
 {
   if (! (Indexing_IsIndiceInIndex (i, a)))
-  {
-    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-    if (i->Used == 0)
-      Indexing_PutIndice (i, Indexing_LowIndice (i), a);
-    else
-      Indexing_PutIndice (i, (Indexing_HighIndice (i))+1, a);
-  }
+    {
+      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      if (i->Used == 0)
+        Indexing_PutIndice (i, Indexing_LowIndice (i), a);
+      else
+        Indexing_PutIndice (i, (Indexing_HighIndice (i))+1, a);
+    }
 }
 
 void Indexing_ForeachIndiceInIndexDo (Indexing_Index i, Indexing_IndexProcedure p)

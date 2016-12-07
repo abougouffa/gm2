@@ -1729,15 +1729,15 @@ static void ConstSetOrQualidentOrFunction (SetOfStop0 stopset0, SetOfStop1 stops
     {
       Qualident (stopset0|(SetOfStop0) ((1 << (mcReserved_lcbratok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
       if ((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))))) != 0)))
-      {
-        /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-        if (mcLexBuf_currenttoken == mcReserved_lcbratok)
-          ConstConstructor (stopset0, stopset1, stopset2);
-        else if (mcLexBuf_currenttoken == mcReserved_lparatok)
-          ConstActualParameters (stopset0, stopset1, stopset2);
-        else
-          ErrorArray ((char *) "expecting one of: ( {", 21);
-      }
+        {
+          /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+          if (mcLexBuf_currenttoken == mcReserved_lcbratok)
+            ConstConstructor (stopset0, stopset1, stopset2);
+          else if (mcLexBuf_currenttoken == mcReserved_lparatok)
+            ConstActualParameters (stopset0, stopset1, stopset2);
+          else
+            ErrorArray ((char *) "expecting one of: ( {", 21);
+        }
     }
   else if (mcLexBuf_currenttoken == mcReserved_lcbratok)
     ConstConstructor (stopset0, stopset1, stopset2);
@@ -2416,29 +2416,29 @@ static void SetOrDesignatorOrFunction (SetOfStop0 stopset0, SetOfStop1 stopset1,
     {
       PushQualident (stopset0|(SetOfStop0) ((1 << (mcReserved_lcbratok-mcReserved_eoftok)) | (1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok))), stopset1, stopset2);
       if ((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))))) != 0)))
-      {
-        /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-        if (mcLexBuf_currenttoken == mcReserved_lcbratok)
-          {
-            Constructor (stopset0, stopset1, stopset2);
-            p = pop ();
-            q = pop ();
-            n = push (decl_putSetValue (p, q));
-          }
-        else if ((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok))))) != 0)))
-          {
-            SimpleDes (stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
-            if (mcLexBuf_currenttoken == mcReserved_lparatok)
-              {
-                q = pop ();
-                ActualParameters (stopset0, stopset1, stopset2);
-                p = pop ();
-                p = push (decl_makeFuncCall (q, p));
-              }
-          }
-        else
-          ErrorArray ((char *) "expecting one of: ( [ . ^ {", 27);
-      }
+        {
+          /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+          if (mcLexBuf_currenttoken == mcReserved_lcbratok)
+            {
+              Constructor (stopset0, stopset1, stopset2);
+              p = pop ();
+              q = pop ();
+              n = push (decl_putSetValue (p, q));
+            }
+          else if ((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok))))) != 0)))
+            {
+              SimpleDes (stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
+              if (mcLexBuf_currenttoken == mcReserved_lparatok)
+                {
+                  q = pop ();
+                  ActualParameters (stopset0, stopset1, stopset2);
+                  p = pop ();
+                  p = push (decl_makeFuncCall (q, p));
+                }
+            }
+          else
+            ErrorArray ((char *) "expecting one of: ( [ . ^ {", 27);
+        }
     }
   else if (mcLexBuf_currenttoken == mcReserved_lcbratok)
     Constructor (stopset0, stopset1, stopset2);
@@ -2799,23 +2799,23 @@ static void DefProcedureIdent (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSt
 static void DefineBuiltinProcedure (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_inlinetok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok))))) != 0)))
-  {
-    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-    if (mcLexBuf_currenttoken == mcReserved_attributetok)
-      {
-        Expect ((mcReserved_toktype) mcReserved_attributetok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_builtintok-mcReserved_recordtok))));
-        Expect ((mcReserved_toktype) mcReserved_builtintok, stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
-        Expect ((mcReserved_toktype) mcReserved_lparatok, stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
-        Expect ((mcReserved_toktype) mcReserved_lparatok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
-        Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
-        Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
-        Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2);
-      }
-    else if (mcLexBuf_currenttoken == mcReserved_inlinetok)
-      Expect ((mcReserved_toktype) mcReserved_inlinetok, stopset0, stopset1, stopset2);
-    else
-      ErrorArray ((char *) "expecting one of: __INLINE__ __ATTRIBUTE__", 42);
-  }
+    {
+      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      if (mcLexBuf_currenttoken == mcReserved_attributetok)
+        {
+          Expect ((mcReserved_toktype) mcReserved_attributetok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_builtintok-mcReserved_recordtok))));
+          Expect ((mcReserved_toktype) mcReserved_builtintok, stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
+          Expect ((mcReserved_toktype) mcReserved_lparatok, stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
+          Expect ((mcReserved_toktype) mcReserved_lparatok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
+          Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
+          Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
+          Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2);
+        }
+      else if (mcLexBuf_currenttoken == mcReserved_inlinetok)
+        Expect ((mcReserved_toktype) mcReserved_inlinetok, stopset0, stopset1, stopset2);
+      else
+        ErrorArray ((char *) "expecting one of: __INLINE__ __ATTRIBUTE__", 42);
+    }
 }
 
 static void ProcedureHeading (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
@@ -2830,15 +2830,15 @@ static void ProcedureHeading (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
 static void Builtin (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_inlinetok-mcReserved_recordtok)) | (1 << (mcReserved_builtintok-mcReserved_recordtok))))) != 0)))
-  {
-    /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-    if (mcLexBuf_currenttoken == mcReserved_builtintok)
-      Expect ((mcReserved_toktype) mcReserved_builtintok, stopset0, stopset1, stopset2);
-    else if (mcLexBuf_currenttoken == mcReserved_inlinetok)
-      Expect ((mcReserved_toktype) mcReserved_inlinetok, stopset0, stopset1, stopset2);
-    else
-      ErrorArray ((char *) "expecting one of: __INLINE__ __BUILTIN__", 40);
-  }
+    {
+      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      if (mcLexBuf_currenttoken == mcReserved_builtintok)
+        Expect ((mcReserved_toktype) mcReserved_builtintok, stopset0, stopset1, stopset2);
+      else if (mcLexBuf_currenttoken == mcReserved_inlinetok)
+        Expect ((mcReserved_toktype) mcReserved_inlinetok, stopset0, stopset1, stopset2);
+      else
+        ErrorArray ((char *) "expecting one of: __INLINE__ __BUILTIN__", 40);
+    }
 }
 
 static void DefProcedureHeading (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)

@@ -210,13 +210,13 @@ DynamicStrings_String mcOptions_handleOptions (void)
   while (SArgs_GetArg (&arg, i))
     {
       if ((DynamicStrings_Length (arg)) > 0)
-      {
-        /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-        if ((DynamicStrings_char (arg, 0)) == '-')
-          handleOption (arg);
-        else
-          return arg;
-      }
+        {
+          /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+          if ((DynamicStrings_char (arg, 0)) == '-')
+            handleOption (arg);
+          else
+            return arg;
+        }
       i += 1;
     }
   return NULL;

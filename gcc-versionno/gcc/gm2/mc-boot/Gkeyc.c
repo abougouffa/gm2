@@ -534,14 +534,14 @@ DynamicStrings_String keyc_cname (nameKey_Name n, unsigned int scopes)
   m = NULL;
   if (clash (n, scopes))
     if (((mangle1 (n, &m, scopes)) || (mangle2 (n, &m, scopes))) || (mangleN (n, &m, scopes)))
-    {
-      /* avoid dangling else.  */
-      if (scopes)
-        {
-          n = nameKey_makekey (DynamicStrings_string (m));
-          symbolKey_putSymKey (stack->symbols, n, (void *) m);
-        }
-    }
+      {
+        /* avoid dangling else.  */
+        if (scopes)
+          {
+            n = nameKey_makekey (DynamicStrings_string (m));
+            symbolKey_putSymKey (stack->symbols, n, (void *) m);
+          }
+      }
     else
       M2RTS_HALT (0);
   else if (scopes)
