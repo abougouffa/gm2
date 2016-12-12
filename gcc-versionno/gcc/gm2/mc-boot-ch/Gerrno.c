@@ -8,3 +8,7 @@ int errno_geterrno (void)
 void _M2_errno_init (int argc, char *p)
 {
 }
+
+void _M2_errno_finish (int argc, char *p)
+{
+}

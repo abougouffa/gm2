@@ -495,11 +495,11 @@ quit: force
 #
 MC_ARGS= --olang=c++ \
  --h-file-prefix=$(SRC_PREFIX) \
- -I$(srcdir)/gm2/mc \
  -I$(srcdir)/gm2/gm2-libs \
  -I$(srcdir)/gm2/gm2-compiler \
  -I$(srcdir)/gm2/gm2-libiberty \
  -I$(srcdir)/gm2/gm2-gcc
+
 
 MC=gm2/boot-bin/mc$(exeext) $(MC_ARGS)
 
@@ -1186,7 +1186,7 @@ gm2/gm2-libiberty/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libiberty/%.def
 
 gm2/gm2-compiler-boot/M2Version.o: gm2/gm2-compiler-boot/M2Version.mod
 	$(MC) -o=gm2/gm2-compiler-boot/M2Version.c $<
-	$(CC) -c $(CFLAGS) $(GM2GCC) -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libiberty $(INCLUDES) gm2/gm2-compiler-boot/M2Version.c -o $@
+	$(COMPILER) -c $(CFLAGS) $(GM2GCC) -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libiberty $(INCLUDES) gm2/gm2-compiler-boot/M2Version.c -o $@
 
 gm2/gm2-compiler-boot/M2Version.mod:
 	cd gm2/gm2-compiler-boot ; bash ../../$(srcdir)/gm2/tools-src/makeversion -m ../../$(srcdir)
@@ -1479,15 +1479,15 @@ gm2/boot-bin/mklink$(exeext): $(srcdir)/gm2/tools-src/mklink.c
 
 gm2/gm2-auto/pg.o: gm2/gm2-auto/pg.mod
 	$(MC) -o=gm2/gm2-auto/pg.c gm2/gm2-auto/pg.mod
-	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot $(INCLUDES) gm2/gm2-auto/pg.c -o $@
+	$(COMPILER) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -I$(srcdir)/gm2/mc-boot-ch $(INCLUDES) gm2/gm2-auto/pg.c -o $@
 
 gm2/gm2-auto/pge.o: gm2/gm2-auto/pge.mod
 	$(MC) -o=gm2/gm2-auto/pge.c gm2/gm2-auto/pge.mod
-	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot $(INCLUDES) gm2/gm2-auto/pge.c -o $@
+	$(COMPILER) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -I$(srcdir)/gm2/mc-boot-ch $(INCLUDES) gm2/gm2-auto/pge.c -o $@
 
 gm2/gm2-auto/%.o: gm2/gm2-auto/%.mod
 	$(MC) -o=gm2/gm2-auto/$*.c gm2/gm2-auto/$*.mod
-	$(CC) -c $(CFLAGS) -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot $(INCLUDES) gm2/gm2-auto/$*.c -o $@
+	$(COMPILER) -c $(CFLAGS) -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -I$(srcdir)/gm2/mc-boot-ch $(INCLUDES) gm2/gm2-auto/$*.c -o $@
 
 gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-compiler-boot/%.def
 	$(MC) -o=$@ $(srcdir)/gm2/gm2-compiler-boot/$*.def
@@ -1924,9 +1924,9 @@ stage1/gm2/gm2lcc$(exeext): \
 stage1/gm2/gm2lgen$(exeext): \
      gm2/boot-bin/mklink$(exeext) gm2/boot-bin/mc$(exeext) \
      gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler-boot/gm2lgen.o
-	$(M2LINK) -s --exit --name mod_init.c $(srcdir)/gm2/init/gm2lgeninit
+	unset CC ; $(M2LINK) -s --g++ --exit --name mod_init.c $(srcdir)/gm2/init/gm2lgeninit
 	mv mod_init.c gm2/gm2-compiler-boot/gm2lgen_init.c
-	$(CC) -c -g gm2/gm2-compiler-boot/gm2lgen_init.c -o gm2/gm2-compiler-boot/gm2lgen_init.o
+	$(COMPILER) -c -g gm2/gm2-compiler-boot/gm2lgen_init.c -o gm2/gm2-compiler-boot/gm2lgen_init.o
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2lgen_init.o \
               gm2/gm2-compiler-boot/gm2lgen.o $(GM2_LIBS_BOOT) $(LIBS) -lm
@@ -1935,9 +1935,9 @@ stage1/gm2/gm2lorder$(exeext): \
      gm2/boot-bin/mklink$(exeext) gm2/boot-bin/mc$(exeext) \
      gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler-boot/gm2lorder.o \
      $(GM2_LIBS_BOOT)
-	$(M2LINK) -s --exit --name mod_init.c $(srcdir)/gm2/init/gm2lorderinit
+	unset CC ; $(M2LINK) -s --g++ --exit --name mod_init.c $(srcdir)/gm2/init/gm2lorderinit
 	mv mod_init.c gm2/gm2-compiler-boot/gm2lorder_init.c
-	$(CC) -c -g gm2/gm2-compiler-boot/gm2lorder_init.c -o gm2/gm2-compiler-boot/gm2lorder_init.o
+	$(COMPILER) -c -g gm2/gm2-compiler-boot/gm2lorder_init.c -o gm2/gm2-compiler-boot/gm2lorder_init.o
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2lorder_init.o \
               gm2/gm2-compiler-boot/gm2lorder.o $(GM2_LIBS_BOOT) $(LIBS) -lm
@@ -1947,9 +1947,9 @@ stage1/gm2/gm2m$(exeext): \
      gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler-boot/gm2m.o \
      gm2/gm2-tools/m2flex.o \
      $(GM2_LIBS_BOOT)
-	$(M2LINK) -s --exit --name mod_init.c $(srcdir)/gm2/init/gm2minit
+	unset CC ; $(M2LINK) -s --g++ --exit --name mod_init.c $(srcdir)/gm2/init/gm2minit
 	mv mod_init.c gm2/gm2-compiler-boot/gm2m_init.c
-	$(CC) -c -g gm2/gm2-compiler-boot/gm2m_init.c -o gm2/gm2-compiler-boot/gm2m_init.o
+	$(COMPILER) -c -g gm2/gm2-compiler-boot/gm2m_init.c -o gm2/gm2-compiler-boot/gm2m_init.o
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2m_init.o \
               gm2/gm2-tools/m2flex.o \
@@ -2005,9 +2005,9 @@ stage1/gm2/h2def$(exeext): gm2/boot-bin/mklink$(exeext) \
      gm2/gm2-compiler-boot/cflex.o gm2/gm2-compiler-boot/CLexBuf.o \
      gm2/gm2-compiler-boot/h2def.o \
      $(GM2_LIBS_BOOT)
-	$(M2LINK) -s --exit --name mod_init.c $(srcdir)/gm2/init/h2definit
+	unset CC; $(M2LINK) -s --g++ --exit --name mod_init.c $(srcdir)/gm2/init/h2definit
 	mv mod_init.c gm2/gm2-compiler-boot/h2def_init.c
-	$(CC) -c -g gm2/gm2-compiler-boot/h2def_init.c -o gm2/gm2-compiler-boot/h2def_init.o
+	$(COMPILER) -c -g gm2/gm2-compiler-boot/h2def_init.c -o gm2/gm2-compiler-boot/h2def_init.o
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/cflex.o \
               gm2/gm2-compiler-boot/CLexBuf.o \
@@ -2062,17 +2062,19 @@ gm2/gm2-auto:
 
 gm2/pg$(exeext): gm2/gm2-auto gm2/ppg$(exeext) gm2/gm2-auto/pg.mod \
     gm2/boot-bin/mklink gm2/gm2-libs-boot \
-    $(GM2-PPG-MODS:%.mod=gm2/gm2-compiler-boot/%.o)
+    $(GM2-PPG-MODS:%.mod=gm2/gm2-compiler-boot/%.o) $(BUILD-MC-INTERFACE-O)
 	sed -e 's/ppg/pg/' < $(srcdir)/gm2/init/ppginit > gm2/gm2-auto/pginit
 	$(MAKE) gm2/gm2-auto/pg.o
 	$(QUIAT)cd gm2 ; \
         unset CC ; \
 	../$(M2LINK) -s --g++ --name mod_init.c ../gm2/gm2-auto/pginit ; \
 	$(COMPILER) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
-	M2PATH="gm2-auto . gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
+	M2PATH="gm2-auto . gm2-libs-boot gm2-compiler-boot mc-boot-ch" ; export M2PATH ; \
         unset CC ; \
 	../$(M2LINK) -l --g++ \
            --lib ../../libiberty/safe-ctype.o \
+           --lib mc-boot-ch/Glibc.o \
+           --lib mc-boot-ch/Gmcrts.o \
            $(STPCPY) \
            --name pg.lnk ../gm2/gm2-auto/pginit ; \
 	$(SHELL) pg.lnk ; \
@@ -2112,11 +2114,13 @@ buildpge: verifypg-e
         unset CC ; \
 	../$(M2LINK) -s --g++ --name mod_init.c gm2-auto/pgeinit ; \
 	$(COMPILER) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
-	M2PATH="gm2-auto . gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
+	M2PATH="gm2-auto . gm2-libs-boot gm2-compiler-boot mc-boot-ch" ; export M2PATH ; \
         unset CC ; \
 	../$(M2LINK) -l --g++ \
           --lib ../../libiberty/safe-ctype.o \
-           $(STPCPY) \
+          --lib mc-boot-ch/Glibc.o \
+          --lib mc-boot-ch/Gmcrts.o \
+          $(STPCPY) \
           --name pge.lnk gm2-auto/pgeinit ; \
 	$(SHELL) pge.lnk ; \
 	$(RM) pge.lnk ; \

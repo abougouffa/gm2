@@ -261,6 +261,9 @@ static void initCP (void)
   add (macros, (char *) "false", 5);
   add (keywords, (char *) "new", 3);
   add (keywords, (char *) "delete", 6);
+  add (keywords, (char *) "try", 3);
+  add (keywords, (char *) "catch", 5);
+  add (keywords, (char *) "operator", 8);
 }
 
 static void add (symbolKey_symbolTree s, char *a_, unsigned int _a_high)

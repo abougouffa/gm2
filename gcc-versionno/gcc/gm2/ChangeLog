@@ -98,7 +98,22 @@
 	* gm2/mc/decl.mod:  change all external declarations as being
 	  C declarations to provide linkage compatibility with C/M2.
 	* gm2/tools-src/mklink.c:  allow the scaffold to be compiled
-	  with g++.
+          with g++.
+	* gm2/Make-lang.in:  MC_ARGS no longer include gm2/mc.  Use
+          COMPILER rather than CC to compile gm2 related sources.
+	  m2link uses --g++ on compiler related scaffolds.
+	* gm2/c.flex:  remove reference to p2c.
+	* gm2/gm2-compiler/ppg.mod:  increase MaxCodeHunkLength.
+	* gm2/mc-boot-ch/GSYSTEM.c:  implement _finish function.
+	* gm2/mc-boot-ch/Gerrno.c:  implement _finish function.
+	* gm2/mc-boot/Gdecl.c:  rebuilt.
+	* gm2/mc-boot/Gkeyc.c:  rebuilt.
+	* gm2/mc/decl.mod:  detect and handle dangling else in an ELSIF.
+	* gm2/mc/keyc.mod:  add try, catch and operator to the list of
+	  unusable keywords.
+	* gm2/tools-src/mklink.c:  New procedure (GenerateInitCalls),
+          new procedure (GenerateFinishCalls) and new procedure
+	  (GeneratePrototypes).
 
 2016-12-06      Gaius Mulley <gaius@gnu.org>
 

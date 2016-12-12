@@ -728,7 +728,10 @@ BEGIN
    add (macros, 'false') ;
 
    add (keywords, 'new') ;
-   add (keywords, 'delete')
+   add (keywords, 'delete') ;
+   add (keywords, 'try') ;
+   add (keywords, 'catch') ;
+   add (keywords, 'operator')
 END initCP ;
 
 

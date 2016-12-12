@@ -8609,8 +8609,24 @@ BEGIN
    outText (p, "(") ;
    doExprC (p, s^.elsifF.expr) ;
    outText (p, ")\n") ;
-   doCompoundStmt (p, s^.elsifF.then) ;
    assert ((s^.elsifF.else = NIL) OR (s^.elsifF.elsif = NIL)) ;
+   IF hasIfAndNoElse (s^.elsifF.then) AND
+      ((s^.elsifF.else # NIL) OR (s^.elsifF.elsif # NIL))
+   THEN
+      (* avoid dangling else.  *)
+      p := pushPretty (p) ;
+      setindent (p, getindent (p) + indentationC) ;
+      outText (p, "{\n") ;
+      p := pushPretty (p) ;
+      setindent (p, getindent (p) + indentationC) ;
+      outText (p, "/* avoid dangling else.  */\n") ;
+      doStatementSequenceC (p, s^.elsifF.then) ;
+      p := popPretty (p) ;
+      outText (p, "}\n") ;
+      p := popPretty (p)
+   ELSE
+      doCompoundStmt (p, s^.elsifF.then)
+   END ;
    IF containsStatement (s^.elsifF.else)
    THEN
       outText (p, "else\n") ;

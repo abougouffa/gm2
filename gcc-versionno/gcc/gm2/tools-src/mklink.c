@@ -322,6 +322,39 @@ void add_function (char *name)
 }
 
 
+static void GenerateInitCalls (functList *p)
+{
+  while (p != NULL) {
+    printf("   _M2_%s_init(argc, argv);\n", p->functname);
+    p = p->next;
+  }
+}
+
+
+static void GenerateFinishCalls (functList *p)
+{
+  if (p->next != NULL)
+    GenerateFinishCalls (p->next);
+  printf("   _M2_%s_finish(argc, argv);\n", p->functname);
+}
+
+
+static void GeneratePrototypes (functList *p)
+{
+  while (p != NULL) {
+    if (GCCCommand) {
+      printf("extern void _M2_%s_init(int argc, char *argv[]);\n", p->functname);
+      printf("extern void _M2_%s_finish(int argc, char *argv[]);\n", p->functname);
+    }
+    else {
+      printf("extern \"C\" void _M2_%s_init(int argc, char *argv[]);\n", p->functname);
+      printf("extern \"C\" void _M2_%s_finish(int argc, char *argv[]);\n", p->functname);
+    }
+    p = p->next;
+  }
+}
+
+
 /*
    ParseFileStartup - generates the startup code.
 */
@@ -338,27 +371,16 @@ static void ParseFileStartup (void)
             add_function(name);
 	}
     }
-    p = head;
-
-    while (p != NULL) {
-      if (GCCCommand)
-	printf("extern void _M2_%s_init(int argc, char *argv[]);\n", p->functname);
-      else
-	printf("extern \"C\" void _M2_%s_init(int argc, char *argv[]);\n", p->functname);
-      p = p->next;
-    }
+    GeneratePrototypes (head);
     printf("extern");
     if (! GCCCommand)
       printf (" \"C\"");
     printf (" void _exit(int);\n");
 
-    p = head;
     printf("\n\nint %s(int argc, char *argv[])\n", NameOfMain);
     printf("{\n");
-    while (p != NULL) {
-      printf("   _M2_%s_init(argc, argv);\n", p->functname);
-      p = p->next;
-    }
+    GenerateInitCalls (head);
+    GenerateFinishCalls (head);
     if (ExitNeeded) {
       printf("   _exit(0);\n");
     }

@@ -6943,8 +6943,22 @@ static void doElsifC (mcPretty_pretty p, decl_node s)
   outText (p, (char *) "(", 1);
   doExprC (p, s->elsifF.expr);
   outText (p, (char *) ")\\n", 3);
-  doCompoundStmt (p, s->elsifF.then);
   mcDebug_assert ((s->elsifF.else_ == NULL) || (s->elsifF.elsif == NULL));
+  if ((hasIfAndNoElse (s->elsifF.then)) && ((s->elsifF.else_ != NULL) || (s->elsifF.elsif != NULL)))
+    {
+      p = mcPretty_pushPretty (p);
+      mcPretty_setindent (p, (mcPretty_getindent (p))+indentationC);
+      outText (p, (char *) "{\\n", 3);
+      p = mcPretty_pushPretty (p);
+      mcPretty_setindent (p, (mcPretty_getindent (p))+indentationC);
+      outText (p, (char *) "/* avoid dangling else.  */\\n", 29);
+      doStatementSequenceC (p, s->elsifF.then);
+      p = mcPretty_popPretty (p);
+      outText (p, (char *) "}\\n", 3);
+      p = mcPretty_popPretty (p);
+    }
+  else
+    doCompoundStmt (p, s->elsifF.then);
   if (containsStatement (s->elsifF.else_))
     {
       outText (p, (char *) "else\\n", 6);

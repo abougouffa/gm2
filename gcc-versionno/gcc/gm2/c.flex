@@ -19,8 +19,8 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <p2c/p2c.h>
 #include "GCLexBuf.h"
+#include "input.h"
 
 #define MAX_INCLUDE_DEPTH 50
 
@@ -109,7 +109,7 @@ static  int  isTypeDef    (char *a);
 %%
 
 "/*"                       { updatepos();
-                             skippos(); 
+                             skippos();
 			     BEGIN COMMENT; }
 <COMMENT>"*/"              { updatepos(); skippos(); BEGIN INITIAL; }
 <COMMENT>\n.*              { consumeLine(1); }
@@ -335,7 +335,7 @@ static int handleEof (void)
 }
 
 /*
- *  handleNewline - 
+ *  handleNewline -
  */
 
 static void handleNewline (int hashSeen, int n)
@@ -449,7 +449,7 @@ static void consumeLine (int n)
   currentLine->nextpos=0;
   if (parsingOn || (currentLine->linebuf[0] == '#'))
     yyless(n);                  /* push back all but the n */
-    
+
   /* translate \t onto ' ' */
   for (i=0; i<yyleng; i++)
     if (currentLine->linebuf[i] == '\t')
@@ -647,7 +647,7 @@ static char *findFile (char *fileName, int localFirst)
 
   while (start != NULL) {
     char *end = index (start, ':');
-    
+
     if (end == NULL) {
       char *ctry = (char *)xmalloc (strlen(start) + 2 + strlen (fileName));
       strcpy (ctry, start);
@@ -656,7 +656,7 @@ static char *findFile (char *fileName, int localFirst)
       if (fileExists (ctry))
 	return ctry;
       free (ctry);
-      
+
       start = NULL;
     }
     else {
