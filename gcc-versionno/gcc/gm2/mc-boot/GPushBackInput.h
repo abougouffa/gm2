@@ -4,6 +4,9 @@
 #if !defined (_PushBackInput_H)
 #   define _PushBackInput_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -16,11 +19,7 @@
 #   if defined (_PushBackInput_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 EXTERN FIO_File PushBackInput_Open (char *a_, unsigned int _a_high);
@@ -35,6 +34,9 @@ EXTERN unsigned int PushBackInput_GetExitStatus (void);
 EXTERN void PushBackInput_SetDebug (unsigned int d);
 EXTERN unsigned int PushBackInput_GetColumnPosition (void);
 EXTERN unsigned int PushBackInput_GetCurrentLine (void);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

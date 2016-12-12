@@ -214,11 +214,11 @@ static void ParseFileLinkCommand (void)
   s = getenv("CC");
   if (s == NULL) {
     if (GCCCommand)
-      printf("gcc -g");
+      printf("gcc -g ");
     else
-      printf("g++ -g");
+      printf("g++ -g ");
   } else
-    printf("%s -g", s);
+    printf("%s -g ", s);
 
   l = getenv("LDFLAGS");
   if (l != NULL)
@@ -341,10 +341,16 @@ static void ParseFileStartup (void)
     p = head;
 
     while (p != NULL) {
-      printf("extern void _M2_%s_init(int argc, char *argv[]);\n", p->functname);
+      if (GCCCommand)
+	printf("extern void _M2_%s_init(int argc, char *argv[]);\n", p->functname);
+      else
+	printf("extern \"C\" void _M2_%s_init(int argc, char *argv[]);\n", p->functname);
       p = p->next;
     }
-    printf("extern void exit(int);\n");
+    printf("extern");
+    if (! GCCCommand)
+      printf (" \"C\"");
+    printf (" void _exit(int);\n");
 
     p = head;
     printf("\n\nint %s(int argc, char *argv[])\n", NameOfMain);
@@ -354,7 +360,7 @@ static void ParseFileStartup (void)
       p = p->next;
     }
     if (ExitNeeded) {
-      printf("   exit(0);\n");
+      printf("   _exit(0);\n");
     }
     printf("   return(0);\n");
     printf("}\n");

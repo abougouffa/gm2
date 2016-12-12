@@ -4,6 +4,9 @@
 #if !defined (_libm_H)
 #   define _libm_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -14,11 +17,7 @@
 #   if defined (_libm_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 EXTERN double libm_sin (double x);
@@ -63,6 +62,9 @@ EXTERN float libm_floorf (float x);
 EXTERN double libm_ceil (double x);
 EXTERN long double libm_ceill (long double x);
 EXTERN float libm_ceilf (float x);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

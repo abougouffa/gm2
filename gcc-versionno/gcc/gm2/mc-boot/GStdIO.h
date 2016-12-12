@@ -4,6 +4,9 @@
 #if !defined (_StdIO_H)
 #   define _StdIO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -14,11 +17,7 @@
 #   if defined (_StdIO_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 typedef struct StdIO_ProcWrite_p StdIO_ProcWrite;
@@ -39,6 +38,9 @@ EXTERN StdIO_ProcWrite StdIO_GetCurrentOutput (void);
 EXTERN void StdIO_PushInput (StdIO_ProcRead p);
 EXTERN void StdIO_PopInput (void);
 EXTERN StdIO_ProcRead StdIO_GetCurrentInput (void);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

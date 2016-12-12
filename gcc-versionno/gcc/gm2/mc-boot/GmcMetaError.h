@@ -4,6 +4,9 @@
 #if !defined (_mcMetaError_H)
 #   define _mcMetaError_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -16,11 +19,7 @@
 #   if defined (_mcMetaError_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 EXTERN void mcMetaError_metaError1 (char *m_, unsigned int _m_high, unsigned char *s_, unsigned int _s_high);
@@ -47,6 +46,9 @@ EXTERN void mcMetaError_metaErrorStringT1 (unsigned int tok, DynamicStrings_Stri
 EXTERN void mcMetaError_metaErrorStringT2 (unsigned int tok, DynamicStrings_String m, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high);
 EXTERN void mcMetaError_metaErrorStringT3 (unsigned int tok, DynamicStrings_String m, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high);
 EXTERN void mcMetaError_metaErrorStringT4 (unsigned int tok, DynamicStrings_String m, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high, unsigned char *s4_, unsigned int _s4_high);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

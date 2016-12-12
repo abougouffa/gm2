@@ -154,7 +154,7 @@ static unsigned int optionIs (char *left_, unsigned int _left_high, DynamicStrin
     return DynamicStrings_EqualArray (right, (char *) left, _left_high);
   else if ((DynamicStrings_Length (right)) > (StrLib_StrLen ((char *) left, _left_high)))
     {
-      s = DynamicStrings_Mark (DynamicStrings_Slice (right, 0, (int ) StrLib_StrLen ((char *) left, _left_high)));
+      s = DynamicStrings_Mark (DynamicStrings_Slice (right, 0, (int) StrLib_StrLen ((char *) left, _left_high)));
       return DynamicStrings_EqualArray (s, (char *) left, _left_high);
     }
   else

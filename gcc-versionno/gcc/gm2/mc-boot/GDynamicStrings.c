@@ -288,7 +288,7 @@ static void writeString (char *a_, unsigned int _a_high)
   /* make a local copy of each unbounded array.  */
   memcpy (a, a_, _a_high+1);
 
-  i = libc_write (1, &a, (int ) StrLib_StrLen ((char *) a, _a_high));
+  i = libc_write (1, &a, (int) StrLib_StrLen ((char *) a, _a_high));
 }
 
 static void writeCstring (void * a)
@@ -804,7 +804,7 @@ DynamicStrings_String DynamicStrings_InitStringCharStar (void * a)
   s->contents.len = 0;
   s->contents.next = NULL;
   if (a != NULL)
-    ConcatContentsAddress (&s->contents, a, (unsigned int ) libc_strlen (a));
+    ConcatContentsAddress (&s->contents, a, (unsigned int) libc_strlen (a));
   Storage_ALLOCATE ((void **) &s->head, sizeof (descriptor));
   s->head->charStarUsed = FALSE;
   s->head->charStar = NULL;
@@ -1048,7 +1048,7 @@ DynamicStrings_String DynamicStrings_Slice (DynamicStrings_String s, int low, in
   if (high <= 0)
     high = ((int ) (DynamicStrings_Length (s)))+high;
   else
-    high = Min (DynamicStrings_Length (s), (unsigned int ) high);
+    high = Min (DynamicStrings_Length (s), (unsigned int) high);
   d = DynamicStrings_InitString ((char *) "", 0);
   d = AddToGarbage (d, s);
   o = 0;
@@ -1063,7 +1063,7 @@ DynamicStrings_String DynamicStrings_Slice (DynamicStrings_String s, int low, in
             start = 0;
           else
             start = low-o;
-          end = Max (Min (MaxBuf, (unsigned int ) high-o), 0);
+          end = Max (Min (MaxBuf, (unsigned int) high-o), 0);
           while (t->contents.len == MaxBuf)
             {
               if (t->contents.next == NULL)
@@ -1077,7 +1077,7 @@ DynamicStrings_String DynamicStrings_Slice (DynamicStrings_String s, int low, in
                 }
               t = t->contents.next;
             }
-          ConcatContentsAddress (&t->contents, &s->contents.buf.array[start], (unsigned int ) end-start);
+          ConcatContentsAddress (&t->contents, &s->contents.buf.array[start], (unsigned int) end-start);
           o += s->contents.len;
           s = s->contents.next;
         }
@@ -1172,7 +1172,7 @@ DynamicStrings_String DynamicStrings_RemoveWhitePrefix (DynamicStrings_String s)
   unsigned int i;
 
   i = 0;
-  while (IsWhite (DynamicStrings_char (s, (int ) i)))
+  while (IsWhite (DynamicStrings_char (s, (int) i)))
     i += 1;
   s = DynamicStrings_Slice (s, (int ) (i), 0);
   if (TraceOn)
@@ -1254,7 +1254,7 @@ void DynamicStrings_CopyOut (char *a, unsigned int _a_high, DynamicStrings_Strin
   i = 0;
   while (i < l)
     {
-      a[i] = DynamicStrings_char (s, (int ) i);
+      a[i] = DynamicStrings_char (s, (int) i);
       i += 1;
     }
   if (i <= (_a_high))

@@ -4,6 +4,9 @@
 #if !defined (_decl_H)
 #   define _decl_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -17,11 +20,7 @@
 #   if defined (_decl_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 #if !defined (decl_node_D)
@@ -212,6 +211,9 @@ EXTERN void decl_setLangC (void);
 EXTERN void decl_setLangCP (void);
 EXTERN void decl_setLangM2 (void);
 EXTERN void decl_out (void);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

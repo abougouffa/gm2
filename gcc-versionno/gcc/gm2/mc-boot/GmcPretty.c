@@ -212,7 +212,7 @@ void mcPretty_prints (mcPretty_pretty p, DynamicStrings_String s)
   flushSpace (p);
   while (i < l)
     {
-      if ((((i+2) <= l) && ((DynamicStrings_char (s, (int ) i)) == '\\')) && ((DynamicStrings_char (s, (int ) i+1)) == 'n'))
+      if ((((i+2) <= l) && ((DynamicStrings_char (s, (int) i)) == '\\')) && ((DynamicStrings_char (s, (int) i+1)) == 'n'))
         {
           p->needsIndent = TRUE;
           p->needsSpace = FALSE;
@@ -225,7 +225,7 @@ void mcPretty_prints (mcPretty_pretty p, DynamicStrings_String s)
       else
         {
           flushIndent (p);
-          (*p->write_.proc) (DynamicStrings_char (s, (int ) i));
+          (*p->write_.proc) (DynamicStrings_char (s, (int) i));
           p->curPos += 1;
           p->seekPos += 1;
         }
@@ -244,7 +244,7 @@ void mcPretty_raw (mcPretty_pretty p, DynamicStrings_String s)
   flushIndent (p);
   while (i < l)
     {
-      (*p->write_.proc) (DynamicStrings_char (s, (int ) i));
+      (*p->write_.proc) (DynamicStrings_char (s, (int) i));
       p->curPos += 1;
       p->seekPos += 1;
       i += 1;

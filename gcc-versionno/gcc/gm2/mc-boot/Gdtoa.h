@@ -4,6 +4,9 @@
 #if !defined (_dtoa_H)
 #   define _dtoa_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -15,17 +18,16 @@
 #   if defined (_dtoa_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 typedef enum {dtoa_maxsignificant, dtoa_decimaldigits} dtoa_Mode;
 
 EXTERN double dtoa_strtod (void * s, unsigned int *error);
 EXTERN void * dtoa_dtoa (double d, dtoa_Mode mode, int ndigits, int *decpt, unsigned int *sign);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

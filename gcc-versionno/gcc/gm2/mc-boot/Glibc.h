@@ -4,6 +4,9 @@
 #if !defined (_libc_H)
 #   define _libc_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -15,11 +18,7 @@
 #   if defined (_libc_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 typedef long int libc_time_t;
@@ -93,6 +92,9 @@ EXTERN void libc_longjmp (void * env, int val);
 EXTERN void libc_atexit (PROC proc);
 EXTERN void * libc_ttyname (int filedes);
 EXTERN unsigned int libc_sleep (unsigned int seconds);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

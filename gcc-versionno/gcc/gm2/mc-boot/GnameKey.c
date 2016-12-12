@@ -90,7 +90,7 @@ static nameKey_Name doMakeKey (ptrToChar n, unsigned int higha)
       lastIndice += 1;
       child->key = lastIndice;
       child->data = n;
-      Indexing_PutIndice (keyIndex, (unsigned int ) child->key, (void *) n);
+      Indexing_PutIndice (keyIndex, (unsigned int) child->key, (void *) n);
       k = lastIndice;
     }
   else
@@ -340,10 +340,10 @@ unsigned int nameKey_isSameExcludingCase (nameKey_Name key1, nameKey_Name key2)
 
 void * nameKey_keyToCharStar (nameKey_Name key)
 {
-  if ((key == nameKey_NulName) || (! (Indexing_InBounds (keyIndex, (unsigned int ) key))))
+  if ((key == nameKey_NulName) || (! (Indexing_InBounds (keyIndex, (unsigned int) key))))
     return NULL;
   else
-    return Indexing_GetIndice (keyIndex, (unsigned int ) key);
+    return Indexing_GetIndice (keyIndex, (unsigned int) key);
 }
 
 void _M2_nameKey_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

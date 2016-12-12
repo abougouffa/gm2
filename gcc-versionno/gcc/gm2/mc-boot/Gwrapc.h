@@ -4,6 +4,9 @@
 #if !defined (_wrapc_H)
 #   define _wrapc_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -15,11 +18,7 @@
 #   if defined (_wrapc_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 EXTERN void * wrapc_strtime (void);
@@ -31,6 +30,9 @@ EXTERN void wrapc_getnameuidgid (void * name, int *uid, int *gid);
 EXTERN int wrapc_signbit (double r);
 EXTERN int wrapc_signbitf (float s);
 EXTERN int wrapc_signbitl (long double l);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

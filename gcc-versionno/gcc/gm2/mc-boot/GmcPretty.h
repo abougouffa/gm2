@@ -4,6 +4,9 @@
 #if !defined (_mcPretty_H)
 #   define _mcPretty_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -15,11 +18,7 @@
 #   if defined (_mcPretty_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 #if !defined (mcPretty_pretty_D)
@@ -52,6 +51,9 @@ EXTERN void mcPretty_noSpace (mcPretty_pretty s);
 EXTERN void mcPretty_print (mcPretty_pretty p, char *a_, unsigned int _a_high);
 EXTERN void mcPretty_prints (mcPretty_pretty p, DynamicStrings_String s);
 EXTERN void mcPretty_raw (mcPretty_pretty p, DynamicStrings_String s);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

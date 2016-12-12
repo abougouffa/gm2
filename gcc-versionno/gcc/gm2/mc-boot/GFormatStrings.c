@@ -170,26 +170,26 @@ static DynamicStrings_String FormatString (DynamicStrings_String s, unsigned cha
             {
               /* avoid gcc warning by using compound statement even if not strictly necessary.  */
               if (left)
-                p = DynamicStrings_ConCat (p, DynamicStrings_Mark (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) " ", 1)), (unsigned int ) width-((int ) (DynamicStrings_Length (p))))));
+                p = DynamicStrings_ConCat (p, DynamicStrings_Mark (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) " ", 1)), (unsigned int) width-((int ) (DynamicStrings_Length (p))))));
               else
-                p = DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) " ", 1)), (unsigned int ) width-((int ) (DynamicStrings_Length (p)))), DynamicStrings_Mark (p));
+                p = DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) " ", 1)), (unsigned int) width-((int ) (DynamicStrings_Length (p)))), DynamicStrings_Mark (p));
             }
           s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), DynamicStrings_Mark (p)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
         }
       else if (ch == 'd')
         {
           Cast ((unsigned char *) &c, (sizeof (c)-1), (unsigned char *) w, _w_high);
-          s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), StringConvert_IntegerToString (c, (unsigned int ) width, leader, FALSE, 10, FALSE)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
+          s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), StringConvert_IntegerToString (c, (unsigned int) width, leader, FALSE, 10, FALSE)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
         }
       else if (ch == 'x')
         {
           Cast ((unsigned char *) &u, (sizeof (u)-1), (unsigned char *) w, _w_high);
-          s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), StringConvert_CardinalToString (u, (unsigned int ) width, leader, 16, TRUE)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
+          s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), StringConvert_CardinalToString (u, (unsigned int) width, leader, 16, TRUE)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
         }
       else if (ch == 'u')
         {
           Cast ((unsigned char *) &u, (sizeof (u)-1), (unsigned char *) w, _w_high);
-          s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), StringConvert_CardinalToString (u, (unsigned int ) width, leader, 10, FALSE)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
+          s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), StringConvert_CardinalToString (u, (unsigned int) width, leader, 10, FALSE)), DynamicStrings_Mark (DynamicStrings_Slice (s, j+2, 0)));
         }
       else
         s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, i, k), DynamicStrings_Mark (DynamicStrings_InitStringChar (ch))), DynamicStrings_Mark (DynamicStrings_Slice (s, j+1, 0)));

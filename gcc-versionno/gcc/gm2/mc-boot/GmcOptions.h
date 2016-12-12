@@ -4,6 +4,9 @@
 #if !defined (_mcOptions_H)
 #   define _mcOptions_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -15,11 +18,7 @@
 #   if defined (_mcOptions_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 EXTERN DynamicStrings_String mcOptions_handleOptions (void);
@@ -33,6 +32,9 @@ EXTERN void mcOptions_setDebugTopological (unsigned int value);
 EXTERN unsigned int mcOptions_getDebugTopological (void);
 EXTERN DynamicStrings_String mcOptions_getHPrefix (void);
 EXTERN unsigned int mcOptions_getIgnoreFQ (void);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

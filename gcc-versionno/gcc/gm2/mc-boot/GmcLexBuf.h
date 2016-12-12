@@ -4,6 +4,9 @@
 #if !defined (_mcLexBuf_H)
 #   define _mcLexBuf_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -17,11 +20,7 @@
 #   if defined (_mcLexBuf_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 EXTERN mcReserved_toktype mcLexBuf_currenttoken;
@@ -49,6 +48,9 @@ EXTERN void mcLexBuf_addTokInteger (mcReserved_toktype t, int i);
 EXTERN void mcLexBuf_setFile (void * filename);
 EXTERN void mcLexBuf_pushFile (void * filename);
 EXTERN void mcLexBuf_popFile (void * filename);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

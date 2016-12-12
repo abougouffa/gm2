@@ -4,6 +4,9 @@
 #if !defined (_StringConvert_H)
 #   define _StringConvert_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -15,11 +18,7 @@
 #   if defined (_StringConvert_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 EXTERN DynamicStrings_String StringConvert_IntegerToString (int i, unsigned int width, char padding, unsigned int sign, unsigned int base, unsigned int lower);
@@ -48,6 +47,9 @@ EXTERN double StringConvert_stor (DynamicStrings_String s);
 EXTERN long double StringConvert_stolr (DynamicStrings_String s);
 EXTERN DynamicStrings_String StringConvert_ToSigFig (DynamicStrings_String s, unsigned int n);
 EXTERN DynamicStrings_String StringConvert_ToDecimalPlaces (DynamicStrings_String s, unsigned int n);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

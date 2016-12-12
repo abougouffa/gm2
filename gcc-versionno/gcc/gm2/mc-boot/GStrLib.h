@@ -4,6 +4,9 @@
 #if !defined (_StrLib_H)
 #   define _StrLib_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -14,11 +17,7 @@
 #   if defined (_StrLib_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 EXTERN void StrLib_StrConCat (char *a_, unsigned int _a_high, char *b_, unsigned int _b_high, char *c, unsigned int _c_high);
@@ -28,6 +27,9 @@ EXTERN unsigned int StrLib_StrLen (char *a_, unsigned int _a_high);
 EXTERN void StrLib_StrCopy (char *a_, unsigned int _a_high, char *b, unsigned int _b_high);
 EXTERN unsigned int StrLib_IsSubString (char *a_, unsigned int _a_high, char *b_, unsigned int _b_high);
 EXTERN void StrLib_StrRemoveWhitePrefix (char *a_, unsigned int _a_high, char *b, unsigned int _b_high);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

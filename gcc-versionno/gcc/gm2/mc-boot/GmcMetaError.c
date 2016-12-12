@@ -100,7 +100,7 @@ static void internalFormat (DynamicStrings_String s, int i, char *m_, unsigned i
   s = DynamicStrings_KillString (s);
   if (i > 0)
     i -= 1;
-  s = DynamicStrings_Mult (DynamicStrings_InitString ((char *) " ", 1), (unsigned int ) i);
+  s = DynamicStrings_Mult (DynamicStrings_InitString ((char *) " ", 1), (unsigned int) i);
   s = DynamicStrings_ConCatChar (s, '^');
   s = SFIO_WriteS (FIO_StdOut, s);
   FIO_WriteLine (FIO_StdOut);

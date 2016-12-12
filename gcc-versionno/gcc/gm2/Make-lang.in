@@ -1782,7 +1782,7 @@ gm2/boot-bin/mc$(exeext): $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) gm2/mc-boot
 	$(CC) -g -o $@ $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) gm2/mc-boot/main.o mcflex.o -lm -lpth
 
 gm2/mc-boot/main.o: $(M2LINK) $(srcdir)/gm2/init/mcinit
-	$(M2LINK) -s --exit --name mainmcinit.c $(srcdir)/gm2/init/mcinit
+	unset CC ; $(M2LINK) -s --gcc --exit --name mainmcinit.c $(srcdir)/gm2/init/mcinit
 	mv mainmcinit.c gm2/mc-boot/main.c
 	$(CC) -g -c -o $@ gm2/mc-boot/main.c
 
@@ -2029,17 +2029,21 @@ stage2/gm2/h2def$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) \
 
 gm2/ppg$(exeext): gm2/boot-bin/mklink gm2/boot-bin/mc \
      gm2/gm2-libs-boot/libgm2.a $(GM2-PPG-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
-     gm2/gm2-compiler-boot/ppg.o
+     gm2/gm2-compiler-boot/ppg.o $(BUILD-MC-INTERFACE-O)
 	$(QUIAT)echo "building gm2/ppg" ; \
 	if [ -f gm2/ppg$(exeext) ] ; then \
             echo "hmm already built" ; \
         fi ; \
 	cd gm2 ; \
+        unset CC ; \
 	../$(M2LINK) -s --g++ --name mod_init.c ../$(srcdir)/gm2/init/ppginit ; \
 	$(COMPILER) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
-	M2PATH=". gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
+	M2PATH=". gm2-libs-boot gm2-compiler-boot mc-boot-ch" ; export M2PATH ; \
+        unset CC ; \
 	../$(M2LINK) -l --g++ \
            --lib ../../libiberty/safe-ctype.o \
+           --lib mc-boot-ch/Glibc.o \
+           --lib mc-boot-ch/Gmcrts.o \
            $(STPCPY) \
            --name ppg.lnk ../$(srcdir)/gm2/init/ppginit ; \
 	$(SHELL) ppg.lnk ; \
@@ -2062,9 +2066,11 @@ gm2/pg$(exeext): gm2/gm2-auto gm2/ppg$(exeext) gm2/gm2-auto/pg.mod \
 	sed -e 's/ppg/pg/' < $(srcdir)/gm2/init/ppginit > gm2/gm2-auto/pginit
 	$(MAKE) gm2/gm2-auto/pg.o
 	$(QUIAT)cd gm2 ; \
+        unset CC ; \
 	../$(M2LINK) -s --g++ --name mod_init.c ../gm2/gm2-auto/pginit ; \
 	$(COMPILER) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
 	M2PATH="gm2-auto . gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
+        unset CC ; \
 	../$(M2LINK) -l --g++ \
            --lib ../../libiberty/safe-ctype.o \
            $(STPCPY) \
@@ -2103,9 +2109,11 @@ buildpge: verifypg-e
 	$(MAKE) gm2/gm2-auto/pge.o
 	sed -e 's/ppg/pge/' < $(srcdir)/gm2/init/ppginit > gm2/gm2-auto/pgeinit
 	$(QUIAT)cd gm2 ; \
+        unset CC ; \
 	../$(M2LINK) -s --g++ --name mod_init.c gm2-auto/pgeinit ; \
 	$(COMPILER) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
 	M2PATH="gm2-auto . gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
+        unset CC ; \
 	../$(M2LINK) -l --g++ \
           --lib ../../libiberty/safe-ctype.o \
            $(STPCPY) \

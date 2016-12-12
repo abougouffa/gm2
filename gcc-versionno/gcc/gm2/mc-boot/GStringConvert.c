@@ -292,7 +292,7 @@ static DynamicStrings_String doDecimalPlaces (DynamicStrings_String s, unsigned 
       hundreths = DynamicStrings_Slice (DynamicStrings_Mark (s), i+1, i+3);
       s = t;
       if ((StringConvert_stoc (hundreths)) >= 50)
-        s = carryOne (DynamicStrings_Mark (s), (unsigned int ) i);
+        s = carryOne (DynamicStrings_Mark (s), (unsigned int) i);
       hundreths = DynamicStrings_KillString (hundreths);
     }
   else if ((i+2) <= l)
@@ -301,7 +301,7 @@ static DynamicStrings_String doDecimalPlaces (DynamicStrings_String s, unsigned 
       tenths = DynamicStrings_Slice (DynamicStrings_Mark (s), i+1, i+2);
       s = t;
       if ((StringConvert_stoc (tenths)) >= 5)
-        s = carryOne (DynamicStrings_Mark (s), (unsigned int ) i);
+        s = carryOne (DynamicStrings_Mark (s), (unsigned int) i);
       tenths = DynamicStrings_KillString (tenths);
     }
   if ((DynamicStrings_char (s, 0)) == '0')
@@ -315,7 +315,7 @@ static DynamicStrings_String doDecimalPlaces (DynamicStrings_String s, unsigned 
       s = DynamicStrings_Slice (DynamicStrings_Mark (s), 0, i);
       l = DynamicStrings_Length (s);
       if (l < point)
-        s = DynamicStrings_ConCat (s, DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), (unsigned int ) point-l));
+        s = DynamicStrings_ConCat (s, DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), (unsigned int) point-l));
     }
   if (point >= 0)
     {
@@ -358,7 +358,7 @@ static DynamicStrings_String doSigFig (DynamicStrings_String s, unsigned int n)
         i += 1;
       if ((i == l) && ((DynamicStrings_char (s, i-1)) == '0'))
         {
-          s = DynamicStrings_Slice (DynamicStrings_Mark (s), 0, (int ) n);
+          s = DynamicStrings_Slice (DynamicStrings_Mark (s), 0, (int) n);
           i = n;
         }
     }
@@ -380,7 +380,7 @@ static DynamicStrings_String doSigFig (DynamicStrings_String s, unsigned int n)
       hundreths = DynamicStrings_Slice (DynamicStrings_Mark (s), i+1, i+3);
       s = t;
       if ((StringConvert_stoc (hundreths)) >= 50)
-        s = carryOne (DynamicStrings_Mark (s), (unsigned int ) i);
+        s = carryOne (DynamicStrings_Mark (s), (unsigned int) i);
       hundreths = DynamicStrings_KillString (hundreths);
     }
   else if ((i+2) <= l)
@@ -389,7 +389,7 @@ static DynamicStrings_String doSigFig (DynamicStrings_String s, unsigned int n)
       tenths = DynamicStrings_Slice (DynamicStrings_Mark (s), i+1, i+2);
       s = t;
       if ((StringConvert_stoc (tenths)) >= 5)
-        s = carryOne (DynamicStrings_Mark (s), (unsigned int ) i);
+        s = carryOne (DynamicStrings_Mark (s), (unsigned int) i);
       tenths = DynamicStrings_KillString (tenths);
     }
   if ((DynamicStrings_char (s, z)) == '0')
@@ -407,7 +407,7 @@ static DynamicStrings_String doSigFig (DynamicStrings_String s, unsigned int n)
       s = DynamicStrings_Slice (DynamicStrings_Mark (s), 0, i);
       l = DynamicStrings_Length (s);
       if (l < point)
-        s = DynamicStrings_ConCat (s, DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), (unsigned int ) point-l));
+        s = DynamicStrings_ConCat (s, DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), (unsigned int) point-l));
     }
   if (point >= 0)
     {
@@ -423,10 +423,10 @@ static DynamicStrings_String doSigFig (DynamicStrings_String s, unsigned int n)
 static DynamicStrings_String carryOne (DynamicStrings_String s, unsigned int i)
 {
   if (i >= 0)
-    if (IsDigit (DynamicStrings_char (s, (int ) i)))
+    if (IsDigit (DynamicStrings_char (s, (int) i)))
       {
         /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-        if ((DynamicStrings_char (s, (int ) i)) == '9')
+        if ((DynamicStrings_char (s, (int) i)) == '9')
           if (i == 0)
             {
               s = DynamicStrings_ConCat (DynamicStrings_InitStringChar ('1'), DynamicStrings_Mark (s));
@@ -434,14 +434,14 @@ static DynamicStrings_String carryOne (DynamicStrings_String s, unsigned int i)
             }
           else
             {
-              s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, (int ) i), '0'), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), (int ) i+1, 0)));
+              s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, (int) i), '0'), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), (int) i+1, 0)));
               return carryOne (s, i-1);
             }
         else
           if (i == 0)
-            s = DynamicStrings_ConCat (DynamicStrings_InitStringChar ((char) (((unsigned int) (DynamicStrings_char (s, (int ) i)))+1)), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), (int ) i+1, 0)));
+            s = DynamicStrings_ConCat (DynamicStrings_InitStringChar ((char) (((unsigned int) (DynamicStrings_char (s, (int) i)))+1)), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), (int) i+1, 0)));
           else
-            s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, (int ) i), (char) (((unsigned int) (DynamicStrings_char (s, (int ) i)))+1)), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), (int ) i+1, 0)));
+            s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, (int) i), (char) (((unsigned int) (DynamicStrings_char (s, (int) i)))+1)), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), (int) i+1, 0)));
       }
   return s;
 }
@@ -457,9 +457,9 @@ DynamicStrings_String StringConvert_IntegerToString (int i, unsigned int width, 
         {
           c = ((unsigned int ) (abs (i+1)))+1;
           if (width > 0)
-            return DynamicStrings_ConCat (StringConvert_IntegerToString (-((int ) (c / base)), width-1, padding, sign, base, lower), DynamicStrings_Mark (StringConvert_IntegerToString ((int ) c % base, 0, ' ', FALSE, base, lower)));
+            return DynamicStrings_ConCat (StringConvert_IntegerToString (-((int ) (c / base)), width-1, padding, sign, base, lower), DynamicStrings_Mark (StringConvert_IntegerToString ((int) c % base, 0, ' ', FALSE, base, lower)));
           else
-            return DynamicStrings_ConCat (StringConvert_IntegerToString (-((int ) (c / base)), 0, padding, sign, base, lower), DynamicStrings_Mark (StringConvert_IntegerToString ((int ) c % base, 0, ' ', FALSE, base, lower)));
+            return DynamicStrings_ConCat (StringConvert_IntegerToString (-((int ) (c / base)), 0, padding, sign, base, lower), DynamicStrings_Mark (StringConvert_IntegerToString ((int) c % base, 0, ' ', FALSE, base, lower)));
         }
       else
         s = DynamicStrings_InitString ((char *) "-", 1);
@@ -471,7 +471,7 @@ DynamicStrings_String StringConvert_IntegerToString (int i, unsigned int width, 
     else
       s = DynamicStrings_InitString ((char *) "", 0);
   if (i > (((int ) (base))-1))
-    s = DynamicStrings_ConCat (DynamicStrings_ConCat (s, DynamicStrings_Mark (StringConvert_IntegerToString ((int ) ((unsigned int ) (i)) / base, 0, ' ', FALSE, base, lower))), DynamicStrings_Mark (StringConvert_IntegerToString ((int ) ((unsigned int ) (i)) % base, 0, ' ', FALSE, base, lower)));
+    s = DynamicStrings_ConCat (DynamicStrings_ConCat (s, DynamicStrings_Mark (StringConvert_IntegerToString ((int) ((unsigned int ) (i)) / base, 0, ' ', FALSE, base, lower))), DynamicStrings_Mark (StringConvert_IntegerToString ((int) ((unsigned int ) (i)) % base, 0, ' ', FALSE, base, lower)));
   else
     if (i <= 9)
       s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_InitStringChar ((char) (((unsigned int ) (i))+((unsigned int) ('0'))))));
@@ -519,13 +519,13 @@ int StringConvert_StringToInteger (DynamicStrings_String s, unsigned int base, u
   negative = FALSE;
   if (n < l)
     {
-      while (((DynamicStrings_char (s, (int ) n)) == '-') || ((DynamicStrings_char (s, (int ) n)) == '+'))
+      while (((DynamicStrings_char (s, (int) n)) == '-') || ((DynamicStrings_char (s, (int) n)) == '+'))
         {
-          if ((DynamicStrings_char (s, (int ) n)) == '-')
+          if ((DynamicStrings_char (s, (int) n)) == '-')
             negative = ! negative;
           n += 1;
         }
-      while ((n < l) && ((IsDecimalDigitValid (DynamicStrings_char (s, (int ) n), base, &c)) || (IsHexidecimalDigitValid (DynamicStrings_char (s, (int ) n), base, &c))))
+      while ((n < l) && ((IsDecimalDigitValid (DynamicStrings_char (s, (int) n), base, &c)) || (IsHexidecimalDigitValid (DynamicStrings_char (s, (int) n), base, &c))))
         {
           (*found) = TRUE;
           n += 1;
@@ -535,7 +535,7 @@ int StringConvert_StringToInteger (DynamicStrings_String s, unsigned int base, u
   if (negative)
     return -((int ) (Min (((unsigned int ) (INT_MAX))+1, c)));
   else
-    return (int ) (Min ((unsigned int ) INT_MAX, c));
+    return (int ) (Min ((unsigned int) INT_MAX, c));
 }
 
 unsigned int StringConvert_StringToCardinal (DynamicStrings_String s, unsigned int base, unsigned int *found)
@@ -550,9 +550,9 @@ unsigned int StringConvert_StringToCardinal (DynamicStrings_String s, unsigned i
   n = 0;
   if (n < l)
     {
-      while ((DynamicStrings_char (s, (int ) n)) == '+')
+      while ((DynamicStrings_char (s, (int) n)) == '+')
         n += 1;
-      while ((n < l) && ((IsDecimalDigitValid (DynamicStrings_char (s, (int ) n), base, &c)) || (IsHexidecimalDigitValid (DynamicStrings_char (s, (int ) n), base, &c))))
+      while ((n < l) && ((IsDecimalDigitValid (DynamicStrings_char (s, (int) n), base, &c)) || (IsHexidecimalDigitValid (DynamicStrings_char (s, (int) n), base, &c))))
         {
           (*found) = TRUE;
           n += 1;
@@ -573,9 +573,9 @@ DynamicStrings_String StringConvert_LongIntegerToString (long int i, unsigned in
         {
           c = ((long unsigned int ) (labs (i+1)))+1;
           if (width > 0)
-            return DynamicStrings_ConCat (StringConvert_LongIntegerToString (-((long int ) (c / ((long unsigned int ) (base)))), width-1, padding, sign, base, lower), DynamicStrings_Mark (StringConvert_LongIntegerToString ((long int ) c % ((long unsigned int ) (base)), 0, ' ', FALSE, base, lower)));
+            return DynamicStrings_ConCat (StringConvert_LongIntegerToString (-((long int ) (c / ((long unsigned int ) (base)))), width-1, padding, sign, base, lower), DynamicStrings_Mark (StringConvert_LongIntegerToString ((long int) c % ((long unsigned int ) (base)), 0, ' ', FALSE, base, lower)));
           else
-            return DynamicStrings_ConCat (StringConvert_LongIntegerToString (-((long int ) (c / ((long unsigned int ) (base)))), 0, padding, sign, base, lower), DynamicStrings_Mark (StringConvert_LongIntegerToString ((long int ) c % ((long unsigned int ) (base)), 0, ' ', FALSE, base, lower)));
+            return DynamicStrings_ConCat (StringConvert_LongIntegerToString (-((long int ) (c / ((long unsigned int ) (base)))), 0, padding, sign, base, lower), DynamicStrings_Mark (StringConvert_LongIntegerToString ((long int) c % ((long unsigned int ) (base)), 0, ' ', FALSE, base, lower)));
         }
       else
         s = DynamicStrings_InitString ((char *) "-", 1);
@@ -615,13 +615,13 @@ long int StringConvert_StringToLongInteger (DynamicStrings_String s, unsigned in
   negative = FALSE;
   if (n < l)
     {
-      while (((DynamicStrings_char (s, (int ) n)) == '-') || ((DynamicStrings_char (s, (int ) n)) == '+'))
+      while (((DynamicStrings_char (s, (int) n)) == '-') || ((DynamicStrings_char (s, (int) n)) == '+'))
         {
-          if ((DynamicStrings_char (s, (int ) n)) == '-')
+          if ((DynamicStrings_char (s, (int) n)) == '-')
             negative = ! negative;
           n += 1;
         }
-      while ((n < l) && ((IsDecimalDigitValidLong (DynamicStrings_char (s, (int ) n), base, &c)) || (IsHexidecimalDigitValidLong (DynamicStrings_char (s, (int ) n), base, &c))))
+      while ((n < l) && ((IsDecimalDigitValidLong (DynamicStrings_char (s, (int) n), base, &c)) || (IsHexidecimalDigitValidLong (DynamicStrings_char (s, (int) n), base, &c))))
         {
           (*found) = TRUE;
           n += 1;
@@ -631,7 +631,7 @@ long int StringConvert_StringToLongInteger (DynamicStrings_String s, unsigned in
   if (negative)
     return -((long int ) (LongMin (((long unsigned int ) (LONG_MAX))+1, c)));
   else
-    return (long int ) (LongMin ((long unsigned int ) LONG_MAX, c));
+    return (long int ) (LongMin ((long unsigned int) LONG_MAX, c));
 }
 
 DynamicStrings_String StringConvert_LongCardinalToString (long unsigned int c, unsigned int width, char padding, unsigned int base, unsigned int lower)
@@ -666,9 +666,9 @@ long unsigned int StringConvert_StringToLongCardinal (DynamicStrings_String s, u
   n = 0;
   if (n < l)
     {
-      while ((DynamicStrings_char (s, (int ) n)) == '+')
+      while ((DynamicStrings_char (s, (int) n)) == '+')
         n += 1;
-      while ((n < l) && ((IsDecimalDigitValidLong (DynamicStrings_char (s, (int ) n), base, &c)) || (IsHexidecimalDigitValidLong (DynamicStrings_char (s, (int ) n), base, &c))))
+      while ((n < l) && ((IsDecimalDigitValidLong (DynamicStrings_char (s, (int) n), base, &c)) || (IsHexidecimalDigitValidLong (DynamicStrings_char (s, (int) n), base, &c))))
         {
           (*found) = TRUE;
           n += 1;
@@ -710,9 +710,9 @@ short unsigned int StringConvert_StringToShortCardinal (DynamicStrings_String s,
   n = 0;
   if (n < l)
     {
-      while ((DynamicStrings_char (s, (int ) n)) == '+')
+      while ((DynamicStrings_char (s, (int) n)) == '+')
         n += 1;
-      while ((n < l) && ((IsDecimalDigitValidShort (DynamicStrings_char (s, (int ) n), base, &c)) || (IsHexidecimalDigitValidShort (DynamicStrings_char (s, (int ) n), base, &c))))
+      while ((n < l) && ((IsDecimalDigitValidShort (DynamicStrings_char (s, (int) n), base, &c)) || (IsHexidecimalDigitValidShort (DynamicStrings_char (s, (int) n), base, &c))))
         {
           (*found) = TRUE;
           n += 1;
@@ -821,7 +821,7 @@ DynamicStrings_String StringConvert_LongrealToString (long double x, unsigned in
   l = DynamicStrings_Length (s);
   if (point > l)
     {
-      s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), (unsigned int ) point-l)));
+      s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), (unsigned int) point-l)));
       s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_InitString ((char *) ".0", 2)));
       if (! maxprecision && (FractionWidth > 0))
         {
@@ -832,11 +832,11 @@ DynamicStrings_String StringConvert_LongrealToString (long double x, unsigned in
     }
   else if (point < 0)
     {
-      s = DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), (unsigned int ) -point), DynamicStrings_Mark (s));
+      s = DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), (unsigned int) -point), DynamicStrings_Mark (s));
       l = DynamicStrings_Length (s);
       s = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "0.", 2), DynamicStrings_Mark (s));
       if (! maxprecision && (l < ((int ) (FractionWidth))))
-        s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) "0", 1)), (unsigned int ) ((int ) (FractionWidth))-l)));
+        s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) "0", 1)), (unsigned int) ((int ) (FractionWidth))-l)));
     }
   else
     {
@@ -845,7 +845,7 @@ DynamicStrings_String StringConvert_LongrealToString (long double x, unsigned in
       else
         s = DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, point), '.'), DynamicStrings_Mark (DynamicStrings_Slice (DynamicStrings_Mark (s), point, 0)));
       if (! maxprecision && ((l-point) < ((int ) (FractionWidth))))
-        s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) "0", 1)), (unsigned int ) ((int ) (FractionWidth))-(l-point))));
+        s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitString ((char *) "0", 1)), (unsigned int) ((int ) (FractionWidth))-(l-point))));
     }
   if ((DynamicStrings_Length (s)) > TotalWidth)
     {
@@ -853,12 +853,12 @@ DynamicStrings_String StringConvert_LongrealToString (long double x, unsigned in
       if (TotalWidth > 0)
         if (sign)
           {
-            s = DynamicStrings_Slice (DynamicStrings_Mark (StringConvert_ToDecimalPlaces (s, FractionWidth)), 0, (int ) TotalWidth-1);
+            s = DynamicStrings_Slice (DynamicStrings_Mark (StringConvert_ToDecimalPlaces (s, FractionWidth)), 0, (int) TotalWidth-1);
             s = DynamicStrings_ConCat (DynamicStrings_InitStringChar ('-'), DynamicStrings_Mark (s));
             sign = FALSE;
           }
         else
-          s = DynamicStrings_Slice (DynamicStrings_Mark (StringConvert_ToDecimalPlaces (s, FractionWidth)), 0, (int ) TotalWidth);
+          s = DynamicStrings_Slice (DynamicStrings_Mark (StringConvert_ToDecimalPlaces (s, FractionWidth)), 0, (int) TotalWidth);
       else
         if (sign)
           {

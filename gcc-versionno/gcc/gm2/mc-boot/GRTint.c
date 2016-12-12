@@ -17,7 +17,7 @@
 #include <stddef.h>
 #include <limits.h>
 #   include "GStorage.h"
-#include "Gmcrts.h"
+#   include "Gmcrts.h"
 #define _RTint_H
 #define _RTint_C
 
@@ -461,7 +461,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
       t = NULL;
       i = NULL;
       o = NULL;
-      t = Selective_InitTime ((unsigned int ) INT_MAX, 0);
+      t = Selective_InitTime ((unsigned int) INT_MAX, 0);
       p = 7;
       found = FALSE;
       while (p > pri)

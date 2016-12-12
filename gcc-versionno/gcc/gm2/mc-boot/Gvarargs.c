@@ -136,7 +136,7 @@ void varargs_end (varargs_vararg *v)
 {
   if ((*v) != NULL)
     {
-      Storage_DEALLOCATE (&(*v)->contents, (unsigned int ) sizeof (varargs_vararg));
+      Storage_DEALLOCATE (&(*v)->contents, (unsigned int) sizeof (varargs_vararg));
       Storage_DEALLOCATE ((void **) &(*v), sizeof (_T1));
     }
 }

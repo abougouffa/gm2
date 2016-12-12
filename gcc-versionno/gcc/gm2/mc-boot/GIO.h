@@ -4,6 +4,9 @@
 #if !defined (_IO_H)
 #   define _IO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -14,11 +17,7 @@
 #   if defined (_IO_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 EXTERN void IO_Read (char *ch);
@@ -28,6 +27,9 @@ EXTERN void IO_UnBufferedMode (int fd, unsigned int input);
 EXTERN void IO_BufferedMode (int fd, unsigned int input);
 EXTERN void IO_EchoOn (int fd, unsigned int input);
 EXTERN void IO_EchoOff (int fd, unsigned int input);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

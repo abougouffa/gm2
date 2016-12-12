@@ -4,6 +4,9 @@
 #if !defined (_symbolKey_H)
 #   define _symbolKey_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -17,11 +20,7 @@
 #   if defined (_symbolKey_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 #   define symbolKey_NulKey NULL
@@ -48,6 +47,9 @@ EXTERN void symbolKey_delSymKey (symbolKey_symbolTree t, nameKey_Name name);
 EXTERN unsigned int symbolKey_isEmptyTree (symbolKey_symbolTree t);
 EXTERN unsigned int symbolKey_doesTreeContainAny (symbolKey_symbolTree t, symbolKey_isSymbol p);
 EXTERN void symbolKey_foreachNodeDo (symbolKey_symbolTree t, symbolKey_performOperation p);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

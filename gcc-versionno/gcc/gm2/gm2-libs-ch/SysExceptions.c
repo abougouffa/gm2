@@ -236,10 +236,16 @@ void SysExceptions_InitExceptionHandlers (void *indexf,
  *  GNU Modula-2 linking fodder.
  */
 
+#ifdef __cplusplus
+extern "C"
+#endif
 void _M2_SysExceptions_init (void)
 {
 }
 
+#ifdef __cplusplus
+extern "C"
+#endif
 void _M2_SysExceptions_finish (void)
 {
 }

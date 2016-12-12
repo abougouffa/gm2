@@ -4,6 +4,9 @@
 #if !defined (_Indexing_H)
 #   define _Indexing_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -15,11 +18,7 @@
 #   if defined (_Indexing_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 #if !defined (Indexing_Index_D)
@@ -45,6 +44,9 @@ EXTERN void Indexing_RemoveIndiceFromIndex (Indexing_Index i, void * a);
 EXTERN void Indexing_DeleteIndice (Indexing_Index i, unsigned int j);
 EXTERN void Indexing_IncludeIndiceIntoIndex (Indexing_Index i, void * a);
 EXTERN void Indexing_ForeachIndiceInIndexDo (Indexing_Index i, Indexing_IndexProcedure p);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

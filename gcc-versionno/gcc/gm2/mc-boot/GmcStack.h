@@ -4,6 +4,9 @@
 #if !defined (_mcStack_H)
 #   define _mcStack_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -15,11 +18,7 @@
 #   if defined (_mcStack_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 #if !defined (mcStack_stack_D)
@@ -34,6 +33,9 @@ EXTERN void * mcStack_pop (mcStack_stack s);
 EXTERN void * mcStack_replace (mcStack_stack s, void * a);
 EXTERN unsigned int mcStack_depth (mcStack_stack s);
 EXTERN void * mcStack_access (mcStack_stack s, unsigned int i);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

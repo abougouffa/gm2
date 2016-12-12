@@ -35,8 +35,8 @@ DynamicStrings_String mcFileName_calculateStemName (DynamicStrings_String module
 
 DynamicStrings_String mcFileName_extractExtension (DynamicStrings_String filename, DynamicStrings_String ext)
 {
-  if (DynamicStrings_Equal (ext, DynamicStrings_Mark (DynamicStrings_Slice (filename, (int ) -(DynamicStrings_Length (ext)), 0))))
-    return DynamicStrings_Slice (filename, 0, (int ) -(DynamicStrings_Length (ext)));
+  if (DynamicStrings_Equal (ext, DynamicStrings_Mark (DynamicStrings_Slice (filename, (int) -(DynamicStrings_Length (ext)), 0))))
+    return DynamicStrings_Slice (filename, 0, (int) -(DynamicStrings_Length (ext)));
   else
     return filename;
 }

@@ -4,6 +4,9 @@
 #if !defined (_Selective_H)
 #   define _Selective_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -15,11 +18,7 @@
 #   if defined (_Selective_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 typedef void *Selective_SetOfFd;
@@ -41,6 +40,9 @@ EXTERN int Selective_MaxFdsPlusOne (int a, int b);
 EXTERN void Selective_WriteCharRaw (int fd, char ch);
 EXTERN char Selective_ReadCharRaw (int fd);
 EXTERN int Selective_GetTimeOfDay (Selective_Timeval tv);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

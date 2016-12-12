@@ -4,6 +4,9 @@
 #if !defined (_Args_H)
 #   define _Args_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -14,15 +17,14 @@
 #   if defined (_Args_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 EXTERN unsigned int Args_GetArg (char *a, unsigned int _a_high, unsigned int i);
 EXTERN unsigned int Args_Narg (void);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

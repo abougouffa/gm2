@@ -18,7 +18,7 @@
 #include <string.h>
 #include <limits.h>
 #   include "GStorage.h"
-#include "Gmcrts.h"
+#   include "Gmcrts.h"
 typedef unsigned int nameKey_Name;
 
 #   define nameKey_NulName 0
@@ -1712,6 +1712,7 @@ static void doRecordNameC (mcPretty_pretty p, decl_node n);
 static void doPointerNameC (mcPretty_pretty p, decl_node n);
 static void doTypeNameC (mcPretty_pretty p, decl_node n);
 static void doVarC (decl_node n);
+static void doExternCP (mcPretty_pretty p);
 static void doProcedureHeadingC (decl_node n);
 static unsigned int checkDeclareUnboundedParamCopyC (mcPretty_pretty p, decl_node n);
 static void checkUnboundedParamCopyC (mcPretty_pretty p, decl_node n);
@@ -4897,7 +4898,7 @@ static DynamicStrings_String doEscapeC (DynamicStrings_String s, char ch)
   h = DynamicStrings_Length (s);
   l = 0;
   r = DynamicStrings_InitString ((char *) "", 0);
-  i = DynamicStrings_Index (s, ch, (unsigned int ) l);
+  i = DynamicStrings_Index (s, ch, (unsigned int) l);
   for (;;)
   {
     if (i == -1)
@@ -4928,7 +4929,7 @@ static DynamicStrings_String doEscapeC (DynamicStrings_String s, char ch)
             l += 1;
           }
       }
-    i = DynamicStrings_Index (s, ch, (unsigned int ) l);
+    i = DynamicStrings_Index (s, ch, (unsigned int) l);
   }
   ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
 }
@@ -4949,7 +4950,7 @@ static DynamicStrings_String replaceChar (DynamicStrings_String s, char ch, char
   i = 0;
   for (;;)
   {
-    i = DynamicStrings_Index (s, ch, (unsigned int ) i);
+    i = DynamicStrings_Index (s, ch, (unsigned int) i);
     if (i >= 0)
       {
         s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, 0, i), DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high))), DynamicStrings_Slice (s, i+1, 0));
@@ -4986,7 +4987,7 @@ static unsigned int countChar (DynamicStrings_String s, char ch)
   i = 0;
   for (;;)
   {
-    i = DynamicStrings_Index (s, ch, (unsigned int ) i);
+    i = DynamicStrings_Index (s, ch, (unsigned int) i);
     if (i >= 0)
       {
         i += 1;
@@ -6299,6 +6300,15 @@ static void doVarC (decl_node n)
   mcPretty_print (doP, (char *) ";\\n", 3);
 }
 
+static void doExternCP (mcPretty_pretty p)
+{
+  if (lang == ansiCP)
+    {
+      outText (p, (char *) "extern \"C\"", 10);
+      mcPretty_setNeedSpace (p);
+    }
+}
+
 static void doProcedureHeadingC (decl_node n)
 {
   unsigned int i;
@@ -6313,7 +6323,9 @@ static void doProcedureHeadingC (decl_node n)
       outText (doP, (char *) "EXTERN", 6);
       mcPretty_setNeedSpace (doP);
     }
-  else if (! (decl_isExported (n)))
+  else if (decl_isExported (n))
+    doExternCP (doP);
+  else
     {
       outText (doP, (char *) "static", 6);
       mcPretty_setNeedSpace (doP);
@@ -6857,6 +6869,7 @@ static void doExprCastC (mcPretty_pretty p, decl_node e, decl_node type)
           {
             outText (p, (char *) "reinterpret_cast<", 17);
             doTypeNameC (p, type);
+            mcPretty_noSpace (p);
             outText (p, (char *) "> (", 3);
             doExprC (p, e);
             outText (p, (char *) ")", 1);
@@ -6866,6 +6879,7 @@ static void doExprCastC (mcPretty_pretty p, decl_node e, decl_node type)
           {
             outText (p, (char *) "static_cast<", 12);
             doTypeNameC (p, type);
+            mcPretty_noSpace (p);
             outText (p, (char *) "> (", 3);
             doExprC (p, e);
             outText (p, (char *) ")", 1);
@@ -7042,6 +7056,7 @@ static void doForIncCP (mcPretty_pretty p, decl_node s)
         doExprC (p, s->forF.des);
         outText (p, (char *) "= static_cast<", 14);
         doTypeNameC (p, decl_getType (s->forF.des));
+        mcPretty_noSpace (p);
         outText (p, (char *) ">(static_cast<int>(", 19);
         doExprC (p, s->forF.des);
         outText (p, (char *) "+1))", 4);
@@ -7051,6 +7066,7 @@ static void doForIncCP (mcPretty_pretty p, decl_node s)
         doExprC (p, s->forF.des);
         outText (p, (char *) "= static_cast<", 14);
         doTypeNameC (p, decl_getType (s->forF.des));
+        mcPretty_noSpace (p);
         outText (p, (char *) ">(static_cast<int>(", 19);
         doExprC (p, s->forF.des);
         outText (p, (char *) "+", 1);
@@ -7314,6 +7330,7 @@ static unsigned int checkSystemCast (mcPretty_pretty p, decl_node actual, decl_n
               doTypeNameC (p, ft);
               if (decl_isVarParam (formal))
                 outText (p, (char *) "*", 1);
+              mcPretty_noSpace (p);
               outText (p, (char *) "> (", 3);
             }
           else
@@ -7322,6 +7339,7 @@ static unsigned int checkSystemCast (mcPretty_pretty p, decl_node actual, decl_n
               doTypeNameC (p, ft);
               if (decl_isVarParam (formal))
                 outText (p, (char *) "*", 1);
+              mcPretty_noSpace (p);
               outText (p, (char *) "> (", 3);
             }
           return 1;
@@ -7332,6 +7350,7 @@ static unsigned int checkSystemCast (mcPretty_pretty p, decl_node actual, decl_n
           doTypeNameC (p, ft);
           if (decl_isVarParam (formal))
             outText (p, (char *) "*", 1);
+          mcPretty_noSpace (p);
           outText (p, (char *) ")", 1);
           mcPretty_setNeedSpace (p);
         }
@@ -7594,8 +7613,10 @@ static void doIncDecCP (mcPretty_pretty p, decl_node n, char *op_, unsigned int 
           mcPretty_setNeedSpace (p);
           outText (p, (char *) "reinterpret_cast<", 17);
           doTypeNameC (p, type);
+          mcPretty_noSpace (p);
           outText (p, (char *) "> (reinterpret_cast<char *> (", 29);
           doExprC (p, getExpList (n->funccallF.args, 1));
+          mcPretty_noSpace (p);
           outText (p, (char *) ")", 1);
           outText (p, (char *) op, _op_high);
           if ((expListLen (n->funccallF.args)) == 1)
@@ -10594,6 +10615,7 @@ static void topologicallyOut (nodeProcedure c, nodeProcedure t, nodeProcedure v,
 static void outImpInitC (mcPretty_pretty p, decl_node n)
 {
   outText (p, (char *) "\\n", 2);
+  doExternCP (p);
   outText (p, (char *) "void", 4);
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "_M2_", 4);
@@ -10605,6 +10627,7 @@ static void outImpInitC (mcPretty_pretty p, decl_node n)
   doStatementsC (p, n->impF.beginStatements);
   p = outKc (p, (char *) "}\\n", 3);
   outText (p, (char *) "\\n", 2);
+  doExternCP (p);
   outText (p, (char *) "void", 4);
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "_M2_", 4);
@@ -10644,6 +10667,9 @@ static void outDefC (mcPretty_pretty p, decl_node n)
   mcPretty_print (p, (char *) "#   define _", 12);
   mcPretty_prints (p, s);
   mcPretty_print (p, (char *) "_H\\n\\n", 6);
+  mcPretty_print (p, (char *) "#ifdef __cplusplus\\n", 20);
+  mcPretty_print (p, (char *) "extern \"C\" {\\n", 14);
+  mcPretty_print (p, (char *) "#endif\\n", 8);
   outputFile = mcStream_openFrag (3);
   doP = p;
   Indexing_ForeachIndiceInIndexDo (n->defF.importedModules, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) doIncludeC});
@@ -10653,14 +10679,13 @@ static void outDefC (mcPretty_pretty p, decl_node n)
   mcPretty_print (p, (char *) "_C)\\n", 5);
   mcPretty_print (p, (char *) "#      define EXTERN\\n", 22);
   mcPretty_print (p, (char *) "#   else\\n", 10);
-  mcPretty_print (p, (char *) "#      if defined(__GNUG__)\\n", 29);
-  mcPretty_print (p, (char *) "#         define EXTERN extern \"C\"\\n", 36);
-  mcPretty_print (p, (char *) "#      else\\n", 13);
-  mcPretty_print (p, (char *) "#         define EXTERN extern\\n", 32);
-  mcPretty_print (p, (char *) "#      endif\\n", 14);
+  mcPretty_print (p, (char *) "#      define EXTERN extern\\n", 29);
   mcPretty_print (p, (char *) "#   endif\\n\\n", 13);
   outDeclsDefC (p, n);
   runPrototypeDefC (n);
+  mcPretty_print (p, (char *) "#ifdef __cplusplus\\n", 20);
+  mcPretty_print (p, (char *) "}\\n", 3);
+  mcPretty_print (p, (char *) "#endif\\n", 8);
   mcPretty_print (p, (char *) "\\n", 2);
   mcPretty_print (p, (char *) "#   undef EXTERN\\n", 18);
   mcPretty_print (p, (char *) "#endif\\n", 8);
@@ -10750,6 +10775,7 @@ static void outDeclsModuleC (mcPretty_pretty p, scopeT s)
 static void outModuleInitC (mcPretty_pretty p, decl_node n)
 {
   outText (p, (char *) "\\n", 2);
+  doExternCP (p);
   outText (p, (char *) "void", 4);
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "_M2_", 4);
@@ -10761,6 +10787,7 @@ static void outModuleInitC (mcPretty_pretty p, decl_node n)
   doStatementsC (p, n->moduleF.beginStatements);
   p = outKc (p, (char *) "}\\n", 3);
   outText (p, (char *) "\\n", 2);
+  doExternCP (p);
   outText (p, (char *) "void", 4);
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "_M2_", 4);
@@ -13870,11 +13897,11 @@ decl_node decl_makeIdentList (void)
 unsigned int decl_putIdent (decl_node n, nameKey_Name i)
 {
   mcDebug_assert (isIdentList (n));
-  if (wlists_isItemInList (n->identlistF.names, (unsigned int ) i))
+  if (wlists_isItemInList (n->identlistF.names, (unsigned int) i))
     return FALSE;
   else
     {
-      wlists_putItemIntoList (n->identlistF.names, (unsigned int ) i);
+      wlists_putItemIntoList (n->identlistF.names, (unsigned int) i);
       return TRUE;
     }
 }

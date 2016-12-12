@@ -4,6 +4,9 @@
 #if !defined (_FIO_H)
 #   define _FIO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -15,11 +18,7 @@
 #   if defined (_FIO_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 typedef unsigned int FIO_File;
@@ -62,6 +61,9 @@ EXTERN void FIO_GetFileName (FIO_File f, char *a, unsigned int _a_high);
 EXTERN void * FIO_getFileName (FIO_File f);
 EXTERN unsigned int FIO_getFileNameLength (FIO_File f);
 EXTERN void FIO_FlushOutErr (void);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

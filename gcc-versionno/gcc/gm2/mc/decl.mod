@@ -7717,6 +7717,19 @@ END doVarC ;
 
 
 (*
+   doExternCP -
+*)
+
+PROCEDURE doExternCP (p: pretty) ;
+BEGIN
+   IF lang = ansiCP
+   THEN
+      outText (p, 'extern "C"') ; setNeedSpace (p)
+   END
+END doExternCP ;
+
+
+(*
    doProcedureHeadingC -
 *)
 
@@ -7730,8 +7743,10 @@ BEGIN
    IF isDef (getMainModule ())
    THEN
       outText (doP, "EXTERN") ; setNeedSpace (doP)
-   ELSIF NOT isExported (n)
+   ELSIF isExported (n)
    THEN
+      doExternCP (doP)
+   ELSE
       outText (doP, "static") ; setNeedSpace (doP)
    END ;
    q := NIL ;
@@ -12785,6 +12800,7 @@ END topologicallyOut ;
 PROCEDURE outImpInitC (p: pretty; n: node) ;
 BEGIN
    outText (p, "\n") ;
+   doExternCP (p) ;
    outText (p, "void") ;
    setNeedSpace (p) ;
    outText (p, "_M2_") ;
@@ -12796,6 +12812,7 @@ BEGIN
    doStatementsC (p, n^.impF.beginStatements) ;
    p := outKc (p, "}\n") ;
    outText (p, "\n") ;
+   doExternCP (p) ;
    outText (p, "void") ;
    setNeedSpace (p) ;
    outText (p, "_M2_") ;
@@ -12844,6 +12861,10 @@ BEGIN
    print (p, "\n#if !defined (_") ; prints (p, s) ; print (p, "_H)\n") ;
    print (p, "#   define _") ; prints (p, s) ; print (p, "_H\n\n") ;
 
+   print (p, "#ifdef __cplusplus\n") ;
+   print (p, 'extern "C" {\n') ;
+   print (p, "#endif\n") ;
+
    outputFile := mcStream.openFrag (3) ;  (* third fragment.  *)
 
    doP := p ;
@@ -12853,15 +12874,15 @@ BEGIN
    print (p, "#   if defined (_") ; prints (p, s) ; print (p, "_C)\n") ;
    print (p, "#      define EXTERN\n") ;
    print (p, "#   else\n") ;
-   print (p, "#      if defined(__GNUG__)\n") ;
-   print (p, '#         define EXTERN extern "C"\n') ;
-   print (p, "#      else\n") ;
-   print (p, '#         define EXTERN extern\n') ;
-   print (p, "#      endif\n") ;
+   print (p, '#      define EXTERN extern\n') ;
    print (p, "#   endif\n\n") ;
 
    outDeclsDefC (p, n) ;
    runPrototypeDefC (n) ;
+
+   print (p, "#ifdef __cplusplus\n") ;
+   print (p, "}\n") ;
+   print (p, "#endif\n") ;
 
    print (p, "\n") ;
    print (p, "#   undef EXTERN\n") ;
@@ -12995,6 +13016,7 @@ END outDeclsModuleC ;
 PROCEDURE outModuleInitC (p: pretty; n: node) ;
 BEGIN
    outText (p, "\n") ;
+   doExternCP (p) ;
    outText (p, "void") ;
    setNeedSpace (p) ;
    outText (p, "_M2_") ;
@@ -13006,6 +13028,7 @@ BEGIN
    doStatementsC (p, n^.moduleF.beginStatements) ;
    p := outKc (p, "}\n") ;
    outText (p, "\n") ;
+   doExternCP (p) ;
    outText (p, "void") ;
    setNeedSpace (p) ;
    outText (p, "_M2_") ;

@@ -4,6 +4,9 @@
 #if !defined (_RTExceptions_H)
 #   define _RTExceptions_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -15,11 +18,7 @@
 #   if defined (_RTExceptions_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 #if !defined (RTExceptions_EHBlock_D)
@@ -50,6 +49,9 @@ EXTERN void RTExceptions_SwitchExceptionState (unsigned int *from, unsigned int 
 EXTERN RTExceptions_EHBlock RTExceptions_GetBaseExceptionBlock (void);
 EXTERN void RTExceptions_SetExceptionSource (void * source);
 EXTERN void * RTExceptions_GetExceptionSource (void);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

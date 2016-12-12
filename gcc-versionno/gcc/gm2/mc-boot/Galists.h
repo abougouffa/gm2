@@ -4,6 +4,9 @@
 #if !defined (_alists_H)
 #   define _alists_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -15,11 +18,7 @@
 #   if defined (_alists_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 #if !defined (alists_alist_D)
@@ -43,6 +42,9 @@ EXTERN void alists_removeItemFromList (alists_alist l, void * c);
 EXTERN unsigned int alists_isItemInList (alists_alist l, void * c);
 EXTERN void alists_foreachItemInListDo (alists_alist l, alists_performOperation p);
 EXTERN alists_alist alists_duplicateList (alists_alist l);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

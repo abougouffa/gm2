@@ -4,6 +4,9 @@
 #if !defined (_Break_H)
 #   define _Break_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -14,13 +17,12 @@
 #   if defined (_Break_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

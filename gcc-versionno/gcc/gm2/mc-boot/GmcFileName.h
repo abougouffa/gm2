@@ -4,6 +4,9 @@
 #if !defined (_mcFileName_H)
 #   define _mcFileName_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -15,17 +18,16 @@
 #   if defined (_mcFileName_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 EXTERN DynamicStrings_String mcFileName_calculateFileName (DynamicStrings_String module, DynamicStrings_String extension);
 EXTERN DynamicStrings_String mcFileName_calculateStemName (DynamicStrings_String module);
 EXTERN DynamicStrings_String mcFileName_extractExtension (DynamicStrings_String filename, DynamicStrings_String ext);
 EXTERN DynamicStrings_String mcFileName_extractModule (DynamicStrings_String filename);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

@@ -4,6 +4,9 @@
 #if !defined (_mcError_H)
 #   define _mcError_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -16,11 +19,7 @@
 #   if defined (_mcError_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 #if !defined (mcError_error_D)
@@ -52,6 +51,9 @@ EXTERN void mcError_warnFormat1 (char *a_, unsigned int _a_high, unsigned char *
 EXTERN void mcError_flushErrors (void);
 EXTERN void mcError_flushWarnings (void);
 EXTERN void mcError_errorAbort0 (char *a_, unsigned int _a_high);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

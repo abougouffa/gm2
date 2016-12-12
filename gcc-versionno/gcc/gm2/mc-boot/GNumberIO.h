@@ -4,6 +4,9 @@
 #if !defined (_NumberIO_H)
 #   define _NumberIO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -14,11 +17,7 @@
 #   if defined (_NumberIO_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 EXTERN void NumberIO_ReadCard (unsigned int *x);
@@ -44,6 +43,9 @@ EXTERN void NumberIO_StrToBin (char *a_, unsigned int _a_high, unsigned int *x);
 EXTERN void NumberIO_StrToBinInt (char *a_, unsigned int _a_high, int *x);
 EXTERN void NumberIO_StrToHexInt (char *a_, unsigned int _a_high, int *x);
 EXTERN void NumberIO_StrToOctInt (char *a_, unsigned int _a_high, int *x);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

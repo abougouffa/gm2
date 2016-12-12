@@ -4,6 +4,9 @@
 #if !defined (_SysStorage_H)
 #   define _SysStorage_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -15,11 +18,7 @@
 #   if defined (_SysStorage_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 EXTERN void SysStorage_ALLOCATE (void * *a, unsigned int Size);
@@ -27,6 +26,9 @@ EXTERN void SysStorage_DEALLOCATE (void * *a, unsigned int Size);
 EXTERN void SysStorage_REALLOCATE (void * *a, unsigned int Size);
 EXTERN unsigned int SysStorage_Available (unsigned int Size);
 EXTERN void SysStorage_Init (void);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

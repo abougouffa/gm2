@@ -14,7 +14,7 @@
 #include <string.h>
 #include <limits.h>
 #   include "GStorage.h"
-#include "Gmcrts.h"
+#   include "Gmcrts.h"
 #define _RTExceptions_H
 #define _RTExceptions_C
 
@@ -126,7 +126,7 @@ static void ErrorString (char *a_, unsigned int _a_high)
   /* make a local copy of each unbounded array.  */
   memcpy (a, a_, _a_high+1);
 
-  n = libc_write (2, &a, (int ) StrLib_StrLen ((char *) a, _a_high));
+  n = libc_write (2, &a, (int) StrLib_StrLen ((char *) a, _a_high));
 }
 
 static Handler findHandler (RTExceptions_EHBlock e, unsigned int number)

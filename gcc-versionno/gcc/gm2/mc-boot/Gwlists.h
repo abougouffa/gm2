@@ -4,6 +4,9 @@
 #if !defined (_wlists_H)
 #   define _wlists_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -15,11 +18,7 @@
 #   if defined (_wlists_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 #if !defined (wlists_wlist_D)
@@ -44,6 +43,9 @@ EXTERN void wlists_replaceItemInList (wlists_wlist l, unsigned int n, unsigned i
 EXTERN unsigned int wlists_isItemInList (wlists_wlist l, unsigned int c);
 EXTERN void wlists_foreachItemInListDo (wlists_wlist l, wlists_performOperation p);
 EXTERN wlists_wlist wlists_duplicateList (wlists_wlist l);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

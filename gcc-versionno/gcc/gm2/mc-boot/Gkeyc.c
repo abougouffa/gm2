@@ -18,7 +18,7 @@
 #include <string.h>
 #include <limits.h>
 #   include "GStorage.h"
-#include "Gmcrts.h"
+#   include "Gmcrts.h"
 #define _keyc_H
 #define _keyc_C
 
@@ -202,7 +202,7 @@ static void checkMemcpy (mcPretty_pretty p)
 static void checkException (mcPretty_pretty p)
 {
   if (seenException)
-    mcPretty_print (p, (char *) "#include \"Gmcrts.h\"\\n", 21);
+    mcPretty_print (p, (char *) "#   include \"Gmcrts.h\"\\n", 24);
 }
 
 static scope new (decl_node n)

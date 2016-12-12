@@ -4,6 +4,9 @@
 #if !defined (_keyc_H)
 #   define _keyc_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -18,11 +21,7 @@
 #   if defined (_keyc_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 EXTERN void keyc_useStorage (void);
@@ -56,6 +55,9 @@ EXTERN void keyc_leaveScope (decl_node n);
 EXTERN DynamicStrings_String keyc_cname (nameKey_Name n, unsigned int scopes);
 EXTERN nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes);
 EXTERN void keyc_cp (void);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif

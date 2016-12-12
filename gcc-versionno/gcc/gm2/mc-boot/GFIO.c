@@ -18,7 +18,7 @@
 #include <string.h>
 #include <limits.h>
 #   include "GStorage.h"
-#include "Gmcrts.h"
+#   include "Gmcrts.h"
 #define _FIO_H
 #define _FIO_C
 
@@ -173,14 +173,14 @@ static FIO_File GetNextFreeDescriptor (void)
   {
     if (f <= h)
       {
-        fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+        fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
         if (fd == NULL)
           return f;
       }
     f += 1;
     if (f > h)
       {
-        Indexing_PutIndice (FileInfo, (unsigned int ) f, NULL);
+        Indexing_PutIndice (FileInfo, (unsigned int) f, NULL);
         return f;
       }
   }
@@ -191,7 +191,7 @@ static void SetState (FIO_File f, FileStatus s)
 {
   FileDescriptor fd;
 
-  fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+  fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
   fd->state = s;
 }
 
@@ -208,7 +208,7 @@ static FIO_File InitializeFile (FIO_File f, void * fname, unsigned int flength, 
     }
   else
     {
-      Indexing_PutIndice (FileInfo, (unsigned int ) f, (void *) fd);
+      Indexing_PutIndice (FileInfo, (unsigned int) f, (void *) fd);
       fd->name.size = flength+1;
       fd->usage = use;
       fd->output = towrite;
@@ -264,7 +264,7 @@ static void ConnectToUnix (FIO_File f, unsigned int towrite, unsigned int newfil
 
   if (f != Error)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
         {
           if (towrite)
@@ -292,7 +292,7 @@ static int ReadFromBuffer (FIO_File f, void * a, unsigned int nBytes)
   if (f != Error)
     {
       total = 0;
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if ((fd->buffer != NULL) && fd->buffer->valid)
         if (fd->buffer->left > 0)
           {
@@ -364,7 +364,7 @@ static int BufferedRead (FIO_File f, unsigned int nBytes, void * a)
 
   if (f != Error)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       total = 0;
       if (fd != NULL)
         if (fd->buffer != NULL)
@@ -385,7 +385,7 @@ static int BufferedRead (FIO_File f, unsigned int nBytes, void * a)
                     n = Min (fd->buffer->left, nBytes);
                     t = fd->buffer->address;
                     t += fd->buffer->position;
-                    p = libc_memcpy (a, t, (unsigned int ) n);
+                    p = libc_memcpy (a, t, (unsigned int) n);
                     fd->buffer->left -= n;
                     fd->buffer->position += n;
                     a += n;
@@ -394,7 +394,7 @@ static int BufferedRead (FIO_File f, unsigned int nBytes, void * a)
                   }
               else
                 {
-                  n = libc_read (fd->unixfd, fd->buffer->address, (int ) fd->buffer->size);
+                  n = libc_read (fd->unixfd, fd->buffer->address, (int) fd->buffer->size);
                   if (n >= 0)
                     {
                       fd->buffer->valid = TRUE;
@@ -605,7 +605,7 @@ static void CheckAccess (FIO_File f, FileUsage use, unsigned int towrite)
 
   if (f != Error)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd == NULL)
         {
           if (f != FIO_StdErr)
@@ -654,7 +654,7 @@ static void SetEndOfLine (FIO_File f, char ch)
   CheckAccess (f, (FileUsage) openedforread, FALSE);
   if (f != Error)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (ch == ASCII_nl)
         fd->state = endofline;
       else
@@ -673,7 +673,7 @@ static int BufferedWrite (FIO_File f, unsigned int nBytes, void * a)
 
   if (f != Error)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
         {
           total = 0;
@@ -726,10 +726,10 @@ static void PreInitialize (FIO_File f, char *fname_, unsigned int _fname_high, F
 
   if ((InitializeFile (f, &fname, StrLib_StrLen ((char *) fname, _fname_high), state, use, towrite, bufsize)) == f)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (f == Error)
         {
-          fe = Indexing_GetIndice (FileInfo, (unsigned int ) FIO_StdErr);
+          fe = Indexing_GetIndice (FileInfo, (unsigned int) FIO_StdErr);
           if (fe == NULL)
             M2RTS_HALT (0);
           else
@@ -765,7 +765,7 @@ unsigned int FIO_IsNoError (FIO_File f)
     return FALSE;
   else
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       return (fd != NULL) && (((fd->state == successful) || (fd->state == endoffile)) || (fd->state == endofline));
     }
 }
@@ -775,7 +775,7 @@ unsigned int FIO_IsActive (FIO_File f)
   if (f == Error)
     return FALSE;
   else
-    return (Indexing_GetIndice (FileInfo, (unsigned int ) f)) != NULL;
+    return (Indexing_GetIndice (FileInfo, (unsigned int) f)) != NULL;
 }
 
 unsigned int FIO_Exists (char *fname_, unsigned int _fname_high)
@@ -824,7 +824,7 @@ void FIO_Close (FIO_File f)
 
   if (f != Error)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
         {
           FIO_FlushBuffer (f);
@@ -844,7 +844,7 @@ void FIO_Close (FIO_File f)
               fd->buffer = NULL;
             }
           Storage_DEALLOCATE ((void **) &fd, sizeof (fds));
-          Indexing_PutIndice (FileInfo, (unsigned int ) f, NULL);
+          Indexing_PutIndice (FileInfo, (unsigned int) f, NULL);
         }
     }
 }
@@ -917,10 +917,10 @@ void FIO_FlushBuffer (FIO_File f)
 
   if (f != Error)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
         if (fd->output && (fd->buffer != NULL))
-          if ((fd->buffer->position == 0) || ((libc_write (fd->unixfd, fd->buffer->address, (int ) fd->buffer->position)) == ((int ) (fd->buffer->position))))
+          if ((fd->buffer->position == 0) || ((libc_write (fd->unixfd, fd->buffer->address, (int) fd->buffer->position)) == ((int ) (fd->buffer->position))))
             {
               fd->abspos += fd->buffer->position;
               fd->buffer->bufstart = fd->abspos;
@@ -960,7 +960,7 @@ void FIO_ReadAny (FIO_File f, unsigned char *a, unsigned int _a_high)
 {
   CheckAccess (f, (FileUsage) openedforread, FALSE);
   if ((BufferedRead (f, _a_high, a)) == (_a_high))
-    SetEndOfLine (f, (char ) a[_a_high]);
+    SetEndOfLine (f, (char) a[_a_high]);
 }
 
 unsigned int FIO_WriteNBytes (FIO_File f, unsigned int nBytes, void * a)
@@ -972,7 +972,7 @@ unsigned int FIO_WriteNBytes (FIO_File f, unsigned int nBytes, void * a)
   FIO_FlushBuffer (f);
   if (f != Error)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
         {
           total = libc_write (fd->unixfd, a, (int ) (nBytes));
@@ -1003,7 +1003,7 @@ void FIO_WriteAny (FIO_File f, unsigned char *a, unsigned int _a_high)
 void FIO_WriteChar (FIO_File f, char ch)
 {
   CheckAccess (f, (FileUsage) openedforwrite, TRUE);
-  if ((BufferedWrite (f, (unsigned int ) sizeof (ch), &ch)) == (sizeof (ch)))
+  if ((BufferedWrite (f, (unsigned int) sizeof (ch), &ch)) == (sizeof (ch)))
     {}  /* empty.  */
 }
 
@@ -1014,7 +1014,7 @@ unsigned int FIO_EOF (FIO_File f)
   CheckAccess (f, (FileUsage) openedforread, FALSE);
   if (f != Error)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
         return fd->state == endoffile;
     }
@@ -1029,7 +1029,7 @@ unsigned int FIO_EOLN (FIO_File f)
   CheckAccess (f, (FileUsage) openedforread, FALSE);
   if (f != Error)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
         if ((fd->state == successful) || (fd->state == endofline))
           {
@@ -1051,7 +1051,7 @@ unsigned int FIO_WasEOLN (FIO_File f)
     return FALSE;
   else
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       return (fd != NULL) && (fd->state == endofline);
     }
 }
@@ -1061,7 +1061,7 @@ char FIO_ReadChar (FIO_File f)
   char ch;
 
   CheckAccess (f, (FileUsage) openedforread, FALSE);
-  if ((BufferedRead (f, (unsigned int ) sizeof (ch), &ch)) == (sizeof (ch)))
+  if ((BufferedRead (f, (unsigned int) sizeof (ch), &ch)) == (sizeof (ch)))
     {
       SetEndOfLine (f, ch);
       return ch;
@@ -1080,7 +1080,7 @@ void FIO_UnReadChar (FIO_File f, char ch)
   CheckAccess (f, (FileUsage) openedforread, FALSE);
   if (f != Error)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (((fd->state == successful) || (fd->state == endoffile)) || (fd->state == endofline))
         {
           /* avoid dangling else.  */
@@ -1183,7 +1183,7 @@ int FIO_GetUnixFileDescriptor (FIO_File f)
 
   if (f != Error)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
         return fd->unixfd;
     }
@@ -1198,7 +1198,7 @@ void FIO_SetPositionFromBeginning (FIO_File f, long int pos)
 
   if (f != Error)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
         if ((fd->abspos != pos) || TRUE)
           {
@@ -1236,7 +1236,7 @@ void FIO_SetPositionFromEnd (FIO_File f, long int pos)
 
   if (f != Error)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
         {
           FIO_FlushBuffer (f);
@@ -1273,7 +1273,7 @@ long int FIO_FindPosition (FIO_File f)
 
   if (f != Error)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd != NULL)
         if ((fd->buffer == NULL) || ! fd->buffer->valid)
           return fd->abspos;
@@ -1291,7 +1291,7 @@ void FIO_GetFileName (FIO_File f, char *a, unsigned int _a_high)
 
   if (f != Error)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd == NULL)
         {
           FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
@@ -1320,7 +1320,7 @@ void * FIO_getFileName (FIO_File f)
 
   if (f != Error)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd == NULL)
         {
           FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
@@ -1337,7 +1337,7 @@ unsigned int FIO_getFileNameLength (FIO_File f)
 
   if (f != Error)
     {
-      fd = Indexing_GetIndice (FileInfo, (unsigned int ) f);
+      fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd == NULL)
         {
           FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);

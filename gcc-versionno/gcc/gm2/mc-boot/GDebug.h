@@ -4,6 +4,9 @@
 #if !defined (_Debug_H)
 #   define _Debug_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -14,15 +17,14 @@
 #   if defined (_Debug_C)
 #      define EXTERN
 #   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
+#      define EXTERN extern
 #   endif
 
 EXTERN void Debug_Halt (char *Message_, unsigned int _Message_high, unsigned int LineNo, char *Module_, unsigned int _Module_high);
 EXTERN void Debug_DebugString (char *a_, unsigned int _a_high);
+#ifdef __cplusplus
+}
+#endif
 
 #   undef EXTERN
 #endif
