@@ -3159,6 +3159,14 @@ static decl_node getMaxMinType (decl_node n)
 {
   if ((decl_isVar (n)) || (decl_isConst (n)))
     return decl_getType (n);
+  else if (isConstExp (n))
+    {
+      n = getExprType (n->unaryF.arg);
+      if (n == bitsetN)
+        return ztypeN;
+      else
+        return n;
+    }
   else
     return n;
 }
@@ -5632,7 +5640,10 @@ static decl_node doMin (decl_node n)
       return lookupConst (charN, nameKey_makeKey ((char *) "CHAR_MIN", 8));
     }
   else if (n == bitsetN)
-    return lookupConst (bitnumN, nameKey_makeKey ((char *) "0", 1));
+    {
+      mcDebug_assert (decl_isSubrange (bitnumN));
+      return bitnumN->subrangeF.low;
+    }
   else if (n == locN)
     {
       keyc_useUCharMin ();
@@ -5684,7 +5695,10 @@ static decl_node doMax (decl_node n)
       return lookupConst (charN, nameKey_makeKey ((char *) "CHAR_MAX", 8));
     }
   else if (n == bitsetN)
-    return lookupConst (bitnumN, nameKey_makeKey ((char *) "(sizeof (unsigned int)*8)", 25));
+    {
+      mcDebug_assert (decl_isSubrange (bitnumN));
+      return bitnumN->subrangeF.high;
+    }
   else if (n == locN)
     {
       keyc_useUCharMax ();
@@ -11951,6 +11965,7 @@ static void makeBaseSymbols (void)
   addDone (longintN);
   addDone (shortintN);
   addDone (bitsetN);
+  addDone (bitnumN);
   addDone (ztypeN);
   addDone (rtypeN);
   addDone (realN);

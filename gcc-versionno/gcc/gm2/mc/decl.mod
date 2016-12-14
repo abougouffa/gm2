@@ -4567,6 +4567,15 @@ BEGIN
    IF isVar (n) OR isConst (n)
    THEN
       RETURN getType (n)
+   ELSIF isConstExp (n)
+   THEN
+      n := getExprType (n^.unaryF.arg) ;
+      IF n = bitsetN
+      THEN
+         RETURN ztypeN
+      ELSE
+         RETURN n
+      END
    ELSE
       RETURN n
    END
@@ -7010,7 +7019,8 @@ BEGIN
       RETURN lookupConst (charN, makeKey ('CHAR_MIN'))
    ELSIF n=bitsetN
    THEN
-      RETURN lookupConst (bitnumN, makeKey ('0'))
+      assert (isSubrange (bitnumN)) ;
+      RETURN bitnumN^.subrangeF.low
    ELSIF n=locN
    THEN
       keyc.useUCharMin ;
@@ -7063,7 +7073,8 @@ BEGIN
       RETURN lookupConst (charN, makeKey ('CHAR_MAX'))
    ELSIF n=bitsetN
    THEN
-      RETURN lookupConst (bitnumN, makeKey ('(sizeof (unsigned int)*8)'))
+      assert (isSubrange (bitnumN)) ;
+      RETURN bitnumN^.subrangeF.high
    ELSIF n=locN
    THEN
       keyc.useUCharMax ;
@@ -15155,6 +15166,7 @@ BEGIN
    addDone (longintN) ;
    addDone (shortintN) ;
    addDone (bitsetN) ;
+   addDone (bitnumN) ;
    addDone (ztypeN) ;
    addDone (rtypeN) ;
    addDone (realN) ;

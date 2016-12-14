@@ -770,7 +770,6 @@ END SortSources ;
 PROCEDURE DisplaySources ;
 VAR
    p: Source ;
-   s: String ;
 BEGIN
    CommentChar := Comment ;
    p := Head ;

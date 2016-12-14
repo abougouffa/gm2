@@ -1,3 +1,15 @@
+2016-12-14      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  changed flags when compiling cflex.c and
+          M2Version.c
+	* gm2/bnf/gm2l.bnf:  removed unused variable.  (SyntaxCheck)
+          Removed unused variable.
+	* gm2/gm2-compiler/M2DebugStack.mod:  (doNameLength) remove
+          unused variable.  (doMaxInt) remove unused procedure function.
+	* gm2/mc-boot/Gdecl.c:  rebuilt.
+	* gm2/mc/decl.mod:  detect bitset in MAX/MIN and return ztype.
+	  Add bitnumN to the list of completed types.
+
 2016-12-12      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  changed scaffold building rules

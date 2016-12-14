@@ -6,12 +6,12 @@
 -- the terms of the GNU General Public License as published by the Free
 -- Software Foundation; either version 3, or (at your option) any later
 -- version.
--- 
+--
 -- GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
 -- WARRANTY; without even the implied warranty of MERCHANTABILITY or
 -- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 -- for more details.
--- 
+--
 -- You should have received a copy of the GNU General Public License along
 -- with gm2; see the file COPYING.  If not, write to the Free Software
 -- Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -34,12 +34,12 @@ GNU Modula-2 is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
 Software Foundation; either version 3, or (at your option) any later
 version.
- 
+
 GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
- 
+
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
@@ -229,7 +229,7 @@ END SyntaxError ;
 
 
 (*
-   SyntaxCheck - 
+   SyntaxCheck -
 *)
 
 PROCEDURE SyntaxCheck (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
@@ -269,7 +269,7 @@ BEGIN
       s2 := SetOfStop2{t}
    END ;
    str := DescribeStop(s0, s1, s2) ;
-   
+
    str := ConCat(InitString('syntax error,'), Mark(str)) ;
    ErrorStringAt(str, GetTokenNo())
 END WarnMissingToken ;
@@ -294,7 +294,7 @@ END MissingToken ;
 
 
 (*
-   CheckAndInsert - 
+   CheckAndInsert -
 *)
 
 PROCEDURE CheckAndInsert (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) : BOOLEAN ;
@@ -313,7 +313,7 @@ END CheckAndInsert ;
 
 
 (*
-   InStopSet 
+   InStopSet
 *)
 
 PROCEDURE InStopSet (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) : BOOLEAN ;
@@ -363,7 +363,7 @@ END PeepToken ;
 
 
 (*
-   Expect - 
+   Expect -
 *)
 
 PROCEDURE Expect (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
@@ -579,8 +579,8 @@ ProgramModule := "MODULE"                                                  % Pus
                                                                            % BuildModuleStart %
                                                                            % PushAutoOff %
                   [ Priority
-                  ]                                             
-                  ";"							   
+                  ]
+                  ";"
                   { Import }
                   Block                                                    % PushAutoOn %
                   Ident                                                    % EndBuildFile %
@@ -594,10 +594,10 @@ ImplementationModule := "IMPLEMENTATION" "MODULE"                          % Pus
                                                                            % BuildModuleStart %
                                                                            % PushAutoOff %
                          [ Priority
-                         ] ";"                                  
-                         { Import }                                               
+                         ] ";"
+                         { Import }
                          Block                                             % PushAutoOn %
-                                 					   
+
                          Ident                                             % EndBuildFile %
                                                                            % P3EndBuildImpModule %
                          "."                                               % PopAuto ; PopAuto ; PopAuto %
@@ -717,7 +717,7 @@ ComponentElement := ConstExpression ( ".." ConstExpression                 % Pus
                   =:
 
 ComponentValue := ComponentElement ( 'BY' ConstExpression                  % PushT(ByTok) %
-                                     
+
                                      |                                     % PushT(NulTok) %
                                    )
                 =:
@@ -770,23 +770,23 @@ AlignmentExpression := "(" ConstExpression ")" =:
 Alignment := [ ByteAlignment ] =:
 
 TypeDeclaration := Ident "=" Type Alignment
-                =:							   
-									   
-Type := 
+                =:
+
+Type :=
                                                                            % PushAutoOff %
         ( SimpleType | ArrayType
-          | RecordType          
-          | SetType             
-          | PointerType         
+          | RecordType
+          | SetType
+          | PointerType
           | ProcedureType )                                                % PopAuto %
-      =:								   
-									   
+      =:
+
 SimpleType := Qualident [ SubrangeType ] | Enumeration | SubrangeType =:
-									   
-Enumeration := "("                                                         
-                   ( IdentList                                             
-                               )                                           
-               ")"                                                         
+
+Enumeration := "("
+                   ( IdentList
+                               )
+               ")"
             =:
 
 IdentList := Ident                                                         % VAR
@@ -813,7 +813,7 @@ SubrangeType := "[" ConstExpression  ".." ConstExpression "]"              % Bui
 ArrayType := "ARRAY"
 
               SimpleType
-              { "," 
+              { ","
                 SimpleType
               } "OF"
              Type
@@ -1002,8 +1002,7 @@ VariableDeclaration := VarIdentList ":"
 Designator := Qualident                                                    % CheckWithReference %
               { SubDesignator } =:
 
-SubDesignator := "."                                                       % VAR Sym, Type,
-                                                                                 n        : CARDINAL ;
+SubDesignator := "."                                                       % VAR Sym, Type: CARDINAL ;
                                                                                  name,
                                                                                  n1       : Name ; %
                                                                            % PopTF(Sym, Type) ;
@@ -1231,7 +1230,7 @@ LoopStatement :=                                                           % Bui
 WithStatement :=                                                           % BuildLineNo %
                  "WITH"
                         Designator                                         % StartBuildWith %
-                                   "DO"                                   
+                                   "DO"
                                                                            % BuildLineNo %
                         StatementSequence
                  "END"                                                     % EndBuildWith %
@@ -1397,7 +1396,7 @@ DefinitionModule := "DEFINITION" "MODULE"                                  % Pus
 
 Definition := "CONST" { ConstantDeclaration ";" } |
               "TYPE"
-                    { Ident ( ";"                 
+                    { Ident ( ";"
                                   | "=" Type Alignment ";" )
                     }
               |
@@ -1453,13 +1452,12 @@ AsmOperands :=                                                             % VAR
                                                                              IF Pass3
                                                                              THEN
                                                                                 PutGnuAsmSimple(CurrentAsm)
-                                                                             END 
+                                                                             END
                                                                            %
                                                         )
                =:
 
 AsmOperandSpec :=                                                          % VAR CurrentAsm, outputs, inputs, trash, count: CARDINAL ;
-                                                                                 str: CARDINAL ;
                                                                            %
                   [ ':' AsmList                                            % IF Pass3
                                                                              THEN

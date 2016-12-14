@@ -1173,7 +1173,7 @@ gm2/gm2-compiler-boot/m2flex.o: gm2/gm2-compiler/m2flex.c $(BUILD-BOOT-H) $(TIME
           -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
 gm2/gm2-compiler-boot/cflex.o: gm2/gm2-compiler/cflex.c gm2/gm2-compiler-boot/$(SRC_PREFIX)CLexBuf.h
-	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
+	$(CC) -c $(CFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
 gm2/gm2-compiler/m2flex.c: $(srcdir)/gm2/m2.flex $(TIMEVAR_H)
 	flex -t $< | sed -e 's/ malloc/xmalloc/' | sed -e 's/ realloc/xrealloc/' > $@
@@ -1186,7 +1186,7 @@ gm2/gm2-libiberty/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libiberty/%.def
 
 gm2/gm2-compiler-boot/M2Version.o: gm2/gm2-compiler-boot/M2Version.mod
 	$(MC) -o=gm2/gm2-compiler-boot/M2Version.c $<
-	$(COMPILER) -c $(CFLAGS) $(GM2GCC) -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libiberty $(INCLUDES) gm2/gm2-compiler-boot/M2Version.c -o $@
+	$(COMPILER) -c $(ALL_CPPFLAGS) $(GM2GCC) -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libiberty $(INCLUDES) gm2/gm2-compiler-boot/M2Version.c -o $@
 
 gm2/gm2-compiler-boot/M2Version.mod:
 	cd gm2/gm2-compiler-boot ; bash ../../$(srcdir)/gm2/tools-src/makeversion -m ../../$(srcdir)
