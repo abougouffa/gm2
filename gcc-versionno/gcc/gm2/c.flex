@@ -19,6 +19,8 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "gm2-gcc/gcc-consolidation.h"
+
 #include "GCLexBuf.h"
 #include "input.h"
 
@@ -31,7 +33,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
   struct lineInfo {
     char            *filename;         /* current files */
     char            *linebuf;          /* line contents */
-    int              linelen;          /* length */
+    unsigned int     linelen;          /* length */
     int              tokenpos;         /* start position of token within line */
     int              toklen;           /* a copy of yylen (length of token) */
     int              nextpos;          /* position after token */
@@ -104,6 +106,7 @@ static  int  isTypeDef    (char *a);
 
 %}
 
+%option nounput
 %x COMMENT LINE0 LINE1 LINE2 SUPPRESS INCLUDE DEFINE
 
 %%
@@ -437,7 +440,7 @@ static void skipline (void)
 
 static void consumeLine (int n)
 {
-  int i;
+  unsigned int i;
 
   if (currentLine->linelen<yyleng) {
     currentLine->linebuf = (char *)xrealloc(currentLine->linebuf, yyleng);

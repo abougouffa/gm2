@@ -1,5 +1,13 @@
 2016-12-14      Gaius Mulley <gaius@gnu.org>
 
+	* gm2/Make-lang.in:  build cflex.c using the same rules as the
+          m2flex.c.
+	* gm2/c.flex:  include gm2-gcc/gcc-consolidation.h and use
+          %option nounput to get a clean compilation with no warnings.
+	  Declare linelen as unsigned int to avoid warnings.
+
+2016-12-14      Gaius Mulley <gaius@gnu.org>
+
 	* gm2/Make-lang.in:  changed flags when compiling cflex.c and
           M2Version.c
 	* gm2/bnf/gm2l.bnf:  removed unused variable.  (SyntaxCheck)
