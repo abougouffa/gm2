@@ -4196,12 +4196,26 @@ END isPointerRef ;
 
 PROCEDURE makeArrayRef (array, index: node) : node ;
 VAR
-   n: node ;
+   n, t: node ;
+   i, j: CARDINAL ;
 BEGIN
    n := newNode (arrayref) ;
    n^.arrayrefF.array := array ;
    n^.arrayrefF.index := index ;
-   n^.arrayrefF.resultType := getType (getType (array)) ;
+   t := array ;
+   j := expListLen (index) ;
+   i := 1 ;
+   t := skipType (getType (t)) ;
+   REPEAT
+      IF isArray (t)
+      THEN
+         t := skipType (getType (t))
+      ELSE
+         metaError2 ('cannot access {%1N} dimension of array {%2a}', i, t)
+      END ;
+      INC (i)
+   UNTIL i > j ;
+   n^.arrayrefF.resultType := t ;
    RETURN n
 END makeArrayRef ;
 
@@ -5046,7 +5060,8 @@ PROCEDURE getFQstring (n: node) : String ;
 VAR
    i, s: String ;
 BEGIN
-   IF (NOT isExported (n)) OR getIgnoreFQ () OR isDefForC (getScope (n))
+   IF (NOT isExported (n)) OR
+      getIgnoreFQ () OR isDefForC (getScope (n))
    THEN
       RETURN InitStringCharStar (keyToCharStar (getSymName (n)))
    ELSE
@@ -5065,7 +5080,8 @@ PROCEDURE getFQDstring (n: node; scopes: BOOLEAN) : String ;
 VAR
    i, s: String ;
 BEGIN
-   IF (NOT isExported (n)) OR getIgnoreFQ ()
+   IF (NOT isExported (n)) OR
+      getIgnoreFQ ()
    THEN
       RETURN InitStringCharStar (keyToCharStar (getDName (n, scopes)))
    ELSE
@@ -5207,7 +5223,8 @@ BEGIN
       bitset,
       boolean,
       proc            :  RETURN FALSE |
-      setvalue        :  RETURN FALSE
+      setvalue        :  RETURN FALSE |
+      address         :  RETURN TRUE
 
       END
    END ;
@@ -7354,7 +7371,8 @@ BEGIN
       END ;
       outText (p, "];") ;
       setNeedSpace (p) ;
-      outText (p, "}")
+      outText (p, "}") ;
+      setNeedSpace (p)
    END
 END doArrayC ;
 
@@ -7687,7 +7705,8 @@ BEGIN
       doFQNameC (p, n)
    ELSIF isProcType (n)
    THEN
-      print (p, "is proc type name required\n")
+      print (p, "is proc type name required\n") ;
+      stop
    ELSIF isArray (n)
    THEN
       doArrayNameC (p, n)
@@ -7697,6 +7716,9 @@ BEGIN
    ELSIF isPointer (n)
    THEN
       doPointerNameC (p, n)
+   ELSIF isSubrange (n)
+   THEN
+      doSubrangeC (p, n)
    ELSE
       print (p, "is type unknown required\n") ;
       stop
@@ -8520,11 +8542,10 @@ END doReturnC ;
 
 PROCEDURE doExprCastC (p: pretty; e, type: node) ;
 BEGIN
-   IF type # getType (e)
+   IF skipType (type) # skipType (getType (e))
    THEN
       IF lang = ansiCP
       THEN
-         stop ;
          (* potentially a cast is required.  *)
          IF isPointer (type) OR (type = addressN)
          THEN
@@ -11093,6 +11114,20 @@ BEGIN
       THEN
          RETURN s
       END ;
+(*
+      (* an array can only be declared if its data type has already been emitted.  *)
+      IF NOT alists.isItemInList (doneQ, type)
+      THEN
+         s := walkDependants (l, type) ;
+         IF s=completed
+         THEN
+            (* downgrade the completed to partial as it has not yet been written.  *)
+            RETURN partial
+         ELSE
+            RETURN s
+         END
+      END ;
+*)
       RETURN walkDependants (l, subr)
    END
 END walkArray ;
@@ -12567,6 +12602,48 @@ END outputHiddenComplete ;
 (*
    tryPartial -
 *)
+(*
+PROCEDURE tryPartial (n: node; pt: nodeProcedure) : BOOLEAN ;
+VAR
+   q          : node ;
+   seenPointer: BOOLEAN ;
+BEGIN
+   IF (n#NIL) AND isType (n)
+   THEN
+      seenPointer := FALSE ;
+      q := getType (n) ;
+      WHILE isPointer (q) DO
+         seenPointer := TRUE ;
+         q := getType (q)
+      END ;
+      IF q # NIL
+      THEN
+         IF isRecord (q) OR isProcType (q)
+         THEN
+            pt (n) ;
+            addTodo (q) ;
+            RETURN TRUE
+         ELSIF isArray (q) AND (seenPointer OR alists.isItemInList (doneQ, getType (q)))
+         THEN
+            pt (n) ;
+            addTodo (q) ;
+            RETURN TRUE
+         ELSIF isType (q) AND seenPointer
+         THEN
+            pt (n) ;
+            addTodo (q) ;
+            RETURN TRUE
+         END
+      END
+   END ;
+   RETURN FALSE
+END tryPartial ;
+*)
+
+
+(*
+   tryPartial -
+*)
 
 PROCEDURE tryPartial (n: node; pt: nodeProcedure) : BOOLEAN ;
 VAR
@@ -12578,11 +12655,19 @@ BEGIN
       WHILE isPointer (q) DO
          q := getType (q)
       END ;
-      IF (q#NIL) AND (isArray (q) OR isRecord (q) OR isProcType (q))
+      IF q # NIL
       THEN
-         pt (n) ;
-         addTodo (q) ;
-         RETURN TRUE
+         IF isRecord (q) OR isProcType (q)
+         THEN
+            pt (n) ;
+            addTodo (q) ;
+            RETURN TRUE
+         ELSIF isArray (q)
+         THEN
+            pt (n) ;
+            addTodo (q) ;
+            RETURN TRUE
+         END
       END
    END ;
    RETURN FALSE

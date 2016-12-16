@@ -1,3 +1,22 @@
+2016-12-16      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  M2GCCDeclare.o dedicated rule.  mc-clean,
+	  mc-maintainer mc-continue rules improved.
+	* gm2/bnf/h2def.bnf:  removed usused import.
+	* gm2/gm2-compiler/M2Base.mod:  remove unused global variables
+	  and fixed typo (FloatS not SFloat).
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  changed none to norule.
+	* gm2/gm2-compiler/P3SymBuild.mod:  remove unused local variables.
+	* gm2/gm2-compiler/bnflex.mod:  EatChar new procedure.  Remove many
+	  unused variables by using EatChar rather than ch := GetChar ().
+	* gm2/mc-boot/Gdecl.c:
+	* gm2/mc-boot/Gkeyc.c:
+	* gm2/mc/decl.def:
+	* gm2/mc/decl.mod:  write out subrange type, detect type address
+          when emitting casts.  Work out arrayref type when more than
+	  one dimension is used.
+	* gm2/mc/keyc.mod:  avoid C++ keywords operator and complex.
+
 2016-12-14      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  build cflex.c using the same rules as the

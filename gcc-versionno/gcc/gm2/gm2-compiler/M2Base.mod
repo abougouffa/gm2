@@ -78,7 +78,7 @@ FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
 FROM M2Size IMPORT Size, MakeSize ;
 
-FROM M2System IMPORT Address, Byte, Word, System, Loc, InitSystem, 
+FROM M2System IMPORT Address, Byte, Word, System, Loc, InitSystem,
                      IntegerN, CardinalN, WordN, SetN, RealN, ComplexN,
                      IsCardinalN, IsIntegerN, IsRealN,
                      IsGenericSystemType, IsSameSizePervasiveType ;
@@ -159,8 +159,8 @@ VAR
    FloatS, SFloat,
    FloatL, LFloat,
    Trunc,
-   TruncS, STrunc,
-   TruncL, LTrunc,
+   TruncS,
+   TruncL,
    Int, IntS, IntL,
    m2rts,
    MinReal,
@@ -188,7 +188,7 @@ VAR
 
 
 (*
-   InitBuiltins - 
+   InitBuiltins -
 *)
 
 PROCEDURE InitBuiltins ;
@@ -603,7 +603,7 @@ END GetBaseTypeMinMax ;
 
 PROCEDURE ImportFrom (module: CARDINAL; name: ARRAY OF CHAR) : CARDINAL ;
 BEGIN
-   PutImported(GetExported(m2rts, MakeKey(name))) ;
+   PutImported(GetExported(module, MakeKey(name))) ;
    RETURN( GetSym(MakeKey(name)) )
 END ImportFrom ;
 
@@ -804,8 +804,8 @@ BEGIN
    PutFunction(SFloat, ShortReal) ;
    LFloat := MakeProcedure(MakeKey('LFLOAT')) ;
    PutFunction(LFloat, LongReal) ;
-   SFloat := MakeProcedure(MakeKey('FLOATS')) ;
-   PutFunction(SFloat, ShortReal) ;
+   FloatS := MakeProcedure(MakeKey('FLOATS')) ;
+   PutFunction(FloatS, ShortReal) ;
    FloatL := MakeProcedure(MakeKey('FLOATL')) ;
    PutFunction(FloatL, LongReal)
 END BuildFloatFunctions ;
@@ -904,7 +904,7 @@ END InitBaseFunctions ;
 
 
 (*
-   IsISOPseudoBaseFunction - 
+   IsISOPseudoBaseFunction -
 *)
 
 PROCEDURE IsISOPseudoBaseFunction (Sym: CARDINAL) : BOOLEAN ;
@@ -916,7 +916,7 @@ END IsISOPseudoBaseFunction ;
 
 
 (*
-   IsPIMPseudoBaseFunction - 
+   IsPIMPseudoBaseFunction -
 *)
 
 PROCEDURE IsPIMPseudoBaseFunction (Sym: CARDINAL) : BOOLEAN ;
@@ -1157,7 +1157,6 @@ END EmitTypeIncompatibleError ;
 
 PROCEDURE CheckCompatible (t1, t2: CARDINAL; kind: Compatability) ;
 VAR
-   n: Name ;
    s: String ;
    r: Compatible ;
 BEGIN
@@ -1429,7 +1428,7 @@ BEGIN
       THEN
          RETURN( no )
       END ;
-         
+
       CASE kind OF
 
       expression: RETURN( Expr [mt1, mt2] ) |
@@ -1547,7 +1546,6 @@ END IsSubrangeSame ;
 PROCEDURE IsVarientSame (a, b: CARDINAL; error: BOOLEAN) : BOOLEAN ;
 VAR
    i, j  : CARDINAL ;
-   ta, tb,
    fa, fb,
    ga, gb: CARDINAL ;
 BEGIN
@@ -1584,7 +1582,7 @@ END IsVarientSame ;
 
 
 (*
-   IsRecordSame - 
+   IsRecordSame -
 *)
 
 PROCEDURE IsRecordSame (a, b: CARDINAL; error: BOOLEAN) : BOOLEAN ;
@@ -1627,7 +1625,7 @@ END IsRecordSame ;
 
 
 (*
-   IsArraySame - 
+   IsArraySame -
 *)
 
 PROCEDURE IsArraySame (t1, t2: CARDINAL; error: BOOLEAN) : BOOLEAN ;
@@ -1642,7 +1640,7 @@ END IsArraySame ;
 
 
 (*
-   IsEnumerationSame - 
+   IsEnumerationSame -
 *)
 
 PROCEDURE IsEnumerationSame (t1, t2: CARDINAL; error: BOOLEAN) : BOOLEAN ;
@@ -1652,7 +1650,7 @@ END IsEnumerationSame ;
 
 
 (*
-   IsSetSame - 
+   IsSetSame -
 *)
 
 PROCEDURE IsSetSame (t1, t2: CARDINAL; error: BOOLEAN) : BOOLEAN ;
@@ -1700,7 +1698,7 @@ END IsSameType ;
 
 
 (*
-   IsProcTypeSame - 
+   IsProcTypeSame -
 *)
 
 PROCEDURE IsProcTypeSame (p1, p2: CARDINAL; error: BOOLEAN) : BOOLEAN ;
@@ -1743,7 +1741,7 @@ END IsProcTypeSame ;
 
 
 (*
-   doProcTypeCheck - 
+   doProcTypeCheck -
 *)
 
 PROCEDURE doProcTypeCheck (p1, p2: CARDINAL; error: BOOLEAN) : BOOLEAN ;
@@ -1939,7 +1937,7 @@ END IsParameterCompatible ;
 
 
 (*
-   MixMetaTypes - 
+   MixMetaTypes -
 *)
 
 PROCEDURE MixMetaTypes (t1, t2: CARDINAL; NearTok: CARDINAL) : CARDINAL ;
@@ -2141,7 +2139,7 @@ END IsArrayUnboundedCompatible ;
 
 
 (*
-   IsValidUnboundedParameter - 
+   IsValidUnboundedParameter -
 *)
 
 PROCEDURE IsValidUnboundedParameter (formal, actual: CARDINAL) : BOOLEAN ;
@@ -2324,7 +2322,7 @@ END PushSizeOf ;
 
 
 (*
-   IsSizeSame - 
+   IsSizeSame -
 *)
 
 PROCEDURE IsSizeSame (t1, t2: MetaType) : BOOLEAN ;
@@ -2336,7 +2334,7 @@ END IsSizeSame ;
 
 
 (*
-   InitArray - 
+   InitArray -
 *)
 
 PROCEDURE InitArray (VAR c: CompatibilityArray;

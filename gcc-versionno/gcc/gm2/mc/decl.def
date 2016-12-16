@@ -857,7 +857,8 @@ PROCEDURE makeDeRef (n: node) : node ;
 
 (*
    makeArrayRef - build an arrayref node which access element,
-                  index, in, array.
+                  index, in, array.  array is a variable/expression/constant
+                  which has a type array.
 *)
 
 PROCEDURE makeArrayRef (array, index: node) : node ;

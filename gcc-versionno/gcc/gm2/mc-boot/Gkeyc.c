@@ -264,6 +264,7 @@ static void initCP (void)
   add (keywords, (char *) "try", 3);
   add (keywords, (char *) "catch", 5);
   add (keywords, (char *) "operator", 8);
+  add (keywords, (char *) "complex", 7);
 }
 
 static void add (symbolKey_symbolTree s, char *a_, unsigned int _a_high)

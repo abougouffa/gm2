@@ -3811,6 +3811,10 @@ static unsigned int needsParen (decl_node n)
         return FALSE;
         break;
 
+      case address:
+        return TRUE;
+        break;
+
 
       default:
         CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 20, 0);
@@ -6019,6 +6023,7 @@ static void doArrayC (mcPretty_pretty p, decl_node n)
       outText (p, (char *) "];", 2);
       mcPretty_setNeedSpace (p);
       outText (p, (char *) "}", 1);
+      mcPretty_setNeedSpace (p);
     }
 }
 
@@ -6279,13 +6284,18 @@ static void doTypeNameC (mcPretty_pretty p, decl_node n)
   else if (decl_isType (n))
     doFQNameC (p, n);
   else if (decl_isProcType (n))
-    mcPretty_print (p, (char *) "is proc type name required\\n", 28);
+    {
+      mcPretty_print (p, (char *) "is proc type name required\\n", 28);
+      stop ();
+    }
   else if (decl_isArray (n))
     doArrayNameC (p, n);
   else if (decl_isRecord (n))
     doRecordNameC (p, n);
   else if (decl_isPointer (n))
     doPointerNameC (p, n);
+  else if (decl_isSubrange (n))
+    doSubrangeC (p, n);
   else
     {
       mcPretty_print (p, (char *) "is type unknown required\\n", 26);
@@ -6875,10 +6885,10 @@ static void doReturnC (mcPretty_pretty p, decl_node s)
 
 static void doExprCastC (mcPretty_pretty p, decl_node e, decl_node type)
 {
-  if (type != (decl_getType (e)))
+  if ((decl_skipType (type)) != (decl_skipType (decl_getType (e))))
     if (lang == ansiCP)
       {
-        stop ();
+        /* avoid gcc warning by using compound statement even if not strictly necessary.  */
         if ((decl_isPointer (type)) || (type == addressN))
           {
             outText (p, (char *) "reinterpret_cast<", 17);
@@ -10456,11 +10466,21 @@ static unsigned int tryPartial (decl_node n, nodeProcedure pt)
       q = decl_getType (n);
       while (decl_isPointer (q))
         q = decl_getType (q);
-      if ((q != NULL) && (((decl_isArray (q)) || (decl_isRecord (q))) || (decl_isProcType (q))))
+      if (q != NULL)
         {
-          (*pt.proc) (n);
-          addTodo (q);
-          return TRUE;
+          /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+          if ((decl_isRecord (q)) || (decl_isProcType (q)))
+            {
+              (*pt.proc) (n);
+              addTodo (q);
+              return TRUE;
+            }
+          else if (decl_isArray (q))
+            {
+              (*pt.proc) (n);
+              addTodo (q);
+              return TRUE;
+            }
         }
     }
   return FALSE;
@@ -14103,11 +14123,25 @@ decl_node decl_makeDeRef (decl_node n)
 decl_node decl_makeArrayRef (decl_node array, decl_node index)
 {
   decl_node n;
+  decl_node t;
+  unsigned int i;
+  unsigned int j;
 
   n = newNode ((nodeT) arrayref);
   n->arrayrefF.array = array;
   n->arrayrefF.index = index;
-  n->arrayrefF.resultType = decl_getType (decl_getType (array));
+  t = array;
+  j = expListLen (index);
+  i = 1;
+  t = decl_skipType (decl_getType (t));
+  do {
+    if (decl_isArray (t))
+      t = decl_skipType (decl_getType (t));
+    else
+      mcMetaError_metaError2 ((char *) "cannot access {%1N} dimension of array {%2a}", 44, (unsigned char *) &i, (sizeof (i)-1), (unsigned char *) &t, (sizeof (t)-1));
+    i += 1;
+  } while (! (i > j));
+  n->arrayrefF.resultType = t;
   return n;
 }
 

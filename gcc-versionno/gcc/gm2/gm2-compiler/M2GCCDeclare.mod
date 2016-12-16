@@ -1270,7 +1270,7 @@ END EmitCircularDependancyError ;
 
 
 TYPE
-   Rule = (none, partialtype, arraynil, pointernilarray, arraypartial,
+   Rule = (norule, partialtype, arraynil, pointernilarray, arraypartial,
            pointerfully, recordkind, recordfully, typeconstfully,
            pointerfrompartial, typefrompartial, partialfrompartial,
            partialtofully, circulartodo, circularpartial, circularniltyped) ;
@@ -1296,7 +1296,7 @@ BEGIN
    THEN
       CASE bodyr OF
 
-      none              :  printf0('none') |
+      norule            :  printf0('norule') |
       partialtype       :  printf0('partialtype') |
       arraynil          :  printf0('arraynil') |
       pointernilarray   :  printf0('pointernilarray') |
@@ -1372,7 +1372,7 @@ BEGIN
       noMoreWritten := TRUE ;
       ForeachElementInSetDo(l, Body)
    UNTIL noMoreWritten ;
-   bodyr := none ;
+   bodyr := norule ;
    recursionCaught := FALSE ;
    RETURN( oneResolved )
 END ForeachTryDeclare ;

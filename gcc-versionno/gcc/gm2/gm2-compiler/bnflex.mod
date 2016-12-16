@@ -90,6 +90,18 @@ END PutChar ;
 
 
 (*
+   EatChar - consumes the next character in the input.
+*)
+
+PROCEDURE EatChar ;
+BEGIN
+   IF PushBackInput.GetCh(f)=nul
+   THEN
+   END
+END EatChar ;
+
+
+(*
    IsWhite - returns TRUE if, ch, is a space or a tab.
 *)
 
@@ -100,25 +112,13 @@ END IsWhite ;
 
 
 (*
-   IsDigit - returns TRUE if, ch, is a digit.
-*)
-
-PROCEDURE IsDigit (ch: CHAR) : BOOLEAN ;
-BEGIN
-   RETURN( (ch>='0') AND (ch<='9') )
-END IsDigit ;
-
-
-(*
    SkipWhite - skips all white space.
 *)
 
 PROCEDURE SkipWhite ;
-VAR
-   ch: CHAR ;
 BEGIN
    WHILE IsWhite(PutChar(GetChar())) DO
-      ch := GetChar()
+      EatChar
    END
 END SkipWhite ;
 
@@ -128,15 +128,13 @@ END SkipWhite ;
 *)
 
 PROCEDURE SkipUntilEoln ;
-VAR
-   ch: CHAR ;
 BEGIN
    WHILE (PutChar(GetChar())#lf) AND (PutChar(GetChar())#nul) DO
-      ch := GetChar()
+      EatChar
    END ;
    IF PutChar(GetChar())=lf
    THEN
-      ch := GetChar()
+      EatChar
    END
 END SkipUntilEoln ;
 
@@ -146,76 +144,12 @@ END SkipUntilEoln ;
 *)
 
 PROCEDURE SkipUntilWhite ;
-VAR
-   ch: CHAR ;
 BEGIN
    WHILE ((NOT IsWhite(PutChar(GetChar()))) AND (PutChar(GetChar())#nul)) OR
          (PutChar(GetChar())=lf) DO
-      ch := GetChar()
+      EatChar
    END
 END SkipUntilWhite ;
-
-
-(*
-   IsAlpha - returns TRUE if ch is 'a'..'z' or 'A'..'Z'
-*)
-
-PROCEDURE IsAlpha (ch: CHAR) : BOOLEAN ;
-BEGIN
-   RETURN( ((ch>='a') AND (ch<='z')) OR ((ch>='A') AND (ch<='Z')) )
-END IsAlpha ;
-
-
-(*
-   IsEqual - 
-*)
-
-PROCEDURE IsEqual (key: Name; name: ARRAY OF CHAR) : BOOLEAN ;
-VAR
-   KeyName: ARRAY [0..MaxNameLength] OF CHAR ;
-BEGIN
-   GetKey(key, KeyName) ;
-   RETURN( StrEqual(KeyName, name) )
-END IsEqual ;
-
-
-(*
-   IsString - returns TRUE if the string, a, matches the pushed back string.
-              if TRUE is returned then this string is consumed, otherwise it is
-              left alone.
-*)
-
-PROCEDURE IsString (a: ARRAY OF CHAR) : BOOLEAN ;
-VAR
-   i        : INTEGER ;
-   c, Length: CARDINAL ;
-BEGIN
-   Length := StrLen(a) ;
-   c      := 0 ;
-
-   WHILE ((c<Length) AND (PutChar(Lower(GetChar()))=a[c])) DO
-      IF GetChar()#a[c]
-      THEN
-         Halt('assert failed', __LINE__, __FILE__)
-      END ;
-      INC(c)
-   END ;
-   IF c=Length
-   THEN
-      RETURN( TRUE )
-   ELSE
-      i := c ;
-      DEC(i) ;
-      WHILE i>=0 DO
-         IF PutChar(a[i])#a[i]
-         THEN
-            Halt('assert failed', __LINE__, __FILE__)
-         END ;
-         DEC(i)
-      END
-   END ;
-   RETURN( FALSE )
-END IsString ;
 
 
 (*
@@ -273,7 +207,7 @@ END SkipComments ;
 
 
 (*
-   WriteToken - 
+   WriteToken -
 *)
 
 PROCEDURE WriteToken ;

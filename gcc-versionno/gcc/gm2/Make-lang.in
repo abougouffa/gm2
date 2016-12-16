@@ -1074,6 +1074,12 @@ gm2/gm2-libs-boot/SysStorage.o: $(srcdir)/gm2/gm2-libs/SysStorage.mod
           -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(MCINCLUDES) $(INCLUDES) \
           gm2/gm2-libs-boot/SysStorage.c -o gm2/gm2-libs-boot/SysStorage.o
 
+gm2/gm2-compiler-boot/M2GCCDeclare.o: $(srcdir)/gm2/gm2-compiler/M2GCCDeclare.mod
+	$(MC) --extended-opaque -o=gm2/gm2-compiler-boot/M2GCCDeclare.c $<
+	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
+            -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-auto \
+            -I$(srcdir)/gm2/gm2-libiberty $(MCINCLUDES) $(INCLUDES) gm2/gm2-compiler-boot/M2GCCDeclare.c -o $@
+
 gm2/gm2-compiler-boot/ppg.o: $(srcdir)/gm2/gm2-compiler/ppg.mod
 	$(MC) -o=gm2/gm2-compiler-boot/ppg.c $(srcdir)/gm2/gm2-compiler/ppg.mod
 	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
@@ -1525,18 +1531,21 @@ mc-push: force
 	cp -p gm2/mc-boot-gen/*.h $(srcdir)/gm2/mc-boot/
 
 mc-clean: force
-	$(RM) gm2/mc-boot-gen/*.[ch]
+	$(RM) gm2/mc-boot-gen/*.[ch] gm2/boot-bin/* gm2/mc-boot/* gm2/mc-boot-ch/*
 
-mc-maintainer: mc-clean mc-autogen mc-push mc-bootstrap
+mc-maintainer: mc-clean mc-autogen mc-push mc-clean mc-bootstrap
 
 mc-clean-libs: force
 	$(RM) gm2/gm2-libs-boot/*
 
-mc-test:  mc-clean mc-bootstrap mc-clean-libs $(BUILD-LIBS-BOOT) $(BUILD-COMPILER-BOOT)
+mc-continue:  mc-clean mc-bootstrap mc-clean-libs mc-fresh $(BUILD-MC-INTERFACE-O) $(BUILD-LIBS-BOOT) $(BUILD-COMPILER-BOOT)
+
+mc-fresh: force
+	$(RM) gm2/gm2-auto/* gm2/gm2-compiler-boot/* gm2/gm2-libs-boot/*
 
 mc-help:  force
 	@echo "mc-maintainer   produces a new mc C version in the source tree (takes longer)"
-	@echo "mc-test         builds the mc from the C version and attempts to build gm2 libraries and gm2 compiler"
+	@echo "mc-continue     builds the mc from the C version and attempts to build gm2 libraries and gm2 compiler"
 	@echo "mc-verify       builds mc from Modula-2 sources and mc from C sources and run both on all sources diffing the output"
 	@echo "mc              builds mc from Modula-2 sources, quickly"
 

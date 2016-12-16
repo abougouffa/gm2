@@ -731,7 +731,8 @@ BEGIN
    add (keywords, 'delete') ;
    add (keywords, 'try') ;
    add (keywords, 'catch') ;
-   add (keywords, 'operator')
+   add (keywords, 'operator') ;
+   add (keywords, 'complex')
 END initCP ;
 
 
