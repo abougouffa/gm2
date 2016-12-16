@@ -19,10 +19,10 @@ Boston, MA 02110-1301, USA.  *)
 MODULE tinyarray3 ;   (*!m2pim*)
 
 TYPE
-   array = POINTER TO ARRAY [0..10] OF array ;
+   ar = POINTER TO ARRAY [0..10] OF ar ;
 
 VAR
-   a: array ;
+   a: ar ;
 BEGIN
 
 END tinyarray3.

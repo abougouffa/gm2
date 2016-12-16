@@ -16,6 +16,10 @@
           when emitting casts.  Work out arrayref type when more than
 	  one dimension is used.
 	* gm2/mc/keyc.mod:  avoid C++ keywords operator and complex.
+	* gm2/mc-boot/Gdecl.c:  rebuilt.
+	* gm2/mc/decl.mod:  detect an variable of an enumeration
+          type in the INC/DEC.  Ensure that arrays can only be
+	  complete if the type of the array has been emitted.
 
 2016-12-14      Gaius Mulley <gaius@gnu.org>
 

@@ -7663,6 +7663,21 @@ static void doIncDecCP (mcPretty_pretty p, decl_node n, char *op_, unsigned int 
             doExprC (p, getExpList (n->funccallF.args, 2));
           outText (p, (char *) ")", 1);
         }
+      else if (decl_isEnumeration (decl_skipType (type)))
+        {
+          outText (p, (char *) "= static_cast<", 14);
+          doTypeNameC (p, type);
+          mcPretty_noSpace (p);
+          outText (p, (char *) ">(static_cast<int>(", 19);
+          doExprC (p, getExpList (n->funccallF.args, 1));
+          outText (p, (char *) ")", 1);
+          outText (p, (char *) op, _op_high);
+          if ((expListLen (n->funccallF.args)) == 1)
+            outText (p, (char *) "1", 1);
+          else
+            doExprC (p, getExpList (n->funccallF.args, 2));
+          outText (p, (char *) ")", 1);
+        }
       else
         {
           outText (p, (char *) op, _op_high);
@@ -8944,9 +8959,15 @@ static dependentState walkArray (alists_alist l, decl_node n)
 {
   dependentState s;
 
-  s = walkDependants (l, n->arrayF.type);
-  if (s != completed)
-    return s;
+  if (! (alists_isItemInList (doneQ, (void *) n->arrayF.type)))
+    {
+      s = walkDependants (l, n->arrayF.type);
+      queueBlocked (n->arrayF.type);
+      if (s == completed)
+        return partial;
+      else
+        return s;
+    }
   return walkDependants (l, n->arrayF.subr);
 }
 

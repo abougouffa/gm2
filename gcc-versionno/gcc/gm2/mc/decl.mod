@@ -9543,6 +9543,22 @@ BEGIN
             doExprC (p, getExpList (n^.funccallF.args, 2))
          END ;
          outText (p, ')')
+      ELSIF isEnumeration (skipType (type))
+      THEN
+         outText (p, "= static_cast<") ;
+         doTypeNameC (p, type) ;
+         noSpace (p) ;
+         outText (p, ">(static_cast<int>(") ;
+         doExprC (p, getExpList (n^.funccallF.args, 1)) ;
+         outText (p, ")") ;
+         outText (p, op) ;
+         IF expListLen (n^.funccallF.args) = 1
+         THEN
+            outText (p, '1')
+         ELSE
+            doExprC (p, getExpList (n^.funccallF.args, 2))
+         END ;
+         outText (p, ")")
       ELSE
          outText (p, op) ;
          outText (p, "=") ;
@@ -11109,16 +11125,18 @@ VAR
    s: dependentState ;
 BEGIN
    WITH n^.arrayF DO
+(*
       s := walkDependants (l, type) ;
       IF s#completed
       THEN
          RETURN s
       END ;
-(*
+*)
       (* an array can only be declared if its data type has already been emitted.  *)
       IF NOT alists.isItemInList (doneQ, type)
       THEN
          s := walkDependants (l, type) ;
+         queueBlocked (type) ;
          IF s=completed
          THEN
             (* downgrade the completed to partial as it has not yet been written.  *)
@@ -11127,7 +11145,6 @@ BEGIN
             RETURN s
          END
       END ;
-*)
       RETURN walkDependants (l, subr)
    END
 END walkArray ;
