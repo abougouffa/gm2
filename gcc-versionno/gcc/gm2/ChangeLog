@@ -1,3 +1,9 @@
+2016-12-17      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/mc-boot/Gdecl.c:  rebuilt.
+	* gm2/mc/decl.mod:  fixed bug regarding the expression type of an
+          indirect funccall.  mc now builds all gm2 modules.
+
 2016-12-16      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  M2GCCDeclare.o dedicated rule.  mc-clean,

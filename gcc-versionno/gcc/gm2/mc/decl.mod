@@ -4760,6 +4760,10 @@ PROCEDURE getExprType (n: node) : node ;
 VAR
    t: node ;
 BEGIN
+   IF isFuncCall (n) AND (getType (n) # NIL) AND isProcType (skipType (getType (n)))
+   THEN
+      RETURN getType (skipType (getType (n)))
+   END ;
    t := getType (n) ;
    IF t = NIL
    THEN

@@ -3529,6 +3529,8 @@ static decl_node getExprType (decl_node n)
 {
   decl_node t;
 
+  if (((isFuncCall (n)) && ((decl_getType (n)) != NULL)) && (decl_isProcType (decl_skipType (decl_getType (n)))))
+    return decl_getType (decl_skipType (decl_getType (n)));
   t = decl_getType (n);
   if (t == NULL)
     t = doGetExprType (n);
