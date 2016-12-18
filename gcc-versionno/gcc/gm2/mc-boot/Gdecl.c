@@ -32,7 +32,7 @@ typedef _T8 *mcPretty_pretty;
 
 typedef unsigned int FIO_File;
 
-FIO_File FIO_StdOut;
+extern FIO_File FIO_StdOut;
 typedef struct symbolKey_performOperation_p symbolKey_performOperation;
 
 #   define ASCII_tab ASCII_ht
@@ -89,8 +89,8 @@ typedef struct symbolKey_isSymbol_p symbolKey_isSymbol;
 #   define ASCII_eof ASCII_eot
 #   define ASCII_del (char) 0177
 #   define ASCII_EOL ASCII_nl
-FIO_File FIO_StdErr;
-FIO_File FIO_StdIn;
+extern FIO_File FIO_StdErr;
+extern FIO_File FIO_StdIn;
 typedef long int libc_time_t;
 
 typedef struct libc_tm_r libc_tm;
@@ -103,9 +103,9 @@ typedef struct _T7_r _T7;
 
 typedef _T7 *mcError_error;
 
-int mcLexBuf_currentinteger;
-unsigned int mcLexBuf_currentcolumn;
-void * mcLexBuf_currentstring;
+extern int mcLexBuf_currentinteger;
+extern unsigned int mcLexBuf_currentcolumn;
+extern void * mcLexBuf_currentstring;
 typedef struct alists_performOperation_p alists_performOperation;
 
 typedef struct wlists_performOperation_p wlists_performOperation;
@@ -241,7 +241,7 @@ typedef enum {explist, funccall, exit_, return_, stmtseq, comment, halt, new, di
 #   define MaxnoOfelements 5
 typedef enum {mcReserved_eoftok, mcReserved_plustok, mcReserved_minustok, mcReserved_timestok, mcReserved_dividetok, mcReserved_becomestok, mcReserved_ambersandtok, mcReserved_periodtok, mcReserved_commatok, mcReserved_semicolontok, mcReserved_lparatok, mcReserved_rparatok, mcReserved_lsbratok, mcReserved_rsbratok, mcReserved_lcbratok, mcReserved_rcbratok, mcReserved_uparrowtok, mcReserved_singlequotetok, mcReserved_equaltok, mcReserved_hashtok, mcReserved_lesstok, mcReserved_greatertok, mcReserved_lessgreatertok, mcReserved_lessequaltok, mcReserved_greaterequaltok, mcReserved_ldirectivetok, mcReserved_rdirectivetok, mcReserved_periodperiodtok, mcReserved_colontok, mcReserved_doublequotestok, mcReserved_bartok, mcReserved_andtok, mcReserved_arraytok, mcReserved_begintok, mcReserved_bytok, mcReserved_casetok, mcReserved_consttok, mcReserved_definitiontok, mcReserved_divtok, mcReserved_dotok, mcReserved_elsetok, mcReserved_elsiftok, mcReserved_endtok, mcReserved_excepttok, mcReserved_exittok, mcReserved_exporttok, mcReserved_finallytok, mcReserved_fortok, mcReserved_fromtok, mcReserved_iftok, mcReserved_implementationtok, mcReserved_importtok, mcReserved_intok, mcReserved_looptok, mcReserved_modtok, mcReserved_moduletok, mcReserved_nottok, mcReserved_oftok, mcReserved_ortok, mcReserved_packedsettok, mcReserved_pointertok, mcReserved_proceduretok, mcReserved_qualifiedtok, mcReserved_unqualifiedtok, mcReserved_recordtok, mcReserved_remtok, mcReserved_repeattok, mcReserved_retrytok, mcReserved_returntok, mcReserved_settok, mcReserved_thentok, mcReserved_totok, mcReserved_typetok, mcReserved_untiltok, mcReserved_vartok, mcReserved_whiletok, mcReserved_withtok, mcReserved_asmtok, mcReserved_volatiletok, mcReserved_periodperiodperiodtok, mcReserved_datetok, mcReserved_linetok, mcReserved_filetok, mcReserved_attributetok, mcReserved_builtintok, mcReserved_inlinetok, mcReserved_integertok, mcReserved_identtok, mcReserved_realtok, mcReserved_stringtok} mcReserved_toktype;
 
-mcReserved_toktype mcLexBuf_currenttoken;
+extern mcReserved_toktype mcLexBuf_currenttoken;
 typedef enum {ansiC, ansiCP, pim4} language;
 
 typedef enum {completed, blocked, partial, recursive} dependentState;
@@ -1711,6 +1711,7 @@ static void doArrayNameC (mcPretty_pretty p, decl_node n);
 static void doRecordNameC (mcPretty_pretty p, decl_node n);
 static void doPointerNameC (mcPretty_pretty p, decl_node n);
 static void doTypeNameC (mcPretty_pretty p, decl_node n);
+static unsigned int isExternal (decl_node n);
 static void doVarC (decl_node n);
 static void doExternCP (mcPretty_pretty p);
 static void doProcedureHeadingC (decl_node n);
@@ -6305,6 +6306,14 @@ static void doTypeNameC (mcPretty_pretty p, decl_node n)
     }
 }
 
+static unsigned int isExternal (decl_node n)
+{
+  decl_node s;
+
+  s = decl_getScope (n);
+  return ((s != NULL) && (decl_isDef (s))) && (((decl_isImp (decl_getMainModule ())) && (s != (decl_lookupDef (decl_getSymName (decl_getMainModule ()))))) || (decl_isModule (decl_getMainModule ())));
+}
+
 static void doVarC (decl_node n)
 {
   decl_node s;
@@ -6319,6 +6328,12 @@ static void doVarC (decl_node n)
       mcPretty_print (doP, (char *) "static", 6);
       mcPretty_setNeedSpace (doP);
     }
+  else if (mcOptions_getExtendedOpaque ())
+    if (isExternal (n))
+      {
+        mcPretty_print (doP, (char *) "extern", 6);
+        mcPretty_setNeedSpace (doP);
+      }
   s = NULL;
   doTypeC (doP, decl_getType (n), &s);
   mcPretty_setNeedSpace (doP);

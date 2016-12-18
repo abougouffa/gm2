@@ -26,6 +26,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #include "input.h"
 #include "m2options.h"
 
+
 #if defined(GM2USEGGC)
 #  include "ggc.h"
 #endif
@@ -47,6 +48,10 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #   define TIMEVAR_POP_LEX   timevar_pop (TV_LEX)
 #endif
 
+
+#ifdef __cplusplus
+#define EXTERN extern "C"
+#endif
 
   /*
    *  m2.flex - provides a lexical analyser for GNU Modula-2
@@ -82,7 +87,6 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
   static int                  isDefinitionModule=FALSE;
   static int                  totalLines=0;
 
-        void m2flex_M2Error           (const char *);
 static  void pushLine                 (void);
 static  void popLine                  (void);
 static  void finishedLine             (void);
@@ -100,14 +104,15 @@ static  void handleColumn             (void);
 static  void pushFunction             (char *function, int module);
 static  void popFunction              (void);
 static  void checkFunction            (void);
-        location_t m2flex_GetLocation (void);
-        int  m2flex_GetColumnNo       (void);
-	int  m2flex_OpenSource        (char *s);
-	int  m2flex_GetLineNo         (void);
-	void m2flex_CloseSource       (void);
-	char *m2flex_GetToken         (void);
-        void _M2_m2flex_init          (void);
-        int  m2flex_GetTotalLines     (void);
+EXTERN  void m2flex_M2Error           (const char *);
+EXTERN  location_t m2flex_GetLocation (void);
+EXTERN  int  m2flex_GetColumnNo       (void);
+EXTERN  int  m2flex_OpenSource        (char *s);
+EXTERN  int  m2flex_GetLineNo         (void);
+EXTERN  void m2flex_CloseSource       (void);
+EXTERN  char *m2flex_GetToken         (void);
+EXTERN  void _M2_m2flex_init          (void);
+EXTERN  int  m2flex_GetTotalLines     (void);
 extern  void  yylex                   (void);
 
 #if !defined(TRUE)
@@ -120,6 +125,7 @@ extern  void  yylex                   (void);
 #define YY_DECL void yylex (void)
 %}
 
+%option nounput
 %x COMMENT COMMENT1 LINE0 LINE1 LINE2
 
 %%
@@ -440,7 +446,7 @@ static void endOfComment (void)
  *                   to the erroneous token.
  */
 
-void m2flex_M2Error (const char *s)
+EXTERN void m2flex_M2Error (const char *s)
 {
   if (currentLine->linebuf != NULL) {
     int i=1;
@@ -629,7 +635,7 @@ static void finishedLine (void)
  *  m2flex_GetToken - returns a new token.
  */
 
-char *m2flex_GetToken (void)
+EXTERN char *m2flex_GetToken (void)
 {
   TIMEVAR_PUSH_LEX;
   if (currentLine == NULL)
@@ -644,7 +650,7 @@ char *m2flex_GetToken (void)
  *  CloseSource - provided for semantic sugar
  */
 
-void m2flex_CloseSource (void)
+EXTERN void m2flex_CloseSource (void)
 {
   END_FILE ();
 }
@@ -654,7 +660,7 @@ void m2flex_CloseSource (void)
  *               all tokens are taken from this file.
  */
 
-int m2flex_OpenSource (char *s)
+EXTERN int m2flex_OpenSource (char *s)
 {
   FILE *f = fopen(s, "r");
 
@@ -684,7 +690,7 @@ int m2flex_OpenSource (char *s)
  *  m2flex_GetLineNo - returns the current line number.
  */
 
-int m2flex_GetLineNo (void)
+EXTERN int m2flex_GetLineNo (void)
 {
   if (currentLine != NULL)
     return currentLine->actualline;
@@ -697,7 +703,7 @@ int m2flex_GetLineNo (void)
  *                       token starts.
  */
 
-int m2flex_GetColumnNo (void)
+EXTERN int m2flex_GetColumnNo (void)
 {
   if (currentLine != NULL)
     return currentLine->column;
@@ -709,7 +715,7 @@ int m2flex_GetColumnNo (void)
  *  m2flex_GetLocation - returns the gcc location_t of the current token.
  */
 
-location_t m2flex_GetLocation (void)
+EXTERN location_t m2flex_GetLocation (void)
 {
   if (currentLine != NULL)
     return currentLine->location;
@@ -721,7 +727,7 @@ location_t m2flex_GetLocation (void)
  *  GetTotalLines - returns the total number of lines parsed.
  */
 
-int m2flex_GetTotalLines (void)
+EXTERN int m2flex_GetTotalLines (void)
 {
   return totalLines;
 }
@@ -736,4 +742,5 @@ int yywrap (void)
   updatepos(); M2LexBuf_AddTok(M2Reserved_eoftok); return 1;
 }
 
-void _M2_m2flex_init (void) {}
+EXTERN void _M2_m2flex_init (void) {}
+EXTERN void _M2_m2flex_finish (void) {}

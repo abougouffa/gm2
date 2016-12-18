@@ -132,11 +132,10 @@ char *ldtoa_ldtoa (long double d, int mode, int ndigits, int *decpt, int *sign)
   }
 }
 
-#if defined(GM2)
+
 /*
  *  GNU Modula-2 hooks
  */
 
 void _M2_ldtoa_init (void) {}
 void _M2_ldtoa_finish (void) {}
-#endif

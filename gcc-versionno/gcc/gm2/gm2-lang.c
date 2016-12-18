@@ -108,7 +108,7 @@ gm2_langhook_init_options_struct (struct gcc_options *opts)
    the C preprocessor.  */
 
 static vec<bool> filename_cpp;
-			  
+
 
 void
 gm2_langhook_init_options (unsigned int decoded_options_count,
@@ -823,4 +823,3 @@ struct lang_hooks lang_hooks = LANG_HOOKS_INITIALIZER;
 
 #include "gt-gm2-gm2-lang.h"
 #include "gtype-gm2.h"
-

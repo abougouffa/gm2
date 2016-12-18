@@ -7731,6 +7731,21 @@ END doTypeNameC ;
 
 
 (*
+   isExternal - returns TRUE if symbol, n, was declared in another module.
+*)
+
+PROCEDURE isExternal (n: node) : BOOLEAN ;
+VAR
+   s: node ;
+BEGIN
+   s := getScope (n) ;
+   RETURN (s # NIL) AND isDef (s) AND
+           ((isImp (getMainModule ()) AND (s # lookupDef (getSymName (getMainModule ())))) OR
+            isModule (getMainModule ()))
+END isExternal ;
+
+
+(*
    doVarC -
 *)
 
@@ -7744,6 +7759,13 @@ BEGIN
    ELSIF (NOT isExported (n)) AND (NOT isLocal (n))
    THEN
       print (doP, "static") ; setNeedSpace (doP)
+   ELSIF getExtendedOpaque ()
+   THEN
+      IF isExternal (n)
+      THEN
+         (* different module declared this variable, therefore it is extern.  *)
+         print (doP, "extern") ; setNeedSpace (doP)
+      END
    END ;
    s := NIL ;
    doTypeC (doP, getType (n), s) ;

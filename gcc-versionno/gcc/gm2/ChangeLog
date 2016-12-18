@@ -1,3 +1,20 @@
+2016-12-18      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  create MC_LIBS and use them during link of
+          cc1gm2.
+ 	* gm2/gm2-gcc/m2linemap.c:  use C style link symbols and correct
+          prototype for StartFile.  Cast to char *.
+	* gm2/gm2-gcc/m2linemap.h:  use __cplusplus rather than __GNUG__.
+          move #include before defining EXTERN.
+	* gm2/gm2-lang.c:  whitespace removal.
+	* gm2/gm2-libs-ch/ldtoa.c:  removed #if surrounding _M2_ldtoa_init
+          and _M2_ldtoa_finish.
+	* gm2/m2.flex:  fixed to ensure external symbols are using C style.
+          Use %option nounput to remove compiler warning.
+	* gm2/mc-boot/Gdecl.c:  rebuilt.
+	* gm2/mc/decl.mod:  bugfix, ensure that variables are declared as extern
+	  when we are using getExtendedOpaque and if the variable is external.
+
 2016-12-17      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/mc-boot/Gdecl.c:  rebuilt.

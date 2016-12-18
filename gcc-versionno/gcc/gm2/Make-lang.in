@@ -503,6 +503,8 @@ MC_ARGS= --olang=c++ \
 
 MC=gm2/boot-bin/mc$(exeext) $(MC_ARGS)
 
+MC_LIBS=gm2/mc-boot-ch/Glibc.o gm2/mc-boot-ch/Gmcrts.o
+
 M2LINK=gm2/boot-bin/mklink$(exeext)
 GCC-VERSION=4.7.4
 GM2_O=
@@ -683,14 +685,12 @@ stage2/gm2/cc1gm2$(exeext): stage1/gm2/cc1gm2$(exeext) gm2/gm2-compiler/m2flex.o
                               $(BACKENDLIBS) $(LIBSTDCXX) -lm
 
 stage1/gm2/cc1gm2$(exeext): $(GM2_DIRS) xgm2$(exeext) gm2/gm2-compiler-boot/m2flex.o \
-                            $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_BOOT)
+                            $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) \
+                            $(GM2_LIBS_BOOT) $(MC_LIBS)
 	$(LINKER) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) gm2/gm2-compiler-boot/m2flex.o \
                             attribs.o \
-                             $(GM2_LIBS_BOOT) \
+                             $(GM2_LIBS_BOOT) $(MC_LIBS) \
                              $(BACKEND) $(LIBS) $(BACKENDLIBS)
-
-#	cp ${HOME}/GM2/build-4.1.2/gcc/stage1/gm2/cc1gm2 .
-#	cp ${HOME}/GM2/build-4.1.2/gcc/stage1/gm2/cc1gm2 $@
 
 # Compiling object files from source files.
 

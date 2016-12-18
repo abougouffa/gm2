@@ -25,22 +25,22 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 
 #if !defined(m2linemap_h)
 
+#include "input.h"
+
 #   define m2linemap_h
 #   if defined(m2linemap_c)
-#      if defined(__GNUG__)
+#      if (__cplusplus)
 #         define EXTERN extern "C"
 #      else
 #         define EXTERN
 #      endif
 #   else
-#      if defined(__GNUG__)
+#      if (__cplusplus)
 #         define EXTERN extern "C"
 #      else
 #         define EXTERN extern
 #      endif
 #   endif
-
-#include "input.h"
 
 EXTERN void m2linemap_StartFile (void *filename, unsigned int linebegin);
 EXTERN void m2linemap_EndFile (void);
