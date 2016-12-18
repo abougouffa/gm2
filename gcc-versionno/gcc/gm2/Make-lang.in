@@ -1919,7 +1919,7 @@ stage1/gm2/gm2l$(exeext): \
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2l_init.o \
               gm2/gm2-tools/m2flex.o \
-              gm2/gm2-compiler-boot/gm2l.o $(GM2_LIBS_BOOT) $(LIBS) -lm
+              gm2/gm2-compiler-boot/gm2l.o $(GM2_LIBS_BOOT) $(MC_LIBS) $(LIBS) -lm
 
 stage1/gm2/gm2lcc$(exeext): \
      gm2/boot-bin/mklink$(exeext) gm2/boot-bin/mc$(exeext) \
@@ -1930,7 +1930,7 @@ stage1/gm2/gm2lcc$(exeext): \
 	$(COMPILER) -c -g gm2/gm2-compiler-boot/gm2lcc_init.c -o gm2/gm2-compiler-boot/gm2lcc_init.o
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2lcc_init.o \
-              gm2/gm2-compiler-boot/gm2lcc.o $(GM2_LIBS_BOOT) $(LIBS) -lm
+              gm2/gm2-compiler-boot/gm2lcc.o $(GM2_LIBS_BOOT) $(MC_LIBS) $(LIBS) -lm
 
 stage1/gm2/gm2lgen$(exeext): \
      gm2/boot-bin/mklink$(exeext) gm2/boot-bin/mc$(exeext) \
@@ -1940,7 +1940,7 @@ stage1/gm2/gm2lgen$(exeext): \
 	$(COMPILER) -c -g gm2/gm2-compiler-boot/gm2lgen_init.c -o gm2/gm2-compiler-boot/gm2lgen_init.o
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2lgen_init.o \
-              gm2/gm2-compiler-boot/gm2lgen.o $(GM2_LIBS_BOOT) $(LIBS) -lm
+              gm2/gm2-compiler-boot/gm2lgen.o $(GM2_LIBS_BOOT) $(MC_LIBS) $(LIBS) -lm
 
 stage1/gm2/gm2lorder$(exeext): \
      gm2/boot-bin/mklink$(exeext) gm2/boot-bin/mc$(exeext) \
@@ -1951,7 +1951,7 @@ stage1/gm2/gm2lorder$(exeext): \
 	$(COMPILER) -c -g gm2/gm2-compiler-boot/gm2lorder_init.c -o gm2/gm2-compiler-boot/gm2lorder_init.o
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2lorder_init.o \
-              gm2/gm2-compiler-boot/gm2lorder.o $(GM2_LIBS_BOOT) $(LIBS) -lm
+              gm2/gm2-compiler-boot/gm2lorder.o $(GM2_LIBS_BOOT) $(MC_LIBS) $(LIBS) -lm
 
 stage1/gm2/gm2m$(exeext): \
      gm2/boot-bin/mklink$(exeext) gm2/boot-bin/mc$(exeext) \
@@ -1964,7 +1964,7 @@ stage1/gm2/gm2m$(exeext): \
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2m_init.o \
               gm2/gm2-tools/m2flex.o \
-              gm2/gm2-compiler-boot/gm2m.o $(GM2_LIBS_BOOT) $(LIBS) -lm
+              gm2/gm2-compiler-boot/gm2m.o $(GM2_LIBS_BOOT) $(MC_LIBS) $(LIBS) -lm
 
 stage2/gm2/gm2l$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2l.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2linit > gm2l.lst

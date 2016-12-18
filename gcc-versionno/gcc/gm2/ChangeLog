@@ -4,7 +4,9 @@
 	* gm2/gm2-lang.c:  updated to reflect gcc-5.2.0 garbage collection
           of trees.
 	* gm2/gm2-lang.h:  removed garbage collection info (moved into
-	  gm2-lang.c).
+          gm2-lang.c).
+	* gm2/Make-lang.in:  add MC_LIBS to the library list when linking
+	  gm2l, gm2lcc, gm2lgen, gm2lorder and gm2m.
 
 2016-12-18      Gaius Mulley <gaius@gnu.org>
 
