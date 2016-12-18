@@ -1,3 +1,11 @@
+2016-12-19      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  build and link gm2l, gm2lcc using g++.
+	* gm2/gm2-lang.c:  updated to reflect gcc-5.2.0 garbage collection
+          of trees.
+	* gm2/gm2-lang.h:  removed garbage collection info (moved into
+	  gm2-lang.c).
+
 2016-12-18      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  create MC_LIBS and use them during link of

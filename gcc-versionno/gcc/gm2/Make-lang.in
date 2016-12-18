@@ -1913,9 +1913,9 @@ stage1/gm2/gm2l$(exeext): \
      gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler-boot/gm2l.o \
      gm2/gm2-tools/m2flex.o \
      $(GM2_LIBS_BOOT)
-	$(M2LINK) -s --exit --name mod_init.c $(srcdir)/gm2/init/gm2linit
+	unset CC ; $(M2LINK) -s --g++ --exit --name mod_init.c $(srcdir)/gm2/init/gm2linit
 	mv mod_init.c gm2/gm2-compiler-boot/gm2l_init.c
-	$(CC) -c -g gm2/gm2-compiler-boot/gm2l_init.c -o gm2/gm2-compiler-boot/gm2l_init.o
+	$(COMPILER) -c -g gm2/gm2-compiler-boot/gm2l_init.c -o gm2/gm2-compiler-boot/gm2l_init.o
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2l_init.o \
               gm2/gm2-tools/m2flex.o \
@@ -1925,9 +1925,9 @@ stage1/gm2/gm2lcc$(exeext): \
      gm2/boot-bin/mklink$(exeext) gm2/boot-bin/mc$(exeext) \
      gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler-boot/gm2lcc.o \
      $(GM2_LIBS_BOOT)
-	$(M2LINK) -s --exit --name mod_init.c $(srcdir)/gm2/init/gm2lccinit
+	unset CC ; $(M2LINK) -s --g++ --exit --name mod_init.c $(srcdir)/gm2/init/gm2lccinit
 	mv mod_init.c gm2/gm2-compiler-boot/gm2lcc_init.c
-	$(CC) -c -g gm2/gm2-compiler-boot/gm2lcc_init.c -o gm2/gm2-compiler-boot/gm2lcc_init.o
+	$(COMPILER) -c -g gm2/gm2-compiler-boot/gm2lcc_init.c -o gm2/gm2-compiler-boot/gm2lcc_init.o
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2lcc_init.o \
               gm2/gm2-compiler-boot/gm2lcc.o $(GM2_LIBS_BOOT) $(LIBS) -lm

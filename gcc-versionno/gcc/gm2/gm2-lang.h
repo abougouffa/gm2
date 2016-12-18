@@ -37,34 +37,6 @@ Boston, MA 02110-1301, USA.  */
 #include "gimple.h"
 
 
-/* Language-dependent contents of an identifier.  */
-
-struct GTY(())
-lang_identifier {
-  struct tree_identifier common;
-};
-
-/* The resulting tree type.  */
-
-union GTY((desc ("TREE_CODE (&%h.generic) == IDENTIFIER_NODE"),
-	   chain_next ("CODE_CONTAINS_STRUCT (TREE_CODE (&%h.generic), TS_COMMON) ? ((union lang_tree_node *) TREE_CHAIN (&%h.generic)) : NULL")))
-lang_tree_node
-{
-  union tree_node GTY((tag ("0"),
-		       desc ("tree_node_structure (&%h)"))) generic;
-  struct lang_identifier GTY((tag ("1"))) identifier;
-};
-
-/* Structure giving our language-specific hooks.  */
-
-struct GTY(()) language_function
-{
-  /* While we are parsing the function, this contains information
-     about the statement-tree that we are building.  */
-/* struct stmt_tree_s stmt_tree; */
-    tree stmt_tree;
-};
-
 EXTERN enum gimplify_status  gm2_gimplify_expr (tree *, tree *, tree *);
 EXTERN bool gm2_mark_addressable (tree);
 EXTERN tree gm2_type_for_size             (unsigned int bits, int unsignedp);

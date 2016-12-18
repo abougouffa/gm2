@@ -50,6 +50,56 @@ static int insideCppArgs = FALSE;
 
 #define EXPR_STMT_EXPR(NODE)  TREE_OPERAND (EXPR_STMT_CHECK (NODE), 0)
 
+/* start of new stuff.  */
+
+/* Language-dependent contents of a type.  */
+
+struct GTY(()) lang_type
+{
+  char dummy;
+};
+
+/* Language-dependent contents of a decl.  */
+
+struct GTY(()) lang_decl
+{
+  char dummy;
+};
+
+/* Language-dependent contents of an identifier.  This must include a
+   tree_identifier.  */
+
+struct GTY(()) lang_identifier
+{
+  struct tree_identifier common;
+};
+
+/* The resulting tree type.  */
+
+union GTY((desc ("TREE_CODE (&%h.generic) == IDENTIFIER_NODE"),
+	   chain_next ("CODE_CONTAINS_STRUCT (TREE_CODE (&%h.generic), TS_COMMON) ? ((union lang_tree_node *) TREE_CHAIN (&%h.generic)) : NULL")))
+lang_tree_node
+{
+  union tree_node GTY((tag ("0"),
+		       desc ("tree_node_structure (&%h)"))) generic;
+  struct lang_identifier GTY((tag ("1"))) identifier;
+};
+
+/* We don't use language_function.  */
+
+struct GTY(()) language_function
+{
+  /* While we are parsing the function, this contains information
+     about the statement-tree that we are building.  */
+  /* struct stmt_tree_s stmt_tree; */
+    tree stmt_tree;
+};
+
+/* end of new stuff.  */
+
+
+
+
 
 /* Language hooks.  */
 
