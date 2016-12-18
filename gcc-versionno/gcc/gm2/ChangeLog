@@ -9,7 +9,8 @@
           gm2l, gm2lcc, gm2lgen, gm2lorder and gm2m.
 	* gm2/gm2-gcc/gcc-consolidation.h:  add conditional compilation
           to stop inclusion of gcc compiler internals if we are building
-	  a gm2tool program.
+          a gm2tool program.
+	* gm2/Make-lang.in:  remove h2def from being built.
 
 2016-12-18      Gaius Mulley <gaius@gnu.org>
 

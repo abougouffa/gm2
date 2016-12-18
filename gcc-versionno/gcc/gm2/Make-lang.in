@@ -66,7 +66,7 @@ XGCC = ./xgcc -B./
 # Define the name of target independent tools to be installed in $(bindir)
 # Names are subject to changes
 
-GM2_TARGET_INDEPENDENT_BIN_TOOLS = stage1/gm2/gm2m$(exeext) stage1/gm2/h2def$(exeext)
+GM2_TARGET_INDEPENDENT_BIN_TOOLS = stage1/gm2/gm2m$(exeext) # stage1/gm2/h2def$(exeext)
 
 GM2_LINK_TOOLS = gm2lcc$(exeext) gm2l$(exeext) gm2lgen$(exeext) gm2lorder$(exeext)
 
