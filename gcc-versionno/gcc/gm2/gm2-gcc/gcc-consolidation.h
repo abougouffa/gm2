@@ -49,6 +49,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include <stdio.h>
 
+#if !defined(GM2TOOLS)
 /*
  *  utilize some of the C build routines
  */
@@ -89,3 +90,5 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "ipa-ref.h"
 #include "cgraph.h"
 #include "stmt.h"
+
+#endif
