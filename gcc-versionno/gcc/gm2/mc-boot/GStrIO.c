@@ -89,32 +89,35 @@ void StrIO_ReadString (char *a, unsigned int _a_high)
           n -= 1;
         }
     else if (n <= high)
-      if ((ch == ASCII_cr) || (ch == ASCII_lf))
-        {
-          a[n] = ASCII_nul;
-          n += 1;
-        }
-      else if (ch == ASCII_ff)
-        {
-          a[0] = ch;
-          if (high > 0)
-            a[1] = ASCII_nul;
-          ch = ASCII_cr;
-        }
-      else if (ch >= ' ')
-        {
-          Echo (ch);
-          a[n] = ch;
-          n += 1;
-        }
-      else if (ch == ASCII_eof)
-        {
-          a[n] = ch;
-          n += 1;
-          ch = ASCII_cr;
-          if (n <= high)
+      {
+        /* avoid dangling else.  */
+        if ((ch == ASCII_cr) || (ch == ASCII_lf))
+          {
             a[n] = ASCII_nul;
-        }
+            n += 1;
+          }
+        else if (ch == ASCII_ff)
+          {
+            a[0] = ch;
+            if (high > 0)
+              a[1] = ASCII_nul;
+            ch = ASCII_cr;
+          }
+        else if (ch >= ' ')
+          {
+            Echo (ch);
+            a[n] = ch;
+            n += 1;
+          }
+        else if (ch == ASCII_eof)
+          {
+            a[n] = ch;
+            n += 1;
+            ch = ASCII_cr;
+            if (n <= high)
+              a[n] = ASCII_nul;
+          }
+      }
     else if (ch != ASCII_cr)
       Echo (ASCII_bel);
   } while (! ((ch == ASCII_cr) || (ch == ASCII_lf)));

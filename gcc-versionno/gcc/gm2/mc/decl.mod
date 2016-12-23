@@ -8707,6 +8707,57 @@ END noIfElse ;
 
 
 (*
+   noIfElseChained - returns TRUE if, n, is an IF statement which
+                     has no associated ELSE statement.  An IF with an
+                     ELSIF is also checked for no ELSE and will result
+                     in a return value of TRUE.
+*)
+
+PROCEDURE noIfElseChained (n: node) : BOOLEAN ;
+VAR
+   e: node ;
+BEGIN
+   IF n # NIL
+   THEN
+      IF isIf (n)
+      THEN
+         IF n^.ifF.else # NIL
+         THEN
+            (* we do have an else, return false.  *)
+            RETURN FALSE
+         ELSIF n^.ifF.elsif = NIL
+         THEN
+            (* neither else or elsif.  *)
+            RETURN TRUE
+         ELSE
+            (* test elsif for lack of else.  *)
+            e := n^.ifF.elsif ;
+	    assert (isElsif (e)) ;
+            RETURN noIfElseChained (e)
+         END
+      ELSIF isElsif (n)
+      THEN
+         IF n^.elsifF.else # NIL
+         THEN
+            (* we do have an else, return false.  *)
+            RETURN FALSE
+         ELSIF n^.elsifF.elsif = NIL
+         THEN
+            (* neither else or elsif.  *)
+            RETURN TRUE
+         ELSE
+            (* test elsif for lack of else.  *)
+            e := n^.elsifF.elsif ;
+	    assert (isElsif (e)) ;
+            RETURN noIfElseChained (e)
+         END
+      END
+   END ;
+   RETURN FALSE
+END noIfElseChained ;
+
+
+(*
    hasIfElse -
 *)
 
@@ -8757,7 +8808,7 @@ BEGIN
          ELSIF isSingleStatement (n)
          THEN
             n := GetIndice (n^.stmtF.statements, 1) ;
-	    RETURN noIfElse (n)
+	    RETURN noIfElseChained (n)
          END
       END
    END ;

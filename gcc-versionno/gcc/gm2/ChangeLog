@@ -2,7 +2,11 @@
 
 	* gm2/gm2-gcc/m2statement.c:  remove make_decl_rtl and use
           allocate_struct_function instead, assign DECL_SAVED_TREE (fndecl)
-	  to NULL_TREE.  Fixes to allow functions to be declared.a
+          to NULL_TREE.  Fixes to allow functions to be declared.
+	* gm2/mc-boot/GStrIO.c:  rebuilt.
+	* gm2/mc-boot/Gdecl.c:  rebuilt.
+	* gm2/mc/decl.mod:  noIfElseChained (New procedure).  hasIfAndNoElse
+	  use noIfElseChained to detect another dangling else bug.
 
 2016-12-19      Gaius Mulley <gaius@gnu.org>
 

@@ -1758,6 +1758,7 @@ static unsigned int containsStatement (decl_node s);
 static void doCompoundStmt (mcPretty_pretty p, decl_node s);
 static void doElsifC (mcPretty_pretty p, decl_node s);
 static unsigned int noIfElse (decl_node n);
+static unsigned int noIfElseChained (decl_node n);
 static unsigned int hasIfElse (decl_node n);
 static unsigned int isIfElse (decl_node n);
 static unsigned int hasIfAndNoElse (decl_node n);
@@ -7014,6 +7015,39 @@ static unsigned int noIfElse (decl_node n)
   return (((n != NULL) && (decl_isIf (n))) && (n->ifF.else_ == NULL)) && (n->ifF.elsif == NULL);
 }
 
+static unsigned int noIfElseChained (decl_node n)
+{
+  decl_node e;
+
+  if (n != NULL)
+    {
+      /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      if (decl_isIf (n))
+        if (n->ifF.else_ != NULL)
+          return FALSE;
+        else if (n->ifF.elsif == NULL)
+          return TRUE;
+        else
+          {
+            e = n->ifF.elsif;
+            mcDebug_assert (decl_isElsif (e));
+            return noIfElseChained (e);
+          }
+      else if (decl_isElsif (n))
+        if (n->elsifF.else_ != NULL)
+          return FALSE;
+        else if (n->elsifF.elsif == NULL)
+          return TRUE;
+        else
+          {
+            e = n->elsifF.elsif;
+            mcDebug_assert (decl_isElsif (e));
+            return noIfElseChained (e);
+          }
+    }
+  return FALSE;
+}
+
 static unsigned int hasIfElse (decl_node n)
 {
   if (n != NULL)
@@ -7047,7 +7081,7 @@ static unsigned int hasIfAndNoElse (decl_node n)
         else if (isSingleStatement (n))
           {
             n = Indexing_GetIndice (n->stmtF.statements, 1);
-            return noIfElse (n);
+            return noIfElseChained (n);
           }
       }
   return FALSE;
