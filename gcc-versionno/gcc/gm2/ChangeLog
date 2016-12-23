@@ -1,3 +1,9 @@
+2016-12-23      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-gcc/m2statement.c:  remove make_decl_rtl and use
+          allocate_struct_function instead, assign DECL_SAVED_TREE (fndecl)
+	  to NULL_TREE.  Fixes to allow functions to be declared.a
+
 2016-12-19      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  build and link gm2l, gm2lcc using g++.

@@ -71,7 +71,18 @@ m2statement_BuildStartFunctionCode (tree fndecl, int isexported, int isinline)
   current_function_decl = fndecl;
   m2block_pushFunctionScope (fndecl);
 
+#if 0
   make_decl_rtl (current_function_decl);
+#endif
+
+  /* new change (gaius).   */
+
+  /* Initialize the RTL code for the function.  */
+  allocate_struct_function (fndecl, false);
+  /* Begin the statement tree for this function.  */
+  /* DECL_SAVED_TREE (fndecl) = m2block_begin_statement_list ();  */
+  DECL_SAVED_TREE (fndecl) = NULL_TREE;
+  /* end of new change (gaius).  */
 
   /* set the context of these parameters to this function */
   for (param_decl = DECL_ARGUMENTS (fndecl);
@@ -85,8 +96,9 @@ m2statement_BuildStartFunctionCode (tree fndecl, int isexported, int isinline)
   TREE_ADDRESSABLE (fndecl) = 1;  /* (--fixme-- not sure about this) */
   DECL_DECLARED_INLINE_P (fndecl) = 0; /* isinline; */
 
+#if 0
   init_function_start (fndecl);
-  
+#endif
   // printf("starting scope %s\n", IDENTIFIER_POINTER(DECL_NAME (fndecl)));
 }
 
@@ -98,11 +110,11 @@ gm2_gimplify_function_node (tree fndecl)
      so that items like VLA sizes are expanded properly in the context of the
      correct function.  */
   struct cgraph_node *cgn;
-  
+
   dump_function (TDI_original, fndecl);
   gimplify_function_tree (fndecl);
   dump_function (TDI_generic, fndecl);
-  
+
   cgn = cgraph_node::get (fndecl);
   for (cgn = cgn->nested; cgn; cgn = cgn->next_nested)
     gm2_gimplify_function_node (cgn->decl);
@@ -423,7 +435,7 @@ m2statement_BuildFunctValue (location_t location, tree value)
 
   m2assert_AssertLocation (location);
   ASSERT_CONDITION (last_function != NULL_TREE);  /* no value available, possible used before */
-  
+
   TREE_SIDE_EFFECTS (assign) = TRUE;
   TREE_USED (assign) = TRUE;
   add_stmt (location, assign);
@@ -524,7 +536,7 @@ m2statement_GetCurrentFunction (void)
  */
 
 void
-m2statement_BuildAsm (location_t location, 
+m2statement_BuildAsm (location_t location,
 		      tree instr, int isVolatile, int isSimple,
 		      tree inputs, tree outputs, tree trash, tree labels)
 {
@@ -964,7 +976,7 @@ m2statement_DoJump (location_t location, tree exp, char *falselabel, char *truel
 
   if ((falselabel != NULL) && (truelabel == NULL)) {
     m2block_push_statement_list (m2block_begin_statement_list ());
-    
+
     m2statement_BuildGoto (location, falselabel);
     c = build3 (COND_EXPR, void_type_node, exp,
                 m2block_end_statement_list (m2block_pop_statement_list ()),
