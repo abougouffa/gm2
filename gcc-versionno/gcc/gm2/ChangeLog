@@ -1,3 +1,19 @@
+2016-12-24      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.def:  GetHighFromUnbounded add location
+          as the first parameter.
+	* gm2/gm2-compiler/M2GenGCC.mod:  removed all forward declarations.
+          Changed AddStatement to include a location first parameter.
+          Change GetHighFromUnbounded to include a location first parameter.
+          Change GetParamAddress to include a location first parameter.
+          Change GetAddressOfUnbounded to include a location first parameter.
+          Change BuildComponentRef to include a location first parameter.
+          Removed commented code.
+	* gm2/gm2-compiler/M2Range.mod:  changed all calls to the above
+          to include the location parameter.
+	* gm2-gcc/m2type.def:  changed AddStatement to include a location
+	  first parameter.
+
 2016-12-23      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-gcc/m2statement.c:  remove make_decl_rtl and use

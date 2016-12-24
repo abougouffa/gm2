@@ -448,7 +448,7 @@ PROCEDURE BuildArray (type: Tree; array: Tree; index: Tree; lowIndice: Tree) : T
                        BuildComponentRef on the penultimate field.
 *)
 
-PROCEDURE BuildComponentRef (record: Tree; field: Tree) : Tree ;
+PROCEDURE BuildComponentRef (location: location_t; record: Tree; field: Tree) : Tree ;
 
 
 (*
@@ -496,7 +496,7 @@ PROCEDURE AreRealOrComplexConstantsEqual (e1: Tree; e2: Tree) : BOOLEAN ;
     DetermineSign - returns -1 if e<0
                              0 if e==0
                              1 if e>0
-  
+
                     an unsigned constant will never return -1
 *)
 

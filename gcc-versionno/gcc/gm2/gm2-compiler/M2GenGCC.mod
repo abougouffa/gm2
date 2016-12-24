@@ -332,141 +332,6 @@ VAR
 ------------------------------------------------------------------------------
 *)
 
-(* To keep p2c happy we declare forward procedures *)
-
-(* %%%FORWARD%%%
-PROCEDURE CodeInitAddress (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldBuiltinTypeInfo (tokenno: CARDINAL; p: WalkAction;
-                               quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CheckStop (q: CARDINAL) ; FORWARD ;
-PROCEDURE stop ; FORWARD ;
-PROCEDURE CodeSaveException (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeRestoreException (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeError (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeRange (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldRange (tokenno: CARDINAL; p: WalkAction;
-                     q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE StringToChar (t: Tree; type, str: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE LValueToGenericPtrOrConvert (sym: CARDINAL; type: Tree) : Tree ; FORWARD ;
-PROCEDURE ConvertForComparison (tokenno: CARDINAL; sym, with: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE CodeInitStart (q: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN); FORWARD ;
-PROCEDURE CodeInitEnd (q: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN); FORWARD ;
-PROCEDURE CodeStartModFile (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeStartDefFile (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeEndFile (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeStatement (q: CARDINAL) ; FORWARD ;
-PROCEDURE CodeLineNumber (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeNewLocalVar (quad: CARDINAL; tokenno, PreviousScope, CurrentProcedure: CARDINAL); FORWARD ;
-PROCEDURE CodeKillLocalVar (quad: CARDINAL; tokenno, op2, CurrentProcedure: CARDINAL); FORWARD ;
-PROCEDURE CodeReturnValue (quad: CARDINAL; res, op2, Procedure: CARDINAL); FORWARD ;
-PROCEDURE CodeReturn (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeProcedureScope (quad: CARDINAL; LineNo, PreviousScope, CurrentProcedure: CARDINAL); FORWARD ;
-PROCEDURE CodeTry (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeCatchBegin (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeCatchEnd (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeRetry (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldBecomes (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeBecomes (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldAdd (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeAdd (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldSub (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeSub (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldMult (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeMult (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldDivTrunc (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeDivTrunc (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldModTrunc (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeModTrunc (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldDivFloor (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeDivFloor (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldModFloor (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeModFloor (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldBitRange (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldBit (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeBit (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeGoto (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CheckReferenced (quad: CARDINAL; op: QuadOperator) ; FORWARD ;
-PROCEDURE FoldSetOr (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldSetAnd (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeSymmetricDifference (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldSymmetricDifference (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldNegate (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeNegate (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldSize (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeSize (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeAddr (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldStandardFunction (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeStandardFunction (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeIfLess (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeIfLessEqu (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeIfGre (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeIfGreEqu (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeIfEqu (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeIfNotEqu (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeIfNotIn (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeIfIn (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeIndrX (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeXIndr (quad: CARDINAL; op1, type, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeCall (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeDirectCall (tokenno: CARDINAL; procedure: CARDINAL); FORWARD ;
-PROCEDURE CodeIndirectCall (tokenno: CARDINAL; ProcVar: CARDINAL); FORWARD ;
-PROCEDURE CodeParam (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeFunctValue (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeInline (location: location_t; tokenno: CARDINAL; quad: CARDINAL; op1, op2, GnuAsm: CARDINAL); FORWARD ;
-PROCEDURE CodeOffset (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeRecordField (quad: CARDINAL; op1, record, field: CARDINAL); FORWARD ;
-PROCEDURE FoldOffset (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldRecordField (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL; op1, record, field: CARDINAL); FORWARD ;
-PROCEDURE CodeHigh (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldHigh (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL; op1, dim, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeUnbounded (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeArray (quad: CARDINAL; res, index, array: CARDINAL) ; FORWARD ;
-PROCEDURE FoldElementSize (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeElementSize (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldCoerce (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeCoerce (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldCast (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeCast (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldConvert (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeConvert (quad: CARDINAL; lhs, type, rhs: CARDINAL); FORWARD ;
-PROCEDURE CodeMath (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeSetShift (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeSetRotate (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeSetLogicalDifference (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeSetOr (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeSetAnd (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeSetSymmetricDifference (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeIncl (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeExcl (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldIncl (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldExcl (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldIfIn (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldIfNotIn (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldBuiltinConst (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE ResolveHigh (tokenno: CARDINAL; dim, operand: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE MakeCopyAndUse (tokenno: CARDINAL; proc, param, i: CARDINAL) ; FORWARD ;
-PROCEDURE FoldIfLess (tokenno: CARDINAL; p: WalkAction;
-                      quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldSetShift (tokenno: CARDINAL; p: WalkAction;
-                        quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldSetRotate (tokenno: CARDINAL; p: WalkAction;
-                         quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldBuiltinFunction (tokenno: CARDINAL; p: WalkAction;
-                               q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldMakeAdr (tokenno: CARDINAL; p: WalkAction;
-                       q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeBuiltinFunction (q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeMakeAdr (q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeModuleScope (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeSavePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeRestorePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CreateLabelProcedureN (proc: CARDINAL; leader: ARRAY OF CHAR; unboundedCount, n: CARDINAL) : String ; FORWARD ;
-PROCEDURE CreateLabelName (q: CARDINAL) : String ; FORWARD ;
-PROCEDURE CodeFinallyStart (quad: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN) ; FORWARD ;
-PROCEDURE CodeFinallyEnd (quad: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN) ; FORWARD ;
-PROCEDURE CodeThrow (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-   %%%FORWARD%%% *)
-
 
 (*
    IsExportedGcc - returns TRUE if this symbol should be (as far as the middle/backend of GCC)
@@ -1037,7 +902,8 @@ BEGIN
    (* would like to test whether this position is in the same basicblock
       as any known entry point.  If so we could emit an error message.
    *)
-   AddStatement(CodeErrorCheck(op3, GetCurrentScopeDescription()))
+   AddStatement(TokenToLocation(CurrentQuadToken),
+                CodeErrorCheck(op3, GetCurrentScopeDescription()))
 END CodeError ;
 
 
@@ -1288,7 +1154,7 @@ END CodeFinallyEnd ;
    GetAddressOfUnbounded - returns the address of the unbounded array contents.
 *)
 
-PROCEDURE GetAddressOfUnbounded (param: CARDINAL) : Tree ;
+PROCEDURE GetAddressOfUnbounded (location: location_t; param: CARDINAL) : Tree ;
 VAR
    UnboundedType: CARDINAL ;
 BEGIN
@@ -1297,7 +1163,7 @@ BEGIN
 
    RETURN( BuildConvert(TokenToLocation(GetDeclaredMod(param)),
                         GetPointerType(),
-                        BuildComponentRef(Mod2Gcc(param), Mod2Gcc(GetUnboundedAddressOffset(UnboundedType))),
+                        BuildComponentRef(location, Mod2Gcc(param), Mod2Gcc(GetUnboundedAddressOffset(UnboundedType))),
                         FALSE) )
 END GetAddressOfUnbounded ;
 
@@ -1307,7 +1173,7 @@ END GetAddressOfUnbounded ;
                           param.HIGH.
 *)
 
-PROCEDURE GetHighFromUnbounded (dim, param: CARDINAL) : Tree ;
+PROCEDURE GetHighFromUnbounded (location: location_t; dim, param: CARDINAL) : Tree ;
 VAR
    UnboundedType,
    ArrayType    : CARDINAL ;
@@ -1316,7 +1182,7 @@ BEGIN
    Assert(IsUnbounded(UnboundedType)) ;
    ArrayType := GetType(UnboundedType) ;
 
-   RETURN( BuildComponentRef(Mod2Gcc(param), Mod2Gcc(GetUnboundedHighOffset(UnboundedType, dim))) )
+   RETURN( BuildComponentRef(location, Mod2Gcc(param), Mod2Gcc(GetUnboundedHighOffset(UnboundedType, dim))) )
 END GetHighFromUnbounded ;
 
 
@@ -1346,7 +1212,7 @@ BEGIN
    WHILE i<=n DO
       t := BuildMult(location,
                      BuildAdd(location,
-                              GetHighFromUnbounded(i, param),
+                              GetHighFromUnbounded(location, i, param),
                               GetCardinalOne(location),
                               FALSE),
                      t, FALSE) ;
@@ -1431,7 +1297,7 @@ BEGIN
    Assert(IsUnbounded(UnboundedType)) ;
 
    High := GetSizeOfHighFromUnbounded(tokenno, param) ;
-   Addr := GetAddressOfUnbounded(param) ;
+   Addr := GetAddressOfUnbounded(location, param) ;
    Type := Mod2Gcc(GetType(param)) ;
 
    NewArray := MaybeDebugBuiltinAlloca(location, High) ;
@@ -1440,7 +1306,7 @@ BEGIN
    (* now assign  param.Addr := ADR(NewArray) *)
 
    t := BuildAssignmentTree(location,
-                            BuildComponentRef(Mod2Gcc(param), Mod2Gcc(GetUnboundedAddressOffset(UnboundedType))),
+                            BuildComponentRef(location, Mod2Gcc(param), Mod2Gcc(GetUnboundedAddressOffset(UnboundedType))),
                             NewArray)
 END MakeCopyAndUse ;
 
@@ -1449,7 +1315,7 @@ END MakeCopyAndUse ;
    GetParamAddress - returns the address of parameter, param.
 *)
 
-PROCEDURE GetParamAddress (proc, param: CARDINAL) : Tree ;
+PROCEDURE GetParamAddress (location: location_t; proc, param: CARDINAL) : Tree ;
 VAR
    sym,
    type: CARDINAL ;
@@ -1460,7 +1326,7 @@ BEGIN
       sym := GetLocalSym(proc, GetSymName(param)) ;
       IF IsUnbounded(type)
       THEN
-         RETURN( GetAddressOfUnbounded(sym) )
+         RETURN( GetAddressOfUnbounded(location, sym) )
       ELSE
          Assert(GetMode(sym)=LeftValue) ;
          RETURN( Mod2Gcc(sym) )
@@ -1508,77 +1374,6 @@ BEGIN
       END
    END
 END IsUnboundedWrittenTo ;
-
-
-(*
-
-PROCEDURE BuildCascadedIfThenElsif (mustCheck: List;
-                                    proc, param, i: CARDINAL) ;
-VAR
-   tl, tr: Tree ;
-   n, j  : CARDINAL ;
-   s     : String ;
-BEGIN
-   n := NoOfItemsInList(mustCheck) ;
-   (* want a sequence of if then elsif statements *)
-   IF n>0
-   THEN
-      INC(UnboundedLabelNo) ;
-      j := 1 ;
-      tr := GetAddressOfUnbounded(param) ;
-      WHILE j<=n DO
-         IF j>1
-         THEN
-            s := CreateLabelProcedureN(proc, UnboundedLabelNo, j) ;
-            IF CascadedDebugging
-            THEN
-               printf1('label %s\n', s)
-            END ;
-            DeclareLabel(string(s))
-         END ;
-         tl := GetParamAddress(proc, GetItemFromList(mustCheck, j)) ;
-         s := InitStringCharStar(KeyToCharStar(GetSymName(GetItemFromList(mustCheck, j)))) ;
-         IF CascadedDebugging
-         THEN
-            printf1('if %s # ', s)
-         END ;
-         s := InitStringCharStar(KeyToCharStar(GetSymName(param))) ;
-         IF CascadedDebugging
-         THEN
-            printf1('%s', s)
-         END ;
-         s := CreateLabelProcedureN(proc, UnboundedLabelNo, j+1) ;
-         IF CascadedDebugging
-         THEN
-            printf1(' then goto %s\n', s)
-         END ;
-         DoJump(BuildNotEqualTo(tl, tr), NIL, string(s)) ;
-         s := InitStringCharStar(KeyToCharStar(GetSymName(param))) ;
-         IF CascadedDebugging
-         THEN
-            printf1('make copy of %s\n', s)
-         END ;
-         MakeCopyAndUse(proc, param, i) ;
-         IF j<n
-         THEN
-            s := CreateLabelProcedureN(proc, UnboundedLabelNo, n+1) ;
-            IF CascadedDebugging
-            THEN
-               printf1('goto exit %s\n', s)
-            END ;
-            BuildGoto(string(s))
-         END ;
-         INC(j)
-      END ;
-      s := CreateLabelProcedureN(proc, UnboundedLabelNo, n+1) ;
-      IF CascadedDebugging
-      THEN
-         printf1('label %s\n', s)
-      END ;
-      DeclareLabel(string(s)) ;
-   END
-END BuildCascadedIfThenElsif ;
-*)
 
 
 (*
@@ -1653,7 +1448,7 @@ BEGIN
    THEN
       INC(UnboundedLabelNo) ;
       j := 1 ;
-      ta := GetAddressOfUnbounded(param) ;
+      ta := GetAddressOfUnbounded(location, param) ;
       tb := BuildConvert(TokenToLocation(tokenno),
                          GetPointerType(),
                          BuildAddAddress(location, ta, GetSizeOfHighFromUnbounded(tokenno, param)),
@@ -1668,7 +1463,7 @@ BEGIN
             END ;
             DeclareLabel(location, string(nLabel)) ;
          END ;
-         tc := GetParamAddress(proc, GetItemFromList(mustCheck, j)) ;
+         tc := GetParamAddress(location, proc, GetItemFromList(mustCheck, j)) ;
          td := BuildConvert(TokenToLocation(tokenno),
                             GetPointerType(),
                             BuildAddAddress(location, tc, GetParamSize(tokenno, param)),
@@ -2027,7 +1822,7 @@ BEGIN
    END ;
    IF GetType(procedure)=NulSym
    THEN
-      AddStatement(tree)
+      AddStatement(location, tree)
    ELSE
       (* leave tree alone - as it will be picked up when processing FunctValue *)
    END
@@ -2780,12 +2575,12 @@ BEGIN
    location := TokenToLocation(QuadToTokenNo(quad)) ;
    IF op3=NulSym
    THEN
-      AddStatement(BuildThrow(location, Tree(NIL)))
+      AddStatement(location, BuildThrow(location, Tree(NIL)))
    ELSE
       DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant and declares it *)
-      AddStatement(BuildThrow(location, BuildConvert(location,
-                                                     GetIntegerType(),
-                                                     Mod2Gcc(op3), FALSE)))
+      AddStatement(location, BuildThrow(location, BuildConvert(location,
+                                                               GetIntegerType(),
+                                                               Mod2Gcc(op3), FALSE)))
    END
 END CodeThrow ;
 
@@ -2815,7 +2610,7 @@ VAR
 BEGIN
    location := TokenToLocation(QuadToTokenNo(quad)) ;
    tryBlock := BuildCatchEnd(location, handlerBlock, tryBlock) ;
-   AddStatement(tryBlock)
+   AddStatement(location, tryBlock)
 END CodeCatchEnd ;
 
 
@@ -3159,7 +2954,8 @@ BEGIN
    ELSIF IsConstString(op3) AND (SkipTypeAndSubrange(GetType(op1))#Char)
    THEN
       DoCopyString(tokenno, t, op3t, SkipType(GetType(op1)), op3) ;
-      AddStatement(MaybeDebugBuiltinMemcpy(location,
+      AddStatement(location,
+                   MaybeDebugBuiltinMemcpy(location,
                                            BuildAddr(location, Mod2Gcc(op1), FALSE),
                                            BuildAddr(location, op3t, FALSE),
                                            t))
@@ -3172,7 +2968,8 @@ BEGIN
             IsGenericSystemType(SkipType(GetType(GetType(op3))))))) AND
          (NOT IsConstant(op3))
       THEN
-         AddStatement(MaybeDebugBuiltinMemcpy(location,
+         AddStatement(location,
+                      MaybeDebugBuiltinMemcpy(location,
                                               BuildAddr(location, Mod2Gcc(op1), FALSE),
                                               BuildAddr(location, Mod2Gcc(op3), FALSE),
                                               BuildSize(location, Mod2Gcc(op1), FALSE)))
@@ -5147,7 +4944,7 @@ BEGIN
          (* fine, we can take advantage of this and fold constants *)
          IF IsConst(op1)
          THEN
-            t := BuildComponentRef(Mod2Gcc(record), Mod2Gcc(field)) ;
+            t := BuildComponentRef(location, Mod2Gcc(record), Mod2Gcc(field)) ;
             IF NOT IsValueSolved(op1)
             THEN
                PushIntegerTree(t) ;
@@ -5193,10 +4990,11 @@ BEGIN
       THEN
          IF GetMode(record)=LeftValue
          THEN
-            t := BuildComponentRef(BuildIndirect(location, Mod2Gcc(record), Mod2Gcc(recordType)),
+            t := BuildComponentRef(location,
+                                   BuildIndirect(location, Mod2Gcc(record), Mod2Gcc(recordType)),
                                    Mod2Gcc(field))
          ELSE
-            t := BuildComponentRef(Mod2Gcc(record), Mod2Gcc(field))
+            t := BuildComponentRef(location, Mod2Gcc(record), Mod2Gcc(field))
          END ;
          AddModGcc(op1, t)
       ELSE
@@ -5328,7 +5126,7 @@ BEGIN
       RETURN( BuildHighFromArray(tokenno, dim, operand) )
    ELSIF IsUnbounded(Type)
    THEN
-      RETURN( GetHighFromUnbounded(dim, operand) )
+      RETURN( GetHighFromUnbounded(location, dim, operand) )
    ELSE
       MetaErrorT1(tokenno,
                   'base procedure HIGH expects a variable of type array or a constant string or CHAR as its parameter, rather than {%1tad}',
@@ -5432,7 +5230,7 @@ BEGIN
       t := BuildAssignmentTree(location, Mod2Gcc(op1), BuildAddr(location, Mod2Gcc(op3), TRUE))
    ELSIF IsUnbounded(GetType(op3))
    THEN
-      Addr := BuildComponentRef(Mod2Gcc(op3), Mod2Gcc(GetUnboundedAddressOffset(GetType(op3)))) ;
+      Addr := BuildComponentRef(location, Mod2Gcc(op3), Mod2Gcc(GetUnboundedAddressOffset(GetType(op3)))) ;
       t := BuildAssignmentTree(location, Mod2Gcc(op1), Addr)
    ELSIF GetMode(op3)=RightValue
    THEN
@@ -5825,7 +5623,8 @@ BEGIN
             t := BuildAssignmentTree(location, Mod2Gcc(op1), Mod2Gcc(op3))
          ELSE
             (* does not work t := BuildCoerce(Mod2Gcc(op1), Mod2Gcc(op2), Mod2Gcc(op3)) *)
-            AddStatement(MaybeDebugBuiltinMemcpy(location,
+            AddStatement(location,
+                         MaybeDebugBuiltinMemcpy(location,
                                                  BuildAddr(location, Mod2Gcc(op1), FALSE),
                                                  BuildAddr(location, Mod2Gcc(op3), FALSE),
                                                  FindSize(tokenno, op2)))
@@ -6970,7 +6769,8 @@ BEGIN
    ELSIF IsConstString(op3) AND (SkipTypeAndSubrange(GetType(op1))#Char)
    THEN
       DoCopyString(tokenno, t, op3t, type, op3) ;
-      AddStatement(MaybeDebugBuiltinMemcpy(location, Mod2Gcc(op1), BuildAddr(location, op3t, FALSE), t))
+      AddStatement(location,
+                   MaybeDebugBuiltinMemcpy(location, Mod2Gcc(op1), BuildAddr(location, op3t, FALSE), t))
    ELSE
       t := BuildAssignmentTree(location,
                                BuildIndirect(location, Mod2Gcc(op1), Mod2Gcc(type)),

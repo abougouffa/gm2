@@ -163,10 +163,10 @@ PROCEDURE GetMinFrom (location: location_t; type: Tree) : Tree ;
                      Checks to see whether the type name has already been declared as a
                      default type and if so it returns this declaration. Otherwise it
                      declares the type. In Modula-2 this is equivalent to:
-                     
+
                      TYPE
                         name = type ;
-                     
+
                      We need this function as the initialization to gccgm2.c will
                      declare C default types and _some_ M2 default types.
 *)
@@ -185,7 +185,7 @@ PROCEDURE BuildEndType (location: location_t; type: Tree) : Tree ;
     BuildStartType - given a, type, with a, name, return a GCC declaration of this type.
                      TYPE
                         name = foo ;
-  
+
                      the type, foo, maybe a partially created type (which has
                      yet to be 'gm2_finish_decl'ed.
 *)
@@ -845,7 +845,7 @@ PROCEDURE BuildNumberOfArrayElements (location: location_t; arrayType: Tree) : T
     AddStatement - maps onto add_stmt.
 *)
 
-PROCEDURE AddStatement (t: Tree) ;
+PROCEDURE AddStatement (location: location_t; t: Tree) ;
 
 
 (*
