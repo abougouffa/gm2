@@ -1,3 +1,16 @@
+2016-12-29      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Code.mod:  remove spaces and use StartGlobalContext
+          and EndGlobalContext instead of InitGlobalContext.
+	* gm2/gm2-gcc/m2top.c:  implement dummy procedures StartGlobalContext
+          and EndGlobalContext.
+	* gm2/gm2-gcc/m2top.def:  declare StartGlobalContext and
+	  EndGlobalContext.
+	* gm2/gm2-gcc/m2top.h:  declare StartGlobalContext and EndGlobalContext
+          in the header.
+	* gm2/gm2-lang.c:  (gm2_langhook_write_globals)  write all global
+	  declarations and call finalize_compilation_unit.
+
 2016-12-24      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.def:  GetHighFromUnbounded add location

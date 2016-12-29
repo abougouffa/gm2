@@ -2,17 +2,24 @@ DEFINITION MODULE m2top ;
 
 
 (*
-    SetFlagUnitAtATime - sets GCC flag_unit_at_a_time to b.
+   SetFlagUnitAtATime - sets GCC flag_unit_at_a_time to b.
 *)
 
 PROCEDURE SetFlagUnitAtATime (b: BOOLEAN) ;
 
 
 (*
-    InitGlobalContext - initializes a dummy function for the global scope.
+   StartGlobalContext - initializes a dummy function for the global scope.
 *)
 
-PROCEDURE InitGlobalContext ;
+PROCEDURE StartGlobalContext ;
+
+
+(*
+   EndGlobalContext - ends the dummy function for the global scope.
+*)
+
+PROCEDURE EndGlobalContext ;
 
 
 END m2top.

@@ -57,7 +57,7 @@ FROM M2GCCDeclare IMPORT FoldConstants, StartDeclareScope,
                          DeclareModuleVariables, MarkExported ;
 
 FROM M2Scope IMPORT ScopeBlock, InitScopeBlock, KillScopeBlock, ForeachScopeBlockDo ;
-FROM m2top IMPORT InitGlobalContext, SetFlagUnitAtATime ;
+FROM m2top IMPORT StartGlobalContext, EndGlobalContext, SetFlagUnitAtATime ;
 FROM M2Error IMPORT FlushErrors, FlushWarnings ;
 FROM M2Swig IMPORT GenerateSwigFile ;
 FROM m2flex IMPORT GetTotalLines ;
@@ -157,7 +157,7 @@ END OptimizationAnalysis ;
 
 
 (*
-   RemoveUnreachableCode - 
+   RemoveUnreachableCode -
 *)
 
 PROCEDURE RemoveUnreachableCode ;
@@ -188,7 +188,7 @@ END DoModuleDeclare ;
 
 
 (*
-   PrintModule - 
+   PrintModule -
 *)
 
 PROCEDURE PrintModule (sym: CARDINAL) ;
@@ -241,12 +241,12 @@ BEGIN
 
    IF StudentChecking
    THEN
-      StudentVariableCheck      
+      StudentVariableCheck
    END ;
 
    SetPassToCodeGeneration ;
    SetFlagUnitAtATime(Optimizing) ;
-   InitGlobalContext ;
+   StartGlobalContext ;
    InitDeclarations ;
 
    RemoveUnreachableCode ;
@@ -268,13 +268,14 @@ BEGIN
    MarkExported(GetMainModule()) ;
    GenerateSwigFile(GetMainModule()) ;
    qprintf0('        gcc trees given to the gcc backend\n') ;
+   EndGlobalContext ;
 
    OptimizationAnalysis
 END Code ;
 
 
 (*
-   InitialDeclareAndCodeBlock - declares all objects within scope, 
+   InitialDeclareAndCodeBlock - declares all objects within scope,
 *)
 
 PROCEDURE InitialDeclareAndOptimize (start, end: CARDINAL) ;
@@ -293,7 +294,7 @@ END InitialDeclareAndOptimize ;
 
 
 (*
-   DeclareAndCodeBlock - declares all objects within scope, 
+   DeclareAndCodeBlock - declares all objects within scope,
 *)
 
 PROCEDURE SecondDeclareAndOptimize (start, end: CARDINAL) ;
@@ -351,7 +352,7 @@ END SecondDeclareAndOptimize ;
 
 
 (*
-   InitOptimizeVariables - 
+   InitOptimizeVariables -
 *)
 
 PROCEDURE InitOptimizeVariables ;
@@ -367,7 +368,7 @@ END InitOptimizeVariables ;
 
 
 (*
-   Init - 
+   Init -
 *)
 
 PROCEDURE Init ;
@@ -381,7 +382,7 @@ END Init ;
 
 
 (*
-   BasicBlockVariableAnalysis - 
+   BasicBlockVariableAnalysis -
 *)
 
 PROCEDURE BasicBlockVariableAnalysis (start, end: CARDINAL) ;
@@ -395,7 +396,7 @@ END BasicBlockVariableAnalysis ;
 
 
 (*
-   DisplayQuadsInScope - 
+   DisplayQuadsInScope -
 *)
 
 PROCEDURE DisplayQuadsInScope (sb: ScopeBlock) ;
@@ -407,7 +408,7 @@ END DisplayQuadsInScope ;
 
 
 (*
-   OptimizeScopeBlock - 
+   OptimizeScopeBlock -
 *)
 
 PROCEDURE OptimizeScopeBlock (sb: ScopeBlock) ;
@@ -455,7 +456,7 @@ END CodeProceduresWithinBlock ;
 
 
 (*
-   CodeProcedures - 
+   CodeProcedures -
 *)
 
 PROCEDURE CodeProcedures (scope: CARDINAL) ;

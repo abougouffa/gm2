@@ -30,7 +30,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #      if defined(__GNUG__)
 #         define EXTERN extern "C"
 #      else
-#         define EXTERN 
+#         define EXTERN
 #      endif
 #   else
 #      if defined(__GNUG__)
@@ -40,7 +40,8 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #      endif
 #   endif
 
-EXTERN void m2top_InitGlobalContext (void);
+EXTERN void m2top_StartGlobalContext (void);
+EXTERN void m2top_EndGlobalContext (void);
 EXTERN void m2top_SetFlagUnitAtATime (int b);
 
 #  undef EXTERN

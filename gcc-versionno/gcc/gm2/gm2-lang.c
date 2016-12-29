@@ -575,7 +575,6 @@ gm2_langhook_getdecls (void)
   return NULL;
 }
 
-#if 0
 static void
 m2_write_global_declarations (tree globals)
 {
@@ -584,13 +583,15 @@ m2_write_global_declarations (tree globals)
   for (decl = globals; decl; decl = DECL_CHAIN (decl))
     rest_of_decl_compilation (decl, 1, 1);
 }
-#endif
 
 /* Write out globals.  */
 
 static void
 gm2_langhook_write_globals (void)
 {
+  tree t;
+  unsigned i;
+
   m2block_finishGlobals ();
 
 #if 0
@@ -604,6 +605,15 @@ gm2_langhook_write_globals (void)
   /* We're done parsing; proceed to optimize and emit assembly. */
   cgraph_finalize_compilation_unit ();
 #endif
+
+ /* Process all file scopes in this compilation, and the external_scope,
+     through wrapup_global_declarations and check_global_declarations.  */
+  FOR_EACH_VEC_ELT (*all_translation_units, i, t)
+    m2_write_global_declarations (BLOCK_VARS (DECL_INITIAL (t)));
+
+  /* We're done parsing; proceed to optimize and emit assembly.
+     FIXME: shouldn't be the front end's responsibility to call this.  */
+  symtab->finalize_compilation_unit ();
 }
 
 
