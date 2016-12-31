@@ -157,7 +157,7 @@ m2except_InitExceptions (location_t location)
   m2decl_BuildParameterDeclaration (location, NULL, size_type_node, FALSE);
   fn_allocate_exception_tree = m2decl_BuildEndFunctionDeclaration (location, location,
 								   "__cxa_allocate_exception",
-								   ptr_type_node, 
+								   ptr_type_node,
 								   TRUE, FALSE, TRUE);
 
   /* Declare void *__cxa_free_exception (void *).  */
@@ -165,7 +165,7 @@ m2except_InitExceptions (location_t location)
   m2decl_BuildParameterDeclaration (location, NULL, ptr_type_node, FALSE);
   fn_free_exception_tree = m2decl_BuildEndFunctionDeclaration (location, location,
 							       "__cxa_free_exception",
-							       ptr_type_node, 
+							       ptr_type_node,
 							       TRUE, FALSE, TRUE);
 
   /*
@@ -252,7 +252,8 @@ static
 tree
 get_tinfo_decl_m2 (location_t location)
 {
-  tree t = build_decl (location, VAR_DECL, get_identifier ("_ZTIi"),
+  tree t = build_decl (location,
+		       VAR_DECL, get_identifier ("_ZTIi"),
 		       ptr_type_node);
 
   m2assert_AssertLocation (location);
@@ -304,6 +305,7 @@ build_eh_type_type (location_t location, tree type)
     return NULL;
 
   TREE_USED (exp) = 1;
+
   return convert (ptr_type_node, build_address (exp));
 }
 
@@ -396,7 +398,7 @@ static tree
 do_throw (location_t location, tree ptr)
 {
   return do_call3 (location, fn_throw_tree,
-		   ptr, gm2_eh_int_type, build_int_cst (cleanup_type, 0));
+		   ptr, unshare_expr (gm2_eh_int_type), build_int_cst (cleanup_type, 0));
 }
 
 /*
@@ -483,7 +485,7 @@ m2except_BuildThrow (location_t location, tree expr)
       expr = maybe_cleanup_point_expr_void (expr);
     }
 #endif
-  
+
   return expr;
 }
 

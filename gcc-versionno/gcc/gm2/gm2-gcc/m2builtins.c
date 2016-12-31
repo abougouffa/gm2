@@ -375,7 +375,7 @@ m2builtins_GetBuiltinConst (char *name)
     return m2decl_BuildIntegerConstant (CHAR_TYPE_SIZE);
   if (strcmp (name, "UNITS_PER_WORD") == 0)
     return m2decl_BuildIntegerConstant (UNITS_PER_WORD);
-  
+
   return NULL_TREE;
 }
 
@@ -398,7 +398,7 @@ m2builtins_GetBuiltinConstType (char *name)
     return 1;
   if (strcmp (name, "UNITS_PER_WORD") == 0)
     return 1;
-  
+
   return 0;
 }
 
@@ -602,7 +602,7 @@ static tree doiec559 (location_t location, tree type)
 }
 
 /*
- *  dolia1 - returns TRUE if 
+ *  dolia1 - returns TRUE if
  */
 
 static tree dolia1 (location_t location, tree type)
@@ -683,7 +683,7 @@ static tree doextend (location_t location ATTRIBUTE_UNUSED, tree type ATTRIBUTE_
 }
 
 /*
- *  donModes - 
+ *  donModes -
  */
 
 static tree donModes (location_t location ATTRIBUTE_UNUSED, tree type ATTRIBUTE_UNUSED)
@@ -753,7 +753,7 @@ m2builtins_BuildBuiltinTree (location_t location, char *name)
 	m2statement_SetLastFunction (NULL_TREE);
       return t;
     }
-  
+
   m2statement_SetParamList (NULL_TREE);
   return m2statement_GetLastFunction ();
 }
@@ -1115,6 +1115,29 @@ find_builtin_tree (const char *name)
   return NULL_TREE;
 }
 
+/* Define a single builtin.  */
+static void
+define_builtin (enum built_in_function val,
+		const char *name,
+		tree type,
+		const char *libname,
+		int flags)
+{
+  tree decl;
+
+  decl = build_decl (BUILTINS_LOCATION,
+		     FUNCTION_DECL, get_identifier (name), type);
+  DECL_EXTERNAL (decl) = 1;
+  TREE_PUBLIC (decl) = 1;
+  SET_DECL_ASSEMBLER_NAME (decl, get_identifier (libname));
+  m2block_pushDecl (decl);
+  DECL_BUILT_IN_CLASS (decl) = BUILT_IN_NORMAL;
+  DECL_FUNCTION_CODE (decl) = val;
+  set_call_expr_flags (decl, flags);
+
+  set_builtin_decl (val, decl, true);
+}
+
 void
 m2builtins_init (location_t location)
 {
@@ -1145,14 +1168,18 @@ m2builtins_init (location_t location)
   double_ftype_double
     = build_function_type (double_type_node,
 			   tree_cons (NULL_TREE, double_type_node, math_endlink));
-			   
+
   ldouble_ftype_ldouble
     = build_function_type (long_double_type_node,
 			   tree_cons (NULL_TREE, long_double_type_node,
 				      endlink));
-  
+
   for (i=0; list_of_builtins[i].name != NULL; i++)
     create_function_prototype (location, &list_of_builtins[i]);
+
+  define_builtin (BUILT_IN_TRAP, "__builtin_trap",
+		  build_function_type_list (void_type_node, NULL_TREE),
+		  "__builtin_trap", ECF_NOTHROW | ECF_LEAF | ECF_NORETURN);
 
   gm2_alloca_node = find_builtin_tree ("__builtin_alloca");
   gm2_memcpy_node = find_builtin_tree ("__builtin_memcpy");

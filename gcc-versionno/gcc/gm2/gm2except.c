@@ -190,7 +190,7 @@ gm2except_InitExceptions (void)
   gccgm2_BuildStartFunctionDeclaration (FALSE);
   gccgm2_BuildParameterDeclaration (NULL, size_type_node, FALSE);
   fn_allocate_exception_tree = gccgm2_BuildEndFunctionDeclaration ("__cxa_allocate_exception",
-								   ptr_type_node, 
+								   ptr_type_node,
 								   TRUE, FALSE, TRUE);
  /*
   *  define integer type exception type which will match
@@ -272,7 +272,7 @@ static
 tree
 build_address (tree t)
 {
-  tree addr = build1 (ADDR_EXPR, build_pointer_type (TREE_TYPE (t)), t);
+  tree addr = build1 (ADDR_EXPR, build_pointer_type (TREE_TYPE (t)), unshare_expr (t));
 
   return addr;
 }

@@ -1,3 +1,18 @@
+2016-12-31      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-gcc/m2builtins.c:  removed trailing spaces.  define_builtin
+          (New procedure).  m2builtins_init use define_builtin to define
+          internal (gimple) builtin BUILT_IN_TRAP.
+	* gm2/gm2-gcc/m2except.c:  reformatted slightly.  Bugfix to do_throw
+          to ensure that gm2_eh_int_type which is declared globally is
+          unshared for each and every use.
+	* gm2/gm2-gcc/m2expr.c:  corrected dates and removed trailing space.
+	* gm2/gm2-gcc/m2statement.c:  Bugfix to allow nested functions to
+          compile.  If a nested function is complete create a cgraph_node
+	  (and it will be finalized later), else finalize_function now.
+	* gm2/gm2builtins.c:  file changed (it is unused and will be purged).
+	* gm2/gm2except.c:  file changed (it is unused and will be purged).
+
 2016-12-29      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Code.mod:  remove spaces and use StartGlobalContext

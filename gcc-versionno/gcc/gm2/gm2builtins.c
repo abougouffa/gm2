@@ -451,7 +451,7 @@ gm2builtins_GetBuiltinConst (char *name)
     return gccgm2_BuildIntegerConstant (CHAR_TYPE_SIZE);
   if (strcmp (name, "UNITS_PER_WORD") == 0)
     return gccgm2_BuildIntegerConstant (UNITS_PER_WORD);
-  
+
   return NULL_TREE;
 }
 
@@ -474,7 +474,7 @@ gm2builtins_GetBuiltinConstType (char *name)
     return 1;
   if (strcmp (name, "UNITS_PER_WORD") == 0)
     return 1;
-  
+
   return 0;
 }
 
@@ -698,7 +698,7 @@ static tree doiec559 (tree type)
 }
 
 /*
- *  dolia1 - returns TRUE if 
+ *  dolia1 - returns TRUE if
  */
 
 static tree dolia1 (tree type)
@@ -781,7 +781,7 @@ static tree doextend (tree type ATTRIBUTE_UNUSED)
 }
 
 /*
- *  donModes - 
+ *  donModes -
  */
 
 static tree donModes (tree type ATTRIBUTE_UNUSED)
@@ -856,7 +856,7 @@ gm2builtins_BuildBuiltinTree (char *name)
 	gccgm2_SetLastFunction (NULL_TREE);
       return t;
     }
-  
+
   gccgm2_SetParamList (NULL_TREE);
   return gccgm2_GetLastFunction ();
 }
@@ -1248,14 +1248,17 @@ gm2builtins_init (void)
   double_ftype_double
     = build_function_type (double_type_node,
 			   tree_cons (NULL_TREE, double_type_node, math_endlink));
-			   
+
   ldouble_ftype_ldouble
     = build_function_type (long_double_type_node,
 			   tree_cons (NULL_TREE, long_double_type_node,
 				      endlink));
-  
+
   for (i=0; list_of_builtins[i].name != NULL; i++)
     create_function_prototype (&list_of_builtins[i]);
+
+  define_builtin (build_function_type_list (void_type_node, NULL_TREE),
+		  "__builtin_trap", ECF_NOTHROW | ECF_LEAF | ECF_NORETURN);
 
   gm2_alloca_node = find_builtin_tree ("__builtin_alloca");
   gm2_memcpy_node = find_builtin_tree ("__builtin_memcpy");

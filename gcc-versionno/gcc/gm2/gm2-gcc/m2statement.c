@@ -140,7 +140,10 @@ m2statement_BuildEndFunctionCode (tree fndecl, int nested)
 
   m2block_finishFunctionCode (fndecl);
 
-  cgraph_node::finalize_function (fndecl, nested);
+  if (nested)
+    (void) cgraph_node::create (fndecl);
+  else
+    cgraph_node::finalize_function (fndecl, false);
 
   m2block_popFunctionScope ();
 }
