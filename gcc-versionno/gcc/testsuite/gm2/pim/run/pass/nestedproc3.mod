@@ -23,44 +23,44 @@ PROCEDURE a ;
 VAR
    s: CHAR ;
 
-PROCEDURE b ;
+   PROCEDURE b ;
 
-PROCEDURE c ;
-VAR
-   s: CHAR ;
+      PROCEDURE c ;
+      VAR
+         s: CHAR ;
 
-PROCEDURE d ;
+         PROCEDURE d ;
 
-PROCEDURE e ;
-BEGIN
-   s := 'a' ;
-   b2
-END e ;
+            PROCEDURE e ;
+            BEGIN
+               s := 'a' ;
+               b2
+            END e ;
 
-BEGIN
-   e
-END d ;
+        BEGIN
+           e
+        END d ;
 
-BEGIN
-   d
-END c ;
+     BEGIN
+        d
+     END c ;
 
-BEGIN
-   c
-END b ;
+   BEGIN
+      c
+   END b ;
 
-PROCEDURE b2 ;
-BEGIN
-   s := 'g' ;
-END b2 ;
+   PROCEDURE b2 ;
+   BEGIN
+      s := 'g' ;
+   END b2 ;
 
 
-BEGIN
-   s := 'z' ;
-   b ;
-   Write(s) ; WriteLn
-   (* output should be 'g' *)
-END a ;
+   BEGIN
+      s := 'z' ;
+      b ;
+      Write(s) ; WriteLn
+      (* output should be 'g' *)
+   END a ;
 
 BEGIN
    a

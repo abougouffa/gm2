@@ -1,3 +1,8 @@
+2017-01-01      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-gcc/m2statement.c:  fixed nested procedure bug, use
+          cgraph_node::get_create rather than cgraph_node::create.
+
 2016-12-31      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-gcc/m2builtins.c:  removed trailing spaces.  define_builtin
