@@ -1184,10 +1184,10 @@ gm2/gm2-compiler-boot/cflex.o: gm2/gm2-compiler/cflex.c gm2/gm2-compiler-boot/$(
           -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
 gm2/gm2-compiler/m2flex.c: $(srcdir)/gm2/m2.flex $(TIMEVAR_H)
-	flex -t $< | sed -e 's/ malloc/xmalloc/' | sed -e 's/ realloc/xrealloc/' > $@
+	flex -t $< | sed -e 's/ malloc/ xmalloc/' | sed -e 's/ realloc/ xrealloc/' > $@
 
 gm2/gm2-compiler/cflex.c: $(srcdir)/gm2/c.flex
-	flex -t $< | sed -e 's/ malloc/xmalloc/' | sed -e 's/ realloc/xrealloc/' > $@
+	flex -t $< | sed -e 's/ malloc/ xmalloc/' | sed -e 's/ realloc/ xrealloc/' > $@
 
 gm2/gm2-libiberty/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libiberty/%.def
 	$(MC) -o=$@ $(srcdir)/gm2/gm2-libiberty/$*.def

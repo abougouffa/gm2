@@ -7290,6 +7290,8 @@ static void doTotype (mcPretty_pretty p, decl_node a, decl_node t)
   if ((! (isString (a))) && (! (decl_isLiteral (a))))
     if (decl_isVar (a))
       {
+        if (((a->varF.isParameter || a->varF.isVarParameter) && (decl_isUnbounded (decl_getType (a)))) && ((decl_skipType (decl_getType (decl_getType (a)))) == (decl_skipType (decl_getType (t)))))
+          return;
         a = decl_getType (a);
         if (decl_isArray (a))
           doMultiplyBySize (p, decl_skipType (decl_getType (a)));

@@ -762,7 +762,8 @@ BEGIN
    add (macros, 'exit') ;
    add (macros, 'abs') ;
    add (macros, 'optarg') ;
-   add (macros, 'div')
+   add (macros, 'div') ;
+   add (macros, 'main')
 END initMacros ;
 
 

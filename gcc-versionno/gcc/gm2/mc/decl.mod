@@ -9073,6 +9073,12 @@ BEGIN
    THEN
       IF isVar (a)
       THEN
+         IF (a^.varF.isParameter OR a^.varF.isVarParameter) AND
+	    isUnbounded (getType (a)) AND (skipType (getType (getType (a))) = skipType (getType (t)))
+         THEN
+            (* do not multiply by size as the existing high value is correct.  *)
+            RETURN
+         END ;
          a := getType (a) ;
          IF isArray (a)
          THEN

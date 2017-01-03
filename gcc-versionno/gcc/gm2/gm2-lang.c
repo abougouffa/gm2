@@ -652,6 +652,37 @@ genericize_catch_block (tree *stmt_p)
 }
 
 
+/* Convert the tree representation of FNDECL from m2 frontend trees to
+   GENERIC.  */
+
+void
+gm2_genericize (tree fndecl)
+{
+  tree t;
+  struct cgraph_node *cgn;
+
+  /* Fix up the types of parms passed by invisible reference.  */
+  for (t = DECL_ARGUMENTS (fndecl); t; t = DECL_CHAIN (t))
+    if (TREE_ADDRESSABLE (TREE_TYPE (t)))
+      {
+        /* If a function's arguments are copied to create a thunk,
+           then DECL_BY_REFERENCE will be set -- but the type of the
+           argument will be a pointer type, so we will never get
+           here.  */
+        gcc_assert (!DECL_BY_REFERENCE (t));
+        gcc_assert (DECL_ARG_TYPE (t) != TREE_TYPE (t));
+        TREE_TYPE (t) = DECL_ARG_TYPE (t);
+        DECL_BY_REFERENCE (t) = 1;
+        TREE_ADDRESSABLE (t) = 0;
+        relayout_decl (t);
+      }
+
+  /* Dump all nested functions now.  */
+  cgn = cgraph_node::get_create (fndecl);
+  for (cgn = cgn->nested; cgn ; cgn = cgn->next_nested)
+    gm2_genericize (cgn->decl);
+}
+
 /* gm2 gimplify expression, currently just change THROW in the same way as C++
  */
 
@@ -662,6 +693,18 @@ gm2_langhook_gimplify_expr (tree *expr_p, gimple_seq *pre_p ATTRIBUTE_UNUSED, gi
 
   switch (code)
     {
+    case LSHIFT_EXPR:
+    case RSHIFT_EXPR:
+      {
+        tree *op1_p = &TREE_OPERAND (*expr_p, 1);
+        if (TREE_CODE (TREE_TYPE (*op1_p)) != VECTOR_TYPE
+            && !types_compatible_p (TYPE_MAIN_VARIANT (TREE_TYPE (*op1_p)),
+                                    unsigned_type_node)
+            && !types_compatible_p (TYPE_MAIN_VARIANT (TREE_TYPE (*op1_p)),
+                                    integer_type_node))
+          *op1_p = convert (unsigned_type_node, *op1_p);
+        break;
+      }
 
     case THROW_EXPR:
       /* FIXME communicate throw type to back end, probably by moving

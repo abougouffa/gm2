@@ -48,8 +48,8 @@ EXTERN bool gm2_langhook_handle_option (size_t scode, const char *arg,
 					location_t loc ATTRIBUTE_UNUSED,
 					const struct cl_option_handlers *handlers ATTRIBUTE_UNUSED);
 EXTERN void gm2_langhook_init_options (unsigned int decoded_options_count,
-				       struct cl_decoded_option *decoded_options);
-
+					   struct cl_decoded_option *decoded_options);
+EXTERN void gm2_genericize (tree fndecl);
 
 
 #undef EXTERN

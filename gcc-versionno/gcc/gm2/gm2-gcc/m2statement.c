@@ -140,6 +140,7 @@ m2statement_BuildEndFunctionCode (tree fndecl, int nested)
 
   m2block_finishFunctionCode (fndecl);
 
+  gm2_genericize (fndecl);
   if (nested)
     (void) cgraph_node::get_create (fndecl);
   else
