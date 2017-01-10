@@ -12,7 +12,17 @@
 #   include "GStrIO.h"
 #   include "GM2RTS.h"
 
+
+/*
+   Assert - tests the boolean Condition, if it fails then HALT is called.
+*/
+
 void Assertion_Assert (unsigned int Condition);
+
+
+/*
+   Assert - tests the boolean Condition, if it fails then HALT is called.
+*/
 
 void Assertion_Assert (unsigned int Condition)
 {

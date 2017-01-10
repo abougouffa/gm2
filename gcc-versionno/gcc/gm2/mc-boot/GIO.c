@@ -37,24 +37,101 @@ struct BasicFds_r {
 
 struct _T1_a { BasicFds array[MaxDefaultFd+1]; };
 static _T1 fdState;
+
+/*
+   IsDefaultFd - returns TRUE if, fd, is 0, 1 or 2.
+*/
+
 void IO_Read (char *ch);
+
+/*
+   doWrite - performs the write of a single character, ch,
+             onto fd or f.
+*/
+
 void IO_Write (char ch);
+
+/*
+   doWrite - performs the write of a single character, ch,
+             onto fd or f.
+*/
+
 void IO_Error (char ch);
 void IO_UnBufferedMode (int fd, unsigned int input);
 void IO_BufferedMode (int fd, unsigned int input);
+
+/*
+   EchoOn - turns on echoing for file descriptor, fd.  This
+            only really makes sence for a file descriptor opened
+            for terminal input or maybe some specific file descriptor
+            which is attached to a particular piece of hardware.
+*/
+
 void IO_EchoOn (int fd, unsigned int input);
+
+/*
+   EchoOff - turns off echoing for file descriptor, fd.  This
+             only really makes sence for a file descriptor opened
+             for terminal input or maybe some specific file descriptor
+             which is attached to a particular piece of hardware.
+*/
+
 void IO_EchoOff (int fd, unsigned int input);
+
+/*
+   IsDefaultFd - returns TRUE if, fd, is 0, 1 or 2.
+*/
+
 static unsigned int IsDefaultFd (int fd);
+
+/*
+   doWrite - performs the write of a single character, ch,
+             onto fd or f.
+*/
+
 static void doWrite (int fd, FIO_File f, char ch);
+
+/*
+   setFlag - sets or unsets the appropriate flag in, t.
+*/
+
 static void setFlag (termios_TERMIOS t, termios_Flag f, unsigned int b);
+
+/*
+   doraw - sets all the flags associated with making this
+           file descriptor into raw input/output.
+*/
+
 static void doraw (termios_TERMIOS term);
+
+/*
+   dononraw - sets all the flags associated with making this
+              file descriptor into non raw input/output.
+*/
+
 static void dononraw (termios_TERMIOS term);
+
+/*
+   Init - 
+*/
+
 static void Init (void);
+
+
+/*
+   IsDefaultFd - returns TRUE if, fd, is 0, 1 or 2.
+*/
 
 static unsigned int IsDefaultFd (int fd)
 {
   return (fd <= MaxDefaultFd) && (fd >= 0);
 }
+
+
+/*
+   doWrite - performs the write of a single character, ch,
+             onto fd or f.
+*/
 
 static void doWrite (int fd, FIO_File f, char ch)
 {
@@ -84,11 +161,22 @@ static void doWrite (int fd, FIO_File f, char ch)
     FIO_WriteChar (f, ch);
 }
 
+
+/*
+   setFlag - sets or unsets the appropriate flag in, t.
+*/
+
 static void setFlag (termios_TERMIOS t, termios_Flag f, unsigned int b)
 {
   if (termios_SetFlag (t, f, b))
     {}  /* empty.  */
 }
+
+
+/*
+   doraw - sets all the flags associated with making this
+           file descriptor into raw input/output.
+*/
 
 static void doraw (termios_TERMIOS term)
 {
@@ -110,6 +198,12 @@ static void doraw (termios_TERMIOS term)
   setFlag (term, (termios_Flag) termios_cs8, TRUE);
 }
 
+
+/*
+   dononraw - sets all the flags associated with making this
+              file descriptor into non raw input/output.
+*/
+
 static void dononraw (termios_TERMIOS term)
 {
   setFlag (term, (termios_Flag) termios_ignbrk, TRUE);
@@ -128,6 +222,11 @@ static void dononraw (termios_TERMIOS term)
   setFlag (term, (termios_Flag) termios_liexten, TRUE);
 }
 
+
+/*
+   Init - 
+*/
+
 static void Init (void)
 {
   fdState.array[0].IsEof = FALSE;
@@ -137,6 +236,11 @@ static void Init (void)
   fdState.array[2].IsEof = FALSE;
   fdState.array[2].IsRaw = FALSE;
 }
+
+
+/*
+   IsDefaultFd - returns TRUE if, fd, is 0, 1 or 2.
+*/
 
 void IO_Read (char *ch)
 {
@@ -168,10 +272,22 @@ void IO_Read (char *ch)
     (*ch) = FIO_ReadChar (FIO_StdIn);
 }
 
+
+/*
+   doWrite - performs the write of a single character, ch,
+             onto fd or f.
+*/
+
 void IO_Write (char ch)
 {
   doWrite (1, FIO_StdOut, ch);
 }
+
+
+/*
+   doWrite - performs the write of a single character, ch,
+             onto fd or f.
+*/
 
 void IO_Error (char ch)
 {
@@ -216,6 +332,14 @@ void IO_BufferedMode (int fd, unsigned int input)
   term = termios_KillTermios (term);
 }
 
+
+/*
+   EchoOn - turns on echoing for file descriptor, fd.  This
+            only really makes sence for a file descriptor opened
+            for terminal input or maybe some specific file descriptor
+            which is attached to a particular piece of hardware.
+*/
+
 void IO_EchoOn (int fd, unsigned int input)
 {
   termios_TERMIOS term;
@@ -233,6 +357,14 @@ void IO_EchoOn (int fd, unsigned int input)
     }
   term = termios_KillTermios (term);
 }
+
+
+/*
+   EchoOff - turns off echoing for file descriptor, fd.  This
+             only really makes sence for a file descriptor opened
+             for terminal input or maybe some specific file descriptor
+             which is attached to a particular piece of hardware.
+*/
 
 void IO_EchoOff (int fd, unsigned int input)
 {

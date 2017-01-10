@@ -1619,6 +1619,7 @@ gm2/boot-bin/mc-devel$(exeext): $(objdir)/gm2/gm2-auto/mcp1.mod \
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/Indexing.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcPreprocess.mod
 	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/keyc.mod
+	$(BOOTGM2) $(MCOPTIONS) -I$(GM2PATH) $(srcdir)/gm2/mc/mcComment.mod
 	cp $(srcdir)/gm2/init/mcinit top.lst
 	$(BOOTGM2) $(MCLINK) -I. -fonlylink -I$(GM2PATH) -fuselist $(srcdir)/gm2/mc/top.mod -o mc
 
@@ -1692,7 +1693,8 @@ MC-LIB-MODS = Args.mod ASCII.mod Assertion.mod Break.mod  \
 MC-LIB-BOOT-C = $(MC-LIB-MODS:%.mod=%.c)
 
 MC-DEFS = alists.def  decl.def  Indexing.def  keyc.def  lists.def  \
-               mcComp.def  mcDebug.def  mcError.def  mcFileName.def \
+               mcComp.def  mcComment.def \
+               mcDebug.def  mcError.def  mcFileName.def \
                mcflex.def  mcLexBuf.def  mcMetaError.def  mcOptions.def \
                mcp1.def  mcp2.def  mcp3.def  mcp4.def  mcp5.def  \
                mcPreprocess.def \
@@ -1702,7 +1704,8 @@ MC-DEFS = alists.def  decl.def  Indexing.def  keyc.def  lists.def  \
                varargs.def  wlists.def
 
 MC-MODS = alists.mod  decl.mod  Indexing.mod  keyc.mod  lists.mod \
-               mcComp.mod  mcDebug.mod  mcError.mod  mcFileName.mod \
+               mcComp.mod  mcComment.mod \
+               mcDebug.mod  mcError.mod  mcFileName.mod \
                mcLexBuf.mod  mcMetaError.mod  mcOptions.mod \
                mcPreprocess.mod \
                mcPretty.mod  mcPrintf.mod  mcQuiet.mod  mcReserved.mod \

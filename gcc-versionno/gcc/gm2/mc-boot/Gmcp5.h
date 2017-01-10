@@ -20,6 +20,12 @@ extern "C" {
 #      define EXTERN extern
 #   endif
 
+
+/*
+   CompilationUnit - returns TRUE if the input was correct enough to parse
+                     in future passes.
+*/
+
 EXTERN unsigned int mcp5_CompilationUnit (void);
 #ifdef __cplusplus
 }

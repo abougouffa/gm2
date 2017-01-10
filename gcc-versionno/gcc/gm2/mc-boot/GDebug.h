@@ -20,7 +20,22 @@ extern "C" {
 #      define EXTERN extern
 #   endif
 
+
+/*
+   Halt - writes a message in the format:
+          Module:Line:Message
+
+          It then terminates by calling HALT.
+*/
+
 EXTERN void Debug_Halt (char *Message_, unsigned int _Message_high, unsigned int LineNo, char *Module_, unsigned int _Module_high);
+
+/*
+   DebugString - writes a string to the debugging device (Scn.Write).
+                 It interprets 
+ as carriage return, linefeed.
+*/
+
 EXTERN void Debug_DebugString (char *a_, unsigned int _a_high);
 #ifdef __cplusplus
 }

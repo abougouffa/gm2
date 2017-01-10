@@ -27,16 +27,75 @@ extern "C" {
    typedef void *lists_list;
 #endif
 
+
+/*
+   initList - creates a new list, l.
+*/
+
 EXTERN lists_list lists_initList (void);
+
+/*
+   killList - deletes the complete list, l.
+*/
+
 EXTERN void lists_killList (lists_list *l);
+
+/*
+   putItemIntoList - places an ADDRESS, c, into list, l.
+*/
+
 EXTERN void lists_putItemIntoList (lists_list l, void * c);
+
+/*
+   getItemFromList - retrieves the nth ADDRESS from list, l.
+*/
+
 EXTERN void * lists_getItemFromList (lists_list l, unsigned int n);
+
+/*
+   getIndexOfList - returns the index for ADDRESS, c, in list, l.
+                    If more than one CARDINAL, c, exists the index
+                    for the first is returned.
+*/
+
 EXTERN unsigned int lists_getIndexOfList (lists_list l, void * c);
+
+/*
+   noOfItemsInList - returns the number of items in list, l.
+*/
+
 EXTERN unsigned int lists_noOfItemsInList (lists_list l);
+
+/*
+   includeItemIntoList - adds an ADDRESS, c, into a list providing
+                         the value does not already exist.
+*/
+
 EXTERN void lists_includeItemIntoList (lists_list l, void * c);
+
+/*
+   removeItemFromList - removes an ADDRESS, c, from a list.
+                        It assumes that this value only appears once.
+*/
+
 EXTERN void lists_removeItemFromList (lists_list l, void * c);
+
+/*
+   isItemInList - returns true if a ADDRESS, c, was found in list, l.
+*/
+
 EXTERN unsigned int lists_isItemInList (lists_list l, void * c);
+
+/*
+   foreachItemInListDo - calls procedure, P, foreach item in list, l.
+*/
+
 EXTERN void lists_foreachItemInListDo (lists_list l, symbolKey_performOperation p);
+
+/*
+   duplicateList - returns a duplicate list derived from, l.
+*/
+
 EXTERN lists_list lists_duplicateList (lists_list l);
 #ifdef __cplusplus
 }

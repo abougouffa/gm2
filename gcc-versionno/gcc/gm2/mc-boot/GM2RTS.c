@@ -38,15 +38,85 @@ static _T1 TerminateProc;
 static int ExitValue;
 static unsigned int isHalting;
 static unsigned int CallExit;
+
+/*
+   ExecuteTerminationProcedures - calls each installed termination procedure
+                                  in reverse order.
+*/
+
 void M2RTS_ExecuteTerminationProcedures (void);
+
+/*
+   InstallTerminationProcedure - installs a procedure, p, which will
+                                 be called when the procedure
+                                 ExecuteTerminationProcedures
+                                 is invoked.  It returns TRUE is the
+                                 procedure is installed.
+*/
+
 unsigned int M2RTS_InstallTerminationProcedure (PROC p);
+
+/*
+   ExecuteInitialProcedures - executes the initial procedures installed by
+                              InstallInitialProcedure.
+*/
+
 void M2RTS_ExecuteInitialProcedures (void);
+
+/*
+   InstallInitialProcedure - installs a procedure to be executed just before the
+                             BEGIN code section of the main program module.
+*/
+
 unsigned int M2RTS_InstallInitialProcedure (PROC p);
+
+/*
+   Terminate - provides compatibility for pim.  It call exit with
+               the exitcode provided in a prior call to ExitOnHalt
+               (or zero if ExitOnHalt was never called).  It does
+               not call ExecuteTerminationProcedures.
+*/
+
 void M2RTS_Terminate (void);
+
+/*
+   HALT - terminate the current program.  The procedure
+          ExecuteTerminationProcedures
+          is called before the program is stopped.  The parameter
+          exitcode is optional.  If the parameter is not supplied
+          HALT will call libc 'abort', otherwise it will exit with
+          the code supplied.  Supplying a parameter to HALT has the
+          same effect as calling ExitOnHalt with the same code and
+          then calling HALT with no parameter.
+*/
+
 void M2RTS_HALT (int exitcode);
+
+/*
+   Halt - provides a more user friendly version of HALT, which takes
+          four parameters to aid debugging.
+*/
+
 void M2RTS_Halt (char *file_, unsigned int _file_high, unsigned int line, char *function_, unsigned int _function_high, char *description_, unsigned int _description_high);
+
+/*
+   ExitOnHalt - if HALT is executed then call exit with the exit code, e.
+*/
+
 void M2RTS_ExitOnHalt (int e);
+
+/*
+   ErrorMessage - emits an error message to stderr and then calls exit (1).
+*/
+
 void M2RTS_ErrorMessage (char *message_, unsigned int _message_high, char *file_, unsigned int _file_high, unsigned int line, char *function_, unsigned int _function_high);
+
+/*
+   Length - returns the length of a string, a. This is called whenever
+            the user calls LENGTH and the parameter cannot be calculated
+            at compile time.
+*/
+
 unsigned int M2RTS_Length (char *a_, unsigned int _a_high);
 void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_IncException (void * filename, unsigned int line, unsigned int column, void * scope);
@@ -68,7 +138,17 @@ void M2RTS_WholeNonPosModException (void * filename, unsigned int line, unsigned
 void M2RTS_WholeZeroDivException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_WholeZeroRemException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_NoException (void * filename, unsigned int line, unsigned int column, void * scope);
+
+/*
+   ErrorString - writes a string to stderr.
+*/
+
 static void ErrorString (char *a_, unsigned int _a_high);
+
+
+/*
+   ErrorString - writes a string to stderr.
+*/
 
 static void ErrorString (char *a_, unsigned int _a_high)
 {
@@ -80,6 +160,12 @@ static void ErrorString (char *a_, unsigned int _a_high)
 
   n = libc_write (2, &a, (int) StrLib_StrLen ((char *) a, _a_high));
 }
+
+
+/*
+   ExecuteTerminationProcedures - calls each installed termination procedure
+                                  in reverse order.
+*/
 
 void M2RTS_ExecuteTerminationProcedures (void)
 {
@@ -93,6 +179,15 @@ void M2RTS_ExecuteTerminationProcedures (void)
     }
 }
 
+
+/*
+   InstallTerminationProcedure - installs a procedure, p, which will
+                                 be called when the procedure
+                                 ExecuteTerminationProcedures
+                                 is invoked.  It returns TRUE is the
+                                 procedure is installed.
+*/
+
 unsigned int M2RTS_InstallTerminationProcedure (PROC p)
 {
   if (tPtr > MaxProcedures)
@@ -104,6 +199,12 @@ unsigned int M2RTS_InstallTerminationProcedure (PROC p)
       return TRUE;
     }
 }
+
+
+/*
+   ExecuteInitialProcedures - executes the initial procedures installed by
+                              InstallInitialProcedure.
+*/
 
 void M2RTS_ExecuteInitialProcedures (void)
 {
@@ -117,6 +218,12 @@ void M2RTS_ExecuteInitialProcedures (void)
     }
 }
 
+
+/*
+   InstallInitialProcedure - installs a procedure to be executed just before the
+                             BEGIN code section of the main program module.
+*/
+
 unsigned int M2RTS_InstallInitialProcedure (PROC p)
 {
   if (iPtr > MaxProcedures)
@@ -129,10 +236,30 @@ unsigned int M2RTS_InstallInitialProcedure (PROC p)
     }
 }
 
+
+/*
+   Terminate - provides compatibility for pim.  It call exit with
+               the exitcode provided in a prior call to ExitOnHalt
+               (or zero if ExitOnHalt was never called).  It does
+               not call ExecuteTerminationProcedures.
+*/
+
 void M2RTS_Terminate (void)
 {
   libc_exit (ExitValue);
 }
+
+
+/*
+   HALT - terminate the current program.  The procedure
+          ExecuteTerminationProcedures
+          is called before the program is stopped.  The parameter
+          exitcode is optional.  If the parameter is not supplied
+          HALT will call libc 'abort', otherwise it will exit with
+          the code supplied.  Supplying a parameter to HALT has the
+          same effect as calling ExitOnHalt with the same code and
+          then calling HALT with no parameter.
+*/
 
 void M2RTS_HALT (int exitcode)
 {
@@ -154,6 +281,12 @@ void M2RTS_HALT (int exitcode)
     libc_abort ();
 }
 
+
+/*
+   Halt - provides a more user friendly version of HALT, which takes
+          four parameters to aid debugging.
+*/
+
 void M2RTS_Halt (char *file_, unsigned int _file_high, unsigned int line, char *function_, unsigned int _function_high, char *description_, unsigned int _description_high)
 {
   char file[_file_high+1];
@@ -169,11 +302,21 @@ void M2RTS_Halt (char *file_, unsigned int _file_high, unsigned int line, char *
   M2RTS_HALT (0);
 }
 
+
+/*
+   ExitOnHalt - if HALT is executed then call exit with the exit code, e.
+*/
+
 void M2RTS_ExitOnHalt (int e)
 {
   ExitValue = e;
   CallExit = TRUE;
 }
+
+
+/*
+   ErrorMessage - emits an error message to stderr and then calls exit (1).
+*/
 
 void M2RTS_ErrorMessage (char *message_, unsigned int _message_high, char *file_, unsigned int _file_high, unsigned int line, char *function_, unsigned int _function_high)
 {
@@ -207,6 +350,13 @@ void M2RTS_ErrorMessage (char *message_, unsigned int _message_high, char *file_
   ErrorString ((char *) &LineNo.array[0], 10);
   libc_exit (1);
 }
+
+
+/*
+   Length - returns the length of a string, a. This is called whenever
+            the user calls LENGTH and the parameter cannot be calculated
+            at compile time.
+*/
 
 unsigned int M2RTS_Length (char *a_, unsigned int _a_high)
 {

@@ -19,16 +19,60 @@
 #   define squote '\''
 #   define dquote '"'
 #   define tab ' '
+
+/*
+   GetArg - takes a command line and attempts to extract argument, n,
+            from CmdLine. The resulting argument is placed into, a.
+            The result of the operation is returned.
+*/
+
 unsigned int CmdArgs_GetArg (char *CmdLine_, unsigned int _CmdLine_high, unsigned int n, char *Argi, unsigned int _Argi_high);
+
+/*
+   Narg - returns the number of arguments available from
+          command line, CmdLine.
+*/
+
 unsigned int CmdArgs_Narg (char *CmdLine_, unsigned int _CmdLine_high);
+
+/*
+   GetNextArg - Returns true if another argument may be found.
+                The argument is taken from CmdLine at position Index,
+                Arg is filled with the found argument.
+*/
+
 static unsigned int GetNextArg (char *CmdLine_, unsigned int _CmdLine_high, unsigned int *CmdIndex, char *Arg, unsigned int _Arg_high);
+
+/*
+   CopyUntilSpace - copies characters until a Space character is found.
+*/
+
 static void CopyUntilSpace (char *From_, unsigned int _From_high, unsigned int *FromIndex, unsigned int FromHigh, char *To, unsigned int _To_high, unsigned int *ToIndex, unsigned int ToHigh);
+
+/*
+   CopyUntil - copies characters until the UntilChar is found.
+*/
+
 static void CopyUntil (char *From_, unsigned int _From_high, unsigned int *FromIndex, unsigned int FromHigh, char *To, unsigned int _To_high, unsigned int *ToIndex, unsigned int ToHigh, char UntilChar);
+
+/*
+   CopyChar - copies a character from string From to string To and
+              takes into consideration escape characters. ie \x
+              Where x is any character.
+*/
+
 static void CopyChar (char *From_, unsigned int _From_high, unsigned int *FromIndex, unsigned int FromHigh, char *To, unsigned int _To_high, unsigned int *ToIndex, unsigned int ToHigh);
 static unsigned int Escape (char ch);
 static unsigned int Space (char ch);
 static unsigned int DoubleQuote (char ch);
 static unsigned int SingleQuote (char ch);
+
+
+/*
+   GetNextArg - Returns true if another argument may be found.
+                The argument is taken from CmdLine at position Index,
+                Arg is filled with the found argument.
+*/
 
 static unsigned int GetNextArg (char *CmdLine_, unsigned int _CmdLine_high, unsigned int *CmdIndex, char *Arg, unsigned int _Arg_high)
 {
@@ -70,6 +114,11 @@ static unsigned int GetNextArg (char *CmdLine_, unsigned int _CmdLine_high, unsi
   return (*CmdIndex) < HighC;
 }
 
+
+/*
+   CopyUntilSpace - copies characters until a Space character is found.
+*/
+
 static void CopyUntilSpace (char *From_, unsigned int _From_high, unsigned int *FromIndex, unsigned int FromHigh, char *To, unsigned int _To_high, unsigned int *ToIndex, unsigned int ToHigh)
 {
   char From[_From_high+1];
@@ -81,6 +130,11 @@ static void CopyUntilSpace (char *From_, unsigned int _From_high, unsigned int *
     CopyChar ((char *) From, _From_high, FromIndex, FromHigh, (char *) To, _To_high, ToIndex, ToHigh);
 }
 
+
+/*
+   CopyUntil - copies characters until the UntilChar is found.
+*/
+
 static void CopyUntil (char *From_, unsigned int _From_high, unsigned int *FromIndex, unsigned int FromHigh, char *To, unsigned int _To_high, unsigned int *ToIndex, unsigned int ToHigh, char UntilChar)
 {
   char From[_From_high+1];
@@ -91,6 +145,13 @@ static void CopyUntil (char *From_, unsigned int _From_high, unsigned int *FromI
   while ((((*FromIndex) < FromHigh) && ((*ToIndex) < ToHigh)) && (From[(*FromIndex)] != UntilChar))
     CopyChar ((char *) From, _From_high, FromIndex, FromHigh, (char *) To, _To_high, ToIndex, ToHigh);
 }
+
+
+/*
+   CopyChar - copies a character from string From to string To and
+              takes into consideration escape characters. ie \x
+              Where x is any character.
+*/
 
 static void CopyChar (char *From_, unsigned int _From_high, unsigned int *FromIndex, unsigned int FromHigh, char *To, unsigned int _To_high, unsigned int *ToIndex, unsigned int ToHigh)
 {
@@ -132,6 +193,13 @@ static unsigned int SingleQuote (char ch)
   return ch == squote;
 }
 
+
+/*
+   GetArg - takes a command line and attempts to extract argument, n,
+            from CmdLine. The resulting argument is placed into, a.
+            The result of the operation is returned.
+*/
+
 unsigned int CmdArgs_GetArg (char *CmdLine_, unsigned int _CmdLine_high, unsigned int n, char *Argi, unsigned int _Argi_high)
 {
   unsigned int Index;
@@ -150,6 +218,12 @@ unsigned int CmdArgs_GetArg (char *CmdLine_, unsigned int _CmdLine_high, unsigne
   } while (! ((i > n) || ! Another));
   return i > n;
 }
+
+
+/*
+   Narg - returns the number of arguments available from
+          command line, CmdLine.
+*/
 
 unsigned int CmdArgs_Narg (char *CmdLine_, unsigned int _CmdLine_high)
 {

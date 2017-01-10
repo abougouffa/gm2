@@ -9,8 +9,26 @@
 #   include "GmcOptions.h"
 #   include "GmcComp.h"
 
+
+/*
+   init - translate the source file after handling all the
+          program arguments.
+*/
+
 static void init (void);
+
+/*
+   init - translate the source file after handling all the
+          program arguments.
+*/
+
 static void init (void);
+
+
+/*
+   init - translate the source file after handling all the
+          program arguments.
+*/
 
 static void init (void)
 {

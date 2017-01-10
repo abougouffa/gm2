@@ -90,60 +90,376 @@ struct fds_r {
 
 static Indexing_Index FileInfo;
 static FIO_File Error;
+
+/*
+   IsNoError - returns a TRUE if no error has occured on file, f.
+*/
+
 unsigned int FIO_IsNoError (FIO_File f);
+
+/*
+   IsActive - returns TRUE if the file, f, is still active.
+*/
+
 unsigned int FIO_IsActive (FIO_File f);
 unsigned int FIO_Exists (char *fname_, unsigned int _fname_high);
 FIO_File FIO_OpenToRead (char *fname_, unsigned int _fname_high);
 FIO_File FIO_OpenToWrite (char *fname_, unsigned int _fname_high);
 FIO_File FIO_OpenForRandom (char *fname_, unsigned int _fname_high, unsigned int towrite, unsigned int newfile);
+
+/*
+   Close - close a file which has been previously opened using:
+           OpenToRead, OpenToWrite, OpenForRandom.
+           It is correct to close a file which has an error status.
+*/
+
 void FIO_Close (FIO_File f);
+
+/*
+   exists - returns TRUE if a file named, fname exists for reading.
+*/
+
 unsigned int FIO_exists (void * fname, unsigned int flength);
+
+/*
+   openToRead - attempts to open a file, fname, for reading and
+                it returns this file.
+                The success of this operation can be checked by
+                calling IsNoError.
+*/
+
 FIO_File FIO_openToRead (void * fname, unsigned int flength);
+
+/*
+   openToWrite - attempts to open a file, fname, for write and
+                 it returns this file.
+                 The success of this operation can be checked by
+                 calling IsNoError.
+*/
+
 FIO_File FIO_openToWrite (void * fname, unsigned int flength);
+
+/*
+   openForRandom - attempts to open a file, fname, for random access
+                   read or write and it returns this file.
+                   The success of this operation can be checked by
+                   calling IsNoError.
+                   towrite, determines whether the file should be
+                   opened for writing or reading.
+*/
+
 FIO_File FIO_openForRandom (void * fname, unsigned int flength, unsigned int towrite, unsigned int newfile);
+
+/*
+   FlushBuffer - flush contents of file, f.
+*/
+
 void FIO_FlushBuffer (FIO_File f);
+
+/*
+   ReadNBytes - reads nBytes of a file into memory area, a, returning
+                the number of bytes actually read.
+                This function will consume from the buffer and then
+                perform direct libc reads. It is ideal for large reads.
+*/
+
 unsigned int FIO_ReadNBytes (FIO_File f, unsigned int nBytes, void * a);
+
+/*
+   ReadAny - reads HIGH(a) bytes into, a. All input
+             is fully buffered, unlike ReadNBytes and thus is more
+             suited to small reads.
+*/
+
 void FIO_ReadAny (FIO_File f, unsigned char *a, unsigned int _a_high);
+
+/*
+   WriteNBytes - writes nBytes of a file into memory area, a, returning
+                 the number of bytes actually written.
+                 This function will flush the buffer and then
+                 write the nBytes using a direct write from libc.
+                 It is ideal for large writes.
+*/
+
 unsigned int FIO_WriteNBytes (FIO_File f, unsigned int nBytes, void * a);
+
+/*
+   WriteAny - writes HIGH(a) bytes onto, file, f. All output
+              is fully buffered, unlike WriteNBytes and thus is more
+              suited to small writes.
+*/
+
 void FIO_WriteAny (FIO_File f, unsigned char *a, unsigned int _a_high);
+
+/*
+   WriteChar - writes a single character to file, f.
+*/
+
 void FIO_WriteChar (FIO_File f, char ch);
+
+/*
+   EOF - tests to see whether a file, f, has reached end of file.
+*/
+
 unsigned int FIO_EOF (FIO_File f);
+
+/*
+   EOLN - tests to see whether a file, f, is upon a newline.
+          It does NOT consume the newline.
+*/
+
 unsigned int FIO_EOLN (FIO_File f);
+
+/*
+   WasEOLN - tests to see whether a file, f, has just seen a newline.
+*/
+
 unsigned int FIO_WasEOLN (FIO_File f);
+
+/*
+   ReadChar - returns a character read from file, f.
+              Sensible to check with IsNoError or EOF after calling
+              this function.
+*/
+
 char FIO_ReadChar (FIO_File f);
+
+/*
+   UnReadChar - replaces a character, ch, back into file, f.
+                This character must have been read by ReadChar
+                and it does not allow successive calls.  It may
+                only be called if the previous read was successful
+                or end of file was seen.
+                If the state was previously endoffile then it
+                is altered to successful.
+                Otherwise it is left alone.
+*/
+
 void FIO_UnReadChar (FIO_File f, char ch);
+
+/*
+   WriteLine - writes out a linefeed to file, f.
+*/
+
 void FIO_WriteLine (FIO_File f);
+
+/*
+   WriteString - writes a string to file, f.
+*/
+
 void FIO_WriteString (FIO_File f, char *a_, unsigned int _a_high);
+
+/*
+   ReadString - reads a string from file, f, into string, a.
+                It terminates the string if HIGH is reached or
+                if a newline is seen or an error occurs.
+*/
+
 void FIO_ReadString (FIO_File f, char *a, unsigned int _a_high);
+
+/*
+   WriteCardinal - writes a CARDINAL to file, f.
+                   It writes the binary image of the cardinal
+                   to file, f.
+*/
+
 void FIO_WriteCardinal (FIO_File f, unsigned int c);
+
+/*
+   ReadCardinal - reads a CARDINAL from file, f.
+                  It reads a binary image of a CARDINAL
+                  from a file, f.
+*/
+
 unsigned int FIO_ReadCardinal (FIO_File f);
+
+/*
+   GetUnixFileDescriptor - returns the UNIX file descriptor of a file.
+*/
+
 int FIO_GetUnixFileDescriptor (FIO_File f);
+
+/*
+   SetPositionFromBeginning - sets the position from the beginning of the file.
+*/
+
 void FIO_SetPositionFromBeginning (FIO_File f, long int pos);
+
+/*
+   SetPositionFromEnd - sets the position from the end of the file.
+*/
+
 void FIO_SetPositionFromEnd (FIO_File f, long int pos);
+
+/*
+   FindPosition - returns the current absolute position in file, f.
+*/
+
 long int FIO_FindPosition (FIO_File f);
+
+/*
+   GetFileName - assigns, a, with the filename associated with, f.
+*/
+
 void FIO_GetFileName (FIO_File f, char *a, unsigned int _a_high);
+
+/*
+   getFileName - returns the address of the filename associated with, f.
+*/
+
 void * FIO_getFileName (FIO_File f);
+
+/*
+   getFileNameLength - returns the number of characters associated with filename, f.
+*/
+
 unsigned int FIO_getFileNameLength (FIO_File f);
+
+/*
+   FlushOutErr - flushes, StdOut, and, StdErr.
+                 It is also called when the application calls M2RTS.Terminate.
+                 (which is automatically placed in program modules by the GM2
+                 scaffold).
+*/
+
 void FIO_FlushOutErr (void);
+
+/*
+   Max - returns the maximum of two values.
+*/
+
 static unsigned int Max (unsigned int a, unsigned int b);
+
+/*
+   Min - returns the minimum of two values.
+*/
+
 static unsigned int Min (unsigned int a, unsigned int b);
+
+/*
+   GetNextFreeDescriptor - returns the index to the FileInfo array indicating
+                           the next free slot.
+*/
+
 static FIO_File GetNextFreeDescriptor (void);
+
+/*
+   SetState - sets the field, state, of file, f, to, s.
+*/
+
 static void SetState (FIO_File f, FileStatus s);
+
+/*
+   InitializeFile - initialize a file descriptor
+*/
+
 static FIO_File InitializeFile (FIO_File f, void * fname, unsigned int flength, FileStatus fstate, FileUsage use, unsigned int towrite, unsigned int buflength);
+
+/*
+   ConnectToUnix - connects a FIO file to a UNIX file descriptor.
+*/
+
 static void ConnectToUnix (FIO_File f, unsigned int towrite, unsigned int newfile);
+
+/*
+   ReadFromBuffer - attempts to read, nBytes, from file, f.
+                    It firstly consumes the buffer and then performs
+                    direct unbuffered reads. This should only be used
+                    when wishing to read large files.
+
+                    The actual number of bytes read is returned.
+                    -1 is returned if EOF is reached.
+*/
+
 static int ReadFromBuffer (FIO_File f, void * a, unsigned int nBytes);
+
+/*
+   BufferedRead - will read, nBytes, through the buffer.
+                  Similar to ReadFromBuffer, but this function will always
+                  read into the buffer before copying into memory.
+
+                  Useful when performing small reads.
+*/
+
 static int BufferedRead (FIO_File f, unsigned int nBytes, void * a);
+
+/*
+   HandleEscape - translates 
+ and \t into their respective ascii codes.
+*/
+
 static void HandleEscape (char *dest, unsigned int _dest_high, char *src_, unsigned int _src_high, unsigned int *i, unsigned int *j, unsigned int HighSrc, unsigned int HighDest);
+
+/*
+   Cast - casts a := b
+*/
+
 static void Cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, unsigned int _b_high);
+
+/*
+   StringFormat1 - converts string, src, into, dest, together with encapsulated
+                   entity, w. It only formats the first %s or %d with n.
+*/
+
 static void StringFormat1 (char *dest, unsigned int _dest_high, char *src_, unsigned int _src_high, unsigned char *w_, unsigned int _w_high);
+
+/*
+   FormatError - provides a orthoganal counterpart to the procedure below.
+*/
+
 static void FormatError (char *a_, unsigned int _a_high);
+
+/*
+   FormatError1 - fairly generic error procedure.
+*/
+
 static void FormatError1 (char *a_, unsigned int _a_high, unsigned char *w_, unsigned int _w_high);
+
+/*
+   FormatError2 - fairly generic error procedure.
+*/
+
 static void FormatError2 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high);
+
+/*
+   CheckAccess - checks to see whether a file, f, has been
+                 opened for read/write.
+*/
+
 static void CheckAccess (FIO_File f, FileUsage use, unsigned int towrite);
+
+/*
+   SetEndOfLine - 
+*/
+
 static void SetEndOfLine (FIO_File f, char ch);
+
+/*
+   BufferedWrite - will write, nBytes, through the buffer.
+                   Similar to WriteNBytes, but this function will always
+                   write into the buffer before copying into memory.
+
+                   Useful when performing small writes.
+*/
+
 static int BufferedWrite (FIO_File f, unsigned int nBytes, void * a);
+
+/*
+   PreInitialize - preinitialize the file descriptor.
+*/
+
 static void PreInitialize (FIO_File f, char *fname_, unsigned int _fname_high, FileStatus state, FileUsage use, unsigned int towrite, int osfd, unsigned int bufsize);
+
+/*
+   Init - initialize the modules, global variables.
+*/
+
 static void Init (void);
+
+
+/*
+   Max - returns the maximum of two values.
+*/
 
 static unsigned int Max (unsigned int a, unsigned int b)
 {
@@ -153,6 +469,11 @@ static unsigned int Max (unsigned int a, unsigned int b)
     return b;
 }
 
+
+/*
+   Min - returns the minimum of two values.
+*/
+
 static unsigned int Min (unsigned int a, unsigned int b)
 {
   if (a < b)
@@ -160,6 +481,12 @@ static unsigned int Min (unsigned int a, unsigned int b)
   else
     return b;
 }
+
+
+/*
+   GetNextFreeDescriptor - returns the index to the FileInfo array indicating
+                           the next free slot.
+*/
 
 static FIO_File GetNextFreeDescriptor (void)
 {
@@ -184,8 +511,13 @@ static FIO_File GetNextFreeDescriptor (void)
         return f;
       }
   }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 21, 0);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 3, 1);
 }
+
+
+/*
+   SetState - sets the field, state, of file, f, to, s.
+*/
 
 static void SetState (FIO_File f, FileStatus s)
 {
@@ -194,6 +526,11 @@ static void SetState (FIO_File f, FileStatus s)
   fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
   fd->state = s;
 }
+
+
+/*
+   InitializeFile - initialize a file descriptor
+*/
 
 static FIO_File InitializeFile (FIO_File f, void * fname, unsigned int flength, FileStatus fstate, FileUsage use, unsigned int towrite, unsigned int buflength)
 {
@@ -258,6 +595,11 @@ static FIO_File InitializeFile (FIO_File f, void * fname, unsigned int flength, 
   return f;
 }
 
+
+/*
+   ConnectToUnix - connects a FIO file to a UNIX file descriptor.
+*/
+
 static void ConnectToUnix (FIO_File f, unsigned int towrite, unsigned int newfile)
 {
   FileDescriptor fd;
@@ -279,6 +621,17 @@ static void ConnectToUnix (FIO_File f, unsigned int towrite, unsigned int newfil
         }
     }
 }
+
+
+/*
+   ReadFromBuffer - attempts to read, nBytes, from file, f.
+                    It firstly consumes the buffer and then performs
+                    direct unbuffered reads. This should only be used
+                    when wishing to read large files.
+
+                    The actual number of bytes read is returned.
+                    -1 is returned if EOF is reached.
+*/
 
 static int ReadFromBuffer (FIO_File f, void * a, unsigned int nBytes)
 {
@@ -352,6 +705,15 @@ static int ReadFromBuffer (FIO_File f, void * a, unsigned int nBytes)
   else
     return -1;
 }
+
+
+/*
+   BufferedRead - will read, nBytes, through the buffer.
+                  Similar to ReadFromBuffer, but this function will always
+                  read into the buffer before copying into memory.
+
+                  Useful when performing small reads.
+*/
 
 static int BufferedRead (FIO_File f, unsigned int nBytes, void * a)
 {
@@ -428,6 +790,12 @@ static int BufferedRead (FIO_File f, unsigned int nBytes, void * a)
     return -1;
 }
 
+
+/*
+   HandleEscape - translates 
+ and \t into their respective ascii codes.
+*/
+
 static void HandleEscape (char *dest, unsigned int _dest_high, char *src_, unsigned int _src_high, unsigned int *i, unsigned int *j, unsigned int HighSrc, unsigned int HighDest)
 {
   char src[_src_high+1];
@@ -460,6 +828,11 @@ static void HandleEscape (char *dest, unsigned int _dest_high, char *src_, unsig
     }
 }
 
+
+/*
+   Cast - casts a := b
+*/
+
 static void Cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, unsigned int _b_high)
 {
   unsigned int i;
@@ -474,6 +847,12 @@ static void Cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, uns
   else
     FormatError ((char *) "cast failed", 11);
 }
+
+
+/*
+   StringFormat1 - converts string, src, into, dest, together with encapsulated
+                   entity, w. It only formats the first %s or %d with n.
+*/
 
 static void StringFormat1 (char *dest, unsigned int _dest_high, char *src_, unsigned int _src_high, unsigned char *w_, unsigned int _w_high)
 {
@@ -553,6 +932,11 @@ static void StringFormat1 (char *dest, unsigned int _dest_high, char *src_, unsi
     dest[j] = ASCII_nul;
 }
 
+
+/*
+   FormatError - provides a orthoganal counterpart to the procedure below.
+*/
+
 static void FormatError (char *a_, unsigned int _a_high)
 {
   char a[_a_high+1];
@@ -562,6 +946,11 @@ static void FormatError (char *a_, unsigned int _a_high)
 
   FIO_WriteString (FIO_StdErr, (char *) a, _a_high);
 }
+
+
+/*
+   FormatError1 - fairly generic error procedure.
+*/
 
 static void FormatError1 (char *a_, unsigned int _a_high, unsigned char *w_, unsigned int _w_high)
 {
@@ -579,6 +968,11 @@ static void FormatError1 (char *a_, unsigned int _a_high, unsigned char *w_, uns
   StringFormat1 ((char *) &s.array[0], MaxErrorString, (char *) a, _a_high, (unsigned char *) w, _w_high);
   FormatError ((char *) &s.array[0], MaxErrorString);
 }
+
+
+/*
+   FormatError2 - fairly generic error procedure.
+*/
 
 static void FormatError2 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high)
 {
@@ -598,6 +992,12 @@ static void FormatError2 (char *a_, unsigned int _a_high, unsigned char *w1_, un
   StringFormat1 ((char *) &s.array[0], MaxErrorString, (char *) a, _a_high, (unsigned char *) w1, _w1_high);
   FormatError1 ((char *) &s.array[0], MaxErrorString, (unsigned char *) w2, _w2_high);
 }
+
+
+/*
+   CheckAccess - checks to see whether a file, f, has been
+                 opened for read/write.
+*/
 
 static void CheckAccess (FIO_File f, FileUsage use, unsigned int towrite)
 {
@@ -647,6 +1047,11 @@ static void CheckAccess (FIO_File f, FileUsage use, unsigned int towrite)
     }
 }
 
+
+/*
+   SetEndOfLine - 
+*/
+
 static void SetEndOfLine (FIO_File f, char ch)
 {
   FileDescriptor fd;
@@ -661,6 +1066,15 @@ static void SetEndOfLine (FIO_File f, char ch)
         fd->state = successful;
     }
 }
+
+
+/*
+   BufferedWrite - will write, nBytes, through the buffer.
+                   Similar to WriteNBytes, but this function will always
+                   write into the buffer before copying into memory.
+
+                   Useful when performing small writes.
+*/
 
 static int BufferedWrite (FIO_File f, unsigned int nBytes, void * a)
 {
@@ -715,6 +1129,11 @@ static int BufferedWrite (FIO_File f, unsigned int nBytes, void * a)
   return -1;
 }
 
+
+/*
+   PreInitialize - preinitialize the file descriptor.
+*/
+
 static void PreInitialize (FIO_File f, char *fname_, unsigned int _fname_high, FileStatus state, FileUsage use, unsigned int towrite, int osfd, unsigned int bufsize)
 {
   FileDescriptor fd;
@@ -742,6 +1161,11 @@ static void PreInitialize (FIO_File f, char *fname_, unsigned int _fname_high, F
     M2RTS_HALT (0);
 }
 
+
+/*
+   Init - initialize the modules, global variables.
+*/
+
 static void Init (void)
 {
   FileInfo = Indexing_InitIndex (0);
@@ -757,6 +1181,11 @@ static void Init (void)
     M2RTS_HALT (0);
 }
 
+
+/*
+   IsNoError - returns a TRUE if no error has occured on file, f.
+*/
+
 unsigned int FIO_IsNoError (FIO_File f)
 {
   FileDescriptor fd;
@@ -769,6 +1198,11 @@ unsigned int FIO_IsNoError (FIO_File f)
       return (fd != NULL) && (((fd->state == successful) || (fd->state == endoffile)) || (fd->state == endofline));
     }
 }
+
+
+/*
+   IsActive - returns TRUE if the file, f, is still active.
+*/
 
 unsigned int FIO_IsActive (FIO_File f)
 {
@@ -818,6 +1252,13 @@ FIO_File FIO_OpenForRandom (char *fname_, unsigned int _fname_high, unsigned int
   return FIO_openForRandom (&fname, StrLib_StrLen ((char *) fname, _fname_high), towrite, newfile);
 }
 
+
+/*
+   Close - close a file which has been previously opened using:
+           OpenToRead, OpenToWrite, OpenForRandom.
+           It is correct to close a file which has an error status.
+*/
+
 void FIO_Close (FIO_File f)
 {
   FileDescriptor fd;
@@ -849,6 +1290,11 @@ void FIO_Close (FIO_File f)
     }
 }
 
+
+/*
+   exists - returns TRUE if a file named, fname exists for reading.
+*/
+
 unsigned int FIO_exists (void * fname, unsigned int flength)
 {
   FIO_File f;
@@ -866,6 +1312,14 @@ unsigned int FIO_exists (void * fname, unsigned int flength)
     }
 }
 
+
+/*
+   openToRead - attempts to open a file, fname, for reading and
+                it returns this file.
+                The success of this operation can be checked by
+                calling IsNoError.
+*/
+
 FIO_File FIO_openToRead (void * fname, unsigned int flength)
 {
   FIO_File f;
@@ -880,6 +1334,14 @@ FIO_File FIO_openToRead (void * fname, unsigned int flength)
     }
   return f;
 }
+
+
+/*
+   openToWrite - attempts to open a file, fname, for write and
+                 it returns this file.
+                 The success of this operation can be checked by
+                 calling IsNoError.
+*/
 
 FIO_File FIO_openToWrite (void * fname, unsigned int flength)
 {
@@ -896,6 +1358,16 @@ FIO_File FIO_openToWrite (void * fname, unsigned int flength)
   return f;
 }
 
+
+/*
+   openForRandom - attempts to open a file, fname, for random access
+                   read or write and it returns this file.
+                   The success of this operation can be checked by
+                   calling IsNoError.
+                   towrite, determines whether the file should be
+                   opened for writing or reading.
+*/
+
 FIO_File FIO_openForRandom (void * fname, unsigned int flength, unsigned int towrite, unsigned int newfile)
 {
   FIO_File f;
@@ -910,6 +1382,11 @@ FIO_File FIO_openForRandom (void * fname, unsigned int flength, unsigned int tow
     }
   return f;
 }
+
+
+/*
+   FlushBuffer - flush contents of file, f.
+*/
 
 void FIO_FlushBuffer (FIO_File f)
 {
@@ -932,6 +1409,14 @@ void FIO_FlushBuffer (FIO_File f)
             fd->state = failed;
     }
 }
+
+
+/*
+   ReadNBytes - reads nBytes of a file into memory area, a, returning
+                the number of bytes actually read.
+                This function will consume from the buffer and then
+                perform direct libc reads. It is ideal for large reads.
+*/
 
 unsigned int FIO_ReadNBytes (FIO_File f, unsigned int nBytes, void * a)
 {
@@ -956,12 +1441,28 @@ unsigned int FIO_ReadNBytes (FIO_File f, unsigned int nBytes, void * a)
     return 0;
 }
 
+
+/*
+   ReadAny - reads HIGH(a) bytes into, a. All input
+             is fully buffered, unlike ReadNBytes and thus is more
+             suited to small reads.
+*/
+
 void FIO_ReadAny (FIO_File f, unsigned char *a, unsigned int _a_high)
 {
   CheckAccess (f, (FileUsage) openedforread, FALSE);
   if ((BufferedRead (f, _a_high, a)) == (_a_high))
     SetEndOfLine (f, (char) a[_a_high]);
 }
+
+
+/*
+   WriteNBytes - writes nBytes of a file into memory area, a, returning
+                 the number of bytes actually written.
+                 This function will flush the buffer and then
+                 write the nBytes using a direct write from libc.
+                 It is ideal for large writes.
+*/
 
 unsigned int FIO_WriteNBytes (FIO_File f, unsigned int nBytes, void * a)
 {
@@ -993,6 +1494,13 @@ unsigned int FIO_WriteNBytes (FIO_File f, unsigned int nBytes, void * a)
   return 0;
 }
 
+
+/*
+   WriteAny - writes HIGH(a) bytes onto, file, f. All output
+              is fully buffered, unlike WriteNBytes and thus is more
+              suited to small writes.
+*/
+
 void FIO_WriteAny (FIO_File f, unsigned char *a, unsigned int _a_high)
 {
   CheckAccess (f, (FileUsage) openedforwrite, TRUE);
@@ -1000,12 +1508,22 @@ void FIO_WriteAny (FIO_File f, unsigned char *a, unsigned int _a_high)
     {}  /* empty.  */
 }
 
+
+/*
+   WriteChar - writes a single character to file, f.
+*/
+
 void FIO_WriteChar (FIO_File f, char ch)
 {
   CheckAccess (f, (FileUsage) openedforwrite, TRUE);
   if ((BufferedWrite (f, (unsigned int) sizeof (ch), &ch)) == (sizeof (ch)))
     {}  /* empty.  */
 }
+
+
+/*
+   EOF - tests to see whether a file, f, has reached end of file.
+*/
 
 unsigned int FIO_EOF (FIO_File f)
 {
@@ -1020,6 +1538,12 @@ unsigned int FIO_EOF (FIO_File f)
     }
   return TRUE;
 }
+
+
+/*
+   EOLN - tests to see whether a file, f, is upon a newline.
+          It does NOT consume the newline.
+*/
 
 unsigned int FIO_EOLN (FIO_File f)
 {
@@ -1042,6 +1566,11 @@ unsigned int FIO_EOLN (FIO_File f)
   return FALSE;
 }
 
+
+/*
+   WasEOLN - tests to see whether a file, f, has just seen a newline.
+*/
+
 unsigned int FIO_WasEOLN (FIO_File f)
 {
   FileDescriptor fd;
@@ -1056,6 +1585,13 @@ unsigned int FIO_WasEOLN (FIO_File f)
     }
 }
 
+
+/*
+   ReadChar - returns a character read from file, f.
+              Sensible to check with IsNoError or EOF after calling
+              this function.
+*/
+
 char FIO_ReadChar (FIO_File f)
 {
   char ch;
@@ -1069,6 +1605,18 @@ char FIO_ReadChar (FIO_File f)
   else
     return ASCII_nul;
 }
+
+
+/*
+   UnReadChar - replaces a character, ch, back into file, f.
+                This character must have been read by ReadChar
+                and it does not allow successive calls.  It may
+                only be called if the previous read was successful
+                or end of file was seen.
+                If the state was previously endoffile then it
+                is altered to successful.
+                Otherwise it is left alone.
+*/
 
 void FIO_UnReadChar (FIO_File f, char ch)
 {
@@ -1118,10 +1666,20 @@ void FIO_UnReadChar (FIO_File f, char ch)
     }
 }
 
+
+/*
+   WriteLine - writes out a linefeed to file, f.
+*/
+
 void FIO_WriteLine (FIO_File f)
 {
   FIO_WriteChar (f, ASCII_nl);
 }
+
+
+/*
+   WriteString - writes a string to file, f.
+*/
 
 void FIO_WriteString (FIO_File f, char *a_, unsigned int _a_high)
 {
@@ -1135,6 +1693,13 @@ void FIO_WriteString (FIO_File f, char *a_, unsigned int _a_high)
   if ((FIO_WriteNBytes (f, l, &a)) != l)
     {}  /* empty.  */
 }
+
+
+/*
+   ReadString - reads a string from file, f, into string, a.
+                It terminates the string if HIGH is reached or
+                if a newline is seen or an error occurs.
+*/
 
 void FIO_ReadString (FIO_File f, char *a, unsigned int _a_high)
 {
@@ -1164,10 +1729,24 @@ void FIO_ReadString (FIO_File f, char *a, unsigned int _a_high)
   } while (! ((((ch == ASCII_nl) || (i > high)) || (! (FIO_IsNoError (f)))) || (FIO_EOF (f))));
 }
 
+
+/*
+   WriteCardinal - writes a CARDINAL to file, f.
+                   It writes the binary image of the cardinal
+                   to file, f.
+*/
+
 void FIO_WriteCardinal (FIO_File f, unsigned int c)
 {
   FIO_WriteAny (f, (unsigned char *) &c, (sizeof (c)-1));
 }
+
+
+/*
+   ReadCardinal - reads a CARDINAL from file, f.
+                  It reads a binary image of a CARDINAL
+                  from a file, f.
+*/
 
 unsigned int FIO_ReadCardinal (FIO_File f)
 {
@@ -1176,6 +1755,11 @@ unsigned int FIO_ReadCardinal (FIO_File f)
   FIO_ReadAny (f, (unsigned char *) &c, (sizeof (c)-1));
   return c;
 }
+
+
+/*
+   GetUnixFileDescriptor - returns the UNIX file descriptor of a file.
+*/
 
 int FIO_GetUnixFileDescriptor (FIO_File f)
 {
@@ -1190,6 +1774,11 @@ int FIO_GetUnixFileDescriptor (FIO_File f)
   FormatError1 ((char *) "file %d has not been opened or is out of range\\n", 48, (unsigned char *) &f, (sizeof (f)-1));
   return -1;
 }
+
+
+/*
+   SetPositionFromBeginning - sets the position from the beginning of the file.
+*/
 
 void FIO_SetPositionFromBeginning (FIO_File f, long int pos)
 {
@@ -1229,6 +1818,11 @@ void FIO_SetPositionFromBeginning (FIO_File f, long int pos)
     }
 }
 
+
+/*
+   SetPositionFromEnd - sets the position from the end of the file.
+*/
+
 void FIO_SetPositionFromEnd (FIO_File f, long int pos)
 {
   long int offset;
@@ -1267,6 +1861,11 @@ void FIO_SetPositionFromEnd (FIO_File f, long int pos)
     }
 }
 
+
+/*
+   FindPosition - returns the current absolute position in file, f.
+*/
+
 long int FIO_FindPosition (FIO_File f)
 {
   FileDescriptor fd;
@@ -1282,6 +1881,11 @@ long int FIO_FindPosition (FIO_File f)
     }
   return 0;
 }
+
+
+/*
+   GetFileName - assigns, a, with the filename associated with, f.
+*/
 
 void FIO_GetFileName (FIO_File f, char *a, unsigned int _a_high)
 {
@@ -1314,6 +1918,11 @@ void FIO_GetFileName (FIO_File f, char *a, unsigned int _a_high)
     }
 }
 
+
+/*
+   getFileName - returns the address of the filename associated with, f.
+*/
+
 void * FIO_getFileName (FIO_File f)
 {
   FileDescriptor fd;
@@ -1331,6 +1940,11 @@ void * FIO_getFileName (FIO_File f)
     }
 }
 
+
+/*
+   getFileNameLength - returns the number of characters associated with filename, f.
+*/
+
 unsigned int FIO_getFileNameLength (FIO_File f)
 {
   FileDescriptor fd;
@@ -1347,6 +1961,14 @@ unsigned int FIO_getFileNameLength (FIO_File f)
         return fd->name.size;
     }
 }
+
+
+/*
+   FlushOutErr - flushes, StdOut, and, StdErr.
+                 It is also called when the application calls M2RTS.Terminate.
+                 (which is automatically placed in program modules by the GM2
+                 scaffold).
+*/
 
 void FIO_FlushOutErr (void)
 {

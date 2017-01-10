@@ -20,7 +20,18 @@ extern "C" {
 #      define EXTERN extern
 #   endif
 
+
+/*
+   assert - tests the boolean, q. If false then an error is reported
+            and the execution is terminated.
+*/
+
 EXTERN void mcDebug_assert (unsigned int q);
+
+/*
+   writeDebug - only writes a string if the debugging mode is on.
+*/
+
 EXTERN void mcDebug_writeDebug (char *a_, unsigned int _a_high);
 #ifdef __cplusplus
 }

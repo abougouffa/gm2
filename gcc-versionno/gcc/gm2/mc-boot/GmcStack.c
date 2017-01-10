@@ -24,13 +24,57 @@ struct _T1_r {
                unsigned int count;
              };
 
+
+/*
+   init - create and return a stack.
+*/
+
 mcStack_stack mcStack_init (void);
+
+/*
+   kill - deletes stack, s.
+*/
+
 void mcStack_kill (mcStack_stack *s);
+
+/*
+   push - an address, a, onto the stack, s.
+          It returns, a.
+*/
+
 void * mcStack_push (mcStack_stack s, void * a);
+
+/*
+   pop - and return the top element from stack, s.
+*/
+
 void * mcStack_pop (mcStack_stack s);
+
+/*
+   replace - performs a pop; push (a); return a.
+*/
+
 void * mcStack_replace (mcStack_stack s, void * a);
+
+/*
+   depth - returns the depth of the stack.
+*/
+
 unsigned int mcStack_depth (mcStack_stack s);
+
+/*
+   access - returns the, i, th stack element.
+            The top of stack is defined by:
+
+            access (s, depth (s)).
+*/
+
 void * mcStack_access (mcStack_stack s, unsigned int i);
+
+
+/*
+   init - create and return a stack.
+*/
 
 mcStack_stack mcStack_init (void)
 {
@@ -42,12 +86,23 @@ mcStack_stack mcStack_init (void)
   return s;
 }
 
+
+/*
+   kill - deletes stack, s.
+*/
+
 void mcStack_kill (mcStack_stack *s)
 {
   (*s)->list = Indexing_KillIndex ((*s)->list);
   Storage_DEALLOCATE ((void **) &(*s), sizeof (_T1));
   (*s) = NULL;
 }
+
+
+/*
+   push - an address, a, onto the stack, s.
+          It returns, a.
+*/
 
 void * mcStack_push (mcStack_stack s, void * a)
 {
@@ -58,6 +113,11 @@ void * mcStack_push (mcStack_stack s, void * a)
   s->count += 1;
   return a;
 }
+
+
+/*
+   pop - and return the top element from stack, s.
+*/
 
 void * mcStack_pop (mcStack_stack s)
 {
@@ -74,6 +134,11 @@ void * mcStack_pop (mcStack_stack s)
     }
 }
 
+
+/*
+   replace - performs a pop; push (a); return a.
+*/
+
 void * mcStack_replace (mcStack_stack s, void * a)
 {
   void * b;
@@ -82,10 +147,23 @@ void * mcStack_replace (mcStack_stack s, void * a)
   return mcStack_push (s, a);
 }
 
+
+/*
+   depth - returns the depth of the stack.
+*/
+
 unsigned int mcStack_depth (mcStack_stack s)
 {
   return s->count;
 }
+
+
+/*
+   access - returns the, i, th stack element.
+            The top of stack is defined by:
+
+            access (s, depth (s)).
+*/
 
 void * mcStack_access (mcStack_stack s, unsigned int i)
 {

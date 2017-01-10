@@ -747,7 +747,7 @@ END add ;
 
 
 (*
-   initMacros -
+   initMacros - macros and library function names to avoid.
 *)
 
 PROCEDURE initMacros ;
@@ -763,12 +763,16 @@ BEGIN
    add (macros, 'abs') ;
    add (macros, 'optarg') ;
    add (macros, 'div') ;
+   add (macros, 'sin') ;
+   add (macros, 'cos') ;
+   add (macros, 'tan') ;
+   add (macros, 'log10') ;
    add (macros, 'main')
 END initMacros ;
 
 
 (*
-   initKeywords -
+   initKeywords - keywords to avoid.
 *)
 
 PROCEDURE initKeywords ;

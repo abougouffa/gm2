@@ -20,6 +20,12 @@ extern "C" {
 #      define EXTERN extern
 #   endif
 
+
+/*
+   GetTimeString - places the time in ascii format into array, a.
+
+*/
+
 EXTERN void TimeString_GetTimeString (char *a, unsigned int _a_high);
 #ifdef __cplusplus
 }

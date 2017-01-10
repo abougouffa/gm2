@@ -27,36 +27,149 @@ static DynamicStrings_String Def;
 static DynamicStrings_String Mod;
 static DynamicStrings_String UserPath;
 static DynamicStrings_String InitialPath;
+
+/*
+   initSearchPath - assigns the search path to Path.
+                    The string Path may take the form:
+
+                    Path           ::= IndividualPath { ":" IndividualPath }
+                    IndividualPath ::= "." | DirectoryPath
+                    DirectoryPath  ::= [ "/" ] Name { "/" Name }
+                    Name           ::= Letter { (Letter | Number) }
+                    Letter         ::= A..Z | a..z
+                    Number         ::= 0..9
+*/
+
 void mcSearch_initSearchPath (DynamicStrings_String path);
+
+/*
+   prependSearchPath - prepends a new path to the initial search path.
+*/
+
 void mcSearch_prependSearchPath (DynamicStrings_String path);
+
+/*
+   findSourceFile - attempts to locate the source file FileName.
+                    If a file is found then TRUE is returned otherwise
+                    FALSE is returned.
+                    The parameter fullPath is set indicating the
+                    absolute location of source FileName.
+                    fullPath will be totally overwritten and should
+                    not be initialized by InitString before this function
+                    is called.
+                    fullPath is set to NIL if this function returns FALSE.
+                    findSourceFile sets fullPath to a new string if successful.
+                    The string, FileName, is not altered.
+*/
+
 unsigned int mcSearch_findSourceFile (DynamicStrings_String FileName, DynamicStrings_String *fullPath);
+
+/*
+   findSourceDefFile - attempts to find the definition module for
+                       a module, stem. If successful it returns
+                       the full path and returns TRUE. If unsuccessful
+                       then FALSE is returned and fullPath is set to NIL.
+*/
+
 unsigned int mcSearch_findSourceDefFile (DynamicStrings_String stem, DynamicStrings_String *fullPath);
+
+/*
+   findSourceModFile - attempts to find the implementation module for
+                       a module, stem. If successful it returns
+                       the full path and returns TRUE. If unsuccessful
+                       then FALSE is returned and fullPath is set to NIL.
+*/
+
 unsigned int mcSearch_findSourceModFile (DynamicStrings_String stem, DynamicStrings_String *fullPath);
+
+/*
+   setDefExtension - sets the default extension for definition modules to, ext.
+                     The string, ext, should be deallocated by the caller at
+                     an appropriate time.
+*/
+
 void mcSearch_setDefExtension (DynamicStrings_String ext);
+
+/*
+   setModExtension - sets the default extension for implementation and program
+                     modules to, ext. The string, ext, should be deallocated
+                     by the caller at an appropriate time.
+*/
+
 void mcSearch_setModExtension (DynamicStrings_String ext);
+
+/*
+   doDSdbEnter -
+*/
+
 static void doDSdbEnter (void);
+
+/*
+   doDSdbExit -
+*/
+
 static void doDSdbExit (DynamicStrings_String s);
+
+/*
+   DSdbEnter -
+*/
+
 static void DSdbEnter (void);
+
+/*
+   DSdbExit -
+*/
+
 static void DSdbExit (DynamicStrings_String s);
+
+/*
+   Init - initializes the search path.
+*/
+
 static void Init (void);
+
+
+/*
+   doDSdbEnter -
+*/
 
 static void doDSdbEnter (void)
 {
   DynamicStrings_PushAllocation ();
 }
 
+
+/*
+   doDSdbExit -
+*/
+
 static void doDSdbExit (DynamicStrings_String s)
 {
   s = DynamicStrings_PopAllocationExemption (TRUE, s);
 }
 
+
+/*
+   DSdbEnter -
+*/
+
 static void DSdbEnter (void)
 {
 }
 
+
+/*
+   DSdbExit -
+*/
+
 static void DSdbExit (DynamicStrings_String s)
 {
 }
+
+
+/*
+   Init - initializes the search path.
+*/
 
 static void Init (void)
 {
@@ -66,12 +179,30 @@ static void Init (void)
   Mod = NULL;
 }
 
+
+/*
+   initSearchPath - assigns the search path to Path.
+                    The string Path may take the form:
+
+                    Path           ::= IndividualPath { ":" IndividualPath }
+                    IndividualPath ::= "." | DirectoryPath
+                    DirectoryPath  ::= [ "/" ] Name { "/" Name }
+                    Name           ::= Letter { (Letter | Number) }
+                    Letter         ::= A..Z | a..z
+                    Number         ::= 0..9
+*/
+
 void mcSearch_initSearchPath (DynamicStrings_String path)
 {
   if (InitialPath != NULL)
     InitialPath = DynamicStrings_KillString (InitialPath);
   InitialPath = path;
 }
+
+
+/*
+   prependSearchPath - prepends a new path to the initial search path.
+*/
 
 void mcSearch_prependSearchPath (DynamicStrings_String path)
 {
@@ -85,6 +216,21 @@ void mcSearch_prependSearchPath (DynamicStrings_String path)
     UserPath = DynamicStrings_ConCat (DynamicStrings_ConCatChar (UserPath, ':'), path);
   DSdbExit (UserPath);
 }
+
+
+/*
+   findSourceFile - attempts to locate the source file FileName.
+                    If a file is found then TRUE is returned otherwise
+                    FALSE is returned.
+                    The parameter fullPath is set indicating the
+                    absolute location of source FileName.
+                    fullPath will be totally overwritten and should
+                    not be initialized by InitString before this function
+                    is called.
+                    fullPath is set to NIL if this function returns FALSE.
+                    findSourceFile sets fullPath to a new string if successful.
+                    The string, FileName, is not altered.
+*/
 
 unsigned int mcSearch_findSourceFile (DynamicStrings_String FileName, DynamicStrings_String *fullPath)
 {
@@ -132,6 +278,14 @@ unsigned int mcSearch_findSourceFile (DynamicStrings_String FileName, DynamicStr
   return FALSE;
 }
 
+
+/*
+   findSourceDefFile - attempts to find the definition module for
+                       a module, stem. If successful it returns
+                       the full path and returns TRUE. If unsuccessful
+                       then FALSE is returned and fullPath is set to NIL.
+*/
+
 unsigned int mcSearch_findSourceDefFile (DynamicStrings_String stem, DynamicStrings_String *fullPath)
 {
   DynamicStrings_String f;
@@ -146,6 +300,14 @@ unsigned int mcSearch_findSourceDefFile (DynamicStrings_String stem, DynamicStri
   f = mcFileName_calculateFileName (stem, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "def", 3)));
   return mcSearch_findSourceFile (f, fullPath);
 }
+
+
+/*
+   findSourceModFile - attempts to find the implementation module for
+                       a module, stem. If successful it returns
+                       the full path and returns TRUE. If unsuccessful
+                       then FALSE is returned and fullPath is set to NIL.
+*/
 
 unsigned int mcSearch_findSourceModFile (DynamicStrings_String stem, DynamicStrings_String *fullPath)
 {
@@ -162,11 +324,25 @@ unsigned int mcSearch_findSourceModFile (DynamicStrings_String stem, DynamicStri
   return mcSearch_findSourceFile (f, fullPath);
 }
 
+
+/*
+   setDefExtension - sets the default extension for definition modules to, ext.
+                     The string, ext, should be deallocated by the caller at
+                     an appropriate time.
+*/
+
 void mcSearch_setDefExtension (DynamicStrings_String ext)
 {
   Def = DynamicStrings_KillString (Def);
   Def = DynamicStrings_Dup (ext);
 }
+
+
+/*
+   setModExtension - sets the default extension for implementation and program
+                     modules to, ext. The string, ext, should be deallocated
+                     by the caller at an appropriate time.
+*/
 
 void mcSearch_setModExtension (DynamicStrings_String ext)
 {

@@ -38,6 +38,7 @@
 #   include "Gmcp3.h"
 #   include "Gmcp4.h"
 #   include "Gmcp5.h"
+#   include "GmcComment.h"
 #   include "GmcError.h"
 #   include "GnameKey.h"
 #   include "GmcPrintf.h"
@@ -57,23 +58,118 @@ typedef unsigned int (*openFunction_t) (decl_node, unsigned int);
 struct openFunction_p { openFunction_t proc; };
 
 static unsigned int currentPass;
+
+/*
+   compile - check, s, is non NIL before calling doCompile.
+*/
+
 void mcComp_compile (DynamicStrings_String s);
+
+/*
+   doCompile - translate file, s, using a 6 pass technique.
+*/
+
 static void doCompile (DynamicStrings_String s);
+
+/*
+   examineCompilationUnit - opens the source file to obtain the module name and kind of module.
+*/
+
 static decl_node examineCompilationUnit (void);
+
+/*
+   peepInto - peeps into source, s, and initializes a definition/implementation or
+              program module accordingly.
+*/
+
 static decl_node peepInto (DynamicStrings_String s);
+
+/*
+   initParser - returns the node of the module found in the source file.
+*/
+
 static decl_node initParser (DynamicStrings_String s);
+
+/*
+   p1 - wrap the pass procedure with the correct parameter values.
+*/
+
 static void p1 (decl_node n);
+
+/*
+   p2 - wrap the pass procedure with the correct parameter values.
+*/
+
 static void p2 (decl_node n);
+
+/*
+   p3 - wrap the pass procedure with the correct parameter values.
+*/
+
 static void p3 (decl_node n);
+
+/*
+   p4 - wrap the pass procedure with the correct parameter values.
+*/
+
 static void p4 (decl_node n);
+
+/*
+   p5 - wrap the pass procedure with the correct parameter values.
+*/
+
 static void p5 (decl_node n);
+
+/*
+   doOpen -
+*/
+
 static unsigned int doOpen (decl_node n, DynamicStrings_String symName, DynamicStrings_String fileName, unsigned int exitOnFailure);
+
+/*
+   openDef - try and open the definition module source file.
+             Returns true/false if successful/unsuccessful or
+             exitOnFailure.
+*/
+
 static unsigned int openDef (decl_node n, unsigned int exitOnFailure);
+
+/*
+   openMod - try and open the implementation/program module source file.
+             Returns true/false if successful/unsuccessful or
+             exitOnFailure.
+*/
+
 static unsigned int openMod (decl_node n, unsigned int exitOnFailure);
+
+/*
+   pass -
+*/
+
 static void pass (unsigned int no, decl_node n, parserFunction f, decl_isNodeF isnode, openFunction open);
+
+/*
+   doPass -
+*/
+
 static void doPass (unsigned int parseDefs, unsigned int parseMain, unsigned int no, symbolKey_performOperation p, char *desc_, unsigned int _desc_high);
+
+/*
+   setToPassNo -
+*/
+
 static void setToPassNo (unsigned int n);
+
+/*
+   init - initialise data structures for this module.
+*/
+
 static void init (void);
+
+
+/*
+   doCompile - translate file, s, using a 6 pass technique.
+*/
 
 static void doCompile (DynamicStrings_String s)
 {
@@ -101,6 +197,11 @@ static void doCompile (DynamicStrings_String s)
   mcQuiet_qprintf0 ((char *) "walk tree converting it to C/C++\\n", 34);
   decl_out ();
 }
+
+
+/*
+   examineCompilationUnit - opens the source file to obtain the module name and kind of module.
+*/
 
 static decl_node examineCompilationUnit (void)
 {
@@ -151,8 +252,14 @@ static decl_node examineCompilationUnit (void)
     }
   mcflex_mcError (DynamicStrings_string (DynamicStrings_InitString ((char *) "failed to find module name", 26)));
   libc_exit (1);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcComp.def", 19, 0);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcComp.def", 1, 15);
 }
+
+
+/*
+   peepInto - peeps into source, s, and initializes a definition/implementation or
+              program module accordingly.
+*/
 
 static decl_node peepInto (DynamicStrings_String s)
 {
@@ -174,14 +281,24 @@ static decl_node peepInto (DynamicStrings_String s)
       mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to open %s\\n", 19, (unsigned char *) &s, (sizeof (s)-1));
       libc_exit (1);
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcComp.def", 19, 0);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcComp.def", 1, 15);
 }
+
+
+/*
+   initParser - returns the node of the module found in the source file.
+*/
 
 static decl_node initParser (DynamicStrings_String s)
 {
   mcQuiet_qprintf1 ((char *) "Compiling: %s\\n", 15, (unsigned char *) &s, (sizeof (s)-1));
   return peepInto (s);
 }
+
+
+/*
+   p1 - wrap the pass procedure with the correct parameter values.
+*/
 
 static void p1 (decl_node n)
 {
@@ -195,6 +312,11 @@ static void p1 (decl_node n)
     pass (1, n, (parserFunction) {(parserFunction_t) mcp1_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImpOrModule}, (openFunction) {(openFunction_t) openMod});
 }
 
+
+/*
+   p2 - wrap the pass procedure with the correct parameter values.
+*/
+
 static void p2 (decl_node n)
 {
   if (decl_isDef (n))
@@ -206,6 +328,11 @@ static void p2 (decl_node n)
   else
     pass (2, n, (parserFunction) {(parserFunction_t) mcp2_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImpOrModule}, (openFunction) {(openFunction_t) openMod});
 }
+
+
+/*
+   p3 - wrap the pass procedure with the correct parameter values.
+*/
 
 static void p3 (decl_node n)
 {
@@ -219,6 +346,11 @@ static void p3 (decl_node n)
     pass (3, n, (parserFunction) {(parserFunction_t) mcp3_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImpOrModule}, (openFunction) {(openFunction_t) openMod});
 }
 
+
+/*
+   p4 - wrap the pass procedure with the correct parameter values.
+*/
+
 static void p4 (decl_node n)
 {
   if (decl_isDef (n))
@@ -231,10 +363,20 @@ static void p4 (decl_node n)
     pass (4, n, (parserFunction) {(parserFunction_t) mcp4_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImpOrModule}, (openFunction) {(openFunction_t) openMod});
 }
 
+
+/*
+   p5 - wrap the pass procedure with the correct parameter values.
+*/
+
 static void p5 (decl_node n)
 {
   pass (5, n, (parserFunction) {(parserFunction_t) mcp5_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImpOrModule}, (openFunction) {(openFunction_t) openMod});
 }
+
+
+/*
+   doOpen -
+*/
 
 static unsigned int doOpen (decl_node n, DynamicStrings_String symName, DynamicStrings_String fileName, unsigned int exitOnFailure)
 {
@@ -251,6 +393,13 @@ static unsigned int doOpen (decl_node n, DynamicStrings_String symName, DynamicS
     libc_exit (1);
   return FALSE;
 }
+
+
+/*
+   openDef - try and open the definition module source file.
+             Returns true/false if successful/unsuccessful or
+             exitOnFailure.
+*/
 
 static unsigned int openDef (decl_node n, unsigned int exitOnFailure)
 {
@@ -274,6 +423,13 @@ static unsigned int openDef (decl_node n, unsigned int exitOnFailure)
     fileName = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (sourceName));
   return doOpen (n, symName, fileName, exitOnFailure);
 }
+
+
+/*
+   openMod - try and open the implementation/program module source file.
+             Returns true/false if successful/unsuccessful or
+             exitOnFailure.
+*/
 
 static unsigned int openMod (decl_node n, unsigned int exitOnFailure)
 {
@@ -301,6 +457,11 @@ static unsigned int openMod (decl_node n, unsigned int exitOnFailure)
   return doOpen (n, symName, fileName, exitOnFailure);
 }
 
+
+/*
+   pass -
+*/
+
 static void pass (unsigned int no, decl_node n, parserFunction f, decl_isNodeF isnode, openFunction open)
 {
   if (((*isnode.proc) (n)) && (! (decl_isVisited (n))))
@@ -319,6 +480,11 @@ static void pass (unsigned int no, decl_node n, parserFunction f, decl_isNodeF i
     }
 }
 
+
+/*
+   doPass -
+*/
+
 static void doPass (unsigned int parseDefs, unsigned int parseMain, unsigned int no, symbolKey_performOperation p, char *desc_, unsigned int _desc_high)
 {
   DynamicStrings_String descs;
@@ -328,6 +494,7 @@ static void doPass (unsigned int parseDefs, unsigned int parseMain, unsigned int
   memcpy (desc, desc_, _desc_high+1);
 
   setToPassNo (no);
+  mcComment_newPass ();
   descs = DynamicStrings_InitString ((char *) desc, _desc_high);
   mcQuiet_qprintf2 ((char *) "Pass %d: %s\\n", 13, (unsigned char *) &no, (sizeof (no)-1), (unsigned char *) &descs, (sizeof (descs)-1));
   decl_foreachDefModuleDo ((symbolKey_performOperation) {(symbolKey_performOperation_t) decl_unsetVisited});
@@ -346,15 +513,30 @@ static void doPass (unsigned int parseDefs, unsigned int parseMain, unsigned int
   setToPassNo (0);
 }
 
+
+/*
+   setToPassNo -
+*/
+
 static void setToPassNo (unsigned int n)
 {
   currentPass = n;
 }
 
+
+/*
+   init - initialise data structures for this module.
+*/
+
 static void init (void)
 {
   setToPassNo (0);
 }
+
+
+/*
+   compile - check, s, is non NIL before calling doCompile.
+*/
 
 void mcComp_compile (DynamicStrings_String s)
 {

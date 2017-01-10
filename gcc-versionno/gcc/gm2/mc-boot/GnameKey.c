@@ -53,17 +53,93 @@ struct _T1_r {
 static nameNode binaryTree;
 static Indexing_Index keyIndex;
 static unsigned int lastIndice;
+
+/*
+   makeKey - returns the Key of the symbol, a. If a is not in the
+             name table then it is added, otherwise the Key of a is returned
+             directly. Note that the name table has no scope - it merely
+             presents a more convienient way of expressing strings. By a Key.
+*/
+
 nameKey_Name nameKey_makeKey (char *a_, unsigned int _a_high);
+
+/*
+   makekey - returns the Key of the symbol, a. If a is not in the
+             name table then it is added, otherwise the Key of a is returned
+             directly. Note that the name table has no scope - it merely
+             presents a more convienient way of expressing strings. By a Key.
+             These keys last for the duration of compilation.
+*/
+
 nameKey_Name nameKey_makekey (void * a);
+
+/*
+   getKey - returns the name, a, of the key, Key.
+*/
+
 void nameKey_getKey (nameKey_Name key, char *a, unsigned int _a_high);
+
+/*
+   lengthKey - returns the StrLen of Key.
+*/
+
 unsigned int nameKey_lengthKey (nameKey_Name key);
+
+/*
+   isKey - returns TRUE if string, a, is currently a key.
+           We dont use the Compare function, we inline it and avoid
+           converting, a, into a String, for speed.
+*/
+
 unsigned int nameKey_isKey (char *a_, unsigned int _a_high);
+
+/*
+   keyToCharStar - returns the C char * string equivalent for, key.
+*/
+
 void nameKey_writeKey (nameKey_Name key);
+
+/*
+   isSameExcludingCase - returns TRUE if key1 and key2 are
+                         the same. It is case insensitive.
+                         This function deliberately inlines CAP for speed.
+*/
+
 unsigned int nameKey_isSameExcludingCase (nameKey_Name key1, nameKey_Name key2);
+
+/*
+   keyToCharStar - returns the C char * string equivalent for, key.
+*/
+
 void * nameKey_keyToCharStar (nameKey_Name key);
+
+/*
+   doMakeKey - finds the name, n, in the tree or else create a name.
+               If a name is found then the string, n, is deallocated.
+*/
+
 static nameKey_Name doMakeKey (ptrToChar n, unsigned int higha);
+
+/*
+   compare - return the result of Names[i] with Names[j]
+*/
+
 static comparison compare (ptrToChar pi, nameKey_Name j);
+
+/*
+   findNodeAndParentInTree - search BinaryTree for a name.
+                             If this name is found in the BinaryTree then
+                             child is set to this name and father is set to the node above.
+                             A comparison is returned to assist adding entries into this tree.
+*/
+
 static comparison findNodeAndParentInTree (ptrToChar n, nameNode *child, nameNode *father);
+
+
+/*
+   doMakeKey - finds the name, n, in the tree or else create a name.
+               If a name is found then the string, n, is deallocated.
+*/
 
 static nameKey_Name doMakeKey (ptrToChar n, unsigned int higha)
 {
@@ -101,6 +177,11 @@ static nameKey_Name doMakeKey (ptrToChar n, unsigned int higha)
   return k;
 }
 
+
+/*
+   compare - return the result of Names[i] with Names[j]
+*/
+
 static comparison compare (ptrToChar pi, nameKey_Name j)
 {
   ptrToChar pj;
@@ -124,6 +205,14 @@ static comparison compare (ptrToChar pi, nameKey_Name j)
       }
   return equal;
 }
+
+
+/*
+   findNodeAndParentInTree - search BinaryTree for a name.
+                             If this name is found in the BinaryTree then
+                             child is set to this name and father is set to the node above.
+                             A comparison is returned to assist adding entries into this tree.
+*/
 
 static comparison findNodeAndParentInTree (ptrToChar n, nameNode *child, nameNode *father)
 {
@@ -151,6 +240,14 @@ static comparison findNodeAndParentInTree (ptrToChar n, nameNode *child, nameNod
       return result;
     }
 }
+
+
+/*
+   makeKey - returns the Key of the symbol, a. If a is not in the
+             name table then it is added, otherwise the Key of a is returned
+             directly. Note that the name table has no scope - it merely
+             presents a more convienient way of expressing strings. By a Key.
+*/
 
 nameKey_Name nameKey_makeKey (char *a_, unsigned int _a_high)
 {
@@ -181,6 +278,15 @@ nameKey_Name nameKey_makeKey (char *a_, unsigned int _a_high)
       return doMakeKey (n, higha);
     }
 }
+
+
+/*
+   makekey - returns the Key of the symbol, a. If a is not in the
+             name table then it is added, otherwise the Key of a is returned
+             directly. Note that the name table has no scope - it merely
+             presents a more convienient way of expressing strings. By a Key.
+             These keys last for the duration of compilation.
+*/
 
 nameKey_Name nameKey_makekey (void * a)
 {
@@ -216,6 +322,11 @@ nameKey_Name nameKey_makekey (void * a)
     }
 }
 
+
+/*
+   getKey - returns the name, a, of the key, Key.
+*/
+
 void nameKey_getKey (nameKey_Name key, char *a, unsigned int _a_high)
 {
   ptrToChar p;
@@ -235,6 +346,11 @@ void nameKey_getKey (nameKey_Name key, char *a, unsigned int _a_high)
     a[i] = ASCII_nul;
 }
 
+
+/*
+   lengthKey - returns the StrLen of Key.
+*/
+
 unsigned int nameKey_lengthKey (nameKey_Name key)
 {
   unsigned int i;
@@ -249,6 +365,13 @@ unsigned int nameKey_lengthKey (nameKey_Name key)
     }
   return i;
 }
+
+
+/*
+   isKey - returns TRUE if string, a, is currently a key.
+           We dont use the Compare function, we inline it and avoid
+           converting, a, into a String, for speed.
+*/
 
 unsigned int nameKey_isKey (char *a_, unsigned int _a_high)
 {
@@ -297,6 +420,11 @@ unsigned int nameKey_isKey (char *a_, unsigned int _a_high)
   return FALSE;
 }
 
+
+/*
+   keyToCharStar - returns the C char * string equivalent for, key.
+*/
+
 void nameKey_writeKey (nameKey_Name key)
 {
   ptrToChar s;
@@ -308,6 +436,13 @@ void nameKey_writeKey (nameKey_Name key)
       s += 1;
     }
 }
+
+
+/*
+   isSameExcludingCase - returns TRUE if key1 and key2 are
+                         the same. It is case insensitive.
+                         This function deliberately inlines CAP for speed.
+*/
 
 unsigned int nameKey_isSameExcludingCase (nameKey_Name key1, nameKey_Name key2)
 {
@@ -337,6 +472,11 @@ unsigned int nameKey_isSameExcludingCase (nameKey_Name key1, nameKey_Name key2)
       return c1 == c2;
     }
 }
+
+
+/*
+   keyToCharStar - returns the C char * string equivalent for, key.
+*/
 
 void * nameKey_keyToCharStar (nameKey_Name key)
 {

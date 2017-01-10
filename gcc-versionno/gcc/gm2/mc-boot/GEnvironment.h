@@ -20,6 +20,12 @@ extern "C" {
 #      define EXTERN extern
 #   endif
 
+
+/*
+   GetEnvironment - gets the environment variable, Env, and places
+      	       	    a copy of its value into string, a.
+*/
+
 EXTERN unsigned int Environment_GetEnvironment (char *Env_, unsigned int _Env_high, char *a, unsigned int _a_high);
 #ifdef __cplusplus
 }

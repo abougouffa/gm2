@@ -36,7 +36,7 @@ typedef enum mcReserved_toktype {
   mcReserved_datetok, mcReserved_linetok, mcReserved_filetok,
   mcReserved_attributetok, mcReserved_builtintok, mcReserved_inlinetok,
   mcReserved_integertok, mcReserved_identtok, mcReserved_realtok,
-  mcReserved_stringtok
+  mcReserved_stringtok, mcReserved_commenttok,
 } mcReserved_toktype ;
 
 #endif

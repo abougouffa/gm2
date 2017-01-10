@@ -15,14 +15,36 @@
 #   include "GmcOptions.h"
 #   include "GmcError.h"
 
+
+/*
+   assert - tests the boolean, q. If false then an error is reported
+            and the execution is terminated.
+*/
+
 void mcDebug_assert (unsigned int q);
+
+/*
+   writeDebug - only writes a string if internal debugging is on.
+*/
+
 void mcDebug_writeDebug (char *a_, unsigned int _a_high);
+
+
+/*
+   assert - tests the boolean, q. If false then an error is reported
+            and the execution is terminated.
+*/
 
 void mcDebug_assert (unsigned int q)
 {
   if (! q)
     mcError_internalError ((char *) "assert failed", 13, (char *) "../../gcc-5.2.0/gcc/gm2/mc/mcDebug.mod", 38, 36);
 }
+
+
+/*
+   writeDebug - only writes a string if internal debugging is on.
+*/
 
 void mcDebug_writeDebug (char *a_, unsigned int _a_high)
 {

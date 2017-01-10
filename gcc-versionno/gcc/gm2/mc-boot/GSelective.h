@@ -39,6 +39,13 @@ EXTERN unsigned int Selective_FdIsSet (int fd, Selective_SetOfFd s);
 EXTERN int Selective_MaxFdsPlusOne (int a, int b);
 EXTERN void Selective_WriteCharRaw (int fd, char ch);
 EXTERN char Selective_ReadCharRaw (int fd);
+
+/*
+   GetTimeOfDay - fills in a record, Timeval, filled in with the
+                  current system time in seconds and microseconds.
+                  It returns zero (see man 3p gettimeofday)
+*/
+
 EXTERN int Selective_GetTimeOfDay (Selective_Timeval tv);
 #ifdef __cplusplus
 }

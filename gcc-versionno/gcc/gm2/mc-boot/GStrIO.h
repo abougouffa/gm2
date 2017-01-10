@@ -20,8 +20,26 @@ extern "C" {
 #      define EXTERN extern
 #   endif
 
+
+/*
+   WriteLn - writes a carriage return and a newline
+             character.
+*/
+
 EXTERN void StrIO_WriteLn (void);
+
+/*
+   ReadString - reads a sequence of characters into a string.
+                Line editing accepts Del, Ctrl H, Ctrl W and
+                Ctrl U.
+*/
+
 EXTERN void StrIO_ReadString (char *a, unsigned int _a_high);
+
+/*
+   WriteString - writes a string to the default output.
+*/
+
 EXTERN void StrIO_WriteString (char *a_, unsigned int _a_high);
 #ifdef __cplusplus
 }

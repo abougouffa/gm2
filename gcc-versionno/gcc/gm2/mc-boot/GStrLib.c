@@ -21,19 +21,56 @@
 
 #   include "GASCII.h"
 
+
+/*
+   StrConCat - combines a and b into c.
+*/
+
 void StrLib_StrConCat (char *a_, unsigned int _a_high, char *b_, unsigned int _b_high, char *c, unsigned int _c_high);
+
+/*
+   StrLess - returns TRUE if string, a, alphabetically occurs before
+             string, b.
+*/
+
 unsigned int StrLib_StrLess (char *a_, unsigned int _a_high, char *b_, unsigned int _b_high);
 unsigned int StrLib_StrEqual (char *a_, unsigned int _a_high, char *b_, unsigned int _b_high);
 unsigned int StrLib_StrLen (char *a_, unsigned int _a_high);
 void StrLib_StrCopy (char *a_, unsigned int _a_high, char *b, unsigned int _b_high);
+
+/*
+   IsSubString - returns true if b is a subcomponent of a.
+*/
+
 unsigned int StrLib_IsSubString (char *a_, unsigned int _a_high, char *b_, unsigned int _b_high);
+
+/*
+   StrRemoveWhitePrefix - copies string, into string, b, excluding any white
+                          space infront of a.
+*/
+
 void StrLib_StrRemoveWhitePrefix (char *a_, unsigned int _a_high, char *b, unsigned int _b_high);
+
+/*
+   IsWhite - returns TRUE if, ch, is a space or a tab.
+*/
+
 static unsigned int IsWhite (char ch);
+
+
+/*
+   IsWhite - returns TRUE if, ch, is a space or a tab.
+*/
 
 static unsigned int IsWhite (char ch)
 {
   return (ch == ' ') || (ch == ASCII_tab);
 }
+
+
+/*
+   StrConCat - combines a and b into c.
+*/
 
 void StrLib_StrConCat (char *a_, unsigned int _a_high, char *b_, unsigned int _b_high, char *c, unsigned int _c_high)
 {
@@ -62,6 +99,12 @@ void StrLib_StrConCat (char *a_, unsigned int _a_high, char *b_, unsigned int _b
   if (i <= Highc)
     c[i] = ASCII_nul;
 }
+
+
+/*
+   StrLess - returns TRUE if string, a, alphabetically occurs before
+             string, b.
+*/
 
 unsigned int StrLib_StrLess (char *a_, unsigned int _a_high, char *b_, unsigned int _b_high)
 {
@@ -151,6 +194,11 @@ void StrLib_StrCopy (char *a_, unsigned int _a_high, char *b, unsigned int _b_hi
     b[n] = ASCII_nul;
 }
 
+
+/*
+   IsSubString - returns true if b is a subcomponent of a.
+*/
+
 unsigned int StrLib_IsSubString (char *a_, unsigned int _a_high, char *b_, unsigned int _b_high)
 {
   unsigned int i;
@@ -180,6 +228,12 @@ unsigned int StrLib_IsSubString (char *a_, unsigned int _a_high, char *b_, unsig
       }
   return FALSE;
 }
+
+
+/*
+   StrRemoveWhitePrefix - copies string, into string, b, excluding any white
+                          space infront of a.
+*/
 
 void StrLib_StrRemoveWhitePrefix (char *a_, unsigned int _a_high, char *b, unsigned int _b_high)
 {

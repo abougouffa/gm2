@@ -47,13 +47,69 @@ symbolKey_symbolTree symbolKey_initTree (void);
 void symbolKey_killTree (symbolKey_symbolTree *t);
 void * symbolKey_getSymKey (symbolKey_symbolTree t, nameKey_Name name);
 void symbolKey_putSymKey (symbolKey_symbolTree t, nameKey_Name name, void * key);
+
+/*
+   delSymKey - deletes an entry in the binary tree.
+
+               NB in order for this to work we must ensure that the InitTree sets
+               both left and right to NIL.
+*/
+
 void symbolKey_delSymKey (symbolKey_symbolTree t, nameKey_Name name);
+
+/*
+   isEmptyTree - returns true if symbolTree, t, is empty.
+*/
+
 unsigned int symbolKey_isEmptyTree (symbolKey_symbolTree t);
+
+/*
+   doesTreeContainAny - returns true if symbolTree, t, contains any
+                        symbols which in turn return true when procedure,
+                        p, is called with a symbol as its parameter.
+                        The symbolTree root is empty apart from the field,
+                        left, hence we need two procedures.
+*/
+
 unsigned int symbolKey_doesTreeContainAny (symbolKey_symbolTree t, symbolKey_isSymbol p);
+
+/*
+   foreachNodeDo - for each node in symbolTree, t, a procedure, p,
+                   is called with the node symbol as its parameter.
+                   The tree root node only contains a legal left pointer,
+                   therefore we need two procedures to examine this tree.
+*/
+
 void symbolKey_foreachNodeDo (symbolKey_symbolTree t, symbolKey_performOperation p);
+
+/*
+   findNodeAndParentInTree - find a node, child, in a binary tree, t, with name equal to n.
+                             if an entry is found, father is set to the node above child.
+*/
+
 static void findNodeAndParentInTree (symbolKey_symbolTree t, nameKey_Name n, symbolKey_symbolTree *child, symbolKey_symbolTree *father);
+
+/*
+   searchForAny - performs the search required for doesTreeContainAny.
+                  The root node always contains a nul data value,
+                  therefore we must skip over it.
+*/
+
 static unsigned int searchForAny (symbolKey_symbolTree t, symbolKey_isSymbol p);
+
+/*
+   searchAndDo - searches all the nodes in symbolTree, t, and
+                 calls procedure, p, with a node as its parameter.
+                 It traverse the tree in order.
+*/
+
 static void searchAndDo (symbolKey_symbolTree t, symbolKey_performOperation p);
+
+
+/*
+   findNodeAndParentInTree - find a node, child, in a binary tree, t, with name equal to n.
+                             if an entry is found, father is set to the node above child.
+*/
 
 static void findNodeAndParentInTree (symbolKey_symbolTree t, nameKey_Name n, symbolKey_symbolTree *child, symbolKey_symbolTree *father)
 {
@@ -76,6 +132,13 @@ static void findNodeAndParentInTree (symbolKey_symbolTree t, nameKey_Name n, sym
     } while (! (((*child) == NULL) || (n == (*child)->name)));
 }
 
+
+/*
+   searchForAny - performs the search required for doesTreeContainAny.
+                  The root node always contains a nul data value,
+                  therefore we must skip over it.
+*/
+
 static unsigned int searchForAny (symbolKey_symbolTree t, symbolKey_isSymbol p)
 {
   if (t == NULL)
@@ -83,6 +146,13 @@ static unsigned int searchForAny (symbolKey_symbolTree t, symbolKey_isSymbol p)
   else
     return (((*p.proc) (t->key)) || (searchForAny (t->left, p))) || (searchForAny (t->right, p));
 }
+
+
+/*
+   searchAndDo - searches all the nodes in symbolTree, t, and
+                 calls procedure, p, with a node as its parameter.
+                 It traverse the tree in order.
+*/
 
 static void searchAndDo (symbolKey_symbolTree t, symbolKey_performOperation p)
 {
@@ -165,6 +235,14 @@ void symbolKey_putSymKey (symbolKey_symbolTree t, nameKey_Name name, void * key)
     Debug_Halt ((char *) "symbol already stored", 21, 116, (char *) "../../gcc-5.2.0/gcc/gm2/mc/symbolKey.mod", 40);
 }
 
+
+/*
+   delSymKey - deletes an entry in the binary tree.
+
+               NB in order for this to work we must ensure that the InitTree sets
+               both left and right to NIL.
+*/
+
 void symbolKey_delSymKey (symbolKey_symbolTree t, nameKey_Name name)
 {
   symbolKey_symbolTree i;
@@ -205,15 +283,37 @@ void symbolKey_delSymKey (symbolKey_symbolTree t, nameKey_Name name)
     Debug_Halt ((char *) "trying to delete a symbol that is not in the tree - the compiler never expects this to occur", 92, 183, (char *) "../../gcc-5.2.0/gcc/gm2/mc/symbolKey.mod", 40);
 }
 
+
+/*
+   isEmptyTree - returns true if symbolTree, t, is empty.
+*/
+
 unsigned int symbolKey_isEmptyTree (symbolKey_symbolTree t)
 {
   return t->left == NULL;
 }
 
+
+/*
+   doesTreeContainAny - returns true if symbolTree, t, contains any
+                        symbols which in turn return true when procedure,
+                        p, is called with a symbol as its parameter.
+                        The symbolTree root is empty apart from the field,
+                        left, hence we need two procedures.
+*/
+
 unsigned int symbolKey_doesTreeContainAny (symbolKey_symbolTree t, symbolKey_isSymbol p)
 {
   return searchForAny (t->left, p);
 }
+
+
+/*
+   foreachNodeDo - for each node in symbolTree, t, a procedure, p,
+                   is called with the node symbol as its parameter.
+                   The tree root node only contains a legal left pointer,
+                   therefore we need two procedures to examine this tree.
+*/
 
 void symbolKey_foreachNodeDo (symbolKey_symbolTree t, symbolKey_performOperation p)
 {

@@ -21,6 +21,17 @@ extern "C" {
 #      define EXTERN extern
 #   endif
 
+
+/*
+   preprocessModule - preprocess a file, filename, returning the new filename
+                      of the preprocessed file.
+                      Preprocessing will only occur if requested by the user.
+                      If no preprocessing was requested then filename is returned.
+                      If preprocessing occurs then a temporary file is created
+                      and its name is returned.
+                      All temporary files will be deleted when the compiler exits.
+*/
+
 EXTERN DynamicStrings_String mcPreprocess_preprocessModule (DynamicStrings_String filename);
 #ifdef __cplusplus
 }

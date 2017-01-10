@@ -11,8 +11,23 @@
 
 #   include "GSYSTEM.h"
 
+
+/*
+   MemCopy - copys a region of memory to the required destination.
+*/
+
 void MemUtils_MemCopy (void * from, unsigned int length, void * to);
+
+/*
+   MemZero - sets a region of memory: a..a+length to zero.
+*/
+
 void MemUtils_MemZero (void * a, unsigned int length);
+
+
+/*
+   MemCopy - copys a region of memory to the required destination.
+*/
 
 void MemUtils_MemCopy (void * from, unsigned int length, void * to)
 {
@@ -40,6 +55,11 @@ void MemUtils_MemCopy (void * from, unsigned int length, void * to)
       length -= sizeof (unsigned char);
     }
 }
+
+
+/*
+   MemZero - sets a region of memory: a..a+length to zero.
+*/
 
 void MemUtils_MemZero (void * a, unsigned int length)
 {

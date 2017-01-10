@@ -21,12 +21,43 @@ extern "C" {
 #      define EXTERN extern
 #   endif
 
+
+/*
+   closeSource - provided for semantic sugar
+*/
+
 EXTERN void mcflex_closeSource (void);
 EXTERN unsigned int mcflex_openSource (void * s);
+
+/*
+   getToken - returns the ADDRESS of the next token.
+*/
+
 EXTERN void * mcflex_getToken (void);
+
+/*
+   getLineNo - returns the current line number.
+*/
+
 EXTERN unsigned int mcflex_getLineNo (void);
+
+/*
+   getColumnNo - returns the column where the current token starts.
+*/
+
 EXTERN unsigned int mcflex_getColumnNo (void);
+
+/*
+   mcError - displays the error message, s, after the code line and pointer
+             to the erroneous token.
+*/
+
 EXTERN void mcflex_mcError (void * s);
+
+/*
+   getTotalLines - returns the total number of lines parsed.
+*/
+
 EXTERN unsigned int mcflex_getTotalLines (void);
 #ifdef __cplusplus
 }

@@ -49,19 +49,91 @@ struct _T1_r {
                unsigned int Map;
              };
 
+
+/*
+   InitIndex - creates and returns an Index.
+*/
+
 Indexing_Index Indexing_InitIndex (unsigned int low);
+
+/*
+   KillIndex - returns Index to free storage.
+*/
+
 Indexing_Index Indexing_KillIndex (Indexing_Index i);
+
+/*
+   DebugIndex - turns on debugging within an index.
+*/
+
 Indexing_Index Indexing_DebugIndex (Indexing_Index i);
+
+/*
+   InBounds - returns TRUE if indice, n, is within the bounds
+              of the dynamic array.
+*/
+
 unsigned int Indexing_InBounds (Indexing_Index i, unsigned int n);
+
+/*
+   HighIndice - returns the last legally accessible indice of this array.
+*/
+
 unsigned int Indexing_HighIndice (Indexing_Index i);
+
+/*
+   LowIndice - returns the first legally accessible indice of this array.
+*/
+
 unsigned int Indexing_LowIndice (Indexing_Index i);
+
+/*
+   PutIndice - places, a, into the dynamic array at position i[n]
+*/
+
 void Indexing_PutIndice (Indexing_Index i, unsigned int n, void * a);
+
+/*
+   GetIndice - retrieves, element i[n] from the dynamic array.
+*/
+
 void * Indexing_GetIndice (Indexing_Index i, unsigned int n);
+
+/*
+   IsIndiceInIndex - returns TRUE if, a, is in the index, i.
+*/
+
 unsigned int Indexing_IsIndiceInIndex (Indexing_Index i, void * a);
+
+/*
+   RemoveIndiceFromIndex - removes, a, from Index, i.
+*/
+
 void Indexing_RemoveIndiceFromIndex (Indexing_Index i, void * a);
+
+/*
+   DeleteIndice - delete i[j] from the array.
+*/
+
 void Indexing_DeleteIndice (Indexing_Index i, unsigned int j);
+
+/*
+   IncludeIndiceIntoIndex - if the indice is not in the index, then
+                            add it at the end.
+*/
+
 void Indexing_IncludeIndiceIntoIndex (Indexing_Index i, void * a);
+
+/*
+   ForeachIndiceInIndexDo - for each j indice of i, call procedure p(i[j])
+*/
+
 void Indexing_ForeachIndiceInIndexDo (Indexing_Index i, Indexing_IndexProcedure p);
+
+
+/*
+   InitIndex - creates and returns an Index.
+*/
 
 Indexing_Index Indexing_InitIndex (unsigned int low)
 {
@@ -79,6 +151,11 @@ Indexing_Index Indexing_InitIndex (unsigned int low)
   return i;
 }
 
+
+/*
+   KillIndex - returns Index to free storage.
+*/
+
 Indexing_Index Indexing_KillIndex (Indexing_Index i)
 {
   Storage_DEALLOCATE (&i->ArrayStart, i->ArraySize);
@@ -86,11 +163,22 @@ Indexing_Index Indexing_KillIndex (Indexing_Index i)
   return NULL;
 }
 
+
+/*
+   DebugIndex - turns on debugging within an index.
+*/
+
 Indexing_Index Indexing_DebugIndex (Indexing_Index i)
 {
   i->Debug = TRUE;
   return i;
 }
+
+
+/*
+   InBounds - returns TRUE if indice, n, is within the bounds
+              of the dynamic array.
+*/
 
 unsigned int Indexing_InBounds (Indexing_Index i, unsigned int n)
 {
@@ -100,6 +188,11 @@ unsigned int Indexing_InBounds (Indexing_Index i, unsigned int n)
     return (n >= i->Low) && (n <= i->High);
 }
 
+
+/*
+   HighIndice - returns the last legally accessible indice of this array.
+*/
+
 unsigned int Indexing_HighIndice (Indexing_Index i)
 {
   if (i == NULL)
@@ -108,6 +201,11 @@ unsigned int Indexing_HighIndice (Indexing_Index i)
     return i->High;
 }
 
+
+/*
+   LowIndice - returns the first legally accessible indice of this array.
+*/
+
 unsigned int Indexing_LowIndice (Indexing_Index i)
 {
   if (i == NULL)
@@ -115,6 +213,11 @@ unsigned int Indexing_LowIndice (Indexing_Index i)
   else
     return i->Low;
 }
+
+
+/*
+   PutIndice - places, a, into the dynamic array at position i[n]
+*/
 
 void Indexing_PutIndice (Indexing_Index i, unsigned int n, void * a)
 {
@@ -152,6 +255,11 @@ void Indexing_PutIndice (Indexing_Index i, unsigned int n, void * a)
       i->Map |= (1 << (n ));
 }
 
+
+/*
+   GetIndice - retrieves, element i[n] from the dynamic array.
+*/
+
 void * Indexing_GetIndice (Indexing_Index i, unsigned int n)
 {
   PtrToByte b;
@@ -167,6 +275,11 @@ void * Indexing_GetIndice (Indexing_Index i, unsigned int n)
       M2RTS_HALT (0);
   return (*p);
 }
+
+
+/*
+   IsIndiceInIndex - returns TRUE if, a, is in the index, i.
+*/
 
 unsigned int Indexing_IsIndiceInIndex (Indexing_Index i, void * a)
 {
@@ -187,6 +300,11 @@ unsigned int Indexing_IsIndiceInIndex (Indexing_Index i, void * a)
   return FALSE;
 }
 
+
+/*
+   RemoveIndiceFromIndex - removes, a, from Index, i.
+*/
+
 void Indexing_RemoveIndiceFromIndex (Indexing_Index i, void * a)
 {
   unsigned int j;
@@ -205,6 +323,11 @@ void Indexing_RemoveIndiceFromIndex (Indexing_Index i, void * a)
       j += 1;
     }
 }
+
+
+/*
+   DeleteIndice - delete i[j] from the array.
+*/
 
 void Indexing_DeleteIndice (Indexing_Index i, unsigned int j)
 {
@@ -225,6 +348,12 @@ void Indexing_DeleteIndice (Indexing_Index i, unsigned int j)
     M2RTS_HALT (0);
 }
 
+
+/*
+   IncludeIndiceIntoIndex - if the indice is not in the index, then
+                            add it at the end.
+*/
+
 void Indexing_IncludeIndiceIntoIndex (Indexing_Index i, void * a)
 {
   if (! (Indexing_IsIndiceInIndex (i, a)))
@@ -236,6 +365,11 @@ void Indexing_IncludeIndiceIntoIndex (Indexing_Index i, void * a)
         Indexing_PutIndice (i, (Indexing_HighIndice (i))+1, a);
     }
 }
+
+
+/*
+   ForeachIndiceInIndexDo - for each j indice of i, call procedure p(i[j])
+*/
 
 void Indexing_ForeachIndiceInIndexDo (Indexing_Index i, Indexing_IndexProcedure p)
 {

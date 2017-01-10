@@ -20,12 +20,53 @@
 #   include "Glibc.h"
 
 static unsigned int IsATTY;
+
+/*
+   WriteLn - writes a carriage return and a newline
+             character.
+*/
+
 void StrIO_WriteLn (void);
+
+/*
+   ReadString - reads a sequence of characters into a string.
+                Line editing accepts Del, Ctrl H, Ctrl W and
+                Ctrl U.
+*/
+
 void StrIO_ReadString (char *a, unsigned int _a_high);
+
+/*
+   WriteString - writes a string to the default output.
+*/
+
 void StrIO_WriteString (char *a_, unsigned int _a_high);
+
+/*
+   Erase - writes a backspace, space and backspace to remove the
+           last character displayed.
+*/
+
 static void Erase (void);
+
+/*
+   Echo - echos the character, ch, onto the output channel if IsATTY
+          is true.
+*/
+
 static void Echo (char ch);
+
+/*
+   AlphaNum- returns true if character, ch, is an alphanumeric character.
+*/
+
 static unsigned int AlphaNum (char ch);
+
+
+/*
+   Erase - writes a backspace, space and backspace to remove the
+           last character displayed.
+*/
 
 static void Erase (void)
 {
@@ -34,22 +75,46 @@ static void Erase (void)
   Echo (ASCII_bs);
 }
 
+
+/*
+   Echo - echos the character, ch, onto the output channel if IsATTY
+          is true.
+*/
+
 static void Echo (char ch)
 {
   if (IsATTY)
     StdIO_Write (ch);
 }
 
+
+/*
+   AlphaNum- returns true if character, ch, is an alphanumeric character.
+*/
+
 static unsigned int AlphaNum (char ch)
 {
   return (((ch >= 'a') && (ch <= 'z')) || ((ch >= 'A') && (ch <= 'Z'))) || ((ch >= '0') && (ch <= '9'));
 }
+
+
+/*
+   WriteLn - writes a carriage return and a newline
+             character.
+*/
 
 void StrIO_WriteLn (void)
 {
   Echo (ASCII_cr);
   StdIO_Write (ASCII_lf);
 }
+
+
+/*
+   ReadString - reads a sequence of characters into a string.
+                Line editing accepts Del, Ctrl H, Ctrl W and
+                Ctrl U.
+*/
 
 void StrIO_ReadString (char *a, unsigned int _a_high)
 {
@@ -122,6 +187,11 @@ void StrIO_ReadString (char *a, unsigned int _a_high)
       Echo (ASCII_bel);
   } while (! ((ch == ASCII_cr) || (ch == ASCII_lf)));
 }
+
+
+/*
+   WriteString - writes a string to the default output.
+*/
 
 void StrIO_WriteString (char *a_, unsigned int _a_high)
 {

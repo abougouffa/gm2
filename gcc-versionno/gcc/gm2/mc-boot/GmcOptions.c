@@ -43,30 +43,159 @@ static DynamicStrings_String hPrefix;
 static DynamicStrings_String outputFile;
 static DynamicStrings_String cppArgs;
 static DynamicStrings_String cppProgram;
+
+/*
+   handleOptions - iterates over all options setting appropriate
+                   values and returns the single source file
+                   if found at the end of the arguments.
+*/
+
 DynamicStrings_String mcOptions_handleOptions (void);
+
+/*
+   getQuiet - return the value of quiet.
+*/
+
 unsigned int mcOptions_getQuiet (void);
+
+/*
+   getVerbose - return the value of verbose.
+*/
+
 unsigned int mcOptions_getVerbose (void);
+
+/*
+   getInternalDebugging - return the value of internalDebugging.
+*/
+
 unsigned int mcOptions_getInternalDebugging (void);
+
+/*
+   getCppCommandLine - returns the Cpp command line and all arguments.
+*/
+
 DynamicStrings_String mcOptions_getCppCommandLine (void);
+
+/*
+   getOutputFile - sets the output filename to output.
+*/
+
 DynamicStrings_String mcOptions_getOutputFile (void);
+
+/*
+   getExtendedOpaque - return the extendedOpaque value.
+*/
+
 unsigned int mcOptions_getExtendedOpaque (void);
+
+/*
+   setDebugTopological - sets the flag debugTopological to value.
+*/
+
 void mcOptions_setDebugTopological (unsigned int value);
+
+/*
+   getDebugTopological - returns the flag value of the command
+                         line option --debug-top.
+*/
+
 unsigned int mcOptions_getDebugTopological (void);
+
+/*
+   getHPrefix - saves the H file prefix.
+*/
+
 DynamicStrings_String mcOptions_getHPrefix (void);
+
+/*
+   getIgnoreFQ - returns the ignorefq flag.
+*/
+
 unsigned int mcOptions_getIgnoreFQ (void);
+
+/*
+   displayVersion - displays the version of the compiler.
+*/
+
 static void displayVersion (unsigned int mustExit);
+
+/*
+   displayHelp - display the mc help summary.
+*/
+
 static void displayHelp (void);
+
+/*
+   setOutputFile - sets the output filename to output.
+*/
+
 static void setOutputFile (DynamicStrings_String output);
+
+/*
+   setQuiet - sets the quiet flag to, value.
+*/
+
 static void setQuiet (unsigned int value);
+
+/*
+   setVerbose - sets the verbose flag to, value.
+*/
+
 static void setVerbose (unsigned int value);
+
+/*
+   setExtendedOpaque - set extendedOpaque to value.
+*/
+
 static void setExtendedOpaque (unsigned int value);
+
+/*
+   setSearchPath - set the search path for the module sources.
+*/
+
 static void setSearchPath (DynamicStrings_String arg);
+
+/*
+   setInternalDebugging - turn on/off internal debugging.
+*/
+
 static void setInternalDebugging (unsigned int value);
+
+/*
+   setHPrefix - saves the H file prefix.
+*/
+
 static void setHPrefix (DynamicStrings_String s);
+
+/*
+   setIgnoreFQ - sets the ignorefq flag.
+*/
+
 static void setIgnoreFQ (unsigned int value);
+
+/*
+   optionIs - returns TRUE if the first len (right) characters
+              match left.
+*/
+
 static unsigned int optionIs (char *left_, unsigned int _left_high, DynamicStrings_String right);
+
+/*
+   setLang - set the appropriate output language.
+*/
+
 static void setLang (DynamicStrings_String arg);
+
+/*
+   handleOption -
+*/
+
 static void handleOption (DynamicStrings_String arg);
+
+
+/*
+   displayVersion - displays the version of the compiler.
+*/
 
 static void displayVersion (unsigned int mustExit)
 {
@@ -77,6 +206,11 @@ static void displayVersion (unsigned int mustExit)
   if (mustExit)
     libc_exit (0);
 }
+
+
+/*
+   displayHelp - display the mc help summary.
+*/
 
 static void displayHelp (void)
 {
@@ -102,45 +236,91 @@ static void displayHelp (void)
   libc_exit (0);
 }
 
+
+/*
+   setOutputFile - sets the output filename to output.
+*/
+
 static void setOutputFile (DynamicStrings_String output)
 {
   outputFile = output;
 }
+
+
+/*
+   setQuiet - sets the quiet flag to, value.
+*/
 
 static void setQuiet (unsigned int value)
 {
   quiet = value;
 }
 
+
+/*
+   setVerbose - sets the verbose flag to, value.
+*/
+
 static void setVerbose (unsigned int value)
 {
   verbose = value;
 }
+
+
+/*
+   setExtendedOpaque - set extendedOpaque to value.
+*/
 
 static void setExtendedOpaque (unsigned int value)
 {
   extendedOpaque = value;
 }
 
+
+/*
+   setSearchPath - set the search path for the module sources.
+*/
+
 static void setSearchPath (DynamicStrings_String arg)
 {
   mcSearch_prependSearchPath (arg);
 }
+
+
+/*
+   setInternalDebugging - turn on/off internal debugging.
+*/
 
 static void setInternalDebugging (unsigned int value)
 {
   internalDebugging = value;
 }
 
+
+/*
+   setHPrefix - saves the H file prefix.
+*/
+
 static void setHPrefix (DynamicStrings_String s)
 {
   hPrefix = s;
 }
 
+
+/*
+   setIgnoreFQ - sets the ignorefq flag.
+*/
+
 static void setIgnoreFQ (unsigned int value)
 {
   ignoreFQ = value;
 }
+
+
+/*
+   optionIs - returns TRUE if the first len (right) characters
+              match left.
+*/
 
 static unsigned int optionIs (char *left_, unsigned int _left_high, DynamicStrings_String right)
 {
@@ -161,6 +341,11 @@ static unsigned int optionIs (char *left_, unsigned int _left_high, DynamicStrin
     return FALSE;
 }
 
+
+/*
+   setLang - set the appropriate output language.
+*/
+
 static void setLang (DynamicStrings_String arg)
 {
   if (optionIs ((char *) "c++", 3, arg))
@@ -172,6 +357,11 @@ static void setLang (DynamicStrings_String arg)
   else
     displayHelp ();
 }
+
+
+/*
+   handleOption -
+*/
 
 static void handleOption (DynamicStrings_String arg)
 {
@@ -201,6 +391,13 @@ static void handleOption (DynamicStrings_String arg)
     setIgnoreFQ (TRUE);
 }
 
+
+/*
+   handleOptions - iterates over all options setting appropriate
+                   values and returns the single source file
+                   if found at the end of the arguments.
+*/
+
 DynamicStrings_String mcOptions_handleOptions (void)
 {
   unsigned int i;
@@ -222,20 +419,40 @@ DynamicStrings_String mcOptions_handleOptions (void)
   return NULL;
 }
 
+
+/*
+   getQuiet - return the value of quiet.
+*/
+
 unsigned int mcOptions_getQuiet (void)
 {
   return quiet;
 }
+
+
+/*
+   getVerbose - return the value of verbose.
+*/
 
 unsigned int mcOptions_getVerbose (void)
 {
   return verbose;
 }
 
+
+/*
+   getInternalDebugging - return the value of internalDebugging.
+*/
+
 unsigned int mcOptions_getInternalDebugging (void)
 {
   return internalDebugging;
 }
+
+
+/*
+   getCppCommandLine - returns the Cpp command line and all arguments.
+*/
 
 DynamicStrings_String mcOptions_getCppCommandLine (void)
 {
@@ -253,30 +470,61 @@ DynamicStrings_String mcOptions_getCppCommandLine (void)
     }
 }
 
+
+/*
+   getOutputFile - sets the output filename to output.
+*/
+
 DynamicStrings_String mcOptions_getOutputFile (void)
 {
   return outputFile;
 }
+
+
+/*
+   getExtendedOpaque - return the extendedOpaque value.
+*/
 
 unsigned int mcOptions_getExtendedOpaque (void)
 {
   return extendedOpaque;
 }
 
+
+/*
+   setDebugTopological - sets the flag debugTopological to value.
+*/
+
 void mcOptions_setDebugTopological (unsigned int value)
 {
   debugTopological = value;
 }
+
+
+/*
+   getDebugTopological - returns the flag value of the command
+                         line option --debug-top.
+*/
 
 unsigned int mcOptions_getDebugTopological (void)
 {
   return debugTopological;
 }
 
+
+/*
+   getHPrefix - saves the H file prefix.
+*/
+
 DynamicStrings_String mcOptions_getHPrefix (void)
 {
   return hPrefix;
 }
+
+
+/*
+   getIgnoreFQ - returns the ignorefq flag.
+*/
 
 unsigned int mcOptions_getIgnoreFQ (void)
 {

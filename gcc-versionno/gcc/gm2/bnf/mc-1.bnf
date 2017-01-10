@@ -51,6 +51,7 @@ FROM nameKey IMPORT NulName, Name, makekey ;
 FROM mcPrintf IMPORT printf0, printf1 ;
 FROM mcDebug IMPORT assert ;
 FROM mcReserved IMPORT toktype ;
+FROM mcComment IMPORT setProcedureComment ;
 
 FROM mcLexBuf IMPORT currentstring, currenttoken, getToken, insertToken,
                      insertTokenAndRewind, getTokenNo ;
@@ -59,7 +60,8 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
                  lookupSym, putDefForC,
                  makeProcedure, makeType, makeTypeImp, makeVar, makeConst,
 		 enterScope, leaveScope, putTypeHidden,
-		 addImportedModule, getCurrentModule ;
+		 addImportedModule, getCurrentModule,
+		 putCommentDefProcedure, putCommentModProcedure ;
 
 
 CONST
@@ -938,14 +940,19 @@ ProcedureDeclaration := ProcedureHeading ";" ProcedureBlock
                         Ident
                       =:
 
-DefProcedureIdent := Ident                                                % curproc := makeProcedure (curident) %
+DefProcedureIdent := Ident                                                % curproc := makeProcedure (curident) ;
+                                                                            setProcedureComment (curident) ;
+                                                                            putCommentDefProcedure (curproc) ;
+                                                                          %
                    =:
 
 ProcedureIdent := Ident                                                   % curproc := lookupSym (curident) ;
                                                                             IF curproc=NIL
                                                                             THEN
                                                                                curproc := makeProcedure (curident)
-                                                                            END
+                                                                            END ;
+                                                                            setProcedureComment (curident) ;
+                                                                            putCommentModProcedure (curproc) ;
 									  %
                 =:
 

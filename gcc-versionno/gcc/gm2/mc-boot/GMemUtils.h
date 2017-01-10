@@ -21,7 +21,17 @@ extern "C" {
 #      define EXTERN extern
 #   endif
 
+
+/*
+   MemCopy - copys a region of memory to the required destination.
+*/
+
 EXTERN void MemUtils_MemCopy (void * from, unsigned int length, void * to);
+
+/*
+   MemZero - sets a region of memory: a..a+length to zero.
+*/
+
 EXTERN void MemUtils_MemZero (void * a, unsigned int length);
 #ifdef __cplusplus
 }

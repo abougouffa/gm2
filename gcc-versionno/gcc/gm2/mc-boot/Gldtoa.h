@@ -23,7 +23,23 @@ extern "C" {
 
 typedef enum {ldtoa_maxsignificant, ldtoa_decimaldigits} ldtoa_Mode;
 
+
+/*
+   strtold - returns a LONGREAL given a C string, s.  It will set
+             error to TRUE if the number is too large or badly formed.
+*/
+
 EXTERN long double ldtoa_strtold (void * s, unsigned int *error);
+
+/*
+   ldtoa - converts a LONGREAL, d, into a string.  The address of the
+           string is returned.
+           mode       indicates the type of conversion required.
+           ndigits    determines the number of digits according to mode.
+           decpt      the position of the decimal point.
+           sign       does the string have a sign?
+*/
+
 EXTERN void * ldtoa_ldtoa (long double d, ldtoa_Mode mode, int ndigits, int *decpt, unsigned int *sign);
 #ifdef __cplusplus
 }

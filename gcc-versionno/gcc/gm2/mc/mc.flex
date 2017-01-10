@@ -1,5 +1,5 @@
 %{
-/* Copyright (C) 2015
+/* Copyright (C) 2015, 2016, 2017
    Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
@@ -20,6 +20,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 #include "mcReserved.h"
 #include "mcLexBuf.h"
+#include "mcComment.h"
 
 #include <time.h>
 
@@ -112,7 +113,7 @@ extern  void  yylex                   (void);
 %%
 
 "(*"                       { updatepos();
-                             commentLevel=1; pushLine(); skippos();
+                             commentLevel=1; pushLine(); skippos(); mcComment_beginComment ();
 			     BEGIN COMMENT; }
 <COMMENT>"*)"              { endOfComment(); }
 <COMMENT>"(*"              { commentLevel++; pushLine(); updatepos(); skippos(); }
@@ -124,8 +125,8 @@ extern  void  yylex                   (void);
                              } else
                                updatepos(); skippos();
                            }
-<COMMENT>\n.*              { consumeLine(); }
-<COMMENT>.                 { updatepos(); skippos(); }
+<COMMENT>\n                { mcComment_addText (yytext); consumeLine(); }
+<COMMENT>.                 { mcComment_addText (yytext); updatepos(); skippos(); }
 <COMMENT1>.                { updatepos(); skippos(); }
 <COMMENT1>"*>"             { updatepos(); skippos(); finishedLine(); BEGIN COMMENT; }
 <COMMENT1>\n.*             { consumeLine(); }
@@ -411,14 +412,18 @@ static void popFunction (void)
 
 static void endOfComment (void)
 {
+  if (commentLevel == 1) {
+    mcComment_endComment ();
+    mcLexBuf_addTokCharStar (mcReserved_commenttok, mcComment_getCommentCharStar ());
+  }
   commentLevel--;
-  updatepos();
-  skippos();
+  updatepos ();
+  skippos ();
   if (commentLevel==0) {
     BEGIN INITIAL;
-    finishedLine();
+    finishedLine ();
   } else
-    popLine();
+    popLine ();
 }
 
 /*

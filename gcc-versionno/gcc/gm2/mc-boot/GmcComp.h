@@ -21,6 +21,11 @@ extern "C" {
 #      define EXTERN extern
 #   endif
 
+
+/*
+   compile - translate file, s, using a 6 pass technique.
+*/
+
 EXTERN void mcComp_compile (DynamicStrings_String s);
 #ifdef __cplusplus
 }

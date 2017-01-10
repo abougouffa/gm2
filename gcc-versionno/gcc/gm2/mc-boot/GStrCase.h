@@ -20,9 +20,35 @@ extern "C" {
 #      define EXTERN extern
 #   endif
 
+
+/*
+   StrToUpperCase - converts string, a, to uppercase returning the
+                    result in, b.
+*/
+
 EXTERN void StrCase_StrToUpperCase (char *a_, unsigned int _a_high, char *b, unsigned int _b_high);
+
+/*
+   StrToLowerCase - converts string, a, to lowercase returning the
+                    result in, b.
+*/
+
 EXTERN void StrCase_StrToLowerCase (char *a_, unsigned int _a_high, char *b, unsigned int _b_high);
+
+/*
+   Cap - converts a lower case character into a capital character.
+         If the character is not a lower case character 'a'..'z'
+         then the character is simply returned unaltered.
+*/
+
 EXTERN char StrCase_Cap (char ch);
+
+/*
+   Lower - converts an upper case character into a lower case character.
+           If the character is not an upper case character 'A'..'Z'
+           then the character is simply returned unaltered.
+*/
+
 EXTERN char StrCase_Lower (char ch);
 #ifdef __cplusplus
 }

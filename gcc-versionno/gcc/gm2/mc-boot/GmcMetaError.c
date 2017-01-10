@@ -33,58 +33,342 @@
 
 typedef enum {newerror, newwarning, chained} errorType;
 
+
+/*
+   doFormat -
+*/
+
 void mcMetaError_metaError1 (char *m_, unsigned int _m_high, unsigned char *s_, unsigned int _s_high);
+
+/*
+   doFormat -
+*/
+
 void mcMetaError_metaError2 (char *m_, unsigned int _m_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high);
+
+/*
+   doFormat -
+*/
+
 void mcMetaError_metaError3 (char *m_, unsigned int _m_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high);
+
+/*
+   doFormat -
+*/
+
 void mcMetaError_metaError4 (char *m_, unsigned int _m_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high, unsigned char *s4_, unsigned int _s4_high);
+
+/*
+   wrapErrors -
+*/
+
 void mcMetaError_metaErrors1 (char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, unsigned char *s_, unsigned int _s_high);
+
+/*
+   wrapErrors -
+*/
+
 void mcMetaError_metaErrors2 (char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high);
+
+/*
+   wrapErrors -
+*/
+
 void mcMetaError_metaErrors3 (char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high);
+
+/*
+   wrapErrors -
+*/
+
 void mcMetaError_metaErrors4 (char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high, unsigned char *s4_, unsigned int _s4_high);
+
+/*
+   doFormat -
+*/
+
 void mcMetaError_metaErrorT1 (unsigned int tok, char *m_, unsigned int _m_high, unsigned char *s_, unsigned int _s_high);
+
+/*
+   doFormat -
+*/
+
 void mcMetaError_metaErrorT2 (unsigned int tok, char *m_, unsigned int _m_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high);
+
+/*
+   doFormat -
+*/
+
 void mcMetaError_metaErrorT3 (unsigned int tok, char *m_, unsigned int _m_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high);
+
+/*
+   doFormat -
+*/
+
 void mcMetaError_metaErrorT4 (unsigned int tok, char *m_, unsigned int _m_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high, unsigned char *s4_, unsigned int _s4_high);
+
+/*
+   wrapErrors -
+*/
+
 void mcMetaError_metaErrorsT1 (unsigned int tok, char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, unsigned char *s_, unsigned int _s_high);
+
+/*
+   wrapErrors -
+*/
+
 void mcMetaError_metaErrorsT2 (unsigned int tok, char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high);
+
+/*
+   wrapErrors -
+*/
+
 void mcMetaError_metaErrorsT3 (unsigned int tok, char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high);
+
+/*
+   wrapErrors -
+*/
+
 void mcMetaError_metaErrorsT4 (unsigned int tok, char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high, unsigned char *s4_, unsigned int _s4_high);
+
+/*
+   wrapErrors -
+*/
+
 void mcMetaError_metaErrorString1 (DynamicStrings_String m, unsigned char *s_, unsigned int _s_high);
+
+/*
+   wrapErrors -
+*/
+
 void mcMetaError_metaErrorString2 (DynamicStrings_String m, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high);
+
+/*
+   wrapErrors -
+*/
+
 void mcMetaError_metaErrorString3 (DynamicStrings_String m, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high);
+
+/*
+   wrapErrors -
+*/
+
 void mcMetaError_metaErrorString4 (DynamicStrings_String m, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high, unsigned char *s4_, unsigned int _s4_high);
+
+/*
+   doFormat -
+*/
+
 void mcMetaError_metaErrorStringT1 (unsigned int tok, DynamicStrings_String m, unsigned char *s_, unsigned int _s_high);
+
+/*
+   doFormat -
+*/
+
 void mcMetaError_metaErrorStringT2 (unsigned int tok, DynamicStrings_String m, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high);
+
+/*
+   doFormat -
+*/
+
 void mcMetaError_metaErrorStringT3 (unsigned int tok, DynamicStrings_String m, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high);
+
+/*
+   doFormat -
+*/
+
 void mcMetaError_metaErrorStringT4 (unsigned int tok, DynamicStrings_String m, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high, unsigned char *s4_, unsigned int _s4_high);
+
+/*
+   internalFormat - produces an informative internal error.
+*/
+
 static void internalFormat (DynamicStrings_String s, int i, char *m_, unsigned int _m_high);
+
+/*
+   x - checks to see that a=b.
+*/
+
 static DynamicStrings_String x (DynamicStrings_String a, DynamicStrings_String b);
+
+/*
+   isWhite - returns TRUE if, ch, is a space.
+*/
+
 static unsigned int isWhite (char ch);
+
+/*
+   then := [ ':' ebnf ] =:
+*/
+
 static void then (mcError_error *e, errorType *t, DynamicStrings_String *r, DynamicStrings_String s, varargs_vararg sym, int *i, int l, DynamicStrings_String o, unsigned int positive);
+
+/*
+   doNumber -
+*/
+
 static DynamicStrings_String doNumber (unsigned int bol, varargs_vararg sym, DynamicStrings_String o, unsigned int *quotes);
+
+/*
+   doCount -
+*/
+
 static DynamicStrings_String doCount (unsigned int bol, varargs_vararg sym, DynamicStrings_String o, unsigned int *quotes);
+
+/*
+   doCount -
+*/
+
 static DynamicStrings_String doAscii (unsigned int bol, varargs_vararg sym, DynamicStrings_String o);
+
+/*
+   doCount -
+*/
+
 static DynamicStrings_String doName (unsigned int bol, varargs_vararg sym, DynamicStrings_String o, unsigned int *quotes);
+
+/*
+   doCount -
+*/
+
 static DynamicStrings_String doQualified (unsigned int bol, varargs_vararg sym, DynamicStrings_String o);
+
+/*
+   doType - returns a string containing the type name of
+            sym.  It will skip pseudonym types.  It also
+            returns the type symbol found.
+*/
+
 static DynamicStrings_String doType (unsigned int bol, varargs_vararg *sym, DynamicStrings_String o);
+
+/*
+   doSkipType - will skip all pseudonym types.  It also
+                returns the type symbol found and name.
+*/
+
 static DynamicStrings_String doSkipType (unsigned int bol, varargs_vararg *sym, DynamicStrings_String o);
+
+/*
+   doSkipType - will skip all pseudonym types.  It also
+                returns the type symbol found and name.
+*/
+
 static DynamicStrings_String doKey (unsigned int bol, varargs_vararg sym, DynamicStrings_String o);
+
+/*
+   doError - creates and returns an error note.
+*/
+
 static mcError_error doError (mcError_error e, errorType t, unsigned int tok);
+
+/*
+   doDeclaredDef - creates an error note where sym[bol] was declared.
+*/
+
 static mcError_error doDeclaredDef (mcError_error e, errorType t, unsigned int bol, varargs_vararg sym);
+
+/*
+   doDeclaredMod - creates an error note where sym[bol] was declared.
+*/
+
 static mcError_error doDeclaredMod (mcError_error e, errorType t, unsigned int bol, varargs_vararg sym);
+
+/*
+   doUsed - creates an error note where sym[bol] was first used.
+*/
+
 static mcError_error doUsed (mcError_error e, errorType t, unsigned int bol, varargs_vararg sym);
+
+/*
+   ConCatWord - joins sentances, a, b, together.
+*/
+
 static DynamicStrings_String ConCatWord (DynamicStrings_String a, DynamicStrings_String b);
+
+/*
+   symDesc -
+*/
+
 static DynamicStrings_String symDesc (decl_node n, DynamicStrings_String o);
+
+/*
+   doDesc -
+*/
+
 static DynamicStrings_String doDesc (unsigned int bol, varargs_vararg sym, DynamicStrings_String o, unsigned int *quotes);
+
+/*
+   addQuoted - if, o, is not empty then add it to, r.
+*/
+
 static DynamicStrings_String addQuoted (DynamicStrings_String r, DynamicStrings_String o, unsigned int quotes);
+
+/*
+   op := {'a'|'q'|'t'|'d'|'k'|'n'|'s'|'D'|'I'|'U'|'E'|'W'} then =:
+*/
+
 static void op (mcError_error *e, errorType *t, DynamicStrings_String *r, DynamicStrings_String s, varargs_vararg sym, int *i, int l, unsigned int bol, unsigned int positive);
+
+/*
+   percenttoken := '%' (
+                         '1'        % doOperand(1) %
+                             op
+                       | '2'        % doOperand(2) %
+                             op
+                       | '3'        % doOperand(3) %
+                             op
+                       | '4'        % doOperand(4) %
+                             op
+                       )
+                       } =:
+*/
+
 static void percenttoken (mcError_error *e, errorType t, DynamicStrings_String *r, DynamicStrings_String s, varargs_vararg sym, int *i, int l, unsigned int positive);
+
+/*
+   percent := '%' anych           % copy anych %
+            =:
+*/
+
 static void percent (DynamicStrings_String *r, DynamicStrings_String s, varargs_vararg sym, int *i, int l);
+
+/*
+   lbra := '{' [ '!' ] percenttoken '}' =:
+*/
+
 static void lbra (mcError_error *e, errorType *t, DynamicStrings_String *r, DynamicStrings_String s, varargs_vararg sym, int *i, int l);
+
+/*
+   lbra := '{' [ '!' ] percenttoken '}' =:
+*/
+
 static void stop (void);
+
+/*
+   ebnf := { percent
+             | lbra
+             | any                    % copy ch %
+           }
+         =:
+*/
+
 static void ebnf (mcError_error *e, errorType *t, DynamicStrings_String *r, DynamicStrings_String s, varargs_vararg sym, int *i, int l);
+
+/*
+   doFormat -
+*/
+
 static DynamicStrings_String doFormat (mcError_error *e, errorType *t, DynamicStrings_String s, varargs_vararg sym);
+
+/*
+   wrapErrors -
+*/
+
 static void wrapErrors (unsigned int tok, char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, varargs_vararg sym);
+
+
+/*
+   internalFormat - produces an informative internal error.
+*/
 
 static void internalFormat (DynamicStrings_String s, int i, char *m_, unsigned int _m_high)
 {
@@ -107,6 +391,11 @@ static void internalFormat (DynamicStrings_String s, int i, char *m_, unsigned i
   mcError_internalError ((char *) m, _m_high, (char *) "../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.mod", 42, 98);
 }
 
+
+/*
+   x - checks to see that a=b.
+*/
+
 static DynamicStrings_String x (DynamicStrings_String a, DynamicStrings_String b)
 {
   if (a != b)
@@ -114,10 +403,20 @@ static DynamicStrings_String x (DynamicStrings_String a, DynamicStrings_String b
   return a;
 }
 
+
+/*
+   isWhite - returns TRUE if, ch, is a space.
+*/
+
 static unsigned int isWhite (char ch)
 {
   return ch == ' ';
 }
+
+
+/*
+   then := [ ':' ebnf ] =:
+*/
 
 static void then (mcError_error *e, errorType *t, DynamicStrings_String *r, DynamicStrings_String s, varargs_vararg sym, int *i, int l, DynamicStrings_String o, unsigned int positive)
 {
@@ -129,6 +428,11 @@ static void then (mcError_error *e, errorType *t, DynamicStrings_String *r, Dyna
         internalFormat (s, (*i), (char *) "expecting to see }", 18);
     }
 }
+
+
+/*
+   doNumber -
+*/
 
 static DynamicStrings_String doNumber (unsigned int bol, varargs_vararg sym, DynamicStrings_String o, unsigned int *quotes)
 {
@@ -144,6 +448,11 @@ static DynamicStrings_String doNumber (unsigned int bol, varargs_vararg sym, Dyn
       return DynamicStrings_ConCat (o, StringConvert_ctos (c, 0, ' '));
     }
 }
+
+
+/*
+   doCount -
+*/
 
 static DynamicStrings_String doCount (unsigned int bol, varargs_vararg sym, DynamicStrings_String o, unsigned int *quotes)
 {
@@ -185,6 +494,11 @@ static DynamicStrings_String doCount (unsigned int bol, varargs_vararg sym, Dyna
     }
 }
 
+
+/*
+   doCount -
+*/
+
 static DynamicStrings_String doAscii (unsigned int bol, varargs_vararg sym, DynamicStrings_String o)
 {
   decl_node n;
@@ -196,6 +510,11 @@ static DynamicStrings_String doAscii (unsigned int bol, varargs_vararg sym, Dyna
   else
     return DynamicStrings_ConCat (o, DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n))));
 }
+
+
+/*
+   doCount -
+*/
 
 static DynamicStrings_String doName (unsigned int bol, varargs_vararg sym, DynamicStrings_String o, unsigned int *quotes)
 {
@@ -221,6 +540,11 @@ static DynamicStrings_String doName (unsigned int bol, varargs_vararg sym, Dynam
     else
       return o;
 }
+
+
+/*
+   doCount -
+*/
 
 static DynamicStrings_String doQualified (unsigned int bol, varargs_vararg sym, DynamicStrings_String o)
 {
@@ -249,6 +573,13 @@ static DynamicStrings_String doQualified (unsigned int bol, varargs_vararg sym, 
     }
 }
 
+
+/*
+   doType - returns a string containing the type name of
+            sym.  It will skip pseudonym types.  It also
+            returns the type symbol found.
+*/
+
 static DynamicStrings_String doType (unsigned int bol, varargs_vararg *sym, DynamicStrings_String o)
 {
   decl_node n;
@@ -265,6 +596,12 @@ static DynamicStrings_String doType (unsigned int bol, varargs_vararg *sym, Dyna
       return x (o, doAscii (bol, (*sym), o));
     }
 }
+
+
+/*
+   doSkipType - will skip all pseudonym types.  It also
+                returns the type symbol found and name.
+*/
 
 static DynamicStrings_String doSkipType (unsigned int bol, varargs_vararg *sym, DynamicStrings_String o)
 {
@@ -286,6 +623,12 @@ static DynamicStrings_String doSkipType (unsigned int bol, varargs_vararg *sym, 
     }
 }
 
+
+/*
+   doSkipType - will skip all pseudonym types.  It also
+                returns the type symbol found and name.
+*/
+
 static DynamicStrings_String doKey (unsigned int bol, varargs_vararg sym, DynamicStrings_String o)
 {
   nameKey_Name n;
@@ -299,6 +642,11 @@ static DynamicStrings_String doKey (unsigned int bol, varargs_vararg sym, Dynami
       return DynamicStrings_ConCat (o, DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
     }
 }
+
+
+/*
+   doError - creates and returns an error note.
+*/
 
 static mcError_error doError (mcError_error e, errorType t, unsigned int tok)
 {
@@ -329,6 +677,11 @@ static mcError_error doError (mcError_error e, errorType t, unsigned int tok)
   return e;
 }
 
+
+/*
+   doDeclaredDef - creates an error note where sym[bol] was declared.
+*/
+
 static mcError_error doDeclaredDef (mcError_error e, errorType t, unsigned int bol, varargs_vararg sym)
 {
   decl_node n;
@@ -341,6 +694,11 @@ static mcError_error doDeclaredDef (mcError_error e, errorType t, unsigned int b
     }
   return e;
 }
+
+
+/*
+   doDeclaredMod - creates an error note where sym[bol] was declared.
+*/
 
 static mcError_error doDeclaredMod (mcError_error e, errorType t, unsigned int bol, varargs_vararg sym)
 {
@@ -355,6 +713,11 @@ static mcError_error doDeclaredMod (mcError_error e, errorType t, unsigned int b
   return e;
 }
 
+
+/*
+   doUsed - creates an error note where sym[bol] was first used.
+*/
+
 static mcError_error doUsed (mcError_error e, errorType t, unsigned int bol, varargs_vararg sym)
 {
   decl_node n;
@@ -368,6 +731,11 @@ static mcError_error doUsed (mcError_error e, errorType t, unsigned int bol, var
   return e;
 }
 
+
+/*
+   ConCatWord - joins sentances, a, b, together.
+*/
+
 static DynamicStrings_String ConCatWord (DynamicStrings_String a, DynamicStrings_String b)
 {
   if (((DynamicStrings_Length (a)) == 1) && ((DynamicStrings_char (a, 0)) == 'a'))
@@ -378,6 +746,11 @@ static DynamicStrings_String ConCatWord (DynamicStrings_String a, DynamicStrings
     a = x (a, DynamicStrings_ConCatChar (a, ' '));
   return x (a, DynamicStrings_ConCat (a, b));
 }
+
+
+/*
+   symDesc -
+*/
 
 static DynamicStrings_String symDesc (decl_node n, DynamicStrings_String o)
 {
@@ -430,6 +803,11 @@ static DynamicStrings_String symDesc (decl_node n, DynamicStrings_String o)
     return o;
 }
 
+
+/*
+   doDesc -
+*/
+
 static DynamicStrings_String doDesc (unsigned int bol, varargs_vararg sym, DynamicStrings_String o, unsigned int *quotes)
 {
   decl_node n;
@@ -445,6 +823,11 @@ static DynamicStrings_String doDesc (unsigned int bol, varargs_vararg sym, Dynam
   return o;
 }
 
+
+/*
+   addQuoted - if, o, is not empty then add it to, r.
+*/
+
 static DynamicStrings_String addQuoted (DynamicStrings_String r, DynamicStrings_String o, unsigned int quotes)
 {
   if ((DynamicStrings_Length (o)) > 0)
@@ -459,6 +842,11 @@ static DynamicStrings_String addQuoted (DynamicStrings_String r, DynamicStrings_
     }
   return r;
 }
+
+
+/*
+   op := {'a'|'q'|'t'|'d'|'k'|'n'|'s'|'D'|'I'|'U'|'E'|'W'} then =:
+*/
 
 static void op (mcError_error *e, errorType *t, DynamicStrings_String *r, DynamicStrings_String s, varargs_vararg sym, int *i, int l, unsigned int bol, unsigned int positive)
 {
@@ -547,6 +935,21 @@ static void op (mcError_error *e, errorType *t, DynamicStrings_String *r, Dynami
   o = DynamicStrings_KillString (o);
 }
 
+
+/*
+   percenttoken := '%' (
+                         '1'        % doOperand(1) %
+                             op
+                       | '2'        % doOperand(2) %
+                             op
+                       | '3'        % doOperand(3) %
+                             op
+                       | '4'        % doOperand(4) %
+                             op
+                       )
+                       } =:
+*/
+
 static void percenttoken (mcError_error *e, errorType t, DynamicStrings_String *r, DynamicStrings_String s, varargs_vararg sym, int *i, int l, unsigned int positive)
 {
   if ((DynamicStrings_char (s, (*i))) == '%')
@@ -584,6 +987,12 @@ static void percenttoken (mcError_error *e, errorType t, DynamicStrings_String *
     }
 }
 
+
+/*
+   percent := '%' anych           % copy anych %
+            =:
+*/
+
 static void percent (DynamicStrings_String *r, DynamicStrings_String s, varargs_vararg sym, int *i, int l)
 {
   if ((DynamicStrings_char (s, (*i))) == '%')
@@ -596,6 +1005,11 @@ static void percent (DynamicStrings_String *r, DynamicStrings_String s, varargs_
         }
     }
 }
+
+
+/*
+   lbra := '{' [ '!' ] percenttoken '}' =:
+*/
 
 static void lbra (mcError_error *e, errorType *t, DynamicStrings_String *r, DynamicStrings_String s, varargs_vararg sym, int *i, int l)
 {
@@ -618,9 +1032,23 @@ static void lbra (mcError_error *e, errorType *t, DynamicStrings_String *r, Dyna
     }
 }
 
+
+/*
+   lbra := '{' [ '!' ] percenttoken '}' =:
+*/
+
 static void stop (void)
 {
 }
+
+
+/*
+   ebnf := { percent
+             | lbra
+             | any                    % copy ch %
+           }
+         =:
+*/
 
 static void ebnf (mcError_error *e, errorType *t, DynamicStrings_String *r, DynamicStrings_String s, varargs_vararg sym, int *i, int l)
 {
@@ -652,6 +1080,11 @@ static void ebnf (mcError_error *e, errorType *t, DynamicStrings_String *r, Dyna
     }
 }
 
+
+/*
+   doFormat -
+*/
+
 static DynamicStrings_String doFormat (mcError_error *e, errorType *t, DynamicStrings_String s, varargs_vararg sym)
 {
   DynamicStrings_String r;
@@ -665,6 +1098,11 @@ static DynamicStrings_String doFormat (mcError_error *e, errorType *t, DynamicSt
   s = DynamicStrings_KillString (s);
   return r;
 }
+
+
+/*
+   wrapErrors -
+*/
 
 static void wrapErrors (unsigned int tok, char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, varargs_vararg sym)
 {
@@ -695,6 +1133,11 @@ static void wrapErrors (unsigned int tok, char *m1_, unsigned int _m1_high, char
   mcError_errorString (f, str);
 }
 
+
+/*
+   doFormat -
+*/
+
 void mcMetaError_metaError1 (char *m_, unsigned int _m_high, unsigned char *s_, unsigned int _s_high)
 {
   char m[_m_high+1];
@@ -706,6 +1149,11 @@ void mcMetaError_metaError1 (char *m_, unsigned int _m_high, unsigned char *s_, 
 
   mcMetaError_metaErrorT1 (mcLexBuf_getTokenNo (), (char *) m, _m_high, (unsigned char *) s, _s_high);
 }
+
+
+/*
+   doFormat -
+*/
 
 void mcMetaError_metaError2 (char *m_, unsigned int _m_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high)
 {
@@ -720,6 +1168,11 @@ void mcMetaError_metaError2 (char *m_, unsigned int _m_high, unsigned char *s1_,
 
   mcMetaError_metaErrorT2 (mcLexBuf_getTokenNo (), (char *) m, _m_high, (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high);
 }
+
+
+/*
+   doFormat -
+*/
 
 void mcMetaError_metaError3 (char *m_, unsigned int _m_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high)
 {
@@ -736,6 +1189,11 @@ void mcMetaError_metaError3 (char *m_, unsigned int _m_high, unsigned char *s1_,
 
   mcMetaError_metaErrorT3 (mcLexBuf_getTokenNo (), (char *) m, _m_high, (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high);
 }
+
+
+/*
+   doFormat -
+*/
 
 void mcMetaError_metaError4 (char *m_, unsigned int _m_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high, unsigned char *s4_, unsigned int _s4_high)
 {
@@ -755,6 +1213,11 @@ void mcMetaError_metaError4 (char *m_, unsigned int _m_high, unsigned char *s1_,
   mcMetaError_metaErrorT4 (mcLexBuf_getTokenNo (), (char *) m, _m_high, (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high, (unsigned char *) s4, _s4_high);
 }
 
+
+/*
+   wrapErrors -
+*/
+
 void mcMetaError_metaErrors1 (char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, unsigned char *s_, unsigned int _s_high)
 {
   char m1[_m1_high+1];
@@ -768,6 +1231,11 @@ void mcMetaError_metaErrors1 (char *m1_, unsigned int _m1_high, char *m2_, unsig
 
   mcMetaError_metaErrorsT1 (mcLexBuf_getTokenNo (), (char *) m1, _m1_high, (char *) m2, _m2_high, (unsigned char *) s, _s_high);
 }
+
+
+/*
+   wrapErrors -
+*/
 
 void mcMetaError_metaErrors2 (char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high)
 {
@@ -784,6 +1252,11 @@ void mcMetaError_metaErrors2 (char *m1_, unsigned int _m1_high, char *m2_, unsig
 
   mcMetaError_metaErrorsT2 (mcLexBuf_getTokenNo (), (char *) m1, _m1_high, (char *) m2, _m2_high, (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high);
 }
+
+
+/*
+   wrapErrors -
+*/
 
 void mcMetaError_metaErrors3 (char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high)
 {
@@ -802,6 +1275,11 @@ void mcMetaError_metaErrors3 (char *m1_, unsigned int _m1_high, char *m2_, unsig
 
   mcMetaError_metaErrorsT3 (mcLexBuf_getTokenNo (), (char *) m1, _m1_high, (char *) m2, _m2_high, (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high);
 }
+
+
+/*
+   wrapErrors -
+*/
 
 void mcMetaError_metaErrors4 (char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high, unsigned char *s4_, unsigned int _s4_high)
 {
@@ -823,6 +1301,11 @@ void mcMetaError_metaErrors4 (char *m1_, unsigned int _m1_high, char *m2_, unsig
   mcMetaError_metaErrorsT4 (mcLexBuf_getTokenNo (), (char *) m1, _m1_high, (char *) m2, _m2_high, (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high, (unsigned char *) s4, _s4_high);
 }
 
+
+/*
+   doFormat -
+*/
+
 void mcMetaError_metaErrorT1 (unsigned int tok, char *m_, unsigned int _m_high, unsigned char *s_, unsigned int _s_high)
 {
   char m[_m_high+1];
@@ -834,6 +1317,11 @@ void mcMetaError_metaErrorT1 (unsigned int tok, char *m_, unsigned int _m_high, 
 
   mcMetaError_metaErrorStringT1 (tok, DynamicStrings_InitString ((char *) m, _m_high), (unsigned char *) s, _s_high);
 }
+
+
+/*
+   doFormat -
+*/
 
 void mcMetaError_metaErrorT2 (unsigned int tok, char *m_, unsigned int _m_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high)
 {
@@ -848,6 +1336,11 @@ void mcMetaError_metaErrorT2 (unsigned int tok, char *m_, unsigned int _m_high, 
 
   mcMetaError_metaErrorStringT2 (tok, DynamicStrings_InitString ((char *) m, _m_high), (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high);
 }
+
+
+/*
+   doFormat -
+*/
 
 void mcMetaError_metaErrorT3 (unsigned int tok, char *m_, unsigned int _m_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high)
 {
@@ -864,6 +1357,11 @@ void mcMetaError_metaErrorT3 (unsigned int tok, char *m_, unsigned int _m_high, 
 
   mcMetaError_metaErrorStringT3 (tok, DynamicStrings_InitString ((char *) m, _m_high), (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high);
 }
+
+
+/*
+   doFormat -
+*/
 
 void mcMetaError_metaErrorT4 (unsigned int tok, char *m_, unsigned int _m_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high, unsigned char *s4_, unsigned int _s4_high)
 {
@@ -883,6 +1381,11 @@ void mcMetaError_metaErrorT4 (unsigned int tok, char *m_, unsigned int _m_high, 
   mcMetaError_metaErrorStringT4 (tok, DynamicStrings_InitString ((char *) m, _m_high), (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high, (unsigned char *) s4, _s4_high);
 }
 
+
+/*
+   wrapErrors -
+*/
+
 void mcMetaError_metaErrorsT1 (unsigned int tok, char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, unsigned char *s_, unsigned int _s_high)
 {
   varargs_vararg sym;
@@ -899,6 +1402,11 @@ void mcMetaError_metaErrorsT1 (unsigned int tok, char *m1_, unsigned int _m1_hig
   wrapErrors (tok, (char *) m1, _m1_high, (char *) m2, _m2_high, sym);
   varargs_end (&sym);
 }
+
+
+/*
+   wrapErrors -
+*/
 
 void mcMetaError_metaErrorsT2 (unsigned int tok, char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high)
 {
@@ -918,6 +1426,11 @@ void mcMetaError_metaErrorsT2 (unsigned int tok, char *m1_, unsigned int _m1_hig
   wrapErrors (tok, (char *) m1, _m1_high, (char *) m2, _m2_high, sym);
   varargs_end (&sym);
 }
+
+
+/*
+   wrapErrors -
+*/
 
 void mcMetaError_metaErrorsT3 (unsigned int tok, char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high)
 {
@@ -939,6 +1452,11 @@ void mcMetaError_metaErrorsT3 (unsigned int tok, char *m1_, unsigned int _m1_hig
   wrapErrors (tok, (char *) m1, _m1_high, (char *) m2, _m2_high, sym);
   varargs_end (&sym);
 }
+
+
+/*
+   wrapErrors -
+*/
 
 void mcMetaError_metaErrorsT4 (unsigned int tok, char *m1_, unsigned int _m1_high, char *m2_, unsigned int _m2_high, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high, unsigned char *s4_, unsigned int _s4_high)
 {
@@ -963,6 +1481,11 @@ void mcMetaError_metaErrorsT4 (unsigned int tok, char *m1_, unsigned int _m1_hig
   varargs_end (&sym);
 }
 
+
+/*
+   wrapErrors -
+*/
+
 void mcMetaError_metaErrorString1 (DynamicStrings_String m, unsigned char *s_, unsigned int _s_high)
 {
   unsigned char s[_s_high+1];
@@ -972,6 +1495,11 @@ void mcMetaError_metaErrorString1 (DynamicStrings_String m, unsigned char *s_, u
 
   mcMetaError_metaErrorStringT1 (mcLexBuf_getTokenNo (), m, (unsigned char *) s, _s_high);
 }
+
+
+/*
+   wrapErrors -
+*/
 
 void mcMetaError_metaErrorString2 (DynamicStrings_String m, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high)
 {
@@ -984,6 +1512,11 @@ void mcMetaError_metaErrorString2 (DynamicStrings_String m, unsigned char *s1_, 
 
   mcMetaError_metaErrorStringT2 (mcLexBuf_getTokenNo (), m, (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high);
 }
+
+
+/*
+   wrapErrors -
+*/
 
 void mcMetaError_metaErrorString3 (DynamicStrings_String m, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high)
 {
@@ -998,6 +1531,11 @@ void mcMetaError_metaErrorString3 (DynamicStrings_String m, unsigned char *s1_, 
 
   mcMetaError_metaErrorStringT3 (mcLexBuf_getTokenNo (), m, (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high);
 }
+
+
+/*
+   wrapErrors -
+*/
 
 void mcMetaError_metaErrorString4 (DynamicStrings_String m, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high, unsigned char *s4_, unsigned int _s4_high)
 {
@@ -1014,6 +1552,11 @@ void mcMetaError_metaErrorString4 (DynamicStrings_String m, unsigned char *s1_, 
 
   mcMetaError_metaErrorStringT4 (mcLexBuf_getTokenNo (), m, (unsigned char *) s1, _s1_high, (unsigned char *) s2, _s2_high, (unsigned char *) s3, _s3_high, (unsigned char *) s4, _s4_high);
 }
+
+
+/*
+   doFormat -
+*/
 
 void mcMetaError_metaErrorStringT1 (unsigned int tok, DynamicStrings_String m, unsigned char *s_, unsigned int _s_high)
 {
@@ -1034,6 +1577,11 @@ void mcMetaError_metaErrorStringT1 (unsigned int tok, DynamicStrings_String m, u
   mcError_errorString (e, str);
   varargs_end (&sym);
 }
+
+
+/*
+   doFormat -
+*/
 
 void mcMetaError_metaErrorStringT2 (unsigned int tok, DynamicStrings_String m, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high)
 {
@@ -1056,6 +1604,11 @@ void mcMetaError_metaErrorStringT2 (unsigned int tok, DynamicStrings_String m, u
   mcError_errorString (e, str);
   varargs_end (&sym);
 }
+
+
+/*
+   doFormat -
+*/
 
 void mcMetaError_metaErrorStringT3 (unsigned int tok, DynamicStrings_String m, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high)
 {
@@ -1080,6 +1633,11 @@ void mcMetaError_metaErrorStringT3 (unsigned int tok, DynamicStrings_String m, u
   mcError_errorString (e, str);
   varargs_end (&sym);
 }
+
+
+/*
+   doFormat -
+*/
 
 void mcMetaError_metaErrorStringT4 (unsigned int tok, DynamicStrings_String m, unsigned char *s1_, unsigned int _s1_high, unsigned char *s2_, unsigned int _s2_high, unsigned char *s3_, unsigned int _s3_high, unsigned char *s4_, unsigned int _s4_high)
 {

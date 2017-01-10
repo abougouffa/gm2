@@ -21,8 +21,26 @@ typedef struct _T2_a _T2;
 struct _T1_a { _T2 * array[MaxArgs+1]; };
 struct _T2_a { char array[MaxString+1]; };
 static _T1 * Source;
+
+/*
+   GetArg - returns the nth argument from the command line.
+            The success of the operation is returned.
+*/
+
 unsigned int Args_GetArg (char *a, unsigned int _a_high, unsigned int i);
+
+/*
+   Narg - returns the number of arguments available from
+          command line.
+*/
+
 unsigned int Args_Narg (void);
+
+
+/*
+   GetArg - returns the nth argument from the command line.
+            The success of the operation is returned.
+*/
 
 unsigned int Args_GetArg (char *a, unsigned int _a_high, unsigned int i)
 {
@@ -44,6 +62,12 @@ unsigned int Args_GetArg (char *a, unsigned int _a_high, unsigned int i)
     a[j] = ASCII_nul;
   return i < UnixArgs_ArgC;
 }
+
+
+/*
+   Narg - returns the number of arguments available from
+          command line.
+*/
 
 unsigned int Args_Narg (void)
 {

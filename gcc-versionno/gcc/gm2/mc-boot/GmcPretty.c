@@ -50,23 +50,110 @@ struct _T1_r {
                mcPretty_pretty stacked;
              };
 
+
+/*
+   initPretty - initialise a pretty print data structure.
+*/
+
 mcPretty_pretty mcPretty_initPretty (mcPretty_writeProc w, mcPretty_writeLnProc l);
+
+/*
+   dupPretty - duplicate a pretty print data structure.
+*/
+
 mcPretty_pretty mcPretty_dupPretty (mcPretty_pretty p);
+
+/*
+   killPretty - destroy a pretty print data structure.
+                Post condition:  p is assigned to NIL.
+*/
+
 void mcPretty_killPretty (mcPretty_pretty *p);
+
+/*
+   pushPretty - duplicate, p.  Push, p, and return the duplicate.
+*/
+
 mcPretty_pretty mcPretty_pushPretty (mcPretty_pretty p);
+
+/*
+   popPretty - pops the pretty object from the stack.
+*/
+
 mcPretty_pretty mcPretty_popPretty (mcPretty_pretty p);
+
+/*
+   getindent - returns the current indent value.
+*/
+
 unsigned int mcPretty_getindent (mcPretty_pretty p);
+
+/*
+   setindent - sets the current indent to, n.
+*/
+
 void mcPretty_setindent (mcPretty_pretty p, unsigned int n);
+
+/*
+   getcurpos - returns the current cursor position.
+*/
+
 unsigned int mcPretty_getcurpos (mcPretty_pretty s);
+
+/*
+   getseekpos - returns the seek position.
+*/
+
 unsigned int mcPretty_getseekpos (mcPretty_pretty s);
+
+/*
+   getcurline - returns the current line number.
+*/
+
 unsigned int mcPretty_getcurline (mcPretty_pretty s);
 void mcPretty_setNeedSpace (mcPretty_pretty s);
+
+/*
+   noSpace - unset needsSpace.
+*/
+
 void mcPretty_noSpace (mcPretty_pretty s);
+
+/*
+   print - print a string using, p.
+*/
+
 void mcPretty_print (mcPretty_pretty p, char *a_, unsigned int _a_high);
+
+/*
+   prints - print a string using, p.
+*/
+
 void mcPretty_prints (mcPretty_pretty p, DynamicStrings_String s);
+
+/*
+   raw - print out string, s, without any translation of
+         escape sequences.
+*/
+
 void mcPretty_raw (mcPretty_pretty p, DynamicStrings_String s);
+
+/*
+   flushSpace -
+*/
+
 static void flushSpace (mcPretty_pretty p);
+
+/*
+   flushIndent -
+*/
+
 static void flushIndent (mcPretty_pretty p);
+
+
+/*
+   flushSpace -
+*/
 
 static void flushSpace (mcPretty_pretty p)
 {
@@ -78,6 +165,11 @@ static void flushSpace (mcPretty_pretty p)
       p->seekPos += 1;
     }
 }
+
+
+/*
+   flushIndent -
+*/
 
 static void flushIndent (mcPretty_pretty p)
 {
@@ -96,6 +188,11 @@ static void flushIndent (mcPretty_pretty p)
     }
 }
 
+
+/*
+   initPretty - initialise a pretty print data structure.
+*/
+
 mcPretty_pretty mcPretty_initPretty (mcPretty_writeProc w, mcPretty_writeLnProc l)
 {
   mcPretty_pretty p;
@@ -113,6 +210,11 @@ mcPretty_pretty mcPretty_initPretty (mcPretty_writeProc w, mcPretty_writeLnProc 
   return p;
 }
 
+
+/*
+   dupPretty - duplicate a pretty print data structure.
+*/
+
 mcPretty_pretty mcPretty_dupPretty (mcPretty_pretty p)
 {
   mcPretty_pretty q;
@@ -122,11 +224,22 @@ mcPretty_pretty mcPretty_dupPretty (mcPretty_pretty p)
   return q;
 }
 
+
+/*
+   killPretty - destroy a pretty print data structure.
+                Post condition:  p is assigned to NIL.
+*/
+
 void mcPretty_killPretty (mcPretty_pretty *p)
 {
   Storage_DEALLOCATE ((void **) &(*p), sizeof (_T1));
   (*p) = NULL;
 }
+
+
+/*
+   pushPretty - duplicate, p.  Push, p, and return the duplicate.
+*/
 
 mcPretty_pretty mcPretty_pushPretty (mcPretty_pretty p)
 {
@@ -136,6 +249,11 @@ mcPretty_pretty mcPretty_pushPretty (mcPretty_pretty p)
   q->stacked = p;
   return q;
 }
+
+
+/*
+   popPretty - pops the pretty object from the stack.
+*/
 
 mcPretty_pretty mcPretty_popPretty (mcPretty_pretty p)
 {
@@ -151,15 +269,30 @@ mcPretty_pretty mcPretty_popPretty (mcPretty_pretty p)
   return q;
 }
 
+
+/*
+   getindent - returns the current indent value.
+*/
+
 unsigned int mcPretty_getindent (mcPretty_pretty p)
 {
   return p->indent;
 }
 
+
+/*
+   setindent - sets the current indent to, n.
+*/
+
 void mcPretty_setindent (mcPretty_pretty p, unsigned int n)
 {
   p->indent = n;
 }
+
+
+/*
+   getcurpos - returns the current cursor position.
+*/
 
 unsigned int mcPretty_getcurpos (mcPretty_pretty s)
 {
@@ -169,10 +302,20 @@ unsigned int mcPretty_getcurpos (mcPretty_pretty s)
     return s->curPos;
 }
 
+
+/*
+   getseekpos - returns the seek position.
+*/
+
 unsigned int mcPretty_getseekpos (mcPretty_pretty s)
 {
   return s->seekPos;
 }
+
+
+/*
+   getcurline - returns the current line number.
+*/
 
 unsigned int mcPretty_getcurline (mcPretty_pretty s)
 {
@@ -184,10 +327,20 @@ void mcPretty_setNeedSpace (mcPretty_pretty s)
   s->needsSpace = TRUE;
 }
 
+
+/*
+   noSpace - unset needsSpace.
+*/
+
 void mcPretty_noSpace (mcPretty_pretty s)
 {
   s->needsSpace = FALSE;
 }
+
+
+/*
+   print - print a string using, p.
+*/
 
 void mcPretty_print (mcPretty_pretty p, char *a_, unsigned int _a_high)
 {
@@ -201,6 +354,11 @@ void mcPretty_print (mcPretty_pretty p, char *a_, unsigned int _a_high)
   mcPretty_prints (p, s);
   s = DynamicStrings_KillString (s);
 }
+
+
+/*
+   prints - print a string using, p.
+*/
 
 void mcPretty_prints (mcPretty_pretty p, DynamicStrings_String s)
 {
@@ -232,6 +390,12 @@ void mcPretty_prints (mcPretty_pretty p, DynamicStrings_String s)
       i += 1;
     }
 }
+
+
+/*
+   raw - print out string, s, without any translation of
+         escape sequences.
+*/
 
 void mcPretty_raw (mcPretty_pretty p, DynamicStrings_String s)
 {

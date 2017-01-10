@@ -75,57 +75,334 @@ static unsigned int seenFalse;
 static unsigned int seenNull;
 static unsigned int seenMemcpy;
 static unsigned int seenException;
+
+/*
+   useStorage - indicate we have used storage.
+*/
+
 void keyc_useStorage (void);
+
+/*
+   useFree - indicate we have used free.
+*/
+
 void keyc_useFree (void);
+
+/*
+   useMalloc - indicate we have used malloc.
+*/
+
 void keyc_useMalloc (void);
+
+/*
+   useProc - indicate we have used proc.
+*/
+
 void keyc_useProc (void);
+
+/*
+   useTrue - indicate we have used TRUE.
+*/
+
 void keyc_useTrue (void);
+
+/*
+   useFalse - indicate we have used FALSE.
+*/
+
 void keyc_useFalse (void);
+
+/*
+   useNull - indicate we have used NULL.
+*/
+
 void keyc_useNull (void);
+
+/*
+   useMemcpy - indicate we have used memcpy.
+*/
+
 void keyc_useMemcpy (void);
+
+/*
+   useIntMin - indicate we have used INT_MIN.
+*/
+
 void keyc_useIntMin (void);
+
+/*
+   useUIntMin - indicate we have used UINT_MIN.
+*/
+
 void keyc_useUIntMin (void);
+
+/*
+   useLongMin - indicate we have used LONG_MIN.
+*/
+
 void keyc_useLongMin (void);
+
+/*
+   useULongMin - indicate we have used ULONG_MIN.
+*/
+
 void keyc_useULongMin (void);
+
+/*
+   useCharMin - indicate we have used CHAR_MIN.
+*/
+
 void keyc_useCharMin (void);
+
+/*
+   useUCharMin - indicate we have used UCHAR_MIN.
+*/
+
 void keyc_useUCharMin (void);
+
+/*
+   useIntMax - indicate we have used INT_MAX.
+*/
+
 void keyc_useIntMax (void);
+
+/*
+   useUIntMax - indicate we have used UINT_MAX.
+*/
+
 void keyc_useUIntMax (void);
+
+/*
+   useLongMax - indicate we have used LONG_MAX.
+*/
+
 void keyc_useLongMax (void);
+
+/*
+   useULongMax - indicate we have used ULONG_MAX.
+*/
+
 void keyc_useULongMax (void);
+
+/*
+   useCharMax - indicate we have used CHAR_MAX.
+*/
+
 void keyc_useCharMax (void);
+
+/*
+   useUCharMax - indicate we have used UChar_MAX.
+*/
+
 void keyc_useUCharMax (void);
+
+/*
+   useLabs - indicate we have used labs.
+*/
+
 void keyc_useLabs (void);
+
+/*
+   useAbs - indicate we have used abs.
+*/
+
 void keyc_useAbs (void);
+
+/*
+   useFabs - indicate we have used fabs.
+*/
+
 void keyc_useFabs (void);
+
+/*
+   useFabsl - indicate we have used fabsl.
+*/
+
 void keyc_useFabsl (void);
+
+/*
+   useException - use the exceptions module, mcrts.
+*/
+
 void keyc_useException (void);
+
+/*
+   genDefs - generate definitions or includes for all
+             macros and prototypes used.
+*/
+
 void keyc_genDefs (mcPretty_pretty p);
+
+/*
+   enterScope - enter a scope defined by, n.
+*/
+
 void keyc_enterScope (decl_node n);
+
+/*
+   leaveScope - leave the scope defined by, n.
+*/
+
 void keyc_leaveScope (decl_node n);
+
+/*
+   cname - attempts to declare a symbol with name, n, in the
+           current scope.  If there is no conflict with the
+           target language then NIL is returned, otherwise
+           a mangled name is returned as a String.
+           If scopes is FALSE then only the keywords and
+           macros are detected for a clash (all scoping
+           is ignored).
+*/
+
 DynamicStrings_String keyc_cname (nameKey_Name n, unsigned int scopes);
+
+/*
+   cnamen - attempts to declare a symbol with name, n, in the
+            current scope.  If there is no conflict with the
+            target language then NIL is returned, otherwise
+            a mangled name is returned as a Name
+            If scopes is FALSE then only the keywords and
+            macros are detected for a clash (all scoping
+            is ignored).
+*/
+
 nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes);
+
+/*
+   cp - include C++ keywords and standard declarations to avoid.
+*/
+
 void keyc_cp (void);
+
+/*
+   checkAbs - check to see if the abs family have been used.
+*/
+
 static void checkAbs (mcPretty_pretty p);
+
+/*
+   checkLimits -
+*/
+
 static void checkLimits (mcPretty_pretty p);
+
+/*
+   checkFreeMalloc -
+*/
+
 static void checkFreeMalloc (mcPretty_pretty p);
+
+/*
+   checkStorage -
+*/
+
 static void checkStorage (mcPretty_pretty p);
+
+/*
+   checkProc -
+*/
+
 static void checkProc (mcPretty_pretty p);
+
+/*
+   checkTrue -
+*/
+
 static void checkTrue (mcPretty_pretty p);
+
+/*
+   checkFalse -
+*/
+
 static void checkFalse (mcPretty_pretty p);
+
+/*
+   checkNull -
+*/
+
 static void checkNull (mcPretty_pretty p);
+
+/*
+   checkMemcpy -
+*/
+
 static void checkMemcpy (mcPretty_pretty p);
+
+/*
+   checkException - check to see if exceptions were used.
+*/
+
 static void checkException (mcPretty_pretty p);
+
+/*
+   new -
+*/
+
 static scope new (decl_node n);
+
+/*
+   mangle1 - returns TRUE if name is unique if we add _
+             to its end.
+*/
+
 static unsigned int mangle1 (nameKey_Name n, DynamicStrings_String *m, unsigned int scopes);
+
+/*
+   mangle2 - returns TRUE if name is unique if we prepend _
+             to, n.
+*/
+
 static unsigned int mangle2 (nameKey_Name n, DynamicStrings_String *m, unsigned int scopes);
+
+/*
+   mangleN - keep adding '_' to the end of n until it
+             no longer clashes.
+*/
+
 static unsigned int mangleN (nameKey_Name n, DynamicStrings_String *m, unsigned int scopes);
+
+/*
+   clash - returns TRUE if there is a clash with name, n,
+           in the current scope or C keywords or C macros.
+*/
+
 static unsigned int clash (nameKey_Name n, unsigned int scopes);
+
+/*
+   initCP - add the extra keywords and standard definitions used by C++.
+*/
+
 static void initCP (void);
+
+/*
+   add -
+*/
+
 static void add (symbolKey_symbolTree s, char *a_, unsigned int _a_high);
+
+/*
+   initMacros - macros and library function names to avoid.
+*/
+
 static void initMacros (void);
+
+/*
+   initKeywords - keywords to avoid.
+*/
+
 static void initKeywords (void);
+
+/*
+   init -
+*/
+
 static void init (void);
+
+
+/*
+   checkAbs - check to see if the abs family have been used.
+*/
 
 static void checkAbs (mcPretty_pretty p)
 {
@@ -133,17 +410,32 @@ static void checkAbs (mcPretty_pretty p)
     mcPretty_print (p, (char *) "#include <stdlib.h>\\n", 21);
 }
 
+
+/*
+   checkLimits -
+*/
+
 static void checkLimits (mcPretty_pretty p)
 {
   if ((((((((((((((seenMemcpy || seenIntMin) || seenUIntMin) || seenLongMin) || seenULongMin) || seenCharMin) || seenUCharMin) || seenUIntMin) || seenIntMax) || seenUIntMax) || seenLongMax) || seenULongMax) || seenCharMax) || seenUCharMax) || seenUIntMax)
     mcPretty_print (p, (char *) "#include <limits.h>\\n", 21);
 }
 
+
+/*
+   checkFreeMalloc -
+*/
+
 static void checkFreeMalloc (mcPretty_pretty p)
 {
   if (seenFree || seenMalloc)
     mcPretty_print (p, (char *) "#include <stdlib.h>\\n", 21);
 }
+
+
+/*
+   checkStorage -
+*/
 
 static void checkStorage (mcPretty_pretty p)
 {
@@ -154,6 +446,11 @@ static void checkStorage (mcPretty_pretty p)
       mcPretty_print (p, (char *) "Storage.h\"\\n", 12);
     }
 }
+
+
+/*
+   checkProc -
+*/
 
 static void checkProc (mcPretty_pretty p)
 {
@@ -167,6 +464,11 @@ static void checkProc (mcPretty_pretty p)
     }
 }
 
+
+/*
+   checkTrue -
+*/
+
 static void checkTrue (mcPretty_pretty p)
 {
   if (seenTrue)
@@ -176,6 +478,11 @@ static void checkTrue (mcPretty_pretty p)
       mcPretty_print (p, (char *) "#   endif\\n\\n", 13);
     }
 }
+
+
+/*
+   checkFalse -
+*/
 
 static void checkFalse (mcPretty_pretty p)
 {
@@ -187,11 +494,21 @@ static void checkFalse (mcPretty_pretty p)
     }
 }
 
+
+/*
+   checkNull -
+*/
+
 static void checkNull (mcPretty_pretty p)
 {
   if (seenNull)
     mcPretty_print (p, (char *) "#include <stddef.h>\\n", 21);
 }
+
+
+/*
+   checkMemcpy -
+*/
 
 static void checkMemcpy (mcPretty_pretty p)
 {
@@ -199,11 +516,21 @@ static void checkMemcpy (mcPretty_pretty p)
     mcPretty_print (p, (char *) "#include <string.h>\\n", 21);
 }
 
+
+/*
+   checkException - check to see if exceptions were used.
+*/
+
 static void checkException (mcPretty_pretty p)
 {
   if (seenException)
     mcPretty_print (p, (char *) "#   include \"Gmcrts.h\"\\n", 24);
 }
+
+
+/*
+   new -
+*/
 
 static scope new (decl_node n)
 {
@@ -219,6 +546,12 @@ static scope new (decl_node n)
   return s;
 }
 
+
+/*
+   mangle1 - returns TRUE if name is unique if we add _
+             to its end.
+*/
+
 static unsigned int mangle1 (nameKey_Name n, DynamicStrings_String *m, unsigned int scopes)
 {
   (*m) = DynamicStrings_KillString ((*m));
@@ -227,6 +560,12 @@ static unsigned int mangle1 (nameKey_Name n, DynamicStrings_String *m, unsigned 
   return ! (clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes));
 }
 
+
+/*
+   mangle2 - returns TRUE if name is unique if we prepend _
+             to, n.
+*/
+
 static unsigned int mangle2 (nameKey_Name n, DynamicStrings_String *m, unsigned int scopes)
 {
   (*m) = DynamicStrings_KillString ((*m));
@@ -234,6 +573,12 @@ static unsigned int mangle2 (nameKey_Name n, DynamicStrings_String *m, unsigned 
   (*m) = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "_", 1), DynamicStrings_Mark ((*m)));
   return ! (clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes));
 }
+
+
+/*
+   mangleN - keep adding '_' to the end of n until it
+             no longer clashes.
+*/
 
 static unsigned int mangleN (nameKey_Name n, DynamicStrings_String *m, unsigned int scopes)
 {
@@ -245,8 +590,14 @@ static unsigned int mangleN (nameKey_Name n, DynamicStrings_String *m, unsigned 
     if (! (clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes)))
       return TRUE;
   }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/keyc.def", 19, 0);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/keyc.def", 1, 15);
 }
+
+
+/*
+   clash - returns TRUE if there is a clash with name, n,
+           in the current scope or C keywords or C macros.
+*/
 
 static unsigned int clash (nameKey_Name n, unsigned int scopes)
 {
@@ -254,6 +605,11 @@ static unsigned int clash (nameKey_Name n, unsigned int scopes)
     return TRUE;
   return scopes && ((symbolKey_getSymKey (stack->symbols, n)) != NULL);
 }
+
+
+/*
+   initCP - add the extra keywords and standard definitions used by C++.
+*/
 
 static void initCP (void)
 {
@@ -267,6 +623,11 @@ static void initCP (void)
   add (keywords, (char *) "complex", 7);
 }
 
+
+/*
+   add -
+*/
+
 static void add (symbolKey_symbolTree s, char *a_, unsigned int _a_high)
 {
   char a[_a_high+1];
@@ -276,6 +637,11 @@ static void add (symbolKey_symbolTree s, char *a_, unsigned int _a_high)
 
   symbolKey_putSymKey (s, nameKey_makeKey ((char *) a, _a_high), (void *) DynamicStrings_InitString ((char *) a, _a_high));
 }
+
+
+/*
+   initMacros - macros and library function names to avoid.
+*/
 
 static void initMacros (void)
 {
@@ -290,7 +656,17 @@ static void initMacros (void)
   add (macros, (char *) "abs", 3);
   add (macros, (char *) "optarg", 6);
   add (macros, (char *) "div", 3);
+  add (macros, (char *) "sin", 3);
+  add (macros, (char *) "cos", 3);
+  add (macros, (char *) "tan", 3);
+  add (macros, (char *) "log10", 5);
+  add (macros, (char *) "main", 4);
 }
+
+
+/*
+   initKeywords - keywords to avoid.
+*/
 
 static void initKeywords (void)
 {
@@ -329,6 +705,11 @@ static void initKeywords (void)
   add (keywords, (char *) "while", 5);
 }
 
+
+/*
+   init -
+*/
+
 static void init (void)
 {
   seenFree = FALSE;
@@ -365,130 +746,261 @@ static void init (void)
   initMacros ();
 }
 
+
+/*
+   useStorage - indicate we have used storage.
+*/
+
 void keyc_useStorage (void)
 {
   seenStorage = TRUE;
 }
+
+
+/*
+   useFree - indicate we have used free.
+*/
 
 void keyc_useFree (void)
 {
   seenFree = TRUE;
 }
 
+
+/*
+   useMalloc - indicate we have used malloc.
+*/
+
 void keyc_useMalloc (void)
 {
   seenMalloc = TRUE;
 }
+
+
+/*
+   useProc - indicate we have used proc.
+*/
 
 void keyc_useProc (void)
 {
   seenProc = TRUE;
 }
 
+
+/*
+   useTrue - indicate we have used TRUE.
+*/
+
 void keyc_useTrue (void)
 {
   seenTrue = TRUE;
 }
+
+
+/*
+   useFalse - indicate we have used FALSE.
+*/
 
 void keyc_useFalse (void)
 {
   seenFalse = TRUE;
 }
 
+
+/*
+   useNull - indicate we have used NULL.
+*/
+
 void keyc_useNull (void)
 {
   seenNull = TRUE;
 }
+
+
+/*
+   useMemcpy - indicate we have used memcpy.
+*/
 
 void keyc_useMemcpy (void)
 {
   seenMemcpy = TRUE;
 }
 
+
+/*
+   useIntMin - indicate we have used INT_MIN.
+*/
+
 void keyc_useIntMin (void)
 {
   seenIntMin = TRUE;
 }
+
+
+/*
+   useUIntMin - indicate we have used UINT_MIN.
+*/
 
 void keyc_useUIntMin (void)
 {
   seenUIntMin = TRUE;
 }
 
+
+/*
+   useLongMin - indicate we have used LONG_MIN.
+*/
+
 void keyc_useLongMin (void)
 {
   seenLongMin = TRUE;
 }
+
+
+/*
+   useULongMin - indicate we have used ULONG_MIN.
+*/
 
 void keyc_useULongMin (void)
 {
   seenULongMin = TRUE;
 }
 
+
+/*
+   useCharMin - indicate we have used CHAR_MIN.
+*/
+
 void keyc_useCharMin (void)
 {
   seenCharMin = TRUE;
 }
+
+
+/*
+   useUCharMin - indicate we have used UCHAR_MIN.
+*/
 
 void keyc_useUCharMin (void)
 {
   seenUCharMin = TRUE;
 }
 
+
+/*
+   useIntMax - indicate we have used INT_MAX.
+*/
+
 void keyc_useIntMax (void)
 {
   seenIntMax = TRUE;
 }
+
+
+/*
+   useUIntMax - indicate we have used UINT_MAX.
+*/
 
 void keyc_useUIntMax (void)
 {
   seenUIntMax = TRUE;
 }
 
+
+/*
+   useLongMax - indicate we have used LONG_MAX.
+*/
+
 void keyc_useLongMax (void)
 {
   seenLongMax = TRUE;
 }
+
+
+/*
+   useULongMax - indicate we have used ULONG_MAX.
+*/
 
 void keyc_useULongMax (void)
 {
   seenULongMax = TRUE;
 }
 
+
+/*
+   useCharMax - indicate we have used CHAR_MAX.
+*/
+
 void keyc_useCharMax (void)
 {
   seenCharMax = TRUE;
 }
+
+
+/*
+   useUCharMax - indicate we have used UChar_MAX.
+*/
 
 void keyc_useUCharMax (void)
 {
   seenUCharMax = TRUE;
 }
 
+
+/*
+   useLabs - indicate we have used labs.
+*/
+
 void keyc_useLabs (void)
 {
   seenLabs = TRUE;
 }
+
+
+/*
+   useAbs - indicate we have used abs.
+*/
 
 void keyc_useAbs (void)
 {
   seenAbs = TRUE;
 }
 
+
+/*
+   useFabs - indicate we have used fabs.
+*/
+
 void keyc_useFabs (void)
 {
   seenFabs = TRUE;
 }
+
+
+/*
+   useFabsl - indicate we have used fabsl.
+*/
 
 void keyc_useFabsl (void)
 {
   seenFabsl = TRUE;
 }
 
+
+/*
+   useException - use the exceptions module, mcrts.
+*/
+
 void keyc_useException (void)
 {
   seenException = TRUE;
 }
+
+
+/*
+   genDefs - generate definitions or includes for all
+             macros and prototypes used.
+*/
 
 void keyc_genDefs (mcPretty_pretty p)
 {
@@ -504,6 +1016,11 @@ void keyc_genDefs (mcPretty_pretty p)
   checkException (p);
 }
 
+
+/*
+   enterScope - enter a scope defined by, n.
+*/
+
 void keyc_enterScope (decl_node n)
 {
   scope s;
@@ -514,6 +1031,11 @@ void keyc_enterScope (decl_node n)
   s->next = stack;
   stack = s;
 }
+
+
+/*
+   leaveScope - leave the scope defined by, n.
+*/
 
 void keyc_leaveScope (decl_node n)
 {
@@ -530,6 +1052,17 @@ void keyc_leaveScope (decl_node n)
   else
     M2RTS_HALT (0);
 }
+
+
+/*
+   cname - attempts to declare a symbol with name, n, in the
+           current scope.  If there is no conflict with the
+           target language then NIL is returned, otherwise
+           a mangled name is returned as a String.
+           If scopes is FALSE then only the keywords and
+           macros are detected for a clash (all scoping
+           is ignored).
+*/
 
 DynamicStrings_String keyc_cname (nameKey_Name n, unsigned int scopes)
 {
@@ -553,6 +1086,17 @@ DynamicStrings_String keyc_cname (nameKey_Name n, unsigned int scopes)
   return m;
 }
 
+
+/*
+   cnamen - attempts to declare a symbol with name, n, in the
+            current scope.  If there is no conflict with the
+            target language then NIL is returned, otherwise
+            a mangled name is returned as a Name
+            If scopes is FALSE then only the keywords and
+            macros are detected for a clash (all scoping
+            is ignored).
+*/
+
 nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes)
 {
   DynamicStrings_String m;
@@ -572,6 +1116,11 @@ nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes)
   m = DynamicStrings_KillString (m);
   return n;
 }
+
+
+/*
+   cp - include C++ keywords and standard declarations to avoid.
+*/
 
 void keyc_cp (void)
 {

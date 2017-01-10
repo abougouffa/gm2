@@ -18,15 +18,50 @@
 #   include "GM2RTS.h"
 
 #   define MaxNoOfDigits 12
+
+/*
+   Halt - writes a message in the format:
+          Module:Line:Message
+
+          It then terminates by calling HALT.
+*/
+
 void Debug_Halt (char *Message_, unsigned int _Message_high, unsigned int LineNo, char *Module_, unsigned int _Module_high);
+
+/*
+   DebugString - writes a string to the debugging device (Scn.Write).
+                 It interprets 
+ as carriage return, linefeed.
+*/
+
 void Debug_DebugString (char *a_, unsigned int _a_high);
+
+/*
+   WriteLn - writes a carriage return and a newline
+             character.
+*/
+
 static void WriteLn (void);
+
+
+/*
+   WriteLn - writes a carriage return and a newline
+             character.
+*/
 
 static void WriteLn (void)
 {
   StdIO_Write (ASCII_cr);
   StdIO_Write (ASCII_lf);
 }
+
+
+/*
+   Halt - writes a message in the format:
+          Module:Line:Message
+
+          It then terminates by calling HALT.
+*/
 
 void Debug_Halt (char *Message_, unsigned int _Message_high, unsigned int LineNo, char *Module_, unsigned int _Module_high)
 {
@@ -50,6 +85,13 @@ void Debug_Halt (char *Message_, unsigned int _Message_high, unsigned int LineNo
   Debug_DebugString ((char *) "\\n", 2);
   M2RTS_HALT (0);
 }
+
+
+/*
+   DebugString - writes a string to the debugging device (Scn.Write).
+                 It interprets 
+ as carriage return, linefeed.
+*/
 
 void Debug_DebugString (char *a_, unsigned int _a_high)
 {

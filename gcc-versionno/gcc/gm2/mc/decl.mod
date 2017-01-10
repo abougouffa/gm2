@@ -34,6 +34,7 @@ FROM libc IMPORT printf ;
 FROM mcMetaError IMPORT metaError1, metaError2, metaErrors1, metaErrors2 ;
 FROM mcError IMPORT errorAbort0, flushErrors ;
 FROM mcLexBuf IMPORT findFileNameFromToken, tokenToLineNo, tokenToColumnNo ;
+FROM mcComment IMPORT getProcedureComment ;
 FROM StrLib IMPORT StrEqual, StrLen ;
 
 FROM mcPretty IMPORT pretty, initPretty, dupPretty, killPretty, print, prints, raw,
@@ -518,6 +519,8 @@ TYPE
 		       returnType     :  node ;
                        beginStatements:  node ;
                        cname          :  cnameT ;
+		       defComment,
+		       modComment     :  String ;
                     END ;
 
        proctypeT = RECORD
@@ -2016,11 +2019,39 @@ BEGIN
 	 procedureF.paramcount := 0 ;
          procedureF.returnType := NIL ;
          procedureF.beginStatements := NIL ;
-         initCname (procedureF.cname)
+         initCname (procedureF.cname) ;
+	 procedureF.defComment := NIL ;
+	 procedureF.modComment := NIL ;
       END
    END ;
    RETURN addProcedureToScope (d, n)
 END makeProcedure ;
+
+
+(*
+   putCommentDefProcedure - remembers the procedure comment (if it exists) as a
+                            definition module procedure heading.  NIL is placed
+                            if there is no procedure comment available.
+*)
+
+PROCEDURE putCommentDefProcedure (n: node) ;
+BEGIN
+   assert (isProcedure (n)) ;
+   n^.procedureF.defComment := getProcedureComment ()
+END putCommentDefProcedure ;
+
+
+(*
+   putCommentModProcedure - remembers the procedure comment (if it exists) as an
+                            implementation/program module procedure heading.  NIL is placed
+                            if there is no procedure comment available.
+*)
+
+PROCEDURE putCommentModProcedure (n: node) ;
+BEGIN
+   assert (isProcedure (n)) ;
+   n^.procedureF.modComment := getProcedureComment ()
+END putCommentModProcedure ;
 
 
 (*
@@ -6692,14 +6723,24 @@ BEGIN
    IF n^.paramF.namelist = NIL
    THEN
       doParamConstCast (p, n) ;
-      doTypeNameC (p, ptype)
+      doTypeNameC (p, ptype) ;
+      IF isArray (ptype) AND isUnbounded (ptype)
+      THEN
+         outText (p, ',') ; setNeedSpace (p) ;
+         outText (p, 'unsigned int')
+      END
    ELSE
       assert (isIdentList (n^.paramF.namelist)) ;
       l := n^.paramF.namelist^.identlistF.names ;
       IF l=NIL
       THEN
          doParamConstCast (p, n) ;
-         doTypeNameC (p, ptype)
+         doTypeNameC (p, ptype) ;
+         IF isArray (ptype) AND isUnbounded (ptype)
+         THEN
+            outText (p, ',') ; setNeedSpace (p) ;
+            outText (p, 'unsigned int')
+         END
       ELSE
          t := wlists.noOfItemsInList (l) ;
          c := 1 ;
@@ -7789,6 +7830,35 @@ END doExternCP ;
 
 
 (*
+   doProcedureCommentText -
+*)
+
+PROCEDURE doProcedureCommentText (p: pretty; s: String) ;
+BEGIN
+   (* remove \n from the start of the comment.  *)
+   WHILE (DynamicStrings.Length (s) > 0) AND (DynamicStrings.char (s, 0) = lf) DO
+      s := DynamicStrings.Slice (s, 1, 0)
+   END ;
+   outTextS (p, s)
+END doProcedureCommentText ;
+
+
+(*
+   doProcedureComment -
+*)
+
+PROCEDURE doProcedureComment (p: pretty; s: String) ;
+BEGIN
+   IF s # NIL
+   THEN
+      outText (p, '\n/*\n') ;
+      doProcedureCommentText (p, s) ;
+      outText (p, '*/\n\n')
+   END
+END doProcedureComment ;
+
+
+(*
    doProcedureHeadingC -
 *)
 
@@ -7801,11 +7871,14 @@ BEGIN
    noSpace (doP) ;
    IF isDef (getMainModule ())
    THEN
+      doProcedureComment (doP, n^.procedureF.defComment) ;
       outText (doP, "EXTERN") ; setNeedSpace (doP)
    ELSIF isExported (n)
    THEN
+      doProcedureComment (doP, n^.procedureF.modComment) ;
       doExternCP (doP)
    ELSE
+      doProcedureComment (doP, n^.procedureF.modComment) ;
       outText (doP, "static") ; setNeedSpace (doP)
    END ;
    q := NIL ;
@@ -7874,7 +7947,7 @@ END checkDeclareUnboundedParamCopyC ;
 
 PROCEDURE checkUnboundedParamCopyC (p: pretty; n: node) ;
 VAR
-   t   : node ;
+   t, s: node ;
    i, c: CARDINAL ;
    l   : wlist ;
 BEGIN
@@ -7884,7 +7957,8 @@ BEGIN
    THEN
       c := wlists.noOfItemsInList (l) ;
       i := 1 ;
-      t := skipType (getType (t)) ;
+      t := getType (t) ;
+      s := skipType (t) ;
       WHILE i <= c DO
          keyc.useMemcpy ;
          outText (p, 'memcpy (') ;
@@ -7893,7 +7967,7 @@ BEGIN
          setNeedSpace (p) ;
          doNamesC (p, wlists.getItemFromList (l, i)) ;
          outText (p, '_, ') ;
-         IF (t = charN) OR (t = byteN) OR (t = locN)
+         IF (s = charN) OR (s = byteN) OR (s = locN)
          THEN
             outText (p, '_') ;
             doNamesC (p, wlists.getItemFromList (l, i)) ;
@@ -9329,7 +9403,7 @@ BEGIN
             ELSE
                doProcedureParamC (p, actual, formal)
             END
-         ELSIF isVar (actual) AND isProcType (skipType (getType (actual))) AND (getType (actual) # getType (formal))
+         ELSIF (getType (actual) # NIL) AND isProcType (skipType (getType (actual))) AND (getType (actual) # getType (formal))
          THEN
             IF isVarParam (formal)
             THEN

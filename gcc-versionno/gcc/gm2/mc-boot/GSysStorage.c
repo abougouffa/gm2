@@ -23,8 +23,31 @@
 
 void SysStorage_ALLOCATE (void * *a, unsigned int Size);
 void SysStorage_DEALLOCATE (void * *a, unsigned int Size);
+
+/*
+   REALLOCATE - attempts to reallocate storage. The address,
+                a, should either be NIL in which case ALLOCATE
+                is called, or alternatively it should have already
+                been initialized by ALLOCATE. The allocated storage
+                is resized accordingly.
+*/
+
 void SysStorage_REALLOCATE (void * *a, unsigned int Size);
+
+/*
+   REALLOCATE - attempts to reallocate storage. The address,
+                a, should either be NIL in which case ALLOCATE
+                is called, or alternatively it should have already
+                been initialized by ALLOCATE. The allocated storage
+                is resized accordingly.
+*/
+
 unsigned int SysStorage_Available (unsigned int Size);
+
+/*
+   Init - 
+*/
+
 void SysStorage_Init (void);
 
 void SysStorage_ALLOCATE (void * *a, unsigned int Size)
@@ -40,6 +63,15 @@ void SysStorage_DEALLOCATE (void * *a, unsigned int Size)
   (*a) = NULL;
 }
 
+
+/*
+   REALLOCATE - attempts to reallocate storage. The address,
+                a, should either be NIL in which case ALLOCATE
+                is called, or alternatively it should have already
+                been initialized by ALLOCATE. The allocated storage
+                is resized accordingly.
+*/
+
 void SysStorage_REALLOCATE (void * *a, unsigned int Size)
 {
   if ((*a) == NULL)
@@ -51,6 +83,15 @@ void SysStorage_REALLOCATE (void * *a, unsigned int Size)
         Debug_Halt ((char *) "out of memory error", 19, 60, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/SysStorage.mod", 47);
     }
 }
+
+
+/*
+   REALLOCATE - attempts to reallocate storage. The address,
+                a, should either be NIL in which case ALLOCATE
+                is called, or alternatively it should have already
+                been initialized by ALLOCATE. The allocated storage
+                is resized accordingly.
+*/
 
 unsigned int SysStorage_Available (unsigned int Size)
 {
@@ -65,6 +106,11 @@ unsigned int SysStorage_Available (unsigned int Size)
       return TRUE;
     }
 }
+
+
+/*
+   Init - 
+*/
 
 void SysStorage_Init (void)
 {

@@ -21,11 +21,44 @@ extern "C" {
 #      define EXTERN extern
 #   endif
 
+
+/*
+   strtime - returns the C string for the equivalent C asctime
+             function.
+*/
+
 EXTERN void * wrapc_strtime (void);
+
+/*
+   filesize - assigns the size of a file, f, into low, high and
+              returns zero if successful.
+*/
+
 EXTERN int wrapc_filesize (int f, unsigned int *low, unsigned int *high);
+
+/*
+   filemtime - returns the mtime of a file, f.
+*/
+
 EXTERN int wrapc_filemtime (int f);
+
+/*
+   getrand - returns a random number between 0..n-1
+*/
+
 EXTERN int wrapc_getrand (int n);
+
+/*
+   getusername - returns a C string describing the current user.
+*/
+
 EXTERN void * wrapc_getusername (void);
+
+/*
+   getnameuidgid - fills in the, uid, and, gid, which represents
+                   user, name.
+*/
+
 EXTERN void wrapc_getnameuidgid (void * name, int *uid, int *gid);
 EXTERN int wrapc_signbit (double r);
 EXTERN int wrapc_signbitf (float s);

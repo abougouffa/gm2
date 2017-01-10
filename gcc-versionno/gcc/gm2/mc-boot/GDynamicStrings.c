@@ -92,82 +92,506 @@ struct stringRecord_r {
 static unsigned int Initialized;
 static frame frameHead;
 static DynamicStrings_String captured;
+
+/*
+   InitString - creates and returns a String type object.
+                Initial contents are, a.
+*/
+
 DynamicStrings_String DynamicStrings_InitString (char *a_, unsigned int _a_high);
+
+/*
+   KillString - frees String, s, and its contents.
+                NIL is returned.
+*/
+
 DynamicStrings_String DynamicStrings_KillString (DynamicStrings_String s);
+
+/*
+   Fin - finishes with a string, it calls KillString with, s.
+         The purpose of the procedure is to provide a short cut
+         to calling KillString and then testing the return result.
+*/
+
 void DynamicStrings_Fin (DynamicStrings_String s);
+
+/*
+   InitStringCharStar - initializes and returns a String to contain the C string.
+*/
+
 DynamicStrings_String DynamicStrings_InitStringCharStar (void * a);
+
+/*
+   InitStringChar - initializes and returns a String to contain the single character, ch.
+*/
+
 DynamicStrings_String DynamicStrings_InitStringChar (char ch);
+
+/*
+   Mark - marks String, s, ready for garbage collection.
+*/
+
 DynamicStrings_String DynamicStrings_Mark (DynamicStrings_String s);
+
+/*
+   Length - returns the length of the String, s.
+*/
+
 unsigned int DynamicStrings_Length (DynamicStrings_String s);
+
+/*
+   ConCat - returns String, a, after the contents of, b, have been appended.
+*/
+
 DynamicStrings_String DynamicStrings_ConCat (DynamicStrings_String a, DynamicStrings_String b);
+
+/*
+   ConCatChar - returns String, a, after character, ch, has been appended.
+*/
+
 DynamicStrings_String DynamicStrings_ConCatChar (DynamicStrings_String a, char ch);
+
+/*
+   Assign - assigns the contents of, b, into, a.
+            String, a, is returned.
+*/
+
 DynamicStrings_String DynamicStrings_Assign (DynamicStrings_String a, DynamicStrings_String b);
+
+/*
+   Dup - duplicate a String, s, returning the copy of s.
+*/
+
 DynamicStrings_String DynamicStrings_Dup (DynamicStrings_String s);
+
+/*
+   Add - returns a new String which contains the contents of a and b.
+*/
+
 DynamicStrings_String DynamicStrings_Add (DynamicStrings_String a, DynamicStrings_String b);
+
+/*
+   Equal - returns TRUE if String, a, and, b, are equal.
+*/
+
 unsigned int DynamicStrings_Equal (DynamicStrings_String a, DynamicStrings_String b);
+
+/*
+   EqualCharStar - returns TRUE if contents of String, s, is the same as the
+                   string, a.
+*/
+
 unsigned int DynamicStrings_EqualCharStar (DynamicStrings_String s, void * a);
+
+/*
+   EqualArray - returns TRUE if contents of String, s, is the same as the
+                string, a.
+*/
+
 unsigned int DynamicStrings_EqualArray (DynamicStrings_String s, char *a_, unsigned int _a_high);
+
+/*
+   Mult - returns a new string which is n concatenations of String, s.
+*/
+
 DynamicStrings_String DynamicStrings_Mult (DynamicStrings_String s, unsigned int n);
+
+/*
+   Slice - returns a new string which contains the elements
+           low..high-1
+
+           strings start at element 0
+           Slice(s, 0, 2)  will return elements 0, 1 but not 2
+           Slice(s, 1, 3)  will return elements 1, 2 but not 3
+           Slice(s, 2, 0)  will return elements 2..max
+           Slice(s, 3, -1) will return elements 3..max-1
+           Slice(s, 4, -2) will return elements 4..max-2
+*/
+
 DynamicStrings_String DynamicStrings_Slice (DynamicStrings_String s, int low, int high);
+
+/*
+   Index - returns the indice of the first occurance of, ch, in
+           String, s. -1 is returned if, ch, does not exist.
+           The search starts at position, o.
+*/
+
 int DynamicStrings_Index (DynamicStrings_String s, char ch, unsigned int o);
+
+/*
+   RIndex - returns the indice of the last occurance of, ch,
+            in String, s. The search starts at position, o.
+            -1 is returned if, ch, is not found.
+*/
+
 int DynamicStrings_RIndex (DynamicStrings_String s, char ch, unsigned int o);
+
+/*
+   RemoveComment - assuming that, comment, is a comment delimiter
+                   which indicates anything to its right is a comment
+                   then strip off the comment and also any white space
+                   on the remaining right hand side.
+                   It leaves any white space on the left hand side alone.
+*/
+
 DynamicStrings_String DynamicStrings_RemoveComment (DynamicStrings_String s, char comment);
+
+/*
+   RemoveWhitePrefix - removes any leading white space from String, s.
+                       A new string is returned.
+*/
+
 DynamicStrings_String DynamicStrings_RemoveWhitePrefix (DynamicStrings_String s);
+
+/*
+   RemoveWhitePostfix - removes any leading white space from String, s.
+                        A new string is returned.
+*/
+
 DynamicStrings_String DynamicStrings_RemoveWhitePostfix (DynamicStrings_String s);
+
+/*
+   ToUpper - returns string, s, after it has had its lower case characters
+             replaced by upper case characters.
+             The string, s, is not duplicated.
+*/
+
 DynamicStrings_String DynamicStrings_ToUpper (DynamicStrings_String s);
+
+/*
+   ToLower - returns string, s, after it has had its upper case characters
+             replaced by lower case characters.
+             The string, s, is not duplicated.
+*/
+
 DynamicStrings_String DynamicStrings_ToLower (DynamicStrings_String s);
+
+/*
+   CopyOut - copies string, s, to a.
+*/
+
 void DynamicStrings_CopyOut (char *a, unsigned int _a_high, DynamicStrings_String s);
+
+/*
+   char - returns the character, ch, at position, i, in String, s.
+*/
+
 char DynamicStrings_char (DynamicStrings_String s, int i);
+
+/*
+   string - returns the C style char * of String, s.
+*/
+
 void * DynamicStrings_string (DynamicStrings_String s);
+
+/*
+   InitStringDB - the debug version of InitString.
+*/
+
 DynamicStrings_String DynamicStrings_InitStringDB (char *a_, unsigned int _a_high, char *file_, unsigned int _file_high, unsigned int line);
+
+/*
+   InitStringCharStarDB - the debug version of InitStringCharStar.
+*/
+
 DynamicStrings_String DynamicStrings_InitStringCharStarDB (void * a, char *file_, unsigned int _file_high, unsigned int line);
+
+/*
+   InitStringCharDB - the debug version of InitStringChar.
+*/
+
 DynamicStrings_String DynamicStrings_InitStringCharDB (char ch, char *file_, unsigned int _file_high, unsigned int line);
+
+/*
+   MultDB - the debug version of MultDB.
+*/
+
 DynamicStrings_String DynamicStrings_MultDB (DynamicStrings_String s, unsigned int n, char *file_, unsigned int _file_high, unsigned int line);
+
+/*
+   DupDB - the debug version of Dup.
+*/
+
 DynamicStrings_String DynamicStrings_DupDB (DynamicStrings_String s, char *file_, unsigned int _file_high, unsigned int line);
+
+/*
+   SliceDB - debug version of Slice.
+*/
+
 DynamicStrings_String DynamicStrings_SliceDB (DynamicStrings_String s, int low, int high, char *file_, unsigned int _file_high, unsigned int line);
+
+/*
+   PushAllocation - pushes the current allocation/deallocation lists.
+*/
+
 void DynamicStrings_PushAllocation (void);
+
+/*
+   PopAllocation - test to see that all strings are deallocated since
+                   the last push.  Then it pops to the previous
+                   allocation/deallocation lists.
+
+                   If halt is true then the application terminates
+                   with an exit code of 1.
+*/
+
 void DynamicStrings_PopAllocation (unsigned int halt);
+
+/*
+   PopAllocationExemption - test to see that all strings are deallocated, except
+                            string, e, since the last push.
+                            Then it pops to the previous allocation/deallocation
+                            lists.
+
+                            If halt is true then the application terminates
+                            with an exit code of 1.
+*/
+
 DynamicStrings_String DynamicStrings_PopAllocationExemption (unsigned int halt, DynamicStrings_String e);
+
+/*
+   writeStringDesc -
+*/
+
 static void writeStringDesc (DynamicStrings_String s);
+
+/*
+   writeNspace -
+*/
+
 static void writeNspace (unsigned int n);
+
+/*
+   DumpStringInfo -
+*/
+
 static void DumpStringInfo (DynamicStrings_String s, unsigned int i);
+
+/*
+   doDSdbEnter -
+*/
+
 static void doDSdbEnter (void);
+
+/*
+   doDSdbExit -
+*/
+
 static void doDSdbExit (DynamicStrings_String s);
+
+/*
+   DSdbEnter -
+*/
+
 static void DSdbEnter (void);
+
+/*
+   DSdbExit -
+*/
+
 static void DSdbExit (DynamicStrings_String s);
 static unsigned int Capture (DynamicStrings_String s);
+
+/*
+   Min -
+*/
+
 static unsigned int Min (unsigned int a, unsigned int b);
+
+/*
+   Max -
+*/
+
 static unsigned int Max (unsigned int a, unsigned int b);
+
+/*
+   writeString - writes a string to stdout.
+*/
+
 static void writeString (char *a_, unsigned int _a_high);
+
+/*
+   writeCstring - writes a C string to stdout.
+*/
+
 static void writeCstring (void * a);
+
+/*
+   writeCard -
+*/
+
 static void writeCard (unsigned int c);
+
+/*
+   writeLongcard -
+*/
+
 static void writeLongcard (long unsigned int l);
+
+/*
+   writeAddress -
+*/
+
 static void writeAddress (void * a);
+
+/*
+   writeLn - writes a newline.
+*/
+
 static void writeLn (void);
+
+/*
+   AssignDebug - assigns, file, and, line, information to string, s.
+*/
+
 static DynamicStrings_String AssignDebug (DynamicStrings_String s, char *file_, unsigned int _file_high, unsigned int line, char *proc_, unsigned int _proc_high);
+
+/*
+   IsOn - returns TRUE if, s, is on one of the debug lists.
+*/
+
 static unsigned int IsOn (DynamicStrings_String list, DynamicStrings_String s);
+
+/*
+   AddTo - adds string, s, to, list.
+*/
+
 static void AddTo (DynamicStrings_String *list, DynamicStrings_String s);
+
+/*
+   SubFrom - removes string, s, from, list.
+*/
+
 static void SubFrom (DynamicStrings_String *list, DynamicStrings_String s);
+
+/*
+   AddAllocated - adds string, s, to the head of the allocated list.
+*/
+
 static void AddAllocated (DynamicStrings_String s);
+
+/*
+   AddDeallocated - adds string, s, to the head of the deallocated list.
+*/
+
 static void AddDeallocated (DynamicStrings_String s);
+
+/*
+   IsOnAllocated - returns TRUE if the string, s, has ever been allocated.
+*/
+
 static unsigned int IsOnAllocated (DynamicStrings_String s);
+
+/*
+   IsOnDeallocated - returns TRUE if the string, s, has ever been deallocated.
+*/
+
 static unsigned int IsOnDeallocated (DynamicStrings_String s);
+
+/*
+   SubAllocated - removes string, s, from the list of allocated strings.
+*/
+
 static void SubAllocated (DynamicStrings_String s);
+
+/*
+   SubDeallocated - removes string, s, from the list of deallocated strings.
+*/
+
 static void SubDeallocated (DynamicStrings_String s);
+
+/*
+   SubDebugInfo - removes string, s, from the list of allocated strings.
+*/
+
 static void SubDebugInfo (DynamicStrings_String s);
+
+/*
+   AddDebugInfo - adds string, s, to the list of allocated strings.
+*/
+
 static void AddDebugInfo (DynamicStrings_String s);
+
+/*
+   ConcatContents - add the contents of string, a, where, h, is the
+                    total length of, a. The offset is in, o.
+*/
+
 static void ConcatContents (Contents *c, char *a_, unsigned int _a_high, unsigned int h, unsigned int o);
+
+/*
+   DeallocateCharStar - deallocates any charStar.
+*/
+
 static void DeallocateCharStar (DynamicStrings_String s);
+
+/*
+   CheckPoisoned - checks for a poisoned string, s.
+*/
+
 static DynamicStrings_String CheckPoisoned (DynamicStrings_String s);
+
+/*
+   MarkInvalid - marks the char * version of String, s, as invalid.
+*/
+
 static void MarkInvalid (DynamicStrings_String s);
+
+/*
+   ConcatContentsAddress - concatenate the string, a, where, h, is the
+                           total length of, a.
+*/
+
 static void ConcatContentsAddress (Contents *c, void * a, unsigned int h);
+
+/*
+   AddToGarbage - adds String, b, onto the garbage list of, a.  Providing
+                  the state of b is marked.  The state is then altered to
+                  onlist.  String, a, is returned.
+*/
+
 static DynamicStrings_String AddToGarbage (DynamicStrings_String a, DynamicStrings_String b);
+
+/*
+   IsOnGarbage - returns TRUE if, s, is on string, e, garbage list.
+*/
+
 static unsigned int IsOnGarbage (DynamicStrings_String e, DynamicStrings_String s);
+
+/*
+   IsWhite - returns TRUE if, ch, is a space or a tab.
+*/
+
 static unsigned int IsWhite (char ch);
+
+/*
+   DumpState -
+*/
+
 static void DumpState (DynamicStrings_String s);
+
+/*
+   DumpStringSynopsis -
+*/
+
 static void DumpStringSynopsis (DynamicStrings_String s);
+
+/*
+   DumpString - displays the contents of string, s.
+*/
+
 static void DumpString (DynamicStrings_String s);
+
+/*
+   Init - initialize the module.
+*/
+
 static void Init (void);
+
+
+/*
+   writeStringDesc -
+*/
 
 static void writeStringDesc (DynamicStrings_String s)
 {
@@ -206,6 +630,11 @@ static void writeStringDesc (DynamicStrings_String s)
     }
 }
 
+
+/*
+   writeNspace -
+*/
+
 static void writeNspace (unsigned int n)
 {
   while (n > 0)
@@ -214,6 +643,11 @@ static void writeNspace (unsigned int n)
       n -= 1;
     }
 }
+
+
+/*
+   DumpStringInfo -
+*/
 
 static void DumpStringInfo (DynamicStrings_String s, unsigned int i)
 {
@@ -238,11 +672,21 @@ static void DumpStringInfo (DynamicStrings_String s, unsigned int i)
     }
 }
 
+
+/*
+   doDSdbEnter -
+*/
+
 static void doDSdbEnter (void)
 {
   if (CheckOn)
     DynamicStrings_PushAllocation ();
 }
+
+
+/*
+   doDSdbExit -
+*/
 
 static void doDSdbExit (DynamicStrings_String s)
 {
@@ -250,9 +694,19 @@ static void doDSdbExit (DynamicStrings_String s)
     s = DynamicStrings_PopAllocationExemption (TRUE, s);
 }
 
+
+/*
+   DSdbEnter -
+*/
+
 static void DSdbEnter (void)
 {
 }
+
+
+/*
+   DSdbExit -
+*/
 
 static void DSdbExit (DynamicStrings_String s)
 {
@@ -264,6 +718,11 @@ static unsigned int Capture (DynamicStrings_String s)
   return 1;
 }
 
+
+/*
+   Min -
+*/
+
 static unsigned int Min (unsigned int a, unsigned int b)
 {
   if (a < b)
@@ -272,6 +731,11 @@ static unsigned int Min (unsigned int a, unsigned int b)
     return b;
 }
 
+
+/*
+   Max -
+*/
+
 static unsigned int Max (unsigned int a, unsigned int b)
 {
   if (a > b)
@@ -279,6 +743,11 @@ static unsigned int Max (unsigned int a, unsigned int b)
   else
     return b;
 }
+
+
+/*
+   writeString - writes a string to stdout.
+*/
 
 static void writeString (char *a_, unsigned int _a_high)
 {
@@ -291,6 +760,11 @@ static void writeString (char *a_, unsigned int _a_high)
   i = libc_write (1, &a, (int) StrLib_StrLen ((char *) a, _a_high));
 }
 
+
+/*
+   writeCstring - writes a C string to stdout.
+*/
+
 static void writeCstring (void * a)
 {
   int i;
@@ -300,6 +774,11 @@ static void writeCstring (void * a)
   else
     i = libc_write (1, a, libc_strlen (a));
 }
+
+
+/*
+   writeCard -
+*/
 
 static void writeCard (unsigned int c)
 {
@@ -317,6 +796,11 @@ static void writeCard (unsigned int c)
       i = libc_write (1, &ch, 1);
     }
 }
+
+
+/*
+   writeLongcard -
+*/
 
 static void writeLongcard (long unsigned int l)
 {
@@ -340,10 +824,20 @@ static void writeLongcard (long unsigned int l)
     }
 }
 
+
+/*
+   writeAddress -
+*/
+
 static void writeAddress (void * a)
 {
   writeLongcard ((long unsigned int ) (a));
 }
+
+
+/*
+   writeLn - writes a newline.
+*/
 
 static void writeLn (void)
 {
@@ -353,6 +847,11 @@ static void writeLn (void)
   ch = ASCII_lf;
   i = libc_write (1, &ch, 1);
 }
+
+
+/*
+   AssignDebug - assigns, file, and, line, information to string, s.
+*/
 
 static DynamicStrings_String AssignDebug (DynamicStrings_String s, char *file_, unsigned int _file_high, unsigned int line, char *proc_, unsigned int _proc_high)
 {
@@ -377,12 +876,22 @@ static DynamicStrings_String AssignDebug (DynamicStrings_String s, char *file_, 
   return s;
 }
 
+
+/*
+   IsOn - returns TRUE if, s, is on one of the debug lists.
+*/
+
 static unsigned int IsOn (DynamicStrings_String list, DynamicStrings_String s)
 {
   while ((list != s) && (list != NULL))
     list = list->debug.next;
   return list == s;
 }
+
+
+/*
+   AddTo - adds string, s, to, list.
+*/
 
 static void AddTo (DynamicStrings_String *list, DynamicStrings_String s)
 {
@@ -397,6 +906,11 @@ static void AddTo (DynamicStrings_String *list, DynamicStrings_String s)
       (*list) = s;
     }
 }
+
+
+/*
+   SubFrom - removes string, s, from, list.
+*/
 
 static void SubFrom (DynamicStrings_String *list, DynamicStrings_String s)
 {
@@ -417,17 +931,32 @@ static void SubFrom (DynamicStrings_String *list, DynamicStrings_String s)
   s->debug.next = NULL;
 }
 
+
+/*
+   AddAllocated - adds string, s, to the head of the allocated list.
+*/
+
 static void AddAllocated (DynamicStrings_String s)
 {
   Init ();
   AddTo (&frameHead->alloc, s);
 }
 
+
+/*
+   AddDeallocated - adds string, s, to the head of the deallocated list.
+*/
+
 static void AddDeallocated (DynamicStrings_String s)
 {
   Init ();
   AddTo (&frameHead->dealloc, s);
 }
+
+
+/*
+   IsOnAllocated - returns TRUE if the string, s, has ever been allocated.
+*/
 
 static unsigned int IsOnAllocated (DynamicStrings_String s)
 {
@@ -444,6 +973,11 @@ static unsigned int IsOnAllocated (DynamicStrings_String s)
   return FALSE;
 }
 
+
+/*
+   IsOnDeallocated - returns TRUE if the string, s, has ever been deallocated.
+*/
+
 static unsigned int IsOnDeallocated (DynamicStrings_String s)
 {
   frame f;
@@ -458,6 +992,11 @@ static unsigned int IsOnDeallocated (DynamicStrings_String s)
   } while (! (f == NULL));
   return FALSE;
 }
+
+
+/*
+   SubAllocated - removes string, s, from the list of allocated strings.
+*/
 
 static void SubAllocated (DynamicStrings_String s)
 {
@@ -476,6 +1015,11 @@ static void SubAllocated (DynamicStrings_String s)
   } while (! (f == NULL));
 }
 
+
+/*
+   SubDeallocated - removes string, s, from the list of deallocated strings.
+*/
+
 static void SubDeallocated (DynamicStrings_String s)
 {
   frame f;
@@ -493,6 +1037,11 @@ static void SubDeallocated (DynamicStrings_String s)
   } while (! (f == NULL));
 }
 
+
+/*
+   SubDebugInfo - removes string, s, from the list of allocated strings.
+*/
+
 static void SubDebugInfo (DynamicStrings_String s)
 {
   if (IsOnDeallocated (s))
@@ -509,6 +1058,11 @@ static void SubDebugInfo (DynamicStrings_String s)
     Assertion_Assert (! DebugOn);
 }
 
+
+/*
+   AddDebugInfo - adds string, s, to the list of allocated strings.
+*/
+
 static void AddDebugInfo (DynamicStrings_String s)
 {
   s->debug.next = NULL;
@@ -518,6 +1072,12 @@ static void AddDebugInfo (DynamicStrings_String s)
   if (CheckOn)
     AddAllocated (s);
 }
+
+
+/*
+   ConcatContents - add the contents of string, a, where, h, is the
+                    total length of, a. The offset is in, o.
+*/
 
 static void ConcatContents (Contents *c, char *a_, unsigned int _a_high, unsigned int h, unsigned int o)
 {
@@ -549,6 +1109,11 @@ static void ConcatContents (Contents *c, char *a_, unsigned int _a_high, unsigne
     (*c).len = i;
 }
 
+
+/*
+   DeallocateCharStar - deallocates any charStar.
+*/
+
 static void DeallocateCharStar (DynamicStrings_String s)
 {
   if ((s != NULL) && (s->head != NULL))
@@ -562,12 +1127,22 @@ static void DeallocateCharStar (DynamicStrings_String s)
     }
 }
 
+
+/*
+   CheckPoisoned - checks for a poisoned string, s.
+*/
+
 static DynamicStrings_String CheckPoisoned (DynamicStrings_String s)
 {
   if (((PoisonOn && (s != NULL)) && (s->head != NULL)) && (s->head->state == poisoned))
     M2RTS_HALT (0);
   return s;
 }
+
+
+/*
+   MarkInvalid - marks the char * version of String, s, as invalid.
+*/
 
 static void MarkInvalid (DynamicStrings_String s)
 {
@@ -576,6 +1151,12 @@ static void MarkInvalid (DynamicStrings_String s)
   if (s->head != NULL)
     s->head->charStarValid = FALSE;
 }
+
+
+/*
+   ConcatContentsAddress - concatenate the string, a, where, h, is the
+                           total length of, a.
+*/
 
 static void ConcatContentsAddress (Contents *c, void * a, unsigned int h)
 {
@@ -612,6 +1193,13 @@ static void ConcatContentsAddress (Contents *c, void * a, unsigned int h)
     }
 }
 
+
+/*
+   AddToGarbage - adds String, b, onto the garbage list of, a.  Providing
+                  the state of b is marked.  The state is then altered to
+                  onlist.  String, a, is returned.
+*/
+
 static DynamicStrings_String AddToGarbage (DynamicStrings_String a, DynamicStrings_String b)
 {
   DynamicStrings_String c;
@@ -634,6 +1222,11 @@ static DynamicStrings_String AddToGarbage (DynamicStrings_String a, DynamicStrin
   return a;
 }
 
+
+/*
+   IsOnGarbage - returns TRUE if, s, is on string, e, garbage list.
+*/
+
 static unsigned int IsOnGarbage (DynamicStrings_String e, DynamicStrings_String s)
 {
   if ((e != NULL) && (s != NULL))
@@ -645,10 +1238,20 @@ static unsigned int IsOnGarbage (DynamicStrings_String e, DynamicStrings_String 
   return FALSE;
 }
 
+
+/*
+   IsWhite - returns TRUE if, ch, is a space or a tab.
+*/
+
 static unsigned int IsWhite (char ch)
 {
   return (ch == ' ') || (ch == ASCII_tab);
 }
+
+
+/*
+   DumpState -
+*/
 
 static void DumpState (DynamicStrings_String s)
 {
@@ -679,6 +1282,11 @@ static void DumpState (DynamicStrings_String s)
     }
 }
 
+
+/*
+   DumpStringSynopsis -
+*/
+
 static void DumpStringSynopsis (DynamicStrings_String s)
 {
   writeCstring (s->debug.file);
@@ -698,6 +1306,11 @@ static void DumpStringSynopsis (DynamicStrings_String s)
     writeString ((char *) " globally unknown", 17);
   writeLn ();
 }
+
+
+/*
+   DumpString - displays the contents of string, s.
+*/
 
 static void DumpString (DynamicStrings_String s)
 {
@@ -720,6 +1333,11 @@ static void DumpString (DynamicStrings_String s)
     }
 }
 
+
+/*
+   Init - initialize the module.
+*/
+
 static void Init (void)
 {
   if (! Initialized)
@@ -729,6 +1347,12 @@ static void Init (void)
       DynamicStrings_PushAllocation ();
     }
 }
+
+
+/*
+   InitString - creates and returns a String type object.
+                Initial contents are, a.
+*/
 
 DynamicStrings_String DynamicStrings_InitString (char *a_, unsigned int _a_high)
 {
@@ -754,6 +1378,12 @@ DynamicStrings_String DynamicStrings_InitString (char *a_, unsigned int _a_high)
     s = AssignDebug (s, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.mod", 51, 750, (char *) "InitString", 10);
   return s;
 }
+
+
+/*
+   KillString - frees String, s, and its contents.
+                NIL is returned.
+*/
 
 DynamicStrings_String DynamicStrings_KillString (DynamicStrings_String s)
 {
@@ -790,11 +1420,23 @@ DynamicStrings_String DynamicStrings_KillString (DynamicStrings_String s)
   return NULL;
 }
 
+
+/*
+   Fin - finishes with a string, it calls KillString with, s.
+         The purpose of the procedure is to provide a short cut
+         to calling KillString and then testing the return result.
+*/
+
 void DynamicStrings_Fin (DynamicStrings_String s)
 {
   if ((DynamicStrings_KillString (s)) != NULL)
     M2RTS_HALT (0);
 }
+
+
+/*
+   InitStringCharStar - initializes and returns a String to contain the C string.
+*/
 
 DynamicStrings_String DynamicStrings_InitStringCharStar (void * a)
 {
@@ -818,6 +1460,11 @@ DynamicStrings_String DynamicStrings_InitStringCharStar (void * a)
   return s;
 }
 
+
+/*
+   InitStringChar - initializes and returns a String to contain the single character, ch.
+*/
+
 DynamicStrings_String DynamicStrings_InitStringChar (char ch)
 {
   typedef struct _T2_a _T2;
@@ -834,6 +1481,11 @@ DynamicStrings_String DynamicStrings_InitStringChar (char ch)
   return s;
 }
 
+
+/*
+   Mark - marks String, s, ready for garbage collection.
+*/
+
 DynamicStrings_String DynamicStrings_Mark (DynamicStrings_String s)
 {
   if (PoisonOn)
@@ -843,6 +1495,11 @@ DynamicStrings_String DynamicStrings_Mark (DynamicStrings_String s)
   return s;
 }
 
+
+/*
+   Length - returns the length of the String, s.
+*/
+
 unsigned int DynamicStrings_Length (DynamicStrings_String s)
 {
   if (s == NULL)
@@ -850,6 +1507,11 @@ unsigned int DynamicStrings_Length (DynamicStrings_String s)
   else
     return s->contents.len+(DynamicStrings_Length (s->contents.next));
 }
+
+
+/*
+   ConCat - returns String, a, after the contents of, b, have been appended.
+*/
 
 DynamicStrings_String DynamicStrings_ConCat (DynamicStrings_String a, DynamicStrings_String b)
 {
@@ -880,6 +1542,11 @@ DynamicStrings_String DynamicStrings_ConCat (DynamicStrings_String a, DynamicStr
   return a;
 }
 
+
+/*
+   ConCatChar - returns String, a, after character, ch, has been appended.
+*/
+
 DynamicStrings_String DynamicStrings_ConCatChar (DynamicStrings_String a, char ch)
 {
   typedef struct _T3_a _T3;
@@ -900,6 +1567,12 @@ DynamicStrings_String DynamicStrings_ConCatChar (DynamicStrings_String a, char c
   return a;
 }
 
+
+/*
+   Assign - assigns the contents of, b, into, a.
+            String, a, is returned.
+*/
+
 DynamicStrings_String DynamicStrings_Assign (DynamicStrings_String a, DynamicStrings_String b)
 {
   if (PoisonOn)
@@ -915,6 +1588,11 @@ DynamicStrings_String DynamicStrings_Assign (DynamicStrings_String a, DynamicStr
   return DynamicStrings_ConCat (a, b);
 }
 
+
+/*
+   Dup - duplicate a String, s, returning the copy of s.
+*/
+
 DynamicStrings_String DynamicStrings_Dup (DynamicStrings_String s)
 {
   if (PoisonOn)
@@ -924,6 +1602,11 @@ DynamicStrings_String DynamicStrings_Dup (DynamicStrings_String s)
     s = AssignDebug (s, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.mod", 51, 1165, (char *) "Dup", 3);
   return s;
 }
+
+
+/*
+   Add - returns a new String which contains the contents of a and b.
+*/
 
 DynamicStrings_String DynamicStrings_Add (DynamicStrings_String a, DynamicStrings_String b)
 {
@@ -937,6 +1620,11 @@ DynamicStrings_String DynamicStrings_Add (DynamicStrings_String a, DynamicString
     a = AssignDebug (a, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.mod", 51, 1185, (char *) "Add", 3);
   return a;
 }
+
+
+/*
+   Equal - returns TRUE if String, a, and, b, are equal.
+*/
 
 unsigned int DynamicStrings_Equal (DynamicStrings_String a, DynamicStrings_String b)
 {
@@ -972,6 +1660,12 @@ unsigned int DynamicStrings_Equal (DynamicStrings_String a, DynamicStrings_Strin
     return FALSE;
 }
 
+
+/*
+   EqualCharStar - returns TRUE if contents of String, s, is the same as the
+                   string, a.
+*/
+
 unsigned int DynamicStrings_EqualCharStar (DynamicStrings_String s, void * a)
 {
   DynamicStrings_String t;
@@ -993,6 +1687,12 @@ unsigned int DynamicStrings_EqualCharStar (DynamicStrings_String s, void * a)
       return FALSE;
     }
 }
+
+
+/*
+   EqualArray - returns TRUE if contents of String, s, is the same as the
+                string, a.
+*/
 
 unsigned int DynamicStrings_EqualArray (DynamicStrings_String s, char *a_, unsigned int _a_high)
 {
@@ -1020,6 +1720,11 @@ unsigned int DynamicStrings_EqualArray (DynamicStrings_String s, char *a_, unsig
     }
 }
 
+
+/*
+   Mult - returns a new string which is n concatenations of String, s.
+*/
+
 DynamicStrings_String DynamicStrings_Mult (DynamicStrings_String s, unsigned int n)
 {
   if (PoisonOn)
@@ -1032,6 +1737,19 @@ DynamicStrings_String DynamicStrings_Mult (DynamicStrings_String s, unsigned int
     s = AssignDebug (s, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.mod", 51, 1312, (char *) "Mult", 4);
   return s;
 }
+
+
+/*
+   Slice - returns a new string which contains the elements
+           low..high-1
+
+           strings start at element 0
+           Slice(s, 0, 2)  will return elements 0, 1 but not 2
+           Slice(s, 1, 3)  will return elements 1, 2 but not 3
+           Slice(s, 2, 0)  will return elements 2..max
+           Slice(s, 3, -1) will return elements 3..max-1
+           Slice(s, 4, -2) will return elements 4..max-2
+*/
 
 DynamicStrings_String DynamicStrings_Slice (DynamicStrings_String s, int low, int high)
 {
@@ -1091,6 +1809,13 @@ DynamicStrings_String DynamicStrings_Slice (DynamicStrings_String s, int low, in
   return d;
 }
 
+
+/*
+   Index - returns the indice of the first occurance of, ch, in
+           String, s. -1 is returned if, ch, does not exist.
+           The search starts at position, o.
+*/
+
 int DynamicStrings_Index (DynamicStrings_String s, char ch, unsigned int o)
 {
   unsigned int i;
@@ -1119,6 +1844,13 @@ int DynamicStrings_Index (DynamicStrings_String s, char ch, unsigned int o)
     }
   return -1;
 }
+
+
+/*
+   RIndex - returns the indice of the last occurance of, ch,
+            in String, s. The search starts at position, o.
+            -1 is returned if, ch, is not found.
+*/
 
 int DynamicStrings_RIndex (DynamicStrings_String s, char ch, unsigned int o)
 {
@@ -1153,6 +1885,15 @@ int DynamicStrings_RIndex (DynamicStrings_String s, char ch, unsigned int o)
   return j;
 }
 
+
+/*
+   RemoveComment - assuming that, comment, is a comment delimiter
+                   which indicates anything to its right is a comment
+                   then strip off the comment and also any white space
+                   on the remaining right hand side.
+                   It leaves any white space on the left hand side alone.
+*/
+
 DynamicStrings_String DynamicStrings_RemoveComment (DynamicStrings_String s, char comment)
 {
   int i;
@@ -1167,6 +1908,12 @@ DynamicStrings_String DynamicStrings_RemoveComment (DynamicStrings_String s, cha
   return s;
 }
 
+
+/*
+   RemoveWhitePrefix - removes any leading white space from String, s.
+                       A new string is returned.
+*/
+
 DynamicStrings_String DynamicStrings_RemoveWhitePrefix (DynamicStrings_String s)
 {
   unsigned int i;
@@ -1180,6 +1927,12 @@ DynamicStrings_String DynamicStrings_RemoveWhitePrefix (DynamicStrings_String s)
   return s;
 }
 
+
+/*
+   RemoveWhitePostfix - removes any leading white space from String, s.
+                        A new string is returned.
+*/
+
 DynamicStrings_String DynamicStrings_RemoveWhitePostfix (DynamicStrings_String s)
 {
   int i;
@@ -1192,6 +1945,13 @@ DynamicStrings_String DynamicStrings_RemoveWhitePostfix (DynamicStrings_String s
     s = AssignDebug (s, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/DynamicStrings.mod", 51, 1643, (char *) "RemoveWhitePostfix", 18);
   return s;
 }
+
+
+/*
+   ToUpper - returns string, s, after it has had its lower case characters
+             replaced by upper case characters.
+             The string, s, is not duplicated.
+*/
 
 DynamicStrings_String DynamicStrings_ToUpper (DynamicStrings_String s)
 {
@@ -1219,6 +1979,13 @@ DynamicStrings_String DynamicStrings_ToUpper (DynamicStrings_String s)
   return s;
 }
 
+
+/*
+   ToLower - returns string, s, after it has had its upper case characters
+             replaced by lower case characters.
+             The string, s, is not duplicated.
+*/
+
 DynamicStrings_String DynamicStrings_ToLower (DynamicStrings_String s)
 {
   char ch;
@@ -1245,6 +2012,11 @@ DynamicStrings_String DynamicStrings_ToLower (DynamicStrings_String s)
   return s;
 }
 
+
+/*
+   CopyOut - copies string, s, to a.
+*/
+
 void DynamicStrings_CopyOut (char *a, unsigned int _a_high, DynamicStrings_String s)
 {
   unsigned int i;
@@ -1260,6 +2032,11 @@ void DynamicStrings_CopyOut (char *a, unsigned int _a_high, DynamicStrings_Strin
   if (i <= (_a_high))
     a[i] = ASCII_nul;
 }
+
+
+/*
+   char - returns the character, ch, at position, i, in String, s.
+*/
 
 char DynamicStrings_char (DynamicStrings_String s, int i)
 {
@@ -1281,6 +2058,11 @@ char DynamicStrings_char (DynamicStrings_String s, int i)
   else
     return s->contents.buf.array[c];
 }
+
+
+/*
+   string - returns the C style char * of String, s.
+*/
 
 void * DynamicStrings_string (DynamicStrings_String s)
 {
@@ -1325,6 +2107,11 @@ void * DynamicStrings_string (DynamicStrings_String s)
     }
 }
 
+
+/*
+   InitStringDB - the debug version of InitString.
+*/
+
 DynamicStrings_String DynamicStrings_InitStringDB (char *a_, unsigned int _a_high, char *file_, unsigned int _file_high, unsigned int line)
 {
   char a[_a_high+1];
@@ -1337,6 +2124,11 @@ DynamicStrings_String DynamicStrings_InitStringDB (char *a_, unsigned int _a_hig
   return AssignDebug (DynamicStrings_InitString ((char *) a, _a_high), (char *) file, _file_high, line, (char *) "InitString", 10);
 }
 
+
+/*
+   InitStringCharStarDB - the debug version of InitStringCharStar.
+*/
+
 DynamicStrings_String DynamicStrings_InitStringCharStarDB (void * a, char *file_, unsigned int _file_high, unsigned int line)
 {
   char file[_file_high+1];
@@ -1346,6 +2138,11 @@ DynamicStrings_String DynamicStrings_InitStringCharStarDB (void * a, char *file_
 
   return AssignDebug (DynamicStrings_InitStringCharStar (a), (char *) file, _file_high, line, (char *) "InitStringCharStar", 18);
 }
+
+
+/*
+   InitStringCharDB - the debug version of InitStringChar.
+*/
 
 DynamicStrings_String DynamicStrings_InitStringCharDB (char ch, char *file_, unsigned int _file_high, unsigned int line)
 {
@@ -1357,6 +2154,11 @@ DynamicStrings_String DynamicStrings_InitStringCharDB (char ch, char *file_, uns
   return AssignDebug (DynamicStrings_InitStringChar (ch), (char *) file, _file_high, line, (char *) "InitStringChar", 14);
 }
 
+
+/*
+   MultDB - the debug version of MultDB.
+*/
+
 DynamicStrings_String DynamicStrings_MultDB (DynamicStrings_String s, unsigned int n, char *file_, unsigned int _file_high, unsigned int line)
 {
   char file[_file_high+1];
@@ -1367,6 +2169,11 @@ DynamicStrings_String DynamicStrings_MultDB (DynamicStrings_String s, unsigned i
   return AssignDebug (DynamicStrings_Mult (s, n), (char *) file, _file_high, line, (char *) "Mult", 4);
 }
 
+
+/*
+   DupDB - the debug version of Dup.
+*/
+
 DynamicStrings_String DynamicStrings_DupDB (DynamicStrings_String s, char *file_, unsigned int _file_high, unsigned int line)
 {
   char file[_file_high+1];
@@ -1376,6 +2183,11 @@ DynamicStrings_String DynamicStrings_DupDB (DynamicStrings_String s, char *file_
 
   return AssignDebug (DynamicStrings_Dup (s), (char *) file, _file_high, line, (char *) "Dup", 3);
 }
+
+
+/*
+   SliceDB - debug version of Slice.
+*/
 
 DynamicStrings_String DynamicStrings_SliceDB (DynamicStrings_String s, int low, int high, char *file_, unsigned int _file_high, unsigned int line)
 {
@@ -1389,6 +2201,11 @@ DynamicStrings_String DynamicStrings_SliceDB (DynamicStrings_String s, int low, 
   DSdbExit (s);
   return s;
 }
+
+
+/*
+   PushAllocation - pushes the current allocation/deallocation lists.
+*/
 
 void DynamicStrings_PushAllocation (void)
 {
@@ -1405,11 +2222,32 @@ void DynamicStrings_PushAllocation (void)
     }
 }
 
+
+/*
+   PopAllocation - test to see that all strings are deallocated since
+                   the last push.  Then it pops to the previous
+                   allocation/deallocation lists.
+
+                   If halt is true then the application terminates
+                   with an exit code of 1.
+*/
+
 void DynamicStrings_PopAllocation (unsigned int halt)
 {
   if ((DynamicStrings_PopAllocationExemption (halt, (DynamicStrings_String) NULL)) == NULL)
     {}  /* empty.  */
 }
+
+
+/*
+   PopAllocationExemption - test to see that all strings are deallocated, except
+                            string, e, since the last push.
+                            Then it pops to the previous allocation/deallocation
+                            lists.
+
+                            If halt is true then the application terminates
+                            with an exit code of 1.
+*/
 
 DynamicStrings_String DynamicStrings_PopAllocationExemption (unsigned int halt, DynamicStrings_String e)
 {

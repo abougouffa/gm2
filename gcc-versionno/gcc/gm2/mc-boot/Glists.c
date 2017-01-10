@@ -40,18 +40,87 @@ struct _T1_r {
                lists_list next;
              };
 
+
+/*
+   initList - creates a new list, l.
+*/
+
 lists_list lists_initList (void);
+
+/*
+   killList - deletes the complete list, l.
+*/
+
 void lists_killList (lists_list *l);
+
+/*
+   putItemIntoList - places an ADDRESS, c, into list, l.
+*/
+
 void lists_putItemIntoList (lists_list l, void * c);
+
+/*
+   getItemFromList - retrieves the nth WORD from list, l.
+*/
+
 void * lists_getItemFromList (lists_list l, unsigned int n);
+
+/*
+   getIndexOfList - returns the index for WORD, c, in list, l.
+                    If more than one WORD, c, exists the index
+                    for the first is returned.
+*/
+
 unsigned int lists_getIndexOfList (lists_list l, void * c);
+
+/*
+   noOfItemsInList - returns the number of items in list, l.
+*/
+
 unsigned int lists_noOfItemsInList (lists_list l);
+
+/*
+   includeItemIntoList - adds an ADDRESS, c, into a list providing
+                         the value does not already exist.
+*/
+
 void lists_includeItemIntoList (lists_list l, void * c);
+
+/*
+   removeItemFromList - removes a ADDRESS, c, from a list.
+                        It assumes that this value only appears once.
+*/
+
 void lists_removeItemFromList (lists_list l, void * c);
+
+/*
+   isItemInList - returns true if a ADDRESS, c, was found in list, l.
+*/
+
 unsigned int lists_isItemInList (lists_list l, void * c);
+
+/*
+   foreachItemInListDo - calls procedure, P, foreach item in list, l.
+*/
+
 void lists_foreachItemInListDo (lists_list l, symbolKey_performOperation p);
+
+/*
+   duplicateList - returns a duplicate list derived from, l.
+*/
+
 lists_list lists_duplicateList (lists_list l);
+
+/*
+   removeItem - remove an element at index, i, from the list data type.
+*/
+
 static void removeItem (lists_list p, lists_list l, unsigned int i);
+
+
+/*
+   removeItem - remove an element at index, i, from the list data type.
+*/
 
 static void removeItem (lists_list p, lists_list l, unsigned int i)
 {
@@ -68,6 +137,11 @@ static void removeItem (lists_list p, lists_list l, unsigned int i)
     }
 }
 
+
+/*
+   initList - creates a new list, l.
+*/
+
 lists_list lists_initList (void)
 {
   lists_list l;
@@ -78,6 +152,11 @@ lists_list lists_initList (void)
   return l;
 }
 
+
+/*
+   killList - deletes the complete list, l.
+*/
+
 void lists_killList (lists_list *l)
 {
   if ((*l) != NULL)
@@ -87,6 +166,11 @@ void lists_killList (lists_list *l)
       Storage_DEALLOCATE ((void **) &(*l), sizeof (_T1));
     }
 }
+
+
+/*
+   putItemIntoList - places an ADDRESS, c, into list, l.
+*/
 
 void lists_putItemIntoList (lists_list l, void * c)
 {
@@ -104,6 +188,11 @@ void lists_putItemIntoList (lists_list l, void * c)
     }
 }
 
+
+/*
+   getItemFromList - retrieves the nth WORD from list, l.
+*/
+
 void * lists_getItemFromList (lists_list l, unsigned int n)
 {
   while (l != NULL)
@@ -116,6 +205,13 @@ void * lists_getItemFromList (lists_list l, unsigned int n)
     }
   return 0;
 }
+
+
+/*
+   getIndexOfList - returns the index for WORD, c, in list, l.
+                    If more than one WORD, c, exists the index
+                    for the first is returned.
+*/
 
 unsigned int lists_getIndexOfList (lists_list l, void * c)
 {
@@ -135,6 +231,11 @@ unsigned int lists_getIndexOfList (lists_list l, void * c)
     }
 }
 
+
+/*
+   noOfItemsInList - returns the number of items in list, l.
+*/
+
 unsigned int lists_noOfItemsInList (lists_list l)
 {
   unsigned int t;
@@ -152,11 +253,23 @@ unsigned int lists_noOfItemsInList (lists_list l)
     }
 }
 
+
+/*
+   includeItemIntoList - adds an ADDRESS, c, into a list providing
+                         the value does not already exist.
+*/
+
 void lists_includeItemIntoList (lists_list l, void * c)
 {
   if (! (lists_isItemInList (l, c)))
     lists_putItemIntoList (l, c);
 }
+
+
+/*
+   removeItemFromList - removes a ADDRESS, c, from a list.
+                        It assumes that this value only appears once.
+*/
 
 void lists_removeItemFromList (lists_list l, void * c)
 {
@@ -185,6 +298,11 @@ void lists_removeItemFromList (lists_list l, void * c)
     }
 }
 
+
+/*
+   isItemInList - returns true if a ADDRESS, c, was found in list, l.
+*/
+
 unsigned int lists_isItemInList (lists_list l, void * c)
 {
   unsigned int i;
@@ -201,6 +319,11 @@ unsigned int lists_isItemInList (lists_list l, void * c)
   return FALSE;
 }
 
+
+/*
+   foreachItemInListDo - calls procedure, P, foreach item in list, l.
+*/
+
 void lists_foreachItemInListDo (lists_list l, symbolKey_performOperation p)
 {
   unsigned int i;
@@ -214,6 +337,11 @@ void lists_foreachItemInListDo (lists_list l, symbolKey_performOperation p)
       i += 1;
     }
 }
+
+
+/*
+   duplicateList - returns a duplicate list derived from, l.
+*/
 
 lists_list lists_duplicateList (lists_list l)
 {

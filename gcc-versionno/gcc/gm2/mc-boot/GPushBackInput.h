@@ -22,17 +22,83 @@ extern "C" {
 #      define EXTERN extern
 #   endif
 
+
+/*
+   Open - opens a file for reading.
+*/
+
 EXTERN FIO_File PushBackInput_Open (char *a_, unsigned int _a_high);
+
+/*
+   GetCh - gets a character from either the push back stack or
+           from file, f.
+*/
+
 EXTERN char PushBackInput_GetCh (FIO_File f);
+
+/*
+   PutCh - pushes a character onto the push back stack, it also
+           returns the character which has been pushed.
+*/
+
 EXTERN char PushBackInput_PutCh (FIO_File f, char ch);
+
+/*
+   PutString - pushes a string onto the push back stack.
+*/
+
 EXTERN void PushBackInput_PutString (FIO_File f, char *a_, unsigned int _a_high);
+
+/*
+   Error - emits an error message with the appropriate file, line combination.
+*/
+
 EXTERN void PushBackInput_Error (char *a_, unsigned int _a_high);
+
+/*
+   WarnError - emits an error message with the appropriate file, line combination.
+               It does not terminate but when the program finishes an exit status of
+               1 will be issued.
+*/
+
 EXTERN void PushBackInput_WarnError (char *a_, unsigned int _a_high);
+
+/*
+   WarnString - emits an error message with the appropriate file, line combination.
+                It does not terminate but when the program finishes an exit status of
+                1 will be issued.
+*/
+
 EXTERN void PushBackInput_WarnString (DynamicStrings_String s);
+
+/*
+   Close - closes the opened file.
+*/
+
 EXTERN void PushBackInput_Close (FIO_File f);
+
+/*
+   GetExitStatus - returns the exit status which will be 1 if any warnings were issued.
+*/
+
 EXTERN unsigned int PushBackInput_GetExitStatus (void);
+
+/*
+   SetDebug - sets the debug flag on or off.
+*/
+
 EXTERN void PushBackInput_SetDebug (unsigned int d);
+
+/*
+   GetColumnPosition - returns the column position of the current character.
+*/
+
 EXTERN unsigned int PushBackInput_GetColumnPosition (void);
+
+/*
+   GetCurrentLine - returns the current line number.
+*/
+
 EXTERN unsigned int PushBackInput_GetCurrentLine (void);
 #ifdef __cplusplus
 }

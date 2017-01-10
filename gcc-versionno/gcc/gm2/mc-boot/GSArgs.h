@@ -21,7 +21,21 @@ extern "C" {
 #      define EXTERN extern
 #   endif
 
+
+/*
+   GetArg - returns the nth argument from the command line.
+            The success of the operation is returned.
+            If TRUE is returned then the string, s, contains a
+            new string, otherwise s is set to NIL.
+*/
+
 EXTERN unsigned int SArgs_GetArg (DynamicStrings_String *s, unsigned int i);
+
+/*
+   Narg - returns the number of arguments available from
+          command line.
+*/
+
 EXTERN unsigned int SArgs_Narg (void);
 #ifdef __cplusplus
 }

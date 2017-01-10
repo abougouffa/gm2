@@ -47,6 +47,7 @@ IMPORT mcp2 ;
 IMPORT mcp3 ;
 IMPORT mcp4 ;
 IMPORT mcp5 ;
+IMPORT mcComment ;
 
 
 FROM mcError IMPORT writeFormat0, flushErrors, flushWarnings ;
@@ -420,6 +421,7 @@ VAR
    descs: String ;
 BEGIN
    setToPassNo (no) ;
+   mcComment.newPass ;
    descs := InitString (desc) ;
    qprintf2 ('Pass %d: %s\n', no, descs) ;
    foreachDefModuleDo (unsetVisited) ;

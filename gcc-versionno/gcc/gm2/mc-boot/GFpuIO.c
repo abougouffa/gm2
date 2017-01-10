@@ -27,16 +27,76 @@
 
 #   define MaxLineLength 100
 void FpuIO_ReadReal (double *x);
+
+/*
+   WriteReal - converts a REAL number, x, which has a, TotalWidth, and
+               FractionWidth into, string, a.
+*/
+
 void FpuIO_WriteReal (double x, unsigned int TotalWidth, unsigned int FractionWidth);
+
+/*
+   WriteReal - converts a REAL number, x, which has a, TotalWidth, and
+               FractionWidth into, string, a.
+*/
+
 void FpuIO_StrToReal (char *a_, unsigned int _a_high, double *x);
+
+/*
+   RealToStr - converts a LONGREAL number, Real, which has, TotalWidth, and
+               FractionWidth into a string.
+*/
+
 void FpuIO_RealToStr (double x, unsigned int TotalWidth, unsigned int FractionWidth, char *a, unsigned int _a_high);
 void FpuIO_ReadLongReal (long double *x);
+
+/*
+   WriteLongReal - converts a LONGREAL number, x, which has a, TotalWidth, and
+                   FractionWidth into a string.
+*/
+
 void FpuIO_WriteLongReal (long double x, unsigned int TotalWidth, unsigned int FractionWidth);
+
+/*
+   WriteLongReal - converts a LONGREAL number, x, which has a, TotalWidth, and
+                   FractionWidth into a string.
+*/
+
 void FpuIO_StrToLongReal (char *a_, unsigned int _a_high, long double *x);
+
+/*
+   LongRealToStr - converts a LONGREAL number, Real, which has, TotalWidth, and
+                   FractionWidth into a string.
+*/
+
 void FpuIO_LongRealToStr (long double x, unsigned int TotalWidth, unsigned int FractionWidth, char *a, unsigned int _a_high);
+
+/*
+   LongRealToStr - converts a LONGREAL number, Real, which has, TotalWidth, and
+                   FractionWidth into a string.
+*/
+
 void FpuIO_ReadLongInt (long int *x);
+
+/*
+   LongRealToStr - converts a LONGREAL number, Real, which has, TotalWidth, and
+                   FractionWidth into a string.
+*/
+
 void FpuIO_WriteLongInt (long int x, unsigned int n);
+
+/*
+   LongRealToStr - converts a LONGREAL number, Real, which has, TotalWidth, and
+                   FractionWidth into a string.
+*/
+
 void FpuIO_StrToLongInt (char *a_, unsigned int _a_high, long int *x);
+
+/*
+   LongRealToStr - converts a LONGREAL number, Real, which has, TotalWidth, and
+                   FractionWidth into a string.
+*/
+
 void FpuIO_LongIntToStr (long int x, unsigned int n, char *a, unsigned int _a_high);
 
 void FpuIO_ReadReal (double *x)
@@ -50,6 +110,12 @@ void FpuIO_ReadReal (double *x)
   FpuIO_StrToReal ((char *) &a.array[0], MaxLineLength, x);
 }
 
+
+/*
+   WriteReal - converts a REAL number, x, which has a, TotalWidth, and
+               FractionWidth into, string, a.
+*/
+
 void FpuIO_WriteReal (double x, unsigned int TotalWidth, unsigned int FractionWidth)
 {
   typedef struct _T2_a _T2;
@@ -60,6 +126,12 @@ void FpuIO_WriteReal (double x, unsigned int TotalWidth, unsigned int FractionWi
   FpuIO_RealToStr (x, TotalWidth, FractionWidth, (char *) &a.array[0], MaxLineLength);
   StrIO_WriteString ((char *) &a.array[0], MaxLineLength);
 }
+
+
+/*
+   WriteReal - converts a REAL number, x, which has a, TotalWidth, and
+               FractionWidth into, string, a.
+*/
 
 void FpuIO_StrToReal (char *a_, unsigned int _a_high, double *x)
 {
@@ -72,6 +144,12 @@ void FpuIO_StrToReal (char *a_, unsigned int _a_high, double *x)
   FpuIO_StrToLongReal ((char *) a, _a_high, &lr);
   (*x) = (double ) (lr);
 }
+
+
+/*
+   RealToStr - converts a LONGREAL number, Real, which has, TotalWidth, and
+               FractionWidth into a string.
+*/
 
 void FpuIO_RealToStr (double x, unsigned int TotalWidth, unsigned int FractionWidth, char *a, unsigned int _a_high)
 {
@@ -92,6 +170,12 @@ void FpuIO_ReadLongReal (long double *x)
   FpuIO_StrToLongReal ((char *) &a.array[0], MaxLineLength, x);
 }
 
+
+/*
+   WriteLongReal - converts a LONGREAL number, x, which has a, TotalWidth, and
+                   FractionWidth into a string.
+*/
+
 void FpuIO_WriteLongReal (long double x, unsigned int TotalWidth, unsigned int FractionWidth)
 {
   typedef struct _T4_a _T4;
@@ -102,6 +186,12 @@ void FpuIO_WriteLongReal (long double x, unsigned int TotalWidth, unsigned int F
   FpuIO_LongRealToStr (x, TotalWidth, FractionWidth, (char *) &a.array[0], MaxLineLength);
   StrIO_WriteString ((char *) &a.array[0], MaxLineLength);
 }
+
+
+/*
+   WriteLongReal - converts a LONGREAL number, x, which has a, TotalWidth, and
+                   FractionWidth into a string.
+*/
 
 void FpuIO_StrToLongReal (char *a_, unsigned int _a_high, long double *x)
 {
@@ -117,6 +207,12 @@ void FpuIO_StrToLongReal (char *a_, unsigned int _a_high, long double *x)
   s = DynamicStrings_KillString (s);
 }
 
+
+/*
+   LongRealToStr - converts a LONGREAL number, Real, which has, TotalWidth, and
+                   FractionWidth into a string.
+*/
+
 void FpuIO_LongRealToStr (long double x, unsigned int TotalWidth, unsigned int FractionWidth, char *a, unsigned int _a_high)
 {
   DynamicStrings_String s;
@@ -125,6 +221,12 @@ void FpuIO_LongRealToStr (long double x, unsigned int TotalWidth, unsigned int F
   DynamicStrings_CopyOut ((char *) a, _a_high, s);
   s = DynamicStrings_KillString (s);
 }
+
+
+/*
+   LongRealToStr - converts a LONGREAL number, Real, which has, TotalWidth, and
+                   FractionWidth into a string.
+*/
 
 void FpuIO_ReadLongInt (long int *x)
 {
@@ -137,6 +239,12 @@ void FpuIO_ReadLongInt (long int *x)
   FpuIO_StrToLongInt ((char *) &a.array[0], MaxLineLength, x);
 }
 
+
+/*
+   LongRealToStr - converts a LONGREAL number, Real, which has, TotalWidth, and
+                   FractionWidth into a string.
+*/
+
 void FpuIO_WriteLongInt (long int x, unsigned int n)
 {
   typedef struct _T6_a _T6;
@@ -147,6 +255,12 @@ void FpuIO_WriteLongInt (long int x, unsigned int n)
   FpuIO_LongIntToStr (x, n, (char *) &a.array[0], MaxLineLength);
   StrIO_WriteString ((char *) &a.array[0], MaxLineLength);
 }
+
+
+/*
+   LongRealToStr - converts a LONGREAL number, Real, which has, TotalWidth, and
+                   FractionWidth into a string.
+*/
 
 void FpuIO_StrToLongInt (char *a_, unsigned int _a_high, long int *x)
 {
@@ -161,6 +275,12 @@ void FpuIO_StrToLongInt (char *a_, unsigned int _a_high, long int *x)
   (*x) = StringConvert_StringToLongInteger (s, 10, &found);
   s = DynamicStrings_KillString (s);
 }
+
+
+/*
+   LongRealToStr - converts a LONGREAL number, Real, which has, TotalWidth, and
+                   FractionWidth into a string.
+*/
 
 void FpuIO_LongIntToStr (long int x, unsigned int n, char *a, unsigned int _a_high)
 {

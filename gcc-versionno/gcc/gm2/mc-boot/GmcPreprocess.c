@@ -19,22 +19,68 @@
 #   include "GmcOptions.h"
 
 static alists_alist listOfFiles;
+
+/*
+   preprocessModule - preprocess a file, filename, returning the new filename
+                      of the preprocessed file.
+                      Preprocessing will only occur if requested by the user.
+                      If no preprocessing was requested then filename is returned.
+                      If preprocessing occurs then a temporary file is created
+                      and its name is returned.
+                      All temporary files will be deleted when the compiler exits.
+*/
+
 DynamicStrings_String mcPreprocess_preprocessModule (DynamicStrings_String filename);
+
+/*
+   makeTempFile -
+*/
+
 static DynamicStrings_String makeTempFile (DynamicStrings_String ext);
+
+/*
+   onExitDelete -
+*/
+
 static DynamicStrings_String onExitDelete (DynamicStrings_String filename);
+
+/*
+   removeFile - removes a single file, s.
+*/
+
 static void removeFile (void * a);
+
+/*
+   removeFiles -
+*/
+
 static void removeFiles (void);
+
+
+/*
+   makeTempFile -
+*/
 
 static DynamicStrings_String makeTempFile (DynamicStrings_String ext)
 {
   return DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "/tmp/mctemp.", 12), ext);
 }
 
+
+/*
+   onExitDelete -
+*/
+
 static DynamicStrings_String onExitDelete (DynamicStrings_String filename)
 {
   alists_includeItemIntoList (listOfFiles, (void *) DynamicStrings_Dup (filename));
   return filename;
 }
+
+
+/*
+   removeFile - removes a single file, s.
+*/
 
 static void removeFile (void * a)
 {
@@ -45,10 +91,26 @@ static void removeFile (void * a)
     {}  /* empty.  */
 }
 
+
+/*
+   removeFiles -
+*/
+
 static void removeFiles (void)
 {
   alists_foreachItemInListDo (listOfFiles, (alists_performOperation) {(alists_performOperation_t) removeFile});
 }
+
+
+/*
+   preprocessModule - preprocess a file, filename, returning the new filename
+                      of the preprocessed file.
+                      Preprocessing will only occur if requested by the user.
+                      If no preprocessing was requested then filename is returned.
+                      If preprocessing occurs then a temporary file is created
+                      and its name is returned.
+                      All temporary files will be deleted when the compiler exits.
+*/
 
 DynamicStrings_String mcPreprocess_preprocessModule (DynamicStrings_String filename)
 {

@@ -52,39 +52,218 @@ struct _T1_r {
 
 static mcError_error head;
 static unsigned int inInternal;
+
+/*
+   internalError - displays an internal error message together with the compiler source
+                   file and line number.
+                   This function is not buffered and is used when the compiler is about
+                   to give up.
+*/
+
 void mcError_internalError (char *a_, unsigned int _a_high, char *file_, unsigned int _file_high, unsigned int line);
+
+/*
+   writeFormat0 - displays the source module and line together
+                  with the encapsulated format string.
+                  Used for simple error messages tied to the current token.
+*/
+
 void mcError_writeFormat0 (char *a_, unsigned int _a_high);
+
+/*
+   writeFormat1 - displays the source module and line together
+                  with the encapsulated format string.
+                  Used for simple error messages tied to the current token.
+*/
+
 void mcError_writeFormat1 (char *a_, unsigned int _a_high, unsigned char *w_, unsigned int _w_high);
+
+/*
+   writeFormat2 - displays the module and line together with the encapsulated
+                  format strings.
+                  Used for simple error messages tied to the current token.
+*/
+
 void mcError_writeFormat2 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high);
+
+/*
+   writeFormat3 - displays the module and line together with the encapsulated
+                  format strings.
+                  Used for simple error messages tied to the current token.
+*/
+
 void mcError_writeFormat3 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high);
+
+/*
+   newError - creates and returns a new error handle.
+*/
+
 mcError_error mcError_newError (unsigned int atTokenNo);
+
+/*
+   newWarning - creates and returns a new error handle suitable for a warning.
+                A warning will not stop compilation.
+*/
+
 mcError_error mcError_newWarning (unsigned int atTokenNo);
+
+/*
+   chainError - creates and returns a new error handle, this new error
+                is associated with, e, and is chained onto the end of, e.
+                If, e, is NIL then the result to NewError is returned.
+*/
+
 mcError_error mcError_chainError (unsigned int atTokenNo, mcError_error e);
 void mcError_errorFormat0 (mcError_error e, char *a_, unsigned int _a_high);
 void mcError_errorFormat1 (mcError_error e, char *a_, unsigned int _a_high, unsigned char *w_, unsigned int _w_high);
 void mcError_errorFormat2 (mcError_error e, char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high);
 void mcError_errorFormat3 (mcError_error e, char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high);
 void mcError_errorString (mcError_error e, DynamicStrings_String str);
+
+/*
+   errorStringAt - given an error string, s, it places this
+                   string at token position, tok.
+                   The string is consumed.
+*/
+
 void mcError_errorStringAt (DynamicStrings_String s, unsigned int tok);
+
+/*
+   errorStringAt2 - given an error string, s, it places this
+                    string at token positions, tok1 and tok2, respectively.
+                    The string is consumed.
+*/
+
 void mcError_errorStringAt2 (DynamicStrings_String s, unsigned int tok1, unsigned int tok2);
+
+/*
+   errorStringsAt2 - given error strings, s1, and, s2, it places these
+                     strings at token positions, tok1 and tok2, respectively.
+                     Both strings are consumed.
+*/
+
 void mcError_errorStringsAt2 (DynamicStrings_String s1, DynamicStrings_String s2, unsigned int tok1, unsigned int tok2);
+
+/*
+   warnStringAt - given an error string, s, it places this
+                  string at token position, tok.
+                  The string is consumed.
+*/
+
 void mcError_warnStringAt (DynamicStrings_String s, unsigned int tok);
+
+/*
+   warnStringAt2 - given an warning string, s, it places this
+                   string at token positions, tok1 and tok2, respectively.
+                   The string is consumed.
+*/
+
 void mcError_warnStringAt2 (DynamicStrings_String s, unsigned int tok1, unsigned int tok2);
+
+/*
+   warnStringsAt2 - given warning strings, s1, and, s2, it places these
+                    strings at token positions, tok1 and tok2, respectively.
+                    Both strings are consumed.
+*/
+
 void mcError_warnStringsAt2 (DynamicStrings_String s1, DynamicStrings_String s2, unsigned int tok1, unsigned int tok2);
 void mcError_warnFormat0 (char *a_, unsigned int _a_high);
+
+/*
+   warnFormat1 - displays the source module and line together
+                 with the encapsulated format string.
+                 Used for simple warning messages tied to the current token.
+*/
+
 void mcError_warnFormat1 (char *a_, unsigned int _a_high, unsigned char *w_, unsigned int _w_high);
+
+/*
+   flushErrors - switches the output channel to the error channel
+                 and then writes out all errors.
+*/
+
 void mcError_flushErrors (void);
+
+/*
+   flushWarnings - switches the output channel to the error channel
+                   and then writes out all warnings.
+                   If an error is present the compilation is terminated,
+                   if warnings only were emitted then compilation will
+                   continue.
+*/
+
 void mcError_flushWarnings (void);
+
+/*
+   errorAbort0 - aborts compiling, it flushes all warnings and errors before aborting.
+*/
+
 void mcError_errorAbort0 (char *a_, unsigned int _a_high);
+
+/*
+   cast - casts a := b
+*/
+
 static void cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, unsigned int _b_high);
 static unsigned int translateNameToCharStar (char *a, unsigned int _a_high, unsigned int n);
+
+/*
+   outString - writes the contents of String to stdout.
+               The string, s, is destroyed.
+*/
+
 static void outString (DynamicStrings_String file, unsigned int line, unsigned int col, DynamicStrings_String s);
 static DynamicStrings_String doFormat1 (char *a_, unsigned int _a_high, unsigned char *w_, unsigned int _w_high);
+
+/*
+   doFormat2 -
+*/
+
 static DynamicStrings_String doFormat2 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high);
+
+/*
+   writeFormat2 - displays the module and line together with the encapsulated
+                  format strings.
+                  Used for simple error messages tied to the current token.
+*/
+
 static DynamicStrings_String doFormat3 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high);
+
+/*
+   init - initializes the error list.
+*/
+
 static void init (void);
+
+/*
+   checkIncludes - generates a sequence of error messages which determine the relevant
+                   included file and line number.
+                   For example:
+
+                   gcc a.c
+                   In file included from b.h:1,
+                                    from a.c:1:
+                   c.h:1: parse error before `and'
+
+                   where a.c is: #include "b.h"
+                         b.h is: #include "c.h"
+                         c.h is: and this and that
+
+                   we attempt to follow the error messages that gcc issues.
+*/
+
 static void checkIncludes (unsigned int token, unsigned int depth);
+
+/*
+   flushAll - flushes all errors in list, e.
+*/
+
 static unsigned int flushAll (mcError_error e, unsigned int FatalStatus);
+
+
+/*
+   cast - casts a := b
+*/
 
 static void cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, unsigned int _b_high)
 {
@@ -125,6 +304,12 @@ static unsigned int translateNameToCharStar (char *a, unsigned int _a_high, unsi
     }
   return FALSE;
 }
+
+
+/*
+   outString - writes the contents of String to stdout.
+               The string, s, is destroyed.
+*/
 
 static void outString (DynamicStrings_String file, unsigned int line, unsigned int col, DynamicStrings_String s)
 {
@@ -200,6 +385,11 @@ static DynamicStrings_String doFormat1 (char *a_, unsigned int _a_high, unsigned
   return s;
 }
 
+
+/*
+   doFormat2 -
+*/
+
 static DynamicStrings_String doFormat2 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high)
 {
   nameKey_Name n;
@@ -254,6 +444,13 @@ static DynamicStrings_String doFormat2 (char *a_, unsigned int _a_high, unsigned
     }
   return s;
 }
+
+
+/*
+   writeFormat2 - displays the module and line together with the encapsulated
+                  format strings.
+                  Used for simple error messages tied to the current token.
+*/
 
 static DynamicStrings_String doFormat3 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high)
 {
@@ -335,11 +532,34 @@ static DynamicStrings_String doFormat3 (char *a_, unsigned int _a_high, unsigned
   return s;
 }
 
+
+/*
+   init - initializes the error list.
+*/
+
 static void init (void)
 {
   head = NULL;
   inInternal = FALSE;
 }
+
+
+/*
+   checkIncludes - generates a sequence of error messages which determine the relevant
+                   included file and line number.
+                   For example:
+
+                   gcc a.c
+                   In file included from b.h:1,
+                                    from a.c:1:
+                   c.h:1: parse error before `and'
+
+                   where a.c is: #include "b.h"
+                         b.h is: #include "c.h"
+                         c.h is: and this and that
+
+                   we attempt to follow the error messages that gcc issues.
+*/
 
 static void checkIncludes (unsigned int token, unsigned int depth)
 {
@@ -361,6 +581,11 @@ static void checkIncludes (unsigned int token, unsigned int depth)
       checkIncludes (token, depth+1);
     }
 }
+
+
+/*
+   flushAll - flushes all errors in list, e.
+*/
 
 static unsigned int flushAll (mcError_error e, unsigned int FatalStatus)
 {
@@ -394,6 +619,14 @@ static unsigned int flushAll (mcError_error e, unsigned int FatalStatus)
   return written;
 }
 
+
+/*
+   internalError - displays an internal error message together with the compiler source
+                   file and line number.
+                   This function is not buffered and is used when the compiler is about
+                   to give up.
+*/
+
 void mcError_internalError (char *a_, unsigned int _a_high, char *file_, unsigned int _file_high, unsigned int line)
 {
   char a[_a_high+1];
@@ -413,6 +646,13 @@ void mcError_internalError (char *a_, unsigned int _a_high, char *file_, unsigne
   M2RTS_HALT (0);
 }
 
+
+/*
+   writeFormat0 - displays the source module and line together
+                  with the encapsulated format string.
+                  Used for simple error messages tied to the current token.
+*/
+
 void mcError_writeFormat0 (char *a_, unsigned int _a_high)
 {
   mcError_error e;
@@ -424,6 +664,13 @@ void mcError_writeFormat0 (char *a_, unsigned int _a_high)
   e = mcError_newError (mcLexBuf_getTokenNo ());
   e->s = FormatStrings_Sprintf0 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)));
 }
+
+
+/*
+   writeFormat1 - displays the source module and line together
+                  with the encapsulated format string.
+                  Used for simple error messages tied to the current token.
+*/
 
 void mcError_writeFormat1 (char *a_, unsigned int _a_high, unsigned char *w_, unsigned int _w_high)
 {
@@ -438,6 +685,13 @@ void mcError_writeFormat1 (char *a_, unsigned int _a_high, unsigned char *w_, un
   e = mcError_newError (mcLexBuf_getTokenNo ());
   e->s = doFormat1 ((char *) a, _a_high, (unsigned char *) w, _w_high);
 }
+
+
+/*
+   writeFormat2 - displays the module and line together with the encapsulated
+                  format strings.
+                  Used for simple error messages tied to the current token.
+*/
 
 void mcError_writeFormat2 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high)
 {
@@ -454,6 +708,13 @@ void mcError_writeFormat2 (char *a_, unsigned int _a_high, unsigned char *w1_, u
   e = mcError_newError (mcLexBuf_getTokenNo ());
   e->s = doFormat2 ((char *) a, _a_high, (unsigned char *) w1, _w1_high, (unsigned char *) w2, _w2_high);
 }
+
+
+/*
+   writeFormat3 - displays the module and line together with the encapsulated
+                  format strings.
+                  Used for simple error messages tied to the current token.
+*/
 
 void mcError_writeFormat3 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high)
 {
@@ -472,6 +733,11 @@ void mcError_writeFormat3 (char *a_, unsigned int _a_high, unsigned char *w1_, u
   e = mcError_newError (mcLexBuf_getTokenNo ());
   e->s = doFormat3 ((char *) a, _a_high, (unsigned char *) w1, _w1_high, (unsigned char *) w2, _w2_high, (unsigned char *) w3, _w3_high);
 }
+
+
+/*
+   newError - creates and returns a new error handle.
+*/
 
 mcError_error mcError_newError (unsigned int atTokenNo)
 {
@@ -501,6 +767,12 @@ mcError_error mcError_newError (unsigned int atTokenNo)
   return e;
 }
 
+
+/*
+   newWarning - creates and returns a new error handle suitable for a warning.
+                A warning will not stop compilation.
+*/
+
 mcError_error mcError_newWarning (unsigned int atTokenNo)
 {
   mcError_error e;
@@ -509,6 +781,13 @@ mcError_error mcError_newWarning (unsigned int atTokenNo)
   e->fatal = FALSE;
   return e;
 }
+
+
+/*
+   chainError - creates and returns a new error handle, this new error
+                is associated with, e, and is chained onto the end of, e.
+                If, e, is NIL then the result to NewError is returned.
+*/
 
 mcError_error mcError_chainError (unsigned int atTokenNo, mcError_error e)
 {
@@ -605,6 +884,13 @@ void mcError_errorString (mcError_error e, DynamicStrings_String str)
   e->s = str;
 }
 
+
+/*
+   errorStringAt - given an error string, s, it places this
+                   string at token position, tok.
+                   The string is consumed.
+*/
+
 void mcError_errorStringAt (DynamicStrings_String s, unsigned int tok)
 {
   mcError_error e;
@@ -613,10 +899,24 @@ void mcError_errorStringAt (DynamicStrings_String s, unsigned int tok)
   mcError_errorString (e, s);
 }
 
+
+/*
+   errorStringAt2 - given an error string, s, it places this
+                    string at token positions, tok1 and tok2, respectively.
+                    The string is consumed.
+*/
+
 void mcError_errorStringAt2 (DynamicStrings_String s, unsigned int tok1, unsigned int tok2)
 {
   mcError_errorStringsAt2 (s, s, tok1, tok2);
 }
+
+
+/*
+   errorStringsAt2 - given error strings, s1, and, s2, it places these
+                     strings at token positions, tok1 and tok2, respectively.
+                     Both strings are consumed.
+*/
 
 void mcError_errorStringsAt2 (DynamicStrings_String s1, DynamicStrings_String s2, unsigned int tok1, unsigned int tok2)
 {
@@ -629,6 +929,13 @@ void mcError_errorStringsAt2 (DynamicStrings_String s1, DynamicStrings_String s2
   mcError_errorString (mcError_chainError (tok2, e), s2);
 }
 
+
+/*
+   warnStringAt - given an error string, s, it places this
+                  string at token position, tok.
+                  The string is consumed.
+*/
+
 void mcError_warnStringAt (DynamicStrings_String s, unsigned int tok)
 {
   mcError_error e;
@@ -637,10 +944,24 @@ void mcError_warnStringAt (DynamicStrings_String s, unsigned int tok)
   mcError_errorString (e, s);
 }
 
+
+/*
+   warnStringAt2 - given an warning string, s, it places this
+                   string at token positions, tok1 and tok2, respectively.
+                   The string is consumed.
+*/
+
 void mcError_warnStringAt2 (DynamicStrings_String s, unsigned int tok1, unsigned int tok2)
 {
   mcError_warnStringsAt2 (s, s, tok1, tok2);
 }
+
+
+/*
+   warnStringsAt2 - given warning strings, s1, and, s2, it places these
+                    strings at token positions, tok1 and tok2, respectively.
+                    Both strings are consumed.
+*/
 
 void mcError_warnStringsAt2 (DynamicStrings_String s1, DynamicStrings_String s2, unsigned int tok1, unsigned int tok2)
 {
@@ -665,6 +986,13 @@ void mcError_warnFormat0 (char *a_, unsigned int _a_high)
   e->s = FormatStrings_Sprintf0 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)));
 }
 
+
+/*
+   warnFormat1 - displays the source module and line together
+                 with the encapsulated format string.
+                 Used for simple warning messages tied to the current token.
+*/
+
 void mcError_warnFormat1 (char *a_, unsigned int _a_high, unsigned char *w_, unsigned int _w_high)
 {
   mcError_error e;
@@ -678,6 +1006,12 @@ void mcError_warnFormat1 (char *a_, unsigned int _a_high, unsigned char *w_, uns
   e = mcError_newWarning (mcLexBuf_getTokenNo ());
   e->s = doFormat1 ((char *) a, _a_high, (unsigned char *) w, _w_high);
 }
+
+
+/*
+   flushErrors - switches the output channel to the error channel
+                 and then writes out all errors.
+*/
 
 void mcError_flushErrors (void)
 {
@@ -693,11 +1027,25 @@ void mcError_flushErrors (void)
     }
 }
 
+
+/*
+   flushWarnings - switches the output channel to the error channel
+                   and then writes out all warnings.
+                   If an error is present the compilation is terminated,
+                   if warnings only were emitted then compilation will
+                   continue.
+*/
+
 void mcError_flushWarnings (void)
 {
   if (flushAll (head, FALSE))
     {}  /* empty.  */
 }
+
+
+/*
+   errorAbort0 - aborts compiling, it flushes all warnings and errors before aborting.
+*/
 
 void mcError_errorAbort0 (char *a_, unsigned int _a_high)
 {

@@ -62,27 +62,149 @@ struct _T2_a { Vector array[(7)-(COROUTINES_UnassignedPriority)+1]; };
 static unsigned int VecNo;
 static Vector Exists;
 static _T2 Pending;
+
+/*
+   InitInputVector - returns an interrupt vector which is associated
+                     with the file descriptor, fd.
+*/
+
 unsigned int RTint_InitInputVector (int fd, unsigned int pri);
+
+/*
+   InitOutputVector - returns an interrupt vector which is associated
+                      with the file descriptor, fd.
+*/
+
 unsigned int RTint_InitOutputVector (int fd, unsigned int pri);
+
+/*
+   InitTimeVector - returns an interrupt vector associated with
+                    the relative time.
+*/
+
 unsigned int RTint_InitTimeVector (unsigned int micro, unsigned int secs, unsigned int pri);
+
+/*
+   ReArmTimeVector - reprimes the vector, vec, to deliver an interrupt
+                     at the new relative time.
+*/
+
 void RTint_ReArmTimeVector (unsigned int vec, unsigned int micro, unsigned int secs);
+
+/*
+   GetTimeVector - assigns, micro, and, secs, with the remaining
+                   time before this interrupt will expire.
+                   This value is only updated when a Listen
+                   occurs.
+*/
+
 void RTint_GetTimeVector (unsigned int vec, unsigned int *micro, unsigned int *secs);
+
+/*
+   AttachVector - adds the pointer, p, to be associated with the interrupt
+                  vector. It returns the previous value attached to this
+                  vector.
+*/
+
 void * RTint_AttachVector (unsigned int vec, void * p);
+
+/*
+   IncludeVector - includes, vec, into the despatcher list of
+                   possible interrupt causes.
+*/
+
 void RTint_IncludeVector (unsigned int vec);
+
+/*
+   ExcludeVector - excludes, vec, from the despatcher list of
+                   possible interrupt causes.
+*/
+
 void RTint_ExcludeVector (unsigned int vec);
+
+/*
+   Listen - will either block indefinitely (until an interrupt)
+            or alteratively will test to see whether any interrupts
+            are pending.
+            If a pending interrupt was found then, call, is called
+            and then this procedure returns.
+            It only listens for interrupts > pri.
+*/
+
 void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsigned int pri);
+
+/*
+   Max - returns the maximum: i or j.
+*/
+
 static int Max (int i, int j);
 static int Min (int i, int j);
+
+/*
+   FindVector - searches the exists list for a vector of type, t,
+                which is associated with file descriptor, fd.
+*/
+
 static Vector FindVector (int fd, VectorType t);
+
+/*
+   FindVectorNo - searches the Exists list for vector, vec.
+*/
+
 static Vector FindVectorNo (unsigned int vec);
+
+/*
+   FindPendingVector - searches the pending list for vector, vec.
+*/
+
 static Vector FindPendingVector (unsigned int vec);
+
+/*
+   AddFd - adds the file descriptor, fd, to set, s, updating, max.
+*/
+
 static void AddFd (Selective_SetOfFd *s, int *max, int fd);
+
+/*
+   DumpPendingQueue - displays the pending queue.
+*/
+
 static void DumpPendingQueue (void);
+
+/*
+   DumpPendingQueue - displays the pending queue.
+*/
+
 static void stop (void);
+
+/*
+   AddTime - t1 := t1 + t2
+*/
+
 static void AddTime (Selective_Timeval t1, Selective_Timeval t2);
+
+/*
+   IsGreaterEqual - returns TRUE if, a>=b
+*/
+
 static unsigned int IsGreaterEqual (Selective_Timeval a, Selective_Timeval b);
+
+/*
+   SubTime - assigns, s and m, to a - b.
+*/
+
 static void SubTime (unsigned int *s, unsigned int *m, Selective_Timeval a, Selective_Timeval b);
+
+/*
+   Init - 
+*/
+
 static void Init (void);
+
+
+/*
+   Max - returns the maximum: i or j.
+*/
 
 static int Max (int i, int j)
 {
@@ -100,6 +222,12 @@ static int Min (int i, int j)
     return j;
 }
 
+
+/*
+   FindVector - searches the exists list for a vector of type, t,
+                which is associated with file descriptor, fd.
+*/
+
 static Vector FindVector (int fd, VectorType t)
 {
   Vector v;
@@ -114,6 +242,11 @@ static Vector FindVector (int fd, VectorType t)
   return NULL;
 }
 
+
+/*
+   FindVectorNo - searches the Exists list for vector, vec.
+*/
+
 static Vector FindVectorNo (unsigned int vec)
 {
   Vector v;
@@ -123,6 +256,11 @@ static Vector FindVectorNo (unsigned int vec)
     v = v->exists;
   return v;
 }
+
+
+/*
+   FindPendingVector - searches the pending list for vector, vec.
+*/
 
 static Vector FindPendingVector (unsigned int vec)
 {
@@ -140,6 +278,11 @@ static Vector FindPendingVector (unsigned int vec)
   return NULL;
 }
 
+
+/*
+   AddFd - adds the file descriptor, fd, to set, s, updating, max.
+*/
+
 static void AddFd (Selective_SetOfFd *s, int *max, int fd)
 {
   (*max) = Max (fd, (*max));
@@ -150,6 +293,11 @@ static void AddFd (Selective_SetOfFd *s, int *max, int fd)
     }
   Selective_FdSet (fd, (*s));
 }
+
+
+/*
+   DumpPendingQueue - displays the pending queue.
+*/
 
 static void DumpPendingQueue (void)
 {
@@ -179,9 +327,19 @@ static void DumpPendingQueue (void)
     }
 }
 
+
+/*
+   DumpPendingQueue - displays the pending queue.
+*/
+
 static void stop (void)
 {
 }
+
+
+/*
+   AddTime - t1 := t1 + t2
+*/
 
 static void AddTime (Selective_Timeval t1, Selective_Timeval t2)
 {
@@ -204,6 +362,11 @@ static void AddTime (Selective_Timeval t1, Selective_Timeval t2)
   Selective_SetTime (t1, a, b);
 }
 
+
+/*
+   IsGreaterEqual - returns TRUE if, a>=b
+*/
+
 static unsigned int IsGreaterEqual (Selective_Timeval a, Selective_Timeval b)
 {
   unsigned int as;
@@ -217,6 +380,11 @@ static unsigned int IsGreaterEqual (Selective_Timeval a, Selective_Timeval b)
   Assertion_Assert (bm < Microseconds);
   return (as > bs) || ((as == bs) && (am >= bm));
 }
+
+
+/*
+   SubTime - assigns, s and m, to a - b.
+*/
 
 static void SubTime (unsigned int *s, unsigned int *m, Selective_Timeval a, Selective_Timeval b)
 {
@@ -252,6 +420,11 @@ static void SubTime (unsigned int *s, unsigned int *m, Selective_Timeval a, Sele
     }
 }
 
+
+/*
+   Init - 
+*/
+
 static void Init (void)
 {
   COROUTINES_PROTECTION p;
@@ -260,6 +433,12 @@ static void Init (void)
   for (p=COROUTINES_UnassignedPriority; p<=7; p++)
     Pending.array[p-(COROUTINES_UnassignedPriority)] = NULL;
 }
+
+
+/*
+   InitInputVector - returns an interrupt vector which is associated
+                     with the file descriptor, fd.
+*/
 
 unsigned int RTint_InitInputVector (int fd, unsigned int pri)
 {
@@ -286,6 +465,12 @@ unsigned int RTint_InitInputVector (int fd, unsigned int pri)
     return v->no;
 }
 
+
+/*
+   InitOutputVector - returns an interrupt vector which is associated
+                      with the file descriptor, fd.
+*/
+
 unsigned int RTint_InitOutputVector (int fd, unsigned int pri)
 {
   Vector v;
@@ -309,6 +494,12 @@ unsigned int RTint_InitOutputVector (int fd, unsigned int pri)
     return v->no;
 }
 
+
+/*
+   InitTimeVector - returns an interrupt vector associated with
+                    the relative time.
+*/
+
 unsigned int RTint_InitTimeVector (unsigned int micro, unsigned int secs, unsigned int pri)
 {
   Vector v;
@@ -329,6 +520,12 @@ unsigned int RTint_InitTimeVector (unsigned int micro, unsigned int secs, unsign
   return VecNo;
 }
 
+
+/*
+   ReArmTimeVector - reprimes the vector, vec, to deliver an interrupt
+                     at the new relative time.
+*/
+
 void RTint_ReArmTimeVector (unsigned int vec, unsigned int micro, unsigned int secs)
 {
   Vector v;
@@ -340,6 +537,14 @@ void RTint_ReArmTimeVector (unsigned int vec, unsigned int micro, unsigned int s
   else
     Selective_SetTime (v->rel, secs+DebugTime, micro);
 }
+
+
+/*
+   GetTimeVector - assigns, micro, and, secs, with the remaining
+                   time before this interrupt will expire.
+                   This value is only updated when a Listen
+                   occurs.
+*/
 
 void RTint_GetTimeVector (unsigned int vec, unsigned int *micro, unsigned int *secs)
 {
@@ -355,6 +560,13 @@ void RTint_GetTimeVector (unsigned int vec, unsigned int *micro, unsigned int *s
     }
 }
 
+
+/*
+   AttachVector - adds the pointer, p, to be associated with the interrupt
+                  vector. It returns the previous value attached to this
+                  vector.
+*/
+
 void * RTint_AttachVector (unsigned int vec, void * p)
 {
   Vector v;
@@ -369,8 +581,14 @@ void * RTint_AttachVector (unsigned int vec, void * p)
       v->arg = p;
       return l;
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 20, 0);
+  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 2, 1);
 }
+
+
+/*
+   IncludeVector - includes, vec, into the despatcher list of
+                   possible interrupt causes.
+*/
 
 void RTint_IncludeVector (unsigned int vec)
 {
@@ -410,6 +628,12 @@ void RTint_IncludeVector (unsigned int vec)
     }
 }
 
+
+/*
+   ExcludeVector - excludes, vec, from the despatcher list of
+                   possible interrupt causes.
+*/
+
 void RTint_ExcludeVector (unsigned int vec)
 {
   Vector v;
@@ -433,6 +657,16 @@ void RTint_ExcludeVector (unsigned int vec)
         v->queued = FALSE;
     }
 }
+
+
+/*
+   Listen - will either block indefinitely (until an interrupt)
+            or alteratively will test to see whether any interrupts
+            are pending.
+            If a pending interrupt was found then, call, is called
+            and then this procedure returns.
+            It only listens for interrupts > pri.
+*/
 
 void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsigned int pri)
 {
@@ -493,7 +727,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
 
 
                   default:
-                    CaseException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 20, 0);
+                    CaseException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 2, 1);
                 }
               v = v->pending;
             }
@@ -602,7 +836,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
 
 
                   default:
-                    CaseException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 20, 0);
+                    CaseException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/RTint.def", 2, 1);
                 }
               v = v->pending;
             }

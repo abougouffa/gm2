@@ -40,18 +40,87 @@ struct _T1_r {
                alists_alist next;
              };
 
+
+/*
+   initList - creates a new alist, l.
+*/
+
 alists_alist alists_initList (void);
+
+/*
+   killList - deletes the complete alist, l.
+*/
+
 void alists_killList (alists_alist *l);
+
+/*
+   putItemIntoList - places an ADDRESS, c, into alist, l.
+*/
+
 void alists_putItemIntoList (alists_alist l, void * c);
+
+/*
+   getItemFromList - retrieves the nth WORD from alist, l.
+*/
+
 void * alists_getItemFromList (alists_alist l, unsigned int n);
+
+/*
+   getIndexOfList - returns the index for WORD, c, in alist, l.
+                    If more than one WORD, c, exists the index
+                    for the first is returned.
+*/
+
 unsigned int alists_getIndexOfList (alists_alist l, void * c);
+
+/*
+   noOfItemsInList - returns the number of items in alist, l.
+*/
+
 unsigned int alists_noOfItemsInList (alists_alist l);
+
+/*
+   includeItemIntoList - adds an ADDRESS, c, into a alist providing
+                         the value does not already exist.
+*/
+
 void alists_includeItemIntoList (alists_alist l, void * c);
+
+/*
+   removeItemFromList - removes a ADDRESS, c, from a alist.
+                        It assumes that this value only appears once.
+*/
+
 void alists_removeItemFromList (alists_alist l, void * c);
+
+/*
+   isItemInList - returns true if a ADDRESS, c, was found in alist, l.
+*/
+
 unsigned int alists_isItemInList (alists_alist l, void * c);
+
+/*
+   foreachItemInListDo - calls procedure, P, foreach item in alist, l.
+*/
+
 void alists_foreachItemInListDo (alists_alist l, alists_performOperation p);
+
+/*
+   duplicateList - returns a duplicate alist derived from, l.
+*/
+
 alists_alist alists_duplicateList (alists_alist l);
+
+/*
+   removeItem - remove an element at index, i, from the alist data type.
+*/
+
 static void removeItem (alists_alist p, alists_alist l, unsigned int i);
+
+
+/*
+   removeItem - remove an element at index, i, from the alist data type.
+*/
 
 static void removeItem (alists_alist p, alists_alist l, unsigned int i)
 {
@@ -68,6 +137,11 @@ static void removeItem (alists_alist p, alists_alist l, unsigned int i)
     }
 }
 
+
+/*
+   initList - creates a new alist, l.
+*/
+
 alists_alist alists_initList (void)
 {
   alists_alist l;
@@ -78,6 +152,11 @@ alists_alist alists_initList (void)
   return l;
 }
 
+
+/*
+   killList - deletes the complete alist, l.
+*/
+
 void alists_killList (alists_alist *l)
 {
   if ((*l) != NULL)
@@ -87,6 +166,11 @@ void alists_killList (alists_alist *l)
       Storage_DEALLOCATE ((void **) &(*l), sizeof (_T1));
     }
 }
+
+
+/*
+   putItemIntoList - places an ADDRESS, c, into alist, l.
+*/
 
 void alists_putItemIntoList (alists_alist l, void * c)
 {
@@ -104,6 +188,11 @@ void alists_putItemIntoList (alists_alist l, void * c)
     }
 }
 
+
+/*
+   getItemFromList - retrieves the nth WORD from alist, l.
+*/
+
 void * alists_getItemFromList (alists_alist l, unsigned int n)
 {
   while (l != NULL)
@@ -116,6 +205,13 @@ void * alists_getItemFromList (alists_alist l, unsigned int n)
     }
   return 0;
 }
+
+
+/*
+   getIndexOfList - returns the index for WORD, c, in alist, l.
+                    If more than one WORD, c, exists the index
+                    for the first is returned.
+*/
 
 unsigned int alists_getIndexOfList (alists_alist l, void * c)
 {
@@ -135,6 +231,11 @@ unsigned int alists_getIndexOfList (alists_alist l, void * c)
     }
 }
 
+
+/*
+   noOfItemsInList - returns the number of items in alist, l.
+*/
+
 unsigned int alists_noOfItemsInList (alists_alist l)
 {
   unsigned int t;
@@ -152,11 +253,23 @@ unsigned int alists_noOfItemsInList (alists_alist l)
     }
 }
 
+
+/*
+   includeItemIntoList - adds an ADDRESS, c, into a alist providing
+                         the value does not already exist.
+*/
+
 void alists_includeItemIntoList (alists_alist l, void * c)
 {
   if (! (alists_isItemInList (l, c)))
     alists_putItemIntoList (l, c);
 }
+
+
+/*
+   removeItemFromList - removes a ADDRESS, c, from a alist.
+                        It assumes that this value only appears once.
+*/
 
 void alists_removeItemFromList (alists_alist l, void * c)
 {
@@ -185,6 +298,11 @@ void alists_removeItemFromList (alists_alist l, void * c)
     }
 }
 
+
+/*
+   isItemInList - returns true if a ADDRESS, c, was found in alist, l.
+*/
+
 unsigned int alists_isItemInList (alists_alist l, void * c)
 {
   unsigned int i;
@@ -201,6 +319,11 @@ unsigned int alists_isItemInList (alists_alist l, void * c)
   return FALSE;
 }
 
+
+/*
+   foreachItemInListDo - calls procedure, P, foreach item in alist, l.
+*/
+
 void alists_foreachItemInListDo (alists_alist l, alists_performOperation p)
 {
   unsigned int i;
@@ -214,6 +337,11 @@ void alists_foreachItemInListDo (alists_alist l, alists_performOperation p)
       i += 1;
     }
 }
+
+
+/*
+   duplicateList - returns a duplicate alist derived from, l.
+*/
 
 alists_alist alists_duplicateList (alists_alist l)
 {

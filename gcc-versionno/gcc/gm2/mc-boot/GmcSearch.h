@@ -21,12 +21,73 @@ extern "C" {
 #      define EXTERN extern
 #   endif
 
+
+/*
+   initSearchPath - initialise the compiler search, path.
+                    The string path may take the form:
+
+                    Path           ::= IndividualPath { ":" IndividualPath }
+                    IndividualPath ::= "." | DirectoryPath
+                    DirectoryPath  ::= [ "/" ] Name { "/" Name }
+                    Name           ::= Letter { (Letter | Number) }
+                    Letter         ::= A..Z | a..z
+                    Number         ::= 0..9
+*/
+
 EXTERN void mcSearch_initSearchPath (DynamicStrings_String path);
+
+/*
+   prependSearchPath - prepends a new path to the initial search path.
+*/
+
 EXTERN void mcSearch_prependSearchPath (DynamicStrings_String path);
+
+/*
+   findSourceFile - attempts to locate the source file FileName.
+                    If a file is found then TRUE is returned otherwise
+                    FALSE is returned.
+                    The parameter FullPath is set indicating the
+                    absolute location of source FileName.
+                    FullPath will be totally overwritten and should
+                    not be initialized by InitString before this function
+                    is called.
+                    FindSourceFile sets FullPath to a new string if successful.
+*/
+
 EXTERN unsigned int mcSearch_findSourceFile (DynamicStrings_String FileName, DynamicStrings_String *fullPath);
+
+/*
+   findSourceDefFile - attempts to find the definition module for
+                       a module, Stem. If successful it returns
+                       the full path and returns TRUE. If unsuccessful
+                       then FALSE is returned and FullPath is set to NIL.
+*/
+
 EXTERN unsigned int mcSearch_findSourceDefFile (DynamicStrings_String stem, DynamicStrings_String *fullPath);
+
+/*
+   findSourceModFile - attempts to find the implementation module for
+                       a module, Stem. If successful it returns
+                       the full path and returns TRUE. If unsuccessful
+                       then FALSE is returned and FullPath is set to NIL.
+*/
+
 EXTERN unsigned int mcSearch_findSourceModFile (DynamicStrings_String stem, DynamicStrings_String *fullPath);
+
+/*
+   setDefExtension - sets the default extension for definition modules to, ext.
+                     The string, ext, should be deallocated by the caller at
+                     an appropriate time.
+*/
+
 EXTERN void mcSearch_setDefExtension (DynamicStrings_String ext);
+
+/*
+   setModExtension - sets the default extension for implementation and program
+                     modules to, ext. The string, ext, should be deallocated
+                     by the caller at an appropriate time.
+*/
+
 EXTERN void mcSearch_setModExtension (DynamicStrings_String ext);
 #ifdef __cplusplus
 }

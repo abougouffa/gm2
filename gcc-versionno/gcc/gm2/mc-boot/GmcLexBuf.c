@@ -86,41 +86,251 @@ static unsigned int useBufferedTokens;
 static unsigned int currentUsed;
 static listDesc listOfTokens;
 static unsigned int currentTokNo;
+
+/*
+   openSource - attempts to open the source file, s.
+                The success of the operation is returned.
+*/
+
 unsigned int mcLexBuf_openSource (DynamicStrings_String s);
+
+/*
+   closeSource - closes the current open file.
+*/
+
 void mcLexBuf_closeSource (void);
+
+/*
+   reInitialize - re-initialize the all the data structures.
+*/
+
 void mcLexBuf_reInitialize (void);
+
+/*
+   resetForNewPass - reset the buffer pointers to the beginning ready for
+                     a new pass
+*/
+
 void mcLexBuf_resetForNewPass (void);
+
+/*
+   getToken - gets the next token into currenttoken.
+*/
+
 void mcLexBuf_getToken (void);
+
+/*
+   insertToken - inserts a symbol, token, infront of the current token
+                 ready for the next pass.
+*/
+
 void mcLexBuf_insertToken (mcReserved_toktype token);
+
+/*
+   insertTokenAndRewind - inserts a symbol, token, infront of the current token
+                          and then moves the token stream back onto the inserted token.
+*/
+
 void mcLexBuf_insertTokenAndRewind (mcReserved_toktype token);
+
+/*
+   getPreviousTokenLineNo - returns the line number of the previous token.
+*/
+
 unsigned int mcLexBuf_getPreviousTokenLineNo (void);
+
+/*
+   getLineNo - returns the current line number where the symbol occurs in
+               the source file.
+*/
+
 unsigned int mcLexBuf_getLineNo (void);
+
+/*
+   getTokenNo - returns the current token number.
+*/
+
 unsigned int mcLexBuf_getTokenNo (void);
+
+/*
+   tokenToLineNo - returns the line number of the current file for the
+                   tokenNo.  The depth refers to the include depth.
+                   A depth of 0 is the current file, depth of 1 is the file
+                   which included the current file.  Zero is returned if the
+                   depth exceeds the file nesting level.
+*/
+
 unsigned int mcLexBuf_tokenToLineNo (unsigned int tokenNo, unsigned int depth);
+
+/*
+   getColumnNo - returns the current column where the symbol occurs in
+                 the source file.
+*/
+
 unsigned int mcLexBuf_getColumnNo (void);
+
+/*
+   tokenToColumnNo - returns the column number of the current file for the
+                     tokenNo. The depth refers to the include depth.
+                     A depth of 0 is the current file, depth of 1 is the file
+                     which included the current file. Zero is returned if the
+                     depth exceeds the file nesting level.
+*/
+
 unsigned int mcLexBuf_tokenToColumnNo (unsigned int tokenNo, unsigned int depth);
+
+/*
+   findFileNameFromToken - returns the complete FileName for the appropriate
+                           source file yields the token number, tokenNo.
+                           The, Depth, indicates the include level: 0..n
+                           Level 0 is the current. NIL is returned if n+1
+                           is requested.
+*/
+
 DynamicStrings_String mcLexBuf_findFileNameFromToken (unsigned int tokenNo, unsigned int depth);
+
+/*
+   getFileName - returns a String defining the current file.
+*/
+
 DynamicStrings_String mcLexBuf_getFileName (void);
+
+/*
+   addTok - adds a token to the buffer.
+*/
+
 void mcLexBuf_addTok (mcReserved_toktype t);
+
+/*
+   addTokCharStar - adds a token to the buffer and an additional string, s.
+                    A copy of string, s, is made.
+*/
+
 void mcLexBuf_addTokCharStar (mcReserved_toktype t, void * s);
+
+/*
+   addTokInteger - adds a token and an integer to the buffer.
+*/
+
 void mcLexBuf_addTokInteger (mcReserved_toktype t, int i);
+
+/*
+   setFile - sets the current filename to, filename.
+*/
+
 void mcLexBuf_setFile (void * filename);
+
+/*
+   pushFile - indicates that, filename, has just been included.
+*/
+
 void mcLexBuf_pushFile (void * filename);
+
+/*
+   popFile - indicates that we are returning to, filename, having finished
+             an include.
+*/
+
 void mcLexBuf_popFile (void * filename);
+
+/*
+   init - initializes the token list and source list.
+*/
+
 static void init (void);
+
+/*
+   addTo - adds a new element to the end of sourceList, currentSource.
+*/
+
 static void addTo (sourceList l);
+
+/*
+   subFrom - subtracts, l, from the source list.
+*/
+
 static void subFrom (sourceList l);
+
+/*
+   newElement - returns a new sourceList
+*/
+
 static sourceList newElement (void * s);
+
+/*
+   newList - initializes an empty list with the classic dummy header element.
+*/
+
 static sourceList newList (void);
+
+/*
+   checkIfNeedToDuplicate - checks to see whether the currentSource has
+                            been used, if it has then duplicate the list.
+*/
+
 static void checkIfNeedToDuplicate (void);
+
+/*
+   killList - kills the sourceList providing that it has not been used.
+*/
+
 static void killList (void);
+
+/*
+   displayToken -
+*/
+
 static void displayToken (void);
+
+/*
+   updateFromBucket - updates the global variables:  currenttoken,
+                      currentstring, currentcolumn and currentinteger
+                      from tokenBucket, b, and, offset.
+*/
+
 static void updateFromBucket (tokenBucket b, unsigned int offset);
+
+/*
+   doGetToken - fetch the next token into currenttoken.
+*/
+
+static void doGetToken (void);
+
+/*
+   syncOpenWithBuffer - synchronise the buffer with the start of a file.
+                        Skips all the tokens to do with the previous file.
+*/
+
 static void syncOpenWithBuffer (void);
+
+/*
+   findtokenBucket - returns the tokenBucket corresponding to the tokenNo.
+*/
+
 static tokenBucket findtokenBucket (unsigned int *tokenNo);
+
+/*
+   getFileName - returns a String defining the current file.
+*/
+
 static void stop (void);
+
+/*
+   addTokToList - adds a token to a dynamic list.
+*/
+
 static void addTokToList (mcReserved_toktype t, nameKey_Name n, int i, unsigned int l, unsigned int c, sourceList f);
+
+/*
+   isLastTokenEof - returns TRUE if the last token was an eoftok
+*/
+
 static unsigned int isLastTokenEof (void);
+
+
+/*
+   init - initializes the token list and source list.
+*/
 
 static void init (void)
 {
@@ -132,6 +342,11 @@ static void init (void)
   useBufferedTokens = FALSE;
 }
 
+
+/*
+   addTo - adds a new element to the end of sourceList, currentSource.
+*/
+
 static void addTo (sourceList l)
 {
   l->right = currentSource;
@@ -142,11 +357,21 @@ static void addTo (sourceList l)
   l->left->col = mcflex_getColumnNo ();
 }
 
+
+/*
+   subFrom - subtracts, l, from the source list.
+*/
+
 static void subFrom (sourceList l)
 {
   l->left->right = l->right;
   l->right->left = l->left;
 }
+
+
+/*
+   newElement - returns a new sourceList
+*/
 
 static sourceList newElement (void * s)
 {
@@ -164,6 +389,11 @@ static sourceList newElement (void * s)
   return l;
 }
 
+
+/*
+   newList - initializes an empty list with the classic dummy header element.
+*/
+
 static sourceList newList (void)
 {
   sourceList l;
@@ -174,6 +404,12 @@ static sourceList newList (void)
   l->name = NULL;
   return l;
 }
+
+
+/*
+   checkIfNeedToDuplicate - checks to see whether the currentSource has
+                            been used, if it has then duplicate the list.
+*/
 
 static void checkIfNeedToDuplicate (void)
 {
@@ -193,6 +429,11 @@ static void checkIfNeedToDuplicate (void)
     }
 }
 
+
+/*
+   killList - kills the sourceList providing that it has not been used.
+*/
+
 static void killList (void)
 {
   sourceList l;
@@ -208,6 +449,11 @@ static void killList (void)
       } while (! (l == currentSource));
     }
 }
+
+
+/*
+   displayToken -
+*/
 
 static void displayToken (void)
 {
@@ -542,6 +788,13 @@ static void displayToken (void)
       }
 }
 
+
+/*
+   updateFromBucket - updates the global variables:  currenttoken,
+                      currentstring, currentcolumn and currentinteger
+                      from tokenBucket, b, and, offset.
+*/
+
 static void updateFromBucket (tokenBucket b, unsigned int offset)
 {
   mcLexBuf_currenttoken = b->buf.array[offset].token;
@@ -552,142 +805,12 @@ static void updateFromBucket (tokenBucket b, unsigned int offset)
     mcPrintf_printf3 ((char *) "line %d (# %d  %d) ", 19, (unsigned char *) &b->buf.array[offset].line, (sizeof (b->buf.array[offset].line)-1), (unsigned char *) &offset, (sizeof (offset)-1), (unsigned char *) &currentTokNo, (sizeof (currentTokNo)-1));
 }
 
-static void syncOpenWithBuffer (void)
-{
-  if (listOfTokens.tail != NULL)
-    currentTokNo = listOfTokens.lastBucketOffset+listOfTokens.tail->len;
-}
 
-static tokenBucket findtokenBucket (unsigned int *tokenNo)
-{
-  tokenBucket b;
+/*
+   doGetToken - fetch the next token into currenttoken.
+*/
 
-  b = listOfTokens.head;
-  while (b != NULL)
-    {
-      if ((*tokenNo) < b->len)
-        return b;
-      else
-        (*tokenNo) -= b->len;
-      b = b->next;
-    }
-  return NULL;
-}
-
-static void stop (void)
-{
-}
-
-static void addTokToList (mcReserved_toktype t, nameKey_Name n, int i, unsigned int l, unsigned int c, sourceList f)
-{
-  tokenBucket b;
-
-  if (listOfTokens.head == NULL)
-    {
-      Storage_ALLOCATE ((void **) &listOfTokens.head, sizeof (_T2));
-      if (listOfTokens.head == NULL)
-        {}  /* empty.  */
-      listOfTokens.tail = listOfTokens.head;
-      listOfTokens.tail->len = 0;
-    }
-  else if (listOfTokens.tail->len == MaxBucketSize)
-    {
-      mcDebug_assert (listOfTokens.tail->next == NULL);
-      Storage_ALLOCATE ((void **) &listOfTokens.tail->next, sizeof (_T2));
-      if (listOfTokens.tail->next == NULL)
-        {}  /* empty.  */
-      else
-        {
-          listOfTokens.tail = listOfTokens.tail->next;
-          listOfTokens.tail->len = 0;
-        }
-      listOfTokens.lastBucketOffset += MaxBucketSize;
-    }
-  listOfTokens.tail->next = NULL;
-  listOfTokens.tail->buf.array[listOfTokens.tail->len].token = t;
-  listOfTokens.tail->buf.array[listOfTokens.tail->len].str = n;
-  listOfTokens.tail->buf.array[listOfTokens.tail->len].int_ = i;
-  listOfTokens.tail->buf.array[listOfTokens.tail->len].line = l;
-  listOfTokens.tail->buf.array[listOfTokens.tail->len].col = c;
-  listOfTokens.tail->buf.array[listOfTokens.tail->len].file = f;
-  listOfTokens.tail->len += 1;
-}
-
-static unsigned int isLastTokenEof (void)
-{
-  unsigned int t;
-  tokenBucket b;
-
-  if (listOfTokens.tail != NULL)
-    {
-      if (listOfTokens.tail->len == 0)
-        {
-          b = listOfTokens.head;
-          if (b == listOfTokens.tail)
-            return FALSE;
-          while (b->next != listOfTokens.tail)
-            b = b->next;
-        }
-      else
-        b = listOfTokens.tail;
-      mcDebug_assert (b->len > 0);
-      return b->buf.array[b->len-1].token == mcReserved_eoftok;
-    }
-  return FALSE;
-}
-
-unsigned int mcLexBuf_openSource (DynamicStrings_String s)
-{
-  if (useBufferedTokens)
-    {
-      mcLexBuf_getToken ();
-      return TRUE;
-    }
-  else
-    if (mcflex_openSource (DynamicStrings_string (s)))
-      {
-        mcLexBuf_setFile (DynamicStrings_string (s));
-        syncOpenWithBuffer ();
-        mcLexBuf_getToken ();
-        return TRUE;
-      }
-    else
-      return FALSE;
-}
-
-void mcLexBuf_closeSource (void)
-{
-  if (useBufferedTokens)
-    while (mcLexBuf_currenttoken != mcReserved_eoftok)
-      mcLexBuf_getToken ();
-}
-
-void mcLexBuf_reInitialize (void)
-{
-  tokenBucket s;
-  tokenBucket t;
-
-  if (listOfTokens.head != NULL)
-    {
-      t = listOfTokens.head;
-      do {
-        s = t;
-        t = t->next;
-        Storage_DEALLOCATE ((void **) &s, sizeof (_T2));
-      } while (! (t == NULL));
-      currentUsed = FALSE;
-      killList ();
-    }
-  init ();
-}
-
-void mcLexBuf_resetForNewPass (void)
-{
-  currentTokNo = 0;
-  useBufferedTokens = TRUE;
-}
-
-void mcLexBuf_getToken (void)
+static void doGetToken (void)
 {
   void * a;
   unsigned int t;
@@ -728,6 +851,207 @@ void mcLexBuf_getToken (void)
   currentTokNo += 1;
 }
 
+
+/*
+   syncOpenWithBuffer - synchronise the buffer with the start of a file.
+                        Skips all the tokens to do with the previous file.
+*/
+
+static void syncOpenWithBuffer (void)
+{
+  if (listOfTokens.tail != NULL)
+    currentTokNo = listOfTokens.lastBucketOffset+listOfTokens.tail->len;
+}
+
+
+/*
+   findtokenBucket - returns the tokenBucket corresponding to the tokenNo.
+*/
+
+static tokenBucket findtokenBucket (unsigned int *tokenNo)
+{
+  tokenBucket b;
+
+  b = listOfTokens.head;
+  while (b != NULL)
+    {
+      if ((*tokenNo) < b->len)
+        return b;
+      else
+        (*tokenNo) -= b->len;
+      b = b->next;
+    }
+  return NULL;
+}
+
+
+/*
+   getFileName - returns a String defining the current file.
+*/
+
+static void stop (void)
+{
+}
+
+
+/*
+   addTokToList - adds a token to a dynamic list.
+*/
+
+static void addTokToList (mcReserved_toktype t, nameKey_Name n, int i, unsigned int l, unsigned int c, sourceList f)
+{
+  tokenBucket b;
+
+  if (listOfTokens.head == NULL)
+    {
+      Storage_ALLOCATE ((void **) &listOfTokens.head, sizeof (_T2));
+      if (listOfTokens.head == NULL)
+        {}  /* empty.  */
+      listOfTokens.tail = listOfTokens.head;
+      listOfTokens.tail->len = 0;
+    }
+  else if (listOfTokens.tail->len == MaxBucketSize)
+    {
+      mcDebug_assert (listOfTokens.tail->next == NULL);
+      Storage_ALLOCATE ((void **) &listOfTokens.tail->next, sizeof (_T2));
+      if (listOfTokens.tail->next == NULL)
+        {}  /* empty.  */
+      else
+        {
+          listOfTokens.tail = listOfTokens.tail->next;
+          listOfTokens.tail->len = 0;
+        }
+      listOfTokens.lastBucketOffset += MaxBucketSize;
+    }
+  listOfTokens.tail->next = NULL;
+  listOfTokens.tail->buf.array[listOfTokens.tail->len].token = t;
+  listOfTokens.tail->buf.array[listOfTokens.tail->len].str = n;
+  listOfTokens.tail->buf.array[listOfTokens.tail->len].int_ = i;
+  listOfTokens.tail->buf.array[listOfTokens.tail->len].line = l;
+  listOfTokens.tail->buf.array[listOfTokens.tail->len].col = c;
+  listOfTokens.tail->buf.array[listOfTokens.tail->len].file = f;
+  listOfTokens.tail->len += 1;
+}
+
+
+/*
+   isLastTokenEof - returns TRUE if the last token was an eoftok
+*/
+
+static unsigned int isLastTokenEof (void)
+{
+  unsigned int t;
+  tokenBucket b;
+
+  if (listOfTokens.tail != NULL)
+    {
+      if (listOfTokens.tail->len == 0)
+        {
+          b = listOfTokens.head;
+          if (b == listOfTokens.tail)
+            return FALSE;
+          while (b->next != listOfTokens.tail)
+            b = b->next;
+        }
+      else
+        b = listOfTokens.tail;
+      mcDebug_assert (b->len > 0);
+      return b->buf.array[b->len-1].token == mcReserved_eoftok;
+    }
+  return FALSE;
+}
+
+
+/*
+   openSource - attempts to open the source file, s.
+                The success of the operation is returned.
+*/
+
+unsigned int mcLexBuf_openSource (DynamicStrings_String s)
+{
+  if (useBufferedTokens)
+    {
+      mcLexBuf_getToken ();
+      return TRUE;
+    }
+  else
+    if (mcflex_openSource (DynamicStrings_string (s)))
+      {
+        mcLexBuf_setFile (DynamicStrings_string (s));
+        syncOpenWithBuffer ();
+        mcLexBuf_getToken ();
+        return TRUE;
+      }
+    else
+      return FALSE;
+}
+
+
+/*
+   closeSource - closes the current open file.
+*/
+
+void mcLexBuf_closeSource (void)
+{
+  if (useBufferedTokens)
+    while (mcLexBuf_currenttoken != mcReserved_eoftok)
+      mcLexBuf_getToken ();
+}
+
+
+/*
+   reInitialize - re-initialize the all the data structures.
+*/
+
+void mcLexBuf_reInitialize (void)
+{
+  tokenBucket s;
+  tokenBucket t;
+
+  if (listOfTokens.head != NULL)
+    {
+      t = listOfTokens.head;
+      do {
+        s = t;
+        t = t->next;
+        Storage_DEALLOCATE ((void **) &s, sizeof (_T2));
+      } while (! (t == NULL));
+      currentUsed = FALSE;
+      killList ();
+    }
+  init ();
+}
+
+
+/*
+   resetForNewPass - reset the buffer pointers to the beginning ready for
+                     a new pass
+*/
+
+void mcLexBuf_resetForNewPass (void)
+{
+  currentTokNo = 0;
+  useBufferedTokens = TRUE;
+}
+
+
+/*
+   getToken - gets the next token into currenttoken.
+*/
+
+void mcLexBuf_getToken (void)
+{
+  do {
+    doGetToken ();
+  } while (! (mcLexBuf_currenttoken != mcReserved_commenttok));
+}
+
+
+/*
+   insertToken - inserts a symbol, token, infront of the current token
+                 ready for the next pass.
+*/
+
 void mcLexBuf_insertToken (mcReserved_toktype token)
 {
   if (listOfTokens.tail != NULL)
@@ -738,6 +1062,12 @@ void mcLexBuf_insertToken (mcReserved_toktype token)
       mcLexBuf_getToken ();
     }
 }
+
+
+/*
+   insertTokenAndRewind - inserts a symbol, token, infront of the current token
+                          and then moves the token stream back onto the inserted token.
+*/
 
 void mcLexBuf_insertTokenAndRewind (mcReserved_toktype token)
 {
@@ -750,10 +1080,21 @@ void mcLexBuf_insertTokenAndRewind (mcReserved_toktype token)
     }
 }
 
+
+/*
+   getPreviousTokenLineNo - returns the line number of the previous token.
+*/
+
 unsigned int mcLexBuf_getPreviousTokenLineNo (void)
 {
   return mcLexBuf_getLineNo ();
 }
+
+
+/*
+   getLineNo - returns the current line number where the symbol occurs in
+               the source file.
+*/
 
 unsigned int mcLexBuf_getLineNo (void)
 {
@@ -763,6 +1104,11 @@ unsigned int mcLexBuf_getLineNo (void)
     return mcLexBuf_tokenToLineNo (mcLexBuf_getTokenNo (), 0);
 }
 
+
+/*
+   getTokenNo - returns the current token number.
+*/
+
 unsigned int mcLexBuf_getTokenNo (void)
 {
   if (currentTokNo == 0)
@@ -770,6 +1116,15 @@ unsigned int mcLexBuf_getTokenNo (void)
   else
     return currentTokNo-1;
 }
+
+
+/*
+   tokenToLineNo - returns the line number of the current file for the
+                   tokenNo.  The depth refers to the include depth.
+                   A depth of 0 is the current file, depth of 1 is the file
+                   which included the current file.  Zero is returned if the
+                   depth exceeds the file nesting level.
+*/
 
 unsigned int mcLexBuf_tokenToLineNo (unsigned int tokenNo, unsigned int depth)
 {
@@ -796,6 +1151,12 @@ unsigned int mcLexBuf_tokenToLineNo (unsigned int tokenNo, unsigned int depth)
       }
 }
 
+
+/*
+   getColumnNo - returns the current column where the symbol occurs in
+                 the source file.
+*/
+
 unsigned int mcLexBuf_getColumnNo (void)
 {
   if (currentTokNo == 0)
@@ -803,6 +1164,15 @@ unsigned int mcLexBuf_getColumnNo (void)
   else
     return mcLexBuf_tokenToColumnNo (mcLexBuf_getTokenNo (), 0);
 }
+
+
+/*
+   tokenToColumnNo - returns the column number of the current file for the
+                     tokenNo. The depth refers to the include depth.
+                     A depth of 0 is the current file, depth of 1 is the file
+                     which included the current file. Zero is returned if the
+                     depth exceeds the file nesting level.
+*/
 
 unsigned int mcLexBuf_tokenToColumnNo (unsigned int tokenNo, unsigned int depth)
 {
@@ -829,6 +1199,15 @@ unsigned int mcLexBuf_tokenToColumnNo (unsigned int tokenNo, unsigned int depth)
       }
 }
 
+
+/*
+   findFileNameFromToken - returns the complete FileName for the appropriate
+                           source file yields the token number, tokenNo.
+                           The, Depth, indicates the include level: 0..n
+                           Level 0 is the current. NIL is returned if n+1
+                           is requested.
+*/
+
 DynamicStrings_String mcLexBuf_findFileNameFromToken (unsigned int tokenNo, unsigned int depth)
 {
   tokenBucket b;
@@ -851,10 +1230,20 @@ DynamicStrings_String mcLexBuf_findFileNameFromToken (unsigned int tokenNo, unsi
     }
 }
 
+
+/*
+   getFileName - returns a String defining the current file.
+*/
+
 DynamicStrings_String mcLexBuf_getFileName (void)
 {
   return mcLexBuf_findFileNameFromToken (mcLexBuf_getTokenNo (), 0);
 }
+
+
+/*
+   addTok - adds a token to the buffer.
+*/
 
 void mcLexBuf_addTok (mcReserved_toktype t)
 {
@@ -865,6 +1254,12 @@ void mcLexBuf_addTok (mcReserved_toktype t)
     }
 }
 
+
+/*
+   addTokCharStar - adds a token to the buffer and an additional string, s.
+                    A copy of string, s, is made.
+*/
+
 void mcLexBuf_addTokCharStar (mcReserved_toktype t, void * s)
 {
   if ((libc_strlen (s)) > 80)
@@ -872,6 +1267,11 @@ void mcLexBuf_addTokCharStar (mcReserved_toktype t, void * s)
   addTokToList (t, nameKey_makekey (s), 0, mcflex_getLineNo (), mcflex_getColumnNo (), currentSource);
   currentUsed = TRUE;
 }
+
+
+/*
+   addTokInteger - adds a token and an integer to the buffer.
+*/
 
 void mcLexBuf_addTokInteger (mcReserved_toktype t, int i)
 {
@@ -887,6 +1287,11 @@ void mcLexBuf_addTokInteger (mcReserved_toktype t, int i)
   currentUsed = TRUE;
 }
 
+
+/*
+   setFile - sets the current filename to, filename.
+*/
+
 void mcLexBuf_setFile (void * filename)
 {
   killList ();
@@ -894,6 +1299,11 @@ void mcLexBuf_setFile (void * filename)
   currentSource = newList ();
   addTo (newElement (filename));
 }
+
+
+/*
+   pushFile - indicates that, filename, has just been included.
+*/
 
 void mcLexBuf_pushFile (void * filename)
 {
@@ -911,6 +1321,12 @@ void mcLexBuf_pushFile (void * filename)
         } while (! (l == currentSource));
       }
 }
+
+
+/*
+   popFile - indicates that we are returning to, filename, having finished
+             an include.
+*/
 
 void mcLexBuf_popFile (void * filename)
 {

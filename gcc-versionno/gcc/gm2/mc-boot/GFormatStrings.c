@@ -25,42 +25,142 @@
 #   include "GSYSTEM.h"
 #   include "GM2RTS.h"
 
+
+/*
+   Sprintf0 - returns a String containing, s, after it has had its
+              escape sequences translated.
+*/
+
 DynamicStrings_String FormatStrings_Sprintf0 (DynamicStrings_String s);
+
+/*
+   Sprintf1 - returns a String containing, s, together with encapsulated
+              entity, w. It only formats the first %s or %d with n.
+*/
+
 DynamicStrings_String FormatStrings_Sprintf1 (DynamicStrings_String s, unsigned char *w_, unsigned int _w_high);
+
+/*
+   Sprintf2 - returns a string, s, which has been formatted.
+*/
+
 DynamicStrings_String FormatStrings_Sprintf2 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high);
+
+/*
+   Sprintf3 - returns a string, s, which has been formatted.
+*/
+
 DynamicStrings_String FormatStrings_Sprintf3 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high);
+
+/*
+   Sprintf4 - returns a string, s, which has been formatted.
+*/
+
 DynamicStrings_String FormatStrings_Sprintf4 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high, unsigned char *w4_, unsigned int _w4_high);
+
+/*
+   doDSdbEnter -
+*/
+
 static void doDSdbEnter (void);
+
+/*
+   doDSdbExit -
+*/
+
 static void doDSdbExit (DynamicStrings_String s);
+
+/*
+   DSdbEnter -
+*/
+
 static void DSdbEnter (void);
+
+/*
+   DSdbExit -
+*/
+
 static void DSdbExit (DynamicStrings_String s);
+
+/*
+   IsDigit - returns TRUE if ch lies in the range: 0..9
+*/
+
 static unsigned int IsDigit (char ch);
+
+/*
+   Cast - casts a := b
+*/
+
 static void Cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, unsigned int _b_high);
+
+/*
+   HandleEscape - translates 
+ and \t into their respective ascii codes.
+*/
+
 static DynamicStrings_String HandleEscape (DynamicStrings_String s);
+
+/*
+   FormatString - returns a String containing, s, together with encapsulated
+                  entity, w. It only formats the first %s or %d or %u with n.
+                  A new string is returned.
+*/
+
 static DynamicStrings_String FormatString (DynamicStrings_String s, unsigned char *w_, unsigned int _w_high);
+
+
+/*
+   doDSdbEnter -
+*/
 
 static void doDSdbEnter (void)
 {
   DynamicStrings_PushAllocation ();
 }
 
+
+/*
+   doDSdbExit -
+*/
+
 static void doDSdbExit (DynamicStrings_String s)
 {
   s = DynamicStrings_PopAllocationExemption (TRUE, s);
 }
 
+
+/*
+   DSdbEnter -
+*/
+
 static void DSdbEnter (void)
 {
 }
+
+
+/*
+   DSdbExit -
+*/
 
 static void DSdbExit (DynamicStrings_String s)
 {
 }
 
+
+/*
+   IsDigit - returns TRUE if ch lies in the range: 0..9
+*/
+
 static unsigned int IsDigit (char ch)
 {
   return (ch >= '0') && (ch <= '9');
 }
+
+
+/*
+   Cast - casts a := b
+*/
 
 static void Cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, unsigned int _b_high)
 {
@@ -76,6 +176,12 @@ static void Cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, uns
   else
     M2RTS_HALT (0);
 }
+
+
+/*
+   HandleEscape - translates 
+ and \t into their respective ascii codes.
+*/
 
 static DynamicStrings_String HandleEscape (DynamicStrings_String s)
 {
@@ -107,6 +213,13 @@ static DynamicStrings_String HandleEscape (DynamicStrings_String s)
   DSdbExit (s);
   return s;
 }
+
+
+/*
+   FormatString - returns a String containing, s, together with encapsulated
+                  entity, w. It only formats the first %s or %d or %u with n.
+                  A new string is returned.
+*/
 
 static DynamicStrings_String FormatString (DynamicStrings_String s, unsigned char *w_, unsigned int _w_high)
 {
@@ -200,6 +313,12 @@ static DynamicStrings_String FormatString (DynamicStrings_String s, unsigned cha
   return s;
 }
 
+
+/*
+   Sprintf0 - returns a String containing, s, after it has had its
+              escape sequences translated.
+*/
+
 DynamicStrings_String FormatStrings_Sprintf0 (DynamicStrings_String s)
 {
   DSdbEnter ();
@@ -207,6 +326,12 @@ DynamicStrings_String FormatStrings_Sprintf0 (DynamicStrings_String s)
   DSdbExit (s);
   return s;
 }
+
+
+/*
+   Sprintf1 - returns a String containing, s, together with encapsulated
+              entity, w. It only formats the first %s or %d with n.
+*/
 
 DynamicStrings_String FormatStrings_Sprintf1 (DynamicStrings_String s, unsigned char *w_, unsigned int _w_high)
 {
@@ -220,6 +345,11 @@ DynamicStrings_String FormatStrings_Sprintf1 (DynamicStrings_String s, unsigned 
   DSdbExit (s);
   return s;
 }
+
+
+/*
+   Sprintf2 - returns a string, s, which has been formatted.
+*/
 
 DynamicStrings_String FormatStrings_Sprintf2 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high)
 {
@@ -235,6 +365,11 @@ DynamicStrings_String FormatStrings_Sprintf2 (DynamicStrings_String s, unsigned 
   DSdbExit (s);
   return s;
 }
+
+
+/*
+   Sprintf3 - returns a string, s, which has been formatted.
+*/
 
 DynamicStrings_String FormatStrings_Sprintf3 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high)
 {
@@ -252,6 +387,11 @@ DynamicStrings_String FormatStrings_Sprintf3 (DynamicStrings_String s, unsigned 
   DSdbExit (s);
   return s;
 }
+
+
+/*
+   Sprintf4 - returns a string, s, which has been formatted.
+*/
 
 DynamicStrings_String FormatStrings_Sprintf4 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high, unsigned char *w4_, unsigned int _w4_high)
 {

@@ -28,24 +28,111 @@
 #   include "GnameKey.h"
 #   include "GM2RTS.h"
 
+
+/*
+   printf0 - writes out an array to, StdOut, after the escape
+             sequences have been translated.
+*/
+
 void mcPrintf_printf0 (char *a_, unsigned int _a_high);
+
+/*
+   printf0 - writes out an array to, StdOut, after the escape
+             sequences have been translated.
+*/
+
 void mcPrintf_printf1 (char *a_, unsigned int _a_high, unsigned char *w_, unsigned int _w_high);
+
+/*
+   printf0 - writes out an array to, StdOut, after the escape
+             sequences have been translated.
+*/
+
 void mcPrintf_printf2 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high);
+
+/*
+   printf0 - writes out an array to, StdOut, after the escape
+             sequences have been translated.
+*/
+
 void mcPrintf_printf3 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high);
+
+/*
+   printf0 - writes out an array to, StdOut, after the escape
+             sequences have been translated.
+*/
+
 void mcPrintf_printf4 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high, unsigned char *w4_, unsigned int _w4_high);
+
+/*
+   fprintf0 - writes out an array to, file, after the escape sequences
+              have been translated.
+*/
+
 void mcPrintf_fprintf0 (FIO_File file, char *a_, unsigned int _a_high);
+
+/*
+   fprintf0 - writes out an array to, file, after the escape sequences
+              have been translated.
+*/
+
 void mcPrintf_fprintf1 (FIO_File file, char *a_, unsigned int _a_high, unsigned char *w_, unsigned int _w_high);
+
+/*
+   fprintf0 - writes out an array to, file, after the escape sequences
+              have been translated.
+*/
+
 void mcPrintf_fprintf2 (FIO_File file, char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high);
+
+/*
+   fprintf0 - writes out an array to, file, after the escape sequences
+              have been translated.
+*/
+
 void mcPrintf_fprintf3 (FIO_File file, char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high);
+
+/*
+   fprintf0 - writes out an array to, file, after the escape sequences
+              have been translated.
+*/
+
 void mcPrintf_fprintf4 (FIO_File file, char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high, unsigned char *w4_, unsigned int _w4_high);
+
+/*
+   isDigit - returns TRUE if, ch, is a character 0..9
+*/
+
 static unsigned int isDigit (char ch);
+
+/*
+   cast - casts a := b
+*/
+
 static void cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, unsigned int _b_high);
+
+/*
+   TranslateNameToCharStar - takes a format specification string, a, and
+                             if they consist of of %a then this is translated
+                             into a String and %a is replaced by %s.
+*/
+
 static unsigned int TranslateNameToCharStar (char *a, unsigned int _a_high, unsigned int n);
+
+
+/*
+   isDigit - returns TRUE if, ch, is a character 0..9
+*/
 
 static unsigned int isDigit (char ch)
 {
   return (ch >= '0') && (ch <= '9');
 }
+
+
+/*
+   cast - casts a := b
+*/
 
 static void cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, unsigned int _b_high)
 {
@@ -61,6 +148,13 @@ static void cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, uns
   else
     M2RTS_HALT (0);
 }
+
+
+/*
+   TranslateNameToCharStar - takes a format specification string, a, and
+                             if they consist of of %a then this is translated
+                             into a String and %a is replaced by %s.
+*/
 
 static unsigned int TranslateNameToCharStar (char *a, unsigned int _a_high, unsigned int n)
 {
@@ -89,6 +183,12 @@ static unsigned int TranslateNameToCharStar (char *a, unsigned int _a_high, unsi
   return FALSE;
 }
 
+
+/*
+   printf0 - writes out an array to, StdOut, after the escape
+             sequences have been translated.
+*/
+
 void mcPrintf_printf0 (char *a_, unsigned int _a_high)
 {
   char a[_a_high+1];
@@ -98,6 +198,12 @@ void mcPrintf_printf0 (char *a_, unsigned int _a_high)
 
   mcPrintf_fprintf0 (FIO_StdOut, (char *) a, _a_high);
 }
+
+
+/*
+   printf0 - writes out an array to, StdOut, after the escape
+             sequences have been translated.
+*/
 
 void mcPrintf_printf1 (char *a_, unsigned int _a_high, unsigned char *w_, unsigned int _w_high)
 {
@@ -110,6 +216,12 @@ void mcPrintf_printf1 (char *a_, unsigned int _a_high, unsigned char *w_, unsign
 
   mcPrintf_fprintf1 (FIO_StdOut, (char *) a, _a_high, (unsigned char *) w, _w_high);
 }
+
+
+/*
+   printf0 - writes out an array to, StdOut, after the escape
+             sequences have been translated.
+*/
 
 void mcPrintf_printf2 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high)
 {
@@ -124,6 +236,12 @@ void mcPrintf_printf2 (char *a_, unsigned int _a_high, unsigned char *w1_, unsig
 
   mcPrintf_fprintf2 (FIO_StdOut, (char *) a, _a_high, (unsigned char *) w1, _w1_high, (unsigned char *) w2, _w2_high);
 }
+
+
+/*
+   printf0 - writes out an array to, StdOut, after the escape
+             sequences have been translated.
+*/
 
 void mcPrintf_printf3 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high)
 {
@@ -140,6 +258,12 @@ void mcPrintf_printf3 (char *a_, unsigned int _a_high, unsigned char *w1_, unsig
 
   mcPrintf_fprintf3 (FIO_StdOut, (char *) a, _a_high, (unsigned char *) w1, _w1_high, (unsigned char *) w2, _w2_high, (unsigned char *) w3, _w3_high);
 }
+
+
+/*
+   printf0 - writes out an array to, StdOut, after the escape
+             sequences have been translated.
+*/
 
 void mcPrintf_printf4 (char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high, unsigned char *w4_, unsigned int _w4_high)
 {
@@ -159,6 +283,12 @@ void mcPrintf_printf4 (char *a_, unsigned int _a_high, unsigned char *w1_, unsig
   mcPrintf_fprintf4 (FIO_StdOut, (char *) a, _a_high, (unsigned char *) w1, _w1_high, (unsigned char *) w2, _w2_high, (unsigned char *) w3, _w3_high, (unsigned char *) w4, _w4_high);
 }
 
+
+/*
+   fprintf0 - writes out an array to, file, after the escape sequences
+              have been translated.
+*/
+
 void mcPrintf_fprintf0 (FIO_File file, char *a_, unsigned int _a_high)
 {
   char a[_a_high+1];
@@ -169,6 +299,12 @@ void mcPrintf_fprintf0 (FIO_File file, char *a_, unsigned int _a_high)
   if ((DynamicStrings_KillString (SFIO_WriteS (file, FormatStrings_Sprintf0 (DynamicStrings_InitString ((char *) a, _a_high))))) == NULL)
     {}  /* empty.  */
 }
+
+
+/*
+   fprintf0 - writes out an array to, file, after the escape sequences
+              have been translated.
+*/
 
 void mcPrintf_fprintf1 (FIO_File file, char *a_, unsigned int _a_high, unsigned char *w_, unsigned int _w_high)
 {
@@ -197,6 +333,12 @@ void mcPrintf_fprintf1 (FIO_File file, char *a_, unsigned int _a_high, unsigned 
   if ((DynamicStrings_KillString (SFIO_WriteS (file, s))) == NULL)
     {}  /* empty.  */
 }
+
+
+/*
+   fprintf0 - writes out an array to, file, after the escape sequences
+              have been translated.
+*/
 
 void mcPrintf_fprintf2 (FIO_File file, char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high)
 {
@@ -253,6 +395,12 @@ void mcPrintf_fprintf2 (FIO_File file, char *a_, unsigned int _a_high, unsigned 
   if ((DynamicStrings_KillString (SFIO_WriteS (file, s))) == NULL)
     {}  /* empty.  */
 }
+
+
+/*
+   fprintf0 - writes out an array to, file, after the escape sequences
+              have been translated.
+*/
 
 void mcPrintf_fprintf3 (FIO_File file, char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high)
 {
@@ -334,6 +482,12 @@ void mcPrintf_fprintf3 (FIO_File file, char *a_, unsigned int _a_high, unsigned 
   if ((DynamicStrings_KillString (SFIO_WriteS (file, s))) == NULL)
     {}  /* empty.  */
 }
+
+
+/*
+   fprintf0 - writes out an array to, file, after the escape sequences
+              have been translated.
+*/
 
 void mcPrintf_fprintf4 (FIO_File file, char *a_, unsigned int _a_high, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high, unsigned char *w4_, unsigned int _w4_high)
 {

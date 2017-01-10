@@ -33,24 +33,89 @@ static _T1 StackW;
 static unsigned int StackWPtr;
 static _T2 StackR;
 static unsigned int StackRPtr;
+
+/*
+   Read - is the generic procedure that all higher application layers
+          should use to receive a character.
+*/
+
 void StdIO_Read (char *ch);
+
+/*
+   Write - is the generic procedure that all higher application layers
+           should use to emit a character.
+*/
+
 void StdIO_Write (char ch);
+
+/*
+   PushOutput - pushes the current Write procedure onto a stack,
+                any future references to Write will actually invoke
+                procedure, p.
+*/
+
 void StdIO_PushOutput (StdIO_ProcWrite p);
+
+/*
+   PopOutput - restores Write to use the previous output procedure.
+*/
+
 void StdIO_PopOutput (void);
+
+/*
+   GetCurrentOutput - returns the current output procedure.
+*/
+
 StdIO_ProcWrite StdIO_GetCurrentOutput (void);
+
+/*
+   PushInput - pushes the current Read procedure onto a stack,
+               any future references to Read will actually invoke
+               procedure, p.
+*/
+
 void StdIO_PushInput (StdIO_ProcRead p);
+
+/*
+   PopInput - restores Write to use the previous output procedure.
+*/
+
 void StdIO_PopInput (void);
+
+/*
+   GetCurrentInput - returns the current input procedure.
+*/
+
 StdIO_ProcRead StdIO_GetCurrentInput (void);
+
+
+/*
+   Read - is the generic procedure that all higher application layers
+          should use to receive a character.
+*/
 
 void StdIO_Read (char *ch)
 {
   (*StackR.array[StackRPtr].proc) (ch);
 }
 
+
+/*
+   Write - is the generic procedure that all higher application layers
+           should use to emit a character.
+*/
+
 void StdIO_Write (char ch)
 {
   (*StackW.array[StackWPtr].proc) (ch);
 }
+
+
+/*
+   PushOutput - pushes the current Write procedure onto a stack,
+                any future references to Write will actually invoke
+                procedure, p.
+*/
 
 void StdIO_PushOutput (StdIO_ProcWrite p)
 {
@@ -63,6 +128,11 @@ void StdIO_PushOutput (StdIO_ProcWrite p)
     }
 }
 
+
+/*
+   PopOutput - restores Write to use the previous output procedure.
+*/
+
 void StdIO_PopOutput (void)
 {
   if (StackWPtr == 1)
@@ -71,6 +141,11 @@ void StdIO_PopOutput (void)
     StackWPtr -= 1;
 }
 
+
+/*
+   GetCurrentOutput - returns the current output procedure.
+*/
+
 StdIO_ProcWrite StdIO_GetCurrentOutput (void)
 {
   if (StackWPtr > 0)
@@ -78,6 +153,13 @@ StdIO_ProcWrite StdIO_GetCurrentOutput (void)
   else
     M2RTS_HALT (0);
 }
+
+
+/*
+   PushInput - pushes the current Read procedure onto a stack,
+               any future references to Read will actually invoke
+               procedure, p.
+*/
 
 void StdIO_PushInput (StdIO_ProcRead p)
 {
@@ -90,6 +172,11 @@ void StdIO_PushInput (StdIO_ProcRead p)
     }
 }
 
+
+/*
+   PopInput - restores Write to use the previous output procedure.
+*/
+
 void StdIO_PopInput (void)
 {
   if (StackRPtr == 1)
@@ -97,6 +184,11 @@ void StdIO_PopInput (void)
   else
     StackRPtr -= 1;
 }
+
+
+/*
+   GetCurrentInput - returns the current input procedure.
+*/
 
 StdIO_ProcRead StdIO_GetCurrentInput (void)
 {

@@ -37,14 +37,63 @@ static alists_alist listOfFiles;
 static Indexing_Index frag;
 static FIO_File destFile;
 static unsigned int seenDest;
+
+/*
+   openFrag - create and open fragment, id, and return the file.
+              The file should not be closed by the user.
+*/
+
 FIO_File mcStream_openFrag (unsigned int id);
+
+/*
+   setDest - informs the stream module and all fragments must be copied
+             info, f.
+*/
+
 void mcStream_setDest (FIO_File f);
+
+/*
+   combine - closes all fragments and then writes them in
+             order to the destination file.  The dest file
+             is returned.
+*/
+
 FIO_File mcStream_combine (void);
+
+/*
+   removeLater -
+*/
+
 static DynamicStrings_String removeLater (DynamicStrings_String filename);
+
+/*
+   removeNow - removes a single file, s.
+*/
+
 static void removeNow (DynamicStrings_String s);
+
+/*
+   removeFiles -
+*/
+
 static void removeFiles (void);
+
+/*
+   createTemporaryFile -
+*/
+
 static FIO_File createTemporaryFile (unsigned int id);
+
+/*
+   copy - copies contents of f to the destination file.
+*/
+
 static void copy (ptrToFile p);
+
+
+/*
+   removeLater -
+*/
 
 static DynamicStrings_String removeLater (DynamicStrings_String filename)
 {
@@ -52,16 +101,31 @@ static DynamicStrings_String removeLater (DynamicStrings_String filename)
   return filename;
 }
 
+
+/*
+   removeNow - removes a single file, s.
+*/
+
 static void removeNow (DynamicStrings_String s)
 {
   if ((libc_unlink (DynamicStrings_string (s))) != 0)
     {}  /* empty.  */
 }
 
+
+/*
+   removeFiles -
+*/
+
 static void removeFiles (void)
 {
   alists_foreachItemInListDo (listOfFiles, (alists_performOperation) {(alists_performOperation_t) removeNow});
 }
+
+
+/*
+   createTemporaryFile -
+*/
 
 static FIO_File createTemporaryFile (unsigned int id)
 {
@@ -73,6 +137,11 @@ static FIO_File createTemporaryFile (unsigned int id)
   f = SFIO_OpenToWrite (s);
   return f;
 }
+
+
+/*
+   copy - copies contents of f to the destination file.
+*/
 
 static void copy (ptrToFile p)
 {
@@ -99,6 +168,12 @@ static void copy (ptrToFile p)
     }
 }
 
+
+/*
+   openFrag - create and open fragment, id, and return the file.
+              The file should not be closed by the user.
+*/
+
 FIO_File mcStream_openFrag (unsigned int id)
 {
   FIO_File f;
@@ -111,11 +186,24 @@ FIO_File mcStream_openFrag (unsigned int id)
   return f;
 }
 
+
+/*
+   setDest - informs the stream module and all fragments must be copied
+             info, f.
+*/
+
 void mcStream_setDest (FIO_File f)
 {
   seenDest = TRUE;
   destFile = f;
 }
+
+
+/*
+   combine - closes all fragments and then writes them in
+             order to the destination file.  The dest file
+             is returned.
+*/
 
 FIO_File mcStream_combine (void)
 {

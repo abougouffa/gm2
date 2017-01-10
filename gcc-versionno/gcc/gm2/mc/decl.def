@@ -708,6 +708,24 @@ PROCEDURE makeProcedure (n: Name) : node ;
 
 
 (*
+   putCommentDefProcedure - remembers the procedure comment (if it exists) as a
+                            definition module procedure heading.  NIL is placed
+                            if there is no procedure comment available.
+*)
+
+PROCEDURE putCommentDefProcedure (n: node) ;
+
+
+(*
+   putCommentModProcedure - remembers the procedure comment (if it exists) as an
+                            implementation/program module procedure heading.  NIL is placed
+                            if there is no procedure comment available.
+*)
+
+PROCEDURE putCommentModProcedure (n: node) ;
+
+
+(*
    makeProcType - returns a proctype node.
 *)
 

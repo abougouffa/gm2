@@ -20,6 +20,11 @@ extern "C" {
 #      define EXTERN extern
 #   endif
 
+
+/*
+   Assert - tests the boolean Condition, if it fails then HALT is called.
+*/
+
 EXTERN void Assertion_Assert (unsigned int Condition);
 #ifdef __cplusplus
 }

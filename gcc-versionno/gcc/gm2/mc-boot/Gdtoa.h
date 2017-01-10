@@ -23,7 +23,23 @@ extern "C" {
 
 typedef enum {dtoa_maxsignificant, dtoa_decimaldigits} dtoa_Mode;
 
+
+/*
+   strtod - returns a REAL given a string, s.  It will set
+            error to TRUE if the number is too large.
+*/
+
 EXTERN double dtoa_strtod (void * s, unsigned int *error);
+
+/*
+   dtoa - converts a REAL, d, into a string.  The address of the
+          string is returned.
+          mode       indicates the type of conversion required.
+          ndigits    determines the number of digits according to mode.
+          decpt      the position of the decimal point.
+          sign       does the string have a sign?
+*/
+
 EXTERN void * dtoa_dtoa (double d, dtoa_Mode mode, int ndigits, int *decpt, unsigned int *sign);
 #ifdef __cplusplus
 }

@@ -26,8 +26,30 @@ typedef char *PtrToChar;
 
 typedef PtrToChar *PtrToPtrToChar;
 
+
+/*
+   GetArg - returns the nth argument from the command line.
+            The success of the operation is returned.
+            If TRUE is returned then the string, s, contains a
+            new string, otherwise s is set to NIL.
+*/
+
 unsigned int SArgs_GetArg (DynamicStrings_String *s, unsigned int i);
+
+/*
+   Narg - returns the number of arguments available from
+          command line.
+*/
+
 unsigned int SArgs_Narg (void);
+
+
+/*
+   GetArg - returns the nth argument from the command line.
+            The success of the operation is returned.
+            If TRUE is returned then the string, s, contains a
+            new string, otherwise s is set to NIL.
+*/
 
 unsigned int SArgs_GetArg (DynamicStrings_String *s, unsigned int i)
 {
@@ -45,6 +67,12 @@ unsigned int SArgs_GetArg (DynamicStrings_String *s, unsigned int i)
       return FALSE;
     }
 }
+
+
+/*
+   Narg - returns the number of arguments available from
+          command line.
+*/
 
 unsigned int SArgs_Narg (void)
 {

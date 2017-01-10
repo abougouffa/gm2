@@ -14,10 +14,42 @@
 #   include "GASCII.h"
 #   include "GStrLib.h"
 
+
+/*
+   StrToUpperCase - converts string, a, to uppercase returning the
+                    result in, b.
+*/
+
 void StrCase_StrToUpperCase (char *a_, unsigned int _a_high, char *b, unsigned int _b_high);
+
+/*
+   StrToLowerCase - converts string, a, to lowercase returning the
+                    result in, b.
+*/
+
 void StrCase_StrToLowerCase (char *a_, unsigned int _a_high, char *b, unsigned int _b_high);
+
+/*
+   Cap - converts a lower case character into a capital character.
+         If the character is not a lower case character 'a'..'z'
+         then the character is simply returned unaltered.
+*/
+
 char StrCase_Cap (char ch);
+
+/*
+   Lower - converts an upper case character into a lower case character.
+           If the character is not an upper case character 'A'..'Z'
+           then the character is simply returned unaltered.
+*/
+
 char StrCase_Lower (char ch);
+
+
+/*
+   StrToUpperCase - converts string, a, to uppercase returning the
+                    result in, b.
+*/
 
 void StrCase_StrToUpperCase (char *a_, unsigned int _a_high, char *b, unsigned int _b_high)
 {
@@ -41,6 +73,12 @@ void StrCase_StrToUpperCase (char *a_, unsigned int _a_high, char *b, unsigned i
     b[i] = ASCII_nul;
 }
 
+
+/*
+   StrToLowerCase - converts string, a, to lowercase returning the
+                    result in, b.
+*/
+
 void StrCase_StrToLowerCase (char *a_, unsigned int _a_high, char *b, unsigned int _b_high)
 {
   unsigned int higha;
@@ -63,12 +101,26 @@ void StrCase_StrToLowerCase (char *a_, unsigned int _a_high, char *b, unsigned i
     b[i] = ASCII_nul;
 }
 
+
+/*
+   Cap - converts a lower case character into a capital character.
+         If the character is not a lower case character 'a'..'z'
+         then the character is simply returned unaltered.
+*/
+
 char StrCase_Cap (char ch)
 {
   if ((ch >= 'a') && (ch <= 'z'))
     ch = (char) ((((unsigned int) (ch))-((unsigned int) ('a')))+((unsigned int) ('A')));
   return ch;
 }
+
+
+/*
+   Lower - converts an upper case character into a lower case character.
+           If the character is not an upper case character 'A'..'Z'
+           then the character is simply returned unaltered.
+*/
 
 char StrCase_Lower (char ch)
 {

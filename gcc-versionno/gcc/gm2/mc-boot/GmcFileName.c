@@ -15,10 +15,45 @@
 #   define MaxFileName 0
 #   define MaxStemName 0
 #   define Directory '/'
+
+/*
+   calculateFileName - calculates and returns a new string filename given a module
+                       and an extension. String, Extension, is concatenated onto
+                       Module and thus it is safe to `Mark' the extension for garbage
+                       collection.
+*/
+
 DynamicStrings_String mcFileName_calculateFileName (DynamicStrings_String module, DynamicStrings_String extension);
+
+/*
+   calculateStemName - calculates the stem name for given a module.
+                       This name length will be operating system and
+      	       	       compiler specific.
+*/
+
 DynamicStrings_String mcFileName_calculateStemName (DynamicStrings_String module);
+
+/*
+   extractExtension - given a, filename, return the filename without
+                      the extension, Ext.
+*/
+
 DynamicStrings_String mcFileName_extractExtension (DynamicStrings_String filename, DynamicStrings_String ext);
+
+/*
+   extractModule - given a, filename, return the module name including any
+                   extension. A new string is returned.
+*/
+
 DynamicStrings_String mcFileName_extractModule (DynamicStrings_String filename);
+
+
+/*
+   calculateFileName - calculates and returns a new string filename given a module
+                       and an extension. String, Extension, is concatenated onto
+                       Module and thus it is safe to `Mark' the extension for garbage
+                       collection.
+*/
 
 DynamicStrings_String mcFileName_calculateFileName (DynamicStrings_String module, DynamicStrings_String extension)
 {
@@ -28,10 +63,23 @@ DynamicStrings_String mcFileName_calculateFileName (DynamicStrings_String module
     return DynamicStrings_ConCat (DynamicStrings_ConCatChar (DynamicStrings_Slice (module, 0, (MaxFileName-(DynamicStrings_Length (extension)))-1), '.'), extension);
 }
 
+
+/*
+   calculateStemName - calculates the stem name for given a module.
+                       This name length will be operating system and
+      	       	       compiler specific.
+*/
+
 DynamicStrings_String mcFileName_calculateStemName (DynamicStrings_String module)
 {
   return DynamicStrings_Slice (module, 0, MaxStemName);
 }
+
+
+/*
+   extractExtension - given a, filename, return the filename without
+                      the extension, Ext.
+*/
 
 DynamicStrings_String mcFileName_extractExtension (DynamicStrings_String filename, DynamicStrings_String ext)
 {
@@ -40,6 +88,12 @@ DynamicStrings_String mcFileName_extractExtension (DynamicStrings_String filenam
   else
     return filename;
 }
+
+
+/*
+   extractModule - given a, filename, return the module name including any
+                   extension. A new string is returned.
+*/
 
 DynamicStrings_String mcFileName_extractModule (DynamicStrings_String filename)
 {

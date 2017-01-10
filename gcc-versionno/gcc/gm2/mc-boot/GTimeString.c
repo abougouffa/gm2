@@ -14,7 +14,19 @@
 #   include "GASCII.h"
 #   include "GSYSTEM.h"
 
+
+/*
+   GetTimeString - places the time in ascii format into array, a.
+
+*/
+
 void TimeString_GetTimeString (char *a, unsigned int _a_high);
+
+
+/*
+   GetTimeString - places the time in ascii format into array, a.
+
+*/
 
 void TimeString_GetTimeString (char *a, unsigned int _a_high)
 {

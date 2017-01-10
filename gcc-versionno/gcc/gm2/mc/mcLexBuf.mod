@@ -465,6 +465,18 @@ END updateFromBucket ;
 *)
 
 PROCEDURE getToken ;
+BEGIN
+   REPEAT
+      doGetToken
+   UNTIL currenttoken # commenttok
+END getToken ;
+
+
+(*
+   doGetToken - fetch the next token into currenttoken.
+*)
+
+PROCEDURE doGetToken ;
 VAR
    a: ADDRESS ;
    t: CARDINAL ;
@@ -508,7 +520,7 @@ BEGIN
       displayToken
    END ;
    INC (currentTokNo)
-END getToken ;
+END doGetToken ;
 
 
 (*

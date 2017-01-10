@@ -54,211 +54,2132 @@ static decl_node typeDes;
 static decl_node typeExp;
 static decl_node curmodule;
 static mcStack_stack stk;
+
+/*
+   CompilationUnit - returns TRUE if the input was correct enough to parse
+                     in future passes.
+*/
+
 unsigned int mcp3_CompilationUnit (void);
+
+/*
+   push -
+*/
+
 static decl_node push (decl_node n);
+
+/*
+   pop -
+*/
+
 static decl_node pop (void);
+
+/*
+   replace -
+*/
+
 static decl_node replace (decl_node n);
+
+/*
+   peep - returns the top node on the stack without removing it.
+*/
+
 static decl_node peep (void);
+
+/*
+   depth - returns the depth of the stack.
+*/
+
 static unsigned int depth (void);
+
+/*
+   checkDuplicate -
+*/
+
 static void checkDuplicate (unsigned int b);
+
+/*
+   checkDuplicate -
+*/
+
 static void ErrorString (DynamicStrings_String s);
+
+/*
+   checkDuplicate -
+*/
+
 static void ErrorArray (char *a_, unsigned int _a_high);
+
+/*
+   pushNunbounded -
+*/
+
 static void pushNunbounded (unsigned int c);
+
+/*
+   makeIndexedArray - builds and returns an array of type, t, with, c, indices.
+*/
+
 static decl_node makeIndexedArray (unsigned int c, decl_node t);
+
+/*
+   importInto - from, m, import, name, into module, current.
+                It checks to see if curident is an enumeration type
+                and if so automatically includes all enumeration fields
+                as well.
+*/
+
 static void importInto (decl_node m, nameKey_Name name, decl_node current);
+
+/*
+   checkEndName - if module does not have, name, then issue an error containing, desc.
+*/
+
 static void checkEndName (decl_node module, nameKey_Name name, char *desc_, unsigned int _desc_high);
+
+/*
+   DescribeStop - issues a message explaining what tokens were expected
+*/
+
 static DynamicStrings_String DescribeStop (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   DescribeError - issues a message explaining what tokens were expected
+*/
+
 static void DescribeError (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   SyntaxError - after a syntax error we skip all tokens up until we reach
+                 a stop symbol.
+*/
+
 static void SyntaxError (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   SyntaxCheck -
+*/
+
 static void SyntaxCheck (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   WarnMissingToken - generates a warning message about a missing token, t.
+*/
+
 static void WarnMissingToken (mcReserved_toktype t);
+
+/*
+   MissingToken - generates a warning message about a missing token, t.
+*/
+
 static void MissingToken (mcReserved_toktype t);
+
+/*
+   CheckAndInsert -
+*/
+
 static unsigned int CheckAndInsert (mcReserved_toktype t, SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   InStopSet
+*/
+
 static unsigned int InStopSet (mcReserved_toktype t, SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   PeepToken - peep token checks to see whether the stopset is satisfied by currenttoken
+               If it is not then it will insert a token providing the token
+               is one of ; ] ) } . OF END ,
+
+               if the stopset contains <identtok> then we do not insert a token
+*/
+
 static void PeepToken (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Expect -
+*/
+
 static void Expect (mcReserved_toktype t, SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Ident - error checking varient of Ident
+*/
+
 static void Ident (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   string -
+*/
+
 static void string (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Integer -
+*/
+
 static void Integer (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Real -
+*/
+
 static void Real (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   FileUnit := DefinitionModule  | ImplementationOrProgramModule 
+
+   first  symbols:implementationtok, moduletok, definitiontok
+   
+   cannot reachend
+*/
+
 static void FileUnit (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ProgramModule := 'MODULE' Ident 
+                    % curmodule := lookupModule (curident)  %
+                    
+                    % enterScope (curmodule)  %
+                    
+                    % resetEnumPos (curmodule)  %
+                    [ Priority  ] ';' { Import  } Block Ident 
+                    
+                    % checkEndName (curmodule, curident, 'program module')  %
+                    
+                    % setConstExpComplete (curmodule)  %
+                    
+                    % leaveScope  %
+                    '.' 
+
+   first  symbols:moduletok
+   
+   cannot reachend
+*/
+
 static void ProgramModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ImplementationModule := 'IMPLEMENTATION' 'MODULE' Ident 
+                           % curmodule := lookupImp (curident)  %
+                           
+                           % enterScope (lookupDef (curident))  %
+                           
+                           % enterScope (curmodule)  %
+                           
+                           % resetEnumPos (curmodule)  %
+                           [ Priority  ] ';' { Import  } Block 
+                           Ident 
+                           % checkEndName (curmodule, curident, 'implementation module')  %
+                           
+                           % setConstExpComplete (curmodule)  %
+                           
+                           % leaveScope ; leaveScope  %
+                           '.' 
+
+   first  symbols:implementationtok
+   
+   cannot reachend
+*/
+
 static void ImplementationModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ImplementationOrProgramModule := ImplementationModule  | 
+                                    ProgramModule 
+
+   first  symbols:moduletok, implementationtok
+   
+   cannot reachend
+*/
+
 static void ImplementationOrProgramModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Number := Integer  | Real 
+
+   first  symbols:realtok, integertok
+   
+   cannot reachend
+*/
+
 static void Number (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Qualident := Ident { '.' Ident  } 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void Qualident (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ConstantDeclaration := 
+                          % VAR d, e: node ;  %
+                          Ident 
+                          % d := lookupSym (curident)  %
+                          '=' ConstExpression 
+                          % e := pop ()  %
+                          
+                          % assert (isConst (d))  %
+                          
+                          % putConst (d, e)  %
+                          
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void ConstantDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ConstExpressionNop := SimpleConstExpr 
+                         % VAR n: node ;  %
+                         [ Relation SimpleConstExpr  ] 
+                         % n := makeConstExp ()  %
+                         
+
+   first  symbols:attributetok, identtok, lcbratok, stringtok, nottok, lparatok, integertok, realtok, minustok, plustok
+   
+   cannot reachend
+*/
+
 static void ConstExpressionNop (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ConstExpression := 
+                      % VAR n: node ;  %
+                      
+                      % n := push (makeConstExp ())  %
+                      SimpleConstExpr [ Relation SimpleConstExpr  ] 
+
+   first  symbols:attributetok, identtok, lcbratok, stringtok, nottok, lparatok, integertok, realtok, minustok, plustok
+   
+   cannot reachend
+*/
+
 static void ConstExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Relation := '='  | '#'  | '<>'  | '<'  | '<='  | '>'  | 
+               '>='  | 'IN' 
+
+   first  symbols:intok, greaterequaltok, greatertok, lessequaltok, lesstok, lessgreatertok, hashtok, equaltok
+   
+   cannot reachend
+*/
+
 static void Relation (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   SimpleConstExpr := UnaryOrConstTerm { AddOperator ConstTerm  } 
+
+   first  symbols:stringtok, lcbratok, identtok, attributetok, realtok, integertok, lparatok, nottok, plustok, minustok
+   
+   cannot reachend
+*/
+
 static void SimpleConstExpr (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   UnaryOrConstTerm := '+' ConstTerm  | '-' ConstTerm  | 
+                       ConstTerm 
+
+   first  symbols:attributetok, identtok, lcbratok, stringtok, nottok, lparatok, integertok, realtok, minustok, plustok
+   
+   cannot reachend
+*/
+
 static void UnaryOrConstTerm (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   AddOperator := '+'  | '-'  | 'OR' 
+
+   first  symbols:ortok, minustok, plustok
+   
+   cannot reachend
+*/
+
 static void AddOperator (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ConstTerm := ConstFactor { MulOperator ConstFactor  } 
+
+   first  symbols:stringtok, lcbratok, identtok, attributetok, realtok, integertok, lparatok, nottok
+   
+   cannot reachend
+*/
+
 static void ConstTerm (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   MulOperator := '*'  | '/'  | 'DIV'  | 'MOD'  | 'REM'  | 
+                  'AND'  | '&' 
+
+   first  symbols:ambersandtok, andtok, remtok, modtok, divtok, dividetok, timestok
+   
+   cannot reachend
+*/
+
 static void MulOperator (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ConstFactor := Number  | ConstString  | ConstSetOrQualidentOrFunction  | 
+                  '(' ConstExpressionNop ')'  | 
+                  'NOT' ConstFactor  | ConstAttribute 
+
+   first  symbols:attributetok, identtok, lcbratok, stringtok, nottok, lparatok, integertok, realtok
+   
+   cannot reachend
+*/
+
 static void ConstFactor (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ConstString := string 
+
+   first  symbols:stringtok
+   
+   cannot reachend
+*/
+
 static void ConstString (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ComponentElement := ConstExpressionNop [ '..' ConstExpressionNop  ] 
+
+   first  symbols:stringtok, lcbratok, identtok, attributetok, realtok, integertok, lparatok, nottok, plustok, minustok
+   
+   cannot reachend
+*/
+
 static void ComponentElement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ComponentValue := ComponentElement [ 'BY' ConstExpressionNop  ] 
+
+   first  symbols:attributetok, identtok, lcbratok, stringtok, nottok, lparatok, integertok, realtok, minustok, plustok
+   
+   cannot reachend
+*/
+
 static void ComponentValue (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ArraySetRecordValue := ComponentValue { ',' ComponentValue  } 
+
+   first  symbols:stringtok, lcbratok, identtok, attributetok, realtok, integertok, lparatok, nottok, plustok, minustok
+   
+   cannot reachend
+*/
+
 static void ArraySetRecordValue (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Constructor := '{' [ ArraySetRecordValue  ] '}' 
+
+   first  symbols:lcbratok
+   
+   cannot reachend
+*/
+
 static void Constructor (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ConstSetOrQualidentOrFunction := Qualident [ Constructor  | 
+                                                ConstActualParameters  ]  | 
+                                    Constructor 
+
+   first  symbols:lcbratok, identtok
+   
+   cannot reachend
+*/
+
 static void ConstSetOrQualidentOrFunction (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ConstActualParameters := '(' [ ConstExpList  ] ')' 
+
+   first  symbols:lparatok
+   
+   cannot reachend
+*/
+
 static void ConstActualParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ConstExpList := ConstExpressionNop { ',' ConstExpressionNop  } 
+
+   first  symbols:stringtok, lcbratok, identtok, attributetok, realtok, integertok, lparatok, nottok, plustok, minustok
+   
+   cannot reachend
+*/
+
 static void ConstExpList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ConstAttribute := '__ATTRIBUTE__' '__BUILTIN__' '(' '(' ConstAttributeExpression 
+                     ')' ')' 
+
+   first  symbols:attributetok
+   
+   cannot reachend
+*/
+
 static void ConstAttribute (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ConstAttributeExpression := Ident  | '<' Qualident ',' Ident 
+                               '>' 
+
+   first  symbols:lesstok, identtok
+   
+   cannot reachend
+*/
+
 static void ConstAttributeExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ByteAlignment := '' 
+
+   first  symbols:ldirectivetok
+   
+   cannot reachend
+*/
+
 static void ByteAlignment (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   OptAlignmentExpression := [ AlignmentExpression  ] 
+
+   first  symbols:lparatok
+   
+   reachend
+*/
+
 static void OptAlignmentExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   AlignmentExpression := '(' ConstExpressionNop ')' 
+
+   first  symbols:lparatok
+   
+   cannot reachend
+*/
+
 static void AlignmentExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Alignment := [ ByteAlignment  ] 
+
+   first  symbols:ldirectivetok
+   
+   reachend
+*/
+
 static void Alignment (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   IdentList := Ident { ',' Ident  } 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void IdentList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   PushIdentList := 
+                    % VAR n: node ;  %
+                    
+                    % n := makeIdentList ()  %
+                    Ident 
+                    % checkDuplicate (putIdent (n, curident))  %
+                    { ',' Ident 
+                      % checkDuplicate (putIdent (n, curident))  %
+                       } 
+                    % n := push (n)  %
+                    
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void PushIdentList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   SubrangeType := 
+                   % VAR low, high: node ; d: CARDINAL ;  %
+                   '[' 
+                   % d := depth ()  %
+                   ConstExpression 
+                   % low := pop ()  %
+                   
+                   % assert (d = depth ())  %
+                   '..' ConstExpression 
+                   % high := pop ()  %
+                   
+                   % assert (d = depth ())  %
+                   
+                   % typeExp := push (makeSubrange (low, high))  %
+                   
+                   % assert (d = depth () - 1)  %
+                   ']' 
+
+   first  symbols:lsbratok
+   
+   cannot reachend
+*/
+
 static void SubrangeType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ArrayType := 'ARRAY' 
+                % VAR c: CARDINAL ; t, n: node ;  %
+                
+                % c := 0  %
+                SimpleType 
+                % INC (c)  %
+                { ',' SimpleType 
+                  % INC (c)  %
+                   } 'OF' Type 
+                % n := push (makeIndexedArray (c, pop ()))  %
+                
+
+   first  symbols:arraytok
+   
+   cannot reachend
+*/
+
 static void ArrayType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   RecordType := 'RECORD' 
+                 % VAR n: node ;  %
+                 
+                 % n := push (makeRecord ())  %
+                 
+                 % n := push (NIL)     no varient   %
+                 [ DefaultRecordAttributes  ] FieldListSequence 
+                 
+                 % assert (pop ()=NIL)  %
+                 'END' 
+
+   first  symbols:recordtok
+   
+   cannot reachend
+*/
+
 static void RecordType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   DefaultRecordAttributes := '' 
+
+   first  symbols:ldirectivetok
+   
+   cannot reachend
+*/
+
 static void DefaultRecordAttributes (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   RecordFieldPragma := [ ''  ] 
+
+   first  symbols:ldirectivetok
+   
+   reachend
+*/
+
 static void RecordFieldPragma (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   FieldPragmaExpression := Ident PragmaConstExpression 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void FieldPragmaExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   PragmaConstExpression := [ '(' ConstExpressionNop ')'  ] 
+
+   first  symbols:lparatok
+   
+   reachend
+*/
+
 static void PragmaConstExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   AttributeExpression := Ident '(' ConstExpressionNop ')' 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void AttributeExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   FieldListSequence := FieldListStatement { ';' FieldListStatement  } 
+
+   first  symbols:casetok, identtok, semicolontok
+   
+   reachend
+*/
+
 static void FieldListSequence (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   FieldListStatement := [ FieldList  ] 
+
+   first  symbols:identtok, casetok
+   
+   reachend
+*/
+
 static void FieldListStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   FieldList := 
+                % VAR r, i, f, t, n, v, w: node ; d: CARDINAL ;  %
+                
+                % d := depth ()  %
+                
+                % v := pop () ; assert ((v=NIL) OR isVarient (v))  %
+                
+                % r := peep () ; assert (isRecord (r) OR isVarientField (r))  %
+                
+                % v := push (v)  %
+                
+                % assert (d=depth ())  %
+                
+                % assert (((v=NIL) AND isRecord (r)) OR ((v#NIL) AND isVarientField (r)))  %
+                PushIdentList ':' 
+                % assert (d=depth () - 1)  %
+                
+                % i := pop ()  %
+                Type 
+                % assert (d=depth () - 1)  %
+                
+                % t := pop ()  %
+                RecordFieldPragma 
+                % assert (d=depth ())  %
+                
+                % r := addFieldsToRecord (r, v, i, t)  %
+                
+                % assert (d=depth ())  %
+                 | 'CASE' 
+                %  addRecordToList   %
+                
+                % d := depth ()  %
+                
+                % v := pop () ; assert ((v=NIL) OR isVarient (v))  %
+                
+                % r := peep () ; assert (isRecord (r) OR isVarientField (r))  %
+                
+                % v := push (v)  %
+                
+                % assert (((v=NIL) AND isRecord (r)) OR ((v#NIL) AND isRecordField (r)))  %
+                
+                % w := push (makeVarient (r))  %
+                
+                % assert (d = depth () - 1)  %
+                
+                %  addVarientToList   %
+                CaseTag 'OF' 
+                % assert (d = depth () - 1)  %
+                Varient 
+                % assert (d = depth () - 1)  %
+                { '|' Varient 
+                  % assert (d = depth () - 1)  %
+                   } 
+                % w := peep () ; assert (isVarient (w))  %
+                
+                % assert (d = depth () - 1)  %
+                [ 'ELSE' FieldListSequence  ] 'END' 
+                % w := pop () ; assert (isVarient (w))  %
+                
+                % assert (d=depth ())  %
+                
+
+   first  symbols:casetok, identtok
+   
+   cannot reachend
+*/
+
 static void FieldList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   TagIdent := Ident  | 
+               % curident := NulName  %
+               
+
+   first  symbols:identtok
+   
+   reachend
+*/
+
 static void TagIdent (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   CaseTag := 
+              % VAR tagident: Name ; q, v, w, r: node ;  %
+              
+              % w := pop () ; v := pop () ; r := peep () ; v := push (v) ; w := push (w)  %
+              
+              % assert (isVarient (w))  %
+              
+              % assert ((v=NIL) OR isVarient (v))  %
+              
+              % assert (isRecord (r) OR isVarientField (r))  %
+              
+              % assert (isVarient (push (pop ())))  %
+              TagIdent 
+              % tagident := curident  %
+              ( ':' PushQualident 
+                % q := pop ()  %
+                
+                % assert (isVarient (push (pop ())))  %
+                 | 
+                % q := NIL  %
+                 ) 
+              % buildVarientSelector (r, w, tagident, q)  %
+              
+
+   first  symbols:colontok, identtok
+   
+   reachend
+*/
+
 static void CaseTag (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Varient := 
+              % VAR p, r, v, f: node ; d: CARDINAL ;  %
+              
+              % d := depth ()  %
+              
+              % assert (isVarient (peep ()))  %
+              [ 
+                % v := pop () ; assert (isVarient (v))  %
+                
+                % r := pop ()  %
+                
+                % p := peep ()  %
+                
+                % r := push (r)  %
+                
+                % f := push (buildVarientFieldRecord (v, p))  %
+                
+                % v := push (v)  %
+                VarientCaseLabelList ':' FieldListSequence 
+                % v := pop ()  %
+                
+                % f := pop ()  %
+                
+                % assert (isVarientField (f))  %
+                
+                % assert (isVarient (v))  %
+                
+                % v := push (v)  %
+                 ] 
+              % assert (isVarient (peep ()))  %
+              
+              % assert (d=depth ())  %
+              
+
+   first  symbols:stringtok, lcbratok, identtok, attributetok, realtok, integertok, lparatok, nottok, plustok, minustok
+   
+   reachend
+*/
+
 static void Varient (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   VarientCaseLabelList := VarientCaseLabels { ',' VarientCaseLabels  } 
+
+   first  symbols:attributetok, identtok, lcbratok, stringtok, nottok, lparatok, integertok, realtok, minustok, plustok
+   
+   cannot reachend
+*/
+
 static void VarientCaseLabelList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   VarientCaseLabels := 
+                        % VAR l, h: node ;  %
+                        
+                        % h := NIL  %
+                        ConstExpression 
+                        % l := pop ()  %
+                        [ '..' ConstExpression 
+                          % h := pop ()  %
+                           ] 
+                        %  l, h  could be saved if necessary.    %
+                        
+
+   first  symbols:stringtok, lcbratok, identtok, attributetok, realtok, integertok, lparatok, nottok, plustok, minustok
+   
+   cannot reachend
+*/
+
 static void VarientCaseLabels (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   SetType := ( 'SET'  | 'PACKEDSET'  ) 'OF' SimpleType 
+              % VAR n: node ;  %
+              
+              % n := push (makeSet (pop ()))  %
+              
+
+   first  symbols:oftok, packedsettok, settok
+   
+   cannot reachend
+*/
+
 static void SetType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   PointerType := 'POINTER' 'TO' Type 
+                  % VAR n: node ;  %
+                  
+                  % n := push (makePointer (pop ()))  %
+                  
+
+   first  symbols:pointertok
+   
+   cannot reachend
+*/
+
 static void PointerType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ProcedureType := 'PROCEDURE' 
+                    % curproc := push (makeProcType ())  %
+                    [ FormalTypeList  ] 
+
+   first  symbols:proceduretok
+   
+   cannot reachend
+*/
+
 static void ProcedureType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   FormalTypeList := '(' ( ')' FormalReturn  | 
+                           ProcedureParameters ')' FormalReturn  ) 
+
+   first  symbols:lparatok
+   
+   cannot reachend
+*/
+
 static void FormalTypeList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   FormalReturn := [ ':' OptReturnType  ] 
+
+   first  symbols:colontok
+   
+   reachend
+*/
+
 static void FormalReturn (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   OptReturnType := '[' PushQualident 
+                    % putReturnType (curproc, pop ())  %
+                    
+                    % putOptReturn (curproc)  %
+                    ']'  | PushQualident 
+                    % putReturnType (curproc, pop ())  %
+                    
+
+   first  symbols:identtok, lsbratok
+   
+   cannot reachend
+*/
+
 static void OptReturnType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ProcedureParameters := ProcedureParameter 
+                          % addParameter (curproc, pop ())  %
+                          { ',' ProcedureParameter 
+                            % addParameter (curproc, pop ())  %
+                             } 
+
+   first  symbols:identtok, arraytok, periodperiodperiodtok, vartok
+   
+   cannot reachend
+*/
+
 static void ProcedureParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ProcedureParameter := '...' 
+                         % VAR n: node ;  %
+                         
+                         % n := push (makeVarargs ())  %
+                          | 'VAR' FormalType 
+                         % n := push (makeVarParameter (NIL, pop (), curproc))  %
+                          | FormalType 
+                         % n := push (makeNonVarParameter (NIL, pop (), curproc))  %
+                         
+
+   first  symbols:identtok, arraytok, vartok, periodperiodperiodtok
+   
+   cannot reachend
+*/
+
 static void ProcedureParameter (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   VarIdent := 
+               % VAR n, a: node ;  %
+               
+               % n := pop ()  %
+               Ident 
+               % checkDuplicate (putIdent (n, curident))  %
+               
+               % n := push (n)  %
+               [ '[' ConstExpression 
+                 % a := pop ()   could store, a, into, n.    %
+                 ']'  ] 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void VarIdent (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   VarIdentList := 
+                   % VAR n: node ;  %
+                   
+                   % n := makeIdentList ()  %
+                   
+                   % n := push (n)  %
+                   VarIdent { ',' VarIdent  } 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void VarIdentList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   VariableDeclaration := 
+                          % VAR v, d: node ;  %
+                          VarIdentList 
+                          % v := pop ()  %
+                          ':' Type 
+                          % d := makeVarDecl (v, pop ())  %
+                          Alignment 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void VariableDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Designator := Qualident { SubDesignator  } 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void Designator (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   SubDesignator := '.' Ident  | '[' ArrayExpList ']'  | 
+                    '^' 
+
+   first  symbols:uparrowtok, lsbratok, periodtok
+   
+   cannot reachend
+*/
+
 static void SubDesignator (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ArrayExpList := Expression { ',' Expression  } 
+
+   first  symbols:lcbratok, identtok, realtok, integertok, stringtok, lparatok, nottok, plustok, minustok
+   
+   cannot reachend
+*/
+
 static void ArrayExpList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ExpList := Expression { ',' Expression  } 
+
+   first  symbols:lcbratok, identtok, realtok, integertok, stringtok, lparatok, nottok, plustok, minustok
+   
+   cannot reachend
+*/
+
 static void ExpList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Expression := SimpleExpression [ Relation SimpleExpression  ] 
+
+   first  symbols:identtok, lcbratok, nottok, lparatok, stringtok, integertok, realtok, minustok, plustok
+   
+   cannot reachend
+*/
+
 static void Expression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   SimpleExpression := UnaryOrTerm { AddOperator Term  } 
+
+   first  symbols:lcbratok, identtok, realtok, integertok, stringtok, lparatok, nottok, plustok, minustok
+   
+   cannot reachend
+*/
+
 static void SimpleExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   UnaryOrTerm := '+' Term  | '-' Term  | Term 
+
+   first  symbols:identtok, lcbratok, nottok, lparatok, stringtok, integertok, realtok, minustok, plustok
+   
+   cannot reachend
+*/
+
 static void UnaryOrTerm (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Term := Factor { MulOperator Factor  } 
+
+   first  symbols:lcbratok, identtok, realtok, integertok, stringtok, lparatok, nottok
+   
+   cannot reachend
+*/
+
 static void Term (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Factor := Number  | string  | SetOrDesignatorOrFunction  | 
+             '(' Expression ')'  | 'NOT' ( Factor  | ConstAttribute  ) 
+
+   first  symbols:identtok, lcbratok, nottok, lparatok, stringtok, integertok, realtok
+   
+   cannot reachend
+*/
+
 static void Factor (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   SetOrDesignatorOrFunction := Qualident [ Constructor  | 
+                                            SimpleDes [ ActualParameters  ]  ]  | 
+                                Constructor 
+
+   first  symbols:lcbratok, identtok
+   
+   cannot reachend
+*/
+
 static void SetOrDesignatorOrFunction (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   SimpleDes := { SubDesignator  } 
+
+   first  symbols:periodtok, lsbratok, uparrowtok
+   
+   reachend
+*/
+
 static void SimpleDes (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ActualParameters := '(' [ ExpList  ] ')' 
+
+   first  symbols:lparatok
+   
+   cannot reachend
+*/
+
 static void ActualParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ExitStatement := 'EXIT' 
+
+   first  symbols:exittok
+   
+   cannot reachend
+*/
+
 static void ExitStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ReturnStatement := 'RETURN' [ Expression  ] 
+
+   first  symbols:returntok
+   
+   cannot reachend
+*/
+
 static void ReturnStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Statement := [ AssignmentOrProcedureCall  | 
+                  IfStatement  | CaseStatement  | 
+                  WhileStatement  | RepeatStatement  | 
+                  LoopStatement  | ForStatement  | 
+                  WithStatement  | AsmStatement  | 
+                  ExitStatement  | ReturnStatement  | 
+                  RetryStatement  ] 
+
+   first  symbols:retrytok, asmtok, withtok, fortok, looptok, repeattok, whiletok, casetok, iftok, identtok, returntok, exittok
+   
+   reachend
+*/
+
 static void Statement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   RetryStatement := 'RETRY' 
+
+   first  symbols:retrytok
+   
+   cannot reachend
+*/
+
 static void RetryStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   AssignmentOrProcedureCall := Designator ( ':=' Expression  | 
+                                             ActualParameters  | 
+                                             
+                                             %  epsilon   %
+                                              ) 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void AssignmentOrProcedureCall (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   StatementSequence := Statement { ';' Statement  } 
+
+   first  symbols:identtok, iftok, casetok, whiletok, repeattok, looptok, fortok, withtok, asmtok, retrytok, semicolontok, exittok, returntok
+   
+   reachend
+*/
+
 static void StatementSequence (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   IfStatement := 'IF' Expression 'THEN' StatementSequence { 
+   'ELSIF' Expression 'THEN' StatementSequence  } [ 'ELSE' StatementSequence  ] 
+                  'END' 
+
+   first  symbols:iftok
+   
+   cannot reachend
+*/
+
 static void IfStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   CaseStatement := 'CASE' Expression 'OF' Case { '|' Case  } 
+                    CaseEndStatement 
+
+   first  symbols:casetok
+   
+   cannot reachend
+*/
+
 static void CaseStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   CaseEndStatement := 'END'  | 'ELSE' StatementSequence 'END' 
+
+   first  symbols:elsetok, endtok
+   
+   cannot reachend
+*/
+
 static void CaseEndStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Case := [ CaseLabelList ':' StatementSequence  ] 
+
+   first  symbols:stringtok, lcbratok, identtok, attributetok, realtok, integertok, lparatok, nottok, plustok, minustok
+   
+   reachend
+*/
+
 static void Case (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   CaseLabelList := CaseLabels { ',' CaseLabels  } 
+
+   first  symbols:attributetok, identtok, lcbratok, stringtok, nottok, lparatok, integertok, realtok, minustok, plustok
+   
+   cannot reachend
+*/
+
 static void CaseLabelList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   CaseLabels := ConstExpressionNop [ '..' ConstExpressionNop  ] 
+
+   first  symbols:stringtok, lcbratok, identtok, attributetok, realtok, integertok, lparatok, nottok, plustok, minustok
+   
+   cannot reachend
+*/
+
 static void CaseLabels (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   WhileStatement := 'WHILE' Expression 'DO' StatementSequence 
+                     'END' 
+
+   first  symbols:whiletok
+   
+   cannot reachend
+*/
+
 static void WhileStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   RepeatStatement := 'REPEAT' StatementSequence 'UNTIL' Expression 
+
+   first  symbols:repeattok
+   
+   cannot reachend
+*/
+
 static void RepeatStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ForStatement := 'FOR' Ident ':=' Expression 'TO' Expression 
+                   [ 'BY' ConstExpressionNop  ] 'DO' StatementSequence 
+                   'END' 
+
+   first  symbols:fortok
+   
+   cannot reachend
+*/
+
 static void ForStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   LoopStatement := 'LOOP' StatementSequence 'END' 
+
+   first  symbols:looptok
+   
+   cannot reachend
+*/
+
 static void LoopStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   WithStatement := 'WITH' Designator 'DO' StatementSequence 
+                    'END' 
+
+   first  symbols:withtok
+   
+   cannot reachend
+*/
+
 static void WithStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ProcedureDeclaration := ProcedureHeading ';' ProcedureBlock 
+                           Ident 
+                           % leaveScope  %
+                           
+
+   first  symbols:proceduretok
+   
+   cannot reachend
+*/
+
 static void ProcedureDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ProcedureIdent := Ident 
+                     % curproc := lookupSym (curident)  %
+                     
+                     % enterScope (curproc)  %
+                     
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void ProcedureIdent (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   DefProcedureIdent := Ident 
+                        % curproc := lookupSym (curident)  %
+                        
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void DefProcedureIdent (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   DefineBuiltinProcedure := [ '__ATTRIBUTE__' '__BUILTIN__' 
+                               '(' '(' Ident ')' ')'  | 
+                               '__INLINE__'  ] 
+
+   first  symbols:inlinetok, attributetok
+   
+   reachend
+*/
+
 static void DefineBuiltinProcedure (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ProcedureHeading := 'PROCEDURE' DefineBuiltinProcedure ( ProcedureIdent 
+                                                            [ 
+   FormalParameters  ]  ) 
+
+   first  symbols:proceduretok
+   
+   cannot reachend
+*/
+
 static void ProcedureHeading (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Builtin := [ '__BUILTIN__'  | '__INLINE__'  ] 
+
+   first  symbols:inlinetok, builtintok
+   
+   reachend
+*/
+
 static void Builtin (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   DefProcedureHeading := 'PROCEDURE' Builtin ( DefProcedureIdent 
+                                                [ DefFormalParameters  ]  ) 
+
+   first  symbols:proceduretok
+   
+   cannot reachend
+*/
+
 static void DefProcedureHeading (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ProcedureBlock := { Declaration  } [ 'BEGIN' ProcedureBlockBody  ] 
+                     'END' 
+
+   first  symbols:proceduretok, moduletok, consttok, typetok, vartok, endtok, begintok
+   
+   cannot reachend
+*/
+
 static void ProcedureBlock (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Block := { Declaration  } InitialBlock FinalBlock 'END' 
+
+   first  symbols:proceduretok, moduletok, finallytok, begintok, consttok, typetok, vartok, endtok
+   
+   cannot reachend
+*/
+
 static void Block (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   InitialBlock := [ 'BEGIN' InitialBlockBody  ] 
+
+   first  symbols:begintok
+   
+   reachend
+*/
+
 static void InitialBlock (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   FinalBlock := [ 'FINALLY' FinalBlockBody  ] 
+
+   first  symbols:finallytok
+   
+   reachend
+*/
+
 static void FinalBlock (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   InitialBlockBody := NormalPart [ 'EXCEPT' ExceptionalPart  ] 
+
+   first  symbols:identtok, iftok, casetok, whiletok, repeattok, looptok, fortok, withtok, asmtok, retrytok, semicolontok, exittok, returntok, excepttok
+   
+   reachend
+*/
+
 static void InitialBlockBody (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   FinalBlockBody := NormalPart [ 'EXCEPT' ExceptionalPart  ] 
+
+   first  symbols:identtok, iftok, casetok, whiletok, repeattok, looptok, fortok, withtok, asmtok, retrytok, semicolontok, exittok, returntok, excepttok
+   
+   reachend
+*/
+
 static void FinalBlockBody (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ProcedureBlockBody := NormalPart [ 'EXCEPT' ExceptionalPart  ] 
+
+   first  symbols:identtok, iftok, casetok, whiletok, repeattok, looptok, fortok, withtok, asmtok, retrytok, semicolontok, exittok, returntok, excepttok
+   
+   reachend
+*/
+
 static void ProcedureBlockBody (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   NormalPart := StatementSequence 
+
+   first  symbols:retrytok, asmtok, withtok, fortok, looptok, repeattok, whiletok, casetok, iftok, identtok, returntok, exittok, semicolontok
+   
+   reachend
+*/
+
 static void NormalPart (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ExceptionalPart := StatementSequence 
+
+   first  symbols:retrytok, asmtok, withtok, fortok, looptok, repeattok, whiletok, casetok, iftok, identtok, returntok, exittok, semicolontok
+   
+   reachend
+*/
+
 static void ExceptionalPart (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Declaration := 'CONST' { ConstantDeclaration ';'  }  | 
+                  'TYPE' { TypeDeclaration  }  | 
+                  'VAR' { VariableDeclaration ';'  }  | 
+                  ProcedureDeclaration ';'  | 
+                  ModuleDeclaration ';' 
+
+   first  symbols:moduletok, proceduretok, vartok, typetok, consttok
+   
+   cannot reachend
+*/
+
 static void Declaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   DefFormalParameters := '(' 
+                          % paramEnter (curproc)  %
+                          [ DefMultiFPSection  ] ')' 
+                          % paramLeave (curproc)  %
+                          FormalReturn 
+
+   first  symbols:lparatok
+   
+   cannot reachend
+*/
+
 static void DefFormalParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   DefMultiFPSection := DefExtendedFP  | FPSection [ ';' DefMultiFPSection  ] 
+
+   first  symbols:identtok, vartok, lsbratok, periodperiodperiodtok
+   
+   cannot reachend
+*/
+
 static void DefMultiFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   FormalParameters := '(' 
+                       % paramEnter (curproc)  %
+                       [ MultiFPSection  ] ')' 
+                       % paramLeave (curproc)  %
+                       FormalReturn 
+
+   first  symbols:lparatok
+   
+   cannot reachend
+*/
+
 static void FormalParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   MultiFPSection := ExtendedFP  | FPSection [ ';' MultiFPSection  ] 
+
+   first  symbols:identtok, vartok, lsbratok, periodperiodperiodtok
+   
+   cannot reachend
+*/
+
 static void MultiFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   FPSection := NonVarFPSection  | VarFPSection 
+
+   first  symbols:vartok, identtok
+   
+   cannot reachend
+*/
+
 static void FPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   DefExtendedFP := DefOptArg  | '...' 
+                    % addParameter (curproc, makeVarargs ())  %
+                    
+
+   first  symbols:lsbratok, periodperiodperiodtok
+   
+   cannot reachend
+*/
+
 static void DefExtendedFP (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ExtendedFP := OptArg  | '...' 
+
+   first  symbols:lsbratok, periodperiodperiodtok
+   
+   cannot reachend
+*/
+
 static void ExtendedFP (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   VarFPSection := 'VAR' PushIdentList 
+                   % VAR l, t: node ;  %
+                   ':' FormalType 
+                   % t := pop ()  %
+                   
+                   % l := pop ()  %
+                   
+                   % addVarParameters (curproc, l, t)  %
+                   
+
+   first  symbols:vartok
+   
+   cannot reachend
+*/
+
 static void VarFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   NonVarFPSection := PushIdentList 
+                      % VAR l, t: node ;  %
+                      ':' FormalType 
+                      % t := pop ()  %
+                      
+                      % l := pop ()  %
+                      
+                      % addNonVarParameters (curproc, l, t)  %
+                      
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void NonVarFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   OptArg := 
+             % VAR p, init, type: node ; id: Name ;  %
+             '[' Ident 
+             % id := curident  %
+             ':' FormalType 
+             % type := pop ()  %
+             
+             % init := NIL  %
+             [ '=' ConstExpression 
+               % init := pop ()  %
+                ] ']' 
+             % p := addOptParameter (curproc, id, type, init)  %
+             
+
+   first  symbols:lsbratok
+   
+   cannot reachend
+*/
+
 static void OptArg (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   DefOptArg := 
+                % VAR p, init, type: node ; id: Name ;  %
+                '[' Ident 
+                % id := curident  %
+                ':' FormalType 
+                % type := pop ()  %
+                '=' ConstExpression 
+                % init := pop ()  %
+                ']' 
+                % p := addOptParameter (curproc, id, type, init)  %
+                
+
+   first  symbols:lsbratok
+   
+   cannot reachend
+*/
+
 static void DefOptArg (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   FormalType := 
+                 % VAR c: CARDINAL ;  %
+                 
+                 % VAR n, a, s: node ;  %
+                 
+                 % c := 0  %
+                 { 'ARRAY' 'OF' 
+                   % INC (c)  %
+                    } PushQualident 
+                 % pushNunbounded (c)  %
+                 
+
+   first  symbols:identtok, arraytok
+   
+   cannot reachend
+*/
+
 static void FormalType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ModuleDeclaration := 'MODULE' Ident [ Priority  ] ';' { Import  } 
+                        [ Export  ] Block Ident 
+
+   first  symbols:moduletok
+   
+   cannot reachend
+*/
+
 static void ModuleDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Priority := '[' ConstExpressionNop ']' 
+
+   first  symbols:lsbratok
+   
+   cannot reachend
+*/
+
 static void Priority (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Export := 'EXPORT' ( 'QUALIFIED' IdentList  | 
+                        'UNQUALIFIED' IdentList  | 
+                        IdentList  ) ';' 
+
+   first  symbols:exporttok
+   
+   cannot reachend
+*/
+
 static void Export (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   FromIdentList := Ident 
+                    % importInto (frommodule, curident, curmodule)  %
+                    { ',' Ident 
+                      % importInto (frommodule, curident, curmodule)  %
+                       } 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void FromIdentList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   FromImport := 'FROM' Ident 
+                 % frommodule := lookupDef (curident)  %
+                 'IMPORT' FromIdentList ';' 
+
+   first  symbols:fromtok
+   
+   cannot reachend
+*/
+
 static void FromImport (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   ImportModuleList := Ident { ',' Ident  } 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void ImportModuleList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   WithoutFromImport := 'IMPORT' ImportModuleList ';' 
+
+   first  symbols:importtok
+   
+   cannot reachend
+*/
+
 static void WithoutFromImport (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Import := FromImport  | WithoutFromImport 
+
+   first  symbols:importtok, fromtok
+   
+   cannot reachend
+*/
+
 static void Import (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   DefinitionModule := 'DEFINITION' 'MODULE' [ 'FOR' string  ] 
+                       Ident ';' 
+                       % curmodule := lookupDef (curident)  %
+                       
+                       % enterScope (curmodule)  %
+                       
+                       % resetEnumPos (curmodule)  %
+                       { Import  } [ Export  ] { Definition  } 
+                       'END' Ident '.' 
+                       % checkEndName (curmodule, curident, 'definition module')  %
+                       
+                       % setConstExpComplete (curmodule)  %
+                       
+                       % leaveScope  %
+                       
+
+   first  symbols:definitiontok
+   
+   cannot reachend
+*/
+
 static void DefinitionModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   PushQualident := Ident 
+                    % typeExp := push (lookupSym (curident))  %
+                    
+                    % IF typeExp = NIL
+                                    THEN
+                                       metaError1 ('the symbol {%1k} is not visible in this scope (or any other nested scope)', curident)
+                                    END  %
+                    [ '.' 
+                      % IF NOT isDef (typeExp)
+                                      THEN
+                        									    ErrorArray ('the first component of this qualident must be a definition module')
+                                      END  %
+                      Ident 
+                      % typeExp := replace (lookupInScope (typeExp, curident)) ;
+                        			                                                 IF typeExp=NIL
+                                      THEN
+                                         ErrorArray ('identifier not found in definition module')
+                                      END  %
+                       ] 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void PushQualident (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   OptSubrange := [ SubrangeType 
+                    % VAR q, s: node ;  %
+                    
+                    % s := pop ()  %
+                    
+                    % q := pop ()  %
+                    
+                    % putSubrangeType (s, q)  %
+                    
+                    % typeExp := push (s)  %
+                     ] 
+
+   first  symbols:lsbratok
+   
+   reachend
+*/
+
 static void OptSubrange (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   TypeEquiv := PushQualident OptSubrange 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void TypeEquiv (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   EnumIdentList := 
+                    % VAR f: node ;  %
+                    
+                    % typeExp := push (makeEnum ())  %
+                    Ident 
+                    % f := makeEnumField (typeExp, curident)  %
+                    { ',' Ident 
+                      % f := makeEnumField (typeExp, curident)  %
+                       } 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void EnumIdentList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Enumeration := '(' EnumIdentList ')' 
+
+   first  symbols:lparatok
+   
+   cannot reachend
+*/
+
 static void Enumeration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   SimpleType := 
+                 % VAR d: CARDINAL ;  %
+                 
+                 % d := depth ()  %
+                 ( TypeEquiv  | Enumeration  | SubrangeType  ) 
+                 
+                 % assert (d = depth () - 1)  %
+                 
+
+   first  symbols:lsbratok, lparatok, identtok
+   
+   cannot reachend
+*/
+
 static void SimpleType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Type := SimpleType  | ArrayType  | RecordType  | 
+           SetType  | PointerType  | ProcedureType 
+
+   first  symbols:proceduretok, pointertok, settok, packedsettok, oftok, recordtok, arraytok, identtok, lparatok, lsbratok
+   
+   cannot reachend
+*/
+
 static void Type (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   TypeDeclaration := { Ident 
+                        % typeDes := lookupSym (curident)  %
+                        ( ';'  | '=' Type 
+                          % putType (typeDes, pop ())  %
+                          Alignment ';'  )  } 
+
+   first  symbols:identtok
+   
+   reachend
+*/
+
 static void TypeDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   Definition := 'CONST' { ConstantDeclaration ';'  }  | 
+                 'TYPE' { TypeDeclaration  }  | 
+                 'VAR' { VariableDeclaration ';'  }  | 
+                 DefProcedureHeading ';' 
+
+   first  symbols:proceduretok, vartok, typetok, consttok
+   
+   cannot reachend
+*/
+
 static void Definition (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   AsmStatement := 'ASM' [ 'VOLATILE'  ] '(' AsmOperands ')' 
+
+   first  symbols:asmtok
+   
+   cannot reachend
+*/
+
 static void AsmStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   AsmOperands := string [ AsmOperandSpec  ] 
+
+   first  symbols:stringtok
+   
+   cannot reachend
+*/
+
 static void AsmOperands (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   AsmOperandSpec := [ ':' AsmList [ ':' AsmList [ ':' TrashList  ]  ]  ] 
+
+   first  symbols:colontok
+   
+   reachend
+*/
+
 static void AsmOperandSpec (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   AsmList := [ AsmElement  ] { ',' AsmElement  } 
+
+   first  symbols:lsbratok, stringtok, commatok
+   
+   reachend
+*/
+
 static void AsmList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   NamedOperand := '[' Ident ']' 
+
+   first  symbols:lsbratok
+   
+   cannot reachend
+*/
+
 static void NamedOperand (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   AsmOperandName := [ NamedOperand  ] 
+
+   first  symbols:lsbratok
+   
+   reachend
+*/
+
 static void AsmOperandName (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   AsmElement := AsmOperandName string '(' Expression ')' 
+
+   first  symbols:stringtok, lsbratok
+   
+   cannot reachend
+*/
+
 static void AsmElement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+/*
+   TrashList := [ string  ] { ',' string  } 
+
+   first  symbols:commatok, stringtok
+   
+   reachend
+*/
+
 static void TrashList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2);
+
+
+/*
+   push -
+*/
 
 static decl_node push (decl_node n)
 {
   return mcStack_push (stk, (void *) n);
 }
 
+
+/*
+   pop -
+*/
+
 static decl_node pop (void)
 {
   return mcStack_pop (stk);
 }
+
+
+/*
+   replace -
+*/
 
 static decl_node replace (decl_node n)
 {
   return mcStack_replace (stk, (void *) n);
 }
 
+
+/*
+   peep - returns the top node on the stack without removing it.
+*/
+
 static decl_node peep (void)
 {
   return push (pop ());
 }
+
+
+/*
+   depth - returns the depth of the stack.
+*/
 
 static unsigned int depth (void)
 {
   return mcStack_depth (stk);
 }
 
+
+/*
+   checkDuplicate -
+*/
+
 static void checkDuplicate (unsigned int b)
 {
 }
+
+
+/*
+   checkDuplicate -
+*/
 
 static void ErrorString (DynamicStrings_String s)
 {
   mcError_errorStringAt (s, mcLexBuf_getTokenNo ());
   WasNoError = FALSE;
 }
+
+
+/*
+   checkDuplicate -
+*/
 
 static void ErrorArray (char *a_, unsigned int _a_high)
 {
@@ -269,6 +2190,11 @@ static void ErrorArray (char *a_, unsigned int _a_high)
 
   ErrorString (DynamicStrings_InitString ((char *) a, _a_high));
 }
+
+
+/*
+   pushNunbounded -
+*/
 
 static void pushNunbounded (unsigned int c)
 {
@@ -288,6 +2214,11 @@ static void pushNunbounded (unsigned int c)
     }
 }
 
+
+/*
+   makeIndexedArray - builds and returns an array of type, t, with, c, indices.
+*/
+
 static decl_node makeIndexedArray (unsigned int c, decl_node t)
 {
   decl_node i;
@@ -299,6 +2230,14 @@ static decl_node makeIndexedArray (unsigned int c, decl_node t)
     }
   return t;
 }
+
+
+/*
+   importInto - from, m, import, name, into module, current.
+                It checks to see if curident is an enumeration type
+                and if so automatically includes all enumeration fields
+                as well.
+*/
 
 static void importInto (decl_node m, nameKey_Name name, decl_node current)
 {
@@ -318,6 +2257,11 @@ static void importInto (decl_node m, nameKey_Name name, decl_node current)
     }
 }
 
+
+/*
+   checkEndName - if module does not have, name, then issue an error containing, desc.
+*/
+
 static void checkEndName (decl_node module, nameKey_Name name, char *desc_, unsigned int _desc_high)
 {
   DynamicStrings_String s;
@@ -333,6 +2277,11 @@ static void checkEndName (decl_node module, nameKey_Name name, char *desc_, unsi
       ErrorString (s);
     }
 }
+
+
+/*
+   DescribeStop - issues a message explaining what tokens were expected
+*/
 
 static DynamicStrings_String DescribeStop (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -804,6 +2753,11 @@ static DynamicStrings_String DescribeStop (SetOfStop0 stopset0, SetOfStop1 stops
   return str;
 }
 
+
+/*
+   DescribeError - issues a message explaining what tokens were expected
+*/
+
 static void DescribeError (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   DynamicStrings_String str;
@@ -1178,6 +3132,12 @@ static void DescribeError (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
   ErrorString (str);
 }
 
+
+/*
+   SyntaxError - after a syntax error we skip all tokens up until we reach
+                 a stop symbol.
+*/
+
 static void SyntaxError (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   DescribeError (stopset0, stopset1, stopset2);
@@ -1189,11 +3149,21 @@ static void SyntaxError (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
     mcPrintf_printf0 ((char *) " ***\\n", 6);
 }
 
+
+/*
+   SyntaxCheck -
+*/
+
 static void SyntaxCheck (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (! ((((((unsigned int) (mcLexBuf_currenttoken)) < 32) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & (stopset0)) != 0))) || (((((unsigned int) (mcLexBuf_currenttoken)) >= 32) && (((unsigned int) (mcLexBuf_currenttoken)) < 64)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & (stopset1)) != 0)))) || ((((unsigned int) (mcLexBuf_currenttoken)) >= 64) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & (stopset2)) != 0)))))
     SyntaxError (stopset0, stopset1, stopset2);
 }
+
+
+/*
+   WarnMissingToken - generates a warning message about a missing token, t.
+*/
 
 static void WarnMissingToken (mcReserved_toktype t)
 {
@@ -1216,6 +3186,11 @@ static void WarnMissingToken (mcReserved_toktype t)
   mcError_errorStringAt (str, mcLexBuf_getTokenNo ());
 }
 
+
+/*
+   MissingToken - generates a warning message about a missing token, t.
+*/
+
 static void MissingToken (mcReserved_toktype t)
 {
   WarnMissingToken (t);
@@ -1226,6 +3201,11 @@ static void MissingToken (mcReserved_toktype t)
       mcLexBuf_insertToken (t);
     }
 }
+
+
+/*
+   CheckAndInsert -
+*/
 
 static unsigned int CheckAndInsert (mcReserved_toktype t, SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1239,6 +3219,11 @@ static unsigned int CheckAndInsert (mcReserved_toktype t, SetOfStop0 stopset0, S
     return FALSE;
 }
 
+
+/*
+   InStopSet
+*/
+
 static unsigned int InStopSet (mcReserved_toktype t, SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if ((((((unsigned int) (t)) < 32) && ((((1 << (t-mcReserved_eoftok)) & (stopset0)) != 0))) || (((((unsigned int) (t)) >= 32) && (((unsigned int) (t)) < 64)) && ((((1 << (t-mcReserved_arraytok)) & (stopset1)) != 0)))) || ((((unsigned int) (t)) >= 64) && ((((1 << (t-mcReserved_recordtok)) & (stopset2)) != 0))))
@@ -1247,12 +3232,26 @@ static unsigned int InStopSet (mcReserved_toktype t, SetOfStop0 stopset0, SetOfS
     return FALSE;
 }
 
+
+/*
+   PeepToken - peep token checks to see whether the stopset is satisfied by currenttoken
+               If it is not then it will insert a token providing the token
+               is one of ; ] ) } . OF END ,
+
+               if the stopset contains <identtok> then we do not insert a token
+*/
+
 static void PeepToken (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if ((! ((((((unsigned int) (mcLexBuf_currenttoken)) < 32) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & (stopset0)) != 0))) || (((((unsigned int) (mcLexBuf_currenttoken)) >= 32) && (((unsigned int) (mcLexBuf_currenttoken)) < 64)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & (stopset1)) != 0)))) || ((((unsigned int) (mcLexBuf_currenttoken)) >= 64) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & (stopset2)) != 0))))) && (! (InStopSet ((mcReserved_toktype) mcReserved_identtok, stopset0, stopset1, stopset2))))
     if ((((((((CheckAndInsert ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1, stopset2)) || (CheckAndInsert ((mcReserved_toktype) mcReserved_rsbratok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_rcbratok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_periodtok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_oftok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_commatok, stopset0, stopset1, stopset2)))
       {}  /* empty.  */
 }
+
+
+/*
+   Expect -
+*/
 
 static void Expect (mcReserved_toktype t, SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1267,11 +3266,21 @@ static void Expect (mcReserved_toktype t, SetOfStop0 stopset0, SetOfStop1 stopse
   SyntaxCheck (stopset0, stopset1, stopset2);
 }
 
+
+/*
+   Ident - error checking varient of Ident
+*/
+
 static void Ident (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   curident = nameKey_makekey (mcLexBuf_currentstring);
   Expect ((mcReserved_toktype) mcReserved_identtok, stopset0, stopset1, stopset2);
 }
+
+
+/*
+   string -
+*/
 
 static void string (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1279,15 +3288,34 @@ static void string (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset
   Expect ((mcReserved_toktype) mcReserved_stringtok, stopset0, stopset1, stopset2);
 }
 
+
+/*
+   Integer -
+*/
+
 static void Integer (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_integertok, stopset0, stopset1, stopset2);
 }
 
+
+/*
+   Real -
+*/
+
 static void Real (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_realtok, stopset0, stopset1, stopset2);
 }
+
+
+/*
+   FileUnit := DefinitionModule  | ImplementationOrProgramModule 
+
+   first  symbols:implementationtok, moduletok, definitiontok
+   
+   cannot reachend
+*/
 
 static void FileUnit (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1298,6 +3326,28 @@ static void FileUnit (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stops
   else
     ErrorArray ((char *) "expecting one of: IMPLEMENTATION MODULE DEFINITION", 50);
 }
+
+
+/*
+   ProgramModule := 'MODULE' Ident 
+                    % curmodule := lookupModule (curident)  %
+                    
+                    % enterScope (curmodule)  %
+                    
+                    % resetEnumPos (curmodule)  %
+                    [ Priority  ] ';' { Import  } Block Ident 
+                    
+                    % checkEndName (curmodule, curident, 'program module')  %
+                    
+                    % setConstExpComplete (curmodule)  %
+                    
+                    % leaveScope  %
+                    '.' 
+
+   first  symbols:moduletok
+   
+   cannot reachend
+*/
 
 static void ProgramModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1318,6 +3368,30 @@ static void ProgramModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
   decl_leaveScope ();
   Expect ((mcReserved_toktype) mcReserved_periodtok, stopset0, stopset1, stopset2);
 }
+
+
+/*
+   ImplementationModule := 'IMPLEMENTATION' 'MODULE' Ident 
+                           % curmodule := lookupImp (curident)  %
+                           
+                           % enterScope (lookupDef (curident))  %
+                           
+                           % enterScope (curmodule)  %
+                           
+                           % resetEnumPos (curmodule)  %
+                           [ Priority  ] ';' { Import  } Block 
+                           Ident 
+                           % checkEndName (curmodule, curident, 'implementation module')  %
+                           
+                           % setConstExpComplete (curmodule)  %
+                           
+                           % leaveScope ; leaveScope  %
+                           '.' 
+
+   first  symbols:implementationtok
+   
+   cannot reachend
+*/
 
 static void ImplementationModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1342,6 +3416,16 @@ static void ImplementationModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetO
   Expect ((mcReserved_toktype) mcReserved_periodtok, stopset0, stopset1, stopset2);
 }
 
+
+/*
+   ImplementationOrProgramModule := ImplementationModule  | 
+                                    ProgramModule 
+
+   first  symbols:moduletok, implementationtok
+   
+   cannot reachend
+*/
+
 static void ImplementationOrProgramModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_implementationtok)
@@ -1351,6 +3435,15 @@ static void ImplementationOrProgramModule (SetOfStop0 stopset0, SetOfStop1 stops
   else
     ErrorArray ((char *) "expecting one of: MODULE IMPLEMENTATION", 39);
 }
+
+
+/*
+   Number := Integer  | Real 
+
+   first  symbols:realtok, integertok
+   
+   cannot reachend
+*/
 
 static void Number (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1362,6 +3455,15 @@ static void Number (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset
     ErrorArray ((char *) "expecting one of: real number integer number", 44);
 }
 
+
+/*
+   Qualident := Ident { '.' Ident  } 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void Qualident (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok))), stopset1, stopset2);
@@ -1371,6 +3473,25 @@ static void Qualident (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
       Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok))), stopset1, stopset2);
     }
 }
+
+
+/*
+   ConstantDeclaration := 
+                          % VAR d, e: node ;  %
+                          Ident 
+                          % d := lookupSym (curident)  %
+                          '=' ConstExpression 
+                          % e := pop ()  %
+                          
+                          % assert (isConst (d))  %
+                          
+                          % putConst (d, e)  %
+                          
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
 
 static void ConstantDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1386,6 +3507,19 @@ static void ConstantDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOf
   decl_putConst (d, e);
 }
 
+
+/*
+   ConstExpressionNop := SimpleConstExpr 
+                         % VAR n: node ;  %
+                         [ Relation SimpleConstExpr  ] 
+                         % n := makeConstExp ()  %
+                         
+
+   first  symbols:attributetok, identtok, lcbratok, stringtok, nottok, lparatok, integertok, realtok, minustok, plustok
+   
+   cannot reachend
+*/
+
 static void ConstExpressionNop (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   decl_node n;
@@ -1399,6 +3533,19 @@ static void ConstExpressionNop (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfS
   n = decl_makeConstExp ();
 }
 
+
+/*
+   ConstExpression := 
+                      % VAR n: node ;  %
+                      
+                      % n := push (makeConstExp ())  %
+                      SimpleConstExpr [ Relation SimpleConstExpr  ] 
+
+   first  symbols:attributetok, identtok, lcbratok, stringtok, nottok, lparatok, integertok, realtok, minustok, plustok
+   
+   cannot reachend
+*/
+
 static void ConstExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   decl_node n;
@@ -1411,6 +3558,16 @@ static void ConstExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop
       SimpleConstExpr (stopset0, stopset1, stopset2);
     }
 }
+
+
+/*
+   Relation := '='  | '#'  | '<>'  | '<'  | '<='  | '>'  | 
+               '>='  | 'IN' 
+
+   first  symbols:intok, greaterequaltok, greatertok, lessequaltok, lesstok, lessgreatertok, hashtok, equaltok
+   
+   cannot reachend
+*/
 
 static void Relation (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1434,6 +3591,15 @@ static void Relation (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stops
     ErrorArray ((char *) "expecting one of: IN >= > <= < <> # =", 37);
 }
 
+
+/*
+   SimpleConstExpr := UnaryOrConstTerm { AddOperator ConstTerm  } 
+
+   first  symbols:stringtok, lcbratok, identtok, attributetok, realtok, integertok, lparatok, nottok, plustok, minustok
+   
+   cannot reachend
+*/
+
 static void SimpleConstExpr (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   UnaryOrConstTerm (stopset0|(SetOfStop0) ((1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_ortok-mcReserved_arraytok))), stopset2);
@@ -1443,6 +3609,16 @@ static void SimpleConstExpr (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop
       ConstTerm (stopset0|(SetOfStop0) ((1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_minustok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_ortok-mcReserved_arraytok))), stopset2);
     }
 }
+
+
+/*
+   UnaryOrConstTerm := '+' ConstTerm  | '-' ConstTerm  | 
+                       ConstTerm 
+
+   first  symbols:attributetok, identtok, lcbratok, stringtok, nottok, lparatok, integertok, realtok, minustok, plustok
+   
+   cannot reachend
+*/
 
 static void UnaryOrConstTerm (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1462,6 +3638,15 @@ static void UnaryOrConstTerm (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
     ErrorArray ((char *) "expecting one of: NOT ( integer number real number __ATTRIBUTE__ identifier { string - +", 88);
 }
 
+
+/*
+   AddOperator := '+'  | '-'  | 'OR' 
+
+   first  symbols:ortok, minustok, plustok
+   
+   cannot reachend
+*/
+
 static void AddOperator (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_plustok)
@@ -1474,6 +3659,15 @@ static void AddOperator (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
     ErrorArray ((char *) "expecting one of: OR - +", 24);
 }
 
+
+/*
+   ConstTerm := ConstFactor { MulOperator ConstFactor  } 
+
+   first  symbols:stringtok, lcbratok, identtok, attributetok, realtok, integertok, lparatok, nottok
+   
+   cannot reachend
+*/
+
 static void ConstTerm (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   ConstFactor (stopset0|(SetOfStop0) ((1 << (mcReserved_ambersandtok-mcReserved_eoftok)) | (1 << (mcReserved_andtok-mcReserved_eoftok)) | (1 << (mcReserved_dividetok-mcReserved_eoftok)) | (1 << (mcReserved_timestok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_modtok-mcReserved_arraytok)) | (1 << (mcReserved_divtok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_remtok-mcReserved_recordtok))));
@@ -1483,6 +3677,16 @@ static void ConstTerm (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
       ConstFactor (stopset0|(SetOfStop0) ((1 << (mcReserved_timestok-mcReserved_eoftok)) | (1 << (mcReserved_dividetok-mcReserved_eoftok)) | (1 << (mcReserved_andtok-mcReserved_eoftok)) | (1 << (mcReserved_ambersandtok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_divtok-mcReserved_arraytok)) | (1 << (mcReserved_modtok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_remtok-mcReserved_recordtok))));
     }
 }
+
+
+/*
+   MulOperator := '*'  | '/'  | 'DIV'  | 'MOD'  | 'REM'  | 
+                  'AND'  | '&' 
+
+   first  symbols:ambersandtok, andtok, remtok, modtok, divtok, dividetok, timestok
+   
+   cannot reachend
+*/
 
 static void MulOperator (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1503,6 +3707,17 @@ static void MulOperator (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
   else
     ErrorArray ((char *) "expecting one of: & AND REM MOD DIV / *", 39);
 }
+
+
+/*
+   ConstFactor := Number  | ConstString  | ConstSetOrQualidentOrFunction  | 
+                  '(' ConstExpressionNop ')'  | 
+                  'NOT' ConstFactor  | ConstAttribute 
+
+   first  symbols:attributetok, identtok, lcbratok, stringtok, nottok, lparatok, integertok, realtok
+   
+   cannot reachend
+*/
 
 static void ConstFactor (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1529,10 +3744,28 @@ static void ConstFactor (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
     ErrorArray ((char *) "expecting one of: __ATTRIBUTE__ NOT ( identifier { string integer number real number", 84);
 }
 
+
+/*
+   ConstString := string 
+
+   first  symbols:stringtok
+   
+   cannot reachend
+*/
+
 static void ConstString (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   string (stopset0, stopset1, stopset2);
 }
+
+
+/*
+   ComponentElement := ConstExpressionNop [ '..' ConstExpressionNop  ] 
+
+   first  symbols:stringtok, lcbratok, identtok, attributetok, realtok, integertok, lparatok, nottok, plustok, minustok
+   
+   cannot reachend
+*/
 
 static void ComponentElement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1544,6 +3777,15 @@ static void ComponentElement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
     }
 }
 
+
+/*
+   ComponentValue := ComponentElement [ 'BY' ConstExpressionNop  ] 
+
+   first  symbols:attributetok, identtok, lcbratok, stringtok, nottok, lparatok, integertok, realtok, minustok, plustok
+   
+   cannot reachend
+*/
+
 static void ComponentValue (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   ComponentElement (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_bytok-mcReserved_arraytok))), stopset2);
@@ -1553,6 +3795,15 @@ static void ComponentValue (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
       ConstExpressionNop (stopset0, stopset1, stopset2);
     }
 }
+
+
+/*
+   ArraySetRecordValue := ComponentValue { ',' ComponentValue  } 
+
+   first  symbols:stringtok, lcbratok, identtok, attributetok, realtok, integertok, lparatok, nottok, plustok, minustok
+   
+   cannot reachend
+*/
 
 static void ArraySetRecordValue (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1564,6 +3815,15 @@ static void ArraySetRecordValue (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOf
     }
 }
 
+
+/*
+   Constructor := '{' [ ArraySetRecordValue  ] '}' 
+
+   first  symbols:lcbratok
+   
+   cannot reachend
+*/
+
 static void Constructor (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_lcbratok, stopset0|(SetOfStop0) ((1 << (mcReserved_rcbratok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok))));
@@ -1571,6 +3831,17 @@ static void Constructor (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
     ArraySetRecordValue (stopset0|(SetOfStop0) ((1 << (mcReserved_rcbratok-mcReserved_eoftok))), stopset1, stopset2);
   Expect ((mcReserved_toktype) mcReserved_rcbratok, stopset0, stopset1, stopset2);
 }
+
+
+/*
+   ConstSetOrQualidentOrFunction := Qualident [ Constructor  | 
+                                                ConstActualParameters  ]  | 
+                                    Constructor 
+
+   first  symbols:lcbratok, identtok
+   
+   cannot reachend
+*/
 
 static void ConstSetOrQualidentOrFunction (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1594,6 +3865,15 @@ static void ConstSetOrQualidentOrFunction (SetOfStop0 stopset0, SetOfStop1 stops
     ErrorArray ((char *) "expecting one of: { identifier", 30);
 }
 
+
+/*
+   ConstActualParameters := '(' [ ConstExpList  ] ')' 
+
+   first  symbols:lparatok
+   
+   cannot reachend
+*/
+
 static void ConstActualParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_lparatok, stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok))));
@@ -1601,6 +3881,15 @@ static void ConstActualParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, Set
     ConstExpList (stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
   Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2);
 }
+
+
+/*
+   ConstExpList := ConstExpressionNop { ',' ConstExpressionNop  } 
+
+   first  symbols:stringtok, lcbratok, identtok, attributetok, realtok, integertok, lparatok, nottok, plustok, minustok
+   
+   cannot reachend
+*/
 
 static void ConstExpList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1612,6 +3901,16 @@ static void ConstExpList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 s
     }
 }
 
+
+/*
+   ConstAttribute := '__ATTRIBUTE__' '__BUILTIN__' '(' '(' ConstAttributeExpression 
+                     ')' ')' 
+
+   first  symbols:attributetok
+   
+   cannot reachend
+*/
+
 static void ConstAttribute (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_attributetok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_builtintok-mcReserved_recordtok))));
@@ -1622,6 +3921,16 @@ static void ConstAttribute (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
   Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
   Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2);
 }
+
+
+/*
+   ConstAttributeExpression := Ident  | '<' Qualident ',' Ident 
+                               '>' 
+
+   first  symbols:lesstok, identtok
+   
+   cannot reachend
+*/
 
 static void ConstAttributeExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1639,6 +3948,15 @@ static void ConstAttributeExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, 
     ErrorArray ((char *) "expecting one of: < identifier", 30);
 }
 
+
+/*
+   ByteAlignment := '' 
+
+   first  symbols:ldirectivetok
+   
+   cannot reachend
+*/
+
 static void ByteAlignment (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_ldirectivetok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
@@ -1646,11 +3964,29 @@ static void ByteAlignment (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
   Expect ((mcReserved_toktype) mcReserved_rdirectivetok, stopset0, stopset1, stopset2);
 }
 
+
+/*
+   OptAlignmentExpression := [ AlignmentExpression  ] 
+
+   first  symbols:lparatok
+   
+   reachend
+*/
+
 static void OptAlignmentExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_lparatok)
     AlignmentExpression (stopset0, stopset1, stopset2);
 }
+
+
+/*
+   AlignmentExpression := '(' ConstExpressionNop ')' 
+
+   first  symbols:lparatok
+   
+   cannot reachend
+*/
 
 static void AlignmentExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1659,11 +3995,29 @@ static void AlignmentExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOf
   Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2);
 }
 
+
+/*
+   Alignment := [ ByteAlignment  ] 
+
+   first  symbols:ldirectivetok
+   
+   reachend
+*/
+
 static void Alignment (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_ldirectivetok)
     ByteAlignment (stopset0, stopset1, stopset2);
 }
+
+
+/*
+   IdentList := Ident { ',' Ident  } 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
 
 static void IdentList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1674,6 +4028,25 @@ static void IdentList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
       Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_commatok-mcReserved_eoftok))), stopset1, stopset2);
     }
 }
+
+
+/*
+   PushIdentList := 
+                    % VAR n: node ;  %
+                    
+                    % n := makeIdentList ()  %
+                    Ident 
+                    % checkDuplicate (putIdent (n, curident))  %
+                    { ',' Ident 
+                      % checkDuplicate (putIdent (n, curident))  %
+                       } 
+                    % n := push (n)  %
+                    
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
 
 static void PushIdentList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1690,6 +4063,31 @@ static void PushIdentList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
     }
   n = push (n);
 }
+
+
+/*
+   SubrangeType := 
+                   % VAR low, high: node ; d: CARDINAL ;  %
+                   '[' 
+                   % d := depth ()  %
+                   ConstExpression 
+                   % low := pop ()  %
+                   
+                   % assert (d = depth ())  %
+                   '..' ConstExpression 
+                   % high := pop ()  %
+                   
+                   % assert (d = depth ())  %
+                   
+                   % typeExp := push (makeSubrange (low, high))  %
+                   
+                   % assert (d = depth () - 1)  %
+                   ']' 
+
+   first  symbols:lsbratok
+   
+   cannot reachend
+*/
 
 static void SubrangeType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1710,6 +4108,25 @@ static void SubrangeType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 s
   mcDebug_assert (d == ((depth ())-1));
   Expect ((mcReserved_toktype) mcReserved_rsbratok, stopset0, stopset1, stopset2);
 }
+
+
+/*
+   ArrayType := 'ARRAY' 
+                % VAR c: CARDINAL ; t, n: node ;  %
+                
+                % c := 0  %
+                SimpleType 
+                % INC (c)  %
+                { ',' SimpleType 
+                  % INC (c)  %
+                   } 'OF' Type 
+                % n := push (makeIndexedArray (c, pop ()))  %
+                
+
+   first  symbols:arraytok
+   
+   cannot reachend
+*/
 
 static void ArrayType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1732,6 +4149,24 @@ static void ArrayType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
   n = push (makeIndexedArray (c, pop ()));
 }
 
+
+/*
+   RecordType := 'RECORD' 
+                 % VAR n: node ;  %
+                 
+                 % n := push (makeRecord ())  %
+                 
+                 % n := push (NIL)     no varient   %
+                 [ DefaultRecordAttributes  ] FieldListSequence 
+                 
+                 % assert (pop ()=NIL)  %
+                 'END' 
+
+   first  symbols:recordtok
+   
+   cannot reachend
+*/
+
 static void RecordType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   decl_node n;
@@ -1746,12 +4181,30 @@ static void RecordType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
   Expect ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2);
 }
 
+
+/*
+   DefaultRecordAttributes := '' 
+
+   first  symbols:ldirectivetok
+   
+   cannot reachend
+*/
+
 static void DefaultRecordAttributes (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_ldirectivetok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
   AttributeExpression (stopset0|(SetOfStop0) ((1 << (mcReserved_rdirectivetok-mcReserved_eoftok))), stopset1, stopset2);
   Expect ((mcReserved_toktype) mcReserved_rdirectivetok, stopset0, stopset1, stopset2);
 }
+
+
+/*
+   RecordFieldPragma := [ ''  ] 
+
+   first  symbols:ldirectivetok
+   
+   reachend
+*/
 
 static void RecordFieldPragma (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1768,11 +4221,29 @@ static void RecordFieldPragma (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSt
     }
 }
 
+
+/*
+   FieldPragmaExpression := Ident PragmaConstExpression 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void FieldPragmaExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
   PragmaConstExpression (stopset0, stopset1, stopset2);
 }
+
+
+/*
+   PragmaConstExpression := [ '(' ConstExpressionNop ')'  ] 
+
+   first  symbols:lparatok
+   
+   reachend
+*/
 
 static void PragmaConstExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1784,6 +4255,15 @@ static void PragmaConstExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, Set
     }
 }
 
+
+/*
+   AttributeExpression := Ident '(' ConstExpressionNop ')' 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void AttributeExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
@@ -1791,6 +4271,15 @@ static void AttributeExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOf
   ConstExpressionNop (stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
   Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2);
 }
+
+
+/*
+   FieldListSequence := FieldListStatement { ';' FieldListStatement  } 
+
+   first  symbols:casetok, identtok, semicolontok
+   
+   reachend
+*/
 
 static void FieldListSequence (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1802,11 +4291,89 @@ static void FieldListSequence (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSt
     }
 }
 
+
+/*
+   FieldListStatement := [ FieldList  ] 
+
+   first  symbols:identtok, casetok
+   
+   reachend
+*/
+
 static void FieldListStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if ((mcLexBuf_currenttoken == mcReserved_casetok) || (mcLexBuf_currenttoken == mcReserved_identtok))
     FieldList (stopset0, stopset1, stopset2);
 }
+
+
+/*
+   FieldList := 
+                % VAR r, i, f, t, n, v, w: node ; d: CARDINAL ;  %
+                
+                % d := depth ()  %
+                
+                % v := pop () ; assert ((v=NIL) OR isVarient (v))  %
+                
+                % r := peep () ; assert (isRecord (r) OR isVarientField (r))  %
+                
+                % v := push (v)  %
+                
+                % assert (d=depth ())  %
+                
+                % assert (((v=NIL) AND isRecord (r)) OR ((v#NIL) AND isVarientField (r)))  %
+                PushIdentList ':' 
+                % assert (d=depth () - 1)  %
+                
+                % i := pop ()  %
+                Type 
+                % assert (d=depth () - 1)  %
+                
+                % t := pop ()  %
+                RecordFieldPragma 
+                % assert (d=depth ())  %
+                
+                % r := addFieldsToRecord (r, v, i, t)  %
+                
+                % assert (d=depth ())  %
+                 | 'CASE' 
+                %  addRecordToList   %
+                
+                % d := depth ()  %
+                
+                % v := pop () ; assert ((v=NIL) OR isVarient (v))  %
+                
+                % r := peep () ; assert (isRecord (r) OR isVarientField (r))  %
+                
+                % v := push (v)  %
+                
+                % assert (((v=NIL) AND isRecord (r)) OR ((v#NIL) AND isRecordField (r)))  %
+                
+                % w := push (makeVarient (r))  %
+                
+                % assert (d = depth () - 1)  %
+                
+                %  addVarientToList   %
+                CaseTag 'OF' 
+                % assert (d = depth () - 1)  %
+                Varient 
+                % assert (d = depth () - 1)  %
+                { '|' Varient 
+                  % assert (d = depth () - 1)  %
+                   } 
+                % w := peep () ; assert (isVarient (w))  %
+                
+                % assert (d = depth () - 1)  %
+                [ 'ELSE' FieldListSequence  ] 'END' 
+                % w := pop () ; assert (isVarient (w))  %
+                
+                % assert (d=depth ())  %
+                
+
+   first  symbols:casetok, identtok
+   
+   cannot reachend
+*/
 
 static void FieldList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1881,6 +4448,17 @@ static void FieldList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
     ErrorArray ((char *) "expecting one of: CASE identifier", 33);
 }
 
+
+/*
+   TagIdent := Ident  | 
+               % curident := NulName  %
+               
+
+   first  symbols:identtok
+   
+   reachend
+*/
+
 static void TagIdent (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_identtok)
@@ -1888,6 +4466,37 @@ static void TagIdent (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stops
   else
     curident = nameKey_NulName;
 }
+
+
+/*
+   CaseTag := 
+              % VAR tagident: Name ; q, v, w, r: node ;  %
+              
+              % w := pop () ; v := pop () ; r := peep () ; v := push (v) ; w := push (w)  %
+              
+              % assert (isVarient (w))  %
+              
+              % assert ((v=NIL) OR isVarient (v))  %
+              
+              % assert (isRecord (r) OR isVarientField (r))  %
+              
+              % assert (isVarient (push (pop ())))  %
+              TagIdent 
+              % tagident := curident  %
+              ( ':' PushQualident 
+                % q := pop ()  %
+                
+                % assert (isVarient (push (pop ())))  %
+                 | 
+                % q := NIL  %
+                 ) 
+              % buildVarientSelector (r, w, tagident, q)  %
+              
+
+   first  symbols:colontok, identtok
+   
+   reachend
+*/
 
 static void CaseTag (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1919,6 +4528,47 @@ static void CaseTag (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopse
     q = NULL;
   decl_buildVarientSelector (r, w, tagident, q);
 }
+
+
+/*
+   Varient := 
+              % VAR p, r, v, f: node ; d: CARDINAL ;  %
+              
+              % d := depth ()  %
+              
+              % assert (isVarient (peep ()))  %
+              [ 
+                % v := pop () ; assert (isVarient (v))  %
+                
+                % r := pop ()  %
+                
+                % p := peep ()  %
+                
+                % r := push (r)  %
+                
+                % f := push (buildVarientFieldRecord (v, p))  %
+                
+                % v := push (v)  %
+                VarientCaseLabelList ':' FieldListSequence 
+                % v := pop ()  %
+                
+                % f := pop ()  %
+                
+                % assert (isVarientField (f))  %
+                
+                % assert (isVarient (v))  %
+                
+                % v := push (v)  %
+                 ] 
+              % assert (isVarient (peep ()))  %
+              
+              % assert (d=depth ())  %
+              
+
+   first  symbols:stringtok, lcbratok, identtok, attributetok, realtok, integertok, lparatok, nottok, plustok, minustok
+   
+   reachend
+*/
 
 static void Varient (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1952,6 +4602,15 @@ static void Varient (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopse
   mcDebug_assert (d == (depth ()));
 }
 
+
+/*
+   VarientCaseLabelList := VarientCaseLabels { ',' VarientCaseLabels  } 
+
+   first  symbols:attributetok, identtok, lcbratok, stringtok, nottok, lparatok, integertok, realtok, minustok, plustok
+   
+   cannot reachend
+*/
+
 static void VarientCaseLabelList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   VarientCaseLabels (stopset0|(SetOfStop0) ((1 << (mcReserved_commatok-mcReserved_eoftok))), stopset1, stopset2);
@@ -1961,6 +4620,25 @@ static void VarientCaseLabelList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetO
       VarientCaseLabels (stopset0|(SetOfStop0) ((1 << (mcReserved_commatok-mcReserved_eoftok))), stopset1, stopset2);
     }
 }
+
+
+/*
+   VarientCaseLabels := 
+                        % VAR l, h: node ;  %
+                        
+                        % h := NIL  %
+                        ConstExpression 
+                        % l := pop ()  %
+                        [ '..' ConstExpression 
+                          % h := pop ()  %
+                           ] 
+                        %  l, h  could be saved if necessary.    %
+                        
+
+   first  symbols:stringtok, lcbratok, identtok, attributetok, realtok, integertok, lparatok, nottok, plustok, minustok
+   
+   cannot reachend
+*/
 
 static void VarientCaseLabels (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -1978,6 +4656,19 @@ static void VarientCaseLabels (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSt
     }
 }
 
+
+/*
+   SetType := ( 'SET'  | 'PACKEDSET'  ) 'OF' SimpleType 
+              % VAR n: node ;  %
+              
+              % n := push (makeSet (pop ()))  %
+              
+
+   first  symbols:oftok, packedsettok, settok
+   
+   cannot reachend
+*/
+
 static void SetType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   decl_node n;
@@ -1993,6 +4684,19 @@ static void SetType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopse
   n = push (decl_makeSet (pop ()));
 }
 
+
+/*
+   PointerType := 'POINTER' 'TO' Type 
+                  % VAR n: node ;  %
+                  
+                  % n := push (makePointer (pop ()))  %
+                  
+
+   first  symbols:pointertok
+   
+   cannot reachend
+*/
+
 static void PointerType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   decl_node n;
@@ -2003,6 +4707,17 @@ static void PointerType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
   n = push (decl_makePointer (pop ()));
 }
 
+
+/*
+   ProcedureType := 'PROCEDURE' 
+                    % curproc := push (makeProcType ())  %
+                    [ FormalTypeList  ] 
+
+   first  symbols:proceduretok
+   
+   cannot reachend
+*/
+
 static void ProcedureType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_proceduretok, stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
@@ -2010,6 +4725,16 @@ static void ProcedureType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
   if (mcLexBuf_currenttoken == mcReserved_lparatok)
     FormalTypeList (stopset0, stopset1, stopset2);
 }
+
+
+/*
+   FormalTypeList := '(' ( ')' FormalReturn  | 
+                           ProcedureParameters ')' FormalReturn  ) 
+
+   first  symbols:lparatok
+   
+   cannot reachend
+*/
 
 static void FormalTypeList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2029,6 +4754,15 @@ static void FormalTypeList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
     ErrorArray ((char *) "expecting one of: VAR ... ARRAY identifier )", 44);
 }
 
+
+/*
+   FormalReturn := [ ':' OptReturnType  ] 
+
+   first  symbols:colontok
+   
+   reachend
+*/
+
 static void FormalReturn (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_colontok)
@@ -2037,6 +4771,21 @@ static void FormalReturn (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 s
       OptReturnType (stopset0, stopset1, stopset2);
     }
 }
+
+
+/*
+   OptReturnType := '[' PushQualident 
+                    % putReturnType (curproc, pop ())  %
+                    
+                    % putOptReturn (curproc)  %
+                    ']'  | PushQualident 
+                    % putReturnType (curproc, pop ())  %
+                    
+
+   first  symbols:identtok, lsbratok
+   
+   cannot reachend
+*/
 
 static void OptReturnType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2057,6 +4806,19 @@ static void OptReturnType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
     ErrorArray ((char *) "expecting one of: identifier [", 30);
 }
 
+
+/*
+   ProcedureParameters := ProcedureParameter 
+                          % addParameter (curproc, pop ())  %
+                          { ',' ProcedureParameter 
+                            % addParameter (curproc, pop ())  %
+                             } 
+
+   first  symbols:identtok, arraytok, periodperiodperiodtok, vartok
+   
+   cannot reachend
+*/
+
 static void ProcedureParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   ProcedureParameter (stopset0|(SetOfStop0) ((1 << (mcReserved_commatok-mcReserved_eoftok))), stopset1, stopset2);
@@ -2068,6 +4830,23 @@ static void ProcedureParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOf
       decl_addParameter (curproc, pop ());
     }
 }
+
+
+/*
+   ProcedureParameter := '...' 
+                         % VAR n: node ;  %
+                         
+                         % n := push (makeVarargs ())  %
+                          | 'VAR' FormalType 
+                         % n := push (makeVarParameter (NIL, pop (), curproc))  %
+                          | FormalType 
+                         % n := push (makeNonVarParameter (NIL, pop (), curproc))  %
+                         
+
+   first  symbols:identtok, arraytok, vartok, periodperiodperiodtok
+   
+   cannot reachend
+*/
 
 static void ProcedureParameter (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2093,6 +4872,25 @@ static void ProcedureParameter (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfS
     ErrorArray ((char *) "expecting one of: ARRAY identifier VAR ...", 42);
 }
 
+
+/*
+   VarIdent := 
+               % VAR n, a: node ;  %
+               
+               % n := pop ()  %
+               Ident 
+               % checkDuplicate (putIdent (n, curident))  %
+               
+               % n := push (n)  %
+               [ '[' ConstExpression 
+                 % a := pop ()   could store, a, into, n.    %
+                 ']'  ] 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void VarIdent (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   decl_node n;
@@ -2111,6 +4909,21 @@ static void VarIdent (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stops
     }
 }
 
+
+/*
+   VarIdentList := 
+                   % VAR n: node ;  %
+                   
+                   % n := makeIdentList ()  %
+                   
+                   % n := push (n)  %
+                   VarIdent { ',' VarIdent  } 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void VarIdentList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   decl_node n;
@@ -2125,6 +4938,21 @@ static void VarIdentList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 s
     }
 }
 
+
+/*
+   VariableDeclaration := 
+                          % VAR v, d: node ;  %
+                          VarIdentList 
+                          % v := pop ()  %
+                          ':' Type 
+                          % d := makeVarDecl (v, pop ())  %
+                          Alignment 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void VariableDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   decl_node v;
@@ -2138,12 +4966,31 @@ static void VariableDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOf
   Alignment (stopset0, stopset1, stopset2);
 }
 
+
+/*
+   Designator := Qualident { SubDesignator  } 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void Designator (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Qualident (stopset0|(SetOfStop0) ((1 << (mcReserved_uparrowtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_periodtok-mcReserved_eoftok))), stopset1, stopset2);
   while ((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok))))) != 0)))
     SubDesignator (stopset0|(SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok))), stopset1, stopset2);
 }
+
+
+/*
+   SubDesignator := '.' Ident  | '[' ArrayExpList ']'  | 
+                    '^' 
+
+   first  symbols:uparrowtok, lsbratok, periodtok
+   
+   cannot reachend
+*/
 
 static void SubDesignator (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2164,6 +5011,15 @@ static void SubDesignator (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
     ErrorArray ((char *) "expecting one of: ^ [ .", 23);
 }
 
+
+/*
+   ArrayExpList := Expression { ',' Expression  } 
+
+   first  symbols:lcbratok, identtok, realtok, integertok, stringtok, lparatok, nottok, plustok, minustok
+   
+   cannot reachend
+*/
+
 static void ArrayExpList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expression (stopset0|(SetOfStop0) ((1 << (mcReserved_commatok-mcReserved_eoftok))), stopset1, stopset2);
@@ -2173,6 +5029,15 @@ static void ArrayExpList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 s
       Expression (stopset0|(SetOfStop0) ((1 << (mcReserved_commatok-mcReserved_eoftok))), stopset1, stopset2);
     }
 }
+
+
+/*
+   ExpList := Expression { ',' Expression  } 
+
+   first  symbols:lcbratok, identtok, realtok, integertok, stringtok, lparatok, nottok, plustok, minustok
+   
+   cannot reachend
+*/
 
 static void ExpList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2184,6 +5049,15 @@ static void ExpList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopse
     }
 }
 
+
+/*
+   Expression := SimpleExpression [ Relation SimpleExpression  ] 
+
+   first  symbols:identtok, lcbratok, nottok, lparatok, stringtok, integertok, realtok, minustok, plustok
+   
+   cannot reachend
+*/
+
 static void Expression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   SimpleExpression (stopset0|(SetOfStop0) ((1 << (mcReserved_greaterequaltok-mcReserved_eoftok)) | (1 << (mcReserved_greatertok-mcReserved_eoftok)) | (1 << (mcReserved_lessequaltok-mcReserved_eoftok)) | (1 << (mcReserved_lesstok-mcReserved_eoftok)) | (1 << (mcReserved_lessgreatertok-mcReserved_eoftok)) | (1 << (mcReserved_hashtok-mcReserved_eoftok)) | (1 << (mcReserved_equaltok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_intok-mcReserved_arraytok))), stopset2);
@@ -2194,6 +5068,15 @@ static void Expression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
     }
 }
 
+
+/*
+   SimpleExpression := UnaryOrTerm { AddOperator Term  } 
+
+   first  symbols:lcbratok, identtok, realtok, integertok, stringtok, lparatok, nottok, plustok, minustok
+   
+   cannot reachend
+*/
+
 static void SimpleExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   UnaryOrTerm (stopset0|(SetOfStop0) ((1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_ortok-mcReserved_arraytok))), stopset2);
@@ -2203,6 +5086,15 @@ static void SimpleExpression (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
       Term (stopset0|(SetOfStop0) ((1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_minustok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_ortok-mcReserved_arraytok))), stopset2);
     }
 }
+
+
+/*
+   UnaryOrTerm := '+' Term  | '-' Term  | Term 
+
+   first  symbols:identtok, lcbratok, nottok, lparatok, stringtok, integertok, realtok, minustok, plustok
+   
+   cannot reachend
+*/
 
 static void UnaryOrTerm (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2222,6 +5114,15 @@ static void UnaryOrTerm (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
     ErrorArray ((char *) "expecting one of: NOT ( string integer number real number identifier { - +", 74);
 }
 
+
+/*
+   Term := Factor { MulOperator Factor  } 
+
+   first  symbols:lcbratok, identtok, realtok, integertok, stringtok, lparatok, nottok
+   
+   cannot reachend
+*/
+
 static void Term (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Factor (stopset0|(SetOfStop0) ((1 << (mcReserved_ambersandtok-mcReserved_eoftok)) | (1 << (mcReserved_andtok-mcReserved_eoftok)) | (1 << (mcReserved_dividetok-mcReserved_eoftok)) | (1 << (mcReserved_timestok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_modtok-mcReserved_arraytok)) | (1 << (mcReserved_divtok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_remtok-mcReserved_recordtok))));
@@ -2231,6 +5132,16 @@ static void Term (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
       Factor (stopset0|(SetOfStop0) ((1 << (mcReserved_timestok-mcReserved_eoftok)) | (1 << (mcReserved_dividetok-mcReserved_eoftok)) | (1 << (mcReserved_andtok-mcReserved_eoftok)) | (1 << (mcReserved_ambersandtok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_divtok-mcReserved_arraytok)) | (1 << (mcReserved_modtok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_remtok-mcReserved_recordtok))));
     }
 }
+
+
+/*
+   Factor := Number  | string  | SetOrDesignatorOrFunction  | 
+             '(' Expression ')'  | 'NOT' ( Factor  | ConstAttribute  ) 
+
+   first  symbols:identtok, lcbratok, nottok, lparatok, stringtok, integertok, realtok
+   
+   cannot reachend
+*/
 
 static void Factor (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2260,6 +5171,17 @@ static void Factor (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset
     ErrorArray ((char *) "expecting one of: NOT ( identifier { string integer number real number", 70);
 }
 
+
+/*
+   SetOrDesignatorOrFunction := Qualident [ Constructor  | 
+                                            SimpleDes [ ActualParameters  ]  ]  | 
+                                Constructor 
+
+   first  symbols:lcbratok, identtok
+   
+   cannot reachend
+*/
+
 static void SetOrDesignatorOrFunction (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_identtok)
@@ -2286,11 +5208,29 @@ static void SetOrDesignatorOrFunction (SetOfStop0 stopset0, SetOfStop1 stopset1,
     ErrorArray ((char *) "expecting one of: { identifier", 30);
 }
 
+
+/*
+   SimpleDes := { SubDesignator  } 
+
+   first  symbols:periodtok, lsbratok, uparrowtok
+   
+   reachend
+*/
+
 static void SimpleDes (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   while ((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok))))) != 0)))
     SubDesignator (stopset0|(SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok))), stopset1, stopset2);
 }
+
+
+/*
+   ActualParameters := '(' [ ExpList  ] ')' 
+
+   first  symbols:lparatok
+   
+   cannot reachend
+*/
 
 static void ActualParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2300,10 +5240,28 @@ static void ActualParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
   Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2);
 }
 
+
+/*
+   ExitStatement := 'EXIT' 
+
+   first  symbols:exittok
+   
+   cannot reachend
+*/
+
 static void ExitStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_exittok, stopset0, stopset1, stopset2);
 }
+
+
+/*
+   ReturnStatement := 'RETURN' [ Expression  ] 
+
+   first  symbols:returntok
+   
+   cannot reachend
+*/
 
 static void ReturnStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2311,6 +5269,21 @@ static void ReturnStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop
   if ((((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))))) != 0))) || (mcLexBuf_currenttoken == mcReserved_nottok)) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))))) != 0))))
     Expression (stopset0, stopset1, stopset2);
 }
+
+
+/*
+   Statement := [ AssignmentOrProcedureCall  | 
+                  IfStatement  | CaseStatement  | 
+                  WhileStatement  | RepeatStatement  | 
+                  LoopStatement  | ForStatement  | 
+                  WithStatement  | AsmStatement  | 
+                  ExitStatement  | ReturnStatement  | 
+                  RetryStatement  ] 
+
+   first  symbols:retrytok, asmtok, withtok, fortok, looptok, repeattok, whiletok, casetok, iftok, identtok, returntok, exittok
+   
+   reachend
+*/
 
 static void Statement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2346,10 +5319,32 @@ static void Statement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
     }
 }
 
+
+/*
+   RetryStatement := 'RETRY' 
+
+   first  symbols:retrytok
+   
+   cannot reachend
+*/
+
 static void RetryStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_retrytok, stopset0, stopset1, stopset2);
 }
+
+
+/*
+   AssignmentOrProcedureCall := Designator ( ':=' Expression  | 
+                                             ActualParameters  | 
+                                             
+                                             %  epsilon   %
+                                              ) 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
 
 static void AssignmentOrProcedureCall (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2363,6 +5358,15 @@ static void AssignmentOrProcedureCall (SetOfStop0 stopset0, SetOfStop1 stopset1,
     ActualParameters (stopset0, stopset1, stopset2);
 }
 
+
+/*
+   StatementSequence := Statement { ';' Statement  } 
+
+   first  symbols:identtok, iftok, casetok, whiletok, repeattok, looptok, fortok, withtok, asmtok, retrytok, semicolontok, exittok, returntok
+   
+   reachend
+*/
+
 static void StatementSequence (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Statement (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
@@ -2372,6 +5376,17 @@ static void StatementSequence (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSt
       Statement (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
     }
 }
+
+
+/*
+   IfStatement := 'IF' Expression 'THEN' StatementSequence { 
+   'ELSIF' Expression 'THEN' StatementSequence  } [ 'ELSE' StatementSequence  ] 
+                  'END' 
+
+   first  symbols:iftok
+   
+   cannot reachend
+*/
 
 static void IfStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2394,6 +5409,16 @@ static void IfStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
   Expect ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2);
 }
 
+
+/*
+   CaseStatement := 'CASE' Expression 'OF' Case { '|' Case  } 
+                    CaseEndStatement 
+
+   first  symbols:casetok
+   
+   cannot reachend
+*/
+
 static void CaseStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_casetok, stopset0|(SetOfStop0) ((1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))));
@@ -2407,6 +5432,15 @@ static void CaseStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
     }
   CaseEndStatement (stopset0, stopset1, stopset2);
 }
+
+
+/*
+   CaseEndStatement := 'END'  | 'ELSE' StatementSequence 'END' 
+
+   first  symbols:elsetok, endtok
+   
+   cannot reachend
+*/
 
 static void CaseEndStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2422,6 +5456,15 @@ static void CaseEndStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
     ErrorArray ((char *) "expecting one of: ELSE END", 26);
 }
 
+
+/*
+   Case := [ CaseLabelList ':' StatementSequence  ] 
+
+   first  symbols:stringtok, lcbratok, identtok, attributetok, realtok, integertok, lparatok, nottok, plustok, minustok
+   
+   reachend
+*/
+
 static void Case (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if ((((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))))) != 0))) || (mcLexBuf_currenttoken == mcReserved_nottok)) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok))))) != 0))))
@@ -2431,6 +5474,15 @@ static void Case (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
       StatementSequence (stopset0, stopset1, stopset2);
     }
 }
+
+
+/*
+   CaseLabelList := CaseLabels { ',' CaseLabels  } 
+
+   first  symbols:attributetok, identtok, lcbratok, stringtok, nottok, lparatok, integertok, realtok, minustok, plustok
+   
+   cannot reachend
+*/
 
 static void CaseLabelList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2442,6 +5494,15 @@ static void CaseLabelList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
     }
 }
 
+
+/*
+   CaseLabels := ConstExpressionNop [ '..' ConstExpressionNop  ] 
+
+   first  symbols:stringtok, lcbratok, identtok, attributetok, realtok, integertok, lparatok, nottok, plustok, minustok
+   
+   cannot reachend
+*/
+
 static void CaseLabels (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   ConstExpressionNop (stopset0|(SetOfStop0) ((1 << (mcReserved_periodperiodtok-mcReserved_eoftok))), stopset1, stopset2);
@@ -2452,6 +5513,16 @@ static void CaseLabels (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
     }
 }
 
+
+/*
+   WhileStatement := 'WHILE' Expression 'DO' StatementSequence 
+                     'END' 
+
+   first  symbols:whiletok
+   
+   cannot reachend
+*/
+
 static void WhileStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_whiletok, stopset0|(SetOfStop0) ((1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))));
@@ -2461,6 +5532,15 @@ static void WhileStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
   Expect ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2);
 }
 
+
+/*
+   RepeatStatement := 'REPEAT' StatementSequence 'UNTIL' Expression 
+
+   first  symbols:repeattok
+   
+   cannot reachend
+*/
+
 static void RepeatStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_repeattok, stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_exittok-mcReserved_arraytok)) | (1 << (mcReserved_iftok-mcReserved_arraytok)) | (1 << (mcReserved_casetok-mcReserved_arraytok)) | (1 << (mcReserved_looptok-mcReserved_arraytok)) | (1 << (mcReserved_fortok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_returntok-mcReserved_recordtok)) | (1 << (mcReserved_untiltok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_whiletok-mcReserved_recordtok)) | (1 << (mcReserved_repeattok-mcReserved_recordtok)) | (1 << (mcReserved_withtok-mcReserved_recordtok)) | (1 << (mcReserved_asmtok-mcReserved_recordtok)) | (1 << (mcReserved_retrytok-mcReserved_recordtok))));
@@ -2468,6 +5548,17 @@ static void RepeatStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop
   Expect ((mcReserved_toktype) mcReserved_untiltok, stopset0|(SetOfStop0) ((1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))));
   Expression (stopset0, stopset1, stopset2);
 }
+
+
+/*
+   ForStatement := 'FOR' Ident ':=' Expression 'TO' Expression 
+                   [ 'BY' ConstExpressionNop  ] 'DO' StatementSequence 
+                   'END' 
+
+   first  symbols:fortok
+   
+   cannot reachend
+*/
 
 static void ForStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2487,12 +5578,31 @@ static void ForStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 s
   Expect ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2);
 }
 
+
+/*
+   LoopStatement := 'LOOP' StatementSequence 'END' 
+
+   first  symbols:looptok
+   
+   cannot reachend
+*/
+
 static void LoopStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_looptok, stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_exittok-mcReserved_arraytok)) | (1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_iftok-mcReserved_arraytok)) | (1 << (mcReserved_casetok-mcReserved_arraytok)) | (1 << (mcReserved_looptok-mcReserved_arraytok)) | (1 << (mcReserved_fortok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_returntok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_whiletok-mcReserved_recordtok)) | (1 << (mcReserved_repeattok-mcReserved_recordtok)) | (1 << (mcReserved_withtok-mcReserved_recordtok)) | (1 << (mcReserved_asmtok-mcReserved_recordtok)) | (1 << (mcReserved_retrytok-mcReserved_recordtok))));
   StatementSequence (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok))), stopset2);
   Expect ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2);
 }
+
+
+/*
+   WithStatement := 'WITH' Designator 'DO' StatementSequence 
+                    'END' 
+
+   first  symbols:withtok
+   
+   cannot reachend
+*/
 
 static void WithStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2503,6 +5613,18 @@ static void WithStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
   Expect ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2);
 }
 
+
+/*
+   ProcedureDeclaration := ProcedureHeading ';' ProcedureBlock 
+                           Ident 
+                           % leaveScope  %
+                           
+
+   first  symbols:proceduretok
+   
+   cannot reachend
+*/
+
 static void ProcedureDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   ProcedureHeading (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
@@ -2512,6 +5634,19 @@ static void ProcedureDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetO
   decl_leaveScope ();
 }
 
+
+/*
+   ProcedureIdent := Ident 
+                     % curproc := lookupSym (curident)  %
+                     
+                     % enterScope (curproc)  %
+                     
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void ProcedureIdent (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Ident (stopset0, stopset1, stopset2);
@@ -2519,11 +5654,33 @@ static void ProcedureIdent (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
   decl_enterScope (curproc);
 }
 
+
+/*
+   DefProcedureIdent := Ident 
+                        % curproc := lookupSym (curident)  %
+                        
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void DefProcedureIdent (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Ident (stopset0, stopset1, stopset2);
   curproc = decl_lookupSym (curident);
 }
+
+
+/*
+   DefineBuiltinProcedure := [ '__ATTRIBUTE__' '__BUILTIN__' 
+                               '(' '(' Ident ')' ')'  | 
+                               '__INLINE__'  ] 
+
+   first  symbols:inlinetok, attributetok
+   
+   reachend
+*/
 
 static void DefineBuiltinProcedure (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2547,6 +5704,17 @@ static void DefineBuiltinProcedure (SetOfStop0 stopset0, SetOfStop1 stopset1, Se
     }
 }
 
+
+/*
+   ProcedureHeading := 'PROCEDURE' DefineBuiltinProcedure ( ProcedureIdent 
+                                                            [ 
+   FormalParameters  ]  ) 
+
+   first  symbols:proceduretok
+   
+   cannot reachend
+*/
+
 static void ProcedureHeading (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_proceduretok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_inlinetok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))));
@@ -2555,6 +5723,15 @@ static void ProcedureHeading (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
   if (mcLexBuf_currenttoken == mcReserved_lparatok)
     FormalParameters (stopset0, stopset1, stopset2);
 }
+
+
+/*
+   Builtin := [ '__BUILTIN__'  | '__INLINE__'  ] 
+
+   first  symbols:inlinetok, builtintok
+   
+   reachend
+*/
 
 static void Builtin (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2570,6 +5747,16 @@ static void Builtin (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopse
     }
 }
 
+
+/*
+   DefProcedureHeading := 'PROCEDURE' Builtin ( DefProcedureIdent 
+                                                [ DefFormalParameters  ]  ) 
+
+   first  symbols:proceduretok
+   
+   cannot reachend
+*/
+
 static void DefProcedureHeading (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_proceduretok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_inlinetok-mcReserved_recordtok)) | (1 << (mcReserved_builtintok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))));
@@ -2578,6 +5765,16 @@ static void DefProcedureHeading (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOf
   if (mcLexBuf_currenttoken == mcReserved_lparatok)
     DefFormalParameters (stopset0, stopset1, stopset2);
 }
+
+
+/*
+   ProcedureBlock := { Declaration  } [ 'BEGIN' ProcedureBlockBody  ] 
+                     'END' 
+
+   first  symbols:proceduretok, moduletok, consttok, typetok, vartok, endtok, begintok
+   
+   cannot reachend
+*/
 
 static void ProcedureBlock (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2591,6 +5788,15 @@ static void ProcedureBlock (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
   Expect ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2);
 }
 
+
+/*
+   Block := { Declaration  } InitialBlock FinalBlock 'END' 
+
+   first  symbols:proceduretok, moduletok, finallytok, begintok, consttok, typetok, vartok, endtok
+   
+   cannot reachend
+*/
+
 static void Block (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   while ((((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok))))) != 0))) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))))) != 0))))
@@ -2599,6 +5805,15 @@ static void Block (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2
   FinalBlock (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok))), stopset2);
   Expect ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2);
 }
+
+
+/*
+   InitialBlock := [ 'BEGIN' InitialBlockBody  ] 
+
+   first  symbols:begintok
+   
+   reachend
+*/
 
 static void InitialBlock (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2609,6 +5824,15 @@ static void InitialBlock (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 s
     }
 }
 
+
+/*
+   FinalBlock := [ 'FINALLY' FinalBlockBody  ] 
+
+   first  symbols:finallytok
+   
+   reachend
+*/
+
 static void FinalBlock (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_finallytok)
@@ -2617,6 +5841,15 @@ static void FinalBlock (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
       FinalBlockBody (stopset0, stopset1, stopset2);
     }
 }
+
+
+/*
+   InitialBlockBody := NormalPart [ 'EXCEPT' ExceptionalPart  ] 
+
+   first  symbols:identtok, iftok, casetok, whiletok, repeattok, looptok, fortok, withtok, asmtok, retrytok, semicolontok, exittok, returntok, excepttok
+   
+   reachend
+*/
 
 static void InitialBlockBody (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2628,6 +5861,15 @@ static void InitialBlockBody (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
     }
 }
 
+
+/*
+   FinalBlockBody := NormalPart [ 'EXCEPT' ExceptionalPart  ] 
+
+   first  symbols:identtok, iftok, casetok, whiletok, repeattok, looptok, fortok, withtok, asmtok, retrytok, semicolontok, exittok, returntok, excepttok
+   
+   reachend
+*/
+
 static void FinalBlockBody (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   NormalPart (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_excepttok-mcReserved_arraytok))), stopset2);
@@ -2637,6 +5879,15 @@ static void FinalBlockBody (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
       ExceptionalPart (stopset0, stopset1, stopset2);
     }
 }
+
+
+/*
+   ProcedureBlockBody := NormalPart [ 'EXCEPT' ExceptionalPart  ] 
+
+   first  symbols:identtok, iftok, casetok, whiletok, repeattok, looptok, fortok, withtok, asmtok, retrytok, semicolontok, exittok, returntok, excepttok
+   
+   reachend
+*/
 
 static void ProcedureBlockBody (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2648,15 +5899,46 @@ static void ProcedureBlockBody (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfS
     }
 }
 
+
+/*
+   NormalPart := StatementSequence 
+
+   first  symbols:retrytok, asmtok, withtok, fortok, looptok, repeattok, whiletok, casetok, iftok, identtok, returntok, exittok, semicolontok
+   
+   reachend
+*/
+
 static void NormalPart (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   StatementSequence (stopset0, stopset1, stopset2);
 }
 
+
+/*
+   ExceptionalPart := StatementSequence 
+
+   first  symbols:retrytok, asmtok, withtok, fortok, looptok, repeattok, whiletok, casetok, iftok, identtok, returntok, exittok, semicolontok
+   
+   reachend
+*/
+
 static void ExceptionalPart (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   StatementSequence (stopset0, stopset1, stopset2);
 }
+
+
+/*
+   Declaration := 'CONST' { ConstantDeclaration ';'  }  | 
+                  'TYPE' { TypeDeclaration  }  | 
+                  'VAR' { VariableDeclaration ';'  }  | 
+                  ProcedureDeclaration ';'  | 
+                  ModuleDeclaration ';' 
+
+   first  symbols:moduletok, proceduretok, vartok, typetok, consttok
+   
+   cannot reachend
+*/
 
 static void Declaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2698,6 +5980,19 @@ static void Declaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
     ErrorArray ((char *) "expecting one of: MODULE PROCEDURE VAR TYPE CONST", 49);
 }
 
+
+/*
+   DefFormalParameters := '(' 
+                          % paramEnter (curproc)  %
+                          [ DefMultiFPSection  ] ')' 
+                          % paramLeave (curproc)  %
+                          FormalReturn 
+
+   first  symbols:lparatok
+   
+   cannot reachend
+*/
+
 static void DefFormalParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_lparatok, stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok))), stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_periodperiodperiodtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
@@ -2708,6 +6003,15 @@ static void DefFormalParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOf
   decl_paramLeave (curproc);
   FormalReturn (stopset0, stopset1, stopset2);
 }
+
+
+/*
+   DefMultiFPSection := DefExtendedFP  | FPSection [ ';' DefMultiFPSection  ] 
+
+   first  symbols:identtok, vartok, lsbratok, periodperiodperiodtok
+   
+   cannot reachend
+*/
 
 static void DefMultiFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2726,6 +6030,19 @@ static void DefMultiFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSt
     ErrorArray ((char *) "expecting one of: identifier VAR ... [", 38);
 }
 
+
+/*
+   FormalParameters := '(' 
+                       % paramEnter (curproc)  %
+                       [ MultiFPSection  ] ')' 
+                       % paramLeave (curproc)  %
+                       FormalReturn 
+
+   first  symbols:lparatok
+   
+   cannot reachend
+*/
+
 static void FormalParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_lparatok, stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok))), stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_periodperiodperiodtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
@@ -2736,6 +6053,15 @@ static void FormalParameters (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
   decl_paramLeave (curproc);
   FormalReturn (stopset0, stopset1, stopset2);
 }
+
+
+/*
+   MultiFPSection := ExtendedFP  | FPSection [ ';' MultiFPSection  ] 
+
+   first  symbols:identtok, vartok, lsbratok, periodperiodperiodtok
+   
+   cannot reachend
+*/
 
 static void MultiFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2754,6 +6080,15 @@ static void MultiFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
     ErrorArray ((char *) "expecting one of: identifier VAR ... [", 38);
 }
 
+
+/*
+   FPSection := NonVarFPSection  | VarFPSection 
+
+   first  symbols:vartok, identtok
+   
+   cannot reachend
+*/
+
 static void FPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_identtok)
@@ -2763,6 +6098,17 @@ static void FPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
   else
     ErrorArray ((char *) "expecting one of: VAR identifier", 32);
 }
+
+
+/*
+   DefExtendedFP := DefOptArg  | '...' 
+                    % addParameter (curproc, makeVarargs ())  %
+                    
+
+   first  symbols:lsbratok, periodperiodperiodtok
+   
+   cannot reachend
+*/
 
 static void DefExtendedFP (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2777,6 +6123,15 @@ static void DefExtendedFP (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
     ErrorArray ((char *) "expecting one of: ... [", 23);
 }
 
+
+/*
+   ExtendedFP := OptArg  | '...' 
+
+   first  symbols:lsbratok, periodperiodperiodtok
+   
+   cannot reachend
+*/
+
 static void ExtendedFP (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_lsbratok)
@@ -2786,6 +6141,23 @@ static void ExtendedFP (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
   else
     ErrorArray ((char *) "expecting one of: ... [", 23);
 }
+
+
+/*
+   VarFPSection := 'VAR' PushIdentList 
+                   % VAR l, t: node ;  %
+                   ':' FormalType 
+                   % t := pop ()  %
+                   
+                   % l := pop ()  %
+                   
+                   % addVarParameters (curproc, l, t)  %
+                   
+
+   first  symbols:vartok
+   
+   cannot reachend
+*/
 
 static void VarFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2801,6 +6173,23 @@ static void VarFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 s
   decl_addVarParameters (curproc, l, t);
 }
 
+
+/*
+   NonVarFPSection := PushIdentList 
+                      % VAR l, t: node ;  %
+                      ':' FormalType 
+                      % t := pop ()  %
+                      
+                      % l := pop ()  %
+                      
+                      % addNonVarParameters (curproc, l, t)  %
+                      
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void NonVarFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   decl_node l;
@@ -2813,6 +6202,27 @@ static void NonVarFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop
   l = pop ();
   decl_addNonVarParameters (curproc, l, t);
 }
+
+
+/*
+   OptArg := 
+             % VAR p, init, type: node ; id: Name ;  %
+             '[' Ident 
+             % id := curident  %
+             ':' FormalType 
+             % type := pop ()  %
+             
+             % init := NIL  %
+             [ '=' ConstExpression 
+               % init := pop ()  %
+                ] ']' 
+             % p := addOptParameter (curproc, id, type, init)  %
+             
+
+   first  symbols:lsbratok
+   
+   cannot reachend
+*/
 
 static void OptArg (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2838,6 +6248,25 @@ static void OptArg (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset
   p = decl_addOptParameter (curproc, id, type, init);
 }
 
+
+/*
+   DefOptArg := 
+                % VAR p, init, type: node ; id: Name ;  %
+                '[' Ident 
+                % id := curident  %
+                ':' FormalType 
+                % type := pop ()  %
+                '=' ConstExpression 
+                % init := pop ()  %
+                ']' 
+                % p := addOptParameter (curproc, id, type, init)  %
+                
+
+   first  symbols:lsbratok
+   
+   cannot reachend
+*/
+
 static void DefOptArg (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   decl_node p;
@@ -2858,6 +6287,25 @@ static void DefOptArg (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
   p = decl_addOptParameter (curproc, id, type, init);
 }
 
+
+/*
+   FormalType := 
+                 % VAR c: CARDINAL ;  %
+                 
+                 % VAR n, a, s: node ;  %
+                 
+                 % c := 0  %
+                 { 'ARRAY' 'OF' 
+                   % INC (c)  %
+                    } PushQualident 
+                 % pushNunbounded (c)  %
+                 
+
+   first  symbols:identtok, arraytok
+   
+   cannot reachend
+*/
+
 static void FormalType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   unsigned int c;
@@ -2876,6 +6324,16 @@ static void FormalType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
   pushNunbounded (c);
 }
 
+
+/*
+   ModuleDeclaration := 'MODULE' Ident [ Priority  ] ';' { Import  } 
+                        [ Export  ] Block Ident 
+
+   first  symbols:moduletok
+   
+   cannot reachend
+*/
+
 static void ModuleDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_moduletok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
@@ -2891,12 +6349,32 @@ static void ModuleDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSt
   Ident (stopset0, stopset1, stopset2);
 }
 
+
+/*
+   Priority := '[' ConstExpressionNop ']' 
+
+   first  symbols:lsbratok
+   
+   cannot reachend
+*/
+
 static void Priority (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_lsbratok, stopset0|(SetOfStop0) ((1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok))));
   ConstExpressionNop (stopset0|(SetOfStop0) ((1 << (mcReserved_rsbratok-mcReserved_eoftok))), stopset1, stopset2);
   Expect ((mcReserved_toktype) mcReserved_rsbratok, stopset0, stopset1, stopset2);
 }
+
+
+/*
+   Export := 'EXPORT' ( 'QUALIFIED' IdentList  | 
+                        'UNQUALIFIED' IdentList  | 
+                        IdentList  ) ';' 
+
+   first  symbols:exporttok
+   
+   cannot reachend
+*/
 
 static void Export (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2918,6 +6396,19 @@ static void Export (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset
   Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1, stopset2);
 }
 
+
+/*
+   FromIdentList := Ident 
+                    % importInto (frommodule, curident, curmodule)  %
+                    { ',' Ident 
+                      % importInto (frommodule, curident, curmodule)  %
+                       } 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void FromIdentList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_commatok-mcReserved_eoftok))), stopset1, stopset2);
@@ -2930,6 +6421,17 @@ static void FromIdentList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
     }
 }
 
+
+/*
+   FromImport := 'FROM' Ident 
+                 % frommodule := lookupDef (curident)  %
+                 'IMPORT' FromIdentList ';' 
+
+   first  symbols:fromtok
+   
+   cannot reachend
+*/
+
 static void FromImport (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_fromtok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
@@ -2939,6 +6441,15 @@ static void FromImport (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
   FromIdentList (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
   Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1, stopset2);
 }
+
+
+/*
+   ImportModuleList := Ident { ',' Ident  } 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
 
 static void ImportModuleList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2950,12 +6461,30 @@ static void ImportModuleList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
     }
 }
 
+
+/*
+   WithoutFromImport := 'IMPORT' ImportModuleList ';' 
+
+   first  symbols:importtok
+   
+   cannot reachend
+*/
+
 static void WithoutFromImport (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_importtok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
   ImportModuleList (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
   Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1, stopset2);
 }
+
+
+/*
+   Import := FromImport  | WithoutFromImport 
+
+   first  symbols:importtok, fromtok
+   
+   cannot reachend
+*/
 
 static void Import (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2966,6 +6495,29 @@ static void Import (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset
   else
     ErrorArray ((char *) "expecting one of: IMPORT FROM", 29);
 }
+
+
+/*
+   DefinitionModule := 'DEFINITION' 'MODULE' [ 'FOR' string  ] 
+                       Ident ';' 
+                       % curmodule := lookupDef (curident)  %
+                       
+                       % enterScope (curmodule)  %
+                       
+                       % resetEnumPos (curmodule)  %
+                       { Import  } [ Export  ] { Definition  } 
+                       'END' Ident '.' 
+                       % checkEndName (curmodule, curident, 'definition module')  %
+                       
+                       % setConstExpComplete (curmodule)  %
+                       
+                       % leaveScope  %
+                       
+
+   first  symbols:definitiontok
+   
+   cannot reachend
+*/
 
 static void DefinitionModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -2995,6 +6547,33 @@ static void DefinitionModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
   decl_leaveScope ();
 }
 
+
+/*
+   PushQualident := Ident 
+                    % typeExp := push (lookupSym (curident))  %
+                    
+                    % IF typeExp = NIL
+                                    THEN
+                                       metaError1 ('the symbol {%1k} is not visible in this scope (or any other nested scope)', curident)
+                                    END  %
+                    [ '.' 
+                      % IF NOT isDef (typeExp)
+                                      THEN
+                        									    ErrorArray ('the first component of this qualident must be a definition module')
+                                      END  %
+                      Ident 
+                      % typeExp := replace (lookupInScope (typeExp, curident)) ;
+                        			                                                 IF typeExp=NIL
+                                      THEN
+                                         ErrorArray ('identifier not found in definition module')
+                                      END  %
+                       ] 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void PushQualident (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok))), stopset1, stopset2);
@@ -3013,6 +6592,25 @@ static void PushQualident (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
     }
 }
 
+
+/*
+   OptSubrange := [ SubrangeType 
+                    % VAR q, s: node ;  %
+                    
+                    % s := pop ()  %
+                    
+                    % q := pop ()  %
+                    
+                    % putSubrangeType (s, q)  %
+                    
+                    % typeExp := push (s)  %
+                     ] 
+
+   first  symbols:lsbratok
+   
+   reachend
+*/
+
 static void OptSubrange (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   decl_node q;
@@ -3028,11 +6626,37 @@ static void OptSubrange (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
     }
 }
 
+
+/*
+   TypeEquiv := PushQualident OptSubrange 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
+
 static void TypeEquiv (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   PushQualident (stopset0|(SetOfStop0) ((1 << (mcReserved_lsbratok-mcReserved_eoftok))), stopset1, stopset2);
   OptSubrange (stopset0, stopset1, stopset2);
 }
+
+
+/*
+   EnumIdentList := 
+                    % VAR f: node ;  %
+                    
+                    % typeExp := push (makeEnum ())  %
+                    Ident 
+                    % f := makeEnumField (typeExp, curident)  %
+                    { ',' Ident 
+                      % f := makeEnumField (typeExp, curident)  %
+                       } 
+
+   first  symbols:identtok
+   
+   cannot reachend
+*/
 
 static void EnumIdentList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -3049,12 +6673,37 @@ static void EnumIdentList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
     }
 }
 
+
+/*
+   Enumeration := '(' EnumIdentList ')' 
+
+   first  symbols:lparatok
+   
+   cannot reachend
+*/
+
 static void Enumeration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_lparatok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
   EnumIdentList (stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
   Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2);
 }
+
+
+/*
+   SimpleType := 
+                 % VAR d: CARDINAL ;  %
+                 
+                 % d := depth ()  %
+                 ( TypeEquiv  | Enumeration  | SubrangeType  ) 
+                 
+                 % assert (d = depth () - 1)  %
+                 
+
+   first  symbols:lsbratok, lparatok, identtok
+   
+   cannot reachend
+*/
 
 static void SimpleType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -3071,6 +6720,16 @@ static void SimpleType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
     ErrorArray ((char *) "expecting one of: [ ( identifier", 32);
   mcDebug_assert (d == ((depth ())-1));
 }
+
+
+/*
+   Type := SimpleType  | ArrayType  | RecordType  | 
+           SetType  | PointerType  | ProcedureType 
+
+   first  symbols:proceduretok, pointertok, settok, packedsettok, oftok, recordtok, arraytok, identtok, lparatok, lsbratok
+   
+   cannot reachend
+*/
 
 static void Type (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -3089,6 +6748,19 @@ static void Type (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
   else
     ErrorArray ((char *) "expecting one of: PROCEDURE POINTER SET PACKEDSET OF RECORD ARRAY identifier ( [", 80);
 }
+
+
+/*
+   TypeDeclaration := { Ident 
+                        % typeDes := lookupSym (curident)  %
+                        ( ';'  | '=' Type 
+                          % putType (typeDes, pop ())  %
+                          Alignment ';'  )  } 
+
+   first  symbols:identtok
+   
+   reachend
+*/
 
 static void TypeDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -3110,6 +6782,18 @@ static void TypeDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop
         ErrorArray ((char *) "expecting one of: = ;", 21);
     }
 }
+
+
+/*
+   Definition := 'CONST' { ConstantDeclaration ';'  }  | 
+                 'TYPE' { TypeDeclaration  }  | 
+                 'VAR' { VariableDeclaration ';'  }  | 
+                 DefProcedureHeading ';' 
+
+   first  symbols:proceduretok, vartok, typetok, consttok
+   
+   cannot reachend
+*/
 
 static void Definition (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -3146,6 +6830,15 @@ static void Definition (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
     ErrorArray ((char *) "expecting one of: PROCEDURE VAR TYPE CONST", 42);
 }
 
+
+/*
+   AsmStatement := 'ASM' [ 'VOLATILE'  ] '(' AsmOperands ')' 
+
+   first  symbols:asmtok
+   
+   cannot reachend
+*/
+
 static void AsmStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_asmtok, stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_volatiletok-mcReserved_recordtok))));
@@ -3156,12 +6849,30 @@ static void AsmStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 s
   Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2);
 }
 
+
+/*
+   AsmOperands := string [ AsmOperandSpec  ] 
+
+   first  symbols:stringtok
+   
+   cannot reachend
+*/
+
 static void AsmOperands (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   string (stopset0|(SetOfStop0) ((1 << (mcReserved_colontok-mcReserved_eoftok))), stopset1, stopset2);
   if (mcLexBuf_currenttoken == mcReserved_colontok)
     AsmOperandSpec (stopset0, stopset1, stopset2);
 }
+
+
+/*
+   AsmOperandSpec := [ ':' AsmList [ ':' AsmList [ ':' TrashList  ]  ]  ] 
+
+   first  symbols:colontok
+   
+   reachend
+*/
 
 static void AsmOperandSpec (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -3182,6 +6893,15 @@ static void AsmOperandSpec (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
     }
 }
 
+
+/*
+   AsmList := [ AsmElement  ] { ',' AsmElement  } 
+
+   first  symbols:lsbratok, stringtok, commatok
+   
+   reachend
+*/
+
 static void AsmList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if ((mcLexBuf_currenttoken == mcReserved_lsbratok) || (mcLexBuf_currenttoken == mcReserved_stringtok))
@@ -3193,6 +6913,15 @@ static void AsmList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopse
     }
 }
 
+
+/*
+   NamedOperand := '[' Ident ']' 
+
+   first  symbols:lsbratok
+   
+   cannot reachend
+*/
+
 static void NamedOperand (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   Expect ((mcReserved_toktype) mcReserved_lsbratok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
@@ -3200,11 +6929,29 @@ static void NamedOperand (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 s
   Expect ((mcReserved_toktype) mcReserved_rsbratok, stopset0, stopset1, stopset2);
 }
 
+
+/*
+   AsmOperandName := [ NamedOperand  ] 
+
+   first  symbols:lsbratok
+   
+   reachend
+*/
+
 static void AsmOperandName (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
   if (mcLexBuf_currenttoken == mcReserved_lsbratok)
     NamedOperand (stopset0, stopset1, stopset2);
 }
+
+
+/*
+   AsmElement := AsmOperandName string '(' Expression ')' 
+
+   first  symbols:stringtok, lsbratok
+   
+   cannot reachend
+*/
 
 static void AsmElement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -3214,6 +6961,15 @@ static void AsmElement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
   Expression (stopset0|(SetOfStop0) ((1 << (mcReserved_rparatok-mcReserved_eoftok))), stopset1, stopset2);
   Expect ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2);
 }
+
+
+/*
+   TrashList := [ string  ] { ',' string  } 
+
+   first  symbols:commatok, stringtok
+   
+   reachend
+*/
 
 static void TrashList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
@@ -3225,6 +6981,12 @@ static void TrashList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
       string (stopset0|(SetOfStop0) ((1 << (mcReserved_commatok-mcReserved_eoftok))), stopset1, stopset2);
     }
 }
+
+
+/*
+   CompilationUnit - returns TRUE if the input was correct enough to parse
+                     in future passes.
+*/
 
 unsigned int mcp3_CompilationUnit (void)
 {

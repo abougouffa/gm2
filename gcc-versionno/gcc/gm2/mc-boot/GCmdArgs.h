@@ -20,7 +20,19 @@ extern "C" {
 #      define EXTERN extern
 #   endif
 
+
+/*
+   GetArg - returns the nth argument from the command line, CmdLine
+            the success of the operation is returned.
+*/
+
 EXTERN unsigned int CmdArgs_GetArg (char *CmdLine_, unsigned int _CmdLine_high, unsigned int n, char *Argi, unsigned int _Argi_high);
+
+/*
+   Narg - returns the number of arguments available from
+          command line, CmdLine.
+*/
+
 EXTERN unsigned int CmdArgs_Narg (char *CmdLine_, unsigned int _CmdLine_high);
 #ifdef __cplusplus
 }

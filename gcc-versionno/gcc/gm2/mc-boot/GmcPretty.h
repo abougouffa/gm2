@@ -36,20 +36,97 @@ struct mcPretty_writeProc_p { mcPretty_writeProc_t proc; };
 typedef void (*mcPretty_writeLnProc_t) (void);
 struct mcPretty_writeLnProc_p { mcPretty_writeLnProc_t proc; };
 
+
+/*
+   initPretty - initialise a pretty print data structure.
+*/
+
 EXTERN mcPretty_pretty mcPretty_initPretty (mcPretty_writeProc w, mcPretty_writeLnProc l);
+
+/*
+   dupPretty - duplicate a pretty print data structure.
+*/
+
 EXTERN mcPretty_pretty mcPretty_dupPretty (mcPretty_pretty p);
+
+/*
+   killPretty - destroy a pretty print data structure.
+                Post condition:  p is assigned to NIL.
+*/
+
 EXTERN void mcPretty_killPretty (mcPretty_pretty *p);
+
+/*
+   pushPretty - duplicate, p.  Push, p, and return the duplicate.
+*/
+
 EXTERN mcPretty_pretty mcPretty_pushPretty (mcPretty_pretty p);
+
+/*
+   popPretty - pops the pretty object from the stack.
+*/
+
 EXTERN mcPretty_pretty mcPretty_popPretty (mcPretty_pretty p);
+
+/*
+   getindent - returns the current indent value.
+*/
+
 EXTERN unsigned int mcPretty_getindent (mcPretty_pretty p);
+
+/*
+   setindent - sets the current indent to, n.
+*/
+
 EXTERN void mcPretty_setindent (mcPretty_pretty p, unsigned int n);
+
+/*
+   getcurpos - returns the current cursor position.
+*/
+
 EXTERN unsigned int mcPretty_getcurpos (mcPretty_pretty s);
+
+/*
+   getseekpos - returns the seek position.
+*/
+
 EXTERN unsigned int mcPretty_getseekpos (mcPretty_pretty s);
+
+/*
+   getcurline - returns the current line number.
+*/
+
 EXTERN unsigned int mcPretty_getcurline (mcPretty_pretty s);
+
+/*
+   setNeedSpace - sets needSpace flag to TRUE.
+*/
+
 EXTERN void mcPretty_setNeedSpace (mcPretty_pretty s);
+
+/*
+   noSpace - unset needsSpace.
+*/
+
 EXTERN void mcPretty_noSpace (mcPretty_pretty s);
+
+/*
+   print - print a string using, p.
+*/
+
 EXTERN void mcPretty_print (mcPretty_pretty p, char *a_, unsigned int _a_high);
+
+/*
+   prints - print a string using, p.
+*/
+
 EXTERN void mcPretty_prints (mcPretty_pretty p, DynamicStrings_String s);
+
+/*
+   raw - print out string, s, without any translation of
+         escape sequences.
+*/
+
 EXTERN void mcPretty_raw (mcPretty_pretty p, DynamicStrings_String s);
 #ifdef __cplusplus
 }
