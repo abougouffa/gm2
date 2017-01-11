@@ -4,9 +4,9 @@
 #if !defined (_SArgs_H)
 #   define _SArgs_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -37,9 +37,9 @@ EXTERN unsigned int SArgs_GetArg (DynamicStrings_String *s, unsigned int i);
 */
 
 EXTERN unsigned int SArgs_Narg (void);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

@@ -75,6 +75,7 @@ static unsigned int seenFalse;
 static unsigned int seenNull;
 static unsigned int seenMemcpy;
 static unsigned int seenException;
+static unsigned int seenComplex;
 
 /*
    useStorage - indicate we have used storage.
@@ -227,6 +228,12 @@ void keyc_useFabsl (void);
 void keyc_useException (void);
 
 /*
+   useComplex - use the complex data type.
+*/
+
+void keyc_useComplex (void);
+
+/*
    genDefs - generate definitions or includes for all
              macros and prototypes used.
 */
@@ -334,6 +341,12 @@ static void checkMemcpy (mcPretty_pretty p);
 */
 
 static void checkException (mcPretty_pretty p);
+
+/*
+   checkComplex - check to see if the type complex was used.
+*/
+
+static void checkComplex (mcPretty_pretty p);
 
 /*
    new -
@@ -529,6 +542,17 @@ static void checkException (mcPretty_pretty p)
 
 
 /*
+   checkComplex - check to see if the type complex was used.
+*/
+
+static void checkComplex (mcPretty_pretty p)
+{
+  if (seenComplex)
+    mcPretty_print (p, (char *) "#   include <complex.h>\\n", 25);
+}
+
+
+/*
    new -
 */
 
@@ -660,6 +684,8 @@ static void initMacros (void)
   add (macros, (char *) "cos", 3);
   add (macros, (char *) "tan", 3);
   add (macros, (char *) "log10", 5);
+  add (macros, (char *) "I", 1);
+  add (macros, (char *) "csqrt", 5);
   add (macros, (char *) "main", 4);
 }
 
@@ -739,6 +765,7 @@ static void init (void)
   seenFabs = FALSE;
   seenFabsl = FALSE;
   seenException = FALSE;
+  seenComplex = FALSE;
   initializedCP = FALSE;
   stack = NULL;
   freeList = NULL;
@@ -998,6 +1025,16 @@ void keyc_useException (void)
 
 
 /*
+   useComplex - use the complex data type.
+*/
+
+void keyc_useComplex (void)
+{
+  seenComplex = TRUE;
+}
+
+
+/*
    genDefs - generate definitions or includes for all
              macros and prototypes used.
 */
@@ -1014,6 +1051,7 @@ void keyc_genDefs (mcPretty_pretty p)
   checkAbs (p);
   checkStorage (p);
   checkException (p);
+  checkComplex (p);
 }
 
 

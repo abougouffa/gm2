@@ -4,9 +4,9 @@
 #if !defined (_mcError_H)
 #   define _mcError_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -140,9 +140,9 @@ EXTERN void mcError_flushWarnings (void);
 */
 
 EXTERN void mcError_errorAbort0 (char *a_, unsigned int _a_high);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

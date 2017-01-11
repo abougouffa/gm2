@@ -31,7 +31,7 @@ FROM StringConvert IMPORT CardinalToString ;
 FROM mcOptions IMPORT getOutputFile, getDebugTopological, getHPrefix, getIgnoreFQ, getExtendedOpaque ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM libc IMPORT printf ;
-FROM mcMetaError IMPORT metaError1, metaError2, metaErrors1, metaErrors2 ;
+FROM mcMetaError IMPORT metaError1, metaError2, metaError3, metaErrors1, metaErrors2 ;
 FROM mcError IMPORT errorAbort0, flushErrors ;
 FROM mcLexBuf IMPORT findFileNameFromToken, tokenToLineNo, tokenToColumnNo ;
 FROM mcComment IMPORT getProcedureComment ;
@@ -80,7 +80,7 @@ TYPE
             integer, longint, shortint,
 	    real, longreal, shortreal,
 	    bitset, boolean, proc,
-	    ztype, rtype,
+	    ztype, rtype, complex,
 	    (* language features and compound type attributes.  *)
             type, record, varient, var, enumeration,
             subrange, array, subscript,
@@ -100,6 +100,7 @@ TYPE
 	    cast, val,
 	    plus, sub, div, mod, mult, divide, in,
 	    adr, size, tsize, ord, float, trunc, chr, abs, high, throw,
+	    cmplx, re, im,
 	    min, max,
             componentref, pointerref, arrayref, deref,
 	    equal, notequal, less, greater, greequal, lessequal,
@@ -138,7 +139,8 @@ TYPE
 			 shortreal,
                          bitset,
                          ztype,
-                         rtype           :  |
+                         rtype,
+			 complex         :  |
                          (* language features and compound type attributes.  *)
                          type            :  typeF            : typeT |
                          record          :  recordF          : recordT |
@@ -182,6 +184,7 @@ TYPE
  			 arrayref        :  arrayrefF        : arrayrefT |
                          pointerref      :  pointerrefF      : pointerrefT |
                          componentref    :  componentrefF    : componentrefT |
+			 cmplx,
 			 and,
 			 or,
                          equal,
@@ -208,6 +211,8 @@ TYPE
 			 float,
 			 trunc,
 			 throw,
+			 re,
+			 im,
 			 not,
 			 neg,
                          adr,
@@ -653,6 +658,10 @@ VAR
    bitnumN,
    ztypeN,
    rtypeN,
+   complexN,
+   cmplxN,
+   reN,
+   imN,
    realN,
    longrealN,
    shortrealN,
@@ -1022,6 +1031,16 @@ PROCEDURE isRtype (n: node) : BOOLEAN ;
 BEGIN
    RETURN n = rtypeN
 END isRtype ;
+
+
+(*
+   isComplex - returns TRUE if, n, is the complex type.
+*)
+
+PROCEDURE isComplex (n: node) : BOOLEAN ;
+BEGIN
+   RETURN n = complexN
+END isComplex ;
 
 
 (*
@@ -1744,6 +1763,8 @@ BEGIN
    ord,
    high,
    throw,
+   re,
+   im,
    not,
    neg,
    adr,
@@ -3374,6 +3395,7 @@ BEGIN
    integer,
    longint,
    shortint,
+   complex,
    bitset,
    boolean,
    proc,
@@ -3651,6 +3673,9 @@ BEGIN
    IF m=procN
    THEN
       keyc.useProc
+   ELSIF m=complexN
+   THEN
+      keyc.useComplex
    END ;
    RETURN m
 END lookupBase ;
@@ -3813,6 +3838,7 @@ BEGIN
       bitset          :  RETURN makeKey ('BITSET') |
       ztype           :  RETURN makeKey ('_ZTYPE') |
       rtype           :  RETURN makeKey ('_RTYPE') |
+      complex         :  RETURN makeKey ('COMPLEX') |
       (* language features and compound type attributes.  *)
       type            :  RETURN typeF.name |
       record          :  RETURN NulName |
@@ -3878,6 +3904,9 @@ BEGIN
       trunc           :  RETURN makeKey ('TRUNC') |
       high            :  RETURN makeKey ('HIGH') |
       throw           :  RETURN makeKey ('THROW') |
+      cmplx           :  RETURN makeKey ('CMPLX') |
+      re              :  RETURN makeKey ('RE') |
+      im              :  RETURN makeKey ('IM') |
       max             :  RETURN makeKey ('MAX') |
       min             :  RETURN makeKey ('MIN') |
       funccall        :  RETURN NulName |
@@ -3900,6 +3929,8 @@ BEGIN
    CASE n^.kind OF
 
    throw,
+   re,
+   im,
    deref,
    high,
    chr,
@@ -3941,6 +3972,8 @@ BEGIN
          CASE kind OF
 
          throw,
+         re,
+         im,
          deref,
          high,
          chr,
@@ -4098,6 +4131,7 @@ BEGIN
       kind := k;
       CASE kind OF
 
+      cmplx,
       equal,
       notequal,
       less,
@@ -4330,6 +4364,7 @@ BEGIN
       proc,
       ztype,
       rtype,
+      complex,
       adr,
       chr,
       abs,
@@ -4338,6 +4373,9 @@ BEGIN
       ord,
       high,
       throw,
+      re,
+      im,
+      cmplx,
       size,
       tsize,
       val,
@@ -4497,6 +4535,7 @@ BEGIN
       bitset          :  RETURN n |
       ztype           :  RETURN n |
       rtype           :  RETURN n |
+      complex         :  RETURN n |
       (* language features and compound type attributes.  *)
       type            :  RETURN typeF.type |
       record          :  RETURN n |
@@ -4533,6 +4572,7 @@ BEGIN
       elsif,
       assignment      :  HALT |
       (* expressions.  *)
+      cmplx,
       cast,
       val,
       plus,
@@ -4542,6 +4582,8 @@ BEGIN
       mult,
       divide          :  RETURN binaryF.resultType |
       in              :  RETURN booleanN |
+      re,
+      im,
       abs,
       constexp,
       deref,
@@ -4649,6 +4691,9 @@ BEGIN
       trunc  :  RETURN integerN |
       ord    :  RETURN cardinalN |
       chr    :  RETURN charN |
+      re,
+      im     :  RETURN realN |
+      cmplx  :  RETURN complexN |
       abs    :  RETURN getExprType (getExpList (n^.funccallF.args, 1)) |
       high   :  RETURN cardinalN |
       halt,
@@ -4705,6 +4750,7 @@ BEGIN
       bitset          :  RETURN n |
       ztype           :  RETURN n |
       rtype           :  RETURN n |
+      complex         :  RETURN n |
       (* language features and compound type attributes.  *)
       type            :  RETURN typeF.type |
       record          :  RETURN n |
@@ -4758,6 +4804,7 @@ BEGIN
       greater,
       greequal,
       lessequal       :  RETURN doSetExprType (binaryF.resultType, booleanN) |
+      cmplx           :  RETURN doSetExprType (binaryF.resultType, complexN) |
       abs,
       constexp,
       deref,
@@ -4771,6 +4818,8 @@ BEGIN
       trunc           :  RETURN doSetExprType (unaryF.resultType, integerN) |
       chr             :  RETURN doSetExprType (unaryF.resultType, charN) |
       not             :  RETURN doSetExprType (unaryF.resultType, booleanN) |
+      re              :  RETURN doSetExprType (unaryF.resultType, realN) |
+      im              :  RETURN doSetExprType (unaryF.resultType, realN) |
       arrayref        :  RETURN arrayrefF.resultType |
       componentref    :  RETURN componentrefF.resultType |
       pointerref      :  RETURN pointerrefF.resultType |
@@ -4866,7 +4915,8 @@ BEGIN
       shortreal,
       bitset,
       ztype,
-      rtype           :  RETURN NIL |
+      rtype,
+      complex         :  RETURN NIL |
       (* language features and compound type attributes.  *)
       type            :  RETURN typeF.scope |
       record          :  RETURN recordF.scope |
@@ -5255,11 +5305,13 @@ BEGIN
       real,
       longreal,
       shortreal,
+      complex,
       bitset,
       boolean,
       proc            :  RETURN FALSE |
       setvalue        :  RETURN FALSE |
-      address         :  RETURN TRUE
+      address         :  RETURN TRUE |
+      procedure       :  RETURN FALSE
 
       END
    END ;
@@ -5438,6 +5490,8 @@ BEGIN
       chr             :  RETURN doGetLastOp (b, unaryF.arg) |
       high            :  RETURN doGetLastOp (b, unaryF.arg) |
       deref           :  RETURN doGetLastOp (b, unaryF.arg) |
+      re,
+      im              :  RETURN doGetLastOp (b, unaryF.arg) |
       equal           :  RETURN doGetLastOp (b, binaryF.right) |
       notequal        :  RETURN doGetLastOp (b, binaryF.right) |
       less            :  RETURN doGetLastOp (b, binaryF.right) |
@@ -5457,6 +5511,7 @@ BEGIN
       in              :  RETURN doGetLastOp (b, binaryF.right) |
       and             :  RETURN doGetLastOp (b, binaryF.right) |
       or              :  RETURN doGetLastOp (b, binaryF.right) |
+      cmplx           :  RETURN doGetLastOp (b, binaryF.right) |
       literal         :  RETURN a |
       const           :  RETURN a |
       enumerationfield:  RETURN a |
@@ -5847,6 +5902,9 @@ BEGIN
       ord             :  doUnary (p, 'ORD', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       chr             :  doUnary (p, 'CHR', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       high            :  doUnary (p, 'HIGH', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      re,
+      im,
+      cmplx           :  HALT (* should all be function calls.  *) |
       deref           :  doDeRefC (p, unaryF.arg) |
       equal           :  doBinary (p, '==', binaryF.left, binaryF.right, TRUE, TRUE, TRUE) |
       notequal        :  doBinary (p, '!=', binaryF.left, binaryF.right, TRUE, TRUE, TRUE) |
@@ -5886,6 +5944,7 @@ BEGIN
       integer,
       longint,
       shortint,
+      complex,
       real,
       longreal,
       shortreal,
@@ -5916,7 +5975,7 @@ BEGIN
    IF unpackProc
    THEN
       t := skipType (getExprType (n)) ;
-      IF (t = procN) OR isProcType (t)
+      IF (t # NIL) AND ((t = procN) OR isProcType (t))
       THEN
          outText (p, '.proc')
       END
@@ -5948,6 +6007,8 @@ BEGIN
       ord             :  doUnary (p, 'ORD', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       chr             :  doUnary (p, 'CHR', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       high            :  doUnary (p, 'HIGH', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      re              :  doUnary (p, 'RE', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      im              :  doUnary (p, 'IM', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       deref           :  doPostUnary (p, '^', unaryF.arg) |
       equal           :  doBinary (p, '=', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
       notequal        :  doBinary (p, '#', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
@@ -5959,6 +6020,7 @@ BEGIN
       pointerref      :  doBinary (p, '^.', pointerrefF.ptr, pointerrefF.field, FALSE, FALSE, FALSE) |
       cast            :  doPreBinary (p, 'CAST', binaryF.left, binaryF.right, TRUE, TRUE) |
       val             :  doPreBinary (p, 'VAL', binaryF.left, binaryF.right, TRUE, TRUE) |
+      cmplx           :  doPreBinary (p, 'CMPLX', binaryF.left, binaryF.right, TRUE, TRUE) |
       plus            :  doBinary (p, '+', binaryF.left, binaryF.right, FALSE, FALSE, FALSE) |
       sub             :  doBinary (p, '-', binaryF.left, binaryF.right, FALSE, FALSE, FALSE) |
       div             :  doBinary (p, 'DIV', binaryF.left, binaryF.right, TRUE, TRUE, FALSE) |
@@ -6793,11 +6855,17 @@ BEGIN
    ptype := getType (n) ;
    IF n^.varparamF.namelist = NIL
    THEN
-      doTypeC (p, ptype, n) ;
+      doTypeNameC (p, ptype) ;
+      (* doTypeC (p, ptype, n) ; *)
       IF NOT isArray (ptype)
       THEN
          setNeedSpace (p) ;
          outText (p, "*")
+      END ;
+      IF isArray (ptype) AND isUnbounded (ptype)
+      THEN
+         outText (p, ',') ; setNeedSpace (p) ;
+         outText (p, 'unsigned int')
       END
    ELSE
       assert (isIdentList (n^.varparamF.namelist)) ;
@@ -7306,6 +7374,7 @@ BEGIN
    integer,
    longint,
    shortint,
+   complex,
    real,
    longreal,
    shortreal,
@@ -7334,6 +7403,7 @@ BEGIN
    integer  :  outText (p, 'int') |
    longint  :  outText (p, 'long int') |
    shortint :  outText (p, 'short int') |
+   complex  :  outText (p, 'double complex') |
    real     :  outText (p, 'double') |
    longreal :  outText (p, 'long double') |
    shortreal:  outText (p, 'float') |
@@ -9207,6 +9277,15 @@ BEGIN
       actual := resolveString (actual) ;
       assert (isString (actual)) ;
       outCstring (p, actual, TRUE)
+   ELSIF isFuncCall (actual)
+   THEN
+      IF getExprType (actual) = NIL
+      THEN
+         metaError3 ('there is no return type to the procedure function {%3ad} which is being passed as the parameter {%1ad} to {%2ad}', formal, func, actual)
+      ELSE
+         outText (p, '&') ;
+         doExprC (p, actual)
+      END
    ELSIF isUnbounded (getType (actual))
    THEN
       doFQNameC (p, actual)
@@ -10025,6 +10104,9 @@ BEGIN
    ord,
    chr,
    abs,
+   im,
+   re,
+   cmplx,
    high,
    inc,
    dec,
@@ -10064,6 +10146,95 @@ END doHalt ;
 
 
 (*
+   doReC -
+*)
+
+PROCEDURE doReC (p: pretty; n: node) ;
+VAR
+   t: node ;
+BEGIN
+   assert (isFuncCall (n)) ;
+   IF (n^.funccallF.args # NIL) AND (expListLen (n^.funccallF.args) = 1)
+   THEN
+      t := getExprType (n)
+   ELSE
+      HALT
+   END ;
+   IF t = realN
+   THEN
+      keyc.useComplex ;
+      outText (p, "creal")
+   ELSE
+      HALT
+   END ;
+   setNeedSpace (p) ;
+   doFuncArgsC (p, n, NIL, TRUE)
+END doReC ;
+
+
+(*
+   doImC -
+*)
+
+PROCEDURE doImC (p: pretty; n: node) ;
+VAR
+   t: node ;
+BEGIN
+   assert (isFuncCall (n)) ;
+   IF (n^.funccallF.args # NIL) AND (expListLen (n^.funccallF.args) = 1)
+   THEN
+      t := getExprType (n)
+   ELSE
+      HALT
+   END ;
+   IF t = realN
+   THEN
+      keyc.useComplex ;
+      outText (p, "cimag")
+   ELSE
+      HALT
+   END ;
+   setNeedSpace (p) ;
+   doFuncArgsC (p, n, NIL, TRUE)
+END doImC ;
+
+
+(*
+   doCmplx -
+*)
+
+PROCEDURE doCmplx (p: pretty; n: node) ;
+BEGIN
+   assert (isFuncCall (n)) ;
+   IF n^.funccallF.args # NIL
+   THEN
+      IF expListLen (n^.funccallF.args) = 2
+      THEN
+         keyc.useComplex ;
+         setNeedSpace (p) ;
+         outText (p, '(') ;
+         doExprC (p, getExpList (n^.funccallF.args, 1)) ;
+         outText (p, ')') ;
+         setNeedSpace (p) ;
+	 outText (p, '+') ;
+         setNeedSpace (p) ;
+         outText (p, '(') ;
+         doExprC (p, getExpList (n^.funccallF.args, 1)) ;
+         setNeedSpace (p) ;
+	 outText (p, '*') ;
+         setNeedSpace (p) ;
+	 outText (p, 'I') ;
+         outText (p, ')') ;
+      ELSE
+         HALT (* metaError0 ('expecting two parameters to CMPLX') *)
+      END
+   ELSE
+      HALT (* metaError0 ('expecting two parameters to CMPLX') *)
+   END
+END doCmplx ;
+
+
+(*
    doIntrinsicC -
 *)
 
@@ -10075,36 +10246,39 @@ BEGIN
    ELSE
       CASE n^.funccallF.function^.kind OF
 
-      halt:   doHalt (p, n) |
-      val:    doValC (p, n) |
-      adr:    doAdrC (p, n) |
+      halt:    doHalt (p, n) |
+      val:     doValC (p, n) |
+      adr:     doAdrC (p, n) |
       size,
-      tsize:  outText (p, "sizeof") ;
-              setNeedSpace (p) ;
-              doFuncArgsC (p, n, NIL, TRUE) |
-      float:  outText (p, "(double)") ;
-              setNeedSpace (p) ;
-              doFuncArgsC (p, n, NIL, TRUE) |
-      trunc:  outText (p, "(int)") ;
-              setNeedSpace (p) ;
-              doFuncArgsC (p, n, NIL, TRUE) |
-      ord:    outText (p, "(unsigned int)") ;
-              setNeedSpace (p) ;
-              doFuncArgsC (p, n, NIL, TRUE) |
-      chr:    outText (p, "(char)") ;
-              setNeedSpace (p) ;
-              doFuncArgsC (p, n, NIL, TRUE) |
-      abs:    doAbsC (p, n) |
-      high:   doFuncHighC (p, getExpList (n^.funccallF.args, 1)) |
-      inc:    doInc (p, n) |
-      dec:    doDec (p, n) |
-      incl:   doInclC (p, n) |
-      excl:   doExclC (p, n) |
-      new:    doNewC (p, n) |
+      tsize:   outText (p, "sizeof") ;
+               setNeedSpace (p) ;
+               doFuncArgsC (p, n, NIL, TRUE) |
+      float:   outText (p, "(double)") ;
+               setNeedSpace (p) ;
+               doFuncArgsC (p, n, NIL, TRUE) |
+      trunc:   outText (p, "(int)") ;
+               setNeedSpace (p) ;
+               doFuncArgsC (p, n, NIL, TRUE) |
+      ord:     outText (p, "(unsigned int)") ;
+               setNeedSpace (p) ;
+               doFuncArgsC (p, n, NIL, TRUE) |
+      chr:     outText (p, "(char)") ;
+               setNeedSpace (p) ;
+               doFuncArgsC (p, n, NIL, TRUE) |
+      abs:     doAbsC (p, n) |
+      high:    doFuncHighC (p, getExpList (n^.funccallF.args, 1)) |
+      inc:     doInc (p, n) |
+      dec:     doDec (p, n) |
+      incl:    doInclC (p, n) |
+      excl:    doExclC (p, n) |
+      new:     doNewC (p, n) |
       dispose: doDisposeC (p, n) |
-      min:    doMinC (p, n) |
-      max:    doMaxC (p, n) |
-      throw:  doThrowC (p, n)
+      min:     doMinC (p, n) |
+      max:     doMaxC (p, n) |
+      throw:   doThrowC (p, n) |
+      re:      doReC (p, n) |
+      im:      doImC (p, n) |
+      cmplx:   doCmplx (p, n)
 
       END
    END
@@ -11632,6 +11806,37 @@ END walkPointerRef ;
 
 
 (*
+   walkSetValue -
+*)
+
+PROCEDURE walkSetValue (l: alist; n: node) : dependentState ;
+VAR
+   s   : dependentState ;
+   i, j: CARDINAL ;
+BEGIN
+   assert (isSetValue (n)) ;
+   WITH n^.setvalueF DO
+      s := walkDependants (l, type) ;
+      IF s#completed
+      THEN
+         RETURN s
+      END ;
+      i := LowIndice (values) ;
+      j := HighIndice (values) ;
+      WHILE  i <= j DO
+         s := walkDependants (l, GetIndice (values, i)) ;
+	 IF s#completed
+         THEN
+            RETURN s
+         END ;
+         INC (i)
+      END
+   END ;
+   RETURN completed
+END walkSetValue ;
+
+
+(*
    doDependants - return the dependentState depending upon whether
                   all dependants have been declared.
 *)
@@ -11662,6 +11867,7 @@ BEGIN
       bitset,
       ztype,
       rtype,
+      complex,
       proc            :  RETURN completed |
       (* language features and compound type attributes.  *)
       type            :  RETURN walkType (l, n) |
@@ -11725,7 +11931,8 @@ BEGIN
       greater,
       greequal,
       lessequal       :  RETURN walkBinary (l, n) |
-      funccall        :  RETURN walkFuncCall (l, n)
+      funccall        :  RETURN walkFuncCall (l, n) |
+      setvalue        :  RETURN walkSetValue (l, n)
 
       END
    END
@@ -12463,6 +12670,7 @@ BEGIN
    bitset,
    ztype,
    rtype,
+   complex,
    proc            :  |
    (* language features and compound type attributes.  *)
    type            :  visitType (v, n, p) |
@@ -12506,6 +12714,7 @@ BEGIN
    componentref    :  visitComponentRef (v, n, p) |
    pointerref      :  visitPointerRef (v, n, p) |
    arrayref        :  visitArrayRef (v, n, p) |
+   cmplx,
    equal,
    notequal,
    less,
@@ -12523,6 +12732,8 @@ BEGIN
    mod,
    mult,
    divide          :  visitBinary (v, n, p) |
+   re,
+   im,
    abs,
    chr,
    high,
@@ -12593,7 +12804,8 @@ BEGIN
    boolean,
    proc,
    ztype,
-   rtype           :  RETURN NIL |
+   rtype,
+   complex         :  RETURN NIL |
 
    (* language features and compound type attributes.  *)
    type            :  RETURN InitString ('type') |
@@ -13147,9 +13359,9 @@ BEGIN
    print (p, "\n#if !defined (_") ; prints (p, s) ; print (p, "_H)\n") ;
    print (p, "#   define _") ; prints (p, s) ; print (p, "_H\n\n") ;
 
-   print (p, "#ifdef __cplusplus\n") ;
+   print (p, "#   ifdef __cplusplus\n") ;
    print (p, 'extern "C" {\n') ;
-   print (p, "#endif\n") ;
+   print (p, "#   endif\n") ;
 
    outputFile := mcStream.openFrag (3) ;  (* third fragment.  *)
 
@@ -13166,9 +13378,9 @@ BEGIN
    outDeclsDefC (p, n) ;
    runPrototypeDefC (n) ;
 
-   print (p, "#ifdef __cplusplus\n") ;
+   print (p, "#   ifdef __cplusplus\n") ;
    print (p, "}\n") ;
-   print (p, "#endif\n") ;
+   print (p, "#   endif\n") ;
 
    print (p, "\n") ;
    print (p, "#   undef EXTERN\n") ;
@@ -13349,11 +13561,11 @@ BEGIN
       foreachModuleDo (n, runSimplifyTypes) ;
       printf ("/*  --extended-opaque seen therefore no #include will be used and everything will be declared in full.  */\n") ;
       foreachDefModuleDo (runIncludeDefConstType) ;
-      outDeclsModuleC (p, n^.impF.decls) ;
+      outDeclsModuleC (p, n^.moduleF.decls) ;
       foreachDefModuleDo (runPrototypeDefC)
    ELSE
       doP := p ;
-      ForeachIndiceInIndexDo (n^.impF.importedModules, doIncludeC) ;
+      ForeachIndiceInIndexDo (n^.moduleF.importedModules, doIncludeC) ;
       print (p, "\n") ;
       outDeclsModuleC (p, n^.moduleF.decls)
    END ;
@@ -13645,6 +13857,7 @@ BEGIN
    integer,
    longint,
    shortint,
+   complex,
    real,
    longreal,
    shortreal,
@@ -14152,7 +14365,11 @@ END addDone ;
 
 PROCEDURE addDoneDef (n: node) ;
 BEGIN
-   IF lookupImp (getSymName (getScope (n))) = getMainModule ()
+   IF isDef (n)
+   THEN
+      RETURN
+   END ;
+   IF (NOT isDef (n)) AND (lookupImp (getSymName (getScope (n))) = getMainModule ())
    THEN
       metaError1 ('cyclic dependancy found between another module using {%1ad} from the definition module of the implementation main being compiled, use the --extended-opaque option to compile', n) ;
       flushErrors ;
@@ -15187,7 +15404,8 @@ BEGIN
    shortreal,
    bitset,
    ztype,
-   rtype           :  RETURN n |
+   rtype,
+   complex         :  RETURN n |
    (* language features and compound type attributes.  *)
    type,
    record,
@@ -15231,6 +15449,7 @@ BEGIN
    arrayref        :  RETURN dupArrayref (n) |
    pointerref      :  RETURN dupPointerref (n) |
    componentref    :  RETURN dupComponentref (n) |
+   cmplx,
    and,
    or,
    equal,
@@ -15248,6 +15467,8 @@ BEGIN
    mult,
    divide,
    in              :  RETURN dupBinary (n) |
+   re,
+   im,
    constexp,
    deref,
    abs,
@@ -15357,6 +15578,7 @@ BEGIN
    bitnumN := makeBitnum () ;
    ztypeN := makeBase (ztype) ;
    rtypeN := makeBase (rtype) ;
+   complexN := makeBase (complex) ;
    realN := makeBase (real) ;
    longrealN := makeBase (longreal) ;
    shortrealN := makeBase (shortreal) ;
@@ -15381,6 +15603,9 @@ BEGIN
    inclN := makeBase (incl) ;
    exclN := makeBase (excl) ;
    highN := makeBase (high) ;
+   imN := makeBase (im) ;
+   reN := makeBase (re) ;
+   cmplxN := makeBase (cmplx) ;
 
    putSymKey (baseSymbols, makeKey ('BOOLEAN'), booleanN) ;
    putSymKey (baseSymbols, makeKey ('PROC'), procN) ;
@@ -15395,6 +15620,7 @@ BEGIN
    putSymKey (baseSymbols, makeKey ('REAL'), realN) ;
    putSymKey (baseSymbols, makeKey ('SHORTREAL'), shortrealN) ;
    putSymKey (baseSymbols, makeKey ('LONGREAL'), longrealN) ;
+   putSymKey (baseSymbols, makeKey ('COMPLEX'), complexN) ;
 
    putSymKey (baseSymbols, makeKey ('NIL'), nilN) ;
    putSymKey (baseSymbols, makeKey ('TRUE'), trueN) ;
@@ -15415,6 +15641,9 @@ BEGIN
    putSymKey (baseSymbols, makeKey ('INCL'), inclN) ;
    putSymKey (baseSymbols, makeKey ('EXCL'), exclN) ;
    putSymKey (baseSymbols, makeKey ('HIGH'), highN) ;
+   putSymKey (baseSymbols, makeKey ('CMPLX'), cmplxN) ;
+   putSymKey (baseSymbols, makeKey ('RE'), reN) ;
+   putSymKey (baseSymbols, makeKey ('IM'), imN) ;
 
    addDone (booleanN) ;
    addDone (charN) ;
@@ -15431,6 +15660,7 @@ BEGIN
    addDone (realN) ;
    addDone (longrealN) ;
    addDone (shortrealN) ;
+   addDone (complexN) ;
    addDone (procN) ;
    addDone (nilN) ;
    addDone (trueN) ;

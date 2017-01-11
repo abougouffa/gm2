@@ -4,9 +4,9 @@
 #if !defined (_StrCase_H)
 #   define _StrCase_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -50,9 +50,9 @@ EXTERN char StrCase_Cap (char ch);
 */
 
 EXTERN char StrCase_Lower (char ch);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

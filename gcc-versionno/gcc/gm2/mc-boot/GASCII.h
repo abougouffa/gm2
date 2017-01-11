@@ -4,9 +4,9 @@
 #if !defined (_ASCII_H)
 #   define _ASCII_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -59,9 +59,9 @@ extern "C" {
 #   define ASCII_tab ASCII_ht
 #   define ASCII_del (char) 0177
 #   define ASCII_EOL ASCII_nl
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

@@ -4,9 +4,9 @@
 #if !defined (_lists_H)
 #   define _lists_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -97,9 +97,9 @@ EXTERN void lists_foreachItemInListDo (lists_list l, symbolKey_performOperation 
 */
 
 EXTERN lists_list lists_duplicateList (lists_list l);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

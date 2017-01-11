@@ -4,9 +4,9 @@
 #if !defined (_mcOptions_H)
 #   define _mcOptions_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -85,9 +85,9 @@ EXTERN DynamicStrings_String mcOptions_getHPrefix (void);
 */
 
 EXTERN unsigned int mcOptions_getIgnoreFQ (void);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

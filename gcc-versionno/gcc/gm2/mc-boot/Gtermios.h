@@ -4,9 +4,9 @@
 #if !defined (_termios_H)
 #   define _termios_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -172,9 +172,9 @@ EXTERN unsigned int termios_GetChar (termios_TERMIOS t, termios_ControlChar c, c
 */
 
 EXTERN unsigned int termios_SetChar (termios_TERMIOS t, termios_ControlChar c, char ch);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

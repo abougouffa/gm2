@@ -210,6 +210,13 @@ PROCEDURE useException ;
 
 
 (*
+   useComplex - use the complex data type.
+*)
+
+PROCEDURE useComplex ;
+
+
+(*
    genDefs - generate definitions or includes for all
              macros and prototypes used.
 *)

@@ -4,9 +4,9 @@
 #if !defined (_mcPretty_H)
 #   define _mcPretty_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -128,9 +128,9 @@ EXTERN void mcPretty_prints (mcPretty_pretty p, DynamicStrings_String s);
 */
 
 EXTERN void mcPretty_raw (mcPretty_pretty p, DynamicStrings_String s);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

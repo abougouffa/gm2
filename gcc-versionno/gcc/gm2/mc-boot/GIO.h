@@ -4,9 +4,9 @@
 #if !defined (_IO_H)
 #   define _IO_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -53,9 +53,9 @@ EXTERN void IO_EchoOn (int fd, unsigned int input);
 */
 
 EXTERN void IO_EchoOff (int fd, unsigned int input);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

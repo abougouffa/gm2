@@ -4,9 +4,9 @@
 #if !defined (_mcSearch_H)
 #   define _mcSearch_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -89,9 +89,9 @@ EXTERN void mcSearch_setDefExtension (DynamicStrings_String ext);
 */
 
 EXTERN void mcSearch_setModExtension (DynamicStrings_String ext);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

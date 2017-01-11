@@ -4,9 +4,9 @@
 #if !defined (_mcPreprocess_H)
 #   define _mcPreprocess_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -33,9 +33,9 @@ extern "C" {
 */
 
 EXTERN DynamicStrings_String mcPreprocess_preprocessModule (DynamicStrings_String filename);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

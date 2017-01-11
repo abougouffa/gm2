@@ -4,9 +4,9 @@
 #if !defined (_StdIO_H)
 #   define _StdIO_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -84,9 +84,9 @@ EXTERN void StdIO_PopInput (void);
 */
 
 EXTERN StdIO_ProcRead StdIO_GetCurrentInput (void);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

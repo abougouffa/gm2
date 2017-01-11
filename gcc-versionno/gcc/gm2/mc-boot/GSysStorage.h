@@ -4,9 +4,9 @@
 #if !defined (_SysStorage_H)
 #   define _SysStorage_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -57,9 +57,9 @@ EXTERN unsigned int SysStorage_Available (unsigned int Size);
 */
 
 EXTERN void SysStorage_Init (void);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

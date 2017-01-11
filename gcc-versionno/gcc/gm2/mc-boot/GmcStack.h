@@ -4,9 +4,9 @@
 #if !defined (_mcStack_H)
 #   define _mcStack_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -72,9 +72,9 @@ EXTERN unsigned int mcStack_depth (mcStack_stack s);
 */
 
 EXTERN void * mcStack_access (mcStack_stack s, unsigned int i);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

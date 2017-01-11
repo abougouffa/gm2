@@ -4,9 +4,9 @@
 #if !defined (_symbolKey_H)
 #   define _symbolKey_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -94,9 +94,9 @@ EXTERN unsigned int symbolKey_doesTreeContainAny (symbolKey_symbolTree t, symbol
 */
 
 EXTERN void symbolKey_foreachNodeDo (symbolKey_symbolTree t, symbolKey_performOperation p);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

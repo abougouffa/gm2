@@ -4,9 +4,9 @@
 #if !defined (_M2RTS_H)
 #   define _M2RTS_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -121,9 +121,9 @@ EXTERN void M2RTS_WholeNonPosModException (void * filename, unsigned int line, u
 EXTERN void M2RTS_WholeZeroDivException (void * filename, unsigned int line, unsigned int column, void * scope);
 EXTERN void M2RTS_WholeZeroRemException (void * filename, unsigned int line, unsigned int column, void * scope);
 EXTERN void M2RTS_NoException (void * filename, unsigned int line, unsigned int column, void * scope);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

@@ -4,9 +4,9 @@
 #if !defined (_M2EXCEPTION_H)
 #   define _M2EXCEPTION_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -24,9 +24,9 @@ typedef enum {M2EXCEPTION_indexException, M2EXCEPTION_rangeException, M2EXCEPTIO
 
 EXTERN M2EXCEPTION_M2Exceptions M2EXCEPTION_M2Exception (void);
 EXTERN unsigned int M2EXCEPTION_IsM2Exception (void);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

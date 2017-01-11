@@ -4,9 +4,9 @@
 #if !defined (_StringConvert_H)
 #   define _StringConvert_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -282,9 +282,9 @@ EXTERN DynamicStrings_String StringConvert_ToSigFig (DynamicStrings_String s, un
 */
 
 EXTERN DynamicStrings_String StringConvert_ToDecimalPlaces (DynamicStrings_String s, unsigned int n);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

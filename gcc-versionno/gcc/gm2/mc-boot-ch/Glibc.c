@@ -45,7 +45,7 @@ int libc_strlen (char *s)
   return strlen (s);
 }
 
-int libc_printf (char *format, ...)
+int libc_printf (char *format, unsigned int _format_high, ...)
 {
   va_list arg;
   int done;

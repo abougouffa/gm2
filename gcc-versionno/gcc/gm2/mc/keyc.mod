@@ -67,7 +67,8 @@ VAR
    seenFalse,
    seenNull,
    seenMemcpy,
-   seenException: BOOLEAN ;
+   seenException,
+   seenComplex  : BOOLEAN ;
 
 
 (*
@@ -485,6 +486,29 @@ END checkException ;
 
 
 (*
+   useComplex - use the complex data type.
+*)
+
+PROCEDURE useComplex ;
+BEGIN
+   seenComplex := TRUE
+END useComplex ;
+
+
+(*
+   checkComplex - check to see if the type complex was used.
+*)
+
+PROCEDURE checkComplex (p: pretty) ;
+BEGIN
+   IF seenComplex
+   THEN
+      print (p, '#   include <complex.h>\n')
+   END
+END checkComplex ;
+
+
+(*
    genDefs - generate definitions or includes for all
              macros and prototypes used.
 *)
@@ -500,7 +524,8 @@ BEGIN
    checkLimits (p) ;
    checkAbs (p) ;
    checkStorage (p) ;
-   checkException (p)
+   checkException (p) ;
+   checkComplex (p)
 END genDefs ;
 
 
@@ -767,6 +792,8 @@ BEGIN
    add (macros, 'cos') ;
    add (macros, 'tan') ;
    add (macros, 'log10') ;
+   add (macros, 'I') ;
+   add (macros, 'csqrt') ;
    add (macros, 'main')
 END initMacros ;
 
@@ -846,6 +873,7 @@ BEGIN
    seenFabs := FALSE ;
    seenFabsl := FALSE ;
    seenException := FALSE ;
+   seenComplex := FALSE ;
    initializedCP := FALSE ;
 
    stack := NIL ;

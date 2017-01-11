@@ -4,9 +4,9 @@
 #if !defined (_Indexing_H)
 #   define _Indexing_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -111,9 +111,9 @@ EXTERN void Indexing_IncludeIndiceIntoIndex (Indexing_Index i, void * a);
 */
 
 EXTERN void Indexing_ForeachIndiceInIndexDo (Indexing_Index i, Indexing_IndexProcedure p);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

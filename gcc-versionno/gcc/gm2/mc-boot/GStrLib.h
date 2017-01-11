@@ -4,9 +4,9 @@
 #if !defined (_StrLib_H)
 #   define _StrLib_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -64,9 +64,9 @@ EXTERN unsigned int StrLib_IsSubString (char *a_, unsigned int _a_high, char *b_
 */
 
 EXTERN void StrLib_StrRemoveWhitePrefix (char *a_, unsigned int _a_high, char *b, unsigned int _b_high);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

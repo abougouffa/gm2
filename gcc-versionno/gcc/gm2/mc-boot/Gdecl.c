@@ -236,7 +236,7 @@ typedef struct _T1_r _T1;
 
 #   define MaxBuf 127
 #   define maxNoOfElements 5
-typedef enum {explist, funccall, exit_, return_, stmtseq, comment, halt, new, dispose, inc, dec, incl, excl, nil, true, false, address, loc, byte, word, char_, cardinal, longcard, shortcard, integer, longint, shortint, real, longreal, shortreal, bitset, boolean, proc, ztype, rtype, type, record, varient, var, enumeration, subrange, array, subscript, string, const_, literal, varparam, param, varargs, optarg_, pointer, recordfield, varientfield, enumerationfield, set, proctype, procedure, def, imp, module, loop, while_, for_, repeat, case_, caselabellist, caselist, range, assignment, call, if_, elsif, constexp, neg, cast, val, plus, sub, div_, mod, mult, divide, in, adr, size, tsize, ord, float_, trunc, chr, abs_, high, throw, min, max, componentref, pointerref, arrayref, deref, equal, notequal, less, greater, greequal, lessequal, lsl, lsr, lor, land, lnot, lxor, and, or, not, identlist, vardecl, setvalue} nodeT;
+typedef enum {explist, funccall, exit_, return_, stmtseq, comment, halt, new, dispose, inc, dec, incl, excl, nil, true, false, address, loc, byte, word, char_, cardinal, longcard, shortcard, integer, longint, shortint, real, longreal, shortreal, bitset, boolean, proc, ztype, rtype, complex, type, record, varient, var, enumeration, subrange, array, subscript, string, const_, literal, varparam, param, varargs, optarg_, pointer, recordfield, varientfield, enumerationfield, set, proctype, procedure, def, imp, module, loop, while_, for_, repeat, case_, caselabellist, caselist, range, assignment, call, if_, elsif, constexp, neg, cast, val, plus, sub, div_, mod, mult, divide, in, adr, size, tsize, ord, float_, trunc, chr, abs_, high, throw, cmplx, re, im, min, max, componentref, pointerref, arrayref, deref, equal, notequal, less, greater, greequal, lessequal, lsl, lsr, lor, land, lnot, lxor, and, or, not, identlist, vardecl, setvalue} nodeT;
 
 #   define MaxnoOfelements 5
 typedef enum {mcReserved_eoftok, mcReserved_plustok, mcReserved_minustok, mcReserved_timestok, mcReserved_dividetok, mcReserved_becomestok, mcReserved_ambersandtok, mcReserved_periodtok, mcReserved_commatok, mcReserved_semicolontok, mcReserved_lparatok, mcReserved_rparatok, mcReserved_lsbratok, mcReserved_rsbratok, mcReserved_lcbratok, mcReserved_rcbratok, mcReserved_uparrowtok, mcReserved_singlequotetok, mcReserved_equaltok, mcReserved_hashtok, mcReserved_lesstok, mcReserved_greatertok, mcReserved_lessgreatertok, mcReserved_lessequaltok, mcReserved_greaterequaltok, mcReserved_ldirectivetok, mcReserved_rdirectivetok, mcReserved_periodperiodtok, mcReserved_colontok, mcReserved_doublequotestok, mcReserved_bartok, mcReserved_andtok, mcReserved_arraytok, mcReserved_begintok, mcReserved_bytok, mcReserved_casetok, mcReserved_consttok, mcReserved_definitiontok, mcReserved_divtok, mcReserved_dotok, mcReserved_elsetok, mcReserved_elsiftok, mcReserved_endtok, mcReserved_excepttok, mcReserved_exittok, mcReserved_exporttok, mcReserved_finallytok, mcReserved_fortok, mcReserved_fromtok, mcReserved_iftok, mcReserved_implementationtok, mcReserved_importtok, mcReserved_intok, mcReserved_looptok, mcReserved_modtok, mcReserved_moduletok, mcReserved_nottok, mcReserved_oftok, mcReserved_ortok, mcReserved_packedsettok, mcReserved_pointertok, mcReserved_proceduretok, mcReserved_qualifiedtok, mcReserved_unqualifiedtok, mcReserved_recordtok, mcReserved_remtok, mcReserved_repeattok, mcReserved_retrytok, mcReserved_returntok, mcReserved_settok, mcReserved_thentok, mcReserved_totok, mcReserved_typetok, mcReserved_untiltok, mcReserved_vartok, mcReserved_whiletok, mcReserved_withtok, mcReserved_asmtok, mcReserved_volatiletok, mcReserved_periodperiodperiodtok, mcReserved_datetok, mcReserved_linetok, mcReserved_filetok, mcReserved_attributetok, mcReserved_builtintok, mcReserved_inlinetok, mcReserved_integertok, mcReserved_identtok, mcReserved_realtok, mcReserved_stringtok, mcReserved_commenttok} mcReserved_toktype;
@@ -895,6 +895,10 @@ static decl_node bitsetN;
 static decl_node bitnumN;
 static decl_node ztypeN;
 static decl_node rtypeN;
+static decl_node complexN;
+static decl_node cmplxN;
+static decl_node reN;
+static decl_node imN;
 static decl_node realN;
 static decl_node longrealN;
 static decl_node shortrealN;
@@ -3083,6 +3087,7 @@ void keyc_useAbs (void);
 void keyc_useFabs (void);
 void keyc_useFabsl (void);
 void keyc_useException (void);
+void keyc_useComplex (void);
 void keyc_genDefs (mcPretty_pretty p);
 void keyc_enterScope (decl_node n);
 void keyc_leaveScope (decl_node n);
@@ -3163,6 +3168,12 @@ static unsigned int isLocal (decl_node n);
 */
 
 static void importEnumFields (decl_node m, decl_node n);
+
+/*
+   isComplex - returns TRUE if, n, is the complex type.
+*/
+
+static unsigned int isComplex (decl_node n);
 
 /*
    initFixupInfo -
@@ -4867,6 +4878,24 @@ static unsigned int isIntrinsic (decl_node n);
 static void doHalt (mcPretty_pretty p, decl_node n);
 
 /*
+   doReC -
+*/
+
+static void doReC (mcPretty_pretty p, decl_node n);
+
+/*
+   doImC -
+*/
+
+static void doImC (mcPretty_pretty p, decl_node n);
+
+/*
+   doCmplx -
+*/
+
+static void doCmplx (mcPretty_pretty p, decl_node n);
+
+/*
    doIntrinsicC -
 */
 
@@ -5283,6 +5312,12 @@ static dependentState walkComponentRef (alists_alist l, decl_node n);
 */
 
 static dependentState walkPointerRef (alists_alist l, decl_node n);
+
+/*
+   walkSetValue -
+*/
+
+static dependentState walkSetValue (alists_alist l, decl_node n);
 
 /*
    doDependants - return the dependentState depending upon whether
@@ -6193,6 +6228,16 @@ static void importEnumFields (decl_node m, decl_node n)
 
 
 /*
+   isComplex - returns TRUE if, n, is the complex type.
+*/
+
+static unsigned int isComplex (decl_node n)
+{
+  return n == complexN;
+}
+
+
+/*
    initFixupInfo -
 */
 
@@ -6453,6 +6498,8 @@ static void setUnary (decl_node u, nodeT k, decl_node a, decl_node t)
       case ord:
       case high:
       case throw:
+      case re:
+      case im:
       case not:
       case neg:
       case adr:
@@ -7070,6 +7117,7 @@ static unsigned int isAnyType (decl_node n)
       case integer:
       case longint:
       case shortint:
+      case complex:
       case bitset:
       case boolean:
       case proc:
@@ -7145,6 +7193,8 @@ static decl_node lookupBase (nameKey_Name n)
   m = symbolKey_getSymKey (baseSymbols, n);
   if (m == procN)
     keyc_useProc ();
+  else if (m == complexN)
+    keyc_useComplex ();
   return m;
 }
 
@@ -7264,6 +7314,8 @@ static unsigned int isUnary (decl_node n)
   switch (n->kind)
     {
       case throw:
+      case re:
+      case im:
       case deref:
       case high:
       case chr:
@@ -7308,6 +7360,8 @@ static decl_node makeUnary (nodeT k, decl_node e, decl_node res)
       switch (n->kind)
         {
           case throw:
+          case re:
+          case im:
           case deref:
           case high:
           case chr:
@@ -7454,6 +7508,7 @@ static decl_node doMakeBinary (nodeT k, decl_node l, decl_node r, decl_node res)
   n->kind = k;
   switch (n->kind)
     {
+      case cmplx:
       case equal:
       case notequal:
       case less:
@@ -7575,6 +7630,7 @@ static decl_node makeBase (nodeT k)
       case proc:
       case ztype:
       case rtype:
+      case complex:
       case adr:
       case chr:
       case abs_:
@@ -7583,6 +7639,9 @@ static decl_node makeBase (nodeT k)
       case ord:
       case high:
       case throw:
+      case re:
+      case im:
+      case cmplx:
       case size:
       case tsize:
       case val:
@@ -7717,6 +7776,15 @@ static decl_node doGetFuncType (decl_node n)
           return charN;
           break;
 
+        case re:
+        case im:
+          return realN;
+          break;
+
+        case cmplx:
+          return complexN;
+          break;
+
         case abs_:
           return getExprType (getExpList (n->funccallF.args, 1));
           break;
@@ -7847,6 +7915,10 @@ static decl_node doGetExprType (decl_node n)
         return n;
         break;
 
+      case complex:
+        return n;
+        break;
+
       case type:
         return n->typeF.type;
         break;
@@ -7974,6 +8046,10 @@ static decl_node doGetExprType (decl_node n)
         return doSetExprType (&n->binaryF.resultType, booleanN);
         break;
 
+      case cmplx:
+        return doSetExprType (&n->binaryF.resultType, complexN);
+        break;
+
       case abs_:
       case constexp:
       case deref:
@@ -8009,6 +8085,14 @@ static decl_node doGetExprType (decl_node n)
 
       case not:
         return doSetExprType (&n->unaryF.resultType, booleanN);
+        break;
+
+      case re:
+        return doSetExprType (&n->unaryF.resultType, realN);
+        break;
+
+      case im:
+        return doSetExprType (&n->unaryF.resultType, realN);
         break;
 
       case arrayref:
@@ -8386,6 +8470,7 @@ static unsigned int needsParen (decl_node n)
       case real:
       case longreal:
       case shortreal:
+      case complex:
       case bitset:
       case boolean:
       case proc:
@@ -8398,6 +8483,10 @@ static unsigned int needsParen (decl_node n)
 
       case address:
         return TRUE;
+        break;
+
+      case procedure:
+        return FALSE;
         break;
 
 
@@ -8655,6 +8744,11 @@ static decl_node doGetLastOp (decl_node a, decl_node b)
         return doGetLastOp (b, b->unaryF.arg);
         break;
 
+      case re:
+      case im:
+        return doGetLastOp (b, b->unaryF.arg);
+        break;
+
       case equal:
         return doGetLastOp (b, b->binaryF.right);
         break;
@@ -8728,6 +8822,10 @@ static decl_node doGetLastOp (decl_node a, decl_node b)
         break;
 
       case or:
+        return doGetLastOp (b, b->binaryF.right);
+        break;
+
+      case cmplx:
         return doGetLastOp (b, b->binaryF.right);
         break;
 
@@ -9187,6 +9285,12 @@ static void doExprC (mcPretty_pretty p, decl_node n)
         doUnary (p, (char *) "HIGH", 4, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
         break;
 
+      case re:
+      case im:
+      case cmplx:
+        M2RTS_HALT (0);
+        break;
+
       case deref:
         doDeRefC (p, n->unaryF.arg);
         break;
@@ -9322,6 +9426,7 @@ static void doExprC (mcPretty_pretty p, decl_node n)
       case integer:
       case longint:
       case shortint:
+      case complex:
       case real:
       case longreal:
       case shortreal:
@@ -9365,7 +9470,7 @@ static void doExprCup (mcPretty_pretty p, decl_node n, unsigned int unpackProc)
   if (unpackProc)
     {
       t = decl_skipType (getExprType (n));
-      if ((t == procN) || (decl_isProcType (t)))
+      if ((t != NULL) && ((t == procN) || (decl_isProcType (t))))
         outText (p, (char *) ".proc", 5);
     }
 }
@@ -9436,6 +9541,14 @@ static void doExprM2 (mcPretty_pretty p, decl_node n)
         doUnary (p, (char *) "HIGH", 4, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
         break;
 
+      case re:
+        doUnary (p, (char *) "RE", 2, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
+        break;
+
+      case im:
+        doUnary (p, (char *) "IM", 2, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
+        break;
+
       case deref:
         doPostUnary (p, (char *) "^", 1, n->unaryF.arg);
         break;
@@ -9478,6 +9591,10 @@ static void doExprM2 (mcPretty_pretty p, decl_node n)
 
       case val:
         doPreBinary (p, (char *) "VAL", 3, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
+        break;
+
+      case cmplx:
+        doPreBinary (p, (char *) "CMPLX", 5, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
         break;
 
       case plus:
@@ -10336,11 +10453,17 @@ static void doVarParamC (mcPretty_pretty p, decl_node n)
   ptype = decl_getType (n);
   if (n->varparamF.namelist == NULL)
     {
-      doTypeC (p, ptype, &n);
+      doTypeNameC (p, ptype);
       if (! (decl_isArray (ptype)))
         {
           mcPretty_setNeedSpace (p);
           outText (p, (char *) "*", 1);
+        }
+      if ((decl_isArray (ptype)) && (decl_isUnbounded (ptype)))
+        {
+          outText (p, (char *) ",", 1);
+          mcPretty_setNeedSpace (p);
+          outText (p, (char *) "unsigned int", 12);
         }
     }
   else
@@ -10863,6 +10986,7 @@ static unsigned int isBase (decl_node n)
       case integer:
       case longint:
       case shortint:
+      case complex:
       case real:
       case longreal:
       case shortreal:
@@ -10914,6 +11038,10 @@ static void doBaseC (mcPretty_pretty p, decl_node n)
 
       case shortint:
         outText (p, (char *) "short int", 9);
+        break;
+
+      case complex:
+        outText (p, (char *) "double complex", 14);
         break;
 
       case real:
@@ -12787,6 +12915,14 @@ static void doFuncUnbounded (mcPretty_pretty p, decl_node actual, decl_node form
       mcDebug_assert (isString (actual));
       outCstring (p, actual, TRUE);
     }
+  else if (isFuncCall (actual))
+    if ((getExprType (actual)) == NULL)
+      mcMetaError_metaError3 ((char *) "there is no return type to the procedure function {%3ad} which is being passed as the parameter {%1ad} to {%2ad}", 112, (unsigned char *) &formal, (sizeof (formal)-1), (unsigned char *) &func, (sizeof (func)-1), (unsigned char *) &actual, (sizeof (actual)-1));
+    else
+      {
+        outText (p, (char *) "&", 1);
+        doExprC (p, actual);
+      }
   else if (decl_isUnbounded (decl_getType (actual)))
     doFQNameC (p, actual);
   else
@@ -13570,6 +13706,9 @@ static unsigned int isIntrinsic (decl_node n)
       case ord:
       case chr:
       case abs_:
+      case im:
+      case re:
+      case cmplx:
       case high:
       case inc:
       case dec:
@@ -13610,6 +13749,89 @@ static void doHalt (mcPretty_pretty p, decl_node n)
       doExprC (p, getExpList (n->funccallF.args, 1));
       outText (p, (char *) ")", 1);
     }
+}
+
+
+/*
+   doReC -
+*/
+
+static void doReC (mcPretty_pretty p, decl_node n)
+{
+  decl_node t;
+
+  mcDebug_assert (isFuncCall (n));
+  if ((n->funccallF.args != NULL) && ((expListLen (n->funccallF.args)) == 1))
+    t = getExprType (n);
+  else
+    M2RTS_HALT (0);
+  if (t == realN)
+    {
+      keyc_useComplex ();
+      outText (p, (char *) "creal", 5);
+    }
+  else
+    M2RTS_HALT (0);
+  mcPretty_setNeedSpace (p);
+  doFuncArgsC (p, n, (Indexing_Index) NULL, TRUE);
+}
+
+
+/*
+   doImC -
+*/
+
+static void doImC (mcPretty_pretty p, decl_node n)
+{
+  decl_node t;
+
+  mcDebug_assert (isFuncCall (n));
+  if ((n->funccallF.args != NULL) && ((expListLen (n->funccallF.args)) == 1))
+    t = getExprType (n);
+  else
+    M2RTS_HALT (0);
+  if (t == realN)
+    {
+      keyc_useComplex ();
+      outText (p, (char *) "cimag", 5);
+    }
+  else
+    M2RTS_HALT (0);
+  mcPretty_setNeedSpace (p);
+  doFuncArgsC (p, n, (Indexing_Index) NULL, TRUE);
+}
+
+
+/*
+   doCmplx -
+*/
+
+static void doCmplx (mcPretty_pretty p, decl_node n)
+{
+  mcDebug_assert (isFuncCall (n));
+  if (n->funccallF.args != NULL)
+    if ((expListLen (n->funccallF.args)) == 2)
+      {
+        keyc_useComplex ();
+        mcPretty_setNeedSpace (p);
+        outText (p, (char *) "(", 1);
+        doExprC (p, getExpList (n->funccallF.args, 1));
+        outText (p, (char *) ")", 1);
+        mcPretty_setNeedSpace (p);
+        outText (p, (char *) "+", 1);
+        mcPretty_setNeedSpace (p);
+        outText (p, (char *) "(", 1);
+        doExprC (p, getExpList (n->funccallF.args, 1));
+        mcPretty_setNeedSpace (p);
+        outText (p, (char *) "*", 1);
+        mcPretty_setNeedSpace (p);
+        outText (p, (char *) "I", 1);
+        outText (p, (char *) ")", 1);
+      }
+    else
+      M2RTS_HALT (0);
+  else
+    M2RTS_HALT (0);
 }
 
 
@@ -13709,6 +13931,18 @@ static void doIntrinsicC (mcPretty_pretty p, decl_node n)
 
         case throw:
           doThrowC (p, n);
+          break;
+
+        case re:
+          doReC (p, n);
+          break;
+
+        case im:
+          doImC (p, n);
+          break;
+
+        case cmplx:
+          doCmplx (p, n);
           break;
 
 
@@ -15168,6 +15402,33 @@ static dependentState walkPointerRef (alists_alist l, decl_node n)
 
 
 /*
+   walkSetValue -
+*/
+
+static dependentState walkSetValue (alists_alist l, decl_node n)
+{
+  dependentState s;
+  unsigned int i;
+  unsigned int j;
+
+  mcDebug_assert (decl_isSetValue (n));
+  s = walkDependants (l, n->setvalueF.type);
+  if (s != completed)
+    return s;
+  i = Indexing_LowIndice (n->setvalueF.values);
+  j = Indexing_HighIndice (n->setvalueF.values);
+  while (i <= j)
+    {
+      s = walkDependants (l, (decl_node) Indexing_GetIndice (n->setvalueF.values, i));
+      if (s != completed)
+        return s;
+      i += 1;
+    }
+  return completed;
+}
+
+
+/*
    doDependants - return the dependentState depending upon whether
                   all dependants have been declared.
 */
@@ -15196,6 +15457,7 @@ static dependentState doDependants (alists_alist l, decl_node n)
       case bitset:
       case ztype:
       case rtype:
+      case complex:
       case proc:
         return completed;
         break;
@@ -15344,6 +15606,10 @@ static dependentState doDependants (alists_alist l, decl_node n)
 
       case funccall:
         return walkFuncCall (l, n);
+        break;
+
+      case setvalue:
+        return walkSetValue (l, n);
         break;
 
 
@@ -16105,6 +16371,7 @@ static void visitDependants (alists_alist v, decl_node n, nodeProcedure p)
       case bitset:
       case ztype:
       case rtype:
+      case complex:
       case proc:
         break;
 
@@ -16258,6 +16525,7 @@ static void visitDependants (alists_alist v, decl_node n, nodeProcedure p)
         visitArrayRef (v, n, p);
         break;
 
+      case cmplx:
       case equal:
       case notequal:
       case less:
@@ -16278,6 +16546,8 @@ static void visitDependants (alists_alist v, decl_node n, nodeProcedure p)
         visitBinary (v, n, p);
         break;
 
+      case re:
+      case im:
       case abs_:
       case chr:
       case high:
@@ -16361,6 +16631,7 @@ static DynamicStrings_String genKind (decl_node n)
       case proc:
       case ztype:
       case rtype:
+      case complex:
         return NULL;
         break;
 
@@ -17088,9 +17359,9 @@ static void outDefC (mcPretty_pretty p, decl_node n)
   mcPretty_print (p, (char *) "#   define _", 12);
   mcPretty_prints (p, s);
   mcPretty_print (p, (char *) "_H\\n\\n", 6);
-  mcPretty_print (p, (char *) "#ifdef __cplusplus\\n", 20);
+  mcPretty_print (p, (char *) "#   ifdef __cplusplus\\n", 23);
   mcPretty_print (p, (char *) "extern \"C\" {\\n", 14);
-  mcPretty_print (p, (char *) "#endif\\n", 8);
+  mcPretty_print (p, (char *) "#   endif\\n", 11);
   outputFile = mcStream_openFrag (3);
   doP = p;
   Indexing_ForeachIndiceInIndexDo (n->defF.importedModules, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) doIncludeC});
@@ -17104,9 +17375,9 @@ static void outDefC (mcPretty_pretty p, decl_node n)
   mcPretty_print (p, (char *) "#   endif\\n\\n", 13);
   outDeclsDefC (p, n);
   runPrototypeDefC (n);
-  mcPretty_print (p, (char *) "#ifdef __cplusplus\\n", 20);
+  mcPretty_print (p, (char *) "#   ifdef __cplusplus\\n", 23);
   mcPretty_print (p, (char *) "}\\n", 3);
-  mcPretty_print (p, (char *) "#endif\\n", 8);
+  mcPretty_print (p, (char *) "#   endif\\n", 11);
   mcPretty_print (p, (char *) "\\n", 2);
   mcPretty_print (p, (char *) "#   undef EXTERN\\n", 18);
   mcPretty_print (p, (char *) "#endif\\n", 8);
@@ -17269,13 +17540,13 @@ static void outModuleC (mcPretty_pretty p, decl_node n)
       foreachModuleDo (n, (symbolKey_performOperation) {(symbolKey_performOperation_t) runSimplifyTypes});
       libc_printf ((char *) "/*  --extended-opaque seen therefore no #include will be used and everything will be declared in full.  */\\n", 108);
       decl_foreachDefModuleDo ((symbolKey_performOperation) {(symbolKey_performOperation_t) runIncludeDefConstType});
-      outDeclsModuleC (p, n->impF.decls);
+      outDeclsModuleC (p, n->moduleF.decls);
       decl_foreachDefModuleDo ((symbolKey_performOperation) {(symbolKey_performOperation_t) runPrototypeDefC});
     }
   else
     {
       doP = p;
-      Indexing_ForeachIndiceInIndexDo (n->impF.importedModules, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) doIncludeC});
+      Indexing_ForeachIndiceInIndexDo (n->moduleF.importedModules, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) doIncludeC});
       mcPretty_print (p, (char *) "\\n", 2);
       outDeclsModuleC (p, n->moduleF.decls);
     }
@@ -17567,6 +17838,7 @@ static void doBaseM2 (mcPretty_pretty p, decl_node n)
       case integer:
       case longint:
       case shortint:
+      case complex:
       case real:
       case longreal:
       case shortreal:
@@ -17989,7 +18261,9 @@ static void addDone (decl_node n)
 
 static void addDoneDef (decl_node n)
 {
-  if ((decl_lookupImp (decl_getSymName (decl_getScope (n)))) == (decl_getMainModule ()))
+  if (decl_isDef (n))
+    return;
+  if ((! (decl_isDef (n))) && ((decl_lookupImp (decl_getSymName (decl_getScope (n)))) == (decl_getMainModule ())))
     {
       mcMetaError_metaError1 ((char *) "cyclic dependancy found between another module using {%1ad} from the definition module of the implementation main being compiled, use the --extended-opaque option to compile", 173, (unsigned char *) &n, (sizeof (n)-1));
       mcError_flushErrors ();
@@ -18415,6 +18689,7 @@ static decl_node doDupExpr (decl_node n)
       case bitset:
       case ztype:
       case rtype:
+      case complex:
         return n;
         break;
 
@@ -18475,6 +18750,7 @@ static decl_node doDupExpr (decl_node n)
         return dupComponentref (n);
         break;
 
+      case cmplx:
       case and:
       case or:
       case equal:
@@ -18495,6 +18771,8 @@ static decl_node doDupExpr (decl_node n)
         return dupBinary (n);
         break;
 
+      case re:
+      case im:
       case constexp:
       case deref:
       case abs_:
@@ -18616,6 +18894,7 @@ static void makeBaseSymbols (void)
   bitnumN = makeBitnum ();
   ztypeN = makeBase ((nodeT) ztype);
   rtypeN = makeBase ((nodeT) rtype);
+  complexN = makeBase ((nodeT) complex);
   realN = makeBase ((nodeT) real);
   longrealN = makeBase ((nodeT) longreal);
   shortrealN = makeBase ((nodeT) shortreal);
@@ -18638,6 +18917,9 @@ static void makeBaseSymbols (void)
   inclN = makeBase ((nodeT) incl);
   exclN = makeBase ((nodeT) excl);
   highN = makeBase ((nodeT) high);
+  imN = makeBase ((nodeT) im);
+  reN = makeBase ((nodeT) re);
+  cmplxN = makeBase ((nodeT) cmplx);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "BOOLEAN", 7), (void *) booleanN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "PROC", 4), (void *) procN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "CHAR", 4), (void *) charN);
@@ -18651,6 +18933,7 @@ static void makeBaseSymbols (void)
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "REAL", 4), (void *) realN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "SHORTREAL", 9), (void *) shortrealN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "LONGREAL", 8), (void *) longrealN);
+  symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "COMPLEX", 7), (void *) complexN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "NIL", 3), (void *) nilN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "TRUE", 4), (void *) trueN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "FALSE", 5), (void *) falseN);
@@ -18670,6 +18953,9 @@ static void makeBaseSymbols (void)
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "INCL", 4), (void *) inclN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "EXCL", 4), (void *) exclN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "HIGH", 4), (void *) highN);
+  symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "CMPLX", 5), (void *) cmplxN);
+  symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "RE", 2), (void *) reN);
+  symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "IM", 2), (void *) imN);
   addDone (booleanN);
   addDone (charN);
   addDone (cardinalN);
@@ -18685,6 +18971,7 @@ static void makeBaseSymbols (void)
   addDone (realN);
   addDone (longrealN);
   addDone (shortrealN);
+  addDone (complexN);
   addDone (procN);
   addDone (nilN);
   addDone (trueN);
@@ -19262,6 +19549,10 @@ decl_node decl_getType (decl_node n)
         return n;
         break;
 
+      case complex:
+        return n;
+        break;
+
       case type:
         return n->typeF.type;
         break;
@@ -19363,6 +19654,7 @@ decl_node decl_getType (decl_node n)
         M2RTS_HALT (0);
         break;
 
+      case cmplx:
       case cast:
       case val:
       case plus:
@@ -19378,6 +19670,8 @@ decl_node decl_getType (decl_node n)
         return booleanN;
         break;
 
+      case re:
+      case im:
       case abs_:
       case constexp:
       case deref:
@@ -19615,6 +19909,7 @@ decl_node decl_getScope (decl_node n)
       case bitset:
       case ztype:
       case rtype:
+      case complex:
         return NULL;
         break;
 
@@ -20583,6 +20878,10 @@ nameKey_Name decl_getSymName (decl_node n)
         return nameKey_makeKey ((char *) "_RTYPE", 6);
         break;
 
+      case complex:
+        return nameKey_makeKey ((char *) "COMPLEX", 7);
+        break;
+
       case type:
         return n->typeF.name;
         break;
@@ -20750,6 +21049,18 @@ nameKey_Name decl_getSymName (decl_node n)
 
       case throw:
         return nameKey_makeKey ((char *) "THROW", 5);
+        break;
+
+      case cmplx:
+        return nameKey_makeKey ((char *) "CMPLX", 5);
+        break;
+
+      case re:
+        return nameKey_makeKey ((char *) "RE", 2);
+        break;
+
+      case im:
+        return nameKey_makeKey ((char *) "IM", 2);
         break;
 
       case max:

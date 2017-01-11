@@ -4,9 +4,9 @@
 #if !defined (_pth_H)
 #   define _pth_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -36,9 +36,9 @@ EXTERN int pth_pth_uctx_make (pth_pth_uctx_t p1, void * p2, pth_size_t p3, void 
 EXTERN int pth_pth_uctx_save (pth_pth_uctx_t p1);
 EXTERN int pth_pth_uctx_switch (pth_pth_uctx_t p1, pth_pth_uctx_t p2);
 EXTERN int pth_pth_init (void);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

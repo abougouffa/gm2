@@ -4,9 +4,9 @@
 #if !defined (_keyc_H)
 #   define _keyc_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -176,6 +176,12 @@ EXTERN void keyc_useFabsl (void);
 EXTERN void keyc_useException (void);
 
 /*
+   useComplex - use the complex data type.
+*/
+
+EXTERN void keyc_useComplex (void);
+
+/*
    genDefs - generate definitions or includes for all
              macros and prototypes used.
 */
@@ -223,9 +229,9 @@ EXTERN nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes);
 */
 
 EXTERN void keyc_cp (void);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

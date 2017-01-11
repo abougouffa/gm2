@@ -4,9 +4,9 @@
 #if !defined (_COROUTINES_H)
 #   define _COROUTINES_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -25,9 +25,9 @@ typedef unsigned int COROUTINES_INTERRUPTSOURCE;
 
 typedef unsigned int COROUTINES_PROTECTION;
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

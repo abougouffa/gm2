@@ -4,9 +4,9 @@
 #if !defined (_SYSTEM_H)
 #   define _SYSTEM_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -76,9 +76,9 @@ EXTERN void SYSTEM_RotateLeft (unsigned int *s, unsigned int _s_high, unsigned i
 */
 
 EXTERN void SYSTEM_RotateRight (unsigned int *s, unsigned int _s_high, unsigned int *d, unsigned int _d_high, unsigned int SetSizeInBits, unsigned int RotateCount);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

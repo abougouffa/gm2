@@ -4,9 +4,9 @@
 #if !defined (_mcflex_H)
 #   define _mcflex_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -59,9 +59,9 @@ EXTERN void mcflex_mcError (void * s);
 */
 
 EXTERN unsigned int mcflex_getTotalLines (void);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

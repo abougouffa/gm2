@@ -556,7 +556,7 @@ static void ConstConstructor (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
                                       
                                       % q := pop ()  %
                                       
-                                      % n := push (putSetValue (q, p))  %
+                                      % n := push (putSetValue (p, q))  %
                                       
                                       % assert (d+1 = depth ())  %
                                        | ConstActualParameters 
@@ -3905,7 +3905,7 @@ static void ConstConstructor (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
                                       
                                       % q := pop ()  %
                                       
-                                      % n := push (putSetValue (q, p))  %
+                                      % n := push (putSetValue (p, q))  %
                                       
                                       % assert (d+1 = depth ())  %
                                        | ConstActualParameters 
@@ -3949,7 +3949,7 @@ static void ConstSetOrQualidentOrFunction (SetOfStop0 stopset0, SetOfStop1 stops
               ConstConstructor (stopset0, stopset1, stopset2);
               p = pop ();
               q = pop ();
-              n = push (decl_putSetValue (q, p));
+              n = push (decl_putSetValue (p, q));
               mcDebug_assert ((d+1) == (depth ()));
             }
           else if (mcLexBuf_currenttoken == mcReserved_lparatok)

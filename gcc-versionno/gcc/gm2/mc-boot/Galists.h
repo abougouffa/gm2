@@ -4,9 +4,9 @@
 #if !defined (_alists_H)
 #   define _alists_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -101,9 +101,9 @@ EXTERN void alists_foreachItemInListDo (alists_alist l, alists_performOperation 
 */
 
 EXTERN alists_alist alists_duplicateList (alists_alist l);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

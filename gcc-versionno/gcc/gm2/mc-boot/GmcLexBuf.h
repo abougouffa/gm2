@@ -4,9 +4,9 @@
 #if !defined (_mcLexBuf_H)
 #   define _mcLexBuf_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -173,9 +173,9 @@ EXTERN void mcLexBuf_pushFile (void * filename);
 */
 
 EXTERN void mcLexBuf_popFile (void * filename);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

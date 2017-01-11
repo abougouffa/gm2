@@ -4,9 +4,9 @@
 #if !defined (_mcStream_H)
 #   define _mcStream_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -43,9 +43,9 @@ EXTERN void mcStream_setDest (FIO_File f);
 */
 
 EXTERN FIO_File mcStream_combine (void);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

@@ -4,9 +4,9 @@
 #if !defined (_varargs_H)
 #   define _varargs_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -89,9 +89,9 @@ EXTERN varargs_vararg varargs_start3 (unsigned char *a_, unsigned int _a_high, u
 */
 
 EXTERN varargs_vararg varargs_start4 (unsigned char *a_, unsigned int _a_high, unsigned char *b_, unsigned int _b_high, unsigned char *c_, unsigned int _c_high, unsigned char *d_, unsigned int _d_high);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

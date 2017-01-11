@@ -4,9 +4,9 @@
 #if !defined (_decl_H)
 #   define _decl_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -1184,9 +1184,9 @@ EXTERN void decl_setLangM2 (void);
 */
 
 EXTERN void decl_out (void);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif

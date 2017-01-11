@@ -4,9 +4,9 @@
 #if !defined (_DynamicStrings_H)
 #   define _DynamicStrings_H
 
-#ifdef __cplusplus
+#   ifdef __cplusplus
 extern "C" {
-#endif
+#   endif
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);
@@ -293,9 +293,9 @@ EXTERN void DynamicStrings_PopAllocation (unsigned int halt);
 */
 
 EXTERN DynamicStrings_String DynamicStrings_PopAllocationExemption (unsigned int halt, DynamicStrings_String e);
-#ifdef __cplusplus
+#   ifdef __cplusplus
 }
-#endif
+#   endif
 
 #   undef EXTERN
 #endif
