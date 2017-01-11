@@ -14367,6 +14367,7 @@ PROCEDURE addDoneDef (n: node) ;
 BEGIN
    IF isDef (n)
    THEN
+      addDone (n) ;
       RETURN
    END ;
    IF (NOT isDef (n)) AND (lookupImp (getSymName (getScope (n))) = getMainModule ())

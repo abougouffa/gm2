@@ -18262,7 +18262,10 @@ static void addDone (decl_node n)
 static void addDoneDef (decl_node n)
 {
   if (decl_isDef (n))
-    return;
+    {
+      addDone (n);
+      return;
+    }
   if ((! (decl_isDef (n))) && ((decl_lookupImp (decl_getSymName (decl_getScope (n)))) == (decl_getMainModule ())))
     {
       mcMetaError_metaError1 ((char *) "cyclic dependancy found between another module using {%1ad} from the definition module of the implementation main being compiled, use the --extended-opaque option to compile", 173, (unsigned char *) &n, (sizeof (n)-1));

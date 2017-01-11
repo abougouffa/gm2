@@ -1,5 +1,7 @@
 2017-01-11      Gaius Mulley <gaius@gnu.org>
 
+	* gm2/mc/decl.mod:  add a def to the done list.
+	* gm2/mc-boot/Gdecl.c:  regenerated.
 	* gm2/mc/decl.mod:  handle type COMPLEX and RE, IM.
           Tidy up formatting of h files.  Implement setvalue.
 	  Fix proctype using an unbounded array parameter.
