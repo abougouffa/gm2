@@ -8126,6 +8126,7 @@ BEGIN
    THEN
       assert (NOT isVarient (n)) ;
       assert (NOT isVarientField (n)) ;
+      assert (NOT isDef (n)) ;
       alists.includeItemIntoList (todoQ, n)
    END
 END addTodo ;
@@ -8499,7 +8500,8 @@ BEGIN
       isTypeHidden (n) AND (NOT getExtendedOpaque ())
    THEN
       (* do nothing.  *)
-   ELSE
+   ELSIF NOT isDef (n)
+   THEN
       addTodo (n)
    END
 END addExternal ;

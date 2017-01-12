@@ -1,3 +1,11 @@
+2017-01-12      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/mc-boot/Gdecl.c:  New file.
+	* gm2/mc-boot/GmcComment.c:  New file.
+	* gm2/mc-boot/GmcComment.h:  New file.
+	* gm2/mc/mcComment.def:  New file.
+	* gm2/mc/mcComment.mod:  New file.
+
 2017-01-11      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/mc/decl.mod:  add a def to the done list.

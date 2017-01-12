@@ -1,0 +1,95 @@
+(* Copyright (C) 2015 Free Software Foundation, Inc.  *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  *)
+
+DEFINITION MODULE mcComment ;  (*!m2pim*)
+
+(*
+    Title      : mcComment
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Fri Jan  6 11:57:52 2017
+    Revision   : $Version$
+    Description: provides a module to remember the comments.
+*)
+
+FROM SYSTEM IMPORT ADDRESS ;
+FROM DynamicStrings IMPORT String ;
+FROM nameKey IMPORT Name ;
+
+
+(*
+   beginComment - the start of a new comment has been seen by the lexical analyser.
+                  A new comment block is created and all addText contents are placed
+                  in this block.
+*)
+
+PROCEDURE beginComment ;
+
+
+(*
+   endComment - the end of the comment has been seen by the lexical analyser.
+*)
+
+PROCEDURE endComment ;
+
+
+(*
+   addText - cs is a C string (null terminated) which contains comment text.
+             This is appended to the current comment.
+*)
+
+PROCEDURE addText (cs: ADDRESS) ;
+
+
+(*
+   getComment - returns the current comment.
+*)
+
+PROCEDURE getComment () : String ;
+
+
+(*
+   getCommentCharStar - returns the current comment.
+*)
+
+PROCEDURE getCommentCharStar () : ADDRESS ;
+
+
+(*
+   setProcedureComment - changes the type of the current comment to a procedure heading comment,
+                         providing it has the procname as the first word.
+*)
+
+PROCEDURE setProcedureComment (procname: Name) ;
+
+
+(*
+   getProcedureComment - returns the current procedure comment if available.
+*)
+
+PROCEDURE getProcedureComment () : String ;
+
+
+(*
+   newPass - resets the comment count so that we can collect the comments in order again.
+*)
+
+PROCEDURE newPass ;
+
+
+END mcComment.

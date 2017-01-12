@@ -11826,6 +11826,7 @@ static void addTodo (decl_node n)
     {
       mcDebug_assert (! (decl_isVarient (n)));
       mcDebug_assert (! (decl_isVarientField (n)));
+      mcDebug_assert (! (decl_isDef (n)));
       alists_includeItemIntoList (todoQ, (void *) n);
     }
 }
@@ -12177,7 +12178,7 @@ static void addExternal (decl_node n)
 {
   if (((((decl_getScope (n)) == defModule) && (decl_isType (n))) && (decl_isTypeHidden (n))) && (! (mcOptions_getExtendedOpaque ())))
     {}  /* empty.  */
-  else
+  else if (! (decl_isDef (n)))
     addTodo (n);
 }
 

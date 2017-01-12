@@ -703,7 +703,7 @@ gm2_langhook_gimplify_expr (tree *expr_p, gimple_seq *pre_p ATTRIBUTE_UNUSED, gi
             && !types_compatible_p (TYPE_MAIN_VARIANT (TREE_TYPE (*op1_p)),
                                     integer_type_node))
           *op1_p = convert (unsigned_type_node, *op1_p);
-        break;
+	return GS_OK;
       }
 
     case THROW_EXPR:
