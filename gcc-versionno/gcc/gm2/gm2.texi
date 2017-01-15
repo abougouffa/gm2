@@ -211,6 +211,9 @@ source tree.
 @section News
 
 @table @code
+@item gm2 1.1.6
+was released on February 19 2016.
+
 @item gm2 1.1.5
 was released on September 3 2015, passes all regression tests and has
 many bug fixes applied.  Arrays and Records can be assigned to and from
