@@ -6190,10 +6190,10 @@ BEGIN
          END ;
 	 IF (ch = '\') AND (i < h) AND (DynamicStrings.char (s, i+1) = '\')
          THEN
-            (* escape character is itself escaped.  *)
+            (* escape character is itself escaped, or is a special case, \n.  *)
 	    l := i+2 ;  (* move over both.  *)
             r := DynamicStrings.ConCatChar (r, '\') ;
-            r := DynamicStrings.ConCatChar (r, '\')
+            r := DynamicStrings.ConCatChar (r, DynamicStrings.char (s, i+1))
          ELSE
             (* check to see if the character was escaped.  *)
             IF (i>0) AND (DynamicStrings.char (s, i-1) = '\')

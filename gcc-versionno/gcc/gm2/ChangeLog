@@ -1,3 +1,10 @@
+2017-01-15      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/mc-boot-ch/Glibc.c:  process the \\n
+          escapes before using vfprintf.  libc_getpid
+          (New function).  libc_sleep (New function).
+	* gm2/mc/decl.mod:  (doEscapeC) avoid escaping \\.
+
 2017-01-12      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/mc-boot/Gdecl.c:  New file.

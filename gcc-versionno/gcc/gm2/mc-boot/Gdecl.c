@@ -9794,7 +9794,7 @@ static DynamicStrings_String doEscapeC (DynamicStrings_String s, char ch)
           {
             l = i+2;
             r = DynamicStrings_ConCatChar (r, '\\');
-            r = DynamicStrings_ConCatChar (r, '\\');
+            r = DynamicStrings_ConCatChar (r, DynamicStrings_char (s, i+1));
           }
         else
           {

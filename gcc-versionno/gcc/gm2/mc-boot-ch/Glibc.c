@@ -45,12 +45,33 @@ int libc_strlen (char *s)
   return strlen (s);
 }
 
-int libc_printf (char *format, unsigned int _format_high, ...)
+int libc_printf (char *_format, unsigned int _format_high, ...)
 {
   va_list arg;
   int done;
+  char format[_format_high+1];
+  unsigned int i = 0;
+  unsigned int j = 0;
+  char *c;
 
-  va_start (arg, format);
+  do {
+    c = index (&_format[i], '\\');
+    if (c == NULL)
+      strcpy (&format[j], &_format[i]);
+    else {
+      memcpy (&format[j], &_format[i], (c - _format) - i);
+      i = c - _format;
+      j += c - _format;
+      if (_format[i+1] == 'n')
+	format[j] = '\n';
+      else
+	format[j] = _format[i+1];
+      j++;
+      i += 2;
+    }
+  } while (c != NULL);
+
+  va_start (arg, _format_high);
   done = vfprintf (stdout, format, arg);
   va_end (arg);
 
@@ -125,4 +146,14 @@ void *libc_memset (void *s, int c, size_t n)
 void *libc_memmove (void *dest, void *src, size_t n)
 {
   return memmove (dest, src, n);
+}
+
+int libc_getpid (void)
+{
+  return getpid ();
+}
+
+unsigned int libc_sleep (unsigned int s)
+{
+  return sleep (s);
 }
