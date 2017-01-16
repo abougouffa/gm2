@@ -1,3 +1,8 @@
+2017-01-16      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/mc/decl.mod:  add shortcomplex, longcomplex
+          to the list of base datatypes in mc.
+
 2017-01-15      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/mc-boot-ch/Glibc.c:  process the \\n

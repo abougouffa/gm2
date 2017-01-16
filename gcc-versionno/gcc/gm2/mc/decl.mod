@@ -80,7 +80,8 @@ TYPE
             integer, longint, shortint,
 	    real, longreal, shortreal,
 	    bitset, boolean, proc,
-	    ztype, rtype, complex,
+	    ztype, rtype,
+	    complex, longcomplex, shortcomplex,
 	    (* language features and compound type attributes.  *)
             type, record, varient, var, enumeration,
             subrange, array, subscript,
@@ -140,7 +141,9 @@ TYPE
                          bitset,
                          ztype,
                          rtype,
-			 complex         :  |
+			 complex,
+			 longcomplex,
+			 shortcomplex    :  |
                          (* language features and compound type attributes.  *)
                          type            :  typeF            : typeT |
                          record          :  recordF          : recordT |
@@ -659,6 +662,8 @@ VAR
    ztypeN,
    rtypeN,
    complexN,
+   longcomplexN,
+   shortcomplexN,
    cmplxN,
    reN,
    imN,
@@ -1041,6 +1046,26 @@ PROCEDURE isComplex (n: node) : BOOLEAN ;
 BEGIN
    RETURN n = complexN
 END isComplex ;
+
+
+(*
+   isLongComplex - returns TRUE if, n, is the longcomplex type.
+*)
+
+PROCEDURE isLongComplex (n: node) : BOOLEAN ;
+BEGIN
+   RETURN n = longcomplexN
+END isLongComplex ;
+
+
+(*
+   isShortComplex - returns TRUE if, n, is the shortcomplex type.
+*)
+
+PROCEDURE isShortComplex (n: node) : BOOLEAN ;
+BEGIN
+   RETURN n = shortcomplexN
+END isShortComplex ;
 
 
 (*
@@ -3396,6 +3421,8 @@ BEGIN
    longint,
    shortint,
    complex,
+   longcomplex,
+   shortcomplex,
    bitset,
    boolean,
    proc,
@@ -3673,7 +3700,7 @@ BEGIN
    IF m=procN
    THEN
       keyc.useProc
-   ELSIF m=complexN
+   ELSIF (m=complexN) OR (m=longcomplexN) OR (m=shortcomplexN)
    THEN
       keyc.useComplex
    END ;
@@ -3839,6 +3866,9 @@ BEGIN
       ztype           :  RETURN makeKey ('_ZTYPE') |
       rtype           :  RETURN makeKey ('_RTYPE') |
       complex         :  RETURN makeKey ('COMPLEX') |
+      longcomplex     :  RETURN makeKey ('LONGCOMPLEX') |
+      shortcomplex    :  RETURN makeKey ('SHORTCOMPLEX') |
+
       (* language features and compound type attributes.  *)
       type            :  RETURN typeF.name |
       record          :  RETURN NulName |
@@ -4365,6 +4395,8 @@ BEGIN
       ztype,
       rtype,
       complex,
+      longcomplex,
+      shortcomplex,
       adr,
       chr,
       abs,
@@ -4536,6 +4568,9 @@ BEGIN
       ztype           :  RETURN n |
       rtype           :  RETURN n |
       complex         :  RETURN n |
+      longcomplex     :  RETURN n |
+      shortcomplex    :  RETURN n |
+
       (* language features and compound type attributes.  *)
       type            :  RETURN typeF.type |
       record          :  RETURN n |
@@ -4751,6 +4786,9 @@ BEGIN
       ztype           :  RETURN n |
       rtype           :  RETURN n |
       complex         :  RETURN n |
+      longcomplex     :  RETURN n |
+      shortcomplex    :  RETURN n |
+
       (* language features and compound type attributes.  *)
       type            :  RETURN typeF.type |
       record          :  RETURN n |
@@ -4916,7 +4954,9 @@ BEGIN
       bitset,
       ztype,
       rtype,
-      complex         :  RETURN NIL |
+      complex,
+      longcomplex,
+      shortcomplex    :  RETURN NIL |
       (* language features and compound type attributes.  *)
       type            :  RETURN typeF.scope |
       record          :  RETURN recordF.scope |
@@ -5306,6 +5346,8 @@ BEGIN
       longreal,
       shortreal,
       complex,
+      longcomplex,
+      shortcomplex,
       bitset,
       boolean,
       proc            :  RETURN FALSE |
@@ -5945,6 +5987,8 @@ BEGIN
       longint,
       shortint,
       complex,
+      longcomplex,
+      shortcomplex,
       real,
       longreal,
       shortreal,
@@ -7375,6 +7419,8 @@ BEGIN
    longint,
    shortint,
    complex,
+   longcomplex,
+   shortcomplex,
    real,
    longreal,
    shortreal,
@@ -7396,20 +7442,22 @@ PROCEDURE doBaseC (p: pretty; n: node) ;
 BEGIN
    CASE n^.kind OF
 
-   char     :  outText (p, 'char') |
-   cardinal :  outText (p, 'unsigned int') |
-   longcard :  outText (p, 'long unsigned int') |
-   shortcard:  outText (p, 'short unsigned int') |
-   integer  :  outText (p, 'int') |
-   longint  :  outText (p, 'long int') |
-   shortint :  outText (p, 'short int') |
-   complex  :  outText (p, 'double complex') |
-   real     :  outText (p, 'double') |
-   longreal :  outText (p, 'long double') |
-   shortreal:  outText (p, 'float') |
-   bitset   :  outText (p, 'unsigned int') |
-   boolean  :  outText (p, 'unsigned int') |
-   proc     :  outText (p, 'PROC')
+   char        :  outText (p, 'char') |
+   cardinal    :  outText (p, 'unsigned int') |
+   longcard    :  outText (p, 'long unsigned int') |
+   shortcard   :  outText (p, 'short unsigned int') |
+   integer     :  outText (p, 'int') |
+   longint     :  outText (p, 'long int') |
+   shortint    :  outText (p, 'short int') |
+   complex     :  outText (p, 'double complex') |
+   longcomplex :  outText (p, 'long double complex') |
+   shortcomplex:  outText (p, 'float complex') |
+   real        :  outText (p, 'double') |
+   longreal    :  outText (p, 'long double') |
+   shortreal   :  outText (p, 'float') |
+   bitset      :  outText (p, 'unsigned int') |
+   boolean     :  outText (p, 'unsigned int') |
+   proc        :  outText (p, 'PROC')
 
    END ;
    setNeedSpace (p)
@@ -11870,6 +11918,8 @@ BEGIN
       ztype,
       rtype,
       complex,
+      longcomplex,
+      shortcomplex,
       proc            :  RETURN completed |
       (* language features and compound type attributes.  *)
       type            :  RETURN walkType (l, n) |
@@ -12673,6 +12723,8 @@ BEGIN
    ztype,
    rtype,
    complex,
+   longcomplex,
+   shortcomplex,
    proc            :  |
    (* language features and compound type attributes.  *)
    type            :  visitType (v, n, p) |
@@ -12807,7 +12859,9 @@ BEGIN
    proc,
    ztype,
    rtype,
-   complex         :  RETURN NIL |
+   complex,
+   longcomplex,
+   shortcomplex    :  RETURN NIL |
 
    (* language features and compound type attributes.  *)
    type            :  RETURN InitString ('type') |
@@ -13860,12 +13914,14 @@ BEGIN
    longint,
    shortint,
    complex,
+   longcomplex,
+   shortcomplex,
    real,
    longreal,
    shortreal,
    bitset,
    boolean,
-   proc     :  doNameM2 (p, n)
+   proc        :  doNameM2 (p, n)
 
    END ;
    setNeedSpace (p)
@@ -15408,7 +15464,9 @@ BEGIN
    bitset,
    ztype,
    rtype,
-   complex         :  RETURN n |
+   complex,
+   longcomplex,
+   shortcomplex     :  RETURN n |
    (* language features and compound type attributes.  *)
    type,
    record,
@@ -15582,6 +15640,8 @@ BEGIN
    ztypeN := makeBase (ztype) ;
    rtypeN := makeBase (rtype) ;
    complexN := makeBase (complex) ;
+   longcomplexN := makeBase (longcomplex) ;
+   shortcomplexN := makeBase (shortcomplex) ;
    realN := makeBase (real) ;
    longrealN := makeBase (longreal) ;
    shortrealN := makeBase (shortreal) ;
@@ -15624,6 +15684,8 @@ BEGIN
    putSymKey (baseSymbols, makeKey ('SHORTREAL'), shortrealN) ;
    putSymKey (baseSymbols, makeKey ('LONGREAL'), longrealN) ;
    putSymKey (baseSymbols, makeKey ('COMPLEX'), complexN) ;
+   putSymKey (baseSymbols, makeKey ('LONGCOMPLEX'), longcomplexN) ;
+   putSymKey (baseSymbols, makeKey ('SHORTCOMPLEX'), shortcomplexN) ;
 
    putSymKey (baseSymbols, makeKey ('NIL'), nilN) ;
    putSymKey (baseSymbols, makeKey ('TRUE'), trueN) ;
@@ -15664,6 +15726,8 @@ BEGIN
    addDone (longrealN) ;
    addDone (shortrealN) ;
    addDone (complexN) ;
+   addDone (longcomplexN) ;
+   addDone (shortcomplexN) ;
    addDone (procN) ;
    addDone (nilN) ;
    addDone (trueN) ;
