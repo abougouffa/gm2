@@ -236,7 +236,7 @@ typedef struct _T1_r _T1;
 
 #   define MaxBuf 127
 #   define maxNoOfElements 5
-typedef enum {explist, funccall, exit_, return_, stmtseq, comment, halt, new, dispose, inc, dec, incl, excl, nil, true, false, address, loc, byte, word, char_, cardinal, longcard, shortcard, integer, longint, shortint, real, longreal, shortreal, bitset, boolean, proc, ztype, rtype, complex, type, record, varient, var, enumeration, subrange, array, subscript, string, const_, literal, varparam, param, varargs, optarg_, pointer, recordfield, varientfield, enumerationfield, set, proctype, procedure, def, imp, module, loop, while_, for_, repeat, case_, caselabellist, caselist, range, assignment, call, if_, elsif, constexp, neg, cast, val, plus, sub, div_, mod, mult, divide, in, adr, size, tsize, ord, float_, trunc, chr, abs_, high, throw, cmplx, re, im, min, max, componentref, pointerref, arrayref, deref, equal, notequal, less, greater, greequal, lessequal, lsl, lsr, lor, land, lnot, lxor, and, or, not, identlist, vardecl, setvalue} nodeT;
+typedef enum {explist, funccall, exit_, return_, stmtseq, comment, halt, new, dispose, inc, dec, incl, excl, nil, true, false, address, loc, byte, word, char_, cardinal, longcard, shortcard, integer, longint, shortint, real, longreal, shortreal, bitset, boolean, proc, ztype, rtype, complex, longcomplex, shortcomplex, type, record, varient, var, enumeration, subrange, array, subscript, string, const_, literal, varparam, param, varargs, optarg_, pointer, recordfield, varientfield, enumerationfield, set, proctype, procedure, def, imp, module, loop, while_, for_, repeat, case_, caselabellist, caselist, range, assignment, call, if_, elsif, constexp, neg, cast, val, plus, sub, div_, mod, mult, divide, in, adr, size, tsize, ord, float_, trunc, chr, abs_, high, throw, cmplx, re, im, min, max, componentref, pointerref, arrayref, deref, equal, notequal, less, greater, greequal, lessequal, lsl, lsr, lor, land, lnot, lxor, and, or, not, identlist, vardecl, setvalue} nodeT;
 
 #   define MaxnoOfelements 5
 typedef enum {mcReserved_eoftok, mcReserved_plustok, mcReserved_minustok, mcReserved_timestok, mcReserved_dividetok, mcReserved_becomestok, mcReserved_ambersandtok, mcReserved_periodtok, mcReserved_commatok, mcReserved_semicolontok, mcReserved_lparatok, mcReserved_rparatok, mcReserved_lsbratok, mcReserved_rsbratok, mcReserved_lcbratok, mcReserved_rcbratok, mcReserved_uparrowtok, mcReserved_singlequotetok, mcReserved_equaltok, mcReserved_hashtok, mcReserved_lesstok, mcReserved_greatertok, mcReserved_lessgreatertok, mcReserved_lessequaltok, mcReserved_greaterequaltok, mcReserved_ldirectivetok, mcReserved_rdirectivetok, mcReserved_periodperiodtok, mcReserved_colontok, mcReserved_doublequotestok, mcReserved_bartok, mcReserved_andtok, mcReserved_arraytok, mcReserved_begintok, mcReserved_bytok, mcReserved_casetok, mcReserved_consttok, mcReserved_definitiontok, mcReserved_divtok, mcReserved_dotok, mcReserved_elsetok, mcReserved_elsiftok, mcReserved_endtok, mcReserved_excepttok, mcReserved_exittok, mcReserved_exporttok, mcReserved_finallytok, mcReserved_fortok, mcReserved_fromtok, mcReserved_iftok, mcReserved_implementationtok, mcReserved_importtok, mcReserved_intok, mcReserved_looptok, mcReserved_modtok, mcReserved_moduletok, mcReserved_nottok, mcReserved_oftok, mcReserved_ortok, mcReserved_packedsettok, mcReserved_pointertok, mcReserved_proceduretok, mcReserved_qualifiedtok, mcReserved_unqualifiedtok, mcReserved_recordtok, mcReserved_remtok, mcReserved_repeattok, mcReserved_retrytok, mcReserved_returntok, mcReserved_settok, mcReserved_thentok, mcReserved_totok, mcReserved_typetok, mcReserved_untiltok, mcReserved_vartok, mcReserved_whiletok, mcReserved_withtok, mcReserved_asmtok, mcReserved_volatiletok, mcReserved_periodperiodperiodtok, mcReserved_datetok, mcReserved_linetok, mcReserved_filetok, mcReserved_attributetok, mcReserved_builtintok, mcReserved_inlinetok, mcReserved_integertok, mcReserved_identtok, mcReserved_realtok, mcReserved_stringtok, mcReserved_commenttok} mcReserved_toktype;
@@ -896,6 +896,8 @@ static decl_node bitnumN;
 static decl_node ztypeN;
 static decl_node rtypeN;
 static decl_node complexN;
+static decl_node longcomplexN;
+static decl_node shortcomplexN;
 static decl_node cmplxN;
 static decl_node reN;
 static decl_node imN;
@@ -3174,6 +3176,18 @@ static void importEnumFields (decl_node m, decl_node n);
 */
 
 static unsigned int isComplex (decl_node n);
+
+/*
+   isLongComplex - returns TRUE if, n, is the longcomplex type.
+*/
+
+static unsigned int isLongComplex (decl_node n);
+
+/*
+   isShortComplex - returns TRUE if, n, is the shortcomplex type.
+*/
+
+static unsigned int isShortComplex (decl_node n);
 
 /*
    initFixupInfo -
@@ -6238,6 +6252,26 @@ static unsigned int isComplex (decl_node n)
 
 
 /*
+   isLongComplex - returns TRUE if, n, is the longcomplex type.
+*/
+
+static unsigned int isLongComplex (decl_node n)
+{
+  return n == longcomplexN;
+}
+
+
+/*
+   isShortComplex - returns TRUE if, n, is the shortcomplex type.
+*/
+
+static unsigned int isShortComplex (decl_node n)
+{
+  return n == shortcomplexN;
+}
+
+
+/*
    initFixupInfo -
 */
 
@@ -7118,6 +7152,8 @@ static unsigned int isAnyType (decl_node n)
       case longint:
       case shortint:
       case complex:
+      case longcomplex:
+      case shortcomplex:
       case bitset:
       case boolean:
       case proc:
@@ -7193,7 +7229,7 @@ static decl_node lookupBase (nameKey_Name n)
   m = symbolKey_getSymKey (baseSymbols, n);
   if (m == procN)
     keyc_useProc ();
-  else if (m == complexN)
+  else if (((m == complexN) || (m == longcomplexN)) || (m == shortcomplexN))
     keyc_useComplex ();
   return m;
 }
@@ -7631,6 +7667,8 @@ static decl_node makeBase (nodeT k)
       case ztype:
       case rtype:
       case complex:
+      case longcomplex:
+      case shortcomplex:
       case adr:
       case chr:
       case abs_:
@@ -7916,6 +7954,14 @@ static decl_node doGetExprType (decl_node n)
         break;
 
       case complex:
+        return n;
+        break;
+
+      case longcomplex:
+        return n;
+        break;
+
+      case shortcomplex:
         return n;
         break;
 
@@ -8471,6 +8517,8 @@ static unsigned int needsParen (decl_node n)
       case longreal:
       case shortreal:
       case complex:
+      case longcomplex:
+      case shortcomplex:
       case bitset:
       case boolean:
       case proc:
@@ -9427,6 +9475,8 @@ static void doExprC (mcPretty_pretty p, decl_node n)
       case longint:
       case shortint:
       case complex:
+      case longcomplex:
+      case shortcomplex:
       case real:
       case longreal:
       case shortreal:
@@ -10987,6 +11037,8 @@ static unsigned int isBase (decl_node n)
       case longint:
       case shortint:
       case complex:
+      case longcomplex:
+      case shortcomplex:
       case real:
       case longreal:
       case shortreal:
@@ -11042,6 +11094,14 @@ static void doBaseC (mcPretty_pretty p, decl_node n)
 
       case complex:
         outText (p, (char *) "double complex", 14);
+        break;
+
+      case longcomplex:
+        outText (p, (char *) "long double complex", 19);
+        break;
+
+      case shortcomplex:
+        outText (p, (char *) "float complex", 13);
         break;
 
       case real:
@@ -13822,7 +13882,7 @@ static void doCmplx (mcPretty_pretty p, decl_node n)
         outText (p, (char *) "+", 1);
         mcPretty_setNeedSpace (p);
         outText (p, (char *) "(", 1);
-        doExprC (p, getExpList (n->funccallF.args, 1));
+        doExprC (p, getExpList (n->funccallF.args, 2));
         mcPretty_setNeedSpace (p);
         outText (p, (char *) "*", 1);
         mcPretty_setNeedSpace (p);
@@ -15459,6 +15519,8 @@ static dependentState doDependants (alists_alist l, decl_node n)
       case ztype:
       case rtype:
       case complex:
+      case longcomplex:
+      case shortcomplex:
       case proc:
         return completed;
         break;
@@ -16373,6 +16435,8 @@ static void visitDependants (alists_alist v, decl_node n, nodeProcedure p)
       case ztype:
       case rtype:
       case complex:
+      case longcomplex:
+      case shortcomplex:
       case proc:
         break;
 
@@ -16633,6 +16697,8 @@ static DynamicStrings_String genKind (decl_node n)
       case ztype:
       case rtype:
       case complex:
+      case longcomplex:
+      case shortcomplex:
         return NULL;
         break;
 
@@ -17840,6 +17906,8 @@ static void doBaseM2 (mcPretty_pretty p, decl_node n)
       case longint:
       case shortint:
       case complex:
+      case longcomplex:
+      case shortcomplex:
       case real:
       case longreal:
       case shortreal:
@@ -18694,6 +18762,8 @@ static decl_node doDupExpr (decl_node n)
       case ztype:
       case rtype:
       case complex:
+      case longcomplex:
+      case shortcomplex:
         return n;
         break;
 
@@ -18899,6 +18969,8 @@ static void makeBaseSymbols (void)
   ztypeN = makeBase ((nodeT) ztype);
   rtypeN = makeBase ((nodeT) rtype);
   complexN = makeBase ((nodeT) complex);
+  longcomplexN = makeBase ((nodeT) longcomplex);
+  shortcomplexN = makeBase ((nodeT) shortcomplex);
   realN = makeBase ((nodeT) real);
   longrealN = makeBase ((nodeT) longreal);
   shortrealN = makeBase ((nodeT) shortreal);
@@ -18938,6 +19010,8 @@ static void makeBaseSymbols (void)
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "SHORTREAL", 9), (void *) shortrealN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "LONGREAL", 8), (void *) longrealN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "COMPLEX", 7), (void *) complexN);
+  symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "LONGCOMPLEX", 11), (void *) longcomplexN);
+  symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "SHORTCOMPLEX", 12), (void *) shortcomplexN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "NIL", 3), (void *) nilN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "TRUE", 4), (void *) trueN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "FALSE", 5), (void *) falseN);
@@ -18976,6 +19050,8 @@ static void makeBaseSymbols (void)
   addDone (longrealN);
   addDone (shortrealN);
   addDone (complexN);
+  addDone (longcomplexN);
+  addDone (shortcomplexN);
   addDone (procN);
   addDone (nilN);
   addDone (trueN);
@@ -19557,6 +19633,14 @@ decl_node decl_getType (decl_node n)
         return n;
         break;
 
+      case longcomplex:
+        return n;
+        break;
+
+      case shortcomplex:
+        return n;
+        break;
+
       case type:
         return n->typeF.type;
         break;
@@ -19914,6 +19998,8 @@ decl_node decl_getScope (decl_node n)
       case ztype:
       case rtype:
       case complex:
+      case longcomplex:
+      case shortcomplex:
         return NULL;
         break;
 
@@ -20884,6 +20970,14 @@ nameKey_Name decl_getSymName (decl_node n)
 
       case complex:
         return nameKey_makeKey ((char *) "COMPLEX", 7);
+        break;
+
+      case longcomplex:
+        return nameKey_makeKey ((char *) "LONGCOMPLEX", 11);
+        break;
+
+      case shortcomplex:
+        return nameKey_makeKey ((char *) "SHORTCOMPLEX", 12);
         break;
 
       case type:

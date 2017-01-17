@@ -109,3 +109,63 @@ long double libm_cosl (long double x)
 {
   return cosl (x);
 }
+
+double libm_tan (double x)
+{
+  return tan (x);
+}
+
+float libm_tanf (float x)
+{
+  return tanf (x);
+}
+
+long double libm_tanl (long double x)
+{
+  return tanl (x);
+}
+
+float libm_floorf (float x)
+{
+  return floorf (x);
+}
+
+double libm_floor (double x)
+{
+  return floor (x);
+}
+
+long double libm_floorl (long double x)
+{
+  return floorl (x);
+}
+
+float libm_expf (float x)
+{
+  return expf (x);
+}
+
+double libm_exp (double x)
+{
+  return exp (x);
+}
+
+long double libm_expl (long double x)
+{
+  return expl (x);
+}
+
+float libm_logf (float x)
+{
+  return logf (x);
+}
+
+double libm_log (double x)
+{
+  return log (x);
+}
+
+long double libm_logl (long double x)
+{
+  return logl (x);
+}

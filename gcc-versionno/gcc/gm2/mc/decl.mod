@@ -10269,7 +10269,7 @@ BEGIN
 	 outText (p, '+') ;
          setNeedSpace (p) ;
          outText (p, '(') ;
-         doExprC (p, getExpList (n^.funccallF.args, 1)) ;
+         doExprC (p, getExpList (n^.funccallF.args, 2)) ;
          setNeedSpace (p) ;
 	 outText (p, '*') ;
          setNeedSpace (p) ;

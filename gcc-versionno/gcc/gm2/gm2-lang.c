@@ -693,6 +693,7 @@ gm2_langhook_gimplify_expr (tree *expr_p, gimple_seq *pre_p ATTRIBUTE_UNUSED, gi
 
   switch (code)
     {
+#if 0
     case LSHIFT_EXPR:
     case RSHIFT_EXPR:
       {
@@ -705,6 +706,7 @@ gm2_langhook_gimplify_expr (tree *expr_p, gimple_seq *pre_p ATTRIBUTE_UNUSED, gi
           *op1_p = convert (unsigned_type_node, *op1_p);
 	return GS_OK;
       }
+#endif
 
     case THROW_EXPR:
       /* FIXME communicate throw type to back end, probably by moving
