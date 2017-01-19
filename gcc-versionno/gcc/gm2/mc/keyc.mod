@@ -68,7 +68,10 @@ VAR
    seenNull,
    seenMemcpy,
    seenException,
-   seenComplex  : BOOLEAN ;
+   seenComplex,
+   seenM2RTS,
+   seenStrlen,
+   seenCtype    : BOOLEAN ;
 
 
 (*
@@ -332,6 +335,49 @@ END useFabsl ;
 
 
 (*
+   useM2RTS - indicate we have used M2RTS in the converted code.
+*)
+
+PROCEDURE useM2RTS ;
+BEGIN
+   seenM2RTS := TRUE
+END useM2RTS ;
+
+
+(*
+   useStrlen - indicate we have used strlen in the converted code.
+*)
+
+PROCEDURE useStrlen ;
+BEGIN
+   seenStrlen := TRUE
+END useStrlen ;
+
+
+(*
+   useCtype - indicate we have used the toupper function.
+*)
+
+PROCEDURE useCtype ;
+BEGIN
+   seenCtype := TRUE
+END useCtype ;
+
+
+(*
+   checkCtype -
+*)
+
+PROCEDURE checkCtype (p: pretty) ;
+BEGIN
+   IF seenCtype
+   THEN
+      print (p, "#include <ctype.h>\n")
+   END
+END checkCtype ;
+
+
+(*
    checkAbs - check to see if the abs family have been used.
 *)
 
@@ -455,11 +501,26 @@ END checkNull ;
 
 PROCEDURE checkMemcpy (p: pretty) ;
 BEGIN
-   IF seenMemcpy
+   IF seenMemcpy OR seenStrlen
    THEN
       print (p, "#include <string.h>\n")
    END
 END checkMemcpy ;
+
+
+(*
+   checkM2RTS -
+*)
+
+PROCEDURE checkM2RTS (p: pretty) ;
+BEGIN
+   IF seenM2RTS
+   THEN
+      print (p, '#   include "') ;
+      prints (p, getHPrefix ()) ;
+      print (p, 'M2RTS.h"\n')
+   END
+END checkM2RTS ;
 
 
 (*
@@ -525,7 +586,9 @@ BEGIN
    checkAbs (p) ;
    checkStorage (p) ;
    checkException (p) ;
-   checkComplex (p)
+   checkComplex (p) ;
+   checkCtype (p) ;
+   checkM2RTS (p)
 END genDefs ;
 
 
@@ -794,6 +857,8 @@ BEGIN
    add (macros, 'log10') ;
    add (macros, 'I') ;
    add (macros, 'csqrt') ;
+   add (macros, 'strlen') ;
+   add (macros, 'strcpy') ;
    add (macros, 'main')
 END initMacros ;
 
@@ -874,6 +939,9 @@ BEGIN
    seenFabsl := FALSE ;
    seenException := FALSE ;
    seenComplex := FALSE ;
+   seenM2RTS := FALSE ;
+   seenStrlen := FALSE ;
+   seenCtype := FALSE ;
    initializedCP := FALSE ;
 
    stack := NIL ;

@@ -22,23 +22,34 @@ int pth_pth_select (int p1, int p2, int p3, int p4, int p5)
   return pth_select (p1, p2, p3, p4, p5);
 }
 
-
+int pth_pth_uctx_create (void *p)
+{
 #if 0
-PROCEDURE pth_uctx_create (p: ADDRESS) : INTEGER ;
-
-PROCEDURE pth_uctx_make (p1: pth_uctx_t;
-                         p2: ADDRESS;
-                         p3: size_t;
-                         p4: ADDRESS;
-                         p5: proc;
-                         p6: ADDRESS;
-                         p7: pth_uctx_t) : INTEGER;
-
-PROCEDURE pth_uctx_save (p1: pth_uctx_t) : INTEGER ;
-
-PROCEDURE pth_uctx_switch (p1: pth_uctx_t; p2: pth_uctx_t) : INTEGER ;
+  return pth_uctx_create (p);
 #endif
+}
 
+int pth_pth_uctx_make (void *p1, void *p2, unsigned int p3,
+		       void *p4, void *p5, void *p6, void *p7)
+{
+#if 0
+  return pth_uctx_make (p1, p2, p3, p4, p5, p6, p7);
+#endif
+}
+
+int pth_pth_uctx_save (void *p1)
+{
+#if 0
+  return pth_uctx_save (p1);
+#endif
+}
+
+int pth_pth_uctx_switch (void *p1, void *p2)
+{
+#if 0
+  return pth_uctx_switch (p1, p2);
+#endif
+}
 
 int pth_pth_init (void)
 {

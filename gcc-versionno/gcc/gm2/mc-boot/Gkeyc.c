@@ -76,6 +76,9 @@ static unsigned int seenNull;
 static unsigned int seenMemcpy;
 static unsigned int seenException;
 static unsigned int seenComplex;
+static unsigned int seenM2RTS;
+static unsigned int seenStrlen;
+static unsigned int seenCtype;
 
 /*
    useStorage - indicate we have used storage.
@@ -234,6 +237,24 @@ void keyc_useException (void);
 void keyc_useComplex (void);
 
 /*
+   useM2RTS - indicate we have used M2RTS in the converted code.
+*/
+
+void keyc_useM2RTS (void);
+
+/*
+   useStrlen - indicate we have used strlen in the converted code.
+*/
+
+void keyc_useStrlen (void);
+
+/*
+   useCtype - indicate we have used the toupper function.
+*/
+
+void keyc_useCtype (void);
+
+/*
    genDefs - generate definitions or includes for all
              macros and prototypes used.
 */
@@ -281,6 +302,12 @@ nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes);
 */
 
 void keyc_cp (void);
+
+/*
+   checkCtype -
+*/
+
+static void checkCtype (mcPretty_pretty p);
 
 /*
    checkAbs - check to see if the abs family have been used.
@@ -335,6 +362,12 @@ static void checkNull (mcPretty_pretty p);
 */
 
 static void checkMemcpy (mcPretty_pretty p);
+
+/*
+   checkM2RTS -
+*/
+
+static void checkM2RTS (mcPretty_pretty p);
 
 /*
    checkException - check to see if exceptions were used.
@@ -411,6 +444,17 @@ static void initKeywords (void);
 */
 
 static void init (void);
+
+
+/*
+   checkCtype -
+*/
+
+static void checkCtype (mcPretty_pretty p)
+{
+  if (seenCtype)
+    mcPretty_print (p, (char *) "#include <ctype.h>\\n", 20);
+}
 
 
 /*
@@ -525,8 +569,23 @@ static void checkNull (mcPretty_pretty p)
 
 static void checkMemcpy (mcPretty_pretty p)
 {
-  if (seenMemcpy)
+  if (seenMemcpy || seenStrlen)
     mcPretty_print (p, (char *) "#include <string.h>\\n", 21);
+}
+
+
+/*
+   checkM2RTS -
+*/
+
+static void checkM2RTS (mcPretty_pretty p)
+{
+  if (seenM2RTS)
+    {
+      mcPretty_print (p, (char *) "#   include \"", 13);
+      mcPretty_prints (p, mcOptions_getHPrefix ());
+      mcPretty_print (p, (char *) "M2RTS.h\"\\n", 10);
+    }
 }
 
 
@@ -686,6 +745,8 @@ static void initMacros (void)
   add (macros, (char *) "log10", 5);
   add (macros, (char *) "I", 1);
   add (macros, (char *) "csqrt", 5);
+  add (macros, (char *) "strlen", 6);
+  add (macros, (char *) "strcpy", 6);
   add (macros, (char *) "main", 4);
 }
 
@@ -766,6 +827,9 @@ static void init (void)
   seenFabsl = FALSE;
   seenException = FALSE;
   seenComplex = FALSE;
+  seenM2RTS = FALSE;
+  seenStrlen = FALSE;
+  seenCtype = FALSE;
   initializedCP = FALSE;
   stack = NULL;
   freeList = NULL;
@@ -1035,6 +1099,36 @@ void keyc_useComplex (void)
 
 
 /*
+   useM2RTS - indicate we have used M2RTS in the converted code.
+*/
+
+void keyc_useM2RTS (void)
+{
+  seenM2RTS = TRUE;
+}
+
+
+/*
+   useStrlen - indicate we have used strlen in the converted code.
+*/
+
+void keyc_useStrlen (void)
+{
+  seenStrlen = TRUE;
+}
+
+
+/*
+   useCtype - indicate we have used the toupper function.
+*/
+
+void keyc_useCtype (void)
+{
+  seenCtype = TRUE;
+}
+
+
+/*
    genDefs - generate definitions or includes for all
              macros and prototypes used.
 */
@@ -1052,6 +1146,8 @@ void keyc_genDefs (mcPretty_pretty p)
   checkStorage (p);
   checkException (p);
   checkComplex (p);
+  checkCtype (p);
+  checkM2RTS (p);
 }
 
 

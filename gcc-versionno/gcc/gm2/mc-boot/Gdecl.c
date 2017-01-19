@@ -236,7 +236,7 @@ typedef struct _T1_r _T1;
 
 #   define MaxBuf 127
 #   define maxNoOfElements 5
-typedef enum {explist, funccall, exit_, return_, stmtseq, comment, halt, new, dispose, inc, dec, incl, excl, nil, true, false, address, loc, byte, word, char_, cardinal, longcard, shortcard, integer, longint, shortint, real, longreal, shortreal, bitset, boolean, proc, ztype, rtype, complex, longcomplex, shortcomplex, type, record, varient, var, enumeration, subrange, array, subscript, string, const_, literal, varparam, param, varargs, optarg_, pointer, recordfield, varientfield, enumerationfield, set, proctype, procedure, def, imp, module, loop, while_, for_, repeat, case_, caselabellist, caselist, range, assignment, call, if_, elsif, constexp, neg, cast, val, plus, sub, div_, mod, mult, divide, in, adr, size, tsize, ord, float_, trunc, chr, abs_, high, throw, cmplx, re, im, min, max, componentref, pointerref, arrayref, deref, equal, notequal, less, greater, greequal, lessequal, lsl, lsr, lor, land, lnot, lxor, and, or, not, identlist, vardecl, setvalue} nodeT;
+typedef enum {explist, funccall, exit_, return_, stmtseq, comment, halt, new, dispose, inc, dec, incl, excl, length, nil, true, false, address, loc, byte, word, char_, cardinal, longcard, shortcard, integer, longint, shortint, real, longreal, shortreal, bitset, boolean, proc, ztype, rtype, complex, longcomplex, shortcomplex, type, record, varient, var, enumeration, subrange, array, subscript, string, const_, literal, varparam, param, varargs, optarg_, pointer, recordfield, varientfield, enumerationfield, set, proctype, procedure, def, imp, module, loop, while_, for_, repeat, case_, caselabellist, caselist, range, assignment, call, if_, elsif, constexp, neg, cast, val, plus, sub, div_, mod, mult, divide, in, adr, size, tsize, ord, float_, trunc, chr, abs_, high, throw, cmplx, re, im, min, max, componentref, pointerref, arrayref, deref, equal, notequal, less, greater, greequal, lessequal, lsl, lsr, lor, land, lnot, lxor, and, or, not, identlist, vardecl, setvalue} nodeT;
 
 #   define MaxnoOfelements 5
 typedef enum {mcReserved_eoftok, mcReserved_plustok, mcReserved_minustok, mcReserved_timestok, mcReserved_dividetok, mcReserved_becomestok, mcReserved_ambersandtok, mcReserved_periodtok, mcReserved_commatok, mcReserved_semicolontok, mcReserved_lparatok, mcReserved_rparatok, mcReserved_lsbratok, mcReserved_rsbratok, mcReserved_lcbratok, mcReserved_rcbratok, mcReserved_uparrowtok, mcReserved_singlequotetok, mcReserved_equaltok, mcReserved_hashtok, mcReserved_lesstok, mcReserved_greatertok, mcReserved_lessgreatertok, mcReserved_lessequaltok, mcReserved_greaterequaltok, mcReserved_ldirectivetok, mcReserved_rdirectivetok, mcReserved_periodperiodtok, mcReserved_colontok, mcReserved_doublequotestok, mcReserved_bartok, mcReserved_andtok, mcReserved_arraytok, mcReserved_begintok, mcReserved_bytok, mcReserved_casetok, mcReserved_consttok, mcReserved_definitiontok, mcReserved_divtok, mcReserved_dotok, mcReserved_elsetok, mcReserved_elsiftok, mcReserved_endtok, mcReserved_excepttok, mcReserved_exittok, mcReserved_exporttok, mcReserved_finallytok, mcReserved_fortok, mcReserved_fromtok, mcReserved_iftok, mcReserved_implementationtok, mcReserved_importtok, mcReserved_intok, mcReserved_looptok, mcReserved_modtok, mcReserved_moduletok, mcReserved_nottok, mcReserved_oftok, mcReserved_ortok, mcReserved_packedsettok, mcReserved_pointertok, mcReserved_proceduretok, mcReserved_qualifiedtok, mcReserved_unqualifiedtok, mcReserved_recordtok, mcReserved_remtok, mcReserved_repeattok, mcReserved_retrytok, mcReserved_returntok, mcReserved_settok, mcReserved_thentok, mcReserved_totok, mcReserved_typetok, mcReserved_untiltok, mcReserved_vartok, mcReserved_whiletok, mcReserved_withtok, mcReserved_asmtok, mcReserved_volatiletok, mcReserved_periodperiodperiodtok, mcReserved_datetok, mcReserved_linetok, mcReserved_filetok, mcReserved_attributetok, mcReserved_builtintok, mcReserved_inlinetok, mcReserved_integertok, mcReserved_identtok, mcReserved_realtok, mcReserved_stringtok, mcReserved_commenttok} mcReserved_toktype;
@@ -866,6 +866,7 @@ static decl_node sizeN;
 static decl_node tsizeN;
 static decl_node newN;
 static decl_node disposeN;
+static decl_node lengthN;
 static decl_node incN;
 static decl_node decN;
 static decl_node inclN;
@@ -3090,6 +3091,9 @@ void keyc_useFabs (void);
 void keyc_useFabsl (void);
 void keyc_useException (void);
 void keyc_useComplex (void);
+void keyc_useM2RTS (void);
+void keyc_useStrlen (void);
+void keyc_useCtype (void);
 void keyc_genDefs (mcPretty_pretty p);
 void keyc_enterScope (decl_node n);
 void keyc_leaveScope (decl_node n);
@@ -3188,6 +3192,12 @@ static unsigned int isLongComplex (decl_node n);
 */
 
 static unsigned int isShortComplex (decl_node n);
+
+/*
+   isAProcType - returns TRUE if, n, is a proctype or proc node.
+*/
+
+static unsigned int isAProcType (decl_node n);
 
 /*
    initFixupInfo -
@@ -4600,6 +4610,12 @@ static void doReturnC (mcPretty_pretty p, decl_node s);
 */
 
 static void doExprCastC (mcPretty_pretty p, decl_node e, decl_node type);
+
+/*
+   requiresUnpackProc - returns TRUE if either the expr is a procedure or the proctypes differ.
+*/
+
+static unsigned int requiresUnpackProc (decl_node s);
 
 /*
    doAssignmentC -
@@ -6272,6 +6288,17 @@ static unsigned int isShortComplex (decl_node n)
 
 
 /*
+   isAProcType - returns TRUE if, n, is a proctype or proc node.
+*/
+
+static unsigned int isAProcType (decl_node n)
+{
+  mcDebug_assert (n != NULL);
+  return (decl_isProcType (n)) || (n == procN);
+}
+
+
+/*
    initFixupInfo -
 */
 
@@ -7640,6 +7667,7 @@ static decl_node makeBase (nodeT k)
     {
       case new:
       case dispose:
+      case length:
       case inc:
       case dec:
       case incl:
@@ -7841,6 +7869,10 @@ static decl_node doGetFuncType (decl_node n)
           M2RTS_HALT (0);
           break;
 
+        case length:
+          return cardinalN;
+          break;
+
 
         default:
           CaseException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 2, 1);
@@ -7861,6 +7893,13 @@ static decl_node doGetExprType (decl_node n)
       case halt:
       case new:
       case dispose:
+        return NULL;
+        break;
+
+      case length:
+        return cardinalN;
+        break;
+
       case inc:
       case dec:
       case incl:
@@ -9088,7 +9127,7 @@ static void doCastC (mcPretty_pretty p, decl_node t, decl_node e)
   outText (p, (char *) ")", 1);
   mcPretty_setNeedSpace (p);
   et = decl_skipType (decl_getType (e));
-  if (((et != NULL) && (decl_isProcType (et))) && (decl_isProcType (decl_skipType (t))))
+  if (((et != NULL) && (isAProcType (et))) && (isAProcType (decl_skipType (t))))
     {
       outText (p, (char *) "{(", 2);
       doFQNameC (p, t);
@@ -9520,7 +9559,7 @@ static void doExprCup (mcPretty_pretty p, decl_node n, unsigned int unpackProc)
   if (unpackProc)
     {
       t = decl_skipType (getExprType (n));
-      if ((t != NULL) && ((t == procN) || (decl_isProcType (t))))
+      if ((t != NULL) && (isAProcType (t)))
         outText (p, (char *) ".proc", 5);
     }
 }
@@ -12466,13 +12505,24 @@ static void doExprCastC (mcPretty_pretty p, decl_node e, decl_node type)
 
 
 /*
+   requiresUnpackProc - returns TRUE if either the expr is a procedure or the proctypes differ.
+*/
+
+static unsigned int requiresUnpackProc (decl_node s)
+{
+  mcDebug_assert (isAssignment (s));
+  return (decl_isProcedure (s->assignmentF.expr)) || ((decl_skipType (decl_getType (s->assignmentF.des))) != (decl_skipType (decl_getType (s->assignmentF.expr))));
+}
+
+
+/*
    doAssignmentC -
 */
 
 static void doAssignmentC (mcPretty_pretty p, decl_node s)
 {
   mcDebug_assert (isAssignment (s));
-  doExprCup (p, s->assignmentF.des, decl_isProcedure (s->assignmentF.expr));
+  doExprCup (p, s->assignmentF.des, requiresUnpackProc (s));
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "=", 1);
   mcPretty_setNeedSpace (p);
@@ -13159,7 +13209,7 @@ static void doFuncParamC (mcPretty_pretty p, decl_node actual, decl_node formal,
       if (decl_isUnbounded (ft))
         doFuncUnbounded (p, actual, formal, ft, func);
       else
-        if (((ft == procN) || (decl_isProcType (ft))) && (decl_isProcedure (actual)))
+        if ((isAProcType (ft)) && (decl_isProcedure (actual)))
           if (decl_isVarParam (formal))
             mcMetaError_metaError1 ((char *) "{%1MDad} cannot be passed as a VAR parameter", 44, (unsigned char *) &actual, (sizeof (actual)-1));
           else
@@ -13777,6 +13827,7 @@ static unsigned int isIntrinsic (decl_node n)
       case excl:
       case new:
       case dispose:
+      case length:
       case throw:
         return TRUE;
         break;
@@ -13980,6 +14031,9 @@ static void doIntrinsicC (mcPretty_pretty p, decl_node n)
 
         case dispose:
           doDisposeC (p, n);
+          break;
+
+        case length:
           break;
 
         case min:
@@ -19537,6 +19591,13 @@ decl_node decl_getType (decl_node n)
     {
       case new:
       case dispose:
+        return NULL;
+        break;
+
+      case length:
+        return cardinalN;
+        break;
+
       case inc:
       case dec:
       case incl:
@@ -19965,6 +20026,7 @@ decl_node decl_getScope (decl_node n)
       case halt:
       case new:
       case dispose:
+      case length:
       case inc:
       case dec:
       case incl:
@@ -20862,6 +20924,10 @@ nameKey_Name decl_getSymName (decl_node n)
 
       case dispose:
         return nameKey_makeKey ((char *) "DISPOSE", 7);
+        break;
+
+      case length:
+        return nameKey_makeKey ((char *) "LENGTH", 6);
         break;
 
       case inc:

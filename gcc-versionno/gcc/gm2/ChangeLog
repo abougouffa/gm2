@@ -1,3 +1,20 @@
+2017-01-19      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-iso/wrapsock.c:  corrected a configure bug
+          use HAVE_SIGNAL_H instead of HAVE_MALLOC_H.
+	* gm2/mc-boot-ch/Gpth.c:  added dummy function calls to
+          satisfy the linker.
+	* gm2/mc-boot/Gdecl.c:  regenerated.
+	* gm2/mc-boot/Gkeyc.c:  regenerated.
+	* gm2/mc-boot/Gkeyc.h:  regenerated.
+	* gm2/mc/decl.mod:  LENGTH implemented.  isAProcType
+          new procedure function.  requiresUnpackProc (New
+          procedure).  doAssignment use requiresUnpackProc.
+	* gm2/mc/keyc.def:  useM2RTS, useStrlen, useCtype
+          defined.
+	* gm2/mc/keyc.mod:  useM2RTS, useStrlen, useCtype
+	  implemented.
+
 2017-01-16      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/mc/decl.mod:  add shortcomplex, longcomplex

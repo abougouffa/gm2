@@ -182,6 +182,24 @@ EXTERN void keyc_useException (void);
 EXTERN void keyc_useComplex (void);
 
 /*
+   useM2RTS - indicate we have used M2RTS in the converted code.
+*/
+
+EXTERN void keyc_useM2RTS (void);
+
+/*
+   useStrlen - indicate we have used strlen in the converted code.
+*/
+
+EXTERN void keyc_useStrlen (void);
+
+/*
+   useCtype - indicate we have used the toupper function.
+*/
+
+EXTERN void keyc_useCtype (void);
+
+/*
    genDefs - generate definitions or includes for all
              macros and prototypes used.
 */

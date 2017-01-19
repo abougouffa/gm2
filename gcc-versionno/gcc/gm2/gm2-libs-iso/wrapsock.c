@@ -49,7 +49,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 #  include <malloc.h>
 #endif
 
-#if defined(HAVE_MALLOC_H)
+#if defined(HAVE_SIGNAL_H)
 #  include <signal.h>
 #endif
 

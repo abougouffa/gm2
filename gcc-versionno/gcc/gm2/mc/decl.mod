@@ -70,6 +70,7 @@ TYPE
    nodeT = (explist, funccall,
             exit, return, stmtseq, comment, halt,
             new, dispose, inc, dec, incl, excl,
+	    length,
             (* base constants.  *)
 	    nil, true, false,
             (* system types.  *)
@@ -632,6 +633,7 @@ VAR
    tsizeN,
    newN,
    disposeN,
+   lengthN,
    incN,
    decN,
    inclN,
@@ -1201,6 +1203,17 @@ BEGIN
    assert (n # NIL) ;
    RETURN n^.kind = proctype
 END isProcType ;
+
+
+(*
+   isAProcType - returns TRUE if, n, is a proctype or proc node.
+*)
+
+PROCEDURE isAProcType (n: node) : BOOLEAN ;
+BEGIN
+   assert (n # NIL) ;
+   RETURN isProcType (n) OR (n = procN)
+END isAProcType ;
 
 
 (*
@@ -3838,6 +3851,7 @@ BEGIN
 
       new             :  RETURN makeKey ('NEW') |
       dispose         :  RETURN makeKey ('DISPOSE') |
+      length          :  RETURN makeKey ('LENGTH') |
       inc             :  RETURN makeKey ('INC') |
       dec             :  RETURN makeKey ('DEC') |
       incl            :  RETURN makeKey ('INCL') |
@@ -4368,6 +4382,7 @@ BEGIN
 
       new,
       dispose,
+      length,
       inc,
       dec,
       incl,
@@ -4539,7 +4554,8 @@ BEGIN
       CASE kind OF
 
       new,
-      dispose,
+      dispose         :  RETURN NIL |
+      length          :  RETURN cardinalN |
       inc,
       dec,
       incl,
@@ -4737,7 +4753,8 @@ BEGIN
       incl,
       excl,
       new,
-      dispose:  HALT
+      dispose:  HALT |
+      length :  RETURN cardinalN
 
       END
    ELSE
@@ -4757,7 +4774,8 @@ BEGIN
 
       halt,
       new,
-      dispose,
+      dispose         :  RETURN NIL |
+      length          :  RETURN cardinalN |
       inc,
       dec,
       incl,
@@ -4927,6 +4945,7 @@ BEGIN
       halt,
       new,
       dispose,
+      length,
       inc,
       dec,
       incl,
@@ -5740,7 +5759,7 @@ BEGIN
    outText (p, ')') ;
    setNeedSpace (p) ;
    et := skipType (getType (e)) ;
-   IF (et # NIL) AND isProcType (et) AND isProcType (skipType (t))
+   IF (et # NIL) AND isAProcType (et) AND isAProcType (skipType (t))
    THEN
       outText (p, '{(') ;
       doFQNameC (p, t) ;
@@ -6019,7 +6038,7 @@ BEGIN
    IF unpackProc
    THEN
       t := skipType (getExprType (n)) ;
-      IF (t # NIL) AND ((t = procN) OR isProcType (t))
+      IF (t # NIL) AND isAProcType (t)
       THEN
          outText (p, '.proc')
       END
@@ -8792,13 +8811,25 @@ END doExprCastC ;
 
 
 (*
+   requiresUnpackProc - returns TRUE if either the expr is a procedure or the proctypes differ.
+*)
+
+PROCEDURE requiresUnpackProc (s: node) : BOOLEAN ;
+BEGIN
+   assert (isAssignment (s)) ;
+   RETURN isProcedure (s^.assignmentF.expr) OR
+          (skipType (getType (s^.assignmentF.des)) # skipType (getType (s^.assignmentF.expr)))
+END requiresUnpackProc ;
+
+
+(*
    doAssignmentC -
 *)
 
 PROCEDURE doAssignmentC (p: pretty; s: node) ;
 BEGIN
    assert (isAssignment (s)) ;
-   doExprCup (p, s^.assignmentF.des, isProcedure (s^.assignmentF.expr)) ;
+   doExprCup (p, s^.assignmentF.des, requiresUnpackProc (s)) ;
    setNeedSpace (p) ;
    outText (p, "=") ;
    setNeedSpace (p) ;
@@ -9523,8 +9554,7 @@ BEGIN
       THEN
          doFuncUnbounded (p, actual, formal, ft, func)
       ELSE
-         IF ((ft = procN) OR isProcType (ft)) AND
-            isProcedure (actual)
+         IF isAProcType (ft) AND isProcedure (actual)
          THEN
             IF isVarParam (formal)
             THEN
@@ -10164,6 +10194,7 @@ BEGIN
    excl,
    new,
    dispose,
+   length,
    throw  :  RETURN TRUE
 
    ELSE
@@ -10323,6 +10354,7 @@ BEGIN
       excl:    doExclC (p, n) |
       new:     doNewC (p, n) |
       dispose: doDisposeC (p, n) |
+      length:  (* doLengthC (p, n) *) |
       min:     doMinC (p, n) |
       max:     doMaxC (p, n) |
       throw:   doThrowC (p, n) |

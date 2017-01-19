@@ -217,6 +217,27 @@ PROCEDURE useComplex ;
 
 
 (*
+   useM2RTS - indicate we have used M2RTS in the converted code.
+*)
+
+PROCEDURE useM2RTS ;
+
+
+(*
+   useStrlen - indicate we have used strlen in the converted code.
+*)
+
+PROCEDURE useStrlen ;
+
+
+(*
+   useCtype - indicate we have used the toupper function.
+*)
+
+PROCEDURE useCtype ;
+
+
+(*
    genDefs - generate definitions or includes for all
              macros and prototypes used.
 *)
