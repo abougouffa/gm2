@@ -10045,6 +10045,38 @@ END doDisposeC ;
 
 
 (*
+   doLengthC -
+*)
+
+PROCEDURE doLengthC (p: pretty; n: node) ;
+VAR
+   v: node ;
+BEGIN
+   assert (isFuncCall (n)) ;
+   IF n^.funccallF.args = NIL
+   THEN
+      HALT
+   ELSE
+      IF expListLen (n^.funccallF.args) = 1
+      THEN
+         keyc.useM2RTS ;
+         outText (p, 'M2RTS_Length') ;
+         setNeedSpace (p) ;
+         outText (p, '(') ;
+         v := getExpList (n^.funccallF.args, 1) ;
+         doExprC (p, v) ;
+         outText (p, ',') ;
+         setNeedSpace (p) ;
+         doFuncHighC (p, v) ;
+         outText (p, ')')
+      ELSE
+         HALT (* metaError0 ('expecting a single parameter to LENGTH') *)
+      END
+   END
+END doLengthC ;
+
+
+(*
    doAbsC -
 *)
 
@@ -10354,7 +10386,7 @@ BEGIN
       excl:    doExclC (p, n) |
       new:     doNewC (p, n) |
       dispose: doDisposeC (p, n) |
-      length:  (* doLengthC (p, n) *) |
+      length:  doLengthC (p, n) |
       min:     doMinC (p, n) |
       max:     doMaxC (p, n) |
       throw:   doThrowC (p, n) |
@@ -15693,6 +15725,7 @@ BEGIN
    absN := makeBase (abs) ;
    newN := makeBase (new) ;
    disposeN := makeBase (dispose) ;
+   lengthN := makeBase (length) ;
    incN := makeBase (inc) ;
    decN := makeBase (dec) ;
    inclN := makeBase (incl) ;
@@ -15733,6 +15766,7 @@ BEGIN
    putSymKey (baseSymbols, makeKey ('ABS'), absN) ;
    putSymKey (baseSymbols, makeKey ('NEW'), newN) ;
    putSymKey (baseSymbols, makeKey ('DISPOSE'), disposeN) ;
+   putSymKey (baseSymbols, makeKey ('LENGTH'), lengthN) ;
    putSymKey (baseSymbols, makeKey ('INC'), incN) ;
    putSymKey (baseSymbols, makeKey ('DEC'), decN) ;
    putSymKey (baseSymbols, makeKey ('INCL'), inclN) ;

@@ -4872,6 +4872,12 @@ static void doNewC (mcPretty_pretty p, decl_node n);
 static void doDisposeC (mcPretty_pretty p, decl_node n);
 
 /*
+   doLengthC -
+*/
+
+static void doLengthC (mcPretty_pretty p, decl_node n);
+
+/*
    doAbsC -
 */
 
@@ -13682,6 +13688,36 @@ static void doDisposeC (mcPretty_pretty p, decl_node n)
 
 
 /*
+   doLengthC -
+*/
+
+static void doLengthC (mcPretty_pretty p, decl_node n)
+{
+  decl_node v;
+
+  mcDebug_assert (isFuncCall (n));
+  if (n->funccallF.args == NULL)
+    M2RTS_HALT (0);
+  else
+    if ((expListLen (n->funccallF.args)) == 1)
+      {
+        keyc_useM2RTS ();
+        outText (p, (char *) "M2RTS_Length", 12);
+        mcPretty_setNeedSpace (p);
+        outText (p, (char *) "(", 1);
+        v = getExpList (n->funccallF.args, 1);
+        doExprC (p, v);
+        outText (p, (char *) ",", 1);
+        mcPretty_setNeedSpace (p);
+        doFuncHighC (p, v);
+        outText (p, (char *) ")", 1);
+      }
+    else
+      M2RTS_HALT (0);
+}
+
+
+/*
    doAbsC -
 */
 
@@ -14034,6 +14070,7 @@ static void doIntrinsicC (mcPretty_pretty p, decl_node n)
           break;
 
         case length:
+          doLengthC (p, n);
           break;
 
         case min:
@@ -19042,6 +19079,7 @@ static void makeBaseSymbols (void)
   absN = makeBase ((nodeT) abs_);
   newN = makeBase ((nodeT) new);
   disposeN = makeBase ((nodeT) dispose);
+  lengthN = makeBase ((nodeT) length);
   incN = makeBase ((nodeT) inc);
   decN = makeBase ((nodeT) dec);
   inclN = makeBase ((nodeT) incl);
@@ -19080,6 +19118,7 @@ static void makeBaseSymbols (void)
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "ABS", 3), (void *) absN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "NEW", 3), (void *) newN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "DISPOSE", 7), (void *) disposeN);
+  symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "LENGTH", 6), (void *) lengthN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "INC", 3), (void *) incN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "DEC", 3), (void *) decN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "INCL", 4), (void *) inclN);
