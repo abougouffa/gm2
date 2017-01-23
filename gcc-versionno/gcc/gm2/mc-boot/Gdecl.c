@@ -236,7 +236,7 @@ typedef struct _T1_r _T1;
 
 #   define MaxBuf 127
 #   define maxNoOfElements 5
-typedef enum {explist, funccall, exit_, return_, stmtseq, comment, halt, new, dispose, inc, dec, incl, excl, length, nil, true, false, address, loc, byte, word, char_, cardinal, longcard, shortcard, integer, longint, shortint, real, longreal, shortreal, bitset, boolean, proc, ztype, rtype, complex, longcomplex, shortcomplex, type, record, varient, var, enumeration, subrange, array, subscript, string, const_, literal, varparam, param, varargs, optarg_, pointer, recordfield, varientfield, enumerationfield, set, proctype, procedure, def, imp, module, loop, while_, for_, repeat, case_, caselabellist, caselist, range, assignment, call, if_, elsif, constexp, neg, cast, val, plus, sub, div_, mod, mult, divide, in, adr, size, tsize, ord, float_, trunc, chr, abs_, high, throw, cmplx, re, im, min, max, componentref, pointerref, arrayref, deref, equal, notequal, less, greater, greequal, lessequal, lsl, lsr, lor, land, lnot, lxor, and, or, not, identlist, vardecl, setvalue} nodeT;
+typedef enum {explist, funccall, exit_, return_, stmtseq, comment, halt, new, dispose, inc, dec, incl, excl, length, nil, true, false, address, loc, byte, word, char_, cardinal, longcard, shortcard, integer, longint, shortint, real, longreal, shortreal, bitset, boolean, proc, ztype, rtype, complex, longcomplex, shortcomplex, type, record, varient, var, enumeration, subrange, array, subscript, string, const_, literal, varparam, param, varargs, optarg_, pointer, recordfield, varientfield, enumerationfield, set, proctype, procedure, def, imp, module, loop, while_, for_, repeat, case_, caselabellist, caselist, range, assignment, call, if_, elsif, constexp, neg, cast, val, plus, sub, div_, mod, mult, divide, in, adr, size, tsize, ord, float_, trunc, chr, abs_, cap, high, throw, cmplx, re, im, min, max, componentref, pointerref, arrayref, deref, equal, notequal, less, greater, greequal, lessequal, lsl, lsr, lor, land, lnot, lxor, and, or, not, identlist, vardecl, setvalue} nodeT;
 
 #   define MaxnoOfelements 5
 typedef enum {mcReserved_eoftok, mcReserved_plustok, mcReserved_minustok, mcReserved_timestok, mcReserved_dividetok, mcReserved_becomestok, mcReserved_ambersandtok, mcReserved_periodtok, mcReserved_commatok, mcReserved_semicolontok, mcReserved_lparatok, mcReserved_rparatok, mcReserved_lsbratok, mcReserved_rsbratok, mcReserved_lcbratok, mcReserved_rcbratok, mcReserved_uparrowtok, mcReserved_singlequotetok, mcReserved_equaltok, mcReserved_hashtok, mcReserved_lesstok, mcReserved_greatertok, mcReserved_lessgreatertok, mcReserved_lessequaltok, mcReserved_greaterequaltok, mcReserved_ldirectivetok, mcReserved_rdirectivetok, mcReserved_periodperiodtok, mcReserved_colontok, mcReserved_doublequotestok, mcReserved_bartok, mcReserved_andtok, mcReserved_arraytok, mcReserved_begintok, mcReserved_bytok, mcReserved_casetok, mcReserved_consttok, mcReserved_definitiontok, mcReserved_divtok, mcReserved_dotok, mcReserved_elsetok, mcReserved_elsiftok, mcReserved_endtok, mcReserved_excepttok, mcReserved_exittok, mcReserved_exporttok, mcReserved_finallytok, mcReserved_fortok, mcReserved_fromtok, mcReserved_iftok, mcReserved_implementationtok, mcReserved_importtok, mcReserved_intok, mcReserved_looptok, mcReserved_modtok, mcReserved_moduletok, mcReserved_nottok, mcReserved_oftok, mcReserved_ortok, mcReserved_packedsettok, mcReserved_pointertok, mcReserved_proceduretok, mcReserved_qualifiedtok, mcReserved_unqualifiedtok, mcReserved_recordtok, mcReserved_remtok, mcReserved_repeattok, mcReserved_retrytok, mcReserved_returntok, mcReserved_settok, mcReserved_thentok, mcReserved_totok, mcReserved_typetok, mcReserved_untiltok, mcReserved_vartok, mcReserved_whiletok, mcReserved_withtok, mcReserved_asmtok, mcReserved_volatiletok, mcReserved_periodperiodperiodtok, mcReserved_datetok, mcReserved_linetok, mcReserved_filetok, mcReserved_attributetok, mcReserved_builtintok, mcReserved_inlinetok, mcReserved_integertok, mcReserved_identtok, mcReserved_realtok, mcReserved_stringtok, mcReserved_commenttok} mcReserved_toktype;
@@ -876,6 +876,7 @@ static decl_node m2rtsN;
 static decl_node haltN;
 static decl_node throwN;
 static decl_node chrN;
+static decl_node capN;
 static decl_node absN;
 static decl_node floatN;
 static decl_node truncN;
@@ -4872,6 +4873,12 @@ static void doNewC (mcPretty_pretty p, decl_node n);
 static void doDisposeC (mcPretty_pretty p, decl_node n);
 
 /*
+   doCapC -
+*/
+
+static void doCapC (mcPretty_pretty p, decl_node n);
+
+/*
    doLengthC -
 */
 
@@ -6559,6 +6566,7 @@ static void setUnary (decl_node u, nodeT k, decl_node a, decl_node t)
       case constexp:
       case deref:
       case chr:
+      case cap:
       case abs_:
       case float_:
       case trunc:
@@ -7388,6 +7396,7 @@ static unsigned int isUnary (decl_node n)
       case deref:
       case high:
       case chr:
+      case cap:
       case abs_:
       case ord:
       case float_:
@@ -7434,6 +7443,7 @@ static decl_node makeUnary (nodeT k, decl_node e, decl_node res)
           case deref:
           case high:
           case chr:
+          case cap:
           case abs_:
           case ord:
           case float_:
@@ -7705,6 +7715,7 @@ static decl_node makeBase (nodeT k)
       case shortcomplex:
       case adr:
       case chr:
+      case cap:
       case abs_:
       case float_:
       case trunc:
@@ -7845,6 +7856,10 @@ static decl_node doGetFuncType (decl_node n)
           break;
 
         case chr:
+          return charN;
+          break;
+
+        case cap:
           return charN;
           break;
 
@@ -8174,6 +8189,10 @@ static decl_node doGetExprType (decl_node n)
         return doSetExprType (&n->unaryF.resultType, charN);
         break;
 
+      case cap:
+        return doSetExprType (&n->unaryF.resultType, charN);
+        break;
+
       case not:
         return doSetExprType (&n->unaryF.resultType, booleanN);
         break;
@@ -8471,6 +8490,7 @@ static unsigned int needsParen (decl_node n)
       case float_:
       case trunc:
       case chr:
+      case cap:
       case high:
         return FALSE;
         break;
@@ -8826,6 +8846,10 @@ static decl_node doGetLastOp (decl_node a, decl_node b)
         break;
 
       case chr:
+        return doGetLastOp (b, b->unaryF.arg);
+        break;
+
+      case cap:
         return doGetLastOp (b, b->unaryF.arg);
         break;
 
@@ -9374,6 +9398,10 @@ static void doExprC (mcPretty_pretty p, decl_node n)
         doUnary (p, (char *) "CHR", 3, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
         break;
 
+      case cap:
+        doUnary (p, (char *) "CAP", 3, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
+        break;
+
       case high:
         doUnary (p, (char *) "HIGH", 4, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
         break;
@@ -9630,6 +9658,10 @@ static void doExprM2 (mcPretty_pretty p, decl_node n)
 
       case chr:
         doUnary (p, (char *) "CHR", 3, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
+        break;
+
+      case cap:
+        doUnary (p, (char *) "CAP", 3, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
         break;
 
       case high:
@@ -13049,13 +13081,10 @@ static void doFuncUnbounded (mcPretty_pretty p, decl_node actual, decl_node form
       if (decl_isArray (decl_skipType (decl_getType (actual))))
         outText (p, (char *) ".array[0]", 9);
     }
-  if (! (isDefForC (decl_getScope (func))))
-    {
-      outText (p, (char *) ",", 1);
-      mcPretty_setNeedSpace (p);
-      doFuncHighC (p, actual);
-      doTotype (p, actual, formal);
-    }
+  outText (p, (char *) ",", 1);
+  mcPretty_setNeedSpace (p);
+  doFuncHighC (p, actual);
+  doTotype (p, actual, formal);
 }
 
 
@@ -13688,6 +13717,30 @@ static void doDisposeC (mcPretty_pretty p, decl_node n)
 
 
 /*
+   doCapC -
+*/
+
+static void doCapC (mcPretty_pretty p, decl_node n)
+{
+  mcDebug_assert (isFuncCall (n));
+  if (n->funccallF.args == NULL)
+    M2RTS_HALT (0);
+  else
+    if ((expListLen (n->funccallF.args)) == 1)
+      {
+        keyc_useCtype ();
+        outText (p, (char *) "toupper", 7);
+        mcPretty_setNeedSpace (p);
+        outText (p, (char *) "(", 1);
+        doExprC (p, getExpList (n->funccallF.args, 1));
+        outText (p, (char *) ")", 1);
+      }
+    else
+      M2RTS_HALT (0);
+}
+
+
+/*
    doLengthC -
 */
 
@@ -13852,6 +13905,7 @@ static unsigned int isIntrinsic (decl_node n)
       case trunc:
       case ord:
       case chr:
+      case cap:
       case abs_:
       case im:
       case re:
@@ -14035,6 +14089,10 @@ static void doIntrinsicC (mcPretty_pretty p, decl_node n)
           outText (p, (char *) "(char)", 6);
           mcPretty_setNeedSpace (p);
           doFuncArgsC (p, n, (Indexing_Index) NULL, TRUE);
+          break;
+
+        case cap:
+          doCapC (p, n);
           break;
 
         case abs_:
@@ -15722,6 +15780,7 @@ static dependentState doDependants (alists_alist l, decl_node n)
         break;
 
       case chr:
+      case cap:
       case ord:
       case float_:
       case trunc:
@@ -16483,6 +16542,9 @@ static void visitDependants (alists_alist v, decl_node n, nodeProcedure p)
       case dispose:
         break;
 
+      case length:
+        break;
+
       case inc:
         break;
 
@@ -16706,6 +16768,7 @@ static void visitDependants (alists_alist v, decl_node n, nodeProcedure p)
       case im:
       case abs_:
       case chr:
+      case cap:
       case high:
       case ord:
       case float_:
@@ -18942,6 +19005,7 @@ static decl_node doDupExpr (decl_node n)
       case deref:
       case abs_:
       case chr:
+      case cap:
       case high:
       case float_:
       case trunc:
@@ -19076,6 +19140,7 @@ static void makeBaseSymbols (void)
   ordN = makeBase ((nodeT) ord);
   valN = makeBase ((nodeT) val);
   chrN = makeBase ((nodeT) chr);
+  capN = makeBase ((nodeT) cap);
   absN = makeBase ((nodeT) abs_);
   newN = makeBase ((nodeT) new);
   disposeN = makeBase ((nodeT) dispose);
@@ -19115,6 +19180,7 @@ static void makeBaseSymbols (void)
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "ORD", 3), (void *) ordN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "VAL", 3), (void *) valN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "CHR", 3), (void *) chrN);
+  symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "CAP", 3), (void *) capN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "ABS", 3), (void *) absN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "NEW", 3), (void *) newN);
   symbolKey_putSymKey (baseSymbols, nameKey_makeKey ((char *) "DISPOSE", 7), (void *) disposeN);
@@ -19902,6 +19968,10 @@ decl_node decl_getType (decl_node n)
         return charN;
         break;
 
+      case cap:
+        return charN;
+        break;
+
       case arrayref:
         return n->arrayrefF.resultType;
         break;
@@ -20206,6 +20276,7 @@ decl_node decl_getScope (decl_node n)
       case pointerref:
       case arrayref:
       case chr:
+      case cap:
       case ord:
       case float_:
       case trunc:

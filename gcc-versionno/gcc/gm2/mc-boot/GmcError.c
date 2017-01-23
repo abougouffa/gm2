@@ -636,6 +636,7 @@ void mcError_internalError (char *a_, unsigned int _a_high, char *file_, unsigne
   memcpy (a, a_, _a_high+1);
   memcpy (file, file_, _file_high+1);
 
+  M2RTS_ExitOnHalt (1);
   if (! inInternal)
     {
       inInternal = TRUE;

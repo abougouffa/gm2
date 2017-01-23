@@ -1,3 +1,12 @@
+2017-01-23      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/mc-boot/Gdecl.c:  regenerated.
+	* gm2/mc-boot/GmcError.c:  regenerated.
+	* gm2/mc-boot/Gtop.c:  regenerated.
+	* gm2/mc/decl.mod:  add CAP to the implementation of mc.
+	* gm2/mc/mcError.mod:  set ExitOnHalt before calling InternalError.
+	* gm2/mc/top.mod:  call ExitOnHalt before calling compile.
+
 2017-01-19      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-iso/wrapsock.c:  corrected a configure bug

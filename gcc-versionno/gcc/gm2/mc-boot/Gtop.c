@@ -8,6 +8,7 @@
 
 #   include "GmcOptions.h"
 #   include "GmcComp.h"
+#   include "GM2RTS.h"
 
 
 /*
@@ -32,6 +33,7 @@ static void init (void);
 
 static void init (void)
 {
+  M2RTS_ExitOnHalt (1);
   mcComp_compile (mcOptions_handleOptions ());
 }
 

@@ -176,6 +176,7 @@ END outString ;
 
 PROCEDURE internalError (a: ARRAY OF CHAR; file: ARRAY OF CHAR; line: CARDINAL) ;
 BEGIN
+   ExitOnHalt (1) ;
    IF NOT inInternal
    THEN
       inInternal := TRUE ;

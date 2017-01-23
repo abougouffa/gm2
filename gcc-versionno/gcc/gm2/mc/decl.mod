@@ -101,7 +101,8 @@ TYPE
 	    neg,
 	    cast, val,
 	    plus, sub, div, mod, mult, divide, in,
-	    adr, size, tsize, ord, float, trunc, chr, abs, high, throw,
+	    adr, size, tsize, ord, float, trunc, chr, abs, cap,
+	    high, throw,
 	    cmplx, re, im,
 	    min, max,
             componentref, pointerref, arrayref, deref,
@@ -210,6 +211,7 @@ TYPE
 			 deref,
 			 abs,
 			 chr,
+			 cap,
                          high,
                          ord,
 			 float,
@@ -643,6 +645,7 @@ VAR
    haltN,
    throwN,
    chrN,
+   capN,
    absN,
    floatN,
    truncN,
@@ -1795,6 +1798,7 @@ BEGIN
    constexp,
    deref,
    chr,
+   cap,
    abs,
    float,
    trunc,
@@ -3978,6 +3982,7 @@ BEGIN
    deref,
    high,
    chr,
+   cap,
    abs,
    ord,
    float,
@@ -4021,6 +4026,7 @@ BEGIN
          deref,
          high,
          chr,
+	 cap,
          abs,
          ord,
          float,
@@ -4414,6 +4420,7 @@ BEGIN
       shortcomplex,
       adr,
       chr,
+      cap,
       abs,
       float,
       trunc,
@@ -4656,6 +4663,7 @@ BEGIN
       high            :  RETURN cardinalN |
       ord             :  RETURN cardinalN |
       chr             :  RETURN charN |
+      cap             :  RETURN charN |
       arrayref        :  RETURN arrayrefF.resultType |
       componentref    :  RETURN componentrefF.resultType |
       pointerref      :  RETURN pointerrefF.resultType |
@@ -4742,6 +4750,7 @@ BEGIN
       trunc  :  RETURN integerN |
       ord    :  RETURN cardinalN |
       chr    :  RETURN charN |
+      cap    :  RETURN charN |
       re,
       im     :  RETURN realN |
       cmplx  :  RETURN complexN |
@@ -4873,6 +4882,7 @@ BEGIN
       float           :  RETURN doSetExprType (unaryF.resultType, realN) |
       trunc           :  RETURN doSetExprType (unaryF.resultType, integerN) |
       chr             :  RETURN doSetExprType (unaryF.resultType, charN) |
+      cap             :  RETURN doSetExprType (unaryF.resultType, charN) |
       not             :  RETURN doSetExprType (unaryF.resultType, booleanN) |
       re              :  RETURN doSetExprType (unaryF.resultType, realN) |
       im              :  RETURN doSetExprType (unaryF.resultType, realN) |
@@ -5016,6 +5026,7 @@ BEGIN
       pointerref,
       arrayref,
       chr,
+      cap,
       ord,
       float,
       trunc,
@@ -5322,6 +5333,7 @@ BEGIN
       float,
       trunc,
       chr,
+      cap,
       high            :  RETURN FALSE |
       deref           :  RETURN FALSE |
       equal,
@@ -5549,6 +5561,7 @@ BEGIN
       float,
       trunc           :  RETURN doGetLastOp (b, unaryF.arg) |
       chr             :  RETURN doGetLastOp (b, unaryF.arg) |
+      cap             :  RETURN doGetLastOp (b, unaryF.arg) |
       high            :  RETURN doGetLastOp (b, unaryF.arg) |
       deref           :  RETURN doGetLastOp (b, unaryF.arg) |
       re,
@@ -5962,6 +5975,7 @@ BEGIN
       float           :  doUnary (p, 'FLOAT', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       ord             :  doUnary (p, 'ORD', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       chr             :  doUnary (p, 'CHR', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      cap             :  doUnary (p, 'CAP', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       high            :  doUnary (p, 'HIGH', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       re,
       im,
@@ -6069,6 +6083,7 @@ BEGIN
       trunc           :  doUnary (p, 'TRUNC', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       ord             :  doUnary (p, 'ORD', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       chr             :  doUnary (p, 'CHR', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
+      cap             :  doUnary (p, 'CAP', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       high            :  doUnary (p, 'HIGH', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       re              :  doUnary (p, 'RE', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
       im              :  doUnary (p, 'IM', unaryF.arg, unaryF.resultType, TRUE, TRUE) |
@@ -9379,13 +9394,17 @@ BEGIN
          outText (p, '.array[0]')
       END
    END ;
+(* --fixme-- isDefForC is not implemented yet.
    IF NOT isDefForC (getScope (func))
    THEN
+*)
       outText (p, ',') ;
       setNeedSpace (p) ;
       doFuncHighC (p, actual) ;
       doTotype (p, actual, formal)
+(*
    END
+*)
 END doFuncUnbounded ;
 
 
@@ -10045,6 +10064,32 @@ END doDisposeC ;
 
 
 (*
+   doCapC -
+*)
+
+PROCEDURE doCapC (p: pretty; n: node) ;
+BEGIN
+   assert (isFuncCall (n)) ;
+   IF n^.funccallF.args = NIL
+   THEN
+      HALT
+   ELSE
+      IF expListLen (n^.funccallF.args) = 1
+      THEN
+         keyc.useCtype ;
+         outText (p, 'toupper') ;
+         setNeedSpace (p) ;
+         outText (p, '(') ;
+         doExprC (p, getExpList (n^.funccallF.args, 1)) ;
+         outText (p, ')')
+      ELSE
+         HALT (* metaError0 ('expecting a single parameter to CAP') *)
+      END
+   END
+END doCapC ;
+
+
+(*
    doLengthC -
 *)
 
@@ -10215,6 +10260,7 @@ BEGIN
    trunc,
    ord,
    chr,
+   cap,
    abs,
    im,
    re,
@@ -10378,6 +10424,7 @@ BEGIN
       chr:     outText (p, "(char)") ;
                setNeedSpace (p) ;
                doFuncArgsC (p, n, NIL, TRUE) |
+      cap:     doCapC (p, n) |
       abs:     doAbsC (p, n) |
       high:    doFuncHighC (p, getExpList (n^.funccallF.args, 1)) |
       inc:     doInc (p, n) |
@@ -12023,6 +12070,7 @@ BEGIN
       componentref    :  RETURN walkComponentRef (l, n) |
       pointerref      :  RETURN walkPointerRef (l, n) |
       chr,
+      cap,
       ord,
       float,
       trunc,
@@ -12759,6 +12807,7 @@ BEGIN
    halt            :  (* handled in funccall.  *) |
    new             :  (* handled in funccall.  *) |
    dispose         :  (* handled in funccall.  *) |
+   length          :  (* handled in funccall.  *) |
    inc             :  (* handled in funccall.  *) |
    dec             :  (* handled in funccall.  *) |
    incl            :  (* handled in funccall.  *) |
@@ -12854,6 +12903,7 @@ BEGIN
    im,
    abs,
    chr,
+   cap,
    high,
    ord,
    float,
@@ -15598,6 +15648,7 @@ BEGIN
    deref,
    abs,
    chr,
+   cap,
    high,
    float,
    trunc,
@@ -15722,6 +15773,7 @@ BEGIN
    ordN := makeBase (ord) ;
    valN := makeBase (val) ;
    chrN := makeBase (chr) ;
+   capN := makeBase (cap) ;
    absN := makeBase (abs) ;
    newN := makeBase (new) ;
    disposeN := makeBase (dispose) ;
@@ -15763,6 +15815,7 @@ BEGIN
    putSymKey (baseSymbols, makeKey ('ORD'), ordN) ;
    putSymKey (baseSymbols, makeKey ('VAL'), valN) ;
    putSymKey (baseSymbols, makeKey ('CHR'), chrN) ;
+   putSymKey (baseSymbols, makeKey ('CAP'), capN) ;
    putSymKey (baseSymbols, makeKey ('ABS'), absN) ;
    putSymKey (baseSymbols, makeKey ('NEW'), newN) ;
    putSymKey (baseSymbols, makeKey ('DISPOSE'), disposeN) ;
