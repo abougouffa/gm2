@@ -1,4 +1,5 @@
-/* Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
+/* Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015,
+ *               2016, 2017
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -26,18 +27,42 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA.
 */
 
-#include "gm2-gcc/gcc-consolidation.h"
+#if defined(GM2)
+#  include "gm2-gcc/gcc-consolidation.h"
 
-#include "gm2-tree.h"
-#include "gm2-lang.h"
+#  include "gm2-tree.h"
+#  include "gm2-lang.h"
 
-#include "gm2-gcc/m2tree.h"
-#include "gm2-gcc/m2expr.h"
-#include "gm2-gcc/m2type.h"
-#include "gm2-gcc/m2decl.h"
-
-#if defined(CPP)
-#  include "cp-tree.h"
+#  include "gm2-gcc/m2tree.h"
+#  include "gm2-gcc/m2expr.h"
+#  include "gm2-gcc/m2type.h"
+#  include "gm2-gcc/m2decl.h"
+#else
+#  include "config.h"
+#  include "system.h"
+#  include "coretypes.h"
+#  include "tm.h"
+#  include "hash-set.h"
+#  include "machmode.h"
+#  include "vec.h"
+#  include "double-int.h"
+#  include "input.h"
+#  include "alias.h"
+#  include "symtab.h"
+#  include "options.h"
+#  include "wide-int.h"
+#  include "inchash.h"
+#  include "tree.h"
+#  include "stor-layout.h"
+#  include "attribs.h"
+#  include "intl.h"
+#  include "tree-iterator.h"
+#  include "../cp/cp-tree.h"
+#  include "diagnostic.h"
+#  include "wide-int-print.h"
+#  include "real.h"
+#  include "float.h"
+#  include <stdio.h>
 #endif
 
 #define M2PP_C
@@ -416,7 +441,7 @@ remember (tree t)
 {
   rememberF = t;
   printf ("type:  watch *((tree *) %p) != %p\n",
-	  &DECL_SAVED_TREE (t), DECL_SAVED_TREE (t));
+	  (void *) &DECL_SAVED_TREE (t), (void *) DECL_SAVED_TREE (t));
 }
 
 /*
@@ -617,22 +642,22 @@ hextree (tree t)
 
   if (TREE_CODE (t) == BLOCK)
     {
-      printf("(* BLOCK %p *)\n", t);
-      printf("BLOCK_VARS (t) =  %p\n", BLOCK_VARS (t));
-      printf("BLOCK_SUPERCONTEXT (t)  =  %p\n", BLOCK_SUPERCONTEXT (t));
+      printf("(* BLOCK %p *)\n", (void *) t);
+      printf("BLOCK_VARS (t) =  %p\n", (void *) BLOCK_VARS (t));
+      printf("BLOCK_SUPERCONTEXT (t)  =  %p\n", (void *) BLOCK_SUPERCONTEXT (t));
     }
   if (TREE_CODE (t) == BIND_EXPR)
     {
-      printf("(* BIND_EXPR %p *)\n", t);
-      printf("BIND_EXPR_VARS (t) =  %p\n", BIND_EXPR_VARS (t));
-      printf("BIND_EXPR_BLOCK (t) =  %p\n", BIND_EXPR_BLOCK (t));
-      printf("BIND_EXPR_BODY (t) =  %p\n", BIND_EXPR_BODY (t));
+      printf("(* BIND_EXPR %p *)\n", (void *) t);
+      printf("BIND_EXPR_VARS (t) =  %p\n", (void *) BIND_EXPR_VARS (t));
+      printf("BIND_EXPR_BLOCK (t) =  %p\n", (void *) BIND_EXPR_BLOCK (t));
+      printf("BIND_EXPR_BODY (t) =  %p\n", (void *) BIND_EXPR_BODY (t));
     }
   if (TREE_CODE (t) == FUNCTION_DECL)
     {
-      printf("(* FUNCTION_DECL %p *)\n", t);
-      printf("DECL_INITIAL (t) =  %p\n", DECL_INITIAL (t));
-      printf("DECL_SAVED_TREE (t) = %p\n", DECL_SAVED_TREE (t));
+      printf("(* FUNCTION_DECL %p *)\n", (void *) t);
+      printf("DECL_INITIAL (t) =  %p\n", (void *) DECL_INITIAL (t));
+      printf("DECL_SAVED_TREE (t) = %p\n", (void *) DECL_SAVED_TREE (t));
       hextree(DECL_INITIAL (t));
       hextree(DECL_SAVED_TREE (t));
     }
@@ -640,14 +665,14 @@ hextree (tree t)
     {
       pretty *state = initPretty ();
 
-      printf("(* VAR_DECL %p <", t);
+      printf("(* VAR_DECL %p <", (void *) t);
       if (DECL_SEEN_IN_BIND_EXPR_P (t))
 	printf("b");
       if (DECL_EXTERNAL (t))
 	printf("e");
       if (TREE_STATIC (t))
 	printf("s");
-      printf("> context = %p*)\n", decl_function_context (t));
+      printf("> context = %p*)\n", (void *) decl_function_context (t));
       m2pp_type (state, TREE_TYPE (t));
       m2pp_needspace (state);
       m2pp_print (state, ";\n");
@@ -657,8 +682,8 @@ hextree (tree t)
     {
       pretty *state = initPretty ();
 
-      printf("(* PARM_DECL %p <", t);
-      printf("> context = %p*)\n", decl_function_context (t));
+      printf("(* PARM_DECL %p <", (void *) t);
+      printf("> context = %p*)\n", (void *) decl_function_context (t));
       m2pp_type (state, TREE_TYPE (t));
       m2pp_needspace (state);
       m2pp_print (state, ";\n");
@@ -675,7 +700,7 @@ static void
 m2pp_translation (pretty *s, tree t)
 {
   tree block = DECL_INITIAL (t);
-  
+
   m2pp_print (s, "IMPLEMENTATION MODULE ");
   m2pp_identifier (s, t);
   m2pp_print (s, "\n\n");
@@ -922,7 +947,7 @@ m2pp_type_list (pretty *s, tree t)
 	m2pp_type (s, TREE_TYPE (t));
 	m2pp_needspace (s);
 	m2pp_print (s, ";\n");
-      } 
+      }
 }
 #endif
 
@@ -1201,7 +1226,7 @@ m2pp_add_var (tree *tp, int *walk_subtrees, void *data)
       m2pp_needspace (s);
       m2pp_print (s, ";\n");
     }
-    
+
   *walk_subtrees = 1;
   return NULL_TREE;
 }
@@ -1214,7 +1239,7 @@ m2pp_add_var (tree *tp, int *walk_subtrees, void *data)
 static void
 m2pp_function_vars (pretty *s, tree t)
 {
-  walk_tree_without_duplicates (&t, m2pp_add_var, s);  
+  walk_tree_without_duplicates (&t, m2pp_add_var, s);
 
   if (TREE_CODE (t) == FUNCTION_DECL
       && DECL_INITIAL (t))
@@ -1619,7 +1644,7 @@ m2pp_recordfield_alignment (pretty *s, tree t)
 static void
 m2pp_recordfield_bitfield (pretty *s, tree t)
 {
-  if (DECL_PACKED (t)) {
+  if ((TREE_CODE (t) == FIELD_DECL) && DECL_PACKED (t)) {
     m2pp_print(s, " (* packed");
     if (DECL_NONADDRESSABLE_P (t))
       m2pp_print(s, ", non-addressible");
@@ -1749,7 +1774,7 @@ m2pp_simple_type (pretty *s, tree t)
 }
 
 /*
- *  m2pp_expression - 
+ *  m2pp_expression -
  */
 
 static void
@@ -1937,7 +1962,7 @@ m2pp_realpart_expr (pretty *s, tree t)
 }
 
 /*
- *  m2pp_bit_ior_expr - 
+ *  m2pp_bit_ior_expr -
  */
 
 static
@@ -2202,7 +2227,7 @@ m2pp_string_cst (pretty *s, tree t)
 {
   const char *p = TREE_STRING_POINTER (t);
   int i=0;
-  
+
   m2pp_print (s, "\"");
   while (p[i] != '\0') {
     m2pp_print_char (s, p[i]);
@@ -2343,7 +2368,7 @@ m2pp_statement (pretty *s, tree t)
 {
   enum tree_code code = TREE_CODE (t);
 
-  m2pp_loc (s, t);  
+  m2pp_loc (s, t);
   switch (code)
     {
     case COND_EXPR:
@@ -2772,7 +2797,7 @@ m2pp_nop (pretty *s, tree t)
   m2pp_simple_type (s, TREE_TYPE (t));
   m2pp_print (s, ", ");
   m2pp_expression (s, TREE_OPERAND (t, 0));
-  m2pp_print (s, ")");  
+  m2pp_print (s, ")");
 }
 
 /*
@@ -2787,7 +2812,7 @@ m2pp_convert (pretty *s, tree t)
   m2pp_simple_type (s, TREE_TYPE (t));
   m2pp_print (s, ", ");
   m2pp_expression (s, TREE_OPERAND (t, 0));
-  m2pp_print (s, ")");  
+  m2pp_print (s, ")");
 }
 
 /*
@@ -2821,4 +2846,3 @@ m2pp_component_ref (pretty *s, tree t)
   m2pp_print (s, ".");
   m2pp_simple_expression (s, TREE_OPERAND (t, 1));
 }
-
