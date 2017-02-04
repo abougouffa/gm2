@@ -78,6 +78,7 @@ typedef struct pretty_t {
   int in_vars;
   int in_types;
   tree block;
+  int bits;
 } pretty;
 
 typedef struct m2stack_t {
@@ -90,7 +91,7 @@ typedef struct m2stack_t {
  *  Prototypes
  */
 
-static pretty *initPretty (void);
+static pretty *initPretty (int bits);
 static pretty *dupPretty (pretty *s);
 static int getindent (pretty *s);
 static void setindent (pretty *s, int n);
@@ -194,14 +195,12 @@ static void mystop (void) {}
 
 
 /*
- *  pf - print function.  Expected to be printed interactively from the
- *       debugger:  print pf(func), or to be called from code.
+ *
  */
 
-void
-pf (tree t)
+void do_pf (tree t, int bits)
 {
-  pretty *state = initPretty ();
+  pretty *state = initPretty (bits);
 
   if (TREE_CODE (t) == TRANSLATION_UNIT_DECL)
     m2pp_translation (state, t);
@@ -215,6 +214,17 @@ pf (tree t)
 }
 
 /*
+ *  pf - print function.  Expected to be printed interactively from the
+ *       debugger:  print pf(func), or to be called from code.
+ */
+
+void
+pf (tree t)
+{
+  do_pf (t, FALSE);
+}
+
+/*
  *  pe - print expression.  Expected to be printed interactively from the
  *       debugger:  print pe(expr), or to be called from code.
  */
@@ -222,7 +232,7 @@ pf (tree t)
 void
 pe (tree t)
 {
-  pretty *state = initPretty ();
+  pretty *state = initPretty (FALSE);
 
   m2pp_expression (state, t);
   m2pp_needspace (state);
@@ -239,7 +249,7 @@ pe (tree t)
 void
 pet (tree t)
 {
-  pretty *state = initPretty ();
+  pretty *state = initPretty (FALSE);
 
   m2pp_expression (state, t);
   m2pp_needspace (state);
@@ -257,7 +267,7 @@ pet (tree t)
 void
 pt (tree t)
 {
-  pretty *state = initPretty ();
+  pretty *state = initPretty (FALSE);
   m2pp_type (state, t);
   m2pp_needspace (state);
   m2pp_print (state, ";\n");
@@ -272,7 +282,7 @@ pt (tree t)
 void
 ptl (tree t)
 {
-  pretty *state = initPretty ();
+  pretty *state = initPretty (FALSE);
   m2pp_type_lowlevel (state, t);
   m2pp_needspace (state);
   m2pp_print (state, ";\n");
@@ -286,7 +296,7 @@ ptl (tree t)
 static void
 pl (tree t)
 {
-  pretty *state = initPretty ();
+  pretty *state = initPretty (FALSE);
 
   m2pp_decl_list (state, t);
   m2pp_print (state, "\n");
@@ -371,7 +381,7 @@ pv (tree t)
 
       if (code == PARM_DECL)
 	{
-	  pretty *state = initPretty ();
+	  pretty *state = initPretty (FALSE);
 	  m2pp_identifier (state, t);
 	  m2pp_needspace (state);
 	  m2pp_print (state, "<parm_decl context = ");
@@ -389,7 +399,7 @@ pv (tree t)
 	}
       if (code == VAR_DECL)
 	{
-	  pretty *state = initPretty ();
+	  pretty *state = initPretty (FALSE);
 	  m2pp_identifier (state, t);
 	  m2pp_needspace (state);
 	  m2pp_print (state, "(* <var_decl context = ");
@@ -496,7 +506,7 @@ begin_printed (tree t)
 static pretty *
 dupPretty (pretty *s)
 {
-  pretty *p = initPretty ();
+  pretty *p = initPretty (s->bits);
   *p = *s;
   return p;
 }
@@ -506,7 +516,7 @@ dupPretty (pretty *s)
  */
 
 static pretty *
-initPretty (void)
+initPretty (int bits)
 {
   pretty *state = (pretty *)xmalloc (sizeof (pretty));
   state->needs_space = FALSE;
@@ -517,6 +527,7 @@ initPretty (void)
   state->in_vars = FALSE;
   state->in_types = FALSE;
   state->block = NULL_TREE;
+  state->bits = bits;
   return state;
 }
 
@@ -663,7 +674,7 @@ hextree (tree t)
     }
   if (TREE_CODE (t) == VAR_DECL)
     {
-      pretty *state = initPretty ();
+      pretty *state = initPretty (FALSE);
 
       printf("(* VAR_DECL %p <", (void *) t);
       if (DECL_SEEN_IN_BIND_EXPR_P (t))
@@ -680,7 +691,7 @@ hextree (tree t)
     }
   if (TREE_CODE (t) == PARM_DECL)
     {
-      pretty *state = initPretty ();
+      pretty *state = initPretty (FALSE);
 
       printf("(* PARM_DECL %p <", (void *) t);
       printf("> context = %p*)\n", (void *) decl_function_context (t));

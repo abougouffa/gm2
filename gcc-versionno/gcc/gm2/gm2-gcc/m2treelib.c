@@ -331,9 +331,14 @@ m2treelib_get_set_value (location_t location, tree p, tree field, int is_const, 
   }
   else if (is_lvalue)
     {
-      ASSERT_CONDITION (TREE_CODE (TREE_TYPE (p)) == POINTER_TYPE);
-      value = m2expr_BuildComponentRef (location,
-					m2expr_BuildIndirect (location, p, TREE_TYPE (p)), field);
+      if (TREE_CODE (TREE_TYPE (p)) == POINTER_TYPE)
+	value = m2expr_BuildComponentRef (location,
+					  m2expr_BuildIndirect (location, p, TREE_TYPE (p)), field);
+      else
+	{
+	  ASSERT_CONDITION (TREE_CODE (TREE_TYPE (p)) == REFERENCE_TYPE);
+	  value = m2expr_BuildComponentRef (location, p, field);
+	}
     }
   else
     {
@@ -393,7 +398,10 @@ m2treelib_get_set_field_rhs (location_t location, tree p, tree field)
 tree
 m2treelib_get_set_field_des (location_t location, tree p, tree field)
 {
-  return m2expr_BuildComponentRef (location, p, field);
+  return m2expr_BuildIndirect (location, m2expr_BuildAddr (location,
+							   m2expr_BuildComponentRef (location, p, field),
+							   FALSE),
+			       m2type_GetBitsetType ());
 }
 
 

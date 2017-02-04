@@ -580,8 +580,11 @@ m2_write_global_declarations (tree globals)
 {
   tree decl;
 
-  for (decl = globals; decl; decl = DECL_CHAIN (decl))
-    rest_of_decl_compilation (decl, 1, 1);
+  for (decl = globals; decl ; decl = DECL_CHAIN (decl))
+    {
+      rest_of_decl_compilation (decl, 1, 1);
+      debug_hooks->global_decl (decl);
+    }
 }
 
 /* Write out globals.  */
@@ -614,6 +617,16 @@ gm2_langhook_write_globals (void)
   /* We're done parsing; proceed to optimize and emit assembly.
      FIXME: shouldn't be the front end's responsibility to call this.  */
   symtab->finalize_compilation_unit ();
+
+  /* After cgraph has had a chance to emit everything that's going to
+     be emitted, output debug information for globals.  */
+  if (!seen_error ())
+    {
+      timevar_push (TV_SYMOUT);
+      FOR_EACH_VEC_ELT (*all_translation_units, i, t)
+	m2_write_global_declarations (BLOCK_VARS (DECL_INITIAL (t)));
+      timevar_pop (TV_SYMOUT);
+    }
 }
 
 
@@ -651,7 +664,6 @@ genericize_catch_block (tree *stmt_p)
   *stmt_p = build2 (CATCH_EXPR, void_type_node, type, body);
 }
 
-
 /* Convert the tree representation of FNDECL from m2 frontend trees to
    GENERIC.  */
 
@@ -661,6 +673,7 @@ gm2_genericize (tree fndecl)
   tree t;
   struct cgraph_node *cgn;
 
+#if 1
   /* Fix up the types of parms passed by invisible reference.  */
   for (t = DECL_ARGUMENTS (fndecl); t; t = DECL_CHAIN (t))
     if (TREE_ADDRESSABLE (TREE_TYPE (t)))
@@ -676,6 +689,7 @@ gm2_genericize (tree fndecl)
         TREE_ADDRESSABLE (t) = 0;
         relayout_decl (t);
       }
+#endif
 
   /* Dump all nested functions now.  */
   cgn = cgraph_node::get_create (fndecl);

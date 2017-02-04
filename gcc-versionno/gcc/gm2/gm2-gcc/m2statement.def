@@ -19,14 +19,14 @@ PROCEDURE DoJump (location: location_t; exp: Tree; falselabel: ADDRESS; truelabe
    BuildStartFunctionCode - generate function entry code.
 *)
 
-PROCEDURE BuildStartFunctionCode (fndecl: Tree; isexported: BOOLEAN; isinline: BOOLEAN) ;
+PROCEDURE BuildStartFunctionCode (location: location_t; fndecl: Tree; isexported: BOOLEAN; isinline: BOOLEAN) ;
 
 
 (*
    BuildEndFunctionCode - generates the function epilogue.
 *)
 
-PROCEDURE BuildEndFunctionCode (fndecl: Tree; nested: BOOLEAN) ;
+PROCEDURE BuildEndFunctionCode (location: location_t; fndecl: Tree; nested: BOOLEAN) ;
 
 
 (*
@@ -222,7 +222,7 @@ PROCEDURE BuildStart (location: location_t; name: ADDRESS; inner_module: BOOLEAN
     BuildEnd - complete the initialisation function for this module.
 *)
 
-PROCEDURE BuildEnd (fndecl: Tree; nested: BOOLEAN) ;
+PROCEDURE BuildEnd (location: location_t; fndecl: Tree; nested: BOOLEAN) ;
 
 
 (*

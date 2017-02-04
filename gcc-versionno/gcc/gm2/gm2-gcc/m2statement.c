@@ -55,7 +55,7 @@ static GTY(()) tree last_function=NULL_TREE;
  */
 
 void
-m2statement_BuildStartFunctionCode (tree fndecl, int isexported, int isinline)
+m2statement_BuildStartFunctionCode (location_t location, tree fndecl, int isexported, int isinline)
 {
   tree param_decl;
 
@@ -70,7 +70,9 @@ m2statement_BuildStartFunctionCode (tree fndecl, int isexported, int isinline)
 
   current_function_decl = fndecl;
   m2block_pushFunctionScope (fndecl);
+  m2statement_SetBeginLocation (location);
 
+  ASSERT_BOOL ((cfun != NULL));
 #if 0
   make_decl_rtl (current_function_decl);
 #endif
@@ -126,7 +128,7 @@ gm2_gimplify_function_node (tree fndecl)
  */
 
 void
-m2statement_BuildEndFunctionCode (tree fndecl, int nested)
+m2statement_BuildEndFunctionCode (location_t location, tree fndecl, int nested)
 {
   tree block = DECL_INITIAL (fndecl);
 
@@ -139,6 +141,7 @@ m2statement_BuildEndFunctionCode (tree fndecl, int nested)
   DECL_INITIAL (fndecl) = block;
 
   m2block_finishFunctionCode (fndecl);
+  m2statement_SetEndLocation (location);
 
   gm2_genericize (fndecl);
   if (nested)
@@ -147,6 +150,12 @@ m2statement_BuildEndFunctionCode (tree fndecl, int nested)
     cgraph_node::finalize_function (fndecl, false);
 
   m2block_popFunctionScope ();
+
+  /* We're leaving the context of this function, so zap cfun.
+     It's still in DECL_STRUCT_FUNCTION, and we'll restore it in
+     tree_rest_of_compilation.  */
+  set_cfun (NULL);
+  current_function_decl = NULL;
 }
 
 
@@ -627,31 +636,35 @@ m2statement_BuildExcludeVarConst (location_t location,
   m2assert_AssertLocation (location);
   ASSERT_BOOL (is_lvalue);
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant(SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
-    /* small set size <= TSIZE(WORD) */
-    m2statement_BuildAssignmentTree (location,
-				     m2treelib_get_rvalue (location, op1, type, is_lvalue),
-				     m2expr_BuildLogicalAnd (location,
-							     m2treelib_get_rvalue (location, op1, type, is_lvalue),
-							     m2expr_BuildSetNegate (location,
-										    m2expr_BuildLSL (location,
-												     m2expr_GetWordOne(location), op2, FALSE),
-										    FALSE),
-							     FALSE));
-  else {
-    tree fieldlist = TYPE_FIELDS (type);
-    tree field;
+    {
+      /* small set size <= TSIZE(WORD) */
+      m2statement_BuildAssignmentTree (location,
+				       m2treelib_get_rvalue (location, op1, type, is_lvalue),
+				       m2expr_BuildLogicalAnd (location,
+							       m2treelib_get_rvalue (location, op1, type, is_lvalue),
+							       m2expr_BuildSetNegate (location,
+										      m2expr_BuildLSL (location,
+												       m2expr_GetWordOne(location), op2, FALSE),
+										      FALSE),
+							       FALSE));
+    }
+  else
+    {
+      tree fieldlist = TYPE_FIELDS (type);
+      tree field;
 
-    for (field = fieldlist; (field != NULL) && (fieldno>0); field = TREE_CHAIN (field))
-      fieldno--;
-    m2statement_BuildAssignmentTree (location,
-				     m2treelib_get_set_field_des (location, op1, field),
-				     m2expr_BuildLogicalAnd (location,
-							     m2treelib_get_set_field_rhs (location, op1, field),
-							     m2expr_BuildSetNegate (location,
-										    m2expr_BuildLSL (location, m2expr_GetWordOne(location), op2, FALSE),
-										    FALSE),
-							     FALSE));
-  }
+      for (field = fieldlist; (field != NULL) && (fieldno>0); field = TREE_CHAIN (field))
+	fieldno--;
+
+      m2statement_BuildAssignmentTree (location,
+				       m2treelib_get_set_field_des (location, op1, field),
+				       m2expr_BuildLogicalAnd (location,
+							       m2treelib_get_set_field_rhs (location, op1, field),
+							       m2expr_BuildSetNegate (location,
+										      m2expr_BuildLSL (location, m2expr_GetWordOne(location), op2, FALSE),
+										      FALSE),
+							       FALSE));
+    }
 }
 
 
@@ -734,27 +747,37 @@ m2statement_BuildIncludeVarConst (location_t location,
   m2assert_AssertLocation (location);
   ASSERT_BOOL (is_lvalue);
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant(SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
-    /* small set size <= TSIZE(WORD) */
-    m2statement_BuildAssignmentTree (location,
-				     m2treelib_get_rvalue (location, op1, type, is_lvalue),
-				     m2expr_BuildLogicalOr (location,
-							    m2treelib_get_rvalue (location, op1, type, is_lvalue),
-							    m2expr_BuildLSL (location,
-									     m2expr_GetWordOne(location), m2convert_ToWord (location, op2), FALSE),
-							    FALSE));
-  else {
-    tree fieldlist = TYPE_FIELDS (type);
-    tree field;
+    {
+      /* small set size <= TSIZE(WORD) */
+      m2statement_BuildAssignmentTree (location,
+				       m2treelib_get_rvalue (location, op1, type, is_lvalue),
+				       m2expr_BuildLogicalOr (location,
+							      m2treelib_get_rvalue (location, op1, type, is_lvalue),
+							      m2expr_BuildLSL (location,
+									       m2expr_GetWordOne(location), m2convert_ToWord (location, op2), FALSE),
+							      FALSE));
+    }
+  else
+    {
+      tree fieldlist = TYPE_FIELDS (type);
+      tree field;
 
-    for (field = fieldlist; (field != NULL) && (fieldno>0); field = TREE_CHAIN (field))
-      fieldno--;
-    m2statement_BuildAssignmentTree (location,
-				     m2treelib_get_set_field_des (location, op1, field),
-				     m2expr_BuildLogicalOr (location,
-							    m2treelib_get_set_field_rhs (location, op1, field),
-							    m2expr_BuildLSL (location, m2expr_GetWordOne(location), m2convert_ToWord (location, op2), FALSE),
-							    FALSE));
-  }
+      for (field = fieldlist; (field != NULL) && (fieldno>0); field = TREE_CHAIN (field))
+	fieldno--;
+
+      m2statement_BuildAssignmentTree (location,
+				       /* would like to use:
+					  m2expr_BuildComponentRef (location, p, field)
+
+					  but strangely we have to take the address of the field and
+					  dereference it to satify the gimplifier.
+					  See testsuite/gm2/pim/pass/timeio?.mod for testcases.  */
+				       m2treelib_get_set_field_des (location, op1, field),
+				       m2expr_BuildLogicalOr (location,
+							      m2treelib_get_set_field_rhs (location, op1, field),
+							      m2expr_BuildLSL (location, m2expr_GetWordOne(location), m2convert_ToWord (location, op2), FALSE),
+							      FALSE));
+    }
 }
 
 
@@ -854,7 +877,7 @@ m2statement_BuildStart (location_t location, char *name, int inner_module)
   if (TREE_PUBLIC (fndecl))
     gm2_mark_addressable (fndecl);
 
-  m2statement_BuildStartFunctionCode (fndecl, !inner_module, inner_module);
+  m2statement_BuildStartFunctionCode (location, fndecl, !inner_module, inner_module);
   return fndecl;
 }
 
@@ -864,9 +887,9 @@ m2statement_BuildStart (location_t location, char *name, int inner_module)
  */
 
 void
-m2statement_BuildEnd (tree fndecl, int nested)
+m2statement_BuildEnd (location_t location, tree fndecl, int nested)
 {
-  m2statement_BuildEndFunctionCode (fndecl, nested);
+  m2statement_BuildEndFunctionCode (location, fndecl, nested);
   current_function_decl = NULL;
   set_cfun (NULL);
 }

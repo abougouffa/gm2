@@ -1,3 +1,37 @@
+2017-02-04      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  add location to
+          BuildStartFunctionCode.  Add location to
+          finishFunctionDecl.  Add location to
+	  BuildEndFunctionCode.
+	* gm2/gm2-gcc/m2decl.c:  add DECL_BY_REFERENCE
+          to parameter which is passed by reference.
+	* gm2/gm2-gcc/m2statement.c:  add location to
+          BuildStartFunctionCode and BuildEndFunctionCode.
+          Reset cfun and current_function_decl to NULL at
+          the end of the BuildEndFunctionCode.
+	* gm2/gm2-gcc/m2statement.def:  add location to
+          BuildStartFunctionCode and BuildEndFunctionCode.
+	* gm2/gm2-gcc/m2statement.h:  add location to
+          BuildStartFunctionCode and BuildEndFunctionCode.
+	* gm2/gm2-gcc/m2treelib.c:  m2treelib_get_set_field_des
+          rewritten to obtain the address and then indirectly
+          reference the value so that it can be placed on the lhs
+          of an assignment.  (m2treelib_get_set_value) detect
+          if lvalue is a POINTER_TYPE and if so then perform
+          and indirection lookup before generation the component
+          reference.
+	* gm2/m2pp.c:  modified to include a bits boolean in
+          the pretty state machine.  Which will be used to print
+	  useful TREE boolean flags.
+
+2017-02-01      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/m2pp.c:  modified to allow it to be built and
+          included in the cc1 and cc1plus frontends.
+	  Also fixed bugs to avoid crashing if bitfields
+          are used and displayed from cc1plus.
+
 2017-01-23      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/mc-boot/Gdecl.c:  regenerated.

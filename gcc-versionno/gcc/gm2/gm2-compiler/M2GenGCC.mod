@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011, 2012, 2013, 2014, 2015
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -1025,12 +1025,12 @@ BEGIN
    IF CompilingMainModule OR WholeProgram
    THEN
       (* SetFileNameAndLineNo(string(FileName), op1) ; *)
+      location := TokenToLocation(CurrentQuadToken) ;
       IF IsModuleWithinProcedure(op3)
       THEN
          CurrentModuleInitFunction := Mod2Gcc(op3) ;
-         BuildStartFunctionCode(CurrentModuleInitFunction, FALSE, FALSE)
+         BuildStartFunctionCode(location, CurrentModuleInitFunction, FALSE, FALSE)
       ELSE
-         location := TokenToLocation(CurrentQuadToken) ;
          CurrentModuleInitFunction := BuildStart(location, KeyToCharStar(GetModuleInitName(op3)), op2#op3) ;
          AddModGcc(op3, CurrentModuleInitFunction)
       END ;
@@ -1068,7 +1068,8 @@ END BuildTerminationCall ;
 PROCEDURE CodeInitEnd (quad: CARDINAL; op1, op2, op3: CARDINAL;
                        CompilingMainModule: BOOLEAN) ;
 VAR
-   t: Tree ;
+   t       : Tree ;
+   location: location_t ;
 BEGIN
    IF CompilingMainModule OR WholeProgram
    THEN
@@ -1077,14 +1078,15 @@ BEGIN
          EmitLineNote(string(FileName), op1) ;
       *)
 
+      location := TokenToLocation(GetDeclaredMod(op3)) ;
       t := Mod2Gcc(op3) ;
-      finishFunctionDecl(TokenToLocation(GetDeclaredMod(op3)), t) ;
+      finishFunctionDecl(location, t) ;
 
       IF IsModuleWithinProcedure(op3)
       THEN
-         BuildEndFunctionCode(t, TRUE)
+         BuildEndFunctionCode(location, t, TRUE)
       ELSE
-         BuildEnd(t, FALSE)
+         BuildEnd(location, t, FALSE)
       END
    END
 END CodeInitEnd ;
@@ -1104,12 +1106,12 @@ BEGIN
    IF CompilingMainModule OR WholeProgram
    THEN
       (* SetFileNameAndLineNo(string(FileName), op1) ; *)
+      location := TokenToLocation(CurrentQuadToken) ;
       IF IsModuleWithinProcedure(op3)
       THEN
          CurrentModuleFinallyFunction := GetModuleFinallyFunction(op3) ;
-         BuildStartFunctionCode(CurrentModuleFinallyFunction, FALSE, FALSE)
+         BuildStartFunctionCode(location, CurrentModuleFinallyFunction, FALSE, FALSE)
       ELSE
-         location := TokenToLocation(CurrentQuadToken) ;
          CurrentModuleFinallyFunction := BuildStart(location,
                                                     KeyToCharStar(GetModuleFinallyName(op3)), op2#op3) ;
          PutModuleFinallyFunction(op3, CurrentModuleFinallyFunction)
@@ -1128,7 +1130,8 @@ END CodeFinallyStart ;
 PROCEDURE CodeFinallyEnd (quad: CARDINAL; op1, op2, op3: CARDINAL;
                           CompilingMainModule: BOOLEAN) ;
 VAR
-   t: Tree ;
+   t       : Tree ;
+   location: location_t ;
 BEGIN
    IF CompilingMainModule OR WholeProgram
    THEN
@@ -1137,14 +1140,15 @@ BEGIN
          EmitLineNote(string(FileName), op1) ;
       *)
 
+      location := TokenToLocation(GetDeclaredMod(op3)) ;
       t := GetModuleFinallyFunction(op3) ;
       finishFunctionDecl(TokenToLocation(GetDeclaredMod(op3)), t) ;
 
       IF IsModuleWithinProcedure(op3)
       THEN
-         BuildEndFunctionCode(t, TRUE)
+         BuildEndFunctionCode(location, t, TRUE)
       ELSE
-         BuildEnd(t, FALSE)
+         BuildEnd(location, t, FALSE)
       END
    END
 END CodeFinallyEnd ;
@@ -1686,8 +1690,8 @@ VAR
    begin, end: CARDINAL ;
 BEGIN
    GetProcedureBeginEnd(CurrentProcedure, begin, end) ;
-   SetEndLocation(TokenToLocation(end)) ;
-   BuildEndFunctionCode(Mod2Gcc(CurrentProcedure),
+   BuildEndFunctionCode(TokenToLocation(end),
+                        Mod2Gcc(CurrentProcedure),
                         IsProcedureGccNested(CurrentProcedure)) ;
    PoisonSymbols(CurrentProcedure)
 END CodeKillLocalVar ;
@@ -1699,8 +1703,12 @@ END CodeKillLocalVar ;
 
 PROCEDURE CodeProcedureScope (quad: CARDINAL;
                               LineNo, PreviousScope, CurrentProcedure: CARDINAL) ;
+VAR
+   begin, end: CARDINAL ;
 BEGIN
-   BuildStartFunctionCode(Mod2Gcc(CurrentProcedure),
+   GetProcedureBeginEnd(CurrentProcedure, begin, end) ;
+   BuildStartFunctionCode(TokenToLocation(begin),
+                          Mod2Gcc(CurrentProcedure),
                           IsExportedGcc(CurrentProcedure),
                           IsProcedureInline(CurrentProcedure)) ;
    StartDeclareScope(CurrentProcedure) ;
