@@ -102,6 +102,8 @@ FROM m2type IMPORT GetIntegerType,
                    GetISOLocType,
                    GetM2ComplexType, GetM2LongComplexType,
                    GetM2ShortComplexType,
+		   GetM2Complex32, GetM2Complex64,
+		   GetM2Complex96, GetM2Complex128,
                    GetM2RType, GetM2ZType, GetM2CType,
                    InitBaseTypes ;
 
@@ -2313,6 +2315,15 @@ BEGIN
    int64    :   PushIntegerTree(BuildIntegerConstant(8)) |
    real96   :   PushIntegerTree(BuildIntegerConstant(12)) |
    real128  :   PushIntegerTree(BuildIntegerConstant(16)) |
+   complex  :   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2ComplexType())) |
+   shortcomplex: PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2ShortComplexType())) |
+   longcomplex:  PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2LongComplexType())) |
+   complex32:  PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2Complex32())) |
+   complex64:  PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2Complex64())) |
+   complex96:  PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2Complex96())) |
+   complex128:  PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2Complex128())) |
+   ctype     :  PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2CType())) |
+
    unknown  :   InternalError('should not get here', __FILE__, __LINE__)
 
    ELSE
@@ -2500,8 +2511,8 @@ BEGIN
    W
    *)
    A(const       , 'T T T T T T T T T T T T T T T T T T T F T T T T T T T T T T T T F F F F F F F F F F F F F F F F F') ;
-   A(word        , '. T F W F 2 W W 2 W W W 2 F W W T T F W T F F F F F F F F F F F F F F F F F F F F F F F F F F T T') ;
-   A(byte        , '. . T F 2 F F F F F F F F F F F F F F F T S F F F S F F F F F F F F F F S F F F F F F F F F F T T') ;
+   A(word        , '. T S S S 2 S S 2 S S S 2 S S S T T S S T S S S S S S S S S S S S S S S S S S S S S S S S S T T T') ;
+   A(byte        , '. . T S 2 S S S S S S S S S S S T T S S T S S S S S S S S S S S S S S S S S S S S S S S S S T T T') ;
    A(address     , '. . . T F F F F F F F 2 F F F F F 2 2 F T F F F F F F F F F F F F F F F F F F F F F F F F F F F F') ;
    A(chr         , '. . . . T F F F F F F F F F F F F F 2 F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F') ;
    A(normint     , '. . . . . T T T T T T F F F F F F F F F T T T T T T T T T F F F F F F F F F F F F F F F F F F F F') ;

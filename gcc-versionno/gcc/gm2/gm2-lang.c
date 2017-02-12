@@ -667,12 +667,17 @@ genericize_catch_block (tree *stmt_p)
 /* Convert the tree representation of FNDECL from m2 frontend trees to
    GENERIC.  */
 
+extern void pf (tree);
+
 void
 gm2_genericize (tree fndecl)
 {
   tree t;
   struct cgraph_node *cgn;
 
+#if 0
+  pf (fndecl);
+#endif
 #if 1
   /* Fix up the types of parms passed by invisible reference.  */
   for (t = DECL_ARGUMENTS (fndecl); t; t = DECL_CHAIN (t))

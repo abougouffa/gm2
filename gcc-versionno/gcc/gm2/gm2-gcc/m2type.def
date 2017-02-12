@@ -455,7 +455,7 @@ PROCEDURE GetM2ShortComplexType () : Tree ;
 
 
 (*
-    GetM2Complex128 - return the fixed size complex type.
+    GetM2Complex128Type - return the fixed size complex type.
 *)
 
 PROCEDURE GetM2Complex128 () : Tree ;

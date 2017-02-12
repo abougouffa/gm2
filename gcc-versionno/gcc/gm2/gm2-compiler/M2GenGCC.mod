@@ -2436,9 +2436,7 @@ BEGIN
       END ;
       t := BuildAssignmentTree(location,
                                Mod2Gcc(op1),
-                               BuildConvert(location,
-                                            GetPointerType(),
-                                            BuildAddr(location, value, FALSE), FALSE))
+                               BuildAddr(location, value, FALSE))
    END
 END CodeAddr ;
 

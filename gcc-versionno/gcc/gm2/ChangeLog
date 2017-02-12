@@ -1,3 +1,16 @@
+2017-02-12      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Base.mod:  allow many more
+          base types to be compatible with SYSTEM types
+          WORD, BYTE and friends.
+	* gm2/gm2-compiler/M2GenGCC.mod:  remove the convert
+          in CodeAddr.
+	* gm2/gm2-compiler/M2Quads.mod:  remove unnecessary
+          white space.  ManipulateParam generate an LValue for
+          any parameter passed by reference.
+	* gm2/gm2-gcc/m2type.def:  export GetM2ComplexType.
+	* gm2/gm2-lang.c:  introduce minor debugging.
+
 2017-02-04      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  add location to
