@@ -1,3 +1,15 @@
+2017-02-17      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  removed
+          procedure prototypes.
+	* gm2/gm2-compiler/M2GenGCC.mod:
+          CheckConvertCoerceParameter detect if
+	  the OperandType = ParamType and return early.
+	* gm2/gm2-gcc/m2type.c:  (finish_build_pointer_type)
+          layout the type.
+	* gm2/m2pp.c:  (m2pp_identifier) detect and handle
+	  COMPONENT_REF.
+
 2017-02-12      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Base.mod:  allow many more

@@ -2035,7 +2035,7 @@ BEGIN
    END ;
    IF IsProcType(ParamType)
    THEN
-      IF IsProcedure(op3) OR IsConstProcedure(op3)
+      IF IsProcedure(op3) OR IsConstProcedure(op3) OR (OperandType = ParamType)
       THEN
          RETURN( Mod2Gcc(op3) )
       ELSE

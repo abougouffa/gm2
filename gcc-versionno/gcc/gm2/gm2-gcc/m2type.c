@@ -1369,6 +1369,7 @@ finish_build_pointer_type (tree t, tree to_type,
 
   /* Lay out the type. */
   /* layout_type (t); */
+  layout_type (t);
 
   return t;
 }
@@ -1385,7 +1386,7 @@ m2type_BuildProcTypeParameterDeclaration (location_t location, tree type,
 {
   m2assert_AssertLocation (location);
   ASSERT_BOOL (isreference);
-  type = m2tree_skip_type_decl(type);
+  type = m2tree_skip_type_decl (type);
   layout_type (type);
   if (isreference)
     type = build_reference_type (type);

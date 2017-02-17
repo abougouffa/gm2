@@ -981,7 +981,9 @@ m2pp_identifier (pretty *s, tree t)
 {
   if (t)
     {
-      if (DECL_NAME (t) && IDENTIFIER_POINTER (DECL_NAME (t)))
+      if (TREE_CODE (t) == COMPONENT_REF)
+	m2pp_component_ref (s, t);
+      else if (DECL_NAME (t) && IDENTIFIER_POINTER (DECL_NAME (t)))
 	m2pp_ident_pointer (s, DECL_NAME (t));
       else
 	{

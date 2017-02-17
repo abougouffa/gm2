@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011, 2012, 2013, 2014
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -188,88 +188,6 @@ TYPE
    doDeclareProcedure = PROCEDURE (CARDINAL, CARDINAL) ;
 
 
-(* %%%FORWARD%%%
-PROCEDURE PopBinding (scope: CARDINAL) ; FORWARD ;
-PROCEDURE PushBinding (scope: CARDINAL) ; FORWARD ;
-PROCEDURE DeclareTypeConstFully (sym: CARDINAL) ; FORWARD ;
-PROCEDURE WalkComponentDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
-PROCEDURE IsVarDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
-PROCEDURE DeclareFieldVarient (sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE WalkProcedureDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
-PROCEDURE IsProcedureDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
-PROCEDURE DeclareRecordField (sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE WriteRule ; FORWARD ;
-PROCEDURE RecordNotPacked (sym: CARDINAL) ; FORWARD ;
-PROCEDURE MaybeAlignField (field: CARDINAL; VAR byteOffset, bitOffset: Tree) : Tree ; FORWARD ;
-PROCEDURE WalkRecordDependants2 (sym: CARDINAL; p: WalkAction) ; FORWARD ;
-PROCEDURE DetermineIfRecordPacked (sym: CARDINAL) ; FORWARD ;
-PROCEDURE DeclareProcedureToGcc (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE AlignDeclarationWithSource (sym: CARDINAL) ; FORWARD ;
-PROCEDURE PrintTerse (sym: CARDINAL) ; FORWARD ;
-PROCEDURE DeclareFileName ; FORWARD ;
-PROCEDURE DeclareImportedVariables (sym: WORD) ; FORWARD ;
-PROCEDURE DeclareSet (sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE DeclarePointer (sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE DeclareLocalVariables (sym: CARDINAL; i: CARDINAL) ; FORWARD ;
-PROCEDURE DeclareDefaultTypes ; FORWARD ;
-PROCEDURE DeclareGlobalVariables (ModSym: WORD) ; FORWARD ;
-PROCEDURE DeclareModuleVariables (sym: CARDINAL) ; FORWARD ;
-PROCEDURE DeclareType (sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE IsUnboundedDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
-PROCEDURE IsEnumerationDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
-PROCEDURE IsSubrangeDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
-PROCEDURE IsPointerDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
-PROCEDURE IsRecordDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
-PROCEDURE IsRecordFieldDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
-PROCEDURE IsVarientDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
-PROCEDURE IsArrayDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
-PROCEDURE IsSetDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
-PROCEDURE IsTypeDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
-PROCEDURE IsProcTypeDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
-PROCEDURE DeclareEnumeration (sym: WORD) : Tree ; FORWARD ;
-PROCEDURE AllDependantsFullyDeclared (sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE DeclareVarient (sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE PostDeclareVarient (sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE IsEffectivelyImported (ModSym, sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE DeclareUnboundedProcedureParameters (sym: WORD) ; FORWARD ;
-PROCEDURE PreAddModGcc (sym: CARDINAL; t: Tree) ; FORWARD ;
-PROCEDURE DeclareAssociatedUnbounded (sym: CARDINAL) ; FORWARD ;
-PROCEDURE DeclareUnbounded (sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE DeclareTypesConstantsProceduresInRange (start, end: CARDINAL) ; FORWARD ;
-PROCEDURE IsTypeQ (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
-PROCEDURE IsFullyDeclared (sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE TypeConstFullyDeclared (sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE CompleteDeclarationOf (sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE TraverseDependants (sym: WORD) ; FORWARD ;
-PROCEDURE WalkEnumerationDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
-PROCEDURE WalkSubrangeDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
-PROCEDURE IsSubrangeDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
-PROCEDURE WalkPointerDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
-PROCEDURE IsPointerDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
-PROCEDURE WalkRecordDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
-PROCEDURE WalkVarientDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
-PROCEDURE WalkArrayDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
-PROCEDURE WalkSetDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
-PROCEDURE WalkProcTypeDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
-PROCEDURE WalkUnboundedDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
-PROCEDURE WalkTypeDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
-PROCEDURE DeclareConst (tokenno: CARDINAL; sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE IsConstDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
-PROCEDURE WalkDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
-PROCEDURE DeclareRecord (Sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE DeclareProcType (Sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE DeclareTypeConstFully (sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE DeclareArray (Sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE WalkVarDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
-PROCEDURE BuildIndex (sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE IsPartiallyOrFullyDeclared (sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE IsNilTypedArrays (sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE WalkRecordFieldDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
-PROCEDURE IsVarientFieldDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
-PROCEDURE WalkVarientFieldDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
-PROCEDURE TryDeclareConst (tokenno: CARDINAL; sym: CARDINAL) ; FORWARD ;
-PROCEDURE PossiblyPacked (sym: CARDINAL; isPacked: BOOLEAN) : Tree ; FORWARD ;
-   %%%FORWARD%%% *)
 
 CONST
    Debugging = FALSE ;
