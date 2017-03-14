@@ -1,3 +1,38 @@
+2017-03-14      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  check range of type conversion
+	  of constants.
+	* gm2/gm2-compiler/M2GenGCC.mod:  BuildFunctValue now returns tree
+          which must be added to the statement list.  GenerateCleanup
+          (New procedure function).  CheckCleanup (New procedure function).
+          CodeCall changed since CodeDirectCall and CodeIndirectCall now
+	  return trees.
+	* gm2/gm2-compiler/SymbolTable.def:  removed white space.
+	* gm2/gm2-compiler/SymbolTable.mod:  HasVarParameters (New procedure
+	  function).
+	* gm2/gm2-gcc/m2block.def:  export begin_statement_list,
+	  push_statement_list, pop_statement_list.
+	* gm2/gm2-gcc/m2decl.c:  BuildParameterDeclaration set
+	  the address of a VAR parameter to TREE_READONLY.
+	* gm2/gm2-gcc/m2statement.c:  BuildIndirectProcedureCallTree returns
+          a tree.  BuildFunctValue returns a tree.
+          GetParamTree (New procedure function).  BuildTryFinally (New
+	  procedure function).  BuildCleanUp (New procedure function).
+	* gm2/gm2-gcc/m2statement.def:  BuildFunctValue returns a tree.
+          Declare GetParamTree.  Declare BuildTryFinally.
+	  Declare BuildCleanUp.
+	* gm2/gm2-gcc/m2statement.h:  BuildFunctValue returns a tree.
+          Declare GetParamTree.  Declare BuildTryFinally.
+	  Declare BuildCleanUp.
+	* gm2/gm2-gcc/m2type.c:  BuildProcTypeParameterDeclaration layout
+	  the type at the end of the function.
+	* gm2/gm2-libs-iso/SysClock.mod:  temporarily changed to hunt
+	  down a bug.
+	* gm2/m2pp.c:  improved type description for sized types.
+	* gm2/mc-boot/Gdecl.c:  regenerated.
+	* gm2/mc/decl.mod:  fixed bug in recordfield
+	  (initialize scope to NIL).
+
 2017-02-17      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  removed

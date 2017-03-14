@@ -118,7 +118,7 @@ PROCEDURE BuildIndirectProcedureCallTree (location: location_t; procedure: Tree;
    BuildFunctValue - generates code for value := last_function(foobar);
 *)
 
-PROCEDURE BuildFunctValue (location: location_t; value: Tree) ;
+PROCEDURE BuildFunctValue (location: location_t; value: Tree) : Tree ;
 
 
 (*
@@ -149,6 +149,28 @@ PROCEDURE SetLastFunction (t: Tree) ;
 *)
 
 PROCEDURE GetLastFunction () : Tree ;
+
+
+(*
+   GetParamTree - return parameter, i.
+*)
+
+PROCEDURE GetParamTree (call: Tree; i: CARDINAL) : Tree ;
+
+
+(*
+   BuildTryFinally - returns a TRY_FINALL_EXPR with the call and cleanups
+                     attached.
+*)
+
+PROCEDURE BuildTryFinally (location: location_t; call: Tree; cleanups: Tree) : Tree ;
+
+
+(*
+   BuildCleanUp - return a CLEANUP_POINT_EXPR which will clobber, param.
+*)
+
+PROCEDURE BuildCleanUp (param: Tree) : Tree ;
 
 
 (*

@@ -300,6 +300,7 @@ EXPORT QUALIFIED NulSym,
                  SanityCheckConstants,
 
                  PutModuleContainsBuiltin, IsBuiltinInModule,
+		 HasVarParameters,
 
                  IsSizeSolved,
                  IsOffsetSolved,
@@ -321,7 +322,7 @@ EXPORT QUALIFIED NulSym,
 
 
 (*
-   Throughout this module any SymKey value of 0 is deemed to be a 
+   Throughout this module any SymKey value of 0 is deemed to be a
    nul symbol.
 *)
 
@@ -830,35 +831,35 @@ PROCEDURE GetModule (name: Name) : CARDINAL ;
 
 
 (*
-   GetCurrentModule - returns the current module Sym that is being 
+   GetCurrentModule - returns the current module Sym that is being
                       compiled. It may return an inner module.
-*) 
- 
-PROCEDURE GetCurrentModule () : CARDINAL ; 
+*)
+
+PROCEDURE GetCurrentModule () : CARDINAL ;
 
 
 (*
    GetFileModule - returns the FileModule symbol that was requested by
                    the user to be compiled.
-*) 
- 
+*)
+
 PROCEDURE GetFileModule () : CARDINAL ;
 
 
 (*
    GetBaseModule - returns the base module symbol that contains Modula-2
                    base types, procedures and functions.
-*) 
- 
-PROCEDURE GetBaseModule () : CARDINAL ; 
+*)
+
+PROCEDURE GetBaseModule () : CARDINAL ;
 
 
 (*
    GetMainModule - returns the main module symbol that was requested by
                    the user to be compiled.
-*) 
- 
-PROCEDURE GetMainModule () : CARDINAL ; 
+*)
+
+PROCEDURE GetMainModule () : CARDINAL ;
 
 
 (*
@@ -1012,7 +1013,7 @@ PROCEDURE GetSubrange (Sym: CARDINAL; VAR HighSym, LowSym: CARDINAL) ;
 (*
    GetParam - returns the ParamNo parameter from procedure ProcSym
 *)
- 
+
 PROCEDURE GetParam (Sym: CARDINAL; ParamNo: CARDINAL) : CARDINAL ;
 
 
@@ -1705,6 +1706,13 @@ PROCEDURE NoOfParam (Sym: CARDINAL) : CARDINAL ;
 
 
 (*
+   HasVarParameters - returns TRUE if procedure, p, has any VAR parameters.
+*)
+
+PROCEDURE HasVarParameters (p: CARDINAL) : BOOLEAN ;
+
+
+(*
    NoOfLocalVar - returns the number of local variables that exist in
                   procedure Sym. Parameters are NOT included in the
                   count.
@@ -1736,7 +1744,7 @@ PROCEDURE IsModule (Sym: CARDINAL) : BOOLEAN ;
 
 PROCEDURE IsInnerModule (Sym: CARDINAL) : BOOLEAN ;
 
-                   
+
 (*
    GetSymName - returns the symbol name.
 *)
@@ -2418,7 +2426,7 @@ PROCEDURE PutArray (Sym, TypeSymbol: CARDINAL) ;
 
 
 (*
-   ResolveImports - 
+   ResolveImports -
 *)
 
 PROCEDURE ResolveImports ;
@@ -2826,12 +2834,12 @@ PROCEDURE PushValue (Sym: CARDINAL) ;
 PROCEDURE PushParamSize (Sym: CARDINAL; ParamNo: CARDINAL) ;
 
 
-(* 
-   PushSumOfLocalVarSize - push the total size of all local variables 
-                           onto the ALU stack. 
+(*
+   PushSumOfLocalVarSize - push the total size of all local variables
+                           onto the ALU stack.
 *)
-  
-PROCEDURE PushSumOfLocalVarSize (Sym: CARDINAL) ;  
+
+PROCEDURE PushSumOfLocalVarSize (Sym: CARDINAL) ;
 
 
 (*

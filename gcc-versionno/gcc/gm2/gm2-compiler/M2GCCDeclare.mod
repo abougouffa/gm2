@@ -1882,11 +1882,11 @@ BEGIN
          ELSIF IsRealType(SkipType(GetType(sym)))
          THEN
             type := SkipType(GetType(sym)) ;
-            DeclareConstantFromTree(sym, BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopRealTree(), FALSE))
+            DeclareConstantFromTree(sym, BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopRealTree(), TRUE))
          ELSIF IsAComplexType(SkipType(GetType(sym)))
          THEN
             type := SkipType(GetType(sym)) ;
-            DeclareConstantFromTree(sym, BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopComplexTree(), FALSE))
+            DeclareConstantFromTree(sym, BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopComplexTree(), TRUE))
          ELSE
             IF GetType(sym)=NulSym
             THEN
@@ -1894,7 +1894,7 @@ BEGIN
             ELSE
                type := SkipType(GetType(sym))
             END ;
-            DeclareConstantFromTree(sym, BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopIntegerTree(), FALSE))
+            DeclareConstantFromTree(sym, BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopIntegerTree(), TRUE))
          END
       ELSE
          TraverseDependants(sym)
@@ -1940,19 +1940,20 @@ BEGIN
          DeclareConstantFromTree(sym, PopConstructorTree(tokenno))
       ELSIF IsRealType(SkipType(GetType(sym)))
       THEN
-         DeclareConstantFromTree(sym, PopRealTree())
+         type := SkipType(GetType(sym)) ;
+         DeclareConstantFromTree(sym, BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopRealTree(), TRUE))
       ELSIF IsAComplexType(SkipType(GetType(sym)))
       THEN
-         DeclareConstantFromTree(sym, PopComplexTree())
+         type := SkipType(GetType(sym)) ;
+         DeclareConstantFromTree(sym, BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopComplexTree(), TRUE))
       ELSE
-         type := GetType(sym) ;
-         IF type=NulSym
+         IF GetType(sym)=NulSym
          THEN
-            DeclareConstantFromTree(sym, PopIntegerTree())
+            type := ZType
          ELSE
-            DeclareConstantFromTree(sym,
-                                    BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopIntegerTree(), FALSE))
-         END
+            type := SkipType(GetType(sym))
+         END ;
+         DeclareConstantFromTree(sym, BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopIntegerTree(), TRUE))
       END
    END ;
    IF GccKnowsAbout(sym)

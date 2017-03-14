@@ -1,4 +1,4 @@
-/* Copyright (C) 2012, 2013, 2014, 2015, 2016
+/* Copyright (C) 2012, 2013, 2014, 2015, 2016, 2017
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -1387,11 +1387,11 @@ m2type_BuildProcTypeParameterDeclaration (location_t location, tree type,
   m2assert_AssertLocation (location);
   ASSERT_BOOL (isreference);
   type = m2tree_skip_type_decl (type);
-  layout_type (type);
   if (isreference)
     type = build_reference_type (type);
 
   param_type_list = tree_cons (NULL_TREE, type, param_type_list);
+  layout_type (type);
   return type;
 }
 

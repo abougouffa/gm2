@@ -64,7 +64,7 @@ EXTERN void m2statement_BuildUnaryForeachWordDo (location_t location,
 EXTERN void m2statement_BuildAsm (location_t location,
 				  tree instr, int isVolatile, int isSimple,
 				  tree inputs, tree outputs, tree trash, tree labels);
-EXTERN void m2statement_BuildFunctValue (location_t location, tree value);
+EXTERN tree m2statement_BuildFunctValue (location_t location, tree value);
 EXTERN tree m2statement_BuildIndirectProcedureCallTree (location_t location, tree procedure, tree rettype);
 EXTERN tree m2statement_BuildProcedureCallTree (location_t location, tree procedure, tree rettype);
 EXTERN void m2statement_BuildParam (location_t location, tree param);
@@ -90,6 +90,11 @@ EXTERN tree m2statement_GetParamList (void);
 EXTERN tree m2statement_GetCurrentFunction (void);
 EXTERN void m2statement_SetBeginLocation (location_t location);
 EXTERN void m2statement_SetEndLocation (location_t location);
+EXTERN tree m2statement_GetParamTree (tree call, unsigned int i);
+EXTERN tree m2statement_BuildTryFinally (location_t location, tree call, tree cleanups);
+EXTERN tree m2statement_BuildCleanUp (tree param);
+
+
 
 #   undef EXTERN
 #endif

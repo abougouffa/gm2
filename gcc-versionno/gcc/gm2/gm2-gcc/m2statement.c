@@ -413,16 +413,16 @@ m2statement_BuildIndirectProcedureCallTree (location_t location, tree procedure,
     debug_tree (call);
 #endif
 
-    add_stmt (location, call);
     last_function = NULL_TREE;
+    param_list = NULL_TREE;   /* ready for the next time we call a procedure */
+    return call;
   } else {
     last_function = build_call_array_loc (location, m2tree_skip_type_decl (rettype), procedure, n, argarray);
     TREE_USED (last_function) = TRUE;
     TREE_SIDE_EFFECTS (last_function) = TRUE;
+    param_list = NULL_TREE;   /* ready for the next time we call a procedure */
+    return last_function;
   }
-
-  param_list = NULL_TREE;   /* ready for the next time we call a procedure */
-  return last_function;
 }
 
 
@@ -441,7 +441,7 @@ tree_used (tree t)
  *  BuildFunctValue - generates code for value := last_function(foobar);
  */
 
-void
+tree
 m2statement_BuildFunctValue (location_t location, tree value)
 {
   tree assign = m2treelib_build_modify_expr (location, value, NOP_EXPR, last_function);
@@ -451,8 +451,8 @@ m2statement_BuildFunctValue (location_t location, tree value)
 
   TREE_SIDE_EFFECTS (assign) = TRUE;
   TREE_USED (assign) = TRUE;
-  add_stmt (location, assign);
   last_function = NULL_TREE;
+  return assign;
 }
 
 
@@ -541,6 +541,42 @@ tree
 m2statement_GetCurrentFunction (void)
 {
   return current_function_decl;
+}
+
+
+/*
+ *  GetParamTree - return parameter, i.
+ */
+
+tree
+m2statement_GetParamTree (tree call, unsigned int i)
+{
+  return CALL_EXPR_ARG (call, i);
+}
+
+
+/*
+ *  BuildTryFinally - returns a TRY_FINALL_EXPR with the call and cleanups
+ *                    attached.
+ */
+
+tree
+m2statement_BuildTryFinally (location_t location, tree call, tree cleanups)
+{
+  return build_stmt (location, TRY_FINALLY_EXPR, call, cleanups);
+}
+
+
+/*
+ *  BuildCleanUp - return a CLEANUP_POINT_EXPR which will clobber, param.
+ */
+
+tree
+m2statement_BuildCleanUp (tree param)
+{
+  tree clobber = build_constructor (TREE_TYPE (param), NULL);
+  TREE_THIS_VOLATILE (clobber) = 1;
+  return build2 (MODIFY_EXPR, TREE_TYPE (param), param, clobber);
 }
 
 

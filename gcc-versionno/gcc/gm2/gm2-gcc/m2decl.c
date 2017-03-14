@@ -197,8 +197,13 @@ m2decl_BuildParameterDeclaration (location_t location, char *name, tree type,
   else
     parm_decl = build_decl (location, PARM_DECL, get_identifier (name), type);
   DECL_ARG_TYPE (parm_decl) = type;
+#if 0
   if (isreference)
     DECL_BY_REFERENCE (parm_decl) = 1;
+#endif
+  if (isreference)
+    TREE_READONLY (parm_decl) = TRUE;
+
   param_list = chainon (parm_decl, param_list);
   layout_type (type);
 #if 0

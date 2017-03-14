@@ -2868,6 +2868,7 @@ BEGIN
    n^.recordfieldF.parent := r ;
    n^.recordfieldF.varient := v ;
    n^.recordfieldF.tag := FALSE ;
+   n^.recordfieldF.scope := NIL ;
    initCname (n^.recordfieldF.cname) ;
    (*
    IF r^.kind=record

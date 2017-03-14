@@ -191,9 +191,6 @@ extern void stop (void);
 
 static stack *stackPtr = NULL;
 
-static void mystop (void) {}
-
-
 /*
  *
  */
@@ -331,7 +328,6 @@ m2pp_loc (pretty *s, tree t)
       else
 	{
 	  m2pp_print(s, "(* missing location2 *)\n");
-	  mystop ();
 	}
     }
 }
@@ -1381,7 +1377,10 @@ m2pp_integer (pretty *s, tree t)
   else if (t == m2type_GetBitnumType ())
     m2pp_print (s, "BITNUM");
   else {
-    m2pp_print (s, "INTEGER");
+    if (TYPE_UNSIGNED (t))
+      m2pp_print (s, "CARDINAL");
+    else
+      m2pp_print (s, "INTEGER");
     m2pp_integer_cst (s, TYPE_SIZE (t));
   }
 }

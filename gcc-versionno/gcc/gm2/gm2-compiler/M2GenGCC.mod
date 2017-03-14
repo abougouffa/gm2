@@ -50,7 +50,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         IsExported,
                         IsSubrange, IsPointer,
                         IsProcedureBuiltin, IsProcedureInline,
-                        IsParameter,
+                        IsParameter, IsParameterVar,
                         IsValueSolved, IsSizeSolved,
                         IsProcedureNested, IsInnerModule,
                         IsComposite,
@@ -71,6 +71,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         GetPriority, GetNeedSavePriority,
                         PutConstString,
                         PutConst, PutConstSet, PutConstructor,
+                        HasVarParameters,
                         NulSym ;
 
 FROM M2Batch IMPORT MakeDefinitionSource ;
@@ -200,6 +201,9 @@ FROM m2statement IMPORT BuildAsm, BuildProcedureCallTree, BuildParam, BuildFunct
                         BuildReturnValueCode, SetLastFunction,
                         BuildIncludeVarConst, BuildIncludeVarVar,
                         BuildExcludeVarConst, BuildExcludeVarVar,
+			GetParamTree, BuildCleanUp,
+			BuildTryFinally,
+			GetLastFunction,
                         SetBeginLocation, SetEndLocation ;
 
 FROM m2type IMPORT ChainOnParamValue, GetPointerType, GetIntegerType, AddStatement,
@@ -208,7 +212,8 @@ FROM m2type IMPORT ChainOnParamValue, GetPointerType, GetIntegerType, AddStateme
                    GetArrayNoOfElements ;
 
 FROM m2block IMPORT RememberConstant, pushGlobalScope, popGlobalScope, finishFunctionDecl,
-                    pushFunctionScope, popFunctionScope ;
+                    pushFunctionScope, popFunctionScope,
+		    push_statement_list, pop_statement_list, begin_statement_list ;
 
 FROM m2misc IMPORT DebugTree ;
 
@@ -800,7 +805,8 @@ BEGIN
    location := TokenToLocation(QuadToTokenNo(quad)) ;
    BuildParam(location, Mod2Gcc(True)) ;
    t := BuildProcedureCallTree(location, Mod2Gcc(op3), Mod2Gcc(GetType(op3))) ;
-   BuildFunctValue(location, Mod2Gcc(op1))
+   t := BuildFunctValue(location, Mod2Gcc(op1)) ;
+   AddStatement(location, t)
 END CodeSaveException ;
 
 
@@ -816,7 +822,8 @@ BEGIN
    location := TokenToLocation(QuadToTokenNo(quad)) ;
    BuildParam(location, Mod2Gcc(op1)) ;
    t := BuildProcedureCallTree(location, Mod2Gcc(op3), Mod2Gcc(GetType(op3))) ;
-   BuildFunctValue(location, Mod2Gcc(op1))
+   t := BuildFunctValue(location, Mod2Gcc(op1)) ;
+   AddStatement(location, t)
 END CodeRestoreException ;
 
 
@@ -1753,26 +1760,73 @@ END CodeReturnValue ;
 
 
 (*
+   GenerateCleanup - generates a try/catch/clobber tree containing the call to ptree
+*)
+
+PROCEDURE GenerateCleanup (location: location_t; procedure: CARDINAL; p, call: Tree) : Tree ;
+VAR
+   i, n: CARDINAL ;
+   t   : Tree ;
+BEGIN
+   t := push_statement_list (begin_statement_list ()) ;
+   i := 1 ;
+   n := NoOfParam (procedure) ;
+   WHILE i<=n DO
+      IF IsParameterVar (GetNthParam (procedure, i))
+      THEN
+         AddStatement (location, BuildCleanUp (GetParamTree (call, i-1)))
+      END ;
+      INC(i)
+   END ;
+   RETURN BuildTryFinally (location, p, pop_statement_list ())
+END GenerateCleanup ;
+
+
+(*
+   CheckCleanup - checks whether a cleanup is required for a procedure with
+                  VAR parameters.  The final tree is returned.
+*)
+
+PROCEDURE CheckCleanup (location: location_t; procedure: CARDINAL; tree, call: Tree) : Tree ;
+BEGIN
+   IF HasVarParameters(procedure)
+   THEN
+      RETURN tree ;
+      (* RETURN GenerateCleanup(location, procedure, tree, call) *)
+   ELSE
+      RETURN tree
+   END
+END CheckCleanup ;
+
+
+(*
    CodeCall - determines whether the procedure call is a direct call
               or an indirect procedure call.
 *)
 
-PROCEDURE CodeCall (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+PROCEDURE CodeCall (quad: CARDINAL; op1, op2, procedure: CARDINAL) ;
+VAR
+   tree    : Tree ;
+   location: location_t ;
 BEGIN
-   (*
-      op  : CallOp
-      op3 : Procedure
-   *)
-   IF IsProcedure(op3)
+   IF IsProcedure(procedure)
    THEN
-      DeclareParameters(op3) ;
-      CodeDirectCall(QuadToTokenNo(quad), op3)
-   ELSIF IsProcType(SkipType(GetType(op3)))
+      DeclareParameters(procedure) ;
+      tree := CodeDirectCall(QuadToTokenNo(quad), procedure)
+   ELSIF IsProcType(SkipType(GetType(procedure)))
    THEN
-      DeclareParameters(SkipType(GetType(op3))) ;
-      CodeIndirectCall(QuadToTokenNo(quad), op3)
+      DeclareParameters(SkipType(GetType(procedure))) ;
+      tree := CodeIndirectCall(QuadToTokenNo(quad), procedure) ;
+      procedure := SkipType(GetType(procedure))
    ELSE
-      InternalError('Expecting Procedure or ProcType', __FILE__, __LINE__)
+      InternalError('expecting Procedure or ProcType', __FILE__, __LINE__)
+   END ;
+   IF GetType(procedure)=NulSym
+   THEN
+      location := TokenToLocation(QuadToTokenNo(quad)) ;
+      AddStatement(location, CheckCleanup(location, procedure, tree, tree))
+   ELSE
+      (* leave tree alone - as it will be picked up when processing FunctValue *)
    END
 END CodeCall ;
 
@@ -1811,28 +1865,21 @@ END UseBuiltin ;
    CodeDirectCall - calls a function/procedure.
 *)
 
-PROCEDURE CodeDirectCall (tokenno: CARDINAL; procedure: CARDINAL) ;
+PROCEDURE CodeDirectCall (tokenno: CARDINAL; procedure: CARDINAL) : Tree ;
 VAR
-   tree    : Tree ;
    location: location_t ;
 BEGIN
    location := TokenToLocation(tokenno) ;
    IF IsProcedureBuiltin(procedure) AND CanUseBuiltin(procedure)
    THEN
-      tree := UseBuiltin(procedure)
+      RETURN UseBuiltin(procedure)
    ELSE
       IF GetType(procedure)=NulSym
       THEN
-         tree := BuildProcedureCallTree(location, Mod2Gcc(procedure), NIL)
+         RETURN BuildProcedureCallTree(location, Mod2Gcc(procedure), NIL)
       ELSE
-         tree := BuildProcedureCallTree(location, Mod2Gcc(procedure), Mod2Gcc(GetType(procedure)))
+         RETURN BuildProcedureCallTree(location, Mod2Gcc(procedure), Mod2Gcc(GetType(procedure)))
       END
-   END ;
-   IF GetType(procedure)=NulSym
-   THEN
-      AddStatement(location, tree)
-   ELSE
-      (* leave tree alone - as it will be picked up when processing FunctValue *)
    END
 END CodeDirectCall ;
 
@@ -1841,9 +1888,8 @@ END CodeDirectCall ;
    CodeIndirectCall - calls a function/procedure indirectly.
 *)
 
-PROCEDURE CodeIndirectCall (tokenno: CARDINAL; ProcVar: CARDINAL) ;
+PROCEDURE CodeIndirectCall (tokenno: CARDINAL; ProcVar: CARDINAL) : Tree ;
 VAR
-   tree,
    ReturnType: Tree ;
    proc      : CARDINAL ;
    location  : location_t ;
@@ -1861,11 +1907,11 @@ BEGIN
 
    IF GetMode(ProcVar)=LeftValue
    THEN
-      tree := BuildIndirectProcedureCallTree(location,
+      RETURN BuildIndirectProcedureCallTree(location,
                                              BuildIndirect(location, Mod2Gcc(ProcVar), Mod2Gcc(proc)),
                                              ReturnType)
    ELSE
-      tree := BuildIndirectProcedureCallTree(location, Mod2Gcc(ProcVar), ReturnType)
+      RETURN BuildIndirectProcedureCallTree(location, Mod2Gcc(ProcVar), ReturnType)
    END
 END CodeIndirectCall ;
 
@@ -2393,13 +2439,20 @@ END CodeParam ;
 *)
 
 PROCEDURE CodeFunctValue (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   call,
+   tree    : Tree ;
+   location: location_t ;
 BEGIN
    (*
       operator : FunctValueOp
       op1 : The Returned Variable
-      op2 : The Function Returning this Variable
+      op3 : The Function Returning this Variable
    *)
-   BuildFunctValue(TokenToLocation(QuadToTokenNo(quad)), Mod2Gcc(op1))
+   call := GetLastFunction () ;
+   tree := BuildFunctValue(TokenToLocation(QuadToTokenNo(quad)), Mod2Gcc(op1)) ;
+   location := TokenToLocation(QuadToTokenNo(quad)) ;
+   AddStatement(location, CheckCleanup(location, op3, tree, call))
 END CodeFunctValue ;
 
 
@@ -2736,7 +2789,10 @@ BEGIN
    THEN
       IF IsProcedure(op3)
       THEN
+         RETURN t
+	 (*
          t := BuildConvert(location, Mod2Gcc(GetType(op1)), BuildAddr(location, Mod2Gcc(op3), FALSE), TRUE)
+         *)
       ELSIF (NOT IsConstString(op3)) AND (NOT IsConstSet(op3)) AND
          (SkipType(GetType(op3))#SkipType(GetType(op1)))
       THEN
@@ -3756,18 +3812,21 @@ BEGIN
          THEN
             BuildParam(location, Mod2Gcc(op3)) ;
             t := BuildProcedureCallTree(location, Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
-            BuildFunctValue(location, Mod2Gcc(op1))
+            t := BuildFunctValue(location, Mod2Gcc(op1)) ;
+            AddStatement(location, t)
          ELSIF GetMode(op3)=RightValue
          THEN
             BuildParam(location, ResolveHigh(tokenno, 1, op3)) ;
             BuildParam(location, BuildAddr(location, Mod2Gcc(op3), FALSE)) ;
             t := BuildProcedureCallTree(location, Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
-            BuildFunctValue(location, Mod2Gcc(op1))
+            t := BuildFunctValue(location, Mod2Gcc(op1)) ;
+            AddStatement(location, t)
          ELSE
             BuildParam(location, ResolveHigh(tokenno, 1, op3)) ;
             BuildParam(location, Mod2Gcc(op3)) ;
             t := BuildProcedureCallTree(location, Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
-            BuildFunctValue(location, Mod2Gcc(op1))
+            t := BuildFunctValue(location, Mod2Gcc(op1)) ;
+            AddStatement(location, t)
          END
       ELSE
          ErrorStringAt(Sprintf0(Mark(InitString('no procedure Length found for substitution to the standard function LENGTH which is required to calculate non constant string lengths'))),
@@ -3883,7 +3942,8 @@ BEGIN
          DeclareConstant(CurrentQuadToken, GetPriority(mod)) ;
          BuildParam(location, Mod2Gcc(GetPriority(mod))) ;
          t := BuildProcedureCallTree(location, Mod2Gcc(op3), Mod2Gcc(GetType(op3))) ;
-         BuildFunctValue(location, Mod2Gcc(op1))
+         t := BuildFunctValue(location, Mod2Gcc(op1)) ;
+         AddStatement(location, t)
       END
    END
 END CodeSavePriority ;
@@ -3925,7 +3985,8 @@ BEGIN
          END ;
          BuildParam(location, Mod2Gcc(op1)) ;
          t := BuildProcedureCallTree(location, Mod2Gcc(op3), Mod2Gcc(GetType(op3))) ;
-         BuildFunctValue(location, Mod2Gcc(op1))
+         t := BuildFunctValue(location, Mod2Gcc(op1)) ;
+         AddStatement(location, t)
       END
    END
 END CodeRestorePriority ;

@@ -6902,6 +6902,7 @@ static decl_node putFieldRecord (decl_node r, nameKey_Name tag, decl_node type, 
   n->recordfieldF.parent = r;
   n->recordfieldF.varient = v;
   n->recordfieldF.tag = FALSE;
+  n->recordfieldF.scope = NULL;
   initCname (&n->recordfieldF.cname);
   return n;
 }
