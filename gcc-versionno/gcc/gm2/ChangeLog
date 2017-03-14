@@ -1,5 +1,17 @@
 2017-03-14      Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2-gcc/m2type.c:  get_unsigned (New function).
+          BuildSubrangeType use get_unsigned.
+	* gm2/gm2-libs-iso/SysClock.mod:  undo previous commit to restore
+	source contents.
+	* gm2/ulm-lib-gm2/std/Calendar.mod:  CDate changed to use
+          temporary variables to avoid dangerous code which is exposed
+          by overflow errors during gimplification.
+	* gm2/patches/gcc/5.2.0/11-patches:  New file.
+	* gm2/patches/gcc/5.2.0/12-patches:  New file.
+
+2017-03-14      Gaius Mulley <gaius@gnu.org>
+
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  check range of type conversion
 	  of constants.
 	* gm2/gm2-compiler/M2GenGCC.mod:  BuildFunctValue now returns tree

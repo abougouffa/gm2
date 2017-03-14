@@ -81,7 +81,6 @@ BEGIN
    WITH userData DO
       CASE month OF
 
-(*
       1:  |
       2:  IF ((year MOD 4=0) AND (year MOD 100#0)) OR (year MOD 400=0)
           THEN
@@ -93,15 +92,13 @@ BEGIN
       4:  RETURN( day<=30 ) |
       5:  |
       6:  RETURN( day<=30 ) |
-*)
       7:  |
       8:  |
       9:  RETURN( day<=30 ) |
       10: |
       11: RETURN( day<=30 ) |
-(*
       12:
-*)
+
       END
    END ;
    RETURN( TRUE )

@@ -2842,6 +2842,16 @@ m2type_BuildArrayStringConstructor (location_t location, tree arrayType, tree st
   return m2type_BuildEndArrayConstructor (c);
 }
 
+/*
+ *  get_unsigned - return TRUE if the type, t, is unsigned.
+ */
+
+static int
+get_unsigned (tree t)
+{
+  t = m2tree_skip_type_decl (t);
+  return TYPE_UNSIGNED (t);
+}
 
 /*
  *  BuildSubrangeType - creates a subrange of, type, with, lowval, highval.
@@ -2856,10 +2866,14 @@ m2type_BuildSubrangeType (location_t location, char *name, tree type, tree lowva
   tree id = build_range_type (btype, lo, hi);
 
   m2assert_AssertLocation (location);
+#if 0
   if (tree_int_cst_sgn (lo) < 0)
     TYPE_UNSIGNED (id) = FALSE;
   else
     TYPE_UNSIGNED (id) = TRUE;
+#endif
+
+  TYPE_UNSIGNED (id) = get_unsigned (type);
   layout_type (id);
 
   if ((name == NULL) || (strcmp (name, "") == 0)) {

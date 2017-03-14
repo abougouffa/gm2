@@ -160,18 +160,23 @@ IMPLEMENTATION MODULE Calendar;
     *	correct results guaranteed for correct dates only; other usages are
     *	not encouraged outside this module
     *)
-   BEGIN				(*$R- (turn range checks off) *)
-      IF month < 3 THEN
-	 INC(month,9); DEC(year)
+   VAR
+      m: CARDINAL ;
+      d: Date ;
+   BEGIN		                (* use m and d to avoid overflow.  *)
+      m := month ;
+      d := day ;
+      IF m < 3 THEN
+	 INC(m, 9); DEC(year)
       ELSE
-	 DEC(month,3)
+	 DEC(m, 3)
       END;
-      INC(day, (month * 153 + 2) DIV 5 + year * 1461 DIV 4 - 1 );
-      IF day >= 578053 THEN	(* Gregor calendar reformation Oct 15, 1582 *)
-	 DEC(day, (day DIV 36525 * 3 - 5) DIV 4 )
+      INC(d, (m * 153 + 2) DIV 5 + year * 1461 DIV 4 - 1 );
+      IF d >= 578053 THEN	(* Gregor calendar reformation Oct 15, 1582 *)
+	 DEC(d, (d DIV 36525 * 3 - 5) DIV 4 )
       END;
-      RETURN day
-   END CDate;				(*$R= (reset range checks flag) *)
+      RETURN d
+   END CDate;
 
    PROCEDURE CWeekday(date: Date): Weekday;
    (*
