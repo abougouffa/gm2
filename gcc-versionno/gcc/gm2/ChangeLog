@@ -1,3 +1,9 @@
+2017-03-18      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  many changes to the way the parser
+          generator is built.  A number of cyclic dependancies
+          have been removed and building times are much shorter.
+
 2017-03-14      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-gcc/m2type.c:  get_unsigned (New function).
