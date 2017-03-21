@@ -1,6 +1,6 @@
 %{
 /* Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
-                 2013, 2014, 2015
+                 2013, 2014, 2015, 2016, 2017
    Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
@@ -171,6 +171,9 @@ extern  void  yylex                   (void);
 <LINE2>\n                  { M2LexBuf_SetFile(filename); updatepos(); BEGIN INITIAL; }
 <LINE2>2[ \t]*\n           { M2LexBuf_SetFile(filename); updatepos(); BEGIN INITIAL; }
 <LINE2>1[ \t]*\n           { M2LexBuf_SetFile(filename); updatepos(); BEGIN INITIAL; }
+<LINE2>1[ \t]*.*\n         { M2LexBuf_SetFile(filename); updatepos(); BEGIN INITIAL; }
+<LINE2>2[ \t]*.*\n         { M2LexBuf_SetFile(filename); updatepos(); BEGIN INITIAL; }
+<LINE2>3[ \t]*.*\n         { M2LexBuf_SetFile(filename); updatepos(); BEGIN INITIAL; }
 
 \n[^\#].*                  { consumeLine(); /* printf("found: %s\n", currentLine->linebuf); */ }
 \n                         { consumeLine(); /* printf("found: %s\n", currentLine->linebuf); */ }

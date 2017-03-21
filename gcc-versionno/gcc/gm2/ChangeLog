@@ -1,5 +1,9 @@
 2017-03-21      Gaius Mulley <gaius@gnu.org>
 
+	* gm2/m2.flex:  match new cpp file start/end codes.
+
+2017-03-21      Gaius Mulley <gaius@gnu.org>
+
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  detect circular
           dependency in AssertAllTypesDeclared and generate
           error message rather than abort.
