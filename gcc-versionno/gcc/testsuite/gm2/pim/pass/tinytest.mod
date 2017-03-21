@@ -18,7 +18,7 @@ Boston, MA 02110-1301, USA.  *)
 
 MODULE tinytest ;   (*!m2pim*)
 
-PROCEDURE nop
-END nop
+PROCEDURE nop ;
+END nop ;
 
 END tinytest.

@@ -2682,7 +2682,9 @@ PROCEDURE AssertAllTypesDeclared (scope: CARDINAL) ;
 VAR
    o, s,
    n, Var: CARDINAL ;
+   failed: BOOLEAN ;
 BEGIN
+   failed := FALSE ;
    n := 1 ;
    Var := GetNth(scope, n) ;
    o := 0 ;
@@ -2691,9 +2693,17 @@ BEGIN
       THEN
          mystop
       END ;
-      Assert(AllDependantsFullyDeclared(GetType(Var))) ;
+      IF NOT AllDependantsFullyDeclared(GetType(Var))
+      THEN
+         EmitCircularDependancyError(GetType(Var)) ;
+         failed := TRUE
+      END ;
       INC(n) ;
       Var := GetNth(scope, n)
+   END ;
+   IF failed
+   THEN
+      FlushErrors
    END
 END AssertAllTypesDeclared ;
 

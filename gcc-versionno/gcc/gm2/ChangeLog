@@ -1,3 +1,10 @@
+2017-03-21      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  detect circular
+          dependency in AssertAllTypesDeclared and generate
+          error message rather than abort.
+	* corrected a number of regression test programs.
+
 2017-03-18      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  many changes to the way the parser

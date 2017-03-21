@@ -26,7 +26,7 @@ TYPE
    CodeDesc = CARDINAL ;
    Name = CARDINAL ;
    ExpressionDesc = CARDINAL ;
-   FactorType = CARDINAL ;
+   FactorType = atoms ;
 
    FactorDesc     = POINTER TO factordesc ;
    factordesc = RECORD

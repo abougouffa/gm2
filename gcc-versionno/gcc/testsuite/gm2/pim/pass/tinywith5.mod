@@ -21,7 +21,7 @@ MODULE tinywith5 ;
 
 TYPE
    foo = RECORD
-            left, right: foo ;
+            left, right: POINTER TO foo ;
             ch         : CHAR ;
          END ;
 

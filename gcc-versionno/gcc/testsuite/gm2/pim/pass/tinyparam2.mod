@@ -26,11 +26,11 @@ FROM SYSTEM IMPORT ADR, ADDRESS ;
    foo -
 *)
 
-PROCEDURE foo (a: ADDRESS) ;
+PROCEDURE foo (a: ARRAY OF CHAR) ;
 VAR
    i: INTEGER ;
 BEGIN
-   i := write (1, a, 10)
+   i := write (1, ADR (a), HIGH (a))
 END foo ;
 
 
