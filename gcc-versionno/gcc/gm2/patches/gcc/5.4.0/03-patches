@@ -1,0 +1,12 @@
+--- gcc-5.4.0-orig/gcc/c/gccspec.c	2015-01-05 12:33:28.000000000 +0000
++++ gcc-5.4.0/gcc/c/gccspec.c	2017-03-22 13:27:15.107208063 +0000
+@@ -106,3 +106,9 @@
+ 
+ /* Number of extra output files that lang_specific_pre_link may generate.  */
+ int lang_specific_extra_outfiles = 0;  /* Not used for C.  */
++
++/* lang_register_spec_functions.  Not used for C.  */
++void
++lang_register_spec_functions (void)
++{
++}
