@@ -1,3 +1,8 @@
+2017-03-29      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/mc-boot-ch/Glibc.c:  return the result from
+	  close.
+
 2017-03-21      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/m2.flex:  match new cpp file start/end codes.
