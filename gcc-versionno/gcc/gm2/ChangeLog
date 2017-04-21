@@ -1,3 +1,15 @@
+2017-04-21      Gaius Mulley <gaius@gnu.org>
+
+	* Applied fixes to the testsuite reported by
+          Ernst Bokkelkamp.
+	* testsuite/gm2/exceptions/run/pass/gm2.exp:  look
+          for xg++ rather than g++.
+	* testsuite/gm2/extensions/run/pass/vararg3.mod:
+          convert 11 into an INTEGER for a vararg parameter.
+	* testsuite/gm2/switches/check-all/run/fail/gm2.exp:
+          test for the source path and filename when avoiding
+	  a testcase.
+
 2017-03-29      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/mc-boot-ch/Glibc.c:  return the result from

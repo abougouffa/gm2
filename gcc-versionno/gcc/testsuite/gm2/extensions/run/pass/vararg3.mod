@@ -21,7 +21,7 @@ FROM cvararg IMPORT funcptrint ;
 FROM SYSTEM IMPORT ADR ;
 
 BEGIN
-   IF funcptrint(ADR("hello world"), 11)=1
+   IF funcptrint(ADR("hello world"), INTEGER(11))=1
    THEN
    END
 END vararg3.
