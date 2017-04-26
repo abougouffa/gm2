@@ -1189,11 +1189,12 @@ m2expr_BuildSize (location_t location, tree op1, int needconvert ATTRIBUTE_UNUSE
 
 /*
  *  BuildAddr - builds an expression which calculates the address of
- *              op1 and returns the tree.
+ *              op1 and returns the tree.  If use_generic is TRUE then
+ *              create a generic pointer type.
  */
 
 tree
-m2expr_BuildAddr (location_t location, tree op1, int needconvert ATTRIBUTE_UNUSED)
+m2expr_BuildAddr (location_t location, tree op1, int use_generic)
 {
   tree type = m2tree_skip_type_decl (TREE_TYPE (op1));
   tree ptrType = build_pointer_type (type);
@@ -1204,7 +1205,10 @@ m2expr_BuildAddr (location_t location, tree op1, int needconvert ATTRIBUTE_UNUSE
   if (! gm2_mark_addressable (op1))
     error_at (location, "cannot take the address of this expression");
 
-  result = build1 (ADDR_EXPR, ptrType, op1);
+  if (use_generic)
+    result = build1 (ADDR_EXPR, m2type_GetPointerType (), op1);
+  else
+    result = build1 (ADDR_EXPR, ptrType, op1);
   protected_set_expr_location (result, location);
   return result;
 }

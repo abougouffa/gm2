@@ -4554,7 +4554,8 @@ END GetModule ;
 (*
    GetLowestType - Returns the lowest type in the type chain of
                    symbol Sym.
-                   If NulSym is returned then we assume type unknown.
+                   If NulSym is returned then we assume type unknown or
+                   you have reqested the type of a base type.
 *)
 
 PROCEDURE GetLowestType (Sym: CARDINAL) : CARDINAL ;
@@ -4597,17 +4598,9 @@ BEGIN
    IF (pSym^.SymbolType=TypeSym) AND (type=NulSym)
    THEN
       type := Sym             (* Base Type *)
-   ELSIF type#NulSym
+   ELSIF (type#NulSym) AND IsType(type) AND (GetAlignment(type)=NulSym)
    THEN
-      IF (IsType(type) OR IsSet(type))
-      THEN
-         (* ProcType is an inbuilt base type *)
-         pSym := GetPsym(type) ;
-         IF pSym^.SymbolType#ProcTypeSym
-         THEN
-            type := GetLowestType(type)   (* Type def *)
-         END
-      END
+      type := GetLowestType(type)   (* Type def *)
    END ;
    RETURN( type )
 END GetLowestType ;
@@ -4728,7 +4721,7 @@ BEGIN
    IF (Sym#NulSym) AND (IsType(Sym) OR IsSubrange(Sym)) AND
       (NOT IsHiddenType(Sym)) AND (GetType(Sym)#NulSym)
    THEN
-      RETURN( SkipType(GetType(Sym)) )
+      RETURN( SkipTypeAndSubrange(GetType(Sym)) )
    ELSE
       RETURN( Sym )
    END

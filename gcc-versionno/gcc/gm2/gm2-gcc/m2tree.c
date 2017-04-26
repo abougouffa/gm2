@@ -77,7 +77,7 @@ m2tree_skip_type_decl (tree type)
     return NULL_TREE;
 
   if (TREE_CODE (type) == TYPE_DECL)
-    return TREE_TYPE (type);
+    return m2tree_skip_type_decl (TREE_TYPE (type));
   return type;
 }
 

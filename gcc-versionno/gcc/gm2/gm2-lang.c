@@ -285,6 +285,9 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
   case OPT_fdebug_trace_api:
     M2Options_SetDebugTraceAPI (value);
     return 1;
+  case OPT_fdebug_function_line_numbers:
+    M2Options_SetDebugFunctionLineNumbers (value);
+    return 1;
   case OPT_fsoft_check_all:
     M2Options_SetCheckAll (value);
     return 1;

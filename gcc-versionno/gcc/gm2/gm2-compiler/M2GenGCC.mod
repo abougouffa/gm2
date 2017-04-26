@@ -2810,8 +2810,8 @@ END FoldConstBecomes ;
 (*
    DoCopyString - returns trees:
                   t    number of bytes to be copied (including the nul)
-                  op3t the string with the extra nul character
-                       providing it fits.
+                  op1t the new string _type_ (with the extra nul character).
+                  op3t the actual string with the extra nul character.
 *)
 
 PROCEDURE DoCopyString (tokenno: CARDINAL; VAR t, op3t: Tree; op1t, op3: CARDINAL) ;
@@ -6805,13 +6805,14 @@ END CodeIndrX ;
 
 PROCEDURE CodeXIndr (quad: CARDINAL; op1, type, op3: CARDINAL) ;
 VAR
-   op3t, t : Tree ;
-   tokenno : CARDINAL ;
-   location: location_t ;
+   newstr, t: Tree ;
+   tokenno  : CARDINAL ;
+   location : location_t ;
 BEGIN
    tokenno := QuadToTokenNo(quad) ;
    location := TokenToLocation(tokenno) ;
 
+   type := SkipType (type) ;
    DeclareConstant(tokenno, op3) ;
    DeclareConstructor(quad, op3) ;
    (*
@@ -6835,9 +6836,12 @@ BEGIN
                                StringToChar(Mod2Gcc(op3), Char, op3))
    ELSIF IsConstString(op3) AND (SkipTypeAndSubrange(GetType(op1))#Char)
    THEN
-      DoCopyString(tokenno, t, op3t, type, op3) ;
+      DoCopyString(tokenno, t, newstr, type, op3) ;
       AddStatement(location,
-                   MaybeDebugBuiltinMemcpy(location, Mod2Gcc(op1), BuildAddr(location, op3t, FALSE), t))
+                   MaybeDebugBuiltinMemcpy(location,
+                                           Mod2Gcc(op1),
+                                           BuildAddr(location, newstr, FALSE),
+                                           t))
    ELSE
       t := BuildAssignmentTree(location,
                                BuildIndirect(location, Mod2Gcc(op1), Mod2Gcc(type)),

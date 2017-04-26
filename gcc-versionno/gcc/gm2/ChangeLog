@@ -1,3 +1,29 @@
+2017-04-26      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  import
+          GetLowestType and use it during the declaration of
+          parameters and variables.
+	* gm2/gm2-compiler/M2GenGCC.mod:  (DoCopyString) improved
+          comment.  (CodeXIndr)  call SkipType, renamed variables.
+	* gm2/gm2-compiler/M2Options.def:  (DebugFunctionLineNumbers)
+          new variable.  (SetDebugFunctionLineNumbers) new procedure.
+	* gm2/gm2-compiler/M2Options.mod:  (SetDebugFunctionLineNumbers)
+          new procedure.  (DebugFunctionLineNumbers) initialise.
+	* gm2/gm2-compiler/M2Quads.mod:  (CheckAssignCompatible)
+          reorder the list of if statements to detect set type checking.
+	* gm2/gm2-compiler/SymbolTable.mod:  (GetLowestType)
+          tidied up to remove deadcode and also correct a bug to ensure
+          it does not skip over user specified alignment types.
+	* gm2/gm2-gcc/m2expr.c:  (BuildAddr) use_generic parameter
+          will cast the pointer to ADDRESS.
+	* gm2/gm2-gcc/m2options.h:  (SetDebugFunctionLineNumbers) added.
+	* gm2/gm2-gcc/m2tree.c:  (m2tree_skip_type_decl) skip_type_decl
+          if necessary.
+	* gm2/gm2-lang.c:  (OPT_fdebug_function_line_numbers) case added.
+	* gm2/lang-options.h:  add entry for -fdebug-function-line-numbers.
+	* gm2/lang.opt:  improved description.  Introduced
+	  fdebug-function-line-numbers.
+
 2017-04-21      Gaius Mulley <gaius@gnu.org>
 
 	* Applied fixes to the testsuite reported by

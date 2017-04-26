@@ -3047,6 +3047,9 @@ BEGIN
       THEN
          WriteFormat0('constructor is not compatible during assignment')
       END
+   ELSIF (DesT#NulSym) AND IsSet(DesT) AND IsConst(Exp)
+   THEN
+      (* We ignore checking of these types in pass 3 - but we do check them thoroughly post pass 3 *)
    ELSIF IsConst(Exp) AND (ExpT#Address) AND (NOT IsConst(Des)) AND
          (DesL#NulSym) AND ((DesL=Cardinal) OR (NOT IsSubrange(DesL))) AND
          (NOT IsEnumeration(DesL))
@@ -3059,9 +3062,6 @@ BEGIN
          WriteFormat1('assignment of a constant (%a) can only be made to a variable whose type is equivalent to a Modula-2 base type',
                       n)
       END
-   ELSIF (DesT#NulSym) AND IsSet(DesT) AND IsConst(Exp)
-   THEN
-      (* We ignore checking of these types in pass 3 - but we do check them thoroughly post pass 3 *)
    ELSE
       IF (DesT#NulSym) AND IsProcType(DesT) AND IsProcedure(Exp)
       THEN

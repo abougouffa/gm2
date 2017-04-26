@@ -66,7 +66,8 @@ EXPORT QUALIFIED SetReturnCheck, SetNilCheck, SetCaseCheck,
                  OverrideLocation, FinaliseOptions,
                  DebugBuiltins, setdefextension, setmodextension,
                  SetStatistics,
-                 CppProg, CppArg, CppCommandLine, CppRemember ;
+                 CppProg, CppArg, CppCommandLine, CppRemember,
+		 SetDebugFunctionLineNumbers, DebugFunctionLineNumbers ;
 
 
 VAR
@@ -125,6 +126,7 @@ VAR
    Exceptions,                   (* should we generate exception code?       *)
    DebugBuiltins,                (* should we always call a real function?   *)
    ForcedLocation,
+   DebugFunctionLineNumbers,
    Optimizing,
    Coding,
    Profiling         : BOOLEAN ;
@@ -362,17 +364,25 @@ PROCEDURE SetQuadDebugging (value: BOOLEAN) ;
 
 
 (*
-   SetDebugTraceQuad - 
+   SetDebugTraceQuad -
 *)
 
 PROCEDURE SetDebugTraceQuad (value: BOOLEAN) ;
 
 
 (*
-   SetDebugTraceAPI - 
+   SetDebugTraceAPI -
 *)
 
 PROCEDURE SetDebugTraceAPI (value: BOOLEAN) ;
+
+
+(*
+   SetDebugFunctionLineNumbers - turn DebugFunctionLineNumbers on/off
+                                 (used internally for debugging).
+*)
+
+PROCEDURE SetDebugFunctionLineNumbers (value: BOOLEAN) ;
 
 
 (*
@@ -420,14 +430,14 @@ PROCEDURE SetForcedLocation (location: location_t) ;
 
 
 (*
-   setdefextension - 
+   setdefextension -
 *)
 
 PROCEDURE setdefextension (arg: ADDRESS) ;
 
 
 (*
-   setmodextension - 
+   setmodextension -
 *)
 
 PROCEDURE setmodextension (arg: ADDRESS) ;

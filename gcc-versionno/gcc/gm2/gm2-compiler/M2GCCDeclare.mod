@@ -69,7 +69,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetMode,
                         GetScope,
                         GetNth, GetType, SkipType, GetVarBackEndType,
-                        MakeType, PutType, MakeConstLit,
+                        MakeType, PutType, MakeConstLit, GetLowestType,
       	       	     	GetSubrange, PutSubrange, GetArraySubscript,
       	       	     	NoOfParam, GetNthParam,
                         PushValue, PopValue, PopSize,
@@ -2405,12 +2405,12 @@ BEGIN
          THEN
             GccParam := BuildParameterDeclaration(location,
                                                   KeyToCharStar(GetSymName(Son)),
-                                                  Mod2Gcc(GetType(Son)),
+                                                  Mod2Gcc(GetLowestType(Son)),
                                                   FALSE)
          ELSE
             GccParam := BuildParameterDeclaration(location,
                                                   KeyToCharStar(GetSymName(Son)),
-                                                  Mod2Gcc(GetType(Son)),
+                                                  Mod2Gcc(GetLowestType(Son)),
                                                   IsVarParam(Sym, i))
          END ;
          PreAddModGcc(Son, GccParam) ;
@@ -2482,12 +2482,12 @@ BEGIN
          THEN
             GccParam := BuildParameterDeclaration(location,
                                                   KeyToCharStar(GetSymName(Son)),
-                                                  Mod2Gcc(GetType(Son)),
+                                                  Mod2Gcc(GetLowestType(Son)),
                                                   FALSE)
          ELSE
             GccParam := BuildParameterDeclaration(location,
                                                   KeyToCharStar(GetSymName(Son)),
-                                                  Mod2Gcc(GetType(Son)),
+                                                  Mod2Gcc(GetLowestType(Son)),
                                                   IsVarParam(Sym, i))
          END ;
          PreAddModGcc(Son, GccParam) ;
@@ -3283,7 +3283,7 @@ BEGIN
               data type - in which case we might tell gcc exactly this.
               We do not add an extra pointer if this is the case.
       *)
-      varType := GetVarBackEndType(var) ;
+      varType := SkipType(GetVarBackEndType(var)) ;
       IF varType=NulSym
       THEN
          (* we have not explicity told back end the type, so build it *)
@@ -3299,7 +3299,7 @@ BEGIN
       END ;
       Assert(AllDependantsFullyDeclared(varType))
    ELSE
-      type := Mod2Gcc(GetType(var))
+      type := Mod2Gcc(GetLowestType(var))
    END ;
    location := TokenToLocation(GetDeclaredMod(var)) ;
    PreAddModGcc(var, DeclareKnownVariable(location,

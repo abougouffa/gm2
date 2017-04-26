@@ -57,7 +57,7 @@ VAR
 
 
 (*
-   doDSdbEnter - 
+   doDSdbEnter -
 *)
 
 PROCEDURE doDSdbEnter ;
@@ -67,7 +67,7 @@ END doDSdbEnter ;
 
 
 (*
-   doDSdbExit - 
+   doDSdbExit -
 *)
 
 PROCEDURE doDSdbExit (s: String) ;
@@ -77,7 +77,7 @@ END doDSdbExit ;
 
 
 (*
-   DSdbEnter - 
+   DSdbEnter -
 *)
 
 PROCEDURE DSdbEnter ;
@@ -86,7 +86,7 @@ END DSdbEnter ;
 
 
 (*
-   DSdbExit - 
+   DSdbExit -
 *)
 
 PROCEDURE DSdbExit (s: String) ;
@@ -399,7 +399,7 @@ END SetProfiling ;
 
 
 (*
-   SetISO - 
+   SetISO -
 *)
 
 PROCEDURE SetISO (value: BOOLEAN) ;
@@ -411,7 +411,7 @@ END SetISO ;
 
 
 (*
-   SetPIM - 
+   SetPIM -
 *)
 
 PROCEDURE SetPIM (value: BOOLEAN) ;
@@ -422,7 +422,7 @@ END SetPIM ;
 
 
 (*
-   SetPIM2 - 
+   SetPIM2 -
 *)
 
 PROCEDURE SetPIM2 (value: BOOLEAN) ;
@@ -434,7 +434,7 @@ END SetPIM2 ;
 
 
 (*
-   SetPIM3 - 
+   SetPIM3 -
 *)
 
 PROCEDURE SetPIM3 (value: BOOLEAN) ;
@@ -446,7 +446,7 @@ END SetPIM3 ;
 
 
 (*
-   SetPIM4 - 
+   SetPIM4 -
 *)
 
 PROCEDURE SetPIM4 (value: BOOLEAN) ;
@@ -508,7 +508,7 @@ END SetExceptions ;
 
 
 (*
-   SetStudents - 
+   SetStudents -
 *)
 
 PROCEDURE SetStudents (value: BOOLEAN) ;
@@ -518,7 +518,7 @@ END SetStudents ;
 
 
 (*
-   SetPedantic - 
+   SetPedantic -
 *)
 
 PROCEDURE SetPedantic (value: BOOLEAN) ;
@@ -568,7 +568,7 @@ END SetXCode ;
 
 
 (*
-   SetSwig - 
+   SetSwig -
 *)
 
 PROCEDURE SetSwig (value: BOOLEAN) ;
@@ -598,7 +598,7 @@ END SetCompilerDebugging ;
 
 
 (*
-   SetDebugTraceQuad - 
+   SetDebugTraceQuad -
 *)
 
 PROCEDURE SetDebugTraceQuad (value: BOOLEAN) ;
@@ -608,7 +608,7 @@ END SetDebugTraceQuad ;
 
 
 (*
-   SetDebugTraceAPI - 
+   SetDebugTraceAPI -
 *)
 
 PROCEDURE SetDebugTraceAPI (value: BOOLEAN) ;
@@ -618,7 +618,7 @@ END SetDebugTraceAPI ;
 
 
 (*
-   SetSources - 
+   SetSources -
 *)
 
 PROCEDURE SetSources (value: BOOLEAN) ;
@@ -629,7 +629,7 @@ END SetSources ;
 
 
 (*
-   SetDumpSystemExports - 
+   SetDumpSystemExports -
 *)
 
 PROCEDURE SetDumpSystemExports (value: BOOLEAN) ;
@@ -657,7 +657,7 @@ END SetSearchPath ;
 
 
 (*
-   setdefextension - 
+   setdefextension -
 *)
 
 PROCEDURE setdefextension (arg: ADDRESS) ;
@@ -671,7 +671,7 @@ END setdefextension ;
 
 
 (*
-   setmodextension - 
+   setmodextension -
 *)
 
 PROCEDURE setmodextension (arg: ADDRESS) ;
@@ -685,7 +685,7 @@ END setmodextension ;
 
 
 (*
-   SetOptimizing - 
+   SetOptimizing -
 *)
 
 PROCEDURE SetOptimizing (value: CARDINAL) ;
@@ -753,6 +753,17 @@ BEGIN
 END OverrideLocation ;
 
 
+(*
+   SetDebugFunctionLineNumbers - turn DebugFunctionLineNumbers on/off
+                                 (used internally for debugging).
+*)
+
+PROCEDURE SetDebugFunctionLineNumbers (value: BOOLEAN) ;
+BEGIN
+   DebugFunctionLineNumbers := value
+END SetDebugFunctionLineNumbers ;
+
+
 BEGIN
    CppArgs                      := InitString('') ;
    CppProgram                   := InitString('') ;
@@ -799,5 +810,6 @@ BEGIN
    ForcedLocation               := FALSE ;
    WholeProgram                 := FALSE ;
    DebugTraceQuad               := FALSE ;
-   DebugTraceAPI                := FALSE
+   DebugTraceAPI                := FALSE ;
+   DebugFunctionLineNumbers     := FALSE
 END M2Options.

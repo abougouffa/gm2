@@ -7,12 +7,12 @@
 ; the terms of the GNU General Public License as published by the Free
 ; Software Foundation; either version 3, or (at your option) any later
 ; version.
-; 
+;
 ; GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
 ; WARRANTY; without even the implied warranty of MERCHANTABILITY or
 ; FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 ; for more details.
-; 
+;
 ; You should have received a copy of the GNU General Public License
 ; along with GCC; see the file COPYING.  If not, write to the Free
 ; Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
@@ -183,11 +183,15 @@ turn on internal debugging of the compiler
 
 fdebug-trace-quad
 Modula-2
-turn on quadruple tracing inside the compiler (internal switch)
+turn on quadruple tracing (internal switch)
 
 fdebug-trace-api
 Modula-2
-turn on the Modula-2 api tracing inside the compiler (internal switch)
+turn on the Modula-2 api tracing (internal switch)
+
+fdebug-function-line-numbers
+Modula-2
+turn on the Modula-2 function line number generation (internal switch)
 
 fm2-statistics
 Modula-2
