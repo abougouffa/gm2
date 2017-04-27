@@ -89,7 +89,7 @@ EXPORT QUALIFIED NulSym,
                  GetCurrentModuleScope,
                  GetLastModuleScope,
                  AddSymToModuleScope,
-                 GetType,
+                 GetType, GetLType, GetSType, GetDType,
                  SkipType, SkipTypeAndSubrange,
                  GetLowestType,
                  GetSym, GetLocalSym, GetDeclareSym, GetRecord,
@@ -924,6 +924,36 @@ PROCEDURE SkipTypeAndSubrange (Sym: CARDINAL) : CARDINAL ;
 *)
 
 PROCEDURE GetLowestType (Sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   GetLType - get lowest type.  It returns the lowest type
+              of symbol, sym.  It skips over type equivalences.
+*)
+
+PROCEDURE GetLType (sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   GetSType - get source type.  It returns the type closest
+              to the object.  It does not skip over type
+              equivalences.
+*)
+
+PROCEDURE GetSType (sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   GetDType - get gcc declared type.  It returns the type
+              of the object which is declared to GCC.
+              It does skip over type equivalences but only
+              if they do not contain a user alignment.
+              It does not skip over hidden types.
+
+              This is the same as SkipType(GetType(sym))
+*)
+
+PROCEDURE GetDType (sym: CARDINAL) : CARDINAL ;
 
 
 (*

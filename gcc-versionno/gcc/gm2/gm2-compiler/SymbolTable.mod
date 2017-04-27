@@ -4607,6 +4607,120 @@ END GetLowestType ;
 
 
 (*
+   doGetType -
+*)
+
+PROCEDURE doGetType (sym: CARDINAL; skipEquiv, skipAlign, skipHidden, skipBase: BOOLEAN) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
+   type: CARDINAL ;
+BEGIN
+   Assert(sym#NulSym) ;
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      OAFamilySym         : type := OAFamily.SimpleType |
+      VarSym              : type := GetTypeOfVar(sym) |
+      ConstLitSym         : type := ConstLit.Type |
+      ConstVarSym         : type := ConstVar.Type |
+      ConstStringSym      : IF ConstString.Length=1
+                            THEN
+                               type := Char
+                            ELSE
+                               type := NulSym  (* No type for a string *)
+                            END |
+      TypeSym             : type := Type.Type |
+      RecordFieldSym      : type := RecordField.Type |
+      RecordSym           : type := NulSym |  (* No type for a record *)
+      VarientSym          : type := NulSym |  (* No type for a record *)
+      EnumerationFieldSym : type := EnumerationField.Type |
+      EnumerationSym      : type := NulSym |  (* No type for enumeration *)
+      PointerSym          : type := Pointer.Type |
+      ProcedureSym        : type := Procedure.ReturnType |
+      ProcTypeSym         : type := ProcType.ReturnType |
+      ParamSym            : type := Param.Type |
+      VarParamSym         : type := VarParam.Type |
+      SubrangeSym         : type := Subrange.Type |
+      ArraySym            : type := Array.Type |
+      SubscriptSym        : type := Subscript.Type |
+      SetSym              : type := Set.Type |
+      UnboundedSym        : type := Unbounded.Type |
+      UndefinedSym        : type := NulSym |
+      PartialUnboundedSym : type := PartialUnbounded.Type |
+      ObjectSym           : type := NulSym
+
+      ELSE
+         InternalError('not implemented yet', __FILE__, __LINE__)
+      END
+   END ;
+   IF (type=NulSym) AND IsType(sym) AND (NOT skipBase)
+   THEN
+      RETURN sym             (* sym is a base type *)
+   ELSIF type#NulSym
+   THEN
+      IF IsType(type) AND skipEquiv
+      THEN
+         IF (NOT IsHiddenType(type)) OR skipHidden
+         THEN
+            IF (GetAlignment(type)=NulSym) OR skipAlign
+            THEN
+               RETURN doGetType (type, skipEquiv, skipAlign, skipHidden, skipBase)
+            END
+         END
+      END
+   END ;
+   RETURN type
+END doGetType ;
+
+
+(*
+   GetLType - get lowest type.  It returns the lowest type
+              of symbol, sym.  It skips over type equivalences.
+              It will not skip over base types.
+*)
+
+PROCEDURE GetLType (sym: CARDINAL) : CARDINAL ;
+BEGIN
+(*
+   Assert (doGetType (sym, TRUE, TRUE, TRUE, FALSE) = GetLowestType (sym)) ;
+*)
+   RETURN doGetType (sym, TRUE, TRUE, TRUE, FALSE)
+END GetLType ;
+
+
+(*
+   GetSType - get source type.  It returns the type closest
+              to the object.  It does not skip over type
+              equivalences.  It will skip over base types.
+*)
+
+PROCEDURE GetSType (sym: CARDINAL) : CARDINAL ;
+BEGIN
+   Assert (doGetType (sym, FALSE, FALSE, FALSE, TRUE) = GetType (sym)) ;
+   RETURN doGetType (sym, FALSE, FALSE, FALSE, TRUE)
+END GetSType ;
+
+
+(*
+   GetDType - get gcc declared type.  It returns the type
+              of the object which is declared to GCC.
+              It does skip over type equivalences but only
+              if they do not contain a user alignment.
+              It does not skip over hidden types.
+              It does not skip over base types.
+*)
+
+PROCEDURE GetDType (sym: CARDINAL) : CARDINAL ;
+BEGIN
+(*
+   Assert (doGetType (sym, TRUE, FALSE, FALSE, FALSE) = SkipType(GetType(sym))) ;
+*)
+   RETURN doGetType (sym, TRUE, FALSE, FALSE, FALSE)
+END GetDType ;
+
+
+(*
    GetTypeOfVar - returns the type of a, var, symbol.
 *)
 
