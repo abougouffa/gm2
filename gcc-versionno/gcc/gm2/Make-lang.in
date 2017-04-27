@@ -1862,35 +1862,63 @@ gm2/gm2-compiler-paranoid/%.o: $(srcdir)/gm2/gm2-compiler/%.mod
 gm2/gm2-compiler-paranoid/%.o: gm2/gm2-compiler-paranoid/%.mod
 	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -g -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
-gm2/gm2-libs-paranoid/target.o: $(srcdir)/gm2/gm2-libs-ch/target.c gm2/gm2-libs/gm2-libs-target.h
-	$(XGCC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs $(INCLUDES) $< -o $@
+gm2/gm2-compiler-paranoid/gm2l.o: $(objdir)/gm2/gm2-compiler-paranoid/gm2l.mod
+	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -g -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
-gm2/gm2-libs-paranoid/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c \
-                               gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h
-	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+gm2/gm2-compiler-paranoid/gm2m.o: $(objdir)/gm2/gm2-compiler-paranoid/gm2m.mod
+	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -g -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+
+gm2/gm2-compiler-paranoid/P0SyntaxCheck.o: $(objdir)/gm2/gm2-compiler-paranoid/P0SyntaxCheck.mod
+	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -g -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+
+gm2/gm2-compiler-paranoid/P1Build.o: $(objdir)/gm2/gm2-compiler-paranoid/P1Build.mod
+	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -g -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+
+gm2/gm2-compiler-paranoid/P2Build.o: $(objdir)/gm2/gm2-compiler-paranoid/P2Build.mod
+	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -g -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+
+gm2/gm2-compiler-paranoid/P3Build.o: $(objdir)/gm2/gm2-compiler-paranoid/P3Build.mod
+	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -g -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+
+gm2/gm2-compiler-paranoid/PHBuild.o: $(objdir)/gm2/gm2-compiler-paranoid/PHBuild.mod
+	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -g -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+
+gm2/gm2-compiler-paranoid/PCBuild.o: $(objdir)/gm2/gm2-compiler-paranoid/PCBuild.mod
+	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -g -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+
+gm2/gm2-libs-paranoid/target.o: $(srcdir)/gm2/gm2-libs-ch/target.c gm2/gm2-libs/gm2-libs-host.h
+	$(CC) -c $(GM2_O_S3) $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $< -o $@
+
+gm2/gm2-libs-paranoid/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h gm2/gm2-libs/gm2-libs-host.h
+	$(CC) -c -DIN_GCC $(GM2_O_S3) $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/UnixArgs.o: $(srcdir)/gm2/gm2-libs-ch/UnixArgs.c \
                                   gm2/gm2-libs-boot/$(SRC_PREFIX)UnixArgs.h
-	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
-
-gm2/gm2-libs-paranoid/Selective.o: $(srcdir)/gm2/gm2-libs-ch/Selective.c \
-                                   gm2/gm2-libs-boot/$(SRC_PREFIX)Selective.h
-	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(CC) -c -DIN_GCC $(GM2_O_S3) $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/sckt.o: $(srcdir)/gm2/gm2-libs-ch/sckt.c \
                                    gm2/gm2-libs-boot/$(SRC_PREFIX)sckt.h
-	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(CC) -c -DIN_GCC $(GM2_O_S3) $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/errno.o: $(srcdir)/gm2/gm2-libs-ch/errno.c \
                                    gm2/gm2-libs-boot/$(SRC_PREFIX)errno.h
-	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(CC) -c -DIN_GCC $(GM2_O_S3) $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+
+gm2/gm2-libs-paranoid/Selective.o: $(srcdir)/gm2/gm2-libs-ch/Selective.c \
+                                   gm2/gm2-libs-boot/$(SRC_PREFIX)Selective.h
+	$(COMPILER) -c -DIN_GCC $(GM2_O_S3) $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/choosetemp.o: $(srcdir)/gm2/gm2-libs-ch/choosetemp.c \
                                     gm2/gm2-libiberty/$(SRC_PREFIX)choosetemp.h
-	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
+	$(CC) -c -DIN_GCC $(GM2_O_S3) $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
+
+gm2/gm2-libs-paranoid/SysExceptions.o: $(srcdir)/gm2/gm2-libs-ch/SysExceptions.c \
+                                  gm2/gm2-libs-boot/$(SRC_PREFIX)SysExceptions.h
+	$(CC) -c -DIN_GCC $(GM2_O_S3) $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-compiler-paranoid/m2flex.o: gm2/gm2-compiler/m2flex.c $(TIMEVAR_H)
-	$(CC) -c $(GM2_O_S3) $(GM2GCC) $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
+	$(COMPILER) -c $(GM2_O_S3) -g $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) \
+          $(GM2GCC) -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
 gm2/gm2-libs-paranoid/dtoa.o: $(srcdir)/gm2/gm2-libs-ch/dtoa.c \
                               gm2/gm2-libs-boot/$(SRC_PREFIX)dtoa.h \
@@ -1906,10 +1934,6 @@ gm2/gm2-libs-paranoid/termios.o: $(srcdir)/gm2/gm2-libs-ch/termios.c \
                                gm2/gm2-libs-boot/$(SRC_PREFIX)termios.h \
                                gm2/gm2-libs/gm2-libs-host.h
 	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs $(INCLUDES) $< -o $@
-
-gm2/gm2-libs-paranoid/SysExceptions.o: $(srcdir)/gm2/gm2-libs-ch/SysExceptions.c \
-                                  gm2/gm2-libs-boot/$(SRC_PREFIX)SysExceptions.h
-	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 
 #
@@ -2213,6 +2237,33 @@ gm2/pge$(exeext): gm2/pge-$(exeext)
         fi
 	$(RM) gm2/gm2-auto/t.mod gm2/gm2-auto/t1.mod gm2/gm2-auto/t2.mod
 	$(CP) gm2/pge-$(exeext) gm2/pge$(exeext)
+
+$(objdir)/gm2/gm2-compiler-paranoid/P0SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf gm2/pge$(exeext)
+	./gm2/pge$(exeext) $< > $@
+
+$(objdir)/gm2/gm2-compiler-paranoid/P1Build.mod: $(srcdir)/gm2/bnf/m2-1.bnf gm2/pge$(exeext)
+	./gm2/pge$(exeext) $< > $@
+
+$(objdir)/gm2/gm2-compiler-paranoid/P2Build.mod: $(srcdir)/gm2/bnf/m2-2.bnf gm2/pge$(exeext)
+	./gm2/pge$(exeext) $< > $@
+
+$(objdir)/gm2/gm2-compiler-paranoid/PCBuild.mod: $(srcdir)/gm2/bnf/m2-c.bnf gm2/pge$(exeext)
+	./gm2/pge$(exeext) -l $< > $@
+
+$(objdir)/gm2/gm2-compiler-paranoid/P3Build.mod: $(srcdir)/gm2/bnf/m2-3.bnf gm2/pge$(exeext)
+	./gm2/pge$(exeext) $< > $@
+
+$(objdir)/gm2/gm2-compiler-paranoid/PHBuild.mod: $(srcdir)/gm2/bnf/m2-h.bnf gm2/pge$(exeext)
+	./gm2/pge$(exeext) $< > $@
+
+$(objdir)/gm2/gm2-compiler-paranoid/gm2l.mod: $(srcdir)/gm2/bnf/gm2l.bnf gm2/pge$(exeext)
+	./gm2/pge$(exeext) $< > $@
+
+$(objdir)/gm2/gm2-compiler-paranoid/gm2m.mod: $(srcdir)/gm2/bnf/gm2m.bnf gm2/pge$(exeext)
+	./gm2/pge$(exeext) $< > $@
+
+$(objdir)/gm2/gm2-compiler-paranoid/h2def.mod: $(srcdir)/gm2/bnf/h2def.bnf gm2/pge$(exeext)
+	./gm2/pge$(exeext) -l $< > $@
 
 $(objdir)/gm2/gm2-compiler/P0SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf gm2/pge$(exeext)
 	./gm2/pge$(exeext) $< > $@

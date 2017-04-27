@@ -1,5 +1,10 @@
 2017-04-27      Gaius Mulley <gaius@gnu.org>
 
+	* gm2/Make-lang.in:  many new rules to allow
+          make gm2.verifystage12 to work.
+
+2017-04-27      Gaius Mulley <gaius@gnu.org>
+
 	* gm2/Make-lang.in:  gm2/gm2-compiler/m2flex.o new rule
           for g++.   gm2/gm2-compiler/cflex.o new rule for g++.
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  remove use of GetType
