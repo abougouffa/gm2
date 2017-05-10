@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011, 2012, 2013, 2014
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -28,7 +28,8 @@ IMPORT Indexing ;
 FROM Indexing IMPORT InitIndex, InBounds, LowIndice, HighIndice, PutIndice, GetIndice ;
 FROM Sets IMPORT Set, InitSet, IncludeElementIntoSet, IsElementInSet ;
 
-FROM M2Options IMPORT Pedantic, ExtendedOpaque ;
+FROM M2Options IMPORT Pedantic, ExtendedOpaque, DebugFunctionLineNumbers ;
+FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken ;
 
 FROM M2ALU IMPORT InitValue, PtrToValue, PushCard, PopInto,
                   PushString, PushFrom, PushChar, PushInt,
@@ -1025,6 +1026,51 @@ BEGIN
       InternalError('symbol out of bounds', __FILE__, __LINE__)
    END
 END GetPcall ;
+
+
+(*
+   DebugProcedureLineNumber -
+*)
+
+PROCEDURE DebugProcedureLineNumber (sym: CARDINAL) ;
+VAR
+   begin, end: CARDINAL ;
+   n         : Name ;
+   f         : String ;
+   l         : CARDINAL ;
+BEGIN
+   GetProcedureBeginEnd (sym, begin, end) ;
+   n := GetSymName(sym) ;
+   IF begin#0
+   THEN
+      f := FindFileNameFromToken (begin, 0) ;
+      l := TokenToLineNo(begin, 0) ;
+      printf3 ('%s:%d:%a:begin\n', f, l, n)
+   END ;
+   IF end#0
+   THEN
+      f := FindFileNameFromToken (end, 0) ;
+      l := TokenToLineNo(end, 0) ;
+      printf3 ('%s:%d:%a:end\n', f, l, n)
+   END
+END DebugProcedureLineNumber ;
+
+
+(*
+   DebugLineNumbers - internal debugging, emit all procedure names in this module
+                      together with the line numbers for the corresponding begin/end
+                      tokens.
+*)
+
+PROCEDURE DebugLineNumbers (sym: CARDINAL) ;
+BEGIN
+   IF DebugFunctionLineNumbers
+   THEN
+      printf0 ('<lines>\n') ;
+      ForeachProcedureDo(sym, DebugProcedureLineNumber) ;
+      printf0 ('</lines>\n')
+   END
+END DebugLineNumbers ;
 
 
 (*

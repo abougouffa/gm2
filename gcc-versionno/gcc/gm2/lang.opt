@@ -197,6 +197,10 @@ fm2-statistics
 Modula-2
 display statistics about the amount of source lines compiled and symbols used
 
+fm2-g
+Modula-2
+generate extra nops to improve debugging, producing an instruction for every code related keyword
+
 fswig
 Modula-2
 create a swig interface file for the module

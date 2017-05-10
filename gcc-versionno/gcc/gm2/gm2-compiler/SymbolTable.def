@@ -318,7 +318,8 @@ EXPORT QUALIFIED NulSym,
                  PopSize,
                  PopOffset,
                  PopSumOfParamSize,
-                 DisplayTrees ;
+                 DisplayTrees,
+		 DebugLineNumbers ;
 
 
 (*
@@ -3008,6 +3009,15 @@ PROCEDURE IsHiddenTypeDeclared (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE DisplayTrees (ModSym: CARDINAL) ;
+
+
+(*
+   DebugLineNumbers - internal debugging, emit all procedure names in this module
+                      together with the line numbers for the corresponding begin/end
+                      tokens.
+*)
+
+PROCEDURE DebugLineNumbers (sym: CARDINAL) ;
 
 
 END SymbolTable.

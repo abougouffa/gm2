@@ -30,6 +30,8 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "m2assert.h"
 #include "m2tree.h"
 #include "m2treelib.h"
+#include "m2decl.h"
+#include "m2options.h"
 
 
 /* For each binding contour we allocate a binding_level structure which records
@@ -127,6 +129,9 @@ typedef struct stmt_tree_s *stmt_tree_t;
 
 #undef DEBUGGING
 
+static location_t pending_location;
+static int pending_statement = FALSE;
+
 
 /*
  *  assert_global_names - asserts that the global_binding_level->names can be chained.
@@ -180,7 +185,7 @@ m2block_getLabel (location_t location, char *name)
   if (DECL_CONTEXT (label) == NULL_TREE)
     DECL_CONTEXT (label) = current_function_decl;
   ASSERT ((DECL_CONTEXT (label) == current_function_decl), current_function_decl);
-	  
+
   DECL_MODE (label) = VOIDmode;
   return label;
 }
@@ -224,7 +229,7 @@ m2block_cur_stmt_list_addr (void)
 {
   ASSERT_CONDITION (current_binding_level != NULL);
   int l = vec_safe_length (current_binding_level->m2_statements) - 1;
-  
+
   return &(*current_binding_level->m2_statements)[l];
 }
 
@@ -311,29 +316,6 @@ m2block_end_statement_list (tree t)
 }
 
 
-tree
-add_stmt (tree t)
-{
-  enum tree_code code = TREE_CODE (t);
-
-  ASSERT_CONDITION (code != ERROR_MARK);
-  if (CAN_HAVE_LOCATION_P (t) && code != LABEL_EXPR)
-    {
-      if (!EXPR_HAS_LOCATION (t))
-	SET_EXPR_LOCATION (t, input_location);
-    }
-
-#if 0
-  if (code == LABEL_EXPR || code == CASE_LABEL_EXPR)
-    STATEMENT_LIST_HAS_LABEL (m2block_cur_stmt_list()) = 1;
-#endif
-
-  append_to_statement_list_force (t, m2block_cur_stmt_list_addr ());
-
-  return t;
-}
-
-
 /*
  *  findLevel - returns the binding level associated with, fndecl, one is created if
  *              there is no existing one on head_binding_level.
@@ -347,7 +329,7 @@ findLevel (tree fndecl)
   if (fndecl == NULL_TREE)
     return global_binding_level;
 
-  b = head_binding_level; 
+  b = head_binding_level;
   while ((b != NULL) && (b->fndecl != fndecl))
     b = b->list;
 
@@ -494,7 +476,7 @@ m2block_popGlobalScope (void)
     current_binding_level->count--;
     return;
   }
-    
+
   current_binding_level = current_binding_level->next;
 #if defined(DEBUGGING)
   printf("popGlobalScope\n");
@@ -554,7 +536,7 @@ m2block_finishFunctionDecl (location_t location, tree fndecl)
 	    {
 	      for (i = current_binding_level->names; i != NULL_TREE; i = DECL_CHAIN (i))
 		append_to_statement_list_force (i, &BIND_EXPR_BODY (bind_expr));
-	      
+
 #if 0
 	      for (i = tsi_start (current_binding_level->names); !tsi_end_p (i); tsi_next (&i))
 		append_to_statement_list_force (*tsi_stmt_ptr (i), &BIND_EXPR_BODY (bind_expr));
@@ -577,7 +559,7 @@ is_variable_in (tree fndecl, const char *name)
   tree id = get_identifier (name);
   tree bind = DECL_SAVED_TREE (fndecl);
   tree vars;
-  
+
   // ASSERT_CONDITION (TREE_CODE (block) == BLOCK);
   ASSERT_CONDITION (TREE_CODE (bind) == BIND_EXPR);
   vars = BIND_EXPR_VARS (bind);
@@ -774,7 +756,7 @@ m2block_global_constant (tree t)
 	if (c == t)
 	  return t;
       }
-  
+
   global_binding_level->constants = tree_cons (NULL_TREE,
 					       t, global_binding_level->constants);
   return t;
@@ -875,6 +857,81 @@ tree
 m2block_GetGlobalContext (void)
 {
   return global_binding_level->context;
+}
+
+
+/*
+ *  do_add_stmt - t is a statement.  Add it to the statement-tree.
+ */
+
+static tree
+do_add_stmt (tree t)
+{
+  append_to_statement_list_force (t, m2block_cur_stmt_list_addr ());
+  return t;
+}
+
+
+/*
+ *  flush_pending_note - flushes a pending_statement note if necessary.
+ */
+
+static
+void flush_pending_note (void)
+{
+  if (pending_statement && (M2Options_GetM2g ()))
+    {
+      tree instr = m2decl_BuildStringConstant ("nop", 3);
+      tree string = resolve_asm_operand_names (instr, NULL_TREE, NULL_TREE, NULL_TREE);
+      tree note = build_stmt (pending_location, ASM_EXPR, string, NULL_TREE, NULL_TREE, NULL_TREE, NULL_TREE);
+
+      ASM_INPUT_P (note) = FALSE;
+      ASM_VOLATILE_P (note) = FALSE;
+
+      pending_statement = FALSE;
+      do_add_stmt (note);
+    }
+}
+
+
+/*
+ *  add_stmt - t is a statement.  Add it to the statement-tree.
+ */
+
+tree
+m2block_add_stmt (location_t location, tree t)
+{
+#if 1
+  if ((CAN_HAVE_LOCATION_P (t)) && (!EXPR_HAS_LOCATION (t)))
+    SET_EXPR_LOCATION (t, location);
+
+  if (pending_statement && (pending_location != location))
+    flush_pending_note ();
+#endif
+  return do_add_stmt (t);
+}
+
+
+/*
+ *  addStmtNote - remember this location represents the start of a Modula-2
+ *                statement.  It is flushed if another different location is
+ *                generated or another tree is given to add_stmt.
+ */
+
+void
+m2block_addStmtNote (location_t location)
+{
+  if (pending_statement && (pending_location != location))
+    flush_pending_note ();
+
+  pending_statement = TRUE;
+  pending_location = location;
+}
+
+
+void m2block_removeStmtNote (void)
+{
+  pending_statement = FALSE;
 }
 
 

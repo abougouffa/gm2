@@ -31,6 +31,7 @@ FROM M2Students IMPORT StudentVariableCheck ;
 FROM SymbolTable IMPORT GetMainModule, IsProcedure,
                         IsModuleWithinProcedure,
                         CheckHiddenTypeAreAddress, IsModule, IsDefImp,
+			DebugLineNumbers,
                         ForeachProcedureDo,
                         ForeachInnerModuleDo, GetSymName ;
 
@@ -267,6 +268,7 @@ BEGIN
 
    MarkExported(GetMainModule()) ;
    GenerateSwigFile(GetMainModule()) ;
+   DebugLineNumbers(GetMainModule()) ;
    qprintf0('        gcc trees given to the gcc backend\n') ;
    EndGlobalContext ;
 

@@ -26,7 +26,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #if !defined(m2treelib_h)
 #   define m2treelib_h
 #   if defined(m2treelib_c)
-#       define EXTERN 
+#       define EXTERN
 #   else
 #       define EXTERN extern
 #   endif

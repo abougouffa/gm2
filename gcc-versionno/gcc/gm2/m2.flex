@@ -500,6 +500,16 @@ static void consumeLine (void)
   yyless(1);                  /* push back all but the \n */
 }
 
+static void assert_location (location_t location)
+{
+  if ((location != BUILTINS_LOCATION) && (location != UNKNOWN_LOCATION) && (! M2Options_GetCpp ())) {
+     expanded_location xl = expand_location (location);
+     if (xl.line != currentLine->actualline) {
+       m2flex_M2Error ("mismatched gcc location and front end token number");
+     }
+  }
+}
+
 /*
  *  updatepos - updates the current token position.
  *              Should be used when a rule matches a token.
@@ -515,6 +525,7 @@ static void updatepos (void)
   if (currentLine->column == 0)
     currentLine->column = currentLine->tokenpos;
   currentLine->location = M2Options_OverrideLocation (GET_LOCATION (currentLine->column));
+  assert_location (GET_LOCATION (currentLine->column));
 }
 
 /*
@@ -681,7 +692,7 @@ EXTERN int m2flex_OpenSource (char *s)
     yy_delete_buffer(YY_CURRENT_BUFFER);
     yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));
     filename = xstrdup(s);
-    lineno =1;
+    lineno = 1;
     if (currentLine != NULL)
       currentLine->actualline = lineno;
     START_FILE (filename, lineno);

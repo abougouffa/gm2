@@ -103,6 +103,8 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("compile all implementation and program modules as a single unit") },
   { "-fm2-statistics",
       N_("display statistics about the amount of source lines compiled and symbols used") },
+  { "-fm2-g",
+      N_("generate extra nops to improve debugging, producing an instruction for every code related keyword") },
   { "-fmodules",
       N_("display list of modules and location") },
   { "-fno-pth",

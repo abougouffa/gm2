@@ -120,7 +120,7 @@ FROM M2Comp IMPORT CompilingImplementationModule,
 
 FROM M2LexBuf IMPORT currenttoken,
                      GetToken,
-                     GetFileName,
+                     GetFileName, TokenToLineNo, GetTokenName,
                      GetTokenNo, GetLineNo, GetPreviousTokenLineNo ;
 
 FROM M2Error IMPORT Error,
@@ -1181,7 +1181,8 @@ PROCEDURE QuadToLineNo (QuadNo: CARDINAL) : CARDINAL ;
 VAR
    f: QuadFrame ;
 BEGIN
-   IF (LastQuadNo=0) AND (NOT IsNoPass()) AND (NOT IsPassCodeGeneration())
+   IF ((LastQuadNo=0) AND (NOT IsNoPass()) AND (NOT IsPassCodeGeneration())) OR
+      (NOT InBounds(QuadArray, QuadNo))
    THEN
       RETURN( 0 )
    ELSE
@@ -1204,7 +1205,8 @@ PROCEDURE QuadToTokenNo (QuadNo: CARDINAL) : CARDINAL ;
 VAR
    f: QuadFrame ;
 BEGIN
-   IF (LastQuadNo=0) AND (NOT IsNoPass()) AND (NOT IsPassCodeGeneration())
+   IF ((LastQuadNo=0) AND (NOT IsNoPass()) AND (NOT IsPassCodeGeneration())) OR
+      (NOT InBounds(QuadArray, QuadNo))
    THEN
       RETURN( 0 )
    ELSE
@@ -1681,7 +1683,7 @@ BEGIN
          f := GetQF(QuadNo) ;
          WITH f^ DO
             IF (NOT IsPseudoQuad(QuadNo)) AND
-               (Operator#DummyOp) AND (Operator#LineNumberOp)
+               (Operator#DummyOp) AND (Operator#LineNumberOp) AND (Operator#StatementNoteOp)
             THEN
                RETURN( QuadNo )
             END
@@ -3408,7 +3410,7 @@ END BuildEndWhile ;
 PROCEDURE BuildLoop ;
 BEGIN
    PushT(NextQuad) ;
-   PushExit(0)         (* Seperate Exit Stack for loop end *)
+   PushExit(0)       (* Seperate Exit Stack for loop end *)
 END BuildLoop ;
 
 
@@ -9357,7 +9359,6 @@ PROCEDURE BuildProcedureStart ;
 VAR
    ProcSym: CARDINAL ;
 BEGIN
-   BuildLineNo ;
    PopT(ProcSym) ;
    Assert(IsProcedure(ProcSym)) ;
    PutProcedureScopeQuad(ProcSym, NextQuad) ;
@@ -9392,11 +9393,10 @@ PROCEDURE BuildProcedureBegin ;
 VAR
    ProcSym: CARDINAL ;
 BEGIN
-   BuildLineNo ;
    PopT(ProcSym) ;
    Assert(IsProcedure(ProcSym)) ;
    PutProcedureStartQuad(ProcSym, NextQuad) ;
-   PutProcedureBegin(ProcSym, GetTokenNo()-1) ;
+   PutProcedureBegin(ProcSym, GetTokenNo()) ;
    GenQuad(NewLocalVarOp, GetTokenNo(), GetScope(ProcSym), ProcSym) ;
    CurrentProc := ProcSym ;
    PushWord(ReturnStack, 0) ;
@@ -9453,7 +9453,7 @@ BEGIN
    CheckNeedPriorityEnd(ProcSym, GetCurrentModule()) ;
    CurrentProc := NulSym ;
    PutProcedureEnd(ProcSym, GetTokenNo()-1) ;
-   GenQuad(KillLocalVarOp, GetTokenNo(), NulSym, ProcSym) ;
+   GenQuad(KillLocalVarOp, GetTokenNo()-1, NulSym, ProcSym) ;
    PutProcedureEndQuad(ProcSym, NextQuad) ;
    GenQuad(ReturnOp, NulSym, NulSym, ProcSym) ;
    CheckFunctionReturn(ProcSym) ;
@@ -12121,6 +12121,8 @@ PROCEDURE WriteQuad (BufferQuad: CARDINAL) ;
 VAR
    n1, n2: Name ;
    f     : QuadFrame ;
+   n     : Name ;
+   l     : CARDINAL ;
 BEGIN
    f := GetQF(BufferQuad) ;
    WITH f^ DO
@@ -12164,6 +12166,9 @@ BEGIN
       TryOp,
       GotoOp            : printf1('%4d', Operand3) |
 
+      StatementNoteOp   : l := TokenToLineNo(Operand3, 0) ;
+                          n := GetTokenName (Operand3) ;
+                          printf4('%a:%d:%a (tokenno %d)', Operand1, l, n, Operand3) |
       LineNumberOp      : printf2('%a:%d', Operand1, Operand3) |
 
       EndFileOp         : n1 := GetSymName(Operand3) ;
@@ -12333,6 +12338,7 @@ BEGIN
    OptimizeOnOp             : printf0('OptimizeOn        ') |
    OptimizeOffOp            : printf0('OptimizeOff       ') |
    InlineOp                 : printf0('Inline            ') |
+   StatementNoteOp          : printf0('StatementNote     ') |
    LineNumberOp             : printf0('LineNumber        ') |
    BuiltinConstOp           : printf0('BuiltinConst      ') |
    BuiltinTypeInfoOp        : printf0('BuiltinTypeInfo   ') |
@@ -12726,14 +12732,12 @@ VAR
    filename: Name ;
    f       : QuadFrame ;
 BEGIN
-   IF (NextQuad#Head) AND (GenerateLineDebug OR GenerateDebugging)
+   IF (NextQuad#Head) AND (GenerateLineDebug OR GenerateDebugging) AND FALSE
    THEN
       filename := makekey(string(GetFileName())) ;
       f := GetQF(NextQuad-1) ;
-      IF (f^.Operator=LineNumberOp) AND (f^.Operand1=WORD(filename))
+      IF NOT ((f^.Operator=LineNumberOp) AND (f^.Operand1=WORD(filename)))
       THEN
-         (* do nothing *)
-      ELSE
          GenQuad(LineNumberOp, WORD(filename), NulSym, WORD(GetLineNo()))
       END
    END
@@ -12754,7 +12758,10 @@ BEGIN
       THEN
          (* do nothing *)
       ELSE
-         GenQuad(LineNumberOp, WORD(File), NulSym, WORD(Line))
+         IF FALSE
+         THEN
+            GenQuad(LineNumberOp, WORD(File), NulSym, WORD(Line))
+         END
       END ;
       Next := FreeLineList
    END ;
@@ -12821,6 +12828,58 @@ PROCEDURE PushLineNo ;
 BEGIN
    PushLineNote(InitLineNote(makekey(string(GetFileName())), GetLineNo()))
 END PushLineNo ;
+
+
+(*
+   BuildStmtNote - builds a StatementNoteOp pseudo quadruple operator.
+                   This quadruple indicates which source line has been
+                   processed and it represents the start of a statement
+                   sequence.
+                   It differs from LineNumberOp in that multiple successive
+                   LineNumberOps will be removed and the final one is attached to
+                   the next real GCC tree.  Whereas a StatementNoteOp is always left
+                   alone.  Depending upon the debugging level it will issue a nop
+                   instruction to ensure that the gdb single step will step into
+                   this line.  Practically it allows pedalogical debugging to
+                   occur when there is syntax sugar such as:
+
+
+                         END  (* step *)
+                      END  (* step *)
+                   END ; (* step *)
+		   a := 1 ; (* step *)
+
+                   REPEAT (* step *)
+		      i := 1  (* step *)
+
+                   The stack is not affected, read or altered in any way.
+
+
+                        Entry                   Exit
+                        =====                   ====
+
+                 Ptr ->                              <- Ptr
+*)
+
+PROCEDURE BuildStmtNote (offset: INTEGER) ;
+VAR
+   filename: Name ;
+   f       : QuadFrame ;
+   i       : INTEGER ;
+BEGIN
+   IF NextQuad#Head
+   THEN
+      f := GetQF(NextQuad-1) ;
+      i := offset ;
+      INC (i, GetTokenNo()) ;
+      (* no need to have multiple notes at the same position.  *)
+      IF (f^.Operator#StatementNoteOp) OR (f^.Operand3#i)
+      THEN
+         filename := makekey(string(GetFileName())) ;
+         GenQuad(StatementNoteOp, WORD(filename), NulSym, i)
+      END
+   END
+END BuildStmtNote ;
 
 
 (*

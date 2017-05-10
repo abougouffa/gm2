@@ -31,7 +31,7 @@ IMPLEMENTATION MODULE M2GCCDeclare ;
 FROM SYSTEM IMPORT ADDRESS, ADR, WORD ;
 FROM ASCII IMPORT nul ;
 FROM M2Debug IMPORT Assert ;
-FROM M2Quads IMPORT DisplayQuadRange, QuadToTokenNo ;
+FROM M2Quads IMPORT DisplayQuadRange ;
 
 IMPORT FIO ;
 
@@ -1638,9 +1638,7 @@ END WalkConstructor ;
    DeclareConstructor - declares a constructor.
 *)
 
-PROCEDURE DeclareConstructor (quad: CARDINAL; sym: CARDINAL) ;
-VAR
-   tokenno: CARDINAL ;
+PROCEDURE DeclareConstructor (tokenno: CARDINAL; quad: CARDINAL; sym: CARDINAL) ;
 BEGIN
    IF sym=NulSym
    THEN
@@ -1648,12 +1646,6 @@ BEGIN
    END ;
    IF IsConstructor(sym) AND (NOT GccKnowsAbout(sym))
    THEN
-      IF quad=0
-      THEN
-         tokenno := GetDeclaredMod(sym)
-      ELSE
-         tokenno := QuadToTokenNo(quad)
-      END ;
       WalkConstructor(sym, TraverseDependants) ;
       DeclareTypesConstantsProceduresInRange(quad, quad) ;
       Assert(IsConstructorDependants(sym, IsFullyDeclared)) ;
@@ -1669,9 +1661,7 @@ END DeclareConstructor ;
                            then enter it into the to do list.
 *)
 
-PROCEDURE TryDeclareConstructor (quad: CARDINAL; sym: CARDINAL) ;
-VAR
-   tokenno: CARDINAL ;
+PROCEDURE TryDeclareConstructor (tokenno: CARDINAL; quad: CARDINAL; sym: CARDINAL) ;
 BEGIN
    IF sym=NulSym
    THEN
@@ -1679,12 +1669,6 @@ BEGIN
    END ;
    IF IsConstructor(sym) AND (NOT GccKnowsAbout(sym))
    THEN
-      IF quad=0
-      THEN
-         tokenno := GetDeclaredMod(sym)
-      ELSE
-         tokenno := QuadToTokenNo(quad)
-      END ;
       WalkConstructor(sym, TraverseDependants) ;
       IF NOT IsElementInSet(ToBeSolvedByQuads, sym)
       THEN
@@ -1756,7 +1740,7 @@ PROCEDURE TryDeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
 VAR
    type: CARDINAL ;
 BEGIN
-   TryDeclareConstructor(0, sym) ;
+   TryDeclareConstructor(tokenno, 0, sym) ;
    IF IsConst(sym)
    THEN
       TraverseDependants(sym) ;

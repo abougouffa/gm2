@@ -50,6 +50,7 @@ EXTERN bool gm2_langhook_handle_option (size_t scode, const char *arg,
 EXTERN void gm2_langhook_init_options (unsigned int decoded_options_count,
 					   struct cl_decoded_option *decoded_options);
 EXTERN void gm2_genericize (tree fndecl);
+EXTERN tree convert_loc (location_t location, tree type, tree expr);
 
 
 #undef EXTERN

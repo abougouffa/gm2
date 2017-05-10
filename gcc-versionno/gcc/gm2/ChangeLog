@@ -1,3 +1,60 @@
+2017-05-10      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  removed old conditional.  Added
+	-fm2-g flag.  Removed obsolete variables.  Removed
+	  redundant flags in compilation builds.
+	* gm2/bnf/m2-3.bnf:  removed BuildLineNote.  Introduced
+	  BuildStmtNote.
+	* gm2/bnf/m2-h.bnf:  removed BuildLineNote.
+	* gm2/examples/map/RoomMap.mod:  removed WriteString, WriteLn.
+	* gm2/examples/map/StoreCoords.mod:  changed error message.
+	* gm2/gm2-compiler/M2Code.mod:  call DebugLineNumbers.
+	* gm2/gm2-compiler/M2Comp.def:  changed spacing.
+	* gm2/gm2-compiler/M2GCCDeclare.def:  add tokenno parameter to
+	  many procedures.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  removed QuadToTokenNo,
+	  use tokenno parameter instead.
+	* gm2/gm2-compiler/M2GenGCC.mod:  import addStmtNote,
+          removeStmtNote.  Implement CodeStatementNote, FoldStatementNote
+          call them from the appropriate case statements.  Remove
+	  all QuadToTokenNo calls and use CurrentQuadToken instead.
+	* gm2/gm2-compiler/M2LexBuf.def:  export GetTokenName.
+	* gm2/gm2-compiler/M2LexBuf.mod:  new procedure function
+	  GetTokenName.
+	* gm2/gm2-compiler/M2Optimize.mod:  removed spaces.
+	* gm2/gm2-compiler/M2Options.def:  export GetCpp,
+          SetM2g and GetM2g.
+	* gm2/gm2-compiler/M2Options.mod:  implement GetCpp,
+          SetM2g and GetM2g.
+	* gm2/gm2-compiler/M2Quads.def:  define BuildStmtNote
+	  and BuildStmtOp.  Removed spaces.
+	* gm2/gm2-compiler/M2Quads.mod:  implement BuildStmtNote.
+          Ensure BEGIN END tokens are accurate.  Use StatementNoteOp
+	  instead of LineNumberOp.
+	* gm2/gm2-compiler/M2Range.mod:  pass tokenno as a parameter to
+	  DeclareConstructor.
+	* gm2/gm2-compiler/M2Search.def:  improve comment.
+	* gm2/gm2-compiler/SymbolTable.def:  DebugLineNumbers new
+	  procedure.
+	* gm2/gm2-compiler/SymbolTable.mod:  DebugLineNumbers implement
+	  new procedure.
+	* gm2/gm2-gcc/m2block.c:  do_add_stmt, flush_pending_note,
+          addStmtNote, removeStmtNote new functions.
+	* gm2/gm2-gcc/m2block.def:  export addStmtNote, removeStmtNote,
+	  add_stmt.
+	* gm2/gm2-gcc/m2block.h:  export addStmtNote, removeStmtNote,
+	  add_stmt.
+	* gm2/gm2-gcc/m2options.h:  export GetCpp, GetM2g, SetM2g.
+	* gm2/gm2-gcc/m2statement.c:  use convert_loc instead of convert.
+	* gm2/gm2-gcc/m2treelib.c:  call m2block_add_stmt.
+	* gm2/gm2-gcc/m2treelib.h:  removed spaces.
+	* gm2/gm2-lang.c:  introduce -fm2-g flag.
+	* gm2/gm2-lang.h:  define convert_loc.
+	* gm2/lang-options.h:  introduce -fm2-g flag.
+	* gm2/lang.opt:  introduce -fm2-g flag.
+	* gm2/m2.flex:  only run the assert if we are not invoking
+	  the C preprocessor.
+
 2017-04-27      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  many new rules to allow

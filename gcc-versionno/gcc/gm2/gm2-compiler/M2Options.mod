@@ -325,6 +325,37 @@ END SetCpp ;
 
 
 (*
+   GetCpp - returns TRUE if the C preprocessor was used.
+*)
+
+PROCEDURE GetCpp () : BOOLEAN ;
+BEGIN
+   RETURN( CPreProcessor )
+END GetCpp ;
+
+
+(*
+   SetM2g - returns TRUE if the -fm2-g flags was used.
+*)
+
+PROCEDURE SetM2g (value: BOOLEAN) : BOOLEAN ;
+BEGIN
+   GenerateStatementNote := value ;
+   RETURN( GenerateStatementNote )
+END SetM2g ;
+
+
+(*
+   GetM2g - returns TRUE if the -fm2-g flags was used.
+*)
+
+PROCEDURE GetM2g () : BOOLEAN ;
+BEGIN
+   RETURN( GenerateStatementNote )
+END GetM2g ;
+
+
+(*
    SetVerbose - set the Verbose flag to, value.  It returns TRUE.
 *)
 
@@ -764,6 +795,17 @@ BEGIN
 END SetDebugFunctionLineNumbers ;
 
 
+(*
+   SetGenerateStatementNote - turn on generation of nops if necessary
+                              to generate pedalogical single stepping.
+*)
+
+PROCEDURE SetGenerateStatementNote (value: BOOLEAN) ;
+BEGIN
+   GenerateStatementNote := value
+END SetGenerateStatementNote ;
+
+
 BEGIN
    CppArgs                      := InitString('') ;
    CppProgram                   := InitString('') ;
@@ -811,5 +853,6 @@ BEGIN
    WholeProgram                 := FALSE ;
    DebugTraceQuad               := FALSE ;
    DebugTraceAPI                := FALSE ;
-   DebugFunctionLineNumbers     := FALSE
+   DebugFunctionLineNumbers     := FALSE ;
+   GenerateStatementNote        := FALSE
 END M2Options.

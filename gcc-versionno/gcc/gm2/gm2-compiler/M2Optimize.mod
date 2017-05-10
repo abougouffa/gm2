@@ -56,7 +56,7 @@ FROM SymbolTable IMPORT GetSymName,
 
 FROM M2Quads IMPORT QuadOperator, GetQuad, GetFirstQuad, GetNextQuad,
                     PutQuad, SubQuad, Opposite, IsReferenced,
-                    GetRealQuad, QuadToTokenNo ;
+                    GetRealQuad ;
 
 
 (* %%%FORWARD%%%
@@ -308,7 +308,7 @@ END FoldMultipleGoto ;
 
 
 (*
-   CheckNeedSavePriority - 
+   CheckNeedSavePriority -
 *)
 
 PROCEDURE CheckNeedSavePriority (sym: CARDINAL) ;
@@ -360,7 +360,7 @@ BEGIN
    ForeachInnerModuleDo(scope, RemoveProcedures) ;
    sb := KillScopeBlock(sb) ;
    (* DeleteUnReachableProcedures *)
-END RemoveProcedures ;  
+END RemoveProcedures ;
 
 
 PROCEDURE KnownReachable (Start, End: CARDINAL) ;
