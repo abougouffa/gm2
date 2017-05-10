@@ -1,5 +1,6 @@
 2017-05-10      Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2.texi:  document the -fm2-g option.
 	* gm2/Make-lang.in:  removed old conditional.  Added
 	-fm2-g flag.  Removed obsolete variables.  Removed
 	  redundant flags in compilation builds.

@@ -42,7 +42,8 @@
 @c
 @vskip 0pt plus 1filll
 Copyright @copyright{} 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-2008, 2009, 2010, 2011, 2012, 2014, 2015 Free Software Foundation, Inc.
+2008, 2009, 2010, 2011, 2012, 2014, 2015, 2016, 2017
+Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
@@ -767,6 +768,14 @@ that you need to take care if you are compiling different dialect
 modules (particularly with the negative operands to modulus).  But
 this option, when coupled together with @code{-O3}, can deliver huge
 performance improvements.
+
+@item -fm2-g
+improve the debugging experience for new programmers at the expense
+of generating @code{nop} instructions if necessary to ensure single
+stepping precision over all code related keywords.  An example
+of this is in termination of a list of nested @code{IF} statements
+where multiple @code{END} keywords are mapped onto a sequence of
+@code{nop} instructions.
 
 @item -fmakelist
 this option is only applicable when linking a program module.  The
