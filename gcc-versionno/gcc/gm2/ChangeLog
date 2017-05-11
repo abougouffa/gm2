@@ -1,5 +1,14 @@
 2017-05-11      Gaius Mulley <gaius@gnu.org>
 
+	* gm2/NEWS:  updated to reflect release 1.2.0.
+	* gm2/configure:  regenerated.
+	* gm2/configure.in:  updated to reflect release 1.2.0.
+	* gm2/gm2-libs/config-host.in:  updated to reflect
+	  release 1.2.0.
+	* gm2/gm2-libs/config-target.in:  updated to reflect
+          release 1.2.0.
+	* gm2/gm2.texi:  updated to reflect release 1.2.0.
+	* gm2/version.c:  updated to reflect release 1.2.0.
 	* gm2/gm2-compiler/M2GenGCC.mod:  added tests for type equivalence
           between operands in CodeIfSetEqu and CodeIfSetNotEqu.  Fixes a bug
           reported by Ernst Bokkelkamp.

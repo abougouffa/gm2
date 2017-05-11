@@ -11,8 +11,8 @@
 @setfilename gm2.info
 
 @include version.texi
-@set version-GDB     6.6
-@set version-python  2.6
+@set version-GDB     7.7.1
+@set version-python  2.7
 
 @settitle The GNU Modula-2 front end to GCC (gm2-@value{version-GM2})
 
@@ -199,6 +199,10 @@ different please email @email{gaius@@gnu.org} with your ideas.
 @item 1.0
 GNU Modula-2 has been released and is fully ISO compliant.
 
+@item 1.2.0
+GNU Modula-2 has been released and will build with gcc-5.2.0
+on x86_64, x86_32 and aarch64 (and others).
+
 @item 2.0
 will be released when it works with the GCC trunc.
 
@@ -212,6 +216,12 @@ source tree.
 @section News
 
 @table @code
+
+@item gm2 1.2.0
+was released on May 11th 2017.  gm2-1.2.0 grafts onto gcc-5.2.0 and
+supports much better line number accuracy in debugging output.
+Source to code relationship can be further improved by the new option
+-fm2-g.  -fm2-whole-program also provides whole program optimization.
 @item Talk given at The GNU Tools Cauldron
 here is a talk on GNU Modula-2 given at
 @url{https://gcc.gnu.org/wiki/cauldron2016,The GNU Tools Cauldron},
@@ -220,7 +230,8 @@ The title is, ``GNU Modula-2 status, whole
 program optimisation and language interoperability''
 [@url{http://floppsie.comp.glam.ac.uk/Papers/paper22/gaius-gcc-cauldron-2016.pdf,slides}
 and @url{https://www.youtube.com/watch?v=8GMyxwHdr1E,video}].
-
+@item gm2 1.1.6
+was released on February 22nd 2016.  gm2-1.1.6 grafts onto gcc-4.7.4.
 @item gm2 1.1.5
 was released on September 3 2015, passes all regression tests and has
 many bug fixes applied.  Arrays and Records can be assigned to and from

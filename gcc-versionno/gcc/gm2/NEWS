@@ -1,6 +1,14 @@
 This file describes recent user-visible changes in gm2.  Bug fixes are
 not described.  There are more details in the man and info pages.
 
+VERSION 1.2.0
+=============
+
+* New improved more accurate source/line correlation in debugging output.
+* -fm2-g generates nops to further improve debugging single stepping.
+* -fm2-whole-program whole program optimization available.
+* works with gcc-5.2.0 under x86_64, x86_32, arm 64 bit and arm 32 bit.
+
 VERSION 1.0.4
 =============
 
