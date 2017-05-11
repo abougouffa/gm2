@@ -26,7 +26,7 @@ VAR
    l: LargeSet ;
    s: SmallSet ;
 BEGIN
-   IF s=l
+   IF l={}
    THEN
    
    END ;
