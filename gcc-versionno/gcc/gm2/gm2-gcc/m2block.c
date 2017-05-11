@@ -1,4 +1,4 @@
-/* Copyright (C) 2012, 2013, 2014, 2015
+/* Copyright (C) 2012, 2013, 2014, 2015, 2016, 2017
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -908,6 +908,7 @@ m2block_add_stmt (location_t location, tree t)
   if (pending_statement && (pending_location != location))
     flush_pending_note ();
 #endif
+  pending_statement = FALSE;
   return do_add_stmt (t);
 }
 

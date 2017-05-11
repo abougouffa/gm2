@@ -92,7 +92,7 @@ PROCEDURE Halt (file: ARRAY OF CHAR; line: CARDINAL;
 *)
 
 PROCEDURE ExitOnHalt (e: INTEGER) ;
-   
+
 
 (*
    ErrorMessage - emits an error message to stderr and then calls exit (1).

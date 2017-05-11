@@ -1,3 +1,9 @@
+2017-05-11      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  added tests for type equivalence
+          between operands in CodeIfSetEqu and CodeIfSetNotEqu.  Fixes a bug
+          reported by Ernst Bokkelkamp.
+
 2017-05-10      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  document the -fm2-g option.

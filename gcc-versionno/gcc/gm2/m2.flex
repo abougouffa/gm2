@@ -502,12 +502,14 @@ static void consumeLine (void)
 
 static void assert_location (location_t location)
 {
+#if 0
   if ((location != BUILTINS_LOCATION) && (location != UNKNOWN_LOCATION) && (! M2Options_GetCpp ())) {
      expanded_location xl = expand_location (location);
      if (xl.line != currentLine->actualline) {
        m2flex_M2Error ("mismatched gcc location and front end token number");
      }
   }
+#endif
 }
 
 /*

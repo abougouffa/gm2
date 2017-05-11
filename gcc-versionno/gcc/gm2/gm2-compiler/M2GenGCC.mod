@@ -71,6 +71,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         GetPriority, GetNeedSavePriority,
                         PutConstString,
                         PutConst, PutConstSet, PutConstructor,
+			GetSType,
                         HasVarParameters,
                         NulSym ;
 
@@ -6336,7 +6337,8 @@ BEGIN
                           BuildConvert(location, GetWordType(), Mod2Gcc(op1), FALSE),
                           BuildConvert(location, GetWordType(), Mod2Gcc(op2), FALSE)),
              NIL, string(CreateLabelName(op3)))
-   ELSE
+   ELSIF GetSType(op1)=GetSType(op2)
+   THEN
       falselabel := string(Sprintf1(Mark(InitString('.Lset%dcomp')), quad)) ;
 
       BuildForeachWordInSetDoIfExpr(location,
@@ -6350,6 +6352,10 @@ BEGIN
 
       BuildGoto(location, string(CreateLabelName(op3))) ;
       DeclareLabel(location, falselabel)
+   ELSE
+      MetaErrorT2(CurrentQuadToken,
+                  'set comparison is only allowed between the same set type, the set types used by {%1atd} and {%2atd} are different',
+                  op1, op2)
    END
 END CodeIfSetEqu ;
 
@@ -6386,7 +6392,8 @@ BEGIN
                              BuildConvert(location, GetWordType(), Mod2Gcc(op1), FALSE),
                              BuildConvert(location, GetWordType(), Mod2Gcc(op2), FALSE)),
              NIL, string(CreateLabelName(op3)))
-   ELSE
+   ELSIF GetSType(op1)=GetSType(op2)
+   THEN
       truelabel := string(CreateLabelName(op3)) ;
 
       BuildForeachWordInSetDoIfExpr(location,
@@ -6397,6 +6404,11 @@ BEGIN
                                     IsConst(op1), IsConst(op2),
                                     BuildNotEqualTo,
                                     truelabel)
+   ELSE
+      MetaErrorT2(CurrentQuadToken,
+                  'set comparison is only allowed between the same set type, the set types used by {%1atd} and {%2atd} are different',
+                  op1, op2)
+
    END
 END CodeIfSetNotEqu ;
 
