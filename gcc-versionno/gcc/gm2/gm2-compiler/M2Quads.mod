@@ -5315,11 +5315,7 @@ BEGIN
       ELSE
          (*
             type change or mode change, type changes are a pain, but I've
-            left them here as it is perhaps easier to remove them later
-            inside M2SubExp (ideally I'd like to identify a fix here and
-            in the type checking routines, but it is likely to become too
-            complex.  So currently we are stuck with sometimes creating
-            temporaries just to change type)
+            left them here as it is perhaps easier to remove them later.
          *)
          t := MakeTemporary(RightValue) ;
          PutVar(t, type) ;
@@ -5355,10 +5351,6 @@ BEGIN
          (*
             type change or mode change, type changes are a pain, but I've
             left them here as it is perhaps easier to remove them later
-            inside M2SubExp (ideally I'd like to identify a fix here and
-            in the type checking routines, but it is likely to become too
-            complex.  So currently we are stuck with sometimes creating
-            temporaries just to change type)
          *)
          t := MakeTemporary(with) ;
          PutVar(t, type) ;

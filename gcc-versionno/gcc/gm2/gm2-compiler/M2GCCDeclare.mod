@@ -2250,11 +2250,17 @@ END WalkTypesInModule ;
 
 PROCEDURE IsRecordFieldDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
 VAR
+   align: CARDINAL ;
    v    : CARDINAL ;
    final: BOOLEAN ;
 BEGIN
    final := TRUE ;
    IF NOT q(GetSType(sym))
+   THEN
+      final := FALSE
+   END ;
+   align := GetAlignment(sym) ;
+   IF (align#NulSym) AND (NOT q(align))
    THEN
       final := FALSE
    END ;
@@ -5480,7 +5486,8 @@ END WalkRecordDependants ;
 
 PROCEDURE WalkRecordFieldDependants (sym: CARDINAL; p: WalkAction) ;
 VAR
-   v: CARDINAL ;
+   v    : CARDINAL ;
+   align: CARDINAL ;
 BEGIN
    Assert(IsRecordField(sym)) ;
    p(GetSType(sym)) ;
@@ -5488,6 +5495,11 @@ BEGIN
    IF v#NulSym
    THEN
       p(v)
+   END ;
+   align := GetAlignment(sym) ;
+   IF align#NulSym
+   THEN
+      p(align)
    END
 END WalkRecordFieldDependants ;
 
@@ -5498,13 +5510,21 @@ END WalkRecordFieldDependants ;
 
 PROCEDURE WalkVarient (sym: CARDINAL; p: WalkAction) ;
 VAR
-   v: CARDINAL ;
+   v    : CARDINAL ;
+   var,
+   align: CARDINAL ;
 BEGIN
    p(sym) ;
    v := GetVarient(sym) ;
    IF v#NulSym
    THEN
       p(v)
+   END ;
+   var := GetRecordOfVarient(sym) ;
+   align := GetDefaultRecordFieldAlignment(var) ;
+   IF align#NulSym
+   THEN
+      p(align)
    END
 END WalkVarient ;
 

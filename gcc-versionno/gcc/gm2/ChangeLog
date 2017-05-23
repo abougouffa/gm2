@@ -1,3 +1,17 @@
+2017-05-23      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Code.mod:  removed unnecessary code.
+          No longer need M2SubExp.mod.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  (IsRecordFieldDependants)
+          check alignment value.  (WalkRecordFieldDependants)
+          walk alignment value.  (WalkVarient) walk alignment value.
+	* gm2/gm2-compiler/M2Quads.mod:  change comment as we no longer
+          use M2SubExp.mod
+	* gm2/gm2-gcc/m2convert.c:  use convert_loc instead of convert.
+	* gm2/gm2.texi:  remove groff font change and use texinfo.
+	* gm2/init/gm2-gccinit:  remove M2SubExp from the list.
+	* updated web pages to reflect release of 1.2.0.
+
 2017-05-11      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/NEWS:  updated to reflect release 1.2.0.

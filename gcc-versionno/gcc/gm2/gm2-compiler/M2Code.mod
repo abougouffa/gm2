@@ -44,7 +44,6 @@ FROM M2Quads IMPORT CountQuads, GetFirstQuad, DisplayQuadList, DisplayQuadRange,
                     LoopAnalysis, ForLoopAnalysis, GetQuad, QuadOperator ;
 
 FROM M2Pass IMPORT SetPassToNoPass, SetPassToCodeGeneration ;
-FROM M2SubExp IMPORT RemoveCommonSubExpressions ;
 
 FROM M2BasicBlock IMPORT BasicBlock,
                          InitBasicBlocks, InitBasicBlocksFromRange, KillBasicBlocks,
@@ -82,9 +81,7 @@ VAR
    DeltaJump,
    Jump,
    DeltaBasicB,
-   BasicB,
-   DeltaCse,
-   Cse        : CARDINAL ;
+   BasicB     : CARDINAL ;
 
 
 (*
@@ -125,22 +122,7 @@ BEGIN
       Percent(Const, Total) ; printf0('\n');
       printf1('M2 branch folding achieved     : %6d', Jump) ;
       Percent(Jump, Total) ; printf0('\n');
-      IF BasicB+Proc+Cse>0
-      THEN
-         (* there is no point making the front end attempt basic block, cse
-            and dead code elimination as the back end will do this for us
-            and it will do a better and faster job.  The code is left here
-            just in case this changes, but reporting 0 for these three
-            is likely to cause confusion.
-         *)
-         printf1('M2 basic block optimization    : %6d', BasicB) ;
-         Percent(BasicB, Total) ; printf0('\n') ;
-         printf1('M2 uncalled procedures removed : %6d', Proc) ;
-         Percent(Proc, Total) ; printf0('\n') ;
-         printf1('M2 common subexpession removed : %6d', Cse) ;
-         Percent(Cse, Total) ; printf0('\n')
-      END ;
-      value := Const+Jump+BasicB+Proc+Cse ;
+      value := Const+Jump+Proc ;
       printf1('Front end optimization removed : %6d', value) ;
       Percent(value, Total) ; printf0('\n') ;
       printf1('Front end final                : %6d', Count) ;
@@ -322,31 +304,15 @@ BEGIN
       INC(DeltaBasicB, Count - CountQuads()) ;
       Count := CountQuads() ;
 
-      IF FALSE AND OptimizeCommonSubExpressions
-      THEN
-         bb := InitBasicBlocksFromRange(start, end) ;
-         ForeachBasicBlockDo(bb, RemoveCommonSubExpressions) ;
-         bb := KillBasicBlocks(bb) ;
-
-         bb := KillBasicBlocks(InitBasicBlocksFromRange(start, end)) ;
-
-         DeltaCse := Count - CountQuads() ;
-         Count := CountQuads() ;
-
-         FoldConstants(start, end) ;       (* now attempt to fold more constants *)
-         INC(DeltaConst, Count-CountQuads()) ;
-         Count := CountQuads()
-      END ;
       (* now total the optimization components *)
       INC(Proc, DeltaProc) ;
       INC(Const, DeltaConst) ;
       INC(Jump, DeltaJump) ;
-      INC(BasicB, DeltaBasicB) ;
-      INC(Cse, DeltaCse)
+      INC(BasicB, DeltaBasicB)
    UNTIL (OptimTimes>=MaxOptimTimes) OR
-         ((DeltaProc=0) AND (DeltaConst=0) AND (DeltaJump=0) AND (DeltaBasicB=0) AND (DeltaCse=0)) ;
+         ((DeltaProc=0) AND (DeltaConst=0) AND (DeltaJump=0) AND (DeltaBasicB=0)) ;
 
-   IF (DeltaProc#0) OR (DeltaConst#0) OR (DeltaJump#0) OR (DeltaBasicB#0) OR (DeltaCse#0)
+   IF (DeltaProc#0) OR (DeltaConst#0) OR (DeltaJump#0) OR (DeltaBasicB#0)
    THEN
       printf0('optimization finished although more reduction may be possible (increase MaxOptimTimes)\n')
    END
@@ -364,8 +330,7 @@ BEGIN
    DeltaProc   := 0 ;
    DeltaConst  := 0 ;
    DeltaJump   := 0 ;
-   DeltaBasicB := 0 ;
-   DeltaCse    := 0
+   DeltaBasicB := 0
 END InitOptimizeVariables ;
 
 
@@ -378,8 +343,7 @@ BEGIN
    Proc   := 0 ;
    Const  := 0 ;
    Jump   := 0 ;
-   BasicB := 0 ;
-   Cse    := 0
+   BasicB := 0
 END Init ;
 
 

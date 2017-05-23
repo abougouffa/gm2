@@ -480,7 +480,7 @@ Python exceptions.
 
 @subsection Why not copy the C++ exception handing code into the Modula-2 runtime thus saving the necessity to build the C++ compiler?
 
-The C++ compiler is needed to compile the underlying \f[C]main()\f[P]
+The C++ compiler is needed to compile the underlying @code{main()}
 function.
 
 There appear to be differing versions of the exception handling code

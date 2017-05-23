@@ -313,7 +313,7 @@ conversion_warning (location_t loc, tree type, tree expr)
            COND_EXPR, only about the conversion of each operand.  */
         tree op1 = TREE_OPERAND (expr, 1);
         tree op2 = TREE_OPERAND (expr, 2);
-        
+
         conversion_warning (loc, type, op1);
         conversion_warning (loc, type, op2);
         return;
@@ -419,7 +419,7 @@ convert_and_check (location_t loc, tree type, tree expr)
   if (TREE_TYPE (expr) == type)
     return expr;
 
-  result = convert (type, expr);
+  result = convert_loc (loc, type, expr);
 
   if (!TREE_OVERFLOW_P (expr)
       && result != error_mark_node)
@@ -644,7 +644,7 @@ const_to_ISO_aggregate_type (location_t location, tree expr, tree iso_type)
 
   if (m2expr_CompareTrees (expr, m2decl_BuildIntegerConstant (0)) < 0)
     expr = m2expr_BuildAdd (location, expr, max_uint, FALSE);
-    
+
   i = m2decl_BuildIntegerConstant (0);
   c = m2type_BuildStartArrayConstructor (iso_type);
   while (m2expr_CompareTrees (i, n) < 0)
@@ -664,7 +664,7 @@ const_to_ISO_aggregate_type (location_t location, tree expr, tree iso_type)
       expr = m2expr_BuildDivFloor (location, expr, m2decl_BuildIntegerConstant (256), FALSE);
     }
 
-  return m2type_BuildEndArrayConstructor (c);  
+  return m2type_BuildEndArrayConstructor (c);
 }
 
 
@@ -672,7 +672,7 @@ const_to_ISO_aggregate_type (location_t location, tree expr, tree iso_type)
  *  ConvertConstantAndCheck - in Modula-2 sementics: RETURN( VAL(type, expr) )
  *
  *                            Only to be used for a constant expr,
- *                            overflow checking is performed. 
+ *                            overflow checking is performed.
  */
 
 tree
@@ -700,7 +700,7 @@ m2convert_ConvertConstantAndCheck (location_t location, tree type, tree expr)
       || type == m2type_GetM2Word32 ()
       || type == m2type_GetM2Word64 ())
     return const_to_ISO_type (location, expr, type);
-  
+
   return convert_and_check (location, type, m2expr_FoldAndStrip (expr));
 }
 
