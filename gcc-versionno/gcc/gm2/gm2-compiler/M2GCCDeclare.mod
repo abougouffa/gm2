@@ -2807,8 +2807,8 @@ BEGIN
          variables
       *)
       AssertAllTypesDeclared(scope) ;
-      DeclareGlobalVariables(scope) ;
-      ForeachImportedDo(scope, DeclareImportedVariables) ;
+      DeclareGlobalVariablesWholeProgram(scope) ;
+      ForeachImportedDo(scope, DeclareImportedVariablesWholeProgram) ;
       (* now it is safe to declare all procedures *)
       ForeachProcedureDo(scope, DeclareProcedure) ;
       ForeachInnerModuleDo(scope, WalkTypesInModule) ;
@@ -3352,6 +3352,56 @@ END DeclareVariable ;
 
 
 (*
+   DeclareVariableWholeProgram - declares a global variable to GCC when using -fm2-whole-program.
+*)
+
+PROCEDURE DeclareVariableWholeProgram (mainModule, var: CARDINAL) ;
+VAR
+   scope: Tree ;
+   decl : CARDINAL ;
+BEGIN
+   IF NOT GccKnowsAbout(var)
+   THEN
+      AlignDeclarationWithSource(var) ;
+      scope := FindContext(mainModule) ;
+      decl := FindOuterModule(var) ;
+      Assert(AllDependantsFullyDeclared(GetSType(var))) ;
+      PushBinding(mainModule) ;
+      DoVariableDeclaration(var,
+                            KeyToCharStar(GetFullSymName(var)),
+                            (NOT IsSourceSeen(decl)) AND
+                            IsEffectivelyImported(mainModule, var) AND (GetMainModule()#decl),
+                            IsExported(mainModule, var),
+                            IsTemporary(var),
+                            IsGlobal(var),
+                            scope) ;
+      PopBinding(mainModule)
+   END
+END DeclareVariableWholeProgram ;
+
+
+(*
+   DeclareGlobalVariablesWholeProgram -
+*)
+
+PROCEDURE DeclareGlobalVariablesWholeProgram (ModSym: CARDINAL) ;
+VAR
+   o, s,
+   n, Son: CARDINAL ;
+BEGIN
+   n := 1 ;
+   Son := GetNth(ModSym, n) ;
+   o := 0 ;
+   WHILE Son#NulSym DO
+      DeclareVariableWholeProgram(ModSym, Son) ;
+      INC(n) ;
+      Son := GetNth(ModSym, n)
+   END ;
+   ForeachInnerModuleDo(ModSym, DeclareGlobalVariablesWholeProgram)
+END DeclareGlobalVariablesWholeProgram ;
+
+
+(*
    DeclareGlobalVariables - lists the Global variables for
                             Module ModSym together with their offset.
 *)
@@ -3387,6 +3437,27 @@ BEGIN
       ForeachExportedDo(sym, DeclareImportedVariables)
    END
 END DeclareImportedVariables ;
+
+
+(*
+   DeclareImportedVariablesWholeProgram - declares all imported variables to GM2.
+*)
+
+PROCEDURE DeclareImportedVariablesWholeProgram (sym: WORD) ;
+BEGIN
+   IF IsVar(sym)
+   THEN
+      IF NOT IsSourceSeen(FindOuterModule(sym))
+      THEN
+         (* import is necessary, even for -fm2-whole-program as we
+            cannot see the source.  *)
+         DeclareVariableWholeProgram(GetMainModule(), sym)
+      END
+   ELSIF IsDefImp(sym)
+   THEN
+      ForeachExportedDo(sym, DeclareImportedVariablesWholeProgram)
+   END
+END DeclareImportedVariablesWholeProgram ;
 
 
 (*

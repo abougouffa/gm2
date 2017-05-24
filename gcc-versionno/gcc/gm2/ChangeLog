@@ -1,3 +1,15 @@
+2017-05-24      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  use separate procedure to
+          declare variables depending whether -fm2-whole-program was
+          specified.  (DeclareImportedVariablesWholeProgram)  New
+          procedure.  (DeclareVariableWholeProgram)  New procedure.
+          (DeclareGlobalVariablesWholeProgram)  New procedure.
+          (DeclareImportedVariablesWholeProgram)  New procedure.
+          (StartDeclareModuleScopeWholeProgram)  use
+	  DeclareImportedVariablesWholeProgram.
+	* gm2/gm2-gcc/m2decl.c:  corrected dates.
+
 2017-05-23      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Code.mod:  removed unnecessary code.
