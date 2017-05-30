@@ -1,5 +1,5 @@
 --- gcc-5.2.0-orig/Makefile.in	2015-03-25 12:05:22.000000000 +0000
-+++ gcc-5.2.0/Makefile.in	2015-10-16 17:19:25.000000000 +0100
++++ gcc-5.2.0/Makefile.in	2016-04-11 13:16:18.675000792 +0100
 @@ -157,6 +157,7 @@
  	GFORTRAN="$(GFORTRAN_FOR_BUILD)"; export GFORTRAN; \
  	GOC="$(GOC_FOR_BUILD)"; export GOC; \

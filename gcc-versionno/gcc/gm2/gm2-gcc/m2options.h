@@ -30,7 +30,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #      if defined(__GNUG__)
 #         define EXTERN extern "C"
 #      else
-#         define EXTERN 
+#         define EXTERN
 #      endif
 #  else
 #      if defined(__GNUG__)
@@ -88,6 +88,11 @@ EXTERN void M2Options_CppProg (const char *program);
 EXTERN void M2Options_CppArg (const char *opt, const char *arg, int joined);
 EXTERN void M2Options_SetWholeProgram (int value);
 EXTERN void M2Options_FinaliseOptions (void);
+EXTERN void M2Options_SetDebugFunctionLineNumbers (int value);
+EXTERN void M2Options_SetGenerateStatementNote (int value);
+EXTERN int M2Options_GetCpp (void);
+EXTERN int M2Options_GetM2g (void);
+EXTERN int M2Options_SetM2g (int value);
 
 EXTERN void M2Options_DisplayVersion (int mustExit);
 

@@ -98,7 +98,7 @@ END ErrorString ;
 
 
 (*
-   findHandler - 
+   findHandler -
 *)
 
 PROCEDURE findHandler (e: EHBlock; number: CARDINAL) : Handler ;
@@ -451,7 +451,7 @@ END KillHandlers ;
 
 
 (*
-   InitHandler - 
+   InitHandler -
 *)
 
 PROCEDURE InitHandler (h: Handler; l, r, s: Handler; number: CARDINAL; proc: ProcedureHandler) : Handler ;
@@ -468,7 +468,7 @@ END InitHandler ;
 
 
 (*
-   SubHandler - 
+   SubHandler -
 *)
 
 PROCEDURE SubHandler (h: Handler) ;

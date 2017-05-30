@@ -30,6 +30,9 @@ FROM deviceIf IMPORT Colour ;
 FROM libc IMPORT printf, exit ;
 FROM roots IMPORT nearZero ;
 
+CONST
+   debugging = FALSE ;
+   tracing   = FALSE ;
 
 TYPE
    TypeOfDef = (colour, object) ;
@@ -45,18 +48,21 @@ VAR
 
 
 (*
-   trace - 
+   trace -
 *)
 
 PROCEDURE trace (id: CARDINAL; name: ARRAY OF CHAR) : CARDINAL ;
 BEGIN
-   printf ("pgeif:  %s as id=%d\n", ADR (name), id) ;
+   IF tracing
+   THEN
+      printf ("pgeif:  %s as id=%d\n", ADR (name), id)
+   END ;
    RETURN id
 END trace ;
 
 
 (*
-   Assert - 
+   Assert -
 *)
 
 PROCEDURE Assert (b: BOOLEAN) ;
@@ -80,7 +86,7 @@ END init ;
 
 
 (*
-   newDef - 
+   newDef -
 *)
 
 PROCEDURE newDef (t: TypeOfDef; d: CARDINAL) : def ;
@@ -110,7 +116,10 @@ BEGIN
    IncludeIndiceIntoIndex (listOfDefs, f) ;
    id := HighIndice (listOfDefs) ;
    Assert (GetIndice (listOfDefs, id)=f) ;
-   printf ("pgeif:  map (pgeid %d) onto (twoDsim %d)\n", id, d) ;
+   IF debugging
+   THEN
+      printf ("pgeif:  map (pgeid %d) onto (twoDsim %d)\n", id, d)
+   END ;
    RETURN id
 END addDef ;
 
@@ -124,22 +133,34 @@ PROCEDURE lookupDef (t: TypeOfDef; d: CARDINAL) : CARDINAL ;
 VAR
    f: def ;
 BEGIN
-   printf ("inside lookupDef (d = %d)\n", d);
+   IF debugging
+   THEN
+      printf ("inside lookupDef (d = %d)\n", d)
+   END ;
    IF InBounds (listOfDefs, d)
    THEN
       f := GetIndice (listOfDefs, d) ;
-      printf ("inside lookupDef (type = %d, definition = %d)\n", f^.type, f^.definition);
+      IF debugging
+      THEN
+         printf ("inside lookupDef (type = %d, definition = %d)\n", f^.type, f^.definition)
+      END ;
       WITH f^ DO
          IF t=type
          THEN
             RETURN definition
          ELSE
-            printf ("throwing an exception in lookupDef (1)  t = %d, type = %d\n", t, type);
+	    IF debugging
+            THEN
+               printf ("throwing an exception in lookupDef (1)  t = %d, type = %d\n", t, type)
+            END ;
             THROW (ORD (IncorrectType))
          END
       END
    ELSE
-      printf ("throwing an exception in lookupDef (2)\n");
+      IF debugging
+      THEN
+         printf ("throwing an exception in lookupDef (2)\n")
+      END ;
       THROW (ORD (IdOutOfBounds))
    END
 END lookupDef ;
@@ -242,7 +263,7 @@ END gravity ;
 
 
 (*
-   check_range - 
+   check_range -
 *)
 
 PROCEDURE check_range (r: REAL; function, param: ARRAY OF CHAR) : REAL ;
@@ -324,6 +345,79 @@ PROCEDURE get_yaccel (id: CARDINAL) : REAL ;
 BEGIN
    RETURN twoDsim.get_yaccel (lookupDef (object, id))
 END get_yaccel ;
+
+
+(*
+   put_xvel - assigns the X velocity of object.
+*)
+
+PROCEDURE put_xvel (id: CARDINAL; r: REAL) ;
+BEGIN
+   twoDsim.put_xvel (lookupDef (object, id), r)
+END put_xvel ;
+
+
+(*
+   put_yvel - assigns the Y velocity of object.
+*)
+
+PROCEDURE put_yvel (id: CARDINAL; r: REAL) ;
+BEGIN
+   twoDsim.put_yvel (lookupDef (object, id), r)
+END put_yvel ;
+
+
+(*
+   put_xaccel - assigns the X accelaration of object.
+*)
+
+PROCEDURE put_xaccel (id: CARDINAL; r: REAL) ;
+BEGIN
+   twoDsim.put_xaccel (lookupDef (object, id), r)
+END put_xaccel ;
+
+
+(*
+   put_yaccel - assigns the Y accelaration of object.
+*)
+
+PROCEDURE put_yaccel (id: CARDINAL; r: REAL) ;
+BEGIN
+   twoDsim.put_yaccel (lookupDef (object, id), r)
+END put_yaccel ;
+
+
+(*
+   apply_impulse - applies an impulse of magnitude along vector
+                   [x, y] for object, id.
+*)
+
+PROCEDURE apply_impulse (id: CARDINAL; x, y: REAL; m: REAL) ;
+BEGIN
+   twoDsim.apply_impulse (lookupDef (object, id), x, y, m)
+END apply_impulse ;
+
+
+(*
+   moving_towards - returns TRUE if object, id, is moving towards
+                    a point x, y.
+*)
+
+PROCEDURE moving_towards (id: CARDINAL; x, y: REAL) : BOOLEAN ;
+BEGIN
+   RETURN twoDsim.moving_towards (lookupDef (object, id), x, y)
+END moving_towards ;
+
+
+(*
+   set_colour - sets colour of object, id, to, c.
+*)
+
+PROCEDURE set_colour (id: CARDINAL; c: CARDINAL) ;
+BEGIN
+   twoDsim.set_colour (lookupDef (object, id),
+                       lookupDef (colour, c))
+END set_colour ;
 
 
 (*
@@ -505,7 +599,10 @@ PROCEDURE velocity (id: CARDINAL; vx, vy: REAL) : CARDINAL ;
 VAR
    ti: CARDINAL ;
 BEGIN
-   printf ("inside velocity (id = %d)\n", id);
+   IF debugging
+   THEN
+      printf ("inside velocity (id = %d)\n", id)
+   END ;
    ti := trace (twoDsim.velocity (lookupDef (object, id), vx, vy),
                 "velocity") ;
    RETURN id
@@ -564,6 +661,23 @@ PROCEDURE is_frame () : BOOLEAN ;
 BEGIN
    RETURN twoDsim.isFrame ()
 END is_frame ;
+
+
+PROCEDURE is_function () : BOOLEAN ;
+BEGIN
+   RETURN twoDsim.isFunction ()
+END is_function ;
+
+
+(*
+   create_function_event - creates a function event at time, t,
+                           in the future.
+*)
+
+PROCEDURE create_function_event (t: REAL; id: CARDINAL) ;
+BEGIN
+   twoDsim.createFunctionEvent (t, id)
+END create_function_event ;
 
 
 (*
@@ -678,6 +792,17 @@ END draw_collision ;
 
 
 (*
+   set_collision_colour - when two objects collide they will both be draw using
+                          colour, c.
+*)
+
+PROCEDURE set_collision_colour (c: CARDINAL) ;
+BEGIN
+   twoDsim.setCollisionColour (lookupDef (colour, c))
+END set_collision_colour ;
+
+
+(*
    dump_world - dump a list of all objects and their characteristics.
 *)
 
@@ -685,6 +810,17 @@ PROCEDURE dump_world ;
 BEGIN
    twoDsim.dumpWorld
 END dump_world ;
+
+
+(*
+   check_objects - perform a check to make sure that all non fixed
+                   objects have a mass.
+*)
+
+PROCEDURE check_objects ;
+BEGIN
+   twoDsim.checkObjects
+END check_objects ;
 
 
 (*
@@ -732,6 +868,16 @@ BEGIN
    (* do nothing *)
    RETURN a
 END nofree ;
+
+
+(*
+   fps - set frames per second.
+*)
+
+PROCEDURE fps (f: REAL) ;
+BEGIN
+   twoDsim.fps (f)
+END fps ;
 
 
 BEGIN

@@ -112,7 +112,7 @@ PROCEDURE P3EndBuildDefModule ;
 VAR
    NameStart,
    NameEnd  : CARDINAL ;
-BEGIN                                 
+BEGIN
    Assert(CompilingDefinitionModule()) ;
    CheckForUnknownInModule ;
    EndScope ;
@@ -366,7 +366,7 @@ END EndBuildInnerModule ;
 PROCEDURE CheckImportListOuterModule ;
 VAR
    n1, n2     : Name ;
-   Sym, ModSym,
+   ModSym,
    i, n       : CARDINAL ;
 BEGIN
    PopT(n) ;       (* n   = # of the Ident List *)
@@ -438,7 +438,7 @@ END CheckCanBeImported ;
 *)
 
 PROCEDURE StartBuildProcedure ;
-VAR 
+VAR
    name    : Name ;
    ProcSym : CARDINAL ;
 BEGIN

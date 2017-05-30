@@ -17,7 +17,7 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA. *)
 
-DEFINITION MODULE decl ;
+DEFINITION MODULE decl ; (*!m2pim*)
 
 (*
     Title      : decl
@@ -73,6 +73,48 @@ PROCEDURE isDef (n: node) : BOOLEAN ;
 *)
 
 PROCEDURE isImp (n: node) : BOOLEAN ;
+
+
+(*
+   isImpOrModule - returns TRUE if, n, is a program module or implementation module.
+*)
+
+PROCEDURE isImpOrModule (n: node) : BOOLEAN ;
+
+
+(*
+   isVisited - returns TRUE if the node was visited.
+*)
+
+PROCEDURE isVisited (n: node) : BOOLEAN ;
+
+
+(*
+   unsetVisited - unset the visited flag on a def/imp/module node.
+*)
+
+PROCEDURE unsetVisited (n: node) ;
+
+
+(*
+   setVisited - set the visited flag on a def/imp/module node.
+*)
+
+PROCEDURE setVisited (n: node) ;
+
+
+(*
+   setEnumsComplete - sets the field inside the def or imp or module, n.
+*)
+
+PROCEDURE setEnumsComplete (n: node) ;
+
+
+(*
+   getEnumsComplete - gets the field from the def or imp or module, n.
+*)
+
+PROCEDURE getEnumsComplete (n: node) : BOOLEAN ;
 
 
 (*
@@ -142,6 +184,13 @@ PROCEDURE lookupModule (n: Name) : node ;
 
 
 (*
+   putDefForC - the definition module was defined FOR "C".
+*)
+
+PROCEDURE putDefForC (n: node) ;
+
+
+(*
    lookupInScope - looks up a symbol named, n, from, scope.
 *)
 
@@ -197,6 +246,13 @@ PROCEDURE putTypeHidden (des: node) ;
 *)
 
 PROCEDURE isTypeHidden (n: node) : BOOLEAN ;
+
+
+(*
+   hasHidden - returns TRUE if module, n, has a hidden type.
+*)
+
+PROCEDURE hasHidden (n: node) : BOOLEAN ;
 
 
 (*
@@ -297,6 +353,22 @@ PROCEDURE isParam (n: node) : BOOLEAN ;
 *)
 
 PROCEDURE isNonVarParam (n: node) : BOOLEAN ;
+
+
+(*
+   addOptParameter - returns an optarg which has been created and added to
+                     procedure node, proc.  It has a name, id, and, type,
+                     and an initial value, init.
+*)
+
+PROCEDURE addOptParameter (proc: node; id: Name; type, init: node) : node ;
+
+
+(*
+   isOptarg - returns TRUE if, n, is an optarg.
+*)
+
+PROCEDURE isOptarg (n: node) : BOOLEAN ;
 
 
 (*
@@ -402,6 +474,14 @@ PROCEDURE putConst (n: node; v: node) ;
 *)
 
 PROCEDURE makeType (n: Name) : node ;
+
+
+(*
+   makeTypeImp - lookup a type in the definition module
+                 and return it.  Otherwise create a new type.
+*)
+
+PROCEDURE makeTypeImp (n: Name) : node ;
 
 
 (*
@@ -517,7 +597,7 @@ PROCEDURE buildVarientSelector (r, v: node; tag: Name; type: node) ;
                              The varient field is returned.
 *)
 
-PROCEDURE buildVarientFieldRecord (v: node) : node ;
+PROCEDURE buildVarientFieldRecord (v: node; p: node) : node ;
 
 
 (*
@@ -555,9 +635,11 @@ PROCEDURE lookupSym (n: Name) : node ;
 
 (*
    addImportedModule - add module, i, to be imported by, m.
+                       If scoped then module, i, is added to the
+                       module, m, scope.
 *)
 
-PROCEDURE addImportedModule (m, i: node) ;
+PROCEDURE addImportedModule (m, i: node; scoped: BOOLEAN) ;
 
 
 (*
@@ -597,6 +679,14 @@ PROCEDURE foreachDefModuleDo (p: performOperation) ;
 
 
 (*
+   foreachModModuleDo - foreach implementation or module node, n, in the module universe,
+                        call p (n).
+*)
+
+PROCEDURE foreachModModuleDo (p: performOperation) ;
+
+
+(*
    enterScope - pushes symbol, n, to the scope stack.
 *)
 
@@ -618,6 +708,24 @@ PROCEDURE makeProcedure (n: Name) : node ;
 
 
 (*
+   putCommentDefProcedure - remembers the procedure comment (if it exists) as a
+                            definition module procedure heading.  NIL is placed
+                            if there is no procedure comment available.
+*)
+
+PROCEDURE putCommentDefProcedure (n: node) ;
+
+
+(*
+   putCommentModProcedure - remembers the procedure comment (if it exists) as an
+                            implementation/program module procedure heading.  NIL is placed
+                            if there is no procedure comment available.
+*)
+
+PROCEDURE putCommentModProcedure (n: node) ;
+
+
+(*
    makeProcType - returns a proctype node.
 *)
 
@@ -625,17 +733,17 @@ PROCEDURE makeProcType () : node ;
 
 
 (*
-   putProcTypeOptReturn - sets, proc, to have an optional return type.
+   putReturnType - sets the return type of procedure or proctype, proc, to, type.
 *)
 
-PROCEDURE putProcTypeOptReturn (proc: node) ;
+PROCEDURE putReturnType (proc, type: node) ;
 
 
 (*
-   putProcTypeReturn - sets the return type of, proc, to, type.
+   putOptReturn - sets, proctype or procedure, proc, to have an optional return type.
 *)
 
-PROCEDURE putProcTypeReturn (proc, type: node) ;
+PROCEDURE putOptReturn (proc: node) ;
 
 
 (*
@@ -643,7 +751,7 @@ PROCEDURE putProcTypeReturn (proc, type: node) ;
                       Where the parameters are declared as l: type.
 *)
 
-PROCEDURE makeVarParameter (l: node; type: node) : node ;
+PROCEDURE makeVarParameter (l: node; type, proc: node) : node ;
 
 
 (*
@@ -651,7 +759,21 @@ PROCEDURE makeVarParameter (l: node; type: node) : node ;
                          Where the parameters are declared as l: type.
 *)
 
-PROCEDURE makeNonVarParameter (l: node; type: node) : node ;
+PROCEDURE makeNonVarParameter (l: node; type, proc: node) : node ;
+
+
+(*
+   paramEnter - reset the parameter count.
+*)
+
+PROCEDURE paramEnter (n: node) ;
+
+
+(*
+   paramLeave - set paramater checking to TRUE from now onwards.
+*)
+
+PROCEDURE paramLeave (n: node) ;
 
 
 (*
@@ -722,6 +844,52 @@ PROCEDURE makeUnaryTok (op: toktype; e: node) : node ;
 
 
 (*
+   makeComponentRef - build a componentref node which accesses, field,
+                      within, record, rec.
+*)
+
+PROCEDURE makeComponentRef (rec, field: node) : node ;
+
+
+(*
+   makePointerRef - build a pointerref node which accesses, field,
+                    within, pointer to record, ptr.
+*)
+
+PROCEDURE makePointerRef (ptr, field: node) : node ;
+
+
+(*
+   isPointerRef - returns TRUE if, n, is a pointerref node.
+*)
+
+PROCEDURE isPointerRef (n: node) : BOOLEAN ;
+
+
+(*
+   makeDeRef - dereferences the pointer defined by, n.
+*)
+
+PROCEDURE makeDeRef (n: node) : node ;
+
+
+(*
+   makeArrayRef - build an arrayref node which access element,
+                  index, in, array.  array is a variable/expression/constant
+                  which has a type array.
+*)
+
+PROCEDURE makeArrayRef (array, index: node) : node ;
+
+
+(*
+   getLastOp - return the right most non leaf node.
+*)
+
+PROCEDURE getLastOp (n: node) : node ;
+
+
+(*
    getCardinal - returns the cardinal type node.
 *)
 
@@ -750,10 +918,423 @@ PROCEDURE makeString (n: Name) : node ;
 
 
 (*
+   makeSetValue - creates and returns a setvalue node.
+*)
+
+PROCEDURE makeSetValue () : node ;
+
+
+(*
+   isSetValue - returns TRUE if, n, is a setvalue node.
+*)
+
+PROCEDURE isSetValue (n: node) : BOOLEAN ;
+
+
+(*
+   putSetValue - assigns the type, t, to the set value, n.  The
+                 node, n, is returned.
+*)
+
+PROCEDURE putSetValue (n, t: node) : node ;
+
+
+(*
+   includeSetValue - includes the range l..h into the setvalue.
+                     h might be NIL indicating that a single element
+                       is to be included into the set.
+                     n is returned.
+*)
+
+PROCEDURE includeSetValue (n: node; l, h: node) : node ;
+
+
+(*
    getBuiltinConst - creates and returns a builtin const if available.
 *)
 
 PROCEDURE getBuiltinConst (n: Name) : node ;
+
+
+(*
+   makeExpList - creates and returns an expList node.
+*)
+
+PROCEDURE makeExpList () : node ;
+
+
+(*
+   isExpList - returns TRUE if, n, is an explist node.
+*)
+
+PROCEDURE isExpList (n: node) : BOOLEAN ;
+
+
+(*
+   putExpList - places, expression, e, within the explist, n.
+*)
+
+PROCEDURE putExpList (n: node; e: node) ;
+
+
+(*
+   makeConstExp - returns a constexp node.
+*)
+
+PROCEDURE makeConstExp () : node ;
+
+
+(*
+   getNextConstExp - returns the next constexp node.
+*)
+
+PROCEDURE getNextConstExp () : node ;
+
+
+(*
+   setConstExpComplete - sets the field inside the def or imp or module, n.
+*)
+
+PROCEDURE setConstExpComplete (n: node) ;
+
+
+(*
+   fixupConstExp - assign fixup expression, e, into the argument of, c.
+*)
+
+PROCEDURE fixupConstExp (c, e: node) : node ;
+
+
+(*
+   resetConstExpPos - resets the index into the saved list of constexps inside
+                      module, n.
+*)
+
+PROCEDURE resetConstExpPos (n: node) ;
+
+
+(*
+   makeFuncCall - builds a function call to c with param list, n.
+*)
+
+PROCEDURE makeFuncCall (c, n: node) : node ;
+
+
+(*
+   makeStatementSequence - create and return a statement sequence node.
+*)
+
+PROCEDURE makeStatementSequence () : node ;
+
+
+(*
+   isStatementSequence - returns TRUE if node, n, is a statement sequence.
+*)
+
+PROCEDURE isStatementSequence (n: node) : BOOLEAN ;
+
+
+(*
+   addStatement - adds node, n, as a statement to statememt sequence, s.
+*)
+
+PROCEDURE addStatement (s: node; n: node) ;
+
+
+(*
+   makeReturn - creates and returns a return node.
+*)
+
+PROCEDURE makeReturn () : node ;
+
+
+(*
+   isReturn - returns TRUE if node, n, is a return.
+*)
+
+PROCEDURE isReturn (n: node) : BOOLEAN ;
+
+
+(*
+   putReturn - assigns node, e, as the expression on the return node.
+*)
+
+PROCEDURE putReturn (n: node; e: node) ;
+
+
+(*
+   makeWhile - creates and returns a while node.
+*)
+
+PROCEDURE makeWhile () : node ;
+
+
+(*
+   putWhile - places an expression, e, and statement sequence, s, into the while
+              node, n.
+*)
+
+PROCEDURE putWhile (n: node; e, s: node) ;
+
+
+(*
+   isWhile - returns TRUE if node, n, is a while.
+*)
+
+PROCEDURE isWhile (n: node) : BOOLEAN ;
+
+
+(*
+   makeAssignment - creates and returns an assignment node.
+                    The designator is, d, and expression, e.
+*)
+
+PROCEDURE makeAssignment (d, e: node) : node ;
+
+
+(*
+   putBegin - assigns statements, s, to be the normal part in
+              block, b.  The block may be a procedure or module,
+              or implementation node.
+*)
+
+PROCEDURE putBegin (b: node; s: node) ;
+
+
+(*
+   putFinally - assigns statements, s, to be the final part in
+                block, b.  The block may be a module
+                or implementation node.
+*)
+
+PROCEDURE putFinally (b: node; s: node) ;
+
+
+(*
+   makeExit - creates and returns an exit node.
+*)
+
+PROCEDURE makeExit (l: node; n: CARDINAL) : node ;
+
+
+(*
+   isExit - returns TRUE if node, n, is an exit.
+*)
+
+PROCEDURE isExit (n: node) : BOOLEAN ;
+
+
+(*
+   makeLoop - creates and returns a loop node.
+*)
+
+PROCEDURE makeLoop () : node ;
+
+
+(*
+   isLoop - returns TRUE if, n, is a loop node.
+*)
+
+PROCEDURE isLoop (n: node) : BOOLEAN ;
+
+
+(*
+   putLoop - places statement sequence, s, into loop, l.
+*)
+
+PROCEDURE putLoop (l, s: node) ;
+
+
+(*
+   makeComment - creates and returns a comment node.
+*)
+
+PROCEDURE makeComment (a: ARRAY OF CHAR) : node ;
+
+
+(*
+   makeIf - creates and returns an if node.  The if node
+            will have expression, e, and statement sequence, s,
+            as the then component.
+*)
+
+PROCEDURE makeIf (e, s: node) : node ;
+
+
+(*
+   isIf - returns TRUE if, n, is an if node.
+*)
+
+PROCEDURE isIf (n: node) : BOOLEAN ;
+
+
+(*
+   makeElsif - creates and returns an elsif node.
+               This node has an expression, e, and statement
+               sequence, s.
+*)
+
+PROCEDURE makeElsif (i, e, s: node) : node ;
+
+
+(*
+   isElsif - returns TRUE if node, n, is an elsif node.
+*)
+
+PROCEDURE isElsif (n: node) : BOOLEAN ;
+
+
+(*
+   putElse - the else is grafted onto the if/elsif node, i,
+             and the statement sequence will be, s.
+*)
+
+PROCEDURE putElse (i, s: node) ;
+
+
+(*
+   makeFor - creates and returns a for node.
+*)
+
+PROCEDURE makeFor () : node ;
+
+
+(*
+   isFor - returns TRUE if node, n, is a for node.
+*)
+
+PROCEDURE isFor (n: node) : BOOLEAN ;
+
+
+(*
+   putFor - assigns the fields of the for node with
+            ident, i,
+            start, s,
+            end, e,
+            increment, i,
+            statements, sq.
+*)
+
+PROCEDURE putFor (f, i, s, e, b, sq: node) ;
+
+
+(*
+   makeRepeat - creates and returns a repeat node.
+*)
+
+PROCEDURE makeRepeat () : node ;
+
+
+(*
+   isRepeat - returns TRUE if node, n, is a repeat node.
+*)
+
+PROCEDURE isRepeat (n: node) : BOOLEAN ;
+
+
+(*
+   putRepeat - places statements, s, and expression, e, into
+               repeat statement, n.
+*)
+
+PROCEDURE putRepeat (n, s, e: node) ;
+
+
+(*
+   makeCase - builds and returns a case statement node.
+*)
+
+PROCEDURE makeCase () : node ;
+
+
+(*
+   isCase - returns TRUE if node, n, is a case statement.
+*)
+
+PROCEDURE isCase (n: node) : BOOLEAN ;
+
+
+(*
+   putCaseExpression - places expression, e, into case statement, n.
+                       n is returned.
+*)
+
+PROCEDURE putCaseExpression (n: node; e: node) : node ;
+
+
+(*
+   putCaseElse - places else statement, e, into case statement, n.
+                 n is returned.
+*)
+
+PROCEDURE putCaseElse (n: node; e: node) : node ;
+
+
+(*
+   putCaseStatement - places a caselist, l, and associated
+                      statement sequence, s, into case statement, n.
+                      n is returned.
+*)
+
+PROCEDURE putCaseStatement (n: node; l: node; s: node) : node ;
+
+
+(*
+   makeCaseLabelList - creates and returns a caselabellist node.
+*)
+
+PROCEDURE makeCaseLabelList (l, s: node) : node ;
+
+
+(*
+   isCaseLabelList - returns TRUE if, n, is a caselabellist.
+*)
+
+PROCEDURE isCaseLabelList (n: node) : BOOLEAN ;
+
+
+(*
+   makeCaseList - creates and returns a case statement node.
+*)
+
+PROCEDURE makeCaseList () : node ;
+
+
+(*
+   isCaseList - returns TRUE if, n, is a case list.
+*)
+
+PROCEDURE isCaseList (n: node) : BOOLEAN ;
+
+
+(*
+   putCaseRange - places the case range lo..hi into caselist, n.
+*)
+
+PROCEDURE putCaseRange (n: node; lo, hi: node) : node ;
+
+
+(*
+   makeRange - creates and returns a case range.
+*)
+
+PROCEDURE makeRange (lo, hi: node) : node ;
+
+
+(*
+   isRange - returns TRUE if node, n, is a range.
+*)
+
+PROCEDURE isRange (n: node) : BOOLEAN ;
+
+
+(*
+   dupExpr - duplicate the expression nodes, it does not duplicate
+             variables, literals, constants but only the expression
+             operators (including function calls and parameter lists).
+*)
+
+PROCEDURE dupExpr (n: node) : node ;
 
 
 (*

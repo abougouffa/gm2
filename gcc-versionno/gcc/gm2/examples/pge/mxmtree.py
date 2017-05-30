@@ -52,7 +52,7 @@ class tree:
 
     def operands (self, o):
         self.kind = node
-        print "adding operands", o
+        # print "adding operands", o
         self.operands = o
         if self.lang == "":
             self.error('must set lang by calling the tree constructor')
@@ -62,14 +62,14 @@ class tree:
 
         output = ""
         self._debug_tree ()
-        if self.lang == "m2":
-            printf ("(* debug of the tree:  ")
-            print output,
-            printf ("  *)\n")
-        if self.lang == "c":
-            printf ("/* debug of the tree:  ")
-            print output,
-            printf ("  */\n")
+        # if self.lang == "m2":
+        #    printf ("(* debug of the tree:  ")
+        #    print output,
+        #    printf ("  *)\n")
+        # if self.lang == "c":
+        #    printf ("/* debug of the tree:  ")
+        #    print output,
+        #    printf ("  */\n")
 
     def _debug_tree (self):
         global output

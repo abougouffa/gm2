@@ -114,4 +114,32 @@ BEGIN
 END replace ;
 
 
+(*
+   depth - returns the depth of the stack.
+*)
+
+PROCEDURE depth (s: stack) : CARDINAL ;
+BEGIN
+   RETURN s^.count
+END depth ;
+
+
+(*
+   access - returns the, i, th stack element.
+            The top of stack is defined by:
+
+            access (s, depth (s)).
+*)
+
+PROCEDURE access (s: stack; i: CARDINAL) : ADDRESS ;
+BEGIN
+   IF (i>s^.count) OR (i=0)
+   THEN
+      HALT
+   ELSE
+      RETURN GetIndice (s^.list, i)
+   END
+END access ;
+
+
 END mcStack.

@@ -27,19 +27,26 @@ FROM Points IMPORT Point ;
 FROM libc IMPORT printf ;
 
 
+CONST
+   debugging = FALSE ;
+
+
 (*
-   writeReal - 
+   writeReal -
 *)
 
 PROCEDURE writeReal (file: ChanId; r: REAL) ;
 BEGIN
-   printf ("about to write real %g\n", r);
+   IF debugging
+   THEN
+      printf ("about to write real %g\n", r)
+   END ;
    RawIO.Write (file, r)
 END writeReal ;
 
 
 (*
-   writeCard - 
+   writeCard -
 *)
 
 PROCEDURE writeCard (file: ChanId; c: CARDINAL) ;
@@ -49,7 +56,7 @@ END writeCard ;
 
 
 (*
-   writeLongCard - 
+   writeLongCard -
 *)
 
 PROCEDURE writeLongCard (file: ChanId; l: LONGCARD) ;
@@ -66,7 +73,7 @@ END writeLongCard ;
 
 
 (*
-   writeFract - 
+   writeFract -
 *)
 
 PROCEDURE writeFract (file: ChanId; f: Fract) ;
@@ -97,7 +104,7 @@ END writeFract ;
 
 
 (*
-   writeShort - 
+   writeShort -
 *)
 
 PROCEDURE writeShort (file: ChanId; s: SHORTCARD) ;
@@ -107,7 +114,7 @@ END writeShort ;
 
 
 (*
-   writeCoord - 
+   writeCoord -
 *)
 
 PROCEDURE writeCoord (file: ChanId; c: Coord) ;
@@ -118,7 +125,7 @@ END writeCoord ;
 
 
 (*
-   writePoint - 
+   writePoint -
 *)
 
 PROCEDURE writePoint (file: ChanId; p: Point) ;
@@ -129,7 +136,7 @@ END writePoint ;
 
 
 (*
-   writePoint - 
+   writePoint -
 *)
 
 PROCEDURE writePoint (file: ChanId; p: Point) ;

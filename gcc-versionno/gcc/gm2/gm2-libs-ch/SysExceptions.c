@@ -17,7 +17,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA  02110-1301  USA */
 
-#include <p2c/p2c.h>
+#include "gm2-libs-host.h"
 
 #if defined(HAVE_SIGNAL_H)
 #   include <signal.h>
@@ -236,10 +236,16 @@ void SysExceptions_InitExceptionHandlers (void *indexf,
  *  GNU Modula-2 linking fodder.
  */
 
+#ifdef __cplusplus
+extern "C"
+#endif
 void _M2_SysExceptions_init (void)
 {
 }
 
+#ifdef __cplusplus
+extern "C"
+#endif
 void _M2_SysExceptions_finish (void)
 {
 }

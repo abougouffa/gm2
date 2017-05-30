@@ -174,7 +174,7 @@ END daysInMonth ;
 
 
 (*
-   dayInYear - 
+   dayInYear -
 *)
 
 PROCEDURE dayInYear (day, month, year: CARDINAL) : CARDINAL ;
@@ -188,7 +188,7 @@ END dayInYear ;
 
 
 (*
-   dayInWeek - 
+   dayInWeek -
 *)
 
 PROCEDURE dayInWeek (day, month, year: CARDINAL) : CARDINAL ;

@@ -1,4 +1,4 @@
-/* Copyright (C) 2012, 2013, 2014, 2015.
+/* Copyright (C) 2012, 2013, 2014, 2015, 2016.
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -304,7 +304,7 @@ createUniqueLabel (void)
   int size, i;
   char *label;
 
-  label_count++;  
+  label_count++;
   i = label_count;
   size = strlen(".LSHIFT")+2;
   while (i>0) {
@@ -490,7 +490,7 @@ m2expr_BuildLRLn (location_t location, tree op1, tree op2, tree nBits,
     op1 = m2expr_BuildLogicalAnd (location, op1, mask, needconvert);
     left = m2expr_BuildLSL (location, op1, op2min, needconvert);
     left = m2expr_BuildLogicalAnd (location, left, mask, needconvert);
-    right = m2expr_BuildLSR (location, 
+    right = m2expr_BuildLSR (location,
 			     op1, m2expr_BuildSub (location,
 						   m2convert_ToCardinal (location, nBits), op2min, needconvert),
                              needconvert);
@@ -695,7 +695,7 @@ m2expr_BuildBinarySetDo (location_t location, tree settype, tree op1, tree op2, 
     /* parameter 2 destination set */
     m2statement_BuildParam (location,
 			    buildUnboundedArrayOf (unbounded,
-						   m2treelib_get_set_address (location, op1, 
+						   m2treelib_get_set_address (location, op1,
 									      is_op1lvalue),
 						   high));
 
@@ -809,7 +809,7 @@ m2expr_BuildTrunc (tree op1)
 
 
 /*
- *  build_unary_op - 
+ *  build_unary_op -
  */
 
 tree
@@ -843,7 +843,7 @@ build_binary_op (location_t location,
   tree result;
 
   m2assert_AssertLocation (location);
-  
+
   /* Strip NON_LVALUE_EXPRs, etc., since we aren't using as an lvalue.  */
   STRIP_TYPE_NOPS (op1);
   STRIP_TYPE_NOPS (op2);
@@ -870,7 +870,7 @@ default_convert_binary_operands (location_t location, tree *op1, tree *op2)
   tree type2 = m2tree_skip_type_decl (TREE_TYPE (*op2));
 
   m2assert_AssertLocation (location);
-      
+
   if (type1 != type2)
     {
       if (type1 == m2type_GetM2ZType ())
@@ -965,7 +965,7 @@ m2expr_build_binary_op (location_t location,
       && (code != LROTATE_EXPR) && (code == RROTATE_EXPR))
     if (type1 != type2)
       error_at (location, "not expecting different types to binary operator");
-  
+
 return build_binary_op (location, code, op1, op2, convert);
 }
 
@@ -1118,10 +1118,10 @@ calcNbits (location_t location, tree min, tree max)
   tree t = testLimits (location, m2type_GetIntegerType (), min, max);
 
   m2assert_AssertLocation (location);
-  
+
   if (t == NULL)
     t = testLimits (location, m2type_GetCardinalType (), min, max);
-  
+
   if (t == NULL)
     {
       if (m2expr_CompareTrees (min, m2expr_GetIntegerZero (location)) < 0)
@@ -1189,11 +1189,12 @@ m2expr_BuildSize (location_t location, tree op1, int needconvert ATTRIBUTE_UNUSE
 
 /*
  *  BuildAddr - builds an expression which calculates the address of
- *              op1 and returns the tree.
+ *              op1 and returns the tree.  If use_generic is TRUE then
+ *              create a generic pointer type.
  */
 
 tree
-m2expr_BuildAddr (location_t location, tree op1, int needconvert ATTRIBUTE_UNUSED)
+m2expr_BuildAddr (location_t location, tree op1, int use_generic)
 {
   tree type = m2tree_skip_type_decl (TREE_TYPE (op1));
   tree ptrType = build_pointer_type (type);
@@ -1204,7 +1205,10 @@ m2expr_BuildAddr (location_t location, tree op1, int needconvert ATTRIBUTE_UNUSE
   if (! gm2_mark_addressable (op1))
     error_at (location, "cannot take the address of this expression");
 
-  result = build1 (ADDR_EXPR, ptrType, op1);
+  if (use_generic)
+    result = build1 (ADDR_EXPR, m2type_GetPointerType (), op1);
+  else
+    result = build1 (ADDR_EXPR, ptrType, op1);
   protected_set_expr_location (result, location);
   return result;
 }
@@ -1849,7 +1853,7 @@ m2expr_BuildArray (tree type, tree array, tree index, tree lowIndice)
 
 tree
 m2expr_BuildComponentRef (location_t location, tree record, tree field)
-{ 
+{
   tree recordType = m2tree_skip_reference_type (m2tree_skip_type_decl (TREE_TYPE (record)));
 
   if (DECL_CONTEXT (field) == recordType)
@@ -1868,7 +1872,7 @@ m2expr_BuildComponentRef (location_t location, tree record, tree field)
 
 tree
 m2expr_BuildIndirect (location_t location ATTRIBUTE_UNUSED, tree target, tree type)
-{ 
+{
   /*
    *   Note that the second argument to build1 is:
    *
@@ -2010,12 +2014,12 @@ m2expr_BuildCap (location_t location, tree t)
 								   m2type_GetM2CharType ()), 0));
     out_of_range = fold (m2expr_build_binary_op (location, TRUTH_ORIF_EXPR,
 						 less_than, greater_than, 0));
-    
+
     translated = fold (convert (m2type_GetM2CharType (),
 				m2expr_build_binary_op (location, MINUS_EXPR, t,
 							build_int_2_type ('a'-'A', 0,
 									  m2type_GetM2CharType ()), 0)));
-    
+
     return fold_build3 (COND_EXPR, m2type_GetM2CharType (), out_of_range, t, translated);
   }
 
@@ -2197,7 +2201,7 @@ append_digit (unsigned HOST_WIDE_INT *low, HOST_WIDE_INT *high,
   if (add_low + digit < add_low)
     add_high++;
   add_low += digit;
-    
+
   if (res_low + add_low < res_low)
     add_high++;
   if (res_high + add_high < res_high)
@@ -2310,7 +2314,7 @@ append_m2_digit (unsigned int *low, int *high,
   if (add_low + digit < add_low)
     add_high++;
   add_low += digit;
-    
+
   if (res_low + add_low < res_low)
     add_high++;
   if (res_high + add_high < res_high)

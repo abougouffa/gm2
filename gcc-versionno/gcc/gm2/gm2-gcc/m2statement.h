@@ -29,7 +29,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #      if defined(__GNUG__)
 #         define EXTERN extern "C"
 #      else
-#         define EXTERN 
+#         define EXTERN
 #      endif
 #   else
 #      if defined(__GNUG__)
@@ -42,7 +42,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 EXTERN void m2statement_BuildEndMainModule (void);
 EXTERN void m2statement_BuildStartMainModule (void);
 EXTERN void m2statement_BuildCallInner (location_t location, tree fndecl);
-EXTERN void m2statement_BuildEnd (tree fndecl, int nested);
+EXTERN void m2statement_BuildEnd (location_t location, tree fndecl, int nested);
 EXTERN tree m2statement_BuildStart (location_t location, char *name, int inner_module);
 EXTERN void m2statement_BuildIncludeVarVar (location_t location,
 					    tree type, tree varset, tree varel,
@@ -64,7 +64,7 @@ EXTERN void m2statement_BuildUnaryForeachWordDo (location_t location,
 EXTERN void m2statement_BuildAsm (location_t location,
 				  tree instr, int isVolatile, int isSimple,
 				  tree inputs, tree outputs, tree trash, tree labels);
-EXTERN void m2statement_BuildFunctValue (location_t location, tree value);
+EXTERN tree m2statement_BuildFunctValue (location_t location, tree value);
 EXTERN tree m2statement_BuildIndirectProcedureCallTree (location_t location, tree procedure, tree rettype);
 EXTERN tree m2statement_BuildProcedureCallTree (location_t location, tree procedure, tree rettype);
 EXTERN void m2statement_BuildParam (location_t location, tree param);
@@ -78,8 +78,8 @@ EXTERN tree m2statement_BuildAssignmentTree (location_t location, tree des, tree
 EXTERN void m2statement_BuildPopFunctionContext (void);
 EXTERN void m2statement_BuildPushFunctionContext (void);
 EXTERN void m2statement_BuildReturnValueCode (location_t location, tree fndecl, tree value);
-EXTERN void m2statement_BuildEndFunctionCode (tree fndecl, int nested);
-EXTERN void m2statement_BuildStartFunctionCode (tree fndecl, int isexported, int isinline);
+EXTERN void m2statement_BuildEndFunctionCode (location_t location, tree fndecl, int nested);
+EXTERN void m2statement_BuildStartFunctionCode (location_t location, tree fndecl, int isexported, int isinline);
 EXTERN void m2statement_DoJump (location_t location, tree exp, char *falselabel, char *truelabel);
 EXTERN tree m2statement_BuildCall2 (location_t location, tree function, tree rettype, tree arg1, tree arg2);
 EXTERN tree m2statement_BuildCall3 (location_t location, tree function, tree rettype, tree arg1, tree arg2, tree arg3);
@@ -90,6 +90,11 @@ EXTERN tree m2statement_GetParamList (void);
 EXTERN tree m2statement_GetCurrentFunction (void);
 EXTERN void m2statement_SetBeginLocation (location_t location);
 EXTERN void m2statement_SetEndLocation (location_t location);
+EXTERN tree m2statement_GetParamTree (tree call, unsigned int i);
+EXTERN tree m2statement_BuildTryFinally (location_t location, tree call, tree cleanups);
+EXTERN tree m2statement_BuildCleanUp (tree param);
+
+
 
 #   undef EXTERN
 #endif

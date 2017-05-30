@@ -8,7 +8,7 @@ from socket import *
 #
 #  global variables
 #
-versionNumber     = '0.1'
+versionNumber     = '0.4'
 BoardEdge         = 40
 #
 resolution        = (1024, 1024)
@@ -20,7 +20,7 @@ fullscreen        = False
 debugging         = False
 programName       = "GNU PGE"
 pgePort           = 6000
-   
+
 call              = {}
 
 colTOid           = {}
@@ -106,7 +106,7 @@ def registerColour (connection):
 
 
 #
-#  drawCircle - 
+#  drawCircle -
 #
 
 def drawCircle (connection):
@@ -120,7 +120,7 @@ def drawCircle (connection):
 
 
 #
-#  drawPolygon - 
+#  drawPolygon -
 #
 
 def drawPolygon (connection):
@@ -211,7 +211,7 @@ def serveRPC ():
 
 
 #
-#  
+#
 #
 
 def main():

@@ -113,9 +113,9 @@ PROCEDURE AddCoord (CoordListIndex: CARDINAL; x, y: CARDINAL) ;
 BEGIN
    IF NoOfCoords=MaxCoord
    THEN
-      WriteString('Too many coordinates in a list in Module StoreCoords') ;
+      WriteString('too many coordinates in a list in Module StoreCoords') ;
       WriteLn ;
-      WriteString('Increase MaxCoord') ;
+      WriteString('increase MaxCoord') ;
       WriteLn ;
       HALT
    ELSIF UniqueCoord(CoordListIndex, x, y)

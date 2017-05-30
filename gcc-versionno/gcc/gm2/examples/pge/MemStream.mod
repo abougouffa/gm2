@@ -74,7 +74,7 @@ VAR
 
 
 (*
-   Min - 
+   Min -
 *)
 
 PROCEDURE Min (a, b: CARDINAL) : CARDINAL ;
@@ -264,7 +264,7 @@ END dorbytes ;
 
 
 (*
-   memDump - 
+   memDump -
 *)
 
 PROCEDURE memDump (a: ADDRESS; len: CARDINAL) ;
@@ -289,7 +289,7 @@ END memDump ;
 
 
 (*
-   dowbytes - 
+   dowbytes -
 *)
 
 PROCEDURE dowbytes (g: GenDevIF; d: DeviceTablePtr;
@@ -394,7 +394,7 @@ END iserror ;
 
 
 (*
-   AssignLength - 
+   AssignLength -
 *)
 
 PROCEDURE AssignLength (m: MemInfo; l: CARDINAL) ;
@@ -410,7 +410,7 @@ END AssignLength ;
 
 
 (*
-   AssignBuffer - 
+   AssignBuffer -
 *)
 
 PROCEDURE AssignBuffer (m: MemInfo; b: ADDRESS) ;
@@ -426,7 +426,7 @@ END AssignBuffer ;
 
 
 (*
-   AssignIndex - 
+   AssignIndex -
 *)
 
 PROCEDURE AssignIndex (m: MemInfo; i: CARDINAL) ;
@@ -465,7 +465,10 @@ BEGIN
    m^.pUsed := ADR(used) ;
    m^.dealloc := deallocOnClose ;
    ALLOCATE(m^.buffer, InitialLength) ;
-   printf ("memory buffer address = 0x%p\n", m^.buffer);
+   IF Debugging
+   THEN
+      printf ("memory buffer address = 0x%p\n", m^.buffer)
+   END ;
    res := opened ;
    IF m^.buffer=NIL
    THEN
@@ -520,7 +523,10 @@ PROCEDURE OpenWrite (VAR cid: ChanId; flags: FlagSet;
                      VAR used: CARDINAL;
                      deallocOnClose: BOOLEAN) ;
 BEGIN
-   printf ("OpenWrite called\n");
+   IF Debugging
+   THEN
+      printf ("OpenWrite called\n")
+   END ;
    INCL(flags, ChanConsts.writeFlag) ;
    IF NOT (ChanConsts.rawFlag IN flags)
    THEN
@@ -578,7 +584,7 @@ END newCidRead ;
 
 
 (*
-   freeMemInfo - 
+   freeMemInfo -
 *)
 
 PROCEDURE freeMemInfo (a: ADDRESS) ;
@@ -702,7 +708,7 @@ END Rewrite ;
 
 
 (*
-   handlefree - 
+   handlefree -
 *)
 
 PROCEDURE handlefree (d: DeviceTablePtr) ;
@@ -746,7 +752,7 @@ END IsMem ;
 
 
 (*
-   Init - 
+   Init -
 *)
 
 PROCEDURE Init ;

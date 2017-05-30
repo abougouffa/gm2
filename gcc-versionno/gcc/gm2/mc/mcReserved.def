@@ -51,6 +51,7 @@ TYPE
               asmtok, volatiletok, periodperiodperiodtok,
               datetok, linetok, filetok,
               attributetok, builtintok, inlinetok,
-              integertok, identtok, realtok, stringtok) ;
+              integertok, identtok, realtok, stringtok,
+	      commenttok) ;
 
 END mcReserved.

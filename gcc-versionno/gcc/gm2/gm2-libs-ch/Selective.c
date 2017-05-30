@@ -36,7 +36,7 @@ int Selective_Select (int nooffds,
 		      fd_set *exceptfds,
 		      struct timeval *timeout)
 {
-  return select(nooffds, readfds, writefds, exceptfds, timeout);
+  return select (nooffds, readfds, writefds, exceptfds, timeout);
 }
 #else
 int Selective_Select (int nooffds,
@@ -58,16 +58,16 @@ struct timeval *Selective_InitTime (unsigned int sec, unsigned int usec)
 {
   struct timeval *t=(struct timeval *)malloc(sizeof(struct timeval));
 
-  t->tv_sec = (long int)sec;
-  t->tv_usec = (long int)usec;
+  t->tv_sec = (long int) sec;
+  t->tv_usec = (long int) usec;
   return t;
 }
 
 void Selective_GetTime (struct timeval *t,
 			unsigned int *sec, unsigned int *usec)
 {
-  *sec = (unsigned int)t->tv_sec;
-  *usec = (unsigned int)t->tv_usec;
+  *sec = (unsigned int) t->tv_sec;
+  *usec = (unsigned int) t->tv_usec;
 }
 
 void Selective_SetTime (struct timeval *t,
@@ -83,7 +83,7 @@ void Selective_SetTime (struct timeval *t,
 
 struct timeval *Selective_KillTime (struct timeval *t)
 {
-  free(t);
+  free (t);
   return NULL;
 }
 
@@ -93,7 +93,7 @@ struct timeval *Selective_KillTime (struct timeval *t)
 
 fd_set *Selective_InitSet (void)
 {
-  fd_set *s=(fd_set *)malloc(sizeof(fd_set));
+  fd_set *s = (fd_set *) malloc (sizeof (fd_set));
 
   return s;
 }
@@ -104,7 +104,7 @@ fd_set *Selective_InitSet (void)
 
 fd_set *Selective_KillSet (fd_set *s)
 {
-  free(s);
+  free (s);
   return NULL;
 }
 
@@ -114,7 +114,7 @@ fd_set *Selective_KillSet (fd_set *s)
 
 void Selective_FdZero (fd_set *s)
 {
-  FD_ZERO(s);
+  FD_ZERO (s);
 }
 
 /*
@@ -123,7 +123,7 @@ void Selective_FdZero (fd_set *s)
 
 void Selective_FdSet (int fd, fd_set *s)
 {
-  FD_SET(fd, s);
+  FD_SET (fd, s);
 }
 
 
@@ -133,7 +133,7 @@ void Selective_FdSet (int fd, fd_set *s)
 
 void Selective_FdClr (int fd, fd_set *s)
 {
-  FD_CLR(fd, s);
+  FD_CLR (fd, s);
 }
 
 
@@ -143,7 +143,7 @@ void Selective_FdClr (int fd, fd_set *s)
 
 int Selective_FdIsSet (int fd, fd_set *s)
 {
-  return FD_ISSET(fd, s);
+  return FD_ISSET (fd, s);
 }
 
 /*
@@ -169,7 +169,7 @@ void *Selective_KillTime (void *t)
 }
 
 void Selective_GetTime (struct timeval *t,
-		       unsigned int *sec, unsigned int *usec)
+			unsigned int *sec, unsigned int *usec)
 {
 }
 
@@ -226,7 +226,7 @@ int Selective_MaxFdsPlusOne (int a, int b)
 
 void Selective_WriteCharRaw (int fd, char ch)
 {
-  write(fd, &ch, 1);
+  write (fd, &ch, 1);
 }
 
 
@@ -238,7 +238,7 @@ char Selective_ReadCharRaw (int fd)
 {
   char ch;
 
-  read(fd, &ch, 1);
+  read (fd, &ch, 1);
   return ch;
 }
 

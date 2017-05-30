@@ -1,5 +1,5 @@
 --- gcc-5.2.0-orig/gcc/c/gccspec.c	2015-01-05 12:33:28.000000000 +0000
-+++ gcc-5.2.0/gcc/c/gccspec.c	2015-10-16 17:33:46.863822506 +0100
++++ gcc-5.2.0/gcc/c/gccspec.c	2016-04-11 13:16:18.659000792 +0100
 @@ -106,3 +106,9 @@
  
  /* Number of extra output files that lang_specific_pre_link may generate.  */

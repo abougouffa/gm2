@@ -58,6 +58,20 @@ PROCEDURE killPretty (VAR p: pretty) ;
 
 
 (*
+   pushPretty - duplicate, p.  Push, p, and return the duplicate.
+*)
+
+PROCEDURE pushPretty (p: pretty) : pretty ;
+
+
+(*
+   popPretty - pops the pretty object from the stack.
+*)
+
+PROCEDURE popPretty (p: pretty) : pretty ;
+
+
+(*
    getindent - returns the current indent value.
 *)
 
@@ -76,6 +90,20 @@ PROCEDURE setindent (p: pretty; n: CARDINAL) ;
 *)
 
 PROCEDURE getcurpos (s: pretty) : CARDINAL ;
+
+
+(*
+   getseekpos - returns the seek position.
+*)
+
+PROCEDURE getseekpos (s: pretty) : CARDINAL ;
+
+
+(*
+   getcurline - returns the current line number.
+*)
+
+PROCEDURE getcurline (s: pretty) : CARDINAL ;
 
 
 (*
@@ -104,6 +132,14 @@ PROCEDURE print (p: pretty; a: ARRAY OF CHAR) ;
 *)
 
 PROCEDURE prints (p: pretty; s: String) ;
+
+
+(*
+   raw - print out string, s, without any translation of
+         escape sequences.
+*)
+
+PROCEDURE raw (p: pretty; s: String) ;
 
 
 END mcPretty.

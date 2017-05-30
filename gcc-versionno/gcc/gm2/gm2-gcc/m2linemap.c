@@ -44,17 +44,24 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 
 static int inFile = FALSE;
 
+#if defined (__cplusplus)
+#   define EXTERN extern "C"
+#else
+#   define EXTERN
+#endif
+
 
 /*
  *  Start getting locations from a new file.
  */
 
+EXTERN
 void
-m2linemap_StartFile (char *filename, unsigned int linebegin)
+m2linemap_StartFile (void *filename, unsigned int linebegin)
 {
   if (inFile)
     m2linemap_EndFile ();
-  linemap_add (line_table, LC_ENTER, 0, xstrdup (filename), linebegin);
+  linemap_add (line_table, LC_ENTER, 0, xstrdup (reinterpret_cast<char *> (filename)), linebegin);
   inFile = TRUE;
 }
 
@@ -63,6 +70,7 @@ m2linemap_StartFile (char *filename, unsigned int linebegin)
  *  Tell the line table the file has ended.
  */
 
+EXTERN
 void
 m2linemap_EndFile (void)
 {
@@ -76,6 +84,7 @@ m2linemap_EndFile (void)
  *  width.
  */
 
+EXTERN
 void
 m2linemap_StartLine (unsigned int linenumber, unsigned int linesize)
 {
@@ -88,6 +97,7 @@ m2linemap_StartLine (unsigned int linenumber, unsigned int linesize)
  *                      number and column.
  */
 
+EXTERN
 location_t
 m2linemap_GetLocationColumn (unsigned int column)
 {
@@ -99,6 +109,7 @@ m2linemap_GetLocationColumn (unsigned int column)
  *  UnknownLocation - return the predefined location representing an unknown location.
  */
 
+EXTERN
 location_t
 m2linemap_UnknownLocation (void)
 {
@@ -109,6 +120,7 @@ m2linemap_UnknownLocation (void)
  *  BuiltinsLocation - return the predefined location representing a builtin.
  */
 
+EXTERN
 location_t
 m2linemap_BuiltinsLocation (void)
 {

@@ -1,0 +1,173 @@
+(* Copyright (C) 2015 Free Software Foundation, Inc.  *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  *)
+
+IMPLEMENTATION MODULE mcStream ;
+
+
+FROM FIO IMPORT File, OpenToWrite, OpenToRead, EOF, ReadNBytes, WriteNBytes, Close, getFileName ;
+FROM libc IMPORT unlink, printf ;
+FROM Indexing IMPORT InitIndex, InBounds, HighIndice, LowIndice, PutIndice, GetIndice, Index, ForeachIndiceInIndexDo ;
+FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, string ;
+FROM FormatStrings IMPORT Sprintf1 ;
+FROM SYSTEM IMPORT ADR ;
+FROM Storage IMPORT ALLOCATE ;
+
+IMPORT alists ;
+IMPORT SFIO ;
+
+
+TYPE
+   ptrToFile = POINTER TO File ;
+
+VAR
+   listOfFiles: alists.alist ;
+   frag       : Index ;
+   destFile   : File ;
+   seenDest   : BOOLEAN ;
+
+
+(*
+   removeLater -
+*)
+
+PROCEDURE removeLater (filename: String) : String ;
+BEGIN
+   alists.includeItemIntoList (listOfFiles, filename) ;
+   RETURN filename
+END removeLater ;
+
+
+(*
+   removeNow - removes a single file, s.
+*)
+
+PROCEDURE removeNow (s: String) ;
+BEGIN
+   IF unlink (string (s)) # 0
+   THEN
+   END
+END removeNow ;
+
+
+(*
+   removeFiles -
+*)
+
+PROCEDURE removeFiles ;
+BEGIN
+   alists.foreachItemInListDo (listOfFiles, removeNow)
+END removeFiles ;
+
+
+(*
+   createTemporaryFile -
+*)
+
+PROCEDURE createTemporaryFile (id: CARDINAL) : File ;
+VAR
+   s: String ;
+   f: File ;
+BEGIN
+   s := InitString ('/tmp/frag%d.frag') ;
+   s := removeLater (Sprintf1 (s, id)) ;
+   f := SFIO.OpenToWrite (s) ;
+   RETURN f
+END createTemporaryFile ;
+
+
+(*
+   openFrag - create and open fragment, id, and return the file.
+              The file should not be closed by the user.
+*)
+
+PROCEDURE openFrag (id: CARDINAL) : File ;
+VAR
+   f: File ;
+   p: ptrToFile ;
+BEGIN
+   f := createTemporaryFile (id) ;
+   NEW (p) ;
+   p^ := f ;
+   PutIndice (frag, id, p) ;
+   RETURN f
+END openFrag ;
+
+
+(*
+   copy - copies contents of f to the destination file.
+*)
+
+PROCEDURE copy (p: ptrToFile) ;
+CONST
+   maxBuffer = 4096 ;
+VAR
+   buffer: ARRAY [0..maxBuffer] OF CHAR ;
+   b     : CARDINAL ;
+   s     : String ;
+   f     : File ;
+BEGIN
+   IF p # NIL
+   THEN
+      f := p^ ;
+      s := InitStringCharStar(getFileName (f)) ;
+      Close (f) ;
+      f := SFIO.OpenToRead (s) ;
+      WHILE NOT EOF (f) DO
+         b := ReadNBytes (f, HIGH (buffer), ADR (buffer)) ;
+         b := WriteNBytes (destFile, b, ADR (buffer))
+      END ;
+      Close (f)
+   END
+END copy ;
+
+
+(*
+   setDest - informs the stream module and all fragments must be copied
+             info, f.
+*)
+
+PROCEDURE setDest (f: File) ;
+BEGIN
+   seenDest := TRUE ;
+   destFile := f
+END setDest ;
+
+
+(*
+   combine - closes all fragments and then writes them in
+             order to the destination file.  The dest file
+             is returned.
+*)
+
+PROCEDURE combine () : File ;
+BEGIN
+   IF NOT seenDest
+   THEN
+      HALT
+   END ;
+   ForeachIndiceInIndexDo (frag, copy) ;
+   removeFiles ;
+   RETURN destFile
+END combine ;
+
+
+BEGIN
+   listOfFiles := alists.initList () ;
+   seenDest := FALSE ;
+   frag := InitIndex (1)
+END mcStream.

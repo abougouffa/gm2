@@ -74,4 +74,40 @@ PROCEDURE getCppCommandLine () : String ;
 PROCEDURE getOutputFile () : String ;
 
 
+(*
+   getExtendedOpaque - return the extendedOpaque value.
+*)
+
+PROCEDURE getExtendedOpaque () : BOOLEAN ;
+
+
+(*
+   setDebugTopological - sets the flag debugTopological to value.
+*)
+
+PROCEDURE setDebugTopological (value: BOOLEAN) ;
+
+
+(*
+   getDebugTopological - returns the flag value of the command
+                         line option --debug-top.
+*)
+
+PROCEDURE getDebugTopological () : BOOLEAN ;
+
+
+(*
+   getHPrefix - saves the H file prefix.
+*)
+
+PROCEDURE getHPrefix () : String ;
+
+
+(*
+   getIgnoreFQ - returns the ignorefq flag.
+*)
+
+PROCEDURE getIgnoreFQ () : BOOLEAN ;
+
+
 END mcOptions.

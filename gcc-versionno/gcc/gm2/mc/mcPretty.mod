@@ -28,8 +28,11 @@ TYPE
 			  writeln    : writeLnProc ;
                           needsSpace,
                           needsIndent: BOOLEAN ;
+			  seekPos,
+			  curLine,
                           curPos,
 		          indent     : CARDINAL ;
+			  stacked    : pretty ;
                        END ;
 
 
@@ -48,7 +51,10 @@ BEGIN
       needsSpace := FALSE ;
       needsIndent := FALSE ;
       curPos := 0 ;
-      indent := 0
+      curLine := 0 ;
+      seekPos := 0 ;
+      indent := 0 ;
+      stacked := NIL
    END ;
    RETURN p
 END initPretty ;
@@ -78,6 +84,39 @@ BEGIN
    DISPOSE (p) ;
    p := NIL
 END killPretty ;
+
+
+(*
+   pushPretty - duplicate, p.  Push, p, and return the duplicate.
+*)
+
+PROCEDURE pushPretty (p: pretty) : pretty ;
+VAR
+   q: pretty ;
+BEGIN
+   q := dupPretty (p) ;
+   q^.stacked := p ;
+   RETURN q
+END pushPretty ;
+
+
+(*
+   popPretty - pops the pretty object from the stack.
+*)
+
+PROCEDURE popPretty (p: pretty) : pretty ;
+VAR
+   q: pretty ;
+BEGIN
+   q := p^.stacked ;
+   q^.needsIndent := p^.needsIndent ;
+   q^.needsSpace := p^.needsSpace ;
+   q^.curPos := p^.curPos ;
+   q^.seekPos := p^.seekPos ;
+   q^.curLine := p^.curLine ;
+   killPretty (p) ;
+   RETURN q
+END popPretty ;
 
 
 (*
@@ -116,6 +155,26 @@ END getcurpos ;
 
 
 (*
+   getcurline - returns the current line number.
+*)
+
+PROCEDURE getcurline (s: pretty) : CARDINAL ;
+BEGIN
+   RETURN s^.curLine
+END getcurline ;
+
+
+(*
+   getseekpos - returns the seek position.
+*)
+
+PROCEDURE getseekpos (s: pretty) : CARDINAL ;
+BEGIN
+   RETURN s^.seekPos
+END getseekpos ;
+
+
+(*
    setneedSpace - sets needSpace flag to TRUE.
 *)
 
@@ -145,7 +204,8 @@ BEGIN
    THEN
       p^.write (' ') ;
       p^.needsSpace := FALSE ;
-      INC (p^.curPos)
+      INC (p^.curPos) ;
+      INC (p^.seekPos)
    END
 END flushSpace ;
 
@@ -158,15 +218,15 @@ PROCEDURE flushIndent (p: pretty) ;
 VAR
    i: CARDINAL ;
 BEGIN
-   IF p^.needsSpace
+   flushSpace (p) ;
+   IF p^.needsIndent
    THEN
-      i := 0 ;
-      WHILE i<p^.indent DO
+      WHILE p^.curPos<p^.indent DO
          p^.write (' ') ;
-         INC (i)
+         INC (p^.curPos) ;
+         INC (p^.seekPos)
       END ;
-      p^.needsSpace := FALSE ;
-      INC (p^.curPos, p^.indent)
+      p^.needsIndent := FALSE
    END
 END flushIndent ;
 
@@ -200,16 +260,43 @@ BEGIN
       IF (i+2<=l) AND (char (s, i)='\') AND (char (s, i+1)='n')
       THEN
          p^.needsIndent := TRUE ;
+         p^.needsSpace := FALSE ;
          p^.curPos := 0 ;
          p^.writeln ;
+         INC (p^.seekPos) ;
+         INC (p^.curLine) ;
          INC (i)
       ELSE
          flushIndent (p) ;
-         p^.write (char (s, i))
+         p^.write (char (s, i)) ;
+         INC (p^.curPos) ;
+         INC (p^.seekPos)
       END ;
       INC (i)
    END
 END prints ;
+
+
+(*
+   raw - print out string, s, without any translation of
+         escape sequences.
+*)
+
+PROCEDURE raw (p: pretty; s: String) ;
+VAR
+   l, i: CARDINAL ;
+BEGIN
+   l := Length (s) ;
+   i := 0 ;
+   flushSpace (p) ;
+   flushIndent (p) ;
+   WHILE i < l DO
+      p^.write (char (s, i)) ;
+      INC (p^.curPos) ;
+      INC (p^.seekPos) ;
+      INC (i)
+   END
+END raw ;
 
 
 END mcPretty.

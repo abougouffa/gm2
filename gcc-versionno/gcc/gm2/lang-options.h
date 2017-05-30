@@ -49,9 +49,9 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("use the Logitech compatible (PIM dialect) set of libraries") },
   { "-flibs=pim-coroutine",
       N_("use the PIM dialect libraries which include coroutine support") },
-  { "-fnil", 
+  { "-fnil",
       N_("turns on runtime checking to detect accessing data through a NIL value pointer") },
-  { "-fno-nil", 
+  { "-fno-nil",
       N_("turns off runtime checking to detect accessing data through a NIL value pointer") },
   { "-fwholediv",
       N_("generate code to detect whole number division by zero or modulus by zero") },
@@ -103,6 +103,8 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("compile all implementation and program modules as a single unit") },
   { "-fm2-statistics",
       N_("display statistics about the amount of source lines compiled and symbols used") },
+  { "-fm2-g",
+      N_("generate extra nops to improve debugging, producing an instruction for every code related keyword") },
   { "-fmodules",
       N_("display list of modules and location") },
   { "-fno-pth",
@@ -157,10 +159,11 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("set all location values to unknown,builtin,integer value (internal debugging)") },
   { "-x",
       N_("specify the language") },
-
+  { "-fdebug-function-line-numbers",
+      N_("turn on the Modula-2 function line number generation (internal switch)") },
   /*
    *  --fixme-- add these when gm2 can detect integer/cardinal overflow in expressions
-   *  and add "-fwholevalue" to the list of options contained in -fsoft-check-all 
+   *  and add "-fwholevalue" to the list of options contained in -fsoft-check-all
    *
    *  { "-fwholevalue",
    *   N_("generate code to detect whole number overflow and underflow") },

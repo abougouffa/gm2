@@ -66,12 +66,17 @@ VAR
    father,
    child : symbolTree ;
 BEGIN
-   findNodeAndParentInTree (t, name, child, father) ;
-   IF child=NIL
+   IF t=NIL
    THEN
       RETURN NulKey
    ELSE
-      RETURN child^.key
+      findNodeAndParentInTree (t, name, child, father) ;
+      IF child=NIL
+      THEN
+         RETURN NulKey
+      ELSE
+         RETURN child^.key
+      END
    END
 END getSymKey ;
 

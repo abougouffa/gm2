@@ -20,6 +20,7 @@ MODULE top ;
 
 FROM mcOptions IMPORT handleOptions ;
 FROM mcComp IMPORT compile ;
+FROM M2RTS IMPORT ExitOnHalt ;
 
 
 (*
@@ -29,6 +30,7 @@ FROM mcComp IMPORT compile ;
 
 PROCEDURE init ;
 BEGIN
+   ExitOnHalt (1) ;
    compile (handleOptions ())
 END init ;
 

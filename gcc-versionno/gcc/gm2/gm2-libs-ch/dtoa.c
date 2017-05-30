@@ -18,22 +18,43 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA */
 
 /*
- *   dtoa.c - 
+ *   dtoa.c -
  */
 
 #define GM2
 
 #include "gm2-libs-host.h"
 
-#include <p2c/p2c.h>
+#if defined(HAVE_ERRNO_H)
+#  include <errno.h>
+#endif
 
+#if defined(HAVE_MATH_H)
+#  include <math.h>
+#endif
 
-#if defined(HAVE_STRINGS)
+#if defined(HAVE_STDIO_H)
+#  include <stdio.h>
+#endif
+
+#if defined(HAVE_STRINGS_H)
 #  include <strings.h>
 #endif
 
-#if defined(HAVE_STRING)
+#if defined(HAVE_STRING_H)
 #  include <string.h>
+#endif
+
+#if defined(HAVE_SYS_TIME_H)
+#  include <sys/time.h>
+#endif
+
+#if defined(HAVE_TIME_H)
+#  include <time.h>
+#endif
+
+#if defined(HAVE_SYS_STAT_H)
+#  include <sys/stat.h>
 #endif
 
 

@@ -57,7 +57,7 @@ class parse:
 
     def parseMaximaOutput (self, lines):
         l = string.join(lines, '')
-        print "maxima produced:", l
+        # print "maxima produced:", l
         p = mxmmaxima.parse(self.filename, self.lineno, self.language, l)
         m = p.getPolynomials(self.nTerms)
         if m != None:
@@ -91,7 +91,7 @@ class parse:
         for l in lines.split ('\n'):
             line = l.lstrip().rstrip()
             f.write(line + '\n')
-            print line
+            # print line
         f.write('stringout("outfile.m",%);\n')
         f.write('quit();\n')
 
@@ -170,8 +170,8 @@ class parse:
         self.contents = self.stripComments(self.filename)
         self.contents, self.embedded = self.removeEmbeddedCode(self.contents)
         self.contents += " <eof>"
-        print self.contents
-        print self.embedded
+        # print self.contents
+        # print self.embedded
 
 
     #

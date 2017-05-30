@@ -51,14 +51,17 @@ FROM nameKey IMPORT NulName, Name, makekey ;
 FROM mcPrintf IMPORT printf0, printf1 ;
 FROM mcDebug IMPORT assert ;
 FROM mcReserved IMPORT toktype ;
+FROM mcComment IMPORT setProcedureComment ;
 
 FROM mcLexBuf IMPORT currentstring, currenttoken, getToken, insertToken,
                      insertTokenAndRewind, getTokenNo ;
 
 FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
-                 makeProcedure, makeType, makeVar, makeConst,
-		 enterScope, leaveScope,
-		 addImportedModule, getCurrentModule ;
+                 lookupSym, putDefForC,
+                 makeProcedure, makeType, makeTypeImp, makeVar, makeConst,
+		 enterScope, leaveScope, putTypeHidden,
+		 addImportedModule, getCurrentModule,
+		 putCommentDefProcedure, putCommentModProcedure ;
 
 
 CONST
@@ -68,6 +71,7 @@ CONST
 VAR
    WasNoError: BOOLEAN ;
    curident  : Name ;
+   curproc,
    curmodule : node ;
 
 
@@ -362,12 +366,12 @@ END Real ;
                     current module import list.
 *)
 
-PROCEDURE registerImport (ident: Name) ;
+PROCEDURE registerImport (ident: Name; scoped: BOOLEAN) ;
 VAR
    n: node ;
 BEGIN
    n := lookupDef (ident) ;
-   addImportedModule (getCurrentModule (), n)
+   addImportedModule (getCurrentModule (), n, scoped)
 END registerImport ;
 
 
@@ -505,15 +509,14 @@ ProgramModule := "MODULE"
 
 ImplementationModule := "IMPLEMENTATION" "MODULE"
                          Ident                                         % curmodule := lookupImp (curident) %
-		                                                       % enterScope (curmodule) %
-
-
+			                                               % enterScope (lookupDef (curident)) %
+                                                                       % enterScope (curmodule) %
                          [ Priority
                          ] ";"
                          { Import }
                          Block
                          Ident                                         % checkEndName (curmodule, curident, 'implementation module') %
-                                                                       % leaveScope %
+                                                                       % leaveScope ; leaveScope %
                          "."
                       =:
 
@@ -532,9 +535,6 @@ Number := Integer | Real =:
 Qualident :=
              Ident { "." Ident }
            =:
-
-ConstantDeclaration := Ident "=" ConstExpression
-                     =:
 
 ConstExpression := SimpleConstExpr [ Relation SimpleConstExpr ]
                  =:
@@ -633,7 +633,7 @@ AlignmentExpression := "(" ConstExpression ")" =:
 Alignment := [ ByteAlignment ] =:
 
 TypeDeclaration := Ident                                             % VAR n: node ; %
-                                                                     % n := makeType (curident) %
+                                                                     % n := makeTypeImp (curident) %
                          "=" Type Alignment
                  =:
 
@@ -792,27 +792,14 @@ ProcedureParameters := ProcedureParameter
 
 ProcedureParameter := "..." | "VAR" FormalType | FormalType =:
 
-
-VarIdent := Ident [ "[" ConstExpression "]" ]
-          =:
-
-VarIdentList := VarIdent { "," VarIdent }
-              =:
-
-VariableDeclaration := VarIdentList ":"
-                       Type Alignment
-                     =:
-
-DefVarIdent := Ident		                                     % VAR n: node ; %
+VarIdent := Ident		                                     % VAR n: node ; %
                                                                      % n := makeVar (curident) %
-                     [ "[" ConstExpression "]" ]
+                  [ "[" ConstExpression "]" ]
              =:
 
-DefVarIdentList := DefVarIdent { "," DefVarIdent }
-                 =:
+VarIdentList := VarIdent { "," VarIdent } =:
 
-DefVariableDeclaration := DefVarIdentList ":" Type Alignment
-                        =:
+VariableDeclaration := VarIdentList ":" Type Alignment =:
 
 Designator := Qualident
               { SubDesignator } =:
@@ -880,10 +867,10 @@ RetryStatement := "RETRY"
                 =:
 
 AssignmentOrProcedureCall := Designator
-                             ( ":=" Expression
-                                |
-                                  [ ActualParameters ] )
-                           =:
+                             ( ":=" Expression |
+                                    ActualParameters |                     % (* epsilon *) %
+                             )
+			   =:
 
 -- these two break LL1 as both start with a Designator
 -- ProcedureCall := Designator [ ActualParameters ] =:
@@ -953,25 +940,39 @@ ProcedureDeclaration := ProcedureHeading ";" ProcedureBlock
                         Ident
                       =:
 
-ProcedureIdent := Ident                                                   % VAR n: node ; %
-                                                                          % n := makeProcedure (curident) %
+DefProcedureIdent := Ident                                                % curproc := makeProcedure (curident) ;
+                                                                            setProcedureComment (curident) ;
+                                                                            putCommentDefProcedure (curproc) ;
+                                                                          %
+                   =:
+
+ProcedureIdent := Ident                                                   % curproc := lookupSym (curident) ;
+                                                                            IF curproc=NIL
+                                                                            THEN
+                                                                               curproc := makeProcedure (curident)
+                                                                            END ;
+                                                                            setProcedureComment (curident) ;
+                                                                            putCommentModProcedure (curproc) ;
+									  %
                 =:
 
 DefineBuiltinProcedure := [ "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" | "__INLINE__" ]
                       =:
 
-ProcedureHeading := "PROCEDURE" DefineBuiltinProcedure ( ProcedureIdent [ FormalParameters ] )
+ProcedureHeading := "PROCEDURE"
+                    DefineBuiltinProcedure ( ProcedureIdent               % enterScope (curproc) %
+                                             [ FormalParameters ] )
                   =:
 
 Builtin := [ "__BUILTIN__" | "__INLINE__" ] =:
 
-DefProcedureHeading := "PROCEDURE" Builtin ( ProcedureIdent [ DefFormalParameters ] )
+DefProcedureHeading := "PROCEDURE" Builtin ( DefProcedureIdent [ DefFormalParameters ] )
                      =:
 
 -- introduced procedure block so we can produce more informative
 -- error messages
 
-ProcedureBlock := { Declaration } [ "BEGIN" ProcedureBlockBody ] "END"
+ProcedureBlock := { Declaration } [ "BEGIN" ProcedureBlockBody ] "END"    % leaveScope %
                 =:
 
 Block := { Declaration } InitialBlock FinalBlock "END"
@@ -1035,12 +1036,12 @@ Export := "EXPORT" ( "QUALIFIED"
                                  IdentList |
                      IdentList ) ";" =:
 
-FromImport := "FROM" Ident					       % registerImport (curident) %
+FromImport := "FROM" Ident					       % registerImport (curident, FALSE) %
                            "IMPORT" IdentList ";"
             =:
 
-ImportModuleList := Ident                                              % registerImport (curident) %
-                          { "," Ident                                  % registerImport (curident) %
+ImportModuleList := Ident                                              % registerImport (curident, TRUE) %
+                          { "," Ident                                  % registerImport (curident, TRUE) %
 			              }
                   =:
 
@@ -1049,7 +1050,11 @@ WithoutFromImport := "IMPORT" ImportModuleList ";"
 
 Import := FromImport | WithoutFromImport =:
 
-DefinitionModule := "DEFINITION" "MODULE" [ "FOR" string ] Ident ";"   % curmodule := lookupDef (curident) %
+DefinitionModule :=                                                    % VAR c: BOOLEAN ; %
+                                                                       % c := FALSE %
+                    "DEFINITION" "MODULE" [ "FOR" string               % c := TRUE %
+                                                         ] Ident ";"   % curmodule := lookupDef (curident) %
+                                                                       % IF c THEN putDefForC (curmodule) END %
     		                                                       % enterScope (curmodule) %
                       { Import } [ Export ]
                       { Definition }
@@ -1060,17 +1065,18 @@ DefinitionModule := "DEFINITION" "MODULE" [ "FOR" string ] Ident ";"   % curmodu
 
 DefTypeDeclaration := { Ident                                          % VAR n: node ; %
 		                                                       % n := makeType (curident) %
-                        ( ";" | "=" Type Alignment ";" ) }
+                        ( ";"                                          % putTypeHidden (n) %
+			      | "=" Type Alignment ";" ) }
 		    =:
 
-DefConstantDeclaration := Ident                                        % VAR n: node ; %
-		                                                       % n := makeConst (curident) %
-                                "=" ConstExpression
-                        =:
+ConstantDeclaration := Ident                                           % VAR n: node ; %
+	                                                               % n := makeConst (curident) %
+                             "=" ConstExpression
+                     =:
 
-Definition := "CONST" { DefConstantDeclaration ";" } |
+Definition := "CONST" { ConstantDeclaration ";" } |
               "TYPE" { DefTypeDeclaration } |
-              "VAR" { DefVariableDeclaration ";" } |
+              "VAR" { VariableDeclaration ";" } |
               DefProcedureHeading ";" =:
 
 AsmStatement := 'ASM' [ 'VOLATILE' ] '(' AsmOperands ')' =:

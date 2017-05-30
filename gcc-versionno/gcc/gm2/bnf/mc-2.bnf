@@ -1,4 +1,4 @@
--- Copyright (C) 2015
+-- Copyright (C) 2015, 2016
 -- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
@@ -23,7 +23,7 @@
 -- pg takes this file and produces a top down parser for Modula-2.
 --
 % module mcp2 begin
-(* Copyright (C) 2015
+(* Copyright (C) 2015, 2016
    Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
@@ -60,7 +60,7 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 enterScope, leaveScope,
 		 addImportedModule, getCurrentModule,
 		 makeEnum, makeEnumField, putType, lookupSym, isDef,
-		 lookupInScope ;
+		 lookupInScope, setEnumsComplete ;
 
 
 CONST
@@ -72,6 +72,7 @@ VAR
    curident  : Name ;
    typeDes,
    typeExp,
+   curproc,
    curmodule : node ;
 
 
@@ -363,12 +364,12 @@ END Real ;
                     current module import list.
 *)
 
-PROCEDURE registerImport (ident: Name) ;
+PROCEDURE registerImport (ident: Name; scoped: BOOLEAN) ;
 VAR
    n: node ;
 BEGIN
    n := lookupDef (ident) ;
-   addImportedModule (getCurrentModule (), n)
+   addImportedModule (getCurrentModule (), n, scoped)
 END registerImport ;
 
 
@@ -500,21 +501,21 @@ ProgramModule := "MODULE"
                   Block
                   Ident                                                % checkEndName (curmodule, curident, 'program module') %
 		                                                       % leaveScope %
-
+		                                                       % setEnumsComplete (curmodule) %
                   "."
                   =:
 
 ImplementationModule := "IMPLEMENTATION" "MODULE"
                          Ident                                         % curmodule := lookupImp (curident) %
-		                                                       % enterScope (curmodule) %
-
-
+			                                               % enterScope (lookupDef (curident)) %
+                                                                       % enterScope (curmodule) %
                          [ Priority
                          ] ";"
                          { Import }
                          Block
                          Ident                                         % checkEndName (curmodule, curident, 'implementation module') %
-                                                                       % leaveScope %
+                                                                       % leaveScope ; leaveScope %
+		                                                       % setEnumsComplete (curmodule) %
                          "."
                       =:
 
@@ -537,8 +538,7 @@ Qualident :=
 ConstantDeclaration := Ident "=" ConstExpression
                      =:
 
-ConstExpression := SimpleConstExpr [ Relation SimpleConstExpr ]
-                 =:
+ConstExpression := SimpleConstExpr [ Relation SimpleConstExpr ] =:
 
 Relation := "="
             | "#"
@@ -550,8 +550,7 @@ Relation := "="
             | "IN"
          =:
 
-SimpleConstExpr := UnaryOrConstTerm { AddOperator ConstTerm
-                                    } =:
+SimpleConstExpr := UnaryOrConstTerm { AddOperator ConstTerm } =:
 
 UnaryOrConstTerm := "+"
                     ConstTerm
@@ -633,11 +632,11 @@ AlignmentExpression := "(" ConstExpression ")" =:
 
 Alignment := [ ByteAlignment ] =:
 
-TypeDeclaration := Ident
+TypeDeclaration := Ident                                                % typeDes := lookupSym (curident) %
                          "=" Type Alignment
                  =:
 
-Type := ( SimpleType | ArrayType
+Type := ( DefSimpleType | ArrayType
           | RecordType
           | SetType
           | PointerType
@@ -646,7 +645,14 @@ Type := ( SimpleType | ArrayType
 
 SimpleType := Qualident [ SubrangeType ] | Enumeration | SubrangeType =:
 
-Enumeration := "(" ( IdentList )
+EnumIdentList :=                                                        % VAR n, f: node ; %
+                                                                        % n := makeEnum () %
+                    Ident                                               % f := makeEnumField (n, curident) %
+		          { "," Ident                                   % f := makeEnumField (n, curident) %
+			              }
+                  =:
+
+Enumeration := "(" ( EnumIdentList )
                ")"
              =:
 
@@ -810,7 +816,8 @@ DefVarIdent := Ident
 DefVarIdentList := DefVarIdent { "," DefVarIdent }
                  =:
 
-DefVariableDeclaration := DefVarIdentList ":" Type Alignment
+DefVariableDeclaration :=                                               % typeDes := NIL %
+                          DefVarIdentList ":" Type Alignment
                         =:
 
 Designator := Qualident
@@ -881,7 +888,8 @@ RetryStatement := "RETRY"
 AssignmentOrProcedureCall := Designator
                              ( ":=" Expression
                                 |
-                                  [ ActualParameters ] )
+                                  ActualParameters |                     % (* epsilon *) %
+                             )
                            =:
 
 -- these two break LL1 as both start with a Designator
@@ -952,12 +960,14 @@ ProcedureDeclaration := ProcedureHeading ";" ProcedureBlock
                         Ident
                       =:
 
-ProcedureIdent := Ident =:
+ProcedureIdent := Ident                                                   % curproc := lookupSym (curident) %
+                =:
 
 DefineBuiltinProcedure := [ "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" | "__INLINE__" ]
                       =:
 
-ProcedureHeading := "PROCEDURE" DefineBuiltinProcedure ( ProcedureIdent [ FormalParameters ] )
+ProcedureHeading := "PROCEDURE" DefineBuiltinProcedure ( ProcedureIdent            % enterScope (curproc) %
+                                                         [ FormalParameters ] )
                   =:
 
 Builtin := [ "__BUILTIN__" | "__INLINE__" ] =:
@@ -968,7 +978,7 @@ DefProcedureHeading := "PROCEDURE" Builtin ( ProcedureIdent [ DefFormalParameter
 -- introduced procedure block so we can produce more informative
 -- error messages
 
-ProcedureBlock := { Declaration } [ "BEGIN" ProcedureBlockBody ] "END"
+ProcedureBlock := { Declaration } [ "BEGIN" ProcedureBlockBody ] "END"             % leaveScope %
                 =:
 
 Block := { Declaration } InitialBlock FinalBlock "END"
@@ -1032,13 +1042,10 @@ Export := "EXPORT" ( "QUALIFIED"
                                  IdentList |
                      IdentList ) ";" =:
 
-FromImport := "FROM" Ident					       % registerImport (curident) %
-                           "IMPORT" IdentList ";"
+FromImport := "FROM" Ident "IMPORT" IdentList ";"
             =:
 
-ImportModuleList := Ident                                              % registerImport (curident) %
-                          { "," Ident                                  % registerImport (curident) %
-			              }
+ImportModuleList := Ident { "," Ident }
                   =:
 
 WithoutFromImport := "IMPORT" ImportModuleList ";"
@@ -1052,6 +1059,7 @@ DefinitionModule := "DEFINITION" "MODULE" [ "FOR" string ] Ident ";"   % curmodu
                       { Definition }
                     "END" Ident "."                                    % checkEndName (curmodule, curident, 'definition module') %
                                                                        % leaveScope %
+		                                                       % setEnumsComplete (curmodule) %
                   =:
 
 DefQualident :=
@@ -1078,7 +1086,7 @@ DefEnumIdentList :=                                                     % VAR n,
                                                                         % n := makeEnum () %
                     Ident                                               % f := makeEnumField (n, curident) %
 		          { "," Ident                                   % f := makeEnumField (n, curident) %
-			              }                                 % putType (typeDes, n) %
+                                                                 }      % IF typeDes # NIL THEN putType (typeDes, n) END %
                   =:
 
 DefEnumeration := "(" DefEnumIdentList ")" =:

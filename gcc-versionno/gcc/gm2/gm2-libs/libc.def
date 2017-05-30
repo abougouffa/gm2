@@ -46,6 +46,7 @@ EXPORT UNQUALIFIED time_t, timeb, tm, ptrToTM,
                    shutdown, rename, setjmp, longjmp, atexit,
                    ttyname, sleep ;
 
+
 TYPE
    time_t = LONGINT ;
 
@@ -133,7 +134,7 @@ PROCEDURE malloc (size: CARDINAL) : ADDRESS ;
 
 (*
      free - memory deallocator.
- 
+
      free(ptr)
      char *ptr;
 
@@ -212,8 +213,8 @@ PROCEDURE close (d: INTEGER) : INTEGER ;
 PROCEDURE open (filename: ADDRESS; oflag: INTEGER; ...) : INTEGER ;
 
 
-(* 
-   creat - creates a new file 
+(*
+   creat - creates a new file
 *)
 
 PROCEDURE creat (filename: ADDRESS; mode: CARDINAL) : INTEGER;
@@ -228,7 +229,7 @@ PROCEDURE creat (filename: ADDRESS; mode: CARDINAL) : INTEGER;
 PROCEDURE lseek (fd: INTEGER; offset: LONGINT; whence: INTEGER) : LONGINT ;
 
 
-(* 
+(*
    perror - writes errno and string. (ARRAY OF CHAR is translated onto ADDRESS).
 *)
 

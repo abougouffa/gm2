@@ -2,6 +2,7 @@ DEFINITION MODULE FOR "C" m2treelib ;
 
 FROM m2tree IMPORT Tree ;
 FROM m2linemap IMPORT location_t ;
+FROM SYSTEM IMPORT ADDRESS ;
 
 TYPE
    tree_code = INTEGER ;
@@ -14,10 +15,6 @@ TYPE
 *)
 
 PROCEDURE get_set_address_if_var (location: location_t; op: Tree; is_lvalue: INTEGER; is_const: INTEGER) : Tree ;
-
-
-
-PROCEDURE get_set_field_rhs (location: location_t; p: Tree; field: Tree) : Tree ;
 
 
 (*

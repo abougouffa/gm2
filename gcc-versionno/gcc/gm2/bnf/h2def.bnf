@@ -6,12 +6,12 @@
 -- the terms of the GNU General Public License as published by the Free
 -- Software Foundation; either version 3, or (at your option) any later
 -- version.
--- 
+--
 -- GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
 -- WARRANTY; without even the implied warranty of MERCHANTABILITY or
 -- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 -- for more details.
--- 
+--
 -- You should have received a copy of the GNU General Public License along
 -- with gm2; see the file COPYING.  If not, write to the Free Software
 -- Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -28,12 +28,12 @@ GNU Modula-2 is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
 Software Foundation; either version 3, or (at your option) any later
 version.
- 
+
 GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
- 
+
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
@@ -45,7 +45,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
    SYSTEM     : UNIX (GNU Modula-2)
    Description: a tool which generates a definition module from a C header file.
 *)
- 
+
 FROM ASCII IMPORT nul, tab, lf ;
 FROM Storage IMPORT ALLOCATE ;
 FROM CLexBuf IMPORT OpenSource, CloseSource, GetToken, ReInitialize, InsertToken, InsertTokenAndRewind,
@@ -71,7 +71,6 @@ FROM StringConvert IMPORT hstoi ;
 FROM StrLib IMPORT StrLen ;
 FROM FIO IMPORT File, IsNoError, FlushBuffer, WriteChar, StdOut, StdErr ;
 FROM SFIO IMPORT WriteS, OpenToWrite, Exists ;
-FROM M2Options IMPORT ScanCppArgs ;
 FROM libc IMPORT exit, memset ;
 FROM SYSTEM IMPORT ADDRESS, WORD, TSIZE, BYTE ;
 IMPORT cflex ;
@@ -284,7 +283,7 @@ PROCEDURE Cast (VAR to: ARRAY OF BYTE; from: ARRAY OF BYTE) ; FORWARD ;
    %%%FORWARD%%% *)
 
 (*
-   setwatch - 
+   setwatch -
 *)
 
 PROCEDURE setwatch (n: Node) ;
@@ -294,7 +293,7 @@ END setwatch ;
 
 
 (*
-   MakeUniqueParamName - 
+   MakeUniqueParamName -
 *)
 
 PROCEDURE MakeUniqueParamName () : Name ;
@@ -308,7 +307,7 @@ END MakeUniqueParamName ;
 
 
 (*
-   MakeUniqueTypeName - 
+   MakeUniqueTypeName -
 *)
 
 PROCEDURE MakeUniqueTypeName () : Name ;
@@ -708,7 +707,7 @@ END IsCompiled ;
 
 
 (*
-   IsPoisoned - 
+   IsPoisoned -
 *)
 
 PROCEDURE IsPoisoned (n: Node) : BOOLEAN ;
@@ -723,7 +722,7 @@ END IsPoisoned ;
 
 
 (*
-   InitCpp - 
+   InitCpp -
 *)
 
 PROCEDURE InitCpp () : cppIfElseEnd ;
@@ -747,7 +746,7 @@ END InitCpp ;
 
 
 (*
-   KillCpp - 
+   KillCpp -
 *)
 
 PROCEDURE KillCpp (c: cppIfElseEnd) ;
@@ -763,7 +762,7 @@ END KillCpp ;
 
 
 (*
-   MarkTrue - 
+   MarkTrue -
 *)
 
 PROCEDURE MarkTrue (c: cppIfElseEnd) : cppIfElseEnd ;
@@ -777,7 +776,7 @@ END MarkTrue ;
 
 
 (*
-   HaveDoneTrue - 
+   HaveDoneTrue -
 *)
 
 PROCEDURE HaveDoneTrue (c: cppIfElseEnd) : BOOLEAN ;
@@ -792,7 +791,7 @@ END HaveDoneTrue ;
 
 
 (*
-   MarkCompile - 
+   MarkCompile -
 *)
 
 PROCEDURE MarkCompile (c: cppIfElseEnd) : cppIfElseEnd ;
@@ -806,7 +805,7 @@ END MarkCompile ;
 
 
 (*
-   CompileTime - 
+   CompileTime -
 *)
 
 PROCEDURE CompileTime (c: cppIfElseEnd) : BOOLEAN ;
@@ -821,7 +820,7 @@ END CompileTime ;
 
 
 (*
-   PushCpp - 
+   PushCpp -
 *)
 
 PROCEDURE PushCpp (c: cppIfElseEnd) ;
@@ -861,7 +860,7 @@ END PopCpp ;
 
 
 (*
-   BuildIf - 
+   BuildIf -
 *)
 
 PROCEDURE BuildIf ;
@@ -893,7 +892,7 @@ END BuildIf ;
 
 
 (*
-   BuildIfDef - 
+   BuildIfDef -
 *)
 
 PROCEDURE BuildIfDef (b: BOOLEAN) ;
@@ -937,7 +936,7 @@ END BuildIfDef ;
 
 
 (*
-   BuildElse - 
+   BuildElse -
 *)
 
 PROCEDURE BuildElse ;
@@ -961,7 +960,7 @@ END BuildElse ;
 
 
 (*
-   BuildEndIf - 
+   BuildEndIf -
 *)
 
 PROCEDURE BuildEndIf ;
@@ -981,7 +980,7 @@ END BuildEndIf ;
 
 
 (*
-   BuildUndef - 
+   BuildUndef -
 *)
 
 PROCEDURE BuildUndef ;
@@ -1000,7 +999,7 @@ END BuildUndef ;
 
 
 (*
-   BuildConst - 
+   BuildConst -
 *)
 
 PROCEDURE BuildConst (name: ADDRESS; n: Node) ;
@@ -1024,7 +1023,7 @@ END BuildConst ;
 
 
 (*
-   Emit - 
+   Emit -
 *)
 
 PROCEDURE Emit (e: EmitType) ;
@@ -1038,7 +1037,7 @@ BEGIN
       consts    :   PopIndent |
       nothing,
       procedures:
-      
+
       ELSE
       END ;
       CASE e OF
@@ -1058,7 +1057,7 @@ END Emit ;
 
 
 (*
-   hprintf0 - 
+   hprintf0 -
 *)
 
 PROCEDURE hprintf0 (a: ARRAY OF CHAR) ;
@@ -1117,7 +1116,7 @@ TYPE
 
 
 (*
-   GetBaseSet - 
+   GetBaseSet -
 *)
 
 PROCEDURE GetBaseSet (VAR n: Node; VAR t: baseSet) : BOOLEAN ;
@@ -1179,7 +1178,7 @@ END GetBaseSet ;
 
 
 (*
-   PrintBasicType - 
+   PrintBasicType -
 *)
 
 PROCEDURE PrintBasicType (n: Node; t: baseSet) ;
@@ -1275,7 +1274,7 @@ END PrintBaseType ;
 
 
 (*
-   PrintSimpleType - 
+   PrintSimpleType -
 *)
 
 PROCEDURE PrintSimpleType (n: Node) ;
@@ -1284,13 +1283,13 @@ BEGIN
    THEN
       hprintf0('ADDRESS')
    ELSE
-      PrintBaseType(n)      
+      PrintBaseType(n)
    END
 END PrintSimpleType ;
 
 
 (*
-   PrintChain - 
+   PrintChain -
 *)
 
 PROCEDURE PrintChain (n, t: Node; p: PrintProcedure; separator: ARRAY OF CHAR) ;
@@ -1319,7 +1318,7 @@ END PrintChain ;
 
 
 (*
-   SkipDummy - 
+   SkipDummy -
 *)
 
 PROCEDURE SkipDummy (n: Node) : Node ;
@@ -1332,7 +1331,7 @@ END SkipDummy ;
 
 
 (*
-   ArrayOrAddress - 
+   ArrayOrAddress -
 *)
 
 PROCEDURE ArrayOrAddress (a: ARRAY OF CHAR) ;
@@ -1356,7 +1355,7 @@ BEGIN
       CASE n^.type OF
 
       ndptr  :  RETURN( TRUE )
-   
+
       ELSE
       END ;
       n := n^.chain
@@ -1384,7 +1383,7 @@ BEGIN
                    RETURN( FALSE )  (* POINTER TO POINTER *)
                 END ;
                 ptr := TRUE
-   
+
       ELSE
          ptr := FALSE
       END ;
@@ -1395,7 +1394,7 @@ END IsSinglePointer ;
 
 
 (*
-   IsArray - 
+   IsArray -
 *)
 
 PROCEDURE IsArray (n: Node) : BOOLEAN ;
@@ -1440,7 +1439,7 @@ BEGIN
          RETURN( TRUE )
       END
    END ;
-   RETURN( FALSE )      
+   RETURN( FALSE )
 END IsArray ;
 
 
@@ -1461,7 +1460,7 @@ END IsVoid ;
 
 
 (*
-   PrintParameter - 
+   PrintParameter -
 *)
 
 PROCEDURE PrintParameter (n, t: Node) ;
@@ -1502,7 +1501,7 @@ END PrintParameter ;
 
 
 (*
-   PrintParameters - 
+   PrintParameters -
 *)
 
 PROCEDURE PrintParameters (n, t: Node) ;
@@ -1573,7 +1572,7 @@ BEGIN
             i := InitNode(ndident) ;
             i^.id.name := m^.chain^.id.name ; (* MakeUniqueParamName() ; *)
             i^.id.type := MakeBaseNode(MakeUniqueTypeName()) ;
-            
+
             t := InitNode(ndtypedef) ;
             j := InitNode(ndident) ;
             j^.id.name := i^.id.type^.base.name ;    (* name of the type *)
@@ -1589,7 +1588,7 @@ END CheckProcedureParameters ;
 
 
 (*
-   RemoveOnlyVoidParameter - 
+   RemoveOnlyVoidParameter -
 *)
 
 PROCEDURE RemoveOnlyVoidParameter (VAR n: Node) ;
@@ -1609,7 +1608,7 @@ END RemoveOnlyVoidParameter ;
 
 
 (*
-   PrintNode - 
+   PrintNode -
 *)
 
 PROCEDURE PrintNode (n, t: Node) ;
@@ -1812,7 +1811,7 @@ BEGIN
 END stop ;
 
 (*
-   PushIndent - 
+   PushIndent -
 *)
 
 PROCEDURE PushIndent (n: CARDINAL) : CARDINAL ;
@@ -1836,7 +1835,7 @@ END PushIndent ;
 
 
 (*
-   PopIndent - 
+   PopIndent -
 *)
 
 PROCEDURE PopIndent ;
@@ -1858,7 +1857,7 @@ END PopIndent ;
 
 
 (*
-   LocalWrite - 
+   LocalWrite -
 *)
 
 PROCEDURE LocalWrite (ch: CHAR) ;
@@ -1878,7 +1877,7 @@ END LocalWrite ;
 
 
 (*
-   writes - 
+   writes -
 *)
 
 PROCEDURE writes (s: String) : String ;
@@ -1895,7 +1894,7 @@ END writes ;
 
 
 (*
-   IsTypeDef - 
+   IsTypeDef -
 *)
 
 PROCEDURE IsTypeDef (n: Node) : BOOLEAN ;
@@ -1913,7 +1912,7 @@ END IsTypeDef ;
 
 
 (*
-   PrintCNode - 
+   PrintCNode -
 *)
 
 PROCEDURE PrintCNode (n: Node) ;
@@ -2006,7 +2005,7 @@ END PrintCNode ;
 
 
 (*
-   CppPrintNode - 
+   CppPrintNode -
 *)
 
 PROCEDURE CppPrintNode (n: Node) ;
@@ -2169,7 +2168,7 @@ END EvaluateNode ;
 
 
 (*
-   Cast - 
+   Cast -
 *)
 
 PROCEDURE Cast (VAR to: ARRAY OF BYTE; from: ARRAY OF BYTE) ;
@@ -2185,7 +2184,7 @@ END Cast ;
 
 
 (*
-   Push - 
+   Push -
 *)
 
 PROCEDURE Push (w: ARRAY OF BYTE) ;
@@ -2209,7 +2208,7 @@ END Push ;
 
 
 (*
-   Pop - 
+   Pop -
 *)
 
 PROCEDURE Pop (VAR w: ARRAY OF BYTE) ;
@@ -2250,7 +2249,7 @@ END PushType ;
 
 
 (*
-   DisplayNode - 
+   DisplayNode -
 *)
 
 PROCEDURE DisplayNode (n: Node) ;
@@ -2317,7 +2316,7 @@ END DisplayNode ;
 
 
 (*
-   DisplayStack - 
+   DisplayStack -
 *)
 
 PROCEDURE DisplayStack ;
@@ -2339,7 +2338,7 @@ END DisplayStack ;
 
 
 (*
-   SafePop - 
+   SafePop -
 *)
 
 PROCEDURE SafePop () : Node ;
@@ -2357,7 +2356,7 @@ END SafePop ;
 
 
 (*
-   AddName - 
+   AddName -
 *)
 
 PROCEDURE AddName (n: Node; m: Name) ;
@@ -2382,7 +2381,7 @@ END AddName ;
 
 
 (*
-   ErrorArray - 
+   ErrorArray -
 *)
 
 PROCEDURE ErrorArray (a: ARRAY OF CHAR) ;
@@ -2392,7 +2391,7 @@ END ErrorArray ;
 
 
 (*
-   ErrorString - 
+   ErrorString -
 *)
 
 PROCEDURE ErrorString (s: String) ;
@@ -2436,7 +2435,7 @@ END SyntaxError ;
 
 
 (*
-   SyntaxCheck - 
+   SyntaxCheck -
 *)
 
 PROCEDURE SyntaxCheck (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
@@ -2476,7 +2475,7 @@ BEGIN
       s2 := SetOfStop2{t}
    END ;
    str := DescribeStop(s0, s1, s2) ;
-   
+
    str := ConCat(InitString('syntax error,'), Mark(str)) ;
    ErrorString(str)
 END WarnMissingToken ;
@@ -2493,7 +2492,7 @@ END MissingToken ;
 
 
 (*
-   InStopSet 
+   InStopSet
 *)
 
 PROCEDURE InStopSet (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) : BOOLEAN ;
@@ -2510,7 +2509,7 @@ END InStopSet ;
 
 
 (*
-   Expect - 
+   Expect -
 *)
 
 PROCEDURE Expect (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
@@ -2690,7 +2689,7 @@ END GetDirectory ;
 
 
 (*
-   Usage - 
+   Usage -
 *)
 
 PROCEDURE Usage ;
@@ -2961,7 +2960,7 @@ ExternalDeclaration := DeclarationSpecifiers                      % VAR n: Node 
                                                                   % DummyNo := 1 ;
                                                                     Pop(n) ;
                                                                     Push(n) %
-                                                                    
+
                            ( Declarator                           % ChainTopTwoIdent ;
                                                                     Pop(n) ; PrintCNode(n) ; hprintf0(' ;\n') %
                                         { ','                     % Push(n) %
@@ -3178,7 +3177,7 @@ DefinedConstExpression :=                                         % VAR constNam
                                                                     END %
                        =:
 
-ConstExpression := LogicalOrExpression =: 
+ConstExpression := LogicalOrExpression =:
 
 LogicalOrExpression :=                                            % VAR n1, n2: Node ; %
                        LogicalAndExpression

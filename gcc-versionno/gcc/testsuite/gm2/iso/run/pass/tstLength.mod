@@ -6,7 +6,7 @@ FROM NumberIO IMPORT WriteCard ;
 FROM libc IMPORT exit ;
 
 VAR
-   s: ARRAY[1..5] OF CHAR;
+   s: ARRAY [1..5] OF CHAR;
 BEGIN
    s := "What?";
 

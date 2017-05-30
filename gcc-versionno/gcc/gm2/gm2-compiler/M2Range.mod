@@ -220,7 +220,7 @@ END IsEqualConversion ;
 
 
 (*
-   lookupExceptionHandler - 
+   lookupExceptionHandler -
 *)
 
 PROCEDURE lookupExceptionHandler (type: TypeOfRange) : CARDINAL ;
@@ -669,7 +669,7 @@ BEGIN
    p := PutRangeParam(GetIndice(RangeIndex, r), typeparam, proc, i, formal, actual) ;
    RETURN( r )
 END InitTypesParameterCheck ;
-    
+
 
 (*
    InitTypesExpressionCheck - checks to see that the types of, d, and, e,
@@ -956,7 +956,7 @@ END OutOfRange ;
 
 
 (*
-   HaveHandler - 
+   HaveHandler -
 *)
 
 PROCEDURE HaveHandler (r: CARDINAL) : BOOLEAN ;
@@ -1001,7 +1001,7 @@ END HaveHandler ;
 
 
 (*
-   FoldAssignment - 
+   FoldAssignment -
 *)
 
 PROCEDURE FoldAssignment (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
@@ -1033,7 +1033,7 @@ END FoldAssignment ;
 
 
 (*
-   FoldInc - 
+   FoldInc -
 *)
 
 PROCEDURE FoldInc (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
@@ -1084,7 +1084,7 @@ END FoldInc ;
 
 
 (*
-   FoldDec - 
+   FoldDec -
 *)
 
 PROCEDURE FoldDec (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
@@ -1380,7 +1380,7 @@ END FoldRotate ;
 
 
 (*
-   FoldTypeAssign - 
+   FoldTypeAssign -
 *)
 
 PROCEDURE FoldTypeAssign (q: CARDINAL; tokenNo: CARDINAL; des, expr: CARDINAL; r: CARDINAL) ;
@@ -1418,7 +1418,7 @@ END FoldTypeAssign ;
 
 
 (*
-   FoldTypeParam - 
+   FoldTypeParam -
 *)
 
 PROCEDURE FoldTypeParam (q: CARDINAL; tokenNo: CARDINAL; formal, actual, procedure: CARDINAL; paramNo: CARDINAL; r: CARDINAL) ;
@@ -1440,7 +1440,7 @@ END FoldTypeParam ;
 
 
 (*
-   FoldTypeExpr - 
+   FoldTypeExpr -
 *)
 
 PROCEDURE FoldTypeExpr (q: CARDINAL; tokenNo: CARDINAL; des, expr: CARDINAL; r: CARDINAL) ;
@@ -1461,7 +1461,7 @@ END FoldTypeExpr ;
 
 
 (*
-   CodeTypeAssign - 
+   CodeTypeAssign -
 *)
 
 PROCEDURE CodeTypeAssign (tokenNo: CARDINAL; des, expr: CARDINAL; r: CARDINAL) ;
@@ -1496,7 +1496,7 @@ END CodeTypeAssign ;
 
 
 (*
-   CodeTypeParam - 
+   CodeTypeParam -
 *)
 
 PROCEDURE CodeTypeParam (tokenNo: CARDINAL; formal, actual, procedure: CARDINAL; paramNo: CARDINAL; r: CARDINAL) ;
@@ -1516,7 +1516,7 @@ END CodeTypeParam ;
 
 
 (*
-   CodeTypeExpr - 
+   CodeTypeExpr -
 *)
 
 PROCEDURE CodeTypeExpr (tokenNo: CARDINAL; des, expr: CARDINAL; r: CARDINAL) ;
@@ -1601,7 +1601,7 @@ END CodeTypeCheck ;
 
 
 (*
-   FoldForLoopBegin - 
+   FoldForLoopBegin -
 *)
 
 PROCEDURE FoldForLoopBegin (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
@@ -1633,7 +1633,7 @@ END FoldForLoopBegin ;
 
 
 (*
-   FoldForLoopTo - 
+   FoldForLoopTo -
 *)
 
 PROCEDURE FoldForLoopTo (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
@@ -1665,7 +1665,7 @@ END FoldForLoopTo ;
 
 
 (*
-   FoldStaticArraySubscript - 
+   FoldStaticArraySubscript -
 *)
 
 PROCEDURE FoldStaticArraySubscript (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
@@ -1699,7 +1699,7 @@ END FoldStaticArraySubscript ;
 
 
 (*
-   FoldDynamicArraySubscript - 
+   FoldDynamicArraySubscript -
 *)
 
 PROCEDURE FoldDynamicArraySubscript (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
@@ -1732,7 +1732,7 @@ END FoldDynamicArraySubscript ;
 
 
 (*
-   FoldCaseBounds - 
+   FoldCaseBounds -
 *)
 
 PROCEDURE FoldCaseBounds (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
@@ -1849,7 +1849,7 @@ END FoldNonPosMod ;
 
 
 (*
-   FoldZeroDiv - 
+   FoldZeroDiv -
 *)
 
 PROCEDURE FoldZeroDiv (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
@@ -1874,7 +1874,7 @@ END FoldZeroDiv ;
 
 
 (*
-   FoldZeroRem - 
+   FoldZeroRem -
 *)
 
 PROCEDURE FoldZeroRem (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
@@ -2072,7 +2072,7 @@ END IssueWarning ;
 
 
 (*
-   BuildIfCallHandler - 
+   BuildIfCallHandler -
 *)
 
 PROCEDURE BuildIfCallHandler (condition: Tree; r: CARDINAL;
@@ -2087,7 +2087,7 @@ END BuildIfCallHandler ;
 
 
 (*
-   DoCodeAssignmentExprType - 
+   DoCodeAssignmentExprType -
 *)
 
 PROCEDURE DoCodeAssignmentExprType (p: Range;
@@ -2112,12 +2112,12 @@ BEGIN
                IF IsGreater(desMin, exprMin)
                THEN
                   condition := BuildLessThan(location, DeReferenceLValue(tokenNo, expr), BuildConvert(location, Mod2Gcc(exprLowestType), desMin, FALSE)) ;
-                  AddStatement(BuildIfCallHandler(condition, r, scopeDesc, TRUE))
+                  AddStatement(location, BuildIfCallHandler(condition, r, scopeDesc, TRUE))
                END ;
                IF IsGreater(exprMax, desMax)
                THEN
                   condition := BuildGreaterThan(location, DeReferenceLValue(tokenNo, expr), BuildConvert(location, Mod2Gcc(exprLowestType), desMax, FALSE)) ;
-                  AddStatement(BuildIfCallHandler(condition, r, scopeDesc, TRUE))
+                  AddStatement(location, BuildIfCallHandler(condition, r, scopeDesc, TRUE))
                END
             ELSE
                MetaErrorT2(tokenNo, message, des, expr)
@@ -2131,7 +2131,7 @@ END DoCodeAssignmentExprType ;
 
 
 (*
-   DoCodeAssignmentWithoutExprType - 
+   DoCodeAssignmentWithoutExprType -
 *)
 
 PROCEDURE DoCodeAssignmentWithoutExprType (p: Range;
@@ -2152,12 +2152,12 @@ BEGIN
                                        BuildConvert(location, Mod2Gcc(desLowestType),
                                                     DeReferenceLValue(tokenNo, expr), FALSE),
                                        desMin) ;
-            AddStatement(BuildIfCallHandler(condition, r, scopeDesc, TRUE)) ;
+            AddStatement(location, BuildIfCallHandler(condition, r, scopeDesc, TRUE)) ;
             condition := BuildGreaterThan(location,
                                           BuildConvert(location, Mod2Gcc(desLowestType),
                                                        DeReferenceLValue(tokenNo, expr), FALSE),
                                           desMax) ;
-            AddStatement(BuildIfCallHandler(condition, r, scopeDesc, TRUE))
+            AddStatement(location, BuildIfCallHandler(condition, r, scopeDesc, TRUE))
          END
       ELSE
          InternalError('should have resolved this type', __FILE__, __LINE__)
@@ -2167,7 +2167,7 @@ END DoCodeAssignmentWithoutExprType ;
 
 
 (*
-   DoCodeAssignment - 
+   DoCodeAssignment -
 *)
 
 PROCEDURE DoCodeAssignment (tokenno: CARDINAL; r: CARDINAL;
@@ -2179,7 +2179,7 @@ BEGIN
    WITH p^ DO
       TryDeclareConstant(tokenNo, des) ;
       TryDeclareConstant(tokenNo, expr) ;
-      DeclareConstructor(0, expr) ;
+      DeclareConstructor(tokenno, 0, expr) ;
       IF desLowestType#NulSym
       THEN
          Assert(GccKnowsAbout(expr)) ;
@@ -2195,7 +2195,7 @@ END DoCodeAssignment ;
 
 
 (*
-   CodeAssignment - 
+   CodeAssignment -
 *)
 
 PROCEDURE CodeAssignment (tokenno: CARDINAL;
@@ -2207,7 +2207,7 @@ END CodeAssignment ;
 
 
 (*
-   IfOutsideLimitsDo - 
+   IfOutsideLimitsDo -
 *)
 
 PROCEDURE IfOutsideLimitsDo (tokenno: CARDINAL; min, expr, max: Tree; r: CARDINAL; scopeDesc: String) ;
@@ -2217,9 +2217,9 @@ VAR
 BEGIN
    location := TokenToLocation(tokenno) ;
    condition := BuildGreaterThan(location, min, expr) ;
-   AddStatement(BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc))) ;
+   AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc))) ;
    condition := BuildLessThan(location, max, expr) ;
-   AddStatement(BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
+   AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
 END IfOutsideLimitsDo ;
 
 
@@ -2256,7 +2256,7 @@ BEGIN
                              BuildConvert(location, Mod2Gcc(desLowestType), e, FALSE),
                              FALSE) ;
                condition := BuildGreaterThan(location, Mod2Gcc(des), t) ;
-               AddStatement(BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
+               AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
             END
          ELSE
             InternalError('should have resolved these types', __FILE__, __LINE__)
@@ -2298,7 +2298,7 @@ BEGIN
                              desMin,
                              FALSE) ;
                condition := BuildLessThan(location, Mod2Gcc(des), t) ;
-               AddStatement(BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
+               AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
             END
          ELSE
             InternalError('should have resolved these types', __FILE__, __LINE__)
@@ -2341,7 +2341,7 @@ BEGIN
                              BuildConvert(location, Mod2Gcc(desLowestType), e, FALSE),
                              FALSE) ;
                condition := BuildGreaterThan(Mod2Gcc(des), t) ;
-               AddStatement(BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
+               AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
 *)
             END
          ELSE
@@ -2452,7 +2452,7 @@ BEGIN
       THEN
          UnboundedType := GetType(des) ;
          Assert(IsUnbounded(UnboundedType)) ;
-         high := BuildConvert(location, GetIntegerType(), GetHighFromUnbounded(dimension, des), FALSE) ;
+         high := BuildConvert(location, GetIntegerType(), GetHighFromUnbounded(location, dimension, des), FALSE) ;
          e := BuildConvert(location, GetIntegerType(), DeReferenceLValue(tokenno, expr), FALSE) ;
          IfOutsideLimitsDo(tokenNo, GetIntegerZero(location), e, high, r, scopeDesc)
       ELSE
@@ -2463,7 +2463,7 @@ END CodeDynamicArraySubscript ;
 
 
 (*
-   CodeForLoopBegin - 
+   CodeForLoopBegin -
 *)
 
 PROCEDURE CodeForLoopBegin (tokenno: CARDINAL;
@@ -2475,7 +2475,7 @@ END CodeForLoopBegin ;
 
 
 (*
-   CodeForLoopTo - 
+   CodeForLoopTo -
 *)
 
 PROCEDURE CodeForLoopTo (tokenno: CARDINAL;
@@ -2572,7 +2572,7 @@ BEGIN
       room := BuildSub(location, dmax, Mod2Gcc(des), FALSE) ;
       condition := BuildLessThan(location, room, inc) ;
       statement := BuildIfCallHandler(condition, r, scopeDesc, IsTrue(condition)) ;
-      AddStatement(statement)
+      AddStatement(location, statement)
    END
 END SameTypesCodeForLoopEnd ;
 
@@ -2651,7 +2651,7 @@ BEGIN
    s6 := BuildIfThenElseEnd(c6, s7, s8) ;
    s4 := BuildIfThenElseEnd(c4, s5, s6) ;
    s1 := BuildIfThenElseEnd(c1, s2, s4) ;
-   AddStatement(s1)
+   AddStatement(location, s1)
 
 END DiffTypesCodeForLoopEnd ;
 
@@ -2698,7 +2698,7 @@ END CodeForLoopEnd ;
 
 
 (*
-   CodeNil - 
+   CodeNil -
 *)
 
 PROCEDURE CodeNil (tokenno: CARDINAL;
@@ -2722,7 +2722,7 @@ BEGIN
       t := Mod2Gcc(des) ;
       location := TokenToLocation(tokenNo) ;
       condition := BuildEqualTo(location, BuildConvert(location, GetPointerType(), t, FALSE), GetPointerZero(location)) ;
-      AddStatement(BuildIfCallHandler(condition, r, scopeDesc, TRUE))
+      AddStatement(location, BuildIfCallHandler(condition, r, scopeDesc, TRUE))
    END
 END CodeNil ;
 
@@ -2750,7 +2750,7 @@ BEGIN
          condition := BuildLessThanOrEqual(location,
                                            e, BuildConvert(location, Mod2Gcc(SkipType(GetType(des))),
                                                            Mod2Gcc(MakeConstLit(MakeKey('0'))), FALSE)) ;
-         AddStatement(BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
+         AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
       ELSE
          InternalError('should have resolved expr', __FILE__, __LINE__)
       END
@@ -2781,7 +2781,7 @@ BEGIN
          condition := BuildEqualTo(location,
                                    e, BuildConvert(location, GetTreeType(e),
                                                    Mod2Gcc(MakeConstLit(MakeKey('0'))), FALSE)) ;
-         AddStatement(BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
+         AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
       ELSE
          InternalError('should have resolved expr', __FILE__, __LINE__)
       END
@@ -2835,8 +2835,8 @@ BEGIN
       forloopto            :  CodeForLoopTo(tokenNo, r, scopeDesc) |
       forloopend           :  CodeForLoopEnd(tokenNo, r, scopeDesc) |
       pointernil           :  CodeNil(tokenNo, r, scopeDesc) |
-      noreturn             :  AddStatement(CodeErrorCheck(r, scopeDesc)) |
-      noelse               :  AddStatement(CodeErrorCheck(r, scopeDesc)) |
+      noreturn             :  AddStatement(TokenToLocation(tokenNo), CodeErrorCheck(r, scopeDesc)) |
+      noelse               :  AddStatement(TokenToLocation(tokenNo), CodeErrorCheck(r, scopeDesc)) |
       casebounds           :  CodeCaseBounds(tokenNo, caseList, scopeDesc) |
       wholenonposdiv       :  CodeWholeNonPos(tokenNo, r, scopeDesc) |
       wholenonposmod       :  CodeWholeNonPos(tokenNo, r, scopeDesc) |
@@ -2908,7 +2908,7 @@ END CheckRangeAddVariableRead ;
                                   the symbol table.
 *)
 
-PROCEDURE CheckRangeRemoveVariableRead (r: CARDINAL; quadNo: CARDINAL) ; 
+PROCEDURE CheckRangeRemoveVariableRead (r: CARDINAL; quadNo: CARDINAL) ;
 VAR
    p: Range ;
 BEGIN
@@ -2957,7 +2957,7 @@ BEGIN
       wholezerodiv         :  WriteString('wholezerodiv(') ; WriteOperand(expr) |
       wholezerorem         :  WriteString('wholezerorem(') ; WriteOperand(expr) |
       none                 :  WriteString('none(') |
-      
+
       ELSE
          InternalError('unknown case', __FILE__, __LINE__)
       END ;

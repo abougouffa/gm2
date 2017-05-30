@@ -50,6 +50,56 @@ static int insideCppArgs = FALSE;
 
 #define EXPR_STMT_EXPR(NODE)  TREE_OPERAND (EXPR_STMT_CHECK (NODE), 0)
 
+/* start of new stuff.  */
+
+/* Language-dependent contents of a type.  */
+
+struct GTY(()) lang_type
+{
+  char dummy;
+};
+
+/* Language-dependent contents of a decl.  */
+
+struct GTY(()) lang_decl
+{
+  char dummy;
+};
+
+/* Language-dependent contents of an identifier.  This must include a
+   tree_identifier.  */
+
+struct GTY(()) lang_identifier
+{
+  struct tree_identifier common;
+};
+
+/* The resulting tree type.  */
+
+union GTY((desc ("TREE_CODE (&%h.generic) == IDENTIFIER_NODE"),
+	   chain_next ("CODE_CONTAINS_STRUCT (TREE_CODE (&%h.generic), TS_COMMON) ? ((union lang_tree_node *) TREE_CHAIN (&%h.generic)) : NULL")))
+lang_tree_node
+{
+  union tree_node GTY((tag ("0"),
+		       desc ("tree_node_structure (&%h)"))) generic;
+  struct lang_identifier GTY((tag ("1"))) identifier;
+};
+
+/* We don't use language_function.  */
+
+struct GTY(()) language_function
+{
+  /* While we are parsing the function, this contains information
+     about the statement-tree that we are building.  */
+  /* struct stmt_tree_s stmt_tree; */
+    tree stmt_tree;
+};
+
+/* end of new stuff.  */
+
+
+
+
 
 /* Language hooks.  */
 
@@ -108,7 +158,7 @@ gm2_langhook_init_options_struct (struct gcc_options *opts)
    the C preprocessor.  */
 
 static vec<bool> filename_cpp;
-			  
+
 
 void
 gm2_langhook_init_options (unsigned int decoded_options_count,
@@ -235,6 +285,9 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
   case OPT_fdebug_trace_api:
     M2Options_SetDebugTraceAPI (value);
     return 1;
+  case OPT_fdebug_function_line_numbers:
+    M2Options_SetDebugFunctionLineNumbers (value);
+    return 1;
   case OPT_fsoft_check_all:
     M2Options_SetCheckAll (value);
     return 1;
@@ -336,6 +389,9 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
     return 1;
   case OPT_fm2_statistics:
     M2Options_SetStatistics (value);
+    return 1;
+  case OPT_fm2_g:
+    M2Options_SetM2g (value);
     return 1;
   case OPT_fobject_path_:
     /* handled by the linker */
@@ -525,22 +581,26 @@ gm2_langhook_getdecls (void)
   return NULL;
 }
 
-#if 0
 static void
 m2_write_global_declarations (tree globals)
 {
   tree decl;
 
-  for (decl = globals; decl; decl = DECL_CHAIN (decl))
-    rest_of_decl_compilation (decl, 1, 1);
+  for (decl = globals; decl ; decl = DECL_CHAIN (decl))
+    {
+      rest_of_decl_compilation (decl, 1, 1);
+      debug_hooks->global_decl (decl);
+    }
 }
-#endif
 
 /* Write out globals.  */
 
 static void
 gm2_langhook_write_globals (void)
 {
+  tree t;
+  unsigned i;
+
   m2block_finishGlobals ();
 
 #if 0
@@ -554,6 +614,25 @@ gm2_langhook_write_globals (void)
   /* We're done parsing; proceed to optimize and emit assembly. */
   cgraph_finalize_compilation_unit ();
 #endif
+
+ /* Process all file scopes in this compilation, and the external_scope,
+     through wrapup_global_declarations and check_global_declarations.  */
+  FOR_EACH_VEC_ELT (*all_translation_units, i, t)
+    m2_write_global_declarations (BLOCK_VARS (DECL_INITIAL (t)));
+
+  /* We're done parsing; proceed to optimize and emit assembly.
+     FIXME: shouldn't be the front end's responsibility to call this.  */
+  symtab->finalize_compilation_unit ();
+
+  /* After cgraph has had a chance to emit everything that's going to
+     be emitted, output debug information for globals.  */
+  if (!seen_error ())
+    {
+      timevar_push (TV_SYMOUT);
+      FOR_EACH_VEC_ELT (*all_translation_units, i, t)
+	m2_write_global_declarations (BLOCK_VARS (DECL_INITIAL (t)));
+      timevar_pop (TV_SYMOUT);
+    }
 }
 
 
@@ -591,6 +670,43 @@ genericize_catch_block (tree *stmt_p)
   *stmt_p = build2 (CATCH_EXPR, void_type_node, type, body);
 }
 
+/* Convert the tree representation of FNDECL from m2 frontend trees to
+   GENERIC.  */
+
+extern void pf (tree);
+
+void
+gm2_genericize (tree fndecl)
+{
+  tree t;
+  struct cgraph_node *cgn;
+
+#if 0
+  pf (fndecl);
+#endif
+#if 1
+  /* Fix up the types of parms passed by invisible reference.  */
+  for (t = DECL_ARGUMENTS (fndecl); t; t = DECL_CHAIN (t))
+    if (TREE_ADDRESSABLE (TREE_TYPE (t)))
+      {
+        /* If a function's arguments are copied to create a thunk,
+           then DECL_BY_REFERENCE will be set -- but the type of the
+           argument will be a pointer type, so we will never get
+           here.  */
+        gcc_assert (!DECL_BY_REFERENCE (t));
+        gcc_assert (DECL_ARG_TYPE (t) != TREE_TYPE (t));
+        TREE_TYPE (t) = DECL_ARG_TYPE (t);
+        DECL_BY_REFERENCE (t) = 1;
+        TREE_ADDRESSABLE (t) = 0;
+        relayout_decl (t);
+      }
+#endif
+
+  /* Dump all nested functions now.  */
+  cgn = cgraph_node::get_create (fndecl);
+  for (cgn = cgn->nested; cgn ; cgn = cgn->next_nested)
+    gm2_genericize (cgn->decl);
+}
 
 /* gm2 gimplify expression, currently just change THROW in the same way as C++
  */
@@ -602,6 +718,20 @@ gm2_langhook_gimplify_expr (tree *expr_p, gimple_seq *pre_p ATTRIBUTE_UNUSED, gi
 
   switch (code)
     {
+#if 0
+    case LSHIFT_EXPR:
+    case RSHIFT_EXPR:
+      {
+        tree *op1_p = &TREE_OPERAND (*expr_p, 1);
+        if (TREE_CODE (TREE_TYPE (*op1_p)) != VECTOR_TYPE
+            && !types_compatible_p (TYPE_MAIN_VARIANT (TREE_TYPE (*op1_p)),
+                                    unsigned_type_node)
+            && !types_compatible_p (TYPE_MAIN_VARIANT (TREE_TYPE (*op1_p)),
+                                    integer_type_node))
+          *op1_p = convert (unsigned_type_node, *op1_p);
+	return GS_OK;
+      }
+#endif
 
     case THROW_EXPR:
       /* FIXME communicate throw type to back end, probably by moving
@@ -656,11 +786,8 @@ gm2_langhook_eh_personality (void)
 /* Functions called directly by the generic backend.  */
 
 tree
-convert (tree type, tree expr)
+convert_loc (location_t location, tree type, tree expr)
 {
-  location_t location = m2linemap_UnknownLocation ();
-    // DECL_SOURCE_LOCATION (type);
-
   if (type == error_mark_node
       || expr == error_mark_node
       || TREE_TYPE (expr) == error_mark_node)
@@ -693,6 +820,15 @@ convert (tree type, tree expr)
     }
 
   gcc_unreachable ();
+}
+
+
+/* Functions called directly by the generic backend.  */
+
+tree
+convert (tree type, tree expr)
+{
+  return convert_loc (m2linemap_UnknownLocation (), type, expr);
 }
 
 
@@ -823,4 +959,3 @@ struct lang_hooks lang_hooks = LANG_HOOKS_INITIALIZER;
 
 #include "gt-gm2-gm2-lang.h"
 #include "gtype-gm2.h"
-

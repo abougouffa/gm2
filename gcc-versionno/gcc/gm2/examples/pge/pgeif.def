@@ -23,7 +23,7 @@ DEFINITION MODULE pgeif ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Mon Oct 27 10:58:46 2014
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides a swig interface to the pge 2D game engine.
                  The parameters to the functions are deliberately chosen
                  to be swig/python friendly.
@@ -35,11 +35,20 @@ EXPORT UNQUALIFIED ExceptionKind,
                    rgb, white, black, red, green, blue, purple, gravity,
                    box, poly3, poly4, poly5, poly6, mass, fix, circle,
                    velocity, accel, rotate, process_event,
-                   is_collision, is_frame, time_until, get_time, rm,
+                   is_collision, is_frame, is_function,
+		   create_function_event,
+		   time_until, get_time, rm,
                    batch, use_buffer, empty_cbuffer, empty_fbuffer,
-                   use_time_delay, dump_world, draw_collision, l2h, h2l,
-                   get_xpos, get_ypos, get_xvel, get_yvel,
-                   get_xaccel, get_yaccel, skip_until ;
+                   use_time_delay, dump_world, check_objects,
+                   draw_collision, l2h, h2l,
+		   set_collision_colour,
+                   get_xpos, get_ypos,
+		   get_xvel, get_yvel,
+                   get_xaccel, get_yaccel,
+   		   put_xvel, put_yvel,
+		   put_xaccel, put_yaccel,
+		   apply_impulse, moving_towards, set_colour,
+		   skip_until, fps ;
 
 
 TYPE
@@ -207,6 +216,21 @@ PROCEDURE is_frame () : BOOLEAN ;
 
 
 (*
+   is_function - returns TRUE if the next event is a function event.
+*)
+
+PROCEDURE is_function () : BOOLEAN ;
+
+
+(*
+   create_function_event - creates a function event at time, t,
+                           in the future.
+*)
+
+PROCEDURE create_function_event (t: REAL; id: CARDINAL) ;
+
+
+(*
    time_until - returns the relative time from now until the next event.
 *)
 
@@ -286,6 +310,57 @@ PROCEDURE get_yaccel (id: CARDINAL) : REAL ;
 
 
 (*
+   put_xvel - assigns the X velocity of object.
+*)
+
+PROCEDURE put_xvel (id: CARDINAL; r: REAL) ;
+
+
+(*
+   put_yvel - assigns the Y velocity of object.
+*)
+
+PROCEDURE put_yvel (id: CARDINAL; r: REAL) ;
+
+
+(*
+   put_xaccel - assigns the X acceleration of object.
+*)
+
+PROCEDURE put_xaccel (id: CARDINAL; r: REAL) ;
+
+
+(*
+   put_yaccel - assigns the Y acceleration of object.
+*)
+
+PROCEDURE put_yaccel (id: CARDINAL; r: REAL) ;
+
+
+(*
+   set_colour - sets colour of object, id, to, c.
+*)
+
+PROCEDURE set_colour (id: CARDINAL; c: CARDINAL) ;
+
+
+(*
+   apply_impulse - applies an impulse of magnitude along vector
+                   [x, y] for object, id.
+*)
+
+PROCEDURE apply_impulse (id: CARDINAL; x, y: REAL; m: REAL) ;
+
+
+(*
+   moving_towards - returns TRUE if object, id, is moving towards
+                    a point x, y.
+*)
+
+PROCEDURE moving_towards (id: CARDINAL; x, y: REAL) : BOOLEAN ;
+
+
+(*
    batch - use the batch device to record the output frames.
 *)
 
@@ -329,10 +404,26 @@ PROCEDURE draw_collision (actual, predict: BOOLEAN) ;
 
 
 (*
+   set_collision_colour - when two objects collide they will both be draw using
+                          colour, c.
+*)
+
+PROCEDURE set_collision_colour (c: CARDINAL) ;
+
+
+(*
    dump_world - dump a list of all objects and their characteristics.
 *)
 
 PROCEDURE dump_world ;
+
+
+(*
+   check_objects - perform a check to make sure that all non fixed
+                   objects have a mass.
+*)
+
+PROCEDURE check_objects ;
 
 
 (*
@@ -347,6 +438,13 @@ PROCEDURE l2h (id: CARDINAL) : CARDINAL ;
 *)
 
 PROCEDURE h2l (id: CARDINAL) : CARDINAL ;
+
+
+(*
+   fps - set frames per second.
+*)
+
+PROCEDURE fps (f: REAL) ;
 
 
 END pgeif.

@@ -115,7 +115,7 @@ PROCEDURE finishFunctionCode (fndecl: Tree) ;
    finishFunctionDecl - removes declarations from the current binding level and places
                         them inside fndecl.  The current binding level is then able to
                         be destroyed by a call to popFunctionScope.
- 
+
                         The extra tree nodes associated with fndecl will be created
                         such as BIND_EXPR, BLOCK and the initial STATEMENT_LIST
                         containing the DECL_EXPR is also created.
@@ -159,6 +159,46 @@ PROCEDURE GetGlobals () : Tree ;
 *)
 
 PROCEDURE GetGlobalContext () : Tree ;
+
+
+(*
+   begin_statement_list - starts a tree statement.  It pushes the
+                          statement list and returns the list node.
+*)
+
+PROCEDURE begin_statement_list () : Tree ;
+
+
+(*
+   push_statement_list - pushes the statement list, t, onto the
+                         current binding level.
+*)
+
+PROCEDURE push_statement_list (t: Tree) : Tree ;
+
+
+(*
+   pop_statement_list - pops and returns a statement list from the
+                        current binding level.
+*)
+
+PROCEDURE pop_statement_list () : Tree ;
+
+
+(*
+   addStmtNote - remember this location represents the start of a Modula-2
+                 statement.  It is flushed if another different location is
+                 generated or another tree is given to add_stmt.
+*)
+
+PROCEDURE addStmtNote (location: location_t) ;
+
+
+(*
+   removeStmtNote - removes any pending stmt note.
+*)
+
+PROCEDURE removeStmtNote ;
 
 
 END m2block.

@@ -43,7 +43,7 @@ FROM SYSTEM IMPORT ADDRESS ;
 
 
 (*
-   doDSdbEnter - 
+   doDSdbEnter -
 *)
 
 PROCEDURE doDSdbEnter ;
@@ -53,7 +53,7 @@ END doDSdbEnter ;
 
 
 (*
-   doDSdbExit - 
+   doDSdbExit -
 *)
 
 PROCEDURE doDSdbExit (s: String) ;
@@ -63,7 +63,7 @@ END doDSdbExit ;
 
 
 (*
-   DSdbEnter - 
+   DSdbEnter -
 *)
 
 PROCEDURE DSdbEnter ;
@@ -72,7 +72,7 @@ END DSdbEnter ;
 
 
 (*
-   DSdbExit - 
+   DSdbExit -
 *)
 
 PROCEDURE DSdbExit (s: String) ;
@@ -160,7 +160,7 @@ BEGIN
    RETURN( s )
 END HandleEscape ;
 
-      
+
 (*
    FormatString - returns a String containing, s, together with encapsulated
                   entity, w. It only formats the first %s or %d or %u with n.
@@ -238,6 +238,11 @@ BEGIN
       THEN
          Cast(c, w) ;
          s := ConCat(ConCat(Slice(s, i, k), IntegerToString(c, width, leader, FALSE, 10, FALSE)),
+                     Mark(Slice(s, j+2, 0)))
+      ELSIF ch='x'
+      THEN
+         Cast(u, w) ;
+         s := ConCat(ConCat(Slice(s, i, k), CardinalToString(u, width, leader, 16, TRUE)),
                      Mark(Slice(s, j+2, 0)))
       ELSIF ch='u'
       THEN

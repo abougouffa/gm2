@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011, 2012, 2013, 2014
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -28,7 +28,8 @@ IMPORT Indexing ;
 FROM Indexing IMPORT InitIndex, InBounds, LowIndice, HighIndice, PutIndice, GetIndice ;
 FROM Sets IMPORT Set, InitSet, IncludeElementIntoSet, IsElementInSet ;
 
-FROM M2Options IMPORT Pedantic, ExtendedOpaque ;
+FROM M2Options IMPORT Pedantic, ExtendedOpaque, DebugFunctionLineNumbers ;
+FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken ;
 
 FROM M2ALU IMPORT InitValue, PtrToValue, PushCard, PopInto,
                   PushString, PushFrom, PushChar, PushInt,
@@ -1028,6 +1029,51 @@ END GetPcall ;
 
 
 (*
+   DebugProcedureLineNumber -
+*)
+
+PROCEDURE DebugProcedureLineNumber (sym: CARDINAL) ;
+VAR
+   begin, end: CARDINAL ;
+   n         : Name ;
+   f         : String ;
+   l         : CARDINAL ;
+BEGIN
+   GetProcedureBeginEnd (sym, begin, end) ;
+   n := GetSymName(sym) ;
+   IF begin#0
+   THEN
+      f := FindFileNameFromToken (begin, 0) ;
+      l := TokenToLineNo(begin, 0) ;
+      printf3 ('%s:%d:%a:begin\n', f, l, n)
+   END ;
+   IF end#0
+   THEN
+      f := FindFileNameFromToken (end, 0) ;
+      l := TokenToLineNo(end, 0) ;
+      printf3 ('%s:%d:%a:end\n', f, l, n)
+   END
+END DebugProcedureLineNumber ;
+
+
+(*
+   DebugLineNumbers - internal debugging, emit all procedure names in this module
+                      together with the line numbers for the corresponding begin/end
+                      tokens.
+*)
+
+PROCEDURE DebugLineNumbers (sym: CARDINAL) ;
+BEGIN
+   IF DebugFunctionLineNumbers
+   THEN
+      printf0 ('<lines>\n') ;
+      ForeachProcedureDo(sym, DebugProcedureLineNumber) ;
+      printf0 ('</lines>\n')
+   END
+END DebugLineNumbers ;
+
+
+(*
    IsPartialUnbounded - returns TRUE if, sym, is a partially unbounded symbol.
 *)
 
@@ -1040,9 +1086,9 @@ BEGIN
       pSym := GetPsym(sym) ;
       WITH pSym^ DO
          CASE SymbolType OF
-         
+
          PartialUnboundedSym:  RETURN( TRUE )
-      
+
          ELSE
             RETURN( FALSE )
          END
@@ -1333,7 +1379,7 @@ END FromModuleGetSym ;
 
 
 (*
-   AddSymToUnknown - 
+   AddSymToUnknown -
 *)
 
 PROCEDURE AddSymToUnknown (scope: CARDINAL; name: Name; Sym: CARDINAL) ;
@@ -2417,9 +2463,9 @@ END SetMainModule ;
 (*
    GetMainModule - returns the main module symbol that was requested by
                    the user to be compiled.
-*) 
- 
-PROCEDURE GetMainModule () : CARDINAL ; 
+*)
+
+PROCEDURE GetMainModule () : CARDINAL ;
 BEGIN
    RETURN( MainModule )
 END GetMainModule ;
@@ -2440,9 +2486,9 @@ END SetFileModule ;
 (*
    GetFileModule - returns the FileModule symbol that was requested by
                    the user to be compiled.
-*) 
- 
-PROCEDURE GetFileModule () : CARDINAL ; 
+*)
+
+PROCEDURE GetFileModule () : CARDINAL ;
 BEGIN
    RETURN( FileModule )
 END GetFileModule ;
@@ -2451,9 +2497,9 @@ END GetFileModule ;
 (*
    GetBaseModule - returns the base module symbol that contains Modula-2
                    base types, procedures and functions.
-*) 
- 
-PROCEDURE GetBaseModule () : CARDINAL ; 
+*)
+
+PROCEDURE GetBaseModule () : CARDINAL ;
 BEGIN
    RETURN( BaseModule )
 END GetBaseModule ;
@@ -2613,7 +2659,7 @@ END GetModuleScopeId ;
 
 
 (*
-   GetVisibleSym - 
+   GetVisibleSym -
 *)
 
 PROCEDURE GetVisibleSym (name: Name) : CARDINAL ;
@@ -3355,7 +3401,7 @@ END FillInRecordFields ;
 
 
 (*
-   HandleHiddenOrDeclare - 
+   HandleHiddenOrDeclare -
 *)
 
 PROCEDURE HandleHiddenOrDeclare (name: Name; VAR oaf: CARDINAL) : CARDINAL ;
@@ -3488,7 +3534,7 @@ BEGIN
    pSym := GetPsym(sym) ;
    WITH pSym^ DO
       CASE SymbolType OF
-         
+
       RecordSym      :  Record.DeclPacked := b ;
                         Record.DeclResolved := TRUE |
       RecordFieldSym :  RecordField.DeclPacked := b ;
@@ -3517,7 +3563,7 @@ BEGIN
    pSym := GetPsym(sym) ;
    WITH pSym^ DO
       CASE SymbolType OF
-         
+
       RecordSym      :  RETURN( Record.DeclPacked ) |
       RecordFieldSym :  RETURN( RecordField.DeclPacked ) |
       VarientFieldSym:  RETURN( VarientField.DeclPacked ) |
@@ -3542,7 +3588,7 @@ BEGIN
    pSym := GetPsym(sym) ;
    WITH pSym^ DO
       CASE SymbolType OF
-         
+
       RecordSym      :  RETURN( Record.DeclResolved ) |
       RecordFieldSym :  RETURN( RecordField.DeclResolved ) |
       VarientFieldSym:  RETURN( VarientField.DeclResolved ) |
@@ -3824,7 +3870,7 @@ END MakeConstLitString ;
                      The string value is unknown at this time and will be
                      filled in later by PutString.
 *)
-   
+
 PROCEDURE MakeConstString (ConstName: Name) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
@@ -4380,7 +4426,7 @@ END MakeEquivalent ;
 
 
 (*
-   GetEquivalent - 
+   GetEquivalent -
 *)
 
 PROCEDURE GetEquivalent (VAR packedInfo: PackedInfo; sym: CARDINAL) : CARDINAL ;
@@ -4554,7 +4600,8 @@ END GetModule ;
 (*
    GetLowestType - Returns the lowest type in the type chain of
                    symbol Sym.
-                   If NulSym is returned then we assume type unknown.
+                   If NulSym is returned then we assume type unknown or
+                   you have reqested the type of a base type.
 *)
 
 PROCEDURE GetLowestType (Sym: CARDINAL) : CARDINAL ;
@@ -4597,20 +4644,126 @@ BEGIN
    IF (pSym^.SymbolType=TypeSym) AND (type=NulSym)
    THEN
       type := Sym             (* Base Type *)
-   ELSIF type#NulSym
+   ELSIF (type#NulSym) AND IsType(type) AND (GetAlignment(type)=NulSym)
    THEN
-      IF (IsType(type) OR IsSet(type))
-      THEN
-         (* ProcType is an inbuilt base type *)
-         pSym := GetPsym(type) ;
-         IF pSym^.SymbolType#ProcTypeSym
-         THEN
-            type := GetLowestType(type)   (* Type def *)
-         END
-      END
+      type := GetLowestType(type)   (* Type def *)
    END ;
    RETURN( type )
 END GetLowestType ;
+
+
+(*
+   doGetType -
+*)
+
+PROCEDURE doGetType (sym: CARDINAL; skipEquiv, skipAlign, skipHidden, skipBase: BOOLEAN) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
+   type: CARDINAL ;
+BEGIN
+   Assert(sym#NulSym) ;
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      OAFamilySym         : type := OAFamily.SimpleType |
+      VarSym              : type := GetTypeOfVar(sym) |
+      ConstLitSym         : type := ConstLit.Type |
+      ConstVarSym         : type := ConstVar.Type |
+      ConstStringSym      : IF ConstString.Length=1
+                            THEN
+                               type := Char
+                            ELSE
+                               type := NulSym  (* No type for a string *)
+                            END |
+      TypeSym             : type := Type.Type |
+      RecordFieldSym      : type := RecordField.Type |
+      RecordSym           : type := NulSym |  (* No type for a record *)
+      VarientSym          : type := NulSym |  (* No type for a record *)
+      EnumerationFieldSym : type := EnumerationField.Type |
+      EnumerationSym      : type := NulSym |  (* No type for enumeration *)
+      PointerSym          : type := Pointer.Type |
+      ProcedureSym        : type := Procedure.ReturnType |
+      ProcTypeSym         : type := ProcType.ReturnType |
+      ParamSym            : type := Param.Type |
+      VarParamSym         : type := VarParam.Type |
+      SubrangeSym         : type := Subrange.Type |
+      ArraySym            : type := Array.Type |
+      SubscriptSym        : type := Subscript.Type |
+      SetSym              : type := Set.Type |
+      UnboundedSym        : type := Unbounded.Type |
+      UndefinedSym        : type := NulSym |
+      PartialUnboundedSym : type := PartialUnbounded.Type |
+      ObjectSym           : type := NulSym
+
+      ELSE
+         InternalError('not implemented yet', __FILE__, __LINE__)
+      END
+   END ;
+   IF (type=NulSym) AND IsType(sym) AND (NOT skipBase)
+   THEN
+      RETURN sym             (* sym is a base type *)
+   ELSIF type#NulSym
+   THEN
+      IF IsType(type) AND skipEquiv
+      THEN
+         IF (NOT IsHiddenType(type)) OR skipHidden
+         THEN
+            IF (GetAlignment(type)=NulSym) OR skipAlign
+            THEN
+               RETURN doGetType (type, skipEquiv, skipAlign, skipHidden, skipBase)
+            END
+         END
+      END
+   END ;
+   RETURN type
+END doGetType ;
+
+
+(*
+   GetLType - get lowest type.  It returns the lowest type
+              of symbol, sym.  It skips over type equivalences.
+              It will not skip over base types.
+*)
+
+PROCEDURE GetLType (sym: CARDINAL) : CARDINAL ;
+BEGIN
+(*
+   Assert (doGetType (sym, TRUE, TRUE, TRUE, FALSE) = GetLowestType (sym)) ;
+*)
+   RETURN doGetType (sym, TRUE, TRUE, TRUE, FALSE)
+END GetLType ;
+
+
+(*
+   GetSType - get source type.  It returns the type closest
+              to the object.  It does not skip over type
+              equivalences.  It will skip over base types.
+*)
+
+PROCEDURE GetSType (sym: CARDINAL) : CARDINAL ;
+BEGIN
+   Assert (doGetType (sym, FALSE, FALSE, FALSE, TRUE) = GetType (sym)) ;
+   RETURN doGetType (sym, FALSE, FALSE, FALSE, TRUE)
+END GetSType ;
+
+
+(*
+   GetDType - get gcc declared type.  It returns the type
+              of the object which is declared to GCC.
+              It does skip over type equivalences but only
+              if they do not contain a user alignment.
+              It does not skip over hidden types.
+              It does not skip over base types.
+*)
+
+PROCEDURE GetDType (sym: CARDINAL) : CARDINAL ;
+BEGIN
+(*
+   Assert (doGetType (sym, TRUE, FALSE, FALSE, FALSE) = SkipType(GetType(sym))) ;
+*)
+   RETURN doGetType (sym, TRUE, FALSE, FALSE, FALSE)
+END GetDType ;
 
 
 (*
@@ -4728,7 +4881,7 @@ BEGIN
    IF (Sym#NulSym) AND (IsType(Sym) OR IsSubrange(Sym)) AND
       (NOT IsHiddenType(Sym)) AND (GetType(Sym)#NulSym)
    THEN
-      RETURN( SkipType(GetType(Sym)) )
+      RETURN( SkipTypeAndSubrange(GetType(Sym)) )
    ELSE
       RETURN( Sym )
    END
@@ -4841,7 +4994,7 @@ END GetLocalSym ;
 
 
 (*
-   GetNthFromComponent - 
+   GetNthFromComponent -
 *)
 
 PROCEDURE GetNthFromComponent (Sym: CARDINAL; n: CARDINAL) : CARDINAL ;
@@ -5169,7 +5322,7 @@ BEGIN
 
       ELSE
          InternalError('expecting Record symbol', __FILE__, __LINE__)
-      END    
+      END
    END ;
    (* Fill in SonSym *)
    oSym := GetPsym(SonSym) ;
@@ -5257,7 +5410,7 @@ BEGIN
 
       ELSE
          InternalError('expecting Varient symbol', __FILE__, __LINE__)
-      END    
+      END
    END ;
    pSym := GetPsym(Field) ;
    WITH pSym^ DO
@@ -5267,7 +5420,7 @@ BEGIN
 
       ELSE
          InternalError('expecting VarientField symbol', __FILE__, __LINE__)
-      END    
+      END
    END ;
    (* PutItemIntoList(UsedFVarientList, Field) *)
 END PutFieldVarient ;
@@ -5292,7 +5445,7 @@ BEGIN
 
       ELSE
          RETURN( NulSym )
-      END    
+      END
    END
 END GetVarient ;
 
@@ -5340,7 +5493,7 @@ VAR
 
 
 (*
-   DumpSons - 
+   DumpSons -
 *)
 
 PROCEDURE DumpSons (sym: CARDINAL) ;
@@ -5394,7 +5547,7 @@ END CheckListOfSons ;
 
 
 (*
-   CheckRecordConsistency - 
+   CheckRecordConsistency -
 *)
 
 PROCEDURE CheckRecordConsistency (sym: CARDINAL) ;
@@ -5433,7 +5586,7 @@ BEGIN
       CASE SymbolType OF
 
       VarientFieldSym:  RETURN( NoOfItemsInList(VarientField.ListOfSons)=0 )
-      
+
       ELSE
          InternalError('varient field symbol expected', __FILE__, __LINE__)
       END
@@ -7516,7 +7669,7 @@ BEGIN
                     n1 := GetSymName(Sym) ;
                     n2 := GetSymName(CurrentModule) ;
                     WriteFormat2('symbol (%a) already exported from module (%a)', n1, n2)
-                    
+
                  ELSE
                     PutSymKey(DefImp.NeedToBeImplemented, GetSymName(Sym), Sym)
                  END
@@ -7558,7 +7711,7 @@ VAR
 
 
 (*
-   RemoveFromExportRequest - 
+   RemoveFromExportRequest -
 *)
 
 PROCEDURE RemoveFromExportRequest (Sym: CARDINAL) ;
@@ -7582,7 +7735,7 @@ END RemoveFromExportRequest ;
 
 
 (*
-   RemoveEnumerationFromExportRequest - removes enumeration symbol, sym, 
+   RemoveEnumerationFromExportRequest - removes enumeration symbol, sym,
                                         (and its fields) from the ExportRequest tree.
 *)
 
@@ -8222,7 +8375,7 @@ END PutOptFunction ;
 
 
 (*
-   MakeVariableForParam - 
+   MakeVariableForParam -
 *)
 
 PROCEDURE MakeVariableForParam (ParamName: Name;
@@ -8521,6 +8674,27 @@ END NoOfParam ;
 
 
 (*
+   HasVarParameters - returns TRUE if procedure, p, has any VAR parameters.
+*)
+
+PROCEDURE HasVarParameters (p: CARDINAL) : BOOLEAN ;
+VAR
+   i, n: CARDINAL ;
+BEGIN
+   n := NoOfParam(p) ;
+   i := 1 ;
+   WHILE i<=n DO
+      IF IsVarParam(p, i)
+      THEN
+         RETURN TRUE
+      END ;
+      INC(i)
+   END ;
+   RETURN FALSE
+END HasVarParameters ;
+
+
+(*
    PutUseVarArgs - tell the symbol table that this procedure, Sym,
                    uses varargs.
                    The procedure _must_ be declared inside a
@@ -8644,7 +8818,7 @@ BEGIN
             ErrorSym    : |
             ProcedureSym: Procedure.OptArgInit := Sym |
             ProcTypeSym : ProcType.OptArgInit := Sym
-         
+
             ELSE
                InternalError('expecting a Procedure or ProcType symbol', __FILE__, __LINE__)
             END
@@ -8674,7 +8848,7 @@ BEGIN
             ErrorSym    : |
             ProcedureSym: RETURN( Procedure.OptArgInit ) |
             ProcTypeSym : RETURN( ProcType.OptArgInit )
-         
+
             ELSE
                InternalError('expecting a Procedure or ProcType symbol', __FILE__, __LINE__)
             END
@@ -8702,7 +8876,7 @@ BEGIN
 
       ErrorSym    : n := 0 |
       ProcedureSym: n := NoOfItemsInList(Procedure.ListOfVars)
- 
+
       ELSE
          InternalError('expecting a Procedure symbol', __FILE__, __LINE__)
       END
@@ -8991,7 +9165,7 @@ END AreParametersDefinedInImplementation ;
 
 
 (*
-   FillInUnknownFields - 
+   FillInUnknownFields -
 *)
 
 PROCEDURE FillInUnknownFields (sym: CARDINAL; SymName: Name) ;
@@ -9181,7 +9355,7 @@ END GetVarScope ;
 PROCEDURE NoOfElements (Sym: CARDINAL) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
-   n   : CARDINAL ;                 
+   n   : CARDINAL ;
 BEGIN
    pSym := GetPsym(Sym) ;
    WITH pSym^ DO
@@ -9374,7 +9548,7 @@ END IsSet ;
 
 
 (*
-   ForeachParameterDo - 
+   ForeachParameterDo -
 *)
 
 PROCEDURE ForeachParameterDo (p: CheckProcedure) ;
@@ -9563,7 +9737,7 @@ END ForeachOAFamily ;
 
 
 (*
-   doFillInOAFamily - 
+   doFillInOAFamily -
 *)
 
 PROCEDURE doFillInOAFamily (oaf: CARDINAL; i: CARDINAL; unbounded: CARDINAL) ;
@@ -9579,7 +9753,7 @@ END doFillInOAFamily ;
 
 
 (*
-   FillInUnboundedFields - 
+   FillInUnboundedFields -
 *)
 
 PROCEDURE FillInUnboundedFields (sym: CARDINAL; SimpleType: CARDINAL; ndim: CARDINAL) ;
@@ -9671,7 +9845,7 @@ BEGIN
                           RETURN( GetFromIndex(Dimensions, ndim) )
                        END
                     END
-                       
+
       ELSE
          InternalError('expecting OAFamily symbol', __FILE__, __LINE__)
       END
@@ -10015,7 +10189,7 @@ END ResolveConstructorTypes ;
 
 
 (*
-   SanityCheckParameters - 
+   SanityCheckParameters -
 *)
 
 PROCEDURE SanityCheckParameters (sym: CARDINAL) ;
@@ -10093,7 +10267,7 @@ END SanityCheckProcedure ;
 
 
 (*
-   SanityCheckModule - 
+   SanityCheckModule -
 *)
 
 PROCEDURE SanityCheckModule (sym: CARDINAL) ;
@@ -10188,7 +10362,7 @@ VAR
 
 
 (*
-   CollectSymbolFrom - 
+   CollectSymbolFrom -
 *)
 
 PROCEDURE CollectSymbolFrom (scope: CARDINAL; n: Name) : CARDINAL ;
@@ -10215,7 +10389,7 @@ END CollectSymbolFrom ;
 
 
 (*
-   CollectUnknown - 
+   CollectUnknown -
 *)
 
 PROCEDURE CollectUnknown (sym: CARDINAL; n: Name) : CARDINAL ;
@@ -10253,7 +10427,7 @@ END CollectUnknown ;
 
 
 (*
-   ResolveImport - 
+   ResolveImport -
 *)
 
 PROCEDURE ResolveImport (o: WORD) ;
@@ -10281,7 +10455,7 @@ END ResolveImport ;
 
 
 (*
-   ResolveRelativeImport - 
+   ResolveRelativeImport -
 *)
 
 PROCEDURE ResolveRelativeImport (sym: CARDINAL) ;
@@ -10942,7 +11116,7 @@ END GetProcedureBeginEnd ;
 
 
 (*
-   Max - 
+   Max -
 *)
 
 PROCEDURE Max (a, b: CARDINAL) : CARDINAL ;
@@ -10957,7 +11131,7 @@ END Max ;
 
 
 (*
-   Min - 
+   Min -
 *)
 
 PROCEDURE Min (a, b: CARDINAL) : CARDINAL ;
@@ -12218,14 +12392,14 @@ BEGIN
       END
    END
 END PushConstString ;
-   
-   
-(* 
+
+
+(*
    PushParamSize - push the size of parameter, ParamNo,
                    of procedure Sym onto the ALU stack.
-*) 
- 
-PROCEDURE PushParamSize (Sym: CARDINAL; ParamNo: CARDINAL) ;  
+*)
+
+PROCEDURE PushParamSize (Sym: CARDINAL; ParamNo: CARDINAL) ;
 VAR
    p, Type: CARDINAL ;
 BEGIN
@@ -12259,12 +12433,12 @@ BEGIN
    END
 END PushParamSize ;
 
- 
+
 (*
    PushSumOfLocalVarSize - push the total size of all local variables
-                           onto the ALU stack. 
+                           onto the ALU stack.
 *)
- 
+
 PROCEDURE PushSumOfLocalVarSize (Sym: CARDINAL) ;
 VAR
    pSym: PtrToSymbol ;

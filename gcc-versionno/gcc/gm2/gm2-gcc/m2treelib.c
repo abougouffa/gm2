@@ -48,7 +48,6 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "m2treelib.h"
 
 
-
 /*
  *  do_jump_if_bit - tests bit in word against integer zero using operator, code.
  *                   If the result is true then jump to label.
@@ -331,9 +330,14 @@ m2treelib_get_set_value (location_t location, tree p, tree field, int is_const, 
   }
   else if (is_lvalue)
     {
-      ASSERT_CONDITION (TREE_CODE (TREE_TYPE (p)) == POINTER_TYPE);
-      value = m2expr_BuildComponentRef (location,
-					m2expr_BuildIndirect (location, p, TREE_TYPE (p)), field);
+      if (TREE_CODE (TREE_TYPE (p)) == POINTER_TYPE)
+	value = m2expr_BuildComponentRef (location,
+					  m2expr_BuildIndirect (location, p, TREE_TYPE (p)), field);
+      else
+	{
+	  ASSERT_CONDITION (TREE_CODE (TREE_TYPE (p)) == REFERENCE_TYPE);
+	  value = m2expr_BuildComponentRef (location, p, field);
+	}
     }
   else
     {
@@ -393,7 +397,10 @@ m2treelib_get_set_field_rhs (location_t location, tree p, tree field)
 tree
 m2treelib_get_set_field_des (location_t location, tree p, tree field)
 {
-  return m2expr_BuildComponentRef (location, p, field);
+  return m2expr_BuildIndirect (location, m2expr_BuildAddr (location,
+							   m2expr_BuildComponentRef (location, p, field),
+							   FALSE),
+			       m2type_GetBitsetType ());
 }
 
 
@@ -420,14 +427,8 @@ m2treelib_get_set_address_if_var (location_t location, tree op, int is_lvalue, i
 tree
 add_stmt (location_t location, tree t)
 {
-  if (CAN_HAVE_LOCATION_P (t))
-    if (! EXPR_HAS_LOCATION (t))
-      SET_EXPR_LOCATION (t, location);
-
-  append_to_statement_list_force (t, m2block_cur_stmt_list_addr ());
-  return t;
+  return m2block_add_stmt (location, t);
 }
-
 
 /* taken from gcc/c-semantics.c */
 /* Build a generic statement based on the given type of node and

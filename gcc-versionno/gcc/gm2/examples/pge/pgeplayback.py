@@ -7,7 +7,7 @@ from pygame.locals import *
 #
 #  global variables
 #
-versionNumber     = '0.1'
+versionNumber     = '0.2'
 #
 resolution        = (512, 512)
 #
@@ -19,7 +19,7 @@ debugging         = False
 programName       = "GNU PGE Playback"
 fps               = 30
 multiplier        = 1.0
-   
+
 call              = {}
 
 idTOcol           = {}
@@ -30,7 +30,7 @@ frameNo           = 0
 soundNo           = 0
 wantedFrame       = 1
 movie             = False
-tmpdir            = ""
+tmpdir            = "tmpdir"
 seekTable         = {}
 pc                = 0
 colours           = []
@@ -42,8 +42,11 @@ header            = 1.0
 groffBox          = 5.0   # number of inches width and height
 verbose           = False
 progress          = True
+progressDot       = 30
 outputName        = 'pge.avi'
 soxSound          = []
+emptyBuffer       = True
+frameNote         = False
 
 
 class myfile:
@@ -77,7 +80,7 @@ class myfile:
             return False
     def close (self):
         pass
-        
+
 
 #
 #  printf - keeps C programmers happy :-)
@@ -151,9 +154,6 @@ def doPlay (f):
     if frameNo == wantedFrame:
         print "playing", name
         sounds[name].play ()
-    else:
-        print "wrong frame, not playing", name, frameNo, wantedFrame
-        sounds[name].play ()
     return f
 
 
@@ -190,7 +190,7 @@ def toCol (f):
     return toFloat (f)*255
 
 #
-#  registerColour - 
+#  registerColour -
 #
 
 def registerColour (f):
@@ -212,7 +212,7 @@ def registerColour (f):
 
 
 #
-#  drawCircle - 
+#  drawCircle -
 #
 
 def drawCircle (f):
@@ -226,7 +226,7 @@ def drawCircle (f):
 
 
 #
-#  drawFillCircle - 
+#  drawFillCircle -
 #
 
 def drawFillCircle (f):
@@ -249,7 +249,7 @@ def drawFillCircle (f):
 
 
 #
-#  drawPolygon - 
+#  drawPolygon -
 #
 
 def drawPolygon (f):
@@ -286,7 +286,7 @@ def drawPolygon (f):
 def readFract (f):
     b = f.read (1)
     v = struct.unpack ("B", b)[0]
-    
+
     if v == 0:
         return f, (0, 0, 0)
     elif v == 1:
@@ -303,7 +303,7 @@ def readFract (f):
 def readColourRaw (f):
     f, c = readShort (f)
     return f, c
-    
+
 
 #
 #
@@ -335,7 +335,7 @@ def toFloat (f):
 
 
 #
-#  drawFillPolygon - 
+#  drawFillPolygon -
 #
 
 def drawFillPolygon (f):
@@ -366,7 +366,7 @@ def drawFillPolygon (f):
 def readCard (f):
     b = f.read (4)
     return f, struct.unpack ("!I", b)[0]
-    
+
 
 #
 #  flipBuffer - flips the screen buffer.
@@ -378,8 +378,13 @@ def flipBuffer (f):
     pygame.display.set_caption (programName + ' ' + versionNumber + ' (%d) [%g]' % (frameNo, multiplier))
     if frameNo == wantedFrame:
         pygame.display.flip ()
-        screen.blit (background, (0, 0))
-    f = handleEvents (f)
+        old = singleStep
+        f = handleEvents (f)
+        if old == singleStep:
+            screen.blit (background, (0, 0))
+    if (not singleStep) and (frameNo == wantedFrame):
+        # printf ("flipBuffer:  frameNo = %d,  wantedFrame = %d  (about to increment wantedFrame)\n", frameNo, wantedFrame)
+        wantedFrame += 1
     return f
 
 
@@ -388,9 +393,10 @@ def doExit (f):
 
 
 def doFrameNote (f):
-    global frameNo, pc, soundNo
+    global frameNo, pc, soundNo, wantedFrame
 
     f, frameNo = readCard (f)
+    # printf ("read frame note %d  (wantedFrame = %d)\n", frameNo, wantedFrame)
     soundNo = 0
     f.record_pos (pc, frameNo)
     return f
@@ -410,21 +416,21 @@ def handleSingleStep (f):
     global multiplier, singleStep, frameNo, wantedFrame
 
     while True:
-        for event in pygame.event.get():
-            if event.type == KEYDOWN:
-                if event.key == K_SPACE:
-                    singleStep = False
-                    return skip (f, 1)
-                elif event.key == K_ESCAPE:
-                    sys.exit (0)
-                elif event.key == K_RIGHT:
-                    return skip (f, 1)
-                elif event.key == K_LEFT:
-                    return skip (f, -1)
-                elif event.key == K_UP:
-                    return skip (f, -5)
-                elif event.key == K_DOWN:
-                    return skip (f, 5)
+        event = pygame.event.wait()
+        if event.type == KEYDOWN:
+            if event.key == K_SPACE:
+                singleStep = False
+                return skip (f, 1)
+            elif event.key == K_ESCAPE:
+                sys.exit (0)
+            elif event.key == K_RIGHT:
+                return skip (f, 1)
+            elif event.key == K_LEFT:
+                return skip (f, -1)
+            elif event.key == K_UP:
+                return skip (f, -5)
+            elif event.key == K_DOWN:
+                return skip (f, 5)
 
 
 def handleRT (f):
@@ -460,8 +466,6 @@ def handleRT (f):
                     multiplier = 10.0
             elif event.key == K_EQUALS:
                 multiplier = 1.0
-    if (not singleStep) and (frameNo == wantedFrame):
-        wantedFrame += 1
     return f
 
 
@@ -474,7 +478,7 @@ def handleEvents (f):
         else:
             f = handleRT (f)
     return f
-              
+
 
 #
 #  readFile - opens up file, name, and proceeds to interpret
@@ -493,6 +497,8 @@ def readFile (name):
     header = struct.unpack ("3s", f.read (3))[0]
     while header and len (header) > 0:
         header = header[:2]
+        # print "readFile", header
+        # printf ("(frameNo = %d, wantedFrame = %d)\n", frameNo, wantedFrame)
         if call.has_key (header):
             f = call[header] (f)
             pc = f.pos
@@ -520,9 +526,8 @@ def doSleep (f):
     # printf ("doSleep (frameNo = %d, wantedFrame = %d)\n", frameNo, wantedFrame)
     f, t = readReal (f)
     frameTime += t
-    if (not singleStep) and (frameNo == wantedFrame):
+    if not singleStep:
         t *= multiplier
-        t *= 10.0
         debugf ("sleeping for %f seconds\n", t)
         time.sleep (t)
     return f
@@ -584,16 +589,17 @@ def doSystem (s):
 
     if verbose:
         print s
-    os.system (s)
+    if os.system (s) != 0:
+        print "shell failed:", s
+        sys.exit (1)
 
 
 def initMovie ():
-    global tmpdir, progress
+    global tmpdir, progress, progressDot
 
     printf ("please be patient, generating a movie might take some time\n")
     if progress:
-        printf ("progress will be noted by . for every 100 frames\n")
-    tmpdir = "tmpdir"
+        printf ("progress will be noted by . for every %d frames\n", progressDot)
     os.system ("rm -rf " + tmpdir)
     os.system ("mkdir -p " + tmpdir)
 
@@ -606,12 +612,10 @@ def configDevice ():
     else:
         initScreen ()
 
-
-def grFlipBuffer (f):
-    global outf, frameNo, writtenColours
+def doGroffBuffer ():
+    global outf, frameNo, writtenColours, tmpdir
 
     num = "%08d" % frameNo
-    outf.close ()
     writtenColours = []
     s = os.path.join (tmpdir, num)
     e = os.path.join (tmpdir, "e" + num)
@@ -621,14 +625,33 @@ def grFlipBuffer (f):
     doSystem ("pnmcrop -quiet < " + s + ".pnm | pnmtopng > " + e + ".png 2> /dev/null")
     doSystem ("convert " + e + ".png -type truecolor " + s + ".png 2> /dev/null")
     doSystem ("rm -f " + t + ".pnm " + s + ".ps " + e + ".png")
-    doSystem ("rm -f " + s + ".pnm " + s + ".ms ")
+    doSystem ("rm -f " + s + ".pnm ")
+
+
+def grFlipBuffer (f):
+    global outf, frameNo, tmpdir, emptyBuffer, frameNote
+
+    num = "%08d" % frameNo
+    outf.close ()
+    frameNote = False
+    if not emptyBuffer:
+        doGroffBuffer ()
+        emptyBuffer = True
+    s = os.path.join (tmpdir, num)
+    doSystem ("rm -f " + s + ".ms")
     return f
 
+def checkFrameNote ():
+    global frameNote, frameNo
+
+    if not frameNote:
+        error ("no frame note found after frame %d and before writing next frame contents\n", frameNo)
 
 def writeColour (c):
     global outf, writtenColours, idTOcol
 
     if not (c in writtenColours):
+        checkFrameNote ()
         writtenColours += [c]
         s = ".defcolor col%d rgb " % c
         r, g, b = idTOcol[c]
@@ -640,14 +663,15 @@ def writeColour (c):
 
 
 def grFrameNote (f):
-    global frameNo, outf, tmpdir, progress
+    global frameNo, outf, tmpdir, progress, progressDot, frameNote
 
+    frameNote = True
     f, frameNo = readCard (f)
     soundNo = 0
     s = "%08d.ms" % frameNo
     s = os.path.join (tmpdir, s)
     outf = open (s, "w")
-    if progress and ((frameNo % 100) == 0):
+    if progress and ((frameNo % progressDot) == 0):
         sys.stdout.write (".")
         sys.stdout.flush ()
     return f
@@ -684,15 +708,17 @@ def finish (code):
     if movie:
         finishMovie ()
     sys.exit (code)
-        
+
 
 #
-#  grDrawFillCircle - 
+#  grDrawFillCircle -
 #
 
 def grDrawFillCircle (f):
-    global screen, debugging, frameNo, wantedFrame
+    global screen, debugging, frameNo, wantedFrame, emptyBuffer
 
+    checkFrameNote ()
+    emptyBuffer = False
     debugf ("grDrawFillCircle\n")
     f, xf = readFract (f)
     f, yf = readFract (f)
@@ -736,6 +762,7 @@ def addOffset (x, y):
 
 
 def moveTo (x, y):
+    checkFrameNote ()
     x, y = scale (x, y)
     x, y = addOffset (x, y)
     outf.write (".sp |" + unit (y) + "\n")
@@ -746,7 +773,7 @@ def scale (x, y):
     global groffBox
 
     return x*groffBox, y*groffBox
-    
+
 
 def grRegisterColour (f):
     global idTOcol, debugging, colours
@@ -790,6 +817,9 @@ def grMessage (f):
 
 
 def grDrawPolygon (f):
+    global emptyBuffer
+
+    emptyBuffer = False
     f, n = readShort (f)
     l = []
     if debugging:
@@ -810,8 +840,10 @@ def grDrawPolygon (f):
 
 
 def grDrawFillPolygon (f):
-    global groffBox
+    global groffBox, emptyBuffer
 
+    checkFrameNote ()
+    emptyBuffer = False
     f, n = readShort (f)
     l = []
     if debugging:

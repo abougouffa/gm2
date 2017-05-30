@@ -22,12 +22,12 @@ IMPLEMENTATION MODULE wlists ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 
 CONST
-   MaxnoOfelements = 5 ;
+   maxNoOfElements = 5 ;
 
 TYPE
    wlist = POINTER TO RECORD
-             noOfelements: CARDINAL ;
-             elements    : ARRAY [1..MaxnoOfelements] OF WORD ;
+             noOfElements: CARDINAL ;
+             elements    : ARRAY [1..maxNoOfElements] OF WORD ;
              next        : wlist ;
           END ;
 
@@ -42,7 +42,7 @@ VAR
 BEGIN
    NEW (l) ;
    WITH l^ DO
-      noOfelements := 0 ;
+      noOfElements := 0 ;
       next := NIL
    END ;
    RETURN l
@@ -67,16 +67,38 @@ END killList ;
 
 
 (*
+   replaceItemInList - replace the nth WORD in wlist, l.
+                       The first item in a wlists is at index, 1.
+                       If the index, n, is out of range nothing is changed.
+*)
+
+PROCEDURE replaceItemInList (l: wlist; n: CARDINAL; w: WORD) ;
+BEGIN
+   WHILE l#NIL DO
+      WITH l^ DO
+         IF n<=noOfElements
+         THEN
+            elements[n] := w
+         ELSE
+            DEC (n, noOfElements)
+         END
+      END ;
+      l := l^.next
+   END
+END replaceItemInList ;
+
+
+(*
    putItemIntoList - places an WORD, c, into wlist, l.
 *)
 
 PROCEDURE putItemIntoList (l: wlist; c: WORD) ;
 BEGIN
    WITH l^ DO
-      IF noOfelements<MaxnoOfelements
+      IF noOfElements<maxNoOfElements
       THEN
-         INC (noOfelements) ;
-         elements[noOfelements] := c
+         INC (noOfElements) ;
+         elements[noOfElements] := c
       ELSIF next#NIL
       THEN
          putItemIntoList (next, c)
@@ -96,11 +118,11 @@ PROCEDURE getItemFromList (l: wlist; n: CARDINAL) : WORD ;
 BEGIN
    WHILE l#NIL DO
       WITH l^ DO
-         IF n<=noOfelements
+         IF n<=noOfElements
          THEN
             RETURN elements[n]
          ELSE
-            DEC (n, noOfelements)
+            DEC (n, noOfElements)
          END
       END ;
       l := l^.next
@@ -125,7 +147,7 @@ BEGIN
    ELSE
       WITH l^ DO
          i := 1 ;
-         WHILE i<=noOfelements DO
+         WHILE i<=noOfElements DO
             IF elements[i]=c
             THEN
                RETURN i
@@ -133,7 +155,7 @@ BEGIN
                INC(i)
             END
          END ;
-         RETURN noOfelements + getIndexOfList (next, c)
+         RETURN noOfElements + getIndexOfList (next, c)
       END
    END
 END getIndexOfList ;
@@ -154,7 +176,7 @@ BEGIN
       t := 0 ;
       REPEAT
          WITH l^ DO
-            INC (t, noOfelements)
+            INC (t, noOfElements)
          END ;
          l := l^.next
       UNTIL l=NIL;
@@ -184,12 +206,12 @@ END includeItemIntoList ;
 PROCEDURE removeItem (p, l: wlist; i: CARDINAL) ;
 BEGIN
    WITH l^ DO
-      DEC (noOfelements) ;
-      WHILE i<=noOfelements DO
+      DEC (noOfElements) ;
+      WHILE i<=noOfElements DO
          elements[i] := elements[i+1] ;
          INC (i)
       END ;
-      IF (noOfelements=0) AND (p#NIL)
+      IF (noOfElements=0) AND (p#NIL)
       THEN
          p^.next := l^.next ;
          DISPOSE (l)
@@ -216,11 +238,11 @@ BEGIN
       REPEAT
          WITH l^ DO
             i := 1 ;
-            WHILE (i<=noOfelements) AND (elements[i]#c) DO
+            WHILE (i<=noOfElements) AND (elements[i]#c) DO
                INC (i)
             END ;
          END ;
-         IF (i<=l^.noOfelements) AND (l^.elements[i]=c)
+         IF (i<=l^.noOfElements) AND (l^.elements[i]=c)
          THEN
             found := TRUE
          ELSE
@@ -247,7 +269,7 @@ BEGIN
    REPEAT
       WITH l^ DO
          i := 1 ;
-         WHILE i<=noOfelements DO
+         WHILE i<=noOfElements DO
             IF elements[i]=c
             THEN
                RETURN TRUE

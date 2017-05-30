@@ -31,6 +31,7 @@ DEFINITION MODULE M2GenGCC ;
 
 FROM M2GCCDeclare IMPORT WalkAction ;
 FROM m2tree IMPORT Tree ;
+FROM m2linemap IMPORT location_t ;
 EXPORT QUALIFIED ConvertQuadsToTree, ResolveConstantExpressions,
                  GetHighFromUnbounded, StringToChar,
                  LValueToGenericPtr, ZConstToTypedConst,
@@ -60,7 +61,7 @@ PROCEDURE ResolveConstantExpressions (p: WalkAction; start, end: CARDINAL) : BOO
                           param.HIGH.
 *)
 
-PROCEDURE GetHighFromUnbounded (dim, param: CARDINAL) : Tree ;
+PROCEDURE GetHighFromUnbounded (location: location_t; dim, param: CARDINAL) : Tree ;
 
 
 (*

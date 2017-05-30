@@ -39,13 +39,27 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 
 
 /*
- *  InitGlobalContext - initializes a dummy function for the global scope.
+ *  StartGlobalContext - initializes a dummy function for the global scope.
  */
 
-void m2top_InitGlobalContext (void)
+void m2top_StartGlobalContext (void)
 {
-  if (cfun == NULL)
-    init_dummy_function_start ();
+#if 0
+  assert (cfun == NULL));
+  init_dummy_function_start ();
+#endif
+}
+
+
+/*
+ *  EndGlobalContext - ends the dummy function for the global scope.
+ */
+
+void m2top_EndGlobalContext (void)
+{
+#if 0
+  expand_dummy_function_end ();
+#endif
 }
 
 
@@ -67,4 +81,3 @@ void m2top_SetFlagUnitAtATime (int b)
 {
   flag_unit_at_a_time = b;
 }
-

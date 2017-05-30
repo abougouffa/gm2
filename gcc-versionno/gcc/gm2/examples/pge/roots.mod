@@ -23,11 +23,57 @@ FROM libc IMPORT printf ;
 FROM libm IMPORT pow, sin, cos, atan2 ;
 IMPORT libm ;
 IMPORT ComplexMath ;
+IMPORT gdbif ;
 FROM ComplexMath IMPORT zero ;
 
 
 CONST
-   Epsilon = 0.000001 ;
+   Epsilon   = 0.000001 ;
+   Debugging = FALSE ;
+
+VAR
+   tracing: BOOLEAN ;
+
+
+(*
+   roundZero -
+*)
+
+PROCEDURE roundZero (r: REAL) : REAL ;
+BEGIN
+   IF nearZero (r)
+   THEN
+      RETURN 0.0
+   ELSE
+      RETURN r
+   END
+END roundZero ;
+
+
+(*
+   roundRoot -
+*)
+
+PROCEDURE roundRoot (r: REAL) : REAL ;
+BEGIN
+   RETURN roundZero (r)
+END roundRoot ;
+
+
+(*
+   roundRoots -
+*)
+
+PROCEDURE roundRoots (VAR r: ARRAY OF REAL; n: CARDINAL) ;
+VAR
+   i: CARDINAL ;
+BEGIN
+   i := 0 ;
+   WHILE i<n DO
+      r[i] := roundRoot (r[i]) ;
+      INC (i)
+   END
+END roundRoots ;
 
 
 (*
@@ -46,6 +92,16 @@ END nearZero ;
 
 
 (*
+   nearSame - returns TRUE if, |a-b| < epsilon
+*)
+
+PROCEDURE nearSame (a, b: REAL) : BOOLEAN ;
+BEGIN
+   RETURN nearZero (a-b)
+END nearSame ;
+
+
+(*
    cnearZero - returns TRUE if the magnitude of, c, is close to 0.
 *)
 
@@ -53,8 +109,8 @@ PROCEDURE cnearZero (c: COMPLEX) : BOOLEAN ;
 VAR
    r: REAL ;
 BEGIN
-   r := rsqrt(sqr(RE(c))+sqr(IM(c))) ;
-   RETURN nearZero(r)
+   r := rsqrt (sqr (RE(c)) + sqr (IM (c))) ;
+   RETURN nearZero (r)
 END cnearZero ;
 
 
@@ -64,8 +120,18 @@ END cnearZero ;
 
 PROCEDURE isReal (c: COMPLEX) : BOOLEAN ;
 BEGIN
-   RETURN nearZero(IM(c))
+   RETURN nearZero (IM (c))
 END isReal ;
+
+
+(*
+   nearCoord - returns TRUE if position, a, is very close to, b.
+*)
+
+PROCEDURE nearCoord (a, b: Coord) : BOOLEAN ;
+BEGIN
+   RETURN nearSame (a.x, b.x) AND nearSame (a.y, b.y)
+END nearCoord ;
 
 
 (*
@@ -114,7 +180,7 @@ END cubr ;
 
 
 (*
-   cpower - 
+   cpower -
 *)
 
 PROCEDURE cpower (c: COMPLEX; r: REAL) : COMPLEX ;
@@ -126,7 +192,7 @@ BEGIN
    (*
     *  use Abraham de Moivre's formula which states that:
     *
-    *  (cos(x) + i sin(x))^r = cos(rx) + i sin(rx) 
+    *  (cos(x) + i sin(x))^r = cos(rx) + i sin(rx)
     *)
 
    radius := rsqrt (RE(c) * RE(c) + IM(c) * IM(c)) ;
@@ -178,6 +244,9 @@ BEGIN
 END ccubr ;
 
 
+PROCEDURE mystop ; BEGIN END mystop ;
+
+
 (*
    findQuadratic - returns TRUE if scalar values of x can be found
                    for.
@@ -190,14 +259,31 @@ PROCEDURE findQuadratic (a, b, c: REAL; VAR x0, x1: REAL) : BOOLEAN ;
 VAR
    q, discriminant: REAL ;
 BEGIN
+   IF tracing
+   THEN
+      printf ("entered findQuadratic\n")
+   END ;
    IF nearZero(a)
    THEN
+      IF tracing
+      THEN
+         printf ("findQuadratic a == 0\n")
+      END ;
       IF nearZero(b)
       THEN
+         IF tracing
+         THEN
+            printf ("findQuadratic a == 0, b == 0   -> false\n")
+         END ;
          RETURN FALSE
       ELSE
          x0 := -c/b ;
+         x0 := roundRoot (x0) ;
          x1 := x0 ;
+         IF tracing
+         THEN
+            printf ("findQuadratic a == 0, x0 = %g, x1 = %g  -> true\n", x0, x1)
+         END ;
          RETURN TRUE
       END
    ELSE
@@ -207,13 +293,34 @@ BEGIN
          q := rsqrt (discriminant) ;
          x0 := (-b + q) / (2.0 * a) ;
          x1 := (-b - q) / (2.0 * a) ;
+
+         x0 := roundRoot (x0) ;
+	 x1 := roundRoot (x1) ;
+         IF tracing
+         THEN
+            printf ("findQuadratic discriminant > 0.0, x0 = %g, x1 = %g  -> true\n", x0, x1) ;
+            IF nearSame (x1, 0.388415)
+            THEN
+               (* gdbif.sleepSpin *)
+            END
+         END ;
          RETURN TRUE
       ELSIF discriminant=0.0
       THEN
          x0 := -b / (2.0 * a) ;
+	 x0 := roundRoot (x0) ;
          x1 := x0 ;
+
+         IF tracing
+         THEN
+            printf ("findQuadratic discriminant = 0.0, x0 = %g, x1 = %g  -> true\n", x0, x1)
+         END ;
          RETURN TRUE
       ELSE
+         IF tracing
+         THEN
+            printf ("findQuadratic discriminant < 0.0  -> false\n")
+         END ;
          RETURN FALSE
       END
    END
@@ -248,6 +355,18 @@ BEGIN
               -1.0/(3.0*a) * cubr((2.0*cub(b)-9.0*a*b*c+27.0*sqr(a)*d+rsqrt(sqr(2.0*cub(b)-9.0*a*b*c+27.0*sqr(a)*d)-4.0*cub(sqr(b)-3.0*a*c))))
               -1.0/(3.0*a) * cubr((2.0*cub(b)-9.0*a*b*c+27.0*sqr(a)*d-rsqrt(sqr(2.0*cub(b)-9.0*a*b*c+27.0*sqr(a)*d)-4.0*cub(sqr(b)-3.0*a*c))))
    END ;
+   roundRoots (X, i) ;
+
+   IF tracing
+   THEN
+      printf ("findCubic found %d roots\n", i) ;
+      j := 1 ;
+      WHILE j<=i DO
+         printf ("  root %d  = %g\n", j, X[j]) ;
+         INC (j)
+      END
+   END ;
+
    j := 1 ;
    x := -1.0 ;
    WHILE j<=i DO
@@ -255,7 +374,7 @@ BEGIN
       THEN
          x := X[j]
       END ;
-      INC(j)
+      INC (j)
    END ;
    RETURN x>=0.0
 END findCubic ;
@@ -273,24 +392,52 @@ END findCubic ;
 
 PROCEDURE findQuartic (a, b, c, d, e: REAL; VAR x: REAL) : BOOLEAN ;
 VAR
-   t   : ARRAY [0..3] OF REAL ;
-   i, n: CARDINAL ;
+   t    : ARRAY [0..3] OF REAL ;
+   i, n : CARDINAL ;
+   unset: BOOLEAN ;
 BEGIN
    IF a=0.0
    THEN
       RETURN findCubic (b, c, d, e, x)
    ELSE
-      n := findAllRootsQuartic(a, b, c, d, e, t) ;
+      IF tracing
+      THEN
+         printf ("findQuartic finding all roots\n", n)
+      END ;
+      n := findAllRootsQuartic (a, b, c, d, e, t) ;
+      roundRoots (t, n) ;
+      IF tracing
+      THEN
+         printf (" findQuartic found %d roots\n", n) ;
+         i := 0 ;
+         WHILE i<n DO
+            printf ("  root %d  = %g\n", i, t[i]) ;
+            INC (i)
+         END
+      END ;
+
+      unset := TRUE ;
       x := -1.0 ;
       i := 0 ;
       WHILE i<n DO
-         IF (x<0.0) OR ((t[i]>=0.0) AND (t[i]<x))
+         IF unset OR ((t[i] >= 0.0) AND (t[i]<x))
          THEN
+            unset := FALSE ;
             x := t[i]
          END ;
-         INC(i)
+         INC (i)
       END ;
-      RETURN x>=0.0
+      IF tracing
+      THEN
+         printf ("findQuartic x = %g", x) ;
+	 IF x >= 0.0
+         THEN
+            printf (" returning TRUE\n")
+         ELSE
+            printf (" returning FALSE\n")
+         END
+      END ;
+      RETURN x >= 0.0
    END
 END findQuartic ;
 
@@ -333,7 +480,7 @@ BEGIN
          y := -CMPLX((5.0/6.0)*alpha, 0.0) + u - CMPLX(p, 0.0)/(CMPLX(3.0, 0.0)*u)
       END ;
       w := csqrt(CMPLX(alpha, 0.0) + CMPLX(+2.0, 0.0) * y) ;
-         
+
       z := -(CMPLX(3.0 * alpha, 0.0) + CMPLX(2.0, 0.0) * y + (CMPLX(2.0 * beta, 0.0) / w)) ;
       X[1] := -(CMPLX(b/(4.0*a), 0.0)) + (w - csqrt(z)) / CMPLX(2.0, 0.0) ;
       X[2] := -(CMPLX(b/(4.0*a), 0.0)) + (w + csqrt(z)) / CMPLX(2.0, 0.0) ;
@@ -355,14 +502,14 @@ END findAllRootsQuartic ;
 
 
 (*
-   Assert - 
+   Assert -
 *)
 
 PROCEDURE Assert (b: BOOLEAN) ;
 BEGIN
    IF NOT b
    THEN
-      printf("assert failed\n")
+      printf ("assert failed\n")
    END
 END Assert ;
 
@@ -380,6 +527,16 @@ BEGIN
 END findOctic ;
 
 
+(*
+   setTrace - turns tracing on/off.
+*)
+
+PROCEDURE setTrace (on: BOOLEAN) ;
+BEGIN
+   tracing := on
+END setTrace ;
+
+
 PROCEDURE test ;
 VAR
    A, B, C, D, E, t, T: REAL ;
@@ -389,15 +546,18 @@ BEGIN
    C := -123.0 ;
    D := -126.0 ;
    E := 1080.0 ;
-   IF findQuartic(A, B, C, D, E, t)
+   IF findQuartic (A, B, C, D, E, t)
    THEN
       (* 5, 3, -4, -6 *)
       T := A*(sqr(t)*sqr(t))+B*(sqr(t)*t)+C*sqr(t)+D*t+E ;
-      printf("%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\n",
-             A, B, C, D, E, T, t);
-      Assert(t=3.0)
+      IF Debugging
+      THEN
+         printf ("%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\n",
+                 A, B, C, D, E, T, t)
+      END ;
+      Assert (t=3.0)
    ELSE
-      printf("failed to find root\n")
+      printf ("failed to find root\n")
    END ;
 
    A := 1.0 ;
@@ -405,15 +565,18 @@ BEGIN
    C := -15.0 ;
    D := 10.0 ;
    E := 24.0 ;
-   IF findQuartic(A, B, C, D, E, t)
+   IF findQuartic (A, B, C, D, E, t)
    THEN
       (* (x-3)(x+4)(x+1)(x-2) *)
       T := A*(sqr(t)*sqr(t))+B*(sqr(t)*t)+C*sqr(t)+D*t+E ;
-      printf("%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\n",
-             A, B, C, D, E, T, t);
-      Assert(t=2.0)
+      IF Debugging
+      THEN
+         printf ("%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\n",
+                 A, B, C, D, E, T, t)
+      END ;
+      Assert (t=2.0)
    ELSE
-      printf("failed to find root\n")
+      printf ("failed to find root\n")
    END ;
 
    A := 1.0 ;
@@ -421,17 +584,22 @@ BEGIN
    C := -5.0 ;
    D := 0.0 ;
    E := 4.0 ;
-   IF findQuartic(A, B, C, D, E, t)
+   IF findQuartic (A, B, C, D, E, t)
    THEN
       (* (x-1)(x+1)(x-2)(x+2) *)
       T := A*(sqr(t)*sqr(t))+B*(sqr(t)*t)+C*sqr(t)+D*t+E ;
-      printf("%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\n",
-             A, B, C, D, E, T, t);
-      Assert(t=1.0)
+      IF Debugging
+      THEN
+         printf ("%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\n",
+                 A, B, C, D, E, T, t)
+      END ;
+      Assert (t=1.0)
    ELSE
-      printf("failed to find root\n")
+      printf ("failed to find root\n")
    END
 END test ;
 
 
+BEGIN
+   tracing := Debugging
 END roots.

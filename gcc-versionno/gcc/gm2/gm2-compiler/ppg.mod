@@ -39,10 +39,10 @@ FROM SYSTEM IMPORT WORD ;
 
 
 CONST
-   MaxCodeHunkLength =    4 ;   (* try 8192 for efficiency, 4 is for stress testing *)
+   MaxCodeHunkLength = 8192 ;   (* try 8192 for efficiency.  *)
    MaxFileName       = 8192 ;
    MaxString         = 8192 ;
-   DefaultRecovery   = TRUE ;   (* default is to generate a parser which will recover from errors *)
+   DefaultRecovery   = TRUE ;   (* default is to generate a parser which will recover from errors.  *)
    MaxElementsInSet  =   32 ;
 
    (* formatting constants *)

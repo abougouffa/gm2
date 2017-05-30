@@ -18,12 +18,42 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA */
 
 /*
- *   ldtoa.c - 
+ *   ldtoa.c -
  */
 
-#define GM2
-
 #include "gm2-libs-host.h"
+
+#if defined(HAVE_ERRNO_H)
+#  include <errno.h>
+#endif
+
+#if defined(HAVE_MATH_H)
+#  include <math.h>
+#endif
+
+#if defined(HAVE_STDIO_H)
+#  include <stdio.h>
+#endif
+
+#if defined(HAVE_STRINGS_H)
+#  include <strings.h>
+#endif
+
+#if defined(HAVE_STRING_H)
+#  include <string.h>
+#endif
+
+#if defined(HAVE_SYS_TIME_H)
+#  include <sys/time.h>
+#endif
+
+#if defined(HAVE_TIME_H)
+#  include <time.h>
+#endif
+
+#if defined(HAVE_SYS_STAT_H)
+#  include <sys/stat.h>
+#endif
 
 #if defined(HAVE_STDLIB_H)
 #  if !defined(_ISOC99_SOURCE)
@@ -31,16 +61,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #  endif
 #  include <stdlib.h>
 #endif
-
-#if defined(HAVE_STRINGS)
-#  include <strings.h>
-#endif
-
-#if defined(HAVE_STRING)
-#  include <string.h>
-#endif
-
-#include <p2c/p2c.h>
 
 #if !defined(TRUE)
 #  define TRUE (1==1)
@@ -112,11 +132,10 @@ char *ldtoa_ldtoa (long double d, int mode, int ndigits, int *decpt, int *sign)
   }
 }
 
-#if defined(GM2)
+
 /*
  *  GNU Modula-2 hooks
  */
 
 void _M2_ldtoa_init (void) {}
 void _M2_ldtoa_finish (void) {}
-#endif

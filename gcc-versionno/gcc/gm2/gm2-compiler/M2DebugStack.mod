@@ -92,7 +92,7 @@ END ConCatWord ;
 
 
 (*
-   symDesc - 
+   symDesc -
 *)
 
 PROCEDURE symDesc (sym: CARDINAL; o: String) : String ;
@@ -183,7 +183,7 @@ END Output ;
 
 
 (*
-   GetComment - 
+   GetComment -
 *)
 
 PROCEDURE GetComment (s: String) : INTEGER ;
@@ -248,7 +248,7 @@ END doSymbol ;
 
 
 (*
-   doOperand - 
+   doOperand -
 *)
 
 PROCEDURE doOperand (p, s: String; VAR i: INTEGER; e: INTEGER; o: WORD) : String ;
@@ -280,7 +280,7 @@ END doOperand ;
 
 
 (*
-   doPercent - 
+   doPercent -
 *)
 
 PROCEDURE doPercent (o, s: String;
@@ -308,7 +308,6 @@ END doPercent ;
 
 PROCEDURE doNameLength (VAR l: CARDINAL; o: WORD) ;
 VAR
-   n: Name ;
    s: String ;
 BEGIN
    s := InitStringCharStar(KeyToCharStar(o)) ;
@@ -363,7 +362,7 @@ END doSymbolLength ;
 
 
 (*
-   doOperandLength - 
+   doOperandLength -
 *)
 
 PROCEDURE doOperandLength (s: String; VAR i: INTEGER; e: INTEGER; VAR l: CARDINAL; o: WORD) ;
@@ -394,7 +393,7 @@ END doOperandLength ;
 
 
 (*
-   doPercentLength - 
+   doPercentLength -
 *)
 
 PROCEDURE doPercentLength (s: String; VAR i: INTEGER; e: INTEGER;
@@ -462,22 +461,7 @@ END doFieldLength ;
 
 
 (*
-   doMaxInt - returns the maximum of two INTEGERs.
-*)
-
-PROCEDURE doMaxInt (a, b: INTEGER) : INTEGER ;
-BEGIN
-   IF a>b
-   THEN
-      RETURN a
-   ELSE
-      RETURN b
-   END
-END doMaxInt ;
-
-
-(*
-   stop - 
+   stop -
 *)
 
 PROCEDURE stop ;
@@ -505,7 +489,7 @@ END doMaxCard ;
 
 
 (*
-   GetAnnotationFieldLength - 
+   GetAnnotationFieldLength -
 *)
 
 PROCEDURE GetAnnotationFieldLength (n: CARDINAL; f: CARDINAL) : CARDINAL ;
@@ -538,7 +522,7 @@ END GetAnnotationFieldLength ;
 
 
 (*
-   GetAnnotationLength - 
+   GetAnnotationLength -
 *)
 
 PROCEDURE GetAnnotationLength (n: CARDINAL; f: CARDINAL) : CARDINAL ;
@@ -626,7 +610,7 @@ END GetStackFieldLengths ;
 
 
 (*
-   DisplayRow - 
+   DisplayRow -
 *)
 
 PROCEDURE DisplayRow (tn, fn: CARDINAL; initOrFinal: BOOLEAN) ;
@@ -656,7 +640,7 @@ END DisplayRow ;
 
 
 (*
-   SkipToField - 
+   SkipToField -
 *)
 
 PROCEDURE SkipToField (s: String; n: CARDINAL) : INTEGER ;
@@ -755,7 +739,7 @@ END doField ;
 
 
 (*
-   doAnnotation - 
+   doAnnotation -
 *)
 
 PROCEDURE doAnnotation (s: String; n: CARDINAL;
@@ -778,7 +762,7 @@ END doAnnotation ;
 
 
 (*
-   DisplayFields - 
+   DisplayFields -
 *)
 
 PROCEDURE DisplayFields (n: CARDINAL; tn, fn: CARDINAL) ;

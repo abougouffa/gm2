@@ -7,16 +7,16 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * GNU Modula-2 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with GNU Modula-2; see the file COPYING.  If not, write to the
  * Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA. 
+ * 02110-1301, USA.
  */
 
 /*
@@ -91,7 +91,7 @@ static void CopyUntilEolInto (char *Buffer);
 static void FindObject (char *Name);
 static int  IsExists (char *Name);
 
-/* Global variables */ 
+/* Global variables */
 
 static char      *NameOfFile        = NULL;
 static char      *NameOfMain        = "main";
@@ -106,6 +106,7 @@ static int        ExitNeeded        = TRUE;
 static char      *libraries         = NULL;
 static functList *head              = NULL;
 static functList *tail              = NULL;
+static int        GCCCommand        = FALSE;  /* FALSE = g++, TRUE = gcc.  */
 
 
 /*
@@ -138,7 +139,7 @@ main (int argc, char *argv[])
 	} else if (strcmp(argv[1], "-s") == 0) {
 	    LinkCommandLine = FALSE;
 	} else {
-	    fprintf(stderr, "Usage: mklink (-l|-s) [--pg|-p] [--lib library] [--main name] [--exit] --name filename <modulelistfile>\n");
+	    fprintf(stderr, "Usage: mklink (-l|-s) [--gcc|--g++] [--pg|-p] [--lib library] [--main name] [--exit] --name filename <modulelistfile>\n");
 	    fprintf(stderr, "       must supply -l or -s option\n");
 	    exit(1);
 	}
@@ -146,7 +147,11 @@ main (int argc, char *argv[])
 	ProfilePGCommand = FALSE;
 	i = 2;
 	while (i<argc-1) {
-	  if (strcmp(argv[i], "--pg") == 0) {
+	  if (strcmp(argv[i], "--g++") == 0) {
+	    GCCCommand = FALSE;
+	  } else if (strcmp(argv[i], "--gcc") == 0) {
+	    GCCCommand = TRUE;
+	  } else if (strcmp(argv[i], "--pg") == 0) {
 	    ProfilePGCommand = TRUE;
 	  } else if (strcmp(argv[i], "-p") == 0) {
 	    ProfilePCommand = TRUE;
@@ -166,12 +171,12 @@ main (int argc, char *argv[])
 	}
 	ParseFile(argv[i]);
     } else {
-        fprintf(stderr, "Usage: mklink (-l|-s) [--pg|-p] [--lib library] [--main name] [--exit] --name filename <modulelistfile>\n");
+        fprintf(stderr, "Usage: mklink (-l|-s) [--gcc|--g++] [--pg|-p] [--lib library] [--main name] [--exit] --name filename <modulelistfile>\n");
 	exit(1);
     }
     if (NameOfFile == NULL) {
       fprintf(stderr, "mklink must have a --name argument\n");
-      fprintf(stderr, "Usage: mklink (-l|-s) [--pg|-p] [--lib library] [--main name] [--exit] --name filename <modulelistfile>\n");
+      fprintf(stderr, "Usage: mklink (-l|-s) [--gcc|--g++] [--pg|-p] [--lib library] [--main name] [--exit] --name filename <modulelistfile>\n");
       exit(1);
     }
     exit(0);
@@ -207,10 +212,13 @@ static void ParseFileLinkCommand (void)
   char *c = NULL;
 
   s = getenv("CC");
-  if (s == NULL)
-    printf("gcc -g");
-  else
-    printf("%s -g", s);
+  if (s == NULL) {
+    if (GCCCommand)
+      printf("gcc -g ");
+    else
+      printf("g++ -g ");
+  } else
+    printf("%s -g ", s);
 
   l = getenv("LDFLAGS");
   if (l != NULL)
@@ -310,7 +318,40 @@ void add_function (char *name)
     tail->next = p;
     tail       = p;
     tail->next = NULL;
-  }    
+  }
+}
+
+
+static void GenerateInitCalls (functList *p)
+{
+  while (p != NULL) {
+    printf("   _M2_%s_init(argc, argv);\n", p->functname);
+    p = p->next;
+  }
+}
+
+
+static void GenerateFinishCalls (functList *p)
+{
+  if (p->next != NULL)
+    GenerateFinishCalls (p->next);
+  printf("   _M2_%s_finish(argc, argv);\n", p->functname);
+}
+
+
+static void GeneratePrototypes (functList *p)
+{
+  while (p != NULL) {
+    if (GCCCommand) {
+      printf("extern void _M2_%s_init(int argc, char *argv[]);\n", p->functname);
+      printf("extern void _M2_%s_finish(int argc, char *argv[]);\n", p->functname);
+    }
+    else {
+      printf("extern \"C\" void _M2_%s_init(int argc, char *argv[]);\n", p->functname);
+      printf("extern \"C\" void _M2_%s_finish(int argc, char *argv[]);\n", p->functname);
+    }
+    p = p->next;
+  }
 }
 
 
@@ -330,23 +371,18 @@ static void ParseFileStartup (void)
             add_function(name);
 	}
     }
-    p = head;
+    GeneratePrototypes (head);
+    printf("extern");
+    if (! GCCCommand)
+      printf (" \"C\"");
+    printf (" void _exit(int);\n");
 
-    while (p != NULL) {
-      printf("extern void _M2_%s_init(int argc, char *argv[]);\n", p->functname);
-      p = p->next;
-    }
-    printf("extern void exit(int);\n");
-
-    p = head;
     printf("\n\nint %s(int argc, char *argv[])\n", NameOfMain);
     printf("{\n");
-    while (p != NULL) {
-      printf("   _M2_%s_init(argc, argv);\n", p->functname);
-      p = p->next;
-    }
+    GenerateInitCalls (head);
+    GenerateFinishCalls (head);
     if (ExitNeeded) {
-      printf("   exit(0);\n");
+      printf("   _exit(0);\n");
     }
     printf("   return(0);\n");
     printf("}\n");
@@ -610,7 +646,7 @@ static int GetSingleChar (char *ch)
 
 }
 
-    
+
 /*
    InRange - returns true if Element is within the range Min..Max.
 */

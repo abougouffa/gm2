@@ -24,9 +24,11 @@ FROM FIO IMPORT StdErr ;
 FROM libc IMPORT exit ;
 
 FROM decl IMPORT node, isNodeF, isDef, isImp, isModule, isMainModule,
-                 setMainModule, setCurrentModule, getSource,
+                 setMainModule, setCurrentModule, getSource, isImpOrModule,
                  lookupDef, lookupModule, lookupImp, setSource, getSymName,
-		 foreachDefModuleDo, getMainModule, out ;
+		 foreachDefModuleDo, foreachModModuleDo,
+		 getMainModule, out, hasHidden,
+		 setVisited, unsetVisited, isVisited ;
 
 FROM symbolKey IMPORT performOperation ;
 
@@ -43,6 +45,9 @@ IMPORT mcflex ;
 IMPORT mcp1 ;
 IMPORT mcp2 ;
 IMPORT mcp3 ;
+IMPORT mcp4 ;
+IMPORT mcp5 ;
+IMPORT mcComment ;
 
 
 FROM mcError IMPORT writeFormat0, flushErrors, flushWarnings ;
@@ -50,6 +55,7 @@ FROM nameKey IMPORT Name, NulName, getKey, keyToCharStar, makekey ;
 FROM mcPrintf IMPORT fprintf1 ;
 FROM mcQuiet IMPORT qprintf0, qprintf1, qprintf2 ;
 FROM DynamicStrings IMPORT String, InitString, KillString, InitStringCharStar, Dup, Mark, string ;
+FROM mcOptions IMPORT getExtendedOpaque ;
 
 CONST
    Debugging = FALSE ;
@@ -72,18 +78,23 @@ VAR
 BEGIN
    n := initParser (s) ;
    doPass (TRUE, TRUE, 1, p1, 'lexical analysis, modules, root decls and C preprocessor') ;
-   doPass (TRUE, TRUE, 2, p2, '[definition modules] type equivalence and enumeration types') ;
-   doPass (TRUE, TRUE, 3, p3, '[definition modules] import lists, constants, types, variables and procedures') ;
-(*
+   doPass (TRUE, TRUE, 2, p2, '[all modules] type equivalence and enumeration types') ;
+   doPass (TRUE, TRUE, 3, p3, '[all modules] import lists, types, variables and procedure declarations') ;
+   doPass (TRUE, TRUE, 4, p4, '[all modules] constant expressions') ;
+
    IF NOT isDef (n)
    THEN
-      qprintf0 ('Parse implementation or program module\n') ;
-      doPass (FALSE, FALSE, p4, 4, 'imports and constants') ;
-      doPass (FALSE, FALSE, p5, 5, 'import lists, constants, types, variables and procedures') ;
-      doPass (FALSE, FALSE, p6, 6, 'build tree of all procedure and module initialisation code') ;
-      qprintf0 ('walk tree converting it to C/C++\n')
-   END
-*)
+      IF isImp (n)
+      THEN
+         qprintf0 ('Parse implementation module\n') ;
+         doPass (FALSE, TRUE, 5, p5, '[implementation module] build code tree for all procedures and module initialisations')
+      ELSE
+         qprintf0 ('Parse program module\n') ;
+         doPass (FALSE, TRUE, 5, p5, '[program module] build code tree for all procedures and module initialisations')
+      END ;
+   END ;
+
+   qprintf0 ('walk tree converting it to C/C++\n') ;
    out
 END doCompile ;
 
@@ -204,7 +215,16 @@ END initParser ;
 
 PROCEDURE p1 (n: node) ;
 BEGIN
-   pass (1, n, mcp1.CompilationUnit, isDef, openDef)
+   IF isDef (n)
+   THEN
+      pass (1, n, mcp1.CompilationUnit, isDef, openDef) ;
+      IF hasHidden (n) AND getExtendedOpaque ()
+      THEN
+         pass (1, lookupImp (getSymName (n)), mcp1.CompilationUnit, isImp, openMod)
+      END
+   ELSE
+      pass (1, n, mcp1.CompilationUnit, isImpOrModule, openMod)
+   END
 END p1 ;
 
 
@@ -214,7 +234,16 @@ END p1 ;
 
 PROCEDURE p2 (n: node) ;
 BEGIN
-   pass (2, n, mcp2.CompilationUnit, isDef, openDef)
+   IF isDef (n)
+   THEN
+      pass (2, n, mcp2.CompilationUnit, isDef, openDef) ;
+      IF hasHidden (n) AND getExtendedOpaque ()
+      THEN
+         pass (2, lookupImp (getSymName (n)), mcp2.CompilationUnit, isImp, openMod)
+      END
+   ELSE
+      pass (2, n, mcp2.CompilationUnit, isImpOrModule, openMod)
+   END
 END p2 ;
 
 
@@ -224,8 +253,46 @@ END p2 ;
 
 PROCEDURE p3 (n: node) ;
 BEGIN
-   pass (3, n, mcp3.CompilationUnit, isDef, openDef)
+   IF isDef (n)
+   THEN
+      pass (3, n, mcp3.CompilationUnit, isDef, openDef) ;
+      IF hasHidden (n) AND getExtendedOpaque ()
+      THEN
+         pass (3, lookupImp (getSymName (n)), mcp3.CompilationUnit, isImp, openMod)
+      END
+   ELSE
+      pass (3, n, mcp3.CompilationUnit, isImpOrModule, openMod)
+   END
 END p3 ;
+
+
+(*
+   p4 - wrap the pass procedure with the correct parameter values.
+*)
+
+PROCEDURE p4 (n: node) ;
+BEGIN
+   IF isDef (n)
+   THEN
+      pass (4, n, mcp4.CompilationUnit, isDef, openDef) ;
+      IF hasHidden (n) AND getExtendedOpaque ()
+      THEN
+         pass (4, lookupImp (getSymName (n)), mcp4.CompilationUnit, isImp, openMod)
+      END
+   ELSE
+      pass (4, n, mcp4.CompilationUnit, isImpOrModule, openMod)
+   END
+END p4 ;
+
+
+(*
+   p5 - wrap the pass procedure with the correct parameter values.
+*)
+
+PROCEDURE p5 (n: node) ;
+BEGIN
+   pass (5, n, mcp5.CompilationUnit, isImpOrModule, openMod)
+END p5 ;
 
 
 (*
@@ -327,8 +394,9 @@ END openMod ;
 PROCEDURE pass (no: CARDINAL; n: node; f: parserFunction;
                 isnode: isNodeF; open: openFunction) ;
 BEGIN
-   IF isnode (n)
+   IF isnode (n) AND (NOT isVisited (n))
    THEN
+      setVisited (n) ;
       IF open (n, TRUE)
       THEN
          IF NOT f ()
@@ -353,15 +421,19 @@ VAR
    descs: String ;
 BEGIN
    setToPassNo (no) ;
+   mcComment.newPass ;
    descs := InitString (desc) ;
    qprintf2 ('Pass %d: %s\n', no, descs) ;
-   (*
-    *  need to parse the main module (to add definition module
-    *  dependencies) but only if the main module is not a definition
-    *  module.
-    *)
-   IF parseMain AND (NOT isDef (getMainModule ()))
+   foreachDefModuleDo (unsetVisited) ;
+   foreachModModuleDo (unsetVisited) ;
+   IF parseMain
    THEN
+      unsetVisited (getMainModule ()) ;
+      IF parseDefs AND isImp (getMainModule ())
+      THEN
+         (* we need to parse the definition module of a corresponding implementation module.  *)
+         p (lookupDef (getSymName (getMainModule ())))
+      END ;
       p (getMainModule ())
    END ;
    IF parseDefs

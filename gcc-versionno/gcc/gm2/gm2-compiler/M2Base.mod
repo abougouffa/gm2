@@ -78,7 +78,7 @@ FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
 FROM M2Size IMPORT Size, MakeSize ;
 
-FROM M2System IMPORT Address, Byte, Word, System, Loc, InitSystem, 
+FROM M2System IMPORT Address, Byte, Word, System, Loc, InitSystem,
                      IntegerN, CardinalN, WordN, SetN, RealN, ComplexN,
                      IsCardinalN, IsIntegerN, IsRealN,
                      IsGenericSystemType, IsSameSizePervasiveType ;
@@ -102,6 +102,8 @@ FROM m2type IMPORT GetIntegerType,
                    GetISOLocType,
                    GetM2ComplexType, GetM2LongComplexType,
                    GetM2ShortComplexType,
+		   GetM2Complex32, GetM2Complex64,
+		   GetM2Complex96, GetM2Complex128,
                    GetM2RType, GetM2ZType, GetM2CType,
                    InitBaseTypes ;
 
@@ -159,8 +161,8 @@ VAR
    FloatS, SFloat,
    FloatL, LFloat,
    Trunc,
-   TruncS, STrunc,
-   TruncL, LTrunc,
+   TruncS,
+   TruncL,
    Int, IntS, IntL,
    m2rts,
    MinReal,
@@ -188,7 +190,7 @@ VAR
 
 
 (*
-   InitBuiltins - 
+   InitBuiltins -
 *)
 
 PROCEDURE InitBuiltins ;
@@ -603,7 +605,7 @@ END GetBaseTypeMinMax ;
 
 PROCEDURE ImportFrom (module: CARDINAL; name: ARRAY OF CHAR) : CARDINAL ;
 BEGIN
-   PutImported(GetExported(m2rts, MakeKey(name))) ;
+   PutImported(GetExported(module, MakeKey(name))) ;
    RETURN( GetSym(MakeKey(name)) )
 END ImportFrom ;
 
@@ -804,8 +806,8 @@ BEGIN
    PutFunction(SFloat, ShortReal) ;
    LFloat := MakeProcedure(MakeKey('LFLOAT')) ;
    PutFunction(LFloat, LongReal) ;
-   SFloat := MakeProcedure(MakeKey('FLOATS')) ;
-   PutFunction(SFloat, ShortReal) ;
+   FloatS := MakeProcedure(MakeKey('FLOATS')) ;
+   PutFunction(FloatS, ShortReal) ;
    FloatL := MakeProcedure(MakeKey('FLOATL')) ;
    PutFunction(FloatL, LongReal)
 END BuildFloatFunctions ;
@@ -904,7 +906,7 @@ END InitBaseFunctions ;
 
 
 (*
-   IsISOPseudoBaseFunction - 
+   IsISOPseudoBaseFunction -
 *)
 
 PROCEDURE IsISOPseudoBaseFunction (Sym: CARDINAL) : BOOLEAN ;
@@ -916,7 +918,7 @@ END IsISOPseudoBaseFunction ;
 
 
 (*
-   IsPIMPseudoBaseFunction - 
+   IsPIMPseudoBaseFunction -
 *)
 
 PROCEDURE IsPIMPseudoBaseFunction (Sym: CARDINAL) : BOOLEAN ;
@@ -1157,7 +1159,6 @@ END EmitTypeIncompatibleError ;
 
 PROCEDURE CheckCompatible (t1, t2: CARDINAL; kind: Compatability) ;
 VAR
-   n: Name ;
    s: String ;
    r: Compatible ;
 BEGIN
@@ -1429,7 +1430,7 @@ BEGIN
       THEN
          RETURN( no )
       END ;
-         
+
       CASE kind OF
 
       expression: RETURN( Expr [mt1, mt2] ) |
@@ -1547,7 +1548,6 @@ END IsSubrangeSame ;
 PROCEDURE IsVarientSame (a, b: CARDINAL; error: BOOLEAN) : BOOLEAN ;
 VAR
    i, j  : CARDINAL ;
-   ta, tb,
    fa, fb,
    ga, gb: CARDINAL ;
 BEGIN
@@ -1584,7 +1584,7 @@ END IsVarientSame ;
 
 
 (*
-   IsRecordSame - 
+   IsRecordSame -
 *)
 
 PROCEDURE IsRecordSame (a, b: CARDINAL; error: BOOLEAN) : BOOLEAN ;
@@ -1627,7 +1627,7 @@ END IsRecordSame ;
 
 
 (*
-   IsArraySame - 
+   IsArraySame -
 *)
 
 PROCEDURE IsArraySame (t1, t2: CARDINAL; error: BOOLEAN) : BOOLEAN ;
@@ -1642,7 +1642,7 @@ END IsArraySame ;
 
 
 (*
-   IsEnumerationSame - 
+   IsEnumerationSame -
 *)
 
 PROCEDURE IsEnumerationSame (t1, t2: CARDINAL; error: BOOLEAN) : BOOLEAN ;
@@ -1652,7 +1652,7 @@ END IsEnumerationSame ;
 
 
 (*
-   IsSetSame - 
+   IsSetSame -
 *)
 
 PROCEDURE IsSetSame (t1, t2: CARDINAL; error: BOOLEAN) : BOOLEAN ;
@@ -1700,7 +1700,7 @@ END IsSameType ;
 
 
 (*
-   IsProcTypeSame - 
+   IsProcTypeSame -
 *)
 
 PROCEDURE IsProcTypeSame (p1, p2: CARDINAL; error: BOOLEAN) : BOOLEAN ;
@@ -1743,7 +1743,7 @@ END IsProcTypeSame ;
 
 
 (*
-   doProcTypeCheck - 
+   doProcTypeCheck -
 *)
 
 PROCEDURE doProcTypeCheck (p1, p2: CARDINAL; error: BOOLEAN) : BOOLEAN ;
@@ -1939,7 +1939,7 @@ END IsParameterCompatible ;
 
 
 (*
-   MixMetaTypes - 
+   MixMetaTypes -
 *)
 
 PROCEDURE MixMetaTypes (t1, t2: CARDINAL; NearTok: CARDINAL) : CARDINAL ;
@@ -2141,7 +2141,7 @@ END IsArrayUnboundedCompatible ;
 
 
 (*
-   IsValidUnboundedParameter - 
+   IsValidUnboundedParameter -
 *)
 
 PROCEDURE IsValidUnboundedParameter (formal, actual: CARDINAL) : BOOLEAN ;
@@ -2315,6 +2315,15 @@ BEGIN
    int64    :   PushIntegerTree(BuildIntegerConstant(8)) |
    real96   :   PushIntegerTree(BuildIntegerConstant(12)) |
    real128  :   PushIntegerTree(BuildIntegerConstant(16)) |
+   complex  :   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2ComplexType())) |
+   shortcomplex: PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2ShortComplexType())) |
+   longcomplex:  PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2LongComplexType())) |
+   complex32:  PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2Complex32())) |
+   complex64:  PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2Complex64())) |
+   complex96:  PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2Complex96())) |
+   complex128:  PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2Complex128())) |
+   ctype     :  PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2CType())) |
+
    unknown  :   InternalError('should not get here', __FILE__, __LINE__)
 
    ELSE
@@ -2324,7 +2333,7 @@ END PushSizeOf ;
 
 
 (*
-   IsSizeSame - 
+   IsSizeSame -
 *)
 
 PROCEDURE IsSizeSame (t1, t2: MetaType) : BOOLEAN ;
@@ -2336,7 +2345,7 @@ END IsSizeSame ;
 
 
 (*
-   InitArray - 
+   InitArray -
 *)
 
 PROCEDURE InitArray (VAR c: CompatibilityArray;
@@ -2502,8 +2511,8 @@ BEGIN
    W
    *)
    A(const       , 'T T T T T T T T T T T T T T T T T T T F T T T T T T T T T T T T F F F F F F F F F F F F F F F F F') ;
-   A(word        , '. T F W F 2 W W 2 W W W 2 F W W T T F W T F F F F F F F F F F F F F F F F F F F F F F F F F F T T') ;
-   A(byte        , '. . T F 2 F F F F F F F F F F F F F F F T S F F F S F F F F F F F F F F S F F F F F F F F F F T T') ;
+   A(word        , '. T S S S 2 S S 2 S S S 2 S S S T T S S T S S S S S S S S S S S S S S S S S S S S S S S S S T T T') ;
+   A(byte        , '. . T S 2 S S S S S S S S S S S T T S S T S S S S S S S S S S S S S S S S S S S S S S S S S T T T') ;
    A(address     , '. . . T F F F F F F F 2 F F F F F 2 2 F T F F F F F F F F F F F F F F F F F F F F F F F F F F F F') ;
    A(chr         , '. . . . T F F F F F F F F F F F F F 2 F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F') ;
    A(normint     , '. . . . . T T T T T T F F F F F F F F F T T T T T T T T T F F F F F F F F F F F F F F F F F F F F') ;

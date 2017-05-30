@@ -93,7 +93,7 @@ VAR
 
 
 (*
-   writeStringDesc - 
+   writeStringDesc -
 *)
 
 PROCEDURE writeStringDesc (s: String) ;
@@ -117,7 +117,7 @@ END writeStringDesc ;
 
 
 (*
-   writeNspace - 
+   writeNspace -
 *)
 
 PROCEDURE writeNspace (n: CARDINAL) ;
@@ -130,7 +130,7 @@ END writeNspace ;
 
 
 (*
-   DumpStringInfo - 
+   DumpStringInfo -
 *)
 
 PROCEDURE DumpStringInfo (s: String; i: CARDINAL) ;
@@ -240,7 +240,7 @@ END PushAllocation ;
 
 
 (*
-   doDSdbEnter - 
+   doDSdbEnter -
 *)
 
 PROCEDURE doDSdbEnter ;
@@ -253,7 +253,7 @@ END doDSdbEnter ;
 
 
 (*
-   doDSdbExit - 
+   doDSdbExit -
 *)
 
 PROCEDURE doDSdbExit (s: String) ;
@@ -266,7 +266,7 @@ END doDSdbExit ;
 
 
 (*
-   DSdbEnter - 
+   DSdbEnter -
 *)
 
 PROCEDURE DSdbEnter ;
@@ -275,7 +275,7 @@ END DSdbEnter ;
 
 
 (*
-   DSdbExit - 
+   DSdbExit -
 *)
 
 PROCEDURE DSdbExit (s: String) ;
@@ -302,7 +302,7 @@ END Capture ;
 
 
 (*
-   Min - 
+   Min -
 *)
 
 PROCEDURE Min (a, b: CARDINAL) : CARDINAL ;
@@ -317,7 +317,7 @@ END Min ;
 
 
 (*
-   Max - 
+   Max -
 *)
 
 PROCEDURE Max (a, b: CARDINAL) : CARDINAL ;
@@ -361,7 +361,7 @@ END writeCstring ;
 
 
 (*
-   writeCard - 
+   writeCard -
 *)
 
 PROCEDURE writeCard (c: CARDINAL) ;
@@ -381,7 +381,7 @@ END writeCard ;
 
 
 (*
-   writeLongcard - 
+   writeLongcard -
 *)
 
 PROCEDURE writeLongcard (l: LONGCARD) ;
@@ -406,7 +406,7 @@ END writeLongcard ;
 
 
 (*
-   writeAddress - 
+   writeAddress -
 *)
 
 PROCEDURE writeAddress (a: ADDRESS) ;
@@ -1223,7 +1223,7 @@ BEGIN
          END ;
          a := a^.contents.next ;
          b := b^.contents.next
-      END ; 
+      END ;
       RETURN( TRUE )
    ELSE
       RETURN( FALSE )
@@ -1781,7 +1781,7 @@ END SliceDB ;
 
 
 (*
-   DumpState - 
+   DumpState -
 *)
 
 PROCEDURE DumpState (s: String) ;
@@ -1800,7 +1800,7 @@ END DumpState ;
 
 
 (*
-   DumpStringSynopsis - 
+   DumpStringSynopsis -
 *)
 
 PROCEDURE DumpStringSynopsis (s: String) ;

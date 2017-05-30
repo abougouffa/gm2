@@ -1,5 +1,5 @@
 --- gcc-5.2.0-orig/Makefile.tpl	2015-03-25 12:05:22.000000000 +0000
-+++ gcc-5.2.0/Makefile.tpl	2015-10-16 17:19:06.099808527 +0100
++++ gcc-5.2.0/Makefile.tpl	2016-04-11 13:16:18.675000792 +0100
 @@ -160,6 +160,7 @@
  	GFORTRAN="$(GFORTRAN_FOR_BUILD)"; export GFORTRAN; \
  	GOC="$(GOC_FOR_BUILD)"; export GOC; \

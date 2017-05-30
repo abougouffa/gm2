@@ -1,4 +1,4 @@
-/* Copyright (C) 2012, 2013, 2014, 2015, 2016
+/* Copyright (C) 2012, 2013, 2014, 2015, 2016, 2017
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -1369,6 +1369,7 @@ finish_build_pointer_type (tree t, tree to_type,
 
   /* Lay out the type. */
   /* layout_type (t); */
+  layout_type (t);
 
   return t;
 }
@@ -1385,12 +1386,12 @@ m2type_BuildProcTypeParameterDeclaration (location_t location, tree type,
 {
   m2assert_AssertLocation (location);
   ASSERT_BOOL (isreference);
-  type = m2tree_skip_type_decl(type);
-  layout_type (type);
+  type = m2tree_skip_type_decl (type);
   if (isreference)
     type = build_reference_type (type);
 
   param_type_list = tree_cons (NULL_TREE, type, param_type_list);
+  layout_type (type);
   return type;
 }
 
@@ -2841,6 +2842,16 @@ m2type_BuildArrayStringConstructor (location_t location, tree arrayType, tree st
   return m2type_BuildEndArrayConstructor (c);
 }
 
+/*
+ *  get_unsigned - return TRUE if the type, t, is unsigned.
+ */
+
+static int
+get_unsigned (tree t)
+{
+  t = m2tree_skip_type_decl (t);
+  return TYPE_UNSIGNED (t);
+}
 
 /*
  *  BuildSubrangeType - creates a subrange of, type, with, lowval, highval.
@@ -2855,10 +2866,14 @@ m2type_BuildSubrangeType (location_t location, char *name, tree type, tree lowva
   tree id = build_range_type (btype, lo, hi);
 
   m2assert_AssertLocation (location);
+#if 0
   if (tree_int_cst_sgn (lo) < 0)
     TYPE_UNSIGNED (id) = FALSE;
   else
     TYPE_UNSIGNED (id) = TRUE;
+#endif
+
+  TYPE_UNSIGNED (id) = get_unsigned (type);
   layout_type (id);
 
   if ((name == NULL) || (strcmp (name, "") == 0)) {

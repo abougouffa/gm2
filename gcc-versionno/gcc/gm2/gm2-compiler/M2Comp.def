@@ -46,7 +46,7 @@ PROCEDURE compile (filename: ADDRESS) ;
                                compiled is a definition module.
 *)
 
-PROCEDURE CompilingDefinitionModule() : BOOLEAN ;
+PROCEDURE CompilingDefinitionModule () : BOOLEAN ;
 
 
 (*
@@ -54,7 +54,7 @@ PROCEDURE CompilingDefinitionModule() : BOOLEAN ;
                                    compiled is an implementation module.
 *)
 
-PROCEDURE CompilingImplementationModule() : BOOLEAN ;
+PROCEDURE CompilingImplementationModule () : BOOLEAN ;
 
 
 (*
@@ -62,7 +62,7 @@ PROCEDURE CompilingImplementationModule() : BOOLEAN ;
                             compiled is a program module.
 *)
 
-PROCEDURE CompilingProgramModule() : BOOLEAN ;
+PROCEDURE CompilingProgramModule () : BOOLEAN ;
 
 
 END M2Comp.

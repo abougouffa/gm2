@@ -24,11 +24,14 @@ DEFINITION MODULE roots ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Mon May 17 18:19:14 2010
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: find the roots to quadratics and quartic equations.
 *)
 
-EXPORT QUALIFIED findQuadratic, findQuartic, findAllRootsQuartic, findOctic, nearZero ;
+FROM coord IMPORT Coord ;
+
+EXPORT QUALIFIED findQuadratic, findQuartic, findAllRootsQuartic, findOctic,
+                 nearZero, nearSame, nearCoord, setTrace ;
 
 
 (*
@@ -50,7 +53,7 @@ PROCEDURE findOctic (a, b, c, d, e, f, g, h, i: REAL; VAR x0: REAL) : BOOLEAN ;
 *)
 
 PROCEDURE findQuadratic (a, b, c: REAL; VAR x0, x1: REAL) : BOOLEAN ;
-   
+
 
 (*
    findQuartic - returns TRUE if a scalar root can be found for:
@@ -80,6 +83,27 @@ PROCEDURE findAllRootsQuartic (a, b, c, d, e: REAL; VAR x: ARRAY OF REAL) : CARD
 *)
 
 PROCEDURE nearZero (r: REAL) : BOOLEAN ;
+
+
+(*
+   nearSame - returns TRUE if, |a-b| < epsilon
+*)
+
+PROCEDURE nearSame (a, b: REAL) : BOOLEAN ;
+
+
+(*
+   nearCoord - returns TRUE if position, a, is very close to, b.
+*)
+
+PROCEDURE nearCoord (a, b: Coord) : BOOLEAN ;
+
+
+(*
+   setTrace - turns tracing on/off.
+*)
+
+PROCEDURE setTrace (on: BOOLEAN) ;
 
 
 END roots.

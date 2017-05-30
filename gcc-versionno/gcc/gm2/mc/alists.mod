@@ -26,10 +26,10 @@ CONST
 
 TYPE
    alist = POINTER TO RECORD
-             noOfelements: CARDINAL ;
-             elements    : ARRAY [1..MaxnoOfelements] OF ADDRESS ;
-             next        : alist ;
-          END ;
+              noOfelements: CARDINAL ;
+              elements    : ARRAY [1..MaxnoOfelements] OF ADDRESS ;
+              next        : alist ;
+           END ;
 
 
 (*

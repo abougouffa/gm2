@@ -19,11 +19,13 @@ Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE history ;
 
 FROM Storage IMPORT ALLOCATE ;
-FROM roots IMPORT nearZero ;
+FROM roots IMPORT nearZero, nearSame, nearCoord ;
 FROM libc IMPORT printf ;
 
 CONST
    Debugging = FALSE ;
+   Purge     =  TRUE ;
+   HalfSecond= 0.5 ;
 
 TYPE
    hList = POINTER TO RECORD
@@ -31,42 +33,52 @@ TYPE
                          id2        : CARDINAL ;
                          where1,
                          where2     : whereHit ;
-                         hasOccurred: BOOLEAN ;
+			 cp         : Coord ;
                          t          : REAL ;
                          next       : hList ;
                       END ;
 
 VAR
+   currentTime: REAL ;
    free,
-   list: hList ;
-
+   pastQ,
+   futureQ    : hList ;
 
 
 (*
-   dumpHlist - 
+   dumpHlist -
 *)
 
 PROCEDURE dumpHlist (l: hList) ;
 BEGIN
-   printf("time %g id pair (%d, %d)\n", l^.t, l^.id1, l^.id2)
+   printf ("time %g id pair (%d, %d)\n", l^.t, l^.id1, l^.id2)
 END dumpHlist ;
 
 
 (*
-   dumpList - 
+   dumpLists -
 *)
 
-PROCEDURE dumpList ;
+PROCEDURE dumpLists ;
 VAR
    l: hList ;
 BEGIN
-   l := list ;
-   printf("The history of collisions found:\n") ;
-   WHILE l#NIL DO
-      dumpHlist(l) ;
+   l := pastQ ;
+   printf ("Dumping lists\n") ;
+   printf ("  past Q\n") ;
+   WHILE l # NIL DO
+      printf ("  ") ;
+      dumpHlist (l) ;
+      l := l^.next
+   END ;
+   l := futureQ ;
+   printf ("  futureQ:\n") ;
+   WHILE l # NIL DO
+      printf ("  ") ;
+      dumpHlist (l) ;
       l := l^.next
    END
-END dumpList ;
+END dumpLists ;
 
 
 (*
@@ -79,7 +91,7 @@ VAR
 BEGIN
    IF free=NIL
    THEN
-      NEW(h)
+      NEW (h)
    ELSE
       h := free ;
       free := free^.next
@@ -121,9 +133,10 @@ END isPair ;
 
 PROCEDURE isSame (a, b: hList) : BOOLEAN ;
 BEGIN
-   RETURN nearZero(a^.t-b^.t) AND
-           isPair(a^.id1, a^.id2, b^.id1, b^.id2) AND
-           (a^.where1=b^.where1) AND (a^.where2=b^.where2)
+   RETURN nearZero (a^.t-b^.t) AND
+           isPair (a^.id1, a^.id2, b^.id1, b^.id2) AND
+           (a^.where1 = b^.where1) AND (a^.where2 = b^.where2)
+           AND nearCoord (a^.cp, b^.cp)
 END isSame ;
 
 
@@ -138,243 +151,388 @@ BEGIN
    WHILE l#NIL DO
       a := l ;
       l := l^.next ;
-      disposeHList(a)
+      disposeHList (a)
    END ;
    RETURN NIL
 END disposeAll ;
 
 
 (*
-   updateList - 
-*)
-
-PROCEDURE updateList (n: hList; currentTime: REAL) ;
-VAR
-   h, p: hList ;
-BEGIN
-   IF list=NIL
-   THEN
-      list := n
-   ELSE
-      (* ok at this point we know, n, is a different collision. *)
-      (* we can destroy any hList entry which is significantly older than currentTime. *)
-      p := NIL ;
-      h := list ;
-      WHILE h#NIL DO
-         IF (NOT nearZero(h^.t-currentTime)) AND (currentTime > h^.t)
-         THEN
-            (* safely older, delete entry *)
-            IF p=NIL
-            THEN
-               list := h^.next ;
-               h := list
-            ELSE
-               p^.next := h^.next ;
-               disposeHList(h) ;
-               h := p^.next
-            END
-         ELSE
-            p := h ;
-            h := h^.next
-         END
-      END ;
-      (* add it to the list *)
-      n^.next := list ;
-      list := n
-   END
-END updateList ;
-
-
-(*
    init - fill in the fields of, n, and return n.
 *)
 
-PROCEDURE init (n: hList; time: REAL; id1, id2: CARDINAL; w1, w2: whereHit) : hList ;
+PROCEDURE init (n: hList; time: REAL; id1, id2: CARDINAL; w1, w2: whereHit; cp: Coord) : hList ;
 BEGIN
    n^.id1 := id1 ;
    n^.id2 := id2 ;
    n^.where1 := w1 ;
    n^.where2 := w2 ;
+   n^.cp := cp ;
    n^.t := time ;
    n^.next := NIL ;
-   n^.hasOccurred := FALSE ;
    RETURN n
 END init ;
 
 
 (*
-   isDuplicate - returns TRUE if the collision at, position,
+   isDuplicate - returns TRUE if the collision at, cp,
                  and, time, has occurred before.
-                 The time must be the absolute time of the collision.
+                 The time (currentTime+relTime) must be the absolute
+                 time of the collision.
 *)
 
 PROCEDURE isDuplicate (currentTime, relTime: REAL;
-                       id1, id2: CARDINAL; w1, w2: whereHit) : BOOLEAN ;
+                       id1, id2: CARDINAL; w1, w2: whereHit; cp: Coord) : BOOLEAN ;
 VAR
    h, n: hList ;
 BEGIN
    IF Debugging
    THEN
-      dumpList
+      dumpLists
    END ;
-   n := init(newHList(), currentTime+relTime, id1, id2, w1, w2) ;
+   n := init (newHList (), currentTime+relTime, id1, id2, w1, w2, cp) ;
    IF Debugging
    THEN
-      printf("checking against: ") ;
-      dumpHlist(n)
+      printf ("checking for duplicates of: ") ;
+      dumpHlist (n)
    END ;
-   h := list ;
-   WHILE h#NIL DO
-      IF isSame(h, n)
+   IF isDuplicateFuture (n) OR isDuplicatePast (n)
+   THEN
+      IF Debugging
       THEN
-         disposeHList(n) ;
-         IF Debugging
-         THEN
-            printf("found same collision\n")
-         END ;
-         RETURN TRUE
+         printf ("duplicate collision found (ignoring): ") ;
+         dumpHlist (n)
       END ;
-      h := h^.next
+      disposeHList (n) ;
+      RETURN TRUE
    END ;
-   updateList(n, currentTime) ;
+   (* updateTime (currentTime) ; *)
    IF Debugging
    THEN
-      printf("unique collision found\n") ;
-      dumpHlist(n)
+      printf ("unique collision found: ") ;
+      dumpHlist (n)
    END ;
+   disposeHList (n) ;
    RETURN FALSE
 END isDuplicate ;
 
 
 (*
-   removeOlderHistory - remove older entries than, currentTime.
-                        This should only be called once a collision
-                        has been found, we need to do this as we assume
-                        any future event may be null and void after an
-                        earlier collision.
+   forgetFuture - destroy the anticipated future queue.
 *)
 
-PROCEDURE removeOlderHistory (currentTime: REAL) ;
-VAR
-   h, p: hList ;
+PROCEDURE forgetFuture ;
 BEGIN
-   IF Debugging
-   THEN
-      printf("truncating the history list\n")
-   END ;
-   p := NIL ;
-   h := list ;
-   WHILE h#NIL DO
-      IF (NOT nearZero(h^.t-currentTime)) AND (currentTime < h^.t)
-      THEN
-         (* safely older, delete entry *)
-         IF p=NIL
-         THEN
-            list := h^.next ;
-            disposeHList(h) ;
-            h := list
-         ELSE
-            p^.next := h^.next ;
-            disposeHList(h) ;
-            h := p^.next
-         END
-      ELSE
-         p := h ;
-         h := h^.next
-      END
-   END ;
-   IF Debugging
-   THEN
-      dumpList
-   END
-END removeOlderHistory ;
+   futureQ := disposeAll (futureQ)
+END forgetFuture ;
 
 
 (*
-   forgetHistory - forget the complete history list.
+   occurred - mark the collision as having occurred at, currentTime, between, objects
+              id1 and id2 at position, cp.  This collision is placed onto the past queue.
+              If the event described by id1, id2 at, time, is also present
+              on the future queue it is removed.
 *)
 
-PROCEDURE forgetHistory ;
-BEGIN
-   list := disposeAll(list)
-END forgetHistory ;
-
-
-(*
-   occurred - mark the collision as having occurred.
-*)
-
-PROCEDURE occurred (currentTime: REAL; id1, id2: CARDINAL) ;
+PROCEDURE occurred (currentTime: REAL; id1, id2: CARDINAL; cp: Coord) ;
 VAR
-   h, n: hList ;
+   n: hList ;
 BEGIN
    IF Debugging
    THEN
-      dumpList
+      dumpLists
    END ;
-   n := init(newHList(), currentTime, id1, id2, edge, edge) ;
+   n := init (newHList(), currentTime, id1, id2, edge, edge, cp) ;
    IF Debugging
    THEN
-      printf("checking against: ") ;
-      dumpHlist(n)
+      printf ("collision has occurred ") ;
+      dumpHlist (n) ;
+      printf ("collision has occurred, old queues\n") ;
+      dumpLists
    END ;
-   h := list ;
-   WHILE h#NIL DO
-      IF isSame(h, n)
-      THEN
-         h^.hasOccurred := TRUE
-      END ;
-      h := h^.next
-   END ;
-   disposeHList(n) ;
+   updateTime (currentTime) ;
+   forgetFuture ;
+   (* removeFromFutureQ (n) ; *)
+   addToPastQ (n) ;
    IF Debugging
    THEN
-      dumpList
+      printf ("collision has occurred queues altered\n") ;
+      dumpLists
    END
 END occurred ;
 
 
 (*
-   purge - remove all collision history which has never occurred.
+   anticipate - anticipate a collision at time, aTime, in the future at
+                position, cp.
+                A duplicate will ignored.  A non duplicate
+                collision will be placed onto the futureQ.
 *)
 
-PROCEDURE purge ;
+PROCEDURE anticipate (aTime: REAL; id1, id2: CARDINAL; cp: Coord) ;
 VAR
-   h, p: hList ;
+   n: hList ;
 BEGIN
    IF Debugging
    THEN
-      printf("purging the history list\n")
+      dumpLists
    END ;
-   p := NIL ;
-   h := list ;
-   WHILE h#NIL DO
-      IF NOT h^.hasOccurred
+   n := init (newHList(), aTime, id1, id2, edge, edge, cp) ;
+   IF Debugging
+   THEN
+      printf ("anticipated collision at: ") ;
+      dumpHlist (n) ;
+      printf ("anticipated collision, old queues\n") ;
+      dumpLists
+   END ;
+   IF isDuplicatePast (n) OR isDuplicateFuture (n)
+   THEN
+      IF Debugging
       THEN
-         (* delete entry *)
-         IF p=NIL
-         THEN
-            list := h^.next ;
-            disposeHList(h) ;
-            h := list
-         ELSE
-            p^.next := h^.next ;
-            disposeHList(h) ;
-            h := p^.next
+         printf ("anticipated collision, duplicate, ignoring\n")
+      END ;
+      disposeHList (n)
+   ELSE
+      addToFutureQ (n) ;
+      IF Debugging
+      THEN
+         printf ("anticipated collision, new queues\n") ;
+         dumpLists
+      END
+   END
+END anticipate ;
+
+
+(*
+   tooClose - returns TRUE if |a-b| < HalfSecond
+*)
+
+PROCEDURE tooClose (a, b: REAL) : BOOLEAN ;
+BEGIN
+   IF Debugging
+   THEN
+      printf ("a = %g, b = %g\n", a, b)
+   END ;
+   IF a > b
+   THEN
+      RETURN (a-b) < HalfSecond
+   ELSE
+      RETURN (b-a) < HalfSecond
+   END
+END tooClose ;
+
+
+(*
+   updateTime -
+*)
+
+PROCEDURE updateTime (time: REAL) ;
+VAR
+   p, h: hList ;
+BEGIN
+   IF NOT nearSame (time, currentTime)
+   THEN
+      (* time has advanced, see if we can purge the pastQ.  *)
+      currentTime := time ;
+      IF Purge
+      THEN
+         (* in the pastQ time is decreasing.  *)
+         h := pastQ ;
+         p := NIL ;
+         WHILE h # NIL DO
+            IF tooClose (h^.t, currentTime)
+            THEN
+               IF Debugging
+               THEN
+                  printf ("too close to delete\n")
+               END ;
+               p := h ;
+               h := h^.next
+            ELSIF h^.t < currentTime
+            THEN
+               IF Debugging
+               THEN
+                  printf ("yes can delete\n")
+               END ;
+               IF p = NIL
+               THEN
+                  pastQ := NIL
+               ELSE
+                  p^.next := NIL
+               END ;
+               h := disposeAll (h) ;
+               RETURN
+            ELSE
+               IF Debugging
+               THEN
+                  printf ("ignoring\n")
+               END ;
+               p := h ;
+               h := h^.next
+            END
          END
+      END
+   END
+END updateTime ;
+
+
+(*
+   removeFromFutureQ -
+*)
+
+PROCEDURE removeFromFutureQ (n: hList) ;
+VAR
+   p, q: hList ;
+BEGIN
+   p := futureQ ;
+   WHILE p#NIL DO
+      q := p^.next ;
+      IF (q#NIL) AND isSame (q, n)
+      THEN
+         p^.next := q^.next ;
+	 disposeHList (q) ;
+	 q := p^.next
       ELSE
-         p := h ;
-         h := h^.next
+         q := p ;
+	 p := p^.next
       END
    END ;
-   IF Debugging
+   IF (futureQ#NIL) AND isSame (futureQ, n)
    THEN
-      dumpList
+      q := futureQ ;
+      futureQ := futureQ^.next ;
+      disposeHList (q)
    END
-END purge ;
+END removeFromFutureQ ;
+
+
+(*
+   addToPastQ -
+*)
+
+PROCEDURE addToPastQ (n: hList) ;
+VAR
+   p, q: hList ;
+BEGIN
+   IF pastQ = NIL
+   THEN
+      pastQ := n ;
+      n^.next := NIL
+   ELSIF n^.t > pastQ^.t
+   THEN
+      n^.next := pastQ ;
+      pastQ := n ;
+   ELSE
+      p := pastQ ;
+      q := p^.next ;
+      WHILE q#NIL DO
+         IF n^.t > q^.t
+         THEN
+            n^.next := q ;
+            p^.next := n ;
+            RETURN
+         END ;
+         p := q ;
+         q := q^.next
+      END
+   END
+END addToPastQ ;
+
+
+(*
+   addToFutureQ -
+*)
+
+PROCEDURE addToFutureQ (n: hList) ;
+VAR
+   p, q: hList ;
+BEGIN
+   IF futureQ = NIL
+   THEN
+      futureQ := n ;
+      n^.next := NIL
+   ELSIF n^.t < futureQ^.t
+   THEN
+      n^.next := futureQ ;
+      futureQ := n ;
+   ELSE
+      p := futureQ ;
+      q := p^.next ;
+      WHILE q#NIL DO
+         IF n^.t < q^.t
+         THEN
+            n^.next := q ;
+            p^.next := n ;
+            RETURN
+         END ;
+         p := q ;
+         q := q^.next
+      END
+   END
+END addToFutureQ ;
+
+
+(*
+   isDuplicateFuture -
+*)
+
+PROCEDURE isDuplicateFuture (n: hList) : BOOLEAN ;
+VAR
+   h: hList ;
+BEGIN
+   h := futureQ ;
+   (* in the futureQ time is increasing.  *)
+   WHILE h # NIL DO
+      IF isSame (n, h)
+      THEN
+         IF Debugging
+         THEN
+            printf ("found collision event on the futureq: ") ; dumpHlist (n)
+         END ;
+         RETURN TRUE
+      ELSIF (h^.t > n^.t) AND (NOT nearSame (h^.t, n^.t))
+      THEN
+         (* h is now too far in the future to ever be considered the same.  *)
+	 RETURN FALSE
+      END ;
+      h := h^.next
+   END ;
+   RETURN FALSE
+END isDuplicateFuture ;
+
+
+(*
+   isDuplicatePast -
+*)
+
+PROCEDURE isDuplicatePast (n: hList) : BOOLEAN ;
+VAR
+   h: hList ;
+BEGIN
+   h := pastQ ;
+   (* in the pastQ time is decreasing.  *)
+   WHILE h # NIL DO
+      IF isSame (n, h)
+      THEN
+         IF Debugging
+         THEN
+            printf ("found collision event on the pastq: ") ; dumpHlist (n)
+         END ;
+         RETURN TRUE
+      ELSIF (h^.t < n^.t) AND (NOT nearSame (h^.t, n^.t))
+      THEN
+         (* h is now too far in the past to ever be considered the same.  *)
+	 RETURN FALSE
+      END ;
+      h := h^.next
+   END ;
+   RETURN FALSE
+END isDuplicatePast ;
 
 
 BEGIN
-   list := NIL ;
+   currentTime := 0.0 ;
+   pastQ := NIL ;
+   futureQ := NIL ;
    free := NIL
 END history.
