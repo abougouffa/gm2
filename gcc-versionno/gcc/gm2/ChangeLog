@@ -17,7 +17,10 @@
           parameter.  Use late_global_decl callback instead of global_decl.
 	* gm2-gcc/m2type.c:  use SET_TYPE_ALIGN instead of an assignment.
 	* gm2/gm2-gcc/gcc-consolidation.h:  include backend.h,
-	  rtl.h, predict.h and df.h.
+          rtl.h, predict.h and df.h.
+	* gm2/tools-src/gensum.py:  changed CVS url to the git url.
+          Generate a summary at the top of the passes, failures and
+	  unresolved tests.
 
 2017-05-24      Gaius Mulley <gaius@gnu.org>
 

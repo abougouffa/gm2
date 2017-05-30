@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-# Copyright (C) 2007, 2008, 2009
+# Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015,
+#               2016, 2017
 #               Free Software Foundation, Inc.
 # This file is part of GNU Modula-2.
 #
@@ -32,22 +33,22 @@ class testcase:
     passes = []
     fails = []
     unresolved = []
-    def __init__(self, n):
+    def __init__ (self, n):
         self.name = n
         self.passes = []
         self.fails = []
         self.unresolved = []
-    def addPass(self, p):
+    def addPass (self, p):
         self.passes += [p]
-    def addFail(self, p):
+    def addFail (self, p):
         self.fails += [p]
-    def addUnresolved(self, p, r):
+    def addUnresolved (self, p, r):
         self.unresolved += [p, r]
-    def getPasses(self):
+    def getPasses (self):
         return self.passes
-    def getFails(self):
+    def getFails (self):
         return self.fails
-    def getUnresolved(self):
+    def getUnresolved (self):
         return self.unresolved
 
 
@@ -72,14 +73,14 @@ def usage (code):
 def collectArgs ():
     global noColumns
     try:
-        optlist, list = getopt.getopt(sys.argv[1:],':hc:')
+        optlist, list = getopt.getopt (sys.argv[1:],':hc:')
     except getopt.GetoptError:
         usage (1)
     for opt in optlist:
         if opt[0] == '-h':
             usage (0)
         if opt[0] == '-c':
-            noColumns = int(opt[1])
+            noColumns = int (opt[1])
     return list
 
 
@@ -89,31 +90,35 @@ def collectArgs ():
 #
 
 def scanner (name, function):
-    file = open(name, 'r')
-    line = file.readline()
+    file = open (name, 'r')
+    line = file.readline ()
     while line:
-        function(line)
-        line = file.readline()
-    file.close()
+        function (line)
+        line = file.readline ()
+    file.close ()
 
 #
 #  addPassResult - adds the pass information into the global dictionary.
 #
 
 def addPassResult (name, varient):
-    global regressionTests, configuration
+    global regressionTests, configuration, passStats
 
-    if not regressionTests.has_key(configuration):
+    if not regressionTests.has_key (configuration):
         regressionTests[configuration] = {}
 
     arch = regressionTests[configuration]
-    if arch.has_key(name):
+    if arch.has_key (name):
         t = arch[name]
     else:
-        t = testcase(name)
-    t.addPass(varient)
+        t = testcase (name)
+    t.addPass (varient)
     arch[name] = t
     regressionTests[configuration] = arch
+    if passStats.has_key (configuration):
+        passStats[configuration] += 1
+    else:
+        passStats[configuration] = 1
 
 
 #
@@ -121,19 +126,24 @@ def addPassResult (name, varient):
 #
 
 def addFailResult (name, varient):
-    global regressionTests, configuration
+    global regressionTests, configuration, failStats
 
-    if not regressionTests.has_key(configuration):
+    if not regressionTests.has_key (configuration):
         regressionTests[configuration] = {}
 
     arch = regressionTests[configuration]
-    if arch.has_key(name):
+    if arch.has_key (name):
         t = arch[name]
     else:
-        t = testcase(name)
-    t.addFail(varient)
+        t = testcase (name)
+    t.addFail (varient)
     arch[name] = t
     regressionTests[configuration] = arch
+    if failStats.has_key (configuration):
+        failStats[configuration] += 1
+    else:
+        failStats[configuration] = 1
+
 
 
 #
@@ -141,26 +151,31 @@ def addFailResult (name, varient):
 #
 
 def addUnresolvedResult (name, varient, reason):
-    global regressionTests, configuration
+    global regressionTests, configuration, unresolvedStats
 
-    if not regressionTests.has_key(configuration):
+    if not regressionTests.has_key (configuration):
         regressionTests[configuration] = {}
 
     arch = regressionTests[configuration]
-    if arch.has_key(name):
+    if arch.has_key (name):
         t = arch[name]
     else:
-        t = testcase(name)
-    t.addUnresolved(varient, reason)
+        t = testcase (name)
+    t.addUnresolved (varient, reason)
     arch[name] = t
     regressionTests[configuration] = arch
+    if unresolvedStats.has_key (configuration):
+        unresolvedStats[configuration] += 1
+    else:
+        unresolvedStats[configuration] = 1
+
 
 #
 #  getName - returns the GM2 CVS testcase path
 #
 
 def getName (testcase, directory):
-    words = string.split(directory, '/')
+    words = string.split (directory, '/')
     result = ""
     found = False
     for word in words:
@@ -171,7 +186,7 @@ def getName (testcase, directory):
             pass
         elif found:
             result = "%s/%s" % (result, word)
-    words = string.split(testcase, '/')
+    words = string.split (testcase, '/')
     name = "%s/%s" % (result, words[-1])
     if name[-1] == ',':
         name = name[:-1]
@@ -183,39 +198,39 @@ def getName (testcase, directory):
 
 def processLine(line):
     global author, date, configuration, target, directory
-    words = string.split(line)
+    words = string.split (line)
     # Test Run By xxxx on
-    if (len(words)>=4) and (words[:3] == ["Test", "Run", "By"]):
+    if (len (words) >= 4) and (words[:3] == ["Test", "Run", "By"]):
         author = words[3]
-        if (len(words)>=6) and (words[4] == "on"):
+        if (len (words) >= 6) and (words[4] == "on"):
             date = words[-5:]
-    elif (len(words)>=4) and (words[:3] == [ "Native", "configuration", "is"]):
+    elif (len (words) >= 4) and (words[:3] == [ "Native", "configuration", "is"]):
         configuration = words[3]
-    elif (len(words)>=3) and (words[:2] == [ "Running", "target"]):
+    elif (len (words) >= 3) and (words[:2] == [ "Running", "target"]):
         target = words[2]
-    elif (len(words)>=2) and (words[0] == "Running"):
+    elif (len (words) >= 2) and (words[0] == "Running"):
         directory = words[1]
     elif len(words)>1:
         testcase = words[1]
         varient = []
         reason = ""
         if words[0]=="PASS:":
-            if len(words)>=2:
+            if len (words) >= 2:
                 varient = words[2:]
-            addPassResult (getName(testcase, directory), varient)
+            addPassResult (getName (testcase, directory), varient)
         elif words[0]=="FAIL:":
-            if len(words)>=2:
+            if len (words)>=2:
                 varient = words[2:]
-            addFailResult (getName(testcase, directory), varient)
+            addFailResult (getName (testcase, directory), varient)
         elif words[0]=="UNRESOLVED:":
-            if len(words)>2:
+            if len (words) > 2:
                 start = -1
                 if words[-1][-1]==')':
-                    while (-start<len(words)) and (words[start][0] != '('):
+                    while (-start < len (words)) and (words[start][0] != '('):
                         start -= 1
                 varient = words[2:start]
                 reason = words[start:]
-            addUnresolvedResult (getName(testcase, directory), varient, reason)
+            addUnresolvedResult (getName (testcase, directory), varient, reason)
 
 
 #
@@ -223,14 +238,14 @@ def processLine(line):
 #
 
 def printRow (testcase, arch, option):
-    if regressionTests[arch].has_key(testcase):
+    if regressionTests[arch].has_key (testcase):
         t = regressionTests[arch][testcase]
-        if option in t.getPasses():
-            print '<td bgcolor="green">', string.join(option, ' '), '</td>',
+        if option in t.getPasses ():
+            print '<td bgcolor="green">', string.join (option, ' '), '</td>',
         elif option in t.getFails():
-            print '<td bgcolor="red">', string.join(option, ' '), '</td>',
+            print '<td bgcolor="red">', string.join (option, ' '), '</td>',
         elif option in t.getUnresolved():
-            print '<td bgcolor="yellow">', string.join(option, ' '), '</td>',
+            print '<td bgcolor="yellow">', string.join (option, ' '), '</td>',
         elif option == []:
             print '<td></td>',
         else:
@@ -247,9 +262,9 @@ def getListOfTests ():
     global regressionTests
 
     list = []
-    for arch in regressionTests.keys():
+    for arch in regressionTests.keys ():
         t = regressionTests[arch]
-        for u in t.keys():
+        for u in t.keys ():
             if not (u in list):
                 list += [u]
     return list
@@ -265,14 +280,15 @@ def getListOfOptions (testcase):
 
     optlist = []
     total = 0
-    for arch in regressionTests.keys():
+    for arch in regressionTests.keys ():
         t = regressionTests[arch]
-        if t.has_key(testcase):
+        if t.has_key (testcase):
             u = t[testcase]
-            for p in u.getPasses() + u.getFails() + u.getUnresolved():
+            for p in u.getPasses () + u.getFails () + u.getUnresolved ():
                 if not (p in optlist):
                     optlist += [p]
-    return len(optlist), optlist
+    return len (optlist), optlist
+
 
 #
 #  getHeading - returns a URL to the testcase.
@@ -282,10 +298,10 @@ def getHeading (testcase):
     noFiles = ['pimlib/ulm', 'pimlib/pass', 'ulmlib/pass', 'ulmlib/std',
                'ulmlib/sys', 'gm2/examples']
     for n in noFiles:
-        if testcase.find(n) != -1:
+        if testcase.find (n) != -1:
             return testcase
-    heading = '<a href="http://cvs.savannah.nongnu.org/viewvc/%s' % testcase
-    heading += '?root=gm2&view=markup">'
+    heading = '<a href="http://git.savannah.gnu.org/cgit/gm2.git/tree/gcc-versionno/gcc/%s' % testcase
+    heading += '">'
     heading += testcase + '</a>'
     return heading
 
@@ -295,6 +311,7 @@ def getHeading (testcase):
 
 def printResults():
     global target, configuration, author, date, regressionTests, noColumns
+    global passStats, failStats, unresolvedStats
 
     print "<html><head><title>"
     print "GNU Modula-2 regression tests"
@@ -304,6 +321,39 @@ def printResults():
     print "GNU Modula-2 regression tests",
     print "</h1>"
     print ""
+    archList = regressionTests.keys ()
+    print "<h2>",
+    print "Summary",
+    print "</h2>"
+    print '<p><table border="1"><tr>'
+    for arch in archList:
+        print '<th colspan="1">', arch, '</th>'
+    print '</tr>'        
+    for arch in archList:
+        if passStats.has_key (arch):
+            print "<td>passes: ", passStats[arch], "</td>"
+        else:
+            print "<td>no passes</td>"
+    print '</tr>'
+    print '<tr>',    
+    for arch in archList:
+        if failStats.has_key (arch):
+            print "<td>failures: ", failStats[arch], "</td>"
+        else:
+            print "<td>no failures</td>"
+    print '</tr>'
+    print '<tr>',    
+    for arch in archList:
+        if unresolvedStats.has_key (arch):
+            print "<td>unresolved: ", unresolvedStats[arch], "</td>"
+        else:
+            print "<td></td>"
+    print '</tr>'
+    print '</table></p>'
+
+    print "<h1>",
+    print "GNU Modula-2 regression test results",
+    print "</h1>"
     print '<p><table border="1"><tr>'
     print '<th colspan="2">Key</th>'
     print '<tr><td>Colour</td><td>Meaning</td></tr>'
@@ -313,28 +363,28 @@ def printResults():
     print '<tr><td bgcolor="blue"></td><td>Not tested</td></tr>'
     print '<tr><td></td><td>Entire testcase not tested on this platform</td></tr>'
     print '</table>'
-    archList = regressionTests.keys()
-    testlist = getListOfTests()
+
+    testlist = getListOfTests ()
     for testcase in testlist:
-        total, optlist = getListOfOptions(testcase)
-        if total>0:
+        total, optlist = getListOfOptions (testcase)
+        if total > 0:
             print '<p><table border="1"><tr>'
-            print '<th colspan="', len(archList)*noColumns, '">',
-            heading = getHeading(testcase)
+            print '<th colspan="', len (archList) * noColumns, '">',
+            heading = getHeading (testcase)
             print heading, '</th></tr>'
             for arch in archList:
                 print '<th colspan="', noColumns, '">', arch, '</th>',
 
             if total % noColumns != 0:
                 total = ((total / noColumns) +1) * noColumns
-            for count in range(0, total, noColumns):
+            for count in range (0, total, noColumns):
                 print '<tr>',
                 for arch in archList:
-                    for c in range(count, count+noColumns):
-                        if c < len(optlist):
-                            printRow(testcase, arch, optlist[c])
+                    for c in range (count, count+noColumns):
+                        if c < len (optlist):
+                            printRow (testcase, arch, optlist[c])
                         else:
-                            printRow(testcase, arch, [])
+                            printRow (testcase, arch, [])
                 print '</tr>'
             print '</table></p>'
     print '</html>'
@@ -347,6 +397,9 @@ date = ""
 regressionTests = {}
 noColumns = 3
 directory = ""
+passStats = {}
+failStats = {}
+unresolvedStats = {}
 
 
 #
@@ -357,12 +410,12 @@ directory = ""
 def main():
     global regressionTests
 
-    filenames = collectArgs()
+    filenames = collectArgs ()
     if filenames==[]:
         usage (0)
     else:
         for file in filenames:
-            scanner(file, processLine)
-        printResults()
+            scanner (file, processLine)
+        printResults ()
 
 main()
