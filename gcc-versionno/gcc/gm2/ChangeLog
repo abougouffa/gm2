@@ -1,3 +1,17 @@
+2017-05-30      Gaius Mulley <gaius@gnu.org>
+
+	* patches/gcc/trunc/01-patches:  (New file).
+	* patches/gcc/trunc/02-patches:  (New file).
+	* patches/gcc/trunc/03-patches:  (New file).
+	* patches/gcc/trunc/04-patches:  (New file).
+	* patches/gcc/trunc/05-patches:  (New file).
+	* patches/gcc/trunc/06-patches:  (New file).
+	* patches/gcc/trunc/07-patches:  (New file).
+	* patches/gcc/trunc/08-patches:  (New file).
+	* patches/gcc/trunc/09-patches:  (New file).
+	* patches/gcc/trunc/10-patches:  (New file).
+	* patches/gcc/trunc/11-patches:  (New file).
+
 2017-05-24      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  use separate procedure to

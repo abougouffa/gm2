@@ -1,0 +1,19 @@
+Index: gcc/tree-ssa-loop-im.c
+===================================================================
+--- gcc/tree-ssa-loop-im.c	(revision 248687)
++++ gcc/tree-ssa-loop-im.c	(working copy)
+@@ -602,7 +602,7 @@
+   hash = iterative_hash_expr (*mem, 0);
+   ref = memory_accesses.refs->find_with_hash (*mem, hash);
+ 
+-  gcc_assert (ref != NULL);
++  // gcc_assert (ref != NULL);
+   return ref;
+ }
+ 
+@@ -2631,5 +2631,3 @@
+ {
+   return new pass_lim (ctxt);
+ }
+-
+-
