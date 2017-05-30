@@ -2450,7 +2450,7 @@ gm2_finish_enum (location_t location, tree enumtype, tree values)
       TYPE_SIZE_UNIT (tem) = TYPE_SIZE_UNIT (enumtype);
       SET_TYPE_MODE (tem, TYPE_MODE (enumtype));
       TYPE_PRECISION (tem) = TYPE_PRECISION (enumtype);
-      TYPE_ALIGN (tem) = TYPE_ALIGN (enumtype);
+      SET_TYPE_ALIGN (tem, TYPE_ALIGN (enumtype));
       TYPE_USER_ALIGN (tem) = TYPE_USER_ALIGN (enumtype);
       TYPE_UNSIGNED (tem) = TYPE_UNSIGNED (enumtype);
       TYPE_LANG_SPECIFIC (tem) = TYPE_LANG_SPECIFIC (enumtype);
@@ -3038,7 +3038,7 @@ m2type_BuildStartFieldVarient (location_t location, char *name)
 tree
 m2type_BuildEndRecord (location_t location, tree record, tree fieldlist, int isPacked)
 {
-  tree x, d, s;
+  tree x, d;
 
   m2assert_AssertLocation (location);
   /* If this type was previously laid out as a forward reference,
@@ -3082,7 +3082,7 @@ m2type_BuildEndRecord (location_t location, tree record, tree fieldlist, int isP
     {
       TYPE_FIELDS (x) = TYPE_FIELDS (record);
       TYPE_LANG_SPECIFIC (x) = TYPE_LANG_SPECIFIC (record);
-      TYPE_ALIGN (x) = TYPE_ALIGN (record);
+      SET_TYPE_ALIGN (x, TYPE_ALIGN (record));
       TYPE_USER_ALIGN (x) = TYPE_USER_ALIGN (record);
     }
 
@@ -3095,8 +3095,8 @@ m2type_BuildEndRecord (location_t location, tree record, tree fieldlist, int isP
     // --fixme-- this is the problem area I think ... check this later!  --really-- --fixme--
   d = build_decl (location, TYPE_DECL, NULL, record);
   TYPE_STUB_DECL (record) = d;
-  s = build_stmt (location, DECL_EXPR, d);
 #if 0
+  s = build_stmt (location, DECL_EXPR, d);
   m2block_pushDecl (s);   // --fixme-- is this required?  What about, s?
 #endif
 
@@ -3249,12 +3249,12 @@ m2type_SetAlignment (tree node, tree align)
 	type = build_variant_type_copy (type);
 #endif
 
-      TYPE_ALIGN (type) = (1 << i) * BITS_PER_UNIT;
+      SET_TYPE_ALIGN (type, (1 << i) * BITS_PER_UNIT);
       TYPE_USER_ALIGN (type) = 1;
 
       if (decl)
 	{
-	  DECL_ALIGN (decl) = (1 << i) * BITS_PER_UNIT;
+	  SET_DECL_ALIGN (decl, (1 << i) * BITS_PER_UNIT);
 	  DECL_USER_ALIGN (decl) = 1;
 	}
     }
@@ -3263,7 +3263,7 @@ m2type_SetAlignment (tree node, tree align)
     error ("alignment may not be specified for %q+D", decl);
   else
     {
-      DECL_ALIGN (decl) = (1 << i) * BITS_PER_UNIT;
+      SET_DECL_ALIGN (decl, (1 << i) * BITS_PER_UNIT);
       DECL_USER_ALIGN (decl) = 1;
     }
   return node;

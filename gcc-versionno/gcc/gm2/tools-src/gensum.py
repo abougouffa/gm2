@@ -8,16 +8,16 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
-# 
+#
 # GNU Modula-2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with GNU Modula-2; see the file COPYING.  If not, write to the
 # Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA. 
+# 02110-1301, USA.
 #
 
 import sys
@@ -52,16 +52,16 @@ class testcase:
 
 
 #
-#  Usage - displays the usage
+#  usage - displays the usage
 #
 
-def Usage ():
+def usage (code):
     global noColumns
 
     print "gensum [-h] [-c number] filename.sum {filename.sum}"
     print "  -c number of columns per architectural table (default", noColumns, ")"
     print "  -h help"
-    sys.exit(0)
+    sys.exit (code)
 
 
 #
@@ -69,15 +69,15 @@ def Usage ():
 #                useful contents into global variables.
 #
 
-def collectArgs():
+def collectArgs ():
     global noColumns
     try:
         optlist, list = getopt.getopt(sys.argv[1:],':hc:')
     except getopt.GetoptError:
-        Usage()
+        usage (1)
     for opt in optlist:
         if opt[0] == '-h':
-            Usage()
+            usage (0)
         if opt[0] == '-c':
             noColumns = int(opt[1])
     return list
@@ -88,7 +88,7 @@ def collectArgs():
 #            and call, function, on each line read.
 #
 
-def scanner(name, function):
+def scanner (name, function):
     file = open(name, 'r')
     line = file.readline()
     while line:
@@ -178,7 +178,7 @@ def getName (testcase, directory):
     return name
 
 #
-#  processLine - 
+#  processLine -
 #
 
 def processLine(line):
@@ -202,11 +202,11 @@ def processLine(line):
         if words[0]=="PASS:":
             if len(words)>=2:
                 varient = words[2:]
-            addPassResult(getName(testcase, directory), varient)
+            addPassResult (getName(testcase, directory), varient)
         elif words[0]=="FAIL:":
             if len(words)>=2:
                 varient = words[2:]
-            addFailResult(getName(testcase, directory), varient)
+            addFailResult (getName(testcase, directory), varient)
         elif words[0]=="UNRESOLVED:":
             if len(words)>2:
                 start = -1
@@ -215,7 +215,7 @@ def processLine(line):
                         start -= 1
                 varient = words[2:start]
                 reason = words[start:]
-            addUnresolvedResult(getName(testcase, directory), varient, reason)
+            addUnresolvedResult (getName(testcase, directory), varient, reason)
 
 
 #
@@ -338,7 +338,7 @@ def printResults():
                 print '</tr>'
             print '</table></p>'
     print '</html>'
-    
+
 
 target = ""
 configuration = ""
@@ -356,10 +356,10 @@ directory = ""
 
 def main():
     global regressionTests
-    
+
     filenames = collectArgs()
     if filenames==[]:
-        Usage()
+        usage (0)
     else:
         for file in filenames:
             scanner(file, processLine)

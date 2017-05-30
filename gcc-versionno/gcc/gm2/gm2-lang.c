@@ -106,7 +106,7 @@ struct GTY(()) language_function
 bool
 gm2_langhook_init (void)
 {
-  build_common_tree_nodes (false, false);
+  build_common_tree_nodes (false);
 
   /* I don't know why this has to be done explicitly.  */
   void_list_node = build_tree_list (NULL_TREE, void_type_node);
@@ -589,7 +589,7 @@ m2_write_global_declarations (tree globals)
   for (decl = globals; decl ; decl = DECL_CHAIN (decl))
     {
       rest_of_decl_compilation (decl, 1, 1);
-      debug_hooks->global_decl (decl);
+      debug_hooks->late_global_decl (decl);
     }
 }
 
