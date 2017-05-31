@@ -321,39 +321,7 @@ def printResults():
     print "GNU Modula-2 regression tests",
     print "</h1>"
     print ""
-    archList = regressionTests.keys ()
-    print "<h2>",
-    print "Summary",
-    print "</h2>"
-    print '<p><table border="1"><tr>'
-    for arch in archList:
-        print '<th colspan="1">', arch, '</th>'
-    print '</tr>'        
-    for arch in archList:
-        if passStats.has_key (arch):
-            print "<td>passes: ", passStats[arch], "</td>"
-        else:
-            print "<td>no passes</td>"
-    print '</tr>'
-    print '<tr>',    
-    for arch in archList:
-        if failStats.has_key (arch):
-            print "<td>failures: ", failStats[arch], "</td>"
-        else:
-            print "<td>no failures</td>"
-    print '</tr>'
-    print '<tr>',    
-    for arch in archList:
-        if unresolvedStats.has_key (arch):
-            print "<td>unresolved: ", unresolvedStats[arch], "</td>"
-        else:
-            print "<td></td>"
-    print '</tr>'
-    print '</table></p>'
 
-    print "<h1>",
-    print "GNU Modula-2 regression test results",
-    print "</h1>"
     print '<p><table border="1"><tr>'
     print '<th colspan="2">Key</th>'
     print '<tr><td>Colour</td><td>Meaning</td></tr>'
@@ -362,7 +330,45 @@ def printResults():
     print '<tr><td bgcolor="yellow"></td><td>Unresolved due to a prior error</td></tr>'
     print '<tr><td bgcolor="blue"></td><td>Not tested</td></tr>'
     print '<tr><td></td><td>Entire testcase not tested on this platform</td></tr>'
-    print '</table>'
+    print '</table></p>'
+    print ''
+
+    archList = regressionTests.keys ()
+    print "<h2>",
+    print "Summary",
+    print "</h2>"
+    print '<p><table border="1">'
+    print '<tr>',
+    print '<th colspan="1">Status</th>',
+    for arch in archList:
+        print '<th colspan="1">', arch, '</th>',
+    print '</tr>'
+    print '<tr><td bgcolor="green"></td>',
+    for arch in archList:
+        if passStats.has_key (arch):
+            print '<td bgcolor="green">', passStats[arch], "</td>"
+        else:
+            print '<td bgcolor="green">none</td>'
+    print '</tr>'
+    print '<tr><td bgcolor="red"></td>',
+    for arch in archList:
+        if failStats.has_key (arch):
+            print '<td bgcolor="red">', failStats[arch], "</td>"
+        else:
+            print '<td bgcolor="red">none</td>'
+    print '</tr>'
+    print '<tr><td bgcolor="yellow"></td>',
+    for arch in archList:
+        if unresolvedStats.has_key (arch):
+            print '<td bgcolor="yellow">', unresolvedStats[arch], "</td>"
+        else:
+            print '<td bgcolor="yellow">none</td>'
+    print '</tr>'
+    print '</table></p>'
+
+    print "<h1>",
+    print "GNU Modula-2 regression test results",
+    print "</h1>"
 
     testlist = getListOfTests ()
     for testcase in testlist:

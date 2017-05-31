@@ -1,3 +1,7 @@
+2017-05-31      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/tools-src/gensum.py:  improved summary using colours.
+
 2017-05-30      Gaius Mulley <gaius@gnu.org>
 
 	* patches/gcc/trunc/01-patches:  (New file).
