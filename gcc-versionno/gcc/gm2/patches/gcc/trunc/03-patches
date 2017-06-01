@@ -1,7 +1,5 @@
-Index: gcc/c/gccspec.c
-===================================================================
---- gcc/c/gccspec.c	(revision 248687)
-+++ gcc/c/gccspec.c	(working copy)
+--- gcc-versionno-orig/gcc/c/gccspec.c	2017-06-01 17:06:50.504216942 +0100
++++ gcc-versionno/gcc/c/gccspec.c	2017-05-30 15:52:41.350692984 +0100
 @@ -105,3 +105,9 @@
  
  /* Number of extra output files that lang_specific_pre_link may generate.  */

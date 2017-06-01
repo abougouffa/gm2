@@ -1,7 +1,5 @@
-Index: gcc/gcc.c
-===================================================================
---- gcc/gcc.c	(revision 248687)
-+++ gcc/gcc.c	(working copy)
+--- gcc-versionno-orig/gcc/gcc.c	2017-06-01 17:06:51.208216933 +0100
++++ gcc-versionno/gcc/gcc.c	2017-05-30 15:52:41.370692984 +0100
 @@ -299,6 +299,10 @@
  static const char *cross_compile = "0";
  #endif

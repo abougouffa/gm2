@@ -54,7 +54,7 @@ BEGIN
    Bitset := MakeSet(MakeKey('BITSET')) ;     (* Base Type       *)
 
    (* MinBitset *)
-   MinBitset := MakeConstLit(MakeKey('0')) ;
+   MinBitset := MakeConstLit(MakeKey('0'), Cardinal) ;
 
    (* MaxBitset *)
    MaxBitset := MakeConstVar(MakeKey('MaxBitset')) ;

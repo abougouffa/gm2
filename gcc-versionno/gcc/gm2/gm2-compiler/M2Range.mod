@@ -74,7 +74,7 @@ FROM M2System IMPORT Address, Word, Loc, Byte, IsWordN, IsRealN, IsComplexN ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
 
 FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
-                   Cardinal, Integer, IsAComplexType,
+                   Cardinal, Integer, ZType, IsAComplexType,
                    IsAssignmentCompatible,
                    IsParameterCompatible,
                    IsExpressionCompatible,
@@ -1799,19 +1799,36 @@ END CodeCaseBounds ;
 
 
 (*
+   MakeAndDeclareConstLit -
+*)
+
+PROCEDURE MakeAndDeclareConstLit (tokenno: CARDINAL; n: Name; type: CARDINAL) : CARDINAL ;
+VAR
+   constant: CARDINAL ;
+BEGIN
+   constant := MakeConstLit(MakeKey('0'), ZType) ;
+   TryDeclareConstant(tokenno, constant) ;  (* use quad tokenno, rather than the range tokenNo *)
+   Assert(GccKnowsAbout(constant)) ;
+   RETURN constant
+END MakeAndDeclareConstLit ;
+
+
+(*
    FoldNonPosDiv - attempts to fold the bound checking for a divide expression.
 *)
 
 PROCEDURE FoldNonPosDiv (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
-   p: Range ;
+   p   : Range ;
+   zero: CARDINAL ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
       TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF GccKnowsAbout(expr) AND IsConst(expr)
       THEN
-         IF IsGreaterOrEqualConversion(MakeConstLit(MakeKey('0')), des, expr)
+         zero := MakeAndDeclareConstLit(tokenno, MakeKey('0'), ZType) ;
+         IF IsGreaterOrEqualConversion(zero, des, expr)
          THEN
             MetaErrorT2(tokenNo,
                         'the divisor {%2Wa} in this division expression is less than or equal to zero, this would cause an exception to be raised before the result is assigned to the designator {%1a}',
@@ -1829,14 +1846,16 @@ END FoldNonPosDiv ;
 
 PROCEDURE FoldNonPosMod (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
-   p: Range ;
+   p   : Range ;
+   zero: CARDINAL ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
       TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF GccKnowsAbout(expr) AND IsConst(expr)
       THEN
-         IF IsGreaterOrEqualConversion(MakeConstLit(MakeKey('0')), des, expr)
+         zero := MakeAndDeclareConstLit(tokenno, MakeKey('0'), ZType) ;
+         IF IsGreaterOrEqualConversion(zero, des, expr)
          THEN
             MetaErrorT2(tokenNo,
                         'the divisor {%2Wa} in this modulus expression is less than or equal to zero, this would cause an exception to be raised before the result is assigned to the designator {%1a}',
@@ -1854,14 +1873,16 @@ END FoldNonPosMod ;
 
 PROCEDURE FoldZeroDiv (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
-   p: Range ;
+   p   : Range ;
+   zero: CARDINAL ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
       TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF GccKnowsAbout(expr) AND IsConst(expr)
       THEN
-         IF IsEqualConversion(MakeConstLit(MakeKey('0')), des, expr)
+         zero := MakeAndDeclareConstLit(tokenno, MakeKey('0'), ZType) ;
+         IF IsEqualConversion(zero, des, expr)
          THEN
             MetaErrorT2(tokenNo,
                         'the divisor {%2Wa} in this division expression is equal to zero, this would cause an exception to be raised before the result is assigned to the designator {%1a}',
@@ -1879,14 +1900,16 @@ END FoldZeroDiv ;
 
 PROCEDURE FoldZeroRem (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
-   p: Range ;
+   p   : Range ;
+   zero: CARDINAL ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
       TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF GccKnowsAbout(expr) AND IsConst(expr)
       THEN
-         IF IsEqualConversion(MakeConstLit(MakeKey('0')), des, expr)
+         zero := MakeAndDeclareConstLit(tokenno, MakeKey('0'), ZType) ;
+         IF IsEqualConversion(zero, des, expr)
          THEN
             MetaErrorT2(tokenNo,
                         'the divisor {%2Wa} in this remainder expression is equal to zero, this would cause an exception to be raised before the result is assigned to the designator {%1a}',
@@ -2734,6 +2757,7 @@ END CodeNil ;
 PROCEDURE CodeWholeNonPos (tokenno: CARDINAL;
                            r: CARDINAL; scopeDesc: String) ;
 VAR
+   zero,
    UnboundedType: CARDINAL ;
    p            : Range ;
    condition,
@@ -2747,9 +2771,8 @@ BEGIN
       THEN
          location := TokenToLocation(tokenno) ;
          e := ZConstToTypedConst(LValueToGenericPtr(expr), expr, des) ;
-         condition := BuildLessThanOrEqual(location,
-                                           e, BuildConvert(location, Mod2Gcc(SkipType(GetType(des))),
-                                                           Mod2Gcc(MakeConstLit(MakeKey('0'))), FALSE)) ;
+         zero := MakeAndDeclareConstLit(tokenno, MakeKey('0'), SkipType(GetType(des))) ;
+         condition := BuildLessThanOrEqual(location, e, Mod2Gcc(zero)) ;
          AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
       ELSE
          InternalError('should have resolved expr', __FILE__, __LINE__)
@@ -2765,6 +2788,7 @@ END CodeWholeNonPos ;
 PROCEDURE CodeWholeZero (tokenno: CARDINAL;
                          r: CARDINAL; scopeDesc: String) ;
 VAR
+   zero,
    UnboundedType: CARDINAL ;
    p            : Range ;
    condition,
@@ -2778,9 +2802,9 @@ BEGIN
       THEN
          location := TokenToLocation(tokenno) ;
          e := ZConstToTypedConst(LValueToGenericPtr(expr), expr, des) ;
+         zero := MakeAndDeclareConstLit(tokenno, MakeKey('0'), ZType) ;
          condition := BuildEqualTo(location,
-                                   e, BuildConvert(location, GetTreeType(e),
-                                                   Mod2Gcc(MakeConstLit(MakeKey('0'))), FALSE)) ;
+                                   e, BuildConvert(location, GetTreeType(e), Mod2Gcc(zero), FALSE)) ;
          AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
       ELSE
          InternalError('should have resolved expr', __FILE__, __LINE__)

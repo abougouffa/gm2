@@ -455,16 +455,17 @@ TYPE
             END ;
 
    SymType = RECORD
-                name      : Name ;            (* Index into name array, name *)
+                name        : Name ;          (* Index into name array, name *)
                                               (* of type.                    *)
-                Type      : CARDINAL ;        (* Index to a type symbol.     *)
-                IsHidden  : BOOLEAN ;         (* Was it declared as hidden?  *)
-                Size      : PtrToValue ;      (* Runtime size of symbol.     *)
-                packedInfo: PackedInfo ;      (* the equivalent packed type  *)
-                oafamily  : CARDINAL ;        (* The oafamily for this sym   *)
-                Align     : CARDINAL ;        (* The alignment of this type  *)
-                Scope     : CARDINAL ;        (* Scope of declaration.       *)
-                At        : Where ;           (* Where was sym declared/used *)
+                Type        : CARDINAL ;      (* Index to a type symbol.     *)
+                IsHidden    : BOOLEAN ;       (* Was it declared as hidden?  *)
+                ConstLitTree: SymbolTree ;    (* constants of this type.     *)
+                Size        : PtrToValue ;    (* Runtime size of symbol.     *)
+                packedInfo  : PackedInfo ;    (* the equivalent packed type  *)
+                oafamily    : CARDINAL ;      (* The oafamily for this sym   *)
+                Align       : CARDINAL ;      (* The alignment of this type  *)
+                Scope       : CARDINAL ;      (* Scope of declaration.       *)
+                At          : Where ;         (* Where was sym declared/used *)
              END ;
 
    SymPointer
@@ -3675,6 +3676,7 @@ BEGIN
                                       (* of type.                    *)
             Type := NulSym ;          (* Index to a type symbol.     *)
             IsHidden := FALSE ;       (* Was it declared as hidden?  *)
+	    InitTree(ConstLitTree) ;  (* constants of this type.     *)
             Size := InitValue() ;     (* Runtime size of symbol.     *)
             Align := NulSym ;         (* Alignment of this type.     *)
             InitPacked(packedInfo) ;  (* not packed and no           *)
@@ -3744,25 +3746,82 @@ END MakeHiddenType ;
 
 
 (*
-   MakeConstLit - put a constant which has the string described by ConstName
-                  into the ConstantTree. The symbol number is returned.
-                  If the constant already exits
-                  then a duplicate constant is not entered in the tree.
-                  All values of constant literals
-                  are ignored in Pass 1 and evaluated in Pass 2 via
-                  character manipulation.
+   GetConstFromTypeTree - return a constant symbol from the tree owned by constType.
+                          NulSym is returned if the symbol is unknown.
 *)
 
-PROCEDURE MakeConstLit (ConstName: Name) : CARDINAL ;
+PROCEDURE GetConstFromTypeTree (constName: Name; constType: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   IF constType=NulSym
+   THEN
+      RETURN GetSymKey(ConstLitTree, constName)
+   ELSE
+      pSym := GetPsym(constType) ;
+      Assert(IsType(constType)) ;
+      WITH pSym^ DO
+         CASE SymbolType OF
+
+         TypeSym:  RETURN GetSymKey (Type.ConstLitTree, constName)
+
+         ELSE
+            InternalError('expecting Type symbol', __FILE__, __LINE__)
+         END
+      END
+   END
+END GetConstFromTypeTree ;
+
+
+(*
+   PutConstIntoTypeTree - places, constSym, into the tree of constants owned by, constType.
+                          constName is the name of constSym.
+*)
+
+PROCEDURE PutConstIntoTypeTree (constName: Name; constType: CARDINAL; constSym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   IF constType=NulSym
+   THEN
+      PutSymKey(ConstLitTree, constName, constSym)
+   ELSE
+      pSym := GetPsym(constType) ;
+      Assert(IsType(constType)) ;
+      WITH pSym^ DO
+         CASE SymbolType OF
+
+         TypeSym:  PutSymKey (Type.ConstLitTree, constName, constSym)
+
+         ELSE
+            InternalError('expecting Type symbol', __FILE__, __LINE__)
+         END
+      END
+   END
+END PutConstFromTypeTree ;
+
+
+(*
+   MakeConstLit - returns a constant literal of type, constType.
+                  It tests to see if this constant is already known in
+                  which case it returns the original.  Otherwise it
+                  creates a new constant literal of type, constType.
+*)
+
+PROCEDURE MakeConstLit (ConstName: Name; constType: CARDINAL) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
    Sym : CARDINAL ;
 BEGIN
-   Sym := GetSymKey(ConstLitTree, ConstName) ;
+   IF constType=NulSym
+   THEN
+      constType := GetConstLitType (ConstName)
+   END ;
+   Sym := GetConstFromTypeTree(ConstName, constType) ;
    IF Sym=NulSym
    THEN
       NewSym(Sym) ;
-      PutSymKey(ConstLitTree, ConstName, Sym) ;
+      PutConstIntoTypeTree(ConstName, constType, Sym) ;
       pSym := GetPsym(Sym) ;
       WITH pSym^ DO
          SymbolType := ConstLitSym ;
@@ -3772,7 +3831,7 @@ BEGIN
                        ConstLit.Value := InitValue() ;
                        PushString(ConstName) ;
                        PopInto(ConstLit.Value) ;
-                       ConstLit.Type := GetConstLitType(Sym) ;
+                       ConstLit.Type := constType ;
                        ConstLit.IsSet := FALSE ;
                        ConstLit.IsConstructor := FALSE ;
                        ConstLit.FromType := NulSym ;     (* type is determined FromType *)
@@ -4910,21 +4969,21 @@ END IsHiddenType ;
 
 
 (*
-   GetConstLitType - returns the type of the constant, Sym.
+   GetConstLitType - returns the type of the constant of, name.
                      All floating point constants have type LONGREAL.
                      Character constants are type CHAR.
                      Integer values are INTEGER, LONGINT or LONGCARD
                      depending upon their value.
 *)
 
-PROCEDURE GetConstLitType (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE GetConstLitType (name: Name) : CARDINAL ;
 VAR
    s            : String ;
    i, High      : CARDINAL ;
    needsLong,
    needsUnsigned: BOOLEAN ;
 BEGIN
-   s := InitStringCharStar(KeyToCharStar(GetSymName(Sym))) ;
+   s := InitStringCharStar(KeyToCharStar(name)) ;
    IF char(s, -1)='C'
    THEN
       s := KillString(s) ;

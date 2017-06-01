@@ -600,13 +600,13 @@ PROCEDURE MakeHiddenType (TypeName: Name) : CARDINAL ;
 
 
 (*
-   MakeConstLit - make a symbol which is a constant and a literal.
-                  There is no scope attached to this symbol since
-                  we use the same constant literals if we possibly
-                  can.
+   MakeConstLit - returns a constant literal of type, constType.
+                  It tests to see if this constant is already known in
+                  which case it returns the original.  Otherwise it
+                  creates a new constant literal of type, constType.
 *)
 
-PROCEDURE MakeConstLit (ConstName: Name) : CARDINAL ;
+PROCEDURE MakeConstLit (ConstName: Name; constType: CARDINAL) : CARDINAL ;
 
 
 (*

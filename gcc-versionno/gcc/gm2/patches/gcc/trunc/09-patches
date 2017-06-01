@@ -1,7 +1,5 @@
-Index: Makefile.in
-===================================================================
---- Makefile.in	(revision 248687)
-+++ Makefile.in	(working copy)
+--- gcc-versionno-orig/Makefile.in	2017-06-01 17:06:22.096217339 +0100
++++ gcc-versionno/Makefile.in	2017-05-30 15:52:41.398692983 +0100
 @@ -156,6 +156,7 @@
  	GFORTRAN="$(GFORTRAN_FOR_BUILD)"; export GFORTRAN; \
  	GOC="$(GOC_FOR_BUILD)"; export GOC; \
@@ -695,7 +693,7 @@ Index: Makefile.in
  .PHONY: configure-target-libgomp maybe-configure-target-libgomp
  maybe-configure-target-libgomp:
  @if gcc-bootstrap
-@@ -51764,8 +52252,16 @@
+@@ -51764,6 +52252,14 @@
  
  @endif target-libatomic
  
@@ -706,12 +704,10 @@ Index: Makefile.in
 +	$(HOST_EXPORTS) \
 +	(cd gcc && $(MAKE) $(GCC_FLAGS_TO_PASS) check-gm2);
 +check-gm2: check-gcc-gm2
- 
- 
 +
+ 
+ 
  @if target-libgomp
- .PHONY: check-target-libgomp-c++
- check-target-libgomp-c++:
 @@ -54749,6 +55245,7 @@
  configure-target-zlib: stage_last
  configure-target-rda: stage_last

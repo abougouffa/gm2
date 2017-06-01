@@ -51,7 +51,7 @@ FROM SymbolTable IMPORT ModeOfAddr,
                         MakeProcedure, PutFunction,
                         MakeRecord, PutFieldRecord,
                         MakeConstVar, PutConst,
-                        MakeConstLit, MakeTemporary,
+                        MakeTemporary,
                         MakeVar, PutVar,
                         MakeSubrange, PutSubrange, IsSubrange,
                         IsEnumeration, IsSet, IsPointer, IsType, IsUnknown,
@@ -273,9 +273,6 @@ END InitBaseConstants ;
 *)
 
 PROCEDURE InitBaseSimpleTypes (location: location_t) ;
-VAR
-   Zero,
-   MaxCard: CARDINAL ;
 BEGIN
    InitBaseTypes(location) ;
 
@@ -298,9 +295,6 @@ BEGIN
    PutType(Integer, NulSym) ;                 (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2IntegerType())) ;
    PopSize(Integer) ;
-
-   Zero := MakeConstLit(MakeKey('0')) ;
-   MaxCard := MakeTemporary(ImmediateValue) ;
 
    Cardinal := MakeType(MakeKey('CARDINAL')) ;
    PutType(Cardinal, NulSym) ;

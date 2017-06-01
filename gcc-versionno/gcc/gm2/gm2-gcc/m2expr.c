@@ -918,7 +918,7 @@ m2expr_build_binary_op (location_t location,
 
   m2assert_AssertLocation (location);
 
-  if (convert)
+  if (convert || TRUE)  // --fixme-- hack
     {
       if (code == PLUS_EXPR)
 	{
@@ -966,7 +966,7 @@ m2expr_build_binary_op (location_t location,
     if (type1 != type2)
       error_at (location, "not expecting different types to binary operator");
 
-return build_binary_op (location, code, op1, op2, convert);
+  return build_binary_op (location, code, op1, op2, convert);
 }
 
 

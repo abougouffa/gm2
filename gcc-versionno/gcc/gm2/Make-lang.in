@@ -767,7 +767,7 @@ GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  M2Defaults.
                      M2Search.def    M2Batch.def     M2System.def    P2SymBuild.def  \
                      M2Code.def      M2Comp.def      m2flex.def      NameKey.def     \
                      M2LexBuf.def    M2Version.def   M2Error.def     \
-                     M2SubExp.def    M2Constants.def M2Students.def  M2Entity.def    \
+                     M2Students.def  \
                      M2GenGCC.def    M2GCCDeclare.def \
                      M2Configure.def SymbolTable.def Lists.def       SymbolConversion.def \
                      P0SyntaxCheck.def \
@@ -788,7 +788,7 @@ GM2-COMP-BOOT-MODS = FifoQueue.mod   M2LexBuf.mod                             \
                      P3SymBuild.mod  \
                      SymbolKey.mod   SymbolTable.mod                 gm2lcc.mod      \
                      gm2lgen.mod     gm2lorder.mod   M2Error.mod     \
-                     M2SubExp.mod    M2Constants.mod M2Students.mod  M2Entity.mod    \
+                     M2Students.mod  \
                      M2BasicBlock.mod M2Code.mod     M2GenGCC.mod    M2GCCDeclare.mod \
                      SymbolConversion.mod            M2Base.mod      \
                      M2ALU.mod       M2System.mod    Lists.mod       \
@@ -853,10 +853,10 @@ GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Default
                      SymbolKey.def     M2BasicBlock.def M2Search.def   M2Batch.def     \
                      M2System.def      P2SymBuild.def  M2Code.def      M2Comp.def      \
                      NameKey.def       M2Version.def   M2Error.def     M2StackAddress.def \
-                     M2Constants.def   M2Students.def  M2Entity.def    M2GenGCC.def    \
+                     M2Students.def    M2GenGCC.def    \
                      M2GCCDeclare.def  M2Configure.def SymbolTable.def Lists.def       \
                      P0SyntaxCheck.def bnflex.def      P1Build.def     P2Build.def     \
-                     P3Build.def       PHBuild.def     M2SubExp.def    SymbolConversion.def \
+                     P3Build.def       PHBuild.def     SymbolConversion.def \
                      M2Preprocess.def  M2Printf.def    M2LexBuf.def    M2Quiet.def     \
                      M2Bitset.def      M2Size.def      M2Scope.def     M2Range.def     \
                      M2Swig.def        M2MetaError.def Sets.def        M2CaseList.def  \
@@ -871,10 +871,10 @@ GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod                   M2Optimiz
                      P3SymBuild.mod  \
                      SymbolKey.mod     SymbolTable.mod                 gm2lcc.mod      \
                      gm2lgen.mod       gm2lorder.mod                   M2Error.mod     \
-                     M2Constants.mod   M2Students.mod  M2Entity.mod    M2StackAddress.mod \
+                     M2Students.mod    M2StackAddress.mod \
                      M2BasicBlock.mod  M2Code.mod      M2GenGCC.mod    M2GCCDeclare.mod\
                      M2ALU.mod         M2System.mod    M2Base.mod      Lists.mod       \
-                     M2Search.mod      bnflex.mod                      M2SubExp.mod    \
+                     M2Search.mod      bnflex.mod      \
                      SymbolConversion.mod \
                      M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod     \
                      M2Bitset.mod      M2Size.mod      M2Scope.mod     M2Range.mod     \
@@ -904,10 +904,10 @@ GM2-VERIFY-MODS    = FifoQueue.mod     M2AsmUtil.mod                   M2Optimiz
                      P3SymBuild.mod  \
                      SymbolKey.mod     SymbolTable.mod                 gm2lcc.mod      \
                      gm2lgen.mod       gm2lorder.mod   M2Error.mod     M2StackAddress.mod \
-                                       M2Constants.mod M2Students.mod  M2Entity.mod    \
+                     M2Students.mod  \
                      M2BasicBlock.mod  M2Code.mod      M2GenGCC.mod    M2GCCDeclare.mod\
                      M2ALU.mod         M2System.mod    M2Base.mod      Lists.mod       \
-                     M2Search.mod      bnflex.mod      ppg.mod         M2SubExp.mod    \
+                     M2Search.mod      bnflex.mod      ppg.mod         \
                      SymbolConversion.mod \
                      M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod     \
                      M2Bitset.mod      M2Size.mod      CLexBuf.mod     M2Scope.mod     \

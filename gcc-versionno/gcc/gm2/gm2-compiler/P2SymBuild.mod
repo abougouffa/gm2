@@ -215,7 +215,7 @@ PROCEDURE P2EndBuildDefModule ;
 VAR
    NameStart,
    NameEnd  : Name ;
-BEGIN                                 
+BEGIN
    Assert(CompilingDefinitionModule()) ;
    CheckForUndeclaredExports(GetCurrentModule()) ;
    EndScope ;
@@ -643,7 +643,7 @@ VAR
    Sym : CARDINAL ;
 BEGIN
    PopT(name) ;
-   Sym := MakeConstLit(name) ;
+   Sym := MakeConstLit(name, NulSym) ;
    PushTF(Sym, GetType(Sym)) ;
    Annotate("%1s(%1d)||constant number")
 END BuildNumber ;
@@ -757,7 +757,7 @@ END StartBuildEnumeration ;
                Ptr ->                       | Type       |
                       +------------+        |------------|
                       | Name       |        | Name       |
-                      |------------|        |------------| 
+                      |------------|        |------------|
 *)
 
 PROCEDURE BuildSubrange (Base: CARDINAL) ;
@@ -779,7 +779,7 @@ END BuildSubrange ;
 
 
 (*
-   BuildDefaultFieldAlignment - 
+   BuildDefaultFieldAlignment -
 
                  The Stack:
 
@@ -1110,7 +1110,7 @@ BEGIN
       Annotate("%1s(%1d)|%2n||error type|error type name")
    ELSIF GetSymName(Type)=name
    THEN
-      isunknown := IsUnknown(Type) ; 
+      isunknown := IsUnknown(Type) ;
       IF isunknown OR
          (NOT IsDeclaredIn(GetCurrentScope(), Type))
       THEN
@@ -1166,7 +1166,7 @@ END BuildType ;
 *)
 
 PROCEDURE StartBuildProcedure ;
-VAR 
+VAR
    name   : Name ;
    ProcSym: CARDINAL ;
 BEGIN
@@ -2095,7 +2095,7 @@ END BuildRecord ;
 
 
 (*
-   HandleRecordFieldPragmas - 
+   HandleRecordFieldPragmas -
 
                       Entry                     Exit
                       =====                     ====
@@ -2726,7 +2726,7 @@ END BuildFormalType ;
 
 
 (*
-   SaveRememberedConstructor - 
+   SaveRememberedConstructor -
 *)
 
 PROCEDURE SaveRememberedConstructor ;
@@ -2919,7 +2919,7 @@ BEGIN
    array,
    constructor:  PutConstructor(Sym) |
    cast       :  PutConst(Sym, castType) |
-   unknown    :  
+   unknown    :
 
    ELSE
    END
@@ -2927,7 +2927,7 @@ END DetermineType ;
 
 
 (*
-   PushType - 
+   PushType -
 *)
 
 PROCEDURE PushType ;
@@ -2937,7 +2937,7 @@ END PushType ;
 
 
 (*
-   PopType - 
+   PopType -
 *)
 
 PROCEDURE PopType ;
@@ -2947,7 +2947,7 @@ END PopType ;
 
 
 (*
-   PushRememberConstant - 
+   PushRememberConstant -
 *)
 
 PROCEDURE PushRememberConstant ;
@@ -2958,7 +2958,7 @@ END PushRememberConstant ;
 
 
 (*
-   PopRememberConstant - 
+   PopRememberConstant -
 *)
 
 PROCEDURE PopRememberConstant ;
@@ -2968,7 +2968,7 @@ END PopRememberConstant ;
 
 
 (*
-   RememberConstant - 
+   RememberConstant -
 *)
 
 PROCEDURE RememberConstant (sym: CARDINAL) ;

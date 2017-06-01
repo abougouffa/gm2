@@ -1,7 +1,5 @@
-Index: Makefile.tpl
-===================================================================
---- Makefile.tpl	(revision 248687)
-+++ Makefile.tpl	(working copy)
+--- gcc-versionno-orig/Makefile.tpl	2017-06-01 17:08:14.812215765 +0100
++++ gcc-versionno/Makefile.tpl	2017-05-30 15:52:41.398692983 +0100
 @@ -159,6 +159,7 @@
  	GFORTRAN="$(GFORTRAN_FOR_BUILD)"; export GFORTRAN; \
  	GOC="$(GOC_FOR_BUILD)"; export GOC; \

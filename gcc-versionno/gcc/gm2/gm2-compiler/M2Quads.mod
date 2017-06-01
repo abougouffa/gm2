@@ -43,7 +43,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         MakeConstLit, MakeConstLitString,
                         Make2Tuple,
                         RequestSym, MakePointer, PutPointer,
-                        GetType, SkipType,
+                        SkipType,
 			GetDType, GetSType, GetLType,
                         GetScope, GetCurrentScope,
                         GetSubrange, SkipTypeAndSubrange,
@@ -178,8 +178,6 @@ FROM M2ALU IMPORT PushInt, Gre, Less, PushNulSet, AddBitRange, AddBit,
 
 FROM Lists IMPORT List, InitList, GetItemFromList, NoOfItemsInList, PutItemIntoList,
                   IsItemInList, KillList, IncludeItemIntoList ;
-
-FROM M2Constants IMPORT MakeNewConstFromValue ;
 
 FROM M2Options IMPORT NilChecking,
                       WholeDivChecking, WholeValueChecking,
@@ -3638,16 +3636,7 @@ BEGIN
    THEN
       t := GetSType(e)
    END ;
-   IF t=NulSym
-   THEN
-      PushTF(MakeConstLit(MakeKey('1')), t)
-   ELSE
-      PushTF(Convert, NulSym) ;
-      PushT(t) ;
-      PushT(MakeConstLit(MakeKey('1'))) ;
-      PushT(2) ;          (* Two parameters *)
-      BuildConvertFunction
-   END
+   PushTF(MakeConstLit(MakeKey('1'), t), t)
 END BuildPseudoBy ;
 
 
@@ -3808,7 +3797,7 @@ BEGIN
    PushTF(BySym, ByType) ;  (* BuildRelOp  1st parameter *)
    PushT(GreaterEqualTok) ; (*             2nd parameter *)
                                         (* 3rd parameter *)
-   PushTF(MakeConstLit(MakeKey('0')), ByType) ;
+   PushTF(MakeConstLit(MakeKey('0'), ByType), ByType) ;
 
    BuildRelOp ;
    PopBool(t, f) ;
@@ -5829,7 +5818,7 @@ BEGIN
          END ;
          (* now convert from no of elements into HIGH by subtracting 1 *)
          PushT(MinusTok) ;            (* -1                           *)
-         PushT(MakeConstLit(MakeKey('1'))) ;
+         PushT(MakeConstLit(MakeKey('1'), Cardinal)) ;
          BuildBinaryOp
       END
    ELSE
@@ -6295,7 +6284,7 @@ BEGIN
          ELSE
             WriteFormat0('cannot perform DEC using non ordinal types')
          END ;
-         PushTF(MakeConstLit(MakeKey('0')), NulSym)
+         PushTF(MakeConstLit(MakeKey('0'), NulSym), NulSym)
       END
    END
 END CheckRangeIncDec ;
@@ -6349,7 +6338,7 @@ BEGIN
          THEN
             OperandSym := DereferenceLValue(OperandT(1))
          ELSE
-            OperandSym := MakeConstLit(MakeKey('1'))
+            OperandSym := MakeConstLit(MakeKey('1'), GetDType(VarSym))
          END ;
 
          PushT(VarSym) ;
@@ -6415,7 +6404,7 @@ BEGIN
          THEN
             OperandSym := DereferenceLValue(OperandT(1))
          ELSE
-            OperandSym := MakeConstLit(MakeKey('1'))
+            OperandSym := MakeConstLit(MakeKey('1'), GetDType(VarSym))
          END ;
 
          PushT(VarSym) ;
@@ -6691,7 +6680,7 @@ BEGIN
       n := GetSymName(ProcSym) ;
       WriteFormat1('function %a is undefined', n) ;
       PopN(NoOfParam+2) ;
-      PushT(MakeConstLit(MakeKey('0')))   (* fake return value to continue compiling *)
+      PushT(MakeConstLit(MakeKey('0'), NulSym))   (* fake return value to continue compiling *)
    ELSIF IsAModula2Type(ProcSym)
    THEN
       ManipulatePseudoCallParameters ;
@@ -6778,7 +6767,7 @@ BEGIN
             WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, MAX, MIN, ODD, ORD, SIZE, TSIZE, TRUNC, VAL and gcc builtins')
          END ;
          PopN(NoOfParam+2) ;
-         PushT(MakeConstLit(MakeKey('0')))   (* fake return value to continue compiling *)
+         PushT(MakeConstLit(MakeKey('0'), NulSym))   (* fake return value to continue compiling *)
       END
    END
 END BuildConstFunctionCall ;
@@ -7085,16 +7074,16 @@ BEGIN
          ELSE
             ExpectVariable('the first parameter to ADDADR must be a variable of type ADDRESS or a POINTER',
                            VarSym) ;
-            PushTF(MakeConstLit(MakeKey('0')), Address)
+            PushTF(MakeConstLit(MakeKey('0'), Address), Address)
          END
       ELSE
          WriteFormat0('SYSTEM procedure ADDADR expects a variable which has a type of ADDRESS or is a POINTER as its first parameter') ;
-         PushTF(MakeConstLit(MakeKey('0')), Address)
+         PushTF(MakeConstLit(MakeKey('0'), Address), Address)
       END
    ELSE
       WriteFormat0('SYSTEM procedure ADDADR expects 2 parameters') ;
       PopN(NoOfParam+1) ;
-      PushTF(MakeConstLit(MakeKey('0')), Address)
+      PushTF(MakeConstLit(MakeKey('0'), Address), Address)
    END
 END BuildAddAdrFunction ;
 
@@ -7149,16 +7138,16 @@ BEGIN
          ELSE
             ExpectVariable('the first parameter to SUBADR must be a variable of type ADDRESS or a POINTER',
                            VarSym) ;
-            PushTF(MakeConstLit(MakeKey('0')), Address)
+            PushTF(MakeConstLit(MakeKey('0'), Address), Address)
          END
       ELSE
          WriteFormat0('SYSTEM procedure SUBADR expects a variable which has a type of ADDRESS or is a POINTER as its first parameter') ;
-         PushTF(MakeConstLit(MakeKey('0')), Address)
+         PushTF(MakeConstLit(MakeKey('0'), Address), Address)
       END
    ELSE
       WriteFormat0('SYSTEM procedure SUBADR expects 2 parameters') ;
       PopN(NoOfParam+1) ;
-      PushTF(MakeConstLit(MakeKey('0')), Address)
+      PushTF(MakeConstLit(MakeKey('0'), Address), Address)
    END
 END BuildSubAdrFunction ;
 
@@ -7223,21 +7212,21 @@ BEGIN
             ELSE
                ExpectVariable('the second parameter to ADDADR must be a variable of type ADDRESS or a POINTER',
                               OperandSym) ;
-               PushTF(MakeConstLit(MakeKey('0')), Integer)
+               PushTF(MakeConstLit(MakeKey('0'), Integer), Integer)
             END
          ELSE
             ExpectVariable('the first parameter to ADDADR must be a variable of type ADDRESS or a POINTER',
                            VarSym) ;
-            PushTF(MakeConstLit(MakeKey('0')), Integer)
+            PushTF(MakeConstLit(MakeKey('0'), Integer), Integer)
          END
       ELSE
          WriteFormat0('SYSTEM procedure ADDADR expects a variable which has a type of ADDRESS or is a POINTER as its first parameter') ;
-         PushTF(MakeConstLit(MakeKey('0')), Integer)
+         PushTF(MakeConstLit(MakeKey('0'), Integer), Integer)
       END
    ELSE
       WriteFormat0('SYSTEM procedure ADDADR expects 2 parameters') ;
       PopN(NoOfParam+1) ;
-      PushTF(MakeConstLit(MakeKey('0')), Integer)
+      PushTF(MakeConstLit(MakeKey('0'), Integer), Integer)
    END
 END BuildDifAdrFunction ;
 
@@ -7306,7 +7295,7 @@ BEGIN
       ErrorFormat0(NewError(GetTokenNo()),
                    'base procedure function HIGH has one parameter') ;
       PopN(2) ;
-      PushTF(MakeConstLit(MakeKey('0')), Cardinal)
+      PushTF(MakeConstLit(MakeKey('0'), Cardinal), Cardinal)
    END
 END BuildHighFunction ;
 
@@ -7439,7 +7428,7 @@ VAR
 BEGIN
    l := GetStringLength(sym) ;
    s := Sprintf1(Mark(InitString("%d")), l) ;
-   c := MakeConstLit(makekey(string(s))) ;
+   c := MakeConstLit(makekey(string(s)), Cardinal) ;
    s := KillString(s) ;
    RETURN( c )
 END MakeLengthConst ;
@@ -7489,7 +7478,7 @@ BEGIN
       THEN
          PopT(NoOfParam) ;
          PopN(NoOfParam+1) ;
-         ReturnVar := MakeConstLit(MakeKey('1')) ;
+         ReturnVar := MakeConstLit(MakeKey('1'), Cardinal) ;
          PushT(ReturnVar)
       ELSIF IsConstString(Param)
       THEN
@@ -7510,7 +7499,7 @@ BEGIN
          ELSE
             PopT(NoOfParam) ;
             PopN(NoOfParam+1) ;
-            PushT(MakeConstLit(MakeKey('0'))) ;
+            PushT(MakeConstLit(MakeKey('0'), Cardinal)) ;
             WriteFormat0('no procedure Length found for substitution to the standard function LENGTH which is required to calculate non constant string lengths')
          END
       END
@@ -7573,14 +7562,14 @@ BEGIN
          (* compute (x MOD 2) *)
          PushTF(Var, GetSType(Var)) ;
          PushT(ModTok) ;
-         PushTF(MakeConstLit(MakeKey('2')), ZType) ;
+         PushTF(MakeConstLit(MakeKey('2'), ZType), ZType) ;
          BuildBinaryOp ;
          PopT(Res) ;
 
          (* compute IF ...=0 *)
          PushT(Res) ;
          PushT(EqualTok) ;
-         PushT(MakeConstLit(MakeKey('0'))) ;
+         PushTF(MakeConstLit(MakeKey('0'), ZType), ZType) ;
          BuildRelOp ;
          BuildThenIf ;
 
@@ -8049,12 +8038,12 @@ BEGIN
          PushTF(ReturnVar, GetSType(VarSym))
       ELSE
          WriteFormat0('SYSTEM procedure SHIFT expects a constant or variable which has a type of SET as its first parameter') ;
-         PushTF(MakeConstLit(MakeKey('0')), Cardinal)
+         PushTF(MakeConstLit(MakeKey('0'), Cardinal), Cardinal)
       END
    ELSE
       WriteFormat0('SYSTEM procedure SHIFT expects 2 parameters') ;
       PopN(NoOfParam+1) ;
-      PushTF(MakeConstLit(MakeKey('0')), Cardinal)
+      PushTF(MakeConstLit(MakeKey('0'), Cardinal), Cardinal)
    END
 END BuildShiftFunction ;
 
@@ -8111,12 +8100,12 @@ BEGIN
          PushTF(ReturnVar, GetSType(VarSym))
       ELSE
          WriteFormat0('SYSTEM procedure ROTATE expects a constant or variable which has a type of SET as its first parameter') ;
-         PushTF(MakeConstLit(MakeKey('0')), Cardinal)
+         PushTF(MakeConstLit(MakeKey('0'), Cardinal), Cardinal)
       END
    ELSE
       WriteFormat0('SYSTEM procedure ROTATE expects 2 parameters') ;
       PopN(NoOfParam+1) ;
-      PushTF(MakeConstLit(MakeKey('0')), Cardinal)
+      PushTF(MakeConstLit(MakeKey('0'), Cardinal), Cardinal)
    END
 END BuildRotateFunction ;
 
@@ -8376,7 +8365,7 @@ BEGIN
          n1 := MakeKey(n) ;
          n2 := GetSymName(type) ;
          WriteFormat2('%a(%a) cannot be calculated at compile time for the target architecture', n1, n2) ;
-         RETURN( MakeConstLit(MakeKey('1.0')) )
+         RETURN( MakeConstLit(MakeKey('1.0'), RType) )
       END
    END ;
    RETURN( min )
@@ -8497,11 +8486,11 @@ BEGIN
          PushTF(min, GetSType(Var))
       ELSE
          WriteFormat0('parameter to MIN must be a type or a variable') ;
-         PushT(MakeConstLit(MakeKey('0')))   (* put a legal value on the stack *)
+         PushT(MakeConstLit(MakeKey('0'), ZType))   (* put a legal value on the stack *)
       END
    ELSE
       WriteFormat0('the pseudo function MIN only has one parameter') ;
-      PushT(MakeConstLit(MakeKey('0')))   (* put a legal value on the stack *)
+      PushT(MakeConstLit(MakeKey('0'), ZType))   (* put a legal value on the stack *)
    END
 END BuildMinFunction ;
 
@@ -8546,11 +8535,11 @@ BEGIN
          PushTF(max, GetSType(Var))
       ELSE
          WriteFormat0('parameter to MAX must be a type or a variable') ;
-         PushT(MakeConstLit(MakeKey('0')))   (* put a legal value on the stack *)
+         PushT(MakeConstLit(MakeKey('0'), ZType))   (* put a legal value on the stack *)
       END
    ELSE
       WriteFormat0('the pseudo function MAX only has one parameter') ;
-      PushT(MakeConstLit(MakeKey('0')))   (* put a legal value on the stack *)
+      PushT(MakeConstLit(MakeKey('0'), ZType))   (* put a legal value on the stack *)
    END
 END BuildMaxFunction ;
 
@@ -8620,11 +8609,11 @@ BEGIN
                BuildConvertFunction
             ELSE
                WriteFormat0('argument to TRUNC must be a float point type') ;
-               PushTF(MakeConstLit(MakeKey('0')), Type)
+               PushTF(MakeConstLit(MakeKey('0'), Type), Type)
             END
          ELSE
             WriteFormat0('argument to TRUNC must be a variable or constant') ;
-            PushTF(MakeConstLit(MakeKey('0')), Type)
+            PushTF(MakeConstLit(MakeKey('0'), Type), Type)
          END
       ELSE
          InternalError('CONVERT procedure not found for TRUNC substitution', __FILE__, __LINE__)
@@ -8753,7 +8742,7 @@ BEGIN
          PushTF(ReturnVar, GetSType(ReturnVar))
       ELSE
          PopN(NoOfParam+1) ;  (* destroy arguments to this function *)
-         PushTF(MakeConstLit(MakeKey('1.0')), RType)
+         PushTF(MakeConstLit(MakeKey('1.0'), RType), RType)
       END
    ELSE
       WriteFormat0('the pseudo procedure RE only has one parameter')
@@ -8808,7 +8797,7 @@ BEGIN
          PushTF(ReturnVar, GetSType(ReturnVar))
       ELSE
          PopN(NoOfParam+1) ;  (* destroy arguments to this function *)
-         PushTF( MakeConstLit(MakeKey('1.0')), RType )
+         PushTF( MakeConstLit(MakeKey('1.0'), RType), RType )
       END
    ELSE
       WriteFormat0('the pseudo procedure IM only has one parameter')
@@ -8867,7 +8856,7 @@ BEGIN
       ELSE
          WriteFormat0('the pseudo procedure CMPLX requires two parameters') ;
          PopN(NoOfParam+1) ;  (* destroy arguments to this function *)
-         PushTF( MakeConstLit(MakeKey('1.0')), RType )
+         PushTF( MakeConstLit(MakeKey('1.0'), RType), RType )
       END
    ELSE
       WriteFormat0('the pseudo procedure CMPLX requires two parameters')
@@ -9022,7 +9011,7 @@ BEGIN
    IF NoOfParam#1
    THEN
       WriteFormat0('SYSTEM procedure SIZE expects 1 parameter') ;
-      ReturnVar := MakeConstLit(MakeKey('0'))
+      ReturnVar := MakeConstLit(MakeKey('0'), Cardinal)
    ELSIF IsAModula2Type(OperandT(1))
    THEN
       BuildSizeCheckEnd(ProcSym) ;   (* quadruple generation now on *)
@@ -9053,7 +9042,7 @@ BEGIN
       END
    ELSE
       WriteFormat0('SYSTEM procedure SIZE expects a variable as its parameter') ;
-      ReturnVar := MakeConstLit(MakeKey('0'))
+      ReturnVar := MakeConstLit(MakeKey('0'), Cardinal)
    END ;
    PopN(NoOfParam+1) ;       (* destroy the arguments and function *)
    PushTF(ReturnVar, GetSType(ProcSym))
@@ -9109,7 +9098,7 @@ BEGIN
          GenQuad(SizeOp, ReturnVar, NulSym, GetSType(OperandT(1)))
       ELSE
          WriteFormat0('SYSTEM procedure TSIZE expects the first parameter to be a type or variable') ;
-         ReturnVar := MakeConstLit(MakeKey('0'))
+         ReturnVar := MakeConstLit(MakeKey('0'), Cardinal)
       END
    ELSE
       Record := OperandT(NoOfParam) ;
@@ -9145,7 +9134,7 @@ BEGIN
 *)
       ELSE
          WriteFormat0('SYSTEM procedure TSIZE expects the first parameter to be a record type') ;
-         ReturnVar := MakeConstLit(MakeKey('0'))
+         ReturnVar := MakeConstLit(MakeKey('0'), Cardinal)
       END
    END ;
    PopN(NoOfParam+1) ;       (* destroy the arguments and function *)
@@ -9202,7 +9191,7 @@ BEGIN
          GenQuad(StandardFunctionOp, ReturnVar, ProcSym, OperandT(1)) ;
       ELSE
          WriteFormat0('SYSTEM procedure TBITSIZE expects the first parameter to be a type or variable') ;
-         ReturnVar := MakeConstLit(MakeKey('0'))
+         ReturnVar := MakeConstLit(MakeKey('0'), Cardinal)
       END
    ELSE
       Record := OperandT(NoOfParam) ;
@@ -9212,7 +9201,7 @@ BEGIN
          GenQuad(StandardFunctionOp, ReturnVar, ProcSym, OperandT(1)) ;
       ELSE
          WriteFormat0('SYSTEM procedure TBITSIZE expects the first parameter to be a record type') ;
-         ReturnVar := MakeConstLit(MakeKey('0'))
+         ReturnVar := MakeConstLit(MakeKey('0'), Cardinal)
       END
    END ;
    PopN(NoOfParam+1) ;       (* destroy the arguments and function *)
@@ -10160,7 +10149,7 @@ BEGIN
       GenHigh(tk, dim, arraySym) ;
       tl := MakeTemporary(RightValue) ;
       PutVar(tl, Cardinal) ;
-      GenQuad(AddOp, tl, tk, MakeConstLit(MakeKey('1'))) ;
+      GenQuad(AddOp, tl, tk, MakeConstLit(MakeKey('1'), Cardinal)) ;
       tj := calculateMultipicand(arraySym, arrayType, dim) ;
       ti := MakeTemporary(RightValue) ;
       PutVar(ti, Cardinal) ;

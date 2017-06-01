@@ -1,3 +1,39 @@
+2017-06-01      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  removed M2Constants.def
+          M2Constants.mod M2Entity.def M2Entity.mod.
+	* gm2/gm2-compiler/M2ALU.mod:  import ZType and change all
+          calls to MakeConstLit with a second type parameter.
+	* gm2/gm2-compiler/M2Base.mod:  remove unused MaxCard
+          and zero.
+	* gm2/gm2-compiler/M2Bitset.mod:  change call
+          to MakeConstLit to include a second type parameter.
+	* gm2/gm2-compiler/M2GenGCC.mod:  change all calls
+          to MakeConstLit to include a second type parameter.
+	* gm2/gm2-compiler/M2Quads.mod:  change all calls
+          to MakeConstLit to include a second type parameter.
+          Also reduce BuildPseudoBy by removing special case
+          of NulSym type.
+	* gm2/gm2-compiler/M2Range.mod:  MakeAndDeclareConstLit
+          (New procedure function).  FoldNonPosDiv, FoldNonPosMod,
+          FoldZeroDiv, FoldZeroRem, CodeWholeNonPos, CodeWholeZero,
+          use MakeAndDeclareConstLit to test against zero of the
+          correct type.
+	* gm2/gm2-compiler/P2SymBuild.mod:  change all calls
+          to MakeConstLit to include a second type parameter.
+	* gm2/gm2-compiler/SymbolTable.def:  add second parameter
+	  to MakeConstLit.
+	* gm2/gm2-compiler/SymbolTable.mod:  add second parameter
+          to MakeConstLit.  Add ConstLitTree to the SymType.
+          GetConstFromTypeTree, PutConstIntoTypeTree
+          (New procedure functions).  GetConstLitType changed
+          parameter from Sym to Name and implemented it accordingly.
+	* gm2/gm2-gcc/init.c:  remove M2Entity, M2SubExp, M2Constants
+          from the initialization sequence.
+	* gm2/init/gm2-gccinit:  remove M2Entity, M2SubExp, M2Constants
+          from the initialization sequence.
+	* gm2/gm2-gcc/m2expr.c:  added test shortcut.
+
 2017-05-31      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/tools-src/gensum.py:  improved summary using colours.

@@ -3247,7 +3247,7 @@ BEGIN
    type := MixTypes(FindType(op2), FindType(op3), CurrentQuadToken) ;
    ConvertBinaryOperands(location, tl, tr, type, op2, op3) ;
 
-   tv := binop(location, tl, tr, TRUE) ;
+   tv := binop(location, tl, tr, FALSE) ;
    CheckOrResetOverflow(CurrentQuadToken, tv, MustCheckOverflow(quad)) ;
    IF IsConst(op1)
    THEN
@@ -3668,7 +3668,7 @@ BEGIN
             (* rewrite the quad to use becomes *)
             d := GetStringLength(op3) ;
             s := Sprintf1(Mark(InitString("%d")), d) ;
-            result := MakeConstLit(makekey(string(s))) ;
+            result := MakeConstLit(makekey(string(s)), Cardinal) ;
             s := KillString(s) ;
             TryDeclareConstant(tokenno, result) ;
             PutQuad(quad, BecomesOp, op1, NulSym, result)

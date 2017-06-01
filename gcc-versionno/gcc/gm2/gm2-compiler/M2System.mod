@@ -93,7 +93,7 @@ VAR
 
 
 (*
-   Init - 
+   Init -
 *)
 
 PROCEDURE Init ;
@@ -127,7 +127,7 @@ END CreateMinMaxFor ;
 
 
 (*
-   MapType - 
+   MapType -
 *)
 
 PROCEDURE MapType (type: CARDINAL;
@@ -160,7 +160,7 @@ END MapType ;
 
 
 (*
-   AttemptToCreateType - 
+   AttemptToCreateType -
 *)
 
 PROCEDURE AttemptToCreateType (name, min, max: ARRAY OF CHAR;
@@ -202,8 +202,8 @@ BEGIN
    ELSE
       (* create base type *)
       type := MakeSet(MakeKey(name)) ;
-      low := MakeConstLit(MakeKey('0')) ;
-      high := MakeConstLit(MakeKey(highBit)) ;
+      low := MakeConstLit(MakeKey('0'), Cardinal) ;
+      high := MakeConstLit(MakeKey(highBit), Cardinal) ;
       subrange := MakeSubrange(NulName) ;
       PutSubrange(subrange, low, high, Cardinal) ;
       PutSet(type, subrange) ;
@@ -253,7 +253,7 @@ END MakeFixedSizedTypes ;
 
 
 (*
-   InitPIMTypes - 
+   InitPIMTypes -
 *)
 
 PROCEDURE InitPIMTypes ;
@@ -274,7 +274,7 @@ END InitPIMTypes ;
 
 
 (*
-   InitISOTypes - 
+   InitISOTypes -
 *)
 
 PROCEDURE InitISOTypes ;
@@ -403,7 +403,7 @@ END GetSystemTypeMinMax ;
 
 
 (*
-   IsISOPseudoSystemFunction - 
+   IsISOPseudoSystemFunction -
 *)
 
 PROCEDURE IsISOPseudoSystemFunction (sym: CARDINAL) : BOOLEAN ;
@@ -473,7 +473,7 @@ END IsSystemType ;
 
 
 (*
-   GetSafeSystem - 
+   GetSafeSystem -
 *)
 
 PROCEDURE GetSafeSystem (name: Name) : CARDINAL ;

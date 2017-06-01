@@ -1,7 +1,5 @@
-Index: configure
-===================================================================
---- configure	(revision 248687)
-+++ configure	(working copy)
+--- gcc-versionno-orig/configure	2017-06-01 17:06:46.480216999 +0100
++++ gcc-versionno/configure	2017-06-01 17:08:20.276215688 +0100
 @@ -580,6 +580,7 @@
  DLLTOOL_FOR_TARGET
  AS_FOR_TARGET
@@ -267,10 +265,16 @@ Index: configure
  cat > conftest.c << \EOF
  #ifdef __GNUC__
    gcc_yay;
-@@ -13961,6 +14142,51 @@
-   fi
- fi
- 
+@@ -13955,6 +14136,51 @@
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: host tool" >&5
+ $as_echo "host tool" >&6; }
+   else
++    # We need a cross tool
++    { $as_echo "$as_me:${as_lineno-$LINENO}: result: pre-installed" >&5
++$as_echo "pre-installed" >&6; }
++  fi
++fi
++
 +{ $as_echo "$as_me:${as_lineno-$LINENO}: checking where to find the target gm2" >&5
 +$as_echo_n "checking where to find the target gm2... " >&6; }
 +if test "x${build}" != "x${host}" ; then
@@ -310,12 +314,6 @@ Index: configure
 +    { $as_echo "$as_me:${as_lineno-$LINENO}: result: host tool" >&5
 +$as_echo "host tool" >&6; }
 +  else
-+    # We need a cross tool
-+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: pre-installed" >&5
-+$as_echo "pre-installed" >&6; }
-+  fi
-+fi
-+
- { $as_echo "$as_me:${as_lineno-$LINENO}: checking where to find the target dlltool" >&5
- $as_echo_n "checking where to find the target dlltool... " >&6; }
- if test "x${build}" != "x${host}" ; then
+     # We need a cross tool
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: pre-installed" >&5
+ $as_echo "pre-installed" >&6; }

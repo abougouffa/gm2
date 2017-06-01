@@ -42,9 +42,8 @@ FROM M2GenGCC IMPORT DoCopyString, StringToChar ;
 FROM M2Bitset IMPORT Bitset ;
 FROM SymbolConversion IMPORT Mod2Gcc, GccKnowsAbout ;
 FROM M2Printf IMPORT printf0, printf2 ;
-FROM M2Base IMPORT MixTypes, GetBaseTypeMinMax, Char, IsRealType, IsAComplexType ;
+FROM M2Base IMPORT MixTypes, GetBaseTypeMinMax, Char, IsRealType, IsAComplexType, ZType ;
 FROM DynamicStrings IMPORT String, InitString, Mark, ConCat, Slice, InitStringCharStar, KillString, InitStringChar, string ;
-FROM M2Constants IMPORT MakeNewConstFromValue ;
 FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken, TokenToLocation ;
 FROM M2MetaError IMPORT MetaError2 ;
 
@@ -1120,7 +1119,7 @@ END PopInto ;
 (*
    PushCard - pushes a cardinal onto the stack.
 *)
- 
+
 PROCEDURE PushCard (c: CARDINAL) ;
 VAR
    v: PtrToValue ;
@@ -1135,7 +1134,7 @@ BEGIN
    Push(v)
 END PushCard ;
 
- 
+
 (*
    PushInt - pushes an integer onto the stack.
 *)
@@ -1154,11 +1153,11 @@ BEGIN
    Push(v)
 END PushInt ;
 
- 
+
 (*
    PushChar - pushes a char onto the stack.
 *)
- 
+
 PROCEDURE PushChar (c: CHAR) ;
 VAR
    v: PtrToValue ;
@@ -1172,8 +1171,8 @@ BEGIN
    END ;
    Push(v)
 END PushChar ;
- 
- 
+
+
 (*
    IsReal - returns TRUE if a is a REAL number.
 *)
@@ -1187,7 +1186,7 @@ END IsReal ;
 (*
    PushString - pushes the numerical value of the string onto the stack.
 *)
- 
+
 PROCEDURE PushString (s: Name) ;
 VAR
    ch    : CHAR ;
@@ -1384,7 +1383,7 @@ END ConvertToType ;
    IsSolved - returns true if the memory cell indicated by v
               has a known value.
 *)
- 
+
 PROCEDURE IsSolved (v: PtrToValue) : BOOLEAN ;
 BEGIN
    IF v=NIL
@@ -1401,7 +1400,7 @@ END IsSolved ;
                   is only defined by constants.  For example
                   no variables are used in the constructor.
 *)
- 
+
 PROCEDURE IsValueConst (v: PtrToValue) : BOOLEAN ;
 BEGIN
    IF v=NIL
@@ -1435,11 +1434,11 @@ END EitherComplex ;
 
 (*
    Add - adds the top two elements on the stack.
- 
+
          The Stack:
- 
+
          Entry             Exit
-    
+
   Ptr ->
          +------------+
          | Op1        |                   <- Ptr
@@ -1447,7 +1446,7 @@ END EitherComplex ;
          | Op2        |    | Op2 + Op1  |
          |------------|    |------------|
 *)
- 
+
 PROCEDURE Addn ;
 VAR
    Temp,
@@ -1533,11 +1532,11 @@ END ComplexAdd ;
 
 (*
    Sub - subtracts the top two elements on the stack.
- 
+
          The Stack:
- 
+
          Entry             Exit
- 
+
   Ptr ->
          +------------+
          | Op1        |                   <- Ptr
@@ -1545,7 +1544,7 @@ END ComplexAdd ;
          | Op2        |    | Op2 - Op1  |
          |------------|    |------------|
 *)
- 
+
 PROCEDURE Sub ;
 VAR
    Temp,
@@ -1631,11 +1630,11 @@ END ComplexSub ;
 
 (*
    Mult - multiplies the top two elements on the stack.
- 
+
           The Stack:
- 
+
           Entry             Exit
- 
+
    Ptr ->
           +------------+
           | Op1        |                   <- Ptr
@@ -2018,14 +2017,14 @@ END AreSetsEqual ;
 
   Ptr ->
          +------------+
-         | Op1        |  
+         | Op1        |
          |------------|
-         | Op2        |  
+         | Op2        |
          |------------|    Empty
- 
+
          RETURN( Op2 = Op1 )
 *)
- 
+
 PROCEDURE Equ (tokenno: CARDINAL) : BOOLEAN ;
 VAR
    Op1, Op2: PtrToValue ;
@@ -2061,18 +2060,18 @@ END Equ ;
 (*
    NotEqu - returns true if the top two elements on the stack
             are not identical.
- 
+
             The Stack:
- 
+
             Entry             Exit
- 
+
      Ptr ->
             +------------+
             | Op1        |
             |------------|
             | Op2        |
             |------------|    Empty
- 
+
             RETURN( Op2 # Op1 )
 *)
 
@@ -2084,21 +2083,21 @@ END NotEqu ;
 
 (*
    Less - returns true if Op2 < Op1
- 
+
           The Stack:
- 
+
           Entry             Exit
- 
+
    Ptr ->
           +------------+
-          | Op1        | 
+          | Op1        |
           |------------|
-          | Op2        | 
+          | Op2        |
           |------------|    Empty
- 
+
           RETURN( Op2 < Op1 )
 *)
- 
+
 PROCEDURE Less (tokenno: CARDINAL) : BOOLEAN ;
 VAR
    v1, v2: PtrToValue ;
@@ -2139,9 +2138,9 @@ END Less ;
 
   Ptr ->
          +------------+
-         | Op1        |  
+         | Op1        |
          |------------|
-         | Op2        |  
+         | Op2        |
          |------------|    Empty
 
          RETURN( Op2 > Op1 )
@@ -2243,18 +2242,18 @@ END IsSuperset ;
 (*
    GreEqu - returns true if Op2 >= Op1
             are not identical.
- 
+
             The Stack:
- 
+
             Entry             Exit
- 
+
      Ptr ->
             +------------+
             | Op1        |
             |------------|
             | Op2        |
             |------------|    Empty
- 
+
             RETURN( Op2 >= Op1 )
 *)
 
@@ -2332,7 +2331,7 @@ END IsGenericNulSet ;
                                   +------------+
                                   | {}         |
                 Ptr ->            |------------|
-                                  
+
 *)
 
 PROCEDURE PushNulSet (settype: CARDINAL) ;
@@ -2365,7 +2364,7 @@ END PushNulSet ;
                                         +------------+
                                         | {}         |
                    Ptr ->               |------------|
-                                  
+
 *)
 
 PROCEDURE PushEmptyConstructor (constype: CARDINAL) ;
@@ -2398,7 +2397,7 @@ END PushEmptyConstructor ;
                                       +------------+
                                       | {}         |
              Ptr ->                   |------------|
-                                  
+
 *)
 
 PROCEDURE PushEmptyArray (arraytype: CARDINAL) ;
@@ -2431,7 +2430,7 @@ END PushEmptyArray ;
                                        +------------+
                                        | {}         |
               Ptr ->                   |------------|
-                                  
+
 *)
 
 PROCEDURE PushEmptyRecord (recordtype: CARDINAL) ;
@@ -2489,7 +2488,7 @@ END AddElements ;
 
 
 (*
-   AddElement - 
+   AddElement -
 *)
 
 PROCEDURE AddElement (v: listOfElements;
@@ -2585,7 +2584,7 @@ BEGIN
       NewElement(s) ;
       WITH s^ DO
          element := f^.field ;
-         by      := MakeConstLit(MakeKey('1')) ;
+         by      := MakeConstLit(MakeKey('1'), ZType) ;
          next    := r
       END ;
       IF r=NIL
@@ -2882,7 +2881,7 @@ BEGIN
                 NewElement(e) ;
                 WITH e^ DO
                    element := op1 ;
-                   by      := MakeConstLit(MakeKey('1')) ;
+                   by      := MakeConstLit(MakeKey('1'), ZType) ;
                    next    := NIL
                 END ;
                 AddElementToEnd(v, e) |
@@ -2986,7 +2985,7 @@ END Swap ;
 
 
 (*
-   DisplayElements - 
+   DisplayElements -
 *)
 
 PROCEDURE DisplayElements (i: listOfRange) ;
@@ -3110,7 +3109,7 @@ BEGIN
          END ;
          areAllConstants := DefinedByConstants(v) ;
          CASE type OF
-                       
+
          set   :   Assert((constructorType=NulSym) OR IsSet(SkipType(constructorType))) ;
                    solved := CompletelyResolved(constructorType) AND EvalSetValues(tokenno, setValue) |
          array :   Assert((constructorType=NulSym) OR IsArray(SkipType(constructorType))) ;
@@ -3127,7 +3126,7 @@ END Eval ;
 
 
 (*
-   WalkSetValueDependants - 
+   WalkSetValueDependants -
 *)
 
 PROCEDURE WalkSetValueDependants (r: listOfRange; p: WalkAction) ;
@@ -3143,7 +3142,7 @@ END WalkSetValueDependants ;
 
 
 (*
-   IsSetValueDependants - 
+   IsSetValueDependants -
 *)
 
 PROCEDURE IsSetValueDependants (r: listOfRange; q: IsAction) : BOOLEAN ;
@@ -3169,7 +3168,7 @@ END IsSetValueDependants ;
 
 
 (*
-   WalkFieldValueDependants - 
+   WalkFieldValueDependants -
 *)
 
 PROCEDURE WalkFieldValueDependants (f: listOfFields; p: WalkAction) ;
@@ -3184,7 +3183,7 @@ END WalkFieldValueDependants ;
 
 
 (*
-   IsFieldValueDependants - 
+   IsFieldValueDependants -
 *)
 
 PROCEDURE IsFieldValueDependants (f: listOfFields; q: IsAction) : BOOLEAN ;
@@ -3206,7 +3205,7 @@ END IsFieldValueDependants ;
 
 
 (*
-   WalkArrayValueDependants - 
+   WalkArrayValueDependants -
 *)
 
 PROCEDURE WalkArrayValueDependants (a: listOfElements; p: WalkAction) ;
@@ -3222,7 +3221,7 @@ END WalkArrayValueDependants ;
 
 
 (*
-   IsArrayValueDependants - 
+   IsArrayValueDependants -
 *)
 
 PROCEDURE IsArrayValueDependants (a: listOfElements; q: IsAction) : BOOLEAN ;
@@ -3344,7 +3343,7 @@ PROCEDURE EvaluateValue (sym: CARDINAL) ;
 VAR
    v: PtrToValue ;
 BEGIN
-   PushValue(sym) ; 
+   PushValue(sym) ;
    v := Pop() ;
    Eval(GetDeclaredMod(sym), v) ;
    Push(v) ;
@@ -3360,7 +3359,7 @@ PROCEDURE TryEvaluateValue (sym: CARDINAL) ;
 VAR
    v: PtrToValue ;
 BEGIN
-   PushValue(sym) ; 
+   PushValue(sym) ;
    v := Pop() ;
    WITH v^ DO
       CASE type OF
@@ -3465,7 +3464,7 @@ END arrayConstant ;
 
 
 (*
-   FindValueEnum - 
+   FindValueEnum -
 *)
 
 PROCEDURE FindValueEnum (field: WORD) ;
@@ -3638,7 +3637,7 @@ END RemoveBit ;
 
 
 (*
-   PerformSubBit - 
+   PerformSubBit -
 *)
 
 PROCEDURE PerformSubBit (tokenno: CARDINAL; VAR h: listOfRange; op1: CARDINAL) ;
@@ -4662,7 +4661,7 @@ BEGIN
             THEN
                IF IsArray(SkipType(constructorType)) AND (GetType(SkipType(constructorType))=Char)
                THEN
-                  RETURN( MakeConstLit(MakeKey('0')) )
+                  RETURN( MakeConstLit(MakeKey('0'), Char) )
                ELSE
                   WriteFormat1('element %d does not exist in the array declaration used by the compound literal', i) ;
                   RETURN( NulSym )
@@ -4687,7 +4686,7 @@ END IsString ;
 
 
 (*
-   StringFitsArray - 
+   StringFitsArray -
 *)
 
 PROCEDURE StringFitsArray (arrayType, el: CARDINAL; tokenno: CARDINAL) : BOOLEAN ;
@@ -4711,7 +4710,7 @@ END StringFitsArray ;
 
 
 (*
-   GetArrayLimits - 
+   GetArrayLimits -
 *)
 
 PROCEDURE GetArrayLimits (array: CARDINAL; VAR low, high: CARDINAL) ;
@@ -4731,7 +4730,7 @@ END GetArrayLimits ;
 
 
 (*
-   InitialiseArrayOfCharWithString - 
+   InitialiseArrayOfCharWithString -
 *)
 
 PROCEDURE InitialiseArrayOfCharWithString (tokenno: CARDINAL; cons: Tree;
@@ -4809,12 +4808,12 @@ BEGIN
       END
    END ;
 *)
-   RETURN( BuildEndArrayConstructor(cons) )   
+   RETURN( BuildEndArrayConstructor(cons) )
 END InitialiseArrayOfCharWithString ;
 
 
 (*
-   CheckElementString - 
+   CheckElementString -
 *)
 
 PROCEDURE CheckElementString (el, arrayType, baseType: CARDINAL;
@@ -4833,7 +4832,7 @@ END CheckElementString ;
 
 
 (*
-   InitialiseArrayWith - 
+   InitialiseArrayWith -
 *)
 
 PROCEDURE InitialiseArrayWith (tokenno: CARDINAL; cons: Tree;
