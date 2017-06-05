@@ -40,7 +40,7 @@ foreach testcase [lsort [glob -nocomplain $srcdir/$subdir/*.mod]] {
     }
 
     # do not recompile the support module - and do not test it either!
-    if { $testcase == "rangesupport.mod" } {
+    if { $testcase == "$srcdir/$subdir/rangesupport.mod" } {
         continue
     }
 
