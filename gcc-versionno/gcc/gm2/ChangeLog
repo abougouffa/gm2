@@ -1,3 +1,30 @@
+2017-06-05      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  CodeArray add extra
+          parameter to BuildArray.
+	* gm2/gm2-compiler/M2Quads.mod:  PushOne (New procedure).
+          PushZero (New procedure).  BuildPseudoBy call PushOne.
+          BuildIncProcedure, BuildDecProcedure call PushOne.
+          BuildForToByDo call PushZero.
+	* gm2/gm2-compiler/SymbolTable.mod:  add ConstLitTree
+          field to Pointer and Subrange types.  Allow
+          GetConstFromTypeTree and PutConstIntoTypeTree to get and
+          store constants into their respective ConstLitTree(s).
+	* gm2/gm2-gcc/m2expr.c:  convert the array index into the
+          array index type before accessing the array element.
+	* gm2/gm2-gcc/m2expr.def:  introduce extra location parameter
+          to BuildArray.
+	* gm2/gm2-gcc/m2expr.h:  introduce extra location parameter
+          to BuildArray.
+	* gm2/gm2-lang.c:  corrected formatting.  Call write_globals.
+          Rewrite m2_write_global_declarations.  Replace
+          gm2_langhook_write_globals with write_globals.  Remove
+          LANG_HOOKS_WRITE_GLOBALS.
+	* gm2/gm2-libs/NumberIO.mod:  white spaces removed.
+	* gm2/lang.opt:  corrected dates.  Allow Modula-2 to skip over
+          the fobjc-std=objc1 option.
+	* gm2/patches/gcc/trunc/11-patches:  remove assert.
+
 2017-06-01      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  removed M2Constants.def

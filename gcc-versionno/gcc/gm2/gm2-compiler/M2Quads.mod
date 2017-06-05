@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011, 2012, 2013
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -3609,6 +3609,77 @@ END BuildElsif2 ;
 
 
 (*
+   PushOne - pushes the value one to the stack.
+             The Stack is changed:
+
+
+                    Entry                   Exit
+                    =====                   ====
+
+                                                            <- Ptr
+                                            +------------+
+             Ptr ->                         | 1 | type   |
+                                            |------------|
+*)
+
+PROCEDURE PushOne (type: CARDINAL; message: ARRAY OF CHAR) ;
+BEGIN
+   IF type=NulSym
+   THEN
+      PushTF(MakeConstLit(MakeKey('1'), NulSym), NulSym)
+   ELSIF IsEnumeration(type)
+   THEN
+      IF NoOfElements(type)=0
+      THEN
+         MetaErrors1('enumeration type only has one element {%1Dad} and therefore',
+                     message, type) ;
+         PushZero(type)
+      ELSE
+         PushTF(Convert, NulSym) ;
+         PushT(type) ;
+         PushT(MakeConstLit(MakeKey('1'), ZType)) ;
+         PushT(2) ;          (* Two parameters *)
+         BuildConvertFunction
+      END
+   ELSE
+      PushTF(MakeConstLit(MakeKey('1'), type), type)
+   END
+END PushOne ;
+
+
+(*
+   PushZero - pushes the value zero to the stack.
+              The Stack is changed:
+
+
+                    Entry                   Exit
+                    =====                   ====
+
+                                                            <- Ptr
+                                            +------------+
+             Ptr ->                         | 0 | type   |
+                                            |------------|
+*)
+
+PROCEDURE PushZero (type: CARDINAL) ;
+BEGIN
+   IF type=NulSym
+   THEN
+      PushTF(MakeConstLit(MakeKey('0'), NulSym), NulSym)
+   ELSIF IsEnumeration(type)
+   THEN
+      PushTF(Convert, NulSym) ;
+      PushT(type) ;
+      PushT(MakeConstLit(MakeKey('0'), ZType)) ;
+      PushT(2) ;          (* Two parameters *)
+      BuildConvertFunction
+   ELSE
+      PushTF(MakeConstLit(MakeKey('0'), type), type)
+   END
+END PushZero ;
+
+
+(*
    BuildPseudoBy - Builds the Non existant part of the By
                    clause of the For statement
                    from the quad stack.
@@ -3636,7 +3707,7 @@ BEGIN
    THEN
       t := GetSType(e)
    END ;
-   PushTF(MakeConstLit(MakeKey('1'), t), t)
+   PushOne(t, 'the implied FOR loop increment will cause an overflow {%1ad}')
 END BuildPseudoBy ;
 
 
@@ -3797,7 +3868,7 @@ BEGIN
    PushTF(BySym, ByType) ;  (* BuildRelOp  1st parameter *)
    PushT(GreaterEqualTok) ; (*             2nd parameter *)
                                         (* 3rd parameter *)
-   PushTF(MakeConstLit(MakeKey('0'), ByType), ByType) ;
+   PushZero(ByType) ;
 
    BuildRelOp ;
    PopBool(t, f) ;
@@ -6323,6 +6394,7 @@ END CheckRangeIncDec ;
 PROCEDURE BuildIncProcedure ;
 VAR
    NoOfParam,
+   dtype,
    OperandSym,
    VarSym,
    TempSym,
@@ -6334,11 +6406,13 @@ BEGIN
       VarSym := OperandT(NoOfParam) ;  (* bottom/first parameter *)
       IF IsVar(VarSym)
       THEN
+         dtype := GetDType(VarSym) ;
          IF NoOfParam=2
          THEN
             OperandSym := DereferenceLValue(OperandT(1))
          ELSE
-            OperandSym := MakeConstLit(MakeKey('1'), GetDType(VarSym))
+            PushOne(dtype, 'the INC will cause an overflow {%1ad}') ;
+	    PopT(OperandSym)
          END ;
 
          PushT(VarSym) ;
@@ -6389,6 +6463,7 @@ END BuildIncProcedure ;
 PROCEDURE BuildDecProcedure ;
 VAR
    NoOfParam,
+   dtype,
    OperandSym,
    VarSym,
    TempSym,
@@ -6400,11 +6475,13 @@ BEGIN
       VarSym := OperandT(NoOfParam) ;  (* bottom/first parameter *)
       IF IsVar(VarSym)
       THEN
+         dtype := GetDType(VarSym) ;
          IF NoOfParam=2
          THEN
             OperandSym := DereferenceLValue(OperandT(1))
          ELSE
-            OperandSym := MakeConstLit(MakeKey('1'), GetDType(VarSym))
+            PushOne(dtype, 'the DEC will cause an overflow {%1ad}') ;
+	    PopT(OperandSym)
          END ;
 
          PushT(VarSym) ;

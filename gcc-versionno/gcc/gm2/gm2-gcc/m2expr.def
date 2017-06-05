@@ -439,7 +439,7 @@ PROCEDURE BuildIfNotInRangeGoto (location: location_t; var: Tree; low: Tree; hig
                  given, lowIndice.
 *)
 
-PROCEDURE BuildArray (type: Tree; array: Tree; index: Tree; lowIndice: Tree) : Tree ;
+PROCEDURE BuildArray (location: location_t; type: Tree; array: Tree; index: Tree; lowIndice: Tree) : Tree ;
 
 
 (*

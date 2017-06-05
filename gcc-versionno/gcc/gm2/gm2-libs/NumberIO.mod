@@ -48,7 +48,7 @@ PROCEDURE WriteHex (x, n: CARDINAL) ; FORWARD ;
 
 
 CONST
-   MaxLineLength = 79 ; 
+   MaxLineLength = 79 ;
    MaxDigits     = 20 ;
    MaxHexDigits  = 20 ;
    MaxOctDigits  = 40 ;

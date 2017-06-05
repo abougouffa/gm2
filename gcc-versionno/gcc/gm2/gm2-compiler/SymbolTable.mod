@@ -217,17 +217,18 @@ TYPE
                END ;
 
    SymSubrange = RECORD
-                    name       : Name ;       (* Index into name array, name *)
-                                              (* of subrange.                *)
-                    Low        : CARDINAL ;   (* Index to symbol for lower   *)
-                    High       : CARDINAL ;   (* Index to symbol for higher  *)
-                    Size       : PtrToValue ; (* Size of subrange type.      *)
-                    Type       : CARDINAL ;   (* Index to type symbol for    *)
-                                              (* the type of subrange.       *)
-                    packedInfo : PackedInfo ; (* the equivalent packed type  *)
-                    oafamily   : CARDINAL ;   (* The oafamily for this sym   *)
-                    Scope      : CARDINAL ;   (* Scope of declaration.       *)
-                    At         : Where ;      (* Where was sym declared/used *)
+                    name        : Name ;       (* Index into name array, name *)
+                                               (* of subrange.                *)
+                    Low         : CARDINAL ;   (* Index to symbol for lower   *)
+                    High        : CARDINAL ;   (* Index to symbol for higher  *)
+                    Size        : PtrToValue ; (* Size of subrange type.      *)
+                    Type        : CARDINAL ;   (* Index to type symbol for    *)
+                                               (* the type of subrange.       *)
+                    ConstLitTree: SymbolTree ; (* constants of this type.     *)
+                    packedInfo  : PackedInfo ; (* the equivalent packed type  *)
+                    oafamily    : CARDINAL ;   (* The oafamily for this sym   *)
+                    Scope       : CARDINAL ;   (* Scope of declaration.       *)
+                    At          : Where ;      (* Where was sym declared/used *)
                  END ;
 
    SymEnumeration =
@@ -470,14 +471,15 @@ TYPE
 
    SymPointer
            = RECORD
-                name     : Name ;             (* Index into name array, name *)
+                name        : Name ;          (* Index into name array, name *)
                                               (* of pointer.                 *)
-                Type     : CARDINAL ;         (* Index to a type symbol.     *)
-                Size     : PtrToValue ;       (* Runtime size of symbol.     *)
-                Align    : CARDINAL ;         (* The alignment of this type  *)
-                oafamily : CARDINAL ;         (* The oafamily for this sym   *)
-                Scope    : CARDINAL ;         (* Scope of declaration.       *)
-                At       : Where ;            (* Where was sym declared/used *)
+                Type        : CARDINAL ;      (* Index to a type symbol.     *)
+                Size        : PtrToValue ;    (* Runtime size of symbol.     *)
+                Align       : CARDINAL ;      (* The alignment of this type  *)
+                ConstLitTree: SymbolTree ;    (* constants of this type.     *)
+                oafamily    : CARDINAL ;      (* The oafamily for this sym   *)
+                Scope       : CARDINAL ;      (* Scope of declaration.       *)
+                At          : Where ;         (* Where was sym declared/used *)
              END ;
 
    SymRecordField =
@@ -3759,11 +3761,13 @@ BEGIN
       RETURN GetSymKey(ConstLitTree, constName)
    ELSE
       pSym := GetPsym(constType) ;
-      Assert(IsType(constType)) ;
+      Assert(IsType(constType) OR IsSubrange(constType) OR IsPointer(constType)) ;
       WITH pSym^ DO
          CASE SymbolType OF
 
-         TypeSym:  RETURN GetSymKey (Type.ConstLitTree, constName)
+         TypeSym    :  RETURN GetSymKey (Type.ConstLitTree, constName) |
+	 SubrangeSym:  RETURN GetSymKey (Subrange.ConstLitTree, constName) |
+	 PointerSym :  RETURN GetSymKey (Pointer.ConstLitTree, constName)
 
          ELSE
             InternalError('expecting Type symbol', __FILE__, __LINE__)
@@ -3787,11 +3791,13 @@ BEGIN
       PutSymKey(ConstLitTree, constName, constSym)
    ELSE
       pSym := GetPsym(constType) ;
-      Assert(IsType(constType)) ;
+      Assert(IsType(constType) OR IsSubrange(constType) OR IsPointer(constType)) ;
       WITH pSym^ DO
          CASE SymbolType OF
 
-         TypeSym:  PutSymKey (Type.ConstLitTree, constName, constSym)
+         TypeSym    :  PutSymKey (Type.ConstLitTree, constName, constSym) |
+         SubrangeSym:  PutSymKey (Subrange.ConstLitTree, constName, constSym) |
+         PointerSym :  PutSymKey (Pointer.ConstLitTree, constName, constSym)
 
          ELSE
             InternalError('expecting Type symbol', __FILE__, __LINE__)
@@ -4601,6 +4607,7 @@ BEGIN
             Type := NulSym ;            (* Index to a type. Determines   *)
                                         (* the type of subrange.         *)
             InitPacked(packedInfo) ;    (* not packed and no equivalent  *)
+            InitTree(ConstLitTree) ;    (* constants of this type.       *)
             Size := InitValue() ;       (* Size determines the type size *)
             oafamily := oaf ;           (* The unbounded sym for this    *)
             Scope := GetCurrentScope() ;      (* Which scope created it  *)
@@ -9262,10 +9269,11 @@ BEGIN
 
          PointerSym: Pointer.Type := NulSym ;
                      Pointer.name := PointerName ;
-                     Pointer.oafamily := oaf ;       (* The unbounded for this *)
-                     Pointer.Scope := scope ;        (* Which scope created it *)
+                     Pointer.oafamily := oaf ;         (* The unbounded for this *)
+		     InitTree(Pointer.ConstLitTree) ;  (* constants of this type *)
+                     Pointer.Scope := scope ;          (* Which scope created it *)
                      Pointer.Size := InitValue() ;
-                     Pointer.Align := NulSym ;       (* Alignment of this type *)
+                     Pointer.Align := NulSym ;         (* Alignment of this type *)
 
          ELSE
             InternalError('expecting a Pointer symbol', __FILE__, __LINE__)

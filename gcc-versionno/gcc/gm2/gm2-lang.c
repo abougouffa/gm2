@@ -45,6 +45,9 @@ Boston, MA 02110-1301, USA.  */
 #include "../gm2-tree.h"
 #include "convert.h"
 
+static void write_globals (void);
+
+
 static int insideCppArgs = FALSE;
 
 
@@ -434,7 +437,7 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
       const struct cl_option *option = &cl_options[scode];
       const char *opt = (const char *) option->opt_text;
 
-      M2Options_CppArg(opt, arg, TRUE);
+      M2Options_CppArg (opt, arg, TRUE);
       return 1;
     }
     return 0;
@@ -470,6 +473,7 @@ static void
 gm2_langhook_parse_file (void)
 {
   gm2_parse_input_files (in_fnames, num_in_fnames);
+  write_globals ();
 }
 
 static tree
@@ -496,7 +500,7 @@ gm2_langhook_type_for_mode (enum machine_mode mode, int unsignedp)
   // FIXME: This static_cast should be in machmode.h.
   enum mode_class mc = static_cast<enum mode_class>(GET_MODE_CLASS(mode));
   if (mc == MODE_INT)
-    return gm2_langhook_type_for_size(GET_MODE_BITSIZE(mode), unsignedp);
+    return gm2_langhook_type_for_size (GET_MODE_BITSIZE(mode), unsignedp);
   else if (mc == MODE_FLOAT)
     {
       switch (GET_MODE_BITSIZE (mode))
@@ -508,7 +512,7 @@ gm2_langhook_type_for_mode (enum machine_mode mode, int unsignedp)
 	default:
 	  // We have to check for long double in order to support
 	  // i386 excess precision.
-	  if (mode == TYPE_MODE(long_double_type_node))
+	  if (mode == TYPE_MODE (long_double_type_node))
 	    return long_double_type_node;
 	}
     }
@@ -523,7 +527,7 @@ gm2_langhook_type_for_mode (enum machine_mode mode, int unsignedp)
 	default:
 	  // We have to check for long double in order to support
 	  // i386 excess precision.
-	  if (mode == TYPE_MODE(complex_long_double_type_node))
+	  if (mode == TYPE_MODE (complex_long_double_type_node))
 	    return complex_long_double_type_node;
 	}
     }
@@ -572,7 +576,7 @@ gm2_langhook_pushdecl (tree decl ATTRIBUTE_UNUSED)
 }
 
 /* This hook is used to get the current list of declarations as trees.
-   We don't support that; instead we use the write_globals hook.  This
+   We don't support that; instead we use write_globals.  This
    can't simply crash because it is called by -gstabs.  */
 
 static tree
@@ -584,19 +588,42 @@ gm2_langhook_getdecls (void)
 static void
 m2_write_global_declarations (tree globals)
 {
-  tree decl;
+  tree decl = globals;
+  int n = 0;
 
+  while (decl != NULL)
+    {
+      n++;
+      decl = TREE_CHAIN (decl);
+    }
+
+  if (n > 0)
+    {
+      int i = 0;
+      tree vec[n];
+      decl = globals;
+      while (decl != NULL)
+	{
+	  vec[i] = decl;
+	  decl = TREE_CHAIN (decl);
+	  i++;
+	}
+      wrapup_global_declarations (vec, n);
+    }
+}
+
+#if 0
   for (decl = globals; decl ; decl = DECL_CHAIN (decl))
     {
       rest_of_decl_compilation (decl, 1, 1);
       debug_hooks->late_global_decl (decl);
     }
-}
+#endif
 
 /* Write out globals.  */
 
 static void
-gm2_langhook_write_globals (void)
+write_globals (void)
 {
   tree t;
   unsigned i;
@@ -620,6 +647,7 @@ gm2_langhook_write_globals (void)
   FOR_EACH_VEC_ELT (*all_translation_units, i, t)
     m2_write_global_declarations (BLOCK_VARS (DECL_INITIAL (t)));
 
+#if 0
   /* We're done parsing; proceed to optimize and emit assembly.
      FIXME: shouldn't be the front end's responsibility to call this.  */
   symtab->finalize_compilation_unit ();
@@ -633,6 +661,7 @@ gm2_langhook_write_globals (void)
 	m2_write_global_declarations (BLOCK_VARS (DECL_INITIAL (t)));
       timevar_pop (TV_SYMOUT);
     }
+#endif
 }
 
 
@@ -898,7 +927,7 @@ gm2_type_for_size (unsigned int bits, int unsignedp)
       else if (bits == LONG_LONG_TYPE_SIZE)
         type = long_long_unsigned_type_node;
       else
-        type = make_unsigned_type(bits);
+        type = make_unsigned_type (bits);
     }
   else
     {
@@ -913,7 +942,7 @@ gm2_type_for_size (unsigned int bits, int unsignedp)
       else if (bits == LONG_LONG_TYPE_SIZE)
         type = long_long_integer_type_node;
       else
-        type = make_signed_type(bits);
+        type = make_signed_type (bits);
     }
   return type;
 }
@@ -933,7 +962,6 @@ gm2_type_for_size (unsigned int bits, int unsignedp)
 #undef LANG_HOOKS_GLOBAL_BINDINGS_P
 #undef LANG_HOOKS_PUSHDECL
 #undef LANG_HOOKS_GETDECLS
-#undef LANG_HOOKS_WRITE_GLOBALS
 #undef LANG_HOOKS_GIMPLIFY_EXPR
 #undef LANG_HOOKS_EH_PERSONALITY
 
@@ -951,7 +979,6 @@ gm2_type_for_size (unsigned int bits, int unsignedp)
 #define LANG_HOOKS_GLOBAL_BINDINGS_P	gm2_langhook_global_bindings_p
 #define LANG_HOOKS_PUSHDECL		gm2_langhook_pushdecl
 #define LANG_HOOKS_GETDECLS		gm2_langhook_getdecls
-#define LANG_HOOKS_WRITE_GLOBALS	gm2_langhook_write_globals
 #define LANG_HOOKS_GIMPLIFY_EXPR	gm2_langhook_gimplify_expr
 #define LANG_HOOKS_EH_PERSONALITY	gm2_langhook_eh_personality
 

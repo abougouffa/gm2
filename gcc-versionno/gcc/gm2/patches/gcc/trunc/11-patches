@@ -1,15 +1,14 @@
 --- gcc-versionno-orig/gcc/tree-ssa-loop-im.c	2017-06-01 17:06:50.228216946 +0100
-+++ gcc-versionno/gcc/tree-ssa-loop-im.c	2017-05-30 15:52:41.402692983 +0100
-@@ -602,7 +602,7 @@
++++ gcc-versionno/gcc/tree-ssa-loop-im.c	2017-06-01 21:34:55.623992245 +0100
+@@ -602,7 +602,6 @@
    hash = iterative_hash_expr (*mem, 0);
    ref = memory_accesses.refs->find_with_hash (*mem, hash);
  
 -  gcc_assert (ref != NULL);
-+  // gcc_assert (ref != NULL);
    return ref;
  }
  
-@@ -2631,5 +2631,3 @@
+@@ -2631,5 +2630,3 @@
  {
    return new pass_lim (ctxt);
  }

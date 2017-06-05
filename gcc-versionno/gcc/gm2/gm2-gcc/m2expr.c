@@ -1,4 +1,4 @@
-/* Copyright (C) 2012, 2013, 2014, 2015, 2016.
+/* Copyright (C) 2012, 2013, 2014, 2015, 2016, 2017.
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -1837,10 +1837,14 @@ m2expr_BuildIfNotInRangeGoto (location_t location, tree var, tree low, tree high
  */
 
 tree
-m2expr_BuildArray (tree type, tree array, tree index, tree lowIndice)
+m2expr_BuildArray (location_t location, tree type, tree array,
+		   tree index, tree lowIndice)
 {
+  tree array_type = m2tree_skip_type_decl (TREE_TYPE (array));
+  tree index_type = TYPE_DOMAIN (array_type);
   type = m2tree_skip_type_decl (type);
 
+  index = m2convert_BuildConvert (location, index_type, index, FALSE);
   return build4 (ARRAY_REF, type, array, index, lowIndice, NULL_TREE);
 }
 
