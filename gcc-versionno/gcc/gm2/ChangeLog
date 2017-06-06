@@ -7,7 +7,8 @@
 	* gm2/gm2-compiler/M2Quads.mod:  (BuildLengthFunction)
           check to see if parameter to length is a constant
           if so then use StandardFunctionOp otherwise
-          call M2RTS_Length.
+          call M2RTS_Length.  Fixes a bug reported by
+	  Ernst Bokkelkamp <ernst@bokkelkamp.de>.
 	* gm2/gm2-compiler/SymbolTable.mod:  correct end procedure
           name PutConstIntoTypeTree.
 	* gm2/gm2-gcc/m2expr.c:  many gnu coding standard changes.
