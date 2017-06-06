@@ -1,3 +1,20 @@
+2017-06-06      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeLengthFunction)
+          Call InternalError if op1 is a constant.
+          (FoldLengthFunction) if op1 is a constant fold the
+	  result and remove the quadruple.
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildLengthFunction)
+          check to see if parameter to length is a constant
+          if so then use StandardFunctionOp otherwise
+          call M2RTS_Length.  Fixes a bug reported by
+	  Ernst Bokkelkamp <ernst@bokkelkamp.de>.
+	* gm2/gm2-compiler/SymbolTable.mod:  correct end procedure
+          name PutConstIntoTypeTree.
+	* gm2/mc/mcStream.mod:  (createTemporaryFile) create a per
+          process temporary file name.
+	* (mc) regenerated.
+
 2017-05-24      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  use separate procedure to
