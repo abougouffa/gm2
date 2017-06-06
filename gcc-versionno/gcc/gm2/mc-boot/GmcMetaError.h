@@ -1,4 +1,4 @@
-/* automatically created by mc from ../../gcc-5.2.0/gcc/gm2/mc/mcMetaError.def.  */
+/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcMetaError.def.  */
 
 
 #if !defined (_mcMetaError_H)

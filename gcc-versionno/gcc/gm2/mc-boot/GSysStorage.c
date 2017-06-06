@@ -1,4 +1,4 @@
-/* automatically created by mc from ../../gcc-5.2.0/gcc/gm2/gm2-libs/SysStorage.mod.  */
+/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/SysStorage.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -54,7 +54,7 @@ void SysStorage_ALLOCATE (void * *a, unsigned int Size)
 {
   (*a) = libc_malloc (Size);
   if ((*a) == NULL)
-    Debug_Halt ((char *) "out of memory error", 19, 31, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/SysStorage.mod", 47);
+    Debug_Halt ((char *) "out of memory error", 19, 31, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/SysStorage.mod", 51);
 }
 
 void SysStorage_DEALLOCATE (void * *a, unsigned int Size)
@@ -80,7 +80,7 @@ void SysStorage_REALLOCATE (void * *a, unsigned int Size)
     {
       (*a) = libc_realloc ((*a), Size);
       if ((*a) == NULL)
-        Debug_Halt ((char *) "out of memory error", 19, 60, (char *) "../../gcc-5.2.0/gcc/gm2/gm2-libs/SysStorage.mod", 47);
+        Debug_Halt ((char *) "out of memory error", 19, 60, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/SysStorage.mod", 51);
     }
 }
 

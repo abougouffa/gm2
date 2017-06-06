@@ -1,4 +1,4 @@
-/* automatically created by mc from ../../gcc-5.2.0/gcc/gm2/mc/lists.def.  */
+/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/lists.def.  */
 
 
 #if !defined (_lists_H)

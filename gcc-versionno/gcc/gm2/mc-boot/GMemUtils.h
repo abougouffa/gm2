@@ -1,4 +1,4 @@
-/* automatically created by mc from ../../gcc-5.2.0/gcc/gm2/gm2-libs/MemUtils.def.  */
+/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/MemUtils.def.  */
 
 
 #if !defined (_MemUtils_H)

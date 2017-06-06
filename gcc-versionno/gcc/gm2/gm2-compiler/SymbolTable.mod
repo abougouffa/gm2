@@ -3804,7 +3804,7 @@ BEGIN
          END
       END
    END
-END PutConstFromTypeTree ;
+END PutConstIntoTypeTree ;
 
 
 (*

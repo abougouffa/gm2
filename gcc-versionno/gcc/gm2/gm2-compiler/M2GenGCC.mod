@@ -3668,7 +3668,7 @@ BEGIN
             (* rewrite the quad to use becomes *)
             d := GetStringLength(op3) ;
             s := Sprintf1(Mark(InitString("%d")), d) ;
-            result := MakeConstLit(makekey(string(s)), Cardinal) ;
+            result := MakeConstLit(makekey(string(s))) ;
             s := KillString(s) ;
             TryDeclareConstant(tokenno, result) ;
             PutQuad(quad, BecomesOp, op1, NulSym, result)
@@ -3794,34 +3794,10 @@ BEGIN
 
    IF (op2#NulSym) AND (GetSymName(op2)=MakeKey('Length'))
    THEN
-      IF IsProcedure(op2)
+      IF IsConst(op1)
       THEN
-         IF IsConstString(op3)
-         THEN
-            InternalError('the LENGTH of a constant string should already be known', __FILE__, __LINE__)
-         ELSIF IsUnbounded(GetType(op3))
-         THEN
-            BuildParam(location, Mod2Gcc(op3)) ;
-            t := BuildProcedureCallTree(location, Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
-            t := BuildFunctValue(location, Mod2Gcc(op1)) ;
-            AddStatement(location, t)
-         ELSIF GetMode(op3)=RightValue
-         THEN
-            BuildParam(location, ResolveHigh(CurrentQuadToken, 1, op3)) ;
-            BuildParam(location, BuildAddr(location, Mod2Gcc(op3), FALSE)) ;
-            t := BuildProcedureCallTree(location, Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
-            t := BuildFunctValue(location, Mod2Gcc(op1)) ;
-            AddStatement(location, t)
-         ELSE
-            BuildParam(location, ResolveHigh(CurrentQuadToken, 1, op3)) ;
-            BuildParam(location, Mod2Gcc(op3)) ;
-            t := BuildProcedureCallTree(location, Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
-            t := BuildFunctValue(location, Mod2Gcc(op1)) ;
-            AddStatement(location, t)
-         END
-      ELSE
-         ErrorStringAt(Sprintf0(Mark(InitString('no procedure Length found for substitution to the standard function LENGTH which is required to calculate non constant string lengths'))),
-                       CurrentQuadToken)
+         InternalError('LENGTH function should already have been folded',
+                       __FILE__, __LINE__)
       END
    ELSIF (op2#NulSym) AND (GetSymName(op2)=MakeKey('CAP'))
    THEN

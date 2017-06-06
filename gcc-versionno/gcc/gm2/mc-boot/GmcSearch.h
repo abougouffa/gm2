@@ -1,4 +1,4 @@
-/* automatically created by mc from ../../gcc-5.2.0/gcc/gm2/mc/mcSearch.def.  */
+/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcSearch.def.  */
 
 
 #if !defined (_mcSearch_H)

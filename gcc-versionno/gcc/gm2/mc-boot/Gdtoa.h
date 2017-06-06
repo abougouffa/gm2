@@ -1,4 +1,4 @@
-/* automatically created by mc from ../../gcc-5.2.0/gcc/gm2/gm2-libs/dtoa.def.  */
+/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/dtoa.def.  */
 
 
 #if !defined (_dtoa_H)

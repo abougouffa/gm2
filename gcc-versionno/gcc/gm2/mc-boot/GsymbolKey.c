@@ -1,4 +1,4 @@
-/* automatically created by mc from ../../gcc-5.2.0/gcc/gm2/mc/symbolKey.mod.  */
+/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/symbolKey.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -115,7 +115,7 @@ static void findNodeAndParentInTree (symbolKey_symbolTree t, nameKey_Name n, sym
 {
   (*father) = t;
   if (t == NULL)
-    Debug_Halt ((char *) "parameter t should never be NIL", 31, 200, (char *) "../../gcc-5.2.0/gcc/gm2/mc/symbolKey.mod", 40);
+    Debug_Halt ((char *) "parameter t should never be NIL", 31, 200, (char *) "../../gcc-versionno/gcc/gm2/mc/symbolKey.mod", 44);
   (*child) = t->left;
   if ((*child) != NULL)
     do {
@@ -232,7 +232,7 @@ void symbolKey_putSymKey (symbolKey_symbolTree t, nameKey_Name name, void * key)
       child->name = name;
     }
   else
-    Debug_Halt ((char *) "symbol already stored", 21, 116, (char *) "../../gcc-5.2.0/gcc/gm2/mc/symbolKey.mod", 40);
+    Debug_Halt ((char *) "symbol already stored", 21, 116, (char *) "../../gcc-versionno/gcc/gm2/mc/symbolKey.mod", 44);
 }
 
 
@@ -280,7 +280,7 @@ void symbolKey_delSymKey (symbolKey_symbolTree t, nameKey_Name name)
         Storage_DEALLOCATE ((void **) &child, sizeof (_T1));
       }
   else
-    Debug_Halt ((char *) "trying to delete a symbol that is not in the tree - the compiler never expects this to occur", 92, 183, (char *) "../../gcc-5.2.0/gcc/gm2/mc/symbolKey.mod", 40);
+    Debug_Halt ((char *) "trying to delete a symbol that is not in the tree - the compiler never expects this to occur", 92, 183, (char *) "../../gcc-versionno/gcc/gm2/mc/symbolKey.mod", 44);
 }
 
 

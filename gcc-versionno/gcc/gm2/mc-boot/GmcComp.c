@@ -1,4 +1,4 @@
-/* automatically created by mc from ../../gcc-5.2.0/gcc/gm2/mc/mcComp.mod.  */
+/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcComp.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -252,7 +252,7 @@ static decl_node examineCompilationUnit (void)
     }
   mcflex_mcError (DynamicStrings_string (DynamicStrings_InitString ((char *) "failed to find module name", 26)));
   libc_exit (1);
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcComp.def", 1, 15);
+  ReturnException ("../../gcc-versionno/gcc/gm2/mc/mcComp.def", 1, 15);
 }
 
 
@@ -281,7 +281,7 @@ static decl_node peepInto (DynamicStrings_String s)
       mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to open %s\\n", 19, (unsigned char *) &s, (sizeof (s)-1));
       libc_exit (1);
     }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/mcComp.def", 1, 15);
+  ReturnException ("../../gcc-versionno/gcc/gm2/mc/mcComp.def", 1, 15);
 }
 
 

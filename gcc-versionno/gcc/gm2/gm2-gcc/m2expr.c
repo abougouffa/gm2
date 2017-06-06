@@ -31,11 +31,8 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "m2convert.h"
 
 
-/*
- *
- * prototypes
- *
- */
+/* prototypes.  */
+
 #define m2expr_c
 #include "m2expr.h"
 #include "m2statement.h"
@@ -51,9 +48,7 @@ static int label_count = 0;
 static GTY(()) tree set_full_complement;
 
 
-/*
- *  CompareTrees - returns -1 if e1 < e2, 0 if e1 == e2, and 1 if e1 > e2.
- */
+/* CompareTrees returns -1 if e1 < e2, 0 if e1 == e2, and 1 if e1 > e2.  */
 
 int m2expr_CompareTrees (tree e1, tree e2)
 {
@@ -61,9 +56,7 @@ int m2expr_CompareTrees (tree e1, tree e2)
 }
 
 
-/*
- *  FoldAndStrip - return expression, t, after it has been folded (if possible).
- */
+/* FoldAndStrip return expression, t, after it has been folded (if possible).  */
 
 tree
 m2expr_FoldAndStrip (tree t)
@@ -78,10 +71,7 @@ m2expr_FoldAndStrip (tree t)
 }
 
 
-/*
- *  StringLength - returns an unsigned int which is the length
- *                 of, string.
- */
+/* StringLength returns an unsigned int which is the length of, string.  */
 
 unsigned int
 m2expr_StringLength (tree string)
@@ -90,9 +80,7 @@ m2expr_StringLength (tree string)
 }
 
 
-/*
- *
- */
+/* CheckAddressToCardinal if op is a pointer convert it to the ADDRESS type.  */
 
 static
 tree
@@ -104,9 +92,7 @@ CheckAddressToCardinal (location_t location, tree op)
 }
 
 
-/*
- *  BuildAdd - builds an addition tree.
- */
+/*  BuildAdd builds an addition tree.  */
 
 tree
 m2expr_BuildAdd (location_t location, tree op1, tree op2, int needconvert)
@@ -126,9 +112,7 @@ m2expr_BuildAdd (location_t location, tree op1, tree op2, int needconvert)
 }
 
 
-/*
- *  BuildSub - builds a subtraction tree.
- */
+/* BuildSub builds a subtraction tree.  */
 
 tree
 m2expr_BuildSub (location_t location, tree op1, tree op2, int needconvert)
@@ -148,9 +132,7 @@ m2expr_BuildSub (location_t location, tree op1, tree op2, int needconvert)
 }
 
 
-/*
- *  BuildDivTrunc - builds a division tree.
- */
+/* BuildDivTrunc builds a trunc division tree.  */
 
 tree
 m2expr_BuildDivTrunc (location_t location, tree op1, tree op2, int needconvert)
@@ -170,9 +152,7 @@ m2expr_BuildDivTrunc (location_t location, tree op1, tree op2, int needconvert)
 }
 
 
-/*
- *  BuildModTrunc - builds a modulus tree.
- */
+/* BuildModTrunc builds a trunc modulus tree.  */
 
 tree
 m2expr_BuildModTrunc (location_t location, tree op1, tree op2, int needconvert)
@@ -192,9 +172,7 @@ m2expr_BuildModTrunc (location_t location, tree op1, tree op2, int needconvert)
 }
 
 
-/*
- *  BuildDivFloor - builds a division tree.
- */
+/* BuildDivFloor builds a floor division tree.  */
 
 tree
 m2expr_BuildDivFloor (location_t location, tree op1, tree op2, int needconvert)
@@ -214,10 +192,8 @@ m2expr_BuildDivFloor (location_t location, tree op1, tree op2, int needconvert)
 }
 
 
-/*
- *  BuildRDiv - builds a division tree (this should only be used for REAL and COMPLEX
- *              types and NEVER for integer based types).
- */
+/* BuildRDiv builds a division tree (this should only be used for REAL
+   and COMPLEX types and NEVER for integer based types).  */
 
 tree
 m2expr_BuildRDiv (location_t location, tree op1, tree op2, int needconvert)
@@ -234,9 +210,7 @@ m2expr_BuildRDiv (location_t location, tree op1, tree op2, int needconvert)
 }
 
 
-/*
- *  BuildModFloor - builds a modulus tree.
- */
+/* BuildModFloor builds a modulus tree.  */
 
 tree
 m2expr_BuildModFloor (location_t location, tree op1, tree op2, int needconvert)
@@ -256,9 +230,7 @@ m2expr_BuildModFloor (location_t location, tree op1, tree op2, int needconvert)
 }
 
 
-/*
- *  BuildLSL - builds and returns tree (op1 << op2)
- */
+/* BuildLSL builds and returns tree (op1 << op2).  */
 
 tree
 m2expr_BuildLSL (location_t location, tree op1, tree op2, int needconvert)
@@ -275,9 +247,7 @@ m2expr_BuildLSL (location_t location, tree op1, tree op2, int needconvert)
 }
 
 
-/*
- *  BuildLSR - builds and returns tree (op1 >> op2)
- */
+/* BuildLSR builds and returns tree (op1 >> op2).  */
 
 tree
 m2expr_BuildLSR (location_t location, tree op1, tree op2, int needconvert)
@@ -294,9 +264,7 @@ m2expr_BuildLSR (location_t location, tree op1, tree op2, int needconvert)
 }
 
 
-/*
- *  createUniqueLabel - returns a unique label which has been alloc'ed
- */
+/* createUniqueLabel returns a unique label which has been alloc'ed.  */
 
 static char *
 createUniqueLabel (void)
@@ -317,10 +285,8 @@ createUniqueLabel (void)
 }
 
 
-/*
- *  BuildLogicalShift - builds the ISO Modula-2 SHIFT operator
- *                      for a fundamental data type.
- */
+/* BuildLogicalShift builds the ISO Modula-2 SHIFT operator for a fundamental
+   data type.  */
 
 void
 m2expr_BuildLogicalShift (location_t location, tree op1, tree op2, tree op3,
@@ -332,45 +298,45 @@ m2expr_BuildLogicalShift (location_t location, tree op1, tree op2, tree op3,
   m2assert_AssertLocation (location);
   op2 = m2expr_FoldAndStrip (op2);
   op3 = m2expr_FoldAndStrip (op3);
-  if (TREE_CODE (op3) == INTEGER_CST) {
-    op2 = m2convert_ToWord (location, op2);
-    if (tree_int_cst_sgn (op3) < 0)
-      res = m2expr_BuildLSR (location, op2,
-                             m2convert_ToWord (location, m2expr_BuildNegate (location, op3, needconvert)),
-                             needconvert);
-    else
-      res = m2expr_BuildLSL (location, op2, m2convert_ToWord (location, op3), needconvert);
-    res = m2convert_BuildConvert (location, m2tree_skip_type_decl (TREE_TYPE (op1)), res, FALSE);
-    m2statement_BuildAssignmentTree (location, op1, res);
-  }
-  else {
-    char *labelElseName = createUniqueLabel ();
-    char *labelEndName  = createUniqueLabel ();
-    tree  is_less       = m2expr_BuildLessThan (location,
-						m2convert_ToInteger (location, op3),
-						m2expr_GetIntegerZero (location));
+  if (TREE_CODE (op3) == INTEGER_CST)
+    {
+      op2 = m2convert_ToWord (location, op2);
+      if (tree_int_cst_sgn (op3) < 0)
+	res = m2expr_BuildLSR (location, op2,
+			       m2convert_ToWord (location, m2expr_BuildNegate (location, op3, needconvert)),
+			       needconvert);
+      else
+	res = m2expr_BuildLSL (location, op2, m2convert_ToWord (location, op3), needconvert);
+      res = m2convert_BuildConvert (location, m2tree_skip_type_decl (TREE_TYPE (op1)), res, FALSE);
+      m2statement_BuildAssignmentTree (location, op1, res);
+    }
+  else
+    {
+      char *labelElseName = createUniqueLabel ();
+      char *labelEndName  = createUniqueLabel ();
+      tree  is_less       = m2expr_BuildLessThan (location,
+						  m2convert_ToInteger (location, op3),
+						  m2expr_GetIntegerZero (location));
 
-    m2statement_DoJump (location, is_less, NULL, labelElseName);
-    op2 = m2convert_ToWord (location, op2);
-    op3 = m2convert_ToWord (location, op3);
-    res = m2expr_BuildLSL (location, op2, op3, needconvert);
-    res = m2convert_BuildConvert (location, m2tree_skip_type_decl (TREE_TYPE (op1)), res, FALSE);
-    m2statement_BuildAssignmentTree (location, op1, res);
-    m2statement_BuildGoto (location, labelEndName);
-    m2statement_DeclareLabel (location, labelElseName);
-    res = m2expr_BuildLSR (location, op2,
-                           m2expr_BuildNegate (location, op3, needconvert),
-                           needconvert);
-    res = m2convert_BuildConvert (location, m2tree_skip_type_decl (TREE_TYPE (op1)), res, FALSE);
-    m2statement_BuildAssignmentTree (location, op1, res);
-    m2statement_DeclareLabel (location, labelEndName);
-  }
+      m2statement_DoJump (location, is_less, NULL, labelElseName);
+      op2 = m2convert_ToWord (location, op2);
+      op3 = m2convert_ToWord (location, op3);
+      res = m2expr_BuildLSL (location, op2, op3, needconvert);
+      res = m2convert_BuildConvert (location, m2tree_skip_type_decl (TREE_TYPE (op1)), res, FALSE);
+      m2statement_BuildAssignmentTree (location, op1, res);
+      m2statement_BuildGoto (location, labelEndName);
+      m2statement_DeclareLabel (location, labelElseName);
+      res = m2expr_BuildLSR (location, op2,
+			     m2expr_BuildNegate (location, op3, needconvert),
+			     needconvert);
+      res = m2convert_BuildConvert (location, m2tree_skip_type_decl (TREE_TYPE (op1)), res, FALSE);
+      m2statement_BuildAssignmentTree (location, op1, res);
+      m2statement_DeclareLabel (location, labelEndName);
+    }
 }
 
 
-/*
- *  BuildLRL - builds and returns tree (op1 rotate left by op2 bits)
- */
+/* BuildLRL builds and returns tree (op1 rotate left by op2 bits).  */
 
 tree
 m2expr_BuildLRL (location_t location, tree op1, tree op2, int needconvert)
@@ -387,9 +353,7 @@ m2expr_BuildLRL (location_t location, tree op1, tree op2, int needconvert)
 }
 
 
-/*
- *  BuildLRR - builds and returns tree (op1 rotate right by op2 bits)
- */
+/*  BuildLRR builds and returns tree (op1 rotate right by op2 bits).  */
 
 tree
 m2expr_BuildLRR (location_t location, tree op1, tree op2, int needconvert)
@@ -406,10 +370,8 @@ m2expr_BuildLRR (location_t location, tree op1, tree op2, int needconvert)
 }
 
 
-/*
- *  m2expr_BuildMask - returns a tree for the mask of a set
- *                     of nBits. It assumes nBits is <= TSIZE(WORD)
- */
+/* m2expr_BuildMask returns a tree for the mask of a set of nBits.
+   It assumes nBits is <= TSIZE (WORD).  */
 
 tree
 m2expr_BuildMask (location_t location, tree nBits, int needconvert)
@@ -420,11 +382,8 @@ m2expr_BuildMask (location_t location, tree nBits, int needconvert)
 }
 
 
-/*
- *  m2expr_BuildLRotate - returns a tree in which op1 has been left rotated by
- *                        nBits.
- *                        It assumes nBits is <= TSIZE(WORD)
- */
+/* m2expr_BuildLRotate returns a tree in which op1 has been left rotated by nBits.
+   It assumes nBits is <= TSIZE (WORD).  */
 
 tree
 m2expr_BuildLRotate (location_t location, tree op1, tree nBits, int needconvert)
@@ -438,11 +397,8 @@ m2expr_BuildLRotate (location_t location, tree op1, tree nBits, int needconvert)
 }
 
 
-/*
- *  m2expr_BuildRRotate - returns a tree in which op1 has been left rotated by
- *                        nBits.
- *                        It assumes nBits is <= TSIZE(WORD)
- */
+/* m2expr_BuildRRotate returns a tree in which op1 has been left rotated by nBits.
+   It assumes nBits is <= TSIZE (WORD).  */
 
 tree
 m2expr_BuildRRotate (location_t location, tree op1, tree nBits, int needconvert)
@@ -456,10 +412,8 @@ m2expr_BuildRRotate (location_t location, tree op1, tree nBits, int needconvert)
 }
 
 
-/*
- *  BuildLRLn - builds and returns tree (op1 rotate left by op2 bits)
- *              it rotates a set of size, nBits.
- */
+/* BuildLRLn builds and returns tree (op1 rotate left by op2 bits) it rotates
+   a set of size, nBits.  */
 
 tree
 m2expr_BuildLRLn (location_t location, tree op1, tree op2, tree nBits,
@@ -468,15 +422,15 @@ m2expr_BuildLRLn (location_t location, tree op1, tree op2, tree nBits,
   tree op2min;
 
   m2assert_AssertLocation (location);
-  /*
-   *  ensure we wrap the rotate
-   */
+
+  /* ensure we wrap the rotate.  */
+
   op2min = m2expr_BuildModTrunc (location,
 				 m2convert_ToCardinal (location, op2),
 				 m2convert_ToCardinal (location, nBits), needconvert);
-  /*
-   *  optimize if we are we going to rotate a TSIZE(BITSET) set
-   */
+
+  /* optimize if we are we going to rotate a TSIZE(BITSET) set.  */
+
   if (m2expr_CompareTrees (m2decl_BuildIntegerConstant (m2decl_GetBitsPerBitset ()),
                            nBits) == 0)
     return m2expr_BuildLRotate (location, op1, op2min, needconvert);
@@ -484,9 +438,8 @@ m2expr_BuildLRLn (location_t location, tree op1, tree op2, tree nBits,
     tree mask = m2expr_BuildMask (location, nBits, needconvert);
     tree left, right;
 
-    /*
-     *  make absolutely sure there are no high order bits lying around
-     */
+    /* make absolutely sure there are no high order bits lying around.  */
+
     op1 = m2expr_BuildLogicalAnd (location, op1, mask, needconvert);
     left = m2expr_BuildLSL (location, op1, op2min, needconvert);
     left = m2expr_BuildLogicalAnd (location, left, mask, needconvert);
@@ -499,10 +452,8 @@ m2expr_BuildLRLn (location_t location, tree op1, tree op2, tree nBits,
 }
 
 
-/*
- *  BuildLRRn - builds and returns tree (op1 rotate right by op2 bits)
- *              it rotates a set of size, nBits.
- */
+/* BuildLRRn builds and returns tree (op1 rotate right by op2 bits).
+   It rotates a set of size, nBits.  */
 
 tree
 m2expr_BuildLRRn (location_t location, tree op1, tree op2, tree nBits, int needconvert)
@@ -510,16 +461,15 @@ m2expr_BuildLRRn (location_t location, tree op1, tree op2, tree nBits, int needc
   tree op2min;
 
   m2assert_AssertLocation (location);
-  /*
-   *  ensure we wrap the rotate
-   */
+
+  /* ensure we wrap the rotate.  */
+
   op2min = m2expr_BuildModTrunc (location,
 				 m2convert_ToCardinal (location, op2),
 				 m2convert_ToCardinal (location, nBits),
 				 needconvert);
-  /*
-   *  optimize if we are we going to rotate a TSIZE(BITSET) set
-   */
+  /* optimize if we are we going to rotate a TSIZE(BITSET) set.  */
+
   if (m2expr_CompareTrees (m2decl_BuildIntegerConstant (m2decl_GetBitsPerBitset ()),
                            nBits) == 0)
     return m2expr_BuildRRotate (location, op1, op2min, needconvert);
@@ -527,9 +477,8 @@ m2expr_BuildLRRn (location_t location, tree op1, tree op2, tree nBits, int needc
     tree mask = m2expr_BuildMask (location, nBits, needconvert);
     tree left, right;
 
-    /*
-     *  make absolutely sure there are no high order bits lying around
-     */
+    /* make absolutely sure there are no high order bits lying around.  */
+
     op1 = m2expr_BuildLogicalAnd (location, op1, mask, needconvert);
     right = m2expr_BuildLSR (location, op1, op2min, needconvert);
     left = m2expr_BuildLSL (location,

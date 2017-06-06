@@ -1,4 +1,4 @@
-/* automatically created by mc from ../../gcc-5.2.0/gcc/gm2/mc/mcOptions.def.  */
+/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcOptions.def.  */
 
 
 #if !defined (_mcOptions_H)

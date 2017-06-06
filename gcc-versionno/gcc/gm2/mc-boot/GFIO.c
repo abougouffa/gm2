@@ -1,4 +1,4 @@
-/* automatically created by mc from ../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.mod.  */
+/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/FIO.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -511,7 +511,7 @@ static FIO_File GetNextFreeDescriptor (void)
         return f;
       }
   }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/gm2-libs/FIO.def", 3, 1);
+  ReturnException ("../../gcc-versionno/gcc/gm2/gm2-libs/FIO.def", 3, 1);
 }
 
 

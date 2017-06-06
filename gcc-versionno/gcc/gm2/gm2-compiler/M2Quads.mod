@@ -7568,11 +7568,23 @@ BEGIN
          IF (ProcSym#NulSym) AND IsProcedure(ProcSym)
          THEN
             PopT(NoOfParam) ;
-            ReturnVar := MakeTemporary(AreConstant(IsConst(OperandT(1)))) ;
-            PutVar(ReturnVar, Cardinal) ;
-            GenQuad(StandardFunctionOp, ReturnVar, ProcSym, OperandT(1)) ;
-            PopN(NoOfParam+1) ;
-            PushT(ReturnVar)
+            IF IsConst(OperandT(1))
+            THEN
+               (* we can fold this in M2GenGCC.  *)
+               ReturnVar := MakeTemporary(ImmediateValue) ;
+               PutVar(ReturnVar, Cardinal) ;
+               GenQuad(StandardFunctionOp, ReturnVar, ProcSym, OperandT(1)) ;
+               PopN(NoOfParam+1) ;
+               PushT(ReturnVar)
+            ELSE
+               (* no we must resolve this at runtime or in the GCC optimizer.  *)
+               PopTF(Param, Type);
+	       PopN(NoOfParam) ;
+	       PushT(ProcSym) ;
+               PushTF(Param, Type) ;
+	       PushT(NoOfParam) ;
+	       BuildRealFunctionCall
+            END
          ELSE
             PopT(NoOfParam) ;
             PopN(NoOfParam+1) ;

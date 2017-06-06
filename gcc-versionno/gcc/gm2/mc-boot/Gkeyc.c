@@ -1,4 +1,4 @@
-/* automatically created by mc from ../../gcc-5.2.0/gcc/gm2/mc/keyc.mod.  */
+/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/keyc.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -673,7 +673,7 @@ static unsigned int mangleN (nameKey_Name n, DynamicStrings_String *m, unsigned 
     if (! (clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes)))
       return TRUE;
   }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/keyc.def", 1, 15);
+  ReturnException ("../../gcc-versionno/gcc/gm2/mc/keyc.def", 1, 15);
 }
 
 

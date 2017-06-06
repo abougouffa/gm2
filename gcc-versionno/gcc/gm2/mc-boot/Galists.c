@@ -1,4 +1,4 @@
-/* automatically created by mc from ../../gcc-5.2.0/gcc/gm2/mc/alists.mod.  */
+/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/alists.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D

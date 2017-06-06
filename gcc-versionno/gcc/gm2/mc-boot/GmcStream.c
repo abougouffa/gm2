@@ -1,4 +1,4 @@
-/* automatically created by mc from ../../gcc-5.2.0/gcc/gm2/mc/mcStream.mod.  */
+/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcStream.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -131,9 +131,11 @@ static FIO_File createTemporaryFile (unsigned int id)
 {
   DynamicStrings_String s;
   FIO_File f;
+  int p;
 
-  s = DynamicStrings_InitString ((char *) "/tmp/frag%d.frag", 16);
-  s = removeLater (FormatStrings_Sprintf1 (s, (unsigned char *) &id, (sizeof (id)-1)));
+  s = DynamicStrings_InitString ((char *) "/tmp/frag-%d-%d.frag", 20);
+  p = libc_getpid ();
+  s = removeLater (FormatStrings_Sprintf2 (s, (unsigned char *) &p, (sizeof (p)-1), (unsigned char *) &id, (sizeof (id)-1)));
   f = SFIO_OpenToWrite (s);
   return f;
 }

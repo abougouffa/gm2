@@ -1,4 +1,4 @@
-/* automatically created by mc from ../../gcc-5.2.0/gcc/gm2/mc/mcDebug.mod.  */
+/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcDebug.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -38,7 +38,7 @@ void mcDebug_writeDebug (char *a_, unsigned int _a_high);
 void mcDebug_assert (unsigned int q)
 {
   if (! q)
-    mcError_internalError ((char *) "assert failed", 13, (char *) "../../gcc-5.2.0/gcc/gm2/mc/mcDebug.mod", 38, 36);
+    mcError_internalError ((char *) "assert failed", 13, (char *) "../../gcc-versionno/gcc/gm2/mc/mcDebug.mod", 42, 36);
 }
 
 

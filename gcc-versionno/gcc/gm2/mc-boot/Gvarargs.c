@@ -1,4 +1,4 @@
-/* automatically created by mc from ../../gcc-5.2.0/gcc/gm2/mc/varargs.mod.  */
+/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/varargs.mod.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
