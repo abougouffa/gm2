@@ -45,6 +45,9 @@ EXPORT QUALIFIED SetReturnCheck, SetNilCheck, SetCaseCheck,
                  SetCC1Quiet, SetWholeProgram, SetDebugTraceQuad, SetDebugTraceAPI,
                  SetVerbose,
 
+		 GetISO, GetPIM, GetPIM2, GetPIM3, GetPIM4,
+		 GetPositiveModFloor,
+
                  Iso, Pim, Pim2, Pim3, Pim4,
                  PositiveModFloorDiv,
                  Pedantic, Verbose, Statistics,
@@ -362,14 +365,14 @@ PROCEDURE SetQuadDebugging (value: BOOLEAN) ;
 
 
 (*
-   SetDebugTraceQuad - 
+   SetDebugTraceQuad -
 *)
 
 PROCEDURE SetDebugTraceQuad (value: BOOLEAN) ;
 
 
 (*
-   SetDebugTraceAPI - 
+   SetDebugTraceAPI -
 *)
 
 PROCEDURE SetDebugTraceAPI (value: BOOLEAN) ;
@@ -420,14 +423,14 @@ PROCEDURE SetForcedLocation (location: location_t) ;
 
 
 (*
-   setdefextension - 
+   setdefextension -
 *)
 
 PROCEDURE setdefextension (arg: ADDRESS) ;
 
 
 (*
-   setmodextension - 
+   setmodextension -
 *)
 
 PROCEDURE setmodextension (arg: ADDRESS) ;

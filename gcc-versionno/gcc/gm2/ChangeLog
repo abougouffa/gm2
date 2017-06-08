@@ -1,3 +1,17 @@
+2017-06-08      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Options.def:  GetISO, GetPIM,
+          GetPIM2, GetPIM3, GetPIM4, GetPositiveModFloor
+          (New procedure definitions).
+	* gm2/gm2-gcc/m2options.h:  GetISO, GetPIM,
+          GetPIM2, GetPIM3, GetPIM4, GetPositiveModFloor
+          (New function definitions).
+	* gm2/gm2-compiler/M2Options.mod:  GetISO, GetPIM,
+          GetPIM2, GetPIM3, GetPIM4, GetPositiveModFloor
+          (New procedures implementated).
+	* gm2/gm2-gcc/m2expr.c:  BuildDivCeil, BuildModCeil,
+	  BuildDivM2, BuildModM2 new functions.
+
 2017-06-05      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-ch/dtoa.c:  use memmove rather than memcpy.
