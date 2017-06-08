@@ -981,9 +981,13 @@ BEGIN
    SubOp,
    MultOp,
    ModFloorOp,
+   DivCeilOp,
+   ModCeilOp,
    DivFloorOp,
    ModTruncOp,
    DivTruncOp,
+   DivM2Op,
+   ModM2Op,
    XIndrOp,
    IndrXOp,
    SaveExceptionOp,
@@ -1307,7 +1311,11 @@ BEGIN
    AddOp,
    SubOp,
    MultOp,
+   DivM2Op,
+   ModM2Op,
    ModFloorOp,
+   DivCeilOp,
+   ModCeilOp,
    DivFloorOp,
    ModTruncOp,
    DivTruncOp        : CheckConst(Oper1) ;
@@ -1451,7 +1459,11 @@ BEGIN
    AddOp,
    SubOp,
    MultOp,
+   DivM2Op,
+   ModM2Op,
    ModFloorOp,
+   DivCeilOp,
+   ModCeilOp,
    DivFloorOp,
    ModTruncOp,
    DivTruncOp        : CheckRemoveVariableWrite(Oper1, FALSE, QuadNo) ;
@@ -11831,6 +11843,7 @@ BEGIN
 END BuildNot ;
 
 
+
 (*
    MakeOp - returns the equalent quadruple operator to a token, t.
 *)
@@ -11845,12 +11858,7 @@ BEGIN
       RETURN( SubOp )
    ELSIF t=DivTok
    THEN
-      IF (Pim2 OR Pim3) AND (NOT PositiveModFloorDiv)
-      THEN
-         RETURN( DivTruncOp )
-      ELSE
-         RETURN( DivFloorOp )
-      END
+      RETURN( DivM2Op )
    ELSIF t=DivideTok
    THEN
       RETURN( DivTruncOp )
@@ -11859,12 +11867,7 @@ BEGIN
       RETURN( ModTruncOp )
    ELSIF t=ModTok
    THEN
-      IF (Pim2 OR Pim3) AND (NOT PositiveModFloorDiv)
-      THEN
-         RETURN( ModTruncOp )
-      ELSE
-         RETURN( ModFloorOp )
-      END
+      RETURN( ModM2Op )
    ELSIF t=TimesTok
    THEN
       RETURN( MultOp )
@@ -12218,7 +12221,11 @@ BEGIN
       AddOp,
       SubOp,
       MultOp,
+      DivM2Op,
+      ModM2Op,
       ModFloorOp,
+      DivCeilOp,
+      ModCeilOp,
       DivFloorOp,
       ModTruncOp,
       DivTruncOp        : WriteOperand(Operand1) ;
@@ -12309,6 +12316,10 @@ BEGIN
    CatchEndOp               : printf0('CatchEnd          ') |
    AddOp                    : printf0('+                 ') |
    SubOp                    : printf0('-                 ') |
+   DivM2Op                  : printf0('DIV M2            ') |
+   ModM2Op                  : printf0('MOD M2            ') |
+   DivCeilOp                : printf0('DIV ceil          ') |
+   ModCeilOp                : printf0('MOD ceil          ') |
    DivFloorOp               : printf0('DIV floor         ') |
    ModFloorOp               : printf0('MOD floor         ') |
    DivTruncOp               : printf0('DIV trunc         ') |

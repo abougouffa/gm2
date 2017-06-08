@@ -480,6 +480,49 @@ PROCEDURE CppRemember (s: String) ;
 
 
 (*
+   GetISO - return TRUE if -fiso was present on the command line.
+*)
+
+PROCEDURE GetISO () : BOOLEAN ;
+
+
+(*
+   GetPIM - return TRUE if -fpim was present on the command line.
+*)
+
+PROCEDURE GetPIM () : BOOLEAN ;
+
+
+(*
+   GetPIM2 - return TRUE if -fpim2 was present on the command line.
+*)
+
+PROCEDURE GetPIM2 () : BOOLEAN ;
+
+
+(*
+   GetPIM3 - return TRUE if -fpim3 was present on the command line.
+*)
+
+PROCEDURE GetPIM3 () : BOOLEAN ;
+
+
+(*
+   GetPIM4 - return TRUE if -fpim4 was present on the command line.
+*)
+
+PROCEDURE GetPIM4 () : BOOLEAN ;
+
+
+(*
+   GetPositiveModFloor - return TRUE if -fpositive-mod-floor was present
+                         on the command line.
+*)
+
+PROCEDURE GetPositiveModFloor () : BOOLEAN ;
+
+
+(*
    FinaliseOptions - once all options have been parsed we set any inferred
                      values.
 *)

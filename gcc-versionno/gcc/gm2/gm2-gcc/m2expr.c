@@ -55,6 +55,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "../gm2-tree.h"
 #include "../gm2-lang.h"
 #include "m2convert.h"
+#include "m2options.h"
 
 
 /*
@@ -2031,6 +2032,88 @@ m2expr_BuildCap (location_t location, tree t)
 
   error_at (location, "argument to CAP is not a constant or variable of type CHAR");
   return error_mark_node;
+}
+
+
+/* BuildDivM2 if iso or pim4 then build and return
+   ((op2 < 0) : (op1 divceil op2) ? (op1 divfloor op2)) otherwise use divtrunc.  */
+
+tree
+m2expr_BuildDivM2 (location_t location, tree op1, tree op2, unsigned int needsconvert)
+{
+  ASSERT_CONDITION (TREE_TYPE (op1) == TREE_TYPE (op2));
+  if (M2Options_GetPIM4 () || M2Options_GetISO () || M2Options_GetPositiveModFloor ())
+    return fold_build3 (COND_EXPR, TREE_TYPE (op1),
+			m2expr_BuildLessThan (location,
+					      op2,
+					      m2convert_BuildConvert (location,
+								      TREE_TYPE (op2),
+								      m2expr_GetIntegerZero (location), FALSE)),
+			m2expr_BuildDivCeil (location, op1, op2, needsconvert),
+			m2expr_BuildDivFloor (location, op1, op2, needsconvert));
+  else
+    return m2expr_BuildDivTrunc (location, op1, op2, needsconvert);
+}
+
+
+/* BuildModM2 if iso or pim4 then build and return
+   ((op2 < 0) : (op1 modceil op2) ? (op1 modfloor op2)) otherwise use modtrunc.  */
+
+tree
+m2expr_BuildModM2 (location_t location, tree op1, tree op2, unsigned int needsconvert)
+{
+  ASSERT_CONDITION (TREE_TYPE (op1) == TREE_TYPE (op2));
+  if (M2Options_GetPIM4 () || M2Options_GetISO () || M2Options_GetPositiveModFloor ())
+    return fold_build3 (COND_EXPR, TREE_TYPE (op1),
+			m2expr_BuildLessThan (location,
+					      op2,
+					      m2convert_BuildConvert (location,
+								      TREE_TYPE (op2),
+								      m2expr_GetIntegerZero (location), FALSE)),
+			m2expr_BuildModCeil (location, op1, op2, needsconvert),
+			m2expr_BuildModFloor (location, op1, op2, needsconvert));
+  else
+    return m2expr_BuildModTrunc (location, op1, op2, needsconvert);
+}
+
+
+/* BuildDivCeil builds a ceil division tree.  */
+
+tree
+m2expr_BuildDivCeil (location_t location, tree op1, tree op2, int needconvert)
+{
+  tree t;
+
+  m2assert_AssertLocation (location);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  op1 = CheckAddressToCardinal (location, op1);
+  op2 = CheckAddressToCardinal (location, op2);
+
+  t = m2expr_build_binary_op (location, CEIL_DIV_EXPR, op1, op2, needconvert);
+  return m2expr_FoldAndStrip (t);
+}
+
+
+/* BuildModCeil builds a ceil modulus tree.  */
+
+tree
+m2expr_BuildModCeil (location_t location, tree op1, tree op2, int needconvert)
+{
+  tree t;
+
+  m2assert_AssertLocation (location);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  op1 = CheckAddressToCardinal (location, op1);
+  op2 = CheckAddressToCardinal (location, op2);
+
+  t = m2expr_build_binary_op (location, CEIL_MOD_EXPR, op1, op2, needconvert);
+  return m2expr_FoldAndStrip (t);
 }
 
 

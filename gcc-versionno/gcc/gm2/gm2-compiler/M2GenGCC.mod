@@ -162,6 +162,7 @@ FROM m2expr IMPORT GetIntegerZero, GetIntegerOne,
                    BuildSetProcedure, BuildUnarySetFunction,
                    BuildAdd, BuildSub, BuildMult, BuildLSL,
                    BuildDivTrunc, BuildModTrunc, BuildDivFloor, BuildModFloor,
+		   BuildDivM2, BuildModM2,
                    BuildRDiv,
                    BuildLogicalOrAddress,
                    BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
@@ -373,6 +374,10 @@ PROCEDURE FoldSub (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op
 PROCEDURE CodeSub (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE FoldMult (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeMult (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldDivM2 (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeDivM2 (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldModM2 (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeModM2 (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE FoldDivTrunc (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeDivTrunc (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE FoldModTrunc (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
@@ -578,6 +583,8 @@ BEGIN
    AddOp              : CodeAdd(q, op1, op2, op3) |
    SubOp              : CodeSub(q, op1, op2, op3) |
    MultOp             : CodeMult(q, op1, op2, op3) |
+   DivM2Op            : CodeDivM2(q, op1, op2, op3) |
+   ModM2Op            : CodeModM2(q, op1, op2, op3) |
    DivTruncOp         : CodeDivTrunc(q, op1, op2, op3) |
    ModTruncOp         : CodeModTrunc(q, op1, op2, op3) |
    DivFloorOp         : CodeDivFloor(q, op1, op2, op3) |
@@ -678,6 +685,8 @@ BEGIN
          AddOp              : FoldAdd(tokenno, p, quad, op1, op2, op3) |
          SubOp              : FoldSub(tokenno, p, quad, op1, op2, op3) |
          MultOp             : FoldMult(tokenno, p, quad, op1, op2, op3) |
+         DivM2Op            : FoldDivM2(tokenno, p, quad, op1, op2, op3) |
+         ModM2Op            : FoldModM2(tokenno, p, quad, op1, op2, op3) |
          DivTruncOp         : FoldDivTrunc(tokenno, p, quad, op1, op2, op3) |
          ModTruncOp         : FoldModTrunc(tokenno, p, quad, op1, op2, op3) |
          DivFloorOp         : FoldDivFloor(tokenno, p, quad, op1, op2, op3) |
@@ -3599,6 +3608,70 @@ BEGIN
    RETURN( IsAComplexType(t) OR IsComplexN(t) OR
            IsRealType(t) OR IsRealN(t) )
 END BinaryOperandRealFamily ;
+
+
+(*
+   FoldDivM2 - check division for constant folding.
+*)
+
+PROCEDURE FoldDivM2 (tokenno: CARDINAL; p: WalkAction;
+                        quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF BinaryOperands(quad, op2, op3)
+   THEN
+      IF BinaryOperandRealFamily(op2) OR BinaryOperandRealFamily(op3)
+      THEN
+         FoldBinary(tokenno, p, BuildRDiv, quad, op1, op2, op3)
+      ELSE
+         FoldBinary(tokenno, p, BuildDivM2, quad, op1, op2, op3)
+      END
+   END
+END FoldDivM2 ;
+
+
+(*
+   CodeDivM2 - encode division.
+*)
+
+PROCEDURE CodeDivM2 (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF BinaryOperands(quad, op2, op3)
+   THEN
+      IF BinaryOperandRealFamily(op2) OR BinaryOperandRealFamily(op3)
+      THEN
+         CodeBinary(BuildRDiv, quad, op1, op2, op3)
+      ELSE
+         CodeBinary(BuildDivM2, quad, op1, op2, op3)
+      END
+   END
+END CodeDivM2 ;
+
+
+(*
+   FoldModM2 - check modulus for constant folding.
+*)
+
+PROCEDURE FoldModM2 (tokenno: CARDINAL; p: WalkAction;
+                     quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF BinaryOperands(quad, op2, op3)
+   THEN
+      FoldBinary(tokenno, p, BuildModM2, quad, op1, op2, op3)
+   END
+END FoldModM2 ;
+
+
+(*
+   CodeModM2 - encode modulus.
+*)
+
+PROCEDURE CodeModM2 (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF BinaryOperands(quad, op2, op3)
+   THEN
+      CodeBinary(BuildModM2, quad, op1, op2, op3)
+   END
+END CodeModM2 ;
 
 
 (*
