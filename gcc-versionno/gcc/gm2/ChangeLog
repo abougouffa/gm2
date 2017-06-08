@@ -23,7 +23,9 @@
 	* gm2/gm2-gcc/m2expr.h:  BuildDivCeil, BuildModCeil,
 	  BuildDivM2, BuildModM2 declare new functions.
 	* gm2/gm2-gcc/m2expr.def:  BuildDivCeil, BuildModCeil,
-	  BuildDivM2, BuildModM2 declare new functions.
+          BuildDivM2, BuildModM2 declare new functions.
+	* gm2/gm2-compiler/M2Options.mod:  turn off default Pim4
+	  flag if pim2, pim3 is chosen.
 
 2017-06-05      Gaius Mulley <gaius@gnu.org>
 

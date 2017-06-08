@@ -406,7 +406,9 @@ PROCEDURE SetISO (value: BOOLEAN) ;
 BEGIN
    Iso := value ;
    Pim := NOT value ;
-   Pim2 := NOT value
+   Pim2 := NOT value ;
+   (* Pim4 is the default, leave it alone since the DIV and MOD rules are the
+      same as ISO.  *)
 END SetISO ;
 
 
@@ -429,7 +431,12 @@ PROCEDURE SetPIM2 (value: BOOLEAN) ;
 BEGIN
    Pim := value ;
    Pim2 := value ;
-   Iso := NOT value
+   Iso := NOT value ;
+   IF value
+   THEN
+      (* Pim4 is the default, turn it off.  *)
+      Pim4 := FALSE
+   END
 END SetPIM2 ;
 
 
@@ -441,7 +448,12 @@ PROCEDURE SetPIM3 (value: BOOLEAN) ;
 BEGIN
    Pim := value ;
    Pim3 := value ;
-   Iso := NOT value
+   Iso := NOT value ;
+   IF value
+   THEN
+      (* Pim4 is the default, turn it off.  *)
+      Pim4 := FALSE
+   END
 END SetPIM3 ;
 
 
