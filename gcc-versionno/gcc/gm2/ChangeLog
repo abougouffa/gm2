@@ -1,7 +1,37 @@
+2017-06-08      Gaius Mulley <gaius@gnu.org>
+
+	* Fixed pim4 and iso DIV and MOD bug reported by Ernst Bokkelkamp
+          <ernst@bokkelkamp.de>, Benjamin Kowarsch and Xin Wang.
+	* gm2/gm2-compiler/M2GenGCC.mod:  CodeDivM2, CodeModM2,
+          FoldDivM2, FoldModM2, FoldDivCeil, CodeDivCeil, FoldModCeil
+          CodeModCeil (New procedures).
+	* gm2/gm2-compiler/M2Options.def:  GetISO, GetPIM, GetPIM2,
+          GetPIM3, GetPIM4, GetPositiveModFloor (New procedure function
+          definitions).
+	* gm2/gm2-gcc/m2options.h:  define/export functions
+	  GetISO, GetPIM, GetPIM2, GetPIM3, GetPIM4, GetPositiveModFloor.
+	* gm2/gm2-compiler/M2Options.mod: ensure that the default pim4
+          setting is turned off if pim2, pim3 is selected.  GetISO, GetPIM,
+          GetPIM2, GetPIM3, GetPIM4, GetPositiveModFloor (New procedure
+          functions).
+	* gm2/gm2-compiler/M2Quads.def:  DivM2Op, ModM2Op, DivCeilOp
+          ModCeilOp (New quad operators).
+	* gm2/gm2-compiler/M2Quads.mod:  removed unnecessary prototypes.
+          MakeOp returns ModM2Op or DivM2Op for a modulus or div operator.
+          Added new quad operators to the case statement selections.
+	* gm2/gm2-gcc/m2expr.c:  include m2options.h.  BuildDivCeil,
+          BuildModCeil, BuildDivM2, BuildModM2 (New functions).
+          Much gnu coding standard reformatting has occurred.
+	* gm2/gm2-gcc/m2expr.def:  define BuildDivM2, BuildModM2,
+          BuildDivCeil, BuildModCeil.
+	* gm2/gm2-gcc/m2expr.h:  define BuildDivM2, BuildModM2,
+          BuildDivCeil, BuildModCeil.
+	* gm2/mc/mcError.mod:  corrected dates.
+
 2017-06-06      Gaius Mulley <gaius@gnu.org>
 
-	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeLengthFunction)
-          Call InternalError if op1 is a constant.
+	* gm2/gm2-compiler/M2GenGCC.mod: (CodeLengthFunction) Call
+          InternalError if op1 is a constant.
           (FoldLengthFunction) if op1 is a constant fold the
 	  result and remove the quadruple.
 	* gm2/gm2-compiler/M2Quads.mod:  (BuildLengthFunction)

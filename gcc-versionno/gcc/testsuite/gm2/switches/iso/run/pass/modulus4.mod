@@ -1,4 +1,4 @@
-(* Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2017 Free Software Foundation, Inc.  *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-MODULE modulus ;
+MODULE modulus4 ;
 
 FROM libc IMPORT exit, printf ;
 FROM SYSTEM IMPORT ADR ;
@@ -73,4 +73,4 @@ BEGIN
    i := (-31) / 10 ;
    Assert(i, i=-3, __FILE__, __LINE__, "(-31) / 10") ;
    exit(res)
-END modulus.
+END modulus4.

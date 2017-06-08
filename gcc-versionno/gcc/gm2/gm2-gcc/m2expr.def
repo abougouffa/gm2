@@ -130,10 +130,42 @@ PROCEDURE BuildLSL (location: location_t; op1: Tree; op2: Tree; needconvert: BOO
 
 
 (*
+   BuildDivM2 - build and return ((op2 < 0) : (op1 divtrunc op2) ? (op1 divfloor op2))
+                when -fiso, -fpim4 or -fpositive-mod-floor-div is present else
+                return op1 div trunc op2
+*)
+
+PROCEDURE BuildDivM2 (location: location_t; op1, op2: Tree; needsconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildModM2 - build and return ((op2 < 0) : (op1 divtrunc op2) ? (op1 divfloor op2))
+                when -fiso, -fpim4 or -fpositive-mod-floor-div is present else
+                return op1 div trunc op2
+*)
+
+PROCEDURE BuildModM2 (location: location_t; op1, op2: Tree; needsconvert: BOOLEAN) : Tree ;
+
+
+(*
     BuildModFloor - builds a modulus tree.
 *)
 
 PROCEDURE BuildModFloor (location: location_t; op1: Tree; op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+    BuildDivCeil - builds a division tree.
+*)
+
+PROCEDURE BuildDivCeil (location: location_t; op1: Tree; op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+    BuildModCeil - builds a modulus tree.
+*)
+
+PROCEDURE BuildModCeil (location: location_t; op1: Tree; op2: Tree; needconvert: BOOLEAN) : Tree ;
 
 
 (*

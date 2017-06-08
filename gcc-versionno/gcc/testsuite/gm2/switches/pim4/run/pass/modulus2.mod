@@ -1,4 +1,4 @@
-(* Copyright (C) 2016
+(* Copyright (C) 2016, 2017
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -43,16 +43,18 @@ END Assert ;
    Consistency - run the PIM4 P28 consistency test for DIV and MOD.
 *)
 
-PROCEDURE Consistency (q, r, left, right: INTEGER) ;
+PROCEDURE Consistency (t, q, r, left, right: INTEGER) ;
 BEGIN
+   printf ("Test %d\n", t) ;
+   printf ("======\n") ;
    IF (left = q * right + r) AND (r >= 0)
    THEN
-      printf ("satisfies PIM4 consistency test")
+      printf (" satisfies PIM4 consistency test\n")
    ELSE
-      printf ("fails PIM4 consistency test") ;
+      printf (" fails PIM4 consistency test") ;
       IF r<0
       THEN
-         printf ("  (the remainder must be >= 0)")
+         printf ("  (the remainder must be >= 0)  (not %d)", r)
       END ;
       printf ("\n") ;
 
@@ -70,37 +72,37 @@ BEGIN
    (* see P29 of PIM4 and using the examples in ISO M2 P201
       and the GM2 documentation.  *)
 
-   (* 31 and 10 *)
+   (* test 1:   31 and 10 *)
 
    q := 31 DIV 10 ;
    Assert (q, 3, __FILE__, __LINE__, "31 DIV 10") ;
    r := 31 MOD 10 ;
    Assert (r, 1, __FILE__, __LINE__, "31 MOD 10") ;
-   Consistency (q, r, 31, 10) ;
+   Consistency (1, q, r, 31, 10) ;
 
-   (* -31 and 10 *)
+   (* test 2:  -31 and 10 *)
 
    q := (-31) DIV 10 ;
    Assert (q, -4, __FILE__, __LINE__, "(-31) DIV 10") ;
    r := (-31) MOD 10 ;
    Assert (r, 9, __FILE__, __LINE__, "(-31) MOD 10") ;
-   Consistency (q, r, -31, 10) ;
+   Consistency (2, q, r, -31, 10) ;
 
-   (* 31 and -10 *)
+   (* test 3:   31 and -10 *)
 
    q := 31 DIV (-10) ;
    Assert (q, -3, __FILE__, __LINE__, "31 DIV (-10)") ;
    r := 31 MOD (-10) ;
    Assert (r, 1, __FILE__, __LINE__, "31 MOD (-10)") ;
-   Consistency (q, r, 31, -10) ;
+   Consistency (3, q, r, 31, -10) ;
 
-   (* -31 and -10 *)
+   (* test 4:  -31 and -10 *)
 
    q := (-31) DIV (-10) ;
    Assert (q, 4, __FILE__, __LINE__, "(-31) DIV (-10)") ;
    r := (-31) MOD (-10) ;
    Assert (r, 9, __FILE__, __LINE__, "(-31) MOD (-10)") ;
-   Consistency (q, r, -31, -10) ;
+   Consistency (4, q, r, -31, -10) ;
 
    exit(res)
 END modulus2.

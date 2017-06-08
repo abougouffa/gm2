@@ -437,7 +437,9 @@ PROCEDURE SetISO (value: BOOLEAN) ;
 BEGIN
    Iso := value ;
    Pim := NOT value ;
-   Pim2 := NOT value
+   Pim2 := NOT value ;
+   (* Pim4 is the default, leave it alone since the DIV and MOD rules are the
+      same as ISO.  *)
 END SetISO ;
 
 
@@ -460,7 +462,12 @@ PROCEDURE SetPIM2 (value: BOOLEAN) ;
 BEGIN
    Pim := value ;
    Pim2 := value ;
-   Iso := NOT value
+   Iso := NOT value ;
+   IF value
+   THEN
+      (* Pim4 is the default, turn it off.  *)
+      Pim4 := FALSE
+   END
 END SetPIM2 ;
 
 
@@ -472,7 +479,12 @@ PROCEDURE SetPIM3 (value: BOOLEAN) ;
 BEGIN
    Pim := value ;
    Pim3 := value ;
-   Iso := NOT value
+   Iso := NOT value ;
+   IF value
+   THEN
+      (* Pim4 is the default, turn it off.  *)
+      Pim4 := FALSE
+   END
 END SetPIM3 ;
 
 
@@ -804,6 +816,67 @@ PROCEDURE SetGenerateStatementNote (value: BOOLEAN) ;
 BEGIN
    GenerateStatementNote := value
 END SetGenerateStatementNote ;
+
+
+(*
+   GetISO - return TRUE if -fiso was present on the command line.
+*)
+
+PROCEDURE GetISO () : BOOLEAN ;
+BEGIN
+   RETURN Iso
+END GetISO ;
+
+
+(*
+   GetPIM - return TRUE if -fpim was present on the command line.
+*)
+
+PROCEDURE GetPIM () : BOOLEAN ;
+BEGIN
+   RETURN Pim
+END GetPIM ;
+
+
+(*
+   GetPIM2 - return TRUE if -fpim2 was present on the command line.
+*)
+
+PROCEDURE GetPIM2 () : BOOLEAN ;
+BEGIN
+   RETURN Pim2
+END GetPIM2 ;
+
+
+(*
+   GetPIM3 - return TRUE if -fpim3 was present on the command line.
+*)
+
+PROCEDURE GetPIM3 () : BOOLEAN ;
+BEGIN
+   RETURN Pim3
+END GetPIM3 ;
+
+
+(*
+   GetPIM4 - return TRUE if -fpim4 was present on the command line.
+*)
+
+PROCEDURE GetPIM4 () : BOOLEAN ;
+BEGIN
+   RETURN Pim4
+END GetPIM4 ;
+
+
+(*
+   GetPositiveModFloor - return TRUE if -fpositive-mod-floor was present
+                         on the command line.
+*)
+
+PROCEDURE GetPositiveModFloor () : BOOLEAN ;
+BEGIN
+   RETURN PositiveModFloorDiv
+END GetPositiveModFloor ;
 
 
 BEGIN
