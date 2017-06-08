@@ -29,7 +29,9 @@
 	* gm2/mc/mcError.mod:  corrected dates.
 	* gm2/gm2-gcc/m2statement.c:  removed call to
           dump_function (TDI_generic, fndecl) as it is no longer
-	  supported.
+          supported.
+	* gm2/tools-src/gensum.py:  filter out gm2/non-free results
+	  from being displayed.
 
 2017-06-06      Gaius Mulley <gaius@gnu.org>
 

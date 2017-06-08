@@ -171,7 +171,7 @@ def addUnresolvedResult (name, varient, reason):
 
 
 #
-#  getName - returns the GM2 CVS testcase path
+#  getName - returns the gm2 git testcase path
 #
 
 def getName (testcase, directory):
@@ -214,23 +214,24 @@ def processLine(line):
         testcase = words[1]
         varient = []
         reason = ""
-        if words[0]=="PASS:":
-            if len (words) >= 2:
-                varient = words[2:]
-            addPassResult (getName (testcase, directory), varient)
-        elif words[0]=="FAIL:":
-            if len (words)>=2:
-                varient = words[2:]
-            addFailResult (getName (testcase, directory), varient)
-        elif words[0]=="UNRESOLVED:":
-            if len (words) > 2:
-                start = -1
-                if words[-1][-1]==')':
-                    while (-start < len (words)) and (words[start][0] != '('):
-                        start -= 1
-                varient = words[2:start]
-                reason = words[start:]
-            addUnresolvedResult (getName (testcase, directory), varient, reason)
+        if testcase.find ('gm2/non-free') == -1:
+            if words[0]=="PASS:":
+                if len (words) >= 2:
+                    varient = words[2:]
+                addPassResult (getName (testcase, directory), varient)
+            elif words[0]=="FAIL:":
+                if len (words)>=2:
+                    varient = words[2:]
+                addFailResult (getName (testcase, directory), varient)
+            elif words[0]=="UNRESOLVED:":
+                if len (words) > 2:
+                    start = -1
+                    if words[-1][-1]==')':
+                        while (-start < len (words)) and (words[start][0] != '('):
+                            start -= 1
+                    varient = words[2:start]
+                    reason = words[start:]
+                addUnresolvedResult (getName (testcase, directory), varient, reason)
 
 
 #
@@ -296,7 +297,7 @@ def getListOfOptions (testcase):
 
 def getHeading (testcase):
     noFiles = ['pimlib/ulm', 'pimlib/pass', 'ulmlib/pass', 'ulmlib/std',
-               'ulmlib/sys', 'gm2/examples']
+               'ulmlib/sys', 'gm2/examples', 'gm2/non-free']
     for n in noFiles:
         if testcase.find (n) != -1:
             return testcase
