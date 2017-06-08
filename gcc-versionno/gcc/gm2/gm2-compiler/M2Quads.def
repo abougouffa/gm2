@@ -155,6 +155,8 @@ TYPE
                    FinallyStartOp, FinallyEndOp,
                    RetryOp, TryOp, CatchBeginOp, CatchEndOp, ThrowOp,
                    NegateOp, AddOp, SubOp, MultOp,
+		   DivM2Op, ModM2Op,
+                   DivCeilOp, ModCeilOp,
                    DivFloorOp, ModFloorOp, DivTruncOp, ModTruncOp,
       	       	   LogicalOrOp, LogicalAndOp, LogicalXorOp, LogicalDiffOp,
                    InclOp, ExclOp, LogicalShiftOp, LogicalRotateOp,

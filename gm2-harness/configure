@@ -1244,7 +1244,7 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-gcc=             graft the GNU Modula-2 front end onto a particular
-                          GCC release, choose 4.1.2 or 4.7.4
+                          GCC release, choose 4.1.2, 4.7.4 or 5.2.0
   --with-dev=             graft the GNU Modula-2 front end using developer
                           login git on savannagh
   --with-cache=           check the cache directory for gcc tarballs rather
@@ -1685,7 +1685,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 if test "${with_gcc+set}" = set; then :
   withval=$with_gcc; gccrelease="$withval"
 else
-  gccrelease="4.7.4"
+  gccrelease="5.2.0"
 fi
 
 

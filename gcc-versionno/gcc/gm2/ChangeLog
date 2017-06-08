@@ -1,3 +1,26 @@
+2017-06-08      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  FoldDivM2, CodeDivM2,
+          FoldModM2, CodeModM2, FoldDivCeil, CodeDivCeil,
+          FoldModCeil, CodeModCeil (New function procedures).
+	* gm2/gm2-compiler/M2Options.def:  GetISO, GetPIM,
+          GetPIM2, GetPIM3, GetPIM4, GetPositiveModFloor
+          (New procedure definitions).
+	* gm2/gm2-gcc/m2options.h:  GetISO, GetPIM,
+          GetPIM2, GetPIM3, GetPIM4, GetPositiveModFloor
+          (New function definitions).
+	* gm2/gm2-compiler/M2Options.mod:  GetISO, GetPIM,
+          GetPIM2, GetPIM3, GetPIM4, GetPositiveModFloor
+          (New procedures implementated).
+	* gm2/gm2-compiler/M2Quads.def:  DivM2Op, ModM2Op,
+          DivCeilOp and ModCeilOp (New quadruple operators).
+	* gm2/gm2-compiler/M2Quads.mod:  removed prototypes
+          added DivCeilOp, ModCeilOp, DivM2Op, ModM2Op
+          to all case statement lists.  MakeOp return
+          DivM2Op and ModM2Op for div and mod operations.
+	* gm2/gm2-gcc/m2expr.c:  BuildDivCeil, BuildModCeil,
+	  BuildDivM2, BuildModM2 new functions.
+
 2017-06-06      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeLengthFunction)

@@ -45,6 +45,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "m2assert.h"
 #include "m2tree.h"
 #include "m2treelib.h"
+#include "m2options.h"
 
 
 static int label_count = 0;
@@ -188,6 +189,46 @@ m2expr_BuildModTrunc (location_t location, tree op1, tree op2, int needconvert)
   op2 = CheckAddressToCardinal (location, op2);
 
   t = m2expr_build_binary_op (location, TRUNC_MOD_EXPR, op1, op2, needconvert);
+  return m2expr_FoldAndStrip (t);
+}
+
+
+/* BuildDivCeil builds a ceil division tree.  */
+
+tree
+m2expr_BuildDivCeil (location_t location, tree op1, tree op2, int needconvert)
+{
+  tree t;
+
+  m2assert_AssertLocation (location);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  op1 = CheckAddressToCardinal (location, op1);
+  op2 = CheckAddressToCardinal (location, op2);
+
+  t = m2expr_build_binary_op (location, CEIL_DIV_EXPR, op1, op2, needconvert);
+  return m2expr_FoldAndStrip (t);
+}
+
+
+/* BuildModCeil builds a ceil modulus tree.  */
+
+tree
+m2expr_BuildModCeil (location_t location, tree op1, tree op2, int needconvert)
+{
+  tree t;
+
+  m2assert_AssertLocation (location);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  op1 = CheckAddressToCardinal (location, op1);
+  op2 = CheckAddressToCardinal (location, op2);
+
+  t = m2expr_build_binary_op (location, CEIL_MOD_EXPR, op1, op2, needconvert);
   return m2expr_FoldAndStrip (t);
 }
 
@@ -542,10 +583,8 @@ m2expr_BuildLRRn (location_t location, tree op1, tree op2, tree nBits, int needc
 }
 
 
-/*
- *  BuildLogicalRotate - builds the ISO Modula-2 ROTATE operator
- *                       for a fundamental data type.
- */
+/* BuildLogicalRotate build the ISO Modula-2 ROTATE operator for a
+   fundamental data type.  */
 
 void
 m2expr_BuildLogicalRotate (location_t location,
@@ -556,43 +595,43 @@ m2expr_BuildLogicalRotate (location_t location,
   m2assert_AssertLocation (location);
   op2 = m2expr_FoldAndStrip (op2);
   op3 = m2expr_FoldAndStrip (op3);
-  if (TREE_CODE (op3) == INTEGER_CST) {
-    if (tree_int_cst_sgn (op3) < 0)
+  if (TREE_CODE (op3) == INTEGER_CST)
+    {
+      if (tree_int_cst_sgn (op3) < 0)
+	res = m2expr_BuildLRRn (location, op2,
+				m2expr_BuildNegate (location, op3, needconvert),
+				nBits,
+				needconvert);
+      else
+	res = m2expr_BuildLRLn (location, op2, op3, nBits, needconvert);
+      m2statement_BuildAssignmentTree (location, op1, res);
+    }
+  else
+    {
+      char *labelElseName = createUniqueLabel ();
+      char *labelEndName  = createUniqueLabel ();
+      tree  is_less       = m2expr_BuildLessThan (location,
+						  m2convert_ToInteger (location, op3),
+						  m2expr_GetIntegerZero (location));
+
+      m2statement_DoJump (location, is_less, NULL, labelElseName);
+      res = m2expr_BuildLRLn (location, op2, op3, nBits, needconvert);
+      m2statement_BuildAssignmentTree (location, op1, res);
+      m2statement_BuildGoto (location, labelEndName);
+      m2statement_DeclareLabel (location, labelElseName);
       res = m2expr_BuildLRRn (location, op2,
 			      m2expr_BuildNegate (location, op3, needconvert),
 			      nBits,
 			      needconvert);
-    else
-      res = m2expr_BuildLRLn (location, op2, op3, nBits, needconvert);
-    m2statement_BuildAssignmentTree (location, op1, res);
-  }
-  else {
-    char *labelElseName = createUniqueLabel ();
-    char *labelEndName  = createUniqueLabel ();
-    tree  is_less       = m2expr_BuildLessThan (location,
-						m2convert_ToInteger (location, op3),
-						m2expr_GetIntegerZero (location));
-
-    m2statement_DoJump (location, is_less, NULL, labelElseName);
-    res = m2expr_BuildLRLn (location, op2, op3, nBits, needconvert);
-    m2statement_BuildAssignmentTree (location, op1, res);
-    m2statement_BuildGoto (location, labelEndName);
-    m2statement_DeclareLabel (location, labelElseName);
-    res = m2expr_BuildLRRn (location, op2,
-                            m2expr_BuildNegate (location, op3, needconvert),
-                            nBits,
-                            needconvert);
-    m2statement_BuildAssignmentTree (location, op1, res);
-    m2statement_DeclareLabel (location, labelEndName);
-  }
+      m2statement_BuildAssignmentTree (location, op1, res);
+      m2statement_DeclareLabel (location, labelEndName);
+    }
 }
 
 
-/*
- *  buildUnboundedArrayOf - constructs an unbounded struct and returns
- *                          the gcc tree. The two fields of the structure
- *                          are initialized to contentsPtr and high.
- */
+/* buildUnboundedArrayOf construct an unbounded struct and returns
+   the gcc tree. The two fields of the structure are initialized to
+   contentsPtr and high.  */
 
 static
 tree
@@ -615,12 +654,8 @@ buildUnboundedArrayOf (tree unbounded, tree contentsPtr, tree high)
 }
 
 
-/*
- *  BuildBinarySetDo - if the size of the set is <= TSIZE(WORD) then
- *                        op1 := binop(op2, op3)
- *                     else
- *                        call m2rtsprocedure(op1, op2, op3)
- */
+/* BuildBinarySetDo if the size of the set is <= TSIZE(WORD) then
+   op1 := binop(op2, op3) else call m2rtsprocedure(op1, op2, op3).  */
 
 void
 m2expr_BuildBinarySetDo (location_t location, tree settype, tree op1, tree op2, tree op3,
@@ -641,7 +676,7 @@ m2expr_BuildBinarySetDo (location_t location, tree settype, tree op1, tree op2, 
   ASSERT_BOOL (is_op3lvalue);
 
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
-    /* small set size <= TSIZE(WORD) */
+    /* small set size <= TSIZE(WORD).  */
     (*binop) (location,
 	      m2treelib_get_rvalue (location, op1, settype, is_op1lvalue),
               m2treelib_get_rvalue (location, op2, settype, is_op2lvalue),
@@ -655,12 +690,9 @@ m2expr_BuildBinarySetDo (location_t location, tree settype, tree op1, tree op2, 
 										       m2expr_GetSizeOf (location, m2type_GetBitsetType ()), FALSE)),
                                  m2expr_GetCardinalOne (location), FALSE);
 
-    /*
-     * if op3 is constant
-     * then
-     *    make op3 positive and remember which direction we are shifting
-     * fi
-     */
+    /* if op3 is constant then make op3 positive and remember which
+       direction we are shifting.  */
+
     op3 = m2tree_skip_const_decl (op3);
     if (TREE_CODE (op3) == INTEGER_CST) {
       is_const = TRUE;
@@ -671,15 +703,13 @@ m2expr_BuildBinarySetDo (location_t location, tree settype, tree op1, tree op2, 
       op3 = m2convert_BuildConvert (location, m2type_GetM2CardinalType (), op3, FALSE);
     }
 
-    /*
-     *  these parameters must match the prototypes of the procedures:
-     *  ShiftLeft, ShiftRight, ShiftVal, RotateLeft, RotateRight, RotateVal
-     *  inside gm2-iso/SYSTEM.mod.
-     *
-     *  Remember we must build the parameters in reverse.
-     */
+    /* these parameters must match the prototypes of the procedures:
+       ShiftLeft, ShiftRight, ShiftVal, RotateLeft, RotateRight, RotateVal
+       inside gm2-iso/SYSTEM.mod.  */
 
-    /* parameter 4 amount */
+    /* Remember we must build the parameters in reverse.  */
+
+    /* parameter 4 amount.  */
     m2statement_BuildParam (location,
 			    m2convert_BuildConvert (location,
 						    m2type_GetM2IntegerType(),
@@ -687,26 +717,26 @@ m2expr_BuildBinarySetDo (location_t location, tree settype, tree op1, tree op2, 
 								op3, m2tree_skip_type_decl (TREE_TYPE (op3)),
 								is_op3lvalue), FALSE));
 
-    /* parameter 3 nBits */
+    /* parameter 3 nBits.  */
     m2statement_BuildParam (location,
 			    m2convert_BuildConvert (location,
 						    m2type_GetM2CardinalType(), m2expr_FoldAndStrip (nBits), FALSE));
 
-    /* parameter 2 destination set */
+    /* parameter 2 destination set.  */
     m2statement_BuildParam (location,
 			    buildUnboundedArrayOf (unbounded,
 						   m2treelib_get_set_address (location, op1,
 									      is_op1lvalue),
 						   high));
 
-    /* parameter 1 source set */
+    /* parameter 1 source set.  */
     m2statement_BuildParam (location,
 			    buildUnboundedArrayOf (unbounded,
 						   m2treelib_get_set_address (location, op2,
 								    is_op2lvalue),
 						   high));
 
-    /* now call the appropriate procedure inside SYSTEM.mod */
+    /* now call the appropriate procedure inside SYSTEM.mod.  */
     if (is_const)
       if (is_left)
         result = m2statement_BuildProcedureCallTree (location, leftproc, NULL_TREE);
@@ -899,9 +929,8 @@ build_nop (tree type, tree expr)
 #endif
 
 
-/*
- *  build_binary_op - a wrapper for the lower level build_binary_op above.
- */
+/* build_binary_op - a wrapper for the lower level build_binary_op
+   above.  */
 
 tree
 m2expr_build_binary_op (location_t location,
@@ -918,62 +947,51 @@ m2expr_build_binary_op (location_t location,
 
   m2assert_AssertLocation (location);
 
-  if (convert)
+  if (code == PLUS_EXPR)
     {
-      if (code == PLUS_EXPR)
+      if (POINTER_TYPE_P (type1))
 	{
-	  if (POINTER_TYPE_P (type1))
-	    {
-	      op2 = fold_convert_loc (location, sizetype, unshare_expr (op2));
-	      return fold_build2_loc (location, POINTER_PLUS_EXPR,
-				      TREE_TYPE (op1), op1, op2);
-	    }
-	  else if (POINTER_TYPE_P (type2))
-	    {
-	      op1 = fold_convert_loc (location, sizetype, unshare_expr (op1));
-	      return fold_build2_loc (location, POINTER_PLUS_EXPR,
-				      TREE_TYPE (op2), op2, op1);
-	    }
+	  op2 = fold_convert_loc (location, sizetype, unshare_expr (op2));
+	  return fold_build2_loc (location, POINTER_PLUS_EXPR,
+				  TREE_TYPE (op1), op1, op2);
 	}
-      if (code == MINUS_EXPR)
+      else if (POINTER_TYPE_P (type2))
 	{
-	  if (POINTER_TYPE_P (type1))
-	    {
-	      op2 = fold_convert_loc (location, sizetype, unshare_expr (op2));
-	      op2 = fold_build1_loc (location, NEGATE_EXPR, sizetype, op2);
-	      return fold_build2_loc (location, POINTER_PLUS_EXPR,
-				      TREE_TYPE (op1), op1, op2);
-	    }
-	  else if (POINTER_TYPE_P (type2))
-	    {
-	      op2 = fold_convert_loc (location, sizetype, unshare_expr (op2));
-	      op2 = fold_build1_loc (location, NEGATE_EXPR, sizetype, op2);
-	      op1 = fold_convert_loc (location, sizetype, unshare_expr (op1));
-	      return fold_build2_loc (location, POINTER_PLUS_EXPR,
-				      TREE_TYPE (op2), op2, op1);
-	    }
+	  op1 = fold_convert_loc (location, sizetype, unshare_expr (op1));
+	  return fold_build2_loc (location, POINTER_PLUS_EXPR,
+				  TREE_TYPE (op2), op2, op1);
 	}
     }
-
-#if 0
-  default_convert_binary_operands (location, &op1, &op2);
-  type1 = m2tree_skip_type_decl (TREE_TYPE (op1));
-  type2 = m2tree_skip_type_decl (TREE_TYPE (op2));
-#endif
+  if (code == MINUS_EXPR)
+    {
+      if (POINTER_TYPE_P (type1))
+	{
+	  op2 = fold_convert_loc (location, sizetype, unshare_expr (op2));
+	  op2 = fold_build1_loc (location, NEGATE_EXPR, sizetype, op2);
+	  return fold_build2_loc (location, POINTER_PLUS_EXPR,
+				  TREE_TYPE (op1), op1, op2);
+	}
+      else if (POINTER_TYPE_P (type2))
+	{
+	  op2 = fold_convert_loc (location, sizetype, unshare_expr (op2));
+	  op2 = fold_build1_loc (location, NEGATE_EXPR, sizetype, op2);
+	  op1 = fold_convert_loc (location, sizetype, unshare_expr (op1));
+	  return fold_build2_loc (location, POINTER_PLUS_EXPR,
+				  TREE_TYPE (op2), op2, op1);
+	}
+    }
 
   if ((code != LSHIFT_EXPR) && (code != RSHIFT_EXPR)
       && (code != LROTATE_EXPR) && (code == RROTATE_EXPR))
     if (type1 != type2)
       error_at (location, "not expecting different types to binary operator");
 
-return build_binary_op (location, code, op1, op2, convert);
+  return build_binary_op (location, code, op1, op2, convert);
 }
 
 
-/*
- *  BuildAddAddress - returns an expression op1+op2 where op1 is a pointer type
- *                    and op2 is not a pointer type.
- */
+/* BuildAddAddress return an expression op1+op2 where op1 is a pointer type
+   and op2 is not a pointer type.  */
 
 tree
 m2expr_BuildAddAddress (location_t location, tree op1, tree op2)
@@ -997,9 +1015,8 @@ m2expr_BuildAddAddress (location_t location, tree op1, tree op2)
 			  m2expr_FoldAndStrip (op2));
 }
 
-/*
- *  BuildNegate - builds a negate expression and returns the tree.
- */
+
+/* BuildNegate build a negate expression and returns the tree.  */
 
 tree
 m2expr_BuildNegate (location_t location, tree op1, int needconvert)
@@ -1018,9 +1035,7 @@ m2expr_BuildNegate (location_t location, tree op1, int needconvert)
 }
 
 
-/*
- *  BuildSetNegate - builds a set negate expression and returns the tree.
- */
+/* BuildSetNegate build a set negate expression and returns the tree.  */
 
 tree
 m2expr_BuildSetNegate (location_t location, tree op1, int needconvert)
@@ -1036,9 +1051,7 @@ m2expr_BuildSetNegate (location_t location, tree op1, int needconvert)
 }
 
 
-/*
- *  BuildMult - builds a multiplication tree.
- */
+/* BuildMult build a multiplication tree.  */
 
 tree
 m2expr_BuildMult (location_t location, tree op1, tree op2, int needconvert)
@@ -1056,10 +1069,8 @@ m2expr_BuildMult (location_t location, tree op1, tree op2, int needconvert)
 }
 
 
-/*
- *  testLimits - returns the number of bits required to represent:  min..max
- *               if it matches the, type.  Otherwise NULL_TREE is returned.
- */
+/* testLimits return the number of bits required to represent:  min..max
+   if it matches the, type.  Otherwise NULL_TREE is returned.  */
 
 static tree
 testLimits (location_t location, tree type, tree min, tree max)
@@ -1076,9 +1087,7 @@ testLimits (location_t location, tree type, tree min, tree max)
 }
 
 
-/*
- *  noBitsRequired - returns the number of bits required to contain, values.
- */
+/* noBitsRequired return the number of bits required to contain, values.  */
 
 static tree
 noBitsRequired (tree values)
@@ -1092,9 +1101,7 @@ noBitsRequired (tree values)
 }
 
 
-/*
- *  getMax - returns the result of max(a, b).
- */
+/* getMax return the result of max(a, b).  */
 
 static tree
 getMax (tree a, tree b)
@@ -1106,10 +1113,8 @@ getMax (tree a, tree b)
 }
 
 
-/*
- *  calcNbits - returns the smallest number of bits required to represent:
- *              min..max.
- */
+/* calcNbits return the smallest number of bits required to represent:
+   min..max.  */
 
 static tree
 calcNbits (location_t location, tree min, tree max)
@@ -1143,9 +1148,7 @@ calcNbits (location_t location, tree min, tree max)
 }
 
 
-/*
- *  BuildTBitSize - returns the minimum number of bits to represent, type.
- */
+/* BuildTBitSize return the minimum number of bits to represent, type.  */
 
 tree
 m2expr_BuildTBitSize (location_t location, tree type)
@@ -2028,6 +2031,48 @@ m2expr_BuildCap (location_t location, tree t)
 }
 
 
+/* BuildDivM2 if iso or pim4 then build and return
+   ((op2 < 0) : (op1 divceil op2) ? (op1 divfloor op2)) otherwise use divtrunc.  */
+
+tree
+m2expr_BuildDivM2 (location_t location, tree op1, tree op2, unsigned int needsconvert)
+{
+  ASSERT_CONDITION (TREE_TYPE (op1) == TREE_TYPE (op2));
+  if (M2Options_GetPIM4 () || M2Options_GetISO () || M2Options_GetPositiveModFloor ())
+    return fold_build3 (COND_EXPR, TREE_TYPE (op1),
+			m2expr_BuildLessThan (location,
+					      op2,
+					      m2convert_BuildConvert (location,
+								      TREE_TYPE (op2),
+								      m2expr_GetIntegerZero (location), FALSE)),
+			m2expr_BuildDivCeil (location, op1, op2, needsconvert),
+			m2expr_BuildDivFloor (location, op1, op2, needsconvert));
+  else
+    return m2expr_BuildDivTrunc (location, op1, op2, needsconvert);
+}
+
+
+/* BuildModM2 if iso or pim4 then build and return
+   ((op2 < 0) : (op1 modceil op2) ? (op1 modfloor op2)) otherwise use modtrunc.  */
+
+tree
+m2expr_BuildModM2 (location_t location, tree op1, tree op2, unsigned int needsconvert)
+{
+  ASSERT_CONDITION (TREE_TYPE (op1) == TREE_TYPE (op2));
+  if (M2Options_GetPIM4 () || M2Options_GetISO () || M2Options_GetPositiveModFloor ())
+    return fold_build3 (COND_EXPR, TREE_TYPE (op1),
+			m2expr_BuildLessThan (location,
+					      op2,
+					      m2convert_BuildConvert (location,
+								      TREE_TYPE (op2),
+								      m2expr_GetIntegerZero (location), FALSE)),
+			m2expr_BuildModCeil (location, op1, op2, needsconvert),
+			m2expr_BuildModFloor (location, op1, op2, needsconvert));
+  else
+    return m2expr_BuildModTrunc (location, op1, op2, needsconvert);
+}
+
+
 /*
  *  BuildAbs - builds the Modula-2 function ABS(t) and returns
  *             the result in a gcc Tree.
@@ -2158,6 +2203,7 @@ m2expr_BuildBinaryForeachWordDo (location_t location, tree type, tree op1, tree 
 
 /* Append DIGIT to NUM, a number of PRECISION bits being read in base
    BASE.  */
+
 static int
 append_digit (unsigned HOST_WIDE_INT *low, HOST_WIDE_INT *high,
               unsigned int digit, unsigned int base)

@@ -354,163 +354,6 @@ VAR
    FinallyEndOp    - the end of the above
 *)
 
-(* %%%FORWARD%%%
-PROCEDURE MakeLengthConst (sym: CARDINAL) : CARDINAL ; FORWARD ;
-PROCEDURE doIndrX (des, exp: CARDINAL) ; FORWARD ;
-PROCEDURE doConvert (type: CARDINAL; sym: CARDINAL) : CARDINAL ; FORWARD ;
-PROCEDURE PushTrw (True: WORD; rw: WORD) ; FORWARD ;
-PROCEDURE PopTFrw (VAR True, False, rw: WORD) ; FORWARD ;
-PROCEDURE PopTrw (VAR True, rw: WORD) ; FORWARD ;
-PROCEDURE CheckConst (sym: CARDINAL) ; FORWARD ;
-PROCEDURE doBuildAssignment (checkTypes, checkOverflow: BOOLEAN) ; FORWARD ;
-PROCEDURE doBuildBinaryOp (checkTypes, checkOverflow: BOOLEAN) ; FORWARD ;
-PROCEDURE DereferenceLValue (operand: CARDINAL) : CARDINAL ; FORWARD ;
-PROCEDURE BuildError (r: CARDINAL) ; FORWARD ;
-PROCEDURE PushLineNote (l: LineNote) ; FORWARD ;
-PROCEDURE PopLineNo () : LineNote ; FORWARD ;
-PROCEDURE UseLineNote (l: LineNote) ; FORWARD ;
-PROCEDURE BuildRealFuncProcCall (IsFunc, IsForC: BOOLEAN) ; FORWARD ;
-PROCEDURE CheckForIndex (Start, End, Omit: CARDINAL; IndexSym: CARDINAL) ; FORWARD ;
-PROCEDURE BuildMaxFunction ; FORWARD ;
-PROCEDURE BuildMinFunction ; FORWARD ;
-PROCEDURE BuildAddAdrFunction ; FORWARD ;
-PROCEDURE BuildSubAdrFunction ; FORWARD ;
-PROCEDURE BuildDifAdrFunction ; FORWARD ;
-PROCEDURE BuildCastFunction ; FORWARD ;
-PROCEDURE BuildShiftFunction ; FORWARD ;
-PROCEDURE BuildRotateFunction ; FORWARD ;
-PROCEDURE BuildMakeAdrFunction ; FORWARD ;
-PROCEDURE CheckVariablesInBlock (BlockSym: CARDINAL) ; FORWARD ;
-PROCEDURE CheckRemoveVariableRead (Sym: CARDINAL; canDereference: BOOLEAN; Quad: CARDINAL) ; FORWARD ;
-PROCEDURE CheckRemoveVariableWrite (Sym: CARDINAL; canDereference: BOOLEAN; Quad: CARDINAL) ; FORWARD ;
-PROCEDURE CheckFunctionReturn (ProcSym: CARDINAL) ; FORWARD ;
-PROCEDURE CheckAddVariableWrite (Sym: CARDINAL; canDereference: BOOLEAN; Quad: CARDINAL) ; FORWARD ;
-PROCEDURE CheckAddVariableRead (Sym: CARDINAL; canDereference: BOOLEAN; Quad: CARDINAL) ; FORWARD ;
-PROCEDURE ConvertBooleanToVariable (i: CARDINAL) ; FORWARD ;
-PROCEDURE BuildFloatFunction (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE BuildTruncFunction (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE CheckAssignCompatible (Des, Exp: CARDINAL) ; FORWARD ;
-PROCEDURE CheckForLogicalOperator (Tok: Name; e1, t1, e2, t2: CARDINAL) : Name ; FORWARD ;
-PROCEDURE DisplayType (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE CheckProcedureParameters (IsForC: BOOLEAN) ; FORWARD ;
-PROCEDURE CheckParameter (Actual, Formal, ProcSym: CARDINAL; i: CARDINAL; TypeList: List) ; FORWARD ;
-PROCEDURE FailParameter (CurrentState : ARRAY OF CHAR;
-                         Given        : CARDINAL;
-                         Expecting    : CARDINAL;
-                         ProcedureSym : CARDINAL;
-                         ParameterNo  : CARDINAL) ; FORWARD ;
-PROCEDURE WarnParameter (CurrentState : ARRAY OF CHAR;
-                         Given        : CARDINAL;
-                         Expecting    : CARDINAL;
-                         ProcedureSym : CARDINAL;
-                         ParameterNo  : CARDINAL) ; FORWARD ;
-PROCEDURE DisplayType (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE AlterReference (Head, OldQuad, NewQuad: CARDINAL) ; FORWARD ;
-PROCEDURE RemoveReference (q: CARDINAL) ; FORWARD ;
-PROCEDURE ManipulateReference (q: CARDINAL; to: CARDINAL) ; FORWARD ;
-PROCEDURE AreConstant (b: BOOLEAN) : ModeOfAddr ; FORWARD ;
-PROCEDURE AssignUnboundedNonVar (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ; FORWARD ;
-PROCEDURE AssignUnboundedVar (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ; FORWARD ;
-PROCEDURE BackPatch (QuadNo, Value: CARDINAL) ; FORWARD ;
-PROCEDURE BuildAccessWithField ; FORWARD ;
-PROCEDURE BuildAdrFunction ; FORWARD ;
-PROCEDURE BuildChrFunction ; FORWARD ;
-PROCEDURE BuildConvertFunction ; FORWARD ;
-PROCEDURE BuildOddFunction ; FORWARD ;
-PROCEDURE BuildAbsFunction ; FORWARD ;
-PROCEDURE BuildCapFunction ; FORWARD ;
-PROCEDURE BuildDecProcedure ; FORWARD ;
-PROCEDURE BuildDisposeProcedure ; FORWARD ;
-PROCEDURE BuildDynamicArray ; FORWARD ;
-PROCEDURE BuildHighFromChar ; FORWARD ;
-PROCEDURE BuildHighFromArray ; FORWARD ;
-PROCEDURE BuildHighFromString ; FORWARD ;
-PROCEDURE BuildHighFromUnbounded ; FORWARD ;
-PROCEDURE BuildHighFunction ; FORWARD ;
-PROCEDURE BuildLengthFunction ; FORWARD ;
-PROCEDURE BuildIncProcedure ; FORWARD ;
-PROCEDURE BuildNewProcedure ; FORWARD ;
-PROCEDURE BuildInclProcedure ; FORWARD ;
-PROCEDURE BuildExclProcedure ; FORWARD ;
-PROCEDURE BuildOrdFunction (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE ManipulatePseudoCallParameters ; FORWARD ;
-PROCEDURE BuildPseudoFunctionCall ; FORWARD ;
-PROCEDURE BuildPseudoProcedureCall ; FORWARD ;
-PROCEDURE BuildRealFunctionCall ; FORWARD ;
-PROCEDURE BuildRealProcedureCall ; FORWARD ;
-PROCEDURE BuildSizeFunction ; FORWARD ;
-PROCEDURE BuildStaticArray ; FORWARD ;
-PROCEDURE BuildTSizeFunction ; FORWARD ;
-PROCEDURE BuildTBitSizeFunction ; FORWARD ;
-PROCEDURE BuildTypeCoercion ; FORWARD ;
-PROCEDURE BuildValFunction ; FORWARD ;
-PROCEDURE CheckBooleanId ; FORWARD ;
-PROCEDURE DisplayQuad (QuadNo: CARDINAL) ; FORWARD ;
-PROCEDURE DisposeQuad (QuadNo: CARDINAL) ; FORWARD ;
-PROCEDURE GenQuad (Operation: QuadOperator;
-                   Op1, Op2, Op3: CARDINAL) ; FORWARD ;
-PROCEDURE GenQuadO (Operation: QuadOperator;
-                    Op1, Op2, Op3: CARDINAL; overflow: BOOLEAN) ; FORWARD ;
-PROCEDURE GetItemPointedTo (Sym: CARDINAL) : CARDINAL ; FORWARD ;
-PROCEDURE Init ; FORWARD ;
-PROCEDURE InitQuads ; FORWARD ;
-PROCEDURE IsBoolean (pos: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE IsReallyPointer (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE MakeOp (t: Name) : QuadOperator ; FORWARD ;
-PROCEDURE ManipulateParameters (IsForC: BOOLEAN) ; FORWARD ;
-PROCEDURE Merge (QuadList1, QuadList2: CARDINAL) : CARDINAL ; FORWARD ;
-PROCEDURE NewQuad (VAR QuadNo: CARDINAL) ; FORWARD ;
-PROCEDURE PopBool (VAR True, False: CARDINAL) ; FORWARD ;
-PROCEDURE PopExit() : CARDINAL ; FORWARD ;
-PROCEDURE PopInit (VAR q: CARDINAL) ; FORWARD ;
-PROCEDURE PopWith ; FORWARD ;
-PROCEDURE PushBool (True, False: CARDINAL) ; FORWARD ;
-PROCEDURE PushExit (Exit: CARDINAL) ; FORWARD ;
-PROCEDURE PushWith (Sym, Type, Ref: CARDINAL) ; FORWARD ;
-PROCEDURE PushFor (Exit: CARDINAL) ; FORWARD ;
-PROCEDURE PopFor () : CARDINAL ; FORWARD ;
-PROCEDURE UnboundedNonVarLinkToArray (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ; FORWARD ;
-PROCEDURE UnboundedVarLinkToArray (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ; FORWARD ;
-PROCEDURE WriteMode (Mode: ModeOfAddr) ; FORWARD ;
-PROCEDURE WriteOperand (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE WriteOperator (Operator: QuadOperator) ; FORWARD ;
-PROCEDURE WriteQuad (BufferQuad: CARDINAL) ; FORWARD ;
-PROCEDURE IsBoolean (pos: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE OperandTno (pos: CARDINAL) : WORD ; FORWARD ;
-PROCEDURE OperandFno (pos: CARDINAL) : WORD ; FORWARD ;
-PROCEDURE OperandT (pos: CARDINAL) : WORD ; FORWARD ;
-PROCEDURE OperandF (pos: CARDINAL) : WORD ; FORWARD ;
-PROCEDURE OperandA (pos: CARDINAL) : WORD ; FORWARD ;
-PROCEDURE OperandD (pos: CARDINAL) : WORD ; FORWARD ;
-PROCEDURE OperandRW (pos: CARDINAL) : WORD ; FORWARD ;
-PROCEDURE OperandMergeRW (pos: CARDINAL) : WORD ; FORWARD ;
-PROCEDURE PushTFrw (True, False: WORD; rw: CARDINAL) ; FORWARD ;
-PROCEDURE PopN (n: CARDINAL) ; FORWARD ;
-PROCEDURE PushTFAD (True, False, Array, Dim: WORD) ; FORWARD ;
-PROCEDURE PushTFADrw (True, False, Array, Dim, rw: WORD) ; FORWARD ;
-PROCEDURE PushTFD (True, False, Dim: WORD) ; FORWARD ;
-PROCEDURE PushTFDrw (True, False, Dim, rw: WORD) ; FORWARD ;
-PROCEDURE GetQualidentImport (n, module: Name) : CARDINAL ; FORWARD ;
-PROCEDURE CheckNeedPriorityBegin (scope, module: CARDINAL) ; FORWARD ;
-PROCEDURE CheckNeedPriorityEnd (scope, module: CARDINAL) ; FORWARD ;
-PROCEDURE CheckVariablesAt (scope: CARDINAL) ; FORWARD ;
-PROCEDURE CheckVariableAt (sym: CARDINAL) ; FORWARD ;
-PROCEDURE CheckAddVariableReadLeftValue (sym: CARDINAL; q: CARDINAL) ; FORWARD ;
-PROCEDURE CheckRemoveVariableReadLeftValue (sym: CARDINAL; q: CARDINAL) ; FORWARD ;
-PROCEDURE BuildThrowProcedure ; FORWARD ;
-PROCEDURE BuildRTExceptEnter ; FORWARD ;
-PROCEDURE BuildRTExceptLeave (destroy: BOOLEAN) ; FORWARD ;
-PROCEDURE BuildReFunction ; FORWARD ;
-PROCEDURE BuildImFunction ; FORWARD ;
-PROCEDURE BuildCmplxFunction ; FORWARD ;
-PROCEDURE BuildConstHighFromSym ; FORWARD ;
-PROCEDURE IncOperandD (pos: CARDINAL) ; FORWARD ;
-PROCEDURE calculateMultipicand (arraySym, arrayType: CARDINAL; dim: CARDINAL) : CARDINAL ; FORWARD ;
-PROCEDURE BuildIntFunction (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE PushTFD (True, False, Dim: WORD) ; FORWARD ;
-PROCEDURE PopTFD (VAR True, False, Dim: WORD) ; FORWARD ;
-   %%%FORWARD%%% *)
-
 
 (*
 #define InitString(X) InitStringDB(X, __FILE__, __LINE__)
@@ -982,9 +825,13 @@ BEGIN
    SubOp,
    MultOp,
    ModFloorOp,
+   DivCeilOp,
+   ModCeilOp,
    DivFloorOp,
    ModTruncOp,
    DivTruncOp,
+   DivM2Op,
+   ModM2Op,
    XIndrOp,
    IndrXOp,
    SaveExceptionOp,
@@ -1310,7 +1157,11 @@ BEGIN
    AddOp,
    SubOp,
    MultOp,
+   DivM2Op,
+   ModM2Op,
    ModFloorOp,
+   DivCeilOp,
+   ModCeilOp,
    DivFloorOp,
    ModTruncOp,
    DivTruncOp        : CheckConst(Oper1) ;
@@ -1454,7 +1305,11 @@ BEGIN
    AddOp,
    SubOp,
    MultOp,
+   DivM2Op,
+   ModM2Op,
    ModFloorOp,
+   DivCeilOp,
+   ModCeilOp,
    DivFloorOp,
    ModTruncOp,
    DivTruncOp        : CheckRemoveVariableWrite(Oper1, FALSE, QuadNo) ;
@@ -3830,7 +3685,7 @@ BEGIN
 
    BackPatch(t, NextQuad) ;
    PushTF(e2, GetSType(e2)) ; (* BuildRelOp  1st parameter *)
-   PushT(GreaterEqualTok) ;  (*             2nd parameter *)
+   PushT(GreaterEqualTok) ;   (*             2nd parameter *)
    PushTF(e1, GetSType(e1)) ; (*             3rd parameter *)
    BuildRelOp ;
    PopBool(t1, exit1) ;
@@ -11830,6 +11685,7 @@ BEGIN
 END BuildNot ;
 
 
+
 (*
    MakeOp - returns the equalent quadruple operator to a token, t.
 *)
@@ -11844,12 +11700,7 @@ BEGIN
       RETURN( SubOp )
    ELSIF t=DivTok
    THEN
-      IF (Pim2 OR Pim3) AND (NOT PositiveModFloorDiv)
-      THEN
-         RETURN( DivTruncOp )
-      ELSE
-         RETURN( DivFloorOp )
-      END
+      RETURN( DivM2Op )
    ELSIF t=DivideTok
    THEN
       RETURN( DivTruncOp )
@@ -11858,12 +11709,7 @@ BEGIN
       RETURN( ModTruncOp )
    ELSIF t=ModTok
    THEN
-      IF (Pim2 OR Pim3) AND (NOT PositiveModFloorDiv)
-      THEN
-         RETURN( ModTruncOp )
-      ELSE
-         RETURN( ModFloorOp )
-      END
+      RETURN( ModM2Op )
    ELSIF t=TimesTok
    THEN
       RETURN( MultOp )
@@ -12222,7 +12068,11 @@ BEGIN
       AddOp,
       SubOp,
       MultOp,
+      DivM2Op,
+      ModM2Op,
       ModFloorOp,
+      DivCeilOp,
+      ModCeilOp,
       DivFloorOp,
       ModTruncOp,
       DivTruncOp        : WriteOperand(Operand1) ;
@@ -12313,6 +12163,10 @@ BEGIN
    CatchEndOp               : printf0('CatchEnd          ') |
    AddOp                    : printf0('+                 ') |
    SubOp                    : printf0('-                 ') |
+   DivM2Op                  : printf0('DIV M2            ') |
+   ModM2Op                  : printf0('MOD M2            ') |
+   DivCeilOp                : printf0('DIV ceil          ') |
+   ModCeilOp                : printf0('MOD ceil          ') |
    DivFloorOp               : printf0('DIV floor         ') |
    ModFloorOp               : printf0('MOD floor         ') |
    DivTruncOp               : printf0('DIV trunc         ') |

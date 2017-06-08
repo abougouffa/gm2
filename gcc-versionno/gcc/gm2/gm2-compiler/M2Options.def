@@ -44,6 +44,8 @@ EXPORT QUALIFIED SetReturnCheck, SetNilCheck, SetCaseCheck,
                  SetSwig, DisplayVersion, SetOptimizing, SetForcedLocation,
                  SetCC1Quiet, SetWholeProgram, SetDebugTraceQuad, SetDebugTraceAPI,
                  SetVerbose, SetM2g, GetM2g,
+		 GetISO, GetPIM, GetPIM2, GetPIM3, GetPIM4,
+		 GetPositiveModFloor,
 
                  Iso, Pim, Pim2, Pim3, Pim4,
                  PositiveModFloorDiv,
@@ -515,6 +517,49 @@ PROCEDURE CppCommandLine () : String ;
 *)
 
 PROCEDURE CppRemember (s: String) ;
+
+
+(*
+   GetISO - return TRUE if -fiso was present on the command line.
+*)
+
+PROCEDURE GetISO () : BOOLEAN ;
+
+
+(*
+   GetPIM - return TRUE if -fpim was present on the command line.
+*)
+
+PROCEDURE GetPIM () : BOOLEAN ;
+
+
+(*
+   GetPIM2 - return TRUE if -fpim2 was present on the command line.
+*)
+
+PROCEDURE GetPIM2 () : BOOLEAN ;
+
+
+(*
+   GetPIM3 - return TRUE if -fpim3 was present on the command line.
+*)
+
+PROCEDURE GetPIM3 () : BOOLEAN ;
+
+
+(*
+   GetPIM4 - return TRUE if -fpim4 was present on the command line.
+*)
+
+PROCEDURE GetPIM4 () : BOOLEAN ;
+
+
+(*
+   GetPositiveModFloor - return TRUE if -fpositive-mod-floor was present
+                         on the command line.
+*)
+
+PROCEDURE GetPositiveModFloor () : BOOLEAN ;
 
 
 (*

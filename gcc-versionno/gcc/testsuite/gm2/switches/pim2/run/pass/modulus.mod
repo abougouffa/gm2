@@ -24,15 +24,15 @@ VAR
    res: INTEGER ;
 
 
-PROCEDURE Assert (v: BOOLEAN; f: ARRAY OF CHAR; l: CARDINAL; e: ARRAY OF CHAR) ;
+PROCEDURE Assert (a, s: INTEGER; f: ARRAY OF CHAR; l: CARDINAL; e: ARRAY OF CHAR) ;
 VAR
    r: INTEGER ;
 BEGIN
-   IF v
+   IF a=s
    THEN
       r := printf("successfully evaluated %s\n", ADR(e))
    ELSE
-      r := printf("%s:%d assertion failed when evaluating %s\n", ADR(f), l, ADR(e)) ;
+      r := printf("%s:%d assertion failed when evaluating %s the result should be %d but was actually calculated %d\n", ADR(f), l, ADR(e), s, a) ;
       res := 1
    END
 END Assert ;
@@ -44,19 +44,19 @@ BEGIN
    res := 0 ;
 
    i := 31 MOD 10 ;
-   Assert(i=1, __FILE__, __LINE__, "31 MOD 10") ;
+   Assert(i, 1, __FILE__, __LINE__, "31 MOD 10") ;
 
    i := (-15) MOD 4 ;
-   Assert(i=-3, __FILE__, __LINE__, "(-15) DIV 4") ;
+   Assert(i, -3, __FILE__, __LINE__, "(-15) DIV 4") ;
 
    i := (-31) MOD 10 ;
-   Assert(i=-1, __FILE__, __LINE__, "(-31) MOD 9") ;
+   Assert(i, -1, __FILE__, __LINE__, "(-31) MOD 9") ;
 
    i := (-31) DIV 10 ;
-   Assert(i=-3, __FILE__, __LINE__, "(-31) DIV 10") ;
+   Assert(i, -3, __FILE__, __LINE__, "(-31) DIV 10") ;
 
    (* compatible with ISO *)
    i := (-31) / 10 ;
-   Assert(i=-3, __FILE__, __LINE__, "(-31) / 10") ;
+   Assert(i, -3, __FILE__, __LINE__, "(-31) / 10") ;
    exit(res)
 END modulus.
