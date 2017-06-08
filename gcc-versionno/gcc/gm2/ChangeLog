@@ -27,6 +27,9 @@
 	* gm2/gm2-gcc/m2expr.h:  define BuildDivM2, BuildModM2,
           BuildDivCeil, BuildModCeil.
 	* gm2/mc/mcError.mod:  corrected dates.
+	* gm2/gm2-gcc/m2statement.c:  removed call to
+          dump_function (TDI_generic, fndecl) as it is no longer
+	  supported.
 
 2017-06-06      Gaius Mulley <gaius@gnu.org>
 

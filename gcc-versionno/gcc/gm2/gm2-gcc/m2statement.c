@@ -115,7 +115,6 @@ gm2_gimplify_function_node (tree fndecl)
 
   dump_function (TDI_original, fndecl);
   gimplify_function_tree (fndecl);
-  dump_function (TDI_generic, fndecl);
 
   cgn = cgraph_node::get (fndecl);
   for (cgn = cgn->nested; cgn; cgn = cgn->next_nested)
