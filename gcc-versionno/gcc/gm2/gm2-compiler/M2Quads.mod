@@ -30,7 +30,7 @@ FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3,
                         MetaErrors1, MetaErrors2, MetaErrors3,
                         MetaErrorString1, MetaErrorString2 ;
 
-FROM DynamicStrings IMPORT String, string, InitString, KillString, 
+FROM DynamicStrings IMPORT String, string, InitString, KillString,
                            ConCat, InitStringCharStar, Dup, Mark,
                            PushAllocation, PopAllocationExemption,
                            InitStringDB, InitStringCharStarDB,
@@ -101,7 +101,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         GetUnboundedRecordType,
                         GetUnboundedAddressOffset,
                         GetUnboundedHighOffset,
-                        
+
                         ForeachFieldEnumerationDo, ForeachLocalSymDo,
                         GetExported, PutImported, GetSym,
                         IsUnused,
@@ -522,7 +522,7 @@ PROCEDURE PopTFD (VAR True, False, Dim: WORD) ; FORWARD ;
 
 
 (*
-   doDSdbEnter - 
+   doDSdbEnter -
 *)
 
 PROCEDURE doDSdbEnter ;
@@ -532,7 +532,7 @@ END doDSdbEnter ;
 
 
 (*
-   doDSdbExit - 
+   doDSdbExit -
 *)
 
 PROCEDURE doDSdbExit (s: String) ;
@@ -542,7 +542,7 @@ END doDSdbExit ;
 
 
 (*
-   DSdbEnter - 
+   DSdbEnter -
 *)
 
 PROCEDURE DSdbEnter ;
@@ -551,7 +551,7 @@ END DSdbEnter ;
 
 
 (*
-   DSdbExit - 
+   DSdbExit -
 *)
 
 PROCEDURE DSdbExit (s: String) ;
@@ -854,90 +854,90 @@ BEGIN
 END IsReturn ;
 
 
-(* 
+(*
    IsNewLocalVar - returns true if QuadNo is a NewLocalVar operation.
-*) 
- 
+*)
+
 PROCEDURE IsNewLocalVar (QuadNo: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN( IsQuadA(QuadNo, NewLocalVarOp) )
 END IsNewLocalVar ;
 
 
-(* 
+(*
    IsKillLocalVar - returns true if QuadNo is a KillLocalVar operation.
-*) 
- 
+*)
+
 PROCEDURE IsKillLocalVar (QuadNo: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN( IsQuadA(QuadNo, KillLocalVarOp) )
 END IsKillLocalVar ;
 
 
-(* 
+(*
    IsProcedureScope - returns true if QuadNo is a ProcedureScope operation.
-*) 
- 
+*)
+
 PROCEDURE IsProcedureScope (QuadNo: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN( IsQuadA(QuadNo, ProcedureScopeOp) )
 END IsProcedureScope ;
 
 
-(* 
+(*
    IsCatchBegin - returns true if QuadNo is a catch begin quad.
-*) 
- 
+*)
+
 PROCEDURE IsCatchBegin (QuadNo: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN( IsQuadA(QuadNo, CatchBeginOp) )
 END IsCatchBegin ;
 
 
-(* 
+(*
    IsCatchEnd - returns true if QuadNo is a catch end quad.
-*) 
- 
+*)
+
 PROCEDURE IsCatchEnd (QuadNo: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN( IsQuadA(QuadNo, CatchEndOp) )
 END IsCatchEnd ;
 
 
-(* 
+(*
    IsInitStart - returns true if QuadNo is a init start quad.
-*) 
- 
+*)
+
 PROCEDURE IsInitStart (QuadNo: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN( IsQuadA(QuadNo, InitStartOp) )
 END IsInitStart ;
 
 
-(* 
+(*
    IsInitEnd - returns true if QuadNo is a init end quad.
-*) 
- 
+*)
+
 PROCEDURE IsInitEnd (QuadNo: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN( IsQuadA(QuadNo, InitEndOp) )
 END IsInitEnd ;
 
 
-(* 
+(*
    IsFinallyStart - returns true if QuadNo is a finally start quad.
-*) 
- 
+*)
+
 PROCEDURE IsFinallyStart (QuadNo: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN( IsQuadA(QuadNo, FinallyStartOp) )
 END IsFinallyStart ;
 
 
-(* 
+(*
    IsFinallyEnd - returns true if QuadNo is a finally end quad.
-*) 
- 
+*)
+
 PROCEDURE IsFinallyEnd (QuadNo: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN( IsQuadA(QuadNo, FinallyEndOp) )
@@ -1389,7 +1389,7 @@ END PutQuad ;
 
 
 (*
-   UndoReadWriteInfo - 
+   UndoReadWriteInfo -
 *)
 
 PROCEDURE UndoReadWriteInfo (QuadNo: CARDINAL;
@@ -1506,7 +1506,7 @@ END EraseQuad ;
 
 
 (*
-   CheckAddVariableReadLeftValue - 
+   CheckAddVariableReadLeftValue -
 *)
 
 PROCEDURE CheckAddVariableReadLeftValue (sym: CARDINAL; q: CARDINAL) ;
@@ -1519,7 +1519,7 @@ END CheckAddVariableReadLeftValue ;
 
 
 (*
-   CheckRemoveVariableReadLeftValue - 
+   CheckRemoveVariableReadLeftValue -
 *)
 
 PROCEDURE CheckRemoveVariableReadLeftValue (sym: CARDINAL; q: CARDINAL) ;
@@ -1611,7 +1611,7 @@ END CheckRemoveVariableWrite ;
 
 
 (*
-   CheckConst - 
+   CheckConst -
 *)
 
 PROCEDURE CheckConst (sym: CARDINAL) ;
@@ -1798,7 +1798,7 @@ BEGIN
       INC(f^.NoOfTimesReferenced)
    END
 END ManipulateReference ;
-   
+
 
 (*
    RemoveReference - remove the reference by quadruple, q, to wherever
@@ -1817,8 +1817,8 @@ BEGIN
       DEC(g^.NoOfTimesReferenced)
    END
 END RemoveReference ;
-   
-   
+
+
 (*
    CountQuads - returns the number of quadruples.
 *)
@@ -1991,7 +1991,7 @@ END CheckNeedPriorityEnd ;
 
                 Ptr ->                                        <- Ptr
                        +------------+          +------------+
-                       | ModuleName |          | ModuleName | 
+                       | ModuleName |          | ModuleName |
                        |------------|          |------------|
 
 
@@ -2023,7 +2023,7 @@ END StartBuildDefFile ;
 
                 Ptr ->                                        <- Ptr
                        +------------+          +------------+
-                       | ModuleName |          | ModuleName | 
+                       | ModuleName |          | ModuleName |
                        |------------|          |------------|
 
 
@@ -2049,7 +2049,7 @@ END StartBuildModFile ;
 
            Ptr ->                                        <- Ptr
                   +------------+          +------------+
-                  | ModuleName |          | ModuleName | 
+                  | ModuleName |          | ModuleName |
                   |------------|          |------------|
 
 
@@ -2072,7 +2072,7 @@ END EndBuildFile ;
    StartBuildInit - Sets the start of initialization code of the
                     current module to the next quadruple.
 *)
- 
+
 PROCEDURE StartBuildInit ;
 VAR
    name     : Name ;
@@ -2095,12 +2095,12 @@ BEGIN
       GenQuad(TryOp, NulSym, NulSym, 0)
    END
 END StartBuildInit ;
- 
- 
+
+
 (*
    EndBuildInit - Sets the end initialization code of a module.
 *)
- 
+
 PROCEDURE EndBuildInit ;
 BEGIN
    IF HasExceptionBlock(GetCurrentModule())
@@ -2121,7 +2121,7 @@ END EndBuildInit ;
    StartBuildFinally - Sets the start of finalization code of the
                        current module to the next quadruple.
 *)
- 
+
 PROCEDURE StartBuildFinally ;
 VAR
    name     : Name ;
@@ -2144,12 +2144,12 @@ BEGIN
       GenQuad(TryOp, NulSym, NulSym, 0)
    END
 END StartBuildFinally ;
- 
- 
+
+
 (*
    EndBuildFinally - Sets the end finalization code of a module.
 *)
- 
+
 PROCEDURE EndBuildFinally ;
 BEGIN
    IF HasExceptionFinally(GetCurrentModule())
@@ -2230,7 +2230,7 @@ END BuildRTExceptLeave ;
    BuildExceptInitial - adds an CatchBeginOp, CatchEndOp quadruple
                         in the current block.
 *)
- 
+
 PROCEDURE BuildExceptInitial ;
 VAR
    previous: CARDINAL ;
@@ -2260,7 +2260,7 @@ END BuildExceptInitial ;
    BuildExceptFinally - adds an ExceptOp quadruple in a modules
                         finally block.
 *)
- 
+
 PROCEDURE BuildExceptFinally ;
 BEGIN
    BuildExceptInitial
@@ -2271,7 +2271,7 @@ END BuildExceptFinally ;
    BuildExceptProcedure - adds an ExceptOp quadruple in a procedure
                           block.
 *)
- 
+
 PROCEDURE BuildExceptProcedure ;
 BEGIN
    BuildExceptInitial
@@ -2281,7 +2281,7 @@ END BuildExceptProcedure ;
 (*
    BuildRetry - adds an RetryOp quadruple.
 *)
- 
+
 PROCEDURE BuildRetry ;
 BEGIN
    IF PeepWord(CatchStack, 1)=0
@@ -2310,7 +2310,7 @@ END BuildModuleStart ;
    StartBuildInnerInit - Sets the start of initialization code of the
                          inner module to the next quadruple.
 *)
- 
+
 PROCEDURE StartBuildInnerInit ;
 BEGIN
    PutModuleStartQuad(GetCurrentModule(), NextQuad) ;
@@ -2324,12 +2324,12 @@ BEGIN
       GenQuad(TryOp, NulSym, NulSym, 0)
    END
 END StartBuildInnerInit ;
- 
- 
+
+
 (*
    EndBuildInnerInit - Sets the end initialization code of a module.
 *)
- 
+
 PROCEDURE EndBuildInnerInit ;
 BEGIN
    IF HasExceptionBlock(GetCurrentModule())
@@ -2711,7 +2711,7 @@ END doVal ;
 
 
 (*
-   MoveWithMode - 
+   MoveWithMode -
 *)
 
 PROCEDURE MoveWithMode (Des, Exp, Array: CARDINAL) ;
@@ -3687,7 +3687,7 @@ END BuildForLoopToRangeCheck ;
                     Entry                   Exit
                     =====                   ====
 
-                    
+
              Ptr ->                                           <- Ptr
                     +----------------+      |----------------|
                     | BySym | ByType |      | ForQuad        |
@@ -3901,7 +3901,7 @@ BEGIN
    PushTF(LastSym, GetType(LastSym)) ;
    BuildRelOp ;
    PopBool(t, f) ;
-   
+
    BackPatch(t, NextQuad) ;
    GenQuad(GotoOp, NulSym, NulSym, 0) ;
    PushFor(Merge(PopFor(), NextQuad-1)) ;
@@ -4108,7 +4108,7 @@ END BuildCaseRange ;
                        | e1        |     | e1        |
                        |-----------|     |-----------|
 *)
- 
+
 PROCEDURE BuildCaseEquality ;
 VAR
    ce1, e1,
@@ -4134,9 +4134,9 @@ END BuildCaseEquality ;
    BuildCaseList - merges two case tests into one
 
                    The Stack:
- 
+
                    Entry             Exit
- 
+
             Ptr ->
                    +-----------+
                    | t2  | f2  |
@@ -4145,7 +4145,7 @@ END BuildCaseEquality ;
                    |-----------|     |-------------|
 *)
 
-PROCEDURE BuildCaseList ; 
+PROCEDURE BuildCaseList ;
 VAR
    t2, f2,
    t1, f1: CARDINAL ;
@@ -4158,51 +4158,51 @@ END BuildCaseList ;
 
 (*
    BuildCaseOr - builds the , in the case clause.
- 
+
                  The Stack:
- 
+
                  Entry             Exit
- 
+
           Ptr ->                                  <- Ptr
                  +-----------+     +------------+
                  | t   | f   |     | t    | 0   |
                  |-----------|     |------------|
 *)
- 
+
 PROCEDURE BuildCaseOr ;
-VAR 
+VAR
    t, f: CARDINAL ;
-BEGIN 
-   PopBool(t, f) ; 
-   BackPatch(f, NextQuad) ; 
+BEGIN
+   PopBool(t, f) ;
+   BackPatch(f, NextQuad) ;
    PushBool(t, 0)
-END BuildCaseOr ; 
+END BuildCaseOr ;
 
 
 (*
    BuildCaseElse - builds the else of case clause.
- 
+
                   The Stack:
- 
+
                   Entry             Exit
- 
+
            Ptr ->                                  <- Ptr
                   +-----------+     +------------+
                   | t   | f   |     | t    | 0   |
                   |-----------|     |------------|
 *)
- 
+
 PROCEDURE BuildCaseElse ;
-VAR 
+VAR
    t, f: CARDINAL ;
-BEGIN 
-   PopBool(t, f) ; 
-   BackPatch(f, NextQuad) ; 
+BEGIN
+   PopBool(t, f) ;
+   BackPatch(f, NextQuad) ;
    PushBool(t, 0)
-END BuildCaseElse ; 
+END BuildCaseElse ;
 
 
-(* 
+(*
    BuildCaseEnd - builds the end of case clause.
 
                   The Stack:
@@ -4572,10 +4572,10 @@ END BuildRealFuncProcCall ;
                               procedure ProcSym.
 
                               The Stack:
-   
-   
+
+
                               Entry                      Exit
-   
+
                        Ptr ->                                               <- Ptr
                               +----------------+         +----------------+
                               | NoOfParam      |         | NoOfParam      |
@@ -5795,7 +5795,7 @@ END GenHigh ;
 
 
 (*
-   AssignHighField - 
+   AssignHighField -
 *)
 
 PROCEDURE AssignHighField (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL;
@@ -5866,7 +5866,7 @@ END AssignHighField ;
 
 
 (*
-   AssignHighFields - 
+   AssignHighFields -
 *)
 
 PROCEDURE AssignHighFields (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ;
@@ -6057,7 +6057,7 @@ END GetItemPointedTo ;
                          | ProcSym | Type |         Empty
                          |----------------|
 *)
-   
+
 PROCEDURE BuildThrowProcedure ;
 VAR
    op       : CARDINAL ;
@@ -6126,7 +6126,7 @@ END BuildReThrow ;
                        | ProcSym | Type |         Empty
                        |----------------|
 *)
-   
+
 PROCEDURE BuildNewProcedure ;
 VAR
    NoOfParam,
@@ -6822,15 +6822,15 @@ END BuildConstFunctionCall ;
 
                 Ptr ->
                        +----------------+
-                       | NoOfParam      |  
+                       | NoOfParam      |
                        |----------------|
-                       | Param 1        |  
+                       | Param 1        |
                        |----------------|
-                       | Param 2        |  
+                       | Param 2        |
                        |----------------|
-                       .                .  
-                       .                .  
-                       .                .  
+                       .                .
+                       .                .
+                       .                .
                        |----------------|
                        | Param #        |                        <- Ptr
                        |----------------|         +------------+
@@ -6942,15 +6942,15 @@ END BuildRealFunctionCall ;
 
                       Ptr ->
                              +----------------+
-                             | NoOfParam      |  
+                             | NoOfParam      |
                              |----------------|
-                             | Param 1        |  
+                             | Param 1        |
                              |----------------|
-                             | Param 2        |  
+                             | Param 2        |
                              |----------------|
-                             .                .  
-                             .                .  
-                             .                .  
+                             .                .
+                             .                .
+                             .                .
                              |----------------|
                              | Param #        |                        <- Ptr
                              |----------------|         +------------+
@@ -7281,15 +7281,15 @@ END BuildDifAdrFunction ;
 
                 Ptr ->
                        +----------------+
-                       | NoOfParam      |  
+                       | NoOfParam      |
                        |----------------|
-                       | Param 1        |  
+                       | Param 1        |
                        |----------------|
-                       | Param 2        |  
+                       | Param 2        |
                        |----------------|
-                       .                .  
-                       .                .  
-                       .                .  
+                       .                .
+                       .                .
+                       .                .
                        |----------------|
                        | Param #        |                        <- Ptr
                        |----------------|         +------------+
@@ -7346,15 +7346,15 @@ END BuildHighFunction ;
 
                    Ptr ->
                            +----------------+
-                           | NoOfParam      |  
+                           | NoOfParam      |
                            |----------------|
-                           | Param 1        |  
+                           | Param 1        |
                            |----------------|
-                           | Param 2        |  
+                           | Param 2        |
                            |----------------|
-                           .                .  
-                           .                .  
-                           .                .  
+                           .                .
+                           .                .
+                           .                .
                            |----------------|
                            | Param #        |                        <- Ptr
                            |----------------|         +------------+
@@ -7389,7 +7389,7 @@ END BuildConstHighFromSym ;
 
                      Ptr ->
                             +----------------+
-                            | NoOfParam      |  
+                            | NoOfParam      |
                             |----------------|
                             | Param #        |                        <- Ptr
                             |----------------|         +------------+
@@ -7478,7 +7478,7 @@ END MakeLengthConst ;
 
                   Ptr ->
                          +----------------+
-                         | NoOfParam      |  
+                         | NoOfParam      |
                          |----------------|
                          | Param 1        |                        <- Ptr
                          |----------------|         +------------+
@@ -7525,11 +7525,23 @@ BEGIN
          IF (ProcSym#NulSym) AND IsProcedure(ProcSym)
          THEN
             PopT(NoOfParam) ;
-            ReturnVar := MakeTemporary(AreConstant(IsConst(OperandT(1)))) ;
-            PutVar(ReturnVar, Cardinal) ;
-            GenQuad(StandardFunctionOp, ReturnVar, ProcSym, OperandT(1)) ;
-            PopN(NoOfParam+1) ;
-            PushT(ReturnVar)
+            IF IsConst(OperandT(1))
+            THEN
+               (* we can fold this in M2GenGCC.  *)
+               ReturnVar := MakeTemporary(ImmediateValue) ;
+               PutVar(ReturnVar, Cardinal) ;
+               GenQuad(StandardFunctionOp, ReturnVar, ProcSym, OperandT(1)) ;
+               PopN(NoOfParam+1) ;
+               PushT(ReturnVar)
+            ELSE
+               (* no we must resolve this at runtime or in the GCC optimizer.  *)
+               PopTF(Param, Type);
+	       PopN(NoOfParam) ;
+	       PushT(ProcSym) ;
+               PushTF(Param, Type) ;
+	       PushT(NoOfParam) ;
+	       BuildRealFunctionCall
+            END
          ELSE
             PopT(NoOfParam) ;
             PopN(NoOfParam+1) ;
@@ -7606,7 +7618,7 @@ BEGIN
          PushT(MakeConstLit(MakeKey('0'))) ;
          BuildRelOp ;
          BuildThenIf ;
-         
+
          Res := MakeTemporary(RightValue) ;
          PutVar(Res, Boolean) ;
 
@@ -8306,15 +8318,15 @@ END BuildCastFunction ;
 
                    Ptr ->
                           +----------------+
-                          | NoOfParam      |  
+                          | NoOfParam      |
                           |----------------|
-                          | Param 1        |  
+                          | Param 1        |
                           |----------------|
-                          | Param 2        |  
+                          | Param 2        |
                           |----------------|
-                          .                .  
-                          .                .  
-                          .                .  
+                          .                .
+                          .                .
+                          .                .
                           |----------------|
                           | Param #        |                                 <- Ptr
                           |----------------|         +---------------------+
@@ -8407,7 +8419,7 @@ END CheckBaseTypeValue ;
 
 
 (*
-   GetTypeMin - 
+   GetTypeMin -
 *)
 
 PROCEDURE GetTypeMin (type: CARDINAL) : CARDINAL ;
@@ -8444,7 +8456,7 @@ END GetTypeMin ;
 
 
 (*
-   GetTypeMax - 
+   GetTypeMax -
 *)
 
 PROCEDURE GetTypeMax (type: CARDINAL) : CARDINAL ;
@@ -8907,15 +8919,15 @@ END BuildCmplxFunction ;
 
                Ptr ->
                       +----------------+
-                      | NoOfParam      |  
+                      | NoOfParam      |
                       |----------------|
-                      | Param 1        |  
+                      | Param 1        |
                       |----------------|
-                      | Param 2        |  
+                      | Param 2        |
                       |----------------|
-                      .                .  
-                      .                .  
-                      .                .  
+                      .                .
+                      .                .
+                      .                .
                       |----------------|
                       | Param #        |                        <- Ptr
                       |----------------|         +------------+
@@ -9013,15 +9025,15 @@ END BuildAdrFunction ;
 
                 Ptr ->
                        +----------------+
-                       | NoOfParam      |  
+                       | NoOfParam      |
                        |----------------|
-                       | Param 1        |  
+                       | Param 1        |
                        |----------------|
-                       | Param 2        |  
+                       | Param 2        |
                        |----------------|
-                       .                .  
-                       .                .  
-                       .                .  
+                       .                .
+                       .                .
+                       .                .
                        |----------------|
                        | Param #        |                        <- Ptr
                        |----------------|         +------------+
@@ -9092,15 +9104,15 @@ END BuildSizeFunction ;
 
                  Ptr ->
                         +----------------+
-                        | NoOfParam      |  
+                        | NoOfParam      |
                         |----------------|
-                        | Param 1        |  
+                        | Param 1        |
                         |----------------|
-                        | Param 2        |  
+                        | Param 2        |
                         |----------------|
-                        .                .  
-                        .                .  
-                        .                .  
+                        .                .
+                        .                .
+                        .                .
                         |----------------|
                         | Param #        |                        <- Ptr
                         |----------------|         +------------+
@@ -9185,15 +9197,15 @@ END BuildTSizeFunction ;
 
                    Ptr ->
                            +----------------+
-                           | NoOfParam      |  
+                           | NoOfParam      |
                            |----------------|
-                           | Param 1        |  
+                           | Param 1        |
                            |----------------|
-                           | Param 2        |  
+                           | Param 2        |
                            |----------------|
-                           .                .  
-                           .                .  
-                           .                .  
+                           .                .
+                           .                .
+                           .                .
                            |----------------|
                            | Param #        |                        <- Ptr
                            |----------------|         +------------+
@@ -9244,7 +9256,7 @@ END BuildTBitSizeFunction ;
 
 
 (*
-   ExpectingParameterType - 
+   ExpectingParameterType -
 *)
 
 PROCEDURE ExpectingParameterType (BlockSym, Type: CARDINAL) ;
@@ -9278,7 +9290,7 @@ END ExpectingParameterType ;
 
 
 (*
-   ExpectingVariableType - 
+   ExpectingVariableType -
 *)
 
 PROCEDURE ExpectingVariableType (BlockSym, Type: CARDINAL) ;
@@ -9482,7 +9494,7 @@ END BuildProcedureEnd ;
 
 
 (*
-   CheckReadBeforeInitialized - 
+   CheckReadBeforeInitialized -
 *)
 
 PROCEDURE CheckReadBeforeInitialized (ProcSym: CARDINAL; Start, End: CARDINAL) ;
@@ -9914,7 +9926,7 @@ BEGIN
                    n1, n2)
    ELSE
       BuildRange(InitTypesAssignmentCheck(currentProc, actualVal))
-   END  
+   END
 END CheckReturnType ;
 
 
@@ -10322,14 +10334,14 @@ BEGIN
    IF Dim=GetDimension(Type)
    THEN
       PutLeftValueFrontBackType(Adr, GetType(Type), BackEndType) ;
-      
+
       GenQuad(AddOp, Adr, Base, tk) ;
       PopN(2) ;
       PushTFADrw(Adr, GetType(Adr), ArraySym, Dim, rw)
    ELSE
       (* more to index *)
       PutLeftValueFrontBackType(Adr, Type, BackEndType) ;
-      
+
       GenQuad(AddOp, Adr, Base, tk) ;
       PopN(2) ;
       PushTFADrw(Adr, GetType(Adr), ArraySym, Dim, rw)
@@ -10875,7 +10887,7 @@ END BuildInclBit ;
 
 
 (*
-   PushConstructor - 
+   PushConstructor -
 *)
 
 PROCEDURE PushConstructor (sym: CARDINAL) ;
@@ -11276,7 +11288,7 @@ END doConvert ;
                      a reference to an array which has a bitset type or
                      the address arithmetic will be wrongly coersed into
                      logical ORs.
-                     
+
                      The Stack is expected to contain:
 
 
@@ -12706,7 +12718,7 @@ END BuildOptimizeOff ;
 
                         Entry                   Exit
                         =====                   ====
-  
+
                  Ptr ->
                         +--------------+
                         | Sym          |        Empty
@@ -12733,7 +12745,7 @@ END BuildInline ;
 
                         Entry                   Exit
                         =====                   ====
-  
+
                  Ptr ->                              <- Ptr
 *)
 
@@ -12820,12 +12832,12 @@ END InitLineNote ;
 
 
 (*
-   PushLineNote - 
+   PushLineNote -
 *)
 
 PROCEDURE PushLineNote (l: LineNote) ;
 BEGIN
-   PushAddress(LineStack, l)   
+   PushAddress(LineStack, l)
 END PushLineNote ;
 
 
@@ -12910,7 +12922,7 @@ END AddVarientFieldToList ;
 
 
 (*
-   GetRecordOrField - 
+   GetRecordOrField -
 *)
 
 PROCEDURE GetRecordOrField () : CARDINAL ;
@@ -13526,7 +13538,7 @@ END MustCheckOverflow ;
 
 
 (*
-   StressStack - 
+   StressStack -
 *)
 
 PROCEDURE StressStack ;
@@ -13570,7 +13582,7 @@ END StressStack ;
 
 
 (*
-   Init - initialize the M2Quads module, all the stacks, all the lists 
+   Init - initialize the M2Quads module, all the stacks, all the lists
           and the quads list.
 *)
 

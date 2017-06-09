@@ -1,3 +1,11 @@
+2017-06-09      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeLength) no
+          longer generate runtime call to M2RTS_Length.
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildLengthFunction)
+          if the array is not a constant then build call
+          to M2RTS_Length otherwise use StandardFunctionOp.
+
 2017-06-08      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  FoldDivM2, CodeDivM2,
