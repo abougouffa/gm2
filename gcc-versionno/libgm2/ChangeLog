@@ -1,3 +1,7 @@
+2016-06-09      Gaius Mulley <gaius@gnu.org>
+
+	* libgm2/libpim/dtoc.c:  use memmove instead of memcpy.
+
 2016-03-14      Gaius Mulley <gaius@gnu.org>
 
 	* libgm2/libpim/wrapc.c:  corrected spacing.

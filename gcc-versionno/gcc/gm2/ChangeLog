@@ -1,3 +1,8 @@
+2017-06-09      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-ch/dtoc.c:  use memmove instead of memcpy
+	  as data is being overwritten in the move.
+
 2017-06-08      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  FoldDivM2, CodeDivM2,
