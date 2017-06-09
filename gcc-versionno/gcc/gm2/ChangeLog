@@ -1,3 +1,8 @@
+2017-06-09      Gaius Mulley <gaius@gnu.org>
+
+ 	* gm2/gm2-libs-ch/dtoa.c:  use memmove instead of memcpy.
+	  Fixes a bug reported by Ernst Bokkelkamp.
+
 2017-06-08      Gaius Mulley <gaius@gnu.org>
 
 	* Fixed pim4 and iso DIV and MOD bug reported by Ernst Bokkelkamp
