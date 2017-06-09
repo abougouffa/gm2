@@ -1,7 +1,9 @@
 2017-06-09      Gaius Mulley <gaius@gnu.org>
 
  	* gm2/gm2-libs-ch/dtoa.c:  use memmove instead of memcpy.
-	  Fixes a bug reported by Ernst Bokkelkamp.
+          Fixes a bug reported by Ernst Bokkelkamp.
+	* gm2/gm2-gcc/m2expr.c:  many formatting gnu coding standard
+	  changes.
 
 2017-06-08      Gaius Mulley <gaius@gnu.org>
 

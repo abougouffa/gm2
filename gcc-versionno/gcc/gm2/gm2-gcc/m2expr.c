@@ -700,8 +700,7 @@ m2expr_BuildBinarySetDo (location_t location, tree settype, tree op1, tree op2, 
 
 /* Print a warning if a constant expression had overflow in folding.
    Invoke this function on every expression that the language
-   requires to be a constant expression.
-*/
+   requires to be a constant expression.  */
 
 void
 m2expr_ConstantExpressionWarning (tree value)
@@ -715,11 +714,9 @@ m2expr_ConstantExpressionWarning (tree value)
 }
 
 
-/*
- *  TreeOverflow - returns TRUE if the contant expression, t, has
- *                 caused an overflow. No error message or warning
- *                 is emitted and no modification is made to, t.
- */
+/* TreeOverflow return TRUE if the contant expression, t, has
+   caused an overflow. No error message or warning is emitted
+   and no modification is made to, t.  */
 
 int
 m2expr_TreeOverflow (tree t)
@@ -739,10 +736,8 @@ m2expr_TreeOverflow (tree t)
 }
 
 
-/*
- *  RemoveOverflow - if tree, t, is a constant expression it removes
- *                   any overflow flag and returns, t.
- */
+/* RemoveOverflow if tree, t, is a constant expression it removes
+   any overflow flag and returns, t.  */
 
 tree
 m2expr_RemoveOverflow (tree t)
@@ -759,10 +754,8 @@ m2expr_RemoveOverflow (tree t)
 }
 
 
-/*
- *  BuildCoerce - returns a tree containing the expression, expr, after
- *                it has been coersed to, type.
- */
+/* BuildCoerce return a tree containing the expression, expr, after
+   it has been coersed to, type.  */
 
 tree
 m2expr_BuildCoerce (location_t location, tree des, tree type, tree expr)
@@ -776,9 +769,7 @@ m2expr_BuildCoerce (location_t location, tree des, tree type, tree expr)
 }
 
 
-/*
- *  BuildTrunc - returns an integer expression from a REAL or LONGREAL op1.
- */
+/* BuildTrunc return an integer expression from a REAL or LONGREAL op1.  */
 
 tree
 m2expr_BuildTrunc (tree op1)
@@ -787,9 +778,7 @@ m2expr_BuildTrunc (tree op1)
 }
 
 
-/*
- *  build_unary_op -
- */
+/* build_unary_op return a unary tree node.  */
 
 tree
 m2expr_build_unary_op (location_t location,
@@ -808,10 +797,8 @@ m2expr_build_unary_op (location_t location,
 }
 
 
-/*
- *  build_binary_op - this is a heavily pruned version of the one found in c-typeck.c.
- *                    The Modula-2 expression rules are much more restricted than C.
- */
+/* build_binary_op is a heavily pruned version of the one found in c-typeck.c.
+   The Modula-2 expression rules are much more restricted than C.  */
 
 tree
 build_binary_op (location_t location,
@@ -835,47 +822,6 @@ build_binary_op (location_t location,
 
   return m2expr_FoldAndStrip (result);
 }
-
-
-#if 0
-/*
- *  default_convert_binary_operands -
- */
-
-static void
-default_convert_binary_operands (location_t location, tree *op1, tree *op2)
-{
-  tree type1 = m2tree_skip_type_decl (TREE_TYPE (*op1));
-  tree type2 = m2tree_skip_type_decl (TREE_TYPE (*op2));
-
-  m2assert_AssertLocation (location);
-
-  if (type1 != type2)
-    {
-      if (type1 == m2type_GetM2ZType ())
-	*op1 = m2convert_BuildConvert (type2, *op1, FALSE);
-      else if (type2 == m2type_GetM2ZType ())
-	*op2 = m2convert_BuildConvert (type1, *op2, FALSE);
-
-      else if (type1 == m2type_GetM2RType ())
-	*op1 = m2convert_BuildConvert (type2, *op1, FALSE);
-      else if (type2 == m2type_GetM2RType ())
-	*op2 = m2convert_BuildConvert (type1, *op2, FALSE);
-    }
-}
-
-
-/* Return a NOP_EXPR converting EXPR to TYPE.  */
-
-static
-tree
-build_nop (tree type, tree expr)
-{
-  if (type == error_mark_node || error_operand_p (expr))
-    return expr;
-  return build1 (NOP_EXPR, type, expr);
-}
-#endif
 
 
 /* build_binary_op - a wrapper for the lower level build_binary_op
@@ -1127,9 +1073,7 @@ m2expr_BuildTBitSize (location_t location, tree type)
 }
 
 
-/*
- *  BuildSize - builds a SIZE function expression and returns the tree.
- */
+/* BuildSize build a SIZE function expression and returns the tree.  */
 
 tree
 m2expr_BuildSize (location_t location, tree op1, int needconvert ATTRIBUTE_UNUSED)
@@ -1139,11 +1083,9 @@ m2expr_BuildSize (location_t location, tree op1, int needconvert ATTRIBUTE_UNUSE
 }
 
 
-/*
- *  BuildAddr - builds an expression which calculates the address of
- *              op1 and returns the tree.  If use_generic is TRUE then
- *              create a generic pointer type.
- */
+/* BuildAddr return an expression which calculates the address of
+   op1 and returns the tree.  If use_generic is TRUE then
+   create a generic pointer type.  */
 
 tree
 m2expr_BuildAddr (location_t location, tree op1, int use_generic)
@@ -1166,13 +1108,10 @@ m2expr_BuildAddr (location_t location, tree op1, int use_generic)
 }
 
 
-/*
- *  BuildOffset1 - builds an expression containing the number of bytes the field
- *                 is offset from the start of the record structure.
- *                 This function is the same as the above, except that it
- *                 derives the record from the field and then calls BuildOffset.
- *                 The expression is returned.
- */
+/* BuildOffset1 build and return an expression containing the number
+   of bytes the field is offset from the start of the record structure.
+   This function is the same as the above, except that it derives
+   the record from the field and then calls BuildOffset.  */
 
 tree
 m2expr_BuildOffset1 (location_t location, tree field, int needconvert ATTRIBUTE_UNUSED)
@@ -1182,25 +1121,20 @@ m2expr_BuildOffset1 (location_t location, tree field, int needconvert ATTRIBUTE_
 }
 
 
-/*
- *  determinePenultimateField - returns the field associated with the DECL_CONTEXT (field)
- *                              within a record or varient.
- *                              record, is a record/varient but it maybe an outer nested record
- *                              to the field that we are searching. Ie:
- *
- *                              record = RECORD
- *                                          x: CARDINAL ;
- *                                          y: RECORD
- *                                                field: CARDINAL ;
- *                                             END
- *                                       END ;
- *
- *                              determinePenultimateField (record, field) returns, y.
- *
- *                              we are assurred that the chain of records leading to field
- *                              will be unique as they are built on the fly to implement varient
- *                              records.
- */
+/* determinePenultimateField return the field associated with the DECL_CONTEXT (field)
+   within a record or varient.  The record, is a record/varient but it maybe an
+   outer nested record to the field that we are searching. Ie:
+
+   record = RECORD
+               x: CARDINAL ;
+               y: RECORD
+                     field: CARDINAL ;
+                  END
+            END ;
+
+   determinePenultimateField (record, field) returns, y.
+   We are assurred that the chain of records leading to field will be unique as
+   they are built on the fly to implement varient records.  */
 
 static
 tree
@@ -1227,11 +1161,8 @@ determinePenultimateField (tree record, tree field)
 }
 
 
-/*
- *  BuildOffset - builds an expression containing the number of bytes the field
- *                is offset from the start of the record structure.
- *                The expression is returned.
- */
+/* BuildOffset builds an expression containing the number of bytes the field
+   is offset from the start of the record structure.  The expression is returned.  */
 
 tree
 m2expr_BuildOffset (location_t location,
@@ -1265,9 +1196,7 @@ m2expr_BuildOffset (location_t location,
 }
 
 
-/*
- *  BuildLogicalOrAddress - build a logical or expressions and return the tree.
- */
+/* BuildLogicalOrAddress build a logical or expressions and return the tree.  */
 
 tree
 m2expr_BuildLogicalOrAddress (location_t location,
@@ -1279,9 +1208,7 @@ m2expr_BuildLogicalOrAddress (location_t location,
 }
 
 
-/*
- *  BuildLogicalOr - build a logical or expressions and return the tree.
- */
+/* BuildLogicalOr build a logical or expressions and return the tree.  */
 
 tree
 m2expr_BuildLogicalOr (location_t location, tree op1, tree op2,
@@ -1294,9 +1221,7 @@ m2expr_BuildLogicalOr (location_t location, tree op1, tree op2,
 }
 
 
-/*
- *  BuildLogicalAnd - build a logical and expression and return the tree.
- */
+/* BuildLogicalAnd build a logical and expression and return the tree.  */
 
 tree
 m2expr_BuildLogicalAnd (location_t location, tree op1, tree op2,
@@ -1309,9 +1234,7 @@ m2expr_BuildLogicalAnd (location_t location, tree op1, tree op2,
 }
 
 
-/*
- *  BuildSymmetricalDifference - build a logical xor expression and return the tree.
- */
+/* BuildSymmetricalDifference build a logical xor expression and return the tree.  */
 
 tree
 m2expr_BuildSymmetricDifference (location_t location, tree op1, tree op2,
@@ -1324,11 +1247,8 @@ m2expr_BuildSymmetricDifference (location_t location, tree op1, tree op2,
 }
 
 
-/*
- *  BuildLogicalDifference - build a logical difference expression and
- *                           return the tree.
- *                           (op1 and (not op2))
- */
+/* BuildLogicalDifference build a logical difference expression and return the tree.
+   (op1 and (not op2)).  */
 
 tree
 m2expr_BuildLogicalDifference (location_t location, tree op1, tree op2,
@@ -1342,9 +1262,9 @@ m2expr_BuildLogicalDifference (location_t location, tree op1, tree op2,
 }
 
 
-/* Returns the base type of an ordinal subrange, or the type
- * itself if it is not a subrange.
- */
+/* base_type returns the base type of an ordinal subrange, or the type
+   itself if it is not a subrange.  */
+
 static
 tree
 base_type (tree type)
@@ -1352,8 +1272,7 @@ base_type (tree type)
   if (type == error_mark_node)
     return error_mark_node;
 
-  /* Check for ordinal subranges.
-   */
+  /* Check for ordinal subranges.  */
   if (m2tree_IsOrdinal (type)
       && TREE_TYPE (type))
     type = TREE_TYPE (type);
@@ -1361,20 +1280,14 @@ base_type (tree type)
 }
 
 
-/*
- *  boolean_enum_to_unsigned - converts BOOLEAN_TYPEs and
- *                             ENUMERAL_TYPEs to unsigned int.
- */
+/* boolean_enum_to_unsigned convert a BOOLEAN_TYPE, t, or
+   ENUMERAL_TYPE to an unsigned type.  */
 
 static tree
 boolean_enum_to_unsigned (location_t location, tree t)
 {
   tree type = TREE_TYPE (t);
 
-#if 0
-  if (TREE_CODE (skip_type_decl (type)) == BOOLEAN_TYPE)
-    return convert (integer_type_node, t);
-#endif
   if (TREE_CODE (base_type (type)) == BOOLEAN_TYPE)
     return m2convert_BuildConvert (location, unsigned_type_node, t, FALSE);
   else if (TREE_CODE (base_type (type)) == ENUMERAL_TYPE)
@@ -1384,28 +1297,23 @@ boolean_enum_to_unsigned (location_t location, tree t)
 }
 
 
-/*
- *  check_for_comparison - checks to see if, op, is of type, badType.
- *                         If so then it returns op after it has been
- *                         cast to, goodType.  op will be an array
- *                         so we take the address and cast the contents.
- */
+/* check_for_comparison check to see if, op, is of type, badType.
+   If so then it returns op after it has been cast to, goodType.
+   op will be an array so we take the address and cast the contents.  */
 
 static tree
 check_for_comparison (location_t location, tree op, tree badType, tree goodType)
 {
   m2assert_AssertLocation (location);
   if (m2tree_skip_type_decl (TREE_TYPE (op)) == badType)
-    /* cannot compare array contents in m2expr_build_binary_op */
+    /* cannot compare array contents in m2expr_build_binary_op. */
     return m2expr_BuildIndirect (location, m2expr_BuildAddr (location, op, FALSE), goodType);
   return op;
 }
 
 
-/*
- *  convert_for_comparison - returns a tree which can be used as an argument
- *                           during a comparison.
- */
+/* convert_for_comparison return a tree which can be used as an
+   argument during a comparison.  */
 
 static tree
 convert_for_comparison (location_t location, tree op)
@@ -1422,9 +1330,7 @@ convert_for_comparison (location_t location, tree op)
 }
 
 
-/*
- *  BuildLessThan - return a tree which computes <
- */
+/* BuildLessThan return a tree which computes <.  */
 
 tree
 m2expr_BuildLessThan (location_t location, tree op1, tree op2)
@@ -1436,9 +1342,7 @@ m2expr_BuildLessThan (location_t location, tree op1, tree op2)
 }
 
 
-/*
- *  BuildGreaterThan - return a tree which computes >
- */
+/* BuildGreaterThan return a tree which computes >.  */
 
 tree
 m2expr_BuildGreaterThan (location_t location, tree op1, tree op2)
@@ -1450,9 +1354,7 @@ m2expr_BuildGreaterThan (location_t location, tree op1, tree op2)
 }
 
 
-/*
- *  BuildLessThanOrEqual - return a tree which computes <
- */
+/* BuildLessThanOrEqual return a tree which computes <.  */
 
 tree
 m2expr_BuildLessThanOrEqual (location_t location, tree op1, tree op2)
@@ -1464,9 +1366,7 @@ m2expr_BuildLessThanOrEqual (location_t location, tree op1, tree op2)
 }
 
 
-/*
- *  BuildGreaterThanOrEqual - return a tree which computes >=
- */
+/* BuildGreaterThanOrEqual return a tree which computes >=.  */
 
 tree
 m2expr_BuildGreaterThanOrEqual (location_t location, tree op1, tree op2)
@@ -1478,9 +1378,7 @@ m2expr_BuildGreaterThanOrEqual (location_t location, tree op1, tree op2)
 }
 
 
-/*
- *  BuildEqualTo - return a tree which computes =
- */
+/* BuildEqualTo return a tree which computes =.  */
 
 tree
 m2expr_BuildEqualTo (location_t location, tree op1, tree op2)
@@ -1492,9 +1390,7 @@ m2expr_BuildEqualTo (location_t location, tree op1, tree op2)
 }
 
 
-/*
- *  BuildEqualNotTo - return a tree which computes #
- */
+/* BuildEqualNotTo return a tree which computes #.  */
 
 tree
 m2expr_BuildNotEqualTo (location_t location, tree op1, tree op2)
@@ -1506,9 +1402,7 @@ m2expr_BuildNotEqualTo (location_t location, tree op1, tree op2)
 }
 
 
-/*
- *  BuildIsSuperset - return a tree which computes:  op1 & op2 == op2
- */
+/* BuildIsSuperset return a tree which computes:  op1 & op2 == op2.  */
 
 tree
 m2expr_BuildIsSuperset (location_t location, tree op1, tree op2)
@@ -1519,9 +1413,7 @@ m2expr_BuildIsSuperset (location_t location, tree op1, tree op2)
 }
 
 
-/*
- *  BuildIsNotSuperset - return a tree which computes: op1 & op2 != op2
- */
+/* BuildIsNotSuperset return a tree which computes: op1 & op2 != op2.  */
 
 tree
 m2expr_BuildIsNotSuperset (location_t location, tree op1, tree op2)
@@ -1532,9 +1424,7 @@ m2expr_BuildIsNotSuperset (location_t location, tree op1, tree op2)
 }
 
 
-/*
- *  BuildIsSubset - return a tree which computes:  op1 & op2 == op1
- */
+/* BuildIsSubset return a tree which computes:  op1 & op2 == op1.  */
 
 tree
 m2expr_BuildIsSubset (location_t location, tree op1, tree op2)
@@ -1545,9 +1435,7 @@ m2expr_BuildIsSubset (location_t location, tree op1, tree op2)
 }
 
 
-/*
- *  BuildIsNotSubset - return a tree which computes: op1 & op2 != op1
- */
+/* BuildIsNotSubset return a tree which computes: op1 & op2 != op1.  */
 
 tree
 m2expr_BuildIsNotSubset (location_t location, tree op1, tree op2)
@@ -1558,9 +1446,7 @@ m2expr_BuildIsNotSubset (location_t location, tree op1, tree op2)
 }
 
 
-/*
- *  BuildIfConstInVar - generates: if constel in varset then goto label.
- */
+/* BuildIfConstInVar generates: if constel in varset then goto label.  */
 
 void
 m2expr_BuildIfConstInVar (location_t location, tree type, tree varset, tree constel,
@@ -1586,9 +1472,7 @@ m2expr_BuildIfConstInVar (location_t location, tree type, tree varset, tree cons
 }
 
 
-/*
- *  BuildIfConstInVar - generates: if not (constel in varset) then goto label.
- */
+/* BuildIfConstInVar generates: if not (constel in varset) then goto label.  */
 
 void
 m2expr_BuildIfNotConstInVar (location_t location, tree type, tree varset, tree constel,
@@ -1601,7 +1485,7 @@ m2expr_BuildIfNotConstInVar (location_t location, tree type, tree varset, tree c
 
   ASSERT_BOOL (is_lvalue);
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
-    /* small set size <= TSIZE(WORD) */
+    /* small set size <= TSIZE(WORD).  */
     m2treelib_do_jump_if_bit (location, EQ_EXPR, m2treelib_get_rvalue (location, varset, type, is_lvalue), constel, label);
   else {
     tree fieldlist = TYPE_FIELDS (type);
@@ -1615,9 +1499,7 @@ m2expr_BuildIfNotConstInVar (location_t location, tree type, tree varset, tree c
 }
 
 
-/*
- *  BuildIfVarInVar - generates: if varel in varset then goto label
- */
+/* BuildIfVarInVar generates: if varel in varset then goto label.  */
 
 void
 m2expr_BuildIfVarInVar (location_t location,
@@ -1628,7 +1510,7 @@ m2expr_BuildIfVarInVar (location_t location,
                         char *label)
 {
   tree size = m2expr_GetSizeOf (location, type);
-  /* calculate the index from the first bit, ie bit 0 represents low value */
+  /* calculate the index from the first bit, ie bit 0 represents low value.  */
   tree index = m2expr_BuildSub (location,
 				m2convert_BuildConvert (location, m2type_GetIntegerType(), varel, FALSE),
                                 m2convert_BuildConvert (location, m2type_GetIntegerType(), low, FALSE), FALSE);
@@ -1636,30 +1518,28 @@ m2expr_BuildIfVarInVar (location_t location,
   m2assert_AssertLocation (location);
 
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
-    /* small set size <= TSIZE(WORD) */
+    /* small set size <= TSIZE(WORD).  */
     m2treelib_do_jump_if_bit (location, NE_EXPR, m2treelib_get_rvalue (location, varset, type, is_lvalue), index, label);
   else {
     tree p1               = m2treelib_get_set_address (location, varset, is_lvalue);
-    /* which word do we need to fetch? */
+    /* which word do we need to fetch?  */
     tree word_index       = m2expr_FoldAndStrip (m2expr_BuildDivTrunc (location, index, m2decl_BuildIntegerConstant (SET_WORD_SIZE), FALSE));
-    /* calculate the bit in this word */
+    /* calculate the bit in this word.  */
     tree offset_into_word = m2expr_FoldAndStrip (m2expr_BuildModTrunc (location, index, m2decl_BuildIntegerConstant (SET_WORD_SIZE), FALSE));
     tree p2               = m2expr_FoldAndStrip (m2expr_BuildMult (location,
 								   word_index, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT),
 								   FALSE));
 
-    /* calculate the address of the word we are interested in */
+    /* calculate the address of the word we are interested in.  */
     p1 = m2expr_BuildAddAddress (location, m2convert_convertToPtr (location, p1), p2);
 
-    /* fetch the word, extract the bit and test for != 0 */
+    /* fetch the word, extract the bit and test for != 0.  */
     m2treelib_do_jump_if_bit (location, NE_EXPR, m2expr_BuildIndirect (location, p1, m2type_GetBitsetType ()), offset_into_word, label);
   }
 }
 
 
-/*
- *  BuildIfNotVarInVar - generates: if not (varel in varset) then goto label
- */
+/* BuildIfNotVarInVar generates: if not (varel in varset) then goto label.  */
 
 void
 m2expr_BuildIfNotVarInVar (location_t location,
@@ -1670,7 +1550,7 @@ m2expr_BuildIfNotVarInVar (location_t location,
                            char *label)
 {
   tree size = m2expr_GetSizeOf (location, type);
-  /* calculate the index from the first bit, ie bit 0 represents low value */
+  /* calculate the index from the first bit, ie bit 0 represents low value.  */
   tree index = m2expr_BuildSub (location,
 				m2convert_BuildConvert (location, m2type_GetIntegerType(), m2expr_FoldAndStrip (varel), FALSE),
                                 m2convert_BuildConvert (location, m2type_GetIntegerType(), m2expr_FoldAndStrip (low), FALSE), FALSE);
@@ -1679,33 +1559,31 @@ m2expr_BuildIfNotVarInVar (location_t location,
   m2assert_AssertLocation (location);
 
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
-    /* small set size <= TSIZE(WORD) */
+    /* small set size <= TSIZE(WORD).  */
     m2treelib_do_jump_if_bit (location, EQ_EXPR, m2treelib_get_rvalue (location, varset, type, is_lvalue), index, label);
   else {
     tree p1               = m2treelib_get_set_address (location, varset, is_lvalue);
-    /* calculate the index from the first bit */
+    /* calculate the index from the first bit.  */
 
-    /* which word do we need to fetch? */
+    /* which word do we need to fetch?  */
     tree word_index       = m2expr_FoldAndStrip (m2expr_BuildDivTrunc (location, index, m2decl_BuildIntegerConstant (SET_WORD_SIZE), FALSE));
-    /* calculate the bit in this word */
+    /* calculate the bit in this word.  */
     tree offset_into_word = m2expr_FoldAndStrip (m2expr_BuildModTrunc (location, index, m2decl_BuildIntegerConstant (SET_WORD_SIZE), FALSE));
     tree p2               = m2expr_FoldAndStrip (m2expr_BuildMult (location, word_index,
 								   m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT),
 								   FALSE));
 
-    /* calculate the address of the word we are interested in */
+    /* calculate the address of the word we are interested in.  */
     p1 = m2expr_BuildAddAddress (location, p1, p2);
 
-    /* fetch the word, extract the bit and test for == 0 */
+    /* fetch the word, extract the bit and test for == 0.  */
     m2treelib_do_jump_if_bit (location, EQ_EXPR, m2expr_BuildIndirect (location, p1, m2type_GetBitsetType ()), offset_into_word, label);
   }
 }
 
 
-/*
- *  BuildForeachWordInSetDoIfExpr - foreach word in set, type, compute the expression, expr, and if true
- *                                  goto label.
- */
+/* BuildForeachWordInSetDoIfExpr foreach word in set, type, compute
+   the expression, expr, and if true goto label.  */
 
 void
 m2expr_BuildForeachWordInSetDoIfExpr (location_t location,
@@ -1738,9 +1616,8 @@ m2expr_BuildForeachWordInSetDoIfExpr (location_t location,
 }
 
 
-/*
- *  BuildIfInRangeGoto - if var is in the range low..high then goto label
- */
+/* BuildIfInRangeGoto returns a tree containing if var is in the range low..high
+   then goto label.  */
 
 void
 m2expr_BuildIfInRangeGoto (location_t location, tree var, tree low, tree high, char *label)
@@ -1760,9 +1637,8 @@ m2expr_BuildIfInRangeGoto (location_t location, tree var, tree low, tree high, c
 }
 
 
-/*
- *  BuildIfNotInRangeGoto - if var is not in the range low..high then goto label
- */
+/* BuildIfNotInRangeGoto returns a tree containing if var is not in the
+   range low..high then goto label.  */
 
 void
 m2expr_BuildIfNotInRangeGoto (location_t location, tree var, tree low, tree high, char *label)
