@@ -1,3 +1,11 @@
+2017-06-12      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  renamed target.c to host.c
+          and changed appropriate rules.
+	* gm2/gm2-libs-ch/host.c:  renamed from target.c
+          corrected dates and formatting.  Include gm2-libs-host.h
+	  rather than p2c.h.
+
 2017-06-09      Gaius Mulley <gaius@gnu.org>
 
  	* gm2/gm2-libs-ch/dtoa.c:  use memmove instead of memcpy.

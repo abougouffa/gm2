@@ -843,7 +843,7 @@ GM2-LIBS-MODS      = ASCII.mod         IO.mod          Args.mod        M2RTS.mod
 
 GM2-LIBS-C         = wrapc.c           UnixArgs.c      Selective.c     choosetemp.c    \
                      errno.c           dtoa.c          ldtoa.c         \
-                     termios.c         SysExceptions.c target.c
+                     termios.c         SysExceptions.c host.c
 
 GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Defaults.def  \
                      M2Options.def     P3SymBuild.def  M2ALU.def       M2Depth.def     \
@@ -1877,7 +1877,7 @@ gm2/gm2-compiler-paranoid/PHBuild.o: $(objdir)/gm2/gm2-compiler-paranoid/PHBuild
 gm2/gm2-compiler-paranoid/PCBuild.o: $(objdir)/gm2/gm2-compiler-paranoid/PCBuild.mod
 	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
-gm2/gm2-libs-paranoid/target.o: $(srcdir)/gm2/gm2-libs-ch/target.c gm2/gm2-libs/gm2-libs-host.h
+gm2/gm2-libs-paranoid/host.o: $(srcdir)/gm2/gm2-libs-ch/host.c gm2/gm2-libs/gm2-libs-host.h
 	$(CC) -c $(GM2_O_S3) $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $< -o $@
 
 gm2/gm2-libs-paranoid/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h gm2/gm2-libs/gm2-libs-host.h
