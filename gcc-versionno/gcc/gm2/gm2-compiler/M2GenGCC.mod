@@ -2882,7 +2882,7 @@ END DoCopyString ;
                         elements return FALSE, otherwise TRUE.
 *)
 
-PROCEDURE checkArrayElements (quad: CARDINAL; op1, op3: CARDINAL) : BOOLEAN ;
+PROCEDURE checkArrayElements (op1, op3: CARDINAL) : BOOLEAN ;
 VAR
    e1, e3  : Tree ;
    t1, t3  : CARDINAL ;
@@ -2958,7 +2958,7 @@ END HaveDifferentTypes ;
                       is the same type as op2.
 *)
 
-PROCEDURE checkRecordTypes (quad: CARDINAL; op1, op2: CARDINAL) : BOOLEAN ;
+PROCEDURE checkRecordTypes (op1, op2: CARDINAL) : BOOLEAN ;
 VAR
    t1, t2: CARDINAL ;
 BEGIN
@@ -2990,13 +2990,43 @@ END checkRecordTypes ;
 
 
 (*
+   checkIncorrectMeta -
+*)
+
+PROCEDURE checkIncorrectMeta (op1, op2: CARDINAL) : BOOLEAN ;
+VAR
+   t1, t2: CARDINAL ;
+BEGIN
+   t1 := SkipType(GetType(op1)) ;
+   t2 := SkipType(GetType(op2)) ;
+   IF (t1=NulSym) OR (GetMode(op1)=LeftValue) OR
+      (t2=NulSym) OR (GetMode(op2)=LeftValue)
+   THEN
+      RETURN( TRUE )
+   ELSIF (t1#t2) AND (NOT IsGenericSystemType(t1)) AND (NOT IsGenericSystemType(t2))
+   THEN
+      IF IsArray(t1) OR IsSet(t1) OR IsRecord(t1)
+      THEN
+         IF NOT IsAssignmentCompatible(t1, t2)
+         THEN
+            MetaErrorT2(CurrentQuadToken, 'illegal assignment error between {%1tad} and {%2tad}', op1, op2) ;
+	    RETURN( FALSE )
+         END
+      END
+   END ;
+   RETURN( TRUE )
+END checkIncorrectMeta ;
+
+
+(*
    checkBecomes - returns TRUE if the checks pass.
 *)
 
 PROCEDURE checkBecomes (quad: CARDINAL; op1, op2: CARDINAL) : BOOLEAN ;
 BEGIN
-   IF (NOT checkArrayElements(quad, op1, op2)) OR
-      (NOT checkRecordTypes(quad, op1, op2))
+   IF (NOT checkArrayElements(op1, op2)) OR
+      (NOT checkRecordTypes(op1, op2)) OR
+      (NOT checkIncorrectMeta(op1, op2))
    THEN
       RETURN( FALSE )
    END ;
@@ -3052,6 +3082,8 @@ BEGIN
             t := BuildAssignmentTree(location,
                                      Mod2Gcc(op1),
                                      FoldConstBecomes(CurrentQuadToken, op1, op3))
+         ELSE
+            SubQuad(quad)  (* we don't want multiple errors for the quad.  *)
          END
       END
    END
