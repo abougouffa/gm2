@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011, 2012, 2013, 2014, 2015
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -3019,13 +3019,13 @@ END DoCopyString ;
                         elements return FALSE, otherwise TRUE.
 *)
 
-PROCEDURE checkArrayElements (quad: CARDINAL; op1, op3: CARDINAL) : BOOLEAN ;
+PROCEDURE checkArrayElements (op1, op3: CARDINAL) : BOOLEAN ;
 VAR
    e1, e3  : Tree ;
    t1, t3  : CARDINAL ;
    location: location_t ;
 BEGIN
-   location := TokenToLocation(QuadToTokenNo(quad)) ;
+   location := TokenToLocation(CurrentQuadToken) ;
    t1 := GetType(op1) ;
    t3 := GetType(op3) ;
    IF (t1#NulSym) AND (t3#NulSym) AND
@@ -3036,7 +3036,7 @@ BEGIN
       e3 := GetArrayNoOfElements(location, Mod2Gcc(SkipType(GetType(op3)))) ;
       IF CompareTrees(e1, e3)#0
       THEN
-         MetaErrorT2(QuadToTokenNo(quad), 'not allowed to assign array {%2ad} to {%1ad} as they have a different number of elements',
+         MetaErrorT2(CurrentQuadToken, 'not allowed to assign array {%2ad} to {%1ad} as they have a different number of elements',
                      op1, op3) ;
          RETURN( FALSE )
       END
@@ -3097,7 +3097,7 @@ END HaveDifferentTypes ;
                       is the same type as op2.
 *)
 
-PROCEDURE checkRecordTypes (quad: CARDINAL; op1, op2: CARDINAL) : BOOLEAN ;
+PROCEDURE checkRecordTypes (op1, op2: CARDINAL) : BOOLEAN ;
 VAR
    t1, t2: CARDINAL ;
 BEGIN
@@ -3110,7 +3110,7 @@ BEGIN
       THEN
          IF GetType(op2)=NulSym
          THEN
-            MetaErrorT2(QuadToTokenNo(quad), 'cannot assign an operand of type {%1ts} to a record type {%2tsa}', op2, op1) ;
+            MetaErrorT2(CurrentQuadToken, 'cannot assign an operand of type {%1ts} to a record type {%2tsa}', op2, op1) ;
             RETURN( FALSE )
          ELSE
             t2 := SkipType(GetType(op2)) ;
@@ -3118,7 +3118,7 @@ BEGIN
             THEN
                RETURN( TRUE )
             ELSE
-               MetaErrorT2(QuadToTokenNo(quad), 'cannot assign an operand of type {%1ts} to a record type {%2tsa}', op2, op1) ;
+               MetaErrorT2(CurrentQuadToken, 'cannot assign an operand of type {%1ts} to a record type {%2tsa}', op2, op1) ;
 	       RETURN( FALSE )
             END
          END
@@ -3129,13 +3129,43 @@ END checkRecordTypes ;
 
 
 (*
+   checkIncorrectMeta -
+*)
+
+PROCEDURE checkIncorrectMeta (op1, op2: CARDINAL) : BOOLEAN ;
+VAR
+   t1, t2: CARDINAL ;
+BEGIN
+   t1 := SkipType(GetType(op1)) ;
+   t2 := SkipType(GetType(op2)) ;
+   IF (t1=NulSym) OR (GetMode(op1)=LeftValue) OR
+      (t2=NulSym) OR (GetMode(op2)=LeftValue)
+   THEN
+      RETURN( TRUE )
+   ELSIF (t1#t2) AND (NOT IsGenericSystemType(t1)) AND (NOT IsGenericSystemType(t2))
+   THEN
+      IF IsArray(t1) OR IsSet(t1) OR IsRecord(t1)
+      THEN
+         IF NOT IsAssignmentCompatible(t1, t2)
+         THEN
+            MetaErrorT2(CurrentQuadToken, 'illegal assignment error between {%1tad} and {%2tad}', op1, op2) ;
+	    RETURN( FALSE )
+         END
+      END
+   END ;
+   RETURN( TRUE )
+END checkIncorrectMeta ;
+
+
+(*
    checkBecomes - returns TRUE if the checks pass.
 *)
 
 PROCEDURE checkBecomes (quad: CARDINAL; op1, op2: CARDINAL) : BOOLEAN ;
 BEGIN
-   IF (NOT checkArrayElements(quad, op1, op2)) OR
-      (NOT checkRecordTypes(quad, op1, op2))
+   IF (NOT checkArrayElements(op1, op2)) OR
+      (NOT checkRecordTypes(op1, op2)) OR
+      (NOT checkIncorrectMeta(op1, op2))
    THEN
       RETURN( FALSE )
    END ;
@@ -3191,6 +3221,8 @@ BEGIN
             t := BuildAssignmentTree(location,
                                      Mod2Gcc(op1),
                                      FoldConstBecomes(QuadToTokenNo(quad), op1, op3))
+         ELSE
+            SubQuad(quad)  (* we don't want multiple errors for the quad.  *)
          END
       END
    END
