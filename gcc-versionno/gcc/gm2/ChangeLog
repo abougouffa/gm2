@@ -4,7 +4,13 @@
           and changed appropriate rules.
 	* gm2/gm2-libs-ch/host.c:  renamed from target.c
           corrected dates and formatting.  Include gm2-libs-host.h
-	  rather than p2c.h.
+          rather than p2c.h.
+	* gm2/gm2-compiler/M2GenGCC.mod:  checkArrayElements,
+          checkRecordTypes  remove first parameter, quad.
+          checkIncorrectMeta (New procedure function).
+          checkBecomes call checkIncorrectMeta.
+          (CodeBecomes) call SubQuad.  Fixes a bug reported by
+	  John Dubery.
 
 2017-06-09      Gaius Mulley <gaius@gnu.org>
 
