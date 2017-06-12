@@ -1866,6 +1866,8 @@ m2expr_BuildCap (location_t location, tree t)
 tree
 m2expr_BuildDivM2 (location_t location, tree op1, tree op2, unsigned int needsconvert)
 {
+  op1 = m2expr_FoldAndStrip(op1);
+  op2 = m2expr_FoldAndStrip(op2);
   ASSERT_CONDITION (TREE_TYPE (op1) == TREE_TYPE (op2));
   if (M2Options_GetPIM4 () || M2Options_GetISO () || M2Options_GetPositiveModFloor ())
     return fold_build3 (COND_EXPR, TREE_TYPE (op1),
@@ -1887,6 +1889,8 @@ m2expr_BuildDivM2 (location_t location, tree op1, tree op2, unsigned int needsco
 tree
 m2expr_BuildModM2 (location_t location, tree op1, tree op2, unsigned int needsconvert)
 {
+  op1 = m2expr_FoldAndStrip(op1);
+  op2 = m2expr_FoldAndStrip(op2);
   ASSERT_CONDITION (TREE_TYPE (op1) == TREE_TYPE (op2));
   if (M2Options_GetPIM4 () || M2Options_GetISO () || M2Options_GetPositiveModFloor ())
     return fold_build3 (COND_EXPR, TREE_TYPE (op1),

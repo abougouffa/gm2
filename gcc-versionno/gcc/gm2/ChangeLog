@@ -10,7 +10,9 @@
           checkIncorrectMeta (New procedure function).
           checkBecomes call checkIncorrectMeta.
           (CodeBecomes) call SubQuad.  Fixes a bug reported by
-	  John Dubery.
+          John Dubery.
+	* gm2/gm2-gcc/m2expr.c:  BuildModM2, BuildDivM2 fold and strip
+	  no ops before asserting their type.
 
 2017-06-09      Gaius Mulley <gaius@gnu.org>
 
