@@ -1,3 +1,7 @@
+2017-06-13      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-gcc/m2expr.c:  more gnu coding standard changes.
+
 2017-06-12      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  renamed target.c to host.c

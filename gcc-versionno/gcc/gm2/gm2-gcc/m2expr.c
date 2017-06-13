@@ -1906,10 +1906,8 @@ m2expr_BuildModM2 (location_t location, tree op1, tree op2, unsigned int needsco
 }
 
 
-/*
- *  BuildAbs - builds the Modula-2 function ABS(t) and returns
- *             the result in a gcc Tree.
- */
+/* BuildAbs build the Modula-2 function ABS(t) and return
+ * the result in a gcc Tree.  */
 
 tree
 m2expr_BuildAbs (location_t location, tree t)
@@ -1920,9 +1918,7 @@ m2expr_BuildAbs (location_t location, tree t)
 }
 
 
-/*
- *  BuildRe - builds an expression for the function RE.
- */
+/* BuildRe build an expression for the function RE.  */
 
 tree
 m2expr_BuildRe (tree op1)
@@ -1935,9 +1931,7 @@ m2expr_BuildRe (tree op1)
 }
 
 
-/*
- *  BuildIm - builds an expression for the function IM.
- */
+/* BuildIm build an expression for the function IM.  */
 
 tree
 m2expr_BuildIm (tree op1)
@@ -1950,9 +1944,7 @@ m2expr_BuildIm (tree op1)
 }
 
 
-/*
- *  BuildCmplx - builds an expression for the function CMPLX.
- */
+/* BuildCmplx build an expression for the function CMPLX.  */
 
 tree
 m2expr_BuildCmplx (location_t location, tree type, tree real, tree imag)
@@ -1975,12 +1967,9 @@ m2expr_BuildCmplx (location_t location, tree type, tree real, tree imag)
 }
 
 
-/*
- *  BuildBinaryForeachWordDo - provides the large set operators. Each word
- *                             (or less) of the set can be calculated by binop.
- *                             This procedure runs along each word of the
- *                             large set invoking the binop.
- */
+/* BuildBinaryForeachWordDo implements the large set operators. Each word
+   of the set can be calculated by binop.  This function runs along
+   each word of the large set invoking the binop.  */
 
 void
 m2expr_BuildBinaryForeachWordDo (location_t location, tree type, tree op1, tree op2, tree op3,
@@ -1999,38 +1988,39 @@ m2expr_BuildBinaryForeachWordDo (location_t location, tree type, tree op1, tree 
   ASSERT_BOOL (is_op2const);
   ASSERT_BOOL (is_op3const);
   if (m2expr_CompareTrees (size, m2decl_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
-    /* small set size <= TSIZE(WORD) */
+    /* small set size <= TSIZE(WORD).  */
     m2statement_BuildAssignmentTree (location, m2treelib_get_rvalue (location, op1, type, is_op1lvalue),
 				     (*binop) (location,
 					       m2treelib_get_rvalue (location, op2, type, is_op2lvalue),
 					       m2treelib_get_rvalue (location, op3, type, is_op3lvalue), FALSE));
-  else {
-    /* large set size > TSIZE(WORD) */
+  else
+    {
+      /* large set size > TSIZE(WORD).  */
 
-    tree p2     = m2treelib_get_set_address_if_var (location, op2, is_op2lvalue, is_op2const);
-    tree p3     = m2treelib_get_set_address_if_var (location, op3, is_op3lvalue, is_op3const);
-    unsigned int fieldNo = 0;
-    tree field1 = m2treelib_get_field_no (type, op1, is_op1const, fieldNo);
-    tree field2 = m2treelib_get_field_no (type, op2, is_op2const, fieldNo);
-    tree field3 = m2treelib_get_field_no (type, op3, is_op3const, fieldNo);
+      tree p2     = m2treelib_get_set_address_if_var (location, op2, is_op2lvalue, is_op2const);
+      tree p3     = m2treelib_get_set_address_if_var (location, op3, is_op3lvalue, is_op3const);
+      unsigned int fieldNo = 0;
+      tree field1 = m2treelib_get_field_no (type, op1, is_op1const, fieldNo);
+      tree field2 = m2treelib_get_field_no (type, op2, is_op2const, fieldNo);
+      tree field3 = m2treelib_get_field_no (type, op3, is_op3const, fieldNo);
 
-    if (is_op1const)
-      error_at (location, "internal error: not expecting operand1 to be a constant set");
+      if (is_op1const)
+	error_at (location, "internal error: not expecting operand1 to be a constant set");
 
-    while (field1 != NULL && field2 != NULL && field3 != NULL) {
-      m2statement_BuildAssignmentTree (location,
-				       m2treelib_get_set_field_des (location, op1, field1),
-				       (*binop) (location,
-						 m2treelib_get_set_value (location, p2, field2,
-									  is_op2const, is_op2lvalue, op2, fieldNo),
-						 m2treelib_get_set_value (location, p3, field3,
-									  is_op3const, is_op3lvalue, op3, fieldNo), FALSE));
-      fieldNo++;
-      field1 = m2treelib_get_field_no (type, op1, is_op1const, fieldNo);
-      field2 = m2treelib_get_field_no (type, op2, is_op2const, fieldNo);
-      field3 = m2treelib_get_field_no (type, op3, is_op3const, fieldNo);
+      while (field1 != NULL && field2 != NULL && field3 != NULL) {
+	m2statement_BuildAssignmentTree (location,
+					 m2treelib_get_set_field_des (location, op1, field1),
+					 (*binop) (location,
+						   m2treelib_get_set_value (location, p2, field2,
+									    is_op2const, is_op2lvalue, op2, fieldNo),
+						   m2treelib_get_set_value (location, p3, field3,
+									    is_op3const, is_op3lvalue, op3, fieldNo), FALSE));
+	fieldNo++;
+	field1 = m2treelib_get_field_no (type, op1, is_op1const, fieldNo);
+	field2 = m2treelib_get_field_no (type, op2, is_op2const, fieldNo);
+	field3 = m2treelib_get_field_no (type, op3, is_op3const, fieldNo);
+      }
     }
-  }
 }
 
 
@@ -2093,10 +2083,8 @@ append_digit (unsigned HOST_WIDE_INT *low, HOST_WIDE_INT *high,
 }
 
 
-/*
- *  interpret_integer - converts an integer constant into two integer
- *                      constants.  Heavily borrowed from gcc/cppexp.c.
- */
+/* interpret_integer convert an integer constant into two integer
+   constants.  Heavily borrowed from gcc/cppexp.c.  */
 
 int
 m2expr_interpret_integer (const char *str, unsigned int base,
@@ -2140,7 +2128,7 @@ m2expr_interpret_integer (const char *str, unsigned int base,
           else
             {
               overflow = append_digit (low, high, c, base);
-              max = 0;  /* from now on we always use append_digit */
+              max = 0;  /* from now on we always use append_digit.  */
             }
         }
     }
@@ -2206,15 +2194,11 @@ append_m2_digit (unsigned int *low, int *high,
 }
 
 
-/*
- * interpret_m2_integer - converts an integer constant into two integer
- *                        constants. Heavily borrowed from gcc/cppexp.c.
- *                        Note that this is a copy of the above code
- *                        except that it uses `int' rather than
- *                        HOST_WIDE_INT to allow gm2 to determine
- *                        what Modula-2 base type to use for this
- *                        constant.
- */
+/* interpret_m2_integer convert an integer constant into two integer
+   constants.  Heavily borrowed from gcc/cppexp.c.
+   Note that this is a copy of the above code except that it uses
+   `int' rather than HOST_WIDE_INT to allow gm2 to determine
+    what Modula-2 base type to use for this constant.  */
 
 int
 m2expr_interpret_m2_integer (const char *str, unsigned int base,
@@ -2258,7 +2242,7 @@ m2expr_interpret_m2_integer (const char *str, unsigned int base,
           else
             {
               overflow = append_m2_digit (low, high, c, base);
-              max = 0;  /* from now on we always use append_digit */
+              max = 0;  /* from now on we always use append_digit.  */
             }
         }
     }
@@ -2266,9 +2250,7 @@ m2expr_interpret_m2_integer (const char *str, unsigned int base,
 }
 
 
-/*
- *  m2expr_GetSizeOfInBits - returns the number of bits used to contain, type.
- */
+/* GetSizeOfInBits return the number of bits used to contain, type.  */
 
 tree
 m2expr_GetSizeOfInBits (tree type)
@@ -2308,9 +2290,7 @@ m2expr_GetSizeOfInBits (tree type)
 }
 
 
-/*
- *  m2expr_GetSizeOf - taken from c-typeck.c (c_sizeof).
- */
+/* GetSizeOf taken from c-typeck.c (c_sizeof).  */
 
 tree
 m2expr_GetSizeOf (location_t location, tree type)
@@ -2407,9 +2387,8 @@ m2expr_GetPointerOne (location_t location)
 }
 
 
-/*
- *  build_set_full_complement - returns a word size value with all bits set to one.
- */
+/* build_set_full_complement return a word size value with all bits
+   set to one.  */
 
 static tree
 build_set_full_complement (location_t location)
@@ -2431,9 +2410,7 @@ build_set_full_complement (location_t location)
 }
 
 
-/*
- *  init - initialise this module.
- */
+/* init initialise this module.  */
 
 void
 m2expr_init (location_t location)
