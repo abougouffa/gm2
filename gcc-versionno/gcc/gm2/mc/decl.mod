@@ -10293,7 +10293,7 @@ BEGIN
    THEN
       outText (p, 'M2RTS_HALT') ;
       setNeedSpace (p) ;
-      outText (p, '(0)')
+      outText (p, '(-1)')
    ELSIF expListLen (n^.funccallF.args) = 1
    THEN
       outText (p, 'M2RTS_HALT') ;

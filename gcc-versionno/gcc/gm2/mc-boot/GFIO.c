@@ -1010,40 +1010,40 @@ static void CheckAccess (FIO_File f, FileUsage use, unsigned int towrite)
         {
           if (f != FIO_StdErr)
             FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
-          M2RTS_HALT (0);
+          M2RTS_HALT (-1);
         }
       else
         if ((use == openedforwrite) && (fd->usage == openedforread))
           {
             FormatError1 ((char *) "this file (%s) has been opened for reading but is now being written\\n", 69, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
-            M2RTS_HALT (0);
+            M2RTS_HALT (-1);
           }
         else if ((use == openedforread) && (fd->usage == openedforwrite))
           {
             FormatError1 ((char *) "this file (%s) has been opened for writing but is now being read\\n", 66, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
-            M2RTS_HALT (0);
+            M2RTS_HALT (-1);
           }
         else if (fd->state == connectionfailure)
           {
             FormatError1 ((char *) "this file (%s) was not successfully opened\\n", 44, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
-            M2RTS_HALT (0);
+            M2RTS_HALT (-1);
           }
         else if (towrite != fd->output)
           if (fd->output)
             {
               FormatError1 ((char *) "this file (%s) was opened for writing but is now being read\\n", 61, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
-              M2RTS_HALT (0);
+              M2RTS_HALT (-1);
             }
           else
             {
               FormatError1 ((char *) "this file (%s) was opened for reading but is now being written\\n", 64, (unsigned char *) &fd->name.address, (sizeof (fd->name.address)-1));
-              M2RTS_HALT (0);
+              M2RTS_HALT (-1);
             }
     }
   else
     {
       FormatError ((char *) "this file has not been opened successfully\\n", 44);
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
     }
 }
 
@@ -1150,7 +1150,7 @@ static void PreInitialize (FIO_File f, char *fname_, unsigned int _fname_high, F
         {
           fe = Indexing_GetIndice (FileInfo, (unsigned int) FIO_StdErr);
           if (fe == NULL)
-            M2RTS_HALT (0);
+            M2RTS_HALT (-1);
           else
             fd->unixfd = fe->unixfd;
         }
@@ -1158,7 +1158,7 @@ static void PreInitialize (FIO_File f, char *fname_, unsigned int _fname_high, F
         fd->unixfd = osfd;
     }
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -1178,7 +1178,7 @@ static void Init (void)
   FIO_StdErr = 3;
   PreInitialize (FIO_StdErr, (char *) "<stderr>", 8, (FileStatus) successful, (FileUsage) openedforwrite, TRUE, 2, MaxBufferLength);
   if (! (M2RTS_InstallTerminationProcedure ((PROC ) {(PROC_t) FIO_FlushOutErr})))
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -1899,7 +1899,7 @@ void FIO_GetFileName (FIO_File f, char *a, unsigned int _a_high)
       if (fd == NULL)
         {
           FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
-          M2RTS_HALT (0);
+          M2RTS_HALT (-1);
         }
       else
         if (fd->name.address == NULL)
@@ -1933,7 +1933,7 @@ void * FIO_getFileName (FIO_File f)
       if (fd == NULL)
         {
           FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
-          M2RTS_HALT (0);
+          M2RTS_HALT (-1);
         }
       else
         return fd->name.address;
@@ -1955,7 +1955,7 @@ unsigned int FIO_getFileNameLength (FIO_File f)
       if (fd == NULL)
         {
           FormatError ((char *) "this file has probably been closed and not reopened successfully or alternatively never opened\\n", 96);
-          M2RTS_HALT (0);
+          M2RTS_HALT (-1);
         }
       else
         return fd->name.size;

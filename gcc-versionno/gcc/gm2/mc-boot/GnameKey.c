@@ -263,7 +263,7 @@ nameKey_Name nameKey_makeKey (char *a_, unsigned int _a_high)
   higha = StrLib_StrLen ((char *) a, _a_high);
   Storage_ALLOCATE ((void **) &p, higha+1);
   if (p == NULL)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     {
       n = p;
@@ -303,7 +303,7 @@ nameKey_Name nameKey_makekey (void * a)
       higha = libc_strlen (a);
       Storage_ALLOCATE ((void **) &p, higha+1);
       if (p == NULL)
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
       else
         {
           n = p;

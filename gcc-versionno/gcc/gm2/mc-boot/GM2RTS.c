@@ -299,7 +299,7 @@ void M2RTS_Halt (char *file_, unsigned int _file_high, unsigned int line, char *
   memcpy (description, description_, _description_high+1);
 
   M2RTS_ErrorMessage ((char *) description, _description_high, (char *) file, _file_high, line, (char *) function, _function_high);
-  M2RTS_HALT (0);
+  M2RTS_HALT (-1);
 }
 
 

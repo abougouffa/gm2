@@ -6206,7 +6206,7 @@ static decl_node newNode (nodeT k)
 
   Storage_ALLOCATE ((void **) &d, sizeof (_T1));
   if (d == NULL)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     {
       d->kind = k;
@@ -6523,7 +6523,7 @@ static decl_node addToScope (decl_node n)
         }
       return addTo (&s->impF.decls, n);
     }
-  M2RTS_HALT (0);
+  M2RTS_HALT (-1);
 }
 
 
@@ -7221,7 +7221,7 @@ static decl_node makeCast (decl_node c, decl_node p)
   if ((expListLen (p)) == 1)
     return makeBinary ((nodeT) cast, c, getExpList (p, 1), c);
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -7488,14 +7488,14 @@ static DynamicStrings_String getStringContents (decl_node n)
     return getStringContents (n->constF.value);
   else if (decl_isLiteral (n))
     {
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
       return NULL;
     }
   else if (isString (n))
     return getString (n);
   else if (isConstExp (n))
     return getStringContents (n->unaryF.arg);
-  M2RTS_HALT (0);
+  M2RTS_HALT (-1);
 }
 
 
@@ -7735,7 +7735,7 @@ static decl_node makeBase (nodeT k)
 
 
       default:
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
         break;
     }
   return n;
@@ -7888,7 +7888,7 @@ static decl_node doGetFuncType (decl_node n)
         case excl:
         case new:
         case dispose:
-          M2RTS_HALT (0);
+          M2RTS_HALT (-1);
           break;
 
         case length:
@@ -8124,7 +8124,7 @@ static decl_node doGetExprType (decl_node n)
       case if_:
       case elsif:
       case assignment:
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
         break;
 
       case cast:
@@ -8230,7 +8230,7 @@ static decl_node doGetExprType (decl_node n)
       default:
         CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
     }
-  M2RTS_HALT (0);
+  M2RTS_HALT (-1);
 }
 
 
@@ -8363,7 +8363,7 @@ static decl_node getSymScope (decl_node n)
       default:
         CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
     }
-  M2RTS_HALT (0);
+  M2RTS_HALT (-1);
 }
 
 
@@ -8426,7 +8426,7 @@ static DynamicStrings_String getString (decl_node n)
 
 static void doNone (decl_node n)
 {
-  M2RTS_HALT (0);
+  M2RTS_HALT (-1);
 }
 
 
@@ -9287,7 +9287,7 @@ static void doThrowC (mcPretty_pretty p, decl_node n)
 {
   mcDebug_assert (isFuncCall (n));
   if (n->funccallF.args == NULL)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     if ((expListLen (n->funccallF.args)) == 1)
       {
@@ -9298,7 +9298,7 @@ static void doThrowC (mcPretty_pretty p, decl_node n)
         outText (p, (char *) ")", 1);
       }
     else
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
 }
 
 
@@ -9410,7 +9410,7 @@ static void doExprC (mcPretty_pretty p, decl_node n)
       case re:
       case im:
       case cmplx:
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
         break;
 
       case deref:
@@ -9887,7 +9887,7 @@ static void doString (mcPretty_pretty p, decl_node n)
   s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n)));
   outTextS (p, s);
   s = DynamicStrings_KillString (s);
-  M2RTS_HALT (0);
+  M2RTS_HALT (-1);
 }
 
 
@@ -10892,7 +10892,7 @@ static decl_node doMin (decl_node n)
   else if (n == addressN)
     return lookupConst (addressN, nameKey_makeKey ((char *) "((void *) 0)", 12));
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -10955,7 +10955,7 @@ static decl_node doMax (decl_node n)
       return NULL;
     }
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -11393,7 +11393,7 @@ static void doVarientFieldC (mcPretty_pretty p, decl_node n)
           outText (p, (char *) ";\\n", 3);
         }
       else
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
       i += 1;
     }
   if (! n->varientfieldF.simple)
@@ -11421,9 +11421,9 @@ static void doVarientC (mcPretty_pretty p, decl_node n)
           outText (p, (char *) ";  /* case tag */\\n", 19);
         }
       else if (decl_isVarientField (n->varientF.tag))
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
       else
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
     }
   outText (p, (char *) "union", 5);
   mcPretty_setNeedSpace (p);
@@ -11445,7 +11445,7 @@ static void doVarientC (mcPretty_pretty p, decl_node n)
       else if (decl_isVarientField (q))
         doVarientFieldC (p, q);
       else
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
       i += 1;
     }
   p = outKc (p, (char *) "}", 1);
@@ -11585,7 +11585,7 @@ static void doTypeC (mcPretty_pretty p, decl_node n, decl_node *m)
       mcPretty_print (p, (char *) "to do ...  typedef etc etc ", 27);
       doFQNameC (p, n);
       mcPretty_print (p, (char *) ";\\n", 3);
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
     }
 }
 
@@ -13595,7 +13595,7 @@ static void doInclC (mcPretty_pretty p, decl_node n)
           outText (p, (char *) "))", 2);
         }
       else
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
     }
 }
 
@@ -13630,7 +13630,7 @@ static void doExclC (mcPretty_pretty p, decl_node n)
           outText (p, (char *) ")))", 3);
         }
       else
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
     }
 }
 
@@ -13645,7 +13645,7 @@ static void doNewC (mcPretty_pretty p, decl_node n)
 
   mcDebug_assert (isFuncCall (n));
   if (n->funccallF.args == NULL)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     if ((expListLen (n->funccallF.args)) == 1)
       {
@@ -13685,7 +13685,7 @@ static void doDisposeC (mcPretty_pretty p, decl_node n)
 
   mcDebug_assert (isFuncCall (n));
   if (n->funccallF.args == NULL)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     if ((expListLen (n->funccallF.args)) == 1)
       {
@@ -13713,7 +13713,7 @@ static void doDisposeC (mcPretty_pretty p, decl_node n)
           mcMetaError_metaError1 ((char *) "expecting a pointer type variable as the argument to DISPOSE, rather than {%1ad}", 80, (unsigned char *) &t, (sizeof (t)-1));
       }
     else
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
 }
 
 
@@ -13725,7 +13725,7 @@ static void doCapC (mcPretty_pretty p, decl_node n)
 {
   mcDebug_assert (isFuncCall (n));
   if (n->funccallF.args == NULL)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     if ((expListLen (n->funccallF.args)) == 1)
       {
@@ -13737,7 +13737,7 @@ static void doCapC (mcPretty_pretty p, decl_node n)
         outText (p, (char *) ")", 1);
       }
     else
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
 }
 
 
@@ -13751,7 +13751,7 @@ static void doLengthC (mcPretty_pretty p, decl_node n)
 
   mcDebug_assert (isFuncCall (n));
   if (n->funccallF.args == NULL)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     if ((expListLen (n->funccallF.args)) == 1)
       {
@@ -13767,7 +13767,7 @@ static void doLengthC (mcPretty_pretty p, decl_node n)
         outText (p, (char *) ")", 1);
       }
     else
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
 }
 
 
@@ -13783,7 +13783,7 @@ static void doAbsC (mcPretty_pretty p, decl_node n)
   if ((n->funccallF.args != NULL) && ((expListLen (n->funccallF.args)) == 1))
     t = getExprType (n);
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   if (t == longintN)
     {
       keyc_useLabs ();
@@ -13807,7 +13807,7 @@ static void doAbsC (mcPretty_pretty p, decl_node n)
   else if (t == cardinalN)
     {}  /* empty.  */
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   mcPretty_setNeedSpace (p);
   doFuncArgsC (p, n, (Indexing_Index) NULL, TRUE);
 }
@@ -13821,7 +13821,7 @@ static void doValC (mcPretty_pretty p, decl_node n)
 {
   mcDebug_assert (isFuncCall (n));
   if (n->funccallF.args == NULL)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     if ((expListLen (n->funccallF.args)) == 2)
       {
@@ -13834,7 +13834,7 @@ static void doValC (mcPretty_pretty p, decl_node n)
         outText (p, (char *) ")", 1);
       }
     else
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
 }
 
 
@@ -13849,7 +13849,7 @@ static void doMinC (mcPretty_pretty p, decl_node n)
 
   mcDebug_assert (isFuncCall (n));
   if (n->funccallF.args == NULL)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     if ((expListLen (n->funccallF.args)) == 1)
       {
@@ -13858,7 +13858,7 @@ static void doMinC (mcPretty_pretty p, decl_node n)
         doExprC (p, getMin (t));
       }
     else
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
 }
 
 
@@ -13873,7 +13873,7 @@ static void doMaxC (mcPretty_pretty p, decl_node n)
 
   mcDebug_assert (isFuncCall (n));
   if (n->funccallF.args == NULL)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     if ((expListLen (n->funccallF.args)) == 1)
       {
@@ -13882,7 +13882,7 @@ static void doMaxC (mcPretty_pretty p, decl_node n)
         doExprC (p, getMax (t));
       }
     else
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
 }
 
 
@@ -13942,7 +13942,7 @@ static void doHalt (mcPretty_pretty p, decl_node n)
     {
       outText (p, (char *) "M2RTS_HALT", 10);
       mcPretty_setNeedSpace (p);
-      outText (p, (char *) "(0)", 3);
+      outText (p, (char *) "(-1)", 4);
     }
   else if ((expListLen (n->funccallF.args)) == 1)
     {
@@ -13967,14 +13967,14 @@ static void doReC (mcPretty_pretty p, decl_node n)
   if ((n->funccallF.args != NULL) && ((expListLen (n->funccallF.args)) == 1))
     t = getExprType (n);
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   if (t == realN)
     {
       keyc_useComplex ();
       outText (p, (char *) "creal", 5);
     }
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   mcPretty_setNeedSpace (p);
   doFuncArgsC (p, n, (Indexing_Index) NULL, TRUE);
 }
@@ -13992,14 +13992,14 @@ static void doImC (mcPretty_pretty p, decl_node n)
   if ((n->funccallF.args != NULL) && ((expListLen (n->funccallF.args)) == 1))
     t = getExprType (n);
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   if (t == realN)
     {
       keyc_useComplex ();
       outText (p, (char *) "cimag", 5);
     }
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   mcPretty_setNeedSpace (p);
   doFuncArgsC (p, n, (Indexing_Index) NULL, TRUE);
 }
@@ -14032,9 +14032,9 @@ static void doCmplx (mcPretty_pretty p, decl_node n)
         outText (p, (char *) ")", 1);
       }
     else
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -14695,7 +14695,7 @@ static void doStatementsC (mcPretty_pretty p, decl_node s)
   else if (decl_isExit (s))
     doExitC (p, s);
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 static void stop (void)
@@ -15769,7 +15769,7 @@ static dependentState doDependants (alists_alist l, decl_node n)
       case if_:
       case elsif:
       case assignment:
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
         break;
 
       case componentref:
@@ -17145,7 +17145,7 @@ static DynamicStrings_String genKind (decl_node n)
       default:
         CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
     }
-  M2RTS_HALT (0);
+  M2RTS_HALT (-1);
 }
 
 
@@ -17794,7 +17794,7 @@ static void outC (mcPretty_pretty p, decl_node n)
   else if (decl_isModule (n))
     outModuleC (p, n);
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   keyc_leaveScope (n);
 }
 
@@ -17889,7 +17889,7 @@ static void doVarientFieldM2 (mcPretty_pretty p, decl_node n)
           outText (p, (char *) ";\\n", 3);
         }
       else
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
       i += 1;
     }
 }
@@ -17916,7 +17916,7 @@ static void doVarientM2 (mcPretty_pretty p, decl_node n)
       else if (decl_isVarientField (n->varientF.tag))
         doVarientFieldM2 (p, n->varientF.tag);
       else
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
     }
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "OF\\n", 4);
@@ -17937,7 +17937,7 @@ static void doVarientM2 (mcPretty_pretty p, decl_node n)
       else if (decl_isVarientField (q))
         doVarientFieldM2 (p, q);
       else
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
       i += 1;
     }
   outText (p, (char *) "END", 3);
@@ -18462,7 +18462,7 @@ static void outM2 (mcPretty_pretty p, decl_node n)
   else if (decl_isModule (n))
     outModuleM2 (p, n);
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -18567,7 +18567,7 @@ static void dbgRecord (alists_alist l, decl_node n)
       else if (decl_isVarient (q))
         out1 ((char *) " <varient %s", 12, q);
       else
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
       q = dbgAdd (l, decl_getType (q));
       out1 ((char *) ": %s>\\n", 7, q);
       i += 1;
@@ -18608,7 +18608,7 @@ static void dbgVarient (alists_alist l, decl_node n)
       else if (decl_isVarient (q))
         out1 ((char *) " <varient %s", 12, q);
       else
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
       q = dbgAdd (l, decl_getType (q));
       out1 ((char *) ": %s>\\n", 7, q);
       i += 1;
@@ -18891,7 +18891,7 @@ static decl_node doDupExpr (decl_node n)
       case return_:
       case stmtseq:
       case comment:
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
         break;
 
       case nil:
@@ -19906,7 +19906,7 @@ decl_node decl_getType (decl_node n)
       case if_:
       case elsif:
       case assignment:
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
         break;
 
       case cmplx:
@@ -19997,7 +19997,7 @@ decl_node decl_getType (decl_node n)
       default:
         CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
     }
-  M2RTS_HALT (0);
+  M2RTS_HALT (-1);
 }
 
 
@@ -21356,7 +21356,7 @@ nameKey_Name decl_getSymName (decl_node n)
 
 
       default:
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
         break;
     }
 }
@@ -21469,7 +21469,7 @@ void decl_addImportedModule (decl_node m, decl_node i, unsigned int scoped)
   else if (decl_isModule (m))
     Indexing_IncludeIndiceIntoIndex (m->moduleF.importedModules, (void *) i);
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   if (scoped)
     addModuleToScope (m, i);
 }
@@ -21578,7 +21578,7 @@ void decl_foreachModModuleDo (symbolKey_performOperation p)
 void decl_enterScope (decl_node n)
 {
   if (Indexing_IsIndiceInIndex (scopeStack, (void *) n))
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     Indexing_IncludeIndiceIntoIndex (scopeStack, (void *) n);
   if (debugScopes)
@@ -21945,7 +21945,7 @@ decl_node decl_makeBinaryTok (mcReserved_toktype op, decl_node l, decl_node r)
   else if (op == mcReserved_dividetok)
     return makeBinary ((nodeT) divide, l, r, (decl_node) NULL);
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -21963,7 +21963,7 @@ decl_node decl_makeUnaryTok (mcReserved_toktype op, decl_node e)
   else if (op == mcReserved_minustok)
     return makeUnary ((nodeT) neg, e, (decl_node) NULL);
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 

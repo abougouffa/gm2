@@ -254,6 +254,7 @@ TYPE
                  Offset      : PtrToValue ;   (* Offset at runtime of symbol *)
                  Type        : CARDINAL ;     (* Type of the Array.          *)
                  Align       : CARDINAL ;     (* Alignment for this type.    *)
+		 Large       : BOOLEAN ;      (* is this a large array?      *)
                  oafamily    : CARDINAL ;     (* The oafamily for this sym   *)
                  Scope       : CARDINAL ;     (* Scope of declaration.       *)
                  At          : Where ;        (* Where was sym declared/used *)
@@ -4641,6 +4642,7 @@ BEGIN
             Size := InitValue() ;   (* Size of array.                      *)
             Offset := InitValue() ; (* Offset of array.                    *)
             Type := NulSym ;        (* The Array Type. ARRAY OF Type.      *)
+	    Large := FALSE ;        (* is this array large?                *)
             Align := NulSym ;       (* The alignment of this type.         *)
             oafamily := oaf ;       (* The unbounded for this array        *)
             Scope := GetCurrentScope() ;        (* Which scope created it  *)
@@ -4651,6 +4653,41 @@ BEGIN
    ForeachOAFamily(oaf, doFillInOAFamily) ;
    RETURN( sym )
 END MakeArray ;
+
+
+(*
+   PutArrayLarge - indicates that this is a large array in which case
+                   the interface to gcc maps this array from 0..high-low,
+                   using an integer indice.
+*)
+
+PROCEDURE PutArrayLarge (array: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   IF NOT IsError(array)
+   THEN
+      Assert(IsArray(array)) ;
+      pSym := GetPsym(array) ;
+      WITH pSym^.Array DO
+         Large := TRUE
+      END
+   END
+END PutArrayLarge ;
+
+
+(*
+   IsArrayLarge - returns TRUE if we need to treat this as a large array.
+*)
+
+PROCEDURE IsArrayLarge (array: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   Assert(IsArray(array)) ;
+   pSym := GetPsym(array) ;
+   RETURN( pSym^.Array.Large )
+END IsArrayLarge ;
 
 
 (*

@@ -379,7 +379,7 @@ static sourceList newElement (void * s)
 
   Storage_ALLOCATE ((void **) &l, sizeof (_T1));
   if (l == NULL)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     {
       l->name = DynamicStrings_InitStringCharStar (s);
@@ -828,7 +828,7 @@ static void doGetToken (void)
         {
           a = mcflex_getToken ();
           if (listOfTokens.tail == NULL)
-            M2RTS_HALT (0);
+            M2RTS_HALT (-1);
         }
       if (currentTokNo >= listOfTokens.lastBucketOffset)
         if ((currentTokNo-listOfTokens.lastBucketOffset) < listOfTokens.tail->len)

@@ -124,7 +124,7 @@ void * mcStack_pop (mcStack_stack s)
   void * a;
 
   if (s->count == 0)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     {
       s->count -= 1;
@@ -168,7 +168,7 @@ unsigned int mcStack_depth (mcStack_stack s)
 void * mcStack_access (mcStack_stack s, unsigned int i)
 {
   if ((i > s->count) || (i == 0))
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     return Indexing_GetIndice (s->list, i);
 }

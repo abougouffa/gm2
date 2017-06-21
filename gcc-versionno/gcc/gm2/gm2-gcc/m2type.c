@@ -297,23 +297,67 @@ gm2_build_array_type (tree elementtype, tree indextype, int fetype)
 }
 
 
+/* ValueInTypeRange returns TRUE if the constant, value, lies within the range
+   of, type.  */
+
+int
+m2type_ValueInTypeRange (tree type, tree value)
+{
+  tree low_type = m2tree_skip_type_decl (type);
+  tree min_value = TYPE_MIN_VALUE (low_type);
+  tree max_value = TYPE_MAX_VALUE (low_type);
+
+  value = m2expr_FoldAndStrip (value);
+  return ((tree_int_cst_compare (min_value, value) <= 0)
+	  && (tree_int_cst_compare (value, max_value) <= 0));
+}
+
+/* ValueOutOfTypeRange returns TRUE if the constant, value, exceeds the range
+   of, type.  */
+
+int
+m2type_ValueOutOfTypeRange (tree type, tree value)
+{
+  return (! m2type_ValueInTypeRange (type, value));
+}
+
+
+/* ExceedsTypeRange return TRUE if low or high exceed the range of, type.  */
+
+int m2type_ExceedsTypeRange (tree type, tree low, tree high)
+{
+  return (m2type_ValueOutOfTypeRange (type, low) ||
+	  m2type_ValueOutOfTypeRange (type, high));
+}
+
+
+/* WithinTypeRange return TRUE if low and high are within the range of, type.  */
+
+int m2type_WithinTypeRange (tree type, tree low, tree high)
+{
+  return (m2type_ValueInTypeRange (type, low) &&
+	  m2type_ValueInTypeRange (type, high));
+}
+
+
 /*
  *  BuildArrayIndexType - creates an integer index which accesses an array.
  *                        low and high are the min, max elements of the array.
+ *                        GCC insists we access an array with an integer indice.
  */
 
 tree
 m2type_BuildArrayIndexType (tree low, tree high)
 {
-  tree sizelow = convert (m2_z_type_node, m2expr_FoldAndStrip (low));
-  tree sizehigh = convert (m2_z_type_node, m2expr_FoldAndStrip (high));
+  tree sizelow = convert (m2type_GetIntegerType (), m2expr_FoldAndStrip (low));
+  tree sizehigh = convert (m2type_GetIntegerType (), m2expr_FoldAndStrip (high));
 
   if (m2expr_TreeOverflow (sizelow))
     error("low bound for the array is outside the ztype limits");
   if (m2expr_TreeOverflow (sizehigh))
     error("high bound for the array is outside the ztype limits");
 
-  return build_range_type (m2_z_type_node,
+  return build_range_type (m2type_GetIntegerType (),
 			   m2expr_FoldAndStrip (sizelow),
 			   m2expr_FoldAndStrip (sizehigh));
 }

@@ -10,6 +10,36 @@ TYPE
 
 
 (*
+   ValueInTypeRange - returns TRUE if the constant, value, lies in the range
+                      of, type.
+*)
+
+PROCEDURE ValueInTypeRange (type: Tree; value: Tree) : BOOLEAN ;
+
+
+(*
+   ValueOutOfTypeRange - returns TRUE if the constant, value, exceed the range
+                         of, type.
+*)
+
+PROCEDURE ValueOutOfTypeRange (type: Tree; value: Tree) : BOOLEAN ;
+
+
+(*
+   ExceedsTypeRange - return TRUE if low or high exceed the range of, type.
+*)
+
+PROCEDURE ExceedsTypeRange (type: Tree; low, high: Tree) : BOOLEAN ;
+
+
+(*
+   WithinTypeRange - return TRUE if low and high are within the range of, type.
+*)
+
+PROCEDURE WithinTypeRange (type: Tree; low, high: Tree) : BOOLEAN ;
+
+
+(*
     BuildSubrangeType - creates a subrange of, type, with, lowval, highval.
 *)
 

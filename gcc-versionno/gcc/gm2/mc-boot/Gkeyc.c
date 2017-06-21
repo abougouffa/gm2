@@ -1184,7 +1184,7 @@ void keyc_leaveScope (decl_node n)
       s->next = NULL;
     }
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
@@ -1214,7 +1214,7 @@ DynamicStrings_String keyc_cname (nameKey_Name n, unsigned int scopes)
           }
       }
     else
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
   else if (scopes)
     symbolKey_putSymKey (stack->symbols, n, (void *) DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
   return m;
@@ -1244,7 +1244,7 @@ nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes)
           symbolKey_putSymKey (stack->symbols, n, (void *) m);
       }
     else
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
   else if (scopes)
     symbolKey_putSymKey (stack->symbols, n, (void *) DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
   m = DynamicStrings_KillString (m);

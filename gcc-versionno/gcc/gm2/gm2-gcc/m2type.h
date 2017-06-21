@@ -1,4 +1,4 @@
-/* Copyright (C) 2012, 2013, 2014, 2015
+/* Copyright (C) 2012, 2013, 2014, 2015, 2016, 2017
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -29,7 +29,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #      if defined(__GNUG__)
 #         define EXTERN extern "C"
 #      else
-#         define EXTERN 
+#         define EXTERN
 #      endif
 #   else
 #      if defined(__GNUG__)
@@ -41,6 +41,10 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 
 typedef void* m2type_Constructor;
 
+EXTERN int m2type_ValueInTypeRange (tree type, tree value);
+EXTERN int m2type_ExceedsTypeRange (tree type, tree low, tree high);
+EXTERN int m2type_ValueOutOfTypeRange (tree type, tree value);
+EXTERN int m2type_WithinTypeRange (tree type, tree low, tree high);
 EXTERN tree m2type_BuildStartArrayType (tree index_type, tree elt_type, int type);
 EXTERN void m2type_PutArrayType (tree array, tree type);
 EXTERN tree m2type_BuildEndArrayType (tree arraytype, tree elementtype, tree indextype, int type);

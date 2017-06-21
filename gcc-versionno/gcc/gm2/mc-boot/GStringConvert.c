@@ -648,7 +648,7 @@ static unsigned int DetermineSafeTruncation (void)
 
 static DynamicStrings_String rtos (double r, unsigned int TotalWidth, unsigned int FractionWidth)
 {
-  M2RTS_HALT (0);
+  M2RTS_HALT (-1);
   return NULL;
 }
 
@@ -659,7 +659,7 @@ static DynamicStrings_String rtos (double r, unsigned int TotalWidth, unsigned i
 
 static DynamicStrings_String lrtos (long double r, unsigned int TotalWidth, unsigned int FractionWidth)
 {
-  M2RTS_HALT (0);
+  M2RTS_HALT (-1);
   return NULL;
 }
 

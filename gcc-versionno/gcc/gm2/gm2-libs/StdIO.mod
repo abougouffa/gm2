@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -47,7 +47,7 @@ END Read ;
    Write - is the generic procedure that all higher application layers
            should use to emit a character.
 *)
- 
+
 PROCEDURE Write (ch: CHAR) ;
 BEGIN
    StackW[StackWPtr](ch)
@@ -119,7 +119,7 @@ BEGIN
    END
 END PushInput ;
 
- 
+
 (*
    PopInput - restores Write to use the previous output procedure.
 *)
@@ -152,7 +152,7 @@ END GetCurrentInput ;
 
 BEGIN
    StackWPtr := 0 ;
-   StackWPtr := 0 ;
+   StackRPtr := 0 ;
    PushOutput(IO.Write) ;
    PushInput(IO.Read)
 END StdIO.

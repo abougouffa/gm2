@@ -1,3 +1,55 @@
+2017-06-21      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/map/StoreCoord.mod:  spacing.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  handle large arrays.
+          (BuildIndex) rewritten to check whether we need to use a large
+          array.  Check for overflow and emit error if we exceed
+	  implementation restriction.
+	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeArray) rewritten to
+	  implement large arrays if necessary.
+	* gm2/gm2-compiler/SymbolTable.def:  (PutArrayLarge) New procedure.
+	  (IsArrayLarge) New function procedure.
+	* gm2/gm2-compiler/SymbolTable.mod:  (Array) new field Large.
+          (PutArrayLarge) New procedure.  (IsArrayLarge) New procedure
+	  function.
+	* gm2/gm2-gcc/m2convert.c:  corrected dates.
+	* gm2/gm2-gcc/m2expr.c:  (BuildArray) convert low_indice and
+	  use build4_loc rather than build4 to generate an array reference.
+	* gm2/gm2-gcc/m2type.c:  (ValueInTypeRange)  New function.
+          (ValueOutOfTypeRange)  New function.  (ExceedsTypeRange)
+          New function.  (WithinTypeRange)  New function.
+          (BuildArrayIndexType)  use integer type as the base index to an array
+	  rather than the Z type.  GCC restriction.
+	* gm2/gm2-gcc/m2type.def:  (ValueInTypeRange)  New function.
+          (ValueOutOfTypeRange)  New function.  (ExceedsTypeRange)
+          New function.  (WithinTypeRange)  New function.
+	* gm2/gm2-gcc/m2type.h:  (ValueInTypeRange)  New function.
+          (ValueOutOfTypeRange)  New function.  (ExceedsTypeRange)
+          New function.  (WithinTypeRange)  New function.
+	* gm2/gm2-libs/StdIO.mod:  initialise StackRPtr.
+	* gm2/m2pp.c:  (m2pp_call_expr) use m2pp_expression
+          rather than m2pp_identifier.
+	* gm2/mc-boot/GAssertion.c:  regenerated.
+	* gm2/mc-boot/GDebug.c:  regenerated.
+	* gm2/mc-boot/GDynamicStrings.c:  regenerated.
+	* gm2/mc-boot/GFIO.c:  regenerated.
+	* gm2/mc-boot/GFormatStrings.c:  regenerated.
+	* gm2/mc-boot/GIndexing.c:  regenerated.
+	* gm2/mc-boot/GM2RTS.c:  regenerated.
+	* gm2/mc-boot/GNumberIO.c:  regenerated.
+	* gm2/mc-boot/GRTExceptions.c:  regenerated.
+	* gm2/mc-boot/GStdIO.c:  regenerated.
+	* gm2/mc-boot/GStringConvert.c:  regenerated.
+	* gm2/mc-boot/Gdecl.c:  regenerated.
+	* gm2/mc-boot/Gkeyc.c:  regenerated.
+	* gm2/mc-boot/GmcError.c:  regenerated.
+	* gm2/mc-boot/GmcLexBuf.c:  regenerated.
+	* gm2/mc-boot/GmcPreprocess.c:  regenerated.
+	* gm2/mc-boot/GmcPrintf.c:  regenerated.
+	* gm2/mc-boot/GmcStack.c:  regenerated.
+	* gm2/mc-boot/GmcStream.c:  regenerated.
+	* gm2/mc-boot/GnameKey.c:  regenerated.
+
 2017-06-13      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-gcc/m2expr.c:  more gnu coding standard changes.

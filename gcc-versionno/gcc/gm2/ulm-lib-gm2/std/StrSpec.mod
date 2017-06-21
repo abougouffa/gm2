@@ -38,7 +38,7 @@ IMPLEMENTATION MODULE StrSpec;		(* gsk 1/85 *)
 
 
    CONST
-      MaxIndice = MAX(CARDINAL) ;  (* Was MaxCard = 37777777777B; *)
+      MaxIndice = MAX(INTEGER) ;  (* the maximum GCC can access is INTEGER sized arrays.  *)
 
 
 

@@ -99,7 +99,7 @@ FROM SymbolTable IMPORT NulSym,
                         PutModuleFinallyFunction,
                         GetProcedureScope, GetProcedureQuads,
                         IsRecordFieldAVarientTag, IsEmptyFieldVarient,
-                        GetVarient, GetUnbounded,
+                        GetVarient, GetUnbounded, PutArrayLarge,
                         IsAModula2Type, UsesVarArgs,
                         GetSymName, GetParent,
                         GetDeclaredMod, GetVarBackEndType,
@@ -110,7 +110,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetPackedEquivalent,
                         GetParameterShadowVar,
                         GetUnboundedRecordType,
-                        ForeachOAFamily, GetOAFamily,
+			ForeachOAFamily, GetOAFamily,
                         IsModuleWithinProcedure,
                         IsVariableAtAddress, IsConstructorConstant,
                         ForeachLocalSymDo, ForeachFieldEnumerationDo,
@@ -155,7 +155,7 @@ FROM m2type IMPORT MarkFunctionReferenced, BuildStartRecord, BuildStartVarient, 
                    PutArrayType, BuildPointerType, BuildEndType, BuildCharConstant,
                    BuildTypeDeclaration, GetDefaultType, GetBooleanType, GetBooleanTrue,
                    GetBooleanFalse, BuildSubrangeType, GetM2ZType, GetM2RType, GetM2CType,
-                   GetM2CardinalType, GetM2IntegerType, GetM2CharType, GetISOLocType,
+                   GetM2CardinalType, GetM2IntegerType, GetM2CharType, GetISOLocType, GetIntegerType,
                    GetISOByteType, GetISOWordType, GetByteType, GetWordType, GetProcType, GetPointerType,
                    GetM2LongIntType, GetM2LongCardType, GetM2ShortIntType, GetM2ShortCardType,
                    GetM2LongRealType, GetM2ShortRealType, GetM2RealType, GetBitnumType, GetBitsetType,
@@ -170,12 +170,13 @@ FROM m2type IMPORT MarkFunctionReferenced, BuildStartRecord, BuildStartVarient, 
                    SetRecordFieldOffset, ChainOn, BuildEndRecord, BuildFieldRecord,
                    BuildEndFieldVarient, BuildArrayIndexType, BuildEndFunctionType,
                    BuildSetType, BuildEndVarient, BuildEndArrayType, InitFunctionTypeParameters,
-                   BuildProcTypeParameterDeclaration ;
+                   BuildProcTypeParameterDeclaration,
+                   ValueOutOfTypeRange, ExceedsTypeRange ;
 
 FROM m2convert IMPORT BuildConvert ;
 
 FROM m2expr IMPORT BuildSub, BuildLSL, BuildTBitSize, BuildAdd, BuildDivTrunc, BuildModTrunc,
-                   BuildSize,
+                   BuildSize, TreeOverflow,
                    GetPointerZero, GetIntegerZero, GetIntegerOne ;
 
 FROM m2block IMPORT RememberType, pushGlobalScope, popGlobalScope, pushFunctionScope, popFunctionScope,
@@ -756,7 +757,7 @@ END CanDeclareArrayAsNil ;
 
 PROCEDURE DeclareArrayAsNil (sym: CARDINAL) ;
 BEGIN
-   PreAddModGcc(sym, BuildStartArrayType(BuildIndex(sym), NIL, GetDType(sym))) ;
+   PreAddModGcc(sym, BuildStartArrayType(BuildIndex(GetDeclaredMod(sym), sym), NIL, GetDType(sym))) ;
    WatchIncludeList(sym, niltypedarrays)
 END DeclareArrayAsNil ;
 
@@ -1312,7 +1313,7 @@ BEGIN
    array := 628 ;
    IF NOT GccKnowsAbout(array)
    THEN
-      PreAddModGcc(array, BuildStartArrayType(BuildIndex(array), NIL, GetDType(array)))
+      PreAddModGcc(array, BuildStartArrayType(BuildIndex(GetDeclaredMod(array), array), NIL, GetDType(array)))
    END ;
    pointer := 626 ;
    IF NOT GccKnowsAbout(pointer)
@@ -4371,7 +4372,7 @@ BEGIN
    low := GetTypeMin(type) ;
    high := GetTypeMax(type) ;
    highLimit := BuildSub(location, Mod2Gcc(high), Mod2Gcc(low), FALSE) ;
-   (* --fixme-- we need to check that low <= WORDLENGTH *)
+   (* --fixme-- we need to check that low <= WORDLENGTH.  *)
    highLimit := BuildLSL(location, GetIntegerOne(location), highLimit, FALSE) ;
    range := BuildSmallestTypeRange(location, GetIntegerZero(location), highLimit) ;
    gccsym := BuildSubrangeType(location, KeyToCharStar(GetFullSymName(sym)),
@@ -4746,18 +4747,41 @@ END DeclareUnbounded ;
    BuildIndex -
 *)
 
-PROCEDURE BuildIndex (sym: CARDINAL) : Tree ;
+PROCEDURE BuildIndex (tokenno: CARDINAL; array: CARDINAL) : Tree ;
 VAR
    Subscript: CARDINAL ;
    Type,
    High, Low: CARDINAL ;
+   n,
+   low, high: Tree ;
+   location : location_t ;
 BEGIN
-   Subscript := GetArraySubscript(sym) ;
-   Assert(IsSubscript(Subscript)) ;
-   Type := GetDType(Subscript) ;
-   Low := GetTypeMin(Type) ;
-   High := GetTypeMax(Type) ;
-   RETURN( BuildArrayIndexType(Mod2Gcc(Low), Mod2Gcc(High)) )
+   Subscript := GetArraySubscript (array) ;
+   Assert (IsSubscript (Subscript)) ;
+   Type := GetDType (Subscript) ;
+   Low := GetTypeMin (Type) ;
+   High := GetTypeMax (Type) ;
+   DeclareConstant (tokenno, Low) ;
+   DeclareConstant (tokenno, High) ;
+   low := Mod2Gcc (Low) ;
+   high := Mod2Gcc (High) ;
+   IF ExceedsTypeRange (GetIntegerType (), low, high)
+   THEN
+      location := TokenToLocation (tokenno) ;
+      n := BuildConvert (location, GetIntegerType (), BuildSub (location, high, low, FALSE), FALSE) ;
+      IF TreeOverflow(n) OR ValueOutOfTypeRange (GetIntegerType (), n)
+      THEN
+         MetaError1('implementation restriction, array is too large {%1DM}', array) ;
+         RETURN BuildArrayIndexType (GetIntegerZero (location), GetIntegerZero (location))
+      ELSE
+         PutArrayLarge (array) ;
+	 RETURN BuildArrayIndexType (GetIntegerZero (location), n)
+      END
+   ELSE
+      low := BuildConvert (location, GetIntegerType (), low, FALSE) ;
+      high := BuildConvert (location, GetIntegerType (), high, FALSE) ;
+      RETURN BuildArrayIndexType (low, high)
+   END
 END BuildIndex ;
 
 
@@ -4772,14 +4796,18 @@ VAR
    GccArray,
    GccIndex   : Tree ;
    Subscript  : CARDINAL ;
+   tokenno    : CARDINAL ;
    location   : location_t ;
 BEGIN
    Assert(IsArray(Sym)) ;
 
+   tokenno := GetDeclaredMod(Sym) ;
+   location := TokenToLocation(tokenno) ;
+
    Subscript := GetArraySubscript(Sym) ;
    typeOfArray := GetDType(Sym) ;
    GccArray := Mod2Gcc(typeOfArray) ;
-   GccIndex := BuildIndex(Sym) ;
+   GccIndex := BuildIndex(tokenno, Sym) ;
 
    IF GccKnowsAbout(Sym)
    THEN
@@ -4790,7 +4818,6 @@ BEGIN
    END ;
 
    PreAddModGcc(Subscript, GccArray) ;       (* we save the type of this array as the subscript *)
-   location := TokenToLocation(GetDeclaredMod(Sym)) ;
    PushIntegerTree(BuildSize(location, GccArray, FALSE)) ;  (* and the size of this array so far *)
    PopSize(Subscript) ;
 

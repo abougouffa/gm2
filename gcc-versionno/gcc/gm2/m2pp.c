@@ -2548,7 +2548,7 @@ m2pp_call_expr (pretty *s, tree t)
   else
     proc = call;
 
-  m2pp_identifier (s, proc);
+  m2pp_expression (s, proc);   /* m2pp_identifier (s, proc);  */
   if (args || has_return_type)
     m2pp_args (s, t);
 }

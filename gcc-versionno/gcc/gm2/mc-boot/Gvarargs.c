@@ -127,7 +127,7 @@ void varargs_arg (varargs_vararg v, unsigned char *a, unsigned int _a_high)
   unsigned char * p;
 
   if (v->i == v->nArgs)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     {
       if (((_a_high)+1) == v->arg.array[v->i].len)
@@ -142,7 +142,7 @@ void varargs_arg (varargs_vararg v, unsigned char *a, unsigned int _a_high)
             }
         }
       else
-        M2RTS_HALT (0);
+        M2RTS_HALT (-1);
       v->i += 1;
     }
 }
@@ -196,7 +196,7 @@ void varargs_replace (varargs_vararg v, unsigned char *a, unsigned int _a_high)
   unsigned char * p;
 
   if (v->i == v->nArgs)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   else
     if (((_a_high)+1) == v->arg.array[v->i].len)
       {
@@ -210,7 +210,7 @@ void varargs_replace (varargs_vararg v, unsigned char *a, unsigned int _a_high)
           }
       }
     else
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
 }
 
 

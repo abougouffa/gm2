@@ -1666,14 +1666,20 @@ m2expr_BuildIfNotInRangeGoto (location_t location, tree var, tree low, tree high
 
 tree
 m2expr_BuildArray (location_t location, tree type, tree array,
-		   tree index, tree lowIndice)
+		   tree index, tree low_indice)
 {
   tree array_type = m2tree_skip_type_decl (TREE_TYPE (array));
   tree index_type = TYPE_DOMAIN (array_type);
   type = m2tree_skip_type_decl (type);
+  // ASSERT_CONDITION (low_indice == TYPE_MIN_VALUE (index_type));
 
+#if 0
   index = m2convert_BuildConvert (location, index_type, index, FALSE);
-  return build4 (ARRAY_REF, type, array, index, lowIndice, NULL_TREE);
+  if (m2expr_TreeOverflow (index))
+    ;
+#endif
+  low_indice = m2convert_BuildConvert (location, index_type, low_indice, FALSE);
+  return build4_loc (location, ARRAY_REF, type, array, index, low_indice, NULL_TREE);
 }
 
 

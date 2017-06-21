@@ -30,7 +30,7 @@ void Assertion_Assert (unsigned int Condition)
     {
       StrIO_WriteString ((char *) "assert failed - halting system", 30);
       StrIO_WriteLn ();
-      M2RTS_HALT (0);
+      M2RTS_HALT (-1);
     }
 }
 

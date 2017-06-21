@@ -52,7 +52,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         IsProcedureBuiltin, IsProcedureInline,
                         IsParameter, IsParameterVar,
                         IsValueSolved, IsSizeSolved,
-                        IsProcedureNested, IsInnerModule,
+                        IsProcedureNested, IsInnerModule, IsArrayLarge,
                         IsComposite,
                         ForeachExportedDo,
                         ForeachImportedDo,
@@ -5479,10 +5479,12 @@ PROCEDURE CodeArray (quad: CARDINAL; res, index, array: CARDINAL) ;
 VAR
    resType,
    arrayDecl,
-   type, low,
+   type,
+   low, high,
    subscript  : CARDINAL ;
    elementSize,
-   t, a, ta   : Tree ;
+   t, a, ta,
+   ti, tl     : Tree ;
    location   : location_t ;
 BEGIN
    location := TokenToLocation(CurrentQuadToken) ;
@@ -5493,6 +5495,7 @@ BEGIN
       subscript := GetArraySubscript(arrayDecl) ;
       type := SkipType(GetType(subscript)) ;
       low  := GetTypeMin(type) ;
+      high := GetTypeMax(type) ;
       resType := GetVarBackEndType(res) ;
       IF resType=NulSym
       THEN
@@ -5506,14 +5509,23 @@ BEGIN
       ELSE
          a := Mod2Gcc(array)
       END ;
+      IF IsArrayLarge(arrayDecl)
+      THEN
+         tl := BuildConvert(location, Mod2Gcc(type), Mod2Gcc(low), FALSE) ;
+         ti := BuildConvert(location, Mod2Gcc(type), Mod2Gcc(index), FALSE) ;
+         ti := BuildConvert(location, GetIntegerType(), BuildSub(location, ti, tl, FALSE), FALSE) ;
+         tl := GetIntegerZero(location)
+      ELSE
+         tl := BuildConvert(location, GetIntegerType(), Mod2Gcc(low), FALSE) ;
+         ti := BuildConvert(location, GetIntegerType(), Mod2Gcc(index), FALSE)
+      END ;
+      (* ti := BuildConvert(location, GetIntegerType(), Mod2Gcc(high), FALSE) ; *)
       t := BuildAssignmentTree(location,
                                Mod2Gcc(res),
                                BuildConvert(location,
                                             Mod2Gcc(resType),
                                             BuildAddr(location, BuildArray(location,
-                                                                           ta, a,
-                                                                           Mod2Gcc(index),
-                                                                           Mod2Gcc(low)),
+                                                                           ta, a, ti, tl),
                                                       FALSE),
                                             FALSE))
    ELSE

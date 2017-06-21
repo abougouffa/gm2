@@ -153,6 +153,7 @@ EXPORT QUALIFIED NulSym,
       	       	 PutSet,
                  PutArraySubscript, GetArraySubscript,
                  PutArray,
+		 PutArrayLarge, IsArrayLarge,
                  PutType,
                  PutFunction, PutOptFunction,
                  PutParam, PutVarParam, PutParamName,
@@ -663,6 +664,22 @@ PROCEDURE MakeSet (SetName: Name) : CARDINAL ;
 *)
 
 PROCEDURE MakeArray (ArrayName: Name) : CARDINAL ;
+
+
+(*
+   PutArrayLarge - indicates that this is a large array in which case
+                   the interface to gcc maps this array from 0..high-low,
+                   using an integer indice.
+*)
+
+PROCEDURE PutArrayLarge (array: CARDINAL) ;
+
+
+(*
+   IsArrayLarge - returns TRUE if we need to treat this as a large array.
+*)
+
+PROCEDURE IsArrayLarge (array: CARDINAL) : BOOLEAN ;
 
 
 (*

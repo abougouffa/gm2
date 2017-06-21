@@ -210,7 +210,7 @@ void mcStream_setDest (FIO_File f)
 FIO_File mcStream_combine (void)
 {
   if (! seenDest)
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
   Indexing_ForeachIndiceInIndexDo (frag, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) copy});
   removeFiles ();
   return destFile;

@@ -174,7 +174,7 @@ static void Cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, uns
     for (i=0; i<=_a_high; i++)
       a[i] = b[i];
   else
-    M2RTS_HALT (0);
+    M2RTS_HALT (-1);
 }
 
 
