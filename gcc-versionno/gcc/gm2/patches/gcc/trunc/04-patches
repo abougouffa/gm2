@@ -1,5 +1,5 @@
---- gcc-versionno-orig/gcc/c-family/cppspec.c	2017-06-01 17:06:50.248216946 +0100
-+++ gcc-versionno/gcc/c-family/cppspec.c	2017-05-30 15:52:41.350692984 +0100
+--- gcc-versionno-orig/gcc/c-family/cppspec.c	2017-06-21 11:34:21.575617736 +0100
++++ gcc-versionno/gcc/c-family/cppspec.c	2017-06-21 11:41:45.703621386 +0100
 @@ -197,3 +197,9 @@
  
  /* Number of extra output files that lang_specific_pre_link may generate.  */

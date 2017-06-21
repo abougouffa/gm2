@@ -54,7 +54,18 @@
 	* gm2/tools-src/mklink.c:  (args) new variable.  Append
           all gcc/g++ options (-f) to args.  Emit args in the
           link command.  Allows cc1gm2 to be linked with
-	  NO_PIE_CFLAGS.
+          NO_PIE_CFLAGS.
+	* patches/gcc/trunc/01-patches:  regenerated.
+	* patches/gcc/trunc/02-patches:  regenerated.
+	* patches/gcc/trunc/03-patches:  regenerated.
+	* patches/gcc/trunc/04-patches:  regenerated.
+	* patches/gcc/trunc/05-patches:  regenerated.
+	* patches/gcc/trunc/06-patches:  regenerated.
+	* patches/gcc/trunc/07-patches:  regenerated.
+	* patches/gcc/trunc/08-patches:  regenerated.
+	* patches/gcc/trunc/09-patches:  regenerated.
+	* patches/gcc/trunc/10-patches:  regenerated.
+	* patches/gcc/trunc/11-patches:  regenerated.
 
 2017-06-13      Gaius Mulley <gaius@gnu.org>
 

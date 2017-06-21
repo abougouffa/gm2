@@ -1,5 +1,5 @@
---- gcc-versionno-orig/configure.ac	2017-06-01 17:06:44.616217025 +0100
-+++ gcc-versionno/configure.ac	2017-06-01 17:08:20.184215690 +0100
+--- gcc-versionno-orig/configure.ac	2017-06-21 11:34:18.711617713 +0100
++++ gcc-versionno/configure.ac	2017-06-21 11:41:45.703621386 +0100
 @@ -165,6 +165,7 @@
  		target-libffi \
  		target-libobjc \
@@ -37,7 +37,7 @@
    DLLTOOL_FOR_BUILD="\$(DLLTOOL)"
    LD_FOR_BUILD="\$(LD)"
    NM_FOR_BUILD="\$(NM)"
-@@ -3264,6 +3273,7 @@
+@@ -3267,6 +3276,7 @@
  AC_SUBST(DLLTOOL_FOR_BUILD)
  AC_SUBST(GFORTRAN_FOR_BUILD)
  AC_SUBST(GOC_FOR_BUILD)
@@ -45,7 +45,7 @@
  AC_SUBST(LDFLAGS_FOR_BUILD)
  AC_SUBST(LD_FOR_BUILD)
  AC_SUBST(NM_FOR_BUILD)
-@@ -3373,6 +3383,7 @@
+@@ -3376,6 +3386,7 @@
  NCN_STRICT_CHECK_TARGET_TOOLS(GCC_FOR_TARGET, gcc, ${CC_FOR_TARGET})
  NCN_STRICT_CHECK_TARGET_TOOLS(GFORTRAN_FOR_TARGET, gfortran)
  NCN_STRICT_CHECK_TARGET_TOOLS(GOC_FOR_TARGET, gccgo)
@@ -53,7 +53,7 @@
  
  ACX_CHECK_INSTALLED_TARGET_TOOL(AR_FOR_TARGET, ar)
  ACX_CHECK_INSTALLED_TARGET_TOOL(AS_FOR_TARGET, as)
-@@ -3406,6 +3417,8 @@
+@@ -3409,6 +3420,8 @@
  		[gcc/gfortran -B$$r/$(HOST_SUBDIR)/gcc/], fortran)
  GCC_TARGET_TOOL(gccgo, GOC_FOR_TARGET, GOC,
  		[gcc/gccgo -B$$r/$(HOST_SUBDIR)/gcc/], go)

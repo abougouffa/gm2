@@ -1,5 +1,5 @@
---- gcc-versionno-orig/configure	2017-06-01 17:06:46.480216999 +0100
-+++ gcc-versionno/configure	2017-06-01 17:08:20.276215688 +0100
+--- gcc-versionno-orig/configure	2017-06-21 11:34:19.407617719 +0100
++++ gcc-versionno/configure	2017-06-21 11:41:45.703621386 +0100
 @@ -580,6 +580,7 @@
  DLLTOOL_FOR_TARGET
  AS_FOR_TARGET
@@ -89,7 +89,7 @@
    DLLTOOL_FOR_BUILD="\$(DLLTOOL)"
    LD_FOR_BUILD="\$(LD)"
    NM_FOR_BUILD="\$(NM)"
-@@ -7685,6 +7704,7 @@
+@@ -7688,6 +7707,7 @@
  
  
  
@@ -97,7 +97,7 @@
  # Generate default definitions for YACC, M4, LEX and other programs that run
  # on the build machine.  These are used if the Makefile can't locate these
  # programs in objdir.
-@@ -10739,6 +10759,167 @@
+@@ -10742,6 +10762,167 @@
  
  
  
@@ -265,7 +265,7 @@
  cat > conftest.c << \EOF
  #ifdef __GNUC__
    gcc_yay;
-@@ -13955,6 +14136,51 @@
+@@ -13958,6 +14139,51 @@
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: host tool" >&5
  $as_echo "host tool" >&6; }
    else
