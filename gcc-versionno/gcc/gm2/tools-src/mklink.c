@@ -104,6 +104,7 @@ static int        ProfilePCommand   = FALSE;
 static int        ProfilePGCommand  = FALSE;
 static int        ExitNeeded        = TRUE;
 static char      *libraries         = NULL;
+static char      *args              = NULL;
 static functList *head              = NULL;
 static functList *tail              = NULL;
 static int        GCCCommand        = FALSE;  /* FALSE = g++, TRUE = gcc.  */
@@ -129,6 +130,25 @@ static void addLibrary (char *libname)
 }
 
 
+/*
+ *  addGccArg - adds arg to the list of gcc arguments.
+ */
+
+static void addGccArg (char *arg)
+{
+  if (args == NULL)
+    args = strdup (arg);
+  else {
+    char *old = args;
+    char *new = (char *) malloc (strlen (old) + strlen (arg) + 1 + 1);
+    strcpy (new, old);
+    strcat (new, " ");
+    strcat (new, arg);
+    args = new;
+    free (old);
+  }
+}
+
 main (int argc, char *argv[])
 {
     int i;
@@ -151,6 +171,8 @@ main (int argc, char *argv[])
 	    GCCCommand = FALSE;
 	  } else if (strcmp(argv[i], "--gcc") == 0) {
 	    GCCCommand = TRUE;
+	  } else if (strncmp(argv[i], "-f", 2) == 0) {
+	    addGccArg(argv[i]);
 	  } else if (strcmp(argv[i], "--pg") == 0) {
 	    ProfilePGCommand = TRUE;
 	  } else if (strcmp(argv[i], "-p") == 0) {
@@ -219,6 +241,9 @@ static void ParseFileLinkCommand (void)
       printf("g++ -g ");
   } else
     printf("%s -g ", s);
+
+  if (args != NULL)
+    printf("%s ", args);
 
   l = getenv("LDFLAGS");
   if (l != NULL)

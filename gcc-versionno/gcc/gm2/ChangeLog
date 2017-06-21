@@ -49,6 +49,12 @@
 	* gm2/mc-boot/GmcStack.c:  regenerated.
 	* gm2/mc-boot/GmcStream.c:  regenerated.
 	* gm2/mc-boot/GnameKey.c:  regenerated.
+	* gm2/Make-lang.in:  pass the NO_PIE_CFLAGS into the
+          mklink tool.
+	* gm2/tools-src/mklink.c:  (args) new variable.  Append
+          all gcc/g++ options (-f) to args.  Emit args in the
+          link command.  Allows cc1gm2 to be linked with
+	  NO_PIE_CFLAGS.
 
 2017-06-13      Gaius Mulley <gaius@gnu.org>
 

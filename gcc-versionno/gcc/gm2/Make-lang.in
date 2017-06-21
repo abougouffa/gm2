@@ -2115,17 +2115,19 @@ gm2/ppg$(exeext): gm2/boot-bin/mklink gm2/boot-bin/mc \
         fi ; \
 	cd gm2 ; \
         unset CC ; \
-	../$(M2LINK) -s --g++ --name mod_init.c ../$(srcdir)/gm2/init/ppginit ; \
+	../$(M2LINK) -s --g++ $(NO_PIE_CFLAGS) --name mod_init.c ../$(srcdir)/gm2/init/ppginit ; \
 	$(COMPILER) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
 	M2PATH="gm2-ppg-boot . gm2-libs-boot gm2-compiler-boot mc-boot-ch" ; export M2PATH ; \
         unset CC ; \
 	../$(M2LINK) -l --g++ \
+           $(NO_PIE_CFLAGS) \
            --lib ../../libiberty/safe-ctype.o \
            --lib mc-boot-ch/Glibc.o \
            --lib mc-boot-ch/Gmcrts.o \
            $(STPCPY) \
            --name ppg.lnk ../$(srcdir)/gm2/init/ppginit ; \
 	$(SHELL) ppg.lnk ; \
+	cat ppg.lnk ; \
 	$(RM) ppg.lnk ; \
 	if [ -x a$(exeext) ] ; then \
             mv a$(exeext) ppg$(exeext) ; \
