@@ -47,7 +47,7 @@ END Read ;
    Write - is the generic procedure that all higher application layers
            should use to emit a character.
 *)
- 
+
 PROCEDURE Write (ch: CHAR) ;
 BEGIN
    StackW[StackWPtr](ch)
@@ -119,7 +119,7 @@ BEGIN
    END
 END PushInput ;
 
- 
+
 (*
    PopInput - restores Write to use the previous output procedure.
 *)
@@ -152,7 +152,7 @@ END GetCurrentInput ;
 
 BEGIN
    StackWPtr := 0 ;
-   StackWPtr := 0 ;
+   StackRPtr := 0 ;
    PushOutput(IO.Write) ;
    PushInput(IO.Read)
 END StdIO.
