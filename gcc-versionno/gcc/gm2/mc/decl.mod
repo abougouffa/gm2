@@ -6244,64 +6244,6 @@ END doString ;
 
 
 (*
-   doEscapeC -
-*)
-
-PROCEDURE doEscapeC (s: String; ch: CHAR) : String ;
-VAR
-   t, r: String ;
-   h,
-   l, i: INTEGER ;
-BEGIN
-   h := DynamicStrings.Length (s) ;
-   l := 0 ;
-   r := InitString ('') ;
-   i := DynamicStrings.Index (s, ch, l) ;
-   LOOP
-      IF i = -1
-      THEN
-         RETURN DynamicStrings.ConCat (r, Mark (DynamicStrings.Slice (s, l, 0)))
-      ELSE
-         (* move, l, up to the found index, i.  *)
-         WHILE l < i DO
-            r := DynamicStrings.ConCatChar (r, DynamicStrings.char (s, l)) ;
-            INC (l)
-         END ;
-	 IF (ch = '\') AND (i < h) AND (DynamicStrings.char (s, i+1) = '\')
-         THEN
-            (* escape character is itself escaped, or is a special case, \n.  *)
-	    l := i+2 ;  (* move over both.  *)
-            r := DynamicStrings.ConCatChar (r, '\') ;
-            r := DynamicStrings.ConCatChar (r, DynamicStrings.char (s, i+1))
-         ELSE
-            (* check to see if the character was escaped.  *)
-            IF (i>0) AND (DynamicStrings.char (s, i-1) = '\')
-            THEN
-               (* yes, it was escaped so do not escape it again.  *)
-            ELSE
-               r := DynamicStrings.ConCatChar (r, '\') ;
-               r := DynamicStrings.ConCatChar (r, DynamicStrings.char (s, i))
-            END ;
-            assert (l = i) ;
-            INC (l)
-         END
-      END ;
-      i := DynamicStrings.Index (s, ch, l)
-   END
-END doEscapeC ;
-
-
-(*
-   escapeContentsC -
-*)
-
-PROCEDURE escapeContentsC (s: String; ch: CHAR) : String ;
-BEGIN
-   RETURN doEscapeC (s, ch)
-END escapeContentsC ;
-
-
-(*
    replaceChar - replace every occurance of, ch, by, a and return modified string, s.
 *)
 
@@ -6312,7 +6254,11 @@ BEGIN
    i := 0 ;
    LOOP
       i := DynamicStrings.Index (s, ch, i) ;
-      IF i >= 0
+      IF i = 0
+      THEN
+         s := ConCat (InitString (a), DynamicStrings.Slice (s, 1, 0)) ;
+         i := StrLen (a)
+      ELSIF i > 0
       THEN
          s := ConCat (ConCat (DynamicStrings.Slice (s, 0, i), Mark (InitString (a))), DynamicStrings.Slice (s, i+1, 0)) ;
          INC (i, StrLen (a))
@@ -6333,8 +6279,7 @@ VAR
    s: String ;
 BEGIN
    s := DynamicStrings.Slice (InitStringCharStar (keyToCharStar (n)), 1, -1) ;
-   RETURN escapeContentsC (escapeContentsC (s, '\'), '"')
-   (* RETURN replaceChar (escapeContentsC (s, '"'), lf, '\n') *)
+   RETURN replaceChar (replaceChar (s, '\', '\\'), '"', '\"')
 END toCstring ;
 
 
@@ -6347,7 +6292,7 @@ VAR
    s: String ;
 BEGIN
    s := DynamicStrings.Slice (InitStringCharStar (keyToCharStar (n)), 1, -1) ;
-   RETURN escapeContentsC (escapeContentsC (s, '\'), "'")
+   RETURN replaceChar (replaceChar (s, '\', '\\'), "'", "\'")
 END toCchar ;
 
 

@@ -201,7 +201,7 @@ StdIO_ProcRead StdIO_GetCurrentInput (void)
 void _M2_StdIO_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
   StackWPtr = 0;
-  StackWPtr = 0;
+  StackRPtr = 0;
   StdIO_PushOutput ((StdIO_ProcWrite) {(StdIO_ProcWrite_t) IO_Write});
   StdIO_PushInput ((StdIO_ProcRead) {(StdIO_ProcRead_t) IO_Read});
 }

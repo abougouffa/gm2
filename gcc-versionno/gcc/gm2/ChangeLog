@@ -1,3 +1,16 @@
+2017-06-27      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/gm2m.bnf:  removed unnecessary spaces.
+	* gm2/mc-boot/GStdIO.c:  rebuilt.
+	* gm2/mc-boot/Gdecl.c:  rebuilt.
+	* gm2/mc/decl.mod:  (doEscapeC) removed.  (escapeContentsC)
+          removed.  (replaceChar) fixed bug should the first character
+          be replaced.  (toCstring) reimplemented with replaceChar.
+          (toCchar) reimplemented with replaceChar.
+	* fixes a bug caused when gm2m is bootstrapped via mc.
+          -fmakeall failed as reported by Christoph Schlegel
+	  and Georg Lokowandt.
+
 2017-06-21      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/map/StoreCoord.mod:  spacing.
