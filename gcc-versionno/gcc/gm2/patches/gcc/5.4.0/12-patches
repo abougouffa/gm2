@@ -1,5 +1,5 @@
 --- gcc-5.4.0-orig/gcc/tree-vrp.c	2016-02-10 18:31:06.000000000 +0000
-+++ gcc-5.4.0/gcc/tree-vrp.c	2017-03-22 13:28:33.307210082 +0000
++++ gcc-5.4.0/gcc/tree-vrp.c	2017-03-22 15:26:39.067393013 +0000
 @@ -474,6 +474,10 @@
  	gcc_assert (!vrp_val_is_min (min) || !vrp_val_is_max (max));
  

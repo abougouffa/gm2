@@ -31,7 +31,7 @@ IMPLEMENTATION MODULE M2GCCDeclare ;
 FROM SYSTEM IMPORT ADDRESS, ADR, WORD ;
 FROM ASCII IMPORT nul ;
 FROM M2Debug IMPORT Assert ;
-FROM M2Quads IMPORT DisplayQuadRange, QuadToTokenNo ;
+FROM M2Quads IMPORT DisplayQuadRange ;
 
 IMPORT FIO ;
 
@@ -68,8 +68,9 @@ FROM SymbolTable IMPORT NulSym,
                         ModeOfAddr,
                         GetMode,
                         GetScope,
-                        GetNth, GetType, SkipType, GetVarBackEndType,
-                        MakeType, PutType, MakeConstLit,
+                        GetNth, SkipType, GetVarBackEndType,
+			GetSType, GetLType, GetDType,
+                        MakeType, PutType, MakeConstLit, GetLowestType,
       	       	     	GetSubrange, PutSubrange, GetArraySubscript,
       	       	     	NoOfParam, GetNthParam,
                         PushValue, PopValue, PopSize,
@@ -574,7 +575,7 @@ VAR
 BEGIN
    Subscript := GetArraySubscript(sym) ;
    Assert(IsSubscript(Subscript)) ;
-   Type := SkipType(GetType(Subscript)) ;
+   Type := GetDType(Subscript) ;
    Low := GetTypeMin(Type) ;
    High := GetTypeMax(Type) ;
    RETURN( IsFullyDeclared(Type) AND
@@ -680,7 +681,7 @@ BEGIN
       RETURN( TRUE )
    ELSIF IsType(sym)
    THEN
-      type := GetType(sym) ;
+      type := GetSType(sym) ;
       IF (type#NulSym) AND IsNilTypedArrays(type)
       THEN
          RETURN( TRUE )
@@ -727,7 +728,7 @@ BEGIN
             location := TokenToLocation(GetDeclaredMod(sym)) ;
             PreAddModGcc(sym, BuildStartType(location,
                                              KeyToCharStar(GetFullSymName(sym)),
-                                             Mod2Gcc(GetType(sym))))
+                                             Mod2Gcc(GetSType(sym))))
          END
       ELSE
          InternalError('do not know how to create a partial type from this symbol',
@@ -755,7 +756,7 @@ END CanDeclareArrayAsNil ;
 
 PROCEDURE DeclareArrayAsNil (sym: CARDINAL) ;
 BEGIN
-   PreAddModGcc(sym, BuildStartArrayType(BuildIndex(sym), NIL, SkipType(GetType(sym)))) ;
+   PreAddModGcc(sym, BuildStartArrayType(BuildIndex(sym), NIL, GetDType(sym))) ;
    WatchIncludeList(sym, niltypedarrays)
 END DeclareArrayAsNil ;
 
@@ -770,7 +771,7 @@ VAR
 BEGIN
    IF IsArray(sym)
    THEN
-      type := GetType(sym) ;
+      type := GetSType(sym) ;
       IF IsPartiallyOrFullyDeclared(type) OR
          (IsPointer(type) AND IsNilTypedArrays(type))
       THEN
@@ -788,7 +789,7 @@ END CanDeclareArrayPartially ;
 PROCEDURE DeclareArrayPartially (sym: CARDINAL) ;
 BEGIN
    Assert(IsArray(sym) AND GccKnowsAbout(sym)) ;
-   PutArrayType(Mod2Gcc(sym), Mod2Gcc(GetType(sym))) ;
+   PutArrayType(Mod2Gcc(sym), Mod2Gcc(GetSType(sym))) ;
    WatchIncludeList(sym, partiallydeclared)
 END DeclareArrayPartially ;
 
@@ -799,7 +800,7 @@ END DeclareArrayPartially ;
 
 PROCEDURE CanDeclarePointerToNilArray (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( IsPointer(sym) AND IsNilTypedArrays(GetType(sym)) )
+   RETURN( IsPointer(sym) AND IsNilTypedArrays(GetSType(sym)) )
 END CanDeclarePointerToNilArray ;
 
 
@@ -809,7 +810,7 @@ END CanDeclarePointerToNilArray ;
 
 PROCEDURE DeclarePointerToNilArray (sym: CARDINAL) ;
 BEGIN
-   PreAddModGcc(sym, BuildPointerType(Mod2Gcc(GetType(sym)))) ;
+   PreAddModGcc(sym, BuildPointerType(Mod2Gcc(GetSType(sym)))) ;
    WatchIncludeList(sym, niltypedarrays)
 END DeclarePointerToNilArray ;
 
@@ -820,7 +821,7 @@ END DeclarePointerToNilArray ;
 
 PROCEDURE CanPromotePointerFully (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( IsPointer(sym) AND IsPartiallyOrFullyDeclared(GetType(sym)) )
+   RETURN( IsPointer(sym) AND IsPartiallyOrFullyDeclared(GetSType(sym)) )
 END CanPromotePointerFully ;
 
 
@@ -1311,7 +1312,7 @@ BEGIN
    array := 628 ;
    IF NOT GccKnowsAbout(array)
    THEN
-      PreAddModGcc(array, BuildStartArrayType(BuildIndex(array), NIL, SkipType(GetType(array))))
+      PreAddModGcc(array, BuildStartArrayType(BuildIndex(array), NIL, GetDType(array)))
    END ;
    pointer := 626 ;
    IF NOT GccKnowsAbout(pointer)
@@ -1507,14 +1508,14 @@ VAR
    t       : Tree ;
    location: location_t ;
 BEGIN
-   IF GetType(sym)=NulSym
+   IF GetSType(sym)=NulSym
    THEN
       MetaError1('base type {%1Ua} not understood', sym) ;
       InternalError('base type should have been declared', __FILE__, __LINE__)
    ELSE
       IF GetSymName(sym)=NulName
       THEN
-         RETURN( Tree(Mod2Gcc(GetType(sym))) )
+         RETURN( Tree(Mod2Gcc(GetSType(sym))) )
       ELSE
          location := TokenToLocation(GetDeclaredMod(sym)) ;
          IF GccKnowsAbout(sym)
@@ -1523,7 +1524,7 @@ BEGIN
          ELSE
             (* not partially declared therefore start it *)
             t := BuildStartType(location,
-                                KeyToCharStar(GetFullSymName(sym)), Mod2Gcc(GetType(sym)))
+                                KeyToCharStar(GetFullSymName(sym)), Mod2Gcc(GetSType(sym)))
          END ;
          t := BuildEndType(location, t) ;  (* now finish it *)
          RETURN( t )
@@ -1624,7 +1625,7 @@ PROCEDURE WalkConstructor (sym: CARDINAL; p: WalkAction) ;
 VAR
    type: CARDINAL ;
 BEGIN
-   type := GetType(sym) ;
+   type := GetSType(sym) ;
    IF type#NulSym
    THEN
       WalkDependants(type, p) ;
@@ -1637,9 +1638,7 @@ END WalkConstructor ;
    DeclareConstructor - declares a constructor.
 *)
 
-PROCEDURE DeclareConstructor (quad: CARDINAL; sym: CARDINAL) ;
-VAR
-   tokenno: CARDINAL ;
+PROCEDURE DeclareConstructor (tokenno: CARDINAL; quad: CARDINAL; sym: CARDINAL) ;
 BEGIN
    IF sym=NulSym
    THEN
@@ -1647,12 +1646,6 @@ BEGIN
    END ;
    IF IsConstructor(sym) AND (NOT GccKnowsAbout(sym))
    THEN
-      IF quad=0
-      THEN
-         tokenno := GetDeclaredMod(sym)
-      ELSE
-         tokenno := QuadToTokenNo(quad)
-      END ;
       WalkConstructor(sym, TraverseDependants) ;
       DeclareTypesConstantsProceduresInRange(quad, quad) ;
       Assert(IsConstructorDependants(sym, IsFullyDeclared)) ;
@@ -1668,9 +1661,7 @@ END DeclareConstructor ;
                            then enter it into the to do list.
 *)
 
-PROCEDURE TryDeclareConstructor (quad: CARDINAL; sym: CARDINAL) ;
-VAR
-   tokenno: CARDINAL ;
+PROCEDURE TryDeclareConstructor (tokenno: CARDINAL; quad: CARDINAL; sym: CARDINAL) ;
 BEGIN
    IF sym=NulSym
    THEN
@@ -1678,12 +1669,6 @@ BEGIN
    END ;
    IF IsConstructor(sym) AND (NOT GccKnowsAbout(sym))
    THEN
-      IF quad=0
-      THEN
-         tokenno := GetDeclaredMod(sym)
-      ELSE
-         tokenno := QuadToTokenNo(quad)
-      END ;
       WalkConstructor(sym, TraverseDependants) ;
       IF NOT IsElementInSet(ToBeSolvedByQuads, sym)
       THEN
@@ -1707,7 +1692,7 @@ VAR
    type: CARDINAL ;
 BEGIN
    Assert(IsConst(sym)) ;
-   type := GetType(sym) ;
+   type := GetSType(sym) ;
    IF type#NulSym
    THEN
       p(type)
@@ -1729,7 +1714,7 @@ VAR
    type: CARDINAL ;
 BEGIN
    Assert(IsConst(sym)) ;
-   type := GetType(sym) ;
+   type := GetSType(sym) ;
    IF type#NulSym
    THEN
       IF NOT q(type)
@@ -1755,11 +1740,11 @@ PROCEDURE TryDeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
 VAR
    type: CARDINAL ;
 BEGIN
-   TryDeclareConstructor(0, sym) ;
+   TryDeclareConstructor(tokenno, 0, sym) ;
    IF IsConst(sym)
    THEN
       TraverseDependants(sym) ;
-      type := GetType(sym) ;
+      type := GetSType(sym) ;
       IF (type#NulSym) AND (NOT CompletelyResolved(type))
       THEN
          TraverseDependants(sym) ;
@@ -1821,7 +1806,7 @@ BEGIN
    IF IsConst(sym)
    THEN
       TraverseDependants(sym) ;
-      type := GetType(sym) ;
+      type := GetSType(sym) ;
       Assert((type=NulSym) OR CompletelyResolved(type)) ;
       Assert((NOT IsConstructor(sym)) OR IsConstructorConstant(sym)) ;
       Assert((type#NulSym) OR (NOT (IsConstructor(sym) OR IsConstSet(sym)))) ;
@@ -1879,20 +1864,20 @@ BEGIN
          ELSIF IsConstructor(sym)
          THEN
             DeclareConstantFromTree(sym, PopConstructorTree(tokenno))
-         ELSIF IsRealType(SkipType(GetType(sym)))
+         ELSIF IsRealType(GetDType(sym))
          THEN
-            type := SkipType(GetType(sym)) ;
+            type := GetDType(sym) ;
             DeclareConstantFromTree(sym, BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopRealTree(), TRUE))
-         ELSIF IsAComplexType(SkipType(GetType(sym)))
+         ELSIF IsAComplexType(GetDType(sym))
          THEN
-            type := SkipType(GetType(sym)) ;
+            type := GetDType(sym) ;
             DeclareConstantFromTree(sym, BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopComplexTree(), TRUE))
          ELSE
-            IF GetType(sym)=NulSym
+            IF GetSType(sym)=NulSym
             THEN
                type := ZType
             ELSE
-               type := SkipType(GetType(sym))
+               type := GetDType(sym)
             END ;
             DeclareConstantFromTree(sym, BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopIntegerTree(), TRUE))
          END
@@ -1938,20 +1923,20 @@ BEGIN
       ELSIF IsConstructor(sym)
       THEN
          DeclareConstantFromTree(sym, PopConstructorTree(tokenno))
-      ELSIF IsRealType(SkipType(GetType(sym)))
+      ELSIF IsRealType(GetDType(sym))
       THEN
-         type := SkipType(GetType(sym)) ;
+         type := GetDType(sym) ;
          DeclareConstantFromTree(sym, BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopRealTree(), TRUE))
-      ELSIF IsAComplexType(SkipType(GetType(sym)))
+      ELSIF IsAComplexType(GetDType(sym))
       THEN
-         type := SkipType(GetType(sym)) ;
+         type := GetDType(sym) ;
          DeclareConstantFromTree(sym, BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopComplexTree(), TRUE))
       ELSE
-         IF GetType(sym)=NulSym
+         IF GetSType(sym)=NulSym
          THEN
             type := ZType
          ELSE
-            type := SkipType(GetType(sym))
+            type := GetDType(sym)
          END ;
          DeclareConstantFromTree(sym, BuildConvert(TokenToLocation(tokenno), Mod2Gcc(type), PopIntegerTree(), TRUE))
       END
@@ -2027,7 +2012,7 @@ BEGIN
          ELSE
             son := GetNth(sym, i) ;
          END ;
-         type := GetType(son) ;
+         type := GetSType(son) ;
          p(type) ;
          WalkDependants(type, p) ;
          DEC(i)
@@ -2145,7 +2130,7 @@ BEGIN
       InternalError('why have we reached here?', __FILE__, __LINE__)
    ELSIF IsVar(sym)
    THEN
-      WalkTypeInfo(GetType(sym)) ;
+      WalkTypeInfo(GetSType(sym)) ;
       IF GetVarBackEndType(sym)#NulSym
       THEN
          WalkTypeInfo(GetVarBackEndType(sym))
@@ -2175,7 +2160,7 @@ BEGIN
          IF IsUnboundedParam(sym, i)
          THEN
             son := GetNthParam(sym, i) ;
-            type := GetType(son) ;
+            type := GetSType(son) ;
             TraverseDependants(type) ;
             IF GccKnowsAbout(type)
             THEN
@@ -2184,7 +2169,7 @@ BEGIN
             END
          ELSE
             son := GetNth(sym, i) ;
-            type := GetType(son) ;
+            type := GetSType(son) ;
             TraverseDependants(type)
          END ;
          DEC(i)
@@ -2211,7 +2196,7 @@ BEGIN
          IF IsUnboundedParam(sym, i)
          THEN
             son := GetNthParam(sym, i) ;
-            type := GetType(son) ;
+            type := GetSType(son) ;
             WalkTypeInfo(type) ;
 (*
             type := GetUnboundedRecordType(type) ;
@@ -2220,7 +2205,7 @@ BEGIN
 *)
          ELSE
             son := GetNth(sym, i) ;
-            type := GetType(son) ;
+            type := GetSType(son) ;
             WalkTypeInfo(type)
          END ;
          DEC(i)
@@ -2265,11 +2250,17 @@ END WalkTypesInModule ;
 
 PROCEDURE IsRecordFieldDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
 VAR
+   align: CARDINAL ;
    v    : CARDINAL ;
    final: BOOLEAN ;
 BEGIN
    final := TRUE ;
-   IF NOT q(GetType(sym))
+   IF NOT q(GetSType(sym))
+   THEN
+      final := FALSE
+   END ;
+   align := GetAlignment(sym) ;
+   IF (align#NulSym) AND (NOT q(align))
    THEN
       final := FALSE
    END ;
@@ -2405,12 +2396,12 @@ BEGIN
          THEN
             GccParam := BuildParameterDeclaration(location,
                                                   KeyToCharStar(GetSymName(Son)),
-                                                  Mod2Gcc(GetType(Son)),
+                                                  Mod2Gcc(GetLType(Son)),
                                                   FALSE)
          ELSE
             GccParam := BuildParameterDeclaration(location,
                                                   KeyToCharStar(GetSymName(Son)),
-                                                  Mod2Gcc(GetType(Son)),
+                                                  Mod2Gcc(GetLType(Son)),
                                                   IsVarParam(Sym, i))
          END ;
          PreAddModGcc(Son, GccParam) ;
@@ -2423,7 +2414,7 @@ BEGIN
       end := TokenToLocation(e) ;
       scope := GetScope(Sym) ;
       PushBinding(scope) ;
-      IF GetType(Sym)=NulSym
+      IF GetSType(Sym)=NulSym
       THEN
          PreAddModGcc(Sym, BuildEndFunctionDeclaration(begin, end,
                                                        KeyToCharStar(GetFullSymName(Sym)),
@@ -2434,7 +2425,7 @@ BEGIN
       ELSE
          PreAddModGcc(Sym, BuildEndFunctionDeclaration(begin, end,
                                                        KeyToCharStar(GetFullSymName(Sym)),
-                                                       Mod2Gcc(GetType(Sym)),
+                                                       Mod2Gcc(GetSType(Sym)),
                                                        IsExternalToWholeProgram(Sym),
                                                        IsProcedureGccNested(Sym),
                                                        IsExported(GetModuleWhereDeclared(Sym), Sym)))
@@ -2482,12 +2473,12 @@ BEGIN
          THEN
             GccParam := BuildParameterDeclaration(location,
                                                   KeyToCharStar(GetSymName(Son)),
-                                                  Mod2Gcc(GetType(Son)),
+                                                  Mod2Gcc(GetLType(Son)),
                                                   FALSE)
          ELSE
             GccParam := BuildParameterDeclaration(location,
                                                   KeyToCharStar(GetSymName(Son)),
-                                                  Mod2Gcc(GetType(Son)),
+                                                  Mod2Gcc(GetLType(Son)),
                                                   IsVarParam(Sym, i))
          END ;
          PreAddModGcc(Son, GccParam) ;
@@ -2500,7 +2491,7 @@ BEGIN
       end := TokenToLocation(e) ;
       scope := GetScope(Sym) ;
       PushBinding(scope) ;
-      IF GetType(Sym)=NulSym
+      IF GetSType(Sym)=NulSym
       THEN
          PreAddModGcc(Sym, BuildEndFunctionDeclaration(begin, end,
                                                        KeyToCharStar(GetFullSymName(Sym)),
@@ -2511,7 +2502,7 @@ BEGIN
       ELSE
          PreAddModGcc(Sym, BuildEndFunctionDeclaration(begin, end,
                                                        KeyToCharStar(GetFullSymName(Sym)),
-                                                       Mod2Gcc(GetType(Sym)),
+                                                       Mod2Gcc(GetSType(Sym)),
                                                        IsExternal(Sym),
                                                        IsProcedureGccNested(Sym),
                                                        IsExported(GetModuleWhereDeclared(Sym), Sym)))
@@ -2689,13 +2680,13 @@ BEGIN
    Var := GetNth(scope, n) ;
    o := 0 ;
    WHILE Var#NulSym DO
-      IF NOT AllDependantsFullyDeclared(GetType(Var))
+      IF NOT AllDependantsFullyDeclared(GetSType(Var))
       THEN
          mystop
       END ;
-      IF NOT AllDependantsFullyDeclared(GetType(Var))
+      IF NOT AllDependantsFullyDeclared(GetSType(Var))
       THEN
-         EmitCircularDependancyError(GetType(Var)) ;
+         EmitCircularDependancyError(GetSType(Var)) ;
          failed := TRUE
       END ;
       INC(n) ;
@@ -2816,8 +2807,8 @@ BEGIN
          variables
       *)
       AssertAllTypesDeclared(scope) ;
-      DeclareGlobalVariables(scope) ;
-      ForeachImportedDo(scope, DeclareImportedVariables) ;
+      DeclareGlobalVariablesWholeProgram(scope) ;
+      ForeachImportedDo(scope, DeclareImportedVariablesWholeProgram) ;
       (* now it is safe to declare all procedures *)
       ForeachProcedureDo(scope, DeclareProcedure) ;
       ForeachInnerModuleDo(scope, WalkTypesInModule) ;
@@ -2960,19 +2951,19 @@ BEGIN
       DeclareConstant(GetDeclaredMod(sym), low)
    ELSIF IsSet(sym)
    THEN
-      IF IsSubrange(GetType(sym))
+      IF IsSubrange(GetSType(sym))
       THEN
-         IF NOT GccKnowsAbout(GetType(sym))
+         IF NOT GccKnowsAbout(GetSType(sym))
          THEN
             (* only true for internal types of course *)
             InternalError('subrange type within the set type must be declared before the set type', __FILE__, __LINE__)
          END ;
-         GetSubrange(GetType(sym), high, low) ;
+         GetSubrange(GetSType(sym), high, low) ;
          DeclareConstant(GetDeclaredMod(sym), high) ;
          DeclareConstant(GetDeclaredMod(sym), low)
-      ELSIF IsEnumeration(GetType(sym))
+      ELSIF IsEnumeration(GetSType(sym))
       THEN
-         IF NOT GccKnowsAbout(GetType(sym))
+         IF NOT GccKnowsAbout(GetSType(sym))
          THEN
             (* only true for internal types of course *)
             InternalError('enumeration type within the set type must be declared before the set type', __FILE__, __LINE__)
@@ -3032,16 +3023,16 @@ VAR
 BEGIN
    IF type#NulSym
    THEN
-      IF IsSet(type) AND (NOT GccKnowsAbout(GetType(type)))
+      IF IsSet(type) AND (NOT GccKnowsAbout(GetSType(type)))
       THEN
-         typetype := GetType(type) ;
+         typetype := GetSType(type) ;
          GetSubrange(typetype, high, low) ;
          DeclareConstant(GetDeclaredMod(type), high) ;
          DeclareConstant(GetDeclaredMod(type), low) ;
          location := TokenToLocation(GetDeclaredMod(typetype)) ;
          PreAddModGcc(typetype, BuildSubrangeType(location,
                                                   KeyToCharStar(GetFullSymName(typetype)),
-                                                  Mod2Gcc(GetType(typetype)),
+                                                  Mod2Gcc(GetSType(typetype)),
                                                   Mod2Gcc(low), Mod2Gcc(high))) ;
          IncludeElementIntoSet(FullyDeclared, typetype) ;
          WalkAssociatedUnbounded(typetype, TraverseDependants)
@@ -3278,16 +3269,16 @@ BEGIN
       (*
         There are two issues to deal with:
 
-        (i)   LeftValue is really a pointer to GetType(Son)
+        (i)   LeftValue is really a pointer to GetSType(Son)
         (ii)  Front end might have specified the back end use a particular
               data type - in which case we might tell gcc exactly this.
               We do not add an extra pointer if this is the case.
       *)
-      varType := GetVarBackEndType(var) ;
+      varType := SkipType(GetVarBackEndType(var)) ;
       IF varType=NulSym
       THEN
          (* we have not explicity told back end the type, so build it *)
-         varType := GetType(var) ;
+         varType := GetSType(var) ;
          IF IsVariableAtAddress(var)
          THEN
             type := BuildConstPointerType(Mod2Gcc(varType))
@@ -3299,7 +3290,7 @@ BEGIN
       END ;
       Assert(AllDependantsFullyDeclared(varType))
    ELSE
-      type := Mod2Gcc(GetType(var))
+      type := Mod2Gcc(GetDType(var))
    END ;
    location := TokenToLocation(GetDeclaredMod(var)) ;
    PreAddModGcc(var, DeclareKnownVariable(location,
@@ -3345,7 +3336,7 @@ BEGIN
       AlignDeclarationWithSource(Son) ;
       scope := FindContext(ModSym) ;
       decl := FindOuterModule(Son) ;
-      Assert(AllDependantsFullyDeclared(GetType(Son))) ;
+      Assert(AllDependantsFullyDeclared(GetSType(Son))) ;
       PushBinding(ModSym) ;
       DoVariableDeclaration(Son,
                             KeyToCharStar(GetFullSymName(Son)),
@@ -3358,6 +3349,56 @@ BEGIN
       PopBinding(ModSym)
    END
 END DeclareVariable ;
+
+
+(*
+   DeclareVariableWholeProgram - declares a global variable to GCC when using -fm2-whole-program.
+*)
+
+PROCEDURE DeclareVariableWholeProgram (mainModule, var: CARDINAL) ;
+VAR
+   scope: Tree ;
+   decl : CARDINAL ;
+BEGIN
+   IF NOT GccKnowsAbout(var)
+   THEN
+      AlignDeclarationWithSource(var) ;
+      scope := FindContext(mainModule) ;
+      decl := FindOuterModule(var) ;
+      Assert(AllDependantsFullyDeclared(GetSType(var))) ;
+      PushBinding(mainModule) ;
+      DoVariableDeclaration(var,
+                            KeyToCharStar(GetFullSymName(var)),
+                            (NOT IsSourceSeen(decl)) AND
+                            IsEffectivelyImported(mainModule, var) AND (GetMainModule()#decl),
+                            IsExported(mainModule, var),
+                            IsTemporary(var),
+                            IsGlobal(var),
+                            scope) ;
+      PopBinding(mainModule)
+   END
+END DeclareVariableWholeProgram ;
+
+
+(*
+   DeclareGlobalVariablesWholeProgram -
+*)
+
+PROCEDURE DeclareGlobalVariablesWholeProgram (ModSym: CARDINAL) ;
+VAR
+   o, s,
+   n, Son: CARDINAL ;
+BEGIN
+   n := 1 ;
+   Son := GetNth(ModSym, n) ;
+   o := 0 ;
+   WHILE Son#NulSym DO
+      DeclareVariableWholeProgram(ModSym, Son) ;
+      INC(n) ;
+      Son := GetNth(ModSym, n)
+   END ;
+   ForeachInnerModuleDo(ModSym, DeclareGlobalVariablesWholeProgram)
+END DeclareGlobalVariablesWholeProgram ;
 
 
 (*
@@ -3396,6 +3437,27 @@ BEGIN
       ForeachExportedDo(sym, DeclareImportedVariables)
    END
 END DeclareImportedVariables ;
+
+
+(*
+   DeclareImportedVariablesWholeProgram - declares all imported variables to GM2.
+*)
+
+PROCEDURE DeclareImportedVariablesWholeProgram (sym: WORD) ;
+BEGIN
+   IF IsVar(sym)
+   THEN
+      IF NOT IsSourceSeen(FindOuterModule(sym))
+      THEN
+         (* import is necessary, even for -fm2-whole-program as we
+            cannot see the source.  *)
+         DeclareVariableWholeProgram(GetMainModule(), sym)
+      END
+   ELSIF IsDefImp(sym)
+   THEN
+      ForeachExportedDo(sym, DeclareImportedVariablesWholeProgram)
+   END
+END DeclareImportedVariablesWholeProgram ;
 
 
 (*
@@ -3439,7 +3501,7 @@ BEGIN
    Var := GetNth(sym, i) ;
    WHILE Var#NulSym DO
       AlignDeclarationWithSource(Var) ;
-      Assert(AllDependantsFullyDeclared(GetType(Var))) ;
+      Assert(AllDependantsFullyDeclared(GetSType(Var))) ;
       DoVariableDeclaration(Var,
                             KeyToCharStar(GetFullSymName(Var)),
                             FALSE,   (* inner module variables cannot be imported *)
@@ -3483,7 +3545,7 @@ VAR
    enumlist: Tree ;
 BEGIN
    (* add relationship between gccSym and sym *)
-   type := GetType(sym) ;
+   type := GetSType(sym) ;
    enumlist := GetEnumList(type) ;
    PushValue(sym) ;
    field := DeclareFieldValue(sym, PopIntegerTree(), enumlist) ;
@@ -3523,7 +3585,7 @@ BEGIN
    GetSubrange(sym, high, low) ;
    gccsym := BuildSubrangeType(location,
                                KeyToCharStar(GetFullSymName(sym)),
-                               Mod2Gcc(GetType(sym)), Mod2Gcc(low), Mod2Gcc(high)) ;
+                               Mod2Gcc(GetSType(sym)), Mod2Gcc(low), Mod2Gcc(high)) ;
    RETURN( gccsym )
 END DeclareSubrange ;
 
@@ -3559,7 +3621,7 @@ PROCEDURE IncludeType (l: List; sym: CARDINAL) ;
 VAR
    t: CARDINAL ;
 BEGIN
-   t := GetType(sym) ;
+   t := GetSType(sym) ;
    IF t#NulSym
    THEN
       printf0(' type [') ;
@@ -3654,9 +3716,9 @@ END IncludeUnbounded ;
 
 PROCEDURE IncludePartialUnbounded (l: List; sym: CARDINAL) ;
 BEGIN
-   IF GetType(sym)#NulSym
+   IF GetSType(sym)#NulSym
    THEN
-      IncludeItemIntoList(l, GetType(sym))
+      IncludeItemIntoList(l, GetSType(sym))
    END
 END IncludePartialUnbounded ;
 
@@ -3921,7 +3983,7 @@ BEGIN
       printf2('sym %d IsSubrange (%a)', sym, n) ;
       IF (low#NulSym) AND (high#NulSym)
       THEN
-         type := GetType(sym) ;
+         type := GetSType(sym) ;
          IF type#NulSym
          THEN
             IncludeType(l, sym) ;
@@ -4305,7 +4367,7 @@ VAR
 BEGIN
    location := TokenToLocation(GetDeclaredMod(sym)) ;
    Assert(IsSet(sym)) ;
-   type := SkipType(GetType(sym)) ;
+   type := GetDType(sym) ;
    low := GetTypeMin(type) ;
    high := GetTypeMax(type) ;
    highLimit := BuildSub(location, Mod2Gcc(high), Mod2Gcc(low), FALSE) ;
@@ -4330,7 +4392,7 @@ VAR
    enumlist: Tree ;
 BEGIN
    (* add relationship between gccSym and sym *)
-   type := GetType(sym) ;
+   type := GetSType(sym) ;
    equiv := GetPackedEquivalent(type) ;
    enumlist := GetEnumList(equiv) ;
    PushValue(sym) ;
@@ -4366,7 +4428,7 @@ PROCEDURE DeclarePackedType (equiv, sym: CARDINAL) ;
 VAR
    type: CARDINAL ;
 BEGIN
-   type := GetType(sym) ;
+   type := GetSType(sym) ;
    IF type=NulSym
    THEN
       IF sym=Boolean
@@ -4463,7 +4525,7 @@ BEGIN
    THEN
       location := TokenToLocation(GetDeclaredMod(field)) ;
       f := SetDeclPacked(f) ;
-      ftype := GetPackedType(GetType(field)) ;
+      ftype := GetPackedType(GetSType(field)) ;
       nbits := BuildTBitSize(location, ftype) ;
       f := SetRecordFieldOffset(f, byteOffset, bitOffset, ftype, nbits) ;
       bitOffset := BuildAdd(location, bitOffset, nbits, FALSE) ;
@@ -4513,7 +4575,7 @@ BEGIN
             THEN
                location := TokenToLocation(GetDeclaredMod(Field)) ;
                field := SetDeclPacked(field) ;
-               ftype := GetPackedType(GetType(Field)) ;
+               ftype := GetPackedType(GetSType(Field)) ;
                nbits := BuildTBitSize(location, ftype) ;
                field := SetRecordFieldOffset(field, byteOffset, bitOffset, ftype, nbits) ;
                bitOffset := BuildAdd(location, bitOffset, nbits, FALSE) ;
@@ -4552,7 +4614,7 @@ VAR
    location    : location_t ;
 BEGIN
    location := TokenToLocation(GetDeclaredMod(sym)) ;
-   GccFieldType := PossiblyPacked(GetType(sym), IsDeclaredPacked(sym)) ;
+   GccFieldType := PossiblyPacked(GetSType(sym), IsDeclaredPacked(sym)) ;
    field := BuildFieldRecord(location, KeyToCharStar(GetFullSymName(sym)), GccFieldType) ;
    RETURN( field )
 END DeclareRecordField ;
@@ -4650,7 +4712,7 @@ END DeclareFieldVarient ;
 
 PROCEDURE DeclarePointer (sym: CARDINAL) : Tree ;
 BEGIN
-   RETURN( BuildPointerType(Mod2Gcc(GetType(sym))) )
+   RETURN( BuildPointerType(Mod2Gcc(GetSType(sym))) )
 END DeclarePointer ;
 
 
@@ -4692,7 +4754,7 @@ VAR
 BEGIN
    Subscript := GetArraySubscript(sym) ;
    Assert(IsSubscript(Subscript)) ;
-   Type := SkipType(GetType(Subscript)) ;
+   Type := GetDType(Subscript) ;
    Low := GetTypeMin(Type) ;
    High := GetTypeMax(Type) ;
    RETURN( BuildArrayIndexType(Mod2Gcc(Low), Mod2Gcc(High)) )
@@ -4715,7 +4777,7 @@ BEGIN
    Assert(IsArray(Sym)) ;
 
    Subscript := GetArraySubscript(Sym) ;
-   typeOfArray := SkipType(GetType(Sym)) ;
+   typeOfArray := GetDType(Sym) ;
    GccArray := Mod2Gcc(typeOfArray) ;
    GccIndex := BuildIndex(Sym) ;
 
@@ -4751,7 +4813,7 @@ VAR
    GccParam  : Tree ;
    location  : location_t ;
 BEGIN
-   ReturnType := GetType(Sym) ;
+   ReturnType := GetSType(Sym) ;
    func := DoStartDeclaration(Sym, BuildStartFunctionType) ;
    InitFunctionTypeParameters ;
    p := NoOfParam(Sym) ;
@@ -4760,7 +4822,7 @@ BEGIN
    WHILE i>0 DO
       Son := GetNthParam(Sym, i) ;
       location := TokenToLocation(GetDeclaredMod(Son)) ;
-      GccParam := BuildProcTypeParameterDeclaration(location, Mod2Gcc(GetType(Son)), IsVarParam(Sym, i)) ;
+      GccParam := BuildProcTypeParameterDeclaration(location, Mod2Gcc(GetSType(Son)), IsVarParam(Sym, i)) ;
       PreAddModGcc(Son, GccParam) ;
       DEC(i)
    END ;
@@ -4826,7 +4888,7 @@ BEGIN
       RETURN( min )
    ELSIF IsSet(type)
    THEN
-      RETURN( GetTypeMin(GetType(type)) )
+      RETURN( GetTypeMin(GetSType(type)) )
    ELSIF IsEnumeration(type)
    THEN
       MinEnumerationField := NulSym ;
@@ -4841,11 +4903,11 @@ BEGIN
    THEN
       GetSystemTypeMinMax(type, min, max) ;
       RETURN( min )
-   ELSIF GetType(type)=NulSym
+   ELSIF GetSType(type)=NulSym
    THEN
       MetaError1('unable to obtain the MIN value for type {%1as}', type)
    ELSE
-      RETURN( GetTypeMin(GetType(type)) )
+      RETURN( GetTypeMin(GetSType(type)) )
    END
 END GetTypeMin ;
 
@@ -4865,7 +4927,7 @@ BEGIN
       RETURN( max )
    ELSIF IsSet(type)
    THEN
-      RETURN( GetTypeMax(GetType(type)) )
+      RETURN( GetTypeMax(GetSType(type)) )
    ELSIF IsEnumeration(type)
    THEN
       MinEnumerationField := NulSym ;
@@ -4880,11 +4942,11 @@ BEGIN
    THEN
       GetSystemTypeMinMax(type, min, max) ;
       RETURN( max )
-   ELSIF GetType(type)=NulSym
+   ELSIF GetSType(type)=NulSym
    THEN
       MetaError1('unable to obtain the MAX value for type {%1as}', type)
    ELSE
-      RETURN( GetTypeMax(GetType(type)) )
+      RETURN( GetTypeMax(GetSType(type)) )
    END
 END GetTypeMax ;
 
@@ -5010,11 +5072,11 @@ VAR
    type,
    high, low: CARDINAL ;
 BEGIN
-   type := SkipType(GetType(sym)) ;
+   type := GetDType(sym) ;
    IF IsSubrange(type)
    THEN
       GetSubrange(type, high, low) ;
-      gccsym := DeclareLargeOrSmallSet(sym, GetFullSymName(sym), GetType(type), low, high)
+      gccsym := DeclareLargeOrSmallSet(sym, GetFullSymName(sym), GetSType(type), low, high)
    ELSE
       gccsym := DeclareLargeOrSmallSet(sym, GetFullSymName(sym), type, GetTypeMin(type), GetTypeMax(type))
    END ;
@@ -5034,7 +5096,7 @@ VAR
    size, high, low, type: CARDINAL ;
 BEGIN
    GetSubrange(sym, high, low) ;
-   type := GetType(sym) ;
+   type := GetSType(sym) ;
    IF type=NulSym
    THEN
       IF GccKnowsAbout(low) AND GccKnowsAbout(high)
@@ -5051,19 +5113,19 @@ BEGIN
             END
          ELSIF IsFieldEnumeration(low)
          THEN
-            IF GetType(low)=GetType(high)
+            IF GetSType(low)=GetSType(high)
             THEN
-               PutSubrange(sym, low, high, GetType(low))
+               PutSubrange(sym, low, high, GetSType(low))
             ELSE
                MetaError1('subrange limits must be of the same type {%1Uad}', sym)
             END
          ELSIF IsValueSolved(low)
          THEN
-            IF GetType(low)=LongReal
+            IF GetSType(low)=LongReal
             THEN
                MetaError1('cannot have a subrange of a SHORTREAL, REAL or LONGREAL type {%1Uad}', sym)
             ELSE
-               PutSubrange(sym, low, high, MixTypes(GetType(low), GetType(high), GetDeclaredMod(sym)))
+               PutSubrange(sym, low, high, MixTypes(GetSType(low), GetSType(high), GetDeclaredMod(sym)))
             END
          END
       END
@@ -5122,7 +5184,7 @@ BEGIN
       IF IsConstructor(sym)
       THEN
          PushValue(sym) ;
-         ChangeToConstructor(GetDeclaredMod(sym), GetType(sym)) ;
+         ChangeToConstructor(GetDeclaredMod(sym), GetSType(sym)) ;
          PopValue(sym) ;
          EvaluateValue(sym) ;
          PutConstructorSolved(sym) ;
@@ -5222,7 +5284,7 @@ VAR
 BEGIN
    GetSubrange(sym, high, low) ;
    CheckResolveSubrange(sym) ;
-   type := GetType(sym) ;
+   type := GetSType(sym) ;
    IF type#NulSym
    THEN
       p(type)
@@ -5248,7 +5310,7 @@ BEGIN
    (* low and high are not types but constants and they are resolved by M2GenGCC *)
    CheckResolveSubrange(sym) ;
    result := TRUE ;
-   type := GetType(sym) ;
+   type := GetSType(sym) ;
    IF (type=NulSym) OR (NOT q(type))
    THEN
       result := FALSE
@@ -5282,7 +5344,7 @@ BEGIN
       THEN
          IF IsVar(type)
          THEN
-            p(GetType(type))
+            p(GetSType(type))
          ELSE
             p(type)
          END ;
@@ -5311,7 +5373,7 @@ BEGIN
       THEN
          IF IsVar(type)
          THEN
-            type := GetType(type)
+            type := GetSType(type)
          END ;
          IF NOT q(type)
          THEN
@@ -5332,7 +5394,7 @@ PROCEDURE WalkVarDependants (sym: CARDINAL; p: WalkAction) ;
 VAR
    type: CARDINAL ;
 BEGIN
-   p(GetType(sym)) ;
+   p(GetSType(sym)) ;
    IF IsComponent(sym)
    THEN
       WalkComponentDependants(sym, p)
@@ -5356,7 +5418,7 @@ VAR
    result: BOOLEAN ;
 BEGIN
    result := TRUE ;
-   IF NOT q(GetType(sym))
+   IF NOT q(GetSType(sym))
    THEN
       result := FALSE
    END ;
@@ -5385,7 +5447,7 @@ END IsVarDependants ;
 
 PROCEDURE WalkPointerDependants (sym: CARDINAL; p: WalkAction) ;
 BEGIN
-   p(GetType(sym))
+   p(GetSType(sym))
 END WalkPointerDependants ;
 
 
@@ -5396,7 +5458,7 @@ END WalkPointerDependants ;
 
 PROCEDURE IsPointerDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
 BEGIN
-   RETURN( q(GetType(sym)) )
+   RETURN( q(GetSType(sym)) )
 END IsPointerDependants ;
 
 
@@ -5495,14 +5557,20 @@ END WalkRecordDependants ;
 
 PROCEDURE WalkRecordFieldDependants (sym: CARDINAL; p: WalkAction) ;
 VAR
-   v: CARDINAL ;
+   v    : CARDINAL ;
+   align: CARDINAL ;
 BEGIN
    Assert(IsRecordField(sym)) ;
-   p(GetType(sym)) ;
+   p(GetSType(sym)) ;
    v := GetVarient(sym) ;
    IF v#NulSym
    THEN
       p(v)
+   END ;
+   align := GetAlignment(sym) ;
+   IF align#NulSym
+   THEN
+      p(align)
    END
 END WalkRecordFieldDependants ;
 
@@ -5513,13 +5581,21 @@ END WalkRecordFieldDependants ;
 
 PROCEDURE WalkVarient (sym: CARDINAL; p: WalkAction) ;
 VAR
-   v: CARDINAL ;
+   v    : CARDINAL ;
+   var,
+   align: CARDINAL ;
 BEGIN
    p(sym) ;
    v := GetVarient(sym) ;
    IF v#NulSym
    THEN
       p(v)
+   END ;
+   var := GetRecordOfVarient(sym) ;
+   align := GetDefaultRecordFieldAlignment(var) ;
+   IF align#NulSym
+   THEN
+      p(align)
    END
 END WalkVarient ;
 
@@ -5627,9 +5703,9 @@ VAR
    Field: CARDINAL ;
 BEGIN
    WalkVarientAlignment(sym, p) ;
-   IF GetType(sym)#NulSym
+   IF GetSType(sym)#NulSym
    THEN
-      p(GetType(sym))
+      p(GetSType(sym))
    END ;
    v := GetVarient(sym) ;
    IF v#NulSym
@@ -5667,7 +5743,7 @@ BEGIN
       THEN
          result := FALSE
       END ;
-      type := GetType(Field) ;
+      type := GetSType(Field) ;
       IF type#NulSym
       THEN
          IF NOT q(type)
@@ -5696,7 +5772,7 @@ BEGIN
    WHILE GetNth(sym, i)#NulSym DO
       Field := GetNth(sym, i) ;
       p(Field) ;
-      type := GetType(Field) ;
+      type := GetSType(Field) ;
       IF type#NulSym
       THEN
          p(type)
@@ -5722,7 +5798,7 @@ BEGIN
    result := TRUE ;
    Assert(IsArray(sym)) ;
    result := TRUE ;
-   type := GetType(sym) ;
+   type := GetSType(sym) ;
 
    IF NOT q(type)
    THEN
@@ -5732,7 +5808,7 @@ BEGIN
    IF subscript#NulSym
    THEN
       Assert(IsSubscript(subscript)) ;
-      type := GetType(subscript) ;
+      type := GetSType(subscript) ;
       IF NOT q(type)
       THEN
          result := FALSE
@@ -5765,13 +5841,13 @@ VAR
    type     : CARDINAL ;
 BEGIN
    Assert(IsArray(sym)) ;
-   type := GetType(sym) ;
+   type := GetSType(sym) ;
    p(type) ;
    subscript := GetArraySubscript(sym) ;
    IF subscript#NulSym
    THEN
       Assert(IsSubscript(subscript)) ;
-      type := GetType(subscript) ;
+      type := GetSType(subscript) ;
       p(type) ;
       type := SkipType(type) ;
       (* the array might be declared as ARRAY type OF foo *)
@@ -5796,7 +5872,7 @@ BEGIN
    result := TRUE ;
    Assert(IsSet(sym)) ;
 
-   type := SkipType(GetType(sym)) ;
+   type := GetDType(sym) ;
    IF NOT q(type)
    THEN
       result := FALSE
@@ -5825,7 +5901,7 @@ VAR
 BEGIN
    Assert(IsSet(sym)) ;
 
-   type := SkipType(GetType(sym)) ;
+   type := GetDType(sym) ;
    p(type) ;
    low  := GetTypeMin(type) ;
    p(low) ;
@@ -5848,11 +5924,11 @@ BEGIN
    result := TRUE ;
    Assert(IsProcType(sym)) ;
    i := 1 ;
-   ReturnType := GetType(sym) ;
+   ReturnType := GetSType(sym) ;
    p := NoOfParam(sym) ;
    WHILE i<=p DO
       son := GetNthParam(sym, i) ;
-      ParamType := GetType(son) ;
+      ParamType := GetSType(son) ;
       IF NOT q(ParamType)
       THEN
          result := FALSE
@@ -5880,11 +5956,11 @@ VAR
 BEGIN
    Assert(IsProcType(sym)) ;
    i := 1 ;
-   ReturnType := GetType(sym) ;
+   ReturnType := GetSType(sym) ;
    n := NoOfParam(sym) ;
    WHILE i<=n DO
       son := GetNthParam(sym, i) ;
-      ParamType := GetType(son) ;
+      ParamType := GetSType(son) ;
       p(ParamType) ;
       INC(i)
    END ;
@@ -5909,10 +5985,10 @@ BEGIN
    result := TRUE ;
    Assert(IsProcedure(sym)) ;
    i := 1 ;
-   ReturnType := GetType(sym) ;
+   ReturnType := GetSType(sym) ;
    WHILE GetNth(sym, i)#NulSym DO
       son := GetNth(sym, i) ;
-      type := GetType(son) ;
+      type := GetSType(son) ;
       IF NOT q(type)
       THEN
          result := FALSE
@@ -5940,10 +6016,10 @@ VAR
 BEGIN
    Assert(IsProcedure(sym)) ;
    i := 1 ;
-   ReturnType := GetType(sym) ;
+   ReturnType := GetSType(sym) ;
    WHILE GetNth(sym, i)#NulSym DO
       son := GetNth(sym, i) ;
-      type := GetType(son) ;
+      type := GetSType(son) ;
       p(type) ;
       INC(i)
    END ;
@@ -5972,7 +6048,7 @@ BEGIN
    THEN
       result := FALSE
    END ;
-   IF NOT q(GetType(sym))
+   IF NOT q(GetSType(sym))
    THEN
       result := FALSE
    END ;
@@ -5988,7 +6064,7 @@ PROCEDURE WalkUnboundedDependants (sym: CARDINAL; p: WalkAction) ;
 BEGIN
    p(GetUnboundedRecordType(sym)) ;
    p(Cardinal) ;
-   p(GetType(sym))
+   p(GetSType(sym))
 END WalkUnboundedDependants ;
 
 
@@ -6002,7 +6078,7 @@ VAR
    type  : CARDINAL ;
    result: BOOLEAN ;
 BEGIN
-   type := GetType(sym) ;
+   type := GetSType(sym) ;
    result := TRUE ;
    IF (type#NulSym) AND (NOT q(type))
    THEN
@@ -6020,7 +6096,7 @@ PROCEDURE WalkTypeDependants (sym: CARDINAL; p: WalkAction) ;
 VAR
    type: CARDINAL ;
 BEGIN
-   type := GetType(sym) ;
+   type := GetSType(sym) ;
    IF type#NulSym
    THEN
       p(type)

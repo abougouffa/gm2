@@ -31,11 +31,12 @@ FROM SYSTEM IMPORT ADDRESS ;
 FROM M2Reserved IMPORT toktype ;
 FROM DynamicStrings IMPORT String ;
 FROM m2linemap IMPORT location_t ;
+FROM NameKey IMPORT Name ;
 
 EXPORT QUALIFIED OpenSource, CloseSource, ReInitialize, GetToken, InsertToken,
                  InsertTokenAndRewind, GetPreviousTokenLineNo, GetLineNo,
                  GetColumnNo, GetTokenNo, TokenToLineNo, TokenToColumnNo,
-                 TokenToLocation,
+                 TokenToLocation, GetTokenName,
                  FindFileNameFromToken, GetFileName,
                  ResetForNewPass,
                  currenttoken, currentstring, currentinteger,
@@ -122,6 +123,13 @@ PROCEDURE GetLineNo () : CARDINAL ;
 *)
 
 PROCEDURE GetTokenNo () : CARDINAL ;
+
+
+(*
+   GetTokenName - returns the token name given the tokenno.
+*)
+
+PROCEDURE GetTokenName (tokenno: CARDINAL) : Name ;
 
 
 (*

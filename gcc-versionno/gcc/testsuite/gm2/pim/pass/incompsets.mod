@@ -26,12 +26,12 @@ VAR
    l: LargeSet ;
    s: SmallSet ;
 BEGIN
-   IF s=l
+   IF l=LargeSet{}
    THEN
-   
+
    END ;
-   IF s={}
+   IF s=SmallSet{}
    THEN
-      
+
    END
 END incompsets.

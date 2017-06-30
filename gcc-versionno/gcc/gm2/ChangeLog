@@ -1,3 +1,212 @@
+2017-06-28      Gaius Mulley <gaius@gnu.org>
+
+	* brought 5.4.0 branch up to date.
+
+	* gm2/bnf/gm2m.bnf:  removed unnecessary spaces
+	  and assign a String to NIL (ExamineCompilationUnit).
+	* gm2/mc-boot/GStdIO.c:  rebuilt.
+	* gm2/mc-boot/Gdecl.c:  rebuilt.
+	* gm2/gm2-libs/StdIO.mod:  initialise StackRPtr.
+	* gm2/mc/decl.mod:  (doEscapeC) removed.  (escapeContentsC)
+          removed.  (replaceChar) fixed bug should the first character
+          be replaced.  (toCstring) reimplemented with replaceChar.
+          (toCchar) reimplemented with replaceChar.
+	* fixes a bug caused when gm2m is bootstrapped via mc.
+          -fmakeall failed as reported by Christoph Schlegel
+	  and Georg Lokowandt.
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  checkArrayElements,
+          checkRecordTypes  remove first parameter, quad.
+          checkIncorrectMeta (New procedure function).
+          checkBecomes call checkIncorrectMeta.
+          (CodeBecomes) call SubQuad.  Fixes a bug reported by
+	  John Dubery.
+
+	* gm2/gm2-libs-ch/dtoc.c:  use memmove instead of memcpy
+	  as data is being overwritten in the move.
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  FoldDivM2, CodeDivM2,
+          FoldModM2, CodeModM2, FoldDivCeil, CodeDivCeil,
+          FoldModCeil, CodeModCeil (New function procedures).
+	* gm2/gm2-compiler/M2Options.def:  GetISO, GetPIM,
+          GetPIM2, GetPIM3, GetPIM4, GetPositiveModFloor
+          (New procedure definitions).
+	* gm2/gm2-gcc/m2options.h:  GetISO, GetPIM,
+          GetPIM2, GetPIM3, GetPIM4, GetPositiveModFloor
+          (New function definitions).
+	* gm2/gm2-compiler/M2Options.mod:  GetISO, GetPIM,
+          GetPIM2, GetPIM3, GetPIM4, GetPositiveModFloor
+          (New procedures implementated).
+	* gm2/gm2-compiler/M2Quads.def:  DivM2Op, ModM2Op,
+          DivCeilOp and ModCeilOp (New quadruple operators).
+	* gm2/gm2-compiler/M2Quads.mod:  removed prototypes
+          added DivCeilOp, ModCeilOp, DivM2Op, ModM2Op
+          to all case statement lists.  MakeOp return
+          DivM2Op and ModM2Op for div and mod operations.
+	* gm2/gm2-gcc/m2expr.c:  BuildDivCeil, BuildModCeil,
+	  BuildDivM2, BuildModM2 new functions.
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeLengthFunction)
+          Call InternalError if op1 is a constant.
+          (FoldLengthFunction) if op1 is a constant fold the
+	  result and remove the quadruple.
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildLengthFunction)
+          check to see if parameter to length is a constant
+          if so then use StandardFunctionOp otherwise
+          call M2RTS_Length.  Fixes a bug reported by
+	  Ernst Bokkelkamp <ernst@bokkelkamp.de>.
+	* gm2/gm2-compiler/SymbolTable.mod:  correct end procedure
+          name PutConstIntoTypeTree.
+	* gm2/mc/mcStream.mod:  (createTemporaryFile) create a per
+          process temporary file name.
+	* (mc) regenerated.
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  use separate procedure to
+          declare variables depending whether -fm2-whole-program was
+          specified.  (DeclareImportedVariablesWholeProgram)  New
+          procedure.  (DeclareVariableWholeProgram)  New procedure.
+          (DeclareGlobalVariablesWholeProgram)  New procedure.
+          (DeclareImportedVariablesWholeProgram)  New procedure.
+          (StartDeclareModuleScopeWholeProgram)  use
+	  DeclareImportedVariablesWholeProgram.
+	* gm2/gm2-gcc/m2decl.c:  corrected dates.
+
+	* gm2/gm2-compiler/M2Code.mod:  removed unnecessary code.
+          No longer need M2SubExp.mod.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  (IsRecordFieldDependants)
+          check alignment value.  (WalkRecordFieldDependants)
+          walk alignment value.  (WalkVarient) walk alignment value.
+	* gm2/gm2-compiler/M2Quads.mod:  change comment as we no longer
+          use M2SubExp.mod
+	* gm2/gm2-gcc/m2convert.c:  use convert_loc instead of convert.
+	* gm2/gm2.texi:  remove groff font change and use texinfo.
+	* gm2/init/gm2-gccinit:  remove M2SubExp from the list.
+	* updated web pages to reflect release of 1.2.0.
+
+	* gm2/NEWS:  updated to reflect release 1.2.0.
+	* gm2/configure:  regenerated.
+	* gm2/configure.in:  updated to reflect release 1.2.0.
+	* gm2/gm2-libs/config-host.in:  updated to reflect
+	  release 1.2.0.
+	* gm2/gm2-libs/config-target.in:  updated to reflect
+          release 1.2.0.
+	* gm2/gm2.texi:  updated to reflect release 1.2.0.
+	* gm2/version.c:  updated to reflect release 1.2.0.
+	* gm2/gm2-compiler/M2GenGCC.mod:  added tests for type equivalence
+          between operands in CodeIfSetEqu and CodeIfSetNotEqu.  Fixes a bug
+          reported by Ernst Bokkelkamp.
+
+	* gm2/gm2.texi:  document the -fm2-g option.
+	* gm2/Make-lang.in:  removed old conditional.  Added
+	-fm2-g flag.  Removed obsolete variables.  Removed
+	  redundant flags in compilation builds.
+	* gm2/bnf/m2-3.bnf:  removed BuildLineNote.  Introduced
+	  BuildStmtNote.
+	* gm2/bnf/m2-h.bnf:  removed BuildLineNote.
+	* gm2/examples/map/RoomMap.mod:  removed WriteString, WriteLn.
+	* gm2/examples/map/StoreCoords.mod:  changed error message.
+	* gm2/gm2-compiler/M2Code.mod:  call DebugLineNumbers.
+	* gm2/gm2-compiler/M2Comp.def:  changed spacing.
+	* gm2/gm2-compiler/M2GCCDeclare.def:  add tokenno parameter to
+	  many procedures.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  removed QuadToTokenNo,
+	  use tokenno parameter instead.
+	* gm2/gm2-compiler/M2GenGCC.mod:  import addStmtNote,
+          removeStmtNote.  Implement CodeStatementNote, FoldStatementNote
+          call them from the appropriate case statements.  Remove
+	  all QuadToTokenNo calls and use CurrentQuadToken instead.
+	* gm2/gm2-compiler/M2LexBuf.def:  export GetTokenName.
+	* gm2/gm2-compiler/M2LexBuf.mod:  new procedure function
+	  GetTokenName.
+	* gm2/gm2-compiler/M2Optimize.mod:  removed spaces.
+	* gm2/gm2-compiler/M2Options.def:  export GetCpp,
+          SetM2g and GetM2g.
+	* gm2/gm2-compiler/M2Options.mod:  implement GetCpp,
+          SetM2g and GetM2g.
+	* gm2/gm2-compiler/M2Quads.def:  define BuildStmtNote
+	  and BuildStmtOp.  Removed spaces.
+	* gm2/gm2-compiler/M2Quads.mod:  implement BuildStmtNote.
+          Ensure BEGIN END tokens are accurate.  Use StatementNoteOp
+	  instead of LineNumberOp.
+	* gm2/gm2-compiler/M2Range.mod:  pass tokenno as a parameter to
+	  DeclareConstructor.
+	* gm2/gm2-compiler/M2Search.def:  improve comment.
+	* gm2/gm2-compiler/SymbolTable.def:  DebugLineNumbers new
+	  procedure.
+	* gm2/gm2-compiler/SymbolTable.mod:  DebugLineNumbers implement
+	  new procedure.
+	* gm2/gm2-gcc/m2block.c:  do_add_stmt, flush_pending_note,
+          addStmtNote, removeStmtNote new functions.
+	* gm2/gm2-gcc/m2block.def:  export addStmtNote, removeStmtNote,
+	  add_stmt.
+	* gm2/gm2-gcc/m2block.h:  export addStmtNote, removeStmtNote,
+	  add_stmt.
+	* gm2/gm2-gcc/m2options.h:  export GetCpp, GetM2g, SetM2g.
+	* gm2/gm2-gcc/m2statement.c:  use convert_loc instead of convert.
+	* gm2/gm2-gcc/m2treelib.c:  call m2block_add_stmt.
+	* gm2/gm2-gcc/m2treelib.h:  removed spaces.
+	* gm2/gm2-lang.c:  introduce -fm2-g flag.
+	* gm2/gm2-lang.h:  define convert_loc.
+	* gm2/lang-options.h:  introduce -fm2-g flag.
+	* gm2/lang.opt:  introduce -fm2-g flag.
+	* gm2/m2.flex:  only run the assert if we are not invoking
+	  the C preprocessor.
+
+	* gm2/Make-lang.in:  many new rules to allow
+          make gm2.verifystage12 to work.
+
+	* gm2/Make-lang.in:  gm2/gm2-compiler/m2flex.o new rule
+          for g++.   gm2/gm2-compiler/cflex.o new rule for g++.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  remove use of GetType
+	  and GetLowestType.
+          Import GetLType, GetSType, GetDType and use these instead.
+	* gm2/gm2-compiler/M2Quads.mod:  remove use of GetType
+	  and GetLowestType.
+          Import GetLType, GetSType, GetDType and use these instead.
+	* gm2/gm2-compiler/SymbolTable.def:  define GetSType,
+	  GetLType and GetDType.
+	* gm2/gm2-compiler/SymbolTable.mod:  implement GetSType,
+	  GetLType and GetDType.
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  import
+          GetLowestType and use it during the declaration of
+          parameters and variables.
+	* gm2/gm2-compiler/M2GenGCC.mod:  (DoCopyString) improved
+          comment.  (CodeXIndr)  call SkipType, renamed variables.
+	* gm2/gm2-compiler/M2Options.def:  (DebugFunctionLineNumbers)
+          new variable.  (SetDebugFunctionLineNumbers) new procedure.
+	* gm2/gm2-compiler/M2Options.mod:  (SetDebugFunctionLineNumbers)
+          new procedure.  (DebugFunctionLineNumbers) initialise.
+	* gm2/gm2-compiler/M2Quads.mod:  (CheckAssignCompatible)
+          reorder the list of if statements to detect set type checking.
+	* gm2/gm2-compiler/SymbolTable.mod:  (GetLowestType)
+          tidied up to remove deadcode and also correct a bug to ensure
+          it does not skip over user specified alignment types.
+	* gm2/gm2-gcc/m2expr.c:  (BuildAddr) use_generic parameter
+          will cast the pointer to ADDRESS.
+	* gm2/gm2-gcc/m2options.h:  (SetDebugFunctionLineNumbers) added.
+	* gm2/gm2-gcc/m2tree.c:  (m2tree_skip_type_decl) skip_type_decl
+          if necessary.
+	* gm2/gm2-lang.c:  (OPT_fdebug_function_line_numbers) case added.
+	* gm2/lang-options.h:  add entry for -fdebug-function-line-numbers.
+	* gm2/lang.opt:  improved description.  Introduced
+	  fdebug-function-line-numbers.
+
+	* Applied fixes to the testsuite reported by
+          Ernst Bokkelkamp.
+	* testsuite/gm2/exceptions/run/pass/gm2.exp:  look
+          for xg++ rather than g++.
+	* testsuite/gm2/extensions/run/pass/vararg3.mod:
+          convert 11 into an INTEGER for a vararg parameter.
+	* testsuite/gm2/switches/check-all/run/fail/gm2.exp:
+          test for the source path and filename when avoiding
+	  a testcase.
+
+2017-03-29      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/mc-boot-ch/Glibc.c:  return the result from
+	  close.
+
 2017-03-21      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/m2.flex:  match new cpp file start/end codes.

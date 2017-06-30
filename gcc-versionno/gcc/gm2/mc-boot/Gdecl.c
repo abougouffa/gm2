@@ -3935,18 +3935,6 @@ static unsigned int isString (decl_node n);
 static void doString (mcPretty_pretty p, decl_node n);
 
 /*
-   doEscapeC -
-*/
-
-static DynamicStrings_String doEscapeC (DynamicStrings_String s, char ch);
-
-/*
-   escapeContentsC -
-*/
-
-static DynamicStrings_String escapeContentsC (DynamicStrings_String s, char ch);
-
-/*
    replaceChar - replace every occurance of, ch, by, a and return modified string, s.
 */
 
@@ -9892,68 +9880,6 @@ static void doString (mcPretty_pretty p, decl_node n)
 
 
 /*
-   doEscapeC -
-*/
-
-static DynamicStrings_String doEscapeC (DynamicStrings_String s, char ch)
-{
-  DynamicStrings_String t;
-  DynamicStrings_String r;
-  int h;
-  int l;
-  int i;
-
-  h = DynamicStrings_Length (s);
-  l = 0;
-  r = DynamicStrings_InitString ((char *) "", 0);
-  i = DynamicStrings_Index (s, ch, (unsigned int) l);
-  for (;;)
-  {
-    if (i == -1)
-      return DynamicStrings_ConCat (r, DynamicStrings_Mark (DynamicStrings_Slice (s, l, 0)));
-    else
-      {
-        while (l < i)
-          {
-            r = DynamicStrings_ConCatChar (r, DynamicStrings_char (s, l));
-            l += 1;
-          }
-        if (((ch == '\\') && (i < h)) && ((DynamicStrings_char (s, i+1)) == '\\'))
-          {
-            l = i+2;
-            r = DynamicStrings_ConCatChar (r, '\\');
-            r = DynamicStrings_ConCatChar (r, DynamicStrings_char (s, i+1));
-          }
-        else
-          {
-            if ((i > 0) && ((DynamicStrings_char (s, i-1)) == '\\'))
-              {}  /* empty.  */
-            else
-              {
-                r = DynamicStrings_ConCatChar (r, '\\');
-                r = DynamicStrings_ConCatChar (r, DynamicStrings_char (s, i));
-              }
-            mcDebug_assert (l == i);
-            l += 1;
-          }
-      }
-    i = DynamicStrings_Index (s, ch, (unsigned int) l);
-  }
-  ReturnException ("../../gcc-5.2.0/gcc/gm2/mc/decl.def", 2, 1);
-}
-
-
-/*
-   escapeContentsC -
-*/
-
-static DynamicStrings_String escapeContentsC (DynamicStrings_String s, char ch)
-{
-  return doEscapeC (s, ch);
-}
-
-
-/*
    replaceChar - replace every occurance of, ch, by, a and return modified string, s.
 */
 
@@ -9969,7 +9895,12 @@ static DynamicStrings_String replaceChar (DynamicStrings_String s, char ch, char
   for (;;)
   {
     i = DynamicStrings_Index (s, ch, (unsigned int) i);
-    if (i >= 0)
+    if (i == 0)
+      {
+        s = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) a, _a_high), DynamicStrings_Slice (s, 1, 0));
+        i = StrLib_StrLen ((char *) a, _a_high);
+      }
+    else if (i > 0)
       {
         s = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_Slice (s, 0, i), DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high))), DynamicStrings_Slice (s, i+1, 0));
         i += StrLib_StrLen ((char *) a, _a_high);
@@ -9991,7 +9922,7 @@ static DynamicStrings_String toCstring (nameKey_Name n)
   DynamicStrings_String s;
 
   s = DynamicStrings_Slice (DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)), 1, -1);
-  return escapeContentsC (escapeContentsC (s, '\\'), '"');
+  return replaceChar (replaceChar (s, '\\', (char *) "\\\\", 2), '"', (char *) "\\\"", 2);
 }
 
 
@@ -10004,7 +9935,7 @@ static DynamicStrings_String toCchar (nameKey_Name n)
   DynamicStrings_String s;
 
   s = DynamicStrings_Slice (DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)), 1, -1);
-  return escapeContentsC (escapeContentsC (s, '\\'), '\'');
+  return replaceChar (replaceChar (s, '\\', (char *) "\\\\", 2), '\'', (char *) "\\'", 2);
 }
 
 

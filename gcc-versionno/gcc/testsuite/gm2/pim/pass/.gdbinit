@@ -1,2 +1,2 @@
-break _M2_arrayfio_init
+break _M2_function6_init
 run

@@ -1035,7 +1035,7 @@ m2statement_DoJump (location_t location, tree exp, char *falselabel, char *truel
 
   m2assert_AssertLocation (location);
   if (TREE_CODE (TREE_TYPE (exp)) != BOOLEAN_TYPE)
-    exp = convert (m2type_GetBooleanType (), exp);
+    exp = convert_loc (location, m2type_GetBooleanType (), exp);
 
   if ((falselabel != NULL) && (truelabel == NULL)) {
     m2block_push_statement_list (m2block_begin_statement_list ());

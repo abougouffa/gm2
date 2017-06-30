@@ -285,6 +285,9 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
   case OPT_fdebug_trace_api:
     M2Options_SetDebugTraceAPI (value);
     return 1;
+  case OPT_fdebug_function_line_numbers:
+    M2Options_SetDebugFunctionLineNumbers (value);
+    return 1;
   case OPT_fsoft_check_all:
     M2Options_SetCheckAll (value);
     return 1;
@@ -386,6 +389,9 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
     return 1;
   case OPT_fm2_statistics:
     M2Options_SetStatistics (value);
+    return 1;
+  case OPT_fm2_g:
+    M2Options_SetM2g (value);
     return 1;
   case OPT_fobject_path_:
     /* handled by the linker */
@@ -780,11 +786,8 @@ gm2_langhook_eh_personality (void)
 /* Functions called directly by the generic backend.  */
 
 tree
-convert (tree type, tree expr)
+convert_loc (location_t location, tree type, tree expr)
 {
-  location_t location = m2linemap_UnknownLocation ();
-    // DECL_SOURCE_LOCATION (type);
-
   if (type == error_mark_node
       || expr == error_mark_node
       || TREE_TYPE (expr) == error_mark_node)
@@ -817,6 +820,15 @@ convert (tree type, tree expr)
     }
 
   gcc_unreachable ();
+}
+
+
+/* Functions called directly by the generic backend.  */
+
+tree
+convert (tree type, tree expr)
+{
+  return convert_loc (m2linemap_UnknownLocation (), type, expr);
 }
 
 

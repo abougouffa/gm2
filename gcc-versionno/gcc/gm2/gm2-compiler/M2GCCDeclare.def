@@ -64,7 +64,7 @@ PROCEDURE StartDeclareScope (scope: CARDINAL) ;
 
 
 (*
-   EndDeclareScope - 
+   EndDeclareScope -
 *)
 
 PROCEDURE EndDeclareScope ;
@@ -90,7 +90,7 @@ PROCEDURE DeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
                         The constructor must be solvable at this point.
 *)
 
-PROCEDURE DeclareConstructor (quad: CARDINAL; sym: CARDINAL) ;
+PROCEDURE DeclareConstructor (tokenno: CARDINAL; quad: CARDINAL; sym: CARDINAL) ;
 
 
 (*
@@ -108,7 +108,7 @@ PROCEDURE TryDeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
                            then enter it into the to do list.
 *)
 
-PROCEDURE TryDeclareConstructor (quad: CARDINAL; sym: CARDINAL) ;
+PROCEDURE TryDeclareConstructor (tokenno: CARDINAL; quad: CARDINAL; sym: CARDINAL) ;
 
 
 (*
@@ -175,7 +175,7 @@ PROCEDURE CompletelyResolved (sym: CARDINAL) : BOOLEAN ;
 
 
 (*
-   ConstantKnownAndUsed - 
+   ConstantKnownAndUsed -
 *)
 
 PROCEDURE ConstantKnownAndUsed (sym: CARDINAL; t: Tree) ;

@@ -1,5 +1,5 @@
 --- gcc-5.4.0-orig/gcc/tree-ssa-loop-im.c	2015-09-21 10:55:57.000000000 +0100
-+++ gcc-5.4.0/gcc/tree-ssa-loop-im.c	2017-03-22 13:28:28.107209948 +0000
++++ gcc-5.4.0/gcc/tree-ssa-loop-im.c	2017-03-22 15:26:36.635392950 +0000
 @@ -628,7 +628,7 @@
    hash = iterative_hash_expr (*mem, 0);
    ref = memory_accesses.refs->find_with_hash (*mem, hash);

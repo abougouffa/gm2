@@ -1,5 +1,5 @@
 --- gcc-5.4.0-orig/gcc/cp/g++spec.c	2015-01-05 12:33:28.000000000 +0000
-+++ gcc-5.4.0/gcc/cp/g++spec.c	2017-03-22 13:27:23.587208282 +0000
++++ gcc-5.4.0/gcc/cp/g++spec.c	2017-03-22 15:26:16.695392436 +0000
 @@ -403,3 +403,9 @@
  
  /* Number of extra output files that lang_specific_pre_link may generate.  */

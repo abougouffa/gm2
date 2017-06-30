@@ -53,9 +53,9 @@ VAR
 
 PROCEDURE CreateRoomMap ;
 BEGIN
-   WriteString('Creating Boxes') ; WriteLn ;
+   (* WriteString('Creating Boxes') ; WriteLn ; *)
    CreateBoxMap ;
-   WriteString('Creating Rooms') ; WriteLn ;
+   (* WriteString('Creating Rooms') ; WriteLn ; *)
    InitRooms ;
    CreateCorridors ;
    CreateRooms ;
@@ -806,7 +806,7 @@ BEGIN
    END
 END AddDoor ;
 
-         
+
 (*
    PossibleDoorLength - returns the possible door length between rooms
                         r1 and r2 on wall w1 and w2.

@@ -57,7 +57,7 @@ VAR
 
 
 (*
-   doDSdbEnter - 
+   doDSdbEnter -
 *)
 
 PROCEDURE doDSdbEnter ;
@@ -67,7 +67,7 @@ END doDSdbEnter ;
 
 
 (*
-   doDSdbExit - 
+   doDSdbExit -
 *)
 
 PROCEDURE doDSdbExit (s: String) ;
@@ -77,7 +77,7 @@ END doDSdbExit ;
 
 
 (*
-   DSdbEnter - 
+   DSdbEnter -
 *)
 
 PROCEDURE DSdbEnter ;
@@ -86,7 +86,7 @@ END DSdbEnter ;
 
 
 (*
-   DSdbExit - 
+   DSdbExit -
 *)
 
 PROCEDURE DSdbExit (s: String) ;
@@ -325,6 +325,37 @@ END SetCpp ;
 
 
 (*
+   GetCpp - returns TRUE if the C preprocessor was used.
+*)
+
+PROCEDURE GetCpp () : BOOLEAN ;
+BEGIN
+   RETURN( CPreProcessor )
+END GetCpp ;
+
+
+(*
+   SetM2g - returns TRUE if the -fm2-g flags was used.
+*)
+
+PROCEDURE SetM2g (value: BOOLEAN) : BOOLEAN ;
+BEGIN
+   GenerateStatementNote := value ;
+   RETURN( GenerateStatementNote )
+END SetM2g ;
+
+
+(*
+   GetM2g - returns TRUE if the -fm2-g flags was used.
+*)
+
+PROCEDURE GetM2g () : BOOLEAN ;
+BEGIN
+   RETURN( GenerateStatementNote )
+END GetM2g ;
+
+
+(*
    SetVerbose - set the Verbose flag to, value.  It returns TRUE.
 *)
 
@@ -399,19 +430,21 @@ END SetProfiling ;
 
 
 (*
-   SetISO - 
+   SetISO -
 *)
 
 PROCEDURE SetISO (value: BOOLEAN) ;
 BEGIN
    Iso := value ;
    Pim := NOT value ;
-   Pim2 := NOT value
+   Pim2 := NOT value ;
+   (* Pim4 is the default, leave it alone since the DIV and MOD rules are the
+      same as ISO.  *)
 END SetISO ;
 
 
 (*
-   SetPIM - 
+   SetPIM -
 *)
 
 PROCEDURE SetPIM (value: BOOLEAN) ;
@@ -422,31 +455,41 @@ END SetPIM ;
 
 
 (*
-   SetPIM2 - 
+   SetPIM2 -
 *)
 
 PROCEDURE SetPIM2 (value: BOOLEAN) ;
 BEGIN
    Pim := value ;
    Pim2 := value ;
-   Iso := NOT value
+   Iso := NOT value ;
+   IF value
+   THEN
+      (* Pim4 is the default, turn it off.  *)
+      Pim4 := FALSE
+   END
 END SetPIM2 ;
 
 
 (*
-   SetPIM3 - 
+   SetPIM3 -
 *)
 
 PROCEDURE SetPIM3 (value: BOOLEAN) ;
 BEGIN
    Pim := value ;
    Pim3 := value ;
-   Iso := NOT value
+   Iso := NOT value ;
+   IF value
+   THEN
+      (* Pim4 is the default, turn it off.  *)
+      Pim4 := FALSE
+   END
 END SetPIM3 ;
 
 
 (*
-   SetPIM4 - 
+   SetPIM4 -
 *)
 
 PROCEDURE SetPIM4 (value: BOOLEAN) ;
@@ -508,7 +551,7 @@ END SetExceptions ;
 
 
 (*
-   SetStudents - 
+   SetStudents -
 *)
 
 PROCEDURE SetStudents (value: BOOLEAN) ;
@@ -518,7 +561,7 @@ END SetStudents ;
 
 
 (*
-   SetPedantic - 
+   SetPedantic -
 *)
 
 PROCEDURE SetPedantic (value: BOOLEAN) ;
@@ -568,7 +611,7 @@ END SetXCode ;
 
 
 (*
-   SetSwig - 
+   SetSwig -
 *)
 
 PROCEDURE SetSwig (value: BOOLEAN) ;
@@ -598,7 +641,7 @@ END SetCompilerDebugging ;
 
 
 (*
-   SetDebugTraceQuad - 
+   SetDebugTraceQuad -
 *)
 
 PROCEDURE SetDebugTraceQuad (value: BOOLEAN) ;
@@ -608,7 +651,7 @@ END SetDebugTraceQuad ;
 
 
 (*
-   SetDebugTraceAPI - 
+   SetDebugTraceAPI -
 *)
 
 PROCEDURE SetDebugTraceAPI (value: BOOLEAN) ;
@@ -618,7 +661,7 @@ END SetDebugTraceAPI ;
 
 
 (*
-   SetSources - 
+   SetSources -
 *)
 
 PROCEDURE SetSources (value: BOOLEAN) ;
@@ -629,7 +672,7 @@ END SetSources ;
 
 
 (*
-   SetDumpSystemExports - 
+   SetDumpSystemExports -
 *)
 
 PROCEDURE SetDumpSystemExports (value: BOOLEAN) ;
@@ -657,7 +700,7 @@ END SetSearchPath ;
 
 
 (*
-   setdefextension - 
+   setdefextension -
 *)
 
 PROCEDURE setdefextension (arg: ADDRESS) ;
@@ -671,7 +714,7 @@ END setdefextension ;
 
 
 (*
-   setmodextension - 
+   setmodextension -
 *)
 
 PROCEDURE setmodextension (arg: ADDRESS) ;
@@ -685,7 +728,7 @@ END setmodextension ;
 
 
 (*
-   SetOptimizing - 
+   SetOptimizing -
 *)
 
 PROCEDURE SetOptimizing (value: CARDINAL) ;
@@ -753,6 +796,89 @@ BEGIN
 END OverrideLocation ;
 
 
+(*
+   SetDebugFunctionLineNumbers - turn DebugFunctionLineNumbers on/off
+                                 (used internally for debugging).
+*)
+
+PROCEDURE SetDebugFunctionLineNumbers (value: BOOLEAN) ;
+BEGIN
+   DebugFunctionLineNumbers := value
+END SetDebugFunctionLineNumbers ;
+
+
+(*
+   SetGenerateStatementNote - turn on generation of nops if necessary
+                              to generate pedalogical single stepping.
+*)
+
+PROCEDURE SetGenerateStatementNote (value: BOOLEAN) ;
+BEGIN
+   GenerateStatementNote := value
+END SetGenerateStatementNote ;
+
+
+(*
+   GetISO - return TRUE if -fiso was present on the command line.
+*)
+
+PROCEDURE GetISO () : BOOLEAN ;
+BEGIN
+   RETURN Iso
+END GetISO ;
+
+
+(*
+   GetPIM - return TRUE if -fpim was present on the command line.
+*)
+
+PROCEDURE GetPIM () : BOOLEAN ;
+BEGIN
+   RETURN Pim
+END GetPIM ;
+
+
+(*
+   GetPIM2 - return TRUE if -fpim2 was present on the command line.
+*)
+
+PROCEDURE GetPIM2 () : BOOLEAN ;
+BEGIN
+   RETURN Pim2
+END GetPIM2 ;
+
+
+(*
+   GetPIM3 - return TRUE if -fpim3 was present on the command line.
+*)
+
+PROCEDURE GetPIM3 () : BOOLEAN ;
+BEGIN
+   RETURN Pim3
+END GetPIM3 ;
+
+
+(*
+   GetPIM4 - return TRUE if -fpim4 was present on the command line.
+*)
+
+PROCEDURE GetPIM4 () : BOOLEAN ;
+BEGIN
+   RETURN Pim4
+END GetPIM4 ;
+
+
+(*
+   GetPositiveModFloor - return TRUE if -fpositive-mod-floor was present
+                         on the command line.
+*)
+
+PROCEDURE GetPositiveModFloor () : BOOLEAN ;
+BEGIN
+   RETURN PositiveModFloorDiv
+END GetPositiveModFloor ;
+
+
 BEGIN
    CppArgs                      := InitString('') ;
    CppProgram                   := InitString('') ;
@@ -799,5 +925,7 @@ BEGIN
    ForcedLocation               := FALSE ;
    WholeProgram                 := FALSE ;
    DebugTraceQuad               := FALSE ;
-   DebugTraceAPI                := FALSE
+   DebugTraceAPI                := FALSE ;
+   DebugFunctionLineNumbers     := FALSE ;
+   GenerateStatementNote        := FALSE
 END M2Options.

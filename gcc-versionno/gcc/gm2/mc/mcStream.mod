@@ -1,4 +1,4 @@
-(* Copyright (C) 2015 Free Software Foundation, Inc.  *)
+(* Copyright (C) 2015, 2016, 2017 Free Software Foundation, Inc.  *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -20,10 +20,10 @@ IMPLEMENTATION MODULE mcStream ;
 
 
 FROM FIO IMPORT File, OpenToWrite, OpenToRead, EOF, ReadNBytes, WriteNBytes, Close, getFileName ;
-FROM libc IMPORT unlink, printf ;
+FROM libc IMPORT unlink, printf, getpid ;
 FROM Indexing IMPORT InitIndex, InBounds, HighIndice, LowIndice, PutIndice, GetIndice, Index, ForeachIndiceInIndexDo ;
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, string ;
-FROM FormatStrings IMPORT Sprintf1 ;
+FROM FormatStrings IMPORT Sprintf2 ;
 FROM SYSTEM IMPORT ADR ;
 FROM Storage IMPORT ALLOCATE ;
 
@@ -82,9 +82,11 @@ PROCEDURE createTemporaryFile (id: CARDINAL) : File ;
 VAR
    s: String ;
    f: File ;
+   p: INTEGER ;
 BEGIN
-   s := InitString ('/tmp/frag%d.frag') ;
-   s := removeLater (Sprintf1 (s, id)) ;
+   s := InitString ('/tmp/frag-%d-%d.frag') ;
+   p := getpid () ;
+   s := removeLater (Sprintf2 (s, p, id)) ;
    f := SFIO.OpenToWrite (s) ;
    RETURN f
 END createTemporaryFile ;

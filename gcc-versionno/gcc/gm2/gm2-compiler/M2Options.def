@@ -33,7 +33,7 @@ FROM DynamicStrings IMPORT String ;
 FROM m2linemap IMPORT location_t ;
 
 EXPORT QUALIFIED SetReturnCheck, SetNilCheck, SetCaseCheck,
-                 SetCheckAll, SetVerboseUnbounded, SetQuiet, SetCpp,
+                 SetCheckAll, SetVerboseUnbounded, SetQuiet, SetCpp, GetCpp,
                  SetMakeall, SetMakeall0, SetIncludePath,
                  SetUnboundedByReference,
                  SetSearchPath, SetISO, SetPIM, SetPIM2, SetPIM3, SetPIM4,
@@ -43,7 +43,9 @@ EXPORT QUALIFIED SetReturnCheck, SetNilCheck, SetCaseCheck,
                  SetDumpSystemExports,
                  SetSwig, DisplayVersion, SetOptimizing, SetForcedLocation,
                  SetCC1Quiet, SetWholeProgram, SetDebugTraceQuad, SetDebugTraceAPI,
-                 SetVerbose,
+                 SetVerbose, SetM2g, GetM2g,
+		 GetISO, GetPIM, GetPIM2, GetPIM3, GetPIM4,
+		 GetPositiveModFloor,
 
                  Iso, Pim, Pim2, Pim3, Pim4,
                  PositiveModFloorDiv,
@@ -66,7 +68,9 @@ EXPORT QUALIFIED SetReturnCheck, SetNilCheck, SetCaseCheck,
                  OverrideLocation, FinaliseOptions,
                  DebugBuiltins, setdefextension, setmodextension,
                  SetStatistics,
-                 CppProg, CppArg, CppCommandLine, CppRemember ;
+                 CppProg, CppArg, CppCommandLine, CppRemember,
+		 SetDebugFunctionLineNumbers, DebugFunctionLineNumbers,
+		 SetGenerateStatementNote, GenerateStatementNote ;
 
 
 VAR
@@ -125,6 +129,8 @@ VAR
    Exceptions,                   (* should we generate exception code?       *)
    DebugBuiltins,                (* should we always call a real function?   *)
    ForcedLocation,
+   DebugFunctionLineNumbers,
+   GenerateStatementNote,
    Optimizing,
    Coding,
    Profiling         : BOOLEAN ;
@@ -198,6 +204,27 @@ PROCEDURE SetCC1Quiet (value: BOOLEAN) ;
 *)
 
 PROCEDURE SetCpp (value: BOOLEAN) : BOOLEAN ;
+
+
+(*
+   GetCpp - returns TRUE if the C preprocessor was used.
+*)
+
+PROCEDURE GetCpp () : BOOLEAN ;
+
+
+(*
+   SetM2g - set the -fm2-g flag.
+*)
+
+PROCEDURE SetM2g (value: BOOLEAN) : BOOLEAN ;
+
+
+(*
+   GetM2g - returns TRUE if the -fm2-g flags was used.
+*)
+
+PROCEDURE GetM2g () : BOOLEAN ;
 
 
 (*
@@ -362,17 +389,33 @@ PROCEDURE SetQuadDebugging (value: BOOLEAN) ;
 
 
 (*
-   SetDebugTraceQuad - 
+   SetDebugTraceQuad -
 *)
 
 PROCEDURE SetDebugTraceQuad (value: BOOLEAN) ;
 
 
 (*
-   SetDebugTraceAPI - 
+   SetDebugTraceAPI -
 *)
 
 PROCEDURE SetDebugTraceAPI (value: BOOLEAN) ;
+
+
+(*
+   SetDebugFunctionLineNumbers - turn DebugFunctionLineNumbers on/off
+                                 (used internally for debugging).
+*)
+
+PROCEDURE SetDebugFunctionLineNumbers (value: BOOLEAN) ;
+
+
+(*
+   SetGenerateStatementNote - turn on generation of nops if necessary
+                              to generate pedalogical single stepping.
+*)
+
+PROCEDURE SetGenerateStatementNote (value: BOOLEAN) ;
 
 
 (*
@@ -420,14 +463,14 @@ PROCEDURE SetForcedLocation (location: location_t) ;
 
 
 (*
-   setdefextension - 
+   setdefextension -
 *)
 
 PROCEDURE setdefextension (arg: ADDRESS) ;
 
 
 (*
-   setmodextension - 
+   setmodextension -
 *)
 
 PROCEDURE setmodextension (arg: ADDRESS) ;
@@ -474,6 +517,49 @@ PROCEDURE CppCommandLine () : String ;
 *)
 
 PROCEDURE CppRemember (s: String) ;
+
+
+(*
+   GetISO - return TRUE if -fiso was present on the command line.
+*)
+
+PROCEDURE GetISO () : BOOLEAN ;
+
+
+(*
+   GetPIM - return TRUE if -fpim was present on the command line.
+*)
+
+PROCEDURE GetPIM () : BOOLEAN ;
+
+
+(*
+   GetPIM2 - return TRUE if -fpim2 was present on the command line.
+*)
+
+PROCEDURE GetPIM2 () : BOOLEAN ;
+
+
+(*
+   GetPIM3 - return TRUE if -fpim3 was present on the command line.
+*)
+
+PROCEDURE GetPIM3 () : BOOLEAN ;
+
+
+(*
+   GetPIM4 - return TRUE if -fpim4 was present on the command line.
+*)
+
+PROCEDURE GetPIM4 () : BOOLEAN ;
+
+
+(*
+   GetPositiveModFloor - return TRUE if -fpositive-mod-floor was present
+                         on the command line.
+*)
+
+PROCEDURE GetPositiveModFloor () : BOOLEAN ;
 
 
 (*

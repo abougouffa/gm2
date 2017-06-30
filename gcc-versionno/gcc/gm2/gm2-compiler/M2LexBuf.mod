@@ -27,7 +27,7 @@ FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM DynamicStrings IMPORT string, InitString, InitStringCharStar, Equal, Mark, KillString ;
 FROM FormatStrings IMPORT Sprintf1 ;
 FROM NameKey IMPORT NulName, Name, makekey, KeyToCharStar ;
-FROM M2Reserved IMPORT toktype ;
+FROM M2Reserved IMPORT toktype, tokToTok ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3 ;
 FROM M2Debug IMPORT Assert ;
 FROM NameKey IMPORT makekey ;
@@ -353,7 +353,7 @@ END ResetForNewPass ;
 
 
 (*
-   DisplayToken - 
+   DisplayToken -
 *)
 
 PROCEDURE DisplayToken ;
@@ -646,6 +646,33 @@ BEGIN
       RETURN( CurrentTokNo-1 )
    END
 END GetTokenNo ;
+
+
+(*
+   GetTokenName - returns the token name given the tokenno.
+*)
+
+PROCEDURE GetTokenName (tokenno: CARDINAL) : Name ;
+VAR
+   b: TokenBucket ;
+   n: Name ;
+BEGIN
+   b := FindTokenBucket(tokenno) ;
+   IF b=NIL
+   THEN
+      RETURN NulName
+   ELSE
+      WITH b^.buf[tokenno] DO
+         n := tokToTok (token) ;
+	 IF n=NulName
+         THEN
+            RETURN str
+         ELSE
+            RETURN n
+         END
+      END
+   END
+END GetTokenName ;
 
 
 (*

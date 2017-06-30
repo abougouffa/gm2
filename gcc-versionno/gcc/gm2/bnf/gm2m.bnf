@@ -7,12 +7,12 @@
 -- the terms of the GNU General Public License as published by the Free
 -- Software Foundation; either version 3, or (at your option) any later
 -- version.
--- 
+--
 -- GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
 -- WARRANTY; without even the implied warranty of MERCHANTABILITY or
 -- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 -- for more details.
--- 
+--
 -- You should have received a copy of the GNU General Public License along
 -- with gm2; see the file COPYING.  If not, write to the Free Software
 -- Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -30,12 +30,12 @@ GNU Modula-2 is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
 Software Foundation; either version 3, or (at your option) any later
 version.
- 
+
 GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
- 
+
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
@@ -47,7 +47,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
    SYSTEM     : GNU Modula-2
    Description: Generates a makefile by examining the imports within Modula-2 source.
 *)
- 
+
 FROM ASCII IMPORT nul, tab ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM FIO IMPORT File, IsNoError, StdOut, StdErr ;
@@ -91,7 +91,7 @@ TYPE
    PtrToSource = POINTER TO source ;
    source      =            RECORD
                                ModName    : Name ;
-                               Ext        : Name ; 
+                               Ext        : Name ;
                                FullPath   : Name ;
                                Depth      : CARDINAL ;
                                SourceNode : PtrToNode ;
@@ -172,7 +172,7 @@ PROCEDURE FormatChar (ch: CHAR) ; FORWARD ;
 
 
 (*
-   BeginBlock - 
+   BeginBlock -
 *)
 
 PROCEDURE BeginBlock (Level: CARDINAL) ;
@@ -197,7 +197,7 @@ END BeginBlock ;
 
 
 (*
-   EndBlock - 
+   EndBlock -
 *)
 
 PROCEDURE EndBlock ;
@@ -269,7 +269,7 @@ END RegisterImport ;
 (*
    NewNode - creates a new node, n, with zero sons.
 *)
- 
+
 PROCEDURE NewNode () : PtrToNode ;
 VAR
    n: PtrToNode ;
@@ -282,12 +282,12 @@ BEGIN
    END ;
    RETURN( n )
 END NewNode ;
- 
+
 
 (*
    NewSource - creates a new source file and returns it.
 *)
- 
+
 PROCEDURE NewSource () : PtrToSource ;
 VAR
    s: PtrToSource ;
@@ -303,7 +303,7 @@ BEGIN
    END ;
    RETURN( s )
 END NewSource ;
- 
+
 
 (*
    CreateSon - returns TRUE if we create a new son.
@@ -441,14 +441,14 @@ BEGIN
       END
    END
 END MakeObject ;
- 
+
 
 (*
    MakeExe - makes a top level node and attempts to import any
              dependancies from this source file and it then increases
              all dependancies by this top level.
 *)
- 
+
 PROCEDURE MakeExe (ModuleName: Name; n: PtrToNode; Level: CARDINAL) ;
 BEGIN
    MakeObject(ModuleName, n, Level+1) ;
@@ -478,7 +478,7 @@ BEGIN
       END
    END
 END MakeMod ;
- 
+
 
 (*
    MakeDef - make a definition module level node.
@@ -493,7 +493,7 @@ BEGIN
       ParseSource(ModuleName, TRUE, n, Level)
    END
 END MakeDef ;
- 
+
 
 (*
    ExamineCompilationUnit - opens the source file to obtain the module name and kind of module.
@@ -529,6 +529,7 @@ PROCEDURE Open (ModuleName: Name; IsDefinition: BOOLEAN) ;
 VAR
    a, b: String ;
 BEGIN
+   b := NIL ;
    IF Verbose
    THEN
       fprintf1(StdErr, 'opening module %a\n', ModuleName)
@@ -619,7 +620,7 @@ END Open ;
 
 
 (*
-   ErrorArray - 
+   ErrorArray -
 *)
 
 PROCEDURE ErrorArray (a: ARRAY OF CHAR) ;
@@ -629,7 +630,7 @@ END ErrorArray ;
 
 
 (*
-   ErrorString - 
+   ErrorString -
 *)
 
 PROCEDURE ErrorString (s: String) ;
@@ -677,7 +678,7 @@ END SyntaxError ;
 
 
 (*
-   SyntaxCheck - 
+   SyntaxCheck -
 *)
 
 PROCEDURE SyntaxCheck (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
@@ -717,7 +718,7 @@ BEGIN
       s2 := SetOfStop2{VAL(stop2, t)}
    END ;
    str := DescribeStop(s0, s1, s2) ;
-   
+
    str := ConCat(InitString('syntax error,'), Mark(str)) ;
    ErrorString(str)
 END WarnMissingToken ;
@@ -742,7 +743,7 @@ END MissingToken ;
 
 
 (*
-   CheckAndInsert - 
+   CheckAndInsert -
 *)
 
 PROCEDURE CheckAndInsert (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) : BOOLEAN ;
@@ -761,7 +762,7 @@ END CheckAndInsert ;
 
 
 (*
-   InStopSet 
+   InStopSet
 *)
 
 PROCEDURE InStopSet (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) : BOOLEAN ;
@@ -811,7 +812,7 @@ END PeepToken ;
 
 
 (*
-   Expect - 
+   Expect -
 *)
 
 PROCEDURE Expect (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
@@ -915,7 +916,7 @@ END Real ;
 
 
 (*
-   DumpList - 
+   DumpList -
 *)
 
 PROCEDURE DumpList (l: List; name: ARRAY OF CHAR) ;
@@ -933,7 +934,7 @@ END DumpList ;
 
 
 (*
-   DumpLists - 
+   DumpLists -
 *)
 
 PROCEDURE DumpLists ;
@@ -952,7 +953,7 @@ END DumpLists ;
 (*
    ParseSource - find all imports from a module.
 *)
- 
+
 PROCEDURE ParseSource (ModuleName: Name; IsDefinition: BOOLEAN;
                        n: PtrToNode; Level: CARDINAL) ;
 VAR
@@ -990,7 +991,7 @@ BEGIN
    EndBlock
 END ParseSource ;
 
- 
+
 (*
    Obj - creates an object level node if the module, ModuleName.mod,
          exists.
@@ -1266,12 +1267,12 @@ BEGIN
    END ;
    fprintf0(op, ')\n')
 END DisplayTree ;
- 
- 
+
+
 (*
    DisplaySource - displays the source files.
 *)
- 
+
 PROCEDURE DisplaySource ;
 VAR
    f: PtrToSource ;
@@ -1287,7 +1288,7 @@ BEGIN
       f := f^.Next
    END
 END DisplaySource ;
- 
+
 
 (*
    DisplayDeps - display all dependants of, n, in a space separated list suitable for a Makefile.
@@ -1518,7 +1519,7 @@ END DisplayDependency ;
 
 
 (*
-   DisplayClean - 
+   DisplayClean -
 *)
 
 PROCEDURE DisplayClean (n: PtrToNode) ;
@@ -1579,7 +1580,7 @@ END DisplayObjects ;
 
 
 (*
-   GM2Make - 
+   GM2Make -
 *)
 
 PROCEDURE GM2Make ;
@@ -1590,7 +1591,7 @@ BEGIN
    FormatS(Options) ;
    FormatLn ;
    FormatString('M2C= ') ;
-   FormatS(Compiler) ;   
+   FormatS(Compiler) ;
    FormatString(' -c $(OPTIONS)') ;
    FormatLn ;
    IF EqualArray(DestDirectory, '')
@@ -1738,7 +1739,7 @@ END StripSlash ;
 
 
 (*
-   TryPrefix - 
+   TryPrefix -
 *)
 
 PROCEDURE TryPrefix (prefix, compiler: String) : String ;
@@ -2084,21 +2085,21 @@ FileUnit :=
               ImplementationOrProgramModule )
          =:
 
-ProgramModule := "MODULE" 
+ProgramModule := "MODULE"
                   Ident
 
                   [ Priority ] ";"
 
                   { Import
-                  }       
+                  }
                   Block Ident "."
                =:
 
 ImplementationModule := "IMPLEMENTATION" "MODULE"
                          Ident
-                         [ Priority ] ";"        
-                         { Import               
-                           }                     
+                         [ Priority ] ";"
+                         { Import
+                           }
                          Block Ident "."
                       =:
 
@@ -2106,10 +2107,10 @@ ImplementationOrProgramModule := ImplementationModule | ProgramModule =:
 
 DefinitionModule := "DEFINITION" "MODULE" [ "FOR" str
                                           ]
-                    Ident              
+                    Ident
                     ";"
-                    { Import             
-                             } [ Export  
+                    { Import
+                             } [ Export
                                         ]
                   =:
 
@@ -2308,7 +2309,7 @@ WithStatement := "WITH" Designator "DO" StatementSequence "END" =:
 ProcedureDeclaration := ProcedureHeading ";" ( ProcedureBlock Ident ) =:
 
 DefineBuiltinProcedure := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")"
-                          | "__INLINE__" 
+                          | "__INLINE__"
                           | % (* epsilon *) %
                        =:
 
@@ -2380,9 +2381,9 @@ ModuleDeclaration := "MODULE"
                      [ Priority ] ";"
                      { ImportInner
                         } [ Export
-                            ]     
+                            ]
                                                                             % BeginBlock(0) %
-                       Block      
+                       Block
                        Ident                                                % EndBlock %
                      =:
 

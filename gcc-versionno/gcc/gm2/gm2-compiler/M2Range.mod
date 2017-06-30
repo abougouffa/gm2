@@ -2179,7 +2179,7 @@ BEGIN
    WITH p^ DO
       TryDeclareConstant(tokenNo, des) ;
       TryDeclareConstant(tokenNo, expr) ;
-      DeclareConstructor(0, expr) ;
+      DeclareConstructor(tokenno, 0, expr) ;
       IF desLowestType#NulSym
       THEN
          Assert(GccKnowsAbout(expr)) ;
