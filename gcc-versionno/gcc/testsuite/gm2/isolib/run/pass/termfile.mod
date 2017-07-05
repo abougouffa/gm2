@@ -30,7 +30,7 @@ BEGIN
    IF res = opened
    THEN
       WriteString('enter a string: ') ;
-      ReadString(f, password)
+      ReadString(f, password) ;
       Close(f) ;
       WriteLn ;
       WriteString('you typed:') ; WriteString(password) ; WriteLn
