@@ -26,10 +26,15 @@ VAR
    res     : OpenResults ;
    password: ARRAY [0..80] OF CHAR ;
 BEGIN
-   WriteString('enter a string: ') ;
    Open(f, read+raw, res) ;
-   ReadString(f, password) ;
-   Close(f) ;
-   WriteLn ;
-   WriteString('you typed:') ; WriteString(password) ; WriteLn
+   IF res = opened
+   THEN
+      WriteString('enter a string: ') ;
+      ReadString(f, password)
+      Close(f) ;
+      WriteLn ;
+      WriteString('you typed:') ; WriteString(password) ; WriteLn
+   ELSE
+      WriteString('unable to open a file attached to the terminal') ; WriteLn
+   END
 END termfile.
