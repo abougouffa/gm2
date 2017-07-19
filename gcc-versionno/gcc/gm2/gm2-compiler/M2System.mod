@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012.
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017.
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -78,7 +79,8 @@ FROM m2type IMPORT GetMaxFrom, GetMinFrom,
                    GetM2Bitset8, GetM2Bitset16, GetM2Bitset32,
                    GetM2Real32, GetM2Real64, GetM2Real96, GetM2Real128,
                    GetM2Complex32, GetM2Complex64, GetM2Complex96, GetM2Complex128,
-                   GetBitsetType, GetISOByteType, GetISOWordType, InitSystemTypes ;
+                   GetBitsetType, GetISOByteType, GetISOWordType,
+		   GetCSizeTType, InitSystemTypes ;
 
 FROM m2expr IMPORT BuildSize, GetSizeOf, AreConstantsEqual ;
 
@@ -294,6 +296,19 @@ END InitISOTypes ;
 
 
 (*
+   MakeExtraSystemTypes - create any extra system types required
+                          for portability.
+*)
+
+PROCEDURE MakeExtraSystemTypes ;
+VAR
+   size_t: CARDINAL ;
+BEGIN
+   size_t := AttemptToCreateType ('size_t', '', '', TRUE, GetCSizeTType ())
+END MakeExtraSystemTypes ;
+
+
+(*
    InitSystem - creates the system dependant types and procedures.
                 Note that they are not exported here, but they are
                 exported in the textual module: SYSTEM.def.
@@ -380,6 +395,7 @@ BEGIN
    CreateMinMaxFor(Byte, 'MinByte', 'MaxByte', GetByteType()) ;
 
    MakeFixedSizedTypes ;
+   MakeExtraSystemTypes ;
 
    EndScope ;
    SetCurrentModule(Previous)
