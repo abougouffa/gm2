@@ -10,6 +10,10 @@
           function.
 	* gm2/gm2-gcc/m2type.h:  (GetCSizeTType) extern declaration.
 	* gm2/tools-src/makeSystem:  corrected dates.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  declare CSizeT.
+	* gm2/gm2-compiler/M2System.def:  export CSizeT.
+	* gm2/gm2-compiler/M2System.mod:  declare CSizeT as a system
+	  type.
 
 2017-06-27      Gaius Mulley <gaius@gnu.org>
 

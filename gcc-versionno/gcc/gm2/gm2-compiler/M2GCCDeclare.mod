@@ -129,7 +129,7 @@ FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction,
 
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType,
                      GetSystemTypeMinMax, Address, Word, Byte, Loc,
-                     System, IntegerN, CardinalN, WordN, RealN, SetN, ComplexN ;
+                     System, IntegerN, CardinalN, WordN, RealN, SetN, ComplexN, CSizeT ;
 
 FROM M2Bitset IMPORT Bitset, Bitnum ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout, Poison, RemoveMod2Gcc ;
@@ -3085,6 +3085,7 @@ BEGIN
    DeclareDefaultType(Complex     , "COMPLEX"     , GetM2ComplexType()) ;
    DeclareDefaultType(LongComplex , "LONGCOMPLEX" , GetM2LongComplexType()) ;
    DeclareDefaultType(ShortComplex, "SHORTCOMPLEX", GetM2ShortComplexType()) ;
+   DeclareDefaultType(CSizeT      , "size_t"      , GetM2ShortComplexType()) ;
 
    DeclareBoolean ;
 

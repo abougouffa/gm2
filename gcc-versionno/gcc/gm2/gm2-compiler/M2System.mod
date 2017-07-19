@@ -301,10 +301,8 @@ END InitISOTypes ;
 *)
 
 PROCEDURE MakeExtraSystemTypes ;
-VAR
-   size_t: CARDINAL ;
 BEGIN
-   size_t := AttemptToCreateType ('size_t', '', '', TRUE, GetCSizeTType ())
+   CSizeT := AttemptToCreateType ('size_t', '', '', TRUE, GetCSizeTType ())
 END MakeExtraSystemTypes ;
 
 
