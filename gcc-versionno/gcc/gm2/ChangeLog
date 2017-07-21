@@ -1,3 +1,22 @@
+2017-07-21      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/el/g-mode.el:  updated to include the new SYSTEM data types.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  rename the new types
+          CSIZE_T and CSSIZE_T.
+	* gm2/gm2-compiler/M2System.def:  introduce the signed type
+          CSSIZE_T.
+	* gm2/gm2-compiler/M2System.mod:  assign type symbols CSIZE_T
+          and CSSIZE_T to exported variables.
+	* gm2/gm2-gcc/m2type.c:  GetCSSizeType (New procedure function).
+	* gm2/gm2-gcc/m2type.def:  GetCSSizeType (New procedure function).
+	* gm2/gm2-gcc/m2type.h:  GetCSSizeType (New procedure function).
+	* gm2/gm2-libs-coroutines/SYSTEM.def:  export CSIZE_T, CSSIZE_T.
+	* gm2/gm2-libs-iso/SYSTEM.def:  export CSIZE_T, CSSIZE_T.
+	* gm2/gm2-libs-min/SYSTEM.def:  export CSIZE_T, CSSIZE_T.
+	* gm2/gm2-libs/SYSTEM.def:  export CSIZE_T, CSSIZE_T.
+	* gm2/gm2-libs/libc.def:  corrected dates and use new data types.
+	* gm2/gm2.texi:  updated documentation about new data types.
+
 2017-07-18      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  the pge build rules all rewritten to

@@ -24,14 +24,15 @@ DEFINITION MODULE FOR "C" SYSTEM ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Sat Nov  2 18:46:53 2002
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides a SYSTEM module for GNU Modula-2 so that the
                  ULM libraries can be built.
 *)
 
 EXPORT QUALIFIED (* the following are built into the compiler: *)
                  (* SIZE is exported if -fpim2 is enabled *)
-                 ADDRESS, WORD, BYTE, ADR, TSIZE, THROW,
+                 CSIZE_T, CSSIZE_T, ADDRESS, WORD, BYTE,
+		 ADR, TSIZE, THROW,
                  (* the rest are implemented in SYSTEM.c *)
                  UNIXCALL, UNIXSIGNAL, UNIXFORK ;
 
@@ -54,7 +55,7 @@ PROCEDURE UNIXFORK (VAR pid: CARDINAL) : BOOLEAN ;
 
 
 (*
-   UNIXSIGNAL - 
+   UNIXSIGNAL -
 *)
 
 PROCEDURE UNIXSIGNAL (signo: CARDINAL; p: PROC;

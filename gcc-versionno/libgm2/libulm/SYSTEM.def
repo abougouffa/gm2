@@ -24,7 +24,7 @@ DEFINITION MODULE FOR "C" SYSTEM ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Sat Nov  2 18:46:53 2002
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides a SYSTEM module for GNU Modula-2 so that the
                  ULM libraries can be built.
 *)
@@ -32,7 +32,7 @@ DEFINITION MODULE FOR "C" SYSTEM ;
 EXPORT QUALIFIED (* the following are built into the compiler: *)
                  (* SIZE is exported if -fpim2 is enabled *)
                  ADR, TSIZE, THROW,
-                 (* @SYSTEM_DATATYPES@ *)
+                 ADDRESS, WORD, BYTE, CSIZE_T, CSSIZE_T, (* @SYSTEM_DATATYPES@ *)
                  (* the rest are implemented in SYSTEM.c *)
                  UNIXCALL, UNIXSIGNAL, UNIXFORK ;
 

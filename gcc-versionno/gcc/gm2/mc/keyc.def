@@ -175,6 +175,20 @@ PROCEDURE useUCharMax ;
 
 
 (*
+   useSize_t - indicate we have used size_t.
+*)
+
+PROCEDURE useSize_t ;
+
+
+(*
+   useSSize_t - indicate we have used ssize_t.
+*)
+
+PROCEDURE useSSize_t ;
+
+
+(*
    useLabs - indicate we have used labs.
 *)
 

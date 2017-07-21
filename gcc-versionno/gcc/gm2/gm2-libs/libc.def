@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011, 2012, 2013, 2014, 2015
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -27,7 +27,7 @@ DEFINITION MODULE FOR "C" libc ;
    Description: Provides an interface to the C library functions.
 *)
 
-FROM SYSTEM IMPORT ADDRESS ;
+FROM SYSTEM IMPORT ADDRESS, CSIZE_T, CSSIZE_T ;
 
 EXPORT UNQUALIFIED time_t, timeb, tm, ptrToTM,
                    write, read,
@@ -74,23 +74,17 @@ TYPE
 
 
 (*
-     int write(d, buf, nbytes)
-     int d;
-     char *buf;
-     int nbytes;
+     ssize_t write (int d, void *buf, size_t nbytes)
 *)
 
-PROCEDURE write (d: INTEGER; buf: ADDRESS; nbytes: INTEGER) : INTEGER ;
+PROCEDURE write (d: INTEGER; buf: ADDRESS; nbytes: CSIZE_T) : CSSIZE_T ;
 
 
 (*
-     int read(d, buf, nbytes)
-     int d;
-     char *buf;
-     int nbytes;
+     ssize_t read (int d, void *buf, size_t nbytes)
 *)
 
-PROCEDURE read (d: INTEGER; buf: ADDRESS; nbytes: INTEGER) : INTEGER ;
+PROCEDURE read (d: INTEGER; buf: ADDRESS; nbytes: CSIZE_T) : CSSIZE_T ;
 
 
 (*
@@ -120,8 +114,7 @@ PROCEDURE abort ;
 (*
      malloc - memory allocator.
 
-     char *malloc(size)
-     unsigned size;
+     void *malloc(size_t size);
 
      malloc() returns a pointer to a block of at least size
      bytes, which is appropriately aligned.  If size is zero,
@@ -129,14 +122,13 @@ PROCEDURE abort ;
      not be dereferenced.
 *)
 
-PROCEDURE malloc (size: CARDINAL) : ADDRESS ;
+PROCEDURE malloc (size: CSIZE_T) : ADDRESS ;
 
 
 (*
      free - memory deallocator.
 
-     free(ptr)
-     char *ptr;
+     free (void *ptr);
 
      free() releases a previously allocated block.  Its argument
      is a pointer to a block previously allocated by malloc,
@@ -147,7 +139,7 @@ PROCEDURE free (ptr: ADDRESS) ;
 
 
 (*
-     void *realloc(void *ptr, size_t size);
+     void *realloc (void *ptr, size_t size);
 
      realloc changes the size of the memory block pointed to
      by ptr to size bytes. The contents will be  unchanged  to
@@ -159,7 +151,7 @@ PROCEDURE free (ptr: ADDRESS) ;
      realloc.
 *)
 
-PROCEDURE realloc (ptr: ADDRESS; size: CARDINAL) : ADDRESS ;
+PROCEDURE realloc (ptr: ADDRESS; size: CSIZE_T) : ADDRESS ;
 
 
 (*
@@ -261,7 +253,7 @@ PROCEDURE writev (fd: INTEGER; v: ADDRESS; n: INTEGER) : INTEGER ;
             and allocate a larger buffer if necessary.
 *)
 
-PROCEDURE getcwd (buf: ADDRESS; size: INTEGER) : ADDRESS ;
+PROCEDURE getcwd (buf: ADDRESS; size: CSIZE_T) : ADDRESS ;
 
 
 (*
@@ -285,7 +277,7 @@ PROCEDURE chown (filename: ADDRESS; uid, gid: INTEGER) : INTEGER ;
    strlen - returns the length of string, a.
 *)
 
-PROCEDURE strlen (a: ADDRESS) : INTEGER ;
+PROCEDURE strlen (a: ADDRESS) : CSIZE_T ;
 
 
 (*
@@ -322,7 +314,7 @@ PROCEDURE unlink (file: ADDRESS) : INTEGER ;
    It returns dest.
 *)
 
-PROCEDURE memcpy (dest, src: ADDRESS; size: CARDINAL) : ADDRESS ;
+PROCEDURE memcpy (dest, src: ADDRESS; size: CSIZE_T) : ADDRESS ;
 
 
 (*
@@ -335,7 +327,7 @@ PROCEDURE memcpy (dest, src: ADDRESS; size: CARDINAL) : ADDRESS ;
    void *memset(void *s, int c, size_t n);
 *)
 
-PROCEDURE memset (s: ADDRESS; c: INTEGER; size: CARDINAL) : ADDRESS ;
+PROCEDURE memset (s: ADDRESS; c: INTEGER; size: CSIZE_T) : ADDRESS ;
 
 
 (*
@@ -349,7 +341,7 @@ PROCEDURE memset (s: ADDRESS; c: INTEGER; size: CARDINAL) : ADDRESS ;
    It returns dest.
 *)
 
-PROCEDURE memmove (dest, src: ADDRESS; size: CARDINAL) : ADDRESS ;
+PROCEDURE memmove (dest, src: ADDRESS; size: CSIZE_T) : ADDRESS ;
 
 
 (*

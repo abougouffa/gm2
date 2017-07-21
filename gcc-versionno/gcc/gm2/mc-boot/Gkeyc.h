@@ -146,6 +146,18 @@ EXTERN void keyc_useCharMax (void);
 EXTERN void keyc_useUCharMax (void);
 
 /*
+   useSize_t - indicate we have used size_t.
+*/
+
+EXTERN void keyc_useSize_t (void);
+
+/*
+   useSSize_t - indicate we have used ssize_t.
+*/
+
+EXTERN void keyc_useSSize_t (void);
+
+/*
    useLabs - indicate we have used labs.
 */
 

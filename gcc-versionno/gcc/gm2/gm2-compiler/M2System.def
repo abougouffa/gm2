@@ -32,13 +32,14 @@ DEFINITION MODULE M2System ;
 FROM m2linemap IMPORT location_t ;
 
 EXPORT QUALIFIED
-                 System,           (* The SYSTEM module symbol     *)
-                 Loc,              (* ISO specific System Type *)
+                 System,           (* The SYSTEM module symbol.  *)
+                 Loc,              (* ISO specific System Type.  *)
 
                  Word,             (* System Type *)
                  Byte,             (* System Type *)
                  Address,          (* System Type *)
                  CSizeT,           (* System Type *)
+                 CSSizeT,          (* System Type *)
 
                  Adr,              (* System Function *)
                  TSize,            (* System Function *)
@@ -71,7 +72,7 @@ VAR
    Loc,
    Word, Byte,
    Address,
-   CSizeT,
+   CSizeT, CSSizeT,
 
    Adr,
    TSize, TBitSize,

@@ -66,6 +66,8 @@ static unsigned int seenLabs;
 static unsigned int seenAbs;
 static unsigned int seenFabs;
 static unsigned int seenFabsl;
+static unsigned int seenSize_t;
+static unsigned int seenSSize_t;
 static unsigned int seenFree;
 static unsigned int seenMalloc;
 static unsigned int seenStorage;
@@ -201,6 +203,18 @@ void keyc_useCharMax (void);
 void keyc_useUCharMax (void);
 
 /*
+   useSize_t - indicate we have used size_t.
+*/
+
+void keyc_useSize_t (void);
+
+/*
+   useSSize_t - indicate we have used ssize_t.
+*/
+
+void keyc_useSSize_t (void);
+
+/*
    useLabs - indicate we have used labs.
 */
 
@@ -310,7 +324,7 @@ void keyc_cp (void);
 static void checkCtype (mcPretty_pretty p);
 
 /*
-   checkAbs - check to see if the abs family have been used.
+   checkAbs - check to see if the abs family, size_t or ssize_t have been used.
 */
 
 static void checkAbs (mcPretty_pretty p);
@@ -458,12 +472,12 @@ static void checkCtype (mcPretty_pretty p)
 
 
 /*
-   checkAbs - check to see if the abs family have been used.
+   checkAbs - check to see if the abs family, size_t or ssize_t have been used.
 */
 
 static void checkAbs (mcPretty_pretty p)
 {
-  if (((seenLabs || seenAbs) || seenFabs) || seenFabsl)
+  if (((((seenLabs || seenAbs) || seenFabs) || seenFabsl) || seenSize_t) || seenSSize_t)
     mcPretty_print (p, (char *) "#include <stdlib.h>\\n", 21);
 }
 
@@ -830,6 +844,8 @@ static void init (void)
   seenM2RTS = FALSE;
   seenStrlen = FALSE;
   seenCtype = FALSE;
+  seenSize_t = FALSE;
+  seenSSize_t = FALSE;
   initializedCP = FALSE;
   stack = NULL;
   freeList = NULL;
@@ -1035,6 +1051,26 @@ void keyc_useCharMax (void)
 void keyc_useUCharMax (void)
 {
   seenUCharMax = TRUE;
+}
+
+
+/*
+   useSize_t - indicate we have used size_t.
+*/
+
+void keyc_useSize_t (void)
+{
+  seenSize_t = TRUE;
+}
+
+
+/*
+   useSSize_t - indicate we have used ssize_t.
+*/
+
+void keyc_useSSize_t (void)
+{
+  seenSSize_t = TRUE;
 }
 
 

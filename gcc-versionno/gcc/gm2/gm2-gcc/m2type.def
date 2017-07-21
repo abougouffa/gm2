@@ -744,6 +744,13 @@ PROCEDURE GetCSizeTType () : Tree ;
 
 
 (*
+   GetCSSizeTType - return a type representing, ssize_t on this system.
+*)
+
+PROCEDURE GetCSSizeTType () : Tree ;
+
+
+(*
     BuildArrayStringConstructor - creates an array constructor for, arrayType,
                                   consisting of the character elements
                                   defined by, str, of, length, characters.
