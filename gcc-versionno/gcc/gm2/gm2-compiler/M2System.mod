@@ -78,7 +78,8 @@ FROM m2type IMPORT GetMaxFrom, GetMinFrom,
                    GetM2Bitset8, GetM2Bitset16, GetM2Bitset32,
                    GetM2Real32, GetM2Real64, GetM2Real96, GetM2Real128,
                    GetM2Complex32, GetM2Complex64, GetM2Complex96, GetM2Complex128,
-                   GetBitsetType, GetISOByteType, GetISOWordType, InitSystemTypes ;
+                   GetBitsetType, GetISOByteType, GetISOWordType,
+		   GetCSizeTType, GetCSSizeTType, InitSystemTypes ;
 
 FROM m2expr IMPORT BuildSize, GetSizeOf, AreConstantsEqual ;
 
@@ -93,7 +94,7 @@ VAR
 
 
 (*
-   Init - 
+   Init -
 *)
 
 PROCEDURE Init ;
@@ -127,7 +128,7 @@ END CreateMinMaxFor ;
 
 
 (*
-   MapType - 
+   MapType -
 *)
 
 PROCEDURE MapType (type: CARDINAL;
@@ -160,7 +161,7 @@ END MapType ;
 
 
 (*
-   AttemptToCreateType - 
+   AttemptToCreateType -
 *)
 
 PROCEDURE AttemptToCreateType (name, min, max: ARRAY OF CHAR;
@@ -253,7 +254,7 @@ END MakeFixedSizedTypes ;
 
 
 (*
-   InitPIMTypes - 
+   InitPIMTypes -
 *)
 
 PROCEDURE InitPIMTypes ;
@@ -274,7 +275,7 @@ END InitPIMTypes ;
 
 
 (*
-   InitISOTypes - 
+   InitISOTypes -
 *)
 
 PROCEDURE InitISOTypes ;
@@ -291,6 +292,18 @@ BEGIN
 
    (* CreateMinMaxFor(Loc, 'MinLoc', 'MaxLoc', GetISOLocType()) *)
 END InitISOTypes ;
+
+
+(*
+   MakeExtraSystemTypes - create any extra system types required
+                          for portability.
+*)
+
+PROCEDURE MakeExtraSystemTypes ;
+BEGIN
+   CSizeT  := AttemptToCreateType ('CSIZE_T' , '', '', TRUE, GetCSizeTType ()) ;
+   CSSizeT := AttemptToCreateType ('CSSIZE_T', '', '', TRUE, GetCSSizeTType ())
+END MakeExtraSystemTypes ;
 
 
 (*
@@ -380,6 +393,7 @@ BEGIN
    CreateMinMaxFor(Byte, 'MinByte', 'MaxByte', GetByteType()) ;
 
    MakeFixedSizedTypes ;
+   MakeExtraSystemTypes ;
 
    EndScope ;
    SetCurrentModule(Previous)
@@ -403,7 +417,7 @@ END GetSystemTypeMinMax ;
 
 
 (*
-   IsISOPseudoSystemFunction - 
+   IsISOPseudoSystemFunction -
 *)
 
 PROCEDURE IsISOPseudoSystemFunction (sym: CARDINAL) : BOOLEAN ;
@@ -473,7 +487,7 @@ END IsSystemType ;
 
 
 (*
-   GetSafeSystem - 
+   GetSafeSystem -
 *)
 
 PROCEDURE GetSafeSystem (name: Name) : CARDINAL ;

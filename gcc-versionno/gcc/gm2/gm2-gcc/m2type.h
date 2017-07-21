@@ -29,7 +29,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #      if defined(__GNUG__)
 #         define EXTERN extern "C"
 #      else
-#         define EXTERN 
+#         define EXTERN
 #      endif
 #   else
 #      if defined(__GNUG__)
@@ -118,6 +118,8 @@ EXTERN tree m2type_GetM2LongComplexType (void);
 EXTERN tree m2type_GetM2ComplexType (void);
 EXTERN tree m2type_GetShortCardType (void);
 EXTERN tree m2type_GetProcType (void);
+EXTERN tree m2type_GetCSizeTType (void);
+EXTERN tree m2type_GetCSSizeTType (void);
 
 EXTERN tree m2type_GetM2CType (void);
 

@@ -434,6 +434,20 @@ PROCEDURE GetProcType () : Tree ;
 
 
 (*
+   GetCSizeTType - return a type representing, size_t on this system.
+*)
+
+PROCEDURE GetCSizeTType () : Tree ;
+
+
+(*
+   GetCSSizeTType - return a type representing, ssize_t on this system.
+*)
+
+PROCEDURE GetCSSizeTType () : Tree ;
+
+
+(*
     GetM2ComplexType - return the complex type.
 *)
 

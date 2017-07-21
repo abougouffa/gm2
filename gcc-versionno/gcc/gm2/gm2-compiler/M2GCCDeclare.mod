@@ -129,7 +129,8 @@ FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction,
 
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType,
                      GetSystemTypeMinMax, Address, Word, Byte, Loc,
-                     System, IntegerN, CardinalN, WordN, RealN, SetN, ComplexN ;
+                     System, IntegerN, CardinalN, WordN, RealN, SetN, ComplexN,
+		     CSizeT, CSSizeT ;
 
 FROM M2Bitset IMPORT Bitset, Bitnum ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout, Poison, RemoveMod2Gcc ;
@@ -164,7 +165,8 @@ FROM m2type IMPORT MarkFunctionReferenced, BuildStartRecord, BuildStartVarient, 
                    GetM2Cardinal16, GetM2Cardinal32, GetM2Cardinal64, GetM2Word16, GetM2Word32,
                    GetM2Word64, GetM2Bitset8, GetM2Bitset16, GetM2Bitset32, GetM2Real32, GetM2Real64,
                    GetM2Real96, GetM2Real128, GetM2Complex32, GetM2Complex64, GetM2Complex96,
-                   GetM2Complex128, GetPackedBooleanType, BuildConstPointerType,
+                   GetM2Complex128, GetCSizeTType, GetCSSizeTType,
+		   GetPackedBooleanType, BuildConstPointerType,
                    BuildPointerType, BuildEnumerator, BuildStartEnumeration, BuildEndEnumeration,
                    SetAlignment, SetTypePacked, SetDeclPacked, BuildSmallestTypeRange,
                    SetRecordFieldOffset, ChainOn, BuildEndRecord, BuildFieldRecord,
@@ -3084,6 +3086,8 @@ BEGIN
    DeclareDefaultType(Complex     , "COMPLEX"     , GetM2ComplexType()) ;
    DeclareDefaultType(LongComplex , "LONGCOMPLEX" , GetM2LongComplexType()) ;
    DeclareDefaultType(ShortComplex, "SHORTCOMPLEX", GetM2ShortComplexType()) ;
+   DeclareDefaultType(CSizeT      , "CSIZE_T"     , GetCSizeTType()) ;
+   DeclareDefaultType(CSSizeT     , "CSSIZE_T"    , GetCSSizeTType()) ;
 
    DeclareBoolean ;
 

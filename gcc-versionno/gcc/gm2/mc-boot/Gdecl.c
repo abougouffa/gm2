@@ -236,7 +236,7 @@ typedef struct _T1_r _T1;
 
 #   define MaxBuf 127
 #   define maxNoOfElements 5
-typedef enum {explist, funccall, exit_, return_, stmtseq, comment, halt, new, dispose, inc, dec, incl, excl, length, nil, true, false, address, loc, byte, word, char_, cardinal, longcard, shortcard, integer, longint, shortint, real, longreal, shortreal, bitset, boolean, proc, ztype, rtype, complex, longcomplex, shortcomplex, type, record, varient, var, enumeration, subrange, array, subscript, string, const_, literal, varparam, param, varargs, optarg_, pointer, recordfield, varientfield, enumerationfield, set, proctype, procedure, def, imp, module, loop, while_, for_, repeat, case_, caselabellist, caselist, range, assignment, call, if_, elsif, constexp, neg, cast, val, plus, sub, div_, mod, mult, divide, in, adr, size, tsize, ord, float_, trunc, chr, abs_, cap, high, throw, cmplx, re, im, min, max, componentref, pointerref, arrayref, deref, equal, notequal, less, greater, greequal, lessequal, lsl, lsr, lor, land, lnot, lxor, and, or, not, identlist, vardecl, setvalue} nodeT;
+typedef enum {explist, funccall, exit_, return_, stmtseq, comment, halt, new, dispose, inc, dec, incl, excl, length, nil, true, false, address, loc, byte, word, csizet, cssizet, char_, cardinal, longcard, shortcard, integer, longint, shortint, real, longreal, shortreal, bitset, boolean, proc, ztype, rtype, complex, longcomplex, shortcomplex, type, record, varient, var, enumeration, subrange, array, subscript, string, const_, literal, varparam, param, varargs, optarg_, pointer, recordfield, varientfield, enumerationfield, set, proctype, procedure, def, imp, module, loop, while_, for_, repeat, case_, caselabellist, caselist, range, assignment, call, if_, elsif, constexp, neg, cast, val, plus, sub, div_, mod, mult, divide, in, adr, size, tsize, ord, float_, trunc, chr, abs_, cap, high, throw, cmplx, re, im, min, max, componentref, pointerref, arrayref, deref, equal, notequal, less, greater, greequal, lessequal, lsl, lsr, lor, land, lnot, lxor, and, or, not, identlist, vardecl, setvalue} nodeT;
 
 #   define MaxnoOfelements 5
 typedef enum {mcReserved_eoftok, mcReserved_plustok, mcReserved_minustok, mcReserved_timestok, mcReserved_dividetok, mcReserved_becomestok, mcReserved_ambersandtok, mcReserved_periodtok, mcReserved_commatok, mcReserved_semicolontok, mcReserved_lparatok, mcReserved_rparatok, mcReserved_lsbratok, mcReserved_rsbratok, mcReserved_lcbratok, mcReserved_rcbratok, mcReserved_uparrowtok, mcReserved_singlequotetok, mcReserved_equaltok, mcReserved_hashtok, mcReserved_lesstok, mcReserved_greatertok, mcReserved_lessgreatertok, mcReserved_lessequaltok, mcReserved_greaterequaltok, mcReserved_ldirectivetok, mcReserved_rdirectivetok, mcReserved_periodperiodtok, mcReserved_colontok, mcReserved_doublequotestok, mcReserved_bartok, mcReserved_andtok, mcReserved_arraytok, mcReserved_begintok, mcReserved_bytok, mcReserved_casetok, mcReserved_consttok, mcReserved_definitiontok, mcReserved_divtok, mcReserved_dotok, mcReserved_elsetok, mcReserved_elsiftok, mcReserved_endtok, mcReserved_excepttok, mcReserved_exittok, mcReserved_exporttok, mcReserved_finallytok, mcReserved_fortok, mcReserved_fromtok, mcReserved_iftok, mcReserved_implementationtok, mcReserved_importtok, mcReserved_intok, mcReserved_looptok, mcReserved_modtok, mcReserved_moduletok, mcReserved_nottok, mcReserved_oftok, mcReserved_ortok, mcReserved_packedsettok, mcReserved_pointertok, mcReserved_proceduretok, mcReserved_qualifiedtok, mcReserved_unqualifiedtok, mcReserved_recordtok, mcReserved_remtok, mcReserved_repeattok, mcReserved_retrytok, mcReserved_returntok, mcReserved_settok, mcReserved_thentok, mcReserved_totok, mcReserved_typetok, mcReserved_untiltok, mcReserved_vartok, mcReserved_whiletok, mcReserved_withtok, mcReserved_asmtok, mcReserved_volatiletok, mcReserved_periodperiodperiodtok, mcReserved_datetok, mcReserved_linetok, mcReserved_filetok, mcReserved_attributetok, mcReserved_builtintok, mcReserved_inlinetok, mcReserved_integertok, mcReserved_identtok, mcReserved_realtok, mcReserved_stringtok, mcReserved_commenttok} mcReserved_toktype;
@@ -861,6 +861,8 @@ static decl_node addressN;
 static decl_node locN;
 static decl_node byteN;
 static decl_node wordN;
+static decl_node csizetN;
+static decl_node cssizetN;
 static decl_node adrN;
 static decl_node sizeN;
 static decl_node tsizeN;
@@ -3086,6 +3088,8 @@ void keyc_useLongMax (void);
 void keyc_useULongMax (void);
 void keyc_useCharMax (void);
 void keyc_useUCharMax (void);
+void keyc_useSize_t (void);
+void keyc_useSSize_t (void);
 void keyc_useLabs (void);
 void keyc_useAbs (void);
 void keyc_useFabs (void);
@@ -7684,6 +7688,8 @@ static decl_node makeBase (nodeT k)
       case loc:
       case byte:
       case word:
+      case csizet:
+      case cssizet:
       case char_:
       case cardinal:
       case longcard:
@@ -7742,6 +7748,8 @@ static unsigned int isOrdinal (decl_node n)
       case loc:
       case byte:
       case word:
+      case csizet:
+      case cssizet:
       case char_:
       case integer:
       case longint:
@@ -7939,6 +7947,14 @@ static decl_node doGetExprType (decl_node n)
         break;
 
       case word:
+        return n;
+        break;
+
+      case csizet:
+        return n;
+        break;
+
+      case cssizet:
         return n;
         break;
 
@@ -9552,6 +9568,8 @@ static void doExprC (mcPretty_pretty p, decl_node n)
       case loc:
       case byte:
       case word:
+      case csizet:
+      case cssizet:
         doSystemC (p, n);
         break;
 
@@ -11169,6 +11187,14 @@ static unsigned int isSystem (decl_node n)
         return TRUE;
         break;
 
+      case csizet:
+        return TRUE;
+        break;
+
+      case cssizet:
+        return TRUE;
+        break;
+
 
       default:
         return FALSE;
@@ -11202,6 +11228,18 @@ static void doSystemC (mcPretty_pretty p, decl_node n)
       case word:
         outText (p, (char *) "unsigned int", 12);
         mcPretty_setNeedSpace (p);
+        break;
+
+      case csizet:
+        outText (p, (char *) "size_t", 6);
+        mcPretty_setNeedSpace (p);
+        keyc_useSize_t ();
+        break;
+
+      case cssizet:
+        outText (p, (char *) "ssize_t", 7);
+        mcPretty_setNeedSpace (p);
+        keyc_useSSize_t ();
         break;
 
 
@@ -15585,6 +15623,8 @@ static dependentState doDependants (alists_alist l, decl_node n)
       case loc:
       case byte:
       case word:
+      case csizet:
+      case cssizet:
       case boolean:
       case char_:
       case cardinal:
@@ -16506,6 +16546,8 @@ static void visitDependants (alists_alist v, decl_node n, nodeProcedure p)
       case loc:
       case byte:
       case word:
+      case csizet:
+      case cssizet:
       case char_:
       case cardinal:
       case longcard:
@@ -16767,6 +16809,8 @@ static DynamicStrings_String genKind (decl_node n)
       case loc:
       case byte:
       case word:
+      case csizet:
+      case cssizet:
       case char_:
       case cardinal:
       case longcard:
@@ -18023,6 +18067,8 @@ static void doSystemM2 (mcPretty_pretty p, decl_node n)
       case loc:
       case byte:
       case word:
+      case csizet:
+      case cssizet:
         doNameM2 (p, n);
         break;
 
@@ -18832,6 +18878,8 @@ static decl_node doDupExpr (decl_node n)
       case loc:
       case byte:
       case word:
+      case csizet:
+      case cssizet:
       case boolean:
       case proc:
       case char_:
@@ -18987,6 +19035,8 @@ static void makeSystem (void)
   locN = makeBase ((nodeT) loc);
   byteN = makeBase ((nodeT) byte);
   wordN = makeBase ((nodeT) word);
+  csizetN = makeBase ((nodeT) csizet);
+  cssizetN = makeBase ((nodeT) cssizet);
   adrN = makeBase ((nodeT) adr);
   tsizeN = makeBase ((nodeT) tsize);
   throwN = makeBase ((nodeT) throw);
@@ -18995,6 +19045,8 @@ static void makeSystem (void)
   locN = addToScope (locN);
   byteN = addToScope (byteN);
   wordN = addToScope (wordN);
+  csizetN = addToScope (csizetN);
+  cssizetN = addToScope (cssizetN);
   adrN = addToScope (adrN);
   tsizeN = addToScope (tsizeN);
   throwN = addToScope (throwN);
@@ -19005,6 +19057,8 @@ static void makeSystem (void)
   addDone (locN);
   addDone (byteN);
   addDone (wordN);
+  addDone (csizetN);
+  addDone (cssizetN);
 }
 
 
@@ -19667,6 +19721,14 @@ decl_node decl_getType (decl_node n)
         return n;
         break;
 
+      case csizet:
+        return n;
+        break;
+
+      case cssizet:
+        return n;
+        break;
+
       case boolean:
         return n;
         break;
@@ -20082,6 +20144,8 @@ decl_node decl_getScope (decl_node n)
       case loc:
       case byte:
       case word:
+      case csizet:
+      case cssizet:
         return systemN;
         break;
 
@@ -21014,6 +21078,14 @@ nameKey_Name decl_getSymName (decl_node n)
 
       case word:
         return nameKey_makeKey ((char *) "WORD", 4);
+        break;
+
+      case csizet:
+        return nameKey_makeKey ((char *) "CSIZE_T", 7);
+        break;
+
+      case cssizet:
+        return nameKey_makeKey ((char *) "CSSIZE_T", 8);
         break;
 
       case boolean:

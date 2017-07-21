@@ -2106,35 +2106,68 @@ stage2/gm2/h2def$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) \
 # gm2/ppg$(exeext)  is the bootstrap parser generator
 #
 
-gm2/ppg$(exeext): gm2/boot-bin/mklink gm2/boot-bin/mc \
-     $(GM2-PPG-MODS:%.mod=gm2/gm2-ppg-boot/%.o) \
-     gm2/gm2-ppg-boot/ppg.o $(BUILD-MC-INTERFACE-O)
-	$(QUIAT)echo "building gm2/ppg" ; \
-	if [ -f gm2/ppg$(exeext) ] ; then \
-            echo "hmm already built" ; \
-        fi ; \
-	cd gm2 ; \
-        unset CC ; \
-	../$(M2LINK) -s --g++ --name mod_init.c ../$(srcdir)/gm2/init/ppginit ; \
-	$(COMPILER) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
-	M2PATH="gm2-ppg-boot . gm2-libs-boot gm2-compiler-boot mc-boot-ch" ; export M2PATH ; \
-        unset CC ; \
-	../$(M2LINK) -l --g++ \
-           --lib ../../libiberty/safe-ctype.o \
-           --lib mc-boot-ch/Glibc.o \
-           --lib mc-boot-ch/Gmcrts.o \
-           $(STPCPY) \
-           --name ppg.lnk ../$(srcdir)/gm2/init/ppginit ; \
-	$(SHELL) ppg.lnk ; \
-	$(RM) ppg.lnk ; \
-	if [ -x a$(exeext) ] ; then \
-            mv a$(exeext) ppg$(exeext) ; \
-	elif [ -x a.out ] ; then \
-            mv a.out ppg$(exeext) ; \
-        else \
-            echo "failed to link $@" ; \
-            exit 1; \
-        fi
+PPG-INTERFACE-C = libc.c mcrts.c UnixArgs.c Selective.c termios.c \
+                  SysExceptions.c ldtoa.c dtoa.c wrapc.c pth.c \
+                  SYSTEM.c errno.c
+
+PPG-MODS         =  SymbolKey.mod   NameKey.mod  Lists.mod  bnflex.mod
+
+
+PPG-LIB-DEFS     = ASCII.def Args.def Indexing.def FIO.def \
+                   StrIO.def StrLib.def M2RTS.def Indexing.def FIO.def \
+                   Storage.def Debug.def IO.def StdIO.def M2EXCEPTION.def \
+                   StrCase.def NumberIO.def Assertion.def PushBackInput.def \
+                   SysStorage.def DynamicStrings.def M2RTS.def RTExceptions.def
+
+PPG-LIB-MODS     = ASCII.mod Args.mod FIO.mod StrIO.mod StrLib.mod \
+                   Indexing.mod Storage.mod Debug.mod IO.mod \
+                   StdIO.mod M2EXCEPTION.mod StrCase.mod NumberIO.mod \
+                   Assertion.mod PushBackInput.mod SysStorage.mod \
+                   DynamicStrings.mod M2RTS.mod RTExceptions.mod
+
+PPG-SRC          = ppg.mod
+
+BUILD-PPG-O = $(PPG-INTERFACE-C:%.c=gm2/gm2-ppg-boot/$(SRC_PREFIX)%.o) \
+              $(PPG-MODS:%.mod=gm2/gm2-ppg-boot/$(SRC_PREFIX)%.o) \
+              $(PPG-LIB-MODS:%.mod=gm2/gm2-ppg-boot/$(SRC_PREFIX)%.o) \
+              $(PPG-SRC:%.mod=gm2/gm2-ppg-boot/$(SRC_PREFIX)%.o)
+
+MCC_ARGS= --olang=c \
+ --h-file-prefix=$(SRC_PREFIX) \
+ -I$(srcdir)/gm2/gm2-libs \
+ -I$(srcdir)/gm2/gm2-compiler \
+ -I$(srcdir)/gm2/gm2-libiberty \
+ -I$(srcdir)/gm2/gm2-gcc
+
+MCC=gm2/boot-bin/mc$(exeext) $(MCC_ARGS)
+
+BUILD-PPG-LIBS-H = $(PPG-LIB-DEFS:%.def=gm2/gm2-ppg-boot/$(SRC_PREFIX)%.h)
+
+BUILD-PPG-H = gm2/boot-bin/mc$(exeext) $(BUILD-PPG-LIBS-H)
+
+gm2/gm2-ppg-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def
+	$(MCC) -o=$@ $(srcdir)/gm2/gm2-libs/$*.def
+
+gm2/gm2-ppg-boot/$(SRC_PREFIX)%.o: gm2/mc-boot-ch/$(SRC_PREFIX)%.c
+	$(CC) -I$(srcdir)/gm2/mc-boot-ch -g -c $< -o $@
+
+gm2/gm2-ppg-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-libs/%.mod
+	$(MCC) -o=gm2/gm2-ppg-boot/$(SRC_PREFIX)$*.c $(srcdir)/gm2/gm2-libs/$*.mod
+	$(CC) -Igm2/gm2-ppg-boot -I$(srcdir)/gm2/mc-boot \
+              -I$(srcdir)/gm2/mc-boot-ch -g -c gm2/gm2-ppg-boot/$(SRC_PREFIX)$*.c -o $@
+
+gm2/gm2-ppg-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-compiler/%.mod
+	$(MCC) -o=gm2/gm2-ppg-boot/$(SRC_PREFIX)$*.c $(srcdir)/gm2/gm2-compiler/$*.mod
+	$(CC) -Igm2/mc-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot \
+              -I$(srcdir)/gm2/mc-boot-ch -g -c gm2/gm2-ppg-boot/$(SRC_PREFIX)$*.c -o $@
+
+gm2/ppg$(exeext): gm2/boot-bin/mc $(BUILD-PPG-O) $(BUILD-MC-INTERFACE-O) gm2/gm2-ppg-boot/main.o
+	$(CC) -g -o $@ $(BUILD-PPG-O) gm2/gm2-ppg-boot/main.o -lm -lpth
+
+gm2/gm2-ppg-boot/main.o: $(M2LINK) $(srcdir)/gm2/init/mcinit
+	unset CC ; $(M2LINK) -s --gcc --exit --name mainppginit.c $(srcdir)/gm2/init/ppginit
+	mv mainppginit.c gm2/gm2-ppg-boot/main.c
+	$(CC) -g -c -o $@ gm2/gm2-ppg-boot/main.c
 
 gm2/gm2-auto:
 	mkdir gm2/gm2-auto
@@ -2144,34 +2177,46 @@ gm2/gm2-auto:
 #                 without error recovery
 #
 
-gm2/pg$(exeext): gm2/gm2-auto/pg.mod \
-    gm2/boot-bin/mklink gm2/gm2-libs-boot \
-    $(GM2-PPG-MODS:%.mod=gm2/gm2-pg-boot/%.o) $(BUILD-MC-INTERFACE-O)
-	sed -e 's/ppg/pg/' < $(srcdir)/gm2/init/ppginit > gm2/gm2-auto/pginit
-	$(MAKE) gm2/gm2-auto/pg.o
-	$(QUIAT)cd gm2 ; \
-        unset CC ; \
-	../$(M2LINK) -s --g++ --name mod_init.c ../gm2/gm2-auto/pginit ; \
-	$(COMPILER) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
-	M2PATH="gm2-pg-boot gm2-auto . gm2-libs-boot gm2-compiler-boot mc-boot-ch" ; export M2PATH ; \
-        unset CC ; \
-	../$(M2LINK) -l --g++ \
-           --lib ../../libiberty/safe-ctype.o \
-           --lib mc-boot-ch/Glibc.o \
-           --lib mc-boot-ch/Gmcrts.o \
-           $(STPCPY) \
-           --name pg.lnk ../gm2/gm2-auto/pginit ; \
-	$(SHELL) pg.lnk ; \
-	$(RM) pg.lnk ; \
-	if [ -x a$(exeext) ] ; then \
-            mv a$(exeext) pg$(exeext) ; \
-	elif [ -x a.out ] ; then \
-            mv a.out pg$(exeext) ; \
-        else \
-            echo "failed to link $@" ; \
-            exit 1; \
-        fi
-	$(RM) gm2/mod_init.o
+PG-SRC = pg.mod
+
+BUILD-PG-O = $(PPG-INTERFACE-C:%.c=gm2/gm2-pg-boot/$(SRC_PREFIX)%.o) \
+             $(PPG-MODS:%.mod=gm2/gm2-pg-boot/$(SRC_PREFIX)%.o) \
+             $(PPG-LIB-MODS:%.mod=gm2/gm2-pg-boot/$(SRC_PREFIX)%.o) \
+             $(PG-SRC:%.mod=gm2/gm2-pg-boot/$(SRC_PREFIX)%.o)
+
+gm2/gm2-pg-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def
+	$(MCC) -o=$@ $(srcdir)/gm2/gm2-libs/$*.def
+
+gm2/gm2-pg-boot/$(SRC_PREFIX)%.o: gm2/mc-boot-ch/$(SRC_PREFIX)%.c
+	$(CC) -I$(srcdir)/gm2/mc-boot-ch -g -c $< -o $@
+
+gm2/gm2-pg-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-libs/%.mod
+	$(MCC) -o=gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c $(srcdir)/gm2/gm2-libs/$*.mod
+	$(CC) -Igm2/gm2-pg-boot	-I$(srcdir)/gm2/mc-boot -I$(srcdir)/gm2/mc-boot-ch \
+              -g -c gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c -o $@
+
+gm2/gm2-pg-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-compiler/%.mod
+	$(MCC) -o=gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c $(srcdir)/gm2/gm2-compiler/$*.mod
+	$(CC) -Igm2/mc-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot \
+              -I$(srcdir)/gm2/mc-boot-ch -g -c gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c -o $@
+
+gm2/gm2-pg-boot/$(SRC_PREFIX)pg.o:  gm2/gm2-auto/pg.mod
+	$(MCC) -o=gm2/gm2-pg-boot/$(SRC_PREFIX)pg.c gm2/gm2-auto/pg.mod
+	$(CC) -Igm2/mc-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot \
+              -I$(srcdir)/gm2/mc-boot-ch -g -c gm2/gm2-pg-boot/$(SRC_PREFIX)pg.c -o $@
+
+gm2/pg$(exeext): gm2/boot-bin/mc \
+    $(BUILD-PG-O) $(GM2-PPG-MODS:%.mod=gm2/gm2-pg-boot/%.o) \
+    $(BUILD-MC-INTERFACE-O) gm2/gm2-pg-boot/main.o
+	$(CC) -g -o $@ $(BUILD-PG-O) gm2/gm2-pg-boot/main.o -lm -lpth
+
+gm2/gm2-auto/pginit:
+	sed -e 's/ppg/pg/' < $(srcdir)/gm2/init/ppginit > $@
+
+gm2/gm2-pg-boot/main.o: gm2/gm2-auto/pginit
+	unset CC ; $(M2LINK) -s --gcc --exit --name mainpginit.c gm2/gm2-auto/pginit
+	mv mainpginit.c gm2/gm2-pg-boot/main.c
+	$(CC) -g -c -o $@ gm2/gm2-pg-boot/main.c
 
 gm2/pg-e$(exeext): gm2/pg$(exeext)
 	$(CP) gm2/pg$(exeext) gm2/pg-e$(exeext)
@@ -2187,47 +2232,63 @@ gm2/gm2-auto/pg.mod: gm2/ppg$(exeext)
 	$(srcdir)/gm2/tools-src/buildpg $(srcdir)/gm2/gm2-compiler/ppg.mod pg -e > gm2/gm2-auto/pg.bnf
 	./gm2/ppg$(exeext) -e -l gm2/gm2-auto/pg.bnf > gm2/gm2-auto/pg.mod
 
-gm2/pge-$(exeext): $(GM2-PPG-MODS:%.mod=gm2/gm2-pge-boot/%.o) gm2/pg-e$(exeext)
-	$(srcdir)/gm2/tools-src/buildpg $(srcdir)/gm2/gm2-compiler/ppg.mod pge > gm2/gm2-auto/pge.bnf
-	./gm2/pg-e$(exeext) -l gm2/gm2-auto/pge.bnf > gm2/gm2-auto/pge.mod
-	$(MAKE) gm2/gm2-auto/pge.o
-	sed -e 's/ppg/pge/' < $(srcdir)/gm2/init/ppginit > gm2/gm2-pge-boot/pgeinit
-	$(QUIAT)cd gm2 ; \
-        unset CC ; \
-	../$(M2LINK) -s --g++ --name mod_init.c gm2-pge-boot/pgeinit ; \
-	$(COMPILER) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
-	M2PATH="gm2-auto gm2-pge-boot . gm2-libs-boot gm2-compiler-boot mc-boot-ch" ; export M2PATH ; \
-        unset CC ; \
-	../$(M2LINK) -l --g++ \
-          --lib ../../libiberty/safe-ctype.o \
-          --lib mc-boot-ch/Glibc.o \
-          --lib mc-boot-ch/Gmcrts.o \
-          $(STPCPY) \
-          --name pge.lnk gm2-pge-boot/pgeinit ; \
-	$(SHELL) pge.lnk ; \
-	$(RM) pge.lnk ; \
-	if [ -x a$(exeext) ] ; then \
-            mv a$(exeext) pge-$(exeext) ; \
-	elif [ -x a.out ] ; then \
-            mv a.out pge-$(exeext) ; \
-        else \
-            echo "failed to link pge" ; \
-            exit 1; \
-        fi
-	$(RM) gm2/gm2-auto/pge.bnf gm2/gm2-auto/pge.mod
-	$(RM) gm2/mod_init.o
+#
+#
+#
 
-gm2/pge$(exeext): gm2/pge-$(exeext)
+PGE-SRC = pge.mod
+
+BUILD-PGE-O = $(PPG-INTERFACE-C:%.c=gm2/gm2-pge-boot/$(SRC_PREFIX)%.o) \
+              $(PPG-MODS:%.mod=gm2/gm2-pge-boot/$(SRC_PREFIX)%.o) \
+              $(PPG-LIB-MODS:%.mod=gm2/gm2-pge-boot/$(SRC_PREFIX)%.o) \
+              $(PGE-SRC:%.mod=gm2/gm2-pge-boot/$(SRC_PREFIX)%.o)
+
+gm2/gm2-auto/pge.mod: gm2/pg$(exeext)
+	$(srcdir)/gm2/tools-src/buildpg $(srcdir)/gm2/gm2-compiler/ppg.mod pge > gm2/gm2-auto/pge.bnf
+	./gm2/pg$(exeext) -l gm2/gm2-auto/pge.bnf > gm2/gm2-auto/pge.mod
+
+gm2/gm2-pge-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def
+	$(MCC) -o=$@ $(srcdir)/gm2/gm2-libs/$*.def
+
+gm2/gm2-pge-boot/$(SRC_PREFIX)%.o: gm2/mc-boot-ch/$(SRC_PREFIX)%.c
+	$(CC) -I$(srcdir)/gm2/mc-boot-ch -g -c $< -o $@
+
+gm2/gm2-pge-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-libs/%.mod
+	$(MCC) -o=gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c $(srcdir)/gm2/gm2-libs/$*.mod
+	$(CC) -Igm2/gm2-pg-boot	-I$(srcdir)/gm2/mc-boot -I$(srcdir)/gm2/mc-boot-ch \
+              -g -c gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c -o $@
+
+gm2/gm2-pge-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-compiler/%.mod
+	$(MCC) -o=gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c $(srcdir)/gm2/gm2-compiler/$*.mod
+	$(CC) -Igm2/mc-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot \
+              -I$(srcdir)/gm2/mc-boot-ch -g -c gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c -o $@
+
+gm2/gm2-pge-boot/$(SRC_PREFIX)pge.o:  gm2/gm2-auto/pge.mod
+	$(MCC) -o=gm2/gm2-pge-boot/$(SRC_PREFIX)pge.c gm2/gm2-auto/pge.mod
+	$(CC) -Igm2/mc-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot \
+              -I$(srcdir)/gm2/mc-boot-ch -g -c gm2/gm2-pge-boot/$(SRC_PREFIX)pge.c -o $@
+
+gm2/pge$(exeext): gm2/boot-bin/mc \
+    $(BUILD-PGE-O) $(GM2-PPG-MODS:%.mod=gm2/gm2-pge-boot/%.o) \
+    $(BUILD-MC-INTERFACE-O) gm2/gm2-pge-boot/main.o
+	$(CC) -g -o $@ $(BUILD-PGE-O) gm2/gm2-pge-boot/main.o -lm -lpth
 	$(srcdir)/gm2/tools-src/buildpg $(srcdir)/gm2/gm2-compiler/ppg.mod t > gm2/gm2-auto/t.bnf
-	./gm2/pge-$(exeext) gm2/gm2-auto/t.bnf > gm2/gm2-auto/t1.mod
-	./gm2/pg-e$(exeext) gm2/gm2-auto/t.bnf > gm2/gm2-auto/t2.mod
+	./gm2/pge$(exeext) gm2/gm2-auto/t.bnf > gm2/gm2-auto/t1.mod
+	./gm2/pg$(exeext) gm2/gm2-auto/t.bnf > gm2/gm2-auto/t2.mod
 	$(QUIAT)if ! diff gm2/gm2-auto/t1.mod gm2/gm2-auto/t2.mod > /dev/null ; then \
            echo "failure: pg (with error recovery) failed" ; \
            $(RM) gm2/pge$(exeext) ; \
            exit 1 ; \
         fi
 	$(RM) gm2/gm2-auto/t.mod gm2/gm2-auto/t1.mod gm2/gm2-auto/t2.mod
-	$(CP) gm2/pge-$(exeext) gm2/pge$(exeext)
+
+gm2/gm2-auto/pgeinit:
+	sed -e 's/ppg/pge/' < $(srcdir)/gm2/init/ppginit > $@
+
+gm2/gm2-pge-boot/main.o: gm2/gm2-auto/pgeinit
+	unset CC ; $(M2LINK) -s --gcc --exit --name mainpgeinit.c gm2/gm2-auto/pgeinit
+	mv mainpgeinit.c gm2/gm2-pge-boot/main.c
+	$(CC) -g -c -o $@ gm2/gm2-pge-boot/main.c
 
 $(objdir)/gm2/gm2-compiler-paranoid/P0SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf gm2/pge$(exeext)
 	./gm2/pge$(exeext) $< > $@

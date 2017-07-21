@@ -2796,10 +2796,34 @@ base module).  PIM-2 defined @code{SIZE} in the @code{SYSTEM} module
 GNU Modula-2 allows users to specify the dialect of Modula-2 by using
 the @code{-fiso} and @code{-fpim2} command line switches.
 
+The data types @code{CSIZE_T} and @code{CSSIZE_T} are also exported from
+the @code{SYSTEM} module.  The type @code{CSIZE_T} is unsigned and is
+mapped onto the target C data type @code{size_t} whereas the type
+@code{CSSIZE_T} is mapped onto the signed C data type @code{ssize_t}.
+
+It is anticipated that these should only be used to provide cross
+platform definition modules for C libraries.
+
+There are also a variety of fixed sized @code{INTEGER} and
+@code{CARDINAL} types.  The variety of the fixed sized types will
+depend upon the target architecture.
+
 @node The ISO system module, , The PIM system module, Using
 @section The ISO system module
 
 @include SYSTEM-iso.texi
+
+The data types @code{CSIZE_T} and @code{CSSIZE_T} are also exported from
+the @code{SYSTEM} module.  The type @code{CSIZE_T} is unsigned and is
+mapped onto the target C data type @code{size_t} whereas the type
+@code{CSSIZE_T} is mapped onto the signed C data type @code{ssize_t}.
+
+It is anticipated that these should only be used to provide cross
+platform definition modules for C libraries.
+
+There are also a variety of fixed sized @code{INTEGER} and
+@code{CARDINAL} types.  The variety of the fixed sized types will
+depend upon the target architecture.
 
 @node Obtaining, Licence, Using, Top
 @chapter Obtaining GNU Modula-2.

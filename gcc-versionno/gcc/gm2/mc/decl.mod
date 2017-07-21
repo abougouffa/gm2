@@ -75,6 +75,7 @@ TYPE
 	    nil, true, false,
             (* system types.  *)
    	    address, loc, byte, word,
+            csizet, cssizet,
             (* base types.  *)
 	    char,
 	    cardinal, longcard, shortcard,
@@ -126,7 +127,9 @@ TYPE
                          address,
 			 loc,
                          byte,
-			 word            :  |
+			 word,
+                         csizet,
+                         cssizet         : |
                          (* base types.  *)
 			 boolean,
  			 proc,
@@ -630,6 +633,8 @@ VAR
    locN,
    byteN,
    wordN,
+   csizetN,
+   cssizetN,
    adrN,
    sizeN,
    tsizeN,
@@ -3868,6 +3873,8 @@ BEGIN
       loc             :  RETURN makeKey ('LOC') |
       byte            :  RETURN makeKey ('BYTE') |
       word            :  RETURN makeKey ('WORD') |
+      csizet          :  RETURN makeKey ('CSIZE_T') |
+      cssizet         :  RETURN makeKey ('CSSIZE_T') |
       (* base types.  *)
       boolean         :  RETURN makeKey ('BOOLEAN') |
       proc            :  RETURN makeKey ('PROC') |
@@ -4401,6 +4408,8 @@ BEGIN
       loc,
       byte,
       word,
+      csizet,
+      cssizet,
       char,
       cardinal,
       longcard,
@@ -4537,6 +4546,8 @@ BEGIN
    loc,
    byte,
    word,
+   csizet,
+   cssizet,
    char,
    integer,
    longint,
@@ -4575,6 +4586,8 @@ BEGIN
       loc             :  RETURN n |
       byte            :  RETURN n |
       word            :  RETURN n |
+      csizet          :  RETURN n |
+      cssizet         :  RETURN n |
       (* base types.  *)
       boolean         :  RETURN n |
       proc            :  RETURN n |
@@ -4797,6 +4810,8 @@ BEGIN
       loc             :  RETURN n |
       byte            :  RETURN n |
       word            :  RETURN n |
+      csizet          :  RETURN n |
+      cssizet         :  RETURN n |
       (* base types.  *)
       boolean         :  RETURN n |
       proc            :  RETURN n |
@@ -4967,7 +4982,9 @@ BEGIN
       address,
       loc,
       byte,
-      word            :  RETURN systemN |
+      word,
+      csizet,
+      cssizet         : RETURN systemN |
       (* base types.  *)
       boolean,
       proc,
@@ -6032,7 +6049,9 @@ BEGIN
       address,
       loc,
       byte,
-      word            :  doSystemC (p, n) |
+      word,
+      csizet,
+      cssizet         :  doSystemC (p, n) |
       type            :  doTypeNameC (p, n) |
       pointer         :  doTypeNameC (p, n)
 
@@ -7455,7 +7474,9 @@ BEGIN
    address:  RETURN TRUE |
    loc    :  RETURN TRUE |
    byte   :  RETURN TRUE |
-   word   :  RETURN TRUE
+   word   :  RETURN TRUE |
+   csizet :  RETURN TRUE |
+   cssizet:  RETURN TRUE
 
    ELSE
       RETURN FALSE
@@ -7474,7 +7495,9 @@ BEGIN
    address:  outText (p, 'void *') |
    loc    :  outText (p, 'unsigned char') ; setNeedSpace (p) |
    byte   :  outText (p, 'unsigned char') ; setNeedSpace (p) |
-   word   :  outText (p, 'unsigned int') ; setNeedSpace (p)
+   word   :  outText (p, 'unsigned int') ; setNeedSpace (p) |
+   csizet :  outText (p, 'size_t') ; setNeedSpace (p) ; keyc.useSize_t |
+   cssizet:  outText (p, 'ssize_t') ; setNeedSpace (p) ; keyc.useSSize_t
 
    END
 END doSystemC ;
@@ -11959,6 +11982,8 @@ BEGIN
       loc,
       byte,
       word,
+      csizet,
+      cssizet,
       (* base types.  *)
       boolean,
       char,
@@ -12767,6 +12792,8 @@ BEGIN
    loc,
    byte,
    word,
+   csizet,
+   cssizet,
    (* base types.  *)
    char,
    cardinal,
@@ -12904,6 +12931,8 @@ BEGIN
    loc,
    byte,
    word,
+   csizet,
+   cssizet,
    char,
    cardinal,
    longcard,
@@ -13999,7 +14028,9 @@ BEGIN
    address,
    loc,
    byte   ,
-   word   :  doNameM2 (p, n)
+   word   ,
+   csizet ,
+   cssizet:  doNameM2 (p, n)
 
    END
 END doSystemM2 ;
@@ -15508,6 +15539,8 @@ BEGIN
    loc,
    byte,
    word,
+   csizet,
+   cssizet,
    (* base types.  *)
    boolean,
    proc,
@@ -15628,6 +15661,9 @@ BEGIN
    locN := makeBase (loc) ;
    byteN := makeBase (byte) ;
    wordN := makeBase (word) ;
+   csizetN := makeBase (csizet) ;
+   cssizetN := makeBase (cssizet) ;
+
    adrN := makeBase (adr) ;
    tsizeN := makeBase (tsize) ;
    throwN := makeBase (throw) ;
@@ -15637,6 +15673,8 @@ BEGIN
    locN := addToScope (locN) ;
    byteN := addToScope (byteN) ;
    wordN := addToScope (wordN) ;
+   csizetN := addToScope (csizetN) ;
+   cssizetN := addToScope (cssizetN) ;
    adrN := addToScope (adrN) ;
    tsizeN := addToScope (tsizeN) ;
    throwN := addToScope (throwN) ;
@@ -15648,7 +15686,9 @@ BEGIN
    addDone (addressN) ;
    addDone (locN) ;
    addDone (byteN) ;
-   addDone (wordN)
+   addDone (wordN) ;
+   addDone (csizetN) ;
+   addDone (cssizetN)
 END makeSystem ;
 
 

@@ -58,6 +58,8 @@ VAR
    seenAbs,
    seenFabs,
    seenFabsl,
+   seenSize_t,
+   seenSSize_t,
 
    seenFree,
    seenMalloc,
@@ -295,6 +297,26 @@ END useUIntMax ;
 
 
 (*
+   useSize_t - indicate we have used size_t.
+*)
+
+PROCEDURE useSize_t ;
+BEGIN
+   seenSize_t := TRUE
+END useSize_t ;
+
+
+(*
+   useSSize_t - indicate we have used ssize_t.
+*)
+
+PROCEDURE useSSize_t ;
+BEGIN
+   seenSSize_t := TRUE
+END useSSize_t ;
+
+
+(*
    useLabs - indicate we have used labs.
 *)
 
@@ -378,12 +400,12 @@ END checkCtype ;
 
 
 (*
-   checkAbs - check to see if the abs family have been used.
+   checkAbs - check to see if the abs family, size_t or ssize_t have been used.
 *)
 
 PROCEDURE checkAbs (p: pretty) ;
 BEGIN
-   IF seenLabs OR seenAbs OR seenFabs OR seenFabsl
+   IF seenLabs OR seenAbs OR seenFabs OR seenFabsl OR seenSize_t OR seenSSize_t
    THEN
       print (p, "#include <stdlib.h>\n")
    END
@@ -942,6 +964,8 @@ BEGIN
    seenM2RTS := FALSE ;
    seenStrlen := FALSE ;
    seenCtype := FALSE ;
+   seenSize_t := FALSE ;
+   seenSSize_t := FALSE ;
    initializedCP := FALSE ;
 
    stack := NIL ;

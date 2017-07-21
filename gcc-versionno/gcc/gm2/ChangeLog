@@ -1,3 +1,36 @@
+2017-07-21      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/el/g-mode.el:  updated to include the new SYSTEM data types.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  rename the new types
+          CSIZE_T and CSSIZE_T.
+	* gm2/gm2-compiler/M2System.def:  introduce the signed type
+          CSSIZE_T.
+	* gm2/gm2-compiler/M2System.mod:  assign type symbols CSIZE_T
+          and CSSIZE_T to exported variables.
+	* gm2/gm2-gcc/m2type.c:  GetCSSizeType (New procedure function).
+	* gm2/gm2-gcc/m2type.def:  GetCSSizeType (New procedure function).
+	* gm2/gm2-gcc/m2type.h:  GetCSSizeType (New procedure function).
+	* gm2/gm2-libs-coroutines/SYSTEM.def:  export CSIZE_T, CSSIZE_T.
+	* gm2/gm2-libs-iso/SYSTEM.def:  export CSIZE_T, CSSIZE_T.
+	* gm2/gm2-libs-min/SYSTEM.def:  export CSIZE_T, CSSIZE_T.
+	* gm2/gm2-libs/SYSTEM.def:  export CSIZE_T, CSSIZE_T.
+	* gm2/gm2-libs/libc.def:  corrected dates and use new data types.
+	* gm2/gm2.texi:  updated documentation about new data types.
+
+	* gm2/Make-lang.in:  the pge build rules all rewritten to
+          clean the build process.  All versions of pge have their
+          own build directory.
+	* gm2/gm2-compiler/M2System.mod:  (size_t)  new data type
+          in SYSTEM.def to aid interface code between C and Modula-2.
+	* gm2/gm2-gcc/m2type.c:  (GetCSizeTType) New procedure function.
+	* gm2/gm2-gcc/m2type.def:  (GetCSizeTType) New procedure
+          function.
+	* gm2/gm2-gcc/m2type.h:  (GetCSizeTType) extern declaration.
+	* gm2/tools-src/makeSystem:  corrected dates.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  declare CSizeT.
+	* gm2/gm2-compiler/M2System.def:  export CSizeT.
+	* gm2/gm2-compiler/M2System.mod:  declare CSizeT as a system
+	  type.
 
 2017-06-28      Gaius Mulley <gaius@gnu.org>
 

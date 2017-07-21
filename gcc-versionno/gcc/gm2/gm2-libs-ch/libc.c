@@ -114,7 +114,7 @@ DESCRIPTION
      allocation and coalescing of free storage.  When there is no
      suitable space already free, the allocation routines call
      sbrk() (see brk(2)) to get more memory from the system.
- 
+
      Each of the allocation routines returns a pointer to space
      suitably aligned for storage of any type of object. Each
      returns a NULL pointer if the request cannot be completed.
@@ -142,7 +142,7 @@ unsigned long size;
 
 /*
      free - memory deallocator.
- 
+
      free(ptr)
      char *ptr;
 
@@ -219,7 +219,7 @@ long libc_lseek (int fd, long int offset, int whence)
 
 
 /*
-  perror - display errno along with str
+   perror - display errno along with str
 */
 
 void libc_perror (void *s)

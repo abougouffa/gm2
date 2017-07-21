@@ -1006,6 +1006,28 @@ m2type_GetIntegerType (void)
 
 
 /*
+ *  GetCSizeTType - return a type representing, size_t on this system.
+ */
+
+tree
+m2type_GetCSizeTType (void)
+{
+  return sizetype;
+}
+
+
+/*
+ *  GetCSSizeTType - return a type representing, size_t on this system.
+ */
+
+tree
+m2type_GetCSSizeTType (void)
+{
+  return ssizetype;
+}
+
+
+/*
  *  GetPackedBooleanType - return the packed boolean data type node.
  */
 
