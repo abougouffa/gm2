@@ -2516,7 +2516,7 @@ gm2_finish_enum (location_t location, tree enumtype, tree values)
       TYPE_SIZE_UNIT (tem) = TYPE_SIZE_UNIT (enumtype);
       SET_TYPE_MODE (tem, TYPE_MODE (enumtype));
       TYPE_PRECISION (tem) = TYPE_PRECISION (enumtype);
-      SET_TYPE_ALIGN (tem, TYPE_ALIGN (enumtype));
+      TYPE_ALIGN (tem) = TYPE_ALIGN (enumtype);
       TYPE_USER_ALIGN (tem) = TYPE_USER_ALIGN (enumtype);
       TYPE_UNSIGNED (tem) = TYPE_UNSIGNED (enumtype);
       TYPE_LANG_SPECIFIC (tem) = TYPE_LANG_SPECIFIC (enumtype);
@@ -3148,7 +3148,7 @@ m2type_BuildEndRecord (location_t location, tree record, tree fieldlist, int isP
     {
       TYPE_FIELDS (x) = TYPE_FIELDS (record);
       TYPE_LANG_SPECIFIC (x) = TYPE_LANG_SPECIFIC (record);
-      SET_TYPE_ALIGN (x, TYPE_ALIGN (record));
+      TYPE_ALIGN (x) = TYPE_ALIGN (record);
       TYPE_USER_ALIGN (x) = TYPE_USER_ALIGN (record);
     }
 
@@ -3315,12 +3315,12 @@ m2type_SetAlignment (tree node, tree align)
 	type = build_variant_type_copy (type);
 #endif
 
-      SET_TYPE_ALIGN (type, (1 << i) * BITS_PER_UNIT);
+      TYPE_ALIGN (type) = (1 << i) * BITS_PER_UNIT;
       TYPE_USER_ALIGN (type) = 1;
 
       if (decl)
 	{
-	  SET_DECL_ALIGN (decl, (1 << i) * BITS_PER_UNIT);
+	  DECL_ALIGN (decl) = (1 << i) * BITS_PER_UNIT;
 	  DECL_USER_ALIGN (decl) = 1;
 	}
     }
@@ -3329,7 +3329,7 @@ m2type_SetAlignment (tree node, tree align)
     error ("alignment may not be specified for %q+D", decl);
   else
     {
-      SET_DECL_ALIGN (decl, (1 << i) * BITS_PER_UNIT);
+      DECL_ALIGN (decl) = (1 << i) * BITS_PER_UNIT;
       DECL_USER_ALIGN (decl) = 1;
     }
   return node;
