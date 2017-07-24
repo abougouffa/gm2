@@ -1,3 +1,17 @@
+2017-07-24      Gaius Mulley <gaius@gnu.org>
+
+	* patches/gcc/6.4.0:  01-patches (New file).
+	* patches/gcc/6.4.0:  02-patches (New file).
+	* patches/gcc/6.4.0:  03-patches (New file).
+	* patches/gcc/6.4.0:  04-patches (New file).
+	* patches/gcc/6.4.0:  05-patches (New file).
+	* patches/gcc/6.4.0:  06-patches (New file).
+	* patches/gcc/6.4.0:  07-patches (New file).
+	* patches/gcc/6.4.0:  08-patches (New file).
+	* patches/gcc/6.4.0:  09-patches (New file).
+	* patches/gcc/6.4.0:  10-patches (New file).
+	* patches/gcc/6.4.0:  11-patches (New file).
+
 2017-07-21      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/el/g-mode.el:  updated to include the new SYSTEM data types.
