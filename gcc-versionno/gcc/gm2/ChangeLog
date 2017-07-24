@@ -5,6 +5,7 @@
           TYPE_ALIGN(x) instead.  Remove SET_DECL_ALIGN and use
           DECL_ALIGN(x) instead.
 	* Regenerate the patches for 6.4.0.
+	* Extra line to force build of initial tarball.
 
 2017-07-21      Gaius Mulley <gaius@gnu.org>
 
