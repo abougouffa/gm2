@@ -1,3 +1,8 @@
+2017-07-25      Gaius Mulley <gaius@gnu.org>
+
+	* libgm2/libpim/dtoa.c:  replaced memcpy with memmove
+	  due to overlapping memory regions.
+
 2016-03-14      Gaius Mulley <gaius@gnu.org>
 
 	* libgm2/libpim/wrapc.c:  corrected spacing.
