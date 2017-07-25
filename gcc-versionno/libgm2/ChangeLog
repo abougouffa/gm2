@@ -1,3 +1,8 @@
+2017-07-25      Gaius Mulley <gaius@gnu.org>
+
+	* libgm2/libpim/dtoa.c:  replaced memcpy with
+	  memmove due to overlapping memory regions.
+
 2014-12-24      Gaius Mulley <gaius@gnu.org>
 
 	* libgm2/sckt.c:  added conditional import of
