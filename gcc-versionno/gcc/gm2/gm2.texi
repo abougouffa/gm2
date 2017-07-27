@@ -225,6 +225,10 @@ source tree.
 
 @table @code
 
+@item gm2 1.6.4
+was released on July 27th 2017.  gm2-1.6.4 grafts onto gcc-6.4.0.
+@item gm2 1.5.4
+was released on July 27th 2017.  gm2-1.5.4 grafts onto gcc-5.4.0.
 @item gm2 1.2.0
 was released on May 11th 2017.  gm2-1.2.0 grafts onto gcc-5.2.0 and
 supports much better line number accuracy in debugging output.

@@ -9,9 +9,11 @@
           release 1.6.4.
 	* gm2/gm2.texi:  updated to reflect release 1.6.4.
           Also updated information about release 1.5.4.
-	Changed repositories to stretch from jessie.
+          Changed repositories to stretch from jessie.
 	* gm2/www/tools/texi2tr/html/download.html:  corrected
-	  version number for 5.4.0 graft.
+          version number for 5.4.0 graft.
+	* gm2/www/tools/texi2tr/html/release.html:  updated
+	  latest release.
 
 2017-07-24      Gaius Mulley <gaius@gnu.org>
 
