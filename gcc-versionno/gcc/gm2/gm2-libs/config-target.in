@@ -1,4 +1,4 @@
-# Copyright (C) 2011, 2012, 2013, 2014, 2015
+# Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017
 #               Free Software Foundation, Inc.
 # This file is part of GNU Modula-2.
 #
@@ -18,7 +18,7 @@
 
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT(ASCII.def, 1.2.0, gm2@nongnu.org)
+AC_INIT(ASCII.def, 1.6.4, gm2@nongnu.org)
 AC_CONFIG_HEADER(gm2-libs-target.h:gm2-libs-target.h.in)
 
 GCC_NO_EXECUTABLES

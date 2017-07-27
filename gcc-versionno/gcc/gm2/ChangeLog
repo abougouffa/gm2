@@ -1,3 +1,16 @@
+2017-07-27      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/version.c:  updated release number to 1.6.4.
+	* gm2/configure:  regenerated.
+	* gm2/configure.in:  updated to reflect release 1.6.4.
+	* gm2/gm2-libs/config-host.in:  updated to reflect
+	  release 1.6.4.
+	* gm2/gm2-libs/config-target.in:  updated to reflect
+          release 1.6.4.
+	* gm2/gm2.texi:  updated to reflect release 1.6.4.
+          Also updated information about release 1.5.4.
+	  Changed repositories to stretch from jessie.
+
 2017-07-24      Gaius Mulley <gaius@gnu.org>
 
 	* created branch for gcc-6.4.0
