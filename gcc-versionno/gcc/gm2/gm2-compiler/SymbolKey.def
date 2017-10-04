@@ -35,7 +35,7 @@ EXPORT QUALIFIED NulKey, SymbolTree,
                  IsSymbol, PerformOperation,
                  InitTree, KillTree, GetSymKey, PutSymKey, DelSymKey,
                  IsEmptyTree,
-                 DoesTreeContainAny, ForeachNodeDo ;
+                 DoesTreeContainAny, ForeachNodeDo, ContainsSymKey ;
 
 CONST
    NulKey = 0 ;
@@ -107,6 +107,13 @@ PROCEDURE DoesTreeContainAny (t: SymbolTree; P: IsSymbol) : BOOLEAN ;
 *)
 
 PROCEDURE ForeachNodeDo (t: SymbolTree; P: PerformOperation) ;
+
+
+(*
+   ContainsSymKey - return TRUE if tree, t, contains an entry for, NameKey.
+*)
+
+PROCEDURE ContainsSymKey (t: SymbolTree; NameKey: Name) : BOOLEAN ;
 
 
 END SymbolKey.

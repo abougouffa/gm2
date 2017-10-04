@@ -112,6 +112,20 @@ BEGIN
 END KillTree ;
 
 
+(*
+   ContainsSymKey - return TRUE if tree, t, contains an entry for, NameKey.
+*)
+
+PROCEDURE ContainsSymKey (t: SymbolTree; NameKey: Name) : BOOLEAN ;
+VAR
+   father,
+   child : SymbolTree ;
+BEGIN
+   FindNodeAndParentInTree(t, NameKey, child, father) ;
+   RETURN child#NIL
+END ContainsSymKey ;
+
+
 PROCEDURE GetSymKey (t: SymbolTree; NameKey: Name) : WORD ;
 VAR
    father,

@@ -1,3 +1,23 @@
+2017-10-04      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/GetOpt.def:  New file.
+	* gm2/gm2-libs/GetOpt.mod:  New file.
+	* gm2/gm2-libs/getopt.def:  New file.
+	* gm2/gm2-libs-ch/getopt.c:  New file.
+	* gm2/el/g-mode.el:  change the Modula-2 comment tag
+          to (*!m2pim+gm2*)\n")
+	* gm2/gm2-compiler/SymbolKey.def:  (ContainsSymKey)
+          New procedure.
+	* gm2/gm2-compiler/SymbolKey.mod:  (ContainsSymKey)
+          New procedure.
+	* gm2/gm2-compiler/ppg.mod:  removed unnecessary
+          forward declaration prototypes.  (AddEntry)  New
+          procedure.  Use SetOfStop rather than BITSET for
+          small sets.  Fix off by one error with setsize.
+	* gm2/gm2-libs-iso/RndFile.mod:  correct error message.
+	* gm2/tools-src/buildpg:  changes to reflect changes to
+	  ppg.mod
+
 2017-07-24      Gaius Mulley <gaius@gnu.org>
 
 	* patches/gcc/6.4.0:  01-patches (New file).

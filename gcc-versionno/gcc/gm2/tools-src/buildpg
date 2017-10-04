@@ -8,16 +8,16 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
-# 
+#
 # GNU Modula-2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with GNU Modula-2; see the file COPYING.  If not, write to the
 # Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA. 
+# 02110-1301, USA.
 #
 
 # builds the pg.bnf from ppg.mod
@@ -62,6 +62,8 @@ cat << EOFEOF  | sed -e "s/ppg/${PPGDST}/g"
 error       'WarnError' 'WarnString'
 tokenfunc   'GetCurrentTokenType()'
 
+token   'identifier'  identtok      -- internal token
+token   'literal'     literaltok
 token   '%'           codetok
 token   ':='          lbecomestok
 token   '=:'          rbecomestok
@@ -72,25 +74,26 @@ token   '{'           lcparatok   -- left  curly para
 token   '}'           rcparatok   -- right curly para
 token   '('           lparatok
 token   ')'           rparatok
-token   '<'           lesstok
-token   '>'           gretok
+token   "error"       errortok
+token   "tokenfunc"   tfunctok
+token   "symfunc"     symfunctok
 token   '"'           dquotetok
 token   "'"           squotetok
 token   "module"      moduletok
 token   "begin"       begintok
 token   "rules"       rulestok
-token   "special"     specialtok
-token   "token"       tokentok
-token   "error"       errortok
-token   "tokenfunc"   tfunctok
-token   "symfunc"     symfunctok
 token   "end"         endtok
-token   "declaration" declarationtok
+token   '<'           lesstok
+token   '>'           gretok
+token   "token"       tokentok
+token   "special"     specialtok
 token   "first"       firsttok
 token   "follow"      followtok
-token   "epsilon"     epsilontok
 token   "BNF"         BNFtok
 token   "FNB"         FNBtok
+token   "declaration" declarationtok
+token   "epsilon"     epsilontok
+token   ''            eoftok      -- internal token
 
 special Ident          first { < identtok > }   follow { }
 special Modula2Code    first { }                follow { '%' }
@@ -230,13 +233,12 @@ CollectTok := % CurrentSetDesc := NewSetDesc() ;
                    type   := tokel ;
                    string := GetCurrentToken() ;
                 END ;
-                IF GetSymKey(Values, GetCurrentToken())=NulName
+                IF NOT ContainsSymKey(Values, GetCurrentToken())
                 THEN
-                   (* this token is not yet defined *)
-                   PutSymKey(Values, GetCurrentToken(), LargestValue) ;
-                   PutSymKey(ReverseValues, Name(LargestValue), GetCurrentToken()) ;
-                   PutSymKey(Aliases, GetCurrentToken(), GetCurrentToken()) ;
-                   PutSymKey(ReverseAliases, GetCurrentToken(), GetCurrentToken()) ;
+                   AddEntry(Values, GetCurrentToken(), LargestValue) ;
+                   AddEntry(ReverseValues, Name(LargestValue), GetCurrentToken()) ;
+                   AddEntry(Aliases, GetCurrentToken(), GetCurrentToken()) ;
+                   AddEntry(ReverseAliases, GetCurrentToken(), GetCurrentToken()) ;
                    INC(LargestValue)
                 END ;
                 AdvanceToken() ; % =:
@@ -244,15 +246,10 @@ CollectTok := % CurrentSetDesc := NewSetDesc() ;
 CollectLiteral := % LastLiteral := GetCurrentToken() ;
                     AdvanceToken ; % =:
 
-DefineToken := % PutSymKey(Aliases, LastLiteral, GetCurrentToken()) ;
-                  PutSymKey(ReverseAliases, GetCurrentToken(), LastLiteral) ;
-                  IF GetSymKey(Values, GetCurrentToken())=NulName
-                  THEN
-                     PutSymKey(Values, GetCurrentToken(), LargestValue) ;
-                     PutSymKey(ReverseValues, Name(LargestValue), GetCurrentToken())
-                  ELSE
-                     WarnError1("already seen a definition for token '%s'", GetCurrentToken())
-                  END ;
+DefineToken := %  AddEntry(Aliases, LastLiteral, GetCurrentToken()) ;
+                  AddEntry(ReverseAliases, GetCurrentToken(), LastLiteral) ;
+                  AddEntry(Values, GetCurrentToken(), LargestValue) ;
+                  AddEntry(ReverseValues, Name(LargestValue), GetCurrentToken()) ;
                   INC(LargestValue) ;
                   AdvanceToken ; % =:
 

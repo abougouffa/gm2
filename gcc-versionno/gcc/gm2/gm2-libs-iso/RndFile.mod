@@ -235,7 +235,7 @@ END newCid ;
 
 
 (*
-   handlefree - 
+   handlefree -
 *)
 
 PROCEDURE handlefree (d: DeviceTablePtr) ;
@@ -268,7 +268,7 @@ BEGIN
       ELSE
          RAISEdevException(cid, did, IOChan.wrongDevice,
                            'RndFile.' + __FUNCTION__ +
-                           ': channel is not a sequential file')
+                           ': channel is not a random file')
       END
    END
 END resetRandom ;
@@ -356,7 +356,7 @@ BEGIN
    ELSE
       RAISEdevException(cid, did, IOChan.wrongDevice,
                         'RndFile.' + __FUNCTION__ +
-                        ': channel is not a sequential file')
+                        ': channel is not a random file')
    END
 END StartPos ;
 
@@ -378,7 +378,7 @@ BEGIN
    ELSE
       RAISEdevException(cid, did, IOChan.wrongDevice,
                         'RndFile.' + __FUNCTION__ +
-                        ': channel is not a sequential file')
+                        ': channel is not a random file')
    END
 END CurrentPos ;
 
@@ -408,7 +408,7 @@ BEGIN
    ELSE
       RAISEdevException(cid, did, IOChan.wrongDevice,
                         'RndFile.' + __FUNCTION__ +
-                        ': channel is not a sequential file')
+                        ': channel is not a random file')
    END
 END EndPos ;
 
@@ -434,7 +434,7 @@ BEGIN
    ELSE
       RAISEdevException(cid, did, IOChan.wrongDevice,
                         'RndFile.' + __FUNCTION__ +
-                        ': channel is not a sequential file')
+                        ': channel is not a random file')
    END
 END NewPos ;
 
@@ -457,7 +457,7 @@ BEGIN
    ELSE
       RAISEdevException(cid, did, IOChan.wrongDevice,
                         'RndFile.' + __FUNCTION__ +
-                        ': channel is not a sequential file')
+                        ': channel is not a random file')
    END
 END SetPos ;
 
@@ -481,7 +481,7 @@ END Close ;
 
 
 (*
-   Init - 
+   Init -
 *)
 
 PROCEDURE Init ;

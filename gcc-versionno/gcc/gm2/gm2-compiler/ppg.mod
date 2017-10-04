@@ -26,7 +26,7 @@ FROM StrLib IMPORT StrCopy, StrEqual, StrLen, StrConCat ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM NameKey IMPORT Name, MakeKey, WriteKey, LengthKey, GetKey, KeyToCharStar, NulName ;
 FROM NumberIO IMPORT CardToStr, WriteCard ;
-FROM SymbolKey IMPORT InitTree, SymbolTree, PutSymKey, GetSymKey, ForeachNodeDo, NulKey ;
+FROM SymbolKey IMPORT InitTree, SymbolTree, PutSymKey, GetSymKey, ForeachNodeDo, ContainsSymKey, NulKey ;
 FROM Lists IMPORT InitList, IsItemInList, IncludeItemIntoList, RemoveItemFromList, KillList, List ;
 FROM DynamicStrings IMPORT String, InitString, KillString, ConCat, Mark, ConCatChar,
                            InitStringCharStar, char, Length ;
@@ -164,136 +164,6 @@ TYPE
 
    DoProcedure    = PROCEDURE (ProductionDesc) ;
 
-(* %%%FORWARD%%%
-PROCEDURE EmitSet (to: SetDesc; low, high: WORD) ; FORWARD ;
-PROCEDURE GetCodeFragment (VAR h: CodeHunk) ; FORWARD ;
-PROCEDURE Add (VAR p: CodeHunk; ch: CHAR; VAR i: CARDINAL) : CodeHunk ; FORWARD ;
-PROCEDURE NewLine (Left: CARDINAL) ; FORWARD ;
-PROCEDURE GetDefinitionName (p: ProductionDesc) : Name ; FORWARD ;
-PROCEDURE FindDefinition (n: Name) : ProductionDesc ; FORWARD ;
-PROCEDURE BackPatchIdent (i: IdentDesc) ; FORWARD ;
-PROCEDURE BackPatchFactor (f: FactorDesc) ; FORWARD ;
-PROCEDURE BackPatchTerm (t: TermDesc) ; FORWARD ;
-PROCEDURE BackPatchExpression (e: ExpressionDesc) ; FORWARD ;
-PROCEDURE BackPatchSet (s: SetDesc) ; FORWARD ;
-PROCEDURE BackPatchIdentToDefinitions (d: ProductionDesc) ; FORWARD ;
-PROCEDURE CalculateFirstAndFollow (p: ProductionDesc) ; FORWARD ;
-PROCEDURE ForeachRuleDo (p: DoProcedure) ; FORWARD ;
-PROCEDURE NewLine (Left: CARDINAL) ; FORWARD ;
-PROCEDURE CheckNewLine (Left: CARDINAL) ; FORWARD ;
-PROCEDURE PrettyPara (c1, c2: ARRAY OF CHAR; e: ExpressionDesc; Left: CARDINAL) ; FORWARD ;
-PROCEDURE PrettyCommentFactor (f: FactorDesc; Left: CARDINAL) ; FORWARD ;
-PROCEDURE PeepTerm (t: TermDesc) : CARDINAL ; FORWARD ;
-PROCEDURE PeepExpression (e: ExpressionDesc) : CARDINAL ; FORWARD ;
-PROCEDURE PeepFactor (f: FactorDesc) : CARDINAL ; FORWARD ;
-PROCEDURE PrettyPrintProduction (p: ProductionDesc) ; FORWARD ;
-PROCEDURE PrettyCommentTerm (t: TermDesc; Left: CARDINAL) ; FORWARD ;
-PROCEDURE PrettyCommentExpression (e: ExpressionDesc; Left: CARDINAL) ; FORWARD ;
-PROCEDURE PrettyCommentStatement (s: StatementDesc; Left: CARDINAL) ; FORWARD ;
-PROCEDURE PrettyCommentProduction (p: ProductionDesc) ; FORWARD ;
-PROCEDURE EmitRule (p: ProductionDesc) ; FORWARD ;
-PROCEDURE CodeCondition (m: m2condition) ; FORWARD ;
-PROCEDURE CodeThenDo (m: m2condition) ; FORWARD ;
-PROCEDURE CodeElseEnd (end: ARRAY OF CHAR; consumed: BOOLEAN; f: FactorDesc; inopt: BOOLEAN) ; FORWARD ;
-PROCEDURE CodeEnd (m: m2condition; t: TermDesc; consumed: BOOLEAN; f: FactorDesc; inopt: BOOLEAN) ; FORWARD ;
-PROCEDURE EmitNonVarCode (code: CodeDesc; curpos, left: CARDINAL) ; FORWARD ;
-PROCEDURE CodeFactor (f: FactorDesc; t: TermDesc; l, n: m2condition; inopt, inwhile, consumed: BOOLEAN; codeStack: FactorDesc) ; FORWARD ;
-PROCEDURE CodeTerm (t: TermDesc; m: m2condition; inopt, inwhile, consumed: BOOLEAN; codeStack: FactorDesc) ; FORWARD ;
-PROCEDURE CodeExpression (e: ExpressionDesc; m: m2condition; inopt, inwhile, consumed: BOOLEAN; codeStack: FactorDesc) ; FORWARD ;
-PROCEDURE CodeStatement (s: StatementDesc; m: m2condition) ; FORWARD ;
-PROCEDURE CodeProduction (p: ProductionDesc) ; FORWARD ;
-PROCEDURE RecoverCondition (m: m2condition) ; FORWARD ;
-PROCEDURE ConditionIndent (m: m2condition) : CARDINAL ; FORWARD ;
-PROCEDURE WriteGetTokenType ; FORWARD ;
-PROCEDURE NumberOfElements (to: SetDesc; low, high: WORD) : CARDINAL ; FORWARD ;
-PROCEDURE WriteElement (e: WORD) ; FORWARD ;
-PROCEDURE EmitIsInSet (to: SetDesc; low, high: Name) ; FORWARD ;
-PROCEDURE EmitIsInSubSet (to: SetDesc; low, high: WORD) ; FORWARD ;
-PROCEDURE EmitIsInFirst (to: SetDesc; m: m2condition) ; FORWARD ;
-PROCEDURE RecoverFactor (f: FactorDesc; m: m2condition; codeStack: FactorDesc) ; FORWARD ;
-PROCEDURE OptExpSeen (f: FactorDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE RecoverTerm (t: TermDesc; new, old: m2condition) ; FORWARD ;
-PROCEDURE RecoverExpression (e: ExpressionDesc; new, old: m2condition) ; FORWARD ;
-PROCEDURE RecoverStatement (s: StatementDesc; m: m2condition) ; FORWARD ;
-PROCEDURE EmitFirstFactor (f: FactorDesc; low, high: CARDINAL) ; FORWARD ;
-PROCEDURE EmitStopParameters (FormalParameters: BOOLEAN) ; FORWARD ;
-PROCEDURE IsBetween (string: Name; low, high: WORD) : BOOLEAN ; FORWARD ;
-PROCEDURE IsEmptySet (to: SetDesc; low, high: WORD) : BOOLEAN ; FORWARD ;
-PROCEDURE EmitSet (to: SetDesc; low, high: WORD) ; FORWARD ;
-PROCEDURE EmitSetName (to: SetDesc; low, high: WORD) ; FORWARD ;
-PROCEDURE EmitStopParametersAndSet (to: SetDesc) ; FORWARD ;
-PROCEDURE EmitSetAsParameters (to: SetDesc) ; FORWARD ;
-PROCEDURE EmitStopParametersAndFollow (f: FactorDesc; m: m2condition) ; FORWARD ;
-PROCEDURE EmitFirstAsParameters (f: FactorDesc) ; FORWARD ;
-PROCEDURE RecoverProduction (p: ProductionDesc) ; FORWARD ;
-PROCEDURE FindStr (VAR code: CodeHunk; VAR i: CARDINAL; str: ARRAY OF CHAR) : BOOLEAN ; FORWARD ;
-PROCEDURE WriteUpto (code, upto: CodeHunk; limit: CARDINAL) ; FORWARD ;
-PROCEDURE CheckForVar (code: CodeHunk) ; FORWARD ;
-PROCEDURE VarFactor (f: FactorDesc) ; FORWARD ;
-PROCEDURE VarTerm (t: TermDesc) ; FORWARD ;
-PROCEDURE VarExpression (e: ExpressionDesc) ; FORWARD ;
-PROCEDURE VarStatement (s: StatementDesc) ; FORWARD ;
-PROCEDURE VarProduction (p: ProductionDesc) ; FORWARD ;
-PROCEDURE In (to: SetDesc; s: Name) : BOOLEAN ; FORWARD ;
-PROCEDURE IntersectionIsNil (s1, s2: SetDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE AddSet (VAR to: SetDesc; s: Name) ; FORWARD ;
-PROCEDURE OrSet (VAR to: SetDesc; from: SetDesc) ; FORWARD ;
-PROCEDURE CalcFirstFactor (f: FactorDesc; from: ProductionDesc; VAR to: SetDesc) ; FORWARD ;
-PROCEDURE CalcFirstTerm (t: TermDesc; from: ProductionDesc; VAR to: SetDesc) ; FORWARD ;
-PROCEDURE CalcFirstExpression (e: ExpressionDesc; from: ProductionDesc; VAR to: SetDesc) ; FORWARD ;
-PROCEDURE CalcFirstStatement (s: StatementDesc; from: ProductionDesc; VAR to: SetDesc) ; FORWARD ;
-PROCEDURE CalcFirstProduction (p: ProductionDesc; from: ProductionDesc; VAR to: SetDesc) ; FORWARD ;
-PROCEDURE WorkOutFollowFactor (f: FactorDesc; VAR followset: SetDesc; after: SetDesc) ; FORWARD ;
-PROCEDURE WorkOutFollowTerm (t: TermDesc; VAR followset: SetDesc; after: SetDesc) ; FORWARD ;
-PROCEDURE WorkOutFollowExpression (e: ExpressionDesc; VAR followset: SetDesc; after: SetDesc) ; FORWARD ;
-PROCEDURE CollectFollow (VAR to: SetDesc; f: FollowDesc) ; FORWARD ;
-PROCEDURE CalcFollowFactor (f: FactorDesc; after: SetDesc) ; FORWARD ;
-PROCEDURE CalcFollowTerm (t: TermDesc; after: SetDesc) ; FORWARD ;
-PROCEDURE CalcFollowExpression (e: ExpressionDesc; after: SetDesc) ; FORWARD ;
-PROCEDURE CalcFollowStatement (s: StatementDesc) ; FORWARD ;
-PROCEDURE CalcFollowProduction (p: ProductionDesc) ; FORWARD ;
-PROCEDURE CalcEpsilonFactor (f: FactorDesc) ; FORWARD ;
-PROCEDURE CalcEpsilonTerm (t: TermDesc) ; FORWARD ;
-PROCEDURE CalcEpsilonExpression (e: ExpressionDesc) ; FORWARD ;
-PROCEDURE CalcEpsilonStatement (s: StatementDesc) ; FORWARD ;
-PROCEDURE CalcEpsilonProduction (p: ProductionDesc) ; FORWARD ;
-PROCEDURE CalcReachEndFactor (f: FactorDesc) : TraverseResult ; FORWARD ;
-PROCEDURE CalcReachEndTerm (t: TermDesc) : TraverseResult ; FORWARD ;
-PROCEDURE CalcReachEndExpression (e: ExpressionDesc) ; FORWARD ;
-PROCEDURE CalcReachEndStatement (s: StatementDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE CalculateReachEndProduction (p: ProductionDesc) ; FORWARD ;
-PROCEDURE stop ; FORWARD ;
-PROCEDURE CalcReachEndProduction (p: ProductionDesc) ; FORWARD ;
-PROCEDURE EmptyFactor (f: FactorDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE EmptyTerm (t: TermDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE EmptyExpression (e: ExpressionDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE EmptyStatement (s: StatementDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE EmptyProduction (p: ProductionDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE EmitRules ; FORWARD ;
-PROCEDURE DescribeElement (name: WORD) ; FORWARD ;
-PROCEDURE EmitInTestStop (name: Name) ; FORWARD ;
-PROCEDURE DescribeStopElement (name: WORD) ; FORWARD ;
-PROCEDURE EmitDescribeStop ; FORWARD ;
-PROCEDURE EmitSetTypes ; FORWARD ;
-PROCEDURE EmitForward (p: ProductionDesc) ; FORWARD ;
-PROCEDURE EmitSupport ; FORWARD ;
-PROCEDURE DisposeSetDesc (VAR s: SetDesc) ; FORWARD ;
-PROCEDURE OptionalFactor (f: FactorDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE OptionalTerm (t: TermDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE OptionalExpression (e: ExpressionDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE OptionalStatement (s: StatementDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE OptionalProduction (p: ProductionDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE CheckFirstFollow (f: FactorDesc; after: FactorDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE ConstrainedEmptyFactor (f: FactorDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE ConstrainedEmptyTerm (t: TermDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE ConstrainedEmptyExpression (e: ExpressionDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE ConstrainedEmptyStatement (s: StatementDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE ConstrainedEmptyProduction (p: ProductionDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE TestForLALR1 (p: ProductionDesc) ; FORWARD ;
-PROCEDURE PostProcessRules ; FORWARD ;
-PROCEDURE ParseArgs ; FORWARD ;
-PROCEDURE Init ; FORWARD ;
-   %%%FORWARD%%% *)
 
 VAR
    LastLineNo         : CARDINAL ;
@@ -342,6 +212,21 @@ VAR
                                      (* the first element of a case statement.     *)
 
 (* % declaration *)
+
+(*
+   AddEntry - adds an entry into, t, containing [def:value].
+*)
+
+PROCEDURE AddEntry (VAR t: SymbolTree; def, value: Name) ;
+BEGIN
+   IF ContainsSymKey(t, def)
+   THEN
+      WarnError1("already seen a definition for token '%s'", def)
+   ELSE
+      PutSymKey(t, def, value)
+   END
+END AddEntry ;
+
 
 (*
    Format1 - converts string, src, into, dest, together with encapsulated
@@ -972,28 +857,6 @@ END GetName ;
 
 (* actually these two are not strictly rules but hand built primitives *)
 
-(* %%%FORWARD%%%
-PROCEDURE Header () : BOOLEAN ; FORWARD ;
-PROCEDURE Footer () : BOOLEAN ; FORWARD ;
-PROCEDURE Decls () : BOOLEAN ; FORWARD ;
-PROCEDURE Rules () : BOOLEAN ; FORWARD ;
-PROCEDURE Defs () : BOOLEAN ; FORWARD ;
-PROCEDURE Special () : BOOLEAN ; FORWARD ;
-PROCEDURE First () : BOOLEAN ; FORWARD ;
-PROCEDURE Follow () : BOOLEAN ; FORWARD ;
-PROCEDURE LitOrTokenOrIdent () : BOOLEAN ; FORWARD ;
-PROCEDURE Literal () : BOOLEAN ; FORWARD ;
-PROCEDURE Token () : BOOLEAN ; FORWARD ;
-PROCEDURE ErrorProcedures () : BOOLEAN ; FORWARD ;
-PROCEDURE TokenProcedure () : BOOLEAN ; FORWARD ;
-PROCEDURE SymProcedure () : BOOLEAN ; FORWARD ;
-PROCEDURE ExtBNF () : BOOLEAN ; FORWARD ;
-PROCEDURE Production () : BOOLEAN ; FORWARD ;
-PROCEDURE Statement () : BOOLEAN ; FORWARD ;
-PROCEDURE Expression () : BOOLEAN ; FORWARD ;
-PROCEDURE Term () : BOOLEAN ; FORWARD ;
-PROCEDURE Factor () : BOOLEAN ; FORWARD ;
-   %%%FORWARD%%% *)
 
 (*
    Ident - non error checking varient of Ident
@@ -1124,6 +987,9 @@ END DoDeclaration ;
 
 (* EndNonErrorChecking  now for the real ebnf rules *)
 
+TYPE
+   SetOfStop = SET OF TokenType ;
+
 (* **************************************************************************
     E r r o r    R e c o v e r y    I d e n t    &    M o d u l a 2 C o d e
    **************************************************************************
@@ -1136,7 +1002,7 @@ END DoDeclaration ;
                  a stop symbol.
 *)
 
-PROCEDURE SyntaxError (stop: BITSET) ;
+PROCEDURE SyntaxError (stop: SetOfStop) ;
 BEGIN
    DescribeError(stop) ;
    IF Debugging
@@ -1159,7 +1025,7 @@ END SyntaxError ;
    SyntaxCheck -
 *)
 
-PROCEDURE SyntaxCheck (stop: BITSET) ;
+PROCEDURE SyntaxCheck (stop: SetOfStop) ;
 BEGIN
    IF NOT (GetCurrentTokenType() IN stop)
    THEN
@@ -1172,7 +1038,7 @@ END SyntaxCheck ;
    Expect -
 *)
 
-PROCEDURE Expect (t: TokenType; stop: BITSET) ;
+PROCEDURE Expect (t: TokenType; stop: SetOfStop) ;
 BEGIN
    IF GetCurrentTokenType()=t
    THEN
@@ -1188,7 +1054,7 @@ END Expect ;
    Ident - error checking varient of Ident
 *)
 
-PROCEDURE Ident (stop: BITSET) ;
+PROCEDURE Ident (stop: SetOfStop) ;
 BEGIN
    IF GetCurrentTokenType()=identtok
    THEN
@@ -1206,7 +1072,7 @@ END Ident ;
    Modula2Code - error checking varient of Modula2Code
 *)
 
-PROCEDURE Modula2Code (stop: BITSET) ;
+PROCEDURE Modula2Code (stop: SetOfStop) ;
 VAR
    p       : CodeHunk ;
    i       : CARDINAL ;
@@ -1270,7 +1136,7 @@ END Modula2Code ;
    StartModName    := % ModuleName := GetName() ; (* ignore begintok *) CodeFragmentPrologue % =:
 *)
 
-PROCEDURE StartModName (stop: BITSET) ;
+PROCEDURE StartModName (stop: SetOfStop) ;
 BEGIN
    ModuleName := GetName() ;
    CodeFragmentPrologue
@@ -1281,7 +1147,7 @@ END StartModName ;
    EndModName    :=
 *)
 
-PROCEDURE EndModName (stop: BITSET) ;
+PROCEDURE EndModName (stop: SetOfStop) ;
 BEGIN
    IF ModuleName#GetName()
    THEN
@@ -1296,7 +1162,7 @@ END EndModName ;
    DoDeclaration := % CodeFragmentDeclaration % =:
 *)
 
-PROCEDURE DoDeclaration (stop: BITSET) ;
+PROCEDURE DoDeclaration (stop: SetOfStop) ;
 BEGIN
    IF ModuleName#GetName()
    THEN
@@ -1315,7 +1181,7 @@ END DoDeclaration ;
 
 (* this code below will be recreated by ppg *)
 
-PROCEDURE DescribeError (stop: BITSET) ;
+PROCEDURE DescribeError (stop: SetOfStop) ;
 BEGIN
    WarnError('syntax error')
 END DescribeError ;
@@ -1686,15 +1552,10 @@ PROCEDURE Token () : BOOLEAN ;
 BEGIN
    IF Literal()
    THEN
-      PutSymKey(Aliases, LastLiteral, GetCurrentToken()) ;
-      PutSymKey(ReverseAliases, GetCurrentToken(), LastLiteral) ;
-      IF GetSymKey(Values, GetCurrentToken())=NulKey
-      THEN
-         PutSymKey(Values, GetCurrentToken(), LargestValue) ;
-         PutSymKey(ReverseValues, Name(LargestValue), GetCurrentToken())
-      ELSE
-         WarnError1("already seen a definition for token '%s'", GetCurrentToken())
-      END ;
+      AddEntry(Aliases, LastLiteral, GetCurrentToken()) ;
+      AddEntry(ReverseAliases, GetCurrentToken(), LastLiteral) ;
+      AddEntry(Values, GetCurrentToken(), LargestValue) ;
+      AddEntry(ReverseValues, Name(LargestValue), GetCurrentToken()) ;
       INC(LargestValue) ;
       AdvanceToken ;
       RETURN( TRUE )
@@ -3061,7 +2922,11 @@ BEGIN
       WriteGetTokenType ; Write('=') ; EmitSet(to, low, high)
    ELSE
       WriteGetTokenType ;
-      WriteString(' IN SetOfStop') ; WriteCard(CARDINAL(low) DIV MaxElementsInSet, 0) ;
+      WriteString(' IN SetOfStop') ;
+      IF LargestValue > MaxElementsInSet
+      THEN
+         WriteCard(CARDINAL(low) DIV MaxElementsInSet, 0)
+      END ;
       WriteString(' {') ; EmitSet(to, low, high) ; WriteString('}')
    END
 END EmitIsInSet ;
@@ -3111,7 +2976,7 @@ BEGIN
       Write('=') ;
       EmitSet(to, 0, 0)
    ELSE
-      IF LargestValue<MaxElementsInSet
+      IF LargestValue<=MaxElementsInSet
       THEN
          Write('(') ; WriteGetTokenType ; WriteString(' IN ') ; EmitSetAsParameters(to) ; WriteString(')')
       ELSE
@@ -3416,12 +3281,12 @@ PROCEDURE EmitStopParameters (FormalParameters: BOOLEAN) ;
 VAR
    i: CARDINAL ;
 BEGIN
-   IF LargestValue<MaxElementsInSet
+   IF LargestValue<=MaxElementsInSet
    THEN
       WriteString('stopset') ;
       IF FormalParameters
       THEN
-         WriteString(': BITSET')
+         WriteString(': SetOfStop')
       END
    ELSE
       i := 0 ;
@@ -3432,7 +3297,7 @@ BEGIN
             WriteString(': SetOfStop') ; WriteCard(i, 0)
          END ;
          INC(i) ;
-         IF i*MaxElementsInSet<=LargestValue
+         IF i*MaxElementsInSet<LargestValue
          THEN
             IF FormalParameters
             THEN
@@ -3441,7 +3306,7 @@ BEGIN
                WriteString(', ')
             END
          END
-      UNTIL i*MaxElementsInSet>LargestValue ;
+      UNTIL i*MaxElementsInSet>=LargestValue ;
    END
 END EmitStopParameters ;
 
@@ -3583,12 +3448,13 @@ PROCEDURE EmitStopParametersAndSet (to: SetDesc) ;
 VAR
    i : CARDINAL ;
 BEGIN
-   IF LargestValue<MaxElementsInSet
+   IF LargestValue<=MaxElementsInSet
    THEN
       WriteString('stopset') ;
       IF (to#NIL) AND (NumberOfElements(to, 0, MaxElementsInSet-1)>0)
       THEN
-         WriteString(' + {') ;
+         WriteString(' + SetOfStop') ;
+         Write('{') ;
          EmitSet(to, 0, MaxElementsInSet-1) ;
          Write('}')
       END
@@ -3608,7 +3474,7 @@ BEGIN
          THEN
             WriteString(', ')
          END
-      UNTIL i*MaxElementsInSet>LargestValue ;
+      UNTIL i*MaxElementsInSet>=LargestValue
    END
 END EmitStopParametersAndSet ;
 
@@ -3621,7 +3487,7 @@ PROCEDURE EmitSetAsParameters (to: SetDesc) ;
 VAR
    i : CARDINAL ;
 BEGIN
-   IF LargestValue<MaxElementsInSet
+   IF LargestValue<=MaxElementsInSet
    THEN
       Write('{') ;
       EmitSet(to, 0, MaxElementsInSet-1)
@@ -3635,7 +3501,7 @@ BEGIN
          THEN
             WriteString('}, ')
          END
-      UNTIL (i+1)*MaxElementsInSet>LargestValue ;
+      UNTIL (i+1)*MaxElementsInSet>=LargestValue ;
    END ;
    Write('}')
 END EmitSetAsParameters ;
@@ -4823,7 +4689,7 @@ PROCEDURE EmitInTestStop (name: Name) ;
 VAR
    i, value: CARDINAL ;
 BEGIN
-   IF LargestValue<MaxElementsInSet
+   IF LargestValue<=MaxElementsInSet
    THEN
       WriteKey(name) ; WriteString(' IN stopset')
    ELSE
@@ -4996,9 +4862,9 @@ BEGIN
    END ;
    WriteString(') ;') ; NewLine(0) ;
    WriteString('*)') ; NewLine(0) ;
+   WriteString('TYPE') ; NewLine(3) ;
    IF LargestValue>MaxElementsInSet
    THEN
-      WriteString('TYPE') ; NewLine(3) ;
       i := 0 ;
       n := LargestValue DIV MaxElementsInSet ;
       WHILE i<=n DO
@@ -5021,46 +4887,17 @@ BEGIN
          WriteString(' ;') ;
          NewLine(3) ;
          INC(i)
-      END ;
-      NewLine(0)
-   END
+      END
+   ELSE
+      WriteString('SetOfStop') ;
+      WriteString(' = SET OF [') ;
+      WriteKey(GetSymKey(ReverseValues, WORD(0))) ;
+      WriteString('..') ;
+      WriteKey(GetSymKey(ReverseValues, WORD(LargestValue-1))) ;
+      WriteString('] ;')
+   END ;
+   NewLine(0)
 END EmitSetTypes ;
-
-
-(*
-   EmitForward - generates a forward declaration for production, p.
-*)
-
-PROCEDURE EmitForward (p: ProductionDesc) ;
-BEGIN
-   IF p#NIL
-   THEN
-      WriteString('PROCEDURE ') ;
-      WriteKey(GetDefinitionName(p)) ;
-      IF ErrorRecovery
-      THEN
-         WriteString(' (') ;
-         EmitStopParameters(TRUE) ;
-         WriteString(') ; FORWARD ;')
-      ELSE
-         WriteString(' () : BOOLEAN ; FORWARD ;')
-      END ;
-      NewLine(0)
-   END
-END EmitForward ;
-
-
-(*
-   EmitForwardDeclarations - emits forward declarations necessary for p2c.
-*)
-
-PROCEDURE EmitForwardDeclarations ;
-BEGIN
-   NewLine(0) ;
-   WriteString('(* %%%FORWARD%%%') ; NewLine(0) ;
-   ForeachRuleDo(EmitForward) ;
-   WriteString('   %%%FORWARD%%% *)') ; NewLine(0)
-END EmitForwardDeclarations ;
 
 
 (*
@@ -5072,7 +4909,6 @@ BEGIN
    IF ErrorRecovery
    THEN
       EmitSetTypes ;
-      EmitForwardDeclarations ;
       EmitDescribeStop ;
       EmitDescribeError
    END
