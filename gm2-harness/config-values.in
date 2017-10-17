@@ -1,5 +1,5 @@
 GCC=@gccrelease@
-GITURL=git://git.sv.gnu.org/gm2.git
+GITURL=https://git.savannah.nongnu.org/git/gm2.git
 BUILDDIR=build
 DOWNLOADDIR=download
 SOURCEDIR=sources
