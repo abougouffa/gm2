@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011, 2012, 2013
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -40,17 +40,10 @@ FROM M2FileName IMPORT ExtractExtension ;
 FROM DynamicStrings IMPORT String, InitString, KillString, ConCat, ConCatChar, Length, Slice, Equal, EqualArray, RemoveWhitePrefix, RemoveWhitePostfix, RemoveComment, string, Mark, InitStringChar, Dup, Mult, Index, RIndex, Assign, char ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
 FROM M2Printf IMPORT fprintf0, fprintf1, fprintf2, fprintf3, fprintf4 ;
+FROM Indexing IMPORT InitIndex, KillIndex, IsIndiceInIndex, IncludeIndiceIntoIndex, HighIndice, GetIndice ;
 
+IMPORT Indexing ;
 
-(* %%%FORWARD%%%
-PROCEDURE ScanSources ; FORWARD ;
-PROCEDURE ScanImport (s: CARDINAL) ; FORWARD ;
-PROCEDURE MakeModule (ModuleName: CARDINAL) ; FORWARD ;
-PROCEDURE WriteFileName (FileName: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE CalculateDepth ; FORWARD ;
-PROCEDURE SortSources ; FORWARD ;
-PROCEDURE DisplaySources ; FORWARD ;
-   %%%FORWARD%%% *)
 
 CONST
    Comment     =     '#' ;      (* Comment leader.                 *)
@@ -85,6 +78,7 @@ VAR
    Command,
    Target        : String ;
    fi, fo        : File ;       (* the input and output files      *)
+   ObjectArray   : Indexing.Index ;
 
 
 (*
@@ -200,7 +194,7 @@ END RemoveLinkOnly ;
 
 
 (*
-   ConCatStartupFile - 
+   ConCatStartupFile -
 *)
 
 PROCEDURE ConCatStartupFile ;
@@ -217,7 +211,7 @@ END ConCatStartupFile ;
 
 
 (*
-   GenObjectSuffix - 
+   GenObjectSuffix -
 *)
 
 PROCEDURE GenObjectSuffix () : String ;
@@ -232,7 +226,7 @@ END GenObjectSuffix ;
 
 
 (*
-   GenArchiveSuffix - 
+   GenArchiveSuffix -
 *)
 
 PROCEDURE GenArchiveSuffix () : String ;
@@ -247,7 +241,7 @@ END GenArchiveSuffix ;
 
 
 (*
-   ConCatObject - 
+   ConCatObject -
 *)
 
 PROCEDURE ConCatObject (s: String) ;
@@ -257,7 +251,10 @@ BEGIN
    t := CalculateFileName(s, Mark(GenObjectSuffix())) ;
    IF FindSourceFile(t, u)
    THEN
-      Command := ConCat(ConCatChar(Command, ' '), u) ;
+      IF NOT OnCommandLine(u)
+      THEN
+         Command := ConCat(ConCatChar(Command, ' '), u)
+      END ;
       u := KillString(u)
    ELSE
       t := KillString(t) ;
@@ -265,11 +262,14 @@ BEGIN
       t := CalculateFileName(s, Mark(GenArchiveSuffix())) ;
       IF FindSourceFile(t, u)
       THEN
-         Archives := ConCatChar(ConCat(Archives, u), ' ') ;
+         IF NOT OnCommandLine(u)
+         THEN
+            Archives := ConCatChar(ConCat(Archives, u), ' ')
+         END ;
          u := KillString(u)
       END
    END ;
-   t := KillString(t)   
+   t := KillString(t)
 END ConCatObject ;
 
 
@@ -461,7 +461,7 @@ END IsALibrary ;
 
 
 (*
-   IsALibraryPath - 
+   IsALibraryPath -
 *)
 
 PROCEDURE IsALibraryPath (s: String) : BOOLEAN ;
@@ -487,15 +487,30 @@ END IsALibraryPath ;
 
 PROCEDURE IsAnObject (s: String) : BOOLEAN ;
 BEGIN
-   IF ((Length(s)>2) AND EqualArray(Mark(Slice(s, -2, 0)), '.o')) OR
-      ((Length(s)>4) AND EqualArray(Mark(Slice(s, -4, 0)), '.obj'))
-   THEN
-      Objects := ConCat(ConCatChar(Objects, ' '), s) ;
-      RETURN( TRUE )
-   ELSE
-      RETURN( FALSE )
-   END
+   RETURN ((Length(s)>2) AND EqualArray(Mark(Slice(s, -2, 0)), '.o')) OR
+          ((Length(s)>4) AND EqualArray(Mark(Slice(s, -4, 0)), '.obj'))
 END IsAnObject ;
+
+
+(*
+   OnCommandLine - returns TRUE if, s, was seen on the command line.
+*)
+
+PROCEDURE OnCommandLine (s: String) : BOOLEAN ;
+VAR
+   i, h: CARDINAL ;
+BEGIN
+   i := 1 ;
+   h := HighIndice(ObjectArray) ;
+   WHILE i<=h DO
+      IF Equal(s, GetIndice(ObjectArray, i))
+      THEN
+         RETURN( TRUE )
+      END ;
+      INC(i)
+   END ;
+   RETURN( FALSE )
+END OnCommandLine ;
 
 
 (*
@@ -535,7 +550,7 @@ BEGIN
          INC(i) ;
          IF NOT GetArg(MainModule, i)
          THEN
-            fprintf0(StdErr, 'expecting modulename after -main option\n') ;
+            fprintf0(StdErr, 'expecting modulename after --main option\n') ;
             Close(StdErr) ;
             exit(1)
          END
@@ -597,8 +612,20 @@ BEGIN
       ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-f')
       THEN
          AdditionalFOptions(s)
-      ELSIF IsALibrary(s) OR IsALibraryPath(s) OR IsAnObject(s)
+      ELSIF EqualArray(s, '--main-object')
       THEN
+         INC(i) ;
+         IF GetArg(s, i)
+         THEN
+            Objects := ConCat(ConCatChar(Objects, ' '), s) ;
+            IncludeIndiceIntoIndex(ObjectArray, Dup(s))
+         END
+      ELSIF IsALibrary(s) OR IsALibraryPath(s)
+      THEN
+      ELSIF IsAnObject(s)
+      THEN
+         (* Objects := ConCat(ConCatChar(Objects, ' '), s) ; *)
+         IncludeIndiceIntoIndex(ObjectArray, Dup(s))
       ELSE
          IF FoundFile
          THEN
@@ -659,6 +686,7 @@ BEGIN
    Command       := NIL ;
    Target        := NIL ;
    BOption       := NIL ;
+   ObjectArray   := InitIndex(1) ;
 
    ScanArguments ;
    IF CheckFound

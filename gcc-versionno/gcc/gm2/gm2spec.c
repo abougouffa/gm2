@@ -427,7 +427,7 @@ add_library (const char *libraryname,
 #if defined(DEBUGGING)
   {
     unsigned int i;
-    
+
     printf("going to add -l%s at position=%d  count=%d\n",
 	   libraryname, position, *in_decoded_options_count);
     for (i = 0; i < *in_decoded_options_count; i++)
@@ -487,7 +487,7 @@ build_archive_path (const char *libpath,
 
       dir_sep[0] = DIR_SEPARATOR;
       dir_sep[1] = (char)0;
-    
+
       strcpy (s, libpath);
       strcat (s, dir_sep);
       strcat (s, "m2");
@@ -536,7 +536,7 @@ add_default_combination (const char *libpath,
 }
 
 /*
- *  gen_link_path - 
+ *  gen_link_path -
  */
 
 static const char *
@@ -767,7 +767,7 @@ scan_for_link_args (unsigned int *in_decoded_options_count,
 {
   struct cl_decoded_option *decoded_options = *in_decoded_options;
   unsigned int i;
-  
+
   for (i = 0; i < *in_decoded_options_count; i++) {
     const char *arg = decoded_options[i].arg;
     size_t opt = decoded_options[i].opt_index;
@@ -790,7 +790,7 @@ purge_include_options (unsigned int *in_decoded_options_count,
 {
   struct cl_decoded_option *decoded_options = *in_decoded_options;
   unsigned int i, j;
-  
+
   for (i = 0; i < *in_decoded_options_count; i++)
     {
       size_t opt = decoded_options[i].opt_index;
@@ -972,7 +972,7 @@ check_gm2_root (void)
   gm2_prefix = getenv (GM2_PREFIX_ENV);
   gm2_libexec = getenv (GM2_LIBEXEC_ENV);
 
-  if ((library_path == NULL || (strcmp (library_path, "") == 0)) && 
+  if ((library_path == NULL || (strcmp (library_path, "") == 0)) &&
       (compiler_path == NULL || (strcmp (compiler_path, "") == 0))) {
 #if defined(DEBUGGING)
     fprintf(stderr, "STANDARD_LIBEXEC_PREFIX = %s\n", STANDARD_LIBEXEC_PREFIX);
@@ -990,7 +990,7 @@ check_gm2_root (void)
       build_compiler_path (gm2_libexec);
   }
   else if (gm2_prefix != NULL && !seen_fmakeall0)
-    /*  
+    /*
      *  no need to issue a warning if seen_fmakeall0 as the parent will
      *  have set COMPILER_PATH and LIBRARY_PATH because of GM2_ROOT and
      *  users should not be using -fmakeall0 as it is an internal option.
@@ -1128,7 +1128,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
     }
     if (opt == OPT_SPECIAL_input_file)
       seen_source = TRUE;
-    if ((opt == OPT_SPECIAL_ignore) && (is_object(arg)))
+    if ((opt == OPT_SPECIAL_input_file) && (is_object (arg)))
       remember_object (arg);
   }
   if (linking && (! seen_source))
@@ -1183,7 +1183,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 	{
 	  struct cl_decoded_option *options = *in_decoded_options;
 	  const char *prev = options[inclPos].arg;
-	  
+
 	  add_default_fobjects (prev, libpath, libraries, gm2opath);
 	}
     }
@@ -1265,14 +1265,19 @@ get_objects (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
   *result = (char)0;
 
   for (o = head_objects; o != NULL; o = o->next) {
-    flen = strlen(o->name);
+    flen = strlen (o->name);
     result = (char *)xrealloc (result, len+flen+1);
-    len += flen;
-    strcat(result, o->name);
-    strcat(result, " ");
+    strcat (result, o->name);
+    strcat (result, " ");
+    len = strlen (result);
   }
+#if 0
   for (i = 0; i < n_infiles; i++)
     outfiles[i] = NULL;
+#endif
+#if 0
+  printf ("objects = %s\n", result);
+#endif
 
   return result;
 }
@@ -1294,11 +1299,11 @@ get_link_args (int argc ATTRIBUTE_UNUSED,
   *result = (char)0;
 
   for (o = head_link_args; o != NULL; o = o->next) {
-    len = strlen (result);
     alen = strlen (o->name);
     result = (char *)xrealloc (result, len+alen+1+1);
     strcat (result, o->name);
     strcat (result, " ");
+    len = strlen (result);
   }
   return result;
 }
@@ -1321,7 +1326,7 @@ add_exec_dir (int argc, const char *argv[])
     if (path != NULL) {
       char *opt = (char *) xmalloc (strlen ("-fcppprog=") + strlen (path) + 1 + strlen (argv[0]) + 1);
       char *sep = (char *) alloca (2);
-      
+
       sep[0] = DIR_SEPARATOR;
       sep[1] = (char)0;
 
@@ -1371,7 +1376,7 @@ void lang_register_spec_functions (void)
 }
 
 
-/* Table of language-specific spec functions.  */ 
+/* Table of language-specific spec functions.  */
 const struct spec_function lang_specific_spec_functions[] =
 {
   { NULL, NULL }
