@@ -1,3 +1,18 @@
+2017-10-17      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/gm2lcc.mod:  removed unnecessary prototypes.
+          ObjectArray remember the objects on the command line.
+          ConCatObject only concat an object if it does not exist on
+          the command line.  IsAnObject recode as a function.
+          --main-object specify an object is the main.
+	* gm2/gm2spec.c:  (lang_specific_driver) test against
+          OPT_SPECIAL_input_file instead of OPT_SPECIAL_ignore.
+	* gm2/lang-specs.h:  pass all objects on the command line
+          to gm2lcc so it can remove these objects from
+          being automatically included in the archive.
+	* testsuite/gm2/pim/run/pass/nestedwith3.mod:  corrected module
+	  name.
+
 2017-07-21      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/el/g-mode.el:  updated to include the new SYSTEM data types.
