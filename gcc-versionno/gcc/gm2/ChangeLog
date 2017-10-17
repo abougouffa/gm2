@@ -11,7 +11,10 @@
           to gm2lcc so it can remove these objects from
           being automatically included in the archive.
 	* testsuite/gm2/pim/run/pass/nestedwith3.mod:  corrected module
-	  name.
+          name.
+	* gm2/gm2-libs-ch/getopt.c:  New file.
+	* gm2/gm2-libs/getopt.def:  New file.
+	* gm2/gm2-libs/GetOpt.def:  New file.
 
 2017-07-27      Gaius Mulley <gaius@gnu.org>
 
