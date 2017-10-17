@@ -826,7 +826,8 @@ GM2-LIBS-DEFS      = ASCII.def         IO.def          Args.def        M2RTS.def
                      Builtins.def      cbuiltin.def    MathLib0.def    M2EXCEPTION.def \
                      RTExceptions.def  SMathLib0.def   dtoa.def        ldtoa.def       \
                      termios.def       RTint.def       COROUTINES.def  Indexing.def    \
-                     LMathLib0.def     LegacyReal.def  MemUtils.def
+                     LMathLib0.def     LegacyReal.def  MemUtils.def    getopt.def      \
+                     GetOpt.def
 
 GM2-LIBS-MODS      = ASCII.mod         IO.mod          Args.mod        M2RTS.mod       \
                      Assertion.mod     NumberIO.mod    Break.mod       SYSTEM.mod      \
@@ -839,11 +840,12 @@ GM2-LIBS-MODS      = ASCII.mod         IO.mod          Args.mod        M2RTS.mod
                      PushBackInput.mod StringConvert.mod               FormatStrings.mod \
                      Builtins.mod                      MathLib0.mod    M2EXCEPTION.mod \
                      RTExceptions.mod  SMathLib0.mod   RTint.mod       COROUTINES.mod  \
-                     Indexing.mod      LMathLib0.mod   LegacyReal.mod  MemUtils.mod
+                     Indexing.mod      LMathLib0.mod   LegacyReal.mod  MemUtils.mod    \
+                     GetOpt.mod
 
 GM2-LIBS-C         = wrapc.c           UnixArgs.c      Selective.c     choosetemp.c    \
                      errno.c           dtoa.c          ldtoa.c         \
-                     termios.c         SysExceptions.c target.c
+                     termios.c         SysExceptions.c target.c        getopt.c
 
 GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Defaults.def  \
                      M2Options.def     P3SymBuild.def  M2ALU.def       M2Depth.def     \
