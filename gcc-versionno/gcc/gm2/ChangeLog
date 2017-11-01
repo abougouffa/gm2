@@ -1,3 +1,7 @@
+2017-11-01      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-gcc/gcc-consolidation.h:  #include "stringpool.h"
+
 2017-10-30      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/m2.flex:  change linelen to int rather than
