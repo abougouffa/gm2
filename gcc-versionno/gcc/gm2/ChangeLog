@@ -1,6 +1,13 @@
 2017-11-01      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-gcc/gcc-consolidation.h:  #include "stringpool.h"
+	* gm2/gm2-compiler/M2Base.mod:  removed unnecessary forward
+          declarations.  (PushSizeOf)  does not assume the fixed
+          fixed complex data types exist, uses constants instead.
+	* gm2/gm2-gcc/m2type.c:  (build_m2_specific_size_type)
+          checks to see if the REAL_TYPE with a desired precision
+          exists.  NULL is returned if the target does not support
+	  the data type.
 
 2017-10-30      Gaius Mulley <gaius@gnu.org>
 

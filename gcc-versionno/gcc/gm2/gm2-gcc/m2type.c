@@ -1355,11 +1355,16 @@ build_m2_specific_size_type (location_t location, enum tree_code base, int preci
   tree c;
 
   m2assert_AssertLocation (location);
+
   c = make_node (base);
   TYPE_PRECISION (c) = precision;
 
   if (base == REAL_TYPE)
-    layout_type (c);
+    {
+      if (! float_mode_for_size (TYPE_PRECISION (c)).exists ())
+	return NULL;
+      layout_type (c);
+    }
   else if (base == SET_TYPE)
     return build_m2_size_set_type (location, precision);
   else {

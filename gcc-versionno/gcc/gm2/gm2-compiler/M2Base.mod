@@ -132,21 +132,6 @@ TYPE
    Compatible    = (uninitialized, no, warnfirst, warnsecond,
                     first, second) ;
 
-(* %%%FORWARD%%%
-PROCEDURE InitBaseConstants ; FORWARD ;
-PROCEDURE InitBaseSimpleTypes (location: location_t) ; FORWARD ;
-PROCEDURE InitBaseFunctions ; FORWARD ;
-PROCEDURE InitBaseProcedures ; FORWARD ;
-PROCEDURE InitCompatibilityMatrices ; FORWARD ;
-PROCEDURE IsCompatible (t1, t2: CARDINAL; kind: Compatability) : Compatible ; FORWARD ;
-PROCEDURE AfterResolved (t1, t2: CARDINAL; kind: Compatability) : Compatible ; FORWARD ;
-PROCEDURE BeforeResolved (t1, t2: CARDINAL; kind: Compatability) : Compatible ; FORWARD ;
-PROCEDURE IsSameType (t1, t2: CARDINAL; error: BOOLEAN) : BOOLEAN ; FORWARD ;
-PROCEDURE IsProcTypeSame (p1, p2: CARDINAL; error: BOOLEAN) : BOOLEAN ; FORWARD ;
-PROCEDURE IsPointerSame (a, b: CARDINAL; error: BOOLEAN) : BOOLEAN ; FORWARD ;
-PROCEDURE FindMetaType (sym: CARDINAL) : MetaType ; FORWARD ;
-PROCEDURE IsSizeSame (t1, t2: MetaType) : BOOLEAN ; FORWARD ;
-   %%%FORWARD%%% *)
 
 TYPE
    CompatibilityArray = ARRAY MetaType, MetaType OF Compatible ;
@@ -2312,10 +2297,10 @@ BEGIN
    complex  :   PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2ComplexType())) |
    shortcomplex: PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2ShortComplexType())) |
    longcomplex:  PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2LongComplexType())) |
-   complex32:  PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2Complex32())) |
-   complex64:  PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2Complex64())) |
-   complex96:  PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2Complex96())) |
-   complex128:  PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2Complex128())) |
+   complex32:  PushIntegerTree(BuildIntegerConstant(4*2)) |
+   complex64:  PushIntegerTree(BuildIntegerConstant(8*2)) |
+   complex96:  PushIntegerTree(BuildIntegerConstant(12*2)) |
+   complex128:  PushIntegerTree(BuildIntegerConstant(16*2)) |
    ctype     :  PushIntegerTree(GetSizeOf(BuiltinsLocation(), GetM2CType())) |
 
    unknown  :   InternalError('should not get here', __FILE__, __LINE__)
