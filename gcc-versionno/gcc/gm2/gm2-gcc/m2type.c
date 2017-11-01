@@ -1462,7 +1462,6 @@ m2type_BuildProcTypeParameterDeclaration (location_t location, tree type,
     type = build_reference_type (type);
 
   param_type_list = tree_cons (NULL_TREE, type, param_type_list);
-  layout_type (type);
   return type;
 }
 

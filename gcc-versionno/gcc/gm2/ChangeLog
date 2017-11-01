@@ -7,7 +7,11 @@
 	* gm2/gm2-gcc/m2type.c:  (build_m2_specific_size_type)
           checks to see if the REAL_TYPE with a desired precision
           exists.  NULL is returned if the target does not support
-	  the data type.
+          the data type.
+	* gm2/gm2-gcc/m2type.c:
+          (m2type_BuildProcTypeParameterDeclaration) no longer
+          layout the paramater type at this time (as it might be a
+	  recursive usage of the proctype).
 
 2017-10-30      Gaius Mulley <gaius@gnu.org>
 
