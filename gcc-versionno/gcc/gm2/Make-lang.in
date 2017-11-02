@@ -1804,7 +1804,7 @@ gm2/mc-boot/main.o: $(M2LINK) $(srcdir)/gm2/init/mcinit
 #  now for the rules which build objects in the gm2-compiler-paranoid gm2-libs-paranoid directories
 #
 
-gm2/gm2-libs-paranoid/%.o: gm2/gm2-libs/%.c
+gm2/gm2-libs-paranoid/%.o: gm2/gm2-libs-ch/%.c
 	$(XGCC) -c -g $(GM2_O_S3) $(GM2_O) -I./ -Igm2/gm2-libs -Wall $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/%.o: $(srcdir)/gm2/gm2-libs/%.mod
@@ -1915,9 +1915,6 @@ gm2/gm2-compiler-paranoid/M2Version.mod:
 
 gm2/gm2-compiler-paranoid/M2Version.o: gm2/gm2-compiler-paranoid/M2Version.mod
 	./xgm2 $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc $< -o $@
-
-gm2/gm2-libs-paranoid/%.o: gm2-libs/%.c
-	$(XGCC) -c -g -I./ -Igm2/gm2-libs -Wall $(INCLUDES) $< -o $@
 
 #
 #  and now the linkage tools and general Modula-2 tools
