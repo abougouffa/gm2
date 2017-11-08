@@ -5,7 +5,8 @@
 	* gm2/gm2-libs-ch/Storage.c:  removed since it is built (in
 	  the build directory) from Storage.mod via mc.
 	* gm2/gm2-libs-ch/StdIO.c:  removed since it is built (in the
-	  build directory) from StdIO.mod via mc.
+          build directory) from StdIO.mod via mc.
+	* gm2/Make-lang.in:  added Storage.mod into GM2-LIBS-MODS.
 
 2017-11-02      Gaius Mulley <gaius@gnu.org>
 
