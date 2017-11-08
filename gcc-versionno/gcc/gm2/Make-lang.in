@@ -753,7 +753,7 @@ GM2-LIBS-BOOT-MODS = ASCII.mod       IO.mod          Args.mod        Assertion.m
                      M2EXCEPTION.mod RTExceptions.mod \
                      Indexing.mod
 
-GM2-LIBS-BOOT-C    = wrapc.c         UnixArgs.c      StdIO.c         Storage.c       \
+GM2-LIBS-BOOT-C    = wrapc.c         UnixArgs.c      StdIO.c                         \
                      choosetemp.c    dtoa.c          ldtoa.c         termios.c       \
                      errno.c         SysExceptions.c
 
@@ -1894,8 +1894,13 @@ gm2/gm2-libs-paranoid/termios.o: $(srcdir)/gm2/gm2-libs-ch/termios.c \
 #  now for rules which build the paranoid version of gm2
 #
 
-gm2/gm2-libs-paranoid/libgm2.a: $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs-paranoid/%.o) \
-	                    $(GM2-LIBS-C:%.c=gm2/gm2-libs-paranoid/%.o)
+BUILD-LIBS-PARANOID-H = $(GM2-LIBS-BOOT-DEFS:%.def=gm2/gm2-libs-boot/$(SRC_PREFIX)%.h)
+
+BUILD-LIBS-PARANOID = $(BUILD-LIBS-PARANOID-H) \
+                      $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs-paranoid/%.o) \
+                      $(GM2-LIBS-C:%.c=gm2/gm2-libs-paranoid/%.o)
+
+gm2/gm2-libs-paranoid/libgm2.a: gm2/boot-bin/mc$(exeext) $(BUILD-LIBS-PARANOID)
 	$(AR) cr $@ $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs-paranoid/%.o) \
                     $(GM2-LIBS-C:%.c=gm2/gm2-libs-paranoid/%.o)
 	$(RANLIB) $@
