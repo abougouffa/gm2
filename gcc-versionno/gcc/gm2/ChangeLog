@@ -1,3 +1,11 @@
+2017-12-01      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Quads.mod:  (CheckBecomesMeta)
+          check to see if GetDType(Des) and GetDType(Exp) are non
+          nul before testing against unbounded.  Defends against
+          undefined symbols being compared which might result in
+	  a fatal error.  (see testsuite/gm2/iso/fail/bug8.mod).
+
 2017-11-08      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  removed Storage.c from GM2-LIBS-BOOT-C.
