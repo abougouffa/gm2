@@ -1,3 +1,15 @@
+2017-12-20      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/Builtins.def:  new function definitions
+          for (nan), (nanf), (nanl), (isfinite), (isfinitef),
+          (isfinitel), (isinf_sign), (isinf_signf), (isinf_signl).
+	* gm2/gm2-libs/cbuiltin.def: new function definitions
+          for (nan), (nanf), (nanl), (isfinite), (isfinitef),
+          (isfinitel), (isinf_sign), (isinf_signf), (isinf_signl).
+	* gm2/gm2builtins.c:  add definitions in the static structure
+          for (nan), (nanf), (nanl), (isfinite), (isfinitef),
+          (isfinitel), (isinf_sign), (isinf_signf), (isinf_signl).
+
 2017-12-01      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Quads.mod:  (CheckBecomesMeta)

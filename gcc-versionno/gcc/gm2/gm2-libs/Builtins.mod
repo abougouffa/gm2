@@ -49,6 +49,52 @@ BEGIN
    RETURN cbuiltin.memcpy (dest, src, n)
 END memcpy ;
 
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_nanf)) nanf (x: SHORTREAL) : BOOLEAN ;
+BEGIN
+   RETURN cbuiltin.nanf (x)
+END nanf ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_nan)) nan (x: REAL) : BOOLEAN ;
+BEGIN
+   RETURN cbuiltin.nan (x)
+END nan ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_nanl)) nanl (x: LONGREAL) : BOOLEAN ;
+BEGIN
+   RETURN cbuiltin.nanl (x)
+END nanl ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_isfinitef)) isfinitef (x: SHORTREAL) : BOOLEAN ;
+BEGIN
+   RETURN cbuiltin.isfinitef (x)
+END isfinitef ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_isfinite)) isfinite (x: REAL) : BOOLEAN ;
+BEGIN
+   RETURN cbuiltin.isfinite (x)
+END isfinite ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_isfinitel)) isfinitel (x: LONGREAL) : BOOLEAN ;
+BEGIN
+   RETURN cbuiltin.isfinitel (x)
+END isfinitel ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_isinf_signl)) isinf_signl (x: LONGREAL) : BOOLEAN ;
+BEGIN
+   RETURN cbuiltin.isinf_signl (x)
+END isinf_signl ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_isinf_sign)) isinf_sign (x: REAL) : BOOLEAN ;
+BEGIN
+   RETURN cbuiltin.isinf_sign (x)
+END isinf_sign ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_isinf_signf)) isinf_signf (x: SHORTREAL) : BOOLEAN ;
+BEGIN
+   RETURN cbuiltin.isinf_signf (x)
+END isinf_signf ;
+
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_sin)) sin (x: REAL) : REAL ;
 BEGIN
    RETURN cbuiltin.sin (x)
@@ -381,7 +427,7 @@ END cpowerl ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_csqrtf)) csqrtf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
 BEGIN
-   RETURN cbuiltin.csqrtf(z)   
+   RETURN cbuiltin.csqrtf(z)
 END csqrtf ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_csqrt)) csqrt (z: COMPLEX) : COMPLEX ;
@@ -426,7 +472,7 @@ END clnl ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_csinf)) csinf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
 BEGIN
-   RETURN cbuiltin.csinf(z)   
+   RETURN cbuiltin.csinf(z)
 END csinf ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_csin)) csin (z: COMPLEX) : COMPLEX ;
@@ -441,7 +487,7 @@ END csinl ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_ccosf)) ccosf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
 BEGIN
-   RETURN cbuiltin.ccosf(z)   
+   RETURN cbuiltin.ccosf(z)
 END ccosf ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_ccos)) ccos (z: COMPLEX) : COMPLEX ;
@@ -456,7 +502,7 @@ END ccosl ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_ctanf)) ctanf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
 BEGIN
-   RETURN cbuiltin.ctanf(z)   
+   RETURN cbuiltin.ctanf(z)
 END ctanf ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_ctan)) ctan (z: COMPLEX) : COMPLEX ;

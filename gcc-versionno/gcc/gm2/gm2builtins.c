@@ -135,6 +135,17 @@ struct builtin_function_entry {
 static struct builtin_function_entry list_of_builtins[] = {
 { "__builtin_alloca",  BT_FN_PTR_SIZE, BUILT_IN_ALLOCA, BUILT_IN_NORMAL, "alloca", NULL, NULL},
 { "__builtin_memcpy",  BT_FN_TRAD_PTR_PTR_CONST_PTR_SIZE, BUILT_IN_MEMCPY, BUILT_IN_NORMAL, "memcpy", NULL, NULL},
+
+{ "__builtin_nanf", BT_FN_INT_FLOAT, BUILT_IN_NANF, BUILT_IN_NORMAL, "nanf", NULL, NULL},
+{ "__builtin_nan", BT_FN_INT_DOUBLE, BUILT_IN_NAN, BUILT_IN_NORMAL, "nan", NULL, NULL},
+{ "__builtin_nanl", BT_FN_INT_LONG_DOUBLE, BUILT_IN_NANL, BUILT_IN_NORMAL, "nanl", NULL, NULL},
+
+{ "__builtin_isfinitef", BT_FN_INT_FLOAT, BUILT_IN_ISFINITEF, BUILT_IN_NORMAL, "isfinitef", NULL, NULL},
+{ "__builtin_isfinite", BT_FN_INT_DOUBLE, BUILT_IN_ISFINITE, BUILT_IN_NORMAL, "isfinite", NULL, NULL},
+{ "__builtin_isfinitel", BT_FN_INT_LONG_DOUBLE, BUILT_IN_ISFINITEL, BUILT_IN_NORMAL, "isfinitel", NULL, NULL},
+
+{ "__builtin_isinf_sign", BT_FN_INT_DOUBLE, BUILT_IN_ISINF_SIGN, BUILT_IN_NORMAL, "isinf_sign", NULL, NULL},
+
 { "__builtin_sinf",    BT_FN_FLOAT_FLOAT, BUILT_IN_SINF, BUILT_IN_NORMAL, "sinf", NULL, NULL},
 { "__builtin_sin",     BT_FN_DOUBLE_DOUBLE, BUILT_IN_SIN, BUILT_IN_NORMAL, "sin", NULL, NULL},
 { "__builtin_sinl",    BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_SINL, BUILT_IN_NORMAL, "sinl", NULL, NULL},
@@ -950,13 +961,13 @@ create_function_prototype (struct builtin_function_entry *fe)
     ftype = float_ftype_float;
     fe->return_node = float_type_node;
     break;
-  case BT_FN_DOUBLE_DOUBLE:
-    ftype = double_ftype_double;
-    fe->return_node = double_type_node;
-    break;
   case BT_FN_LONG_DOUBLE_LONG_DOUBLE:
     ftype = ldouble_ftype_ldouble;
     fe->return_node = long_double_type_node;
+    break;
+  case BT_FN_DOUBLE_DOUBLE:
+    ftype = double_ftype_double;
+    fe->return_node = double_type_node;
     break;
   case BT_FN_STRING_CONST_STRING_INT:
     ftype = build_function_type (ptr_type_node,

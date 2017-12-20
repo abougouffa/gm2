@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -23,7 +23,7 @@ DEFINITION MODULE Builtins ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Sat Jan  4 19:11:55 2003
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides a convenient place to list all the GNU Modula-2
                  built-in functions. These functions should be copied into
                  more generic modules.
@@ -36,6 +36,18 @@ DEFINITION MODULE Builtins ;
 FROM SYSTEM IMPORT ADDRESS ;
 
 (* floating point intrinsic procedure functions *)
+
+PROCEDURE __BUILTIN__ nanf (x: SHORTREAL) : BOOLEAN ;
+PROCEDURE __BUILTIN__ nan (x: REAL) : BOOLEAN ;
+PROCEDURE __BUILTIN__ nanl (x: LONGREAL) : BOOLEAN ;
+
+PROCEDURE __BUILTIN__ isfinite (x: REAL) : BOOLEAN ;
+PROCEDURE __BUILTIN__ isfinitef (x: SHORTREAL) : BOOLEAN ;
+PROCEDURE __BUILTIN__ isfinitel (x: LONGREAL) : BOOLEAN ;
+
+PROCEDURE __BUILTIN__ isinf_sign (x: REAL) : BOOLEAN ;
+PROCEDURE __BUILTIN__ isinf_signf (x: SHORTREAL) : BOOLEAN ;
+PROCEDURE __BUILTIN__ isinf_signl (x: LONGREAL) : BOOLEAN ;
 
 PROCEDURE __BUILTIN__ sinf (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE __BUILTIN__ sin (x: REAL) : REAL ;
