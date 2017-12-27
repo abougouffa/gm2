@@ -33,7 +33,6 @@ DEFINITION MODULE FOR "C" cbuiltin ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 EXPORT UNQUALIFIED alloca, memcpy,
-                   nanf, nan, nanl,
 		   isfinite, isfinitef, isfinitel,
 		   isinf_sign, isinf_signf, isinf_signl,
                    sinf, sinl, sin,
@@ -75,9 +74,6 @@ EXPORT UNQUALIFIED alloca, memcpy,
 
 PROCEDURE alloca (i: CARDINAL) : ADDRESS ;
 PROCEDURE memcpy (dest, src: ADDRESS; n: CARDINAL) : ADDRESS ;
-PROCEDURE nanf (x: SHORTREAL) : BOOLEAN ;
-PROCEDURE nan (x: REAL) : BOOLEAN ;
-PROCEDURE nanl (x: LONGREAL) : BOOLEAN ;
 PROCEDURE isfinite (x: REAL) : BOOLEAN ;
 PROCEDURE isfinitel (x: LONGREAL) : BOOLEAN ;
 PROCEDURE isfinitef (x: SHORTREAL) : BOOLEAN ;

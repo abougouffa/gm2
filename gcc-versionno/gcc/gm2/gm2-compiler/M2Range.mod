@@ -47,6 +47,7 @@ FROM m2expr IMPORT CompareTrees, BuildSub, BuildAdd, GetIntegerZero, GetIntegerO
 FROM m2convert IMPORT BuildConvert ;
 FROM m2statement IMPORT BuildParam ;
 FROM m2decl IMPORT BuildStringConstant, BuildIntegerConstant ;
+FROM m2builtins IMPORT BuiltInIsfinite ;
 
 FROM M2Debug IMPORT Assert ;
 FROM Indexing IMPORT Index, InitIndex, InBounds, PutIndice, GetIndice ;
@@ -863,7 +864,6 @@ END InitWholeZeroRemainderCheck ;
 PROCEDURE FoldNil (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
    p: Range ;
-   n: Name ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
@@ -1206,8 +1206,8 @@ END CheckSet ;
 
 PROCEDURE FoldIncl (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
-   p          : Range ;
-   t, min, max: Tree ;
+   p       : Range ;
+   min, max: Tree ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
@@ -1244,8 +1244,8 @@ END FoldIncl ;
 
 PROCEDURE FoldExcl (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
-   p          : Range ;
-   t, min, max: Tree ;
+   p       : Range ;
+   min, max: Tree ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
@@ -1670,8 +1670,8 @@ END FoldForLoopTo ;
 
 PROCEDURE FoldStaticArraySubscript (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
-   p          : Range ;
-   t, min, max: Tree ;
+   p       : Range ;
+   min, max: Tree ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
@@ -1704,9 +1704,8 @@ END FoldStaticArraySubscript ;
 
 PROCEDURE FoldDynamicArraySubscript (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
-   p          : Range ;
-   t, min, max: Tree ;
-   location   : location_t ;
+   p       : Range ;
+   location: location_t ;
 BEGIN
    location := TokenToLocation(tokenno) ;
    p := GetIndice(RangeIndex, r) ;
@@ -2110,12 +2109,31 @@ END BuildIfCallHandler ;
 
 
 (*
-   DoCodeAssignmentExprType -
+   RangeCheckReal -
 *)
 
-PROCEDURE DoCodeAssignmentExprType (p: Range;
-                                    r: CARDINAL; scopeDesc: String;
-                                    message: ARRAY OF CHAR) ;
+PROCEDURE RangeCheckReal (p: Range; r: CARDINAL; scopeDesc: String; message: ARRAY OF CHAR) ;
+VAR
+   e,
+   condition: Tree ;
+   location : location_t ;
+BEGIN
+   WITH p^ DO
+      location := TokenToLocation (tokenNo) ;
+      e := DeReferenceLValue (tokenNo, expr) ;
+      condition := BuildEqualTo (location,
+                                 BuiltInIsfinite (location, e),
+                                 GetIntegerZero (location)) ;
+      AddStatement (location, BuildIfCallHandler (condition, r, scopeDesc, TRUE))
+   END
+END RangeCheckReal ;
+
+
+(*
+   RangeCheckOrdinal -
+*)
+
+PROCEDURE RangeCheckOrdinal (p: Range; r: CARDINAL; scopeDesc: String; message: ARRAY OF CHAR) ;
 VAR
    condition,
    desMin, desMax,
@@ -2124,27 +2142,46 @@ VAR
 BEGIN
    WITH p^ DO
       location := TokenToLocation(tokenNo) ;
+      IF GetMinMax(tokenNo, exprLowestType, exprMin, exprMax) AND
+         GetMinMax(tokenNo, desLowestType, desMin, desMax)
+      THEN
+         IF OverlapsRange(desMin, desMax, exprMin, exprMax)
+         THEN
+            IF IsGreater(desMin, exprMin)
+            THEN
+               condition := BuildLessThan(location, DeReferenceLValue(tokenNo, expr), BuildConvert(location, Mod2Gcc(exprLowestType), desMin, FALSE)) ;
+               AddStatement(location, BuildIfCallHandler(condition, r, scopeDesc, TRUE))
+            END ;
+            IF IsGreater(exprMax, desMax)
+            THEN
+               condition := BuildGreaterThan(location, DeReferenceLValue(tokenNo, expr), BuildConvert(location, Mod2Gcc(exprLowestType), desMax, FALSE)) ;
+               AddStatement(location, BuildIfCallHandler(condition, r, scopeDesc, TRUE))
+            END
+         ELSE
+            MetaErrorT2(tokenNo, message, des, expr)
+         END
+      END
+   END
+END RangeCheckOrdinal ;
+
+
+(*
+   DoCodeAssignmentExprType -
+*)
+
+PROCEDURE DoCodeAssignmentExprType (p: Range;
+                                    r: CARDINAL; scopeDesc: String;
+                                    message: ARRAY OF CHAR) ;
+BEGIN
+   WITH p^ DO
       IF GccKnowsAbout(desLowestType) AND
          GccKnowsAbout(exprLowestType)
       THEN
-         IF GetMinMax(tokenNo, exprLowestType, exprMin, exprMax) AND
-            GetMinMax(tokenNo, desLowestType, desMin, desMax)
+         IF IsRealType(desLowestType) AND IsRealType(exprLowestType)
          THEN
-            IF OverlapsRange(desMin, desMax, exprMin, exprMax)
-            THEN
-               IF IsGreater(desMin, exprMin)
-               THEN
-                  condition := BuildLessThan(location, DeReferenceLValue(tokenNo, expr), BuildConvert(location, Mod2Gcc(exprLowestType), desMin, FALSE)) ;
-                  AddStatement(location, BuildIfCallHandler(condition, r, scopeDesc, TRUE))
-               END ;
-               IF IsGreater(exprMax, desMax)
-               THEN
-                  condition := BuildGreaterThan(location, DeReferenceLValue(tokenNo, expr), BuildConvert(location, Mod2Gcc(exprLowestType), desMax, FALSE)) ;
-                  AddStatement(location, BuildIfCallHandler(condition, r, scopeDesc, TRUE))
-               END
-            ELSE
-               MetaErrorT2(tokenNo, message, des, expr)
-            END
+            RangeCheckReal(p, r, scopeDesc, message)
+         ELSE
+            RangeCheckOrdinal(p, r, scopeDesc, message)
          END
       ELSE
          InternalError('should have resolved these types', __FILE__, __LINE__)
@@ -2161,9 +2198,8 @@ PROCEDURE DoCodeAssignmentWithoutExprType (p: Range;
                                            r: CARDINAL; scopeDesc: String) ;
 VAR
    condition,
-   desMin, desMax,
-   exprMin, exprMax: Tree ;
-   location        : location_t ;
+   desMin, desMax: Tree ;
+   location      : location_t ;
 BEGIN
    WITH p^ DO
       location := TokenToLocation(tokenNo) ;

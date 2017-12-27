@@ -136,10 +136,6 @@ static struct builtin_function_entry list_of_builtins[] = {
 { "__builtin_alloca",  BT_FN_PTR_SIZE, BUILT_IN_ALLOCA, BUILT_IN_NORMAL, "alloca", NULL, NULL},
 { "__builtin_memcpy",  BT_FN_TRAD_PTR_PTR_CONST_PTR_SIZE, BUILT_IN_MEMCPY, BUILT_IN_NORMAL, "memcpy", NULL, NULL},
 
-{ "__builtin_nanf", BT_FN_INT_FLOAT, BUILT_IN_NANF, BUILT_IN_NORMAL, "nanf", NULL, NULL},
-{ "__builtin_nan", BT_FN_INT_DOUBLE, BUILT_IN_NAN, BUILT_IN_NORMAL, "nan", NULL, NULL},
-{ "__builtin_nanl", BT_FN_INT_LONG_DOUBLE, BUILT_IN_NANL, BUILT_IN_NORMAL, "nanl", NULL, NULL},
-
 { "__builtin_isfinitef", BT_FN_INT_FLOAT, BUILT_IN_ISFINITEF, BUILT_IN_NORMAL, "isfinitef", NULL, NULL},
 { "__builtin_isfinite", BT_FN_INT_DOUBLE, BUILT_IN_ISFINITE, BUILT_IN_NORMAL, "isfinite", NULL, NULL},
 { "__builtin_isfinitel", BT_FN_INT_LONG_DOUBLE, BUILT_IN_ISFINITEL, BUILT_IN_NORMAL, "isfinitel", NULL, NULL},
@@ -304,6 +300,7 @@ static GTY(()) tree float_ftype_float;
 static GTY(()) tree double_ftype_double;
 static GTY(()) tree ldouble_ftype_ldouble;
 static GTY(()) tree gm2_alloca_node;
+static GTY(()) tree gm2_isfinite_node;
 static GTY(()) tree gm2_memcpy_node;
 static GTY(()) tree gm2_huge_valf_node;
 static GTY(()) tree gm2_huge_val_node;
@@ -827,6 +824,17 @@ gm2builtins_BuiltInAlloca (tree n)
 }
 
 /*
+ *  BuiltInIsfinite - return integer 1 if the real expression is finite.
+ *                    return integer 0 if it is not finite.
+ */
+
+tree
+gm2builtins_BuiltInIsfinite (tree e)
+{
+  return DoBuiltinIsfinite (listify (e));
+}
+
+/*
  *  BuiltinExists - returns TRUE if the builtin function, name, exists
  *                  for this target architecture.
  */
@@ -893,6 +901,16 @@ DoBuiltinAlloca (tree params)
 {
   tree functype = TREE_TYPE (gm2_alloca_node);
   tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), gm2_alloca_node);
+  tree call     = build (CALL_EXPR, ptr_type_node, funcptr, params, NULL_TREE);
+
+  return call;
+}
+
+static tree
+DoBuiltinIsfinite (tree params)
+{
+  tree functype = TREE_TYPE (gm2_isfinite_node);
+  tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), gm2_isfinite_node);
   tree call     = build (CALL_EXPR, ptr_type_node, funcptr, params, NULL_TREE);
 
   return call;
@@ -1223,7 +1241,7 @@ find_builtin_tree (const char *name)
   struct builtin_function_entry *fe;
 
   for (fe=&list_of_builtins[0]; fe->name != NULL; fe++)
-    if (strcmp(name, fe->name) == 0)
+    if (strcmp (name, fe->name) == 0)
       return fe->function_node;
 
   ERROR ("cannot find builtin function");
@@ -1276,6 +1294,7 @@ gm2builtins_init (void)
   gm2_huge_valf_node = find_builtin_tree ("__builtin_huge_valf");
   gm2_huge_val_node = find_builtin_tree ("__builtin_huge_val");
   gm2_huge_vall_node = find_builtin_tree ("__builtin_huge_vall");
+  gm2_isfinite_node = find_builtin_tree ("__builtin_isfinite");
 }
 
 #include "gt-gm2-gm2builtins.h"

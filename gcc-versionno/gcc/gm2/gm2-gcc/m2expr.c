@@ -824,6 +824,39 @@ build_binary_op (location_t location,
 }
 
 
+void
+m2expr_checkWholeOverflow (location_t location,
+			   enum tree_code code, tree op1, tree op2, tree type)
+{
+
+}
+
+void
+m2expr_checkRealOverflow (location_t location,
+			  enum tree_code code, tree result, tree type)
+{
+#if 0
+  if (M2Options_GetRealValueChecking ())
+    {
+      tree condition = m2expr_BuildEqualTo (location,
+					    BuiltInIsfinite (location, result),
+					    GetIntegerZero (location)) ;
+      switch (code)
+	{
+
+	case PLUS_EXPR:
+	  m2type_AddStatement (location, BuildIfCallHandlerLoc (location, condition, "floating point +"));
+	  break;
+	case MINUS_EXPR:
+	  m2type_AddStatement (location, BuildIfCallHandlerLoc (location, condition, "floating point -"));
+	  break;
+	case TRUNC_DIV_EXPR:
+	  m2type_AddStatement (location, BuildIfCallHandlerLoc (location, condition, "floating point /"));
+    }
+#endif
+}
+
+
 /* build_binary_op - a wrapper for the lower level build_binary_op
    above.  */
 
@@ -832,7 +865,7 @@ m2expr_build_binary_op (location_t location,
 			enum tree_code code, tree op1, tree op2,
 			int convert)
 {
-  tree type1, type2;
+  tree type1, type2, result;
 
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
@@ -881,7 +914,14 @@ m2expr_build_binary_op (location_t location,
     if (type1 != type2)
       error_at (location, "not expecting different types to binary operator");
 
-  return build_binary_op (location, code, op1, op2, convert);
+  if (TREE_CODE (type1) != REAL_TYPE)
+    m2expr_checkWholeOverflow (location, code, op1, op2, type1);
+
+  result = build_binary_op (location, code, op1, op2, convert);
+
+  if (TREE_CODE (type1) == REAL_TYPE)
+    m2expr_checkRealOverflow (location, code, result, type1);
+  return result;
 }
 
 

@@ -1,3 +1,7 @@
+2017-12-27      Gaius Mulley <gaius@gnu.org>
+
+	* libgm2/libpim/wrapc.c:  (wrapc_isfinite)  New function.
+
 2016-06-09      Gaius Mulley <gaius@gnu.org>
 
 	* libgm2/libpim/dtoa.c:  use memmove instead of memcpy.

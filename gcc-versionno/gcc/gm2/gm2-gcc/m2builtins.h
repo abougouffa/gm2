@@ -30,7 +30,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #      if defined(__GNUG__)
 #         define EXTERN extern "C"
 #      else
-#         define EXTERN 
+#         define EXTERN
 #      endif
 #   else
 #      if defined(__GNUG__)
@@ -47,6 +47,7 @@ EXTERN unsigned int m2builtins_GetBuiltinTypeInfoType (const char *ident);
 EXTERN tree m2builtins_GetBuiltinTypeInfo (location_t location, tree type, const char *ident);
 EXTERN tree m2builtins_BuiltInMemCopy (location_t location, tree dest, tree src, tree n);
 EXTERN tree m2builtins_BuiltInAlloca (location_t location, tree n);
+EXTERN tree m2builtins_BuiltInIsfinite (location_t location, tree e);
 EXTERN int m2builtins_BuiltinExists (char *name);
 EXTERN tree m2builtins_BuildBuiltinTree (location_t location, char *name);
 EXTERN tree m2builtins_BuiltInHugeVal (location_t location);

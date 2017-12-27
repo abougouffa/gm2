@@ -23,7 +23,7 @@ DEFINITION MODULE m2builtins ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Mon Jan  6 08:36:23 2003
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides access to the builtin functions within GCC for GNU Modula-2
 *)
 
@@ -47,7 +47,7 @@ PROCEDURE GetBuiltinConst (name: ADDRESS) : Tree ;
 
 (*
    GetBuiltinConstType - returns the type of a builtin constant, name.
- 
+
                          0 = unknown constant name
                          1 = integer
                          2 = real
@@ -112,6 +112,15 @@ PROCEDURE BuiltInMemCopy (location: location_t; dest, src, n: Tree) : Tree ;
 *)
 
 PROCEDURE BuiltInAlloca (location: location_t; n: Tree) : Tree ;
+
+
+(*
+   BuiltInIsfinite - given an expression, e, return an integer Tree of 1 if the
+                     value is finite.  Return an integer Tree 0 if the value is
+                     not finite.
+*)
+
+PROCEDURE BuiltInIsfinite (location: location_t; e: Tree) : Tree ;
 
 
 END m2builtins.

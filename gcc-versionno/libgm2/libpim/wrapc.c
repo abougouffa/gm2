@@ -177,6 +177,18 @@ int wrapc_signbitf (float r)
 #endif
 }
 
+
+/*
+ *  isfinite - provide non builtin alternative to the gcc builtin isfinite.
+ *             Returns 1 if x is finite and 0 if it is not.
+ */
+
+int wrapc_isfinite (double x)
+{
+  return (fpclassify (x) != FP_NAN && fpclassify (x) != FP_INFINITE);
+}
+
+
 /*
    init - init/finish functions for the module
 */

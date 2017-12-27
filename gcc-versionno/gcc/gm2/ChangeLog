@@ -1,3 +1,31 @@
+2017-12-27      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Range.mod:  remove unused variables from
+          many procedures.  (RangeCheckReal)  New procedure.
+          (RangeCheckOrdinal)  New procedure.  (DoCodeAssignmentExprType)
+          call the appropriate check procedure.
+	* gm2/gm2-gcc/gcc-consolidation.h:  update dates.
+	* gm2/gm2-gcc/m2builtins.c:  (__builtin_isfinite)  New entry.
+          (gm2_isfinite_node)  New variable.  (builtin_ftype_int_var)
+          New variable.  (BuiltInIsfinite)  New function.
+	  (DoBuiltinIsfinite)  New function.  (isgreater),
+          (isgreaterequal), (isless), (islessequal), (islessgreater),
+          (isunordered) new builtins defined.  Lookup gm2_isfinite_node.
+	* gm2/gm2-gcc/m2builtins.def:  (BuiltInIsfinite)  New procedure
+          function.  Define (BuiltInIsfinite).
+	* gm2/gm2-gcc/m2expr.c:  (m2expr_checkWholeOverflow)  New
+          function.  (m2expr_checkRealOverflow)  New function.
+          (build_binary_op)  call the appropriate check function.
+	* gm2/gm2-libs/Builtins.def:  remove nanf, nan, nanl,
+          isinf_sign, isinf_sigf and isinf_signl.
+	* gm2/gm2-libs/Builtins.mod:  reimplement isfinite.
+          Remove nanf, nan, nanl, isinf_sign, isinf_sigf and
+          isinf_signl.
+	* gm2/gm2-libs/cbuiltin.def:  remove nan, nanf and nanl.
+	* gm2/gm2-libs/wrapc.def:  define isfinite.
+	* gm2/m2pp.c:  add includes to allow m2pp.c to be built for use
+	  in cc1.
+
 2017-12-20      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/Builtins.def:  new function definitions
@@ -31,7 +59,7 @@
 2017-11-02      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  removed duplicate and incorrect rule.
-	Changed rule for building C files to the correct directory.
+          Changed rule for building C files to the correct directory.
 
 2017-11-01      Gaius Mulley <gaius@gnu.org>
 
