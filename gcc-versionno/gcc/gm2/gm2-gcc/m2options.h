@@ -53,6 +53,7 @@ EXTERN void M2Options_SetPIM (int value);
 EXTERN void M2Options_SetPIM2 (int value);
 EXTERN void M2Options_SetPIM3 (int value);
 EXTERN void M2Options_SetPIM4 (int value);
+EXTERN void M2Options_SetFloatValueCheck (int value);
 
 EXTERN int M2Options_GetISO (void);
 EXTERN int M2Options_GetPIM (void);
@@ -60,6 +61,7 @@ EXTERN int M2Options_GetPIM2 (void);
 EXTERN int M2Options_GetPIM3 (void);
 EXTERN int M2Options_GetPIM4 (void);
 EXTERN int M2Options_GetPositiveModFloor (void);
+EXTERN int M2Options_GetFloatValueCheck (void);
 
 EXTERN void M2Options_SetPositiveModFloor (int value);
 EXTERN void M2Options_SetNilCheck (int value);

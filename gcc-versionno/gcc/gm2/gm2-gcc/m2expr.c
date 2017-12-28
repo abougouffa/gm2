@@ -823,13 +823,33 @@ build_binary_op (location_t location,
   return m2expr_FoldAndStrip (result);
 }
 
+/*
+ *
+ */
 
 void
 m2expr_checkWholeOverflow (location_t location,
 			   enum tree_code code, tree op1, tree op2, tree type)
 {
-
+#if 0
+PROCEDURE sadd (i, j: INTEGER) ;
+BEGIN
+   IF ((j>0) AND (i > MAX(INTEGER)-j)) OR
+      ((j<0) AND (i < MIN(INTEGER)-j))
+   THEN
+      expecting(overflow, 'signed addition')
+   ELSE
+      expecting(none, 'signed addition')
+   END
+END sadd ;
+#endif
 }
+
+/*
+ *  checkRealOverflow - if we have enabled real value checking then generate
+ *                      an overflow check appropriate to the tree code being
+ *                      used.
+ */
 
 void
 m2expr_checkRealOverflow (location_t location,
@@ -843,15 +863,24 @@ m2expr_checkRealOverflow (location_t location,
 					    GetIntegerZero (location)) ;
       switch (code)
 	{
-
 	case PLUS_EXPR:
 	  m2type_AddStatement (location, BuildIfCallHandlerLoc (location, condition, "floating point +"));
 	  break;
 	case MINUS_EXPR:
 	  m2type_AddStatement (location, BuildIfCallHandlerLoc (location, condition, "floating point -"));
 	  break;
+	case RDIV_EXPR:
+	case FLOOR_DIV_EXPR:
+	case CEIL_DIV_EXPR:
 	case TRUNC_DIV_EXPR:
 	  m2type_AddStatement (location, BuildIfCallHandlerLoc (location, condition, "floating point /"));
+	  break;
+	case MULT_EXPR:
+	  m2type_AddStatement (location, BuildIfCallHandlerLoc (location, condition, "floating point *"));
+	  break;
+	default:
+	  error ("unknown tree code");
+	}
     }
 #endif
 }

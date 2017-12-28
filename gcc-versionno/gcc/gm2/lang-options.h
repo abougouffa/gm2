@@ -74,9 +74,9 @@ DEFINE_LANG_NAME ("Modula-2")
   { "-fno-case",
       N_("turns off runtime checking to check whether a CASE statement requires an ELSE clause when on was not specified") },
   { "-fsoft-check-all",
-      N_("turns on all runtime checking (an abbreviation for -fnil -frange -findex -fwholediv -fcase -freturn -fwholediv)") },
+      N_("turns on all runtime checking (an abbreviation for -fnil -frange -findex -fwholediv -fcase -freturn -fwholediv -ffloatvalue)") },
   { "-fno-soft-check-all",
-      N_("turns off all runtime checking (an abbreviation for -fno-nil -fno-range -fno-index -fno-wholediv -fno-case -fno-return -fwholediv)") },
+      N_("turns off all runtime checking (an abbreviation for -fno-nil -fno-range -fno-index -fno-wholediv -fno-case -fno-return -fwholediv -ffloatvalue)") },
   { "-fexceptions",
       N_("turns on all exception generating code (this is on by default)") },
   { "-fno-exceptions",
@@ -161,6 +161,11 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("specify the language") },
   { "-fdebug-function-line-numbers",
       N_("turn on the Modula-2 function line number generation (internal switch)") },
+  { "-ffloatvalue",
+      N_("generate code to detect floating point overflow and underflow") },
+  { "-fno-floatvalue",
+      N_("do not generate code to detect floating point overflow and underflow") },
+
   /*
    *  --fixme-- add these when gm2 can detect integer/cardinal overflow in expressions
    *  and add "-fwholevalue" to the list of options contained in -fsoft-check-all

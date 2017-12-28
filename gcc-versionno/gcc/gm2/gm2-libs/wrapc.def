@@ -30,7 +30,8 @@ DEFINITION MODULE wrapc ;
 FROM SYSTEM IMPORT ADDRESS ;
 
 EXPORT QUALIFIED strtime, filesize, getrand, getusername, filemtime,
-                 getnameuidgid, signbit, signbitf, signbitl, isfinite ;
+                 getnameuidgid, signbit, signbitf, signbitl,
+		 isfinite, isfinitel, isfinitef ;
 
 
 (*
@@ -95,6 +96,22 @@ PROCEDURE signbitl (l: LONGREAL) : INTEGER ;
 *)
 
 PROCEDURE isfinite (x: REAL) : INTEGER ;
+
+
+(*
+   isfinitef - provide non builtin alternative to the gcc builtin isfinite.
+               Returns 1 if x is finite and 0 if it is not.
+*)
+
+PROCEDURE isfinitef (x: SHORTREAL) : INTEGER ;
+
+
+(*
+   isfinitel - provide non builtin alternative to the gcc builtin isfinite.
+               Returns 1 if x is finite and 0 if it is not.
+*)
+
+PROCEDURE isfinitel (x: LONGREAL) : INTEGER ;
 
 
 END wrapc.

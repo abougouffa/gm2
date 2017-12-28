@@ -190,6 +190,28 @@ int wrapc_isfinite (double x)
 
 
 /*
+ *  isfinitel - provide non builtin alternative to the gcc builtin isfinite.
+ *              Returns 1 if x is finite and 0 if it is not.
+ */
+
+int wrapc_isfinitel (long double x)
+{
+  return (fpclassify (x) != FP_NAN && fpclassify (x) != FP_INFINITE);
+}
+
+
+/*
+ *  isfinitef - provide non builtin alternative to the gcc builtin isfinite.
+ *              Returns 1 if x is finite and 0 if it is not.
+ */
+
+int wrapc_isfinitef (float x)
+{
+  return (fpclassify (x) != FP_NAN && fpclassify (x) != FP_INFINITE);
+}
+
+
+/*
    init - init/finish functions for the module
 */
 

@@ -29,7 +29,6 @@ FROM SymbolTable IMPORT NulSym, GetLowestType, PutReadQuad, RemoveReadQuad,
                         ModeOfAddr ;
 
 FROM m2tree IMPORT Tree ;
-FROM m2linemap IMPORT location_t ;
 
 FROM m2type IMPORT GetMinFrom, GetMaxFrom,
                    GetIntegerType, GetTreeType,
@@ -2091,6 +2090,23 @@ BEGIN
       (* FlushErrors *)
    END
 END IssueWarning ;
+
+
+(*
+   BuildIfCallHandlerLoc - return a Tree containing a runtime test whether, condition, is true.
+*)
+
+PROCEDURE BuildIfCallHandlerLoc (location: location_t; condition: Tree; message: ADDRESS) : Tree ;
+BEGIN
+(*
+   IF IsTrue (condition)
+   THEN
+      IssueWarningLoc (location, message)
+   END ;
+   RETURN BuildIfThenDoEnd (condition, CodeErrorCheckLoc (location, message))
+*)
+   RETURN NIL
+END BuildIfCallHandlerLoc ;
 
 
 (*

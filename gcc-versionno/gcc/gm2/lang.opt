@@ -82,9 +82,13 @@ fcase
 Modula-2
 turns on runtime checking to check whether a CASE statement requires an ELSE clause when on was not specified
 
+ffloatvalue
+Modula-2
+turns on runtime checking to check whether a floating point number is about to exceed range
+
 fsoft-check-all
 Modula-2
-turns on all software runtime checking (an abbreviation for -fnil -frange -findex -fwholediv -fcase -freturn -fwholediv)
+turns on all software runtime checking (an abbreviation for -fnil -frange -findex -fwholediv -fcase -freturn -fwholediv -ffloatvalue)
 
 fexceptions
 Modula-2

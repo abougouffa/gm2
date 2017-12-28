@@ -49,10 +49,20 @@ BEGIN
    RETURN cbuiltin.memcpy (dest, src, n)
 END memcpy ;
 
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_isfinite)) isfinitef (x: SHORTREAL) : BOOLEAN ;
+BEGIN
+   RETURN wrapc.isfinitef (x)=1
+END isfinitef ;
+
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_isfinite)) isfinite (x: REAL) : BOOLEAN ;
 BEGIN
    RETURN wrapc.isfinite (x)=1
 END isfinite ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_isfinite)) isfinitel (x: LONGREAL) : BOOLEAN ;
+BEGIN
+   RETURN wrapc.isfinitel (x)=1
+END isfinitel ;
 
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_sin)) sin (x: REAL) : REAL ;
 BEGIN

@@ -1,3 +1,34 @@
+2017-12-28      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Options.def:  (SetFloatValueCheck),
+          (GetFloatValueCheck) exported.  (FloatValueChecking) New global
+          variable.  (GetFloatValueCheck) New procedure function.
+          (SetFloatValueCheck) New procedure.
+	* gm2/gm2-compiler/M2Options.mod:  (FloatValueChecking)
+          initialise and set accordingly.  (GetFloatValueCheck)
+          New procedure function.  (SetFloatValueCheck)  New procedure.
+	* gm2/gm2-compiler/M2Range.def:  (BuildIfCallHandlerLoc)  New
+          procedure function.
+	* gm2/gm2-compiler/M2Range.mod:  (BuildIfCallHandlerLoc)  New
+          procedure function implemented.
+	* gm2/gm2-gcc/m2expr.c:  (checkWholeOverflow)  New function.
+          (checkRealOverflow)  New function.
+	* gm2/gm2-gcc/m2options.h:  (SetFloatValueCheck)  New prototype.
+          (GetFloatValueCheck)  New prototype.
+	* gm2/gm2-lang.c:  handle -ffloatvalue option.
+	* gm2/gm2-libs-ch/wrapc.c:  (isfinite)  New function.
+          (isfinitel)  New function.  (isfinitef)  New function.
+	* gm2/gm2-libs/Builtins.def:  (isfinitel)  New function.
+	  (isfinitef)  New function.
+	* gm2/gm2-libs/Builtins.mod:  (isfinitel)  New function
+          implemented.  (isfinitef)  New function implemented.
+	* gm2/gm2-libs/wrapc.def:  (isfinitel)  New function.
+          (isfinitef)  New function.
+	* gm2/lang-options.h:  update comment for -fsoft-check-all.
+          Introduce -ffloatvalue.
+	* gm2/lang.opt:  introduce -ffloatvalue.  Update comment for
+	  -fsoft-check-all.
+
 2017-12-27      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Range.mod:  remove unused variables from
