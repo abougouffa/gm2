@@ -47,6 +47,7 @@ EXPORT QUALIFIED SetReturnCheck, SetNilCheck, SetCaseCheck,
 		 GetISO, GetPIM, GetPIM2, GetPIM3, GetPIM4,
 		 GetPositiveModFloor,
 		 SetFloatValueCheck, GetFloatValueCheck,
+		 SetWholeValueCheck, GetWholeValueCheck,
 
                  Iso, Pim, Pim2, Pim3, Pim4,
                  PositiveModFloorDiv,
@@ -579,6 +580,21 @@ PROCEDURE GetFloatValueCheck () : BOOLEAN ;
 *)
 
 PROCEDURE SetFloatValueCheck (value: BOOLEAN) ;
+
+
+(*
+   GetWholeValueCheck - return TRUE if -fwholevalue was present on the
+                        command line.
+*)
+
+PROCEDURE GetWholeValueCheck () : BOOLEAN ;
+
+
+(*
+   SetWholeValueCheck - set depending upon the -fwholevalue.
+*)
+
+PROCEDURE SetWholeValueCheck (value: BOOLEAN) ;
 
 
 (*

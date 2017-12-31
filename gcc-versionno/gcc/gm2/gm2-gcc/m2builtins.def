@@ -34,7 +34,8 @@ FROM m2linemap IMPORT location_t ;
 EXPORT QUALIFIED GetBuiltinConst, GetBuiltinConstType,
                  GetBuiltinTypeInfoType, GetBuiltinTypeInfo,
                  BuiltinExists, BuildBuiltinTree,
-                 BuiltInMemCopy, BuiltInAlloca ;
+                 BuiltInMemCopy, BuiltInAlloca,
+		 BuiltInIsfinite ;
 
 
 (*

@@ -370,6 +370,22 @@ BEGIN
 END WholeZeroRemException ;
 
 
+PROCEDURE WholeValueException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   RTExceptions.Raise(ORD(M2EXCEPTION.wholeValueException),
+                      filename, line, column, scope,
+                      ADR("the whole value is about to overflow"))
+END WholeValueException ;
+
+
+PROCEDURE RealValueException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   RTExceptions.Raise(ORD(M2EXCEPTION.realValueException),
+                      filename, line, column, scope,
+                      ADR("the floating point value is about to overflow"))
+END RealValueException ;
+
+
 PROCEDURE NoException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
    RTExceptions.Raise(ORD(M2EXCEPTION.exException),

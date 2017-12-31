@@ -70,7 +70,8 @@ EXPORT QUALIFIED InitAssignmentRangeCheck,
                  WriteRangeCheck,
                  OverlapsRange,
                  IsEqual, IsGreaterOrEqual, IsGreater,
-		 BuildIfCallHandlerLoc ;
+		 BuildIfCallRealHandlerLoc,
+                 BuildIfCallWholeHandlerLoc ;
 
 
 (*
@@ -365,10 +366,17 @@ PROCEDURE IsGreater (a, b: Tree) : BOOLEAN ;
 
 
 (*
-   BuildIfCallHandlerLoc - return a Tree containing a runtime test whether, condition, is true.
+   BuildIfCallWholeHandlerLoc - return a Tree containing a runtime test whether, condition, is true.
 *)
 
-PROCEDURE BuildIfCallHandlerLoc (location: location_t; condition: Tree; message: ADDRESS) : Tree ;
+PROCEDURE BuildIfCallWholeHandlerLoc (location: location_t; condition: Tree; message: ADDRESS) : Tree ;
+
+
+(*
+   BuildIfCallRealHandlerLoc - return a Tree containing a runtime test whether, condition, is true.
+*)
+
+PROCEDURE BuildIfCallRealHandlerLoc (location: location_t; condition: Tree; message: ADDRESS) : Tree ;
 
 
 END M2Range.

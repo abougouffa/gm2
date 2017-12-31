@@ -43,6 +43,8 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "m2tree.h"
 #include "m2treelib.h"
 #include "m2options.h"
+#include "m2builtins.h"
+#include "m2range.h"
 
 
 static int label_count = 0;
@@ -823,14 +825,6 @@ build_binary_op (location_t location,
   return m2expr_FoldAndStrip (result);
 }
 
-/*
- *
- */
-
-void
-m2expr_checkWholeOverflow (location_t location,
-			   enum tree_code code, tree op1, tree op2, tree type)
-{
 #if 0
 PROCEDURE sadd (i, j: INTEGER) ;
 BEGIN
@@ -843,6 +837,60 @@ BEGIN
    END
 END sadd ;
 #endif
+
+/*
+ *  checkWholeAddOverflow - check to see whether op1 + op2 will overflow an integer.
+ *
+ *  PROCEDURE sadd (i, j: INTEGER) ;
+ *  BEGIN
+ *     IF ((j>0) AND (i > MAX(INTEGER)-j)) OR
+ *        ((j<0) AND (i < MIN(INTEGER)-j))
+ *     THEN
+ *        'signed addition overflow'
+ *     END
+ *  END sadd ;
+ *
+ */
+
+static
+void
+checkWholeAddOverflow (location_t location, tree i, tree j, tree type)
+{
+  tree min = m2type_GetMinFrom (location, type);
+  tree max = m2type_GetMaxFrom (location, type);
+
+  tree c1 = m2expr_BuildGreaterThan (location, j, m2expr_GetIntegerZero (location));
+  tree c2 = m2expr_BuildGreaterThan (location, i, m2expr_BuildSub (location, max, j, FALSE));
+  tree c3 = m2expr_BuildLessThan (location, j, m2expr_GetIntegerZero (location));
+  tree c4 = m2expr_BuildLessThan (location, i, m2expr_BuildSub (location, min, j, FALSE));
+  tree c5 = m2expr_BuildLogicalAnd (location, c1, c2, FALSE);
+  tree c6 = m2expr_BuildLogicalAnd (location, c3, c4, FALSE);
+  tree condition = m2expr_BuildLogicalOr (location, c5, c6, FALSE);
+  tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition, "whole value +");
+  m2type_AddStatement (location, t);
+}
+
+
+/*
+ *  checkWholeOverflow -
+ */
+
+void
+m2expr_checkWholeOverflow (location_t location,
+			   enum tree_code code, tree op1, tree op2, tree type)
+{
+  return;
+  if (M2Options_GetWholeValueCheck () && (! TYPE_UNSIGNED (type)))
+    {
+      switch (code)
+	{
+	case PLUS_EXPR:
+	  checkWholeAddOverflow (location, op1, op2, type);
+	  break;
+	default:
+	  break;
+	}
+    }
 }
 
 /*
@@ -853,36 +901,34 @@ END sadd ;
 
 void
 m2expr_checkRealOverflow (location_t location,
-			  enum tree_code code, tree result, tree type)
+			  enum tree_code code, tree result)
 {
-#if 0
-  if (M2Options_GetRealValueChecking ())
+  if (M2Options_GetFloatValueCheck ())
     {
       tree condition = m2expr_BuildEqualTo (location,
-					    BuiltInIsfinite (location, result),
-					    GetIntegerZero (location)) ;
+					    m2builtins_BuiltInIsfinite (location, result),
+					    m2expr_GetIntegerZero (location)) ;
       switch (code)
 	{
 	case PLUS_EXPR:
-	  m2type_AddStatement (location, BuildIfCallHandlerLoc (location, condition, "floating point +"));
+	  m2type_AddStatement (location, M2Range_BuildIfCallRealHandlerLoc (location, condition, "floating point +"));
 	  break;
 	case MINUS_EXPR:
-	  m2type_AddStatement (location, BuildIfCallHandlerLoc (location, condition, "floating point -"));
+	  m2type_AddStatement (location, M2Range_BuildIfCallRealHandlerLoc (location, condition, "floating point -"));
 	  break;
 	case RDIV_EXPR:
 	case FLOOR_DIV_EXPR:
 	case CEIL_DIV_EXPR:
 	case TRUNC_DIV_EXPR:
-	  m2type_AddStatement (location, BuildIfCallHandlerLoc (location, condition, "floating point /"));
+	  m2type_AddStatement (location, M2Range_BuildIfCallRealHandlerLoc (location, condition, "floating point /"));
 	  break;
 	case MULT_EXPR:
-	  m2type_AddStatement (location, BuildIfCallHandlerLoc (location, condition, "floating point *"));
+	  m2type_AddStatement (location, M2Range_BuildIfCallRealHandlerLoc (location, condition, "floating point *"));
 	  break;
 	default:
-	  error ("unknown tree code");
+	  break;
 	}
     }
-#endif
 }
 
 
@@ -949,7 +995,7 @@ m2expr_build_binary_op (location_t location,
   result = build_binary_op (location, code, op1, op2, convert);
 
   if (TREE_CODE (type1) == REAL_TYPE)
-    m2expr_checkRealOverflow (location, code, result, type1);
+    m2expr_checkRealOverflow (location, code, result);
   return result;
 }
 

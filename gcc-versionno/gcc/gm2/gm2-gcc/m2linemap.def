@@ -23,7 +23,7 @@ DEFINITION MODULE m2linemap ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Fri Jan 25 13:47:34 2013
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides a mechanism whereby GNU Modula-2 can interface
                  to the gcc location_t data type.
 *)
@@ -42,6 +42,11 @@ PROCEDURE GetLocationColumn (column: CARDINAL) : location_t ;
 
 PROCEDURE UnknownLocation () : location_t ;
 PROCEDURE BuiltinsLocation () : location_t ;
+
+PROCEDURE GetLineNoFromLocation (location: location_t) : INTEGER ;
+PROCEDURE GetColumnNoFromLocation (location: location_t) : INTEGER ;
+PROCEDURE GetFilenameFromLocation (location: location_t) : ADDRESS ;
+PROCEDURE ErrorAt (location: location_t; message: ADDRESS) ;
 
 
 END m2linemap.

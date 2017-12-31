@@ -50,5 +50,11 @@ EXTERN location_t m2linemap_GetLocationColumn (unsigned int column);
 EXTERN location_t m2linemap_UnknownLocation (void);
 EXTERN location_t m2linemap_BuiltinsLocation (void);
 
+EXTERN location_t m2linemap_GetLocationColumn (unsigned int column);
+EXTERN int m2linemap_GetLineNoFromLocation (location_t location);
+EXTERN int m2linemap_GetColumnNoFromLocation (location_t location);
+EXTERN const char *m2linemap_GetFilenameFromLocation (location_t location);
+EXTERN void m2linemap_ErrorAt (location_t location, char *message);
+
 #undef EXTERN
 #endif

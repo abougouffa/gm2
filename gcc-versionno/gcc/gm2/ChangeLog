@@ -1,3 +1,63 @@
+2017-12-31      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Base.def:  (ExceptionWholeValue) exported
+	  and declared.  (ExceptionRealValue) exported and declared.
+	* gm2/gm2-compiler/M2Base.mod:  ExceptionWholeValue initialised
+          and set appropriately.  ExceptionRealValue initialised and
+	  set appropriately.
+	* gm2/gm2-compiler/M2Options.def:  (SetWholeValueCheck)
+          exported and declared.  (GetWholeValueCheck) exported and
+	  declared.
+	* gm2/gm2-compiler/M2Options.mod:  (WholeValueChecking)
+          initialised.  (SetFloatValueCheck) corrected declaration.
+          (GetWholeValueCheck) New procedure function.
+	  (SetWholeValueCheck) New procedure.
+	* gm2/gm2-compiler/M2Range.def:  (BuildIfCallRealHandlerLoc)
+          declared and exported.  (BuildIfCallWholeHandlerLoc)
+	  declared and exported.
+	* gm2/gm2-compiler/M2Range.mod:  (BuildStringParamLoc)
+          New procedure.  (CodeErrorCheckLoc) New procedure.
+          (IssueWarningLoc) New procedure.
+          (BuildIfCallWholeHandlerLoc) New procedure.
+          (BuildIfCallRealHandlerLoc) New procedure.
+	  (BuildIfCallHandlerLoc) New procedure.
+	* gm2/gm2-gcc/m2block.c:  (do_add_stmt) check to see if
+	  a binding level exists.
+	* gm2/gm2-gcc/m2builtins.def:  (BuiltInIsfinite) exported.
+	* gm2/gm2-gcc/m2expr.c:  (checkWholeAddOverflow) New
+          function.  (checkWholeOverflow) New function.
+          (checkRealOverflow) correct option check.  Corrected
+	  qualifier.  (build_binary_op) removed last parameter.
+	* gm2/gm2-gcc/m2linemap.c:  (GetLineNoFromLocation)
+          New function.  (GetColumnNoFromLocation) New function.
+          (GetFilenameFromLocation) New function.  (ErrorAt)
+	  New function.
+	* gm2/gm2-gcc/m2linemap.def: (GetLineNoFromLocation)
+          exported and declared.  (GetColumnNoFromLocation)
+	  exported and declared.
+          (GetFilenameFromLocation) exported and declared.
+          (ErrorAt) exported and declared.
+	* gm2/gm2-gcc/m2linemap.h:  (GetLineNoFromLocation)
+          prototype.  (GetColumnNoFromLocation) prototype.
+          (GetFilenameFromLocation) prototype.
+          (ErrorAt) prototype.
+	* gm2/gm2-gcc/m2options.h:  (GetWholeValueCheck)
+	  prototype.
+	* gm2/gm2-lang.c:  handle -fwholevalue.
+	* gm2/gm2-libs-iso/M2RTS.def:  (WholeValueException)
+	  and (RealValueException) declared.
+	* gm2/gm2-libs-iso/M2RTS.mod:  (WholeValueException)
+	  and (RealValueException) New procedures.
+	* gm2/gm2-libs/M2RTS.def:  (WholeValueException)
+	  and (RealValueException) declared.
+	* gm2/gm2-libs/M2RTS.mod:  (WholeValueException)
+	  and (RealValueException) New procedures.
+	* gm2/lang-options.h:  -fwholevalue and -fno-wholevalue
+	  new options added.
+	* gm2/lang.opt:  -fwholevalue new option added.
+	* gm2/ulm-lib-gm2/std/M2RTS.mod:  (WholeValueException)
+	  and (RealValueException) New procedures.
+
 2017-12-28      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Options.def:  (SetFloatValueCheck),

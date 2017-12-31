@@ -165,13 +165,7 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("generate code to detect floating point overflow and underflow") },
   { "-fno-floatvalue",
       N_("do not generate code to detect floating point overflow and underflow") },
-
-  /*
-   *  --fixme-- add these when gm2 can detect integer/cardinal overflow in expressions
-   *  and add "-fwholevalue" to the list of options contained in -fsoft-check-all
-   *
-   *  { "-fwholevalue",
-   *   N_("generate code to detect whole number overflow and underflow") },
-   *  { "-fno-wholevalue",
-   *   N_("do not generate code to detect whole number overflow and underflow") },
-   */
+  { "-fwholevalue",
+      N_("generate code to detect whole number overflow and underflow") },
+  { "-fno-wholevalue",
+      N_("do not generate code to detect whole number overflow and underflow") },

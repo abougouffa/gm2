@@ -39,6 +39,7 @@ EXPORT QUALIFIED HALT, Halt,
                  PointerNilException, NoReturnException,
                  WholeNonPosDivException, WholeNonPosModException,
                  WholeZeroDivException, WholeZeroRemException,
+		 WholeValueException, RealValueException,
                  CaseException, NoException ;
 
 
@@ -115,7 +116,7 @@ PROCEDURE Halt (file: ARRAY OF CHAR; line: CARDINAL;
 *)
 
 PROCEDURE ExitOnHalt (e: INTEGER) ;
-   
+
 
 (*
    ErrorMessage - emits an error message to stderr and then calls exit (1).
@@ -159,6 +160,8 @@ PROCEDURE WholeNonPosDivException (filename: ADDRESS; line, column: CARDINAL; sc
 PROCEDURE WholeNonPosModException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE WholeZeroDivException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE WholeZeroRemException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE WholeValueException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE RealValueException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE NoException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 
 

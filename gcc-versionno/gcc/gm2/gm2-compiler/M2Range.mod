@@ -29,6 +29,7 @@ FROM SymbolTable IMPORT NulSym, GetLowestType, PutReadQuad, RemoveReadQuad,
                         ModeOfAddr ;
 
 FROM m2tree IMPORT Tree ;
+FROM m2linemap IMPORT ErrorAt, GetFilenameFromLocation, GetColumnNoFromLocation, GetLineNoFromLocation ;
 
 FROM m2type IMPORT GetMinFrom, GetMaxFrom,
                    GetIntegerType, GetTreeType,
@@ -68,7 +69,7 @@ FROM SymbolConversion IMPORT GccKnowsAbout, Mod2Gcc ;
 FROM Lists IMPORT List ;
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar ;
 FROM StdIO IMPORT Write ;
-FROM DynamicStrings IMPORT String, string, Length, InitString, ConCat, ConCatChar, Mark, InitStringCharStar ;
+FROM DynamicStrings IMPORT String, string, Length, InitString, ConCat, ConCatChar, Mark, InitStringCharStar, KillString ;
 FROM M2GenGCC IMPORT GetHighFromUnbounded, StringToChar, LValueToGenericPtr, ZConstToTypedConst ;
 FROM M2System IMPORT Address, Word, Loc, Byte, IsWordN, IsRealN, IsComplexN ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
@@ -88,6 +89,7 @@ FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
                    ExceptionPointerNil, ExceptionNoReturn, ExceptionCase,
                    ExceptionNonPosDiv, ExceptionNonPosMod,
                    ExceptionZeroDiv, ExceptionZeroRem,
+		   ExceptionWholeValue, ExceptionRealValue,
                    ExceptionNo ;
 
 FROM M2CaseList IMPORT CaseBoundsResolved, OverlappingCaseBounds, WriteCase, MissingCaseBounds, TypeCaseBounds ;
@@ -1997,15 +1999,23 @@ END DeReferenceLValue ;
 *)
 
 PROCEDURE BuildStringParam (tokenno: CARDINAL; s: String) ;
-VAR
-   location: location_t ;
 BEGIN
-   location := TokenToLocation(tokenno) ;
+   BuildStringParamLoc (TokenToLocation(tokenno), s)
+END BuildStringParam ;
+
+
+(*
+   BuildStringParamLoc - builds a C style string parameter which will be passed
+                         as an ADDRESS type.
+*)
+
+PROCEDURE BuildStringParamLoc (location: location_t; s: String) ;
+BEGIN
    BuildParam(location,
               BuildConvert(location, Mod2Gcc(Address),
                            BuildAddr(location, BuildStringConstant(string(s), Length(s)),
                                      FALSE), FALSE))
-END BuildStringParam ;
+END BuildStringParamLoc ;
 
 
 (*
@@ -2093,19 +2103,87 @@ END IssueWarning ;
 
 
 (*
+   CodeErrorCheckLoc -
+*)
+
+PROCEDURE CodeErrorCheckLoc (location: location_t; message: ADDRESS; func: CARDINAL) : Tree ;
+VAR
+   s: String ;
+   t: Tree ;
+   f: String ;
+   l,
+   c: CARDINAL ;
+BEGIN
+   IF func = NulSym
+   THEN
+      RETURN NIL
+   ELSE
+      t := Mod2Gcc (func) ;
+      IF t # NIL
+      THEN
+         f := InitStringCharStar (GetFilenameFromLocation (location)) ;
+         s := InitStringCharStar (message) ;
+         c := GetColumnNoFromLocation (location) ;
+         l := GetLineNoFromLocation (location) ;
+         BuildStringParamLoc (location, s) ;
+         BuildParam (location, BuildIntegerConstant (c)) ;
+         BuildParam (location, BuildIntegerConstant (l)) ;
+         BuildStringParamLoc (location, f) ;
+         t := BuildProcedureCallTree (location, t, NIL) ;
+         f := KillString (f) ;
+         s := KillString (s)
+      END ;
+      RETURN t
+   END
+END CodeErrorCheckLoc ;
+
+
+(*
+   IssueWarningLoc -
+*)
+
+PROCEDURE IssueWarningLoc (location: location_t; message: ADDRESS) ;
+VAR
+   s: String ;
+BEGIN
+   s := InitString ("numerical overflow detected when performing ") ;
+   s := ConCat (s, Mark (InitStringCharStar (message))) ;
+   ErrorAt (location, string (s)) ;
+   s := KillString (s)
+END IssueWarningLoc ;
+
+
+(*
+   BuildIfCallWholeHandlerLoc - return a Tree containing a runtime test whether, condition, is true.
+*)
+
+PROCEDURE BuildIfCallWholeHandlerLoc (location: location_t; condition: Tree; message: ADDRESS) : Tree ;
+BEGIN
+   RETURN BuildIfCallHandlerLoc (location, condition, message, ExceptionWholeValue)
+END BuildIfCallWholeHandlerLoc ;
+
+
+(*
+   BuildIfCallRealHandlerLoc - return a Tree containing a runtime test whether, condition, is true.
+*)
+
+PROCEDURE BuildIfCallRealHandlerLoc (location: location_t; condition: Tree; message: ADDRESS) : Tree ;
+BEGIN
+   RETURN BuildIfCallHandlerLoc (location, condition, message, ExceptionRealValue)
+END BuildIfCallRealHandlerLoc ;
+
+
+(*
    BuildIfCallHandlerLoc - return a Tree containing a runtime test whether, condition, is true.
 *)
 
-PROCEDURE BuildIfCallHandlerLoc (location: location_t; condition: Tree; message: ADDRESS) : Tree ;
+PROCEDURE BuildIfCallHandlerLoc (location: location_t; condition: Tree; message: ADDRESS; func: CARDINAL) : Tree ;
 BEGIN
-(*
    IF IsTrue (condition)
    THEN
       IssueWarningLoc (location, message)
    END ;
-   RETURN BuildIfThenDoEnd (condition, CodeErrorCheckLoc (location, message))
-*)
-   RETURN NIL
+   RETURN BuildIfThenDoEnd (condition, CodeErrorCheckLoc (location, message, func))
 END BuildIfCallHandlerLoc ;
 
 

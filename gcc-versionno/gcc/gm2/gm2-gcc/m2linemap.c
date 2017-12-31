@@ -38,6 +38,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "m2type.h"
 #include "m2tree.h"
 #include "m2block.h"
+#include "m2options.h"
 #define m2linemap_c
 #include "m2linemap.h"
 
@@ -104,6 +105,68 @@ m2linemap_GetLocationColumn (unsigned int column)
   return linemap_position_for_column (line_table, column);
 }
 
+
+/*
+ *  GetLineNoFromLocation - returns the lineno given a location.
+ */
+
+EXTERN
+int
+m2linemap_GetLineNoFromLocation (location_t location)
+{
+  if ((location != BUILTINS_LOCATION) && (location != UNKNOWN_LOCATION) && (! M2Options_GetCpp ()))
+    {
+      expanded_location xl = expand_location (location);
+      return xl.line;
+    }
+  return 0;
+}
+
+
+/*
+ *  GetColumnNoFromLocation - returns the columnno given a location.
+ */
+
+EXTERN
+int
+m2linemap_GetColumnNoFromLocation (location_t location)
+{
+  if ((location != BUILTINS_LOCATION) && (location != UNKNOWN_LOCATION) && (! M2Options_GetCpp ()))
+    {
+      expanded_location xl = expand_location (location);
+      return xl.column;
+    }
+  return 0;
+}
+
+
+/*
+ *  GetFilenameFromLocation - returns the filename given a location.
+ */
+
+EXTERN
+const char *
+m2linemap_GetFilenameFromLocation (location_t location)
+{
+  if ((location != BUILTINS_LOCATION) && (location != UNKNOWN_LOCATION) && (! M2Options_GetCpp ()))
+    {
+      expanded_location xl = expand_location (location);
+      return xl.file;
+    }
+  return NULL;
+}
+
+
+/*
+ *  ErrorAt - issue an error message.
+ */
+
+EXTERN
+void
+m2linemap_ErrorAt (location_t location, char *message)
+{
+  error_at (location, message);
+}
 
 /*
  *  UnknownLocation - return the predefined location representing an unknown location.
