@@ -71,7 +71,8 @@ EXPORT QUALIFIED InitAssignmentRangeCheck,
                  OverlapsRange,
                  IsEqual, IsGreaterOrEqual, IsGreater,
 		 BuildIfCallRealHandlerLoc,
-                 BuildIfCallWholeHandlerLoc ;
+                 BuildIfCallWholeHandlerLoc,
+		 GetMinMax ;
 
 
 (*
@@ -377,6 +378,13 @@ PROCEDURE BuildIfCallWholeHandlerLoc (location: location_t; condition: Tree; mes
 *)
 
 PROCEDURE BuildIfCallRealHandlerLoc (location: location_t; condition: Tree; message: ADDRESS) : Tree ;
+
+
+(*
+   GetMinMax - returns TRUE if we know the max and min of a type, t.
+*)
+
+PROCEDURE GetMinMax (tokenno: CARDINAL; t: CARDINAL; VAR min, max: Tree) : BOOLEAN ;
 
 
 END M2Range.

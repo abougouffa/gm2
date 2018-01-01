@@ -58,6 +58,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         ForeachImportedDo,
                         ForeachProcedureDo,
                         ForeachInnerModuleDo,
+			GetLType,
                         GetType, GetNth, GetNthParam,
                         SkipType, SkipTypeAndSubrange,
                         GetUnboundedHighOffset,
@@ -140,7 +141,7 @@ FROM M2GCCDeclare IMPORT WalkAction,
                          IsProcedureGccNested, DeclareParameters,
                          ConstantKnownAndUsed ;
 
-FROM M2Range IMPORT CodeRangeCheck, FoldRangeCheck, CodeErrorCheck ;
+FROM M2Range IMPORT CodeRangeCheck, FoldRangeCheck, CodeErrorCheck, GetMinMax ;
 
 FROM m2builtins IMPORT BuiltInMemCopy, BuiltInAlloca,
                        GetBuiltinConst, GetBuiltinTypeInfo,
@@ -160,8 +161,10 @@ FROM m2expr IMPORT GetIntegerZero, GetIntegerOne,
                    BuildIfVarInVar,
                    BuildIfNotConstInVar,
                    BuildIfNotVarInVar,
+                   BuildBinCheckProcedure,
                    BuildBinProcedure, BuildUnaryProcedure,
                    BuildSetProcedure, BuildUnarySetFunction,
+		   BuildAddCheck, BuildSubCheck,
                    BuildAdd, BuildSub, BuildMult, BuildLSL,
 		   BuildDivCeil, BuildModCeil,
                    BuildDivTrunc, BuildModTrunc, BuildDivFloor, BuildModFloor,
@@ -449,8 +452,8 @@ BEGIN
    DummyOp            : |
    InitAddressOp      : CodeInitAddress(q, op1, op2, op3) |
    BecomesOp          : CodeBecomes(q, op1, op2, op3) |
-   AddOp              : CodeAdd(q, op1, op2, op3) |
-   SubOp              : CodeSub(q, op1, op2, op3) |
+   AddOp              : CodeAddCheck (q, op1, op2, op3) |
+   SubOp              : CodeSubCheck (q, op1, op2, op3) |
    MultOp             : CodeMult(q, op1, op2, op3) |
    DivM2Op            : CodeDivM2(q, op1, op2, op3) |
    ModM2Op            : CodeModM2(q, op1, op2, op3) |
@@ -3269,6 +3272,50 @@ END ConvertBinaryOperands ;
 
 
 (*
+   CodeBinaryCheck - encode a binary arithmetic operation.
+*)
+
+PROCEDURE CodeBinaryCheck (binop: BuildBinCheckProcedure;
+                           quad: CARDINAL;
+                           op1, op2, op3: CARDINAL) ;
+VAR
+   lowestType,
+   type      : CARDINAL ;
+   min, max,
+   t, tv,
+   tl, tr    : Tree ;
+   location  : location_t ;
+BEGIN
+   (* firstly ensure that constant literals are declared *)
+   DeclareConstant (CurrentQuadToken, op3) ;
+   DeclareConstant (CurrentQuadToken, op2) ;
+   location := TokenToLocation (CurrentQuadToken) ;
+
+   type := MixTypes (FindType (op2), FindType (op3), CurrentQuadToken) ;
+   ConvertBinaryOperands (location, tl, tr, type, op2, op3) ;
+
+   lowestType := GetLType (op1) ;
+   IF GetMinMax (CurrentQuadToken, lowestType, min, max)
+   THEN
+      tv := binop (location, tl, tr, min, max)
+   ELSE
+      tv := binop (location, tl, tr, NIL, NIL)
+   END ;
+   CheckOrResetOverflow (CurrentQuadToken, tv, MustCheckOverflow (quad)) ;
+   IF IsConst (op1)
+   THEN
+      (* still have a constant which was not resolved, pass it to gcc *)
+      Assert (MixTypes (FindType (op3), FindType (op2), CurrentQuadToken) # NulSym) ;
+
+      PutConst (op1, MixTypes (FindType (op3), FindType (op2), CurrentQuadToken)) ;
+      ConstantKnownAndUsed (op1, DeclareKnownConstant (location, Mod2Gcc (GetType (op3)), tv))
+   ELSE
+      t := BuildAssignmentTree (location, Mod2Gcc (op1), tv)
+   END
+END CodeBinaryCheck ;
+
+
+(*
    CodeBinary - encode a binary arithmetic operation.
 *)
 
@@ -3415,6 +3462,19 @@ END FoldAdd ;
 
 
 (*
+   CodeAddCheck - encode addition but check for overflow.
+*)
+
+PROCEDURE CodeAddCheck (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF BinaryOperands (quad, op2, op3)
+   THEN
+      CodeBinaryCheck (BuildAddCheck, quad, op1, op2, op3)
+   END
+END CodeAddCheck ;
+
+
+(*
    CodeAdd - encode addition.
 *)
 
@@ -3439,6 +3499,19 @@ BEGIN
       FoldBinary(tokenno, p, BuildSub, quad, op1, op2, op3)
    END
 END FoldSub ;
+
+
+(*
+   CodeSubCheck - encode subtraction but check for overflow.
+*)
+
+PROCEDURE CodeSubCheck (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF BinaryOperands(quad, op2, op3)
+   THEN
+      CodeBinaryCheck (BuildSubCheck, quad, op1, op2, op3)
+   END
+END CodeSubCheck ;
 
 
 (*

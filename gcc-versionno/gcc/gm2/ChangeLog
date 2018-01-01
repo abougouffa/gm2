@@ -1,3 +1,21 @@
+2018-01-01      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeAddCheck) New procedure.
+          (CodeSubCheck) New procedure.  (CodeBinaryCheck) New procedure.
+          Use CodeAddCheck and CodeSubCheck.
+	* gm2/gm2-compiler/M2Range.def:  (GetMinMax) exported.
+	* gm2/gm2-gcc/m2expr.c:  (BuildAddCheck) New function.
+	  (BuildSubCheck) New function.  (checkWholeAddOverflow)
+          parameters changed.  (checkWholeSubOverflow)  New function.
+          (checkWholeOverflow) updated parameters to include subrange min
+	  and max.  (build_binary_op_check)  New function.  (build_binary_op)
+          call build_binary_op_check.
+	* gm2/gm2-gcc/m2expr.def:  (BuildBinCheckProcedure) New
+          definition.  (BuildSubCheck) New procedure function.
+	  (BuildAddCheck) New procedure function.
+	* gm2/gm2-gcc/m2expr.h:  (BuildAddCheck)  New prototype.
+          (BuildSubCheck)  New prototype.
+
 2017-12-31      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Base.def:  (ExceptionWholeValue) exported
