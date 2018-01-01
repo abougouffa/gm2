@@ -3282,6 +3282,7 @@ VAR
    lowestType,
    type      : CARDINAL ;
    min, max,
+   lowest,
    t, tv,
    tl, tr    : Tree ;
    location  : location_t ;
@@ -3295,11 +3296,12 @@ BEGIN
    ConvertBinaryOperands (location, tl, tr, type, op2, op3) ;
 
    lowestType := GetLType (op1) ;
+   lowest := Mod2Gcc (lowestType) ;
    IF GetMinMax (CurrentQuadToken, lowestType, min, max)
    THEN
-      tv := binop (location, tl, tr, min, max)
+      tv := binop (location, tl, tr, lowest, min, max)
    ELSE
-      tv := binop (location, tl, tr, NIL, NIL)
+      tv := binop (location, tl, tr, NIL, NIL, NIL)
    END ;
    CheckOrResetOverflow (CurrentQuadToken, tv, MustCheckOverflow (quad)) ;
    IF IsConst (op1)

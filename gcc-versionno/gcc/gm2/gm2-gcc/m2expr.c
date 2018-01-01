@@ -98,7 +98,7 @@ CheckAddressToCardinal (location_t location, tree op)
 /*  BuildAddCheck builds an addition tree.  */
 
 tree
-m2expr_BuildAddCheck (location_t location, tree op1, tree op2, tree min, tree max)
+m2expr_BuildAddCheck (location_t location, tree op1, tree op2, tree lowest, tree min, tree max)
 {
   tree t;
 
@@ -110,7 +110,7 @@ m2expr_BuildAddCheck (location_t location, tree op1, tree op2, tree min, tree ma
   op1 = CheckAddressToCardinal (location, op1);
   op2 = CheckAddressToCardinal (location, op2);
 
-  t = m2expr_build_binary_op_check (location, PLUS_EXPR, op1, op2, FALSE, min, max);
+  t = m2expr_build_binary_op_check (location, PLUS_EXPR, op1, op2, FALSE, lowest, min, max);
   return m2expr_FoldAndStrip (t);
 }
 
@@ -138,7 +138,7 @@ m2expr_BuildAdd (location_t location, tree op1, tree op2, int needconvert)
 /*  BuildSubCheck builds a subtraction tree.  */
 
 tree
-m2expr_BuildSubCheck (location_t location, tree op1, tree op2, tree min, tree max)
+m2expr_BuildSubCheck (location_t location, tree op1, tree op2, tree lowest, tree min, tree max)
 {
   tree t;
 
@@ -150,7 +150,7 @@ m2expr_BuildSubCheck (location_t location, tree op1, tree op2, tree min, tree ma
   op1 = CheckAddressToCardinal (location, op1);
   op2 = CheckAddressToCardinal (location, op2);
 
-  t = m2expr_build_binary_op_check (location, MINUS_EXPR, op1, op2, FALSE, min, max);
+  t = m2expr_build_binary_op_check (location, MINUS_EXPR, op1, op2, FALSE, lowest, min, max);
   return m2expr_FoldAndStrip (t);
 }
 
@@ -865,6 +865,61 @@ build_binary_op (location_t location,
   return m2expr_FoldAndStrip (result);
 }
 
+/*
+ *  BuildLessThanZero - returns a tree containing (< value 0).
+ *                      It checks the min and max value to ensure
+ *                      that the test can be safely achieved and will
+ *                      short circuit the result otherwise.
+ */
+tree
+m2expr_BuildLessThanZero (location_t location, tree value, tree type, tree min, tree max)
+{
+  if (m2expr_CompareTrees (min, m2expr_GetIntegerZero (location)) >= 0)
+    /*
+     *  min is greater than or equal to zero therefore value will always be > 0.
+     */
+    return m2expr_GetIntegerZero (location);
+  else if (m2expr_CompareTrees (max, m2expr_GetIntegerZero (location)) == -1)
+    /*
+     *  max is less than zero therefore value will always be < 0.
+     */
+    return m2expr_GetIntegerOne (location);
+  /*
+   *  we now know 0 lies in the range min..max so we can safely cast zero to type.
+   */
+  return m2expr_BuildLessThan (location, value,
+			       fold_convert_loc (location, type,
+						 m2expr_GetIntegerZero (location)));
+}
+
+
+/*
+ *  BuildGreaterThanZero - returns a tree containing (> value 0).
+ *                         It checks the min and max value to ensure
+ *                         that the test can be safely achieved and will
+ *                         short circuit the result otherwise.
+ */
+tree
+m2expr_BuildGreaterThanZero (location_t location, tree value, tree type, tree min, tree max)
+{
+  if (m2expr_CompareTrees (min, m2expr_GetIntegerZero (location)) == 1)
+    /*
+     *  min is greater than zero therefore value will always be > 0.
+     */
+    return m2expr_GetIntegerOne (location);
+  else if (m2expr_CompareTrees (max, m2expr_GetIntegerZero (location)) <= 0)
+    /*
+     *  max is less than or equal to zero therefore value will always be < 0.
+     */
+    return m2expr_GetIntegerZero (location);
+  /*
+   *  we now know 0 lies in the range min..max so we can safely cast zero to type.
+   */
+  return m2expr_BuildGreaterThan (location, value,
+				  fold_convert_loc (location, type,
+						    m2expr_GetIntegerZero (location)));
+}
+
 #if 0
 PROCEDURE sadd (i, j: INTEGER) ;
 BEGIN
@@ -894,11 +949,11 @@ END sadd ;
 
 static
 void
-checkWholeAddOverflow (location_t location, tree i, tree j, tree min, tree max)
+checkWholeAddOverflow (location_t location, tree i, tree j, tree lowest, tree min, tree max)
 {
-  tree c1 = m2expr_BuildGreaterThan (location, j, m2expr_GetIntegerZero (location));
+  tree c1 = m2expr_BuildGreaterThanZero (location, j, lowest, min, max);
   tree c2 = m2expr_BuildGreaterThan (location, i, m2expr_BuildSub (location, max, j, FALSE));
-  tree c3 = m2expr_BuildLessThan (location, j, m2expr_GetIntegerZero (location));
+  tree c3 = m2expr_BuildLessThanZero (location, j, lowest, min, max);
   tree c4 = m2expr_BuildLessThan (location, i, m2expr_BuildSub (location, min, j, FALSE));
   tree c5 = m2expr_BuildLogicalAnd (location, c1, c2, FALSE);
   tree c6 = m2expr_BuildLogicalAnd (location, c3, c4, FALSE);
@@ -924,11 +979,11 @@ checkWholeAddOverflow (location_t location, tree i, tree j, tree min, tree max)
 
 static
 void
-checkWholeSubOverflow (location_t location, tree i, tree j, tree min, tree max)
+checkWholeSubOverflow (location_t location, tree i, tree j, tree lowest, tree min, tree max)
 {
-  tree c1 = m2expr_BuildGreaterThan (location, j, m2expr_GetIntegerZero (location));
+  tree c1 = m2expr_BuildGreaterThanZero (location, j, lowest, min, max);
   tree c2 = m2expr_BuildLessThan (location, i, m2expr_BuildAdd (location, min, j, FALSE));
-  tree c3 = m2expr_BuildLessThan (location, j, m2expr_GetIntegerZero (location));
+  tree c3 = m2expr_BuildLessThanZero (location, j, lowest, min, max);
   tree c4 = m2expr_BuildLessThan (location, i, m2expr_BuildAdd (location, max, j, FALSE));
   tree c5 = m2expr_BuildLogicalAnd (location, c1, c2, FALSE);
   tree c6 = m2expr_BuildLogicalAnd (location, c3, c4, FALSE);
@@ -946,17 +1001,21 @@ void
 m2expr_checkWholeOverflow (location_t location,
 			   enum tree_code code,
 			   tree op1, tree op2,
-			   tree min, tree max)
+			   tree lowest, tree min, tree max)
 {
   if (M2Options_GetWholeValueCheck () && (min != NULL))
     {
+      lowest = m2tree_skip_type_decl (lowest);
+      op1 = fold_convert_loc (location, lowest, op1);
+      op2 = fold_convert_loc (location, lowest, op2);
+
       switch (code)
 	{
 	case PLUS_EXPR:
-	  checkWholeAddOverflow (location, op1, op2, min, max);
+	  checkWholeAddOverflow (location, op1, op2, lowest, min, max);
 	  break;
 	case MINUS_EXPR:
-	  checkWholeSubOverflow (location, op1, op2, min, max);
+	  checkWholeSubOverflow (location, op1, op2, lowest, min, max);
 	  break;
 	default:
 	  break;
@@ -1011,7 +1070,7 @@ m2expr_build_binary_op_check (location_t location,
 			      enum tree_code code,
 			      tree op1, tree op2,
 			      int needconvert,
-			      tree min, tree max)
+			      tree lowest, tree min, tree max)
 {
   tree type1, type2, result;
 
@@ -1063,7 +1122,7 @@ m2expr_build_binary_op_check (location_t location,
       error_at (location, "not expecting different types to binary operator");
 
   if ((TREE_CODE (type1) != REAL_TYPE) && (min != NULL))
-    m2expr_checkWholeOverflow (location, code, op1, op2, min, max);
+    m2expr_checkWholeOverflow (location, code, op1, op2, lowest, min, max);
 
   result = build_binary_op (location, code, op1, op2, needconvert);
 
@@ -1081,7 +1140,7 @@ m2expr_build_binary_op (location_t location,
 			enum tree_code code, tree op1, tree op2,
 			int convert)
 {
-  return m2expr_build_binary_op_check (location, code, op1, op2, convert, NULL, NULL);
+  return m2expr_build_binary_op_check (location, code, op1, op2, convert, NULL, NULL, NULL);
 }
 
 

@@ -15,6 +15,21 @@
 	  (BuildAddCheck) New procedure function.
 	* gm2/gm2-gcc/m2expr.h:  (BuildAddCheck)  New prototype.
           (BuildSubCheck)  New prototype.
+	* gm2/gm2-compiler/M2GenGCC.mod:  pass lowest into binop.
+	* gm2/gm2-gcc/m2expr.c:  (BuildAddCheck) extra parameter lowest.
+          (BuildSubCheck) extra parameter lowest.  Call build_binary_op
+          with extra parameter lowest.  (BuildLessThanZero) New function.
+          (BuildGreaterThanZero) New function.  (checkWholeAddOverflow)
+          extra parameter and use BuildLessThanZero and
+	  BuildGreaterThanZero.    (checkWholeSubOverflow)
+          extra parameter and use BuildLessThanZero and
+          BuildGreaterThanZero.  (checkWholeOverflow) call
+          checkWholeAddOverflow and checkWholeSubOverflow with an extra
+          parameter.
+	* gm2/gm2-gcc/m2expr.def:  (BuildBinCheckProcedure) extra
+          parameter.  (BuildSubCheck) extra parameter lowest.
+          (BuildAddCheck) extra parameter lowest.
+	* gm2/gm2-gcc/m2expr.h:  corrected prototype.
 
 2017-12-31      Gaius Mulley <gaius@gnu.org>
 
