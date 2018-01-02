@@ -11,7 +11,8 @@
           unsigned types counting down.
 	* gm2/gm2-gcc/m2expr.c:  (BuildAddCheck) corrected
 	  comments and strip results.  (BuildSubCheck) corrected
-	  comments and strip results.
+          comments and strip results.
+	* gm2/gm2-gcc/m2range.h:  (New file).
 
 2018-01-01      Gaius Mulley <gaius@gnu.org>
 
