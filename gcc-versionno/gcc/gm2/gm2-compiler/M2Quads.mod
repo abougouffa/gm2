@@ -3821,13 +3821,23 @@ BEGIN
       doIndrX(tsym, IdSym) ;
       BuildRange(InitForLoopEndRangeCheck(tsym, BySym)) ;
       IncQuad := NextQuad ;
-      GenQuad(AddOp, tsym, tsym, BySym) ;
+      (* we have explicitly checked using the above and also
+         this addition can legally overflow if a cardinal type
+         is counting down.  The above test will generate a more
+         precise error message, so we suppress overflow detection
+         here.  *)
+      GenQuadO(AddOp, tsym, tsym, BySym, FALSE) ;
       CheckPointerThroughNil(IdSym) ;
       GenQuad(XIndrOp, IdSym, GetSType(IdSym), tsym)
    ELSE
       BuildRange(InitForLoopEndRangeCheck(IdSym, BySym)) ;
       IncQuad := NextQuad ;
-      GenQuad(AddOp, IdSym, IdSym, BySym)
+      (* we have explicitly checked using the above and also
+         this addition can legally overflow if a cardinal type
+         is counting down.  The above test will generate a more
+         precise error message, so we suppress overflow detection
+         here.  *)
+      GenQuadO(AddOp, IdSym, IdSym, BySym, FALSE)
    END ;
    GenQuad(GotoOp, NulSym, NulSym, ForQuad) ;
    BackPatch(PopFor(), NextQuad) ;

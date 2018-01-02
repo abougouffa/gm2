@@ -1,3 +1,18 @@
+2018-01-02      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeStatement) call
+          CodeAddChecked and call CodeSubChecked.
+          (CodeAddChecked)  New procedure.  (CodeSubChecked)
+          New procedure.
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildEndFor) suppress
+	  overflow checking in the addition
+          of the loop variable.  The explicit for loop check will
+          catch an overflow and this addition can overflow for
+          unsigned types counting down.
+	* gm2/gm2-gcc/m2expr.c:  (BuildAddCheck) corrected
+	  comments and strip results.  (BuildSubCheck) corrected
+	  comments and strip results.
+
 2018-01-01      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeAddCheck) New procedure.

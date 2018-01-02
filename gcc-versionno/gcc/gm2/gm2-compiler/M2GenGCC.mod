@@ -452,8 +452,8 @@ BEGIN
    DummyOp            : |
    InitAddressOp      : CodeInitAddress(q, op1, op2, op3) |
    BecomesOp          : CodeBecomes(q, op1, op2, op3) |
-   AddOp              : CodeAddCheck (q, op1, op2, op3) |
-   SubOp              : CodeSubCheck (q, op1, op2, op3) |
+   AddOp              : CodeAddChecked (q, op1, op2, op3) |
+   SubOp              : CodeSubChecked (q, op1, op2, op3) |
    MultOp             : CodeMult(q, op1, op2, op3) |
    DivM2Op            : CodeDivM2(q, op1, op2, op3) |
    ModM2Op            : CodeModM2(q, op1, op2, op3) |
@@ -3464,6 +3464,22 @@ END FoldAdd ;
 
 
 (*
+   CodeAddChecked - code an addition instruction, determine whether checking
+                    is required.
+*)
+
+PROCEDURE CodeAddChecked (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF MustCheckOverflow (quad)
+   THEN
+      CodeAddCheck (quad, op1, op2, op3)
+   ELSE
+      CodeAdd (quad, op1, op2, op3)
+   END
+END CodeAddChecked ;
+
+
+(*
    CodeAddCheck - encode addition but check for overflow.
 *)
 
@@ -3501,6 +3517,22 @@ BEGIN
       FoldBinary(tokenno, p, BuildSub, quad, op1, op2, op3)
    END
 END FoldSub ;
+
+
+(*
+   CodeSubChecked - code a subtract instruction, determine whether checking
+                    is required.
+*)
+
+PROCEDURE CodeSubChecked (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF MustCheckOverflow (quad)
+   THEN
+      CodeSubCheck (quad, op1, op2, op3)
+   ELSE
+      CodeSub (quad, op1, op2, op3)
+   END
+END CodeSubChecked ;
 
 
 (*

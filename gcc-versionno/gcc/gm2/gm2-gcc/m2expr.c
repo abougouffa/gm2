@@ -876,7 +876,7 @@ m2expr_BuildLessThanZero (location_t location, tree value, tree type, tree min, 
 {
   if (m2expr_CompareTrees (min, m2expr_GetIntegerZero (location)) >= 0)
     /*
-     *  min is greater than or equal to zero therefore value will always be > 0.
+     *  min is greater than or equal to zero therefore value will always be >= 0.
      */
     return m2expr_GetIntegerZero (location);
   else if (m2expr_CompareTrees (max, m2expr_GetIntegerZero (location)) == -1)
@@ -909,7 +909,7 @@ m2expr_BuildGreaterThanZero (location_t location, tree value, tree type, tree mi
     return m2expr_GetIntegerOne (location);
   else if (m2expr_CompareTrees (max, m2expr_GetIntegerZero (location)) <= 0)
     /*
-     *  max is less than or equal to zero therefore value will always be < 0.
+     *  max is less than or equal to zero therefore value will always be <= 0.
      */
     return m2expr_GetIntegerZero (location);
   /*
@@ -955,9 +955,9 @@ checkWholeAddOverflow (location_t location, tree i, tree j, tree lowest, tree mi
   tree c2 = m2expr_BuildGreaterThan (location, i, m2expr_BuildSub (location, max, j, FALSE));
   tree c3 = m2expr_BuildLessThanZero (location, j, lowest, min, max);
   tree c4 = m2expr_BuildLessThan (location, i, m2expr_BuildSub (location, min, j, FALSE));
-  tree c5 = m2expr_BuildLogicalAnd (location, c1, c2, FALSE);
-  tree c6 = m2expr_BuildLogicalAnd (location, c3, c4, FALSE);
-  tree condition = m2expr_BuildLogicalOr (location, c5, c6, FALSE);
+  tree c5 = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, c1, c2, FALSE));
+  tree c6 = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, c3, c4, FALSE));
+  tree condition = m2expr_FoldAndStrip (m2expr_BuildLogicalOr (location, c5, c6, FALSE));
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition, "whole value +");
   m2type_AddStatement (location, t);
 }
@@ -985,9 +985,9 @@ checkWholeSubOverflow (location_t location, tree i, tree j, tree lowest, tree mi
   tree c2 = m2expr_BuildLessThan (location, i, m2expr_BuildAdd (location, min, j, FALSE));
   tree c3 = m2expr_BuildLessThanZero (location, j, lowest, min, max);
   tree c4 = m2expr_BuildLessThan (location, i, m2expr_BuildAdd (location, max, j, FALSE));
-  tree c5 = m2expr_BuildLogicalAnd (location, c1, c2, FALSE);
-  tree c6 = m2expr_BuildLogicalAnd (location, c3, c4, FALSE);
-  tree condition = m2expr_BuildLogicalOr (location, c5, c6, FALSE);
+  tree c5 = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, c1, c2, FALSE));
+  tree c6 = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, c3, c4, FALSE));
+  tree condition = m2expr_FoldAndStrip (m2expr_BuildLogicalOr (location, c5, c6, FALSE));
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition, "whole value -");
   m2type_AddStatement (location, t);
 }
