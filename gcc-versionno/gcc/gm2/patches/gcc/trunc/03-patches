@@ -1,5 +1,5 @@
---- gcc-versionno-orig/gcc/c/gccspec.c	2017-06-21 11:34:21.715617738 +0100
-+++ gcc-versionno/gcc/c/gccspec.c	2017-06-21 11:41:45.703621386 +0100
+--- gcc-versionno-orig/gcc/c/gccspec.c	2018-01-02 09:38:46.050104885 +0000
++++ gcc-versionno/gcc/c/gccspec.c	2018-01-02 08:42:39.045083545 +0000
 @@ -105,3 +105,9 @@
  
  /* Number of extra output files that lang_specific_pre_link may generate.  */

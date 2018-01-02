@@ -1,5 +1,5 @@
---- gcc-versionno-orig/Makefile.tpl	2017-06-21 11:35:17.819618199 +0100
-+++ gcc-versionno/Makefile.tpl	2017-06-21 11:41:45.715621386 +0100
+--- gcc-versionno-orig/Makefile.tpl	2018-01-02 09:39:53.325828219 +0000
++++ gcc-versionno/Makefile.tpl	2018-01-02 08:42:39.089083295 +0000
 @@ -159,6 +159,7 @@
  	GFORTRAN="$(GFORTRAN_FOR_BUILD)"; export GFORTRAN; \
  	GOC="$(GOC_FOR_BUILD)"; export GOC; \

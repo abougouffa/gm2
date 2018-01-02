@@ -13,6 +13,7 @@
 	  comments and strip results.  (BuildSubCheck) corrected
           comments and strip results.
 	* gm2/gm2-gcc/m2range.h:  (New file).
+	* gm2/patches/gcc/trunc:  (Regenerated).
 
 2018-01-01      Gaius Mulley <gaius@gnu.org>
 

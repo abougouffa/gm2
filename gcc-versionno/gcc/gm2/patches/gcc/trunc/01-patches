@@ -1,5 +1,5 @@
---- gcc-versionno-orig/configure	2017-06-21 11:34:19.407617719 +0100
-+++ gcc-versionno/configure	2017-06-21 11:41:45.703621386 +0100
+--- gcc-versionno-orig/configure	2018-01-02 09:38:42.486119490 +0000
++++ gcc-versionno/configure	2018-01-02 08:42:39.045083545 +0000
 @@ -580,6 +580,7 @@
  DLLTOOL_FOR_TARGET
  AS_FOR_TARGET
@@ -49,7 +49,7 @@
    AR_FOR_TARGET
                AR for the target
    AS_FOR_TARGET
-@@ -2766,6 +2773,7 @@
+@@ -2765,6 +2772,7 @@
  		target-libffi \
  		target-libobjc \
  		target-libada \
@@ -57,7 +57,7 @@
  		target-libgo"
  
  # these tools are built using the target libraries, and are intended to
-@@ -3093,6 +3101,15 @@
+@@ -3092,6 +3100,15 @@
    noconfigdirs="$noconfigdirs gnattools"
  fi
  
@@ -73,7 +73,7 @@
  # Check whether --enable-libssp was given.
  if test "${enable_libssp+set}" = set; then :
    enableval=$enable_libssp; ENABLE_LIBSSP=$enableval
-@@ -3966,6 +3983,7 @@
+@@ -3933,6 +3950,7 @@
    CXX_FOR_BUILD=${CXX_FOR_BUILD-g++}
    GFORTRAN_FOR_BUILD=${GFORTRAN_FOR_BUILD-gfortran}
    GOC_FOR_BUILD=${GOC_FOR_BUILD-gccgo}
@@ -81,7 +81,7 @@
    DLLTOOL_FOR_BUILD=${DLLTOOL_FOR_BUILD-dlltool}
    LD_FOR_BUILD=${LD_FOR_BUILD-ld}
    NM_FOR_BUILD=${NM_FOR_BUILD-nm}
-@@ -3979,6 +3997,7 @@
+@@ -3946,6 +3964,7 @@
    CXX_FOR_BUILD="\$(CXX)"
    GFORTRAN_FOR_BUILD="\$(GFORTRAN)"
    GOC_FOR_BUILD="\$(GOC)"
@@ -89,7 +89,7 @@
    DLLTOOL_FOR_BUILD="\$(DLLTOOL)"
    LD_FOR_BUILD="\$(LD)"
    NM_FOR_BUILD="\$(NM)"
-@@ -7688,6 +7707,7 @@
+@@ -7663,6 +7682,7 @@
  
  
  
@@ -97,7 +97,7 @@
  # Generate default definitions for YACC, M4, LEX and other programs that run
  # on the build machine.  These are used if the Makefile can't locate these
  # programs in objdir.
-@@ -10742,6 +10762,167 @@
+@@ -10717,6 +10737,167 @@
  
  
  
@@ -265,7 +265,7 @@
  cat > conftest.c << \EOF
  #ifdef __GNUC__
    gcc_yay;
-@@ -13958,6 +14139,51 @@
+@@ -13933,6 +14114,51 @@
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: host tool" >&5
  $as_echo "host tool" >&6; }
    else

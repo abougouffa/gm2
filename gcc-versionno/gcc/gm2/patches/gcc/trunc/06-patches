@@ -1,6 +1,6 @@
---- gcc-versionno-orig/gcc/gcc.c	2017-06-21 11:34:22.179617741 +0100
-+++ gcc-versionno/gcc/gcc.c	2017-06-21 11:41:45.707621386 +0100
-@@ -299,6 +299,10 @@
+--- gcc-versionno-orig/gcc/gcc.c	2018-01-02 09:38:46.638102475 +0000
++++ gcc-versionno/gcc/gcc.c	2018-01-02 08:42:39.077083363 +0000
+@@ -300,6 +300,10 @@
  static const char *cross_compile = "0";
  #endif
  
@@ -11,7 +11,7 @@
  /* Greatest exit code of sub-processes that has been encountered up to
     now.  */
  static int greatest_status = 1;
-@@ -404,6 +408,7 @@
+@@ -405,6 +409,7 @@
  static const char *greater_than_spec_func (int, const char **);
  static const char *debug_level_greater_than_spec_func (int, const char **);
  static char *convert_white_space (char *);
@@ -19,7 +19,7 @@
  
  /* The Specs Language
  
-@@ -1025,6 +1030,7 @@
+@@ -1027,6 +1032,7 @@
  /* We pass any -flto flags on to the linker, which is expected
     to understand them.  In practice, this means it had better be collect2.  */
  /* %{e*} includes -export-dynamic; see comment in common.opt.  */
@@ -27,7 +27,7 @@
  #ifndef LINK_COMMAND_SPEC
  #define LINK_COMMAND_SPEC "\
  %{!fsyntax-only:%{!c:%{!M:%{!MM:%{!E:%{!S:\
-@@ -1656,6 +1662,10 @@
+@@ -1648,6 +1654,10 @@
    { 0, 0 }
  };
  
@@ -38,7 +38,7 @@
  static int processing_spec_function;
  
  /* Add appropriate libgcc specs to OBSTACK, taking into account
-@@ -3587,6 +3597,68 @@
+@@ -3606,6 +3616,68 @@
    setenv ("SOURCE_DATE_EPOCH", source_date_epoch, 0);
  }
  
@@ -107,7 +107,7 @@
  /* Handle an option DECODED that is unknown to the option-processing
     machinery.  */
  
-@@ -4055,33 +4127,7 @@
+@@ -4075,33 +4147,7 @@
        break;
  
      case OPT_B:
@@ -142,7 +142,7 @@
        validated = true;
        break;
  
-@@ -5984,6 +6030,33 @@
+@@ -6004,6 +6050,33 @@
    return 0;
  }
  
@@ -176,7 +176,7 @@
  /* Look up a spec function.  */
  
  static const struct spec_function *
-@@ -5995,6 +6068,11 @@
+@@ -6015,6 +6088,11 @@
      if (strcmp (sf->name, name) == 0)
        return sf;
  
@@ -188,7 +188,7 @@
    return NULL;
  }
  
-@@ -7477,6 +7555,8 @@
+@@ -7497,6 +7575,8 @@
  			   accel_dir_suffix, dir_separator_str, NULL);
    just_machine_suffix = concat (spec_machine, dir_separator_str, NULL);
  
@@ -197,7 +197,7 @@
    specs_file = find_a_file (&startfile_prefixes, "specs", R_OK, true);
    /* Read the specs file unless it is a default one.  */
    if (specs_file != 0 && strcmp (specs_file, "specs"))
-@@ -8269,7 +8349,8 @@
+@@ -8290,7 +8370,8 @@
  
    /* Run ld to link all the compiler output files.  */
  
@@ -207,7 +207,7 @@
      {
        int tmp = execution_count;
  
-@@ -8336,7 +8417,7 @@
+@@ -8357,7 +8438,7 @@
    /* If options said don't run linker,
       complain about input files to be given to the linker.  */
  
