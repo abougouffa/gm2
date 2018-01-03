@@ -1,3 +1,19 @@
+2018-01-03      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  (BuildUnaryCheckProcedure)
+          imported.  (BuildNegateCheck) imported.  (CodeStatement)
+          use BuildNegateCheck.  (CodeUnaryCheck)  New procedure.
+          (CodeNegateChecked)  New procedure.
+	* gm2/gm2-gcc/m2expr.c:  (checkUnaryWholeOverflow)  New
+          function.  (m2expr_build_unary_op_check)  New function.
+          (BuildEqualToZero)  New function.
+          (checkWholeNegateOverflow)  New function.
+          (BuildNegateCheck)  New function.  (BuildNegate)
+          reimplemented.
+	* gm2/gm2-gcc/m2expr.def:  (BuildUnaryCheckProcedure)
+          Defined.  (BuildNegateCheck) defined.
+	* gm2/gm2-gcc/m2expr.h:  (BuildNegateCheck) added prototype.
+
 2018-01-02      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeStatement) call

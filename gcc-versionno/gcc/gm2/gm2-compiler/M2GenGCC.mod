@@ -161,7 +161,7 @@ FROM m2expr IMPORT GetIntegerZero, GetIntegerOne,
                    BuildIfVarInVar,
                    BuildIfNotConstInVar,
                    BuildIfNotVarInVar,
-                   BuildBinCheckProcedure,
+                   BuildBinCheckProcedure, BuildUnaryCheckProcedure,
                    BuildBinProcedure, BuildUnaryProcedure,
                    BuildSetProcedure, BuildUnarySetFunction,
 		   BuildAddCheck, BuildSubCheck,
@@ -174,7 +174,7 @@ FROM m2expr IMPORT GetIntegerZero, GetIntegerOne,
                    BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
                    BuildLogicalDifference,
                    BuildLogicalShift, BuildLogicalRotate,
-                   BuildNegate, BuildAddr, BuildSize, BuildTBitSize,
+                   BuildNegate, BuildNegateCheck, BuildAddr, BuildSize, BuildTBitSize,
                    BuildOffset, BuildOffset1,
                    BuildLessThan, BuildGreaterThan,
                    BuildLessThanOrEqual, BuildGreaterThanOrEqual,
@@ -466,7 +466,7 @@ BEGIN
    GotoOp             : CodeGoto(q, op1, op2, op3) |
    InclOp             : CodeIncl(q, op1, op2, op3) |
    ExclOp             : CodeExcl(q, op1, op2, op3) |
-   NegateOp           : CodeNegate(q, op1, op2, op3) |
+   NegateOp           : CodeNegateChecked(q, op1, op2, op3) |
    LogicalShiftOp     : CodeSetShift(q, op1, op2, op3) |
    LogicalRotateOp    : CodeSetRotate(q, op1, op2, op3) |
    LogicalOrOp        : CodeSetOr(q, op1, op2, op3) |
@@ -4943,6 +4943,53 @@ END FoldUnarySet ;
 
 
 (*
+   CodeUnaryCheck - encode a unary arithmetic operation.
+*)
+
+PROCEDURE CodeUnaryCheck (unop: BuildUnaryCheckProcedure; ZConstToTypedConst: Tree;
+                          quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   lowestType: CARDINAL ;
+   min, max,
+   lowest,
+   t, tv     : Tree ;
+   location  : location_t ;
+BEGIN
+   (* firstly ensure that any constant literal is declared *)
+   DeclareConstant(CurrentQuadToken, op3) ;
+   DeclareConstructor(CurrentQuadToken, quad, op3) ;
+   location := TokenToLocation(CurrentQuadToken) ;
+
+   lowestType := GetLType (op1) ;
+   IF lowestType=NulSym
+   THEN
+      lowest := NIL ;
+   ELSE
+      lowest := Mod2Gcc (lowestType)
+   END ;
+   IF GetMinMax (CurrentQuadToken, lowestType, min, max)
+   THEN
+      tv := unop (location, LValueToGenericPtr(op3), lowest, min, max)
+   ELSE
+      tv := unop (location, LValueToGenericPtr(op3), NIL, NIL, NIL)
+   END ;
+   CheckOrResetOverflow(CurrentQuadToken, tv, MustCheckOverflow(quad)) ;
+   IF IsConst(op1)
+   THEN
+      IF ZConstToTypedConst=Tree(NIL)
+      THEN
+         ZConstToTypedConst := Tree(Mod2Gcc(GetType(op3)))
+      END ;
+      (* still have a constant which was not resolved, pass it to gcc *)
+      PutConst(op1, FindType(op3)) ;
+      ConstantKnownAndUsed(op1, DeclareKnownConstant(location, ZConstToTypedConst, tv))
+   ELSE
+      t := BuildAssignmentTree(location, Mod2Gcc(op1), tv)
+   END
+END CodeUnaryCheck ;
+
+
+(*
    CodeUnary - encode a unary arithmetic operation.
 *)
 
@@ -4991,18 +5038,22 @@ END FoldNegate ;
 
 
 (*
-   CodeNegate - encode unary negate.
+   CodeNegateChecked - code a negate instruction, determine whether checking
+                       is required.
 *)
 
-PROCEDURE CodeNegate (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+PROCEDURE CodeNegateChecked (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   IF IsConstSet(op3) OR IsSet(GetType(op3))
+   IF IsConstSet (op3) OR IsSet (GetType (op3))
    THEN
-      CodeUnarySet(BuildSetNegate, SetNegate, quad, op1, op2, op3)
+      CodeUnarySet (BuildSetNegate, SetNegate, quad, op1, op2, op3)
+   ELSIF MustCheckOverflow (quad)
+   THEN
+      CodeUnaryCheck (BuildNegateCheck, NIL, quad, op1, op2, op3)
    ELSE
-      CodeUnary(BuildNegate, NIL, quad, op1, op2, op3)
+      CodeUnary (BuildNegate, NIL, quad, op1, op2, op3)
    END
-END CodeNegate ;
+END CodeNegateChecked ;
 
 
 (*

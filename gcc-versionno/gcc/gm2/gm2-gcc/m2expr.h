@@ -78,6 +78,7 @@ EXTERN tree m2expr_BuildSize (location_t location, tree op1, int needconvert ATT
 EXTERN tree m2expr_BuildTBitSize (location_t location, tree type);
 EXTERN tree m2expr_BuildSetNegate (location_t location, tree op1, int needconvert);
 EXTERN tree m2expr_BuildNegate (location_t location, tree op1, int needconvert);
+EXTERN tree m2expr_BuildNegateCheck (location_t location, tree arg, tree lowest, tree min, tree max);
 EXTERN tree m2expr_BuildTrunc (tree op1);
 EXTERN tree m2expr_BuildCoerce (location_t location, tree des, tree type, tree expr);
 EXTERN tree m2expr_RemoveOverflow (tree t);

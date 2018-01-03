@@ -6,13 +6,14 @@ FROM m2linemap IMPORT location_t ;
 
 
 TYPE
-   BuildBinCheckProcedure = PROCEDURE (location_t, Tree, Tree, Tree, Tree, Tree) : Tree ;
-   BuildBinProcedure      = PROCEDURE (location_t, Tree, Tree, BOOLEAN) : Tree ;
-   BuildUnaryProcedure    = PROCEDURE (location_t, Tree, BOOLEAN) : Tree ;
-   BuildExprProcedure     = PROCEDURE (location_t, Tree, Tree) : Tree ;
-   BuildSetProcedure      = PROCEDURE (location_t, Tree, Tree, Tree, Tree, BOOLEAN) ;
-   BuildUnarySetProcedure = PROCEDURE (location_t, Tree, BOOLEAN) ;
-   BuildUnarySetFunction  = PROCEDURE (location_t, Tree, BOOLEAN) : Tree ;
+   BuildBinCheckProcedure   = PROCEDURE (location_t, Tree, Tree, Tree, Tree, Tree) : Tree ;
+   BuildBinProcedure        = PROCEDURE (location_t, Tree, Tree, BOOLEAN) : Tree ;
+   BuildUnaryProcedure      = PROCEDURE (location_t, Tree, BOOLEAN) : Tree ;
+   BuildUnaryCheckProcedure = PROCEDURE (location_t, Tree, Tree, Tree, Tree) : Tree ;
+   BuildExprProcedure       = PROCEDURE (location_t, Tree, Tree) : Tree ;
+   BuildSetProcedure        = PROCEDURE (location_t, Tree, Tree, Tree, Tree, BOOLEAN) ;
+   BuildUnarySetProcedure   = PROCEDURE (location_t, Tree, BOOLEAN) ;
+   BuildUnarySetFunction    = PROCEDURE (location_t, Tree, BOOLEAN) : Tree ;
 
 
 (*
@@ -278,6 +279,13 @@ PROCEDURE BuildTrunc (op1: Tree) : Tree ;
 *)
 
 PROCEDURE BuildNegate (location: location_t; op1: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+    BuildNegateCheck - builds a negate expression and returns the tree.
+*)
+
+PROCEDURE BuildNegateCheck (location: location_t; arg, lowest, min, max: Tree) : Tree ;
 
 
 (*
