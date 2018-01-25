@@ -9,6 +9,7 @@ extern mcReserved_toktype mcLexBuf_currenttoken;
 extern void *mcLexBuf_currentstring;
 extern unsigned int mcLexBuf_currentcolumn;
 extern int mcLexBuf_currentinteger;
+extern void *mcLexBuf_currentcomment;
 
 
 /*
@@ -170,6 +171,13 @@ extern void mcLexBuf_addTokCharStar (mcReserved_toktype t, void *s);
 */
 
 extern void mcLexBuf_addTokInteger (mcReserved_toktype t, int i);
+
+
+/*
+   addTokComment - adds a token to the buffer and a comment descriptor, com.
+*/
+
+extern void mcLexBuf_addTokComment (mcReserved_toktype t, void *com);
 
 
 /*

@@ -9,6 +9,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
+#include <stdlib.h>
 #   include "GStorage.h"
 #define _varargs_H
 #define _varargs_C
@@ -127,7 +128,7 @@ void varargs_arg (varargs_vararg v, unsigned char *a, unsigned int _a_high)
   unsigned char * p;
 
   if (v->i == v->nArgs)
-    M2RTS_HALT (-1);
+    M2RTS_HALT (-1);  /* too many calls to arg.  */
   else
     {
       if (((_a_high)+1) == v->arg.array[v->i].len)
@@ -142,7 +143,7 @@ void varargs_arg (varargs_vararg v, unsigned char *a, unsigned int _a_high)
             }
         }
       else
-        M2RTS_HALT (-1);
+        M2RTS_HALT (-1);  /* parameter mismatch.  */
       v->i += 1;
     }
 }
@@ -173,7 +174,7 @@ varargs_vararg varargs_copy (varargs_vararg v)
   c->nArgs = v->nArgs;
   c->size = v->size;
   Storage_ALLOCATE (&c->contents, c->size);
-  c->contents = libc_memcpy (c->contents, v->contents, c->size);
+  c->contents = libc_memcpy (c->contents, v->contents, (size_t) c->size);
   for (j=0; j<=c->nArgs; j++)
     {
       offset = v->contents-v->arg.array[j].ptr;
@@ -196,7 +197,7 @@ void varargs_replace (varargs_vararg v, unsigned char *a, unsigned int _a_high)
   unsigned char * p;
 
   if (v->i == v->nArgs)
-    M2RTS_HALT (-1);
+    M2RTS_HALT (-1);  /* too many calls to arg.  */
   else
     if (((_a_high)+1) == v->arg.array[v->i].len)
       {
@@ -210,7 +211,7 @@ void varargs_replace (varargs_vararg v, unsigned char *a, unsigned int _a_high)
           }
       }
     else
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);  /* parameter mismatch.  */
 }
 
 
@@ -245,7 +246,7 @@ varargs_vararg varargs_start1 (unsigned char *a_, unsigned int _a_high)
   v->nArgs = 1;
   v->size = (_a_high)+1;
   Storage_ALLOCATE (&v->contents, v->size);
-  v->contents = libc_memcpy (v->contents, &a, v->size);
+  v->contents = libc_memcpy (v->contents, &a, (size_t) v->size);
   v->arg.array[0].ptr = v->contents;
   v->arg.array[0].len = v->size;
   return v;
@@ -272,11 +273,11 @@ varargs_vararg varargs_start2 (unsigned char *a_, unsigned int _a_high, unsigned
   v->nArgs = 2;
   v->size = ((_a_high)+(_b_high))+2;
   Storage_ALLOCATE (&v->contents, v->size);
-  p = libc_memcpy (v->contents, &a, (_a_high)+1);
+  p = libc_memcpy (v->contents, &a, (size_t) (_a_high)+1);
   v->arg.array[0].ptr = p;
   v->arg.array[0].len = (_a_high)+1;
   p += v->arg.array[0].len;
-  p = libc_memcpy ((void *) p, &b, (_b_high)+1);
+  p = libc_memcpy ((void *) p, &b, (size_t) (_b_high)+1);
   v->arg.array[1].ptr = p;
   v->arg.array[1].len = (_b_high)+1;
   return v;
@@ -305,15 +306,15 @@ varargs_vararg varargs_start3 (unsigned char *a_, unsigned int _a_high, unsigned
   v->nArgs = 3;
   v->size = (((_a_high)+(_b_high))+(_c_high))+3;
   Storage_ALLOCATE (&v->contents, v->size);
-  p = libc_memcpy (v->contents, &a, (_a_high)+1);
+  p = libc_memcpy (v->contents, &a, (size_t) (_a_high)+1);
   v->arg.array[0].ptr = p;
   v->arg.array[0].len = (_a_high)+1;
   p += v->arg.array[0].len;
-  p = libc_memcpy ((void *) p, &b, (_b_high)+1);
+  p = libc_memcpy ((void *) p, &b, (size_t) (_b_high)+1);
   v->arg.array[1].ptr = p;
   v->arg.array[1].len = (_b_high)+1;
   p += v->arg.array[1].len;
-  p = libc_memcpy ((void *) p, &c, (_c_high)+1);
+  p = libc_memcpy ((void *) p, &c, (size_t) (_c_high)+1);
   v->arg.array[2].ptr = p;
   v->arg.array[2].len = (_c_high)+1;
   return v;
@@ -344,18 +345,18 @@ varargs_vararg varargs_start4 (unsigned char *a_, unsigned int _a_high, unsigned
   v->nArgs = 4;
   v->size = ((((_a_high)+(_b_high))+(_c_high))+(_d_high))+4;
   Storage_ALLOCATE (&v->contents, v->size);
-  p = libc_memcpy (v->contents, &a, (_a_high)+1);
+  p = libc_memcpy (v->contents, &a, (size_t) (_a_high)+1);
   v->arg.array[0].len = (_a_high)+1;
   p += v->arg.array[0].len;
-  p = libc_memcpy ((void *) p, &b, (_b_high)+1);
+  p = libc_memcpy ((void *) p, &b, (size_t) (_b_high)+1);
   v->arg.array[1].ptr = p;
   v->arg.array[1].len = (_b_high)+1;
   p += v->arg.array[1].len;
-  p = libc_memcpy ((void *) p, &c, (_c_high)+1);
+  p = libc_memcpy ((void *) p, &c, (size_t) (_c_high)+1);
   v->arg.array[2].ptr = p;
   v->arg.array[2].len = (_c_high)+1;
   p += v->arg.array[2].len;
-  p = libc_memcpy ((void *) p, &c, (_c_high)+1);
+  p = libc_memcpy ((void *) p, &c, (size_t) (_c_high)+1);
   v->arg.array[3].ptr = p;
   v->arg.array[3].len = (_c_high)+1;
   return v;

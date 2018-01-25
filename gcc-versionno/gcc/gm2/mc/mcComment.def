@@ -1,4 +1,5 @@
-(* Copyright (C) 2015 Free Software Foundation, Inc.  *)
+(* Copyright (C) 2015, 2016, 2017, 2018
+   Free Software Foundation, Inc.  *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -31,65 +32,92 @@ FROM SYSTEM IMPORT ADDRESS ;
 FROM DynamicStrings IMPORT String ;
 FROM nameKey IMPORT Name ;
 
-
-(*
-   beginComment - the start of a new comment has been seen by the lexical analyser.
-                  A new comment block is created and all addText contents are placed
-                  in this block.
-*)
-
-PROCEDURE beginComment ;
+TYPE
+   commentDesc ;
 
 
 (*
-   endComment - the end of the comment has been seen by the lexical analyser.
+   initComment - the start of a new comment has been seen by the lexical analyser.
+                 A new comment block is created and all addText contents are placed
+                 in this block.  onlySpaces indicates whether we have only seen
+                 spaces on this line.  The new comment descriptor is returned.
+		 If onlySpaces is TRUE then an inbody comment is created.
+		 If onlySpaces is FALSE then an after statement comment is created.
 *)
 
-PROCEDURE endComment ;
+PROCEDURE initComment (onlySpaces: BOOLEAN) : commentDesc ;
 
 
 (*
    addText - cs is a C string (null terminated) which contains comment text.
-             This is appended to the current comment.
 *)
 
-PROCEDURE addText (cs: ADDRESS) ;
+PROCEDURE addText (cd: commentDesc; cs: ADDRESS) ;
 
 
 (*
-   getComment - returns the current comment.
+   getContent - returns the content of comment, cd.
 *)
 
-PROCEDURE getComment () : String ;
+PROCEDURE getContent (cd: commentDesc) : String ;
 
 
 (*
-   getCommentCharStar - returns the current comment.
+   getCommentCharStar - returns the contents of the comment, cd.
 *)
 
-PROCEDURE getCommentCharStar () : ADDRESS ;
+PROCEDURE getCommentCharStar (cd: commentDesc) : ADDRESS ;
 
 
 (*
-   setProcedureComment - changes the type of the current comment to a procedure heading comment,
+   setProcedureComment - changes the type of comment, cd, to a
+                         procedure heading comment,
                          providing it has the procname as the first word.
 *)
 
-PROCEDURE setProcedureComment (procname: Name) ;
+PROCEDURE setProcedureComment (cd: commentDesc; procname: Name) ;
 
 
 (*
-   getProcedureComment - returns the current procedure comment if available.
+   getProcedureComment - returns the procedure comment if available.
 *)
 
-PROCEDURE getProcedureComment () : String ;
+PROCEDURE getProcedureComment (cd: commentDesc) : String ;
 
 
 (*
-   newPass - resets the comment count so that we can collect the comments in order again.
+   getAfterStatementComment - returns the after comment if available.
 *)
 
-PROCEDURE newPass ;
+PROCEDURE getAfterStatementComment (cd: commentDesc) : String ;
+
+
+(*
+   getInbodyStatementComment - returns the statement comment if available.
+*)
+
+PROCEDURE getInbodyStatementComment (cd: commentDesc) : String ;
+
+
+(*
+   isProcedureComment - returns TRUE if, cd, is a procedure comment.
+*)
+
+PROCEDURE isProcedureComment (cd: commentDesc) : BOOLEAN ;
+
+
+(*
+   isBodyComment - returns TRUE if, cd, is a body comment.
+*)
+
+PROCEDURE isBodyComment (cd: commentDesc) : BOOLEAN ;
+
+
+(*
+   isAfterComment - returns TRUE if, cd, is an after comment.
+*)
+
+PROCEDURE isAfterComment (cd: commentDesc) : BOOLEAN ;
 
 
 END mcComment.

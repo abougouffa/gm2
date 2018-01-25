@@ -16,6 +16,7 @@
 
 #include <string.h>
 #include <limits.h>
+#include <stdlib.h>
 #define _M2RTS_H
 #define _M2RTS_C
 
@@ -137,6 +138,8 @@ void M2RTS_WholeNonPosDivException (void * filename, unsigned int line, unsigned
 void M2RTS_WholeNonPosModException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_WholeZeroDivException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_WholeZeroRemException (void * filename, unsigned int line, unsigned int column, void * scope);
+void M2RTS_WholeValueException (void * filename, unsigned int line, unsigned int column, void * scope);
+void M2RTS_RealValueException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_NoException (void * filename, unsigned int line, unsigned int column, void * scope);
 
 /*
@@ -158,7 +161,7 @@ static void ErrorString (char *a_, unsigned int _a_high)
   /* make a local copy of each unbounded array.  */
   memcpy (a, a_, _a_high+1);
 
-  n = libc_write (2, &a, (int) StrLib_StrLen ((char *) a, _a_high));
+  n = libc_write (2, &a, (size_t) StrLib_StrLen ((char *) a, _a_high));
 }
 
 
@@ -269,6 +272,7 @@ void M2RTS_HALT (int exitcode)
       ExitValue = exitcode;
     }
   if (isHalting)
+    /* double HALT found  */
     libc_exit (-1);
   else
     {
@@ -376,6 +380,9 @@ unsigned int M2RTS_Length (char *a_, unsigned int _a_high)
 
 void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int column, void * scope)
 {
+  /* 
+   The following are the runtime exception handler routines.
+  */
   RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, "variable exceeds range during assignment");
 }
 
@@ -469,6 +476,16 @@ void M2RTS_WholeZeroRemException (void * filename, unsigned int line, unsigned i
   RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeDivException), filename, line, column, scope, "the remainder expression has a divisor which is equal to zero");
 }
 
+void M2RTS_WholeValueException (void * filename, unsigned int line, unsigned int column, void * scope)
+{
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeValueException), filename, line, column, scope, "the whole value is about to overflow");
+}
+
+void M2RTS_RealValueException (void * filename, unsigned int line, unsigned int column, void * scope)
+{
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_realValueException), filename, line, column, scope, "the floating point value is about to overflow");
+}
+
 void M2RTS_NoException (void * filename, unsigned int line, unsigned int column, void * scope)
 {
   RTExceptions_Raise ((unsigned int) (M2EXCEPTION_exException), filename, line, column, scope, "M2Expection was called when no there was no outstanding exception to be returned");
@@ -480,7 +497,7 @@ void _M2_M2RTS_init (__attribute__((unused)) int argc, __attribute__((unused)) c
   tPtr = 0;
   ExitValue = 0;
   isHalting = FALSE;
-  CallExit = FALSE;
+  CallExit = FALSE;  /* default by calling abort  */
 }
 
 void _M2_M2RTS_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

@@ -284,6 +284,11 @@ static unsigned int translateNameToCharStar (char *a, unsigned int _a_high, unsi
   unsigned int i;
   unsigned int h;
 
+  /* 
+   translateNameToString - takes a format specification string, a, and
+                           if they consist of of %a then this is translated
+                           into a String and %a is replaced by %s.
+  */
   argno = 1;
   i = 0;
   h = StrLib_StrLen ((char *) a, _a_high);
@@ -298,6 +303,7 @@ static unsigned int translateNameToCharStar (char *a, unsigned int _a_high, unsi
             }
           argno += 1;
           if (argno > n)
+            /* all done  */
             return FALSE;
         }
       i += 1;
@@ -374,6 +380,9 @@ static DynamicStrings_String doFormat1 (char *a_, unsigned int _a_high, unsigned
   memcpy (a, a_, _a_high+1);
   memcpy (w, w_, _w_high+1);
 
+  /* 
+   DoFormat1 -
+  */
   if (translateNameToCharStar ((char *) a, _a_high, 1))
     {
       cast ((unsigned char *) &n, (sizeof (n)-1), (unsigned char *) w, _w_high);
@@ -817,6 +826,9 @@ void mcError_errorFormat0 (mcError_error e, char *a_, unsigned int _a_high)
   /* make a local copy of each unbounded array.  */
   memcpy (a, a_, _a_high+1);
 
+  /* 
+   errorFormat routines provide a printf capability for the error handle.
+  */
   if (e->s == NULL)
     e->s = FormatStrings_Sprintf0 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)));
   else
@@ -983,6 +995,11 @@ void mcError_warnFormat0 (char *a_, unsigned int _a_high)
   /* make a local copy of each unbounded array.  */
   memcpy (a, a_, _a_high+1);
 
+  /* 
+   WarnFormat0 - displays the source module and line together
+                 with the encapsulated format string.
+                 Used for simple warning messages tied to the current token.
+  */
   e = mcError_newWarning (mcLexBuf_getTokenNo ());
   e->s = FormatStrings_Sprintf0 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) a, _a_high)));
 }

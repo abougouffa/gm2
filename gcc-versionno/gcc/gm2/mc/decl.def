@@ -1,4 +1,4 @@
-(* Copyright (C) 2015, 2016
+(* Copyright (C) 2015, 2016, 2017, 2018
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -31,6 +31,7 @@ DEFINITION MODULE decl ; (*!m2pim*)
 FROM nameKey IMPORT Name ;
 FROM symbolKey IMPORT performOperation ;
 FROM mcReserved IMPORT toktype ;
+FROM mcComment IMPORT commentDesc ;
 
 TYPE
    node ;
@@ -1042,6 +1043,27 @@ PROCEDURE addStatement (s: node; n: node) ;
 
 
 (*
+   addCommentBody - adds a body comment to a statement sequence node.
+*)
+
+PROCEDURE addCommentBody (n: node) ;
+
+
+(*
+   addCommentAfter - adds an after comment to a statement sequence node.
+*)
+
+PROCEDURE addCommentAfter (n: node) ;
+
+
+(*
+   addIfComments - adds the, body, and, after, comments to if node, n.
+*)
+
+PROCEDURE addIfComments (n: node; body, after: node) ;
+
+
+(*
    makeReturn - creates and returns a return node.
 *)
 
@@ -1150,6 +1172,13 @@ PROCEDURE putLoop (l, s: node) ;
 *)
 
 PROCEDURE makeComment (a: ARRAY OF CHAR) : node ;
+
+
+(*
+   makeCommentS - creates and returns a comment node.
+*)
+
+PROCEDURE makeCommentS (c: commentDesc) : node ;
 
 
 (*

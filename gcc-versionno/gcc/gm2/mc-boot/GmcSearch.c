@@ -297,6 +297,7 @@ unsigned int mcSearch_findSourceDefFile (DynamicStrings_String stem, DynamicStri
         return TRUE;
       f = DynamicStrings_KillString (f);
     }
+  /* and try the GNU Modula-2 default extension  */
   f = mcFileName_calculateFileName (stem, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "def", 3)));
   return mcSearch_findSourceFile (f, fullPath);
 }
@@ -320,6 +321,7 @@ unsigned int mcSearch_findSourceModFile (DynamicStrings_String stem, DynamicStri
         return TRUE;
       f = DynamicStrings_KillString (f);
     }
+  /* and try the GNU Modula-2 default extension  */
   f = mcFileName_calculateFileName (stem, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "mod", 3)));
   return mcSearch_findSourceFile (f, fullPath);
 }

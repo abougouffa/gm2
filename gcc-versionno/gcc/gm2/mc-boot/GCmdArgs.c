@@ -84,22 +84,25 @@ static unsigned int GetNextArg (char *CmdLine_, unsigned int _CmdLine_high, unsi
   /* make a local copy of each unbounded array.  */
   memcpy (CmdLine, CmdLine_, _CmdLine_high+1);
 
-  HighA = _Arg_high;
+  HighA = _Arg_high;  /* Index into Arg  */
   HighC = StrLib_StrLen ((char *) CmdLine, _CmdLine_high);
   ArgIndex = 0;
   while (((*CmdIndex) < HighC) && (Space (CmdLine[(*CmdIndex)])))
+    /* Skip spaces  */
     (*CmdIndex) += 1;
   if ((*CmdIndex) < HighC)
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
       if (SingleQuote (CmdLine[(*CmdIndex)]))
         {
+          /* Skip over the single quote  */
           (*CmdIndex) += 1;
           CopyUntil ((char *) CmdLine, _CmdLine_high, CmdIndex, HighC, (char *) Arg, _Arg_high, &ArgIndex, HighA, squote);
           (*CmdIndex) += 1;
         }
       else if (DoubleQuote (CmdLine[(*CmdIndex)]))
         {
+          /* Skip over the double quote  */
           (*CmdIndex) += 1;
           CopyUntil ((char *) CmdLine, _CmdLine_high, CmdIndex, HighC, (char *) Arg, _Arg_high, &ArgIndex, HighA, dquote);
           (*CmdIndex) += 1;
@@ -108,6 +111,7 @@ static unsigned int GetNextArg (char *CmdLine_, unsigned int _CmdLine_high, unsi
         CopyUntilSpace ((char *) CmdLine, _CmdLine_high, CmdIndex, HighC, (char *) Arg, _Arg_high, &ArgIndex, HighA);
     }
   while (((*CmdIndex) < HighC) && (Space (CmdLine[(*CmdIndex)])))
+    /* Skip spaces  */
     (*CmdIndex) += 1;
   if (ArgIndex < HighA)
     Arg[ArgIndex] = ASCII_nul;
@@ -163,9 +167,11 @@ static void CopyChar (char *From_, unsigned int _From_high, unsigned int *FromIn
   if (((*FromIndex) < FromHigh) && ((*ToIndex) < ToHigh))
     {
       if (Escape (From[(*FromIndex)]))
+        /* Skip over Escape Character  */
         (*FromIndex) += 1;
       if ((*FromIndex) < FromHigh)
         {
+          /* Copy Normal Character  */
           To[(*ToIndex)] = From[(*FromIndex)];
           (*ToIndex) += 1;
           (*FromIndex) += 1;
@@ -211,6 +217,7 @@ unsigned int CmdArgs_GetArg (char *CmdLine_, unsigned int _CmdLine_high, unsigne
   memcpy (CmdLine, CmdLine_, _CmdLine_high+1);
 
   Index = 0;
+  /* Continually retrieve an argument until we get the n th argument.  */
   i = 0;
   do {
     Another = GetNextArg ((char *) CmdLine, _CmdLine_high, &Index, (char *) Argi, _Argi_high);
@@ -240,6 +247,12 @@ unsigned int CmdArgs_Narg (char *CmdLine_, unsigned int _CmdLine_high)
   ArgNo = 0;
   while (CmdArgs_GetArg ((char *) CmdLine, _CmdLine_high, ArgNo, (char *) &a.array[0], 1000))
     ArgNo += 1;
+  /* 
+   IF ArgNo>0
+   THEN
+      DEC(ArgNo)
+   END ;
+  */
   return ArgNo;
 }
 

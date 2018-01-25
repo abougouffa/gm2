@@ -15,6 +15,7 @@
 #   endif
 
 #include <stddef.h>
+#include <stdlib.h>
 #   include "GStorage.h"
 #define _Indexing_H
 #define _Indexing_C
@@ -144,7 +145,7 @@ Indexing_Index Indexing_InitIndex (unsigned int low)
   i->High = 0;
   i->ArraySize = MinSize;
   Storage_ALLOCATE (&i->ArrayStart, MinSize);
-  i->ArrayStart = libc_memset (i->ArrayStart, 0, i->ArraySize);
+  i->ArrayStart = libc_memset (i->ArrayStart, 0, (size_t) i->ArraySize);
   i->Debug = FALSE;
   i->Used = 0;
   i->Map = (unsigned int) 0;
@@ -237,10 +238,19 @@ void Indexing_PutIndice (Indexing_Index i, unsigned int n, void * a)
             i->ArraySize = i->ArraySize*2;
           if (oldSize != i->ArraySize)
             {
+              /* 
+               IF Debug
+               THEN
+                  printf2('increasing memory hunk from %d to %d
+              ',
+                          oldSize, ArraySize)
+               END ;
+  */
               Storage_REALLOCATE (&i->ArrayStart, i->ArraySize);
+              /* and initialize the remainder of the array to NIL  */
               b = i->ArrayStart;
               b += oldSize;
-              b = libc_memset (b, 0, i->ArraySize-oldSize);
+              b = libc_memset (b, 0, (size_t) i->ArraySize-oldSize);
             }
           i->High = n;
         }
@@ -294,6 +304,7 @@ unsigned int Indexing_IsIndiceInIndex (Indexing_Index i, void * a)
       p = (PtrToAddress) (b);
       if ((*p) == a)
         return TRUE;
+      /* we must not INC(p, ..) as p2c gets confused  */
       b += sizeof (void *);
       j += 1;
     }
@@ -340,7 +351,7 @@ void Indexing_DeleteIndice (Indexing_Index i, unsigned int j)
       b += (sizeof (void *))*(j-i->Low);
       p = (PtrToAddress) (b);
       b += sizeof (void *);
-      p = libc_memmove ((void *) p, (void *) b, (i->High-j)*(sizeof (void *)));
+      p = libc_memmove ((void *) p, (void *) b, (size_t) (i->High-j)*(sizeof (void *)));
       i->High -= 1;
       i->Used -= 1;
     }

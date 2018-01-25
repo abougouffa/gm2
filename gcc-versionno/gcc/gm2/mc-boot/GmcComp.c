@@ -66,6 +66,12 @@ static unsigned int currentPass;
 void mcComp_compile (DynamicStrings_String s);
 
 /*
+   getPassNo - return the pass no.
+*/
+
+unsigned int mcComp_getPassNo (void);
+
+/*
    doCompile - translate file, s, using a 6 pass technique.
 */
 
@@ -207,6 +213,7 @@ static decl_node examineCompilationUnit (void)
 {
   while (((mcLexBuf_currenttoken != mcReserved_eoftok) && (mcLexBuf_currenttoken != mcReserved_semicolontok)) && (mcLexBuf_currenttoken != mcReserved_lsbratok))
     {
+      /* stop if we see eof, ';' or '['  */
       if (mcLexBuf_currenttoken == mcReserved_definitiontok)
         {
           mcLexBuf_getToken ();
@@ -494,7 +501,6 @@ static void doPass (unsigned int parseDefs, unsigned int parseMain, unsigned int
   memcpy (desc, desc_, _desc_high+1);
 
   setToPassNo (no);
-  mcComment_newPass ();
   descs = DynamicStrings_InitString ((char *) desc, _desc_high);
   mcQuiet_qprintf2 ((char *) "Pass %d: %s\\n", 13, (unsigned char *) &no, (sizeof (no)-1), (unsigned char *) &descs, (sizeof (descs)-1));
   decl_foreachDefModuleDo ((symbolKey_performOperation) {(symbolKey_performOperation_t) decl_unsetVisited});
@@ -503,6 +509,7 @@ static void doPass (unsigned int parseDefs, unsigned int parseMain, unsigned int
     {
       decl_unsetVisited (decl_getMainModule ());
       if (parseDefs && (decl_isImp (decl_getMainModule ())))
+        /* we need to parse the definition module of a corresponding implementation module.  */
         (*p.proc) ((void *) decl_lookupDef (decl_getSymName (decl_getMainModule ())));
       (*p.proc) ((void *) decl_getMainModule ());
     }
@@ -542,6 +549,16 @@ void mcComp_compile (DynamicStrings_String s)
 {
   if (s != NULL)
     doCompile (s);
+}
+
+
+/*
+   getPassNo - return the pass no.
+*/
+
+unsigned int mcComp_getPassNo (void)
+{
+  return currentPass;
 }
 
 void _M2_mcComp_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

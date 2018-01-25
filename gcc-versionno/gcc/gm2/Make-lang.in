@@ -1509,6 +1509,7 @@ gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-compiler-boot/%.def
 #  the default rule used generate mc, eventually it will be
 #  replaced by mc-bootstrap.
 #
+BOOTGM2VERSION=svn-trunc
 BOOTGM2VERSION=4.7.4
 PGE=${HOME}/GM2/graft-${BOOTGM2VERSION}/build-${BOOTGM2VERSION}/gcc/gm2/pge
 BOOTGM2=gm2

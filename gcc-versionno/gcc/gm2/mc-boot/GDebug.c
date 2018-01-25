@@ -76,7 +76,7 @@ void Debug_Halt (char *Message_, unsigned int _Message_high, unsigned int LineNo
   memcpy (Message, Message_, _Message_high+1);
   memcpy (Module, Module_, _Module_high+1);
 
-  Debug_DebugString ((char *) Module, _Module_high);
+  Debug_DebugString ((char *) Module, _Module_high);  /* should be large enough for most source files..  */
   NumberIO_CardToStr (LineNo, 0, (char *) &No.array[0], MaxNoOfDigits);
   Debug_DebugString ((char *) ":", 1);
   Debug_DebugString ((char *) &No.array[0], MaxNoOfDigits);

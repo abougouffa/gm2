@@ -27,10 +27,13 @@
 #   include "GFormatStrings.h"
 #   include "GnameKey.h"
 #   include "GmcReserved.h"
+#   include "GmcComment.h"
 #   include "GmcPrintf.h"
 #   include "GmcDebug.h"
 #   include "GM2RTS.h"
 
+mcComment_commentDesc mcLexBuf_currentcomment;
+mcComment_commentDesc mcLexBuf_lastcomment;
 int mcLexBuf_currentinteger;
 unsigned int mcLexBuf_currentcolumn;
 void * mcLexBuf_currentstring;
@@ -55,6 +58,7 @@ struct tokenDesc_r {
                      mcReserved_toktype token;
                      nameKey_Name str;
                      int int_;
+                     mcComment_commentDesc com;
                      unsigned int line;
                      unsigned int col;
                      sourceList file;
@@ -81,11 +85,37 @@ struct _T2_r {
                tokenBucket next;
              };
 
+static mcComment_commentDesc procedureComment;
+static mcComment_commentDesc bodyComment;
+static mcComment_commentDesc afterComment;
 static sourceList currentSource;
 static unsigned int useBufferedTokens;
 static unsigned int currentUsed;
 static listDesc listOfTokens;
-static unsigned int currentTokNo;
+static unsigned int nextTokNo;
+
+/*
+   getProcedureComment - returns the procedure comment if it exists,
+                         or NIL otherwise.
+*/
+
+mcComment_commentDesc mcLexBuf_getProcedureComment (void);
+
+/*
+   getBodyComment - returns the body comment if it exists,
+                    or NIL otherwise.  The body comment is
+                    removed if found.
+*/
+
+mcComment_commentDesc mcLexBuf_getBodyComment (void);
+
+/*
+   getAfterComment - returns the after comment if it exists,
+                     or NIL otherwise.  The after comment is
+                     removed if found.
+*/
+
+mcComment_commentDesc mcLexBuf_getAfterComment (void);
 
 /*
    openSource - attempts to open the source file, s.
@@ -215,6 +245,12 @@ void mcLexBuf_addTokCharStar (mcReserved_toktype t, void * s);
 void mcLexBuf_addTokInteger (mcReserved_toktype t, int i);
 
 /*
+   addTokComment - adds a token to the buffer and a comment descriptor, com.
+*/
+
+void mcLexBuf_addTokComment (mcReserved_toktype t, mcComment_commentDesc com);
+
+/*
    setFile - sets the current filename to, filename.
 */
 
@@ -232,6 +268,31 @@ void mcLexBuf_pushFile (void * filename);
 */
 
 void mcLexBuf_popFile (void * filename);
+
+/*
+   debugLex - display the last, n, tokens.
+*/
+
+static void debugLex (unsigned int n);
+
+/*
+   seekTo -
+*/
+
+static void seekTo (unsigned int t);
+
+/*
+   peeptokenBucket -
+*/
+
+static tokenBucket peeptokenBucket (unsigned int *t);
+
+/*
+   peepAfterComment - peeps ahead looking for an after statement comment.  It stops at an END token
+                      or if the line number changes.
+*/
+
+static void peepAfterComment (void);
 
 /*
    init - initializes the token list and source list.
@@ -280,7 +341,7 @@ static void killList (void);
    displayToken -
 */
 
-static void displayToken (void);
+static void displayToken (mcReserved_toktype t);
 
 /*
    updateFromBucket - updates the global variables:  currenttoken,
@@ -319,7 +380,7 @@ static void stop (void);
    addTokToList - adds a token to a dynamic list.
 */
 
-static void addTokToList (mcReserved_toktype t, nameKey_Name n, int i, unsigned int l, unsigned int c, sourceList f);
+static void addTokToList (mcReserved_toktype t, nameKey_Name n, int i, mcComment_commentDesc comment, unsigned int l, unsigned int c, sourceList f);
 
 /*
    isLastTokenEof - returns TRUE if the last token was an eoftok
@@ -329,17 +390,172 @@ static unsigned int isLastTokenEof (void);
 
 
 /*
+   debugLex - display the last, n, tokens.
+*/
+
+static void debugLex (unsigned int n)
+{
+  unsigned int c;
+  unsigned int i;
+  unsigned int o;
+  unsigned int t;
+  tokenBucket b;
+
+  if (nextTokNo > n)
+    o = nextTokNo-n;
+  else
+    o = 0;
+  i = 0;
+  do {
+    t = o+i;
+    if (nextTokNo == t)
+      mcPrintf_printf0 ((char *) "nextTokNo ", 10);
+    b = findtokenBucket (&t);
+    if (b == NULL)
+      {
+        t = o+i;
+        mcPrintf_printf1 ((char *) "end of buf  (%d is further ahead than the buffer contents)\\n", 60, (unsigned char *) &t, (sizeof (t)-1));
+      }
+    else
+      {
+        c = o+i;
+        mcPrintf_printf2 ((char *) "entry %d  %d ", 13, (unsigned char *) &c, (sizeof (c)-1), (unsigned char *) &t, (sizeof (t)-1));
+        displayToken (b->buf.array[t].token);
+        mcPrintf_printf0 ((char *) "\\n", 2);
+        i += 1;
+      }
+  } while (! (b == NULL));
+}
+
+
+/*
+   seekTo -
+*/
+
+static void seekTo (unsigned int t)
+{
+  tokenBucket b;
+
+  nextTokNo = t;
+  if (t > 0)
+    {
+      t -= 1;
+      b = findtokenBucket (&t);
+      if (b == NULL)
+        updateFromBucket (b, t);
+    }
+}
+
+
+/*
+   peeptokenBucket -
+*/
+
+static tokenBucket peeptokenBucket (unsigned int *t)
+{
+  mcReserved_toktype ct;
+  unsigned int old;
+  unsigned int n;
+  tokenBucket b;
+  tokenBucket c;
+
+  ct = mcLexBuf_currenttoken;
+  if (Debugging)
+    debugLex (5);
+  old = mcLexBuf_getTokenNo ();
+  do {
+    n = (*t);
+    b = findtokenBucket (&n);
+    if (b == NULL)
+      doGetToken ();
+  } while (! ((b != NULL) || (mcLexBuf_currenttoken == mcReserved_eoftok)));
+  (*t) = n;
+  nextTokNo = old+1;
+  if (Debugging)
+    mcPrintf_printf2 ((char *) "nextTokNo = %d, old = %d\\n", 26, (unsigned char *) &nextTokNo, (sizeof (nextTokNo)-1), (unsigned char *) &old, (sizeof (old)-1));
+  b = findtokenBucket (&old);
+  if (Debugging)
+    mcPrintf_printf1 ((char *) "  adjusted old = %d\\n", 21, (unsigned char *) &old, (sizeof (old)-1));
+  if (b != NULL)
+    updateFromBucket (b, old);
+  if (Debugging)
+    debugLex (5);
+  mcDebug_assert (ct == mcLexBuf_currenttoken);
+  return b;
+}
+
+
+/*
+   peepAfterComment - peeps ahead looking for an after statement comment.  It stops at an END token
+                      or if the line number changes.
+*/
+
+static void peepAfterComment (void)
+{
+  unsigned int oldTokNo;
+  unsigned int t;
+  unsigned int peep;
+  unsigned int cno;
+  unsigned int nextline;
+  unsigned int curline;
+  tokenBucket b;
+  unsigned int finished;
+
+  oldTokNo = nextTokNo;
+  cno = mcLexBuf_getTokenNo ();
+  curline = mcLexBuf_tokenToLineNo (cno, 0);
+  nextline = curline;
+  peep = 0;
+  finished = FALSE;
+  do {
+    t = cno+peep;
+    b = peeptokenBucket (&t);
+    if (b == NULL)
+      finished = TRUE;
+    else
+      {
+        nextline = b->buf.array[t].line;
+        if (nextline == curline)
+          switch (b->buf.array[t].token)
+            {
+              case mcReserved_endtok:
+                finished = TRUE;
+                break;
+
+              case mcReserved_commenttok:
+                if (mcComment_isAfterComment (b->buf.array[t].com))
+                  afterComment = b->buf.array[t].com;
+                break;
+
+
+              default:
+                break;
+            }
+        else
+          finished = TRUE;
+      }
+    peep += 1;
+  } while (! (finished));
+  seekTo (oldTokNo);
+}
+
+
+/*
    init - initializes the token list and source list.
 */
 
 static void init (void)
 {
   mcLexBuf_currenttoken = mcReserved_eoftok;
-  currentTokNo = 0;
+  nextTokNo = 0;
   currentSource = NULL;
   listOfTokens.head = NULL;
   listOfTokens.tail = NULL;
   useBufferedTokens = FALSE;
+  procedureComment = NULL;
+  bodyComment = NULL;
+  afterComment = NULL;
+  mcLexBuf_lastcomment = NULL;
 }
 
 
@@ -455,337 +671,339 @@ static void killList (void)
    displayToken -
 */
 
-static void displayToken (void)
+static void displayToken (mcReserved_toktype t)
 {
-  if (mcLexBuf_currenttoken == mcReserved_identtok)
-    mcPrintf_printf1 ((char *) "currenttoken = %a\\n", 19, (unsigned char *) &mcLexBuf_currentstring, (sizeof (mcLexBuf_currentstring)-1));
-  else
-    switch (mcLexBuf_currenttoken)
-      {
-        case mcReserved_eoftok:
-          mcPrintf_printf0 ((char *) "eoftok\\n", 8);
-          break;
-
-        case mcReserved_plustok:
-          mcPrintf_printf0 ((char *) "plustok\\n", 9);
-          break;
-
-        case mcReserved_minustok:
-          mcPrintf_printf0 ((char *) "minustok\\n", 10);
-          break;
-
-        case mcReserved_timestok:
-          mcPrintf_printf0 ((char *) "timestok\\n", 10);
-          break;
-
-        case mcReserved_dividetok:
-          mcPrintf_printf0 ((char *) "dividetok\\n", 11);
-          break;
-
-        case mcReserved_becomestok:
-          mcPrintf_printf0 ((char *) "becomestok\\n", 12);
-          break;
-
-        case mcReserved_ambersandtok:
-          mcPrintf_printf0 ((char *) "ambersandtok\\n", 14);
-          break;
-
-        case mcReserved_periodtok:
-          mcPrintf_printf0 ((char *) "periodtok\\n", 11);
-          break;
-
-        case mcReserved_commatok:
-          mcPrintf_printf0 ((char *) "commatok\\n", 10);
-          break;
-
-        case mcReserved_semicolontok:
-          mcPrintf_printf0 ((char *) "semicolontok\\n", 14);
-          break;
-
-        case mcReserved_lparatok:
-          mcPrintf_printf0 ((char *) "lparatok\\n", 10);
-          break;
-
-        case mcReserved_rparatok:
-          mcPrintf_printf0 ((char *) "rparatok\\n", 10);
-          break;
-
-        case mcReserved_lsbratok:
-          mcPrintf_printf0 ((char *) "lsbratok\\n", 10);
-          break;
-
-        case mcReserved_rsbratok:
-          mcPrintf_printf0 ((char *) "rsbratok\\n", 10);
-          break;
-
-        case mcReserved_lcbratok:
-          mcPrintf_printf0 ((char *) "lcbratok\\n", 10);
-          break;
-
-        case mcReserved_rcbratok:
-          mcPrintf_printf0 ((char *) "rcbratok\\n", 10);
-          break;
-
-        case mcReserved_uparrowtok:
-          mcPrintf_printf0 ((char *) "uparrowtok\\n", 12);
-          break;
-
-        case mcReserved_singlequotetok:
-          mcPrintf_printf0 ((char *) "singlequotetok\\n", 16);
-          break;
-
-        case mcReserved_equaltok:
-          mcPrintf_printf0 ((char *) "equaltok\\n", 10);
-          break;
-
-        case mcReserved_hashtok:
-          mcPrintf_printf0 ((char *) "hashtok\\n", 9);
-          break;
-
-        case mcReserved_lesstok:
-          mcPrintf_printf0 ((char *) "lesstok\\n", 9);
-          break;
-
-        case mcReserved_greatertok:
-          mcPrintf_printf0 ((char *) "greatertok\\n", 12);
-          break;
-
-        case mcReserved_lessgreatertok:
-          mcPrintf_printf0 ((char *) "lessgreatertok\\n", 16);
-          break;
-
-        case mcReserved_lessequaltok:
-          mcPrintf_printf0 ((char *) "lessequaltok\\n", 14);
-          break;
-
-        case mcReserved_greaterequaltok:
-          mcPrintf_printf0 ((char *) "greaterequaltok\\n", 17);
-          break;
+  switch (t)
+    {
+      case mcReserved_eoftok:
+        mcPrintf_printf0 ((char *) "eoftok\\n", 8);
+        break;
+
+      case mcReserved_plustok:
+        mcPrintf_printf0 ((char *) "plustok\\n", 9);
+        break;
+
+      case mcReserved_minustok:
+        mcPrintf_printf0 ((char *) "minustok\\n", 10);
+        break;
+
+      case mcReserved_timestok:
+        mcPrintf_printf0 ((char *) "timestok\\n", 10);
+        break;
+
+      case mcReserved_dividetok:
+        mcPrintf_printf0 ((char *) "dividetok\\n", 11);
+        break;
+
+      case mcReserved_becomestok:
+        mcPrintf_printf0 ((char *) "becomestok\\n", 12);
+        break;
+
+      case mcReserved_ambersandtok:
+        mcPrintf_printf0 ((char *) "ambersandtok\\n", 14);
+        break;
+
+      case mcReserved_periodtok:
+        mcPrintf_printf0 ((char *) "periodtok\\n", 11);
+        break;
+
+      case mcReserved_commatok:
+        mcPrintf_printf0 ((char *) "commatok\\n", 10);
+        break;
+
+      case mcReserved_commenttok:
+        mcPrintf_printf0 ((char *) "commenttok\\n", 12);
+        break;
+
+      case mcReserved_semicolontok:
+        mcPrintf_printf0 ((char *) "semicolontok\\n", 14);
+        break;
+
+      case mcReserved_lparatok:
+        mcPrintf_printf0 ((char *) "lparatok\\n", 10);
+        break;
+
+      case mcReserved_rparatok:
+        mcPrintf_printf0 ((char *) "rparatok\\n", 10);
+        break;
+
+      case mcReserved_lsbratok:
+        mcPrintf_printf0 ((char *) "lsbratok\\n", 10);
+        break;
+
+      case mcReserved_rsbratok:
+        mcPrintf_printf0 ((char *) "rsbratok\\n", 10);
+        break;
+
+      case mcReserved_lcbratok:
+        mcPrintf_printf0 ((char *) "lcbratok\\n", 10);
+        break;
+
+      case mcReserved_rcbratok:
+        mcPrintf_printf0 ((char *) "rcbratok\\n", 10);
+        break;
+
+      case mcReserved_uparrowtok:
+        mcPrintf_printf0 ((char *) "uparrowtok\\n", 12);
+        break;
+
+      case mcReserved_singlequotetok:
+        mcPrintf_printf0 ((char *) "singlequotetok\\n", 16);
+        break;
+
+      case mcReserved_equaltok:
+        mcPrintf_printf0 ((char *) "equaltok\\n", 10);
+        break;
+
+      case mcReserved_hashtok:
+        mcPrintf_printf0 ((char *) "hashtok\\n", 9);
+        break;
+
+      case mcReserved_lesstok:
+        mcPrintf_printf0 ((char *) "lesstok\\n", 9);
+        break;
+
+      case mcReserved_greatertok:
+        mcPrintf_printf0 ((char *) "greatertok\\n", 12);
+        break;
+
+      case mcReserved_lessgreatertok:
+        mcPrintf_printf0 ((char *) "lessgreatertok\\n", 16);
+        break;
+
+      case mcReserved_lessequaltok:
+        mcPrintf_printf0 ((char *) "lessequaltok\\n", 14);
+        break;
+
+      case mcReserved_greaterequaltok:
+        mcPrintf_printf0 ((char *) "greaterequaltok\\n", 17);
+        break;
+
+      case mcReserved_periodperiodtok:
+        mcPrintf_printf0 ((char *) "periodperiodtok\\n", 17);
+        break;
+
+      case mcReserved_colontok:
+        mcPrintf_printf0 ((char *) "colontok\\n", 10);
+        break;
+
+      case mcReserved_doublequotestok:
+        mcPrintf_printf0 ((char *) "doublequotestok\\n", 17);
+        break;
+
+      case mcReserved_bartok:
+        mcPrintf_printf0 ((char *) "bartok\\n", 8);
+        break;
+
+      case mcReserved_andtok:
+        mcPrintf_printf0 ((char *) "andtok\\n", 8);
+        break;
+
+      case mcReserved_arraytok:
+        mcPrintf_printf0 ((char *) "arraytok\\n", 10);
+        break;
+
+      case mcReserved_begintok:
+        mcPrintf_printf0 ((char *) "begintok\\n", 10);
+        break;
+
+      case mcReserved_bytok:
+        mcPrintf_printf0 ((char *) "bytok\\n", 7);
+        break;
+
+      case mcReserved_casetok:
+        mcPrintf_printf0 ((char *) "casetok\\n", 9);
+        break;
+
+      case mcReserved_consttok:
+        mcPrintf_printf0 ((char *) "consttok\\n", 10);
+        break;
+
+      case mcReserved_definitiontok:
+        mcPrintf_printf0 ((char *) "definitiontok\\n", 15);
+        break;
+
+      case mcReserved_divtok:
+        mcPrintf_printf0 ((char *) "divtok\\n", 8);
+        break;
+
+      case mcReserved_dotok:
+        mcPrintf_printf0 ((char *) "dotok\\n", 7);
+        break;
+
+      case mcReserved_elsetok:
+        mcPrintf_printf0 ((char *) "elsetok\\n", 9);
+        break;
+
+      case mcReserved_elsiftok:
+        mcPrintf_printf0 ((char *) "elsiftok\\n", 10);
+        break;
+
+      case mcReserved_endtok:
+        mcPrintf_printf0 ((char *) "endtok\\n", 8);
+        break;
+
+      case mcReserved_exittok:
+        mcPrintf_printf0 ((char *) "exittok\\n", 9);
+        break;
+
+      case mcReserved_exporttok:
+        mcPrintf_printf0 ((char *) "exporttok\\n", 11);
+        break;
+
+      case mcReserved_fortok:
+        mcPrintf_printf0 ((char *) "fortok\\n", 8);
+        break;
+
+      case mcReserved_fromtok:
+        mcPrintf_printf0 ((char *) "fromtok\\n", 9);
+        break;
+
+      case mcReserved_iftok:
+        mcPrintf_printf0 ((char *) "iftok\\n", 7);
+        break;
+
+      case mcReserved_implementationtok:
+        mcPrintf_printf0 ((char *) "implementationtok\\n", 19);
+        break;
+
+      case mcReserved_importtok:
+        mcPrintf_printf0 ((char *) "importtok\\n", 11);
+        break;
+
+      case mcReserved_intok:
+        mcPrintf_printf0 ((char *) "intok\\n", 7);
+        break;
+
+      case mcReserved_looptok:
+        mcPrintf_printf0 ((char *) "looptok\\n", 9);
+        break;
+
+      case mcReserved_modtok:
+        mcPrintf_printf0 ((char *) "modtok\\n", 8);
+        break;
+
+      case mcReserved_moduletok:
+        mcPrintf_printf0 ((char *) "moduletok\\n", 11);
+        break;
+
+      case mcReserved_nottok:
+        mcPrintf_printf0 ((char *) "nottok\\n", 8);
+        break;
+
+      case mcReserved_oftok:
+        mcPrintf_printf0 ((char *) "oftok\\n", 7);
+        break;
+
+      case mcReserved_ortok:
+        mcPrintf_printf0 ((char *) "ortok\\n", 7);
+        break;
+
+      case mcReserved_pointertok:
+        mcPrintf_printf0 ((char *) "pointertok\\n", 12);
+        break;
 
-        case mcReserved_periodperiodtok:
-          mcPrintf_printf0 ((char *) "periodperiodtok\\n", 17);
-          break;
+      case mcReserved_proceduretok:
+        mcPrintf_printf0 ((char *) "proceduretok\\n", 14);
+        break;
 
-        case mcReserved_colontok:
-          mcPrintf_printf0 ((char *) "colontok\\n", 10);
-          break;
+      case mcReserved_qualifiedtok:
+        mcPrintf_printf0 ((char *) "qualifiedtok\\n", 14);
+        break;
 
-        case mcReserved_doublequotestok:
-          mcPrintf_printf0 ((char *) "doublequotestok\\n", 17);
-          break;
+      case mcReserved_unqualifiedtok:
+        mcPrintf_printf0 ((char *) "unqualifiedtok\\n", 16);
+        break;
 
-        case mcReserved_bartok:
-          mcPrintf_printf0 ((char *) "bartok\\n", 8);
-          break;
+      case mcReserved_recordtok:
+        mcPrintf_printf0 ((char *) "recordtok\\n", 11);
+        break;
 
-        case mcReserved_andtok:
-          mcPrintf_printf0 ((char *) "andtok\\n", 8);
-          break;
+      case mcReserved_repeattok:
+        mcPrintf_printf0 ((char *) "repeattok\\n", 11);
+        break;
 
-        case mcReserved_arraytok:
-          mcPrintf_printf0 ((char *) "arraytok\\n", 10);
-          break;
+      case mcReserved_returntok:
+        mcPrintf_printf0 ((char *) "returntok\\n", 11);
+        break;
 
-        case mcReserved_begintok:
-          mcPrintf_printf0 ((char *) "begintok\\n", 10);
-          break;
+      case mcReserved_settok:
+        mcPrintf_printf0 ((char *) "settok\\n", 8);
+        break;
 
-        case mcReserved_bytok:
-          mcPrintf_printf0 ((char *) "bytok\\n", 7);
-          break;
+      case mcReserved_thentok:
+        mcPrintf_printf0 ((char *) "thentok\\n", 9);
+        break;
 
-        case mcReserved_casetok:
-          mcPrintf_printf0 ((char *) "casetok\\n", 9);
-          break;
+      case mcReserved_totok:
+        mcPrintf_printf0 ((char *) "totok\\n", 7);
+        break;
 
-        case mcReserved_consttok:
-          mcPrintf_printf0 ((char *) "consttok\\n", 10);
-          break;
+      case mcReserved_typetok:
+        mcPrintf_printf0 ((char *) "typetok\\n", 9);
+        break;
 
-        case mcReserved_definitiontok:
-          mcPrintf_printf0 ((char *) "definitiontok\\n", 15);
-          break;
+      case mcReserved_untiltok:
+        mcPrintf_printf0 ((char *) "untiltok\\n", 10);
+        break;
 
-        case mcReserved_divtok:
-          mcPrintf_printf0 ((char *) "divtok\\n", 8);
-          break;
+      case mcReserved_vartok:
+        mcPrintf_printf0 ((char *) "vartok\\n", 8);
+        break;
 
-        case mcReserved_dotok:
-          mcPrintf_printf0 ((char *) "dotok\\n", 7);
-          break;
+      case mcReserved_whiletok:
+        mcPrintf_printf0 ((char *) "whiletok\\n", 10);
+        break;
 
-        case mcReserved_elsetok:
-          mcPrintf_printf0 ((char *) "elsetok\\n", 9);
-          break;
+      case mcReserved_withtok:
+        mcPrintf_printf0 ((char *) "withtok\\n", 9);
+        break;
 
-        case mcReserved_elsiftok:
-          mcPrintf_printf0 ((char *) "elsiftok\\n", 10);
-          break;
+      case mcReserved_asmtok:
+        mcPrintf_printf0 ((char *) "asmtok\\n", 8);
+        break;
 
-        case mcReserved_endtok:
-          mcPrintf_printf0 ((char *) "endtok\\n", 8);
-          break;
+      case mcReserved_volatiletok:
+        mcPrintf_printf0 ((char *) "volatiletok\\n", 13);
+        break;
 
-        case mcReserved_exittok:
-          mcPrintf_printf0 ((char *) "exittok\\n", 9);
-          break;
+      case mcReserved_periodperiodperiodtok:
+        mcPrintf_printf0 ((char *) "periodperiodperiodtok\\n", 23);
+        break;
 
-        case mcReserved_exporttok:
-          mcPrintf_printf0 ((char *) "exporttok\\n", 11);
-          break;
+      case mcReserved_datetok:
+        mcPrintf_printf0 ((char *) "datetok\\n", 9);
+        break;
 
-        case mcReserved_fortok:
-          mcPrintf_printf0 ((char *) "fortok\\n", 8);
-          break;
+      case mcReserved_linetok:
+        mcPrintf_printf0 ((char *) "linetok\\n", 9);
+        break;
 
-        case mcReserved_fromtok:
-          mcPrintf_printf0 ((char *) "fromtok\\n", 9);
-          break;
+      case mcReserved_filetok:
+        mcPrintf_printf0 ((char *) "filetok\\n", 9);
+        break;
 
-        case mcReserved_iftok:
-          mcPrintf_printf0 ((char *) "iftok\\n", 7);
-          break;
+      case mcReserved_integertok:
+        mcPrintf_printf0 ((char *) "integertok\\n", 12);
+        break;
 
-        case mcReserved_implementationtok:
-          mcPrintf_printf0 ((char *) "implementationtok\\n", 19);
-          break;
+      case mcReserved_identtok:
+        mcPrintf_printf0 ((char *) "identtok\\n", 10);
+        break;
 
-        case mcReserved_importtok:
-          mcPrintf_printf0 ((char *) "importtok\\n", 11);
-          break;
+      case mcReserved_realtok:
+        mcPrintf_printf0 ((char *) "realtok\\n", 9);
+        break;
 
-        case mcReserved_intok:
-          mcPrintf_printf0 ((char *) "intok\\n", 7);
-          break;
+      case mcReserved_stringtok:
+        mcPrintf_printf0 ((char *) "stringtok\\n", 11);
+        break;
 
-        case mcReserved_looptok:
-          mcPrintf_printf0 ((char *) "looptok\\n", 9);
-          break;
 
-        case mcReserved_modtok:
-          mcPrintf_printf0 ((char *) "modtok\\n", 8);
-          break;
-
-        case mcReserved_moduletok:
-          mcPrintf_printf0 ((char *) "moduletok\\n", 11);
-          break;
-
-        case mcReserved_nottok:
-          mcPrintf_printf0 ((char *) "nottok\\n", 8);
-          break;
-
-        case mcReserved_oftok:
-          mcPrintf_printf0 ((char *) "oftok\\n", 7);
-          break;
-
-        case mcReserved_ortok:
-          mcPrintf_printf0 ((char *) "ortok\\n", 7);
-          break;
-
-        case mcReserved_pointertok:
-          mcPrintf_printf0 ((char *) "pointertok\\n", 12);
-          break;
-
-        case mcReserved_proceduretok:
-          mcPrintf_printf0 ((char *) "proceduretok\\n", 14);
-          break;
-
-        case mcReserved_qualifiedtok:
-          mcPrintf_printf0 ((char *) "qualifiedtok\\n", 14);
-          break;
-
-        case mcReserved_unqualifiedtok:
-          mcPrintf_printf0 ((char *) "unqualifiedtok\\n", 16);
-          break;
-
-        case mcReserved_recordtok:
-          mcPrintf_printf0 ((char *) "recordtok\\n", 11);
-          break;
-
-        case mcReserved_repeattok:
-          mcPrintf_printf0 ((char *) "repeattok\\n", 11);
-          break;
-
-        case mcReserved_returntok:
-          mcPrintf_printf0 ((char *) "returntok\\n", 11);
-          break;
-
-        case mcReserved_settok:
-          mcPrintf_printf0 ((char *) "settok\\n", 8);
-          break;
-
-        case mcReserved_thentok:
-          mcPrintf_printf0 ((char *) "thentok\\n", 9);
-          break;
-
-        case mcReserved_totok:
-          mcPrintf_printf0 ((char *) "totok\\n", 7);
-          break;
-
-        case mcReserved_typetok:
-          mcPrintf_printf0 ((char *) "typetok\\n", 9);
-          break;
-
-        case mcReserved_untiltok:
-          mcPrintf_printf0 ((char *) "untiltok\\n", 10);
-          break;
-
-        case mcReserved_vartok:
-          mcPrintf_printf0 ((char *) "vartok\\n", 8);
-          break;
-
-        case mcReserved_whiletok:
-          mcPrintf_printf0 ((char *) "whiletok\\n", 10);
-          break;
-
-        case mcReserved_withtok:
-          mcPrintf_printf0 ((char *) "withtok\\n", 9);
-          break;
-
-        case mcReserved_asmtok:
-          mcPrintf_printf0 ((char *) "asmtok\\n", 8);
-          break;
-
-        case mcReserved_volatiletok:
-          mcPrintf_printf0 ((char *) "volatiletok\\n", 13);
-          break;
-
-        case mcReserved_periodperiodperiodtok:
-          mcPrintf_printf0 ((char *) "periodperiodperiodtok\\n", 23);
-          break;
-
-        case mcReserved_datetok:
-          mcPrintf_printf0 ((char *) "datetok\\n", 9);
-          break;
-
-        case mcReserved_linetok:
-          mcPrintf_printf0 ((char *) "linetok\\n", 9);
-          break;
-
-        case mcReserved_filetok:
-          mcPrintf_printf0 ((char *) "filetok\\n", 9);
-          break;
-
-        case mcReserved_integertok:
-          mcPrintf_printf0 ((char *) "integertok\\n", 12);
-          break;
-
-        case mcReserved_identtok:
-          mcPrintf_printf0 ((char *) "identtok\\n", 10);
-          break;
-
-        case mcReserved_realtok:
-          mcPrintf_printf0 ((char *) "realtok\\n", 9);
-          break;
-
-        case mcReserved_stringtok:
-          mcPrintf_printf0 ((char *) "stringtok\\n", 11);
-          break;
-
-
-        default:
-          break;
-      }
+      default:
+        mcPrintf_printf0 ((char *) "unknown tok (--fixme--)\\n", 25);
+        break;
+    }
 }
 
 
@@ -801,8 +1019,11 @@ static void updateFromBucket (tokenBucket b, unsigned int offset)
   mcLexBuf_currentstring = nameKey_keyToCharStar (b->buf.array[offset].str);
   mcLexBuf_currentcolumn = b->buf.array[offset].col;
   mcLexBuf_currentinteger = b->buf.array[offset].int_;
+  mcLexBuf_currentcomment = b->buf.array[offset].com;
+  if (mcLexBuf_currentcomment != NULL)
+    mcLexBuf_lastcomment = mcLexBuf_currentcomment;
   if (Debugging)
-    mcPrintf_printf3 ((char *) "line %d (# %d  %d) ", 19, (unsigned char *) &b->buf.array[offset].line, (sizeof (b->buf.array[offset].line)-1), (unsigned char *) &offset, (sizeof (offset)-1), (unsigned char *) &currentTokNo, (sizeof (currentTokNo)-1));
+    mcPrintf_printf3 ((char *) "line %d (# %d  %d) ", 19, (unsigned char *) &b->buf.array[offset].line, (sizeof (b->buf.array[offset].line)-1), (unsigned char *) &offset, (sizeof (offset)-1), (unsigned char *) &nextTokNo, (sizeof (nextTokNo)-1));
 }
 
 
@@ -818,7 +1039,7 @@ static void doGetToken (void)
 
   if (useBufferedTokens)
     {
-      t = currentTokNo;
+      t = nextTokNo;
       b = findtokenBucket (&t);
       updateFromBucket (b, t);
     }
@@ -830,25 +1051,35 @@ static void doGetToken (void)
           if (listOfTokens.tail == NULL)
             M2RTS_HALT (-1);
         }
-      if (currentTokNo >= listOfTokens.lastBucketOffset)
-        if ((currentTokNo-listOfTokens.lastBucketOffset) < listOfTokens.tail->len)
-          updateFromBucket (listOfTokens.tail, currentTokNo-listOfTokens.lastBucketOffset);
+      if (nextTokNo >= listOfTokens.lastBucketOffset)
+        /* nextTokNo is in the last bucket or needs to be read.  */
+        if ((nextTokNo-listOfTokens.lastBucketOffset) < listOfTokens.tail->len)
+          {
+            if (Debugging)
+              mcPrintf_printf0 ((char *) "fetching token from buffer (updateFromBucket)\\n", 47);
+            updateFromBucket (listOfTokens.tail, nextTokNo-listOfTokens.lastBucketOffset);
+          }
         else
           {
+            if (Debugging)
+              mcPrintf_printf0 ((char *) "calling flex to place token into buffer\\n", 41);
+            /* call the lexical phase to place a new token into the last bucket.  */
             a = mcflex_getToken ();
-            mcLexBuf_getToken ();
-            return;
+            mcLexBuf_getToken ();  /* and call ourselves again to collect the token from bucket.  */
+            return;  /* and call ourselves again to collect the token from bucket.  */
           }
       else
         {
-          t = currentTokNo;
+          if (Debugging)
+            mcPrintf_printf0 ((char *) "fetching token from buffer\\n", 28);
+          t = nextTokNo;
           b = findtokenBucket (&t);
           updateFromBucket (b, t);
         }
     }
   if (Debugging)
-    displayToken ();
-  currentTokNo += 1;
+    displayToken (mcLexBuf_currenttoken);
+  nextTokNo += 1;
 }
 
 
@@ -860,7 +1091,7 @@ static void doGetToken (void)
 static void syncOpenWithBuffer (void)
 {
   if (listOfTokens.tail != NULL)
-    currentTokNo = listOfTokens.lastBucketOffset+listOfTokens.tail->len;
+    nextTokNo = listOfTokens.lastBucketOffset+listOfTokens.tail->len;
 }
 
 
@@ -898,7 +1129,7 @@ static void stop (void)
    addTokToList - adds a token to a dynamic list.
 */
 
-static void addTokToList (mcReserved_toktype t, nameKey_Name n, int i, unsigned int l, unsigned int c, sourceList f)
+static void addTokToList (mcReserved_toktype t, nameKey_Name n, int i, mcComment_commentDesc comment, unsigned int l, unsigned int c, sourceList f)
 {
   tokenBucket b;
 
@@ -907,6 +1138,7 @@ static void addTokToList (mcReserved_toktype t, nameKey_Name n, int i, unsigned 
       Storage_ALLOCATE ((void **) &listOfTokens.head, sizeof (_T2));
       if (listOfTokens.head == NULL)
         {}  /* empty.  */
+      /* list error  */
       listOfTokens.tail = listOfTokens.head;
       listOfTokens.tail->len = 0;
     }
@@ -918,6 +1150,7 @@ static void addTokToList (mcReserved_toktype t, nameKey_Name n, int i, unsigned 
         {}  /* empty.  */
       else
         {
+          /* list error  */
           listOfTokens.tail = listOfTokens.tail->next;
           listOfTokens.tail->len = 0;
         }
@@ -927,6 +1160,7 @@ static void addTokToList (mcReserved_toktype t, nameKey_Name n, int i, unsigned 
   listOfTokens.tail->buf.array[listOfTokens.tail->len].token = t;
   listOfTokens.tail->buf.array[listOfTokens.tail->len].str = n;
   listOfTokens.tail->buf.array[listOfTokens.tail->len].int_ = i;
+  listOfTokens.tail->buf.array[listOfTokens.tail->len].com = comment;
   listOfTokens.tail->buf.array[listOfTokens.tail->len].line = l;
   listOfTokens.tail->buf.array[listOfTokens.tail->len].col = c;
   listOfTokens.tail->buf.array[listOfTokens.tail->len].file = f;
@@ -955,10 +1189,54 @@ static unsigned int isLastTokenEof (void)
         }
       else
         b = listOfTokens.tail;
-      mcDebug_assert (b->len > 0);
-      return b->buf.array[b->len-1].token == mcReserved_eoftok;
+      mcDebug_assert (b->len > 0);  /* len should always be >0  */
+      return b->buf.array[b->len-1].token == mcReserved_eoftok;  /* len should always be >0  */
     }
   return FALSE;
+}
+
+
+/*
+   getProcedureComment - returns the procedure comment if it exists,
+                         or NIL otherwise.
+*/
+
+mcComment_commentDesc mcLexBuf_getProcedureComment (void)
+{
+  return procedureComment;
+}
+
+
+/*
+   getBodyComment - returns the body comment if it exists,
+                    or NIL otherwise.  The body comment is
+                    removed if found.
+*/
+
+mcComment_commentDesc mcLexBuf_getBodyComment (void)
+{
+  mcComment_commentDesc b;
+
+  b = bodyComment;
+  bodyComment = NULL;
+  return b;
+}
+
+
+/*
+   getAfterComment - returns the after comment if it exists,
+                     or NIL otherwise.  The after comment is
+                     removed if found.
+*/
+
+mcComment_commentDesc mcLexBuf_getAfterComment (void)
+{
+  mcComment_commentDesc a;
+
+  peepAfterComment ();
+  a = afterComment;
+  afterComment = NULL;
+  return a;
 }
 
 
@@ -1030,7 +1308,7 @@ void mcLexBuf_reInitialize (void)
 
 void mcLexBuf_resetForNewPass (void)
 {
-  currentTokNo = 0;
+  nextTokNo = 0;
   useBufferedTokens = TRUE;
 }
 
@@ -1043,6 +1321,27 @@ void mcLexBuf_getToken (void)
 {
   do {
     doGetToken ();
+    if (mcLexBuf_currenttoken == mcReserved_commenttok)
+      {
+        /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+        if (mcComment_isProcedureComment (mcLexBuf_currentcomment))
+          {
+            procedureComment = mcLexBuf_currentcomment;
+            bodyComment = NULL;
+            afterComment = NULL;
+          }
+        else if (mcComment_isBodyComment (mcLexBuf_currentcomment))
+          {
+            bodyComment = mcLexBuf_currentcomment;
+            afterComment = NULL;
+          }
+        else if (mcComment_isAfterComment (mcLexBuf_currentcomment))
+          {
+            procedureComment = NULL;
+            bodyComment = NULL;
+            afterComment = mcLexBuf_currentcomment;
+          }
+      }
   } while (! (mcLexBuf_currenttoken != mcReserved_commenttok));
 }
 
@@ -1058,7 +1357,7 @@ void mcLexBuf_insertToken (mcReserved_toktype token)
     {
       if (listOfTokens.tail->len > 0)
         listOfTokens.tail->buf.array[listOfTokens.tail->len-1].token = token;
-      addTokToList (mcLexBuf_currenttoken, (nameKey_Name) nameKey_NulName, 0, mcLexBuf_getLineNo (), mcLexBuf_getColumnNo (), currentSource);
+      addTokToList (mcLexBuf_currenttoken, (nameKey_Name) nameKey_NulName, 0, (mcComment_commentDesc) NULL, mcLexBuf_getLineNo (), mcLexBuf_getColumnNo (), currentSource);
       mcLexBuf_getToken ();
     }
 }
@@ -1075,7 +1374,7 @@ void mcLexBuf_insertTokenAndRewind (mcReserved_toktype token)
     {
       if (listOfTokens.tail->len > 0)
         listOfTokens.tail->buf.array[listOfTokens.tail->len-1].token = token;
-      addTokToList (mcLexBuf_currenttoken, (nameKey_Name) nameKey_NulName, 0, mcLexBuf_getLineNo (), mcLexBuf_getColumnNo (), currentSource);
+      addTokToList (mcLexBuf_currenttoken, (nameKey_Name) nameKey_NulName, 0, (mcComment_commentDesc) NULL, mcLexBuf_getLineNo (), mcLexBuf_getColumnNo (), currentSource);
       mcLexBuf_currenttoken = token;
     }
 }
@@ -1098,7 +1397,7 @@ unsigned int mcLexBuf_getPreviousTokenLineNo (void)
 
 unsigned int mcLexBuf_getLineNo (void)
 {
-  if (currentTokNo == 0)
+  if (nextTokNo == 0)
     return 0;
   else
     return mcLexBuf_tokenToLineNo (mcLexBuf_getTokenNo (), 0);
@@ -1111,10 +1410,10 @@ unsigned int mcLexBuf_getLineNo (void)
 
 unsigned int mcLexBuf_getTokenNo (void)
 {
-  if (currentTokNo == 0)
+  if (nextTokNo == 0)
     return 0;
   else
-    return currentTokNo-1;
+    return nextTokNo-1;
 }
 
 
@@ -1159,7 +1458,7 @@ unsigned int mcLexBuf_tokenToLineNo (unsigned int tokenNo, unsigned int depth)
 
 unsigned int mcLexBuf_getColumnNo (void)
 {
-  if (currentTokNo == 0)
+  if (nextTokNo == 0)
     return 0;
   else
     return mcLexBuf_tokenToColumnNo (mcLexBuf_getTokenNo (), 0);
@@ -1249,7 +1548,7 @@ void mcLexBuf_addTok (mcReserved_toktype t)
 {
   if (! ((t == mcReserved_eoftok) && (isLastTokenEof ())))
     {
-      addTokToList (t, (nameKey_Name) nameKey_NulName, 0, mcflex_getLineNo (), mcflex_getColumnNo (), currentSource);
+      addTokToList (t, (nameKey_Name) nameKey_NulName, 0, (mcComment_commentDesc) NULL, mcflex_getLineNo (), mcflex_getColumnNo (), currentSource);
       currentUsed = TRUE;
     }
 }
@@ -1264,7 +1563,7 @@ void mcLexBuf_addTokCharStar (mcReserved_toktype t, void * s)
 {
   if ((libc_strlen (s)) > 80)
     stop ();
-  addTokToList (t, nameKey_makekey (s), 0, mcflex_getLineNo (), mcflex_getColumnNo (), currentSource);
+  addTokToList (t, nameKey_makekey (s), 0, (mcComment_commentDesc) NULL, mcflex_getLineNo (), mcflex_getColumnNo (), currentSource);
   currentUsed = TRUE;
 }
 
@@ -1282,8 +1581,19 @@ void mcLexBuf_addTokInteger (mcReserved_toktype t, int i)
   l = mcflex_getLineNo ();
   c = mcflex_getColumnNo ();
   s = FormatStrings_Sprintf1 (DynamicStrings_Mark (DynamicStrings_InitString ((char *) "%d", 2)), (unsigned char *) &i, (sizeof (i)-1));
-  addTokToList (t, nameKey_makekey (DynamicStrings_string (s)), i, l, c, currentSource);
+  addTokToList (t, nameKey_makekey (DynamicStrings_string (s)), i, (mcComment_commentDesc) NULL, l, c, currentSource);
   s = DynamicStrings_KillString (s);
+  currentUsed = TRUE;
+}
+
+
+/*
+   addTokComment - adds a token to the buffer and a comment descriptor, com.
+*/
+
+void mcLexBuf_addTokComment (mcReserved_toktype t, mcComment_commentDesc com)
+{
+  addTokToList (t, (nameKey_Name) nameKey_NulName, 0, com, mcflex_getLineNo (), mcflex_getColumnNo (), currentSource);
   currentUsed = TRUE;
 }
 
@@ -1335,8 +1645,8 @@ void mcLexBuf_popFile (void * filename)
   checkIfNeedToDuplicate ();
   if ((currentSource != NULL) && (currentSource->left != currentSource))
     {
-      l = currentSource->left;
-      subFrom (l);
+      l = currentSource->left;  /* last element  */
+      subFrom (l);  /* last element  */
       Storage_DEALLOCATE ((void **) &l, sizeof (_T1));
       if ((currentSource->left != currentSource) && (! (DynamicStrings_Equal (currentSource->name, DynamicStrings_Mark (DynamicStrings_InitStringCharStar (filename))))))
         {}  /* empty.  */

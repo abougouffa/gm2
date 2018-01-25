@@ -1988,6 +1988,23 @@ static void TrashList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
 
 static void ErrorString (DynamicStrings_String s)
 {
+  /* Copyright (C) 2015, 2016
+   Free Software Foundation, Inc.
+   This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
   mcError_errorStringAt (s, mcLexBuf_getTokenNo ());
   WasNoError = FALSE;
 }
@@ -2483,6 +2500,7 @@ static DynamicStrings_String DescribeStop (SetOfStop0 stopset0, SetOfStop1 stops
     }
   if ((((1 << (mcReserved_eoftok-mcReserved_eoftok)) & (stopset0)) != 0))
     {}  /* empty.  */
+  /* eoftok has no token name (needed to generate error messages)  */
   if (n == 0)
     {
       str = DynamicStrings_InitString ((char *) " syntax error", 13);
@@ -2889,6 +2907,12 @@ static void SyntaxError (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
   if (Debugging)
     mcPrintf_printf0 ((char *) "\\nskipping token *** ", 21);
   while (! ((((((unsigned int) (mcLexBuf_currenttoken)) < 32) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & (stopset0)) != 0))) || (((((unsigned int) (mcLexBuf_currenttoken)) >= 32) && (((unsigned int) (mcLexBuf_currenttoken)) < 64)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & (stopset1)) != 0)))) || ((((unsigned int) (mcLexBuf_currenttoken)) >= 64) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & (stopset2)) != 0)))))
+    /* 
+      yes the ORD(currenttoken) looks ugly, but it is *much* safer than
+      using currenttoken<sometok as a change to the ordering of the
+      token declarations below would cause this to break. Using ORD() we are
+      immune from such changes
+  */
     mcLexBuf_getToken ();
   if (Debugging)
     mcPrintf_printf0 ((char *) " ***\\n", 6);
@@ -2901,6 +2925,8 @@ static void SyntaxError (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
 
 static void SyntaxCheck (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
+  /* and again (see above re: ORD)
+  */
   if (! ((((((unsigned int) (mcLexBuf_currenttoken)) < 32) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & (stopset0)) != 0))) || (((((unsigned int) (mcLexBuf_currenttoken)) >= 32) && (((unsigned int) (mcLexBuf_currenttoken)) < 64)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & (stopset1)) != 0)))) || ((((unsigned int) (mcLexBuf_currenttoken)) >= 64) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & (stopset2)) != 0)))))
     SyntaxError (stopset0, stopset1, stopset2);
 }
@@ -2988,7 +3014,11 @@ static unsigned int InStopSet (mcReserved_toktype t, SetOfStop0 stopset0, SetOfS
 
 static void PeepToken (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
+  /* and again (see above re: ORD)
+  */
   if ((! ((((((unsigned int) (mcLexBuf_currenttoken)) < 32) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & (stopset0)) != 0))) || (((((unsigned int) (mcLexBuf_currenttoken)) >= 32) && (((unsigned int) (mcLexBuf_currenttoken)) < 64)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & (stopset1)) != 0)))) || ((((unsigned int) (mcLexBuf_currenttoken)) >= 64) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & (stopset2)) != 0))))) && (! (InStopSet ((mcReserved_toktype) mcReserved_identtok, stopset0, stopset1, stopset2))))
+    /* SyntaxCheck would fail since currentoken is not part of the stopset
+         we check to see whether any of currenttoken might be a commonly omitted token  */
     if ((((((((CheckAndInsert ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1, stopset2)) || (CheckAndInsert ((mcReserved_toktype) mcReserved_rsbratok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_rcbratok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_periodtok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_oftok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_commatok, stopset0, stopset1, stopset2)))
       {}  /* empty.  */
 }
@@ -3029,6 +3059,10 @@ static void Ident (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2
 
 static void string (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
+  /* 
+   PushTF(makekey(currentstring), stringtok) ;
+   BuildString
+  */
   Expect ((mcReserved_toktype) mcReserved_stringtok, stopset0, stopset1, stopset2);
 }
 
@@ -3039,6 +3073,10 @@ static void string (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset
 
 static void Integer (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
+  /* 
+   PushTF(makekey(currentstring), integertok) ;
+   BuildNumber
+  */
   Expect ((mcReserved_toktype) mcReserved_integertok, stopset0, stopset1, stopset2);
 }
 
@@ -3049,6 +3087,10 @@ static void Integer (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopse
 
 static void Real (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
+  /* 
+   PushTF(makekey(currentstring), realtok) ;
+   BuildNumber
+  */
   Expect ((mcReserved_toktype) mcReserved_realtok, stopset0, stopset1, stopset2);
 }
 
@@ -3116,7 +3158,7 @@ static void ProgramModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
   Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
   while (((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok))))) != 0)))
     Import (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_vartok-mcReserved_recordtok)) | (1 << (mcReserved_typetok-mcReserved_recordtok))));
-  Block (stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
+  Block (stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));  /* while  */
   Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok))), stopset1, stopset2);
   checkEndName (curmodule, curident, (char *) "program module", 14);
   decl_leaveScope ();
@@ -3159,7 +3201,7 @@ static void ImplementationModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetO
   Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
   while (((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok))))) != 0)))
     Import (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_vartok-mcReserved_recordtok)) | (1 << (mcReserved_typetok-mcReserved_recordtok))));
-  Block (stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
+  Block (stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));  /* while  */
   Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok))), stopset1, stopset2);
   checkEndName (curmodule, curident, (char *) "implementation module", 21);
   decl_leaveScope ();
@@ -3553,6 +3595,7 @@ static void ConstSetOrQualidentOrFunction (SetOfStop0 stopset0, SetOfStop1 stops
       if ((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))))) != 0)))
         {
           /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+          /* seen optional [ | ] expression  */
           if (mcLexBuf_currenttoken == mcReserved_lcbratok)
             Constructor (stopset0, stopset1, stopset2);
           else if (mcLexBuf_currenttoken == mcReserved_lparatok)
@@ -3562,6 +3605,7 @@ static void ConstSetOrQualidentOrFunction (SetOfStop0 stopset0, SetOfStop1 stops
         }
     }
   else if (mcLexBuf_currenttoken == mcReserved_lcbratok)
+    /* end of optional [ | ] expression  */
     Constructor (stopset0, stopset1, stopset2);
   else
     ErrorArray ((char *) "expecting one of: { identifier", 30);
@@ -3887,7 +3931,7 @@ static void ArrayType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
       Expect ((mcReserved_toktype) mcReserved_commatok, stopset0|(SetOfStop0) ((1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
       SimpleType (stopset0|(SetOfStop0) ((1 << (mcReserved_commatok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_oftok-mcReserved_arraytok))), stopset2);
     }
-  Expect ((mcReserved_toktype) mcReserved_oftok, stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_pointertok-mcReserved_arraytok)) | (1 << (mcReserved_packedsettok-mcReserved_arraytok)) | (1 << (mcReserved_oftok-mcReserved_arraytok)) | (1 << (mcReserved_arraytok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_settok-mcReserved_recordtok)) | (1 << (mcReserved_recordtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))));
+  Expect ((mcReserved_toktype) mcReserved_oftok, stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_pointertok-mcReserved_arraytok)) | (1 << (mcReserved_packedsettok-mcReserved_arraytok)) | (1 << (mcReserved_oftok-mcReserved_arraytok)) | (1 << (mcReserved_arraytok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_settok-mcReserved_recordtok)) | (1 << (mcReserved_recordtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))));  /* while  */
   Type (stopset0, stopset1, stopset2);
 }
 
@@ -3946,7 +3990,7 @@ static void RecordFieldPragma (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSt
           Expect ((mcReserved_toktype) mcReserved_commatok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
           FieldPragmaExpression (stopset0|(SetOfStop0) ((1 << (mcReserved_rdirectivetok-mcReserved_eoftok)) | (1 << (mcReserved_commatok-mcReserved_eoftok))), stopset1, stopset2);
         }
-      Expect ((mcReserved_toktype) mcReserved_rdirectivetok, stopset0, stopset1, stopset2);
+      Expect ((mcReserved_toktype) mcReserved_rdirectivetok, stopset0, stopset1, stopset2);  /* while  */
     }
 }
 
@@ -4066,7 +4110,7 @@ static void FieldList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
           Expect ((mcReserved_toktype) mcReserved_bartok, stopset0|(SetOfStop0) ((1 << (mcReserved_bartok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_elsetok-mcReserved_arraytok)) | (1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok))));
           Varient (stopset0|(SetOfStop0) ((1 << (mcReserved_bartok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_elsetok-mcReserved_arraytok))), stopset2);
         }
-      if (mcLexBuf_currenttoken == mcReserved_elsetok)
+      if (mcLexBuf_currenttoken == mcReserved_elsetok)  /* while  */
         {
           Expect ((mcReserved_toktype) mcReserved_elsetok, stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_casetok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
           FieldListSequence (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok))), stopset2);
@@ -4534,6 +4578,7 @@ static void SilentConstSetOrQualidentOrFunction (SetOfStop0 stopset0, SetOfStop1
       if ((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))))) != 0)))
         {
           /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+          /* seen optional [ | ] expression  */
           if (mcLexBuf_currenttoken == mcReserved_lcbratok)
             SilentConstructor (stopset0, stopset1, stopset2);
           else if (mcLexBuf_currenttoken == mcReserved_lparatok)
@@ -4543,6 +4588,7 @@ static void SilentConstSetOrQualidentOrFunction (SetOfStop0 stopset0, SetOfStop1
         }
     }
   else
+    /* end of optional [ | ] expression  */
     ErrorArray ((char *) "expecting one of: identifier {", 30);
 }
 
@@ -5106,6 +5152,7 @@ static void SetOrDesignatorOrFunction (SetOfStop0 stopset0, SetOfStop1 stopset1,
       if ((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))))) != 0)))
         {
           /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+          /* seen optional [ | ] expression  */
           if (mcLexBuf_currenttoken == mcReserved_lcbratok)
             Constructor (stopset0, stopset1, stopset2);
           else if ((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_periodtok-mcReserved_eoftok))))) != 0)))
@@ -5119,6 +5166,7 @@ static void SetOrDesignatorOrFunction (SetOfStop0 stopset0, SetOfStop1 stopset1,
         }
     }
   else if (mcLexBuf_currenttoken == mcReserved_lcbratok)
+    /* end of optional [ | ] expression  */
     Constructor (stopset0, stopset1, stopset2);
   else
     ErrorArray ((char *) "expecting one of: { identifier", 30);
@@ -5206,6 +5254,7 @@ static void Statement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
   if ((((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_exittok-mcReserved_arraytok)) | (1 << (mcReserved_fortok-mcReserved_arraytok)) | (1 << (mcReserved_looptok-mcReserved_arraytok)) | (1 << (mcReserved_casetok-mcReserved_arraytok)) | (1 << (mcReserved_iftok-mcReserved_arraytok))))) != 0))) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_retrytok-mcReserved_recordtok)) | (1 << (mcReserved_returntok-mcReserved_recordtok)) | (1 << (mcReserved_asmtok-mcReserved_recordtok)) | (1 << (mcReserved_withtok-mcReserved_recordtok)) | (1 << (mcReserved_repeattok-mcReserved_recordtok)) | (1 << (mcReserved_whiletok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok))))) != 0))))
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      /* seen optional [ | ] expression  */
       if (mcLexBuf_currenttoken == mcReserved_identtok)
         AssignmentOrProcedureCall (stopset0, stopset1, stopset2);
       else if (mcLexBuf_currenttoken == mcReserved_iftok)
@@ -5317,7 +5366,7 @@ static void IfStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
       Expect ((mcReserved_toktype) mcReserved_thentok, stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_exittok-mcReserved_arraytok)) | (1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_elsetok-mcReserved_arraytok)) | (1 << (mcReserved_elsiftok-mcReserved_arraytok)) | (1 << (mcReserved_iftok-mcReserved_arraytok)) | (1 << (mcReserved_casetok-mcReserved_arraytok)) | (1 << (mcReserved_looptok-mcReserved_arraytok)) | (1 << (mcReserved_fortok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_returntok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_whiletok-mcReserved_recordtok)) | (1 << (mcReserved_repeattok-mcReserved_recordtok)) | (1 << (mcReserved_withtok-mcReserved_recordtok)) | (1 << (mcReserved_asmtok-mcReserved_recordtok)) | (1 << (mcReserved_retrytok-mcReserved_recordtok))));
       StatementSequence (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_elsetok-mcReserved_arraytok)) | (1 << (mcReserved_elsiftok-mcReserved_arraytok))), stopset2);
     }
-  if (mcLexBuf_currenttoken == mcReserved_elsetok)
+  if (mcLexBuf_currenttoken == mcReserved_elsetok)  /* while  */
     {
       Expect ((mcReserved_toktype) mcReserved_elsetok, stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_exittok-mcReserved_arraytok)) | (1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_iftok-mcReserved_arraytok)) | (1 << (mcReserved_casetok-mcReserved_arraytok)) | (1 << (mcReserved_looptok-mcReserved_arraytok)) | (1 << (mcReserved_fortok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_returntok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_whiletok-mcReserved_recordtok)) | (1 << (mcReserved_repeattok-mcReserved_recordtok)) | (1 << (mcReserved_withtok-mcReserved_recordtok)) | (1 << (mcReserved_asmtok-mcReserved_recordtok)) | (1 << (mcReserved_retrytok-mcReserved_recordtok))));
       StatementSequence (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok))), stopset2);
@@ -5346,7 +5395,7 @@ static void CaseStatement (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 
       Expect ((mcReserved_toktype) mcReserved_bartok, stopset0|(SetOfStop0) ((1 << (mcReserved_bartok-mcReserved_eoftok)) | (1 << (mcReserved_plustok-mcReserved_eoftok)) | (1 << (mcReserved_minustok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_elsetok-mcReserved_arraytok)) | (1 << (mcReserved_nottok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_realtok-mcReserved_recordtok)) | (1 << (mcReserved_integertok-mcReserved_recordtok)) | (1 << (mcReserved_stringtok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok))));
       Case (stopset0|(SetOfStop0) ((1 << (mcReserved_bartok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_elsetok-mcReserved_arraytok))), stopset2);
     }
-  CaseEndStatement (stopset0, stopset1, stopset2);
+  CaseEndStatement (stopset0, stopset1, stopset2);  /* while  */
 }
 
 
@@ -5580,6 +5629,7 @@ static void DefineBuiltinProcedure (SetOfStop0 stopset0, SetOfStop1 stopset1, Se
   if ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_inlinetok-mcReserved_recordtok)) | (1 << (mcReserved_attributetok-mcReserved_recordtok))))) != 0)))
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      /* seen optional [ | ] expression  */
       if (mcLexBuf_currenttoken == mcReserved_attributetok)
         {
           Expect ((mcReserved_toktype) mcReserved_attributetok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_builtintok-mcReserved_recordtok))));
@@ -5634,6 +5684,7 @@ static void Builtin (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopse
   if ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_inlinetok-mcReserved_recordtok)) | (1 << (mcReserved_builtintok-mcReserved_recordtok))))) != 0)))
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      /* seen optional [ | ] expression  */
       if (mcLexBuf_currenttoken == mcReserved_builtintok)
         Expect ((mcReserved_toktype) mcReserved_builtintok, stopset0, stopset1, stopset2);
       else if (mcLexBuf_currenttoken == mcReserved_inlinetok)
@@ -5678,7 +5729,7 @@ static void ProcedureBlock (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
 {
   while ((((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok))))) != 0))) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))))) != 0))))
     Declaration (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
-  if (mcLexBuf_currenttoken == mcReserved_begintok)
+  if (mcLexBuf_currenttoken == mcReserved_begintok)  /* while  */
     {
       Expect ((mcReserved_toktype) mcReserved_begintok, stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_excepttok-mcReserved_arraytok)) | (1 << (mcReserved_exittok-mcReserved_arraytok)) | (1 << (mcReserved_iftok-mcReserved_arraytok)) | (1 << (mcReserved_casetok-mcReserved_arraytok)) | (1 << (mcReserved_looptok-mcReserved_arraytok)) | (1 << (mcReserved_fortok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_returntok-mcReserved_recordtok)) | (1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_whiletok-mcReserved_recordtok)) | (1 << (mcReserved_repeattok-mcReserved_recordtok)) | (1 << (mcReserved_withtok-mcReserved_recordtok)) | (1 << (mcReserved_asmtok-mcReserved_recordtok)) | (1 << (mcReserved_retrytok-mcReserved_recordtok))));
       ProcedureBlockBody (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok))), stopset2);
@@ -5700,7 +5751,7 @@ static void Block (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2
 {
   while ((((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok))))) != 0))) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))))) != 0))))
     Declaration (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
-  InitialBlock (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok))), stopset2);
+  InitialBlock (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok))), stopset2);  /* while  */
   FinalBlock (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok))), stopset2);
   Expect ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2);
 }
@@ -5852,7 +5903,7 @@ static void Declaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
     }
   else if (mcLexBuf_currenttoken == mcReserved_typetok)
     {
-      Expect ((mcReserved_toktype) mcReserved_typetok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
+      Expect ((mcReserved_toktype) mcReserved_typetok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));  /* while  */
       while (mcLexBuf_currenttoken == mcReserved_identtok)
         {
           TypeDeclaration (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
@@ -5861,7 +5912,7 @@ static void Declaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
     }
   else if (mcLexBuf_currenttoken == mcReserved_vartok)
     {
-      Expect ((mcReserved_toktype) mcReserved_vartok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
+      Expect ((mcReserved_toktype) mcReserved_vartok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));  /* while  */
       while (mcLexBuf_currenttoken == mcReserved_identtok)
         {
           VariableDeclaration (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
@@ -5870,7 +5921,7 @@ static void Declaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
     }
   else if (mcLexBuf_currenttoken == mcReserved_proceduretok)
     {
-      ProcedureDeclaration (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
+      ProcedureDeclaration (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);  /* while  */
       Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1, stopset2);
     }
   else if (mcLexBuf_currenttoken == mcReserved_moduletok)
@@ -6121,7 +6172,7 @@ static void FormalType (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
       Expect ((mcReserved_toktype) mcReserved_arraytok, stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_oftok-mcReserved_arraytok))), stopset2);
       Expect ((mcReserved_toktype) mcReserved_oftok, stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_arraytok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
     }
-  Qualident (stopset0, stopset1, stopset2);
+  Qualident (stopset0, stopset1, stopset2);  /* while  */
 }
 
 
@@ -6143,7 +6194,7 @@ static void ModuleDeclaration (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSt
   Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_exporttok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
   while (((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok))))) != 0)))
     Import (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_exporttok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_vartok-mcReserved_recordtok)) | (1 << (mcReserved_typetok-mcReserved_recordtok))));
-  if (mcLexBuf_currenttoken == mcReserved_exporttok)
+  if (mcLexBuf_currenttoken == mcReserved_exporttok)  /* while  */
     Export (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_begintok-mcReserved_arraytok)) | (1 << (mcReserved_finallytok-mcReserved_arraytok)) | (1 << (mcReserved_moduletok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_vartok-mcReserved_recordtok)) | (1 << (mcReserved_typetok-mcReserved_recordtok))));
   Block (stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
   Ident (stopset0, stopset1, stopset2);
@@ -6304,11 +6355,11 @@ static void DefinitionModule (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
   decl_enterScope (curmodule);
   while (((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok))))) != 0)))
     Import (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_exporttok-mcReserved_arraytok)) | (1 << (mcReserved_fromtok-mcReserved_arraytok)) | (1 << (mcReserved_importtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
-  if (mcLexBuf_currenttoken == mcReserved_exporttok)
+  if (mcLexBuf_currenttoken == mcReserved_exporttok)  /* while  */
     Export (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
   while ((((mcLexBuf_currenttoken >= mcReserved_arraytok) && (mcLexBuf_currenttoken < mcReserved_recordtok)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & ((SetOfStop1) ((1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))))) != 0))) || ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))))) != 0))))
     Definition (stopset0, stopset1|(SetOfStop1) ((1 << (mcReserved_endtok-mcReserved_arraytok)) | (1 << (mcReserved_consttok-mcReserved_arraytok)) | (1 << (mcReserved_proceduretok-mcReserved_arraytok))), stopset2|(SetOfStop2) ((1 << (mcReserved_typetok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))));
-  Expect ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
+  Expect ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));  /* while  */
   Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_periodtok-mcReserved_eoftok))), stopset1, stopset2);
   Expect ((mcReserved_toktype) mcReserved_periodtok, stopset0, stopset1, stopset2);
   checkEndName (curmodule, curident, (char *) "definition module", 17);
@@ -6370,6 +6421,7 @@ static void DefOptSubrange (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
   if (mcLexBuf_currenttoken == mcReserved_lsbratok)
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+      /* seen optional [ | ] expression  */
       if (mcLexBuf_currenttoken == mcReserved_lsbratok)
         SubrangeType (stopset0, stopset1, stopset2);
       else
@@ -6425,7 +6477,7 @@ static void DefEnumIdentList (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSto
       Ident (stopset0|(SetOfStop0) ((1 << (mcReserved_commatok-mcReserved_eoftok))), stopset1, stopset2);
       f = decl_makeEnumField (n, curident);
     }
-  if (typeDes != NULL)
+  if (typeDes != NULL)  /* while  */
     decl_putType (typeDes, n);
 }
 
@@ -6567,13 +6619,13 @@ static void Definition (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
     }
   else if (mcLexBuf_currenttoken == mcReserved_typetok)
     {
-      Expect ((mcReserved_toktype) mcReserved_typetok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
+      Expect ((mcReserved_toktype) mcReserved_typetok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));  /* while  */
       while (mcLexBuf_currenttoken == mcReserved_identtok)
         DefTypeDeclaration (stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
     }
   else if (mcLexBuf_currenttoken == mcReserved_vartok)
     {
-      Expect ((mcReserved_toktype) mcReserved_vartok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));
+      Expect ((mcReserved_toktype) mcReserved_vartok, stopset0, stopset1, stopset2|(SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok))));  /* while  */
       while (mcLexBuf_currenttoken == mcReserved_identtok)
         {
           DefVariableDeclaration (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
@@ -6582,7 +6634,7 @@ static void Definition (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 sto
     }
   else if (mcLexBuf_currenttoken == mcReserved_proceduretok)
     {
-      DefProcedureHeading (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
+      DefProcedureHeading (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);  /* while  */
       Expect ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1, stopset2);
     }
   else

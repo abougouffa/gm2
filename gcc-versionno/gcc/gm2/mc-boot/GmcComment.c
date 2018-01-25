@@ -16,84 +16,102 @@
 
 #include <stddef.h>
 #   include "GStorage.h"
+#   include "Gmcrts.h"
 #define _mcComment_H
 #define _mcComment_C
 
-#   include "GIndexing.h"
 #   include "GDynamicStrings.h"
 #   include "GStorage.h"
 #   include "GnameKey.h"
 #   include "GmcDebug.h"
 #   include "GASCII.h"
+#   include "Glibc.h"
 
 typedef struct _T1_r _T1;
 
-typedef _T1 *commentDescriptor;
-
 typedef enum {unknown, procedureHeading, inBody, afterStatement} commentType;
+
+typedef _T1 *mcComment_commentDesc;
 
 struct _T1_r {
                commentType type;
                DynamicStrings_String content;
                nameKey_Name procName;
+               unsigned int used;
              };
 
-static unsigned int incomment;
-static unsigned int currentComment;
-static unsigned int maxComment;
-static Indexing_Index comments;
 
 /*
-   beginComment - the start of a new comment has been seen by the lexical analyser.
-                  A new comment block is created and all addText contents are placed
-                  in this block.
+   initComment - the start of a new comment has been seen by the lexical analyser.
+                 A new comment block is created and all addText contents are placed
+                 in this block.  onlySpaces indicates whether we have only seen
+                 spaces on this line.
 */
 
-void mcComment_beginComment (void);
-
-/*
-   endComment - the end of the comment has been seen by the lexical analyser.
-*/
-
-void mcComment_endComment (void);
+mcComment_commentDesc mcComment_initComment (unsigned int onlySpaces);
 
 /*
    addText - cs is a C string (null terminated) which contains comment text.
-             This is appended to the current comment.
+             This is appended to the comment, cd.
 */
 
-void mcComment_addText (void * cs);
+void mcComment_addText (mcComment_commentDesc cd, void * cs);
 
 /*
-   getComment - returns the current comment.
+   getContent - returns the content of comment, cd.
 */
 
-DynamicStrings_String mcComment_getComment (void);
+DynamicStrings_String mcComment_getContent (mcComment_commentDesc cd);
 
 /*
-   getCommentCharStar - returns the current comment.
+   getCommentCharStar - returns the C string content of comment, cd.
 */
 
-void * mcComment_getCommentCharStar (void);
+void * mcComment_getCommentCharStar (mcComment_commentDesc cd);
 
 /*
-   setProcedureComment - changes the type of the current comment to a procedure heading comment,
+   setProcedureComment - changes the type of comment, cd, to a
+                         procedure heading comment,
                          providing it has the procname as the first word.
 */
 
-void mcComment_setProcedureComment (nameKey_Name procname);
+void mcComment_setProcedureComment (mcComment_commentDesc cd, nameKey_Name procname);
 
 /*
    getProcedureComment - returns the current procedure comment if available.
 */
 
-DynamicStrings_String mcComment_getProcedureComment (void);
+DynamicStrings_String mcComment_getProcedureComment (mcComment_commentDesc cd);
 
 /*
-   newPass - resets the comment count so that we can collect the comments in order again.
+   getAfterStatementComment - returns the current statement after comment if available.
 */
 
-void mcComment_newPass (void);
+DynamicStrings_String mcComment_getAfterStatementComment (mcComment_commentDesc cd);
+
+/*
+   getInbodyStatementComment - returns the current statement after comment if available.
+*/
+
+DynamicStrings_String mcComment_getInbodyStatementComment (mcComment_commentDesc cd);
+
+/*
+   isProcedureComment - returns TRUE if, cd, is a procedure comment.
+*/
+
+unsigned int mcComment_isProcedureComment (mcComment_commentDesc cd);
+
+/*
+   isBodyComment - returns TRUE if, cd, is a body comment.
+*/
+
+unsigned int mcComment_isBodyComment (mcComment_commentDesc cd);
+
+/*
+   isAfterComment - returns TRUE if, cd, is an after comment.
+*/
+
+unsigned int mcComment_isAfterComment (mcComment_commentDesc cd);
 
 /*
    Min - returns the lower of, a, and, b.
@@ -112,13 +130,13 @@ static DynamicStrings_String RemoveNewlines (DynamicStrings_String s);
                    in the comment.
 */
 
-static unsigned int seenProcedure (commentDescriptor cd, nameKey_Name procName);
+static unsigned int seenProcedure (mcComment_commentDesc cd, nameKey_Name procName);
 
 /*
-   init -
+   dumpComment -
 */
 
-static void init (void);
+static void dumpComment (mcComment_commentDesc cd);
 
 
 /*
@@ -154,7 +172,7 @@ static DynamicStrings_String RemoveNewlines (DynamicStrings_String s)
                    in the comment.
 */
 
-static unsigned int seenProcedure (commentDescriptor cd, nameKey_Name procName)
+static unsigned int seenProcedure (mcComment_commentDesc cd, nameKey_Name procName)
 {
   DynamicStrings_String s;
   void * a;
@@ -172,96 +190,99 @@ static unsigned int seenProcedure (commentDescriptor cd, nameKey_Name procName)
 
 
 /*
-   init -
+   dumpComment -
 */
 
-static void init (void)
+static void dumpComment (mcComment_commentDesc cd)
 {
-  incomment = FALSE;
-  maxComment = 0;
-  currentComment = 0;
-  comments = Indexing_InitIndex (1);
-}
-
-
-/*
-   beginComment - the start of a new comment has been seen by the lexical analyser.
-                  A new comment block is created and all addText contents are placed
-                  in this block.
-*/
-
-void mcComment_beginComment (void)
-{
-  commentDescriptor cd;
-
-  if (! incomment)
+  libc_printf ((char *) "comment : ", 10);
+  switch (cd->type)
     {
-      Storage_ALLOCATE ((void **) &cd, sizeof (_T1));
-      mcDebug_assert (cd != NULL);
-      maxComment += 1;
-      currentComment = maxComment;
-      cd->type = unknown;
-      cd->content = DynamicStrings_InitString ((char *) "", 0);
-      cd->procName = nameKey_NulName;
-      Indexing_PutIndice (comments, maxComment, (void *) cd);
-      incomment = TRUE;
+      case unknown:
+        libc_printf ((char *) "unknown", 7);
+        break;
+
+      case procedureHeading:
+        libc_printf ((char *) "procedureheading", 16);
+        break;
+
+      case inBody:
+        libc_printf ((char *) "inbody", 6);
+        break;
+
+      case afterStatement:
+        libc_printf ((char *) "afterstatement", 14);
+        break;
+
+
+      default:
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/mcComment.def", 2, 1);
     }
+  if (cd->used)
+    libc_printf ((char *) " used", 5);
+  else
+    libc_printf ((char *) " unused", 7);
+  libc_printf ((char *) " contents = %s\\n", 16, DynamicStrings_string (cd->content));
 }
 
 
 /*
-   endComment - the end of the comment has been seen by the lexical analyser.
+   initComment - the start of a new comment has been seen by the lexical analyser.
+                 A new comment block is created and all addText contents are placed
+                 in this block.  onlySpaces indicates whether we have only seen
+                 spaces on this line.
 */
 
-void mcComment_endComment (void)
+mcComment_commentDesc mcComment_initComment (unsigned int onlySpaces)
 {
-  incomment = FALSE;
+  mcComment_commentDesc cd;
+
+  Storage_ALLOCATE ((void **) &cd, sizeof (_T1));
+  mcDebug_assert (cd != NULL);
+  if (onlySpaces)
+    cd->type = inBody;
+  else
+    cd->type = afterStatement;
+  cd->content = DynamicStrings_InitString ((char *) "", 0);
+  cd->procName = nameKey_NulName;
+  cd->used = FALSE;
+  return cd;
 }
 
 
 /*
    addText - cs is a C string (null terminated) which contains comment text.
-             This is appended to the current comment.
+             This is appended to the comment, cd.
 */
 
-void mcComment_addText (void * cs)
+void mcComment_addText (mcComment_commentDesc cd, void * cs)
 {
-  commentDescriptor cd;
-
-  mcDebug_assert (incomment);
-  cd = Indexing_GetIndice (comments, maxComment);
-  mcDebug_assert (cd != NULL);
-  cd->content = DynamicStrings_ConCat (cd->content, DynamicStrings_InitStringCharStar (cs));
+  if (cd != NULL)
+    cd->content = DynamicStrings_ConCat (cd->content, DynamicStrings_InitStringCharStar (cs));
 }
 
 
 /*
-   getComment - returns the current comment.
+   getContent - returns the content of comment, cd.
 */
 
-DynamicStrings_String mcComment_getComment (void)
+DynamicStrings_String mcComment_getContent (mcComment_commentDesc cd)
 {
-  commentDescriptor cd;
-
-  if (currentComment <= maxComment)
-    {
-      cd = Indexing_GetIndice (comments, currentComment);
-      mcDebug_assert (cd != NULL);
-      return cd->content;
-    }
+  if (cd != NULL)
+    return cd->content;
   return NULL;
 }
 
 
 /*
-   getCommentCharStar - returns the current comment.
+   getCommentCharStar - returns the C string content of comment, cd.
 */
 
-void * mcComment_getCommentCharStar (void)
+void * mcComment_getCommentCharStar (mcComment_commentDesc cd)
 {
   DynamicStrings_String s;
 
-  s = mcComment_getComment ();
+  s = mcComment_getContent (cd);
   if (s == NULL)
     return NULL;
   else
@@ -270,24 +291,19 @@ void * mcComment_getCommentCharStar (void)
 
 
 /*
-   setProcedureComment - changes the type of the current comment to a procedure heading comment,
+   setProcedureComment - changes the type of comment, cd, to a
+                         procedure heading comment,
                          providing it has the procname as the first word.
 */
 
-void mcComment_setProcedureComment (nameKey_Name procname)
+void mcComment_setProcedureComment (mcComment_commentDesc cd, nameKey_Name procname)
 {
-  commentDescriptor cd;
-
-  if ((currentComment > 0) && (currentComment <= maxComment))
-    {
-      cd = Indexing_GetIndice (comments, currentComment);
-      mcDebug_assert (cd != NULL);
-      if (seenProcedure (cd, procname))
-        {
-          cd->type = procedureHeading;
-          cd->procName = procname;
-        }
-    }
+  if (cd != NULL)
+    if (seenProcedure (cd, procname))
+      {
+        cd->type = procedureHeading;
+        cd->procName = procname;
+      }
 }
 
 
@@ -295,33 +311,78 @@ void mcComment_setProcedureComment (nameKey_Name procname)
    getProcedureComment - returns the current procedure comment if available.
 */
 
-DynamicStrings_String mcComment_getProcedureComment (void)
+DynamicStrings_String mcComment_getProcedureComment (mcComment_commentDesc cd)
 {
-  commentDescriptor cd;
-
-  if (Indexing_InBounds (comments, currentComment))
+  if ((cd->type == procedureHeading) && ! cd->used)
     {
-      cd = Indexing_GetIndice (comments, currentComment);
-      mcDebug_assert (cd != NULL);
-      if (cd->type == procedureHeading)
-        return cd->content;
+      cd->used = TRUE;
+      return cd->content;
     }
   return NULL;
 }
 
 
 /*
-   newPass - resets the comment count so that we can collect the comments in order again.
+   getAfterStatementComment - returns the current statement after comment if available.
 */
 
-void mcComment_newPass (void)
+DynamicStrings_String mcComment_getAfterStatementComment (mcComment_commentDesc cd)
 {
-  currentComment = 0;
+  if ((cd->type == afterStatement) && ! cd->used)
+    {
+      cd->used = TRUE;
+      return cd->content;
+    }
+  return NULL;
+}
+
+
+/*
+   getInbodyStatementComment - returns the current statement after comment if available.
+*/
+
+DynamicStrings_String mcComment_getInbodyStatementComment (mcComment_commentDesc cd)
+{
+  if ((cd->type == inBody) && ! cd->used)
+    {
+      cd->used = TRUE;
+      return cd->content;
+    }
+  return NULL;
+}
+
+
+/*
+   isProcedureComment - returns TRUE if, cd, is a procedure comment.
+*/
+
+unsigned int mcComment_isProcedureComment (mcComment_commentDesc cd)
+{
+  return (cd != NULL) && (cd->type == procedureHeading);
+}
+
+
+/*
+   isBodyComment - returns TRUE if, cd, is a body comment.
+*/
+
+unsigned int mcComment_isBodyComment (mcComment_commentDesc cd)
+{
+  return (cd != NULL) && (cd->type == inBody);
+}
+
+
+/*
+   isAfterComment - returns TRUE if, cd, is an after comment.
+*/
+
+unsigned int mcComment_isAfterComment (mcComment_commentDesc cd)
+{
+  return (cd != NULL) && (cd->type == afterStatement);
 }
 
 void _M2_mcComment_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
-  init ();
 }
 
 void _M2_mcComment_finish (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

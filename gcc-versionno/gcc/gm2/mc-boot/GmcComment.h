@@ -23,58 +23,84 @@ extern "C" {
 #      define EXTERN extern
 #   endif
 
+#if !defined (mcComment_commentDesc_D)
+#  define mcComment_commentDesc_D
+   typedef void *mcComment_commentDesc;
+#endif
+
 
 /*
-   beginComment - the start of a new comment has been seen by the lexical analyser.
-                  A new comment block is created and all addText contents are placed
-                  in this block.
+   initComment - the start of a new comment has been seen by the lexical analyser.
+                 A new comment block is created and all addText contents are placed
+                 in this block.  onlySpaces indicates whether we have only seen
+                 spaces on this line.  The new comment descriptor is returned.
+		 If onlySpaces is TRUE then an inbody comment is created.
+		 If onlySpaces is FALSE then an after statement comment is created.
 */
 
-EXTERN void mcComment_beginComment (void);
-
-/*
-   endComment - the end of the comment has been seen by the lexical analyser.
-*/
-
-EXTERN void mcComment_endComment (void);
+EXTERN mcComment_commentDesc mcComment_initComment (unsigned int onlySpaces);
 
 /*
    addText - cs is a C string (null terminated) which contains comment text.
-             This is appended to the current comment.
 */
 
-EXTERN void mcComment_addText (void * cs);
+EXTERN void mcComment_addText (mcComment_commentDesc cd, void * cs);
 
 /*
-   getComment - returns the current comment.
+   getContent - returns the content of comment, cd.
 */
 
-EXTERN DynamicStrings_String mcComment_getComment (void);
+EXTERN DynamicStrings_String mcComment_getContent (mcComment_commentDesc cd);
 
 /*
-   getCommentCharStar - returns the current comment.
+   getCommentCharStar - returns the contents of the comment, cd.
 */
 
-EXTERN void * mcComment_getCommentCharStar (void);
+EXTERN void * mcComment_getCommentCharStar (mcComment_commentDesc cd);
 
 /*
-   setProcedureComment - changes the type of the current comment to a procedure heading comment,
+   setProcedureComment - changes the type of comment, cd, to a
+                         procedure heading comment,
                          providing it has the procname as the first word.
 */
 
-EXTERN void mcComment_setProcedureComment (nameKey_Name procname);
+EXTERN void mcComment_setProcedureComment (mcComment_commentDesc cd, nameKey_Name procname);
 
 /*
-   getProcedureComment - returns the current procedure comment if available.
+   getProcedureComment - returns the procedure comment if available.
 */
 
-EXTERN DynamicStrings_String mcComment_getProcedureComment (void);
+EXTERN DynamicStrings_String mcComment_getProcedureComment (mcComment_commentDesc cd);
 
 /*
-   newPass - resets the comment count so that we can collect the comments in order again.
+   getAfterStatementComment - returns the after comment if available.
 */
 
-EXTERN void mcComment_newPass (void);
+EXTERN DynamicStrings_String mcComment_getAfterStatementComment (mcComment_commentDesc cd);
+
+/*
+   getInbodyStatementComment - returns the statement comment if available.
+*/
+
+EXTERN DynamicStrings_String mcComment_getInbodyStatementComment (mcComment_commentDesc cd);
+
+/*
+   isProcedureComment - returns TRUE if, cd, is a procedure comment.
+*/
+
+EXTERN unsigned int mcComment_isProcedureComment (mcComment_commentDesc cd);
+
+/*
+   isBodyComment - returns TRUE if, cd, is a body comment.
+*/
+
+EXTERN unsigned int mcComment_isBodyComment (mcComment_commentDesc cd);
+
+/*
+   isAfterComment - returns TRUE if, cd, is an after comment.
+*/
+
+EXTERN unsigned int mcComment_isAfterComment (mcComment_commentDesc cd);
 #   ifdef __cplusplus
 }
 #   endif

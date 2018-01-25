@@ -106,6 +106,17 @@ void FpuIO_ReadReal (double *x)
   struct _T1_a { char array[MaxLineLength+1]; };
   _T1 a;
 
+  /* 
+#undef GM2_DEBUG_FPUIO
+if defined(GM2_DEBUG_FPUIO)
+#  define InitString(X) InitStringDB(X, __FILE__, __LINE__)
+#  define InitStringCharStar(X) InitStringCharStarDB(X, __FILE__, __LINE__)
+#  define InitStringChar(X) InitStringCharDB(X, __FILE__, __LINE__)
+#  define Mult(X,Y) MultDB(X, Y, __FILE__, __LINE__)
+#  define Dup(X) DupDB(X, __FILE__, __LINE__)
+#  define Slice(X,Y,Z) SliceDB(X, Y, Z, __FILE__, __LINE__)
+#endif
+  */
   StrIO_ReadString ((char *) &a.array[0], MaxLineLength);
   FpuIO_StrToReal ((char *) &a.array[0], MaxLineLength, x);
 }
@@ -141,8 +152,8 @@ void FpuIO_StrToReal (char *a_, unsigned int _a_high, double *x)
   /* make a local copy of each unbounded array.  */
   memcpy (a, a_, _a_high+1);
 
-  FpuIO_StrToLongReal ((char *) a, _a_high, &lr);
-  (*x) = (double ) (lr);
+  FpuIO_StrToLongReal ((char *) a, _a_high, &lr);  /* let StrToLongReal do the work and we convert the result back to REAL  */
+  (*x) = (double ) (lr);  /* let StrToLongReal do the work and we convert the result back to REAL  */
 }
 
 

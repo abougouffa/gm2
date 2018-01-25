@@ -1,4 +1,4 @@
-(* Copyright (C) 2015
+(* Copyright (C) 2015, 2016, 2017, 2018
                  Free Software Foundation, Inc.  *)
 (* This file is part of GNU Modula-2.
 
@@ -30,6 +30,7 @@ DEFINITION MODULE mcLexBuf ;
 FROM SYSTEM IMPORT ADDRESS ;
 FROM mcReserved IMPORT toktype ;
 FROM DynamicStrings IMPORT String ;
+FROM mcComment IMPORT commentDesc ;
 
 
 VAR
@@ -37,6 +38,32 @@ VAR
    currentstring : ADDRESS ;
    currentcolumn : CARDINAL ;
    currentinteger: INTEGER ;
+   lastcomment,
+   currentcomment: commentDesc ;
+
+
+(*
+   getProcedureComment - returns the procedure comment if it exists,
+                         or NIL otherwise.
+*)
+
+PROCEDURE getProcedureComment () : commentDesc ;
+
+
+(*
+   getBodyComment - returns the body comment if it exists,
+                    or NIL otherwise.
+*)
+
+PROCEDURE getBodyComment () : commentDesc ;
+
+
+(*
+   getAfterComment - returns the after comment if it exists,
+                     or NIL otherwise.
+*)
+
+PROCEDURE getAfterComment () : commentDesc ;
 
 
 (*
@@ -188,6 +215,13 @@ PROCEDURE addTokCharStar (t: toktype; s: ADDRESS) ;
 *)
 
 PROCEDURE addTokInteger (t: toktype; i: INTEGER) ;
+
+
+(*
+   addTokComment - adds a token to the buffer and a comment descriptor, com.
+*)
+
+PROCEDURE addTokComment (t: toktype; com: commentDesc) ;
 
 
 (*

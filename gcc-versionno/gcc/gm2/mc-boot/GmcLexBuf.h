@@ -16,6 +16,7 @@ extern "C" {
 #   include "GSYSTEM.h"
 #   include "GmcReserved.h"
 #   include "GDynamicStrings.h"
+#   include "GmcComment.h"
 
 #   if defined (_mcLexBuf_C)
 #      define EXTERN
@@ -27,6 +28,29 @@ EXTERN mcReserved_toktype mcLexBuf_currenttoken;
 EXTERN void * mcLexBuf_currentstring;
 EXTERN unsigned int mcLexBuf_currentcolumn;
 EXTERN int mcLexBuf_currentinteger;
+EXTERN mcComment_commentDesc mcLexBuf_lastcomment;
+EXTERN mcComment_commentDesc mcLexBuf_currentcomment;
+
+/*
+   getProcedureComment - returns the procedure comment if it exists,
+                         or NIL otherwise.
+*/
+
+EXTERN mcComment_commentDesc mcLexBuf_getProcedureComment (void);
+
+/*
+   getBodyComment - returns the body comment if it exists,
+                    or NIL otherwise.
+*/
+
+EXTERN mcComment_commentDesc mcLexBuf_getBodyComment (void);
+
+/*
+   getAfterComment - returns the after comment if it exists,
+                     or NIL otherwise.
+*/
+
+EXTERN mcComment_commentDesc mcLexBuf_getAfterComment (void);
 
 /*
    openSource - Attempts to open the source file, s.
@@ -154,6 +178,12 @@ EXTERN void mcLexBuf_addTokCharStar (mcReserved_toktype t, void * s);
 */
 
 EXTERN void mcLexBuf_addTokInteger (mcReserved_toktype t, int i);
+
+/*
+   addTokComment - adds a token to the buffer and a comment descriptor, com.
+*/
+
+EXTERN void mcLexBuf_addTokComment (mcReserved_toktype t, mcComment_commentDesc com);
 
 /*
    setFile - sets the current filename to, filename.

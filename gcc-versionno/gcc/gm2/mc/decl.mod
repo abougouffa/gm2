@@ -1,4 +1,4 @@
-(* Copyright (C) 2015, 2016
+(* Copyright (C) 2015, 2016, 2017, 2018
    Free Software Foundation, Inc.  *)
 (* This file is part of GNU Modula-2.
 
@@ -26,15 +26,20 @@ FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM nameKey IMPORT NulName, makeKey, lengthKey, makekey, keyToCharStar ;
 FROM SFIO IMPORT OpenToWrite, WriteS ;
 FROM FIO IMPORT File, Close, FlushBuffer, StdOut, WriteLine, WriteChar ;
-FROM DynamicStrings IMPORT String, InitString, EqualArray, InitStringCharStar, KillString, ConCat, Mark ;
+FROM DynamicStrings IMPORT String, InitString, EqualArray, InitStringCharStar, KillString, ConCat, Mark, RemoveWhitePostfix, RemoveWhitePrefix ;
 FROM StringConvert IMPORT CardinalToString ;
 FROM mcOptions IMPORT getOutputFile, getDebugTopological, getHPrefix, getIgnoreFQ, getExtendedOpaque ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM libc IMPORT printf ;
 FROM mcMetaError IMPORT metaError1, metaError2, metaError3, metaErrors1, metaErrors2 ;
 FROM mcError IMPORT errorAbort0, flushErrors ;
-FROM mcLexBuf IMPORT findFileNameFromToken, tokenToLineNo, tokenToColumnNo ;
-FROM mcComment IMPORT getProcedureComment ;
+
+FROM mcLexBuf IMPORT findFileNameFromToken, tokenToLineNo, tokenToColumnNo,
+                     getProcedureComment, getBodyComment, getAfterComment,
+		     lastcomment ;
+
+FROM mcComment IMPORT commentDesc, isProcedureComment, isAfterComment, isBodyComment, getContent, initComment, addText ;
+
 FROM StrLib IMPORT StrEqual, StrLen ;
 
 FROM mcPretty IMPORT pretty, initPretty, dupPretty, killPretty, print, prints, raw,
@@ -258,13 +263,15 @@ TYPE
                     END ;
 
        funccallT = RECORD
-                      function: node ;
-		      args    : node ;
-		      type    : node ;
+                      function    : node ;
+		      args        : node ;
+		      type        : node ;
+		      aftercomment,
+		      bodycomment : node ;
                    END ;
 
        commentT = RECORD
-                     content:  String ;
+                     content:  commentDesc ;
                   END ;
 
        stmtT = RECORD
@@ -272,7 +279,9 @@ TYPE
                END ;
 
        returnT = RECORD
-                    exp:  node ;
+                    exp         : node ;
+                    aftercomment,
+                    bodycomment : node ;
                  END ;
 
        exitT = RECORD
@@ -447,14 +456,18 @@ TYPE
 
        assignmentT = RECORD
                         des,
-                        expr:  node ;
+                        expr        :  node ;
+			aftercomment,
+			bodycomment :  node ;
                      END ;
 
        ifT = RECORD
                 expr,
-                elsif,     (* either else or elsif must be NIL.  *)
+                elsif,      (* either else or elsif must be NIL.  *)
                 then,
-                else:  node ;
+                else        :  node ;
+		aftercomment,
+		bodycomment :  node ;
              END ;
 
        elsifT = RECORD
@@ -534,7 +547,7 @@ TYPE
                        beginStatements:  node ;
                        cname          :  cnameT ;
 		       defComment,
-		       modComment     :  String ;
+		       modComment     :  commentDesc ;
                     END ;
 
        proctypeT = RECORD
@@ -2105,7 +2118,10 @@ END makeProcedure ;
 PROCEDURE putCommentDefProcedure (n: node) ;
 BEGIN
    assert (isProcedure (n)) ;
-   n^.procedureF.defComment := getProcedureComment ()
+   IF isProcedureComment (lastcomment)
+   THEN
+      n^.procedureF.defComment := lastcomment
+   END
 END putCommentDefProcedure ;
 
 
@@ -2118,7 +2134,10 @@ END putCommentDefProcedure ;
 PROCEDURE putCommentModProcedure (n: node) ;
 BEGIN
    assert (isProcedure (n)) ;
-   n^.procedureF.modComment := getProcedureComment ()
+   IF isProcedureComment (lastcomment)
+   THEN
+      n^.procedureF.modComment := lastcomment
+   END
 END putCommentModProcedure ;
 
 
@@ -3496,6 +3515,8 @@ BEGIN
       f^.funccallF.function := c ;
       f^.funccallF.args := n ;
       f^.funccallF.type := NIL ;
+      f^.funccallF.aftercomment := NIL ;
+      f^.funccallF.bodycomment := NIL ;
       RETURN f
    END
 END makeFuncCall ;
@@ -7992,18 +8013,17 @@ BEGIN
    noSpace (doP) ;
    IF isDef (getMainModule ())
    THEN
-      doProcedureComment (doP, n^.procedureF.defComment) ;
+      doProcedureComment (doP, getContent (n^.procedureF.defComment)) ;
       outText (doP, "EXTERN") ; setNeedSpace (doP)
    ELSIF isExported (n)
    THEN
-      doProcedureComment (doP, n^.procedureF.modComment) ;
+      doProcedureComment (doP, getContent (n^.procedureF.modComment)) ;
       doExternCP (doP)
    ELSE
-      doProcedureComment (doP, n^.procedureF.modComment) ;
+      doProcedureComment (doP, getContent (n^.procedureF.modComment)) ;
       outText (doP, "static") ; setNeedSpace (doP)
    END ;
    q := NIL ;
-   (* printf ("procedure name is %s\n", keyToCharStar (getSymName (n))) ; *)
    doTypeC (doP, n^.procedureF.returnType, q) ; setNeedSpace (doP) ;
    doFQDNameC (doP, n, FALSE) ;
    setNeedSpace (doP) ;
@@ -8734,28 +8754,51 @@ END isSingleStatement ;
 *)
 
 PROCEDURE doCommentC (p: pretty; s: node) ;
+VAR
+   c: String ;
 BEGIN
-   assert (isComment (s)) ;
-   outText (p, "/* ") ;
-   outTextS (p, s^.commentF.content) ;
-   outText (p, "  */\n")
+   IF s # NIL
+   THEN
+      assert (isComment (s)) ;
+      IF NOT isProcedureComment (s^.commentF.content)
+      THEN
+         IF isAfterComment (s^.commentF.content)
+         THEN
+            setNeedSpace (p) ;
+            outText (p, " /* ")
+         ELSE
+            outText (p, "/* ")
+         END ;
+         c := getContent (s^.commentF.content) ;
+         c := RemoveWhitePrefix (RemoveWhitePostfix (c)) ;
+         outTextS (p, c) ;
+         outText (p, "  */\n")
+      END
+   END
 END doCommentC ;
 
 
 (*
-   doReturnC -
+   doReturnC - issue a return statement and also place in an after comment if one exists.
 *)
 
 PROCEDURE doReturnC (p: pretty; s: node) ;
 BEGIN
    assert (isReturn (s)) ;
+   doCommentC (p, s^.returnF.bodycomment) ;
    outText (p, "return") ;
    IF s^.returnF.exp#NIL
    THEN
       setNeedSpace (p) ;
       doExprC (p, s^.returnF.exp)
    END ;
-   outText (p, ";\n")
+   outText (p, ";") ;
+   IF s^.returnF.aftercomment = NIL
+   THEN
+      outText (p, "\n")
+   ELSE
+      doCommentC (p, s^.returnF.aftercomment)
+   END
 END doReturnC ;
 
 
@@ -8813,12 +8856,19 @@ END requiresUnpackProc ;
 PROCEDURE doAssignmentC (p: pretty; s: node) ;
 BEGIN
    assert (isAssignment (s)) ;
+   doCommentC (p, s^.assignmentF.bodycomment) ;
    doExprCup (p, s^.assignmentF.des, requiresUnpackProc (s)) ;
    setNeedSpace (p) ;
    outText (p, "=") ;
    setNeedSpace (p) ;
    doExprCastC (p, s^.assignmentF.expr, getType (s^.assignmentF.des)) ;
-   outText (p, ";\n")
+   outText (p, ";") ;
+   IF s^.assignmentF.aftercomment = NIL
+   THEN
+      outText (p, "\n")
+   ELSE
+      doCommentC (p, s^.assignmentF.aftercomment)
+   END
 END doAssignmentC ;
 
 
@@ -9026,17 +9076,25 @@ END hasIfAndNoElse ;
 
 
 (*
-   doIfC -
+   doIfC - issue an if statement and also place in an after comment if one exists.
+           The if statement might contain an else or elsif which are also handled.
 *)
 
 PROCEDURE doIfC (p: pretty; s: node) ;
 BEGIN
    assert (isIf (s)) ;
+   doCommentC (p, s^.ifF.bodycomment) ;
    outText (p, "if") ;
    setNeedSpace (p) ;
    outText (p, "(") ;
    doExprC (p, s^.ifF.expr) ;
-   outText (p, ")\n") ;
+   outText (p, ")") ;
+   IF s^.ifF.aftercomment = NIL
+   THEN
+      outText (p, "\n")
+   ELSE
+      doCommentC (p, s^.ifF.aftercomment)
+   END ;
    IF hasIfAndNoElse (s^.ifF.then) AND
       ((s^.ifF.else # NIL) OR (s^.ifF.elsif # NIL))
    THEN
@@ -10469,8 +10527,15 @@ END doFuncExprC ;
 
 PROCEDURE doFuncCallC (p: pretty; n: node) ;
 BEGIN
+   doCommentC (p, n^.funccallF.bodycomment) ;
    doFuncExprC (p, n) ;
-   outText (p, ";\n")
+   outText (p, ";") ;
+   IF n^.funccallF.aftercomment = NIL
+   THEN
+      outText (p, "\n")
+   ELSE
+      doCommentC (p, n^.funccallF.aftercomment)
+   END
 END doFuncCallC ;
 
 
@@ -12775,6 +12840,7 @@ BEGIN
    exit            :  visitExit (v, n, p) |
    return          :  visitReturn (v, n, p) |
    stmtseq         :  visitStmtSeq (v, n, p) |
+   comment         : |
    halt            :  (* handled in funccall.  *) |
    new             :  (* handled in funccall.  *) |
    dispose         :  (* handled in funccall.  *) |
@@ -13350,13 +13416,6 @@ VAR
 BEGIN
    IF isConst (n) OR isEnumeration (n)
    THEN
-(*
-      outText (doP, "/* adding ") ;
-      s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
-      prints (doP, s) ;
-      s := KillString (s) ;
-      outText (doP, "*/\n") ;
-*)
       addTodo (n)
    END
 END addEnumConst ;
@@ -13411,28 +13470,7 @@ BEGIN
       pa := alists.noOfItemsInList (partialQ)
    END ;
    dumpLists ;
-   debugLists ;
-(*
-   IF alists.noOfItemsInList (todoQ) > 0
-   THEN
-      stop ;
-      outText (doP, "/* at the end of topological sort and items exist in the todoQ.  */\n") ;
-      outText (doP, "/*\n") ;
-      debugList ('todo', todoQ) ;
-      outText (doP, "\n*/\n")
-   END ;
-   IF alists.noOfItemsInList (partialQ) > 0
-   THEN
-      outText (doP, "/* at the end of topological sort and items exist in the partialQ.  */\n") ;
-      outText (doP, "/*\n") ;
-      debugList ('partial', partialQ) ;
-      outText (doP, "\n*/\n")
-   END ;
-   IF (alists.noOfItemsInList (partialQ) > 0) OR (alists.noOfItemsInList (todoQ) > 0)
-   THEN
-      errorAbort0 ('internal error: terminating compilation')
-   END
-*)
+   debugLists
 END topologicallyOut ;
 
 
@@ -14487,23 +14525,8 @@ END setLangM2 ;
 *)
 
 PROCEDURE addDone (n: node) ;
-VAR
-   s: String ;
 BEGIN
-(*
-   outText (doP, "/* doneQ ") ;
-   doFQNameC (doP, n) ;
-   outText (doP, " */\n") ;
-*)
-   alists.includeItemIntoList (doneQ, n) ;
-(*
-   s := getFQstring (n) ;
-   IF EqualArray (s, 'decl_node')
-   THEN
-      stop
-   END ;
-   s := KillString (s)
-*)
+   alists.includeItemIntoList (doneQ, n)
 END addDone ;
 
 
@@ -14830,6 +14853,92 @@ END isStatementSequence ;
 
 
 (*
+   addGenericBody - adds comment node to funccall, return, assignment
+                    nodes.
+*)
+
+PROCEDURE addGenericBody (n, c: node);
+BEGIN
+   CASE n^.kind OF
+
+   funccall  :  n^.funccallF.bodycomment := c |
+   return    :  n^.returnF.bodycomment := c |
+   assignment:  n^.assignmentF.bodycomment := c
+
+   ELSE
+   END
+END addGenericBody;
+
+
+(*
+   addGenericAfter - adds comment node to funccall, return, assignment
+                     nodes.
+*)
+
+PROCEDURE addGenericAfter (n, c: node);
+BEGIN
+   CASE n^.kind OF
+
+   funccall  :  n^.funccallF.aftercomment := c |
+   return    :  n^.returnF.aftercomment := c |
+   assignment:  n^.assignmentF.aftercomment := c
+
+   ELSE
+   END
+END addGenericAfter ;
+
+
+(*
+   addCommentBody - adds a body comment to a statement sequence node.
+*)
+
+PROCEDURE addCommentBody (n: node) ;
+VAR
+   b: commentDesc ;
+BEGIN
+   IF n # NIL
+   THEN
+      b := getBodyComment () ;
+      IF b # NIL
+      THEN
+         addGenericBody (n, makeCommentS (b))
+      END
+   END
+END addCommentBody ;
+
+
+(*
+   addCommentAfter - adds an after comment to a statement sequence node.
+*)
+
+PROCEDURE addCommentAfter (n: node) ;
+VAR
+   a: commentDesc ;
+BEGIN
+   IF n # NIL
+   THEN
+      a := getAfterComment () ;
+      IF a # NIL
+      THEN
+         addGenericAfter (n, makeCommentS (a))
+      END
+   END
+END addCommentAfter ;
+
+
+(*
+   addIfComments - adds the, body, and, after, comments to if node, n.
+*)
+
+PROCEDURE addIfComments (n: node; body, after: node) ;
+BEGIN
+   assert (isIf (n)) ;
+   n^.ifF.aftercomment := after ;
+   n^.ifF.bodycomment := body
+END addIfComments ;
+
+
+(*
    makeReturn - creates and returns a return node.
 *)
 
@@ -14839,6 +14948,8 @@ VAR
 BEGIN
    n := newNode (return) ;
    n^.returnF.exp := NIL ;
+   n^.returnF.aftercomment := NIL ;
+   n^.returnF.bodycomment := NIL ;
    RETURN n
 END makeReturn ;
 
@@ -14915,6 +15026,8 @@ BEGIN
    n := newNode (assignment) ;
    n^.assignmentF.des := d ;
    n^.assignmentF.expr := e ;
+   n^.assignmentF.aftercomment := NIL ;
+   n^.assignmentF.bodycomment := NIL ;
    RETURN n
 END makeAssignment ;
 
@@ -15036,12 +15149,34 @@ END isLoop ;
 
 PROCEDURE makeComment (a: ARRAY OF CHAR) : node ;
 VAR
+   c: commentDesc ;
+   s: String ;
+BEGIN
+   c := initComment (TRUE) ;
+   s := InitString (a) ;
+   addText (c, DynamicStrings.string (s)) ;
+   s := KillString (s) ;
+   RETURN makeCommentS (c)
+END makeComment ;
+
+
+(*
+   makeCommentS - creates and returns a comment node.
+*)
+
+PROCEDURE makeCommentS (c: commentDesc) : node ;
+VAR
    n: node ;
 BEGIN
-   n := newNode (comment) ;
-   n^.commentF.content := InitString (a) ;
-   RETURN n
-END makeComment ;
+   IF c = NIL
+   THEN
+      RETURN NIL
+   ELSE
+      n := newNode (comment) ;
+      n^.commentF.content := c ;
+      RETURN n
+   END
+END makeCommentS ;
 
 
 (*
@@ -15070,6 +15205,8 @@ BEGIN
    n^.ifF.then := s ;
    n^.ifF.else := NIL ;
    n^.ifF.elsif := NIL ;
+   n^.ifF.aftercomment := NIL ;
+   n^.ifF.bodycomment := NIL ;
    RETURN n
 END makeIf ;
 

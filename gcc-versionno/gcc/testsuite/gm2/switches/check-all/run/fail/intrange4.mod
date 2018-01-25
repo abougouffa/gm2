@@ -1,4 +1,4 @@
-(* Copyright (C) 2011 Free Software Foundation, Inc. *)
+(* Copyright (C) 2018 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -16,32 +16,14 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA. *)
 
-DEFINITION MODULE mcComp ;
+MODULE intrange4 ;
 
-(*
-    Title      : mcComp
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Tue Nov 17 16:22:34 2015
-    Revision   : $Version$
-    Description: provides a procedure which coordinates all passes of mc.
-*)
+FROM libc IMPORT exit ;
 
-FROM DynamicStrings IMPORT String ;
-
-
-(*
-   compile - translate file, s, using a 6 pass technique.
-*)
-
-PROCEDURE compile (s: String) ;
-
-
-(*
-   getPassNo - return the pass no.
-*)
-
-PROCEDURE getPassNo () : CARDINAL ;
-
-
-END mcComp.
+VAR
+   i: [-1..2] ;
+BEGIN
+   i := 2 ;
+   i := -i ;
+   exit(0)    (* should not get here if -fsoft-check-all is used *)
+END intrange4.

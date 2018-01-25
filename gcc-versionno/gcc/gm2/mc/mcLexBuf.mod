@@ -1,4 +1,4 @@
-(* Copyright (C) 2015
+(* Copyright (C) 2015, 2016, 2017, 2018
                  Free Software Foundation, Inc.  *)
 (* This file is part of GNU Modula-2.
 
@@ -27,6 +27,7 @@ FROM DynamicStrings IMPORT string, InitString, InitStringCharStar, Equal, Mark, 
 FROM FormatStrings IMPORT Sprintf1 ;
 FROM nameKey IMPORT NulName, Name, makekey, keyToCharStar ;
 FROM mcReserved IMPORT toktype ;
+FROM mcComment IMPORT isProcedureComment, isBodyComment, isAfterComment, getContent ;
 FROM mcPrintf IMPORT printf0, printf1, printf2, printf3 ;
 FROM mcDebug IMPORT assert ;
 
@@ -48,6 +49,7 @@ TYPE
                   token: toktype ;
                   str  : Name ;
                   int  : INTEGER ;
+		  com  : commentDesc ;
                   line : CARDINAL ;
                   col  : CARDINAL ;
                   file : sourceList ;
@@ -66,12 +68,218 @@ TYPE
               END ;
 
 VAR
+   procedureComment,
+   bodyComment,
+   afterComment     : commentDesc ;
    currentSource    : sourceList ;
    useBufferedTokens,
    currentUsed      : BOOLEAN ;
    listOfTokens     : listDesc ;
-   currentTokNo     : CARDINAL ;
+   nextTokNo        : CARDINAL ;
 
+
+(*
+   debugLex - display the last, n, tokens.
+*)
+
+PROCEDURE debugLex (n: CARDINAL) ;
+VAR
+   c,
+   i, o, t: CARDINAL ;
+   b      : tokenBucket ;
+BEGIN
+   IF nextTokNo > n
+   THEN
+      o := nextTokNo - n
+   ELSE
+      o := 0
+   END ;
+   i := 0 ;
+   REPEAT
+      t := o + i ;
+      IF nextTokNo = t
+      THEN
+         printf0 ("nextTokNo ")
+      END ;
+      b := findtokenBucket (t) ;
+      IF b = NIL
+      THEN
+         t := o + i ;
+         printf1 ("end of buf  (%d is further ahead than the buffer contents)\n", t)
+      ELSE
+         c := o + i ;
+         printf2 ("entry %d  %d ", c, t) ;
+         displayToken (b^.buf[t].token) ;
+	 printf0 ("\n") ;
+         INC (i)
+      END
+   UNTIL b = NIL
+END debugLex ;
+
+
+(*
+   getProcedureComment - returns the procedure comment if it exists,
+                         or NIL otherwise.
+*)
+
+PROCEDURE getProcedureComment () : commentDesc ;
+BEGIN
+   RETURN procedureComment
+END getProcedureComment ;
+
+
+(*
+   getBodyComment - returns the body comment if it exists,
+                    or NIL otherwise.  The body comment is
+                    removed if found.
+*)
+
+PROCEDURE getBodyComment () : commentDesc ;
+VAR
+   b: commentDesc ;
+BEGIN
+   b := bodyComment ;
+   bodyComment := NIL ;
+   RETURN b
+END getBodyComment ;
+
+
+(*
+   seekTo -
+*)
+
+PROCEDURE seekTo (t: CARDINAL) ;
+VAR
+   b: tokenBucket ;
+BEGIN
+   nextTokNo := t ;
+   IF t > 0
+   THEN
+      DEC (t) ;
+      b := findtokenBucket (t) ;
+      IF b = NIL
+      THEN
+         updateFromBucket (b, t)
+      END
+   END
+END seekTo ;
+
+
+(*
+   peeptokenBucket -
+*)
+
+PROCEDURE peeptokenBucket (VAR t: CARDINAL) : tokenBucket ;
+VAR
+   ct : toktype ;
+   old,
+   n  : CARDINAL ;
+   b, c: tokenBucket ;
+BEGIN
+   ct := currenttoken ;
+   IF Debugging
+   THEN
+      debugLex (5)
+   END ;
+   old := getTokenNo () ;
+   REPEAT
+      n := t ;
+      b := findtokenBucket (n) ;
+      IF b = NIL
+      THEN
+         doGetToken
+      END ;
+   UNTIL (b # NIL) OR (currenttoken = eoftok) ;
+   t := n ;
+   nextTokNo := old + 1 ;
+   IF Debugging
+   THEN
+      printf2 ("nextTokNo = %d, old = %d\n", nextTokNo, old)
+   END ;
+   b := findtokenBucket (old) ;
+   IF Debugging
+   THEN
+      printf1 ("  adjusted old = %d\n", old)
+   END ;
+   IF b # NIL
+   THEN
+      updateFromBucket (b, old)
+   END ;
+   IF Debugging
+   THEN
+      debugLex (5)
+   END ;
+   assert (ct = currenttoken) ;
+   RETURN b
+END peeptokenBucket ;
+
+
+(*
+   peepAfterComment - peeps ahead looking for an after statement comment.  It stops at an END token
+                      or if the line number changes.
+*)
+
+PROCEDURE peepAfterComment ;
+VAR
+   oldTokNo,
+   t,
+   peep,
+   cno,
+   nextline,
+   curline : CARDINAL ;
+   b       : tokenBucket ;
+   finished: BOOLEAN ;
+BEGIN
+   oldTokNo := nextTokNo ;
+   cno := getTokenNo () ;
+   curline := tokenToLineNo (cno, 0) ;
+   nextline := curline ;
+   peep := 0 ;
+   finished := FALSE ;
+   REPEAT
+      t := cno + peep ;
+      b := peeptokenBucket (t) ;
+      IF b = NIL
+      THEN
+         finished := TRUE
+      ELSE
+         nextline := b^.buf[t].line ;
+	 IF nextline = curline
+         THEN
+            CASE b^.buf[t].token OF
+
+            endtok    :  finished := TRUE |
+            commenttok:  IF isAfterComment (b^.buf[t].com)
+                         THEN
+	                    afterComment := b^.buf[t].com
+                         END
+	    ELSE
+	    END
+	 ELSE
+            finished := TRUE
+         END
+      END ;
+      INC (peep)
+   UNTIL finished ;
+   seekTo (oldTokNo)
+END peepAfterComment ;
+
+
+(*
+   getAfterComment - returns the after comment if it exists,
+                     or NIL otherwise.  The after comment is
+                     removed if found.
+*)
+
+PROCEDURE getAfterComment () : commentDesc ;
+VAR
+   a: commentDesc ;
+BEGIN
+   peepAfterComment ;
+   a := afterComment ;
+   afterComment := NIL ;
+   RETURN a
+END getAfterComment ;
 
 
 (*
@@ -81,11 +289,15 @@ VAR
 PROCEDURE init ;
 BEGIN
    currenttoken := eoftok ;
-   currentTokNo := 0 ;
+   nextTokNo := 0 ;
    currentSource := NIL ;
    listOfTokens.head := NIL ;
    listOfTokens.tail := NIL ;
-   useBufferedTokens := FALSE
+   useBufferedTokens := FALSE ;
+   procedureComment := NIL ;
+   bodyComment := NIL ;
+   afterComment := NIL ;
+   lastcomment := NIL
 END init ;
 
 
@@ -335,7 +547,7 @@ END closeSource ;
 
 PROCEDURE resetForNewPass ;
 BEGIN
-   currentTokNo := 0 ;
+   nextTokNo := 0 ;
    useBufferedTokens := TRUE
 END resetForNewPass ;
 
@@ -344,97 +556,94 @@ END resetForNewPass ;
    displayToken -
 *)
 
-PROCEDURE displayToken ;
+PROCEDURE displayToken (t: toktype) ;
 BEGIN
-   IF currenttoken=identtok
-   THEN
-      printf1 ('currenttoken = %a\n', currentstring)
+   CASE t OF
+
+   eoftok: printf0('eoftok\n') |
+   plustok: printf0('plustok\n') |
+   minustok: printf0('minustok\n') |
+   timestok: printf0('timestok\n') |
+   dividetok: printf0('dividetok\n') |
+   becomestok: printf0('becomestok\n') |
+   ambersandtok: printf0('ambersandtok\n') |
+   periodtok: printf0('periodtok\n') |
+   commatok: printf0('commatok\n') |
+   commenttok: printf0('commenttok\n') |
+   semicolontok: printf0('semicolontok\n') |
+   lparatok: printf0('lparatok\n') |
+   rparatok: printf0('rparatok\n') |
+   lsbratok: printf0('lsbratok\n') |
+   rsbratok: printf0('rsbratok\n') |
+   lcbratok: printf0('lcbratok\n') |
+   rcbratok: printf0('rcbratok\n') |
+   uparrowtok: printf0('uparrowtok\n') |
+   singlequotetok: printf0('singlequotetok\n') |
+   equaltok: printf0('equaltok\n') |
+   hashtok: printf0('hashtok\n') |
+   lesstok: printf0('lesstok\n') |
+   greatertok: printf0('greatertok\n') |
+   lessgreatertok: printf0('lessgreatertok\n') |
+   lessequaltok: printf0('lessequaltok\n') |
+   greaterequaltok: printf0('greaterequaltok\n') |
+   periodperiodtok: printf0('periodperiodtok\n') |
+   colontok: printf0('colontok\n') |
+   doublequotestok: printf0('doublequotestok\n') |
+   bartok: printf0('bartok\n') |
+   andtok: printf0('andtok\n') |
+   arraytok: printf0('arraytok\n') |
+   begintok: printf0('begintok\n') |
+   bytok: printf0('bytok\n') |
+   casetok: printf0('casetok\n') |
+   consttok: printf0('consttok\n') |
+   definitiontok: printf0('definitiontok\n') |
+   divtok: printf0('divtok\n') |
+   dotok: printf0('dotok\n') |
+   elsetok: printf0('elsetok\n') |
+   elsiftok: printf0('elsiftok\n') |
+   endtok: printf0('endtok\n') |
+   exittok: printf0('exittok\n') |
+   exporttok: printf0('exporttok\n') |
+   fortok: printf0('fortok\n') |
+   fromtok: printf0('fromtok\n') |
+   iftok: printf0('iftok\n') |
+   implementationtok: printf0('implementationtok\n') |
+   importtok: printf0('importtok\n') |
+   intok: printf0('intok\n') |
+   looptok: printf0('looptok\n') |
+   modtok: printf0('modtok\n') |
+   moduletok: printf0('moduletok\n') |
+   nottok: printf0('nottok\n') |
+   oftok: printf0('oftok\n') |
+   ortok: printf0('ortok\n') |
+   pointertok: printf0('pointertok\n') |
+   proceduretok: printf0('proceduretok\n') |
+   qualifiedtok: printf0('qualifiedtok\n') |
+   unqualifiedtok: printf0('unqualifiedtok\n') |
+   recordtok: printf0('recordtok\n') |
+   repeattok: printf0('repeattok\n') |
+   returntok: printf0('returntok\n') |
+   settok: printf0('settok\n') |
+   thentok: printf0('thentok\n') |
+   totok: printf0('totok\n') |
+   typetok: printf0('typetok\n') |
+   untiltok: printf0('untiltok\n') |
+   vartok: printf0('vartok\n') |
+   whiletok: printf0('whiletok\n') |
+   withtok: printf0('withtok\n') |
+   asmtok: printf0('asmtok\n') |
+   volatiletok: printf0('volatiletok\n') |
+   periodperiodperiodtok: printf0('periodperiodperiodtok\n') |
+   datetok: printf0('datetok\n') |
+   linetok: printf0('linetok\n') |
+   filetok: printf0('filetok\n') |
+   integertok: printf0('integertok\n') |
+   identtok: printf0('identtok\n') |
+   realtok: printf0('realtok\n') |
+   stringtok: printf0('stringtok\n')
+
    ELSE
-      CASE currenttoken OF
-
-      eoftok: printf0('eoftok\n') |
-      plustok: printf0('plustok\n') |
-      minustok: printf0('minustok\n') |
-      timestok: printf0('timestok\n') |
-      dividetok: printf0('dividetok\n') |
-      becomestok: printf0('becomestok\n') |
-      ambersandtok: printf0('ambersandtok\n') |
-      periodtok: printf0('periodtok\n') |
-      commatok: printf0('commatok\n') |
-      semicolontok: printf0('semicolontok\n') |
-      lparatok: printf0('lparatok\n') |
-      rparatok: printf0('rparatok\n') |
-      lsbratok: printf0('lsbratok\n') |
-      rsbratok: printf0('rsbratok\n') |
-      lcbratok: printf0('lcbratok\n') |
-      rcbratok: printf0('rcbratok\n') |
-      uparrowtok: printf0('uparrowtok\n') |
-      singlequotetok: printf0('singlequotetok\n') |
-      equaltok: printf0('equaltok\n') |
-      hashtok: printf0('hashtok\n') |
-      lesstok: printf0('lesstok\n') |
-      greatertok: printf0('greatertok\n') |
-      lessgreatertok: printf0('lessgreatertok\n') |
-      lessequaltok: printf0('lessequaltok\n') |
-      greaterequaltok: printf0('greaterequaltok\n') |
-      periodperiodtok: printf0('periodperiodtok\n') |
-      colontok: printf0('colontok\n') |
-      doublequotestok: printf0('doublequotestok\n') |
-      bartok: printf0('bartok\n') |
-      andtok: printf0('andtok\n') |
-      arraytok: printf0('arraytok\n') |
-      begintok: printf0('begintok\n') |
-      bytok: printf0('bytok\n') |
-      casetok: printf0('casetok\n') |
-      consttok: printf0('consttok\n') |
-      definitiontok: printf0('definitiontok\n') |
-      divtok: printf0('divtok\n') |
-      dotok: printf0('dotok\n') |
-      elsetok: printf0('elsetok\n') |
-      elsiftok: printf0('elsiftok\n') |
-      endtok: printf0('endtok\n') |
-      exittok: printf0('exittok\n') |
-      exporttok: printf0('exporttok\n') |
-      fortok: printf0('fortok\n') |
-      fromtok: printf0('fromtok\n') |
-      iftok: printf0('iftok\n') |
-      implementationtok: printf0('implementationtok\n') |
-      importtok: printf0('importtok\n') |
-      intok: printf0('intok\n') |
-      looptok: printf0('looptok\n') |
-      modtok: printf0('modtok\n') |
-      moduletok: printf0('moduletok\n') |
-      nottok: printf0('nottok\n') |
-      oftok: printf0('oftok\n') |
-      ortok: printf0('ortok\n') |
-      pointertok: printf0('pointertok\n') |
-      proceduretok: printf0('proceduretok\n') |
-      qualifiedtok: printf0('qualifiedtok\n') |
-      unqualifiedtok: printf0('unqualifiedtok\n') |
-      recordtok: printf0('recordtok\n') |
-      repeattok: printf0('repeattok\n') |
-      returntok: printf0('returntok\n') |
-      settok: printf0('settok\n') |
-      thentok: printf0('thentok\n') |
-      totok: printf0('totok\n') |
-      typetok: printf0('typetok\n') |
-      untiltok: printf0('untiltok\n') |
-      vartok: printf0('vartok\n') |
-      whiletok: printf0('whiletok\n') |
-      withtok: printf0('withtok\n') |
-      asmtok: printf0('asmtok\n') |
-      volatiletok: printf0('volatiletok\n') |
-      periodperiodperiodtok: printf0('periodperiodperiodtok\n') |
-      datetok: printf0('datetok\n') |
-      linetok: printf0('linetok\n') |
-      filetok: printf0('filetok\n') |
-      integertok: printf0('integertok\n') |
-      identtok: printf0('identtok\n') |
-      realtok: printf0('realtok\n') |
-      stringtok: printf0('stringtok\n')
-
-      ELSE
-      END
+      printf0 ('unknown tok (--fixme--)\n')
    END
 END displayToken ;
 
@@ -452,9 +661,14 @@ BEGIN
       currentstring  := keyToCharStar (str) ;
       currentcolumn  := col ;
       currentinteger := int ;
+      currentcomment := com ;
+      IF currentcomment # NIL
+      THEN
+         lastcomment := currentcomment
+      END ;
       IF Debugging
       THEN
-         printf3 ('line %d (# %d  %d) ', line, offset, currentTokNo)
+         printf3 ('line %d (# %d  %d) ', line, offset, nextTokNo)
       END
    END
 END updateFromBucket ;
@@ -467,7 +681,25 @@ END updateFromBucket ;
 PROCEDURE getToken ;
 BEGIN
    REPEAT
-      doGetToken
+      doGetToken ;
+      IF currenttoken = commenttok
+      THEN
+	 IF isProcedureComment (currentcomment)
+	 THEN
+            procedureComment := currentcomment ;
+            bodyComment := NIL ;
+            afterComment := NIL ;
+	 ELSIF isBodyComment (currentcomment)
+	 THEN
+            bodyComment := currentcomment ;
+            afterComment := NIL
+	 ELSIF isAfterComment (currentcomment)
+	 THEN
+            procedureComment := NIL ;
+            bodyComment := NIL ;
+            afterComment := currentcomment
+	 END
+      END
    UNTIL currenttoken # commenttok
 END getToken ;
 
@@ -484,7 +716,7 @@ VAR
 BEGIN
    IF useBufferedTokens
    THEN
-      t := currentTokNo ;
+      t := nextTokNo ;
       b := findtokenBucket (t) ;
       updateFromBucket (b, t)
    ELSE
@@ -496,30 +728,42 @@ BEGIN
             HALT
          END
       END ;
-      IF currentTokNo>=listOfTokens.lastBucketOffset
+      IF nextTokNo>=listOfTokens.lastBucketOffset
       THEN
-         (* currentTokNo is in the last bucket or needs to be read.  *)
-         IF currentTokNo-listOfTokens.lastBucketOffset<listOfTokens.tail^.len
+         (* nextTokNo is in the last bucket or needs to be read.  *)
+         IF nextTokNo-listOfTokens.lastBucketOffset<listOfTokens.tail^.len
          THEN
+            IF Debugging
+            THEN
+               printf0 ('fetching token from buffer (updateFromBucket)\n')
+            END ;
             updateFromBucket (listOfTokens.tail,
-                              currentTokNo-listOfTokens.lastBucketOffset)
+                              nextTokNo-listOfTokens.lastBucketOffset)
          ELSE
+            IF Debugging
+            THEN
+               printf0 ('calling flex to place token into buffer\n')
+            END ;
             (* call the lexical phase to place a new token into the last bucket.  *)
             a := mcflex.getToken () ;
             getToken ; (* and call ourselves again to collect the token from bucket.  *)
             RETURN
          END
       ELSE
-         t := currentTokNo ;
+         IF Debugging
+         THEN
+            printf0 ('fetching token from buffer\n')
+         END ;
+         t := nextTokNo ;
          b := findtokenBucket (t) ;
          updateFromBucket (b, t)
       END
    END ;
    IF Debugging
    THEN
-      displayToken
+      displayToken (currenttoken)
    END ;
-   INC (currentTokNo)
+   INC (nextTokNo)
 END doGetToken ;
 
 
@@ -533,7 +777,7 @@ BEGIN
    IF listOfTokens.tail#NIL
    THEN
       WITH listOfTokens.tail^ DO
-         currentTokNo := listOfTokens.lastBucketOffset+len
+         nextTokNo := listOfTokens.lastBucketOffset+len
       END
    END
 END syncOpenWithBuffer ;
@@ -554,7 +798,7 @@ BEGIN
             buf[len-1].token := token
          END
       END ;
-      addTokToList (currenttoken, NulName, 0,
+      addTokToList (currenttoken, NulName, 0, NIL,
                     getLineNo (), getColumnNo (), currentSource) ;
       getToken
    END
@@ -576,7 +820,7 @@ BEGIN
             buf[len-1].token := token
          END
       END ;
-      addTokToList (currenttoken, NulName, 0,
+      addTokToList (currenttoken, NulName, 0, NIL,
                     getLineNo(), getColumnNo(), currentSource) ;
       currenttoken := token
    END
@@ -600,7 +844,7 @@ END getPreviousTokenLineNo ;
 
 PROCEDURE getLineNo () : CARDINAL ;
 BEGIN
-   IF currentTokNo=0
+   IF nextTokNo=0
    THEN
       RETURN 0
    ELSE
@@ -616,7 +860,7 @@ END getLineNo ;
 
 PROCEDURE getColumnNo () : CARDINAL ;
 BEGIN
-   IF currentTokNo=0
+   IF nextTokNo=0
    THEN
       RETURN 0
    ELSE
@@ -631,11 +875,11 @@ END getColumnNo ;
 
 PROCEDURE getTokenNo () : CARDINAL ;
 BEGIN
-   IF currentTokNo=0
+   IF nextTokNo=0
    THEN
       RETURN 0
    ELSE
-      RETURN currentTokNo-1
+      RETURN nextTokNo-1
    END
 END getTokenNo ;
 
@@ -788,7 +1032,8 @@ PROCEDURE stop ; BEGIN END stop ;
 *)
 
 PROCEDURE addTokToList (t: toktype; n: Name;
-                        i: INTEGER; l: CARDINAL; c: CARDINAL; f: sourceList) ;
+                        i: INTEGER; comment: commentDesc;
+			l: CARDINAL; c: CARDINAL; f: sourceList) ;
 VAR
    b: tokenBucket ;
 BEGIN
@@ -820,6 +1065,7 @@ BEGIN
          token := t ;
          str   := n ;
          int   := i ;
+	 com   := comment ;
          line  := l ;
          col   := c ;
          file  := f
@@ -876,7 +1122,7 @@ PROCEDURE addTok (t: toktype) ;
 BEGIN
    IF NOT ((t=eoftok) AND isLastTokenEof())
    THEN
-      addTokToList (t, NulName, 0,
+      addTokToList (t, NulName, 0, NIL,
                     mcflex.getLineNo (), mcflex.getColumnNo (), currentSource) ;
       currentUsed := TRUE
    END
@@ -894,8 +1140,8 @@ BEGIN
    THEN
       stop
    END ;
-   addTokToList (t, makekey (s), 0, mcflex.getLineNo (),
-                 mcflex.getColumnNo (), currentSource) ;
+   addTokToList (t, makekey (s), 0, NIL,
+		 mcflex.getLineNo (), mcflex.getColumnNo (), currentSource) ;
    currentUsed := TRUE
 END addTokCharStar ;
 
@@ -913,10 +1159,22 @@ BEGIN
    l := mcflex.getLineNo () ;
    c := mcflex.getColumnNo () ;
    s := Sprintf1 (Mark (InitString ('%d')), i) ;
-   addTokToList (t, makekey(string(s)), i, l, c, currentSource) ;
+   addTokToList (t, makekey(string(s)), i, NIL, l, c, currentSource) ;
    s := KillString (s) ;
    currentUsed := TRUE
 END addTokInteger ;
+
+
+(*
+   addTokComment - adds a token to the buffer and a comment descriptor, com.
+*)
+
+PROCEDURE addTokComment (t: toktype; com: commentDesc) ;
+BEGIN
+   addTokToList (t, NulName, 0, com,
+		 mcflex.getLineNo (), mcflex.getColumnNo (), currentSource) ;
+   currentUsed := TRUE
+END addTokComment ;
 
 
 BEGIN

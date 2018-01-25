@@ -761,6 +761,8 @@ static void initMacros (void)
   add (macros, (char *) "csqrt", 5);
   add (macros, (char *) "strlen", 6);
   add (macros, (char *) "strcpy", 6);
+  add (macros, (char *) "free", 4);
+  add (macros, (char *) "malloc", 6);
   add (macros, (char *) "main", 4);
 }
 
@@ -1245,13 +1247,16 @@ DynamicStrings_String keyc_cname (nameKey_Name n, unsigned int scopes)
         /* avoid dangling else.  */
         if (scopes)
           {
+            /* no longer a clash with, m, so add it to the current scope.  */
             n = nameKey_makekey (DynamicStrings_string (m));
             symbolKey_putSymKey (stack->symbols, n, (void *) m);
           }
       }
     else
+      /* mangleN must always succeed.  */
       M2RTS_HALT (-1);
   else if (scopes)
+    /* no clash, add it to the current scope.  */
     symbolKey_putSymKey (stack->symbols, n, (void *) DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
   return m;
 }
@@ -1277,11 +1282,14 @@ nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes)
       {
         n = nameKey_makekey (DynamicStrings_string (m));
         if (scopes)
+          /* no longer a clash with, m, so add it to the current scope.  */
           symbolKey_putSymKey (stack->symbols, n, (void *) m);
       }
     else
+      /* mangleN must always succeed.  */
       M2RTS_HALT (-1);
   else if (scopes)
+    /* no clash, add it to the current scope.  */
     symbolKey_putSymKey (stack->symbols, n, (void *) DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (n)));
   m = DynamicStrings_KillString (m);
   return n;

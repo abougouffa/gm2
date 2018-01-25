@@ -56,7 +56,7 @@ FROM mcLexBuf IMPORT currentstring, currenttoken, getToken, insertToken,
                      insertTokenAndRewind, getTokenNo ;
 
 FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
-                 makeProcedure, makeType, makeVar, makeConst,
+                 makeType, makeVar, makeConst,
 		 enterScope, leaveScope,
 		 addImportedModule, getCurrentModule,
 		 makeEnum, makeEnumField, putType, lookupSym, isDef,

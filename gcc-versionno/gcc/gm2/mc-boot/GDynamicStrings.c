@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
+#include <stdlib.h>
 #   include "GStorage.h"
 #define _DynamicStrings_H
 #define _DynamicStrings_C
@@ -714,6 +715,15 @@ static void DSdbExit (DynamicStrings_String s)
 
 static unsigned int Capture (DynamicStrings_String s)
 {
+  /* 
+#undef GM2_DEBUG_DYNAMICSTINGS
+#if defined(GM2_DEBUG_DYNAMICSTINGS)
+#  define DSdbEnter doDSdbEnter
+#  define DSdbExit  doDSdbExit
+#  define CheckOn   TRUE
+#  define TraceOn   TRUE
+#endif
+  */
   captured = s;
   return 1;
 }
@@ -757,7 +767,7 @@ static void writeString (char *a_, unsigned int _a_high)
   /* make a local copy of each unbounded array.  */
   memcpy (a, a_, _a_high+1);
 
-  i = libc_write (1, &a, (int) StrLib_StrLen ((char *) a, _a_high));
+  i = libc_write (1, &a, (size_t) StrLib_StrLen ((char *) a, _a_high));
 }
 
 
@@ -793,7 +803,7 @@ static void writeCard (unsigned int c)
   else
     {
       ch = (char) (((unsigned int) ('0'))+c);
-      i = libc_write (1, &ch, 1);
+      i = libc_write (1, &ch, (size_t) 1);
     }
 }
 
@@ -815,12 +825,12 @@ static void writeLongcard (long unsigned int l)
   else if (l < 10)
     {
       ch = (char) (((unsigned int) ('0'))+((unsigned int ) (l)));
-      i = libc_write (1, &ch, 1);
+      i = libc_write (1, &ch, (size_t) 1);
     }
   else if (l < 16)
     {
       ch = (char) ((((unsigned int) ('a'))+((unsigned int ) (l)))-10);
-      i = libc_write (1, &ch, 1);
+      i = libc_write (1, &ch, (size_t) 1);
     }
 }
 
@@ -845,7 +855,7 @@ static void writeLn (void)
   int i;
 
   ch = ASCII_lf;
-  i = libc_write (1, &ch, 1);
+  i = libc_write (1, &ch, (size_t) 1);
 }
 
 
@@ -926,6 +936,7 @@ static void SubFrom (DynamicStrings_String *list, DynamicStrings_String s)
       if (p->debug.next == s)
         p->debug.next = s->debug.next;
       else
+        /* not found, quit  */
         return;
     }
   s->debug.next = NULL;
@@ -1047,6 +1058,7 @@ static void SubDebugInfo (DynamicStrings_String s)
   if (IsOnDeallocated (s))
     {
       Assertion_Assert (! DebugOn);
+      /* string has already been deallocated  */
       return;
     }
   if (IsOnAllocated (s))
@@ -1055,6 +1067,7 @@ static void SubDebugInfo (DynamicStrings_String s)
       AddDeallocated (s);
     }
   else
+    /* string has not been allocated  */
     Assertion_Assert (! DebugOn);
 }
 
@@ -1209,6 +1222,12 @@ static DynamicStrings_String AddToGarbage (DynamicStrings_String a, DynamicStrin
       a = CheckPoisoned (a);
       b = CheckPoisoned (b);
     }
+  /* 
+   IF (a#NIL) AND (a#b) AND (a^.head^.state=marked)
+   THEN
+      writeString('warning trying to add to a marked string') ; writeLn
+   END ;
+  */
   if (((((a != b) && (a != NULL)) && (b != NULL)) && (b->head->state == marked)) && (a->head->state == inuse))
     {
       c = a;
@@ -1766,6 +1785,7 @@ DynamicStrings_String DynamicStrings_Slice (DynamicStrings_String s, int low, in
   if (high <= 0)
     high = ((int ) (DynamicStrings_Length (s)))+high;
   else
+    /* make sure high is <= Length(s)  */
     high = Min (DynamicStrings_Length (s), (unsigned int) high);
   d = DynamicStrings_InitString ((char *) "", 0);
   d = AddToGarbage (d, s);
@@ -1777,6 +1797,7 @@ DynamicStrings_String DynamicStrings_Slice (DynamicStrings_String s, int low, in
         s = NULL;
       else
         {
+          /* found sliceable unit  */
           if (low < o)
             start = 0;
           else

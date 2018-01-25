@@ -348,6 +348,7 @@ static unsigned int optionIs (char *left_, unsigned int _left_high, DynamicStrin
 
 static void setLang (DynamicStrings_String arg)
 {
+  /* must check the longest distinctive string first.  */
   if (optionIs ((char *) "c++", 3, arg))
     decl_setLangCP ();
   else if (optionIs ((char *) "c", 1, arg))

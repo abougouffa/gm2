@@ -176,6 +176,7 @@ static unsigned int TranslateNameToCharStar (char *a, unsigned int _a_high, unsi
             }
           argno += 1;
           if (argno > n)
+            /* all done  */
             return FALSE;
         }
       i += 1;

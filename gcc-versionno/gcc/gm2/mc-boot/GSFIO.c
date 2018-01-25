@@ -153,6 +153,7 @@ DynamicStrings_String SFIO_ReadS (FIO_File file)
   while (((! (FIO_EOLN (file))) && (! (FIO_EOF (file)))) && (FIO_IsNoError (file)))
     s = DynamicStrings_ConCatChar (s, FIO_ReadChar (file));
   if (FIO_EOLN (file))
+    /* consume nl  */
     if ((FIO_ReadChar (file)) == ASCII_nul)
       {}  /* empty.  */
   return s;

@@ -24,6 +24,10 @@ M2EXCEPTION_M2Exceptions M2EXCEPTION_M2Exception (void)
   RTExceptions_EHBlock e;
   unsigned int n;
 
+  /* If the current coroutine is in the exceptional execution state because of the raising
+     of a language exception, returns the corresponding enumeration value, and otherwise
+     raises an exception.
+  */
   e = RTExceptions_GetExceptionBlock ();
   n = RTExceptions_GetNumber (e);
   if (n == (UINT_MAX))
@@ -37,6 +41,9 @@ unsigned int M2EXCEPTION_IsM2Exception (void)
 {
   RTExceptions_EHBlock e;
 
+  /* If the current coroutine is in the exceptional execution state because of the raising
+     of a language exception, returns TRUE, and otherwise returns FALSE.
+  */
   e = RTExceptions_GetExceptionBlock ();
   return (RTExceptions_GetNumber (e)) != (UINT_MAX);
 }

@@ -16,6 +16,7 @@ extern "C" {
 #   include "GnameKey.h"
 #   include "GsymbolKey.h"
 #   include "GmcReserved.h"
+#   include "GmcComment.h"
 
 #   if defined (_decl_C)
 #      define EXTERN
@@ -902,6 +903,24 @@ EXTERN unsigned int decl_isStatementSequence (decl_node n);
 EXTERN void decl_addStatement (decl_node s, decl_node n);
 
 /*
+   addCommentBody - adds a body comment to a statement sequence node.
+*/
+
+EXTERN void decl_addCommentBody (decl_node n);
+
+/*
+   addCommentAfter - adds an after comment to a statement sequence node.
+*/
+
+EXTERN void decl_addCommentAfter (decl_node n);
+
+/*
+   addIfComments - adds the, body, and, after, comments to if node, n.
+*/
+
+EXTERN void decl_addIfComments (decl_node n, decl_node body, decl_node after);
+
+/*
    makeReturn - creates and returns a return node.
 */
 
@@ -996,6 +1015,12 @@ EXTERN void decl_putLoop (decl_node l, decl_node s);
 */
 
 EXTERN decl_node decl_makeComment (char *a_, unsigned int _a_high);
+
+/*
+   makeCommentS - creates and returns a comment node.
+*/
+
+EXTERN decl_node decl_makeCommentS (mcComment_commentDesc c);
 
 /*
    makeIf - creates and returns an if node.  The if node

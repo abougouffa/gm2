@@ -421,7 +421,6 @@ VAR
    descs: String ;
 BEGIN
    setToPassNo (no) ;
-   mcComment.newPass ;
    descs := InitString (desc) ;
    qprintf2 ('Pass %d: %s\n', no, descs) ;
    foreachDefModuleDo (unsetVisited) ;
@@ -453,6 +452,16 @@ PROCEDURE setToPassNo (n: CARDINAL) ;
 BEGIN
    currentPass := n
 END setToPassNo ;
+
+
+(*
+   getPassNo - return the pass no.
+*)
+
+PROCEDURE getPassNo () : CARDINAL ;
+BEGIN
+   RETURN currentPass
+END getPassNo ;
 
 
 (*

@@ -1,5 +1,5 @@
 %{
-/* Copyright (C) 2015, 2016, 2017
+/* Copyright (C) 2015, 2016, 2017, 2018
    Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
@@ -23,6 +23,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #include "mcComment.h"
 
 #include <time.h>
+#include <ctype.h>
 
 #if !defined(TRUE)
 #  define TRUE (1==1)
@@ -70,6 +71,8 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
   static int                  seenModuleStart=FALSE;
   static int                  isDefinitionModule=FALSE;
   static int                  totalLines=0;
+  static int                  seenOnlySpaces=TRUE;
+  static void                *currentComment = NULL;
 
         void mcflex_mcError           (const char *);
 static  void pushLine                 (void);
@@ -113,7 +116,7 @@ extern  void  yylex                   (void);
 %%
 
 "(*"                       { updatepos();
-                             commentLevel=1; pushLine(); skippos(); mcComment_beginComment ();
+                             commentLevel=1; pushLine(); skippos(); currentComment = mcComment_initComment (seenOnlySpaces);
 			     BEGIN COMMENT; }
 <COMMENT>"*)"              { endOfComment(); }
 <COMMENT>"(*"              { commentLevel++; pushLine(); updatepos(); skippos(); }
@@ -125,8 +128,8 @@ extern  void  yylex                   (void);
                              } else
                                updatepos(); skippos();
                            }
-<COMMENT>\n                { mcComment_addText (yytext); consumeLine(); }
-<COMMENT>.                 { mcComment_addText (yytext); updatepos(); skippos(); }
+<COMMENT>\n                { mcComment_addText (currentComment, yytext); consumeLine(); }
+<COMMENT>.                 { mcComment_addText (currentComment, yytext); updatepos(); skippos(); }
 <COMMENT1>.                { updatepos(); skippos(); }
 <COMMENT1>"*>"             { updatepos(); skippos(); finishedLine(); BEGIN COMMENT; }
 <COMMENT1>\n.*             { consumeLine(); }
@@ -413,8 +416,7 @@ static void popFunction (void)
 static void endOfComment (void)
 {
   if (commentLevel == 1) {
-    mcComment_endComment ();
-    mcLexBuf_addTokCharStar (mcReserved_commenttok, mcComment_getCommentCharStar ());
+    mcLexBuf_addTokComment (mcReserved_commenttok, currentComment);
   }
   commentLevel--;
   updatepos ();
@@ -480,6 +482,30 @@ static void consumeLine (void)
   currentLine->column=0;
   START_LINE (lineno, yyleng);
   yyless(1);                  /* push back all but the \n */
+  seenOnlySpaces=TRUE;
+}
+
+/*
+ *  detectSpaces - scan yytext to see if only spaces have been seen.
+ */
+
+static void detectSpaces (void)
+{
+  char *p = yytext;
+  int   i = 0;
+
+  if ((strcmp (yytext, "(*") != 0) &&
+      (strcmp (yytext, "*)") != 0))
+    {
+      while (i < strlen (p))
+        {
+          if (! isspace (p[i]))
+            seenOnlySpaces = FALSE;
+          else if (p[i] == '\n')
+            seenOnlySpaces = TRUE;
+          i++;
+        }
+    }
 }
 
 /*
@@ -496,6 +522,8 @@ static void updatepos (void)
   currentLine->toklen  = yyleng;
   if (currentLine->column == 0)
     currentLine->column = currentLine->tokenpos;
+  if (commentLevel == 0)
+    detectSpaces ();
 }
 
 /*

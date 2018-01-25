@@ -218,6 +218,7 @@ static comparison findNodeAndParentInTree (ptrToChar n, nameNode *child, nameNod
 {
   comparison result;
 
+  /* firstly set up the initial values of child and father, using sentinal node  */
   (*father) = binaryTree;
   (*child) = binaryTree->left;
   if ((*child) == NULL)
@@ -263,7 +264,7 @@ nameKey_Name nameKey_makeKey (char *a_, unsigned int _a_high)
   higha = StrLib_StrLen ((char *) a, _a_high);
   Storage_ALLOCATE ((void **) &p, higha+1);
   if (p == NULL)
-    M2RTS_HALT (-1);
+    M2RTS_HALT (-1);  /* out of memory error  */
   else
     {
       n = p;
@@ -303,7 +304,7 @@ nameKey_Name nameKey_makekey (void * a)
       higha = libc_strlen (a);
       Storage_ALLOCATE ((void **) &p, higha+1);
       if (p == NULL)
-        M2RTS_HALT (-1);
+        M2RTS_HALT (-1);  /* out of memory error  */
       else
         {
           n = p;
@@ -384,6 +385,7 @@ unsigned int nameKey_isKey (char *a_, unsigned int _a_high)
   /* make a local copy of each unbounded array.  */
   memcpy (a, a_, _a_high+1);
 
+  /* firstly set up the initial values of child, using sentinal node  */
   child = binaryTree->left;
   if (child != NULL)
     do {
@@ -468,6 +470,7 @@ unsigned int nameKey_isSameExcludingCase (nameKey_Name key1, nameKey_Name key2)
             c2 = (*pj);
           }
         else
+          /* difference found  */
           return FALSE;
       return c1 == c2;
     }

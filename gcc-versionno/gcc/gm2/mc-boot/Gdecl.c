@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
+#include <stdlib.h>
 #   include "GStorage.h"
 #   include "Gmcrts.h"
 typedef unsigned int nameKey_Name;
@@ -24,11 +25,11 @@ typedef unsigned int nameKey_Name;
 #   define nameKey_NulName 0
 typedef struct mcPretty_writeProc_p mcPretty_writeProc;
 
+typedef struct _T5_r _T5;
+
+typedef _T5 *symbolKey_symbolTree;
+
 typedef struct mcPretty_writeLnProc_p mcPretty_writeLnProc;
-
-typedef struct _T8_r _T8;
-
-typedef _T8 *mcPretty_pretty;
 
 typedef unsigned int FIO_File;
 
@@ -36,11 +37,11 @@ extern FIO_File FIO_StdOut;
 typedef struct symbolKey_performOperation_p symbolKey_performOperation;
 
 #   define ASCII_tab ASCII_ht
-typedef struct _T9_r _T9;
+typedef struct _T10_r _T10;
 
-typedef struct _T10_a _T10;
+typedef _T10 *alists_alist;
 
-typedef _T9 *alists_alist;
+typedef struct _T11_a _T11;
 
 #   define ASCII_ht (char) 011
 #   define ASCII_lf ASCII_nl
@@ -99,9 +100,9 @@ typedef libc_tm *libc_ptrToTM;
 
 typedef struct libc_timeb_r libc_timeb;
 
-typedef struct _T7_r _T7;
+typedef struct _T8_r _T8;
 
-typedef _T7 *mcError_error;
+typedef _T8 *mcError_error;
 
 extern int mcLexBuf_currentinteger;
 extern unsigned int mcLexBuf_currentcolumn;
@@ -250,30 +251,45 @@ typedef enum {text, punct, space} outputStates;
 
 typedef _T1 *decl_node;
 
-typedef struct _T4_r _T4;
-
-typedef _T4 *symbolKey_symbolTree;
-
 typedef struct _T2_r _T2;
+
+typedef struct _T3_r _T3;
+
+typedef enum {unknown, procedureHeading, inBody, afterStatement} commentType;
 
 typedef struct stringRecord_r stringRecord;
 
+typedef struct _T6_r _T6;
+
+typedef struct _T9_r _T9;
+
 typedef struct Contents_r Contents;
 
-typedef struct _T3_a _T3;
+typedef struct _T4_a _T4;
 
 typedef _T2 *Indexing_Index;
 
+typedef struct _T7_a _T7;
+
+typedef _T3 *mcComment_commentDesc;
+
+extern mcComment_commentDesc mcLexBuf_currentcomment;
+extern mcComment_commentDesc mcLexBuf_lastcomment;
 typedef stringRecord *DynamicStrings_String;
 
-typedef struct _T5_r _T5;
+typedef _T6 *wlists_wlist;
 
-typedef struct _T6_a _T6;
-
-typedef _T5 *wlists_wlist;
+typedef _T9 *mcPretty_pretty;
 
 typedef void (*mcPretty_writeProc_t) (char);
 struct mcPretty_writeProc_p { mcPretty_writeProc_t proc; };
+
+struct _T5_r {
+               nameKey_Name name;
+               void *key;
+               symbolKey_symbolTree left;
+               symbolKey_symbolTree right;
+             };
 
 typedef void (*mcPretty_writeLnProc_t) (void);
 struct mcPretty_writeLnProc_p { mcPretty_writeLnProc_t proc; };
@@ -281,7 +297,7 @@ struct mcPretty_writeLnProc_p { mcPretty_writeLnProc_t proc; };
 typedef void (*symbolKey_performOperation_t) (void *);
 struct symbolKey_performOperation_p { symbolKey_performOperation_t proc; };
 
-struct _T10_a { void * array[MaxnoOfelements-1+1]; };
+struct _T11_a { void * array[MaxnoOfelements-1+1]; };
 typedef void (*Indexing_IndexProcedure_t) (void *);
 struct Indexing_IndexProcedure_p { Indexing_IndexProcedure_t proc; };
 
@@ -312,7 +328,7 @@ struct libc_timeb_r {
                       short unsigned int dstflag;
                     };
 
-struct _T7_r {
+struct _T8_r {
                mcError_error parent;
                mcError_error child;
                mcError_error next;
@@ -356,10 +372,12 @@ struct funccallT_r {
                      decl_node function;
                      decl_node args;
                      decl_node type;
+                     decl_node aftercomment;
+                     decl_node bodycomment;
                    };
 
 struct commentT_r {
-                    DynamicStrings_String content;
+                    mcComment_commentDesc content;
                   };
 
 struct stmtT_r {
@@ -368,6 +386,8 @@ struct stmtT_r {
 
 struct returnT_r {
                    decl_node exp;
+                   decl_node aftercomment;
+                   decl_node bodycomment;
                  };
 
 struct exitT_r {
@@ -515,6 +535,8 @@ struct arrayrefT_r {
 struct assignmentT_r {
                        decl_node des;
                        decl_node expr;
+                       decl_node aftercomment;
+                       decl_node bodycomment;
                      };
 
 struct ifT_r {
@@ -522,6 +544,8 @@ struct ifT_r {
                decl_node elsif;
                decl_node then;
                decl_node else_;
+               decl_node aftercomment;
+               decl_node bodycomment;
              };
 
 struct elsifT_r {
@@ -620,13 +644,6 @@ struct cnameT_r {
                   unsigned int init;
                 };
 
-struct _T4_r {
-               nameKey_Name name;
-               void *key;
-               symbolKey_symbolTree left;
-               symbolKey_symbolTree right;
-             };
-
 struct _T2_r {
                void *ArrayStart;
                unsigned int ArraySize;
@@ -637,25 +654,20 @@ struct _T2_r {
                unsigned int Map;
              };
 
-struct _T3_a { char array[(MaxBuf-1)+1]; };
-struct _T6_a { unsigned int array[maxNoOfElements-1+1]; };
-struct _T8_r {
-               mcPretty_writeProc write_;
-               mcPretty_writeLnProc writeln;
-               unsigned int needsSpace;
-               unsigned int needsIndent;
-               unsigned int seekPos;
-               unsigned int curLine;
-               unsigned int curPos;
-               unsigned int indent;
-               mcPretty_pretty stacked;
+struct _T3_r {
+               commentType type;
+               DynamicStrings_String content;
+               nameKey_Name procName;
+               unsigned int used;
              };
 
-struct _T9_r {
-               unsigned int noOfelements;
-               _T10 elements;
-               alists_alist next;
-             };
+struct _T4_a { char array[(MaxBuf-1)+1]; };
+struct _T7_a { unsigned int array[maxNoOfElements-1+1]; };
+struct _T10_r {
+                unsigned int noOfelements;
+                _T11 elements;
+                alists_alist next;
+              };
 
 struct varT_r {
                 nameKey_Name name;
@@ -700,8 +712,8 @@ struct procedureT_r {
                       decl_node returnType;
                       decl_node beginStatements;
                       cnameT cname;
-                      DynamicStrings_String defComment;
-                      DynamicStrings_String modComment;
+                      mcComment_commentDesc defComment;
+                      mcComment_commentDesc modComment;
                     };
 
 struct moduleT_r {
@@ -748,17 +760,29 @@ struct impT_r {
                 unsigned int visited;
               };
 
+struct _T6_r {
+               unsigned int noOfElements;
+               _T7 elements;
+               wlists_wlist next;
+             };
+
+struct _T9_r {
+               mcPretty_writeProc write_;
+               mcPretty_writeLnProc writeln;
+               unsigned int needsSpace;
+               unsigned int needsIndent;
+               unsigned int seekPos;
+               unsigned int curLine;
+               unsigned int curPos;
+               unsigned int indent;
+               mcPretty_pretty stacked;
+             };
+
 struct Contents_r {
-                    _T3 buf;
+                    _T4 buf;
                     unsigned int len;
                     DynamicStrings_String next;
                   };
-
-struct _T5_r {
-               unsigned int noOfElements;
-               _T6 elements;
-               wlists_wlist next;
-             };
 
 typedef struct descriptor_r descriptor;
 
@@ -961,6 +985,8 @@ void M2RTS_WholeNonPosDivException (void * filename, unsigned int line, unsigned
 void M2RTS_WholeNonPosModException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_WholeZeroDivException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_WholeZeroRemException (void * filename, unsigned int line, unsigned int column, void * scope);
+void M2RTS_WholeValueException (void * filename, unsigned int line, unsigned int column, void * scope);
+void M2RTS_RealValueException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_NoException (void * filename, unsigned int line, unsigned int column, void * scope);
 
 /*
@@ -1831,6 +1857,24 @@ unsigned int decl_isStatementSequence (decl_node n);
 void decl_addStatement (decl_node s, decl_node n);
 
 /*
+   addCommentBody - adds a body comment to a statement sequence node.
+*/
+
+void decl_addCommentBody (decl_node n);
+
+/*
+   addCommentAfter - adds an after comment to a statement sequence node.
+*/
+
+void decl_addCommentAfter (decl_node n);
+
+/*
+   addIfComments - adds the, body, and, after, comments to if node, n.
+*/
+
+void decl_addIfComments (decl_node n, decl_node body, decl_node after);
+
+/*
    makeReturn - creates and returns a return node.
 */
 
@@ -1925,6 +1969,12 @@ void decl_putLoop (decl_node l, decl_node s);
 */
 
 decl_node decl_makeComment (char *a_, unsigned int _a_high);
+
+/*
+   makeCommentS - creates and returns a comment node.
+*/
+
+decl_node decl_makeCommentS (mcComment_commentDesc c);
 
 /*
    makeIf - creates and returns an if node.  The if node
@@ -2159,6 +2209,78 @@ unsigned int symbolKey_doesTreeContainAny (symbolKey_symbolTree t, symbolKey_isS
 */
 
 void symbolKey_foreachNodeDo (symbolKey_symbolTree t, symbolKey_performOperation p);
+
+/*
+   initComment - the start of a new comment has been seen by the lexical analyser.
+                 A new comment block is created and all addText contents are placed
+                 in this block.  onlySpaces indicates whether we have only seen
+                 spaces on this line.
+*/
+
+mcComment_commentDesc mcComment_initComment (unsigned int onlySpaces);
+
+/*
+   addText - cs is a C string (null terminated) which contains comment text.
+             This is appended to the comment, cd.
+*/
+
+void mcComment_addText (mcComment_commentDesc cd, void * cs);
+
+/*
+   getContent - returns the content of comment, cd.
+*/
+
+DynamicStrings_String mcComment_getContent (mcComment_commentDesc cd);
+
+/*
+   getCommentCharStar - returns the C string content of comment, cd.
+*/
+
+void * mcComment_getCommentCharStar (mcComment_commentDesc cd);
+
+/*
+   setProcedureComment - changes the type of comment, cd, to a
+                         procedure heading comment,
+                         providing it has the procname as the first word.
+*/
+
+void mcComment_setProcedureComment (mcComment_commentDesc cd, nameKey_Name procname);
+
+/*
+   getProcedureComment - returns the current procedure comment if available.
+*/
+
+DynamicStrings_String mcComment_getProcedureComment (mcComment_commentDesc cd);
+
+/*
+   getAfterStatementComment - returns the current statement after comment if available.
+*/
+
+DynamicStrings_String mcComment_getAfterStatementComment (mcComment_commentDesc cd);
+
+/*
+   getInbodyStatementComment - returns the current statement after comment if available.
+*/
+
+DynamicStrings_String mcComment_getInbodyStatementComment (mcComment_commentDesc cd);
+
+/*
+   isProcedureComment - returns TRUE if, cd, is a procedure comment.
+*/
+
+unsigned int mcComment_isProcedureComment (mcComment_commentDesc cd);
+
+/*
+   isBodyComment - returns TRUE if, cd, is a body comment.
+*/
+
+unsigned int mcComment_isBodyComment (mcComment_commentDesc cd);
+
+/*
+   isAfterComment - returns TRUE if, cd, is an after comment.
+*/
+
+unsigned int mcComment_isAfterComment (mcComment_commentDesc cd);
 void mcDebug_assert (unsigned int q);
 void mcDebug_writeDebug (char *a_, unsigned int _a_high);
 void Storage_ALLOCATE (void * *a, unsigned int Size);
@@ -2504,13 +2626,13 @@ DynamicStrings_String FormatStrings_Sprintf1 (DynamicStrings_String s, unsigned 
 DynamicStrings_String FormatStrings_Sprintf2 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high);
 DynamicStrings_String FormatStrings_Sprintf3 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high);
 DynamicStrings_String FormatStrings_Sprintf4 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high, unsigned char *w4_, unsigned int _w4_high);
-int libc_write (int d, void * buf, int nbytes);
-int libc_read (int d, void * buf, int nbytes);
+ssize_t libc_write (int d, void * buf, size_t nbytes);
+ssize_t libc_read (int d, void * buf, size_t nbytes);
 int libc_system (void * a);
 void libc_abort (void);
-void * libc_malloc (unsigned int size);
+void * libc_malloc (size_t size);
 void libc_free (void * ptr);
-void * libc_realloc (void * ptr, unsigned int size);
+void * libc_realloc (void * ptr, size_t size);
 int libc_isatty (int fd);
 void libc_exit (int r);
 void * libc_getenv (void * s);
@@ -2523,15 +2645,15 @@ long int libc_lseek (int fd, long int offset, int whence);
 void libc_perror (char *string_, unsigned int _string_high);
 int libc_readv (int fd, void * v, int n);
 int libc_writev (int fd, void * v, int n);
-void * libc_getcwd (void * buf, int size);
+void * libc_getcwd (void * buf, size_t size);
 int libc_chown (void * filename, int uid, int gid);
-int libc_strlen (void * a);
+size_t libc_strlen (void * a);
 void * libc_strcpy (void * dest, void * src);
 void * libc_strncpy (void * dest, void * src, unsigned int n);
 int libc_unlink (void * file);
-void * libc_memcpy (void * dest, void * src, unsigned int size);
-void * libc_memset (void * s, int c, unsigned int size);
-void * libc_memmove (void * dest, void * src, unsigned int size);
+void * libc_memcpy (void * dest, void * src, size_t size);
+void * libc_memset (void * s, int c, size_t size);
+void * libc_memmove (void * dest, void * src, size_t size);
 int libc_printf (char *format_, unsigned int _format_high, ...);
 int libc_setenv (void * name, void * value, int overwrite);
 void libc_srand (int seed);
@@ -2717,6 +2839,9 @@ void mcError_flushWarnings (void);
 */
 
 void mcError_errorAbort0 (char *a_, unsigned int _a_high);
+mcComment_commentDesc mcLexBuf_getProcedureComment (void);
+mcComment_commentDesc mcLexBuf_getBodyComment (void);
+mcComment_commentDesc mcLexBuf_getAfterComment (void);
 unsigned int mcLexBuf_openSource (DynamicStrings_String s);
 void mcLexBuf_closeSource (void);
 void mcLexBuf_reInitialize (void);
@@ -2735,17 +2860,10 @@ DynamicStrings_String mcLexBuf_getFileName (void);
 void mcLexBuf_addTok (mcReserved_toktype t);
 void mcLexBuf_addTokCharStar (mcReserved_toktype t, void * s);
 void mcLexBuf_addTokInteger (mcReserved_toktype t, int i);
+void mcLexBuf_addTokComment (mcReserved_toktype t, mcComment_commentDesc com);
 void mcLexBuf_setFile (void * filename);
 void mcLexBuf_pushFile (void * filename);
 void mcLexBuf_popFile (void * filename);
-void mcComment_beginComment (void);
-void mcComment_endComment (void);
-void mcComment_addText (void * cs);
-DynamicStrings_String mcComment_getComment (void);
-void * mcComment_getCommentCharStar (void);
-void mcComment_setProcedureComment (nameKey_Name procname);
-DynamicStrings_String mcComment_getProcedureComment (void);
-void mcComment_newPass (void);
 void StrLib_StrConCat (char *a_, unsigned int _a_high, char *b_, unsigned int _b_high, char *c, unsigned int _c_high);
 unsigned int StrLib_StrLess (char *a_, unsigned int _a_high, char *b_, unsigned int _b_high);
 unsigned int StrLib_StrEqual (char *a_, unsigned int _a_high, char *b_, unsigned int _b_high);
@@ -4593,7 +4711,7 @@ static unsigned int isSingleStatement (decl_node s);
 static void doCommentC (mcPretty_pretty p, decl_node s);
 
 /*
-   doReturnC -
+   doReturnC - issue a return statement and also place in an after comment if one exists.
 */
 
 static void doReturnC (mcPretty_pretty p, decl_node s);
@@ -4669,7 +4787,8 @@ static unsigned int isIfElse (decl_node n);
 static unsigned int hasIfAndNoElse (decl_node n);
 
 /*
-   doIfC -
+   doIfC - issue an if statement and also place in an after comment if one exists.
+           The if statement might contain an else or elsif which are also handled.
 */
 
 static void doIfC (mcPretty_pretty p, decl_node s);
@@ -6086,6 +6205,20 @@ static void doDbg (alists_alist l, decl_node n);
 static void dbg (decl_node n);
 
 /*
+   addGenericBody - adds comment node to funccall, return, assignment
+                    nodes.
+*/
+
+static void addGenericBody (decl_node n, decl_node c);
+
+/*
+   addGenericAfter - adds comment node to funccall, return, assignment
+                     nodes.
+*/
+
+static void addGenericAfter (decl_node n, decl_node c);
+
+/*
    isAssignment -
 */
 
@@ -6781,6 +6914,7 @@ static unsigned int identListLen (decl_node n)
 
 static void checkParameters (decl_node p, decl_node i, decl_node type, unsigned int var)
 {
+  /* do check.  */
   disposeNode (&i);
 }
 
@@ -6864,6 +6998,7 @@ static decl_node putFieldRecord (decl_node r, nameKey_Name tag, decl_node type, 
     {
       case record:
         Indexing_IncludeIndiceIntoIndex (r->recordF.listOfSons, (void *) n);
+        /* ensure that field, n, is in the parents Local Symbols.  */
         if (tag != nameKey_NulName)
           {
             /* avoid gcc warning by using compound statement even if not strictly necessary.  */
@@ -6889,6 +7024,7 @@ static decl_node putFieldRecord (decl_node r, nameKey_Name tag, decl_node type, 
       default:
         CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
     }
+  /* fill in, n.  */
   n->recordfieldF.type = type;
   n->recordfieldF.name = tag;
   n->recordfieldF.parent = r;
@@ -6896,6 +7032,12 @@ static decl_node putFieldRecord (decl_node r, nameKey_Name tag, decl_node type, 
   n->recordfieldF.tag = FALSE;
   n->recordfieldF.scope = NULL;
   initCname (&n->recordfieldF.cname);
+  /* 
+   IF r^.kind=record
+   THEN
+      doRecordM2 (doP, r)
+   END ;
+  */
   return n;
 }
 
@@ -6970,7 +7112,7 @@ static decl_node getParent (decl_node n)
 
 static decl_node getRecord (decl_node n)
 {
-  mcDebug_assert (n->kind != varient);
+  mcDebug_assert (n->kind != varient);  /* if this fails then we need to add parent field to varient.  */
   switch (n->kind)
     {
       case record:
@@ -6978,6 +7120,7 @@ static decl_node getRecord (decl_node n)
         break;
 
       case varientfield:
+        /* varient    :  RETURN getRecord (getParent (n)) |  */
         return getRecord (getParent (n));
         break;
 
@@ -7480,8 +7623,8 @@ static DynamicStrings_String getStringContents (decl_node n)
     return getStringContents (n->constF.value);
   else if (decl_isLiteral (n))
     {
-      M2RTS_HALT (-1);
-      return NULL;
+      M2RTS_HALT (-1);  /* --fixme--  finish this.  */
+      return NULL;  /* --fixme--  finish this.  */
     }
   else if (isString (n))
     return getString (n);
@@ -7729,7 +7872,7 @@ static decl_node makeBase (nodeT k)
 
 
       default:
-        M2RTS_HALT (-1);
+        M2RTS_HALT (-1);  /* legal kind.  */
         break;
     }
   return n;
@@ -7959,6 +8102,7 @@ static decl_node doGetExprType (decl_node n)
         break;
 
       case boolean:
+        /* base types.  */
         return n;
         break;
 
@@ -8031,6 +8175,7 @@ static decl_node doGetExprType (decl_node n)
         break;
 
       case type:
+        /* language features and compound type attributes.  */
         return n->typeF.type;
         break;
 
@@ -8111,6 +8256,7 @@ static decl_node doGetExprType (decl_node n)
         break;
 
       case procedure:
+        /* blocks.  */
         return n->procedureF.returnType;
         break;
 
@@ -8128,11 +8274,13 @@ static decl_node doGetExprType (decl_node n)
       case if_:
       case elsif:
       case assignment:
+        /* statements.  */
         M2RTS_HALT (-1);
         break;
 
       case cast:
       case val:
+        /* expressions.  */
         return doSetExprType (&n->binaryF.resultType, n->binaryF.left);
         break;
 
@@ -8329,6 +8477,7 @@ static void doIncludeC (decl_node n)
     {}  /* empty.  */
   else if (decl_isDef (n))
     {
+      /* no include in this case.  */
       mcPretty_print (doP, (char *) "#   include \"", 13);
       mcPretty_prints (doP, mcOptions_getHPrefix ());
       mcPretty_prints (doP, s);
@@ -8404,6 +8553,7 @@ static DynamicStrings_String getFQDstring (decl_node n, unsigned int scopes)
     return DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (getDName (n, scopes)));
   else
     {
+      /* we assume a qualified name will never conflict.  */
       i = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n)));
       s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (decl_getScope (n))));
       return FormatStrings_Sprintf2 (DynamicStrings_InitString ((char *) "%s_%s", 5), (unsigned char *) &s, (sizeof (s)-1), (unsigned char *) &i, (sizeof (i)-1));
@@ -9302,7 +9452,7 @@ static void doThrowC (mcPretty_pretty p, decl_node n)
         outText (p, (char *) ")", 1);
       }
     else
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to THROW')  */
 }
 
 
@@ -9414,7 +9564,7 @@ static void doExprC (mcPretty_pretty p, decl_node n)
       case re:
       case im:
       case cmplx:
-        M2RTS_HALT (-1);
+        M2RTS_HALT (-1);  /* should all be function calls.  */
         break;
 
       case deref:
@@ -9893,6 +10043,21 @@ static void doString (mcPretty_pretty p, decl_node n)
   s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n)));
   outTextS (p, s);
   s = DynamicStrings_KillString (s);
+  /* 
+   IF DynamicStrings.Index (s, '"', 0)=-1
+   THEN
+      outText (p, '"') ;
+      outTextS (p, s) ;
+      outText (p, '"')
+   ELSIF DynamicStrings.Index (s, "'", 0)=-1
+   THEN
+      outText (p, '"') ;
+      outTextS (p, s) ;
+      outText (p, '"')
+   ELSE
+      metaError1 ('illegal string {%1k}', n)
+   END
+  */
   M2RTS_HALT (-1);
 }
 
@@ -10023,6 +10188,44 @@ static void doStringC (mcPretty_pretty p, decl_node n)
   DynamicStrings_String s;
 
   mcDebug_assert (isString (n));
+  /* 
+   s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
+   IF DynamicStrings.Length (s)>3
+   THEN
+      IF DynamicStrings.Index (s, '"', 0)=-1
+      THEN
+         s := DynamicStrings.Slice (s, 1, -1) ;
+         outText (p, '"') ;
+         outCstring (p, s) ;
+         outText (p, '"')
+      ELSIF DynamicStrings.Index (s, "'", 0)=-1
+      THEN
+         s := DynamicStrings.Slice (s, 1, -1) ;
+         outText (p, '"') ;
+         outCstring (p, s) ;
+         outText (p, '"')
+      ELSE
+         metaError1 ('illegal string {%1k}', n)
+      END
+   ELSIF DynamicStrings.Length (s) = 3
+   THEN
+      s := DynamicStrings.Slice (s, 1, -1) ;
+      outText (p, "'") ;
+      IF DynamicStrings.char (s, 0) = "'"
+      THEN
+         outText (p, "\'")
+      ELSIF DynamicStrings.char (s, 0) = "\"
+      THEN
+         outText (p, "\\")
+      ELSE
+         outTextS (p, s)
+      END ;
+      outText (p, "'")
+   ELSE
+      outText (p, "'\0'")
+   END ;
+   s := KillString (s)
+  */
   outCstring (p, n, ! n->stringF.isCharCompatible);
 }
 
@@ -10392,6 +10595,7 @@ static void doHighC (mcPretty_pretty p, decl_node a, nameKey_Name n)
 {
   if ((decl_isArray (a)) && (decl_isUnbounded (a)))
     {
+      /* need to display high.  */
       mcPretty_print (p, (char *) ",", 1);
       mcPretty_setNeedSpace (p);
       doTypeNameC (p, cardinalN);
@@ -10531,6 +10735,7 @@ static void doVarParamC (mcPretty_pretty p, decl_node n)
   if (n->varparamF.namelist == NULL)
     {
       doTypeNameC (p, ptype);
+      /* doTypeC (p, ptype, n) ;  */
       if (! (decl_isArray (ptype)))
         {
           mcPretty_setNeedSpace (p);
@@ -10841,7 +11046,7 @@ static decl_node doMin (decl_node n)
   else if (n == addressN)
     return lookupConst (addressN, nameKey_makeKey ((char *) "((void *) 0)", 12));
   else
-    M2RTS_HALT (-1);
+    M2RTS_HALT (-1);  /* finish the cacading elsif statement.  */
 }
 
 
@@ -10904,7 +11109,7 @@ static decl_node doMax (decl_node n)
       return NULL;
     }
   else
-    M2RTS_HALT (-1);
+    M2RTS_HALT (-1);  /* finish the cacading elsif statement.  */
 }
 
 
@@ -11390,6 +11595,7 @@ static void doVarientC (mcPretty_pretty p, decl_node n)
           outText (p, (char *) ";  /* case tag */\\n", 19);
         }
       else if (decl_isVarientField (n->varientF.tag))
+        /* doVarientFieldC (p, n^.varientF.tag)  */
         M2RTS_HALT (-1);
       else
         M2RTS_HALT (-1);
@@ -11481,6 +11687,7 @@ static unsigned int isBitset (decl_node n)
 
 static unsigned int isNegative (decl_node n)
 {
+  /* --fixme-- needs to be completed.  */
   return FALSE;
 }
 
@@ -11535,6 +11742,11 @@ static void doTypeC (mcPretty_pretty p, decl_node n, decl_node *m)
   else if (decl_isType (n))
     {
       doFQNameC (p, n);
+      /* 
+   ELSIF isProcType (n) OR isArray (n) OR isRecord (n)
+   THEN
+      HALT   n should have been simplified.  
+  */
       mcPretty_setNeedSpace (p);
     }
   else if (decl_isProcType (n))
@@ -11551,6 +11763,7 @@ static void doTypeC (mcPretty_pretty p, decl_node n, decl_node *m)
     doSetC (p, n);
   else
     {
+      /* --fixme--  */
       mcPretty_print (p, (char *) "to do ...  typedef etc etc ", 27);
       doFQNameC (p, n);
       mcPretty_print (p, (char *) ";\\n", 3);
@@ -11674,6 +11887,7 @@ static void doVarC (decl_node n)
   else if (mcOptions_getExtendedOpaque ())
     if (isExternal (n))
       {
+        /* different module declared this variable, therefore it is extern.  */
         mcPretty_print (doP, (char *) "extern", 6);
         mcPretty_setNeedSpace (doP);
       }
@@ -11706,6 +11920,8 @@ static void doExternCP (mcPretty_pretty p)
 static void doProcedureCommentText (mcPretty_pretty p, DynamicStrings_String s)
 {
   while (((DynamicStrings_Length (s)) > 0) && ((DynamicStrings_char (s, 0)) == ASCII_lf))
+    /* remove 
+     from the start of the comment.  */
     s = DynamicStrings_Slice (s, 1, 0);
   outTextS (p, s);
 }
@@ -11741,18 +11957,18 @@ static void doProcedureHeadingC (decl_node n)
   mcPretty_noSpace (doP);
   if (decl_isDef (decl_getMainModule ()))
     {
-      doProcedureComment (doP, n->procedureF.defComment);
+      doProcedureComment (doP, mcComment_getContent (n->procedureF.defComment));
       outText (doP, (char *) "EXTERN", 6);
       mcPretty_setNeedSpace (doP);
     }
   else if (decl_isExported (n))
     {
-      doProcedureComment (doP, n->procedureF.modComment);
+      doProcedureComment (doP, mcComment_getContent (n->procedureF.modComment));
       doExternCP (doP);
     }
   else
     {
-      doProcedureComment (doP, n->procedureF.modComment);
+      doProcedureComment (doP, mcComment_getContent (n->procedureF.modComment));
       outText (doP, (char *) "static", 6);
       mcPretty_setNeedSpace (doP);
     }
@@ -12039,6 +12255,8 @@ static void simplifyVar (alists_alist l, decl_node n)
   simplifyType (l, &n->varF.type);
   if (o != n->varF.type)
     {
+      /* simplification has occurred, make sure that all other variables of this type
+         use the new type.  */
       d = n->varF.decl;
       mcDebug_assert (isVarDecl (d));
       t = wlists_noOfItemsInList (d->vardeclF.names);
@@ -12127,6 +12345,7 @@ static void doSimplifyNode (alists_alist l, decl_node n)
   if (n == NULL)
     {}  /* empty.  */
   else if (decl_isType (n))
+    /* no need to simplify a type.  */
     simplifyNode (l, decl_getType (n));
   else if (decl_isVar (n))
     simplifyVar (l, n);
@@ -12200,6 +12419,7 @@ static void outDeclsDefC (mcPretty_pretty p, decl_node n)
   includeConstType (s);
   doP = p;
   topologicallyOut ((nodeProcedure) {(nodeProcedure_t) doConstC}, (nodeProcedure) {(nodeProcedure_t) doTypesC}, (nodeProcedure) {(nodeProcedure_t) doVarC}, (nodeProcedure) {(nodeProcedure_t) outputPartial}, (nodeProcedure) {(nodeProcedure_t) doNone}, (nodeProcedure) {(nodeProcedure_t) doCompletePartialC}, (nodeProcedure) {(nodeProcedure_t) doNone});
+  /* try and output types, constants before variables and procedures.  */
   includeDefVarProcedure (n);
   topologicallyOut ((nodeProcedure) {(nodeProcedure_t) doConstC}, (nodeProcedure) {(nodeProcedure_t) doTypesC}, (nodeProcedure) {(nodeProcedure_t) doVarC}, (nodeProcedure) {(nodeProcedure_t) outputPartial}, (nodeProcedure) {(nodeProcedure_t) doNone}, (nodeProcedure) {(nodeProcedure_t) doCompletePartialC}, (nodeProcedure) {(nodeProcedure_t) doNone});
   Indexing_ForeachIndiceInIndexDo (s.procedures, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) doPrototypeC});
@@ -12286,6 +12506,7 @@ static void addExternal (decl_node n)
   if (((((decl_getScope (n)) == defModule) && (decl_isType (n))) && (decl_isTypeHidden (n))) && (! (mcOptions_getExtendedOpaque ())))
     {}  /* empty.  */
   else if (! (decl_isDef (n)))
+    /* do nothing.  */
     addTodo (n);
 }
 
@@ -12362,6 +12583,10 @@ static void includeDefVarProcedure (decl_node n)
     {
       defModule = decl_lookupDef (decl_getSymName (n));
       if (defModule != NULL)
+        /* 
+         includeVar (defModule^.defF.decls) ;
+         simplifyTypes (defModule^.defF.decls) ;
+  */
         joinProcedures (n, defModule);
     }
   else if (decl_isDef (n))
@@ -12393,6 +12618,7 @@ static void outDeclsImpC (mcPretty_pretty p, scopeT s)
   includeConstType (s);
   doP = p;
   topologicallyOut ((nodeProcedure) {(nodeProcedure_t) doConstC}, (nodeProcedure) {(nodeProcedure_t) doTypesC}, (nodeProcedure) {(nodeProcedure_t) doVarC}, (nodeProcedure) {(nodeProcedure_t) outputPartial}, (nodeProcedure) {(nodeProcedure_t) doNone}, (nodeProcedure) {(nodeProcedure_t) doCompletePartialC}, (nodeProcedure) {(nodeProcedure_t) doNone});
+  /* try and output types, constants before variables and procedures.  */
   includeVarProcedure (s);
   topologicallyOut ((nodeProcedure) {(nodeProcedure_t) doConstC}, (nodeProcedure) {(nodeProcedure_t) doTypesC}, (nodeProcedure) {(nodeProcedure_t) doVarC}, (nodeProcedure) {(nodeProcedure_t) outputPartial}, (nodeProcedure) {(nodeProcedure_t) doNone}, (nodeProcedure) {(nodeProcedure_t) doCompletePartialC}, (nodeProcedure) {(nodeProcedure_t) doNone});
 }
@@ -12453,27 +12679,48 @@ static unsigned int isSingleStatement (decl_node s)
 
 static void doCommentC (mcPretty_pretty p, decl_node s)
 {
-  mcDebug_assert (isComment (s));
-  outText (p, (char *) "/* ", 3);
-  outTextS (p, s->commentF.content);
-  outText (p, (char *) "  */\\n", 6);
+  DynamicStrings_String c;
+
+  if (s != NULL)
+    {
+      mcDebug_assert (isComment (s));
+      if (! (mcComment_isProcedureComment (s->commentF.content)))
+        {
+          if (mcComment_isAfterComment (s->commentF.content))
+            {
+              mcPretty_setNeedSpace (p);
+              outText (p, (char *) " /* ", 4);
+            }
+          else
+            outText (p, (char *) "/* ", 3);
+          c = mcComment_getContent (s->commentF.content);
+          c = DynamicStrings_RemoveWhitePrefix (DynamicStrings_RemoveWhitePostfix (c));
+          outTextS (p, c);
+          outText (p, (char *) "  */\\n", 6);
+        }
+    }
 }
 
 
 /*
-   doReturnC -
+   doReturnC - issue a return statement and also place in an after comment if one exists.
 */
 
 static void doReturnC (mcPretty_pretty p, decl_node s)
 {
   mcDebug_assert (decl_isReturn (s));
+  doCommentC (p, s->returnF.bodycomment);
   outText (p, (char *) "return", 6);
   if (s->returnF.exp != NULL)
     {
       mcPretty_setNeedSpace (p);
       doExprC (p, s->returnF.exp);
     }
-  outText (p, (char *) ";\\n", 3);
+  outText (p, (char *) ";", 1);
+  if (s->returnF.aftercomment == NULL)
+    outText (p, (char *) "\\n", 2);
+  else
+    doCommentC (p, s->returnF.aftercomment);
 }
 
 
@@ -12487,6 +12734,7 @@ static void doExprCastC (mcPretty_pretty p, decl_node e, decl_node type)
     if (lang == ansiCP)
       {
         /* avoid gcc warning by using compound statement even if not strictly necessary.  */
+        /* potentially a cast is required.  */
         if ((decl_isPointer (type)) || (type == addressN))
           {
             outText (p, (char *) "reinterpret_cast<", 17);
@@ -12530,12 +12778,17 @@ static unsigned int requiresUnpackProc (decl_node s)
 static void doAssignmentC (mcPretty_pretty p, decl_node s)
 {
   mcDebug_assert (isAssignment (s));
+  doCommentC (p, s->assignmentF.bodycomment);
   doExprCup (p, s->assignmentF.des, requiresUnpackProc (s));
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "=", 1);
   mcPretty_setNeedSpace (p);
   doExprCastC (p, s->assignmentF.expr, decl_getType (s->assignmentF.des));
-  outText (p, (char *) ";\\n", 3);
+  outText (p, (char *) ";", 1);
+  if (s->assignmentF.aftercomment == NULL)
+    outText (p, (char *) "\\n", 2);
+  else
+    doCommentC (p, s->assignmentF.aftercomment);
 }
 
 
@@ -12599,6 +12852,7 @@ static void doElsifC (mcPretty_pretty p, decl_node s)
   mcDebug_assert ((s->elsifF.else_ == NULL) || (s->elsifF.elsif == NULL));
   if ((hasIfAndNoElse (s->elsifF.then)) && ((s->elsifF.else_ != NULL) || (s->elsifF.elsif != NULL)))
     {
+      /* avoid dangling else.  */
       p = mcPretty_pushPretty (p);
       mcPretty_setindent (p, (mcPretty_getindent (p))+indentationC);
       outText (p, (char *) "{\\n", 3);
@@ -12648,22 +12902,28 @@ static unsigned int noIfElseChained (decl_node n)
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
       if (decl_isIf (n))
         if (n->ifF.else_ != NULL)
+          /* we do have an else, return false.  */
           return FALSE;
         else if (n->ifF.elsif == NULL)
+          /* neither else or elsif.  */
           return TRUE;
         else
           {
+            /* test elsif for lack of else.  */
             e = n->ifF.elsif;
             mcDebug_assert (decl_isElsif (e));
             return noIfElseChained (e);
           }
       else if (decl_isElsif (n))
         if (n->elsifF.else_ != NULL)
+          /* we do have an else, return false.  */
           return FALSE;
         else if (n->elsifF.elsif == NULL)
+          /* neither else or elsif.  */
           return TRUE;
         else
           {
+            /* test elsif for lack of else.  */
             e = n->elsifF.elsif;
             mcDebug_assert (decl_isElsif (e));
             return noIfElseChained (e);
@@ -12729,19 +12989,26 @@ static unsigned int hasIfAndNoElse (decl_node n)
 
 
 /*
-   doIfC -
+   doIfC - issue an if statement and also place in an after comment if one exists.
+           The if statement might contain an else or elsif which are also handled.
 */
 
 static void doIfC (mcPretty_pretty p, decl_node s)
 {
   mcDebug_assert (decl_isIf (s));
+  doCommentC (p, s->ifF.bodycomment);
   outText (p, (char *) "if", 2);
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "(", 1);
   doExprC (p, s->ifF.expr);
-  outText (p, (char *) ")\\n", 3);
+  outText (p, (char *) ")", 1);
+  if (s->ifF.aftercomment == NULL)
+    outText (p, (char *) "\\n", 2);
+  else
+    doCommentC (p, s->ifF.aftercomment);
   if ((hasIfAndNoElse (s->ifF.then)) && ((s->ifF.else_ != NULL) || (s->ifF.elsif != NULL)))
     {
+      /* avoid dangling else.  */
       p = mcPretty_pushPretty (p);
       mcPretty_setindent (p, (mcPretty_getindent (p))+indentationC);
       outText (p, (char *) "{\\n", 3);
@@ -12755,6 +13022,8 @@ static void doIfC (mcPretty_pretty p, decl_node s)
     }
   else if ((noIfElse (s)) && (hasIfElse (s->ifF.then)))
     {
+      /* gcc does not like legal non dangling else, as it is poor style.
+         So we will avoid getting a warning.  */
       p = mcPretty_pushPretty (p);
       mcPretty_setindent (p, (mcPretty_getindent (p))+indentationC);
       outText (p, (char *) "{\\n", 3);
@@ -12945,6 +13214,7 @@ static void doFuncHighC (mcPretty_pretty p, decl_node a)
     }
   else
     {
+      /* output sizeof (a) in bytes for the high.  */
       outText (p, (char *) "(sizeof", 7);
       mcPretty_setNeedSpace (p);
       outText (p, (char *) "(", 1);
@@ -12981,6 +13251,7 @@ static void doTotype (mcPretty_pretty p, decl_node a, decl_node t)
     if (decl_isVar (a))
       {
         if (((a->varF.isParameter || a->varF.isVarParameter) && (decl_isUnbounded (decl_getType (a)))) && ((decl_skipType (decl_getType (decl_getType (a)))) == (decl_skipType (decl_getType (t)))))
+          /* do not multiply by size as the existing high value is correct.  */
           return;
         a = decl_getType (a);
         if (decl_isArray (a))
@@ -13043,6 +13314,7 @@ static void doFuncUnbounded (mcPretty_pretty p, decl_node actual, decl_node form
         doExprC (p, actual);
       }
   else if (decl_isUnbounded (decl_getType (actual)))
+    /* doExprC (p, actual).  */
     doFQNameC (p, actual);
   else
     {
@@ -13051,9 +13323,16 @@ static void doFuncUnbounded (mcPretty_pretty p, decl_node actual, decl_node form
       if (decl_isArray (decl_skipType (decl_getType (actual))))
         outText (p, (char *) ".array[0]", 9);
     }
+  /* --fixme-- isDefForC is not implemented yet.
+   IF NOT isDefForC (getScope (func))
+   THEN
+  */
   outText (p, (char *) ",", 1);
   mcPretty_setNeedSpace (p);
   doFuncHighC (p, actual);
+  /* 
+   END
+  */
   doTotype (p, actual, formal);
 }
 
@@ -13085,8 +13364,10 @@ static void doProcedureParamC (mcPretty_pretty p, decl_node actual, decl_node fo
 static void doAdrExprC (mcPretty_pretty p, decl_node n)
 {
   if (isDeref (n))
+    /* no point in issuing & ( * n )  */
     doExprC (p, n->unaryF.arg);
   else if ((decl_isVar (n)) && n->varF.isVarParameter)
+    /* no point in issuing & ( * n )  */
     doFQNameC (p, n);
   else
     {
@@ -13377,9 +13658,10 @@ static void doProcTypeArgsC (mcPretty_pretty p, decl_node s, Indexing_Index args
 static void doAdrArgC (mcPretty_pretty p, decl_node n)
 {
   if (isDeref (n))
+    /* & and * cancel each other out.  */
     doExprC (p, n->unaryF.arg);
   else if ((decl_isVar (n)) && n->varF.isVarParameter)
-    outTextN (p, decl_getSymName (n));
+    outTextN (p, decl_getSymName (n));  /* --fixme-- does the caller need to cast it?  */
   else
     if (isString (n))
       if (lang == ansiCP)
@@ -13489,6 +13771,7 @@ static void doIncDecCP (mcPretty_pretty p, decl_node n, char *op_, unsigned int 
       type = decl_getType (getExpList (n->funccallF.args, 1));
       if ((decl_isPointer (type)) || (type == addressN))
         {
+          /* cast to (char * ) and then back again after the arithmetic is complete.  */
           outText (p, (char *) "=", 1);
           mcPretty_setNeedSpace (p);
           outText (p, (char *) "reinterpret_cast<", 17);
@@ -13564,7 +13847,7 @@ static void doInclC (mcPretty_pretty p, decl_node n)
           outText (p, (char *) "))", 2);
         }
       else
-        M2RTS_HALT (-1);
+        M2RTS_HALT (-1);  /* metaError0 ('expecting two parameters to INCL')  */
     }
 }
 
@@ -13599,7 +13882,7 @@ static void doExclC (mcPretty_pretty p, decl_node n)
           outText (p, (char *) ")))", 3);
         }
       else
-        M2RTS_HALT (-1);
+        M2RTS_HALT (-1);  /* metaError0 ('expecting two parameters to EXCL')  */
     }
 }
 
@@ -13682,7 +13965,7 @@ static void doDisposeC (mcPretty_pretty p, decl_node n)
           mcMetaError_metaError1 ((char *) "expecting a pointer type variable as the argument to DISPOSE, rather than {%1ad}", 80, (unsigned char *) &t, (sizeof (t)-1));
       }
     else
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to DISPOSE')  */
 }
 
 
@@ -13706,7 +13989,7 @@ static void doCapC (mcPretty_pretty p, decl_node n)
         outText (p, (char *) ")", 1);
       }
     else
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to CAP')  */
 }
 
 
@@ -13736,7 +14019,7 @@ static void doLengthC (mcPretty_pretty p, decl_node n)
         outText (p, (char *) ")", 1);
       }
     else
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to LENGTH')  */
 }
 
 
@@ -13776,6 +14059,7 @@ static void doAbsC (mcPretty_pretty p, decl_node n)
   else if (t == cardinalN)
     {}  /* empty.  */
   else
+    /* do nothing.  */
     M2RTS_HALT (-1);
   mcPretty_setNeedSpace (p);
   doFuncArgsC (p, n, (Indexing_Index) NULL, TRUE);
@@ -14001,9 +14285,9 @@ static void doCmplx (mcPretty_pretty p, decl_node n)
         outText (p, (char *) ")", 1);
       }
     else
-      M2RTS_HALT (-1);
+      M2RTS_HALT (-1);  /* metaError0 ('expecting two parameters to CMPLX')  */
   else
-    M2RTS_HALT (-1);
+    M2RTS_HALT (-1);  /* metaError0 ('expecting two parameters to CMPLX')  */
 }
 
 
@@ -14186,8 +14470,13 @@ static void doFuncExprC (mcPretty_pretty p, decl_node n)
 
 static void doFuncCallC (mcPretty_pretty p, decl_node n)
 {
+  doCommentC (p, n->funccallF.bodycomment);
   doFuncExprC (p, n);
-  outText (p, (char *) ";\\n", 3);
+  outText (p, (char *) ";", 1);
+  if (n->funccallF.aftercomment == NULL)
+    outText (p, (char *) "\\n", 2);
+  else
+    doCommentC (p, n->funccallF.aftercomment);
 }
 
 
@@ -14638,6 +14927,7 @@ static void doStatementsC (mcPretty_pretty p, decl_node s)
   if (s == NULL)
     {}  /* empty.  */
   else if (decl_isStatementSequence (s))
+    /* do nothing.  */
     doStatementSequenceC (p, s);
   else if (isComment (s))
     doCommentC (p, s);
@@ -14664,7 +14954,7 @@ static void doStatementsC (mcPretty_pretty p, decl_node s)
   else if (decl_isExit (s))
     doExitC (p, s);
   else
-    M2RTS_HALT (-1);
+    M2RTS_HALT (-1);  /* need to handle another s^.kind.  */
 }
 
 static void stop (void)
@@ -15102,6 +15392,7 @@ static dependentState walkRecord (alists_alist l, decl_node n)
         {}  /* empty.  */
       else
         {
+          /* do nothing as it is a tag selector processed in the varient.  */
           s = walkDependants (l, q);
           if (s != completed)
             {
@@ -15266,8 +15557,10 @@ static dependentState walkPointer (alists_alist l, decl_node n)
 {
   decl_node t;
 
+  /* if the type of, n, is done or partial then we can output pointer.  */
   t = decl_getType (n);
   if ((alists_isItemInList (partialQ, (void *) t)) || (alists_isItemInList (doneQ, (void *) t)))
+    /* pointer to partial can always generate a complete type.  */
     return completed;
   return walkType (l, n);
 }
@@ -15281,11 +15574,13 @@ static dependentState walkArray (alists_alist l, decl_node n)
 {
   dependentState s;
 
+  /* an array can only be declared if its data type has already been emitted.  */
   if (! (alists_isItemInList (doneQ, (void *) n->arrayF.type)))
     {
       s = walkDependants (l, n->arrayF.type);
       queueBlocked (n->arrayF.type);
       if (s == completed)
+        /* downgrade the completed to partial as it has not yet been written.  */
         return partial;
       else
         return s;
@@ -15322,6 +15617,7 @@ static dependentState walkVarParam (alists_alist l, decl_node n)
 
   t = decl_getType (n);
   if (alists_isItemInList (partialQ, (void *) t))
+    /* parameter can be issued from a partial.  */
     return completed;
   return walkDependants (l, t);
 }
@@ -15337,6 +15633,7 @@ static dependentState walkParam (alists_alist l, decl_node n)
 
   t = decl_getType (n);
   if (alists_isItemInList (partialQ, (void *) t))
+    /* parameter can be issued from a partial.  */
     return completed;
   return walkDependants (l, t);
 }
@@ -15352,6 +15649,7 @@ static dependentState walkOptarg (alists_alist l, decl_node n)
 
   t = decl_getType (n);
   if (alists_isItemInList (partialQ, (void *) t))
+    /* parameter can be issued from a partial.  */
     return completed;
   return walkDependants (l, t);
 }
@@ -15384,6 +15682,7 @@ static dependentState walkRecordField (alists_alist l, decl_node n)
       dbs ((dependentState) blocked, n);
       dbq (n);
       dbq (t);
+      /* s := walkDependants (l, t)  */
       return blocked;
     }
 }
@@ -15454,6 +15753,7 @@ static dependentState walkProcType (alists_alist l, decl_node n)
     {}  /* empty.  */
   else
     {
+      /* proctype can be generated from partial types.  */
       s = walkDependants (l, t);
       if (s != completed)
         return s;
@@ -15643,10 +15943,12 @@ static dependentState doDependants (alists_alist l, decl_node n)
       case longcomplex:
       case shortcomplex:
       case proc:
+        /* base types.  */
         return completed;
         break;
 
       case type:
+        /* language features and compound type attributes.  */
         return walkType (l, n);
         break;
 
@@ -15727,6 +16029,7 @@ static dependentState doDependants (alists_alist l, decl_node n)
         break;
 
       case procedure:
+        /* blocks.  */
         return walkProcedure (l, n);
         break;
 
@@ -15740,10 +16043,12 @@ static dependentState doDependants (alists_alist l, decl_node n)
       case if_:
       case elsif:
       case assignment:
+        /* statements.  */
         M2RTS_HALT (-1);
         break;
 
       case componentref:
+        /* expressions.  */
         return walkComponentRef (l, n);
         break;
 
@@ -15812,11 +16117,13 @@ static unsigned int tryComplete (decl_node n, nodeProcedure c, nodeProcedure t, 
 {
   if (decl_isEnumeration (n))
     {
+      /* can always emit enumerated types.  */
       output (n, c, t, v);
       return TRUE;
     }
   else if (((decl_isType (n)) && (decl_isTypeHidden (n))) && ((decl_getType (n)) == NULL))
     {
+      /* can always emit hidden types.  */
       outputHidden (n);
       return TRUE;
     }
@@ -15837,6 +16144,7 @@ static unsigned int tryCompleteFromPartial (decl_node n, nodeProcedure t)
 {
   if ((((decl_isType (n)) && ((decl_getType (n)) != NULL)) && (decl_isPointer (decl_getType (n)))) && ((allDependants (decl_getType (n))) == completed))
     {
+      /* alists.includeItemIntoList (partialQ, getType (n)) ;  */
       outputHiddenComplete (n);
       return TRUE;
     }
@@ -16192,6 +16500,7 @@ static void visitImp (alists_alist v, decl_node n, nodeProcedure p)
   mcDebug_assert (decl_isImp (n));
   visitDecls (v, n->impF.decls, p);
   visitNode (v, n->impF.beginStatements, p);
+  /* --fixme-- do we need to visit definitionModule?  */
   visitNode (v, n->impF.finallyStatements, p);
 }
 
@@ -16307,6 +16616,9 @@ static void visitIf (alists_alist v, decl_node n, nodeProcedure p)
 
 static void visitElsif (alists_alist v, decl_node n, nodeProcedure p)
 {
+  /* 
+   visitElsIf -
+  */
   mcDebug_assert (decl_isElsif (n));
   visitNode (v, n->elsifF.expr, p);
   visitNode (v, n->elsifF.elsif, p);
@@ -16505,6 +16817,9 @@ static void visitDependants (alists_alist v, decl_node n, nodeProcedure p)
         visitStmtSeq (v, n, p);
         break;
 
+      case comment:
+        break;
+
       case halt:
         break;
 
@@ -16530,7 +16845,7 @@ static void visitDependants (alists_alist v, decl_node n, nodeProcedure p)
         break;
 
       case boolean:
-        visitBoolean (v, n, p);
+        visitBoolean (v, n, p);  /* handled in funccall.  */
         break;
 
       case nil:
@@ -16568,6 +16883,7 @@ static void visitDependants (alists_alist v, decl_node n, nodeProcedure p)
         break;
 
       case type:
+        /* language features and compound type attributes.  */
         visitType (v, n, p);
         break;
 
@@ -16646,6 +16962,7 @@ static void visitDependants (alists_alist v, decl_node n, nodeProcedure p)
         break;
 
       case procedure:
+        /* blocks.  */
         visitProcedure (v, n, p);
         break;
 
@@ -16662,6 +16979,7 @@ static void visitDependants (alists_alist v, decl_node n, nodeProcedure p)
         break;
 
       case loop:
+        /* statements.  */
         visitLoop (v, n, p);
         break;
 
@@ -16706,6 +17024,7 @@ static void visitDependants (alists_alist v, decl_node n, nodeProcedure p)
         break;
 
       case componentref:
+        /* expressions.  */
         visitComponentRef (v, n, p);
         break;
 
@@ -16829,10 +17148,12 @@ static DynamicStrings_String genKind (decl_node n)
       case complex:
       case longcomplex:
       case shortcomplex:
+        /* types, no need to generate a kind string as it it contained in the name.  */
         return NULL;
         break;
 
       case type:
+        /* language features and compound type attributes.  */
         return DynamicStrings_InitString ((char *) "type", 4);
         break;
 
@@ -16913,6 +17234,7 @@ static DynamicStrings_String genKind (decl_node n)
         break;
 
       case procedure:
+        /* blocks.  */
         return DynamicStrings_InitString ((char *) "procedure", 9);
         break;
 
@@ -16929,6 +17251,7 @@ static DynamicStrings_String genKind (decl_node n)
         break;
 
       case loop:
+        /* statements.  */
         return DynamicStrings_InitString ((char *) "loop", 4);
         break;
 
@@ -16961,6 +17284,7 @@ static DynamicStrings_String genKind (decl_node n)
         break;
 
       case constexp:
+        /* expressions.  */
         return DynamicStrings_InitString ((char *) "constexp", 8);
         break;
 
@@ -17134,8 +17458,8 @@ static DynamicStrings_String gen (decl_node n)
   unsigned int d;
 
   d = (unsigned int ) ((long unsigned int ) (n));
-  s = FormatStrings_Sprintf1 (DynamicStrings_InitString ((char *) "< %d ", 5), (unsigned char *) &d, (sizeof (d)-1));
-  s = DynamicStrings_ConCat (s, genKind (n));
+  s = FormatStrings_Sprintf1 (DynamicStrings_InitString ((char *) "< %d ", 5), (unsigned char *) &d, (sizeof (d)-1));  /* use 0x%x once FormatStrings has been released.  */
+  s = DynamicStrings_ConCat (s, genKind (n));  /* use 0x%x once FormatStrings has been released.  */
   s = DynamicStrings_ConCat (s, DynamicStrings_InitString ((char *) " ", 1));
   s = DynamicStrings_ConCat (s, getFQstring (n));
   s = DynamicStrings_ConCat (s, DynamicStrings_InitString ((char *) " >", 2));
@@ -17543,8 +17867,8 @@ static void outDefC (mcPretty_pretty p, decl_node n)
 {
   DynamicStrings_String s;
 
-  outputFile = mcStream_openFrag (1);
-  s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSource (n)));
+  outputFile = mcStream_openFrag (1);  /* first fragment.  */
+  s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSource (n)));  /* first fragment.  */
   mcPretty_print (p, (char *) "/* automatically created by mc from ", 36);
   mcPretty_prints (p, s);
   mcPretty_print (p, (char *) ".  */\\n\\n", 9);
@@ -17559,8 +17883,8 @@ static void outDefC (mcPretty_pretty p, decl_node n)
   mcPretty_print (p, (char *) "#   ifdef __cplusplus\\n", 23);
   mcPretty_print (p, (char *) "extern \"C\" {\\n", 14);
   mcPretty_print (p, (char *) "#   endif\\n", 11);
-  outputFile = mcStream_openFrag (3);
-  doP = p;
+  outputFile = mcStream_openFrag (3);  /* third fragment.  */
+  doP = p;  /* third fragment.  */
   Indexing_ForeachIndiceInIndexDo (n->defF.importedModules, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) doIncludeC});
   mcPretty_print (p, (char *) "\\n", 2);
   mcPretty_print (p, (char *) "#   if defined (_", 17);
@@ -17578,8 +17902,8 @@ static void outDefC (mcPretty_pretty p, decl_node n)
   mcPretty_print (p, (char *) "\\n", 2);
   mcPretty_print (p, (char *) "#   undef EXTERN\\n", 18);
   mcPretty_print (p, (char *) "#endif\\n", 8);
-  outputFile = mcStream_openFrag (2);
-  keyc_genDefs (p);
+  outputFile = mcStream_openFrag (2);  /* second fragment.  */
+  keyc_genDefs (p);  /* second fragment.  */
   s = DynamicStrings_KillString (s);
 }
 
@@ -17620,16 +17944,17 @@ static void outImpC (mcPretty_pretty p, decl_node n)
   DynamicStrings_String s;
   decl_node defModule;
 
-  outputFile = mcStream_openFrag (1);
-  s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSource (n)));
+  outputFile = mcStream_openFrag (1);  /* first fragment.  */
+  s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSource (n)));  /* first fragment.  */
   mcPretty_print (p, (char *) "/* automatically created by mc from ", 36);
   mcPretty_prints (p, s);
   mcPretty_print (p, (char *) ".  */\\n\\n", 9);
   s = DynamicStrings_KillString (s);
-  outputFile = mcStream_openFrag (3);
-  if (mcOptions_getExtendedOpaque ())
+  outputFile = mcStream_openFrag (3);  /* third fragment.  */
+  if (mcOptions_getExtendedOpaque ())  /* third fragment.  */
     {
       doP = p;
+      /* ForeachIndiceInIndexDo (n^.impF.importedModules, doIncludeC) ;  */
       includeExternals (n);
       foreachModuleDo (n, (symbolKey_performOperation) {(symbolKey_performOperation_t) runSimplifyTypes});
       libc_printf ((char *) "/*  --extended-opaque seen therefore no #include will be used and everything will be declared in full.  */\\n", 108);
@@ -17641,6 +17966,7 @@ static void outImpC (mcPretty_pretty p, decl_node n)
   else
     {
       s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n)));
+      /* we don't want to include the .h file for this implementation module.  */
       mcPretty_print (p, (char *) "#define _", 9);
       mcPretty_prints (p, s);
       mcPretty_print (p, (char *) "_H\\n", 4);
@@ -17660,8 +17986,8 @@ static void outImpC (mcPretty_pretty p, decl_node n)
   Indexing_ForeachIndiceInIndexDo (n->impF.decls.procedures, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) doPrototypeC});
   outProceduresC (p, n->impF.decls);
   outImpInitC (p, n);
-  outputFile = mcStream_openFrag (2);
-  keyc_genDefs (p);
+  outputFile = mcStream_openFrag (2);  /* second fragment.  */
+  keyc_genDefs (p);  /* second fragment.  */
   s = DynamicStrings_KillString (s);
 }
 
@@ -17676,6 +18002,7 @@ static void outDeclsModuleC (mcPretty_pretty p, scopeT s)
   includeConstType (s);
   doP = p;
   topologicallyOut ((nodeProcedure) {(nodeProcedure_t) doConstC}, (nodeProcedure) {(nodeProcedure_t) doTypesC}, (nodeProcedure) {(nodeProcedure_t) doVarC}, (nodeProcedure) {(nodeProcedure_t) outputPartial}, (nodeProcedure) {(nodeProcedure_t) doNone}, (nodeProcedure) {(nodeProcedure_t) doCompletePartialC}, (nodeProcedure) {(nodeProcedure_t) doNone});
+  /* try and output types, constants before variables and procedures.  */
   includeVarProcedure (s);
   topologicallyOut ((nodeProcedure) {(nodeProcedure_t) doConstC}, (nodeProcedure) {(nodeProcedure_t) doTypesC}, (nodeProcedure) {(nodeProcedure_t) doVarC}, (nodeProcedure) {(nodeProcedure_t) outputPartial}, (nodeProcedure) {(nodeProcedure_t) doNone}, (nodeProcedure) {(nodeProcedure_t) doCompletePartialC}, (nodeProcedure) {(nodeProcedure_t) doNone});
   Indexing_ForeachIndiceInIndexDo (s.procedures, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) doPrototypeC});
@@ -17723,14 +18050,14 @@ static void outModuleC (mcPretty_pretty p, decl_node n)
 {
   DynamicStrings_String s;
 
-  outputFile = mcStream_openFrag (1);
-  s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSource (n)));
+  outputFile = mcStream_openFrag (1);  /* first fragment.  */
+  s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSource (n)));  /* first fragment.  */
   mcPretty_print (p, (char *) "/* automatically created by mc from ", 36);
   mcPretty_prints (p, s);
   mcPretty_print (p, (char *) ".  */\\n\\n", 9);
   s = DynamicStrings_KillString (s);
-  outputFile = mcStream_openFrag (3);
-  if (mcOptions_getExtendedOpaque ())
+  outputFile = mcStream_openFrag (3);  /* third fragment.  */
+  if (mcOptions_getExtendedOpaque ())  /* third fragment.  */
     {
       doP = p;
       includeExternals (n);
@@ -17750,8 +18077,8 @@ static void outModuleC (mcPretty_pretty p, decl_node n)
   Indexing_ForeachIndiceInIndexDo (n->moduleF.decls.procedures, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) doPrototypeC});
   outProceduresC (p, n->moduleF.decls);
   outModuleInitC (p, n);
-  outputFile = mcStream_openFrag (2);
-  keyc_genDefs (p);
+  outputFile = mcStream_openFrag (2);  /* second fragment.  */
+  keyc_genDefs (p);  /* second fragment.  */
 }
 
 
@@ -18449,8 +18776,6 @@ static void outM2 (mcPretty_pretty p, decl_node n)
 
 static void addDone (decl_node n)
 {
-  DynamicStrings_String s;
-
   alists_includeItemIntoList (doneQ, (void *) n);
 }
 
@@ -18672,6 +18997,7 @@ static void doDbg (alists_alist l, decl_node n)
   if (n == NULL)
     {}  /* empty.  */
   else if (decl_isSubrange (n))
+    /* do nothing.  */
     dbgSubrange (l, n);
   else if (decl_isType (n))
     dbgType (l, n);
@@ -18717,6 +19043,62 @@ static void dbg (decl_node n)
   } while (! (i > (alists_noOfItemsInList (l))));
   doP = o;
   outputFile = f;
+}
+
+
+/*
+   addGenericBody - adds comment node to funccall, return, assignment
+                    nodes.
+*/
+
+static void addGenericBody (decl_node n, decl_node c)
+{
+  switch (n->kind)
+    {
+      case funccall:
+        n->funccallF.bodycomment = c;
+        break;
+
+      case return_:
+        n->returnF.bodycomment = c;
+        break;
+
+      case assignment:
+        n->assignmentF.bodycomment = c;
+        break;
+
+
+      default:
+        break;
+    }
+}
+
+
+/*
+   addGenericAfter - adds comment node to funccall, return, assignment
+                     nodes.
+*/
+
+static void addGenericAfter (decl_node n, decl_node c)
+{
+  switch (n->kind)
+    {
+      case funccall:
+        n->funccallF.aftercomment = c;
+        break;
+
+      case return_:
+        n->returnF.aftercomment = c;
+        break;
+
+      case assignment:
+        n->assignmentF.aftercomment = c;
+        break;
+
+
+      default:
+        break;
+    }
 }
 
 
@@ -18801,6 +19183,7 @@ static decl_node dupComponentref (decl_node n)
 
 static decl_node dupBinary (decl_node n)
 {
+  /* assert (isBinary (n)) ;  */
   return makeBinary (n->kind, decl_dupExpr (n->binaryF.left), decl_dupExpr (n->binaryF.right), n->binaryF.resultType);
 }
 
@@ -18811,6 +19194,7 @@ static decl_node dupBinary (decl_node n)
 
 static decl_node dupUnary (decl_node n)
 {
+  /* assert (isUnary (n)) ;  */
   return makeUnary (n->kind, decl_dupExpr (n->unaryF.arg), n->unaryF.resultType);
 }
 
@@ -18868,7 +19252,7 @@ static decl_node doDupExpr (decl_node n)
       case return_:
       case stmtseq:
       case comment:
-        M2RTS_HALT (-1);
+        M2RTS_HALT (-1);  /* should not be duplicating code.  */
         break;
 
       case nil:
@@ -18898,6 +19282,7 @@ static decl_node doDupExpr (decl_node n)
       case complex:
       case longcomplex:
       case shortcomplex:
+        /* base types.  */
         return n;
         break;
 
@@ -18922,6 +19307,7 @@ static decl_node doDupExpr (decl_node n)
       case enumerationfield:
       case set:
       case proctype:
+        /* language features and compound type attributes.  */
         return n;
         break;
 
@@ -18929,6 +19315,7 @@ static decl_node doDupExpr (decl_node n)
       case def:
       case imp:
       case module:
+        /* blocks.  */
         return n;
         break;
 
@@ -18943,10 +19330,12 @@ static decl_node doDupExpr (decl_node n)
       case if_:
       case elsif:
       case assignment:
+        /* statements.  */
         return n;
         break;
 
       case arrayref:
+        /* expressions.  */
         return dupArrayref (n);
         break;
 
@@ -19050,9 +19439,9 @@ static void makeSystem (void)
   adrN = addToScope (adrN);
   tsizeN = addToScope (tsizeN);
   throwN = addToScope (throwN);
-  mcDebug_assert (sizeN != NULL);
-  sizeN = addToScope (sizeN);
-  decl_leaveScope ();
+  mcDebug_assert (sizeN != NULL);  /* assumed to be built already.  */
+  sizeN = addToScope (sizeN);  /* also export size from system.  */
+  decl_leaveScope ();  /* also export size from system.  */
   addDone (addressN);
   addDone (locN);
   addDone (byteN);
@@ -19598,6 +19987,7 @@ decl_node decl_lookupModule (nameKey_Name n)
 
 void decl_putDefForC (decl_node n)
 {
+  /* --fixme-- currently disabled.  */
   mcDebug_assert (decl_isDef (n));
 }
 
@@ -19730,6 +20120,7 @@ decl_node decl_getType (decl_node n)
         break;
 
       case boolean:
+        /* base types.  */
         return n;
         break;
 
@@ -19802,6 +20193,7 @@ decl_node decl_getType (decl_node n)
         break;
 
       case type:
+        /* language features and compound type attributes.  */
         return n->typeF.type;
         break;
 
@@ -19882,6 +20274,7 @@ decl_node decl_getType (decl_node n)
         break;
 
       case procedure:
+        /* blocks.  */
         return n->procedureF.returnType;
         break;
 
@@ -19899,6 +20292,7 @@ decl_node decl_getType (decl_node n)
       case if_:
       case elsif:
       case assignment:
+        /* statements.  */
         M2RTS_HALT (-1);
         break;
 
@@ -19911,6 +20305,7 @@ decl_node decl_getType (decl_node n)
       case mod:
       case mult:
       case divide:
+        /* expressions.  */
         return n->binaryF.resultType;
         break;
 
@@ -20003,6 +20398,7 @@ decl_node decl_skipType (decl_node n)
   while ((n != NULL) && (decl_isType (n)))
     {
       if ((decl_getType (n)) == NULL)
+        /* this will occur if, n, is an opaque type.  */
         return n;
       n = decl_getType (n);
     }
@@ -20167,10 +20563,12 @@ decl_node decl_getScope (decl_node n)
       case complex:
       case longcomplex:
       case shortcomplex:
+        /* base types.  */
         return NULL;
         break;
 
       case type:
+        /* language features and compound type attributes.  */
         return n->typeF.scope;
         break;
 
@@ -20251,6 +20649,7 @@ decl_node decl_getScope (decl_node n)
         break;
 
       case procedure:
+        /* blocks.  */
         return n->procedureF.scope;
         break;
 
@@ -20265,6 +20664,7 @@ decl_node decl_getScope (decl_node n)
       case if_:
       case elsif:
       case assignment:
+        /* statements.  */
         return NULL;
         break;
 
@@ -20286,6 +20686,7 @@ decl_node decl_getScope (decl_node n)
       case mult:
       case divide:
       case in:
+        /* expressions.  */
         return NULL;
         break;
 
@@ -20902,6 +21303,7 @@ decl_node decl_makeVarient (decl_node r)
 
   n = newNode ((nodeT) varient);
   n->varientF.listOfSons = Indexing_InitIndex (1);
+  /* if so use this   n^.varientF.parent := r  */
   if (decl_isRecord (r))
     n->varientF.varient = NULL;
   else
@@ -20911,6 +21313,7 @@ decl_node decl_makeVarient (decl_node r)
   switch (r->kind)
     {
       case record:
+        /* now add, n, to the record/varient, r, field list  */
         Indexing_IncludeIndiceIntoIndex (r->recordF.listOfSons, (void *) n);
         break;
 
@@ -21089,6 +21492,7 @@ nameKey_Name decl_getSymName (decl_node n)
         break;
 
       case boolean:
+        /* base types.  */
         return nameKey_makeKey ((char *) "BOOLEAN", 7);
         break;
 
@@ -21161,6 +21565,7 @@ nameKey_Name decl_getSymName (decl_node n)
         break;
 
       case type:
+        /* language features and compound type attributes.  */
         return n->typeF.name;
         break;
 
@@ -21241,6 +21646,7 @@ nameKey_Name decl_getSymName (decl_node n)
         break;
 
       case procedure:
+        /* blocks.  */
         return n->procedureF.name;
         break;
 
@@ -21263,6 +21669,7 @@ nameKey_Name decl_getSymName (decl_node n)
       case if_:
       case elsif:
       case assignment:
+        /* statements.  */
         return nameKey_NulName;
         break;
 
@@ -21286,6 +21693,7 @@ nameKey_Name decl_getSymName (decl_node n)
       case greater:
       case greequal:
       case lessequal:
+        /* expressions.  */
         return nameKey_NulName;
         break;
 
@@ -21653,7 +22061,8 @@ decl_node decl_makeProcedure (nameKey_Name n)
 void decl_putCommentDefProcedure (decl_node n)
 {
   mcDebug_assert (decl_isProcedure (n));
-  n->procedureF.defComment = mcComment_getProcedureComment ();
+  if (mcComment_isProcedureComment (mcLexBuf_lastcomment))
+    n->procedureF.defComment = mcLexBuf_lastcomment;
 }
 
 
@@ -21666,7 +22075,8 @@ void decl_putCommentDefProcedure (decl_node n)
 void decl_putCommentModProcedure (decl_node n)
 {
   mcDebug_assert (decl_isProcedure (n));
-  n->procedureF.modComment = mcComment_getProcedureComment ();
+  if (mcComment_isProcedureComment (mcLexBuf_lastcomment))
+    n->procedureF.modComment = mcLexBuf_lastcomment;
 }
 
 
@@ -21823,7 +22233,7 @@ void decl_addVarParameters (decl_node n, decl_node i, decl_node type)
   mcDebug_assert (decl_isProcedure (n));
   checkMakeVariables (n, i, type, TRUE);
   if (n->procedureF.checking)
-    checkParameters (n, i, type, TRUE);
+    checkParameters (n, i, type, TRUE);  /* will destroy, i.  */
   else
     {
       p = decl_makeVarParameter (i, type, n);
@@ -21845,7 +22255,7 @@ void decl_addNonVarParameters (decl_node n, decl_node i, decl_node type)
   mcDebug_assert (decl_isProcedure (n));
   checkMakeVariables (n, i, type, FALSE);
   if (n->procedureF.checking)
-    checkParameters (n, i, type, FALSE);
+    checkParameters (n, i, type, FALSE);  /* will destroy, i.  */
   else
     {
       p = decl_makeNonVarParameter (i, type, n);
@@ -21948,7 +22358,7 @@ decl_node decl_makeBinaryTok (mcReserved_toktype op, decl_node l, decl_node r)
   else if (op == mcReserved_dividetok)
     return makeBinary ((nodeT) divide, l, r, (decl_node) NULL);
   else
-    M2RTS_HALT (-1);
+    M2RTS_HALT (-1);  /* most likely op needs a clause as above.  */
 }
 
 
@@ -21966,7 +22376,7 @@ decl_node decl_makeUnaryTok (mcReserved_toktype op, decl_node e)
   else if (op == mcReserved_minustok)
     return makeUnary ((nodeT) neg, e, (decl_node) NULL);
   else
-    M2RTS_HALT (-1);
+    M2RTS_HALT (-1);  /* most likely op needs a clause as above.  */
 }
 
 
@@ -21980,6 +22390,21 @@ decl_node decl_makeComponentRef (decl_node rec, decl_node field)
   decl_node n;
   decl_node a;
 
+  /* 
+   n := getLastOp (rec) ;
+   IF (n#NIL) AND (isDeref (n) OR isPointerRef (n)) AND
+      (skipType (getType (rec)) = skipType (getType (n)))
+   THEN
+      a := n^.unaryF.arg ;
+      n^.kind := pointerref ;
+      n^.pointerrefF.ptr := a ;
+      n^.pointerrefF.field := field ;
+      n^.pointerrefF.resultType := getType (field) ;
+      RETURN n
+   ELSE
+      RETURN doMakeComponentRef (rec, field)
+   END
+  */
   if (isDeref (rec))
     {
       a = rec->unaryF.arg;
@@ -22363,6 +22788,8 @@ decl_node decl_makeFuncCall (decl_node c, decl_node n)
       f->funccallF.function = c;
       f->funccallF.args = n;
       f->funccallF.type = NULL;
+      f->funccallF.aftercomment = NULL;
+      f->funccallF.bodycomment = NULL;
       return f;
     }
 }
@@ -22407,6 +22834,52 @@ void decl_addStatement (decl_node s, decl_node n)
 
 
 /*
+   addCommentBody - adds a body comment to a statement sequence node.
+*/
+
+void decl_addCommentBody (decl_node n)
+{
+  mcComment_commentDesc b;
+
+  if (n != NULL)
+    {
+      b = mcLexBuf_getBodyComment ();
+      if (b != NULL)
+        addGenericBody (n, decl_makeCommentS (b));
+    }
+}
+
+
+/*
+   addCommentAfter - adds an after comment to a statement sequence node.
+*/
+
+void decl_addCommentAfter (decl_node n)
+{
+  mcComment_commentDesc a;
+
+  if (n != NULL)
+    {
+      a = mcLexBuf_getAfterComment ();
+      if (a != NULL)
+        addGenericAfter (n, decl_makeCommentS (a));
+    }
+}
+
+
+/*
+   addIfComments - adds the, body, and, after, comments to if node, n.
+*/
+
+void decl_addIfComments (decl_node n, decl_node body, decl_node after)
+{
+  mcDebug_assert (decl_isIf (n));
+  n->ifF.aftercomment = after;
+  n->ifF.bodycomment = body;
+}
+
+
+/*
    makeReturn - creates and returns a return node.
 */
 
@@ -22416,6 +22889,8 @@ decl_node decl_makeReturn (void)
 
   n = newNode ((nodeT) return_);
   n->returnF.exp = NULL;
+  n->returnF.aftercomment = NULL;
+  n->returnF.bodycomment = NULL;
   return n;
 }
 
@@ -22492,6 +22967,8 @@ decl_node decl_makeAssignment (decl_node d, decl_node e)
   n = newNode ((nodeT) assignment);
   n->assignmentF.des = d;
   n->assignmentF.expr = e;
+  n->assignmentF.aftercomment = NULL;
+  n->assignmentF.bodycomment = NULL;
   return n;
 }
 
@@ -22622,15 +23099,37 @@ void decl_putLoop (decl_node l, decl_node s)
 
 decl_node decl_makeComment (char *a_, unsigned int _a_high)
 {
-  decl_node n;
+  mcComment_commentDesc c;
+  DynamicStrings_String s;
   char a[_a_high+1];
 
   /* make a local copy of each unbounded array.  */
   memcpy (a, a_, _a_high+1);
 
-  n = newNode ((nodeT) comment);
-  n->commentF.content = DynamicStrings_InitString ((char *) a, _a_high);
-  return n;
+  c = mcComment_initComment (TRUE);
+  s = DynamicStrings_InitString ((char *) a, _a_high);
+  mcComment_addText (c, DynamicStrings_string (s));
+  s = DynamicStrings_KillString (s);
+  return decl_makeCommentS (c);
+}
+
+
+/*
+   makeCommentS - creates and returns a comment node.
+*/
+
+decl_node decl_makeCommentS (mcComment_commentDesc c)
+{
+  decl_node n;
+
+  if (c == NULL)
+    return NULL;
+  else
+    {
+      n = newNode ((nodeT) comment);
+      n->commentF.content = c;
+      return n;
+    }
 }
 
 
@@ -22649,6 +23148,8 @@ decl_node decl_makeIf (decl_node e, decl_node s)
   n->ifF.then = s;
   n->ifF.else_ = NULL;
   n->ifF.elsif = NULL;
+  n->ifF.aftercomment = NULL;
+  n->ifF.bodycomment = NULL;
   return n;
 }
 

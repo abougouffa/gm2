@@ -324,6 +324,9 @@ unsigned int mcPretty_getcurline (mcPretty_pretty s)
 
 void mcPretty_setNeedSpace (mcPretty_pretty s)
 {
+  /* 
+   setneedSpace - sets needSpace flag to TRUE.
+  */
   s->needsSpace = TRUE;
 }
 

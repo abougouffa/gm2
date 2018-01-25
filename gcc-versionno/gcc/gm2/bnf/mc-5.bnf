@@ -1,4 +1,4 @@
--- Copyright (C) 2016
+-- Copyright (C) 2016, 2017, 2018
 -- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
@@ -51,13 +51,15 @@ FROM nameKey IMPORT NulName, Name, makekey ;
 FROM mcPrintf IMPORT printf0, printf1 ;
 FROM mcDebug IMPORT assert ;
 FROM mcReserved IMPORT toktype ;
+FROM mcComment IMPORT setProcedureComment ;
 FROM mcMetaError IMPORT metaError1, metaError2 ;
 FROM mcStack IMPORT stack ;
 
 IMPORT mcStack ;
 
 FROM mcLexBuf IMPORT currentstring, currenttoken, getToken, insertToken,
-                     insertTokenAndRewind, getTokenNo ;
+                     insertTokenAndRewind, getTokenNo, lastcomment,
+                     getBodyComment, getAfterComment ;
 
 FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 enterScope, leaveScope,
@@ -88,7 +90,9 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 makeSetValue, putSetValue, includeSetValue,
 		 makeCase, putCaseExpression, putCaseElse,
 		 putCaseStatement, makeCaseList, putCaseRange,
-		 dupExpr, makeLoop, putLoop, isLoop ;
+		 dupExpr, makeLoop, putLoop, isLoop,
+		 addCommentBody, addCommentAfter, addIfComments,
+		 makeCommentS ;
 
 
 CONST
@@ -1192,7 +1196,8 @@ ExitStatement :=                                                         % VAR n
 ReturnStatement :=                                                       % VAR n: node ; %
                                                                          % n := pushStmt (makeReturn ()) %
                    "RETURN" [ Expression                                 % putReturn (n, pop ()) %
-		                         ]
+		                         ]                               % addCommentBody (peepStmt ()) %
+                                                                         % addCommentAfter (peepStmt ()) %
 					                                 % assert (isReturn (peepStmt ())) %
                  =:
 
@@ -1200,9 +1205,9 @@ Statement := ( AssignmentOrProcedureCall | IfStatement | CaseStatement |
                WhileStatement | RepeatStatement | LoopStatement |
                ForStatement | WithStatement | AsmStatement |
                ExitStatement | ReturnStatement | RetryStatement |        % VAR s: node ; %
-	                                                                 % s := pushStmt (NIL) %
-	     )
-          =:
+                                                                         % s := pushStmt (NIL) %
+             )
+           =:
 
 RetryStatement :=                                                        % VAR s: node ; %
                                                                          % s := pushStmt (makeComment ("retry")) %
@@ -1216,6 +1221,8 @@ AssignmentOrProcedureCall :=                                             % VAR d
                                   ActualParameters                       % a := pushStmt (makeFuncCall (d, pop ())) %
 				                   |                     % a := pushStmt (makeFuncCall (d, NIL)) %
                              )
+                                                                         % addCommentBody (peepStmt ()) %
+                                                                         % addCommentAfter (peepStmt ()) %
                            =:
 
 -- these two break LL1 as both start with a Designator
@@ -1232,8 +1239,11 @@ StatementSequence :=                                                     % VAR s
 				               }
                   =:
 
-IfStatement :=                                                           % VAR i: node ; %
-               "IF" Expression "THEN" StatementSequence                  % i := pushStmt (makeIf (pop (), popStmt ())) %
+IfStatement :=                                                           % VAR i, a, b: node ; %
+                "IF"                                                     % b := makeCommentS (getBodyComment ()) %
+                     Expression                                          % a := makeCommentS (getAfterComment ()) %
+                                "THEN" StatementSequence                 % i := pushStmt (makeIf (pop (), popStmt ())) %
+                                                                         % addIfComments (i, b, a) %
               { "ELSIF"
 
                         Expression "THEN"
@@ -1327,6 +1337,8 @@ ProcedureDeclaration := ProcedureHeading ";" ProcedureBlock
 
 ProcedureIdent := Ident                                                  % curproc := lookupSym (curident) %
                                                                          % enterScope (curproc) %
+                                                                         % setProcedureComment (lastcomment, curident) %
+
                 =:
 
 DefProcedureIdent := Ident                                               % curproc := lookupSym (curident) %

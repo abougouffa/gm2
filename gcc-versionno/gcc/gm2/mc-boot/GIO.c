@@ -14,6 +14,7 @@
 #      define FALSE (1==0)
 #   endif
 
+#include <stdlib.h>
 #define _IO_H
 #define _IO_C
 
@@ -143,7 +144,7 @@ static void doWrite (int fd, FIO_File f, char ch)
       if (! fdState.array[fd].IsEof)
         for (;;)
         {
-          r = libc_write (FIO_GetUnixFileDescriptor (f), &ch, 1);
+          r = libc_write (FIO_GetUnixFileDescriptor (f), &ch, (size_t) 1);
           if (r == 1)
             return;
           else if (r == -1)
@@ -180,6 +181,15 @@ static void setFlag (termios_TERMIOS t, termios_Flag f, unsigned int b)
 
 static void doraw (termios_TERMIOS term)
 {
+  /* 
+    * from man 3 termios
+    *           termios_p->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP
+    *                                   | INLCR | IGNCR | ICRNL | IXON);
+    *           termios_p->c_oflag &= ~OPOST;
+    *           termios_p->c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+    *           termios_p->c_cflag &= ~(CSIZE | PARENB);
+    *           termios_p->c_cflag |= CS8;
+  */
   setFlag (term, (termios_Flag) termios_ignbrk, FALSE);
   setFlag (term, (termios_Flag) termios_ibrkint, FALSE);
   setFlag (term, (termios_Flag) termios_iparmrk, FALSE);
@@ -206,6 +216,17 @@ static void doraw (termios_TERMIOS term)
 
 static void dononraw (termios_TERMIOS term)
 {
+  /* 
+    * we undo these settings, (although we leave the character size alone)
+    *
+    * from man 3 termios
+    *           termios_p->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP
+    *                                   | INLCR | IGNCR | ICRNL | IXON);
+    *           termios_p->c_oflag &= ~OPOST;
+    *           termios_p->c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+    *           termios_p->c_cflag &= ~(CSIZE | PARENB);
+    *           termios_p->c_cflag |= CS8;
+  */
   setFlag (term, (termios_Flag) termios_ignbrk, TRUE);
   setFlag (term, (termios_Flag) termios_ibrkint, TRUE);
   setFlag (term, (termios_Flag) termios_iparmrk, TRUE);
@@ -254,7 +275,7 @@ void IO_Read (char *ch)
     else
       for (;;)
       {
-        r = libc_read (FIO_GetUnixFileDescriptor (FIO_StdIn), ch, 1);
+        r = libc_read (FIO_GetUnixFileDescriptor (FIO_StdIn), ch, (size_t) 1);
         if (r == 1)
           return;
         else if (r == -1)

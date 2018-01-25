@@ -6,31 +6,19 @@
  *  addText - the text cs is appended to the current comment.
  */
 
-extern mcComment_addText (char *cs);
+extern void mcComment_addText (void *cd, char *cs);
 
 
 /*
- *
- *  beginComment - the start of a new comment has been seen by the lexical analyser.
- *                 A new comment block is created and all addText contents are placed
- *                 in this block.
+ *  initComment - the start of a new comment has been seen by the lexical analyser.
+ *                A new comment block is created and all addText contents are placed
+ *                in this block.  onlySpaces indicates whether we have only seen
+ *                spaces on this line.  The new comment descriptor is returned.
+ *		 If onlySpaces is TRUE then an inbody comment is created.
+ *		 If onlySpaces is FALSE then an after statement comment is created.
  */
 
-extern void mcComment_beginComment (void);
-
-
-/*
- *  getCommentCharStar - returns the current comment.
- */
-
-extern void *mcComment_getCommentCharStar (void);
-
-
-/*
- *  endComment - the end of the comment has been seen by the lexical analyser.
- */
-
-extern void mcComment_endComment (void);
+extern void *mcComment_initComment (unsigned int onlySpaces);
 
 
 #endif

@@ -881,6 +881,8 @@ BEGIN
    add (macros, 'csqrt') ;
    add (macros, 'strlen') ;
    add (macros, 'strcpy') ;
+   add (macros, 'free') ;
+   add (macros, 'malloc') ;
    add (macros, 'main')
 END initMacros ;
 

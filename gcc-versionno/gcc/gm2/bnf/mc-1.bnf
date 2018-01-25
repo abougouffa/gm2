@@ -1,4 +1,4 @@
--- Copyright (C) 2015, 2016
+-- Copyright (C) 2015, 2016, 2017, 2018
 -- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
@@ -54,7 +54,7 @@ FROM mcReserved IMPORT toktype ;
 FROM mcComment IMPORT setProcedureComment ;
 
 FROM mcLexBuf IMPORT currentstring, currenttoken, getToken, insertToken,
-                     insertTokenAndRewind, getTokenNo ;
+                     insertTokenAndRewind, getTokenNo, lastcomment ;
 
 FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
                  lookupSym, putDefForC,
@@ -941,7 +941,7 @@ ProcedureDeclaration := ProcedureHeading ";" ProcedureBlock
                       =:
 
 DefProcedureIdent := Ident                                                % curproc := makeProcedure (curident) ;
-                                                                            setProcedureComment (curident) ;
+                                                                            setProcedureComment (lastcomment, curident) ;
                                                                             putCommentDefProcedure (curproc) ;
                                                                           %
                    =:
@@ -951,7 +951,7 @@ ProcedureIdent := Ident                                                   % curp
                                                                             THEN
                                                                                curproc := makeProcedure (curident)
                                                                             END ;
-                                                                            setProcedureComment (curident) ;
+                                                                            setProcedureComment (lastcomment, curident) ;
                                                                             putCommentModProcedure (curproc) ;
 									  %
                 =:

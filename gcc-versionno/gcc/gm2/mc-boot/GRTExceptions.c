@@ -13,6 +13,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
+#include <stdlib.h>
 #   include "GStorage.h"
 #   include "Gmcrts.h"
 #define _RTExceptions_H
@@ -407,7 +408,7 @@ static void ErrorString (char *a_, unsigned int _a_high)
   /* make a local copy of each unbounded array.  */
   memcpy (a, a_, _a_high+1);
 
-  n = libc_write (2, &a, (int) StrLib_StrLen ((char *) a, _a_high));
+  n = libc_write (2, &a, (size_t) StrLib_StrLen ((char *) a, _a_high));
 }
 
 
@@ -694,7 +695,7 @@ static void invalidloc (void * a)
 
 static void function (void * a)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_functionException), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 651, 9, "function", "... function ... ");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_functionException), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 651, 9, "function", "... function ... ");  /* --fixme-- what has happened ?  */
 }
 
 
@@ -931,8 +932,8 @@ RTExceptions_EHBlock RTExceptions_InitExceptionBlock (void)
 
   e = New ();
   e->number = UINT_MAX;
-  e->handlers = NewHandler ();
-  e->handlers->right = e->handlers;
+  e->handlers = NewHandler ();  /* add the dummy onto the head  */
+  e->handlers->right = e->handlers;  /* add the dummy onto the head  */
   e->handlers->left = e->handlers;
   e->right = e;
   return e;
@@ -966,9 +967,12 @@ void RTExceptions_PushHandler (RTExceptions_EHBlock e, unsigned int number, RTEx
     i = InitHandler (NewHandler (), (Handler) NULL, (Handler) NULL, (Handler) NULL, number, p);
   else
     {
+      /* remove, h,  */
       SubHandler (h);
+      /* stack it onto a new handler  */
       i = InitHandler (NewHandler (), (Handler) NULL, (Handler) NULL, h, number, p);
     }
+  /* add new handler  */
   AddHandler (e, i);
 }
 
@@ -986,6 +990,7 @@ void RTExceptions_PopHandler (RTExceptions_EHBlock e, unsigned int number)
   h = findHandler (e, number);
   if (h != NULL)
     {
+      /* remove, h,  */
       SubHandler (h);
       if (h->stack != NULL)
         AddHandler (e, h->stack);

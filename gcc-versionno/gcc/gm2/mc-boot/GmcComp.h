@@ -27,6 +27,12 @@ extern "C" {
 */
 
 EXTERN void mcComp_compile (DynamicStrings_String s);
+
+/*
+   getPassNo - return the pass no.
+*/
+
+EXTERN unsigned int mcComp_getPassNo (void);
 #   ifdef __cplusplus
 }
 #   endif

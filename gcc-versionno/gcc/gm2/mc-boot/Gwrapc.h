@@ -63,6 +63,27 @@ EXTERN void wrapc_getnameuidgid (void * name, int *uid, int *gid);
 EXTERN int wrapc_signbit (double r);
 EXTERN int wrapc_signbitf (float s);
 EXTERN int wrapc_signbitl (long double l);
+
+/*
+   isfinite - provide non builtin alternative to the gcc builtin isfinite.
+              Returns 1 if x is finite and 0 if it is not.
+*/
+
+EXTERN int wrapc_isfinite (double x);
+
+/*
+   isfinitef - provide non builtin alternative to the gcc builtin isfinite.
+               Returns 1 if x is finite and 0 if it is not.
+*/
+
+EXTERN int wrapc_isfinitef (float x);
+
+/*
+   isfinitel - provide non builtin alternative to the gcc builtin isfinite.
+               Returns 1 if x is finite and 0 if it is not.
+*/
+
+EXTERN int wrapc_isfinitel (long double x);
 #   ifdef __cplusplus
 }
 #   endif

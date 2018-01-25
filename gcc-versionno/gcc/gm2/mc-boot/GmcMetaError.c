@@ -757,6 +757,11 @@ static DynamicStrings_String symDesc (decl_node n, DynamicStrings_String o)
   if (decl_isLiteral (n))
     return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "literal", 7)));
   else if (decl_isConstSet (n))
+    /* 
+   ELSIF IsConstructor(n)
+   THEN
+      RETURN( ConCatWord (o, Mark (InitString ('constructor'))) )
+  */
     return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "constant set", 12)));
   else if (decl_isConst (n))
     return ConCatWord (o, DynamicStrings_Mark (DynamicStrings_InitString ((char *) "constant", 8)));
