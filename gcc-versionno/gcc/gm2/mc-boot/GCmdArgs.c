@@ -87,8 +87,8 @@ static unsigned int GetNextArg (char *CmdLine_, unsigned int _CmdLine_high, unsi
   HighA = _Arg_high;  /* Index into Arg  */
   HighC = StrLib_StrLen ((char *) CmdLine, _CmdLine_high);
   ArgIndex = 0;
+  /* Skip spaces  */
   while (((*CmdIndex) < HighC) && (Space (CmdLine[(*CmdIndex)])))
-    /* Skip spaces  */
     (*CmdIndex) += 1;
   if ((*CmdIndex) < HighC)
     {
@@ -110,8 +110,8 @@ static unsigned int GetNextArg (char *CmdLine_, unsigned int _CmdLine_high, unsi
       else
         CopyUntilSpace ((char *) CmdLine, _CmdLine_high, CmdIndex, HighC, (char *) Arg, _Arg_high, &ArgIndex, HighA);
     }
+  /* Skip spaces  */
   while (((*CmdIndex) < HighC) && (Space (CmdLine[(*CmdIndex)])))
-    /* Skip spaces  */
     (*CmdIndex) += 1;
   if (ArgIndex < HighA)
     Arg[ArgIndex] = ASCII_nul;

@@ -1,4 +1,40 @@
-2018-01-03      Gaius Mulley <gaius@gnu.org>
+2018-01-28      Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/mc-5.bnf:  regenerated.
+	* gm2/mc-boot/GCmdArgs.c:  regenerated.
+	* gm2/mc-boot/GFIO.c:  regenerated.
+	* gm2/mc-boot/GStrIO.c:  regenerated.
+	* gm2/mc-boot/GStringConvert.c:  regenerated.
+	* gm2/mc-boot/Gdecl.c:  regenerated.
+	* gm2/mc-boot/Gdecl.h:  regenerated.
+	* gm2/mc-boot/GmcComp.c:  regenerated.
+	* gm2/mc-boot/GmcLexBuf.c:  regenerated.
+	* gm2/mc-boot/Gmcp1.c:  regenerated.
+	* gm2/mc-boot/Gmcp2.c:  regenerated.
+	* gm2/mc-boot/Gmcp3.c:  regenerated.
+	* gm2/mc-boot/Gmcp4.c:  regenerated.
+	* gm2/mc-boot/Gmcp5.c:  regenerated.
+	* gm2/mc/decl.def:  (addElseComments), (addIfEndComments),
+          (addWhileDoComment), (addWhileEndComment), (addRepeatComment),
+	  (addUntilComment)  defined and exported.
+	* gm2/mc/decl.mod:  (commentPair)  New record.
+          Used in funccallT, returnT, whileT, repeatT, ifT, elsifT,
+          assignmentT.  (doAfterCommentC)  New procedure.
+          (doReturnC)  Use (doAfterCommentC).
+          (doAssignmentC) use (doAfterCommentC).  (doIfC)
+          use (doAfterCommentC).  (doRepeatC) use (doAfterCommentC).
+          (doWhileC) use (doAfterCommentC).  (doFuncCallC) use
+          (doAfterCommentC).  (addGenericBody) rewritten.
+          (addIfComments) rewritten.  (addElseComments)  New
+          procedure.  (addIfEndComments)  New procedure.
+          (addWhileDoComment) New procedure.  (addWhileEndComment)
+          New procedure.  (initPair)  New procedure.
+          (addRepeatComment)  New procedure.
+	  (addUntilComment)  New procedure.
+	* gm2/mc/mcLexBuf.mod:  fixed an infinite loop bug hunting
+	  for the next token on a buffer boundary case.
+
+2018-01-26      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  added extra commented definition for
 	bootstrapping under trunc.

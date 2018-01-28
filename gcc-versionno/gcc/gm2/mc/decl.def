@@ -1064,6 +1064,20 @@ PROCEDURE addIfComments (n: node; body, after: node) ;
 
 
 (*
+   addElseComments - adds the, body, and, after, comments to an, if, or an elsif, node, n.
+*)
+
+PROCEDURE addElseComments (n: node; body, after: node) ;
+
+
+(*
+   addIfEndComments - adds the, body, and, after, comments to an, if, node, n.
+*)
+
+PROCEDURE addIfEndComments (n: node; body, after: node) ;
+
+
+(*
    makeReturn - creates and returns a return node.
 *)
 
@@ -1104,6 +1118,20 @@ PROCEDURE putWhile (n: node; e, s: node) ;
 *)
 
 PROCEDURE isWhile (n: node) : BOOLEAN ;
+
+
+(*
+   addWhileDoComment - adds body and after comments to while node, w.
+*)
+
+PROCEDURE addWhileDoComment (w: node; body, after: node) ;
+
+
+(*
+   addWhileEndComment - adds body and after comments to the end of a while node, w.
+*)
+
+PROCEDURE addWhileEndComment (w: node; body, after: node) ;
 
 
 (*
@@ -1267,6 +1295,20 @@ PROCEDURE isRepeat (n: node) : BOOLEAN ;
 *)
 
 PROCEDURE putRepeat (n, s, e: node) ;
+
+
+(*
+   addRepeatComment - adds body and after comments to repeat node, r.
+*)
+
+PROCEDURE addRepeatComment (r: node; body, after: node) ;
+
+
+(*
+   addUntilComment - adds body and after comments to the until section of a repeat node, r.
+*)
+
+PROCEDURE addUntilComment (r: node; body, after: node) ;
 
 
 (*

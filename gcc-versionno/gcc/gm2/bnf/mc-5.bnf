@@ -92,6 +92,9 @@ FROM decl IMPORT node, lookupDef, lookupImp, lookupModule, getSymName,
 		 putCaseStatement, makeCaseList, putCaseRange,
 		 dupExpr, makeLoop, putLoop, isLoop,
 		 addCommentBody, addCommentAfter, addIfComments,
+		 addElseComments, addIfEndComments,
+		 addWhileDoComment, addWhileEndComment,
+                 addRepeatComment, addUntilComment,
 		 makeCommentS ;
 
 
@@ -1244,14 +1247,17 @@ IfStatement :=                                                           % VAR i
                      Expression                                          % a := makeCommentS (getAfterComment ()) %
                                 "THEN" StatementSequence                 % i := pushStmt (makeIf (pop (), popStmt ())) %
                                                                          % addIfComments (i, b, a) %
-              { "ELSIF"
-
-                        Expression "THEN"
+              { "ELSIF"                                                  % b := makeCommentS (getBodyComment ()) %
+                        Expression                                       % a := makeCommentS (getAfterComment ()) %
+			           "THEN"                                % addElseComments (peepStmt (), b, a) %
                                           StatementSequence              % i := makeElsif (i, pop (), popStmt ()) %
               }
               [ "ELSE"
                       StatementSequence                                  % putElse (i, popStmt ()) %
-		                        ] "END"                          % assert (isIf (peepStmt ())) %
+		                        ] "END"                          % b := makeCommentS (getBodyComment ()) %
+                                                                         % a := makeCommentS (getAfterComment ()) %
+					                                 % assert (isIf (peepStmt ())) %
+                                                                         % addIfEndComments (peepStmt (), b, a) %
             =:
 
 CaseStatement :=                                                         % VAR s, e: node ; %
@@ -1289,19 +1295,31 @@ CaseLabels :=                                                            % VAR l
 			                             ]                   % l := putCaseRange (l, lo, hi) %
             =:
 
-WhileStatement :=                                                        % VAR s, w, e: node ; %
+WhileStatement :=                                                        % VAR s, w, e, a, b: node ; %
                                                                          % w := pushStmt (makeWhile ()) %
-                  "WHILE" Expression "DO"                                % e := pop () %
+                  "WHILE" Expression "DO"                                % b := makeCommentS (getBodyComment ()) %
+                                                                         % a := makeCommentS (getAfterComment ()) %
+									 % addWhileDoComment (w, b, a) %
+                                                                         % e := pop () %
                       StatementSequence                                  % s := popStmt () %
 		  "END"                                                  % (* assert (isStatementSequence (peepStmt ())) *) %
 		                                                         % putWhile (w, e, s) %
+                                                                         % b := makeCommentS (getBodyComment ()) %
+                                                                         % a := makeCommentS (getAfterComment ()) %
+									 % addWhileEndComment (w, b, a) %
                 =:
 
-RepeatStatement :=                                                       % VAR r, s: node ; %
+RepeatStatement :=                                                       % VAR r, s, a, b: node ; %
                                                                          % r := pushStmt (makeRepeat ()) %
                    "REPEAT"
+                                                                         % b := makeCommentS (getBodyComment ()) %
+                                                                         % a := makeCommentS (getAfterComment ()) %
+									 % addRepeatComment (r, b, a) %
                        StatementSequence                                 % s := popStmt () %
 	           "UNTIL" Expression                                    % putRepeat (r, s, pop ()) %
+                                                                         % b := makeCommentS (getBodyComment ()) %
+                                                                         % a := makeCommentS (getAfterComment ()) %
+									 % addUntilComment (r, b, a) %
                  =:
 
 ForStatement :=                                                          % VAR f, i, s, e, b: node ; %

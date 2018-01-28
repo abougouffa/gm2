@@ -921,6 +921,18 @@ EXTERN void decl_addCommentAfter (decl_node n);
 EXTERN void decl_addIfComments (decl_node n, decl_node body, decl_node after);
 
 /*
+   addElseComments - adds the, body, and, after, comments to an, if, or an elsif, node, n.
+*/
+
+EXTERN void decl_addElseComments (decl_node n, decl_node body, decl_node after);
+
+/*
+   addIfEndComments - adds the, body, and, after, comments to an, if, node, n.
+*/
+
+EXTERN void decl_addIfEndComments (decl_node n, decl_node body, decl_node after);
+
+/*
    makeReturn - creates and returns a return node.
 */
 
@@ -956,6 +968,18 @@ EXTERN void decl_putWhile (decl_node n, decl_node e, decl_node s);
 */
 
 EXTERN unsigned int decl_isWhile (decl_node n);
+
+/*
+   addWhileDoComment - adds body and after comments to while node, w.
+*/
+
+EXTERN void decl_addWhileDoComment (decl_node w, decl_node body, decl_node after);
+
+/*
+   addWhileEndComment - adds body and after comments to the end of a while node, w.
+*/
+
+EXTERN void decl_addWhileEndComment (decl_node w, decl_node body, decl_node after);
 
 /*
    makeAssignment - creates and returns an assignment node.
@@ -1098,6 +1122,18 @@ EXTERN unsigned int decl_isRepeat (decl_node n);
 */
 
 EXTERN void decl_putRepeat (decl_node n, decl_node s, decl_node e);
+
+/*
+   addRepeatComment - adds body and after comments to repeat node, r.
+*/
+
+EXTERN void decl_addRepeatComment (decl_node r, decl_node body, decl_node after);
+
+/*
+   addUntilComment - adds body and after comments to the until section of a repeat node, r.
+*/
+
+EXTERN void decl_addUntilComment (decl_node r, decl_node body, decl_node after);
 
 /*
    makeCase - builds and returns a case statement node.

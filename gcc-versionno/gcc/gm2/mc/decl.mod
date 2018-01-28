@@ -263,11 +263,10 @@ TYPE
                     END ;
 
        funccallT = RECORD
-                      function    : node ;
-		      args        : node ;
-		      type        : node ;
-		      aftercomment,
-		      bodycomment : node ;
+                      function       : node ;
+		      args           : node ;
+		      type           : node ;
+		      funccallComment: commentPair ;
                    END ;
 
        commentT = RECORD
@@ -279,9 +278,8 @@ TYPE
                END ;
 
        returnT = RECORD
-                    exp         : node ;
-                    aftercomment,
-                    bodycomment : node ;
+                    exp          : node ;
+		    returnComment: commentPair ;
                  END ;
 
        exitT = RECORD
@@ -454,11 +452,15 @@ TYPE
                       resultType:  node ;
                    END ;
 
+       commentPair = RECORD
+			after,
+                        body :  node ;
+                     END ;
+
        assignmentT = RECORD
                         des,
-                        expr        :  node ;
-			aftercomment,
-			bodycomment :  node ;
+                        expr         :  node ;
+			assignComment: commentPair ;
                      END ;
 
        ifT = RECORD
@@ -466,15 +468,17 @@ TYPE
                 elsif,      (* either else or elsif must be NIL.  *)
                 then,
                 else        :  node ;
-		aftercomment,
-		bodycomment :  node ;
+		ifComment,
+		elseComment,  (* used for else or elsif *)
+		endComment  : commentPair ;
              END ;
 
        elsifT = RECORD
                    expr,
                    elsif,     (* either else or elsif must be NIL.  *)
                    then,
-                   else:  node ;
+                   else       :  node ;
+                   elseComment:  commentPair ;  (* used for else or elsif *)
                 END ;
 
        loopT = RECORD
@@ -485,12 +489,16 @@ TYPE
        whileT = RECORD
                    expr,
                    statements:  node ;
+                   doComment,
+                   endComment:  commentPair ;
                 END ;
 
        repeatT = RECORD
-                   expr,
-                   statements:  node ;
-                END ;
+                    expr,
+                    statements   :  node ;
+                    repeatComment,
+		    untilComment :  commentPair ;
+                 END ;
 
        caseT = RECORD
                   expression   :  node ;
@@ -3515,8 +3523,7 @@ BEGIN
       f^.funccallF.function := c ;
       f^.funccallF.args := n ;
       f^.funccallF.type := NIL ;
-      f^.funccallF.aftercomment := NIL ;
-      f^.funccallF.bodycomment := NIL ;
+      initPair (f^.funccallF.funccallComment) ;
       RETURN f
    END
 END makeFuncCall ;
@@ -7068,15 +7075,6 @@ BEGIN
          doTypeNameC (doP, n) ;
          outText (doP, ";\n\n")
       END
-      (*
-         outText (doP, " /* odd seen ") ;
-         doTypeC (doP, m, m) ;
-	 outText (doP, " and ") ;
-         doTypeNameC (doP, n) ;
-         outText (doP, " ") ;
-	 outTextS (doP, gen (n)) ;
-         outText (doP, " */\n\n")
-       *)
    END
 END doTypesC ;
 
@@ -8779,13 +8777,28 @@ END doCommentC ;
 
 
 (*
+   doAfterCommentC - emit an after comment, c, or a newline if, c, is empty.
+*)
+
+PROCEDURE doAfterCommentC (p: pretty; c: node) ;
+BEGIN
+   IF c = NIL
+   THEN
+      outText (p, "\n")
+   ELSE
+      doCommentC (p, c)
+   END
+END doAfterCommentC ;
+
+
+(*
    doReturnC - issue a return statement and also place in an after comment if one exists.
 *)
 
 PROCEDURE doReturnC (p: pretty; s: node) ;
 BEGIN
    assert (isReturn (s)) ;
-   doCommentC (p, s^.returnF.bodycomment) ;
+   doCommentC (p, s^.returnF.returnComment.body) ;
    outText (p, "return") ;
    IF s^.returnF.exp#NIL
    THEN
@@ -8793,12 +8806,7 @@ BEGIN
       doExprC (p, s^.returnF.exp)
    END ;
    outText (p, ";") ;
-   IF s^.returnF.aftercomment = NIL
-   THEN
-      outText (p, "\n")
-   ELSE
-      doCommentC (p, s^.returnF.aftercomment)
-   END
+   doAfterCommentC (p, s^.returnF.returnComment.after)
 END doReturnC ;
 
 
@@ -8856,19 +8864,14 @@ END requiresUnpackProc ;
 PROCEDURE doAssignmentC (p: pretty; s: node) ;
 BEGIN
    assert (isAssignment (s)) ;
-   doCommentC (p, s^.assignmentF.bodycomment) ;
+   doCommentC (p, s^.assignmentF.assignComment.body) ;
    doExprCup (p, s^.assignmentF.des, requiresUnpackProc (s)) ;
    setNeedSpace (p) ;
    outText (p, "=") ;
    setNeedSpace (p) ;
    doExprCastC (p, s^.assignmentF.expr, getType (s^.assignmentF.des)) ;
    outText (p, ";") ;
-   IF s^.assignmentF.aftercomment = NIL
-   THEN
-      outText (p, "\n")
-   ELSE
-      doCommentC (p, s^.assignmentF.aftercomment)
-   END
+   doAfterCommentC (p, s^.assignmentF.assignComment.after)
 END doAssignmentC ;
 
 
@@ -9083,18 +9086,13 @@ END hasIfAndNoElse ;
 PROCEDURE doIfC (p: pretty; s: node) ;
 BEGIN
    assert (isIf (s)) ;
-   doCommentC (p, s^.ifF.bodycomment) ;
+   doCommentC (p, s^.ifF.ifComment.body) ;
    outText (p, "if") ;
    setNeedSpace (p) ;
    outText (p, "(") ;
    doExprC (p, s^.ifF.expr) ;
    outText (p, ")") ;
-   IF s^.ifF.aftercomment = NIL
-   THEN
-      outText (p, "\n")
-   ELSE
-      doCommentC (p, s^.ifF.aftercomment)
-   END ;
+   doAfterCommentC (p, s^.ifF.ifComment.after) ;
    IF hasIfAndNoElse (s^.ifF.then) AND
       ((s^.ifF.else # NIL) OR (s^.ifF.elsif # NIL))
    THEN
@@ -9129,12 +9127,18 @@ BEGIN
    assert ((s^.ifF.else = NIL) OR (s^.ifF.elsif = NIL)) ;
    IF containsStatement (s^.ifF.else)
    THEN
-      outText (p, "else\n") ;
+      doCommentC (p, s^.ifF.elseComment.body) ;
+      outText (p, "else") ;
+      doAfterCommentC (p, s^.ifF.elseComment.after) ;
       doCompoundStmt (p, s^.ifF.else)
    ELSIF (s^.ifF.elsif#NIL) AND isElsif (s^.ifF.elsif)
    THEN
+      doCommentC (p, s^.ifF.elseComment.body) ;
+      doCommentC (p, s^.ifF.elseComment.after) ;
       doElsifC (p, s^.ifF.elsif)
-   END
+   END ;
+   doCommentC (p, s^.ifF.endComment.after) ;
+   doCommentC (p, s^.ifF.endComment.body)
 END doIfC ;
 
 
@@ -9242,14 +9246,18 @@ END doForC ;
 PROCEDURE doRepeatC (p: pretty; s: node) ;
 BEGIN
    assert (isRepeat (s)) ;
-   outText (p, "do {\n") ;
+   doCommentC (p, s^.repeatF.repeatComment.body) ;
+   outText (p, "do {") ;
+   doAfterCommentC (p, s^.repeatF.repeatComment.after) ;
    p := pushPretty (p) ;
    setindent (p, getindent (p) + indentationC) ;
    doStatementSequenceC (p, s^.repeatF.statements) ;
+   doCommentC (p, s^.repeatF.untilComment.body) ;
    p := popPretty (p) ;
    outText (p, "} while (! (") ;
    doExprC (p, s^.repeatF.expr) ;
-   outText (p, "));\n")
+   outText (p, "));") ;
+   doAfterCommentC (p, s^.repeatF.untilComment.after)
 END doRepeatC ;
 
 
@@ -9260,10 +9268,14 @@ END doRepeatC ;
 PROCEDURE doWhileC (p: pretty; s: node) ;
 BEGIN
    assert (isWhile (s)) ;
+   doCommentC (p, s^.whileF.doComment.body) ;
    outText (p, "while (") ;
    doExprC (p, s^.whileF.expr) ;
-   outText (p, ")\n") ;
-   doCompoundStmt (p, s^.whileF.statements)
+   outText (p, ")") ;
+   doAfterCommentC (p, s^.whileF.doComment.after) ;
+   doCompoundStmt (p, s^.whileF.statements) ;
+   doCommentC (p, s^.whileF.endComment.body) ;
+   doCommentC (p, s^.whileF.endComment.after)
 END doWhileC ;
 
 
@@ -10527,15 +10539,10 @@ END doFuncExprC ;
 
 PROCEDURE doFuncCallC (p: pretty; n: node) ;
 BEGIN
-   doCommentC (p, n^.funccallF.bodycomment) ;
+   doCommentC (p, n^.funccallF.funccallComment.body) ;
    doFuncExprC (p, n) ;
    outText (p, ";") ;
-   IF n^.funccallF.aftercomment = NIL
-   THEN
-      outText (p, "\n")
-   ELSE
-      doCommentC (p, n^.funccallF.aftercomment)
-   END
+   doAfterCommentC (p, n^.funccallF.funccallComment.after)
 END doFuncCallC ;
 
 
@@ -12652,7 +12659,7 @@ END visitIf ;
 
 
 (*
-   visitElsIf -
+   visitElsif -
 *)
 
 PROCEDURE visitElsif (v: alist; n: node; p: nodeProcedure) ;
@@ -14861,9 +14868,9 @@ PROCEDURE addGenericBody (n, c: node);
 BEGIN
    CASE n^.kind OF
 
-   funccall  :  n^.funccallF.bodycomment := c |
-   return    :  n^.returnF.bodycomment := c |
-   assignment:  n^.assignmentF.bodycomment := c
+   funccall  :  n^.funccallF.funccallComment.body := c |
+   return    :  n^.returnF.returnComment.body := c |
+   assignment:  n^.assignmentF.assignComment.body := c
 
    ELSE
    END
@@ -14879,9 +14886,9 @@ PROCEDURE addGenericAfter (n, c: node);
 BEGIN
    CASE n^.kind OF
 
-   funccall  :  n^.funccallF.aftercomment := c |
-   return    :  n^.returnF.aftercomment := c |
-   assignment:  n^.assignmentF.aftercomment := c
+   funccall  :  n^.funccallF.funccallComment.after := c |
+   return    :  n^.returnF.returnComment.after := c |
+   assignment:  n^.assignmentF.assignComment.after := c
 
    ELSE
    END
@@ -14933,9 +14940,39 @@ END addCommentAfter ;
 PROCEDURE addIfComments (n: node; body, after: node) ;
 BEGIN
    assert (isIf (n)) ;
-   n^.ifF.aftercomment := after ;
-   n^.ifF.bodycomment := body
+   n^.ifF.ifComment.after := after ;
+   n^.ifF.ifComment.body := body
 END addIfComments ;
+
+
+(*
+   addElseComments - adds the, body, and, after, comments to an, if, or an elsif, node, n.
+*)
+
+PROCEDURE addElseComments (n: node; body, after: node) ;
+BEGIN
+   assert (isIf (n) OR isElsif (n)) ;
+   IF isIf (n)
+   THEN
+      n^.ifF.elseComment.after := after ;
+      n^.ifF.elseComment.body := body
+   ELSE
+      n^.elsifF.elseComment.after := after ;
+      n^.elsifF.elseComment.body := body
+   END
+END addElseComments ;
+
+
+(*
+   addIfEndComments - adds the, body, and, after, comments to an, if, node, n.
+*)
+
+PROCEDURE addIfEndComments (n: node; body, after: node) ;
+BEGIN
+   assert (isIf (n)) ;
+   n^.ifF.endComment.after := after ;
+   n^.ifF.endComment.body := body
+END addIfEndComments ;
 
 
 (*
@@ -14948,8 +14985,7 @@ VAR
 BEGIN
    n := newNode (return) ;
    n^.returnF.exp := NIL ;
-   n^.returnF.aftercomment := NIL ;
-   n^.returnF.bodycomment := NIL ;
+   initPair (n^.returnF.returnComment) ;
    RETURN n
 END makeReturn ;
 
@@ -14987,6 +15023,8 @@ BEGIN
    n := newNode (while) ;
    n^.whileF.expr := NIL ;
    n^.whileF.statements := NIL ;
+   initPair (n^.whileF.doComment) ;
+   initPair (n^.whileF.endComment) ;
    RETURN n
 END makeWhile ;
 
@@ -15015,6 +15053,30 @@ END isWhile ;
 
 
 (*
+   addWhileDoComment - adds body and after comments to while node, w.
+*)
+
+PROCEDURE addWhileDoComment (w: node; body, after: node) ;
+BEGIN
+   assert (isWhile (w)) ;
+   w^.whileF.doComment.after := after ;
+   w^.whileF.doComment.body := body
+END addWhileDoComment ;
+
+
+(*
+   addWhileEndComment - adds body and after comments to the end of a while node, w.
+*)
+
+PROCEDURE addWhileEndComment (w: node; body, after: node) ;
+BEGIN
+   assert (isWhile (w)) ;
+   w^.whileF.endComment.after := after ;
+   w^.whileF.endComment.body := body
+END addWhileEndComment ;
+
+
+(*
    makeAssignment - creates and returns an assignment node.
                     The designator is, d, and expression, e.
 *)
@@ -15026,8 +15088,7 @@ BEGIN
    n := newNode (assignment) ;
    n^.assignmentF.des := d ;
    n^.assignmentF.expr := e ;
-   n^.assignmentF.aftercomment := NIL ;
-   n^.assignmentF.bodycomment := NIL ;
+   initPair (n^.assignmentF.assignComment) ;
    RETURN n
 END makeAssignment ;
 
@@ -15191,6 +15252,17 @@ END isComment ;
 
 
 (*
+   initPair - initialise the commentPair, c.
+*)
+
+PROCEDURE initPair (VAR c: commentPair) ;
+BEGIN
+   c.after := NIL ;
+   c.body := NIL
+END initPair ;
+
+
+(*
    makeIf - creates and returns an if node.  The if node
             will have expression, e, and statement sequence, s,
             as the then component.
@@ -15205,8 +15277,9 @@ BEGIN
    n^.ifF.then := s ;
    n^.ifF.else := NIL ;
    n^.ifF.elsif := NIL ;
-   n^.ifF.aftercomment := NIL ;
-   n^.ifF.bodycomment := NIL ;
+   initPair (n^.ifF.ifComment) ;
+   initPair (n^.ifF.elseComment) ;
+   initPair (n^.ifF.endComment) ;
    RETURN n
 END makeIf ;
 
@@ -15236,6 +15309,7 @@ BEGIN
    n^.elsifF.then := s ;
    n^.elsifF.elsif := NIL ;
    n^.elsifF.else := NIL ;
+   initPair (n^.elsifF.elseComment) ;
    assert (isIf (i) OR isElsif (i)) ;
    IF isIf (i)
    THEN
@@ -15340,6 +15414,8 @@ BEGIN
    n := newNode (repeat) ;
    n^.repeatF.expr := NIL ;
    n^.repeatF.statements := NIL ;
+   initPair (n^.repeatF.repeatComment) ;
+   initPair (n^.repeatF.untilComment) ;
    RETURN n
 END makeRepeat ;
 
@@ -15365,6 +15441,30 @@ BEGIN
    n^.repeatF.expr := e ;
    n^.repeatF.statements := s
 END putRepeat ;
+
+
+(*
+   addRepeatComment - adds body and after comments to repeat node, r.
+*)
+
+PROCEDURE addRepeatComment (r: node; body, after: node) ;
+BEGIN
+   assert (isRepeat (r)) ;
+   r^.repeatF.repeatComment.after := after ;
+   r^.repeatF.repeatComment.body := body
+END addRepeatComment ;
+
+
+(*
+   addUntilComment - adds body and after comments to the until section of a repeat node, r.
+*)
+
+PROCEDURE addUntilComment (r: node; body, after: node) ;
+BEGIN
+   assert (isRepeat (r)) ;
+   r^.repeatF.untilComment.after := after ;
+   r^.repeatF.untilComment.body := body
+END addUntilComment ;
 
 
 (*

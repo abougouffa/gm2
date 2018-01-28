@@ -467,7 +467,19 @@ static tokenBucket peeptokenBucket (unsigned int *t)
     n = (*t);
     b = findtokenBucket (&n);
     if (b == NULL)
-      doGetToken ();
+      {
+        doGetToken ();
+        n = (*t);
+        b = findtokenBucket (&n);
+        if ((b == NULL) || (mcLexBuf_currenttoken == mcReserved_eoftok))
+          {
+            /* bailing out.  */
+            nextTokNo = old+1;
+            b = findtokenBucket (&old);
+            updateFromBucket (b, old);
+            return NULL;
+          }
+      }
   } while (! ((b != NULL) || (mcLexBuf_currenttoken == mcReserved_eoftok)));
   (*t) = n;
   nextTokNo = old+1;
@@ -510,7 +522,7 @@ static void peepAfterComment (void)
   do {
     t = cno+peep;
     b = peeptokenBucket (&t);
-    if (b == NULL)
+    if ((b == NULL) || (mcLexBuf_currenttoken == mcReserved_eoftok))
       finished = TRUE;
     else
       {
@@ -518,6 +530,7 @@ static void peepAfterComment (void)
         if (nextline == curline)
           switch (b->buf.array[t].token)
             {
+              case mcReserved_eoftok:
               case mcReserved_endtok:
                 finished = TRUE;
                 break;
@@ -1157,6 +1170,7 @@ static void addTokToList (mcReserved_toktype t, nameKey_Name n, int i, mcComment
       listOfTokens.lastBucketOffset += MaxBucketSize;
     }
   listOfTokens.tail->next = NULL;
+  mcDebug_assert (listOfTokens.tail->len != MaxBucketSize);
   listOfTokens.tail->buf.array[listOfTokens.tail->len].token = t;
   listOfTokens.tail->buf.array[listOfTokens.tail->len].str = n;
   listOfTokens.tail->buf.array[listOfTokens.tail->len].int_ = i;
@@ -1274,6 +1288,7 @@ void mcLexBuf_closeSource (void)
   if (useBufferedTokens)
     while (mcLexBuf_currenttoken != mcReserved_eoftok)
       mcLexBuf_getToken ();
+  /* a subsequent call to mcflex.OpenSource will really close the file  */
 }
 
 
@@ -1650,7 +1665,9 @@ void mcLexBuf_popFile (void * filename)
       Storage_DEALLOCATE ((void **) &l, sizeof (_T1));
       if ((currentSource->left != currentSource) && (! (DynamicStrings_Equal (currentSource->name, DynamicStrings_Mark (DynamicStrings_InitStringCharStar (filename))))))
         {}  /* empty.  */
+      /* mismatch in source file names after preprocessing files  */
     }
+  /* source file list is empty, cannot pop an include..  */
 }
 
 void _M2_mcLexBuf_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

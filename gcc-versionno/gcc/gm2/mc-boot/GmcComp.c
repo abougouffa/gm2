@@ -211,9 +211,9 @@ static void doCompile (DynamicStrings_String s)
 
 static decl_node examineCompilationUnit (void)
 {
+  /* stop if we see eof, ';' or '['  */
   while (((mcLexBuf_currenttoken != mcReserved_eoftok) && (mcLexBuf_currenttoken != mcReserved_semicolontok)) && (mcLexBuf_currenttoken != mcReserved_lsbratok))
     {
-      /* stop if we see eof, ';' or '['  */
       if (mcLexBuf_currenttoken == mcReserved_definitiontok)
         {
           mcLexBuf_getToken ();

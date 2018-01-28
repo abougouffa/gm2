@@ -187,6 +187,8 @@ typedef struct pointerrefT_r pointerrefT;
 
 typedef struct arrayrefT_r arrayrefT;
 
+typedef struct commentPair_r commentPair;
+
 typedef struct assignmentT_r assignmentT;
 
 typedef struct ifT_r ifT;
@@ -368,14 +370,6 @@ struct identlistT_r {
                       unsigned int cnamed;
                     };
 
-struct funccallT_r {
-                     decl_node function;
-                     decl_node args;
-                     decl_node type;
-                     decl_node aftercomment;
-                     decl_node bodycomment;
-                   };
-
 struct commentT_r {
                     mcComment_commentDesc content;
                   };
@@ -383,12 +377,6 @@ struct commentT_r {
 struct stmtT_r {
                  Indexing_Index statements;
                };
-
-struct returnT_r {
-                   decl_node exp;
-                   decl_node aftercomment;
-                   decl_node bodycomment;
-                 };
 
 struct exitT_r {
                  decl_node loop;
@@ -532,43 +520,15 @@ struct arrayrefT_r {
                      decl_node resultType;
                    };
 
-struct assignmentT_r {
-                       decl_node des;
-                       decl_node expr;
-                       decl_node aftercomment;
-                       decl_node bodycomment;
+struct commentPair_r {
+                       decl_node after;
+                       decl_node body;
                      };
-
-struct ifT_r {
-               decl_node expr;
-               decl_node elsif;
-               decl_node then;
-               decl_node else_;
-               decl_node aftercomment;
-               decl_node bodycomment;
-             };
-
-struct elsifT_r {
-                  decl_node expr;
-                  decl_node elsif;
-                  decl_node then;
-                  decl_node else_;
-                };
 
 struct loopT_r {
                  decl_node statements;
                  unsigned int labelno;
                };
-
-struct whileT_r {
-                  decl_node expr;
-                  decl_node statements;
-                };
-
-struct repeatT_r {
-                   decl_node expr;
-                   decl_node statements;
-                 };
 
 struct caseT_r {
                  decl_node expression;
@@ -669,6 +629,18 @@ struct _T10_r {
                 alists_alist next;
               };
 
+struct funccallT_r {
+                     decl_node function;
+                     decl_node args;
+                     decl_node type;
+                     commentPair funccallComment;
+                   };
+
+struct returnT_r {
+                   decl_node exp;
+                   commentPair returnComment;
+                 };
+
 struct varT_r {
                 nameKey_Name name;
                 decl_node type;
@@ -697,6 +669,44 @@ struct enumerationfieldT_r {
                              unsigned int value;
                              cnameT cname;
                            };
+
+struct assignmentT_r {
+                       decl_node des;
+                       decl_node expr;
+                       commentPair assignComment;
+                     };
+
+struct ifT_r {
+               decl_node expr;
+               decl_node elsif;
+               decl_node then;
+               decl_node else_;
+               commentPair ifComment;
+               commentPair elseComment;
+               commentPair endComment;
+             };
+
+struct elsifT_r {
+                  decl_node expr;
+                  decl_node elsif;
+                  decl_node then;
+                  decl_node else_;
+                  commentPair elseComment;
+                };
+
+struct whileT_r {
+                  decl_node expr;
+                  decl_node statements;
+                  commentPair doComment;
+                  commentPair endComment;
+                };
+
+struct repeatT_r {
+                   decl_node expr;
+                   decl_node statements;
+                   commentPair repeatComment;
+                   commentPair untilComment;
+                 };
 
 struct procedureT_r {
                       nameKey_Name name;
@@ -1875,6 +1885,18 @@ void decl_addCommentAfter (decl_node n);
 void decl_addIfComments (decl_node n, decl_node body, decl_node after);
 
 /*
+   addElseComments - adds the, body, and, after, comments to an, if, or an elsif, node, n.
+*/
+
+void decl_addElseComments (decl_node n, decl_node body, decl_node after);
+
+/*
+   addIfEndComments - adds the, body, and, after, comments to an, if, node, n.
+*/
+
+void decl_addIfEndComments (decl_node n, decl_node body, decl_node after);
+
+/*
    makeReturn - creates and returns a return node.
 */
 
@@ -1910,6 +1932,18 @@ void decl_putWhile (decl_node n, decl_node e, decl_node s);
 */
 
 unsigned int decl_isWhile (decl_node n);
+
+/*
+   addWhileDoComment - adds body and after comments to while node, w.
+*/
+
+void decl_addWhileDoComment (decl_node w, decl_node body, decl_node after);
+
+/*
+   addWhileEndComment - adds body and after comments to the end of a while node, w.
+*/
+
+void decl_addWhileEndComment (decl_node w, decl_node body, decl_node after);
 
 /*
    makeAssignment - creates and returns an assignment node.
@@ -2052,6 +2086,18 @@ unsigned int decl_isRepeat (decl_node n);
 */
 
 void decl_putRepeat (decl_node n, decl_node s, decl_node e);
+
+/*
+   addRepeatComment - adds body and after comments to repeat node, r.
+*/
+
+void decl_addRepeatComment (decl_node r, decl_node body, decl_node after);
+
+/*
+   addUntilComment - adds body and after comments to the until section of a repeat node, r.
+*/
+
+void decl_addUntilComment (decl_node r, decl_node body, decl_node after);
 
 /*
    makeCase - builds and returns a case statement node.
@@ -4711,6 +4757,12 @@ static unsigned int isSingleStatement (decl_node s);
 static void doCommentC (mcPretty_pretty p, decl_node s);
 
 /*
+   doAfterCommentC - emit an after comment, c, or a newline if, c, is empty.
+*/
+
+static void doAfterCommentC (mcPretty_pretty p, decl_node c);
+
+/*
    doReturnC - issue a return statement and also place in an after comment if one exists.
 */
 
@@ -5707,6 +5759,11 @@ static void visitRange (alists_alist v, decl_node n, nodeProcedure p);
 */
 
 static void visitIf (alists_alist v, decl_node n, nodeProcedure p);
+
+/*
+   visitElsif -
+*/
+
 static void visitElsif (alists_alist v, decl_node n, nodeProcedure p);
 
 /*
@@ -6229,6 +6286,12 @@ static unsigned int isAssignment (decl_node n);
 */
 
 static unsigned int isComment (decl_node n);
+
+/*
+   initPair - initialise the commentPair, c.
+*/
+
+static void initPair (commentPair *c);
 
 /*
    dupExplist -
@@ -8473,11 +8536,11 @@ static void doIncludeC (decl_node n)
       mcPretty_print (doP, (char *) ".h\"\\n", 5);
       symbolKey_foreachNodeDo (n->defF.decls.symbols, (symbolKey_performOperation) {(symbolKey_performOperation_t) addDoneDef});
     }
+  /* no include in this case.  */
   else if (mcOptions_getExtendedOpaque ())
     {}  /* empty.  */
   else if (decl_isDef (n))
     {
-      /* no include in this case.  */
       mcPretty_print (doP, (char *) "#   include \"", 13);
       mcPretty_prints (doP, mcOptions_getHPrefix ());
       mcPretty_prints (doP, s);
@@ -11919,9 +11982,9 @@ static void doExternCP (mcPretty_pretty p)
 
 static void doProcedureCommentText (mcPretty_pretty p, DynamicStrings_String s)
 {
+  /* remove 
+   from the start of the comment.  */
   while (((DynamicStrings_Length (s)) > 0) && ((DynamicStrings_char (s, 0)) == ASCII_lf))
-    /* remove 
-     from the start of the comment.  */
     s = DynamicStrings_Slice (s, 1, 0);
   outTextS (p, s);
 }
@@ -12505,8 +12568,8 @@ static void addExternal (decl_node n)
 {
   if (((((decl_getScope (n)) == defModule) && (decl_isType (n))) && (decl_isTypeHidden (n))) && (! (mcOptions_getExtendedOpaque ())))
     {}  /* empty.  */
+  /* do nothing.  */
   else if (! (decl_isDef (n)))
-    /* do nothing.  */
     addTodo (n);
 }
 
@@ -12703,13 +12766,26 @@ static void doCommentC (mcPretty_pretty p, decl_node s)
 
 
 /*
+   doAfterCommentC - emit an after comment, c, or a newline if, c, is empty.
+*/
+
+static void doAfterCommentC (mcPretty_pretty p, decl_node c)
+{
+  if (c == NULL)
+    outText (p, (char *) "\\n", 2);
+  else
+    doCommentC (p, c);
+}
+
+
+/*
    doReturnC - issue a return statement and also place in an after comment if one exists.
 */
 
 static void doReturnC (mcPretty_pretty p, decl_node s)
 {
   mcDebug_assert (decl_isReturn (s));
-  doCommentC (p, s->returnF.bodycomment);
+  doCommentC (p, s->returnF.returnComment.body);
   outText (p, (char *) "return", 6);
   if (s->returnF.exp != NULL)
     {
@@ -12717,10 +12793,7 @@ static void doReturnC (mcPretty_pretty p, decl_node s)
       doExprC (p, s->returnF.exp);
     }
   outText (p, (char *) ";", 1);
-  if (s->returnF.aftercomment == NULL)
-    outText (p, (char *) "\\n", 2);
-  else
-    doCommentC (p, s->returnF.aftercomment);
+  doAfterCommentC (p, s->returnF.returnComment.after);
 }
 
 
@@ -12778,17 +12851,14 @@ static unsigned int requiresUnpackProc (decl_node s)
 static void doAssignmentC (mcPretty_pretty p, decl_node s)
 {
   mcDebug_assert (isAssignment (s));
-  doCommentC (p, s->assignmentF.bodycomment);
+  doCommentC (p, s->assignmentF.assignComment.body);
   doExprCup (p, s->assignmentF.des, requiresUnpackProc (s));
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "=", 1);
   mcPretty_setNeedSpace (p);
   doExprCastC (p, s->assignmentF.expr, decl_getType (s->assignmentF.des));
   outText (p, (char *) ";", 1);
-  if (s->assignmentF.aftercomment == NULL)
-    outText (p, (char *) "\\n", 2);
-  else
-    doCommentC (p, s->assignmentF.aftercomment);
+  doAfterCommentC (p, s->assignmentF.assignComment.after);
 }
 
 
@@ -12996,16 +13066,13 @@ static unsigned int hasIfAndNoElse (decl_node n)
 static void doIfC (mcPretty_pretty p, decl_node s)
 {
   mcDebug_assert (decl_isIf (s));
-  doCommentC (p, s->ifF.bodycomment);
+  doCommentC (p, s->ifF.ifComment.body);
   outText (p, (char *) "if", 2);
   mcPretty_setNeedSpace (p);
   outText (p, (char *) "(", 1);
   doExprC (p, s->ifF.expr);
   outText (p, (char *) ")", 1);
-  if (s->ifF.aftercomment == NULL)
-    outText (p, (char *) "\\n", 2);
-  else
-    doCommentC (p, s->ifF.aftercomment);
+  doAfterCommentC (p, s->ifF.ifComment.after);
   if ((hasIfAndNoElse (s->ifF.then)) && ((s->ifF.else_ != NULL) || (s->ifF.elsif != NULL)))
     {
       /* avoid dangling else.  */
@@ -13040,11 +13107,19 @@ static void doIfC (mcPretty_pretty p, decl_node s)
   mcDebug_assert ((s->ifF.else_ == NULL) || (s->ifF.elsif == NULL));
   if (containsStatement (s->ifF.else_))
     {
-      outText (p, (char *) "else\\n", 6);
+      doCommentC (p, s->ifF.elseComment.body);
+      outText (p, (char *) "else", 4);
+      doAfterCommentC (p, s->ifF.elseComment.after);
       doCompoundStmt (p, s->ifF.else_);
     }
   else if ((s->ifF.elsif != NULL) && (decl_isElsif (s->ifF.elsif)))
-    doElsifC (p, s->ifF.elsif);
+    {
+      doCommentC (p, s->ifF.elseComment.body);
+      doCommentC (p, s->ifF.elseComment.after);
+      doElsifC (p, s->ifF.elsif);
+    }
+  doCommentC (p, s->ifF.endComment.after);
+  doCommentC (p, s->ifF.endComment.body);
 }
 
 
@@ -13152,14 +13227,18 @@ static void doForC (mcPretty_pretty p, decl_node s)
 static void doRepeatC (mcPretty_pretty p, decl_node s)
 {
   mcDebug_assert (decl_isRepeat (s));
-  outText (p, (char *) "do {\\n", 6);
+  doCommentC (p, s->repeatF.repeatComment.body);
+  outText (p, (char *) "do {", 4);
+  doAfterCommentC (p, s->repeatF.repeatComment.after);
   p = mcPretty_pushPretty (p);
   mcPretty_setindent (p, (mcPretty_getindent (p))+indentationC);
   doStatementSequenceC (p, s->repeatF.statements);
+  doCommentC (p, s->repeatF.untilComment.body);
   p = mcPretty_popPretty (p);
   outText (p, (char *) "} while (! (", 12);
   doExprC (p, s->repeatF.expr);
-  outText (p, (char *) "));\\n", 5);
+  outText (p, (char *) "));", 3);
+  doAfterCommentC (p, s->repeatF.untilComment.after);
 }
 
 
@@ -13170,10 +13249,14 @@ static void doRepeatC (mcPretty_pretty p, decl_node s)
 static void doWhileC (mcPretty_pretty p, decl_node s)
 {
   mcDebug_assert (decl_isWhile (s));
+  doCommentC (p, s->whileF.doComment.body);
   outText (p, (char *) "while (", 7);
   doExprC (p, s->whileF.expr);
-  outText (p, (char *) ")\\n", 3);
+  outText (p, (char *) ")", 1);
+  doAfterCommentC (p, s->whileF.doComment.after);
   doCompoundStmt (p, s->whileF.statements);
+  doCommentC (p, s->whileF.endComment.body);
+  doCommentC (p, s->whileF.endComment.after);
 }
 
 
@@ -14470,13 +14553,10 @@ static void doFuncExprC (mcPretty_pretty p, decl_node n)
 
 static void doFuncCallC (mcPretty_pretty p, decl_node n)
 {
-  doCommentC (p, n->funccallF.bodycomment);
+  doCommentC (p, n->funccallF.funccallComment.body);
   doFuncExprC (p, n);
   outText (p, (char *) ";", 1);
-  if (n->funccallF.aftercomment == NULL)
-    outText (p, (char *) "\\n", 2);
-  else
-    doCommentC (p, n->funccallF.aftercomment);
+  doAfterCommentC (p, n->funccallF.funccallComment.after);
 }
 
 
@@ -14927,7 +15007,6 @@ static void doStatementsC (mcPretty_pretty p, decl_node s)
   if (s == NULL)
     {}  /* empty.  */
   else if (decl_isStatementSequence (s))
-    /* do nothing.  */
     doStatementSequenceC (p, s);
   else if (isComment (s))
     doCommentC (p, s);
@@ -16614,11 +16693,13 @@ static void visitIf (alists_alist v, decl_node n, nodeProcedure p)
   visitNode (v, n->ifF.else_, p);
 }
 
+
+/*
+   visitElsif -
+*/
+
 static void visitElsif (alists_alist v, decl_node n, nodeProcedure p)
 {
-  /* 
-   visitElsIf -
-  */
   mcDebug_assert (decl_isElsif (n));
   visitNode (v, n->elsifF.expr, p);
   visitNode (v, n->elsifF.elsif, p);
@@ -18997,7 +19078,6 @@ static void doDbg (alists_alist l, decl_node n)
   if (n == NULL)
     {}  /* empty.  */
   else if (decl_isSubrange (n))
-    /* do nothing.  */
     dbgSubrange (l, n);
   else if (decl_isType (n))
     dbgType (l, n);
@@ -19056,15 +19136,15 @@ static void addGenericBody (decl_node n, decl_node c)
   switch (n->kind)
     {
       case funccall:
-        n->funccallF.bodycomment = c;
+        n->funccallF.funccallComment.body = c;
         break;
 
       case return_:
-        n->returnF.bodycomment = c;
+        n->returnF.returnComment.body = c;
         break;
 
       case assignment:
-        n->assignmentF.bodycomment = c;
+        n->assignmentF.assignComment.body = c;
         break;
 
 
@@ -19084,15 +19164,15 @@ static void addGenericAfter (decl_node n, decl_node c)
   switch (n->kind)
     {
       case funccall:
-        n->funccallF.aftercomment = c;
+        n->funccallF.funccallComment.after = c;
         break;
 
       case return_:
-        n->returnF.aftercomment = c;
+        n->returnF.returnComment.after = c;
         break;
 
       case assignment:
-        n->assignmentF.aftercomment = c;
+        n->assignmentF.assignComment.after = c;
         break;
 
 
@@ -19120,6 +19200,17 @@ static unsigned int isComment (decl_node n)
 {
   mcDebug_assert (n != NULL);
   return n->kind == comment;
+}
+
+
+/*
+   initPair - initialise the commentPair, c.
+*/
+
+static void initPair (commentPair *c)
+{
+  (*c).after = NULL;
+  (*c).body = NULL;
 }
 
 
@@ -22788,8 +22879,7 @@ decl_node decl_makeFuncCall (decl_node c, decl_node n)
       f->funccallF.function = c;
       f->funccallF.args = n;
       f->funccallF.type = NULL;
-      f->funccallF.aftercomment = NULL;
-      f->funccallF.bodycomment = NULL;
+      initPair (&f->funccallF.funccallComment);
       return f;
     }
 }
@@ -22874,8 +22964,40 @@ void decl_addCommentAfter (decl_node n)
 void decl_addIfComments (decl_node n, decl_node body, decl_node after)
 {
   mcDebug_assert (decl_isIf (n));
-  n->ifF.aftercomment = after;
-  n->ifF.bodycomment = body;
+  n->ifF.ifComment.after = after;
+  n->ifF.ifComment.body = body;
+}
+
+
+/*
+   addElseComments - adds the, body, and, after, comments to an, if, or an elsif, node, n.
+*/
+
+void decl_addElseComments (decl_node n, decl_node body, decl_node after)
+{
+  mcDebug_assert ((decl_isIf (n)) || (decl_isElsif (n)));
+  if (decl_isIf (n))
+    {
+      n->ifF.elseComment.after = after;
+      n->ifF.elseComment.body = body;
+    }
+  else
+    {
+      n->elsifF.elseComment.after = after;
+      n->elsifF.elseComment.body = body;
+    }
+}
+
+
+/*
+   addIfEndComments - adds the, body, and, after, comments to an, if, node, n.
+*/
+
+void decl_addIfEndComments (decl_node n, decl_node body, decl_node after)
+{
+  mcDebug_assert (decl_isIf (n));
+  n->ifF.endComment.after = after;
+  n->ifF.endComment.body = body;
 }
 
 
@@ -22889,8 +23011,7 @@ decl_node decl_makeReturn (void)
 
   n = newNode ((nodeT) return_);
   n->returnF.exp = NULL;
-  n->returnF.aftercomment = NULL;
-  n->returnF.bodycomment = NULL;
+  initPair (&n->returnF.returnComment);
   return n;
 }
 
@@ -22928,6 +23049,8 @@ decl_node decl_makeWhile (void)
   n = newNode ((nodeT) while_);
   n->whileF.expr = NULL;
   n->whileF.statements = NULL;
+  initPair (&n->whileF.doComment);
+  initPair (&n->whileF.endComment);
   return n;
 }
 
@@ -22956,6 +23079,30 @@ unsigned int decl_isWhile (decl_node n)
 
 
 /*
+   addWhileDoComment - adds body and after comments to while node, w.
+*/
+
+void decl_addWhileDoComment (decl_node w, decl_node body, decl_node after)
+{
+  mcDebug_assert (decl_isWhile (w));
+  w->whileF.doComment.after = after;
+  w->whileF.doComment.body = body;
+}
+
+
+/*
+   addWhileEndComment - adds body and after comments to the end of a while node, w.
+*/
+
+void decl_addWhileEndComment (decl_node w, decl_node body, decl_node after)
+{
+  mcDebug_assert (decl_isWhile (w));
+  w->whileF.endComment.after = after;
+  w->whileF.endComment.body = body;
+}
+
+
+/*
    makeAssignment - creates and returns an assignment node.
                     The designator is, d, and expression, e.
 */
@@ -22967,8 +23114,7 @@ decl_node decl_makeAssignment (decl_node d, decl_node e)
   n = newNode ((nodeT) assignment);
   n->assignmentF.des = d;
   n->assignmentF.expr = e;
-  n->assignmentF.aftercomment = NULL;
-  n->assignmentF.bodycomment = NULL;
+  initPair (&n->assignmentF.assignComment);
   return n;
 }
 
@@ -23148,8 +23294,9 @@ decl_node decl_makeIf (decl_node e, decl_node s)
   n->ifF.then = s;
   n->ifF.else_ = NULL;
   n->ifF.elsif = NULL;
-  n->ifF.aftercomment = NULL;
-  n->ifF.bodycomment = NULL;
+  initPair (&n->ifF.ifComment);
+  initPair (&n->ifF.elseComment);
+  initPair (&n->ifF.endComment);
   return n;
 }
 
@@ -23179,6 +23326,7 @@ decl_node decl_makeElsif (decl_node i, decl_node e, decl_node s)
   n->elsifF.then = s;
   n->elsifF.elsif = NULL;
   n->elsifF.else_ = NULL;
+  initPair (&n->elsifF.elseComment);
   mcDebug_assert ((decl_isIf (i)) || (decl_isElsif (i)));
   if (decl_isIf (i))
     {
@@ -23287,6 +23435,8 @@ decl_node decl_makeRepeat (void)
   n = newNode ((nodeT) repeat);
   n->repeatF.expr = NULL;
   n->repeatF.statements = NULL;
+  initPair (&n->repeatF.repeatComment);
+  initPair (&n->repeatF.untilComment);
   return n;
 }
 
@@ -23311,6 +23461,30 @@ void decl_putRepeat (decl_node n, decl_node s, decl_node e)
 {
   n->repeatF.expr = e;
   n->repeatF.statements = s;
+}
+
+
+/*
+   addRepeatComment - adds body and after comments to repeat node, r.
+*/
+
+void decl_addRepeatComment (decl_node r, decl_node body, decl_node after)
+{
+  mcDebug_assert (decl_isRepeat (r));
+  r->repeatF.repeatComment.after = after;
+  r->repeatF.repeatComment.body = body;
+}
+
+
+/*
+   addUntilComment - adds body and after comments to the until section of a repeat node, r.
+*/
+
+void decl_addUntilComment (decl_node r, decl_node body, decl_node after)
+{
+  mcDebug_assert (decl_isRepeat (r));
+  r->repeatF.untilComment.after = after;
+  r->repeatF.untilComment.body = body;
 }
 
 

@@ -187,7 +187,17 @@ BEGIN
       b := findtokenBucket (n) ;
       IF b = NIL
       THEN
-         doGetToken
+         doGetToken ;
+         n := t ;
+         b := findtokenBucket (n) ;
+         IF (b = NIL) OR (currenttoken = eoftok)
+         THEN
+            (* bailing out.  *)
+            nextTokNo := old + 1 ;
+            b := findtokenBucket (old) ;
+            updateFromBucket (b, old) ;
+            RETURN NIL
+         END
       END ;
    UNTIL (b # NIL) OR (currenttoken = eoftok) ;
    t := n ;
@@ -239,7 +249,7 @@ BEGIN
    REPEAT
       t := cno + peep ;
       b := peeptokenBucket (t) ;
-      IF b = NIL
+      IF (b = NIL) OR (currenttoken = eoftok)
       THEN
          finished := TRUE
       ELSE
@@ -248,6 +258,7 @@ BEGIN
          THEN
             CASE b^.buf[t].token OF
 
+            eoftok,
             endtok    :  finished := TRUE |
             commenttok:  IF isAfterComment (b^.buf[t].com)
                          THEN
@@ -1061,6 +1072,7 @@ BEGIN
    END ;
    WITH listOfTokens.tail^ DO
       next := NIL ;
+      assert (len # MaxBucketSize) ;
       WITH buf[len] DO
          token := t ;
          str   := n ;
