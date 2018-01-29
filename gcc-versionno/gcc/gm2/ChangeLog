@@ -13,6 +13,11 @@
 	* gm2/gm2-libs-ch/StdIO.c:  removed since it is built (in the
           build directory) from StdIO.mod via mc.
 	* gm2/Make-lang.in:  added Storage.mod into GM2-LIBS-MODS.
+	* gm2/gm2-compiler/M2Quads.mod:  (CheckBecomesMeta)
+          check to see if GetDType(Des) and GetDType(Exp) are non
+          nul before testing against unbounded.  Defends against
+          undefined symbols being compared which might result in
+	  a fatal error.  (see testsuite/gm2/iso/fail/bug8.mod).
 
 2018-01-28      Gaius Mulley <gaius@gnu.org>
 

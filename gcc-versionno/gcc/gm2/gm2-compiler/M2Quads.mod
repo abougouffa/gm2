@@ -2695,11 +2695,11 @@ BEGIN
       MetaErrors2('in assignment, cannot assign a variable {%2a} to a constant {%1a}',
                   'designator {%1Da} is declared as a CONST', Des, Exp)
    END ;
-   IF IsVar(Des) AND IsUnbounded(GetDType(Des))
+   IF (GetDType(Des)#NulSym) AND IsVar(Des) AND IsUnbounded(GetDType(Des))
    THEN
       MetaError1('in assignment, cannot assign to an unbounded array {%1ad}', Des)
    END ;
-   IF IsVar(Exp) AND IsUnbounded(GetDType(Exp))
+   IF (GetDType(Exp)#NulSym) AND IsVar(Exp) AND IsUnbounded(GetDType(Exp))
    THEN
       MetaError1('in assignment, cannot assign from an unbounded array {%1ad}', Exp)
    END
