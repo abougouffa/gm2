@@ -22,10 +22,12 @@ along with GNU Modula-2; see the file COPYING.  If not, write to the
 Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA.
 */
+
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
+#include "stringpool.h"
 #include "rtl.h"
 #include "tree.h"
 #include "predict.h"
@@ -52,7 +54,9 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include <stdio.h>
 
+
 #if !defined(GM2TOOLS)
+
 /*
  *  utilize some of the C build routines
  */

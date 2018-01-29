@@ -59,7 +59,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
   struct lineInfo {
     char            *linebuf;          /* line contents */
-    unsigned int     linelen;          /* length */
+    int              linelen;          /* length */
     int              tokenpos;         /* start position of token within line */
     int              toklen;           /* a copy of yylen (length of token) */
     int              nextpos;          /* position after token */
