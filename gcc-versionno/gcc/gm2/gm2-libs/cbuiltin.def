@@ -1,4 +1,5 @@
-(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
+                 2013, 2014, 2015, 2016, 2017
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -23,7 +24,7 @@ DEFINITION MODULE FOR "C" cbuiltin ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Sat Jan  4 21:46:33 2003
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides replacement routines in case the builtins are
                  not used by GNU Modula-2.  This module is called by
                  implementation modules which implement builtins
@@ -32,6 +33,9 @@ DEFINITION MODULE FOR "C" cbuiltin ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 EXPORT UNQUALIFIED alloca, memcpy,
+                   nanf, nan, nanl,
+		   isfinite, isfinitef, isfinitel,
+		   isinf_sign, isinf_signf, isinf_signl,
                    sinf, sinl, sin,
                    cosf, cosl, cos,
                    atan2f, atan2l, atan2,
@@ -71,6 +75,15 @@ EXPORT UNQUALIFIED alloca, memcpy,
 
 PROCEDURE alloca (i: CARDINAL) : ADDRESS ;
 PROCEDURE memcpy (dest, src: ADDRESS; n: CARDINAL) : ADDRESS ;
+PROCEDURE nanf (x: SHORTREAL) : BOOLEAN ;
+PROCEDURE nan (x: REAL) : BOOLEAN ;
+PROCEDURE nanl (x: LONGREAL) : BOOLEAN ;
+PROCEDURE isfinite (x: REAL) : BOOLEAN ;
+PROCEDURE isfinitel (x: LONGREAL) : BOOLEAN ;
+PROCEDURE isfinitef (x: SHORTREAL) : BOOLEAN ;
+PROCEDURE isinf_sign (x: REAL) : BOOLEAN ;
+PROCEDURE isinf_signl (x: LONGREAL) : BOOLEAN ;
+PROCEDURE isinf_signf (x: SHORTREAL) : BOOLEAN ;
 PROCEDURE sinf (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE sin (x: REAL) : REAL ;
 PROCEDURE sinl (x: LONGREAL) : LONGREAL ;

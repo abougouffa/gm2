@@ -1,5 +1,17 @@
 2018-01-29      Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2-libs/Builtins.def:  new function definitions
+          for (nan), (nanf), (nanl), (isfinite), (isfinitef),
+          (isfinitel), (isinf_sign), (isinf_signf), (isinf_signl).
+	* gm2/gm2-libs/cbuiltin.def: new function definitions
+          for (nan), (nanf), (nanl), (isfinite), (isfinitef),
+          (isfinitel), (isinf_sign), (isinf_signf), (isinf_signl).
+	* gm2/gm2builtins.c:  add definitions in the static structure
+          for (nan), (nanf), (nanl), (isfinite), (isfinitef),
+          (isfinitel), (isinf_sign), (isinf_signf), (isinf_signl).
+
+2018-01-29      Gaius Mulley <gaius@gnu.org>
+
 	* gm2/gm2-gcc/m2type.c:
           (m2type_BuildProcTypeParameterDeclaration) no longer
           layout the paramater type at this time (as it might be a
