@@ -6,6 +6,12 @@
           recursive usage of the proctype).
 	* gm2/Make-lang.in:  removed duplicate and incorrect rule.
           Changed rule for building C files to the correct directory.
+	* gm2/Make-lang.in:  removed Storage.c from GM2-LIBS-BOOT-C.
+          made gm2.paranoid dependant upon mc.
+	* gm2/gm2-libs-ch/Storage.c:  removed since it is built (in
+	  the build directory) from Storage.mod via mc.
+	* gm2/gm2-libs-ch/StdIO.c:  removed since it is built (in the
+	  build directory) from StdIO.mod via mc.
 
 2018-01-28      Gaius Mulley <gaius@gnu.org>
 
