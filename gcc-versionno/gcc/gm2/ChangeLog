@@ -3,7 +3,9 @@
 	* gm2/gm2-gcc/m2type.c:
           (m2type_BuildProcTypeParameterDeclaration) no longer
           layout the paramater type at this time (as it might be a
-	  recursive usage of the proctype).
+          recursive usage of the proctype).
+	* gm2/Make-lang.in:  removed duplicate and incorrect rule.
+          Changed rule for building C files to the correct directory.
 
 2018-01-28      Gaius Mulley <gaius@gnu.org>
 
