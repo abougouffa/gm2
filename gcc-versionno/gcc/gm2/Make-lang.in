@@ -745,7 +745,7 @@ GM2-LIBS-BOOT-MODS = ASCII.mod       IO.mod          Args.mod        Assertion.m
                      NumberIO.mod    Break.mod       CmdArgs.mod     Scan.mod        \
                                      StrCase.mod     FIO.mod         StrIO.mod       \
                      TimeString.mod  StrLib.mod                      Environment.mod \
-                     FpuIO.mod       Debug.mod       SysStorage.mod  \
+                     FpuIO.mod       Debug.mod       SysStorage.mod  Storage.mod     \
                      DynamicStrings.mod \
                      SFIO.mod        M2RTS.mod       SArgs.mod                       \
                      FormatStrings.mod               PushBackInput.mod \
