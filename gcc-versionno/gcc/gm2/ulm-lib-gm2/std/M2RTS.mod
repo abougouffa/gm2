@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -199,7 +199,7 @@ END ErrorMessage ;
 
 
 (*
-   ErrorCharStar - 
+   ErrorCharStar -
 *)
 
 PROCEDURE ErrorCharStar (a: ADDRESS) ;
@@ -409,6 +409,22 @@ BEGIN
                       ADR("the remainder expression has a divisor which is equal to zero"),
                       line, column)
 END WholeZeroRemException ;
+
+
+PROCEDURE WholeValueException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   ErrorMessageColumn(filename, scope,
+                      ADR("the whole value is about to overflow"),
+                      line, column)
+END WholeValueException ;
+
+
+PROCEDURE RealValueException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   ErrorMessageColumn(filename, scope,
+                      ADR("the floating point value is about to overflow"),
+                      line, column)
+END RealValueException ;
 
 
 PROCEDURE NoException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;

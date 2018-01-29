@@ -67,17 +67,17 @@ END nanl ;
 
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_isfinitef)) isfinitef (x: SHORTREAL) : BOOLEAN ;
 BEGIN
-   RETURN cbuiltin.isfinitef (x)
+   RETURN wrapc.isfinitef (x)=1
 END isfinitef ;
 
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_isfinite)) isfinite (x: REAL) : BOOLEAN ;
 BEGIN
-   RETURN cbuiltin.isfinite (x)
+   RETURN wrapc.isfinite (x)=1
 END isfinite ;
 
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_isfinitel)) isfinitel (x: LONGREAL) : BOOLEAN ;
 BEGIN
-   RETURN cbuiltin.isfinitel (x)
+   RETURN wrapc.isfinitel (x)=1
 END isfinitel ;
 
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_isinf_signl)) isinf_signl (x: LONGREAL) : BOOLEAN ;

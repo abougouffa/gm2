@@ -867,7 +867,8 @@ m2block_GetGlobalContext (void)
 static tree
 do_add_stmt (tree t)
 {
-  append_to_statement_list_force (t, m2block_cur_stmt_list_addr ());
+  if (current_binding_level != NULL)
+    append_to_statement_list_force (t, m2block_cur_stmt_list_addr ());
   return t;
 }
 

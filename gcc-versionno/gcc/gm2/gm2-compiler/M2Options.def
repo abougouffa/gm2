@@ -46,6 +46,8 @@ EXPORT QUALIFIED SetReturnCheck, SetNilCheck, SetCaseCheck,
                  SetVerbose, SetM2g, GetM2g,
 		 GetISO, GetPIM, GetPIM2, GetPIM3, GetPIM4,
 		 GetPositiveModFloor,
+		 SetFloatValueCheck, GetFloatValueCheck,
+		 SetWholeValueCheck, GetWholeValueCheck,
 
                  Iso, Pim, Pim2, Pim3, Pim4,
                  PositiveModFloorDiv,
@@ -106,6 +108,9 @@ VAR
    WholeValueChecking,           (* -fwholevalue produces code to raise an   *)
                                  (* exception if a whole value variable is   *)
                                  (* about to exceed the type limits.         *)
+   FloatValueChecking,           (* -ffloatvalue produces code to raise an   *)
+                                 (* exception if a floating point variable   *)
+                                 (* is about to exceed the type limits.      *)
    IndexChecking,                (* -findex array bounds checking.           *)
    RangeChecking,                (* -frange assignment, set values,          *)
                                  (* constructor values in range.             *)
@@ -560,6 +565,36 @@ PROCEDURE GetPIM4 () : BOOLEAN ;
 *)
 
 PROCEDURE GetPositiveModFloor () : BOOLEAN ;
+
+
+(*
+   GetFloatValueCheck - return TRUE if -ffloatvalue was present on the
+                        command line.
+*)
+
+PROCEDURE GetFloatValueCheck () : BOOLEAN ;
+
+
+(*
+   SetFloatValueCheck - set depending upon the -ffloatvalue.
+*)
+
+PROCEDURE SetFloatValueCheck (value: BOOLEAN) ;
+
+
+(*
+   GetWholeValueCheck - return TRUE if -fwholevalue was present on the
+                        command line.
+*)
+
+PROCEDURE GetWholeValueCheck () : BOOLEAN ;
+
+
+(*
+   SetWholeValueCheck - set depending upon the -fwholevalue.
+*)
+
+PROCEDURE SetWholeValueCheck (value: BOOLEAN) ;
 
 
 (*

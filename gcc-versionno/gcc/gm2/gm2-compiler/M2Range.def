@@ -23,7 +23,7 @@ DEFINITION MODULE M2Range ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Thu Feb 28 10:18:55 2008
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: exports procedures which maintain the range checking
                  state which is explored once all the subrange values
                  have been resolved by the front end (once
@@ -35,7 +35,9 @@ DEFINITION MODULE M2Range ;
                  time, post optimization.
 *)
 
+FROM SYSTEM IMPORT ADDRESS ;
 FROM m2tree IMPORT Tree ;
+FROM m2linemap IMPORT location_t ;
 FROM DynamicStrings IMPORT String ;
 
 EXPORT QUALIFIED InitAssignmentRangeCheck,
@@ -67,7 +69,10 @@ EXPORT QUALIFIED InitAssignmentRangeCheck,
                  CheckRangeRemoveVariableRead,
                  WriteRangeCheck,
                  OverlapsRange,
-                 IsEqual, IsGreaterOrEqual, IsGreater ;
+                 IsEqual, IsGreaterOrEqual, IsGreater,
+		 BuildIfCallRealHandlerLoc,
+                 BuildIfCallWholeHandlerLoc,
+		 GetMinMax ;
 
 
 (*
@@ -314,7 +319,7 @@ PROCEDURE CodeErrorCheck (r: CARDINAL; scopeDesc: String) : Tree ;
                                symbol table.
 *)
 
-PROCEDURE CheckRangeAddVariableRead (r: CARDINAL; quadNo: CARDINAL) ; 
+PROCEDURE CheckRangeAddVariableRead (r: CARDINAL; quadNo: CARDINAL) ;
 
 
 (*
@@ -323,7 +328,7 @@ PROCEDURE CheckRangeAddVariableRead (r: CARDINAL; quadNo: CARDINAL) ;
                                   the symbol table.
 *)
 
-PROCEDURE CheckRangeRemoveVariableRead (r: CARDINAL; quadNo: CARDINAL) ; 
+PROCEDURE CheckRangeRemoveVariableRead (r: CARDINAL; quadNo: CARDINAL) ;
 
 
 (*
@@ -359,6 +364,27 @@ PROCEDURE IsGreaterOrEqual (a, b: Tree) : BOOLEAN ;
 *)
 
 PROCEDURE IsGreater (a, b: Tree) : BOOLEAN ;
+
+
+(*
+   BuildIfCallWholeHandlerLoc - return a Tree containing a runtime test whether, condition, is true.
+*)
+
+PROCEDURE BuildIfCallWholeHandlerLoc (location: location_t; condition: Tree; message: ADDRESS) : Tree ;
+
+
+(*
+   BuildIfCallRealHandlerLoc - return a Tree containing a runtime test whether, condition, is true.
+*)
+
+PROCEDURE BuildIfCallRealHandlerLoc (location: location_t; condition: Tree; message: ADDRESS) : Tree ;
+
+
+(*
+   GetMinMax - returns TRUE if we know the max and min of a type, t.
+*)
+
+PROCEDURE GetMinMax (tokenno: CARDINAL; t: CARDINAL; VAR min, max: Tree) : BOOLEAN ;
 
 
 END M2Range.

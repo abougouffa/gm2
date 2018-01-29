@@ -280,12 +280,13 @@ PROCEDURE SetCheckAll (value: BOOLEAN) : BOOLEAN ;
 BEGIN
    NilChecking := value ;
    WholeDivChecking := value ;
-   WholeValueChecking := value ;
    IndexChecking := value ;
    RangeChecking := value ;
    ReturnChecking := value ;
    NilChecking := value ;
    CaseElseChecking := value ;
+   FloatValueChecking := value ;
+   WholeValueChecking := value ;
    RETURN( TRUE )
 END SetCheckAll ;
 
@@ -879,6 +880,48 @@ BEGIN
 END GetPositiveModFloor ;
 
 
+(*
+   GetFloatValueCheck - return TRUE if -ffloatvalue was present on the
+                        command line.
+*)
+
+PROCEDURE GetFloatValueCheck () : BOOLEAN ;
+BEGIN
+   RETURN FloatValueChecking
+END GetFloatValueCheck ;
+
+
+(*
+   SetFloatValueCheck - set depending upon the -ffloatvalue.
+*)
+
+PROCEDURE SetFloatValueCheck (value: BOOLEAN) ;
+BEGIN
+   FloatValueChecking := value
+END SetFloatValueCheck ;
+
+
+(*
+   GetWholeValueCheck - return TRUE if -fwholevalue was present on the
+                        command line.
+*)
+
+PROCEDURE GetWholeValueCheck () : BOOLEAN ;
+BEGIN
+   RETURN WholeValueChecking
+END GetWholeValueCheck ;
+
+
+(*
+   SetWholeValueCheck - set depending upon the -fwholevalue.
+*)
+
+PROCEDURE SetWholeValueCheck (value: BOOLEAN) ;
+BEGIN
+   WholeValueChecking := value
+END SetWholeValueCheck ;
+
+
 BEGIN
    CppArgs                      := InitString('') ;
    CppProgram                   := InitString('') ;
@@ -906,6 +949,7 @@ BEGIN
    NilChecking                  := FALSE ;
    WholeDivChecking             := FALSE ;
    WholeValueChecking           := FALSE ;
+   FloatValueChecking           := FALSE ;
    IndexChecking                := FALSE ;
    RangeChecking                := FALSE ;
    ReturnChecking               := FALSE ;

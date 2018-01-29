@@ -273,6 +273,12 @@ gm2_langhook_handle_option (size_t scode, const char *arg,
     M2Options_SetRange (value);
     return 1;
 #endif
+  case OPT_ffloatvalue:
+    M2Options_SetFloatValueCheck (value);
+    return 1;
+  case OPT_fwholevalue:
+    M2Options_SetWholeValueCheck (value);
+    return 1;
   case OPT_freturn:
     M2Options_SetReturnCheck (value);
     return 1;

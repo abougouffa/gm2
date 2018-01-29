@@ -87,6 +87,7 @@ FROM M2Options IMPORT NilChecking,
                       WholeDivChecking, WholeValueChecking,
                       IndexChecking, RangeChecking,
                       ReturnChecking, CaseElseChecking, Exceptions,
+		      WholeValueChecking,
                       DebugBuiltins,
                       Iso, Pim, Pim2, Pim3 ;
 
@@ -649,6 +650,9 @@ BEGIN
    ExceptionNonPosMod    := NulSym ;
    ExceptionZeroDiv      := NulSym ;
    ExceptionZeroRem      := NulSym ;
+   ExceptionWholeValue   := NulSym ;
+   ExceptionRealValue    := NulSym ;
+
    ExceptionNo           := NulSym ;
 
    IF NilChecking
@@ -687,6 +691,11 @@ BEGIN
    IF CaseElseChecking
    THEN
       ExceptionCase := ImportFrom(m2rts, 'CaseException')
+   END ;
+   IF WholeValueChecking
+   THEN
+      ExceptionWholeValue := ImportFrom(m2rts, 'WholeValueException') ;
+      ExceptionRealValue := ImportFrom(m2rts, 'RealValueException')
    END ;
    IF Exceptions
    THEN

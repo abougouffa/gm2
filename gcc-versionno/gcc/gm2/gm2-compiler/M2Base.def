@@ -101,6 +101,8 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  ExceptionNonPosMod,
                  ExceptionZeroDiv,
                  ExceptionZeroRem,
+                 ExceptionWholeValue,
+                 ExceptionRealValue,
                  ExceptionNo ;
 
 
@@ -148,6 +150,8 @@ VAR
    ExceptionNonPosMod,
    ExceptionZeroDiv,
    ExceptionZeroRem,
+   ExceptionWholeValue,
+   ExceptionRealValue,
    ExceptionNo          : CARDINAL ;
 
 

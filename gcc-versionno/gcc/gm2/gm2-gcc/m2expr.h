@@ -90,6 +90,8 @@ EXTERN int m2expr_interpret_integer (const char *str, unsigned int base,
 EXTERN int m2expr_interpret_m2_integer (const char *str, unsigned int base,
 					unsigned int *low, int *high);
 
+EXTERN tree m2expr_BuildAddCheck (location_t location, tree op1, tree op2, tree min, tree max);
+EXTERN tree m2expr_BuildSubCheck (location_t location, tree op1, tree op2, tree min, tree max);
 
 EXTERN tree m2expr_BuildAdd (location_t location, tree op1, tree op2, int needconvert);
 EXTERN tree m2expr_BuildSub (location_t location, tree op1, tree op2, int needconvert);
@@ -152,6 +154,7 @@ EXTERN int m2expr_CompareTrees (tree e1, tree e2);
 EXTERN tree m2expr_build_unary_op (location_t location ATTRIBUTE_UNUSED,
 				   enum tree_code code, tree arg, int flag ATTRIBUTE_UNUSED);
 EXTERN tree m2expr_build_binary_op (location_t location, enum tree_code code, tree op1, tree op2, int convert);
+EXTERN tree m2expr_build_binary_op_check (location_t location, enum tree_code code, tree op1, tree op2, int needconvert, tree min, tree max);
 EXTERN void m2expr_ConstantExpressionWarning (tree value);
 EXTERN tree m2expr_BuildAddAddress (location_t location, tree op1, tree op2);
 EXTERN tree m2expr_BuildRDiv (location_t location, tree op1, tree op2, int needconvert);

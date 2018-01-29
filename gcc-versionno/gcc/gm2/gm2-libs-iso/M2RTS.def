@@ -152,6 +152,8 @@ PROCEDURE WholeNonPosDivException (filename: ADDRESS; line, column: CARDINAL; sc
 PROCEDURE WholeNonPosModException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE WholeZeroDivException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE WholeZeroRemException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE WholeValueException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE RealValueException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE NoException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 
 
