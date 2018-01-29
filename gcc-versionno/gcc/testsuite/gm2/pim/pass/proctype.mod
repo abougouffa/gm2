@@ -18,12 +18,10 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 MODULE proctype ;
 
 TYPE
-   Proc1 = PROCEDURE (CARDINAL) ;
-   Proc2 = PROCEDURE (Proc2, CARDINAL) ;
+   Proc = PROCEDURE (CARDINAL) ;
 
 VAR
-   p1: Proc1 ;
-   p2: Proc2 ;
+   p: Proc ;
 BEGIN
 
 END proctype.

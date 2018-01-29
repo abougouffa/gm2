@@ -500,7 +500,7 @@ static void consumeLine (void)
   yyless(1);                  /* push back all but the \n */
 }
 
-static void assert_location (location_t location)
+static void assert_location (location_t location ATTRIBUTE_UNUSED)
 {
 #if 0
   if ((location != BUILTINS_LOCATION) && (location != UNKNOWN_LOCATION) && (! M2Options_GetCpp ())) {
