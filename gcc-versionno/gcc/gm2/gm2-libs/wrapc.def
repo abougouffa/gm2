@@ -91,6 +91,14 @@ PROCEDURE signbitl (l: LONGREAL) : INTEGER ;
 
 
 (*
+   isfinite - provide non builtin alternative to the gcc builtin isfinite.
+              Returns 1 if x is finite and 0 if it is not.
+*)
+
+PROCEDURE isfinite (x: REAL) : INTEGER ;
+
+
+(*
    isfinitef - provide non builtin alternative to the gcc builtin isfinite.
                Returns 1 if x is finite and 0 if it is not.
 *)

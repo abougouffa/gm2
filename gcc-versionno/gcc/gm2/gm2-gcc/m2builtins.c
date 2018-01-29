@@ -112,6 +112,9 @@ struct builtin_function_entry {
 static struct builtin_function_entry list_of_builtins[] = {
 { "__builtin_alloca",  BT_FN_PTR_SIZE, BUILT_IN_ALLOCA, BUILT_IN_NORMAL, "alloca", NULL, NULL},
 { "__builtin_memcpy",  BT_FN_TRAD_PTR_PTR_CONST_PTR_SIZE, BUILT_IN_MEMCPY, BUILT_IN_NORMAL, "memcpy", NULL, NULL},
+
+{ "__builtin_isfinite", BT_FN_INT_DOUBLE, BUILT_IN_ISFINITE, BUILT_IN_NORMAL, "isfinite", NULL, NULL},
+
 { "__builtin_sinf",    BT_FN_FLOAT_FLOAT, BUILT_IN_SINF, BUILT_IN_NORMAL, "sinf", NULL, NULL},
 { "__builtin_sin",     BT_FN_DOUBLE_DOUBLE, BUILT_IN_SIN, BUILT_IN_NORMAL, "sin", NULL, NULL},
 { "__builtin_sinl",    BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_SINL, BUILT_IN_NORMAL, "sinl", NULL, NULL},
@@ -271,17 +274,20 @@ static GTY(()) tree double_ftype_double;
 static GTY(()) tree ldouble_ftype_ldouble;
 static GTY(()) tree gm2_alloca_node;
 static GTY(()) tree gm2_memcpy_node;
+static GTY(()) tree gm2_isfinite_node;
 static GTY(()) tree gm2_huge_valf_node;
 static GTY(()) tree gm2_huge_val_node;
 static GTY(()) tree gm2_huge_vall_node;
 static GTY(()) tree long_doubleptr_type_node;
 static GTY(()) tree doubleptr_type_node;
 static GTY(()) tree floatptr_type_node;
+static GTY(()) tree builtin_ftype_int_var;
 
 
 /* prototypes for locally defined functions */
 static tree                   DoBuiltinAlloca                             (location_t location, tree n);
 static tree                   DoBuiltinMemCopy                            (location_t location, tree dest, tree src, tree n);
+static tree                   DoBuiltinIsfinite                           (location_t location, tree value);
 static void                   create_function_prototype                   (location_t location, struct builtin_function_entry *fe);
 static tree                   doradix                                     (location_t location, tree type);
 static tree                   doplaces                                    (location_t location, tree type);
@@ -714,6 +720,17 @@ m2builtins_BuiltInAlloca (location_t location, tree n)
 }
 
 /*
+ *  BuiltInIsfinite - return integer 1 if the real expression is finite.
+ *                    return integer 0 if it is not finite.
+ */
+
+tree
+m2builtins_BuiltInIsfinite (location_t location, tree expression)
+{
+  return DoBuiltinIsfinite (location, expression);
+}
+
+/*
  *  BuiltinExists - returns TRUE if the builtin function, name, exists
  *                  for this target architecture.
  */
@@ -779,6 +796,16 @@ DoBuiltinAlloca (location_t location, tree bytes)
   tree functype = TREE_TYPE (gm2_alloca_node);
   tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), gm2_alloca_node);
   tree call     = m2treelib_DoCall1 (location, ptr_type_node, funcptr, bytes);
+
+  return call;
+}
+
+static tree
+DoBuiltinIsfinite (location_t location, tree value)
+{
+  tree functype = TREE_TYPE (gm2_isfinite_node);
+  tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), gm2_isfinite_node);
+  tree call     = m2treelib_DoCall1 (location, ptr_type_node, funcptr, value);
 
   return call;
 }
@@ -1097,7 +1124,7 @@ create_function_prototype (location_t location, struct builtin_function_entry *f
     fe->return_node = double_type_node;
     break;
   default:
-    ERROR("enum has no case");
+    ERROR ("enum has no case");
   }
   fe->function_node = builtin_function (location, fe->name, ftype, fe->function_code, fe->fclass, fe->library_name, NULL);
 }
@@ -1108,7 +1135,7 @@ find_builtin_tree (const char *name)
   struct builtin_function_entry *fe;
 
   for (fe=&list_of_builtins[0]; fe->name != NULL; fe++)
-    if (strcmp(name, fe->name) == 0)
+    if (strcmp (name, fe->name) == 0)
       return fe->function_node;
 
   ERROR ("cannot find builtin function");
@@ -1174,18 +1201,42 @@ m2builtins_init (location_t location)
 			   tree_cons (NULL_TREE, long_double_type_node,
 				      endlink));
 
+  builtin_ftype_int_var
+    = build_function_type (integer_type_node,
+			   tree_cons (NULL_TREE, double_type_node,
+				      endlink));
+
   for (i=0; list_of_builtins[i].name != NULL; i++)
     create_function_prototype (location, &list_of_builtins[i]);
 
   define_builtin (BUILT_IN_TRAP, "__builtin_trap",
 		  build_function_type_list (void_type_node, NULL_TREE),
 		  "__builtin_trap", ECF_NOTHROW | ECF_LEAF | ECF_NORETURN);
+  define_builtin (BUILT_IN_ISGREATER, "isgreater",
+		  builtin_ftype_int_var, "__builtin_isgreater",
+		  ECF_CONST | ECF_NOTHROW | ECF_LEAF);
+  define_builtin (BUILT_IN_ISGREATEREQUAL, "isgreaterequal",
+		  builtin_ftype_int_var, "__builtin_isgreaterequal",
+		  ECF_CONST | ECF_NOTHROW | ECF_LEAF);
+  define_builtin (BUILT_IN_ISLESS, "isless",
+		  builtin_ftype_int_var, "__builtin_isless",
+		  ECF_CONST | ECF_NOTHROW | ECF_LEAF);
+  define_builtin (BUILT_IN_ISLESSEQUAL, "islessequal",
+		  builtin_ftype_int_var, "__builtin_islessequal",
+		  ECF_CONST | ECF_NOTHROW | ECF_LEAF);
+  define_builtin (BUILT_IN_ISLESSGREATER, "islessgreater",
+		  builtin_ftype_int_var, "__builtin_islessgreater",
+		  ECF_CONST | ECF_NOTHROW | ECF_LEAF);
+  define_builtin (BUILT_IN_ISUNORDERED, "isunordered",
+		  builtin_ftype_int_var, "__builtin_isunordered",
+		  ECF_CONST | ECF_NOTHROW | ECF_LEAF);
 
   gm2_alloca_node = find_builtin_tree ("__builtin_alloca");
   gm2_memcpy_node = find_builtin_tree ("__builtin_memcpy");
   gm2_huge_valf_node = find_builtin_tree ("__builtin_huge_valf");
   gm2_huge_val_node = find_builtin_tree ("__builtin_huge_val");
   gm2_huge_vall_node = find_builtin_tree ("__builtin_huge_vall");
+  gm2_isfinite_node = find_builtin_tree ("__builtin_isfinite");
   m2block_popGlobalScope ();
 }
 

@@ -22,9 +22,9 @@ FROM rangesupport IMPORT maxcard ;
 FROM libc IMPORT exit ;
 
 VAR
-   i, j: INTEGER ;
+   i: CARDINAL ;
 BEGIN
-   i := maxcard() ;
+   i := maxcard () ;
    i := i+1 ;
    exit(0)    (* should not get here if -fsoft-check-all is used *)
 END cardrange.

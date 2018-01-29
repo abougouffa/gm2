@@ -6,7 +6,7 @@ FROM m2linemap IMPORT location_t ;
 
 
 TYPE
-   BuildBinCheckProcedure = PROCEDURE (location_t, Tree, Tree, Tree, Tree) : Tree ;
+   BuildBinCheckProcedure = PROCEDURE (location_t, Tree, Tree, Tree, Tree, Tree) : Tree ;
    BuildBinProcedure      = PROCEDURE (location_t, Tree, Tree, BOOLEAN) : Tree ;
    BuildUnaryProcedure    = PROCEDURE (location_t, Tree, BOOLEAN) : Tree ;
    BuildExprProcedure     = PROCEDURE (location_t, Tree, Tree) : Tree ;
@@ -202,14 +202,14 @@ PROCEDURE BuildRDiv (location: location_t; op1, op2: Tree; needconvert: BOOLEAN)
     BuildSubCheck - builds a subtraction tree after checking for overflow.
 *)
 
-PROCEDURE BuildSubCheck (location: location_t; op1, op2, min, max: Tree) : Tree ;
+PROCEDURE BuildSubCheck (location: location_t; op1, op2, lowest, min, max: Tree) : Tree ;
 
 
 (*
     BuildAddCheck - builds an addition tree after checking for overflow.
 *)
 
-PROCEDURE BuildAddCheck (location: location_t; op1, op2, min, max: Tree) : Tree ;
+PROCEDURE BuildAddCheck (location: location_t; op1, op2, lowest, min, max: Tree) : Tree ;
 
 
 (*

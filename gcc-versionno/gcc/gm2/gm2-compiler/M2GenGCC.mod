@@ -452,8 +452,8 @@ BEGIN
    DummyOp            : |
    InitAddressOp      : CodeInitAddress(q, op1, op2, op3) |
    BecomesOp          : CodeBecomes(q, op1, op2, op3) |
-   AddOp              : CodeAddCheck (q, op1, op2, op3) |
-   SubOp              : CodeSubCheck (q, op1, op2, op3) |
+   AddOp              : CodeAddChecked (q, op1, op2, op3) |
+   SubOp              : CodeSubChecked (q, op1, op2, op3) |
    MultOp             : CodeMult(q, op1, op2, op3) |
    DivM2Op            : CodeDivM2(q, op1, op2, op3) |
    ModM2Op            : CodeModM2(q, op1, op2, op3) |
@@ -3282,6 +3282,7 @@ VAR
    lowestType,
    type      : CARDINAL ;
    min, max,
+   lowest,
    t, tv,
    tl, tr    : Tree ;
    location  : location_t ;
@@ -3295,11 +3296,12 @@ BEGIN
    ConvertBinaryOperands (location, tl, tr, type, op2, op3) ;
 
    lowestType := GetLType (op1) ;
+   lowest := Mod2Gcc (lowestType) ;
    IF GetMinMax (CurrentQuadToken, lowestType, min, max)
    THEN
-      tv := binop (location, tl, tr, min, max)
+      tv := binop (location, tl, tr, lowest, min, max)
    ELSE
-      tv := binop (location, tl, tr, NIL, NIL)
+      tv := binop (location, tl, tr, NIL, NIL, NIL)
    END ;
    CheckOrResetOverflow (CurrentQuadToken, tv, MustCheckOverflow (quad)) ;
    IF IsConst (op1)
@@ -3462,6 +3464,22 @@ END FoldAdd ;
 
 
 (*
+   CodeAddChecked - code an addition instruction, determine whether checking
+                    is required.
+*)
+
+PROCEDURE CodeAddChecked (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF MustCheckOverflow (quad)
+   THEN
+      CodeAddCheck (quad, op1, op2, op3)
+   ELSE
+      CodeAdd (quad, op1, op2, op3)
+   END
+END CodeAddChecked ;
+
+
+(*
    CodeAddCheck - encode addition but check for overflow.
 *)
 
@@ -3499,6 +3517,22 @@ BEGIN
       FoldBinary(tokenno, p, BuildSub, quad, op1, op2, op3)
    END
 END FoldSub ;
+
+
+(*
+   CodeSubChecked - code a subtract instruction, determine whether checking
+                    is required.
+*)
+
+PROCEDURE CodeSubChecked (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF MustCheckOverflow (quad)
+   THEN
+      CodeSubCheck (quad, op1, op2, op3)
+   ELSE
+      CodeSub (quad, op1, op2, op3)
+   END
+END CodeSubChecked ;
 
 
 (*
