@@ -1,3 +1,7 @@
+2018-02-07      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  added LDFLAGS to the link of mc.
+
 2018-01-28      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/mc-5.bnf:  regenerated.
