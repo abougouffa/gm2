@@ -1,7 +1,8 @@
 2018-02-07      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-gcc/m2builtins.def:  (BuiltInIsfinite) New procedure
-	  declaration.
+	declaration.
+	* gm2/Make-lang.in:  added LDFLAGS to the link of mc.
 
 2018-01-29      Gaius Mulley <gaius@gnu.org>
 
