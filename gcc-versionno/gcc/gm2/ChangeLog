@@ -1,3 +1,7 @@
+2018-02-07      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  added LDFLAGS to the link of mc.
+
 2017-10-17      Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/gm2lcc.mod:  removed unnecessary prototypes.

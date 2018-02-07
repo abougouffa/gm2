@@ -1832,7 +1832,7 @@ gm2/mc-boot-ch/$(SRC_PREFIX)%.o: gm2/mc-boot-ch/$(SRC_PREFIX)%.c
 mc-bootstrap: $(GM2_DIRS) mc-clean gm2/boot-bin/mc$(exeext)
 
 gm2/boot-bin/mc$(exeext): $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) gm2/mc-boot/main.o mcflex.o
-	$(CC) -g -o $@ $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) gm2/mc-boot/main.o mcflex.o -lm -lpth
+	$(CC) -g -o $@ $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) $(LDFLAGS) gm2/mc-boot/main.o mcflex.o -lm -lpth
 
 gm2/mc-boot/main.o: $(M2LINK) $(srcdir)/gm2/init/mcinit
 	unset CC ; $(M2LINK) -s --gcc --exit --name mainmcinit.c $(srcdir)/gm2/init/mcinit
