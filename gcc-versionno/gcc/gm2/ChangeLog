@@ -1,3 +1,8 @@
+2018-02-15      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  check and use lvalue op3
+	  which points to the data for the unbounded quadruple.
+
 2018-02-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/M2Quads.mod:  check open array actual

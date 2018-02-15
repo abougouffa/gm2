@@ -5539,7 +5539,12 @@ BEGIN
       t := BuildAssignmentTree(location, Mod2Gcc(op1), BuildAddr(location, Mod2Gcc(op3), TRUE))
    ELSIF IsUnbounded(GetType(op3))
    THEN
-      Addr := BuildComponentRef(location, Mod2Gcc(op3), Mod2Gcc(GetUnboundedAddressOffset(GetType(op3)))) ;
+      IF GetMode(op3)=LeftValue
+      THEN
+         Addr := BuildConvert(location, Mod2Gcc(GetType(op1)), Mod2Gcc(op3), FALSE)
+      ELSE
+         Addr := BuildComponentRef(location, Mod2Gcc(op3), Mod2Gcc(GetUnboundedAddressOffset(GetType(op3))))
+      END ;
       t := BuildAssignmentTree(location, Mod2Gcc(op1), Addr)
    ELSIF GetMode(op3)=RightValue
    THEN
