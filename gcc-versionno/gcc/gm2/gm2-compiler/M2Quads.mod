@@ -7292,7 +7292,7 @@ BEGIN
    ReturnVar := MakeTemporary(ImmediateValue) ;
    Dim := OperandD(1) ;
    INC(Dim) ;
-   GenHigh(ReturnVar, Dim, OperandT(1)) ;
+   GenHigh(ReturnVar, 1, OperandT(1)) ;
    PopN(NoOfParam+1) ;
    PushT(ReturnVar)
 END BuildConstHighFromSym ;

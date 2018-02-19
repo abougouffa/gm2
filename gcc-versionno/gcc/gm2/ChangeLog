@@ -3,7 +3,11 @@
 	* gm2/gm2-compiler/M2Quads.mod:  (AssignHighField)
           check for ArraySym and use if actual parameter
           has different number of dimensions to formal
-	  parameter array.
+          parameter array.
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildConstHighFromSym)
+          only access the single dimension when building high
+          as the array will be referencing the desired dimension.
+	  A temporary type will have been created.
 
 2018-02-15      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
