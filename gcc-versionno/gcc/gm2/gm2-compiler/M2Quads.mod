@@ -5767,7 +5767,12 @@ BEGIN
    ELSE
       ReturnVar := MakeTemporary(RightValue) ;
       PutVar(ReturnVar, Cardinal) ;
-      GenHigh(ReturnVar, formali, Sym) ;
+      IF (actuali#formali) AND (ArraySym#NulSym) AND IsUnbounded(GetSType(ArraySym))
+      THEN
+         GenHigh(ReturnVar, actuali, ArraySym)
+      ELSE
+         GenHigh(ReturnVar, formali, Sym)
+      END ;
       PushTF(ReturnVar, GetSType(ReturnVar))
    END ;
    BuildAssignmentWithoutBounds(FALSE, TRUE)

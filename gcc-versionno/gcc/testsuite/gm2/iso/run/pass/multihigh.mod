@@ -33,7 +33,8 @@ END assert ;
 
 PROCEDURE sumArray (a: ARRAY OF CARDINAL) ;
 BEGIN
-     assert (HIGH (a) = 9, __LINE__)
+   assert (HIGH (a) = 9, __LINE__) ;
+   printf ("in sumArray, HIGH (a) = %d\n", HIGH (a))
 END sumArray ;
 
 
@@ -41,12 +42,14 @@ PROCEDURE sumMatrix (a: ARRAY OF ARRAY OF CARDINAL) : CARDINAL ;
 VAR
    i, c, s: CARDINAL ;
 BEGIN
-     assert (HIGH (a) = 2, __LINE__) ;
-     FOR i := 0 TO HIGH (a) DO
-	  sumArray (a[i]) ;
-	  assert (HIGH (a[i])=9, __LINE__)
-     END ;
-     RETURN 1
+   printf ("in sumMatrix, HIGH (a) = %d\n", HIGH (a)) ;
+   assert (HIGH (a) = 2, __LINE__) ;
+   FOR i := 0 TO HIGH (a) DO
+      printf ("in sumMatix, HIGH (a[i]) = %d\n", HIGH (a[i])) ;
+      sumArray (a[i]) ;
+      assert (HIGH (a[i])=9, __LINE__)
+   END ;
+   RETURN 1
 END sumMatrix ;
 
 
@@ -55,14 +58,14 @@ VAR
    v, s, i, j: CARDINAL ;
    m         : ARRAY [0..2] OF ARRAY [0..9] OF CARDINAL ;
 BEGIN
-     v := 1 ;
-     FOR i := 0 TO 2 DO
-	  FOR j := 0 TO 2 DO
-	       m[i, j] := v ;
-	       INC (v)
-	  END
-     END ;
-     s := sumMatrix (m)
+   v := 1 ;
+   FOR i := 0 TO 2 DO
+      FOR j := 0 TO 2 DO
+         m[i, j] := v ;
+         INC (v)
+      END
+   END ;
+   s := sumMatrix (m)
 END test ;
 
 
