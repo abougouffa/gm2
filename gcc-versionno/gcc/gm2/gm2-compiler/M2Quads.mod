@@ -4516,6 +4516,7 @@ VAR
    n1, n2      : Name ;
    e           : Error ;
    Unbounded   : BOOLEAN ;
+   Dim,
    Actual,
    FormalI,
    FormalIType,
@@ -4565,6 +4566,7 @@ BEGIN
             printf2('%a: %a', n1, n2)
          END ;
          Actual := OperandT(pi) ;
+         Dim := OperandD(pi) ;
          BuildRange(InitTypesParameterCheck(Proc, i, FormalI, Actual)) ;
          IF IsConst(Actual)
          THEN
@@ -4582,7 +4584,7 @@ BEGIN
                   (* allow string literals to be passed to ARRAY [0..n] OF CHAR *)
                ELSIF (GetStringLength(Actual) = 1)   (* if = 1 then it maybe treated as a char *)
                THEN
-                  CheckParameter(Actual, FormalI, Proc, i, NIL)
+                  CheckParameter(Actual, Dim, FormalI, Proc, i, NIL)
                ELSIF NOT IsUnboundedParam(Proc, i)
                THEN
                   IF IsForC AND (GetSType(FormalI)=Address)
@@ -4596,7 +4598,7 @@ BEGIN
                END
             END
          ELSE
-            CheckParameter(Actual, FormalI, Proc, i, NIL)
+            CheckParameter(Actual, Dim, FormalI, Proc, i, NIL)
          END
       ELSE
          IF IsForC AND UsesVarArgs(Proc)
@@ -4669,7 +4671,7 @@ BEGIN
          BuildRange(InitTypesParameterCheck(CheckedProcedure, i,
                                             GetParam(CheckedProcedure, i),
                                             GetParam(ProcType, i))) ;
-         CheckParameter(GetParam(CheckedProcedure, i), GetParam(ProcType, i), call, i, TypeList) ;
+         CheckParameter(GetParam(CheckedProcedure, i), 0, GetParam(ProcType, i), call, i, TypeList) ;
          INC(i)
       END
    END
@@ -4697,7 +4699,7 @@ END IsReallyPointer ;
                          passed to ProcSym, i, the, Formal, parameter.
 *)
 
-PROCEDURE LegalUnboundedParam (ProcSym, i, ActualType, Actual, Formal: CARDINAL) : BOOLEAN ;
+PROCEDURE LegalUnboundedParam (ProcSym, i, ActualType, Actual, Dimension, Formal: CARDINAL) : BOOLEAN ;
 VAR
    FormalType: CARDINAL ;
    n, m      : CARDINAL ;
@@ -4732,7 +4734,7 @@ BEGIN
       END
    ELSIF IsUnbounded(ActualType)
    THEN
-      IF GetDimension(Formal)=GetDimension(Actual)
+      IF (Dimension=0) AND (GetDimension(Formal)=GetDimension(Actual))
       THEN
          (* now we fall though and test ActualType against FormalType *)
          ActualType := GetSType(ActualType)
@@ -4741,9 +4743,14 @@ BEGIN
          THEN
             RETURN( TRUE )
          ELSE
-            FailParameter('attempting to pass an unbounded array with the incorrect number dimenisons to an unbounded formal parameter of different dimensions',
-                          Actual, Formal, ProcSym, i) ;
-            RETURN( FALSE )
+            IF GetDimension(Actual)-Dimension = GetDimension(Formal)
+            THEN
+               ActualType := GetSType(ActualType)
+            ELSE
+               FailParameter('attempting to pass an unbounded array with the incorrect number dimenisons to an unbounded formal parameter of different dimensions',
+                             Actual, Formal, ProcSym, i) ;
+               RETURN( FALSE )
+            END
          END
       END
    END ;
@@ -4777,7 +4784,7 @@ END LegalUnboundedParam ;
                     Note that type sizes are checked during the code generation pass.
 *)
 
-PROCEDURE CheckParameter (Actual, Formal, ProcSym: CARDINAL; i: CARDINAL; TypeList: List) ;
+PROCEDURE CheckParameter (Actual, Dimension, Formal, ProcSym: CARDINAL; i: CARDINAL; TypeList: List) ;
 VAR
    n                  : Name ;
    NewList            : BOOLEAN ;
@@ -4862,7 +4869,7 @@ BEGIN
          RETURN
       ELSIF IsUnboundedParam(ProcSym, i)
       THEN
-         IF NOT LegalUnboundedParam(ProcSym, i, ActualType, Actual, Formal)
+         IF NOT LegalUnboundedParam(ProcSym, i, ActualType, Actual, Dimension, Formal)
          THEN
             RETURN
          END
@@ -5760,7 +5767,12 @@ BEGIN
    ELSE
       ReturnVar := MakeTemporary(RightValue) ;
       PutVar(ReturnVar, Cardinal) ;
-      GenHigh(ReturnVar, formali, Sym) ;
+      IF (actuali#formali) AND (ArraySym#NulSym) AND IsUnbounded(GetSType(ArraySym))
+      THEN
+         GenHigh(ReturnVar, actuali, ArraySym)
+      ELSE
+         GenHigh(ReturnVar, formali, Sym)
+      END ;
       PushTF(ReturnVar, GetSType(ReturnVar))
    END ;
    BuildAssignmentWithoutBounds(FALSE, TRUE)
@@ -7280,7 +7292,7 @@ BEGIN
    ReturnVar := MakeTemporary(ImmediateValue) ;
    Dim := OperandD(1) ;
    INC(Dim) ;
-   GenHigh(ReturnVar, Dim, OperandT(1)) ;
+   GenHigh(ReturnVar, 1, OperandT(1)) ;
    PopN(NoOfParam+1) ;
    PushT(ReturnVar)
 END BuildConstHighFromSym ;
