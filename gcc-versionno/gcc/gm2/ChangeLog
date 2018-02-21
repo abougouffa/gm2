@@ -1,3 +1,25 @@
+2018-02-19      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2Quads.mod:  (AssignHighField)
+          check for ArraySym and use if actual parameter
+          has different number of dimensions to formal
+          parameter array.
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildConstHighFromSym)
+          only access the single dimension when building high
+          as the array will be referencing the desired dimension.
+	  A temporary type will have been created.
+
+2018-02-15      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  check and use lvalue op3
+	  which points to the data for the unbounded quadruple.
+
+2018-02-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2Quads.mod:  check open array actual
+          parameter which is indexed and check the dimension against
+	  formal parameters.
+
 2018-02-07      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  added LDFLAGS to the link of mc.
