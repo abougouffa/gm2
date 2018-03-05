@@ -1,3 +1,10 @@
+2018-03-05      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildAdrFunction)
+          detect an unbounded array as a parameter and
+          only access the _m2contents field if the unbounded
+	  array has not been indexed.
+
 2018-02-19      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/M2Quads.mod:  (AssignHighField)

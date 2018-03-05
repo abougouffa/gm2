@@ -8861,12 +8861,14 @@ VAR
    t,
    Array,
    UnboundedSym,
+   Dim,
    Field,
    NoOfParam,
    ProcSym,
    ReturnVar,
    Type, rw    : CARDINAL ;
 BEGIN
+   DisplayStack ;
    PopT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+1) ;
    IF NoOfParam#1
@@ -8891,9 +8893,14 @@ BEGIN
       PushTF(ReturnVar, GetSType(ReturnVar))
    ELSE
       Type := GetSType(OperandT(1)) ;
+      Dim := OperandD (1) ;
       MarkArrayWritten(OperandT(1)) ;
       MarkArrayWritten(OperandA(1)) ;
-      IF IsUnbounded(Type)
+      (* if the operand is an unbounded which has not been indexed
+         then we will lookup its address from the unbounded record.
+         Otherwise we obtain the address of the operand.
+      *)
+      IF IsUnbounded(Type) AND (Dim=0)
       THEN
          (* we will reference the address field of the unbounded structure *)
          UnboundedSym := OperandT(1) ;
@@ -10176,8 +10183,8 @@ BEGIN
 
          Build a record for retrieving the address of dynamic array.
          BuildDesignatorRecord will generate the required quadruples,
-         therefore build set up the stack for BuildDesignatorRecord
-         to generate the record access.
+         therefore build sets up the stack for BuildDesignatorRecord
+         which will generate the quads to access the record.
 
          Build above current current info needed for array.
          Note that, n, has gone by now.
