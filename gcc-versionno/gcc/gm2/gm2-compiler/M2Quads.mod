@@ -236,7 +236,7 @@ FROM m2builtins IMPORT GetBuiltinTypeInfoType ;
 CONST
    DebugStackOn = TRUE ;
    DebugVarients = FALSE ;
-   BreakAtQuad = 52442 ;
+   BreakAtQuad = 266 ;
 
 TYPE
    ConstructorFrame = POINTER TO constructorFrame ;
