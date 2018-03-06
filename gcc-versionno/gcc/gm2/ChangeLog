@@ -1,3 +1,12 @@
+2018-03-06      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2Quads.mod:  (UnboundedVarLinkToArray)
+          and (UnboundedNonVarLinkToArray) ensure that all
+          parameters to BuildAdrFunction propagate the array
+          and dimension operand stack.
+          Fixes bugs exposed in
+	  testsuite/gm2/iso/run/pass/adrunbounded3.mod
+
 2018-03-05      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/M2Quads.mod:  (BuildAdrFunction)
