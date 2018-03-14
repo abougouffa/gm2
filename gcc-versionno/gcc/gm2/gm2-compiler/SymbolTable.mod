@@ -983,7 +983,7 @@ VAR
    pSym: PtrToSymbol ;
 BEGIN
    sym := FreeSymbol ;
-   IF sym=700
+   IF sym=3005
    THEN
       stop
    END ;
@@ -9882,9 +9882,11 @@ BEGIN
             NewSym(Contents) ;
             FillInPointerFields(Contents, NulName, GetScope(SimpleType), NulSym) ;
             PutPointer(Contents, SimpleType) ;
+	    (* create the contents field for the unbounded array.  *)
             field := PutFieldRecord(RecordType,
                                     MakeKey(UnboundedAddressName),
                                     Contents, NulSym) ;
+	    (* create all the high fields for the unbounded array.  *)
             i := 1 ;
             WHILE i<=ndim DO
                field := PutFieldRecord(RecordType,
@@ -9965,14 +9967,25 @@ END GetUnbounded ;
 PROCEDURE PutUnbounded (oaf: CARDINAL; sym: CARDINAL; ndim: CARDINAL) ;
 VAR
    pSym: PtrToSymbol ;
+   i   : CARDINAL ;
 BEGIN
    pSym := GetPsym(oaf) ;
    WITH pSym^ DO
       CASE SymbolType OF
 
       OAFamilySym:  WITH OAFamily DO
-                       PutIntoIndex(Dimensions, ndim, sym) ;
-                       MaxDimensions := Max(ndim, MaxDimensions)
+                       (* need to check to see if we need to add NulSym for all dimensions < ndim
+                          which have not been used.  *)
+                       WHILE MaxDimensions<ndim DO
+                          INC(MaxDimensions) ;
+			  IF MaxDimensions<ndim
+			  THEN
+			     (* add NulSym to an unused dimension.  *)
+                             PutIntoIndex(Dimensions, MaxDimensions, NulSym)
+			  END
+                       END ;
+                       (* and finally add the known sym.  *)
+                       PutIntoIndex(Dimensions, ndim, sym)
                     END
 
       ELSE

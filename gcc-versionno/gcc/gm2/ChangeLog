@@ -1,3 +1,18 @@
+2018-03-14      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/SymbolTable.mod:  (PutUnbounded)
+          ensure that all dimensions prior to the requested dimension
+	  has an entry in the array.  (NulSym is added).
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  (WalkFamilyOfUnbounded)
+          check that unbounded is not NulSym before calling unboundedp.
+
+	* gm2/gm2-compiler/M2Quads.mod:  (UnboundedVarLinkToArray)
+          and (UnboundedNonVarLinkToArray) ensure that all
+          parameters to BuildAdrFunction propagate the array
+          and dimension operand stack.
+          Fixes bugs exposed in
+	  testsuite/gm2/iso/run/pass/adrunbounded3.mod
+
 2018-02-19      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/M2Quads.mod:  (AssignHighField)

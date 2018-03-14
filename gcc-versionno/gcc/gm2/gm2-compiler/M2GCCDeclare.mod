@@ -1973,7 +1973,10 @@ VAR
 
 PROCEDURE WalkFamilyOfUnbounded (oaf: CARDINAL; dim: CARDINAL; unbounded: CARDINAL) ;
 BEGIN
-   unboundedp(unbounded)
+   IF unbounded#NulSym
+   THEN
+      unboundedp(unbounded)
+   END
 END WalkFamilyOfUnbounded ;
 
 
