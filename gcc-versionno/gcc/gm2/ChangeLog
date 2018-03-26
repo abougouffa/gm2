@@ -1,3 +1,8 @@
+2018-03-26      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-lang.c:  (gm2_langhook_type_for_mode)  rewritten
+          (borrowed code from go-lang.c).
+
 2018-03-14      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/SymbolTable.mod:  (PutUnbounded)
