@@ -2,6 +2,9 @@
 
 	* gm2/gm2-lang.c:  (gm2_langhook_type_for_mode)  rewritten
           (borrowed code from go-lang.c).
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildAdrFunction)
+          handle address of unbounded array and check the dimension
+	  access.
 
 2018-03-14      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
