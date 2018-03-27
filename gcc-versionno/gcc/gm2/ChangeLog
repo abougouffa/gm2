@@ -1,3 +1,22 @@
+2018-03-27      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/el/g-mode.el:  corrected dates and changed name
+          to help debugging.
+	* gm2/gm2-compiler/Indexing.mod:  removed p2c related
+	  comment.
+	* gm2/gm2-compiler/M2Error.mod:  removed intemediate
+          record type as we are no longer bootstrapping using
+          p2c.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  removed intemediate
+          record types as we are no longer bootstrapping using
+          p2c.
+	* gm2/gm2-compiler/M2Range.mod:  removed intemediate
+          record type as we are no longer bootstrapping using
+          p2c.
+	* gm2/gm2-compiler/ppg.mod:  removed intemediate
+          record types as we are no longer bootstrapping using
+          p2c.
+
 2018-03-26      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-lang.c:  (gm2_langhook_type_for_mode)  rewritten

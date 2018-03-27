@@ -46,7 +46,7 @@ TYPE
 
 
 (*
-   growSet - 
+   growSet -
 *)
 
 PROCEDURE growSet (i: CARDINAL; bytes: CARDINAL) ;
@@ -111,7 +111,7 @@ BEGIN
             END ;
             (* a := memset(b, 0, bytes) ; *)
             v := PtrToByte(b) ;
-            INC(v, o) ;  (* can only use INC on PtrToByte variables (in p2c as p2c generate C address arithmetic) *)
+            INC(v, o) ;
             a := memset(v, 0, bytes-o) ;
             a := memcpy(b, pb, o) ;
             IF Debugging
@@ -230,7 +230,7 @@ BEGIN
          IF j=MaxBitset
          THEN
             v := PtrToByte(b) ;
-            INC(v, BitsetSize) ;   (* avoid implications of C address arithmetic in p2c by using PtrToByte *)
+            INC(v, BitsetSize) ;   (* avoid implications of C address arithmetic in mc PtrToByte *)
             b := PtrToBitset(v) ;
             j := 0
          ELSE

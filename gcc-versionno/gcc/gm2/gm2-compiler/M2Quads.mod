@@ -245,8 +245,7 @@ TYPE
                          index: CARDINAL ;
                       END ;
 
-   BoolFrame = POINTER TO boolFrame ;  (* using intemediate type helps p2c *)
-   boolFrame =            RECORD
+   BoolFrame = POINTER TO RECORD
                              TrueExit  : CARDINAL ;
                              FalseExit : CARDINAL ;
                              Unbounded : CARDINAL ;
@@ -257,8 +256,7 @@ TYPE
                              Annotation: String ;
                           END ;
 
-   QuadFrame = POINTER TO quadFrame ;  (* again we help p2c *)
-   quadFrame =            RECORD
+   QuadFrame = POINTER TO RECORD
                              Operator           : QuadOperator ;
                              Operand1           : CARDINAL ;
                              Operand2           : CARDINAL ;
@@ -270,8 +268,7 @@ TYPE
                              CheckOverflow      : BOOLEAN ;      (* should backend check overflow  *)
                           END ;
 
-   WithFrame = POINTER TO withFrame ;  (* again we help p2c *)
-   withFrame =            RECORD
+   WithFrame = POINTER TO RECORD
                              RecordSym : CARDINAL ;
                              RecordType: CARDINAL ;
                              RecordRef : CARDINAL ;
@@ -285,8 +282,7 @@ TYPE
                     ForLoopIndex  : List ;                       (* variables are not abused       *)
                  END ;
 
-   LineNote  = POINTER TO lineFrame ;  (* again we help p2c *)
-   lineFrame =            RECORD
+   LineNote  = POINTER TO RECORD
                              Line: CARDINAL ;
                              File: Name ;
                              Next: LineNote ;

@@ -107,8 +107,7 @@ TYPE
                   wholenonposdiv, wholenonposmod,
                   wholezerodiv, wholezerorem, none) ;
 
-   Range = POINTER TO range ;   (* to help p2c *)
-   range =            RECORD
+   Range = POINTER TO RECORD
                          type          : TypeOfRange ;
                          des,
                          expr,

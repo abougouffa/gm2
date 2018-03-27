@@ -1,6 +1,6 @@
 ;; Copyright (C) 1985, 1986, 1987, 2001, 2002, 2003, 2004,
 ;;               2005, 2006, 2007, 2008, 2009, 2010, 2011,
-;;               2012, 2013, 2014, 2015, 2016, 2017
+;;               2012, 2013, 2014, 2015, 2016, 2017, 2018
 ;; Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -457,7 +457,7 @@ Control-C followed by the first character of the construct.
 (defun m2-fsf-copyright ()
   "emit the a copyright notice providing m2-assign-future is set."
   (if m2-assign-future
-      (insert "(* Copyright (C) 2015 Free Software Foundation, Inc.  *)\n")))
+      (insert "(* Copyright (C) 2018 Free Software Foundation, Inc.  *)\n")))
 
 (defun m2-fsf-gpl-notice ()
   "emit the fsf gpl notice at the relevant position."
@@ -1797,7 +1797,7 @@ FROM StdIO IMPORT Write, Read ;
   (setup-g-mode-keys)
   (use-local-map g-mode-map)
   (setq major-mode 'g-mode)
-  (setq mode-name "G-M-2")
+  (setq mode-name "GM2-trunc")
   (setq local-abbrev-table g-mode-abbrev-table)
   (set-syntax-table g-mode-syntax-table)
 
@@ -1815,5 +1815,6 @@ FROM StdIO IMPORT Write, Read ;
   (setq indent-tabs-mode nil)
   (setq g-mode-hook
 	'(lambda () (progn (make-local-variable 'compile-command)
-			   (setq compile-command (concat m2-compile-command " " (concat (substring (buffer-name) 0 -4) ".mod"))))))
+			   (setq compile-command (concat m2-compile-command " " (concat (substring (buffer-name) 0 -4) ".mod")))
+			   (linum-mode 0))))
   (run-hooks 'g-mode-hook))

@@ -230,7 +230,6 @@ BEGIN
          THEN
             RETURN( TRUE )
          END ;
-         (* we must not INC(p, ..) as p2c gets confused *)
          INC(b, TSIZE(ADDRESS)) ;
          INC(j)
       END

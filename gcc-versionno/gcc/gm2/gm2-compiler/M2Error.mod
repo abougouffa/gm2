@@ -38,8 +38,7 @@ CONST
    DebugTrace = FALSE ;
 
 TYPE
-   Error = POINTER TO error ;
-   error =            RECORD  (* to help p2c *)
+   Error = POINTER TO RECORD
                          parent,
                          child,
                          next  : Error ;

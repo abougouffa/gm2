@@ -1351,7 +1351,7 @@ END testThis ;
 PROCEDURE DeclaredOutstandingTypes (MustHaveCompleted: BOOLEAN;
                                     start, end: CARDINAL) : BOOLEAN ;
 VAR
-   finished        : BOOLEAN ;  (* p2c cannot handle LOOP EXIT END *)
+   finished        : BOOLEAN ;
    d, a, p, f, n, b: CARDINAL ;
 BEGIN
    d := 0 ;

@@ -57,17 +57,13 @@ TYPE
 
    TraverseResult = (unknown, true, false) ;
 
-   ProductionDesc = POINTER TO productiondesc ;
-
-   IdentDesc      = POINTER TO identdesc ;   (* forward fodder for p2c *)
-   identdesc      =            RECORD
+   IdentDesc      = POINTER TO RECORD
                                   definition: ProductionDesc ;   (* where this idents production is defined *)
                                   name      : Name ;
                                   line      : CARDINAL ;
                                END ;
 
-   SetDesc        = POINTER TO setdesc ;
-   setdesc        =            RECORD
+   SetDesc        = POINTER TO RECORD
                                   next          : SetDesc ;
                                   CASE type: ElementType OF
 
@@ -86,8 +82,7 @@ TYPE
    equal the reachend value but for factors the two may differ.
 *)
 
-   FollowDesc     = POINTER TO followdesc ;
-   followdesc     =            RECORD
+   FollowDesc     = POINTER TO RECORD
                                   calcfollow  : BOOLEAN ;          (* have we solved the follow set yet? *)
                                   follow      : SetDesc ;          (* the follow set *)
                                   reachend    : TraverseResult ;   (* can we see the end of the sentance (due to multiple epsilons) *)
@@ -97,29 +92,25 @@ TYPE
 
    TermDesc       = POINTER TO termdesc ;
 
-   ExpressionDesc = POINTER TO expressiondesc ;
-   expressiondesc =            RECORD
+   ExpressionDesc = POINTER TO RECORD
                                   term      : TermDesc ;
                                   followinfo: FollowDesc ;
                                   line      : CARDINAL ;
                                END ;
 
-   StatementDesc  = POINTER TO statementdesc ;
-   statementdesc  =            RECORD
+   StatementDesc  = POINTER TO RECORD
                                   ident      : IdentDesc ;
                                   expr       : ExpressionDesc ;
                                   followinfo : FollowDesc ;
                                   line       : CARDINAL ;
                                END ;
 
-   CodeHunk       = POINTER TO codehunk ;
-   codehunk       =            RECORD
+   CodeHunk       = POINTER TO RECORD
                                   codetext  : ARRAY [0..MaxCodeHunkLength] OF CHAR ;
                                   next      : CodeHunk ;
                                END ;
 
-   CodeDesc       = POINTER TO codedesc ;
-   codedesc       =            RECORD
+   CodeDesc       = POINTER TO RECORD
                                   code      : CodeHunk ;
                                   indent    : CARDINAL ;         (* column of the first % *)
                                   line      : CARDINAL ;
@@ -127,8 +118,7 @@ TYPE
 
    FactorType     = (id, lit, sub, opt, mult, m2) ;
 
-   FactorDesc     = POINTER TO factordesc ;
-   factordesc     =            RECORD
+   FactorDesc     = POINTER TO RECORD
                                   followinfo: FollowDesc ;
                                   next      : FactorDesc ;   (* chain of successive factors *)
                                   line      : CARDINAL ;
@@ -152,7 +142,7 @@ TYPE
                                   line      : CARDINAL ;
                                END ;
 
-   productiondesc =            RECORD
+   ProductionDesc = POINTER TO RECORD
                                   next        : ProductionDesc ;   (* the chain of productions *)
                                   statement   : StatementDesc ;
                                   first       : SetDesc ;          (* the first set *)
