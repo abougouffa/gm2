@@ -4344,7 +4344,7 @@ END BuildRealProcedureCall ;
 
 
 (*
-   BuildRealProcFuncCall - builds a real procedure or function call.
+   BuildRealFuncProcCall - builds a real procedure or function call.
                            The Stack:
 
 
@@ -4382,7 +4382,7 @@ VAR
 BEGIN
    CheckProcedureParameters(IsForC) ;
    PopT(NoOfParameters) ;
-   PushT(NoOfParameters) ;  (* Restore stack to original state *)
+   PushT(NoOfParameters) ;  (* Restore stack to original state.  *)
    ProcSym := OperandT(NoOfParameters+2) ;
    ProcSym := SkipConst(ProcSym) ;
    ForcedFunc := FALSE ;
@@ -6630,6 +6630,7 @@ VAR
 BEGIN
    PopT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+1) ;
+   ProcSym := SkipConst(ProcSym) ;
    PushT(NoOfParam) ;
    (* Compile time stack restored to entry state *)
    IF IsUnknown(ProcSym)
@@ -6842,6 +6843,7 @@ BEGIN
    PopT(NoOfParam) ;
    PushT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+2) ;
+   ProcSym := SkipConst(ProcSym) ;
    IF IsVar(ProcSym)
    THEN
       (* Procedure Variable ? *)

@@ -1,4 +1,5 @@
 -- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+--               2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
 -- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
@@ -6,12 +7,12 @@
 -- the terms of the GNU General Public License as published by the Free
 -- Software Foundation; either version 3, or (at your option) any later
 -- version.
--- 
+--
 -- GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
 -- WARRANTY; without even the implied warranty of MERCHANTABILITY or
 -- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 -- for more details.
--- 
+--
 -- You should have received a copy of the GNU General Public License along
 -- with gm2; see the file COPYING.  If not, write to the Free Software
 -- Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -27,6 +28,7 @@
 --
 % module PCBuild begin
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
    Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
@@ -34,12 +36,12 @@ GNU Modula-2 is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
 Software Foundation; either version 3, or (at your option) any later
 version.
- 
+
 GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
- 
+
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
@@ -175,7 +177,7 @@ END SyntaxError ;
 
 
 (*
-   SyntaxCheck - 
+   SyntaxCheck -
 *)
 
 PROCEDURE SyntaxCheck (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
@@ -215,7 +217,7 @@ BEGIN
       s2 := SetOfStop2{t}
    END ;
    str := DescribeStop(s0, s1, s2) ;
-   
+
    str := ConCat(InitString('syntax error,'), Mark(str)) ;
    ErrorStringAt(str, GetTokenNo())
 END WarnMissingToken ;
@@ -240,7 +242,7 @@ END MissingToken ;
 
 
 (*
-   CheckAndInsert - 
+   CheckAndInsert -
 *)
 
 PROCEDURE CheckAndInsert (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) : BOOLEAN ;
@@ -259,7 +261,7 @@ END CheckAndInsert ;
 
 
 (*
-   InStopSet 
+   InStopSet
 *)
 
 PROCEDURE InStopSet (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) : BOOLEAN ;
@@ -309,7 +311,7 @@ END PeepToken ;
 
 
 (*
-   Expect - 
+   Expect -
 *)
 
 PROCEDURE Expect (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
@@ -523,8 +525,8 @@ ProgramModule := "MODULE"                                                  % Pus
                   Ident                                                    % PCStartBuildProgModule %
                                                                            % PushAutoOff %
                   [ Priority
-                  ]                                             
-                  ";"							   
+                  ]
+                  ";"
                   { Import                                                 % PCBuildImportOuterModule %
                   }
                   Block                                                    % PushAutoOn %
@@ -536,11 +538,11 @@ ImplementationModule := "IMPLEMENTATION" "MODULE"                          % Pus
                          Ident                                             % PCStartBuildImpModule %
                                                                            % PushAutoOff %
                          [ Priority
-                         ] ";"                                  
+                         ] ";"
                          { Import                                          % PCBuildImportOuterModule %
-                           }                                               
+                           }
                          Block                                             % PushAutoOn %
-                                 					   
+
                          Ident                                             % PCEndBuildImpModule %
                          "."                                               % PopAuto ; PopAuto ; PopAuto %
                       =:
@@ -646,7 +648,7 @@ ConstMulOperator :=   "*"                                                  % Pus
                     | "&"                                                  % PushT(AmbersandTok) %
              =:
 
-MulOperator :=   "*" | "/" | "DIV" | "MOD" | "REM" | "AND" | "&"   
+MulOperator :=   "*" | "/" | "DIV" | "MOD" | "REM" | "AND" | "&"
              =:
 
 ConstFactor := ConstNumber | ConstString |
@@ -677,7 +679,7 @@ ArraySetRecordValue := ComponentValue { ','                                % Nex
                                             ComponentValue } =:
 
 Constructor := '{'                                                         % PushConstructorCastType %
-                                                                           % PushInConstructor %               
+                                                                           % PushInConstructor %
                                                                            % BuildConstructor %
                   [ ArraySetRecordValue ]                                  % BuildConstructorEnd %
                '}'                                                         % PopInConstructor %
@@ -739,18 +741,18 @@ AlignmentExpression := "(" ConstExpression ")" =:
 Alignment := [ ByteAlignment ] =:
 
 TypeDeclaration := Ident "=" Type Alignment =:
-									   
-Type := 
+
+Type :=
                                                                            % PushAutoOff %
         ( SimpleType | ArrayType
-          | RecordType          
-          | SetType             
-          | PointerType         
+          | RecordType
+          | SetType
+          | PointerType
           | ProcedureType )                                                % PopAuto %
-      =:								   
-									   
+      =:
+
 SimpleType := Qualident [ SubrangeType ] | Enumeration | SubrangeType =:
-									   
+
 Enumeration := "(" IdentList ")" =:
 
 IdentList := Ident                                                         % VAR
@@ -776,7 +778,7 @@ SubrangeType := "[" ConstExpression  ".." ConstExpression "]" =:
 ArrayType := "ARRAY"
 
               SimpleType
-              { "," 
+              { ","
                 SimpleType
               } "OF"
              Type
@@ -821,7 +823,7 @@ Varient := [ VarientCaseLabelList ":" FieldListSequence ] =:
 
 VarientCaseLabelList := VarientCaseLabels { "," VarientCaseLabels } =:
 
-VarientCaseLabels := ConstExpression ( ".." ConstExpression 
+VarientCaseLabels := ConstExpression ( ".." ConstExpression
                                        |                                   % (* epsilon *) %
                                      )
                    =:
@@ -1070,7 +1072,7 @@ ForStatement := "FOR" Ident ":=" Expression "TO" Expression
 
 LoopStatement := "LOOP" StatementSequence "END" =:
 
-WithStatement := "WITH" Designator "DO"                                   
+WithStatement := "WITH" Designator "DO"
                      StatementSequence
                  "END"
                =:
@@ -1216,7 +1218,7 @@ DefinitionModule := "DEFINITION" "MODULE"                                  % Pus
 
 Definition := "CONST" { ConstantDeclaration ";" } |
               "TYPE"
-                    { Ident ( ";"                 
+                    { Ident ( ";"
                                   | "=" Type Alignment ";" )
                     }
               |

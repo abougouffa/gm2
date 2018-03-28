@@ -1,3 +1,24 @@
+2018-03-28      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/bnf/m2-2.bnf:  updated dates and trimmed end of
+	  line spaces.
+	* gm2/bnf/m2-c.bnf:  updated dates and trimmed end of
+	  line spaces.
+	* gm2/gm2-compiler/M2Comp.mod:  removed p2c forward
+	  declarations.
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildRealFuncProcCall)
+          corrected comment title.  Call SkipConst to skip over
+          a constant assigned to a procedure.  Fixes a bug reported
+          by Michael Riedl <udo-michael.riedl@t-online.de>.
+	* gm2/gm2-compiler/P2SymBuild.mod:  remove p2c
+	  forward declarations.
+	* testsuite/gm2/iso/run/pass/constprocedure.mod:
+          New regression test to stress the bug reported (above).
+	* testsuite/gm2/iso/fail/constprocedure.mod:  New
+          regression test to test standard functions are not
+          allowed to be referenced in a const expression.
+	  (But they can be called).
+
 2018-03-27      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/el/g-mode.el:  corrected dates and changed name

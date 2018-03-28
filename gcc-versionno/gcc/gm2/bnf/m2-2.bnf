@@ -1,5 +1,5 @@
 -- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
---               2010, 2011, 2012
+--               2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
 -- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
@@ -7,12 +7,12 @@
 -- the terms of the GNU General Public License as published by the Free
 -- Software Foundation; either version 3, or (at your option) any later
 -- version.
--- 
+--
 -- GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
 -- WARRANTY; without even the implied warranty of MERCHANTABILITY or
 -- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 -- for more details.
--- 
+--
 -- You should have received a copy of the GNU General Public License along
 -- with gm2; see the file COPYING.  If not, write to the Free Software
 -- Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -24,8 +24,8 @@
 --  pg takes this file and produces a top down parser for Modula-2.
 --
 % module P2Build begin
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 2010
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
    Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
@@ -33,12 +33,12 @@ GNU Modula-2 is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
 Software Foundation; either version 3, or (at your option) any later
 version.
- 
+
 GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
- 
+
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
@@ -189,7 +189,7 @@ END SyntaxError ;
 
 
 (*
-   SyntaxCheck - 
+   SyntaxCheck -
 *)
 
 PROCEDURE SyntaxCheck (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
@@ -229,7 +229,7 @@ BEGIN
       INCL(s2, t)
    END ;
    str := DescribeStop(s0, s1, s2) ;
-   
+
    str := ConCat(InitString('syntax error,'), Mark(str)) ;
    ErrorStringAt(str, GetTokenNo())
 END WarnMissingToken ;
@@ -254,7 +254,7 @@ END MissingToken ;
 
 
 (*
-   CheckAndInsert - 
+   CheckAndInsert -
 *)
 
 PROCEDURE CheckAndInsert (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) : BOOLEAN ;
@@ -273,7 +273,7 @@ END CheckAndInsert ;
 
 
 (*
-   InStopSet 
+   InStopSet
 *)
 
 PROCEDURE InStopSet (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) : BOOLEAN ;
@@ -323,7 +323,7 @@ END PeepToken ;
 
 
 (*
-   Expect - 
+   Expect -
 *)
 
 PROCEDURE Expect (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
@@ -534,34 +534,34 @@ FileUnit :=                                                                % Pus
               ImplementationOrProgramModule )                              % PopAuto %
          =:
 
-ProgramModule := "MODULE"                                                  
+ProgramModule := "MODULE"
                   Ident                                                    % P2StartBuildProgramModule ; %
-                                                                           
-                                                                           
-                                                                           
-                                                                           
+
+
+
+
                   [ Priority
-                  ]                                             
-                  ";"							   
-                                                                           
+                  ]
+                  ";"
+
                   { Import                                                 % BuildImportOuterModule ; %
                   }
-                                                                           
-                  Block                                                    
-                                                                           
+
+                  Block
+
                   Ident                                                    % P2EndBuildProgramModule ; %
-                  "."                                                      
+                  "."
                   =:
 
-ImplementationModule := "IMPLEMENTATION" "MODULE"                          
+ImplementationModule := "IMPLEMENTATION" "MODULE"
                          Ident                                             % P2StartBuildImplementationModule ; %
-                                                                           
+
                          [ Priority
-                         ] ";"                                  
+                         ] ";"
                          { Import                                          % BuildImportOuterModule %
-                           }                                               
-                         Block                                             
-                                 					   
+                           }
+                         Block
+
                          Ident                                             % P2EndBuildImplementationModule ; %
                          "." =:
 
@@ -688,9 +688,9 @@ TypeDeclaration :=                                                         % VAR
                                                                            % top := Top() %
                    Ident "=" Type Alignment                                % BuildTypeAlignment %
                                                                            % Assert(top=Top()) %
-                 =:							   
+                 =:
 
-Type :=                                                                    
+Type :=
                                                                            % PushAutoOn ; %
         ( SimpleType | ArrayType                                           % BuildType ; %
           | RecordType                                                     % BuildType ; %
@@ -698,18 +698,18 @@ Type :=
           | PointerType                                                    % BuildType ; %
           | ProcedureType                                                  % BuildType ; %
         )                                                                  % PopAuto ; %
-      =:								   
-									   
-SimpleType :=                                                              
+      =:
+
+SimpleType :=
               ( Qualident [ PrefixedSubrangeType ]                         % BuildType ; %
                 | Enumeration                                              % BuildType ; %
                 | SubrangeType                                             % BuildType ; %
               )
-           =:								   
-									   
-Enumeration := "("                                                         
-                   ( IdentList                                             
-                               )                                           
+           =:
+
+Enumeration := "("
+                   ( IdentList
+                               )
                ")"                                                         % StartBuildEnumeration ; %
             =:
 
@@ -813,7 +813,7 @@ TagIdent := Ident |                                                        % Bui
           =:
 
 CaseTag :=  TagIdent ( ":" Qualident |                                     % PushT(NulSym) %
-                     )                                                     % BuildVarientSelector % 
+                     )                                                     % BuildVarientSelector %
          =:
 
 Varient :=  [                                                              % StartBuildVarientFieldRecord %
@@ -841,7 +841,7 @@ ProcedureType := "PROCEDURE"                                               % Bui
                  [ FormalTypeList ] =:
 
 FormalTypeList := "(" ( ")" FormalReturn |
-                        ProcedureParameters 
+                        ProcedureParameters
                   ")" FormalReturn ) =:
 
 FormalReturn := [ ":" OptReturnType ] =:
@@ -1153,7 +1153,7 @@ DefinitionModule := "DEFINITION" "MODULE"
 
 Definition := "CONST" { ConstantDeclaration ";" } |
               "TYPE"
-                    { Ident ( ";"                 
+                    { Ident ( ";"
                                   | "=" Type Alignment                     % BuildVarAlignment %
                                                        ";" )               % BuildTypeEnd %
                     }

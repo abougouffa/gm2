@@ -148,18 +148,6 @@ VAR
    TypeStack         : StackOfWord ;
 
 
-(* %%%FORWARD%%%
-PROCEDURE BuildFormalParameterSection ; FORWARD ;
-PROCEDURE BuildNulParam ; FORWARD ;
-PROCEDURE CheckFormalParameterSection ; FORWARD ;
-PROCEDURE FailParameter (CurrentState : ARRAY OF CHAR;
-                         PreviousState: ARRAY OF CHAR;
-                         Given        : Name ;
-                         ParameterNo  : CARDINAL;
-                         ProcedureSym : CARDINAL) ; FORWARD ;
-   %%%FORWARD%%% *)
-
-
 
 PROCEDURE stop ; BEGIN END stop ;
 

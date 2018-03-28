@@ -68,15 +68,6 @@ VAR
    ModuleType : (None, Definition, Implementation, Program) ;
 
 
-(* %%%FORWARD%%%
-PROCEDURE DoPass0 (s: String) ; FORWARD ;
-PROCEDURE DoPass1 ; FORWARD ;
-PROCEDURE DoPass2 ; FORWARD ;
-PROCEDURE DoPass3 ; FORWARD ;
-PROCEDURE DoPassC ; FORWARD ;
-   %%%FORWARD%%% *)
-
-
 (*
    CompilingDefinitionModule - returns true if the current module being
                                compiled is a definition module.
