@@ -1,3 +1,18 @@
+2018-03-28      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildRealFuncProcCall)
+          corrected comment title.  Call SkipConst to skip over
+          a constant assigned to a procedure.  Fixes a bug reported
+          by Michael Riedl <udo-michael.riedl@t-online.de>.
+          Also removed unnecessary record intemediate types
+	  which was required for p2c.
+	* testsuite/gm2/iso/run/pass/constprocedure.mod:
+          New regression test to stress the bug reported (above).
+	* testsuite/gm2/iso/fail/constprocedure.mod:  New
+          regression test to test standard functions are not
+          allowed to be referenced in a const expression.
+	  (But they can be called).
+
 2018-03-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/SymbolTable.mod:  (PutUnbounded)
