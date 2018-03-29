@@ -247,8 +247,7 @@ TYPE
                          index: CARDINAL ;
                       END ;
 
-   BoolFrame = POINTER TO boolFrame ;  (* using intemediate type helps p2c *)
-   boolFrame =            RECORD
+   BoolFrame = POINTER TO RECORD
                              TrueExit  : CARDINAL ;
                              FalseExit : CARDINAL ;
                              Unbounded : CARDINAL ;
@@ -259,8 +258,7 @@ TYPE
                              Annotation: String ;
                           END ;
 
-   QuadFrame = POINTER TO quadFrame ;  (* again we help p2c *)
-   quadFrame =            RECORD
+   QuadFrame = POINTER TO RECORD
                              Operator           : QuadOperator ;
                              Operand1           : CARDINAL ;
                              Operand2           : CARDINAL ;
@@ -272,8 +270,7 @@ TYPE
                              CheckOverflow      : BOOLEAN ;      (* should backend check overflow  *)
                           END ;
 
-   WithFrame = POINTER TO withFrame ;  (* again we help p2c *)
-   withFrame =            RECORD
+   WithFrame = POINTER TO RECORD
                              RecordSym : CARDINAL ;
                              RecordType: CARDINAL ;
                              RecordRef : CARDINAL ;
@@ -287,8 +284,7 @@ TYPE
                     ForLoopIndex  : List ;                       (* variables are not abused       *)
                  END ;
 
-   LineNote  = POINTER TO lineFrame ;  (* again we help p2c *)
-   lineFrame =            RECORD
+   LineNote  = POINTER TO RECORD
                              Line: CARDINAL ;
                              File: Name ;
                              Next: LineNote ;
@@ -2697,11 +2693,11 @@ BEGIN
       MetaErrors2('in assignment, cannot assign a variable {%2a} to a constant {%1a}',
                   'designator {%1Da} is declared as a CONST', Des, Exp)
    END ;
-   IF IsVar(Des) AND IsUnbounded(GetDType(Des))
+   IF (GetDType(Des)#NulSym) AND IsVar(Des) AND IsUnbounded(GetDType(Des))
    THEN
       MetaError1('in assignment, cannot assign to an unbounded array {%1ad}', Des)
    END ;
-   IF IsVar(Exp) AND IsUnbounded(GetDType(Exp))
+   IF (GetDType(Exp)#NulSym) AND IsVar(Exp) AND IsUnbounded(GetDType(Exp))
    THEN
       MetaError1('in assignment, cannot assign from an unbounded array {%1ad}', Exp)
    END
@@ -4278,7 +4274,7 @@ END BuildRealProcedureCall ;
 
 
 (*
-   BuildRealProcFuncCall - builds a real procedure or function call.
+   BuildRealFuncProcCall - builds a real procedure or function call.
                            The Stack:
 
 
@@ -4316,7 +4312,7 @@ VAR
 BEGIN
    CheckProcedureParameters(IsForC) ;
    PopT(NoOfParameters) ;
-   PushT(NoOfParameters) ;  (* Restore stack to original state *)
+   PushT(NoOfParameters) ;  (* Restore stack to original state.  *)
    ProcSym := OperandT(NoOfParameters+2) ;
    ProcSym := SkipConst(ProcSym) ;
    ForcedFunc := FALSE ;
@@ -6558,6 +6554,7 @@ VAR
 BEGIN
    PopT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+1) ;
+   ProcSym := SkipConst(ProcSym) ;
    PushT(NoOfParam) ;
    (* Compile time stack restored to entry state *)
    IF IsUnknown(ProcSym)
@@ -6770,6 +6767,7 @@ BEGIN
    PopT(NoOfParam) ;
    PushT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+2) ;
+   ProcSym := SkipConst(ProcSym) ;
    IF IsVar(ProcSym)
    THEN
       (* Procedure Variable ? *)
