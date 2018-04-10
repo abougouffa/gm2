@@ -22,8 +22,8 @@ AC_INIT(package-unused, version-unused,, libgm2)
 AC_CONFIG_SRCDIR(Makefile.am)
 AC_CONFIG_HEADER(config.h)
 
-# Find the rest of the source tree framework.
-AM_ENABLE_MULTILIB(, ..)
+AC_CANONICAL_SYSTEM
+ACX_NONCANONICAL_TARGET
 
 # Gets build, host, target, *_vendor, *_cpu, *_os, etc.
 #
@@ -45,7 +45,11 @@ target_alias=${target_alias-$host_alias}
 
 GCC_NO_EXECUTABLES
 
-AM_INIT_AUTOMAKE([1.9.3 no-define foreign no-dist -Wall -Wno-portability])
+AM_INIT_AUTOMAKE([1.9.0 foreign no-dist -Wall -Wno-portability])
+if test -n "${with_target_subdir}"; then
+  AM_ENABLE_MULTILIB(, ..)
+fi
+
 AH_TEMPLATE(PACKAGE, [Name of package])
 AH_TEMPLATE(VERSION, [Version number of package])
 

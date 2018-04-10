@@ -169,3 +169,7 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("generate code to detect whole number overflow and underflow") },
   { "-fno-wholevalue",
       N_("do not generate code to detect whole number overflow and underflow") },
+  { "-fm2-plugin",
+      N_("insert semantic plugin to detect runtime errors at compile time") },
+  { "-fno-m2-plugin",
+      N_("do not insert semantic plugin to detect runtime errors at compile time") },

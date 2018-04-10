@@ -134,6 +134,14 @@ fno-pth
 Modula-2
 do not link against the pth library
 
+fm2-plugin
+Modula-2
+insert plugin to identify runtime errors at compiletime
+
+fno-m2-plugin
+Modula-2
+do not insert plugin to identify runtime errors at compiletime
+
 fonlylink
 Modula-2
 only link the module and do not compile module

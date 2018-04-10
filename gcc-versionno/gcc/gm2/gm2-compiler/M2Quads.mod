@@ -201,6 +201,7 @@ FROM M2StackWord IMPORT StackOfWord, InitStackWord, KillStackWord,
 FROM Indexing IMPORT Index, InitIndex, GetIndice, PutIndice, InBounds ;
 
 FROM M2Range IMPORT InitAssignmentRangeCheck,
+                    InitReturnRangeCheck,
                     InitSubrangeRangeCheck,
                     InitStaticArraySubscriptRangeCheck,
                     InitDynamicArraySubscriptRangeCheck,
@@ -9855,6 +9856,7 @@ BEGIN
       WriteFormat2('attempting to RETURN a value with an incompatible type (%a) from a function which returns (%a)',
                    n1, n2)
    ELSE
+      (* this checks the types are compatible, not the data contents.  *)
       BuildRange(InitTypesAssignmentCheck(currentProc, actualVal))
    END
 END CheckReturnType ;
@@ -9895,6 +9897,8 @@ BEGIN
    PopTF(e1, t1) ;
    IF e1#NulSym
    THEN
+      (* this will check that the type returned is compatible with
+         the formal return type of the procedure.  *)
       CheckReturnType(CurrentProc, e1, t1) ;
       (* dereference LeftValue if necessary *)
       IF GetMode(e1)=LeftValue
@@ -9904,8 +9908,12 @@ BEGIN
          PutVar(e2, t2) ;
          CheckPointerThroughNil(e1) ;
          doIndrX(e2, e1) ;
+	 (* here we check the data contents to ensure no overflow.  *)
+         BuildRange(InitReturnRangeCheck(CurrentProc, e2)) ;
          GenQuad(ReturnValueOp, e2, NulSym, CurrentProc)
       ELSE
+	 (* here we check the data contents to ensure no overflow.  *)
+         BuildRange(InitReturnRangeCheck(CurrentProc, e1)) ;
          GenQuad(ReturnValueOp, e1, NulSym, CurrentProc)
       END
    END ;

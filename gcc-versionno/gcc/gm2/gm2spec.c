@@ -1,7 +1,7 @@
 /* Specific flags and argument handling of the GNU Modula-2 front-end.
- * Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *               2010, 2011, 2012, 2013, 2014, 2015
- *               Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+                 Free Software Foundation, Inc.
 
 This file is part of GNU Modula-2.
 
@@ -406,7 +406,6 @@ insert_option (unsigned int *in_decoded_options_count,
   for (i=position; i<(*in_decoded_options_count)-1; i++)
     new_decoded_options[i+1] = (*in_decoded_options)[i];
   *in_decoded_options = new_decoded_options;
-
 }
 
 /*
@@ -427,7 +426,7 @@ add_library (const char *libraryname,
 #if defined(DEBUGGING)
   {
     unsigned int i;
-    
+
     printf("going to add -l%s at position=%d  count=%d\n",
 	   libraryname, position, *in_decoded_options_count);
     for (i = 0; i < *in_decoded_options_count; i++)
@@ -487,7 +486,7 @@ build_archive_path (const char *libpath,
 
       dir_sep[0] = DIR_SEPARATOR;
       dir_sep[1] = (char)0;
-    
+
       strcpy (s, libpath);
       strcat (s, dir_sep);
       strcat (s, "m2");
@@ -536,7 +535,7 @@ add_default_combination (const char *libpath,
 }
 
 /*
- *  gen_link_path - 
+ *  gen_link_path -
  */
 
 static const char *
@@ -767,7 +766,7 @@ scan_for_link_args (unsigned int *in_decoded_options_count,
 {
   struct cl_decoded_option *decoded_options = *in_decoded_options;
   unsigned int i;
-  
+
   for (i = 0; i < *in_decoded_options_count; i++) {
     const char *arg = decoded_options[i].arg;
     size_t opt = decoded_options[i].opt_index;
@@ -790,7 +789,7 @@ purge_include_options (unsigned int *in_decoded_options_count,
 {
   struct cl_decoded_option *decoded_options = *in_decoded_options;
   unsigned int i, j;
-  
+
   for (i = 0; i < *in_decoded_options_count; i++)
     {
       size_t opt = decoded_options[i].opt_index;
@@ -972,7 +971,7 @@ check_gm2_root (void)
   gm2_prefix = getenv (GM2_PREFIX_ENV);
   gm2_libexec = getenv (GM2_LIBEXEC_ENV);
 
-  if ((library_path == NULL || (strcmp (library_path, "") == 0)) && 
+  if ((library_path == NULL || (strcmp (library_path, "") == 0)) &&
       (compiler_path == NULL || (strcmp (compiler_path, "") == 0))) {
 #if defined(DEBUGGING)
     fprintf(stderr, "STANDARD_LIBEXEC_PREFIX = %s\n", STANDARD_LIBEXEC_PREFIX);
@@ -990,7 +989,7 @@ check_gm2_root (void)
       build_compiler_path (gm2_libexec);
   }
   else if (gm2_prefix != NULL && !seen_fmakeall0)
-    /*  
+    /*
      *  no need to issue a warning if seen_fmakeall0 as the parent will
      *  have set COMPILER_PATH and LIBRARY_PATH because of GM2_ROOT and
      *  users should not be using -fmakeall0 as it is an internal option.
@@ -1036,6 +1035,9 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   /* True if we should add -lpth to the command-line.  */
   int need_pth = TRUE;
 
+  /* True if we should add -fplugin=m2rte to the command-line.  */
+  int need_plugin = TRUE;
+
   /* True if we should add -shared-libgcc to the command-line.  */
   int shared_libgcc = TRUE;
 
@@ -1069,6 +1071,10 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 	break;
       case OPT_fno_pth:
 	need_pth = FALSE;
+	break;
+      case OPT_fno_m2_plugin:
+	need_plugin = FALSE;
+	break;
       }
   }
   /*
@@ -1183,13 +1189,16 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 	{
 	  struct cl_decoded_option *options = *in_decoded_options;
 	  const char *prev = options[inclPos].arg;
-	  
+
 	  add_default_fobjects (prev, libpath, libraries, gm2opath);
 	}
     }
 
   if ((! seen_x_flag) && seen_module_extension)
     fe_generate_option (OPT_x, "modula-2", FALSE);
+
+  if (need_plugin)
+    fe_generate_option (OPT_fplugin_, "m2rte", TRUE);
 
   if (linking) {
     add_default_archives (libpath, libraries, in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
@@ -1321,7 +1330,7 @@ add_exec_dir (int argc, const char *argv[])
     if (path != NULL) {
       char *opt = (char *) xmalloc (strlen ("-fcppprog=") + strlen (path) + 1 + strlen (argv[0]) + 1);
       char *sep = (char *) alloca (2);
-      
+
       sep[0] = DIR_SEPARATOR;
       sep[1] = (char)0;
 
@@ -1371,7 +1380,7 @@ void lang_register_spec_functions (void)
 }
 
 
-/* Table of language-specific spec functions.  */ 
+/* Table of language-specific spec functions.  */
 const struct spec_function lang_specific_spec_functions[] =
 {
   { NULL, NULL }

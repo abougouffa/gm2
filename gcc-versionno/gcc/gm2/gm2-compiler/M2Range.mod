@@ -1,4 +1,5 @@
-(* Copyright (C) 2008, 2009, 2010
+(* Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
+                 2017, 2018
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -81,6 +82,7 @@ FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
                    IsExpressionCompatible,
                    IsValidParameter,
                    ExceptionAssign,
+                   ExceptionReturn,
                    ExceptionInc, ExceptionDec,
                    ExceptionIncl, ExceptionExcl,
                    ExceptionShift, ExceptionRotate,
@@ -96,7 +98,7 @@ FROM M2CaseList IMPORT CaseBoundsResolved, OverlappingCaseBounds, WriteCase, Mis
 
 
 TYPE
-   TypeOfRange = (assignment, subrangeassignment,
+   TypeOfRange = (assignment, returnassignment, subrangeassignment,
                   inc, dec, incl, excl, shift, rotate,
                   typeexpr, typeassign, typeparam,
                   staticarraysubscript,
@@ -229,6 +231,7 @@ BEGIN
    CASE type OF
 
    assignment           : RETURN( ExceptionAssign ) |
+   returnassignment     : RETURN( ExceptionReturn ) |
    subrangeassignment   : InternalError('not expecting this case value', __FILE__, __LINE__) |
    inc                  : RETURN( ExceptionInc ) |
    dec                  : RETURN( ExceptionDec ) |
@@ -483,6 +486,24 @@ BEGIN
    p := PutRange(GetIndice(RangeIndex, r), assignment, d, e) ;
    RETURN( r )
 END InitAssignmentRangeCheck ;
+
+
+(*
+   InitReturnRangeCheck - returns a range check node which
+                           remembers the information necessary
+                           so that a range check for RETURN e
+                           from procedure, d, can be generated later on.
+*)
+
+PROCEDURE InitReturnRangeCheck (d, e: CARDINAL) : CARDINAL ;
+VAR
+   p: Range ;
+   r: CARDINAL ;
+BEGIN
+   r := InitRange() ;
+   p := PutRange(GetIndice(RangeIndex, r), returnassignment, d, e) ;
+   RETURN( r )
+END InitReturnRangeCheck ;
 
 
 (*
@@ -968,6 +989,7 @@ BEGIN
       CASE type OF
 
       assignment           : RETURN( ExceptionAssign#NulSym ) |
+      returnassignment     : RETURN( ExceptionReturn#NulSym ) |
       subrangeassignment   : InternalError('not expecting this case value', __FILE__, __LINE__) |
       inc                  : RETURN( ExceptionInc#NulSym ) |
       dec                  : RETURN( ExceptionDec#NulSym ) |
@@ -1030,6 +1052,38 @@ BEGIN
       END
    END
 END FoldAssignment ;
+
+
+(*
+   FoldReturn - do we know this is reachable, if so generate an error message.
+*)
+
+PROCEDURE FoldReturn (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
+VAR
+   p       : Range ;
+   min, max: Tree ;
+BEGIN
+   p := GetIndice(RangeIndex, r) ;
+   WITH p^ DO
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      IF desLowestType#NulSym
+      THEN
+         IF GccKnowsAbout(expr) AND IsConst(expr) AND
+            GetMinMax(tokenno, desLowestType, min, max)
+         THEN
+            IF OutOfRange(tokenno, min, expr, max, desLowestType)
+            THEN
+               MetaErrorT2(tokenNo,
+                           'attempting to return {%2Wa} from a procedure function {%1a} which will exceed exceed the range of type {%1tad}',
+                           des, expr) ;
+               PutQuad(q, ErrorOp, NulSym, NulSym, r)
+            ELSE
+               SubQuad(q)
+            END
+         END
+      END
+   END
+END FoldReturn ;
 
 
 (*
@@ -1939,6 +1993,7 @@ BEGIN
       CASE type OF
 
       assignment           :  FoldAssignment(tokenno, q, r) |
+      returnassignment     :  FoldReturn(tokenno, q, r) |
 (*      subrangeassignment   :  |  unused currently *)
       inc                  :  FoldInc(tokenno, q, r) |
       dec                  :  FoldDec(tokenno, q, r) |
@@ -2066,6 +2121,7 @@ BEGIN
       CASE type OF
 
       assignment           : s := InitString('if the assignment is ever executed then the designator {%1Wa} will exceed the type range {%1ts:of {%1ts}}') |
+      returnassignment     : s := InitString('if the value {%2Wa} is returned from procedure function {%1Wa} then it will exceed the type range {%1ts:of {%1ts}}') |
       subrangeassignment   : InternalError('not expecting this case value', __FILE__, __LINE__) |
       inc                  : s := InitString('if the INC is ever executed the expression {%2Wa} will cause an overflow error for the designator {%1a} as it exceeds the type range {%1ts:of {%1ts}}') |
       dec                  : s := InitString('if the DEC is ever executed the expression {%2Wa} will cause an underflow error for the designator {%1a} as it exceeds the type range {%1ts:of {%1ts}}') |
@@ -2356,6 +2412,18 @@ BEGIN
    DoCodeAssignment(tokenno, r, scopeDesc,
                     'assignment will cause a range error, as the range of {%1tad} does not overlap with {%2tad}')
 END CodeAssignment ;
+
+
+(*
+   CodeReturn -
+*)
+
+PROCEDURE CodeReturn (tokenno: CARDINAL;
+                      r: CARDINAL; scopeDesc: String) ;
+BEGIN
+   DoCodeAssignment(tokenno, r, scopeDesc,
+                    'attempting to return {%2Wa} from a procedure function {%1a} which will exceed exceed the range of type {%1tad}')
+END CodeReturn ;
 
 
 (*
@@ -2972,6 +3040,7 @@ BEGIN
       CASE type OF
 
       assignment           :  CodeAssignment(tokenNo, r, scopeDesc) |
+      returnassignment     :  CodeReturn(tokenNo, r, scopeDesc) |
       subrangeassignment   :  InternalError('unexpected case', __FILE__, __LINE__) |
       inc                  :  CodeInc(tokenNo, r, scopeDesc) |
       dec                  :  CodeDec(tokenNo, r, scopeDesc) |

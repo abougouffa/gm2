@@ -267,6 +267,14 @@ BEGIN
 END AssignmentException ;
 
 
+PROCEDURE ReturnException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   ErrorMessageColumn(filename, scope,
+                      ADR("return value from procedure function exceeds range"),
+                      line, column)
+END ReturnException ;
+
+
 PROCEDURE IncException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
    ErrorMessageColumn(filename, scope,

@@ -41,6 +41,7 @@ FROM m2linemap IMPORT location_t ;
 FROM DynamicStrings IMPORT String ;
 
 EXPORT QUALIFIED InitAssignmentRangeCheck,
+                 InitReturnRangeCheck,
                  InitSubrangeRangeCheck,
                  InitStaticArraySubscriptRangeCheck,
                  InitDynamicArraySubscriptRangeCheck,
@@ -83,6 +84,16 @@ EXPORT QUALIFIED InitAssignmentRangeCheck,
 *)
 
 PROCEDURE InitAssignmentRangeCheck (d, e: CARDINAL) : CARDINAL ;
+
+
+(*
+   InitReturnRangeCheck - returns a range check node which
+                           remembers the information necessary
+                           so that a range check for RETURN e
+                           from procedure, d, can be generated later on.
+*)
+
+PROCEDURE InitReturnRangeCheck (d, e: CARDINAL) : CARDINAL ;
 
 
 (*

@@ -1,3 +1,19 @@
+2018-04-10      Gaius Mulley <gaius@gnu.org>
+
+	* libgm2/configure.ac:  added test to AM_ENABLE_MULTILIB.
+	* libgm2/Makefile.in:  regenerated.
+	* libgm2/aclocal.m4:  regenerated.
+	* libgm2/autogen.sh:  updated.
+	* libgm2/config.h.in:  regenerated.
+	* libgm2/configure:  regenerated.
+	* libgm2/libcor/Makefile.in:  regenerated.
+	* libgm2/libiso/Makefile.in:  regenerated.
+	* libgm2/liblog/Makefile.in:  regenerated.
+	* libgm2/libmin/Makefile.am:  added -fno-m2-plugin
+	* libgm2/libmin/Makefile.in:  regenerated.
+	* libgm2/libpim/Makefile.in:  regenerated.
+	* libgm2/libulm/Makefile.in:  regenerated.
+
 2017-12-27      Gaius Mulley <gaius@gnu.org>
 
 	* libgm2/libpim/wrapc.c:  (wrapc_isfinite)  New function.

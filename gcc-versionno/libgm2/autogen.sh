@@ -1,6 +1,10 @@
 #!/bin/sh
 
-aclocal \
-&& automake --add-missing \
-&& autoconf2.64
+rm -rf autom4te.cache
 
+libtoolize
+aclocal
+automake --add-missing
+autoconf
+
+exit 0

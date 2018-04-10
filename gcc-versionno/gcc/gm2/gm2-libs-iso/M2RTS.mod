@@ -307,16 +307,20 @@ END Length ;
    The following are the runtime exception handler routines.
 *)
 
-(*
-   The following are the runtime exception handler routines.
-*)
-
 PROCEDURE AssignmentException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
    RTExceptions.Raise(ORD(M2EXCEPTION.rangeException),
                       filename, line, column, scope,
                       ADR("variable exceeds range during assignment"))
 END AssignmentException ;
+
+
+PROCEDURE ReturnException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   RTExceptions.Raise(ORD(M2EXCEPTION.rangeException),
+                      filename, line, column, scope,
+                      ADR("return value from procedure function exceeds range"))
+END ReturnException ;
 
 
 PROCEDURE IncException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;

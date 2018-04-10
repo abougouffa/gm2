@@ -31,7 +31,7 @@ EXPORT QUALIFIED HALT, Halt,
                  InstallTerminationProcedure, ExecuteTerminationProcedures,
                  InstallInitialProcedure, ExecuteInitialProcedures,
                  ExitOnHalt, Terminate, Length, ErrorMessage,
-                 AssignmentException,
+                 AssignmentException, ReturnException,
                  IncException, DecException, InclException, ExclException,
                  ShiftException, RotateException,
                  StaticArraySubscriptException, DynamicArraySubscriptException,
@@ -142,6 +142,7 @@ PROCEDURE Length (a: ARRAY OF CHAR) : CARDINAL ;
 *)
 
 PROCEDURE AssignmentException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE ReturnException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE IncException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE DecException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE InclException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;

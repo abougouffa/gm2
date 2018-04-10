@@ -89,7 +89,7 @@ toolexeclib_LTLIBRARIES = libmin.la
 libmin_la_SOURCES = $(M2MODS) libc.c
 libmin_la_DEPENDENCIES = SYSTEM.def
 libmin_la_CFLAGS = -I. -I$(GM2_SRC)/gm2-libs-min -I$(GM2_SRC)/gm2-libs
-libmin_la_M2FLAGS = -I. -I$(GM2_SRC)/gm2-libs-min -I$(GM2_SRC)/gm2-libs -fno-exceptions
+libmin_la_M2FLAGS = -I. -I$(GM2_SRC)/gm2-libs-min -I$(GM2_SRC)/gm2-libs -fno-exceptions -fno-m2-plugin
 BUILT_SOURCES = SYSTEM.def
 CLEANFILES = SYSTEM.def
 
@@ -107,7 +107,7 @@ SYSTEM.def: Makefile
              $(GM2_SRC)/gm2-libs-min/SYSTEM.def \
              $(GM2_SRC)/gm2-libs-min/SYSTEM.mod \
              -I$(GM2_SRC)/gm2-libs-min:$(GM2_SRC)/gm2-libs \
-             "$(GM2_FOR_TARGET) -fno-exceptions" $@
+             "$(GM2_FOR_TARGET) -fno-exceptions -fno-m2-plugin" $@
 
 install-data-local: force
 	mkdir -p $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)

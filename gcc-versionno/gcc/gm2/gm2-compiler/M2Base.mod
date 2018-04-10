@@ -632,6 +632,7 @@ BEGIN
    PutImported(GetExported(m2rts, MakeKey('HALT'))) ;
 
    ExceptionAssign       := NulSym ;
+   ExceptionReturn       := NulSym ;
    ExceptionInc          := NulSym ;
    ExceptionDec          := NulSym ;
    ExceptionIncl         := NulSym ;
@@ -662,6 +663,7 @@ BEGIN
    IF RangeChecking
    THEN
       ExceptionAssign := ImportFrom(m2rts, 'AssignmentException') ;
+      ExceptionReturn := ImportFrom(m2rts, 'ReturnException') ;
       ExceptionInc := ImportFrom(m2rts, 'IncException') ;
       ExceptionDec := ImportFrom(m2rts, 'DecException') ;
       ExceptionIncl := ImportFrom(m2rts, 'InclException') ;

@@ -1,3 +1,27 @@
+2018-04-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  build m2rte plugin, install m2rte plugin.
+	* gm2/gm2-compiler/M2Base.def:  define new exception ExceptionReturn.
+	* gm2/gm2-compiler/M2Base.mod:  implement new exception ExceptionReturn.
+	* gm2/gm2-compiler/M2Quads.mod:  new call to InitReturnRangeCheck.
+	* gm2/gm2-compiler/M2Range.def:  define InitReturnRangeCheck.
+	* gm2/gm2-compiler/M2Range.mod:  (InitReturnRangeCheck),
+	  (FoldReturn), (CodeReturn) New procedures.
+	* gm2/gm2-lang.c:  detect -fno-m2-plugin option.
+	* gm2/gm2-libs-iso/M2RTS.def:  ReturnException defined.
+	* gm2/gm2-libs-iso/M2RTS.mod:  ReturnException implemented.
+	* gm2/gm2-libs/M2RTS.def:  ReturnException defined.
+	* gm2/gm2-libs/M2RTS.mod:  ReturnException implemented.
+	* gm2/gm2spec.c:  detect -fno-m2-plugin and unset boolean if
+          present.  Later insert the -fplugin=m2rte switch if plugins are true.
+	* gm2/lang-options.h:  allow -fm2-plugin and -fno-m2-plugin.
+	* gm2/lang-specs.h:  update dates.
+	* gm2/lang.opt:  define -fm2-plugin and -fno-m2-plugin.
+	* gm2/m2pp.c:  update dates.
+	* gm2/tools-src/makeSystem:  use -fno-m2-plugin when creating system.
+	* gm2/ulm-lib-gm2/std/M2RTS.mod:  ReturnException implemented.
+	* plugins/m2rte.c:  New file.
+
 2018-03-28      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/bnf/m2-2.bnf:  updated dates and trimmed end of

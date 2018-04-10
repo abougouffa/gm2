@@ -82,8 +82,8 @@ function displayEnd () {
 }
 
 rm -f ${OUTPUTFILE}
-if ${COMPILER} ${DIALECT} ${LIBRARY} -c -fdump-system-exports ${SYSTEMMOD} 2>&1 > /dev/null ; then
-    types=`${COMPILER} ${DIALECT} ${LIBRARY} -c -fdump-system-exports ${SYSTEMMOD} -o /dev/null | cut -f5 -d' '`
+if ${COMPILER} ${DIALECT} ${LIBRARY} -fno-m2-plugin -c -fdump-system-exports ${SYSTEMMOD} 2>&1 > /dev/null ; then
+    types=`${COMPILER} ${DIALECT} ${LIBRARY} -fno-m2-plugin -c -fdump-system-exports ${SYSTEMMOD} -o /dev/null | cut -f5 -d' '`
     touch ${OUTPUTFILE}
     displayStart
     displayExportedTypes
@@ -91,6 +91,6 @@ if ${COMPILER} ${DIALECT} ${LIBRARY} -c -fdump-system-exports ${SYSTEMMOD} 2>&1 
     displayBuiltinTypes
     displayEnd
 else
-    ${COMPILER} ${DIALECT} ${LIBRARY} -c -fdump-system-exports ${SYSTEMMOD}
+    ${COMPILER} ${DIALECT} ${LIBRARY} -fno-m2-plugin -c -fdump-system-exports ${SYSTEMMOD}
     exit $?
 fi
