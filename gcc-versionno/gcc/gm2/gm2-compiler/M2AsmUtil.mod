@@ -45,13 +45,6 @@ FROM M2Error IMPORT InternalError ;
 FROM M2Configure IMPORT UseUnderscoreForC, UseDotForJumpLabels ;
 
 
-(* %%%FORWARD%%%
-PROCEDURE GetModulePrefix (Name: String; Sym, ModSym: CARDINAL) : String ; FORWARD ;
-PROCEDURE WriteModulePrefix (Sym, ModSym: CARDINAL) ; FORWARD ;
-PROCEDURE GetFullScopePrefix (Name: String; Scope, Sym: CARDINAL) : String ; FORWARD ;
-   %%%FORWARD%%% *)
-
-
 (*
    StringToKey - returns a Name, from a string and destroys the string.
 *)

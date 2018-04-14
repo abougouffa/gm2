@@ -54,19 +54,6 @@ VAR
    HeadOfBasicBlock: BasicBlock ;
 
 
-(* %%%FORWARD%%%
-PROCEDURE Add (VAR Head: BasicBlock;
-               b : BasicBlock) ; FORWARD ;
-PROCEDURE ConvertQuads2BasicBlock (Start, End: CARDINAL) ; FORWARD ;
-PROCEDURE DisplayBasicBlocks (bb: BasicBlock) ; FORWARD ;
-PROCEDURE DisplayBlock (b: BasicBlock) ; FORWARD ;
-PROCEDURE EndBB (b: BasicBlock; Quad: CARDINAL) ; FORWARD ;
-PROCEDURE StartBB (b: BasicBlock; Quad: CARDINAL) ; FORWARD ;
-PROCEDURE Sub (VAR Head: BasicBlock;
-               b: BasicBlock) ; FORWARD ;
-   %%%FORWARD%%% *)
-
-
 (*
    InitBasicBlocks - converts a list of quadruples as defined by
                      scope blocks into a set of basic blocks.
@@ -280,7 +267,7 @@ END EndBB ;
 (*
    Add adds a specified element to the end of a queue.
 *)
- 
+
 PROCEDURE Add (VAR Head: BasicBlock;
                b : BasicBlock) ;
 BEGIN
@@ -297,11 +284,11 @@ BEGIN
    END
 END Add ;
 
- 
+
 (*
    Sub deletes an element from the specified queue.
 *)
- 
+
 PROCEDURE Sub (VAR Head: BasicBlock;
                b: BasicBlock) ;
 BEGIN

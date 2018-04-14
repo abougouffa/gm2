@@ -44,13 +44,6 @@ FROM M2Printf IMPORT fprintf0, fprintf1, fprintf2 ;
 FROM SFIO IMPORT OpenToWrite, WriteS, ReadS, OpenToRead ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1 ;
 
-(* %%%FORWARD%%%
-PROCEDURE BuildFunctionList ; FORWARD ;
-PROCEDURE GenInitializationCalls ; FORWARD ;
-PROCEDURE GenFinalizationCalls ; FORWARD ;
-PROCEDURE GenExternals ; FORWARD ;
-   %%%FORWARD%%% *)
-
 
 CONST
    Comment = '#'  ; (* Comment leader      *)
@@ -97,7 +90,7 @@ END OpenInputFile ;
 
 
 (*
-   ScanArgs - 
+   ScanArgs -
 *)
 
 PROCEDURE ScanArgs ;
@@ -163,7 +156,7 @@ END ScanArgs ;
 
 
 (*
-   GenInit - 
+   GenInit -
 *)
 
 PROCEDURE GenInit ;
@@ -182,7 +175,7 @@ END GenInit ;
 
 
 (*
-   GenFinish - 
+   GenFinish -
 *)
 
 PROCEDURE GenFinish ;

@@ -37,25 +37,6 @@ TYPE
                 END ;
 
 
-(* %%%FORWARD%%%
-PROCEDURE Kill (t: SymbolTree) ; FORWARD ;
-PROCEDURE KillTree (VAR t: SymbolTree) ; FORWARD ;
-PROCEDURE FindNodeAndParentInTree (t: SymbolTree; n: Name;
-                                   VAR child, father: SymbolTree) ; FORWARD ;
-PROCEDURE SearchAndDo (t: SymbolTree; P: PerformOperation) ; FORWARD ;
-PROCEDURE SearchForAny (t: SymbolTree; P: IsSymbol) : BOOLEAN ; FORWARD ;
-
-PROCEDURE InitTree (VAR t: SymbolTree) ; FORWARD ;
-PROCEDURE KillTree (VAR t: SymbolTree) ; FORWARD ;
-PROCEDURE Kill (t: SymbolTree) ; FORWARD ;
-PROCEDURE KillTree (VAR t: SymbolTree) ; FORWARD ;
-PROCEDURE GetSymKey (t: SymbolTree; NameKey: Name) : WORD ; FORWARD ;
-PROCEDURE PutSymKey (t: SymbolTree; NameKey: Name; SymKey: WORD) ; FORWARD ;
-PROCEDURE DelSymKey (t: SymbolTree; NameKey: Name) ; FORWARD ;
-PROCEDURE IsEmptyTree (t: SymbolTree) : BOOLEAN ; FORWARD ;
-PROCEDURE DoesTreeContainAny (t: SymbolTree; P: IsSymbol) : BOOLEAN ; FORWARD ;
-   %%%FORWARD%%% *)
-
 PROCEDURE stop ;
 BEGIN
 END stop ;

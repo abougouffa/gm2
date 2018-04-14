@@ -34,15 +34,6 @@ TYPE
                END ;
 
 
-(* %%%FORWARD%%%
-PROCEDURE findConstMeta (sym: CARDINAL) : constType ; FORWARD ;
-PROCEDURE findConstType (sym: CARDINAL) : CARDINAL ; FORWARD ;
-PROCEDURE fixupConstCast (sym: CARDINAL; castType: CARDINAL) ; FORWARD ;
-PROCEDURE fixupConstMeta (sym: CARDINAL; meta: constType) ; FORWARD ;
-PROCEDURE addToConstList (sym: CARDINAL) ; FORWARD ;
-   %%%FORWARD%%% *)
-
-
 VAR
    headOfConsts: constList ;
 
@@ -221,7 +212,7 @@ END FixupConstMeta ;
 
 
 (*
-   fixupConstCast - 
+   fixupConstCast -
 *)
 
 PROCEDURE fixupConstCast (sym: CARDINAL; castType: CARDINAL) ;
@@ -243,7 +234,7 @@ END fixupConstCast ;
 
 
 (*
-   findConstType - 
+   findConstType -
 *)
 
 PROCEDURE findConstType (sym: CARDINAL) : CARDINAL ;
@@ -272,7 +263,7 @@ END findConstType ;
 
 
 (*
-   findConstMeta - 
+   findConstMeta -
 *)
 
 PROCEDURE findConstMeta (sym: CARDINAL) : constType ;
@@ -315,7 +306,7 @@ END ReportUnresolvedConstTypes ;
 
 
 (*
-   DebugMeta - 
+   DebugMeta -
 *)
 
 PROCEDURE DebugMeta (h: constList) ;
@@ -339,7 +330,7 @@ END DebugMeta ;
 
 
 (*
-   constTypeResolved - 
+   constTypeResolved -
 *)
 
 PROCEDURE constTypeResolved (h: constList) : BOOLEAN ;
@@ -349,7 +340,7 @@ END constTypeResolved ;
 
 
 (*
-   constExprResolved - 
+   constExprResolved -
 *)
 
 PROCEDURE constExprResolved (h: constList) : BOOLEAN ;
@@ -359,7 +350,7 @@ END constExprResolved ;
 
 
 (*
-   findConstMetaExpr - 
+   findConstMetaExpr -
 *)
 
 PROCEDURE findConstMetaExpr (h: constList) : constType ;
@@ -369,7 +360,7 @@ END findConstMetaExpr ;
 
 
 (*
-   constResolveViaMeta - 
+   constResolveViaMeta -
 *)
 
 PROCEDURE constResolveViaMeta (h: constList) : BOOLEAN ;
@@ -393,7 +384,7 @@ END constResolveViaMeta ;
 
 
 (*
-   constResolvedViaType - 
+   constResolvedViaType -
 *)
 
 PROCEDURE constResolvedViaType (h: constList) : BOOLEAN ;
@@ -418,7 +409,7 @@ END constResolvedViaType ;
 
 
 (*
-   resolveConstType - 
+   resolveConstType -
 *)
 
 PROCEDURE resolveConstType (h: constList) : BOOLEAN ;

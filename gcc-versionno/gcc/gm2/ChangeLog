@@ -1,3 +1,91 @@
+2018-04-14      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  build plugin/m2rte.so and create
+	  gm2/plugin directory.
+	* gm2/gm2-compiler/CLexBuf.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/M2ALU.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/M2AsmUtil.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/M2BasicBlock.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/M2BasicBlock.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/M2Batch.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/M2Const.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/M2Const.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/M2Depth.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/M2Lex.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/M2LexBuf.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/M2LexBuf.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/M2MetaError.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/M2MetaError.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/M2Optimize.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/M2Swig.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/NameKey.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/PCSymBuild.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/SymbolKey.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/SymbolTable.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/gm2lcc.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-compiler/gm2lgen.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-libs-ch/libc.c:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-libs-coroutines/Debug.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-libs-coroutines/Debug.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-libs-min/libc.c:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-libs/Args.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-libs/Args.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-libs/CmdArgs.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-libs/Debug.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-libs/DynamicStrings.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-libs/DynamicStrings.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-libs/FIO.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-libs/NumberIO.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-libs/PushBackInput.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-libs/RTExceptions.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-libs/Scan.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-libs/StrIO.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-libs/StrLib.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/gm2-libs/StringConvert.mod:  removed FORWARD prototype
+	  definitions.
+	* gm2/plugins/m2rte.c:  renamed to gm2/plugin/m2rte.c.
+	* gm2/ulm-lib-gm2/std/RTExceptions.mod:  removed FORWARD prototype
+	  definitions.
+
 2018-04-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  build m2rte plugin, install m2rte plugin.

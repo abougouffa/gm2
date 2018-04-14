@@ -25,16 +25,6 @@ FROM StdIO IMPORT Read, Write ;
 FROM libc IMPORT isatty ;
 
 
-(* %%%FORWARD%%%
-PROCEDURE WriteLn ; FORWARD ;
-PROCEDURE ReadString (VAR a: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE WriteString (a: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE Erase ; FORWARD ;
-PROCEDURE Echo (ch: CHAR) ; FORWARD ;
-PROCEDURE AlphaNum (ch: CHAR) : BOOLEAN ; FORWARD ;
-   %%%FORWARD%%% *)
-
-
 VAR
    IsATTY: BOOLEAN ;   (* Is default input from the keyboard? *)
 

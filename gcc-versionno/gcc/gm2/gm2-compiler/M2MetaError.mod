@@ -50,13 +50,6 @@ TYPE
    errorType = (error, warning, chained) ;
 
 
-(* %%%FORWARD%%%
-PROCEDURE ebnf (VAR e: Error; VAR t: errorType;
-                VAR r: String; s: String;
-                sym: ARRAY OF CARDINAL; count: CARDINAL;
-                VAR i: INTEGER; l: INTEGER) ; FORWARD ;
-   %%%FORWARD%%% *)
-
 
 (*
    ebnf := { percent
@@ -174,7 +167,7 @@ END then ;
 
 
 (*
-   doNumber - 
+   doNumber -
 *)
 
 PROCEDURE doNumber (bol: CARDINAL; count: CARDINAL;
@@ -192,7 +185,7 @@ END doNumber ;
 
 
 (*
-   doCount - 
+   doCount -
 *)
 
 PROCEDURE doCount (bol: CARDINAL; count: CARDINAL;
@@ -235,7 +228,7 @@ BEGIN
       RETURN( ConCat(o, InitStringCharStar(KeyToCharStar(GetSymName(sym[bol])))) )
    END
 END doAscii ;
-   
+
 
 PROCEDURE doName (bol: CARDINAL; count: CARDINAL;
                   sym: ARRAY OF CARDINAL; o: String; VAR quotes: BOOLEAN) : String ;
@@ -257,7 +250,7 @@ BEGIN
       END
    END
 END doName ;
-   
+
 
 PROCEDURE doQualified (bol: CARDINAL; count: CARDINAL;
                        sym: ARRAY OF CARDINAL; o: String) : String ;
@@ -429,7 +422,7 @@ END ConCatWord ;
 
 
 (*
-   symDesc - 
+   symDesc -
 *)
 
 PROCEDURE symDesc (sym: CARDINAL; o: String) : String ;
@@ -509,7 +502,7 @@ END symDesc ;
 
 
 (*
-   doDesc - 
+   doDesc -
 *)
 
 PROCEDURE doDesc (bol: CARDINAL; count: CARDINAL;
@@ -764,9 +757,9 @@ BEGIN
    END
 END ebnf ;
 
-  
+
 (*
-   doFormat - 
+   doFormat -
 *)
 
 PROCEDURE doFormat (VAR e: Error; VAR t: errorType;
@@ -903,7 +896,7 @@ END MetaError4 ;
 
 
 (*
-   wrapErrors - 
+   wrapErrors -
 *)
 
 PROCEDURE wrapErrors (tok: CARDINAL;

@@ -48,15 +48,6 @@ VAR
    PendingQueue: List ;
 
 
-(* %%%FORWARD%%%
-PROCEDURE DisplayModules ; FORWARD ;
-PROCEDURE Get (n: Name) : CARDINAL ; FORWARD ;
-PROCEDURE Pop () : CARDINAL ; FORWARD ;
-PROCEDURE Push (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE Put (Sym: CARDINAL; n: Name) ; FORWARD ;
-   %%%FORWARD%%% *)
-
-
 (*
    MakeProgramSource - is given a Name, n, which is used to create a program module.
                        The program module will be placed onto the compilation

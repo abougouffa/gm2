@@ -24,9 +24,6 @@ FROM NumberIO IMPORT CardToStr ;
 FROM libc IMPORT exit, write ;
 FROM SYSTEM IMPORT ADR ;
 
-(* %%%FORWARD%%%
-PROCEDURE WriteLn ; FORWARD ;
-   %%%FORWARD%%% *)
 
 CONST
    MaxStack = 10 ;

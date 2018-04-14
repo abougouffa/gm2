@@ -177,31 +177,8 @@ VAR
    inDesignator: BOOLEAN ;
 
 
-(* %%%FORWARD%%%
-PROCEDURE WalkExpr (e: exprNode) : BOOLEAN ; FORWARD ;
-PROCEDURE WalkUnary (e: exprNode) : BOOLEAN ; FORWARD ;
-PROCEDURE WalkLeaf (e: exprNode) : BOOLEAN ; FORWARD ;
-PROCEDURE doWalkNode (e: exprNode) : BOOLEAN ; FORWARD ;
-PROCEDURE WalkBinary (e: exprNode) : BOOLEAN ; FORWARD ;
-PROCEDURE findConstDes (sym: CARDINAL) : exprNode ; FORWARD ;
-PROCEDURE doWalkDesExpr (d, e: exprNode) : BOOLEAN ; FORWARD ;
-PROCEDURE InitUnary (m: constType; t: CARDINAL; o: Name) ; FORWARD ;
-PROCEDURE DebugDes (d: exprNode) ; FORWARD ;
-PROCEDURE DebugSym (sym: CARDINAL) ; FORWARD ;
-PROCEDURE DebugMeta (m: constType) ; FORWARD ;
-PROCEDURE DebugType (type: CARDINAL) ; FORWARD ;
-PROCEDURE DebugExpr (e: exprNode) ; FORWARD ;
-PROCEDURE DebugLeaf (l: exprNode) ; FORWARD ;
-PROCEDURE DebugUnary (l: exprNode) ; FORWARD ;
-PROCEDURE DebugBinary (l: exprNode) ; FORWARD ;
-PROCEDURE DebugFunction (f: exprNode) ; FORWARD ;
-PROCEDURE DebugConvert (f: exprNode) ; FORWARD ;
-PROCEDURE DebugOp (op: Name) ; FORWARD ;
-   %%%FORWARD%%% *)
-
-
 (*
-   GetSkippedType - 
+   GetSkippedType -
 *)
 
 PROCEDURE GetSkippedType (sym: CARDINAL) : CARDINAL ;
@@ -261,7 +238,7 @@ PROCEDURE PCEndBuildDefModule ;
 VAR
    NameStart,
    NameEnd  : CARDINAL ;
-BEGIN                                 
+BEGIN
    Assert(CompilingDefinitionModule()) ;
    CheckForUnknownInModule ;
    EndScope ;
@@ -610,7 +587,7 @@ PROCEDURE stop ; BEGIN END stop ;
 *)
 
 PROCEDURE PCStartBuildProcedure ;
-VAR 
+VAR
    name    : Name ;
    ProcSym : CARDINAL ;
 BEGIN
@@ -804,7 +781,7 @@ END BuildOptArgInitializer ;
 
 
 (*
-   InitDesExpr - 
+   InitDesExpr -
 *)
 
 PROCEDURE InitDesExpr (des: CARDINAL) ;
@@ -831,7 +808,7 @@ END InitDesExpr ;
 
 
 (*
-   DebugNode - 
+   DebugNode -
 *)
 
 PROCEDURE DebugNode (d: exprNode) ;
@@ -856,7 +833,7 @@ END DebugNode ;
 
 
 (*
-   DebugDes - 
+   DebugDes -
 *)
 
 PROCEDURE DebugDes (d: exprNode) ;
@@ -873,7 +850,7 @@ END DebugDes ;
 
 
 (*
-   DebugSym - 
+   DebugSym -
 *)
 
 PROCEDURE DebugSym (sym: CARDINAL) ;
@@ -890,7 +867,7 @@ END DebugSym ;
 
 
 (*
-   DebugMeta - 
+   DebugMeta -
 *)
 
 PROCEDURE DebugMeta (m: constType) ;
@@ -915,7 +892,7 @@ END DebugMeta ;
 
 
 (*
-   DebugType - 
+   DebugType -
 *)
 
 PROCEDURE DebugType (type: CARDINAL) ;
@@ -939,7 +916,7 @@ END DebugType ;
 
 
 (*
-   DebugExpr - 
+   DebugExpr -
 *)
 
 PROCEDURE DebugExpr (e: exprNode) ;
@@ -955,7 +932,7 @@ END DebugExpr ;
 
 
 (*
-   DebugFunction - 
+   DebugFunction -
 *)
 
 PROCEDURE DebugFunction (f: exprNode) ;
@@ -982,7 +959,7 @@ END DebugFunction ;
 
 
 (*
-   DebugConvert - 
+   DebugConvert -
 *)
 
 PROCEDURE DebugConvert (f: exprNode) ;
@@ -997,7 +974,7 @@ END DebugConvert ;
 
 
 (*
-   DebugLeaf - 
+   DebugLeaf -
 *)
 
 PROCEDURE DebugLeaf (l: exprNode) ;
@@ -1013,7 +990,7 @@ END DebugLeaf ;
 
 
 (*
-   DebugUnary - 
+   DebugUnary -
 *)
 
 PROCEDURE DebugUnary (l: exprNode) ;
@@ -1030,7 +1007,7 @@ END DebugUnary ;
 
 
 (*
-   DebugBinary - 
+   DebugBinary -
 *)
 
 PROCEDURE DebugBinary (l: exprNode) ;
@@ -1048,7 +1025,7 @@ END DebugBinary ;
 
 
 (*
-   DebugOp - 
+   DebugOp -
 *)
 
 PROCEDURE DebugOp (op: Name) ;
@@ -1058,7 +1035,7 @@ END DebugOp ;
 
 
 (*
-   PushInConstructor - 
+   PushInConstructor -
 *)
 
 PROCEDURE PushInConstructor ;
@@ -1069,7 +1046,7 @@ END PushInConstructor ;
 
 
 (*
-   PopInConstructor - 
+   PopInConstructor -
 *)
 
 PROCEDURE PopInConstructor ;
@@ -1079,7 +1056,7 @@ END PopInConstructor ;
 
 
 (*
-   StartDesConst - 
+   StartDesConst -
 *)
 
 PROCEDURE StartDesConst ;
@@ -1095,7 +1072,7 @@ END StartDesConst ;
 
 
 (*
-   EndDesConst - 
+   EndDesConst -
 *)
 
 PROCEDURE EndDesConst ;
@@ -1149,7 +1126,7 @@ END fixupProcedureType ;
 
 
 (*
-   InitFunction - 
+   InitFunction -
 *)
 
 PROCEDURE InitFunction (m: constType; p, t: CARDINAL; f, s: exprNode; more: BOOLEAN) ;
@@ -1177,7 +1154,7 @@ END InitFunction ;
 
 
 (*
-   InitConvert - 
+   InitConvert -
 *)
 
 PROCEDURE InitConvert (m: constType; t: CARDINAL; to, e: exprNode) ;
@@ -1203,7 +1180,7 @@ END InitConvert ;
 
 
 (*
-   InitLeaf - 
+   InitLeaf -
 *)
 
 PROCEDURE InitLeaf (m: constType; s, t: CARDINAL) ;
@@ -1228,7 +1205,7 @@ END InitLeaf ;
 
 
 (*
-   InitProcedure - 
+   InitProcedure -
 *)
 
 PROCEDURE InitProcedure (s: CARDINAL) ;
@@ -1238,7 +1215,7 @@ END InitProcedure ;
 
 
 (*
-   InitCharType - 
+   InitCharType -
 *)
 
 PROCEDURE InitCharType (s: CARDINAL) ;
@@ -1248,7 +1225,7 @@ END InitCharType ;
 
 
 (*
-   InitZType - 
+   InitZType -
 *)
 
 PROCEDURE InitZType (s: CARDINAL) ;
@@ -1258,7 +1235,7 @@ END InitZType ;
 
 
 (*
-   InitRType - 
+   InitRType -
 *)
 
 PROCEDURE InitRType (s: CARDINAL) ;
@@ -1268,7 +1245,7 @@ END InitRType ;
 
 
 (*
-   InitUnknown - 
+   InitUnknown -
 *)
 
 PROCEDURE InitUnknown (s: CARDINAL) ;
@@ -1278,7 +1255,7 @@ END InitUnknown ;
 
 
 (*
-   InitBooleanType - 
+   InitBooleanType -
 *)
 
 PROCEDURE InitBooleanType (s: CARDINAL) ;
@@ -1324,7 +1301,7 @@ END PushConstType ;
 
 
 (*
-   PushConstructorCastType - 
+   PushConstructorCastType -
 *)
 
 PROCEDURE PushConstructorCastType ;
@@ -1341,7 +1318,7 @@ END PushConstructorCastType ;
 
 
 (*
-   TypeToMeta - 
+   TypeToMeta -
 *)
 
 PROCEDURE TypeToMeta (type: CARDINAL) : constType ;
@@ -1409,7 +1386,7 @@ END buildConstFunction ;
 
 
 (*
-   PushConstFunctionType - 
+   PushConstFunctionType -
 *)
 
 PROCEDURE PushConstFunctionType ;
@@ -1450,7 +1427,7 @@ END PushConstFunctionType ;
 
 
 (*
-   PushIntegerType - 
+   PushIntegerType -
 *)
 
 PROCEDURE PushIntegerType ;
@@ -1473,7 +1450,7 @@ END PushIntegerType ;
 
 
 (*
-   PushRType - 
+   PushRType -
 *)
 
 PROCEDURE PushRType ;
@@ -1489,7 +1466,7 @@ END PushRType ;
 
 
 (*
-   PushStringType - 
+   PushStringType -
 *)
 
 PROCEDURE PushStringType ;
@@ -1505,7 +1482,7 @@ END PushStringType ;
 
 
 (*
-   InitBinary - 
+   InitBinary -
 *)
 
 PROCEDURE InitBinary (m: constType; t: CARDINAL; o: Name) ;
@@ -1565,7 +1542,7 @@ END BuildBinaryConst ;
 
 
 (*
-   InitUnary - 
+   InitUnary -
 *)
 
 PROCEDURE InitUnary (m: constType; t: CARDINAL; o: Name) ;
@@ -1608,7 +1585,7 @@ END BuildUnaryConst ;
 
 
 (*
-   isTypeResolved - 
+   isTypeResolved -
 *)
 
 PROCEDURE isTypeResolved (e: exprNode) : BOOLEAN ;
@@ -1630,7 +1607,7 @@ END isTypeResolved ;
 
 
 (*
-   getEtype - 
+   getEtype -
 *)
 
 PROCEDURE getEtype (e: exprNode) : CARDINAL ;
@@ -1652,7 +1629,7 @@ END getEtype ;
 
 
 (*
-   getEmeta - 
+   getEmeta -
 *)
 
 PROCEDURE getEmeta (e: exprNode) : constType ;
@@ -1674,7 +1651,7 @@ END getEmeta ;
 
 
 (*
-   assignTM - 
+   assignTM -
 *)
 
 PROCEDURE assignTM (VAR td: CARDINAL; VAR md: constType; te: CARDINAL; me: constType) ;
@@ -1685,7 +1662,7 @@ END assignTM ;
 
 
 (*
-   assignType - 
+   assignType -
 *)
 
 PROCEDURE assignType (d, e: exprNode) ;
@@ -1751,7 +1728,7 @@ END deduceTypes ;
 
 
 (*
-   WalkConvert - 
+   WalkConvert -
 *)
 
 PROCEDURE WalkConvert (e: exprNode) : BOOLEAN ;
@@ -1773,7 +1750,7 @@ END WalkConvert ;
 
 
 (*
-   WalkFunctionParam - 
+   WalkFunctionParam -
 *)
 
 PROCEDURE WalkFunctionParam (func: CARDINAL; e: exprNode) : BOOLEAN ;
@@ -1811,7 +1788,7 @@ END WalkFunctionParam ;
 
 
 (*
-   WalkFunction - 
+   WalkFunction -
 *)
 
 PROCEDURE WalkFunction (e: exprNode) : BOOLEAN ;
@@ -1843,7 +1820,7 @@ END WalkFunction ;
 
 
 (*
-   doWalkNode - 
+   doWalkNode -
 *)
 
 PROCEDURE doWalkNode (e: exprNode) : BOOLEAN ;
@@ -1867,7 +1844,7 @@ END doWalkNode ;
 
 
 (*
-   WalkLeaf - 
+   WalkLeaf -
 *)
 
 PROCEDURE WalkLeaf (e: exprNode) : BOOLEAN ;
@@ -1906,7 +1883,7 @@ END WalkLeaf ;
 
 
 (*
-   WalkUnary - 
+   WalkUnary -
 *)
 
 PROCEDURE WalkUnary (e: exprNode) : BOOLEAN ;
@@ -1928,7 +1905,7 @@ END WalkUnary ;
 
 
 (*
-   WalkBinary - 
+   WalkBinary -
 *)
 
 PROCEDURE WalkBinary (e: exprNode) : BOOLEAN ;
@@ -1953,7 +1930,7 @@ END WalkBinary ;
 
 
 (*
-   WalkExpr - 
+   WalkExpr -
 *)
 
 PROCEDURE WalkExpr (e: exprNode) : BOOLEAN ;
@@ -2028,7 +2005,7 @@ END doWalkDes ;
 
 
 (*
-   findConstDes - 
+   findConstDes -
 *)
 
 PROCEDURE findConstDes (sym: CARDINAL) : exprNode ;
@@ -2106,7 +2083,7 @@ END WalkConsts ;
 
 
 (*
-   DebugNodes - 
+   DebugNodes -
 *)
 
 PROCEDURE DebugNodes ;
@@ -2128,7 +2105,7 @@ END DebugNodes ;
 
 
 (*
-   findAlias - 
+   findAlias -
 *)
 
 PROCEDURE findAlias (sym: CARDINAL; e: exprNode) : CARDINAL ;
@@ -2171,7 +2148,7 @@ END SkipConst ;
 
 
 (*
-   PushConstAttributeType - 
+   PushConstAttributeType -
 *)
 
 PROCEDURE PushConstAttributeType ;
@@ -2192,7 +2169,7 @@ END PushConstAttributeType ;
 
 
 (*
-   PushConstAttributePairType - 
+   PushConstAttributePairType -
 *)
 
 PROCEDURE PushConstAttributePairType ;
@@ -2223,7 +2200,7 @@ END PushConstAttributePairType ;
 
 
 (*
-   CheckConsts - 
+   CheckConsts -
 *)
 
 PROCEDURE CheckConsts ;
@@ -2278,7 +2255,7 @@ END ResolveConstTypes ;
 
 
 (*
-   Init - 
+   Init -
 *)
 
 PROCEDURE Init ;

@@ -75,17 +75,6 @@ TYPE
                             next          : frame ;
                          END ;
 
-(* %%%FORWARD%%%
-PROCEDURE Init ; FORWARD ;
-PROCEDURE writeCstring (a: ADDRESS) ; FORWARD ;
-PROCEDURE writeString (a: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE writeCard (c: CARDINAL) ; FORWARD ;
-PROCEDURE writeLongcard (l: LONGCARD) ; FORWARD ;
-PROCEDURE writeAddress (a: ADDRESS) ; FORWARD ;
-PROCEDURE writeLn ; FORWARD ;
-PROCEDURE IsOnGarbage (e, s: String) : BOOLEAN ; FORWARD ;
-   %%%FORWARD%%% *)
-
 VAR
    Initialized: BOOLEAN ;
    frameHead  : frame ;

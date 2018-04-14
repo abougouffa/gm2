@@ -58,16 +58,6 @@ VAR
    StackPtr      : CARDINAL ;
 
 
-(* %%%FORWARD%%%
-PROCEDURE AdvanceChar ; FORWARD ;
-PROCEDURE Delimiter() : BOOLEAN ; FORWARD ;
-PROCEDURE DoubleDelimiter () : BOOLEAN ; FORWARD ;
-PROCEDURE Init ; FORWARD ;
-PROCEDURE ReadSymbol (VAR a: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE ConsumeComments ; FORWARD ;
-   %%%FORWARD%%% *)
-
-
 (*
    IsSym - returns the result of the comparison between CurrentSymbol
            and Name.

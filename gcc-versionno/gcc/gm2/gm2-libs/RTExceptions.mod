@@ -33,8 +33,7 @@ CONST
    MaxBuffer = 4096 ;
 
 TYPE
-   Handler = POINTER TO handler ;  (* to help p2c *)
-   handler =            RECORD
+   Handler = POINTER TO RECORD
                            p    : ProcedureHandler ;
                            n    : CARDINAL ;
                            right,
@@ -42,8 +41,7 @@ TYPE
                            stack: Handler ;
                         END ;
 
-   EHBlock = POINTER TO ehblock ;  (* to help p2c *)
-   ehblock =            RECORD
+   EHBlock = POINTER TO RECORD
                            buffer  : ARRAY [0..MaxBuffer] OF CHAR ;
                            number  : CARDINAL ;
                            handlers: Handler ;
@@ -52,10 +50,6 @@ TYPE
 
    PtrToChar = POINTER TO CHAR ;
 
-(* %%%FORWARD%%%
-PROCEDURE NewHandler () : Handler ; FORWARD ;
-PROCEDURE KillHandlers (h: Handler) : Handler ; FORWARD ;
-   %%%FORWARD%%% *)
 
 VAR
    inException  : BOOLEAN ;

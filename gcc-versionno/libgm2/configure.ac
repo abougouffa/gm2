@@ -16,14 +16,13 @@
 # <http://www.gnu.org/licenses/>.
 
 # Process this file with autoreconf to produce a configure script.
+AC_CONFIG_MACRO_DIR([config])
 
-AC_PREREQ([2.64])
-AC_INIT(package-unused, version-unused,, libgm2)
-AC_CONFIG_SRCDIR(Makefile.am)
+AC_PREREQ(2.64)
+AC_INIT([package-unused], version-unused,,[libgm2])
 AC_CONFIG_HEADER(config.h)
 
-AC_CANONICAL_SYSTEM
-ACX_NONCANONICAL_TARGET
+GCC_NO_EXECUTABLES
 
 # Gets build, host, target, *_vendor, *_cpu, *_os, etc.
 #
@@ -41,14 +40,14 @@ ACX_NONCANONICAL_TARGET
 # Do not delete or change the following two lines.  For why, see
 # http://gcc.gnu.org/ml/libstdc++/2003-07/msg00451.html
 AC_CANONICAL_SYSTEM
-target_alias=${target_alias-$host_alias}
+ACX_NONCANONICAL_TARGET
 
-GCC_NO_EXECUTABLES
+AM_ENABLE_MULTILIB(, ..)
+
+target_alias=${target_alias-$host_alias}
+AC_SUBST(target_alias)
 
 AM_INIT_AUTOMAKE([1.9.0 foreign no-dist -Wall -Wno-portability])
-if test -n "${with_target_subdir}"; then
-  AM_ENABLE_MULTILIB(, ..)
-fi
 
 AH_TEMPLATE(PACKAGE, [Name of package])
 AH_TEMPLATE(VERSION, [Version number of package])
@@ -72,7 +71,6 @@ AC_CHECK_HEADERS(limits.h stddef.h string.h strings.h stdlib.h \
                  pthread.h stdarg.h stdio.h sys/types.h termios.h \
                  netinet/in.h netdb.h sys/uio.h sys/stat.h wchar.h)
 
-AC_SUBST(libtool_VERSION)
 
 AC_CANONICAL_HOST
 ACX_NONCANONICAL_HOST
@@ -188,10 +186,8 @@ AM_PROG_LIBTOOL
 AC_SUBST(enable_shared)
 AC_SUBST(enable_static)
 
-AM_MAINTAINER_MODE
-
 # For libtool versioning info, format is CURRENT:REVISION:AGE
-libtool_VERSION=1:0:0
+libtool_VERSION=13:0:0
 AC_SUBST(libtool_VERSION)
 
 AC_CHECK_TYPES([struct timezone, struct stat, struct timeval])

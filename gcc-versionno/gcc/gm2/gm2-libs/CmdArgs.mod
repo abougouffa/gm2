@@ -29,31 +29,6 @@ CONST
    dquote = '"' ;
    tab    = ' ' ;
 
-(* %%%FORWARD%%%
-PROCEDURE GetArg (CmdLine: ARRAY OF CHAR ;
-                  n: CARDINAL; VAR Argi: ARRAY OF CHAR) : BOOLEAN ; FORWARD ;
-PROCEDURE GetNextArg (CmdLine: ARRAY OF CHAR; VAR CmdIndex: CARDINAL;
-                      VAR Arg: ARRAY OF CHAR) : BOOLEAN ; FORWARD ;
-PROCEDURE CopyUntilSpace (From: ARRAY OF CHAR;
-                          VAR FromIndex: CARDINAL; FromHigh: CARDINAL;
-                          VAR To: ARRAY OF CHAR;
-                          VAR ToIndex: CARDINAL; ToHigh: CARDINAL) ; FORWARD ;
-PROCEDURE CopyUntil (From: ARRAY OF CHAR;
-                     VAR FromIndex: CARDINAL; FromHigh: CARDINAL;
-                     VAR To: ARRAY OF CHAR;
-                     VAR ToIndex: CARDINAL; ToHigh: CARDINAL;
-                     UntilChar: CHAR) ; FORWARD ;
-PROCEDURE CopyChar (From: ARRAY OF CHAR;
-                    VAR FromIndex: CARDINAL; FromHigh: CARDINAL;
-                    VAR To: ARRAY OF CHAR;
-                    VAR ToIndex: CARDINAL; ToHigh: CARDINAL) ; FORWARD ;
-PROCEDURE Narg (CmdLine: ARRAY OF CHAR) : CARDINAL ; FORWARD ;
-PROCEDURE Escape (ch: CHAR) : BOOLEAN ; FORWARD ;
-PROCEDURE Space (ch: CHAR) : BOOLEAN ; FORWARD ;
-PROCEDURE DoubleQuote (ch: CHAR) : BOOLEAN ; FORWARD ;
-PROCEDURE SingleQuote (ch: CHAR) : BOOLEAN ; FORWARD ;
-   %%%FORWARD%%% *)
-
 
 (*
    GetArg - takes a command line and attempts to extract argument, n,

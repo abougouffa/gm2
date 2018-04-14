@@ -83,22 +83,6 @@ TYPE
                                                            (* bufstart above.                  *)
    PtrToChar         = POINTER TO CHAR ;
 
-(* we only need forward directives for the p2c bootstrapping tool *)
-
-(* %%%FORWARD%%%
-PROCEDURE SetEndOfLine (f: File; ch: CHAR) ; FORWARD ;
-PROCEDURE FormatError (a: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE FormatError1 (a: ARRAY OF CHAR; w: ARRAY OF BYTE) ; FORWARD ;
-PROCEDURE CheckAccess (f: File; use: FileUsage; towrite: BOOLEAN) ; FORWARD ;
-PROCEDURE BufferedRead (f: File; nBytes: CARDINAL; a: ADDRESS) : INTEGER ; FORWARD ;
-PROCEDURE InitializeFile (f: File; fname: ADDRESS; flength: CARDINAL;
-                          fstate: FileStatus; use: FileUsage; towrite: BOOLEAN; buflength: CARDINAL) : File ; FORWARD ;
-PROCEDURE ConnectToUnix (f: File; towrite, newfile: BOOLEAN) ; FORWARD ;
-PROCEDURE SetState (f: File; s: FileStatus) ; FORWARD ;
-PROCEDURE PreInitialize (f: File; fname: ARRAY OF CHAR;
-                         state: FileStatus; use: FileUsage;
-                         towrite: BOOLEAN; osfd: INTEGER; bufsize: CARDINAL) ; FORWARD ;
-   %%%FORWARD%%% *)
 
 VAR
    FileInfo: Index ;
@@ -543,7 +527,7 @@ END Close ;
 *)
 
 PROCEDURE ReadFromBuffer (f: File; a: ADDRESS; nBytes: CARDINAL) : INTEGER ;
-VAR 
+VAR
    t     : ADDRESS ;
    result: INTEGER ;
    total,
@@ -674,7 +658,7 @@ END ReadNBytes ;
 *)
 
 PROCEDURE BufferedRead (f: File; nBytes: CARDINAL; a: ADDRESS) : INTEGER ;
-VAR 
+VAR
    t     : ADDRESS ;
    result: INTEGER ;
    total,
@@ -1003,7 +987,7 @@ END ReadChar ;
 
 
 (*
-   SetEndOfLine - 
+   SetEndOfLine -
 *)
 
 PROCEDURE SetEndOfLine (f: File; ch: CHAR) ;
@@ -1242,7 +1226,7 @@ END WriteNBytes ;
 *)
 
 PROCEDURE BufferedWrite (f: File; nBytes: CARDINAL; a: ADDRESS) : INTEGER ;
-VAR 
+VAR
    t     : ADDRESS ;
    result: INTEGER ;
    total,

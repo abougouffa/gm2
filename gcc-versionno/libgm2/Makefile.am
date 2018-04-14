@@ -5,12 +5,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; see the file COPYING3.  If not see
 # <http://www.gnu.org/licenses/>.
@@ -18,9 +18,11 @@
 #
 # if this file is changed then you need to run
 #
-# autoreconf2.64 
+# autoreconf2.64
 #
 # Modula-2 support.
+AUTOMAKE_OPTIONS = 1.8 foreign
+
 SUFFIXES = .c .mod .def .o .obj .lo .a
 
 ACLOCAL_AMFLAGS = -I . -I .. -I ../config
@@ -37,7 +39,7 @@ GM2_SRC = $(GCC_DIR)/gm2
 toolexeclibdir=@toolexeclibdir@
 toolexecdir=@toolexecdir@
 
-SUBDIRS = libmin libpim liblog libcor libulm libiso 
+SUBDIRS = libmin libpim liblog libcor libulm libiso
 
 
 # Work around what appears to be a GNU make bug handling MAKEFLAGS
@@ -91,14 +93,5 @@ AM_MAKEFLAGS = \
         "TARGET_LIB_PATH=$(TARGET_LIB_PATH)" \
         "TARGET_LIB_PATH_libgm2=$(TARGET_LIB_PATH_libgm2)"
 
-
 # Subdir rules rely on $(FLAGS_TO_PASS)
 FLAGS_TO_PASS = $(AM_MAKEFLAGS)
-
-# Multilib support.  Automake should provide these on its own.
-all-recursive: all-multi
-install-recursive: install-multi
-mostlyclean-recursive: mostlyclean-multi
-clean-recursive: clean-multi
-distclean-recursive: distclean-multi
-maintainer-clean-recursive: maintainer-clean-multi

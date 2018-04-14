@@ -31,10 +31,6 @@ FROM libc IMPORT exit ;
 
 IMPORT FIO ;
 
-(* %%%FORWARD%%%
-PROCEDURE Init ; FORWARD ;
-PROCEDURE ErrChar (ch: CHAR) ; FORWARD ;
-   %%%FORWARD%%% *)
 
 CONST
    MaxPushBackStack =  8192 ;

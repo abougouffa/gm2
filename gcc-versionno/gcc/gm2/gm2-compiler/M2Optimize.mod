@@ -59,27 +59,6 @@ FROM M2Quads IMPORT QuadOperator, GetQuad, GetFirstQuad, GetNextQuad,
                     GetRealQuad ;
 
 
-(* %%%FORWARD%%%
-PROCEDURE FoldMultipleGoto (QuadNo: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE ReduceBranch (Operator: QuadOperator;
-                        CurrentQuad,
-                        CurrentOperand1, CurrentOperand2,
-                        CurrentOperand3: CARDINAL;
-                        VAR NextQuad: CARDINAL;
-                        Folded: BOOLEAN) : BOOLEAN ; FORWARD ;
-PROCEDURE IsBasicBlock (From, To: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE ReduceGoto (CurrentQuad, CurrentOperand3, NextQuad: CARDINAL;
-                      Folded: BOOLEAN) : BOOLEAN ; FORWARD ;
-PROCEDURE KnownReachableInitCode(Start, End: CARDINAL) ; FORWARD ;
-PROCEDURE MakeExportedProceduresReachable ; FORWARD ;
-PROCEDURE KnownReachable (Start, End: CARDINAL) ; FORWARD ;
-PROCEDURE KnownReach (sym: CARDINAL) ; FORWARD ;
-PROCEDURE Delete (Start, End: CARDINAL) ; FORWARD ;
-PROCEDURE DeleteUnReachableProcedures ; FORWARD ;
-   %%%FORWARD%%% *)
-
-
-
 (*
    FoldBranches - folds unneccessary branches in the list of quadruples.
                   It searches for the following patterns:

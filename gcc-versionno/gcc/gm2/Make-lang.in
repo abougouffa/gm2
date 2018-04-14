@@ -186,6 +186,7 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot \
                  $(objdir)/gm2/mc-boot \
                  $(objdir)/gm2/mc-boot-ch \
                  $(objdir)/gm2/mc-boot-gen \
+                 $(objdir)/gm2/plugin \
                  stage1/gm2 stage2/gm2 stage3/gm2 stage4/gm2
 
 # gt-gm2-gm2-lang.h gtype-gm2.h gt-gm2-gccgm2.h gt-gm2-m2builtins.h gt-gm2-m2except.h: s-gtype; @true
@@ -194,11 +195,11 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot \
 
 gm2.all.build: xgm2$(exeext) stage1/gm2/cc1gm2$(exeext) \
 	$(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext) \
-        m2rte$(exeext).so
+	gm2/plugin/m2rte$(exeext).so
 
 gm2.all.cross: xgm2-cross$(exeext) stage1/gm2/cc1gm2$(exeext) \
 	$(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext) \
-        m2rte$(exeext).so
+	gm2/plugin/m2rte$(exeext).so
 
 gm2.start.encap: xgm2$(exeext)
 gm2.rest.encap:
@@ -428,14 +429,15 @@ gm2.uninstall:
 	-rm -rf $(bindir)/$(GM2_CROSS_NAME)
 	-rm -f $(bindir)/gm2m$(exeext)
 
-gm2.install-plugin: m2rte$(exeext).so
+gm2.install-plugin: gm2/plugin/m2rte$(exeext).so
 	rm -f $(plugin_bindir)/m2rte$(exeext).so
-	$(INSTALL_PROGRAM) m2rte$(exeext).so $(plugin_bindir)/m2rte$(exeext).so
+	$(INSTALL_PROGRAM) gm2/plugin/m2rte$(exeext) $(plugin_bindir)/m2rte$(exeext).so
 	chmod a+x $(plugin_bindir)/m2rte$(exeext).so
 
-m2rte$(exeext).so: $(srcdir)/gm2/plugins/m2rte.c
-	$(PLUGINCC) $(PLUGINCFLAGS) -fno-rtti -I. -I$(srcdir) -I$(srcdir)/../include -I$(srcdir)/../libcpp/include -Wall -Wno-literal-suffix -fPIC -c -o m2rte.o $(srcdir)/gm2/plugins/m2rte.c
-	$(PLUGINCC) $(PLUGINCFLAGS) $(PLUGINLIBS) -fno-rtti m2rte.o -shared -o $@
+gm2/plugin/m2rte$(exeext).so: $(srcdir)/gm2/plugin/m2rte.c
+	mkdir -p $(GM2_DIRS)
+	$(PLUGINCC) $(PLUGINCFLAGS) -fno-rtti -I. -I$(srcdir) -I$(srcdir)/../include -I$(srcdir)/../libcpp/include -Wall -Wno-literal-suffix -fPIC -c -o gm2/plugin/m2rte.o $(srcdir)/gm2/plugin/m2rte.c
+	$(PLUGINCC) $(PLUGINCFLAGS) $(PLUGINLIBS) -fno-rtti gm2/plugin/m2rte.o -shared -o $@
 
 
 # Clean hooks:
@@ -701,7 +703,7 @@ stage2/gm2/cc1gm2$(exeext): stage1/gm2/cc1gm2$(exeext) gm2/gm2-compiler/m2flex.o
 
 stage1/gm2/cc1gm2$(exeext): $(GM2_DIRS) xgm2$(exeext) gm2/gm2-compiler-boot/m2flex.o \
                             $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) \
-                            $(GM2_LIBS_BOOT) $(MC_LIBS) m2rte$(exeext).so
+                            $(GM2_LIBS_BOOT) $(MC_LIBS) gm2/plugin/m2rte$(exeext).so
 	$(LINKER) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) gm2/gm2-compiler-boot/m2flex.o \
                             attribs.o \
                              $(GM2_LIBS_BOOT) $(MC_LIBS) \

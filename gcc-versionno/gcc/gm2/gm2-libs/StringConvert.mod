@@ -37,11 +37,6 @@ FROM DynamicStrings IMPORT String, InitString,
 FROM ldtoa IMPORT Mode, strtold, ldtoa ;
 IMPORT dtoa ;   (* this fixes linking - as the C ldtoa uses dtoa *)
 
-(* %%%FORWARD%%%
-PROCEDURE doSigFig (s: String; n: CARDINAL) : String ; FORWARD ;
-PROCEDURE carryOne (s: String; i: CARDINAL) : String ; FORWARD ;
-PROCEDURE doDecimalPlaces (s: String; n: CARDINAL) : String ; FORWARD ;
-   %%%FORWARD%%% *)
 
 (*
 #undef GM2_DEBUG_STRINGCONVERT
@@ -69,7 +64,7 @@ END Assert ;
 
 
 (*
-   Max - 
+   Max -
 *)
 
 PROCEDURE Max (a, b: CARDINAL) : CARDINAL ;
@@ -84,7 +79,7 @@ END Max ;
 
 
 (*
-   Min - 
+   Min -
 *)
 
 PROCEDURE Min (a, b: CARDINAL) : CARDINAL ;
@@ -672,7 +667,7 @@ END bstoc ;
 *)
 
 PROCEDURE ToThePower10 (v: LONGREAL; power: INTEGER) : LONGREAL;
-VAR 
+VAR
    i: INTEGER ;
 BEGIN
    i := 0 ;
@@ -843,7 +838,7 @@ END StringToLongreal ;
 
 
 (*
-   rtos - 
+   rtos -
 *)
 
 PROCEDURE rtos (r: REAL; TotalWidth, FractionWidth: CARDINAL) : String ;
@@ -866,7 +861,7 @@ END stor ;
 
 
 (*
-   lrtos - 
+   lrtos -
 *)
 
 PROCEDURE lrtos (r: LONGREAL; TotalWidth, FractionWidth: CARDINAL) : String ;

@@ -45,20 +45,6 @@ FROM StrIO IMPORT WriteLn, WriteString ;
 FROM libc IMPORT exit ;
 
 
-(* %%%FORWARD%%%
-PROCEDURE OpenSource (a: ARRAY OF CHAR) : BOOLEAN ; FORWARD ;
-PROCEDURE CloseSource ; FORWARD ;
-PROCEDURE GetNextSymbol (VAR a: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE ChuckUpToSymbol ; FORWARD ;
-PROCEDURE SymbolChar () : CHAR ; FORWARD ;
-PROCEDURE NextChar ; FORWARD ;
-PROCEDURE NonSymbolChar () : BOOLEAN ; FORWARD ;
-PROCEDURE WriteError (a: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE ReadString (VAR a: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE Read (VAR ch: CHAR) ; FORWARD ;
-   %%%FORWARD%%% *)
-
-
 CONST
    MaxLength = 255 ;  (* Max Length of Source Line *)
 

@@ -96,7 +96,7 @@ CLEANFILES = SYSTEM.def
 M2LIBDIR = /m2/min/
 
 .mod.lo:
-	../libtool --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(GM2_FOR_TARGET) -c $(CFLAGS_FOR_TARGET) $(LIBCFLAGS) $(libmin_la_M2FLAGS) $< -o $@
+	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(GM2_FOR_TARGET) -c $(CFLAGS_FOR_TARGET) $(LIBCFLAGS) $(libmin_la_M2FLAGS) $< -o $@
 
 libc.o: $(GM2_SRC)/gm2-libs-min/libc.c
 
@@ -107,7 +107,7 @@ SYSTEM.def: Makefile
              $(GM2_SRC)/gm2-libs-min/SYSTEM.def \
              $(GM2_SRC)/gm2-libs-min/SYSTEM.mod \
              -I$(GM2_SRC)/gm2-libs-min:$(GM2_SRC)/gm2-libs \
-             "$(GM2_FOR_TARGET) -fno-exceptions -fno-m2-plugin" $@
+             "$(GM2_FOR_TARGET) -fno-exceptions" $@
 
 install-data-local: force
 	mkdir -p $(DESTDIR)$(inst_libdir)/$(MULTIDIR)$(M2LIBDIR)

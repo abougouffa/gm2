@@ -17,19 +17,19 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE M2Depth ;
- 
- 
+
+
 FROM Storage IMPORT ALLOCATE ;
 FROM StrLib IMPORT StrEqual, StrCopy ;
 FROM NumberIO IMPORT WriteCard ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NameKey IMPORT Name, WriteKey ;
 
- 
+
 CONST
    MaxNoOfSons  =  100 ;
    MaxNoOfFiles = 1000 ;
- 
+
 TYPE
    PtrToNode = POINTER TO Node ;
    Node      = RECORD
@@ -48,32 +48,11 @@ TYPE
                   SourceNode : PtrToNode ;  (* Node which corresponds to *)
                                             (* source.                   *)
                END ;
- 
- 
+
+
 VAR
    FileNo   : CARDINAL ;
    Files    : ARRAY [1..MaxNoOfFiles] OF Source ;
-
-(* %%%FORWARD%%%
-PROCEDURE AddSon (father, son: PtrToNode) ;  FORWARD ;
-PROCEDURE CreateSon (son, father: PtrToNode; Level: CARDINAL) ; FORWARD ;
-PROCEDURE DeleteFromFather (son: PtrToNode) ; FORWARD ;
-PROCEDURE DeleteSons (father, son: PtrToNode) ; FORWARD ;
-PROCEDURE DisplayGraph ; FORWARD ;
-PROCEDURE DisplaySons (n: PtrToNode) ; FORWARD ;
-PROCEDURE DisplaySource ; FORWARD ;
-PROCEDURE DisplayTree ; FORWARD ;
-PROCEDURE DisplayTreeFile (f: CARDINAL) ; FORWARD ;
-PROCEDURE ENTER ; FORWARD ;
-PROCEDURE GetModuleID (name: Name) : CARDINAL ; FORWARD ;
-PROCEDURE GetNodeDepth (son: PtrToNode) : CARDINAL ; FORWARD ;
-PROCEDURE IncreaseLevel (n: PtrToNode ; inc, Threshold: CARDINAL) ; FORWARD ;
-PROCEDURE IsSon (father, son: PtrToNode) : BOOLEAN ; FORWARD ;
-PROCEDURE IsSubNode (father, son: PtrToNode) : BOOLEAN ; FORWARD ;
-PROCEDURE LEAVE ; FORWARD ;
-PROCEDURE NewNode (VAR n: PtrToNode) ; FORWARD ;
-PROCEDURE NewSource (VAR s: CARDINAL) ; FORWARD ;
-   %%%FORWARD%%% *)
 
 
 PROCEDURE NewNode (VAR n: PtrToNode) ;
@@ -83,8 +62,8 @@ BEGIN
       NoOfSons := 0
    END
 END NewNode ;
- 
- 
+
+
 PROCEDURE NewSource (VAR s: CARDINAL) ;
 BEGIN
    IF FileNo=MaxNoOfFiles
@@ -358,7 +337,7 @@ END IncreaseLevel ;
 (* since it reuses maybe NIL fields within the Son ARRAY. Caused by moving *)
 (* subtrees of the dependancy graph.                                       *)
 
-PROCEDURE AddSon (father, son: PtrToNode) ; 
+PROCEDURE AddSon (father, son: PtrToNode) ;
 VAR
   i    : CARDINAL ;
   Found: BOOLEAN ;
@@ -437,7 +416,7 @@ BEGIN
    END
 END DisplayGraph ;
 
- 
+
 PROCEDURE DisplaySource ;
 VAR
    i, j: CARDINAL ;
@@ -461,8 +440,8 @@ BEGIN
       INC(i)
    END
 END DisplaySource ;
- 
- 
+
+
 PROCEDURE DisplaySons (n: PtrToNode) ;
 VAR
    i, j: CARDINAL ;

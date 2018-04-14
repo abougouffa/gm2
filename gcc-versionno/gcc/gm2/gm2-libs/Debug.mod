@@ -25,10 +25,6 @@ FROM StdIO IMPORT Write ;
 FROM libc IMPORT exit ;
 
 
-(* %%%FORWARD%%%
-PROCEDURE WriteLn ; FORWARD ;
-   %%%FORWARD%%% *)
-
 (*
    Halt - writes a message in the format:
           Module:Line:Message

@@ -431,7 +431,7 @@ int libc_rename (const char *oldpath, const char *newpath)
 
 int libc_atexit (void (*function)(void))
 {
-  atexit(function);
+  atexit (function);
 }
 
 void _M2_libc_init (void)

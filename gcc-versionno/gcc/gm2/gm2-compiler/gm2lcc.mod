@@ -42,16 +42,6 @@ FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
 FROM M2Printf IMPORT fprintf0, fprintf1, fprintf2, fprintf3, fprintf4 ;
 
 
-(* %%%FORWARD%%%
-PROCEDURE ScanSources ; FORWARD ;
-PROCEDURE ScanImport (s: CARDINAL) ; FORWARD ;
-PROCEDURE MakeModule (ModuleName: CARDINAL) ; FORWARD ;
-PROCEDURE WriteFileName (FileName: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE CalculateDepth ; FORWARD ;
-PROCEDURE SortSources ; FORWARD ;
-PROCEDURE DisplaySources ; FORWARD ;
-   %%%FORWARD%%% *)
-
 CONST
    Comment     =     '#' ;      (* Comment leader.                 *)
    MaxSpaces   =      20 ;      (* Maximum spaces after a module   *)
@@ -200,7 +190,7 @@ END RemoveLinkOnly ;
 
 
 (*
-   ConCatStartupFile - 
+   ConCatStartupFile -
 *)
 
 PROCEDURE ConCatStartupFile ;
@@ -217,7 +207,7 @@ END ConCatStartupFile ;
 
 
 (*
-   GenObjectSuffix - 
+   GenObjectSuffix -
 *)
 
 PROCEDURE GenObjectSuffix () : String ;
@@ -232,7 +222,7 @@ END GenObjectSuffix ;
 
 
 (*
-   GenArchiveSuffix - 
+   GenArchiveSuffix -
 *)
 
 PROCEDURE GenArchiveSuffix () : String ;
@@ -247,7 +237,7 @@ END GenArchiveSuffix ;
 
 
 (*
-   ConCatObject - 
+   ConCatObject -
 *)
 
 PROCEDURE ConCatObject (s: String) ;
@@ -269,7 +259,7 @@ BEGIN
          u := KillString(u)
       END
    END ;
-   t := KillString(t)   
+   t := KillString(t)
 END ConCatObject ;
 
 
@@ -461,7 +451,7 @@ END IsALibrary ;
 
 
 (*
-   IsALibraryPath - 
+   IsALibraryPath -
 *)
 
 PROCEDURE IsALibraryPath (s: String) : BOOLEAN ;

@@ -50,11 +50,6 @@ VAR
    LastIndice: CARDINAL ;
 
 
-(* %%%FORWARD%%%
-PROCEDURE FindNodeAndParentInTree (n: PtrToChar; VAR child, father: NameNode) : Comparison ; FORWARD ;
-   %%%FORWARD%%% *)
-
-
 (*
    GetKey - returns the name, a, of the key, Key.
 *)
@@ -171,7 +166,7 @@ END DoMakeKey ;
 
 
 (*
-   MakeKey - returns the Key of the symbol, a. If a is not in the 
+   MakeKey - returns the Key of the symbol, a. If a is not in the
              name table then it is added, otherwise the Key of a is returned
              directly. Note that the name table has no scope - it merely
              presents a more convienient way of expressing strings. By a Key.
@@ -199,12 +194,12 @@ BEGIN
       p^ := nul ;
 
       RETURN( DoMakeKey(n, higha) )
-   END 
+   END
 END MakeKey ;
 
 
 (*
-   makekey - returns the Key of the symbol, a. If a is not in the 
+   makekey - returns the Key of the symbol, a. If a is not in the
              name table then it is added, otherwise the Key of a is returned
              directly. Note that the name table has no scope - it merely
              presents a more convienient way of expressing strings. By a Key.
@@ -238,7 +233,7 @@ BEGIN
             INC(pa)
          END ;
          p^ := nul ;
-         
+
          RETURN( DoMakeKey(n, higha) )
       END
    END

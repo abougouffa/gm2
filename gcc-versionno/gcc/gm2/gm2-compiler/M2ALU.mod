@@ -85,37 +85,6 @@ FROM m2expr IMPORT GetPointerZero, GetIntegerZero, GetIntegerOne,
 TYPE
    cellType   = (none, integer, real, complex, set, constructor, array, record) ;
 
-(* %%%FORWARD%%%
-PROCEDURE DupConst (tokenno: CARDINAL; sym: CARDINAL; offset: INTEGER) : CARDINAL ; FORWARD ;
-PROCEDURE DupConstAndAdd (tokenno: CARDINAL;
-                          sym: CARDINAL;
-                          extra: Tree) : CARDINAL ; FORWARD ;
-PROCEDURE DupConstAndAddMod (tokenno: CARDINAL;
-                             sym: CARDINAL; extra: Tree;
-                             l, h: CARDINAL) : CARDINAL ; FORWARD ;
-PROCEDURE Eval (tokenno: CARDINAL; v: PtrToValue) ; FORWARD ;
-PROCEDURE Push (v: PtrToValue) ; FORWARD ;
-PROCEDURE Pop () : PtrToValue ; FORWARD ;
-PROCEDURE RealSub (Op1, Op2: PtrToValue) ; FORWARD ;
-PROCEDURE RealAdd (Op1, Op2: PtrToValue) ; FORWARD ;
-PROCEDURE RealMult (Op1, Op2: PtrToValue) ; FORWARD ;
-PROCEDURE RealDiv (Op1, Op2: PtrToValue) ; FORWARD ;
-PROCEDURE BuildBitset (tokenno: CARDINAL; v: PtrToValue; low, high: Tree) : Tree ; FORWARD ;
-PROCEDURE IsSuperset (tokenno: CARDINAL; s1, s2: PtrToValue) : BOOLEAN ; FORWARD ;
-PROCEDURE IsSubset (tokenno: CARDINAL; s1, s2: PtrToValue) : BOOLEAN ; FORWARD ;
-PROCEDURE Val (tokenno: CARDINAL; type: CARDINAL; value: Tree) : CARDINAL ; FORWARD ;
-PROCEDURE AddElements (tokenno: CARDINAL; el, n: CARDINAL) ; FORWARD ;
-PROCEDURE CoerseTo (tokenno: CARDINAL; t: cellType; v: PtrToValue) : PtrToValue ; FORWARD ;
-PROCEDURE ConstructRecordConstant (tokenno: CARDINAL; v: PtrToValue) : Tree ; FORWARD ;
-PROCEDURE GetConstructorField (v: PtrToValue; i: CARDINAL) : CARDINAL ; FORWARD ;
-PROCEDURE ConstructArrayConstant (tokenno: CARDINAL; v: PtrToValue) : Tree ; FORWARD ;
-PROCEDURE EitherComplex (Op1, Op2: PtrToValue) : BOOLEAN ; FORWARD ;
-PROCEDURE ComplexAdd (Op1, Op2: PtrToValue) ; FORWARD ;
-PROCEDURE ComplexSub (Op1, Op2: PtrToValue) ; FORWARD ;
-PROCEDURE ComplexMult (Op1, Op2: PtrToValue) ; FORWARD ;
-PROCEDURE ComplexDiv (Op1, Op2: PtrToValue) ; FORWARD ;
-   %%%FORWARD%%% *)
-
 
 CONST
    Debugging    = FALSE ;
@@ -165,18 +134,6 @@ TYPE
 
    DoSetProcedure = PROCEDURE (CARDINAL, listOfRange, listOfRange) : listOfRange ;
 
-(* %%%FORWARD%%%
-PROCEDURE SortElements (tokenno: CARDINAL; h: listOfRange) ; FORWARD ;
-PROCEDURE CombineElements (tokenno: CARDINAL; r: listOfRange) ; FORWARD ;
-PROCEDURE DisplayElements (i: listOfRange) ; FORWARD ;
-PROCEDURE AddElement (v: listOfElements; e, b: CARDINAL) : listOfElements ; FORWARD ;
-PROCEDURE AddElementToEnd (v: PtrToValue; e: listOfElements) ; FORWARD ;
-PROCEDURE DefinedByConstants (v: PtrToValue) : BOOLEAN ; FORWARD ;
-PROCEDURE arrayConstant (e: listOfElements) : BOOLEAN ; FORWARD ;
-PROCEDURE fieldsConstant (f: listOfFields) : BOOLEAN ; FORWARD ;
-PROCEDURE rangeConstant (r: listOfRange) : BOOLEAN ; FORWARD ;
-PROCEDURE CheckOverflow (tokenno: CARDINAL; t: Tree) ; FORWARD ;
-   %%%FORWARD%%% *)
 
 VAR
    ElementFreeList : listOfElements ;

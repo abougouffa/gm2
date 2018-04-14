@@ -77,14 +77,6 @@ VAR
    ListOfTokens     : ListDesc ;
    CurrentTokNo     : CARDINAL ;
 
-(* %%%FORWARD%%%
-PROCEDURE AddTokToList (t: toktype; n: Name;
-                        i: INTEGER; l: CARDINAL; c: CARDINAL; f: SourceList; location: location_t) ; FORWARD ;
-PROCEDURE SyncOpenWithBuffer ; FORWARD ;
-PROCEDURE FindTokenBucket (VAR TokenNo: CARDINAL) : TokenBucket ; FORWARD ;
-PROCEDURE IsLastTokenEof () : BOOLEAN ; FORWARD ;
-   %%%FORWARD%%% *)
-
 
 (*
    Init - initializes the token list and source list.

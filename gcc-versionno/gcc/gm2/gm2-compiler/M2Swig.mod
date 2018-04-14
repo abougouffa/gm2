@@ -57,23 +57,11 @@ FROM M2BasicBlock IMPORT BasicBlock, InitBasicBlocks, KillBasicBlocks,
                          ForeachBasicBlockDo ;
 
 
-
-(* %%%FORWARD%%%
-PROCEDURE TryDependents (sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE DoType (sym: CARDINAL) ; FORWARD ;
-PROCEDURE DoWriteSymbol (sym: CARDINAL) ; FORWARD ;
-PROCEDURE Init ; FORWARD ;
-PROCEDURE Kill ; FORWARD ;
-   %%%FORWARD%%% *)
-
-
 TYPE
-   unboundedSig = RECORD
-                     type: CARDINAL ;
-                     name: Name ;
-                  END ;
-   UnboundedSig = POINTER TO unboundedSig ;
-
+   UnboundedSig = POINTER TO RECORD
+                                type: CARDINAL ;
+                                name: Name ;
+                             END ;
 
 VAR
    includedArray: BOOLEAN ;
@@ -139,7 +127,7 @@ END MoveToToDo ;
 
 
 (*
-   Trybase - returns TRUE 
+   Trybase - returns TRUE
 *)
 
 PROCEDURE TryBase (sym: CARDINAL) : BOOLEAN ;
@@ -196,7 +184,7 @@ END TryMove ;
 
 
 (*
-   TryType - 
+   TryType -
 *)
 
 PROCEDURE TryType (sym: CARDINAL) : BOOLEAN ;
@@ -216,7 +204,7 @@ END TryType ;
 
 
 (*
-   TryVar - 
+   TryVar -
 *)
 
 PROCEDURE TryVar (sym: CARDINAL) : BOOLEAN ;
@@ -236,7 +224,7 @@ END TryVar ;
 
 
 (*
-   TryProcedure - 
+   TryProcedure -
 *)
 
 PROCEDURE TryProcedure (sym: CARDINAL) : BOOLEAN ;
@@ -292,7 +280,7 @@ END TryProcedure ;
 
 
 (*
-   TryUnbounded - 
+   TryUnbounded -
 *)
 
 PROCEDURE TryUnbounded (sym: CARDINAL) : BOOLEAN ;
@@ -312,7 +300,7 @@ END TryUnbounded ;
 
 
 (*
-   TryParameter - 
+   TryParameter -
 *)
 
 PROCEDURE TryParameter (sym: CARDINAL) : BOOLEAN ;
@@ -398,7 +386,7 @@ END DoResolveOrder ;
 
 
 (*
-   DoName - 
+   DoName -
 *)
 
 PROCEDURE DoName (sym: CARDINAL) ;
@@ -411,7 +399,7 @@ END DoName ;
 
 
 (*
-   DoParamName - 
+   DoParamName -
 *)
 
 PROCEDURE DoParamName (sym: CARDINAL) ;
@@ -424,7 +412,7 @@ END DoParamName ;
 
 
 (*
-   DoVar - 
+   DoVar -
 *)
 
 PROCEDURE DoVar (sym: CARDINAL) ;
@@ -438,7 +426,7 @@ END DoVar ;
 
 
 (*
-   DoType - 
+   DoType -
 *)
 
 PROCEDURE DoType (sym: CARDINAL) ;
@@ -500,7 +488,7 @@ END DoType ;
 
 
 (*
-   DoUnbounded - 
+   DoUnbounded -
 *)
 
 PROCEDURE DoUnbounded (sym: CARDINAL) ;
@@ -526,7 +514,7 @@ VAR
 
 
 (*
-   DoBasicBlock - 
+   DoBasicBlock -
 *)
 
 PROCEDURE DoBasicBlock (start, end: CARDINAL) ;
@@ -595,7 +583,7 @@ END DoBasicBlock ;
 
 
 (*
-   DetermineParameter - 
+   DetermineParameter -
 *)
 
 PROCEDURE DetermineParameter (procedure, param: CARDINAL; annotate: BOOLEAN) ;
@@ -622,7 +610,7 @@ END DetermineParameter ;
 
 
 (*
-   PrintDirection - 
+   PrintDirection -
 *)
 
 PROCEDURE PrintDirection ;
@@ -681,7 +669,7 @@ END CalculateVarDirective ;
 
 
 (*
-   AnnotateProcedure - 
+   AnnotateProcedure -
 *)
 
 PROCEDURE AnnotateProcedure (sym: CARDINAL) ;
@@ -711,7 +699,7 @@ END AnnotateProcedure ;
 
 
 (*
-   DoProcedure - 
+   DoProcedure -
 *)
 
 PROCEDURE DoProcedure (sym: CARDINAL) : BOOLEAN ;
@@ -766,7 +754,7 @@ END DoProcedure ;
 
 
 (*
-   DoWriteSymbol - 
+   DoWriteSymbol -
 *)
 
 PROCEDURE DoWriteSymbol (sym: CARDINAL) ;
@@ -797,7 +785,7 @@ END DoWriteSymbol ;
 
 
 (*
-   DoCheckExported - 
+   DoCheckExported -
 *)
 
 PROCEDURE DoCheckExported (sym: WORD) ;
@@ -864,7 +852,7 @@ END IsTypeUnique ;
 
 
 (*
-   DoCheckUnbounded - 
+   DoCheckUnbounded -
 *)
 
 PROCEDURE DoCheckUnbounded (sym: WORD) ;
@@ -903,7 +891,7 @@ END DoCheckUnbounded ;
 
 
 (*
-   DoWriteFile - 
+   DoWriteFile -
 *)
 
 PROCEDURE DoWriteFile (sym: CARDINAL) ;
@@ -934,7 +922,7 @@ END DoWriteFile ;
 
 
 (*
-   DoGenerateSwig - 
+   DoGenerateSwig -
 *)
 
 PROCEDURE DoGenerateSwig (sym: CARDINAL) ;
@@ -967,7 +955,7 @@ END GenerateSwigFile ;
 
 
 (*
-   Init - 
+   Init -
 *)
 
 PROCEDURE Init ;
@@ -980,7 +968,7 @@ END Init ;
 
 
 (*
-   Kill - 
+   Kill -
 *)
 
 PROCEDURE Kill ;
