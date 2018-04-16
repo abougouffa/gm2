@@ -3,6 +3,7 @@
 	* gm2/Make-lang.in:  changed the plugin directory to
           plugin rather than gm2/plugin.  Corrected .so typeos.
 	* gm2/gm2.texi:  Semantic checking (New section).
+	* testsuite/gm2/iso/analysis/fail/gm2.exp:  New file.
 
 2018-04-14      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
