@@ -19,8 +19,11 @@
 AC_CONFIG_MACRO_DIR([config])
 
 AC_PREREQ(2.64)
-AC_INIT([package-unused], version-unused,,[libgm2])
+AC_INIT(package-unused, version-unused,,libgm2)
 AC_CONFIG_HEADER(config.h)
+
+libtool_VERSION=13:0:0
+AC_SUBST(libtool_VERSION)
 
 GCC_NO_EXECUTABLES
 
@@ -185,10 +188,6 @@ AC_PROG_INSTALL
 AM_PROG_LIBTOOL
 AC_SUBST(enable_shared)
 AC_SUBST(enable_static)
-
-# For libtool versioning info, format is CURRENT:REVISION:AGE
-libtool_VERSION=13:0:0
-AC_SUBST(libtool_VERSION)
 
 AC_CHECK_TYPES([struct timezone, struct stat, struct timeval])
 

@@ -40,6 +40,7 @@ toolexeclibdir=@toolexeclibdir@
 toolexecdir=@toolexecdir@
 
 SUBDIRS = libmin libpim liblog libcor libulm libiso
+GM2_BUILDDIR := $(shell pwd)
 
 
 # Work around what appears to be a GNU make bug handling MAKEFLAGS
@@ -91,7 +92,8 @@ AM_MAKEFLAGS = \
 	"DESTDIR=$(DESTDIR)" \
 	"WERROR=$(WERROR)" \
         "TARGET_LIB_PATH=$(TARGET_LIB_PATH)" \
-        "TARGET_LIB_PATH_libgm2=$(TARGET_LIB_PATH_libgm2)"
+        "TARGET_LIB_PATH_libgm2=$(TARGET_LIB_PATH_libgm2)" \
+	"LIBTOOL=$(GM2_BUILDDIR)/libtool"
 
 # Subdir rules rely on $(FLAGS_TO_PASS)
 FLAGS_TO_PASS = $(AM_MAKEFLAGS)

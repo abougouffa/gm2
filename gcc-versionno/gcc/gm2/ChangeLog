@@ -1,3 +1,9 @@
+2018-04-16      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  changed the plugin directory to
+          plugin rather than gm2/plugin.  Corrected .so typeos.
+	* gm2/gm2.texi:  Semantic checking (New section).
+
 2018-04-14      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  build plugin/m2rte.so and create

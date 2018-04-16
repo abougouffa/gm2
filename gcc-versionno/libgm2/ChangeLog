@@ -1,3 +1,19 @@
+2018-04-16      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* libgm2/Makefile.am:  specify the libtool location.
+	* libgm2/Makefile.in:  regenerated.
+	* libgm2/aclocal.m4:  regenerated.
+	* libgm2/autogen.sh:  corrected script to regenerate
+          using the correct macros and versions of autoconf tools.
+	* libgm2/configure:  regenerated.
+	* libgm2/configure.ac:  regenerated.
+	* libgm2/libcor/Makefile.in:  regenerated.
+	* libgm2/libiso/Makefile.in:  regenerated.
+	* libgm2/liblog/Makefile.in:  regenerated.
+	* libgm2/libmin/Makefile.in:  regenerated.
+	* libgm2/libpim/Makefile.in:  regenerated.
+	* libgm2/libulm/Makefile.in:  regenerated.
+
 2018-04-14      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* libgm2/Makefile.am:  changed to reference the config directory.

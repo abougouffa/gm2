@@ -184,6 +184,9 @@ that ranges of subranges are not exceeded, array indices are within
 range, functions execute a @code{RETURN} statement, a pointer does not
 dereference a @code{NIL} pointer value and that the expression within
 a @code{CASE} statement is correctly matched.
+The compiler performs semantic analysis for the above exceptions post
+optimization and will generate warnings should any of these be known
+to be reachable.  See @xref{Semantic checking, , ,gm2}.
 
 @node Release map, News, Why use GNU Modula-2, Using
 @section Release map
@@ -538,6 +541,7 @@ available}.
 * Standard procedures::   Permanently accessible base procedures.
 * Dialect::               GNU Modula-2 supported dialects.
 * Exceptions::            Exception implementation
+* Semantic checking::     How to detect runtime problems at compile time.
 * Extensions::            GNU Modula-2 language extensions.
 * Type compatibility::    Data type compatibility.
 * Unbounded by reference::Explanation of a language optimization.
@@ -1524,7 +1528,7 @@ implemented as above, apart from the exception calling in the ISO
 dialect. Instead of exception handling the results are the same as the
 PIM4 dialect. This is a temporary implementation situation.
 
-@node Exceptions, Extensions, Dialect, Using
+@node Exceptions, Semantic checking, Dialect, Using
 @section Exception implementation
 
 This section describes how exceptions are implemented in GNU Modula-2
@@ -1535,8 +1539,8 @@ check these conditions and exception handlers are invoked if the
 conditions prevail.
 
 Without @samp{-fsoft-check-all} these exceptions will be caught by
-hardware (assuming the hardware support) and a signal handler is
-invoked.  The signal handler will in turn @code{THROW} an exception
+hardware (assuming the hardware support exists) and a signal handler
+is invoked.  The signal handler will in turn @code{THROW} an exception
 which will be caught by the appropriate Modula-2 handler.  However the
 action of throwing an exception from within a signal handler is
 implementation defined (according to the C++ documentation).  For
@@ -1544,7 +1548,53 @@ example on the x86_64 architecture this works whereas on the i686
 architecture it does not.  Therefore to ensure portability it is
 recommended to use @samp{-fsoft-check-all}.
 
-@node Extensions, Type compatibility, Exceptions, Using
+@footnote{@samp{-fsoft-check-all} can be effectively combined with
+@samp{-O2} to semantically analyse source code for possible runtime
+errors at compile time.}
+
+@node Semantic checking, Extensions, Exceptions, Using
+@section How to detect runtime problems at compile time
+
+Consider the following program:
+
+@example
+MODULE assignvalue ;  (*!m2iso+gm2*)
+
+
+PROCEDURE bad () : INTEGER ;
+VAR
+   i: INTEGER ;
+BEGIN
+   i := -1 ;
+   RETURN i
+END bad ;
+
+
+VAR
+   foo: CARDINAL ;
+BEGIN
+   (* the m2rte plugin will detect this as an error, post optimization.  *)
+   foo := bad ()
+END assignvalue.
+@end example
+
+here we see that the programmer has not seen that the return value
+from @samp{bad} will cause an overflow to @samp{foo}.  If we compile
+the code with the following options:
+
+@example
+$ gm2 -g -fsoft-check-all -O2 -c assignvalue.mod
+assignvalue.mod:16:0:inevitable that this error will occur at runtime, assignment will result in an overflow
+@end example
+
+The gm2 semantic plugin is automatically run and will generate a
+warning message for every exception call which is known as reachable.
+It is highly advised to run the optimizer (@samp{-O2} or @samp{-O3})
+with @samp{-fsoft-check-all} so that the compiler is able to run the
+optimizer and perform variable and flow analysis before the semantic
+plugin is invoked.
+
+@node Extensions, Type compatibility, Semantic checking, Using
 @section GNU Modula-2 language extensions
 
 This section introduces the GNU Modula-2 language extensions.
