@@ -1,4 +1,4 @@
-/* Copyright (C) 2012, 2013, 2014, 2015, 2016, 2017.
+/* Copyright (C) 2012, 2013, 2014, 2015, 2016, 2017, 2018.
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -1024,12 +1024,14 @@ m2expr_BuildEqualToZero (location_t location, tree value, tree type, tree min, t
  *  BEGIN
  *     max := MAX (type) ;
  *     min := MIN (type) ;
- *     IF (min > 0) OR                                                         (*  c1   *)
+ *     IF (i#0) AND (                                                          (*  c0 and *)
+ *        (min > 0) OR                                                         (*  c1   *)
  *        ((min = 0) AND (i > 0)) OR                                           (*  c2 and c3    -> c15  *)
  *        (max < 0) OR                                                         (*  c4   *)
  *        ((max = 0) AND (i < 0)) OR                                           (*  c5 and c6    -> c16  *)
  *        ((min < 0) AND (max > 0) AND ((min + max) > 0) AND (i > -min)) OR    (*  c7 and c8 and c9 and c10      -> c17    more units positive.  *)
  *        ((min < 0) AND (max > 0) AND ((min + max) < 0) AND (i < -max))       (*  c11 and c12 and c13 and c14   -> c18    more units negative.  *)
+ *        )
  *     THEN
  *        'type overflow'
  *     END
@@ -1042,6 +1044,7 @@ static
 void
 checkWholeNegateOverflow (location_t location, tree i, tree type, tree min, tree max)
 {
+  tree c0 = m2expr_BuildEqualToZero (location, i, type, min, max);
   tree c1 = m2expr_BuildGreaterThanZero (location, min, type, min, max);
   tree c2 = m2expr_BuildEqualToZero (location, min, type, min, max);
   tree c3 = m2expr_BuildGreaterThanZero (location, i, type, min, max);
@@ -1112,7 +1115,7 @@ checkWholeAddOverflow (location_t location, tree i, tree j, tree lowest, tree mi
 
 
 /*
- *  checkWholeSubOverflow - check to see whether op1 + op2 will overflow an integer.
+ *  checkWholeSubOverflow - check to see whether op1 - op2 will overflow an integer.
  *
  *  PROCEDURE ssub (i, j: INTEGER) ;
  *  BEGIN
@@ -1141,6 +1144,72 @@ checkWholeSubOverflow (location_t location, tree i, tree j, tree lowest, tree mi
 }
 
 
+static
+tree
+m2expr_Build3LogicalAnd (location_t location, tree a, tree b, tree c)
+{
+  tree t = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, a, b, FALSE));
+  return m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, c, t, FALSE));
+}
+
+
+static
+tree
+m2expr_Build4LogicalOr (location_t location, tree a, tree b, tree c, tree d)
+{
+  tree t1 = m2expr_FoldAndStrip (m2expr_BuildLogicalOr (location, a, b, FALSE));
+  tree t2 = m2expr_FoldAndStrip (m2expr_BuildLogicalOr (location, c, d, FALSE));
+  return m2expr_FoldAndStrip (m2expr_BuildLogicalOr (location, t1, t2, FALSE));
+}
+
+
+/*
+ *  checkWholeMultOverflow - check to see whether op1 * op2 will overflow an integer.
+ *
+ *  PROCEDURE smult (i, j: INTEGER) ;
+ *  BEGIN
+ *     IF ((i > 0) AND (j > 0) AND (i > max DIV j)) OR
+ *        ((i > 0) AND (j < 0) AND (j < min DIV i)) OR
+ *        ((i < 0) AND (j > 0) AND (i < min DIV j)) OR
+ *        ((i < 0) AND (j < 0) AND (i < min DIV j))
+ *     THEN
+ *        error ('signed subtraction overflow')
+ *     END
+ *  END smult ;
+ *
+ *  if ((c1 && c3 && c4) ||
+ *      (c1 && c5 && c6) ||
+ *      (c2 && c3 && c7) ||
+ *      (c2 && c5 && c7))
+ *    error ('signed subtraction overflow')
+ *
+ */
+
+static
+void
+checkWholeMultOverflow (location_t location, tree i, tree j, tree lowest, tree min, tree max)
+{
+  tree c1 = m2expr_BuildGreaterThanZero (location, i, lowest, min, max);
+  tree c2 = m2expr_BuildLessThanZero (location, i, lowest, min, max);
+
+  tree c3 = m2expr_BuildGreaterThanZero (location, j, lowest, min, max);
+  tree c4 = m2expr_BuildGreaterThan (location, i, m2expr_BuildDivTrunc (location, max, j, FALSE));
+
+  tree c5 = m2expr_BuildLessThanZero (location, j, lowest, min, max);
+  tree c6 = m2expr_BuildLessThan (location, j, m2expr_BuildDivTrunc (location, min, i, FALSE));
+  tree c7 = m2expr_BuildLessThan (location, i, m2expr_BuildDivTrunc (location, min, j, FALSE));
+
+  tree c8 = m2expr_Build3LogicalAnd (location, c1, c3, c4);
+  tree c9 = m2expr_Build3LogicalAnd (location, c1, c5, c6);
+  tree c10 = m2expr_Build3LogicalAnd (location, c2, c3, c7);
+  tree c11 = m2expr_Build3LogicalAnd (location, c2, c5, c7);
+
+  tree condition = m2expr_Build4LogicalOr (location, c8, c9, c10, c11);
+  tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition, "whole value *");
+  m2type_AddStatement (location, t);
+}
+
+
 /*
  *  checkWholeOverflow -
  */
@@ -1165,6 +1234,9 @@ m2expr_checkWholeOverflow (location_t location,
 	case MINUS_EXPR:
 	  checkWholeSubOverflow (location, op1, op2, lowest, min, max);
 	  break;
+	case MULT_EXPR:
+	  checkWholeMultOverflow (location, op1, op2, lowest, min, max);
+	  break
 	default:
 	  break;
 	}
@@ -1383,6 +1455,26 @@ m2expr_BuildMult (location_t location, tree op1, tree op2, int needconvert)
 
   return m2expr_build_binary_op (location, MULT_EXPR,
 				 op1, op2, needconvert);
+}
+
+
+/*  BuildMultCheck builds a multiplication tree.  */
+
+tree
+m2expr_BuildMultCheck (location_t location, tree op1, tree op2, tree lowest, tree min, tree max)
+{
+  tree t;
+
+  m2assert_AssertLocation (location);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  op1 = CheckAddressToCardinal (location, op1);
+  op2 = CheckAddressToCardinal (location, op2);
+
+  t = m2expr_build_binary_op_check (location, MULT_EXPR, op1, op2, FALSE, lowest, min, max);
+  return m2expr_FoldAndStrip (t);
 }
 
 

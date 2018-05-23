@@ -16,14 +16,15 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA. *)
 
-MODULE intrange5 ;
+MODULE multint2 ;
 
 FROM libc IMPORT exit ;
 
 VAR
-   i: [-1..0] ;
+   i, j, k: [-8..7] ;
 BEGIN
-   i := -1 ;
-   i := -i ;
+   i := 3 ;
+   j := -3 ;
+   k := i * j ;
    exit (0)    (* should not get here if -fsoft-check-all is used *)
-END intrange5.
+END multint2.

@@ -96,6 +96,13 @@ PROCEDURE BuildMult (location: location_t; op1: Tree; op2: Tree; needconvert: BO
 
 
 (*
+    BuildMultCheck - builds a multiplication tree after checking for overflow.
+*)
+
+PROCEDURE BuildMultCheck (location: location_t; op1, op2, lowest, min, max: Tree) : Tree ;
+
+
+(*
     BuildLRR - builds and returns tree (op1 rotate right by op2 bits)
 *)
 

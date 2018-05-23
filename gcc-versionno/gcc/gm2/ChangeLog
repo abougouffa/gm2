@@ -1,3 +1,20 @@
+2018-05-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* implement range checks on whole number multiply.
+	* gm2/gm2-compiler/M2GenGCC.mod:  import BuildMultCheck.
+          Call CodeMultCheck in quadruple case statement.
+          (CodeMultChecked)  New procedure.  (CodeMultCheck)
+          New procedure.
+	* gm2/gm2-gcc/m2expr.c:  (checkWholeNegateOverflow)
+          interm checkin.  (checkWholeSubOverflow) corrected
+          comment.  (m2expr_Build3LogicalAnd)  New function.
+          (m2expr_Build4LogicalOr)  New function.
+          (checkWholeMultOverflow)  New function.
+          (checkWholeOverflow)  New function.
+          (m2expr_BuildMultCheck)  New function.
+	* gm2/gm2-gcc/m2expr.def:  BuildMultCheck exported.
+	* gm2/gm2-gcc/m2expr.h:  BuildMultCheck defined.
+
 2018-04-16      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  changed the plugin directory to

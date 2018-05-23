@@ -93,6 +93,7 @@ EXTERN int m2expr_interpret_m2_integer (const char *str, unsigned int base,
 
 EXTERN tree m2expr_BuildAddCheck (location_t location, tree op1, tree op2, tree lowest, tree min, tree max);
 EXTERN tree m2expr_BuildSubCheck (location_t location, tree op1, tree op2, tree lowest, tree min, tree max);
+EXTERN tree m2expr_BuildMultCheck (location_t location, tree op1, tree op2, tree lowest, tree min, tree max);
 
 EXTERN tree m2expr_BuildAdd (location_t location, tree op1, tree op2, int needconvert);
 EXTERN tree m2expr_BuildSub (location_t location, tree op1, tree op2, int needconvert);

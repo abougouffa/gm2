@@ -164,7 +164,7 @@ FROM m2expr IMPORT GetIntegerZero, GetIntegerOne,
                    BuildBinCheckProcedure, BuildUnaryCheckProcedure,
                    BuildBinProcedure, BuildUnaryProcedure,
                    BuildSetProcedure, BuildUnarySetFunction,
-		   BuildAddCheck, BuildSubCheck,
+		   BuildAddCheck, BuildSubCheck, BuildMultCheck,
                    BuildAdd, BuildSub, BuildMult, BuildLSL,
 		   BuildDivCeil, BuildModCeil,
                    BuildDivTrunc, BuildModTrunc, BuildDivFloor, BuildModFloor,
@@ -454,7 +454,7 @@ BEGIN
    BecomesOp          : CodeBecomes(q, op1, op2, op3) |
    AddOp              : CodeAddChecked (q, op1, op2, op3) |
    SubOp              : CodeSubChecked (q, op1, op2, op3) |
-   MultOp             : CodeMult(q, op1, op2, op3) |
+   MultOp             : CodeMultChecked (q, op1, op2, op3) |
    DivM2Op            : CodeDivM2(q, op1, op2, op3) |
    ModM2Op            : CodeModM2(q, op1, op2, op3) |
    DivTruncOp         : CodeDivTrunc(q, op1, op2, op3) |
@@ -3573,6 +3573,35 @@ BEGIN
       FoldBinary(tokenno, p, BuildMult, quad, op1, op2, op3)
    END
 END FoldMult ;
+
+
+(*
+   CodeMultChecked - code a multiplication instruction, determine whether checking
+                     is required.
+*)
+
+PROCEDURE CodeMultChecked (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF MustCheckOverflow (quad)
+   THEN
+      CodeMultCheck (quad, op1, op2, op3)
+   ELSE
+      CodeMult (quad, op1, op2, op3)
+   END
+END CodeMultChecked ;
+
+
+(*
+   CodeMultCheck - encode multiplication but check for overflow.
+*)
+
+PROCEDURE CodeMultCheck (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF BinaryOperands (quad, op2, op3)
+   THEN
+      CodeBinaryCheck (BuildMultCheck, quad, op1, op2, op3)
+   END
+END CodeMultCheck ;
 
 
 (*
