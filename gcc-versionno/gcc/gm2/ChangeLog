@@ -14,6 +14,7 @@
           (m2expr_BuildMultCheck)  New function.
 	* gm2/gm2-gcc/m2expr.def:  BuildMultCheck exported.
 	* gm2/gm2-gcc/m2expr.h:  BuildMultCheck defined.
+	* gm2/gm2-gcc/m2expr.c:  added missing semicolon.
 
 2018-04-16      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

@@ -1024,7 +1024,12 @@ m2expr_BuildEqualToZero (location_t location, tree value, tree type, tree min, t
  *  BEGIN
  *     max := MAX (type) ;
  *     min := MIN (type) ;
- *     IF (i#0) AND (                                                          (*  c0 and *)
+ *     IF (i#0) AND ((min >= 0) OR (min <= 0) OR (max >= 0) OR (max <= 0))
+
+
+
+
+                                                          (*  c0 and *)
  *        (min > 0) OR                                                         (*  c1   *)
  *        ((min = 0) AND (i > 0)) OR                                           (*  c2 and c3    -> c15  *)
  *        (max < 0) OR                                                         (*  c4   *)
@@ -1236,7 +1241,7 @@ m2expr_checkWholeOverflow (location_t location,
 	  break;
 	case MULT_EXPR:
 	  checkWholeMultOverflow (location, op1, op2, lowest, min, max);
-	  break
+	  break;
 	default:
 	  break;
 	}
