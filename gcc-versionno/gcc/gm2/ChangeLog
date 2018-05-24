@@ -1,3 +1,13 @@
+2018-05-24      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-gcc/m2expr.c:  (BuildNotEqualToZero)
+          new function.  (checkWholeNegateOverflow)
+          re-implemented and in the process fixed bug
+	  and the test
+          testsuite/gm2/switches/check-all/run/fail/intrange5.mod
+	  passes.
+	  (m2expr_Build4LogicalAnd)  New function.
+
 2018-05-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* implement range checks on whole number multiply.

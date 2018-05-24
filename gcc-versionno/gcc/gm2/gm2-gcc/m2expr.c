@@ -48,6 +48,9 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 
 static void m2expr_checkRealOverflow (location_t location, enum tree_code code, tree result);
 static void checkWholeNegateOverflow (location_t location, tree i, tree lowest, tree min, tree max);
+static tree m2expr_Build4LogicalAnd (location_t location, tree a, tree b, tree c, tree d);
+static tree m2expr_Build4LogicalOr (location_t location, tree a, tree b, tree c, tree d);
+
 
 static int label_count = 0;
 static GTY(()) tree set_full_complement;
@@ -1007,6 +1010,35 @@ m2expr_BuildEqualToZero (location_t location, tree value, tree type, tree min, t
 
 
 /*
+ *  BuildNotEqualToZero - returns a tree containing (# value 0).
+ *                        It checks the min and max value to ensure
+ *                        that the test can be safely achieved and will
+ *                        short circuit the result otherwise.
+ */
+
+tree
+m2expr_BuildNotEqualToZero (location_t location, tree value, tree type, tree min, tree max)
+{
+  if (m2expr_CompareTrees (min, m2expr_GetIntegerZero (location)) == 1)
+    /*
+     *  min is greater than zero therefore value will always be true.
+     */
+    return m2expr_GetIntegerOne (location);
+  else if (m2expr_CompareTrees (max, m2expr_GetIntegerZero (location)) < 0)
+    /*
+     *  max is less than or equal to zero therefore value will always be true.
+     */
+    return m2expr_GetIntegerOne (location);
+  /*
+   *  we now know 0 lies in the range min..max so we can safely cast zero to type.
+   */
+  return m2expr_BuildNotEqualTo (location, value,
+				 fold_convert_loc (location, type,
+						   m2expr_GetIntegerZero (location)));
+}
+
+
+/*
  *  checkWholeNegateOverflow - check to see whether -arg will overflow an integer.
  *
  *  PROCEDURE sneg (i: INTEGER) ;
@@ -1024,18 +1056,11 @@ m2expr_BuildEqualToZero (location_t location, tree value, tree type, tree min, t
  *  BEGIN
  *     max := MAX (type) ;
  *     min := MIN (type) ;
- *     IF (i#0) AND ((min >= 0) OR (min <= 0) OR (max >= 0) OR (max <= 0))
-
-
-
-
-                                                          (*  c0 and *)
- *        (min > 0) OR                                                         (*  c1   *)
- *        ((min = 0) AND (i > 0)) OR                                           (*  c2 and c3    -> c15  *)
- *        (max < 0) OR                                                         (*  c4   *)
- *        ((max = 0) AND (i < 0)) OR                                           (*  c5 and c6    -> c16  *)
- *        ((min < 0) AND (max > 0) AND ((min + max) > 0) AND (i > -min)) OR    (*  c7 and c8 and c9 and c10      -> c17    more units positive.  *)
- *        ((min < 0) AND (max > 0) AND ((min + max) < 0) AND (i < -max))       (*  c11 and c12 and c13 and c14   -> c18    more units negative.  *)
+ *     IF (i#0) AND     (* cannot overflow if i is 0  *)
+ *        (((min >= 0) AND (max >= 0)) OR    (* will overflow if entire range is positive.  *)
+ *         ((min <= 0) AND (max <= 0)) OR    (* will overflow if entire range is negative.  *)
+ *         ((min < 0) AND (max > 0) AND ((min + max) > 0) AND (i > -min)) OR    (*  c7 and c8 and c9 and c10      -> c17    more units positive.  *)
+ *         ((min < 0) AND (max > 0) AND ((min + max) < 0) AND (i < -max))       (*  c11 and c12 and c13 and c14   -> c18    more units negative.  *)
  *        )
  *     THEN
  *        'type overflow'
@@ -1049,41 +1074,32 @@ static
 void
 checkWholeNegateOverflow (location_t location, tree i, tree type, tree min, tree max)
 {
-  tree c0 = m2expr_BuildEqualToZero (location, i, type, min, max);
-  tree c1 = m2expr_BuildGreaterThanZero (location, min, type, min, max);
-  tree c2 = m2expr_BuildEqualToZero (location, min, type, min, max);
-  tree c3 = m2expr_BuildGreaterThanZero (location, i, type, min, max);
-  tree c4 = m2expr_BuildLessThanZero (location, max, type, min, max);
-  tree c5 = m2expr_BuildEqualToZero (location, max, type, min, max);
-  tree c6 = m2expr_BuildLessThanZero (location, i, type, min, max);
-  tree c7 = m2expr_BuildLessThanZero (location, min, type, min, max);
-  tree c8 = m2expr_BuildGreaterThanZero (location, max, type, min, max);
-  tree c9 = m2expr_BuildGreaterThanZero (location, m2expr_BuildAdd (location, min, max, FALSE), type, min, max);
-  tree c10 = m2expr_BuildGreaterThan (location, i, m2expr_BuildNegate (location, min, FALSE));
-  tree c11 = c7;
-  tree c12 = c8;
-  tree c13 = m2expr_BuildLessThanZero (location, m2expr_BuildAdd (location, min, max, FALSE), type, min, max);
-  tree c14 = m2expr_BuildLessThan (location, i, m2expr_BuildNegate (location, max, FALSE));
+  tree a1 = m2expr_BuildNotEqualToZero (location, i, type, min, max);          /* i # 0  */
+  tree c1 = m2expr_BuildGreaterThanZero (location, min, type, min, max);       /* min > 0  */
+  tree c2 = m2expr_BuildEqualToZero (location, min, type, min, max);           /* min == 0  */
+  tree c4 = m2expr_BuildLessThanZero (location, max, type, min, max);          /* max < 0  */
+  tree c5 = m2expr_BuildEqualToZero (location, max, type, min, max);           /* max == 0  */
+  tree c7 = m2expr_BuildLessThanZero (location, min, type, min, max);          /* min < 0  */
+  tree c8 = m2expr_BuildGreaterThanZero (location, max, type, min, max);       /* max > 0  */
+  tree c9 = m2expr_BuildGreaterThanZero (location, m2expr_BuildAdd (location, min, max, FALSE), type, min, max);  /* min + max > 0  */
+  tree c10 = m2expr_BuildGreaterThan (location, i, m2expr_BuildNegate (location, min, FALSE));  /* i > -min  */
+  tree c11 = m2expr_BuildLessThanZero (location, m2expr_BuildAdd (location, min, max, FALSE), type, min, max);  /* min + max < 0  */
+  tree c12 = m2expr_BuildLessThan (location, i, m2expr_BuildNegate (location, max, FALSE));   /* i < -max  */
 
-  tree c15 = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, c2, c3, FALSE));
-  tree c16 = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, c5, c6, FALSE));
-  tree c17 = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location,
-							  m2expr_BuildLogicalAnd (location, c7, c8, FALSE),
-							  m2expr_BuildLogicalAnd (location, c9, c10, FALSE),
-							  FALSE));
-  tree c18 = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location,
-							  m2expr_BuildLogicalAnd (location, c11, c12, FALSE),
-							  m2expr_BuildLogicalAnd (location, c13, c14, FALSE),
-							  FALSE));
-  tree condition = m2expr_FoldAndStrip (m2expr_BuildLogicalOr (location,
-							       m2expr_BuildLogicalOr (location,
-										      m2expr_BuildLogicalOr (location, c1, c15, FALSE),
-										      m2expr_BuildLogicalOr (location, c4, c16, FALSE),
-										      FALSE),
-							       m2expr_BuildLogicalOr (location, m2expr_BuildLogicalOr (location, c5, c6, FALSE),
-										      m2expr_BuildLogicalOr (location, c17, c18, FALSE),
-										      FALSE),
-							       FALSE));
+  tree b1 = m2expr_BuildLogicalOr (location, c1, c2, FALSE);
+  tree b2 = m2expr_BuildLogicalOr (location, c8, c5, FALSE);
+  tree o1 = m2expr_BuildLogicalAnd (location, b1, b2, FALSE);
+
+  tree b3 = m2expr_BuildLogicalOr (location, c7, c2, FALSE);
+  tree b4 = m2expr_BuildLogicalOr (location, c4, c5, FALSE);
+  tree o2 = m2expr_BuildLogicalAnd (location, b3, b4, FALSE);
+
+  tree o3 = m2expr_Build4LogicalAnd (location, c7, c8, c9, c10);
+  tree o4 = m2expr_Build4LogicalAnd (location, c7, c8, c11, c12);
+
+  tree a2 = m2expr_Build4LogicalOr (location, o1, o2, o3, o4);
+  tree condition = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, a1, a2, FALSE));
+
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition, "whole value unary -");
   m2type_AddStatement (location, t);
 }
@@ -1146,6 +1162,16 @@ checkWholeSubOverflow (location_t location, tree i, tree j, tree lowest, tree mi
   tree condition = m2expr_FoldAndStrip (m2expr_BuildLogicalOr (location, c5, c6, FALSE));
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition, "whole value -");
   m2type_AddStatement (location, t);
+}
+
+
+static
+tree
+m2expr_Build4LogicalAnd (location_t location, tree a, tree b, tree c, tree d)
+{
+  tree t1 = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, a, b, FALSE));
+  tree t2 = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, c, d, FALSE));
+  return m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, t1, t2, FALSE));
 }
 
 
