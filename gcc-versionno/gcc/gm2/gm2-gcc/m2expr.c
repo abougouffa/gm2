@@ -48,8 +48,10 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 
 static void m2expr_checkRealOverflow (location_t location, enum tree_code code, tree result);
 static void checkWholeNegateOverflow (location_t location, tree i, tree lowest, tree min, tree max);
-static tree m2expr_Build4LogicalAnd (location_t location, tree a, tree b, tree c, tree d);
+//static tree m2expr_Build4LogicalAnd (location_t location, tree a, tree b, tree c, tree d);
 static tree m2expr_Build4LogicalOr (location_t location, tree a, tree b, tree c, tree d);
+static tree m2expr_Build4TruthOrIf (location_t location, tree a, tree b, tree c, tree d);
+static tree m2expr_Build4TruthAndIf (location_t location, tree a, tree b, tree c, tree d);
 
 
 static int label_count = 0;
@@ -97,6 +99,27 @@ CheckAddressToCardinal (location_t location, tree op)
   if (m2type_IsAddress (TREE_TYPE (op)))
     return m2convert_BuildConvert (location, m2type_GetCardinalAddressType (), op, FALSE);
   return op;
+}
+
+
+/*  BuildTruthAndIf return TRUE if a && b.  Retain order left to right.  */
+
+static
+tree
+m2expr_BuildTruthAndIf (location_t location, tree a, tree b)
+{
+  return m2expr_build_binary_op (location,
+				 TRUTH_ANDIF_EXPR, a, b, FALSE);
+}
+
+/*  BuildTruthOrIf return TRUE if a || b.  Retain order left to right.  */
+
+static
+tree
+m2expr_BuildTruthOrIf (location_t location, tree a, tree b)
+{
+  return m2expr_build_binary_op (location,
+				 TRUTH_ORIF_EXPR, a, b, FALSE);
 }
 
 
@@ -1086,19 +1109,19 @@ checkWholeNegateOverflow (location_t location, tree i, tree type, tree min, tree
   tree c11 = m2expr_BuildLessThanZero (location, m2expr_BuildAdd (location, min, max, FALSE), type, min, max);  /* min + max < 0  */
   tree c12 = m2expr_BuildLessThan (location, i, m2expr_BuildNegate (location, max, FALSE));   /* i < -max  */
 
-  tree b1 = m2expr_BuildLogicalOr (location, c1, c2, FALSE);
-  tree b2 = m2expr_BuildLogicalOr (location, c8, c5, FALSE);
-  tree o1 = m2expr_BuildLogicalAnd (location, b1, b2, FALSE);
+  tree b1 = m2expr_BuildTruthOrIf (location, c1, c2);
+  tree b2 = m2expr_BuildTruthOrIf (location, c8, c5);
+  tree o1 = m2expr_BuildTruthAndIf (location, b1, b2);
 
-  tree b3 = m2expr_BuildLogicalOr (location, c7, c2, FALSE);
-  tree b4 = m2expr_BuildLogicalOr (location, c4, c5, FALSE);
-  tree o2 = m2expr_BuildLogicalAnd (location, b3, b4, FALSE);
+  tree b3 = m2expr_BuildTruthOrIf (location, c7, c2);
+  tree b4 = m2expr_BuildTruthOrIf (location, c4, c5);
+  tree o2 = m2expr_BuildTruthAndIf (location, b3, b4);
 
-  tree o3 = m2expr_Build4LogicalAnd (location, c7, c8, c9, c10);
-  tree o4 = m2expr_Build4LogicalAnd (location, c7, c8, c11, c12);
+  tree o3 = m2expr_Build4TruthAndIf (location, c7, c8, c9, c10);
+  tree o4 = m2expr_Build4TruthAndIf (location, c7, c8, c11, c12);
 
-  tree a2 = m2expr_Build4LogicalOr (location, o1, o2, o3, o4);
-  tree condition = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, a1, a2, FALSE));
+  tree a2 = m2expr_Build4TruthOrIf (location, o1, o2, o3, o4);
+  tree condition = m2expr_FoldAndStrip (m2expr_BuildTruthAndIf (location, a1, a2));
 
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition, "whole value unary -");
   m2type_AddStatement (location, t);
@@ -1127,9 +1150,9 @@ checkWholeAddOverflow (location_t location, tree i, tree j, tree lowest, tree mi
   tree c2 = m2expr_BuildGreaterThan (location, i, m2expr_BuildSub (location, max, j, FALSE));
   tree c3 = m2expr_BuildLessThanZero (location, j, lowest, min, max);
   tree c4 = m2expr_BuildLessThan (location, i, m2expr_BuildSub (location, min, j, FALSE));
-  tree c5 = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, c1, c2, FALSE));
-  tree c6 = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, c3, c4, FALSE));
-  tree condition = m2expr_FoldAndStrip (m2expr_BuildLogicalOr (location, c5, c6, FALSE));
+  tree c5 = m2expr_FoldAndStrip (m2expr_BuildTruthAndIf (location, c1, c2));
+  tree c6 = m2expr_FoldAndStrip (m2expr_BuildTruthAndIf (location, c3, c4));
+  tree condition = m2expr_FoldAndStrip (m2expr_BuildTruthOrIf (location, c5, c6));
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition, "whole value +");
   m2type_AddStatement (location, t);
 }
@@ -1157,40 +1180,66 @@ checkWholeSubOverflow (location_t location, tree i, tree j, tree lowest, tree mi
   tree c2 = m2expr_BuildLessThan (location, i, m2expr_BuildAdd (location, min, j, FALSE));
   tree c3 = m2expr_BuildLessThanZero (location, j, lowest, min, max);
   tree c4 = m2expr_BuildLessThan (location, i, m2expr_BuildAdd (location, max, j, FALSE));
-  tree c5 = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, c1, c2, FALSE));
-  tree c6 = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, c3, c4, FALSE));
-  tree condition = m2expr_FoldAndStrip (m2expr_BuildLogicalOr (location, c5, c6, FALSE));
+  tree c5 = m2expr_FoldAndStrip (m2expr_BuildTruthAndIf (location, c1, c2));
+  tree c6 = m2expr_FoldAndStrip (m2expr_BuildTruthAndIf (location, c3, c4));
+  tree condition = m2expr_FoldAndStrip (m2expr_BuildTruthOrIf (location, c5, c6));
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition, "whole value -");
   m2type_AddStatement (location, t);
 }
 
 
+/*
+ *  Build4TruthAndIf - return TRUE if a && b && c && d.  Retain order left to right.
+ */
+
 static
 tree
-m2expr_Build4LogicalAnd (location_t location, tree a, tree b, tree c, tree d)
+m2expr_Build4TruthAndIf (location_t location, tree a, tree b, tree c, tree d)
 {
-  tree t1 = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, a, b, FALSE));
-  tree t2 = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, c, d, FALSE));
-  return m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, t1, t2, FALSE));
+  tree t1 = m2expr_FoldAndStrip (m2expr_BuildTruthAndIf (location, a, b));
+  tree t2 = m2expr_FoldAndStrip (m2expr_BuildTruthAndIf (location, t1, c));
+  return m2expr_FoldAndStrip (m2expr_BuildTruthAndIf (location, t2, d));
 }
 
 
+/*
+ *  Build3TruthAndIf - return TRUE if a && b && c.  Retain order left to right.
+ */
+
 static
 tree
-m2expr_Build3LogicalAnd (location_t location, tree a, tree b, tree c)
+m2expr_Build3TruthAndIf (location_t location, tree op1, tree op2, tree op3)
 {
-  tree t = m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, a, b, FALSE));
-  return m2expr_FoldAndStrip (m2expr_BuildLogicalAnd (location, c, t, FALSE));
+  tree t = m2expr_FoldAndStrip (m2expr_BuildTruthAndIf (location, op1, op2));
+  return m2expr_FoldAndStrip (m2expr_BuildTruthAndIf (location, t, op3));
 }
 
 
+/*
+ *  Build4TruthOrIf - return TRUE if op1 || op2 || op3 || op4.  Retain order left to right.
+ */
+
 static
 tree
-m2expr_Build4LogicalOr (location_t location, tree a, tree b, tree c, tree d)
+m2expr_Build4TruthOrIf (location_t location, tree op1, tree op2, tree op3, tree op4)
 {
-  tree t1 = m2expr_FoldAndStrip (m2expr_BuildLogicalOr (location, a, b, FALSE));
-  tree t2 = m2expr_FoldAndStrip (m2expr_BuildLogicalOr (location, c, d, FALSE));
-  return m2expr_FoldAndStrip (m2expr_BuildLogicalOr (location, t1, t2, FALSE));
+  tree t1 = m2expr_FoldAndStrip (m2expr_BuildTruthOrIf (location, op1, op2));
+  tree t2 = m2expr_FoldAndStrip (m2expr_BuildTruthOrIf (location, t1, op3));
+  return m2expr_FoldAndStrip (m2expr_BuildTruthOrIf (location, t2, op4));
+}
+
+
+/*
+ *  Build4LogicalOr - return TRUE if op1 || op2 || op3 || op4.
+ */
+
+static
+tree
+m2expr_Build4LogicalOr (location_t location, tree op1, tree op2, tree op3, tree op4)
+{
+  tree t1 = m2expr_FoldAndStrip (m2expr_BuildLogicalOr (location, op1, op2, FALSE));
+  tree t2 = m2expr_FoldAndStrip (m2expr_BuildLogicalOr (location, t1, op3, FALSE));
+  return m2expr_FoldAndStrip (m2expr_BuildLogicalOr (location, t2, op4, FALSE));
 }
 
 
@@ -1230,10 +1279,10 @@ checkWholeMultOverflow (location_t location, tree i, tree j, tree lowest, tree m
   tree c6 = m2expr_BuildLessThan (location, j, m2expr_BuildDivTrunc (location, min, i, FALSE));
   tree c7 = m2expr_BuildLessThan (location, i, m2expr_BuildDivTrunc (location, min, j, FALSE));
 
-  tree c8 = m2expr_Build3LogicalAnd (location, c1, c3, c4);
-  tree c9 = m2expr_Build3LogicalAnd (location, c1, c5, c6);
-  tree c10 = m2expr_Build3LogicalAnd (location, c2, c3, c7);
-  tree c11 = m2expr_Build3LogicalAnd (location, c2, c5, c7);
+  tree c8 = m2expr_Build3TruthAndIf (location, c1, c3, c4);
+  tree c9 = m2expr_Build3TruthAndIf (location, c1, c5, c6);
+  tree c10 = m2expr_Build3TruthAndIf (location, c2, c3, c7);
+  tree c11 = m2expr_Build3TruthAndIf (location, c2, c5, c7);
 
   tree condition = m2expr_Build4LogicalOr (location, c8, c9, c10, c11);
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition, "whole value *");
