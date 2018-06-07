@@ -109,7 +109,7 @@
   (define-key g-mode-map "E" 'm2-test-else)
 ;;  (define-key g-mode-map "%" 'm2-local-test)
 ;;  (define-key g-mode-map "!" 'm2-local-recompile)
-  (define-key g-mode-map "\177" 'backward-delete-char-untabify)
+  (define-key g-mode-map "\177" 'm2-backspace)
   (define-key g-mode-map "\e."   'm2-tag)
   (define-key g-mode-map "\e\t"  'm2-complete)
   (define-key g-mode-map "\C-cb" 'm2-begin)
@@ -209,10 +209,10 @@
 		(forward-char 1))
 	      (let (m2-end)
 		(setq m2-end (point))
-	      (goto-char m2-insert)
-	      (insert (buffer-substring m2-start m2-end)))))
-      (progn
-	(message "cannot complete: %s" m2-object)))))
+		(goto-char m2-insert)
+		(insert (buffer-substring m2-start m2-end)))))
+	(progn
+	  (message "cannot complete: %s" m2-object)))))
   (while (looking-at "[A-Za-z0-9]")
     (forward-char 1)))
 
@@ -237,9 +237,9 @@
 	      t)
 	  (if (m2-find-export-declaration m2-object ".mod")
 	      (if (m2-find-declaration m2-object)
-                 (progn
-		  (switch-to-buffer source-buffer)
-		  t)
+		  (progn
+		    (switch-to-buffer source-buffer)
+		    t)
 		(progn
 		  (delete-other-windows)
 		  (select-window source-window)
@@ -290,7 +290,7 @@
 
 (defun m2-move-to-procedure-start ()
   "moves to the start of the procedure implementation (before the
-   comments start - if they exist)."
+							      comments start - if they exist)."
   (beginning-of-line)
   (let (m2-point)
     (setq m2-point (point))
@@ -319,7 +319,7 @@
 
 (defun m2-is-forward-declaration ()
   "returns true if this procedure heading is just a FORWARD declaration
-   of a implementation further down the file."
+  of a implementation further down the file."
   (interactive)
   (save-excursion
     (m2-forward-to-token)
@@ -329,8 +329,8 @@
 		      (not (looking-at ")")))
 	    (m2-forward-to-token))))
     (while (and (< (point) (point-max))
-		(not (looking-at ";")))
-      (m2-forward-to-token))
+		(not (looking-at ";")))	;
+  (m2-forward-to-token))
     (m2-forward-to-token)
     (looking-at "FORWARD")))
 
@@ -1743,12 +1743,15 @@ FROM StdIO IMPORT Write, Read ;
 	(blink-matching-paren t))
     (blink-matching-open)))
 
-;; define several class of keywords
+;; define several class of keywords, longest similar string first
+;; so that the regexp performs the longer match first.
+;; eg MOD and MODULE, PACKED and PACKEDSET
+
 (defvar g-mode-keywords
   '("AND" "ARRAY" "BEGIN" "BY" "CASE" "CONST" "DEFINITION" "DIV"
     "DO" "ELSE" "ELSIF" "END" "EXCEPT" "EXIT" "EXPORT" "FINALLY"
-    "FOR" "FROM" "IF" "IMPLEMENTATION" "IMPORT" "IN" "LOOP" "MOD"
-    "MODULE" "NOT" "OF" "OR" "PACKED" "PACKEDSET" "POINTER" "PROCEDURE"
+    "FOR" "FROM" "IF" "IMPLEMENTATION" "IMPORT" "IN" "LOOP" "MODULE"
+    "MOD" "NOT" "OF" "OR" "PACKEDSET" "PACKED" "POINTER" "PROCEDURE"
     "QUALIFIED" "UNQUALIFIED" "RECORD" "REM" "REPEAT" "RETRY"
     "RETURN" "SET" "THEN" "TO" "TYPE" "UNTIL" "VAR" "WHILE"
     "WITH" "ASM" "VOLATILE")
@@ -1777,6 +1780,202 @@ FROM StdIO IMPORT Write, Read ;
 (defvar g-mode-constant-regexp (regexp-opt g-mode-constants 'words))
 (defvar g-mode-functions-regexp (regexp-opt g-mode-functions 'words))
 
+
+(defun restore-upper (begin end)
+  "."
+  (interactive)
+  (if (g-mode-on-upper begin)
+      (progn
+	(goto-char begin)
+	(sit-for 1)
+	(goto-char end)
+	(sit-for 1)
+	(upcase-region begin end)
+	(remove-text-properties begin end '(font-lock-face nil))
+	(remove-text-properties begin end '(upper nil))
+	(remove-text-properties begin end '(face nil)))))
+
+
+(defun remove-upper-highlight-right ()
+  "."
+  (interactive)
+  (message "insert hook executed")
+  (if (< (point) (point-max))
+      (progn
+	(save-excursion
+	  (forward-char 1)
+	  (if (< (point) (point-max))
+	      (progn
+		(let (start)
+		  (setq start (point))
+		  (forward-char 1)
+		  (while (and (< (point) (point-max))
+			      (g-mode-on-upper (point)))
+		    (forward-char 1))
+		  (forward-char -1)
+		  (if (g-mode-on-upper (point))
+		      (restore-upper start (point))))))))))
+
+(defun remove-upper-highlight-left ()
+  "."
+  (interactive)
+  (progn
+    (message "insert hook executed")
+    (let (bol)
+      (setq bol (line-beginning-position))
+      (if (> (point) bol)
+	  (progn
+	    (message "a")
+	    (save-excursion
+	      (forward-char -1)
+	      (let (start)
+		(setq start -1)
+		(while (and (>= (point) bol)
+			    (g-mode-on-upper (point)))
+		  (progn
+		    (setq start (point))
+		    (sit-for 1)
+		    (forward-char -1)))
+		(if (> start -1)
+		    (progn
+		      (let (end)
+			(message "b")
+			(goto-char start)
+			(setq bol (line-end-position))
+			(sit-for 1)
+			(setq end -1)
+			(while (and (<= (point) bol)
+				    (g-mode-on-upper (point)))
+			  (progn
+			    (forward-char 1)
+			    (setq end (point))
+			    (sit-for 1)))
+			(if (> end -1)
+			    (restore-upper start end))))))))))))
+
+(defun g-mode-check-on-insertion ()
+  "."
+  (interactive)
+  (if (> (point) (point-min))
+      (progn
+	(save-excursion
+	  (let ((inhibit-modification-hooks t))
+	    (forward-char -1)
+	    (remove-upper-highlight-left))))))
+
+(defun m2-backspace ()
+  "."
+  (interactive)
+  (backward-delete-char-untabify 1)
+  (g-mode-check-on-insertion))
+
+(defun g-mode-on-upper (pos)
+  "."
+  (interactive)
+  (progn
+    (get-text-property pos 'upper)))
+
+(defun g-mode-restore-upper-case ()
+  "."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (let (g-mode-min)
+      (setq g-mode-min (point))
+      (let (seen-upper)
+	(setq seen-upper (g-mode-on-upper (point)))
+	(while (< (point) (point-max))
+	  (progn
+	    (if (not (eq seen-upper (g-mode-on-upper (point))))
+		(progn
+		  (setq seen-upper (g-mode-on-upper (point)))
+		  (if (g-mode-on-upper (point))
+		      ;; just moved onto an uppercase
+		      (setq g-mode-min (point))
+		    ;; just moved off an uppercase
+		    (restore-upper g-mode-min (point)))))
+	    (forward-char 1)))))))
+
+(defun g-mode-trim-left (s)
+  "Remove whitespace at the beginning of S."
+  (if (string-match "\\`[ \t\n\r]+" s)
+      (replace-match "" t t s)
+    s))
+
+(defun g-mode-trim-right (s)
+  "Remove whitespace at the end of S."
+  (if (string-match "[ \t\n\r]+\\'" s)
+      (replace-match "" t t s)
+    s))
+
+(defun g-mode-trim (s)
+  "Remove whitespace at the beginning and end of S."
+  (g-mode-trim-left (g-mode-trim-right s)))
+
+(defun g-mode-keywordise (keyword)
+  "."
+  (interactive)
+  (progn
+    (setq keyword (g-mode-trim-left keyword))
+    (save-excursion
+      (let (l)
+	(setq l (length keyword))
+	(forward-char (- l))
+	;; (message (concat "keyword <" keyword ">"))
+	;; (sit-for 1)
+	(if (not (get-text-property (point) 'upper))
+	    (progn
+	      (insert (propertize (downcase keyword)
+				  'font-lock-face font-lock-keyword-face
+				  'rear-nonsticky t
+				  'upper t))
+	      (delete-char l)))))
+    nil))
+
+(defun g-mode-typeise (keyword)
+  "."
+  (interactive)
+  (progn
+    (save-excursion
+      (let (l)
+	(setq l (length keyword))
+	(forward-char (- l))
+	(if (not (get-text-property (point) 'keyword))
+	    (progn
+	      (insert (propertize (downcase keyword)
+				  'font-lock-face font-lock-type-face
+				  'rear-nonsticky t
+				  'upper t))
+	      (delete-char l)))))
+    nil))
+
+(defun g-mode-gen-regexp-keywords (keyword-list)
+  "."
+  (interactive)
+  (progn
+    (concat "\\(" keyword-list "\\)")))
+;; (string-join 'g-mode-keywords "\\|")
+;; "END\\|BEGIN\\|MODULE"
+
+;; (defconst g-mode-keyword-regexp (concat "\\(;\\|^\\| \\|\t\\)\\(" "END\\|BEGIN\\|MODULE" "\\)"))
+;; (defconst g-mode-keyword-regexp (concat "\\(;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity '("BEGIN" "END" "MODULE") "\\|") "\\)"))
+(defconst g-mode-keyword-regexp (concat "\\(;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-keywords "\\|") "\\)\\(;\\|$\\| \\|\t\\)"))
+
+(defun g-mode-add-keywords ()
+  "."
+  (interactive)
+  (progn
+    `(
+      ;; (,g-mode-type-regexp "\\([ \t$]\\)"
+      ;; (g-mode-typeise (match-string 0)) nil
+      ;; (1 font-lock-type-face))
+      ;; (,g-mode-constant-regexp . font-lock-constant-face)
+      ;; (,g-mode-functions-regexp . font-lock-function-name-face)
+      ;;(message (mapconcat 'identity '("BEGIN" "END" "MODULE") "\\|"))
+      (,g-mode-keyword-regexp "\\(;\\| \\|$\\)"
+			      (g-mode-keywordise (match-string 2)) nil
+			      (1 font-lock-keyword-face)))))
+
 ;; create the list for font-lock.
 ;; each class of keyword is given a particular face
 (setq g-mode-font-lock-keywords
@@ -1787,6 +1986,7 @@ FROM StdIO IMPORT Write, Read ;
     (,g-mode-keywords-regexp . font-lock-keyword-face)
     ;; note: order above matters.
 ))
+
 
 (defun g-mode ()
   "Major mode for editing M2 code. User definable variables:
@@ -1802,7 +2002,10 @@ FROM StdIO IMPORT Write, Read ;
   (set-syntax-table g-mode-syntax-table)
 
   ;; code for syntax highlighting
-  (setq font-lock-defaults '((g-mode-font-lock-keywords)))
+  ;; (setq font-lock-defaults '((g-mode-font-lock-keywords)))
+  (setq font-lock-defaults '(g-mode-add-keywords))
+  ;; (g-mode-add-keywords)
+  ;; (setq font-lock-defaults '(g-mode-test-font-lock-keywords))
   ;; clear memory
   (setq g-mode-keywords-regexp nil)
   (setq g-mode-types-regexp nil)
@@ -1810,11 +2013,15 @@ FROM StdIO IMPORT Write, Read ;
   (setq g-mode-functions-regexp nil)
   ;; end of syntax highlighting
 
-  (comment-start "(*") (comment-end "*)")
+  ;; (comment-start "(*") (comment-end "*)")
   (setq case-fold-search nil)
   (setq indent-tabs-mode nil)
   (setq g-mode-hook
-	'(lambda () (progn (make-local-variable 'compile-command)
-			   (setq compile-command (concat m2-compile-command " " (concat (substring (buffer-name) 0 -4) ".mod")))
-			   (linum-mode 0))))
+	'(lambda ()
+	   (progn (make-local-variable 'compile-command)
+		  (setq compile-command (concat m2-compile-command " " (concat (substring (buffer-name) 0 -4) ".mod")))
+		  (linum-mode 0))))
+
+  (add-hook 'before-save-hook 'g-mode-restore-upper-case)
+  (add-hook 'post-self-insert-hook 'g-mode-check-on-insertion nil t)
   (run-hooks 'g-mode-hook))
