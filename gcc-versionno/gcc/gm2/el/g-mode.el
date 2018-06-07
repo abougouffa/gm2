@@ -104,9 +104,9 @@
   (setq g-mode-map (make-sparse-keymap))
   (define-key g-mode-map ")" 'm2-close-paren)
   (define-key g-mode-map "\t" 'm2-tab)
-  (define-key g-mode-map "D" 'm2-test-end)
-  (define-key g-mode-map "N" 'm2-test-then)
-  (define-key g-mode-map "E" 'm2-test-else)
+  ;;(define-key g-mode-map "D" 'm2-test-end)
+  ;;(define-key g-mode-map "N" 'm2-test-then)
+  ;;(define-key g-mode-map "E" 'm2-test-else)
 ;;  (define-key g-mode-map "%" 'm2-local-test)
 ;;  (define-key g-mode-map "!" 'm2-local-recompile)
   (define-key g-mode-map "\177" 'm2-backspace)
@@ -1786,10 +1786,6 @@ FROM StdIO IMPORT Write, Read ;
   (interactive)
   (if (g-mode-on-upper begin)
       (progn
-	(goto-char begin)
-	(sit-for 1)
-	(goto-char end)
-	(sit-for 1)
 	(upcase-region begin end)
 	(remove-text-properties begin end '(font-lock-face nil))
 	(remove-text-properties begin end '(upper nil))
@@ -1825,7 +1821,6 @@ FROM StdIO IMPORT Write, Read ;
       (setq bol (line-beginning-position))
       (if (> (point) bol)
 	  (progn
-	    (message "a")
 	    (save-excursion
 	      (forward-char -1)
 	      (let (start)
@@ -1834,22 +1829,18 @@ FROM StdIO IMPORT Write, Read ;
 			    (g-mode-on-upper (point)))
 		  (progn
 		    (setq start (point))
-		    (sit-for 1)
 		    (forward-char -1)))
 		(if (> start -1)
 		    (progn
 		      (let (end)
-			(message "b")
 			(goto-char start)
 			(setq bol (line-end-position))
-			(sit-for 1)
 			(setq end -1)
 			(while (and (<= (point) bol)
 				    (g-mode-on-upper (point)))
 			  (progn
 			    (forward-char 1)
-			    (setq end (point))
-			    (sit-for 1)))
+			    (setq end (point))))
 			(if (> end -1)
 			    (restore-upper start end))))))))))))
 
@@ -1859,9 +1850,12 @@ FROM StdIO IMPORT Write, Read ;
   (if (> (point) (point-min))
       (progn
 	(save-excursion
-	  (let ((inhibit-modification-hooks t))
-	    (forward-char -1)
-	    (remove-upper-highlight-left))))))
+	  (message "g-mode-check-on-insertion")
+	  (if (not (looking-at "[ \t;(){}\\[\\]:]"))
+	      (progn
+		(let ((inhibit-modification-hooks t))
+		  (forward-char -1)
+		  (remove-upper-highlight-left))))))))
 
 (defun m2-backspace ()
   "."
@@ -1921,7 +1915,7 @@ FROM StdIO IMPORT Write, Read ;
       (let (l)
 	(setq l (length keyword))
 	(forward-char (- l))
-	;; (message (concat "keyword <" keyword ">"))
+	(message (concat "g-mode-keywordise <" keyword ">"))
 	;; (sit-for 1)
 	(if (not (get-text-property (point) 'upper))
 	    (progn
