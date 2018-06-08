@@ -1792,6 +1792,34 @@ FROM StdIO IMPORT Write, Read ;
 	(remove-text-properties begin end '(face nil)))))
 
 
+(defun g-mode-restore-upper-case ()
+  "."
+  (interactive)
+  (g-mode-restore-upper-case-region (point-min) (point-max)))
+
+(defun g-mode-restore-upper-case-region (begin end)
+  "."
+  (interactive)
+  (save-excursion
+    (goto-char begin)
+    (let (g-mode-min)
+      (setq g-mode-min (point))
+      (let (seen-upper)
+	(setq seen-upper (g-mode-on-upper (point)))
+	(while (< (point) end)
+	  (progn
+	    (if (not (eq seen-upper (g-mode-on-upper (point))))
+		(progn
+		  (setq seen-upper (g-mode-on-upper (point)))
+		  (if (g-mode-on-upper (point))
+		      ;; just moved onto an uppercase
+		      (setq g-mode-min (point))
+		    ;; just moved off an uppercase
+		    (restore-upper g-mode-min (point)))))
+	    (forward-char 1)))
+	(if (g-mode-on-upper g-mode-min)
+	    (restore-upper g-mode-min (point)))))))
+
 (defun remove-upper-highlight-right ()
   "."
   (interactive)
@@ -1847,15 +1875,8 @@ FROM StdIO IMPORT Write, Read ;
 (defun g-mode-check-on-insertion ()
   "."
   (interactive)
-  (if (> (point) (point-min))
-      (progn
-	(save-excursion
-	  (message "g-mode-check-on-insertion")
-	  (if (not (looking-at "[ \t;(){}\\[\\]:]"))
-	      (progn
-		(let ((inhibit-modification-hooks t))
-		  (forward-char -1)
-		  (remove-upper-highlight-left))))))))
+  (g-mode-restore-upper-case-region (line-beginning-position) (line-end-position))
+  (message "g-mode-check-on-insertion"))
 
 (defun m2-backspace ()
   "."
@@ -1868,27 +1889,6 @@ FROM StdIO IMPORT Write, Read ;
   (interactive)
   (progn
     (get-text-property pos 'upper)))
-
-(defun g-mode-restore-upper-case ()
-  "."
-  (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (let (g-mode-min)
-      (setq g-mode-min (point))
-      (let (seen-upper)
-	(setq seen-upper (g-mode-on-upper (point)))
-	(while (< (point) (point-max))
-	  (progn
-	    (if (not (eq seen-upper (g-mode-on-upper (point))))
-		(progn
-		  (setq seen-upper (g-mode-on-upper (point)))
-		  (if (g-mode-on-upper (point))
-		      ;; just moved onto an uppercase
-		      (setq g-mode-min (point))
-		    ;; just moved off an uppercase
-		    (restore-upper g-mode-min (point)))))
-	    (forward-char 1)))))))
 
 (defun g-mode-trim-left (s)
   "Remove whitespace at the beginning of S."
@@ -1906,24 +1906,22 @@ FROM StdIO IMPORT Write, Read ;
   "Remove whitespace at the beginning and end of S."
   (g-mode-trim-left (g-mode-trim-right s)))
 
-(defun g-mode-keywordise (keyword)
+(defun g-mode-keywordise (all-matched left-leader keyword)
   "."
   (interactive)
   (progn
-    (setq keyword (g-mode-trim-left keyword))
     (save-excursion
       (let (l)
+	(message (concat "g-mode-keywordise <" all-matched ">"))
 	(setq l (length keyword))
-	(forward-char (- l))
-	(message (concat "g-mode-keywordise <" keyword ">"))
-	;; (sit-for 1)
-	(if (not (get-text-property (point) 'upper))
-	    (progn
-	      (insert (propertize (downcase keyword)
-				  'font-lock-face font-lock-keyword-face
-				  'rear-nonsticky t
-				  'upper t))
-	      (delete-char l)))))
+	(goto-char (match-beginning 0))
+	;; (message (format "value of l is %d, keyword %d and all-matched %d" l (length keyword) (length all-matched)))
+	(forward-char (length left-leader))
+	(insert (propertize (downcase keyword)
+			    'font-lock-face font-lock-keyword-face
+			    'rear-nonsticky t
+			    'upper t))
+	(delete-char (length keyword))))
     nil))
 
 (defun g-mode-typeise (keyword)
@@ -1953,7 +1951,7 @@ FROM StdIO IMPORT Write, Read ;
 
 ;; (defconst g-mode-keyword-regexp (concat "\\(;\\|^\\| \\|\t\\)\\(" "END\\|BEGIN\\|MODULE" "\\)"))
 ;; (defconst g-mode-keyword-regexp (concat "\\(;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity '("BEGIN" "END" "MODULE") "\\|") "\\)"))
-(defconst g-mode-keyword-regexp (concat "\\(;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-keywords "\\|") "\\)\\(;\\|$\\| \\|\t\\)"))
+(defconst g-mode-keyword-regexp (concat "\\(;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-keywords "\\|") "\\)\\(;\\| \\|$\\)"))
 
 (defun g-mode-add-keywords ()
   "."
@@ -1965,9 +1963,8 @@ FROM StdIO IMPORT Write, Read ;
       ;; (1 font-lock-type-face))
       ;; (,g-mode-constant-regexp . font-lock-constant-face)
       ;; (,g-mode-functions-regexp . font-lock-function-name-face)
-      ;;(message (mapconcat 'identity '("BEGIN" "END" "MODULE") "\\|"))
-      (,g-mode-keyword-regexp "\\(;\\| \\|$\\)"
-			      (g-mode-keywordise (match-string 2)) nil
+      (,g-mode-keyword-regexp "\\(.*$\\)"
+			      (g-mode-keywordise (match-string 0) (match-string 1) (match-string 2)) nil
 			      (1 font-lock-keyword-face)))))
 
 ;; create the list for font-lock.
@@ -2017,5 +2014,5 @@ FROM StdIO IMPORT Write, Read ;
 		  (linum-mode 0))))
 
   (add-hook 'before-save-hook 'g-mode-restore-upper-case)
-  (add-hook 'post-self-insert-hook 'g-mode-check-on-insertion nil t)
+  (add-hook 'post-self-insert-hook 'g-mode-check-on-insertion nil 'local)
   (run-hooks 'g-mode-hook))

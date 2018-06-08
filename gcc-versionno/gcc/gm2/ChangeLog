@@ -1,3 +1,8 @@
+2018-06-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/el/g-mode.el:  interim checkin, keyword editing
+          complete (minus delete key).
+
 2018-06-07      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/el/g-mode.el:  interim checkin.
