@@ -92,6 +92,21 @@
    generate the FSF copyright and warranty disclaimer in any
    new module.")
 
+(defvar m2-dialect-known nil
+  "is the dialect known yet.  The mode will examine the first
+   m2-dialect-comment-search-limit lines for a special marker
+   indicating dialect.")
+
+(defconst m2-dialect-comment-search-limit 200
+  "the maximum number of lines to search at the top of the source
+   file in order to find the dialect marker.")
+
+(defvar m2-dialect nil
+  "the dialect list which can contain item tags such as gm2 m2iso
+   m2pim m2r10.  For example a (*!m2iso+gm2*) or (*!m2pim+gm2*)
+   or (*!m2r10*) which specifies a dialect and with/without GNU
+   Modula-2 extensions.")
+
 (defvar g-mode-abbrev-table nil
   "Abbrev table in use in g-mode buffers.")
 (define-abbrev-table 'g-mode-abbrev-table ())
@@ -1906,66 +1921,144 @@ FROM StdIO IMPORT Write, Read ;
   "Remove whitespace at the beginning and end of S."
   (g-mode-trim-left (g-mode-trim-right s)))
 
-(defun g-mode-keywordise (all-matched left-leader keyword)
+(defun g-mode-lowerise (all-matched left-leader token face)
   "."
   (interactive)
   (progn
     (save-excursion
       (let (l)
-	(message (concat "g-mode-keywordise <" all-matched ">"))
-	(setq l (length keyword))
+	;; (message (concat "g-mode-keywordise <" all-matched ">"))
+	(setq l (length token))
 	(goto-char (match-beginning 0))
 	;; (message (format "value of l is %d, keyword %d and all-matched %d" l (length keyword) (length all-matched)))
 	(forward-char (length left-leader))
-	(insert (propertize (downcase keyword)
-			    'font-lock-face font-lock-keyword-face
+	(insert (propertize (downcase token)
+			    'font-lock-face face
 			    'rear-nonsticky t
 			    'upper t))
-	(delete-char (length keyword))))
+	(delete-char (length token))))
     nil))
 
-(defun g-mode-typeise (keyword)
+(defun g-mode-detect-dialect ()
   "."
   (interactive)
-  (progn
-    (save-excursion
-      (let (l)
-	(setq l (length keyword))
-	(forward-char (- l))
-	(if (not (get-text-property (point) 'keyword))
+  (save-excursion
+    (if (re-search-forward "(\\*!m2" nil t)
+	(progn
+	  (forward-char 4)
+	  (while (and (< (point) (point-max))
+		      (not (looking-at "\\*\\)")))
 	    (progn
-	      (insert (propertize (downcase keyword)
-				  'font-lock-face font-lock-type-face
-				  'rear-nonsticky t
-				  'upper t))
-	      (delete-char l)))))
-    nil))
+	      (if (looking-at "pim")
+		  (progn
+		    (forward-char 3)
+		    (add-to-list 'm2-dialect 'pim))
+		(if (looking-at "iso")
+		    (progn
+		      (forward-char 3)
+		      (add-to-list 'm2-dialect 'iso))
+		  (if (looking-at "r10")
+		      (progn
+			(forward-char 3)
+			(add-to-list 'm2-dialect 'r10))
+		  (if (looking-at "gm2")
+		      (progn
+			(forward-char 3)
+			(add-to-list 'm2-dialect 'gm2))
+		    (forward-char 1)))))))))))
 
-(defun g-mode-gen-regexp-keywords (keyword-list)
+
+(defun g-mode-dialect-pim ()
+  (interactive)
+  (if (not m2-dialect-known)
+      (g-mode-detect-dialect))
+  (progn
+    (not (memq 'pim 'm2-dialect))))
+
+(defgroup gm2 nil
+  "Modula-2 formatting mode"
+  :group 'programming)
+
+(defcustom g-mode-use-algol-style t
+  "use the algol style type faces, which displays keywords and reserved
+   types and functions in lowercase."
+  :type 'hook
+  :options '(t nil)
+  :group 'gm2)
+
+(defcustom g-mode-keywords-underlined t
+  "keywords should be underlined, probably not wanted if you are not using
+   algol style, see g-mode-use-algol-style."
+  :type 'hook
+  :options '(t nil)
+  :group 'gm2)
+
+(defcustom g-mode-functions-italic nil
+  "reserved functions should be rendered as italic, probably not
+   wanted if you are not using algol style, see
+   g-mode-use-algol-style."
+  :type 'hook
+  :options '(t nil)
+  :group 'gm2)
+
+(defconst g-mode-keyword-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-keywords "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
+(defconst g-mode-type-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-types "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
+(defconst g-mode-constant-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-constants "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
+(defconst g-mode-function-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-functions "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
+
+(defvar g-mode-test-keywords nil
+  "dynamically generated keyword list from the dialects.")
+
+(defun g-mode-adapt-font-faces ()
   "."
   (interactive)
-  (progn
-    (concat "\\(" keyword-list "\\)")))
-;; (string-join 'g-mode-keywords "\\|")
-;; "END\\|BEGIN\\|MODULE"
+  (if g-mode-keywords-underlined
+      (progn
+	(make-variable-buffer-local 'font-lock-keyword-face)
+	(copy-face 'font-lock-keyword-face 'g-mode-keyword-face)
+	;; (set-face-foreground 'g-mode-keyword-face "green4")
+	(set-face-bold 'g-mode-keyword-face t)
+	(set-face-underline 'g-mode-keyword-face t)
+	(setq font-lock-keyword-face 'g-mode-keyword-face)))
+  (if g-mode-functions-italic
+      (progn
+	(make-variable-buffer-local 'font-lock-builtin-face)
+	(copy-face 'font-lock-builtin-face 'g-mode-builtin-face)
+	(set-face-bold 'g-mode-builtin-face t)
+	(set-face-italic 'g-mode-builtin-face t)
+	(setq font-lock-builtin-face 'g-mode-builtin-face))))
 
-;; (defconst g-mode-keyword-regexp (concat "\\(;\\|^\\| \\|\t\\)\\(" "END\\|BEGIN\\|MODULE" "\\)"))
-;; (defconst g-mode-keyword-regexp (concat "\\(;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity '("BEGIN" "END" "MODULE") "\\|") "\\)"))
-(defconst g-mode-keyword-regexp (concat "\\(;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-keywords "\\|") "\\)\\(;\\| \\|$\\)"))
+;;(make-variable-buffer-local 'font-lock-keyword-face) (copy-face
+;;'font-lock-keyword-face 'g-mode-keyword-face) (set-face-foreground
+;;'g-mode-keyword-face "green4")
+
+;;(add-hook 'lua-mode-hook
+;;          (lambda ()
+;;            (setq font-lock-keyword-face 'g-mode-keyword-face)
+;;            ))
 
 (defun g-mode-add-keywords ()
   "."
   (interactive)
   (progn
+    (g-mode-adapt-font-faces)
+
+    ;; (if (g-mode-dialect-pim)
+    ;; (setq g-mode-test-keywords nil))
     `(
-      ;; (,g-mode-type-regexp "\\([ \t$]\\)"
-      ;; (g-mode-typeise (match-string 0)) nil
-      ;; (1 font-lock-type-face))
-      ;; (,g-mode-constant-regexp . font-lock-constant-face)
-      ;; (,g-mode-functions-regexp . font-lock-function-name-face)
+      (,g-mode-type-regexp "\\(.*$\\)"
+			   (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-type-face) nil
+			   (1 font-lock-type-face))
+      (,g-mode-constant-regexp "\\(.*$\\)"
+			   (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-constant-face) nil
+			   (1 font-lock-constant-face))
+      (,g-mode-function-regexp "\\(.*$\\)"
+			       (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-builtin-face) nil
+			       (1 font-lock-builtin-face))
       (,g-mode-keyword-regexp "\\(.*$\\)"
-			      (g-mode-keywordise (match-string 0) (match-string 1) (match-string 2)) nil
+			      (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-keyword-face) nil
 			      (1 font-lock-keyword-face)))))
+;; font-lock-keyword-face
 
 ;; create the list for font-lock.
 ;; each class of keyword is given a particular face
