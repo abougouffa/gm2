@@ -50,28 +50,72 @@
 ;;    ported to GNU Michael Schmidt <michael@pbinfo.UUCP>
 ;;    modified by Tom Perrine <Perrin@LOGICON.ARPA> (TEP)
 
+(defgroup gm2 nil
+  "Modula-2 formatting mode."
+  :group 'programming)
+
 (defcustom m2-indent-level 3
   "indentation of Modula-2 statements within a containing block."
-  :type 'hook
-  :options '(1 2 3 4 5)
+  :type 'integer
   :group 'gm2)
 
 (defcustom m2-auto-indent-on-end t
   "automatic indentation when END is typed."
-  :type 'hook
-  :options '(t nil)
+  :type 'boolean
   :group 'gm2)
 
 (defcustom m2-auto-indent-on-then t
   "automatic indentation when THEN is typed."
-  :type 'hook
-  :options '(t nil)
+  :type 'boolean
   :group 'gm2)
 
 (defcustom m2-auto-indent-on-else t
   "automatic indentation when ELSE is typed."
-  :type 'hook
-  :options '(t nil)
+  :type 'boolean
+  :group 'gm2)
+
+(defcustom g-mode-use-algol-style t
+  "use the algol style type faces, which displays keywords and reserved
+   types and functions in lowercase."
+  :type 'boolean
+  :group 'gm2)
+
+(defcustom g-mode-keywords-underlined t
+  "keywords should be underlined, probably not wanted if you are not using
+   algol style, see g-mode-use-algol-style."
+  :type 'boolean
+  :group 'gm2)
+
+(defcustom g-mode-functions-italic nil
+  "reserved functions should be rendered as italic, probably not
+   wanted if you are not using algol style, see
+   g-mode-use-algol-style."
+  :type 'boolean
+  :group 'gm2)
+
+(defcustom g-mode-default-dialect 'pim
+  "the default dialect of Modula-2 to be rendered.  Only used if
+   no explicit dialect tag is in the first n lines of the file.
+   The choices are pim (1985), iso (1995) and r10 (2010)."
+  :type '(radio
+	  (const pim)
+	  (const iso)
+	  (const r10))
+  :group 'gm2)
+
+(defcustom m2-dialect-comment-search-limit 200
+  "the maximum number of lines to search at the top of the source
+   file in order to find the dialect marker."
+  :type 'integer
+  :group 'gm2)
+
+(defcustom m2-assign-future nil
+  "useful for GNU developers, set this to nil if you have not
+   assigned all future code to the fsf or set to t if you
+   have.  If you have assigned all future code to the FSF then
+   this is useful as it will automatically generate the FSF
+   copyright and warranty disclaimer in any new module."
+  :type 'boolean
   :group 'gm2)
 
 ;; default path which is overwritten by the environment variable
@@ -99,21 +143,10 @@
   "set this to t if you like the THEN on the same line as IF,
    or set it to nil if you place THEN on the next line.")
 
-(defconst m2-assign-future t
-  "set to to nil if you have not assigned all future code to the
-   fsf or set to t if you have. If you have assigned all future
-   code to the FSF then this is useful as it will automatically
-   generate the FSF copyright and warranty disclaimer in any
-   new module.")
-
 (defvar m2-dialect-known nil
   "is the dialect known yet.  The mode will examine the first
    m2-dialect-comment-search-limit lines for a special marker
    indicating dialect.")
-
-(defconst m2-dialect-comment-search-limit 200
-  "the maximum number of lines to search at the top of the source
-   file in order to find the dialect marker.")
 
 (defvar m2-dialect nil
   "the dialect list which can contain item tags such as gm2 m2iso
@@ -133,12 +166,14 @@
   (setq g-mode-map (make-sparse-keymap))
   (define-key g-mode-map ")" 'm2-close-paren)
   (define-key g-mode-map "\t" 'm2-tab)
-  ;;(define-key g-mode-map "D" 'm2-test-end)
-  ;;(define-key g-mode-map "N" 'm2-test-then)
-  ;;(define-key g-mode-map "E" 'm2-test-else)
+  (define-key g-mode-map "D" 'm2-test-end)
+  (define-key g-mode-map "N" 'm2-test-then)
+  (define-key g-mode-map "E" 'm2-test-else)
 ;;  (define-key g-mode-map "%" 'm2-local-test)
 ;;  (define-key g-mode-map "!" 'm2-local-recompile)
-  (define-key g-mode-map "\177" 'm2-backspace)
+  (define-key g-mode-map (kbd "DEL") 'm2-backspace)
+  (define-key g-mode-map "\C-d" 'm2-delete)
+  (define-key g-mode-map (kbd "<delete>") 'm2-delete)
   (define-key g-mode-map "\e."   'm2-tag)
   (define-key g-mode-map "\e\t"  'm2-complete)
   (define-key g-mode-map "\C-cb" 'm2-begin)
@@ -178,12 +213,12 @@
     (g-mode-restore-upper-case-region (line-beginning-position) (line-end-position))
     (looking-at regexp)))
 
-(defun re-search-backward-keyword (regexp)
-  "return t if the cursor is matching regexp."
+(defun re-search-backward-keyword (regexp &optional bound noerror count)
+  "return t if the cursor is matching regexp when searching backwards."
   (interactive)
   (progn
     (g-mode-restore-upper-case-region (line-beginning-position) (line-end-position))
-    (re-search-backward regexp)))
+    (re-search-backward regexp bound noerror count)))
 
 (defun m2-close-paren ()
   "Insert a close parenthesis and call m2-match-parenthesis."
@@ -1922,6 +1957,12 @@ FROM StdIO IMPORT Write, Read ;
   (backward-delete-char-untabify 1)
   (g-mode-check-on-insertion))
 
+(defun m2-delete ()
+  "."
+  (interactive)
+  (delete-char 1)
+  (g-mode-check-on-insertion))
+
 (defun g-mode-on-upper (pos)
   "."
   (interactive)
@@ -1997,32 +2038,6 @@ FROM StdIO IMPORT Write, Read ;
       (g-mode-detect-dialect))
   (progn
     (not (memq 'pim 'm2-dialect))))
-
-(defgroup gm2 nil
-  "Modula-2 formatting mode."
-  :group 'programming)
-
-(defcustom g-mode-use-algol-style t
-  "use the algol style type faces, which displays keywords and reserved
-   types and functions in lowercase."
-  :type 'hook
-  :options '(t nil)
-  :group 'gm2)
-
-(defcustom g-mode-keywords-underlined t
-  "keywords should be underlined, probably not wanted if you are not using
-   algol style, see g-mode-use-algol-style."
-  :type 'hook
-  :options '(t nil)
-  :group 'gm2)
-
-(defcustom g-mode-functions-italic nil
-  "reserved functions should be rendered as italic, probably not
-   wanted if you are not using algol style, see
-   g-mode-use-algol-style."
-  :type 'hook
-  :options '(t nil)
-  :group 'gm2)
 
 (defconst g-mode-keyword-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-keywords "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
 (defconst g-mode-type-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-types "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))

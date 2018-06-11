@@ -4,7 +4,12 @@
           and fixed some regexp bugs.  Applied some defcustom
           implementation features.
 	* gm2/el/g-mode.el:  fixed electric END, ELSE and THEN.
-	  Added more defcustoms.
+          Added more defcustoms.
+	* gm2/el/g-mode.el:  added many more defcustoms.  Also
+          tidied up code and also tightened up types and introduced
+          radio buttons for language choice.  Use inbuilt booleans
+          for binary choices.  Fixed key binding for DEL and
+	  Backspace.
 
 2018-06-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
