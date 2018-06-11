@@ -32,6 +32,8 @@
 ;; Modula-2 mode editing commands for Emacs
 
 ;; Author Gaius Mulley <gaius@glam.ac.uk>
+;;    keywords can be displayed in lowercase and optionally underlined.
+;;    reserved procedures and functions displayed in lowercase bold and optionally italic.
 ;;    contains automatic indentation
 ;;    automatic END matching
 ;;    electric THEN, END, ELSE
@@ -48,17 +50,29 @@
 ;;    ported to GNU Michael Schmidt <michael@pbinfo.UUCP>
 ;;    modified by Tom Perrine <Perrin@LOGICON.ARPA> (TEP)
 
-(defconst m2-indent-level 3
-  "*Indentation of M2 statements with respect to containing block.")
+(defcustom m2-indent-level 3
+  "indentation of Modula-2 statements within a containing block."
+  :type 'hook
+  :options '(1 2 3 4 5)
+  :group 'gm2)
 
-(defconst m2-auto-indent-on-end t
-  "*Automatic indentation when END is typed.")
+(defcustom m2-auto-indent-on-end t
+  "automatic indentation when END is typed."
+  :type 'hook
+  :options '(t nil)
+  :group 'gm2)
 
-(defconst m2-auto-indent-on-then t
-  "*Automatic indentation when THEN is typed.")
+(defcustom m2-auto-indent-on-then t
+  "automatic indentation when THEN is typed."
+  :type 'hook
+  :options '(t nil)
+  :group 'gm2)
 
-(defconst m2-auto-indent-on-else t
-  "*Automatic indentation when ELSE is typed.")
+(defcustom m2-auto-indent-on-else t
+  "automatic indentation when ELSE is typed."
+  :type 'hook
+  :options '(t nil)
+  :group 'gm2)
 
 ;; default path which is overwritten by the environment variable
 ;; M2PATH. (If it exists).
@@ -156,6 +170,20 @@
   (define-key g-mode-map "\C-c\C-d" 'm2-debug)
   (define-key g-mode-map "\C-c\C-a" 'm2-assembler)
   (define-key g-mode-map "\C-c\C-c" 'm2-compile))
+
+(defun looking-at-keyword (regexp)
+  "return t if the cursor is matching regexp."
+  (interactive)
+  (progn
+    (g-mode-restore-upper-case-region (line-beginning-position) (line-end-position))
+    (looking-at regexp)))
+
+(defun re-search-backward-keyword (regexp)
+  "return t if the cursor is matching regexp."
+  (interactive)
+  (progn
+    (g-mode-restore-upper-case-region (line-beginning-position) (line-end-position))
+    (re-search-backward regexp)))
 
 (defun m2-close-paren ()
   "Insert a close parenthesis and call m2-match-parenthesis."
@@ -808,11 +836,6 @@ FROM StdIO IMPORT Write, Read ;
 	   (compile (concat m2-link-command " "
 			    (substring (buffer-name) 0 -4)))))))
 
-(defun execute-monitor-command (command)
-  (let* ((shell shell-file-name)
-	 (csh (equal (file-name-nondirectory shell) "csh")))
-    (call-process shell nil t t "-cf" (concat "exec " command))))
-
 (defun m2-visit ()
   (interactive)
   (let (modulename)
@@ -1003,21 +1026,21 @@ FROM StdIO IMPORT Write, Read ;
       (m2-backward-to-token)
       (while (and (> (point) 1)
 		  (or (and (m2-in-parameter)
-			   (looking-at "VAR"))
+			   (looking-at-keyword "VAR"))
 		      (not (or (m2-indent-terminator)
 			       (m2-indent-commencer)
-			       (looking-at "CASE")))))
+			       (looking-at-keyword "CASE")))))
 	(m2-backward-to-token))
-      (if (looking-at "CASE")
+      (if (looking-at-keyword "CASE")
 	  (setq m2-level  0)
 	(if (m2-indent-commencer)
 	    (setq m2-level  (+ m2-level m2-indent-level))))
       (setq m2-found-record nil)
-      (if (looking-at "END")
+      (if (looking-at-keyword "END")
 	  (progn
 	    (save-excursion
 	      (m2-match-end)
-	      (if (looking-at "RECORD")
+	      (if (looking-at-keyword "RECORD")
 		  (progn
 		    (setq m2-level (+ m2-level (m2-calculate-indent)))
 		    (setq m2-found-record t))))))
@@ -1066,13 +1089,13 @@ FROM StdIO IMPORT Write, Read ;
   "returns true if we are looking at a Modula-2 keyword behind which
    an expression cannot exist."
   (interactive)
-  (or (looking-at "UNTIL")
-      (looking-at "WHILE")
-      (looking-at "IF")
+  (or (looking-at-keyword "UNTIL")
+      (looking-at-keyword "WHILE")
+      (looking-at-keyword "IF")
       (looking-at ":=")
-      (looking-at "TO")
+      (looking-at-keyword "TO")
       (looking-at "(\\*")
-      (looking-at "FOR")))
+      (looking-at-keyword "FOR")))
 
 (defun m2-expression-commencer ()
   "returns true if we are currently looking at an expression commencer."
@@ -1085,19 +1108,19 @@ FROM StdIO IMPORT Write, Read ;
 (defun m2-expression-terminator ()
   "returns true if we are currently looking at an expression terminator."
   (interactive)
-  (or (looking-at "THEN")
-      (looking-at "ELSE")
-      (looking-at "ELSIF")
-      (looking-at "END")
-      (looking-at "VAR")
-      (looking-at "TYPE")
-      (looking-at "CONST")
-      (looking-at "BEGIN")
-      (looking-at "WITH")
-      (looking-at "RECORD")
-      (looking-at "PROCEDURE")
-      (looking-at "OF")
-      (looking-at "DO")
+  (or (looking-at-keyword "THEN")
+      (looking-at-keyword "ELSE")
+      (looking-at-keyword "ELSIF")
+      (looking-at-keyword "END")
+      (looking-at-keyword "VAR")
+      (looking-at-keyword "TYPE")
+      (looking-at-keyword "CONST")
+      (looking-at-keyword "BEGIN")
+      (looking-at-keyword "WITH")
+      (looking-at-keyword "RECORD")
+      (looking-at-keyword "PROCEDURE")
+      (looking-at-keyword "OF")
+      (looking-at-keyword "DO")
       (looking-at "[;:]")))
 
 (defun m2-format-expression ()
@@ -1195,36 +1218,36 @@ FROM StdIO IMPORT Write, Read ;
   "returns true if a token representing the beginning of an indent sequence was found."
   (or (and
        m2-if-then-same-line
-       (looking-at "IF"))
+       (looking-at-keyword "IF"))
       (and
        (not m2-if-then-same-line)
-       (looking-at "THEN"))
-      (looking-at "BEGIN")
-      (looking-at "FINALLY")
-      (looking-at "EXCEPT")
-      (looking-at "RECORD")
-      (looking-at "FOR")
-      (looking-at "CONST")
-      (looking-at "TYPE")
-      (looking-at "VAR")
-      (looking-at "WITH")
-      (looking-at "LOOP")
-      (looking-at "REPEAT")
-      (looking-at "ELSE")
-      (looking-at "WHILE")))
+       (looking-at-keyword "THEN"))
+      (looking-at-keyword "BEGIN")
+      (looking-at-keyword "FINALLY")
+      (looking-at-keyword "EXCEPT")
+      (looking-at-keyword "RECORD")
+      (looking-at-keyword "FOR")
+      (looking-at-keyword "CONST")
+      (looking-at-keyword "TYPE")
+      (looking-at-keyword "VAR")
+      (looking-at-keyword "WITH")
+      (looking-at-keyword "LOOP")
+      (looking-at-keyword "REPEAT")
+      (looking-at-keyword "ELSE")
+      (looking-at-keyword "WHILE")))
 
 (defun m2-indent-terminator ()
   "returns true if a token representing the end of an indent sequence was found."
-  (or (looking-at "END")
-      (looking-at "BEGIN")
-      (looking-at "FINALLY")
-      (looking-at "EXCEPT")
-      (looking-at "CONST")
-      (looking-at "TYPE")
-      (looking-at "VAR")
-      (looking-at "ELSE")
-      (looking-at "ELSIF")
-      (looking-at "UNTIL")))
+  (or (looking-at-keyword "END")
+      (looking-at-keyword "BEGIN")
+      (looking-at-keyword "FINALLY")
+      (looking-at-keyword "EXCEPT")
+      (looking-at-keyword "CONST")
+      (looking-at-keyword "TYPE")
+      (looking-at-keyword "VAR")
+      (looking-at-keyword "ELSE")
+      (looking-at-keyword "ELSIF")
+      (looking-at-keyword "UNTIL")))
 
 (defun m2-local-recompile ()
  "recompile the g-mode and load the file"
@@ -1278,7 +1301,7 @@ FROM StdIO IMPORT Write, Read ;
 	   (> (point) 4))
       (save-excursion
 	(forward-char -4)
-	(if (looking-at "[; \t\n]END[; \t\n]")
+	(if (looking-at-keyword "[; \t\n]END[; \t\n]")
 	    (progn
 	      (m2-found-end))))))
 
@@ -1301,7 +1324,7 @@ FROM StdIO IMPORT Write, Read ;
 	   (> (point) 5))
       (save-excursion
 	(forward-char -5)
-	(if (looking-at "[; \t\n]THEN[; \t\n]")
+	(if (looking-at-keyword "[; \t\n]THEN[; \t\n]")
 	    (m2-found-then)))))
 
 (defun m2-found-then ()
@@ -1319,7 +1342,7 @@ FROM StdIO IMPORT Write, Read ;
 	   (> (point) 5))
       (save-excursion
 	(forward-char -5)
-	(if (looking-at "[; \t\n]ELSE[; \t\n]")
+	(if (looking-at-keyword "[; \t\n]ELSE[; \t\n]")
 	    (m2-found-else)))))
 
 (defun m2-found-else ()
@@ -1355,10 +1378,10 @@ FROM StdIO IMPORT Write, Read ;
     (let (beginning)
       (setq m2-level 1)
       (while (and (> m2-level 0) (> (point) 1))
-	(re-search-backward "[ ;\n\t]\\(END\\|IF\\|LOOP\\|WITH\\|WHILE\\|RECORD\\|CASE\\|FOR\\|MODULE\\|PROCEDURE\\)" nil t)
+	(re-search-backward-keyword "[ ;\n\t]\\(END\\|IF\\|LOOP\\|WITH\\|WHILE\\|RECORD\\|CASE\\|FOR\\|MODULE\\|PROCEDURE\\)" nil t)
 	(forward-char 1)
 	(if (not (m2-is-in-string))
-	    (if (looking-at "END")
+	    (if (looking-at-keyword "END")
 		(setq m2-level (+ m2-level 1))
 	      (setq m2-level (- m2-level 1)
 		    beginning (point)))))
@@ -1367,20 +1390,20 @@ FROM StdIO IMPORT Write, Read ;
 (defun m2-end-commencer ()
   "returns true if a token representing the beginning of an END was found."
   (and (> (point) 1)
-       (or (save-excursion (forward-char -1) (looking-at "[ ;\n\t]IF"))
-	   (save-excursion (forward-char -1) (looking-at "[ ;\n\t]LOOP"))
-	   (save-excursion (forward-char -1) (looking-at "[ ;\n\t]WITH"))
-	   (save-excursion (forward-char -1) (looking-at "[ ;\n\t]WHILE"))
-	   (save-excursion (forward-char -1) (looking-at "[ ;\n\t]RECORD"))
-	   (save-excursion (forward-char -1) (looking-at "[ ;\n\t]CASE"))
-	   (save-excursion (forward-char -1) (looking-at "[ ;\n\t]FOR"))
-	   (save-excursion (forward-char -1) (looking-at "[ ;\n\t]MODULE"))
-	   (save-excursion (forward-char -1) (looking-at "[ ;\n\t]PROCEDURE")))))
+       (or (save-excursion (forward-char -1) (looking-at-keyword "[ ;\n\t]IF"))
+	   (save-excursion (forward-char -1) (looking-at-keyword "[ ;\n\t]LOOP"))
+	   (save-excursion (forward-char -1) (looking-at-keyword "[ ;\n\t]WITH"))
+	   (save-excursion (forward-char -1) (looking-at-keyword "[ ;\n\t]WHILE"))
+	   (save-excursion (forward-char -1) (looking-at-keyword "[ ;\n\t]RECORD"))
+	   (save-excursion (forward-char -1) (looking-at-keyword "[ ;\n\t]CASE"))
+	   (save-excursion (forward-char -1) (looking-at-keyword "[ ;\n\t]FOR"))
+	   (save-excursion (forward-char -1) (looking-at-keyword "[ ;\n\t]MODULE"))
+	   (save-excursion (forward-char -1) (looking-at-keyword "[ ;\n\t]PROCEDURE")))))
 
 (defun m2-is-end()
   "returns true if END is found."
   (and (> (point) 1)
-       (save-excursion (forward-char -1) (looking-at "[ ;\n\t]END"))))
+       (save-excursion (forward-char -1) (looking-at-keyword "[ ;\n\t]END"))))
 
 (defun m2-display-match (m2-beginning)
   "displays a match"
@@ -1967,8 +1990,8 @@ FROM StdIO IMPORT Write, Read ;
 			(add-to-list 'm2-dialect 'gm2))
 		    (forward-char 1)))))))))))
 
-
 (defun g-mode-dialect-pim ()
+  "."
   (interactive)
   (if (not m2-dialect-known)
       (g-mode-detect-dialect))
@@ -1976,7 +1999,7 @@ FROM StdIO IMPORT Write, Read ;
     (not (memq 'pim 'm2-dialect))))
 
 (defgroup gm2 nil
-  "Modula-2 formatting mode"
+  "Modula-2 formatting mode."
   :group 'programming)
 
 (defcustom g-mode-use-algol-style t
@@ -2004,7 +2027,10 @@ FROM StdIO IMPORT Write, Read ;
 (defconst g-mode-keyword-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-keywords "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
 (defconst g-mode-type-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-types "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
 (defconst g-mode-constant-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-constants "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
-(defconst g-mode-function-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-functions "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
+(defconst g-mode-builtin-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-functions "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
+;; (defconst g-mode-procedure-regexp "\\(PROCEDURE\\( \\|\t\\|\n\\)\\*\\(\\[:alpha:\\]\\[:alpnum:\\]\\*\\)\\)")
+;; (defconst g-mode-procedure-regexp "\\(PROCEDURE\\( \\|\t\\)*\\)")
+(defconst g-mode-procedure-regexp "\\(PROCEDURE\\)")
 
 (defvar g-mode-test-keywords nil
   "dynamically generated keyword list from the dialects.")
@@ -2037,6 +2063,12 @@ FROM StdIO IMPORT Write, Read ;
 ;;            (setq font-lock-keyword-face 'g-mode-keyword-face)
 ;;            ))
 
+(defun g-mode-function-name-test (name)
+  "."
+  (interactive)
+  (message name)
+  (sit-for 1))
+
 (defun g-mode-add-keywords ()
   "."
   (interactive)
@@ -2052,9 +2084,12 @@ FROM StdIO IMPORT Write, Read ;
       (,g-mode-constant-regexp "\\(.*$\\)"
 			   (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-constant-face) nil
 			   (1 font-lock-constant-face))
-      (,g-mode-function-regexp "\\(.*$\\)"
+      (,g-mode-builtin-regexp "\\(.*$\\)"
 			       (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-builtin-face) nil
 			       (1 font-lock-builtin-face))
+;;      (,g-mode-procedure-regexp "\\(.*$\\)"
+;;		(g-mode-function-name-test (match-string 0))
+;;			(1 font-lock-function-face))
       (,g-mode-keyword-regexp "\\(.*$\\)"
 			      (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-keyword-face) nil
 			      (1 font-lock-keyword-face)))))

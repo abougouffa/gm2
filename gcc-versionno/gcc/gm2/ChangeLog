@@ -3,6 +3,8 @@
 	* gm2/el/g-mode.el:  added defcustom declarations
           and fixed some regexp bugs.  Applied some defcustom
           implementation features.
+	* gm2/el/g-mode.el:  fixed electric END, ELSE and THEN.
+	  Added more defcustoms.
 
 2018-06-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
