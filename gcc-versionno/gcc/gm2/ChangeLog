@@ -1,3 +1,9 @@
+2018-06-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/el/g-mode.el:  added ability to turn on/off
+          lowercase algol style keyword transformation.
+	  Fixed compile-command.
+
 2018-06-11      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/el/g-mode.el:  added defcustom declarations

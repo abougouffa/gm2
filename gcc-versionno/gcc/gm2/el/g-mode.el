@@ -21,14 +21,6 @@
 ;; and this notice must be preserved on all copies.
 
 
-;;   To do:
-
-;;   (1)   fix m2-tag to search: current implementation module,
-;;                               current definition module,
-;;                               library implementation module and
-;;                               then definition module
-
-
 ;; Modula-2 mode editing commands for Emacs
 
 ;; Author Gaius Mulley <gaius@glam.ac.uk>
@@ -74,7 +66,7 @@
   :type 'boolean
   :group 'gm2)
 
-(defcustom g-mode-use-algol-style t
+(defcustom g-mode-use-algol-style nil
   "use the algol style type faces, which displays keywords and reserved
    types and functions in lowercase."
   :type 'boolean
@@ -118,23 +110,38 @@
   :type 'boolean
   :group 'gm2)
 
-;; default path which is overwritten by the environment variable
-;; M2PATH. (If it exists).
+(defcustom m2-compile-default-path "."
+  "the compile include path to find the library def and mod
+   files."
+  :type 'string
+  :group 'gm2)
 
-(defconst m2-default-path ".")
+(defcustom m2-options "-g"
+  "various compile time options used by the compiler."
+  :type 'string
+  :group 'gm2)
 
-(defvar m2-path (or (getenv "M2PATH") m2-default-path))
+(defcustom m2-compile-command-default "gm2 -c"
+  "command to compile Modula-2 programs"
+  :type 'string
+  :group 'gm2)
 
-(defvar m2-options (getenv "M2OPTIONS"))
+(defun g-mode-get-compile-command ()
+  "returns the compile command and options."
+  (interactive)
+  (progn
+    (concat m2-compile-command-default " " m2-options)))
 
-(defvar m2-debug-command (getenv "M2DEBUG")
-  "Command to compile Modula-2 programs")
+(defcustom m2-link-command-default "gm2 -fonlylink"
+  "command to link Modula-2 programs"
+  :type 'string
+  :group 'gm2)
 
-(defvar m2-compile-command (concat "gm2 -c " m2-options)
-  "Command to compile Modula-2 programs")
-
-(defvar m2-link-command (concat "gm2 -I. " m2-options)
-  "Command to link Modula-2 programs")
+(defun g-mode-get-link-command ()
+  "returns the link command and options."
+  (interactive)
+  (progn
+    (concat m2-link-command-default " " m2-options)))
 
 (defvar m2-link-name nil
   "Name of the executable.")
@@ -219,6 +226,13 @@
   (progn
     (g-mode-restore-upper-case-region (line-beginning-position) (line-end-position))
     (re-search-backward regexp bound noerror count)))
+
+(defun re-search-forward-keyword (regexp &optional bound noerror count)
+  "return t if the cursor is matching regexp when searching backwards."
+  (interactive)
+  (progn
+    (g-mode-restore-upper-case-region (line-beginning-position) (line-end-position))
+    (re-search-forward regexp bound noerror count)))
 
 (defun m2-close-paren ()
   "Insert a close parenthesis and call m2-match-parenthesis."
@@ -343,10 +357,10 @@
   (let (m2-value)
     (setq m2-value nil)
     (while (and (not m2-value)
-		(re-search-forward "TYPE\\|CONST\\|VAR" nil t))
+		(re-search-forward-keyword "TYPE\\|CONST\\|VAR" nil t))
       (progn
 	(m2-forward-to-token)
-	(while (and (not (looking-at "BEGIN\\|END"))
+	(while (and (not (looking-at-keyword "BEGIN\\|END"))
 		    (not (looking-at m2-object)))
 	  (m2-forward-to-token))
 	(if (looking-at m2-object)
@@ -362,7 +376,7 @@
   (let (m2-point)
     (setq m2-point (point))
     (skip-chars-backward " \t\n\f" (point-min))
-    (re-search-backward "TYPE\\|CONST\\|VAR" nil t)
+    (re-search-backward-keyword "TYPE\\|CONST\\|VAR" nil t)
     (set-window-start (selected-window) (point))
     (goto-char m2-point)))
 
@@ -388,7 +402,7 @@
     (setq m2-value nil)
     (setq m2-object (concat m2-object " "))
     (while (and (not m2-value)
-		(re-search-forward "PROCEDURE" nil t))
+		(re-search-forward-keyword "PROCEDURE" nil t))
       (progn
 	(m2-forward-to-token)
 	(if (and (looking-at m2-object) (not (m2-is-forward-declaration)))
@@ -430,13 +444,13 @@
 		    m2-continue
 		    (not (m2-indent-commencer)))
 	  (progn
-	    (if (re-search-forward "[ ;\n\t]\\(BEGIN\\|FINALLY\\|EXCEPT\\|CONST\\|TYPE\\|VAR\\|FROM\\|PROCEDURE\\)" nil t)
+	    (if (re-search-forward-keyword "[ ;\n\t]\\(BEGIN\\|FINALLY\\|EXCEPT\\|CONST\\|TYPE\\|VAR\\|FROM\\|PROCEDURE\\)" nil t)
 		(progn
 		  (forward-char -1)
 		  (while (looking-at "[A-Za-z0-9]")
 		    (forward-char -1))
 		  (forward-char 1)))
-	    (if (looking-at "FROM")
+	    (if (looking-at-keyword "FROM")
 		(progn
 		  (m2-forward-until-white (point-max))
 		  (m2-forward-to-token)
@@ -448,7 +462,7 @@
 		    (setq m2-success (m2-found-import-ident m2-object))
 		    (if m2-success
 			(progn
-			  (message "Found %s in module <%s>" m2-object m2-module-name)
+			  (message "found %s in module <%s>" m2-object m2-module-name)
 			  (m2-find-module (concat m2-module-name m2-extension))))))
 	      (progn
 		(setq m2-continue (not (m2-indent-commencer)))
@@ -462,7 +476,7 @@
   (interactive)
   (let (m2-success)
     (setq m2-success nil)
-    (while (and (not (looking-at ";\\|BEGIN\\|CONST\\|TYPE\\|VAR\\|FROM\\|PROCEDURE"))
+    (while (and (not (looking-at-keyword ";\\|BEGIN\\|CONST\\|TYPE\\|VAR\\|FROM\\|PROCEDURE"))
 		(not m2-success))
       (setq m2-success (looking-at m2-object))
       (m2-forward-to-token))
@@ -477,7 +491,7 @@
 	(kill-buffer "*Modula-2-Help*"))
     (switch-to-buffer "*Modula-2-Help*")
 
-    (insert
+    (insert (concat
 "This is a mode intended to support program development in Modula-2.
 All control constructs of Modula-2 can be reached by typing
 Control-C followed by the first character of the construct.
@@ -496,13 +510,13 @@ Control-C followed by the first character of the construct.
   Control-c Control-c compile           Control-x ` next-error
   Control-c Control-l link              Esc .   find declaration
   Control-c Control-h help              Esc \\t  complete name
-  Control-c Control-a generate assembler for a source line/function
 
-   m2-compile-command holds the command to compile a Modula-2 program.
-   m2-link-command holds the command to link a Modula-2 program.
+  You can customize the following variables using M-x customize and choosing gm2.
 
-   Your modula-2 default library search path is: " m2-path)
-    (insert "\n   Your modula-2 options are: " m2-options)
+  m2-compile-command: " m2-compile-command-default "
+  m2-link-command: " m2-link-command-default "
+  m2-compile-default-path: " m2-compile-default-path "
+  m2-options: " m2-options))
     (toggle-read-only)
     (goto-char (point-min))
     (delete-other-windows)
@@ -584,14 +598,30 @@ Boston, MA  02110-1301  USA.  *)\n\n"))
 	    (m2-fsf-lgpl-notice)
 	  (m2-fsf-gpl-notice)))))
 
+(defun m2-dialect-tag ()
+  "Insert m2 dialect comment tag."
+  (interactive)
+  (if m2-dialect-known
+      (progn
+	(if (g-mode-dialect-pim)
+	    (insert "(*!m2pim"))
+	(if (g-mode-dialect-iso)
+	    (insert "(*!m2iso"))
+	(if (g-mode-dialect-r10)
+	    (insert "(*!m2r10"))
+	(if (g-mode-dialect-gm2-extensions)
+	    (insert "+gm2"))
+	(insert "*)"))))
+
 (defun m2-definition ()
   "Build skeleton DEFINITION MODULE, prompting for the <module name>."
   (interactive)
   (m2-fsf-copyright)
   (m2-fsf-notice)
   (insert "DEFINITION MODULE ")
-  (insert (substring (buffer-name) 0 -4) " ;  (*!m2pim+gm2*)\n")
-  (insert "\n\n\nEND " (substring (buffer-name) 0 -4) ".\n")
+  (insert (substring (buffer-name) 0 -4) " ;  ")
+  (m2-dialect-tag)
+  (insert "\n\n\n\nEND " (substring (buffer-name) 0 -4) ".\n")
   (previous-line 3)
   (m2-header))
 
@@ -672,8 +702,9 @@ Boston, MA  02110-1301  USA.  *)\n\n"))
   (let ((type (read-string "(i)mplementation or (m)odule: ")))
     (if (string-equal type "i")
 	(insert "IMPLEMENTATION "))
-    (insert "MODULE " (substring (buffer-name) 0 -4) " ;  (*!m2pim+gm2*)\n\n")
-    (insert "\n\n")
+    (insert "MODULE " (substring (buffer-name) 0 -4) " ;  ")
+    (m2-dialect-tag)
+    (insert "\n\n\n")
     (if (string-equal type "m")
 	(insert "BEGIN\n\n"))
     (insert "END " (substring (buffer-name) 0 -4) ".\n"))
@@ -759,10 +790,21 @@ Boston, MA  02110-1301  USA.  *)\n\n"))
 
 (defun m2-stdio ()
   (interactive)
-  (insert "
+  (if (g-mode-dialect-pim)
+      (insert "
 FROM StrIO IMPORT WriteString, ReadString, WriteLn ;
 FROM StdIO IMPORT Write, Read ;
 "))
+  (if (g-mode-dialect-iso)
+      (insert "
+FROM STextIO IMPORT WriteString, WriteLn, ReadString,
+                    ReadChar, WriteChar,
+                    ReadRestLine, ReadToken, SkipLine ;
+"))
+  (if (g-mode-dialect-r10)
+      (insert "
+m2r10 imports go here
+")))
 
 (defun m2-type ()
   (interactive)
@@ -819,7 +861,7 @@ FROM StdIO IMPORT Write, Read ;
 
 (defun m2-compile ()
   (interactive)
-  (compile compile-command))
+  (compile (g-mode-get-compile-command)))
 
 (defun m2-assembler ()
   (interactive)
@@ -882,35 +924,12 @@ FROM StdIO IMPORT Write, Read ;
 (defun m2-find-module (name)
   "attempts to find module, name, by searching the directories
    determined by m2-path."
-  (let (m2-len)
-    (setq m2-len 0)
-    (let (m2-start)
-      (setq m2-start 0)
-      (let (m2-found)
-	(setq m2-found nil)
-	(let (m2-file)
-	  (setq m2-file nil)
-	  (aref "abcdefg" 1)
-	  (while (and (<= m2-len (length m2-path))
-		      (not m2-found))
-	    (if (or (= m2-len (length m2-path))
-		    (= (aref m2-path m2-len) ?\ ))
-		(progn
-		  (if (>= m2-len (length m2-path))
-		      (setq m2-file (concat
-				     (concat (substring m2-path m2-start nil) "/")
-  	       			     name))
-		    (setq m2-file (concat
-				   (concat (substring m2-path m2-start m2-len) "/")
-				   name)))
-		  (setq m2-len (+ m2-len 1))
-		  (setq m2-start m2-len)
-		  (save-excursion
-		    (setq m2-found (file-exists-p m2-file))))
-	      (setq m2-len (+ m2-len 1))))
-	  (if m2-found
-	      (find-file m2-file))
-	  m2-found)))))
+  (progn
+    (let (m2-found)
+      (setq m2-found (locate-file name m2-compile-default-path ('.def '.mod)))
+      (if m2-found
+	  (find-file m2-found))
+      m2-found)))
 
 (defun m2-toggle ()
   "Toggle between .mod and .def files for the module."
@@ -1312,20 +1331,6 @@ FROM StdIO IMPORT Write, Read ;
   (modify-syntax-entry ?\( ". 1" g-mode-syntax-table)
   (modify-syntax-entry ?\) ". 4" g-mode-syntax-table)
   (modify-syntax-entry ?* ". 23" g-mode-syntax-table))
-
-(defun m2-recursive (lim)
-  "test my understanding of local bindings!"
-  (interactive)
-  (let (m2-level)
-    (setq m2-level lim)
-    (sit-for 1)
-    (message "lim value is now %d" m2-level)
-    (if (> m2-level 1)
-	(progn
-	  (setq m2-level (- m2-level 1))
-	  (m2-recursive m2-level)
-	  (sit-for 1)
-	  (message "returned and value is %d" m2-level)))))
 
 (defun m2-test-end ()
   "check to see whether END has been typed"
@@ -2007,23 +2012,26 @@ FROM StdIO IMPORT Write, Read ;
   "."
   (interactive)
   (save-excursion
-    (if (re-search-forward "(\\*!m2" nil t)
+    (if (re-search-forward "(*!m2" nil t)
 	(progn
-	  (forward-char 4)
 	  (while (and (< (point) (point-max))
-		      (not (looking-at "\\*\\)")))
+		      (not (looking-at "*)")))
 	    (progn
+	      ;; (message (concat "while: " (buffer-substring (point) (+ (point) 3))))
 	      (if (looking-at "pim")
 		  (progn
 		    (forward-char 3)
+		    (setq m2-dialect-known t)
 		    (add-to-list 'm2-dialect 'pim))
 		(if (looking-at "iso")
 		    (progn
 		      (forward-char 3)
+		      (setq m2-dialect-known t)
 		      (add-to-list 'm2-dialect 'iso))
 		  (if (looking-at "r10")
 		      (progn
 			(forward-char 3)
+			(setq m2-dialect-known t)
 			(add-to-list 'm2-dialect 'r10))
 		  (if (looking-at "gm2")
 		      (progn
@@ -2032,12 +2040,55 @@ FROM StdIO IMPORT Write, Read ;
 		    (forward-char 1)))))))))))
 
 (defun g-mode-dialect-pim ()
-  "."
+  "return t if m2pim dialect was configured or detected."
   (interactive)
   (if (not m2-dialect-known)
       (g-mode-detect-dialect))
   (progn
-    (not (memq 'pim 'm2-dialect))))
+    (memq 'pim m2-dialect)))
+
+(defun g-mode-dialect-iso ()
+  "return t if m2iso dialect was configured or detected."
+  (interactive)
+  (if (not m2-dialect-known)
+      (g-mode-detect-dialect))
+  (progn
+    (memq 'iso m2-dialect)))
+
+(defun g-mode-dialect-r10 ()
+  "return t if m2r10 dialect was configured or detected."
+  (interactive)
+  (if (not m2-dialect-known)
+      (g-mode-detect-dialect))
+  (progn
+    (memq 'r10 m2-dialect)))
+
+(defun g-mode-dialect-gm2-extensions ()
+  "return t if either the tag +gm2 detected or gm2 has been configured in customize."
+  (interactive)
+  (if (not m2-dialect-known)
+      (g-mode-detect-dialect))
+  (progn
+    (memq 'gm2 m2-dialect)))
+
+(defun g-mode-message-dialect ()
+  "."
+  (interactive)
+  (if (g-mode-dialect-pim)
+      (message "pim dialect of Modula-2"))
+  (if (g-mode-dialect-iso)
+      (message "iso dialect of Modula-2"))
+  (if (g-mode-dialect-r10)
+      (message "r10 dialect of Modula-2")))
+
+(defun g-mode-after-load-hook (filename)
+  "."
+  (interactive)
+  ;; (message "after-load-hook")
+  (g-mode-detect-dialect))
+;;  (if m2-dialect-known
+;;      (g-mode-message-dialect)
+;;  (message "no dialect of Modula-2 detected or configured yet using emacs customize")))
 
 (defconst g-mode-keyword-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-keywords "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
 (defconst g-mode-type-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-types "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
@@ -2078,6 +2129,7 @@ FROM StdIO IMPORT Write, Read ;
 ;;            (setq font-lock-keyword-face 'g-mode-keyword-face)
 ;;            ))
 
+
 (defun g-mode-function-name-test (name)
   "."
   (interactive)
@@ -2087,40 +2139,35 @@ FROM StdIO IMPORT Write, Read ;
 (defun g-mode-add-keywords ()
   "."
   (interactive)
-  (progn
-    (g-mode-adapt-font-faces)
 
-    ;; (if (g-mode-dialect-pim)
-    ;; (setq g-mode-test-keywords nil))
-    `(
-      (,g-mode-type-regexp "\\(.*$\\)"
-			   (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-type-face) nil
-			   (1 font-lock-type-face))
-      (,g-mode-constant-regexp "\\(.*$\\)"
-			   (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-constant-face) nil
-			   (1 font-lock-constant-face))
-      (,g-mode-builtin-regexp "\\(.*$\\)"
-			       (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-builtin-face) nil
-			       (1 font-lock-builtin-face))
-;;      (,g-mode-procedure-regexp "\\(.*$\\)"
-;;		(g-mode-function-name-test (match-string 0))
-;;			(1 font-lock-function-face))
-      (,g-mode-keyword-regexp "\\(.*$\\)"
-			      (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-keyword-face) nil
-			      (1 font-lock-keyword-face)))))
-;; font-lock-keyword-face
-
-;; create the list for font-lock.
-;; each class of keyword is given a particular face
-(setq g-mode-font-lock-keywords
-  `(
-    (,g-mode-type-regexp . font-lock-type-face)
-    (,g-mode-constant-regexp . font-lock-constant-face)
-    (,g-mode-functions-regexp . font-lock-function-name-face)
-    (,g-mode-keywords-regexp . font-lock-keyword-face)
-    ;; note: order above matters.
-))
-
+  (if g-mode-use-algol-style
+      (progn
+	(g-mode-adapt-font-faces)
+	`(
+	  (,g-mode-type-regexp "\\(.*$\\)"
+			       (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-type-face) nil
+			       (1 font-lock-type-face))
+	  (,g-mode-constant-regexp "\\(.*$\\)"
+				   (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-constant-face) nil
+				   (1 font-lock-constant-face))
+	  (,g-mode-builtin-regexp "\\(.*$\\)"
+				  (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-builtin-face) nil
+				  (1 font-lock-builtin-face))
+	  ;;      (,g-mode-procedure-regexp "\\(.*$\\)"
+	  ;;		(g-mode-function-name-test (match-string 0))
+	  ;;			(1 font-lock-function-face))
+	  (,g-mode-keyword-regexp "\\(.*$\\)"
+				  (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-keyword-face) nil
+				  (1 font-lock-keyword-face))))
+    (progn
+      (message g-mode-keywords-regexp)
+      `(
+	 (,g-mode-type-regexp . font-lock-type-face)
+	 (,g-mode-constant-regexp . font-lock-constant-face)
+	 (,g-mode-builtin-regexp . font-lock-builtin-face)
+	 (,g-mode-keyword-regexp . font-lock-keyword-face)
+	 ;; note: order above matters.
+	 ))))
 
 (defun g-mode ()
   "Major mode for editing M2 code. User definable variables:
@@ -2134,12 +2181,10 @@ FROM StdIO IMPORT Write, Read ;
   (setq mode-name "GM2-trunc")
   (setq local-abbrev-table g-mode-abbrev-table)
   (set-syntax-table g-mode-syntax-table)
+  (message "here")
 
   ;; code for syntax highlighting
-  ;; (setq font-lock-defaults '((g-mode-font-lock-keywords)))
   (setq font-lock-defaults '(g-mode-add-keywords))
-  ;; (g-mode-add-keywords)
-  ;; (setq font-lock-defaults '(g-mode-test-font-lock-keywords))
   ;; clear memory
   (setq g-mode-keywords-regexp nil)
   (setq g-mode-types-regexp nil)
@@ -2153,9 +2198,25 @@ FROM StdIO IMPORT Write, Read ;
   (setq g-mode-hook
 	'(lambda ()
 	   (progn (make-local-variable 'compile-command)
-		  (setq compile-command (concat m2-compile-command " " (concat (substring (buffer-name) 0 -4) ".mod")))
+		  (setq compile-command (concat (g-mode-get-compile-command) " " (concat (substring (buffer-name) 0 -4) ".mod")))
 		  (linum-mode 0))))
 
   (add-hook 'before-save-hook 'g-mode-restore-upper-case)
   (add-hook 'post-self-insert-hook 'g-mode-check-on-insertion nil 'local)
+  (add-hook 'after-load-functions 'g-mode-after-load-hook)
   (run-hooks 'g-mode-hook))
+
+;;
+;;  ----------------------------------------------------------------------
+;;  how to install this emacs file on your system?
+;;  ----------------------------------------------------------------------
+;;
+;;  add this to your $HOME/.emacs file
+;;
+;;  (add-to-list 'package-archives
+;;                '("gm2" . "http://floppsie.comp.glam.ac.uk/packages/"))
+;;
+;;  now in emacs type
+;;
+;;  M-x package-install gm2
+;;
