@@ -2,7 +2,9 @@
 
 	* gm2/el/g-mode.el:  added ability to turn on/off
           lowercase algol style keyword transformation.
-	  Fixed compile-command.
+          Fixed compile-command.
+	* gm2/el/gm2-mode.el:  renamed from g-mode.el.
+	  Changed internal variables from g-mode- to m2-auto-.
 
 2018-06-11      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

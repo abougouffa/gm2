@@ -66,26 +66,26 @@
   :type 'boolean
   :group 'gm2)
 
-(defcustom g-mode-use-algol-style nil
+(defcustom m2-auto-use-algol-style nil
   "use the algol style type faces, which displays keywords and reserved
    types and functions in lowercase."
   :type 'boolean
   :group 'gm2)
 
-(defcustom g-mode-keywords-underlined t
+(defcustom m2-auto-keywords-underlined t
   "keywords should be underlined, probably not wanted if you are not using
-   algol style, see g-mode-use-algol-style."
+   algol style, see m2-auto-use-algol-style."
   :type 'boolean
   :group 'gm2)
 
-(defcustom g-mode-functions-italic nil
+(defcustom m2-auto-functions-italic nil
   "reserved functions should be rendered as italic, probably not
    wanted if you are not using algol style, see
-   g-mode-use-algol-style."
+   m2-auto-use-algol-style."
   :type 'boolean
   :group 'gm2)
 
-(defcustom g-mode-default-dialect 'pim
+(defcustom m2-auto-default-dialect 'pim
   "the default dialect of Modula-2 to be rendered.  Only used if
    no explicit dialect tag is in the first n lines of the file.
    The choices are pim (1985), iso (1995) and r10 (2010)."
@@ -126,7 +126,7 @@
   :type 'string
   :group 'gm2)
 
-(defun g-mode-get-compile-command ()
+(defun m2-auto-get-compile-command ()
   "returns the compile command and options."
   (interactive)
   (progn
@@ -137,7 +137,7 @@
   :type 'string
   :group 'gm2)
 
-(defun g-mode-get-link-command ()
+(defun m2-auto-get-link-command ()
   "returns the link command and options."
   (interactive)
   (progn
@@ -161,77 +161,77 @@
    or (*!m2r10*) which specifies a dialect and with/without GNU
    Modula-2 extensions.")
 
-(defvar g-mode-abbrev-table nil
-  "Abbrev table in use in g-mode buffers.")
-(define-abbrev-table 'g-mode-abbrev-table ())
+(defvar m2-auto-abbrev-table nil
+  "Abbrev table in use in gm2-mode buffers.")
+(define-abbrev-table 'm2-auto-abbrev-table ())
 
-(defvar g-mode-map ()
+(defvar m2-auto-map ()
   "Keymap used in M2 mode.")
 
-(defun setup-g-mode-keys ()
-  "sets up the keymap for g-mode."
-  (setq g-mode-map (make-sparse-keymap))
-  (define-key g-mode-map ")" 'm2-close-paren)
-  (define-key g-mode-map "\t" 'm2-tab)
-  (define-key g-mode-map "D" 'm2-test-end)
-  (define-key g-mode-map "N" 'm2-test-then)
-  (define-key g-mode-map "E" 'm2-test-else)
-;;  (define-key g-mode-map "%" 'm2-local-test)
-;;  (define-key g-mode-map "!" 'm2-local-recompile)
-  (define-key g-mode-map (kbd "DEL") 'm2-backspace)
-  (define-key g-mode-map "\C-d" 'm2-delete)
-  (define-key g-mode-map (kbd "<delete>") 'm2-delete)
-  (define-key g-mode-map "\e."   'm2-tag)
-  (define-key g-mode-map "\e\t"  'm2-complete)
-  (define-key g-mode-map "\C-cb" 'm2-begin)
-  (define-key g-mode-map "\C-cc" 'm2-case)
-  (define-key g-mode-map "\C-cd" 'm2-definition)
-  (define-key g-mode-map "\C-ce" 'm2-else)
-  (define-key g-mode-map "\C-cf" 'm2-for)
-  (define-key g-mode-map "\C-ch" 'm2-header)
-  (define-key g-mode-map "\C-ci" 'm2-if)
-  (define-key g-mode-map "\C-cm" 'm2-module)
-  (define-key g-mode-map "\C-cl" 'm2-loop)
-  (define-key g-mode-map "\C-co" 'm2-or)
-  (define-key g-mode-map "\C-cp" 'm2-procedure)
-  (define-key g-mode-map "\C-c\C-w" 'm2-with)
-  (define-key g-mode-map "\C-c\C-e" 'm2-elsif)
-  (define-key g-mode-map "\C-cr" 'm2-record)
-  (define-key g-mode-map "\C-cs" 'm2-stdio)
-  (define-key g-mode-map "\C-ct" 'm2-type)
-  (define-key g-mode-map "\C-cu" 'm2-until)
-  (define-key g-mode-map "\C-cv" 'm2-var)
-  (define-key g-mode-map "\C-cw" 'm2-while)
-  (define-key g-mode-map "\C-cx" 'm2-export)
-  (define-key g-mode-map "\C-cy" 'm2-import)
-  (define-key g-mode-map "\C-c\C-h" 'm2-help)
-  (define-key g-mode-map "\C-c\C-z" 'suspend-emacs)
-  (define-key g-mode-map "\C-c\C-v" 'm2-visit)
-  (define-key g-mode-map "\C-c\C-t" 'm2-toggle)
-  (define-key g-mode-map "\C-c\C-l" 'm2-link)
-  (define-key g-mode-map "\C-c\C-d" 'm2-debug)
-  (define-key g-mode-map "\C-c\C-a" 'm2-assembler)
-  (define-key g-mode-map "\C-c\C-c" 'm2-compile))
+(defun setup-m2-auto-keys ()
+  "sets up the keymap for gm2-mode."
+  (setq m2-auto-map (make-sparse-keymap))
+  (define-key m2-auto-map ")" 'm2-close-paren)
+  (define-key m2-auto-map "\t" 'm2-tab)
+  (define-key m2-auto-map "D" 'm2-test-end)
+  (define-key m2-auto-map "N" 'm2-test-then)
+  (define-key m2-auto-map "E" 'm2-test-else)
+;;  (define-key m2-auto-map "%" 'm2-local-test)
+;;  (define-key m2-auto-map "!" 'm2-local-recompile)
+  (define-key m2-auto-map (kbd "DEL") 'm2-backspace)
+  (define-key m2-auto-map "\C-d" 'm2-delete)
+  (define-key m2-auto-map (kbd "<delete>") 'm2-delete)
+  (define-key m2-auto-map "\e."   'm2-tag)
+  (define-key m2-auto-map "\e\t"  'm2-complete)
+  (define-key m2-auto-map "\C-cb" 'm2-begin)
+  (define-key m2-auto-map "\C-cc" 'm2-case)
+  (define-key m2-auto-map "\C-cd" 'm2-definition)
+  (define-key m2-auto-map "\C-ce" 'm2-else)
+  (define-key m2-auto-map "\C-cf" 'm2-for)
+  (define-key m2-auto-map "\C-ch" 'm2-header)
+  (define-key m2-auto-map "\C-ci" 'm2-if)
+  (define-key m2-auto-map "\C-cm" 'm2-module)
+  (define-key m2-auto-map "\C-cl" 'm2-loop)
+  (define-key m2-auto-map "\C-co" 'm2-or)
+  (define-key m2-auto-map "\C-cp" 'm2-procedure)
+  (define-key m2-auto-map "\C-c\C-w" 'm2-with)
+  (define-key m2-auto-map "\C-c\C-e" 'm2-elsif)
+  (define-key m2-auto-map "\C-cr" 'm2-record)
+  (define-key m2-auto-map "\C-cs" 'm2-stdio)
+  (define-key m2-auto-map "\C-ct" 'm2-type)
+  (define-key m2-auto-map "\C-cu" 'm2-until)
+  (define-key m2-auto-map "\C-cv" 'm2-var)
+  (define-key m2-auto-map "\C-cw" 'm2-while)
+  (define-key m2-auto-map "\C-cx" 'm2-export)
+  (define-key m2-auto-map "\C-cy" 'm2-import)
+  (define-key m2-auto-map "\C-c\C-h" 'm2-help)
+  (define-key m2-auto-map "\C-c\C-z" 'suspend-emacs)
+  (define-key m2-auto-map "\C-c\C-v" 'm2-visit)
+  (define-key m2-auto-map "\C-c\C-t" 'm2-toggle)
+  (define-key m2-auto-map "\C-c\C-l" 'm2-link)
+  (define-key m2-auto-map "\C-c\C-d" 'm2-debug)
+  (define-key m2-auto-map "\C-c\C-a" 'm2-assembler)
+  (define-key m2-auto-map "\C-c\C-c" 'm2-compile))
 
 (defun looking-at-keyword (regexp)
   "return t if the cursor is matching regexp."
   (interactive)
   (progn
-    (g-mode-restore-upper-case-region (line-beginning-position) (line-end-position))
+    (m2-auto-restore-upper-case-region (line-beginning-position) (line-end-position))
     (looking-at regexp)))
 
 (defun re-search-backward-keyword (regexp &optional bound noerror count)
   "return t if the cursor is matching regexp when searching backwards."
   (interactive)
   (progn
-    (g-mode-restore-upper-case-region (line-beginning-position) (line-end-position))
+    (m2-auto-restore-upper-case-region (line-beginning-position) (line-end-position))
     (re-search-backward regexp bound noerror count)))
 
 (defun re-search-forward-keyword (regexp &optional bound noerror count)
   "return t if the cursor is matching regexp when searching backwards."
   (interactive)
   (progn
-    (g-mode-restore-upper-case-region (line-beginning-position) (line-end-position))
+    (m2-auto-restore-upper-case-region (line-beginning-position) (line-end-position))
     (re-search-forward regexp bound noerror count)))
 
 (defun m2-close-paren ()
@@ -603,13 +603,13 @@ Boston, MA  02110-1301  USA.  *)\n\n"))
   (interactive)
   (if m2-dialect-known
       (progn
-	(if (g-mode-dialect-pim)
+	(if (m2-auto-dialect-pim)
 	    (insert "(*!m2pim"))
-	(if (g-mode-dialect-iso)
+	(if (m2-auto-dialect-iso)
 	    (insert "(*!m2iso"))
-	(if (g-mode-dialect-r10)
+	(if (m2-auto-dialect-r10)
 	    (insert "(*!m2r10"))
-	(if (g-mode-dialect-gm2-extensions)
+	(if (m2-auto-dialect-gm2-extensions)
 	    (insert "+gm2"))
 	(insert "*)"))))
 
@@ -790,18 +790,18 @@ Boston, MA  02110-1301  USA.  *)\n\n"))
 
 (defun m2-stdio ()
   (interactive)
-  (if (g-mode-dialect-pim)
+  (if (m2-auto-dialect-pim)
       (insert "
 FROM StrIO IMPORT WriteString, ReadString, WriteLn ;
 FROM StdIO IMPORT Write, Read ;
 "))
-  (if (g-mode-dialect-iso)
+  (if (m2-auto-dialect-iso)
       (insert "
 FROM STextIO IMPORT WriteString, WriteLn, ReadString,
                     ReadChar, WriteChar,
                     ReadRestLine, ReadToken, SkipLine ;
 "))
-  (if (g-mode-dialect-r10)
+  (if (m2-auto-dialect-r10)
       (insert "
 m2r10 imports go here
 ")))
@@ -861,7 +861,7 @@ m2r10 imports go here
 
 (defun m2-compile ()
   (interactive)
-  (compile (g-mode-get-compile-command)))
+  (compile (m2-auto-get-compile-command)))
 
 (defun m2-assembler ()
   (interactive)
@@ -1304,33 +1304,33 @@ m2r10 imports go here
       (looking-at-keyword "UNTIL")))
 
 (defun m2-local-recompile ()
- "recompile the g-mode and load the file"
+ "recompile the gm2-mode and load the file"
  (interactive)
- (byte-compile-file (concat (getenv "HOME") "/m2/comp/el/g-mode.el"))
- (read-abbrev-file  (concat (getenv "HOME") "/m2/comp/el/g-mode.elc"))
+ (byte-compile-file (concat (getenv "HOME") "/m2/comp/el/gm2-mode.el"))
+ (read-abbrev-file  (concat (getenv "HOME") "/m2/comp/el/gm2-mode.elc"))
  (message "Compilation complete"))
 
-(defvar g-mode-syntax-table nil
-  "Syntax table in use in g-mode buffers.")
+(defvar m2-auto-syntax-table nil
+  "Syntax table in use in gm2-mode buffers.")
 
-(if g-mode-syntax-table
+(if m2-auto-syntax-table
     ()
-  (setq g-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?\\ "\\" g-mode-syntax-table)
-  (modify-syntax-entry ?/ ". 14" g-mode-syntax-table)
-  (modify-syntax-entry ?+ "." g-mode-syntax-table)
-  (modify-syntax-entry ?- "." g-mode-syntax-table)
-  (modify-syntax-entry ?= "." g-mode-syntax-table)
-  (modify-syntax-entry ?% "." g-mode-syntax-table)
-  (modify-syntax-entry ?< "." g-mode-syntax-table)
-  (modify-syntax-entry ?> "." g-mode-syntax-table)
-  (modify-syntax-entry ?& "." g-mode-syntax-table)
-  (modify-syntax-entry ?| "." g-mode-syntax-table)
-  (modify-syntax-entry ?\' "\"" g-mode-syntax-table)
+  (setq m2-auto-syntax-table (make-syntax-table))
+  (modify-syntax-entry ?\\ "\\" m2-auto-syntax-table)
+  (modify-syntax-entry ?/ ". 14" m2-auto-syntax-table)
+  (modify-syntax-entry ?+ "." m2-auto-syntax-table)
+  (modify-syntax-entry ?- "." m2-auto-syntax-table)
+  (modify-syntax-entry ?= "." m2-auto-syntax-table)
+  (modify-syntax-entry ?% "." m2-auto-syntax-table)
+  (modify-syntax-entry ?< "." m2-auto-syntax-table)
+  (modify-syntax-entry ?> "." m2-auto-syntax-table)
+  (modify-syntax-entry ?& "." m2-auto-syntax-table)
+  (modify-syntax-entry ?| "." m2-auto-syntax-table)
+  (modify-syntax-entry ?\' "\"" m2-auto-syntax-table)
   ;; Modula-2, Pascal, Mathematica style comment: (* ... *)
-  (modify-syntax-entry ?\( ". 1" g-mode-syntax-table)
-  (modify-syntax-entry ?\) ". 4" g-mode-syntax-table)
-  (modify-syntax-entry ?* ". 23" g-mode-syntax-table))
+  (modify-syntax-entry ?\( ". 1" m2-auto-syntax-table)
+  (modify-syntax-entry ?\) ". 4" m2-auto-syntax-table)
+  (modify-syntax-entry ?* ". 23" m2-auto-syntax-table))
 
 (defun m2-test-end ()
   "check to see whether END has been typed"
@@ -1825,7 +1825,7 @@ m2r10 imports go here
 ;; so that the regexp performs the longer match first.
 ;; eg MOD and MODULE, PACKED and PACKEDSET
 
-(defvar g-mode-keywords
+(defvar m2-auto-keywords
   '("AND" "ARRAY" "BEGIN" "BY" "CASE" "CONST" "DEFINITION" "DIV"
     "DO" "ELSE" "ELSIF" "END" "EXCEPT" "EXIT" "EXPORT" "FINALLY"
     "FOR" "FROM" "IF" "IMPLEMENTATION" "IMPORT" "IN" "LOOP" "MODULE"
@@ -1835,34 +1835,34 @@ m2r10 imports go here
     "WITH" "ASM" "VOLATILE")
   "Modula-2 keywords.")
 
-(defvar g-mode-types
+(defvar m2-auto-types
   '("REAL" "SHORTREAL" "LONGREAL" "INTEGER" "LONGINT" "SHORTINT"
     "CARDINAL" "SHORTCARD" "LONGCARD" "CHAR" "BOOLEAN"
     "COMPLEX" "SHORTCOMPLEX" "LONGCOMPLEX"
     "ADDRESS" "WORD" "BYTE" "LOC" "CSIZE_T" "CSSIZE_T")
   "Modula-2 types.")
 
-(defvar g-mode-constants
+(defvar m2-auto-constants
   '("FALSE" "TRUE" "NIL")
   "Modula-2 constants.")
 
-(defvar g-mode-functions
+(defvar m2-auto-functions
   '("ABS" "ADR" "CAP" "CHR" "CMPLX" "DEC" "DISPOSE" "EXCL" "FLOAT"
     "HIGH" "IM" "INC" "INCL" "LENGTH" "MAX" "MIN" "NEW" "ODD" "ORD"
     "RE" "SIZE" "TRUNC" "VAL")
   "Modula-2 functions.")
 
 ;; create the regex string for each class of keywords
-(defvar g-mode-keywords-regexp (regexp-opt g-mode-keywords 'words))
-(defvar g-mode-type-regexp (regexp-opt g-mode-types 'words))
-(defvar g-mode-constant-regexp (regexp-opt g-mode-constants 'words))
-(defvar g-mode-functions-regexp (regexp-opt g-mode-functions 'words))
+(defvar m2-auto-keywords-regexp (regexp-opt m2-auto-keywords 'words))
+(defvar m2-auto-type-regexp (regexp-opt m2-auto-types 'words))
+(defvar m2-auto-constant-regexp (regexp-opt m2-auto-constants 'words))
+(defvar m2-auto-functions-regexp (regexp-opt m2-auto-functions 'words))
 
 
 (defun restore-upper (begin end)
   "."
   (interactive)
-  (if (g-mode-on-upper begin)
+  (if (m2-auto-on-upper begin)
       (progn
 	(upcase-region begin end)
 	(remove-text-properties begin end '(font-lock-face nil))
@@ -1870,33 +1870,33 @@ m2r10 imports go here
 	(remove-text-properties begin end '(face nil)))))
 
 
-(defun g-mode-restore-upper-case ()
+(defun m2-auto-restore-upper-case ()
   "."
   (interactive)
-  (g-mode-restore-upper-case-region (point-min) (point-max)))
+  (m2-auto-restore-upper-case-region (point-min) (point-max)))
 
-(defun g-mode-restore-upper-case-region (begin end)
+(defun m2-auto-restore-upper-case-region (begin end)
   "."
   (interactive)
   (save-excursion
     (goto-char begin)
-    (let (g-mode-min)
-      (setq g-mode-min (point))
+    (let (m2-auto-min)
+      (setq m2-auto-min (point))
       (let (seen-upper)
-	(setq seen-upper (g-mode-on-upper (point)))
+	(setq seen-upper (m2-auto-on-upper (point)))
 	(while (< (point) end)
 	  (progn
-	    (if (not (eq seen-upper (g-mode-on-upper (point))))
+	    (if (not (eq seen-upper (m2-auto-on-upper (point))))
 		(progn
-		  (setq seen-upper (g-mode-on-upper (point)))
-		  (if (g-mode-on-upper (point))
+		  (setq seen-upper (m2-auto-on-upper (point)))
+		  (if (m2-auto-on-upper (point))
 		      ;; just moved onto an uppercase
-		      (setq g-mode-min (point))
+		      (setq m2-auto-min (point))
 		    ;; just moved off an uppercase
-		    (restore-upper g-mode-min (point)))))
+		    (restore-upper m2-auto-min (point)))))
 	    (forward-char 1)))
-	(if (g-mode-on-upper g-mode-min)
-	    (restore-upper g-mode-min (point)))))))
+	(if (m2-auto-on-upper m2-auto-min)
+	    (restore-upper m2-auto-min (point)))))))
 
 (defun remove-upper-highlight-right ()
   "."
@@ -1912,10 +1912,10 @@ m2r10 imports go here
 		  (setq start (point))
 		  (forward-char 1)
 		  (while (and (< (point) (point-max))
-			      (g-mode-on-upper (point)))
+			      (m2-auto-on-upper (point)))
 		    (forward-char 1))
 		  (forward-char -1)
-		  (if (g-mode-on-upper (point))
+		  (if (m2-auto-on-upper (point))
 		      (restore-upper start (point))))))))))
 
 (defun remove-upper-highlight-left ()
@@ -1932,7 +1932,7 @@ m2r10 imports go here
 	      (let (start)
 		(setq start -1)
 		(while (and (>= (point) bol)
-			    (g-mode-on-upper (point)))
+			    (m2-auto-on-upper (point)))
 		  (progn
 		    (setq start (point))
 		    (forward-char -1)))
@@ -1943,60 +1943,60 @@ m2r10 imports go here
 			(setq bol (line-end-position))
 			(setq end -1)
 			(while (and (<= (point) bol)
-				    (g-mode-on-upper (point)))
+				    (m2-auto-on-upper (point)))
 			  (progn
 			    (forward-char 1)
 			    (setq end (point))))
 			(if (> end -1)
 			    (restore-upper start end))))))))))))
 
-(defun g-mode-check-on-insertion ()
+(defun m2-auto-check-on-insertion ()
   "."
   (interactive)
-  (g-mode-restore-upper-case-region (line-beginning-position) (line-end-position))
-  (message "g-mode-check-on-insertion"))
+  (m2-auto-restore-upper-case-region (line-beginning-position) (line-end-position))
+  (message "m2-auto-check-on-insertion"))
 
 (defun m2-backspace ()
   "."
   (interactive)
   (backward-delete-char-untabify 1)
-  (g-mode-check-on-insertion))
+  (m2-auto-check-on-insertion))
 
 (defun m2-delete ()
   "."
   (interactive)
   (delete-char 1)
-  (g-mode-check-on-insertion))
+  (m2-auto-check-on-insertion))
 
-(defun g-mode-on-upper (pos)
+(defun m2-auto-on-upper (pos)
   "."
   (interactive)
   (progn
     (get-text-property pos 'upper)))
 
-(defun g-mode-trim-left (s)
+(defun m2-auto-trim-left (s)
   "Remove whitespace at the beginning of S."
   (if (string-match "\\`[ \t\n\r]+" s)
       (replace-match "" t t s)
     s))
 
-(defun g-mode-trim-right (s)
+(defun m2-auto-trim-right (s)
   "Remove whitespace at the end of S."
   (if (string-match "[ \t\n\r]+\\'" s)
       (replace-match "" t t s)
     s))
 
-(defun g-mode-trim (s)
+(defun m2-auto-trim (s)
   "Remove whitespace at the beginning and end of S."
-  (g-mode-trim-left (g-mode-trim-right s)))
+  (m2-auto-trim-left (m2-auto-trim-right s)))
 
-(defun g-mode-lowerise (all-matched left-leader token face)
+(defun m2-auto-lowerise (all-matched left-leader token face)
   "."
   (interactive)
   (progn
     (save-excursion
       (let (l)
-	;; (message (concat "g-mode-keywordise <" all-matched ">"))
+	;; (message (concat "m2-auto-keywordise <" all-matched ">"))
 	(setq l (length token))
 	(goto-char (match-beginning 0))
 	;; (message (format "value of l is %d, keyword %d and all-matched %d" l (length keyword) (length all-matched)))
@@ -2008,7 +2008,7 @@ m2r10 imports go here
 	(delete-char (length token))))
     nil))
 
-(defun g-mode-detect-dialect ()
+(defun m2-auto-detect-dialect ()
   "."
   (interactive)
   (save-excursion
@@ -2039,172 +2039,172 @@ m2r10 imports go here
 			(add-to-list 'm2-dialect 'gm2))
 		    (forward-char 1)))))))))))
 
-(defun g-mode-dialect-pim ()
+(defun m2-auto-dialect-pim ()
   "return t if m2pim dialect was configured or detected."
   (interactive)
   (if (not m2-dialect-known)
-      (g-mode-detect-dialect))
+      (m2-auto-detect-dialect))
   (progn
     (memq 'pim m2-dialect)))
 
-(defun g-mode-dialect-iso ()
+(defun m2-auto-dialect-iso ()
   "return t if m2iso dialect was configured or detected."
   (interactive)
   (if (not m2-dialect-known)
-      (g-mode-detect-dialect))
+      (m2-auto-detect-dialect))
   (progn
     (memq 'iso m2-dialect)))
 
-(defun g-mode-dialect-r10 ()
+(defun m2-auto-dialect-r10 ()
   "return t if m2r10 dialect was configured or detected."
   (interactive)
   (if (not m2-dialect-known)
-      (g-mode-detect-dialect))
+      (m2-auto-detect-dialect))
   (progn
     (memq 'r10 m2-dialect)))
 
-(defun g-mode-dialect-gm2-extensions ()
+(defun m2-auto-dialect-gm2-extensions ()
   "return t if either the tag +gm2 detected or gm2 has been configured in customize."
   (interactive)
   (if (not m2-dialect-known)
-      (g-mode-detect-dialect))
+      (m2-auto-detect-dialect))
   (progn
     (memq 'gm2 m2-dialect)))
 
-(defun g-mode-message-dialect ()
+(defun m2-auto-message-dialect ()
   "."
   (interactive)
-  (if (g-mode-dialect-pim)
+  (if (m2-auto-dialect-pim)
       (message "pim dialect of Modula-2"))
-  (if (g-mode-dialect-iso)
+  (if (m2-auto-dialect-iso)
       (message "iso dialect of Modula-2"))
-  (if (g-mode-dialect-r10)
+  (if (m2-auto-dialect-r10)
       (message "r10 dialect of Modula-2")))
 
-(defun g-mode-after-load-hook (filename)
+(defun m2-auto-after-load-hook (filename)
   "."
   (interactive)
   ;; (message "after-load-hook")
-  (g-mode-detect-dialect))
+  (m2-auto-detect-dialect))
 ;;  (if m2-dialect-known
-;;      (g-mode-message-dialect)
+;;      (m2-auto-message-dialect)
 ;;  (message "no dialect of Modula-2 detected or configured yet using emacs customize")))
 
-(defconst g-mode-keyword-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-keywords "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
-(defconst g-mode-type-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-types "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
-(defconst g-mode-constant-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-constants "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
-(defconst g-mode-builtin-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity g-mode-functions "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
-;; (defconst g-mode-procedure-regexp "\\(PROCEDURE\\( \\|\t\\|\n\\)\\*\\(\\[:alpha:\\]\\[:alpnum:\\]\\*\\)\\)")
-;; (defconst g-mode-procedure-regexp "\\(PROCEDURE\\( \\|\t\\)*\\)")
-(defconst g-mode-procedure-regexp "\\(PROCEDURE\\)")
+(defconst m2-auto-keyword-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity m2-auto-keywords "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
+(defconst m2-auto-type-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity m2-auto-types "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
+(defconst m2-auto-constant-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity m2-auto-constants "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
+(defconst m2-auto-builtin-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity m2-auto-functions "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
+;; (defconst m2-auto-procedure-regexp "\\(PROCEDURE\\( \\|\t\\|\n\\)\\*\\(\\[:alpha:\\]\\[:alpnum:\\]\\*\\)\\)")
+;; (defconst m2-auto-procedure-regexp "\\(PROCEDURE\\( \\|\t\\)*\\)")
+(defconst m2-auto-procedure-regexp "\\(PROCEDURE\\)")
 
-(defvar g-mode-test-keywords nil
+(defvar m2-auto-test-keywords nil
   "dynamically generated keyword list from the dialects.")
 
-(defun g-mode-adapt-font-faces ()
+(defun m2-auto-adapt-font-faces ()
   "."
   (interactive)
-  (if g-mode-keywords-underlined
+  (if m2-auto-keywords-underlined
       (progn
 	(make-variable-buffer-local 'font-lock-keyword-face)
-	(copy-face 'font-lock-keyword-face 'g-mode-keyword-face)
-	;; (set-face-foreground 'g-mode-keyword-face "green4")
-	(set-face-bold 'g-mode-keyword-face t)
-	(set-face-underline 'g-mode-keyword-face t)
-	(setq font-lock-keyword-face 'g-mode-keyword-face)))
-  (if g-mode-functions-italic
+	(copy-face 'font-lock-keyword-face 'm2-auto-keyword-face)
+	;; (set-face-foreground 'm2-auto-keyword-face "green4")
+	(set-face-bold 'm2-auto-keyword-face t)
+	(set-face-underline 'm2-auto-keyword-face t)
+	(setq font-lock-keyword-face 'm2-auto-keyword-face)))
+  (if m2-auto-functions-italic
       (progn
 	(make-variable-buffer-local 'font-lock-builtin-face)
-	(copy-face 'font-lock-builtin-face 'g-mode-builtin-face)
-	(set-face-bold 'g-mode-builtin-face t)
-	(set-face-italic 'g-mode-builtin-face t)
-	(setq font-lock-builtin-face 'g-mode-builtin-face))))
+	(copy-face 'font-lock-builtin-face 'm2-auto-builtin-face)
+	(set-face-bold 'm2-auto-builtin-face t)
+	(set-face-italic 'm2-auto-builtin-face t)
+	(setq font-lock-builtin-face 'm2-auto-builtin-face))))
 
 ;;(make-variable-buffer-local 'font-lock-keyword-face) (copy-face
-;;'font-lock-keyword-face 'g-mode-keyword-face) (set-face-foreground
-;;'g-mode-keyword-face "green4")
+;;'font-lock-keyword-face 'm2-auto-keyword-face) (set-face-foreground
+;;'m2-auto-keyword-face "green4")
 
 ;;(add-hook 'lua-mode-hook
 ;;          (lambda ()
-;;            (setq font-lock-keyword-face 'g-mode-keyword-face)
+;;            (setq font-lock-keyword-face 'm2-auto-keyword-face)
 ;;            ))
 
 
-(defun g-mode-function-name-test (name)
+(defun m2-auto-function-name-test (name)
   "."
   (interactive)
   (message name)
   (sit-for 1))
 
-(defun g-mode-add-keywords ()
+(defun m2-auto-add-keywords ()
   "."
   (interactive)
 
-  (if g-mode-use-algol-style
+  (if m2-auto-use-algol-style
       (progn
-	(g-mode-adapt-font-faces)
+	(m2-auto-adapt-font-faces)
 	`(
-	  (,g-mode-type-regexp "\\(.*$\\)"
-			       (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-type-face) nil
+	  (,m2-auto-type-regexp "\\(.*$\\)"
+			       (m2-auto-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-type-face) nil
 			       (1 font-lock-type-face))
-	  (,g-mode-constant-regexp "\\(.*$\\)"
-				   (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-constant-face) nil
+	  (,m2-auto-constant-regexp "\\(.*$\\)"
+				   (m2-auto-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-constant-face) nil
 				   (1 font-lock-constant-face))
-	  (,g-mode-builtin-regexp "\\(.*$\\)"
-				  (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-builtin-face) nil
+	  (,m2-auto-builtin-regexp "\\(.*$\\)"
+				  (m2-auto-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-builtin-face) nil
 				  (1 font-lock-builtin-face))
-	  ;;      (,g-mode-procedure-regexp "\\(.*$\\)"
-	  ;;		(g-mode-function-name-test (match-string 0))
+	  ;;      (,m2-auto-procedure-regexp "\\(.*$\\)"
+	  ;;		(m2-auto-function-name-test (match-string 0))
 	  ;;			(1 font-lock-function-face))
-	  (,g-mode-keyword-regexp "\\(.*$\\)"
-				  (g-mode-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-keyword-face) nil
+	  (,m2-auto-keyword-regexp "\\(.*$\\)"
+				  (m2-auto-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-keyword-face) nil
 				  (1 font-lock-keyword-face))))
     (progn
-      (message g-mode-keywords-regexp)
+      (message m2-auto-keywords-regexp)
       `(
-	 (,g-mode-type-regexp . font-lock-type-face)
-	 (,g-mode-constant-regexp . font-lock-constant-face)
-	 (,g-mode-builtin-regexp . font-lock-builtin-face)
-	 (,g-mode-keyword-regexp . font-lock-keyword-face)
+	 (,m2-auto-type-regexp . font-lock-type-face)
+	 (,m2-auto-constant-regexp . font-lock-constant-face)
+	 (,m2-auto-builtin-regexp . font-lock-builtin-face)
+	 (,m2-auto-keyword-regexp . font-lock-keyword-face)
 	 ;; note: order above matters.
 	 ))))
 
-(defun g-mode ()
+(defun gm2-mode ()
   "Major mode for editing M2 code. User definable variables:
    m2-indent-level
       Indentation of M2 statements within surrounding block."
   (interactive)
   (kill-all-local-variables)
-  (setup-g-mode-keys)
-  (use-local-map g-mode-map)
-  (setq major-mode 'g-mode)
+  (setup-m2-auto-keys)
+  (use-local-map m2-auto-map)
+  (setq major-mode 'gm2-mode)
   (setq mode-name "GM2-trunc")
-  (setq local-abbrev-table g-mode-abbrev-table)
-  (set-syntax-table g-mode-syntax-table)
+  (setq local-abbrev-table m2-auto-abbrev-table)
+  (set-syntax-table m2-auto-syntax-table)
   (message "here")
 
   ;; code for syntax highlighting
-  (setq font-lock-defaults '(g-mode-add-keywords))
+  (setq font-lock-defaults '(m2-auto-add-keywords))
   ;; clear memory
-  (setq g-mode-keywords-regexp nil)
-  (setq g-mode-types-regexp nil)
-  (setq g-mode-constants-regexp nil)
-  (setq g-mode-functions-regexp nil)
+  (setq m2-auto-keywords-regexp nil)
+  (setq m2-auto-types-regexp nil)
+  (setq m2-auto-constants-regexp nil)
+  (setq m2-auto-functions-regexp nil)
   ;; end of syntax highlighting
 
   ;; (comment-start "(*") (comment-end "*)")
   (setq case-fold-search nil)
   (setq indent-tabs-mode nil)
-  (setq g-mode-hook
+  (setq m2-auto-hook
 	'(lambda ()
 	   (progn (make-local-variable 'compile-command)
-		  (setq compile-command (concat (g-mode-get-compile-command) " " (concat (substring (buffer-name) 0 -4) ".mod")))
+		  (setq compile-command (concat (m2-auto-get-compile-command) " " (concat (substring (buffer-name) 0 -4) ".mod")))
 		  (linum-mode 0))))
 
-  (add-hook 'before-save-hook 'g-mode-restore-upper-case)
-  (add-hook 'post-self-insert-hook 'g-mode-check-on-insertion nil 'local)
-  (add-hook 'after-load-functions 'g-mode-after-load-hook)
-  (run-hooks 'g-mode-hook))
+  (add-hook 'before-save-hook 'm2-auto-restore-upper-case)
+  (add-hook 'post-self-insert-hook 'm2-auto-check-on-insertion nil 'local)
+  (add-hook 'after-load-functions 'm2-auto-after-load-hook)
+  (run-hooks 'm2-auto-hook))
 
 ;;
 ;;  ----------------------------------------------------------------------
