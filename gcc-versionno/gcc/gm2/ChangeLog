@@ -1,3 +1,8 @@
+2018-06-20      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/el/g-mode.el:  fixed traditional mode.  Both algol
+	  mode and traditional are now usable and user selectable.
+
 2018-06-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/el/g-mode.el:  added ability to turn on/off

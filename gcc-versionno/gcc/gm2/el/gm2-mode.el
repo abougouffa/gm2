@@ -66,7 +66,7 @@
   :type 'boolean
   :group 'gm2)
 
-(defcustom m2-auto-use-algol-style nil
+(defcustom m2-auto-use-algol-style t
   "use the algol style type faces, which displays keywords and reserved
    types and functions in lowercase."
   :type 'boolean
@@ -82,6 +82,12 @@
   "reserved functions should be rendered as italic, probably not
    wanted if you are not using algol style, see
    m2-auto-use-algol-style."
+  :type 'boolean
+  :group 'gm2)
+
+(defcustom m2-auto-default-gm2-extensions t
+  "true if the GNU Modula-2 compiler is being used.  ASM,
+   VOLATILE and UNQUALIFIED keywords are highlighted."
   :type 'boolean
   :group 'gm2)
 
@@ -1825,14 +1831,29 @@ m2r10 imports go here
 ;; so that the regexp performs the longer match first.
 ;; eg MOD and MODULE, PACKED and PACKEDSET
 
-(defvar m2-auto-keywords
+(defvar m2-auto-keywords-pim
   '("AND" "ARRAY" "BEGIN" "BY" "CASE" "CONST" "DEFINITION" "DIV"
     "DO" "ELSE" "ELSIF" "END" "EXCEPT" "EXIT" "EXPORT" "FINALLY"
     "FOR" "FROM" "IF" "IMPLEMENTATION" "IMPORT" "IN" "LOOP" "MODULE"
     "MOD" "NOT" "OF" "OR" "PACKEDSET" "PACKED" "POINTER" "PROCEDURE"
-    "QUALIFIED" "UNQUALIFIED" "RECORD" "REM" "REPEAT" "RETRY"
-    "RETURN" "SET" "THEN" "TO" "TYPE" "UNTIL" "VAR" "WHILE"
-    "WITH" "ASM" "VOLATILE")
+    "QUALIFIED" "RECORD" "REPEAT" "RETURN" "SET" "THEN" "TO" "TYPE"
+    "UNTIL" "VAR" "WHILE" "WITH")
+  "Modula-2 keywords.")
+
+(defvar m2-auto-keywords-iso
+  '("EXCEPT" "FINALLY" "PACKEDSET" "PACKED" "REM" "RETRY")
+  "Modula-2 keywords.")
+
+(defvar m2-auto-keywords-gm2
+  '("ASM" "VOLATILE" "UNQUALIFIED")
+  "GNU Modula-2 keyword extensions.")
+
+(defvar m2-auto-keywords-r10
+  '("FIXME")
+  "M2R10 keywords. --fixme-- complete this")
+
+(defvar m2-auto-keywords
+  '()
   "Modula-2 keywords.")
 
 (defvar m2-auto-types
@@ -1858,6 +1879,27 @@ m2r10 imports go here
 (defvar m2-auto-constant-regexp (regexp-opt m2-auto-constants 'words))
 (defvar m2-auto-functions-regexp (regexp-opt m2-auto-functions 'words))
 
+(defvar m2-auto-traditional-keywords-regexp (regexp-opt m2-auto-keywords 'words))
+(defvar m2-auto-traditional-type-regexp (regexp-opt m2-auto-types 'words))
+(defvar m2-auto-traditional-constant-regexp (regexp-opt m2-auto-constants 'words))
+(defvar m2-auto-traditional-functions-regexp (regexp-opt m2-auto-functions 'words))
+
+
+(defun m2-generate-keywords ()
+  "generate the variable m2-auto-keywords from the chosen dialect."
+  (interactive)
+  (setq m2-auto-keywords (append (copy-tree m2-auto-keywords) m2-auto-keywords-pim))
+  (if (eq m2-auto-default-dialect 'iso)
+      (setq m2-auto-keywords (append (copy-tree m2-auto-keywords) m2-auto-keywords-iso)))
+  (if (eq m2-auto-default-dialect 'r10)
+      (setq m2-auto-keywords (append (copy-tree m2-auto-keywords) m2-auto-keywords-r10)))
+  (if m2-auto-default-gm2-extensions
+      (setq m2-auto-keywords (append (copy-tree m2-auto-keywords) m2-auto-keywords-gm2)))
+  (setq m2-auto-keyword-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\("
+				       (mapconcat 'identity m2-auto-keywords "\\|")
+				       "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
+  (setq m2-auto-traditional-keywords-regexp (regexp-opt m2-auto-keywords 'words)))
+
 
 (defun restore-upper (begin end)
   "."
@@ -1868,7 +1910,6 @@ m2r10 imports go here
 	(remove-text-properties begin end '(font-lock-face nil))
 	(remove-text-properties begin end '(upper nil))
 	(remove-text-properties begin end '(face nil)))))
-
 
 (defun m2-auto-restore-upper-case ()
   "."
@@ -2008,6 +2049,30 @@ m2r10 imports go here
 	(delete-char (length token))))
     nil))
 
+(defun m2-all-upper-case-region (begin end)
+  "."
+  (interactive)
+  (progn
+    (save-excursion
+      (goto-char begin)
+      (let (m2-auto-min)
+	(setq m2-auto-min (point))
+	(let (is-upper)
+	  (setq is-upper nil)
+	  (while (and (< (point) end)
+		      is-upper)
+	    (progn
+	      (if (not (m2-auto-on-upper (point)))
+		  (setq seen-upper nil))
+	      (forward-char 1)))
+	  is-upper)))))
+
+(defun dbg (kind s)
+  "."
+  (interactive)
+  (message (concat kind "<" s ">"))
+  (sit-for 1))
+
 (defun m2-auto-detect-dialect ()
   "."
   (interactive)
@@ -2140,9 +2205,10 @@ m2r10 imports go here
   "."
   (interactive)
 
+  (m2-auto-adapt-font-faces)
+  (m2-generate-keywords)
   (if m2-auto-use-algol-style
       (progn
-	(m2-auto-adapt-font-faces)
 	`(
 	  (,m2-auto-type-regexp "\\(.*$\\)"
 			       (m2-auto-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-type-face) nil
@@ -2160,14 +2226,13 @@ m2r10 imports go here
 				  (m2-auto-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-keyword-face) nil
 				  (1 font-lock-keyword-face))))
     (progn
-      (message m2-auto-keywords-regexp)
       `(
-	 (,m2-auto-type-regexp . font-lock-type-face)
-	 (,m2-auto-constant-regexp . font-lock-constant-face)
-	 (,m2-auto-builtin-regexp . font-lock-builtin-face)
-	 (,m2-auto-keyword-regexp . font-lock-keyword-face)
-	 ;; note: order above matters.
-	 ))))
+	(,m2-auto-traditional-type-regexp . font-lock-type-face)
+	(,m2-auto-traditional-constant-regexp . font-lock-constant-face)
+	(,m2-auto-traditional-functions-regexp . font-lock-function-name-face)
+	(,m2-auto-traditional-keywords-regexp . font-lock-keyword-face)
+	;; note: order above matters.
+	))))
 
 (defun gm2-mode ()
   "Major mode for editing M2 code. User definable variables:
@@ -2181,7 +2246,6 @@ m2r10 imports go here
   (setq mode-name "GM2-trunc")
   (setq local-abbrev-table m2-auto-abbrev-table)
   (set-syntax-table m2-auto-syntax-table)
-  (message "here")
 
   ;; code for syntax highlighting
   (setq font-lock-defaults '(m2-auto-add-keywords))
