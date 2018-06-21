@@ -278,10 +278,34 @@
   "Match the current character according to the syntax table."
   (interactive)
   (save-excursion
-    (backward-sexp 1)
-    (if (looking-at "[\\(]")
-	(sit-for 1)
-      (message "No matching ("))))
+    (progn
+      (let (count)
+	(setq count 1)
+	(forward-char -1)
+	(if (> (point) (point-min))
+	    (progn
+	      (forward-char -1)
+	      (while (and (> (point) (point-min))
+			  (not (= count 0)))
+		(progn
+		  (if (looking-at "(")
+		      (setq count (- count 1))
+		    (if (looking-at ")")
+			(setq count (+ count 1))))
+		  (if (not (= count 0))
+		      (m2-backward-to-token)))))))
+      (if (looking-at "(")
+	  (sit-for 1)
+	(message "No matching (")))))
+
+(defun forward-or-backward-sexp (&optional arg)
+  "Go to the matching parenthesis character if one is adjacent to point."
+  (interactive "^p")
+  (cond ((looking-at "\\s(") (forward-sexp arg))
+        ((looking-back "\\s)" 1) (backward-sexp arg))
+        ;; Now, try to succeed from inside of a bracket
+        ((looking-at "\\s)") (forward-char) (backward-sexp arg))
+        ((looking-back "\\s(" 1) (backward-char) (forward-sexp arg))))
 
 (defun m2-tag ()
   "m2-tag finds the declaration of the modula-2 symbol the cursor is on."
@@ -1009,12 +1033,12 @@ m2r10 imports go here
     (setq m2-point (point))
     (save-excursion
       (m2-backward-to-token)
-      (if (looking-at "PROCEDURE[ \n]")
+      (if (looking-at-keyword "PROCEDURE[ \n]")
 	  nil
 	(while (and (> (point) 1) (not (m2-is-parameter-commencer))
 		    (not (m2-is-parameter-terminator)))
 	  (m2-backward-to-token))
-	(if (looking-at "PROCEDURE[ \n]")
+	(if (looking-at-keyword "PROCEDURE[ \n]")
 	    (progn
 	      (goto-char m2-point)
 	      (while (not (m2-is-parameter-terminator))
@@ -1024,11 +1048,11 @@ m2r10 imports go here
 
 (defun m2-is-parameter-commencer ()
   "returns true if we are looking at a parameter block commencer"
-  (looking-at "PROCEDURE[ \n]"))
+  (looking-at-keyword "PROCEDURE[ \n]"))
 
 (defun m2-is-parameter-terminator ()
   "returns true if we are looking at a parameter block terminator"
-  (looking-at ")\\|BEGIN\\|IF\\|THEN\\|ELSE\\|END\\|WHILE\\|REPEAT\\|UNTIL\\|LOOP\\|CONST|\\MODULE"))
+  (looking-at-keyword ")\\|BEGIN\\|IF\\|THEN\\|ELSE\\|END\\|WHILE\\|REPEAT\\|UNTIL\\|LOOP\\|CONST|\\MODULE"))
 
 (defun m2-indent-comment ()
   "moves cursor to the current indentation of the comment."
@@ -1361,6 +1385,10 @@ m2r10 imports go here
   (modify-syntax-entry ?& "." m2-auto-syntax-table)
   (modify-syntax-entry ?| "." m2-auto-syntax-table)
   (modify-syntax-entry ?\' "\"" m2-auto-syntax-table)
+  ;; sadly cannot use the follow as it conflicts with comment
+  ;; delimiters
+  ;; (modify-syntax-entry ?\( "($" m2-auto-syntax-table)
+  ;; (modify-syntax-entry ?\) ")^" m2-auto-syntax-table)
   ;; Modula-2, Pascal, Mathematica style comment: (* ... *)
   (modify-syntax-entry ?\( ". 1" m2-auto-syntax-table)
   (modify-syntax-entry ?\) ". 4" m2-auto-syntax-table)
@@ -2276,6 +2304,7 @@ m2r10 imports go here
   (setq mode-name "GM2-trunc")
   (setq local-abbrev-table m2-auto-abbrev-table)
   (set-syntax-table m2-auto-syntax-table)
+  (setq blink-matching-paren t)
 
   ;; code for syntax highlighting
   (setq font-lock-defaults '(m2-auto-add-keywords))
