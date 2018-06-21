@@ -118,7 +118,8 @@
 
 (defcustom m2-compile-default-path "."
   "the compile include path to find the library def and mod
-   files."
+   files.  This is a UNIX style path, each directory is
+   separated by a :"
   :type 'string
   :group 'gm2)
 
@@ -173,6 +174,33 @@
 
 (defvar m2-auto-map ()
   "Keymap used in M2 mode.")
+
+(defun m2-auto-convert-unix-to-emacs-path (path)
+  "convert a UNIX style path into a list"
+  (interactive)
+  (progn
+    (let (epath)
+      (setq epath nil)
+      (let (i)
+	(setq i 0)
+	(let (l)
+	  (setq l (length path))
+	  (let (start)
+	    (setq start 0)
+	    (while (< i l)
+	      (progn
+		(if (string-equal (substring path i (+ i 1)) ":")
+		    (progn
+		      (add-to-list 'epath (substring path start i))
+		      (setq start (+ i 1))))
+		(setq i (+ i 1))))
+	    (if (< start l)
+		(add-to-list 'epath (substring path start l))))))
+      epath)))
+
+(defvar m2-auto-compile-default-path-emacs
+  (m2-auto-convert-unix-to-emacs-path m2-compile-default-path)
+  "this is an internal list.")
 
 (defun setup-m2-auto-keys ()
   "sets up the keymap for gm2-mode."
@@ -230,14 +258,14 @@
   "return t if the cursor is matching regexp when searching backwards."
   (interactive)
   (progn
-    (m2-auto-restore-upper-case-region (line-beginning-position) (line-end-position))
+    (m2-auto-restore-upper-case-region (point-min) (point-max))
     (re-search-backward regexp bound noerror count)))
 
 (defun re-search-forward-keyword (regexp &optional bound noerror count)
   "return t if the cursor is matching regexp when searching backwards."
   (interactive)
   (progn
-    (m2-auto-restore-upper-case-region (line-beginning-position) (line-end-position))
+    (m2-auto-restore-upper-case-region (point-min) (point-max))
     (re-search-forward regexp bound noerror count)))
 
 (defun m2-close-paren ()
@@ -430,7 +458,7 @@
 		(not (looking-at ";")))	;
   (m2-forward-to-token))
     (m2-forward-to-token)
-    (looking-at "FORWARD")))
+    (looking-at-keyword "FORWARD")))
 
 (defun m2-find-export-declaration (m2-object m2-extension)
   "scans the export list of the current module for m2-object.
@@ -469,7 +497,7 @@
 		    (if m2-success
 			(progn
 			  (message "found %s in module <%s>" m2-object m2-module-name)
-			  (m2-find-module (concat m2-module-name m2-extension))))))
+			  (m2-find-module m2-module-name)))))
 	      (progn
 		(setq m2-continue (not (m2-indent-commencer)))
 		(m2-forward-until-white (point-max))
@@ -932,7 +960,7 @@ m2r10 imports go here
    determined by m2-path."
   (progn
     (let (m2-found)
-      (setq m2-found (locate-file name m2-compile-default-path ('.def '.mod)))
+      (setq m2-found (locate-file name m2-auto-compile-default-path-emacs '(".def" ".mod")))
       (if m2-found
 	  (find-file m2-found))
       m2-found)))
@@ -1900,16 +1928,18 @@ m2r10 imports go here
 				       "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
   (setq m2-auto-traditional-keywords-regexp (regexp-opt m2-auto-keywords 'words)))
 
-
 (defun restore-upper (begin end)
   "."
   (interactive)
   (if (m2-auto-on-upper begin)
       (progn
-	(upcase-region begin end)
-	(remove-text-properties begin end '(font-lock-face nil))
-	(remove-text-properties begin end '(upper nil))
-	(remove-text-properties begin end '(face nil)))))
+	(let (was-modified)
+	  (setq was-modified (buffer-modified-p))
+	  (upcase-region begin end)
+	  (remove-text-properties begin end '(font-lock-face nil))
+	  (remove-text-properties begin end '(upper nil))
+	  (remove-text-properties begin end '(face nil))
+	  (set-buffer-modified-p was-modified)))))
 
 (defun m2-auto-restore-upper-case ()
   "."

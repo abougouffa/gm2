@@ -1,3 +1,8 @@
+2018-06-21      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/el/g-mode.el: fixed m2-tag (find declaration
+	  understands the path and also works in algol keyword mode.
+
 2018-06-20      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/el/g-mode.el:  fixed traditional mode.  Both algol
