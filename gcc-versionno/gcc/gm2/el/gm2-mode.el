@@ -2000,7 +2000,7 @@ m2r10 imports go here
 (defun remove-upper-highlight-right ()
   "."
   (interactive)
-  (message "insert hook executed")
+  ;; (message "insert hook executed")
   (if (< (point) (point-max))
       (progn
 	(save-excursion
@@ -2021,7 +2021,7 @@ m2r10 imports go here
   "."
   (interactive)
   (progn
-    (message "insert hook executed")
+    ;; (message "insert hook executed")
     (let (bol)
       (setq bol (line-beginning-position))
       (if (> (point) bol)
@@ -2052,8 +2052,7 @@ m2r10 imports go here
 (defun m2-auto-check-on-insertion ()
   "."
   (interactive)
-  (m2-auto-restore-upper-case-region (line-beginning-position) (line-end-position))
-  (message "m2-auto-check-on-insertion"))
+  (m2-auto-restore-upper-case-region (line-beginning-position) (line-end-position)))
 
 (defun m2-backspace ()
   "."
