@@ -1913,21 +1913,67 @@ m2r10 imports go here
   "Modula-2 keywords.")
 
 (defvar m2-auto-types
-  '("REAL" "SHORTREAL" "LONGREAL" "INTEGER" "LONGINT" "SHORTINT"
-    "CARDINAL" "SHORTCARD" "LONGCARD" "CHAR" "BOOLEAN"
-    "COMPLEX" "SHORTCOMPLEX" "LONGCOMPLEX"
-    "ADDRESS" "WORD" "BYTE" "LOC" "CSIZE_T" "CSSIZE_T")
+  '()
   "Modula-2 types.")
+
+(defvar m2-auto-types-gm2
+  '("SHORTREAL" "SHORTINT" "SHORTCARD" "SHORTCOMPLEX"
+    "INTEGER8" "INTEGER16" "INTEGER32" "INTEGER64"
+    "CARDINAL8" "CARDINAL16" "CARDINAL32" "CARDINAL64"
+    "WORD16" "WORD32" "WORD64"
+    "BITSET8" "BITSET16" "BITSET32"
+    "REAL32" "REAL64" "REAL128"
+    "COMPLEX32" "COMPLEX64" "COMPLEX128"
+    "COMPLEX" "LONGCOMPLEX"
+    "CSIZE_T" "CSSIZE_T" "LOC")
+  "Modula-2 types.")
+
+(defvar m2-auto-types-iso
+  '("REAL" "LONGREAL" "INTEGER" "LONGINT"
+    "CARDINAL" "LONGCARD" "CHAR" "BOOLEAN"
+    "COMPLEX" "LONGCOMPLEX"
+    "ADDRESS" "WORD" "BYTE" "LOC")
+  "Modula-2 types.")
+
+(defvar m2-auto-types-pim
+  '("REAL" "LONGREAL" "INTEGER" "LONGINT"
+    "CARDINAL" "LONGCARD" "CHAR" "BOOLEAN"
+    "ADDRESS" "WORD" "BYTE")
+  "Modula-2 types.")
+
+(defvar m2-auto-types-r10
+  '()
+  "R10 types.")
 
 (defvar m2-auto-constants
   '("FALSE" "TRUE" "NIL")
   "Modula-2 constants.")
 
 (defvar m2-auto-functions
+  '()
+  "Modula-2 functions.")
+
+(defvar m2-auto-functions-pim
+  '("ABS" "ADR" "CAP" "CHR" "DEC" "DISPOSE" "EXCL" "FLOAT"
+    "HIGH" "INC" "INCL" "MAX" "MIN" "NEW" "ODD" "ORD"
+    "SIZE" "TRUNC" "VAL")
+  "Modula-2 functions found in PIM.")
+
+(defvar m2-auto-functions-iso
   '("ABS" "ADR" "CAP" "CHR" "CMPLX" "DEC" "DISPOSE" "EXCL" "FLOAT"
     "HIGH" "IM" "INC" "INCL" "LENGTH" "MAX" "MIN" "NEW" "ODD" "ORD"
     "RE" "SIZE" "TRUNC" "VAL")
-  "Modula-2 functions.")
+  "Modula-2 functions found in ISO.")
+
+(defvar m2-auto-functions-gm2
+  '("IM" "LENGTH" "MAX" "MIN" "RE" "ROTATE" "SHIFT" "THROW" "TBITSIZE")
+  "Modula-2 functions found in SYSTEM and gm2 allows access to ISO
+   if PIM is used.")
+
+(defvar m2-auto-functions-r10
+  '()
+  "R10 functions.")
+
 
 ;; create the regex string for each class of keywords
 (defvar m2-auto-keywords-regexp (regexp-opt m2-auto-keywords 'words))
@@ -1940,21 +1986,71 @@ m2r10 imports go here
 (defvar m2-auto-traditional-constant-regexp (regexp-opt m2-auto-constants 'words))
 (defvar m2-auto-traditional-functions-regexp (regexp-opt m2-auto-functions 'words))
 
+(defun m2-debug-message (m)
+  "."
+  (interactive)
+  (message m)
+  (while t
+    (progn)))
+
+(defun m2-union (a b)
+  "."
+  (interactive)
+  (progn
+    (let (result)
+      (setq result (copy-tree a))
+      (let (l)
+	(setq l (length b))
+	(let (i)
+	  (setq i 0)
+	  (while (< i l)
+	    (progn
+	      (add-to-list 'result (nth i b))
+	      (setq i (+ i 1))))))
+      result)))
 
 (defun m2-generate-keywords ()
   "generate the variable m2-auto-keywords from the chosen dialect."
   (interactive)
-  (setq m2-auto-keywords (append (copy-tree m2-auto-keywords) m2-auto-keywords-pim))
+  (setq m2-auto-keywords (m2-union m2-auto-keywords m2-auto-keywords-pim))
   (if (eq m2-auto-default-dialect 'iso)
-      (setq m2-auto-keywords (append (copy-tree m2-auto-keywords) m2-auto-keywords-iso)))
+      (setq m2-auto-keywords (m2-union m2-auto-keywords m2-auto-keywords-iso)))
   (if (eq m2-auto-default-dialect 'r10)
-      (setq m2-auto-keywords (append (copy-tree m2-auto-keywords) m2-auto-keywords-r10)))
+      (setq m2-auto-keywords (m2-union m2-auto-keywords m2-auto-keywords-r10)))
   (if m2-auto-default-gm2-extensions
-      (setq m2-auto-keywords (append (copy-tree m2-auto-keywords) m2-auto-keywords-gm2)))
+      (setq m2-auto-keywords (m2-union m2-auto-keywords m2-auto-keywords-gm2)))
   (setq m2-auto-keyword-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\("
 				       (mapconcat 'identity m2-auto-keywords "\\|")
 				       "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
   (setq m2-auto-traditional-keywords-regexp (regexp-opt m2-auto-keywords 'words)))
+
+(defun m2-generate-types ()
+  "generate the variable m2-auto-types from the chosen dialect."
+  (interactive)
+  (if (eq m2-auto-default-dialect 'pim)
+      (setq m2-auto-types (m2-union m2-auto-types m2-auto-types-pim)))
+  (if (eq m2-auto-default-dialect 'iso)
+      (setq m2-auto-types (m2-union m2-auto-types m2-auto-types-iso)))
+  (if (eq m2-auto-default-dialect 'r10)
+      (setq m2-auto-types (m2-union m2-auto-types m2-auto-types-r10)))
+  (if m2-auto-default-gm2-extensions
+      (setq m2-auto-types (m2-union m2-auto-types m2-auto-types-gm2)))
+  (setq m2-auto-type-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity m2-auto-types "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
+  (setq m2-auto-traditional-type-regexp (regexp-opt m2-auto-types 'words)))
+
+(defun m2-generate-functions ()
+  "generate the variable m2-auto-functions from the chosen dialect."
+  (interactive)
+  (if (eq m2-auto-default-dialect 'pim)
+      (setq m2-auto-functions (m2-union m2-auto-functions m2-auto-functions-pim)))
+  (if (eq m2-auto-default-dialect 'iso)
+      (setq m2-auto-functions (m2-union m2-auto-functions m2-auto-functions-iso)))
+  (if (eq m2-auto-default-dialect 'r10)
+      (setq m2-auto-functions (m2-union m2-auto-functions m2-auto-functions-r10)))
+  (if m2-auto-default-gm2-extensions
+      (setq m2-auto-functions (m2-union m2-auto-functions m2-auto-functions-gm2)))
+  (setq m2-auto-builtin-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity m2-auto-functions "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
+  (setq m2-auto-traditional-functions-regexp (regexp-opt m2-auto-functions 'words)))
 
 (defun restore-upper (begin end)
   "."
@@ -2264,6 +2360,8 @@ m2r10 imports go here
 
   (m2-auto-adapt-font-faces)
   (m2-generate-keywords)
+  (m2-generate-types)
+  (m2-generate-functions)
   (if m2-auto-use-algol-style
       (progn
 	`(

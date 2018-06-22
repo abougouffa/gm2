@@ -1,3 +1,8 @@
+2018-06-22      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/el/g-mode.el: generate types and builtin functions
+	  dependant upon the dialect chosen.
+
 2018-06-21      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/el/g-mode.el: fixed m2-tag (find declaration
