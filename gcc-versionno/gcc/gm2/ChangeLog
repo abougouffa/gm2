@@ -1,6 +1,8 @@
 2018-06-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/el/g-mode.el: bug fixes to the m2-tag feature.
+	* gm2/el/g-mode.el: allow . before a type, keyword,
+	  function and const.
 
 2018-06-22      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

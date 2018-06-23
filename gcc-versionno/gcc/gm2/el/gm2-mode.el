@@ -2021,7 +2021,7 @@ m2r10 imports go here
       (setq m2-auto-keywords (m2-union m2-auto-keywords m2-auto-keywords-r10)))
   (if m2-auto-default-gm2-extensions
       (setq m2-auto-keywords (m2-union m2-auto-keywords m2-auto-keywords-gm2)))
-  (setq m2-auto-keyword-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\("
+  (setq m2-auto-keyword-regexp (concat "\\(\\.\\|(\\|,\\|;\\|^\\| \\|\t\\)\\("
 				       (mapconcat 'identity m2-auto-keywords "\\|")
 				       "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
   (setq m2-auto-traditional-keywords-regexp (regexp-opt m2-auto-keywords 'words)))
@@ -2037,7 +2037,7 @@ m2r10 imports go here
       (setq m2-auto-types (m2-union m2-auto-types m2-auto-types-r10)))
   (if m2-auto-default-gm2-extensions
       (setq m2-auto-types (m2-union m2-auto-types m2-auto-types-gm2)))
-  (setq m2-auto-type-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity m2-auto-types "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
+  (setq m2-auto-type-regexp (concat "\\(\\.\\|(\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity m2-auto-types "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
   (setq m2-auto-traditional-type-regexp (regexp-opt m2-auto-types 'words)))
 
 (defun m2-generate-functions ()
@@ -2051,7 +2051,7 @@ m2r10 imports go here
       (setq m2-auto-functions (m2-union m2-auto-functions m2-auto-functions-r10)))
   (if m2-auto-default-gm2-extensions
       (setq m2-auto-functions (m2-union m2-auto-functions m2-auto-functions-gm2)))
-  (setq m2-auto-builtin-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity m2-auto-functions "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
+  (setq m2-auto-builtin-regexp (concat "\\(\\.\\|(\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity m2-auto-functions "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
   (setq m2-auto-traditional-functions-regexp (regexp-opt m2-auto-functions 'words)))
 
 (defun restore-upper (begin end)
