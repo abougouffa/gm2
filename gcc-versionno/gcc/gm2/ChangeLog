@@ -1,3 +1,7 @@
+2018-06-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/el/g-mode.el: bug fixes to the m2-tag feature.
+
 2018-06-22      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/el/g-mode.el: generate types and builtin functions

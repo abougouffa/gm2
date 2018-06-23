@@ -385,7 +385,7 @@
 	      (m2-move-to-type-or-var-start)
 	      (other-window 1)
 	      t)
-	  (if (m2-find-export-declaration m2-object ".mod")
+	  (if (m2-find-import-declaration m2-object ".mod")
 	      (if (m2-find-declaration m2-object)
 		  (progn
 		    (switch-to-buffer source-buffer)
@@ -395,7 +395,7 @@
 		  (select-window source-window)
 		  (switch-to-buffer source-buffer)
 		  (split-window)
-		  (if (m2-find-export-declaration m2-object ".def")
+		  (if (m2-find-import-declaration m2-object ".def")
 		      (progn
 			(m2-find-declaration m2-object)
 			t)
@@ -404,7 +404,7 @@
 		      (sit-for 1)
 		      nil))))
 	    (progn
-	      (message "hmm should not get here m2-find-declaration")
+	      (message (concat "cannot find declaration of " m2-object))
 	      (sit-for 1)
 	      nil)))))))
 
@@ -484,8 +484,8 @@
     (m2-forward-to-token)
     (looking-at-keyword "FORWARD")))
 
-(defun m2-find-export-declaration (m2-object m2-extension)
-  "scans the export list of the current module for m2-object.
+(defun m2-find-import-declaration (m2-object m2-extension)
+  "scans the import list of the current module for m2-object.
    If m2-object is found then the appropriate module with
    m2-extension is opened and the cursor is placed at the
    start of the declaration."
@@ -520,7 +520,7 @@
 		    (setq m2-success (m2-found-import-ident m2-object))
 		    (if m2-success
 			(progn
-			  (message "found %s in module <%s>" m2-object m2-module-name)
+			  (message "found %s in module %s" m2-object m2-module-name)
 			  (m2-find-module m2-module-name)))))
 	      (progn
 		(setq m2-continue (not (m2-indent-commencer)))
@@ -532,13 +532,15 @@
   "scans the import current list for m2-object.
    If m2-object is found then true is returned."
   (interactive)
-  (let (m2-success)
-    (setq m2-success nil)
-    (while (and (not (looking-at-keyword ";\\|BEGIN\\|CONST\\|TYPE\\|VAR\\|FROM\\|PROCEDURE"))
-		(not m2-success))
-      (setq m2-success (looking-at m2-object))
-      (m2-forward-to-token))
-    m2-success))
+  (progn
+    (let (m2-success)
+      (setq m2-success nil)
+      (while (and (not (looking-at-keyword ";\\|BEGIN\\|CONST\\|TYPE\\|VAR\\|FROM\\|PROCEDURE"))
+		  (not m2-success))
+	(progn
+	  (setq m2-success (looking-at-keyword m2-object))
+	  (m2-forward-to-token)))
+      m2-success)))
 
 (defun m2-help ()
   "displays the help buffer."
@@ -984,7 +986,7 @@ m2r10 imports go here
    determined by m2-path."
   (progn
     (let (m2-found)
-      (setq m2-found (locate-file name m2-auto-compile-default-path-emacs '(".def" ".mod")))
+      (setq m2-found (locate-file name m2-auto-compile-default-path-emacs '(".def" ".mod" ".md" ".mi")))
       (if m2-found
 	  (find-file m2-found))
       m2-found)))
