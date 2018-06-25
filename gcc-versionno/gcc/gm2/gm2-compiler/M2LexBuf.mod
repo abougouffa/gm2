@@ -35,7 +35,7 @@ FROM m2linemap IMPORT location_t ;
 
 CONST
    MaxBucketSize = 100 ;
-   Debugging     = FALSE ;
+   Debugging     = TRUE ;
 
 TYPE
    SourceList = POINTER TO sourcelist ;
