@@ -9980,16 +9980,9 @@ BEGIN
    THEN
       InternalError('expecting record type to be declared', __FILE__, __LINE__)
    ELSE
-      field := GetLocalSym(rec,
-                           makekey(string(Mark(Sprintf1(Mark(InitString(UnboundedHighName)),
-                                                        ndim))))) ;
-      IF field=NulSym
-      THEN
-         InternalError('expecting high field to be present inside unbounded record',
-                       __FILE__, __LINE__)
-      ELSE
-         RETURN( field )
-      END
+      RETURN GetLocalSym(rec,
+                         makekey(string(Mark(Sprintf1(Mark(InitString(UnboundedHighName)),
+                                                      ndim)))))
    END
 END GetUnboundedHighOffset ;
 

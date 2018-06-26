@@ -1205,13 +1205,40 @@ END GetAddressOfUnbounded ;
 PROCEDURE GetHighFromUnbounded (location: location_t; dim, param: CARDINAL) : Tree ;
 VAR
    UnboundedType,
-   ArrayType    : CARDINAL ;
+   ArrayType,
+   HighField    : CARDINAL ;
+   HighTree     : Tree ;
+   accessibleDim,
+   remainingDim : CARDINAL ;
 BEGIN
-   UnboundedType := GetType(param) ;
-   Assert(IsUnbounded(UnboundedType)) ;
-   ArrayType := GetType(UnboundedType) ;
-
-   RETURN( BuildComponentRef(location, Mod2Gcc(param), Mod2Gcc(GetUnboundedHighOffset(UnboundedType, dim))) )
+   UnboundedType := GetType (param) ;
+   Assert (IsUnbounded (UnboundedType)) ;
+   ArrayType := GetType (UnboundedType) ;
+   HighField := GetUnboundedHighOffset (UnboundedType, dim) ;
+   IF HighField = NulSym
+   THEN
+      (* it might be a dynamic array of static arrays,
+         so lets see if there is an earlier dimension available.  *)
+      accessibleDim := dim ;
+      WHILE (HighField = NulSym) AND (accessibleDim > 1) DO
+         DEC (accessibleDim) ;
+         HighField := GetUnboundedHighOffset(UnboundedType, accessibleDim)
+      END ;
+      IF HighField = NulSym
+      THEN
+         MetaError1 ('HIGH dimension number {%1N} for array does not exist', dim)
+      ELSE
+         remainingDim := dim - accessibleDim ;
+         HighTree := BuildHighFromStaticArray (location, remainingDim, ArrayType) ;
+         IF HighTree = NIL
+         THEN
+            MetaError1 ('HIGH dimension number {%1N} for array does not exist', dim)
+         END ;
+         RETURN HighTree
+      END
+   ELSE
+      RETURN BuildComponentRef (location, Mod2Gcc (param), Mod2Gcc (HighField))
+   END
 END GetHighFromUnbounded ;
 
 
@@ -5436,15 +5463,25 @@ END SkipToArray ;
 
 PROCEDURE BuildHighFromArray (tokenno: CARDINAL; dim, operand: CARDINAL) : Tree ;
 VAR
-   Type,
+   Type    : CARDINAL ;
+   location: location_t ;
+BEGIN
+   location := TokenToLocation(tokenno) ;
+   Type := SkipType(GetType(SkipToArray(operand, dim))) ;
+   RETURN BuildHighFromStaticArray (location, dim, Type)
+END BuildHighFromArray ;
+
+
+(*
+   BuildHighFromStaticArray -
+*)
+
+PROCEDURE BuildHighFromStaticArray (location: location_t; dim, Type: CARDINAL) : Tree ;
+VAR
    High, Low: CARDINAL ;
    Subscript,
    Subrange : CARDINAL ;
-   location  : location_t ;
 BEGIN
-   location := TokenToLocation(tokenno) ;
-
-   Type := SkipType(GetType(SkipToArray(operand, dim))) ;
    Subscript := GetArraySubscript(Type) ;
    Subrange := SkipType(GetType(Subscript)) ;
    IF IsEnumeration(Subrange)
@@ -5471,7 +5508,7 @@ BEGIN
    ELSE
       RETURN( Tree(NIL) )
    END
-END BuildHighFromArray ;
+END BuildHighFromStaticArray ;
 
 
 (*

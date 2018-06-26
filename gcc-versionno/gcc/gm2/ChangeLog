@@ -1,3 +1,12 @@
+2018-06-27      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  (GetHighFromUnbounded)
+          check to see if the unbounded array has static array
+          data type and follow the dimension into the static array
+          to obtain the correct HIGH value.
+          (BuildHighFromStaticArray)  New procedure function.
+	* gm2/gm2-compiler/M2Range.mod:  add missing case clause.
+
 2018-06-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/el/g-mode.el: bug fixes to the m2-tag feature.

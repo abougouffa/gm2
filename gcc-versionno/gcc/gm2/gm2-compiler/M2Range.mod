@@ -490,9 +490,9 @@ END InitAssignmentRangeCheck ;
 
 (*
    InitReturnRangeCheck - returns a range check node which
-                           remembers the information necessary
-                           so that a range check for RETURN e
-                           from procedure, d, can be generated later on.
+                          remembers the information necessary
+                          so that a range check for RETURN e
+                          from procedure, d, can be generated later on.
 *)
 
 PROCEDURE InitReturnRangeCheck (d, e: CARDINAL) : CARDINAL ;
@@ -3155,6 +3155,7 @@ BEGIN
       CASE type OF
 
       assignment           :  WriteString('assignment (') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
+      returnassignment     :  WriteString('returnassignment (') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       subrangeassignment   :  WriteString('subrangeassignment(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       inc                  :  WriteString('inc(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       dec                  :  WriteString('dec(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |

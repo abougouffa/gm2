@@ -21,9 +21,9 @@ MODULE const1 ;
 FROM RealMath IMPORT sqrt ;
 
 CONST
-   foo = CMPLX(0.0,1.0/sqrt(2.0)) ;
+   foo = CMPLX (0.0,1.0/sqrt (2.0)) ;
 
-VAR    
+VAR
    z :COMPLEX;
 BEGIN
    z := foo
