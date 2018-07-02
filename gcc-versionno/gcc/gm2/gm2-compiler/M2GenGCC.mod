@@ -1187,13 +1187,13 @@ PROCEDURE GetAddressOfUnbounded (location: location_t; param: CARDINAL) : Tree ;
 VAR
    UnboundedType: CARDINAL ;
 BEGIN
-   UnboundedType := GetType(param) ;
-   Assert(IsUnbounded(UnboundedType)) ;
+   UnboundedType := GetType (param) ;
+   Assert (IsUnbounded (UnboundedType)) ;
 
-   RETURN( BuildConvert(TokenToLocation(GetDeclaredMod(param)),
-                        GetPointerType(),
-                        BuildComponentRef(location, Mod2Gcc(param), Mod2Gcc(GetUnboundedAddressOffset(UnboundedType))),
-                        FALSE) )
+   RETURN BuildConvert (TokenToLocation (GetDeclaredMod (param)),
+                        GetPointerType (),
+                        BuildComponentRef (location, Mod2Gcc (param), Mod2Gcc (GetUnboundedAddressOffset (UnboundedType))),
+                        FALSE)
 END GetAddressOfUnbounded ;
 
 
@@ -5482,31 +5482,32 @@ VAR
    Subscript,
    Subrange : CARDINAL ;
 BEGIN
-   Subscript := GetArraySubscript(Type) ;
-   Subrange := SkipType(GetType(Subscript)) ;
-   IF IsEnumeration(Subrange)
+   Assert (IsArray (Type)) ;
+   Subscript := GetArraySubscript (Type) ;
+   Subrange := SkipType (GetType (Subscript)) ;
+   IF IsEnumeration (Subrange)
    THEN
-      GetBaseTypeMinMax(Subrange, Low, High) ;
-      IF GccKnowsAbout(High)
+      GetBaseTypeMinMax (Subrange, Low, High) ;
+      IF GccKnowsAbout (High)
       THEN
-         RETURN( Tree(Mod2Gcc(High)) )
+         RETURN Tree (Mod2Gcc (High))
       END
    ELSIF IsSubrange(Subrange)
    THEN
-      GetSubrange(Subrange, High, Low) ;
-      IF GccKnowsAbout(Low) AND GccKnowsAbout(High)
+      GetSubrange (Subrange, High, Low) ;
+      IF GccKnowsAbout (Low) AND GccKnowsAbout (High)
       THEN
-         RETURN( BuildSub(location, Mod2Gcc(High), Mod2Gcc(Low), TRUE) )
+         RETURN BuildSub (location, Mod2Gcc (High), Mod2Gcc (Low), TRUE)
       END
    ELSE
       MetaError1('array subscript {%1Dad:for} must be a subrange or enumeration type', Type) ;
-      RETURN( Tree(NIL) )
+      RETURN Tree(NIL)
    END ;
-   IF GccKnowsAbout(High)
+   IF GccKnowsAbout (High)
    THEN
-      RETURN( Tree(Mod2Gcc(High)) )
+      RETURN Tree (Mod2Gcc (High))
    ELSE
-      RETURN( Tree(NIL) )
+      RETURN Tree (NIL)
    END
 END BuildHighFromStaticArray ;
 

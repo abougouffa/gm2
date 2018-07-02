@@ -37,10 +37,10 @@ END ScalarMultiplication ;
 VAR
    a, r, s: Vector ;
 BEGIN
-   a := Vector{1.0, 2.0, 3.0} ;
-   ScalarMultiplication(a, 5.0, r) ;
+   a := Vector {1.0, 2.0, 3.0} ;
+   ScalarMultiplication (a, 5.0, r) ;
 
-   ScalarMultiplication(Vector{1.0, 2.0, 3.0}, 5.0, s) ;
+   ScalarMultiplication (Vector {1.0, 2.0, 3.0}, 5.0, s) ;
    IF (r[0]=s[0]) AND (r[1]=s[1]) AND (r[2]=s[2])
    THEN
       exit(0)

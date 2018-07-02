@@ -2008,11 +2008,13 @@ stage1/gm2/gm2m$(exeext): \
               gm2/gm2-tools/m2flex.o \
               gm2/gm2-compiler-boot/gm2m.o $(GM2_LIBS_BOOT) $(MC_LIBS) $(LIBS) -lm
 
-stage2/gm2/gm2l$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2l.o
+stage2/gm2/gm2l$(exeext): $(GM2_LIBS) $(GM2_OBJS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2l.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2linit > gm2l.lst
 	./xgm2 -fuselist -fmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
+               -I../$(target_subdir)/libgm2/libpim/.libs/ \
                -g -B./stage1/gm2/ -B./ gm2/gm2-compiler/gm2l.mod
 	./xgm2 -v -Igm2/gm2-libs -Igm2/gm2-compiler \
+               -I../$(target_subdir)/libgm2/libpim/.libs/ \
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2/ -B./ -o $@ \
                -fuselist gm2/gm2-compiler/gm2l.mod $(LIBS)
 

@@ -112,21 +112,6 @@ TYPE
                   END ;
 
 
-(* %%%FORWARD%%%
-PROCEDURE Open (ModuleName: Name; IsDefinition: BOOLEAN) : BOOLEAN ; FORWARD ;
-PROCEDURE ScanSources (src: Name) ; FORWARD ;
-PROCEDURE ScanImport ; FORWARD ;
-PROCEDURE ScanImportsIn (IsDefinition: BOOLEAN) : BOOLEAN ; FORWARD ;
-PROCEDURE MakeModule (ModuleName: Name) ; FORWARD ;
-PROCEDURE CalculateDepth ; FORWARD ;
-PROCEDURE SortSources ; FORWARD ;
-PROCEDURE DisplaySources ; FORWARD ;
-PROCEDURE ScanArgs() : BOOLEAN ; FORWARD ;
-PROCEDURE CompilationUnit ; FORWARD ;
-PROCEDURE ErrorString (s: String) ; FORWARD ;
-PROCEDURE ErrorArray (a: ARRAY OF CHAR) ; FORWARD ;
-   %%%FORWARD%%% *)
-
 VAR
    fo             : File ;
    LastIdent,
