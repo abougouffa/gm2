@@ -25,8 +25,38 @@ FROM DynamicStrings IMPORT String, Length, InitString, Mark, Slice, EqualArray,
 FROM SArgs IMPORT GetArg, Narg ;
 FROM M2Options IMPORT CppRemember ;
 
+
+(*
+   CppArgument - some options might have arguments, remember these as well.
+*)
+
+PROCEDURE CppArgument (i: CARDINAL; option: String) : CARDINAL ;
 VAR
-   CppAndArgs: String ;
+   arg: String ;
+BEGIN
+   IF GetArg (arg, i+1) AND (char (arg, 0) # '-')
+   THEN
+      (* arg exists and is not an option and might be an argument to a specific option.  *)
+      IF EqualArray (option, '-I')
+      THEN
+         INC (i) ;
+         CppRemember (arg)  (* arg will be a path for -I.  *)
+      ELSIF EqualArray (option, '-D')
+      THEN
+         INC (i) ;
+         CppRemember (arg)  (* arg will be define for -D.  *)
+      ELSIF EqualArray (option, '-isystem')
+      THEN
+         INC (i) ;
+         CppRemember (arg)  (* arg will be a path for -isystem.  *)
+      ELSIF EqualArray (option, '-imultiarch')
+      THEN
+         INC (i) ;
+         CppRemember (arg)  (* arg will be a definition for -imultiarch.  *)
+      END
+   END ;
+   RETURN i
+END CppArgument ;
 
 
 (*
@@ -35,34 +65,28 @@ VAR
 
 PROCEDURE ScanCppArgs (i: CARDINAL) : CARDINAL ;
 VAR
-   s: String ;
+   option: String ;
 BEGIN
-   IF GetArg(s, i) AND EqualArray(s, '-fcppbegin')
+   IF GetArg (option, i) AND EqualArray (option, '-fcppbegin')
    THEN
-      INC(i) ;
-      WHILE GetArg(s, i) DO
-         IF EqualArray(s, '-fcppend')
+      INC (i) ;
+      WHILE GetArg (option, i) DO
+         IF EqualArray (option, '-fcppend')
          THEN
-            RETURN( i )
+            RETURN i
          ELSE
-            (* do not remember the filename *)
-            IF char(s, 0)='-'
+            (* do not remember the filename.  *)
+            IF char (option, 0)='-'
             THEN
-               CppRemember(s) ;
-               IF NOT EqualArray(CppAndArgs, '')
-               THEN
-                  CppAndArgs := ConCatChar(CppAndArgs, ' ')
-               END ;
-               CppAndArgs := ConCat(CppAndArgs, s)
+               CppRemember (option) ;
+               i := CppArgument (i, option)
             END
          END ;
-         INC(i)
+         INC (i)
       END
    END ;
-   RETURN( i )
+   RETURN i
 END ScanCppArgs ;
 
 
-BEGIN
-   CppAndArgs := InitString('')
 END M2DriverOptions.

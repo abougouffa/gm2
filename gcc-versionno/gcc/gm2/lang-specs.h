@@ -50,7 +50,7 @@ Boston, MA 02110-1301, USA.  */
    rm -f %Ustart"
 
 #define GM2L(INPUT,OUTPUT) \
-  "gm2l %{fcpp:-fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend} \
+  "gm2l %{v} %{fcpp:-fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend} \
         %{I*} %{fdef=*} %{fmod=*} " OUTPUT " " INPUT " "
 
 
@@ -64,16 +64,16 @@ Boston, MA 02110-1301, USA.  */
            %{fswig:cc1gm2 %{fcpp:-fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend} \
                                                                            %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %V %i} \n\
            %{fmakelist:%{fcpp:cc1 -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
-                              gm2l %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %g.mod |\n\
+                            " GM2L("%g.mod","%{!pipe:-o %g.l}") " |\n\
                               gm2lorder %{fruntime-modules=*} %{!pipe:%g.l} -o %b.lst} \n\
-                       %{!fcpp:gm2l %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %i |\n\
+                       %{!fcpp:" GM2L("%i","%{!pipe:-o %g.l}") " |\n\
                                gm2lorder %{fruntime-modules=*} %{!pipe:%g.l} -o %b.lst}} \n\
            %{fmakeinit:gm2lgen %{fshared} %{fshared:--terminate --exit} %{!fno-exceptions:-fcpp} %b.lst -o _m2_%b.cpp} \n\
            %{fmodules:%{!fuselist:%{fcpp:cc1 -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
-                                         gm2l %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %g.mod |\n\
+                                       " GM2L("%g.mod","%{!pipe:-o %g.l}") " |\n\
                                          gm2lorder %{fruntime-modules=*} %{!pipe:%g.l} -o %g.lst \n\
                                          gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{L*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{fobject-path=*} %{v} -c %g.lst} \n\
-                                 %{!fcpp:gm2l %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %i |\n\
+                                 %{!fcpp:" GM2L("%i","%{!pipe:-o %g.l}") " |\n		\
                                          gm2lorder %{fruntime-modules=*} %{!pipe:%g.l} -o %g.lst \n\
                                          gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{L*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{fobject-path=*} %{v} -c %g.lst}} \n\
                        %{fuselist:gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{L*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{fobject-path=*} %{v} -c %b.lst}}} \n\

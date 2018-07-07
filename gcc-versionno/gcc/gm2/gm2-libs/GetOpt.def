@@ -31,8 +31,13 @@ DEFINITION MODULE GetOpt ;
 FROM SYSTEM IMPORT ADDRESS ;
 FROM DynamicStrings IMPORT String ;
 
+CONST
+   no_argument = 0 ;
+   required_argument = 1 ;
+   optional_argument = 2 ;
+
 TYPE
-   LongOptions;
+   LongOptions ;
    PtrToInteger = POINTER TO INTEGER ;
 
 (*
@@ -82,8 +87,18 @@ PROCEDURE AddLongOption (lo: LongOptions;
                          name: String; has_arg: INTEGER;
                          flag: PtrToInteger; val: INTEGER) : LongOptions ;
 
+
 (*
-   GetOptLong -
+   KillLongOptions - returns NIL and also frees up memory associated with, lo.
+*)
+
+PROCEDURE KillLongOptions (lo: LongOptions) : LongOptions ;
+
+
+(*
+   GetOptLong - works like GetOpt but will accept long options (using two dashes).
+                If the program only accepts long options then optstring should be
+                an empty string, not NIL.
 *)
 
 PROCEDURE GetOptLong (argc: INTEGER; argv: ADDRESS; optstring: String;
@@ -91,7 +106,8 @@ PROCEDURE GetOptLong (argc: INTEGER; argv: ADDRESS; optstring: String;
 
 
 (*
-   GetOptLongOnly -
+   GetOptLongOnly - works like GetOptLong except that a single dash can be used
+                    for a long option.
 *)
 
 PROCEDURE GetOptLongOnly (argc: INTEGER; argv: ADDRESS; optstring: String;

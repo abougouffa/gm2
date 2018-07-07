@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011, 2012, 2013, 2014, 2015
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -41,13 +41,13 @@ VAR
 
 
 (*
-   OnExitDelete - 
+   OnExitDelete -
 *)
 
 PROCEDURE OnExitDelete (filename: String) : String ;
 BEGIN
-   IncludeItemIntoList(ListOfFiles, makekey(filename)) ;
-   RETURN( filename )
+   IncludeItemIntoList (ListOfFiles, makekey (filename)) ;
+   RETURN filename
 END OnExitDelete ;
 
 
@@ -60,19 +60,19 @@ VAR
    n: Name ;
 BEGIN
    n := w ;
-   IF unlink(KeyToCharStar(n))#0
+   IF unlink (KeyToCharStar (n)) # 0
    THEN
    END
 END RemoveFile ;
 
 
 (*
-   RemoveFiles - 
+   RemoveFiles -
 *)
 
 PROCEDURE RemoveFiles ;
 BEGIN
-   ForeachItemInListDo(ListOfFiles, RemoveFile)
+   ForeachItemInListDo (ListOfFiles, RemoveFile)
 END RemoveFiles ;
 
 
@@ -93,38 +93,38 @@ VAR
    commandLine: String ;
    pos        : CARDINAL ;
 BEGIN
-   command := CppCommandLine() ;
-   IF EqualArray(command, '')
+   command := CppCommandLine () ;
+   IF EqualArray (command, '')
    THEN
-      RETURN( filename )
+      RETURN filename
    ELSE
-      tempfile := InitStringCharStar(make_temp_file(KeyToCharStar(MakeKey('cpp')))) ;
-      commandLine := Dup(command) ;
-      commandLine := ConCat(ConCat(ConCat(ConCatChar(Dup(commandLine), ' '), filename),
-                                   Mark(InitString(' -o '))),
-                            tempfile) ;
+      tempfile := InitStringCharStar (make_temp_file (KeyToCharStar (MakeKey('cpp')))) ;
+      commandLine := Dup (command) ;
+      commandLine := ConCat (ConCat (ConCat (ConCatChar (Dup (commandLine), ' '), filename),
+                                     Mark (InitString(' -o '))),
+                             tempfile) ;
 (*  use pexecute in the future
       res := pexecute(string(Slice(commandLine, 0, Index(commandLine, ' ', 0))), etc etc );
 *)
       (* for now we'll use system *)
       IF Verbose
       THEN
-         fprintf1(StdOut, "%s\n", commandLine)
+         fprintf1 (StdOut, "preprocess: %s\n", commandLine)
       END ;
-      IF system(string(commandLine))#0
+      IF system (string (commandLine)) # 0
       THEN
-         fprintf1(StdErr, 'C preprocessor failed when preprocessing %s\n', filename) ;
-         exit(1)
+         fprintf1 (StdErr, 'C preprocessor failed when preprocessing %s\n', filename) ;
+         exit (1)
       END ;
-      commandLine := KillString(commandLine) ;
-      RETURN( OnExitDelete(tempfile) )
+      commandLine := KillString (commandLine) ;
+      RETURN OnExitDelete (tempfile)
    END
 END PreprocessModule ;
 
 
 BEGIN
-   InitList(ListOfFiles) ;
-   IF NOT InstallTerminationProcedure(RemoveFiles)
+   InitList (ListOfFiles) ;
+   IF NOT InstallTerminationProcedure (RemoveFiles)
    THEN
       HALT
    END

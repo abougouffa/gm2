@@ -883,8 +883,8 @@ is being used.
 
 @item -fmodules
 displays the path to each modules object file.  This option
-is used at link time to check the correct object file is being
-linked.
+can only be invoked with the @code{-c} option.
+It is used to see the location of objects when linking occurs.
 
 @item -fdef=
 recognise the specified suffix as a definition module filename.
@@ -976,9 +976,9 @@ For example suppose a compile and link on the command line looks like
 this:
 
 @example
-$ gm2 -g -c -I. -I../project:../project/unix foo.mod
-$ gm2 -fonlylink -g -I. -I../project:../project/unix \
-  -fobject-path=../project/obj:../project/unix/obj -I. foo.mod
+$ gm2 -g -c -I. -I../project -I../project/unix foo.mod
+$ gm2 -fonlylink -g -I. -I../project -I../project/unix \
+  -fobject-path=../project/obj -Iobject-path=../project/unix/obj -I. foo.mod
 @end example
 
 they can be simplified by utilising two environment variables to do

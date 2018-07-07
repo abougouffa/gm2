@@ -1,3 +1,38 @@
+2018-07-07      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/bnf/gm2l.bnf:  import Verbose and use.  (RegisterImport)
+          reformatted.  (ScanSources) display the module name if Verbose.
+          (ScanArgs) handle long options and also concatenated arguments.
+	  (-I, --verbose, --M2RTS).
+	* gm2/gm2-compiler/M2DriverOptions.mod:  (CppArgument)  New procedure
+	  function.  (ScanCppArgs) reformatted and also call CppArgument.
+	* gm2/gm2-compiler/M2Options.mod:  updated dates.
+	* gm2/gm2-compiler/M2Preprocess.mod:  reformatted and changed some of the
+	  Verbose output.
+	* gm2/gm2-libs-ch/getopt.c:  implement long options.
+	* gm2/gm2-libs/GetOpt.def:  provide access to the long options in getopt.
+	* gm2/gm2-libs/GetOpt.mod:  implement long option procedures necessary for getopt.
+	* gm2/gm2-libs/Storage.def:  updated dates.
+	* gm2/gm2-libs/getopt.def:  provide access to the long options in getopt.
+	* gm2/gm2.texi:  corrected docuentation surrounding
+	* gm2/gm2spec.c:  removed GM2IPATH and GM2OPATH temporarily and changed
+          all include and object paths to avoid using the ":" separator.
+          (which does not exist for -I).  In turn this forces a reimplementation
+	  of the GM2IPATH and GM2OPATH.
+	* gm2/lang-specs.h:  changed all references to gm2l to use the GM2L macro.
+          Fixed many preprocessor invocation problems which occur when linking
+	  an application which uses the preprocessor.
+
+2018-07-02      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  changes to build stage2/gm2/gm2l
+	* gm2/bnf/gm2l.bnf:  remove FORWARD references.
+	* gm2/gm2-compiler/M2GenGCC.mod:  (GetAddressOfUnbounded)
+          reformatted.  (BuildHighFromStaticArray) bug fixes
+          and reformatted.
+	* gm2/gm2-libs/GetOpt.def:  introduce long options.
+	* gm2/iso/run/pass/constructor2.mod:  reformatted.
+
 2018-06-27      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  (GetHighFromUnbounded)

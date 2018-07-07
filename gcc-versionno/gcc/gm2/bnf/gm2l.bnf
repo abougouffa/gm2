@@ -86,7 +86,7 @@ FROM DynamicStrings IMPORT String, InitString, KillString, Slice, InitStringChar
                            Mark, EqualArray, string, ConCat, ConCatChar, Dup ;
 FROM Lists IMPORT List, InitList, KillList, IncludeItemIntoList, GetItemFromList,
                   RemoveItemFromList, NoOfItemsInList, IsItemInList ;
-FROM M2Options IMPORT SetVerbose ;
+FROM M2Options IMPORT SetVerbose, Verbose ;
 
 
 CONST
@@ -218,9 +218,9 @@ PROCEDURE RegisterImport (n: Name) ;
 BEGIN
    (* printf1('register import from module %a\n', n) ; *)
    WITH pBlock^ DO
-      IF NOT IsItemInList(LocalModules, n)
+      IF NOT IsItemInList (LocalModules, n)
       THEN
-         IncludeItemIntoList(ImportedModules, n)
+         IncludeItemIntoList (ImportedModules, n)
       END
    END
 END RegisterImport ;
@@ -238,6 +238,10 @@ BEGIN
    pBlock := NIL ;
    Head := NIL ;
    Tail := NIL ;
+   IF Verbose
+   THEN
+      printf1('gm2l >>> open source file: %a\n', src)
+   END ;
    IF OpenSource(PreprocessModule(InitStringCharStar(KeyToCharStar(src))))
    THEN
       ExamineCompilationUnit(MainName, isdefimp) ;
@@ -831,16 +835,23 @@ BEGIN
    n := SArgs.Narg() ;
    IF n=1
    THEN
-      printf0('Usage: gm2l [-v] [-M2RTS] [-Isearchpath] [-fdef=extension] [-fmod=extension] [-o outputfile] modulefile\n')
+      printf0('Usage: gm2l [-v] [--verbose] [--M2RTS] [-M2RTS] [-Isearchpath] [-fdef=extension] [-fmod=extension] [-o outputfile] modulefile\n')
    ELSE
       i := 1 ;
       REPEAT
          IF SArgs.GetArg(s, i)
          THEN
-            IF EqualArray(Mark(Slice(s, 0, 2)), '-v')
+            IF EqualArray(Mark(Slice(s, 0, 2)), '-v') OR EqualArray(s, '--verbose')
             THEN
-               IF SetVerbose(TRUE)
+               IF SetVerbose (TRUE)
                THEN
+               END
+            ELSIF EqualArray(s, '-I')
+            THEN
+               INC (i) ;
+               IF SArgs.GetArg (s, i)
+               THEN
+                  PrependSearchPath (s)
                END
             ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-I')
             THEN
@@ -854,7 +865,7 @@ BEGIN
             ELSIF EqualArray(s, '-fcppbegin')
             THEN
                i := ScanCppArgs(i)
-            ELSIF EqualArray(s, '-M2RTS')
+            ELSIF EqualArray(s, '--M2RTS') OR EqualArray(s, '-M2RTS')
             THEN
                (* no M2RTS to be automatically linked imported from the main module *)
                IncludeM2RTS := FALSE

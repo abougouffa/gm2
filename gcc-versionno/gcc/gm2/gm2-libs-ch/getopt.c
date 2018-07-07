@@ -42,6 +42,36 @@ getopt_getopt (int argc, char *argv[], char *optstring)
 }
 
 
+int
+getopt_getopt_long (int argc, char *argv[], char *optstring,
+		    void *longopts, int *longindex)
+{
+  int r = getopt_long (argc, argv, optstring, longopts, longindex);
+
+  getopt_optarg = optarg;
+  getopt_optind = optind;
+  getopt_opterr = opterr;
+  getopt_optopt = optopt;
+
+  return r;
+}
+
+
+int
+getopt_getopt_long_only (int argc, char *argv[], char *optstring,
+			 void *longopts, int *longindex)
+{
+  int r = getopt_long_only (argc, argv, optstring, longopts, longindex);
+
+  getopt_optarg = optarg;
+  getopt_optind = optind;
+  getopt_opterr = opterr;
+  getopt_optopt = optopt;
+
+  return r;
+}
+
+
 /*
  *  GNU Modula-2 linking fodder.
  */

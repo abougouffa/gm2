@@ -49,4 +49,20 @@ VAR
 PROCEDURE getopt (argc: INTEGER; argv: ADDRESS; optstring: ADDRESS) : CHAR ;
 
 
+(*
+   getopt_long -
+*)
+
+PROCEDURE getopt_long (argc: INTEGER; argv: ADDRESS; optstring: ADDRESS;
+                       longopts: ADDRESS; VAR longindex: INTEGER) : INTEGER ;
+
+
+(*
+   getopt_long_only -
+*)
+
+PROCEDURE getopt_long_only (argc: INTEGER; argv: ADDRESS; optstring: ADDRESS;
+                            longopts: ADDRESS; VAR longindex: INTEGER) : INTEGER ;
+
+
 END getopt.

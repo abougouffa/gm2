@@ -126,7 +126,7 @@ static void scan_for_link_args (unsigned int *in_decoded_options_count, struct c
 static void add_link_from_include (struct cl_decoded_option **in_options, int include);
 static void add_lib (size_t opt_index, const char *lib, int joined);
 static void check_gm2_root (void);
-static const char *add_include (const char *prev, const char *libpath, const char *library);
+static const char *add_include (const char *libpath, const char *library);
 static const char *gen_gm2_prefix (const char *gm2_root);
 static const char *gen_gm2_libexec (const char *path);
 static const char *get_libexec (void);
@@ -541,7 +541,7 @@ add_default_combination (const char *libpath,
 static const char *
 gen_link_path (const char *libpath, const char *dialect)
 {
-  return add_include (NULL, libpath, dialect);
+  return add_include (libpath, dialect);
 }
 
 /*
@@ -592,7 +592,7 @@ add_default_archives (const char *libpath,
  */
 
 static const char *
-build_include_path (const char *prev, const char *libpath, const char *library)
+build_include_path (const char *libpath, const char *library)
 {
   char  sepstr[2];
   char *gm2libs;
@@ -601,19 +601,10 @@ build_include_path (const char *prev, const char *libpath, const char *library)
   sepstr[0] = DIR_SEPARATOR;
   sepstr[1] = (char)0;
 
-  if (prev == NULL) {
-    gm2libs = (char *) alloca(strlen(option) +
-			      strlen(libpath)+strlen(sepstr)+strlen("m2")+strlen(sepstr)+strlen(library)+1+
-			      strlen(libpath)+strlen(sepstr)+strlen("m2")+strlen(sepstr)+strlen(library)+1);
-    strcpy(gm2libs, option);
-  }
-  else {
-    gm2libs = (char *) alloca(strlen(prev) + strlen(":") +
-			      strlen(libpath)+strlen(sepstr)+strlen("m2")+strlen(sepstr)+strlen(library)+1+
-			      strlen(libpath)+strlen(sepstr)+strlen("m2")+strlen(sepstr)+strlen(library)+1);
-    strcpy(gm2libs, prev);
-    strcat(gm2libs, ":");
-  }
+  gm2libs = (char *) alloca(strlen(option) +
+			    strlen(libpath)+strlen(sepstr)+strlen("m2")+strlen(sepstr)+strlen(library)+1+
+			    strlen(libpath)+strlen(sepstr)+strlen("m2")+strlen(sepstr)+strlen(library)+1);
+  strcpy(gm2libs, option);
   strcat(gm2libs, libpath);
   strcat(gm2libs, sepstr);
   strcat(gm2libs, "m2");
@@ -629,12 +620,12 @@ build_include_path (const char *prev, const char *libpath, const char *library)
  */
 
 static const char *
-add_include (const char *prev, const char *libpath, const char *library)
+add_include (const char *libpath, const char *library)
 {
   if (library == NULL)
-    return prev;
+    return NULL;
   else
-    return build_include_path (prev, libpath, library);
+    return build_include_path (libpath, library);
 }
 
 /*
@@ -644,36 +635,31 @@ add_include (const char *prev, const char *libpath, const char *library)
 
 static void
 add_default_includes (const char *libpath,
-		      const char *libraries,
-		      const char *envpath)
+		      const char *libraries)
 {
   const char *l = libraries;
   const char *e;
-  const char *prev;
   const char *c;
-
-  if (envpath == NULL || (strlen (envpath) == 0))
-    prev = NULL;
-  else
-    prev = xstrdup (envpath);
+  const char *path;
 
   do {
     e = index (l, ',');
-    if (e == NULL) {
-      c = xstrdup(l);
-      l = NULL;
-    }
-    else {
-      c = xstrndup(l, e-l);
-      l = e+1;
-    }
-    prev = add_include (prev, libpath, c);
+    if (e == NULL)
+      {
+	c = xstrdup (l);
+	l = NULL;
+      }
+    else
+      {
+	c = xstrndup (l, e-l);
+	l = e + 1;
+      }
+    path = add_include (libpath, c);
+    fe_generate_option (OPT_I, path, TRUE);
 #if 0
     free (c);
 #endif
   } while ((l != NULL) && (l[0] != (char)0));
-
-  fe_generate_option (OPT_I, prev, TRUE);
 }
 
 /*
@@ -1147,9 +1133,10 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
     printOption("in the middle", in_decoded_options, i);
 #endif
 
-  /*
-   *  work out which libraries to use
-   */
+  /* if the libraries have not been specified by the user
+     and the dialect has been specified then select the appropriate
+     libraries.  */
+
   if (libraries == NULL) {
     if (strncmp (dialect, "pim", 3) == 0)
       libraries = "pim";
@@ -1159,7 +1146,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 
   if (inclPos != -1 && linkPos == -1) {
 #if defined(DEBUGGING)
-    printf("inclPos = %d,  linkPos = %d\n", inclPos, linkPos);
+    printf ("inclPos = %d,  linkPos = %d\n", inclPos, linkPos);
 #endif
 
     linkPos = 1;
@@ -1167,7 +1154,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
     convert_include_into_link (in_decoded_options,
 			       in_decoded_options_count);
   }
-  add_default_includes (libpath, libraries, gm2ipath);
+  add_default_includes (libpath, libraries);
   add_exec_prefix ();
 
 #if 1
