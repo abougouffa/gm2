@@ -65,7 +65,7 @@ char *wrapc_strtime (void)
 int wrapc_filesize (int f, unsigned int *low, unsigned int *high)
 {
   struct stat s;
-  int res = fstat(f, (struct stat *) &s);
+  int res = fstat (f, (struct stat *) &s);
 
   if (res == 0) {
     *low = (unsigned int) s.st_size ;
@@ -83,11 +83,39 @@ int wrapc_filemtime (int f)
 {
   struct stat s;
 
-  if (fstat(f, (struct stat *) &s) == 0)
+  if (fstat (f, (struct stat *) &s) == 0)
     return s.st_mtime;
   else
     return -1;
 }
+
+
+/*
+ *  fileinode - returns the inode associated with a file, f.
+ */
+
+#if defined(HAVE_SYS_STAT_H) && defined(HAVE_STRUCT_STAT)
+ino_t wrapc_fileinode (int f, unsigned int *low, unsigned int *high)
+{
+  struct stat s;
+
+  if (fstat (f, (struct stat *) &s) == 0)
+    {
+      *low = (unsigned int) s.st_ino;
+      *high = (unsigned int) (s.st_ino >> (sizeof (unsigned int) * 8));
+      return 0;
+    }
+  else
+    return -1;
+}
+#else
+int wrapc_fileinode (int f, unsigned int *low, unsigned int *high)
+{
+  *low = 0;
+  *high = 0;
+  return -1;
+}
+#endif
 
 
 /*

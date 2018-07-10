@@ -1,3 +1,19 @@
+2018-07-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/ObjectFiles.def:  New file.
+	* gm2/gm2-compiler/ObjectFiles.mod:  New file.
+	* gm2/Make-lang.in:  added ObjectFiles to be built and linked
+	into the compiler and tools.
+	* gm2/gm2-compiler/gm2lcc.mod:  use ObjectFiles to remember each
+	  object file so duplicates are not accidentally linked both in
+	the Modula-2 link and command line list of objects.  Much code
+	  was tidied up.
+	* gm2/gm2-libs-ch/wrapc.c:  (fileinode) New function.
+	* gm2/gm2-libs/libc.def:  corrected dates.
+	* gm2/gm2-libs/wrapc.def:  (fileinode) New procedure function.
+	* libgm2/libpim/wrapc.c:  (fileinode) New function.  Tidied up
+	  formatting.
+
 2018-07-07      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/bnf/gm2l.bnf:  import Verbose and use.  (RegisterImport)

@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011, 2012, 2013
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -37,9 +37,15 @@ FROM FIO IMPORT File, StdIn, StdErr, StdOut, Close, IsNoError, EOF, WriteString,
 FROM SFIO IMPORT OpenToRead, WriteS, ReadS ;
 FROM ASCII IMPORT nul ;
 FROM M2FileName IMPORT ExtractExtension ;
-FROM DynamicStrings IMPORT String, InitString, KillString, ConCat, ConCatChar, Length, Slice, Equal, EqualArray, RemoveWhitePrefix, RemoveWhitePostfix, RemoveComment, string, Mark, InitStringChar, Dup, Mult, Index, RIndex, Assign, char ;
+FROM DynamicStrings IMPORT String, InitString, KillString, ConCat, ConCatChar, Length, Slice, Equal, EqualArray, RemoveWhitePrefix, RemoveWhitePostfix, RemoveComment, string, Mark, InitStringChar, Dup, Mult, Assign, char ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
 FROM M2Printf IMPORT fprintf0, fprintf1, fprintf2, fprintf3, fprintf4 ;
+FROM ObjectFiles IMPORT FileObjects, InitFileObject, KillFileObject,
+                        RegisterModuleObject, IsRegistered ;
+FROM Indexing IMPORT Index, InitIndex, GetIndice,
+                     HighIndice, LowIndice, IncludeIndiceIntoIndex,
+                     ForeachIndiceInIndexDo ;
+
 
 
 CONST
@@ -69,11 +75,12 @@ VAR
    Archives,
    Path,
    StartupFile,
-   Objects,
    Libraries,
    MainModule,
    Command,
    Target        : String ;
+   objects       : FileObjects ;
+   NonModObjects : Index ;
    fi, fo        : File ;       (* the input and output files      *)
 
 
@@ -171,7 +178,9 @@ END GenerateRanlibCommand ;
 
 
 (*
-   RemoveLinkOnly - removes the <onlylink> prefix, if present.
+   RemoveLinkOnly - removes the <onlylink> prefix, if present.  This will occur
+                    for a definition for "C" module where there is no
+                    module constructor/destructor (_init and _finish pairs).
                     Otherwise, s, is returned.
 *)
 
@@ -237,30 +246,109 @@ END GenArchiveSuffix ;
 
 
 (*
-   ConCatObject -
+   LookupObjectFile - attempts to lookup the location of file name.extension
+                      from using the -fobject-path path.  NIL is retured if
+                      the object file is not found.  extension will be
+                      marked and deleted.
 *)
 
-PROCEDURE ConCatObject (s: String) ;
+PROCEDURE LookupObjectFile (name, extension: String) : String ;
 VAR
-   t, u: String ;
+   location,
+   filename: String ;
 BEGIN
-   t := CalculateFileName(s, Mark(GenObjectSuffix())) ;
-   IF FindSourceFile(t, u)
+   filename := CalculateFileName (name, Mark (extension)) ;
+   IF FindSourceFile (filename, location)
    THEN
-      Command := ConCat(ConCatChar(Command, ' '), u) ;
-      u := KillString(u)
+      RETURN location
    ELSE
-      t := KillString(t) ;
-      (* try finding .a or .la archive *)
-      t := CalculateFileName(s, Mark(GenArchiveSuffix())) ;
-      IF FindSourceFile(t, u)
+      RETURN NIL
+   END
+END LookupObjectFile ;
+
+
+(*
+   ConCatModuleObject - this object will be associated with a module, therefore
+                        we remember it and make sure that it is not duplicated on the
+                        command line by the user.
+*)
+
+PROCEDURE ConCatModuleObject (module: String) ;
+VAR
+   location: String ;
+BEGIN
+   location := LookupObjectFile (module, GenObjectSuffix ()) ;
+   IF location = NIL
+   THEN
+      location := LookupObjectFile (module, GenArchiveSuffix ()) ;
+      IF location # NIL
       THEN
-         Archives := ConCatChar(ConCat(Archives, u), ' ') ;
-         u := KillString(u)
+         Archives := ConCatChar (ConCat (Archives, location), ' ')
       END
+   ELSE
+      IF RegisterModuleObject (objects, location)
+      THEN
+         Command := ConCat (ConCatChar (Command, ' '), location)
+      END
+   END
+END ConCatModuleObject ;
+
+
+(*
+   FindModulesInFileList -
+*)
+
+PROCEDURE FindModulesInFileList ;
+VAR
+   text: String ;
+BEGIN
+   REPEAT
+      text := RemoveComment (RemoveWhitePrefix( ReadS (fi)), Comment) ;
+      IF (NOT EqualArray (text, '')) AND (NOT (IgnoreMain AND Equal (text, MainModule)))
+      THEN
+         text := RemoveLinkOnly (text) ;
+         ConCatModuleObject (text)
+      END
+   UNTIL EOF (fi)
+END FindModulesInFileList ;
+
+
+(*
+   CollectObjects -
+*)
+
+PROCEDURE CollectObjects (Command: String) : String ;
+VAR
+   i, h: CARDINAL ;
+   name,
+   s   : String ;
+BEGIN
+   i := 1 ;
+   h := HighIndice (NonModObjects) ;
+   WHILE i <= h DO
+      name := GetIndice (NonModObjects, i) ;
+      IF IsRegistered (objects, name)
+      THEN
+         Command := ConCat (ConCatChar (Command, ' '), Dup (name))
+      END ;
+      INC (i)
    END ;
-   t := KillString(t)
-END ConCatObject ;
+   RETURN Command
+END CollectObjects ;
+
+
+(*
+   CollectArchives -
+*)
+
+PROCEDURE CollectArchives (Command: String) : String ;
+BEGIN
+   IF LibrariesFound
+   THEN
+      Command := ConCat (ConCatChar (Command, ' '), Libraries)
+   END ;
+   RETURN Command
+END CollectArchives ;
 
 
 (*
@@ -269,29 +357,15 @@ END ConCatObject ;
 
 PROCEDURE GenCC ;
 VAR
-   s    : String ;
    Error: INTEGER ;
 BEGIN
    GenerateLinkCommand ;
    ConCatStartupFile ;
-   REPEAT
-      s := RemoveComment(RemoveWhitePrefix(ReadS(fi)), Comment) ;
-      IF (NOT EqualArray(s, '')) AND (NOT (IgnoreMain AND Equal(s, MainModule)))
-      THEN
-         s := RemoveLinkOnly(s) ;
-         ConCatObject(s)
-      END
-   UNTIL EOF(fi) ;
-   Command := ConCat(Command, Archives) ;
-   IF Objects#NIL
-   THEN
-      Command := ConCat(Command, Objects)
-   END ;
-   IF LibrariesFound
-   THEN
-      Command := ConCat(ConCatChar(Command, ' '), Libraries)
-   END ;
-   Error := FlushCommand() ;
+   FindModulesInFileList ;
+   Command := ConCat (Command, Archives) ;
+   Command := CollectObjects (Command) ;
+   Command := CollectArchives (Command) ;
+   Error := FlushCommand () ;
    IF Error=0
    THEN
       IF UseRanlib
@@ -471,6 +545,16 @@ END IsALibraryPath ;
 
 
 (*
+   AddNonModObject - adds, s, to a list of potential non Modula-2 objects.
+*)
+
+PROCEDURE AddNonModObject (s: String) ;
+BEGIN
+   IncludeIndiceIntoIndex (NonModObjects, Dup (s))
+END AddNonModObject ;
+
+
+(*
    IsAnObject - returns TRUE if, a, is a library. If TRUE we add it to the
                 Libraries string.
 *)
@@ -480,10 +564,10 @@ BEGIN
    IF ((Length(s)>2) AND EqualArray(Mark(Slice(s, -2, 0)), '.o')) OR
       ((Length(s)>4) AND EqualArray(Mark(Slice(s, -4, 0)), '.obj'))
    THEN
-      Objects := ConCat(ConCatChar(Objects, ' '), s) ;
-      RETURN( TRUE )
+      AddNonModObject (s) ;
+      RETURN TRUE
    ELSE
-      RETURN( FALSE )
+      RETURN FALSE
    END
 END IsAnObject ;
 
@@ -630,25 +714,26 @@ BEGIN
    UseRanlib     := FALSE ;
    VerboseFound  := FALSE ;
    Shared        := FALSE ;
-   ArProgram     := InitString('ar') ;
-   RanlibProgram := InitString('ranlib') ;
-   MainModule    := InitString('') ;
-   StartupFile   := InitString('mod_init') ;
+   ArProgram     := InitString ('ar') ;
+   RanlibProgram := InitString ('ranlib') ;
+   MainModule    := InitString ('') ;
+   StartupFile   := InitString ('mod_init') ;
    fi            := StdIn ;
    fo            := StdOut ;
    ExecCommand   := FALSE ;
 
-   CompilerDir   := InitString('') ;
+   CompilerDir   := InitString ('') ;
 
-   FOptions      := InitString('') ;
+   FOptions      := InitString ('') ;
    Archives      := NIL ;
    Path          := NIL ;
    LibrariesFound:= FALSE ;
-   Libraries     := InitString('') ;
-   Objects       := InitString('') ;
+   Libraries     := InitString ('') ;
    Command       := NIL ;
    Target        := NIL ;
    BOption       := NIL ;
+   objects       := InitFileObject () ;
+   NonModObjects := InitIndex (1) ;
 
    ScanArguments ;
    IF CheckFound
@@ -657,7 +742,7 @@ BEGIN
    ELSE
       GenCC
    END ;
-   Close(fo)
+   Close (fo)
 END Init ;
 
 

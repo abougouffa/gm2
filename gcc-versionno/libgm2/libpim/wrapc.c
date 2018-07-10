@@ -48,8 +48,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 char *wrapc_strtime (void)
 {
 #if defined(HAVE_CTIME)
-  time_t clock = time((void *)0) ;
-  char *string = ctime(&clock);
+  time_t clock = time ((void *)0) ;
+  char *string = ctime (&clock);
 
   string[24] = (char) 0;
 
@@ -68,7 +68,7 @@ int wrapc_filesize (int f, unsigned int *low, unsigned int *high)
 
   if (res == 0) {
     *low = (unsigned int) s.st_size ;
-    *high = (unsigned int) (s.st_size >> (sizeof(unsigned int)*8));
+    *high = (unsigned int) (s.st_size >> (sizeof (unsigned int)*8));
   }
   return res;
 #else
@@ -78,7 +78,7 @@ int wrapc_filesize (int f, unsigned int *low, unsigned int *high)
 
 
 /*
- *   filemtime - returns the mtime of a file, f.
+    filemtime - returns the mtime of a file, f.
  */
 
 int wrapc_filemtime (int f)
@@ -94,6 +94,34 @@ int wrapc_filemtime (int f)
   return -1;
 #endif
 }
+
+
+/*
+ *  fileinode - returns the inode associated with a file, f.
+ */
+
+#if defined(HAVE_SYS_STAT_H) && defined(HAVE_STRUCT_STAT)
+ino_t wrapc_fileinode (int f, unsigned int *low, unsigned int *high)
+{
+  struct stat s;
+
+  if (fstat (f, (struct stat *) &s) == 0)
+    {
+      *low = (unsigned int) s.st_ino;
+      *high = (unsigned int) (s.st_ino >> (sizeof (unsigned int)*8));
+      return 0;
+    }
+  else
+    return -1;
+}
+#else
+int wrapc_fileinode (int f, unsigned int *low, unsigned int *high)
+{
+  *low = 0;
+  *high = 0;
+  return -1;
+}
+#endif
 
 
 /*
@@ -120,7 +148,7 @@ char *wrapc_getusername (void)
 
 void wrapc_getnameuidgid (char *name, int *uid, int *gid)
 {
-  struct passwd *p=getpwnam(name);
+  struct passwd *p = getpwnam (name);
 
   if (p == NULL) {
     *uid = -1;

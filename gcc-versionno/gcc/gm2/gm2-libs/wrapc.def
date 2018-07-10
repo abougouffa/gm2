@@ -29,7 +29,8 @@ DEFINITION MODULE wrapc ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 
-EXPORT QUALIFIED strtime, filesize, getrand, getusername, filemtime,
+EXPORT QUALIFIED strtime, filesize, fileinode,
+                 getrand, getusername, filemtime,
                  getnameuidgid, signbit, signbitf, signbitl,
 		 isfinite, isfinitel, isfinitef ;
 
@@ -48,6 +49,13 @@ PROCEDURE strtime () : ADDRESS ;
 *)
 
 PROCEDURE filesize (f: INTEGER; VAR low, high: CARDINAL) : INTEGER ;
+
+
+(*
+   fileinode - return the inode associated with file, f.
+*)
+
+PROCEDURE fileinode (f: INTEGER; VAR low, high: CARDINAL) : INTEGER ;
 
 
 (*

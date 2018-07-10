@@ -788,7 +788,7 @@ GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  M2Defaults.
                      M2Scope.def     M2Range.def     M2Swig.def      \
                      M2MetaError.def Sets.def        M2CaseList.def  PCSymBuild.def  \
                      PCBuild.def     M2Const.def     M2DebugStack.def \
-                     M2DriverOptions.def
+                     M2DriverOptions.def             ObjectFiles.def
 
 GM2-COMP-BOOT-MODS = FifoQueue.mod   M2LexBuf.mod                             \
                      M2AsmUtil.mod   M2Optimize.mod  M2StackWord.mod \
@@ -809,7 +809,7 @@ GM2-COMP-BOOT-MODS = FifoQueue.mod   M2LexBuf.mod                             \
                      M2Swig.mod      M2MetaError.mod Sets.mod        M2CaseList.mod  \
                      PCSymBuild.mod  M2Const.mod     M2DebugStack.mod \
                      M2DriverOptions.mod \
-                     SymbolKey.mod   NameKey.mod     Lists.mod
+                     SymbolKey.mod   NameKey.mod     Lists.mod       ObjectFiles.mod
 
 GM2-GCC-DEFS      =  m2builtins.def  m2except.def    m2convert.def   m2decl.def \
                      m2except.def    m2expr.def      m2misc.def      m2block.def \
@@ -871,7 +871,7 @@ GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Default
                      M2Bitset.def      M2Size.def      M2Scope.def     M2Range.def     \
                      M2Swig.def        M2MetaError.def Sets.def        M2CaseList.def  \
                      PCSymBuild.def    PCBuild.def     M2Const.def     M2DebugStack.def \
-                     M2DriverOptions.def
+                     M2DriverOptions.def               ObjectFiles.def
 
 GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod                   M2Optimize.mod  \
                      M2StackWord.mod   M2Options.mod   M2Pass.mod      M2Batch.mod     \
@@ -890,7 +890,7 @@ GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod                   M2Optimiz
                      M2Bitset.mod      M2Size.mod      M2Scope.mod     M2Range.mod     \
                      M2Swig.mod        M2MetaError.mod Sets.mod        M2CaseList.mod  \
                      PCSymBuild.mod    M2Const.mod     M2DebugStack.mod \
-                     M2DriverOptions.mod
+                     M2DriverOptions.mod               ObjectFiles.mod
 
 GM2-TOOLS-MOD      = gm2l.mod          gm2lcc.mod      gm2lgen.mod     gm2lorder.mod   \
                      gm2m.mod          ppg.mod
@@ -923,7 +923,7 @@ GM2-VERIFY-MODS    = FifoQueue.mod     M2AsmUtil.mod                   M2Optimiz
                      M2Bitset.mod      M2Size.mod      CLexBuf.mod     M2Scope.mod     \
                      M2Range.mod       M2Swig.mod      M2MetaError.mod Sets.mod        \
                      M2CaseList.mod    PCSymBuild.mod  M2Const.mod     \
-                     M2DebugStack.mod
+                     M2DebugStack.mod  ObjectFiles.mod
 
 GM2-VERIFY-AUTO    = P1Build.mod       P2Build.mod     PCBuild.mod     P3Build.mod     \
                      PHBuild.mod       gm2l.mod        gm2m.mod        pg.mod \
