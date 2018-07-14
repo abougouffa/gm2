@@ -1,5 +1,5 @@
---- gcc-versionno-orig/Makefile.in	2018-01-02 09:38:28.650176131 +0000
-+++ gcc-versionno/Makefile.in	2018-01-02 08:42:39.089083295 +0000
+--- gcc-versionno-orig/Makefile.in	2018-04-13 16:08:27.934867511 +0100
++++ gcc-versionno/Makefile.in	2018-07-12 18:12:30.000000000 +0100
 @@ -156,6 +156,7 @@
  	GFORTRAN="$(GFORTRAN_FOR_BUILD)"; export GFORTRAN; \
  	GOC="$(GOC_FOR_BUILD)"; export GOC; \
@@ -40,6 +40,15 @@
  DLLTOOL_FOR_TARGET=@DLLTOOL_FOR_TARGET@
  LD_FOR_TARGET=@LD_FOR_TARGET@
  
+@@ -612,7 +617,7 @@
+ 
+ # This is the list of directories that may be needed in RPATH_ENVVAR
+ # so that programs built for the target machine work.
+-TARGET_LIB_PATH = $(TARGET_LIB_PATH_libstdc++-v3)$(TARGET_LIB_PATH_libsanitizer)$(TARGET_LIB_PATH_libmpx)$(TARGET_LIB_PATH_libvtv)$(TARGET_LIB_PATH_liboffloadmic)$(TARGET_LIB_PATH_libssp)$(TARGET_LIB_PATH_libgomp)$(TARGET_LIB_PATH_libitm)$(TARGET_LIB_PATH_libatomic)$(HOST_LIB_PATH_gcc)
++TARGET_LIB_PATH = $(TARGET_LIB_PATH_libstdc++-v3)$(TARGET_LIB_PATH_libsanitizer)$(TARGET_LIB_PATH_libmpx)$(TARGET_LIB_PATH_libvtv)$(TARGET_LIB_PATH_liboffloadmic)$(TARGET_LIB_PATH_libssp)$(TARGET_LIB_PATH_libgm2)$(TARGET_LIB_PATH_libgomp)$(TARGET_LIB_PATH_libitm)$(TARGET_LIB_PATH_libatomic)$(HOST_LIB_PATH_gcc)
+ 
+ @if target-libstdc++-v3
+ TARGET_LIB_PATH_libstdc++-v3 = $$r/$(TARGET_SUBDIR)/libstdc++-v3/src/.libs:
 @@ -638,6 +643,10 @@
  TARGET_LIB_PATH_libssp = $$r/$(TARGET_SUBDIR)/libssp/.libs:
  @endif target-libssp
@@ -235,8 +244,8 @@
 +	@r=`${PWD_COMMAND}`; export r; \
 +	s=`cd $(srcdir); ${PWD_COMMAND}`; export s; \
 +	echo "Checking multilib configuration for libgm2..."; \
-+	$(SHELL) $(srcdir)/mkinstalldirs $(TARGET_SUBDIR)/libgm2 ; \
-+	$(CC_FOR_TARGET) --print-multi-lib > $(TARGET_SUBDIR)/libgm2/multilib.tmp 2> /dev/null ; \
++	$(SHELL) $(srcdir)/mkinstalldirs $(TARGET_SUBDIR)/libgm2; \
++	$(CC_FOR_TARGET) --print-multi-lib > $(TARGET_SUBDIR)/libgm2/multilib.tmp 2> /dev/null; \
 +	if test -r $(TARGET_SUBDIR)/libgm2/multilib.out; then \
 +	  if cmp -s $(TARGET_SUBDIR)/libgm2/multilib.tmp $(TARGET_SUBDIR)/libgm2/multilib.out; then \
 +	    rm -f $(TARGET_SUBDIR)/libgm2/multilib.tmp; \
@@ -248,7 +257,7 @@
 +	  mv $(TARGET_SUBDIR)/libgm2/multilib.tmp $(TARGET_SUBDIR)/libgm2/multilib.out; \
 +	fi; \
 +	test ! -f $(TARGET_SUBDIR)/libgm2/Makefile || exit 0; \
-+	$(SHELL) $(srcdir)/mkinstalldirs $(TARGET_SUBDIR)/libgm2 ; \
++	$(SHELL) $(srcdir)/mkinstalldirs $(TARGET_SUBDIR)/libgm2; \
 +	$(NORMAL_TARGET_EXPORTS)  \
 +	echo Configuring in $(TARGET_SUBDIR)/libgm2; \
 +	cd "$(TARGET_SUBDIR)/libgm2" || exit 1; \
@@ -348,11 +357,11 @@
 +info-target-libgm2: \
 +    configure-target-libgm2 
 +	@: $(MAKE); $(unstage)
-+	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0 ; \
++	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0; \
 +	r=`${PWD_COMMAND}`; export r; \
 +	s=`cd $(srcdir); ${PWD_COMMAND}`; export s; \
 +	$(NORMAL_TARGET_EXPORTS) \
-+	echo "Doing info in $(TARGET_SUBDIR)/libgm2" ; \
++	echo "Doing info in $(TARGET_SUBDIR)/libgm2"; \
 +	for flag in $(EXTRA_TARGET_FLAGS); do \
 +	  eval `echo "$$flag" | sed -e "s|^\([^=]*\)=\(.*\)|\1='\2'; export \1|"`; \
 +	done; \
@@ -374,11 +383,11 @@
 +dvi-target-libgm2: \
 +    configure-target-libgm2 
 +	@: $(MAKE); $(unstage)
-+	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0 ; \
++	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0; \
 +	r=`${PWD_COMMAND}`; export r; \
 +	s=`cd $(srcdir); ${PWD_COMMAND}`; export s; \
 +	$(NORMAL_TARGET_EXPORTS) \
-+	echo "Doing dvi in $(TARGET_SUBDIR)/libgm2" ; \
++	echo "Doing dvi in $(TARGET_SUBDIR)/libgm2"; \
 +	for flag in $(EXTRA_TARGET_FLAGS); do \
 +	  eval `echo "$$flag" | sed -e "s|^\([^=]*\)=\(.*\)|\1='\2'; export \1|"`; \
 +	done; \
@@ -400,11 +409,11 @@
 +pdf-target-libgm2: \
 +    configure-target-libgm2 
 +	@: $(MAKE); $(unstage)
-+	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0 ; \
++	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0; \
 +	r=`${PWD_COMMAND}`; export r; \
 +	s=`cd $(srcdir); ${PWD_COMMAND}`; export s; \
 +	$(NORMAL_TARGET_EXPORTS) \
-+	echo "Doing pdf in $(TARGET_SUBDIR)/libgm2" ; \
++	echo "Doing pdf in $(TARGET_SUBDIR)/libgm2"; \
 +	for flag in $(EXTRA_TARGET_FLAGS); do \
 +	  eval `echo "$$flag" | sed -e "s|^\([^=]*\)=\(.*\)|\1='\2'; export \1|"`; \
 +	done; \
@@ -426,11 +435,11 @@
 +html-target-libgm2: \
 +    configure-target-libgm2 
 +	@: $(MAKE); $(unstage)
-+	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0 ; \
++	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0; \
 +	r=`${PWD_COMMAND}`; export r; \
 +	s=`cd $(srcdir); ${PWD_COMMAND}`; export s; \
 +	$(NORMAL_TARGET_EXPORTS) \
-+	echo "Doing html in $(TARGET_SUBDIR)/libgm2" ; \
++	echo "Doing html in $(TARGET_SUBDIR)/libgm2"; \
 +	for flag in $(EXTRA_TARGET_FLAGS); do \
 +	  eval `echo "$$flag" | sed -e "s|^\([^=]*\)=\(.*\)|\1='\2'; export \1|"`; \
 +	done; \
@@ -452,11 +461,11 @@
 +TAGS-target-libgm2: \
 +    configure-target-libgm2 
 +	@: $(MAKE); $(unstage)
-+	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0 ; \
++	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0; \
 +	r=`${PWD_COMMAND}`; export r; \
 +	s=`cd $(srcdir); ${PWD_COMMAND}`; export s; \
 +	$(NORMAL_TARGET_EXPORTS) \
-+	echo "Doing TAGS in $(TARGET_SUBDIR)/libgm2" ; \
++	echo "Doing TAGS in $(TARGET_SUBDIR)/libgm2"; \
 +	for flag in $(EXTRA_TARGET_FLAGS); do \
 +	  eval `echo "$$flag" | sed -e "s|^\([^=]*\)=\(.*\)|\1='\2'; export \1|"`; \
 +	done; \
@@ -479,11 +488,11 @@
 +    configure-target-libgm2 \
 +    info-target-libgm2 
 +	@: $(MAKE); $(unstage)
-+	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0 ; \
++	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0; \
 +	r=`${PWD_COMMAND}`; export r; \
 +	s=`cd $(srcdir); ${PWD_COMMAND}`; export s; \
 +	$(NORMAL_TARGET_EXPORTS) \
-+	echo "Doing install-info in $(TARGET_SUBDIR)/libgm2" ; \
++	echo "Doing install-info in $(TARGET_SUBDIR)/libgm2"; \
 +	for flag in $(EXTRA_TARGET_FLAGS); do \
 +	  eval `echo "$$flag" | sed -e "s|^\([^=]*\)=\(.*\)|\1='\2'; export \1|"`; \
 +	done; \
@@ -506,11 +515,11 @@
 +    configure-target-libgm2 \
 +    pdf-target-libgm2 
 +	@: $(MAKE); $(unstage)
-+	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0 ; \
++	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0; \
 +	r=`${PWD_COMMAND}`; export r; \
 +	s=`cd $(srcdir); ${PWD_COMMAND}`; export s; \
 +	$(NORMAL_TARGET_EXPORTS) \
-+	echo "Doing install-pdf in $(TARGET_SUBDIR)/libgm2" ; \
++	echo "Doing install-pdf in $(TARGET_SUBDIR)/libgm2"; \
 +	for flag in $(EXTRA_TARGET_FLAGS); do \
 +	  eval `echo "$$flag" | sed -e "s|^\([^=]*\)=\(.*\)|\1='\2'; export \1|"`; \
 +	done; \
@@ -533,11 +542,11 @@
 +    configure-target-libgm2 \
 +    html-target-libgm2 
 +	@: $(MAKE); $(unstage)
-+	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0 ; \
++	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0; \
 +	r=`${PWD_COMMAND}`; export r; \
 +	s=`cd $(srcdir); ${PWD_COMMAND}`; export s; \
 +	$(NORMAL_TARGET_EXPORTS) \
-+	echo "Doing install-html in $(TARGET_SUBDIR)/libgm2" ; \
++	echo "Doing install-html in $(TARGET_SUBDIR)/libgm2"; \
 +	for flag in $(EXTRA_TARGET_FLAGS); do \
 +	  eval `echo "$$flag" | sed -e "s|^\([^=]*\)=\(.*\)|\1='\2'; export \1|"`; \
 +	done; \
@@ -559,11 +568,11 @@
 +installcheck-target-libgm2: \
 +    configure-target-libgm2 
 +	@: $(MAKE); $(unstage)
-+	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0 ; \
++	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0; \
 +	r=`${PWD_COMMAND}`; export r; \
 +	s=`cd $(srcdir); ${PWD_COMMAND}`; export s; \
 +	$(NORMAL_TARGET_EXPORTS) \
-+	echo "Doing installcheck in $(TARGET_SUBDIR)/libgm2" ; \
++	echo "Doing installcheck in $(TARGET_SUBDIR)/libgm2"; \
 +	for flag in $(EXTRA_TARGET_FLAGS); do \
 +	  eval `echo "$$flag" | sed -e "s|^\([^=]*\)=\(.*\)|\1='\2'; export \1|"`; \
 +	done; \
@@ -584,11 +593,11 @@
 +
 +mostlyclean-target-libgm2: 
 +	@: $(MAKE); $(unstage)
-+	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0 ; \
++	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0; \
 +	r=`${PWD_COMMAND}`; export r; \
 +	s=`cd $(srcdir); ${PWD_COMMAND}`; export s; \
 +	$(NORMAL_TARGET_EXPORTS) \
-+	echo "Doing mostlyclean in $(TARGET_SUBDIR)/libgm2" ; \
++	echo "Doing mostlyclean in $(TARGET_SUBDIR)/libgm2"; \
 +	for flag in $(EXTRA_TARGET_FLAGS); do \
 +	  eval `echo "$$flag" | sed -e "s|^\([^=]*\)=\(.*\)|\1='\2'; export \1|"`; \
 +	done; \
@@ -609,11 +618,11 @@
 +
 +clean-target-libgm2: 
 +	@: $(MAKE); $(unstage)
-+	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0 ; \
++	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0; \
 +	r=`${PWD_COMMAND}`; export r; \
 +	s=`cd $(srcdir); ${PWD_COMMAND}`; export s; \
 +	$(NORMAL_TARGET_EXPORTS) \
-+	echo "Doing clean in $(TARGET_SUBDIR)/libgm2" ; \
++	echo "Doing clean in $(TARGET_SUBDIR)/libgm2"; \
 +	for flag in $(EXTRA_TARGET_FLAGS); do \
 +	  eval `echo "$$flag" | sed -e "s|^\([^=]*\)=\(.*\)|\1='\2'; export \1|"`; \
 +	done; \
@@ -634,11 +643,11 @@
 +
 +distclean-target-libgm2: 
 +	@: $(MAKE); $(unstage)
-+	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0 ; \
++	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0; \
 +	r=`${PWD_COMMAND}`; export r; \
 +	s=`cd $(srcdir); ${PWD_COMMAND}`; export s; \
 +	$(NORMAL_TARGET_EXPORTS) \
-+	echo "Doing distclean in $(TARGET_SUBDIR)/libgm2" ; \
++	echo "Doing distclean in $(TARGET_SUBDIR)/libgm2"; \
 +	for flag in $(EXTRA_TARGET_FLAGS); do \
 +	  eval `echo "$$flag" | sed -e "s|^\([^=]*\)=\(.*\)|\1='\2'; export \1|"`; \
 +	done; \
@@ -659,11 +668,11 @@
 +
 +maintainer-clean-target-libgm2: 
 +	@: $(MAKE); $(unstage)
-+	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0 ; \
++	@[ -f $(TARGET_SUBDIR)/libgm2/Makefile ] || exit 0; \
 +	r=`${PWD_COMMAND}`; export r; \
 +	s=`cd $(srcdir); ${PWD_COMMAND}`; export s; \
 +	$(NORMAL_TARGET_EXPORTS) \
-+	echo "Doing maintainer-clean in $(TARGET_SUBDIR)/libgm2" ; \
++	echo "Doing maintainer-clean in $(TARGET_SUBDIR)/libgm2"; \
 +	for flag in $(EXTRA_TARGET_FLAGS); do \
 +	  eval `echo "$$flag" | sed -e "s|^\([^=]*\)=\(.*\)|\1='\2'; export \1|"`; \
 +	done; \
@@ -684,9 +693,9 @@
  .PHONY: configure-target-libgomp maybe-configure-target-libgomp
  maybe-configure-target-libgomp:
  @if gcc-bootstrap
-@@ -53482,6 +53970,14 @@
- 
- @endif target-libatomic
+@@ -53574,6 +54062,14 @@
+ 	(cd gcc && $(MAKE) $(GCC_FLAGS_TO_PASS) check-go);
+ check-go: check-gcc-go check-target-libgo check-gotools
  
 +.PHONY: check-gcc-gm2 check-gm2
 +check-gcc-gm2:
@@ -696,9 +705,9 @@
 +	(cd gcc && $(MAKE) $(GCC_FLAGS_TO_PASS) check-gm2);
 +check-gm2: check-gcc-gm2
 +
- 
- 
- @if target-libgomp
+ .PHONY: check-gcc-brig check-brig
+ check-gcc-brig:
+ 	r=`${PWD_COMMAND}`; export r; \
 @@ -56790,6 +57286,7 @@
  configure-target-zlib: stage_last
  configure-target-rda: stage_last

@@ -37,16 +37,16 @@ Boston, MA 02110-1301, USA.  */
 #define GM2LCC(OBJECT,LST) \
   "gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{L*} %{ftarget-ar=*} %{ftarget-ranlib=*} \
           %{fobject-path=*} %{v} --exec --startup %Ustart%d%O \
-          %{!fshared:--ar -o %w%d%g.a} \
+          %{!fshared:--ar %:objects() %:noobjects() -o %w%d%g.a } \
           " OBJECT " \
-          %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:linkargs() } " LST " "
+          %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:noobjects() %:linkargs() } " LST " "
 
 #define GM2LORDER_GEN_CC(INPUT)	\
   "gm2lorder %{fruntime-modules=*} " INPUT " -o %g.lst \n\
    gm2lgen %{fshared} %{fshared:--terminate --exit} %{!fno-exceptions:-fcpp} %g.lst -o %{g:%b_m2.cpp;:%g.cpp} \n\
   " GM2CC("%{g:%b_m2.cpp;:%g.cpp}","%ustart%d%O") " \n\
    rm -f %w%d%g.a \n\
-  " GM2LCC("%b.o","%g.lst") " \n\
+  " GM2LCC("--mainobject %b.o","%g.lst") " \n\
    rm -f %Ustart"
 
 #define GM2L(INPUT,OUTPUT) \

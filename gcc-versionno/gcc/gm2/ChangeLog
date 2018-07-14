@@ -1,3 +1,33 @@
+2018-07-14      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  remove the target configure scripts from
+	  gm2/gm2-libs.
+	* gm2/configure:  rebuilt.
+	* gm2/examples/callingC/Makefile.in:  use multiple -I flags.
+	* gm2/examples/hello/Makefile.in:  use multiple -I flags.
+	* gm2/gm2-compiler/gm2lcc.mod:  reformatted.  Archive
+	  all object files, all Modula-2 objects and check for duplication.
+	* gm2/gm2-libs-ch/wrapc.c:  remove unconfigured test for fileinode.
+	* gm2/gm2-libs/config-host:  rebuilt.
+	* gm2/gm2-libs/config-target:  removed.
+	* gm2/gm2-libs/gm2-libs-host.h.in:  rebuilt.
+	* gm2/gm2-libs/gm2-libs-target.h.in:  removed.
+	* gm2/gm2spec.c:  reformatted.  (add_env_option)  New function.
+	  (lang_specific_driver)  call add_env_option.
+	* gm2/lang-specs.h:  (lang_register_spec_functions) register
+	  no_objects.
+	* gm2/patches/gcc/trunc/01-patches:  rebuilt.
+	* gm2/patches/gcc/trunc/02-patches:  rebuilt.
+	* gm2/patches/gcc/trunc/03-patches:  rebuilt.
+	* gm2/patches/gcc/trunc/04-patches:  rebuilt.
+	* gm2/patches/gcc/trunc/05-patches:  rebuilt.
+	* gm2/patches/gcc/trunc/06-patches:  rebuilt.
+	* gm2/patches/gcc/trunc/07-patches:  rebuilt.
+	* gm2/patches/gcc/trunc/08-patches:  rebuilt.
+	* gm2/patches/gcc/trunc/09-patches:  rebuilt.
+	* gm2/patches/gcc/trunc/10-patches:  rebuilt.
+	* testsuite/gm2/pim/run/pass/testaddr2.mod:  reformatted.
+
 2018-07-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/ObjectFiles.def:  New file.

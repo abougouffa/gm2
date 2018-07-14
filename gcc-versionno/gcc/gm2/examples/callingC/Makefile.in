@@ -6,12 +6,12 @@
 # the terms of the GNU General Public License as published by the Free
 # Software Foundation; either version 3, or (at your option) any later
 # version.
-# 
+#
 # GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or
 # FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 # for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with gm2; see the file COPYING.  If not, write to the Free Software
 # Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -19,8 +19,8 @@
 srcdir = @srcdir@
 gm2dir = $(srcdir)/../..
 
-SRC_PATH_PIM=$(srcdir):../../gm2-libs:$(gm2dir)/gm2-libs:$(gm2dir)/gm2-libs-iso
-OBJ_PATH_PIM=.:../../gm2-libs:../../gm2-libs-iso
+SRC_PATH_PIM=-I$(srcdir) -I../../gm2-libs -I$(gm2dir)/gm2-libs -I$(gm2dir)/gm2-libs-iso
+OBJ_PATH_PIM=-fobject-path=. -fobject-path=../../gm2-libs -fobject-path=../../gm2-libs-iso
 
 XGM2=../../../xgm2 -B../../../x
 
@@ -29,7 +29,7 @@ all: force
 	@echo "or you can use 'make post-install' to build the examples after installing the compiler"
 
 pre-install: clean
-	$(XGM2) -g -I$(SRC_PATH_PIM) -I$(srcdir) $(srcdir)/hello.mod -lc -lm
+	$(XGM2) -g $(SRC_PATH_PIM) -I$(srcdir) $(srcdir)/hello.mod -lc -lm
 
 post-install: clean
 	gm2 -g -I$(srcdir) $(srcdir)/hello.mod -lc -lm
@@ -38,4 +38,3 @@ clean:
 	$(RM) *.cpp *.o a.out *~
 
 force:
-

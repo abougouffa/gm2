@@ -1,5 +1,5 @@
-/* Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010,
- *               2011, 2012, 2013, 2014
+/* Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011,
+ *               2012, 2013, 2014, 2015, 2016, 2017, 2018
  *               Free Software Foundation, Inc. */
 /* This file is part of GNU Modula-2.
 
@@ -94,7 +94,7 @@ int wrapc_filemtime (int f)
  *  fileinode - returns the inode associated with a file, f.
  */
 
-#if defined(HAVE_SYS_STAT_H) && defined(HAVE_STRUCT_STAT)
+#if defined(HAVE_SYS_STAT_H)
 ino_t wrapc_fileinode (int f, unsigned int *low, unsigned int *high)
 {
   struct stat s;
@@ -111,6 +111,7 @@ ino_t wrapc_fileinode (int f, unsigned int *low, unsigned int *high)
 #else
 int wrapc_fileinode (int f, unsigned int *low, unsigned int *high)
 {
+#error we need stat
   *low = 0;
   *high = 0;
   return -1;

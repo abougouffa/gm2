@@ -21,5 +21,5 @@ FROM SYSTEM IMPORT ADDRESS, ADR ;
 FROM sys IMPORT foo ;
 
 BEGIN
-   foo(ADR("hello world"))
+   foo (ADR ("hello world"))
 END testaddr2.

@@ -159,6 +159,15 @@
 /* Define to 1 if you have the <signal.h> header file. */
 #undef HAVE_SIGNAL_H
 
+/* Define to 1 if your system has 'signbit'. */
+#undef HAVE_SIGNBIT
+
+/* Define to 1 if your system has 'signbitf'. */
+#undef HAVE_SIGNBITF
+
+/* Define to 1 if your system has 'signbitl'. */
+#undef HAVE_SIGNBITL
+
 /* Define to 1 if you have the `stat' function. */
 #undef HAVE_STAT
 
@@ -191,9 +200,6 @@
 
 /* Define to 1 if you have the `strtold' function. */
 #undef HAVE_STRTOLD
-
-/* Define to 1 if you have the `stpcpy' function. */
-#undef HAVE_STPCPY
 
 /* Define to 1 if you have the <sys/errno.h> header file. */
 #undef HAVE_SYS_ERRNO_H
@@ -307,3 +313,6 @@
 
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#undef size_t

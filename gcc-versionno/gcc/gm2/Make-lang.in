@@ -2494,8 +2494,6 @@ gm2-check-examples: force
 
 gm2.maintainer-reconfigure: force
 	autoconf $(srcdir)/gm2/gm2-libs/config-host.in > $(srcdir)/gm2/gm2-libs/config-host
-	autoconf $(srcdir)/gm2/gm2-libs/config-target.in > $(srcdir)/gm2/gm2-libs/config-target
-	( cd $(srcdir)/gm2/gm2-libs ; autoheader config-target.in )
 	( cd $(srcdir)/gm2/gm2-libs ; autoheader config-host.in )
 	( cd $(srcdir)/gm2 ; autoconf configure.in > configure )
 
