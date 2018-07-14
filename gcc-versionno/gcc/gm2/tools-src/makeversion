@@ -9,16 +9,16 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
-# 
+#
 # GNU Modula-2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with GNU Modula-2; see the file COPYING.  If not, write to the
 # Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA. 
+# 02110-1301, USA.
 #
 
 
@@ -137,7 +137,7 @@ progname=$0
 
 function usage () {
    cat <<EOF
-Usage: $progname [-m][-c][-t] 
+Usage: $progname [-m][-c][-t]
    -m  generates a Modula-2 module M2Version.mod
    -c  generates a C file gm2version.c
    -p  generates a C++ file gm2version.c
@@ -208,10 +208,5 @@ fi
 
 if [ "`grep AC_INIT ${SRCDIR}/gm2/gm2-libs/config-host.in | grep ${GM2VERSION}`" == "" ] ; then
    echo "makeversion has found a consistency error:  the ${SRCDIR}/gm2/gm2-libs/config-host.in does not match the GNU Modula-2 release number"
-   exit 1
-fi
-
-if [ "`grep AC_INIT ${SRCDIR}/gm2/gm2-libs/config-target.in | grep ${GM2VERSION}`" == "" ] ; then
-   echo "makeversion has found a consistency error:  the ${SRCDIR}/gm2/gm2-libs/config-target.in does not match the GNU Modula-2 release number"
    exit 1
 fi

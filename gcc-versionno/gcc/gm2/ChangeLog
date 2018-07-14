@@ -27,6 +27,8 @@
 	* gm2/patches/gcc/trunc/09-patches:  rebuilt.
 	* gm2/patches/gcc/trunc/10-patches:  rebuilt.
 	* testsuite/gm2/pim/run/pass/testaddr2.mod:  reformatted.
+	* gm2/gm2spec.c:  removed unused variable and reformatted.
+	* gm2/tools-src/makeversion:  remove reference to config-target.in.
 
 2018-07-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

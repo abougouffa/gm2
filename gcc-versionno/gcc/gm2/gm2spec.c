@@ -1280,18 +1280,19 @@ get_objects (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
 {
   char *result = (char *)xmalloc (1);
   int len = 0;
-  int flen, i;
+  int flen;
   object_list *o;
 
   *result = (char)0;
 
-  for (o = head_objects; o != NULL; o = o->next) {
-    len = strlen (result);
-    flen = strlen (o->name);
-    result = (char *)xrealloc (result, len+flen+1+1);
-    strcat (result, o->name);
-    strcat (result, " ");
-  }
+  for (o = head_objects; o != NULL; o = o->next)
+    {
+      len = strlen (result);
+      flen = strlen (o->name);
+      result = (char *)xrealloc (result, len+flen+1+1);
+      strcat (result, o->name);
+      strcat (result, " ");
+    }
   return result;
 }
 
