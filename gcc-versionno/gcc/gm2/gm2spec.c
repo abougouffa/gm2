@@ -179,11 +179,17 @@ assert (int b)
 static void fe_generate_option (size_t opt_index, const char *arg, int joined)
 {
   const struct cl_option *option = &cl_options[opt_index];
-  const char *opt = (const char *) option->opt_text;
-  const char *newopt = opt;
+  const char *newopt;
 
   if (joined)
-    newopt = concat (opt, arg, NULL);
+    {
+      char *old = xstrdup (option->opt_text);
+      char *opt = (char *) xmalloc (strlen (old) + strlen (arg) + 1);
+      strcpy (opt, old);
+      newopt = concat (opt, arg, NULL);
+    }
+  else
+    newopt = xstrdup (option->opt_text);
 
   if (arg == NULL || joined)
     fe_save_switch (newopt, 0, NULL, 1, 0);
@@ -554,20 +560,22 @@ add_default_archives (const char *libpath,
       prev = xstrdup (libpath);
 
     e = index (l, ',');
-    if (e == NULL) {
-      c = xstrdup (l);
-      l = NULL;
-    }
-    else {
-      c = xstrndup (l, e-l);
-      l = e+1;
-    }
-    add_default_combination (libpath, c, in_decoded_options_count, in_decoded_options, position+libcount);
+    if (e == NULL)
+      {
+	c = xstrdup (l);
+	l = NULL;
+      }
+    else
+      {
+	c = xstrndup (l, e-l);
+	l = e+1;
+      }
+    add_default_combination (libpath, c, in_decoded_options_count, in_decoded_options, position + libcount);
     libcount++;
     prev = gen_link_path (libpath, c);
 
     fe_generate_option (OPT_L, prev, TRUE);
-    free (c);
+    // free (c);
   } while ((l != NULL) && (l[0] != (char)0));
 }
 
@@ -586,15 +594,15 @@ build_include_path (const char *libpath, const char *library)
   sepstr[0] = DIR_SEPARATOR;
   sepstr[1] = (char)0;
 
-  gm2libs = (char *) alloca(strlen(option) +
-			    strlen(libpath)+strlen(sepstr)+strlen("m2")+strlen(sepstr)+strlen(library)+1+
-			    strlen(libpath)+strlen(sepstr)+strlen("m2")+strlen(sepstr)+strlen(library)+1);
-  strcpy(gm2libs, option);
-  strcat(gm2libs, libpath);
-  strcat(gm2libs, sepstr);
-  strcat(gm2libs, "m2");
-  strcat(gm2libs, sepstr);
-  strcat(gm2libs, library);
+  gm2libs = (char *) alloca (strlen (option) +
+			     strlen (libpath) + strlen (sepstr) + strlen ("m2") + strlen (sepstr) + strlen (library) + 1 +
+			     strlen (libpath) + strlen (sepstr) + strlen ("m2") + strlen (sepstr) + strlen (library) + 1);
+  strcpy (gm2libs, option);
+  strcat (gm2libs, libpath);
+  strcat (gm2libs, sepstr);
+  strcat (gm2libs, "m2");
+  strcat (gm2libs, sepstr);
+  strcat (gm2libs, library);
 
   return xstrdup (gm2libs);
 }
@@ -662,23 +670,25 @@ build_fobject_path (const char *prev, const char *libpath, const char *library)
   sepstr[0] = DIR_SEPARATOR;
   sepstr[1] = (char)0;
 
-  if (prev == NULL) {
-    gm2objs = (char *) alloca(strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libName)+1+
-			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libName)+1);
-    strcpy(gm2objs, "");
-  }
-  else {
-    gm2objs = (char *) alloca(strlen(prev) + strlen(":") +
-			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libName)+1+
-			      strlen(libpath)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libName)+1);
-    strcpy(gm2objs, prev);
-    strcat(gm2objs, ":");
-  }
-  strcat(gm2objs, libpath);
-  strcat(gm2objs, sepstr);
-  strcat(gm2objs, "gm2");
-  strcat(gm2objs, sepstr);
-  strcat(gm2objs, libName);
+  if (prev == NULL)
+    {
+      gm2objs = (char *) alloca (strlen (libpath) + strlen (sepstr) + strlen ("gm2") + strlen (sepstr) + strlen (libName) + 1 +
+				 strlen (libpath) + strlen (sepstr) + strlen ("gm2") + strlen (sepstr) + strlen (libName) + 1);
+      strcpy(gm2objs, "");
+    }
+  else
+    {
+      gm2objs = (char *) alloca (strlen (prev) + strlen (":") +
+				 strlen (libpath) + strlen (sepstr) + strlen ("gm2") + strlen (sepstr) + strlen (libName) + 1 +
+				 strlen (libpath) + strlen (sepstr) + strlen ("gm2") + strlen (sepstr) + strlen (libName) + 1);
+      strcpy (gm2objs, prev);
+      strcat (gm2objs, ":");
+    }
+  strcat (gm2objs, libpath);
+  strcat (gm2objs, sepstr);
+  strcat (gm2objs, "gm2");
+  strcat (gm2objs, sepstr);
+  strcat (gm2objs, libName);
 
   return xstrdup (gm2objs);
 }
@@ -712,14 +722,16 @@ add_default_fobjects (const char *prev,
 
   do {
     e = index (l, ',');
-    if (e == NULL) {
-      c = xstrdup (l);
-      l = NULL;
-    }
-    else {
-      c = xstrndup (l, e-l);
-      l = e+1;
-    }
+    if (e == NULL)
+      {
+	c = xstrdup (l);
+	l = NULL;
+      }
+    else
+      {
+	c = xstrndup (l, e-l);
+	l = e+1;
+      }
     add_fobject_path (prev, libpath, c);
 #if 0
     free (c);
@@ -734,15 +746,16 @@ scan_for_link_args (unsigned int *in_decoded_options_count,
   struct cl_decoded_option *decoded_options = *in_decoded_options;
   unsigned int i;
 
-  for (i = 0; i < *in_decoded_options_count; i++) {
-    const char *arg = decoded_options[i].arg;
-    size_t opt = decoded_options[i].opt_index;
+  for (i = 0; i < *in_decoded_options_count; i++)
+    {
+      const char *arg = decoded_options[i].arg;
+      size_t opt = decoded_options[i].opt_index;
 
-    if (opt == OPT_l)
-      remember_link_arg ("-l", arg);
-    else if (opt == OPT_L)
-      remember_link_arg ("-L", arg);
-  }
+      if (opt == OPT_l)
+	remember_link_arg ("-l", arg);
+      else if (opt == OPT_L)
+	remember_link_arg ("-L", arg);
+    }
 }
 
 /*
@@ -1130,7 +1143,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
     if (opt == OPT_fpim)
       dialect = "pim";
     if (opt == OPT_flibs_)
-      libraries = arg;
+      libraries = xstrdup (arg);
     if (opt == OPT_fmod_)
       seen_module_extension = TRUE;
     if (opt == OPT_version)
@@ -1165,9 +1178,9 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 
   if (libraries == NULL) {
     if (strncmp (dialect, "pim", 3) == 0)
-      libraries = "pim";
+      libraries = xstrdup ("pim");
     else if (strcmp (dialect, "iso") == 0)
-      libraries = "iso,pim";
+      libraries = xstrdup ("iso,pim");
   }
 
   if (inclPos != -1 && linkPos == -1) {
