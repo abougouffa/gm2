@@ -1,5 +1,5 @@
 -- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
---               2011, 2012, 2013, 2014, 2015
+--               2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
 -- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
@@ -95,21 +95,20 @@ CONST
 
 TYPE
    Source = POINTER TO source ;
-   source = RECORD
-               name       : Name ;
-               fullpath   : String ;
-               Depth      : CARDINAL ;
-               OnlyDef    ,
-               ForC       : BOOLEAN ;
-               next       : Source ;
-            END ;
+   source =            RECORD
+                          name       : Name ;
+                          fullpath   : String ;
+                          Depth      : CARDINAL ;
+                          OnlyDef    ,
+                          ForC       : BOOLEAN ;
+                          next       : Source ;
+                       END ;
 
-   BlockInfoPtr = POINTER TO BlockInfo ;
-   BlockInfo    = RECORD
-                     LocalModules,                (* locally declared modules at the current level  *)
-                     ImportedModules: List ;      (* current list of imports for the scanned module *)
-                     Prev           : BlockInfoPtr ;
-                  END ;
+   BlockInfoPtr = POINTER TO RECORD
+                                LocalModules,                (* locally declared modules at the current level  *)
+                                ImportedModules: List ;      (* current list of imports for the scanned module *)
+                                Prev           : BlockInfoPtr ;
+                             END ;
 
 
 VAR
@@ -132,21 +131,21 @@ PROCEDURE ExamineCompilationUnit (VAR name: Name; VAR isdefimp: BOOLEAN) ;
 BEGIN
    isdefimp := FALSE ;   (* default to program module *)
    (* stop if we see eof, ';' or '[' *)
-   WHILE (currenttoken#eoftok) AND (currenttoken#semicolontok) AND (currenttoken#lsbratok) DO
-      IF (currenttoken=implementationtok) OR (currenttoken=definitiontok)
+   WHILE (currenttoken # eoftok) AND (currenttoken # semicolontok) AND (currenttoken # lsbratok) DO
+      IF (currenttoken = implementationtok) OR (currenttoken = definitiontok)
       THEN
          isdefimp := TRUE ;
          GetToken
       END ;
-      IF currenttoken=identtok
+      IF currenttoken = identtok
       THEN
-         name := makekey(currentstring) ;
+         name := makekey (currentstring) ;
          RETURN
       END ;
       GetToken
    END ;
-   m2flex.M2Error(string(InitString('failed to find module name'))) ;
-   exit(1)
+   m2flex.M2Error (string (InitString('failed to find module name'))) ;
+   exit (1)
 END ExamineCompilationUnit ;
 
 
@@ -158,10 +157,10 @@ PROCEDURE BeginBlock ;
 VAR
    b: BlockInfoPtr ;
 BEGIN
-   NEW(b) ;
+   NEW (b) ;
    WITH b^ DO
-      InitList(LocalModules) ;
-      InitList(ImportedModules) ;
+      InitList (LocalModules) ;
+      InitList (ImportedModules) ;
       Prev := pBlock
    END ;
    pBlock := b
@@ -181,17 +180,17 @@ BEGIN
    b := pBlock^.Prev ;
    WITH pBlock^ DO
       i := 1 ;
-      n := NoOfItemsInList(ImportedModules) ;
+      n := NoOfItemsInList (ImportedModules) ;
       WHILE i<=n DO
-         modname := GetItemFromList(ImportedModules, i) ;
-         MakeModule(modname) ;
-         MakeDependant(pSource^.name, modname) ;
-         INC(i)
+         modname := GetItemFromList (ImportedModules, i) ;
+         MakeModule (modname) ;
+         MakeDependant (pSource^.name, modname) ;
+         INC (i)
       END ;
-      KillList(LocalModules) ;
-      KillList(ImportedModules)
+      KillList (LocalModules) ;
+      KillList (ImportedModules)
    END ;
-   DISPOSE(pBlock) ;
+   DISPOSE (pBlock) ;
    pBlock := b
 END EndBlock ;
 
@@ -204,8 +203,8 @@ PROCEDURE RegisterLocalModule (n: Name) ;
 BEGIN
    (* printf1('seen local module %a\n', n) ; *)
    WITH pBlock^ DO
-      IncludeItemIntoList(LocalModules, n) ;
-      RemoveItemFromList(ImportedModules, n)
+      IncludeItemIntoList (LocalModules, n) ;
+      RemoveItemFromList (ImportedModules, n)
    END
 END RegisterLocalModule ;
 
@@ -240,30 +239,30 @@ BEGIN
    Tail := NIL ;
    IF Verbose
    THEN
-      printf1('gm2l >>> open source file: %a\n', src)
+      printf1 ('gm2l >>> open source file: %a\n', src)
    END ;
-   IF OpenSource(PreprocessModule(InitStringCharStar(KeyToCharStar(src))))
+   IF OpenSource (PreprocessModule (InitStringCharStar (KeyToCharStar (src))))
    THEN
-      ExamineCompilationUnit(MainName, isdefimp) ;
+      ExamineCompilationUnit (MainName, isdefimp) ;
       CloseSource ;
       ReInitialize ;
-      MakeModule(MainName) ;  (* Head now contains a reference to MainName.  *)
+      MakeModule (MainName) ;  (* Head now contains a reference to MainName.  *)
       IF IncludeM2RTS
       THEN
          (*
             we should include M2RTS as a dependant module otherwise it simply wont link
          *)
-         MakeModule(MakeKey('M2RTS')) ;  (* Tail now contains a reference to M2RTS.  *)
-         MakeDependant(MainName, MakeKey('M2RTS'))
+         MakeModule (MakeKey ('M2RTS')) ;  (* Tail now contains a reference to M2RTS.  *)
+         MakeDependant (MainName, MakeKey ('M2RTS'))
       END ;
       pSource := Head ;
-      WHILE pSource#NIL DO
+      WHILE pSource # NIL DO
          ScanImport ;
          pSource := pSource^.next
       END
    ELSE
-      fprintf1(StdErr, 'cannot open source file: %a\n', src) ;
-      exit(1)
+      fprintf1 (StdErr, 'cannot open source file: %a\n', src) ;
+      exit (1)
    END
 END ScanSources ;
 
@@ -277,22 +276,22 @@ END ScanSources ;
 
 PROCEDURE ScanImportsIn (IsDefinition: BOOLEAN) : BOOLEAN ;
 BEGIN
-   IF Open(pSource^.name, IsDefinition)
+   IF Open (pSource^.name, IsDefinition)
    THEN
       IF Debugging
       THEN
          IF IsDefinition
          THEN
-            printf1('opened definition module %a\n', pSource^.name)
+            printf1 ('opened definition module %a\n', pSource^.name)
          ELSE
-            printf1('opened module %a\n', pSource^.name)
+            printf1 ('opened module %a\n', pSource^.name)
          END
       END ;
       CompilationUnit ;
       CloseSource ;
-      RETURN( TRUE )
+      RETURN TRUE
    ELSE
-      RETURN( FALSE )
+      RETURN FALSE
    END
 END ScanImportsIn ;
 
@@ -304,11 +303,11 @@ END ScanImportsIn ;
 
 PROCEDURE ScanImport ;
 BEGIN
-   IF ScanImportsIn(TRUE)
+   IF ScanImportsIn (TRUE)
    THEN
    END ;
    (* set OnlyDef to TRUE if we dont see a .mod file *)
-   pSource^.OnlyDef := NOT ScanImportsIn(FALSE)
+   pSource^.OnlyDef := NOT ScanImportsIn (FALSE)
 END ScanImport ;
 
 % declaration gm2l begin
@@ -320,7 +319,7 @@ END ScanImport ;
 
 PROCEDURE ErrorArray (a: ARRAY OF CHAR) ;
 BEGIN
-   ErrorString(InitString(a))
+   ErrorString (InitString (a))
 END ErrorArray ;
 
 
@@ -330,7 +329,7 @@ END ErrorArray ;
 
 PROCEDURE ErrorString (s: String) ;
 BEGIN
-   fprintf1(StdErr, "%s\n", s)
+   fprintf1 (StdErr, "%s\n", s)
 END ErrorString ;
 
 
@@ -341,10 +340,10 @@ END ErrorString ;
 
 PROCEDURE SyntaxError (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   DescribeError(stopset0, stopset1, stopset2) ;
+   DescribeError (stopset0, stopset1, stopset2) ;
    IF Debugging
    THEN
-      printf0('\nskipping token *** ')
+      printf0 ('\nskipping token *** ')
    END ;
    (*
       yes the ORD(currenttoken) looks ugly, but it is *much* safer than
@@ -352,15 +351,15 @@ BEGIN
       token declarations below would cause this to break. Using ORD() we are
       immune from such changes
    *)
-   WHILE NOT (((ORD(currenttoken)<32)  AND (currenttoken IN stopset0)) OR
-              ((ORD(currenttoken)>=32) AND (ORD(currenttoken)<64) AND (currenttoken IN stopset1)) OR
-              ((ORD(currenttoken)>=64) AND (currenttoken IN stopset2)))
+   WHILE NOT (((ORD (currenttoken) < 32)  AND (currenttoken IN stopset0)) OR
+              ((ORD (currenttoken) >= 32) AND (ORD (currenttoken) < 64) AND (currenttoken IN stopset1)) OR
+              ((ORD (currenttoken) >= 64) AND (currenttoken IN stopset2)))
    DO
       GetToken
    END ;
    IF Debugging
    THEN
-      printf0(' ***\n')
+      printf0 (' ***\n')
    END
 END SyntaxError ;
 
@@ -373,11 +372,11 @@ PROCEDURE SyntaxCheck (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: Set
 BEGIN
    (* and again (see above re: ORD)
     *)
-   IF NOT (((ORD(currenttoken)<32)  AND (currenttoken IN stopset0)) OR
-     	   ((ORD(currenttoken)>=32) AND (ORD(currenttoken)<64) AND (currenttoken IN stopset1)) OR
-           ((ORD(currenttoken)>=64) AND (currenttoken IN stopset2)))
+   IF NOT (((ORD (currenttoken) < 32)  AND (currenttoken IN stopset0)) OR
+     	   ((ORD (currenttoken) >= 32) AND (ORD (currenttoken) < 64) AND (currenttoken IN stopset1)) OR
+           ((ORD (currenttoken) >= 64) AND (currenttoken IN stopset2)))
    THEN
-      SyntaxError(stopset0, stopset1, stopset2)
+      SyntaxError (stopset0, stopset1, stopset2)
    END
 END SyntaxCheck ;
 
@@ -396,19 +395,19 @@ BEGIN
    s0 := SetOfStop0{} ;
    s1 := SetOfStop1{} ;
    s2 := SetOfStop2{} ;
-   IF ORD(t)<32
+   IF ORD (t) < 32
    THEN
       s0 := SetOfStop0{t}
-   ELSIF ORD(t)<64
+   ELSIF ORD (t) <64
    THEN
       s1 := SetOfStop1{t}
    ELSE
       s2 := SetOfStop2{t}
    END ;
-   str := DescribeStop(s0, s1, s2) ;
+   str := DescribeStop (s0, s1, s2) ;
 
-   str := ConCat(InitString('syntax error,'), Mark(str)) ;
-   ErrorString(str)
+   str := ConCat (InitString ('syntax error,'), Mark (str)) ;
+   ErrorString (str)
 END WarnMissingToken ;
 
 
@@ -418,14 +417,14 @@ END WarnMissingToken ;
 
 PROCEDURE MissingToken (t: toktype) ;
 BEGIN
-   WarnMissingToken(t) ;
-   IF (t#identtok) AND (t#integertok) AND (t#realtok) AND (t#stringtok)
+   WarnMissingToken (t) ;
+   IF (t # identtok) AND (t # integertok) AND (t # realtok) AND (t # stringtok)
    THEN
       IF Debugging
       THEN
-         printf0('inserting token\n')
+         printf0 ('inserting token\n')
       END ;
-      InsertToken(t)
+      InsertToken (t)
    END
 END MissingToken ;
 
@@ -436,15 +435,15 @@ END MissingToken ;
 
 PROCEDURE CheckAndInsert (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) : BOOLEAN ;
 BEGIN
-   IF ((ORD(t)<32) AND (t IN stopset0)) OR
-      ((ORD(t)>=32) AND (ORD(t)<64) AND (t IN stopset1)) OR
-      ((ORD(t)>=64) AND (t IN stopset2))
+   IF ((ORD (t) < 32) AND (t IN stopset0)) OR
+      ((ORD (t) >= 32) AND (ORD (t) < 64) AND (t IN stopset1)) OR
+      ((ORD (t) >= 64) AND (t IN stopset2))
    THEN
-      WarnMissingToken(t) ;
-      InsertTokenAndRewind(t) ;
-      RETURN( TRUE )
+      WarnMissingToken (t) ;
+      InsertTokenAndRewind (t) ;
+      RETURN TRUE
    ELSE
-      RETURN( FALSE )
+      RETURN FALSE
    END
 END CheckAndInsert ;
 
@@ -455,13 +454,13 @@ END CheckAndInsert ;
 
 PROCEDURE InStopSet (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) : BOOLEAN ;
 BEGIN
-   IF ((ORD(t)<32) AND (t IN stopset0)) OR
-      ((ORD(t)>=32) AND (ORD(t)<64) AND (t IN stopset1)) OR
-      ((ORD(t)>=64) AND (t IN stopset2))
+   IF ((ORD (t) < 32) AND (t IN stopset0)) OR
+      ((ORD (t) >= 32) AND (ORD (t) < 64) AND (t IN stopset1)) OR
+      ((ORD (t) >= 64) AND (t IN stopset2))
    THEN
-      RETURN( TRUE )
+      RETURN TRUE
    ELSE
-      RETURN( FALSE )
+      RETURN FALSE
    END
 END InStopSet ;
 
@@ -476,23 +475,22 @@ END InStopSet ;
 
 PROCEDURE PeepToken (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   (* and again (see above re: ORD)
-    *)
-   IF (NOT (((ORD(currenttoken)<32)  AND (currenttoken IN stopset0)) OR
-     	    ((ORD(currenttoken)>=32) AND (ORD(currenttoken)<64) AND (currenttoken IN stopset1)) OR
-            ((ORD(currenttoken)>=64) AND (currenttoken IN stopset2)))) AND
+   (* and again (see above re: ORD).  *)
+   IF (NOT (((ORD (currenttoken) < 32)  AND (currenttoken IN stopset0)) OR
+     	    ((ORD (currenttoken) >= 32) AND (ORD (currenttoken) < 64) AND (currenttoken IN stopset1)) OR
+            ((ORD (currenttoken) >= 64) AND (currenttoken IN stopset2)))) AND
       (NOT InStopSet(identtok, stopset0, stopset1, stopset2))
    THEN
       (* SyntaxCheck would fail since currentoken is not part of the stopset
-         we check to see whether any of currenttoken might be a commonly omitted token *)
-      IF CheckAndInsert(semicolontok, stopset0, stopset1, stopset2) OR
-         CheckAndInsert(rsbratok, stopset0, stopset1, stopset2) OR
-         CheckAndInsert(rparatok, stopset0, stopset1, stopset2) OR
-         CheckAndInsert(rcbratok, stopset0, stopset1, stopset2) OR
-         CheckAndInsert(periodtok, stopset0, stopset1, stopset2) OR
-         CheckAndInsert(oftok, stopset0, stopset1, stopset2) OR
-         CheckAndInsert(endtok, stopset0, stopset1, stopset2) OR
-         CheckAndInsert(commatok, stopset0, stopset1, stopset2)
+         we check to see whether any of currenttoken might be a commonly omitted token.  *)
+      IF CheckAndInsert (semicolontok, stopset0, stopset1, stopset2) OR
+         CheckAndInsert (rsbratok, stopset0, stopset1, stopset2) OR
+         CheckAndInsert (rparatok, stopset0, stopset1, stopset2) OR
+         CheckAndInsert (rcbratok, stopset0, stopset1, stopset2) OR
+         CheckAndInsert (periodtok, stopset0, stopset1, stopset2) OR
+         CheckAndInsert (oftok, stopset0, stopset1, stopset2) OR
+         CheckAndInsert (endtok, stopset0, stopset1, stopset2) OR
+         CheckAndInsert (commatok, stopset0, stopset1, stopset2)
       THEN
       END
    END
@@ -505,14 +503,14 @@ END PeepToken ;
 
 PROCEDURE Expect (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   IF currenttoken=t
+   IF currenttoken = t
    THEN
       GetToken ;
-      PeepToken(stopset0, stopset1, stopset2)
+      PeepToken (stopset0, stopset1, stopset2)
    ELSE
-      MissingToken(t)
+      MissingToken (t)
    END ;
-   SyntaxCheck(stopset0, stopset1, stopset2)
+   SyntaxCheck (stopset0, stopset1, stopset2)
 END Expect ;
 
 
@@ -522,14 +520,14 @@ END Expect ;
 
 PROCEDURE InitStopSet (t: toktype; VAR stopset0: SetOfStop0; VAR stopset1: SetOfStop1; VAR stopset2: SetOfStop2) ;
 BEGIN
-   IF ORD(t)<32
+   IF ORD (t) < 32
    THEN
-      INCL(stopset0, t)
-   ELSIF ORD(t)<64
+      INCL (stopset0, t)
+   ELSIF ORD (t) < 64
    THEN
-      INCL(stopset1, t)
+      INCL (stopset1, t)
    ELSE
-      INCL(stopset2, t)
+      INCL (stopset2, t)
    END
 END InitStopSet ;
 
@@ -547,15 +545,15 @@ BEGIN
    s0 := SetOfStop0{} ;
    s1 := SetOfStop1{} ;
    s2 := SetOfStop2{} ;
-   InitStopSet(eoftok, s0, s1, s2) ;
-   InitStopSet(consttok, s0, s1, s2) ;
-   InitStopSet(typetok, s0, s1, s2) ;
-   InitStopSet(vartok, s0, s1, s2) ;
-   InitStopSet(proceduretok, s0, s1, s2) ;
-   InitStopSet(begintok, s0, s1, s2) ;
-   InitStopSet(moduletok, s0, s1, s2) ;
-   InitStopSet(endtok, s0, s1, s2) ;
-   FileUnit(s0, s1, s2)
+   InitStopSet (eoftok, s0, s1, s2) ;
+   InitStopSet (consttok, s0, s1, s2) ;
+   InitStopSet (typetok, s0, s1, s2) ;
+   InitStopSet (vartok, s0, s1, s2) ;
+   InitStopSet (proceduretok, s0, s1, s2) ;
+   InitStopSet (begintok, s0, s1, s2) ;
+   InitStopSet (moduletok, s0, s1, s2) ;
+   InitStopSet (endtok, s0, s1, s2) ;
+   FileUnit (s0, s1, s2)
 END CompilationUnit ;
 
 
@@ -565,8 +563,8 @@ END CompilationUnit ;
 
 PROCEDURE Ident (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   LastIdent := makekey(currentstring) ;
-   Expect(identtok, stopset0, stopset1, stopset2)
+   LastIdent := makekey (currentstring) ;
+   Expect (identtok, stopset0, stopset1, stopset2)
 END Ident ;
 
 
@@ -576,7 +574,7 @@ END Ident ;
 
 PROCEDURE str (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   Expect(stringtok, stopset0, stopset1, stopset2)
+   Expect (stringtok, stopset0, stopset1, stopset2)
 END str ;
 
 
@@ -586,7 +584,7 @@ END str ;
 
 PROCEDURE Integer (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   Expect(integertok, stopset0, stopset1, stopset2)
+   Expect (integertok, stopset0, stopset1, stopset2)
 END Integer ;
 
 
@@ -596,7 +594,7 @@ END Integer ;
 
 PROCEDURE Real (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   Expect(realtok, stopset0, stopset1, stopset2)
+   Expect (realtok, stopset0, stopset1, stopset2)
 END Real ;
 
 % module gm2l end
@@ -609,9 +607,9 @@ VAR
    s: Source ;
 BEGIN
    s := Head ;
-   WHILE s#NIL DO
+   WHILE s # NIL DO
       WITH s^ DO
-         IF name=ModuleName
+         IF name = ModuleName
          THEN
             RETURN
          ELSE
@@ -620,12 +618,12 @@ BEGIN
       END
    END ;
    (* not found so create new entry *)
-   IF Head=NIL
+   IF Head = NIL
    THEN
-      NEW(Head) ;
+      NEW (Head) ;
       Tail := Head
    ELSE
-      NEW(Tail^.next) ;
+      NEW (Tail^.next) ;
       Tail := Tail^.next
    END ;
    WITH Tail^ DO
@@ -647,44 +645,44 @@ PROCEDURE Open (ModuleName: Name; IsDefinition: BOOLEAN) : BOOLEAN ;
 VAR
    a, b: String ;
 BEGIN
-   IF (NOT IsDefinition) AND (ModuleName=MainName)
+   IF (NOT IsDefinition) AND (ModuleName = MainName)
    THEN
-      a := InitStringCharStar(KeyToCharStar(MainSrc)) ;
-      IF OpenSource(PreprocessModule(a))
+      a := InitStringCharStar (KeyToCharStar (MainSrc)) ;
+      IF OpenSource (PreprocessModule (a))
       THEN
-         pSource^.fullpath := Dup(a) ;
-         a := KillString(a) ;
-         RETURN( TRUE )
+         pSource^.fullpath := Dup (a) ;
+         a := KillString (a) ;
+         RETURN TRUE
       ELSE
-         a := KillString(a) ;
-         RETURN( FALSE )
+         a := KillString (a) ;
+         RETURN FALSE
       END
    ELSE
-      a := InitStringCharStar(KeyToCharStar(ModuleName)) ;
+      a := InitStringCharStar (KeyToCharStar (ModuleName)) ;
       IF IsDefinition
       THEN
-         IF FindSourceDefFile(a, b) AND OpenSource(PreprocessModule(b))
+         IF FindSourceDefFile (a, b) AND OpenSource (PreprocessModule (b))
          THEN
-            pSource^.fullpath := Dup(b) ;
-            a := KillString(a) ;
-            b := KillString(b) ;
-            RETURN( TRUE )
+            pSource^.fullpath := Dup (b) ;
+            a := KillString (a) ;
+            b := KillString (b) ;
+            RETURN TRUE
          ELSE
-            a := KillString(a) ;
-            b := KillString(b) ;
-            RETURN( FALSE )
+            a := KillString (a) ;
+            b := KillString (b) ;
+            RETURN FALSE
          END
       ELSE
-         IF FindSourceModFile(a, b) AND OpenSource(PreprocessModule(b))
+         IF FindSourceModFile (a, b) AND OpenSource (PreprocessModule (b))
          THEN
-            pSource^.fullpath := Dup(b) ;
-            a := KillString(a) ;
-            b := KillString(b) ;
-            RETURN( TRUE )
+            pSource^.fullpath := Dup (b) ;
+            a := KillString (a) ;
+            b := KillString (b) ;
+            RETURN TRUE
          ELSE
-            a := KillString(a) ;
-            b := KillString(b) ;
-            RETURN( FALSE )
+            a := KillString (a) ;
+            b := KillString (b) ;
+            RETURN FALSE
          END
       END
    END
@@ -700,9 +698,9 @@ VAR
    p: Source ;
 BEGIN
    p := Head ;
-   WHILE p#NIL DO
+   WHILE p # NIL DO
       WITH p^ DO
-         Depth := GetDepth(name)
+         Depth := GetDepth (name)
       END ;
       p := p^.next
    END
@@ -738,12 +736,12 @@ VAR
    pi, pj: Source ;
 BEGIN
    pi := Head ;
-   WHILE pi#NIL DO
+   WHILE pi # NIL DO
       pj := Head ;
-      WHILE pj#NIL DO
-         IF (pi#pj) AND (pi^.Depth>pj^.Depth)
+      WHILE pj # NIL DO
+         IF (pi # pj) AND (pi^.Depth > pj^.Depth)
          THEN
-            Swap(pi, pj)
+            Swap (pi, pj)
          END ;
          pj := pj^.next
       END ;
@@ -762,35 +760,35 @@ VAR
 BEGIN
    CommentChar := Comment ;
    p := Head ;
-   WHILE p#NIL DO
+   WHILE p # NIL DO
       WITH p^ DO
-         fprintf3(fo, '%c %a %4d ', CommentChar, name, Depth) ;
-         IF p^.fullpath=NIL
+         fprintf3 (fo, '%c %a %4d ', CommentChar, name, Depth) ;
+         IF p^.fullpath = NIL
          THEN
-            fprintf1(fo, 'no source file found for module %a\n', p^.name) ;
-            fprintf1(StdErr, 'no source file found for module %a\n', p^.name) ;
-            exit(1)
+            fprintf1 (fo, 'no source file found for module %a\n', p^.name) ;
+            fprintf1 (StdErr, 'no source file found for module %a\n', p^.name) ;
+            exit (1)
          ELSE
-            fprintf1(fo, '%s', p^.fullpath) ;
+            fprintf1 (fo, '%s', p^.fullpath) ;
             IF p^.ForC
             THEN
-               fprintf0(fo, " FOR 'C'\n")
+               fprintf0 (fo, " FOR 'C'\n")
             ELSE
-               fprintf0(fo, '\n')
+               fprintf0 (fo, '\n')
             END
          END
       END ;
       p := p^.next
    END ;
-   fprintf3(fo, '%c\n%c Initialization order\n%c\n', CommentChar, CommentChar, CommentChar) ;
+   fprintf3 (fo, '%c\n%c Initialization order\n%c\n', CommentChar, CommentChar, CommentChar) ;
    p := Head ;
-   WHILE p#NIL DO
+   WHILE p # NIL DO
       WITH p^ DO
          (*
             do not automatically link ForC modules,
 	    the user must specify them either as -lmodule or module.o
          *)
-         IF (NOT ForC) OR (name=MakeKey('SYSTEM'))
+         IF (NOT ForC) OR (name = MakeKey ('SYSTEM'))
          THEN
             fprintf1(fo, '%a\n', name)
          END
@@ -806,15 +804,15 @@ END DisplaySources ;
 
 PROCEDURE OpenOutputFile (s: String) ;
 BEGIN
-   IF EqualArray(s, '-')
+   IF EqualArray (s, '-')
    THEN
       fo := StdOut
    ELSE
-      fo := OpenToWrite(s) ;
-      IF NOT IsNoError(fo)
+      fo := OpenToWrite (s) ;
+      IF NOT IsNoError (fo)
       THEN
-         fprintf1(StdErr, 'cannot write to: %s\n', s) ;
-         exit(1)
+         fprintf1 (StdErr, 'cannot write to: %s\n', s) ;
+         exit (1)
       END
    END
 END OpenOutputFile ;
@@ -832,71 +830,71 @@ VAR
 BEGIN
    IncludeM2RTS := TRUE ;
    MainName := NulName ;
-   n := SArgs.Narg() ;
+   n := SArgs.Narg () ;
    IF n=1
    THEN
-      printf0('Usage: gm2l [-v] [--verbose] [--M2RTS] [-M2RTS] [-Isearchpath] [-fdef=extension] [-fmod=extension] [-o outputfile] modulefile\n')
+      printf0 ('Usage: gm2l [-v] [--verbose] [--M2RTS] [-M2RTS] [-Isearchpath] [-fdef=extension] [-fmod=extension] [-o outputfile] modulefile\n')
    ELSE
       i := 1 ;
       REPEAT
-         IF SArgs.GetArg(s, i)
+         IF SArgs.GetArg (s, i)
          THEN
-            IF EqualArray(Mark(Slice(s, 0, 2)), '-v') OR EqualArray(s, '--verbose')
+            IF EqualArray (Mark (Slice (s, 0, 2)), '-v') OR EqualArray (s, '--verbose')
             THEN
                IF SetVerbose (TRUE)
                THEN
                END
-            ELSIF EqualArray(s, '-I')
+            ELSIF EqualArray (s, '-I')
             THEN
                INC (i) ;
                IF SArgs.GetArg (s, i)
                THEN
                   PrependSearchPath (s)
                END
-            ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-I')
+            ELSIF EqualArray (Mark (Slice (s, 0, 2)), '-I')
             THEN
-               PrependSearchPath(Slice(s, 2, 0))
-            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-fdef=')
+               PrependSearchPath (Slice (s, 2, 0))
+            ELSIF EqualArray (Mark (Slice (s, 0, 6)), '-fdef=')
             THEN
-               SetDefExtension(Slice(s, 6, 0))
-            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-fmod=')
+               SetDefExtension (Slice (s, 6, 0))
+            ELSIF EqualArray(Mark (Slice (s, 0, 6)), '-fmod=')
             THEN
-               SetModExtension(Slice(s, 6, 0))
-            ELSIF EqualArray(s, '-fcppbegin')
+               SetModExtension (Slice (s, 6, 0))
+            ELSIF EqualArray (s, '-fcppbegin')
             THEN
-               i := ScanCppArgs(i)
-            ELSIF EqualArray(s, '--M2RTS') OR EqualArray(s, '-M2RTS')
+               i := ScanCppArgs (i)
+            ELSIF EqualArray (s, '--M2RTS') OR EqualArray (s, '-M2RTS')
             THEN
                (* no M2RTS to be automatically linked imported from the main module *)
                IncludeM2RTS := FALSE
-            ELSIF EqualArray(s, '-o')
+            ELSIF EqualArray (s, '-o')
             THEN
-               INC(i) ;
-               IF GetArg(s, i)
+               INC (i) ;
+               IF GetArg (s, i)
                THEN
-                  OpenOutputFile(s)
+                  OpenOutputFile (s)
                END
             ELSE
-               MainSrc := makekey(string(s))
+               MainSrc := makekey (string (s))
             END
          END ;
-         INC(i)
-      UNTIL i>n
+         INC (i)
+      UNTIL i > n
    END ;
-   RETURN( MainSrc#NulName )
+   RETURN MainSrc#NulName
 END ScanArgs ;
 
 
 BEGIN
    fo := StdOut ;
-   IF ScanArgs()
+   IF ScanArgs ()
    THEN
-      ScanSources(MainSrc) ;
+      ScanSources (MainSrc) ;
       CalculateDepth ;
       SortSources ;
       DisplaySources
    END ;
-   Close(fo)
+   Close (fo)
 END gm2l.
 % rules
 error       'ErrorArray' 'ErrorString'

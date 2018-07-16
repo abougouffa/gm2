@@ -1,5 +1,5 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -28,10 +28,10 @@ FROM ASCII IMPORT nul, tab, lf ;
 
 CONST
    MaxBuf   = 127 ;
-   PoisonOn = FALSE ;    (* to enable debugging of this module, turn on PoisonOn and DebugOn  *)
+   PoisonOn = FALSE ;    (* to enable debugging of this module, turn on PoisonOn and DebugOn.  *)
    DebugOn  = FALSE ;
-   CheckOn  = FALSE ;    (* to enable debugging of users of this module turn on               *)
-   TraceOn  = FALSE ;    (* CheckOn and TraceOn.                                              *)
+   CheckOn  = FALSE ;    (* to enable debugging of users of this module turn on                *)
+   TraceOn  = FALSE ;    (* CheckOn and TraceOn.                                               *)
 
 TYPE
    Contents = RECORD
@@ -78,29 +78,27 @@ TYPE
 VAR
    Initialized: BOOLEAN ;
    frameHead  : frame ;
-   captured   : String ;  (* debugging aid *)
+   captured   : String ;  (* debugging aid.  *)
 
 
-(*
-   writeStringDesc -
-*)
+(* writeStringDesc write out debugging information about string, s.  *)
 
 PROCEDURE writeStringDesc (s: String) ;
 BEGIN
-   writeCstring(s^.debug.file) ; writeString(':') ;
-   writeCard(s^.debug.line) ; writeString(':') ;
-   writeCstring(s^.debug.proc) ; writeString(' ') ;
-   writeAddress(s) ;
-   writeString(' ') ;
+   writeCstring (s^.debug.file) ; writeString (':') ;
+   writeCard (s^.debug.line) ; writeString (':') ;
+   writeCstring (s^.debug.proc) ; writeString (' ') ;
+   writeAddress (s) ;
+   writeString (' ') ;
    CASE s^.head^.state OF
 
-   inuse   :  writeString("still in use (") ; writeCard(s^.contents.len) ; writeString(") characters") |
-   marked  :  writeString("marked") |
-   onlist  :  writeString("on a (lost) garbage list") |
-   poisoned:  writeString("poisoned")
+   inuse   :  writeString ("still in use (") ; writeCard (s^.contents.len) ; writeString (") characters") |
+   marked  :  writeString ("marked") |
+   onlist  :  writeString ("on a (lost) garbage list") |
+   poisoned:  writeString ("poisoned")
 
    ELSE
-      writeString("unknown state")
+      writeString ("unknown state")
    END
 END writeStringDesc ;
 
@@ -111,9 +109,9 @@ END writeStringDesc ;
 
 PROCEDURE writeNspace (n: CARDINAL) ;
 BEGIN
-   WHILE n>0 DO
-      writeString(' ') ;
-      DEC(n)
+   WHILE n > 0 DO
+      writeString (' ') ;
+      DEC (n)
    END
 END writeNspace ;
 
@@ -126,16 +124,16 @@ PROCEDURE DumpStringInfo (s: String; i: CARDINAL) ;
 VAR
    t: String ;
 BEGIN
-   IF s#NIL
+   IF s # NIL
    THEN
-      writeNspace(i) ; writeStringDesc(s) ; writeLn ;
-      IF s^.head^.garbage#NIL
+      writeNspace (i) ; writeStringDesc (s) ; writeLn ;
+      IF s^.head^.garbage # NIL
       THEN
-         writeNspace(i) ; writeString('garbage list:') ; writeLn ;
+         writeNspace (i) ; writeString ('garbage list:') ; writeLn ;
          REPEAT
             s := s^.head^.garbage ;
-            DumpStringInfo(s, i+1) ; writeLn
-         UNTIL s=NIL
+            DumpStringInfo (s, i+1) ; writeLn
+         UNTIL s = NIL
       END
    END
 END DumpStringInfo ;
@@ -158,34 +156,34 @@ VAR
    b: BOOLEAN ;
 BEGIN
    Init ;
-   IF frameHead=NIL
+   IF frameHead = NIL
    THEN
-      writeString("mismatched number of PopAllocation's compared to PushAllocation's")
+      writeString ("mismatched number of PopAllocation's compared to PushAllocation's")
    ELSE
-      IF frameHead^.alloc#NIL
+      IF frameHead^.alloc # NIL
       THEN
          b := FALSE ;
          s := frameHead^.alloc ;
-         WHILE s#NIL DO
-            IF NOT ((e=s) OR IsOnGarbage(e, s) OR IsOnGarbage(s, e))
+         WHILE s # NIL DO
+            IF NOT ((e = s) OR IsOnGarbage (e, s) OR IsOnGarbage (s, e))
             THEN
                IF NOT b
                THEN
-                  writeString("the following strings have been lost") ; writeLn ;
+                  writeString ("the following strings have been lost") ; writeLn ;
                   b := TRUE
                END ;
-               DumpStringInfo(s, 0)
+               DumpStringInfo (s, 0)
             END ;
             s := s^.debug.next
          END ;
          IF b AND halt
          THEN
-            exit(1)
+            exit (1)
          END
       END ;
       frameHead := frameHead^.next
    END ;
-   RETURN( e )
+   RETURN e
 END PopAllocationExemption ;
 
 
@@ -200,7 +198,7 @@ END PopAllocationExemption ;
 
 PROCEDURE PopAllocation (halt: BOOLEAN) ;
 BEGIN
-   IF PopAllocationExemption(halt, NIL)=NIL
+   IF PopAllocationExemption (halt, NIL) = NIL
    THEN
    END
 END PopAllocation ;
@@ -217,7 +215,7 @@ BEGIN
    IF CheckOn
    THEN
       Init ;
-      NEW(f) ;
+      NEW (f) ;
       WITH f^ DO
          next := frameHead ;
          alloc := NIL ;
@@ -249,7 +247,7 @@ PROCEDURE doDSdbExit (s: String) ;
 BEGIN
    IF CheckOn
    THEN
-      s := PopAllocationExemption(TRUE, s)
+      s := PopAllocationExemption (TRUE, s)
    END
 END doDSdbExit ;
 
@@ -286,7 +284,7 @@ END DSdbExit ;
 PROCEDURE Capture (s: String) : CARDINAL ;
 BEGIN
    captured := s ;
-   RETURN 1;
+   RETURN 1
 END Capture ;
 
 
@@ -296,11 +294,11 @@ END Capture ;
 
 PROCEDURE Min (a, b: CARDINAL) : CARDINAL ;
 BEGIN
-   IF a<b
+   IF a < b
    THEN
-      RETURN( a )
+      RETURN a
    ELSE
-      RETURN( b )
+      RETURN b
    END
 END Min ;
 
@@ -311,11 +309,11 @@ END Min ;
 
 PROCEDURE Max (a, b: CARDINAL) : CARDINAL ;
 BEGIN
-   IF a>b
+   IF a > b
    THEN
-      RETURN( a )
+      RETURN a
    ELSE
-      RETURN( b )
+      RETURN b
    END
 END Max ;
 
@@ -328,7 +326,7 @@ PROCEDURE writeString (a: ARRAY OF CHAR) ;
 VAR
    i: INTEGER ;
 BEGIN
-   i := write(1, ADR(a), StrLen(a))
+   i := write (1, ADR (a), StrLen (a))
 END writeString ;
 
 
@@ -340,11 +338,11 @@ PROCEDURE writeCstring (a: ADDRESS) ;
 VAR
    i: INTEGER ;
 BEGIN
-   IF a=NIL
+   IF a = NIL
    THEN
-      writeString('(null)')
+      writeString ('(null)')
    ELSE
-      i := write(1, a, strlen(a))
+      i := write (1, a, strlen (a))
    END
 END writeCstring ;
 
@@ -358,13 +356,13 @@ VAR
    ch: CHAR ;
    i : INTEGER ;
 BEGIN
-   IF c>9
+   IF c > 9
    THEN
-      writeCard(c DIV 10) ;
-      writeCard(c MOD 10)
+      writeCard (c DIV 10) ;
+      writeCard (c MOD 10)
    ELSE
-      ch := CHR(ORD('0')+c) ;
-      i := write(1, ADR(ch), 1)
+      ch := CHR (ORD ('0') + c) ;
+      i := write (1, ADR (ch), 1)
    END
 END writeCard ;
 
@@ -378,18 +376,18 @@ VAR
    ch: CHAR ;
    i : INTEGER ;
 BEGIN
-   IF l>16
+   IF l > 16
    THEN
-      writeLongcard(l DIV 16) ;
-      writeLongcard(l MOD 16)
-   ELSIF l<10
+      writeLongcard (l DIV 16) ;
+      writeLongcard (l MOD 16)
+   ELSIF l < 10
    THEN
-      ch := CHR(ORD('0')+VAL(CARDINAL, l)) ;
+      ch := CHR (ORD ('0') + VAL (CARDINAL, l)) ;
       i := write(1, ADR(ch), 1)
    ELSIF l<16
    THEN
-      ch := CHR(ORD('a')+VAL(CARDINAL, l)-10) ;
-      i := write(1, ADR(ch), 1)
+      ch := CHR (ORD ('a') + VAL(CARDINAL, l) - 10) ;
+      i := write (1, ADR (ch), 1)
    END
 END writeLongcard ;
 
@@ -400,7 +398,7 @@ END writeLongcard ;
 
 PROCEDURE writeAddress (a: ADDRESS) ;
 BEGIN
-   writeLongcard(VAL(LONGCARD, a))
+   writeLongcard (VAL (LONGCARD, a))
 END writeAddress ;
 
 
@@ -414,7 +412,7 @@ VAR
    i : INTEGER ;
 BEGIN
    ch := lf ;
-   i := write(1, ADR(ch), 1)
+   i := write (1, ADR (ch), 1)
 END writeLn ;
 
 
@@ -426,16 +424,16 @@ PROCEDURE AssignDebug (s: String; file: ARRAY OF CHAR; line: CARDINAL; proc: ARR
 VAR
    f, p: ADDRESS ;
 BEGIN
-   f := ADR(file) ;
-   p := ADR(proc) ;
+   f := ADR (file) ;
+   p := ADR (proc) ;
    WITH s^ DO
-      ALLOCATE(debug.file, StrLen(file)+1) ;
+      ALLOCATE (debug.file, StrLen (file) + 1) ;
       IF strncpy(debug.file, f, StrLen(file)+1)=NIL
       THEN
       END ;
       debug.line := line ;
-      ALLOCATE(debug.proc, StrLen(proc)+1) ;
-      IF strncpy(debug.proc, p, StrLen(proc)+1)=NIL
+      ALLOCATE (debug.proc, StrLen (proc) + 1) ;
+      IF strncpy (debug.proc, p, StrLen (proc) + 1) = NIL
       THEN
       END
    END ;
@@ -451,13 +449,13 @@ PROCEDURE CopyOut (VAR a: ARRAY OF CHAR; s: String) ;
 VAR
    i, l: CARDINAL ;
 BEGIN
-   l := Min(HIGH(a)+1, Length(s)) ;
+   l := Min (HIGH (a) + 1, Length (s)) ;
    i := 0 ;
-   WHILE i<l DO
-      a[i] := char(s, i) ;
-      INC(i)
+   WHILE i < l DO
+      a[i] := char (s, i) ;
+      INC (i)
    END ;
-   IF i<=HIGH(a)
+   IF i <= HIGH (a)
    THEN
       a[i] := nul
    END
@@ -470,10 +468,10 @@ END CopyOut ;
 
 PROCEDURE IsOn (list, s: String) : BOOLEAN ;
 BEGIN
-   WHILE (list#s) AND (list#NIL) DO
+   WHILE (list # s) AND (list # NIL) DO
       list := list^.debug.next
    END ;
-   RETURN( list=s )
+   RETURN list = s
 END IsOn ;
 
 
@@ -483,10 +481,10 @@ END IsOn ;
 
 PROCEDURE AddTo (VAR list: String; s: String) ;
 BEGIN
-   IF list=NIL
+   IF list = NIL
    THEN
       list := s ;
-      s^.debug.next := NIL ;
+      s^.debug.next := NIL
    ELSE
       s^.debug.next := list ;
       list := s
@@ -502,15 +500,15 @@ PROCEDURE SubFrom (VAR list: String; s: String) ;
 VAR
    p: String ;
 BEGIN
-   IF list=s
+   IF list = s
    THEN
       list := s^.debug.next ;
    ELSE
       p := list ;
-      WHILE (p^.debug.next#NIL) AND (p^.debug.next#s) DO
+      WHILE (p^.debug.next # NIL) AND (p^.debug.next # s) DO
          p := p^.debug.next
       END ;
-      IF p^.debug.next=s
+      IF p^.debug.next = s
       THEN
          p^.debug.next := s^.debug.next
       ELSE
@@ -518,7 +516,7 @@ BEGIN
          RETURN
       END
    END ;
-   s^.debug.next := NIL ;
+   s^.debug.next := NIL
 END SubFrom ;
 
 
@@ -529,7 +527,7 @@ END SubFrom ;
 PROCEDURE AddAllocated (s: String) ;
 BEGIN
    Init ;
-   AddTo(frameHead^.alloc, s)
+   AddTo (frameHead^.alloc, s)
 END AddAllocated ;
 
 
@@ -540,7 +538,7 @@ END AddAllocated ;
 PROCEDURE AddDeallocated (s: String) ;
 BEGIN
    Init ;
-   AddTo(frameHead^.dealloc, s)
+   AddTo (frameHead^.dealloc, s)
 END AddDeallocated ;
 
 
@@ -555,14 +553,14 @@ BEGIN
    Init ;
    f := frameHead ;
    REPEAT
-      IF IsOn(f^.alloc, s)
+      IF IsOn (f^.alloc, s)
       THEN
-         RETURN( TRUE )
+         RETURN TRUE
       ELSE
          f := f^.next
       END
-   UNTIL f=NIL ;
-   RETURN( FALSE )
+   UNTIL f = NIL ;
+   RETURN FALSE
 END IsOnAllocated ;
 
 
@@ -577,14 +575,14 @@ BEGIN
    Init ;
    f := frameHead ;
    REPEAT
-      IF IsOn(f^.dealloc, s)
+      IF IsOn (f^.dealloc, s)
       THEN
-         RETURN( TRUE )
+         RETURN TRUE
       ELSE
          f := f^.next
       END
-   UNTIL f=NIL ;
-   RETURN( FALSE )
+   UNTIL f = NIL ;
+   RETURN FALSE
 END IsOnDeallocated ;
 
 
@@ -599,14 +597,14 @@ BEGIN
    Init ;
    f := frameHead ;
    REPEAT
-      IF IsOn(f^.alloc, s)
+      IF IsOn (f^.alloc, s)
       THEN
-         SubFrom(f^.alloc, s) ;
+         SubFrom (f^.alloc, s) ;
          RETURN
       ELSE
          f := f^.next
       END
-   UNTIL f=NIL
+   UNTIL f = NIL
 END SubAllocated ;
 
 
@@ -621,14 +619,14 @@ BEGIN
    Init ;
    f := frameHead ;
    REPEAT
-      IF IsOn(f^.dealloc, s)
+      IF IsOn (f^.dealloc, s)
       THEN
-         SubFrom(f^.dealloc, s) ;
+         SubFrom (f^.dealloc, s) ;
          RETURN
       ELSE
          f := f^.next
       END
-   UNTIL f=NIL
+   UNTIL f = NIL
 END SubDeallocated ;
 
 
@@ -638,18 +636,18 @@ END SubDeallocated ;
 
 PROCEDURE SubDebugInfo (s: String) ;
 BEGIN
-   IF IsOnDeallocated(s)
+   IF IsOnDeallocated (s)
    THEN
-      Assert(NOT DebugOn) ;
+      Assert (NOT DebugOn) ;
       (* string has already been deallocated *)
       RETURN
    END ;
-   IF IsOnAllocated(s)
+   IF IsOnAllocated (s)
    THEN
-      SubAllocated(s) ;
-      AddDeallocated(s)
+      SubAllocated (s) ;
+      AddDeallocated (s)
    ELSE
-      Assert(NOT DebugOn)
+      Assert (NOT DebugOn)
       (* string has not been allocated *)
    END
 END SubDebugInfo ;
@@ -669,7 +667,7 @@ BEGIN
    END ;
    IF CheckOn
    THEN
-      AddAllocated(s)
+      AddAllocated (s)
    END
 END AddDebugInfo ;
 
@@ -684,23 +682,23 @@ VAR
    i: CARDINAL ;
 BEGIN
    i := c.len ;
-   WHILE (o<h) AND (i<MaxBuf) DO
+   WHILE (o < h) AND (i < MaxBuf) DO
       c.buf[i] := a[o] ;
-      INC(o) ;
-      INC(i)
+      INC (o) ;
+      INC (i)
    END ;
-   IF o<h
+   IF o < h
    THEN
       c.len := MaxBuf ;
-      NEW(c.next) ;
+      NEW (c.next) ;
       WITH c.next^ DO
          head := NIL ;
          contents.len := 0 ;
          contents.next := NIL ;
-         ConcatContents(contents, a, h, o)
+         ConcatContents (contents, a, h, o)
       END ;
-      AddDebugInfo(c.next) ;
-      c.next := AssignDebug(c.next, __FILE__, __LINE__, __FUNCTION__)
+      AddDebugInfo (c.next) ;
+      c.next := AssignDebug (c.next, __FILE__, __LINE__, __FUNCTION__)
    ELSE
       c.len := i
    END
@@ -722,8 +720,8 @@ BEGIN
          len := 0 ;
          next := NIL
       END ;
-      ConcatContents(contents, a, StrLen(a), 0) ;
-      NEW(head) ;
+      ConcatContents (contents, a, StrLen (a), 0) ;
+      NEW (head) ;
       WITH head^ DO
          charStarUsed  := FALSE ;
          charStar      := NIL ;
@@ -733,12 +731,12 @@ BEGIN
          state         := inuse ;
       END
    END ;
-   AddDebugInfo(s) ;
+   AddDebugInfo (s) ;
    IF TraceOn
    THEN
-      s := AssignDebug(s, __FILE__, __LINE__, __FUNCTION__)
+      s := AssignDebug (s, __FILE__, __LINE__, __FUNCTION__)
    END ;
-   RETURN( s )
+   RETURN s
 END InitString ;
 
 
@@ -748,12 +746,12 @@ END InitString ;
 
 PROCEDURE DeallocateCharStar (s: String) ;
 BEGIN
-   IF (s#NIL) AND (s^.head#NIL)
+   IF (s # NIL) AND (s^.head # NIL)
    THEN
       WITH s^.head^ DO
-         IF charStarUsed AND (charStar#NIL)
+         IF charStarUsed AND (charStar # NIL)
          THEN
-            DEALLOCATE(charStar, charStarSize)
+            DEALLOCATE (charStar, charStarSize)
          END ;
          charStarUsed  := FALSE ;
          charStar      := NIL ;
@@ -770,11 +768,11 @@ END DeallocateCharStar ;
 
 PROCEDURE CheckPoisoned (s: String) : String ;
 BEGIN
-   IF PoisonOn AND (s#NIL) AND (s^.head#NIL) AND (s^.head^.state=poisoned)
+   IF PoisonOn AND (s # NIL) AND (s^.head # NIL) AND (s^.head^.state = poisoned)
    THEN
       HALT
    END ;
-   RETURN( s )
+   RETURN s
 END CheckPoisoned ;
 
 
@@ -789,45 +787,45 @@ VAR
 BEGIN
    IF PoisonOn
    THEN
-      s := CheckPoisoned(s)
+      s := CheckPoisoned (s)
    END ;
-   IF s#NIL
+   IF s # NIL
    THEN
       IF CheckOn
       THEN
-         IF IsOnAllocated(s)
+         IF IsOnAllocated (s)
          THEN
-            SubAllocated(s)
-         ELSIF IsOnDeallocated(s)
+            SubAllocated (s)
+         ELSIF IsOnDeallocated (s)
          THEN
-            SubDeallocated(s)
+            SubDeallocated (s)
          END
       END ;
       WITH s^ DO
-         IF head#NIL
+         IF head # NIL
          THEN
             WITH head^ DO
                state := poisoned ;
-               garbage := KillString(garbage) ;
+               garbage := KillString (garbage) ;
                IF NOT PoisonOn
                THEN
-                  DeallocateCharStar(s)
+                  DeallocateCharStar (s)
                END
             END ;
             IF NOT PoisonOn
             THEN
-               DISPOSE(head) ;
+               DISPOSE (head) ;
                head := NIL
             END
          END ;
-         t := KillString(s^.contents.next) ;
+         t := KillString (s^.contents.next) ;
          IF NOT PoisonOn
          THEN
-            DISPOSE(s)
+            DISPOSE (s)
          END
       END
    END ;
-   RETURN( NIL )
+   RETURN NIL
 END KillString ;
 
 
@@ -839,7 +837,7 @@ END KillString ;
 
 PROCEDURE Fin (s: String) ;
 BEGIN
-   IF KillString(s)#NIL
+   IF KillString (s) # NIL
    THEN
       HALT
    END
@@ -854,9 +852,9 @@ PROCEDURE MarkInvalid (s: String) ;
 BEGIN
    IF PoisonOn
    THEN
-      s := CheckPoisoned(s)
+      s := CheckPoisoned (s)
    END ;
-   IF s^.head#NIL
+   IF s^.head # NIL
    THEN
       s^.head^.charStarValid := FALSE
    END
@@ -876,26 +874,26 @@ BEGIN
    j := 0 ;
    i := c.len ;
    p := a ;
-   WHILE (j<h) AND (i<MaxBuf) DO
+   WHILE (j < h) AND (i < MaxBuf) DO
       c.buf[i] := p^ ;
-      INC(i) ;
-      INC(j) ;
-      INC(p)
+      INC (i) ;
+      INC (j) ;
+      INC (p)
    END ;
-   IF j<h
+   IF j < h
    THEN
       c.len := MaxBuf ;
-      NEW(c.next) ;
+      NEW (c.next) ;
       WITH c.next^ DO
          head          := NIL ;
          contents.len  := 0 ;
          contents.next := NIL ;
-         ConcatContentsAddress(contents, p, h-j) ;
+         ConcatContentsAddress (contents, p, h - j)
       END ;
-      AddDebugInfo(c.next) ;
+      AddDebugInfo (c.next) ;
       IF TraceOn
       THEN
-         c.next := AssignDebug(c.next, __FILE__, __LINE__, __FUNCTION__)
+         c.next := AssignDebug (c.next, __FILE__, __LINE__, __FUNCTION__)
       END
    ELSE
       c.len := i ;
@@ -912,7 +910,7 @@ PROCEDURE InitStringCharStar (a: ADDRESS) : String ;
 VAR
    s: String ;
 BEGIN
-   NEW(s) ;
+   NEW (s) ;
    WITH s^ DO
       WITH contents DO
          len := 0 ;
@@ -920,9 +918,9 @@ BEGIN
       END ;
       IF a#NIL
       THEN
-         ConcatContentsAddress(contents, a, strlen(a))
+         ConcatContentsAddress (contents, a, strlen (a))
       END ;
-      NEW(head) ;
+      NEW (head) ;
       WITH head^ DO
          charStarUsed  := FALSE ;
          charStar      := NIL ;
@@ -932,12 +930,12 @@ BEGIN
          state         := inuse
       END
    END ;
-   AddDebugInfo(s) ;
+   AddDebugInfo (s) ;
    IF TraceOn
    THEN
-      s := AssignDebug(s, __FILE__, __LINE__, __FUNCTION__)
+      s := AssignDebug (s, __FILE__, __LINE__, __FUNCTION__)
    END ;
-   RETURN( s )
+   RETURN s
 END InitStringCharStar ;
 
 
@@ -952,12 +950,12 @@ VAR
 BEGIN
    a[0] := ch ;
    a[1] := nul ;
-   s := InitString(a) ;
+   s := InitString (a) ;
    IF TraceOn
    THEN
-      s := AssignDebug(s, __FILE__, __LINE__, __FUNCTION__)
+      s := AssignDebug (s, __FILE__, __LINE__, __FUNCTION__)
    END ;
-   RETURN( s )
+   RETURN s
 END InitStringChar ;
 
 
@@ -969,13 +967,13 @@ PROCEDURE Mark (s: String) : String ;
 BEGIN
    IF PoisonOn
    THEN
-      s := CheckPoisoned(s)
+      s := CheckPoisoned (s)
    END ;
-   IF (s#NIL) AND (s^.head^.state=inuse)
+   IF (s # NIL) AND (s^.head^.state = inuse)
    THEN
       s^.head^.state := marked
    END ;
-   RETURN( s )
+   RETURN s
 END Mark ;
 
 
@@ -991,8 +989,8 @@ VAR
 BEGIN
    IF PoisonOn
    THEN
-      a := CheckPoisoned(a) ;
-      b := CheckPoisoned(b)
+      a := CheckPoisoned (a) ;
+      b := CheckPoisoned (b)
    END ;
 (*
    IF (a#NIL) AND (a#b) AND (a^.head^.state=marked)
@@ -1000,20 +998,20 @@ BEGIN
       writeString('warning trying to add to a marked string') ; writeLn
    END ;
 *)
-   IF (a#b) AND (a#NIL) AND (b#NIL) AND (b^.head^.state=marked) AND (a^.head^.state=inuse)
+   IF (a # b) AND (a # NIL) AND (b # NIL) AND (b^.head^.state = marked) AND (a^.head^.state = inuse)
    THEN
       c := a ;
-      WHILE c^.head^.garbage#NIL DO
+      WHILE c^.head^.garbage # NIL DO
          c := c^.head^.garbage
       END ;
       c^.head^.garbage := b ;
       b^.head^.state := onlist ;
       IF CheckOn
       THEN
-         SubDebugInfo(b)
+         SubDebugInfo (b)
       END
    END ;
-   RETURN( a )
+   RETURN a
 END AddToGarbage ;
 
 
@@ -1023,18 +1021,18 @@ END AddToGarbage ;
 
 PROCEDURE IsOnGarbage (e, s: String) : BOOLEAN ;
 BEGIN
-   IF (e#NIL) AND (s#NIL)
+   IF (e # NIL) AND (s # NIL)
    THEN
-      WHILE e^.head^.garbage#NIL DO
-         IF e^.head^.garbage=s
+      WHILE e^.head^.garbage # NIL DO
+         IF e^.head^.garbage = s
          THEN
-            RETURN( TRUE )
+            RETURN TRUE
          ELSE
             e := e^.head^.garbage
          END
       END
    END ;
-   RETURN( FALSE )
+   RETURN FALSE
 END IsOnGarbage ;
 
 
@@ -1044,11 +1042,11 @@ END IsOnGarbage ;
 
 PROCEDURE Length (s: String) : CARDINAL ;
 BEGIN
-   IF s=NIL
+   IF s = NIL
    THEN
-      RETURN( 0 )
+      RETURN 0
    ELSE
-      RETURN( s^.contents.len + Length(s^.contents.next) )
+      RETURN s^.contents.len + Length (s^.contents.next)
    END
 END Length ;
 
@@ -1063,30 +1061,30 @@ VAR
 BEGIN
    IF PoisonOn
    THEN
-      a := CheckPoisoned(a) ;
-      b := CheckPoisoned(b)
+      a := CheckPoisoned (a) ;
+      b := CheckPoisoned (b)
    END ;
-   IF a=b
+   IF a = b
    THEN
-      RETURN( ConCat(a, Mark(Dup(b))) )
-   ELSIF a#NIL
+      RETURN ConCat (a, Mark (Dup (b)))
+   ELSIF a # NIL
    THEN
-      a := AddToGarbage(a, b) ;
-      MarkInvalid(a) ;
+      a := AddToGarbage (a, b) ;
+      MarkInvalid (a) ;
       t := a ;
-      WHILE b#NIL DO
-         WHILE (t^.contents.len=MaxBuf) AND (t^.contents.next#NIL) DO
+      WHILE b # NIL DO
+         WHILE (t^.contents.len = MaxBuf) AND (t^.contents.next # NIL) DO
             t := t^.contents.next
          END ;
-         ConcatContents(t^.contents, b^.contents.buf, b^.contents.len, 0) ;
+         ConcatContents (t^.contents, b^.contents.buf, b^.contents.len, 0) ;
          b := b^.contents.next
       END
    END ;
-   IF (a=NIL) AND (b#NIL)
+   IF (a = NIL) AND (b # NIL)
    THEN
       HALT
    END ;
-   RETURN( a )
+   RETURN a
 END ConCat ;
 
 
@@ -1101,17 +1099,17 @@ VAR
 BEGIN
    IF PoisonOn
    THEN
-      a := CheckPoisoned(a)
+      a := CheckPoisoned (a)
    END ;
    b[0] := ch ;
    b[1] := nul ;
    t := a ;
-   MarkInvalid(a) ;
-   WHILE (t^.contents.len=MaxBuf) AND (t^.contents.next#NIL) DO
+   MarkInvalid (a) ;
+   WHILE (t^.contents.len = MaxBuf) AND (t^.contents.next # NIL) DO
       t := t^.contents.next
    END ;
-   ConcatContents(t^.contents, b, 1, 0) ;
-   RETURN( a )
+   ConcatContents (t^.contents, b, 1, 0) ;
+   RETURN a
 END ConCatChar ;
 
 
@@ -1124,17 +1122,17 @@ PROCEDURE Assign (a, b: String) : String ;
 BEGIN
    IF PoisonOn
    THEN
-      a := CheckPoisoned(a) ;
-      b := CheckPoisoned(b)
+      a := CheckPoisoned (a) ;
+      b := CheckPoisoned (b)
    END ;
-   IF (a#NIL) AND (b#NIL)
+   IF (a # NIL) AND (b # NIL)
    THEN
       WITH a^ DO
-         contents.next := KillString(contents.next) ;
+         contents.next := KillString (contents.next) ;
          contents.len  := 0
       END
    END ;
-   RETURN( ConCat(a, b) )
+   RETURN ConCat (a, b)
 END Assign ;
 
 
@@ -1146,14 +1144,14 @@ PROCEDURE Dup (s: String) : String ;
 BEGIN
    IF PoisonOn
    THEN
-      s := CheckPoisoned(s)
+      s := CheckPoisoned (s)
    END ;
-   s := Assign(InitString(''), s) ;
+   s := Assign (InitString (''), s) ;
    IF TraceOn
    THEN
-      s := AssignDebug(s, __FILE__, __LINE__, __FUNCTION__)
+      s := AssignDebug (s, __FILE__, __LINE__, __FUNCTION__)
    END ;
-   RETURN( s )
+   RETURN s
 END Dup ;
 
 
@@ -1165,15 +1163,15 @@ PROCEDURE Add (a, b: String) : String ;
 BEGIN
    IF PoisonOn
    THEN
-      a := CheckPoisoned(a) ;
-      b := CheckPoisoned(b)
+      a := CheckPoisoned (a) ;
+      b := CheckPoisoned (b)
    END ;
-   a := ConCat(ConCat(InitString(''), a), b) ;
+   a := ConCat (ConCat (InitString (''), a), b) ;
    IF TraceOn
    THEN
-      a := AssignDebug(a, __FILE__, __LINE__, __FUNCTION__)
+      a := AssignDebug (a, __FILE__, __LINE__, __FUNCTION__)
    END ;
-   RETURN( a )
+   RETURN a
 END Add ;
 
 
@@ -1187,35 +1185,35 @@ VAR
 BEGIN
    IF PoisonOn
    THEN
-      a := CheckPoisoned(a) ;
-      b := CheckPoisoned(b)
+      a := CheckPoisoned (a) ;
+      b := CheckPoisoned (b)
    END ;
-   IF Length(a)=Length(b)
+   IF Length (a) = Length (b)
    THEN
-      WHILE (a#NIL) AND (b#NIL) DO
+      WHILE (a # NIL) AND (b # NIL) DO
          i := 0 ;
-         Assert(a^.contents.len=b^.contents.len) ;
+         Assert (a^.contents.len = b^.contents.len) ;
          WHILE i<a^.contents.len DO
-            IF a^.contents.buf[i]#a^.contents.buf[i]
+            IF a^.contents.buf[i] # a^.contents.buf[i]
             THEN
                HALT
             END ;
-            IF b^.contents.buf[i]#b^.contents.buf[i]
+            IF b^.contents.buf[i] # b^.contents.buf[i]
             THEN
                HALT
             END ;
-            IF a^.contents.buf[i]#b^.contents.buf[i]
+            IF a^.contents.buf[i] # b^.contents.buf[i]
             THEN
-               RETURN( FALSE )
+               RETURN FALSE
             END ;
-            INC(i)
+            INC (i)
          END ;
          a := a^.contents.next ;
          b := b^.contents.next
       END ;
-      RETURN( TRUE )
+      RETURN TRUE
    ELSE
-      RETURN( FALSE )
+      RETURN FALSE
    END
 END Equal ;
 
@@ -1231,21 +1229,21 @@ VAR
 BEGIN
    IF PoisonOn
    THEN
-      s := CheckPoisoned(s)
+      s := CheckPoisoned (s)
    END ;
-   t := InitStringCharStar(a) ;
+   t := InitStringCharStar (a) ;
    IF TraceOn
    THEN
-      t := AssignDebug(t, __FILE__, __LINE__, __FUNCTION__)
+      t := AssignDebug (t, __FILE__, __LINE__, __FUNCTION__)
    END ;
-   t := AddToGarbage(t, s) ;
-   IF Equal(t, s)
+   t := AddToGarbage (t, s) ;
+   IF Equal (t, s)
    THEN
-      t := KillString(t) ;
-      RETURN( TRUE )
+      t := KillString (t) ;
+      RETURN TRUE
    ELSE
-      t := KillString(t) ;
-      RETURN( FALSE )
+      t := KillString (t) ;
+      RETURN FALSE
    END
 END EqualCharStar ;
 
@@ -1261,21 +1259,21 @@ VAR
 BEGIN
    IF PoisonOn
    THEN
-      s := CheckPoisoned(s)
+      s := CheckPoisoned (s)
    END ;
-   t := InitString(a) ;
+   t := InitString (a) ;
    IF TraceOn
    THEN
-      t := AssignDebug(t, __FILE__, __LINE__, __FUNCTION__)
+      t := AssignDebug (t, __FILE__, __LINE__, __FUNCTION__)
    END ;
-   t := AddToGarbage(t, s) ;
-   IF Equal(t, s)
+   t := AddToGarbage (t, s) ;
+   IF Equal (t, s)
    THEN
-      t := KillString(t) ;
-      RETURN( TRUE )
+      t := KillString (t) ;
+      RETURN TRUE
    ELSE
-      t := KillString(t) ;
-      RETURN( FALSE )
+      t := KillString (t) ;
+      RETURN FALSE
    END
 END EqualArray ;
 
@@ -1288,19 +1286,19 @@ PROCEDURE Mult (s: String; n: CARDINAL) : String ;
 BEGIN
    IF PoisonOn
    THEN
-      s := CheckPoisoned(s)
+      s := CheckPoisoned (s)
    END ;
    IF n<=0
    THEN
-      s := AddToGarbage(InitString(''), s)
+      s := AddToGarbage (InitString (''), s)
    ELSE
-      s := ConCat(Mult(s, n-1), s)
+      s := ConCat (Mult (s, n-1), s)
    END ;
    IF TraceOn
    THEN
-      s := AssignDebug(s, __FILE__, __LINE__, __FUNCTION__)
+      s := AssignDebug (s, __FILE__, __LINE__, __FUNCTION__)
    END ;
-   RETURN( s )
+   RETURN s
 END Mult ;
 
 
@@ -1323,69 +1321,69 @@ VAR
 BEGIN
    IF PoisonOn
    THEN
-      s := CheckPoisoned(s)
+      s := CheckPoisoned (s)
    END ;
-   IF low<0
+   IF low < 0
    THEN
-      low := VAL(INTEGER, Length(s))+low
+      low := VAL (INTEGER, Length (s)) + low
    END ;
-   IF high<=0
+   IF high <= 0
    THEN
-      high := VAL(INTEGER, Length(s))+high
+      high := VAL (INTEGER, Length (s)) + high
    ELSE
-      (* make sure high is <= Length(s) *)
-      high := Min(Length(s), high)
+      (* make sure high is <= Length (s) *)
+      high := Min (Length (s), high)
    END ;
-   d := InitString('') ;
-   d := AddToGarbage(d, s) ;
+   d := InitString ('') ;
+   d := AddToGarbage (d, s) ;
    o := 0 ;
    t := d ;
-   WHILE s#NIL DO
-      IF low<o+VAL(INTEGER, s^.contents.len)
+   WHILE s # NIL DO
+      IF low < o + VAL (INTEGER, s^.contents.len)
       THEN
-         IF o>high
+         IF o > high
          THEN
             s := NIL
          ELSE
             (* found sliceable unit *)
-            IF low<o
+            IF low < o
             THEN
                start := 0
             ELSE
-               start := low-o
+               start := low - o
             END ;
-            end := Max(Min(MaxBuf, high-o), 0) ;
-            WHILE t^.contents.len=MaxBuf DO
-               IF t^.contents.next=NIL
+            end := Max (Min (MaxBuf, high - o), 0) ;
+            WHILE t^.contents.len = MaxBuf DO
+               IF t^.contents.next = NIL
                THEN
-                  NEW(t^.contents.next) ;
+                  NEW (t^.contents.next) ;
                   WITH t^.contents.next^ DO
                      head         := NIL ;
                      contents.len := 0
                   END ;
-                  AddDebugInfo(t^.contents.next) ;
+                  AddDebugInfo (t^.contents.next) ;
                   IF TraceOn
                   THEN
-                     t^.contents.next := AssignDebug(t^.contents.next, __FILE__, __LINE__, __FUNCTION__)
+                     t^.contents.next := AssignDebug (t^.contents.next, __FILE__, __LINE__, __FUNCTION__)
                   END
                END ;
                t := t^.contents.next
             END ;
-            ConcatContentsAddress(t^.contents,
-                                  ADR(s^.contents.buf[start]), end-start) ;
-            INC(o, s^.contents.len) ;
+            ConcatContentsAddress (t^.contents,
+                                   ADR (s^.contents.buf[start]), end - start) ;
+            INC (o, s^.contents.len) ;
             s := s^.contents.next
          END
       ELSE
-         INC(o, s^.contents.len) ;
+         INC (o, s^.contents.len) ;
          s := s^.contents.next
       END ;
    END ;
    IF TraceOn
    THEN
-      d := AssignDebug(d, __FILE__, __LINE__, __FUNCTION__)
+      d := AssignDebug (d, __FILE__, __LINE__, __FUNCTION__)
    END ;
-   RETURN( d )
+   RETURN d
 END Slice ;
 
 
@@ -1401,30 +1399,30 @@ VAR
 BEGIN
    IF PoisonOn
    THEN
-      s := CheckPoisoned(s)
+      s := CheckPoisoned (s)
    END ;
    k := 0 ;
-   WHILE s#NIL DO
+   WHILE s # NIL DO
       WITH s^ DO
-         IF k+contents.len<o
+         IF k + contents.len < o
          THEN
-            INC(k, contents.len)
+            INC (k, contents.len)
          ELSE
-            i := o-k ;
-            WHILE i<contents.len DO
-               IF contents.buf[i]=ch
+            i := o - k ;
+            WHILE i < contents.len DO
+               IF contents.buf[i] = ch
                THEN
-                  RETURN( k+i )
+                  RETURN k + i
                END ;
-               INC(i)
+               INC (i)
             END ;
-            INC(k, i) ;
+            INC (k, i) ;
             o := k
          END
       END ;
       s := s^.contents.next
    END ;
-   RETURN( -1 )
+   RETURN -1
 END Index ;
 
 
@@ -1441,35 +1439,35 @@ VAR
 BEGIN
    IF PoisonOn
    THEN
-      s := CheckPoisoned(s)
+      s := CheckPoisoned (s)
    END ;
    j := -1 ;
    k :=  0 ;
-   WHILE s#NIL DO
+   WHILE s # NIL DO
       WITH s^ DO
-         IF k+contents.len<o
+         IF k + contents.len < o
          THEN
-            INC(k, contents.len)
+            INC (k, contents.len)
          ELSE
-            IF o<k
+            IF o < k
             THEN
                i := 0
             ELSE
-               i := o-k
+               i := o - k
             END ;
-            WHILE i<contents.len DO
-               IF contents.buf[i]=ch
+            WHILE i < contents.len DO
+               IF contents.buf[i] = ch
                THEN
                   j := k
                END ;
-               INC(k) ;
-               INC(i)
+               INC (k) ;
+               INC (i)
             END
          END
       END ;
       s := s^.contents.next
    END ;
-   RETURN( j )
+   RETURN j
 END RIndex ;
 
 
@@ -1485,19 +1483,19 @@ PROCEDURE RemoveComment (s: String; comment: CHAR) : String ;
 VAR
    i: INTEGER ;
 BEGIN
-   i := Index(s, comment, 0) ;
-   IF i=0
+   i := Index (s, comment, 0) ;
+   IF i = 0
    THEN
-      s := InitString('')
-   ELSIF i>0
+      s := InitString ('')
+   ELSIF i > 0
    THEN
-      s := RemoveWhitePostfix(Slice(Mark(s), 0, i))
+      s := RemoveWhitePostfix (Slice (Mark (s), 0, i))
    END ;
    IF TraceOn
    THEN
-      s := AssignDebug(s, __FILE__, __LINE__, __FUNCTION__)
+      s := AssignDebug (s, __FILE__, __LINE__, __FUNCTION__)
    END ;
-   RETURN( s )
+   RETURN s
 END RemoveComment ;
 
 
@@ -1511,23 +1509,23 @@ VAR
 BEGIN
    IF PoisonOn
    THEN
-      s := CheckPoisoned(s)
+      s := CheckPoisoned (s)
    END ;
    IF i<0
    THEN
-      c := VAL(CARDINAL, VAL(INTEGER, Length(s))+i)
+      c := VAL (CARDINAL, VAL (INTEGER, Length (s)) + i)
    ELSE
       c := i
    END ;
-   WHILE (s#NIL) AND (c>=s^.contents.len) DO
-      DEC(c, s^.contents.len) ;
+   WHILE (s # NIL) AND (c >= s^.contents.len) DO
+      DEC (c, s^.contents.len) ;
       s := s^.contents.next
    END ;
-   IF (s=NIL) OR (c>=s^.contents.len)
+   IF (s = NIL) OR (c >= s^.contents.len)
    THEN
-      RETURN( nul )
+      RETURN nul
    ELSE
-      RETURN( s^.contents.buf[c] )
+      RETURN s^.contents.buf[c]
    END
 END char ;
 
@@ -1544,20 +1542,20 @@ VAR
 BEGIN
    IF PoisonOn
    THEN
-      s := CheckPoisoned(s)
+      s := CheckPoisoned (s)
    END ;
-   IF s=NIL
+   IF s = NIL
    THEN
-      RETURN( NIL )
+      RETURN NIL
    ELSE
       IF NOT s^.head^.charStarValid
       THEN
-         l := Length(s) ;
+         l := Length (s) ;
          WITH s^.head^ DO
-            IF NOT (charStarUsed AND (charStarSize>l))
+            IF NOT (charStarUsed AND (charStarSize > l))
             THEN
-               DeallocateCharStar(s) ;
-               ALLOCATE(charStar, l+1) ;
+               DeallocateCharStar (s) ;
+               ALLOCATE (charStar, l+1) ;
                charStarSize := l+1 ;
                charStarUsed := TRUE
             END ;
@@ -1566,17 +1564,17 @@ BEGIN
          a := s ;
          WHILE a#NIL DO
             i := 0 ;
-            WHILE i<a^.contents.len DO
+            WHILE i < a^.contents.len DO
                p^ := a^.contents.buf[i] ;
-               INC(i) ;
-               INC(p)
+               INC (i) ;
+               INC (p)
             END ;
             a := a^.contents.next
          END ;
          p^ := nul ;
          s^.head^.charStarValid := TRUE
       END ;
-      RETURN( s^.head^.charStar )
+      RETURN s^.head^.charStar
    END
 END string ;
 
@@ -1587,7 +1585,7 @@ END string ;
 
 PROCEDURE IsWhite (ch: CHAR) : BOOLEAN ;
 BEGIN
-   RETURN( (ch=' ') OR (ch=tab) )
+   RETURN (ch = ' ') OR (ch = tab)
 END IsWhite ;
 
 
@@ -1601,15 +1599,15 @@ VAR
    i: CARDINAL ;
 BEGIN
    i := 0 ;
-   WHILE IsWhite(char(s, i)) DO
-      INC(i)
+   WHILE IsWhite (char (s, i)) DO
+      INC (i)
    END ;
-   s := Slice(s, INTEGER(i), 0) ;
+   s := Slice (s, INTEGER (i), 0) ;
    IF TraceOn
    THEN
-      s := AssignDebug(s, __FILE__, __LINE__, __FUNCTION__)
+      s := AssignDebug (s, __FILE__, __LINE__, __FUNCTION__)
    END ;
-   RETURN( s )
+   RETURN s
 END RemoveWhitePrefix ;
 
 
@@ -1622,16 +1620,16 @@ PROCEDURE RemoveWhitePostfix (s: String) : String ;
 VAR
    i: INTEGER ;
 BEGIN
-   i := VAL(INTEGER, Length(s))-1 ;
-   WHILE (i>=0) AND IsWhite(char(s, i)) DO
-      DEC(i)
+   i := VAL(INTEGER, Length (s)) - 1 ;
+   WHILE (i >= 0) AND IsWhite (char (s, i)) DO
+      DEC (i)
    END ;
-   s := Slice(s, 0, i+1) ;
+   s := Slice (s, 0, i+1) ;
    IF TraceOn
    THEN
-      s := AssignDebug(s, __FILE__, __LINE__, __FUNCTION__)
+      s := AssignDebug (s, __FILE__, __LINE__, __FUNCTION__)
    END ;
-   RETURN( s )
+   RETURN s
 END RemoveWhitePostfix ;
 
 
@@ -1647,26 +1645,26 @@ VAR
    i : CARDINAL ;
    t : String ;
 BEGIN
-   IF s#NIL
+   IF s # NIL
    THEN
-      MarkInvalid(s) ;
+      MarkInvalid (s) ;
       t := s ;
-      WHILE t#NIL DO
+      WHILE t # NIL DO
          WITH t^ DO
             i := 0 ;
-            WHILE i<contents.len DO
+            WHILE i < contents.len DO
                ch := contents.buf[i] ;
-               IF (ch>='a') AND (ch<='z')
+               IF (ch >= 'a') AND (ch <= 'z')
                THEN
-                  contents.buf[i] := CHR( ORD(ch)-ORD('a')+ORD('A') )
+                  contents.buf[i] := CHR (ORD (ch) - ORD ('a') + ORD ('A'))
                END ;
-               INC(i)
+               INC (i)
             END
          END ;
          t := t^.contents.next
       END
    END ;
-   RETURN( s )
+   RETURN s
 END ToUpper ;
 
 
@@ -1682,26 +1680,26 @@ VAR
    i : CARDINAL ;
    t : String ;
 BEGIN
-   IF s#NIL
+   IF s # NIL
    THEN
-      MarkInvalid(s) ;
+      MarkInvalid (s) ;
       t := s ;
-      WHILE t#NIL DO
+      WHILE t # NIL DO
          WITH t^ DO
             i := 0 ;
-            WHILE i<contents.len DO
+            WHILE i < contents.len DO
                ch := contents.buf[i] ;
-               IF (ch>='A') AND (ch<='Z')
+               IF (ch >= 'A') AND (ch <= 'Z')
                THEN
-                  contents.buf[i] := CHR( ORD(ch)-ORD('A')+ORD('a') )
+                  contents.buf[i] := CHR (ORD (ch) - ORD ('A') + ORD ('a'))
                END ;
-               INC(i)
+               INC (i)
             END
          END ;
          t := t^.contents.next
       END
    END ;
-   RETURN( s )
+   RETURN s
 END ToLower ;
 
 
@@ -1711,7 +1709,7 @@ END ToLower ;
 
 PROCEDURE InitStringDB (a: ARRAY OF CHAR; file: ARRAY OF CHAR; line: CARDINAL) : String ;
 BEGIN
-   RETURN( AssignDebug(InitString(a), file, line, 'InitString') )
+   RETURN AssignDebug (InitString (a), file, line, 'InitString')
 END InitStringDB ;
 
 
@@ -1721,7 +1719,7 @@ END InitStringDB ;
 
 PROCEDURE InitStringCharStarDB (a: ADDRESS; file: ARRAY OF CHAR; line: CARDINAL) : String ;
 BEGIN
-   RETURN( AssignDebug(InitStringCharStar(a), file, line, 'InitStringCharStar') )
+   RETURN AssignDebug (InitStringCharStar (a), file, line, 'InitStringCharStar')
 END InitStringCharStarDB ;
 
 
@@ -1731,7 +1729,7 @@ END InitStringCharStarDB ;
 
 PROCEDURE InitStringCharDB (ch: CHAR; file: ARRAY OF CHAR; line: CARDINAL) : String ;
 BEGIN
-   RETURN( AssignDebug(InitStringChar(ch), file, line, 'InitStringChar') )
+   RETURN AssignDebug (InitStringChar (ch), file, line, 'InitStringChar')
 END InitStringCharDB ;
 
 
@@ -1741,7 +1739,7 @@ END InitStringCharDB ;
 
 PROCEDURE MultDB (s: String; n: CARDINAL; file: ARRAY OF CHAR; line: CARDINAL) : String ;
 BEGIN
-   RETURN( AssignDebug(Mult(s, n), file, line, 'Mult') )
+   RETURN AssignDebug (Mult (s, n), file, line, 'Mult')
 END MultDB ;
 
 
@@ -1751,7 +1749,7 @@ END MultDB ;
 
 PROCEDURE DupDB (s: String; file: ARRAY OF CHAR; line: CARDINAL) : String ;
 BEGIN
-   RETURN( AssignDebug(Dup(s), file, line, 'Dup') )
+   RETURN AssignDebug (Dup (s), file, line, 'Dup')
 END DupDB ;
 
 
@@ -1763,9 +1761,9 @@ PROCEDURE SliceDB (s: String; low, high: INTEGER;
                    file: ARRAY OF CHAR; line: CARDINAL) : String ;
 BEGIN
    DSdbEnter ;
-   s := AssignDebug(Slice(s, low, high), file, line, 'Slice') ;
-   DSdbExit(s) ;
-   RETURN( s )
+   s := AssignDebug (Slice (s, low, high), file, line, 'Slice') ;
+   DSdbExit (s) ;
+   RETURN s
 END SliceDB ;
 
 
@@ -1777,13 +1775,13 @@ PROCEDURE DumpState (s: String) ;
 BEGIN
    CASE s^.head^.state OF
 
-   inuse   :  writeString("still in use (") ; writeCard(s^.contents.len) ; writeString(") characters") |
-   marked  :  writeString("marked") |
-   onlist  :  writeString("on a garbage list") |
-   poisoned:  writeString("poisoned")
+   inuse   :  writeString ("still in use (") ; writeCard (s^.contents.len) ; writeString (") characters") |
+   marked  :  writeString ("marked") |
+   onlist  :  writeString ("on a garbage list") |
+   poisoned:  writeString ("poisoned")
 
    ELSE
-      writeString("unknown state")
+      writeString ("unknown state")
    END
 END DumpState ;
 
@@ -1794,21 +1792,21 @@ END DumpState ;
 
 PROCEDURE DumpStringSynopsis (s: String) ;
 BEGIN
-   writeCstring(s^.debug.file) ; writeString(':') ;
-   writeCard(s^.debug.line) ; writeString(':') ;
-   writeCstring(s^.debug.proc) ;
-   writeString(' string ') ;
-   writeAddress(s) ;
-   writeString(' ') ;
-   DumpState(s) ;
-   IF IsOnAllocated(s)
+   writeCstring (s^.debug.file) ; writeString (':') ;
+   writeCard (s^.debug.line) ; writeString (':') ;
+   writeCstring (s^.debug.proc) ;
+   writeString (' string ') ;
+   writeAddress (s) ;
+   writeString (' ') ;
+   DumpState (s) ;
+   IF IsOnAllocated (s)
    THEN
-      writeString(' globally allocated')
-   ELSIF IsOnDeallocated(s)
+      writeString (' globally allocated')
+   ELSIF IsOnDeallocated (s)
    THEN
-      writeString(' globally deallocated')
+      writeString (' globally deallocated')
    ELSE
-      writeString(' globally unknown')
+      writeString (' globally unknown')
    END ;
    writeLn
 END DumpStringSynopsis ;
@@ -1822,15 +1820,15 @@ PROCEDURE DumpString (s: String) ;
 VAR
    t: String ;
 BEGIN
-   IF s#NIL
+   IF s # NIL
    THEN
-      DumpStringSynopsis(s) ;
-      IF (s^.head#NIL) AND (s^.head^.garbage#NIL)
+      DumpStringSynopsis (s) ;
+      IF (s^.head # NIL) AND (s^.head^.garbage # NIL)
       THEN
-         writeString('display chained strings on the garbage list') ; writeLn ;
+         writeString ('display chained strings on the garbage list') ; writeLn ;
          t := s^.head^.garbage ;
-         WHILE t#NIL DO
-            DumpStringSynopsis(t) ;
+         WHILE t # NIL DO
+            DumpStringSynopsis (t) ;
             t := t^.head^.garbage
          END
       END

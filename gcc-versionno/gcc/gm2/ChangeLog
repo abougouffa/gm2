@@ -1,3 +1,9 @@
+2018-07-16      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/bnf/gm2l.bnf:  reformatted to gnu standards.
+	* gm2/el/gm2-mode.el:  minor formatting change.
+	* gm2/gm2-libs/DynamicStrings.mod:  reformatted to gnu standards.
+
 2018-07-14      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  remove the target configure scripts from

@@ -2376,9 +2376,9 @@ m2r10 imports go here
 	  (,m2-auto-builtin-regexp "\\(.*$\\)"
 				  (m2-auto-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-builtin-face) nil
 				  (1 font-lock-builtin-face))
-	  ;;      (,m2-auto-procedure-regexp "\\(.*$\\)"
-	  ;;		(m2-auto-function-name-test (match-string 0))
-	  ;;			(1 font-lock-function-face))
+	  ;; (,m2-auto-procedure-regexp "\\(.*$\\)"
+	  ;; (m2-auto-function-name-test (match-string 0))
+	  ;; (1 font-lock-function-face))
 	  (,m2-auto-keyword-regexp "\\(.*$\\)"
 				  (m2-auto-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-keyword-face) nil
 				  (1 font-lock-keyword-face))))
