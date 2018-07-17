@@ -5,6 +5,7 @@
           from close and KillIndex.
 	* gm2/gm2spec.c:  reformatted and tidied up code.
 	* gm2/gm2-libs/GetOpt.mod:  remove declaration of PtrToInteger.
+	* gm2/gm2-libs/GetOpt.mod:  corrected record/pointer reference.
 
 2018-07-16      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

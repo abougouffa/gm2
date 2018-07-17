@@ -21,6 +21,7 @@ IMPLEMENTATION MODULE GetOpt ;  (*!m2pim+gm2*)
 
 FROM DynamicStrings IMPORT string, InitStringCharStar ;
 FROM Storage IMPORT ALLOCATE, REALLOCATE, DEALLOCATE ;
+FROM MemUtils IMPORT MemCopy ;
 
 IMPORT getopt ;
 
@@ -128,10 +129,12 @@ BEGIN
          entry := NIL
       ELSIF old = lo^.cptr
       THEN
-         entry := lo^.cptr + SIZE (Crecord) * lo^.len-1
+         entry := lo^.cptr ;
+         INC (entry, SIZE (Crecord) * lo^.len-1)
       ELSE
          MemCopy (old, lo^.len-1, lo^.cptr) ;
-         entry := lo^.cptr + SIZE (Crecord) * lo^.len-1
+         entry := lo^.cptr ;
+         INC (entry, SIZE (Crecord) * lo^.len-1)
       END
    END ;
    fillIn (entry, name, has_arg, flag, val) ;
@@ -179,7 +182,7 @@ PROCEDURE GetOptLong (argc: INTEGER; argv: ADDRESS; optstring: String;
 VAR
    r: INTEGER ;
 BEGIN
-   r := getopt.getopt_long (argc, argv, string (optstring), longopts.cptr, longindex) ;
+   r := getopt.getopt_long (argc, argv, string (optstring), longopts^.cptr, longindex) ;
    RETURN r
 END GetOptLong ;
 
