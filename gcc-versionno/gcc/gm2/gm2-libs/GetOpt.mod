@@ -26,8 +26,6 @@ IMPORT getopt ;
 
 
 TYPE
-   PtrToInteger = POINTER TO INTEGER ;
-
    Crecord = RECORD    (* see man 3 getopt.  *)
                 name   : ADDRESS ;
                 has_arg: INTEGER ;
