@@ -197,7 +197,7 @@ PROCEDURE GetOptLongOnly (argc: INTEGER; argv: ADDRESS; optstring: String;
 VAR
    r: INTEGER ;
 BEGIN
-   r := getopt.getopt_long_only (argc, argv, string (optstring), longopts.cptr, longindex) ;
+   r := getopt.getopt_long_only (argc, argv, string (optstring), longopts^.cptr, longindex) ;
    RETURN r
 END GetOptLongOnly ;
 
