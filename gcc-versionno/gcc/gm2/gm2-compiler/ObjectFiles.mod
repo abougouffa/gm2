@@ -18,6 +18,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE ObjectFiles ;
 
+FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM DynamicStrings IMPORT Dup, Mark, string ;
 FROM Indexing IMPORT Index, InitIndex, KillIndex, GetIndice, PutIndice,
                      HighIndice, LowIndice, InBounds, IsIndiceInIndex,
@@ -52,6 +53,7 @@ TYPE
 PROCEDURE RegisterModuleObject (fo: FileObjects; location: String) : BOOLEAN ;
 VAR
    p: FileObject ;
+   r,
    f: INTEGER ;
 BEGIN
    IF Debugging
@@ -65,7 +67,7 @@ BEGIN
       f := open (string (location), UNIXREADONLY, 0) ;
       IF fileinode (f, p^.inodeLow, p^.inodeHigh) = 0
       THEN
-         close (f) ;
+         r := close (f) ;
          IncludeIndiceIntoIndex (fo^.objects, p) ;
          IF Debugging
          THEN
@@ -78,7 +80,7 @@ BEGIN
             fprintf0 (StdErr, " fileinode failed\n")
          END
       END ;
-      close (f) ;
+      r := close (f) ;
       DISPOSE (p)
    END ;
    IF Debugging
@@ -127,12 +129,12 @@ END isRegistered ;
 
 PROCEDURE IsRegistered (fo: FileObjects; location: String) : BOOLEAN ;
 VAR
-   f     : INTEGER ;
+   f, r  : INTEGER ;
    result: BOOLEAN ;
 BEGIN
    f := open (string (location), UNIXREADONLY, 0) ;
    result := isRegistered (fo, f) ;
-   close (f) ;
+   r := close (f) ;
    RETURN result
 END IsRegistered ;
 
@@ -157,7 +159,7 @@ END InitFileObject ;
 
 PROCEDURE KillFileObject (fo: FileObjects) : FileObjects ;
 BEGIN
-   KillIndex (fo^.objects) ;
+   fo^.objects := KillIndex (fo^.objects) ;
    DISPOSE (fo) ;
    RETURN NIL
 END KillFileObject ;

@@ -1,3 +1,10 @@
+2018-07-17      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/ObjectFiles.mod:  import ALLOCATE
+          and DEALLOCATE from Storage.  Collect return results
+          from close and KillIndex.
+	* gm2/gm2spec.c:  reformatted and tidied up code.
+
 2018-07-16      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/bnf/gm2l.bnf:  reformatted to gnu standards.

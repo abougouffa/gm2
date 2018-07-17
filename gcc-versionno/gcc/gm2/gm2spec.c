@@ -399,18 +399,18 @@ insert_option (unsigned int *in_decoded_options_count,
   *in_decoded_options = new_decoded_options;
 }
 
-/*
- *
- */
+/*  add_library adds a library to the command line at arg position.
+    It returns the number of arguments added.  If libraryname is NULL or
+    empty then zero is returned.  */
 
-static void
+static int
 add_library (const char *libraryname,
 	     unsigned int *in_decoded_options_count,
 	     struct cl_decoded_option **in_decoded_options,
 	     unsigned int position)
 {
   if (libraryname == NULL || (strcmp (libraryname, "") == 0))
-    return;
+    return 0;
 
   insert_option (in_decoded_options_count, in_decoded_options, position);
 
@@ -436,6 +436,7 @@ add_library (const char *libraryname,
       printOption ("after add_library", in_decoded_options, i);
   }
 #endif
+  return 1;
 }
 
 /*
@@ -540,7 +541,7 @@ gen_link_path (const char *libpath, const char *dialect)
  *                         command line.
  */
 
-static void
+static int
 add_default_archives (const char *libpath,
 		      const char *libraries,
 		      unsigned int *in_decoded_options_count,
@@ -577,6 +578,7 @@ add_default_archives (const char *libpath,
     fe_generate_option (OPT_L, prev, TRUE);
     // free (c);
   } while ((l != NULL) && (l[0] != (char)0));
+  return libcount;
 }
 
 /*
@@ -1227,37 +1229,33 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   if (need_plugin)
     fe_generate_option (OPT_fplugin_, "m2rte", TRUE);
 
-  if (linking) {
-    add_env_option (gm2opath, OPT_fobject_path_);
+  if (linking)
+    {
+      add_env_option (gm2opath, OPT_fobject_path_);
 
-    add_default_archives (libpath, libraries, in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
-    (*in_added_libraries)++;
+      (*in_added_libraries) += add_default_archives (libpath, libraries, in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
 
-    if (need_math) {
-      add_library (MATH_LIBRARY, in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
-      (*in_added_libraries)++;
-    }
+      if (need_math)
+	(*in_added_libraries) += add_library (MATH_LIBRARY, in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
 
-    if (need_pth) {
-      add_library ("pth", in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
-      (*in_added_libraries)++;
-    }
+      if (need_pth)
+	(*in_added_libraries) += add_library ("pth", in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
 
-    if (seen_fexceptions) {
-      add_library ("stdc++", in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
-      (*in_added_libraries)++;
-    }
-  /* There's no point adding -shared-libgcc if we don't have a shared
-     libgcc.  */
+      if (seen_fexceptions)
+	(*in_added_libraries) += add_library ("stdc++", in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
+
+      /* There's no point adding -shared-libgcc if we don't have a shared
+	 libgcc.  */
 #if !defined(ENABLE_SHARED_LIBGCC)
-    shared_libgcc = 0;
+      shared_libgcc = 0;
 #endif
 
-    if (shared_libgcc) {
-      fe_generate_option (OPT_shared_libgcc, NULL, FALSE);
-      add_library ("gcc_eh", in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
+      if (shared_libgcc)
+	{
+	  fe_generate_option (OPT_shared_libgcc, NULL, FALSE);
+	  (*in_added_libraries) += add_library ("gcc_eh", in_decoded_options_count, in_decoded_options, *in_decoded_options_count);
+	}
     }
-  }
   scan_for_link_args (in_decoded_options_count, in_decoded_options);
 
 #if defined(DEBUGGING)
