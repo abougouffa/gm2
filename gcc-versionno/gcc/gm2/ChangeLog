@@ -1,3 +1,7 @@
+2018-07-18      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2spec.c: reformatted according to GNU coding standards.
+
 2018-07-17      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/ObjectFiles.mod:  import ALLOCATE
