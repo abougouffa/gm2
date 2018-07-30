@@ -1,3 +1,12 @@
+2018-07-30      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2spec.c:  (fe_generate_option) do not duplicate the old
+          argument.  free up a string after use.  (build_include_path)
+          start the new string with a strcpy not strcat!
+          (insert_option) create a new vector with an extra entry.
+          (no_link) return a string which can be free'd.
+	  (add_exec_name) return a string which can be free'd.
+
 2018-07-18      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2spec.c: reformatted according to GNU coding standards.

@@ -95,6 +95,9 @@ int lang_specific_extra_outfiles = 0;
 #define DEBUGGING
 #undef DEBUGGING
 
+#define DEBUGOPTIONS
+#undef DEBUGOPTIONS
+
 #define DEFAULT_DIALECT "pim"
 
 typedef enum { iso, pim, ulm, min, logitech, pimcoroutine, maxlib } libs;
@@ -174,6 +177,7 @@ assert (int b)
     }
 }
 
+
 /* fe_generate_option wrap up arg and pass it to fe_save_switch.  */
 
 static void fe_generate_option (size_t opt_index, const char *arg, int joined)
@@ -181,15 +185,23 @@ static void fe_generate_option (size_t opt_index, const char *arg, int joined)
   const struct cl_option *option = &cl_options[opt_index];
   char *opt;
 
+#if defined(DEBUGOPTIONS)
+  fprintf (stderr, "fe_generate_option: arg = %s\n", arg);
+#endif
+
   if (joined)
     {
-      char *old = xstrdup (option->opt_text);
+      const char *old = option->opt_text;
       opt = (char *) xmalloc (strlen (old) + strlen (arg) + 1);
       strcpy (opt, old);
-      opt = concat_copy (opt, arg, NULL);
+      strcat (opt, arg);
     }
   else
     opt = xstrdup (option->opt_text);
+
+#if defined(DEBUGOPTIONS)
+  fprintf (stderr, "fe_generate_option: opt = %s\n", opt);
+#endif
 
   if (arg == NULL || joined)
     fe_save_switch (opt, 0, NULL, 1, 0);
@@ -343,7 +355,7 @@ add_lib (size_t opt_index, const char *lib, int joined)
   fe_generate_option (opt_index, lib, joined);
 }
 
-#if defined(DEBUGGING)
+//#if defined(DEBUGGING)
 static void
 printOption (const char *desc, struct cl_decoded_option **in_decoded_options, int i)
 {
@@ -371,7 +383,7 @@ printOption (const char *desc, struct cl_decoded_option **in_decoded_options, in
   printf(" value [%d]", (*in_decoded_options)[i].value);
   printf(" error [%d]\n", (*in_decoded_options)[i].errors);
 }
-#endif
+//#endif
 
 /* insert_option, inserts an option at position on the command line.  */
 
@@ -387,7 +399,7 @@ insert_option (unsigned int *in_decoded_options_count,
 
   assert (position <= (*in_decoded_options_count));
 
-  new_decoded_options = XNEWVEC (struct cl_decoded_option, (*in_decoded_options_count));
+  new_decoded_options = XNEWVEC (struct cl_decoded_option, (*in_decoded_options_count)+1);
   for (i=0; i<position; i++)
     new_decoded_options[i] = (*in_decoded_options)[i];
   memset (&new_decoded_options[position], 0, sizeof (struct cl_decoded_option));
@@ -564,7 +576,7 @@ add_default_archives (const char *libpath,
       prev = gen_link_path (libpath, c);
 
       fe_generate_option (OPT_L, prev, TRUE);
-      // free (c);
+      free (c);
     }
   while ((l != NULL) && (l[0] != (char)0));
   return libcount;
@@ -578,16 +590,12 @@ build_include_path (const char *libpath, const char *library)
 {
   char  sepstr[2];
   char *gm2libs;
-  const char *option = "";
 
   sepstr[0] = DIR_SEPARATOR;
   sepstr[1] = (char)0;
 
-  gm2libs = (char *) alloca (strlen (option) +
-			     strlen (libpath) + strlen (sepstr) + strlen ("m2") + strlen (sepstr) + strlen (library) + 1 +
-			     strlen (libpath) + strlen (sepstr) + strlen ("m2") + strlen (sepstr) + strlen (library) + 1);
-  strcpy (gm2libs, option);
-  strcat (gm2libs, libpath);
+  gm2libs = (char *) alloca (strlen (libpath) + strlen (sepstr) + strlen ("m2") + strlen (sepstr) + strlen (library) + 1);
+  strcpy (gm2libs, libpath);
   strcat (gm2libs, sepstr);
   strcat (gm2libs, "m2");
   strcat (gm2libs, sepstr);
@@ -620,6 +628,11 @@ add_default_includes (const char *libpath,
   const char *c;
   const char *path;
 
+#if defined(DEBUGOPTIONS)
+  fprintf (stderr, "add_default_includes:  libpath = %s, libraries = %s\n",
+	   libpath, libraries);
+#endif
+
   do {
     e = index (l, ',');
     if (e == NULL)
@@ -629,6 +642,9 @@ add_default_includes (const char *libpath,
       }
     else
       {
+#if defined(DEBUGOPTIONS)
+	fprintf (stderr, "l = %s  %d\n", l, e-l);
+#endif
 	c = xstrndup (l, e-l);
 	l = e + 1;
       }
@@ -657,7 +673,7 @@ build_fobject_path (const char *prev, const char *libpath, const char *library)
     {
       gm2objs = (char *) alloca (strlen (libpath) + strlen (sepstr) + strlen ("gm2") + strlen (sepstr) + strlen (libName) + 1 +
 				 strlen (libpath) + strlen (sepstr) + strlen ("gm2") + strlen (sepstr) + strlen (libName) + 1);
-      strcpy(gm2objs, "");
+      strcpy (gm2objs, "");
     }
   else
     {
@@ -1189,7 +1205,6 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   if (linking)
     {
       add_env_option (gm2opath, OPT_fobject_path_);
-
       (*in_added_libraries) += add_default_archives (libpath, libraries, in_decoded_options_count,
 						     in_decoded_options, *in_decoded_options_count);
 
@@ -1229,7 +1244,6 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   for (i = 0; i < *in_decoded_options_count; i++)
     printOption ("after include purge", in_decoded_options, i);
 #endif
-
 
 #if defined(DEBUGGING)
   for (i = 0; i < *in_decoded_options_count; i++)
@@ -1349,7 +1363,7 @@ add_exec_name (int argc, const char *argv[])
 {
   if (argc == 1 && argv[0] != NULL)
     return argv[0];
-  return "";
+  return xstrdup ("");
 }
 
 /* no_link tell gcc.c not to invoke its linker.  */
@@ -1358,7 +1372,7 @@ static const char *
 no_link (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
 {
   allow_linker = FALSE;
-  return "";
+  return xstrdup ("");
 }
 
 /* lang_register_spec_functions register the Modula-2 associated spec functions.  */
