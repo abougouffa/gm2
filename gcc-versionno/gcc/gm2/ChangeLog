@@ -1,3 +1,17 @@
+2019-03-22      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/patches/gcc/trunk/01-patches:  New file.
+	* gm2/patches/gcc/trunk/02-patches:  New file.
+	* gm2/patches/gcc/trunk/03-patches:  New file.
+	* gm2/patches/gcc/trunk/04-patches:  New file.
+	* gm2/patches/gcc/trunk/05-patches:  New file.
+	* gm2/patches/gcc/trunk/06-patches:  New file.
+	* gm2/patches/gcc/trunk/07-patches:  New file.
+	* gm2/patches/gcc/trunk/08-patches:  New file.
+	* gm2/patches/gcc/trunk/09-patches:  New file.
+	* gm2/patches/gcc/trunk/10-patches:  New file.
+	* gm2/patches/gcc/trunk/11-patches:  New file.
+
 2018-07-30      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2spec.c:  (fe_generate_option) do not duplicate the old
