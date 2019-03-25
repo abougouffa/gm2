@@ -23,6 +23,11 @@ along with GNU CC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "tm.h"
+#include "xregex.h"
+#include "obstack.h"
+#include "intl.h"
+#include "prefix.h"
+#include "opt-suggestions.h"
 #include "gcc.h"
 #include "opts.h"
 #include "vec.h"
@@ -355,7 +360,7 @@ add_lib (size_t opt_index, const char *lib, int joined)
   fe_generate_option (opt_index, lib, joined);
 }
 
-//#if defined(DEBUGGING)
+#if defined(DEBUGGING)
 static void
 printOption (const char *desc, struct cl_decoded_option **in_decoded_options, int i)
 {
@@ -380,10 +385,10 @@ printOption (const char *desc, struct cl_decoded_option **in_decoded_options, in
   else
     printf(" arg [%s]", (*in_decoded_options)[i].arg);
   printf(" orig text [%s]", (*in_decoded_options)[i].orig_option_with_args_text);
-  printf(" value [%d]", (*in_decoded_options)[i].value);
+  printf(" value [%ld]", (*in_decoded_options)[i].value);
   printf(" error [%d]\n", (*in_decoded_options)[i].errors);
 }
-//#endif
+#endif
 
 /* insert_option, inserts an option at position on the command line.  */
 

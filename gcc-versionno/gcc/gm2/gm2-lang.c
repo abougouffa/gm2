@@ -215,7 +215,7 @@ static vec<gm2_char_p> gm2_search_dirs;
 
 bool
 gm2_langhook_handle_option (size_t scode, const char *arg,
-			    int value,
+			    HOST_WIDE_INT value,
 			    int kind ATTRIBUTE_UNUSED,
 			    location_t loc ATTRIBUTE_UNUSED,
 			    const struct cl_option_handlers *handlers ATTRIBUTE_UNUSED)

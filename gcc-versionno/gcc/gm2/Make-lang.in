@@ -326,6 +326,9 @@ stage3/gm2:
 stage4/gm2:
 	-mkdir -p stage4/gm2
 
+# No gm2-specific selftests
+selftest-gm2:
+
 # Install hooks:
 # cc1gm2 is installed elsewhere as part of $(COMPILERS).
 # $(COMPILERS) is defined in `config-lang.in'

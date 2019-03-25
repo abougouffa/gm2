@@ -51,6 +51,9 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "wide-int-print.h"
 #include "real.h"
 #include "float.h"
+#include "params.h"
+#include "spellcheck.h"
+#include "opt-suggestions.h"
 
 #include <stdio.h>
 

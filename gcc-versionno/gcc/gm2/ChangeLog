@@ -1,3 +1,13 @@
+2019-03-25      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  (selftest-gm2) added dummy rule.
+	* gm2/gm2-gcc/gcc-consolidation.h:  added headers (params, spellcheck
+          opt-suggestions).
+	* gm2/gm2-lang.c:  (gm2_langhook_handle_option)
+          corrected parameter (value) to HOST_WIDE_INT.
+	* gm2/gm2spec.c:  added headers (params, spellcheck, prefix, intl,
+          opt-suggestions).  Only compile printOption is DEBUGGING is set.
+
 2019-03-22      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/patches/gcc/trunk/01-patches:  New file.
