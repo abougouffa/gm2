@@ -30,11 +30,6 @@ if test x$regex_flex = "x" ; then
     AC_MSG_ERROR([flex is required to build GNU Modula-2 (hint install flex).])
 fi
 
-AC_CHECK_LIB(pth, pselect, [], [pth_found=0])
-if test $pth_found = 0 ; then
-   AC_MSG_WARN([libpth is likely required during linking if the compiler is to be used natively.])
-fi
-
 AC_CHECK_FUNCS(stpcpy)
 
 AC_DEFINE_UNQUOTED(AR_PATH, "$AR_PATH", the path to target archiver)

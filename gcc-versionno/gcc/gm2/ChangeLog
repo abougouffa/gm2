@@ -6,7 +6,10 @@
 	* gm2/gm2-lang.c:  (gm2_langhook_handle_option)
           corrected parameter (value) to HOST_WIDE_INT.
 	* gm2/gm2spec.c:  added headers (params, spellcheck, prefix, intl,
-          opt-suggestions).  Only compile printOption is DEBUGGING is set.
+        opt-suggestions).  Only compile printOption is DEBUGGING is set.
+	* gm2/config-lang.in:  removed p2c Makefiles.
+	* gm2/configure.in:  removed warning about libpth.
+	* gm2/gm2-gcc/gcc-consolidation.h:  fixed comments as per GNU style.
 
 2019-03-22      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
