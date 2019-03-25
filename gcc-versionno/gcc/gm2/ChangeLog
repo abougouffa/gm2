@@ -92,8 +92,10 @@
 	* gcc-versionno/gcc/gm2/tools-src/tidydates.py: applied gm2-1.8.2 formatting and bug fixes.
 	* gcc-versionno/gcc/gm2/version.c: applied gm2-1.8.2 formatting and bug fixes.
 	* gcc-versionno/libgm2/libpim/Makefile.am: applied gm2-1.8.2 formatting and bug fixes.
-	* gcc-versionno/libgm2/libpim/Makefile.in: applied gm2-1.8.2 formatting and bug fixes.
-	
+	* gcc-versionno/libgm2/libpim/Makefile.in: applied gm2-1.8.2
+	formatting and bug fixes.
+	* gm2/gm2-libs-ch/pthdummy.c: (New file).
+
 2019-03-22      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/patches/gcc/trunk/01-patches:  New file.
