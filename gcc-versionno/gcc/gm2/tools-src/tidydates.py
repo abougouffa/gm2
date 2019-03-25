@@ -34,7 +34,7 @@ def isYear (year):
 
 
 #
-#  handleCopyright - 
+#  handleCopyright -
 #
 
 def handleCopyright (outfile, lines, n, leader1, leader2):
@@ -87,7 +87,7 @@ def handleCopyright (outfile, lines, n, leader1, leader2):
                     outfile.write(leader1)
                     outfile.write(leader2)
                     outfile.write(' '*(start-2))
-                    
+
                 outfile.write(' ')
                 outfile.write(e)
                 outfile.write(punctuation)
@@ -95,7 +95,7 @@ def handleCopyright (outfile, lines, n, leader1, leader2):
                     outfile.write(' ')
                     outfile.write(w)
 
-    outfile.write('\n')                
+    outfile.write('\n')
     return outfile, n+1
 
 #
@@ -151,7 +151,7 @@ def m2Tidy (file):
 #         routine.
 #
 
-def main():
+def main ():
     visitDir('.', '.in', bashTidy)
     visitDir('.', '.py', bashTidy)
     visitDir('.', '.c', cTidy)
@@ -160,4 +160,4 @@ def main():
     visitDir('.', '.mod', m2Tidy)
 
 
-main()
+main ()

@@ -433,9 +433,10 @@ gm2.uninstall:
 	-rm -f $(bindir)/gm2m$(exeext)
 
 gm2.install-plugin: plugin/m2rte$(exeext).so
-	rm -f $(plugin_bindir)/m2rte$(exeext).so
-	$(INSTALL_PROGRAM) plugin/m2rte$(exeext).so $(plugin_bindir)/m2rte$(exeext).so
-	chmod a+x $(plugin_bindir)/m2rte$(exeext).so
+	rm -f $(DESTDIR)$(plugin_bindir)/m2rte$(exeext).so
+	mkdir -p $(DESTDIR)$(plugin_bindir)
+	$(INSTALL_PROGRAM) plugin/m2rte$(exeext).so $(DESTDIR)$(plugin_bindir)/m2rte$(exeext).so
+	chmod a+x $(DESTDIR)$(plugin_bindir)/m2rte$(exeext).so
 
 plugin/m2rte$(exeext).so: $(srcdir)/gm2/plugin/m2rte.c
 	mkdir -p $(GM2_DIRS)
@@ -1061,6 +1062,9 @@ gm2/gm2-libs-boot/%.o: $(srcdir)/gm2/gm2-libs/%.mod
 
 gm2/gm2-libs-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def
 	$(MC) -o=$@ $(srcdir)/gm2/gm2-libs/$*.def
+
+gm2/gm2-libs-boot/pthdummy.o: $(srcdir)/gm2/gm2-libs-ch/pthdummy.c
+	$(CC) -c -DIN_GCC $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-boot/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h gm2/gm2-libs/gm2-libs-host.h
 	$(CC) -c -DIN_GCC $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
@@ -1808,8 +1812,8 @@ gm2/mc-boot-ch/$(SRC_PREFIX)%.o: gm2/mc-boot-ch/$(SRC_PREFIX)%.c
 
 mc-bootstrap: $(GM2_DIRS) mc-clean gm2/boot-bin/mc$(exeext)
 
-gm2/boot-bin/mc$(exeext): $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) gm2/mc-boot/main.o mcflex.o
-	$(CC) -g -o $@ $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) $(LDFLAGS) gm2/mc-boot/main.o mcflex.o -lm -lpth
+gm2/boot-bin/mc$(exeext): $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) gm2/mc-boot/main.o mcflex.o gm2/gm2-libs-boot/pthdummy.o
+	$(CC) -g -o $@ $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) $(LDFLAGS) gm2/mc-boot/main.o mcflex.o gm2/gm2-libs-boot/pthdummy.o -lm
 
 gm2/mc-boot/main.o: $(M2LINK) $(srcdir)/gm2/init/mcinit
 	unset CC ; $(M2LINK) -s --gcc --exit --name mainmcinit.c $(srcdir)/gm2/init/mcinit
@@ -2144,8 +2148,8 @@ gm2/gm2-ppg-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-compiler/%.mod
 	$(CC) -Igm2/mc-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot \
               -I$(srcdir)/gm2/mc-boot-ch -g -c gm2/gm2-ppg-boot/$(SRC_PREFIX)$*.c -o $@
 
-gm2/ppg$(exeext): gm2/boot-bin/mc $(BUILD-PPG-O) $(BUILD-MC-INTERFACE-O) gm2/gm2-ppg-boot/main.o
-	$(CC) -g -o $@ $(BUILD-PPG-O) gm2/gm2-ppg-boot/main.o -lm -lpth
+gm2/ppg$(exeext): gm2/boot-bin/mc $(BUILD-PPG-O) $(BUILD-MC-INTERFACE-O) gm2/gm2-ppg-boot/main.o gm2/gm2-libs-boot/pthdummy.o
+	$(CC) -g -o $@ $(BUILD-PPG-O) gm2/gm2-ppg-boot/main.o gm2/gm2-libs-boot/pthdummy.o -lm
 
 gm2/gm2-ppg-boot/main.o: $(M2LINK) $(srcdir)/gm2/init/mcinit
 	unset CC ; $(M2LINK) -s --gcc --exit --name mainppginit.c $(srcdir)/gm2/init/ppginit
@@ -2190,8 +2194,8 @@ gm2/gm2-pg-boot/$(SRC_PREFIX)pg.o:  gm2/gm2-auto/pg.mod
 
 gm2/pg$(exeext): gm2/boot-bin/mc \
     $(BUILD-PG-O) $(GM2-PPG-MODS:%.mod=gm2/gm2-pg-boot/%.o) \
-    $(BUILD-MC-INTERFACE-O) gm2/gm2-pg-boot/main.o
-	$(CC) -g -o $@ $(BUILD-PG-O) gm2/gm2-pg-boot/main.o -lm -lpth
+    $(BUILD-MC-INTERFACE-O) gm2/gm2-pg-boot/main.o gm2/gm2-libs-boot/pthdummy.o
+	$(CC) -g -o $@ $(BUILD-PG-O) gm2/gm2-pg-boot/main.o gm2/gm2-libs-boot/pthdummy.o -lm
 
 gm2/gm2-auto/pginit:
 	sed -e 's/ppg/pg/' < $(srcdir)/gm2/init/ppginit > $@
@@ -2253,8 +2257,8 @@ gm2/gm2-pge-boot/$(SRC_PREFIX)pge.o:  gm2/gm2-auto/pge.mod
 
 gm2/pge$(exeext): gm2/boot-bin/mc \
     $(BUILD-PGE-O) $(GM2-PPG-MODS:%.mod=gm2/gm2-pge-boot/%.o) \
-    $(BUILD-MC-INTERFACE-O) gm2/gm2-pge-boot/main.o
-	$(CC) -g -o $@ $(BUILD-PGE-O) gm2/gm2-pge-boot/main.o -lm -lpth
+    $(BUILD-MC-INTERFACE-O) gm2/gm2-pge-boot/main.o gm2/gm2-libs-boot/pthdummy.o
+	$(CC) -g -o $@ $(BUILD-PGE-O) gm2/gm2-pge-boot/main.o gm2/gm2-libs-boot/pthdummy.o -lm
 	$(srcdir)/gm2/tools-src/buildpg $(srcdir)/gm2/gm2-compiler/ppg.mod t > gm2/gm2-auto/t.bnf
 	./gm2/pge$(exeext) gm2/gm2-auto/t.bnf > gm2/gm2-auto/t1.mod
 	./gm2/pg$(exeext) gm2/gm2-auto/t.bnf > gm2/gm2-auto/t2.mod

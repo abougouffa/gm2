@@ -20,8 +20,13 @@ IMPLEMENTATION MODULE gdbif ;
 
 
 FROM libc IMPORT printf, getpid, sleep ;
+FROM FIO IMPORT File, WriteString, WriteLine, OpenToWrite, Close, IsNoError ;
+FROM StringConvert IMPORT itos ;
+FROM DynamicStrings IMPORT String, KillString ;
+IMPORT SFIO ;
 
 VAR
+   invoked,
    mustWait: BOOLEAN ;
 
 
@@ -66,6 +71,29 @@ PROCEDURE finishSpin ;
 BEGIN
    mustWait := FALSE
 END finishSpin ;
+
+
+(*
+   gdbinit -
+*)
+
+PROCEDURE gdbinit ;
+VAR
+   file: File ;
+   s   : String ;
+BEGIN
+   file := OpenToWrite (".gdbinit") ;
+   IF IsNoError (file)
+   THEN
+      WriteString (file, "attach ") ;
+      s := SFIO.WriteS (file, itos (getpid (), 6, " ", FALSE)) ;
+      WriteString (file, "break connectSpin") ; WriteLine (file) ;
+      WriteString (file, "print finishSpin()") ; WriteLine (file) ;
+      s := KillString (s) ;
+      Close (file) ;
+      sleepSpin
+   END
+END gdbinit ;
 
 
 BEGIN

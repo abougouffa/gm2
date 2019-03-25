@@ -42,7 +42,7 @@
 @c
 @vskip 0pt plus 1filll
 Copyright @copyright{} 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-2008, 2009, 2010, 2011, 2012, 2014, 2015, 2016, 2017
+2008, 2009, 2010, 2011, 2012, 2014, 2015, 2016, 2017, 2018
 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
@@ -84,8 +84,8 @@ Software Foundation raise funds for GNU development.''
 * Tarball::          How to get a source tarball.
 * Building::         Building GNU Modula-2 from source.
 * Building on gcc 4.1.2::   Building on the gcc-4.1.2 branch.
-* Building on gcc 4.7::   Building on the gcc-4.7 branch.
-* Debian gcc-4.7 build::  Building gcc-4.7 under Debian.
+* Building on gcc 8.2::   Building on the gcc-8.2 branch.
+* Debian gcc-8.2 build::  Building gcc-8.2 under Debian.
 * Solaris gcc-4.7 build:: Building gcc-4.7 under Solaris.
 * Development::      How to access the git repository.
 * Dejagnu::          Stress testing GM2.
@@ -220,12 +220,30 @@ source tree.
 
 @table @code
 
+@item Talk given at The GNU Tools Cauldron 2018
+here is a talk on GNU Modula-2 given at
+@url{https://gcc.gnu.org/wiki/cauldron2018,The GNU Tools Cauldron},
+Manchester on 8th September 2018.
+The title is, ``GNU Modula-2 update, catching semantic errors post
+code optimisation and improved debugging''
+[@url{http://floppsie.comp.glam.ac.uk/Papers/paper23/gaius-mulley-gnu-m2.pdf,slides}
+and @url{https://www.youtube.com/watch?v=6jf6weRuHjk,video}].
+
+@item gm2 1.8.2
+was released on Aug 30th 2018.  gm2-1.8.2 grafts onto gcc-8.2.0
+and contains integer overflow detection for addition, subtraction,
+negation and multiplication.  It also detects and traps when
+a floating point nan occurs.  This is the first release with the
+new semantic checking plugin which checks whether any exception
+will occur post optimization (see -fsoft-check-all).  The compiler
+also works well with the automake tools.
+
 @item gm2 1.2.0
 was released on May 11th 2017.  gm2-1.2.0 grafts onto gcc-5.2.0 and
 supports much better line number accuracy in debugging output.
 Source to code relationship can be further improved by the new option
 -fm2-g.  -fm2-whole-program also provides whole program optimization.
-@item Talk given at The GNU Tools Cauldron
+@item Talk given at The GNU Tools Cauldron 2016
 here is a talk on GNU Modula-2 given at
 @url{https://gcc.gnu.org/wiki/cauldron2016,The GNU Tools Cauldron},
 Hebden Bridge on 9th September 2016.
@@ -420,7 +438,7 @@ $ ./configure
 finally the package can be built using these commands:
 
 @example
-$ cd gm2-\\*[DEBIANGM2]
+$ cd gm2-@value{version-GM2}
 $ mypdebbuild
 @end example
 
@@ -2891,7 +2909,7 @@ Contributing to GNU Modula-2}.
 * Tarball::           How to get a source tarball.
 * Building::          Building GNU Modula-2 from source.
 * Building on gcc 4.1.2::   Building on the gcc-4.1.2 branch.
-* Building on gcc 4.7::   Building on the gcc-4.7 branch.
+* Building on gcc 8.2::   Building on the gcc-8.2 branch.
 * Development::       How to access the git repository.
 * Dejagnu::           Stress testing GM2.
 * Cygwin::            How to build GNU Modula-2 under Cygwin.
@@ -2912,15 +2930,17 @@ your @file{/etc/apt/sources.list} file.
 #  GNU Modula-2 repo
 #
 
-deb http://floppsie.comp.glam.ac.uk/debian/ jessie main
-deb-src http://floppsie.comp.glam.ac.uk/debian/ jessie main
+deb http://floppsie.comp.glam.ac.uk/debian/ stretch main
+deb-src http://floppsie.comp.glam.ac.uk/debian/ stretch main
 @end example
 
-Now as root type:
+Now in a command line terminal type:
 
 @example
-$ apt-get update
-$ apt-get install gm2-doc gm2
+$ sudo gpg --keyserver pgp.mit.edu --recv-keys 41038A7635126B4A
+$ sudo gpg --export --armor 41038A7635126B4A | sudo apt-key add -
+$ sudo apt update
+$ sudo apt install gm2-doc gm2
 @end example
 
 As a normal user you can obtain the source code via:
@@ -2929,10 +2949,10 @@ As a normal user you can obtain the source code via:
 $ apt-get source gm2
 @end example
 
-@footnote{
-Packages are also built under wheezy (just replace jessie with wheezy
-in your @file{/etc/apt/sources.list} file).
-}
+@c @footnote{
+@c Packages are also built under wheezy (just replace jessie with wheezy
+@c in your @file{/etc/apt/sources.list} file).
+@c }
 
 @node Tarball, Building, Debian, Top
 @section How to get a source tarball
@@ -2960,19 +2980,15 @@ $ tar zxf gcc-@value{version-GCC}+gm2-git-latest.tar.gz
 @c this section is hardreferenced by gm2/www/tools/texi2tr/html/platforms.html
 @c
 
-There are two gcc releases upon which gm2 can be grafted.  These are listed
-below together with their status.
+There are multiple gcc releases upon which gm2 can be grafted.
+The gcc-8.2.0 is the most recent release which gm2 is known to build upon.
+See next but one section for building details.
 
-@table @code
-@item gcc-4.7
-stable see next but one section for building details.
-@end table
-
-@node Building on gcc 4.1.2, Building on gcc 4.7, Building, Top
+@node Building on gcc 4.1.2, Building on gcc 8.2, Building, Top
 @section Building GNU Modula-2 grafted on the gcc-4.1.2 branch
 
-Unless you have a specific reason, it is advisable to use the 4.7 graft of
-gm2 (see the next section).
+Unless you have a specific reason, it is advisable to use the 8.2
+graft of gm2 (see the next section).
 
 On a GNU/Linux system you should also be able to build it using these
 commands.  If you are building on a system which supports multiarch
@@ -3019,55 +3035,79 @@ $ make post-install
 which will create an @file{a.out} for the infamous hello world
 example.
 
-@node Building on gcc 4.7, Debian gcc-4.7 build, Building on gcc 4.1.2, Top
-@section Building GNU Modula-2 grafted on the gcc-4.7 branch
+@node Building on gcc 8.2, Prerequisites, Building on gcc 4.1.2, Top
+@section Building GNU Modula-2 grafted on the gcc-8.2 branch
 
 This is the current stable release of GNU Modula-2.  It currently
-builds cleanly under Debian Wheezy (x86_64 and i686) and at the time
-of writing no regression failures on the above platforms.
+builds cleanly under Debian Stretch (x86_64 and i686) and at the time
+of writing there are 18 regression failures on the above platforms
+(access to builtin setjmp and longjmp fails).
+
 The internals of GNU Modula-2 have been heavily overhauled, in
 particular the code interfacing the Modula-2 front end and the
 interface to the construction of GCC Trees.  This should mean that
 maintenance is easier in the future and it should reduce the time to
 graft gm2 onto future gcc releases.  In addition, the changes will
-allow for integer overflow to be detected.
-
-Most importantly all the libraries are now built with libtool and are
-now built in the same way as other gcc libraries.  From the users
-perspective it means that there are per target varient library
-binaries.  These will be automatically selected from the command line
-options.
+allow for integer overflow to be detected and a new plugin to detect
+semantic errors is automatically utilized.
 
 This version of gm2 can also be built as a cross compiler.
 
-@node Debian gcc-4.7 build, Solaris gcc-4.7 build, Building on gcc 4.7, Top
-@section Debian build on gcc-4.7 branch
+See the next section for instructions on how to build the compiler.
 
-To build gm2 based on the 4.7 series of GCC you will need to install:
+@node Prerequisites, Debian gcc-8.2 build, Building on gcc 8.2,
+@section Prerequisites
+
+If you are building on a Debian system you can optionally skip this
+section.  One of the frequent problems in building gcc is getting the
+necessary prerequisites, fortunately there is a script in the source
+tree which will do this for you and the build process will
+automatically build these before the main gcc build.  This build is
+all local.
+
+It is worth reading
+@url{https://gcc.gnu.org/wiki/InstallingGCC} to make sure you have the
+various support libraries.  To summarize it is probably safer to
+download the tarball and then the source for the prerequites as
+follows:
 
 @example
-$ sudo apt-get install gcc-multilib libmpfr-dev libgmp-dev libmpc-dev flex
+$ wget http://floppsie.comp.glam.ac.uk/download/c/gcc-8.2.0+gm2-git-latest.tar.gz
+$ tar zxf gcc-8.2.0+gm2-git-latest.tar.gz
+$ cd gcc-8.2.0+gm2-git-latest/gm2/gcc-versionno
+$ ./contrib/download_prerequisites
+$ cd ../../..
+@end example
+
+You can now move to the configure step in the next section.
+
+@node Debian gcc-8.2 build, Solaris gcc-4.7 build, Prerequisites, Top
+@section Debian build on gcc-8.2 branch
+
+To build gm2 based on the 8.2 series of GCC you will need to install:
+
+@example
+$ sudo apt-get install gcc-multilib libmpfr-dev libgmp-dev libmpc-dev flex libpth-dev
 @end example
 
 To download and extract the tarball:
 
 @example
-$ wget http://floppsie.comp.glam.ac.uk/download/c/gcc-4.7.4+gm2-git-latest.tar.gz
-$ tar zxf gcc-4.7.4+gm2-git-latest.tar.gz
+$ wget http://floppsie.comp.glam.ac.uk/download/c/gcc-8.2.0+gm2-git-latest.tar.gz
+$ tar zxf gcc-8.2.0+gm2-git-latest.tar.gz
 @end example
 
 To configure:
 
 @example
-$ mkdir build-4.7.4
-$ cd build-4.7.4
+$ mkdir build-8.2.0
+$ cd build-8.2.0
 $ CXXFLAGS=-g BOOT_CFLAGS=-g CFLAGS=-g \
-  ../gcc-4.7.4+gm2-git-latest/gm2/gcc-versionno/configure \
+  ../gcc-8.2.0+gm2-git-latest/gm2/gcc-versionno/configure \
   --prefix=$HOME/opt \
   --libexecdir=$HOME/opt/lib \
-  --enable-shared \
-  --enable-threads=posix --enable-__cxa_atexit \
-  --enable-clocale=gnu --enable-languages=c,c++,gm2 \
+  --enable-threads=posix \
+  --enable-clocale=gnu --enable-languages=c,c++,m2 \
   --disable-multilib --disable-bootstrap --enable-checking
 @end example
 
@@ -3083,7 +3123,7 @@ To install:
 $ make install
 @end example
 
-@node Solaris gcc-4.7 build, Development, Debian gcc-4.7 build, Top
+@node Solaris gcc-4.7 build, Development, Debian gcc-8.2 build, Top
 @section Solaris build on gcc-4.7 branch
 
 These instructions have been reported to work with gm2 grafted onto

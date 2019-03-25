@@ -1,10 +1,8 @@
-/* Copyright (C) 2012, 2013, 2014, 2015, 2016, 2017
- * Free Software Foundation, Inc.
- *
- *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
- */
+/* m2type.h header file for m2type.c.
 
-/*
+Copyright (C) 2012-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius@glam.ac.uk>.
+
 This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify
@@ -12,67 +10,80 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3, or (at your option)
 any later version.
 
-GNU Modula-2 is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Modula-2; see the file COPYING.  If not, write to the
-Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
-02110-1301, USA.
-*/
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  */
 
 #if !defined(m2type_h)
-#   define m2type_h
-#   if defined(m2type_c)
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN
-#      endif
-#   else
-#      if defined(__GNUG__)
-#         define EXTERN extern "C"
-#      else
-#         define EXTERN extern
-#      endif
-#   endif
+#define m2type_h
+#if defined(m2type_c)
+#if defined(__GNUG__)
+#define EXTERN extern "C"
+#else /* !__GNUG__.  */
+#define EXTERN
+#endif /* !__GNUG__.  */
+#else /* !m2type_c.  */
+#if defined(__GNUG__)
+#define EXTERN extern "C"
+#else /* !__GNUG__.  */
+#define EXTERN extern
+#endif /* !__GNUG__.  */
+#endif /* !m2type_c.  */
 
-typedef void* m2type_Constructor;
+typedef void *m2type_Constructor;
 
 EXTERN int m2type_ValueInTypeRange (tree type, tree value);
 EXTERN int m2type_ExceedsTypeRange (tree type, tree low, tree high);
 EXTERN int m2type_ValueOutOfTypeRange (tree type, tree value);
 EXTERN int m2type_WithinTypeRange (tree type, tree low, tree high);
-EXTERN tree m2type_BuildStartArrayType (tree index_type, tree elt_type, int type);
+EXTERN tree m2type_BuildStartArrayType (tree index_type, tree elt_type,
+                                        int type);
 EXTERN void m2type_PutArrayType (tree array, tree type);
-EXTERN tree m2type_BuildEndArrayType (tree arraytype, tree elementtype, tree indextype, int type);
+EXTERN tree m2type_BuildEndArrayType (tree arraytype, tree elementtype,
+                                      tree indextype, int type);
 EXTERN tree m2type_GetArrayNoOfElements (location_t location, tree arraytype);
 EXTERN tree m2type_BuildArrayIndexType (tree low, tree high);
 EXTERN void m2type_GarbageCollect (void);
 EXTERN void m2type_MarkFunctionReferenced (tree f);
 EXTERN void m2type_AddStatement (location_t location, tree t);
-EXTERN tree m2type_BuildNumberOfArrayElements (location_t location, tree arrayType);
-EXTERN tree m2type_BuildPackedFieldRecord (location_t location, char *name, tree fieldtype);
-EXTERN tree m2type_SetRecordFieldOffset (tree field, tree byteOffset, tree bitOffset, tree fieldtype, tree nbits);
+EXTERN tree m2type_BuildNumberOfArrayElements (location_t location,
+                                               tree arrayType);
+EXTERN tree m2type_BuildPackedFieldRecord (location_t location, char *name,
+                                           tree fieldtype);
+EXTERN tree m2type_SetRecordFieldOffset (tree field, tree byteOffset,
+                                         tree bitOffset, tree fieldtype,
+                                         tree nbits);
 EXTERN tree m2type_SetTypePacked (tree node);
 EXTERN tree m2type_SetDeclPacked (tree node);
 EXTERN tree m2type_SetAlignment (tree node, tree align);
-EXTERN tree m2type_BuildEndRecord (location_t location, tree record, tree fieldlist, int isPacked);
+EXTERN tree m2type_BuildEndRecord (location_t location, tree record,
+                                   tree fieldlist, int isPacked);
 EXTERN tree m2type_AddStringToTreeList (tree list, tree string);
-EXTERN tree m2type_ChainOnParamValue (tree list, tree name, tree str, tree value);
+EXTERN tree m2type_ChainOnParamValue (tree list, tree name, tree str,
+                                      tree value);
 EXTERN tree m2type_ChainOn (tree t1, tree t2);
-EXTERN tree m2type_BuildFieldRecord (location_t location, char *name, tree type);
-EXTERN tree m2type_BuildStartFieldRecord (location_t location, char *name, tree type);
-EXTERN tree m2type_BuildEndFieldVarient (location_t location, tree varientField, tree varientList, int isPacked);
+EXTERN tree m2type_BuildFieldRecord (location_t location, char *name,
+                                     tree type);
+EXTERN tree m2type_BuildStartFieldRecord (location_t location, char *name,
+                                          tree type);
+EXTERN tree m2type_BuildEndFieldVarient (location_t location,
+                                         tree varientField, tree varientList,
+                                         int isPacked);
 EXTERN tree m2type_BuildStartFieldVarient (location_t location, char *name);
-EXTERN tree m2type_BuildEndVarient (location_t location, tree varientField, tree varientList, int isPacked);
+EXTERN tree m2type_BuildEndVarient (location_t location, tree varientField,
+                                    tree varientList, int isPacked);
 EXTERN tree m2type_BuildStartVarient (location_t location, char *name);
 EXTERN tree m2type_BuildStartUnion (location_t location, char *name);
 EXTERN tree m2type_BuildStartRecord (location_t location, char *name);
 EXTERN tree m2type_RealToTree (char *name);
-EXTERN tree m2type_BuildArrayStringConstructor (location_t location, tree arrayType, tree str, tree length);
+EXTERN tree m2type_BuildArrayStringConstructor (location_t location,
+                                                tree arrayType, tree str,
+                                                tree length);
 
 #if 0
 EXTERN tree m2type_GetPointerOne (void);
@@ -145,18 +156,26 @@ EXTERN tree m2type_GetPackedBooleanType (void);
 EXTERN tree m2type_GetBooleanTrue (void);
 EXTERN tree m2type_GetBooleanFalse (void);
 EXTERN tree m2type_GetBooleanType (void);
-EXTERN tree m2type_BuildSmallestTypeRange (location_t location, tree low, tree high);
-EXTERN tree m2type_BuildSetTypeFromSubrange (location_t location, char *name, tree subrangeType, tree lowval, tree highval);
+EXTERN tree m2type_BuildSmallestTypeRange (location_t location, tree low,
+                                           tree high);
+EXTERN tree m2type_BuildSetTypeFromSubrange (location_t location, char *name,
+                                             tree subrangeType, tree lowval,
+                                             tree highval);
 EXTERN int m2type_GetBitsPerBitset (void);
 EXTERN tree m2type_GetM2RType (void);
 EXTERN tree m2type_GetM2ZType (void);
 
-EXTERN tree m2type_DeclareKnownType (location_t location, char *name, tree type);
+EXTERN tree m2type_DeclareKnownType (location_t location, char *name,
+                                     tree type);
 EXTERN tree m2type_GetTreeType (tree type);
-EXTERN tree m2type_BuildEndFunctionType (tree func, tree type, int uses_varargs);
-EXTERN tree m2type_BuildStartFunctionType (location_t location ATTRIBUTE_UNUSED, char *name ATTRIBUTE_UNUSED);
+EXTERN tree m2type_BuildEndFunctionType (tree func, tree type,
+                                         int uses_varargs);
+EXTERN tree m2type_BuildStartFunctionType (
+    location_t location ATTRIBUTE_UNUSED, char *name ATTRIBUTE_UNUSED);
 EXTERN void m2type_InitFunctionTypeParameters (void);
-EXTERN tree m2type_BuildVariableArrayAndDeclare (location_t location, tree elementtype, tree high, char *name, tree scope);
+EXTERN tree m2type_BuildVariableArrayAndDeclare (location_t location,
+                                                 tree elementtype, tree high,
+                                                 char *name, tree scope);
 EXTERN void m2type_InitSystemTypes (location_t location, int loc);
 EXTERN void m2type_InitBaseTypes (location_t location);
 EXTERN tree m2type_BuildStartType (location_t location, char *name, tree type);
@@ -165,12 +184,16 @@ EXTERN tree m2type_GetDefaultType (location_t location, char *name, tree type);
 EXTERN tree m2type_GetMinFrom (location_t location, tree type);
 EXTERN tree m2type_GetMaxFrom (location_t location, tree type);
 EXTERN void m2type_BuildTypeDeclaration (location_t location, tree type);
-EXTERN tree m2type_BuildStartEnumeration (location_t location, char *name, int ispacked);
-EXTERN tree m2type_BuildEndEnumeration (location_t location, tree enumtype, tree enumvalues);
-EXTERN tree m2type_BuildEnumerator (location_t location, char *name, tree value, tree *enumvalues);
+EXTERN tree m2type_BuildStartEnumeration (location_t location, char *name,
+                                          int ispacked);
+EXTERN tree m2type_BuildEndEnumeration (location_t location, tree enumtype,
+                                        tree enumvalues);
+EXTERN tree m2type_BuildEnumerator (location_t location, char *name,
+                                    tree value, tree *enumvalues);
 EXTERN tree m2type_BuildPointerType (tree totype);
 EXTERN tree m2type_BuildConstPointerType (tree totype);
-EXTERN tree m2type_BuildSetType (location_t location, char *name, tree type, tree lowval, tree highval);
+EXTERN tree m2type_BuildSetType (location_t location, char *name, tree type,
+                                 tree lowval, tree highval);
 EXTERN void *m2type_BuildStartSetConstructor (tree type);
 EXTERN void m2type_BuildSetConstructorElement (void *p, tree value);
 EXTERN tree m2type_BuildEndSetConstructor (void *p);
@@ -179,17 +202,20 @@ EXTERN tree m2type_BuildEndRecordConstructor (void *p);
 EXTERN void m2type_BuildRecordConstructorElement (void *p, tree value);
 EXTERN void *m2type_BuildStartArrayConstructor (tree type);
 EXTERN tree m2type_BuildEndArrayConstructor (void *p);
-EXTERN void m2type_BuildArrayConstructorElement (void *p, tree value, tree indice);
+EXTERN void m2type_BuildArrayConstructorElement (void *p, tree value,
+                                                 tree indice);
 EXTERN tree m2type_BuildCharConstant (location_t location, const char *string);
-EXTERN tree m2type_BuildSubrangeType (location_t location, char *name, tree type, tree lowval, tree highval);
+EXTERN tree m2type_BuildSubrangeType (location_t location, char *name,
+                                      tree type, tree lowval, tree highval);
 EXTERN tree m2type_gm2_unsigned_type (tree type);
 EXTERN tree m2type_gm2_signed_type (tree type);
 EXTERN tree m2type_gm2_signed_or_unsigned_type (int unsignedp, tree type);
 EXTERN tree m2type_gm2_type_for_size (unsigned int bits, int unsignedp);
-EXTERN tree m2type_BuildProcTypeParameterDeclaration (location_t location, tree type, int isreference);
+EXTERN tree m2type_BuildProcTypeParameterDeclaration (location_t location,
+                                                      tree type,
+                                                      int isreference);
 EXTERN int m2type_IsAddress (tree type);
 EXTERN tree m2type_GetCardinalAddressType (void);
 
-
 #undef EXTERN
-#endif
+#endif /* m2type_h  */

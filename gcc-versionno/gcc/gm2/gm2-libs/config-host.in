@@ -19,7 +19,7 @@
 
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT(ASCII.def, 1.2.0, gm2@nongnu.org)
+AC_INIT(ASCII.def, 1.8.2, gm2@nongnu.org)
 AC_CONFIG_HEADER(gm2-libs-host.h:gm2-libs-host.h.in)
 
 # Checks for programs.
@@ -131,8 +131,6 @@ dnl
 dnl  now check for presence of libraries and functions within libraries.
 dnl
 
-AC_CHECK_LIB(pth, pth_uctx_create, [],
-             [echo "** warning **: you will need to install libpth-dev if you wish to build coroutine based applications"])
 AC_CHECK_LIB(m, exp10, [AC_DEFINE([HAVE_EXP10],[1],[Define to 1 if your system has 'exp10'.])])
 AC_CHECK_LIB(m, exp10f, [AC_DEFINE([HAVE_EXP10F],[1],[Define to 1 if your system has 'exp10f'.])])
 AC_CHECK_LIB(m, exp10l, [AC_DEFINE([HAVE_EXP10L],[1],[Define to 1 if your system has 'exp10l'.])])

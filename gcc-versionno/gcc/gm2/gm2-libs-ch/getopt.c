@@ -1,22 +1,23 @@
-/* Copyright (C) 2017
- *               Free Software Foundation, Inc. */
-/* This file is part of GNU Modula-2.
+/* getopt.c provide access to the C getopt library.
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+Copyright (C) 2017-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius@glam.ac.uk>.
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
+This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-MA 02110-1301, USA.  */
-
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
 
@@ -24,7 +25,6 @@ char *getopt_optarg;
 int getopt_optind;
 int getopt_opterr;
 int getopt_optopt;
-
 
 char
 getopt_getopt (int argc, char *argv[], char *optstring)
@@ -41,10 +41,9 @@ getopt_getopt (int argc, char *argv[], char *optstring)
   return r;
 }
 
-
 int
-getopt_getopt_long (int argc, char *argv[], char *optstring,
-		    void *longopts, int *longindex)
+getopt_getopt_long (int argc, char *argv[], char *optstring, void *longopts,
+                    int *longindex)
 {
   int r = getopt_long (argc, argv, optstring, longopts, longindex);
 
@@ -56,10 +55,9 @@ getopt_getopt_long (int argc, char *argv[], char *optstring,
   return r;
 }
 
-
 int
 getopt_getopt_long_only (int argc, char *argv[], char *optstring,
-			 void *longopts, int *longindex)
+                         void *longopts, int *longindex)
 {
   int r = getopt_long_only (argc, argv, optstring, longopts, longindex);
 
@@ -71,16 +69,14 @@ getopt_getopt_long_only (int argc, char *argv[], char *optstring,
   return r;
 }
 
+/* GNU Modula-2 linking fodder.  */
 
-/*
- *  GNU Modula-2 linking fodder.
- */
-
-void _M2_getopt_init (void)
+void
+_M2_getopt_init (void)
 {
 }
 
-
-void _M2_getopt_finish (void)
+void
+_M2_getopt_finish (void)
 {
 }

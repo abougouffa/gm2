@@ -1,16 +1,99 @@
 2019-03-25      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
-	* gm2/Make-lang.in:  (selftest-gm2) added dummy rule.
-	* gm2/gm2-gcc/gcc-consolidation.h:  added headers (params, spellcheck
+	* gm2/Make-lang.in: (selftest-gm2) added dummy rule.
+	* gm2/gm2-gcc/gcc-consolidation.h: added headers (params, spellcheck
           opt-suggestions).
-	* gm2/gm2-lang.c:  (gm2_langhook_handle_option)
+	* gm2/gm2-lang.c: (gm2_langhook_handle_option)
           corrected parameter (value) to HOST_WIDE_INT.
-	* gm2/gm2spec.c:  added headers (params, spellcheck, prefix, intl,
-        opt-suggestions).  Only compile printOption is DEBUGGING is set.
-	* gm2/config-lang.in:  removed p2c Makefiles.
-	* gm2/configure.in:  removed warning about libpth.
-	* gm2/gm2-gcc/gcc-consolidation.h:  fixed comments as per GNU style.
-
+	* gm2/gm2spec.c: added headers (params, spellcheck, prefix, intl,
+          opt-suggestions).  Only compile printOption is DEBUGGING is set.
+	* gm2/config-lang.in: removed p2c Makefiles.
+	* gm2/configure.in: removed warning about libpth.
+	* gm2/gm2-gcc/gcc-consolidation.h: fixed comments as per GNU style.
+	* gcc-versionno/gcc/gm2/Make-lang.in: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/dynamicstrings.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/init.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/init.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2assert.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2assert.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2block.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2block.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2builtins.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2builtins.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2convert.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2convert.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2decl.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2decl.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2except.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2except.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2expr.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2expr.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2linemap.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2linemap.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2misc.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2misc.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2options.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2range.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2search.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2statement.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2statement.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2top.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2top.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2tree.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2tree.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2treelib.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2treelib.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2type.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-gcc/m2type.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-lang.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs-ch/SysExceptions.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs-ch/UnixArgs.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs-ch/choosetemp.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs-ch/dtoa.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs-ch/errno.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs-ch/getopt.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs-ch/host.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs-ch/ldtoa.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs-ch/termios.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs-ch/wrapc.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs-ch/xlibc.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs-iso/ChanConsts.mod: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs-iso/MemStream.mod: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs-min/libc.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs-pim/Break.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs/Args.def: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs/Args.mod: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs/config-host: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs/config-host.in: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2-libs/gdbif.mod: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2.texi: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/gm2spec.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/m2pp.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/mc-boot-ch/GBuiltins.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/mc-boot-ch/GSYSTEM.applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/mc-boot-ch/GSelective.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/mc-boot-ch/GSysExceptions.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/mc-boot-ch/GUnixArgs.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/mc-boot-ch/Gcbuiltin.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/mc-boot-ch/Gdtoa.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/mc-boot-ch/Gerrno.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/mc-boot-ch/Gldtoa.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/mc-boot-ch/Glibc.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/mc-boot-ch/Glibm.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/mc-boot-ch/Gmcrts.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/mc-boot-ch/Gmcrts.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/mc-boot-ch/Gnetwork.h: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/mc-boot-ch/Gpth.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/mc-boot-ch/Gtermios.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/mc-boot-ch/Gwrapc.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/mc-boot-ch/network.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/tools-src/gensum.py: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/tools-src/mklink.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/tools-src/tidydates.py: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/gcc/gm2/version.c: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/libgm2/libpim/Makefile.am: applied gm2-1.8.2 formatting and bug fixes.
+	* gcc-versionno/libgm2/libpim/Makefile.in: applied gm2-1.8.2 formatting and bug fixes.
+	
 2019-03-22      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/patches/gcc/trunk/01-patches:  New file.
