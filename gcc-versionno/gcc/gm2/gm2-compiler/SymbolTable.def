@@ -137,6 +137,8 @@ EXPORT QUALIFIED NulSym,
                  GetVarWritten,
                  PutConst,
                  PutConstString,
+                 PutConstStringRequiresNul,
+                 IsConstStringRequiresNul,
                  PutConstSet,
                  PutConstructor,
                  PutConstructorFrom,
@@ -1227,6 +1229,20 @@ PROCEDURE PutConst (Sym: CARDINAL; ConstType: CARDINAL) ;
 *)
 
 PROCEDURE PutConstString (Sym: CARDINAL; String: Name) ;
+
+
+(*
+   PutConstStringRequiresNul - records that this string needs to have a trailing nul.
+*)
+
+PROCEDURE PutConstStringRequiresNul (sym: CARDINAL) ;
+
+
+(*
+   IsConstStringRequiresNul - returns the value of RequiresNul for a conststring.
+*)
+
+PROCEDURE IsConstStringRequiresNul (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

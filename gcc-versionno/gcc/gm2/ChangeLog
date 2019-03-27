@@ -1,3 +1,25 @@
+2019-03-26      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod: import
+          IsConstStringRequiresNul.
+	  (DeclareStringConstant) call BuildCStringConstant if
+          appropriate.
+	* gm2/gm2-compiler/M2GenGCC.mod: corrected dates.
+	* gm2/gm2-compiler/M2Quads.mod:  (ConvertStringToC) rewritten
+          to set RequiresNul in a copy of the symbol.
+	* gm2/gm2-compiler/SymbolTable.def:  (PutConstStringRequiresNul)
+	  export and declare.  (IsConstStringRequiresNul) export and
+          declare.
+	* gm2/gm2-compiler/SymbolTable.mod:  (SymConstString)  New field
+          NulRequired.  (PutConstString) initialise NulRequired.
+          (PutConstStringRequiresNul)  New procedure.
+          (IsConstStringRequiresNul)  New procedure function.
+	* gm2/gm2-gcc/m2decl.c:  (BuildCStringConstant) New function.
+          (BuildStringConstant) no longer automatically creates a string
+          with a trailing nul.
+	* gm2/gm2-gcc/m2decl.def: (BuildCStringConstant) New function.
+	* gm2/gm2-gcc/m2decl.h: (BuildCStringConstant) New function.
+
 2019-03-25      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in: (selftest-gm2) added dummy rule.

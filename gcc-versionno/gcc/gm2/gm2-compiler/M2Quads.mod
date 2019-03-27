@@ -41,6 +41,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         MakeTemporaryFromExpression,
                         MakeTemporaryFromExpressions,
                         MakeConstLit, MakeConstLitString,
+                        MakeConstString,                        
                         Make2Tuple,
                         RequestSym, MakePointer, PutPointer,
                         SkipType,
@@ -60,6 +61,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         GetModuleQuads, GetProcedureQuads,
                         MakeProcedure,
                         PutConstString,
+                        PutConstStringRequiresNul,
                         PutModuleStartQuad, PutModuleEndQuad,
                         PutModuleFinallyStartQuad, PutModuleFinallyEndQuad,
                         PutProcedureStartQuad, PutProcedureEndQuad,
@@ -5364,13 +5366,18 @@ END ManipulatePseudoCallParameters ;
 
 PROCEDURE ConvertStringToC (sym: CARDINAL) : CARDINAL ;
 VAR
-   s: String ;
-   n: CARDINAL ;
+   contents: String ;
+   sname   : String ;
+   newsym  : CARDINAL ;
 BEGIN
-   s := Sprintf0(InitStringCharStar(KeyToCharStar(GetString(sym)))) ;
-   n := MakeConstLitString(makekey(string(s))) ;
-   s := KillString(s) ;
-   RETURN( n )
+   contents := Sprintf0(InitStringCharStar(KeyToCharStar(GetString(sym)))) ;
+   sname := Sprintf1(InitString('C_%d'), sym) ;
+   newsym := MakeConstString(makekey(string(sname))) ;
+   PutConstString(newsym, makekey(string(contents))) ;
+   PutConstStringRequiresNul(newsym) ;
+   contents := KillString(contents) ;
+   sname := KillString(sname) ;
+   RETURN( newsym )
 END ConvertStringToC ;
 
 

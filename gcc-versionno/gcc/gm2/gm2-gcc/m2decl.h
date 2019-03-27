@@ -38,6 +38,7 @@ see <https://www.gnu.org/licenses/>.  */
 
 EXTERN tree m2decl_GetDeclContext (tree t);
 EXTERN tree m2decl_BuildStringConstant (const char *string, int length);
+EXTERN tree m2decl_BuildCStringConstant (const char *string, int length);
 EXTERN tree m2decl_BuildConstLiteralNumber (const char *str,
                                             unsigned int base);
 EXTERN void m2decl_DetermineSizeOfConstant (const char *str, unsigned int base,

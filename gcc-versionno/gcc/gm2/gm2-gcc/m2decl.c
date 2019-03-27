@@ -278,11 +278,11 @@ m2decl_BuildConstLiteralNumber (const char *str, unsigned int base)
   return m2block_RememberConstant (value);
 }
 
-/* BuildStringConstant - creates a string constant given a, string,
+/* BuildCStringConstant - creates a string constant given a, string,
    and, length.  */
 
 tree
-m2decl_BuildStringConstant (const char *string, int length)
+m2decl_BuildCStringConstant (const char *string, int length)
 {
   tree elem, index, type;
 
@@ -291,6 +291,20 @@ m2decl_BuildStringConstant (const char *string, int length)
   index = build_index_type (build_int_cst (integer_type_node, length + 1));
   type = build_array_type (elem, index);
   return m2decl_BuildStringConstantType (length + 1, string, type);
+}
+
+/* BuildStringConstant - creates a string constant given a, string,
+   and, length.  */
+
+tree
+m2decl_BuildStringConstant (const char *string, int length)
+{
+  tree elem, index, type;
+
+  elem = build_type_variant (char_type_node, 1, 0);
+  index = build_index_type (build_int_cst (integer_type_node, length));
+  type = build_array_type (elem, index);
+  return m2decl_BuildStringConstantType (length, string, type);
 }
 
 /* BuildIntegerConstant - return a tree containing the integer value.  */

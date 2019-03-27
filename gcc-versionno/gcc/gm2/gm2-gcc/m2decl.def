@@ -135,6 +135,14 @@ PROCEDURE BuildConstLiteralNumber (str: ADDRESS; base: CARDINAL) : Tree ;
 PROCEDURE BuildStringConstant (string: ADDRESS; length: INTEGER) : Tree ;
 
 
+(*
+    BuildCStringConstant - creates a string constant given a, string,
+                           and, length.
+*)
+
+PROCEDURE BuildCStringConstant (string: ADDRESS; length: INTEGER) : Tree ;
+
+
 
 PROCEDURE GetDeclContext (t: Tree) : Tree ;
 

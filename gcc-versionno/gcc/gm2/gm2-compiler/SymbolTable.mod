@@ -400,11 +400,12 @@ TYPE
 
    SymConstString
                = RECORD
-                    name     : Name ;         (* Index into name array, name *)
+                    name       : Name ;       (* Index into name array, name *)
                                               (* of const.                   *)
-                    String   : Name ;         (* Value of string.            *)
-                    Length   : CARDINAL ;     (* StrLen(String)              *)
-                    At       : Where ;        (* Where was sym declared/used *)
+                    String     : Name ;       (* Value of string.            *)
+                    Length     : CARDINAL ;   (* StrLen(String)              *)
+                    NulRequired: BOOLEAN ;    (* Does the string need nul.   *)
+                    At         : Where ;      (* Where was sym declared/used *)
                  END ;
 
    SymConstLit = RECORD
@@ -3839,6 +3840,7 @@ BEGIN
 
          ConstStringSym : ConstString.name := ConstName ;
                           PutConstString(Sym, ConstName) ;
+                          ConstString.NulRequired := FALSE ;
                           InitWhereDeclared(ConstString.At)
 
          ELSE
@@ -3871,6 +3873,7 @@ BEGIN
       ConstStringSym : ConstString.name := ConstName ;
                        ConstString.Length := 0 ;
                        ConstString.String := NulKey ;
+                       ConstString.NulRequired := FALSE ;
                        InitWhereDeclared(ConstString.At)
 
       ELSE
@@ -3905,6 +3908,7 @@ BEGIN
                       (* copy name and alter symbol.     *)
                       SymbolType := ConstStringSym ;
                       ConstString.name := n ;
+                      ConstString.NulRequired := FALSE ;
                       PutConstString(Sym, String)
 
       ELSE
@@ -3913,6 +3917,50 @@ BEGIN
       END
    END
 END PutConstString ;
+
+
+(*
+   PutConstStringRequiresNul - records that this string needs to have a trailing nul.
+*)
+
+PROCEDURE PutConstStringRequiresNul (sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      ConstStringSym: ConstString.NulRequired := FALSE
+
+      ELSE
+         InternalError('expecting ConstString symbol',
+                       __FILE__, __LINE__)
+      END
+   END
+END PutConstStringRequiresNul ;
+
+
+(*
+   IsConstStringRequiresNul - returns the value of RequiresNul for a conststring.
+*)
+
+PROCEDURE IsConstStringRequiresNul (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      ConstStringSym: RETURN( ConstString.NulRequired )
+
+      ELSE
+         InternalError('expecting ConstString symbol',
+                       __FILE__, __LINE__)
+      END
+   END
+END IsConstStringRequiresNul ;
 
 
 (*

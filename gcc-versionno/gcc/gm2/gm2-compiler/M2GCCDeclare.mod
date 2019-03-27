@@ -1,5 +1,6 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+                 2019
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -104,7 +105,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetSymName, GetParent,
                         GetDeclaredMod, GetVarBackEndType,
                         GetProcedureBeginEnd,
-                        GetString, GetStringLength, IsConstString,
+                        GetString, GetStringLength, IsConstString, IsConstStringRequiresNul,
                         GetAlignment, IsDeclaredPacked, PutDeclaredPacked,
                         GetDefaultRecordFieldAlignment, IsDeclaredPackedResolved,
                         GetPackedEquivalent,
@@ -147,7 +148,8 @@ FROM M2Batch IMPORT IsSourceSeen, GetModuleFile, IsModuleSeen, LookupModule ;
 FROM m2tree IMPORT Tree ;
 FROM m2linemap IMPORT location_t, BuiltinsLocation ;
 
-FROM m2decl IMPORT BuildIntegerConstant, BuildStringConstant, BuildStartFunctionDeclaration,
+FROM m2decl IMPORT BuildIntegerConstant, BuildStringConstant, BuildCStringConstant,
+                   BuildStartFunctionDeclaration,
                    BuildParameterDeclaration, BuildEndFunctionDeclaration,
                    DeclareKnownVariable, GetBitsPerBitset ;
 
@@ -1582,10 +1584,18 @@ END DeclareCharConstant ;
 PROCEDURE DeclareStringConstant (sym: CARDINAL) ;
 VAR
    location: location_t ;
+   symtree : Tree ;
 BEGIN
    location := TokenToLocation(GetDeclaredMod(sym)) ;
-   PreAddModGcc(sym, BuildStringConstant(KeyToCharStar(GetString(sym)),
-                                         GetStringLength(sym))) ;
+   IF IsConstStringRequiresNul(sym)
+   THEN
+      symtree := BuildCStringConstant(KeyToCharStar(GetString(sym)),
+                                      GetStringLength(sym))
+   ELSE
+      symtree := BuildStringConstant(KeyToCharStar(GetString(sym)),
+                                     GetStringLength(sym))
+   END ;
+   PreAddModGcc(sym, symtree) ;
    WatchRemoveList(sym, todolist) ;
    WatchIncludeList(sym, fullydeclared)
 END DeclareStringConstant ;
