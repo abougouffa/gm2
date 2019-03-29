@@ -1,3 +1,18 @@
+2019-03-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* libgm2/configure:  regenerated.
+	* libgm2/configure.ac:  implement --enable-libpth-m2
+	* libgm2/libpth/Makefile.am:  pass FLAGS_TO_PASS to make.
+          move install rules into pth subdirectory.
+	* libgm2/libpth/pth/Makefile.am:  added install rules.
+
+2018-11-27      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* libgm2/libpim/wrapc.c:  reformatted according to GNU
+          coding standards.  Also defended against macro omissions.
+	* libgm2/libiso/wraptime.c:  fixed function declaration
+	  and erroneous return value.
+
 2018-04-16      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* libgm2/Makefile.am:  specify the libtool location.

@@ -1,3 +1,28 @@
+2019-03-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  walk and
+	  declare equivalent nul terminated strings.
+	* gm2/gm2-compiler/M2Quads.mod:  (ConvertStringToC) rewritten.
+          (ManipulateParameters) always pass conststrings with a nul
+	  terminator.
+	* gm2/gm2-compiler/SymbolTable.def:
+          (GetConstStringNullTerminated) New procedure function.
+	* gm2/gm2-compiler/SymbolTable.mod:  (SymConstString)
+          provide equivalent nul terminated version of the string.
+          (MakeConstLitString) initialise NulTerminated and
+          IsNulTerminated fields.  (InitConstString)  New procedure.
+	  (GetConstStringNullTerminated)  New procedure function.
+	* testsuite/gm2/calling-c/datatypes/unbounded/run/pass/c.def:
+	  use ARRAY OF CHAR rather than address.
+	* testsuite/gm2/calling-c/datatypes/unbounded/run/pass/gm2.exp:
+	  do not explicity use -lpth.
+	* testsuite/gm2/calling-c/datatypes/unbounded/run/pass/m.mod:
+	  do not use ADR when passing a constant string.
+	* testsuite/gm2/dynamic/pass/testbec30.mod:  fixed ARRAY type
+	  to CHAR.
+	* testsuite/lib/gm2.exp:  added libpth to the list of libraries
+	  searched now that libpth is built.
+
 2019-03-26      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod: import

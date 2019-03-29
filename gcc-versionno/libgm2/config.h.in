@@ -48,6 +48,9 @@
 /* function fstat exists */
 #undef HAVE_FSTAT
 
+/* Define to 1 if you have the `getcontext' function. */
+#undef HAVE_GETCONTEXT
+
 /* function getdents exists */
 #undef HAVE_GETDENTS
 
@@ -75,14 +78,26 @@
 /* Define to 1 if you have the <langinfo.h> header file. */
 #undef HAVE_LANGINFO_H
 
+/* Define to 1 if you have the `pth' library (-lpth). */
+#undef HAVE_LIBPTH
+
+/* Define to 1 if you have the `sfio' library (-lsfio). */
+#undef HAVE_LIBSFIO
+
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
 /* function link exists */
 #undef HAVE_LINK
 
+/* Define to 1 if you have the `longjmp' function. */
+#undef HAVE_LONGJMP
+
 /* function lseek exists */
 #undef HAVE_LSEEK
+
+/* Define to 1 if you have the `makecontext' function. */
+#undef HAVE_MAKECONTEXT
 
 /* Define to 1 if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
@@ -99,14 +114,29 @@
 /* Define to 1 if you have the <netinet/in.h> header file. */
 #undef HAVE_NETINET_IN_H
 
+/* define if typedef nfds_t exists in header poll.h */
+#undef HAVE_NFDS_T
+
+/* define if typedef off_t exists in header sys/types.h */
+#undef HAVE_OFF_T
+
 /* function open exists */
 #undef HAVE_OPEN
 
 /* function pause exists */
 #undef HAVE_PAUSE
 
+/* define if typedef pid_t exists in header sys/types.h */
+#undef HAVE_PID_T
+
 /* function pipe exists */
 #undef HAVE_PIPE
+
+/* Define to 1 if you have the `poll' function. */
+#undef HAVE_POLL
+
+/* define if pre-processor define POLLIN exists in header poll.h */
+#undef HAVE_POLLIN
 
 /* Define to 1 if you have the <pthread.h> header file. */
 #undef HAVE_PTHREAD_H
@@ -120,8 +150,14 @@
 /* function read exists */
 #undef HAVE_READ
 
+/* Define to 1 if you have the `readv' function. */
+#undef HAVE_READV
+
 /* function select exists */
 #undef HAVE_SELECT
+
+/* Define to 1 if you have the `setcontext' function. */
+#undef HAVE_SETCONTEXT
 
 /* function setgid exists */
 #undef HAVE_SETGID
@@ -129,8 +165,20 @@
 /* function setitimer exists */
 #undef HAVE_SETITIMER
 
+/* Define to 1 if you have the `setjmp' function. */
+#undef HAVE_SETJMP
+
 /* function setuid exists */
 #undef HAVE_SETUID
+
+/* Define to 1 if you have the <sfio.h> header file. */
+#undef HAVE_SFIO_H
+
+/* Define to 1 if you have the `sigaltstack' function. */
+#undef HAVE_SIGALTSTACK
+
+/* Define to 1 if you have the `siglongjmp' function. */
+#undef HAVE_SIGLONGJMP
 
 /* Define to 1 if you have the <signal.h> header file. */
 #undef HAVE_SIGNAL_H
@@ -143,6 +191,24 @@
 
 /* function signbitl exists */
 #undef HAVE_SIGNBITL
+
+/* Define to 1 if you have the `sigsetjmp' function. */
+#undef HAVE_SIGSETJMP
+
+/* Define to 1 if you have the `sigstack' function. */
+#undef HAVE_SIGSTACK
+
+/* define if typedef sig_atomic_t exists in header signal.h */
+#undef HAVE_SIG_ATOMIC_T
+
+/* define if typedef socklen_t exists in header sys/socket.h */
+#undef HAVE_SOCKLEN_T
+
+/* define if typedef ssize_t exists in header sys/types.h */
+#undef HAVE_SSIZE_T
+
+/* define if typedef stack_t exists in header signal.h */
+#undef HAVE_STACK_T
 
 /* function stat exists */
 #undef HAVE_STAT
@@ -162,6 +228,9 @@
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
+/* Define to 1 if you have the `strerror' function. */
+#undef HAVE_STRERROR
+
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
 
@@ -180,11 +249,17 @@
 /* Define to 1 if the system has the type `struct stat'. */
 #undef HAVE_STRUCT_STAT
 
+/* define if exists "struct timespec" */
+#undef HAVE_STRUCT_TIMESPEC
+
 /* Define to 1 if the system has the type `struct timeval'. */
 #undef HAVE_STRUCT_TIMEVAL
 
 /* Define to 1 if the system has the type `struct timezone'. */
 #undef HAVE_STRUCT_TIMEZONE
+
+/* Define to 1 if you have the `swapcontext' function. */
+#undef HAVE_SWAPCONTEXT
 
 /* Define to 1 if you have the <sys/errno.h> header file. */
 #undef HAVE_SYS_ERRNO_H
@@ -203,6 +278,9 @@
 
 /* Define to 1 if you have the <sys/resource.h> header file. */
 #undef HAVE_SYS_RESOURCE_H
+
+/* Define to 1 if you have the <sys/select.h> header file. */
+#undef HAVE_SYS_SELECT_H
 
 /* Define to 1 if you have the <sys/socket.h> header file. */
 #undef HAVE_SYS_SOCKET_H
@@ -249,6 +327,15 @@
 /* function write exists */
 #undef HAVE_WRITE
 
+/* Define to 1 if you have the `writev' function. */
+#undef HAVE_WRITEV
+
+/* Define to 1 if you have the `_longjmp' function. */
+#undef HAVE__LONGJMP
+
+/* Define to 1 if you have the `_setjmp' function. */
+#undef HAVE__SETJMP
+
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
 #undef LT_OBJDIR
@@ -273,6 +360,21 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* define for machine context dispatching */
+#undef PTH_MCTX_DSP_use
+
+/* define for machine context method */
+#undef PTH_MCTX_MTH_use
+
+/* define for machine context stack */
+#undef PTH_MCTX_STK_use
+
+/* define for number of signals */
+#undef PTH_NSIG
+
+/* define for stack growth */
+#undef PTH_STACKGROWTH
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS

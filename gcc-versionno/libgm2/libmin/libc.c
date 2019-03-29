@@ -17,10 +17,10 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA. */
 
-void abort (int);
+void abort (void);
 void exit  (int);
 
-void abort (int i)
+void abort (void)
 {
 }
 

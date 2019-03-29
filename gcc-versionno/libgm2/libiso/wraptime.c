@@ -393,6 +393,7 @@ wraptime_SetTimeval (struct tm *t,
   t->tm_isdst = isdst;
 }
 #else
+void
 wraptime_SetTimeval (void *t,
 		     unsigned int second,
 		     unsigned int minute,
@@ -404,7 +405,6 @@ wraptime_SetTimeval (void *t,
 		     unsigned int wday,
 		     unsigned int isdst)
 {
-  return t;
 }
 #endif
 

@@ -22,11 +22,11 @@ FROM c IMPORT funcString ;
 
 PROCEDURE farrayofchar (a: ARRAY OF CHAR) ;
 BEGIN
-   IF funcString(ADR('hello'))#5
+   IF funcString('hello')#5
    THEN
       HALT(1)
    END ;
-   IF funcString(ADR(a))#5
+   IF funcString(a)#5
    THEN
       HALT(2)
    END

@@ -41,7 +41,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         MakeTemporaryFromExpression,
                         MakeTemporaryFromExpressions,
                         MakeConstLit, MakeConstLitString,
-                        MakeConstString,                        
+                        MakeConstString,
                         Make2Tuple,
                         RequestSym, MakePointer, PutPointer,
                         SkipType,
@@ -59,9 +59,9 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         GetWriteLimitQuads, GetReadLimitQuads,
                         GetVarScope,
                         GetModuleQuads, GetProcedureQuads,
+                        GetConstStringNullTerminated,
                         MakeProcedure,
                         PutConstString,
-                        PutConstStringRequiresNul,
                         PutModuleStartQuad, PutModuleEndQuad,
                         PutModuleFinallyStartQuad, PutModuleFinallyEndQuad,
                         PutProcedureStartQuad, PutProcedureEndQuad,
@@ -5365,19 +5365,8 @@ END ManipulatePseudoCallParameters ;
 *)
 
 PROCEDURE ConvertStringToC (sym: CARDINAL) : CARDINAL ;
-VAR
-   contents: String ;
-   sname   : String ;
-   newsym  : CARDINAL ;
 BEGIN
-   contents := Sprintf0(InitStringCharStar(KeyToCharStar(GetString(sym)))) ;
-   sname := Sprintf1(InitString('C_%d'), sym) ;
-   newsym := MakeConstString(makekey(string(sname))) ;
-   PutConstString(newsym, makekey(string(contents))) ;
-   PutConstStringRequiresNul(newsym) ;
-   contents := KillString(contents) ;
-   sname := KillString(sname) ;
-   RETURN( newsym )
+   RETURN( GetConstStringNullTerminated(sym) )
 END ConvertStringToC ;
 
 
@@ -5526,6 +5515,11 @@ BEGIN
          MarkAsReadWrite(rw)
       ELSIF IsUnboundedParam(Proc, i)
       THEN
+         (* always pass constant strings with a nul terminator, but leave the HIGH as before.  *)
+         IF IsConstString(OperandT(pi))
+         THEN
+            f^.TrueExit := GetConstStringNullTerminated(OperandT(pi))
+         END ;
          t := MakeTemporary(RightValue) ;
          UnboundedType := GetSType(GetParam(Proc, i)) ;
          PutVar(t, UnboundedType) ;

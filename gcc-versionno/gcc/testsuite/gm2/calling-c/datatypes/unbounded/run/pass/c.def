@@ -22,14 +22,12 @@ DEFINITION MODULE FOR "C" c ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Fri Nov 27 13:02:23 2009
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides a simple C module which can be used to
                  test whether GNU Modula-2 data types are passed
                  correctly to their C counterparts.
 *)
 
-FROM SYSTEM IMPORT ADDRESS ;
-
-PROCEDURE funcString (s: ADDRESS) : INTEGER ;
+PROCEDURE funcString (s: ARRAY OF CHAR) : INTEGER ;
 
 END c.

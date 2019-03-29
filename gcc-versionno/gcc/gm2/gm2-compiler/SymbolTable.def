@@ -139,6 +139,7 @@ EXPORT QUALIFIED NulSym,
                  PutConstString,
                  PutConstStringRequiresNul,
                  IsConstStringRequiresNul,
+                 GetConstStringNullTerminated,
                  PutConstSet,
                  PutConstructor,
                  PutConstructorFrom,
@@ -1243,6 +1244,15 @@ PROCEDURE PutConstStringRequiresNul (sym: CARDINAL) ;
 *)
 
 PROCEDURE IsConstStringRequiresNul (sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   GetConstStringNullTerminated - returns the symbol, sym, or another
+                                  ConstString which has the same contents
+                                  as sym, except it will have a trailing nul char.
+*)
+
+PROCEDURE GetConstStringNullTerminated (sym: CARDINAL) : CARDINAL ;
 
 
 (*

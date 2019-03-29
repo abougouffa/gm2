@@ -105,7 +105,8 @@ FROM SymbolTable IMPORT NulSym,
                         GetSymName, GetParent,
                         GetDeclaredMod, GetVarBackEndType,
                         GetProcedureBeginEnd,
-                        GetString, GetStringLength, IsConstString, IsConstStringRequiresNul,
+                        GetString, GetStringLength, IsConstString,
+                        IsConstStringRequiresNul, GetConstStringNullTerminated,
                         GetAlignment, IsDeclaredPacked, PutDeclaredPacked,
                         GetDefaultRecordFieldAlignment, IsDeclaredPackedResolved,
                         GetPackedEquivalent,
@@ -1713,6 +1714,10 @@ BEGIN
    IF IsConstSet(sym) OR IsConstructor(sym)
    THEN
       WalkConstructor(sym, p)
+   END ;
+   IF IsConstString(sym) AND (GetConstStringNullTerminated(sym) # NulSym)
+   THEN
+      WalkConst(GetConstStringNullTerminated(sym), p)
    END
 END WalkConst ;
 
@@ -3979,7 +3984,11 @@ BEGIN
       IncludeType(l, sym)
    ELSIF IsConstString(sym)
    THEN
-      printf2('sym %d IsConstString (%a)', sym, n)
+      printf2('sym %d IsConstString (%a)', sym, n) ;
+      IF IsConstStringRequiresNul(sym)
+      THEN
+         printf0(' nul terminated')
+      END
    ELSIF IsConstLit(sym)
    THEN
       printf2('sym %d IsConstLit (%a)', sym, n)

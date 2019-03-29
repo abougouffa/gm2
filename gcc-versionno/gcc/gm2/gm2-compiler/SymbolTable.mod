@@ -400,12 +400,13 @@ TYPE
 
    SymConstString
                = RECORD
-                    name       : Name ;       (* Index into name array, name *)
-                                              (* of const.                   *)
-                    String     : Name ;       (* Value of string.            *)
-                    Length     : CARDINAL ;   (* StrLen(String)              *)
-                    NulRequired: BOOLEAN ;    (* Does the string need nul.   *)
-                    At         : Where ;      (* Where was sym declared/used *)
+                    name         : Name ;       (* Index into name array, name *)
+                                                (* of const.                   *)
+                    String       : Name ;       (* Value of string.            *)
+                    Length       : CARDINAL ;   (* StrLen(String)              *)
+                    NulTerminated: CARDINAL ;   (* Equivalent nul terminated   *)
+                    IsNulTerminated: BOOLEAN ;  (* Is this string nul terminated? *)
+                    At           : Where ;      (* Where was sym declared/used *)
                  END ;
 
    SymConstLit = RECORD
@@ -3840,7 +3841,8 @@ BEGIN
 
          ConstStringSym : ConstString.name := ConstName ;
                           PutConstString(Sym, ConstName) ;
-                          ConstString.NulRequired := FALSE ;
+                          ConstString.NulTerminated := NulSym ;
+                          ConstString.IsNulTerminated := FALSE ;
                           InitWhereDeclared(ConstString.At)
 
          ELSE
@@ -3850,6 +3852,67 @@ BEGIN
    END ;
    RETURN( Sym )
 END MakeConstLitString ;
+
+
+(*
+   InitConstString -
+*)
+
+PROCEDURE InitConstString (sym: CARDINAL; name: Name; String: Name) ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      SymbolType := ConstStringSym ;
+      CASE SymbolType OF
+
+      ConstStringSym:  ConstString.name := name ;
+                       ConstString.Length := LengthKey (String) ;
+                       ConstString.String := String ;
+                       ConstString.NulTerminated := NulSym ;
+                       ConstString.IsNulTerminated := FALSE ;
+                       InitWhereDeclared(ConstString.At)
+
+      ELSE
+         InternalError('expecting ConstStringSym', __FILE__, __LINE__)
+      END
+   END
+END InitConstString ;
+
+
+(*
+   GetConstStringNullTerminated - returns the symbol, sym, or another
+                                  ConstString which has the same contents
+                                  as sym, except it will have a trailing nul char.
+*)
+
+PROCEDURE GetConstStringNullTerminated (sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      ConstStringSym : IF ConstString.IsNulTerminated
+                       THEN
+                          RETURN( ConstString.NulTerminated )
+                       ELSIF ConstString.NulTerminated = NulSym
+                       THEN
+                          NewSym(ConstString.NulTerminated) ;
+                          InitConstString(ConstString.NulTerminated,
+                                          ConstString.name,
+                                          ConstString.String) ;
+                          PutConstStringRequiresNul(ConstString.NulTerminated)
+                       END ;
+                       RETURN( ConstString.NulTerminated )
+
+      ELSE
+         InternalError('expecting ConstString symbol', __FILE__, __LINE__)
+      END
+   END
+END GetConstStringNullTerminated ;
 
 
 (*
@@ -3870,11 +3933,7 @@ BEGIN
       SymbolType := ConstStringSym ;
       CASE SymbolType OF
 
-      ConstStringSym : ConstString.name := ConstName ;
-                       ConstString.Length := 0 ;
-                       ConstString.String := NulKey ;
-                       ConstString.NulRequired := FALSE ;
-                       InitWhereDeclared(ConstString.At)
+      ConstStringSym :  InitConstString(Sym, ConstName, NulName)
 
       ELSE
          InternalError('expecting ConstString symbol', __FILE__, __LINE__)
@@ -3893,7 +3952,6 @@ END MakeConstString ;
 PROCEDURE PutConstString (Sym: CARDINAL; String: Name) ;
 VAR
    pSym: PtrToSymbol ;
-   n   : Name ;
 BEGIN
    pSym := GetPsym(Sym) ;
    WITH pSym^ DO
@@ -3904,11 +3962,8 @@ BEGIN
                       InitWhereFirstUsed(ConstString.At) |
 
       ConstVarSym   : (* ok altering this to ConstString *)
-                      n := ConstVar.name ;
                       (* copy name and alter symbol.     *)
-                      SymbolType := ConstStringSym ;
-                      ConstString.name := n ;
-                      ConstString.NulRequired := FALSE ;
+                      InitConstString(Sym, ConstVar.name, String) ;
                       PutConstString(Sym, String)
 
       ELSE
@@ -3931,7 +3986,7 @@ BEGIN
    WITH pSym^ DO
       CASE SymbolType OF
 
-      ConstStringSym: ConstString.NulRequired := FALSE
+      ConstStringSym: ConstString.IsNulTerminated := TRUE
 
       ELSE
          InternalError('expecting ConstString symbol',
@@ -3953,7 +4008,7 @@ BEGIN
    WITH pSym^ DO
       CASE SymbolType OF
 
-      ConstStringSym: RETURN( ConstString.NulRequired )
+      ConstStringSym: RETURN( ConstString.IsNulTerminated )
 
       ELSE
          InternalError('expecting ConstString symbol',
