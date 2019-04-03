@@ -1,3 +1,19 @@
+2019-04-03      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* libgm2/Makefile.in:  regenerated.
+	* libgm2/aclocal.m4:  regenerated.
+	* libgm2/autogen.sh:  removed version numbers.
+	* libgm2/config/libtool.m4:  new version of the file
+	  taken from libgo/config.
+	* libgm2/configure:  regenerated.
+	* libgm2/configure.ac:  updated version numbers.
+	* libgm2/libcor/Makefile.in:  regenerated.
+	* libgm2/libiso/Makefile.in:  regenerated.
+	* libgm2/liblog/Makefile.in:  regenerated.
+	* libgm2/libmin/Makefile.in:  regenerated.
+	* libgm2/libpim/Makefile.in:  regenerated.
+	* libgm2/libulm/Makefile.in:  regenerated.
+
 2019-03-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* libgm2/configure:  regenerated.

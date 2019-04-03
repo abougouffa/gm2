@@ -16,16 +16,16 @@
 # <http://www.gnu.org/licenses/>.
 
 # Process this file with autoreconf to produce a configure script.
-AC_CONFIG_MACRO_DIR([config])
 
-AC_PREREQ(2.64)
+# AC_PREREQ(2.64)
 AC_INIT(package-unused, version-unused,,libgm2)
+AC_CONFIG_MACRO_DIR([config])
 AC_CONFIG_HEADER(config.h)
 
 m4_include([libpth/pth/pth.m4])
 m4_include([libpth/pth/aclocal.m4])
 
-libtool_VERSION=13:0:0
+libtool_VERSION=14:0:0
 AC_SUBST(libtool_VERSION)
 
 GCC_NO_EXECUTABLES
@@ -45,6 +45,7 @@ GCC_NO_EXECUTABLES
 #
 # Do not delete or change the following two lines.  For why, see
 # http://gcc.gnu.org/ml/libstdc++/2003-07/msg00451.html
+
 AC_CANONICAL_SYSTEM
 ACX_NONCANONICAL_TARGET
 
@@ -53,7 +54,7 @@ AM_ENABLE_MULTILIB(, ..)
 target_alias=${target_alias-$host_alias}
 AC_SUBST(target_alias)
 
-AM_INIT_AUTOMAKE([1.9.0 foreign no-dist -Wall -Wno-portability])
+AM_INIT_AUTOMAKE([1.9.3 foreign no-dist -Wall -Wno-portability])
 
 AH_TEMPLATE(PACKAGE, [Name of package])
 AH_TEMPLATE(VERSION, [Version number of package])
