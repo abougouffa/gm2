@@ -195,7 +195,7 @@ This section attempts to give an idea of which releases points are
 likely in the future. Clearly this is a fairly fluid release map but
 hopefully it is more helpful than omitting it altogether. Please note
 that this is not set in stone and if you wish to see something
-different please email @email{gaius@@gnu.org} with your ideas.
+different please email @email{gaius.mulley@@southwales.ac.uk} with your ideas.
 
 @table @code
 
@@ -362,7 +362,7 @@ snapshot are held at
 
 Other combinations almost certainly work, if you successfully
 build gm2 on a different platform please email
-@email{gaius@@gnu.org}
+@email{gaius.mulley@@southwales.ac.uk}
 or the
 @email{gm2@@nongnu.org}
 GNU Modula-2
