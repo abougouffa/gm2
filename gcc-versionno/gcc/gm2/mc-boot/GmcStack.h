@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcStack.def.  */
-
 
 #if !defined (_mcStack_H)
 #   define _mcStack_H

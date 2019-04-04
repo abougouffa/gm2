@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/IO.def.  */
-
 
 #if !defined (_IO_H)
 #   define _IO_H

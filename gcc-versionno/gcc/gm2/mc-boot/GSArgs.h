@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/SArgs.def.  */
-
 
 #if !defined (_SArgs_H)
 #   define _SArgs_H

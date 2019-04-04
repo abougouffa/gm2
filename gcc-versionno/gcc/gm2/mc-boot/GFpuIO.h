@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/FpuIO.def.  */
-
 
 #if !defined (_FpuIO_H)
 #   define _FpuIO_H

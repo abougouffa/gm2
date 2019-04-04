@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcDebug.def.  */
-
 
 #if !defined (_mcDebug_H)
 #   define _mcDebug_H

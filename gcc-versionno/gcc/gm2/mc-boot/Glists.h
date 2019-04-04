@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/lists.def.  */
-
 
 #if !defined (_lists_H)
 #   define _lists_H

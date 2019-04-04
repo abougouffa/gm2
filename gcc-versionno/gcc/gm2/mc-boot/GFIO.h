@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/FIO.def.  */
-
 
 #if !defined (_FIO_H)
 #   define _FIO_H

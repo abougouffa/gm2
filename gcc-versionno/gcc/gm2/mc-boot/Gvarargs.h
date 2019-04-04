@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/varargs.def.  */
-
 
 #if !defined (_varargs_H)
 #   define _varargs_H

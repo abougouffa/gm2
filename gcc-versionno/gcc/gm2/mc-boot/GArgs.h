@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/Args.def.  */
-
 
 #if !defined (_Args_H)
 #   define _Args_H

@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/Indexing.def.  */
-
 
 #if !defined (_Indexing_H)
 #   define _Indexing_H

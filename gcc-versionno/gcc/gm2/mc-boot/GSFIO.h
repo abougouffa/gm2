@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/SFIO.def.  */
-
 
 #if !defined (_SFIO_H)
 #   define _SFIO_H

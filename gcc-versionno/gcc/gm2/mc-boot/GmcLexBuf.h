@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcLexBuf.def.  */
-
 
 #if !defined (_mcLexBuf_H)
 #   define _mcLexBuf_H

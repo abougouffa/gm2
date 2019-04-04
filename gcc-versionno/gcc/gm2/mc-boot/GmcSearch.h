@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcSearch.def.  */
-
 
 #if !defined (_mcSearch_H)
 #   define _mcSearch_H

@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/ASCII.def.  */
-
 
 #if !defined (_ASCII_H)
 #   define _ASCII_H

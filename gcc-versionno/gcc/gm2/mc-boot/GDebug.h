@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/Debug.def.  */
-
 
 #if !defined (_Debug_H)
 #   define _Debug_H

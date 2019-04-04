@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcMetaError.def.  */
-
 
 #if !defined (_mcMetaError_H)
 #   define _mcMetaError_H

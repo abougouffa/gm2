@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/symbolKey.def.  */
-
 
 #if !defined (_symbolKey_H)
 #   define _symbolKey_H

@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcflex.def.  */
-
 
 #if !defined (_mcflex_H)
 #   define _mcflex_H

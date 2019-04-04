@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcp5.def.  */
-
 
 #if !defined (_mcp5_H)
 #   define _mcp5_H

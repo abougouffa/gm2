@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/StrLib.def.  */
-
 
 #if !defined (_StrLib_H)
 #   define _StrLib_H

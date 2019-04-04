@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcPrintf.def.  */
-
 
 #if !defined (_mcPrintf_H)
 #   define _mcPrintf_H

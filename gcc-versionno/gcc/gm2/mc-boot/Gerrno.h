@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/errno.def.  */
-
 
 #if !defined (_errno_H)
 #   define _errno_H

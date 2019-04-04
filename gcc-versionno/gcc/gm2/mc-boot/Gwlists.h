@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/wlists.def.  */
-
 
 #if !defined (_wlists_H)
 #   define _wlists_H

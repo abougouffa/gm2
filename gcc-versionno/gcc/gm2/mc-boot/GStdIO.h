@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/StdIO.def.  */
-
 
 #if !defined (_StdIO_H)
 #   define _StdIO_H

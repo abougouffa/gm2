@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/dtoa.def.  */
-
 
 #if !defined (_dtoa_H)
 #   define _dtoa_H

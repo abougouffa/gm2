@@ -120,6 +120,7 @@ void M2RTS_ErrorMessage (char *message_, unsigned int _message_high, char *file_
 
 unsigned int M2RTS_Length (char *a_, unsigned int _a_high);
 void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int column, void * scope);
+void M2RTS_ReturnException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_IncException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_DecException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_InclException (void * filename, unsigned int line, unsigned int column, void * scope);
@@ -384,6 +385,11 @@ void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int
    The following are the runtime exception handler routines.
   */
   RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, "variable exceeds range during assignment");
+}
+
+void M2RTS_ReturnException (void * filename, unsigned int line, unsigned int column, void * scope)
+{
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, "return value from procedure function exceeds range");
 }
 
 void M2RTS_IncException (void * filename, unsigned int line, unsigned int column, void * scope)

@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs-iso/pth.def.  */
-
 
 #if !defined (_pth_H)
 #   define _pth_H

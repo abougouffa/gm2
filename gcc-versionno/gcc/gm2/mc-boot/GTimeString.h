@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/TimeString.def.  */
-
 
 #if !defined (_TimeString_H)
 #   define _TimeString_H

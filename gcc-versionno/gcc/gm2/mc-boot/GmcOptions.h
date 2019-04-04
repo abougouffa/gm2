@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcOptions.def.  */
-
 
 #if !defined (_mcOptions_H)
 #   define _mcOptions_H
@@ -14,6 +12,7 @@ extern "C" {
 #   endif
 
 #   include "GDynamicStrings.h"
+#   include "GFIO.h"
 
 #   if defined (_mcOptions_C)
 #      define EXTERN
@@ -85,6 +84,12 @@ EXTERN DynamicStrings_String mcOptions_getHPrefix (void);
 */
 
 EXTERN unsigned int mcOptions_getIgnoreFQ (void);
+
+/*
+   writeGPLheader - writes out the GPL or the GLPL as a comment.
+*/
+
+EXTERN void mcOptions_writeGPLheader (FIO_File f);
 #   ifdef __cplusplus
 }
 #   endif

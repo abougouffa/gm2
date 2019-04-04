@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/decl.def.  */
-
 
 #if !defined (_decl_H)
 #   define _decl_H

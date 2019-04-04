@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/SYSTEM.def.  */
-
 
 #if !defined (_SYSTEM_H)
 #   define _SYSTEM_H

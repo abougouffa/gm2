@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcReserved.def.  */
-
 
 #if !defined (_mcReserved_H)
 #   define _mcReserved_H

@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/Break.def.  */
-
 
 #if !defined (_Break_H)
 #   define _Break_H

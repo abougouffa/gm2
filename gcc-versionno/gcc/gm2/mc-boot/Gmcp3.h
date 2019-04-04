@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcp3.def.  */
-
 
 #if !defined (_mcp3_H)
 #   define _mcp3_H

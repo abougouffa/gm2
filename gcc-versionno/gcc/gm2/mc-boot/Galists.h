@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/alists.def.  */
-
 
 #if !defined (_alists_H)
 #   define _alists_H

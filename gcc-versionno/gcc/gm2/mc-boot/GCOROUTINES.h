@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/COROUTINES.def.  */
-
 
 #if !defined (_COROUTINES_H)
 #   define _COROUTINES_H

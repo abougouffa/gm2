@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/FormatStrings.def.  */
-
 
 #if !defined (_FormatStrings_H)
 #   define _FormatStrings_H

@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/keyc.def.  */
-
 
 #if !defined (_keyc_H)
 #   define _keyc_H

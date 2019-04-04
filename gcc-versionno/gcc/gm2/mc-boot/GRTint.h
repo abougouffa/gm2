@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/RTint.def.  */
-
 
 #if !defined (_RTint_H)
 #   define _RTint_H

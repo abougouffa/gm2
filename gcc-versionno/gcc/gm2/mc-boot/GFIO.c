@@ -430,7 +430,7 @@ static void FormatError2 (char *a_, unsigned int _a_high, unsigned char *w1_, un
 static void CheckAccess (FIO_File f, FileUsage use, unsigned int towrite);
 
 /*
-   SetEndOfLine - 
+   SetEndOfLine -
 */
 
 static void SetEndOfLine (FIO_File f, char ch);
@@ -1073,7 +1073,7 @@ static void CheckAccess (FIO_File f, FileUsage use, unsigned int towrite)
 
 
 /*
-   SetEndOfLine - 
+   SetEndOfLine -
 */
 
 static void SetEndOfLine (FIO_File f, char ch)

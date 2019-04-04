@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcError.def.  */
-
 
 #if !defined (_mcError_H)
 #   define _mcError_H

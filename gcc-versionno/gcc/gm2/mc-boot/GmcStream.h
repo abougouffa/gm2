@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcStream.def.  */
-
 
 #if !defined (_mcStream_H)
 #   define _mcStream_H

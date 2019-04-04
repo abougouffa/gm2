@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/PushBackInput.def.  */
-
 
 #if !defined (_PushBackInput_H)
 #   define _PushBackInput_H

@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/nameKey.def.  */
-
 
 #if !defined (_nameKey_H)
 #   define _nameKey_H

@@ -977,6 +977,7 @@ void M2RTS_ExitOnHalt (int e);
 void M2RTS_ErrorMessage (char *message_, unsigned int _message_high, char *file_, unsigned int _file_high, unsigned int line, char *function_, unsigned int _function_high);
 unsigned int M2RTS_Length (char *a_, unsigned int _a_high);
 void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int column, void * scope);
+void M2RTS_ReturnException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_IncException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_DecException (void * filename, unsigned int line, unsigned int column, void * scope);
 void M2RTS_InclException (void * filename, unsigned int line, unsigned int column, void * scope);
@@ -2667,6 +2668,7 @@ void mcOptions_setDebugTopological (unsigned int value);
 unsigned int mcOptions_getDebugTopological (void);
 DynamicStrings_String mcOptions_getHPrefix (void);
 unsigned int mcOptions_getIgnoreFQ (void);
+void mcOptions_writeGPLheader (FIO_File f);
 DynamicStrings_String FormatStrings_Sprintf0 (DynamicStrings_String s);
 DynamicStrings_String FormatStrings_Sprintf1 (DynamicStrings_String s, unsigned char *w_, unsigned int _w_high);
 DynamicStrings_String FormatStrings_Sprintf2 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high);
@@ -17949,11 +17951,7 @@ static void outDefC (mcPretty_pretty p, decl_node n)
   DynamicStrings_String s;
 
   outputFile = mcStream_openFrag (1);  /* first fragment.  */
-  s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSource (n)));  /* first fragment.  */
-  mcPretty_print (p, (char *) "/* automatically created by mc from ", 36);
-  mcPretty_prints (p, s);
-  mcPretty_print (p, (char *) ".  */\\n\\n", 9);
-  s = DynamicStrings_KillString (s);
+  mcOptions_writeGPLheader (outputFile);  /* first fragment.  */
   s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n)));
   mcPretty_print (p, (char *) "\\n#if !defined (_", 17);
   mcPretty_prints (p, s);
@@ -18132,11 +18130,7 @@ static void outModuleC (mcPretty_pretty p, decl_node n)
   DynamicStrings_String s;
 
   outputFile = mcStream_openFrag (1);  /* first fragment.  */
-  s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSource (n)));  /* first fragment.  */
-  mcPretty_print (p, (char *) "/* automatically created by mc from ", 36);
-  mcPretty_prints (p, s);
-  mcPretty_print (p, (char *) ".  */\\n\\n", 9);
-  s = DynamicStrings_KillString (s);
+  mcOptions_writeGPLheader (outputFile);  /* first fragment.  */
   outputFile = mcStream_openFrag (3);  /* third fragment.  */
   if (mcOptions_getExtendedOpaque ())  /* third fragment.  */
     {

@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/termios.def.  */
-
 
 #if !defined (_termios_H)
 #   define _termios_H

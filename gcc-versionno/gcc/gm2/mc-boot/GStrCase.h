@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/StrCase.def.  */
-
 
 #if !defined (_StrCase_H)
 #   define _StrCase_H

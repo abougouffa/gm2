@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/Selective.def.  */
-
 
 #if !defined (_Selective_H)
 #   define _Selective_H

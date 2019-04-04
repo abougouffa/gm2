@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/libm.def.  */
-
 
 #if !defined (_libm_H)
 #   define _libm_H

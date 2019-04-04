@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/StrIO.def.  */
-
 
 #if !defined (_StrIO_H)
 #   define _StrIO_H

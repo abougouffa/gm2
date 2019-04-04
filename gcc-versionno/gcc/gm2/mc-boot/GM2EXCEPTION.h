@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/M2EXCEPTION.def.  */
-
 
 #if !defined (_M2EXCEPTION_H)
 #   define _M2EXCEPTION_H

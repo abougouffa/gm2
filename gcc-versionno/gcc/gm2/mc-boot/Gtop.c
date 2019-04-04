@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/top.mod.  */
-
 #   if !defined (PROC_D)
 #      define PROC_D
        typedef void (*PROC_t) (void);

@@ -28,6 +28,7 @@ DEFINITION MODULE mcOptions ;
 *)
 
 FROM DynamicStrings IMPORT String ;
+FROM FIO IMPORT File ;
 
 
 (*
@@ -108,6 +109,13 @@ PROCEDURE getHPrefix () : String ;
 *)
 
 PROCEDURE getIgnoreFQ () : BOOLEAN ;
+
+
+(*
+   writeGPLheader - writes out the GPL or the GLPL as a comment.
+*)
+
+PROCEDURE writeGPLheader (f: File) ;
 
 
 END mcOptions.

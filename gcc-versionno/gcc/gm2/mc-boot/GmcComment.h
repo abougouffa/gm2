@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcComment.def.  */
-
 
 #if !defined (_mcComment_H)
 #   define _mcComment_H

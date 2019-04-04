@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/SysExceptions.def.  */
-
 
 #if !defined (_SysExceptions_H)
 #   define _SysExceptions_H

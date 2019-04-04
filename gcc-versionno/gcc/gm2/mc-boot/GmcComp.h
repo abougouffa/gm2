@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcComp.def.  */
-
 
 #if !defined (_mcComp_H)
 #   define _mcComp_H

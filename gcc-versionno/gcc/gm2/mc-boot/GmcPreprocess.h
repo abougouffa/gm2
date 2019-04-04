@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcPreprocess.def.  */
-
 
 #if !defined (_mcPreprocess_H)
 #   define _mcPreprocess_H

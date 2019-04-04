@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcFileName.def.  */
-
 
 #if !defined (_mcFileName_H)
 #   define _mcFileName_H

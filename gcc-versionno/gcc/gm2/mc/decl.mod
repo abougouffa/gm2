@@ -28,7 +28,7 @@ FROM SFIO IMPORT OpenToWrite, WriteS ;
 FROM FIO IMPORT File, Close, FlushBuffer, StdOut, WriteLine, WriteChar ;
 FROM DynamicStrings IMPORT String, InitString, EqualArray, InitStringCharStar, KillString, ConCat, Mark, RemoveWhitePostfix, RemoveWhitePrefix ;
 FROM StringConvert IMPORT CardinalToString ;
-FROM mcOptions IMPORT getOutputFile, getDebugTopological, getHPrefix, getIgnoreFQ, getExtendedOpaque ;
+FROM mcOptions IMPORT getOutputFile, getDebugTopological, getHPrefix, getIgnoreFQ, getExtendedOpaque, writeGPLheader ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM libc IMPORT printf ;
 FROM mcMetaError IMPORT metaError1, metaError2, metaError3, metaErrors1, metaErrors2 ;
@@ -13542,9 +13542,7 @@ VAR
    s: String ;
 BEGIN
    outputFile := mcStream.openFrag (1) ;  (* first fragment.  *)
-   s := InitStringCharStar (keyToCharStar (getSource (n))) ;
-   print (p, "/* automatically created by mc from ") ; prints (p, s) ; print (p, ".  */\n\n") ;
-   s := KillString (s) ;
+   writeGPLheader (outputFile) ;
    s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
    print (p, "\n#if !defined (_") ; prints (p, s) ; print (p, "_H)\n") ;
    print (p, "#   define _") ; prints (p, s) ; print (p, "_H\n\n") ;
@@ -13739,10 +13737,7 @@ VAR
    s: String ;
 BEGIN
    outputFile := mcStream.openFrag (1) ;  (* first fragment.  *)
-   s := InitStringCharStar (keyToCharStar (getSource (n))) ;
-   print (p, "/* automatically created by mc from ") ; prints (p, s) ; print (p, ".  */\n\n") ;
-   s := KillString (s) ;
-
+   writeGPLheader (outputFile) ;
    outputFile := mcStream.openFrag (3) ;  (* third fragment.  *)
    IF getExtendedOpaque ()
    THEN

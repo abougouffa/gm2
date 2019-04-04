@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcQuiet.def.  */
-
 
 #if !defined (_mcQuiet_H)
 #   define _mcQuiet_H

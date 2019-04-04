@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/wrapc.def.  */
-
 
 #if !defined (_wrapc_H)
 #   define _wrapc_H
@@ -35,6 +33,12 @@ EXTERN void * wrapc_strtime (void);
 */
 
 EXTERN int wrapc_filesize (int f, unsigned int *low, unsigned int *high);
+
+/*
+   fileinode - return the inode associated with file, f.
+*/
+
+EXTERN int wrapc_fileinode (int f, unsigned int *low, unsigned int *high);
 
 /*
    filemtime - returns the mtime of a file, f.

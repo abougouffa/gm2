@@ -29,10 +29,21 @@ FROM decl IMPORT setLangC, setLangCP, setLangM2 ;
 FROM DynamicStrings IMPORT String, Length, InitString, Mark, Slice, EqualArray,
                            InitStringCharStar, ConCatChar, ConCat, KillString,
                            Dup, string, char ;
+
+IMPORT FIO ;
+IMPORT SFIO ;
+
 CONST
-   YEAR = '2016' ;
+   YEAR = '2019' ;
 
 VAR
+   langC,
+   langCPP,
+   langM2,
+   gplHeader,
+   glplHeader,
+   summary,
+   contributed,
    caseRuntime,
    arrayRuntime,
    returnRuntime,
@@ -42,6 +53,9 @@ VAR
    internalDebugging,
    verbose,
    quiet            : BOOLEAN ;
+   projectContents,
+   summaryContents,
+   contributedContents,
    hPrefix,
    outputFile,
    cppArgs,
@@ -89,9 +103,180 @@ BEGIN
    printf0 ("  --h-file-prefix=foo set the h file prefix to foo\n") ;
    printf0 ("  -o=foo              set the output file to foo\n") ;
    printf0 ("  --ignore-fq         do not generate fully qualified idents\n") ;
+   printf0 ("  --gpl-header        generate a GPL3 header comment at the top of the file\n") ;
+   printf0 ("  --glpl-header       generate a LGPL3 header comment at the top of the file\n") ;
+   printf0 ('  --summary="foo"     generate a one line summary comment at the top of the file\n') ;
+   printf0 ('  --contributed="foo" generate a one line contribution comment near the top of the file\n') ;
    printf0 ("  filename            the source file must be the last option\n") ;
    exit (0)
 END displayHelp ;
+
+
+(*
+   commentBegin - issue a start of comment for the appropriate language.
+*)
+
+PROCEDURE commentBegin (f: File) ;
+BEGIN
+   IF langC OR langCPP
+   THEN
+      FIO.WriteString (f, '/* ')
+   ELSIF langM2
+   THEN
+      FIO.WriteString (f, '(* ')
+   END
+END commentBegin ;
+
+
+(*
+   commentEnd - issue an end of comment for the appropriate language.
+*)
+
+PROCEDURE commentEnd (f: File) ;
+BEGIN
+   IF langC OR langCPP
+   THEN
+      FIO.WriteString (f, ' */') ; FIO.WriteLine (f)
+   ELSIF langM2
+   THEN
+      FIO.WriteString (f, ' *)') ; FIO.WriteLine (f)
+   END
+END commentEnd ;
+
+
+(*
+   comment - write a comment to file, f, and also a newline.
+*)
+
+PROCEDURE comment (f: File; a: ARRAY OF CHAR) ;
+BEGIN
+   FIO.WriteString (f, a) ; FIO.WriteLine (f)
+END comment ;
+
+
+(*
+   commentS - write a comment to file, f, and also a newline.
+*)
+
+PROCEDURE commentS (f: File; s: String) ;
+BEGIN
+   s := SFIO.WriteS (f, s) ; FIO.WriteLine (f)
+END commentS ;
+
+
+(*
+   gplBody -
+*)
+
+PROCEDURE gplBody (f: File) ;
+BEGIN
+   comment (f, "Copyright (C) " + YEAR + " Free Software Foundation, Inc.") ;
+   IF contributed
+   THEN
+      FIO.WriteString (f, "Contributed by ") ;
+      contributedContents := SFIO.WriteS (f, contributedContents) ;
+      FIO.WriteString (f, ".") ;
+      FIO.WriteLine (f)
+   END ;
+   FIO.WriteLine (f) ;
+   comment (f, "This file is part of ") ;
+   projectContents := SFIO.WriteS (f, projectContents) ;
+   FIO.WriteString (f, ".") ;
+   FIO.WriteLine (f) ; FIO.WriteLine (f) ;
+   projectContents := SFIO.WriteS (f, projectContents) ;
+   comment (f, " is software; you can redistribute it and/or modify") ;
+   comment (f, "it under the terms of the GNU General Public License as published by") ;
+   comment (f, "the Free Software Foundation; either version 3, or (at your option)") ;
+   comment (f, "any later version.") ;
+   FIO.WriteLine (f) ;
+   projectContents := SFIO.WriteS (f, projectContents) ;
+   comment (f, " is distributed in the hope that it will be useful, but") ;
+   comment (f, "WITHOUT ANY WARRANTY; without even the implied warranty of") ;
+   comment (f, "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU") ;
+   comment (f, "General Public License for more details.") ;
+   FIO.WriteLine (f) ;
+   comment (f, "You should have received a copy of the GNU General Public License") ;
+   FIO.WriteString (f, "along with ") ;
+   projectContents := SFIO.WriteS (f, projectContents) ;
+   comment (f, "; see the file COPYING.  If not,") ;
+   comment (f, "see <https://www.gnu.org/licenses/>.")
+END gplBody ;
+
+
+(*
+   glplBody -
+*)
+
+PROCEDURE glplBody (f: File) ;
+BEGIN
+   comment (f, "Copyright (C) " + YEAR + " Free Software Foundation, Inc.") ;
+   IF contributed
+   THEN
+      FIO.WriteString (f, "Contributed by ") ;
+      contributedContents := SFIO.WriteS (f, contributedContents) ;
+      FIO.WriteString (f, ".") ;
+      FIO.WriteLine (f)
+   END ;
+   FIO.WriteLine (f) ;
+   comment (f, "This file is part of ") ;
+   projectContents := SFIO.WriteS (f, projectContents) ;
+   FIO.WriteString (f, ".") ;
+   FIO.WriteLine (f) ; FIO.WriteLine (f) ;
+   projectContents := SFIO.WriteS (f, projectContents) ;
+   comment (f, " is software; you can redistribute it and/or modify") ;
+   comment (f, "it under the terms of the GNU Lesser General Public License") ;
+   comment (f, "as published by the Free Software Foundation; either version 3,") ;
+   comment (f, "or (at your option) any later version.") ;
+   FIO.WriteLine (f) ;
+   projectContents := SFIO.WriteS (f, projectContents) ;
+   comment (f, " is distributed in the hope that it will be useful, but") ;
+   comment (f, "WITHOUT ANY WARRANTY; without even the implied warranty of") ;
+   comment (f, "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU") ;
+   comment (f, "Lesser General Public License for more details.") ;
+   FIO.WriteLine (f) ;
+   comment (f, "You should have received a copy of the GNU Lesser General Public License") ;
+   FIO.WriteString (f, "along with ") ;
+   projectContents := SFIO.WriteS (f, projectContents) ;
+   comment (f, "; see the file COPYING.  If not,") ;
+   comment (f, "see <https://www.gnu.org/licenses/>.")
+END glplBody ;
+
+
+(*
+   issueGPL - writes out the summary, GPL/LGPL and/or contributed as a single comment.
+*)
+
+PROCEDURE issueGPL (f: File) ;
+BEGIN
+   IF summary OR contributed OR gplHeader OR glplHeader
+   THEN
+      commentBegin (f) ;
+      IF summary
+      THEN
+         commentS (f, summaryContents) ;
+         FIO.WriteLine (f)
+      END ;
+      IF gplHeader
+      THEN
+         gplBody (f)
+      END ;
+      IF glplHeader
+      THEN
+         glplBody (f)
+      END ;
+      commentEnd (f)
+   END
+END issueGPL ;
+
+
+(*
+   writeGPLheader - writes out the GPL or the LGPL as a comment.
+*)
+
+PROCEDURE writeGPLheader (f: File) ;
+BEGIN
+   issueGPL (f)
+END writeGPLheader ;
 
 
 (*
@@ -319,13 +504,16 @@ BEGIN
    (* must check the longest distinctive string first.  *)
    IF optionIs ("c++", arg)
    THEN
-      setLangCP
+      setLangCP ;
+      langCPP := TRUE
    ELSIF optionIs ("c", arg)
    THEN
-      setLangC
+      setLangC ;
+      langC := TRUE
    ELSIF optionIs ("m2", arg)
    THEN
-      setLangM2
+      setLangM2 ;
+      langM2 := TRUE
    ELSE
       displayHelp
    END
@@ -374,6 +562,23 @@ BEGIN
    ELSIF optionIs ("--ignore-fq", arg)
    THEN
       setIgnoreFQ (TRUE)
+   ELSIF optionIs ("--gpl-header", arg)
+   THEN
+      gplHeader := TRUE
+   ELSIF optionIs ("--glpl-header", arg)
+   THEN
+      glplHeader := TRUE
+   ELSIF optionIs ('--summary="', arg)
+   THEN
+      summary := TRUE ;
+      summaryContents := Slice (arg, 11, -1)
+   ELSIF optionIs ('--contributed="', arg)
+   THEN
+      contributed := TRUE ;
+      contributedContents := Slice (arg, 13, -1)
+   ELSIF optionIs ('--project="', arg)
+   THEN
+      projectContents := Slice (arg, 10, -1)
    END
 END handleOption ;
 
@@ -397,6 +602,12 @@ BEGIN
          THEN
             handleOption (arg)
          ELSE
+            IF NOT summary
+            THEN
+               summaryContents := ConCatChar (ConCat (InitString ('automatically created by mc from '),
+                                                      arg), '.') ;
+               summary := FALSE
+            END ;
             RETURN arg
          END
       END ;
@@ -407,6 +618,13 @@ END handleOptions ;
 
 
 BEGIN
+   langC := FALSE ;
+   langCPP := FALSE ;
+   langM2 := FALSE ;
+   gplHeader := FALSE ;
+   glplHeader := FALSE ;
+   summary := FALSE ;
+   contributed := FALSE ;
    caseRuntime := FALSE ;
    arrayRuntime := FALSE ;
    returnRuntime := FALSE ;
@@ -419,5 +637,8 @@ BEGIN
    hPrefix := InitString ('') ;
    cppArgs := InitString ('') ;
    cppProgram := InitString ('') ;
-   outputFile := InitString ('-')
+   outputFile := InitString ('-') ;
+   summaryContents := InitString ('') ;
+   contributedContents := InitString ('') ;
+   projectContents := InitString ('GNU Modula-2')
 END mcOptions.

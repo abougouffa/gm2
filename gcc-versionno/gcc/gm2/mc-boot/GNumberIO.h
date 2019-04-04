@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/NumberIO.def.  */
-
 
 #if !defined (_NumberIO_H)
 #   define _NumberIO_H

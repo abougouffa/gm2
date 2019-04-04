@@ -1,5 +1,3 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/gm2-libs/CmdArgs.def.  */
-
 
 #if !defined (_CmdArgs_H)
 #   define _CmdArgs_H
