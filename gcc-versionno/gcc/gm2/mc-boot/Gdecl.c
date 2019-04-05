@@ -1,4 +1,20 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/decl.mod.  */
+/* Copyright (C) 2019 Free Software Foundation, Inc.
+
+This file is part of GNU Modula-2.
+
+GNU Modula-2 is software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -18024,11 +18040,7 @@ static void outImpC (mcPretty_pretty p, decl_node n)
   decl_node defModule;
 
   outputFile = mcStream_openFrag (1);  /* first fragment.  */
-  s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSource (n)));  /* first fragment.  */
-  mcPretty_print (p, (char *) "/* automatically created by mc from ", 36);
-  mcPretty_prints (p, s);
-  mcPretty_print (p, (char *) ".  */\\n\\n", 9);
-  s = DynamicStrings_KillString (s);
+  mcOptions_writeGPLheader (outputFile);  /* first fragment.  */
   outputFile = mcStream_openFrag (3);  /* third fragment.  */
   if (mcOptions_getExtendedOpaque ())  /* third fragment.  */
     {
@@ -18052,6 +18064,7 @@ static void outImpC (mcPretty_pretty p, decl_node n)
       mcPretty_print (p, (char *) "#define _", 9);
       mcPretty_prints (p, s);
       mcPretty_print (p, (char *) "_C\\n\\n", 6);
+      s = DynamicStrings_KillString (s);
       doP = p;
       Indexing_ForeachIndiceInIndexDo (n->impF.importedModules, (Indexing_IndexProcedure) {(Indexing_IndexProcedure_t) doIncludeC});
       mcPretty_print (p, (char *) "\\n", 2);
@@ -18067,7 +18080,6 @@ static void outImpC (mcPretty_pretty p, decl_node n)
   outImpInitC (p, n);
   outputFile = mcStream_openFrag (2);  /* second fragment.  */
   keyc_genDefs (p);  /* second fragment.  */
-  s = DynamicStrings_KillString (s);
 }
 
 

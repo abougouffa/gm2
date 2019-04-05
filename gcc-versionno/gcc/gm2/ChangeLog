@@ -1,3 +1,92 @@
+2019-04-05      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-file.in:  generate mc with GPL3 header.
+	* gm2/mc/mcOptions.mod:  corrected bugs with uninitialised
+	  string variables and corrected formatting.
+	* gm2/mc-boot/GASCII.h:  regenerated with GPL.
+	* gm2/mc-boot/GArgs.h:  regenerated with GPL.
+	* gm2/mc-boot/GAssertion.h:  regenerated with GPL.
+	* gm2/mc-boot/GBreak.h:  regenerated with GPL.
+	* gm2/mc-boot/GCOROUTINES.h:  regenerated with GPL.
+	* gm2/mc-boot/GCmdArgs.h:  regenerated with GPL.
+	* gm2/mc-boot/GDebug.h:  regenerated with GPL.
+	* gm2/mc-boot/GDynamicStrings.c:  regenerated with GPL.
+	* gm2/mc-boot/GDynamicStrings.h:  regenerated with GPL.
+	* gm2/mc-boot/GEnvironment.h:  regenerated with GPL.
+	* gm2/mc-boot/GFIO.c:  regenerated with GPL.
+	* gm2/mc-boot/GFIO.h:  regenerated with GPL.
+	* gm2/mc-boot/GFormatStrings.h:  regenerated with GPL.
+	* gm2/mc-boot/GFpuIO.h:  regenerated with GPL.
+	* gm2/mc-boot/GIO.h:  regenerated with GPL.
+	* gm2/mc-boot/GIndexing.h:  regenerated with GPL.
+	* gm2/mc-boot/GM2EXCEPTION.h:  regenerated with GPL.
+	* gm2/mc-boot/GM2RTS.c:  regenerated with GPL.
+	* gm2/mc-boot/GM2RTS.h:  regenerated with GPL.
+	* gm2/mc-boot/GMemUtils.h:  regenerated with GPL.
+	* gm2/mc-boot/GNumberIO.c:  regenerated with GPL.
+	* gm2/mc-boot/GNumberIO.h:  regenerated with GPL.
+	* gm2/mc-boot/GPushBackInput.c:  regenerated with GPL.
+	* gm2/mc-boot/GPushBackInput.h:  regenerated with GPL.
+	* gm2/mc-boot/GRTExceptions.c:  regenerated with GPL.
+	* gm2/mc-boot/GRTExceptions.h:  regenerated with GPL.
+	* gm2/mc-boot/GRTint.h:  regenerated with GPL.
+	* gm2/mc-boot/GSArgs.h:  regenerated with GPL.
+	* gm2/mc-boot/GSFIO.h:  regenerated with GPL.
+	* gm2/mc-boot/GSYSTEM.h:  regenerated with GPL.
+	* gm2/mc-boot/GSelective.h:  regenerated with GPL.
+	* gm2/mc-boot/GStdIO.h:  regenerated with GPL.
+	* gm2/mc-boot/GStorage.h:  regenerated with GPL.
+	* gm2/mc-boot/GStrCase.h:  regenerated with GPL.
+	* gm2/mc-boot/GStrIO.h:  regenerated with GPL.
+	* gm2/mc-boot/GStrLib.h:  regenerated with GPL.
+	* gm2/mc-boot/GStringConvert.c:  regenerated with GPL.
+	* gm2/mc-boot/GStringConvert.h:  regenerated with GPL.
+	* gm2/mc-boot/GSysExceptions.h:  regenerated with GPL.
+	* gm2/mc-boot/GSysStorage.h:  regenerated with GPL.
+	* gm2/mc-boot/GTimeString.h:  regenerated with GPL.
+	* gm2/mc-boot/GUnixArgs.h:  regenerated with GPL.
+	* gm2/mc-boot/Galists.h:  regenerated with GPL.
+	* gm2/mc-boot/Gdecl.c:  regenerated with GPL.
+	* gm2/mc-boot/Gdecl.h:  regenerated with GPL.
+	* gm2/mc-boot/Gdtoa.h:  regenerated with GPL.
+	* gm2/mc-boot/Gerrno.h:  regenerated with GPL.
+	* gm2/mc-boot/Gkeyc.h:  regenerated with GPL.
+	* gm2/mc-boot/Gldtoa.h:  regenerated with GPL.
+	* gm2/mc-boot/Glibc.h:  regenerated with GPL.
+	* gm2/mc-boot/Glibm.h:  regenerated with GPL.
+	* gm2/mc-boot/Glists.h:  regenerated with GPL.
+	* gm2/mc-boot/GmcComment.h:  regenerated with GPL.
+	* gm2/mc-boot/GmcComp.h:  regenerated with GPL.
+	* gm2/mc-boot/GmcDebug.h:  regenerated with GPL.
+	* gm2/mc-boot/GmcError.h:  regenerated with GPL.
+	* gm2/mc-boot/GmcFileName.h:  regenerated with GPL.
+	* gm2/mc-boot/GmcLexBuf.h:  regenerated with GPL.
+	* gm2/mc-boot/GmcMetaError.h:  regenerated with GPL.
+	* gm2/mc-boot/GmcOptions.c:  regenerated with GPL.
+	* gm2/mc-boot/GmcOptions.h:  regenerated with GPL.
+	* gm2/mc-boot/GmcPreprocess.h:  regenerated with GPL.
+	* gm2/mc-boot/GmcPretty.h:  regenerated with GPL.
+	* gm2/mc-boot/GmcPrintf.h:  regenerated with GPL.
+	* gm2/mc-boot/GmcQuiet.h:  regenerated with GPL.
+	* gm2/mc-boot/GmcReserved.h:  regenerated with GPL.
+	* gm2/mc-boot/GmcSearch.h:  regenerated with GPL.
+	* gm2/mc-boot/GmcStack.h:  regenerated with GPL.
+	* gm2/mc-boot/GmcStream.h:  regenerated with GPL.
+	* gm2/mc-boot/Gmcflex.h:  regenerated with GPL.
+	* gm2/mc-boot/Gmcp1.h:  regenerated with GPL.
+	* gm2/mc-boot/Gmcp2.h:  regenerated with GPL.
+	* gm2/mc-boot/Gmcp3.h:  regenerated with GPL.
+	* gm2/mc-boot/Gmcp4.h:  regenerated with GPL.
+	* gm2/mc-boot/Gmcp5.h:  regenerated with GPL.
+	* gm2/mc-boot/GnameKey.h:  regenerated with GPL.
+	* gm2/mc-boot/Gpth.h:  regenerated with GPL.
+	* gm2/mc-boot/GsymbolKey.h:  regenerated with GPL.
+	* gm2/mc-boot/Gtermios.h:  regenerated with GPL.
+	* gm2/mc-boot/Gtop.c:  regenerated with GPL.
+	* gm2/mc-boot/Gvarargs.h:  regenerated with GPL.
+	* gm2/mc-boot/Gwlists.h:  regenerated with GPL.
+	* gm2/mc-boot/Gwrapc.h:  regenerated with GPL.
+
 2019-04-04      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/mc-boot/GASCII.h:  regenerated.

@@ -85,7 +85,13 @@ END displayVersion ;
 
 PROCEDURE displayHelp ;
 BEGIN
-   printf0 ("usage: mc [--cpp] [-g] [--quiet] [--extended-opaque] [-q] [-v] [--verbose] [--version] [--help] [-h] [-Ipath] [--olang=c] [--olang=c++] [--olang=m2] [--debug-top] [--h-file-prefix=foo] [-o=foo] filename\n") ;
+   printf0 ("usage: mc [--cpp] [-g] [--quiet] [--extended-opaque] [-q] [-v]") ;
+   printf0 (" [--verbose] [--version] [--help] [-h] [-Ipath] [--olang=c]") ;
+   printf0 (" [--olang=c++] [--olang=m2] [--debug-top]") ;
+   printf0 (' [--gpl-header] [--glpl-header] [--summary="foo"]') ;
+   printf0 (' [--contributed="foo"] [--project="foo"]') ;
+   printf0 (" [--h-file-prefix=foo] [-o=foo] filename\n") ;
+
    printf0 ("  --cpp               preprocess through the C preprocessor\n") ;
    printf0 ("  -g                  emit debugging directives in the output language") ;
    printf0 ("                      so that the debugger will refer to the source\n") ;
@@ -104,9 +110,10 @@ BEGIN
    printf0 ("  -o=foo              set the output file to foo\n") ;
    printf0 ("  --ignore-fq         do not generate fully qualified idents\n") ;
    printf0 ("  --gpl-header        generate a GPL3 header comment at the top of the file\n") ;
-   printf0 ("  --glpl-header       generate a LGPL3 header comment at the top of the file\n") ;
+   printf0 ("  --glpl-header       generate a GLPL3 header comment at the top of the file\n") ;
    printf0 ('  --summary="foo"     generate a one line summary comment at the top of the file\n') ;
    printf0 ('  --contributed="foo" generate a one line contribution comment near the top of the file\n') ;
+   printf0 ('  --project="foo"     include the project name within the GPL3 or GLPL3 header\n') ;
    printf0 ("  filename            the source file must be the last option\n") ;
    exit (0)
 END displayHelp ;
@@ -170,7 +177,7 @@ END commentS ;
 
 PROCEDURE gplBody (f: File) ;
 BEGIN
-   comment (f, "Copyright (C) " + YEAR + " Free Software Foundation, Inc.") ;
+   comment (f, 'Copyright (C) ' + YEAR + ' Free Software Foundation, Inc.') ;
    IF contributed
    THEN
       FIO.WriteString (f, "Contributed by ") ;
@@ -179,7 +186,7 @@ BEGIN
       FIO.WriteLine (f)
    END ;
    FIO.WriteLine (f) ;
-   comment (f, "This file is part of ") ;
+   FIO.WriteString (f, "This file is part of ") ;
    projectContents := SFIO.WriteS (f, projectContents) ;
    FIO.WriteString (f, ".") ;
    FIO.WriteLine (f) ; FIO.WriteLine (f) ;
@@ -199,7 +206,7 @@ BEGIN
    FIO.WriteString (f, "along with ") ;
    projectContents := SFIO.WriteS (f, projectContents) ;
    comment (f, "; see the file COPYING.  If not,") ;
-   comment (f, "see <https://www.gnu.org/licenses/>.")
+   FIO.WriteString (f, "see <https://www.gnu.org/licenses/>. ")
 END gplBody ;
 
 
@@ -209,7 +216,7 @@ END gplBody ;
 
 PROCEDURE glplBody (f: File) ;
 BEGIN
-   comment (f, "Copyright (C) " + YEAR + " Free Software Foundation, Inc.") ;
+   comment (f, 'Copyright (C) ' + YEAR + ' Free Software Foundation, Inc.') ;
    IF contributed
    THEN
       FIO.WriteString (f, "Contributed by ") ;
@@ -218,7 +225,7 @@ BEGIN
       FIO.WriteLine (f)
    END ;
    FIO.WriteLine (f) ;
-   comment (f, "This file is part of ") ;
+   FIO.WriteString (f, "This file is part of ") ;
    projectContents := SFIO.WriteS (f, projectContents) ;
    FIO.WriteString (f, ".") ;
    FIO.WriteLine (f) ; FIO.WriteLine (f) ;
@@ -238,7 +245,7 @@ BEGIN
    FIO.WriteString (f, "along with ") ;
    projectContents := SFIO.WriteS (f, projectContents) ;
    comment (f, "; see the file COPYING.  If not,") ;
-   comment (f, "see <https://www.gnu.org/licenses/>.")
+   FIO.WriteString (f, "see <https://www.gnu.org/licenses/>. ")
 END glplBody ;
 
 
@@ -264,7 +271,8 @@ BEGIN
       THEN
          glplBody (f)
       END ;
-      commentEnd (f)
+      commentEnd (f) ;
+      FIO.WriteLine (f)
    END
 END issueGPL ;
 
@@ -618,7 +626,7 @@ END handleOptions ;
 
 
 BEGIN
-   langC := FALSE ;
+   langC := TRUE ;
    langCPP := FALSE ;
    langM2 := FALSE ;
    gplHeader := FALSE ;

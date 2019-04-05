@@ -537,12 +537,12 @@ BEGIN
       END ;
       IF quotes
       THEN
-         r := x(r, ConCatChar(r, "'"))
+         r := x(r, ConCatChar(r, "‘"))
       END ;
       r := x(r, ConCat(r, o)) ;
       IF quotes
       THEN
-         r := x(r, ConCatChar(r, "'"))
+         r := x(r, ConCatChar(r, "’"))
       END
    END ;
    RETURN( r )

@@ -518,12 +518,15 @@ quit: force
 #
 # Rules to build the compiler and tools
 #
+MC_COPYRIGHT=--gpl-header --project="GNU Modula-2"
+
 MC_ARGS= --olang=c++ \
  --h-file-prefix=$(SRC_PREFIX) \
  -I$(srcdir)/gm2/gm2-libs \
  -I$(srcdir)/gm2/gm2-compiler \
  -I$(srcdir)/gm2/gm2-libiberty \
- -I$(srcdir)/gm2/gm2-gcc
+ -I$(srcdir)/gm2/gm2-gcc \
+ $(MC_COPYRIGHT)
 
 MC=gm2/boot-bin/mc$(exeext) $(MC_ARGS)
 
@@ -1778,25 +1781,25 @@ mc-autogen: $(GM2_DIRS) mc-clean mc-devel \
 EXTENDED_OPAQUE =
 
 gm2/mc-boot-gen/$(SRC_PREFIX)%.h: $(srcdir)/gm2/mc/%.def
-	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
+	./mc $(MC_COPYRIGHT) -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
 gm2/mc-boot-gen/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def
-	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
+	./mc $(MC_COPYRIGHT) -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
 gm2/mc-boot-gen/$(SRC_PREFIX)decl.c: $(srcdir)/gm2/mc/decl.mod
-	./mc --extended-opaque -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
+	./mc $(MC_COPYRIGHT) --extended-opaque -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
 gm2/mc-boot-gen/$(SRC_PREFIX)%.c: $(srcdir)/gm2/mc/%.mod
-	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
+	./mc $(MC_COPYRIGHT) -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
 gm2/mc-boot-gen/$(SRC_PREFIX)%.c: $(srcdir)/gm2/gm2-libs/%.mod
-	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
+	./mc $(MC_COPYRIGHT) -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
 gm2/mc-boot-gen/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs-iso/%.def
-	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
+	./mc $(MC_COPYRIGHT) -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
 gm2/mc-boot-gen/$(SRC_PREFIX)%.c: gm2/gm2-auto/%.mod
-	./mc -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
+	./mc $(MC_COPYRIGHT) -I$(srcdir)/gm2/mc:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(EXTENDED_OPAQUE) --h-file-prefix=$(SRC_PREFIX) -o=$@ $<
 
 gm2/mc-boot/$(SRC_PREFIX)%.o: gm2/mc-boot/$(SRC_PREFIX)%.c
 	$(CC) -I$(srcdir)/gm2/mc-boot-ch -g -c $< -o $@

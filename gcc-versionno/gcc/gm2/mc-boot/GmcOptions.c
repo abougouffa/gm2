@@ -1,4 +1,20 @@
-/* automatically created by mc from ../../gcc-versionno/gcc/gm2/mc/mcOptions.mod.  */
+/* Copyright (C) 2019 Free Software Foundation, Inc.
+
+This file is part of GNU Modula-2.
+
+GNU Modula-2 is software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -274,7 +290,12 @@ static void displayVersion (unsigned int mustExit)
 
 static void displayHelp (void)
 {
-  mcPrintf_printf0 ((char *) "usage: mc [--cpp] [-g] [--quiet] [--extended-opaque] [-q] [-v] [--verbose] [--version] [--help] [-h] [-Ipath] [--olang=c] [--olang=c++] [--olang=m2] [--debug-top] [--h-file-prefix=foo] [-o=foo] filename\\n", 204);
+  mcPrintf_printf0 ((char *) "usage: mc [--cpp] [-g] [--quiet] [--extended-opaque] [-q] [-v]", 62);
+  mcPrintf_printf0 ((char *) " [--verbose] [--version] [--help] [-h] [-Ipath] [--olang=c]", 59);
+  mcPrintf_printf0 ((char *) " [--olang=c++] [--olang=m2] [--debug-top]", 41);
+  mcPrintf_printf0 ((char *) " [--gpl-header] [--glpl-header] [--summary=\"foo\"]", 49);
+  mcPrintf_printf0 ((char *) " [--contributed=\"foo\"] [--project=\"foo\"]", 40);
+  mcPrintf_printf0 ((char *) " [--h-file-prefix=foo] [-o=foo] filename\\n", 42);
   mcPrintf_printf0 ((char *) "  --cpp               preprocess through the C preprocessor\\n", 61);
   mcPrintf_printf0 ((char *) "  -g                  emit debugging directives in the output language", 70);
   mcPrintf_printf0 ((char *) "                      so that the debugger will refer to the source\\n", 69);
@@ -293,9 +314,10 @@ static void displayHelp (void)
   mcPrintf_printf0 ((char *) "  -o=foo              set the output file to foo\\n", 50);
   mcPrintf_printf0 ((char *) "  --ignore-fq         do not generate fully qualified idents\\n", 62);
   mcPrintf_printf0 ((char *) "  --gpl-header        generate a GPL3 header comment at the top of the file\\n", 77);
-  mcPrintf_printf0 ((char *) "  --glpl-header       generate a LGPL3 header comment at the top of the file\\n", 78);
+  mcPrintf_printf0 ((char *) "  --glpl-header       generate a GLPL3 header comment at the top of the file\\n", 78);
   mcPrintf_printf0 ((char *) "  --summary=\"foo\"     generate a one line summary comment at the top of the file\\n", 82);
   mcPrintf_printf0 ((char *) "  --contributed=\"foo\" generate a one line contribution comment near the top of the file\\n", 89);
+  mcPrintf_printf0 ((char *) "  --project=\"foo\"     include the project name within the GPL3 or GLPL3 header\\n", 80);
   mcPrintf_printf0 ((char *) "  filename            the source file must be the last option\\n", 63);
   libc_exit (0);
 }
@@ -366,7 +388,7 @@ static void commentS (FIO_File f, DynamicStrings_String s)
 
 static void gplBody (FIO_File f)
 {
-  comment (f, (char *) "Copyright (C) \"'2019'\" Free Software Foundation, Inc.", 53);
+  comment (f, (char *) "Copyright (C) ''2019'' Free Software Foundation, Inc.", 53);
   if (contributed)
     {
       FIO_WriteString (f, (char *) "Contributed by ", 15);
@@ -375,7 +397,7 @@ static void gplBody (FIO_File f)
       FIO_WriteLine (f);
     }
   FIO_WriteLine (f);
-  comment (f, (char *) "This file is part of ", 21);
+  FIO_WriteString (f, (char *) "This file is part of ", 21);
   projectContents = SFIO_WriteS (f, projectContents);
   FIO_WriteString (f, (char *) ".", 1);
   FIO_WriteLine (f);
@@ -396,7 +418,7 @@ static void gplBody (FIO_File f)
   FIO_WriteString (f, (char *) "along with ", 11);
   projectContents = SFIO_WriteS (f, projectContents);
   comment (f, (char *) "; see the file COPYING.  If not,", 32);
-  comment (f, (char *) "see <https://www.gnu.org/licenses/>.", 36);
+  FIO_WriteString (f, (char *) "see <https://www.gnu.org/licenses/>. ", 37);
 }
 
 
@@ -406,7 +428,7 @@ static void gplBody (FIO_File f)
 
 static void glplBody (FIO_File f)
 {
-  comment (f, (char *) "Copyright (C) \"'2019'\" Free Software Foundation, Inc.", 53);
+  comment (f, (char *) "Copyright (C) ''2019'' Free Software Foundation, Inc.", 53);
   if (contributed)
     {
       FIO_WriteString (f, (char *) "Contributed by ", 15);
@@ -415,7 +437,7 @@ static void glplBody (FIO_File f)
       FIO_WriteLine (f);
     }
   FIO_WriteLine (f);
-  comment (f, (char *) "This file is part of ", 21);
+  FIO_WriteString (f, (char *) "This file is part of ", 21);
   projectContents = SFIO_WriteS (f, projectContents);
   FIO_WriteString (f, (char *) ".", 1);
   FIO_WriteLine (f);
@@ -436,7 +458,7 @@ static void glplBody (FIO_File f)
   FIO_WriteString (f, (char *) "along with ", 11);
   projectContents = SFIO_WriteS (f, projectContents);
   comment (f, (char *) "; see the file COPYING.  If not,", 32);
-  comment (f, (char *) "see <https://www.gnu.org/licenses/>.", 36);
+  FIO_WriteString (f, (char *) "see <https://www.gnu.org/licenses/>. ", 37);
 }
 
 
@@ -459,6 +481,7 @@ static void issueGPL (FIO_File f)
       if (glplHeader)
         glplBody (f);
       commentEnd (f);
+      FIO_WriteLine (f);
     }
 }
 
@@ -802,7 +825,7 @@ void mcOptions_writeGPLheader (FIO_File f)
 
 void _M2_mcOptions_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])
 {
-  langC = FALSE;
+  langC = TRUE;
   langCPP = FALSE;
   langM2 = FALSE;
   gplHeader = FALSE;

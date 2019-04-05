@@ -13620,10 +13620,7 @@ VAR
    defModule: node ;
 BEGIN
    outputFile := mcStream.openFrag (1) ;  (* first fragment.  *)
-   s := InitStringCharStar (keyToCharStar (getSource (n))) ;
-   print (p, "/* automatically created by mc from ") ; prints (p, s) ; print (p, ".  */\n\n") ;
-   s := KillString (s) ;
-
+   writeGPLheader (outputFile) ;
    outputFile := mcStream.openFrag (3) ;  (* third fragment.  *)
    IF getExtendedOpaque ()
    THEN
@@ -13642,6 +13639,7 @@ BEGIN
       (* we don't want to include the .h file for this implementation module.  *)
       print (p, "#define _") ; prints (p, s) ; print (p, "_H\n") ;
       print (p, "#define _") ; prints (p, s) ; print (p, "_C\n\n") ;
+      s := KillString (s) ;
 
       doP := p ;
       ForeachIndiceInIndexDo (n^.impF.importedModules, doIncludeC) ;
@@ -13663,9 +13661,7 @@ BEGIN
    outImpInitC (p, n) ;
 
    outputFile := mcStream.openFrag (2) ;  (* second fragment.  *)
-   keyc.genDefs (p) ;
-
-   s := KillString (s)
+   keyc.genDefs (p)
 END outImpC ;
 
 
