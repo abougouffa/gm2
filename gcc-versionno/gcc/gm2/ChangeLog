@@ -1,3 +1,301 @@
+2019-04-06      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/FifoQueue.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/Indexing.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/Lists.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2ALU.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2AsmUtil.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Base.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2BasicBlock.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Batch.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Bitset.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2CaseList.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Code.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Comp.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Configure.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Const.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Debug.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2DebugStack.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Defaults.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Depth.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2DriverOptions.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Error.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2EvalSym.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2FileName.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2GCCDeclare.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2GenGCC.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Lex.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2LexBuf.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2MetaError.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Optimize.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Options.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Pass.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Preprocess.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Printf.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Quads.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Quiet.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Range.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Reserved.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Scope.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Search.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Size.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2StackAddress.def:  added summary and dates	for GPL.
+	* gm2/gm2-compiler/M2StackWord.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Students.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Swig.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2System.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Version.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/NameKey.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/ObjectFiles.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/P0SymBuild.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/P0SyntaxCheck.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/P1Build.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/P1SymBuild.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/P2Build.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/P2SymBuild.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/P3Build.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/P3SymBuild.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/PCBuild.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/PCSymBuild.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/PHBuild.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/Sets.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/SymbolConversion.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/SymbolKey.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/SymbolTable.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/bnflex.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/cflex.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/gccgm2.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/gm2builtins.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/gm2except.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/m2flex.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/Args.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/Assertion.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/Builtins.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/CmdArgs.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/Debug.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/DynamicStrings.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/Environment.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/FIO.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/FormatStrings.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/FpuIO.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/IO.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/Indexing.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/LMathLib0.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/LegacyReal.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/M2RTS.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/MathLib0.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/MemUtils.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/NumberIO.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/PushBackInput.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/RTExceptions.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/RTint.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/SArgs.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/SCmdArgs.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/SEnvironment.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/SFIO.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/SMathLib0.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/SYSTEM.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/Scan.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/Selective.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/StdIO.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/Storage.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/StrIO.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/StrLib.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/StringConvert.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/SysExceptions.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/SysStorage.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/TimeString.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/UnixArgs.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/cbuiltin.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/cxxabi.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/dtoa.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/errno.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/gdbif.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/ldtoa.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/libc.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/libm.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/sckt.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/termios.def:  added summary and dates for GPL.
+	* gm2/gm2-libs/wrapc.def:  added summary and dates for GPL.
+	* gm2/gm2spec.c:  added summary and dates for GPL.
+	* gm2/mc-boot/GASCII.c:  rebuilt.
+	* gm2/mc-boot/GASCII.h:  rebuilt.
+	* gm2/mc-boot/GArgs.c:  rebuilt.
+	* gm2/mc-boot/GArgs.h:  rebuilt.
+	* gm2/mc-boot/GAssertion.c:  rebuilt.
+	* gm2/mc-boot/GAssertion.h:  rebuilt.
+	* gm2/mc-boot/GBreak.c:  rebuilt.
+	* gm2/mc-boot/GBreak.h:  rebuilt.
+	* gm2/mc-boot/GCOROUTINES.h:  rebuilt.
+	* gm2/mc-boot/GCmdArgs.c:  rebuilt.
+	* gm2/mc-boot/GCmdArgs.h:  rebuilt.
+	* gm2/mc-boot/GDebug.c:  rebuilt.
+	* gm2/mc-boot/GDebug.h:  rebuilt.
+	* gm2/mc-boot/GDynamicStrings.c:  rebuilt.
+	* gm2/mc-boot/GDynamicStrings.h:  rebuilt.
+	* gm2/mc-boot/GEnvironment.c:  rebuilt.
+	* gm2/mc-boot/GEnvironment.h:  rebuilt.
+	* gm2/mc-boot/GFIO.c:  rebuilt.
+	* gm2/mc-boot/GFIO.h:  rebuilt.
+	* gm2/mc-boot/GFormatStrings.c:  rebuilt.
+	* gm2/mc-boot/GFormatStrings.h:  rebuilt.
+	* gm2/mc-boot/GFpuIO.c:  rebuilt.
+	* gm2/mc-boot/GFpuIO.h:  rebuilt.
+	* gm2/mc-boot/GIO.c:  rebuilt.
+	* gm2/mc-boot/GIO.h:  rebuilt.
+	* gm2/mc-boot/GIndexing.c:  rebuilt.
+	* gm2/mc-boot/GIndexing.h:  rebuilt.
+	* gm2/mc-boot/GM2EXCEPTION.c:  rebuilt.
+	* gm2/mc-boot/GM2EXCEPTION.h:  rebuilt.
+	* gm2/mc-boot/GM2RTS.c:  rebuilt.
+	* gm2/mc-boot/GM2RTS.h:  rebuilt.
+	* gm2/mc-boot/GMemUtils.c:  rebuilt.
+	* gm2/mc-boot/GMemUtils.h:  rebuilt.
+	* gm2/mc-boot/GNumberIO.c:  rebuilt.
+	* gm2/mc-boot/GNumberIO.h:  rebuilt.
+	* gm2/mc-boot/GPushBackInput.c:  rebuilt.
+	* gm2/mc-boot/GPushBackInput.h:  rebuilt.
+	* gm2/mc-boot/GRTExceptions.c:  rebuilt.
+	* gm2/mc-boot/GRTExceptions.h:  rebuilt.
+	* gm2/mc-boot/GRTint.c:  rebuilt.
+	* gm2/mc-boot/GRTint.h:  rebuilt.
+	* gm2/mc-boot/GSArgs.c:  rebuilt.
+	* gm2/mc-boot/GSArgs.h:  rebuilt.
+	* gm2/mc-boot/GSFIO.c:  rebuilt.
+	* gm2/mc-boot/GSFIO.h:  rebuilt.
+	* gm2/mc-boot/GSYSTEM.h:  rebuilt.
+	* gm2/mc-boot/GSelective.h:  rebuilt.
+	* gm2/mc-boot/GStdIO.c:  rebuilt.
+	* gm2/mc-boot/GStdIO.h:  rebuilt.
+	* gm2/mc-boot/GStorage.c:  rebuilt.
+	* gm2/mc-boot/GStorage.h:  rebuilt.
+	* gm2/mc-boot/GStrCase.c:  rebuilt.
+	* gm2/mc-boot/GStrCase.h:  rebuilt.
+	* gm2/mc-boot/GStrIO.c:  rebuilt.
+	* gm2/mc-boot/GStrIO.h:  rebuilt.
+	* gm2/mc-boot/GStrLib.c:  rebuilt.
+	* gm2/mc-boot/GStrLib.h:  rebuilt.
+	* gm2/mc-boot/GStringConvert.c:  rebuilt.
+	* gm2/mc-boot/GStringConvert.h:  rebuilt.
+	* gm2/mc-boot/GSysExceptions.h:  rebuilt.
+	* gm2/mc-boot/GSysStorage.c:  rebuilt.
+	* gm2/mc-boot/GSysStorage.h:  rebuilt.
+	* gm2/mc-boot/GTimeString.c:  rebuilt.
+	* gm2/mc-boot/GTimeString.h:  rebuilt.
+	* gm2/mc-boot/GUnixArgs.h:  rebuilt.
+	* gm2/mc-boot/Galists.c:  rebuilt.
+	* gm2/mc-boot/Galists.h:  rebuilt.
+	* gm2/mc-boot/Gdecl.c:  rebuilt.
+	* gm2/mc-boot/Gdecl.h:  rebuilt.
+	* gm2/mc-boot/Gdtoa.h:  rebuilt.
+	* gm2/mc-boot/Gerrno.h:  rebuilt.
+	* gm2/mc-boot/Gkeyc.c:  rebuilt.
+	* gm2/mc-boot/Gkeyc.h:  rebuilt.
+	* gm2/mc-boot/Gldtoa.h:  rebuilt.
+	* gm2/mc-boot/Glibc.h:  rebuilt.
+	* gm2/mc-boot/Glibm.h:  rebuilt.
+	* gm2/mc-boot/Glists.c:  rebuilt.
+	* gm2/mc-boot/Glists.h:  rebuilt.
+	* gm2/mc-boot/GmcComment.c:  rebuilt.
+	* gm2/mc-boot/GmcComment.h:  rebuilt.
+	* gm2/mc-boot/GmcComp.c:  rebuilt.
+	* gm2/mc-boot/GmcComp.h:  rebuilt.
+	* gm2/mc-boot/GmcDebug.c:  rebuilt.
+	* gm2/mc-boot/GmcDebug.h:  rebuilt.
+	* gm2/mc-boot/GmcError.c:  rebuilt.
+	* gm2/mc-boot/GmcError.h:  rebuilt.
+	* gm2/mc-boot/GmcFileName.c:  rebuilt.
+	* gm2/mc-boot/GmcFileName.h:  rebuilt.
+	* gm2/mc-boot/GmcLexBuf.c:  rebuilt.
+	* gm2/mc-boot/GmcLexBuf.h:  rebuilt.
+	* gm2/mc-boot/GmcMetaError.c:  rebuilt.
+	* gm2/mc-boot/GmcMetaError.h:  rebuilt.
+	* gm2/mc-boot/GmcOptions.c:  rebuilt.
+	* gm2/mc-boot/GmcOptions.h:  rebuilt.
+	* gm2/mc-boot/GmcPreprocess.c:  rebuilt.
+	* gm2/mc-boot/GmcPreprocess.h:  rebuilt.
+	* gm2/mc-boot/GmcPretty.c:  rebuilt.
+	* gm2/mc-boot/GmcPretty.h:  rebuilt.
+	* gm2/mc-boot/GmcPrintf.c:  rebuilt.
+	* gm2/mc-boot/GmcPrintf.h:  rebuilt.
+	* gm2/mc-boot/GmcQuiet.c:  rebuilt.
+	* gm2/mc-boot/GmcQuiet.h:  rebuilt.
+	* gm2/mc-boot/GmcReserved.c:  rebuilt.
+	* gm2/mc-boot/GmcReserved.h:  rebuilt.
+	* gm2/mc-boot/GmcSearch.c:  rebuilt.
+	* gm2/mc-boot/GmcSearch.h:  rebuilt.
+	* gm2/mc-boot/GmcStack.c:  rebuilt.
+	* gm2/mc-boot/GmcStack.h:  rebuilt.
+	* gm2/mc-boot/GmcStream.c:  rebuilt.
+	* gm2/mc-boot/GmcStream.h:  rebuilt.
+	* gm2/mc-boot/Gmcflex.h:  rebuilt.
+	* gm2/mc-boot/Gmcp1.c:  rebuilt.
+	* gm2/mc-boot/Gmcp1.h:  rebuilt.
+	* gm2/mc-boot/Gmcp2.c:  rebuilt.
+	* gm2/mc-boot/Gmcp2.h:  rebuilt.
+	* gm2/mc-boot/Gmcp3.c:  rebuilt.
+	* gm2/mc-boot/Gmcp3.h:  rebuilt.
+	* gm2/mc-boot/Gmcp4.c:  rebuilt.
+	* gm2/mc-boot/Gmcp4.h:  rebuilt.
+	* gm2/mc-boot/Gmcp5.c:  rebuilt.
+	* gm2/mc-boot/Gmcp5.h:  rebuilt.
+	* gm2/mc-boot/GnameKey.c:  rebuilt.
+	* gm2/mc-boot/GnameKey.h:  rebuilt.
+	* gm2/mc-boot/Gpth.h:  rebuilt.
+	* gm2/mc-boot/GsymbolKey.c:  rebuilt.
+	* gm2/mc-boot/GsymbolKey.h:  rebuilt.
+	* gm2/mc-boot/Gtermios.h:  rebuilt.
+	* gm2/mc-boot/Gtop.c:  rebuilt.
+	* gm2/mc-boot/Gvarargs.c:  rebuilt.
+	* gm2/mc-boot/Gvarargs.h:  rebuilt.
+	* gm2/mc-boot/Gwlists.c:  rebuilt.
+	* gm2/mc-boot/Gwlists.h:  rebuilt.
+	* gm2/mc-boot/Gwrapc.h:  rebuilt.
+	* gm2/mc/Indexing.def:  added summary and dates for GPL.
+	* gm2/mc/Indexing.mod:  added summary and dates for GPL.
+	* gm2/mc/alists.def:  added summary and dates for GPL.
+	* gm2/mc/alists.mod:  added summary and dates for GPL.
+	* gm2/mc/decl.def:  added summary and dates for GPL.
+	* gm2/mc/decl.mod:  added capturing of module comments.
+	  Fixed GPL header.
+	* gm2/mc/keyc.def:  added summary and dates for GPL.
+	* gm2/mc/keyc.mod:  added summary and dates for GPL.
+	* gm2/mc/lists.def:  added summary and dates for GPL.
+	* gm2/mc/lists.mod:  added summary and dates for GPL.
+	* gm2/mc/m2flex.def:  added summary and dates for GPL.
+	* gm2/mc/mcComment.def:  added summary and dates for GPL.
+	* gm2/mc/mcComp.def:  added summary and dates for GPL.
+	* gm2/mc/mcDebug.def:  added summary and dates for GPL.
+	* gm2/mc/mcError.def:  added summary and dates for GPL.
+	* gm2/mc/mcFileName.def:  added summary and dates for GPL.
+	* gm2/mc/mcLexBuf.def:  added summary and dates for GPL.
+	* gm2/mc/mcMetaError.def:  added summary and dates for GPL.
+	* gm2/mc/mcOptions.def:  added summary and dates for GPL.
+	* gm2/mc/mcPreprocess.def:  added summary and dates for GPL.
+	* gm2/mc/mcPretty.def:  added summary and dates for GPL.
+	* gm2/mc/mcPrintf.def:  added summary and dates for GPL.
+	* gm2/mc/mcQuiet.def:  added summary and dates for GPL.
+	* gm2/mc/mcReserved.def:  added summary and dates for GPL.
+	* gm2/mc/mcSearch.def:  added summary and dates for GPL.
+	* gm2/mc/mcStack.def:  added summary and dates for GPL.
+	* gm2/mc/mcStream.def:  added summary and dates for GPL.
+	* gm2/mc/mcStream.mod:  added summary and dates for GPL.
+	* gm2/mc/mcflex.def:  added summary and dates for GPL.
+	* gm2/mc/mcp1.def:  added summary and dates for GPL.
+	* gm2/mc/mcp2.def:  added summary and dates for GPL.
+	* gm2/mc/mcp3.def:  added summary and dates for GPL.
+	* gm2/mc/mcp4.def:  added summary and dates for GPL.
+	* gm2/mc/mcp5.def:  added summary and dates for GPL.
+	* gm2/mc/nameKey.def:  added summary and dates for GPL.
+	* gm2/mc/nameKey.mod:  added summary and dates for GPL.
+	* gm2/mc/symbolKey.def:  added summary and dates for GPL.
+	* gm2/mc/symbolKey.mod:  added summary and dates for GPL.
+	* gm2/mc/top.mod:  added summary and dates for GPL.
+	* gm2/mc/varargs.def:  added summary and dates for GPL.
+	* gm2/mc/varargs.mod:  added summary and dates for GPL.
+	* gm2/mc/wlists.def:  added summary and dates for GPL.
+	* gm2/mc/wlists.mod:  added summary and dates for GPL.
+
 2019-04-05      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-file.in:  generate mc with GPL3 header.

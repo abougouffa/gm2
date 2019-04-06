@@ -1,20 +1,22 @@
-/* Copyright (C) 2019 Free Software Foundation, Inc.
+/* keyc maintains the C name scope and avoids C/C++ name conflicts.
+   Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Modula-2.
 
-GNU Modula-2 is software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
 
-GNU Modula-2 is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-General Public License for more details.
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
 
-You should have received a copy of the GNU General Public License
-along with GNU Modula-2; see the file COPYING.  If not,
-see <https://www.gnu.org/licenses/>.  */
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -703,7 +705,7 @@ static unsigned int mangleN (nameKey_Name n, DynamicStrings_String *m, unsigned 
     if (! (clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes)))
       return TRUE;
   }
-  ReturnException ("../../gcc-versionno/gcc/gm2/mc/keyc.def", 1, 15);
+  ReturnException ("../../gcc-versionno/gcc/gm2/mc/keyc.def", 19, 1);
 }
 
 

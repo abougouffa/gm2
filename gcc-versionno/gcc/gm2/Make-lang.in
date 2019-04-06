@@ -518,7 +518,8 @@ quit: force
 #
 # Rules to build the compiler and tools
 #
-MC_COPYRIGHT=--gpl-header --project="GNU Modula-2"
+# MC_COPYRIGHT=--gpl-header --project="GNU Modula-2"
+MC_COPYRIGHT=
 
 MC_ARGS= --olang=c++ \
  --h-file-prefix=$(SRC_PREFIX) \

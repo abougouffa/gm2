@@ -1,20 +1,22 @@
-/* Copyright (C) 2019 Free Software Foundation, Inc.
+/* Declaration nodes used to create the AST.
+   Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Modula-2.
 
-GNU Modula-2 is software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
 
-GNU Modula-2 is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-General Public License for more details.
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
 
-You should have received a copy of the GNU General Public License
-along with GNU Modula-2; see the file COPYING.  If not,
-see <https://www.gnu.org/licenses/>.  */
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -754,6 +756,7 @@ struct moduleT_r {
                    unsigned int enumsComplete;
                    unsigned int constsComplete;
                    unsigned int visited;
+                   commentPair com;
                  };
 
 struct defT_r {
@@ -769,6 +772,7 @@ struct defT_r {
                 unsigned int enumsComplete;
                 unsigned int constsComplete;
                 unsigned int visited;
+                commentPair com;
               };
 
 struct impT_r {
@@ -784,6 +788,7 @@ struct impT_r {
                 unsigned int enumsComplete;
                 unsigned int constsComplete;
                 unsigned int visited;
+                commentPair com;
               };
 
 struct _T6_r {
@@ -6416,6 +6421,9 @@ static decl_node newNode (nodeT k)
   else
     {
       d->kind = k;
+      d->at.defDeclared = 0;
+      d->at.modDeclared = 0;
+      d->at.firstUsed = 0;
       return d;
     }
 }
@@ -6552,6 +6560,7 @@ static decl_node makeDef (nameKey_Name n)
   d->defF.enumsComplete = FALSE;
   d->defF.constsComplete = FALSE;
   d->defF.visited = FALSE;
+  initPair (&d->defF.com);
   return d;
 }
 
@@ -6577,6 +6586,7 @@ static decl_node makeImp (nameKey_Name n)
   d->impF.enumsComplete = FALSE;
   d->impF.constsComplete = FALSE;
   d->impF.visited = FALSE;
+  initPair (&d->impF.com);
   return d;
 }
 
@@ -6601,6 +6611,7 @@ static decl_node makeModule (nameKey_Name n)
   d->moduleF.enumsComplete = FALSE;
   d->moduleF.constsComplete = FALSE;
   d->moduleF.visited = FALSE;
+  initPair (&d->moduleF.com);
   return d;
 }
 
@@ -6795,7 +6806,7 @@ static void setUnary (decl_node u, nodeT k, decl_node a, decl_node t)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -7049,7 +7060,7 @@ static void putFieldVarient (decl_node f, decl_node v)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
   switch (f->kind)
     {
@@ -7059,7 +7070,7 @@ static void putFieldVarient (decl_node f, decl_node v)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -7103,7 +7114,7 @@ static decl_node putFieldRecord (decl_node r, nameKey_Name tag, decl_node type, 
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
   /* fill in, n.  */
   n->recordfieldF.type = type;
@@ -7158,7 +7169,7 @@ static void putVarientTag (decl_node v, decl_node tag)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -7181,7 +7192,7 @@ static decl_node getParent (decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -7207,7 +7218,7 @@ static decl_node getRecord (decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -7302,7 +7313,7 @@ static decl_node doMakeEnumField (decl_node e, nameKey_Name n)
     }
   else
     mcMetaError_metaErrors2 ((char *) "cannot create enumeration field {%1k} as the name is already in use", 67, (char *) "{%2DMad} was declared elsewhere", 31, (unsigned char *) &n, (sizeof (n)-1), (unsigned char *) &f, (sizeof (f)-1));
-  ReturnException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+  ReturnException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
 }
 
 
@@ -7353,7 +7364,7 @@ static unsigned int getConstExpComplete (decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -7677,7 +7688,7 @@ static decl_node makeUnary (nodeT k, decl_node e, decl_node res)
 
 
           default:
-            CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+            CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
         }
     }
   return n;
@@ -7829,7 +7840,7 @@ static decl_node doMakeBinary (nodeT k, decl_node l, decl_node r, decl_node res)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
   return n;
 }
@@ -8117,7 +8128,7 @@ static decl_node doGetFuncType (decl_node n)
 
 
         default:
-          CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+          CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
       }
   else
     return doSetExprType (&n->funccallF.type, decl_getType (n->funccallF.function));
@@ -8461,7 +8472,7 @@ static decl_node doGetExprType (decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
   M2RTS_HALT (-1);
 }
@@ -8595,7 +8606,7 @@ static decl_node getSymScope (decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
   M2RTS_HALT (-1);
 }
@@ -8840,7 +8851,7 @@ static unsigned int needsParen (decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
   return TRUE;
 }
@@ -8937,7 +8948,7 @@ static void doPolyBinary (mcPretty_pretty p, nodeT op, decl_node left, decl_node
 
 
         default:
-          CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+          CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
       }
   else
     switch (op)
@@ -8960,7 +8971,7 @@ static void doPolyBinary (mcPretty_pretty p, nodeT op, decl_node left, decl_node
 
 
         default:
-          CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+          CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
       }
 }
 
@@ -9228,7 +9239,7 @@ static decl_node doGetLastOp (decl_node a, decl_node b)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -9814,7 +9825,7 @@ static void doExprC (mcPretty_pretty p, decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -10016,7 +10027,7 @@ static void doExprM2 (mcPretty_pretty p, decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -10172,7 +10183,7 @@ static DynamicStrings_String replaceChar (DynamicStrings_String s, char ch, char
     else
       return s;
   }
-  ReturnException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+  ReturnException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
 }
 
 
@@ -10225,7 +10236,7 @@ static unsigned int countChar (DynamicStrings_String s, char ch)
     else
       return c;
   }
-  ReturnException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+  ReturnException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
 }
 
 
@@ -11443,7 +11454,7 @@ static void doBaseC (mcPretty_pretty p, decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
   mcPretty_setNeedSpace (p);
 }
@@ -11530,7 +11541,7 @@ static void doSystemC (mcPretty_pretty p, decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -14512,7 +14523,7 @@ static void doIntrinsicC (mcPretty_pretty p, decl_node n)
 
 
         default:
-          CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+          CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
       }
 }
 
@@ -15426,7 +15437,7 @@ static void dbs (dependentState s, decl_node n)
 
 
           default:
-            CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+            CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
         }
       if (n != NULL)
         outTextS (doP, gen (n));
@@ -16201,7 +16212,7 @@ static dependentState doDependants (alists_alist l, decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -17191,7 +17202,7 @@ static void visitDependants (alists_alist v, decl_node n, nodeProcedure p)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -17541,7 +17552,7 @@ static DynamicStrings_String genKind (decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
   M2RTS_HALT (-1);
 }
@@ -17966,10 +17977,12 @@ static void outDefC (mcPretty_pretty p, decl_node n)
 {
   DynamicStrings_String s;
 
+  mcDebug_assert (decl_isDef (n));
   outputFile = mcStream_openFrag (1);  /* first fragment.  */
   mcOptions_writeGPLheader (outputFile);  /* first fragment.  */
+  doCommentC (p, n->defF.com.body);
   s = DynamicStrings_InitStringCharStar (nameKey_keyToCharStar (decl_getSymName (n)));
-  mcPretty_print (p, (char *) "\\n#if !defined (_", 17);
+  mcPretty_print (p, (char *) "\\n\\n#if !defined (_", 19);
   mcPretty_prints (p, s);
   mcPretty_print (p, (char *) "_H)\\n", 5);
   mcPretty_print (p, (char *) "#   define _", 12);
@@ -18039,8 +18052,11 @@ static void outImpC (mcPretty_pretty p, decl_node n)
   DynamicStrings_String s;
   decl_node defModule;
 
+  mcDebug_assert (decl_isImp (n));
   outputFile = mcStream_openFrag (1);  /* first fragment.  */
   mcOptions_writeGPLheader (outputFile);  /* first fragment.  */
+  doCommentC (p, n->impF.com.body);
+  outText (p, (char *) "\\n", 2);
   outputFile = mcStream_openFrag (3);  /* third fragment.  */
   if (mcOptions_getExtendedOpaque ())  /* third fragment.  */
     {
@@ -18141,8 +18157,11 @@ static void outModuleC (mcPretty_pretty p, decl_node n)
 {
   DynamicStrings_String s;
 
+  mcDebug_assert (decl_isModule (n));
   outputFile = mcStream_openFrag (1);  /* first fragment.  */
   mcOptions_writeGPLheader (outputFile);  /* first fragment.  */
+  doCommentC (p, n->moduleF.com.body);
+  outText (p, (char *) "\\n", 2);
   outputFile = mcStream_openFrag (3);  /* third fragment.  */
   if (mcOptions_getExtendedOpaque ())  /* third fragment.  */
     {
@@ -18463,7 +18482,7 @@ static void doBaseM2 (mcPretty_pretty p, decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
   mcPretty_setNeedSpace (p);
 }
@@ -18488,7 +18507,7 @@ static void doSystemM2 (mcPretty_pretty p, decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -19153,6 +19172,18 @@ static void addGenericBody (decl_node n, decl_node c)
         n->assignmentF.assignComment.body = c;
         break;
 
+      case module:
+        n->moduleF.com.body = c;
+        break;
+
+      case def:
+        n->defF.com.body = c;
+        break;
+
+      case imp:
+        n->impF.com.body = c;
+        break;
+
 
       default:
         break;
@@ -19179,6 +19210,18 @@ static void addGenericAfter (decl_node n, decl_node c)
 
       case assignment:
         n->assignmentF.assignComment.after = c;
+        break;
+
+      case module:
+        n->moduleF.com.after = c;
+        break;
+
+      case def:
+        n->defF.com.after = c;
+        break;
+
+      case imp:
+        n->impF.com.after = c;
         break;
 
 
@@ -19505,7 +19548,7 @@ static decl_node doDupExpr (decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -19821,7 +19864,7 @@ unsigned int decl_isVisited (decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -19848,7 +19891,7 @@ void decl_unsetVisited (decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -19875,7 +19918,7 @@ void decl_setVisited (decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -19902,7 +19945,7 @@ void decl_setEnumsComplete (decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -19929,7 +19972,7 @@ unsigned int decl_getEnumsComplete (decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -20119,7 +20162,7 @@ decl_node decl_lookupInScope (decl_node scope, nameKey_Name n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -20480,7 +20523,7 @@ decl_node decl_getType (decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
   M2RTS_HALT (-1);
 }
@@ -20853,7 +20896,7 @@ decl_node decl_getScope (decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -21420,7 +21463,7 @@ decl_node decl_makeVarient (decl_node r)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
   return n;
 }
@@ -21903,7 +21946,7 @@ decl_node decl_import (decl_node m, decl_node n)
 
 
           default:
-            CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+            CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
         }
       importEnumFields (m, n);
       return n;
@@ -22005,7 +22048,7 @@ void decl_setSource (decl_node n, nameKey_Name s)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -22032,7 +22075,7 @@ nameKey_Name decl_getSource (decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -22412,7 +22455,7 @@ void decl_addParameter (decl_node proc, decl_node param)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -22832,7 +22875,7 @@ void decl_setConstExpComplete (decl_node n)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -23150,7 +23193,7 @@ void decl_putBegin (decl_node b, decl_node s)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -23176,7 +23219,7 @@ void decl_putFinally (decl_node b, decl_node s)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
 }
 
@@ -23726,7 +23769,7 @@ void decl_out (void)
 
 
       default:
-        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 2, 1);
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 19, 1);
     }
   closeOutput ();
 }

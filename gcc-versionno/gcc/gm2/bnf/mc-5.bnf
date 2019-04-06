@@ -810,6 +810,7 @@ FileUnit := DefinitionModule | ImplementationOrProgramModule
 
 ProgramModule := "MODULE"
                   Ident                                                % curmodule := lookupModule (curident) %
+                                                                       % addCommentBody (curmodule) %
 		                                                       % enterScope (curmodule) %
 								       % resetConstExpPos (curmodule) %
                   [ Priority ] ";"
@@ -823,6 +824,7 @@ ProgramModule := "MODULE"
 
 ImplementationModule := "IMPLEMENTATION" "MODULE"
                          Ident                                         % curmodule := lookupImp (curident) %
+                                                                       % addCommentBody (curmodule) %
 			                                               % enterScope (lookupDef (curident)) %
                                                                        % enterScope (curmodule) %
                                                                        % resetConstExpPos (curmodule) %

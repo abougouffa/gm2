@@ -1,6 +1,9 @@
-(* Copyright (C) 2015, 2016, 2017, 2018
-   Free Software Foundation, Inc.  *)
-(* This file is part of GNU Modula-2.
+(* decl.mod declaration nodes used to create the AST.
+
+Copyright (C) 2015-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius@glam.ac.uk>.
+
+This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -240,7 +243,7 @@ TYPE
 			 setvalue        :  setvalueF        : setvalueT
 
                          END ;
-                         at:  where ;
+                         at: where ;
                       END ;
 
        fixupInfo = RECORD
@@ -590,6 +593,7 @@ TYPE
                     enumsComplete,
 		    constsComplete,
 		    visited          :  BOOLEAN ;
+                    com              :  commentPair ;
                  END ;
 
        defT = RECORD
@@ -605,6 +609,7 @@ TYPE
 		 enumsComplete,
                  constsComplete,
                  visited          :  BOOLEAN ;
+                 com              :  commentPair ;
               END ;
 
        impT = RECORD
@@ -620,6 +625,7 @@ TYPE
                  enumsComplete,
                  constsComplete,
                  visited          :  BOOLEAN ;
+                 com              :  commentPair ;
               END ;
 
        where = RECORD
@@ -734,6 +740,9 @@ BEGIN
       HALT
    ELSE
       d^.kind := k ;
+      d^.at.defDeclared := 0 ;
+      d^.at.modDeclared := 0 ;
+      d^.at.firstUsed := 0 ;
       RETURN d
    END
 END newNode ;
@@ -1401,7 +1410,8 @@ BEGIN
       initDecls (defF.decls) ;
       defF.enumsComplete := FALSE ;
       defF.constsComplete := FALSE ;
-      defF.visited := FALSE
+      defF.visited := FALSE ;
+      initPair (defF.com)
    END ;
    RETURN d
 END makeDef ;
@@ -1428,7 +1438,8 @@ BEGIN
       impF.definitionModule := NIL ;
       impF.enumsComplete := FALSE ;
       impF.constsComplete := FALSE ;
-      impF.visited := FALSE
+      impF.visited := FALSE ;
+      initPair (impF.com)
    END ;
    RETURN d
 END makeImp ;
@@ -1454,7 +1465,8 @@ BEGIN
       moduleF.finallyStatements := NIL ;
       moduleF.enumsComplete := FALSE ;
       moduleF.constsComplete := FALSE ;
-      moduleF.visited := FALSE
+      moduleF.visited := FALSE ;
+      initPair (moduleF.com)
    END ;
    RETURN d
 END makeModule ;
@@ -13541,10 +13553,12 @@ PROCEDURE outDefC (p: pretty; n: node) ;
 VAR
    s: String ;
 BEGIN
+   assert (isDef (n)) ;
    outputFile := mcStream.openFrag (1) ;  (* first fragment.  *)
    writeGPLheader (outputFile) ;
+   doCommentC (p, n^.defF.com.body) ;
    s := InitStringCharStar (keyToCharStar (getSymName (n))) ;
-   print (p, "\n#if !defined (_") ; prints (p, s) ; print (p, "_H)\n") ;
+   print (p, "\n\n#if !defined (_") ; prints (p, s) ; print (p, "_H)\n") ;
    print (p, "#   define _") ; prints (p, s) ; print (p, "_H\n\n") ;
 
    print (p, "#   ifdef __cplusplus\n") ;
@@ -13619,8 +13633,11 @@ VAR
    s        : String ;
    defModule: node ;
 BEGIN
+   assert (isImp (n)) ;
    outputFile := mcStream.openFrag (1) ;  (* first fragment.  *)
    writeGPLheader (outputFile) ;
+   doCommentC (p, n^.impF.com.body) ;
+   outText (p, "\n") ;
    outputFile := mcStream.openFrag (3) ;  (* third fragment.  *)
    IF getExtendedOpaque ()
    THEN
@@ -13732,8 +13749,11 @@ PROCEDURE outModuleC (p: pretty; n: node) ;
 VAR
    s: String ;
 BEGIN
+   assert (isModule (n)) ;
    outputFile := mcStream.openFrag (1) ;  (* first fragment.  *)
    writeGPLheader (outputFile) ;
+   doCommentC (p, n^.moduleF.com.body) ;
+   outText (p, "\n") ;
    outputFile := mcStream.openFrag (3) ;  (* third fragment.  *)
    IF getExtendedOpaque ()
    THEN
@@ -14861,7 +14881,10 @@ BEGIN
 
    funccall  :  n^.funccallF.funccallComment.body := c |
    return    :  n^.returnF.returnComment.body := c |
-   assignment:  n^.assignmentF.assignComment.body := c
+   assignment:  n^.assignmentF.assignComment.body := c |
+   module    :  n^.moduleF.com.body := c |
+   def       :  n^.defF.com.body := c |
+   imp       :  n^.impF.com.body := c
 
    ELSE
    END
@@ -14879,7 +14902,10 @@ BEGIN
 
    funccall  :  n^.funccallF.funccallComment.after := c |
    return    :  n^.returnF.returnComment.after := c |
-   assignment:  n^.assignmentF.assignComment.after := c
+   assignment:  n^.assignmentF.assignComment.after := c |
+   module    :  n^.moduleF.com.after := c |
+   def       :  n^.defF.com.after := c |
+   imp       :  n^.impF.com.after := c
 
    ELSE
    END
