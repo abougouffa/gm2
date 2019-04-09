@@ -1,3 +1,40 @@
+2019-04-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-libs-min/M2RTS.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-min/M2RTS.mod:  added summary and dates for GPL.
+	* gm2/gm2-libs-min/SYSTEM.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-min/SYSTEM.mod:  added summary and dates for GPL.
+	* gm2/gm2-libs-min/libc.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/BitBlockOps.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/BitByteOps.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/BitWordOps.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/BlockOps.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/Break.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/CardinalIO.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/Conversions.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/DebugPMD.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/DebugTrace.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/Delay.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/Display.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/ErrorCode.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/FileSystem.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/FloatingUtilities.def:  added summary and dates
+	for GPL.
+	* gm2/gm2-libs-pim/InOut.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/Keyboard.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/LongIO.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/NumberConversion.def:  added summary and dates
+	for GPL.
+	* gm2/gm2-libs-pim/Random.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/RealConversions.def:  added summary and dates
+	for GPL.
+	* gm2/gm2-libs-pim/RealInOut.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/Strings.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/Termbase.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/Terminal.def:  added summary and dates for GPL.
+	* gm2/gm2-libs-pim/TimeDate.def:  added summary and dates for GPL.
+	* gm2/mc/alists.mod:  added summary and dates for GPL.
+
 2019-04-06      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/FifoQueue.def:  added summary and dates for GPL.

@@ -1,4 +1,4 @@
-(* alists.def address lists module.
+(* alists.mod address lists module.
 
 Copyright (C) 2015-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius@glam.ac.uk>.
