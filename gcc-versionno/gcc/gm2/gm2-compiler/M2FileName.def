@@ -1,4 +1,4 @@
-(* M2FileName.def Provides a procedure to calculate a system file name.
+(* M2FileName.mod construct file names.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -26,7 +26,7 @@ DEFINITION MODULE M2FileName ;
    Title      : M2FileName
    Date       : 3/4/86  [$Date: 2013/07/08 10:27:56 $]
    SYSTEM     : UNIX (GNU Modula-2)
-   Description: Provides a procedure to calculate a system file name.
+   Description: construct file names.
    Version    : $Revision: 1.11 $
 *)
 

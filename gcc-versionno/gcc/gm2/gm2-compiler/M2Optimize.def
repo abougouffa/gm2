@@ -1,4 +1,4 @@
-(* M2Optimize.def provides a very simple branch optimization module so that.
+(* M2Optimize.def removes redundant quadruples.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

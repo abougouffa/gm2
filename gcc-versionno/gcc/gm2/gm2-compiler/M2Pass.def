@@ -1,4 +1,4 @@
-(* M2Pass.def Controls the setting and testing of the current pass.
+(* M2Pass.def provides setting and testing of the current pass.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

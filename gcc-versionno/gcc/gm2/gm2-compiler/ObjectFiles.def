@@ -1,4 +1,4 @@
-(* ObjectFiles.def provides a module to determine whether object files.
+(* ObjectFiles.def determines whether object files exist.
 
 Copyright (C) 2018-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

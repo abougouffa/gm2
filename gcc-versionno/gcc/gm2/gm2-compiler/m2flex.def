@@ -1,4 +1,4 @@
-(* m2flex.def provides a Modula-2 definition module for the C lexical.
+(* m2flex.def provides access to the C lexical implemenation m2.flex.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -26,8 +26,8 @@ DEFINITION MODULE m2flex ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Tue Jul 31 17:46:41 2001
-    Last edit  : $Date: 2013/02/11 14:45:17 $ 
-    Revision   : $Version$ 
+    Last edit  : $Date: 2013/02/11 14:45:17 $
+    Revision   : $Version$
     Description: provides a Modula-2 definition module for the C lexical
                  analysis flex file m2.flex
 *)

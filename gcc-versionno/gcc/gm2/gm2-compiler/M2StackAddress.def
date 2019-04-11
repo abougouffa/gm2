@@ -26,7 +26,7 @@ DEFINITION MODULE M2StackAddress ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Fri Oct 12 17:26:50 2001
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides a generic stack for ADDRESS sized objects.
 *)
 

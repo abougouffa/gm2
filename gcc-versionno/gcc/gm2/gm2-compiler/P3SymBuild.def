@@ -1,4 +1,4 @@
-(* P3SymBuild.def Builds symbol entities, types, constants, variables,.
+(* P3SymBuild.def pass 3 symbol creation.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -27,16 +27,15 @@ DEFINITION MODULE P3SymBuild ;
    Date       : 24/6/87
    LastEdit   : 1/9/89
    System     : UNIX (GNU Modula-2)
-   Description: Builds symbol entities, types, constants, variables,
-                procedures, modules and scopes.
+   Description: pass 3 symbol creation.
 *)
 
 (* StartBuildDefinitionModule, *)
-(* EndBuildDefinitionModule, *)  
-(* StartBuildImplementationModule, *)  
-(* EndBuildImplementationModule, *)  
-(* StartBuildProgramModule, *)  
-(* EndBuildProgramModule, *)  
+(* EndBuildDefinitionModule, *)
+(* StartBuildImplementationModule, *)
+(* EndBuildImplementationModule, *)
+(* StartBuildProgramModule, *)
+(* EndBuildProgramModule, *)
 
 EXPORT QUALIFIED P3StartBuildDefModule,
                  P3EndBuildDefModule,

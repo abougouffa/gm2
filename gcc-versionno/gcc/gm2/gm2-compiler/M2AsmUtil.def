@@ -1,4 +1,4 @@
-(* M2AsmUtil.def Provides utilities relating symbols in the SymbolTable.
+(* M2AsmUtil.def provides asm symbol name conversion.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

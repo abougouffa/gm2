@@ -1,4 +1,4 @@
-(* Lists.def Provides an unordered list manipulation package.
+(* Lists.def provides an unordered list manipulation package.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -124,5 +124,5 @@ PROCEDURE ForeachItemInListDo (l: List; P: PerformOperation) ;
 
 PROCEDURE DuplicateList (l: List) : List ;
 
- 
+
 END Lists.

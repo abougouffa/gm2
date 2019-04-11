@@ -1,4 +1,4 @@
-(* Sets.def provides a dynamic set module which allows.
+(* Sets.def provides a dynamic set module.
 
 Copyright (C) 2009-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -26,7 +26,7 @@ DEFINITION MODULE Sets ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Wed May  6 22:48:19 2009
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides a dynamic set module which allows
                  sets to contain the elements in the range:
                  min..SymbolTable.FinalSymbol()

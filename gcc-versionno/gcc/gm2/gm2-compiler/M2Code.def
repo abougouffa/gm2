@@ -1,4 +1,4 @@
-(* M2Code.def M2Code provides a module which coordinates the activity of the front.
+(* M2Code.def coordinate the activity of the front end.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

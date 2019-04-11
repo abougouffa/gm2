@@ -1,4 +1,4 @@
-(* SymbolKey.def Provides binary tree operations for storing symbols.
+(* SymbolKey.def binary tree operations for storing symbols.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

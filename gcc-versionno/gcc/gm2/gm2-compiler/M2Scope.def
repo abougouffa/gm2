@@ -1,4 +1,4 @@
-(* M2Scope.def provides a set of methods to derive the subset of quadruples.
+(* M2Scope.def derive the subset of quadruples for each scope.
 
 Copyright (C) 2003-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -26,7 +26,7 @@ DEFINITION MODULE M2Scope ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Wed Aug 13 16:04:38 2003
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides a set of methods to derive the subset of quadruples
                  which were generated within a scope.
 *)

@@ -1,4 +1,4 @@
-(* P2SymBuild.def Builds symbol entities, types, constants, variables,.
+(* P2SymBuild.def pass 2 symbol creation.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -27,9 +27,7 @@ DEFINITION MODULE P2SymBuild ;
    Date       : 24/6/87
    LastEdit   : Sat Dec  9 11:10:57 EST 1989
    System     : UNIX (GNU Modula-2)
-   Description: Builds symbol entities, types, constants, variables,
-                procedures, modules and scopes.
-                All procedures are only called during Pass 2.
+   Description: pass 2 symbol creation.
 *)
 
 EXPORT QUALIFIED P2StartBuildDefModule,
@@ -92,8 +90,6 @@ EXPORT QUALIFIED P2StartBuildDefModule,
                  PushRememberConstant,
                  PopRememberConstant,
                  RememberConstant ;
-                 
-
 
 
 (*
@@ -476,7 +472,7 @@ PROCEDURE StartBuildEnumeration ;
                Ptr ->                       | Type       |
                       +------------+        |------------|
                       | Name       |        | Name       |
-                      |------------|        |------------| 
+                      |------------|        |------------|
 *)
 
 PROCEDURE BuildSubrange (Base: CARDINAL) ;
@@ -544,7 +540,7 @@ PROCEDURE BuildTypeAlignment ;
 
 
 (*
-   BuildDefaultFieldAlignment - 
+   BuildDefaultFieldAlignment -
 
                  The Stack:
 
@@ -1267,21 +1263,21 @@ PROCEDURE PopType ;
 
 
 (*
-   PushRememberConstant - 
+   PushRememberConstant -
 *)
 
 PROCEDURE PushRememberConstant ;
 
 
 (*
-   PopRememberConstant - 
+   PopRememberConstant -
 *)
 
 PROCEDURE PopRememberConstant ;
 
 
 (*
-   RememberConstant - 
+   RememberConstant -
 *)
 
 PROCEDURE RememberConstant (sym: CARDINAL) ;

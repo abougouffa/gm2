@@ -1,4 +1,4 @@
-(* M2ALU.def Handles all values in the Modula-2 compiler and all.
+(* M2ALU.def gcc implementation of the M2ALU module.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -602,7 +602,7 @@ PROCEDURE IsGenericNulSet () : BOOLEAN ;
                                   +------------+
                                   | {}         |
                 Ptr ->            |------------|
-                                  
+
 *)
 
 PROCEDURE PushNulSet (settype: CARDINAL) ;
@@ -918,7 +918,7 @@ PROCEDURE AddField (tokenno: CARDINAL; op1: CARDINAL) ;
                                         +------------+
                                         | {}         |
                    Ptr ->               |------------|
-                                  
+
 *)
 
 PROCEDURE PushEmptyConstructor (constype: CARDINAL) ;
@@ -937,7 +937,7 @@ PROCEDURE PushEmptyConstructor (constype: CARDINAL) ;
                                       +------------+
                                       | {}         |
              Ptr ->                   |------------|
-                                  
+
 *)
 
 PROCEDURE PushEmptyArray (arraytype: CARDINAL) ;
@@ -956,7 +956,7 @@ PROCEDURE PushEmptyArray (arraytype: CARDINAL) ;
                                        +------------+
                                        | {}         |
               Ptr ->                   |------------|
-                                  
+
 *)
 
 PROCEDURE PushEmptyRecord (recordtype: CARDINAL) ;
@@ -974,7 +974,7 @@ PROCEDURE ChangeToConstructor (tokenno: CARDINAL; constype: CARDINAL) ;
                   is only defined by constants.  For example
                   no variables are used in the constructor.
 *)
- 
+
 PROCEDURE IsValueConst (v: PtrToValue) : BOOLEAN ;
 
 

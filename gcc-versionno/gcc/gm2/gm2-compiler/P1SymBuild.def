@@ -1,4 +1,4 @@
-(* P1SymBuild.def Builds symbol entities, types, constants, variables,.
+(* P1SymBuild.def pass 1 symbol creation.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -289,7 +289,7 @@ PROCEDURE BuildExportOuterModule ;
                            +------------+        +-----------+
                            | Identname  |        | Identname |
                            |------------|        |-----------|
- 
+
 *)
 
 PROCEDURE CheckExplicitExported ;
@@ -407,7 +407,7 @@ PROCEDURE StartBuildEnumeration ;
                          |------------|        +---------------+
                          | Name       |        | Type  | Name  |
                          |------------|        |---------------|
-          
+
                                                Empty
 *)
 

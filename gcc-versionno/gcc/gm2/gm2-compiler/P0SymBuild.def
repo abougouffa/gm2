@@ -1,4 +1,4 @@
-(* P0SymBuild.def provides an interface to the construction of symbols during pass 0.
+(* P0SymBuild.def pass 0 symbol creation.
 
 Copyright (C) 2011-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -26,7 +26,7 @@ DEFINITION MODULE P0SymBuild ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Sat Sep  6 11:48:06 2014
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides an interface to the construction of symbols during pass 0.
 *)
 
@@ -83,7 +83,7 @@ PROCEDURE RegisterInnerModule ;
 
 
 (*
-   RegisterInnerImports - 
+   RegisterInnerImports -
 *)
 
 PROCEDURE RegisterInnerImports ;
@@ -104,28 +104,28 @@ PROCEDURE EndProcedure ;
 
 
 (*
-   P0Init - 
+   P0Init -
 *)
 
 PROCEDURE P0Init ;
 
 
 (*
-   P1Init - 
+   P1Init -
 *)
 
 PROCEDURE P1Init ;
 
 
 (*
-   EnterBlock - 
+   EnterBlock -
 *)
 
 PROCEDURE EnterBlock (n: Name) ;
 
 
 (*
-   LeaveBlock - 
+   LeaveBlock -
 *)
 
 PROCEDURE LeaveBlock ;

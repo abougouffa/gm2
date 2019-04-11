@@ -1,4 +1,4 @@
-(* M2Error.def provides an interface between the string handling modules.
+(* M2Error.def error reporting interface.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

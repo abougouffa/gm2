@@ -1,4 +1,4 @@
-(* M2Const.def provides a module which maintains and resolves the types of constants.
+(* M2Const.def maintain and resolve the types of constants.
 
 Copyright (C) 2010-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -26,7 +26,7 @@ DEFINITION MODULE M2Const ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Thu Dec 23 15:02:59 2010
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides a module which maintains and resolves the types of constants.
 *)
 

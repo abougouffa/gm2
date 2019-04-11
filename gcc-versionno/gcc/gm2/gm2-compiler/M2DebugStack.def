@@ -1,4 +1,4 @@
-(* M2DebugStack.def provides a procedure which displays the.
+(* M2DebugStack.def display parameter stack.
 
 Copyright (C) 2011-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -26,7 +26,7 @@ DEFINITION MODULE M2DebugStack ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Mon Dec  5 16:19:43 2011
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides a procedure which displays the
                  compile time stack neatly and with annotation.
 *)
@@ -38,7 +38,7 @@ TYPE
    ProcedureWord    = PROCEDURE (CARDINAL) : WORD ;
    ProcedureString  = PROCEDURE (CARDINAL) : String ;
 
-   
+
 (*
    DebugStack - displays the stack.
 *)

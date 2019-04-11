@@ -26,8 +26,8 @@ DEFINITION MODULE M2Preprocess ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Thu Dec  6 17:59:57 2001
-    Last edit  : $Date: 2010/10/03 19:01:06 $ 
-    Revision   : $Version$ 
+    Last edit  : $Date: 2010/10/03 19:01:06 $
+    Revision   : $Version$
     Description: provides a mechanism to invoke the C preprocessor.
 *)
 

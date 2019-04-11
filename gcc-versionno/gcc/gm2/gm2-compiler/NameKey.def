@@ -1,4 +1,4 @@
-(* NameKey.def NameKey provides a totally dynamic binary tree name to key.
+(* NameKey.def provides a dynamic binary tree name to key.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -47,7 +47,7 @@ TYPE
 
 
 (*
-   MakeKey - returns the Key of the symbol, a. If a is not in the 
+   MakeKey - returns the Key of the symbol, a. If a is not in the
              name table then it is added, otherwise the Key of a is returned
              directly. Note that the name table has no scope - it merely
              presents a more convienient way of expressing strings. By a Key.
@@ -58,7 +58,7 @@ PROCEDURE MakeKey (a: ARRAY OF CHAR) : Name ;
 
 
 (*
-   makekey - returns the Key of the symbol, a. If a is not in the 
+   makekey - returns the Key of the symbol, a. If a is not in the
              name table then it is added, otherwise the Key of a is returned
              directly. Note that the name table has no scope - it merely
              presents a more convienient way of expressing strings. By a Key.

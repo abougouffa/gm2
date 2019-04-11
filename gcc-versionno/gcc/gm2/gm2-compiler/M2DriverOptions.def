@@ -1,4 +1,4 @@
-(* M2DriverOptions.def provides procedures to handle driver options.
+(* M2DriverOptions.mod provides procedures to handle driver options.
 
 Copyright (C) 2011-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -26,7 +26,7 @@ DEFINITION MODULE M2DriverOptions ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Tue Dec 18 13:52:08 2012
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides procedures to handle driver options.
 *)
 

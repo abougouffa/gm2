@@ -1,4 +1,4 @@
-(* M2CaseList.def.
+(* M2CaseList.def implement ISO case label lists.
 
 Copyright (C) 2009-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -26,8 +26,8 @@ DEFINITION MODULE M2CaseList ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Fri Jul 24 09:53:48 2009
-    Revision   : $Version$ 
-    Description: 
+    Revision   : $Version$
+    Description:
 *)
 
 FROM DynamicStrings IMPORT String ;

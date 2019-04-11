@@ -1,4 +1,4 @@
-(* SymbolTable.def SymbolTable provides the higher level routines to.
+(* SymbolTable.def provides access to the symbol table.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

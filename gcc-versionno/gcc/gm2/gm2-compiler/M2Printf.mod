@@ -1,21 +1,23 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
-                 Free Software Foundation, Inc. *)
-(* This file is part of GNU Modula-2.
+(* M2Printf.mod provides a simple printf capability.
 
-GNU Modula-2 is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 3, or (at your option) any later
-version.
+Copyright (C) 2001-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
-GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
+This file is part of GNU Modula-2.
 
-You should have received a copy of the GNU General Public License along
-with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  *)
 
 IMPLEMENTATION MODULE M2Printf ;
 
@@ -189,7 +191,7 @@ BEGIN
       INCL(b, 3)
    END ;
    CASE b OF
-   
+
    {}     :  s := Sprintf3(Mark(InitString(a)), w1, w2, w3) |
    {1}    :  s := Sprintf3(Mark(InitString(a)), s1, w2, w3) |
    {2}    :  s := Sprintf3(Mark(InitString(a)), w1, s2, w3) |
@@ -241,7 +243,7 @@ BEGIN
       INCL(b, 4)
    END ;
    CASE b OF
-   
+
    {}       :  s := Sprintf4(Mark(InitString(a)), w1, w2, w3, w4) |
    {1}      :  s := Sprintf4(Mark(InitString(a)), s1, w2, w3, w4) |
    {2}      :  s := Sprintf4(Mark(InitString(a)), w1, s2, w3, w4) |

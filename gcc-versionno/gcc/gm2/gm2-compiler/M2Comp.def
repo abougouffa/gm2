@@ -1,4 +1,4 @@
-(* M2Comp.def Continually calls the compiler for every source file.
+(* M2Comp.def continually calls the compiler for every source file.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

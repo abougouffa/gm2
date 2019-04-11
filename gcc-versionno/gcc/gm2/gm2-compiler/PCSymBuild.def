@@ -1,4 +1,4 @@
-(* PCSymBuild.def provides scope mainstance for Pass C it also resolves.
+(* PCSymBuild.def pass C symbol creation.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -375,14 +375,14 @@ PROCEDURE BuildConst ;
 
 
 (*
-   StartDesConst - 
+   StartDesConst -
 *)
 
 PROCEDURE StartDesConst ;
 
 
 (*
-   EndDesConst - 
+   EndDesConst -
 *)
 
 PROCEDURE EndDesConst ;
@@ -410,7 +410,7 @@ PROCEDURE BuildBinaryConst ;
 
 
 (*
-   PushConstFunctionType - 
+   PushConstFunctionType -
 *)
 
 PROCEDURE PushConstFunctionType ;
@@ -424,14 +424,14 @@ PROCEDURE PushIntegerType ;
 
 
 (*
-   PushRType - 
+   PushRType -
 *)
 
 PROCEDURE PushRType ;
 
 
 (*
-   PushStringType - 
+   PushStringType -
 *)
 
 PROCEDURE PushStringType ;
@@ -453,35 +453,35 @@ PROCEDURE PushConstType ;
 
 
 (*
-   PushConstAttributeType - 
+   PushConstAttributeType -
 *)
 
 PROCEDURE PushConstAttributeType ;
 
 
 (*
-   PushConstAttributePairType - 
+   PushConstAttributePairType -
 *)
 
 PROCEDURE PushConstAttributePairType ;
 
 
 (*
-   PushConstructorCastType - 
+   PushConstructorCastType -
 *)
 
 PROCEDURE PushConstructorCastType ;
 
 
 (*
-   PushInConstructor - 
+   PushInConstructor -
 *)
 
 PROCEDURE PushInConstructor ;
 
 
 (*
-   PopInConstructor - 
+   PopInConstructor -
 *)
 
 PROCEDURE PopInConstructor ;

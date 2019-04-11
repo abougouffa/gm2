@@ -1,4 +1,4 @@
-(* FifoQueue.def FifoQueue provides a mechanism to and from which CARDINAL.
+(* FifoQueue.mod provides a simple fifo queue.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

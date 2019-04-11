@@ -1,20 +1,23 @@
-(* Copyright (C) 2011, 2012, 2013, 2014 Free Software Foundation, Inc. *)
-(* This file is part of GNU Modula-2.
+(* P0SymBuild.mod pass 0 symbol creation.
 
-GNU Modula-2 is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 3, or (at your option) any later
-version.
+Copyright (C) 2011-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
-GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
+This file is part of GNU Modula-2.
 
-You should have received a copy of the GNU General Public License along
-with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA. *)
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  *)
 
 IMPLEMENTATION MODULE P0SymBuild ;
 
@@ -58,7 +61,7 @@ VAR
 
 
 (*
-   nSpaces - 
+   nSpaces -
 *)
 
 PROCEDURE nSpaces (n: CARDINAL) ;
@@ -71,7 +74,7 @@ END nSpaces ;
 
 
 (*
-   DisplayB - 
+   DisplayB -
 *)
 
 PROCEDURE DisplayB (b: BlockInfoPtr) ;
@@ -90,7 +93,7 @@ END DisplayB ;
 
 
 (*
-   DisplayBlock - 
+   DisplayBlock -
 *)
 
 PROCEDURE DisplayBlock (b: BlockInfoPtr; l: CARDINAL) ;
@@ -112,7 +115,7 @@ END DisplayBlock ;
 
 
 (*
-   pc - 
+   pc -
 *)
 
 PROCEDURE pc ;
@@ -122,7 +125,7 @@ END pc ;
 
 
 (*
-   Display - 
+   Display -
 *)
 
 PROCEDURE Display ;
@@ -217,7 +220,7 @@ END BeginBlock ;
 
 
 (*
-   InitUniverse - 
+   InitUniverse -
 *)
 
 PROCEDURE InitUniverse ;
@@ -239,7 +242,7 @@ END InitUniverse ;
 
 
 (*
-   FlushImports - 
+   FlushImports -
 *)
 
 PROCEDURE FlushImports (b: BlockInfoPtr) ;
@@ -313,7 +316,7 @@ END RegisterImport ;
 
 
 (*
-   RegisterImports - 
+   RegisterImports -
 *)
 
 PROCEDURE RegisterImports ;
@@ -338,7 +341,7 @@ END RegisterImports ;
 
 
 (*
-   RegisterInnerImports - 
+   RegisterInnerImports -
 *)
 
 PROCEDURE RegisterInnerImports ;
@@ -536,7 +539,7 @@ END DeclareModules ;
 
 
 (*
-   MoveNext - 
+   MoveNext -
 *)
 
 PROCEDURE MoveNext ;
@@ -555,7 +558,7 @@ END MoveNext ;
 
 
 (*
-   MoveDown - 
+   MoveDown -
 *)
 
 PROCEDURE MoveDown ;
@@ -571,7 +574,7 @@ END MoveDown ;
 
 
 (*
-   MoveUp - 
+   MoveUp -
 *)
 
 PROCEDURE MoveUp ;
@@ -582,7 +585,7 @@ END MoveUp ;
 
 
 (*
-   Move - 
+   Move -
 *)
 
 PROCEDURE Move ;
@@ -623,7 +626,7 @@ END Move ;
 
 
 (*
-   EnterBlock - 
+   EnterBlock -
 *)
 
 PROCEDURE EnterBlock (n: Name) ;
@@ -647,7 +650,7 @@ END EnterBlock ;
 
 
 (*
-   LeaveBlock - 
+   LeaveBlock -
 *)
 
 PROCEDURE LeaveBlock ;
@@ -662,7 +665,7 @@ END LeaveBlock ;
 
 
 (*
-   P0Init - 
+   P0Init -
 *)
 
 PROCEDURE P0Init ;
@@ -675,7 +678,7 @@ END P0Init ;
 
 
 (*
-   P1Init - 
+   P1Init -
 *)
 
 PROCEDURE P1Init ;

@@ -1,4 +1,4 @@
-(* M2Base.def Implements the default Base Types and Base.
+(* M2Base.def provides a mechanism to check fundamental types.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

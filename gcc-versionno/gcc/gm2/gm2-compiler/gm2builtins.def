@@ -1,4 +1,4 @@
-(* gm2builtins.def provides access to the builtin functions within GCC for GNU Modula-2.
+(* gm2builtins.def provides access to the builtin functions.
 
 Copyright (C) 2003-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -26,7 +26,7 @@ DEFINITION MODULE gm2builtins ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Mon Jan  6 08:36:23 2003
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides access to the builtin functions within GCC for GNU Modula-2
 *)
 
@@ -49,7 +49,7 @@ PROCEDURE GetBuiltinConst (name: ADDRESS) : Tree ;
 
 (*
    GetBuiltinConstType - returns the type of a builtin constant, name.
- 
+
                          0 = unknown constant name
                          1 = integer
                          2 = real

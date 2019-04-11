@@ -1,4 +1,4 @@
-(* M2MetaError.def provides a set of high level error routines.  These.
+(* M2MetaError.def provides a set of high level error routines.
 
 Copyright (C) 2008-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -26,7 +26,7 @@ DEFINITION MODULE M2MetaError ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Tue Oct 14 12:11:13 2008
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides a set of high level error routines.  These
                  routines utilise M2Error and provides the programmer
                  with an easier method to obtain useful symbol table
@@ -56,7 +56,7 @@ EXPORT QUALIFIED MetaError1, MetaError2, MetaError3, MetaError4,
     {%1ts}    skips type pseudonyms.
     {%1d}     symbol description
     {%1td}    type symbol description
-    
+
     {%1D}     sets the error message to where symbol 1 was declared.
               The declaration will choose the definition module, then
               implementation (or program) module.

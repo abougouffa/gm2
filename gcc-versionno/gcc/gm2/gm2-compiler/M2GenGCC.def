@@ -1,4 +1,4 @@
-(* M2GenGCC.def provides an interface to GCC, essentially convert the.
+(* M2GenGCC.def convert the quadruples into GCC trees.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

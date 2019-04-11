@@ -1,3 +1,143 @@
+2019-04-12      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/CLexBuf.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/CLexBuf.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/FifoQueue.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/FifoQueue.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/Lists.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/Lists.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2ALU.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2ALU.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2AsmUtil.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2AsmUtil.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Base.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Base.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2BasicBlock.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2BasicBlock.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Batch.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Batch.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Bitset.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Bitset.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2CaseList.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2CaseList.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Code.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Code.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Comp.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Comp.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Configure.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Configure.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Const.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Const.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Debug.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Debug.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2DebugStack.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2DebugStack.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Defaults.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Defaults.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Depth.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Depth.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2DriverOptions.def:  added summary and dates
+	for GPL.
+	* gm2/gm2-compiler/M2DriverOptions.mod:  added summary and dates for
+	GPL.
+	* gm2/gm2-compiler/M2Error.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Error.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2FileName.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2FileName.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2GCCDeclare.def:  added summary and dates for
+	GPL.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  added summary and dates for
+	GPL.
+	* gm2/gm2-compiler/M2GenGCC.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2GenGCC.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Lex.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Lex.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2LexBuf.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2LexBuf.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2MetaError.def:  added summary and dates for
+	GPL.
+	* gm2/gm2-compiler/M2MetaError.mod:  added summary and dates for
+	GPL.
+	* gm2/gm2-compiler/M2Optimize.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Optimize.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Options.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Options.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Pass.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Pass.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Preprocess.def:  added summary and dates for
+	GPL.
+	* gm2/gm2-compiler/M2Preprocess.mod:  added summary and dates for
+	GPL.
+	* gm2/gm2-compiler/M2Printf.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Printf.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Quads.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Quads.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Quiet.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Quiet.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Range.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Reserved.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Reserved.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Scope.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Scope.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Search.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Search.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Size.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Size.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2StackAddress.def:  added summary and dates for
+	GPL.
+	* gm2/gm2-compiler/M2StackAddress.mod:  added summary and dates for
+	GPL.
+	* gm2/gm2-compiler/M2StackWord.def:  added summary and dates for
+	GPL.
+	* gm2/gm2-compiler/M2StackWord.mod:  added summary and dates for
+	GPL.
+	* gm2/gm2-compiler/M2Students.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Students.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Swig.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2Swig.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2System.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2System.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/NameKey.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/NameKey.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/ObjectFiles.def:  added summary and dates for
+	GPL.
+	* gm2/gm2-compiler/ObjectFiles.mod:  added summary and dates for
+	GPL.
+	* gm2/gm2-compiler/P0SymBuild.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/P0SymBuild.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/P0SyntaxCheck.def:  added summary and dates for
+	GPL.
+	* gm2/gm2-compiler/P1SymBuild.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/P1SymBuild.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/P2SymBuild.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/P2SymBuild.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/P3SymBuild.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/P3SymBuild.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/PCSymBuild.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/PCSymBuild.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/Sets.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/Sets.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/SymbolConversion.def:  added summary and dates
+	for GPL.
+	* gm2/gm2-compiler/SymbolConversion.mod:  added summary and dates
+	for GPL.
+	* gm2/gm2-compiler/SymbolKey.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/SymbolKey.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/SymbolTable.def:  added summary and dates for
+	GPL.
+	* gm2/gm2-compiler/SymbolTable.mod:  added summary and dates for
+	GPL.
+	* gm2/gm2-compiler/bnflex.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/bnflex.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/cflex.def:  added summary and dates for GPL.
+	* gm2/gm2-compiler/gm2.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/gm2builtins.def:  added summary and dates for
+	GPL.
+	* gm2/gm2-compiler/gm2lcc.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/gm2lgen.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/gm2lorder.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/m2flex.def:  added summary and dates for GPL.
+
 2019-04-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-libs-min/M2RTS.def:  added summary and dates for GPL.

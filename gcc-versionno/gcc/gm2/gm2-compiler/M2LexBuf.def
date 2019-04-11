@@ -1,4 +1,4 @@
-(* M2LexBuf.def provides a buffer for the all the tokens created by m2.lex.
+(* M2LexBuf.def provides a buffer for m2.lex.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

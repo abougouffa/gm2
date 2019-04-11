@@ -1,4 +1,4 @@
-(* M2Quiet.def provides a wrapper to M2Printf, each call is only passed.
+(* M2Quiet.mod provides a wrapper to M2Printf.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -26,11 +26,10 @@ DEFINITION MODULE M2Quiet ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Fri Oct 12 15:27:27 2001
-    Last edit  : $Date: 2010/10/03 19:01:07 $ 
-    Revision   : $Version$ 
-    Description: provides a wrapper to M2Printf, each call is only passed
-                 to its corresponding M2Printf routine providing the -quiet
-                 flag was not used.
+    Last edit  : $Date: 2010/10/03 19:01:07 $
+    Revision   : $Version$
+    Description: provides a wrapper to M2Printf the output only occurs if
+                 M2Options.Quiet is set.
 *)
 
 FROM SYSTEM IMPORT BYTE ;

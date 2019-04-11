@@ -1,21 +1,23 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010
-                 Free Software Foundation, Inc. *)
-(* This file is part of GNU Modula-2.
+(* P1SymBuild.mod pass 1 symbol creation.
 
-GNU Modula-2 is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 3, or (at your option) any later
-version.
+Copyright (C) 2001-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
-GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
+This file is part of GNU Modula-2.
 
-You should have received a copy of the GNU General Public License along
-with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  *)
 
 IMPLEMENTATION MODULE P1SymBuild ;
 
@@ -139,7 +141,7 @@ END CheckFileName ;
 
                                 Entry                 Exit
 
-                         Ptr ->               
+                         Ptr ->
                                 +------------+
                                 | NameStart  |                       <- Ptr
                                 |------------|        +------------+
@@ -201,7 +203,7 @@ PROCEDURE P1EndBuildDefinitionModule ;
 VAR
    NameStart,
    NameEnd  : Name ;
-BEGIN                                 
+BEGIN
    Assert(CompilingDefinitionModule()) ;
    EndScope ;
    PopT(NameStart) ;
@@ -573,7 +575,7 @@ END BuildExportOuterModule ;
                                   +------------+        +-----------+
                                   | Identname  |        | Identname |
                                   |------------|        |-----------|
- 
+
 *)
 
 PROCEDURE CheckExplicitExported ;
@@ -785,7 +787,7 @@ END StartBuildEnumeration ;
                          |------------|        +---------------+
                          | Name       |        | Type  | Name  |
                          |------------|        |---------------|
-          
+
                                                Empty
 *)
 

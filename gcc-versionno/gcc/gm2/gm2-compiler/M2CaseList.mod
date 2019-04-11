@@ -1,20 +1,23 @@
-(* Copyright (C) 2009, 2010, 2011
-                 Free Software Foundation, Inc. *)
-(* This file is part of GNU Modula-2.
+(* M2CaseList.mod implement ISO case label lists.
 
-GNU Modula-2 is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 3, or (at your option) any later
-version.
+Copyright (C) 2009-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
-GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
+This file is part of GNU Modula-2.
 
-You should have received a copy of the GNU General Public License along
-with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  *)
 
 IMPLEMENTATION MODULE M2CaseList ;
 
@@ -231,7 +234,7 @@ BEGIN
    END
 END GetVariantTagType ;
 
-   
+
 (*
    CaseBoundsResolved - returns TRUE if all constants in the case list, c,
                         are known to GCC.
@@ -339,7 +342,7 @@ END IsSame ;
 
 
 (*
-   SeenBefore - 
+   SeenBefore -
 *)
 
 PROCEDURE SeenBefore (r, s: RangePair) : BOOLEAN ;
@@ -368,7 +371,7 @@ END SeenBefore ;
 
 
 (*
-   Overlaps - 
+   Overlaps -
 *)
 
 PROCEDURE Overlaps (tokenno: CARDINAL; r, s: RangePair) : BOOLEAN ;
@@ -405,7 +408,7 @@ BEGIN
          END
       END
    ELSE
-      b := r^.high ; 
+      b := r^.high ;
       IF s^.high=NulSym
       THEN
          d := c ;
@@ -419,7 +422,7 @@ BEGIN
             RETURN( TRUE )
          END
       ELSE
-         d := s^.high ; 
+         d := s^.high ;
          IF OverlapsRange(Mod2Gcc(a), Mod2Gcc(b), Mod2Gcc(c), Mod2Gcc(d))
          THEN
             IF NOT SeenBefore(r, s)
@@ -507,7 +510,7 @@ END OverlappingCaseBounds ;
 
 
 (*
-   NewRanges - 
+   NewRanges -
 *)
 
 PROCEDURE NewRanges () : SetRange ;
@@ -527,7 +530,7 @@ END NewRanges ;
 
 
 (*
-   NewSet - 
+   NewSet -
 *)
 
 PROCEDURE NewSet (type: CARDINAL) : SetRange ;
@@ -545,7 +548,7 @@ END NewSet ;
 
 
 (*
-   DisposeRanges - 
+   DisposeRanges -
 *)
 
 PROCEDURE DisposeRanges (set: SetRange) : SetRange ;
@@ -687,7 +690,7 @@ VAR
 
 
 (*
-   DoEnumValues - 
+   DoEnumValues -
 *)
 
 PROCEDURE DoEnumValues (sym: CARDINAL) ;
@@ -702,12 +705,12 @@ BEGIN
       errorString := ConCat(errorString, Mark(InitString('..'))) ;
       errorString := ConCat(errorString, Mark(InitStringCharStar(KeyToCharStar(GetSymName(sym))))) ;
       High := NIL
-   END 
+   END
 END DoEnumValues ;
 
 
 (*
-   ErrorRange - 
+   ErrorRange -
 *)
 
 PROCEDURE ErrorRange (p: CaseDescriptor; type: CARDINAL; set: SetRange) ;
@@ -734,7 +737,7 @@ END ErrorRange ;
 
 
 (*
-   ErrorRanges - 
+   ErrorRanges -
 *)
 
 PROCEDURE ErrorRanges (p: CaseDescriptor; type: CARDINAL; set: SetRange) ;
@@ -785,12 +788,12 @@ END MissingCaseBounds ;
 
 
 (*
-   WriteCase - 
+   WriteCase -
 *)
 
 PROCEDURE WriteCase (c: CARDINAL) ;
 BEGIN
-   
+
 END WriteCase ;
 
 

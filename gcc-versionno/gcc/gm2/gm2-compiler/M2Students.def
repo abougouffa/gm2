@@ -1,4 +1,4 @@
-(* M2Students.def provides a simple set of routines which checks for new programmers errors.
+(* M2Students.def checks for new programmer errors.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -26,7 +26,7 @@ DEFINITION MODULE M2Students ;
     Author     : Gaius Mulley
     System     : UNIX (gm2)
     Date       : Wed Nov 27 22:11:22 1996
-    Description: provides a simple set of routines which checks for new programmers errors.
+    Description: checks for new programmer errors.
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;

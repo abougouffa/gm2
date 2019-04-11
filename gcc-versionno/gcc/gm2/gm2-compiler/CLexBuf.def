@@ -26,7 +26,7 @@ DEFINITION MODULE CLexBuf ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Thu Jan 23 12:32:36 2003
-    Revision   : $Version$ 
+    Revision   : $Version$
     Description: provides a lexical buffer for clex.
 *)
 
@@ -71,7 +71,7 @@ VAR
 
 
 (*
-   EnableMacroSubstitutions - 
+   EnableMacroSubstitutions -
 *)
 
 PROCEDURE EnableMacroSubstitutions (b: BOOLEAN) ;
@@ -100,7 +100,7 @@ PROCEDURE DefineMacro (n: Name; t: CARDINAL) ;
 
 
 (*
-   UnDefineMacro - 
+   UnDefineMacro -
 *)
 
 PROCEDURE UnDefineMacro (n: Name) ;

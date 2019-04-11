@@ -1,4 +1,4 @@
-(* cflex.def provides a Modula-2 definition module for the C lexical analysis.
+(* cflex.def provides a Modula-2 definition module for C lexical analysis.
 
 Copyright (C) 2003-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -26,8 +26,8 @@ DEFINITION MODULE cflex ;
     Author     : Gaius Mulley
     System     : GNU Modula-2
     Date       : Thu Jan 23 12:39:36 2003
-    Revision   : $Version$ 
-    Description: provides a Modula-2 definition module for the C lexical analysis.
+    Revision   : $Version$
+    Description: provides a Modula-2 definition module for C lexical analysis.
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;

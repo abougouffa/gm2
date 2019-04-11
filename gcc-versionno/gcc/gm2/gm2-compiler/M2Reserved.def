@@ -1,4 +1,4 @@
-(* M2Reserved.def implements a procedure to determine if a symbol is a.
+(* M2Reserved.def determines is a token is a reserved word.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

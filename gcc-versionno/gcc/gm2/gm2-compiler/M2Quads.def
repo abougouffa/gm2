@@ -1,4 +1,4 @@
-(* M2Quads.def Implements the quadruples in the Modula-2 compiler.
+(* M2Quads.def generates quadruples.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -25,8 +25,7 @@ DEFINITION MODULE M2Quads ;
    Author     : Gaius Mulley
    Title      : M2Quads
    Date       : 3/6/87
-   Description: Implements the quadruples in the Modula-2 compiler
-                and provides methods necessary for creating them.
+   Description:  generates quadruples.
 *)
 
 FROM SYSTEM IMPORT WORD ;

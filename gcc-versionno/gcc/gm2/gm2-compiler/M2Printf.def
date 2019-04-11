@@ -1,4 +1,4 @@
-(* M2Printf.def provides a poor mans printf capability. It requires NameKey.
+(* M2Printf.def provides a simple printf capability.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -26,9 +26,9 @@ DEFINITION MODULE M2Printf ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Tue Aug  7 15:32:02 2001
-    Last edit  : $Date: 2010/10/03 19:01:07 $ 
-    Revision   : $Version$ 
-    Description: provides a poor mans printf capability. It requires NameKey
+    Last edit  : $Date: 2010/10/03 19:01:07 $
+    Revision   : $Version$
+    Description: provides a simple printf capability. It requires NameKey
                  as it will translate %a into a namekey.
                  It supports %a, %d, %c and %s.
 *)
