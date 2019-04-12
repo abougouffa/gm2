@@ -1274,7 +1274,7 @@ BEGIN
                               GetCardinalOne(location),
                               FALSE),
                      t, FALSE) ;
-      (* remember we must add one as HIGH(a) means we can legally reference a[HIGH(a)] *)
+      (* remember we must add one as HIGH(a) means we can legally reference a[HIGH(a)].  *)
       INC(i)
    END ;
    RETURN( BuildConvert(location,
@@ -2002,7 +2002,8 @@ END StringToChar ;
 
 
 (*
-   ConvertTo -
+   ConvertTo - convert gcc tree, t, (which currently represents Modula-2 op3) into
+               a symbol of, type.
 *)
 
 PROCEDURE ConvertTo (t: Tree; type, op3: CARDINAL) : Tree ;

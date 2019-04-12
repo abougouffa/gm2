@@ -140,6 +140,7 @@
 	* gm2/mc/mcComment.mod:  added summary and dates for GPL.
 	* gm2/mc/mcError.mod:  added summary and dates for GPL.
 	* gm2/mc/mcLexBuf.mod:  added summary and dates for GPL.
+	* gm2/gm2-compiler/M2GenGCC.mod:  (ConvertTo) improve comment.
 
 2019-04-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
