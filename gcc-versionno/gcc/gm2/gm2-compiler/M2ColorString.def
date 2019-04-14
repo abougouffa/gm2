@@ -1,0 +1,162 @@
+(* M2ColorString.def provides procedures for obtaining GCC color strings.
+
+Copyright (C) 2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius@glam.ac.uk>.
+
+This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  *)
+
+DEFINITION MODULE M2ColorString ;  (*!m2pim+gm2*)
+
+(*
+    Title      : M2ColorString
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Sat Apr 13 19:21:03 2019
+    Revision   : $Version$
+    Description: provides procedures for obtaining GCC color strings.
+*)
+
+FROM DynamicStrings IMPORT String ;
+
+
+(*
+   quoteBegin - adds an open quote to string, s.
+*)
+
+PROCEDURE quoteBegin (s: String) : String ;
+
+
+(*
+   quoteEnd - adds a close quote to string, s.
+*)
+
+PROCEDURE quoteEnd (s: String) : String ;
+
+
+(*
+   errorBegin - adds error color to string, s.
+*)
+
+PROCEDURE errorBegin (s: String) : String ;
+
+
+(*
+   errorEnd - adds the end error color to string, s.
+*)
+
+PROCEDURE errorEnd (s: String) : String ;
+
+
+(*
+   warningBegin - adds warning color to string, s.
+*)
+
+PROCEDURE warningBegin (s: String) : String ;
+
+
+(*
+   warningEnd - adds the end warning color to string, s.
+*)
+
+PROCEDURE warningEnd (s: String) : String ;
+
+
+(*
+   noteBegin - adds note color to string, s.
+*)
+
+PROCEDURE noteBegin (s: String) : String ;
+
+
+(*
+   noteEnd - adds the end note color to string, s.
+*)
+
+PROCEDURE noteEnd (s: String) : String ;
+
+
+(*
+   locusBegin - adds locus color to string, s.
+*)
+
+PROCEDURE locusBegin (s: String) : String ;
+
+
+(*
+   locusEnd - adds the end locus color to string, s.
+*)
+
+PROCEDURE locusEnd (s: String) : String ;
+
+
+(*
+   fixitInsertBegin - adds fixit-insert color to string, s.
+*)
+
+PROCEDURE fixitInsertBegin (s: String) : String ;
+
+
+(*
+   fixitInsertEnd - adds the end fixit-insert color to string, s.
+*)
+
+PROCEDURE fixitInsertEnd (s: String) : String ;
+
+
+(*
+   fixitInsertBegin - adds fixit-insert color to string, s.
+*)
+
+PROCEDURE fixitDeleteBegin (s: String) : String ;
+
+
+(*
+   fixitDeleteEnd - adds the end fixit-delete color to string, s.
+*)
+
+PROCEDURE fixitDeleteEnd (s: String) : String ;
+
+
+(*
+   filenameBegin - adds filename color to string, s.
+*)
+
+PROCEDURE filenameBegin (s: String) : String ;
+
+
+(*
+   filenameEnd - adds the end filename color to string, s.
+*)
+
+PROCEDURE filenameEnd (s: String) : String ;
+
+
+(*
+   typeBegin - adds type color to string, s.
+*)
+
+PROCEDURE typeBegin (s: String) : String ;
+
+
+(*
+   typeEnd - adds the end type color to string, s.
+*)
+
+PROCEDURE typeEnd (s: String) : String ;
+
+
+END M2ColorString.

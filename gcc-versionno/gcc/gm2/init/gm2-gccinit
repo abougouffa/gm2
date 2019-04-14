@@ -47,6 +47,7 @@ FpuIO
 SysStorage
 Storage
 StrIO
+m2color
 M2Debug
 M2Batch
 StrLib

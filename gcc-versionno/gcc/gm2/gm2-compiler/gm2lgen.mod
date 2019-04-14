@@ -1,4 +1,4 @@
-(* gm2-compiler/gm2lgen.mod Generates the main C function, from a list of module names.
+(* gm2lgen.mod generates the main C function from a list of module names.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

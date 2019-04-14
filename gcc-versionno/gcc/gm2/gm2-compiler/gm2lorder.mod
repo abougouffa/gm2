@@ -1,4 +1,4 @@
-(* gm2-compiler/gm2lorder.mod Ensures that underlying runtime modules are initialized.
+(* gm2lorder.mod ensure that underlying runtime modules are initialized.
 
 Copyright (C) 2008-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

@@ -33,6 +33,7 @@ FROM M2Printf IMPORT printf0, printf1, printf2 ;
 FROM M2Options IMPORT Xcode ;
 FROM M2RTS IMPORT ExitOnHalt ;
 FROM SYSTEM IMPORT ADDRESS ;
+FROM M2ColorString IMPORT filenameBegin, filenameEnd, errorBegin, errorEnd, warningBegin, warningEnd ;
 IMPORT StdIO ;
 
 CONST
@@ -119,6 +120,8 @@ VAR
    space,
    newline: BOOLEAN ;
 BEGIN
+   file := ConCat(filenameBegin(InitString('')), file) ;
+   file := filenameEnd(file) ;
    INC(col) ;
    IF Xcode
    THEN
@@ -617,8 +620,10 @@ BEGIN
                CheckIncludes(token, 0) ;
                IF fatal
                THEN
+                  s := ConCat (errorBegin (InitString ('')), errorEnd (s)) ;
                   s := ConCat(InitString(' error: '), Mark(s))
                ELSE
+                  s := ConCat (warningBegin (InitString ('')), warningEnd (s)) ;
                   s := ConCat(InitString(' warning: '), Mark(s))
                END ;
                OutString(FindFileNameFromToken(token, 0),

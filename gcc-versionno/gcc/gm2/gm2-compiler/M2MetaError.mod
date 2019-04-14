@@ -49,6 +49,8 @@ FROM SymbolTable IMPORT NulSym,
                         GetType, SkipType, GetDeclaredDef, GetDeclaredMod,
                         GetFirstUsed, IsNameAnonymous ;
 
+FROM M2ColorString IMPORT quoteBegin, quoteEnd ;
+
 TYPE
    errorType = (error, warning, chained) ;
 
@@ -540,12 +542,12 @@ BEGIN
       END ;
       IF quotes
       THEN
-         r := x(r, ConCatChar(r, "‘"))
+         r := quoteBegin (r)
       END ;
       r := x(r, ConCat(r, o)) ;
       IF quotes
       THEN
-         r := x(r, ConCatChar(r, "’"))
+         r := quoteEnd (r)
       END
    END ;
    RETURN( r )
@@ -659,7 +661,7 @@ BEGIN
             op(e, t, r, s, sym, count, i, l, 3, positive)
 
       ELSE
-         InternalFormat(s, i, 'expecting one of [123]')
+         InternalFormat(s, i, 'expecting one of [1234]')
       END ;
       IF (i<l) AND (char(s, i)#'}')
       THEN

@@ -1,4 +1,4 @@
-(* gm2-compiler/gm2lcc.mod Generates the cc command for linking all the modules.
+(* gm2lcc.mod generates the link command from a list of modules.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -25,7 +25,7 @@ MODULE gm2lcc ;
    Author     : Gaius Mulley
    Title      : gm2lcc
    Date       : Fri Jul 24 11:45:08 BST 1992
-   Description: Generates the cc command for linking all the modules.
+   Description: generates the link command from a list of modules.
 *)
 
 FROM libc IMPORT system, exit ;

@@ -1,4 +1,4 @@
-(* gm2-compiler/gm2.mod Main module of the compiler, collects arguments and.
+(* gm2.mod main module of the compiler.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
