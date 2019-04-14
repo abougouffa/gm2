@@ -122,6 +122,8 @@
 	* gm2/gm2-gcc/m2color.def:  New file.
 	* gm2/gm2-compiler/M2ColorString.def:  New file.
 	* gm2/gm2-compiler/M2ColorString.mod:  New file.
+	* gm2/gm2-compiler/M2ColorString.mod:  Changed character to string
+	  to handle utf8 quotation.
 
 2019-04-12      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

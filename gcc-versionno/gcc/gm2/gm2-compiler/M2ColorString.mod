@@ -43,7 +43,7 @@ BEGIN
    c := InitStringCharStar (colorize_start (EnableColor, "quote", StrLen ("quote"))) ;
    s := ConCat (s, c) ;
    c := KillString (c) ;
-   RETURN ConCatChar (s, '‘')
+   RETURN ConCat (s, Mark (InitString ("‘")))
 END quoteBegin ;
 
 
@@ -55,7 +55,7 @@ PROCEDURE quoteEnd (s: String) : String ;
 VAR
    c: String ;
 BEGIN
-   s := ConCatChar (s, '’') ;
+   s := ConCat (s, Mark (InitString ("’"))) ;
    c := InitStringCharStar (colorize_stop (EnableColor)) ;
    s := ConCat (s, c) ;
    c := KillString (c) ;
