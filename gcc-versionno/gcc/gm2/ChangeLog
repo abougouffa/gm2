@@ -117,6 +117,11 @@
 	* gm2/gm2-compiler/gm2lgen.mod:  added summary and dates for GPL.
 	* gm2/gm2-compiler/gm2lorder.mod:  added summary and dates for GPL.
 	* gm2/gm2-compiler/m2flex.def:  added summary and dates for GPL.
+	* gm2/gm2-gcc/m2color.c:  New file.
+	* gm2/gm2-gcc/m2color.h:  New file.
+	* gm2/gm2-gcc/m2color.def:  New file.
+	* gm2/gm2-compiler/M2ColorString.def:  New file.
+	* gm2/gm2-compiler/M2ColorString.mod:  New file.
 
 2019-04-12      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
