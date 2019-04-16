@@ -42,13 +42,15 @@ FROM M2Error IMPORT Error, NewError, ChainError, InternalError,
                     WriteFormat0, WriteFormat1, WriteFormat2, ErrorString,
                     ErrorAbort0, FlushErrors ;
 
-FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3, MetaErrors1 ;
+FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3, MetaErrors1,
+                        MetaErrorStringT0, MetaErrorStringT1 ;
+
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM FormatStrings IMPORT Sprintf1 ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3, printf4 ;
 
 FROM DynamicStrings IMPORT String, string, InitString,
-                           InitStringCharStar, Mark, KillString, Length,
+                           InitStringCharStar, Mark, KillString, Length, ConCat,
                            Index, char ;
 
 FROM Lists IMPORT List, InitList, GetItemFromList, PutItemIntoList,
@@ -7539,16 +7541,11 @@ END CheckForUnknownInModule ;
 *)
 
 PROCEDURE UnknownSymbolError (sym: WORD) ;
-VAR
-   e: Error ;
-   n: Name ;
 BEGIN
    IF IsUnreportedUnknown(sym)
    THEN
       IncludeElementIntoSet(ReportedUnknowns, sym) ;
-      n := GetSymName(sym) ;
-      e := ChainError(GetFirstUsed(sym), CurrentError) ;
-      ErrorFormat1(e, "unknown symbol '%a'", n)
+      MetaErrorStringT1(GetFirstUsed(sym), InitString("unknown symbol {%1EUad}"), sym)
    END
 END UnknownSymbolError ;
 
@@ -7573,14 +7570,16 @@ END IsUnreportedUnknown ;
 PROCEDURE CheckForUnknowns (name: Name; Tree: SymbolTree;
                             a: ARRAY OF CHAR) ;
 VAR
-   n: Name ;
+   s: String ;
 BEGIN
    IF DoesTreeContainAny(Tree, IsUnreportedUnknown)
    THEN
       CurrentError := NewError(GetTokenNo()) ;
-      n := MakeKey(a) ;
-      ErrorFormat2(CurrentError, "the following unknown symbols in module '%a' were '%a'",
-                   name, n) ;
+      s := InitString("{%0E} the following unknown symbols in module %<") ;
+      s := ConCat(s, Mark(InitStringCharStar(KeyToCharStar(name)))) ;
+      s := ConCat(s, Mark(InitString('%> were '))) ;
+      s := ConCat(s, Mark(InitString(a))) ;
+      MetaErrorStringT0(GetTokenNo(), s) ;
       ForeachNodeDo(Tree, UnknownSymbolError)
    END
 END CheckForUnknowns ;

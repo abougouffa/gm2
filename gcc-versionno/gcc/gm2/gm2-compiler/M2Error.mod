@@ -33,7 +33,10 @@ FROM M2Printf IMPORT printf0, printf1, printf2 ;
 FROM M2Options IMPORT Xcode ;
 FROM M2RTS IMPORT ExitOnHalt ;
 FROM SYSTEM IMPORT ADDRESS ;
-FROM M2ColorString IMPORT filenameBegin, filenameEnd, errorBegin, errorEnd, warningBegin, warningEnd ;
+
+FROM M2ColorString IMPORT filenameColor, endColor, errorColor, warningColor,
+                          range1Color, range2Color ;
+
 IMPORT StdIO ;
 
 CONST
@@ -48,11 +51,26 @@ TYPE
                          fatal : BOOLEAN ;
                          s     : String ;
                          token : CARDINAL ;  (* index of token causing the error *)
+                         color : BOOLEAN ;
                       END ;
 
 VAR
    head      : Error ;
    InInternal: BOOLEAN ;
+
+
+(*
+   SetColor - informs the error module that this error will have had colors
+              assigned to it.  If an error is issued without colors assigned
+              then the default colors will be assigned to the legacy error
+              messages.
+*)
+
+PROCEDURE SetColor (e: Error) : Error ;
+BEGIN
+   e^.color := TRUE ;
+   RETURN e
+END SetColor ;
 
 
 (*
@@ -120,14 +138,20 @@ VAR
    space,
    newline: BOOLEAN ;
 BEGIN
-   file := ConCat(filenameBegin(InitString('')), file) ;
-   file := filenameEnd(file) ;
+   file := ConCat(filenameColor(InitString('')), file) ;
+   file := endColor(file) ;
    INC(col) ;
-   IF Xcode
+   leader := ConCatChar(file, ':') ;
+   leader := range1Color(leader) ;
+   leader := ConCat(leader, Sprintf1(Mark(InitString('%d')), line)) ;
+   leader := endColor(leader) ;
+   leader := ConCatChar(leader, ':') ;
+   IF NOT Xcode
    THEN
-      leader := Sprintf2(Mark(InitString('%s:%d:')), file, line)
-   ELSE
-      leader := Sprintf3(Mark(InitString('%s:%d:%d:')), file, line, col)
+      leader := range2Color(leader) ;
+      leader := ConCat(leader, Sprintf1(Mark(InitString('%d')), col)) ;
+      leader := endColor(leader) ;
+      leader := ConCatChar(leader, ':')
    END ;
    p := string(s) ;
    newline := TRUE ;
@@ -411,7 +435,8 @@ BEGIN
       next   := NIL ;
       parent := NIL ;
       child  := NIL ;
-      fatal  := TRUE
+      fatal  := TRUE ;
+      color  := FALSE
    END ;
    IF (head=NIL) OR (head^.token>AtTokenNo)
    THEN
@@ -442,6 +467,21 @@ BEGIN
    e^.fatal := FALSE ;
    RETURN( e )
 END NewWarning ;
+
+
+(*
+   NewNote - creates and returns a new error handle suitable for a note.
+             A note will not stop compilation.
+*)
+
+PROCEDURE NewNote (AtTokenNo: CARDINAL) : Error ;
+VAR
+   e: Error ;
+BEGIN
+   e := NewError(AtTokenNo) ;
+   e^.fatal := FALSE ;
+   RETURN( e )
+END NewNote ;
 
 
 (*
@@ -620,10 +660,16 @@ BEGIN
                CheckIncludes(token, 0) ;
                IF fatal
                THEN
-                  s := ConCat (errorBegin (InitString ('')), errorEnd (s)) ;
+                  IF NOT color
+                  THEN
+                     s := ConCat (errorColor (InitString ('')), endColor (s))
+                  END ;
                   s := ConCat(InitString(' error: '), Mark(s))
                ELSE
-                  s := ConCat (warningBegin (InitString ('')), warningEnd (s)) ;
+                  IF NOT color
+                  THEN
+                     s := ConCat (warningColor (InitString ('')), endColor (s))
+                  END ;
                   s := ConCat(InitString(' warning: '), Mark(s))
                END ;
                OutString(FindFileNameFromToken(token, 0),

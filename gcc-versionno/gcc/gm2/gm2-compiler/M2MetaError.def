@@ -41,8 +41,8 @@ EXPORT QUALIFIED MetaError1, MetaError2, MetaError3, MetaError4,
                  MetaErrorsT1, MetaErrorsT2, MetaErrorsT3, MetaErrorsT4,
                  MetaErrorString1, MetaErrorString2, MetaErrorString3,
                  MetaErrorString4,
-                 MetaErrorStringT1, MetaErrorStringT2, MetaErrorStringT3,
-                 MetaErrorStringT4 ;
+                 MetaErrorStringT0, MetaErrorStringT1, MetaErrorStringT2,
+                 MetaErrorStringT3, MetaErrorStringT4 ;
 
 
 (*
@@ -67,6 +67,14 @@ EXPORT QUALIFIED MetaError1, MetaError2, MetaError3, MetaError4,
     {%1U}     sets the error message to where symbol 1 was first used.
     {%E}      error (default)
     {%W}      message is a warning, not an error.
+    {%O}      message is a note, not an error.
+    {%Kword}  the string "word" is rendered as a keyword.
+    {%P}      push the current color state.
+    {%p}      pop the current color state.
+    {%Ccolor} change color into one of:  none, fixit-delete, fixit-insert,
+              locus, filename, type, error, warning, note.
+    {%<}      open quote and color.
+    {%>}      close quote and color.
     %%        %
     %{        {
     %}        }
@@ -129,6 +137,7 @@ PROCEDURE MetaErrorString2 (m: String; s1, s2: CARDINAL) ;
 PROCEDURE MetaErrorString3 (m: String; s1, s2, s3: CARDINAL) ;
 PROCEDURE MetaErrorString4 (m: String; s1, s2, s3, s4: CARDINAL) ;
 
+PROCEDURE MetaErrorStringT0 (tok: CARDINAL; m: String) ;
 PROCEDURE MetaErrorStringT1 (tok: CARDINAL; m: String; s: CARDINAL) ;
 PROCEDURE MetaErrorStringT2 (tok: CARDINAL; m: String; s1, s2: CARDINAL) ;
 PROCEDURE MetaErrorStringT3 (tok: CARDINAL; m: String; s1, s2, s3: CARDINAL) ;

@@ -26,10 +26,12 @@ FROM M2Base IMPORT ZType, RType ;
 FROM NameKey IMPORT Name, KeyToCharStar, NulName ;
 FROM StrLib IMPORT StrLen ;
 FROM M2LexBuf IMPORT GetTokenNo ;
-FROM M2Error IMPORT Error, NewError, NewWarning, ErrorString, InternalError, ChainError, FlushErrors ;
+FROM M2Error IMPORT Error, NewError, NewWarning, NewNote, ErrorString, InternalError, ChainError, FlushErrors, SetColor ;
 FROM FIO IMPORT StdOut, WriteLine ;
 FROM SFIO IMPORT WriteS ;
 FROM StringConvert IMPORT ctos ;
+FROM M2Printf IMPORT printf1, printf0 ;
+FROM SYSTEM IMPORT ADDRESS ;
 
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar,
                            ConCat, ConCatChar, Mark, string, KillString,
@@ -49,11 +51,170 @@ FROM SymbolTable IMPORT NulSym,
                         GetType, SkipType, GetDeclaredDef, GetDeclaredMod,
                         GetFirstUsed, IsNameAnonymous ;
 
-FROM M2ColorString IMPORT quoteBegin, quoteEnd ;
+IMPORT M2ColorString ;
+
+
+CONST
+   MaxStack  = 100 ;
+   Debugging = FALSE ;
 
 TYPE
-   errorType = (error, warning, chained) ;
+   errorType = (none, error, warning, note, chained) ;
+   colorType = (noColor, quoteColor, filenameColor, errorColor,
+                warningColor, noteColor, keywordColor, locusColor,
+                insertColor, deleteColor, typeColor) ;
 
+   errorBlock = RECORD
+                   e         : Error ;
+                   type      : errorType ;
+                   out, in   : String ;
+                   highplus1 : CARDINAL ;
+                   len,
+                   ini, outi : INTEGER ;
+                   quotes,
+                   positive  : BOOLEAN ;
+                   cachedCol,               (* the color sent down the device/string.         *)
+                   currentCol: colorType ;  (* the color of the text before being sent down.  *)
+                END ;
+VAR
+   colorStack: ARRAY [0..MaxStack] OF colorType ;
+   stackPtr  : CARDINAL ;
+
+
+(*
+   readColor -
+
+*)
+
+PROCEDURE readColor (eb: errorBlock) : colorType ;
+BEGIN
+
+   RETURN noColor
+END readColor ;
+
+
+(*
+   keyword -
+*)
+
+PROCEDURE keyword (VAR eb: errorBlock) ;
+BEGIN
+   flushColor (eb) ;
+   pushColor (eb.currentCol) ;
+   eb.out := M2ColorString.locusColor (eb.out) ;
+   WHILE (eb.ini < eb.len) AND (char (eb.in, eb.ini) = "}") DO
+      copyChar (eb) ;
+      INC (eb.ini)
+   END ;
+   eb.currentCol := popColor ()
+END keyword ;
+
+
+(*
+   pushColor -
+*)
+
+PROCEDURE pushColor (c: colorType) ;
+BEGIN
+   IF stackPtr > MaxStack
+   THEN
+      HALT
+   ELSE
+      colorStack[stackPtr] := c ;
+      INC (stackPtr)
+   END
+END pushColor ;
+
+
+(*
+   popColor -
+*)
+
+PROCEDURE popColor () : colorType ;
+BEGIN
+   IF stackPtr > 0
+   THEN
+      DEC (stackPtr)
+   ELSE
+      HALT
+   END ;
+   RETURN colorStack[stackPtr]
+END popColor ;
+
+
+(*
+   initErrorBlock - initialise an error block with the, input, string.
+*)
+
+PROCEDURE initErrorBlock (VAR eb: errorBlock; input: String; sym: ARRAY OF CARDINAL) ;
+BEGIN
+   WITH eb DO
+      e          := NIL ;
+      type       := none ;
+      out        := InitString ('') ;
+      in         := input ;
+      highplus1  := HIGH (sym) + 1 ;
+      len        := Length (input) ;
+      ini        := 0 ;
+      outi       := 0 ;
+      quotes     := FALSE ;
+      positive   := TRUE ;
+      cachedCol  := noColor ;
+      currentCol := findColorType (input)
+   END
+END initErrorBlock ;
+
+
+(*
+   findColorType - return the color of the string.  This is determined by the first
+                   occurrance of an error, warning or note marker.
+*)
+
+PROCEDURE findColorType (s: String) : colorType ;
+VAR
+   i: CARDINAL ;
+BEGIN
+   i := 0 ;
+   WHILE i < Length (s) DO
+      IF char (s, i) = "{"
+      THEN
+         INC (i) ;
+         IF char (s, i) = "%"
+         THEN
+            INC (i) ;
+            CASE char (s, i) OF
+
+            '0','1','2','3':  INC (i)
+
+            ELSE
+            END ;
+            CASE char (s, i) OF
+
+            "E":  RETURN errorColor |
+            "O":  RETURN noteColor |
+            "W":  RETURN warningColor
+
+            ELSE
+            END
+         END
+      END ;
+      INC (i)
+   END ;
+   RETURN noColor
+END findColorType ;
+
+
+(*
+   killErrorBlock - deallocates the dynamic strings associated with the error block.
+*)
+
+PROCEDURE killErrorBlock (VAR eb: errorBlock) ;
+BEGIN
+   WITH eb DO
+      out := KillString (out) ;
+      in := KillString (in)
+   END
+END killErrorBlock ;
 
 
 (*
@@ -63,7 +224,9 @@ TYPE
            }
          =:
 
-   percent := '%' anych             % copy anych %
+   percent := '%' ( "<" |           % open quote
+                    ">" |           % close quote
+                    anych )         % copy anych %
             =:
 
    lbra := '{' [ '!' ] percenttoken '}' =:
@@ -94,19 +257,19 @@ PROCEDURE InternalFormat (s: String; i: INTEGER; m: ARRAY OF CHAR) ;
 VAR
    e: Error ;
 BEGIN
-   e := NewError(GetTokenNo()) ;
-   s := WriteS(StdOut, s) ;
-   WriteLine(StdOut) ;
-   s := KillString(s) ;
-   IF i>0
+   e := NewError (GetTokenNo ()) ;
+   s := WriteS (StdOut, s) ;
+   WriteLine (StdOut) ;
+   s := KillString (s) ;
+   IF i > 0
    THEN
-      DEC(i)
+      DEC (i)
    END ;
-   s := Mult(InitString(' '), i) ;
-   s := ConCatChar(s, '^') ;
-   s := WriteS(StdOut, s) ;
-   WriteLine(StdOut) ;
-   InternalError(m, __FILE__, __LINE__)
+   s := Mult (InitString (' '), i) ;
+   s := ConCatChar (s, '^') ;
+   s := WriteS (StdOut, s) ;
+   WriteLine (StdOut) ;
+   InternalError (m, __FILE__, __LINE__)
 END InternalFormat ;
 
 
@@ -116,11 +279,11 @@ END InternalFormat ;
 
 PROCEDURE x (a, b: String) : String ;
 BEGIN
-   IF a#b
+   IF a # b
    THEN
-      InternalError('different string returned', __FILE__, __LINE__)
+      InternalError ('different string returned', __FILE__, __LINE__)
    END ;
-   RETURN( a )
+   RETURN a
 END x ;
 
 
@@ -130,61 +293,88 @@ END x ;
 
 PROCEDURE IsWhite (ch: CHAR) : BOOLEAN ;
 BEGIN
-   RETURN( ch=' ' )
+   RETURN ch = ' '
 END IsWhite ;
 
 
 (*
-   then := [ ':' ebnf ] =:
+   skip - skips over this level input until the next '}'.
 *)
 
-PROCEDURE then (VAR e: Error; VAR t: errorType;
-                VAR r: String; s: String;
-                sym: ARRAY OF CARDINAL; count: CARDINAL;
-                VAR i: INTEGER; l: INTEGER;
-                o: String; positive: BOOLEAN) ;
+PROCEDURE skip (VAR sb: errorBlock) ;
+VAR
+   level: INTEGER ;
 BEGIN
-   IF char(s, i)=':'
-   THEN
-      INC(i) ;
-      IF positive
+   level := 0 ;
+   WHILE sb.ini < sb.len DO
+      IF (level = 0) AND (char (sb.in, sb.ini) = "}")
       THEN
-         IF Length(o)>0
+         RETURN
+      END ;
+      IF char (sb.in, sb.ini) = "}"
+      THEN
+         DEC (level)
+      ELSIF char (sb.in, sb.ini) = "{"
+      THEN
+         INC (level)
+      END ;
+      INC (sb.ini)
+   END
+END skip ;
+
+
+(*
+   ifNulThen := [ ':' ebnf ] =:
+*)
+
+PROCEDURE ifNulThen (VAR sb: errorBlock;
+                     sym: ARRAY OF CARDINAL;
+                     operand: String) ;
+BEGIN
+   IF char (sb.in, sb.ini) = ':'
+   THEN
+      INC (sb.ini) ;
+      IF sb.positive
+      THEN
+         IF Length (operand) = 0
          THEN
-            ebnf(e, t, r, s, sym, count, i, l)
+            (* carry on processing input text.  *)
+            ebnf (sb, sym)
          ELSE
-            ebnf(e, t, r, s, sym, 0, i, l)
+            (* skip over this level of input text.  *)
+            skip (sb)
          END
       ELSE
-         IF Length(o)=0
+         IF Length (operand) = 0
          THEN
-            ebnf(e, t, r, s, sym, count, i, l)
+            (* skip over this level of input text.  *)
+            skip (sb)
          ELSE
-            ebnf(e, t, r, s, sym, 0, i, l)
+            (* carry on processing input text.  *)
+            ebnf (sb, sym)
          END
       END ;
-      IF (i<l) AND (char(s, i)#'}')
+      IF (sb.ini < sb.len) AND (char (sb.in, sb.ini) # '}')
       THEN
-         InternalFormat(s, i, 'expecting to see }')
+         InternalFormat (sb.in, sb.ini, 'expecting to see }')
       END
    END
-END then ;
+END ifNulThen ;
 
 
 (*
    doNumber -
 *)
 
-PROCEDURE doNumber (bol: CARDINAL; count: CARDINAL;
-                    sym: ARRAY OF CARDINAL; o: String;
-                    VAR quotes: BOOLEAN) : String ;
+PROCEDURE doNumber (VAR sb: errorBlock;
+                    sym: ARRAY OF CARDINAL; bol: CARDINAL; operand: String) : String ;
 BEGIN
-   IF (Length(o)>0) OR (count=0)
+   IF Length (operand) > 0
    THEN
-      RETURN( o )
+      RETURN operand
    ELSE
-      quotes := FALSE ;
-      RETURN( ConCat(o, ctos(sym[bol], 0, ' ')) )
+      sb.quotes := FALSE ;
+      RETURN ConCat (operand, ctos (sym[bol], 0, ' '))
    END
 END doNumber ;
 
@@ -193,89 +383,86 @@ END doNumber ;
    doCount -
 *)
 
-PROCEDURE doCount (bol: CARDINAL; count: CARDINAL;
-                   sym: ARRAY OF CARDINAL; o: String;
-                   VAR quotes: BOOLEAN) : String ;
+PROCEDURE doCount (VAR sb: errorBlock;
+                   sym: ARRAY OF CARDINAL; bol: CARDINAL; operand: String) : String ;
 BEGIN
-   IF (Length(o)>0) OR (count=0)
+   IF Length (operand) > 0
    THEN
-      RETURN( o )
+      RETURN operand
    ELSE
-      quotes := FALSE ;
-      o := ConCat(o, ctos(sym[bol], 0, ' ')) ;
+      sb.quotes := FALSE ;
+      operand := ConCat (operand, ctos(sym[bol], 0, ' ')) ;
       CASE sym[bol] MOD 100 OF
 
-      11..13:  o := ConCat(o, Mark(InitString('th')))
+      11..13:  operand := ConCat (operand, Mark (InitString ('th')))
 
       ELSE
          CASE sym[bol] MOD 10 OF
 
-         1:  o := ConCat(o, Mark(InitString('st'))) |
-         2:  o := ConCat(o, Mark(InitString('nd'))) |
-         3:  o := ConCat(o, Mark(InitString('rd')))
+         1:  operand := ConCat (operand, Mark (InitString ('st'))) |
+         2:  operand := ConCat (operand, Mark (InitString ('nd'))) |
+         3:  operand := ConCat (operand, Mark (InitString ('rd')))
 
          ELSE
-            o := ConCat(o, Mark(InitString('th')))
+            operand := ConCat (operand, Mark (InitString ('th')))
          END
       END ;
-      RETURN( o )
+      RETURN operand
    END
 END doCount ;
 
 
-PROCEDURE doAscii (bol: CARDINAL; count: CARDINAL;
-                   sym: ARRAY OF CARDINAL; o: String) : String ;
+PROCEDURE doAscii (sym: ARRAY OF CARDINAL; bol: CARDINAL; operand: String) : String ;
 BEGIN
-   IF (Length(o)>0) OR (count=0) OR IsTemporary(sym[bol]) OR IsNameAnonymous(sym[bol])
+   IF (Length (operand) > 0) OR IsTemporary (sym[bol]) OR IsNameAnonymous (sym[bol])
    THEN
-      RETURN( o )
+      RETURN operand
    ELSE
-      RETURN( ConCat(o, InitStringCharStar(KeyToCharStar(GetSymName(sym[bol])))) )
+      RETURN ConCat (operand, InitStringCharStar (KeyToCharStar (GetSymName (sym[bol]))))
    END
 END doAscii ;
 
 
-PROCEDURE doName (bol: CARDINAL; count: CARDINAL;
-                  sym: ARRAY OF CARDINAL; o: String; VAR quotes: BOOLEAN) : String ;
+PROCEDURE doName (VAR sb: errorBlock;
+                  sym: ARRAY OF CARDINAL; bol: CARDINAL; operand: String) : String ;
 BEGIN
-   IF (Length(o)>0) OR (count=0) OR IsTemporary(sym[bol]) OR IsNameAnonymous(sym[bol])
+   IF (Length (operand) > 0) OR IsTemporary (sym[bol]) OR IsNameAnonymous (sym[bol])
    THEN
-      RETURN( o )
+      RETURN operand
    ELSE
-      IF sym[bol]=ZType
+      IF sym[bol] = ZType
       THEN
-         quotes := FALSE ;
-         RETURN( ConCat(o, Mark(InitString('the ZType'))) )
-      ELSIF sym[bol]=RType
+         sb.quotes := FALSE ;
+         RETURN ConCat (operand, Mark(InitString('the ZType')))
+      ELSIF sym[bol] = RType
       THEN
-         quotes := FALSE ;
-         RETURN( ConCat(o, Mark(InitString('the RType'))) )
+         sb.quotes := FALSE ;
+         RETURN ConCat (operand, Mark (InitString ('the RType')))
       ELSE
-         RETURN( doAscii(bol, count, sym, o) )
+         RETURN doAscii (sym, bol, operand)
       END
    END
 END doName ;
 
 
-PROCEDURE doQualified (bol: CARDINAL; count: CARDINAL;
-                       sym: ARRAY OF CARDINAL; o: String) : String ;
+PROCEDURE doQualified (sym: ARRAY OF CARDINAL; bol: CARDINAL; operand: String) : String ;
 VAR
    mod: ARRAY [0..1] OF CARDINAL ;
 BEGIN
-   IF (Length(o)>0) OR (count=0) OR IsTemporary(sym[bol]) OR IsNameAnonymous(sym[bol])
+   IF (Length (operand) > 0) OR IsTemporary (sym[bol]) OR IsNameAnonymous (sym[bol])
    THEN
-      RETURN( o )
+      RETURN operand
    ELSE
-      mod[0] := GetScope(sym[bol]) ;
-      IF IsDefImp(mod[0]) AND IsExported(mod[0], sym[bol])
+      mod[0] := GetScope (sym[bol]) ;
+      IF IsDefImp (mod[0]) AND IsExported (mod[0], sym[bol])
       THEN
-         o := x(o, doAscii(0, 1, mod, o)) ;
-         o := x(o, ConCatChar(o, '.')) ;
-         o := x(o, ConCat(o, InitStringCharStar(KeyToCharStar(GetSymName(sym[bol])))))
+         operand := doAscii (mod, 0, operand) ;
+         operand := ConCatChar (operand, '.') ;
+         operand := ConCat (operand, InitStringCharStar (KeyToCharStar (GetSymName (sym[bol]))))
       ELSE
-         o := x(o, doAscii(bol, count, sym, o))
+         operand := doAscii (sym, bol, operand)
       END ;
-      RETURN( o )
+      RETURN operand
    END
 END doQualified ;
 
@@ -286,19 +473,18 @@ END doQualified ;
             returns the type symbol found.
 *)
 
-PROCEDURE doType (bol: CARDINAL; count: CARDINAL;
-                  VAR sym: ARRAY OF CARDINAL; o: String) : String ;
+PROCEDURE doType (sym: ARRAY OF CARDINAL; bol: CARDINAL; operand: String) : String ;
 BEGIN
-   IF (Length(o)>0) OR (count=0) OR (GetType(sym[bol])=NulSym)
+   IF (Length(operand) > 0) OR (GetType (sym[bol]) = NulSym)
    THEN
-      RETURN( o )
+      RETURN operand
    ELSE
       sym[bol] := GetType(sym[bol]) ;
       WHILE IsType(sym[bol]) AND ((GetSymName(sym[bol])=NulName) OR
                                   IsNameAnonymous(sym[bol])) DO
-         sym[bol] := GetType(sym[bol])
+         sym[bol] := GetType (sym[bol])
       END ;
-      RETURN( x(o, doAscii(bol, count, sym, o)) )
+      RETURN doAscii (sym, bol, operand)
    END
 END doType ;
 
@@ -308,21 +494,18 @@ END doType ;
                 returns the type symbol found and name.
 *)
 
-PROCEDURE doSkipType (bol: CARDINAL; count: CARDINAL;
-                      VAR sym: ARRAY OF CARDINAL; o: String) : String ;
+PROCEDURE doSkipType (sym: ARRAY OF CARDINAL; bol: CARDINAL; operand: String) : String ;
 BEGIN
-   IF (Length(o)>0) OR (count=0)
+   IF (Length(operand) > 0) OR (GetType (sym[bol]) = NulSym)
    THEN
-      RETURN( o )
+      RETURN operand
    ELSE
       sym[bol] := SkipType(sym[bol]) ;
-      IF (GetSymName(sym[bol])=NulName) OR
-         (IsNameAnonymous(sym[bol]))
-      THEN
-         RETURN( o )
-      ELSE
-         RETURN( x(o, doAscii(bol, count, sym, o)) )
-      END
+      WHILE IsType(sym[bol]) AND ((GetSymName(sym[bol])=NulName) OR
+                                  IsNameAnonymous(sym[bol])) DO
+         sym[bol] := GetType (sym[bol])
+      END ;
+      RETURN doAscii (sym, bol, operand)
    END
 END doSkipType ;
 
@@ -339,70 +522,66 @@ BEGIN
              THEN
                 InternalError('should not be chaining an error onto an empty error note', __FILE__, __LINE__)
              ELSE
-                e := ChainError(tok, e)
+                e := ChainError (tok, e)
              END |
+   none,
    error  :  IF e=NIL
              THEN
-                e := NewError(tok)
+                e := NewError (tok)
              END |
    warning:  IF e=NIL
              THEN
-                e := NewWarning(tok)
+                e := NewWarning (tok)
+             END |
+   note   :  IF e=NIL
+             THEN
+                e := NewNote (tok)
              END
 
    ELSE
       InternalError('unexpected enumeration value', __FILE__, __LINE__)
    END ;
-   RETURN( e )
+   RETURN SetColor (e)
 END doError ;
 
 
 (*
-   doDeclaredDef - creates an error note where sym[bol] was declared.
+   declaredDef - creates an error note where sym[bol] was declared.
 *)
 
-PROCEDURE doDeclaredDef (e: Error; t: errorType;
-                         bol: CARDINAL; count: CARDINAL;
-                         sym: ARRAY OF CARDINAL) : Error ;
+PROCEDURE declaredDef (sb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 BEGIN
-   IF (count>HIGH(sym)) AND (bol<=HIGH(sym))
+   IF bol <= HIGH(sym)
    THEN
-      e := doError(e, t, GetDeclaredDef(sym[bol]))
-   END ;
-   RETURN( e )
-END doDeclaredDef ;
+      sb.e := doError (sb.e, sb.type, GetDeclaredDef (sym[bol]))
+   END
+END declaredDef ;
 
 
 (*
    doDeclaredMod - creates an error note where sym[bol] was declared.
 *)
 
-PROCEDURE doDeclaredMod (e: Error; t: errorType;
-                         bol: CARDINAL; count: CARDINAL;
-                         sym: ARRAY OF CARDINAL) : Error ;
+PROCEDURE declaredMod (sb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 BEGIN
-   IF (count>HIGH(sym)) AND (bol<=HIGH(sym))
+   IF bol <= HIGH(sym)
    THEN
-      e := doError(e, t, GetDeclaredMod(sym[bol]))
-   END ;
-   RETURN( e )
-END doDeclaredMod ;
+      sb.e := doError (sb.e, sb.type, GetDeclaredMod (sym[bol]))
+   END
+END declaredMod ;
 
 
 (*
-   doUsed - creates an error note where sym[bol] was first used.
+   used - creates an error note where sym[bol] was first used.
 *)
 
-PROCEDURE doUsed (e: Error; t: errorType;
-                  bol: CARDINAL; count: CARDINAL;
-                  sym: ARRAY OF CARDINAL) : Error ;
+PROCEDURE used (sb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 BEGIN
-   IF (count>HIGH(sym)) AND (bol<=HIGH(sym))
+   IF bol <= HIGH(sym)
    THEN
-      e := doError(e, t, GetFirstUsed(sym[bol]))
-   END ;
-   RETURN( e )
-END doUsed ;
+      sb.e := doError (sb.e, sb.type, GetFirstUsed (sym[bol]))
+   END
+END used ;
 
 
 (*
@@ -411,18 +590,18 @@ END doUsed ;
 
 PROCEDURE ConCatWord (a, b: String) : String ;
 BEGIN
-   IF (Length(a)=1) AND (char(a, 0)='a')
+   IF (Length (a) = 1) AND (char(a, 0) = 'a')
    THEN
-      a := x(a, ConCatChar(a, 'n'))
-   ELSIF (Length(a)>1) AND (char(a, -1)='a') AND IsWhite(char(a, -2))
+      a := x (a, ConCatChar (a, 'n'))
+   ELSIF (Length (a) > 1) AND (char (a, -1) = 'a') AND IsWhite (char(a, -2))
    THEN
-      a := x(a, ConCatChar(a, 'n'))
+      a := x (a, ConCatChar (a, 'n'))
    END ;
-   IF (Length(a)>0) AND (NOT IsWhite(char(a, -1)))
+   IF (Length (a) > 0) AND (NOT IsWhite (char (a, -1)))
    THEN
-      a := x(a, ConCatChar(a, ' '))
+      a := x (a, ConCatChar (a, ' '))
    END ;
-   RETURN( x(a, ConCat(a, b)) )
+   RETURN x (a, ConCat(a, b))
 END ConCatWord ;
 
 
@@ -510,20 +689,19 @@ END symDesc ;
    doDesc -
 *)
 
-PROCEDURE doDesc (bol: CARDINAL; count: CARDINAL;
-                  sym: ARRAY OF CARDINAL; o: String;
-                  VAR quotes: BOOLEAN) : String ;
+PROCEDURE doDesc (VAR sb: errorBlock;
+                  sym: ARRAY OF CARDINAL; bol: CARDINAL; operand: String) : String ;
 BEGIN
-   IF (Length(o)>0) OR (count=0)
+   IF Length (operand) > 0
    THEN
-      RETURN( o )
+      RETURN operand
    ELSE
-      o := symDesc(sym[bol], o) ;
-      IF Length(o)>0
+      operand := symDesc (sym[bol], operand) ;
+      IF Length (operand) > 0
       THEN
-         quotes := FALSE
+         sb.quotes := FALSE
       END ;
-      RETURN( o )
+      RETURN operand
    END
 END doDesc ;
 
@@ -532,25 +710,31 @@ END doDesc ;
    addQuoted - if, o, is not empty then add it to, r.
 *)
 
-PROCEDURE addQuoted (r, o: String; quotes: BOOLEAN) : String ;
+PROCEDURE addQuoted (VAR eb: errorBlock; o: String) ;
 BEGIN
-   IF Length(o)>0
+   IF Length (o) > 0
    THEN
-      IF NOT IsWhite(char(r, -1))
+      IF (Length (eb.out) > 0) AND (NOT IsWhite (char (eb.out, -1)))
       THEN
-         r := x(r, ConCatChar(r, " "))
+         eb.out := ConCatChar (eb.out, " ")
       END ;
-      IF quotes
+      IF eb.quotes
       THEN
-         r := quoteBegin (r)
+         flushColor (eb) ;
+         pushColor (eb.currentCol) ;
+         eb.currentCol := quoteColor ;
+         flushColor (eb) ;
+         eb.out := M2ColorString.quoteOpen (eb.out)
       END ;
-      r := x(r, ConCat(r, o)) ;
-      IF quotes
+      eb.out := ConCat (eb.out, o) ;
+      IF eb.quotes
       THEN
-         r := quoteEnd (r)
+         flushColor (eb) ;
+         eb.out := M2ColorString.quoteClose (eb.out) ;
+         flushColor (eb) ;
+         eb.currentCol := popColor ()
       END
-   END ;
-   RETURN( r )
+   END
 END addQuoted ;
 
 
@@ -579,51 +763,56 @@ END copySym ;
    op := {'a'|'q'|'t'|'d'|'n'|'s'|'D'|'I'|'U'|'E'|'W'} then =:
 *)
 
-PROCEDURE op (VAR e: Error; VAR t: errorType;
-              VAR r: String; s: String;
-              sym: ARRAY OF CARDINAL; count: CARDINAL;
-              VAR i: INTEGER; l: INTEGER;
-              bol: CARDINAL; positive: BOOLEAN) ;
+PROCEDURE op (VAR eb: errorBlock;
+              sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 VAR
-   o     : String ;
-   c     : ARRAY [0..3] OF CARDINAL ;
-   quotes: BOOLEAN ;
+   o: String ;
 BEGIN
-   copySym(sym, c, HIGH(sym)) ;
-   o := InitString('') ;
-   quotes := TRUE ;
-   WHILE (i<l) AND (char(s, i)#'}') DO
-      CASE char(s, i) OF
+   o := InitString ('') ;
+   eb.quotes := TRUE ;
+   WHILE (eb.ini < eb.len) AND (char (eb.in, eb.ini) # '}') DO
+      IF Debugging
+      THEN
+         printf0 ("while loop in op\n") ;
+         dump (eb) ;
+         printf1 ("o = %s\n", o)
+      END ;
+      CASE char (eb.in, eb.ini) OF
 
-      'a':  o := x(o, doName(bol, count, sym, o, quotes)) |
-      'q':  o := x(o, doQualified(bol, count, sym, o)) |
-      't':  o := x(o, doType(bol, count, sym, o)) |
-      'd':  o := x(o, doDesc(bol, count, sym, o, quotes)) |
-      'n':  o := x(o, doNumber(bol, count, sym, o, quotes)) |
-      'N':  o := x(o, doCount(bol, count, sym, o, quotes)) |
-      's':  o := x(o, doSkipType(bol, count, sym, o)) |
-      'D':  e := doDeclaredDef(e, t, bol, count, sym) |
-      'M':  e := doDeclaredMod(e, t, bol, count, sym) |
-      'U':  e := doUsed(e, t, bol, count, sym) |
-      'E':  t := error |
-      'W':  t := warning |
-      ':':  copySym(c, sym, HIGH(sym)) ;
-            then(e, t, r, s, sym, count, i, l, o, positive) ;
-            o := KillString(o) ;
-            o := InitString('') ;
-            IF (i<l) AND (char(s, i)#'}')
-            THEN
-               InternalFormat(s, i, 'expecting to see }')
-            END ;
-            DEC(i)
+      'a':  o := doName (eb, sym, bol, o) |
+      'q':  o := doQualified (sym, bol, o) |
+      't':  o := doType (sym, bol, o) |
+      'd':  o := doDesc (eb, sym, bol, o) |
+      'n':  o := doNumber (eb, sym, bol, o) |
+      'N':  o := doCount (eb, sym, bol, o) |
+      's':  o := doSkipType (sym, bol, o) |
+      'D':  declaredDef (eb, sym, bol) |
+      'M':  declaredMod (eb, sym, bol) |
+      'U':  used (eb, sym, bol) |
+      'E':  eb.type := error |
+      'W':  eb.type := warning |
+      'O':  eb.type := note |
+      'P':  pushColor (eb.currentCol) |
+      'p':  eb.currentCol := popColor () |
+      'C':  eb.currentCol := readColor (eb) |
+      'K':  keyword (eb) |
+      ':':  ifNulThen (eb, sym, o) ;
+            o := KillString (o) ;
+            o := InitString ('') ;
+            DEC (eb.ini)
 
       ELSE
-         InternalFormat(s, i, 'expecting one of [aqtdnNsDUEW:]')
+         InternalFormat (eb.in, eb.ini, 'expecting one of [aqtdnpsCDEKNPOUW:<>%]')
       END ;
-      INC(i) ;
+      INC (eb.ini)
    END ;
-   r := x(r, addQuoted(r, o, quotes)) ;
-   o := KillString(o)
+   addQuoted (eb, o) ;
+   IF Debugging
+   THEN
+      printf0 ("finishing op\n") ;
+      dump (eb)
+   END ;
+   o := KillString (o)
 END op ;
 
 
@@ -641,34 +830,89 @@ END op ;
                        } =:
 *)
 
-PROCEDURE percenttoken (VAR e: Error; VAR t: errorType;
-                        VAR r: String; s: String;
-                        sym: ARRAY OF CARDINAL; count: CARDINAL;
-                        VAR i: INTEGER; l: INTEGER; positive: BOOLEAN) ;
+PROCEDURE percenttoken (VAR eb: errorBlock; sym: ARRAY OF CARDINAL) ;
 BEGIN
-   IF char(s, i)='%'
+   IF char (eb.in, eb.ini) = '%'
    THEN
-      INC(i) ;
-      CASE char(s, i) OF
+      INC (eb.ini) ;
+      CASE char (eb.in, eb.ini) OF
 
-      '1':  INC(i) ;
-            op(e, t, r, s, sym, count, i, l, 0, positive) |
-      '2':  INC(i) ;
-            op(e, t, r, s, sym, count, i, l, 1, positive) |
-      '3':  INC(i) ;
-            op(e, t, r, s, sym, count, i, l, 2, positive) |
-      '4':  INC(i) ;
-            op(e, t, r, s, sym, count, i, l, 3, positive)
+      '0',
+      '1':  INC (eb.ini) ;
+            op (eb, sym, 0) |
+      '2':  INC (eb.ini) ;
+            op (eb, sym, 1) |
+      '3':  INC (eb.ini) ;
+            op (eb, sym, 2) |
+      '4':  INC (eb.ini) ;
+            op (eb, sym, 3)
 
       ELSE
-         InternalFormat(s, i, 'expecting one of [1234]')
+         InternalFormat (eb.in, eb.ini, 'expecting one of [1234]')
       END ;
-      IF (i<l) AND (char(s, i)#'}')
+      IF (eb.ini < eb.len) AND (char (eb.in, eb.ini) # '}')
       THEN
-         InternalFormat(s, i, 'expecting to see }')
+         InternalFormat (eb.in, eb.ini, 'expecting to see }')
       END
    END
 END percenttoken ;
+
+
+(*
+   flushColor - flushes any outstanding color change.
+*)
+
+PROCEDURE flushColor (VAR eb: errorBlock) ;
+BEGIN
+   IF eb.cachedCol # eb.currentCol
+   THEN
+      IF eb.cachedCol # noColor
+      THEN
+         eb.out := M2ColorString.endColor (eb.out)
+      END ;
+      emitColor (eb, eb.currentCol) ;
+      eb.cachedCol := eb.currentCol
+   END
+END flushColor ;
+
+
+(*
+   emitColor - adds the appropriate color string to the output string.
+*)
+
+PROCEDURE emitColor (VAR eb: errorBlock; c: colorType) ;
+BEGIN
+   CASE c OF
+
+   noColor      :  eb.out := M2ColorString.endColor (eb.out) |
+   quoteColor   :  eb.out := M2ColorString.quoteColor (eb.out) |
+   filenameColor:  eb.out := M2ColorString.filenameColor (eb.out) |
+   errorColor   :  eb.out := M2ColorString.errorColor (eb.out) |
+   warningColor :  eb.out := M2ColorString.warningColor (eb.out) |
+   noteColor    :  eb.out := M2ColorString.noteColor (eb.out) |
+   keywordColor :  eb.out := M2ColorString.locusColor (eb.out) |
+   locusColor   :  eb.out := M2ColorString.locusColor (eb.out) |
+   insertColor  :  eb.out := M2ColorString.insertColor (eb.out) |
+   deleteColor  :  eb.out := M2ColorString.deleteColor (eb.out) |
+   typeColor    :  eb.out := M2ColorString.typeColor (eb.out)
+
+   END
+END emitColor ;
+
+
+(*
+   copyChar -
+
+*)
+
+PROCEDURE copyChar (VAR eb: errorBlock) ;
+BEGIN
+   IF eb.ini < eb.len
+   THEN
+      flushColor (eb) ;
+      eb.out := x (eb.out, ConCatChar (eb.out, char (eb.in, eb.ini)))
+   END
+END copyChar ;
 
 
 (*
@@ -676,17 +920,28 @@ END percenttoken ;
             =:
 *)
 
-PROCEDURE percent (VAR r: String; s: String;
-                   sym: ARRAY OF CARDINAL; count: CARDINAL;
-                   VAR i: INTEGER; l: INTEGER) ;
+PROCEDURE percent (VAR eb: errorBlock; sym: ARRAY OF CARDINAL) ;
 BEGIN
-   IF char(s, i)='%'
+   IF char (eb.in, eb.ini)='%'
    THEN
-      INC(i) ;
-      IF i<l
+      INC (eb.ini) ;
+      IF eb.ini < eb.len
       THEN
-         r := x(r, ConCatChar(r, char(s, i))) ;
-         INC(i)
+         IF char (eb.in, eb.ini) = '<'
+         THEN
+            flushColor (eb) ;
+            pushColor (eb.currentCol) ;
+            eb.currentCol := quoteColor ;
+            flushColor (eb) ;
+            eb.out := M2ColorString.quoteOpen (eb.out)
+         ELSIF char (eb.in, eb.ini) = '>'
+         THEN
+            flushColor (eb) ;
+            eb.out := M2ColorString.quoteClose (eb.out) ;
+            eb.currentCol := popColor ()
+         ELSE
+            copyChar (eb)
+         END
       END
    END
 END percent ;
@@ -696,36 +951,104 @@ END percent ;
    lbra := '{' [ '!' ] percenttoken '}' =:
 *)
 
-PROCEDURE lbra (VAR e: Error; VAR t: errorType;
-                VAR r: String; s: String;
-                sym: ARRAY OF CARDINAL; count: CARDINAL;
-                VAR i: INTEGER; l: INTEGER) ;
+PROCEDURE lbra (VAR eb: errorBlock; sym: ARRAY OF CARDINAL) ;
 VAR
    positive: BOOLEAN ;
 BEGIN
-   IF char(s, i)='{'
+   IF char (eb.in, eb.ini) = '{'
    THEN
-      positive := TRUE ;
-      INC(i) ;
-      IF char(s, i)='!'
+      eb.positive := TRUE ;
+      INC (eb.ini) ;
+      IF char (eb.in, eb.ini) = '!'
       THEN
-         positive := FALSE ;
-         INC(i) ;
+         eb.positive := FALSE ;
+         INC (eb.ini)
       END ;
-      IF char(s, i)#'%'
+      IF char (eb.in, eb.ini) # '%'
       THEN
-         InternalFormat(s, i, 'expecting to see %')
+         InternalFormat (eb.in, eb.ini, 'expecting to see %')
       END ;
-      percenttoken(e, t, r, s, sym, count, i, l, positive) ;
-      IF (i<l) AND (char(s, i)#'}')
+      percenttoken (eb, sym) ;
+      IF (eb.ini < eb.len) AND (char (eb.in, eb.ini) # '}')
       THEN
-         InternalFormat(s, i, 'expecting to see }')
+         InternalFormat (eb.in, eb.ini, 'expecting to see }')
       END
    END
 END lbra ;
 
 
 PROCEDURE stop ; BEGIN END stop ;
+
+
+(*
+   dumpErrorType -
+*)
+
+PROCEDURE dumpErrorType (e: errorType) ;
+BEGIN
+   CASE e OF
+
+   none   :  printf0 ("none") |
+   error  :  printf0 ("error") |
+   warning:  printf0 ("warning") |
+   note   :  printf0 ("note") |
+   chained:  printf0 ("chained")
+
+   END
+END dumpErrorType ;
+
+
+(*
+   dumpColorType -
+*)
+
+PROCEDURE dumpColorType (c: colorType) ;
+BEGIN
+   CASE c OF
+
+   noColor      :  printf0 ("noColor") |
+   quoteColor   :  printf0 ("quoteColor") |
+   filenameColor:  printf0 ("filenameColor") |
+   errorColor   :  printf0 ("errorColor") |
+   warningColor :  printf0 ("warningColor") |
+   noteColor    :  printf0 ("noteColor") |
+   keywordColor :  printf0 ("keywordColor") |
+   locusColor   :  printf0 ("locusColor") |
+   insertColor  :  printf0 ("insertColor") |
+   deleteColor  :  printf0 ("deleteColor") |
+   typeColor    :  printf0 ("typeColor")
+
+   END
+END dumpColorType ;
+
+
+(*
+   dump -
+
+*)
+
+PROCEDURE dump (eb: errorBlock) ;
+VAR
+   ch: CHAR ;
+BEGIN
+   printf0 ("\n\nerrorBlock\n") ;
+   printf0 ("\ntype      = ") ; dumpErrorType (eb.type) ;
+   printf1 ("\nout       = %s", eb.out) ;
+   printf1 ("\nin        = %s", eb.in) ;
+   printf1 ("\nlen       = %d", eb.len) ;
+   printf1 ("\nhighplus1 = %d", eb.highplus1) ;
+   printf1 ("\nquotes    = %d", eb.quotes) ;
+   printf1 ("\npositive  = %d", eb.positive) ;
+   printf0 ("\ncachedCol = ") ; dumpColorType (eb.cachedCol) ;
+   printf0 ("\ncurrentCol = ") ; dumpColorType (eb.currentCol) ;
+   IF eb.ini < eb.len
+   THEN
+      ch := char (eb.in, eb.ini) ;
+      printf1 ("\ncurrent char = %c", ch)
+   END ;
+   printf0 ("\n")
+END dump ;
+
 
 (*
    ebnf := { percent
@@ -735,66 +1058,72 @@ PROCEDURE stop ; BEGIN END stop ;
          =:
 *)
 
-PROCEDURE ebnf (VAR e: Error; VAR t: errorType;
-                VAR r: String; s: String;
-                sym: ARRAY OF CARDINAL; count: CARDINAL;
-                VAR i: INTEGER; l: INTEGER) ;
+PROCEDURE ebnf (VAR eb: errorBlock; sym: ARRAY OF CARDINAL) ;
 BEGIN
-   WHILE i<l DO
-      CASE char(s, i) OF
+   WHILE eb.ini < eb.len DO
+      IF Debugging
+      THEN
+         printf0 ("while loop ebnf\n") ;
+         dump (eb)
+      END ;
+      CASE char (eb.in, eb.ini) OF
 
-      '%':  percent(r, s, sym, count, i, l) |
-      '{':  lbra(e, t, r, s, sym, count, i, l) ;
-            IF (i<l) AND (char(s, i)#'}')
+      '%':  percent (eb, sym) |
+      '{':  lbra (eb, sym) ;
+            IF (eb.ini < eb.len) AND (char (eb.in, eb.ini) # '}')
             THEN
-               InternalFormat(s, i, 'expecting to see }')
+               InternalFormat (eb.in, eb.ini, 'expecting to see }')
             END |
-      '}':  RETURN
+      '}':  InternalFormat (eb.in, eb.ini, 'not expecting to see }')
 
       ELSE
-         IF ((IsWhite(char(s, i)) AND (Length(r)>0) AND (NOT IsWhite(char(r, -1)))) OR
-            (NOT IsWhite(char(s, i)))) AND (count>0)
+         IF ((IsWhite (char (eb.in, eb.ini)) AND (Length (eb.out) > 0) AND
+              (NOT IsWhite (char (eb.out, -1)))) OR
+            (NOT IsWhite (char (eb.in, eb.ini)))) AND (eb.highplus1 > 0)
          THEN
-            r := x(r, ConCatChar(r, char(s, i)))
+            flushColor (eb) ;
+            eb.out := x (eb.out, ConCatChar (eb.out, char (eb.in, eb.ini)))
          END
       END ;
-      INC(i)
+      INC (eb.ini)
+   END ;
+   eb.currentCol := noColor ;
+   flushColor (eb) ;
+   IF Debugging
+   THEN
+      printf0 ("finishing ebnf\n") ;
+      dump (eb)
    END
 END ebnf ;
 
 
-(*
-   doFormat -
-*)
-
-PROCEDURE doFormat (VAR e: Error; VAR t: errorType;
-                    s: String; sym: ARRAY OF CARDINAL) : String ;
+PROCEDURE MetaErrorStringT0 (tok: CARDINAL; m: String) ;
 VAR
-   r   : String ;
-   i, l: INTEGER ;
+   eb : errorBlock ;
+   sym: ARRAY [0..0] OF CARDINAL ;
 BEGIN
-   r := InitString('') ;
-   i := 0 ;
-   l := Length(s) ;
-   ebnf(e, t, r, s, sym, HIGH(sym)+1, i, l) ;
-   s := KillString(s) ;
-   RETURN( r )
-END doFormat ;
+   sym[0] := NulSym ;
+   initErrorBlock (eb, m, sym) ;
+   ebnf (eb, sym) ;
+   flushColor (eb) ;
+   eb.e := doError (eb.e, eb.type, tok) ;
+   ErrorString (eb.e, Dup (eb.out)) ;
+   killErrorBlock (eb)
+END MetaErrorStringT0 ;
 
 
 PROCEDURE MetaErrorStringT1 (tok: CARDINAL; m: String; s: CARDINAL) ;
 VAR
-   str: String ;
-   e  : Error ;
+   eb : errorBlock ;
    sym: ARRAY [0..0] OF CARDINAL ;
-   t  : errorType ;
 BEGIN
-   e := NIL ;
    sym[0] := s ;
-   t := error ;
-   str := doFormat(e, t, m, sym) ;
-   e := doError(e, t, tok) ;
-   ErrorString(e, str)
+   initErrorBlock (eb, m, sym) ;
+   ebnf (eb, sym) ;
+   flushColor (eb) ;
+   eb.e := doError (eb.e, eb.type, tok) ;
+   ErrorString (eb.e, Dup (eb.out)) ;
+   killErrorBlock (eb)
 END MetaErrorStringT1 ;
 
 
@@ -806,97 +1135,95 @@ END MetaErrorT1 ;
 
 PROCEDURE MetaErrorStringT2 (tok: CARDINAL; m: String; s1, s2: CARDINAL) ;
 VAR
-   str: String ;
-   e  : Error ;
+   eb : errorBlock ;
    sym: ARRAY [0..1] OF CARDINAL ;
-   t  : errorType ;
 BEGIN
-   e := NIL ;
    sym[0] := s1 ;
    sym[1] := s2 ;
-   t := error ;
-   str := doFormat(e, t, m, sym) ;
-   e := doError(e, t, tok) ;
-   ErrorString(e, str)
+   initErrorBlock (eb, m, sym) ;
+   ebnf (eb, sym) ;
+   flushColor (eb) ;
+   eb.e := doError (eb.e, eb.type, tok) ;
+   ErrorString (eb.e, Dup (eb.out)) ;
+   killErrorBlock (eb)
 END MetaErrorStringT2 ;
 
 
 PROCEDURE MetaErrorT2 (tok: CARDINAL; m: ARRAY OF CHAR; s1, s2: CARDINAL) ;
 BEGIN
-   MetaErrorStringT2(tok, InitString(m), s1, s2)
+   MetaErrorStringT2 (tok, InitString (m), s1, s2)
 END MetaErrorT2 ;
 
 
 PROCEDURE MetaErrorStringT3 (tok: CARDINAL; m: String; s1, s2, s3: CARDINAL) ;
 VAR
-   str: String ;
-   e  : Error ;
+   eb : errorBlock ;
    sym: ARRAY [0..2] OF CARDINAL ;
-   t  : errorType ;
 BEGIN
-   e := NIL ;
    sym[0] := s1 ;
    sym[1] := s2 ;
    sym[2] := s3 ;
-   t := error ;
-   str := doFormat(e, t, m, sym) ;
-   e := doError(e, t, tok) ;
-   ErrorString(e, str)
+   initErrorBlock (eb, m, sym) ;
+   eb.highplus1 := HIGH (sym) + 1 ;
+   ebnf (eb, sym) ;
+   flushColor (eb) ;
+   eb.e := doError (eb.e, eb.type, tok) ;
+   ErrorString (eb.e, Dup (eb.out)) ;
+   killErrorBlock (eb)
 END MetaErrorStringT3 ;
 
 
 PROCEDURE MetaErrorT3 (tok: CARDINAL; m: ARRAY OF CHAR; s1, s2, s3: CARDINAL) ;
 BEGIN
-   MetaErrorStringT3(tok, InitString(m), s1, s2, s3) ;
+   MetaErrorStringT3 (tok, InitString (m), s1, s2, s3) ;
 END MetaErrorT3 ;
 
 
 PROCEDURE MetaErrorStringT4 (tok: CARDINAL; m: String; s1, s2, s3, s4: CARDINAL) ;
 VAR
-   str: String ;
-   e  : Error ;
+   eb : errorBlock ;
    sym: ARRAY [0..3] OF CARDINAL ;
-   t  : errorType ;
 BEGIN
-   e := NIL ;
    sym[0] := s1 ;
    sym[1] := s2 ;
    sym[2] := s3 ;
    sym[3] := s4 ;
-   t := error ;
-   str := doFormat(e, t, m, sym) ;
-   e := doError(e, t, tok) ;
-   ErrorString(e, str)
+   initErrorBlock (eb, m, sym) ;
+   ebnf (eb, sym) ;
+   flushColor (eb) ;
+   eb.e := doError (eb.e, eb.type, tok) ;
+   ErrorString (eb.e, Dup (eb.out)) ;
+   killErrorBlock (eb)
 END MetaErrorStringT4 ;
 
 
 PROCEDURE MetaErrorT4 (tok: CARDINAL; m: ARRAY OF CHAR; s1, s2, s3, s4: CARDINAL) ;
 BEGIN
-   MetaErrorStringT4(tok, InitString(m), s1, s2, s3, s4) ;
+   MetaErrorStringT4 (tok, InitString (m), s1, s2, s3, s4) ;
 END MetaErrorT4 ;
 
 
 PROCEDURE MetaError1 (m: ARRAY OF CHAR; s: CARDINAL) ;
 BEGIN
-   MetaErrorT1(GetTokenNo(), m, s)
+   MetaErrorT1 (GetTokenNo (), m, s)
 END MetaError1 ;
 
 
 PROCEDURE MetaError2 (m: ARRAY OF CHAR; s1, s2: CARDINAL) ;
 BEGIN
-   MetaErrorT2(GetTokenNo(), m, s1, s2)
+   MetaErrorT2 (GetTokenNo (), m, s1, s2)
 END MetaError2 ;
 
 
 PROCEDURE MetaError3 (m: ARRAY OF CHAR; s1, s2, s3: CARDINAL) ;
 BEGIN
-   MetaErrorT3(GetTokenNo(), m, s1, s2, s3)
+   MetaErrorT3 (GetTokenNo (), m, s1, s2, s3)
 END MetaError3 ;
 
 
 PROCEDURE MetaError4 (m: ARRAY OF CHAR; s1, s2, s3, s4: CARDINAL) ;
 BEGIN
-   MetaErrorT4(GetTokenNo(), m, s1, s2, s3, s4)
+   MetaErrorT4 (GetTokenNo (), m, s1, s2, s3, s4)
 END MetaError4 ;
 
 
@@ -908,24 +1235,21 @@ PROCEDURE wrapErrors (tok: CARDINAL;
                       m1, m2: ARRAY OF CHAR;
                       sym: ARRAY OF CARDINAL) ;
 VAR
-   e, f: Error ;
-   str : String ;
-   t   : errorType ;
+   eb : errorBlock ;
 BEGIN
-   e := NIL ;
-   t := error ;
-   str := doFormat(e, t, InitString(m1), sym) ;
-   e := doError(e, t, tok) ;
-   ErrorString(e, str) ;
-   f := e ;
-   t := chained ;
-   str := doFormat(f, t, InitString(m2), sym) ;
-   IF e=f
-   THEN
-      t := chained ;
-      f := doError(e, t, tok)
-   END ;
-   ErrorString(f, str)
+   initErrorBlock (eb, InitString (m1), sym) ;
+   ebnf (eb, sym) ;
+   flushColor (eb) ;
+   eb.e := doError (eb.e, eb.type, tok) ;
+   ErrorString (eb.e, Dup (eb.out)) ;
+   killErrorBlock (eb) ;
+   initErrorBlock (eb, InitString (m2), sym) ;
+   eb.type := chained ;
+   ebnf (eb, sym) ;
+   flushColor (eb) ;
+   eb.e := doError (eb.e, eb.type, tok) ;
+   ErrorString (eb.e, Dup (eb.out)) ;
+   killErrorBlock (eb)
 END wrapErrors ;
 
 
@@ -934,7 +1258,7 @@ VAR
    sym: ARRAY [0..0] OF CARDINAL ;
 BEGIN
    sym[0] := s ;
-   wrapErrors(tok, m1, m2, sym)
+   wrapErrors (tok, m1, m2, sym)
 END MetaErrorsT1 ;
 
 
@@ -944,7 +1268,7 @@ VAR
 BEGIN
    sym[0] := s1 ;
    sym[1] := s2 ;
-   wrapErrors(tok, m1, m2, sym)
+   wrapErrors (tok, m1, m2, sym)
 END MetaErrorsT2 ;
 
 
@@ -955,7 +1279,7 @@ BEGIN
    sym[0] := s1 ;
    sym[1] := s2 ;
    sym[2] := s3 ;
-   wrapErrors(tok, m1, m2, sym)
+   wrapErrors (tok, m1, m2, sym)
 END MetaErrorsT3 ;
 
 
@@ -967,55 +1291,55 @@ BEGIN
    sym[1] := s2 ;
    sym[2] := s3 ;
    sym[3] := s4 ;
-   wrapErrors(tok, m1, m2, sym)
+   wrapErrors (tok, m1, m2, sym)
 END MetaErrorsT4 ;
 
 
 PROCEDURE MetaErrors1 (m1, m2: ARRAY OF CHAR; s: CARDINAL) ;
 BEGIN
-   MetaErrorsT1(GetTokenNo(), m1, m2, s)
+   MetaErrorsT1 (GetTokenNo (), m1, m2, s)
 END MetaErrors1 ;
 
 
 PROCEDURE MetaErrors2 (m1, m2: ARRAY OF CHAR; s1, s2: CARDINAL) ;
 BEGIN
-   MetaErrorsT2(GetTokenNo(), m1, m2, s1, s2)
+   MetaErrorsT2 (GetTokenNo (), m1, m2, s1, s2)
 END MetaErrors2 ;
 
 
 PROCEDURE MetaErrors3 (m1, m2: ARRAY OF CHAR; s1, s2, s3: CARDINAL) ;
 BEGIN
-   MetaErrorsT3(GetTokenNo(), m1, m2, s1, s2, s3)
+   MetaErrorsT3 (GetTokenNo (), m1, m2, s1, s2, s3)
 END MetaErrors3 ;
 
 
 PROCEDURE MetaErrors4 (m1, m2: ARRAY OF CHAR; s1, s2, s3, s4: CARDINAL) ;
 BEGIN
-   MetaErrorsT4(GetTokenNo(), m1, m2, s1, s2, s3, s4)
+   MetaErrorsT4 (GetTokenNo (), m1, m2, s1, s2, s3, s4)
 END MetaErrors4 ;
 
 
 PROCEDURE MetaErrorString1 (m: String; s: CARDINAL) ;
 BEGIN
-   MetaErrorStringT1(GetTokenNo(), m, s)
+   MetaErrorStringT1 (GetTokenNo (), m, s)
 END MetaErrorString1 ;
 
 
 PROCEDURE MetaErrorString2 (m: String; s1, s2: CARDINAL) ;
 BEGIN
-   MetaErrorStringT2(GetTokenNo(), m, s1, s2)
+   MetaErrorStringT2 (GetTokenNo (), m, s1, s2)
 END MetaErrorString2 ;
 
 
 PROCEDURE MetaErrorString3 (m: String; s1, s2, s3: CARDINAL) ;
 BEGIN
-   MetaErrorStringT3(GetTokenNo(), m, s1, s2, s3)
+   MetaErrorStringT3 (GetTokenNo (), m, s1, s2, s3)
 END MetaErrorString3 ;
 
 
 PROCEDURE MetaErrorString4 (m: String; s1, s2, s3, s4: CARDINAL) ;
 BEGIN
-   MetaErrorStringT4(GetTokenNo(), m, s1, s2, s3, s4)
+   MetaErrorStringT4 (GetTokenNo (), m, s1, s2, s3, s4)
 END MetaErrorString4 ;
 
 

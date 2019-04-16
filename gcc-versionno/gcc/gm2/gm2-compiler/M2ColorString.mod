@@ -26,6 +26,7 @@ FROM DynamicStrings IMPORT InitString, InitStringCharStar,
                            ConCat, ConCatChar, Mark, string, KillString,
                            Dup, char, Length, Mult ;
 FROM StrLib IMPORT StrLen ;
+FROM libc IMPORT printf ;
 
 
 CONST
@@ -33,34 +34,39 @@ CONST
 
 
 (*
-   quoteBegin - adds an open quote to string, s.
+   append - appends color string, name, to the end of string, s,
+            and returns, s.
 *)
 
-PROCEDURE quoteBegin (s: String) : String ;
+PROCEDURE append (s: String; name: ARRAY OF CHAR) : String ;
 VAR
    c: String ;
 BEGIN
-   c := InitStringCharStar (colorize_start (EnableColor, "quote", StrLen ("quote"))) ;
-   s := ConCat (s, c) ;
-   c := KillString (c) ;
-   RETURN ConCat (s, Mark (InitString ("‘")))
-END quoteBegin ;
-
-
-(*
-   quoteEnd - adds a close quote to string, s.
-*)
-
-PROCEDURE quoteEnd (s: String) : String ;
-VAR
-   c: String ;
-BEGIN
-   s := ConCat (s, Mark (InitString ("’"))) ;
-   c := InitStringCharStar (colorize_stop (EnableColor)) ;
+   c := InitStringCharStar (colorize_start (EnableColor, name, StrLen (name))) ;
    s := ConCat (s, c) ;
    c := KillString (c) ;
    RETURN s
-END quoteEnd ;
+END append ;
+
+
+(*
+   quoteOpen - adds an open quote to string, s.
+*)
+
+PROCEDURE quoteOpen (s: String) : String ;
+BEGIN
+   RETURN ConCat (append (s, "quote"), Mark (InitString ("‘")))
+END quoteOpen ;
+
+
+(*
+   quoteClose - adds a close quote to string, s.
+*)
+
+PROCEDURE quoteClose (s: String) : String ;
+BEGIN
+   RETURN endColor (ConCat (s, Mark (InitString ("’"))))
+END quoteClose ;
 
 
 (*
@@ -79,203 +85,113 @@ END endColor ;
 
 
 (*
-   errorBegin - adds error color to string, s.
+   quoteColor - adds quote color to string, s.
 *)
 
-PROCEDURE errorBegin (s: String) : String ;
-VAR
-   c: String ;
+PROCEDURE quoteColor (s: String) : String ;
 BEGIN
-   c := InitStringCharStar (colorize_start (EnableColor, "error", StrLen ("error"))) ;
-   s := ConCat (s, c) ;
-   c := KillString (c) ;
-   RETURN s
-END errorBegin ;
+   RETURN append (s, "quote")
+END quoteColor ;
 
 
 (*
-   errorEnd - adds the end error color to string, s.
+   errorColor - adds error color to string, s.
 *)
 
-PROCEDURE errorEnd (s: String) : String ;
+PROCEDURE errorColor (s: String) : String ;
 BEGIN
-   RETURN endColor (s)
-END errorEnd ;
+   RETURN append (s, "error")
+END errorColor ;
 
 
 (*
-   warningBegin - adds warning color to string, s.
+   warningColor - adds warning color to string, s.
 *)
 
-PROCEDURE warningBegin (s: String) : String ;
-VAR
-   c: String ;
+PROCEDURE warningColor (s: String) : String ;
 BEGIN
-   c := InitStringCharStar (colorize_start (EnableColor, "warning", StrLen ("warning"))) ;
-   s := ConCat (s, c) ;
-   c := KillString (c) ;
-   RETURN s
-END warningBegin ;
+   RETURN append (s, "warning")
+END warningColor ;
 
 
 (*
-   warningEnd - adds the end warning color to string, s.
+   noteColor - adds note color to string, s.
 *)
 
-PROCEDURE warningEnd (s: String) : String ;
+PROCEDURE noteColor (s: String) : String ;
 BEGIN
-   RETURN endColor (s)
-END warningEnd ;
+   RETURN append (s, "note")
+END noteColor ;
 
 
 (*
-   noteBegin - adds note color to string, s.
+   locusColor - adds locus color to string, s.
 *)
 
-PROCEDURE noteBegin (s: String) : String ;
-VAR
-   c: String ;
+PROCEDURE locusColor (s: String) : String ;
 BEGIN
-   c := InitStringCharStar (colorize_start (EnableColor, "note", StrLen ("note"))) ;
-   s := ConCat (s, c) ;
-   c := KillString (c) ;
-   RETURN s
-END noteBegin ;
+   RETURN append (s, "locus")
+END locusColor ;
 
 
 (*
-   noteEnd - adds the end note color to string, s.
+   insertColor - adds fixit-insert color to string, s.
 *)
 
-PROCEDURE noteEnd (s: String) : String ;
+PROCEDURE insertColor (s: String) : String ;
 BEGIN
-   RETURN endColor (s)
-END noteEnd ;
+   RETURN append (s, "fixit-insert")
+END insertColor ;
 
 
 (*
-   locusBegin - adds locus color to string, s.
+   deleteColor - adds fixit-insert color to string, s.
 *)
 
-PROCEDURE locusBegin (s: String) : String ;
-VAR
-   c: String ;
+PROCEDURE deleteColor (s: String) : String ;
 BEGIN
-   c := InitStringCharStar (colorize_start (EnableColor, "locus", StrLen ("locus"))) ;
-   s := ConCat (s, c) ;
-   c := KillString (c) ;
-   RETURN s
-END locusBegin ;
+   RETURN append (s, "fixit-delete")
+END deleteColor ;
 
 
 (*
-   locusEnd - adds the end locus color to string, s.
+   filenameColor - adds filename color to string, s.
 *)
 
-PROCEDURE locusEnd (s: String) : String ;
+PROCEDURE filenameColor (s: String) : String ;
 BEGIN
-   RETURN endColor (s)
-END locusEnd ;
+   RETURN append (s, "diff-filename")
+END filenameColor ;
 
 
 (*
-   fixitInsertBegin - adds fixit-insert color to string, s.
+   typeColor - adds type color to string, s.
 *)
 
-PROCEDURE fixitInsertBegin (s: String) : String ;
-VAR
-   c: String ;
+PROCEDURE typeColor (s: String) : String ;
 BEGIN
-   c := InitStringCharStar (colorize_start (EnableColor, "fixit-insert", StrLen ("fixit-insert"))) ;
-   s := ConCat (s, c) ;
-   c := KillString (c) ;
-   RETURN s
-END fixitInsertBegin ;
+   RETURN append (s, "type")
+END typeColor ;
 
 
 (*
-   fixitInsertEnd - adds the end fixit-insert color to string, s.
+   range1Color - adds type color to string, s.
 *)
 
-PROCEDURE fixitInsertEnd (s: String) : String ;
+PROCEDURE range1Color (s: String) : String ;
 BEGIN
-   RETURN endColor (s)
-END fixitInsertEnd ;
+   RETURN append (s, "range1")
+END range1Color ;
 
 
 (*
-   fixitInsertBegin - adds fixit-insert color to string, s.
+   range2Color - adds type color to string, s.
 *)
 
-PROCEDURE fixitDeleteBegin (s: String) : String ;
-VAR
-   c: String ;
+PROCEDURE range2Color (s: String) : String ;
 BEGIN
-   c := InitStringCharStar (colorize_start (EnableColor, "fixit-delete", StrLen ("fixit-delete"))) ;
-   s := ConCat (s, c) ;
-   c := KillString (c) ;
-   RETURN s
-END fixitDeleteBegin ;
-
-
-(*
-   fixitDeleteEnd - adds the end fixit-delete color to string, s.
-*)
-
-PROCEDURE fixitDeleteEnd (s: String) : String ;
-BEGIN
-   RETURN endColor (s)
-END fixitDeleteEnd ;
-
-
-(*
-   filenameBegin - adds filename color to string, s.
-*)
-
-PROCEDURE filenameBegin (s: String) : String ;
-VAR
-   c: String ;
-BEGIN
-   c := InitStringCharStar (colorize_start (EnableColor, "diff-filename", StrLen ("diff-filename"))) ;
-   s := ConCat (s, c) ;
-   c := KillString (c) ;
-   RETURN s
-END filenameBegin ;
-
-
-(*
-   filenameEnd - adds the end filename color to string, s.
-*)
-
-PROCEDURE filenameEnd (s: String) : String ;
-BEGIN
-   RETURN endColor (s)
-END filenameEnd ;
-
-
-(*
-   typeBegin - adds type color to string, s.
-*)
-
-PROCEDURE typeBegin (s: String) : String ;
-VAR
-   c: String ;
-BEGIN
-   c := InitStringCharStar (colorize_start (EnableColor, "type-diff", StrLen ("type-diff"))) ;
-   s := ConCat (s, c) ;
-   c := KillString (c) ;
-   RETURN s
-END typeBegin ;
-
-
-(*
-   typeEnd - adds the end type color to string, s.
-*)
-
-PROCEDURE typeEnd (s: String) : String ;
-BEGIN
-   RETURN endColor (s)
-END typeEnd ;
+   RETURN append (s, "range2")
+END range2Color ;
 
 
 END M2ColorString.

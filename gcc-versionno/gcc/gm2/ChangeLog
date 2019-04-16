@@ -1,3 +1,16 @@
+2019-04-16      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2ColorString.def:  rewritten.
+	* gm2/gm2-compiler/M2ColorString.mod:  rewritten.
+	* gm2/gm2-compiler/M2Error.def:  New procedures (NewNote) and (SetColor).
+	* gm2/gm2-compiler/M2Error.mod:  New procedures (NewNote) and
+          (SetColor) implemented.  Also enable colors in legacy error messages.
+	* gm2/gm2-compiler/M2MetaError.def:  added {%O}, {%K} %< and %>.
+	* gm2/gm2-compiler/M2MetaError.mod:  implemented {%O}, %< and
+          %> and fixed many bugs.
+	* gm2/gm2-compiler/SymbolTable.mod:  rewritten undefined symbol error
+          messages to use M2MetaError.
+
 2019-04-14      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/CLexBuf.def:  added summary and dates for GPL.

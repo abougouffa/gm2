@@ -34,129 +34,101 @@ FROM DynamicStrings IMPORT String ;
 
 
 (*
-   quoteBegin - adds an open quote to string, s.
+   quoteOpen - adds an open quote to string, s.
 *)
 
-PROCEDURE quoteBegin (s: String) : String ;
+PROCEDURE quoteOpen (s: String) : String ;
 
 
 (*
-   quoteEnd - adds a close quote to string, s.
+   quoteClose - adds a close quote to string, s.
 *)
 
-PROCEDURE quoteEnd (s: String) : String ;
+PROCEDURE quoteClose (s: String) : String ;
 
 
 (*
-   errorBegin - adds error color to string, s.
+   endColor - stops using color.
 *)
 
-PROCEDURE errorBegin (s: String) : String ;
+PROCEDURE endColor (s: String) : String ;
 
 
 (*
-   errorEnd - adds the end error color to string, s.
+   quoteColor - adds quote color to string, s.
 *)
 
-PROCEDURE errorEnd (s: String) : String ;
+PROCEDURE quoteColor (s: String) : String ;
 
 
 (*
-   warningBegin - adds warning color to string, s.
+   errorColor - adds error color to string, s.
 *)
 
-PROCEDURE warningBegin (s: String) : String ;
+PROCEDURE errorColor (s: String) : String ;
 
 
 (*
-   warningEnd - adds the end warning color to string, s.
+   warningColor - adds warning color to string, s.
 *)
 
-PROCEDURE warningEnd (s: String) : String ;
+PROCEDURE warningColor (s: String) : String ;
 
 
 (*
-   noteBegin - adds note color to string, s.
+   noteColor - adds note color to string, s.
 *)
 
-PROCEDURE noteBegin (s: String) : String ;
+PROCEDURE noteColor (s: String) : String ;
 
 
 (*
-   noteEnd - adds the end note color to string, s.
+   locusColor - adds locus color to string, s.
 *)
 
-PROCEDURE noteEnd (s: String) : String ;
+PROCEDURE locusColor (s: String) : String ;
 
 
 (*
-   locusBegin - adds locus color to string, s.
+   insertColor - adds fixit-insert color to string, s.
 *)
 
-PROCEDURE locusBegin (s: String) : String ;
+PROCEDURE insertColor (s: String) : String ;
 
 
 (*
-   locusEnd - adds the end locus color to string, s.
+   deleteColor - adds fixit-insert color to string, s.
 *)
 
-PROCEDURE locusEnd (s: String) : String ;
+PROCEDURE deleteColor (s: String) : String ;
 
 
 (*
-   fixitInsertBegin - adds fixit-insert color to string, s.
+   filenameColor - adds filename color to string, s.
 *)
 
-PROCEDURE fixitInsertBegin (s: String) : String ;
+PROCEDURE filenameColor (s: String) : String ;
 
 
 (*
-   fixitInsertEnd - adds the end fixit-insert color to string, s.
+   typeColor - adds type color to string, s.
 *)
 
-PROCEDURE fixitInsertEnd (s: String) : String ;
+PROCEDURE typeColor (s: String) : String ;
 
 
 (*
-   fixitInsertBegin - adds fixit-insert color to string, s.
+   range1Color - adds type color to string, s.
 *)
 
-PROCEDURE fixitDeleteBegin (s: String) : String ;
+PROCEDURE range1Color (s: String) : String ;
 
 
 (*
-   fixitDeleteEnd - adds the end fixit-delete color to string, s.
+   range2Color - adds type color to string, s.
 *)
 
-PROCEDURE fixitDeleteEnd (s: String) : String ;
-
-
-(*
-   filenameBegin - adds filename color to string, s.
-*)
-
-PROCEDURE filenameBegin (s: String) : String ;
-
-
-(*
-   filenameEnd - adds the end filename color to string, s.
-*)
-
-PROCEDURE filenameEnd (s: String) : String ;
-
-
-(*
-   typeBegin - adds type color to string, s.
-*)
-
-PROCEDURE typeBegin (s: String) : String ;
-
-
-(*
-   typeEnd - adds the end type color to string, s.
-*)
-
-PROCEDURE typeEnd (s: String) : String ;
+PROCEDURE range2Color (s: String) : String ;
 
 
 END M2ColorString.

@@ -36,7 +36,7 @@ EXPORT QUALIFIED Error,
                  WriteFormat0, WriteFormat1, WriteFormat2, WriteFormat3,
                  NewError, ErrorFormat0, ErrorFormat1, ErrorFormat2, ErrorFormat3,
                  ErrorString,
-                 NewWarning,
+                 NewWarning, NewNote, SetColor,
                  FlushErrors, FlushWarnings, ChainError,
                  ErrorStringAt, ErrorStringAt2, ErrorStringsAt2,
                  WarnStringAt, WarnStringAt2, WarnStringsAt2,
@@ -115,11 +115,29 @@ PROCEDURE NewWarning (AtTokenNo: CARDINAL) : Error ;
 
 
 (*
+   NewNote - creates and returns a new error handle suitable for a note.
+             A note will not stop compilation.
+*)
+
+PROCEDURE NewNote (AtTokenNo: CARDINAL) : Error ;
+
+
+(*
    ChainError - creates and returns a new error handle, this new error
                 is associated with, e, and is chained onto the end of, e.
 *)
 
 PROCEDURE ChainError (AtTokenNo: CARDINAL; e: Error) : Error ;
+
+
+(*
+   SetColor - informs the error module that this error will have had colors
+              assigned to it.  If an error is issued without colors assigned
+              then the default colors will be assigned to the legacy error
+              messages.
+*)
+
+PROCEDURE SetColor (e: Error) : Error ;
 
 
 (*
