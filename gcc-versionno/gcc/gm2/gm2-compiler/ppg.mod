@@ -162,6 +162,7 @@ VAR
    LastLineNo         : CARDINAL ;
    Finished,
    SuppressFileLineTag,
+   KeywordFormatting,
    PrettyPrint,
    EmitCode,
    Texinfo,
@@ -2116,6 +2117,27 @@ END IndentString ;
 
 
 (*
+   KeyWord - writes out a keywork with optional formatting directives.
+*)
+
+PROCEDURE KeyWord (n: Name) ;
+BEGIN
+   IF KeywordFormatting
+   THEN
+      WriteString('{%K') ;
+      IF n = MakeKey('}')
+      THEN
+         Write('%')   (* escape the } *)
+      END ;
+      WriteKey(n) ;
+      Write('}')
+   ELSE
+      WriteKey(n)
+   END
+END KeyWord ;
+
+
+(*
    PrettyPara -
 *)
 
@@ -2516,14 +2538,15 @@ BEGIN
             id  :  Write("'") ; WriteKey(ident^.name) ; WriteString(' - expected') ; WriteString("') ;") |
             lit :  IF MakeKey("'")=string
                    THEN
-                      Write('"') ; WriteKey(string) ;
+                      Write('"') ;
+                      KeyWord(string) ;
                       WriteString(' - expected') ; WriteString('") ;')
                    ELSIF MakeKey('"')=string
                    THEN
-                      Write("'") ; WriteKey(string) ;
+                      Write("'") ; KeyWord(string) ;
                       WriteString(' - expected') ; WriteString("') ;")
                    ELSE
-                      Write('"') ; Write("'") ; WriteKey(string) ; WriteString("' - expected") ;
+                      Write('"') ; Write("'") ; KeyWord(string) ; WriteString("' - expected") ;
                       WriteString('") ;')
                    END
 
@@ -3408,7 +3431,7 @@ BEGIN
                     THEN
                        WriteString('single quote')
                     ELSE
-                       WriteKey(GetSymKey(ReverseAliases, string))
+                       KeyWord(GetSymKey(ReverseAliases, string))
                     END
                  END |
          litel:  IF (high=0) OR IsBetween(GetSymKey(Aliases, string), low, high)
@@ -4669,7 +4692,7 @@ BEGIN
       Write("'") ; Write('"') ; Write("'") ; WriteString('), Mark(str))')
    ELSE
       WriteString("str := ConCat(InitString(") ; Write('"') ;
-      WriteString("syntax error, found `") ; WriteKey(lit) ; Write("'") ; WriteString('"), Mark(str))')
+      WriteString("syntax error, found `") ; KeyWord(lit) ; Write("'") ; WriteString('"), Mark(str))')
    END
 END DescribeElement ;
 
@@ -5278,9 +5301,10 @@ PROCEDURE ParseArgs ;
 VAR
    n, i: CARDINAL ;
 BEGIN
-   ErrorRecovery := TRUE ;  (* DefaultRecovery ; *)
-   Debugging     := FALSE ;
-   PrettyPrint   := FALSE ;
+   ErrorRecovery     := TRUE ;  (* DefaultRecovery ; *)
+   Debugging         := FALSE ;
+   PrettyPrint       := FALSE ;
+   KeywordFormatting := FALSE ;
    i := 1 ;
    n := Narg() ;
    WHILE i<n DO
@@ -5296,6 +5320,9 @@ BEGIN
          ELSIF StrEqual(FileName, '-c')
          THEN
             EmitCode := FALSE
+         ELSIF StrEqual(FileName, '-k')
+         THEN
+            KeywordFormatting := TRUE
          ELSIF StrEqual(FileName, '-l')
          THEN
             SuppressFileLineTag := TRUE
@@ -5322,11 +5349,12 @@ BEGIN
    END ;
    IF n=1
    THEN
-      WriteString('Usage: ppg [-l] [-c] [-d] [-e] [-t] [-p] [-t] [-f] filename') ; WriteLn ;
+      WriteString('Usage: ppg [-l] [-c] [-d] [-e] [-k] [-t] [-k] [-p] [-t] [-f] filename') ; WriteLn ;
       WriteString('   -l             suppress file and line source information') ; WriteLn ;
       WriteString('   -c             do not generate any Modula-2 code within the parser rules') ; WriteLn ;
       WriteString('   -h or --help   generate this help message') ; WriteLn ;
       WriteString('   -e             do not generate a parser with error recovery') ; WriteLn ;
+      WriteString('   -k             generate keyword errors with GCC formatting directives') ; WriteLn ;
       WriteString('   -d             generate internal debugging information') ; WriteLn ;
       WriteString('   -p             only display the ebnf rules') ; WriteLn ;
       WriteString('   -t             generate texinfo formating for pretty printing (-p)') ; WriteLn ;

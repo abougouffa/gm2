@@ -73,8 +73,8 @@ EXPORT QUALIFIED MetaError1, MetaError2, MetaError3, MetaError4,
     {%p}      pop the current color state.
     {%Ccolor} change color into one of:  none, fixit-delete, fixit-insert,
               locus, filename, type, error, warning, note.
-    {%<}      open quote and color.
-    {%>}      close quote and color.
+    %<        open quote and color.
+    %>        close quote and color.
     %%        %
     %{        {
     %}        }

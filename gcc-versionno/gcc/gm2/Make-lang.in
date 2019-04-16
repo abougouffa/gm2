@@ -2285,22 +2285,22 @@ gm2/gm2-pge-boot/main.o: gm2/gm2-auto/pgeinit
 	$(CC) -g -c -o $@ gm2/gm2-pge-boot/main.c
 
 $(objdir)/gm2/gm2-compiler-paranoid/P0SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) $< > $@
+	./gm2/pge$(exeext) -k $< > $@
 
 $(objdir)/gm2/gm2-compiler-paranoid/P1Build.mod: $(srcdir)/gm2/bnf/m2-1.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) $< > $@
+	./gm2/pge$(exeext) -k $< > $@
 
 $(objdir)/gm2/gm2-compiler-paranoid/P2Build.mod: $(srcdir)/gm2/bnf/m2-2.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) $< > $@
+	./gm2/pge$(exeext) -k $< > $@
 
 $(objdir)/gm2/gm2-compiler-paranoid/PCBuild.mod: $(srcdir)/gm2/bnf/m2-c.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) -l $< > $@
+	./gm2/pge$(exeext) -k -l $< > $@
 
 $(objdir)/gm2/gm2-compiler-paranoid/P3Build.mod: $(srcdir)/gm2/bnf/m2-3.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) $< > $@
+	./gm2/pge$(exeext) -k $< > $@
 
 $(objdir)/gm2/gm2-compiler-paranoid/PHBuild.mod: $(srcdir)/gm2/bnf/m2-h.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) $< > $@
+	./gm2/pge$(exeext) -k $< > $@
 
 $(objdir)/gm2/gm2-compiler-paranoid/gm2l.mod: $(srcdir)/gm2/bnf/gm2l.bnf gm2/pge$(exeext)
 	./gm2/pge$(exeext) $< > $@
@@ -2312,22 +2312,22 @@ $(objdir)/gm2/gm2-compiler-paranoid/h2def.mod: $(srcdir)/gm2/bnf/h2def.bnf gm2/p
 	./gm2/pge$(exeext) -l $< > $@
 
 $(objdir)/gm2/gm2-compiler/P0SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) $< > $@
+	./gm2/pge$(exeext) -k $< > $@
 
 $(objdir)/gm2/gm2-compiler/P1Build.mod: $(srcdir)/gm2/bnf/m2-1.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) $< > $@
+	./gm2/pge$(exeext) -k $< > $@
 
 $(objdir)/gm2/gm2-compiler/P2Build.mod: $(srcdir)/gm2/bnf/m2-2.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) $< > $@
+	./gm2/pge$(exeext) -k $< > $@
 
 $(objdir)/gm2/gm2-compiler/PCBuild.mod: $(srcdir)/gm2/bnf/m2-c.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) -l $< > $@
+	./gm2/pge$(exeext) -k -l $< > $@
 
 $(objdir)/gm2/gm2-compiler/P3Build.mod: $(srcdir)/gm2/bnf/m2-3.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) $< > $@
+	./gm2/pge$(exeext) -k $< > $@
 
 $(objdir)/gm2/gm2-compiler/PHBuild.mod: $(srcdir)/gm2/bnf/m2-h.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) $< > $@
+	./gm2/pge$(exeext) -k $< > $@
 
 $(objdir)/gm2/gm2-compiler/gm2l.mod: $(srcdir)/gm2/bnf/gm2l.bnf gm2/pge$(exeext)
 	./gm2/pge$(exeext) $< > $@
@@ -2339,22 +2339,22 @@ $(objdir)/gm2/gm2-compiler/h2def.mod: $(srcdir)/gm2/bnf/h2def.bnf gm2/pge$(exeex
 	./gm2/pge$(exeext) -l $< > $@
 
 $(objdir)/gm2/gm2-compiler-boot/P0SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) $< > $@
+	./gm2/pge$(exeext) -k $< > $@
 
 $(objdir)/gm2/gm2-compiler-boot/P1Build.mod: $(srcdir)/gm2/bnf/m2-1.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) $< > $@
+	./gm2/pge$(exeext) -k $< > $@
 
 $(objdir)/gm2/gm2-compiler-boot/P2Build.mod: $(srcdir)/gm2/bnf/m2-2.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) $< > $@
+	./gm2/pge$(exeext) -k $< > $@
 
 $(objdir)/gm2/gm2-compiler-boot/PCBuild.mod: $(srcdir)/gm2/bnf/m2-c.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) -l $< > $@
+	./gm2/pge$(exeext) -k -l $< > $@
 
 $(objdir)/gm2/gm2-compiler-boot/P3Build.mod: $(srcdir)/gm2/bnf/m2-3.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) $< > $@
+	./gm2/pge$(exeext) -k $< > $@
 
 $(objdir)/gm2/gm2-compiler-boot/PHBuild.mod: $(srcdir)/gm2/bnf/m2-h.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) $< > $@
+	./gm2/pge$(exeext) -k $< > $@
 
 $(objdir)/gm2/gm2-compiler-boot/gm2l.mod: $(srcdir)/gm2/bnf/gm2l.bnf gm2/pge$(exeext)
 	./gm2/pge$(exeext) $< > $@

@@ -10,6 +10,16 @@
           %> and fixed many bugs.
 	* gm2/gm2-compiler/SymbolTable.mod:  rewritten undefined symbol error
           messages to use M2MetaError.
+	* gm2/Make-lang.in:  make ppg use the -k option.
+	* gm2/gm2-compiler/M2GenGCC.mod:  use MetaError and simplify the
+          error reporting.
+	* gm2/gm2-compiler/M2MetaError.def:  correct comments.
+	* gm2/gm2-compiler/M2MetaError.mod:  handle the keyword and
+          default all messages to the error color.
+	* gm2/gm2-compiler/SymbolTable.mod:  use MetaError and tidied up
+	  UndeclaredSymbolError and callees.
+	* gm2/gm2-compiler/ppg.mod:  implement the -k option to generate
+	  GCC error formatting directives.
 
 2019-04-14      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

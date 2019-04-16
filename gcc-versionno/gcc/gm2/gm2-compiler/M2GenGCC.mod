@@ -2727,41 +2727,9 @@ END CodeCatchEnd ;
 
 PROCEDURE DescribeTypeError (token: CARDINAL;
                              op1, op2: CARDINAL) ;
-VAR
-   s1, s2, s3: String ;
 BEGIN
-   s1 := NIL ;
-   s2 := NIL ;
-   IF IsTemporary(op1)
-   THEN
-      IF (GetType(op1)#NulSym) AND (GetSymName(GetType(op1))#NulName)
-      THEN
-         s3 := InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1)))) ;
-         s1 := Mark(Sprintf1(Mark(InitString('symbol of type %s')), s3))
-      END
-   ELSE
-      s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1)))))
-   END ;
-
-   IF IsTemporary(op2)
-   THEN
-      IF (GetType(op2)#NulSym) AND (GetSymName(GetType(op2))#NulName)
-      THEN
-         s3 := InitStringCharStar(KeyToCharStar(GetSymName(GetType(op2)))) ;
-         s2 := Mark(Sprintf1(Mark(InitString('symbol of type %s')), s3))
-      END
-   ELSE
-      s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op2)))))
-   END ;
-   IF (s1#NIL) AND (s2#NIL)
-   THEN
-      ErrorStringAt(Sprintf2(Mark(InitString('incompatible set types in assignment, assignment between (%s) and (%s)')),
-                             s1, s2),
-                    token)
-   ELSE
-      ErrorStringAt(InitString('incompatible set types in assignment'),
-                    token)
-   END
+   MetaErrorT2(token, 'incompatible set types in assignment, assignment between {%1ERad} and {%2ad}', op1, op2) ;
+   MetaError2('set types are {%1CDtsad} and {%1Dtsad}', op1, op2)
 END DescribeTypeError ;
 
 

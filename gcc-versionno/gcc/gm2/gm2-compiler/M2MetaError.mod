@@ -31,6 +31,7 @@ FROM FIO IMPORT StdOut, WriteLine ;
 FROM SFIO IMPORT WriteS ;
 FROM StringConvert IMPORT ctos ;
 FROM M2Printf IMPORT printf1, printf0 ;
+FROM libc IMPORT printf ;
 FROM SYSTEM IMPORT ADDRESS ;
 
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar,
@@ -71,6 +72,8 @@ TYPE
                    highplus1 : CARDINAL ;
                    len,
                    ini, outi : INTEGER ;
+                   chain,
+                   root,
                    quotes,
                    positive  : BOOLEAN ;
                    cachedCol,               (* the color sent down the device/string.         *)
@@ -79,6 +82,8 @@ TYPE
 VAR
    colorStack: ARRAY [0..MaxStack] OF colorType ;
    stackPtr  : CARDINAL ;
+   lastRoot  : Error ;
+   lastColor : colorType ;
 
 
 (*
@@ -101,11 +106,18 @@ PROCEDURE keyword (VAR eb: errorBlock) ;
 BEGIN
    flushColor (eb) ;
    pushColor (eb.currentCol) ;
-   eb.out := M2ColorString.locusColor (eb.out) ;
-   WHILE (eb.ini < eb.len) AND (char (eb.in, eb.ini) = "}") DO
+   eb.currentCol := keywordColor ;
+   flushColor (eb) ;
+   WHILE (eb.ini < eb.len) AND (char (eb.in, eb.ini) # "}") DO
       copyChar (eb) ;
-      INC (eb.ini)
+      INC (eb.ini) ;
+      IF (eb.ini < eb.len) AND (char (eb.in, eb.ini) = "%")
+      THEN
+         INC (eb.ini) ;
+         copyChar (eb)
+      END
    END ;
+   flushColor (eb) ;
    eb.currentCol := popColor ()
 END keyword ;
 
@@ -150,7 +162,7 @@ PROCEDURE initErrorBlock (VAR eb: errorBlock; input: String; sym: ARRAY OF CARDI
 BEGIN
    WITH eb DO
       e          := NIL ;
-      type       := none ;
+      type       := error ;  (* default to the error color.  *)
       out        := InitString ('') ;
       in         := input ;
       highplus1  := HIGH (sym) + 1 ;
@@ -159,6 +171,8 @@ BEGIN
       outi       := 0 ;
       quotes     := FALSE ;
       positive   := TRUE ;
+      root       := FALSE ;
+      chain      := FALSE ;
       cachedCol  := noColor ;
       currentCol := findColorType (input)
    END
@@ -182,25 +196,27 @@ BEGIN
          IF char (s, i) = "%"
          THEN
             INC (i) ;
-            CASE char (s, i) OF
+            WHILE (i < Length (s)) AND (char (s, i) # "}") DO
+               IF char (s, i) = "%"
+               THEN
+                  INC (i)
+               END ;
+               CASE char (s, i) OF
 
-            '0','1','2','3':  INC (i)
+               "E":  RETURN errorColor |
+               "O":  RETURN noteColor |
+               "W":  RETURN warningColor |
+               "C":  RETURN lastColor
 
-            ELSE
-            END ;
-            CASE char (s, i) OF
-
-            "E":  RETURN errorColor |
-            "O":  RETURN noteColor |
-            "W":  RETURN warningColor
-
-            ELSE
+               ELSE
+               END ;
+               INC (i)
             END
          END
       END ;
       INC (i)
    END ;
-   RETURN noColor
+   RETURN errorColor  (* default to the error color.  *)
 END findColorType ;
 
 
@@ -253,7 +269,7 @@ END killErrorBlock ;
    InternalFormat - produces an informative internal error.
 *)
 
-PROCEDURE InternalFormat (s: String; i: INTEGER; m: ARRAY OF CHAR) ;
+PROCEDURE InternalFormat (s: String; i: INTEGER; m: ARRAY OF CHAR; line: CARDINAL) ;
 VAR
    e: Error ;
 BEGIN
@@ -269,7 +285,7 @@ BEGIN
    s := ConCatChar (s, '^') ;
    s := WriteS (StdOut, s) ;
    WriteLine (StdOut) ;
-   InternalError (m, __FILE__, __LINE__)
+   InternalError (m, __FILE__, line)
 END InternalFormat ;
 
 
@@ -356,7 +372,7 @@ BEGIN
       END ;
       IF (sb.ini < sb.len) AND (char (sb.in, sb.ini) # '}')
       THEN
-         InternalFormat (sb.in, sb.ini, 'expecting to see }')
+         InternalFormat (sb.in, sb.ini, 'expecting to see }', __LINE__)
       END
    END
 END ifNulThen ;
@@ -511,37 +527,57 @@ END doSkipType ;
 
 
 (*
+   doChain -
+*)
+
+PROCEDURE doChain (VAR eb: errorBlock; tok: CARDINAL) ;
+BEGIN
+   IF lastRoot=NIL
+   THEN
+      InternalError('should not be chaining an error onto an empty error note', __FILE__, __LINE__)
+   ELSE
+      eb.e := ChainError (tok, lastRoot)
+   END
+END doChain ;
+
+
+(*
    doError - creates and returns an error note.
 *)
 
-PROCEDURE doError (e: Error; t: errorType; tok: CARDINAL) : Error ;
+PROCEDURE doError (VAR eb: errorBlock; tok: CARDINAL) ;
 BEGIN
-   CASE t OF
-
-   chained:  IF e=NIL
-             THEN
-                InternalError('should not be chaining an error onto an empty error note', __FILE__, __LINE__)
-             ELSE
-                e := ChainError (tok, e)
-             END |
-   none,
-   error  :  IF e=NIL
-             THEN
-                e := NewError (tok)
-             END |
-   warning:  IF e=NIL
-             THEN
-                e := NewWarning (tok)
-             END |
-   note   :  IF e=NIL
-             THEN
-                e := NewNote (tok)
-             END
-
+   IF eb.chain
+   THEN
+      doChain (eb, tok)
    ELSE
-      InternalError('unexpected enumeration value', __FILE__, __LINE__)
+      CASE eb.type OF
+
+      chained:  doChain (eb, tok) |
+      none,
+      error  :  IF eb.e=NIL
+                THEN
+                   eb.e := NewError (tok)
+                END |
+      warning:  IF eb.e=NIL
+                THEN
+                   eb.e := NewWarning (tok)
+                END |
+      note   :  IF eb.e=NIL
+                THEN
+                   eb.e := NewNote (tok)
+                END
+
+      ELSE
+         InternalError('unexpected enumeration value', __FILE__, __LINE__)
+      END
    END ;
-   RETURN SetColor (e)
+   IF eb.root
+   THEN
+      lastRoot := eb.e ;
+      lastColor := findColorType (eb.in)
+   END ;
+   eb.e := SetColor (eb.e)
 END doError ;
 
 
@@ -549,11 +585,11 @@ END doError ;
    declaredDef - creates an error note where sym[bol] was declared.
 *)
 
-PROCEDURE declaredDef (sb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
+PROCEDURE declaredDef (eb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 BEGIN
-   IF bol <= HIGH(sym)
+   IF bol <= HIGH (sym)
    THEN
-      sb.e := doError (sb.e, sb.type, GetDeclaredDef (sym[bol]))
+      doError (eb, GetDeclaredDef (sym[bol]))
    END
 END declaredDef ;
 
@@ -562,11 +598,11 @@ END declaredDef ;
    doDeclaredMod - creates an error note where sym[bol] was declared.
 *)
 
-PROCEDURE declaredMod (sb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
+PROCEDURE declaredMod (eb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 BEGIN
-   IF bol <= HIGH(sym)
+   IF bol <= HIGH (sym)
    THEN
-      sb.e := doError (sb.e, sb.type, GetDeclaredMod (sym[bol]))
+      doError (eb, GetDeclaredMod (sym[bol]))
    END
 END declaredMod ;
 
@@ -575,11 +611,11 @@ END declaredMod ;
    used - creates an error note where sym[bol] was first used.
 *)
 
-PROCEDURE used (sb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
+PROCEDURE used (eb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 BEGIN
-   IF bol <= HIGH(sym)
+   IF bol <= HIGH (sym)
    THEN
-      sb.e := doError (sb.e, sb.type, GetFirstUsed (sym[bol]))
+      doError (eb, GetFirstUsed (sym[bol]))
    END
 END used ;
 
@@ -779,6 +815,7 @@ BEGIN
       END ;
       CASE char (eb.in, eb.ini) OF
 
+      '!':  eb.positive := NOT eb.positive |
       'a':  o := doName (eb, sym, bol, o) |
       'q':  o := doQualified (sym, bol, o) |
       't':  o := doType (sym, bol, o) |
@@ -792,9 +829,11 @@ BEGIN
       'E':  eb.type := error |
       'W':  eb.type := warning |
       'O':  eb.type := note |
+      'C':  eb.chain := TRUE |
+      'R':  eb.root := TRUE |
       'P':  pushColor (eb.currentCol) |
       'p':  eb.currentCol := popColor () |
-      'C':  eb.currentCol := readColor (eb) |
+      'c':  eb.currentCol := readColor (eb) |
       'K':  keyword (eb) |
       ':':  ifNulThen (eb, sym, o) ;
             o := KillString (o) ;
@@ -802,7 +841,7 @@ BEGIN
             DEC (eb.ini)
 
       ELSE
-         InternalFormat (eb.in, eb.ini, 'expecting one of [aqtdnpsCDEKNPOUW:<>%]')
+         InternalFormat (eb.in, eb.ini, 'expecting one of [aqtdnpsCDEKNPOUW:<>%]', __LINE__)
       END ;
       INC (eb.ini)
    END ;
@@ -837,7 +876,6 @@ BEGIN
       INC (eb.ini) ;
       CASE char (eb.in, eb.ini) OF
 
-      '0',
       '1':  INC (eb.ini) ;
             op (eb, sym, 0) |
       '2':  INC (eb.ini) ;
@@ -848,11 +886,11 @@ BEGIN
             op (eb, sym, 3)
 
       ELSE
-         InternalFormat (eb.in, eb.ini, 'expecting one of [1234]')
+         op (eb, sym, 0)
       END ;
       IF (eb.ini < eb.len) AND (char (eb.in, eb.ini) # '}')
       THEN
-         InternalFormat (eb.in, eb.ini, 'expecting to see }')
+         InternalFormat (eb.in, eb.ini, 'expecting to see }', __LINE__)
       END
    END
 END percenttoken ;
@@ -966,12 +1004,12 @@ BEGIN
       END ;
       IF char (eb.in, eb.ini) # '%'
       THEN
-         InternalFormat (eb.in, eb.ini, 'expecting to see %')
+         InternalFormat (eb.in, eb.ini, 'expecting to see %', __LINE__)
       END ;
       percenttoken (eb, sym) ;
       IF (eb.ini < eb.len) AND (char (eb.in, eb.ini) # '}')
       THEN
-         InternalFormat (eb.in, eb.ini, 'expecting to see }')
+         InternalFormat (eb.in, eb.ini, 'expecting to see }', __LINE__)
       END
    END
 END lbra ;
@@ -1068,13 +1106,14 @@ BEGIN
       END ;
       CASE char (eb.in, eb.ini) OF
 
+      '!':  eb.positive := NOT eb.positive |
       '%':  percent (eb, sym) |
       '{':  lbra (eb, sym) ;
             IF (eb.ini < eb.len) AND (char (eb.in, eb.ini) # '}')
             THEN
-               InternalFormat (eb.in, eb.ini, 'expecting to see }')
+               InternalFormat (eb.in, eb.ini, 'expecting to see }', __LINE__)
             END |
-      '}':  InternalFormat (eb.in, eb.ini, 'not expecting to see }')
+      '}':  RETURN
 
       ELSE
          IF ((IsWhite (char (eb.in, eb.ini)) AND (Length (eb.out) > 0) AND
@@ -1106,7 +1145,7 @@ BEGIN
    initErrorBlock (eb, m, sym) ;
    ebnf (eb, sym) ;
    flushColor (eb) ;
-   eb.e := doError (eb.e, eb.type, tok) ;
+   doError (eb, tok) ;
    ErrorString (eb.e, Dup (eb.out)) ;
    killErrorBlock (eb)
 END MetaErrorStringT0 ;
@@ -1121,7 +1160,7 @@ BEGIN
    initErrorBlock (eb, m, sym) ;
    ebnf (eb, sym) ;
    flushColor (eb) ;
-   eb.e := doError (eb.e, eb.type, tok) ;
+   doError (eb, tok) ;
    ErrorString (eb.e, Dup (eb.out)) ;
    killErrorBlock (eb)
 END MetaErrorStringT1 ;
@@ -1143,7 +1182,7 @@ BEGIN
    initErrorBlock (eb, m, sym) ;
    ebnf (eb, sym) ;
    flushColor (eb) ;
-   eb.e := doError (eb.e, eb.type, tok) ;
+   doError (eb, tok) ;
    ErrorString (eb.e, Dup (eb.out)) ;
    killErrorBlock (eb)
 END MetaErrorStringT2 ;
@@ -1167,7 +1206,7 @@ BEGIN
    eb.highplus1 := HIGH (sym) + 1 ;
    ebnf (eb, sym) ;
    flushColor (eb) ;
-   eb.e := doError (eb.e, eb.type, tok) ;
+   doError (eb, tok) ;
    ErrorString (eb.e, Dup (eb.out)) ;
    killErrorBlock (eb)
 END MetaErrorStringT3 ;
@@ -1191,7 +1230,7 @@ BEGIN
    initErrorBlock (eb, m, sym) ;
    ebnf (eb, sym) ;
    flushColor (eb) ;
-   eb.e := doError (eb.e, eb.type, tok) ;
+   doError (eb, tok) ;
    ErrorString (eb.e, Dup (eb.out)) ;
    killErrorBlock (eb)
 END MetaErrorStringT4 ;
@@ -1235,19 +1274,20 @@ PROCEDURE wrapErrors (tok: CARDINAL;
                       m1, m2: ARRAY OF CHAR;
                       sym: ARRAY OF CARDINAL) ;
 VAR
-   eb : errorBlock ;
+   eb: errorBlock ;
 BEGIN
    initErrorBlock (eb, InitString (m1), sym) ;
    ebnf (eb, sym) ;
    flushColor (eb) ;
-   eb.e := doError (eb.e, eb.type, tok) ;
+   doError (eb, tok) ;
+   lastRoot := eb.e ;
    ErrorString (eb.e, Dup (eb.out)) ;
    killErrorBlock (eb) ;
    initErrorBlock (eb, InitString (m2), sym) ;
    eb.type := chained ;
    ebnf (eb, sym) ;
    flushColor (eb) ;
-   eb.e := doError (eb.e, eb.type, tok) ;
+   doError (eb, tok) ;
    ErrorString (eb.e, Dup (eb.out)) ;
    killErrorBlock (eb)
 END wrapErrors ;
@@ -1343,4 +1383,7 @@ BEGIN
 END MetaErrorString4 ;
 
 
+BEGIN
+   lastRoot := NIL ;
+   lastColor := noColor
 END M2MetaError.

@@ -43,7 +43,8 @@ FROM M2Error IMPORT Error, NewError, ChainError, InternalError,
                     ErrorAbort0, FlushErrors ;
 
 FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3, MetaErrors1,
-                        MetaErrorStringT0, MetaErrorStringT1 ;
+                        MetaErrorStringT0, MetaErrorStringT1,
+                        MetaErrorT1 ;
 
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM FormatStrings IMPORT Sprintf1 ;
@@ -1216,14 +1217,21 @@ BEGIN
       Sym := GetSym(name) ;
       IF IsImported(GetCurrentModuleScope(), Sym)
       THEN
-         s := Mark(InitStringCharStar(KeyToCharStar(name))) ;
-         AlreadyImportedError(Sprintf1(Mark(InitString('symbol (%s) is already present in this scope, check both definition and implementation modules, use a different name or remove the import')),
-                                       s), name, GetWhereImported(Sym)) ;
+         MetaErrorT1(GetWhereImported(Sym),
+                     'symbol {%1Rad} is already present in this scope, check both definition and implementation modules, use a different name or remove the import',
+                     Sym) ;
+         MetaError1('symbol {%1Cad} also declared in this module', Sym) ;
+         IF Sym#GetVisibleSym(name)
+         THEN
+            MetaError1('symbol {%1CMad} also declared in this module', GetVisibleSym(name))
+         END
       ELSE
-         s := Mark(InitStringCharStar(KeyToCharStar(name))) ;
-         AlreadyDeclaredError(Sprintf1(Mark(InitString('symbol (%s) is already declared in this scope, use a different name or remove the declaration')), s),
-                              name,
-                              GetDeclaredMod(GetVisibleSym(name)))
+         MetaError1('symbol {%1RMad} is already declared in this scope, use a different name or remove the declaration', Sym) ;
+         MetaError1('symbol {%1Cad} also declared in this module', Sym) ;
+         IF Sym#GetVisibleSym(name)
+         THEN
+            MetaError1('symbol {%1CMad} also declared in this module', GetVisibleSym(name))
+         END
       END ;
       Sym := MakeError(name)
    ELSE
@@ -7575,7 +7583,7 @@ BEGIN
    IF DoesTreeContainAny(Tree, IsUnreportedUnknown)
    THEN
       CurrentError := NewError(GetTokenNo()) ;
-      s := InitString("{%0E} the following unknown symbols in module %<") ;
+      s := InitString("{%E} the following unknown symbols in module %<") ;
       s := ConCat(s, Mark(InitStringCharStar(KeyToCharStar(name)))) ;
       s := ConCat(s, Mark(InitString('%> were '))) ;
       s := ConCat(s, Mark(InitString(a))) ;
@@ -7736,16 +7744,16 @@ BEGIN
 
       ModuleSym: IF NOT IsEmptyTree(Module.ExportUndeclared)
                  THEN
-                    WriteFormat0('undeclared identifier(s) in EXPORT list of MODULE') ;
+                    MetaError1('undeclared identifier(s) in EXPORT list of {%1ERd} {%1a}', ModSym) ;
                     ForeachNodeDo(Module.ExportUndeclared, UndeclaredSymbolError)
                  END |
       DefImpSym: IF NOT IsEmptyTree(DefImp.ExportUndeclared)
                  THEN
                     IF DoesNotNeedExportList(ModSym)
                     THEN
-                       WriteFormat0('undeclared identifier(s) in DEFINITION MODULE')
+                       MetaError1('undeclared identifier(s) in {%1ERd} {%1a}', ModSym) ;
                     ELSE
-                       WriteFormat0('undeclared identifier(s) in EXPORT list of DEFINITION MODULE')
+                       MetaError1('undeclared identifier(s) in export list of {%1ERd} {%1a}', ModSym) ;
                     END ;
                     ForeachNodeDo(DefImp.ExportUndeclared, UndeclaredSymbolError)
                  END
@@ -7762,17 +7770,12 @@ END CheckForUndeclaredExports ;
 *)
 
 PROCEDURE UndeclaredSymbolError (Sym: WORD) ;
-VAR
-   e: Error ;
-   n: Name ;
 BEGIN
-   e := ChainError(GetFirstUsed(Sym), CurrentError) ;
-   n := GetSymName(Sym) ;
    IF DebugUnknowns
    THEN
-      printf2('undeclared symbol %a (%d)\n', n, Sym)
+      printf1('undeclared symbol (%d)\n', Sym)
    END ;
-   ErrorFormat1(e, 'undeclared symbol (%a)', n)
+   MetaError1('{%1UC} undeclared symbol {%1a}', Sym)
 END UndeclaredSymbolError ;
 
 
