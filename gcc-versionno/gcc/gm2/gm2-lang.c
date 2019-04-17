@@ -197,14 +197,14 @@ typedef const char *gm2_char_p;
 
 
 
-/* The list of directories to search after all the Go specific 
+/* The list of directories to search after all the Go specific
 directories have been searched.  */
 
 static vec<gm2_char_p> gm2_search_dirs;
 
 
 
-/* The list of directories to search after all the gm2 specific 
+/* The list of directories to search after all the gm2 specific
 directories have been searched.  */
 #endif
 
@@ -320,6 +320,9 @@ gm2_langhook_handle_option (
       return 1;
     case OPT_fxcode:
       M2Options_SetXCode (value);
+      return 1;
+    case OPT_fm2_lower_case:
+      M2Options_SetLowerCaseKeywords (value);
       return 1;
     case OPT_fuselist:
       /* handled in the driver.  */
@@ -642,14 +645,14 @@ write_globals (void)
   m2block_finishGlobals ();
 
 #if 0
-  
 
-/* Process all file scopes in this compilation, and the 
-external_scope, through wrapup_global_declarations and 
+
+/* Process all file scopes in this compilation, and the
+external_scope, through wrapup_global_declarations and
 check_global_declarations.  */
   FOR_EACH_VEC_ELT (all_translation_units, i, t)
     m2_write_global_declarations (BLOCK_VARS (DECL_INITIAL (t)));
-  /* in the future it is likely that GCC will call this automatically.  
+  /* in the future it is likely that GCC will call this automatically.
 Until then we must do this.  */
   /* We're done parsing; proceed to optimize and emit assembly.  */
   cgraph_finalize_compilation_unit ();
@@ -662,15 +665,15 @@ Until then we must do this.  */
   m2_write_global_declarations (BLOCK_VARS (DECL_INITIAL (t)));
 
 #if 0
-  
 
-/* We're done parsing; proceed to optimize and emit assembly.  FIXME: 
+
+/* We're done parsing; proceed to optimize and emit assembly.  FIXME:
 shouldn't be the front end's responsibility to call this.  */
   symtab->finalize_compilation_unit ();
 
-  
 
-/* After cgraph has had a chance to emit everything that's going to 
+
+/* After cgraph has had a chance to emit everything that's going to
 be emitted, output debug information for globals.  */
   if (!seen_error ())
     {

@@ -31,6 +31,8 @@ FROM FIO IMPORT StdOut, WriteLine ;
 FROM SFIO IMPORT WriteS ;
 FROM StringConvert IMPORT ctos ;
 FROM M2Printf IMPORT printf1, printf0 ;
+FROM M2Options IMPORT LowerCaseKeywords ;
+FROM StrCase IMPORT Lower ;
 FROM libc IMPORT printf ;
 FROM SYSTEM IMPORT ADDRESS ;
 
@@ -176,7 +178,7 @@ BEGIN
          THEN
             INC (eb.ini)
          END ;
-         copyChar (eb) ;
+         copyKeywordChar (eb) ;
          INC (eb.ini)
       END ;
       flushColor (eb) ;
@@ -1012,8 +1014,7 @@ END emitColor ;
 
 
 (*
-   copyChar -
-
+   copyChar - copies a character from in string to out string.
 *)
 
 PROCEDURE copyChar (VAR eb: errorBlock) ;
@@ -1024,6 +1025,29 @@ BEGIN
       eb.out := x (eb.out, ConCatChar (eb.out, char (eb.in, eb.ini)))
    END
 END copyChar ;
+
+
+(*
+   copyKeywordChar - copies a character from in string to out string
+                     it will convert the character to lower case if the
+                     -fm2-lower-case option was specified.
+*)
+
+PROCEDURE copyKeywordChar (VAR eb: errorBlock) ;
+VAR
+   ch: CHAR ;
+BEGIN
+   IF eb.ini < eb.len
+   THEN
+      flushColor (eb) ;
+      ch := char (eb.in, eb.ini) ;
+      IF LowerCaseKeywords
+      THEN
+         ch := Lower (ch)
+      END ;
+      eb.out := x (eb.out, ConCatChar (eb.out, ch))
+   END
+END copyKeywordChar ;
 
 
 (*

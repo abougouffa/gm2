@@ -810,6 +810,9 @@ of this is in termination of a list of nested @code{IF} statements
 where multiple @code{END} keywords are mapped onto a sequence of
 @code{nop} instructions.
 
+@item -fm2-lower-case
+render keywords in error messages using lower case.
+
 @item -fmakelist
 this option is only applicable when linking a program module.  The
 compiler will generate a @file{modulename.lst} file which contains a

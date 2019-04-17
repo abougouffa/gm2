@@ -100,6 +100,7 @@ EXTERN void M2Options_SetGenerateStatementNote (int value);
 EXTERN int M2Options_GetCpp (void);
 EXTERN int M2Options_GetM2g (void);
 EXTERN int M2Options_SetM2g (int value);
+EXTERN int M2Options_SetLowerCaseKeywords (int value);
 
 EXTERN void M2Options_DisplayVersion (int mustExit);
 

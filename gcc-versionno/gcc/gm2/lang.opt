@@ -218,6 +218,10 @@ fm2-g
 Modula-2
 generate extra nops to improve debugging, producing an instruction for every code related keyword
 
+fm2-lower-case
+Modula-2
+generate error messages which render keywords in lower case
+
 fswig
 Modula-2
 create a swig interface file for the module

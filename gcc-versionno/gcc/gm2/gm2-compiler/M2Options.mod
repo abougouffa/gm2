@@ -359,6 +359,17 @@ END GetM2g ;
 
 
 (*
+   SetLowerCaseKeywords - set the lower case keyword flag and return the result.
+*)
+
+PROCEDURE SetLowerCaseKeywords (value: BOOLEAN) : BOOLEAN ;
+BEGIN
+   LowerCaseKeywords := value ;
+   RETURN( LowerCaseKeywords )
+END SetLowerCaseKeywords ;
+
+
+(*
    SetVerbose - set the Verbose flag to, value.  It returns TRUE.
 *)
 
@@ -973,5 +984,6 @@ BEGIN
    DebugTraceQuad               := FALSE ;
    DebugTraceAPI                := FALSE ;
    DebugFunctionLineNumbers     := FALSE ;
-   GenerateStatementNote        := FALSE
+   GenerateStatementNote        := FALSE ;
+   LowerCaseKeywords            := FALSE
 END M2Options.

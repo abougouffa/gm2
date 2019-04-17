@@ -50,6 +50,7 @@ EXPORT QUALIFIED SetReturnCheck, SetNilCheck, SetCaseCheck,
 		 GetPositiveModFloor,
 		 SetFloatValueCheck, GetFloatValueCheck,
 		 SetWholeValueCheck, GetWholeValueCheck,
+                 SetLowerCaseKeywords,
 
                  Iso, Pim, Pim2, Pim3, Pim4,
                  PositiveModFloorDiv,
@@ -65,6 +66,7 @@ EXPORT QUALIFIED SetReturnCheck, SetNilCheck, SetCaseCheck,
                  ReturnChecking, CaseElseChecking,
                  VariantValueChecking,
                  Quiet, LineDirectives, CPreProcessor, Xcode, ExtendedOpaque,
+                 LowerCaseKeywords,
                  PedanticParamNames, PedanticCast,
       	       	 DisplayQuadruples, DebugTraceQuad, DebugTraceAPI,
                  CompilerDebugging, GenerateDebugging, GenerateLineDebug,
@@ -134,6 +136,7 @@ VAR
    DumpSystemExports,            (* print all inbuilt system items?          *)
    GenerateSwig,                 (* should we generate a swig interface file?*)
    Exceptions,                   (* should we generate exception code?       *)
+   LowerCaseKeywords,            (* should keywords in errors be in lower?   *)
    DebugBuiltins,                (* should we always call a real function?   *)
    ForcedLocation,
    DebugFunctionLineNumbers,
@@ -232,6 +235,13 @@ PROCEDURE SetM2g (value: BOOLEAN) : BOOLEAN ;
 *)
 
 PROCEDURE GetM2g () : BOOLEAN ;
+
+
+(*
+   SetLowerCaseKeywords - set the lower case keyword flag and return the result.
+*)
+
+PROCEDURE SetLowerCaseKeywords (value: BOOLEAN) : BOOLEAN ;
 
 
 (*

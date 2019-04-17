@@ -2,13 +2,15 @@
 
 	* gm2/bnf/m2-2.bnf:  replaced ErrorStringAt with MetaErrorStringT0
 	  for GCC colorization.
-	* gm2/bnf/m2.bnf:    replaced ErrorStringAt with MetaErrorStringT0
+	* gm2/bnf/m2.bnf:  replaced ErrorStringAt with MetaErrorStringT0
 	  for GCC colorization.
 	* gm2/gm2-compiler/M2MetaError.def:  added root, chain and color
 	  directives.
 	* gm2/gm2-compiler/M2MetaError.mod:  added root, chain and color
 	  directives.  Applied many fixes.
-	* gm2/gm2-compiler/ppg.mod:  added keyword directives to error messages.
+	* gm2/gm2-compiler/ppg.mod:  added keyword directives to error
+          messages.
+	* gm2/gm2.texi:  (-fm2-lower-case) added description for option.
 
 2019-04-16      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
