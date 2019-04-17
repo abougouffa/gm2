@@ -2125,9 +2125,9 @@ BEGIN
    IF KeywordFormatting
    THEN
       WriteString('{%K') ;
-      IF n = MakeKey('}')
+      IF (n = MakeKey('}')) OR (n = MakeKey('{')) OR (n = MakeKey('%'))
       THEN
-         Write('%')   (* escape the } *)
+         Write('%')   (* escape }, { or % *)
       END ;
       WriteKey(n) ;
       Write('}')
@@ -4692,7 +4692,7 @@ BEGIN
       Write("'") ; Write('"') ; Write("'") ; WriteString('), Mark(str))')
    ELSE
       WriteString("str := ConCat(InitString(") ; Write('"') ;
-      WriteString("syntax error, found `") ; KeyWord(lit) ; Write("'") ; WriteString('"), Mark(str))')
+      WriteString("syntax error, found ") ; KeyWord(lit) ; WriteString('"), Mark(str))')
    END
 END DescribeElement ;
 
@@ -4750,7 +4750,7 @@ BEGIN
       Write('"') ; Write("'") ; WriteString('"), ",") ; INC(n) ; ')
    ELSE
       IndentString("message := ConCat(ConCatChar(message, ' ") ; WriteString("'), ") ;
-      WriteString('Mark(InitString("') ; Write("`") ; WriteKey(lit) ; Write("'") ; Write('"') ;
+      WriteString('Mark(InitString("') ; KeyWord(lit) ; Write('"') ;
       WriteString('))) ; INC(n)')
    END ;
    WriteLn ;

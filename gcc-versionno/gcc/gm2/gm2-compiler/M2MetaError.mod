@@ -36,7 +36,7 @@ FROM SYSTEM IMPORT ADDRESS ;
 
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar,
                            ConCat, ConCatChar, Mark, string, KillString,
-                           Dup, char, Length, Mult ;
+                           Dup, char, Length, Mult, EqualArray ;
 
 FROM SymbolTable IMPORT NulSym,
                         IsDefImp, IsModule, IsInnerModule,
@@ -63,7 +63,7 @@ TYPE
    errorType = (none, error, warning, note, chained) ;
    colorType = (noColor, quoteColor, filenameColor, errorColor,
                 warningColor, noteColor, keywordColor, locusColor,
-                insertColor, deleteColor, typeColor) ;
+                insertColor, deleteColor, typeColor, range1Color, range2Color) ;
 
    errorBlock = RECORD
                    e         : Error ;
@@ -87,13 +87,69 @@ VAR
 
 
 (*
-   readColor -
+   lookupColor - looks up the color enum from the string.
+*)
 
+PROCEDURE lookupColor (s: String) : colorType ;
+BEGIN
+   IF EqualArray (s, "filename")
+   THEN
+      RETURN filenameColor
+   ELSIF EqualArray (s, "quote")
+   THEN
+      RETURN quoteColor
+   ELSIF EqualArray (s, "error")
+   THEN
+      RETURN errorColor
+   ELSIF EqualArray (s, "warning")
+   THEN
+      RETURN warningColor ;
+   ELSIF EqualArray (s, "note")
+   THEN
+      RETURN warningColor ;
+   ELSIF EqualArray (s, "locus")
+   THEN
+      RETURN locusColor
+   ELSIF EqualArray (s, "insert")
+   THEN
+      RETURN insertColor
+   ELSIF EqualArray (s, "delete")
+   THEN
+      RETURN deleteColor
+   ELSIF EqualArray (s, "type")
+   THEN
+      RETURN typeColor
+   ELSIF EqualArray (s, "range1")
+   THEN
+      RETURN range1Color
+   ELSIF EqualArray (s, "range2")
+   THEN
+      RETURN range2Color
+   END ;
+   RETURN noColor
+END lookupColor ;
+
+
+(*
+   readColor -
 *)
 
 PROCEDURE readColor (eb: errorBlock) : colorType ;
+VAR
+   s: String ;
+   c: colorType ;
 BEGIN
-
+   s := InitString ('') ;
+   WHILE (eb.ini < eb.len) AND (char (eb.in, eb.ini) # "}") DO
+      IF char (eb.in, eb.ini) = "%"
+      THEN
+         INC (eb.ini)
+      END ;
+      s := ConCatChar (s, char (eb.in, eb.ini)) ;
+      INC (eb.ini)
+   END ;
+   c := lookupColor (s) ;
+   s := KillString (s) ;
    RETURN noColor
 END readColor ;
 
@@ -104,21 +160,30 @@ END readColor ;
 
 PROCEDURE keyword (VAR eb: errorBlock) ;
 BEGIN
-   flushColor (eb) ;
-   pushColor (eb.currentCol) ;
-   eb.currentCol := keywordColor ;
-   flushColor (eb) ;
-   WHILE (eb.ini < eb.len) AND (char (eb.in, eb.ini) # "}") DO
-      copyChar (eb) ;
+   IF char (eb.in, eb.ini) = 'K'
+   THEN
       INC (eb.ini) ;
-      IF (eb.ini < eb.len) AND (char (eb.in, eb.ini) = "%")
-      THEN
-         INC (eb.ini) ;
-         copyChar (eb)
-      END
-   END ;
-   flushColor (eb) ;
-   eb.currentCol := popColor ()
+      flushColor (eb) ;
+      pushColor (eb.currentCol) ;
+      eb.currentCol := keywordColor ;
+      flushColor (eb) ;
+      WHILE (eb.ini < eb.len) AND (char (eb.in, eb.ini) # "}") DO
+         IF Debugging
+         THEN
+            dump (eb)
+         END ;
+         IF char (eb.in, eb.ini) = "%"
+         THEN
+            INC (eb.ini)
+         END ;
+         copyChar (eb) ;
+         INC (eb.ini)
+      END ;
+      flushColor (eb) ;
+      eb.currentCol := popColor ()
+   ELSE
+      InternalError ('expecting index to be on the K for keyword', __FILE__, __LINE__)
+   END
 END keyword ;
 
 
@@ -181,7 +246,9 @@ END initErrorBlock ;
 
 (*
    findColorType - return the color of the string.  This is determined by the first
-                   occurrance of an error, warning or note marker.
+                   occurrance of an error, warning or note marker.  An error message
+                   is assumed to either be: a keyword category, error category, note
+                   category, warning category or to be chained from a previous error.
 *)
 
 PROCEDURE findColorType (s: String) : colorType ;
@@ -203,6 +270,7 @@ BEGIN
                END ;
                CASE char (s, i) OF
 
+               "K":  RETURN errorColor |   (* keyword errors start with the fatal error color.  *)
                "E":  RETURN errorColor |
                "O":  RETURN noteColor |
                "W":  RETURN warningColor |
@@ -273,6 +341,7 @@ PROCEDURE InternalFormat (s: String; i: INTEGER; m: ARRAY OF CHAR; line: CARDINA
 VAR
    e: Error ;
 BEGIN
+   InternalError (m, __FILE__, line) ;
    e := NewError (GetTokenNo ()) ;
    s := WriteS (StdOut, s) ;
    WriteLine (StdOut) ;
@@ -833,8 +902,10 @@ BEGIN
       'R':  eb.root := TRUE |
       'P':  pushColor (eb.currentCol) |
       'p':  eb.currentCol := popColor () |
-      'c':  eb.currentCol := readColor (eb) |
-      'K':  keyword (eb) |
+      'c':  eb.currentCol := readColor (eb) ;
+            DEC (eb.ini) |
+      'K':  keyword (eb) ;
+            DEC (eb.ini) |
       ':':  ifNulThen (eb, sym, o) ;
             o := KillString (o) ;
             o := InitString ('') ;
@@ -932,7 +1003,9 @@ BEGIN
    locusColor   :  eb.out := M2ColorString.locusColor (eb.out) |
    insertColor  :  eb.out := M2ColorString.insertColor (eb.out) |
    deleteColor  :  eb.out := M2ColorString.deleteColor (eb.out) |
-   typeColor    :  eb.out := M2ColorString.typeColor (eb.out)
+   typeColor    :  eb.out := M2ColorString.typeColor (eb.out) |
+   range1Color  :  eb.out := M2ColorString.range1Color (eb.out) |
+   range2Color  :  eb.out := M2ColorString.range2Color (eb.out)
 
    END
 END emitColor ;
@@ -1054,7 +1127,9 @@ BEGIN
    locusColor   :  printf0 ("locusColor") |
    insertColor  :  printf0 ("insertColor") |
    deleteColor  :  printf0 ("deleteColor") |
-   typeColor    :  printf0 ("typeColor")
+   typeColor    :  printf0 ("typeColor") |
+   range1Color  :  printf0 ("range1Color") |
+   range2Color  :  printf0 ("range2Color")
 
    END
 END dumpColorType ;
@@ -1079,6 +1154,7 @@ BEGIN
    printf1 ("\npositive  = %d", eb.positive) ;
    printf0 ("\ncachedCol = ") ; dumpColorType (eb.cachedCol) ;
    printf0 ("\ncurrentCol = ") ; dumpColorType (eb.currentCol) ;
+   printf1 ("\nini        = %d", eb.ini) ;
    IF eb.ini < eb.len
    THEN
       ch := char (eb.in, eb.ini) ;
@@ -1098,6 +1174,11 @@ END dump ;
 
 PROCEDURE ebnf (VAR eb: errorBlock; sym: ARRAY OF CARDINAL) ;
 BEGIN
+   IF Debugging
+   THEN
+      printf0 ("top of ebnf\n") ;
+      dump (eb)
+   END ;
    WHILE eb.ini < eb.len DO
       IF Debugging
       THEN

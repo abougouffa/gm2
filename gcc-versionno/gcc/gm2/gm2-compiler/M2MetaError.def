@@ -69,16 +69,17 @@ EXPORT QUALIFIED MetaError1, MetaError2, MetaError3, MetaError4,
     {%W}      message is a warning, not an error.
     {%O}      message is a note, not an error.
     {%Kword}  the string "word" is rendered as a keyword.
+    {%C}      chain this error on the previous rooted error.
+    {%R}      this error will be the root of the future chained errors.
     {%P}      push the current color state.
     {%p}      pop the current color state.
-    {%Ccolor} change color into one of:  none, fixit-delete, fixit-insert,
+    {%ccolor} change color into one of:  none, fixit-delete, fixit-insert,
               locus, filename, type, error, warning, note.
     %<        open quote and color.
     %>        close quote and color.
     %%        %
     %{        {
     %}        }
-
     the error messages may also embed optional strings such as:
 
     {%1a:this string is emitted if the symbol name is non null}
@@ -96,6 +97,9 @@ EXPORT QUALIFIED MetaError1, MetaError2, MetaError3, MetaError4,
     are treated as null.  Finally the order of format specifiers does
     matter, {%1td} means get type name and use it if non null, otherwise
     describe the symbol.
+
+   The color strings are: "filename", "quote", "error", "warning", "note",
+                          "locus", "insert", "delete", "type", "range1", range2".
 *)
 
 (*

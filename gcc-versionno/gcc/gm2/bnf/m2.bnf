@@ -7,12 +7,12 @@
 -- the terms of the GNU General Public License as published by the Free
 -- Software Foundation; either version 3, or (at your option) any later
 -- version.
--- 
+--
 -- GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
 -- WARRANTY; without even the implied warranty of MERCHANTABILITY or
 -- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 -- for more details.
--- 
+--
 -- You should have received a copy of the GNU General Public License along
 -- with gm2; see the file COPYING.  If not, write to the Free Software
 -- Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -29,12 +29,12 @@ GNU Modula-2 is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
 Software Foundation; either version 3, or (at your option) any later
 version.
- 
+
 GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
- 
+
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
@@ -42,7 +42,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE P0SyntaxCheck ;
 
 FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertTokenAndRewind, GetTokenNo ;
-FROM M2Error IMPORT ErrorStringAt ;
+FROM M2MetaError IMPORT MetaErrorStringT0 ;
 FROM M2Quads IMPORT PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto, DisplayStack ;
 FROM M2Reserved IMPORT tokToTok, toktype, NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok, BuiltinTok, InlineTok ;
 FROM P2SymBuild IMPORT BuildString, BuildNumber ;
@@ -81,7 +81,7 @@ VAR
 
 PROCEDURE ErrorString (s: String) ;
 BEGIN
-   ErrorStringAt(s, GetTokenNo()) ;
+   MetaErrorStringT0(GetTokenNo(), s) ;
    WasNoError := FALSE
 END ErrorString ;
 
@@ -126,7 +126,7 @@ END SyntaxError ;
 
 
 (*
-   SyntaxCheck - 
+   SyntaxCheck -
 *)
 
 PROCEDURE SyntaxCheck (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
@@ -166,9 +166,9 @@ BEGIN
       s2 := SetOfStop2{t}
    END ;
    str := DescribeStop(s0, s1, s2) ;
-   
+
    str := ConCat(InitString('syntax error,'), Mark(str)) ;
-   ErrorStringAt(str, GetTokenNo())
+   MetaErrorStringT0(GetTokenNo(), str)
 END WarnMissingToken ;
 
 
@@ -193,7 +193,7 @@ END MissingToken ;
 
 
 (*
-   CheckAndInsert - 
+   CheckAndInsert -
 *)
 
 PROCEDURE CheckAndInsert (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) : BOOLEAN ;
@@ -212,7 +212,7 @@ END CheckAndInsert ;
 
 
 (*
-   InStopSet 
+   InStopSet
 *)
 
 PROCEDURE InStopSet (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) : BOOLEAN ;
@@ -262,7 +262,7 @@ END PeepToken ;
 
 
 (*
-   Expect - 
+   Expect -
 *)
 
 PROCEDURE Expect (t: toktype; stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
@@ -501,7 +501,7 @@ ImplementationModule := "IMPLEMENTATION" "MODULE"                          % Pus
                          { Import                                          % RegisterImports %
                            }                                               % PopAuto %
                          Block                                             % PopAuto %
-                                 
+
                          Ident                                             % EndModule %
                                                                            % PopAuto %
                          "." =:
@@ -735,7 +735,7 @@ LoopStatement := "LOOP" StatementSequence "END" =:
 
 WithStatement := "WITH" Designator "DO" StatementSequence "END" =:
 
-ProcedureDeclaration :=                                      
+ProcedureDeclaration :=
                         ProcedureHeading ";" ( ProcedureBlock             % PushAutoOn %
                                                               Ident       % EndProcedure %
                                                                           % PopAuto %
@@ -825,7 +825,7 @@ ModuleDeclaration := "MODULE"                                              % Pus
 Priority := "[" ConstExpression "]" =:
 
 Export := "EXPORT" ( "QUALIFIED"   IdentList |
-                     "UNQUALIFIED" IdentList | 
+                     "UNQUALIFIED" IdentList |
                       IdentList
                    ) ";" =:
 

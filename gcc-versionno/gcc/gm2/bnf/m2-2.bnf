@@ -46,7 +46,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE P2Build ;
 
 FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertTokenAndRewind, GetTokenNo ;
-FROM M2Error IMPORT ErrorStringAt ;
+FROM M2MetaError IMPORT MetaErrorStringT0 ;
 FROM NameKey IMPORT NulName, Name, makekey, MakeKey ;
 FROM M2Reserved IMPORT tokToTok, toktype, NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok ;
 FROM DynamicStrings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
@@ -143,7 +143,7 @@ VAR
 
 PROCEDURE ErrorString (s: String) ;
 BEGIN
-   ErrorStringAt(s, GetTokenNo()) ;
+   MetaErrorStringT0(GetTokenNo(), s) ;
    WasNoError := FALSE
 END ErrorString ;
 
@@ -231,7 +231,7 @@ BEGIN
    str := DescribeStop(s0, s1, s2) ;
 
    str := ConCat(InitString('syntax error,'), Mark(str)) ;
-   ErrorStringAt(str, GetTokenNo())
+   MetaErrorStringT0(GetTokenNo(), str)
 END WarnMissingToken ;
 
 
