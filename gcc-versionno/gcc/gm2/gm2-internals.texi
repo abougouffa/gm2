@@ -19,9 +19,11 @@ The document is still in it's infancy.
 @node History, Overview, , Internals
 @section History
 
+This document is out of date and needs to be rewritten.
+
 The Modula-2 compiler sources have come from the m2f compiler which
-runs under GNU/Linux. The original m2f compiler was written in Modula-2
-and was bootstrapped via a modified version of p2c 1.20. The m2f
+runs under GNU/Linux.  The original m2f compiler was written in Modula-2
+and was bootstrapped via a modified version of p2c 1.20.  The m2f
 compiler was a recursive descent which generated quadruples as
 intermediate code. It also used C style calling convention wherever
 possible and utilized a C structure for dynamic arrays.
@@ -245,7 +247,7 @@ TYPE
     SymVarient [3]          SymFieldVarient [4]
    +-------------------+   +-------------------+
    | Parent = [1]      |   | Parent = [1]      |
-   | ListOfSons        |   | ListOfSons        |  
+   | ListOfSons        |   | ListOfSons        |
    |    +--------------|   |    +--------------|
    |    | [4] [5]      |   |    | [6] [7]      |
    +-------------------+   +-------------------+
@@ -253,7 +255,7 @@ TYPE
     SymFieldVarient [5]
    +-------------------+
    | Parent = [1]      |
-   | ListOfSons        |  
+   | ListOfSons        |
    |    +--------------|
    |    | [8]          |
    +-------------------+
@@ -310,7 +312,7 @@ TYPE
     SymVarient [3]          SymFieldVarient [4]
    +-------------------+   +-------------------+
    | Parent = [1]      |   | Parent = [1]      |
-   | ListOfSons        |   | ListOfSons        |  
+   | ListOfSons        |   | ListOfSons        |
    |    +--------------|   |    +--------------|
    |    | [4] [5]      |   |    | [6] [7] [8]  |
    +-------------------+   +-------------------+
@@ -319,7 +321,7 @@ TYPE
     SymFieldVarient [5]
    +-------------------+
    | Parent = [1]      |
-   | ListOfSons        |  
+   | ListOfSons        |
    |    +--------------|
    |    | [9]          |
    +-------------------+
@@ -456,7 +458,7 @@ END fly ;
 
 PROCEDURE tryFlying ;
 BEGIN
-   printf("tryFlying main body\n");  
+   printf("tryFlying main body\n");
    fly ;
 EXCEPT
    printf("inside tryFlying exception routine\n") ;
@@ -520,7 +522,7 @@ void fly (void)
 void tryFlying (void)
 @{
  again_tryFlying:
-  printf("tryFlying main body\n");  
+  printf("tryFlying main body\n");
   try @{
     fly() ;
   @}
@@ -660,7 +662,7 @@ void tryFlying (void)
     exception();
   @}
 
-  printf("tryFlying main body\n");  
+  printf("tryFlying main body\n");
   fly();
   popsetjmp();
 @}
@@ -681,7 +683,7 @@ void keepFlying (void)
   do @{
     t = setjmp (head->env);
   @} while (t == jmp_retry);
-  
+
   if (t == jmp_exception) @{
     /* exception called */
     keepFlying_m2_exception ();
@@ -715,12 +717,12 @@ In GNU Modula-2 the syntax for a type declaration is defined as:
 TypeDeclaration := Ident "=" Type =:
 
 Type :=  SimpleType | ArrayType
-          | RecordType          
-          | SetType             
-          | PointerType         
+          | RecordType
+          | SetType
+          | PointerType
           | ProcedureType
-      =:								   
-									   
+      =:
+
 SimpleType := Qualident | Enumeration | SubrangeType =:
 
 @end example

@@ -27,13 +27,12 @@
 clean: force
 	-rm -f *.o *.html *.ps *.dvi *.log *.aux *.info *.ps *.aux *~
 	-rm -f gm2l gm2lcc gm2lgen gm2lorder linkcommand mod_init.c
-	( cd p2c/p2c-src ; $(MAKE) "QUIAT=$(QUIAT)" clean )
 	-rm -f gm2-libs-boot/*.[aoch] gm2-compiler-boot/*.[aoch] gm2-libs/*.[oa] gm2-compiler/*.[oa] */*~ *~
 	-rm -f gm2-libs-paranoid/*  gm2-compiler-paranoid/*
 	-rm -f gm2-compiler-verify/*
 	-rm -f gm2-compiler/mod_init.c
 	-rm -f *.lst $(basename $(GM2-TOOLS-MOD)) gm2m
-	-rm -f -r boot-bin p2c/p2c-src/home
+	-rm -f -r boot-bin
 	-rm -f boot-bin/mklink
 	-rm -f pg-e pge
 	-rm -f gm2-auto/*.c gm2-auto/*~ gm2-auto/pginit
@@ -43,16 +42,15 @@ clean: force
 	-rm -f gm2-compiler/M2Version.mod
 
 distclean: clean force
-	-rm -f p2c/p2c-src/examples/Makefile
-	-rm -f Makefile p2c/p2c-src/Makefile p2c/Makefile
+	-rm -f Makefile
 
 maintainer-clean: force
 	-rm -f gm2-auto/*
 
 DISTFILES = CVS ChangeLog Make-lang.in Makefile.in README bnf config-lang.in \
-            el gccgdbinit gccgm2.c gccgm2.def gm2-auto gm2-compiler gm2-compiler-boot \
+            el gccgdbinit gm2-auto gm2-compiler gm2-compiler-boot \
             gm2-gccinit gm2-libs gm2-libs-boot gm2-libs-ch gm2.texi gm2spec.c \
-            lang-options.h lang-specs.h loc.p2crc m2 m2.lex m2f-src p2c p2crc \
+            lang-options.h lang-specs.h m2 m2.lex \
             tools-src gm2-libiberty
 
 #

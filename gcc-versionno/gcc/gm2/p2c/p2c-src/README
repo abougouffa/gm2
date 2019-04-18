@@ -1,4 +1,0 @@
-This directory and subdirectories originated from p2c-1.20 another GNU Project.
-p2c has been extensively modified to reliably translate 2nd edition Modula-2
-into C.  The original README, INSTALL and other related p2c information has been
-moved into src/p2cdocs.

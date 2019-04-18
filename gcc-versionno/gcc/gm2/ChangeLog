@@ -1,3 +1,16 @@
+2019-04-18      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Makefile.in:  removed purge of p2c components.
+	* gm2/gm2-gcc/m2expr.c:  corrected comment formatting.
+	* gm2/gm2-internals.texi:  added a line saying this is out of
+          date.
+	* gm2/gm2builtins.c:  removed.
+	* gm2/gm2except.c:  removed.
+	* gm2/p2c:  removed directory.
+	* gm2/p2crc:  removed.
+	* testsuite/gm2/pim/run/pass/integer.mod:  added
+	* testsuite/gm2/pim/fail/integer.mod:  added
+
 2019-04-17      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/bnf/m2-2.bnf:  replaced ErrorStringAt with MetaErrorStringT0

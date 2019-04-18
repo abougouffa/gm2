@@ -1024,21 +1024,35 @@ m2expr_BuildNotEqualToZero (location_t location, tree value, tree type,
 /* checkWholeNegateOverflow - check to see whether -arg will overflow
    an integer.
 
-PROCEDURE sneg (i: INTEGER) ; BEGIN IF i = MIN(INTEGER) THEN 'integer
-   overflow' END END sneg ;
+PROCEDURE sneg (i: INTEGER) ;
+BEGIN
+   IF i = MIN(INTEGER)
+   THEN
+      'integer overflow'
+   END
+END sneg ;
 
 general purpose subrange type, i, is currently legal, min is
    MIN(type) and max is MAX(type).
 
-PROCEDURE sneg (i: type) ; BEGIN max := MAX (type) ; min := MIN
-   (type) ; IF (i#0) AND (* cannot overflow if i is 0 *) (((min >= 0)
-   AND (max >= 0)) OR (* will overflow if entire range is positive.
-   *) ((min <= 0) AND (max <= 0)) OR (* will overflow if entire range
-   is negative.  *) ((min < 0) AND (max > 0) AND ((min + max) > 0)
-   AND (i > -min)) OR (* c7 and c8 and c9 and c10 -> c17 more units
-   positive.  *) ((min < 0) AND (max > 0) AND ((min + max) < 0) AND
-   (i < -max)) (* c11 and c12 and c13 and c14 -> c18 more units
-   negative.  *) ) THEN 'type overflow' END END sneg ; */
+PROCEDURE sneg (i: type) ;
+BEGIN
+   max := MAX (type) ;
+   min := MIN (type) ;
+   IF (i#0) AND
+     (* cannot overflow if i is 0 *) (((min >= 0) AND (max >= 0)) OR
+     (* will overflow if entire range is positive.  *)
+     ((min <= 0) AND (max <= 0)) OR
+     (* will overflow if entire range is negative.  *)
+     ((min < 0) AND (max > 0) AND ((min + max) > 0) AND (i > -min)) OR
+     (* c7 and c8 and c9 and c10 -> c17 more units positive.  *)
+     ((min < 0) AND (max > 0) AND ((min + max) < 0) AND
+     (i < -max))
+     (* c11 and c12 and c13 and c14 -> c18 more units negative.  *) )
+   THEN
+      'type overflow'
+   END
+END sneg ; */
 
 static void
 checkWholeNegateOverflow (location_t location, tree i, tree type, tree min,
@@ -1191,14 +1205,22 @@ m2expr_Build4LogicalOr (location_t location, tree op1, tree op2, tree op3,
 /* checkWholeMultOverflow - check to see whether i * j will overflow
    an integer.
 
-PROCEDURE smult (i, j: INTEGER) ; BEGIN IF ((i > 0) AND (j > 0) AND
-   (i > max DIV j)) OR ((i > 0) AND (j < 0) AND (j < min DIV i)) OR
-   ((i < 0) AND (j > 0) AND (i < min DIV j)) OR ((i < 0) AND (j < 0)
-   AND (i < min DIV j)) THEN error ('signed subtraction overflow')
-   END END smult ;
+PROCEDURE smult (i, j: INTEGER) ;
+BEGIN
+   IF ((i > 0) AND (j > 0) AND (i > max DIV j)) OR
+      ((i > 0) AND (j < 0) AND (j < min DIV i)) OR
+      ((i < 0) AND (j > 0) AND (i < min DIV j)) OR
+      ((i < 0) AND (j < 0) AND (i < min DIV j))
+   THEN
+      error ('signed subtraction overflow')
+   END
+END smult ;
 
-if ((c1 && c3 && c4) || (c1 && c5 && c6) || (c2 && c3 && c7) || (c2
-   && c5 && c7)) error ('signed subtraction overflow') */
+ if ((c1 && c3 && c4)
+   || (c1 && c5 && c6)
+   || (c2 && c3 && c7)
+   || (c2 && c5 && c7))
+   error ('signed subtraction overflow').  */
 
 static void
 checkWholeMultOverflow (location_t location, tree i, tree j, tree lowest,
