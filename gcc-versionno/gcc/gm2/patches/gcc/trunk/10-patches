@@ -1,0 +1,131 @@
+--- gcc-versionno-orig/Makefile.tpl	2019-04-18 14:06:44.262838077 +0100
++++ gcc-versionno/Makefile.tpl	2019-04-03 14:56:27.305520666 +0100
+@@ -13,12 +13,12 @@
+ # it under the terms of the GNU General Public License as published by
+ # the Free Software Foundation; either version 3 of the License, or
+ # (at your option) any later version.
+-# 
++#
+ # This program is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ # GNU General Public License for more details.
+-# 
++#
+ # You should have received a copy of the GNU General Public License
+ # along with this program; see the file COPYING3.  If not see
+ # <http://www.gnu.org/licenses/>.
+@@ -161,6 +161,7 @@
+ 	GOCFLAGS="$(GOCFLAGS_FOR_BUILD)"; export GOCFLAGS; \
+ 	GDC="$(GDC_FOR_BUILD)"; export GDC; \
+ 	GDCFLAGS="$(GDCFLAGS_FOR_BUILD)"; export GDCFLAGS; \
++	GM2="$(GM2_FOR_BUILD)"; export GM2; \
+ 	DLLTOOL="$(DLLTOOL_FOR_BUILD)"; export DLLTOOL; \
+ 	LD="$(LD_FOR_BUILD)"; export LD; \
+ 	LDFLAGS="$(LDFLAGS_FOR_BUILD)"; export LDFLAGS; \
+@@ -198,6 +199,7 @@
+ 	GFORTRAN="$(GFORTRAN)"; export GFORTRAN; \
+ 	GOC="$(GOC)"; export GOC; \
+ 	GDC="$(GDC)"; export GDC; \
++	GM2="$(GM2)"; export GM2; \
+ 	AR="$(AR)"; export AR; \
+ 	AS="$(AS)"; export AS; \
+ 	CC_FOR_BUILD="$(CC_FOR_BUILD)"; export CC_FOR_BUILD; \
+@@ -295,6 +297,7 @@
+ 	GFORTRAN="$(GFORTRAN_FOR_TARGET) $(XGCC_FLAGS_FOR_TARGET) $$TFLAGS"; export GFORTRAN; \
+ 	GOC="$(GOC_FOR_TARGET) $(XGCC_FLAGS_FOR_TARGET) $$TFLAGS"; export GOC; \
+ 	GDC="$(GDC_FOR_TARGET) $(XGCC_FLAGS_FOR_TARGET) $$TFLAGS"; export GDC; \
++	GM2="$(GM2_FOR_TARGET) $(XGCC_FLAGS_FOR_TARGET) $$TFLAGS"; export GM2; \
+ 	DLLTOOL="$(DLLTOOL_FOR_TARGET)"; export DLLTOOL; \
+ 	LD="$(COMPILER_LD_FOR_TARGET)"; export LD; \
+ 	LDFLAGS="$(LDFLAGS_FOR_TARGET)"; export LDFLAGS; \
+@@ -361,6 +364,7 @@
+ GFORTRAN_FOR_BUILD = @GFORTRAN_FOR_BUILD@
+ GOC_FOR_BUILD = @GOC_FOR_BUILD@
+ GDC_FOR_BUILD = @GDC_FOR_BUILD@
++GM2_FOR_BUILD = @GM2_FOR_BUILD@
+ LDFLAGS_FOR_BUILD = @LDFLAGS_FOR_BUILD@
+ LD_FOR_BUILD = @LD_FOR_BUILD@
+ NM_FOR_BUILD = @NM_FOR_BUILD@
+@@ -430,6 +434,7 @@
+ LIBCXXFLAGS = $(CXXFLAGS) -fno-implicit-templates
+ GOCFLAGS = $(CFLAGS)
+ GDCFLAGS = $(CFLAGS)
++GM2FLAGS = $(CFLAGS)
+ 
+ CREATE_GCOV = create_gcov
+ 
+@@ -517,6 +522,7 @@
+ GFORTRAN_FOR_TARGET=$(STAGE_CC_WRAPPER) @GFORTRAN_FOR_TARGET@
+ GOC_FOR_TARGET=$(STAGE_CC_WRAPPER) @GOC_FOR_TARGET@
+ GDC_FOR_TARGET=$(STAGE_CC_WRAPPER) @GDC_FOR_TARGET@
++GM2_FOR_TARGET=$(STAGE_CC_WRAPPER) @GM2_FOR_TARGET@
+ DLLTOOL_FOR_TARGET=@DLLTOOL_FOR_TARGET@
+ LD_FOR_TARGET=@LD_FOR_TARGET@
+ 
+@@ -645,6 +651,7 @@
+ 	'GFORTRAN=$(GFORTRAN)' \
+ 	'GOC=$(GOC)' \
+ 	'GDC=$(GDC)' \
++	'GM2=$(GM2)' \
+ 	'LD=$(LD)' \
+ 	'LIPO=$(LIPO)' \
+ 	'NM=$(NM)' \
+@@ -705,6 +712,8 @@
+ 	'GOCFLAGS=$$(GOCFLAGS_FOR_TARGET)' \
+ 	'GDC=$$(GDC_FOR_TARGET) $$(XGCC_FLAGS_FOR_TARGET) $$(TFLAGS)' \
+ 	'GDCFLAGS=$$(GDCFLAGS_FOR_TARGET)' \
++	'GM2=$$(GM2_FOR_TARGET) $$(XGCC_FLAGS_FOR_TARGET) $$(TFLAGS)' \
++	'GM2FLAGS=$$(GM2FLAGS_FOR_TARGET)' \
+ 	'LD=$(COMPILER_LD_FOR_TARGET)' \
+ 	'LDFLAGS=$$(LDFLAGS_FOR_TARGET)' \
+ 	'LIBCFLAGS=$$(LIBCFLAGS_FOR_TARGET)' \
+@@ -873,7 +882,7 @@
+ clean: do-clean local-clean
+ mostlyclean: do-mostlyclean local-clean
+ distclean: do-distclean local-clean local-distclean
+-maintainer-clean: local-maintainer-clean do-maintainer-clean local-clean 
++maintainer-clean: local-maintainer-clean do-maintainer-clean local-clean
+ maintainer-clean: local-distclean
+ realclean: maintainer-clean
+ 
+@@ -1030,7 +1039,7 @@
+ 
+ dist:
+ 	@echo "Building a full distribution of this tree isn't done"
+-	@echo "via 'make dist'.  Check out the etc/ subdirectory" 
++	@echo "via 'make dist'.  Check out the etc/ subdirectory"
+ 
+ etags tags: TAGS
+ 
+@@ -1402,9 +1411,9 @@
+ ENDIF raw_cxx +]
+ 	(cd $(TARGET_SUBDIR)/[+module+] && \
+ 	  $(MAKE) $(TARGET_FLAGS_TO_PASS) [+
+-	    IF raw_cxx 
+-	      +] 'CXX=$$(RAW_CXX_FOR_TARGET)' 'CXX_FOR_TARGET=$$(RAW_CXX_FOR_TARGET)' [+ 
+-	    ENDIF raw_cxx 
++	    IF raw_cxx
++	      +] 'CXX=$$(RAW_CXX_FOR_TARGET)' 'CXX_FOR_TARGET=$$(RAW_CXX_FOR_TARGET)' [+
++	    ENDIF raw_cxx
+ 	  +] [+extra_make_flags+] check)
+ [+ ENDIF no_check +]
+ @endif target-[+module+]
+@@ -1597,7 +1606,7 @@
+ # reliable.
+ 
+ # 'touch' doesn't work right on some platforms.
+-STAMP = echo timestamp > 
++STAMP = echo timestamp >
+ 
+ # We only want to compare .o files, so set this!
+ objext = .o
+@@ -1979,7 +1988,7 @@
+ install-gdb: $(INSTALL_GDB_TK)
+ 
+ # Serialization dependencies.  Host configures don't work well in parallel to
+-# each other, due to contention over config.cache.  Target configures and 
++# each other, due to contention over config.cache.  Target configures and
+ # build configures are similar.
+ @serialization_dependencies@
+ 
