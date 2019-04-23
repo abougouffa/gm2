@@ -1,3 +1,15 @@
+2019-04-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2MetaError.def:  added MetaErrorString0.
+	* gm2/gm2-compiler/M2MetaError.mod:  many bug fixes which
+          implement coloring when concatenating strings.
+	* gm2/gm2-compiler/M2Students.mod:
+          (CheckForVariableThatLooksLikeKeyword) New procedure.
+          (PerformVariableKeywordCheck) reimplemented to use
+          MetaErrorString0.
+	* gm2/gm2-compiler/SymbolTable.mod:  reimplemented
+	  CheckForSymbols using the MetaError substructure.
+
 2019-04-18      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Makefile.in:  removed purge of p2c components.

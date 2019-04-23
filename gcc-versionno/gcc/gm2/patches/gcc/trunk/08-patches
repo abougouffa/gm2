@@ -1,5 +1,5 @@
---- gcc-versionno-orig/Makefile.def	2019-04-18 14:06:44.134841091 +0100
-+++ gcc-versionno/Makefile.def	2019-04-03 14:56:27.293520732 +0100
+--- gcc-versionno-orig/Makefile.def	2019-04-18 16:42:28.620558856 +0100
++++ gcc-versionno/Makefile.def	2019-04-18 16:36:27.378393935 +0100
 @@ -10,12 +10,12 @@
  // it under the terms of the GNU General Public License as published by
  // the Free Software Foundation; either version 3 of the License, or

@@ -1,5 +1,5 @@
---- gcc-versionno-orig/Makefile.tpl	2019-04-18 14:06:44.262838077 +0100
-+++ gcc-versionno/Makefile.tpl	2019-04-03 14:56:27.305520666 +0100
+--- gcc-versionno-orig/Makefile.tpl	2019-04-18 16:42:28.680558538 +0100
++++ gcc-versionno/Makefile.tpl	2019-04-18 16:36:27.386393897 +0100
 @@ -13,12 +13,12 @@
  # it under the terms of the GNU General Public License as published by
  # the Free Software Foundation; either version 3 of the License, or
@@ -63,7 +63,7 @@
  DLLTOOL_FOR_TARGET=@DLLTOOL_FOR_TARGET@
  LD_FOR_TARGET=@LD_FOR_TARGET@
  
-@@ -645,6 +651,7 @@
+@@ -646,6 +652,7 @@
  	'GFORTRAN=$(GFORTRAN)' \
  	'GOC=$(GOC)' \
  	'GDC=$(GDC)' \
@@ -71,7 +71,7 @@
  	'LD=$(LD)' \
  	'LIPO=$(LIPO)' \
  	'NM=$(NM)' \
-@@ -705,6 +712,8 @@
+@@ -706,6 +713,8 @@
  	'GOCFLAGS=$$(GOCFLAGS_FOR_TARGET)' \
  	'GDC=$$(GDC_FOR_TARGET) $$(XGCC_FLAGS_FOR_TARGET) $$(TFLAGS)' \
  	'GDCFLAGS=$$(GDCFLAGS_FOR_TARGET)' \
@@ -80,7 +80,7 @@
  	'LD=$(COMPILER_LD_FOR_TARGET)' \
  	'LDFLAGS=$$(LDFLAGS_FOR_TARGET)' \
  	'LIBCFLAGS=$$(LIBCFLAGS_FOR_TARGET)' \
-@@ -873,7 +882,7 @@
+@@ -874,7 +883,7 @@
  clean: do-clean local-clean
  mostlyclean: do-mostlyclean local-clean
  distclean: do-distclean local-clean local-distclean
@@ -89,7 +89,7 @@
  maintainer-clean: local-distclean
  realclean: maintainer-clean
  
-@@ -1030,7 +1039,7 @@
+@@ -1031,7 +1040,7 @@
  
  dist:
  	@echo "Building a full distribution of this tree isn't done"
@@ -98,7 +98,7 @@
  
  etags tags: TAGS
  
-@@ -1402,9 +1411,9 @@
+@@ -1404,9 +1413,9 @@
  ENDIF raw_cxx +]
  	(cd $(TARGET_SUBDIR)/[+module+] && \
  	  $(MAKE) $(TARGET_FLAGS_TO_PASS) [+
@@ -111,7 +111,7 @@
  	  +] [+extra_make_flags+] check)
  [+ ENDIF no_check +]
  @endif target-[+module+]
-@@ -1597,7 +1606,7 @@
+@@ -1599,7 +1608,7 @@
  # reliable.
  
  # 'touch' doesn't work right on some platforms.
@@ -120,7 +120,7 @@
  
  # We only want to compare .o files, so set this!
  objext = .o
-@@ -1979,7 +1988,7 @@
+@@ -1981,7 +1990,7 @@
  install-gdb: $(INSTALL_GDB_TK)
  
  # Serialization dependencies.  Host configures don't work well in parallel to

@@ -26,12 +26,14 @@ FROM SymbolTable IMPORT FinalSymbol, IsVar, IsProcedure, IsModule,
                         GetMainModule, IsType, NulSym, IsRecord, GetSymName, GetNth, GetNthProcedure, GetDeclaredMod, NoOfParam ;
 FROM NameKey IMPORT GetKey, WriteKey, MakeKey, IsSameExcludingCase, NulName, makekey, KeyToCharStar ;
 FROM M2Error IMPORT WarnStringAt ;
+FROM M2MetaError IMPORT MetaErrorString0 ;
 FROM Lists IMPORT List, InitList, IsItemInList, IncludeItemIntoList ;
 FROM M2Reserved IMPORT IsReserved, toktype ;
 FROM DynamicStrings IMPORT String, InitString, KillString, ToUpper, InitStringCharStar, string, Mark, ToUpper ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM ASCII IMPORT nul ;
+FROM M2Options IMPORT StudentChecking ;
 
 
 VAR
@@ -77,24 +79,41 @@ END IsNotADuplicateName ;
                                           as a keyword except for its case.
 *)
 
-PROCEDURE CheckForVariableThatLooksLikeKeyword (a: ADDRESS; name: Name) ;
+PROCEDURE CheckForVariableThatLooksLikeKeyword (name: Name) ;
+BEGIN
+   IF StudentChecking
+   THEN
+      PerformVariableKeywordCheck (name)
+   END
+END CheckForVariableThatLooksLikeKeyword ;
+
+
+(*
+   PerformVariableKeywordCheck - performs the check and constructs the metaerror notes if appropriate.
+*)
+
+PROCEDURE PerformVariableKeywordCheck (name: Name) ;
 VAR
    upper: Name ;
    token: toktype ;
+   orig,
    s    : String ;
 BEGIN
-   s := ToUpper(InitStringCharStar(a)) ;
-   upper := makekey(string(s)) ;
-   IF IsReserved(upper, token)
+   orig := InitStringCharStar (KeyToCharStar (name)) ;
+   s := ToUpper (orig) ;
+   upper := makekey (string (s)) ;
+   IF IsReserved (upper, token)
    THEN
-      IF IsNotADuplicateName(name)
+      IF IsNotADuplicateName (name)
       THEN
-         WarnStringAt(Sprintf2(Mark(InitString('either the identifier has the same name as a keyword or alternatively a keyword has the wrong case (%s and %s). Note that this symbol name is legal as an identifier, however as such it might cause confusion and is considered bad programming practice')),
-                               name, upper), GetTokenNo())
+         MetaErrorString0 (Sprintf2 (Mark (InitString ('either the identifier has the same name as a keyword or alternatively a keyword has the wrong case ({%%K%s} and {%%O%s})')),
+                                     upper, orig)) ;
+         MetaErrorString0 (Sprintf1 (Mark (InitString ('the symbol name {%%O%s} is legal as an identifier, however as such it might cause confusion and is considered bad programming practice')), orig))
       END
    END ;
-   s := KillString(s)
-END CheckForVariableThatLooksLikeKeyword ;
+   s := KillString(s) ;
+   orig := KillString (orig)
+END PerformVariableKeywordCheck ;
 
 
 (*

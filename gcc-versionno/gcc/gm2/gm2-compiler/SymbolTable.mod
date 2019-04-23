@@ -43,6 +43,7 @@ FROM M2Error IMPORT Error, NewError, ChainError, InternalError,
                     ErrorAbort0, FlushErrors ;
 
 FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3, MetaErrors1,
+                        MetaErrorString1,
                         MetaErrorStringT0, MetaErrorStringT1,
                         MetaErrorT1 ;
 
@@ -7616,15 +7617,14 @@ END SymbolError ;
 
 PROCEDURE CheckForSymbols (Tree: SymbolTree; a: ARRAY OF CHAR) ;
 VAR
-   n1, n2: Name ;
+   s: String ;
 BEGIN
    IF NOT IsEmptyTree(Tree)
    THEN
-      n1 := GetSymName(MainModule) ;
-      n2 := MakeKey(a) ;
-      WriteFormat2("the following symbols are unknown at the end of module '%a' when %a",
-                   n1, n2) ;
-      ForeachNodeDo(Tree, SymbolError) ;
+      s := InitString ("the symbols are unknown at the end of module {%1Ea} when ") ;
+      s := ConCat (s, Mark(InitString(a))) ;
+      MetaErrorString1 (s, MainModule) ;
+      ForeachNodeDo(Tree, SymbolError)
    END
 END CheckForSymbols ;
 

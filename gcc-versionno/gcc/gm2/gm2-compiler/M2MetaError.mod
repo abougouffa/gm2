@@ -58,12 +58,12 @@ IMPORT M2ColorString ;
 
 
 CONST
-   MaxStack  = 100 ;
+   MaxStack  = 10 ;
    Debugging = FALSE ;
 
 TYPE
    errorType = (none, error, warning, note, chained) ;
-   colorType = (noColor, quoteColor, filenameColor, errorColor,
+   colorType = (unsetColor, noColor, quoteColor, filenameColor, errorColor,
                 warningColor, noteColor, keywordColor, locusColor,
                 insertColor, deleteColor, typeColor, range1Color, range2Color) ;
 
@@ -73,17 +73,20 @@ TYPE
                    out, in   : String ;
                    highplus1 : CARDINAL ;
                    len,
-                   ini, outi : INTEGER ;
+                   ini       : INTEGER ;
+                   glyph,
                    chain,
                    root,
                    quotes,
                    positive  : BOOLEAN ;
-                   cachedCol,               (* the color sent down the device/string.         *)
-                   currentCol: colorType ;  (* the color of the text before being sent down.  *)
+                   currentCol,
+                   beginCol,                (* the color at the start of the string.          *)
+                   endCol    : colorType ;  (* the color at the end of the text before.       *)
+                   colorStack: ARRAY [0..MaxStack] OF colorType ;
+                   stackPtr  : CARDINAL ;
                 END ;
+
 VAR
-   colorStack: ARRAY [0..MaxStack] OF colorType ;
-   stackPtr  : CARDINAL ;
    lastRoot  : Error ;
    lastColor : colorType ;
 
@@ -152,7 +155,7 @@ BEGIN
    END ;
    c := lookupColor (s) ;
    s := KillString (s) ;
-   RETURN noColor
+   RETURN c
 END readColor ;
 
 
@@ -165,10 +168,8 @@ BEGIN
    IF char (eb.in, eb.ini) = 'K'
    THEN
       INC (eb.ini) ;
-      flushColor (eb) ;
-      pushColor (eb.currentCol) ;
-      eb.currentCol := keywordColor ;
-      flushColor (eb) ;
+      pushColor (eb) ;
+      changeColor (eb, keywordColor) ;
       WHILE (eb.ini < eb.len) AND (char (eb.in, eb.ini) # "}") DO
          IF Debugging
          THEN
@@ -181,8 +182,7 @@ BEGIN
          copyKeywordChar (eb) ;
          INC (eb.ini)
       END ;
-      flushColor (eb) ;
-      eb.currentCol := popColor ()
+      popColor (eb)
    ELSE
       InternalError ('expecting index to be on the K for keyword', __FILE__, __LINE__)
    END
@@ -193,14 +193,16 @@ END keyword ;
    pushColor -
 *)
 
-PROCEDURE pushColor (c: colorType) ;
+PROCEDURE pushColor (VAR eb: errorBlock) ;
 BEGIN
-   IF stackPtr > MaxStack
-   THEN
-      HALT
-   ELSE
-      colorStack[stackPtr] := c ;
-      INC (stackPtr)
+   WITH eb DO
+      IF stackPtr > MaxStack
+      THEN
+         HALT
+      ELSE
+         colorStack[stackPtr] := currentCol ;
+         INC (stackPtr)
+      END
    END
 END pushColor ;
 
@@ -209,15 +211,17 @@ END pushColor ;
    popColor -
 *)
 
-PROCEDURE popColor () : colorType ;
+PROCEDURE popColor (VAR eb: errorBlock) ;
 BEGIN
-   IF stackPtr > 0
-   THEN
-      DEC (stackPtr)
-   ELSE
-      HALT
-   END ;
-   RETURN colorStack[stackPtr]
+   WITH eb DO
+      IF stackPtr > 0
+      THEN
+         DEC (stackPtr)
+      ELSE
+         HALT
+      END ;
+      currentCol := colorStack[stackPtr]
+   END
 END popColor ;
 
 
@@ -235,15 +239,86 @@ BEGIN
       highplus1  := HIGH (sym) + 1 ;
       len        := Length (input) ;
       ini        := 0 ;
-      outi       := 0 ;
-      quotes     := FALSE ;
+      glyph      := FALSE ;  (* nothing to output yet.  *)
+      quotes     := TRUE ;
       positive   := TRUE ;
       root       := FALSE ;
       chain      := FALSE ;
-      cachedCol  := noColor ;
-      currentCol := findColorType (input)
+      currentCol := findColorType (input) ;
+      beginCol   := unsetColor ;
+      endCol     := unsetColor ;
+      stackPtr   := 0
    END
 END initErrorBlock ;
+
+
+(*
+   push - performs a push from the oldblock to the newblock.
+          It copies all fields except the output string.
+*)
+
+PROCEDURE push (VAR newblock: errorBlock; oldblock: errorBlock) ;
+BEGIN
+   pushColor (oldblock) ;  (* save the current color.  *)
+   newblock := oldblock ;
+   newblock.out := NIL ;  (* must do this before a clear as we have copied the address.  *)
+   clear (newblock) ;
+   newblock.quotes := TRUE
+END push ;
+
+
+(*
+   pop - copies contents of oldblock into newblock
+*)
+
+PROCEDURE pop (VAR toblock: errorBlock; fromblock: errorBlock) ;
+BEGIN
+   IF empty (fromblock)
+   THEN
+      toblock.stackPtr := fromblock.stackPtr ;
+      toblock.colorStack := fromblock.colorStack ;
+      popColor (toblock)   (* and restore the color from the push start.  *)
+   ELSE
+      IF fromblock.quotes
+      THEN
+         (* string needs to be quoted.  *)
+         IF toblock.currentCol = unsetColor
+         THEN
+            (* caller has not yet assigned a color, so use the callee color.  *)
+            OutGlyphS (toblock, M2ColorString.quoteOpen (InitString (''))) ;
+            OutGlyphS (toblock, fromblock.out) ;
+            OutGlyphS (toblock, M2ColorString.quoteClose (InitString (''))) ;
+            toblock.endCol := noColor ;
+            changeColor (toblock, fromblock.currentCol)
+         ELSE
+            (* caller has assigned a color, so use it after the new string.  *)
+            pushColor (toblock) ;
+            changeColor (toblock, quoteColor) ;
+            OutGlyphS (toblock, M2ColorString.quoteOpen (InitString (''))) ;
+            OutGlyphS (toblock, fromblock.out) ;
+            OutGlyphS (toblock, M2ColorString.quoteClose (InitString (''))) ;
+            (* toblock.endCol := fromblock.endCol ; *)
+            toblock.endCol := noColor ;
+            popColor (toblock)
+         END
+      ELSE
+         IF toblock.currentCol = unsetColor
+         THEN
+            OutGlyphS (toblock, fromblock.out) ;
+            toblock.endCol := fromblock.endCol ;
+            changeColor (toblock, fromblock.endCol)
+         ELSE
+            pushColor (toblock) ;
+            OutGlyphS (toblock, fromblock.out) ;
+            toblock.endCol := fromblock.endCol ;
+            popColor (toblock)
+         END
+      END
+   END ;
+   toblock.chain := fromblock.chain ;
+   toblock.root := fromblock.root ;
+   toblock.ini := fromblock.ini
+END pop ;
 
 
 (*
@@ -411,57 +486,80 @@ END skip ;
 
 
 (*
-   ifNulThen := [ ':' ebnf ] =:
+   ifNonNulThen := [ ':' ebnf ] =:
 *)
 
-PROCEDURE ifNulThen (VAR sb: errorBlock;
-                     sym: ARRAY OF CARDINAL;
-                     operand: String) ;
+PROCEDURE ifNonNulThen (VAR eb: errorBlock;
+                        sym: ARRAY OF CARDINAL) ;
 BEGIN
-   IF char (sb.in, sb.ini) = ':'
+   IF char (eb.in, eb.ini) = ':'
    THEN
-      INC (sb.ini) ;
-      IF sb.positive
+      INC (eb.ini) ;
+      IF eb.positive
       THEN
-         IF Length (operand) = 0
+         IF empty (eb) AND (Length (eb.out) # 0)
          THEN
-            (* carry on processing input text.  *)
-            ebnf (sb, sym)
-         ELSE
+            printf0 ("inconsistency found\n") ;
+            dump (eb)
+         END ;
+         IF empty (eb)
+         THEN
+            printf0 ("empty expression, skip\n") ;
+            clear (eb) ;
             (* skip over this level of input text.  *)
-            skip (sb)
+            skip (eb)
+         ELSE
+            IF Debugging
+            THEN
+               dump (eb) ;
+               printf0 ("non empty expression, clear and continue\n") ;
+            END ;
+            clear (eb) ;
+            IF Debugging
+            THEN
+               dump (eb) ;
+               printf0 ("cleared, continue\n") ;
+               dump (eb)
+            END ;
+            (* carry on processing input text.  *)
+            ebnf (eb, sym) ;
+            IF Debugging
+            THEN
+               printf0 ("evaluated\n") ;
+               dump (eb)
+            END
          END
       ELSE
-         IF Length (operand) = 0
+         IF empty (eb)
          THEN
-            (* skip over this level of input text.  *)
-            skip (sb)
-         ELSE
+            clear (eb) ;
             (* carry on processing input text.  *)
-            ebnf (sb, sym)
+            ebnf (eb, sym)
+         ELSE
+            clear (eb) ;
+            (* skip over this level of input text.  *)
+            skip (eb)
          END
       END ;
-      IF (sb.ini < sb.len) AND (char (sb.in, sb.ini) # '}')
+      IF (eb.ini < eb.len) AND (char (eb.in, eb.ini) # '}')
       THEN
-         InternalFormat (sb.in, sb.ini, 'expecting to see }', __LINE__)
+         InternalFormat (eb.in, eb.ini, 'expecting to see }', __LINE__)
       END
    END
-END ifNulThen ;
+END ifNonNulThen ;
 
 
 (*
    doNumber -
 *)
 
-PROCEDURE doNumber (VAR sb: errorBlock;
-                    sym: ARRAY OF CARDINAL; bol: CARDINAL; operand: String) : String ;
+PROCEDURE doNumber (VAR eb: errorBlock;
+                    sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 BEGIN
-   IF Length (operand) > 0
+   IF empty (eb)
    THEN
-      RETURN operand
-   ELSE
-      sb.quotes := FALSE ;
-      RETURN ConCat (operand, ctos (sym[bol], 0, ' '))
+      eb.quotes := FALSE ;
+      OutGlyphS (eb, ctos (sym[bol], 0, ' '))
    END
 END doNumber ;
 
@@ -470,86 +568,144 @@ END doNumber ;
    doCount -
 *)
 
-PROCEDURE doCount (VAR sb: errorBlock;
-                   sym: ARRAY OF CARDINAL; bol: CARDINAL; operand: String) : String ;
+PROCEDURE doCount (VAR eb: errorBlock;
+                   sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 BEGIN
-   IF Length (operand) > 0
+   IF empty (eb)
    THEN
-      RETURN operand
-   ELSE
-      sb.quotes := FALSE ;
-      operand := ConCat (operand, ctos(sym[bol], 0, ' ')) ;
+      eb.quotes := FALSE ;
+      OutGlyphS (eb, ctos(sym[bol], 0, ' ')) ;
       CASE sym[bol] MOD 100 OF
 
-      11..13:  operand := ConCat (operand, Mark (InitString ('th')))
+      11..13:  OutGlyphS (eb, Mark (InitString ('th')))
 
       ELSE
          CASE sym[bol] MOD 10 OF
 
-         1:  operand := ConCat (operand, Mark (InitString ('st'))) |
-         2:  operand := ConCat (operand, Mark (InitString ('nd'))) |
-         3:  operand := ConCat (operand, Mark (InitString ('rd')))
+         1:  OutGlyphS (eb, Mark (InitString ('st'))) |
+         2:  OutGlyphS (eb, Mark (InitString ('nd'))) |
+         3:  OutGlyphS (eb, Mark (InitString ('rd')))
 
          ELSE
-            operand := ConCat (operand, Mark (InitString ('th')))
+            OutGlyphS (eb, Mark (InitString ('th')))
          END
-      END ;
-      RETURN operand
+      END
    END
 END doCount ;
 
 
-PROCEDURE doAscii (sym: ARRAY OF CARDINAL; bol: CARDINAL; operand: String) : String ;
+PROCEDURE doAscii (VAR eb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 BEGIN
-   IF (Length (operand) > 0) OR IsTemporary (sym[bol]) OR IsNameAnonymous (sym[bol])
+   IF (NOT empty (eb)) OR IsTemporary (sym[bol]) OR IsNameAnonymous (sym[bol])
    THEN
-      RETURN operand
+      RETURN
    ELSE
-      RETURN ConCat (operand, InitStringCharStar (KeyToCharStar (GetSymName (sym[bol]))))
+      OutGlyphS (eb, InitStringCharStar (KeyToCharStar (GetSymName (sym[bol]))))
    END
 END doAscii ;
 
 
-PROCEDURE doName (VAR sb: errorBlock;
-                  sym: ARRAY OF CARDINAL; bol: CARDINAL; operand: String) : String ;
+(*
+   OutArray -
+*)
+
+PROCEDURE OutArray (VAR eb: errorBlock; a: ARRAY OF CHAR) ;
 BEGIN
-   IF (Length (operand) > 0) OR IsTemporary (sym[bol]) OR IsNameAnonymous (sym[bol])
+   OutGlyphS (eb, Mark (InitString (a)))
+END OutArray ;
+
+
+(*
+   OutGlyphS - outputs a string of glyphs.
+*)
+
+PROCEDURE OutGlyphS (VAR eb: errorBlock; s: String) ;
+BEGIN
+   IF Length (s) > 0
    THEN
-      RETURN operand
+      flushColor (eb) ;
+      checkMe ;
+      eb.glyph := TRUE ;
+      eb.out := ConCat (eb.out, s)
+   END
+END OutGlyphS ;
+
+
+(*
+   OutColorS - outputs a string of color requests.
+*)
+
+PROCEDURE OutColorS (VAR eb: errorBlock; s: String) ;
+BEGIN
+   flushColor (eb) ;
+   eb.out := ConCat (eb.out, s)
+END OutColorS ;
+
+
+(*
+   empty - returns TRUE if the output string is empty.
+           It ignores color changes.
+*)
+
+PROCEDURE empty (VAR eb: errorBlock) : BOOLEAN ;
+BEGIN
+   RETURN NOT eb.glyph
+END empty ;
+
+
+(*
+   clear - remove the output string.
+*)
+
+PROCEDURE clear (VAR eb: errorBlock) ;
+BEGIN
+   eb.out := KillString (eb.out) ;
+   eb.out := InitString ('') ;
+   eb.glyph := FALSE ;
+   eb.beginCol := unsetColor ;
+   eb.quotes := FALSE
+END clear ;
+
+
+PROCEDURE doName (VAR eb: errorBlock;
+                  sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
+BEGIN
+   IF (NOT empty (eb)) OR (sym[bol] = NulSym) OR IsTemporary (sym[bol]) OR IsNameAnonymous (sym[bol])
+   THEN
+      RETURN
    ELSE
       IF sym[bol] = ZType
       THEN
-         sb.quotes := FALSE ;
-         RETURN ConCat (operand, Mark(InitString('the ZType')))
+         eb.quotes := FALSE ;
+         OutArray (eb, 'the ZType')
       ELSIF sym[bol] = RType
       THEN
-         sb.quotes := FALSE ;
-         RETURN ConCat (operand, Mark (InitString ('the RType')))
+         eb.quotes := FALSE ;
+         OutArray (eb, 'the RType')
       ELSE
-         RETURN doAscii (sym, bol, operand)
+         doAscii (eb, sym, bol)
       END
    END
 END doName ;
 
 
-PROCEDURE doQualified (sym: ARRAY OF CARDINAL; bol: CARDINAL; operand: String) : String ;
+PROCEDURE doQualified (VAR eb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 VAR
    mod: ARRAY [0..1] OF CARDINAL ;
 BEGIN
-   IF (Length (operand) > 0) OR IsTemporary (sym[bol]) OR IsNameAnonymous (sym[bol])
+   IF (NOT empty (eb)) OR (sym[bol] = NulSym) OR IsTemporary (sym[bol]) OR IsNameAnonymous (sym[bol])
    THEN
-      RETURN operand
+      RETURN
    ELSE
       mod[0] := GetScope (sym[bol]) ;
       IF IsDefImp (mod[0]) AND IsExported (mod[0], sym[bol])
       THEN
-         operand := doAscii (mod, 0, operand) ;
-         operand := ConCatChar (operand, '.') ;
-         operand := ConCat (operand, InitStringCharStar (KeyToCharStar (GetSymName (sym[bol]))))
+         doAscii (eb, mod, 0) ;
+         OutArray (eb, '.') ;
+         OutGlyphS (eb, Mark (InitStringCharStar (KeyToCharStar (GetSymName (sym[bol])))))
       ELSE
-         operand := doAscii (sym, bol, operand)
-      END ;
-      RETURN operand
+         doAscii (eb, sym, bol)
+      END
    END
 END doQualified ;
 
@@ -560,18 +716,19 @@ END doQualified ;
             returns the type symbol found.
 *)
 
-PROCEDURE doType (sym: ARRAY OF CARDINAL; bol: CARDINAL; operand: String) : String ;
+PROCEDURE doType (VAR eb: errorBlock;
+                  sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 BEGIN
-   IF (Length(operand) > 0) OR (GetType (sym[bol]) = NulSym)
+   IF (NOT empty (eb)) OR (sym[bol] = NulSym)
    THEN
-      RETURN operand
+      RETURN
    ELSE
-      sym[bol] := GetType(sym[bol]) ;
-      WHILE IsType(sym[bol]) AND ((GetSymName(sym[bol])=NulName) OR
-                                  IsNameAnonymous(sym[bol])) DO
+      sym[bol] := GetType (sym[bol]) ;
+      WHILE IsType(sym[bol]) AND ((GetSymName (sym[bol]) = NulName) OR
+                                  IsNameAnonymous (sym[bol])) DO
          sym[bol] := GetType (sym[bol])
       END ;
-      RETURN doAscii (sym, bol, operand)
+      doAscii (eb, sym, bol)
    END
 END doType ;
 
@@ -581,18 +738,18 @@ END doType ;
                 returns the type symbol found and name.
 *)
 
-PROCEDURE doSkipType (sym: ARRAY OF CARDINAL; bol: CARDINAL; operand: String) : String ;
+PROCEDURE doSkipType (eb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 BEGIN
-   IF (Length(operand) > 0) OR (GetType (sym[bol]) = NulSym)
+   IF (NOT empty (eb)) OR (sym[bol] = NulSym)
    THEN
-      RETURN operand
+      RETURN
    ELSE
       sym[bol] := SkipType(sym[bol]) ;
-      WHILE IsType(sym[bol]) AND ((GetSymName(sym[bol])=NulName) OR
-                                  IsNameAnonymous(sym[bol])) DO
+      WHILE IsType(sym[bol]) AND ((GetSymName (sym[bol]) = NulName) OR
+                                  IsNameAnonymous (sym[bol])) DO
          sym[bol] := GetType (sym[bol])
       END ;
-      RETURN doAscii (sym, bol, operand)
+      doAscii (eb, sym, bol)
    END
 END doSkipType ;
 
@@ -716,78 +873,78 @@ END ConCatWord ;
    symDesc -
 *)
 
-PROCEDURE symDesc (sym: CARDINAL; o: String) : String ;
+PROCEDURE symDesc (sym: CARDINAL) : String ;
 BEGIN
-   IF IsConstLit(sym)
+   IF IsConstLit (sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('constant literal'))) )
-   ELSIF IsConstSet(sym)
+      RETURN InitString ('constant literal')
+   ELSIF IsConstSet (sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('constant set'))) )
-   ELSIF IsConstructor(sym)
+      RETURN InitString ('constant set')
+   ELSIF IsConstructor (sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('constructor'))) )
+      RETURN InitString ('constructor')
    ELSIF IsConst(sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('constant'))) )
+      RETURN InitString('constant')
    ELSIF IsArray(sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('array'))) )
+      RETURN InitString('array')
    ELSIF IsVar(sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('variable'))) )
+      RETURN InitString('variable')
    ELSIF IsEnumeration(sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('enumeration type'))) )
+      RETURN InitString('enumeration type')
    ELSIF IsFieldEnumeration(sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('enumeration field'))) )
+      RETURN InitString('enumeration field')
    ELSIF IsUnbounded(sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('unbounded parameter'))) )
+      RETURN InitString('unbounded parameter')
    ELSIF IsProcType(sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('procedure type'))) )
+      RETURN InitString('procedure type')
    ELSIF IsProcedure(sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('procedure'))) )
+      RETURN InitString('procedure')
    ELSIF IsPointer(sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('pointer'))) )
+      RETURN InitString('pointer')
    ELSIF IsParameter(sym)
    THEN
       IF IsParameterVar(sym)
       THEN
-         RETURN( ConCatWord(o, Mark(InitString('var parameter'))) )
+         RETURN InitString('var parameter')
       ELSE
-         RETURN( ConCatWord(o, Mark(InitString('parameter'))) )
+         RETURN InitString('parameter')
       END
    ELSIF IsType(sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('type'))) )
+      RETURN InitString('type')
    ELSIF IsRecord(sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('record'))) )
+      RETURN InitString('record')
    ELSIF IsRecordField(sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('record field'))) )
+      RETURN InitString('record field')
    ELSIF IsVarient(sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('varient record'))) )
+      RETURN InitString('varient record')
    ELSIF IsModule(sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('module'))) )
+      RETURN InitString('module')
    ELSIF IsDefImp(sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('definition or implementation module'))) )
+      RETURN InitString('definition or implementation module')
    ELSIF IsSet(sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('set'))) )
+      RETURN InitString('set')
    ELSIF IsSubrange(sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('subrange'))) )
+      RETURN InitString('subrange')
    ELSE
-      RETURN( o )
+      RETURN InitString ('')
    END
 END symDesc ;
 
@@ -796,53 +953,18 @@ END symDesc ;
    doDesc -
 *)
 
-PROCEDURE doDesc (VAR sb: errorBlock;
-                  sym: ARRAY OF CARDINAL; bol: CARDINAL; operand: String) : String ;
+PROCEDURE doDesc (VAR eb: errorBlock;
+                  sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 BEGIN
-   IF Length (operand) > 0
+   IF empty (eb)
    THEN
-      RETURN operand
-   ELSE
-      operand := symDesc (sym[bol], operand) ;
-      IF Length (operand) > 0
+      OutGlyphS (eb, symDesc (sym[bol])) ;
+      IF NOT empty (eb)
       THEN
-         sb.quotes := FALSE
-      END ;
-      RETURN operand
-   END
-END doDesc ;
-
-
-(*
-   addQuoted - if, o, is not empty then add it to, r.
-*)
-
-PROCEDURE addQuoted (VAR eb: errorBlock; o: String) ;
-BEGIN
-   IF Length (o) > 0
-   THEN
-      IF (Length (eb.out) > 0) AND (NOT IsWhite (char (eb.out, -1)))
-      THEN
-         eb.out := ConCatChar (eb.out, " ")
-      END ;
-      IF eb.quotes
-      THEN
-         flushColor (eb) ;
-         pushColor (eb.currentCol) ;
-         eb.currentCol := quoteColor ;
-         flushColor (eb) ;
-         eb.out := M2ColorString.quoteOpen (eb.out)
-      END ;
-      eb.out := ConCat (eb.out, o) ;
-      IF eb.quotes
-      THEN
-         flushColor (eb) ;
-         eb.out := M2ColorString.quoteClose (eb.out) ;
-         flushColor (eb) ;
-         eb.currentCol := popColor ()
+         eb.quotes := FALSE
       END
    END
-END addQuoted ;
+END doDesc ;
 
 
 (*
@@ -872,28 +994,23 @@ END copySym ;
 
 PROCEDURE op (VAR eb: errorBlock;
               sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
-VAR
-   o: String ;
 BEGIN
-   o := InitString ('') ;
-   eb.quotes := TRUE ;
    WHILE (eb.ini < eb.len) AND (char (eb.in, eb.ini) # '}') DO
       IF Debugging
       THEN
          printf0 ("while loop in op\n") ;
-         dump (eb) ;
-         printf1 ("o = %s\n", o)
+         dump (eb)
       END ;
       CASE char (eb.in, eb.ini) OF
 
       '!':  eb.positive := NOT eb.positive |
-      'a':  o := doName (eb, sym, bol, o) |
-      'q':  o := doQualified (sym, bol, o) |
-      't':  o := doType (sym, bol, o) |
-      'd':  o := doDesc (eb, sym, bol, o) |
-      'n':  o := doNumber (eb, sym, bol, o) |
-      'N':  o := doCount (eb, sym, bol, o) |
-      's':  o := doSkipType (sym, bol, o) |
+      'a':  doName (eb, sym, bol) |
+      'q':  doQualified (eb, sym, bol) |
+      't':  doType (eb, sym, bol) |
+      'd':  doDesc (eb, sym, bol) |
+      'n':  doNumber (eb, sym, bol) |
+      'N':  doCount (eb, sym, bol) |
+      's':  doSkipType (eb, sym, bol) |
       'D':  declaredDef (eb, sym, bol) |
       'M':  declaredMod (eb, sym, bol) |
       'U':  used (eb, sym, bol) |
@@ -902,15 +1019,13 @@ BEGIN
       'O':  eb.type := note |
       'C':  eb.chain := TRUE |
       'R':  eb.root := TRUE |
-      'P':  pushColor (eb.currentCol) |
-      'p':  eb.currentCol := popColor () |
+      'P':  pushColor (eb) |
+      'p':  popColor (eb) |
       'c':  eb.currentCol := readColor (eb) ;
             DEC (eb.ini) |
       'K':  keyword (eb) ;
             DEC (eb.ini) |
-      ':':  ifNulThen (eb, sym, o) ;
-            o := KillString (o) ;
-            o := InitString ('') ;
+      ':':  ifNonNulThen (eb, sym) ;
             DEC (eb.ini)
 
       ELSE
@@ -918,13 +1033,11 @@ BEGIN
       END ;
       INC (eb.ini)
    END ;
-   addQuoted (eb, o) ;
    IF Debugging
    THEN
       printf0 ("finishing op\n") ;
       dump (eb)
-   END ;
-   o := KillString (o)
+   END
 END op ;
 
 
@@ -970,19 +1083,33 @@ END percenttoken ;
 
 
 (*
+   changeColor - changes to color, c.
+*)
+
+PROCEDURE changeColor (VAR eb: errorBlock; c: colorType) ;
+BEGIN
+   eb.currentCol := c
+END changeColor ;
+
+
+(*
    flushColor - flushes any outstanding color change.
 *)
 
 PROCEDURE flushColor (VAR eb: errorBlock) ;
 BEGIN
-   IF eb.cachedCol # eb.currentCol
+   IF eb.endCol # eb.currentCol
    THEN
-      IF eb.cachedCol # noColor
+      IF eb.endCol # unsetColor
       THEN
          eb.out := M2ColorString.endColor (eb.out)
       END ;
       emitColor (eb, eb.currentCol) ;
-      eb.cachedCol := eb.currentCol
+      eb.endCol := eb.currentCol ;
+      IF eb.beginCol = unsetColor
+      THEN
+         eb.beginCol := eb.currentCol
+      END
    END
 END flushColor ;
 
@@ -995,6 +1122,7 @@ PROCEDURE emitColor (VAR eb: errorBlock; c: colorType) ;
 BEGIN
    CASE c OF
 
+   unsetColor   :  |
    noColor      :  eb.out := M2ColorString.endColor (eb.out) |
    quoteColor   :  eb.out := M2ColorString.quoteColor (eb.out) |
    filenameColor:  eb.out := M2ColorString.filenameColor (eb.out) |
@@ -1022,6 +1150,8 @@ BEGIN
    IF eb.ini < eb.len
    THEN
       flushColor (eb) ;
+      checkMe ;
+      eb.glyph := TRUE ;
       eb.out := x (eb.out, ConCatChar (eb.out, char (eb.in, eb.ini)))
    END
 END copyChar ;
@@ -1064,16 +1194,16 @@ BEGIN
       THEN
          IF char (eb.in, eb.ini) = '<'
          THEN
+            (* %< is a quotation symbol.  *)
             flushColor (eb) ;
-            pushColor (eb.currentCol) ;
-            eb.currentCol := quoteColor ;
-            flushColor (eb) ;
-            eb.out := M2ColorString.quoteOpen (eb.out)
+            pushColor (eb) ;
+            changeColor (eb, quoteColor) ;
+            (* OutGlyphS performs a flush and we are emitting the open quote glyph.  *)
+            OutGlyphS (eb, M2ColorString.quoteOpen (InitString ('')))
          ELSIF char (eb.in, eb.ini) = '>'
          THEN
-            flushColor (eb) ;
-            eb.out := M2ColorString.quoteClose (eb.out) ;
-            eb.currentCol := popColor ()
+            OutGlyphS (eb, M2ColorString.quoteClose (InitString (''))) ;
+            popColor (eb)
          ELSE
             copyChar (eb)
          END
@@ -1114,6 +1244,8 @@ END lbra ;
 
 PROCEDURE stop ; BEGIN END stop ;
 
+PROCEDURE checkMe ; BEGIN END checkMe ;
+
 
 (*
    dumpErrorType -
@@ -1141,6 +1273,7 @@ PROCEDURE dumpColorType (c: colorType) ;
 BEGIN
    CASE c OF
 
+   unsetColor   :  printf0 ("unsetColor") |
    noColor      :  printf0 ("noColor") |
    quoteColor   :  printf0 ("quoteColor") |
    filenameColor:  printf0 ("filenameColor") |
@@ -1167,22 +1300,35 @@ END dumpColorType ;
 PROCEDURE dump (eb: errorBlock) ;
 VAR
    ch: CHAR ;
+   l : CARDINAL ;
+   i : INTEGER ;
 BEGIN
+   l := Length (eb.out) ;
    printf0 ("\n\nerrorBlock\n") ;
    printf0 ("\ntype      = ") ; dumpErrorType (eb.type) ;
-   printf1 ("\nout       = %s", eb.out) ;
-   printf1 ("\nin        = %s", eb.in) ;
+   printf1 ("\nout       = |%s|", eb.out) ;
+   printf1 ("\nin        = |%s|", eb.in) ;
+   printf1 ("\nLength (out) = %d", l) ;
    printf1 ("\nlen       = %d", eb.len) ;
    printf1 ("\nhighplus1 = %d", eb.highplus1) ;
+   printf1 ("\nglyph     = %d", eb.glyph) ;
    printf1 ("\nquotes    = %d", eb.quotes) ;
    printf1 ("\npositive  = %d", eb.positive) ;
-   printf0 ("\ncachedCol = ") ; dumpColorType (eb.cachedCol) ;
+   printf0 ("\nbeginCol  = ") ; dumpColorType (eb.beginCol) ;
+   printf0 ("\nendCol    = ") ; dumpColorType (eb.endCol) ;
    printf0 ("\ncurrentCol = ") ; dumpColorType (eb.currentCol) ;
    printf1 ("\nini        = %d", eb.ini) ;
    IF eb.ini < eb.len
    THEN
       ch := char (eb.in, eb.ini) ;
-      printf1 ("\ncurrent char = %c", ch)
+      printf1 ("\ncurrent char = %c", ch) ;
+      printf1 ("\n%s\n", eb.in) ;
+      i := 0 ;
+      WHILE i<eb.ini DO
+         printf0 (" ") ;
+         INC (i)
+      END ;
+      printf0 ("^\n")
    END ;
    printf0 ("\n")
 END dump ;
@@ -1197,6 +1343,8 @@ END dump ;
 *)
 
 PROCEDURE ebnf (VAR eb: errorBlock; sym: ARRAY OF CARDINAL) ;
+VAR
+   nb: errorBlock ;
 BEGIN
    IF Debugging
    THEN
@@ -1213,7 +1361,9 @@ BEGIN
 
       '!':  eb.positive := NOT eb.positive |
       '%':  percent (eb, sym) |
-      '{':  lbra (eb, sym) ;
+      '{':  push (nb, eb) ;
+            lbra (nb, sym) ;
+            pop (eb, nb) ;
             IF (eb.ini < eb.len) AND (char (eb.in, eb.ini) # '}')
             THEN
                InternalFormat (eb.in, eb.ini, 'expecting to see }', __LINE__)
@@ -1225,8 +1375,9 @@ BEGIN
               (NOT IsWhite (char (eb.out, -1)))) OR
             (NOT IsWhite (char (eb.in, eb.ini)))) AND (eb.highplus1 > 0)
          THEN
-            flushColor (eb) ;
-            eb.out := x (eb.out, ConCatChar (eb.out, char (eb.in, eb.ini)))
+            stop ;
+            eb.quotes := FALSE ;  (* copying a normal character, don't quote the result.  *)
+            copyChar (eb)
          END
       END ;
       INC (eb.ini)
@@ -1462,6 +1613,12 @@ PROCEDURE MetaErrors4 (m1, m2: ARRAY OF CHAR; s1, s2, s3, s4: CARDINAL) ;
 BEGIN
    MetaErrorsT4 (GetTokenNo (), m1, m2, s1, s2, s3, s4)
 END MetaErrors4 ;
+
+
+PROCEDURE MetaErrorString0 (m: String) ;
+BEGIN
+   MetaErrorStringT0 (GetTokenNo (), m)
+END MetaErrorString0 ;
 
 
 PROCEDURE MetaErrorString1 (m: String; s: CARDINAL) ;
