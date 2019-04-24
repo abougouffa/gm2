@@ -30,6 +30,7 @@ FROM M2DebugStack IMPORT DebugStack ;
 
 FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3,
                         MetaErrors1, MetaErrors2, MetaErrors3,
+                        MetaErrorStringT0, MetaErrorStringT1,
                         MetaErrorString1, MetaErrorString2 ;
 
 FROM DynamicStrings IMPORT String, string, InitString, KillString,
@@ -4916,7 +4917,7 @@ BEGIN
    THEN
       IF (GetStringLength(Sym) = 1)   (* if = 1 then it maybe treated as a char *)
       THEN
-         s := InitString('(constant string) or CHAR')
+         s := InitString('(constant string) or {%kCHAR}')
       ELSE
          s := InitString('(constant string)')
       END
@@ -4934,10 +4935,10 @@ BEGIN
       ELSIF IsUnbounded(Type)
       THEN
          s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetSType(Type))))) ;
-         s := Sprintf1(Mark(InitString('ARRAY OF %s')), s1)
+         s := Sprintf1(Mark(InitString('{%kARRAY} {%kOF} %s')), s1)
       ELSIF IsArray(Type)
       THEN
-         s := InitString('ARRAY [') ;
+         s := InitString('{%kARRAY} [') ;
          Subscript := GetArraySubscript(Type) ;
          IF Subscript#NulSym
          THEN
@@ -4945,10 +4946,8 @@ BEGIN
             Subrange := GetSType(Subscript) ;
             IF NOT IsSubrange(Subrange)
             THEN
-               n1 := GetSymName(Sym) ;
-               n2 := GetSymName(Subrange) ;
-               WriteFormat3('error in definition of array (%a) in subscript (%d) which has no subrange, instead type given is (%a)',
-                            n1, i, n2)
+               MetaError3 ('error in definition of array {%1Ead} in the {%2N} subscript which has no subrange, instead type given is {%3a}',
+                            Sym, i, Subrange)
             END ;
             Assert(IsSubrange(Subrange)) ;
             GetSubrange(Subrange, High, Low) ;
@@ -5001,17 +5000,9 @@ VAR
    e         : Error ;
    s, s1, s2 : String ;
 BEGIN
-   s := InitString('') ;
-   IF CompilingImplementationModule()
-   THEN
-      s := ConCat(s, Sprintf0(Mark(InitString('error found while compiling the implementation module\n'))))
-   ELSIF CompilingProgramModule()
-   THEN
-      s := ConCat(s, Sprintf0(Mark(InitString('error found while compiling the program module\n'))))
-   END ;
-   s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(ProcedureSym)))) ;
-   s := ConCat(s, Mark(Sprintf2(Mark(InitString('problem in parameter %d, PROCEDURE %s (')),
-                                ParameterNo, s1)));
+   MetaError2 ('parameter mismatch between the {%2N} parameter of procedure {%1Ead}',
+               ProcedureSym, ParameterNo) ;
+   s := InitString ('{%kPROCEDURE} {%1Eau} (') ;
    IF NoOfParam(ProcedureSym)>=ParameterNo
    THEN
       IF ParameterNo>1
@@ -5020,7 +5011,7 @@ BEGIN
       END ;
       IF IsVarParam(ProcedureSym, ParameterNo)
       THEN
-         s := ConCat(s, Mark(InitString('VAR ')))
+         s := ConCat(s, Mark(InitString('{%kVAR} ')))
       END ;
 
       First := GetDeclaredMod(GetNthParam(ProcedureSym, ParameterNo)) ;
@@ -5029,7 +5020,7 @@ BEGIN
       THEN
          s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Expecting)))) ;
          s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetSType(ExpectType))))) ;
-         s := ConCat(s, Mark(Sprintf2(Mark(InitString('%s: ARRAY OF %s')),
+         s := ConCat(s, Mark(Sprintf2(Mark(InitString('%s: {%kARRAY} {%kOF} %s')),
                                       s1, s2)))
       ELSE
          s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Expecting)))) ;
@@ -5047,6 +5038,7 @@ BEGIN
          s := ConCat(s, Mark(InitString('..')))
       END
    END ;
+   (*
    ReturnType := GetSType(ProcedureSym) ;
    IF ReturnType=NulSym
    THEN
@@ -5055,24 +5047,11 @@ BEGIN
       s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(ReturnType)))) ;
       s := ConCat(s, Mark(Sprintf1(Mark(InitString(') : %s ;\n')), s1)))
    END ;
-   IF IsConstString(Given)
-   THEN
-      s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Given)))) ;
-      s := ConCat(s, Mark(Sprintf1(Mark(InitString("item being passed is '%s'")),
-                                   s1)))
-   ELSIF IsTemporary(Given)
-   THEN
-      s := ConCat(s, Mark(InitString("item being passed has type")))
-   ELSE
-      s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Given)))) ;
-      s := ConCat(s, Mark(Sprintf1(Mark(InitString("item being passed is '%s'")),
-                                   s1)))
-   END ;
-   s1 := DescribeType(Given) ;
-   s2 := Mark(InitString(CurrentState)) ;
-   s := ConCat(s, Mark(Sprintf2(Mark(InitString(': %s\nparameter mismatch: %s')),
-                                s1, s2))) ;
-   ErrorStringAt2(s, First, GetTokenNo())
+   *)
+   s := ConCat (s, Mark (InitString ('){%1Tau:% : {%1Tau}} ;'))) ;
+   MetaErrorStringT1 (First, Dup (s), ProcedureSym) ;
+   MetaErrorStringT1 (GetTokenNo (), s, ProcedureSym) ;
+   MetaError1 ('item being passed is {%1EDda} which is a {%1Dad} of type {%1Dtsd}', Given)
 END FailParameter ;
 
 
@@ -5103,7 +5082,7 @@ VAR
    e         : Error ;
    s, s1, s2 : String ;
 BEGIN
-   s := InitString('') ;
+   s := InitString('{%W}') ;
    IF CompilingImplementationModule()
    THEN
       s := ConCat(s, Sprintf0(Mark(InitString('warning issued while compiling the implementation module\n'))))
@@ -5123,7 +5102,7 @@ BEGIN
       END ;
       IF IsVarParam(ProcedureSym, ParameterNo)
       THEN
-         s := ConCat(s, Mark(InitString('VAR ')))
+         s := ConCat(s, Mark(InitString('{%kVAR} ')))
       END ;
 
       First := GetDeclaredMod(GetNthParam(ProcedureSym, ParameterNo)) ;
@@ -5132,7 +5111,7 @@ BEGIN
       THEN
          s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Expecting)))) ;
          s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetSType(ExpectType))))) ;
-         s := ConCat(s, Mark(Sprintf2(Mark(InitString('%s: ARRAY OF %s')),
+         s := ConCat(s, Mark(Sprintf2(Mark(InitString('%s: {%kARRAY} {%kOF} %s')),
                                       s1, s2)))
       ELSE
          s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Expecting)))) ;
@@ -5175,8 +5154,8 @@ BEGIN
    s2 := Mark(InitString(CurrentState)) ;
    s := ConCat(s, Mark(Sprintf2(Mark(InitString(': %s\nparameter mismatch: %s')),
                                 s1, s2))) ;
-   ErrorString(NewWarning(GetTokenNo()), Dup(s)) ;
-   ErrorString(NewWarning(First), s)
+   MetaErrorStringT0 (GetTokenNo (), Dup (s)) ;
+   MetaErrorStringT0 (First, Dup (s))
 END WarnParameter ;
 
 

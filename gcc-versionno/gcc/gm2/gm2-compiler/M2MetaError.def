@@ -49,6 +49,8 @@ EXPORT QUALIFIED MetaError1, MetaError2, MetaError3, MetaError4,
 (*
     All the procedures below expect the s, s1, s2, s3, s4 to be symbols
     and m, m1, m2, m3 are error messages and format specifiers.
+    By default all substitutions are enclosed in quotes.  However there
+    are a few format modifiers which disable quotations.
     The format specifiers are:
 
     {%1a}     symbol name for the first symbol.
@@ -56,7 +58,10 @@ EXPORT QUALIFIED MetaError1, MetaError2, MetaError3, MetaError4,
     {%1t}     type name for the first symbol.
     {%1ts}    skips type pseudonyms.
     {%1d}     symbol description
-    {%1td}    type symbol description
+    {%1td}    type name or symbol description
+    {%1Td}    get the type of the first symbol and describe it.
+    {%1Sd}    skip the type pseudonyms of the first symbol and describe it.
+    {%1ua}    force no quotes after substituting the text.
 
     {%1D}     sets the error message to where symbol 1 was declared.
               The declaration will choose the definition module, then
@@ -69,9 +74,12 @@ EXPORT QUALIFIED MetaError1, MetaError2, MetaError3, MetaError4,
     {%E}      error (default)
     {%W}      message is a warning, not an error.
     {%O}      message is a note, not an error.
-    {%Kword}  the string "word" is rendered as a keyword.
+    {%Kword}  the string word is quoted and rendered as a keyword.
+    {%Kword}  the string word is unquoted and rendered as a keyword.
     {%C}      chain this error on the previous rooted error.
     {%R}      this error will be the root of the future chained errors.
+    {%n}      decimal number.  Not quoted.
+    {%N}      count (number), for example, 1st, 2nd, 3rd, 4th.  Not quoted.
     {%P}      push the current color state.
     {%p}      pop the current color state.
     {%ccolor} change color into one of:  none, fixit-delete, fixit-insert,
@@ -97,7 +105,7 @@ EXPORT QUALIFIED MetaError1, MetaError2, MetaError3, MetaError4,
     'foo', which matches the behaviour of gcc.  Also note temporary names
     are treated as null.  Finally the order of format specifiers does
     matter, {%1td} means get type name and use it if non null, otherwise
-    describe the symbol.
+    describe the symbol.  If ordinary text is copied then it is not quoted.
 
    The color strings are: "filename", "quote", "error", "warning", "note",
                           "locus", "insert", "delete", "type", "range1", range2".

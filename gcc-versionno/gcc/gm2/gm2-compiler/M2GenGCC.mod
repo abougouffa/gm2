@@ -2729,7 +2729,7 @@ PROCEDURE DescribeTypeError (token: CARDINAL;
                              op1, op2: CARDINAL) ;
 BEGIN
    MetaErrorT2(token, 'incompatible set types in assignment, assignment between {%1ERad} and {%2ad}', op1, op2) ;
-   MetaError2('set types are {%1CDtsad} and {%1Dtsad}', op1, op2)
+   MetaError2('set types are {%1CDtsad} and {%2Dtsad}', op1, op2)
 END DescribeTypeError ;
 
 

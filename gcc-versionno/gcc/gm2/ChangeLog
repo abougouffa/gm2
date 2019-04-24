@@ -1,3 +1,15 @@
+2019-04-24      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  (DescribeError)
+          corrected symbol numbers.
+	* gm2/gm2-compiler/M2MetaError.def:  large number of
+          additions new format specifiers 'S', 'T', 'u', 'k'.
+	* gm2/gm2-compiler/M2MetaError.mod:  much debugging code
+          added and bug fixes for color changes implemented.
+          Also implemented the above format specifiers.
+	* gm2/gm2-compiler/M2Quads.mod:  (FailParameter) and
+	  (WarnParameter) use new format specifiers in M2MetaError.
+
 2019-04-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/M2MetaError.def:  added MetaErrorString0.

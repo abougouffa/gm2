@@ -58,8 +58,9 @@ IMPORT M2ColorString ;
 
 
 CONST
-   MaxStack  = 10 ;
-   Debugging = FALSE ;
+   MaxStack   = 10 ;
+   Debugging  = FALSE ;
+   ColorDebug = FALSE ;
 
 TYPE
    errorType = (none, error, warning, note, chained) ;
@@ -160,12 +161,13 @@ END readColor ;
 
 
 (*
-   keyword -
+   keyword - copy characters until the '}' in the input string and convert them to
+             the keyword color/font.
 *)
 
 PROCEDURE keyword (VAR eb: errorBlock) ;
 BEGIN
-   IF char (eb.in, eb.ini) = 'K'
+   IF CAP (char (eb.in, eb.ini)) = 'K'
    THEN
       INC (eb.ini) ;
       pushColor (eb) ;
@@ -220,7 +222,11 @@ BEGIN
       ELSE
          HALT
       END ;
-      currentCol := colorStack[stackPtr]
+      currentCol := colorStack[stackPtr] ;
+      IF currentCol = unsetColor
+      THEN
+         currentCol := noColor
+      END
    END
 END popColor ;
 
@@ -272,6 +278,8 @@ END push ;
 *)
 
 PROCEDURE pop (VAR toblock: errorBlock; fromblock: errorBlock) ;
+VAR
+   c: colorType ;
 BEGIN
    IF empty (fromblock)
    THEN
@@ -284,22 +292,18 @@ BEGIN
          (* string needs to be quoted.  *)
          IF toblock.currentCol = unsetColor
          THEN
-            (* caller has not yet assigned a color, so use the callee color.  *)
-            OutGlyphS (toblock, M2ColorString.quoteOpen (InitString (''))) ;
+            (* caller has not yet assigned a color, so use the callee color at the end.  *)
+            OutOpenQuote (toblock) ;
             OutGlyphS (toblock, fromblock.out) ;
-            OutGlyphS (toblock, M2ColorString.quoteClose (InitString (''))) ;
-            toblock.endCol := noColor ;
+            OutCloseQuote (toblock) ;
             changeColor (toblock, fromblock.currentCol)
          ELSE
             (* caller has assigned a color, so use it after the new string.  *)
-            pushColor (toblock) ;
-            changeColor (toblock, quoteColor) ;
-            OutGlyphS (toblock, M2ColorString.quoteOpen (InitString (''))) ;
+            c := toblock.currentCol ;
+            OutOpenQuote (toblock) ;
             OutGlyphS (toblock, fromblock.out) ;
-            OutGlyphS (toblock, M2ColorString.quoteClose (InitString (''))) ;
-            (* toblock.endCol := fromblock.endCol ; *)
-            toblock.endCol := noColor ;
-            popColor (toblock)
+            OutCloseQuote (toblock) ;
+            toblock.currentCol := c
          END
       ELSE
          IF toblock.currentCol = unsetColor
@@ -319,6 +323,30 @@ BEGIN
    toblock.root := fromblock.root ;
    toblock.ini := fromblock.ini
 END pop ;
+
+
+(*
+   OutOpenQuote -
+*)
+
+PROCEDURE OutOpenQuote (VAR eb: errorBlock) ;
+BEGIN
+   eb.currentCol := noColor ;
+   flushColor (eb) ;
+   eb.out := ConCat (eb.out, openQuote (InitString ('')))
+END OutOpenQuote ;
+
+
+(*
+   OutCloseQuote -
+*)
+
+PROCEDURE OutCloseQuote (VAR eb: errorBlock) ;
+BEGIN
+   eb.out := ConCat (eb.out, closeQuote (InitString (''))) ;
+   eb.currentCol := noColor ;
+   eb.endCol := noColor
+END OutCloseQuote ;
 
 
 (*
@@ -596,13 +624,24 @@ END doCount ;
 
 PROCEDURE doAscii (VAR eb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 BEGIN
-   IF (NOT empty (eb)) OR IsTemporary (sym[bol]) OR IsNameAnonymous (sym[bol])
+   IF (sym[bol] = NulSym) OR (NOT empty (eb)) OR IsTemporary (sym[bol]) OR IsNameAnonymous (sym[bol])
    THEN
       RETURN
    ELSE
       OutGlyphS (eb, InitStringCharStar (KeyToCharStar (GetSymName (sym[bol]))))
    END
 END doAscii ;
+
+
+(*
+   unquotedKeyword -
+*)
+
+PROCEDURE unquotedKeyword (VAR eb: errorBlock) ;
+BEGIN
+   eb.quotes := FALSE ;
+   keyword (eb)
+END unquotedKeyword ;
 
 
 (*
@@ -712,8 +751,7 @@ END doQualified ;
 
 (*
    doType - returns a string containing the type name of
-            sym.  It will skip pseudonym types.  It also
-            returns the type symbol found.
+            sym.
 *)
 
 PROCEDURE doType (VAR eb: errorBlock;
@@ -724,10 +762,6 @@ BEGIN
       RETURN
    ELSE
       sym[bol] := GetType (sym[bol]) ;
-      WHILE IsType(sym[bol]) AND ((GetSymName (sym[bol]) = NulName) OR
-                                  IsNameAnonymous (sym[bol])) DO
-         sym[bol] := GetType (sym[bol])
-      END ;
       doAscii (eb, sym, bol)
    END
 END doType ;
@@ -752,6 +786,49 @@ BEGIN
       doAscii (eb, sym, bol)
    END
 END doSkipType ;
+
+
+(*
+   doGetType - attempts to get the type of sym[bol].
+*)
+
+PROCEDURE doGetType (VAR eb: errorBlock;
+                     VAR sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
+BEGIN
+   IF (NOT empty (eb)) OR (sym[bol] = NulSym)
+   THEN
+      RETURN
+   ELSE
+      sym[bol] := GetType (sym[bol])
+   END
+END doGetType ;
+
+
+(*
+   doGetSkipType - will skip all pseudonym types.  It also
+                   returns the type symbol found and name.
+*)
+
+PROCEDURE doGetSkipType (eb: errorBlock; VAR sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
+VAR
+   prev: CARDINAL ;
+BEGIN
+   IF (NOT empty (eb)) OR (sym[bol] = NulSym)
+   THEN
+      RETURN
+   ELSE
+      REPEAT
+         prev := sym[bol] ;
+         sym[bol] := SkipType (sym[bol]) ;
+         IF IsType(sym[bol]) AND ((GetSymName (sym[bol]) = NulName) OR
+                                  IsNameAnonymous (sym[bol])) AND
+            (GetType(sym[bol]) # NulSym)
+         THEN
+            sym[bol] := GetType (sym[bol])
+         END
+      UNTIL sym[bol] = prev
+   END
+END doGetSkipType ;
 
 
 (*
@@ -989,7 +1066,7 @@ END copySym ;
 
 
 (*
-   op := {'a'|'q'|'t'|'d'|'n'|'s'|'D'|'I'|'U'|'E'|'W'} then =:
+   op := {'a'|'q'|'t'|'d'|'n'|'s'| 'u' |'D'|'I'|'U'|'E'|'W'} then =:
 *)
 
 PROCEDURE op (VAR eb: errorBlock;
@@ -1019,17 +1096,22 @@ BEGIN
       'O':  eb.type := note |
       'C':  eb.chain := TRUE |
       'R':  eb.root := TRUE |
+      'S':  doGetSkipType (eb, sym, bol) |
+      'T':  doGetType (eb, sym, bol) |
       'P':  pushColor (eb) |
       'p':  popColor (eb) |
       'c':  eb.currentCol := readColor (eb) ;
             DEC (eb.ini) |
       'K':  keyword (eb) ;
             DEC (eb.ini) |
+      'k':  unquotedKeyword (eb) ;
+            DEC (eb.ini) |
+      'u':  eb.quotes := FALSE |
       ':':  ifNonNulThen (eb, sym) ;
             DEC (eb.ini)
 
       ELSE
-         InternalFormat (eb.in, eb.ini, 'expecting one of [aqtdnpsCDEKNPOUW:<>%]', __LINE__)
+         InternalFormat (eb.in, eb.ini, 'expecting one of [akqtdnpsuCDEKNPOUW:<>%]', __LINE__)
       END ;
       INC (eb.ini)
    END ;
@@ -1100,12 +1182,16 @@ PROCEDURE flushColor (VAR eb: errorBlock) ;
 BEGIN
    IF eb.endCol # eb.currentCol
    THEN
-      IF eb.endCol # unsetColor
+      IF (eb.endCol # unsetColor) AND (eb.endCol # noColor)
       THEN
-         eb.out := M2ColorString.endColor (eb.out)
+         eb.out := colorEnd (eb.out) ;
+         eb.endCol := noColor
       END ;
-      emitColor (eb, eb.currentCol) ;
-      eb.endCol := eb.currentCol ;
+      IF eb.endCol # eb.currentCol
+      THEN
+         emitColor (eb, eb.currentCol) ;
+         eb.endCol := eb.currentCol
+      END ;
       IF eb.beginCol = unsetColor
       THEN
          eb.beginCol := eb.currentCol
@@ -1115,10 +1201,10 @@ END flushColor ;
 
 
 (*
-   emitColor - adds the appropriate color string to the output string.
+   emitColorGCC -
 *)
 
-PROCEDURE emitColor (VAR eb: errorBlock; c: colorType) ;
+PROCEDURE emitColorGCC (VAR eb: errorBlock; c: colorType) ;
 BEGIN
    CASE c OF
 
@@ -1138,7 +1224,98 @@ BEGIN
    range2Color  :  eb.out := M2ColorString.range2Color (eb.out)
 
    END
+END emitColorGCC ;
+
+
+(*
+   emitColorTag -
+*)
+
+PROCEDURE emitColorTag (VAR eb: errorBlock; c: colorType) ;
+VAR
+   s: String ;
+BEGIN
+   CASE c OF
+
+   unsetColor   :  s := InitString ('<unset>') |
+   noColor      :  s := InitString ('<nocol>') ; stop |
+   quoteColor   :  s := InitString ('<quote>') |
+   filenameColor:  s := InitString ('<filename>') |
+   errorColor   :  s := InitString ('<error>') |
+   warningColor :  s := InitString ('<warn>') |
+   noteColor    :  s := InitString ('<note>') |
+   keywordColor :  s := InitString ('<key>') |
+   locusColor   :  s := InitString ('<locus>') |
+   insertColor  :  s := InitString ('<insert>') |
+   deleteColor  :  s := InitString ('<delete>') |
+   typeColor    :  s := InitString ('<type>') |
+   range1Color  :  s := InitString ('<range1>') |
+   range2Color  :  s := InitString ('<range2>')
+
+   END ;
+   eb.out := ConCat (eb.out, Mark (s))
+END emitColorTag ;
+
+
+(*
+   emitColor - adds the appropriate color string to the output string.
+*)
+
+PROCEDURE emitColor (VAR eb: errorBlock; c: colorType) ;
+BEGIN
+   IF ColorDebug
+   THEN
+      emitColorTag (eb, c)
+   ELSE
+      emitColorGCC (eb, c)
+   END
 END emitColor ;
+
+
+(*
+   openQuote -
+*)
+
+PROCEDURE openQuote (s: String) : String ;
+BEGIN
+   IF ColorDebug
+   THEN
+      RETURN ConCat (s, Mark (InitString ('<openquote>')))
+   ELSE
+      RETURN M2ColorString.quoteOpen (s)
+   END
+END openQuote ;
+
+
+(*
+   closeQuote -
+*)
+
+PROCEDURE closeQuote (s: String) : String ;
+BEGIN
+   IF ColorDebug
+   THEN
+      RETURN ConCat (s, Mark (InitString ('<closequote>')))
+   ELSE
+      RETURN M2ColorString.quoteClose (s)
+   END
+END closeQuote ;
+
+
+(*
+   colorEnd -
+*)
+
+PROCEDURE colorEnd (s: String) : String ;
+BEGIN
+   stop ;
+   IF ColorDebug
+   THEN
+      RETURN ConCat (s, Mark (InitString ('<nocol>')))
+   ELSE
+      RETURN M2ColorString.endColor (s)
+   END
+END colorEnd ;
 
 
 (*
@@ -1175,6 +1352,7 @@ BEGIN
       THEN
          ch := Lower (ch)
       END ;
+      eb.glyph := TRUE ;
       eb.out := x (eb.out, ConCatChar (eb.out, ch))
    END
 END copyKeywordChar ;
@@ -1195,14 +1373,17 @@ BEGIN
          IF char (eb.in, eb.ini) = '<'
          THEN
             (* %< is a quotation symbol.  *)
-            flushColor (eb) ;
             pushColor (eb) ;
+            eb.currentCol := noColor ;
+            flushColor (eb) ;
             changeColor (eb, quoteColor) ;
+            eb.endCol := quoteColor ;  (* the openQuote will change the color.  *)
             (* OutGlyphS performs a flush and we are emitting the open quote glyph.  *)
-            OutGlyphS (eb, M2ColorString.quoteOpen (InitString ('')))
+            OutGlyphS (eb, openQuote (InitString ('')))
          ELSIF char (eb.in, eb.ini) = '>'
          THEN
-            OutGlyphS (eb, M2ColorString.quoteClose (InitString (''))) ;
+            OutGlyphS (eb, closeQuote (InitString (''))) ;
+            eb.endCol := noColor ;  (* closeQuote also turns off color.  *)
             popColor (eb)
          ELSE
             copyChar (eb)
@@ -1375,7 +1556,6 @@ BEGIN
               (NOT IsWhite (char (eb.out, -1)))) OR
             (NOT IsWhite (char (eb.in, eb.ini)))) AND (eb.highplus1 > 0)
          THEN
-            stop ;
             eb.quotes := FALSE ;  (* copying a normal character, don't quote the result.  *)
             copyChar (eb)
          END
