@@ -60,7 +60,7 @@ FROM M2Error IMPORT Error, InternalError, ErrorFormat0, ErrorFormat1, ErrorForma
 FROM M2Options IMPORT VariantValueChecking ;
 
 FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3,
-                        MetaErrorT1, MetaErrorT2, MetaErrorT3,
+                        MetaErrorT0, MetaErrorT1, MetaErrorT2, MetaErrorT3,
                         MetaErrorsT1, MetaErrorsT2, MetaErrorsT3, MetaErrorsT4,
                         MetaErrorStringT1, MetaErrorStringT2, MetaErrorStringT3 ;
 
@@ -898,7 +898,7 @@ BEGIN
          IF Equ(tokenno)
          THEN
             MetaErrorT1(tokenNo,
-                        'attempting to dereference a pointer {%1a} whose value will be NIL',
+                        'attempting to dereference a pointer {%1Wa} whose value will be NIL',
                         des) ;
             PutQuad(q, ErrorOp, NulSym, NulSym, r)
          ELSE
@@ -1208,14 +1208,14 @@ BEGIN
       ELSE
          s := ConCat(ConCat(InitString('operands to '),
                             Mark(InitString(name))),
-                     Mark(InitString(' {%1tsd:{%2tsd:{%1tsd} and {%2tsd}}} are incompatible'))) ;
+                     Mark(InitString(' {%1Etsd:{%2tsd:{%1tsd} and {%2tsd}}} are incompatible'))) ;
          MetaErrorStringT2(tokenno, s, des, expr) ;
          FlushErrors
       END
    ELSE
       s := ConCat(ConCat(InitString('first operand to '),
                          Mark(InitString(name))),
-                  Mark(InitString(' is not a set {%1tasd}'))) ;
+                  Mark(InitString(' is not a set {%1Etasd}'))) ;
       MetaErrorStringT1(tokenno, s, des) ;
       FlushErrors
    END ;
@@ -1241,14 +1241,14 @@ BEGIN
       ELSE
          s := ConCat(ConCat(InitString('operands to '),
                             Mark(InitString(name))),
-                     Mark(InitString(' {%1tsd:{%2tsd:{%1tsd} and {%2tsd}}} are incompatible'))) ;
+                     Mark(InitString(' {%1Etsd:{%2tsd:{%1tsd} and {%2tsd}}} are incompatible'))) ;
          MetaErrorStringT2(tokenno, s, des, expr) ;
          FlushErrors
       END
    ELSE
       s := ConCat(ConCat(InitString('first operand to '),
                          Mark(InitString(name))),
-                  Mark(InitString(' is not a set {%1tasd}'))) ;
+                  Mark(InitString(' is not a set {%1Etasd}'))) ;
       MetaErrorStringT1(tokenno, s, des) ;
       FlushErrors
    END ;
@@ -1280,7 +1280,7 @@ BEGIN
                IF OutOfRange(tokenno, min, expr, max, desLowestType)
                THEN
                   MetaErrorT2(tokenNo,
-                              'operand to INCL {%2a} exceeds the range of type {%1tasa}',
+                              'operand to INCL {%2Wa} exceeds the range of type {%1tasa}',
                               des, expr) ;
                   PutQuad(q, ErrorOp, NulSym, NulSym, r)
                ELSE
@@ -1318,7 +1318,7 @@ BEGIN
                IF OutOfRange(tokenno, min, expr, max, desLowestType)
                THEN
                   MetaErrorT2(tokenNo,
-                              'operand to EXCL {%2a} exceeds the range of type {%1tasa}',
+                              'operand to EXCL {%2Wa} exceeds the range of type {%1tasa}',
                               des, expr) ;
                   PutQuad(q, ErrorOp, NulSym, NulSym, r)
                ELSE
@@ -1369,7 +1369,7 @@ BEGIN
                IF OutOfRange(tokenno, shiftMin, expr, shiftMax, desLowestType)
                THEN
                   MetaErrorT2(tokenNo,
-                              'operand to SHIFT {%2a} exceeds the range of type {%1tasa}',
+                              'operand to SHIFT {%2Wa} exceeds the range of type {%1tasa}',
                               des, expr) ;
                   PutQuad(q, ErrorOp, NulSym, NulSym, r)
                ELSE
@@ -1421,7 +1421,7 @@ BEGIN
                IF OutOfRange(tokenno, rotateMin, expr, rotateMax, desLowestType)
                THEN
                   MetaErrorT2(tokenNo,
-                              'operand to ROTATE {%2a} exceeds the range of type {%1tasa}',
+                              'operand to ROTATE {%2Wa} exceeds the range of type {%1tasa}',
                               des, expr) ;
                   PutQuad(q, ErrorOp, NulSym, NulSym, r)
                ELSE
@@ -1459,12 +1459,12 @@ BEGIN
          IF IsProcedure(des)
          THEN
             MetaErrorsT2(tokenNo,
-                         'the return type {%1tad} declared in procedure {%1Da}',
+                         'the return type {%1Etad} declared in procedure {%1Da}',
                          'is incompatible with the returned expression {%2ad}}',
                          des, expr) ;
          ELSE
             MetaErrorT3(tokenNo,
-                        'assignment designator {%1a} {%1ta:of type {%1ta}} {%1d:is a {%1d}} and expression {%2a} {%3ad:of type {%3ad}} are incompatible',
+                        'assignment designator {%1Ea} {%1ta:of type {%1ta}} {%1d:is a {%1d}} and expression {%2a} {%3ad:of type {%3ad}} are incompatible',
                         des, expr, exprType)
          END ;
          FlushErrors
@@ -1486,8 +1486,8 @@ BEGIN
       IF FirstMention(r)
       THEN
          MetaErrorsT4(tokenNo,
-                     '{%3N} actual parameter type {%2tasd} is incompatible with the formal parameter type {%1tasd}',
-                     '{%3N} parameter in procedure {%4Da} {%1a} has a type of {%1tad}',
+                     '{%3EN} actual parameter type {%2tasd} is incompatible with the formal parameter type {%1tasd}',
+                     '{%3EN} parameter in procedure {%4Da} {%1a} has a type of {%1tad}',
                      formal, actual, paramNo, procedure) ;
          (* FlushErrors *)
       END
@@ -1508,7 +1508,7 @@ BEGIN
       IF FirstMention(r)
       THEN
          MetaErrorT2(tokenNo,
-                     'expression of type {%1tad} is incompatible with type {%2tad}',
+                     'expression of type {%1Etad} is incompatible with type {%2tad}',
                      des, expr)
       END
       (* FlushErrors *)
@@ -1537,12 +1537,12 @@ BEGIN
          IF IsProcedure(des)
          THEN
             MetaErrorsT2(tokenNo,
-                         'the return type {%1tad} declared in procedure {%1Da}',
-                         'is incompatible with the returned expression {%2Ua} {%2tad:of type {%2tad}}',
+                         'the return type {%1Etad} declared in procedure {%1Da}',
+                         'is incompatible with the returned expression {%2EUa} {%2tad:of type {%2tad}}',
                          des, expr) ;
          ELSE
             MetaErrorT2(tokenNo,
-                        'assignment designator {%1a} {%1ta:of type {%1ta}} {%1d:is a {%1d}} and expression {%2a} {%2tad:of type {%2tad}} are incompatible',
+                        'assignment designator {%1Ea} {%1ta:of type {%1ta}} {%1d:is a {%1d}} and expression {%2a} {%2tad:of type {%2tad}} are incompatible',
                         des, expr)
          END
       END
@@ -1562,8 +1562,8 @@ BEGIN
       IF FirstMention(r)
       THEN
          MetaErrorsT4(tokenNo,
-                      '{%3N} actual parameter type {%2tasd} is incompatible with the formal parameter type {%1tasd}',
-                      '{%3N} parameter of procedure {%4Da} {%1a} has a type of {%1tad}',
+                      '{%3EN} actual parameter type {%2tasd} is incompatible with the formal parameter type {%1tasd}',
+                      '{%3EN} parameter of procedure {%4Da} {%1a} has a type of {%1tad}',
                       formal, actual, paramNo, procedure) ;
          (* FlushErrors *)
       END
@@ -1582,7 +1582,7 @@ BEGIN
       IF FirstMention(r)
       THEN
          MetaErrorT2(tokenNo,
-                     'expression of type {%1tad} is incompatible with type {%2tad}',
+                     'expression of type {%1Etad} is incompatible with type {%2tad}',
                      des, expr) ;
          (* FlushErrors *)
       END
@@ -1847,8 +1847,7 @@ BEGIN
          (* nothing to do *)
       END
    ELSE
-      d := NulSym ;
-      MetaErrorT1(tokenno, 'the CASE statement ranges must be constants', d)
+      MetaErrorT0(tokenno, '{%E}the CASE statement ranges must be constants')
    END
 END CodeCaseBounds ;
 
@@ -1886,7 +1885,7 @@ BEGIN
          IF IsGreaterOrEqualConversion(zero, des, expr)
          THEN
             MetaErrorT2(tokenNo,
-                        'the divisor {%2Wa} in this division expression is less than or equal to zero, this would cause an exception to be raised before the result is assigned to the designator {%1a}',
+                        'the divisor {%2Wa} in this division expression is less than or equal to zero, this will cause an exception to be raised before the result is assigned to the designator {%1a}',
                         des, expr) ;
             PutQuad(q, ErrorOp, NulSym, NulSym, r)
          END
@@ -1913,7 +1912,7 @@ BEGIN
          IF IsGreaterOrEqualConversion(zero, des, expr)
          THEN
             MetaErrorT2(tokenNo,
-                        'the divisor {%2Wa} in this modulus expression is less than or equal to zero, this would cause an exception to be raised before the result is assigned to the designator {%1a}',
+                        'the divisor {%2Wa} in this modulus expression is less than or equal to zero, this will cause an exception to be raised before the result is assigned to the designator {%1a}',
                         des, expr) ;
             PutQuad(q, ErrorOp, NulSym, NulSym, r)
          END
@@ -1940,7 +1939,7 @@ BEGIN
          IF IsEqualConversion(zero, des, expr)
          THEN
             MetaErrorT2(tokenNo,
-                        'the divisor {%2Wa} in this division expression is equal to zero, this would cause an exception to be raised before the result is assigned to the designator {%1a}',
+                        'the divisor {%2Wa} in this division expression is equal to zero, this will cause an exception to be raised before the result is assigned to the designator {%1a}',
                         des, expr) ;
             PutQuad(q, ErrorOp, NulSym, NulSym, r)
          END
@@ -1967,7 +1966,7 @@ BEGIN
          IF IsEqualConversion(zero, des, expr)
          THEN
             MetaErrorT2(tokenNo,
-                        'the divisor {%2Wa} in this remainder expression is equal to zero, this would cause an exception to be raised before the result is assigned to the designator {%1a}',
+                        'the divisor {%2Wa} in this remainder expression is equal to zero, this will cause an exception to be raised before the result is assigned to the designator {%1a}',
                         des, expr) ;
             PutQuad(q, ErrorOp, NulSym, NulSym, r)
          END

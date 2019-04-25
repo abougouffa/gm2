@@ -1,3 +1,15 @@
+2019-04-25      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2MetaError.def:  (MetaErrorT0)
+          declare and export.
+	* gm2/gm2-compiler/M2MetaError.mod:  (pop) copy
+          the error type back to the caller.   (MetaErrorT0)
+          new procedure.
+	* gm2/gm2-compiler/M2Range.mod:  import (MetaErrorT0)
+          and replace MetaErrorT1 with MetaErrorT0.  Ensure that
+          all warnings are have the 'W' format specifier.
+	  Ensure that all errors use 'E' for consistency.
+
 2019-04-24      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  (DescribeError)

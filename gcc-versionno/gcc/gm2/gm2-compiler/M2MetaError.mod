@@ -266,7 +266,7 @@ END initErrorBlock ;
 PROCEDURE push (VAR newblock: errorBlock; oldblock: errorBlock) ;
 BEGIN
    pushColor (oldblock) ;  (* save the current color.  *)
-   newblock := oldblock ;
+   newblock := oldblock ;  (* copy all the fields.  *)
    newblock.out := NIL ;  (* must do this before a clear as we have copied the address.  *)
    clear (newblock) ;
    newblock.quotes := TRUE
@@ -321,7 +321,8 @@ BEGIN
    END ;
    toblock.chain := fromblock.chain ;
    toblock.root := fromblock.root ;
-   toblock.ini := fromblock.ini
+   toblock.ini := fromblock.ini ;
+   toblock.type := fromblock.type   (* might have been changed by the callee.  *)
 END pop ;
 
 
@@ -1585,6 +1586,12 @@ BEGIN
    ErrorString (eb.e, Dup (eb.out)) ;
    killErrorBlock (eb)
 END MetaErrorStringT0 ;
+
+
+PROCEDURE MetaErrorT0 (tok: CARDINAL; m: ARRAY OF CHAR) ;
+BEGIN
+   MetaErrorStringT0 (tok, InitString(m))
+END MetaErrorT0 ;
 
 
 PROCEDURE MetaErrorStringT1 (tok: CARDINAL; m: String; s: CARDINAL) ;
