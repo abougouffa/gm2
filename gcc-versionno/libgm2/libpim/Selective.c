@@ -1,26 +1,23 @@
-/* Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
- *               2013, 2014
- *               Free Software Foundation, Inc. */
-/* This file is part of GNU Modula-2.
+/* Selective.c provide access to timeval and select.
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+Copyright (C) 2009-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius@glam.ac.uk>.
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
+This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
-/*
- *
- * Implementation module in C.
- *
- */
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -77,11 +74,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 #endif
 
 
-/*
-   PROCEDURE Select (nooffds: CARDINAL;
-                     readfds, writefds, exceptfds: SetOfFd;
-                     timeout: Timeval) : INTEGER ;
-*/
+/* Select wrap a call to the C select.  */
 
 #if defined(HAVE_STRUCT_TIMEVAL)
 int Selective_Select (int nooffds,
@@ -103,9 +96,7 @@ int Selective_Select (int nooffds,
 }
 #endif
 
-/*
-   PROCEDURE InitTime (sec, usec) : Timeval ;
-*/
+/* InitTime initialises a timeval structure and returns a pointer to it.  */
 
 #if defined(HAVE_STRUCT_TIMEVAL)
 struct timeval *Selective_InitTime (unsigned int sec, unsigned int usec)
@@ -131,9 +122,7 @@ void Selective_SetTime (struct timeval *t,
   t->tv_usec = usec;
 }
 
-/*
-   PROCEDURE KillTime (t: Timeval) : Timeval ;
-*/
+/* KillTime frees the timeval structure and returns NULL.  */
 
 struct timeval *Selective_KillTime (struct timeval *t)
 {
@@ -143,9 +132,7 @@ struct timeval *Selective_KillTime (struct timeval *t)
   return NULL;
 }
 
-/*
-   PROCEDURE InitSet () : SetOfFd ;
-*/
+/* InitSet returns a pointer to a FD_SET.  */
 
 FDSET_T *Selective_InitSet (void)
 {
@@ -158,9 +145,7 @@ FDSET_T *Selective_InitSet (void)
 #endif
 }
 
-/*
-   PROCEDURE KillSet (s: SetOfFd) : SetOfFd ;
-*/
+/* KillSet frees the FD_SET and returns NULL.  */
 
 FDSET_T *Selective_KillSet (FDSET_T *s)
 {
@@ -170,18 +155,16 @@ FDSET_T *Selective_KillSet (FDSET_T *s)
   return NULL;
 }
 
-/*
-   PROCEDURE FdZero (s: SetOfFd) ;
-*/
+
+/* FdZero generate an empty set.  */
 
 void Selective_FdZero (FDSET_T *s)
 {
   FD_ZERO (s);
 }
 
-/*
-   PROCEDURE Fd_Set (fd: INTEGER; SetOfFd) ;
-*/
+
+/* FS_Set include an element, fd, into set, s.  */
 
 void Selective_FdSet (int fd, FDSET_T *s)
 {
@@ -189,9 +172,7 @@ void Selective_FdSet (int fd, FDSET_T *s)
 }
 
 
-/*
-   PROCEDURE FdClr (fd: INTEGER; SetOfFd) ;
-*/
+/* FdClr exclude an element, fd, from the set, s.  */
 
 void Selective_FdClr (int fd, FDSET_T *s)
 {
@@ -199,20 +180,16 @@ void Selective_FdClr (int fd, FDSET_T *s)
 }
 
 
-/*
-   PROCEDURE FdIsSet (fd: INTEGER; SetOfFd) : BOOLEAN ;
-*/
+/* FdIsSet return TRUE if, fd, is present in set, s.  */
 
 int Selective_FdIsSet (int fd, FDSET_T *s)
 {
   return FD_ISSET (fd, s);
 }
 
-/*
-   GetTimeOfDay - fills in a record, Timeval, filled in with the
-                  current system time in seconds and microseconds.
-                  It returns zero (see man 3p gettimeofday)
-*/
+/* GetTimeOfDay fills in a record, Timeval, filled in with the
+   current system time in seconds and microseconds.
+   It returns zero (see man 3p gettimeofday).  */
 
 int Selective_GetTimeOfDay (struct timeval *t)
 {
@@ -274,9 +251,7 @@ int Selective_GetTimeOfDay (void *t)
 #endif
 
 
-/*
-   PROCEDURE MaxFdsPlusOne (a, b: File) : File ;
-*/
+/* MaxFdsPlusOne returns max (a + 1, b + 1).  */
 
 int Selective_MaxFdsPlusOne (int a, int b)
 {
@@ -287,9 +262,7 @@ int Selective_MaxFdsPlusOne (int a, int b)
 }
 
 
-/*
-   PROCEDURE WriteCharRaw (fd: INTEGER; ch: CHAR) ;
-*/
+/* WriteCharRaw writes a single character to the file descriptor.  */
 
 void Selective_WriteCharRaw (int fd, char ch)
 {
@@ -297,9 +270,7 @@ void Selective_WriteCharRaw (int fd, char ch)
 }
 
 
-/*
-   PROCEDURE ReadCharRaw (fd: INTEGER) : CHAR ;
-*/
+/* ReadCharRaw read and return a single char from file descriptor, fd.  */
 
 char Selective_ReadCharRaw (int fd)
 {

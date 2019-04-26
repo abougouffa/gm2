@@ -1,3 +1,12 @@
+2019-04-26      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-libs-ch/Selective.c:  fixed copyright notice.
+          Also removed references to p2c and added GCC header
+          config and portable include files.  Tidied up comments
+	  and made them GNU complient.
+	* libgm2/libpim/Selective.c:  fixed copyright notice.
+          Tidied up comments and made them GNU complient.
+
 2019-04-25      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/M2MetaError.def:  (MetaErrorT0)
