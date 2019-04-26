@@ -6,6 +6,11 @@
 	  and made them GNU complient.
 	* libgm2/libpim/Selective.c:  fixed copyright notice.
           Tidied up comments and made them GNU complient.
+	* gm2/Make-lang.in:  make xlibc.o dependant upon gm2-libs-host.h.
+          (stage2/gm2/gm2m$(exeext)) reqritten rule to use $(LINKER).
+	  gm2m links with tools.o.
+	* gm2/gm2-libs-ch/xlibc.c:  implement xstrdup.
+	* gm2/gm2-libs-ch/tools.c:  New file.
 
 2019-04-25      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

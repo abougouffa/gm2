@@ -1227,8 +1227,11 @@ gm2/gm2-compiler-boot/M2Version.mod:
 #  now for the rules which build objects in the gm2-compiler gm2-libs directories
 #
 
-gm2/gm2-libiberty/xlibc.o: $(srcdir)/gm2/gm2-libs-ch/xlibc.c gm2/gm2-libs/gm2-libs-target.h
-	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+gm2/gm2-libiberty/xlibc.o: $(srcdir)/gm2/gm2-libs-ch/xlibc.c gm2/gm2-libs/gm2-libs-host.h
+	$(COMPILER) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+
+gm2/gm2-libiberty/tool.o: $(srcdir)/gm2/gm2-libs-ch/tools.c gm2/gm2-libs/gm2-libs-host.h
+	$(COMPILER) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-compiler/M2Options.o: $(srcdir)/gm2/gm2-compiler/M2Options.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso -I$(srcdir)/gm2/gm2-gcc $(GM2_DEBUG_STRMEM) $< -o $@
@@ -2032,6 +2035,19 @@ stage2/gm2/gm2l$(exeext): $(GM2_LIBS) $(GM2_OBJS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2/ -B./ -o $@ \
                -fuselist gm2/gm2-compiler/gm2l.mod $(LIBS)
 
+stage2/gm2/gm2m$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) \
+     gm2/gm2-compiler/gm2m.o gm2/gm2-tools/m2flex.o \
+     gm2/gm2-libiberty/xlibc.o gm2/gm2-gcc/m2color.o \
+     diagnostic-color.o gm2/gm2-libiberty/tool.o
+	unset CC ; $(M2LINK) -s --g++ --exit --name mod_init.c $(srcdir)/gm2/init/gm2minit
+	mv mod_init.c gm2/gm2-compiler/gm2m_init.c
+	$(COMPILER) -c -g gm2/gm2-compiler/gm2m_init.c -o gm2/gm2-compiler/gm2m_init.o
+	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
+              gm2/gm2-compiler/gm2m_init.o \
+              gm2/gm2-tools/m2flex.o \
+              gm2/gm2-compiler/gm2m.o $(GM2_LIBS) $(LIBS) \
+              gm2/gm2-libiberty/xlibc.o gm2/gm2-gcc/m2color.o diagnostic-color.o gm2/gm2-libiberty/tool.o -lm
+
 stage2/gm2/gm2lcc$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2lcc.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2lccinit > gm2lcc.lst
 	./xgm2 -fuselist -fmodules -c -Igm2/gm2-libs -Igm2/gm2-compiler \
@@ -2058,16 +2074,6 @@ stage2/gm2/gm2lorder$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compil
 	./xgm2 -Igm2/gm2-libs -Igm2/gm2-compiler \
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2 -B./ -o $@ \
                -fuselist $(srcdir)/gm2/gm2-compiler/gm2lorder.mod $(LIBS)
-
-stage2/gm2/gm2m$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2m.o gm2/gm2-tools/m2flex.o gm2/gm2-libiberty/xlibc.o
-	grep -v mod_init $(srcdir)/gm2/init/gm2minit > gm2m.lst
-	./xgm2 -fuselist -fmodules -c -Igm2/gm2-libs -Igm2/gm2-compiler \
-               -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
-               -g -B./stage1/gm2 -B./ gm2/gm2-compiler/gm2m.mod
-	./xgm2 -Igm2/gm2-libs -Igm2/gm2-compiler \
-               -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2 -B./ -o $@ \
-               -fuselist gm2/gm2-compiler/gm2m.mod $(LIBS) \
-                gm2/gm2-tools/m2flex.o gm2/gm2-libiberty/xlibc.o
 
 stage1/gm2/h2def$(exeext): gm2/boot-bin/mklink$(exeext) \
      gm2/gm2-libs-boot/libgm2.a \

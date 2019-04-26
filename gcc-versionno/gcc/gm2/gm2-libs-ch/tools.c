@@ -1,4 +1,4 @@
-/* xlibc.c allow access to some poisoned functions.
+/* tools.c provide routines for the tools for stage2 build.
 
 Copyright (C) 2010-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius@glam.ac.uk>.
@@ -35,6 +35,11 @@ see <https://www.gnu.org/licenses/>.  */
 # include <stdio.h>
 #endif
 
+#if defined(HAVE_STDLIB_H)
+/* to obtain a prototype for free and malloc */
+# include <stdlib.h>
+#endif
+
 #if defined(HAVE_STRING_H)
 /* to obtain a definition for NULL */
 # include <string.h>
@@ -45,18 +50,31 @@ see <https://www.gnu.org/licenses/>.  */
 # include <stdlib.h>
 #endif
 
+#if defined(HAVE_STDIO_H)
+#include <stdio.h>
+#endif
+
+#if defined(HAVE_STDDEF_H)
+/* to obtain a definition for NULL */
+# include <stddef.h>
+#endif
+
+#if defined(HAVE_UNISTD_H)
+# include <unistd.h>
+#endif
+
 #if !defined(NULL)
 # define NULL (void *)0
 #endif
 
+#if defined(HAVE_SELECT)
+# define FDSET_T fd_set
+#else
+# define FDSET_T void
+#endif
 
-char *
-xstrdup (char *src)
+void fancy_abort(char const*, int, char const*)
 {
-  char *dst = (char *) malloc (strlen (src) + 1);
-
-  if (dst == NULL)
-    return NULL;
-  strcpy (dst, src);
-  return dst;
+  fprintf (stderr, "fancy_abort called\n");
+  exit (1);
 }
