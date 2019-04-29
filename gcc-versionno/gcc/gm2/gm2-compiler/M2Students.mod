@@ -28,7 +28,7 @@ FROM NameKey IMPORT GetKey, WriteKey, MakeKey, IsSameExcludingCase, NulName, mak
 FROM M2MetaError IMPORT MetaErrorString0, MetaError2 ;
 FROM Lists IMPORT List, InitList, IsItemInList, IncludeItemIntoList ;
 FROM M2Reserved IMPORT IsReserved, toktype ;
-FROM DynamicStrings IMPORT String, InitString, KillString, ToUpper, InitStringCharStar, string, Mark, ToUpper ;
+FROM DynamicStrings IMPORT String, InitString, KillString, ToUpper, InitStringCharStar, string, Mark, ToUpper, Dup ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM ASCII IMPORT nul ;
@@ -99,7 +99,7 @@ VAR
    s    : String ;
 BEGIN
    orig := InitStringCharStar (KeyToCharStar (name)) ;
-   s := ToUpper (orig) ;
+   s := ToUpper (Dup (orig)) ;
    upper := makekey (string (s)) ;
    IF IsReserved (upper, token)
    THEN
@@ -129,7 +129,7 @@ BEGIN
    THEN
       IF IsNotADuplicate(s1, s2)
       THEN
-         MetaError2 ('identical symbol name in two different scopes, scope {%1Oad} has symbol {%2Mad}', s1, previous) ;
+         MetaError2 ('identical symbol name in two different scopes, scope {%1Oad} has symbol {%2Mad}', previous, s1) ;
          MetaError2 ('identical symbol name in two different scopes, scope {%1Oad} has symbol {%2Mad}', newblock, s2)
       END
    ELSIF IsSameExcludingCase(a1, a2)

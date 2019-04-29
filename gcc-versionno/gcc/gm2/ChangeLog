@@ -36,6 +36,11 @@
 	* gm2/mc/decl.mod:  detect dangling else for nested if statements.
 	  Fixes a bug reported by Derek Wyss (gm2m fails to pass a module).
 	* testsuite/gm2/pim/pass/ABSBug.mod:  added line break.
+	* gm2/gm2-compiler/M2MetaError.mod:  improved InternalFormat
+          error message.
+	* gm2/gm2-compiler/M2Students.mod:  (PerformVariableKeywordCheck)
+          duplicate string.  (CheckAsciiName)  correct parameter order so
+	  that scope and variable name are correct.
 
 2019-04-26      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

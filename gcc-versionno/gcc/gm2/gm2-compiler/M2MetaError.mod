@@ -443,23 +443,9 @@ END killErrorBlock ;
    InternalFormat - produces an informative internal error.
 *)
 
-PROCEDURE InternalFormat (s: String; i: INTEGER; m: ARRAY OF CHAR; line: CARDINAL) ;
-VAR
-   e: Error ;
+PROCEDURE InternalFormat (eb: errorBlock; m: ARRAY OF CHAR; line: CARDINAL) ;
 BEGIN
-   InternalError (m, __FILE__, line) ;
-   e := NewError (GetTokenNo ()) ;
-   s := WriteS (StdOut, s) ;
-   WriteLine (StdOut) ;
-   s := KillString (s) ;
-   IF i > 0
-   THEN
-      DEC (i)
-   END ;
-   s := Mult (InitString (' '), i) ;
-   s := ConCatChar (s, '^') ;
-   s := WriteS (StdOut, s) ;
-   WriteLine (StdOut) ;
+   dump (eb) ;
    InternalError (m, __FILE__, line)
 END InternalFormat ;
 
@@ -572,7 +558,7 @@ BEGIN
       END ;
       IF (eb.ini < eb.len) AND (char (eb.in, eb.ini) # '}')
       THEN
-         InternalFormat (eb.in, eb.ini, 'expecting to see }', __LINE__)
+         InternalFormat (eb, 'expecting to see }', __LINE__)
       END
    END
 END ifNonNulThen ;
@@ -1112,7 +1098,7 @@ BEGIN
             DEC (eb.ini)
 
       ELSE
-         InternalFormat (eb.in, eb.ini, 'expecting one of [akqtdnpsuCDEKNPOUW:<>%]', __LINE__)
+         InternalFormat (eb, 'expecting one of [akqtdnpsuCDEKNPOUW:<>%]', __LINE__)
       END ;
       INC (eb.ini)
    END ;
@@ -1159,7 +1145,7 @@ BEGIN
       END ;
       IF (eb.ini < eb.len) AND (char (eb.in, eb.ini) # '}')
       THEN
-         InternalFormat (eb.in, eb.ini, 'expecting to see }', __LINE__)
+         InternalFormat (eb, 'expecting to see }', __LINE__)
       END
    END
 END percenttoken ;
@@ -1413,12 +1399,12 @@ BEGIN
       END ;
       IF char (eb.in, eb.ini) # '%'
       THEN
-         InternalFormat (eb.in, eb.ini, 'expecting to see %', __LINE__)
+         InternalFormat (eb, 'expecting to see %', __LINE__)
       END ;
       percenttoken (eb, sym) ;
       IF (eb.ini < eb.len) AND (char (eb.in, eb.ini) # '}')
       THEN
-         InternalFormat (eb.in, eb.ini, 'expecting to see }', __LINE__)
+         InternalFormat (eb, 'expecting to see }', __LINE__)
       END
    END
 END lbra ;
@@ -1548,7 +1534,7 @@ BEGIN
             pop (eb, nb) ;
             IF (eb.ini < eb.len) AND (char (eb.in, eb.ini) # '}')
             THEN
-               InternalFormat (eb.in, eb.ini, 'expecting to see }', __LINE__)
+               InternalFormat (eb, 'expecting to see }', __LINE__)
             END |
       '}':  RETURN
 
