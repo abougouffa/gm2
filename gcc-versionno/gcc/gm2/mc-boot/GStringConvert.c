@@ -1477,6 +1477,7 @@ DynamicStrings_String StringConvert_LongrealToString (long double x, unsigned in
   l = DynamicStrings_Length (s);
   if (point > l)
     {
+      /* avoid dangling else.  */
       s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), (unsigned int) point-l)));
       s = DynamicStrings_ConCat (s, DynamicStrings_Mark (DynamicStrings_InitString ((char *) ".0", 2)));
       if (! maxprecision && (FractionWidth > 0))
@@ -1488,6 +1489,7 @@ DynamicStrings_String StringConvert_LongrealToString (long double x, unsigned in
     }
   else if (point < 0)
     {
+      /* avoid dangling else.  */
       s = DynamicStrings_ConCat (DynamicStrings_Mult (DynamicStrings_Mark (DynamicStrings_InitStringChar ('0')), (unsigned int) -point), DynamicStrings_Mark (s));
       l = DynamicStrings_Length (s);
       s = DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "0.", 2), DynamicStrings_Mark (s));

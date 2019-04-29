@@ -526,7 +526,7 @@ static FIO_File GetNextFreeDescriptor (void)
         return f;  /* create new slot  */
       }
   }
-  ReturnException ("../../gcc-versionno/gcc/gm2/gm2-libs/FIO.def", 3, 1);
+  ReturnException ("../../gcc-versionno/gcc/gm2/gm2-libs/FIO.def", 19, 1);
 }
 
 
@@ -703,6 +703,7 @@ static int ReadFromBuffer (FIO_File f, void * a, unsigned int nBytes)
           result = libc_read (fd->unixfd, a, (size_t) (int ) (nBytes));
           if (result > 0)
             {
+              /* avoid dangling else.  */
               total += result;
               fd->abspos += result;
               /* now disable the buffer as we read directly into, a.  */
@@ -754,6 +755,7 @@ static int BufferedRead (FIO_File f, unsigned int nBytes, void * a)
 
   if (f != Error)
     {
+      /* avoid dangling else.  */
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       total = 0;  /* how many bytes have we read  */
       if (fd != NULL)  /* how many bytes have we read  */
@@ -792,6 +794,7 @@ static int BufferedRead (FIO_File f, unsigned int nBytes, void * a)
                   n = libc_read (fd->unixfd, fd->buffer->address, (size_t) fd->buffer->size);
                   if (n >= 0)
                     {
+                      /* avoid dangling else.  */
                       fd->buffer->valid = TRUE;
                       fd->buffer->position = 0;
                       fd->buffer->left = n;
@@ -1043,6 +1046,7 @@ static void CheckAccess (FIO_File f, FileUsage use, unsigned int towrite)
 
   if (f != Error)
     {
+      /* avoid dangling else.  */
       fd = Indexing_GetIndice (FileInfo, (unsigned int) f);
       if (fd == NULL)
         {

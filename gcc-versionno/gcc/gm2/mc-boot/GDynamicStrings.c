@@ -1201,6 +1201,7 @@ static void ConcatContentsAddress (Contents *c, void * a, unsigned int h)
     }
   if (j < h)
     {
+      /* avoid dangling else.  */
       (*c).len = MaxBuf;
       Storage_ALLOCATE ((void **) &(*c).next, sizeof (stringRecord));
       (*c).next->head = NULL;

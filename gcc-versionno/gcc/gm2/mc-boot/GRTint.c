@@ -599,7 +599,7 @@ void * RTint_AttachVector (unsigned int vec, void * p)
       v->arg = p;
       return l;
     }
-  ReturnException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTint.def", 2, 1);
+  ReturnException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTint.def", 19, 1);
 }
 
 
@@ -618,6 +618,7 @@ void RTint_IncludeVector (unsigned int vec)
   v = FindPendingVector (vec);
   if (v == NULL)
     {
+      /* avoid dangling else.  */
       v = FindVectorNo (vec);
       if (v == NULL)
         M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 331, (char *) "IncludeVector", 13, (char *) "cannot find vector supplied", 27);
@@ -749,7 +750,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
 
 
                   default:
-                    CaseException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTint.def", 2, 1);
+                    CaseException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTint.def", 19, 1);
                 }
               v = v->pending;
             }
@@ -860,7 +861,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
 
 
                   default:
-                    CaseException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTint.def", 2, 1);
+                    CaseException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTint.def", 19, 1);
                 }
               v = v->pending;
             }

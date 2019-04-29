@@ -1,4 +1,9 @@
-/* This file is part of GNU Modula-2.
+/* wlists.mod word lists module.
+
+Copyright (C) 2015-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius@glam.ac.uk>.
+
+This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free

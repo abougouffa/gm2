@@ -309,6 +309,7 @@ BEGIN
          SetFile(string(s)) ;
          SyncOpenWithBuffer ;
          GetToken ;
+         Assert (currenttoken#eoftok) ;
          RETURN( TRUE )
       ELSE
          RETURN( FALSE )
@@ -351,10 +352,13 @@ END ResetForNewPass ;
 *)
 
 PROCEDURE DisplayToken ;
+VAR
+   s: String ;
 BEGIN
-   IF currenttoken=identtok
+   IF currenttoken = identtok
    THEN
-      printf1('currenttoken = %a\n', currentstring)
+      s := InitStringCharStar (currentstring) ;
+      printf1 ('currenttoken = %s\n', s)
    ELSE
       CASE currenttoken OF
 

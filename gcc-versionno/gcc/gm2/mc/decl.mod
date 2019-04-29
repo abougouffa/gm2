@@ -8997,8 +8997,8 @@ BEGIN
       THEN
          IF n^.ifF.else # NIL
          THEN
-            (* we do have an else, return false.  *)
-            RETURN FALSE
+            (* we do have an else, continue to check this statement.  *)
+            RETURN hasIfAndNoElse (n^.ifF.else)
          ELSIF n^.ifF.elsif = NIL
          THEN
             (* neither else or elsif.  *)
@@ -9013,8 +9013,8 @@ BEGIN
       THEN
          IF n^.elsifF.else # NIL
          THEN
-            (* we do have an else, return false.  *)
-            RETURN FALSE
+            (* we do have an else, continue to check this statement.  *)
+            RETURN hasIfAndNoElse (n^.elsifF.else)
          ELSIF n^.elsifF.elsif = NIL
          THEN
             (* neither else or elsif.  *)
@@ -9082,8 +9082,14 @@ BEGIN
          ELSIF isSingleStatement (n)
          THEN
             n := GetIndice (n^.stmtF.statements, 1) ;
-	    RETURN noIfElseChained (n)
+	    RETURN hasIfAndNoElse (n)
+         ELSE
+            n := GetIndice (n^.stmtF.statements, HighIndice (n^.stmtF.statements)) ;
+	    RETURN hasIfAndNoElse (n)
          END
+      ELSIF isElsif (n) OR isIf (n)
+      THEN
+         RETURN noIfElseChained (n)
       END
    END ;
    RETURN FALSE

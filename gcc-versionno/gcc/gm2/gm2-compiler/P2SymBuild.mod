@@ -136,6 +136,7 @@ FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingProgramModule ;
 
 FROM M2Const IMPORT constType ;
+FROM M2Students IMPORT CheckForVariableThatLooksLikeKeyword ;
 
 
 CONST
@@ -1015,6 +1016,7 @@ BEGIN
    PopT(n) ;
    i := 1 ;
    WHILE i<=n DO
+      CheckForVariableThatLooksLikeKeyword (OperandT (n+1-i)) ;
       Var := MakeVar(OperandT(n+1-i)) ;
       AtAddress := OperandA(n+1-i) ;
       IF AtAddress#NulSym

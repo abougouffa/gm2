@@ -1098,7 +1098,7 @@ RTExceptions_EHBlock RTExceptions_GetBaseExceptionBlock (void)
     M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 53, 583, (char *) "GetBaseExceptionBlock", 21, (char *) "currentEHB has not been initialized yet", 39);
   else
     return currentEHB;
-  ReturnException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.def", 2, 1);
+  ReturnException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.def", 19, 1);
 }
 
 

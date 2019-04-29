@@ -1,5 +1,7 @@
-/* Address lists module.
-   Copyright (C) 2015-2019 Free Software Foundation, Inc.
+/* alists.mod address lists module.
+
+Copyright (C) 2015-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius@glam.ac.uk>.
 
 This file is part of GNU Modula-2.
 

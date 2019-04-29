@@ -1,44 +1,47 @@
--- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
---               2011, 2012, 2013, 2014
--- Free Software Foundation, Inc.
+-- Automatic Makefile generator for GNU Modula-2.
+--
+-- Copyright (C) 2002-2018 Free Software Foundation, Inc.
+-- Contributed by Gaius Mulley <gaius@glam.ac.uk>.
+--
 -- This file is part of GNU Modula-2.
 --
--- GNU Modula-2 is free software; you can redistribute it and/or modify it under
--- the terms of the GNU General Public License as published by the Free
--- Software Foundation; either version 3, or (at your option) any later
--- version.
+-- GNU Modula-2 is free software; you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License as published by
+-- the Free Software Foundation; either version 3, or (at your option)
+-- any later version.
 --
--- GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
--- WARRANTY; without even the implied warranty of MERCHANTABILITY or
--- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
--- for more details.
+-- GNU Modula-2 is distributed in the hope that it will be useful, but
+-- WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-- General Public License for more details.
 --
--- You should have received a copy of the GNU General Public License along
--- with gm2; see the file COPYING.  If not, write to the Free Software
--- Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
---
---
---
+-- You should have received a copy of the GNU General Public License
+-- along with GNU Modula-2; see the file COPYING.  If not, write to the
+-- Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
+-- 02110-1301, USA.
 % module gm2m begin
 MODULE gm2m ;
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-                 2011, 2012, 2013, 2014
-   Free Software Foundation, Inc.
-   This file is part of GNU Modula-2.
+(*  Automatic Makefile generator for GNU Modula-2.
 
-GNU Modula-2 is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 3, or (at your option) any later
-version.
+Copyright (C) 2002-2018 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius@glam.ac.uk>.
 
-GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
+This file is part of GNU Modula-2.
 
-You should have received a copy of the GNU General Public License along
-with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not, write to the
+Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301, USA.  *)
 
 (*
    Author     : Gaius Mulley
@@ -58,18 +61,25 @@ FROM M2Reserved IMPORT toktype ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3, printf4,
                      fprintf0, fprintf1, fprintf2, fprintf3, fprintf4 ;
 FROM M2FileName IMPORT CalculateFileName, CalculateStemName ;
-FROM M2Search IMPORT InitSearchPath, FindSourceFile, PrependSearchPath, FindSourceDefFile, FindSourceModFile, SetDefExtension, SetModExtension ;
+FROM M2Search IMPORT InitSearchPath, FindSourceFile, PrependSearchPath,
+                     FindSourceDefFile, FindSourceModFile, SetDefExtension,
+                     SetModExtension ;
 FROM SArgs IMPORT Narg, GetArg ;
 FROM M2Defaults IMPORT GetSearchPath, GetOptions ;
-FROM NameKey IMPORT Name, KeyToCharStar, WriteKey, MakeKey, GetKey, makekey, NulName ;
+FROM NameKey IMPORT Name, KeyToCharStar, WriteKey, MakeKey, GetKey, makekey,
+                    NulName ;
 FROM SymbolKey IMPORT SymbolTree, InitTree, GetSymKey, PutSymKey, NulKey ;
-FROM Lists IMPORT List, InitList, IncludeItemIntoList, NoOfItemsInList, GetItemFromList, IsItemInList, RemoveItemFromList, KillList, DuplicateList ;
+FROM Lists IMPORT List, InitList, IncludeItemIntoList, NoOfItemsInList,
+                  GetItemFromList, IsItemInList, RemoveItemFromList, KillList,
+                  DuplicateList ;
 
 FROM Indexing IMPORT Index, InitIndex, PutIndice, IsIndiceInIndex,
                      RemoveIndiceFromIndex, IncludeIndiceIntoIndex,
                      GetIndice, HighIndice ;
 
-FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, KillString, Add, Length, EqualArray, Mark, string, Dup, Equal, Slice, char, ConCatChar, ConCat ;
+FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, KillString,
+                           Add, Length, EqualArray, Mark, string, Dup, Equal,
+                           Slice, char, ConCatChar, ConCat ;
 FROM FormatStrings IMPORT Sprintf2 ;
 FROM StrLib IMPORT StrLen ;
 FROM SFIO IMPORT WriteS, OpenToWrite, Exists ;
@@ -108,8 +118,8 @@ TYPE
    BlockInfo    = RECORD
                      level          : CARDINAL ;
                      ToDoModules,
-                     LocalModules,                (* locally declared modules at the current level  *)
-                     ImportedModules: List ;      (* current list of imports for the scanned module *)
+                     LocalModules,            (* locally declared modules at the current level.   *)
+                     ImportedModules: List ;  (* current list of imports for the scanned module.  *)
                      Prev           : BlockInfoPtr ;
                   END ;
 
@@ -143,32 +153,6 @@ VAR
    op             : File ;
    ExitValue      : INTEGER ;
    pBlock         : BlockInfoPtr ;
-
-
-(* %%%FORWARD%%%
-PROCEDURE DisplayObjects (n: PtrToNode) ; FORWARD ;
-PROCEDURE DisplayClean (n: PtrToNode) ; FORWARD ;
-PROCEDURE AlreadyParsed (modname, ext: Name; VAR s: PtrToSource) : BOOLEAN ; FORWARD ;
-PROCEDURE SubNode (father, son: PtrToNode) : BOOLEAN ; FORWARD ;
-PROCEDURE DeleteFromFather (son: PtrToNode) ; FORWARD ;
-PROCEDURE DeleteSon (father, son: PtrToNode) ; FORWARD ;
-PROCEDURE AddSon (father, son: PtrToNode) ; FORWARD ;
-PROCEDURE IncreaseLevel (n: PtrToNode ; l: CARDINAL) ; FORWARD ;
-PROCEDURE IsASon (father, son: PtrToNode) : BOOLEAN ; FORWARD ;
-PROCEDURE DefExists (ModuleName: Name) : BOOLEAN ; FORWARD ;
-PROCEDURE MakeDef (ModuleName: Name; n: PtrToNode; Level: CARDINAL) ; FORWARD ;
-PROCEDURE ModExists (ModuleName: Name) : BOOLEAN ; FORWARD ;
-PROCEDURE ParseSource (ModuleName: Name; IsDefinition: BOOLEAN;
-                       n: PtrToNode; Level: CARDINAL) ; FORWARD ;
-PROCEDURE MakeObject (ModuleName: Name; n: PtrToNode; Level: CARDINAL) ; FORWARD ;
-PROCEDURE MakeMod (ModuleName: Name; n: PtrToNode; Level: CARDINAL) ; FORWARD ;
-PROCEDURE ErrorString (s: String) ; FORWARD ;
-PROCEDURE FormatString (a: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE FormatS (s: String) ; FORWARD ;
-PROCEDURE FormatLn ; FORWARD ;
-PROCEDURE FormatChar (ch: CHAR) ; FORWARD ;
-   %%%FORWARD%%% *)
-
 
 
 (*
@@ -413,7 +397,7 @@ BEGIN
          using a tree strategy. We must ensure that the objects are
          also included.
       *)
-      MakeObject(son^.Source^.ModName, main, 1) ;   (* attach the object to the executable *)
+      MakeObject(son^.Source^.ModName, main, 1) ;   (* attach the object to the executable.  *)
 
       name := KillString(name) ;
       IF Debugging

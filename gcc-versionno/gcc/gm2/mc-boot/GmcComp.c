@@ -233,6 +233,7 @@ static decl_node examineCompilationUnit (void)
           mcLexBuf_getToken ();
           if (mcLexBuf_currenttoken == mcReserved_moduletok)
             {
+              /* avoid dangling else.  */
               mcLexBuf_getToken ();
               if (mcLexBuf_currenttoken == mcReserved_fortok)
                 {
@@ -256,6 +257,7 @@ static decl_node examineCompilationUnit (void)
           mcLexBuf_getToken ();
           if (mcLexBuf_currenttoken == mcReserved_moduletok)
             {
+              /* avoid dangling else.  */
               mcLexBuf_getToken ();
               if (mcLexBuf_currenttoken == mcReserved_identtok)
                 return decl_lookupImp (nameKey_makekey (mcLexBuf_currentstring));
@@ -273,7 +275,7 @@ static decl_node examineCompilationUnit (void)
     }
   mcflex_mcError (DynamicStrings_string (DynamicStrings_InitString ((char *) "failed to find module name", 26)));
   libc_exit (1);
-  ReturnException ("../../gcc-versionno/gcc/gm2/mc/mcComp.def", 1, 15);
+  ReturnException ("../../gcc-versionno/gcc/gm2/mc/mcComp.def", 20, 1);
 }
 
 
@@ -302,7 +304,7 @@ static decl_node peepInto (DynamicStrings_String s)
       mcPrintf_fprintf1 (FIO_StdErr, (char *) "failed to open %s\\n", 19, (unsigned char *) &s, (sizeof (s)-1));
       libc_exit (1);
     }
-  ReturnException ("../../gcc-versionno/gcc/gm2/mc/mcComp.def", 1, 15);
+  ReturnException ("../../gcc-versionno/gcc/gm2/mc/mcComp.def", 20, 1);
 }
 
 
@@ -325,6 +327,7 @@ static void p1 (decl_node n)
 {
   if (decl_isDef (n))
     {
+      /* avoid dangling else.  */
       pass (1, n, (parserFunction) {(parserFunction_t) mcp1_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isDef}, (openFunction) {(openFunction_t) openDef});
       if ((decl_hasHidden (n)) && (mcOptions_getExtendedOpaque ()))
         pass (1, decl_lookupImp (decl_getSymName (n)), (parserFunction) {(parserFunction_t) mcp1_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImp}, (openFunction) {(openFunction_t) openMod});
@@ -342,6 +345,7 @@ static void p2 (decl_node n)
 {
   if (decl_isDef (n))
     {
+      /* avoid dangling else.  */
       pass (2, n, (parserFunction) {(parserFunction_t) mcp2_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isDef}, (openFunction) {(openFunction_t) openDef});
       if ((decl_hasHidden (n)) && (mcOptions_getExtendedOpaque ()))
         pass (2, decl_lookupImp (decl_getSymName (n)), (parserFunction) {(parserFunction_t) mcp2_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImp}, (openFunction) {(openFunction_t) openMod});
@@ -359,6 +363,7 @@ static void p3 (decl_node n)
 {
   if (decl_isDef (n))
     {
+      /* avoid dangling else.  */
       pass (3, n, (parserFunction) {(parserFunction_t) mcp3_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isDef}, (openFunction) {(openFunction_t) openDef});
       if ((decl_hasHidden (n)) && (mcOptions_getExtendedOpaque ()))
         pass (3, decl_lookupImp (decl_getSymName (n)), (parserFunction) {(parserFunction_t) mcp3_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImp}, (openFunction) {(openFunction_t) openMod});
@@ -376,6 +381,7 @@ static void p4 (decl_node n)
 {
   if (decl_isDef (n))
     {
+      /* avoid dangling else.  */
       pass (4, n, (parserFunction) {(parserFunction_t) mcp4_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isDef}, (openFunction) {(openFunction_t) openDef});
       if ((decl_hasHidden (n)) && (mcOptions_getExtendedOpaque ()))
         pass (4, decl_lookupImp (decl_getSymName (n)), (parserFunction) {(parserFunction_t) mcp4_CompilationUnit}, (decl_isNodeF) {(decl_isNodeF_t) decl_isImp}, (openFunction) {(openFunction_t) openMod});

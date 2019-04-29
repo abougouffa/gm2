@@ -204,6 +204,7 @@ void NumberIO_StrToCard (char *a_, unsigned int _a_high, unsigned int *x)
         (*x) = (10*(*x))+(((unsigned int) (a[i]))-((unsigned int) ('0')));
         if (i < higha)
           {
+            /* avoid dangling else.  */
             i += 1;
             if ((a[i] < '0') || (a[i] > '9'))
               ok = FALSE;
@@ -283,6 +284,7 @@ void NumberIO_IntToStr (int x, unsigned int n, char *a, unsigned int _a_high)
 
   if (x < 0)
     {
+      /* avoid dangling else.  */
       Negative = TRUE;
       c = ((unsigned int ) (abs (x+1)))+1;
       if (n > 0)
@@ -368,6 +370,7 @@ void NumberIO_StrToInt (char *a_, unsigned int _a_high, int *x)
           (*x) = (10*(*x))+((int ) (((unsigned int) (a[i]))-((unsigned int) ('0'))));
         if (i < higha)
           {
+            /* avoid dangling else.  */
             i += 1;
             if ((a[i] < '0') || (a[i] > '9'))
               ok = FALSE;
@@ -556,6 +559,7 @@ void NumberIO_StrToBinInt (char *a_, unsigned int _a_high, int *x)
         (*x) = (2*(*x))+((int ) (((unsigned int) (a[i]))-((unsigned int) ('0'))));
         if (i < higha)
           {
+            /* avoid dangling else.  */
             i += 1;
             if ((a[i] < '0') || (a[i] > '1'))
               ok = FALSE;
@@ -599,6 +603,7 @@ void NumberIO_StrToHexInt (char *a_, unsigned int _a_high, int *x)
           (*x) = (0x010*(*x))+((int ) ((((unsigned int) (a[i]))-((unsigned int) ('A')))+10));
         if (i < higha)
           {
+            /* avoid dangling else.  */
             i += 1;
             if (((a[i] < '0') || (a[i] > '9')) && ((a[i] < 'A') || (a[i] > 'F')))
               ok = FALSE;
@@ -639,6 +644,7 @@ void NumberIO_StrToOctInt (char *a_, unsigned int _a_high, int *x)
         (*x) = (8*(*x))+((int ) (((unsigned int) (a[i]))-((unsigned int) ('0'))));
         if (i < higha)
           {
+            /* avoid dangling else.  */
             i += 1;
             if ((a[i] < '0') || (a[i] > '7'))
               ok = FALSE;

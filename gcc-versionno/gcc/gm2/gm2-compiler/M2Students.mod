@@ -25,8 +25,7 @@ IMPLEMENTATION MODULE M2Students ;
 FROM SymbolTable IMPORT FinalSymbol, IsVar, IsProcedure, IsModule,
                         GetMainModule, IsType, NulSym, IsRecord, GetSymName, GetNth, GetNthProcedure, GetDeclaredMod, NoOfParam ;
 FROM NameKey IMPORT GetKey, WriteKey, MakeKey, IsSameExcludingCase, NulName, makekey, KeyToCharStar ;
-FROM M2Error IMPORT WarnStringAt ;
-FROM M2MetaError IMPORT MetaErrorString0 ;
+FROM M2MetaError IMPORT MetaErrorString0, MetaError2 ;
 FROM Lists IMPORT List, InitList, IsItemInList, IncludeItemIntoList ;
 FROM M2Reserved IMPORT IsReserved, toktype ;
 FROM DynamicStrings IMPORT String, InitString, KillString, ToUpper, InitStringCharStar, string, Mark, ToUpper ;
@@ -122,42 +121,25 @@ END PerformVariableKeywordCheck ;
 
 PROCEDURE CheckAsciiName (previous, s1, newblock, s2: CARDINAL) ;
 VAR
-   n1, n2, n3: String ;
    a1, a2, a3: Name ;
 BEGIN
    a1 := GetSymName(s1) ;
    a2 := GetSymName(s2) ;
-   n1 := InitStringCharStar(KeyToCharStar(a1)) ;
-   n2 := InitStringCharStar(KeyToCharStar(a2)) ;
-   n3 := NIL ;
    IF (a1=a2) AND (a1#NulName)
    THEN
       IF IsNotADuplicate(s1, s2)
       THEN
-         n3 := InitStringCharStar(KeyToCharStar(GetSymName(previous))) ;
-         WarnStringAt(Sprintf2(Mark(InitString('identical symbol name in two different scopes, scope (%s) has symbol called (%s)')),
-                               n3, n1), GetDeclaredMod(s1)) ;
-         n3 := KillString(n3) ;
-         n3 := InitStringCharStar(KeyToCharStar(GetSymName(newblock))) ;
-         WarnStringAt(Sprintf2(Mark(InitString('identical symbol name in two different scopes, scope (%s) has symbol called (%s)')),
-                               n3, n2), GetDeclaredMod(s2)) ;
+         MetaError2 ('identical symbol name in two different scopes, scope {%1Oad} has symbol {%2Mad}', s1, previous) ;
+         MetaError2 ('identical symbol name in two different scopes, scope {%1Oad} has symbol {%2Mad}', newblock, s2)
       END
    ELSIF IsSameExcludingCase(a1, a2)
    THEN
       IF IsNotADuplicate(s1, s2)
       THEN
-         n3 := InitStringCharStar(KeyToCharStar(GetSymName(previous))) ;
-         WarnStringAt(Sprintf2(Mark(InitString('very similar symbol names (different case) in two different scopes, scope (%s) has symbol called (%s)')),
-                               n3, n1), GetDeclaredMod(s1)) ;
-         n3 := KillString(n3) ;
-         n3 := InitStringCharStar(KeyToCharStar(GetSymName(newblock))) ;
-         WarnStringAt(Sprintf2(Mark(InitString('very similar symbol names (different case) in two different scopes, scope (%s) has symbol called (%s)')),
-                               n3, n2), GetDeclaredMod(s2))
+         MetaError2 ('very similar symbol names (different case) in two different scopes, scope {%1ORad} has symbol {%2ad}', previous, s1) ;
+         MetaError2 ('very similar symbol names (different case) in two different scopes, scope {%1OCad} has symbol {%2ad}', newblock, s2)
       END
-   END ;
-   n1 := KillString(n1) ;
-   n2 := KillString(n2) ;
-   n3 := KillString(n3)
+   END
 END CheckAsciiName ;
 
 

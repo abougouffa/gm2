@@ -705,7 +705,7 @@ static unsigned int mangleN (nameKey_Name n, DynamicStrings_String *m, unsigned 
     if (! (clash (nameKey_makekey (DynamicStrings_string ((*m))), scopes)))
       return TRUE;
   }
-  ReturnException ("../../gcc-versionno/gcc/gm2/mc/keyc.def", 19, 1);
+  ReturnException ("../../gcc-versionno/gcc/gm2/mc/keyc.def", 20, 1);
 }
 
 
@@ -1298,6 +1298,7 @@ nameKey_Name keyc_cnamen (nameKey_Name n, unsigned int scopes)
   if (clash (n, scopes))
     if (((mangle1 (n, &m, scopes)) || (mangle2 (n, &m, scopes))) || (mangleN (n, &m, scopes)))
       {
+        /* avoid dangling else.  */
         n = nameKey_makekey (DynamicStrings_string (m));
         if (scopes)
           /* no longer a clash with, m, so add it to the current scope.  */

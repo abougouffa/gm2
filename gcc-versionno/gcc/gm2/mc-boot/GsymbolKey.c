@@ -1,4 +1,9 @@
-/* This file is part of GNU Modula-2.
+/* symbolKey.mod provides binary tree operations for storing symbols.
+
+Copyright (C) 2015-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius@glam.ac.uk>.
+
+This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -130,7 +135,7 @@ static void findNodeAndParentInTree (symbolKey_symbolTree t, nameKey_Name n, sym
   /* remember to skip the sentinal value and assign father and child  */
   (*father) = t;
   if (t == NULL)
-    Debug_Halt ((char *) "parameter t should never be NIL", 31, 200, (char *) "../../gcc-versionno/gcc/gm2/mc/symbolKey.mod", 44);
+    Debug_Halt ((char *) "parameter t should never be NIL", 31, 203, (char *) "../../gcc-versionno/gcc/gm2/mc/symbolKey.mod", 44);
   (*child) = t->left;
   if ((*child) != NULL)
     do {
@@ -249,7 +254,7 @@ void symbolKey_putSymKey (symbolKey_symbolTree t, nameKey_Name name, void * key)
       child->name = name;
     }
   else
-    Debug_Halt ((char *) "symbol already stored", 21, 116, (char *) "../../gcc-versionno/gcc/gm2/mc/symbolKey.mod", 44);
+    Debug_Halt ((char *) "symbol already stored", 21, 119, (char *) "../../gcc-versionno/gcc/gm2/mc/symbolKey.mod", 44);
 }
 
 
@@ -304,7 +309,7 @@ void symbolKey_delSymKey (symbolKey_symbolTree t, nameKey_Name name)
         Storage_DEALLOCATE ((void **) &child, sizeof (_T1));
       }
   else
-    Debug_Halt ((char *) "trying to delete a symbol that is not in the tree - the compiler never expects this to occur", 92, 183, (char *) "../../gcc-versionno/gcc/gm2/mc/symbolKey.mod", 44);
+    Debug_Halt ((char *) "trying to delete a symbol that is not in the tree - the compiler never expects this to occur", 92, 186, (char *) "../../gcc-versionno/gcc/gm2/mc/symbolKey.mod", 44);
 }
 
 

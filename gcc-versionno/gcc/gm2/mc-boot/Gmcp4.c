@@ -3247,6 +3247,7 @@ static void Expect (mcReserved_toktype t, SetOfStop0 stopset0, SetOfStop1 stopse
 {
   if (mcLexBuf_currenttoken == t)
     {
+      /* avoid dangling else.  */
       mcLexBuf_getToken ();
       if (Pass1)
         PeepToken (stopset0, stopset1, stopset2);
@@ -3973,6 +3974,7 @@ static void ConstSetOrQualidentOrFunction (SetOfStop0 stopset0, SetOfStop1 stops
 
   if (mcLexBuf_currenttoken == mcReserved_identtok)
     {
+      /* avoid dangling else.  */
       d = depth ();
       PushQualident (stopset0|(SetOfStop0) ((1 << (mcReserved_lcbratok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
       mcDebug_assert ((d+1) == (depth ()));
@@ -5118,6 +5120,7 @@ static void SetOrDesignatorOrFunction (SetOfStop0 stopset0, SetOfStop1 stopset1,
 {
   if (mcLexBuf_currenttoken == mcReserved_identtok)
     {
+      /* avoid dangling else.  */
       Qualident (stopset0|(SetOfStop0) ((1 << (mcReserved_lcbratok-mcReserved_eoftok)) | (1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok)) | (1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
       if ((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_periodtok-mcReserved_eoftok)) | (1 << (mcReserved_lcbratok-mcReserved_eoftok))))) != 0)))
         {
@@ -5127,6 +5130,7 @@ static void SetOrDesignatorOrFunction (SetOfStop0 stopset0, SetOfStop1 stopset1,
             Constructor (stopset0, stopset1, stopset2);
           else if ((mcLexBuf_currenttoken < mcReserved_arraytok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & ((SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok)) | (1 << (mcReserved_uparrowtok-mcReserved_eoftok)) | (1 << (mcReserved_lsbratok-mcReserved_eoftok)) | (1 << (mcReserved_periodtok-mcReserved_eoftok))))) != 0)))
             {
+              /* avoid dangling else.  */
               SimpleDes (stopset0|(SetOfStop0) ((1 << (mcReserved_lparatok-mcReserved_eoftok))), stopset1, stopset2);
               if (mcLexBuf_currenttoken == mcReserved_lparatok)
                 ActualParameters (stopset0, stopset1, stopset2);
@@ -5970,6 +5974,7 @@ static void DefMultiFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfSt
     DefExtendedFP (stopset0, stopset1, stopset2);
   else if ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))))) != 0)))
     {
+      /* avoid dangling else.  */
       FPSection (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
       if (mcLexBuf_currenttoken == mcReserved_semicolontok)
         {
@@ -6020,6 +6025,7 @@ static void MultiFPSection (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2
     ExtendedFP (stopset0, stopset1, stopset2);
   else if ((mcLexBuf_currenttoken >= mcReserved_recordtok) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & ((SetOfStop2) ((1 << (mcReserved_identtok-mcReserved_recordtok)) | (1 << (mcReserved_vartok-mcReserved_recordtok))))) != 0)))
     {
+      /* avoid dangling else.  */
       FPSection (stopset0|(SetOfStop0) ((1 << (mcReserved_semicolontok-mcReserved_eoftok))), stopset1, stopset2);
       if (mcLexBuf_currenttoken == mcReserved_semicolontok)
         {
