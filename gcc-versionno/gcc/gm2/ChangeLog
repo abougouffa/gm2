@@ -19,6 +19,8 @@
 	* gm2/gm2-libs/FormatStrings.mod:  corrected many formatting
           bugs.
 	* gm2/pimlib/run/pass/format.mod:  new test program.
+	* gm2/gm2-compiler/M2Students.mod:  corrected format specifier
+	  so that the symbol is quoted.
 
 2019-04-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
