@@ -28,8 +28,9 @@ FROM NameKey IMPORT Name, NulName, MakeKey, GetKey, makekey, KeyToCharStar ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM M2DebugStack IMPORT DebugStack ;
 
-FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3,
+FROM M2MetaError IMPORT MetaError0, MetaError1, MetaError2, MetaError3,
                         MetaErrors1, MetaErrors2, MetaErrors3,
+                        MetaErrorT1,
                         MetaErrorStringT0, MetaErrorStringT1,
                         MetaErrorString1, MetaErrorString2 ;
 
@@ -2027,8 +2028,7 @@ BEGIN
       ProcSym := GetQualidentImport(MakeKey('SetExceptionState'), MakeKey('RTExceptions')) ;
       IF ProcSym=NulSym
       THEN
-         ErrorString(NewWarning(GetTokenNo()),
-                     InitString('no procedure SetExceptionState found in RTExceptions which is needed to implement exception handling'))
+         MetaError0 ('{%W}no procedure SetExceptionState found in RTExceptions which is needed to implement exception handling')
       ELSE
          old := MakeTemporary(RightValue) ;
          PutVar(old, Boolean) ;
@@ -2036,8 +2036,7 @@ BEGIN
          PushWord(ExceptStack, old)
       END
    ELSE
-      ErrorFormat0(NewError(GetTokenNo()),
-                   'cannot use EXCEPT blocks with the -fno-exceptions flag')
+      MetaError0 ('{%E}cannot use {%kEXCEPT} blocks with the -fno-exceptions flag')
    END
 END BuildRTExceptEnter ;
 
@@ -2094,8 +2093,7 @@ BEGIN
    previous := PopWord(CatchStack) ;
    IF previous#0
    THEN
-      ErrorFormat0(NewError(GetTokenNo()),
-                   'only allowed one EXCEPT statement in a procedure or module')
+      MetaError0 ('{%E}only allowed one EXCEPT statement in a procedure or module')
    END ;
    PushWord(CatchStack, NextQuad-1) ;
    BuildRTExceptEnter
@@ -2132,8 +2130,7 @@ PROCEDURE BuildRetry ;
 BEGIN
    IF PeepWord(CatchStack, 1)=0
    THEN
-      ErrorFormat0(NewError(GetTokenNo()),
-                   'RETRY statement must occur after an EXCEPT statement in the same module or procedure block')
+      MetaError0 ('{%E}the {%kRETRY} statement must occur after an {%kEXCEPT} statement in the same module or procedure block')
    ELSE
       BuildRTExceptLeave(FALSE) ;
       GenQuad(RetryOp, NulSym, NulSym, PeepWord(TryStack, 1))
@@ -2276,21 +2273,18 @@ VAR
    s                   : String ;
 BEGIN
    GetWriteLimitQuads(IndexSym, RightValue, Start, End, WriteStart, WriteEnd) ;
-   IF (WriteStart<Omit) AND (WriteStart>Start)
+   IF (WriteStart < Omit) AND (WriteStart > Start)
    THEN
-      s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(IndexSym)))) ;
-      WarnStringAt(Sprintf1(Mark(InitString('FOR loop index variable (%s) is being manipulated inside the loop, this is considered bad practice and may cause unknown program behaviour')),
-                            s),
-                   QuadToTokenNo(WriteStart))
+      MetaErrorT1 (QuadToTokenNo (WriteStart),
+                   '{%kFOR} loop index variable {%1Wad} is being manipulated inside the loop, this is considered bad practice and may cause unknown program behaviour', IndexSym)
    END ;
-   GetWriteLimitQuads(IndexSym, RightValue, End, 0, WriteStart, WriteEnd) ;
-   GetReadLimitQuads(IndexSym, RightValue, End, 0, ReadStart, ReadEnd) ;
-   IF (ReadStart#0) AND ((ReadStart<WriteStart) OR (WriteStart=0))
+   GetWriteLimitQuads (IndexSym, RightValue, End, 0, WriteStart, WriteEnd) ;
+   GetReadLimitQuads (IndexSym, RightValue, End, 0, ReadStart, ReadEnd) ;
+   IF (ReadStart#0) AND ((ReadStart < WriteStart) OR (WriteStart = 0))
    THEN
-      s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(IndexSym)))) ;
-      WarnStringAt(Sprintf1(Mark(InitString('FOR loop index variable (%s) is being read outside the FOR loop (without being reset first), this is considered extremely bad practice and may cause unknown program behaviour')),
-                            s),
-                   QuadToTokenNo(ReadStart))
+      MetaErrorT1 (QuadToTokenNo (ReadStart),
+                   '{%kFOR} loop index variable {%1Wad} is being read outside the FOR loop (without being reset first), this is considered extremely bad practice and may cause unknown program behaviour',
+                   IndexSym)
    END
 END CheckForIndex ;
 
@@ -4935,7 +4929,7 @@ BEGIN
       ELSIF IsUnbounded(Type)
       THEN
          s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetSType(Type))))) ;
-         s := Sprintf1(Mark(InitString('{%kARRAY} {%kOF} %s')), s1)
+         s := Sprintf1(Mark(InitString('{%%kARRAY} {%%kOF} %s')), s1)
       ELSIF IsArray(Type)
       THEN
          s := InitString('{%kARRAY} [') ;
@@ -5020,7 +5014,7 @@ BEGIN
       THEN
          s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Expecting)))) ;
          s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetSType(ExpectType))))) ;
-         s := ConCat(s, Mark(Sprintf2(Mark(InitString('%s: {%kARRAY} {%kOF} %s')),
+         s := ConCat(s, Mark(Sprintf2(Mark(InitString('%s: {%%kARRAY} {%%kOF} %s')),
                                       s1, s2)))
       ELSE
          s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Expecting)))) ;
@@ -5111,7 +5105,7 @@ BEGIN
       THEN
          s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Expecting)))) ;
          s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetSType(ExpectType))))) ;
-         s := ConCat(s, Mark(Sprintf2(Mark(InitString('%s: {%kARRAY} {%kOF} %s')),
+         s := ConCat(s, Mark(Sprintf2(Mark(InitString('%s: {%%kARRAY} {%%kOF} %s')),
                                       s1, s2)))
       ELSE
          s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Expecting)))) ;
@@ -11636,21 +11630,18 @@ PROCEDURE CheckInCompatible (Op: Name; t1, t2: CARDINAL) : CARDINAL ;
 VAR
    s: String ;
 BEGIN
-   IF Op=InTok
+   IF Op = InTok
    THEN
-      t2 := SkipType(t2) ;
-      IF IsSet(t2)
+      t2 := SkipType (t2) ;
+      IF IsSet (t2)
       THEN
-         RETURN( GetSType(t2) )
+         RETURN GetSType (t2)
       ELSE
-         s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(t2)))) ;
-         ErrorStringAt2(Sprintf1(Mark(InitString('expect a set type as the right hand operand to the IN operator, type name is (%s)')),
-                                 s),
-                        GetTokenNo(), GetDeclaredMod(t2)) ;
-         RETURN( t1 )
+         MetaError1 ('expect a set type as the right hand operand to the {%kIN} operator, the type attempting to be used with the {%kIN} is {%1Ead}', t2) ;
+         RETURN t1
       END
    ELSE
-      RETURN( t2 )
+      RETURN t2
    END
 END CheckInCompatible ;
 

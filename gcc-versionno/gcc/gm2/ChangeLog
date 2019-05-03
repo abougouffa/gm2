@@ -1,3 +1,25 @@
+2019-05-03      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/el/gm2-mode.el:  added BITSET to the list of data types.
+	* gm2/gm2-compiler/M2Error.mod:  added ability to create notes.
+	* gm2/gm2-compiler/M2LexBuf.mod:  removed Assert on
+          currenttoken#eoftok as the first token might be an eof.
+	* gm2/gm2-compiler/M2MetaError.def:  MetaErrorN1, MetaErrorN2
+	  (New procedures defined).
+	* gm2/gm2-compiler/M2MetaError.mod:  MetaErrorN1, MetaErrorN2
+          (New procedures implemented).
+	* gm2/gm2-compiler/M2Printf.mod:  reformatted using GNU coding
+          standards.
+	* gm2/gm2-compiler/M2Quads.mod:  use (MetaError0) and (MetaError1)
+          rather than ErrorString.  Change keyword in error messages to
+          use appropriate tags.
+	* gm2/gm2-compiler/M2Students.mod:  corrected format specifiers.
+	* gm2/gm2-compiler/P0SymBuild.mod:  use MetaError primitives
+          rather than M2Error primitives.
+	* gm2/gm2-libs/FormatStrings.mod:  corrected many formatting
+          bugs.
+	* gm2/pimlib/run/pass/format.mod:  new test program.
+
 2019-04-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  corrected front end name.

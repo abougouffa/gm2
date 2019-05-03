@@ -30,7 +30,7 @@ FROM NameKey IMPORT Name, NulName ;
 FROM M2Quads IMPORT PushT, PushTF, PopT, PopTF, PopN, OperandT ;
 FROM M2Reserved IMPORT ImportTok ;
 FROM M2Debug IMPORT Assert ;
-FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, WriteFormat3 ;
+FROM M2MetaError IMPORT MetaErrorN1, MetaErrorN2 ;
 
 
 CONST
@@ -475,12 +475,12 @@ BEGIN
    THEN
       IF NameEnd=NulName
       THEN
-         WriteFormat1('procedure name at end does not match name at beginning (%a)', NameStart)
+         MetaErrorN1 ('procedure name at end does not match name at beginning %a', NameStart)
       ELSIF NameStart=NulName
       THEN
-         WriteFormat1('procedure name at end (%a) does not match name at beginning', NameEnd)
+         MetaErrorN1 ('procedure name at end %a does not match name at beginning', NameEnd)
       ELSE
-         WriteFormat2('procedure name at end (%a) does not match name at beginning (%a)', NameEnd, NameStart)
+         MetaErrorN2 ('procedure name at end %a does not match name at beginning %a', NameEnd, NameStart)
       END
    END ;
    EndBlock
@@ -502,12 +502,12 @@ BEGIN
    THEN
       IF NameEnd=NulName
       THEN
-         WriteFormat1('module name at end does not match name at beginning (%a)', NameStart)
+         MetaErrorN1 ('module name at end does not match name at beginning %a', NameStart)
       ELSIF NameStart=NulName
       THEN
-         WriteFormat1('module name at end (%a) does not match name at beginning', NameEnd)
+         MetaErrorN1 ('module name at end %a does not match name at beginning', NameEnd)
       ELSE
-         WriteFormat2('module name at end (%a) does not match name at beginning (%a)', NameEnd, NameStart)
+         MetaErrorN2 ('module name at end %a does not match name at beginning %a', NameEnd, NameStart)
       END
    END ;
    EndBlock

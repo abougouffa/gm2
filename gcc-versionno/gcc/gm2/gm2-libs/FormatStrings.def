@@ -35,40 +35,40 @@ EXPORT QUALIFIED Sprintf0, Sprintf1, Sprintf2, Sprintf3, Sprintf4 ;
 
 
 (*
-   Sprintf0 - returns a String containing, s, after it has had its
+   Sprintf0 - returns a String containing, fmt, after it has had its
               escape sequences translated.
 *)
 
-PROCEDURE Sprintf0 (s: String) : String ;
+PROCEDURE Sprintf0 (fmt: String) : String ;
 
 
 (*
-   Sprintf1 - returns a String containing, s, together with encapsulated
+   Sprintf1 - returns a String containing, fmt, together with encapsulated
               entity, w. It only formats the first %s or %d with n.
 *)
 
-PROCEDURE Sprintf1 (s: String; w: ARRAY OF BYTE) : String ;
+PROCEDURE Sprintf1 (fmt: String; w: ARRAY OF BYTE) : String ;
 
 
 (*
-   Sprintf2 - returns a string, s, which has been formatted.
+   Sprintf2 - returns a string, fmt, which has been formatted.
 *)
 
-PROCEDURE Sprintf2 (s: String; w1, w2: ARRAY OF BYTE) : String ;
+PROCEDURE Sprintf2 (fmt: String; w1, w2: ARRAY OF BYTE) : String ;
 
 
 (*
-   Sprintf3 - returns a string, s, which has been formatted.
+   Sprintf3 - returns a string, fmt, which has been formatted.
 *)
 
-PROCEDURE Sprintf3 (s: String; w1, w2, w3: ARRAY OF BYTE) : String ;
+PROCEDURE Sprintf3 (fmt: String; w1, w2, w3: ARRAY OF BYTE) : String ;
 
 
 (*
-   Sprintf4 - returns a string, s, which has been formatted.
+   Sprintf4 - returns a string, fmt, which has been formatted.
 *)
 
-PROCEDURE Sprintf4 (s: String; w1, w2, w3, w4: ARRAY OF BYTE) : String ;
+PROCEDURE Sprintf4 (fmt: String; w1, w2, w3, w4: ARRAY OF BYTE) : String ;
 
 
 END FormatStrings.

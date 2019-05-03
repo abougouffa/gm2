@@ -34,7 +34,7 @@ FROM M2Options IMPORT Xcode ;
 FROM M2RTS IMPORT ExitOnHalt ;
 FROM SYSTEM IMPORT ADDRESS ;
 
-FROM M2ColorString IMPORT filenameColor, endColor, errorColor, warningColor,
+FROM M2ColorString IMPORT filenameColor, endColor, errorColor, warningColor, noteColor,
                           range1Color, range2Color ;
 
 IMPORT StdIO ;
@@ -48,6 +48,7 @@ TYPE
                          parent,
                          child,
                          next  : Error ;
+                         note,
                          fatal : BOOLEAN ;
                          s     : String ;
                          token : CARDINAL ;  (* index of token causing the error *)
@@ -435,6 +436,7 @@ BEGIN
       next   := NIL ;
       parent := NIL ;
       child  := NIL ;
+      note   := FALSE ;
       fatal  := TRUE ;
       color  := FALSE
    END ;
@@ -465,6 +467,7 @@ VAR
 BEGIN
    e := NewError(AtTokenNo) ;
    e^.fatal := FALSE ;
+   e^.note  := FALSE ;
    RETURN( e )
 END NewWarning ;
 
@@ -480,6 +483,7 @@ VAR
 BEGIN
    e := NewError(AtTokenNo) ;
    e^.fatal := FALSE ;
+   e^.note  := TRUE ;
    RETURN( e )
 END NewNote ;
 
@@ -660,17 +664,12 @@ BEGIN
                CheckIncludes(token, 0) ;
                IF fatal
                THEN
-                  IF NOT color
-                  THEN
-                     s := ConCat (errorColor (InitString ('')), endColor (s))
-                  END ;
-                  s := ConCat(InitString(' error: '), Mark(s))
+                  s := ConCat (errorColor (InitString (' error ')), endColor (s))
+               ELSIF note
+               THEN
+                  s := ConCat (noteColor (InitString (' note ')), endColor (s))
                ELSE
-                  IF NOT color
-                  THEN
-                     s := ConCat (warningColor (InitString ('')), endColor (s))
-                  END ;
-                  s := ConCat(InitString(' warning: '), Mark(s))
+                  s := ConCat (warningColor (InitString (' warning ')), endColor (s))
                END ;
                OutString(FindFileNameFromToken(token, 0),
                          TokenToLineNo(token, 0), TokenToColumnNo(token, 0), s) ;

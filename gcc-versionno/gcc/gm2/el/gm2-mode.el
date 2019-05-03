@@ -1934,13 +1934,13 @@ m2r10 imports go here
   '("REAL" "LONGREAL" "INTEGER" "LONGINT"
     "CARDINAL" "LONGCARD" "CHAR" "BOOLEAN"
     "COMPLEX" "LONGCOMPLEX"
-    "ADDRESS" "WORD" "BYTE" "LOC")
+    "ADDRESS" "WORD" "BYTE" "LOC" "BITSET")
   "Modula-2 types.")
 
 (defvar m2-auto-types-pim
   '("REAL" "LONGREAL" "INTEGER" "LONGINT"
     "CARDINAL" "LONGCARD" "CHAR" "BOOLEAN"
-    "ADDRESS" "WORD" "BYTE")
+    "ADDRESS" "WORD" "BYTE" "BITSET")
   "Modula-2 types.")
 
 (defvar m2-auto-types-r10

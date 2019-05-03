@@ -1671,6 +1671,12 @@ BEGIN
 END MetaErrorT4 ;
 
 
+PROCEDURE MetaError0 (m: ARRAY OF CHAR) ;
+BEGIN
+   MetaErrorT0 (GetTokenNo (), m)
+END MetaError0 ;
+
+
 PROCEDURE MetaError1 (m: ARRAY OF CHAR; s: CARDINAL) ;
 BEGIN
    MetaErrorT1 (GetTokenNo (), m, s)
@@ -1816,6 +1822,78 @@ PROCEDURE MetaErrorString4 (m: String; s1, s2, s3, s4: CARDINAL) ;
 BEGIN
    MetaErrorStringT4 (GetTokenNo (), m, s1, s2, s3, s4)
 END MetaErrorString4 ;
+
+
+(*
+   translate -
+*)
+
+PROCEDURE translate (m, s: String; VAR i: INTEGER; name: Name) : String ;
+VAR
+   l : INTEGER ;
+   ch: CHAR ;
+BEGIN
+   l := Length (m) ;
+   WHILE (i >= 0) AND (i < l) DO
+      ch := char (m, i) ;
+      IF (ch = '%') AND (i < l)
+      THEN
+         INC (i) ;
+         ch := char (m, i) ;
+         INC (i) ;
+         IF ch = 'a'
+         THEN
+            s := ConCat (s, Mark (InitString ('%<'))) ;
+            s := ConCat (s, Mark (InitStringCharStar (KeyToCharStar (name)))) ;
+            s := ConCat (s, Mark (InitString ('%>'))) ;
+            RETURN s
+         END ;
+         s := ConCatChar (s, '%')
+      END ;
+      s := ConCatChar (s, ch) ;
+      INC (i)
+   END ;
+   RETURN s
+END translate ;
+
+
+(*
+   MetaErrorN1 -
+*)
+
+PROCEDURE MetaErrorN1 (m: ARRAY OF CHAR; n: Name) ;
+VAR
+   i  : INTEGER ;
+   s,
+   fmt: String ;
+BEGIN
+   i := 0 ;
+   fmt := InitString (m) ;
+   s := InitString ('') ;
+   s := translate (fmt, s, i, n) ;
+   MetaErrorStringT0 (GetTokenNo (), s) ;
+   fmt := KillString (fmt) ;
+END MetaErrorN1 ;
+
+
+(*
+   MetaErrorN2 -
+*)
+
+PROCEDURE MetaErrorN2 (m: ARRAY OF CHAR; n1, n2: Name) ;
+VAR
+   i  : INTEGER ;
+   s,
+   fmt: String ;
+BEGIN
+   i := 0 ;
+   fmt := InitString (m) ;
+   s := InitString ('') ;
+   s := translate (fmt, s, i, n1) ;
+   s := translate (fmt, s, i, n2) ;
+   MetaErrorStringT0 (GetTokenNo (), s) ;
+   fmt := KillString (fmt) ;
+END MetaErrorN2 ;
 
 
 BEGIN

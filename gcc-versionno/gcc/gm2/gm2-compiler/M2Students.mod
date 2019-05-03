@@ -93,24 +93,24 @@ END CheckForVariableThatLooksLikeKeyword ;
 
 PROCEDURE PerformVariableKeywordCheck (name: Name) ;
 VAR
-   upper: Name ;
-   token: toktype ;
+   upper : Name ;
+   token : toktype ;
    orig,
-   s    : String ;
+   upperS: String ;
 BEGIN
    orig := InitStringCharStar (KeyToCharStar (name)) ;
-   s := ToUpper (Dup (orig)) ;
-   upper := makekey (string (s)) ;
+   upperS := ToUpper (Dup (orig)) ;
+   upper := makekey (string (upperS)) ;
    IF IsReserved (upper, token)
    THEN
       IF IsNotADuplicateName (name)
       THEN
-         MetaErrorString0 (Sprintf2 (Mark (InitString ('either the identifier has the same name as a keyword or alternatively a keyword has the wrong case ({%%K%s} and {%%O%s})')),
-                                     upper, orig)) ;
-         MetaErrorString0 (Sprintf1 (Mark (InitString ('the symbol name {%%O%s} is legal as an identifier, however as such it might cause confusion and is considered bad programming practice')), orig))
+         MetaErrorString0 (Sprintf2 (Mark (InitString ('either the identifier has the same name as a keyword or alternatively a keyword has the wrong case ({%%K%s} and {%%O:%s})')),
+                                     upperS, orig)) ;
+         MetaErrorString0 (Sprintf1 (Mark (InitString ('the symbol name {%%O:%s} is legal as an identifier, however as such it might cause confusion and is considered bad programming practice')), orig))
       END
    END ;
-   s := KillString(s) ;
+   upperS := KillString (upperS) ;
    orig := KillString (orig)
 END PerformVariableKeywordCheck ;
 
@@ -123,18 +123,18 @@ PROCEDURE CheckAsciiName (previous, s1, newblock, s2: CARDINAL) ;
 VAR
    a1, a2, a3: Name ;
 BEGIN
-   a1 := GetSymName(s1) ;
-   a2 := GetSymName(s2) ;
-   IF (a1=a2) AND (a1#NulName)
+   a1 := GetSymName (s1) ;
+   a2 := GetSymName (s2) ;
+   IF (a1 = a2) AND (a1 # NulName)
    THEN
-      IF IsNotADuplicate(s1, s2)
+      IF IsNotADuplicate (s1, s2)
       THEN
          MetaError2 ('identical symbol name in two different scopes, scope {%1Oad} has symbol {%2Mad}', previous, s1) ;
          MetaError2 ('identical symbol name in two different scopes, scope {%1Oad} has symbol {%2Mad}', newblock, s2)
       END
-   ELSIF IsSameExcludingCase(a1, a2)
+   ELSIF IsSameExcludingCase (a1, a2)
    THEN
-      IF IsNotADuplicate(s1, s2)
+      IF IsNotADuplicate (s1, s2)
       THEN
          MetaError2 ('very similar symbol names (different case) in two different scopes, scope {%1ORad} has symbol {%2ad}', previous, s1) ;
          MetaError2 ('very similar symbol names (different case) in two different scopes, scope {%1OCad} has symbol {%2ad}', newblock, s2)

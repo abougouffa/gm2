@@ -302,17 +302,16 @@ BEGIN
    IF UseBufferedTokens
    THEN
       GetToken ;
-      RETURN( TRUE )
+      RETURN TRUE
    ELSE
-      IF m2flex.OpenSource(string(s))
+      IF m2flex.OpenSource (string (s))
       THEN
-         SetFile(string(s)) ;
+         SetFile (string (s)) ;
          SyncOpenWithBuffer ;
          GetToken ;
-         Assert (currenttoken#eoftok) ;
-         RETURN( TRUE )
+         RETURN TRUE
       ELSE
-         RETURN( FALSE )
+         RETURN FALSE
       END
    END
 END OpenSource ;
