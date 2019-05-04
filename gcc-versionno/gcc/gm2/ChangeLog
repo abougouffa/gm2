@@ -1,3 +1,29 @@
+2019-05-04      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2ALU.mod:  changed all calls WriteFormat
+	  to use MetaError instead.
+	* gm2/gm2-compiler/M2Comp.mod:  use M2MetaError primtives
+          instead of M2Error to allow for colorization.
+	* gm2/gm2-compiler/M2GenGCC.mod:   use M2MetaError primtives
+          instead of M2Error to allow for colorization.
+	* gm2/gm2-compiler/M2MetaError.def:  corrected comment spec.
+	  Added {%F} spec.
+	* gm2/gm2-compiler/M2MetaError.mod:  (filename) New procedure.
+	  (op) call filename.
+	* gm2/gm2-compiler/P0SymBuild.mod:  use M2MetaError primtives
+          instead of M2Error to allow for colorization.  Improve
+          incorrect begin block/end block error messages for modules
+          and procedures.
+	* gm2/gm2-compiler/P1SymBuild.mod:  use M2MetaError primtives
+          instead of M2Error to allow for colorization.  Rewritten
+          many error messages to take advantage of color and keyword
+          rendering.
+	* gm2/gm2-compiler/SymbolTable.def:  (MakeErrorS)  New procedure
+          function.
+	* gm2/gm2-compiler/SymbolTable.mod:  (MakeErrorS)  Implement
+          new procedure function.  Replace some calls to WriteFormat1
+	  with MetaError1.
+
 2019-05-03      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/el/gm2-mode.el:  added BITSET to the list of data types.

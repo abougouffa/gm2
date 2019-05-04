@@ -192,6 +192,37 @@ END keyword ;
 
 
 (*
+   filename - copy characters until the '}' in the input string and convert them to
+              the filename color/font.
+*)
+
+PROCEDURE filename (VAR eb: errorBlock) ;
+BEGIN
+   IF CAP (char (eb.in, eb.ini)) = 'F'
+   THEN
+      INC (eb.ini) ;
+      pushColor (eb) ;
+      changeColor (eb, filenameColor) ;
+      WHILE (eb.ini < eb.len) AND (char (eb.in, eb.ini) # "}") DO
+         IF Debugging
+         THEN
+            dump (eb)
+         END ;
+         IF char (eb.in, eb.ini) = "%"
+         THEN
+            INC (eb.ini)
+         END ;
+         copyChar (eb) ;
+         INC (eb.ini)
+      END ;
+      popColor (eb)
+   ELSE
+      InternalError ('expecting index to be on the F for filename', __FILE__, __LINE__)
+   END
+END filename ;
+
+
+(*
    pushColor -
 *)
 
@@ -1092,6 +1123,8 @@ BEGIN
       'K':  keyword (eb) ;
             DEC (eb.ini) |
       'k':  unquotedKeyword (eb) ;
+            DEC (eb.ini) |
+      'F':  filename (eb) ;
             DEC (eb.ini) |
       'u':  eb.quotes := FALSE |
       ':':  ifNonNulThen (eb, sym) ;

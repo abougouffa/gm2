@@ -1101,9 +1101,7 @@ END AlreadyImportedError ;
 
 
 (*
-   MakeError - creates an error node, it does assume that the caller
-               will issue an appropriate error message as this symbol
-               will be removed from the generic error message trees.
+   MakeError - creates an error node, which can be used in MetaError messages.
                It will be removed from ExportUndeclared and Unknown trees.
 *)
 
@@ -1133,6 +1131,18 @@ BEGIN
    END ;
    RETURN( Sym )
 END MakeError ;
+
+
+(*
+   MakeErrorS - creates an error node from a string, which can be used
+                in MetaError messages.
+                It will be removed from ExportUndeclared and Unknown trees.
+*)
+
+PROCEDURE MakeErrorS (name: String) : CARDINAL ;
+BEGIN
+   RETURN MakeError (makekey (string (name)))
+END MakeErrorS ;
 
 
 (*
@@ -1608,7 +1618,6 @@ END TransparentScope ;
 PROCEDURE AddSymToModuleScope (ModSym: CARDINAL; Sym: CARDINAL) ;
 VAR
    pSym: PtrToSymbol ;
-   n   : Name ;
 BEGIN
    pSym := GetPsym(ModSym) ;
    WITH pSym^ DO
@@ -1618,24 +1627,20 @@ BEGIN
                     THEN
                        PutSymKey(DefImp.LocalSymbols, GetSymName(Sym), Sym)
                     ELSE
-                       n := GetSymName(Sym) ;
-                       WriteFormat1('IMPORT name clash with symbol (%a) symbol already declared ', n)
+                       MetaError1 ('{%kIMPORT} name clash with symbol {%1Ead} symbol already declared ', Sym)
                     END |
       ModuleSym   : IF GetSymKey(Module.LocalSymbols, GetSymName(Sym))=NulKey
                     THEN
                        PutSymKey(Module.LocalSymbols, GetSymName(Sym), Sym)
                     ELSE
-                       n := GetSymName(Sym) ;
-                       WriteFormat1('IMPORT name clash with symbol (%a) symbol already declared ', n)
+                       MetaError1 ('{%kIMPORT} name clash with symbol {%1Ead} symbol already declared ', Sym)
                     END |
       ProcedureSym: IF GetSymKey(Procedure.LocalSymbols, GetSymName(Sym))=NulKey
                     THEN
                        PutSymKey(Procedure.LocalSymbols, GetSymName(Sym), Sym)
                     ELSE
-                       n := GetSymName(Sym) ;
-                       WriteFormat1('IMPORT name clash with symbol (%a) symbol already declared ', n)
+                       MetaError1 ('{%kIMPORT} name clash with symbol {%1Ead} symbol already declared ', Sym)
                     END
-
 
       ELSE
          InternalError('expecting Module or DefImp symbol', __FILE__, __LINE__)

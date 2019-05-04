@@ -25,12 +25,13 @@ FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM M2Printf IMPORT printf0, printf1, printf2 ;
 FROM Lists IMPORT List, InitList, KillList, IncludeItemIntoList, RemoveItemFromList, NoOfItemsInList, GetItemFromList, IsItemInList ;
 FROM M2Batch IMPORT MakeDefinitionSource, MakeProgramSource, MakeImplementationSource ;
-FROM SymbolTable IMPORT NulSym, MakeInnerModule, SetCurrentModule, SetFileModule ;
+FROM SymbolTable IMPORT NulSym, MakeInnerModule, SetCurrentModule, SetFileModule, MakeError ;
 FROM NameKey IMPORT Name, NulName ;
 FROM M2Quads IMPORT PushT, PushTF, PopT, PopTF, PopN, OperandT ;
 FROM M2Reserved IMPORT ImportTok ;
 FROM M2Debug IMPORT Assert ;
-FROM M2MetaError IMPORT MetaErrorN1, MetaErrorN2 ;
+FROM M2MetaError IMPORT MetaErrorT1, MetaErrorT2, MetaError1, MetaError2 ;
+FROM M2LexBuf IMPORT GetTokenNo ;
 
 
 CONST
@@ -45,6 +46,7 @@ TYPE
                      kind           : Kind ;
                      sym            : CARDINAL ;
                      level          : CARDINAL ;
+                     token          : CARDINAL ;      (* where the block starts.  *)
                      LocalModules,                    (* locally declared modules at the current level  *)
                      ImportedModules: List ;          (* current list of imports for the scanned module *)
                      toPC,
@@ -213,7 +215,8 @@ BEGIN
       toNext := NIL ;
       toDown := NIL ;
       toUp := NIL ;
-      level := Level
+      level := Level ;
+      token := GetTokenNo () ;
    END ;
    GraftBlock(b)
 END BeginBlock ;
@@ -453,10 +456,10 @@ PROCEDURE RegisterProcedure ;
 VAR
    n: Name ;
 BEGIN
-   INC(Level) ;
-   PopT(n) ;
-   PushT(n) ;
-   BeginBlock(n, procedure, NulSym)
+   INC (Level) ;
+   PopT (n) ;
+   PushT (n) ;
+   BeginBlock (n, procedure, NulSym)
 END RegisterProcedure ;
 
 
@@ -469,18 +472,23 @@ VAR
    NameEnd,
    NameStart: Name ;
 BEGIN
-   PopT(NameEnd) ;
-   PopT(NameStart) ;
-   IF NameEnd#NameStart
+   PopT (NameEnd) ;
+   PopT (NameStart) ;
+   IF NameEnd # NameStart
    THEN
-      IF NameEnd=NulName
+      IF NameEnd = NulName
       THEN
-         MetaErrorN1 ('procedure name at end does not match name at beginning %a', NameStart)
-      ELSIF NameStart=NulName
-      THEN
-         MetaErrorN1 ('procedure name at end %a does not match name at beginning', NameEnd)
+         MetaErrorT1 (curBP^.token,
+                      'procedure name at beginning {%1Ea} does not match the name at end',
+                      MakeError (NameStart)) ;
+         MetaError1 ('procedure name at end does not match the name at beginning {%1Ea}',
+                     MakeError (NameStart))
       ELSE
-         MetaErrorN2 ('procedure name at end %a does not match name at beginning %a', NameEnd, NameStart)
+         MetaErrorT2 (curBP^.token,
+                      'procedure name at beginning {%1Ea} does not match the name at end {%2a}',
+                      MakeError (curBP^.name), MakeError (NameEnd)) ;
+         MetaError2 ('procedure name at end {%1Ea} does not match the name at beginning {%2Ea}',
+                     MakeError (NameEnd), MakeError (curBP^.name))
       END
    END ;
    EndBlock
@@ -498,16 +506,21 @@ VAR
 BEGIN
    PopT(NameEnd) ;
    PopT(NameStart) ;
-   IF NameEnd#NameStart
+   IF NameEnd # NameStart
    THEN
-      IF NameEnd=NulName
+      IF NameEnd = NulName
       THEN
-         MetaErrorN1 ('module name at end does not match name at beginning %a', NameStart)
-      ELSIF NameStart=NulName
-      THEN
-         MetaErrorN1 ('module name at end %a does not match name at beginning', NameEnd)
+         MetaErrorT1 (curBP^.token,
+                      'module name at beginning {%1Ea} does not match the name at end',
+                      MakeError (NameStart)) ;
+         MetaError1 ('module name at end does not match the name at beginning {%1Ea}',
+                     MakeError (NameStart))
       ELSE
-         MetaErrorN2 ('module name at end %a does not match name at beginning %a', NameEnd, NameStart)
+         MetaErrorT2 (curBP^.token,
+                      'module name at beginning {%1Ea} does not match the name at end {%2a}',
+                      MakeError (curBP^.name), MakeError (NameEnd)) ;
+         MetaError2 ('module name at end {%1Ea} does not match the name at beginning {%2Ea}',
+                     MakeError (NameEnd), MakeError (curBP^.name))
       END
    END ;
    EndBlock

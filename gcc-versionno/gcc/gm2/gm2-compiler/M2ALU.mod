@@ -35,7 +35,7 @@ IMPLEMENTATION MODULE M2ALU ;
 FROM ASCII IMPORT nul ;
 FROM SYSTEM IMPORT WORD ;
 FROM NameKey IMPORT KeyToCharStar, MakeKey ;
-FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, ErrorStringAt, FlushErrors ;
+FROM M2Error IMPORT InternalError, FlushErrors ;
 FROM M2Debug IMPORT Assert ;
 FROM Storage IMPORT ALLOCATE ;
 FROM StringConvert IMPORT ostoi, bstoi, stoi, hstoi ;
@@ -47,7 +47,7 @@ FROM M2Printf IMPORT printf0, printf2 ;
 FROM M2Base IMPORT MixTypes, GetBaseTypeMinMax, Char, IsRealType, IsAComplexType, ZType ;
 FROM DynamicStrings IMPORT String, InitString, Mark, ConCat, Slice, InitStringCharStar, KillString, InitStringChar, string ;
 FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken, TokenToLocation ;
-FROM M2MetaError IMPORT MetaError2 ;
+FROM M2MetaError IMPORT MetaError0, MetaError1, MetaError2, MetaErrorStringT0, MetaErrorT0 ;
 
 FROM SymbolTable IMPORT NulSym, IsEnumeration, IsSubrange, IsValueSolved, PushValue,
                         ForeachFieldEnumerationDo, MakeTemporary, PutVar, PopValue, GetType,
@@ -1850,10 +1850,10 @@ BEGIN
    Op2 := Pop() ;
    IF EitherReal(Op1, Op2)
    THEN
-      WriteFormat0('cannot perform MOD on REAL types')
+      MetaError0 ('cannot perform {%EkMOD} on REAL types')
    ELSIF EitherComplex(Op1, Op2)
    THEN
-      WriteFormat0('cannot perform MOD on COMPLEX types')
+      MetaError0 ('cannot perform {%EkMOD} on COMPLEX types')
    ELSE
       Temp := New() ;     (* as it is a temp *)
       WITH Temp^ DO
@@ -1893,10 +1893,10 @@ BEGIN
    Op2 := Pop() ;
    IF EitherReal(Op1, Op2)
    THEN
-      WriteFormat0('cannot perform MOD on REAL types')
+      MetaError0 ('cannot perform {%EkMOD} on REAL types')
    ELSIF EitherComplex(Op1, Op2)
    THEN
-      WriteFormat0('cannot perform MOD on COMPLEX types')
+      MetaError0 ('cannot perform {%EkMOD} on COMPLEX types')
    ELSE
       Temp := New() ;     (* as it is a temp *)
       WITH Temp^ DO
@@ -1996,12 +1996,12 @@ BEGIN
       result := AreSetsEqual(tokenno, Op1, Op2)
    ELSIF (Op1^.type=set) OR (Op2^.type=set)
    THEN
-      ErrorStringAt(InitString('cannot perform a comparison between a number and a set'), tokenno) ;
+      MetaErrorT0 (tokenno, 'cannot perform a comparison between a number and a set') ;
       result := FALSE
    ELSE
       IF Op1^.type#Op2^.type
       THEN
-         ErrorStringAt(InitString('cannot perform a comparison between a different type constants'), tokenno) ;
+         MetaErrorT0 (tokenno, 'cannot perform a comparison between a different type constants') ;
          result := FALSE
       ELSIF (Op1^.type=complex) OR (Op1^.type=real)
       THEN
@@ -2070,7 +2070,7 @@ BEGIN
       result := NOT IsSuperset(tokenno, v2, v1)
    ELSIF (v1^.type=set) OR (v2^.type=set)
    THEN
-      ErrorStringAt(InitString('cannot perform a comparison between a number and a set'), tokenno) ;
+      MetaErrorT0 (tokenno, 'cannot perform a comparison between a number and a set') ;
       result := FALSE
    ELSE
       res := CompareTrees(v2^.numberValue, v1^.numberValue) ;
@@ -2117,7 +2117,7 @@ BEGIN
       result := NOT IsSubset(tokenno, v2, v1)
    ELSIF (v1^.type=set) OR (v2^.type=set)
    THEN
-      ErrorStringAt(InitString('cannot perform a comparison between a number and a set'), tokenno) ;
+      MetaErrorT0 (tokenno, 'cannot perform a comparison between a number and a set') ;
       FlushErrors ;
       result := FALSE
    ELSE
@@ -2172,7 +2172,7 @@ BEGIN
       result := IsSubset(tokenno, v2, v1)
    ELSIF (v1^.type=set) OR (v2^.type=set)
    THEN
-      ErrorStringAt(InitString('cannot perform a comparison between a number and a set'), tokenno) ;
+      MetaErrorT0 (tokenno, 'cannot perform a comparison between a number and a set') ;
       FlushErrors ;
       result := FALSE
    ELSE
@@ -2228,7 +2228,7 @@ BEGIN
       result := IsSuperset(tokenno, v2, v1)
    ELSIF (v1^.type=set) OR (v2^.type=set)
    THEN
-      ErrorStringAt(InitString('cannot perform a comparison between a number and a set'), tokenno) ;
+      MetaErrorT0 (tokenno, 'cannot perform a comparison between a number and a set') ;
       FlushErrors ;
       result := FALSE
    ELSE
@@ -2629,13 +2629,13 @@ BEGIN
          type := record ;
          RETURN( v )
       ELSE
-         s1 := cellTypeString(t) ;
-         s2 := cellTypeString(type) ;
+         s1 := cellTypeString (t) ;
+         s2 := cellTypeString (type) ;
          s3 := ConCat(InitString('cannot mix construction of a '),
                       Mark(ConCat(Mark(s1),
                                   Mark(ConCat(InitString(' with a '),
                                               (Mark(s2))))))) ;
-         ErrorStringAt(s3, tokenno) ;
+         MetaErrorStringT0 (tokenno, s3) ;
          RETURN( v )
       END
    END
@@ -2663,7 +2663,7 @@ BEGIN
    Eval(tokenno, v) ;
    IF v^.constructorType=NulSym
    THEN
-      WriteFormat0('cannot negate a generic set, set should be prefixed by a simple type')
+      MetaError0 ('cannot negate a generic set, set should be prefixed by a simple type')
    END ;
    r := NIL ;
    min := GetTypeMin(GetType(v^.constructorType)) ;
@@ -4265,7 +4265,7 @@ BEGIN
       type := Set^.constructorType ;
       IF type=NulSym
       THEN
-         ErrorStringAt(InitString('cannot perform a ROTATE on a generic set'), tokenno) ;
+         MetaErrorT0 (tokenno, 'cannot perform a ROTATE on a generic set') ;
          Push(Set) ;
          RETURN
       END ;
@@ -4527,8 +4527,7 @@ BEGIN
                THEN
                   BuildRecordConstructorElement(cons, ConvertConstToType(tokenno, Field, GetConstructorField(v, i)))
                ELSE
-                  ErrorStringAt(InitString('trying to construct a compound literal and using a record field which does not exist'),
-                                tokenno)
+                  MetaErrorT0 (tokenno, 'trying to construct a compound literal and using a record field which does not exist')
                END
             END ;
             INC(i)
@@ -4567,7 +4566,7 @@ BEGIN
             END ;
             IF f=NIL
             THEN
-               WriteFormat1('element %d does not exist in the constant compound literal', i) ;
+               MetaError1 ('the {%1EN} element does not exist in the constant compound literal', i) ;
                RETURN( NulSym )
             ELSE
                RETURN( f^.field )
@@ -4622,7 +4621,7 @@ BEGIN
                THEN
                   RETURN( MakeConstLit(MakeKey('0'), Char) )
                ELSE
-                  WriteFormat1('element %d does not exist in the array declaration used by the compound literal', i) ;
+                  MetaError1 ('the {%1EN} element does not exist in the array declaration used by the compound literal', i) ;
                   RETURN( NulSym )
                END
             END
@@ -4662,7 +4661,7 @@ BEGIN
       PushCard(1)
    ELSE
       PushCard(0) ;
-      WriteFormat1('cannot build a string using {%1ad}', el)
+      MetaError1 ('cannot build a string using {%1Ead}', el)
    END ;
    RETURN GreEqu(tokenno)
 END StringFitsArray ;
@@ -4716,7 +4715,7 @@ BEGIN
    THEN
       isChar := TRUE
    ELSE
-      WriteFormat1('cannot build a string using {%1ad}', el)
+      MetaError1 ('cannot build a string using {%1Ead}', el)
    END ;
    i := 0 ;
    REPEAT
@@ -4755,7 +4754,7 @@ BEGIN
    s := KillString(s) ;
    IF NOT StringFitsArray(baseType, el, tokenno)
    THEN
-      MetaError2('string {%1a} is too large to fit into array {%2ad}', el, baseType)
+      MetaError2 ('string {%1Ea} is too large to fit into array {%2ad}', el, baseType)
    END ;
 (*
    IF v#NIL
@@ -5004,9 +5003,9 @@ END IsValueAndTreeKnown ;
 
 PROCEDURE CheckOverflow (tokenno: CARDINAL; t: Tree) ;
 BEGIN
-   IF TreeOverflow(t)
+   IF TreeOverflow (t)
    THEN
-      ErrorStringAt(InitString('constant overflow error'), tokenno) ;
+      MetaErrorT0 (tokenno, 'constant overflow error') ;
       FlushErrors
    END
 END CheckOverflow ;
@@ -5022,9 +5021,9 @@ PROCEDURE CheckOrResetOverflow (tokenno: CARDINAL; t: Tree; check: BOOLEAN) ;
 BEGIN
    IF check
    THEN
-      CheckOverflow(tokenno, t)
+      CheckOverflow (tokenno, t)
    ELSE
-      t := RemoveOverflow(t)
+      t := RemoveOverflow (t)
    END
 END CheckOrResetOverflow ;
 

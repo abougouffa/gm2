@@ -26,8 +26,8 @@ FROM ASCII IMPORT nul ;
 FROM NameKey IMPORT Name, WriteKey, MakeKey, KeyToCharStar, NulName ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
 FROM M2LexBuf IMPORT GetFileName ;
-FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, WriteFormat3, WarnFormat1 ;
-FROM DynamicStrings IMPORT String, Slice, InitString, KillString, EqualCharStar, RIndex, Mark ;
+FROM M2MetaError IMPORT MetaErrorString2, MetaError0, MetaError1, MetaError2 ;
+FROM DynamicStrings IMPORT String, Slice, InitString, KillString, EqualCharStar, RIndex, Mark, ConCat ;
 FROM M2Printf IMPORT printf0, printf1, printf2 ;
 FROM M2Options IMPORT Iso ;
 
@@ -78,6 +78,7 @@ FROM SymbolTable IMPORT NulSym,
                         PutProcedureBuiltin, PutProcedureInline,
                         GetSymName,
                         ResolveImports, PutDeclared,
+                        MakeError, MakeErrorS,
                         DisplayTrees ;
 
 FROM M2Batch IMPORT MakeDefinitionSource,
@@ -126,9 +127,9 @@ BEGIN
    THEN
       FileName := KillString(FileName)
    ELSE
-      s := Mark(InitString(ModuleType)) ;
-      WriteFormat3('%s module name (%a) is inconsistant with the filename (%s)',
-                   s, name, FileName)
+      s := ConCat (InitString (ModuleType),
+                   Mark (InitString (" module name {%1Ea} is inconsistant with the filename {%F{%2a}}"))) ;
+      MetaErrorString2 (s, MakeError (name), MakeErrorS (FileName))
    END
 END CheckFileName ;
 
@@ -172,10 +173,9 @@ BEGIN
          PutDefinitionForC(ModuleSym)
       ELSIF GetSymName(language)=NulName
       THEN
-         WriteFormat0('currently a non modula-2 definition module can only be declared as DEFINITION FOR "C"')
+         MetaError0 ('{%E}currently a non modula-2 definition module can only be declared as DEFINITION FOR {%k"C"}')
       ELSE
-         n := GetSymName(language) ;
-         WriteFormat1('unknown definition module language (%a), currently a non modula-2 definition module can only be declared as DEFINITION FOR "C"', n)
+         MetaError1 ('unknown definition module language {%1Ea}, currently a non modula-2 definition module can only be declared as DEFINITION FOR {%k"C"}', language)
       END
    END ;
    PushT(name) ;
@@ -215,7 +215,7 @@ BEGIN
    END ;
    IF NameStart#NameEnd
    THEN
-      WriteFormat1('inconsistant definition module name %a', NameStart)
+      MetaError1 ('inconsistant definition module name {%1Wa}', MakeError (NameStart))
    END ;
    LeaveBlock
 END P1EndBuildDefinitionModule ;
@@ -249,8 +249,7 @@ BEGIN
    StartScope(ModuleSym) ;
    IF NOT IsDefImp(ModuleSym)
    THEN
-      n := GetSymName(ModuleSym) ;
-      WriteFormat1('cannot find corresponding definition module to %a', n)
+      MetaError1 ('cannot find corresponding definition module for {%1Ea}', ModuleSym)
    END ;
    Assert(CompilingImplementationModule()) ;
    PushT(name) ;
@@ -286,7 +285,7 @@ BEGIN
    PopT(NameEnd) ;
    IF NameStart#NameEnd
    THEN
-      WarnFormat1('inconsistant implementation module name %a', NameStart)
+      MetaError1 ('inconsistant implementation module name {%1Wa}', MakeError (NameStart))
    END ;
    LeaveBlock
 END P1EndBuildImplementationModule ;
@@ -320,7 +319,7 @@ BEGIN
    StartScope(ModuleSym) ;
    IF (NOT CompilingProgramModule()) OR IsDefImp(ModuleSym)
    THEN
-      WriteFormat1('module %a has a corresponding DEFINITION MODULE but no IMPLEMENTATION keyword in the main module', name)
+      MetaError1 ('module {%1Ea} has a corresponding DEFINITION MODULE but no IMPLEMENTATION keyword in the main module', ModuleSym)
    END ;
    PushT(name) ;
    EnterBlock(name)
@@ -360,7 +359,7 @@ BEGIN
    END ;
    IF NameStart#NameEnd
    THEN
-      WarnFormat1('inconsistant program module name %a', NameStart)
+      MetaError1 ('inconsistant program module name {%1Wa}', MakeError (NameStart))
    END ;
    LeaveBlock
 END P1EndBuildProgramModule ;
@@ -422,7 +421,7 @@ BEGIN
    PopT(NameEnd) ;
    IF NameStart#NameEnd
    THEN
-      WarnFormat1('inconsistant inner module name %a', NameStart)
+      MetaError1 ('inconsistant inner module name {%1Wa}', MakeError (NameStart))
    END ;
    LeaveBlock
 END EndBuildInnerModule ;
@@ -553,9 +552,9 @@ BEGIN
       END
    ELSIF CompilingDefinitionModule()
    THEN
-      WriteFormat0('the export must be either QUALIFIED or UNQUALIFIED in a definition module')
+      MetaError0 ('the {%EkEXPORT} must be either {%kQUALIFIED} or {%kUNQUALIFIED} in a definition module')
    ELSE
-      WriteFormat0('only allowed inter module exports in definition module')
+      MetaError0 ('{%E}only allowed inter module exports in a definition module')
    END ;
    PopN(n+1)  (* clear stack *)
 END BuildExportOuterModule ;
@@ -720,7 +719,7 @@ BEGIN
          INC(i)
       END
    ELSE
-      WriteFormat0('QUALIFIED not allowed in an Inner Module')
+      MetaError0 ('{%EkQUALIFIED} not allowed in an inner module')
    END ;
    PopN(n+1)    (* clear stack *)
 END BuildExportInnerModule ;
@@ -901,7 +900,6 @@ VAR
    builtin,
    name    : Name ;
    ProcSym : CARDINAL ;
-   n       : Name ;
 BEGIN
    PopT(name) ;
    PopT(builtin) ; (* was this procedure defined as a builtin?        *)
@@ -919,8 +917,7 @@ BEGIN
       (* declared in the other module, we record declaration here as well *)
       PutDeclared(ProcSym)
    ELSE
-      n := GetSymName(ProcSym) ;
-      WriteFormat1('expecting a procedure name and symbol (%a) has been declared as something else', n) ;
+      MetaError1 ('expecting a procedure name and symbol {%1Ea} has been declared as a {%1d}', ProcSym) ;
       PushT(ProcSym) ;
       RETURN
    END ;
@@ -980,12 +977,14 @@ BEGIN
    THEN
       IF NameEnd=NulName
       THEN
-         WriteFormat1('procedure name at end does not match name at beginning (%a)', NameStart)
+         MetaError1 ('procedure name at end does not match name at beginning {%1EDa}', ProcSym)
       ELSIF NameStart=NulName
       THEN
-         WriteFormat1('procedure name at end (%a) does not match name at beginning', NameEnd)
+         MetaError1 ('procedure name at end does not match name at beginning {%1EDa}', ProcSym)
       ELSE
-         WriteFormat2('procedure name at end (%a) does not match name at beginning (%a)', NameEnd, NameStart)
+         MetaError1 ('procedure name at end does not match name at beginning {%1EDa}', ProcSym) ;
+         MetaError2 ('procedure name at end {%1EDa} does not match name at beginning {%2a}',
+                     MakeError (NameEnd), ProcSym)
       END
    END ;
    EndScope ;

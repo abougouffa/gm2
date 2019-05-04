@@ -33,6 +33,7 @@ FROM SYSTEM IMPORT WORD ;
 FROM SymbolKey IMPORT PerformOperation ;
 FROM NameKey IMPORT Name ;
 FROM m2tree IMPORT Tree ;
+FROM DynamicStrings IMPORT String ;
 
 EXPORT QUALIFIED NulSym,
                  FinalSymbol,
@@ -77,7 +78,7 @@ EXPORT QUALIFIED NulSym,
                  Make2Tuple,
                  MakeGnuAsm,
                  MakeRegInterface,
-                 MakeError,
+                 MakeError, MakeErrorS,
 
                  ForeachModuleDo,
                  ForeachInnerModuleDo,
@@ -2990,13 +2991,20 @@ PROCEDURE Make2Tuple (a, b: CARDINAL) : CARDINAL ;
 
 
 (*
-   MakeError - creates an error node, it does assume that the caller
-               will issue an appropriate error message as this symbol
-               will be removed from the generic error message trees.
+   MakeError - creates an error node, which can be used in MetaError messages.
                It will be removed from ExportUndeclared and Unknown trees.
 *)
 
 PROCEDURE MakeError (name: Name) : CARDINAL ;
+
+
+(*
+   MakeErrorS - creates an error node from a string, which can be used
+                in MetaError messages.
+                It will be removed from ExportUndeclared and Unknown trees.
+*)
+
+PROCEDURE MakeErrorS (name: String) : CARDINAL ;
 
 
 (*

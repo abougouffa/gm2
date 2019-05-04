@@ -77,13 +77,14 @@ EXPORT QUALIFIED MetaError0, MetaError1, MetaError2, MetaError3, MetaError4,
     {%W}      message is a warning, not an error.
     {%O}      message is a note, not an error.
     {%Kword}  the string word is quoted and rendered as a keyword.
-    {%Kword}  the string word is unquoted and rendered as a keyword.
+    {%kword}  the string word is unquoted and rendered as a keyword.
     {%C}      chain this error on the previous rooted error.
     {%R}      this error will be the root of the future chained errors.
     {%n}      decimal number.  Not quoted.
     {%N}      count (number), for example, 1st, 2nd, 3rd, 4th.  Not quoted.
     {%P}      push the current color state.
     {%p}      pop the current color state.
+    {%Ffilename} the string filename will be rendered using the filename color.
     {%ccolor} change color into one of:  none, fixit-delete, fixit-insert,
               locus, filename, type, error, warning, note.
     %<        open quote and color.

@@ -83,7 +83,7 @@ FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo, TokenToLocation, GetT
 FROM M2Code IMPORT CodeBlock ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, WriteFormat2, ErrorStringAt, WarnStringAt ;
-FROM M2MetaError IMPORT MetaErrorT1, MetaErrorT2, MetaError1, MetaError2 ;
+FROM M2MetaError IMPORT MetaErrorT0, MetaErrorT1, MetaErrorT2, MetaError1, MetaError2 ;
 
 FROM M2Options IMPORT DisplayQuadruples, UnboundedByReference, PedanticCast,
                       VerboseUnbounded, Iso, Pim, DebugBuiltins, WholeProgram,
@@ -1228,13 +1228,13 @@ BEGIN
       END ;
       IF HighField = NulSym
       THEN
-         MetaError1 ('HIGH dimension number {%1N} for array does not exist', dim)
+         MetaError1 ('{%EkHIGH} dimension number {%1N} for array does not exist', dim)
       ELSE
          remainingDim := dim - accessibleDim ;
          HighTree := BuildHighFromStaticArray (location, remainingDim, ArrayType) ;
          IF HighTree = NIL
          THEN
-            MetaError1 ('HIGH dimension number {%1N} for array does not exist', dim)
+            MetaError1 ('{%EkHIGH} dimension number {%1N} for array does not exist', dim)
          END ;
          RETURN HighTree
       END
@@ -2238,8 +2238,8 @@ BEGIN
    UNTIL op=FunctValueOp ;
    IF CompareTrees(bits, max)>0
    THEN
-      ErrorStringAt(InitString('total number of bit specified as parameters to MAKEADR exceeds address width'),
-                    CurrentQuadToken) ;
+      MetaErrorT0 (CurrentQuadToken,
+                   'total number of bit specified as parameters to {%kMAKEADR} exceeds address width')
    END ;
    SubQuad(n) ;
    res := BuildAssignmentTree(location, res, val)
@@ -2308,7 +2308,8 @@ BEGIN
          THEN
             IF GetType(op3)=NulSym
             THEN
-               WriteFormat0('must supply typed constants to MAKEADR')
+               MetaErrorT0 (CurrentQuadToken,
+                            'must supply typed constants to {%kMAKEADR}')
             ELSE
                type := GetType(op3) ;
                tmp := BuildConvert(location, GetPointerType(), Mod2Gcc(op3), FALSE) ;
@@ -2326,8 +2327,8 @@ BEGIN
       UNTIL op=FunctValueOp ;
       IF CompareTrees(bits, max)>0
       THEN
-         ErrorStringAt(InitString('total number of bit specified as parameters to MAKEADR exceeds address width'),
-                       CurrentQuadToken)
+         MetaErrorT0 (CurrentQuadToken,
+                      'total number of bit specified as parameters to {%kMAKEADR} exceeds address width')
       END ;
       PutConst(r, Address) ;
       AddModGcc(r, DeclareKnownConstant(location, Mod2Gcc(Address), val)) ;
@@ -2416,7 +2417,7 @@ BEGIN
          p(r) ;
          SetLastFunction(NIL)
       ELSE
-         MetaErrorT1(CurrentQuadToken, 'gcc builtin procedure {%1ad} cannot be used in a constant expression', procedure) ;
+         MetaErrorT1 (CurrentQuadToken, 'gcc builtin procedure {%1Ead} cannot be used in a constant expression', procedure) ;
       END ;
       NoChange := FALSE ;
       SubQuad(n)
@@ -2472,10 +2473,10 @@ BEGIN
       IF (op1<=NoOfParam(op2)) AND
          IsVarParam(op2, op1) AND IsConst(op3)
       THEN
-         MetaErrorT1(CurrentQuadToken, 'cannot pass a constant {%1ad} as a VAR parameter', op3)
+         MetaErrorT1 (CurrentQuadToken, 'cannot pass a constant {%1Ead} as a VAR parameter', op3)
       ELSIF IsAModula2Type(op3)
       THEN
-         MetaErrorT2(CurrentQuadToken, 'cannot pass a type {%1ad} as a parameter to procedure {%2ad}', op3, op2)
+         MetaErrorT2 (CurrentQuadToken, 'cannot pass a type {%1Ead} as a parameter to procedure {%2ad}', op3, op2)
       ELSE
          doParam(quad, op1, op2, op3)
       END
@@ -2523,7 +2524,7 @@ VAR
 BEGIN
    IF IsConst(op3) AND (NOT IsConstString(op3))
    THEN
-      MetaErrorT1(CurrentQuadToken, 'error in expression, trying to find the address of a constant {%1ad}', op3)
+      MetaErrorT1 (CurrentQuadToken, 'error in expression, trying to find the address of a constant {%1Ead}', op3)
    ELSE
       location := TokenToLocation(CurrentQuadToken) ;
       type := SkipType(GetType(op3)) ;
@@ -2576,7 +2577,7 @@ BEGIN
          (* great, now we can tell gcc about the relationship between, op1 and op3 *)
          IF GccKnowsAbout(op1)
          THEN
-            MetaErrorT1(tokenno, 'constant {%1ad} should not be reassigned', op1)
+            MetaErrorT1 (tokenno, 'constant {%1Ead} should not be reassigned', op1)
          ELSE
             IF IsConstString(op3)
             THEN
@@ -2900,7 +2901,7 @@ BEGIN
       e3 := GetArrayNoOfElements(location, Mod2Gcc(SkipType(GetType(op3)))) ;
       IF CompareTrees(e1, e3)#0
       THEN
-         MetaErrorT2(CurrentQuadToken, 'not allowed to assign array {%2ad} to {%1ad} as they have a different number of elements',
+         MetaErrorT2(CurrentQuadToken, 'not allowed to assign array {%2Ead} to {%1ad} as they have a different number of elements',
                      op1, op3) ;
          RETURN( FALSE )
       END
@@ -2972,7 +2973,7 @@ BEGIN
       THEN
          IF GetType(op2)=NulSym
          THEN
-            MetaErrorT2(CurrentQuadToken, 'cannot assign an operand of type {%1ts} to a record type {%2tsa}', op2, op1) ;
+            MetaErrorT2 (CurrentQuadToken, 'cannot assign an operand of type {%1Ets} to a record type {%2tsa}', op2, op1) ;
             RETURN( FALSE )
          ELSE
             t2 := SkipType(GetType(op2)) ;
@@ -2980,7 +2981,7 @@ BEGIN
             THEN
                RETURN( TRUE )
             ELSE
-               MetaErrorT2(CurrentQuadToken, 'cannot assign an operand of type {%1ts} to a record type {%2tsa}', op2, op1) ;
+               MetaErrorT2 (CurrentQuadToken, 'cannot assign an operand of type {%1ts} to a record type {%2tsa}', op2, op1) ;
 	       RETURN( FALSE )
             END
          END
@@ -3010,7 +3011,7 @@ BEGIN
       THEN
          IF NOT IsAssignmentCompatible(t1, t2)
          THEN
-            MetaErrorT2(CurrentQuadToken, 'illegal assignment error between {%1tad} and {%2tad}', op1, op2) ;
+            MetaErrorT2 (CurrentQuadToken, 'illegal assignment error between {%1Etad} and {%2tad}', op1, op2) ;
 	    RETURN( FALSE )
          END
       END
@@ -3381,8 +3382,8 @@ BEGIN
          PopValue(op1) ;
          PutConstSet(op1) ;
       ELSE
-         ErrorStringAt(InitString('constant expression cannot be evaluated'),
-                       CurrentQuadToken)
+         MetaErrorT0 (CurrentQuadToken,
+                      '{%E}constant expression cannot be evaluated')
       END
    ELSE
       BuildBinaryForeachWordDo(location,
@@ -3415,12 +3416,12 @@ BEGIN
    tr := SkipType(GetType(r)) ;
    IF (Word=tl) OR IsWordN(tl) OR (Byte=tl) OR (Loc=tl)
    THEN
-      MetaErrorT1(CurrentQuadToken, 'operand of type {%1ts} is not allowed in a binary expression', l) ;
+      MetaErrorT1 (CurrentQuadToken, 'operand of type {%1Ets} is not allowed in a binary expression', l) ;
       ok := FALSE
    END ;
    IF (Word=tr) OR IsWordN(tr) OR (Byte=tl) OR (Loc=tl)
    THEN
-      MetaErrorT1(CurrentQuadToken, 'operand of type {%1ts} is not allowed in a binary expression', r) ;
+      MetaErrorT1 (CurrentQuadToken, 'operand of type {%1Ets} is not allowed in a binary expression', r) ;
       ok := FALSE
    END ;
    IF NOT ok
@@ -3898,7 +3899,7 @@ BEGIN
    t := GetBuiltinConst(KeyToCharStar(Name(op3))) ;
    IF t=NIL
    THEN
-      MetaErrorT1(tokenno, 'unknown built in constant {%1ad}', op3)
+      MetaErrorT1 (tokenno, 'unknown built in constant {%1Ead}', op3)
    ELSE
       AddModGcc(op1, t) ;
       p(op1) ;
@@ -3925,7 +3926,7 @@ BEGIN
       t := GetBuiltinTypeInfo(location, Mod2Gcc(op2), KeyToCharStar(Name(op3))) ;
       IF t=NIL
       THEN
-         MetaErrorT2(tokenno, 'unknown built in constant {%1ad} attribute for type {%2ad}', op3, op2)
+         MetaErrorT2 (tokenno, 'unknown built in constant {%1Ead} attribute for type {%2ad}', op3, op2)
       ELSE
          AddModGcc(op1, t) ;
          p(op1) ;
@@ -3966,7 +3967,7 @@ BEGIN
                NoChange := FALSE ;
                SubQuad(quad)
             ELSE
-               MetaErrorT1(tokenno, 'parameter to LENGTH must be a string {%1ad}', op3)
+               MetaErrorT1 (tokenno, 'parameter to LENGTH must be a string {%1Ead}', op3)
             END
          ELSE
             (* rewrite the quad to use becomes *)
@@ -3994,7 +3995,7 @@ BEGIN
                NoChange := FALSE ;
                SubQuad(quad)
             ELSE
-               MetaErrorT1(tokenno, 'parameter to CAP must be a single character {%1ad}', op3)
+               MetaErrorT1 (tokenno, 'parameter to CAP must be a single character {%1Ead}', op3)
             END
          END
       END
@@ -4053,8 +4054,8 @@ BEGIN
             type := GetCmplxReturnType(GetType(GetNth(op3, 1)), GetType(GetNth(op3, 2))) ;
             IF type=NulSym
             THEN
-               MetaErrorT2(tokenno, 'real {%1atd} and imaginary {%2atd} types are incompatible',
-                           GetNth(op3, 1), GetNth(op3, 2))
+               MetaErrorT2 (tokenno, 'real {%1Eatd} and imaginary {%2atd} types are incompatible',
+                            GetNth(op3, 1), GetNth(op3, 2))
             ELSE
                AddModGcc(op1, BuildCmplx(location,
                                          Mod2Gcc(type),
@@ -4149,9 +4150,9 @@ BEGIN
          type := GetCmplxReturnType(GetType(GetNth(op3, 1)), GetType(GetNth(op3, 2))) ;
          IF type=NulSym
          THEN
-            MetaErrorT2(CurrentQuadToken,
-                        'real {%1atd} and imaginary {%2atd} types are incompatible',
-                        GetNth(op3, 1), GetNth(op3, 2))
+            MetaErrorT2 (CurrentQuadToken,
+                         'real {%1Eatd} and imaginary {%2atd} types are incompatible',
+                         GetNth(op3, 1), GetNth(op3, 2))
          ELSE
             t := BuildAssignmentTree(location, Mod2Gcc(op1), BuildCmplx(location,
                                                                         Mod2Gcc(type),
@@ -4389,8 +4390,7 @@ BEGIN
          PopValue(op1) ;
          PutConstSet(op1)
       ELSE
-         ErrorStringAt(InitString('constant expression cannot be evaluated'),
-                       CurrentQuadToken)
+         MetaErrorT0 (CurrentQuadToken, '{%E}constant expression cannot be evaluated')
       END
    ELSE
       varproc := Mod2Gcc(FromModuleGetSym(var, System)) ;
@@ -4550,7 +4550,8 @@ BEGIN
                                                    Mod2Gcc(GetType(op3)),
                                                    PopSetTree(CurrentQuadToken)))
       ELSE
-         ErrorStringAt(InitString('constant expression cannot be evaluated'), CurrentQuadToken)
+         MetaErrorT0 (CurrentQuadToken,
+                      '{%E}constant expression cannot be evaluated')
       END
    ELSE
       BuildUnaryForeachWordDo(location,
@@ -4792,7 +4793,7 @@ BEGIN
                                  PopIntegerTree(),
                                  GetMode(op1)=LeftValue, fieldno)
          ELSE
-            MetaErrorT1(CurrentQuadToken, 'bit exceeded the range of set {%1atd}', op1)
+            MetaErrorT1 (CurrentQuadToken, 'bit exceeded the range of set {%1Eatd}', op1)
          END
       ELSE
          GetSetLimits(GetType(op1), low, high) ;
@@ -4864,7 +4865,7 @@ BEGIN
                                  Mod2Gcc(op1), PopIntegerTree(),
                                  GetMode(op1)=LeftValue, fieldno)
          ELSE
-            MetaErrorT1(CurrentQuadToken, 'bit exceeded the range of set {%1atd}', op1)
+            MetaErrorT1 (CurrentQuadToken, 'bit exceeded the range of set {%1Eatd}', op1)
          END
       ELSE
          GetSetLimits(GetType(op1), low, high) ;
@@ -5471,7 +5472,7 @@ BEGIN
          RETURN BuildSub (location, Mod2Gcc (High), Mod2Gcc (Low), TRUE)
       END
    ELSE
-      MetaError1('array subscript {%1Dad:for} must be a subrange or enumeration type', Type) ;
+      MetaError1 ('array subscript {%1EDad:for} must be a subrange or enumeration type', Type) ;
       RETURN Tree(NIL)
    END ;
    IF GccKnowsAbout (High)
@@ -5528,9 +5529,9 @@ BEGIN
    THEN
       RETURN( GetHighFromUnbounded(location, dim, operand) )
    ELSE
-      MetaErrorT1(tokenno,
-                  'base procedure HIGH expects a variable of type array or a constant string or CHAR as its parameter, rather than {%1tad}',
-                  operand) ;
+      MetaErrorT1 (tokenno,
+                   'base procedure HIGH expects a variable of type array or a constant string or CHAR as its parameter, rather than {%1Etad}',
+                   operand) ;
       RETURN( GetIntegerZero(location) )
    END
 END ResolveHigh ;
@@ -6019,8 +6020,8 @@ BEGIN
             t := BuildAssignmentTree(location, Mod2Gcc(op1), Mod2Gcc(op3))
          END
       ELSE
-         ErrorStringAt(InitString('procedure address can only be stored in an address sized operand'),
-                       CurrentQuadToken)
+         MetaErrorT0 (CurrentQuadToken,
+                      '{%E}procedure address can only be stored in an address sized operand')
       END
    ELSIF IsConst(op3) OR AreConstantsEqual(FindSize(CurrentQuadToken, op1), FindSize(CurrentQuadToken, op3))
    THEN
@@ -6045,7 +6046,8 @@ BEGIN
          END
       END
    ELSE
-      ErrorStringAt(InitString('can only CAST objects of the same size'), CurrentQuadToken)
+      MetaErrorT0 (CurrentQuadToken,
+                   'can only {%kCAST} objects of the same size')
    END
 END CodeCoerce ;
 
@@ -6079,7 +6081,8 @@ BEGIN
                SubQuad(quad)
             END
          ELSE
-            ErrorStringAt(InitString('procedure address can only be stored in a address sized operand'), tokenno)
+            MetaErrorT0 (CurrentQuadToken,
+                         '{%E}procedure address can only be stored in a address sized operand')
          END
       ELSIF IsConst(op3)
       THEN
@@ -6141,8 +6144,8 @@ BEGIN
             t := BuildAssignmentTree(location, Mod2Gcc(op1), Mod2Gcc(op3))
          END
       ELSE
-         ErrorStringAt(InitString('procedure address can only be stored in an address sized operand'),
-                       CurrentQuadToken)
+         MetaErrorT0 (CurrentQuadToken,
+                      '{%E}procedure address can only be stored in an address sized operand')
       END
    ELSIF IsConst(op3) OR AreConstantsEqual(FindSize(CurrentQuadToken, op1), FindSize(CurrentQuadToken, op3))
    THEN
@@ -6157,8 +6160,8 @@ BEGIN
          END ;
          CodeConvert(quad, op1, op2, op3)
       ELSE
-         MetaError2('CAST cannot copy a variable src {%2Dad} to a destination {%1Dad} as they are of different sizes and are not ordinal or real types',
-                    op1, op3)
+         MetaError2 ('{%kCAST} cannot copy a variable src {%2Dad} to a destination {%1Dad} as they are of different sizes and are not ordinal or real types',
+                     op1, op3)
       END
    END
 END CodeCast ;
@@ -6180,7 +6183,8 @@ BEGIN
          THEN
             FoldCoerce(tokenno, p, quad, op1, op2, op3)
          ELSE
-            ErrorStringAt(InitString('procedure address can only be stored in an address sized operand'), tokenno)
+            MetaErrorT0 (CurrentQuadToken,
+                         '{%E}procedure address can only be stored in an address sized operand')
          END
       ELSIF IsConst(op3)
       THEN
@@ -6357,9 +6361,9 @@ BEGIN
    ELSE
       IF IsComposite(GetType(op1)) OR IsComposite(GetType(op2))
       THEN
-         MetaErrorT2(CurrentQuadToken,
-                     'comparison tests between are composite types not allowed {%1atd} and {%2atd}',
-                     op1, op2)
+         MetaErrorT2 (CurrentQuadToken,
+                      'comparison tests between are composite types not allowed {%1Eatd} and {%2atd}',
+                      op1, op2)
       ELSE
          ConvertBinaryOperands(location,
                                tl, tr,
@@ -6455,9 +6459,9 @@ BEGIN
    ELSE
       IF IsComposite(GetType(op1)) OR IsComposite(GetType(op2))
       THEN
-         MetaErrorT2(CurrentQuadToken,
-                     'comparison tests between are composite types not allowed {%1atd} and {%2atd}',
-                     op1, op2)
+         MetaErrorT2 (CurrentQuadToken,
+                      'comparison tests between are composite types not allowed {%1Eatd} and {%2atd}',
+                      op1, op2)
       ELSE
          ConvertBinaryOperands(location,
                                tl, tr,
@@ -6552,9 +6556,9 @@ BEGIN
    ELSE
       IF IsComposite(GetType(op1)) OR IsComposite(GetType(op2))
       THEN
-         MetaErrorT2(CurrentQuadToken,
-                     'comparison tests between are composite types not allowed {%1atd} and {%2atd}',
-                     op1, op2)
+         MetaErrorT2 (CurrentQuadToken,
+                      'comparison tests between are composite types not allowed {%1Eatd} and {%2atd}',
+                      op1, op2)
       ELSE
          ConvertBinaryOperands(location,
                                tl, tr,
@@ -6649,9 +6653,9 @@ BEGIN
    ELSE
       IF IsComposite(GetType(op1)) OR IsComposite(GetType(op2))
       THEN
-         MetaErrorT2(CurrentQuadToken,
-                     'comparison tests between are composite types not allowed {%1atd} and {%2atd}',
-                     op1, op2)
+         MetaErrorT2 (CurrentQuadToken,
+                      'comparison tests between are composite types not allowed {%1Eatd} and {%2atd}',
+                      op1, op2)
       ELSE
          ConvertBinaryOperands(location,
                                tl, tr,
@@ -6713,9 +6717,9 @@ BEGIN
       BuildGoto(location, string(CreateLabelName(op3))) ;
       DeclareLabel(location, falselabel)
    ELSE
-      MetaErrorT2(CurrentQuadToken,
-                  'set comparison is only allowed between the same set type, the set types used by {%1atd} and {%2atd} are different',
-                  op1, op2)
+      MetaErrorT2 (CurrentQuadToken,
+                   'set comparison is only allowed between the same set type, the set types used by {%1Eatd} and {%2atd} are different',
+                   op1, op2)
    END
 END CodeIfSetEqu ;
 
@@ -6765,10 +6769,9 @@ BEGIN
                                     BuildNotEqualTo,
                                     truelabel)
    ELSE
-      MetaErrorT2(CurrentQuadToken,
-                  'set comparison is only allowed between the same set type, the set types used by {%1atd} and {%2atd} are different',
-                  op1, op2)
-
+      MetaErrorT2 (CurrentQuadToken,
+                   'set comparison is only allowed between the same set type, the set types used by {%1Eatd} and {%2atd} are different',
+                   op1, op2)
    END
 END CodeIfSetNotEqu ;
 
@@ -6806,9 +6809,9 @@ BEGIN
    ELSE
       IF IsComposite(GetType(op1)) OR IsComposite(GetType(op2))
       THEN
-         MetaErrorT2(CurrentQuadToken,
-                     'equality tests between are composite types not allowed {%1atd} and {%2atd}',
-                     op1, op2)
+         MetaErrorT2 (CurrentQuadToken,
+                      'equality tests between are composite types not allowed {%1Eatd} and {%2atd}',
+                      op1, op2)
       ELSE
          ConvertBinaryOperands(location,
                                tl, tr,
@@ -6855,9 +6858,9 @@ BEGIN
    ELSE
       IF IsComposite(op1) OR IsComposite(op2)
       THEN
-         MetaErrorT2(CurrentQuadToken,
-                     'inequality tests between are composite types not allowed {%1atd} and {%2atd}',
-                     op1, op2)
+         MetaErrorT2 (CurrentQuadToken,
+                      'inequality tests between are composite types not allowed {%1Eatd} and {%2atd}',
+                      op1, op2)
       ELSE
          ConvertBinaryOperands(location,
                                tl, tr,
@@ -6994,7 +6997,7 @@ BEGIN
                               GetMode(op2)=LeftValue, fieldno,
                               string(CreateLabelName(op3)))
          ELSE
-            MetaErrorT1(CurrentQuadToken, 'bit exceeded the range of set {%1atd}', op1)
+            MetaErrorT1 (CurrentQuadToken, 'bit exceeded the range of set {%1Eatd}', op1)
          END
       ELSIF IsConst(op2)
       THEN
@@ -7062,7 +7065,7 @@ BEGIN
                                  GetMode(op2)=LeftValue, fieldno,
                                  string(CreateLabelName(op3)))
          ELSE
-            MetaErrorT1(CurrentQuadToken, 'bit exceeded the range of set {%1atd}', op2)
+            MetaErrorT1 (CurrentQuadToken, 'bit exceeded the range of set {%1Eatd}', op2)
          END
       ELSIF IsConst(op2)
       THEN

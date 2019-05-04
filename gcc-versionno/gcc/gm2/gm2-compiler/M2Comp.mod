@@ -36,6 +36,7 @@ FROM M2Preprocess IMPORT PreprocessModule ;
 FROM libc IMPORT exit ;
 
 FROM M2Error IMPORT ErrorStringAt, ErrorStringAt2, ErrorStringsAt2, WriteFormat0, FlushErrors, FlushWarnings ;
+FROM M2MetaError IMPORT MetaErrorString1, MetaError0, MetaError1 ;
 FROM FormatStrings IMPORT Sprintf1 ;
 FROM P0SymBuild IMPORT P0Init, P1Init ;
 
@@ -252,10 +253,14 @@ BEGIN
                END ;
                CloseSource
             ELSE
+               MetaErrorString1 (Sprintf1 (InitString ('file {%%1EUF%s} containing module {%%1a} cannot be found'), FileName), Sym) ;
+               FlushWarnings ; FlushErrors ;
                fprintf1(StdErr, 'failed to open %s\n', FileName) ;
                exit(1)
             END
          ELSE
+            MetaError1 ('the file containing the definition module {%1EUa} cannot be found', Sym) ;
+            FlushWarnings ; FlushErrors ;
             fprintf1(StdErr, 'failed to find definition module %s.def\n', SymName) ;
             exit(1)
          END ;
@@ -292,7 +297,8 @@ BEGIN
                  imply that the implementation defines hidden types.  *)
                IF (NOT WholeProgram) OR (Sym=Main) OR IsHiddenTypeDeclared(Sym)
                THEN
-                  ErrorStringAt(Sprintf1(InitString('file %s cannot be found'), FileName), GetFirstUsed(Sym)) ;
+                  MetaErrorString1 (Sprintf1 (InitString ('file {%%1EUF%s} containing module {%%1a} cannot be found'), FileName), Sym) ;
+                  FlushWarnings ; FlushErrors ;
                   fprintf1(StdErr, 'file %s cannot be opened\n', FileName)
                END
             END
@@ -338,7 +344,7 @@ BEGIN
             ModuleType := Definition ;
             IF NOT P1Build.CompilationUnit()
             THEN
-               WriteFormat0('compilation failed') ;
+               MetaError0('compilation failed') ;
                CloseSource ;
                RETURN
             END ;
@@ -363,7 +369,7 @@ BEGIN
          THEN
             IF NOT P1Build.CompilationUnit()
             THEN
-               WriteFormat0('compilation failed') ;
+               MetaError0('compilation failed') ;
                CloseSource ;
                RETURN
             END ;
@@ -410,7 +416,7 @@ BEGIN
             ModuleType := Definition ;
             IF NOT P2Build.CompilationUnit()
             THEN
-               WriteFormat0('compilation failed') ;
+               MetaError0('compilation failed') ;
                CloseSource ;
                RETURN
             END ;
@@ -435,7 +441,7 @@ BEGIN
          THEN
             IF NOT P2Build.CompilationUnit()
             THEN
-               WriteFormat0('compilation failed') ;
+               MetaError0('compilation failed') ;
                CloseSource ;
                RETURN
             END ;
@@ -482,7 +488,7 @@ BEGIN
             ModuleType := Definition ;
             IF NOT PCBuild.CompilationUnit()
             THEN
-               WriteFormat0('compilation failed') ;
+               MetaError0('compilation failed') ;
                CloseSource ;
                RETURN
             END ;
@@ -507,7 +513,7 @@ BEGIN
          THEN
             IF NOT PCBuild.CompilationUnit()
             THEN
-               WriteFormat0('compilation failed') ;
+               MetaError0('compilation failed') ;
                CloseSource ;
                RETURN
             END ;
@@ -554,7 +560,7 @@ BEGIN
             ModuleType := Definition ;
             IF NOT P3Build.CompilationUnit()
             THEN
-               WriteFormat0('compilation failed') ;
+               MetaError0('compilation failed') ;
                CloseSource ;
                RETURN
             END ;
@@ -576,7 +582,7 @@ BEGIN
             THEN
                IF NOT P3Build.CompilationUnit()
                THEN
-                  WriteFormat0('compilation failed') ;
+                  MetaError0('compilation failed') ;
                   CloseSource ;
                   RETURN
                END
@@ -591,7 +597,7 @@ BEGIN
                SetPassToPassHidden ;
                IF NOT PHBuild.CompilationUnit()
                THEN
-                  WriteFormat0('compilation failed') ;
+                  MetaError0('compilation failed') ;
                   CloseSource ;
                   RETURN
                END ;
