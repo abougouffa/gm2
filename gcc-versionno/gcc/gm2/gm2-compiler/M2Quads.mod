@@ -104,6 +104,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         PutLeftValueFrontBackType,
                         PushSize, PushValue, PopValue,
                         GetVariableAtAddress, IsVariableAtAddress,
+                        MakeError,
 
                         GetUnboundedRecordType,
                         GetUnboundedAddressOffset,
@@ -2818,7 +2819,7 @@ BEGIN
       MarkAsRead(r) ;
       IF Exp=NulSym
       THEN
-         WriteFormat0('unknown expression found during assignment') ;
+         MetaError0 ('{%E}unknown expression found during assignment') ;
          FlushErrors
       END ;
       Array := OperandA(1) ;
@@ -2872,13 +2873,10 @@ BEGIN
       ((DesT#NulSym) AND (NOT IsProcType(DesT))) AND
       ((DesL#NulSym) AND (NOT IsProcType(DesL)))
    THEN
-      n := GetSymName(Des) ;
-      WriteFormat1('incorrectly assigning a procedure to a variable %a (variable is not a procedure type)', n)
+      MetaError1 ('incorrectly assigning a procedure to a designator {%1Ead} (designator is not a procedure type, {%1ast})', Des)
    ELSIF IsProcedure(Exp) AND IsProcedureNested(Exp)
    THEN
-      n := GetSymName(Exp) ;
-      WriteFormat1('cannot call nested procedure, %a, indirectly as the outer scope will not be known',
-                   n)
+      MetaError1 ('cannot call nested procedure {%1Ead} indirectly as the outer scope will not be known', Exp)
    ELSIF IsConstString(Exp)
    THEN
    ELSIF (DesT#NulSym) AND (IsUnbounded(DesT))
@@ -2897,7 +2895,7 @@ BEGIN
          PutConst(Des, ExpT)
       ELSIF NOT IsAssignmentCompatible(DesT, ExpT)
       THEN
-         WriteFormat0('constructor is not compatible during assignment')
+         MetaError1 ('constructor expression is not compatible during assignment to {%1Ead}', Des)
       END
    ELSIF (DesT#NulSym) AND IsSet(DesT) AND IsConst(Exp)
    THEN
@@ -2910,9 +2908,7 @@ BEGIN
       THEN
          CheckAssignmentCompatible(ExpT, DesT)
       ELSE
-         n := GetSymName(Des) ;
-         WriteFormat1('assignment of a constant (%a) can only be made to a variable whose type is equivalent to a Modula-2 base type',
-                      n)
+         MetaError2 ('assignment of a constant {%1Ead} can only be made to a variable whose type is equivalent to a Modula-2 base type {%2tsa}', Exp, Des)
       END
    ELSE
       IF (DesT#NulSym) AND IsProcType(DesT) AND IsProcedure(Exp)
@@ -2992,7 +2988,7 @@ BEGIN
    PopT(name) ;
    IF name#MakeKey('bytealignment')
    THEN
-      WriteFormat1('expecting bytealignment identifier, rather than %a', name)
+      MetaError1 ('expecting bytealignment identifier, rather than {%1Ea}', MakeError (name))
    END ;
    GetConstFromFifoQueue(align) ;
    PushT(align) ;
@@ -3052,9 +3048,9 @@ VAR
 BEGIN
    PopT(expr) ;
    PopT(name) ;
-   IF name#MakeKey('bytealignment')
+   IF name # MakeKey ('bytealignment')
    THEN
-      WriteFormat0('only allowed to use the attribute bytealignment in the default record field alignment pragma')
+      MetaError0 ('{%E}only allowed to use the attribute {%kbytealignment} in the default record field alignment pragma')
    END ;
    GetConstFromFifoQueue(align) ;
    PushT(align) ;
@@ -3088,7 +3084,7 @@ BEGIN
    PopT(name) ;
    IF (name#MakeKey('unused')) AND (name#MakeKey('bytealignment'))
    THEN
-      WriteFormat0('only allowed to use the attributes bytealignment and unused in a record field padding pragma')
+      MetaError0 ('only allowed to use the attribute {%Ekbytealignment} in the default record field alignment pragma')
    END ;
    IF expr#NulSym
    THEN
@@ -3271,7 +3267,7 @@ PROCEDURE BuildExit ;
 BEGIN
    IF IsEmptyWord(ExitStack)
    THEN
-      WriteFormat0('EXIT is only allowed in a LOOP statement')
+      MetaError0 ('{%EkEXIT} is only allowed in a {%kLOOP} statement')
    ELSE
       GenQuad(GotoOp, NulSym, NulSym, 0) ;
       PushExit(Merge(PopExit(), NextQuad-1))
@@ -3482,8 +3478,9 @@ BEGIN
    THEN
       IF NoOfElements(type)=0
       THEN
-         MetaErrors1('enumeration type only has one element {%1Dad} and therefore',
-                     message, type) ;
+         MetaErrorString1 (ConCat (InitString ('enumeration type only has one element {%1Dad} and therefore '),
+                                   Mark (InitString (message))),
+                           type) ;
          PushZero(type)
       ELSE
          PushTF(Convert, NulSym) ;
@@ -3672,16 +3669,19 @@ BEGIN
    IdSym := RequestSym(Id) ;
    IF NOT IsExpressionCompatible(GetSType(e1), GetSType(e2))
    THEN
-      WriteFormat0('incompatible types found in FOR loop header') ;
+      MetaError2 ('incompatible types found in {%EkFOR} loop header, initial expression {%E1tsad} and final expression {%E2tsad}',
+                 e1, e2) ;
       CheckExpressionCompatible(GetSType(e1), GetSType(e2))
    END ;
    IF NOT IsExpressionCompatible(GetSType(e1), ByType)
    THEN
-      WriteFormat0('incompatible types found in FOR loop header') ;
+      MetaError2 ('incompatible types found in {%EkFOR} loop header, initial expression {%E1tsad} and {%kBY} {%E2tsad}',
+                  e2, BySym) ;
       CheckExpressionCompatible(GetSType(e1), ByType)
    ELSIF NOT IsExpressionCompatible(GetSType(e2), ByType)
    THEN
-      WriteFormat0('incompatible types found in FOR loop header') ;
+      MetaError2 ('incompatible types found in {%EkFOR} loop header, final expression {%E1tsad} and {%kBY} {%E2tsad}',
+                  e2, BySym) ;
       CheckExpressionCompatible(GetSType(e2), ByType)
    END ;
    BuildRange(InitForLoopBeginRangeCheck(IdSym, e1)) ;
@@ -4819,9 +4819,7 @@ BEGIN
       END ;
       IF IsProcedure(Actual) AND IsProcedureNested(Actual)
       THEN
-         n := GetSymName(Actual) ;
-         WriteFormat2('cannot pass a nested procedure, %a, as parameter number %d as the outer scope will be unknown at runtime',
-                      n, i)
+         MetaError2 ('cannot pass a nested procedure {%E1a} seen in the {%2N} parameter as the outer scope will be unknown at runtime', Actual, i)
       END ;
       (* we can check the return type of both proc types *)
       IF (ActualType#NulSym) AND IsProcType(ActualType)
@@ -5032,20 +5030,10 @@ BEGIN
          s := ConCat(s, Mark(InitString('..')))
       END
    END ;
-   (*
-   ReturnType := GetSType(ProcedureSym) ;
-   IF ReturnType=NulSym
-   THEN
-      s := ConCat(s, Sprintf0(Mark(InitString(') ;\n'))))
-   ELSE
-      s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(ReturnType)))) ;
-      s := ConCat(s, Mark(Sprintf1(Mark(InitString(') : %s ;\n')), s1)))
-   END ;
-   *)
    s := ConCat (s, Mark (InitString ('){%1Tau:% : {%1Tau}} ;'))) ;
    MetaErrorStringT1 (First, Dup (s), ProcedureSym) ;
    MetaErrorStringT1 (GetTokenNo (), s, ProcedureSym) ;
-   MetaError1 ('item being passed is {%1EDda} which is a {%1Dad} of type {%1Dtsd}', Given)
+   MetaError1 ('item being passed is {%1EDda} {%1Dad} of type {%1Dtsd}', Given)
 END FailParameter ;
 
 
@@ -5168,8 +5156,9 @@ BEGIN
       e := NewError(GetTokenNo()) ;
       IF IsUnknown(sym)
       THEN
-         s1 := Mark(InitString(a)) ;
-         s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(sym)))) ;
+         s1 := ConCat (InitString (a),
+                       Mark (InitString ('but was given an undeclared symbol {%E1a}'))) ;
+
          ErrorString(e, Sprintf2(Mark(InitString('%s but was given an undeclared symbol %s')), s1, s2))
       ELSE
          s1 := Mark(InitString(a)) ;
@@ -5465,8 +5454,7 @@ BEGIN
                f^.TrueExit := t
             END
          ELSE
-            n := GetSymName(Proc) ;
-            WriteFormat1('parameter not expected for procedure %a', n)
+            MetaError2 ('attempting to pass too many parameters to procedure {%1a}, the {%2N} parameter does not exist', Proc, i)
          END
       ELSIF IsForC AND IsUnboundedParam(Proc, i) AND
             (GetSType(OperandT(pi))#NulSym) AND IsArray(GetDType(OperandT(pi)))
@@ -5628,25 +5616,23 @@ VAR
    AddressField,
    Type        : CARDINAL ;
 BEGIN
-   IF IsConst(Sym)  (* was IsConstString(Sym) *)
+   IF IsConst (Sym)  (* was IsConstString(Sym) *)
    THEN
-      UnboundedNonVarLinkToArray(Sym, ArraySym, UnboundedSym, ParamType, dim)
-   ELSIF IsVar(Sym)
+      UnboundedNonVarLinkToArray (Sym, ArraySym, UnboundedSym, ParamType, dim)
+   ELSIF IsVar (Sym)
    THEN
-      Type := GetDType(Sym) ;
-      IF IsUnbounded(Type)
+      Type := GetDType (Sym) ;
+      IF IsUnbounded (Type)
       THEN
-         UnboundedNonVarLinkToArray(Sym, ArraySym, UnboundedSym, ParamType, dim)
-      ELSIF IsArray(Type) OR IsGenericSystemType(ParamType)
+         UnboundedNonVarLinkToArray (Sym, ArraySym, UnboundedSym, ParamType, dim)
+      ELSIF IsArray (Type) OR IsGenericSystemType (ParamType)
       THEN
-         UnboundedNonVarLinkToArray(Sym, ArraySym, UnboundedSym, ParamType, dim)
+         UnboundedNonVarLinkToArray (Sym, ArraySym, UnboundedSym, ParamType, dim)
       ELSE
-         n := GetSymName(Sym) ;
-         WriteFormat1('illegal type parameter %a: expecting Array or Dynamic Array', n)
+         MetaError1 ('illegal type parameter {%1Ead} expecting array or dynamic array', Sym)
       END
    ELSE
-      n := GetSymName(Sym) ;
-      WriteFormat1('illegal parameter %a which cannot be passed as: VAR ARRAY OF Type', n)
+      MetaError1 ('illegal parameter {%1Ead} which cannot be passed as {%kVAR} {%kARRAY} {%kOF} {%1tsad}', Sym)
    END
 END AssignUnboundedNonVar ;
 
@@ -5963,7 +5949,7 @@ BEGIN
       op := OperandT(NoOfParam) ;
       GenQuad(ThrowOp, NulSym, NulSym, op)
    ELSE
-      WriteFormat0('the pseudo procedure Throw takes one INTEGER parameter')
+      MetaError1 ('the pseudo procedure %{1Ea} takes one INTEGER parameter', Throw)
    END ;
    PopN(NoOfParam+1)
 END BuildThrowProcedure ;
@@ -6055,13 +6041,13 @@ BEGIN
             BuildProcedureCall
 
          ELSE
-            WriteFormat0('argument to NEW must be a pointer')
+            MetaError0 ('parameter to {%EkNEW} must be a pointer')
          END
       ELSE
-         WriteFormat0('ALLOCATE procedure not found for NEW substitution')
+         MetaError0 ('{%E}ALLOCATE procedure not found for NEW substitution')
       END
    ELSE
-      WriteFormat0('the pseudo procedure NEW has one or more parameters')
+      MetaError0 ('the pseudo procedure {%EkNEW} has one or more parameters')
    END ;
    PopN(NoOfParam+1)
 END BuildNewProcedure ;
@@ -6142,13 +6128,13 @@ BEGIN
             BuildProcedureCall
 
          ELSE
-            WriteFormat0('argument to DISPOSE must be a pointer')
+            MetaError0 ('argument to {%EkDISPOSE} must be a pointer')
          END
       ELSE
-         WriteFormat0('DEALLOCATE procedure not found for DISPOSE substitution')
+         MetaError0 ('{%E}DEALLOCATE procedure not found for DISPOSE substitution')
       END
    ELSE
-      WriteFormat0('the pseudo procedure DISPOSE has one or more parameters')
+      MetaError0 ('the pseudo procedure {%EkDISPOSE} has one or more parameters')
    END ;
    PopN(NoOfParam+1)
 END BuildDisposeProcedure ;
@@ -6208,9 +6194,9 @@ BEGIN
       ELSE
          IF tok=PlusTok
          THEN
-            WriteFormat0('cannot perform INC using non ordinal types')
+            MetaError0 ('cannot perform {%EkINC} using non ordinal types')
          ELSE
-            WriteFormat0('cannot perform DEC using non ordinal types')
+            MetaError0 ('cannot perform {%EkDEC} using non ordinal types')
          END ;
          PushTF(MakeConstLit(MakeKey('0'), NulSym), NulSym)
       END
@@ -6268,7 +6254,7 @@ BEGIN
          THEN
             OperandSym := DereferenceLValue(OperandT(1))
          ELSE
-            PushOne(dtype, 'the INC will cause an overflow {%1ad}') ;
+            PushOne(dtype, 'the {%EkINC} will cause an overflow {%1ad}') ;
 	    PopT(OperandSym)
          END ;
 
@@ -6277,11 +6263,10 @@ BEGIN
          CheckRangeIncDec(TempSym, OperandSym, PlusTok) ;  (* TempSym + OperandSym *)
          BuildAssignmentWithoutBounds(FALSE, TRUE)   (* VarSym := TempSym + OperandSym *)
       ELSE
-         ExpectVariable('base procedure INC expects a variable as a parameter',
-                        VarSym)
+         MetaError1 ('base procedure {%EkINC} expects a variable as a parameter but was given {%E1d}', VarSym)
       END
    ELSE
-      WriteFormat0('base procedure INC expects 1 or 2 parameters')
+      MetaError0 ('the base procedure {%EkINC} expects 1 or 2 parameters')
    END ;
    PopN(NoOfParam+1)
 END BuildIncProcedure ;
@@ -6337,7 +6322,7 @@ BEGIN
          THEN
             OperandSym := DereferenceLValue(OperandT(1))
          ELSE
-            PushOne(dtype, 'the DEC will cause an overflow {%1ad}') ;
+            PushOne(dtype, 'the {%EkDEC} will cause an overflow {%1ad}') ;
 	    PopT(OperandSym)
          END ;
 
@@ -6346,11 +6331,10 @@ BEGIN
          CheckRangeIncDec(TempSym, OperandSym, MinusTok) ;  (* TempSym - OperandSym *)
          BuildAssignmentWithoutBounds(FALSE, TRUE)   (* VarSym := TempSym - OperandSym *)
       ELSE
-         ExpectVariable('base procedure DEC expects a variable as a parameter',
-                        VarSym)
+         MetaError1 ('base procedure {%EkDEC} expects a variable as a parameter but was given {%E1d}', VarSym)
       END
    ELSE
-      WriteFormat0('base procedure DEC expects 1 or 2 parameters')
+      MetaError0 ('the base procedure {%EkDEC} expects 1 or 2 parameters')
    END ;
    PopN(NoOfParam+1)
 END BuildDecProcedure ;
@@ -6428,14 +6412,13 @@ BEGIN
             BuildRange(InitInclCheck(VarSym, DerefSym)) ;
             GenQuad(InclOp, VarSym, NulSym, DerefSym)
          ELSE
-            ExpectVariable('the first parameter to INCL must be a SET variable',
-                           VarSym)
+            MetaError1 ('the first parameter to {%EkINCL} must be a set variable but is {%E1d}', VarSym)
          END
       ELSE
-         WriteFormat0('base procedure INCL expects a variable as a parameter')
+         MetaError1 ('base procedure {%EkINCL} expects a variable as a parameter but is {%E1d}', VarSym)
       END
    ELSE
-      WriteFormat0('base procedure INCL expects 2 parameters')
+      MetaError0 ('the base procedure {%EkINCL} expects 1 or 2 parameters')
    END ;
    PopN(NoOfParam+1)
 END BuildInclProcedure ;
@@ -6488,14 +6471,13 @@ BEGIN
             BuildRange(InitExclCheck(VarSym, DerefSym)) ;
             GenQuad(ExclOp, VarSym, NulSym, DerefSym)
          ELSE
-            ExpectVariable('the first parameter to EXCL must be a SET variable',
-                           VarSym)
+            MetaError1 ('the first parameter to {%EkEXCL} must be a set variable but is {%E1d}', VarSym)
          END
       ELSE
-         WriteFormat0('base procedure EXCL expects a variable as a parameter')
+         MetaError1 ('base procedure {%EkEXCL} expects a variable as a parameter but is {%E1d}', VarSym)
       END
    ELSE
-      WriteFormat0('base procedure EXCL expects 2 parameters')
+      MetaError0 ('the base procedure {%EkEXCL} expects 1 or 2 parameters')
    END ;
    PopN(NoOfParam+1)
 END BuildExclProcedure ;
@@ -6612,8 +6594,7 @@ BEGIN
    (* Compile time stack restored to entry state *)
    IF IsUnknown(ProcSym)
    THEN
-      n := GetSymName(ProcSym) ;
-      WriteFormat1('function %a is undefined', n) ;
+      MetaError1 ('procedure function {%1Ea} is undefined', ProcSym) ;
       PopN(NoOfParam+2) ;
       PushT(MakeConstLit(MakeKey('0'), NulSym))   (* fake return value to continue compiling *)
    ELSIF IsAModula2Type(ProcSym)
@@ -6691,15 +6672,15 @@ BEGIN
             PushT(2) ;          (* Two parameters *)
             BuildConvertFunction
          ELSE
-            WriteFormat0('a constant type conversion can only have one argument')
+            MetaError0 ('{%E}a constant type conversion can only have one argument')
          END
       ELSE
          (* error issue message and fake return stack *)
          IF Iso
          THEN
-            WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, CMPLX, FLOAT, HIGH, IM, LENGTH, MAX, MIN, ODD, ORD, RE, SIZE, TSIZE, TRUNC, VAL and gcc builtins')
+            MetaError0 ('the only functions permissible in a constant expression are: {%kCAP}, {%kCHR}, {%kCMPLX}, {%kFLOAT}, {%kHIGH}, {%kIM}, {%kLENGTH}, {%kMAX}, {%kMIN}, {%kODD}, {%kORD}, {%kRE}, {%kSIZE}, {%kTSIZE}, {%kTRUNC}, {%kVAL} and gcc builtins')
          ELSE
-            WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, MAX, MIN, ODD, ORD, SIZE, TSIZE, TRUNC, VAL and gcc builtins')
+            MetaError0 ('the only functions permissible in a constant expression are: {%kCAP}, {%kCHR}, {%kFLOAT}, {%kHIGH}, {%kMAX}, {%kMIN}, {%kODD}, {%kORD}, {%kSIZE}, {%kTSIZE}, {%kTRUNC}, {%kVAL} and gcc builtins')
          END ;
          PopN(NoOfParam+2) ;
          PushT(MakeConstLit(MakeKey('0'), NulSym))   (* fake return value to continue compiling *)
@@ -6753,7 +6734,6 @@ END BuildConstFunctionCall ;
 
 PROCEDURE BuildTypeCoercion ;
 VAR
-   s1, s2   : String ;
    NoOfParam,
    ReturnVar,
    ProcSym  : CARDINAL ;
@@ -6762,7 +6742,7 @@ BEGIN
    ProcSym := OperandT(NoOfParam+1) ;
    IF NOT IsAModula2Type(ProcSym)
    THEN
-      WriteFormat0('coersion expecting a type')
+      MetaError1 ('coersion expecting a type, seen {%1Ea} which is {%1Ed}', ProcSym)
    END ;
    ReturnVar := MakeTemporary(RightValue) ;
    PutVar(ReturnVar, ProcSym) ;  (* Set ReturnVar's TYPE *)
@@ -6774,15 +6754,14 @@ BEGIN
          PopN(NoOfParam+1) ;
          PushTF(ReturnVar, ProcSym)
       ELSE
-         s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(OperandT(1))))) ;
-         s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(ProcSym)))) ;
-         ErrorStringAt2(Sprintf2(Mark(InitString('trying to coerse (%s) which is not a variable or constant into (%s)')),
-                                 s1, s2),
-                        GetTokenNo(), GetDeclaredMod(OperandT(1))) ;
+         MetaError2 ('trying to coerse {%1EMRad} which is not a variable or constant into {%2ad}',
+                     OperandT (1), ProcSym) ;
+         MetaError2 ('trying to coerse {%1ECad} which is not a variable or constant into {%2ad}',
+                     OperandT (1), ProcSym) ;
          PopN(NoOfParam+1)
       END
    ELSE
-      WriteFormat0('only one parameter expected in a TYPE coersion')
+      MetaError0 ('{%E}only one parameter expected in a TYPE coersion')
    END
 END BuildTypeCoercion ;
 
@@ -6955,7 +6934,7 @@ BEGIN
    THEN
       BuildCmplxFunction
    ELSE
-      InternalError('pseudo function not implemented yet', __FILE__, __LINE__)
+      InternalError ('pseudo function not implemented yet', __FILE__, __LINE__)
    END
 END BuildPseudoFunctionCall ;
 
@@ -7008,16 +6987,16 @@ BEGIN
             GenQuad(AddOp, ReturnVar, VarSym, DereferenceLValue(OperandSym)) ;
             PushTF(ReturnVar, Address)
          ELSE
-            ExpectVariable('the first parameter to ADDADR must be a variable of type ADDRESS or a POINTER',
-                           VarSym) ;
+            MetaError1 ('the first parameter to ADDADR {%1Ea} must be a variable of type ADDRESS or a {%EkPOINTER}, rather than a {%1Etsd}',
+                        VarSym) ;
             PushTF(MakeConstLit(MakeKey('0'), Address), Address)
          END
       ELSE
-         WriteFormat0('SYSTEM procedure ADDADR expects a variable which has a type of ADDRESS or is a POINTER as its first parameter') ;
+         MetaError0 ('{%E}SYSTEM procedure ADDADR expects a variable of type ADDRESS or POINTER as its first parameter') ;
          PushTF(MakeConstLit(MakeKey('0'), Address), Address)
       END
    ELSE
-      WriteFormat0('SYSTEM procedure ADDADR expects 2 parameters') ;
+      MetaError0 ('{%E}SYSTEM procedure ADDADR expects 2 parameters') ;
       PopN(NoOfParam+1) ;
       PushTF(MakeConstLit(MakeKey('0'), Address), Address)
    END
@@ -9169,30 +9148,16 @@ END BuildTBitSizeFunction ;
 *)
 
 PROCEDURE ExpectingParameterType (BlockSym, Type: CARDINAL) ;
-VAR
-   s1, s2: String ;
 BEGIN
-   IF NOT IsAModula2Type(Type)
+   IF NOT IsAModula2Type (Type)
    THEN
-      IF Type=NulSym
+      IF (Type = NulSym) OR IsPartialUnbounded (Type) OR IsUnknown (Type)
       THEN
-         s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
-         ErrorStringAt2(Sprintf1(Mark(InitString('the type used in the formal parameter in procedure (%s) is unknown')),
-                                 s2),
-                        GetDeclaredMod(BlockSym), GetDeclaredMod(Type))
-      ELSIF IsPartialUnbounded(Type) OR IsUnknown(Type)
-      THEN
-         s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Type)))) ;
-         s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
-         ErrorStringAt2(Sprintf2(Mark(InitString('the type in the formal parameter is unknown (%s) in procedure (%s)')),
-                                 s1, s2),
-                        GetDeclaredMod(BlockSym), GetDeclaredMod(Type))
+         MetaError1 ('the type used in the formal parameter declaration in {%1Md} {%1a} is unknown',
+                     BlockSym)
       ELSE
-         s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Type)))) ;
-         s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
-         ErrorStringAt2(Sprintf2(Mark(InitString('the type (%s) specified as the formal parameter in procedure (%s) was not declared as a type')),
-                                 s1, s2),
-                        GetDeclaredMod(BlockSym), GetDeclaredMod(Type))
+         MetaError2 ('the type {%1Ead} used in the formal parameter declaration in {%2Md} {%2a} was not declared as a type',
+                     Type, BlockSym)
       END
    END
 END ExpectingParameterType ;
@@ -9210,23 +9175,19 @@ BEGIN
    THEN
       IF Type=NulSym
       THEN
-         s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
-         ErrorStringAt2(Sprintf1(Mark(InitString('the type used during the variable declaration section in procedure (%s) is unknown')),
-                                 s2),
-                        GetDeclaredMod(BlockSym), GetDeclaredMod(Type))
+         MetaError1 ('the type used during the variable declaration section in procedure {%1EMad} is unknown',
+                     BlockSym) ;
+         MetaError1 ('the type used during the variable declaration section in procedure {%1Ead} is unknown',
+                     BlockSym)
       ELSIF IsPartialUnbounded(Type) OR IsUnknown(Type)
       THEN
-         s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Type)))) ;
-         s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
-         ErrorStringAt2(Sprintf2(Mark(InitString('the type (%s) used during variable declaration section in procedure (%s) is unknown')),
-                                 s1, s2),
-                        GetDeclaredMod(BlockSym), GetDeclaredMod(Type))
+         MetaError2 ('the type {%1EMad} used during variable declaration section in procedure {%2ad} is unknown',
+                     Type, BlockSym) ;
+         MetaError2 ('the type {%1Ead} used during variable declaration section in procedure {%2Mad} is unknown',
+                     Type, BlockSym)
       ELSE
-         s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Type)))) ;
-         s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
-         ErrorStringAt2(Sprintf2(Mark(InitString('the symbol (%s) is not a type and therefore cannot be used to declare a variable in procedure (%s)')),
-                                 s1, s2),
-                        GetDeclaredMod(BlockSym), GetDeclaredMod(Type))
+         MetaError2 ('the {%1d} {%1Ea} is not a type and therefore cannot be used to declare a variable in {%2d} {%2a}',
+                     Type, BlockSym)
       END
    END
 END ExpectingVariableType ;
@@ -10028,7 +9989,7 @@ BEGIN
    THEN
       BuildStaticArray
    ELSE
-      WriteFormat0('can only index static or dynamic arrays')
+      MetaError0 ('{%E}can only index static or dynamic arrays')
    END
 END BuildDesignatorArray ;
 
@@ -10289,10 +10250,7 @@ BEGIN
    Type1 := SkipType(Type1) ;
    IF IsUnknown(Sym1)
    THEN
-      n1 := GetSymName(Sym1) ;
-      n2 := GetSymName(Sym1) ;
-      WriteFormat2('symbol (%a) is undefined and thus cannot resolve (%a^)',
-                   n1, n2)
+      MetaError1 ('{%1EMad} is undefined and therefore {%1ad}^ cannot be resolved', Sym1)
    ELSIF IsPointer(Type1)
    THEN
       Type2 := GetSType(Type1) ;
@@ -10357,30 +10315,10 @@ BEGIN
    PushWith(Sym, Type, Ref) ;
    IF Type=NulSym
    THEN
-      IF IsTemporary(Sym)
-      THEN
-         WriteFormat0('unknown record variable specified in WITH statement')
-      ELSE
-         n := GetSymName(Sym) ;
-         WriteFormat1('symbol (%a) is unknown, it should be a variable of a record type', n)
-      END
+      MetaError1 ('{%1Ea} {%1d} has a no type, the {%kWITH} statement requires a variable or parameter of a {%kRECORD} type', Sym)
    ELSIF NOT IsRecord(Type)
    THEN
-      IF GetSymName(Type)=NulName
-      THEN
-         IF GetSymName(Sym)=NulSym
-         THEN
-            WriteFormat0('expression in the WITH statement does must be a record type')
-         ELSE
-            n := GetSymName(Sym) ;
-            WriteFormat1('the type being used in this WITH statement is not a record type, variable (%a)',
-                         n)
-         END
-      ELSE
-         n := GetSymName(Type) ;
-         WriteFormat1('the type being used in this WITH statement is not a record type (%a)',
-                           n)
-      END
+      MetaError1 ('the {%kWITH} statement requires that {%1Ea} {%1d} be of a {%kRECORD} {%1tsa:type rather than {%1tsa}}', Sym)
    END ;
    StartScope(Type)
  ; DisplayStack ;
@@ -11603,21 +11541,21 @@ BEGIN
    type := GetSType(sym) ;
    IF IsUnknown(sym)
    THEN
-      MetaError1('{%1Uad} has not been declared', sym)
+      MetaError1 ('{%1Uad} has not been declared', sym)
    ELSIF (NOT IsConst(sym)) AND (NOT IsVar(sym)) AND
          (NOT IsProcedure(sym)) AND
          (NOT IsTemporary(sym)) AND (NOT MustNotCheckBounds)
    THEN
-      MetaErrors1('{%1ad} expected a variable, procedure, constant or expression',
-                  'and it was declared as a {%1Dd}', sym) ;
+      MetaErrors1 ('{%1Ead} expected a variable, procedure, constant or expression',
+                   'and it was declared as a {%1Dd}', sym) ;
    ELSIF (type#NulSym) AND IsArray(type)
    THEN
-      MetaErrors1('{%1U} not expecting an array variable as an operand for either comparison or binary operation',
-                 'it was declared as a {%1Dd}', sym)
+      MetaErrors1 ('{%1EU} not expecting an array variable as an operand for either comparison or binary operation',
+                  'it was declared as a {%1Dd}', sym)
    ELSIF IsConstString(sym) AND (GetStringLength(sym)>1)
    THEN
-      MetaError1('{%1U} not expecting a string constant as an operand for either comparison or binary operation',
-                 sym)
+      MetaError1 ('{%1EU} not expecting a string constant as an operand for either comparison or binary operation',
+                  sym)
    END
 END CheckVariableOrConstantOrProcedure ;
 

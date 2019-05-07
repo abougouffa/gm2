@@ -65,7 +65,11 @@ END quoteOpen ;
 
 PROCEDURE quoteClose (s: String) : String ;
 BEGIN
-   RETURN endColor (ConCat (s, Mark (InitString ("’"))))
+   s := endColor (s) ;
+   s := append (s, "quote") ;
+   s := ConCat (s, Mark (InitString ("’"))) ;
+   s := endColor (s) ;
+   RETURN s
 END quoteClose ;
 
 

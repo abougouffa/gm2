@@ -308,7 +308,7 @@ END push ;
    pop - copies contents of oldblock into newblock
 *)
 
-PROCEDURE pop (VAR toblock: errorBlock; fromblock: errorBlock) ;
+PROCEDURE pop (VAR toblock, fromblock: errorBlock) ;
 VAR
    c: colorType ;
 BEGIN
@@ -329,6 +329,7 @@ BEGIN
             OutCloseQuote (toblock) ;
             changeColor (toblock, fromblock.currentCol)
          ELSE
+            shutdownColor (fromblock) ;
             (* caller has assigned a color, so use it after the new string.  *)
             c := toblock.currentCol ;
             OutOpenQuote (toblock) ;
@@ -1195,6 +1196,20 @@ END changeColor ;
 
 
 (*
+   shutdownColor - shutdown existing color if it exists.
+*)
+
+PROCEDURE shutdownColor (VAR eb: errorBlock) ;
+BEGIN
+   IF (eb.endCol # unsetColor) AND (eb.endCol # noColor)
+   THEN
+      eb.out := colorEnd (eb.out) ;
+      eb.endCol := noColor
+   END
+END shutdownColor ;
+
+
+(*
    flushColor - flushes any outstanding color change.
 *)
 
@@ -1202,11 +1217,7 @@ PROCEDURE flushColor (VAR eb: errorBlock) ;
 BEGIN
    IF eb.endCol # eb.currentCol
    THEN
-      IF (eb.endCol # unsetColor) AND (eb.endCol # noColor)
-      THEN
-         eb.out := colorEnd (eb.out) ;
-         eb.endCol := noColor
-      END ;
+      shutdownColor (eb) ;
       IF eb.endCol # eb.currentCol
       THEN
          emitColor (eb, eb.currentCol) ;
