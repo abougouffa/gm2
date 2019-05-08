@@ -17,6 +17,8 @@ function checkGCC () {
 	5.3.0 )  BRANCH="gcc_5_3_0_gm2" ;;
 	5.4.0 )  BRANCH="gcc_5_4_0_gm2" ;;
 	6.4.0 )  BRANCH="gcc_6_4_0_gm2" ;;
+	8.2.0 )  BRANCH="gcc_8_2_0_gm2" ;;
+	9.1.0 )  BRANCH="gcc_9_1_0_gm2" ;;
 	none  )  BRANCH="" ;;
 	*     )  echo "it is unlikely that GNU Modula-2 will work with gcc-${GCC}" ;;
     esac
