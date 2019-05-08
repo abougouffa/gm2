@@ -65,6 +65,7 @@ EXPORT QUALIFIED SetReturnCheck, SetNilCheck, SetCaseCheck,
                  IndexChecking, RangeChecking,
                  ReturnChecking, CaseElseChecking,
                  VariantValueChecking,
+                 UnusedVariableChecking, UnusedParameterChecking,
                  Quiet, LineDirectives, CPreProcessor, Xcode, ExtendedOpaque,
                  LowerCaseKeywords,
                  PedanticParamNames, PedanticCast,
@@ -136,6 +137,8 @@ VAR
    DumpSystemExports,            (* print all inbuilt system items?          *)
    GenerateSwig,                 (* should we generate a swig interface file?*)
    Exceptions,                   (* should we generate exception code?       *)
+   UnusedVariableChecking,       (* should we warn about unused variables?   *)
+   UnusedParameterChecking,      (* should we warn about unused parameters?  *)
    LowerCaseKeywords,            (* should keywords in errors be in lower?   *)
    DebugBuiltins,                (* should we always call a real function?   *)
    ForcedLocation,
@@ -161,14 +164,15 @@ PROCEDURE SetWholeProgram (value: BOOLEAN) ;
 
 
 (*
-   SetReturnCheck -
+   SetReturnCheck - set return statement checking in procedure functions
+                    to value.
 *)
 
 PROCEDURE SetReturnCheck (value: BOOLEAN) : BOOLEAN ;
 
 
 (*
-   SetNilCheck -
+   SetNilCheck - set access through NIL violation runtime checking to value.
 *)
 
 PROCEDURE SetNilCheck (value: BOOLEAN) : BOOLEAN ;
@@ -477,6 +481,20 @@ PROCEDURE OverrideLocation (location: location_t) : location_t ;
 *)
 
 PROCEDURE SetForcedLocation (location: location_t) ;
+
+
+(*
+   SetUnusedVariableChecking - assigns the UnusedVariableChecking to value.
+*)
+
+PROCEDURE SetUnusedVariableChecking (value: BOOLEAN) ;
+
+
+(*
+   SetUnusedParameterChecking - assigns the UnusedParameterChecking to value.
+*)
+
+PROCEDURE SetUnusedParameterChecking (value: BOOLEAN) ;
 
 
 (*

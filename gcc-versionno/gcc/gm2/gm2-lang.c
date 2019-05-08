@@ -318,6 +318,12 @@ gm2_langhook_handle_option (
     case OPT_Wverbose_unbounded:
       M2Options_SetVerboseUnbounded (value);
       return 1;
+    case OPT_Wunused_variable:
+      M2Options_SetUnusedVariableChecking (value);
+      return 1;
+    case OPT_Wunused_parameter:
+      M2Options_SetUnusedParameterChecking (value);
+      return 1;
     case OPT_fxcode:
       M2Options_SetXCode (value);
       return 1;

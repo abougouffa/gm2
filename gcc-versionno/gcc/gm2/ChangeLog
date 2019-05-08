@@ -1,3 +1,27 @@
+2019-05-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2Options.def:  UnusedVariableChecking
+          and UnusedParameterChecking declared and exported.
+          (SetReturnCheck) added comment.  (SetNilCheck) added comment.
+          (SetUnusedVariableChecking) New procedure.
+          (SetUnusedParameterChecking) New procedure.
+	* gm2/gm2-compiler/M2Options.mod:  (SetUnusedVariableChecking)
+	  Implement new procedure.  (SetUnusedParameterChecking)
+          Implement new procedure.  Initialize UnusedVariableChecking
+          and UnusedParameterChecking
+	* gm2/gm2-compiler/M2Quads.mod:
+          (CheckUninitializedVariablesAreUsed) use the option variables
+          UnusedParameterChecking and UnusedVariableChecking when
+          performing semantic checks.
+	* gm2/gm2-gcc/m2options.h:  (SetUnusedVariableChecking) added
+          prototype.  (SetUnusedParameterChecking) added prototype.
+	* gm2/gm2-lang.c:  handle Wunused_variable and Wunused_parameter.
+	* gm2/gm2.texi:  add Wunused_variable and Wunused_parameter to
+          the list of options with a description of their behaviour.
+	* gm2/lang-options.h:  corrected GPL comment.  Added
+          Wunused_variable and Wunused_parameter options.
+	* gm2/lang.opt:  added Wunused_variable and Wunused_parameter options.
+
 2019-05-07      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/M2ColorString.mod:  (quoteClose)

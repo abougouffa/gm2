@@ -1,7 +1,7 @@
 /* Definitions for switches for Modula-2.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
- *               2010
- *               Free Software Foundation, Inc.
+
+Copyright (C) 2001-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius@glam.ac.uk>.
 
 This file is part of GNU Modula-2.
 
@@ -10,15 +10,14 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3, or (at your option)
 any later version.
 
-GNU Modula-2 is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Modula-2; see the file COPYING.  If not, write to
-the Free Software Foundation, 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  */
 
 #define LINK_COMMAND_SPEC ""
 
@@ -93,6 +92,14 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("allows opaque types to be implemented as any type (a GNU Modula-2 extension)") },
   { "-Wverbose-unbounded",
       N_("inform user which parameters will be passed by reference") },
+  { "-Wunused-variable",
+      N_("compiler warns if a variable is declared and not used") },
+  { "-Wno-unused-variable",
+      N_("turns off compiler warning if a variable is declared and not used") },
+  { "-Wunused-parameter",
+      N_("compiler warns if a parameter is declared and not used") },
+  { "-Wno-unused-parameter",
+      N_("turns off compiler warning if a parameter is declared and not used") },
   { "-fxcode",
       N_("issue all errors and warnings in the Xcode format") },
   { "-fuselist",

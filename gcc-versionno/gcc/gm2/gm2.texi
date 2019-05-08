@@ -969,7 +969,7 @@ outside the end of this loop without being reset.
 
 @item -Wpedantic-param-names
 procedure parameter names are checked in the definition module
-against their implementation module counterpart. This is not
+against their implementation module counterpart.  This is not
 necessary in ISO or PIM versions of Modula-2, but it can be
 extremely useful, as long as code is intentionally
 written in this way.
@@ -980,6 +980,12 @@ the variable is different from that of the type. This is legal
 in ISO Modula-2, however it can be dangerous. Some users may prefer
 to use @code{VAL} instead in these situations and use @code{CAST}
 exclusively for changes in type on objects which have the same size.
+
+@item -Wunused-variable
+warns if a variable has been declared and it not used.
+
+@item -Wunused-parameter
+warns if a parameter has been declared and it not used.
 
 @end table
 

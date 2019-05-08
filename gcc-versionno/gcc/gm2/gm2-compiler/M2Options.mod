@@ -294,6 +294,26 @@ END SetCheckAll ;
 
 
 (*
+   SetUnusedVariableChecking - assigns the UnusedVariableChecking to value.
+*)
+
+PROCEDURE SetUnusedVariableChecking (value: BOOLEAN) ;
+BEGIN
+   UnusedVariableChecking := value
+END SetUnusedVariableChecking ;
+
+
+(*
+   SetUnusedParameterChecking - assigns the UnusedParameterChecking to value.
+*)
+
+PROCEDURE SetUnusedParameterChecking (value: BOOLEAN) ;
+BEGIN
+   UnusedParameterChecking := value
+END SetUnusedParameterChecking ;
+
+
+(*
    SetVerboseUnbounded - sets the VerboseUnbounded flag to, value.
 *)
 
@@ -985,5 +1005,7 @@ BEGIN
    DebugTraceAPI                := FALSE ;
    DebugFunctionLineNumbers     := FALSE ;
    GenerateStatementNote        := FALSE ;
-   LowerCaseKeywords            := FALSE
+   LowerCaseKeywords            := FALSE ;
+   UnusedVariableChecking       := FALSE ;
+   UnusedParameterChecking      := FALSE
 END M2Options.

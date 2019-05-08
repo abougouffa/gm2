@@ -190,6 +190,7 @@ FROM M2Options IMPORT NilChecking,
                       WholeDivChecking, WholeValueChecking,
                       IndexChecking, RangeChecking,
                       CaseElseChecking, ReturnChecking,
+                      UnusedVariableChecking, UnusedParameterChecking,
                       Iso, Pim, Pim2, Pim3, Pim4, PositiveModFloorDiv,
                       Pedantic, CompilerDebugging, GenerateDebugging,
                       GenerateLineDebug, Exceptions,
@@ -9607,33 +9608,39 @@ BEGIN
          IF i<=ParamNo
          THEN
             (* n is a parameter *)
-            IF ReadStart=0
+            IF UnusedParameterChecking
             THEN
-               IF WriteStart=0
+               IF ReadStart = 0
                THEN
-                  MetaError2('unused parameter {%1Wad} in procedure {%2Wad}', n, BlockSym)
-               ELSE
-                  IF NOT IsVarParam(BlockSym, i)
+                  IF WriteStart = 0
                   THEN
-                     MetaError2('writing to a non var parameter {%1Wad} and never reading from it in procedure {%2Wad}',
-                                n, BlockSym)
+                     MetaError2 ('unused parameter {%1Wad} in procedure {%2Wad}', n, BlockSym)
+                  ELSE
+                     IF NOT IsVarParam (BlockSym, i)
+                     THEN
+                        MetaError2 ('writing to a non var parameter {%1Wad} and never reading from it in procedure {%2Wad}',
+                                    n, BlockSym)
+                     END
                   END
                END
             END
          ELSE
             (* n is a local variable *)
-            IF ReadStart=0
+            IF UnusedVariableChecking
             THEN
-               IF WriteStart=0
+               IF ReadStart=0
                THEN
-                  MetaError2('unused variable {%1Wad} in {%2Wad}', n, BlockSym)
+                  IF WriteStart=0
+                  THEN
+                     MetaError2 ('unused variable {%1Wad} in {%2Wad}', n, BlockSym)
+                  ELSE
+                     MetaError2 ('writing to a variable {%1Wad} and never reading from it in {%2Wad}', n, BlockSym)
+                  END
                ELSE
-                  MetaError2('writing to a variable {%1Wad} and never reading from it in {%2Wad}', n, BlockSym)
-               END
-            ELSE
-               IF WriteStart=0
-               THEN
-                  MetaError2('variable {%1Wad} is being used but it is never initialized in {%2Wad}', n, BlockSym)
+                  IF WriteStart=0
+                  THEN
+                     MetaError2 ('variable {%1Wad} is being used but it is never initialized in {%2Wad}', n, BlockSym)
+                  END
                END
             END
          END
@@ -9695,12 +9702,12 @@ END AsmStatementsInBlock ;
 
 PROCEDURE CheckVariablesInBlock (BlockSym: CARDINAL) ;
 BEGIN
-   CheckVariablesAndParameterTypesInBlock(BlockSym) ;
-   IF Pedantic
+   CheckVariablesAndParameterTypesInBlock (BlockSym) ;
+   IF UnusedVariableChecking OR UnusedParameterChecking
    THEN
-      IF (NOT AsmStatementsInBlock(BlockSym))
+      IF (NOT AsmStatementsInBlock (BlockSym))
       THEN
-         CheckUninitializedVariablesAreUsed(BlockSym)
+         CheckUninitializedVariablesAreUsed (BlockSym)
       END
    END
 END CheckVariablesInBlock ;
