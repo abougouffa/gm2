@@ -272,11 +272,11 @@ inform user which parameters will be passed by reference
 
 Wunused-variable
 Modula-2
-compiler warns if a variable is declared and not used.
+; Documented in c.opt
 
 Wunused-parameter
 Modula-2
-compiler warns if a parameter is declared and not used.
+; Documented in c.opt
 
 version
 Modula-2

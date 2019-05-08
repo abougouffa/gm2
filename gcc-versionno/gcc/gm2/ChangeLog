@@ -20,7 +20,9 @@
           the list of options with a description of their behaviour.
 	* gm2/lang-options.h:  corrected GPL comment.  Added
           Wunused_variable and Wunused_parameter options.
-	* gm2/lang.opt:  added Wunused_variable and Wunused_parameter options.
+	* gm2/lang.opt:  added Wunused_variable and Wunused_parameter
+          options.
+	* gm2/lang.opt:  removed description.
 
 2019-05-07      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
