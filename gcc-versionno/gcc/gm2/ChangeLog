@@ -7,6 +7,8 @@
 	* gm2/gm2-lang.c:  introduce new case clause for -Wall.
 	* gm2/lang.opt:  enable -Wall for Modula-2.
 	* gm2/gm2.texi:  document availability of -Wall.
+	* gm2/gm2-compiler/M2Quads.mod:  corrected error message format
+	  specifier.
 
 2019-05-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

@@ -4820,7 +4820,7 @@ BEGIN
       END ;
       IF IsProcedure(Actual) AND IsProcedureNested(Actual)
       THEN
-         MetaError2 ('cannot pass a nested procedure {%E1a} seen in the {%2N} parameter as the outer scope will be unknown at runtime', Actual, i)
+         MetaError2 ('cannot pass a nested procedure {%1Ea} seen in the {%2N} parameter as the outer scope will be unknown at runtime', Actual, i)
       END ;
       (* we can check the return type of both proc types *)
       IF (ActualType#NulSym) AND IsProcType(ActualType)
