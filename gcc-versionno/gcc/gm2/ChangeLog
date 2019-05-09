@@ -9,6 +9,8 @@
 	* gm2/gm2.texi:  document availability of -Wall.
 	* gm2/gm2-compiler/M2Quads.mod:  corrected error message format
 	  specifier.
+	* gm2/gm2-compiler/M2Quads.mod:
+          (CheckUninitializedVariablesAreUsed) improved warning message.
 
 2019-05-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

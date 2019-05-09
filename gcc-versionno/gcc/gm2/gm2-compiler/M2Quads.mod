@@ -9632,14 +9632,14 @@ BEGIN
                THEN
                   IF WriteStart=0
                   THEN
-                     MetaError2 ('unused variable {%1Wad} in {%2Wad}', n, BlockSym)
+                     MetaError2 ('unused variable {%1Wad} in {%2Wd} {%2ad}', n, BlockSym)
                   ELSE
-                     MetaError2 ('writing to a variable {%1Wad} and never reading from it in {%2Wad}', n, BlockSym)
+                     MetaError2 ('writing to a variable {%1Wad} and never reading from it in {%2Wd} {%2ad}', n, BlockSym)
                   END
                ELSE
                   IF WriteStart=0
                   THEN
-                     MetaError2 ('variable {%1Wad} is being used but it is never initialized in {%2Wad}', n, BlockSym)
+                     MetaError2 ('variable {%1Wad} is being used but it is never initialized in {%2Wd} {%2ad}', n, BlockSym)
                   END
                END
             END
