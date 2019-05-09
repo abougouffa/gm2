@@ -11,6 +11,11 @@
 	  specifier.
 	* gm2/gm2-compiler/M2Quads.mod:
           (CheckUninitializedVariablesAreUsed) improved warning message.
+	* gm2/gm2-compiler/M2Quads.mod:  (CheckFunctionReturn) converted
+          WriteError into MetaError messages.  (CheckGenericNulSet)
+          converted WriteError into MetaError messages.
+          (BuildRelOpFromBoolean) converted WriteError into MetaError
+	  messages.
 
 2019-05-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

@@ -32,7 +32,8 @@ FROM M2MetaError IMPORT MetaError0, MetaError1, MetaError2, MetaError3,
                         MetaErrors1, MetaErrors2, MetaErrors3,
                         MetaErrorT1,
                         MetaErrorStringT0, MetaErrorStringT1,
-                        MetaErrorString1, MetaErrorString2 ;
+                        MetaErrorString1, MetaErrorString2,
+                        MetaErrorN1 ;
 
 FROM DynamicStrings IMPORT String, string, InitString, KillString,
                            ConCat, InitStringCharStar, Dup, Mark,
@@ -9719,7 +9720,6 @@ END CheckVariablesInBlock ;
 
 PROCEDURE CheckFunctionReturn (ProcSym: CARDINAL) ;
 VAR
-   n            : Name ;
    Op           : QuadOperator ;
    Op1, Op2, Op3,
    Scope,
@@ -9732,8 +9732,6 @@ BEGIN
       GetQuad(Start, Op, Op1, Op2, Op3) ;
       IF Start=0
       THEN
-         n := GetSymName(ProcSym) ;
-         WriteFormat1('error in function %a', n) ;
          InternalError('incorrect start quad', __FILE__, __LINE__)
       END ;
       WHILE (Start#End) AND (Op#ReturnValueOp) AND (Op#InlineOp) DO
@@ -9743,8 +9741,7 @@ BEGIN
       IF (Op#ReturnValueOp) AND (Op#InlineOp)
       THEN
          (* an InlineOp can always be used to emulate a RETURN *)
-         n := GetSymName(ProcSym) ;
-         WriteFormat1('function %a does not RETURN a value', n)
+         MetaError1 ('procedure function {%1Ea} does not RETURN a value', ProcSym)
       END
    END
 END CheckFunctionReturn ;
@@ -9761,20 +9758,14 @@ VAR
    s1, s2  : String ;
    n1, n2  : Name ;
 BEGIN
-   procType := GetSType(currentProc) ;
-   IF procType=NulSym
+   procType := GetSType (currentProc) ;
+   IF procType = NulSym
    THEN
-      n1 := GetSymName(currentProc) ;
-      WriteFormat1('attempting to RETURN a value from a procedure (%a) and not a function', n1)
-
-   ELSIF AssignmentRequiresWarning(actualType, GetSType(currentProc))
+      MetaError1 ('attempting to RETURN a value from procedure {%1Ea} which was not a declared as a procedure function', currentProc)
+   ELSIF AssignmentRequiresWarning (actualType, GetSType (currentProc))
    THEN
-      s1 := InitStringCharStar(KeyToCharStar(GetSymName(actualType))) ;
-      s2 := InitStringCharStar(KeyToCharStar(GetSymName(procType))) ;
-      ErrorString(NewWarning(GetTokenNo()),
-                  Sprintf2(Mark(InitString('attempting to RETURN a value with a (possibly on other targets) incompatible type (%s) from a function which returns (%s)')),
-                           s1, s2))
-   ELSIF (NOT IsAssignmentCompatible(actualType, procType))
+      MetaError2 ('attempting to RETURN a value {%1Wa} with an incompatible type {%1Wtsa} from a procedure function {%1a} which returns {%1tsa}', actualVal, currentProc)
+   ELSIF NOT IsAssignmentCompatible (actualType, procType)
    THEN
       n1 := GetSymName(actualType) ;
       n2 := GetSymName(procType) ;
@@ -11060,26 +11051,22 @@ END CheckForLogicalOperator ;
 *)
 
 PROCEDURE CheckGenericNulSet (e1: CARDINAL; VAR t1: CARDINAL; t2: CARDINAL) ;
-VAR
-   n1, n2: Name ;
 BEGIN
-   IF IsConstSet(e1)
+   IF IsConstSet (e1)
    THEN
-      IF NOT IsSet(t2)
+      IF NOT IsSet (t2)
       THEN
-         n1 := GetSymName(t1) ;
-         n2 := GetSymName(t2) ;
-         WriteFormat2('incompatibility between a set constant of type (%a) and an object of type (%a)',
-                      n1, n2)
+         MetaError2 ('incompatibility between a set constant {%1Ea} of type {%1tsa} and an object of type {%2sa}',
+                     e1, t2)
       END ;
-      PushValue(e1) ;
-      IF IsGenericNulSet()
+      PushValue (e1) ;
+      IF IsGenericNulSet ()
       THEN
-         PopValue(e1) ;
-         PushNulSet(t2) ;
+         PopValue (e1) ;
+         PushNulSet (t2) ;
          t1 := t2
       END ;
-      PopValue(e1)
+      PopValue (e1)
    END
 END CheckGenericNulSet ;
 
@@ -11358,7 +11345,7 @@ BEGIN
    THEN
       PushTrw(Sym, r)
    ELSE
-      WriteFormat1('not expecting this kind of unary operator (%a)', Tok)
+      MetaErrorN1 ('expecting an unary operator, seen {%Ek%a}', Tok)
    END
 END BuildUnaryOp ;
 
@@ -11531,7 +11518,7 @@ BEGIN
       GenQuad(GotoOp, NulSym, NulSym, 0) ;
       PushBool(Merge(NextQuad-2, f1), Merge(NextQuad-1, t1))
    ELSE
-      WriteFormat0('only allowed to use relation operators = # on BOOLEAN expressions as these do not imply a value for TRUE or FALSE')
+      MetaError0 ('only allowed to use the relation operators {%Ek=} {%Ek#} rather than {%Ek<} or {%Ek>} on {%EkBOOLEAN} expressions as these do not imply an ordinal value for {%kTRUE} or {%kFALSE}')
    END
 END BuildRelOpFromBoolean ;
 
