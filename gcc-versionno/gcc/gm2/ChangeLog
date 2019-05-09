@@ -1,3 +1,13 @@
+2019-05-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2Options.def:  (SetWall) new procedure.
+	* gm2/gm2-compiler/M2Options.mod:  (SetWall) implement by setting
+	  UnusedVariableChecking, UnusedParameterChecking,
+          PedanticParamNames, StudentChecking, PedanticCast to value.
+	* gm2/gm2-lang.c:  introduce new case clause for -Wall.
+	* gm2/lang.opt:  enable -Wall for Modula-2.
+	* gm2/gm2.texi:  document availability of -Wall.
+
 2019-05-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/M2Options.def:  UnusedVariableChecking

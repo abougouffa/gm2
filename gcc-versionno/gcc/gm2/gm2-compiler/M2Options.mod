@@ -955,6 +955,20 @@ BEGIN
 END SetWholeValueCheck ;
 
 
+(*
+   SetWall - set all warnings to, value.
+*)
+
+PROCEDURE SetWall (value: BOOLEAN) ;
+BEGIN
+   UnusedVariableChecking  := TRUE ;
+   UnusedParameterChecking := TRUE ;
+   PedanticCast := TRUE ;
+   PedanticParamNames := TRUE ;
+   StudentChecking := TRUE
+END SetWall ;
+
+
 BEGIN
    CppArgs                      := InitString('') ;
    CppProgram                   := InitString('') ;

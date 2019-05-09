@@ -987,6 +987,9 @@ warns if a variable has been declared and it not used.
 @item -Wunused-parameter
 warns if a parameter has been declared and it not used.
 
+@item -Wall
+turn on all Modula-2 warnings.
+
 @end table
 
 @node Environment variables, Elementary data types, Compiler options, Using

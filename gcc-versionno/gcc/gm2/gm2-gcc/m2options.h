@@ -103,6 +103,7 @@ EXTERN void M2Options_SetM2g (int value);
 EXTERN void M2Options_SetLowerCaseKeywords (int value);
 EXTERN void M2Options_SetUnusedVariableChecking (int value);
 EXTERN void M2Options_SetUnusedParameterChecking (int value);
+EXTERN void M2Options_SetWall (int value);
 
 EXTERN void M2Options_DisplayVersion (int mustExit);
 

@@ -324,6 +324,9 @@ gm2_langhook_handle_option (
     case OPT_Wunused_parameter:
       M2Options_SetUnusedParameterChecking (value);
       return 1;
+    case OPT_Wall:
+      M2Options_SetWall (value);
+      return 1;
     case OPT_fxcode:
       M2Options_SetXCode (value);
       return 1;

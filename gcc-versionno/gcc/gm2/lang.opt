@@ -270,6 +270,10 @@ Wverbose-unbounded
 Modula-2
 inform user which parameters will be passed by reference
 
+Wall
+Modula-2
+; Documented in c.opt
+
 Wunused-variable
 Modula-2
 ; Documented in c.opt

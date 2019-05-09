@@ -74,7 +74,7 @@ EXPORT QUALIFIED SetReturnCheck, SetNilCheck, SetCaseCheck,
                  DumpSystemExports, GenerateSwig, Exceptions,
                  OverrideLocation, FinaliseOptions,
                  DebugBuiltins, setdefextension, setmodextension,
-                 SetStatistics,
+                 SetStatistics, SetWall,
                  CppProg, CppArg, CppCommandLine, CppRemember,
 		 SetDebugFunctionLineNumbers, DebugFunctionLineNumbers,
 		 SetGenerateStatementNote, GenerateStatementNote ;
@@ -625,6 +625,13 @@ PROCEDURE GetWholeValueCheck () : BOOLEAN ;
 *)
 
 PROCEDURE SetWholeValueCheck (value: BOOLEAN) ;
+
+
+(*
+   SetWall - set all warnings to, value.
+*)
+
+PROCEDURE SetWall (value: BOOLEAN) ;
 
 
 (*
