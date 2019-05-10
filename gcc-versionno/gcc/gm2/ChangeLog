@@ -1,3 +1,17 @@
+2019-05-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  updated the GPL (formatting, dates
+          and address).
+	* gm2/Makefile.in:  removed.
+	* gm2/config-lang.in:  updated the GPL (formatting, dates
+        and address).  Removed reference to Makefile.in.
+	* gm2/gm2-compiler/M2Options.def:  (SetUnusedVariableChecking)
+	exported.  (SetUnusedParameterChecking) exported.
+	* gm2/gm2-libs/config-host.in:  updated version to 1.9.1.
+	* gm2/gm2.texi:  updated FDL from gcc/doc/gcc.texi.
+	* gm2/gm2spec.c:  corrected dates.
+	* gm2/version.c:  changed date to 1.9.1.
+
 2019-05-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/M2Options.def:  (SetWall) new procedure.
