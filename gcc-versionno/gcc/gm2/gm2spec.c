@@ -108,12 +108,12 @@ int lang_specific_extra_outfiles = 0;
 
 typedef enum { iso, pim, ulm, min, logitech, pimcoroutine, maxlib } libs;
 
-/* the last entry in libraryName must be the longest string in the
+/* The last entry in libraryName must be the longest string in the
 list.  This is the -flibs=name.  */
 static const char *libraryName[maxlib]
     = { "iso", "pim", "ulm", "min", "log", "cor" };
 
-/* this matches the archive name for example libiso.a, libmin.a.  */
+/* This matches the archive name for example libiso.a, libmin.a.  */
 static const char *archiveName[maxlib]
     = { "iso", "gm2", "ulm", "min", "log", "cor" };
 
@@ -173,11 +173,7 @@ static const char *B_path = NULL;
 #define TARGET_OBJECT_SUFFIX ".o"
 #endif
 
-#if 0
-static const char *gm2_cpp_options = "-fcppbegin %:exec_prefix(cc1%s) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend";
-#endif
-
-/* assert a simple assertion procedure.  */
+/* assert, a simple assertion function.  */
 
 static void
 assert (int b)
@@ -189,7 +185,7 @@ assert (int b)
     }
 }
 
-/* fe_generate_option wrap up arg and pass it to fe_save_switch.  */
+/* fe_generate_option, wrap up arg and pass it to fe_save_switch.  */
 
 static void
 fe_generate_option (size_t opt_index, const char *arg, int joined)
@@ -229,8 +225,8 @@ fe_generate_option (size_t opt_index, const char *arg, int joined)
     }
 }
 
-/* find_executable_path if argv0 references an executable filename
-then use this path.  */
+/* find_executable_path, if argv0 references an executable filename
+   then use this path.  */
 
 static const char *
 find_executable_path (const char *argv0)
@@ -251,9 +247,9 @@ find_executable_path (const char *argv0)
   return NULL;
 }
 
-/* add_B_prefix adds the -Bprefix option so that we can tell
-subcomponents of gm2 where to pick up its executables.  But we can
-only do this if the user explicitly gives the path to argv[0].  */
+/* add_B_prefix, adds the -Bprefix option so that we can tell
+   subcomponents of gm2 where to pick up its executables.  But we can
+   only do this if the user explicitly gives the path to argv[0].  */
 
 static void
 add_B_prefix (unsigned int *in_decoded_options_count ATTRIBUTE_UNUSED,
@@ -288,8 +284,8 @@ add_B_prefix (unsigned int *in_decoded_options_count ATTRIBUTE_UNUSED,
     }
 }
 
-/* add_exec_prefix adds the -ftarget-ar= option so that we can tell
-gm2lcc where to pick up the `ar' utility.  */
+/* add_exec_prefix, adds the -ftarget-ar= option so that we can tell
+   gm2lcc where to pick up the `ar' utility.  */
 
 static void
 add_exec_prefix (void)
@@ -344,8 +340,8 @@ remember_link_arg (const char *opt, const char *s)
   head_link_args = n;
 }
 
-/* add_link_from_include adds option to (**in_argv)[pos] using the
-include path.  */
+/* add_link_from_include, adds option to (**in_argv)[pos] using the
+   include path.  */
 
 static void
 add_link_from_include (struct cl_decoded_option **in_options, int include)
@@ -356,7 +352,7 @@ add_link_from_include (struct cl_decoded_option **in_options, int include)
   fe_generate_option (OPT_fobject_path_, arg, TRUE);
 }
 
-/* add_lib add, lib, to the end of the command line.  */
+/* add_lib, add lib to the end of the command line.  */
 
 static void
 add_lib (size_t opt_index, const char *lib, int joined)
@@ -436,9 +432,9 @@ insert_option (unsigned int *in_decoded_options_count,
   *in_decoded_options = new_decoded_options;
 }
 
-/* add_library adds a library to the command line at arg position.
-It returns the number of arguments added.  If libraryname is NULL or
-empty then zero is returned.  */
+/* add_library, adds a library to the command line at arg position.
+   It returns the number of arguments added.  If libraryname is NULL or
+   empty then zero is returned.  */
 
 static int
 add_library (const char *libraryname, unsigned int *in_decoded_options_count,
@@ -475,11 +471,11 @@ add_library (const char *libraryname, unsigned int *in_decoded_options_count,
   return 1;
 }
 
-/* getArchiveName, return the corresponding archive name given the library
- * name.  */
+/* get_archive_name, return the corresponding archive name given the library
+   name.  */
 
 static const char *
-getArchiveName (const char *library)
+get_archive_name (const char *library)
 {
   libs i;
 
@@ -490,7 +486,7 @@ getArchiveName (const char *library)
 }
 
 /* build_archive_path returns a string containing the a path to the
-archive defined by, libpath, s, and, dialectLib.  */
+   archive defined by, libpath, s, and, dialectLib.  */
 
 static const char *
 build_archive_path (const char *libpath, const char *library)
@@ -521,14 +517,14 @@ build_archive_path (const char *libpath, const char *library)
 }
 
 /* build_archive, returns a string containing the a path to the
-archive defined by, libpath, s, and, dialectLib.  */
+   archive defined by, libpath, s, and, dialectLib.  */
 
 static char *
 build_archive (const char *library)
 {
   if (library != NULL)
     {
-      const char *a = getArchiveName (library);
+      const char *a = get_archive_name (library);
       if (a != NULL)
         {
           char *s = (char *)xmalloc (strlen (a) + 1);
@@ -565,7 +561,7 @@ gen_link_path (const char *libpath, const char *dialect)
 }
 
 /* add_default_archives, adds the default archives to the end of the
-current command line.  */
+   current command line.  */
 
 static int
 add_default_archives (const char *libpath, const char *libraries,
@@ -610,7 +606,7 @@ add_default_archives (const char *libpath, const char *libraries,
 }
 
 /* build_include_path, builds the component of the include path
-referenced by the, which, libs.  */
+   referenced by the, which, libs.  */
 
 static const char *
 build_include_path (const char *libpath, const char *library)
@@ -633,7 +629,7 @@ build_include_path (const char *libpath, const char *library)
 }
 
 /* add_include add the correct include path given the libpath and
-library.  The new path is returned.  */
+   library.  The new path is returned.  */
 
 static const char *
 add_include (const char *libpath, const char *library)
@@ -645,7 +641,7 @@ add_include (const char *libpath, const char *library)
 }
 
 /* add_default_includes, add the appropriate default include paths
-depending upon the style of libraries chosen.  */
+   depending upon the style of libraries chosen.  */
 
 static void
 add_default_includes (const char *libpath, const char *libraries)
@@ -686,7 +682,7 @@ add_default_includes (const char *libpath, const char *libraries)
 }
 
 /* build_fobject_path, returns a string containing the a path to the
-objects defined by, libpath, s, and, dialectLib.  */
+   objects defined by, libpath, s, and, dialectLib.  */
 
 static char *
 build_fobject_path (const char *prev, const char *libpath, const char *library)
@@ -736,7 +732,7 @@ add_fobject_path (const char *prev, const char *libpath, const char *library)
 }
 
 /* add_default_fobjects, add the appropriate default include paths
-depending upon the libraries chosen.  */
+   depending upon the libraries chosen.  */
 
 static void
 add_default_fobjects (const char *prev, const char *libpath,
@@ -787,7 +783,7 @@ scan_for_link_args (unsigned int *in_decoded_options_count,
 }
 
 /* purge_include_options, remove any -I option found from
-in_decoded_options.  */
+   in_decoded_options.  */
 
 static void
 purge_include_options (unsigned int *in_decoded_options_count,
@@ -810,7 +806,7 @@ purge_include_options (unsigned int *in_decoded_options_count,
 }
 
 /* convert_include_into_link, convert the include path options into
-link path options.  */
+   link path options.  */
 
 static void
 convert_include_into_link (struct cl_decoded_option **in_decoded_options,
@@ -827,8 +823,7 @@ convert_include_into_link (struct cl_decoded_option **in_decoded_options,
     }
 }
 
-/* build_path, implements export PATH=$(prefix)/bin:$PATH where
-gm2_root is a C variable.  */
+/* build_path, implements export PATH=$(prefix)/bin:$PATH.  */
 
 static void
 build_path (char *prefix)
@@ -857,8 +852,7 @@ build_path (char *prefix)
   putenv (s);
 }
 
-/* gen_gm2_prefix, return a prefix string possibly containing the prefix path.
- */
+/* gen_gm2_prefix, return the prefix string.  */
 
 static const char *
 gen_gm2_prefix (const char *prefix)
@@ -906,11 +900,10 @@ gen_gm2_libexec (const char *libexec)
 }
 
 /* build_library_path, implements export
-LIBRARY_PATH=$(gm2_root)/lib/gcc/\ $(default_target_machine)/\
-$(default_target_version)
-
-where gm2_root, default_target_machine and default_target_version are
-C variables.  */
+   LIBRARY_PATH=$(gm2_root)/lib/gcc/\ $(default_target_machine)/\
+   $(default_target_version)
+   where gm2_root, default_target_machine and default_target_version
+   are C strings.  */
 
 static void
 build_library_path (const char *prefix)
@@ -925,8 +918,8 @@ build_library_path (const char *prefix)
 }
 
 /* build_compiler_path, implements export
-COMPILER_PATH=$(GM2_LIBEXEC)/libexec/gcc/\
-$(default_target_machine)/\ $(default_target_version).  */
+   COMPILER_PATH=$(GM2_LIBEXEC)/libexec/gcc/\
+   $(default_target_machine)/\ $(default_target_version).  */
 
 static void
 build_compiler_path (const char *path)
@@ -941,9 +934,9 @@ build_compiler_path (const char *path)
 }
 
 /* check_gm2_root, checks to see whether GM2_PREFIX or GM2_LIBEXEC
-has been defined, if it has and also COMPILER_PATH and LIBRARY_PATH
-are both unset then it sets COMPILER_PATH and LIBRARY_PATH using
-GM2_PREFIX and GM2_LIBEXEC as its prefix.  */
+   has been defined, if it has and also COMPILER_PATH and LIBRARY_PATH
+   are both unset then it sets COMPILER_PATH and LIBRARY_PATH using
+   GM2_PREFIX and GM2_LIBEXEC as its prefix.  */
 
 static void
 check_gm2_root (void)
@@ -992,7 +985,7 @@ check_gm2_root (void)
 }
 
 /* add_env_option append multiple options, one for each element in
-the path.  */
+   the path.  */
 
 static void
 add_env_option (const char *path, size_t option)
@@ -1036,8 +1029,8 @@ add_env_option (const char *path, size_t option)
 }
 
 /* lang_specific_driver is invoked if we are compiling/linking a
-Modula-2 file.  It checks for module paths and linking requirements
-which are language specific.  */
+   Modula-2 file.  It checks for module paths and linking requirements
+   which are language specific.  */
 
 void
 lang_specific_driver (struct cl_decoded_option **in_decoded_options,
@@ -1080,7 +1073,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
 
   argc = *in_decoded_options_count;
 
-  /* initially scan the options for key values.  */
+  /* Initially scan the options for key values.  */
   for (i = 1; i < argc; i++)
     {
       if ((*in_decoded_options)[i].errors & CL_ERR_MISSING_ARG)
@@ -1190,7 +1183,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
     printOption ("in the middle", in_decoded_options, i);
 #endif
 
-  /* if the libraries have not been specified by the user and the
+  /* If the libraries have not been specified by the user and the
   dialect has been specified then select the appropriate libraries.  */
 
   if (libraries == NULL)
@@ -1215,10 +1208,8 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   add_default_includes (libpath, libraries);
   add_exec_prefix ();
 
-#if 1
   if (!seen_B)
     add_B_prefix (in_decoded_options_count, in_decoded_options);
-#endif
 
 #if defined(DEBUGGING)
   for (i = 0; i < *in_decoded_options_count; i++)
@@ -1267,7 +1258,7 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
             += add_library ("stdc++", in_decoded_options_count,
                             in_decoded_options, *in_decoded_options_count);
 
-/* There's no point adding -shared-libgcc if we don't have a shared
+/* There is no point adding -shared-libgcc if we don't have a shared
 libgcc.  */
 #if !defined(ENABLE_SHARED_LIBGCC)
       shared_libgcc = 0;
@@ -1308,7 +1299,7 @@ lang_specific_pre_link (void)
 }
 
 /* get_objects returns a string containing all objects specified on
-the command line.  */
+   the command line.  */
 
 static const char *
 get_objects (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
@@ -1332,7 +1323,7 @@ get_objects (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
 }
 
 /* no_objects return an empty string, but also remove all objects
-from the command line.  */
+   from the command line.  */
 
 extern void fe_remove_infile (const char *);
 
@@ -1348,7 +1339,7 @@ no_objects (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
 }
 
 /* get_link_args returns a string containing all arguments related to
-the link stage.  */
+   the link stage.  */
 
 static const char *
 get_link_args (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
@@ -1424,7 +1415,7 @@ no_link (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
 }
 
 /* lang_register_spec_functions register the Modula-2 associated spec
- * functions.  */
+   functions.  */
 
 void
 lang_register_spec_functions (void)

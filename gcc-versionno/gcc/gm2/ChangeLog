@@ -17,6 +17,8 @@
 	* gm2/gm2-compiler/M2Quads.mod:  (BuildHighFunction)
           use MetaError rather than WriteFormat and add more information
           into the error message.
+	* gm2/gm2spec.c:  fixed many comments to comply with GNU coding
+	  standards.  Corrected some older comments.
 
 2019-05-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
