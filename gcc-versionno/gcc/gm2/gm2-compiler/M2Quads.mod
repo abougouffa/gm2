@@ -7201,7 +7201,7 @@ BEGIN
       IF (NOT IsVar(Param)) AND (NOT IsConstString(Param)) AND (NOT IsConst(Param))
       THEN
          (* we cannot test for IsConst(Param) AND (GetSType(Param)=Char)  as the type might not be assigned yet *)
-         WriteFormat0('base procedure HIGH expects a variable or string constant as its parameter')
+         MetaError1 ('base procedure {%EkHIGH} expects a variable or string constant as its parameter {%1d:rather than {%1d}} {%1asa}', Param)
       ELSIF IsUnbounded(Type)
       THEN
          BuildHighFromUnbounded
@@ -7209,8 +7209,7 @@ BEGIN
          BuildConstHighFromSym
       END
    ELSE
-      ErrorFormat0(NewError(GetTokenNo()),
-                   'base procedure function HIGH has one parameter') ;
+      MetaError0 ('base procedure {%EkHIGH} requires one parameter') ;
       PopN(2) ;
       PushTF(MakeConstLit(MakeKey('0'), Cardinal), Cardinal)
    END

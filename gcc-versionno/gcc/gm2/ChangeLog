@@ -14,6 +14,9 @@
 	* gm2/gm2-compiler/M2Quads.mod:  (BuildDifAdrFunction)
           corrected error messages.  Also use MetaError rather than
 	  WriteFormat.
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildHighFunction)
+          use MetaError rather than WriteFormat and add more information
+          into the error message.
 
 2019-05-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
