@@ -11,6 +11,9 @@
 	* gm2/gm2.texi:  updated FDL from gcc/doc/gcc.texi.
 	* gm2/gm2spec.c:  corrected dates.
 	* gm2/version.c:  changed date to 1.9.1.
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildDifAdrFunction)
+          corrected error messages.  Also use MetaError rather than
+	  WriteFormat.
 
 2019-05-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

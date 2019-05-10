@@ -7053,16 +7053,16 @@ BEGIN
             GenQuad(SubOp, ReturnVar, VarSym, DereferenceLValue(OperandSym)) ;
             PushTF(ReturnVar, Address)
          ELSE
-            ExpectVariable('the first parameter to SUBADR must be a variable of type ADDRESS or a POINTER',
-                           VarSym) ;
+            MetaError1 ('the first parameter to SUBADR {%1Ea} must be a variable of type ADDRESS or a {%EkPOINTER}, rather than a {%1Etsd}',
+                        VarSym) ;
             PushTF(MakeConstLit(MakeKey('0'), Address), Address)
          END
       ELSE
-         WriteFormat0('SYSTEM procedure SUBADR expects a variable which has a type of ADDRESS or is a POINTER as its first parameter') ;
+         MetaError0 ('{%E}SYSTEM procedure SUBADR expects a variable of type ADDRESS or POINTER as its first parameter') ;
          PushTF(MakeConstLit(MakeKey('0'), Address), Address)
       END
    ELSE
-      WriteFormat0('SYSTEM procedure SUBADR expects 2 parameters') ;
+      MetaError0 ('{%E}SYSTEM procedure SUBADR expects 2 parameters') ;
       PopN(NoOfParam+1) ;
       PushTF(MakeConstLit(MakeKey('0'), Address), Address)
    END
@@ -7127,21 +7127,21 @@ BEGIN
                PushT(2) ;          (* Two parameters *)
                BuildConvertFunction
             ELSE
-               ExpectVariable('the second parameter to ADDADR must be a variable of type ADDRESS or a POINTER',
-                              OperandSym) ;
+               MetaError1 ('the second parameter to DIFADR {%1Ea} must be a variable of type ADDRESS or a {%EkPOINTER}, rather than a {%1Etsd}',
+                           OperandSym) ;
                PushTF(MakeConstLit(MakeKey('0'), Integer), Integer)
             END
          ELSE
-            ExpectVariable('the first parameter to ADDADR must be a variable of type ADDRESS or a POINTER',
-                           VarSym) ;
+            MetaError1 ('the first parameter to DIFADR {%1Ea} must be a variable of type ADDRESS or a {%EkPOINTER}, rather than a {%1Etsd}',
+                        VarSym) ;
             PushTF(MakeConstLit(MakeKey('0'), Integer), Integer)
          END
       ELSE
-         WriteFormat0('SYSTEM procedure ADDADR expects a variable which has a type of ADDRESS or is a POINTER as its first parameter') ;
+         MetaError0 ('{%E}SYSTEM procedure DIFADR expects a variable of type ADDRESS or POINTER as its first parameter') ;
          PushTF(MakeConstLit(MakeKey('0'), Integer), Integer)
       END
    ELSE
-      WriteFormat0('SYSTEM procedure ADDADR expects 2 parameters') ;
+      MetaError0 ('{%E}SYSTEM procedure DIFADR expects 2 parameters') ;
       PopN(NoOfParam+1) ;
       PushTF(MakeConstLit(MakeKey('0'), Integer), Integer)
    END
