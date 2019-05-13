@@ -1,3 +1,10 @@
+2019-05-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  many changes and a partial push
+          to allow parallel builds.  Still not working.
+	* gm2/el/gm2-mode.el:  implement procedure/module/end block
+	  names to use function-face.
+
 2019-05-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  updated the GPL (formatting, dates

@@ -1,6 +1,5 @@
-;; Copyright (C) 1985, 1986, 1987, 2001, 2002, 2003, 2004,
-;;               2005, 2006, 2007, 2008, 2009, 2010, 2011,
-;;               2012, 2013, 2014, 2015, 2016, 2017, 2018
+;; Copyright (C) 1985-2019
+
 ;; Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -1892,8 +1891,8 @@ m2r10 imports go here
 (defvar m2-auto-keywords-pim
   '("AND" "ARRAY" "BEGIN" "BY" "CASE" "CONST" "DEFINITION" "DIV"
     "DO" "ELSE" "ELSIF" "END" "EXCEPT" "EXIT" "EXPORT" "FINALLY"
-    "FOR" "FROM" "IF" "IMPLEMENTATION" "IMPORT" "IN" "LOOP" "MODULE"
-    "MOD" "NOT" "OF" "OR" "PACKEDSET" "PACKED" "POINTER" "PROCEDURE"
+    "FOR" "FROM" "IF" "IMPLEMENTATION" "IMPORT" "IN" "LOOP"
+    "MOD" "NOT" "OF" "OR" "PACKEDSET" "PACKED" "POINTER"
     "QUALIFIED" "RECORD" "REPEAT" "RETURN" "SET" "THEN" "TO" "TYPE"
     "UNTIL" "VAR" "WHILE" "WITH")
   "Modula-2 keywords.")
@@ -1976,6 +1975,9 @@ m2r10 imports go here
   '()
   "R10 functions.")
 
+(defvar m2-auto-block-name
+  '("END" "MODULE" "PROCEDURE")
+  "Modula-2 keywords which will name a block.")
 
 ;; create the regex string for each class of keywords
 (defvar m2-auto-keywords-regexp (regexp-opt m2-auto-keywords 'words))
@@ -2204,6 +2206,44 @@ m2r10 imports go here
 	(delete-char (length token))))
     nil))
 
+(defun m2-auto-lowerise-block (all-matched left-leader token face)
+  "."
+  (interactive)
+  (progn
+    (save-excursion
+      (goto-char (match-beginning 0))
+      (forward-char (length left-leader))
+      (insert (propertize (downcase token)
+			  'font-lock-face face
+			  'rear-nonsticky t
+			  'upper t))
+      (delete-char (length token)))
+    nil))
+
+(defun m2-auto-lowerise-block-ident (all-matched left-leader token ident keyword-face function-face)
+  "."
+  (interactive)
+  (progn
+    (save-excursion
+      (let (l)
+	(message (concat "m2-auto-lowerise-block-ident <" all-matched "> ident <" ident ">"))
+	(setq l (length token))
+	(goto-char (match-beginning 0))
+	;; (message (format "value of l is %d, keyword %d and all-matched %d" l (length keyword) (length all-matched)))
+	(forward-char (length left-leader))
+	(insert (propertize (downcase token)
+			    'font-lock-face keyword-face
+			    'rear-nonsticky t
+			    'upper t))
+	(delete-char (length token))
+	(setq l (- (length all-matched) (length ident)))
+	(forward-char 1)
+	(insert (propertize ident
+			    'font-lock-face function-face
+			    'rear-nonsticky t))
+	(delete-char (length ident))))
+    nil))
+
 (defun m2-all-upper-case-region (begin end)
   "."
   (interactive)
@@ -2316,7 +2356,11 @@ m2r10 imports go here
 (defconst m2-auto-builtin-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity m2-auto-functions "\\|") "\\)\\(,\\|)\\|(\\|;\\| \\|$\\)"))
 ;; (defconst m2-auto-procedure-regexp "\\(PROCEDURE\\( \\|\t\\|\n\\)\\*\\(\\[:alpha:\\]\\[:alpnum:\\]\\*\\)\\)")
 ;; (defconst m2-auto-procedure-regexp "\\(PROCEDURE\\( \\|\t\\)*\\)")
-(defconst m2-auto-procedure-regexp "\\(PROCEDURE\\)")
+;; (defconst m2-auto-procedure-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity m2-auto-block-name "\\|") "\\)\\( \\|)\\(\\[:alpha:\\]\\[:alpnum:\\]*\\)\\|(\\|;\\| \\|$\\)")) ; work
+;; (defconst m2-auto-procedure-regexp (concat "\\(\\|,\\|;\\^| \\|\t\\)\\(" (mapconcat 'identity m2-auto-block-name "\\|") "\\)\\( \\|,\\|)\\|(\\|;\\|$\\)"))
+(defconst m2-auto-block-regexp (concat "\\(\\|,\\|;\\^| \\|\t\\)\\(" (mapconcat 'identity m2-auto-block-name "\\|") "\\)\\(,\\|(\\|(\\|;\\| \\|$\\)"))
+(defconst m2-auto-block-ident-regexp (concat "\\(\\|,\\|;\\^| \\|\t\\)\\(" (mapconcat 'identity m2-auto-block-name "\\|") "\\)\\( \\)\\([\\[:alpha:]\\]+\\)"))
+;;  (defconst m2-auto-procedure-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity m2-auto-block-name "\\|") "\\)\\( \\*\\)\\(\\[:alpha:\\]\\[:alpnum:\\]*\\)\\(\\|;\\| \\|$\\)"))
 
 (defvar m2-auto-test-keywords nil
   "dynamically generated keyword list from the dialects.")
@@ -2382,9 +2426,14 @@ m2r10 imports go here
 	  ;;
 	  ;;  got to here
 	  ;;
-	  ;;(,m2-auto-procedure-regexp "\\(.*$\\)"
-	  ;; (m2-auto-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-keyword-face) nil
-	  ;;(1 font-lock-keyword-face))
+	  (,m2-auto-block-ident-regexp "\\(.*$\\)"
+				       (m2-auto-lowerise-block-ident
+					(match-string 0) (match-string 1) (match-string 2) (match-string 4)
+					font-lock-keyword-face font-lock-function-name-face) nil
+				       (1 font-lock-keyword-face))
+	  (,m2-auto-block-regexp "\\(.*$\\)"
+				 (m2-auto-lowerise-block (match-string 0) (match-string 1) (match-string 2) font-lock-keyword-face) nil
+				 (1 font-lock-keyword-face))
 	  ;; end here
 	  (,m2-auto-keyword-regexp "\\(.*$\\)"
 				  (m2-auto-lowerise (match-string 0) (match-string 1) (match-string 2) font-lock-keyword-face) nil

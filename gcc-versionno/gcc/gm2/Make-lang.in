@@ -103,8 +103,10 @@ TEXISRC = $(objdir)/gm2/images/gnu.eps \
 
 # Define the names for selecting GNU Modula-2 in LANGUAGES.
 gm2 m2 modula-2 modula2: xgm2$(exeext) xgcc$(exeext) cc1gm2$(exeext) \
-                 $(GCC_TOOLS_FOR_GM2) $(GM2_LINK_TOOLS) \
+                 $(GCC_TOOLS_FOR_GM2) \
                  $(GM2_TARGET_INDEPENDENT_BIN_TOOLS)
+
+GM2_PROG_DEP=xgm2$(exeext) xgcc$(exeext) cc1gm2$(exeext)
 
 TEXI2HTML=python $(srcdir)/gm2/www/tools/texi2tr/src/texi2tr.py
 
@@ -113,9 +115,11 @@ LIBSTDCXX=../$(TARGET_SUBDIR)/libstdc++-v3/src/.libs/libstdc++.a
 
 SRC_PREFIX=G
 
+# Tell GNU make to ignore these if they exist.
 .PHONY: gm2 m2 modula-2 modula2 GM2 M2 Modula-2 Modula2 MODULA-2 MODULA2
 
-gm2spec.o: $(srcdir)/gm2/gm2spec.c $(SYSTEM_H) $(GCC_H) $(CONFIG_H)
+gm2/gm2spec.o: $(srcdir)/gm2/gm2spec.c $(SYSTEM_H) $(GCC_H) $(CONFIG_H) \
+               gm2/gm2config.h $(TARGET_H)
 	(SHLIB_LINK='$(SHLIB_LINK)' \
 	SHLIB_MULTILIB='$(SHLIB_MULTILIB)'; \
 	$(COMPILER) $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) \
@@ -134,13 +138,17 @@ gm2version.o: gm2/gm2version.c
 		-DLIBSUBDIR=\"$(libsubdir)\" \
 		$(INCLUDES) gm2/gm2version.c $(OUTPUT_OPTION))
 
+# Create the compiler driver for M2.
+CFLAGS-gm2/gm2/gm2spec.o += $(DRIVER_DEFINES)
+
+GM2_OBJS = $(GCC_OBJS) gm2/gm2version.o version.o \
+    prefix.o intl.o gm2/gm2spec.o
+
 # Create the compiler driver for xgm2.
-xgm2$(exeext): $(GM2_DIRS) gm2/gm2config.h \
-                 gcc.o gm2spec.o version.o gm2version.o \
-	   prefix.o intl.o $(LIBDEPS) $(EXTRA_GCC_OBJS) $(GCC_OBJS)
-	+$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ $(GCC_OBJS) \
-          gm2spec.o gm2version.o \
-          $(EXTRA_GCC_OBJS) libcommon-target.a \
+xgm2$(exeext): $(GM2_OBJS) $(EXTRA_GCC_OBJS) libcommon-target.a $(LIBDEPS) \
+    $(GM2_DIRS) gm2/gm2config.h
+	+$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
+	  $(GM2_OBJS) $(EXTRA_GCC_OBJS) libcommon-target.a \
 	  $(EXTRA_GCC_LIBS) $(LIBS)
 
 # Create a version of the xgm2 driver which calls the cross-compiler.
@@ -193,6 +201,7 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot \
 
 gm2.all.build: xgm2$(exeext) stage1/gm2/cc1gm2$(exeext) \
 	$(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext) \
+	$(GM2_TARGET_INDEPENDENT_BIN_TOOLS) \
 	plugin/m2rte$(exeext).so
 
 gm2.all.cross: xgm2-cross$(exeext) stage1/gm2/cc1gm2$(exeext) \
@@ -248,6 +257,9 @@ gm2/Builtins.texi: gm2/gm2-libs/Builtins.def
 
 gm2/version.texi: force
 	cd gm2 ; bash ../$(srcdir)/gm2/tools-src/makeversion -t ../$(srcdir)
+
+$(objdir)/gm2/gm2-tools:
+	mkdir $@
 
 $(objdir)/gm2/gm2-compiler-boot:
 	mkdir $@
@@ -349,7 +361,8 @@ $(GM2_LIB_DIR_LOG):
 $(GM2_LIB_DIR_PCO):
 	$(mkinstalldirs) $(GM2_LIB_DIR_PCO)
 
-gm2.install-common: installdirs
+gm2.install-common: installdirs $(GM2_LINK_TOOLS_BOOT) \
+        $(GM2_TARGET_INDEPENDENT_BIN_TOOLS)
 	if [ -f xgm2$(exeext) ]; then \
           rm -f $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
           $(INSTALL_PROGRAM) xgm2$(exeext) $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
@@ -527,6 +540,8 @@ MC_ARGS= --olang=c++ \
  -I$(srcdir)/gm2/gm2-gcc \
  $(MC_COPYRIGHT)
 
+MCDEPS=gm2/boot-bin/mc$(exeext)
+
 MC=gm2/boot-bin/mc$(exeext) $(MC_ARGS)
 
 MC_LIBS=gm2/mc-boot-ch/Glibc.o gm2/mc-boot-ch/Gmcrts.o
@@ -569,7 +584,7 @@ SO=-O0 -g -fPIC
 # directly to the Modula-2 source.
 
                   # the C implementation module bridging the Modula-2 -> GCC
-GM2_OBJS          = gm2/gm2-lang.o \
+GM2_C_OBJS          = gm2/gm2-lang.o \
                     gm2/stor-layout.o \
                     gm2/m2pp.o \
                     gm2/gm2-gcc/m2assert.o \
@@ -596,122 +611,43 @@ GM2_LIBS_BOOT     = gm2/gm2-compiler-boot/gm2.a \
 GM2_LIBS_PARANOID = gm2/gm2-compiler-paranoid/gm2.a \
                     gm2/gm2-libs-paranoid/libgm2.a                       # build it again using GM2_LIBS
 
-# Remove patched files from language-independent object file list.
-
 gm2.paranoid: stage3/gm2/cc1gm2$(exeext) gm2.verifyparanoid
 
-# start here 1->2
-# we need to ensure that the C compiler and headers are configured correctly
-#
-cc1gm2$(exeext): force
-	mkdir -p $(GM2_DIRS)
-	if [ -f stage3_build ] ; then \
-            true ; \
-	else \
-            if [ -f stage2_build ] ; then \
-                $(MAKE) stage3/gm2/$@ ; \
-                cp -f stage3/gm2/$@ $@ ; \
-            else \
-                if [ -f stage1_build ] ; then \
-                    $(MAKE) stage2/gm2/$@ ; \
-                    cp -f stage2/gm2/$@ $@ ; \
-                else \
-                    $(MAKE) stage1/gm2/$@ ; \
-                    cp -f stage1/gm2/$@ $@ ; \
-                fi \
-            fi \
-        fi
+cc1gm2$(exeext): stage1/gm2/cc1gm2$(exeext)
+	cp -p $< $@
 
-gm2lcc$(exeext): force
-	if [ -f stage3_build ] ; then \
-            true ; \
-        else \
-            if [ -f stage2_build ] ; then \
-                true ; \
-            else \
-                if [ -f stage1_build ] ; then \
-                    $(MAKE) stage2/gm2/$@ ; \
-                    cp -f stage2/gm2/$@ $@ ; \
-                else \
-                    $(MAKE) stage1/gm2/$@ ; \
-                    cp -f stage1/gm2/$@ $@ ; \
-                fi \
-             fi \
-        fi
+gm2lcc$(exeext): stage1/gm2/gm2lcc$(exeext)
+	cp -p $< $@
 
-gm2l$(exeext): force
-	if [ -f stage3_build ] ; then \
-            true ; \
-	else \
-            if [ -f stage2_build ] ; then \
-                true ; \
-            else \
-                if [ -f stage1_build ] ; then \
-                    $(MAKE) stage2/gm2/$@ ; \
-                    cp -f stage2/gm2/$@ $@ ; \
-                else \
-                    $(MAKE) stage1/gm2/$@ ; \
-                    cp -f stage1/gm2/$@ $@ ; \
-                fi \
-            fi \
-        fi
+gm2l$(exeext): stage1/gm2/gm2l$(exeext)
+	cp -p $< $@
 
-gm2lgen$(exeext): force
-	if [ -f stage3_build ] ; then \
-            true ; \
-	else \
-            if [ -f stage2_build ] ; then \
-                true ; \
-            else \
-                if [ -f stage1_build ] ; then \
-                    $(MAKE) stage2/gm2/$@ ; \
-                    cp -f stage2/gm2/$@ $@ ; \
-                else \
-                    $(MAKE) stage1/gm2/$@ ; \
-                    cp -f stage1/gm2/$@ $@ ; \
-                fi \
-            fi \
-        fi
+gm2lgen$(exeext): stage1/gm2/gm2lgen$(exeext)
+	cp -p $< $@
 
-gm2lorder$(exeext): force
-	if [ -f stage3_build ] ; then \
-            true ; \
-        else \
-            if [ -f stage2_build ] ; then \
-               true ; \
-            else \
-               if [ -f stage1_build ] ; then \
-                   $(MAKE) stage2/gm2/$@ ; \
-                   cp -f stage2/gm2/$@ $@ ; \
-               else \
-                   $(MAKE) stage1/gm2/$@ ; \
-                   cp -f stage1/gm2/$@ $@ ; \
-               fi \
-            fi \
-        fi
-
-# end here
+gm2lorder$(exeext): stage1/gm2/gm2lorder$(exeext)
+	cp -p $< $@
 
 stage3/gm2/cc1gm2$(exeext): stage2/gm2/cc1gm2$(exeext) gm2/gm2-compiler-paranoid/m2flex.o \
-                            $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID)
-	$(LINKER) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) gm2/gm2-compiler-paranoid/m2flex.o \
+                            $(P) $(GM2_C_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID)
+	$(LINKER) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_C_OBJS) gm2/gm2-compiler-paranoid/m2flex.o \
                             attribs.o \
                               $(GM2_LIBS_PARANOID) \
                               $(BACKEND) $(LIBS) \
                               $(BACKENDLIBS) $(LIBSTDCXX) -lm
 
 stage2/gm2/cc1gm2$(exeext): stage1/gm2/cc1gm2$(exeext) gm2/gm2-compiler/m2flex.o $(P) \
-                            $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS)
-	$(LINKER) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) gm2/gm2-compiler/m2flex.o \
+                            $(GM2_C_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS)
+	$(LINKER) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_C_OBJS) gm2/gm2-compiler/m2flex.o \
                             attribs.o \
                               $(GM2_LIBS) \
                               $(BACKEND) $(LIBS) \
                               $(BACKENDLIBS) $(LIBSTDCXX) -lm
 
 stage1/gm2/cc1gm2$(exeext): $(GM2_DIRS) xgm2$(exeext) gm2/gm2-compiler-boot/m2flex.o \
-                            $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) \
+                            $(P) $(GM2_C_OBJS) $(BACKEND) $(LIBDEPS) \
                             $(GM2_LIBS_BOOT) $(MC_LIBS) plugin/m2rte$(exeext).so
-	$(LINKER) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) gm2/gm2-compiler-boot/m2flex.o \
+	$(LINKER) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_C_OBJS) gm2/gm2-compiler-boot/m2flex.o \
                             attribs.o \
                              $(GM2_LIBS_BOOT) $(MC_LIBS) \
                              $(BACKEND) $(LIBS) $(BACKENDLIBS)
@@ -739,7 +675,7 @@ gm2/m2pp.o : $(srcdir)/gm2/m2pp.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags
 c-family/m2pp.o : $(srcdir)/gm2/m2pp.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h
 	$(COMPILER) -c -g $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
 
-gm2/gm2-gcc/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-gcc/%.def
+gm2/gm2-gcc/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-gcc/%.def $(MCDEPS)
 	$(MC) -o=$@ $(srcdir)/gm2/gm2-gcc/$*.def
 
 #
@@ -1057,15 +993,15 @@ MCINCLUDES= -I$(srcdir)/gm2/mc-boot-ch
 
 GCC_COLOR=gm2/gm2-gcc/m2color.o diagnostic-color.o
 
-gm2/gm2-libs-boot/%.o: $(srcdir)/gm2/gm2-libs-boot/%.mod
+gm2/gm2-libs-boot/%.o: $(srcdir)/gm2/gm2-libs-boot/%.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-libs-boot/$*.c $(srcdir)/gm2/gm2-libs-boot/$*.mod
 	$(COMPILER) -c $(CPP_GM2) $(CFLAGS) $(MCINCLUDES) gm2/gm2-libs-boot/$*.c -o $@
 
-gm2/gm2-libs-boot/%.o: $(srcdir)/gm2/gm2-libs/%.mod
+gm2/gm2-libs-boot/%.o: $(srcdir)/gm2/gm2-libs/%.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-libs-boot/$*.c $(srcdir)/gm2/gm2-libs/$*.mod
 	$(COMPILER) -c $(CPP_GM2) $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(MCINCLUDES) $(INCLUDES) gm2/gm2-libs-boot/$*.c -o $@
 
-gm2/gm2-libs-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def
+gm2/gm2-libs-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def $(MCDEPS)
 	$(MC) -o=$@ $(srcdir)/gm2/gm2-libs/$*.def
 
 gm2/gm2-libs-boot/pthdummy.o: $(srcdir)/gm2/gm2-libs-ch/pthdummy.c
@@ -1096,97 +1032,98 @@ gm2/gm2-libs-boot/SysExceptions.o: $(srcdir)/gm2/gm2-libs-ch/SysExceptions.c \
                                   gm2/gm2-libs-boot/$(SRC_PREFIX)SysExceptions.h
 	$(CC) -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
-gm2/gm2-libs-boot/SysStorage.o: $(srcdir)/gm2/gm2-libs/SysStorage.mod
+gm2/gm2-libs-boot/SysStorage.o: $(srcdir)/gm2/gm2-libs/SysStorage.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-libs-boot/SysStorage.c $(srcdir)/gm2/gm2-libs/SysStorage.mod
 	$(COMPILER) -DIN_GCC -c -fpermissive $(CFLAGS) \
           -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(MCINCLUDES) $(INCLUDES) \
           gm2/gm2-libs-boot/SysStorage.c -o gm2/gm2-libs-boot/SysStorage.o
 
-gm2/gm2-compiler-boot/M2GCCDeclare.o: $(srcdir)/gm2/gm2-compiler/M2GCCDeclare.mod
+gm2/gm2-compiler-boot/M2GCCDeclare.o: $(srcdir)/gm2/gm2-compiler/M2GCCDeclare.mod $(MCDEPS)
 	$(MC) --extended-opaque -o=gm2/gm2-compiler-boot/M2GCCDeclare.c $<
 	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
             -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot \
             -I$(srcdir)/gm2/gm2-libiberty $(MCINCLUDES) $(INCLUDES) gm2/gm2-compiler-boot/M2GCCDeclare.c -o $@
 
-gm2/gm2-compiler-boot/%.o: $(srcdir)/gm2/gm2-compiler/%.mod $(BUILD-BOOT-H)
+gm2/gm2-compiler-boot/%.o: $(srcdir)/gm2/gm2-compiler/%.mod $(BUILD-BOOT-H) $(MCDEPS)
 	$(MC) -o=gm2/gm2-compiler-boot/$*.c $(srcdir)/gm2/gm2-compiler/$*.mod
 	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
             -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libiberty \
              $(MCINCLUDES) $(INCLUDES) gm2/gm2-compiler-boot/$*.c -o $@
 
-gm2/gm2-compiler-boot/P0SyntaxCheck.o: $(objdir)/gm2/gm2-compiler-boot/P0SyntaxCheck.mod
+gm2/gm2-compiler-boot/P0SyntaxCheck.o: $(objdir)/gm2/gm2-compiler-boot/P0SyntaxCheck.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-compiler-boot/P0SyntaxCheck.c gm2/gm2-compiler-boot/P0SyntaxCheck.mod
 	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
             -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot \
             -I$(srcdir)/gm2/gm2-libiberty $(MCINCLUDES) $(INCLUDES) gm2/gm2-compiler-boot/P0SyntaxCheck.c -o $@
 
-gm2/gm2-compiler-boot/P1Build.o: $(objdir)/gm2/gm2-compiler-boot/P1Build.mod
+gm2/gm2-compiler-boot/P1Build.o: $(objdir)/gm2/gm2-compiler-boot/P1Build.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-compiler-boot/P1Build.c gm2/gm2-compiler-boot/P1Build.mod
 	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
 	    -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot \
             -I$(srcdir)/gm2/gm2-libiberty $(MCINCLUDES) $(INCLUDES) gm2/gm2-compiler-boot/P1Build.c -o $@
 
-gm2/gm2-compiler-boot/P2Build.o: $(objdir)/gm2/gm2-compiler-boot/P2Build.mod
+gm2/gm2-compiler-boot/P2Build.o: $(objdir)/gm2/gm2-compiler-boot/P2Build.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-compiler-boot/P2Build.c gm2/gm2-compiler-boot/P2Build.mod
 	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
 	    -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot \
             -I$(srcdir)/gm2/gm2-libiberty $(MCINCLUDES) $(INCLUDES) gm2/gm2-compiler-boot/P2Build.c -o $@
 
-gm2/gm2-compiler-boot/PCBuild.o: $(objdir)/gm2/gm2-compiler-boot/PCBuild.mod
+gm2/gm2-compiler-boot/PCBuild.o: $(objdir)/gm2/gm2-compiler-boot/PCBuild.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-compiler-boot/PCBuild.c gm2/gm2-compiler-boot/PCBuild.mod
 	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
 	    -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot \
             -I$(srcdir)/gm2/gm2-libiberty $(MCINCLUDES) $(INCLUDES) gm2/gm2-compiler-boot/PCBuild.c -o $@
 
-gm2/gm2-compiler-boot/P3Build.o: $(objdir)/gm2/gm2-compiler-boot/P3Build.mod
+gm2/gm2-compiler-boot/P3Build.o: $(objdir)/gm2/gm2-compiler-boot/P3Build.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-compiler-boot/P3Build.c gm2/gm2-compiler-boot/P3Build.mod
 	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
 	    -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot \
             -I$(srcdir)/gm2/gm2-libiberty $(MCINCLUDES) $(INCLUDES) gm2/gm2-compiler-boot/P3Build.c -o $@
 
-gm2/gm2-compiler-boot/PHBuild.o: $(objdir)/gm2/gm2-compiler-boot/PHBuild.mod
+gm2/gm2-compiler-boot/PHBuild.o: $(objdir)/gm2/gm2-compiler-boot/PHBuild.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-compiler-boot/PHBuild.c gm2/gm2-compiler-boot/PHBuild.mod
 	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
 	    -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot \
             -I$(srcdir)/gm2/gm2-libiberty $(MCINCLUDES) $(INCLUDES) gm2/gm2-compiler-boot/PHBuild.c -o $@
 
-gm2/gm2-compiler-boot/gm2l.o: $(objdir)/gm2/gm2-compiler-boot/gm2l.mod
+gm2/gm2-compiler-boot/gm2l.o: $(objdir)/gm2/gm2-compiler-boot/gm2l.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-compiler-boot/gm2l.c gm2/gm2-compiler-boot/gm2l.mod
 	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
             -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot \
             -I$(srcdir)/gm2/gm2-libiberty $(MCINCLUDES) $(INCLUDES) gm2/gm2-compiler-boot/gm2l.c -o $@
 
-gm2/gm2-compiler-boot/gm2m.o: $(objdir)/gm2/gm2-compiler-boot/gm2m.mod
+gm2/gm2-compiler-boot/gm2m.o: $(objdir)/gm2/gm2-compiler-boot/gm2m.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-compiler-boot/gm2m.c gm2/gm2-compiler-boot/gm2m.mod
 	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
 	    -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot \
             -I$(srcdir)/gm2/gm2-libiberty $(MCINCLUDES) $(INCLUDES) gm2/gm2-compiler-boot/gm2m.c -o $@
 
-gm2/gm2-compiler-boot/h2def.o: $(objdir)/gm2/gm2-compiler-boot/h2def.mod gm2/gm2-compiler-boot/$(SRC_PREFIX)cflex.h
+gm2/gm2-compiler-boot/h2def.o: $(objdir)/gm2/gm2-compiler-boot/h2def.mod \
+                               gm2/gm2-compiler-boot/$(SRC_PREFIX)cflex.h $(MCDEPS)
 	$(MC) -o=gm2/gm2-compiler-boot/h2def.c gm2/gm2-compiler-boot/h2def.mod
 	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
 	    -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot \
             -I$(srcdir)/gm2/gm2-libiberty $(MCINCLUDES) $(INCLUDES) gm2/gm2-compiler-boot/h2def.c -o $@
 
-gm2/gm2-compiler-boot/gm2lcc.o: $(srcdir)/gm2/gm2-compiler/gm2lcc.mod
+gm2/gm2-compiler-boot/gm2lcc.o: $(srcdir)/gm2/gm2-compiler/gm2lcc.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-compiler-boot/gm2lcc.c $(srcdir)/gm2/gm2-compiler/gm2lcc.mod
 	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
 	    -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot \
             -I$(srcdir)/gm2/gm2-libiberty $(MCINCLUDES) $(INCLUDES) gm2/gm2-compiler-boot/gm2lcc.c -o $@
 
-gm2/gm2-compiler-boot/gm2lgen.o: $(srcdir)/gm2/gm2-compiler/gm2lgen.mod
+gm2/gm2-compiler-boot/gm2lgen.o: $(srcdir)/gm2/gm2-compiler/gm2lgen.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-compiler-boot/gm2lgen.c $(srcdir)/gm2/gm2-compiler/gm2lgen.mod
 	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
 	    -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot \
             -I$(srcdir)/gm2/gm2-libiberty $(MCINCLUDES) $(INCLUDES) gm2/gm2-compiler-boot/gm2lgen.c -o $@
 
-gm2/gm2-compiler-boot/gm2lorder.o: $(srcdir)/gm2/gm2-compiler/gm2lorder.mod
+gm2/gm2-compiler-boot/gm2lorder.o: $(srcdir)/gm2/gm2-compiler/gm2lorder.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-compiler-boot/gm2lorder.c $(srcdir)/gm2/gm2-compiler/gm2lorder.mod
 	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
 	    -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot \
             -I$(srcdir)/gm2/gm2-libiberty $(MCINCLUDES) $(INCLUDES) gm2/gm2-compiler-boot/gm2lorder.c -o $@
 
-gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-compiler/%.def
+gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-compiler/%.def $(MCDEPS)
 	$(MC) -o=$@ $(srcdir)/gm2/gm2-compiler/$*.def
 
 gm2/gm2-tools/m2flex.o: gm2/gm2-compiler/m2flex.c $(BUILD-BOOT-H) $(TIMEVAR_H)
@@ -1211,10 +1148,10 @@ gm2/gm2-compiler/m2flex.c: $(srcdir)/gm2/m2.flex $(TIMEVAR_H)
 gm2/gm2-compiler/cflex.c: $(srcdir)/gm2/c.flex
 	flex -t $< | sed -e 's/ malloc/ xmalloc/' | sed -e 's/ realloc/ xrealloc/' > $@
 
-gm2/gm2-libiberty/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libiberty/%.def
+gm2/gm2-libiberty/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libiberty/%.def $(MCDEPS)
 	$(MC) -o=$@ $(srcdir)/gm2/gm2-libiberty/$*.def
 
-gm2/gm2-compiler-boot/M2Version.o: gm2/gm2-compiler-boot/M2Version.mod
+gm2/gm2-compiler-boot/M2Version.o: gm2/gm2-compiler-boot/M2Version.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-compiler-boot/M2Version.c $<
 	$(COMPILER) -c $(ALL_CPPFLAGS) $(GM2GCC) -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libiberty $(INCLUDES) gm2/gm2-compiler-boot/M2Version.c -o $@
 
@@ -1337,28 +1274,28 @@ gm2/gm2config.h:
             $(SHELL) -c '../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext)' ; \
         fi
 
-$(objdir)/gm2/gm2-libs-min/SYSTEM.def:
+$(objdir)/gm2/gm2-libs-min/SYSTEM.def: $(GM2_PROG_DEP)
 	bash $(srcdir)/gm2/tools-src/makeSystem -fpim \
              $(srcdir)/gm2/gm2-libs-min/SYSTEM.def \
              $(srcdir)/gm2/gm2-libs-min/SYSTEM.mod \
              -I$(srcdir)/gm2/gm2-libs-min:$(srcdir)/gm2/gm2-libs \
              "$(GM2_FOR_TARGET)" $@
 
-$(objdir)/gm2/gm2-libs/SYSTEM.def:
+$(objdir)/gm2/gm2-libs/SYSTEM.def: $(GM2_PROG_DEP)
 	bash $(srcdir)/gm2/tools-src/makeSystem -fpim \
              $(srcdir)/gm2/gm2-libs/SYSTEM.def \
              $(srcdir)/gm2/gm2-libs/SYSTEM.mod \
              -I$(srcdir)/gm2/gm2-libs \
              "$(GM2_FOR_TARGET)" $@
 
-$(objdir)/gm2/gm2-libs-iso/SYSTEM.def:
+$(objdir)/gm2/gm2-libs-iso/SYSTEM.def: $(GM2_PROG_DEP)
 	bash $(srcdir)/gm2/tools-src/makeSystem -fiso \
              $(srcdir)/gm2/gm2-libs-iso/SYSTEM.def \
              $(srcdir)/gm2/gm2-libs-iso/SYSTEM.mod \
              -I$(srcdir)/gm2/gm2-libs-iso:$(srcdir)/gm2/gm2-libs \
              "$(GM2_FOR_TARGET)" $@
 
-$(objdir)/gm2/gm2-libs-coroutines/SYSTEM.def:
+$(objdir)/gm2/gm2-libs-coroutines/SYSTEM.def: $(GM2_PROG_DEP)
 	bash $(srcdir)/gm2/tools-src/makeSystem -fpim \
              $(srcdir)/gm2/gm2-libs-coroutines/SYSTEM.def \
              $(srcdir)/gm2/gm2-libs-coroutines/SYSTEM.mod \
@@ -1512,19 +1449,19 @@ gm2/gm2-compiler-boot/gm2.a: gm2/boot-bin/mc$(exeext)
 gm2/boot-bin/mklink$(exeext): $(srcdir)/gm2/tools-src/mklink.c
 	gcc -g -o $@ $<
 
-gm2/gm2-auto/pg.o: gm2/gm2-auto/pg.mod
+gm2/gm2-auto/pg.o: gm2/gm2-auto/pg.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-auto/pg.c gm2/gm2-auto/pg.mod
 	$(COMPILER) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -I$(srcdir)/gm2/mc-boot-ch $(INCLUDES) gm2/gm2-auto/pg.c -o $@
 
-gm2/gm2-auto/pge.o: gm2/gm2-auto/pge.mod
+gm2/gm2-auto/pge.o: gm2/gm2-auto/pge.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-auto/pge.c gm2/gm2-auto/pge.mod
 	$(COMPILER) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -I$(srcdir)/gm2/mc-boot-ch $(INCLUDES) gm2/gm2-auto/pge.c -o $@
 
-gm2/gm2-auto/%.o: gm2/gm2-auto/%.mod
+gm2/gm2-auto/%.o: gm2/gm2-auto/%.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-auto/$*.c gm2/gm2-auto/$*.mod
 	$(COMPILER) -c $(CFLAGS) -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -I$(srcdir)/gm2/mc-boot-ch $(INCLUDES) gm2/gm2-auto/$*.c -o $@
 
-gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-compiler-boot/%.def
+gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-compiler-boot/%.def $(MCDEPS)
 	$(MC) -o=$@ $(srcdir)/gm2/gm2-compiler-boot/$*.def
 
 
@@ -1762,6 +1699,9 @@ BUILD-MC-BOOT-O =  $(MC-LIB-BOOT-C:%.c=gm2/mc-boot/$(SRC_PREFIX)%.o) \
 
 BUILD-MC-INTERFACE-O = $(MC-INTERFACE-C:%.c=gm2/mc-boot-ch/$(SRC_PREFIX)%.o)
 
+
+$(objdir)/plugin: force
+	mkdir -p $@
 
 $(objdir)/gm2/mc-boot: force
 	mkdir -p $@
@@ -2023,7 +1963,7 @@ stage1/gm2/gm2m$(exeext): \
               gm2/gm2-tools/m2flex.o \
               gm2/gm2-compiler-boot/gm2m.o $(GCC_COLOR) $(GM2_LIBS_BOOT) $(MC_LIBS) $(LIBS) -lm
 
-stage2/gm2/gm2l$(exeext): $(GM2_LIBS) $(GM2_OBJS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2l.o
+stage2/gm2/gm2l$(exeext): $(GM2_LIBS) $(GM2_C_OBJS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2l.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2linit > gm2l.lst
 	./xgm2 -fuselist -fmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
                -I../$(target_subdir)/libgm2/libpim/.libs/ \
@@ -2143,18 +2083,18 @@ BUILD-PPG-LIBS-H = $(PPG-LIB-DEFS:%.def=gm2/gm2-ppg-boot/$(SRC_PREFIX)%.h)
 
 BUILD-PPG-H = gm2/boot-bin/mc$(exeext) $(BUILD-PPG-LIBS-H)
 
-gm2/gm2-ppg-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def
+gm2/gm2-ppg-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def $(MCDEPS)
 	$(MCC) -o=$@ $(srcdir)/gm2/gm2-libs/$*.def
 
 gm2/gm2-ppg-boot/$(SRC_PREFIX)%.o: gm2/mc-boot-ch/$(SRC_PREFIX)%.c
 	$(CC) -I$(srcdir)/gm2/mc-boot-ch -g -c $< -o $@
 
-gm2/gm2-ppg-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-libs/%.mod
+gm2/gm2-ppg-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-libs/%.mod $(MCDEPS)
 	$(MCC) -o=gm2/gm2-ppg-boot/$(SRC_PREFIX)$*.c $(srcdir)/gm2/gm2-libs/$*.mod
 	$(CC) -Igm2/gm2-ppg-boot -I$(srcdir)/gm2/mc-boot \
               -I$(srcdir)/gm2/mc-boot-ch -g -c gm2/gm2-ppg-boot/$(SRC_PREFIX)$*.c -o $@
 
-gm2/gm2-ppg-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-compiler/%.mod
+gm2/gm2-ppg-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-compiler/%.mod $(MCDEPS)
 	$(MCC) -o=gm2/gm2-ppg-boot/$(SRC_PREFIX)$*.c $(srcdir)/gm2/gm2-compiler/$*.mod
 	$(CC) -Igm2/mc-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot \
               -I$(srcdir)/gm2/mc-boot-ch -g -c gm2/gm2-ppg-boot/$(SRC_PREFIX)$*.c -o $@
@@ -2182,23 +2122,23 @@ BUILD-PG-O = $(PPG-INTERFACE-C:%.c=gm2/gm2-pg-boot/$(SRC_PREFIX)%.o) \
              $(PPG-LIB-MODS:%.mod=gm2/gm2-pg-boot/$(SRC_PREFIX)%.o) \
              $(PG-SRC:%.mod=gm2/gm2-pg-boot/$(SRC_PREFIX)%.o)
 
-gm2/gm2-pg-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def
+gm2/gm2-pg-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def $(MCDEPS)
 	$(MCC) -o=$@ $(srcdir)/gm2/gm2-libs/$*.def
 
 gm2/gm2-pg-boot/$(SRC_PREFIX)%.o: gm2/mc-boot-ch/$(SRC_PREFIX)%.c
 	$(CC) -I$(srcdir)/gm2/mc-boot-ch -g -c $< -o $@
 
-gm2/gm2-pg-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-libs/%.mod
+gm2/gm2-pg-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-libs/%.mod $(MCDEPS)
 	$(MCC) -o=gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c $(srcdir)/gm2/gm2-libs/$*.mod
 	$(CC) -Igm2/gm2-pg-boot	-I$(srcdir)/gm2/mc-boot -I$(srcdir)/gm2/mc-boot-ch \
               -g -c gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c -o $@
 
-gm2/gm2-pg-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-compiler/%.mod
+gm2/gm2-pg-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-compiler/%.mod $(MCDEPS)
 	$(MCC) -o=gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c $(srcdir)/gm2/gm2-compiler/$*.mod
 	$(CC) -Igm2/mc-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot \
               -I$(srcdir)/gm2/mc-boot-ch -g -c gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c -o $@
 
-gm2/gm2-pg-boot/$(SRC_PREFIX)pg.o:  gm2/gm2-auto/pg.mod
+gm2/gm2-pg-boot/$(SRC_PREFIX)pg.o:  gm2/gm2-auto/pg.mod $(MCDEPS)
 	$(MCC) -o=gm2/gm2-pg-boot/$(SRC_PREFIX)pg.c gm2/gm2-auto/pg.mod
 	$(CC) -Igm2/mc-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot \
               -I$(srcdir)/gm2/mc-boot-ch -g -c gm2/gm2-pg-boot/$(SRC_PREFIX)pg.c -o $@
@@ -2245,23 +2185,23 @@ gm2/gm2-auto/pge.mod: gm2/pg$(exeext)
 	$(srcdir)/gm2/tools-src/buildpg $(srcdir)/gm2/gm2-compiler/ppg.mod pge > gm2/gm2-auto/pge.bnf
 	./gm2/pg$(exeext) -l gm2/gm2-auto/pge.bnf > gm2/gm2-auto/pge.mod
 
-gm2/gm2-pge-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def
+gm2/gm2-pge-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def $(MCDEPS)
 	$(MCC) -o=$@ $(srcdir)/gm2/gm2-libs/$*.def
 
 gm2/gm2-pge-boot/$(SRC_PREFIX)%.o: gm2/mc-boot-ch/$(SRC_PREFIX)%.c
 	$(CC) -I$(srcdir)/gm2/mc-boot-ch -g -c $< -o $@
 
-gm2/gm2-pge-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-libs/%.mod
+gm2/gm2-pge-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-libs/%.mod $(MCDEPS)
 	$(MCC) -o=gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c $(srcdir)/gm2/gm2-libs/$*.mod
 	$(CC) -Igm2/gm2-pg-boot	-I$(srcdir)/gm2/mc-boot -I$(srcdir)/gm2/mc-boot-ch \
               -g -c gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c -o $@
 
-gm2/gm2-pge-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-compiler/%.mod
+gm2/gm2-pge-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-compiler/%.mod $(MCDEPS)
 	$(MCC) -o=gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c $(srcdir)/gm2/gm2-compiler/$*.mod
 	$(CC) -Igm2/mc-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot \
               -I$(srcdir)/gm2/mc-boot-ch -g -c gm2/gm2-pg-boot/$(SRC_PREFIX)$*.c -o $@
 
-gm2/gm2-pge-boot/$(SRC_PREFIX)pge.o:  gm2/gm2-auto/pge.mod
+gm2/gm2-pge-boot/$(SRC_PREFIX)pge.o:  gm2/gm2-auto/pge.mod $(MCDEPS)
 	$(MCC) -o=gm2/gm2-pge-boot/$(SRC_PREFIX)pge.c gm2/gm2-auto/pge.mod
 	$(CC) -Igm2/mc-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot \
               -I$(srcdir)/gm2/mc-boot-ch -g -c gm2/gm2-pge-boot/$(SRC_PREFIX)pge.c -o $@
