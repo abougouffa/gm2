@@ -1,3 +1,7 @@
+2019-05-14      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/el/gm2-mode.el:  improved the regexp for ident matching.
+
 2019-05-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  many changes and a partial push

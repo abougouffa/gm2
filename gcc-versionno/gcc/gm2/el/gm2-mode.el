@@ -2226,7 +2226,7 @@ m2r10 imports go here
   (progn
     (save-excursion
       (let (l)
-	(message (concat "m2-auto-lowerise-block-ident <" all-matched "> ident <" ident ">"))
+	;; (message (concat "m2-auto-lowerise-block-ident <" all-matched "> ident <" ident ">"))
 	(setq l (length token))
 	(goto-char (match-beginning 0))
 	;; (message (format "value of l is %d, keyword %d and all-matched %d" l (length keyword) (length all-matched)))
@@ -2237,7 +2237,8 @@ m2r10 imports go here
 			    'upper t))
 	(delete-char (length token))
 	(setq l (- (length all-matched) (length ident)))
-	(forward-char 1)
+	(setq l (- l (length token)))
+	(forward-char l)
 	(insert (propertize ident
 			    'font-lock-face function-face
 			    'rear-nonsticky t))
@@ -2359,8 +2360,8 @@ m2r10 imports go here
 ;; (defconst m2-auto-procedure-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity m2-auto-block-name "\\|") "\\)\\( \\|)\\(\\[:alpha:\\]\\[:alpnum:\\]*\\)\\|(\\|;\\| \\|$\\)")) ; work
 ;; (defconst m2-auto-procedure-regexp (concat "\\(\\|,\\|;\\^| \\|\t\\)\\(" (mapconcat 'identity m2-auto-block-name "\\|") "\\)\\( \\|,\\|)\\|(\\|;\\|$\\)"))
 (defconst m2-auto-block-regexp (concat "\\(\\|,\\|;\\^| \\|\t\\)\\(" (mapconcat 'identity m2-auto-block-name "\\|") "\\)\\(,\\|(\\|(\\|;\\| \\|$\\)"))
-(defconst m2-auto-block-ident-regexp (concat "\\(\\|,\\|;\\^| \\|\t\\)\\(" (mapconcat 'identity m2-auto-block-name "\\|") "\\)\\( \\)\\([\\[:alpha:]\\]+\\)"))
-;;  (defconst m2-auto-procedure-regexp (concat "\\((\\|,\\|;\\|^\\| \\|\t\\)\\(" (mapconcat 'identity m2-auto-block-name "\\|") "\\)\\( \\*\\)\\(\\[:alpha:\\]\\[:alpnum:\\]*\\)\\(\\|;\\| \\|$\\)"))
+;; (defconst m2-auto-block-ident-regexp (concat "\\(\\|,\\|;\\^| \\|\t\\)\\(" (mapconcat 'identity m2-auto-block-name "\\|") "\\)\\( \\)\\([\\[:alpha:]\\]+\\)"))
+(defconst m2-auto-block-ident-regexp (concat "\\(\\|,\\|;\\^| \\|\t\\)\\(" (mapconcat 'identity m2-auto-block-name "\\|") "\\)\\( \\)+\\([\\[:alpha:]\\[:alnum:]\\]+\\)"))
 
 (defvar m2-auto-test-keywords nil
   "dynamically generated keyword list from the dialects.")
