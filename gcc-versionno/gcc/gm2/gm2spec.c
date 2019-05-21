@@ -1414,6 +1414,13 @@ no_link (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
   return xstrdup ("");
 }
 
+
+static const char *
+m2_exit (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
+{
+  exit (0);
+}
+
 /* lang_register_spec_functions register the Modula-2 associated spec
    functions.  */
 
@@ -1425,7 +1432,7 @@ lang_register_spec_functions (void)
   fe_add_spec_function ("noobjects", no_objects);
   fe_add_spec_function ("linkargs", get_link_args);
   fe_add_spec_function ("exec_prefix", add_exec_dir);
-  fe_add_spec_function ("exec_name", add_exec_name);
+  fe_add_spec_function ("exit", m2_exit);
 }
 
 /* Table of language-specific spec functions.  */

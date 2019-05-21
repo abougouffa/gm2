@@ -1,3 +1,9 @@
+2019-05-20      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+ 	* gm2/lang-specs.h:  interim checkin of rewrite.
+	* gm2/gm2spec.c: (m2_exit) New function.
+	* gm2/m2-link-support.h:  New file.
+
 2019-05-14      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/el/gm2-mode.el:  improved the regexp for ident matching.
