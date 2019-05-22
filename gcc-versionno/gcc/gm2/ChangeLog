@@ -1,3 +1,8 @@
+2019-05-22      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/m2-link-support.h:  Retrofitted linking after
+	  rewriting.
+
 2019-05-20      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
  	* gm2/lang-specs.h:  interim checkin of rewrite.

@@ -26,15 +26,18 @@ along with GCC; see the file COPYING3.  If not see
                        %{MT*} %{MF*} -quiet "
 
 #define GM2CC(INPUT,OUTPUT) \
-  "%{!fno-exceptions:cc1plus;:cc1} " GM2CC_OPTIONS " " INPUT " -o %b_m2.s \n\
+  "%{!fno-exceptions:cc1plus;:cc1} " GM2CC_OPTIONS " " INPUT " \
+     -o %b_m2.s \n\
   " AS("%b_m2.s",OUTPUT) " "
 
 #define GM2LCC(OBJECT,LST) \
-  "gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{L*} %{ftarget-ar=*} %{ftarget-ranlib=*} \
+  "gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{L*} %{ftarget-ar=*} \
+          %{ftarget-ranlib=*} \
           %{fobject-path=*} %{v} --exec --startup %Ustart%d%O \
           %{!fshared:--ar %:objects() %:noobjects() -o %w%d%g.a } \
           " OBJECT " \
-          %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:noobjects() %:linkargs() } " LST " "
+          %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:noobjects() \
+            %:linkargs() } " LST " "
 
 #define GM2LORDER_GEN_CC(INPUT)	\
   "gm2lorder %{fruntime-modules=*} " INPUT " -o %g.lst \n\
@@ -57,10 +60,13 @@ along with GCC; see the file COPYING3.  If not see
 #define GM2L(INPUT,OUTPUT) \
   "gm2l %{v} " M2CPP " %{I*} %{fdef=*} %{fmod=*} " OUTPUT " " INPUT " "
 
+/* General GNU options.  */
+
+#define GENERALOPT "%{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %V"
+
 /* Run the compiler using standard GNU options.  */
 
-#define CC1GM2 "cc1gm2 " M2CPP " %(cc1_options) %{f*} %{+e*} %{I*} " \
-               " %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %V"
+#define CC1GM2 "cc1gm2 " M2CPP " %(cc1_options) " GENERALOPT
 
 /*  Generate a swig interface file and exit.  */
 
@@ -75,10 +81,10 @@ along with GCC; see the file COPYING3.  If not see
                      %:exit()}"
 
 /* Generate a scaffold from basename.lst and store the output source into
-   _m2_basename.cpp.  */
+   _m2_basename.cpp and exit.  */
 
 #define MAKEINIT "%{fmakeinit:gm2lgen %{fshared} %{fshared:--terminate --exit} \
-                     %{!fno-exceptions:-fcpp} %b.lst -o _m2_%b.cpp} \n\
+                     %{!fno-exceptions:-fcpp} %b.lst -o _m2_%b.cpp \n\
                      %:exit()}"
 
 /* Display the filesystem location of the all object files in the project list.  */
@@ -86,17 +92,40 @@ along with GCC; see the file COPYING3.  If not see
 #define REPORT_OBJECTS "gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{L*} \
                         %{ftarget-ar=*} %{ftarget-ranlib=*} %{fobject-path=*} %{v} -c "
 
-/* Generate a list of modules used within a project and report the object file location.  */
+/* Generate a list of modules used within a project and report the object file
+   location and exit.  */
 
-#define MODULES  "%{fmodules:%{fuselist:" REPORT_OBJECTS " %b.lst}" \
-                             "%{!fuselist:" GM2L("%g.mod","%{!pipe:-o %g.l}") " |\n\
-                                            gm2lorder %{fruntime-modules=*} %{!pipe:%g.l} -o %g.lst \n\
-                                          " REPORT_OBJECTS " %g.lst} \n\
-                   %:exit()}"
+#define MODULES  \
+  "%{fmodules:%{fuselist:" REPORT_OBJECTS " %b.lst}" \
+               "%{!fuselist:" GM2L("%g.mod","%{!pipe:-o %g.l}") " |\n\
+                              gm2lorder %{fruntime-modules=*} \
+                                 %{!pipe:%g.l} -o %g.lst \n\
+                            " REPORT_OBJECTS " %g.lst} \n\
+     %:exit()}"
 
 #define MODULA_PROJECT_SUPPORT  SWIG MAKELIST MAKEINIT MODULES
 
-#define MODULA_LINK_SUPPORT  " "
+#define GM2M "gm2m %{fcpp:%{B*} %{fmake-I*}} " M2CPP \
+                 " -nolink -fgm2begin -fmakeall0 %(cc1_options) " GENERALOPT \
+                 " -fgm2end -o %b.make %i \n" \
+             "%:exit()"
+
+#define MAKEALL "%{fmakeall:%{!fmakeall0:" GM2M "}}"
+
+#define M2LINK "%{!S:%{!gm2gcc:%{!fuselist:%{fcpp:cc1 -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod} \n\
+                                      %{!fonlylink:cc1gm2 %{fcpp:-fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend} \
+                                                          %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} -o %d%g.s %{fcpp:%g.mod;:%i} \n\
+                                                 " AS("%g.s","%b.o") " } \n\
+                                      " GM2L("%{fcpp:%g.mod;:%i}","%{!pipe:-o %g.l}") " |\n\
+                                      " GM2LORDER_GEN_CC("%{!pipe:%g.l}") " } \n \
+                           %{fuselist:gm2lgen %{fshared} %{fshared:--terminate --exit} %{!fno-exceptions:-fcpp} %b.lst -o %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
+                                      " GM2CC("%{!g:%g.cpp} %{g:%b_m2.cpp}","%ustart%d%O") " \n\
+                                      rm -f %w%d%g.a \n\
+                                      " GM2LCC("","%b.lst") " \n\
+                                      rm -f %Ustart \n}}}"
+
+#define MODULA_LINK_SUPPORT  "%{!c:" MAKEALL M2LINK "}"
+
 
 #if 0
       "%{c|S:%{fuselist:%{fsources:%eGNU Modula-2 cannot use -fsources and -fuselist at the same time}} \
