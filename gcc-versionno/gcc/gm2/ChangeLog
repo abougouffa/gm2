@@ -1,6 +1,10 @@
 2019-05-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/m2-link-support.h:  fixed bug in gm2l spec.
+	* gm2/errors/fail/gm2.exp:  added -Wunused-variable
+          to the command line switches.
+	* gm2/tools-src/makeversion:  replaced GPL.
+	  (GetYear) Removed unused variable.
 
 2019-05-22      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
