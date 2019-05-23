@@ -39,13 +39,18 @@ along with GCC; see the file COPYING3.  If not see
           %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:noobjects() \
             %:linkargs() } " LST " "
 
-#define GM2LORDER_GEN_CC(INPUT)	\
-  "gm2lorder %{fruntime-modules=*} " INPUT " -o %g.lst \n\
-   gm2lgen %{fshared} %{fshared:--terminate --exit} \
-           %{!fno-exceptions:-fcpp} %g.lst -o %{g:%b_m2.cpp;:%g.cpp} \n\
-  " GM2CC("%{g:%b_m2.cpp;:%g.cpp}","%ustart%d%O") " \n\
+#define GM2LORDER(INPUT,LST)					\
+  "gm2lorder %{fruntime-modules=*} " INPUT " -o " LST " \n"
+
+#define GM2LGEN(LST,CPP,MAIN)			    \
+  "gm2lgen %{fshared} %{fshared:--terminate --exit} \
+           %{!fno-exceptions:-fcpp} " LST " -o " CPP " \n\
+   " GM2L_COMBINE(LST,CPP,MAIN)
+
+#define GM2L_COMBINE(LST,CPP,MAIN)		\
+  GM2CC(CPP,"%ustart%d%O") " \n\
    rm -f %w%d%g.a \n\
-  " GM2LCC("--mainobject %b.o","%g.lst") " \n\
+  " GM2LCC("--mainobject " MAIN,LST) " \n\
    rm -f %Ustart"
 
 /* Pass the preprocessor options on the command line together with the
@@ -62,11 +67,12 @@ along with GCC; see the file COPYING3.  If not see
 
 /* General GNU options.  */
 
-#define GENERALOPT "%{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %V"
+#define GENERAL_OPTIONS "%{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} \
+ %{MA} %{MT*} %{MF*} %V"
 
 /* Run the compiler using standard GNU options.  */
 
-#define CC1GM2 "cc1gm2 " M2CPP " %(cc1_options) " GENERALOPT
+#define CC1GM2 "cc1gm2 " M2CPP " %(cc1_options) " GENERAL_OPTIONS
 
 /*  Generate a swig interface file and exit.  */
 
@@ -103,71 +109,22 @@ along with GCC; see the file COPYING3.  If not see
                             " REPORT_OBJECTS " %g.lst} \n\
      %:exit()}"
 
-#define MODULA_PROJECT_SUPPORT  SWIG MAKELIST MAKEINIT MODULES
+// #define MODULA_PROJECT_SUPPORT  SWIG MAKELIST MAKEINIT MODULES
+#define MODULA_PROJECT_SUPPORT  MODULES
 
 #define GM2M "gm2m %{fcpp:%{B*} %{fmake-I*}} " M2CPP \
-                 " -nolink -fgm2begin -fmakeall0 %(cc1_options) " GENERALOPT \
+                 " -nolink -fgm2begin -fmakeall0 %(cc1_options) " GENERAL_OPTIONS \
                  " -fgm2end -o %b.make %i \n" \
              "%:exit()"
 
 #define MAKEALL "%{fmakeall:%{!fmakeall0:" GM2M "}}"
 
-#define M2LINK "%{!S:%{!gm2gcc:%{!fuselist:%{fcpp:cc1 -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod} \n\
-                                      %{!fonlylink:cc1gm2 %{fcpp:-fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend} \
-                                                          %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} -o %d%g.s %{fcpp:%g.mod;:%i} \n\
-                                                 " AS("%g.s","%b.o") " } \n\
-                                      " GM2L("%{fcpp:%g.mod;:%i}","%{!pipe:-o %g.l}") " |\n\
-                                      " GM2LORDER_GEN_CC("%{!pipe:%g.l}") " } \n \
-                           %{fuselist:gm2lgen %{fshared} %{fshared:--terminate --exit} %{!fno-exceptions:-fcpp} %b.lst -o %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
-                                      " GM2CC("%{!g:%g.cpp} %{g:%b_m2.cpp}","%ustart%d%O") " \n\
-                                      rm -f %w%d%g.a \n\
-                                      " GM2LCC("","%b.lst") " \n\
-                                      rm -f %Ustart \n}}}"
+#define GM2(INPUT,OUTPUT) CC1GM2 " -o " OUTPUT " " INPUT
+
+#define M2LINK "%{!S:%{!gm2gcc:%{!fonlylink:" GM2("%{fcpp:%g.mod;:%i}","%d%g.s") " \n\
+                                            " AS("%g.s","%b.o") " } \n\
+                               %{!fuselist:" GM2L("%{fcpp:%g.mod;:%i}"," -o %g.l") " \n\
+                                           " GM2LORDER("%g.l","%g.lst") " \n\
+                               " GM2LGEN("%{fuselist:%b.lst;:%g.lst}","%{g:%b_m2.cpp;:%g.cpp}","%b.o") "}}}"
 
 #define MODULA_LINK_SUPPORT  "%{!c:" MAKEALL M2LINK "}"
-
-
-#if 0
-      "%{c|S:%{fuselist:%{fsources:%eGNU Modula-2 cannot use -fsources and -fuselist at the same time}} \
-           %{!fmakelist:%{!fmodules:%{!fmakeinit:%{!fswig:%{!gm2gcc:cc1gm2 %{fcpp:-fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend} \
-                                                                           %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
-                                                                           %{!fsyntax-only:%(invoke_as)}}}}}} \n\
-           %{fswig:cc1gm2 %{fcpp:-fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend} \
-                                                                           %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %V %i} \n\
-           %{fmakelist:%{fcpp:cc1 -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
-                            " GM2L("%g.mod","%{!pipe:-o %g.l}") " |\n\
-                              gm2lorder %{fruntime-modules=*} %{!pipe:%g.l} -o %b.lst} \n\
-                       %{!fcpp:" GM2L("%i","%{!pipe:-o %g.l}") " |\n\
-                               gm2lorder %{fruntime-modules=*} %{!pipe:%g.l} -o %b.lst}} \n\
-           %{fmakeinit:gm2lgen %{fshared} %{fshared:--terminate --exit} %{!fno-exceptions:-fcpp} %b.lst -o _m2_%b.cpp} \n\
-           %{fmodules:%{!fuselist:%{fcpp:cc1 -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
-                                       " GM2L("%g.mod","%{!pipe:-o %g.l}") " |\n\
-                                         gm2lorder %{fruntime-modules=*} %{!pipe:%g.l} -o %g.lst \n\
-                                         gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{L*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{fobject-path=*} %{v} -c %g.lst} \n\
-                                 %{!fcpp:" GM2L("%i","%{!pipe:-o %g.l}") " |\n		\
-                                         gm2lorder %{fruntime-modules=*} %{!pipe:%g.l} -o %g.lst \n\
-                                         gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{L*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{fobject-path=*} %{v} -c %g.lst}} \n\
-                       %{fuselist:gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{L*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{fobject-path=*} %{v} -c %b.lst}}} \n\
-      %{!c:%{fmakelist:%eGNU Modula-2 does not support -fmakelist without -c}} \n\
-      %{!c:%{fmodules:%eGNU Modula-2 does not support -fmodules without -c}} \n\
-      %{!c:%{fmakeinit:%eGNU Modula-2 does not support -fmakeinit without -c}} \n\
-      %{!c:%{fswig:%eGNU Modula-2 does not support -fswig without -c}} \n\
-      %{!c:%{fmakeall:%{!fmakeall0:%{fcpp:gm2m %{B*} %{fmake-I*} -fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend -nolink -fgm2begin -fmakeall0 %{B*} %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -fgm2end -o %g.m %i \n\
-                                     %{fclean:make -r -f %g.m clean %b } \n\
-                                     %{!fclean:make -r -f %g.m }} \n\
-                                   %{!fcpp:gm2m -nolink %{B*} %{fmake-I*} -fgm2begin -fmakeall0 %{B*} %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -fgm2end -o %g.m %i \n\
-                                     %{fclean:make -r -f %g.m clean %b } \n\
-                                     %{!fclean:make -r -f %g.m }}}}} \n\
-      %{!c:%{!S:%{!gm2gcc:%{!fuselist:%{fcpp:cc1 -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod} \n\
-                                      %{!fonlylink:cc1gm2 %{fcpp:-fcppbegin %:exec_prefix(cc1) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend} \
-                                                          %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} -o %d%g.s %{fcpp:%g.mod;:%i} \n\
-                                                 " AS("%g.s","%b.o") " } \n\
-                                      " GM2L("%{fcpp:%g.mod;:%i}","%{!pipe:-o %g.l}") " |\n\
-                                      " GM2LORDER_GEN_CC("%{!pipe:%g.l}") " } \n \
-                           %{fuselist:gm2lgen %{fshared} %{fshared:--terminate --exit} %{!fno-exceptions:-fcpp} %b.lst -o %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
-                                      " GM2CC("%{!g:%g.cpp} %{g:%b_m2.cpp}","%ustart%d%O") " \n\
-                                      rm -f %w%d%g.a \n\
-                                      " GM2LCC("","%b.lst") " \n\
-                                      rm -f %Ustart }}}} \n\
-    ", 0, 0, 0},
-#endif
