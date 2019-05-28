@@ -19,6 +19,19 @@ along with GCC; see the file COPYING3.  If not see
 <http://www.gnu.org/licenses/>.  */
 
 
+/* The subprograms used by Modula-2 to facilitate linking are:
+   gm2l - parses the top level module and all other dependent
+          modules.  It creates a dependency tree and emits a list
+          of dependent modules.
+   gm2lcc - generates a link command for all dependent modules or
+            display module object filesystem location.
+   gm2m - parses the top level module and all other dependent
+          module and generates a Makefile from the import tree.
+   gm2lgen - generate a C or C++ scaffold from the list of modules.
+   gm2lorder - manipulate the dependent list of modules to force
+               critcal runtime modules to be initialized at the
+               beginning of the init sequence.  */
+
 /* AS run the assembler with default options.  */
 
 #define AS(INPUT,OUTPUT)  "as %a %Y " INPUT " -o " OUTPUT
