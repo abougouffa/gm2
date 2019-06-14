@@ -33,7 +33,7 @@ FROM M2MetaError IMPORT MetaError0, MetaError1, MetaError2, MetaError3,
                         MetaErrorT1,
                         MetaErrorStringT0, MetaErrorStringT1,
                         MetaErrorString1, MetaErrorString2,
-                        MetaErrorN1 ;
+                        MetaErrorN1, MetaErrorN2 ;
 
 FROM DynamicStrings IMPORT String, string, InitString, KillString,
                            ConCat, InitStringCharStar, Dup, Mark,
@@ -7317,14 +7317,15 @@ BEGIN
    ModSym := MakeDefinitionSource(module) ;
    IF ModSym=NulSym
    THEN
-      WriteFormat2('module %a cannot be found and is needed to import %a', module, n) ;
+      MetaErrorN2 ('module {%E%a} cannot be found and is needed to import {%E%a}', module, n) ;
       FlushErrors ;
       RETURN( NulSym )
    END ;
    Assert(IsDefImp(ModSym)) ;
    IF (GetExported(ModSym, n)=NulSym) OR IsUnknown(GetExported(ModSym, n))
    THEN
-      WriteFormat2('module %a does not export procedure %a which is a necessary component of the runtime system, hint check the path and library/language variant', module, n) ;
+      MetaErrorN2 ('module {%E%a} does not export procedure {%E%a} which is a necessary component of the runtime system, hint check the path and library/language variant',
+                   module, n) ;
       FlushErrors ;
       RETURN( NulSym )
    END ;
@@ -7386,7 +7387,7 @@ BEGIN
    Type  := GetSType(Param) ;  (* get the type from the symbol, not the stack *)
    IF NoOfParam#1
    THEN
-      WriteFormat0('base procedure LENGTH expects 1 parameter')
+      WriteFormat0 ('base procedure LENGTH expects 1 parameter')
    END ;
    IF NoOfParam>=1
    THEN
