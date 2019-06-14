@@ -185,6 +185,6 @@ along with GCC; see the file COPYING3.  If not see
                   " GM2LGEN("%{fuselist:%b.lst;:%g.lst}",\
 			    "%{g:%b_m2.cpp;:%g.cpp}","%b.o") "}}}"
 
-/* MODULA_PROJECT_SUPPORT only invoke link subprocesses if no -c option.  */
+/* MODULA_LINK_SUPPORT only invoke link subprocesses if no -c option.  */
 
 #define MODULA_LINK_SUPPORT  "%{!c:" MAKEALL M2LINK "}"
