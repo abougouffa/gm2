@@ -106,6 +106,7 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  ExceptionZeroRem,
                  ExceptionWholeValue,
                  ExceptionRealValue,
+                 ExceptionParameterBounds,
                  ExceptionNo ;
 
 
@@ -156,7 +157,8 @@ VAR
    ExceptionZeroRem,
    ExceptionWholeValue,
    ExceptionRealValue,
-   ExceptionNo          : CARDINAL ;
+   ExceptionParameterBounds,
+   ExceptionNo             : CARDINAL ;
 
 
 (*

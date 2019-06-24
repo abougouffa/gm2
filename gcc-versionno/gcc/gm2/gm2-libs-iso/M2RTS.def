@@ -155,6 +155,7 @@ PROCEDURE WholeZeroDivException (filename: ADDRESS; line, column: CARDINAL; scop
 PROCEDURE WholeZeroRemException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE WholeValueException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE RealValueException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE ParameterException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE NoException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 
 

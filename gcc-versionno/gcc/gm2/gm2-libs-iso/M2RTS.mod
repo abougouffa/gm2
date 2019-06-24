@@ -483,6 +483,14 @@ BEGIN
 END RealValueException ;
 
 
+PROCEDURE ParameterException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   RTExceptions.Raise(ORD(M2EXCEPTION.rangeException),
+                      filename, line, column, scope,
+                      ADR("actual parameter exceeds formal parameter type range"))
+END ParameterException ;
+
+
 PROCEDURE NoException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
    RTExceptions.Raise(ORD(M2EXCEPTION.exException),

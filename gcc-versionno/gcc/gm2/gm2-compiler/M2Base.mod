@@ -633,30 +633,31 @@ BEGIN
    m2rts := MakeDefinitionSource(MakeKey('M2RTS')) ;
    PutImported(GetExported(m2rts, MakeKey('HALT'))) ;
 
-   ExceptionAssign       := NulSym ;
-   ExceptionReturn       := NulSym ;
-   ExceptionInc          := NulSym ;
-   ExceptionDec          := NulSym ;
-   ExceptionIncl         := NulSym ;
-   ExceptionExcl         := NulSym ;
-   ExceptionShift        := NulSym ;
-   ExceptionRotate       := NulSym ;
-   ExceptionStaticArray  := NulSym ;
-   ExceptionDynamicArray := NulSym ;
-   ExceptionForLoopBegin := NulSym ;
-   ExceptionForLoopTo    := NulSym ;
-   ExceptionForLoopEnd   := NulSym ;
-   ExceptionPointerNil   := NulSym ;
-   ExceptionNoReturn     := NulSym ;
-   ExceptionCase         := NulSym ;
-   ExceptionNonPosDiv    := NulSym ;
-   ExceptionNonPosMod    := NulSym ;
-   ExceptionZeroDiv      := NulSym ;
-   ExceptionZeroRem      := NulSym ;
-   ExceptionWholeValue   := NulSym ;
-   ExceptionRealValue    := NulSym ;
+   ExceptionAssign          := NulSym ;
+   ExceptionReturn          := NulSym ;
+   ExceptionInc             := NulSym ;
+   ExceptionDec             := NulSym ;
+   ExceptionIncl            := NulSym ;
+   ExceptionExcl            := NulSym ;
+   ExceptionShift           := NulSym ;
+   ExceptionRotate          := NulSym ;
+   ExceptionStaticArray     := NulSym ;
+   ExceptionDynamicArray    := NulSym ;
+   ExceptionForLoopBegin    := NulSym ;
+   ExceptionForLoopTo       := NulSym ;
+   ExceptionForLoopEnd      := NulSym ;
+   ExceptionPointerNil      := NulSym ;
+   ExceptionNoReturn        := NulSym ;
+   ExceptionCase            := NulSym ;
+   ExceptionNonPosDiv       := NulSym ;
+   ExceptionNonPosMod       := NulSym ;
+   ExceptionZeroDiv         := NulSym ;
+   ExceptionZeroRem         := NulSym ;
+   ExceptionWholeValue      := NulSym ;
+   ExceptionRealValue       := NulSym ;
+   ExceptionParameterBounds := NulSym ;
 
-   ExceptionNo           := NulSym ;
+   ExceptionNo              := NulSym ;
 
    IF NilChecking
    THEN
@@ -674,7 +675,8 @@ BEGIN
       ExceptionRotate := ImportFrom(m2rts, 'RotateException') ;
       ExceptionForLoopBegin := ImportFrom(m2rts, 'ForLoopBeginException') ;
       ExceptionForLoopTo := ImportFrom(m2rts, 'ForLoopToException') ;
-      ExceptionForLoopEnd := ImportFrom(m2rts, 'ForLoopEndException')
+      ExceptionForLoopEnd := ImportFrom(m2rts, 'ForLoopEndException') ;
+      ExceptionParameterBounds := ImportFrom(m2rts, 'ParameterException') ;
    END ;
    IF IndexChecking
    THEN

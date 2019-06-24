@@ -94,6 +94,7 @@ FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
                    ExceptionNonPosDiv, ExceptionNonPosMod,
                    ExceptionZeroDiv, ExceptionZeroRem,
 		   ExceptionWholeValue, ExceptionRealValue,
+                   ExceptionParameterBounds,
                    ExceptionNo ;
 
 FROM M2CaseList IMPORT CaseBoundsResolved, OverlappingCaseBounds, WriteCase, MissingCaseBounds, TypeCaseBounds ;
@@ -102,7 +103,7 @@ FROM M2CaseList IMPORT CaseBoundsResolved, OverlappingCaseBounds, WriteCase, Mis
 TYPE
    TypeOfRange = (assignment, returnassignment, subrangeassignment,
                   inc, dec, incl, excl, shift, rotate,
-                  typeexpr, typeassign, typeparam,
+                  typeexpr, typeassign, typeparam, paramassign,
                   staticarraysubscript,
                   dynamicarraysubscript,
                   forloopbegin, forloopto, forloopend,
@@ -244,6 +245,7 @@ BEGIN
    typeassign           : InternalError('not expecting this case value', __FILE__, __LINE__) |
    typeparam            : InternalError('not expecting this case value', __FILE__, __LINE__) |
    typeexpr             : InternalError('not expecting this case value', __FILE__, __LINE__) |
+   paramassign          : RETURN( ExceptionParameterBounds ) |
    staticarraysubscript : RETURN( ExceptionStaticArray ) |
    dynamicarraysubscript: RETURN( ExceptionDynamicArray ) |
    forloopbegin         : RETURN( ExceptionForLoopBegin ) |
@@ -696,6 +698,49 @@ END InitTypesParameterCheck ;
 
 
 (*
+   PutRangeParamAssign - initializes contents of, p, to contain the parameter
+                         type checking information.
+                         It also fills in the current token no
+                         and returns, p.
+*)
+
+PROCEDURE PutRangeParamAssign (p: Range; t: TypeOfRange; proc: CARDINAL;
+                               i: CARDINAL; formal, actual: CARDINAL) : Range ;
+BEGIN
+   WITH p^ DO
+      type           := t ;
+      des            := formal ;
+      expr           := actual ;
+      desLowestType  := GetLowestType(des) ;
+      exprLowestType := GetLowestType(expr) ;
+      procedure      := proc ;
+      paramNo        := i ;
+      dimension      := i ;
+      isLeftValue    := FALSE ;
+      tokenNo        := GetTokenNo()
+   END ;
+   RETURN( p )
+END PutRangeParamAssign ;
+
+
+(*
+   InitParameterRangeCheck - checks to see that the types of, d, and, e,
+                             are parameter compatible.
+*)
+
+PROCEDURE InitParameterRangeCheck (proc: CARDINAL; i: CARDINAL;
+                                   formal, actual: CARDINAL) : CARDINAL ;
+VAR
+   p: Range ;
+   r: CARDINAL ;
+BEGIN
+   r := InitRange() ;
+   p := PutRangeParamAssign(GetIndice(RangeIndex, r), paramassign, proc, i, formal, actual) ;
+   RETURN( r )
+END InitParameterRangeCheck ;
+
+
+(*
    InitTypesExpressionCheck - checks to see that the types of, d, and, e,
                               are expression compatible.
 *)
@@ -1002,6 +1047,7 @@ BEGIN
       typeassign           : RETURN( FALSE ) |
       typeparam            : RETURN( FALSE ) |
       typeexpr             : RETURN( FALSE ) |
+      paramassign          : RETURN( ExceptionParameterBounds#NulSym ) |
       staticarraysubscript : RETURN( ExceptionStaticArray#NulSym ) |
       dynamicarraysubscript: RETURN( ExceptionDynamicArray#NulSym ) |
       forloopbegin         : RETURN( ExceptionForLoopBegin#NulSym ) |
@@ -1054,6 +1100,38 @@ BEGIN
       END
    END
 END FoldAssignment ;
+
+
+(*
+   FoldParameterAssign -
+*)
+
+PROCEDURE FoldParameterAssign (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
+VAR
+   p       : Range ;
+   min, max: Tree ;
+BEGIN
+   p := GetIndice(RangeIndex, r) ;
+   WITH p^ DO
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      IF desLowestType#NulSym
+      THEN
+         IF GccKnowsAbout(expr) AND IsConst(expr) AND
+            GetMinMax(tokenno, desLowestType, min, max)
+         THEN
+            IF OutOfRange(tokenno, min, expr, max, desLowestType)
+            THEN
+               MetaErrorT3(tokenNo,
+                           'the {%3WN} actual parameter {%2a} will exceed the range of formal parameter type {%1tad}',
+                           des, expr, dimension) ;
+               PutQuad(q, ErrorOp, NulSym, NulSym, r)
+            ELSE
+               SubQuad(q)
+            END
+         END
+      END
+   END
+END FoldParameterAssign ;
 
 
 (*
@@ -2005,6 +2083,7 @@ BEGIN
       typeassign           :  FoldTypeCheck(tokenno, q, r) |
       typeparam            :  FoldTypeCheck(tokenno, q, r) |
       typeexpr             :  FoldTypeCheck(tokenno, q, r) |
+      paramassign          :  FoldParameterAssign(tokenno, q, r) |
       staticarraysubscript :  FoldStaticArraySubscript(tokenno, q, r) |
       dynamicarraysubscript:  FoldDynamicArraySubscript(tokenno, q, r) |
       forloopbegin         :  FoldForLoopBegin(tokenno, q, r) |
@@ -2133,6 +2212,7 @@ BEGIN
       typeassign           : s := InitString('') |
       typeparam            : s := InitString('') |
       typeexpr             : s := InitString('') |
+      paramassign          : s := InitString('if this call is executed then the actual parameter {%2Wa} will be out of range of the {%3N} formal parameter {%1a}') |
       staticarraysubscript : s := InitString('if this access to the static array {%1Wa:{%2a:{%1a}[{%2a}]}} is ever made then the index will be out of bounds in the {%3N} array subscript') |
       dynamicarraysubscript: s := InitString('if this access to the dynamic array {%1Wa:{%2a:{%1a}[{%2a}]}} is ever made then the index will be out of bounds in the {%3N} array subscript') |
       forloopbegin         : s := InitString('if the assignment in this FOR loop is ever executed then the designator {%1Wa} will be exceed the type range {%1ts:of {%1ts}}') |
@@ -2308,7 +2388,7 @@ BEGIN
                AddStatement(location, BuildIfCallHandler(condition, r, scopeDesc, TRUE))
             END
          ELSE
-            MetaErrorT2(tokenNo, message, des, expr)
+            MetaErrorT3(tokenNo, message, des, expr, paramNo)
          END
       END
    END
@@ -2413,6 +2493,18 @@ BEGIN
    DoCodeAssignment(tokenno, r, scopeDesc,
                     'assignment will cause a range error, as the range of {%1tad} does not overlap with {%2tad}')
 END CodeAssignment ;
+
+
+(*
+   CodeParameterAssign -
+*)
+
+PROCEDURE CodeParameterAssign (tokenno: CARDINAL;
+                               r: CARDINAL; scopeDesc: String) ;
+BEGIN
+   DoCodeAssignment(tokenno, r, scopeDesc,
+                    'passing the actual {%3N} parameter {%2tad} will cause a range error with the formal parameter type {%1tad}')
+END CodeParameterAssign ;
 
 
 (*
@@ -3065,6 +3157,7 @@ BEGIN
       wholenonposmod       :  CodeWholeNonPos(tokenNo, r, scopeDesc) |
       wholezerodiv         :  CodeWholeZero(tokenNo, r, scopeDesc) |
       wholezerorem         :  CodeWholeZero(tokenNo, r, scopeDesc) |
+      paramassign          :  CodeParameterAssign(tokenNo, r, scopeDesc) |
       none                 :
 
       ELSE
@@ -3167,6 +3260,7 @@ BEGIN
       typeexpr             :  WriteString('expr compatible (') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       typeassign           :  WriteString('assignment compatible (') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       typeparam            :  WriteString('parameter compatible (') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
+      paramassign          :  WriteString('parameter range (') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       staticarraysubscript :  WriteString('staticarraysubscript(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       dynamicarraysubscript:  WriteString('dynamicarraysubscript(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       forloopbegin         :  WriteString('forloopbegin(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |

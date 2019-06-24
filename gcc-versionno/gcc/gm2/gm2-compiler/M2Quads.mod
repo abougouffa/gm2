@@ -231,8 +231,8 @@ FROM M2Range IMPORT InitAssignmentRangeCheck,
                     InitNoElseRangeCheck,
                     InitCaseBounds,
                     InitWholeZeroDivisionCheck,
-                    InitWholeZeroDivisionCheck,
                     InitWholeZeroRemainderCheck,
+                    InitParameterRangeCheck,
                     CheckRangeAddVariableRead,
                     CheckRangeRemoveVariableRead,
                     WriteRangeCheck ;
@@ -4421,6 +4421,7 @@ BEGIN
       END
    END ;
    ManipulateParameters(IsForC) ;
+   CheckParameterOrdinals (IsForC) ;
    PopT(NoOfParameters) ;
    IF IsFunc
    THEN
@@ -5530,6 +5531,52 @@ BEGIN
    END ;
    PushT(NoOfParameters)
 END ManipulateParameters ;
+
+
+(*
+   CheckParameterOrdinals - check that ordinal values are within type range.
+*)
+
+PROCEDURE CheckParameterOrdinals (IsForC: BOOLEAN) ;
+VAR
+   Proc,
+   ProcSym   : CARDINAL ;
+   Actual,
+   FormalI   : CARDINAL ;
+   ParamTotal,
+   pi, i     : CARDINAL ;
+BEGIN
+   PopT(ParamTotal) ;
+   PushT(ParamTotal) ;  (* Restore stack to origional state *)
+   ProcSym := OperandT(ParamTotal+1+1) ;
+   IF IsVar(ProcSym) AND IsProcType(GetDType(ProcSym))
+   THEN
+      (* Indirect procedure call.  *)
+      Proc := SkipType(OperandF(ParamTotal+1+1))
+   ELSE
+      Proc := SkipConst(ProcSym)
+   END ;
+   i := 1 ;
+   pi := ParamTotal+1 ;   (* stack index referencing stacked parameter, i *)
+   WHILE i<=ParamTotal DO
+      IF i<=NoOfParam(Proc)
+      THEN
+         FormalI := GetParam (Proc, i) ;
+         Actual := OperandT (pi) ;
+         IF IsOrdinalType (GetLType (FormalI))
+         THEN
+            IF NOT IsSet (GetDType (FormalI))
+            THEN
+               (* tell code generator to test runtime values of assignment so ensure we
+                  catch overflow and underflow *)
+               BuildRange (InitParameterRangeCheck (Proc, i, FormalI, Actual))
+            END
+         END
+      END ;
+      INC (i) ;
+      DEC (pi)
+   END
+END CheckParameterOrdinals ;
 
 
 (*
@@ -7387,7 +7434,7 @@ BEGIN
    Type  := GetSType(Param) ;  (* get the type from the symbol, not the stack *)
    IF NoOfParam#1
    THEN
-      WriteFormat0 ('base procedure LENGTH expects 1 parameter')
+      MetaError1 ('base procedure {%E1kLENGTH} expects 1 parameter, seen {%1En} parameters', NoOfParam)
    END ;
    IF NoOfParam>=1
    THEN
@@ -7429,7 +7476,7 @@ BEGIN
             PopT(NoOfParam) ;
             PopN(NoOfParam+1) ;
             PushT(MakeConstLit(MakeKey('0'), Cardinal)) ;
-            WriteFormat0('no procedure Length found for substitution to the standard function LENGTH which is required to calculate non constant string lengths')
+            MetaError0 ('no procedure Length found for substitution to the standard function {%E1kLENGTH} which is required to calculate non constant string lengths')
          END
       END
    ELSE
@@ -7516,10 +7563,10 @@ BEGIN
 
          PushT(Res)
       ELSE
-         WriteFormat0('argument to ODD must be a variable or constant')
+         MetaError1 ('the parameter to {%E1kODD} must be a variable or constant, seen {%E1ad}', Var)
       END
    ELSE
-      WriteFormat0('the pseudo procedure ODD only has one parameter')
+      MetaError1 ('the pseudo procedure {%E1kODD} only has one parameter, seen {%E1n} parameters', NoOfParam)
    END
 END BuildOddFunction ;
 
@@ -7580,10 +7627,10 @@ BEGIN
          GenQuad(StandardFunctionOp, Res, ProcSym, Var) ;
          PushTF(Res, GetSType(Var))
       ELSE
-         WriteFormat0('argument to ABS must be a variable or constant')
+         MetaError1 ('the parameter to {%E1kABS} must be a variable or constant, seen {%E1ad}', Var)
       END
    ELSE
-      WriteFormat0('the pseudo procedure ABS only has one parameter')
+      MetaError1 ('the pseudo procedure {%E1kABS} only has one parameter, seen {%E1n} parameters', NoOfParam)
    END
 END BuildAbsFunction ;
 
@@ -7756,12 +7803,12 @@ BEGIN
          PushT(2) ;          (* Two parameters *)
          BuildConvertFunction
       ELSE
-         n := GetSymName(Sym) ;
-         WriteFormat1('argument to %a must be a variable or constant', n)
+         MetaError2 ('the parameter to {%E1k%a} must be a variable or constant, seen {%2ad}',
+                     Sym, Var)
       END
    ELSE
-      n := GetSymName(Sym) ;
-      WriteFormat1('the pseudo procedure %a only has one parameter', n)
+      MetaError2 ('the pseudo procedure {%E1k%a} only has one parameter, seen {%2n} parameters',
+                  Sym, NoOfParam)
    END
 END BuildOrdFunction ;
 
@@ -7822,12 +7869,12 @@ BEGIN
          PushT(2) ;          (* Two parameters *)
          BuildConvertFunction
       ELSE
-         n := GetSymName(Sym) ;
-         WriteFormat1('argument to %a must be a variable or constant', n)
+         MetaError2 ('the parameter to {%E1k%a} must be a variable or constant, seen {%2ad}',
+                     Sym, Var)
       END
    ELSE
-      n := GetSymName(Sym) ;
-      WriteFormat1('the pseudo procedure %a only has one parameter', n)
+      MetaError2 ('the pseudo procedure {%E1k%a} only has one parameter, seen {%2n} parameters',
+                  Sym, NoOfParam)
    END
 END BuildIntFunction ;
 
@@ -7897,7 +7944,7 @@ BEGIN
             AreConst := FALSE ;
          ELSIF NOT IsConst(OperandT(i))
          THEN
-            WriteFormat1('problem in argument (%d) for MAKEADR, all arguments to MAKEADR must be either variables or constants', i)
+            MetaError1 ('problem in the {%E1N} argument for {%EkMAKEADR}, all arguments to {%EkMAKEADR} must be either variables or constants', i)
          END ;
          INC(i)
       END ;
@@ -7908,7 +7955,7 @@ BEGIN
       PopN(NoOfParameters+1) ;
       PushTF(ReturnVar, GetSType(MakeAdr))
    ELSE
-      WriteFormat0('the pseudo procedure MAKEADR requires at least one parameter') ;
+      MetaError1 ('the pseudo procedure {%EkMAKEADR} requires at least one parameter, seen {%E1n}', NoOfParameters) ;
       PopN(1)
    END
 END BuildMakeAdrFunction ;
@@ -7966,11 +8013,13 @@ BEGIN
          GenQuad(LogicalShiftOp, ReturnVar, VarSym, TempSym) ;
          PushTF(ReturnVar, GetSType(VarSym))
       ELSE
-         WriteFormat0('SYSTEM procedure SHIFT expects a constant or variable which has a type of SET as its first parameter') ;
+         MetaError1 ('SYSTEM procedure {%E1kSHIFT} expects a constant or variable which has a type of SET as its first parameter, seen {%E1ad}',
+                     VarSym) ;
          PushTF(MakeConstLit(MakeKey('0'), Cardinal), Cardinal)
       END
    ELSE
-      WriteFormat0('SYSTEM procedure SHIFT expects 2 parameters') ;
+      MetaError1 ('the pseudo procedure {%EkSHIFT} requires at least two parameters, seen {%E1n}',
+                  NoOfParam) ;
       PopN(NoOfParam+1) ;
       PushTF(MakeConstLit(MakeKey('0'), Cardinal), Cardinal)
    END

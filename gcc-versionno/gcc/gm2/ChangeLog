@@ -1,3 +1,49 @@
+2019-06-25      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2Base.def:
+          (ExceptionParameterBounds)  New global variable.
+	* gm2/gm2-compiler/M2Base.mod:
+          (ExceptionParameterBounds)  assigned if range checking
+          is enabled.
+	* gm2/gm2-compiler/M2GenGCC.mod:  (BuildDivTruncCheck)
+          (BuildDivM2Check) New procedure functions.
+          (CodeDivM2Checked) New procedure.  (CodeDivM2Check)
+          New procedure.  (CodeDivM2Check) New procedure.
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildRealFuncProcCall)
+          call CheckParameterOrdinals.  (CheckParameterOrdinals)
+          New procedure.  Replace many error messages with
+          MetaError equivalents.
+	* gm2/gm2-compiler/M2Range.def:  (InitParameterRangeCheck)
+          New procedure function.
+	* gm2/gm2-compiler/M2Range.mod:  ExceptionParameterBounds
+          New procedure function.  (paramassign) New enumeration
+          field.  (PutRangeParamAssign)  New procedure function.
+          (InitParameterRangeCheck) New procedure function.
+          (InitTypesExpressionCheck) add paramassign case clause.
+          (FoldParameterAssign) New procedure.
+          (CodeParameterAssign) New procedure.
+	* gm2/gm2-gcc/m2expr.c:  Corrected comment formatting.
+          (BuildDivTruncCheck) New function.
+          (BuildGreaterThanOrEqualZero) New function.
+          (checkWholeDivTruncOverflow) New function.
+          (BuildDivM2Check) New function.
+	* gm2/gm2-gcc/m2expr.def:  (BuildDivM2Check) New procedure
+          function.  (BuildDivTruncCheck) New procedure function.
+	* gm2/gm2-gcc/m2expr.h:  (BuildDivTruncCheck) prototype.
+          (BuildDivM2Check) prototype.
+	* gm2/gm2-libs-iso/M2RTS.def:  (ParameterException)
+          New procedure.
+	* gm2/gm2-libs-iso/M2RTS.mod:  (ParameterException)
+          New procedure implemented.
+	* gm2/gm2-libs/M2RTS.def:  (ParameterException)
+          New procedure.
+	* gm2/gm2-libs/M2RTS.mod:  (ParameterException)
+          New procedure implemented.
+	* gm2/plugin/m2rte.c:  corrected comments.  Detect
+          (M2RTS_ParameterException) and issue appropriate message.
+	* gm2/ulm-lib-gm2/std/M2RTS.mod:  (ParameterException)
+          New procedure implemented.
+
 2019-06-14      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/m2-link-support.h:  added email address.

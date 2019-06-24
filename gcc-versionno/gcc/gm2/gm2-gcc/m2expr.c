@@ -89,7 +89,7 @@ m2expr_StringLength (tree string)
   return TREE_STRING_LENGTH (string);
 }
 
-/* CheckAddressToCardinal if op is a pointer convert it to the ADDRESS type. */
+/* CheckAddressToCardinal if op is a pointer convert it to the ADDRESS type.  */
 
 static tree
 CheckAddressToCardinal (location_t location, tree op)
@@ -100,7 +100,7 @@ CheckAddressToCardinal (location_t location, tree op)
   return op;
 }
 
-/*  BuildTruthAndIf return TRUE if a && b.  Retain order left to right.  */
+/* BuildTruthAndIf return TRUE if a && b.  Retain order left to right.  */
 
 static tree
 m2expr_BuildTruthAndIf (location_t location, tree a, tree b)
@@ -108,7 +108,7 @@ m2expr_BuildTruthAndIf (location_t location, tree a, tree b)
   return m2expr_build_binary_op (location, TRUTH_ANDIF_EXPR, a, b, FALSE);
 }
 
-/*  BuildTruthOrIf return TRUE if a || b.  Retain order left to right.  */
+/* BuildTruthOrIf return TRUE if a || b.  Retain order left to right.  */
 
 static tree
 m2expr_BuildTruthOrIf (location_t location, tree a, tree b)
@@ -116,7 +116,7 @@ m2expr_BuildTruthOrIf (location_t location, tree a, tree b)
   return m2expr_build_binary_op (location, TRUTH_ORIF_EXPR, a, b, FALSE);
 }
 
-/*  BuildAddCheck builds an addition tree.  */
+/* BuildAddCheck builds an addition tree.  */
 
 tree
 m2expr_BuildAddCheck (location_t location, tree op1, tree op2, tree lowest,
@@ -137,7 +137,7 @@ m2expr_BuildAddCheck (location_t location, tree op1, tree op2, tree lowest,
   return m2expr_FoldAndStrip (t);
 }
 
-/*  BuildAdd builds an addition tree.  */
+/* BuildAdd builds an addition tree.  */
 
 tree
 m2expr_BuildAdd (location_t location, tree op1, tree op2, int needconvert)
@@ -156,7 +156,7 @@ m2expr_BuildAdd (location_t location, tree op1, tree op2, int needconvert)
   return m2expr_FoldAndStrip (t);
 }
 
-/*  BuildSubCheck builds a subtraction tree.  */
+/* BuildSubCheck builds a subtraction tree.  */
 
 tree
 m2expr_BuildSubCheck (location_t location, tree op1, tree op2, tree lowest,
@@ -212,6 +212,27 @@ m2expr_BuildDivTrunc (location_t location, tree op1, tree op2, int needconvert)
   op2 = CheckAddressToCardinal (location, op2);
 
   t = m2expr_build_binary_op (location, TRUNC_DIV_EXPR, op1, op2, needconvert);
+  return m2expr_FoldAndStrip (t);
+}
+
+/* BuildDivTruncCheck builds a trunc division tree.  */
+
+tree
+m2expr_BuildDivTruncCheck (location_t location, tree op1, tree op2, tree lowest,
+			   tree min, tree max)
+{
+  tree t;
+
+  m2assert_AssertLocation (location);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  op1 = CheckAddressToCardinal (location, op1);
+  op2 = CheckAddressToCardinal (location, op2);
+
+  t = m2expr_build_binary_op_check (location, TRUNC_DIV_EXPR, op1, op2, FALSE,
+				    lowest, min, max);
   return m2expr_FoldAndStrip (t);
 }
 
@@ -292,7 +313,7 @@ m2expr_BuildDivFloor (location_t location, tree op1, tree op2, int needconvert)
 }
 
 /* BuildRDiv builds a division tree (this should only be used for
-REAL and COMPLEX types and NEVER for integer based types).  */
+   REAL and COMPLEX types and NEVER for integer based types).  */
 
 tree
 m2expr_BuildRDiv (location_t location, tree op1, tree op2, int needconvert)
@@ -381,7 +402,7 @@ createUniqueLabel (void)
 }
 
 /* BuildLogicalShift builds the ISO Modula-2 SHIFT operator for a
-fundamental data type.  */
+   fundamental data type.  */
 
 void
 m2expr_BuildLogicalShift (location_t location, tree op1, tree op2, tree op3,
@@ -451,7 +472,7 @@ m2expr_BuildLRL (location_t location, tree op1, tree op2, int needconvert)
   return m2expr_FoldAndStrip (t);
 }
 
-/*  BuildLRR builds and returns tree (op1 rotate right by op2 bits).  */
+/* BuildLRR builds and returns tree (op1 rotate right by op2 bits).  */
 
 tree
 m2expr_BuildLRR (location_t location, tree op1, tree op2, int needconvert)
@@ -468,7 +489,7 @@ m2expr_BuildLRR (location_t location, tree op1, tree op2, int needconvert)
 }
 
 /* m2expr_BuildMask returns a tree for the mask of a set of nBits.
-It assumes nBits is <= TSIZE (WORD).  */
+   It assumes nBits is <= TSIZE (WORD).  */
 
 tree
 m2expr_BuildMask (location_t location, tree nBits, int needconvert)
@@ -481,7 +502,7 @@ m2expr_BuildMask (location_t location, tree nBits, int needconvert)
 }
 
 /* m2expr_BuildLRotate returns a tree in which op1 has been left
-rotated by nBits.  It assumes nBits is <= TSIZE (WORD).  */
+   rotated by nBits.  It assumes nBits is <= TSIZE (WORD).  */
 
 tree
 m2expr_BuildLRotate (location_t location, tree op1, tree nBits,
@@ -496,7 +517,7 @@ m2expr_BuildLRotate (location_t location, tree op1, tree nBits,
 }
 
 /* m2expr_BuildRRotate returns a tree in which op1 has been left
-rotated by nBits.  It assumes nBits is <= TSIZE (WORD).  */
+   rotated by nBits.  It assumes nBits is <= TSIZE (WORD).  */
 
 tree
 m2expr_BuildRRotate (location_t location, tree op1, tree nBits,
@@ -511,7 +532,7 @@ m2expr_BuildRRotate (location_t location, tree op1, tree nBits,
 }
 
 /* BuildLRLn builds and returns tree (op1 rotate left by op2 bits) it
-rotates a set of size, nBits.  */
+   rotates a set of size, nBits.  */
 
 tree
 m2expr_BuildLRLn (location_t location, tree op1, tree op2, tree nBits,
@@ -553,7 +574,7 @@ m2expr_BuildLRLn (location_t location, tree op1, tree op2, tree nBits,
 }
 
 /* BuildLRRn builds and returns tree (op1 rotate right by op2 bits).
-It rotates a set of size, nBits.  */
+   It rotates a set of size, nBits.  */
 
 tree
 m2expr_BuildLRRn (location_t location, tree op1, tree op2, tree nBits,
@@ -594,7 +615,7 @@ m2expr_BuildLRRn (location_t location, tree op1, tree op2, tree nBits,
 }
 
 /* BuildLogicalRotate build the ISO Modula-2 ROTATE operator for a
-fundamental data type.  */
+   fundamental data type.  */
 
 void
 m2expr_BuildLogicalRotate (location_t location, tree op1, tree op2, tree op3,
@@ -637,8 +658,8 @@ m2expr_BuildLogicalRotate (location_t location, tree op1, tree op2, tree op3,
 }
 
 /* buildUnboundedArrayOf construct an unbounded struct and returns
-the gcc tree.  The two fields of the structure are initialized to
-contentsPtr and high.  */
+   the gcc tree.  The two fields of the structure are initialized to
+   contentsPtr and high.  */
 
 static tree
 buildUnboundedArrayOf (tree unbounded, tree contentsPtr, tree high)
@@ -660,7 +681,7 @@ buildUnboundedArrayOf (tree unbounded, tree contentsPtr, tree high)
 }
 
 /* BuildBinarySetDo if the size of the set is <= TSIZE(WORD) then op1
-:= binop(op2, op3) else call m2rtsprocedure(op1, op2, op3).  */
+   := binop(op2, op3) else call m2rtsprocedure(op1, op2, op3).  */
 
 void
 m2expr_BuildBinarySetDo (location_t location, tree settype, tree op1, tree op2,
@@ -1021,6 +1042,28 @@ m2expr_BuildNotEqualToZero (location_t location, tree value, tree type,
       fold_convert_loc (location, type, m2expr_GetIntegerZero (location)));
 }
 
+
+/* BuildGreaterThanOrEqualZero - returns a tree containing (>= value 0).  It
+   checks the min and max value to ensure that the test can be safely
+   achieved and will short circuit the result otherwise.  */
+
+tree
+m2expr_BuildGreaterThanOrEqualZero (location_t location, tree value, tree type,
+				    tree min, tree max)
+{
+  if (m2expr_CompareTrees (min, m2expr_GetIntegerZero (location)) >= 0)
+    /* min is greater than or equal to zero therefore value will always be >= 0.  */
+    return m2expr_GetIntegerOne (location);
+  else if (m2expr_CompareTrees (max, m2expr_GetIntegerZero (location)) < 0)
+    /* max is less than zero therefore value will always be < 0.  */
+    return m2expr_GetIntegerZero (location);
+  /* we now know 0 lies in the range min..max so we can safely cast
+     zero to type.  */
+  return m2expr_BuildGreaterThan (
+      location, value,
+      fold_convert_loc (location, type, m2expr_GetIntegerZero (location)));
+}
+
 /* checkWholeNegateOverflow - check to see whether -arg will overflow
    an integer.
 
@@ -1106,9 +1149,13 @@ checkWholeNegateOverflow (location_t location, tree i, tree type, tree min,
 /* checkWholeAddOverflow - check to see whether op1 + op2 will
    overflow an integer.
 
-PROCEDURE sadd (i, j: INTEGER) ; BEGIN IF ((j>0) AND (i >
-   MAX(INTEGER)-j)) OR ((j<0) AND (i < MIN(INTEGER)-j)) THEN 'signed
-   addition overflow' END END sadd ; */
+PROCEDURE sadd (i, j: INTEGER) ;
+BEGIN
+   IF ((j>0) AND (i > MAX(INTEGER)-j)) OR ((j<0) AND (i < MIN(INTEGER)-j))
+   THEN
+      'signed addition overflow'
+   END
+END sadd.  */
 
 static void
 checkWholeAddOverflow (location_t location, tree i, tree j, tree lowest,
@@ -1132,9 +1179,13 @@ checkWholeAddOverflow (location_t location, tree i, tree j, tree lowest,
 /* checkWholeSubOverflow - check to see whether op1 - op2 will
    overflow an integer.
 
-PROCEDURE ssub (i, j: INTEGER) ; BEGIN IF ((j>0) AND (i <
-   MIN(INTEGER)+j)) OR ((j<0) AND (i > MAX(INTEGER)+j)) THEN 'signed
-   subtraction overflow' END END ssub ; */
+PROCEDURE ssub (i, j: INTEGER) ;
+BEGIN
+   IF ((j>0) AND (i < MIN(INTEGER)+j)) OR ((j<0) AND (i > MAX(INTEGER)+j))
+   THEN
+      'signed subtraction overflow'
+   END
+END ssub.  */
 
 static void
 checkWholeSubOverflow (location_t location, tree i, tree j, tree lowest,
@@ -1212,7 +1263,7 @@ BEGIN
       ((i < 0) AND (j > 0) AND (i < min DIV j)) OR
       ((i < 0) AND (j < 0) AND (i < min DIV j))
    THEN
-      error ('signed subtraction overflow')
+      error ('signed multiplication overflow')
    END
 END smult ;
 
@@ -1250,6 +1301,94 @@ checkWholeMultOverflow (location_t location, tree i, tree j, tree lowest,
   m2type_AddStatement (location, t);
 }
 
+
+/*
+   divexpr - returns true if a DIV b will overflow.
+
+ */
+
+/* checkWholeDivOverflow - check to see whether i DIV j will overflow
+   an integer.
+
+PROCEDURE divtruncexpr (a, b: INTEGER) : BOOLEAN ;
+BEGIN
+   (* firstly catch division by 0.  *)
+   RETURN ((b = 0) OR
+           (* case 2 range is always negative.  *)
+           (* in which case a division will be illegal as result will be positive.  *)
+           (max < 0) OR
+           (* case 1 both min / max are positive, check for underflow.  *)
+           ((min >= 0) AND (max >= 0) AND (a < b * min)) OR
+           (* case 1 both min / max are positive, check for overflow.  *)
+           ((min >= 0) AND (max >= 0) AND (b > a DIV min)) OR
+           (* case 3 mixed range, need to check underflow.  *)
+           ((min < 0) AND (max >= 0) AND (a < 0) AND (b < 0) AND (b >= a DIV min)) OR
+           ((min < 0) AND (max >= 0) AND (a < 0) AND (b > 0) AND (b <= a DIV max)) OR
+           ((min < 0) AND (max >= 0) AND (a >= 0) AND (b < 0) AND (a DIV b < min)))
+END divtruncexpr ;
+
+s1 -> a DIV min
+s2 -> a DIV max
+s3 -> a DIV b
+
+b4 -> (min >= 0) AND (max >= 0)
+b5 -> (min < 0) AND (max >= 0)
+b6 -> (a < b * min)
+b7 -> (b > s1)
+b8 -> (a < 0)
+b9 -> (b < 0)
+b10 -> (b > 0)
+b11 -> (b >= s1)
+b12 -> (b <= s2)
+b13 -> (s3 < min)
+b14 -> a >= 0
+
+c1 -> (b = 0)
+c2 -> (max < 0)
+c3 -> (b4 AND b6)
+c4 -> (b4 AND b7)
+c5 -> (b5 AND b8 AND b9 AND b11)
+c6 -> (b5 AND b8 AND b10 AND b12)
+c7 -> (b5 AND b14 AND b9 AND b13)
+
+ if (c1 || c2 || c3 || c4 || c5 || c6 || c7)
+   error ('signed div trunc overflow').  */
+
+static void
+checkWholeDivTruncOverflow (location_t location, tree i, tree j, tree lowest,
+			    tree min, tree max)
+{
+  tree b4a = m2expr_BuildGreaterThanOrEqualZero (location, min, lowest, min, max);
+  tree b4b = m2expr_BuildGreaterThanOrEqualZero (location, max, lowest, min, max);
+  tree b4 = m2expr_BuildTruthAndIf (location, b4a, b4b);
+  tree b5a = m2expr_BuildLessThanZero (location, min, lowest, min, max);
+  tree b5 = m2expr_BuildTruthAndIf (location, b5a, b4b);
+  tree c1 = m2expr_BuildEqualToZero (location, j, lowest, min, max);
+  tree c2 = m2expr_BuildLessThanZero (location, max, lowest, min, max);
+  tree b6 = m2expr_BuildLessThan (location, i, m2expr_BuildMult (location, j, min, FALSE));
+  tree c3 = m2expr_BuildTruthAndIf (location, b4, b6);
+  tree s1 = m2expr_BuildDivTrunc (location, i, min, FALSE);
+  tree s2 = m2expr_BuildDivTrunc (location, i, max, FALSE);
+  tree s3 = m2expr_BuildDivTrunc (location, i, j, FALSE);
+  tree b7 = m2expr_BuildGreaterThan (location, j, s1);
+  tree c4 = m2expr_BuildTruthAndIf (location, b4, b7);
+  tree b8 = m2expr_BuildLessThanZero (location, i, lowest, min, max);
+  tree b9 = m2expr_BuildLessThanZero (location, j, lowest, min, max);
+  tree b10 = m2expr_BuildGreaterThanZero (location, j, lowest, min, max);
+  tree b11 = m2expr_BuildGreaterThanOrEqual (location, j, s1);
+  tree b12 = m2expr_BuildLessThanOrEqual (location, j, s2);
+  tree b13 = m2expr_BuildLessThan (location, s3, min);
+  tree b14 = m2expr_BuildGreaterThanOrEqualZero (location, i, lowest, min, max);
+  tree c5 = m2expr_Build4TruthAndIf (location, b5, b8, b9, b11);
+  tree c6 = m2expr_Build4TruthAndIf (location, b5, b8, b10, b12);
+  tree c7 = m2expr_Build4TruthAndIf (location, b5, b14, b9, b13);
+  tree c8 = m2expr_Build4TruthOrIf (location, c1, c2, c3, c4);
+  tree condition = m2expr_Build4TruthOrIf (location, c5, c6, c7, c8);
+  tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
+                                               "whole value truncated division ");
+  m2type_AddStatement (location, t);
+}
+
 /* checkWholeOverflow check to see if the binary operators will overflow
  * ordinal types.  */
 
@@ -1274,6 +1413,8 @@ m2expr_checkWholeOverflow (location_t location, enum tree_code code, tree op1,
         case MULT_EXPR:
           checkWholeMultOverflow (location, op1, op2, lowest, min, max);
           break;
+	case TRUNC_DIV_EXPR:
+	  checkWholeDivTruncOverflow (location, op1, op2, lowest, min, max);
         default:
           break;
         }
@@ -2419,7 +2560,7 @@ m2expr_BuildCap (location_t location, tree t)
 }
 
 /* BuildDivM2 if iso or pim4 then build and return ((op2 < 0) : (op1
-divceil op2) ?  (op1 divfloor op2)) otherwise use divtrunc.  */
+   divceil op2) ?  (op1 divfloor op2)) otherwise use divtrunc.  */
 
 tree
 m2expr_BuildDivM2 (location_t location, tree op1, tree op2,
@@ -2442,8 +2583,36 @@ m2expr_BuildDivM2 (location_t location, tree op1, tree op2,
     return m2expr_BuildDivTrunc (location, op1, op2, needsconvert);
 }
 
+/* BuildDivM2Check - build and
+   return ((op2 < 0) : (op1 divtrunc op2) ? (op1 divfloor op2))
+   when -fiso, -fpim4 or -fpositive-mod-floor-div is present else
+   return op1 div trunc op2.  Use the checking div equivalents.  */
+
+tree
+m2expr_BuildDivM2Check (location_t location, tree op1, tree op2,
+			tree lowest, tree min, tree max)
+{
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+  ASSERT_CONDITION (TREE_TYPE (op1) == TREE_TYPE (op2));
+  if (M2Options_GetPIM4 () || M2Options_GetISO ()
+      || M2Options_GetPositiveModFloor ())
+    return fold_build3 (
+        COND_EXPR, TREE_TYPE (op1),
+        m2expr_BuildLessThan (
+            location, op2,
+            m2convert_BuildConvert (location, TREE_TYPE (op2),
+                                    m2expr_GetIntegerZero (location), FALSE)),
+	/* --fixme-- implement m2expr_BuildDivCeilCheck and
+           m2expr_BuildDivFloor.  */
+        m2expr_BuildDivCeil (location, op1, op2, FALSE),
+        m2expr_BuildDivFloor (location, op1, op2, FALSE));
+  else
+    return m2expr_BuildDivTruncCheck (location, op1, op2, lowest, min, max);
+}
+
 /* BuildModM2 if iso or pim4 then build and return ((op2 < 0) : (op1
-modceil op2) ?  (op1 modfloor op2)) otherwise use modtrunc.  */
+   modceil op2) ?  (op1 modfloor op2)) otherwise use modtrunc.  */
 
 tree
 m2expr_BuildModM2 (location_t location, tree op1, tree op2,
@@ -2524,8 +2693,8 @@ m2expr_BuildCmplx (location_t location, tree type, tree real, tree imag)
 }
 
 /* BuildBinaryForeachWordDo implements the large set operators.  Each
-word of the set can be calculated by binop.  This function runs along
-each word of the large set invoking the binop.  */
+   word of the set can be calculated by binop.  This function runs along
+   each word of the large set invoking the binop.  */
 
 void
 m2expr_BuildBinaryForeachWordDo (location_t location, tree type, tree op1,
@@ -2592,7 +2761,7 @@ m2expr_BuildBinaryForeachWordDo (location_t location, tree type, tree op1,
 }
 
 /* Append DIGIT to NUM, a number of PRECISION bits being read in base
-BASE.  */
+   BASE.  */
 
 static int
 append_digit (unsigned HOST_WIDE_INT *low, HOST_WIDE_INT *high,
@@ -2659,7 +2828,7 @@ append_digit (unsigned HOST_WIDE_INT *low, HOST_WIDE_INT *high,
 }
 
 /* interpret_integer convert an integer constant into two integer
-constants.  Heavily borrowed from gcc/cppexp.c.  */
+   constants.  Heavily borrowed from gcc/cppexp.c.  */
 
 int
 m2expr_interpret_integer (const char *str, unsigned int base,
@@ -2711,7 +2880,8 @@ m2expr_interpret_integer (const char *str, unsigned int base,
 }
 
 /* Append DIGIT to NUM, a number of PRECISION bits being read in base
-BASE.  */
+   BASE.  */
+
 static int
 append_m2_digit (unsigned int *low, int *high, unsigned int digit,
                  unsigned int base)
@@ -2777,10 +2947,10 @@ append_m2_digit (unsigned int *low, int *high, unsigned int digit,
 }
 
 /* interpret_m2_integer convert an integer constant into two integer
-constants.  Heavily borrowed from gcc/cppexp.c.  Note that this is a
-copy of the above code except that it uses `int' rather than
-HOST_WIDE_INT to allow gm2 to determine what Modula-2 base type to
-use for this constant.  */
+   constants.  Heavily borrowed from gcc/cppexp.c.  Note that this is a
+   copy of the above code except that it uses `int' rather than
+   HOST_WIDE_INT to allow gm2 to determine what Modula-2 base type to
+   use for this constant.  */
 
 int
 m2expr_interpret_m2_integer (const char *str, unsigned int base,

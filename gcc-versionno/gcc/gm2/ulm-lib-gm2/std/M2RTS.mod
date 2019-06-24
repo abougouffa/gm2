@@ -435,6 +435,14 @@ BEGIN
 END RealValueException ;
 
 
+PROCEDURE ParameterException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   ErrorMessageColumn(filename, scope,
+                      ADR("actual parameter exceeds formal parameter type range"),
+                      line, column)
+END ParameterException ;
+
+
 PROCEDURE NoException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
    ErrorMessageColumn(filename, scope,

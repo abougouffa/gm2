@@ -1,5 +1,6 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+                 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+                 2019
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -392,6 +393,14 @@ BEGIN
                       filename, line, column, scope,
                       ADR("the floating point value is about to overflow"))
 END RealValueException ;
+
+
+PROCEDURE ParameterException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   RTExceptions.Raise(ORD(M2EXCEPTION.rangeException),
+                      filename, line, column, scope,
+                      ADR("actual parameter exceeds formal parameter type range"))
+END ParameterException ;
 
 
 PROCEDURE NoException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;

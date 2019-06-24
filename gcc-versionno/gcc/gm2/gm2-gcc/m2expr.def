@@ -148,6 +148,15 @@ PROCEDURE BuildDivM2 (location: location_t; op1, op2: Tree; needsconvert: BOOLEA
 
 
 (*
+   BuildDivM2Check - build and return ((op2 < 0) : (op1 divtrunc op2) ? (op1 divfloor op2))
+                     when -fiso, -fpim4 or -fpositive-mod-floor-div is present else
+                     return op1 div trunc op2.  Use the checking div equivalents.
+*)
+
+PROCEDURE BuildDivM2Check (location: location_t; op1, op2, lowest, min, max: Tree) : Tree ;
+
+
+(*
    BuildModM2 - build and return ((op2 < 0) : (op1 divtrunc op2) ? (op1 divfloor op2))
                 when -fiso, -fpim4 or -fpositive-mod-floor-div is present else
                 return op1 div trunc op2
@@ -196,6 +205,13 @@ PROCEDURE BuildModTrunc (location: location_t; op1: Tree; op2: Tree; needconvert
 *)
 
 PROCEDURE BuildDivTrunc (location: location_t; op1: Tree; op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+    BuildDivTruncCheck - builds a division tree after checking for overflow.
+*)
+
+PROCEDURE BuildDivTruncCheck (location: location_t; op1, op2, lowest, min, max: Tree) : Tree ;
 
 
 (*

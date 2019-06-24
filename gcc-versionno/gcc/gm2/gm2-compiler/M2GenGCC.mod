@@ -166,7 +166,8 @@ FROM m2expr IMPORT GetIntegerZero, GetIntegerOne,
                    BuildBinCheckProcedure, BuildUnaryCheckProcedure,
                    BuildBinProcedure, BuildUnaryProcedure,
                    BuildSetProcedure, BuildUnarySetFunction,
-		   BuildAddCheck, BuildSubCheck, BuildMultCheck,
+		   BuildAddCheck, BuildSubCheck, BuildMultCheck, BuildDivTruncCheck,
+                   BuildDivM2Check,
                    BuildAdd, BuildSub, BuildMult, BuildLSL,
 		   BuildDivCeil, BuildModCeil,
                    BuildDivTrunc, BuildModTrunc, BuildDivFloor, BuildModFloor,
@@ -457,7 +458,7 @@ BEGIN
    AddOp              : CodeAddChecked (q, op1, op2, op3) |
    SubOp              : CodeSubChecked (q, op1, op2, op3) |
    MultOp             : CodeMultChecked (q, op1, op2, op3) |
-   DivM2Op            : CodeDivM2(q, op1, op2, op3) |
+   DivM2Op            : CodeDivM2Checked (q, op1, op2, op3) |
    ModM2Op            : CodeModM2(q, op1, op2, op3) |
    DivTruncOp         : CodeDivTrunc(q, op1, op2, op3) |
    ModTruncOp         : CodeModTrunc(q, op1, op2, op3) |
@@ -3286,7 +3287,7 @@ VAR
    tl, tr    : Tree ;
    location  : location_t ;
 BEGIN
-   (* firstly ensure that constant literals are declared *)
+   (* firstly ensure that constant literals are declared.  *)
    DeclareConstant (CurrentQuadToken, op3) ;
    DeclareConstant (CurrentQuadToken, op2) ;
    location := TokenToLocation (CurrentQuadToken) ;
@@ -3305,7 +3306,7 @@ BEGIN
    CheckOrResetOverflow (CurrentQuadToken, tv, MustCheckOverflow (quad)) ;
    IF IsConst (op1)
    THEN
-      (* still have a constant which was not resolved, pass it to gcc *)
+      (* still have a constant which was not resolved, pass it to gcc.  *)
       Assert (MixTypes (FindType (op3), FindType (op2), CurrentQuadToken) # NulSym) ;
 
       PutConst (op1, MixTypes (FindType (op3), FindType (op2), CurrentQuadToken)) ;
@@ -3614,6 +3615,35 @@ BEGIN
       CodeBinary(BuildMult, quad, op1, op2, op3)
    END
 END CodeMult ;
+
+
+(*
+   CodeDivM2Checked - code a divide instruction, determine whether checking
+                      is required.
+*)
+
+PROCEDURE CodeDivM2Checked (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF MustCheckOverflow (quad)
+   THEN
+      CodeDivM2Check (quad, op1, op2, op3)
+   ELSE
+      CodeDivM2 (quad, op1, op2, op3)
+   END
+END CodeDivM2Checked ;
+
+
+(*
+   CodeDivM2Check - encode addition but check for overflow.
+*)
+
+PROCEDURE CodeDivM2Check (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF BinaryOperands (quad, op2, op3)
+   THEN
+      CodeBinaryCheck (BuildDivM2Check, quad, op1, op2, op3)
+   END
+END CodeDivM2Check ;
 
 
 (*
@@ -7186,8 +7216,3 @@ BEGIN
    CurrentQuadToken := 0 ;
    ScopeStack := InitStackWord()
 END M2GenGCC.
-(*
- * Local variables:
- *  compile-command: "gm2 -c -g -I.:../gm2-libs:../gm2-libs-ch:../gm2-libiberty/ M2GenGCC.mod"
- * End:
- *)

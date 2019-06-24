@@ -1,6 +1,24 @@
-/* This plugin recursively dumps the source-code location ranges of
-   expressions, at the pre-gimplification tree stage.  */
-/* { dg-options "-O" } */
+/* m2rte.c a plugin to detect runtime exceptions at compiletime.
+
+Copyright (C) 2017-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius@glam.ac.uk>.
+
+This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  */
+
 
 #include "gcc-plugin.h"
 #include "config.h"
@@ -113,7 +131,8 @@ m2graph::lookup_node (gimple *g)
 #endif
 
 
-static void pretty_function (tree fndecl)
+static void
+pretty_function (tree fndecl)
 {
   if (fndecl != NULL && (DECL_NAME (fndecl) != NULL))
     {
@@ -123,7 +142,8 @@ static void pretty_function (tree fndecl)
 }
 
 
-static const char *access_string (tree t)
+static const char *
+access_string (tree t)
 {
   if (TREE_CODE (t) == ADDR_EXPR)
     {
@@ -137,7 +157,8 @@ static const char *access_string (tree t)
     off the 'In function' component of the error message as it can be misleading
     after optimization.  */
 
-static void my_error_at (location_t location, const char *message, ...)
+static void
+my_error_at (location_t location, const char *message, ...)
 {
   diagnostic_info diagnostic;
   va_list ap;
@@ -153,7 +174,8 @@ static void my_error_at (location_t location, const char *message, ...)
    locate the source code.  We dont use location, as the error_at function will
    give the function context which might be misleading if this is inlined.  */
 
-static void generate_error (gimple *stmt, const char *message)
+static void
+generate_error (gimple *stmt, const char *message)
 {
   if (gimple_call_num_args (stmt) == 4)
     {
@@ -163,7 +185,7 @@ static void generate_error (gimple *stmt, const char *message)
       const char *file = access_string (s0);
       int line = TREE_INT_CST_LOW (i1);
       int col = TREE_INT_CST_LOW (i2);
-      fprintf (stderr, "%s:%d:%d:inevitable that this error will occur at runtime, %s\n", file, line, col, message);
+      fprintf (stderr, "%s:%d:%d:inevitable runtime error will occur, %s\n", file, line, col, message);
 #if 0
       location_t location = gimple_location (stmt);
       my_error_at (location, "inevitable that this error will occur at runtime, %s exceeds range\n", message);
@@ -223,6 +245,8 @@ examine_call (gimple *stmt)
 	generate_error (stmt, "expression will generate an exception as a whole value will overflow the type range");
       else if (strcmp (n, "M2RTS_RealValueException") == 0)
 	generate_error (stmt, "expression will generate an exception as a real value will overflow the type range");
+      else if (strcmp (n, "M2RTS_ParameterException") == 0)
+	generate_error (stmt, "an exception will occur because the actual parameter is out of range of the formal parameter");
       else if (strcmp (n, "M2RTS_NoException") == 0)
 	generate_error (stmt, "an exception will occur because the program is attempting to discover the source of a non-existent exception");
     }
@@ -282,8 +306,7 @@ pass_warn_exception_inevitable::execute (function *fun)
     {
       for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next (&gsi))
         runtime_exception_inevitable (gsi_stmt (gsi));
-      /*  we only care about the first basic block in each function.
-       */
+      /*  we only care about the first basic block in each function.  */
 #if defined (DEVELOPMENT)
       if (count == 0)
 	fprintf (stderr, "/* end of first bb in function.  */\n\n");
@@ -310,9 +333,7 @@ make_pass_warn_exception_inevitable (gcc::context *ctxt)
 }
 
 
-/*
- *  plugin_init - check the version and register the plugin.
- */
+/* plugin_init, check the version and register the plugin.  */
 
 int
 plugin_init (struct plugin_name_args *plugin_info,
