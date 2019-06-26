@@ -39,7 +39,7 @@ PROCEDURE ExecuteTerminationProcedures ;
 PROCEDURE ExecuteInitialProcedures ;
 PROCEDURE HALT ;
 PROCEDURE NoException (filename: ADDRESS;
-                       line, column: CARDINAL; scope: ADDRESS) ;
+                       line, column: CARDINAL; scope, message: ADDRESS) ;
 
 
 END M2RTS.

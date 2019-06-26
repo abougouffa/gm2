@@ -224,7 +224,7 @@ END checkDead ;
 
 
 (*
-   Reschedule - 
+   Reschedule -
 *)
 
 PROCEDURE Reschedule ;
@@ -523,7 +523,8 @@ BEGIN
       RETURN( VAL(ProcessesExceptions, CurrentNumber(process)) )
    ELSE
       NoException(ADR(__FILE__), __LINE__,
-                  __COLUMN__, ADR(__FUNCTION__))
+                  __COLUMN__, ADR(__FUNCTION__),
+                  ADR ("not in the exceptional execution state"))
    END
 END ProcessesException ;
 

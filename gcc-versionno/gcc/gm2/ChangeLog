@@ -1,3 +1,57 @@
+2019-06-26      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeError) add
+	  extra parameter to CodeErrorCheck.
+	* gm2/gm2-compiler/M2Range.def:  (CodeRangeCheck)
+          renamed parameter from scopeDesc to function.
+	  (BuildIfCallWholeHandlerLoc)
+          extra parameter message added.  (BuildIfCallRealHandlerLoc)
+	  extra parameter message added.
+	* gm2/gm2-compiler/M2Range.mod:  (CodeRangeCheck)
+          renamed parameter from scopeDesc to function.
+	  (BuildIfCallWholeHandlerLoc)  (BuildIfCallWholeHandlerLoc)
+          extra parameter message added.  (BuildIfCallRealHandlerLoc)
+          extra parameter message added.  All procedure using above
+          procedures also have message parameters added.
+	  (GetRangeErrorMessage) New procedure function.
+	* gm2/gm2-gcc/m2expr.c:  (get_current_function_name) New function.
+          All functions using M2Range_BuildIfCallWholeHandlerLoc
+	  have an appropriate error message added.
+	* gm2/gm2-gcc/m2range.h:  extra scope parameter added.
+	* gm2/gm2-libs-iso/GeneralUserExceptions.mod:  added specific
+	  message for the NoException call.
+	* gm2/gm2-libs-iso/IOChan.mod:  added specific
+	  message for the NoException call.
+	* gm2/gm2-libs-iso/IOLink.mod:  added specific
+	  message for the NoException call.
+	* gm2/gm2-libs-iso/M2RTS.def:  added message parameters for all
+	  exception procedures.
+	* gm2/gm2-libs-iso/M2RTS.mod:  added message parameters for all
+	  exception procedures.
+	* gm2/gm2-libs-iso/Processes.mod:  added specific
+	  message for the NoException call.
+	* gm2/gm2-libs-min/M2RTS.def:  added message parameters for all
+	  exception procedures.
+	* gm2/gm2-libs-min/M2RTS.mod:  added message parameters for all
+	  exception procedures.
+	* gm2/gm2-libs/M2RTS.def:  added message parameters for all
+	  exception procedures.
+	* gm2/gm2-libs/M2RTS.mod:  added message parameters for all
+	  exception procedures.
+	* gm2/gm2-libs/RTExceptions.mod:  improved error message to
+          include the scope of the caller.
+	* gm2/plugin/m2rte.c:  (access_int) and (access_string) rewritten
+          to make more defensive.  (my_error_at) improved and renamed as
+	  (rte_error_at).  (generate_error) rewritten to be more
+          defensive.  (examine_call) removed all error messages as these
+	  are now extracted from the exception handler parameter.
+	* gm2/ulm-lib-gm2/std/M2RTS.mod:  added message parameters for all
+	  exception procedures.
+	* m2/libiso/Makefile.am:
+	* m2/libiso/Makefile.in:
+	* m2/libpim/Makefile.am:
+	* m2/libpim/Makefile.in:
+
 2019-06-25      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/M2Base.def:

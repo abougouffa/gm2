@@ -343,7 +343,8 @@ BEGIN
                   EXCEPTIONS.CurrentNumber(iolink)) )
    ELSE
       M2RTS.NoException(SYSTEM.ADR(__FILE__), __LINE__,
-                        __COLUMN__, SYSTEM.ADR(__FUNCTION__))
+                        __COLUMN__, SYSTEM.ADR(__FUNCTION__),
+                        SYSTEM.ADR ("not in the exceptional execution state"))
    END
 END IOException ;
 

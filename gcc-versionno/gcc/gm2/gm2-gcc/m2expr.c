@@ -1064,6 +1064,20 @@ m2expr_BuildGreaterThanOrEqualZero (location_t location, tree value, tree type,
       fold_convert_loc (location, type, m2expr_GetIntegerZero (location)));
 }
 
+
+/* get_current_function_name, return the name of the current function if
+   it currently exists.  NULL is returned if we are not inside a function.  */
+
+static const char *
+get_current_function_name (void)
+{
+  if (current_function_decl != NULL
+      && (DECL_NAME (current_function_decl) != NULL)
+      && (IDENTIFIER_POINTER (DECL_NAME (current_function_decl)) != NULL))
+    return IDENTIFIER_POINTER (DECL_NAME (current_function_decl));
+  return NULL;
+}
+
 /* checkWholeNegateOverflow - check to see whether -arg will overflow
    an integer.
 
@@ -1098,7 +1112,9 @@ BEGIN
 END sneg ; */
 
 static void
-checkWholeNegateOverflow (location_t location, tree i, tree type, tree min,
+checkWholeNegateOverflow (location_t location,
+
+			  tree i, tree type, tree min,
                           tree max)
 {
   tree a1
@@ -1142,7 +1158,8 @@ checkWholeNegateOverflow (location_t location, tree i, tree type, tree min,
       = m2expr_FoldAndStrip (m2expr_BuildTruthAndIf (location, a1, a2));
 
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
-                                               "whole value unary -");
+					       get_current_function_name (),
+               "whole value unary minus will cause range overflow");
   m2type_AddStatement (location, t);
 }
 
@@ -1172,7 +1189,8 @@ checkWholeAddOverflow (location_t location, tree i, tree j, tree lowest,
   tree condition
       = m2expr_FoldAndStrip (m2expr_BuildTruthOrIf (location, c5, c6));
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
-                                               "whole value +");
+					       get_current_function_name (),
+               "whole value additition will cause a range overflow");
   m2type_AddStatement (location, t);
 }
 
@@ -1202,7 +1220,8 @@ checkWholeSubOverflow (location_t location, tree i, tree j, tree lowest,
   tree condition
       = m2expr_FoldAndStrip (m2expr_BuildTruthOrIf (location, c5, c6));
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
-                                               "whole value -");
+					       get_current_function_name (),
+               "whole value subtraction will cause a range overflow");
   m2type_AddStatement (location, t);
 }
 
@@ -1228,7 +1247,7 @@ m2expr_Build3TruthAndIf (location_t location, tree op1, tree op2, tree op3)
 }
 
 /* Build4TruthOrIf - return TRUE if op1 || op2 || op3 || op4.  Retain order
- * left to right.  */
+   left to right.  */
 
 static tree
 m2expr_Build4TruthOrIf (location_t location, tree op1, tree op2, tree op3,
@@ -1297,7 +1316,8 @@ checkWholeMultOverflow (location_t location, tree i, tree j, tree lowest,
 
   tree condition = m2expr_Build4LogicalOr (location, c8, c9, c10, c11);
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
-                                               "whole value *");
+					       get_current_function_name (),
+               "whole value multiplication will cause a range overflow");
   m2type_AddStatement (location, t);
 }
 
@@ -1385,12 +1405,13 @@ checkWholeDivTruncOverflow (location_t location, tree i, tree j, tree lowest,
   tree c8 = m2expr_Build4TruthOrIf (location, c1, c2, c3, c4);
   tree condition = m2expr_Build4TruthOrIf (location, c5, c6, c7, c8);
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
-                                               "whole value truncated division ");
+					       get_current_function_name (),
+               "whole value truncated division will cause a range overflow");
   m2type_AddStatement (location, t);
 }
 
 /* checkWholeOverflow check to see if the binary operators will overflow
- * ordinal types.  */
+   ordinal types.  */
 
 void
 m2expr_checkWholeOverflow (location_t location, enum tree_code code, tree op1,
@@ -1438,12 +1459,16 @@ m2expr_checkRealOverflow (location_t location, enum tree_code code,
         case PLUS_EXPR:
           m2type_AddStatement (location,
                                M2Range_BuildIfCallRealHandlerLoc (
-                                   location, condition, "floating point +"));
+				   location, condition,
+				   get_current_function_name (),
+		   "floating point + has caused an overflow"));
           break;
         case MINUS_EXPR:
           m2type_AddStatement (location,
                                M2Range_BuildIfCallRealHandlerLoc (
-                                   location, condition, "floating point -"));
+                                   location, condition,
+				   get_current_function_name (),
+		   "floating point - has caused an overflow"));
           break;
         case RDIV_EXPR:
         case FLOOR_DIV_EXPR:
@@ -1451,17 +1476,23 @@ m2expr_checkRealOverflow (location_t location, enum tree_code code,
         case TRUNC_DIV_EXPR:
           m2type_AddStatement (location,
                                M2Range_BuildIfCallRealHandlerLoc (
-                                   location, condition, "floating point /"));
+                                   location, condition,
+				   get_current_function_name (),
+		   "floating point / has caused an overflow"));
           break;
         case MULT_EXPR:
           m2type_AddStatement (location,
                                M2Range_BuildIfCallRealHandlerLoc (
-                                   location, condition, "floating point *"));
+                                   location, condition,
+				   get_current_function_name (),
+		   "floating point * has caused an overflow"));
           break;
         case NEGATE_EXPR:
           m2type_AddStatement (
               location, M2Range_BuildIfCallRealHandlerLoc (
-                            location, condition, "floating point unary -"));
+                            location, condition,
+			    get_current_function_name (),
+		   "floating point unary - has caused an overflow"));
         default:
           break;
         }

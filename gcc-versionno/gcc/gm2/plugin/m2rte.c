@@ -142,30 +142,66 @@ pretty_function (tree fndecl)
 }
 
 
-static const char *
-access_string (tree t)
+static bool
+access_string (tree t, const char **value)
 {
   if (TREE_CODE (t) == ADDR_EXPR)
     {
       if (TREE_CODE (TREE_OPERAND (t, 0)) == STRING_CST)
-	return TREE_STRING_POINTER (TREE_OPERAND (t, 0));
+	{
+	  *value = TREE_STRING_POINTER (TREE_OPERAND (t, 0));
+	  return true;
+	}
     }
-  return NULL;
+  return false;
 }
 
-/*  my_error_at - wraps up an error message, --fixme-- this needs to turn
+
+void
+print_rtl (FILE *outf, const_rtx rtx_first);
+
+static bool
+access_int (tree t, int *value)
+{
+  enum tree_code code = TREE_CODE (t);
+
+  if (code == SSA_NAME)
+    return access_int (SSA_NAME_VAR (t), value);
+  if (code == INTEGER_CST)
+    {
+      *value = TREE_INT_CST_LOW (t);
+      return true;
+    }
+  if ((code == VAR_DECL || code == PARM_DECL)
+      && DECL_HAS_VALUE_EXPR_P (t))
+    return access_int (DECL_VALUE_EXPR (t), value);
+#if 0
+  if (code == PARM_DECL)
+    if (DECL_INCOMING_RTL (t) != 0)
+      print_rtl (stdout, DECL_INCOMING_RTL (t));
+  if ((code == VAR_DECL || code == PARM_DECL || code == RESULT_DECL)
+      && DECL_BY_REFERENCE (t))
+    fprintf (stderr, "passed by ref\n");
+  fprintf (stderr, "failed to find int\n");
+#endif
+
+  return false;
+}
+
+
+/*  rte_error_at - wraps up an error message, --fixme-- this needs to turn
     off the 'In function' component of the error message as it can be misleading
-    after optimization.  */
+    after optimization.  Is this still true?  */
 
 static void
-my_error_at (location_t location, const char *message, ...)
+rte_error_at (location_t location, const char *message, ...)
 {
   diagnostic_info diagnostic;
   va_list ap;
   rich_location richloc (line_table, location);
 
   va_start (ap, message);
-  diagnostic_set_info (&diagnostic, message, &ap, &richloc, DK_ERROR);
+  diagnostic_set_info (&diagnostic, message, &ap, &richloc, DK_WARNING);
   diagnostic_report_diagnostic (global_dc, &diagnostic);
   va_end (ap);
 }
@@ -175,21 +211,33 @@ my_error_at (location_t location, const char *message, ...)
    give the function context which might be misleading if this is inlined.  */
 
 static void
-generate_error (gimple *stmt, const char *message)
+generate_error (gimple *stmt)
 {
-  if (gimple_call_num_args (stmt) == 4)
+  if (gimple_call_num_args (stmt) == 5)
     {
       tree s0 = gimple_call_arg (stmt, 0);
       tree i1 = gimple_call_arg (stmt, 1);
       tree i2 = gimple_call_arg (stmt, 2);
-      const char *file = access_string (s0);
-      int line = TREE_INT_CST_LOW (i1);
-      int col = TREE_INT_CST_LOW (i2);
-      fprintf (stderr, "%s:%d:%d:inevitable runtime error will occur, %s\n", file, line, col, message);
-#if 0
-      location_t location = gimple_location (stmt);
-      my_error_at (location, "inevitable that this error will occur at runtime, %s exceeds range\n", message);
-#endif
+      tree s1 = gimple_call_arg (stmt, 3);
+      tree s2 = gimple_call_arg (stmt, 4);
+      const char *file;
+      int line;
+      int col;
+      const char *scope;
+      const char *message;
+
+      if (access_string (s0, &file)
+	  && access_int (i1, &line)
+	  && access_int (i2, &col)
+	  && access_string (s1, &scope)
+	  && access_string (s2, &message))
+	{
+	  /* continue to use scope as this will survive any
+	     optimization transforms.  */
+	  location_t location = gimple_location (stmt);
+	  rte_error_at (location, "runtime error will occur, %s (in %s)\n",
+			message, scope);
+	}
     }
 }
 
@@ -202,53 +250,53 @@ examine_call (gimple *stmt)
     {
       const char *n = IDENTIFIER_POINTER (DECL_NAME (fndecl));
       if (strcmp (n, "M2RTS_AssignmentException") == 0)
-	generate_error (stmt, "assignment will result in an overflow");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_ReturnException") == 0)
-	generate_error (stmt, "the expression in the RETURN statement of a procedure function exceeds the function return type range");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_IncException") == 0)
-	generate_error (stmt, "standard procedure INC overflow");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_DecException") == 0)
-	generate_error (stmt, "standard procedure DEC overflow");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_InclException") == 0)
-	generate_error (stmt, "standard procedure INCL overflow");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_ExclException") == 0)
-	generate_error (stmt, "standard procedure EXCL overflow");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_ShiftException") == 0)
-	generate_error (stmt, "standard procedure SHIFT overflow");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_RotateException") == 0)
-	generate_error (stmt, "standard procedure ROTATE overflow");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_StaticArraySubscriptException") == 0)
-	generate_error (stmt, "static array subscript out of bounds");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_DynamicArraySubscriptException") == 0)
-	generate_error (stmt, "dynamic array subscript out of bounds");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_ForLoopBeginException") == 0)
-	generate_error (stmt, "assignment at the beginning of the FOR loop will cause an overflow");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_ForLoopToException") == 0)
-	generate_error (stmt, "the TO expression of the FOR loop is out of range");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_ForLoopEndException") == 0)
-	generate_error (stmt, "the increment or decrement in the FOR loop will cause the iterator to exceed its type range");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_PointerNilException") == 0)
-	generate_error (stmt, "attempting to dereference a NIL pointer");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_NoReturnException") == 0)
-	generate_error (stmt, "procedure function will finish without executing a RETURN statement");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_CaseException") == 0)
-	generate_error (stmt, "CASE statement will not detect the selector expression");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_WholeNonPosDivException") == 0)
-	generate_error (stmt, "expression will generate an exception as the denominator to DIV is negative");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_WholeNonPosModException") == 0)
-	generate_error (stmt, "expression will generate an exception as the denominator to MOD is negative");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_WholeZeroDivException") == 0)
-	generate_error (stmt, "expression will generate an exception as the denominator to DIV is zero");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_WholeZeroRemException") == 0)
-	generate_error (stmt, "expression will generate an exception as the denominator to REM is zero");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_WholeValueException") == 0)
-	generate_error (stmt, "expression will generate an exception as a whole value will overflow the type range");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_RealValueException") == 0)
-	generate_error (stmt, "expression will generate an exception as a real value will overflow the type range");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_ParameterException") == 0)
-	generate_error (stmt, "an exception will occur because the actual parameter is out of range of the formal parameter");
+	generate_error (stmt);
       else if (strcmp (n, "M2RTS_NoException") == 0)
-	generate_error (stmt, "an exception will occur because the program is attempting to discover the source of a non-existent exception");
+	generate_error (stmt);
     }
 }
 

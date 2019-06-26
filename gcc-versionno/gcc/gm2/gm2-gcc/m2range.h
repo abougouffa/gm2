@@ -29,9 +29,11 @@ see <https://www.gnu.org/licenses/>.  */
 
 EXTERN tree M2Range_BuildIfCallWholeHandlerLoc (location_t location,
                                                 tree condition,
+						const char *scope,
                                                 const char *message);
 EXTERN tree M2Range_BuildIfCallRealHandlerLoc (location_t location,
                                                tree condition,
+					       const char *scope,
                                                const char *message);
 
 #undef EXTERN

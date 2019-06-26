@@ -212,7 +212,7 @@ PROCEDURE TextRead (cid: ChanId;
      and assigns corresponding values to successive components of an
      ARRAY OF CHAR variable for which the address of the first
      component is to. The number of characters read is assigned
-     to charsRead. The stored read result is set to allRight, 
+     to charsRead. The stored read result is set to allRight,
      endOfLine, or endOfInput.
   *)
 VAR
@@ -502,8 +502,9 @@ BEGIN
    THEN
       RETURN( VAL(ChanExceptions, EXCEPTIONS.CurrentNumber(iochan)) )
    ELSE
-      M2RTS.NoException(SYSTEM.ADR(__FILE__), __LINE__,
-                        __COLUMN__, SYSTEM.ADR(__FUNCTION__))
+      M2RTS.NoException (SYSTEM.ADR(__FILE__), __LINE__,
+                        __COLUMN__, SYSTEM.ADR(__FUNCTION__),
+                        SYSTEM.ADR ("not in the exceptional execution state"))
    END
 END ChanException ;
 

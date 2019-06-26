@@ -288,10 +288,12 @@ BEGIN
    addChar(':', i) ;
    addStr(message, i) ;
    addChar(' ', i) ;
+   addChar('(', i) ;
    addChar('i', i) ;
    addChar('n', i) ;
    addChar(' ', i) ;
    addStr(function, i) ;
+   addChar(')', i) ;
    addChar(nl, i) ;
    addChar(nul, i) ;
    InvokeHandler

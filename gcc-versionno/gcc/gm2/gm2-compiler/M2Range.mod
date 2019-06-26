@@ -1906,7 +1906,7 @@ END FoldCaseBounds ;
                     during the code generation of this function.
 *)
 
-PROCEDURE CodeCaseBounds (tokenno: CARDINAL; caseList: CARDINAL; scopeDesc: String) ;
+PROCEDURE CodeCaseBounds (tokenno: CARDINAL; caseList: CARDINAL; function, message: String) ;
 VAR
    d: CARDINAL ;
 BEGIN
@@ -2156,7 +2156,7 @@ END BuildStringParamLoc ;
    CodeErrorCheck - returns a Tree calling the approprate exception handler.
 *)
 
-PROCEDURE CodeErrorCheck (r: CARDINAL; scopeDesc: String) : Tree ;
+PROCEDURE CodeErrorCheck (r: CARDINAL; function, message: String) : Tree ;
 VAR
    filename: String ;
    line,
@@ -2165,33 +2165,38 @@ VAR
    f       : Tree ;
    location: location_t ;
 BEGIN
-   IF HaveHandler(r)
+   IF HaveHandler (r)
    THEN
-      p := GetIndice(RangeIndex, r) ;
+      IF message = NIL
+      THEN
+         message := GetRangeErrorMessage (r)
+      END ;
+      p := GetIndice (RangeIndex, r) ;
       WITH p^ DO
-         filename := FindFileNameFromToken(tokenNo, 0) ;
-         line := TokenToLineNo(tokenNo, 0) ;
-         column := TokenToColumnNo(tokenNo, 0) ;
-         location := TokenToLocation(tokenNo) ;
-         f := Mod2Gcc(lookupExceptionHandler(type)) ;
-         BuildStringParam(tokenNo, scopeDesc) ;
-         BuildParam(location, BuildIntegerConstant(column)) ;
-         BuildParam(location, BuildIntegerConstant(line)) ;
-         BuildStringParam(tokenNo, filename) ;
-         RETURN( BuildProcedureCallTree(location, f, NIL) )
+         filename := FindFileNameFromToken (tokenNo, 0) ;
+         line := TokenToLineNo (tokenNo, 0) ;
+         column := TokenToColumnNo (tokenNo, 0) ;
+         location := TokenToLocation (tokenNo) ;
+         f := Mod2Gcc (lookupExceptionHandler (type)) ;
+         BuildStringParam (tokenNo, message) ;
+         BuildStringParam (tokenNo, function) ;
+         BuildParam (location, BuildIntegerConstant (column)) ;
+         BuildParam (location, BuildIntegerConstant (line)) ;
+         BuildStringParam (tokenNo, filename) ;
+         RETURN BuildProcedureCallTree (location, f, NIL)
       END
    ELSE
-      RETURN( NIL )
+      RETURN NIL
    END
 END CodeErrorCheck ;
 
 
 (*
    IssueWarning - issue a warning.  The compiler knows that this basic block can be reached
-                  and we are in scope, scopeDesc.
+                  and we are in scope, function.
 *)
 
-PROCEDURE IssueWarning (scopeDesc: String; r: CARDINAL) ;
+PROCEDURE IssueWarning (function: String; r: CARDINAL) ;
 VAR
    p: Range ;
    s: String ;
@@ -2231,8 +2236,10 @@ BEGIN
       ELSE
          InternalError('enumeration value unknown', __FILE__, __LINE__)
       END ;
-      s := ConCat(ConCatChar(scopeDesc, ':'), Mark(s)) ;
-      MetaErrorStringT3(tokenNo, s, des, expr, dimension) ;
+      s := ConCat (s, Mark (InitString (' in ('))) ;
+      s := ConCat (s, function) ;
+      ConCatChar (s, ')') ;
+      MetaErrorStringT3 (tokenNo, s, des, expr, dimension) ;
       (* FlushErrors *)
    END
 END IssueWarning ;
@@ -2242,13 +2249,15 @@ END IssueWarning ;
    CodeErrorCheckLoc -
 *)
 
-PROCEDURE CodeErrorCheckLoc (location: location_t; message: ADDRESS; func: CARDINAL) : Tree ;
+PROCEDURE CodeErrorCheckLoc (location: location_t;
+                             function, message: ADDRESS; func: CARDINAL) : Tree ;
 VAR
-   s: String ;
-   t: Tree ;
-   f: String ;
-   l,
-   c: CARDINAL ;
+   scope,
+   errorMessage: String ;
+   t           : Tree ;
+   filename    : String ;
+   line,
+   column      : CARDINAL ;
 BEGIN
    IF func = NulSym
    THEN
@@ -2257,17 +2266,28 @@ BEGIN
       t := Mod2Gcc (func) ;
       IF t # NIL
       THEN
-         f := InitStringCharStar (GetFilenameFromLocation (location)) ;
-         s := InitStringCharStar (message) ;
-         c := GetColumnNoFromLocation (location) ;
-         l := GetLineNoFromLocation (location) ;
-         BuildStringParamLoc (location, s) ;
-         BuildParam (location, BuildIntegerConstant (c)) ;
-         BuildParam (location, BuildIntegerConstant (l)) ;
-         BuildStringParamLoc (location, f) ;
+         filename := InitStringCharStar (GetFilenameFromLocation (location)) ;
+         Assert (message # NIL) ;
+         errorMessage := InitStringCharStar (message) ;
+         column := GetColumnNoFromLocation (location) ;
+         line := GetLineNoFromLocation (location) ;
+         BuildStringParamLoc (location, errorMessage) ;
+         IF function = NIL
+         THEN
+            scope := InitString ('the global scope')
+         ELSE
+            scope := InitStringCharStar (function)
+         END ;
+         BuildStringParamLoc (location, scope) ;
+         BuildParam (location, BuildIntegerConstant (column)) ;
+         BuildParam (location, BuildIntegerConstant (line)) ;
+         BuildStringParamLoc (location, filename) ;
          t := BuildProcedureCallTree (location, t, NIL) ;
-         f := KillString (f) ;
-         s := KillString (s)
+         (*
+         filename := KillString (filename) ;
+         scope := KillString (scope) ;
+         errorMessage := KillString (errorMessage)
+         *)
       END ;
       RETURN t
    END
@@ -2293,9 +2313,10 @@ END IssueWarningLoc ;
    BuildIfCallWholeHandlerLoc - return a Tree containing a runtime test whether, condition, is true.
 *)
 
-PROCEDURE BuildIfCallWholeHandlerLoc (location: location_t; condition: Tree; message: ADDRESS) : Tree ;
+PROCEDURE BuildIfCallWholeHandlerLoc (location: location_t; condition: Tree;
+                                      scope, message: ADDRESS) : Tree ;
 BEGIN
-   RETURN BuildIfCallHandlerLoc (location, condition, message, ExceptionWholeValue)
+   RETURN BuildIfCallHandlerLoc (location, condition, scope, message, ExceptionWholeValue)
 END BuildIfCallWholeHandlerLoc ;
 
 
@@ -2303,9 +2324,10 @@ END BuildIfCallWholeHandlerLoc ;
    BuildIfCallRealHandlerLoc - return a Tree containing a runtime test whether, condition, is true.
 *)
 
-PROCEDURE BuildIfCallRealHandlerLoc (location: location_t; condition: Tree; message: ADDRESS) : Tree ;
+PROCEDURE BuildIfCallRealHandlerLoc (location: location_t; condition: Tree;
+                                     scope, message: ADDRESS) : Tree ;
 BEGIN
-   RETURN BuildIfCallHandlerLoc (location, condition, message, ExceptionRealValue)
+   RETURN BuildIfCallHandlerLoc (location, condition, scope, message, ExceptionRealValue)
 END BuildIfCallRealHandlerLoc ;
 
 
@@ -2313,13 +2335,14 @@ END BuildIfCallRealHandlerLoc ;
    BuildIfCallHandlerLoc - return a Tree containing a runtime test whether, condition, is true.
 *)
 
-PROCEDURE BuildIfCallHandlerLoc (location: location_t; condition: Tree; message: ADDRESS; func: CARDINAL) : Tree ;
+PROCEDURE BuildIfCallHandlerLoc (location: location_t; condition: Tree;
+                                 scope, message: ADDRESS; func: CARDINAL) : Tree ;
 BEGIN
    IF IsTrue (condition)
    THEN
       IssueWarningLoc (location, message)
    END ;
-   RETURN BuildIfThenDoEnd (condition, CodeErrorCheckLoc (location, message, func))
+   RETURN BuildIfThenDoEnd (condition, CodeErrorCheckLoc (location, scope, message, func))
 END BuildIfCallHandlerLoc ;
 
 
@@ -2328,13 +2351,13 @@ END BuildIfCallHandlerLoc ;
 *)
 
 PROCEDURE BuildIfCallHandler (condition: Tree; r: CARDINAL;
-                              scopeDesc: String; warning: BOOLEAN) : Tree ;
+                              function, message: String; warning: BOOLEAN) : Tree ;
 BEGIN
-   IF warning AND IsTrue(condition)
+   IF warning AND IsTrue (condition)
    THEN
-      IssueWarning(scopeDesc, r)
+      IssueWarning (function, r)
    END ;
-   RETURN( BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)) )
+   RETURN BuildIfThenDoEnd (condition, CodeErrorCheck (r, function, message))
 END BuildIfCallHandler ;
 
 
@@ -2342,8 +2365,9 @@ END BuildIfCallHandler ;
    RangeCheckReal -
 *)
 
-PROCEDURE RangeCheckReal (p: Range; r: CARDINAL; scopeDesc: String; message: ARRAY OF CHAR) ;
+PROCEDURE RangeCheckReal (p: Range; r: CARDINAL; function, message: String) ;
 VAR
+   s        : String ;
    e,
    condition: Tree ;
    location : location_t ;
@@ -2354,7 +2378,7 @@ BEGIN
       condition := BuildEqualTo (location,
                                  BuiltInIsfinite (location, e),
                                  GetIntegerZero (location)) ;
-      AddStatement (location, BuildIfCallHandler (condition, r, scopeDesc, TRUE))
+      AddStatement (location, BuildIfCallHandler (condition, r, function, message, TRUE)) ;
    END
 END RangeCheckReal ;
 
@@ -2363,7 +2387,7 @@ END RangeCheckReal ;
    RangeCheckOrdinal -
 *)
 
-PROCEDURE RangeCheckOrdinal (p: Range; r: CARDINAL; scopeDesc: String; message: ARRAY OF CHAR) ;
+PROCEDURE RangeCheckOrdinal (p: Range; r: CARDINAL; function, message: String) ;
 VAR
    condition,
    desMin, desMax,
@@ -2380,15 +2404,15 @@ BEGIN
             IF IsGreater(desMin, exprMin)
             THEN
                condition := BuildLessThan(location, DeReferenceLValue(tokenNo, expr), BuildConvert(location, Mod2Gcc(exprLowestType), desMin, FALSE)) ;
-               AddStatement(location, BuildIfCallHandler(condition, r, scopeDesc, TRUE))
+               AddStatement(location, BuildIfCallHandler(condition, r, function, message, TRUE))
             END ;
             IF IsGreater(exprMax, desMax)
             THEN
                condition := BuildGreaterThan(location, DeReferenceLValue(tokenNo, expr), BuildConvert(location, Mod2Gcc(exprLowestType), desMax, FALSE)) ;
-               AddStatement(location, BuildIfCallHandler(condition, r, scopeDesc, TRUE))
+               AddStatement(location, BuildIfCallHandler(condition, r, function, message, TRUE))
             END
          ELSE
-            MetaErrorT3(tokenNo, message, des, expr, paramNo)
+            MetaErrorT3 (tokenNo, message, des, expr, paramNo)
          END
       END
    END
@@ -2400,8 +2424,7 @@ END RangeCheckOrdinal ;
 *)
 
 PROCEDURE DoCodeAssignmentExprType (p: Range;
-                                    r: CARDINAL; scopeDesc: String;
-                                    message: ARRAY OF CHAR) ;
+                                    r: CARDINAL; function, message: String) ;
 BEGIN
    WITH p^ DO
       IF GccKnowsAbout(desLowestType) AND
@@ -2409,9 +2432,9 @@ BEGIN
       THEN
          IF IsRealType(desLowestType) AND IsRealType(exprLowestType)
          THEN
-            RangeCheckReal(p, r, scopeDesc, message)
+            RangeCheckReal (p, r, function, message)
          ELSE
-            RangeCheckOrdinal(p, r, scopeDesc, message)
+            RangeCheckOrdinal (p, r, function, message)
          END
       ELSE
          InternalError('should have resolved these types', __FILE__, __LINE__)
@@ -2425,7 +2448,7 @@ END DoCodeAssignmentExprType ;
 *)
 
 PROCEDURE DoCodeAssignmentWithoutExprType (p: Range;
-                                           r: CARDINAL; scopeDesc: String) ;
+                                           r: CARDINAL; function, message: String) ;
 VAR
    condition,
    desMin, desMax: Tree ;
@@ -2441,12 +2464,12 @@ BEGIN
                                        BuildConvert(location, Mod2Gcc(desLowestType),
                                                     DeReferenceLValue(tokenNo, expr), FALSE),
                                        desMin) ;
-            AddStatement(location, BuildIfCallHandler(condition, r, scopeDesc, TRUE)) ;
+            AddStatement(location, BuildIfCallHandler(condition, r, function, message, TRUE)) ;
             condition := BuildGreaterThan(location,
                                           BuildConvert(location, Mod2Gcc(desLowestType),
                                                        DeReferenceLValue(tokenNo, expr), FALSE),
                                           desMax) ;
-            AddStatement(location, BuildIfCallHandler(condition, r, scopeDesc, TRUE))
+            AddStatement(location, BuildIfCallHandler(condition, r, function, message, TRUE))
          END
       ELSE
          InternalError('should have resolved this type', __FILE__, __LINE__)
@@ -2460,7 +2483,7 @@ END DoCodeAssignmentWithoutExprType ;
 *)
 
 PROCEDURE DoCodeAssignment (tokenno: CARDINAL; r: CARDINAL;
-                            scopeDesc: String; message: ARRAY OF CHAR) ;
+                            function, message: String) ;
 VAR
    p: Range ;
 BEGIN
@@ -2474,9 +2497,9 @@ BEGIN
          Assert(GccKnowsAbout(expr)) ;
          IF exprLowestType=NulSym
          THEN
-            DoCodeAssignmentWithoutExprType(p, r, scopeDesc)
+            DoCodeAssignmentWithoutExprType (p, r, function, message)
          ELSE
-            DoCodeAssignmentExprType(p, r, scopeDesc, message)
+            DoCodeAssignmentExprType (p, r, function, message)
          END
       END
    END
@@ -2488,10 +2511,9 @@ END DoCodeAssignment ;
 *)
 
 PROCEDURE CodeAssignment (tokenno: CARDINAL;
-                          r: CARDINAL; scopeDesc: String) ;
+                          r: CARDINAL; function, message: String) ;
 BEGIN
-   DoCodeAssignment(tokenno, r, scopeDesc,
-                    'assignment will cause a range error, as the range of {%1tad} does not overlap with {%2tad}')
+   DoCodeAssignment (tokenno, r, function, message)
 END CodeAssignment ;
 
 
@@ -2500,10 +2522,9 @@ END CodeAssignment ;
 *)
 
 PROCEDURE CodeParameterAssign (tokenno: CARDINAL;
-                               r: CARDINAL; scopeDesc: String) ;
+                               r: CARDINAL; function, message: String) ;
 BEGIN
-   DoCodeAssignment(tokenno, r, scopeDesc,
-                    'passing the actual {%3N} parameter {%2tad} will cause a range error with the formal parameter type {%1tad}')
+   DoCodeAssignment (tokenno, r, function, message)
 END CodeParameterAssign ;
 
 
@@ -2512,10 +2533,9 @@ END CodeParameterAssign ;
 *)
 
 PROCEDURE CodeReturn (tokenno: CARDINAL;
-                      r: CARDINAL; scopeDesc: String) ;
+                      r: CARDINAL; function, message: String) ;
 BEGIN
-   DoCodeAssignment(tokenno, r, scopeDesc,
-                    'attempting to return {%2Wa} from a procedure function {%1a} which will exceed exceed the range of type {%1tad}')
+   DoCodeAssignment (tokenno, r, function, message)
 END CodeReturn ;
 
 
@@ -2523,16 +2543,17 @@ END CodeReturn ;
    IfOutsideLimitsDo -
 *)
 
-PROCEDURE IfOutsideLimitsDo (tokenno: CARDINAL; min, expr, max: Tree; r: CARDINAL; scopeDesc: String) ;
+PROCEDURE IfOutsideLimitsDo (tokenno: CARDINAL; min, expr, max: Tree; r: CARDINAL;
+                             function, message: String) ;
 VAR
    condition: Tree ;
    location : location_t ;
 BEGIN
-   location := TokenToLocation(tokenno) ;
-   condition := BuildGreaterThan(location, min, expr) ;
-   AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc))) ;
-   condition := BuildLessThan(location, max, expr) ;
-   AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
+   location := TokenToLocation (tokenno) ;
+   condition := BuildGreaterThan (location, min, expr) ;
+   AddStatement (location, BuildIfThenDoEnd (condition, CodeErrorCheck (r, function, message))) ;
+   condition := BuildLessThan (location, max, expr) ;
+   AddStatement (location, BuildIfThenDoEnd (condition, CodeErrorCheck (r, function, message)))
 END IfOutsideLimitsDo ;
 
 
@@ -2541,7 +2562,7 @@ END IfOutsideLimitsDo ;
 *)
 
 PROCEDURE CodeInc (tokenno: CARDINAL;
-                   r: CARDINAL; scopeDesc: String) ;
+                   r: CARDINAL; function, message: String) ;
 VAR
    p             : Range ;
    t, condition,
@@ -2563,13 +2584,13 @@ BEGIN
                e := BuildConvert(location, GetTreeType(desMin), DeReferenceLValue(tokenno, expr), FALSE) ;
                IfOutsideLimitsDo(tokenNo,
                                  BuildConvert(location, GetTreeType(desMin), GetIntegerZero(location), FALSE),
-                                 e, desMax, r, scopeDesc) ;
+                                 e, desMax, r, function, message) ;
                t := BuildSub(location,
                              desMax,
                              BuildConvert(location, Mod2Gcc(desLowestType), e, FALSE),
                              FALSE) ;
                condition := BuildGreaterThan(location, Mod2Gcc(des), t) ;
-               AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
+               AddStatement (location, BuildIfThenDoEnd (condition, CodeErrorCheck (r, function, message)))
             END
          ELSE
             InternalError('should have resolved these types', __FILE__, __LINE__)
@@ -2584,7 +2605,7 @@ END CodeInc ;
 *)
 
 PROCEDURE CodeDec (tokenno: CARDINAL;
-                   r: CARDINAL; scopeDesc: String) ;
+                   r: CARDINAL; function, message: String) ;
 VAR
    p             : Range ;
    t, condition,
@@ -2606,12 +2627,12 @@ BEGIN
                e := BuildConvert(location, GetTreeType(desMin), DeReferenceLValue(tokenno, expr), FALSE) ;
                IfOutsideLimitsDo(tokenNo,
                                  BuildConvert(location, GetTreeType(desMin), GetIntegerZero(location), FALSE),
-                                 e, desMax, r, scopeDesc) ;
+                                 e, desMax, r, function, message) ;
                t := BuildSub(location, BuildConvert(location, Mod2Gcc(desLowestType), e, FALSE),
                              desMin,
                              FALSE) ;
                condition := BuildLessThan(location, Mod2Gcc(des), t) ;
-               AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
+               AddStatement (location, BuildIfThenDoEnd (condition, CodeErrorCheck (r, function, message)))
             END
          ELSE
             InternalError('should have resolved these types', __FILE__, __LINE__)
@@ -2626,7 +2647,7 @@ END CodeDec ;
 *)
 
 PROCEDURE CodeInclExcl (tokenno: CARDINAL;
-                        r: CARDINAL; scopeDesc: String) ;
+                        r: CARDINAL; function, message: String) ;
 VAR
    p             : Range ;
    t, condition,
@@ -2647,14 +2668,14 @@ BEGIN
             IF GetMinMax(tokenno, desLowestType, desMin, desMax)
             THEN
                e := BuildConvert(location, GetTreeType(desMin), DeReferenceLValue(tokenno, expr), FALSE) ;
-               IfOutsideLimitsDo(tokenNo, desMin, e, desMax, r, scopeDesc)
+               IfOutsideLimitsDo(tokenNo, desMin, e, desMax, r, function, message)
 (*  this should not be used for incl/excl as des is a set type
                t := BuildSub(location,
                              desMax,
                              BuildConvert(location, Mod2Gcc(desLowestType), e, FALSE),
                              FALSE) ;
                condition := BuildGreaterThan(Mod2Gcc(des), t) ;
-               AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
+               AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, function, message)))
 *)
             END
          ELSE
@@ -2671,7 +2692,7 @@ END CodeInclExcl ;
 *)
 
 PROCEDURE CodeShiftRotate (tokenno: CARDINAL;
-                           r: CARDINAL; scopeDesc: String) ;
+                           r: CARDINAL; function, message: String) ;
 VAR
    ofType            : CARDINAL ;
    p                 : Range ;
@@ -2701,7 +2722,7 @@ BEGIN
                                     FALSE) ;
                shiftMin := BuildNegate(location, shiftMax, FALSE) ;
                e := BuildConvert(location, GetIntegerType(), DeReferenceLValue(tokenno, expr), FALSE) ;
-               IfOutsideLimitsDo(tokenNo, shiftMin, e, shiftMax, r, scopeDesc)
+               IfOutsideLimitsDo(tokenNo, shiftMin, e, shiftMax, r, function, message)
             END
          ELSE
             InternalError('should have resolved these types', __FILE__, __LINE__)
@@ -2716,7 +2737,7 @@ END CodeShiftRotate ;
 *)
 
 PROCEDURE CodeStaticArraySubscript (tokenno: CARDINAL;
-                                    r: CARDINAL; scopeDesc: String) ;
+                                    r: CARDINAL; function, message: String) ;
 VAR
    p             : Range ;
    desMin, desMax: Tree ;
@@ -2732,7 +2753,7 @@ BEGIN
          THEN
             IfOutsideLimitsDo(tokenno, desMin,
                               BuildConvert(location, GetTreeType(desMin), DeReferenceLValue(tokenno, expr), FALSE),
-                              desMax, r, scopeDesc)
+                              desMax, r, function, message)
          ELSE
             InternalError('should have resolved the bounds of the static array', __FILE__, __LINE__)
          END
@@ -2748,7 +2769,7 @@ END CodeStaticArraySubscript ;
 *)
 
 PROCEDURE CodeDynamicArraySubscript (tokenno: CARDINAL;
-                                     r: CARDINAL; scopeDesc: String) ;
+                                     r: CARDINAL; function, message: String) ;
 VAR
    UnboundedType: CARDINAL ;
    p            : Range ;
@@ -2767,7 +2788,7 @@ BEGIN
          Assert(IsUnbounded(UnboundedType)) ;
          high := BuildConvert(location, GetIntegerType(), GetHighFromUnbounded(location, dimension, des), FALSE) ;
          e := BuildConvert(location, GetIntegerType(), DeReferenceLValue(tokenno, expr), FALSE) ;
-         IfOutsideLimitsDo(tokenNo, GetIntegerZero(location), e, high, r, scopeDesc)
+         IfOutsideLimitsDo(tokenNo, GetIntegerZero(location), e, high, r, function, message)
       ELSE
          InternalError('should have resolved these types', __FILE__, __LINE__)
       END
@@ -2780,10 +2801,9 @@ END CodeDynamicArraySubscript ;
 *)
 
 PROCEDURE CodeForLoopBegin (tokenno: CARDINAL;
-                            r: CARDINAL; scopeDesc: String) ;
+                            r: CARDINAL; function, message: String) ;
 BEGIN
-   DoCodeAssignment(tokenno, r, scopeDesc,
-                    'the initial assignment to {%1a} at the start of the FOR loop will cause a range error, as the type range of {%1taD} does not overlap with {%2tad}')
+   DoCodeAssignment(tokenno, r, function, message)
 END CodeForLoopBegin ;
 
 
@@ -2792,12 +2812,10 @@ END CodeForLoopBegin ;
 *)
 
 PROCEDURE CodeForLoopTo (tokenno: CARDINAL;
-                         r: CARDINAL; scopeDesc: String) ;
+                         r: CARDINAL; function, message: String) ;
 BEGIN
-   DoCodeAssignment(tokenno, r, scopeDesc,
-                    'the final TO value {%2a} of the FOR loop will cause a range error with the iterator variable {%1a}')
+   DoCodeAssignment(tokenno, r, function, message)
 END CodeForLoopTo ;
-
 
 
 (*
@@ -2870,7 +2888,7 @@ END CodeForLoopTo ;
    SameTypesCodeForLoopEnd - the trivial case.
 *)
 
-PROCEDURE SameTypesCodeForLoopEnd (tokenNo: CARDINAL; r: CARDINAL; scopeDesc: String;
+PROCEDURE SameTypesCodeForLoopEnd (tokenNo: CARDINAL; r: CARDINAL; function, message: String;
                                    p: Range; dmin, dmax, emin, emax: Tree) ;
 VAR
    inc,
@@ -2884,7 +2902,7 @@ BEGIN
       inc := DeReferenceLValue(tokenNo, expr) ;
       room := BuildSub(location, dmax, Mod2Gcc(des), FALSE) ;
       condition := BuildLessThan(location, room, inc) ;
-      statement := BuildIfCallHandler(condition, r, scopeDesc, IsTrue(condition)) ;
+      statement := BuildIfCallHandler(condition, r, function, message, IsTrue(condition)) ;
       AddStatement(location, statement)
    END
 END SameTypesCodeForLoopEnd ;
@@ -2895,7 +2913,7 @@ END SameTypesCodeForLoopEnd ;
                              of appropriate size.
 *)
 
-PROCEDURE DiffTypesCodeForLoopEnd (tokenNo: CARDINAL; r: CARDINAL; scopeDesc: String;
+PROCEDURE DiffTypesCodeForLoopEnd (tokenNo: CARDINAL; r: CARDINAL; function, message: String;
                                    p: Range; dmin, dmax, emin, emax: Tree) ;
 VAR
    location  : location_t ;
@@ -2924,9 +2942,9 @@ BEGIN
       lg1 := BuildConvert(location, Mod2Gcc(desLowestType), inc, FALSE) ;
       room := BuildSub(location, dmax, Mod2Gcc(des), FALSE) ;
       c3 := BuildGreaterThan(location, lg1, room) ;           (* [c3]  *)
-      (* WarnIf(IsTrue(c1) AND IsTrue(c2) AND IsTrue(c3), scopeDesc) ; --implement me-- *)
+      (* WarnIf(IsTrue(c1) AND IsTrue(c2) AND IsTrue(c3), function, message) ; --implement me-- *)
 
-      s3 := BuildIfCallHandler(c3, r, scopeDesc, FALSE) ;
+      s3 := BuildIfCallHandler(c3, r, function, message, FALSE) ;
       s2 := BuildIfThenDoEnd(c2, s3) ;
 
       (* else *)
@@ -2936,7 +2954,7 @@ BEGIN
       (*    (* des <= MAX(exprLowestType) *) *)
       desoftypee := BuildConvert(location, Mod2Gcc(exprLowestType), Mod2Gcc(des), FALSE) ;
       c5 := BuildEqualTo(location, desoftypee, emin) ;        (* [c5]  *)
-      s5 := BuildIfCallHandler(c5, r, scopeDesc, FALSE) ;
+      s5 := BuildIfCallHandler(c5, r, function, message, FALSE) ;
       (*       if des = emin  *)
       (*          error                                          [s5]  *)
       (*       end                                                     *)
@@ -2944,7 +2962,7 @@ BEGIN
       (*      if inc = emin                                            *)
       (*         if des = 0                                      [c7]  *)
       c7 := BuildEqualTo(location, Mod2Gcc(des), dz) ;
-      s7 := BuildIfCallHandler(c7, r, scopeDesc, FALSE) ;
+      s7 := BuildIfCallHandler(c7, r, function, message, FALSE) ;
 
       (*         end                                                   *)
       (*      else                                                     *)
@@ -2953,7 +2971,7 @@ BEGIN
       (*         if lg2 > des                                          *)
       (*             error                                             *)
       c8 := BuildGreaterThan(location, lg2, Mod2Gcc(des)) ;
-      s8 := BuildIfCallHandler(c8, r, scopeDesc, FALSE) ;
+      s8 := BuildIfCallHandler(c8, r, function, message, FALSE) ;
       (*             end                                               *)
       (*          end                                                  *)
       (*       end                                                     *)
@@ -2976,7 +2994,7 @@ END DiffTypesCodeForLoopEnd ;
 *)
 
 PROCEDURE CodeForLoopEnd (tokenno: CARDINAL;
-                          r: CARDINAL; scopeDesc: String) ;
+                          r: CARDINAL; function, message: String) ;
 VAR
    isCard    : BOOLEAN ;
    p         : Range ;
@@ -3000,9 +3018,9 @@ BEGIN
             isCard := GreEqu(tokenno) ;
             IF (desLowestType=exprLowestType) AND isCard
             THEN
-               SameTypesCodeForLoopEnd(tokenno, r, scopeDesc, p, dmin, dmax, emin, emax)
+               SameTypesCodeForLoopEnd(tokenno, r, function, message, p, dmin, dmax, emin, emax)
             ELSE
-               DiffTypesCodeForLoopEnd(tokenno, r, scopeDesc, p, dmin, dmax, emin, emax)
+               DiffTypesCodeForLoopEnd(tokenno, r, function, message, p, dmin, dmax, emin, emax)
             END
          END
       END
@@ -3015,7 +3033,7 @@ END CodeForLoopEnd ;
 *)
 
 PROCEDURE CodeNil (tokenno: CARDINAL;
-                   r: CARDINAL; scopeDesc: String) ;
+                   r: CARDINAL; function, message: String) ;
 VAR
    p           : Range ;
    condition, t: Tree ;
@@ -3035,7 +3053,7 @@ BEGIN
       t := Mod2Gcc(des) ;
       location := TokenToLocation(tokenNo) ;
       condition := BuildEqualTo(location, BuildConvert(location, GetPointerType(), t, FALSE), GetPointerZero(location)) ;
-      AddStatement(location, BuildIfCallHandler(condition, r, scopeDesc, TRUE))
+      AddStatement(location, BuildIfCallHandler(condition, r, function, message, TRUE))
    END
 END CodeNil ;
 
@@ -3045,7 +3063,7 @@ END CodeNil ;
 *)
 
 PROCEDURE CodeWholeNonPos (tokenno: CARDINAL;
-                           r: CARDINAL; scopeDesc: String) ;
+                           r: CARDINAL; function, message: String) ;
 VAR
    zero,
    UnboundedType: CARDINAL ;
@@ -3063,7 +3081,7 @@ BEGIN
          e := ZConstToTypedConst(LValueToGenericPtr(expr), expr, des) ;
          zero := MakeAndDeclareConstLit(tokenno, MakeKey('0'), SkipType(GetType(des))) ;
          condition := BuildLessThanOrEqual(location, e, Mod2Gcc(zero)) ;
-         AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
+         AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, function, message)))
       ELSE
          InternalError('should have resolved expr', __FILE__, __LINE__)
       END
@@ -3076,7 +3094,7 @@ END CodeWholeNonPos ;
 *)
 
 PROCEDURE CodeWholeZero (tokenno: CARDINAL;
-                         r: CARDINAL; scopeDesc: String) ;
+                         r: CARDINAL; function, message: String) ;
 VAR
    zero,
    UnboundedType: CARDINAL ;
@@ -3095,7 +3113,7 @@ BEGIN
          zero := MakeAndDeclareConstLit(tokenno, MakeKey('0'), ZType) ;
          condition := BuildEqualTo(location,
                                    e, BuildConvert(location, GetTreeType(e), Mod2Gcc(zero), FALSE)) ;
-         AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
+         AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, function, message)))
       ELSE
          InternalError('should have resolved expr', __FILE__, __LINE__)
       END
@@ -3120,48 +3138,105 @@ END InitCaseBounds ;
 
 
 (*
-   CodeRangeCheck - returns a Tree representing the code for a
-                    range test defined by, r.
+   GetRangeErrorMessage - returns a specific error message for the range, r.
+                          It assumes the 3 parameters to be supplied on the MetaError
+                          parameter list are:  dest, expr, paramNo or dimension.
+
+XYZ
+                    'the initial assignment to {%1a} at the start of the FOR loop will cause a range error, as the type range of {%1taD} does not overlap with {%2tad}')
+                    'the final TO value {%2a} of the FOR loop will cause a range error with the iterator variable {%1a}')
 *)
 
-PROCEDURE CodeRangeCheck (r: CARDINAL; scopeDesc: String) ;
+PROCEDURE GetRangeErrorMessage (r: CARDINAL) : String ;
 VAR
    p: Range ;
+   s: String ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
       CASE type OF
 
-      assignment           :  CodeAssignment(tokenNo, r, scopeDesc) |
-      returnassignment     :  CodeReturn(tokenNo, r, scopeDesc) |
+      assignment           :  s := InitString ('assignment will cause a range error, as the range of {%1tad} does not overlap with {%2tad}') |
+      returnassignment     :  s := InitString ('attempting to return {%2Wa} from a procedure function {%1a} which will exceed exceed the range of type {%1tad}') |
       subrangeassignment   :  InternalError('unexpected case', __FILE__, __LINE__) |
-      inc                  :  CodeInc(tokenNo, r, scopeDesc) |
-      dec                  :  CodeDec(tokenNo, r, scopeDesc) |
-      incl,
-      excl                 :  CodeInclExcl(tokenNo, r, scopeDesc) |
-      shift,
-      rotate               :  CodeShiftRotate(tokenNo, r, scopeDesc) |
-      typeassign           :  CodeTypeCheck(tokenNo, r) |
-      typeparam            :  CodeTypeCheck(tokenNo, r) |
-      typeexpr             :  CodeTypeCheck(tokenNo, r) |
-      staticarraysubscript :  CodeStaticArraySubscript(tokenNo, r, scopeDesc) |
-      dynamicarraysubscript:  CodeDynamicArraySubscript(tokenNo, r, scopeDesc) |
-      forloopbegin         :  CodeForLoopBegin(tokenNo, r, scopeDesc) |
-      forloopto            :  CodeForLoopTo(tokenNo, r, scopeDesc) |
-      forloopend           :  CodeForLoopEnd(tokenNo, r, scopeDesc) |
-      pointernil           :  CodeNil(tokenNo, r, scopeDesc) |
-      noreturn             :  AddStatement(TokenToLocation(tokenNo), CodeErrorCheck(r, scopeDesc)) |
-      noelse               :  AddStatement(TokenToLocation(tokenNo), CodeErrorCheck(r, scopeDesc)) |
-      casebounds           :  CodeCaseBounds(tokenNo, caseList, scopeDesc) |
-      wholenonposdiv       :  CodeWholeNonPos(tokenNo, r, scopeDesc) |
-      wholenonposmod       :  CodeWholeNonPos(tokenNo, r, scopeDesc) |
-      wholezerodiv         :  CodeWholeZero(tokenNo, r, scopeDesc) |
-      wholezerorem         :  CodeWholeZero(tokenNo, r, scopeDesc) |
-      paramassign          :  CodeParameterAssign(tokenNo, r, scopeDesc) |
-      none                 :
+      inc                  :  s := InitString ('if the INC is ever executed the expression {%2Wa} will cause an overflow error for the designator {%1a} as it exceeds the type range {%1ts:of {%1ts}}') |
+      dec                  :  s := InitString ('if the DEC is ever executed the expression {%2Wa} will cause an underflow error for the designator {%1a} as it exceeds the type range {%1ts:of {%1ts}}') |
+      incl                 :  s := InitString ('the expression {%2Wa} given in the INCL exceeds the type range {%1ts} of the designator {%1a}') |
+      excl                 :  s := InitString ('the expression {%2Wa} given in the EXCL exceeds the type range {%1ts} of the designator {%1a}') |
+      shift                :  s := InitString ('the expression {%2Wa} given in the second parameter to SHIFT exceeds the type range {%1ts} of the first parameter {%1a}') |
+      rotate               :  s := InitString ('the expression {%2Wa} given in the second parameter to ROTATE exceeds the type range {%1ts} of the first parameter {%1a}') |
+      typeassign           :  s := NIL |
+      typeparam            :  s := NIL |
+      typeexpr             :  s := NIL |
+      paramassign          :  s := InitString('if this call is executed then the actual parameter {%2Wa} will be out of range of the {%3N} formal parameter {%1a}') |
+      staticarraysubscript :  s := InitString('if this access to the static array {%1Wa:{%2a:{%1a}[{%2a}]}} is ever made then the index will be out of bounds in the {%3N} array subscript') |
+      dynamicarraysubscript:  s := InitString('if this access to the dynamic array {%1Wa:{%2a:{%1a}[{%2a}]}} is ever made then the index will be out of bounds in the {%3N} array subscript') |
+      forloopbegin         :  s := InitString('if the assignment in this FOR loop is ever executed then the designator {%1Wa} will be exceed the type range {%1ts:of {%1ts}}') |
+      forloopto            :  s := InitString('the final value {%W2a} in this FOR loop will be out of bounds {%1ts:of type {%1ts}} if ever executed') |
+      forloopend           :  s := InitString('the FOR loop will cause the designator {%W1a} to be out of bounds when the BY value {%2a} is added') |
+      pointernil           :  s := InitString('if this pointer value {%1Wa} is ever dereferenced it will cause an exception') |
+      noreturn             :  s := InitString('{%1W:}this function will exit without executing a RETURN statement') |
+      noelse               :  s := InitString('{%1W:}this CASE statement does not have an ELSE statement') |
+      casebounds           :  s := InitString('{%1W:}this CASE statement has overlapping ranges') |
+      wholenonposdiv       :  s := InitString('this division expression {%W2a} will cause an exception as this divisor is less than or equal to zero') |
+      wholenonposmod       :  s := InitString('this modulus expression {%W2a} will cause an exception as this divisor is less than or equal to zero') |
+      wholezerodiv         :  s := InitString('this division expression {%W2a} will cause an exception as the divisor is zero') |
+      wholezerorem         :  s := InitString('this remainder expression {%W2a} will cause an exception as the divisor is zero') |
+      none                 :  s := NIL
 
       ELSE
          InternalError('unexpected case', __FILE__, __LINE__)
+      END
+   END ;
+   RETURN s
+END GetRangeError ;
+
+
+(*
+   CodeRangeCheck - returns a Tree representing the code for a
+                    range test defined by, r.
+*)
+
+PROCEDURE CodeRangeCheck (r: CARDINAL; function: String) ;
+VAR
+   p      : Range ;
+   message: String ;
+BEGIN
+   p := GetIndice (RangeIndex, r) ;
+   message := GetRangeErrorMessage (r) ;
+   WITH p^ DO
+      CASE type OF
+
+      assignment           :  CodeAssignment (tokenNo, r, function, message) |
+      returnassignment     :  CodeReturn (tokenNo, r, function, message) |
+      subrangeassignment   :  InternalError ('unexpected case', __FILE__, __LINE__) |
+      inc                  :  CodeInc (tokenNo, r, function, message) |
+      dec                  :  CodeDec (tokenNo, r, function, message) |
+      incl,
+      excl                 :  CodeInclExcl (tokenNo, r, function, message) |
+      shift,
+      rotate               :  CodeShiftRotate (tokenNo, r, function, message) |
+      typeassign           :  CodeTypeCheck (tokenNo, r) |
+      typeparam            :  CodeTypeCheck (tokenNo, r) |
+      typeexpr             :  CodeTypeCheck (tokenNo, r) |
+      staticarraysubscript :  CodeStaticArraySubscript (tokenNo, r, function, message) |
+      dynamicarraysubscript:  CodeDynamicArraySubscript (tokenNo, r, function, message) |
+      forloopbegin         :  CodeForLoopBegin (tokenNo, r, function, message) |
+      forloopto            :  CodeForLoopTo (tokenNo, r, function, message) |
+      forloopend           :  CodeForLoopEnd (tokenNo, r, function, message) |
+      pointernil           :  CodeNil (tokenNo, r, function, message) |
+      noreturn             :  AddStatement (TokenToLocation (tokenNo), CodeErrorCheck (r, function, message)) |
+      noelse               :  AddStatement (TokenToLocation (tokenNo), CodeErrorCheck (r, function, message)) |
+      casebounds           :  CodeCaseBounds (tokenNo, caseList, function, message) |
+      wholenonposdiv       :  CodeWholeNonPos (tokenNo, r, function, message) |
+      wholenonposmod       :  CodeWholeNonPos (tokenNo, r, function, message) |
+      wholezerodiv         :  CodeWholeZero (tokenNo, r, function, message) |
+      wholezerorem         :  CodeWholeZero (tokenNo, r, function, message) |
+      paramassign          :  CodeParameterAssign (tokenNo, r, function, message) |
+      none                 :
+
+      ELSE
+         InternalError ('unexpected case', __FILE__, __LINE__)
       END
    END
 END CodeRangeCheck ;

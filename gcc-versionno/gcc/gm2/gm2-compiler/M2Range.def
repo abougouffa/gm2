@@ -318,7 +318,7 @@ PROCEDURE InitCaseBounds (b: CARDINAL) : CARDINAL ;
                     range test defined by, r.
 *)
 
-PROCEDURE CodeRangeCheck (r: CARDINAL; scopeDesc: String) ;
+PROCEDURE CodeRangeCheck (r: CARDINAL; function: String) ;
 
 
 (*
@@ -333,7 +333,7 @@ PROCEDURE FoldRangeCheck (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
    CodeErrorCheck - returns a Tree calling the approprate exception handler.
 *)
 
-PROCEDURE CodeErrorCheck (r: CARDINAL; scopeDesc: String) : Tree ;
+PROCEDURE CodeErrorCheck (r: CARDINAL; function, message: String) : Tree ;
 
 
 (*
@@ -394,14 +394,16 @@ PROCEDURE IsGreater (a, b: Tree) : BOOLEAN ;
    BuildIfCallWholeHandlerLoc - return a Tree containing a runtime test whether, condition, is true.
 *)
 
-PROCEDURE BuildIfCallWholeHandlerLoc (location: location_t; condition: Tree; message: ADDRESS) : Tree ;
+PROCEDURE BuildIfCallWholeHandlerLoc (location: location_t; condition: Tree;
+                                      scope, message: ADDRESS) : Tree ;
 
 
 (*
    BuildIfCallRealHandlerLoc - return a Tree containing a runtime test whether, condition, is true.
 *)
 
-PROCEDURE BuildIfCallRealHandlerLoc (location: location_t; condition: Tree; message: ADDRESS) : Tree ;
+PROCEDURE BuildIfCallRealHandlerLoc (location: location_t; condition: Tree;
+                                     scope, message: ADDRESS) : Tree ;
 
 
 (*

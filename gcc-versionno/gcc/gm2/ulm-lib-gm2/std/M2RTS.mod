@@ -259,195 +259,171 @@ END Halt ;
    The following are the runtime exception handler routines.
 *)
 
-PROCEDURE AssignmentException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE AssignmentException (filename: ADDRESS; line, column: CARDINAL;
+                               scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("variable exceeds range during assignment"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END AssignmentException ;
 
 
-PROCEDURE ReturnException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE ReturnException (filename: ADDRESS; line, column: CARDINAL;
+                           scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("return value from procedure function exceeds range"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END ReturnException ;
 
 
-PROCEDURE IncException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE IncException (filename: ADDRESS; line, column: CARDINAL;
+                        scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("variable exceeds range during INC statement"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END IncException ;
 
 
-PROCEDURE DecException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE DecException (filename: ADDRESS; line, column: CARDINAL;
+                        scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("variable exceeds range during DEC statement"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END DecException ;
 
 
-PROCEDURE InclException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE InclException (filename: ADDRESS; line, column: CARDINAL;
+                         scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("bit exceeds set range during INCL statement"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END InclException ;
 
 
-PROCEDURE ExclException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE ExclException (filename: ADDRESS; line, column: CARDINAL;
+                         scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("bit exceeds set range during EXCL statement"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END ExclException ;
 
 
-PROCEDURE ShiftException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE ShiftException (filename: ADDRESS; line, column: CARDINAL;
+                          scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("bit exceeds set range during SHIFT statement"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END ShiftException ;
 
 
-PROCEDURE RotateException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE RotateException (filename: ADDRESS; line, column: CARDINAL;
+                           scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("bit exceeds set range during ROTATE statement"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END RotateException ;
 
 
-PROCEDURE StaticArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE StaticArraySubscriptException (filename: ADDRESS; line, column: CARDINAL;
+                                         scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("array index out of bounds during static array access"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END StaticArraySubscriptException ;
 
 
-PROCEDURE DynamicArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE DynamicArraySubscriptException (filename: ADDRESS; line, column: CARDINAL;
+                                          scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("array index out of bounds during dynamic array access"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END DynamicArraySubscriptException ;
 
 
-PROCEDURE ForLoopBeginException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE ForLoopBeginException (filename: ADDRESS; line, column: CARDINAL;
+                                 scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("iterator variable exceeds range during FOR loop initial assignment"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END ForLoopBeginException ;
 
 
-PROCEDURE ForLoopToException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE ForLoopToException (filename: ADDRESS; line, column: CARDINAL;
+                              scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("iterator variable exceeds range when calculating final value in FOR loop"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END ForLoopToException ;
 
 
-PROCEDURE ForLoopEndException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE ForLoopEndException (filename: ADDRESS; line, column: CARDINAL;
+                               scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("iterator variable exceeds range during increment at the end of a FOR loop"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END ForLoopEndException ;
 
 
-PROCEDURE PointerNilException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE PointerNilException (filename: ADDRESS; line, column: CARDINAL;
+                               scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("attempting to dereference a NIL valued pointer"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END PointerNilException ;
 
 
-PROCEDURE NoReturnException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE NoReturnException (filename: ADDRESS; line, column: CARDINAL;
+                             scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("about to finish a PROCEDURE without executing a RETURN statement"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END NoReturnException ;
 
 
-PROCEDURE CaseException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE CaseException (filename: ADDRESS; line, column: CARDINAL;
+                         scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("the expression in the CASE statement cannot be selected"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END CaseException ;
 
 
-PROCEDURE WholeNonPosDivException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE WholeNonPosDivException (filename: ADDRESS; line, column: CARDINAL;
+                                   scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("the division expression has a divisor which is less than or equal to zero"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END WholeNonPosDivException ;
 
 
-PROCEDURE WholeNonPosModException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE WholeNonPosModException (filename: ADDRESS; line, column: CARDINAL;
+                                   scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("the modulus expression has a divisor which is less than or equal to zero"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END WholeNonPosModException ;
 
 
-PROCEDURE WholeZeroDivException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE WholeZeroDivException (filename: ADDRESS; line, column: CARDINAL;
+                                 scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("the division expression has a divisor which is equal to zero"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END WholeZeroDivException ;
 
 
-PROCEDURE WholeZeroRemException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE WholeZeroRemException (filename: ADDRESS; line, column: CARDINAL;
+                                 scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("the remainder expression has a divisor which is equal to zero"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END WholeZeroRemException ;
 
 
-PROCEDURE WholeValueException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE WholeValueException (filename: ADDRESS; line, column: CARDINAL;
+                               scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("the whole value is about to overflow"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END WholeValueException ;
 
 
-PROCEDURE RealValueException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE RealValueException (filename: ADDRESS; line, column: CARDINAL;
+                              scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("the floating point value is about to overflow"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END RealValueException ;
 
 
-PROCEDURE ParameterException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE ParameterException (filename: ADDRESS; line, column: CARDINAL;
+                              scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("actual parameter exceeds formal parameter type range"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END ParameterException ;
 
 
-PROCEDURE NoException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE NoException (filename: ADDRESS; line, column: CARDINAL;
+                       scope, message: ADDRESS) ;
 BEGIN
-   ErrorMessageColumn(filename, scope,
-                      ADR("M2Expection was called when no there was no outstanding exception to be returned"),
-                      line, column)
+   ErrorMessageColumn(filename, scope, message, line, column)
 END NoException ;
 
 

@@ -931,7 +931,7 @@ BEGIN
       as any known entry point.  If so we could emit an error message.
    *)
    AddStatement(TokenToLocation(CurrentQuadToken),
-                CodeErrorCheck(op3, GetCurrentScopeDescription()))
+                CodeErrorCheck(op3, GetCurrentScopeDescription(), NIL))
 END CodeError ;
 
 

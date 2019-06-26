@@ -1,4 +1,4 @@
-(* Copyright (C) 2010
+(* Copyright (C) 2010-2019
                  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -37,7 +37,7 @@ VAR
 
 PROCEDURE RaiseGeneralException (exception: GeneralExceptions; text: ARRAY OF CHAR) ;
 BEGIN
-   RAISE(general, ORD(exception), text)
+   RAISE (general, ORD (exception), text)
 END RaiseGeneralException ;
 
 
@@ -47,10 +47,10 @@ END RaiseGeneralException ;
                         of an exception from GeneralExceptions; otherwise
                         returns FALSE.
 *)
-  
+
 PROCEDURE IsGeneralException () : BOOLEAN ;
 BEGIN
-   RETURN( IsExceptionalExecution() AND IsCurrentSource(general) )
+   RETURN IsExceptionalExecution () AND IsCurrentSource (general)
 END IsGeneralException ;
 
 
@@ -64,16 +64,17 @@ END IsGeneralException ;
 
 PROCEDURE GeneralException () : GeneralExceptions;
 BEGIN
-   IF IsGeneralException()
+   IF IsGeneralException ()
    THEN
-      RETURN( VAL(GeneralExceptions, CurrentNumber(general)) )
+      RETURN VAL (GeneralExceptions, CurrentNumber (general))
    ELSE
-      NoException(ADR(__FILE__), __LINE__,
-                  __COLUMN__, ADR(__FUNCTION__))
+      NoException (ADR (__FILE__), __LINE__,
+                   __COLUMN__, ADR (__FUNCTION__),
+      ADR ("not in the exceptional execution state"))
    END
 END GeneralException ;
 
 
 BEGIN
-   AllocateSource(general)
+   AllocateSource (general)
 END GeneralUserExceptions.

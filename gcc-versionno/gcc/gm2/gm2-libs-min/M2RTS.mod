@@ -44,7 +44,7 @@ END HALT ;
 
 
 PROCEDURE NoException (filename: ADDRESS;
-                       line, column: CARDINAL; scope: ADDRESS) ;
+                       line, column: CARDINAL; scope, message: ADDRESS) ;
 BEGIN
 END NoException ;
 
