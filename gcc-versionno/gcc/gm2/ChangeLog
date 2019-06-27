@@ -33,6 +33,8 @@
 	  (MakeConstLitString) refactored with InitConstString.
 	* gm2/gm2-libs/FormatStrings.def:  (HandleEscape) exported.
 	* gm2/gm2-libs/FormatStrings.mod:  Reformatted procedures.
+	* gm2/gm2-compiler/M2MetaError.mod:  (useError) duplicate
+	  input string.  Move diagnostic printf into debugging.
 
 2019-06-26      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

@@ -553,7 +553,10 @@ BEGIN
          END ;
          IF empty (eb)
          THEN
-            printf0 ("empty expression, skip\n") ;
+            IF Debugging
+            THEN
+               printf0 ("empty expression, skip\n")
+            END ;
             clear (eb) ;
             (* skip over this level of input text.  *)
             skip (eb)
@@ -1970,7 +1973,7 @@ VAR
    old: BOOLEAN ;
 BEGIN
    old := M2ColorString.SetEnableColor (FALSE) ;
-   initErrorBlock (eb, m, sym) ;
+   initErrorBlock (eb, Dup (m), sym) ;
    eb.useError := FALSE ;
    ebnf (eb, sym) ;
    flushColor (eb) ;
