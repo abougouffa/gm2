@@ -1,3 +1,39 @@
+2019-06-27      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2ColorString.def:  (SetEnableColor)
+	  New procedure function.
+	* gm2/gm2-compiler/M2ColorString.mod:  (SetEnableColor)
+          New procedure function implemented.  (EnableColor)
+	  is now a global variable (rather than a constant).
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  import (IsCString).
+	  (DeclareStringConstant) check for IsCString.
+	* gm2/gm2-compiler/M2GenGCC.mod:  reformatted procedures.
+	* gm2/gm2-compiler/M2MetaError.def:  (MetaString0),
+          (MetaString1), (MetaString1), (MetaString2),
+	  (MetaString3), (MetaString4)  New procedure functions.
+	* gm2/gm2-compiler/M2MetaError.mod:  (useError) new field
+          inside errorBlock.  (doError) call chooseError if useError
+          set.  (chooseError) contains contents of old doError.
+          (wrapString) New procedure function.
+          (MetaString0),
+          (MetaString1), (MetaString1), (MetaString2),
+	  (MetaString3), (MetaString4)  New procedure functions.
+	* gm2/gm2-compiler/M2Quads.mod:  import PutCString.
+	  (ConvertStringToC) call PutCString.
+	* gm2/gm2-compiler/M2Range.mod:  import MetaString3.
+          (CodeErrorCheck) call FillInParameters.  Correct call
+          to ConCatChar.  Use MetaErrorStringT3 instead of MetaErrorT3.
+          (FillInParameters)  New procedure.  Renamed
+	  GetRangeError to GetRangeErrorMessage.
+	* gm2/gm2-compiler/SymbolTable.def:  (PutCString)  New procedure.
+	  (IsCString)  New procedure function.
+	* gm2/gm2-compiler/SymbolTable.mod:  import (HandleEscape)
+          (IsCstring) New field for ConstString.  (PutCString)
+          New procedure.  (IsCString) New procedure function.
+	  (MakeConstLitString) refactored with InitConstString.
+	* gm2/gm2-libs/FormatStrings.def:  (HandleEscape) exported.
+	* gm2/gm2-libs/FormatStrings.mod:  Reformatted procedures.
+
 2019-06-26      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeError) add

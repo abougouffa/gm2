@@ -62,7 +62,8 @@ FROM M2Options IMPORT VariantValueChecking ;
 FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3,
                         MetaErrorT0, MetaErrorT1, MetaErrorT2, MetaErrorT3,
                         MetaErrorsT1, MetaErrorsT2, MetaErrorsT3, MetaErrorsT4,
-                        MetaErrorStringT1, MetaErrorStringT2, MetaErrorStringT3 ;
+                        MetaErrorStringT1, MetaErrorStringT2, MetaErrorStringT3,
+                        MetaString3 ;
 
 FROM M2LexBuf IMPORT GetTokenNo, FindFileNameFromToken, TokenToLineNo, TokenToColumnNo, TokenToLocation ;
 FROM StrIO IMPORT WriteString, WriteLn ;
@@ -2171,6 +2172,7 @@ BEGIN
       THEN
          message := GetRangeErrorMessage (r)
       END ;
+      message := FillInParameters (r, message) ;
       p := GetIndice (RangeIndex, r) ;
       WITH p^ DO
          filename := FindFileNameFromToken (tokenNo, 0) ;
@@ -2221,16 +2223,16 @@ BEGIN
       staticarraysubscript : s := InitString('if this access to the static array {%1Wa:{%2a:{%1a}[{%2a}]}} is ever made then the index will be out of bounds in the {%3N} array subscript') |
       dynamicarraysubscript: s := InitString('if this access to the dynamic array {%1Wa:{%2a:{%1a}[{%2a}]}} is ever made then the index will be out of bounds in the {%3N} array subscript') |
       forloopbegin         : s := InitString('if the assignment in this FOR loop is ever executed then the designator {%1Wa} will be exceed the type range {%1ts:of {%1ts}}') |
-      forloopto            : s := InitString('the final value {%W2a} in this FOR loop will be out of bounds {%1ts:of type {%1ts}} if ever executed') |
-      forloopend           : s := InitString('the FOR loop will cause the designator {%W1a} to be out of bounds when the BY value {%2a} is added') |
+      forloopto            : s := InitString('the final value {%2Wa} in this FOR loop will be out of bounds {%1ts:of type {%1ts}} if ever executed') |
+      forloopend           : s := InitString('the FOR loop will cause the designator {%1Wa} to be out of bounds when the BY value {%2a} is added') |
       pointernil           : s := InitString('if this pointer value {%1Wa} is ever dereferenced it will cause an exception') |
       noreturn             : s := InitString('{%1W:}this function will exit without executing a RETURN statement') |
       noelse               : s := InitString('{%1W:}this CASE statement does not have an ELSE statement') |
       casebounds           : s := InitString('{%1W:}this CASE statement has overlapping ranges') |
-      wholenonposdiv       : s := InitString('this division expression {%W2a} will cause an exception as this divisor is less than or equal to zero') |
-      wholenonposmod       : s := InitString('this modulus expression {%W2a} will cause an exception as this divisor is less than or equal to zero') |
-      wholezerodiv         : s := InitString('this division expression {%W2a} will cause an exception as the divisor is zero') |
-      wholezerorem         : s := InitString('this remainder expression {%W2a} will cause an exception as the divisor is zero') |
+      wholenonposdiv       : s := InitString('this division expression {%2Wa} will cause an exception as this divisor is less than or equal to zero') |
+      wholenonposmod       : s := InitString('this modulus expression {%2Wa} will cause an exception as this divisor is less than or equal to zero') |
+      wholezerodiv         : s := InitString('this division expression {%2Wa} will cause an exception as the divisor is zero') |
+      wholezerorem         : s := InitString('this remainder expression {%2Wa} will cause an exception as the divisor is zero') |
       none                 : InternalError('unexpected value', __FILE__, __LINE__)
 
       ELSE
@@ -2238,7 +2240,7 @@ BEGIN
       END ;
       s := ConCat (s, Mark (InitString (' in ('))) ;
       s := ConCat (s, function) ;
-      ConCatChar (s, ')') ;
+      s := ConCatChar (s, ')') ;
       MetaErrorStringT3 (tokenNo, s, des, expr, dimension) ;
       (* FlushErrors *)
    END
@@ -2412,7 +2414,7 @@ BEGIN
                AddStatement(location, BuildIfCallHandler(condition, r, function, message, TRUE))
             END
          ELSE
-            MetaErrorT3 (tokenNo, message, des, expr, paramNo)
+            MetaErrorStringT3 (tokenNo, message, des, expr, paramNo)
          END
       END
    END
@@ -3138,6 +3140,54 @@ END InitCaseBounds ;
 
 
 (*
+   FillInParameters -
+*)
+
+PROCEDURE FillInParameters (r: CARDINAL; s: String) : String ;
+VAR
+   p: Range ;
+BEGIN
+   p := GetIndice (RangeIndex, r) ;
+   WITH p^ DO
+      CASE type OF
+
+      assignment           :  s := MetaString3 (s, des, expr, dimension) |
+      returnassignment     :  s := MetaString3 (s, des, expr, dimension) |
+      subrangeassignment   :  InternalError('unexpected case', __FILE__, __LINE__) |
+      inc                  :  s := MetaString3 (s, des, expr, dimension) |
+      dec                  :  s := MetaString3 (s, des, expr, dimension) |
+      incl                 :  s := MetaString3 (s, des, expr, dimension) |
+      excl                 :  s := MetaString3 (s, des, expr, dimension) |
+      shift                :  s := MetaString3 (s, des, expr, dimension) |
+      rotate               :  s := MetaString3 (s, des, expr, dimension) |
+      typeassign           :  |
+      typeparam            :  |
+      typeexpr             :  |
+      paramassign          :  s := MetaString3 (s, des, expr, paramNo) |
+      staticarraysubscript :  s := MetaString3 (s, des, expr, dimension) |
+      dynamicarraysubscript:  s := MetaString3 (s, des, expr, dimension) |
+      forloopbegin         :  s := MetaString3 (s, des, expr, dimension) |
+      forloopto            :  s := MetaString3 (s, des, expr, dimension) |
+      forloopend           :  s := MetaString3 (s, des, expr, dimension) |
+      pointernil           :  s := MetaString3 (s, des, expr, dimension) |
+      noreturn             :  s := MetaString3 (s, des, expr, dimension) |
+      noelse               :  s := MetaString3 (s, des, expr, dimension) |
+      casebounds           :  s := MetaString3 (s, des, expr, dimension) |
+      wholenonposdiv       :  s := MetaString3 (s, des, expr, dimension) |
+      wholenonposmod       :  s := MetaString3 (s, des, expr, dimension) |
+      wholezerodiv         :  s := MetaString3 (s, des, expr, dimension) |
+      wholezerorem         :  s := MetaString3 (s, des, expr, dimension) |
+      none                 :  |
+
+      ELSE
+         InternalError('unexpected case', __FILE__, __LINE__)
+      END
+   END ;
+   RETURN s
+END FillInParameters ;
+
+
+(*
    GetRangeErrorMessage - returns a specific error message for the range, r.
                           It assumes the 3 parameters to be supplied on the MetaError
                           parameter list are:  dest, expr, paramNo or dimension.
@@ -3152,11 +3202,11 @@ VAR
    p: Range ;
    s: String ;
 BEGIN
-   p := GetIndice(RangeIndex, r) ;
+   p := GetIndice (RangeIndex, r) ;
    WITH p^ DO
       CASE type OF
 
-      assignment           :  s := InitString ('assignment will cause a range error, as the range of {%1tad} does not overlap with {%2tad}') |
+      assignment           :  s := InitString ('assignment will cause a range error, as the runtime instance value of {%1tad} does not overlap with the type {%2tad}') |
       returnassignment     :  s := InitString ('attempting to return {%2Wa} from a procedure function {%1a} which will exceed exceed the range of type {%1tad}') |
       subrangeassignment   :  InternalError('unexpected case', __FILE__, __LINE__) |
       inc                  :  s := InitString ('if the INC is ever executed the expression {%2Wa} will cause an overflow error for the designator {%1a} as it exceeds the type range {%1ts:of {%1ts}}') |
@@ -3172,16 +3222,16 @@ BEGIN
       staticarraysubscript :  s := InitString('if this access to the static array {%1Wa:{%2a:{%1a}[{%2a}]}} is ever made then the index will be out of bounds in the {%3N} array subscript') |
       dynamicarraysubscript:  s := InitString('if this access to the dynamic array {%1Wa:{%2a:{%1a}[{%2a}]}} is ever made then the index will be out of bounds in the {%3N} array subscript') |
       forloopbegin         :  s := InitString('if the assignment in this FOR loop is ever executed then the designator {%1Wa} will be exceed the type range {%1ts:of {%1ts}}') |
-      forloopto            :  s := InitString('the final value {%W2a} in this FOR loop will be out of bounds {%1ts:of type {%1ts}} if ever executed') |
-      forloopend           :  s := InitString('the FOR loop will cause the designator {%W1a} to be out of bounds when the BY value {%2a} is added') |
+      forloopto            :  s := InitString('the final value {%2Wa} in this FOR loop will be out of bounds {%1ts:of type {%1ts}} if ever executed') |
+      forloopend           :  s := InitString('the FOR loop will cause the designator {%1Wa} to be out of bounds when the BY value {%2a} is added') |
       pointernil           :  s := InitString('if this pointer value {%1Wa} is ever dereferenced it will cause an exception') |
       noreturn             :  s := InitString('{%1W:}this function will exit without executing a RETURN statement') |
       noelse               :  s := InitString('{%1W:}this CASE statement does not have an ELSE statement') |
       casebounds           :  s := InitString('{%1W:}this CASE statement has overlapping ranges') |
-      wholenonposdiv       :  s := InitString('this division expression {%W2a} will cause an exception as this divisor is less than or equal to zero') |
-      wholenonposmod       :  s := InitString('this modulus expression {%W2a} will cause an exception as this divisor is less than or equal to zero') |
-      wholezerodiv         :  s := InitString('this division expression {%W2a} will cause an exception as the divisor is zero') |
-      wholezerorem         :  s := InitString('this remainder expression {%W2a} will cause an exception as the divisor is zero') |
+      wholenonposdiv       :  s := InitString('this division expression {%2Wa} will cause an exception as this divisor is less than or equal to zero') |
+      wholenonposmod       :  s := InitString('this modulus expression {%2Wa} will cause an exception as this divisor is less than or equal to zero') |
+      wholezerodiv         :  s := InitString('this division expression {%2Wa} will cause an exception as the divisor is zero') |
+      wholezerorem         :  s := InitString('this remainder expression {%2Wa} will cause an exception as the divisor is zero') |
       none                 :  s := NIL
 
       ELSE
@@ -3189,7 +3239,7 @@ BEGIN
       END
    END ;
    RETURN s
-END GetRangeError ;
+END GetRangeErrorMessage ;
 
 
 (*

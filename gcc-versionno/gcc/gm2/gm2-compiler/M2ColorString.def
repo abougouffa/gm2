@@ -34,6 +34,14 @@ FROM DynamicStrings IMPORT String ;
 
 
 (*
+   SetEnableColor - sets the global variable to, b, and returns
+                    the previous value.
+*)
+
+PROCEDURE SetEnableColor (b: BOOLEAN) : BOOLEAN ;
+
+
+(*
    quoteOpen - adds an open quote to string, s.
 *)
 

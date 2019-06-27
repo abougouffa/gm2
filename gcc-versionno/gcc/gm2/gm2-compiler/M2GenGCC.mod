@@ -2349,10 +2349,10 @@ PROCEDURE doParam (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    location: location_t ;
 BEGIN
-   location := TokenToLocation(CurrentQuadToken) ;
-   DeclareConstant(CurrentQuadToken, op3) ;
-   DeclareConstructor(CurrentQuadToken, quad, op3) ;
-   BuildParam(location, CheckConvertCoerceParameter(CurrentQuadToken, op1, op2, op3))
+   location := TokenToLocation (CurrentQuadToken) ;
+   DeclareConstant (CurrentQuadToken, op3) ;
+   DeclareConstructor (CurrentQuadToken, quad, op3) ;
+   BuildParam (location, CheckConvertCoerceParameter (CurrentQuadToken, op1, op2, op3))
 END doParam ;
 
 
@@ -2469,17 +2469,20 @@ VAR
 BEGIN
    IF op1=0
    THEN
-      CodeBuiltinFunction(quad, op1, op2, op3)
+      CodeBuiltinFunction (quad, op1, op2, op3)
    ELSE
-      IF (op1<=NoOfParam(op2)) AND
-         IsVarParam(op2, op1) AND IsConst(op3)
+      IF (op1 <= NoOfParam (op2)) AND
+         IsVarParam (op2, op1) AND IsConst (op3)
       THEN
-         MetaErrorT1 (CurrentQuadToken, 'cannot pass a constant {%1Ead} as a VAR parameter', op3)
-      ELSIF IsAModula2Type(op3)
+         MetaErrorT1 (CurrentQuadToken,
+                      'cannot pass a constant {%1Ead} as a VAR parameter', op3)
+      ELSIF IsAModula2Type (op3)
       THEN
-         MetaErrorT2 (CurrentQuadToken, 'cannot pass a type {%1Ead} as a parameter to procedure {%2ad}', op3, op2)
+         MetaErrorT2 (CurrentQuadToken,
+                      'cannot pass a type {%1Ead} as a parameter to procedure {%2ad}',
+                      op3, op2)
       ELSE
-         doParam(quad, op1, op2, op3)
+         doParam (quad, op1, op2, op3)
       END
    END
 END CodeParam ;

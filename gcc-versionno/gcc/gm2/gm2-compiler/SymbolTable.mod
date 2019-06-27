@@ -78,6 +78,8 @@ FROM StrLib IMPORT StrEqual ;
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule ;
 
+FROM FormatStrings IMPORT HandleEscape ;
+
 IMPORT Indexing ;
 
 
@@ -411,6 +413,7 @@ TYPE
                     String       : Name ;       (* Value of string.            *)
                     Length       : CARDINAL ;   (* StrLen(String)              *)
                     NulTerminated: CARDINAL ;   (* Equivalent nul terminated   *)
+                    IsCstring,
                     IsNulTerminated: BOOLEAN ;  (* Is this string nul terminated? *)
                     At           : Where ;      (* Where was sym declared/used *)
                  END ;
@@ -3857,11 +3860,7 @@ BEGIN
          SymbolType := ConstStringSym ;
          CASE SymbolType OF
 
-         ConstStringSym : ConstString.name := ConstName ;
-                          PutConstString(Sym, ConstName) ;
-                          ConstString.NulTerminated := NulSym ;
-                          ConstString.IsNulTerminated := FALSE ;
-                          InitWhereDeclared(ConstString.At)
+         ConstStringSym : InitConstString (Sym, ConstName, ConstName)
 
          ELSE
             InternalError('expecting ConstString symbol', __FILE__, __LINE__)
@@ -3886,10 +3885,10 @@ BEGIN
       CASE SymbolType OF
 
       ConstStringSym:  ConstString.name := name ;
-                       ConstString.Length := LengthKey (String) ;
-                       ConstString.String := String ;
+                       PutConstString(sym, String) ;
                        ConstString.NulTerminated := NulSym ;
                        ConstString.IsNulTerminated := FALSE ;
+                       ConstString.IsCstring := FALSE ;
                        InitWhereDeclared(ConstString.At)
 
       ELSE
@@ -3897,6 +3896,55 @@ BEGIN
       END
    END
 END InitConstString ;
+
+
+(*
+   PutCString - sym, is to be declared as a C string.
+*)
+
+PROCEDURE PutCString (sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
+   s   : String ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      ConstStringSym :  IF NOT ConstString.IsCstring
+                        THEN
+                           s := HandleEscape (InitStringCharStar (KeyToCharStar (ConstString.String))) ;
+                           ConstString.IsCstring := TRUE ;
+                           ConstString.String := makekey (string(s)) ;
+                           s := KillString (s)
+                        END
+
+      ELSE
+         InternalError ('expecting ConstStringSym', __FILE__, __LINE__)
+      END
+   END
+END PutCString ;
+
+
+(*
+   IsCString - returns TRUE if, sym, is to be declared as a C string.
+*)
+
+PROCEDURE IsCString (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      ConstStringSym :  RETURN ConstString.IsCstring
+
+      ELSE
+         InternalError ('expecting ConstStringSym', __FILE__, __LINE__)
+      END
+   END
+END IsCString ;
 
 
 (*

@@ -29,8 +29,23 @@ FROM StrLib IMPORT StrLen ;
 FROM libc IMPORT printf ;
 
 
-CONST
-   EnableColor = TRUE ;
+VAR
+   EnableColor: BOOLEAN ;
+
+
+(*
+   SetEnableColor - sets the global variable to, b, and returns
+                    the previous value.
+*)
+
+PROCEDURE SetEnableColor (b: BOOLEAN) : BOOLEAN ;
+VAR
+   previous: BOOLEAN ;
+BEGIN
+   previous := EnableColor ;
+   EnableColor := b ;
+   RETURN previous
+END SetEnableColor ;
 
 
 (*
@@ -198,4 +213,6 @@ BEGIN
 END range2Color ;
 
 
+BEGIN
+   EnableColor := TRUE
 END M2ColorString.

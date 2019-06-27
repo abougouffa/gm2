@@ -107,7 +107,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetDeclaredMod, GetVarBackEndType,
                         GetProcedureBeginEnd,
                         GetString, GetStringLength, IsConstString,
-                        IsConstStringRequiresNul, GetConstStringNullTerminated,
+                        IsConstStringRequiresNul, GetConstStringNullTerminated, IsCString,
                         GetAlignment, IsDeclaredPacked, PutDeclaredPacked,
                         GetDefaultRecordFieldAlignment, IsDeclaredPackedResolved,
                         GetPackedEquivalent,
@@ -1587,9 +1587,10 @@ PROCEDURE DeclareStringConstant (sym: CARDINAL) ;
 VAR
    location: location_t ;
    symtree : Tree ;
+   s       : String ;
 BEGIN
    location := TokenToLocation(GetDeclaredMod(sym)) ;
-   IF IsConstStringRequiresNul(sym)
+   IF IsConstStringRequiresNul(sym) OR IsCString (sym)
    THEN
       symtree := BuildCStringConstant(KeyToCharStar(GetString(sym)),
                                       GetStringLength(sym))
@@ -2869,6 +2870,7 @@ PROCEDURE StartDeclareScope (scope: CARDINAL) ;
 VAR
    n: Name ;
 BEGIN
+   (* AddSymToWatch (1157) ;  *)  (* watch goes here *)
    (* AddSymToWatch(TryFindSymbol('IOLink', 'DeviceId')) ; *)
    (* AddSymToWatch(819) ; *)
    (*

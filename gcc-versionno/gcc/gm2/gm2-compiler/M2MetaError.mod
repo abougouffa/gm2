@@ -69,6 +69,7 @@ TYPE
                 insertColor, deleteColor, typeColor, range1Color, range2Color) ;
 
    errorBlock = RECORD
+                   useError  : BOOLEAN ;
                    e         : Error ;
                    type      : errorType ;
                    out, in   : String ;
@@ -269,6 +270,7 @@ END popColor ;
 PROCEDURE initErrorBlock (VAR eb: errorBlock; input: String; sym: ARRAY OF CARDINAL) ;
 BEGIN
    WITH eb DO
+      useError   := TRUE ;
       e          := NIL ;
       type       := error ;  (* default to the error color.  *)
       out        := InitString ('') ;
@@ -871,6 +873,21 @@ END doChain ;
 
 PROCEDURE doError (VAR eb: errorBlock; tok: CARDINAL) ;
 BEGIN
+   IF eb.useError
+   THEN
+      chooseError (eb, tok)
+   END
+END doError ;
+
+
+(*
+   chooseError - choose the error kind dependant upon type.
+                 Either an error, warning or note will be generated.
+*)
+
+PROCEDURE chooseError (VAR eb: errorBlock; tok: CARDINAL) ;
+BEGIN
+
    IF eb.chain
    THEN
       doChain (eb, tok)
@@ -902,7 +919,7 @@ BEGIN
       lastColor := findColorType (eb.in)
    END ;
    eb.e := SetColor (eb.e)
-END doError ;
+END chooseError ;
 
 
 (*
@@ -1938,6 +1955,81 @@ BEGIN
    MetaErrorStringT0 (GetTokenNo (), s) ;
    fmt := KillString (fmt) ;
 END MetaErrorN2 ;
+
+
+(*
+   wrapString - return a string which has been formatted with the specifier codes.
+                Color is disabled.  The result string is returned.
+*)
+
+PROCEDURE wrapString (m: String;
+                      sym: ARRAY OF CARDINAL) : String ;
+VAR
+   eb : errorBlock ;
+   s  : String ;
+   old: BOOLEAN ;
+BEGIN
+   old := M2ColorString.SetEnableColor (FALSE) ;
+   initErrorBlock (eb, m, sym) ;
+   eb.useError := FALSE ;
+   ebnf (eb, sym) ;
+   flushColor (eb) ;
+   s := Dup (eb.out) ;
+   killErrorBlock (eb) ;
+   old := M2ColorString.SetEnableColor (old) ;
+   RETURN s
+END wrapString ;
+
+
+PROCEDURE MetaString0 (m: String) : String ;
+VAR
+   sym: ARRAY [0..0] OF CARDINAL ;
+BEGIN
+   sym[0] := NulSym ;
+   RETURN wrapString (m, sym)
+END MetaString0 ;
+
+
+PROCEDURE MetaString1 (m: String; s: CARDINAL) : String ;
+VAR
+   sym: ARRAY [0..0] OF CARDINAL ;
+BEGIN
+   sym[0] := s ;
+   RETURN wrapString (m, sym)
+END MetaString1 ;
+
+
+PROCEDURE MetaString2 (m: String; s1, s2: CARDINAL) : String ;
+VAR
+   sym: ARRAY [0..1] OF CARDINAL ;
+BEGIN
+   sym[0] := s1 ;
+   sym[1] := s2 ;
+   RETURN wrapString (m, sym)
+END MetaString2 ;
+
+
+PROCEDURE MetaString3 (m: String; s1, s2, s3: CARDINAL) : String ;
+VAR
+   sym: ARRAY [0..2] OF CARDINAL ;
+BEGIN
+   sym[0] := s1 ;
+   sym[1] := s2 ;
+   sym[2] := s3 ;
+   RETURN wrapString (m, sym)
+END MetaString3 ;
+
+
+PROCEDURE MetaString4 (m: String; s1, s2, s3, s4: CARDINAL) : String ;
+VAR
+   sym: ARRAY [0..3] OF CARDINAL ;
+BEGIN
+   sym[0] := s1 ;
+   sym[1] := s2 ;
+   sym[2] := s3 ;
+   sym[3] := s4 ;
+   RETURN wrapString (m, sym)
+END MetaString4 ;
 
 
 BEGIN

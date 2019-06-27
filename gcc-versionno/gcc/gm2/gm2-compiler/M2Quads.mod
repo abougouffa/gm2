@@ -64,7 +64,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         GetWriteLimitQuads, GetReadLimitQuads,
                         GetVarScope,
                         GetModuleQuads, GetProcedureQuads,
-                        GetConstStringNullTerminated,
+                        GetConstStringNullTerminated, PutCString,
                         MakeProcedure,
                         PutConstString,
                         PutModuleStartQuad, PutModuleEndQuad,
@@ -5333,7 +5333,9 @@ END ManipulatePseudoCallParameters ;
 
 PROCEDURE ConvertStringToC (sym: CARDINAL) : CARDINAL ;
 BEGIN
-   RETURN( GetConstStringNullTerminated(sym) )
+   sym := GetConstStringNullTerminated (sym) ;
+   PutCString (sym) ;
+   RETURN sym
 END ConvertStringToC ;
 
 

@@ -31,7 +31,8 @@ DEFINITION MODULE FormatStrings ;
 
 FROM SYSTEM IMPORT BYTE ;
 FROM DynamicStrings IMPORT String ;
-EXPORT QUALIFIED Sprintf0, Sprintf1, Sprintf2, Sprintf3, Sprintf4 ;
+EXPORT QUALIFIED Sprintf0, Sprintf1, Sprintf2, Sprintf3, Sprintf4,
+                 HandleEscape ;
 
 
 (*
@@ -69,6 +70,15 @@ PROCEDURE Sprintf3 (fmt: String; w1, w2, w3: ARRAY OF BYTE) : String ;
 *)
 
 PROCEDURE Sprintf4 (fmt: String; w1, w2, w3, w4: ARRAY OF BYTE) : String ;
+
+
+(*
+   HandleEscape - translates \n and \t into their respective ascii codes.
+                  It also converts \\ into a single \.
+                  It leaves all other characters alone.
+*)
+
+PROCEDURE HandleEscape (s: String) : String ;
 
 
 END FormatStrings.

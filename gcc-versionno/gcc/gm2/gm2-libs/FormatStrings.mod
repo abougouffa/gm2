@@ -130,35 +130,35 @@ VAR
    ch  : CHAR ;
 BEGIN
    DSdbEnter ;
-   d := InitString('') ;
-   i := Index(s, '\', 0) ;
+   d := InitString ('') ;
+   i := Index (s, '\', 0) ;
    j := 0 ;
    WHILE i>=0 DO
       IF i>0
       THEN
-         (* initially i might be zero which means the end of the string, which is not what we want *)
-         d := ConCat(d, Slice(s, j, i))
+         (* initially i might be zero which means the end of the string, which is not what we want.  *)
+         d := ConCat (d, Slice (s, j, i))
       END ;
-      ch := char(s, i+1) ;
+      ch := char (s, i+1) ;
       IF ch='n'
       THEN
-         (* requires a newline *)
-         d := ConCat(d, Mark(InitStringChar(nl)))
+         (* requires a newline.  *)
+         d := ConCat (d, Mark (InitStringChar (nl)))
       ELSIF ch='t'
       THEN
-         (* requires a tab (yuck) *)
-         d := ConCat(d, Mark(InitStringChar(tab)))
+         (* requires a tab.  *)
+         d := ConCat (d, Mark (InitStringChar (tab)))
       ELSE
-         (* copy escaped character *)
-         d := ConCat(d, Mark(InitStringChar(ch)))
+         (* copy escaped character.  *)
+         d := ConCat (d, Mark (InitStringChar (ch)))
       END ;
-      INC(i, 2) ;
+      INC (i, 2) ;
       j := i ;
-      i := Index(s, '\', CARDINAL(i))
+      i := Index (s, '\', CARDINAL (i))
    END ;
    (*   s := Assign(s, Mark(ConCat(d, Mark(Slice(s, j, 0))))) ;   (* dont Mark(s) in the Slice as we Assign contents *) *)
    s := ConCat (d, Mark (Slice (Mark (s), j, 0))) ;
-   DSdbExit(s) ;
+   DSdbExit (s) ;
    RETURN s
 END HandleEscape ;
 
@@ -235,7 +235,7 @@ BEGIN
                Cast (p, w) ;
                p := Dup (p)
             END ;
-            IF (width>0) AND (VAL(INTEGER, Length (p)) < width)
+            IF (width>0) AND (VAL (INTEGER, Length (p)) < width)
             THEN
                IF left
                THEN

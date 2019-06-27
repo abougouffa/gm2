@@ -143,6 +143,7 @@ EXPORT QUALIFIED NulSym,
                  PutConstStringRequiresNul,
                  IsConstStringRequiresNul,
                  GetConstStringNullTerminated,
+                 PutCString, IsCString,
                  PutConstSet,
                  PutConstructor,
                  PutConstructorFrom,
@@ -1256,6 +1257,20 @@ PROCEDURE IsConstStringRequiresNul (sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE GetConstStringNullTerminated (sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   PutCString - sym, is to be declared as a C string.
+*)
+
+PROCEDURE PutCString (sym: CARDINAL) ;
+
+
+(*
+   IsCString - returns TRUE if, sym, is to be declared as a C string.
+*)
+
+PROCEDURE IsCString (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

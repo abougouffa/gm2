@@ -165,5 +165,10 @@ PROCEDURE MetaErrorStringT4 (tok: CARDINAL; m: String; s1, s2, s3, s4: CARDINAL)
 PROCEDURE MetaErrorN1 (m: ARRAY OF CHAR; n: Name) ;
 PROCEDURE MetaErrorN2 (m: ARRAY OF CHAR; n1, n2: Name) ;
 
+PROCEDURE MetaString0 (m: String) : String ;
+PROCEDURE MetaString1 (m: String; s: CARDINAL) : String ;
+PROCEDURE MetaString2 (m: String; s1, s2: CARDINAL) : String ;
+PROCEDURE MetaString3 (m: String; s1, s2, s3: CARDINAL) : String ;
+PROCEDURE MetaString4 (m: String; s1, s2, s3, s4: CARDINAL) : String ;
 
 END M2MetaError.
