@@ -41,7 +41,7 @@ EXPORT QUALIFIED Error,
                  ErrorStringAt, ErrorStringAt2, ErrorStringsAt2,
                  WarnStringAt, WarnStringAt2, WarnStringsAt2,
                  ErrorAbort0,
-                 WarnFormat0, WarnFormat1 ;
+                 WarnFormat0, WarnFormat1, MoveError ;
 
 TYPE
    Error ;
@@ -54,7 +54,7 @@ TYPE
                    to give up.
 *)
 
-PROCEDURE InternalError (a: ARRAY OF CHAR; file: ARRAY OF CHAR; line: CARDINAL) ;
+PROCEDURE InternalError (message: ARRAY OF CHAR; file: ARRAY OF CHAR; line: CARDINAL) ;
 
 
 
@@ -128,6 +128,13 @@ PROCEDURE NewNote (AtTokenNo: CARDINAL) : Error ;
 *)
 
 PROCEDURE ChainError (AtTokenNo: CARDINAL; e: Error) : Error ;
+
+
+(*
+   MoveError - repositions an error, e, to token, AtTokenNo, and returns, e.
+*)
+
+PROCEDURE MoveError (e: Error; AtTokenNo: CARDINAL) : Error ;
 
 
 (*

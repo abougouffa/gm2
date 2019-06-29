@@ -172,6 +172,7 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot \
                  $(objdir)/gm2/gm2-ppg-boot \
                  $(objdir)/gm2/gm2-pge-boot \
                  $(objdir)/gm2/gm2-pg-boot \
+                 $(objdir)/gm2/gm2-tools-boot \
                  $(objdir)/gm2/gm2-tools \
                  $(objdir)/gm2/gm2-libiberty \
                  $(objdir)/gm2/gm2-gcc \
@@ -259,6 +260,9 @@ gm2/version.texi: force
 	cd gm2 ; bash ../$(srcdir)/gm2/tools-src/makeversion -t ../$(srcdir)
 
 $(objdir)/gm2/gm2-tools:
+	mkdir $@
+
+$(objdir)/gm2/gm2-tools-boot:
 	mkdir $@
 
 $(objdir)/gm2/gm2-compiler-boot:
@@ -732,7 +736,7 @@ GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  M2Defaults.
                      M2MetaError.def Sets.def        M2CaseList.def  PCSymBuild.def  \
                      PCBuild.def     M2Const.def     M2DebugStack.def \
                      M2DriverOptions.def             ObjectFiles.def \
-                     M2ColorString.def
+                     M2ColorString.def               M2Emit.def
 
 GM2-COMP-BOOT-MODS = FifoQueue.mod   M2LexBuf.mod                             \
                      M2AsmUtil.mod   M2Optimize.mod  M2StackWord.mod \
@@ -754,7 +758,7 @@ GM2-COMP-BOOT-MODS = FifoQueue.mod   M2LexBuf.mod                             \
                      PCSymBuild.mod  M2Const.mod     M2DebugStack.mod \
                      M2DriverOptions.mod \
                      SymbolKey.mod   NameKey.mod     Lists.mod       ObjectFiles.mod \
-                     M2ColorString.mod
+                     M2ColorString.mod               M2Emit.mod
 
 GM2-GCC-DEFS      =  m2builtins.def  m2except.def    m2convert.def   m2decl.def \
                      m2except.def    m2expr.def      m2misc.def      m2block.def \
@@ -816,7 +820,8 @@ GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Default
                      M2Bitset.def      M2Size.def      M2Scope.def     M2Range.def     \
                      M2Swig.def        M2MetaError.def Sets.def        M2CaseList.def  \
                      PCSymBuild.def    PCBuild.def     M2Const.def     M2DebugStack.def \
-                     M2DriverOptions.def               ObjectFiles.def M2ColorString.def
+                     M2DriverOptions.def               ObjectFiles.def M2ColorString.def \
+                     M2Emit.def
 
 GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod                   M2Optimize.mod  \
                      M2StackWord.mod   M2Options.mod   M2Pass.mod      M2Batch.mod     \
@@ -835,7 +840,8 @@ GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod                   M2Optimiz
                      M2Bitset.mod      M2Size.mod      M2Scope.mod     M2Range.mod     \
                      M2Swig.mod        M2MetaError.mod Sets.mod        M2CaseList.mod  \
                      PCSymBuild.mod    M2Const.mod     M2DebugStack.mod \
-                     M2DriverOptions.mod               ObjectFiles.mod M2ColorString.mod
+                     M2DriverOptions.mod               ObjectFiles.mod M2ColorString.mod \
+                     M2Emit.mod
 
 GM2-TOOLS-MOD      = gm2l.mod          gm2lcc.mod      gm2lgen.mod     gm2lorder.mod   \
                      gm2m.mod          ppg.mod
@@ -868,7 +874,7 @@ GM2-VERIFY-MODS    = FifoQueue.mod     M2AsmUtil.mod                   M2Optimiz
                      M2Bitset.mod      M2Size.mod      CLexBuf.mod     M2Scope.mod     \
                      M2Range.mod       M2Swig.mod      M2MetaError.mod Sets.mod        \
                      M2CaseList.mod    PCSymBuild.mod  M2Const.mod     \
-                     M2DebugStack.mod  ObjectFiles.mod M2ColorString.mod
+                     M2DebugStack.mod  ObjectFiles.mod M2ColorString.mod M2Emit.mod
 
 GM2-VERIFY-AUTO    = P1Build.mod       P2Build.mod     PCBuild.mod     P3Build.mod     \
                      PHBuild.mod       gm2l.mod        gm2m.mod        pg.mod \
@@ -1126,6 +1132,12 @@ gm2/gm2-compiler-boot/gm2lorder.o: $(srcdir)/gm2/gm2-compiler/gm2lorder.mod $(MC
 gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-compiler/%.def $(MCDEPS)
 	$(MC) -o=$@ $(srcdir)/gm2/gm2-compiler/$*.def
 
+gm2/gm2-tools-boot/M2Emit.o: $(srcdir)/gm2/gm2-tools/M2Emit.mod $(MCDEPS)
+	$(MC) -o=gm2/gm2-tools-boot/M2Emit.c $(srcdir)/gm2/gm2-tools/M2Emit.mod
+	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
+	    -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot \
+            -I$(srcdir)/gm2/gm2-libiberty $(MCINCLUDES) $(INCLUDES) gm2/gm2-tools-boot/M2Emit.c -o $@
+
 gm2/gm2-tools/m2flex.o: gm2/gm2-compiler/m2flex.c $(BUILD-BOOT-H) $(TIMEVAR_H)
 	$(COMPILER) -c -g $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) \
           -DGM2TOOLS $(GM2GCC) $(INCLUDES) -I$(srcdir)/gm2 \
@@ -1157,6 +1169,7 @@ gm2/gm2-compiler-boot/M2Version.o: gm2/gm2-compiler-boot/M2Version.mod $(MCDEPS)
 
 gm2/gm2-compiler-boot/M2Version.mod:
 	cd gm2/gm2-compiler-boot ; bash ../../$(srcdir)/gm2/tools-src/makeversion -m ../../$(srcdir)
+
 
 #
 #  now for the rules which build objects in the gm2-compiler gm2-libs directories
@@ -1907,6 +1920,7 @@ stage1/gm2/cc1plus$(exeext): cc1plus$(exeext)
 
 stage1/gm2/gm2l$(exeext): \
      gm2/boot-bin/mklink$(exeext) gm2/boot-bin/mc$(exeext) \
+     gm2/gm2-tools-boot/M2Emit.o \
      gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler-boot/gm2l.o \
      gm2/gm2-tools/m2flex.o \
      $(GM2_LIBS_BOOT)
@@ -1916,10 +1930,13 @@ stage1/gm2/gm2l$(exeext): \
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2l_init.o \
               gm2/gm2-tools/m2flex.o \
+              gm2/gm2-tools-boot/M2Emit.o \
               gm2/gm2-compiler-boot/gm2l.o $(GCC_COLOR) $(GM2_LIBS_BOOT) $(MC_LIBS) $(LIBS) -lm
 
 stage1/gm2/gm2lcc$(exeext): \
      gm2/boot-bin/mklink$(exeext) gm2/boot-bin/mc$(exeext) \
+     gm2/gm2-tools-boot/M2Emit.o \
+     gm2/gm2-tools/m2flex.o \
      gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler-boot/gm2lcc.o \
      $(GM2_LIBS_BOOT)
 	unset CC ; $(M2LINK) -s --g++ --exit --name mod_init.c $(srcdir)/gm2/init/gm2lccinit
@@ -1927,33 +1944,44 @@ stage1/gm2/gm2lcc$(exeext): \
 	$(COMPILER) -c -g gm2/gm2-compiler-boot/gm2lcc_init.c -o gm2/gm2-compiler-boot/gm2lcc_init.o
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2lcc_init.o \
+              gm2/gm2-tools-boot/M2Emit.o \
+              gm2/gm2-tools/m2flex.o \
               gm2/gm2-compiler-boot/gm2lcc.o $(GCC_COLOR) $(GM2_LIBS_BOOT) $(MC_LIBS) $(LIBS) -lm
 
 stage1/gm2/gm2lgen$(exeext): \
      gm2/boot-bin/mklink$(exeext) gm2/boot-bin/mc$(exeext) \
+     gm2/gm2-tools-boot/M2Emit.o \
+     gm2/gm2-tools/m2flex.o \
      gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler-boot/gm2lgen.o
 	unset CC ; $(M2LINK) -s --g++ --exit --name mod_init.c $(srcdir)/gm2/init/gm2lgeninit
 	mv mod_init.c gm2/gm2-compiler-boot/gm2lgen_init.c
 	$(COMPILER) -c -g gm2/gm2-compiler-boot/gm2lgen_init.c -o gm2/gm2-compiler-boot/gm2lgen_init.o
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2lgen_init.o \
+              gm2/gm2-tools-boot/M2Emit.o \
+              gm2/gm2-tools/m2flex.o \
               gm2/gm2-compiler-boot/gm2lgen.o $(GCC_COLOR) $(GM2_LIBS_BOOT) $(MC_LIBS) $(LIBS) -lm
 
 stage1/gm2/gm2lorder$(exeext): \
      gm2/boot-bin/mklink$(exeext) gm2/boot-bin/mc$(exeext) \
      gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler-boot/gm2lorder.o \
+     gm2/gm2-tools-boot/M2Emit.o \
+     gm2/gm2-tools/m2flex.o \
      $(GM2_LIBS_BOOT)
 	unset CC ; $(M2LINK) -s --g++ --exit --name mod_init.c $(srcdir)/gm2/init/gm2lorderinit
 	mv mod_init.c gm2/gm2-compiler-boot/gm2lorder_init.c
 	$(COMPILER) -c -g gm2/gm2-compiler-boot/gm2lorder_init.c -o gm2/gm2-compiler-boot/gm2lorder_init.o
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2lorder_init.o \
+              gm2/gm2-tools-boot/M2Emit.o \
+              gm2/gm2-tools/m2flex.o \
               gm2/gm2-compiler-boot/gm2lorder.o $(GCC_COLOR) $(GM2_LIBS_BOOT) $(MC_LIBS) $(LIBS) -lm
 
 stage1/gm2/gm2m$(exeext): \
      gm2/boot-bin/mklink$(exeext) gm2/boot-bin/mc$(exeext) \
      gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler-boot/gm2m.o \
      gm2/gm2-tools/m2flex.o \
+     gm2/gm2-tools-boot/M2Emit.o \
      $(GM2_LIBS_BOOT)
 	unset CC ; $(M2LINK) -s --g++ --exit --name mod_init.c $(srcdir)/gm2/init/gm2minit
 	mv mod_init.c gm2/gm2-compiler-boot/gm2m_init.c
@@ -1961,6 +1989,7 @@ stage1/gm2/gm2m$(exeext): \
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2m_init.o \
               gm2/gm2-tools/m2flex.o \
+              gm2/gm2-tools-boot/M2Emit.o \
               gm2/gm2-compiler-boot/gm2m.o $(GCC_COLOR) $(GM2_LIBS_BOOT) $(MC_LIBS) $(LIBS) -lm
 
 stage2/gm2/gm2l$(exeext): $(GM2_LIBS) $(GM2_C_OBJS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2l.o

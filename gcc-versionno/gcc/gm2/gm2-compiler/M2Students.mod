@@ -136,8 +136,8 @@ BEGIN
    THEN
       IF IsNotADuplicate (s1, s2)
       THEN
-         MetaError2 ('very similar symbol names (different case) in two different scopes, scope {%1ORad} has symbol {%2ad}', previous, s1) ;
-         MetaError2 ('very similar symbol names (different case) in two different scopes, scope {%1OCad} has symbol {%2ad}', newblock, s2)
+         MetaError2 ('very similar symbol names (different case) in two different scopes, scope {%1ORad} has symbol {%2Mad}', previous, s1) ;
+         MetaError2 ('very similar symbol names (different case) in two different scopes, scope {%1OCad} has symbol {%2Mad}', newblock, s2)
       END
    END
 END CheckAsciiName ;

@@ -189,9 +189,7 @@ access_int (tree t, int *value)
 }
 
 
-/*  rte_error_at - wraps up an error message, --fixme-- this needs to turn
-    off the 'In function' component of the error message as it can be misleading
-    after optimization.  Is this still true?  */
+/* rte_error_at - wraps up an error message.  */
 
 static void
 rte_error_at (location_t location, const char *message, ...)

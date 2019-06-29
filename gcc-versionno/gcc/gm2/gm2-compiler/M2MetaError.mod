@@ -35,6 +35,8 @@ FROM M2Options IMPORT LowerCaseKeywords ;
 FROM StrCase IMPORT Lower ;
 FROM libc IMPORT printf ;
 FROM SYSTEM IMPORT ADDRESS ;
+FROM M2Error IMPORT MoveError ;
+
 
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar,
                            ConCat, ConCatChar, Mark, string, KillString,
@@ -890,7 +892,6 @@ END doError ;
 
 PROCEDURE chooseError (VAR eb: errorBlock; tok: CARDINAL) ;
 BEGIN
-
    IF eb.chain
    THEN
       doChain (eb, tok)
@@ -902,14 +903,20 @@ BEGIN
       error  :  IF eb.e=NIL
                 THEN
                    eb.e := NewError (tok)
+                ELSE
+                   eb.e := MoveError (eb.e, tok)
                 END |
       warning:  IF eb.e=NIL
                 THEN
                    eb.e := NewWarning (tok)
+                ELSE
+                   eb.e := MoveError (eb.e, tok)
                 END |
       note   :  IF eb.e=NIL
                 THEN
                    eb.e := NewNote (tok)
+                ELSE
+                   eb.e := MoveError (eb.e, tok)
                 END
 
       ELSE

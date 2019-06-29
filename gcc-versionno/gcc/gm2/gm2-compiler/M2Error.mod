@@ -21,7 +21,6 @@ see <https://www.gnu.org/licenses/>.  *)
 
 IMPLEMENTATION MODULE M2Error ;
 
-FROM ASCII IMPORT nul, nl ;
 FROM NameKey IMPORT Name, KeyToCharStar ;
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, ConCat, ConCatChar, Mark, string, KillString, Dup ;
 FROM FIO IMPORT StdOut, WriteNBytes, Close, FlushBuffer ;
@@ -33,11 +32,13 @@ FROM M2Printf IMPORT printf0, printf1, printf2 ;
 FROM M2Options IMPORT Xcode ;
 FROM M2RTS IMPORT ExitOnHalt ;
 FROM SYSTEM IMPORT ADDRESS ;
+FROM M2Emit IMPORT EmitError ;
 
 FROM M2ColorString IMPORT filenameColor, endColor, errorColor, warningColor, noteColor,
                           range1Color, range2Color ;
 
-IMPORT StdIO ;
+IMPORT M2Emit ;
+
 
 CONST
    Debugging  =  TRUE ;
@@ -128,94 +129,20 @@ END TranslateNameToCharStar ;
 
 
 (*
-   OutString - writes the contents of String to stdout.
-               The string, s, is destroyed.
-*)
-
-PROCEDURE OutString (file: String; line, col: CARDINAL; s: String) ;
-VAR
-   leader : String ;
-   p, q   : POINTER TO CHAR ;
-   space,
-   newline: BOOLEAN ;
-BEGIN
-   file := ConCat(filenameColor(InitString('')), file) ;
-   file := endColor(file) ;
-   INC(col) ;
-   leader := ConCatChar(file, ':') ;
-   leader := range1Color(leader) ;
-   leader := ConCat(leader, Sprintf1(Mark(InitString('%d')), line)) ;
-   leader := endColor(leader) ;
-   leader := ConCatChar(leader, ':') ;
-   IF NOT Xcode
-   THEN
-      leader := range2Color(leader) ;
-      leader := ConCat(leader, Sprintf1(Mark(InitString('%d')), col)) ;
-      leader := endColor(leader) ;
-      leader := ConCatChar(leader, ':')
-   END ;
-   p := string(s) ;
-   newline := TRUE ;
-   space := FALSE ;
-   WHILE (p#NIL) AND (p^#nul) DO
-      IF newline
-      THEN
-         q := string(leader) ;
-         WHILE (q#NIL) AND (q^#nul) DO
-            StdIO.Write(q^) ;
-            INC(q)
-         END
-      END ;
-      newline := (p^=nl) ;
-      space := (p^=' ') ;
-      IF newline AND Xcode
-      THEN
-         printf1('(pos: %d)', col)
-      END ;
-      StdIO.Write(p^) ;
-      INC(p)
-   END ;
-   IF NOT newline
-   THEN
-      IF Xcode
-      THEN
-         IF NOT space
-         THEN
-            StdIO.Write(' ')
-         END ;
-         printf1('(pos: %d)', col)
-      END ;
-      StdIO.Write(nl)
-   END ;
-   FlushBuffer(StdOut) ;
-   IF NOT Debugging
-   THEN
-      s      := KillString(s) ;
-      leader := KillString(leader)
-   END
-END OutString ;
-
-
-(*
    InternalError - displays an internal error message together with the compiler source
                    file and line number.
                    This function is not buffered and is used when the compiler is about
                    to give up.
 *)
 
-PROCEDURE InternalError (a: ARRAY OF CHAR; file: ARRAY OF CHAR; line: CARDINAL) ;
+PROCEDURE InternalError (message: ARRAY OF CHAR; file: ARRAY OF CHAR; line: CARDINAL) ;
 BEGIN
    IF NOT InInternal
    THEN
       InInternal := TRUE ;
-      FlushErrors ;
-      OutString(FindFileNameFromToken(GetTokenNo(), 0),
-                TokenToLineNo(GetTokenNo(), 0),
-                TokenToColumnNo(GetTokenNo(), 0),
-                Mark(InitString('*** fatal error ***')))
+      FlushErrors
    END ;
-   OutString(Mark(InitString(file)), line, 0,
-             ConCat(Mark(InitString('*** internal error *** ')), Mark(InitString(a)))) ;
+   M2Emit.InternalError (file, line, message) ;
    HALT
 END InternalError ;
 
@@ -419,6 +346,20 @@ BEGIN
    e := NewError(GetTokenNo()) ;
    e^.s := DoFormat3(a, w1, w2, w3)
 END WriteFormat3 ;
+
+
+(*
+   MoveError - repositions an error, e, to token, AtTokenNo, and returns, e.
+*)
+
+PROCEDURE MoveError (e: Error; AtTokenNo: CARDINAL) : Error ;
+BEGIN
+   IF e # NIL
+   THEN
+      e^.token := AtTokenNo
+   END ;
+   RETURN e
+END MoveError ;
 
 
 (*
@@ -661,19 +602,9 @@ BEGIN
          WITH e^ DO
             IF (FatalStatus=fatal) AND (s#NIL)
             THEN
-               CheckIncludes(token, 0) ;
-               IF fatal
-               THEN
-                  s := ConCat (errorColor (InitString (' error ')), endColor (s))
-               ELSIF note
-               THEN
-                  s := ConCat (noteColor (InitString (' note ')), endColor (s))
-               ELSE
-                  s := ConCat (warningColor (InitString (' warning ')), endColor (s))
-               END ;
-               OutString(FindFileNameFromToken(token, 0),
-                         TokenToLineNo(token, 0), TokenToColumnNo(token, 0), s) ;
-               IF (child#NIL) AND FlushAll(child, FatalStatus)
+               CheckIncludes (token, 0) ;
+               EmitError (fatal, note, token, s) ;
+               IF (child#NIL) AND FlushAll (child, FatalStatus)
                THEN
                END ;
                s := NIL ;

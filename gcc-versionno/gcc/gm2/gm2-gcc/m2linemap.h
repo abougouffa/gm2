@@ -52,6 +52,18 @@ EXTERN int m2linemap_GetLineNoFromLocation (location_t location);
 EXTERN int m2linemap_GetColumnNoFromLocation (location_t location);
 EXTERN const char *m2linemap_GetFilenameFromLocation (location_t location);
 EXTERN void m2linemap_ErrorAt (location_t location, char *message);
+EXTERN void m2linemap_ErrorAtf (location_t location, const char *message, ...);
+EXTERN void m2linemap_WarningAtf (location_t location, const char *message, ...);
+EXTERN void m2linemap_NoteAtf (location_t location, const char *message, ...);
+EXTERN void m2linemap_internal_error (const char *message);
+
+
+EXTERN location_t UnknownLocation (void);
+EXTERN location_t BuiltinsLocation (void);
+EXTERN void ErrorAt (location_t location, char *message);
+EXTERN void ErrorAtf (location_t location, const char *message, ...);
+EXTERN void WarningAtf (location_t location, const char *message, ...);
+EXTERN void NoteAtf (location_t location, const char *message, ...);
 
 #undef EXTERN
 #endif /* m2linemap_h.  */

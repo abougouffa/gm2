@@ -1,3 +1,29 @@
+2019-06-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  All gm2 errors now go though GCC.
+          M2Emit.mod added to the list of modules.  New directory
+          gm2-tools-boot created during the build process.
+	  (M2Emit) rules to build during boot phase.
+	* gm2/gm2-compiler/M2Error.def:  (MoveError)  New procedure
+	  function.  (InternalError)  renamed parameter.
+	* gm2/gm2-compiler/M2Error.mod:  (FlushAll) call EmitError.
+	  (EmitError) imported.
+	* gm2/gm2-compiler/M2MetaError.def: (MetaString0),
+          (MetaString1), (MetaString2), (MetaString3), (MetaString4)
+	  exported.
+	* gm2/gm2-compiler/M2MetaError.mod:  (chooseError)
+	  call MoveError if the error has already been created.
+	* gm2/gm2-compiler/M2Students.mod:  correct descriptions to
+	  choose the token of the variable rather than the module.
+	* gm2/gm2-gcc/m2linemap.c:  (ErrorAtf)  New function.
+          (WarningAtf)  New function.  (NoteAtf)  New function.
+	  (internal_error)  New function.
+	* gm2/gm2-gcc/m2linemap.def:  declare new functions without
+	  vararg capability (to get around mc).
+	* gm2/gm2-gcc/m2linemap.h:  declare new functions with
+	  vararg capability.
+	* gm2/plugin/m2rte.c:  (rte_error_at) corrected comment.
+
 2019-06-27      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/M2ColorString.def:  (SetEnableColor)

@@ -141,6 +141,59 @@ m2linemap_ErrorAt (location_t location, char *message)
   error_at (location, message);
 }
 
+/* m2linemap_ErrorAtf - wraps up an error message.  */
+
+void
+m2linemap_ErrorAtf (location_t location, const char *message, ...)
+{
+  diagnostic_info diagnostic;
+  va_list ap;
+  rich_location richloc (line_table, location);
+
+  va_start (ap, message);
+  diagnostic_set_info (&diagnostic, message, &ap, &richloc, DK_ERROR);
+  diagnostic_report_diagnostic (global_dc, &diagnostic);
+  va_end (ap);
+}
+
+/* m2linemap_WarningAtf - wraps up a warning message.  */
+
+void
+m2linemap_WarningAtf (location_t location, const char *message, ...)
+{
+  diagnostic_info diagnostic;
+  va_list ap;
+  rich_location richloc (line_table, location);
+
+  va_start (ap, message);
+  diagnostic_set_info (&diagnostic, message, &ap, &richloc, DK_WARNING);
+  diagnostic_report_diagnostic (global_dc, &diagnostic);
+  va_end (ap);
+}
+
+/* m2linemap_NoteAtf - wraps up a note message.  */
+
+void
+m2linemap_NoteAtf (location_t location, const char *message, ...)
+{
+  diagnostic_info diagnostic;
+  va_list ap;
+  rich_location richloc (line_table, location);
+
+  va_start (ap, message);
+  diagnostic_set_info (&diagnostic, message, &ap, &richloc, DK_NOTE);
+  diagnostic_report_diagnostic (global_dc, &diagnostic);
+  va_end (ap);
+}
+
+/* m2linemap_internal_error - allow Modula-2 to use the GCC internal error.  */
+
+void
+m2linemap_internal_error (const char *message)
+{
+  internal_error (message);
+}
+
 /* UnknownLocation - return the predefined location representing an
    unknown location.  */
 

@@ -45,7 +45,8 @@ EXPORT QUALIFIED MetaError0, MetaError1, MetaError2, MetaError3, MetaError4,
                  MetaErrorString4,
                  MetaErrorStringT0, MetaErrorStringT1, MetaErrorStringT2,
                  MetaErrorStringT3, MetaErrorStringT4,
-                 MetaErrorN1, MetaErrorN2 ;
+                 MetaErrorN1, MetaErrorN2,
+                 MetaString0, MetaString1, MetaString2, MetaString3, MetaString4 ;
 
 
 (*
