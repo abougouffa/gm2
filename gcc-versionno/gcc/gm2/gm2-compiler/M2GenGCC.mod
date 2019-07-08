@@ -1745,13 +1745,14 @@ PROCEDURE CodeKillLocalVar (quad: CARDINAL;
 VAR
    begin, end: CARDINAL ;
 BEGIN
-   GetProcedureBeginEnd(CurrentProcedure, begin, end) ;
+   GetProcedureBeginEnd (CurrentProcedure, begin, end) ;
    CurrentQuadToken := end ;
-   BuildEndFunctionCode(TokenToLocation(end),
-                        Mod2Gcc(CurrentProcedure),
-                        IsProcedureGccNested(CurrentProcedure)) ;
-   PoisonSymbols(CurrentProcedure) ;
-   removeStmtNote ()
+   BuildEndFunctionCode (TokenToLocation (end),
+                         Mod2Gcc (CurrentProcedure),
+                         IsProcedureGccNested (CurrentProcedure)) ;
+   PoisonSymbols (CurrentProcedure) ;
+   removeStmtNote () ;
+   PopScope
 END CodeKillLocalVar ;
 
 
@@ -1771,6 +1772,7 @@ BEGIN
                           IsExportedGcc(CurrentProcedure),
                           IsProcedureInline(CurrentProcedure)) ;
    StartDeclareScope(CurrentProcedure) ;
+   PushScope(CurrentProcedure) ;
    (* DeclareParameters(CurrentProcedure) *)
 END CodeProcedureScope ;
 

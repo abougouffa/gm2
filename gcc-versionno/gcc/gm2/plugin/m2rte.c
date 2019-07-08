@@ -53,6 +53,7 @@ see <https://www.gnu.org/licenses/>.  */
 #include "diagnostic.h"
 #include "context.h"
 
+#include "rtegraph.h"
 
 #define DEVELOPMENT
 #undef DEVELOPMENT
@@ -62,73 +63,33 @@ int plugin_is_GPL_compatible;
 
 void debug_tree (tree);
 
-#if 0
-class m2node
-{
- private:
-
- public:
-  bool error_reachable;
-  bool warning_reachable;
-  vec<m2node> edge;
-  gimple *node;
-
-  m2node (gimple *g);
-  ~m2node (void);
-  m2node (const dlist &from);
-}
-
-
-class m2graph
-{
- private:
-  vec<m2node> node;
-  m2node *lookup_node (gimple *g);
-  void walk (bool error, bool warning);
-
- public:
-  m2graph (void);
-  ~m2graph (void);
-  m2graph (const dlist &from);
-
-  void add_edge (gimple *src, gimple *dest);
-  void set_reachable (gimple *g);
-  void determine_reachable (void);
-  void issue_messages (void);
-}
-
-
-m2graph::m2graph ()
-{
-}
-
-m2graph::~m2graph ()
-{
-}
-
-void
-m2graph::add_edge (gimple *src, gimple *src)
-{
-  m2node *gsrc = lookup_node (src);
-  m2node *gdest = lookup_node (dest);
-
-  gsrc->edge.safe_push (gdest);
-}
-
-m2node *
-m2graph::lookup_node (gimple *g)
-{
-  for (int i = 0; i < edge.length (); i++)
-    {
-      if (edge[i].node == g)
-	return edge[i];
-    }
-  m2node *n = new m2node (g);
-  node.safe_push (n);
-  return n;
-}
-
-#endif
+static const char *m2_runtime_error_calls[] = {
+  "M2RTS_AssignmentException",
+  "M2RTS_ReturnException",
+  "M2RTS_IncException",
+  "M2RTS_DecException",
+  "M2RTS_InclException",
+  "M2RTS_ExclException",
+  "M2RTS_ShiftException",
+  "M2RTS_RotateException",
+  "M2RTS_StaticArraySubscriptException",
+  "M2RTS_DynamicArraySubscriptException",
+  "M2RTS_ForLoopBeginException",
+  "M2RTS_ForLoopToException",
+  "M2RTS_ForLoopEndException",
+  "M2RTS_PointerNilException",
+  "M2RTS_NoReturnException",
+  "M2RTS_CaseException",
+  "M2RTS_WholeNonPosDivException",
+  "M2RTS_WholeNonPosModException",
+  "M2RTS_WholeZeroDivException",
+  "M2RTS_WholeZeroRemException",
+  "M2RTS_WholeValueException",
+  "M2RTS_RealValueException",
+  "M2RTS_ParameterException",
+  "M2RTS_NoException",
+  NULL,
+};
 
 
 static void
@@ -142,101 +103,35 @@ pretty_function (tree fndecl)
 }
 
 
-static bool
-access_string (tree t, const char **value)
-{
-  if (TREE_CODE (t) == ADDR_EXPR)
-    {
-      if (TREE_CODE (TREE_OPERAND (t, 0)) == STRING_CST)
-	{
-	  *value = TREE_STRING_POINTER (TREE_OPERAND (t, 0));
-	  return true;
-	}
-    }
-  return false;
-}
-
-
 void
 print_rtl (FILE *outf, const_rtx rtx_first);
 
 static bool
-access_int (tree t, int *value)
+strend (const char *name, const char *ending)
 {
-  enum tree_code code = TREE_CODE (t);
-
-  if (code == SSA_NAME)
-    return access_int (SSA_NAME_VAR (t), value);
-  if (code == INTEGER_CST)
-    {
-      *value = TREE_INT_CST_LOW (t);
-      return true;
-    }
-  if ((code == VAR_DECL || code == PARM_DECL)
-      && DECL_HAS_VALUE_EXPR_P (t))
-    return access_int (DECL_VALUE_EXPR (t), value);
-#if 0
-  if (code == PARM_DECL)
-    if (DECL_INCOMING_RTL (t) != 0)
-      print_rtl (stdout, DECL_INCOMING_RTL (t));
-  if ((code == VAR_DECL || code == PARM_DECL || code == RESULT_DECL)
-      && DECL_BY_REFERENCE (t))
-    fprintf (stderr, "passed by ref\n");
-  fprintf (stderr, "failed to find int\n");
-#endif
-
-  return false;
+  unsigned int len = strlen (name);
+  return (len > strlen (name)
+	  && (strcmp (&name[len-strlen (ending)], ending) == 0));
 }
 
 
-/* rte_error_at - wraps up an error message.  */
-
-static void
-rte_error_at (location_t location, const char *message, ...)
+static bool
+is_constructor (const char *name)
 {
-  diagnostic_info diagnostic;
-  va_list ap;
-  rich_location richloc (line_table, location);
+  unsigned int len = strlen (name);
 
-  va_start (ap, message);
-  diagnostic_set_info (&diagnostic, message, &ap, &richloc, DK_WARNING);
-  diagnostic_report_diagnostic (global_dc, &diagnostic);
-  va_end (ap);
+  return ((len > strlen ("_M2_"))
+	  && (strncmp (name, "_M2_", strlen ("_M2_")) == 0)
+	  && (strend (name, "_init") || strend (name, "_finish")));
 }
 
-/* generate an error using the parameters of the M2RTS exception handler to
-   locate the source code.  We dont use location, as the error_at function will
-   give the function context which might be misleading if this is inlined.  */
 
-static void
-generate_error (gimple *stmt)
+static bool
+is_external (tree function)
 {
-  if (gimple_call_num_args (stmt) == 5)
-    {
-      tree s0 = gimple_call_arg (stmt, 0);
-      tree i1 = gimple_call_arg (stmt, 1);
-      tree i2 = gimple_call_arg (stmt, 2);
-      tree s1 = gimple_call_arg (stmt, 3);
-      tree s2 = gimple_call_arg (stmt, 4);
-      const char *file;
-      int line;
-      int col;
-      const char *scope;
-      const char *message;
-
-      if (access_string (s0, &file)
-	  && access_int (i1, &line)
-	  && access_int (i2, &col)
-	  && access_string (s1, &scope)
-	  && access_string (s2, &message))
-	{
-	  /* continue to use scope as this will survive any
-	     optimization transforms.  */
-	  location_t location = gimple_location (stmt);
-	  rte_error_at (location, "runtime error will occur, %s (in %s)\n",
-			message, scope);
-	}
-    }
+  return (! DECL_EXTERNAL (function))
+    && TREE_PUBLIC (function)
+    && TREE_STATIC (function);
 }
 
 
@@ -244,59 +139,39 @@ static void
 examine_call (gimple *stmt)
 {
   tree fndecl = gimple_call_fndecl (stmt);
+  rtenode *func = m2rte_graph->lookup (fndecl);
+  m2rte_graph->dump ();
   if (fndecl != NULL && (DECL_NAME (fndecl) != NULL))
     {
+      /* firstly check if the function is a runtime exception.  */
       const char *n = IDENTIFIER_POINTER (DECL_NAME (fndecl));
-      if (strcmp (n, "M2RTS_AssignmentException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_ReturnException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_IncException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_DecException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_InclException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_ExclException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_ShiftException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_RotateException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_StaticArraySubscriptException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_DynamicArraySubscriptException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_ForLoopBeginException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_ForLoopToException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_ForLoopEndException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_PointerNilException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_NoReturnException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_CaseException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_WholeNonPosDivException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_WholeNonPosModException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_WholeZeroDivException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_WholeZeroRemException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_WholeValueException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_RealValueException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_ParameterException") == 0)
-	generate_error (stmt);
-      else if (strcmp (n, "M2RTS_NoException") == 0)
-	generate_error (stmt);
+      for (int i = 0; m2_runtime_error_calls[i] != NULL; i++)
+	if (strcmp (m2_runtime_error_calls[i], n) == 0)
+	  {
+	    /* runtime exception seen.  */
+	    func->exception_routine = true;
+	    /* remember runtime exception call.  */
+	    if (! m2rte_current_function_rtenode->rts_calls.contains (func))
+	      m2rte_current_function_rtenode->rts_calls.safe_push (func);
+	    /* add the callee to the list of candidates to be queried reachable.  */
+	    if (! m2rte_graph->candidates.contains (func))
+	      m2rte_graph->candidates.safe_push (m2rte_current_function_rtenode);
+	    return;
+	  }
+      /* secondly check if the function is a module constructor.  */
+      if (is_constructor (n))
+	if (! m2rte_graph->candidates.contains (func))
+	  m2rte_graph->candidates.safe_push (func);
+      /* thirdly can it be called externally?  */
+      if (is_external (fndecl))
+	if (! m2rte_graph->externs.contains (func))
+	  m2rte_graph->externs.safe_push (func);
     }
+  /* add it to the list of calls.  */
+  if (! m2rte_current_function_rtenode->function_call.contains (func))
+    m2rte_current_function_rtenode->function_call.safe_push (func);
 }
+
 
 /* Check and warn if STMT is a self-assign statement.  */
 
@@ -342,17 +217,26 @@ pass_warn_exception_inevitable::execute (function *fun)
   gimple_stmt_iterator gsi;
   basic_block bb;
 
+  return 0;  // --fixme-- disabled temporary
 #if defined (DEVELOPMENT)
+  m2rte_graph->dump ();
   fprintf (stderr, "function ");
   pretty_function (fun->decl);
   fprintf (stderr, "{\n");
   int count = 0;
 #endif
+  const char *n = IDENTIFIER_POINTER (DECL_NAME (fun->decl));
+  m2rte_current_function = fun->decl;
+  printf ("current_function = 0x%p\n", m2rte_current_function);
+  m2rte_current_function_rtenode = m2rte_graph->lookup (m2rte_current_function);
+  fprintf (stderr, "function %s\n", n);
+  printf ("current_function_rtenode = 0x%p\n", m2rte_current_function_rtenode);
   FOR_EACH_BB_FN (bb, fun)
     {
+      printf ("FOR_EACH...\n");
       for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next (&gsi))
         runtime_exception_inevitable (gsi_stmt (gsi));
-      /*  we only care about the first basic block in each function.  */
+      /* we only care about the first basic block in each function.  */
 #if defined (DEVELOPMENT)
       if (count == 0)
 	fprintf (stderr, "/* end of first bb in function.  */\n\n");
@@ -387,8 +271,10 @@ plugin_init (struct plugin_name_args *plugin_info,
 {
   struct register_pass_info pass_info;
   const char *plugin_name = plugin_info->base_name;
+#if 0
   int argc = plugin_info->argc;
   struct plugin_argument *argv = plugin_info->argv;
+#endif
 
   if (!plugin_default_version_check (version, &gcc_version))
     {
@@ -405,6 +291,8 @@ plugin_init (struct plugin_name_args *plugin_info,
 
   pass_info.ref_pass_instance_number = 1;
   pass_info.pos_op = PASS_POS_INSERT_AFTER;
+
+  m2rte_graph = new rtegraph ();
 
   register_callback (plugin_name,
 		     PLUGIN_PASS_MANAGER_SETUP,

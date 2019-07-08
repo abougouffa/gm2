@@ -42,6 +42,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "init.h"
 #include "../gm2-tree.h"
 #include "convert.h"
+#include "rtegraph.h"
 
 static void write_globals (void);
 

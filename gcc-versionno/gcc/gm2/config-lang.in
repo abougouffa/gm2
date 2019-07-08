@@ -44,6 +44,8 @@ build_by_default="no"
 
 gtfiles="\$(srcdir)/gm2/gm2-lang.c \
          \$(srcdir)/gm2/gm2-lang.h \
+         \$(srcdir)/gm2/rtegraph.h \
+         \$(srcdir)/gm2/rtegraph.c \
          \$(srcdir)/gm2/gm2-gcc/m2block.c \
          \$(srcdir)/gm2/gm2-gcc/m2builtins.c \
          \$(srcdir)/gm2/gm2-gcc/m2decl.c \

@@ -23,7 +23,7 @@
 
 AC_INIT(gm2config.h.in, 1.2.0, gm2@nongnu.org)
 AC_CONFIG_HEADER(gm2config.h:gm2config.h.in)
-AC_PATH_PROGS(AR_PATH, ${AR}, ar)
+AC_PATH_PROGS(AR_PATH, ${AR}, gcc-ar)
 
 AC_CHECK_PROGS(regex_flex, flex)
 if test x$regex_flex = "x" ; then
@@ -33,6 +33,6 @@ fi
 AC_CHECK_FUNCS(stpcpy)
 
 AC_DEFINE_UNQUOTED(AR_PATH, "$AR_PATH", the path to target archiver)
-AC_PATH_PROGS(RANLIB_PATH, ${RANLIB}, ranlib)
+AC_PATH_PROGS(RANLIB_PATH, ${RANLIB}, gcc-ranlib)
 AC_DEFINE_UNQUOTED(RANLIB_PATH, "$RANLIB_PATH", the path to target ranlib)
 AC_OUTPUT

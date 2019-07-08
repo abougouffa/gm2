@@ -1,3 +1,16 @@
+2019-07-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  added many dependancies to many targets
+          to allow parallel builds to complete.  (gm2/rtegraph.o)
+          New rule.
+	* gm2/rtegraph.h:  New file.
+	* gm2/rtegraph.c:  New file.
+	* gm2/plugin/m2rte.c:  rewritten to generate a call tree from
+          initial basic blocks.  Temporarily disabled.
+	* gm2/gm2-compiler/M2GenGCC.mod:  corrected scope string
+          of the runtime exception.
+	* gm2/gm2-lang.c:  include rtegraph.h.
+
 2019-06-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  All gm2 errors now go though GCC.
