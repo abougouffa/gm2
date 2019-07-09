@@ -32,6 +32,8 @@ see <https://www.gnu.org/licenses/>.  */
 #define RTEGRAPH_C
 #include "rtegraph.h"
 
+#undef DEBUGGING
+
 
 rtegraph::rtegraph ()
 {
@@ -85,7 +87,9 @@ rtegraph::lookup (gimple *g)
 rtenode *
 rtegraph::lookup (tree fun)
 {
+#if defined (DEBUGGING)
   printf ("function lookup\n");
+#endif
   for (unsigned int i = 0; i < all_rtenodes.length (); i++)
     {
       if (all_rtenodes[i]->grtenode != NULL)
@@ -95,7 +99,9 @@ rtegraph::lookup (tree fun)
 	    return all_rtenodes[i];
 	}
     }
+#if defined (DEBUGGING)
   printf ("creating new tree rtenode\n");
+#endif
   rtenode *n = new rtenode (fun);
   all_rtenodes.safe_push (n);
   return n;
@@ -128,22 +134,22 @@ void rtegraph::issue_messages (void)
 void
 rtegraph::dump_vec (const char *title, vec<rtenode *> &list)
 {
+#if defined (DEBUGGING)
   printf ("%s (length = %d)\n", title, list.length ());
-#if 1
   for (unsigned int i = 0; i < list.length (); i++)
     {
       printf ("[%d]: rtenode %p ", i, list[i]);
       list[i]->dump ();
     }
-#endif
   printf ("end\n");
+#endif
 }
 
 void rtegraph::dump (void)
 {
+#if defined (DEBUGGING)
   unsigned int l = all_rtenodes.length ();
   printf ("direct: all_rtenodes (length = %d)\n", l);
-#if 1
   dump_vec ("all_rtenodes", all_rtenodes);
 #endif
 }
@@ -361,6 +367,7 @@ void rtenode::note_message (void)
 void
 rtenode::dump (void)
 {
+#if defined (DEBUGGING)
   printf ("rtenode::dump: ");
   if (func != NULL && (DECL_NAME (func) != NULL))
     {
@@ -378,6 +385,7 @@ rtenode::dump (void)
   if (func_decl)
     printf (", func_decl");
   printf (", status %d\n", status);
+#endif
 }
 
 void rtenode::propagate_constructor_reachable (rtenode *src)

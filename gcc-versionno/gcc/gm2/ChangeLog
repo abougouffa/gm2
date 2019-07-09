@@ -20,6 +20,7 @@
           (rtenode) use auto_vec rather than vec.
           (rtegraph) use auto_vec rather than vec.
 	* gm2/plugin/m2rte.c:  turned off development printfs.
+	* gm2/rtegraph.c:  turned off development printfs.
 
 2019-06-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
