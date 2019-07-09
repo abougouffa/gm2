@@ -44,7 +44,7 @@ struct libc_tm_r {
                  };
 
 struct libc_timeb_r {
-                      libc_time_t time;
+                      libc_time_t time_;
                       short unsigned int millitm;
                       short unsigned int timezone;
                       short unsigned int dstflag;

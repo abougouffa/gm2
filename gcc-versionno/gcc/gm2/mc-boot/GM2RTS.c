@@ -133,29 +133,30 @@ void M2RTS_ErrorMessage (char *message_, unsigned int _message_high, char *file_
 */
 
 unsigned int M2RTS_Length (char *a_, unsigned int _a_high);
-void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_ReturnException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_IncException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_DecException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_InclException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_ExclException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_ShiftException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_RotateException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_StaticArraySubscriptException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_DynamicArraySubscriptException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_ForLoopBeginException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_ForLoopToException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_ForLoopEndException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_PointerNilException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_NoReturnException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_CaseException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_WholeNonPosDivException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_WholeNonPosModException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_WholeZeroDivException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_WholeZeroRemException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_WholeValueException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_RealValueException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_NoException (void * filename, unsigned int line, unsigned int column, void * scope);
+void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_ReturnException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_IncException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_DecException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_InclException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_ExclException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_ShiftException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_RotateException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_StaticArraySubscriptException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_DynamicArraySubscriptException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_ForLoopBeginException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_ForLoopToException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_ForLoopEndException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_PointerNilException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_NoReturnException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_CaseException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_WholeNonPosDivException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_WholeNonPosModException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_WholeZeroDivException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_WholeZeroRemException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_WholeValueException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_RealValueException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_ParameterException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_NoException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
 
 /*
    ErrorString - writes a string to stderr.
@@ -393,122 +394,127 @@ unsigned int M2RTS_Length (char *a_, unsigned int _a_high)
   return l;
 }
 
-void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
   /* 
    The following are the runtime exception handler routines.
   */
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, "variable exceeds range during assignment");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
 }
 
-void M2RTS_ReturnException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_ReturnException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, "return value from procedure function exceeds range");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
 }
 
-void M2RTS_IncException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_IncException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, "variable exceeds range during INC statement");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
 }
 
-void M2RTS_DecException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_DecException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, "variable exceeds range during DEC statement");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
 }
 
-void M2RTS_InclException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_InclException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, "bit exceeds set range during INCL statement");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
 }
 
-void M2RTS_ExclException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_ExclException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, "bit exceeds set range during EXCL statement");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
 }
 
-void M2RTS_ShiftException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_ShiftException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, "bit exceeds set range during SHIFT statement");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
 }
 
-void M2RTS_RotateException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_RotateException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, "bit exceeds set range during ROTATE statement");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
 }
 
-void M2RTS_StaticArraySubscriptException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_StaticArraySubscriptException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_indexException), filename, line, column, scope, "array index out of bounds during static array access");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_indexException), filename, line, column, scope, message);
 }
 
-void M2RTS_DynamicArraySubscriptException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_DynamicArraySubscriptException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_indexException), filename, line, column, scope, "array index out of bounds during dynamic array access");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_indexException), filename, line, column, scope, message);
 }
 
-void M2RTS_ForLoopBeginException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_ForLoopBeginException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, "iterator variable exceeds range during FOR loop initial assignment");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
 }
 
-void M2RTS_ForLoopToException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_ForLoopToException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, "iterator variable will exceed range when calculating final value in FOR loop");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
 }
 
-void M2RTS_ForLoopEndException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_ForLoopEndException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, "iterator variable exceeds range during increment at the end of a FOR loop");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
 }
 
-void M2RTS_PointerNilException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_PointerNilException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_invalidLocation), filename, line, column, scope, "attempting to dereference a NIL valued pointer");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_invalidLocation), filename, line, column, scope, message);
 }
 
-void M2RTS_NoReturnException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_NoReturnException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_functionException), filename, line, column, scope, "about to finish a PROCEDURE without executing a RETURN statement");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_functionException), filename, line, column, scope, message);
 }
 
-void M2RTS_CaseException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_CaseException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_caseSelectException), filename, line, column, scope, "the expression in the CASE statement cannot be selected");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_caseSelectException), filename, line, column, scope, message);
 }
 
-void M2RTS_WholeNonPosDivException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_WholeNonPosDivException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeDivException), filename, line, column, scope, "the division expression has a divisor which is less than or equal to zero");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeDivException), filename, line, column, scope, message);
 }
 
-void M2RTS_WholeNonPosModException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_WholeNonPosModException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeDivException), filename, line, column, scope, "the modulus expression has a divisor which is less than or equal to zero");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeDivException), filename, line, column, scope, message);
 }
 
-void M2RTS_WholeZeroDivException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_WholeZeroDivException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeDivException), filename, line, column, scope, "the division expression has a divisor which is equal to zero");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeDivException), filename, line, column, scope, message);
 }
 
-void M2RTS_WholeZeroRemException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_WholeZeroRemException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeDivException), filename, line, column, scope, "the remainder expression has a divisor which is equal to zero");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeDivException), filename, line, column, scope, message);
 }
 
-void M2RTS_WholeValueException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_WholeValueException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeValueException), filename, line, column, scope, "the whole value is about to overflow");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeValueException), filename, line, column, scope, message);
 }
 
-void M2RTS_RealValueException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_RealValueException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_realValueException), filename, line, column, scope, "the floating point value is about to overflow");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_realValueException), filename, line, column, scope, message);
 }
 
-void M2RTS_NoException (void * filename, unsigned int line, unsigned int column, void * scope)
+void M2RTS_ParameterException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_exException), filename, line, column, scope, "M2Expection was called when no there was no outstanding exception to be returned");
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
+}
+
+void M2RTS_NoException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
+{
+  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_exException), filename, line, column, scope, message);
 }
 
 void _M2_M2RTS_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

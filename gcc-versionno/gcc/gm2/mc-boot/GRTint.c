@@ -54,7 +54,7 @@ typedef _T1 *Vector;
 
 typedef struct _T2_a _T2;
 
-typedef enum {input, output, time} VectorType;
+typedef enum {input, output, time_} VectorType;
 
 typedef void (*RTint_DespatchVector_t) (unsigned int, unsigned int, void *);
 struct RTint_DespatchVector_p { RTint_DespatchVector_t proc; };
@@ -333,7 +333,7 @@ static void DumpPendingQueue (void)
         {
           if ((v->type == input) || (v->type == output))
             libc_printf ((char *) "(fd=%d) (vec=%d)", 16, v->File, v->no);
-          else if (v->type == time)
+          else if (v->type == time_)
             {
               Selective_GetTime (v->rel, &s, &m);
               Assertion_Assert (m < Microseconds);
@@ -525,7 +525,7 @@ unsigned int RTint_InitTimeVector (unsigned int micro, unsigned int secs, unsign
   Storage_ALLOCATE ((void **) &v, sizeof (_T1));
   VecNo += 1;
   Assertion_Assert (micro < Microseconds);
-  v->type = time;
+  v->type = time_;
   v->priority = pri;
   v->arg = NULL;
   v->pending = NULL;
@@ -628,7 +628,7 @@ void RTint_IncludeVector (unsigned int vec)
           ', vec, v^.File) ;  */
           v->pending = Pending.array[v->priority-(COROUTINES_UnassignedPriority)];
           Pending.array[v->priority-(COROUTINES_UnassignedPriority)] = v;
-          if ((v->type == time) && ! v->queued)
+          if ((v->type == time_) && ! v->queued)
             {
               v->queued = TRUE;
               r = Selective_GetTimeOfDay (v->abs_);
@@ -676,7 +676,7 @@ void RTint_ExcludeVector (unsigned int vec)
             u = u->pending;
           u->pending = v->pending;
         }
-      if (v->type == time)
+      if (v->type == time_)
         v->queued = FALSE;
     }
 }
@@ -736,7 +736,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
                     AddFd (&o, &maxFd, v->File);
                     break;
 
-                  case time:
+                  case time_:
                     if (IsGreaterEqual (t, v->abs_))
                       {
                         Selective_GetTime (v->abs_, &s, &m);
@@ -830,7 +830,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
                       }
                     break;
 
-                  case time:
+                  case time_:
                     if (untilInterrupt || TRUE)
                       {
                         r = Selective_GetTimeOfDay (after);

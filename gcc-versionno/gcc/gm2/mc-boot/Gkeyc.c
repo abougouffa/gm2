@@ -781,6 +781,7 @@ static void initMacros (void)
   add (macros, (char *) "strcpy", 6);
   add (macros, (char *) "free", 4);
   add (macros, (char *) "malloc", 6);
+  add (macros, (char *) "time", 4);
   add (macros, (char *) "main", 4);
 }
 

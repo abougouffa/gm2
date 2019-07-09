@@ -23,7 +23,7 @@ see <https://www.gnu.org/licenses/>.  */
 #define RTE_GRAPH_H
 
 
-class rtenode
+class GTY(()) rtenode
 {
  public:
   bool constructor_reachable;   /* this is guarenteed to be reachable by a constructor?  */
@@ -44,8 +44,8 @@ class rtenode
   rtenode (const rtenode &from);
   rtenode& operator= (const rtenode &from);
 
-  vec<rtenode *> function_call;
-  vec<rtenode *> rts_calls;
+  auto_vec<rtenode *> function_call;
+  auto_vec<rtenode *> rts_calls;
   void dump (void);
   void propagate_constructor_reachable (rtenode *);
   void propagate_export_reachable (rtenode *);
@@ -57,7 +57,7 @@ class rtenode
 };
 
 
-class rtegraph
+class GTY(()) rtegraph
 {
  private:
 
@@ -67,10 +67,10 @@ class rtegraph
   rtegraph (const rtegraph &from);
   rtegraph& operator= (const rtegraph &from);
 
-  vec<rtenode *> all_rtenodes;
-  vec<rtenode *> candidates;
-  vec<rtenode *> externs;
-  vec<rtenode *> constructors;
+  auto_vec<rtenode *> all_rtenodes;
+  auto_vec<rtenode *> candidates;
+  auto_vec<rtenode *> externs;
+  auto_vec<rtenode *> constructors;
 
   void determine_reachable (void);
   void issue_messages (void);

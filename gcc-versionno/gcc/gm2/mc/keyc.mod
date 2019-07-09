@@ -885,6 +885,7 @@ BEGIN
    add (macros, 'strcpy') ;
    add (macros, 'free') ;
    add (macros, 'malloc') ;
+   add (macros, 'time') ;
    add (macros, 'main')
 END initMacros ;
 

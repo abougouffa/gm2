@@ -54,6 +54,8 @@ see <https://www.gnu.org/licenses/>.  */
 #include "context.h"
 
 #include "rtegraph.h"
+extern bool ggc_force_collect;
+extern void ggc_collect (void);
 
 #define DEVELOPMENT
 #undef DEVELOPMENT
@@ -156,6 +158,7 @@ examine_call (gimple *stmt)
 	    /* add the callee to the list of candidates to be queried reachable.  */
 	    if (! m2rte_graph->candidates.contains (func))
 	      m2rte_graph->candidates.safe_push (m2rte_current_function_rtenode);
+	    m2rte_graph->dump ();
 	    return;
 	  }
       /* secondly check if the function is a module constructor.  */
@@ -169,7 +172,8 @@ examine_call (gimple *stmt)
     }
   /* add it to the list of calls.  */
   if (! m2rte_current_function_rtenode->function_call.contains (func))
-    m2rte_current_function_rtenode->function_call.safe_push (func);
+      m2rte_current_function_rtenode->function_call.safe_push (func);
+  m2rte_graph->dump ();
 }
 
 
@@ -178,6 +182,7 @@ examine_call (gimple *stmt)
 static void
 runtime_exception_inevitable (gimple *stmt)
 {
+  return;
   if (is_gimple_call (stmt))
     examine_call (stmt);
 }
@@ -217,7 +222,6 @@ pass_warn_exception_inevitable::execute (function *fun)
   gimple_stmt_iterator gsi;
   basic_block bb;
 
-  return 0;  // --fixme-- disabled temporary
 #if defined (DEVELOPMENT)
   m2rte_graph->dump ();
   fprintf (stderr, "function ");
@@ -233,7 +237,7 @@ pass_warn_exception_inevitable::execute (function *fun)
   printf ("current_function_rtenode = 0x%p\n", m2rte_current_function_rtenode);
   FOR_EACH_BB_FN (bb, fun)
     {
-      printf ("FOR_EACH...\n");
+      printf ("FOR_EACH_BB_FN...\n");
       for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next (&gsi))
         runtime_exception_inevitable (gsi_stmt (gsi));
       /* we only care about the first basic block in each function.  */

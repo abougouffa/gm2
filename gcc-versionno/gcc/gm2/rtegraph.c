@@ -64,16 +64,20 @@ rtenode *
 rtegraph::lookup (gimple *g)
 {
   tree fndecl = gimple_call_fndecl (g);
+#if 0
   dump ();
   printf ("gimple lookup\n");
+#endif
   for (unsigned int i = 0; i < all_rtenodes.length (); i++)
     {
       if (all_rtenodes[i]->grtenode == g || all_rtenodes[i]->func == fndecl)
 	return all_rtenodes[i];
     }
+#if 0
   printf ("creating new gimple rtenode\n");
+#endif
   rtenode *n = new rtenode (g);
-  all_rtenodes.quick_push (n);
+  all_rtenodes.safe_push (n);
   return n;
 }
 
@@ -81,7 +85,6 @@ rtegraph::lookup (gimple *g)
 rtenode *
 rtegraph::lookup (tree fun)
 {
-  dump ();
   printf ("function lookup\n");
   for (unsigned int i = 0; i < all_rtenodes.length (); i++)
     {
@@ -94,7 +97,7 @@ rtegraph::lookup (tree fun)
     }
   printf ("creating new tree rtenode\n");
   rtenode *n = new rtenode (fun);
-  all_rtenodes.quick_push (n);
+  all_rtenodes.safe_push (n);
   return n;
 }
 
@@ -140,7 +143,9 @@ void rtegraph::dump (void)
 {
   unsigned int l = all_rtenodes.length ();
   printf ("direct: all_rtenodes (length = %d)\n", l);
+#if 1
   dump_vec ("all_rtenodes", all_rtenodes);
+#endif
 }
 
 
@@ -160,6 +165,7 @@ rtenode::rtenode ()
   func (NULL),
   reachable_src (NULL)
 {
+
 }
 
 rtenode::rtenode (gimple *g)

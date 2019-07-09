@@ -10,6 +10,15 @@
 	* gm2/gm2-compiler/M2GenGCC.mod:  corrected scope string
           of the runtime exception.
 	* gm2/gm2-lang.c:  include rtegraph.h.
+	* gm2/mc-boot:  (mc rebuilt).
+	* gm2/mc/keyc.mod:  (initMacros) added time to the avoid list.
+	* gm2/plugin/m2rte.c:  improved the development debugging
+          prints.
+	* gm2/rtegraph.c:  (lookup) use safe_push rather than quick_push.
+	* gm2/rtegraph.h:  (rtenode) added GTY to the class definition.
+          (rtegraph) added GTY to the class definition.
+          (rtenode) use auto_vec rather than vec.
+          (rtegraph) use auto_vec rather than vec.
 
 2019-06-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

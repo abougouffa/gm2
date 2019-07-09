@@ -289,9 +289,9 @@ typedef struct Contents_r Contents;
 
 typedef struct _T4_a _T4;
 
-typedef _T2 *Indexing_Index;
-
 typedef struct _T7_a _T7;
+
+typedef _T2 *Indexing_Index;
 
 typedef _T3 *mcComment_commentDesc;
 
@@ -344,7 +344,7 @@ struct libc_tm_r {
                  };
 
 struct libc_timeb_r {
-                      libc_time_t time;
+                      libc_time_t time_;
                       short unsigned int millitm;
                       short unsigned int timezone;
                       short unsigned int dstflag;
@@ -999,29 +999,30 @@ void M2RTS_Halt (char *file_, unsigned int _file_high, unsigned int line, char *
 void M2RTS_ExitOnHalt (int e);
 void M2RTS_ErrorMessage (char *message_, unsigned int _message_high, char *file_, unsigned int _file_high, unsigned int line, char *function_, unsigned int _function_high);
 unsigned int M2RTS_Length (char *a_, unsigned int _a_high);
-void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_ReturnException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_IncException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_DecException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_InclException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_ExclException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_ShiftException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_RotateException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_StaticArraySubscriptException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_DynamicArraySubscriptException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_ForLoopBeginException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_ForLoopToException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_ForLoopEndException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_PointerNilException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_NoReturnException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_CaseException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_WholeNonPosDivException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_WholeNonPosModException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_WholeZeroDivException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_WholeZeroRemException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_WholeValueException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_RealValueException (void * filename, unsigned int line, unsigned int column, void * scope);
-void M2RTS_NoException (void * filename, unsigned int line, unsigned int column, void * scope);
+void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_ReturnException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_IncException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_DecException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_InclException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_ExclException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_ShiftException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_RotateException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_StaticArraySubscriptException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_DynamicArraySubscriptException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_ForLoopBeginException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_ForLoopToException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_ForLoopEndException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_PointerNilException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_NoReturnException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_CaseException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_WholeNonPosDivException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_WholeNonPosModException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_WholeZeroDivException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_WholeZeroRemException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_WholeValueException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_RealValueException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_ParameterException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
+void M2RTS_NoException (void * filename, unsigned int line, unsigned int column, void * scope, void * message);
 
 /*
    getDeclaredMod - returns the token number associated with the nodes declaration
@@ -2692,11 +2693,12 @@ unsigned int mcOptions_getDebugTopological (void);
 DynamicStrings_String mcOptions_getHPrefix (void);
 unsigned int mcOptions_getIgnoreFQ (void);
 void mcOptions_writeGPLheader (FIO_File f);
-DynamicStrings_String FormatStrings_Sprintf0 (DynamicStrings_String s);
-DynamicStrings_String FormatStrings_Sprintf1 (DynamicStrings_String s, unsigned char *w_, unsigned int _w_high);
-DynamicStrings_String FormatStrings_Sprintf2 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high);
-DynamicStrings_String FormatStrings_Sprintf3 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high);
-DynamicStrings_String FormatStrings_Sprintf4 (DynamicStrings_String s, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high, unsigned char *w4_, unsigned int _w4_high);
+DynamicStrings_String FormatStrings_Sprintf0 (DynamicStrings_String fmt);
+DynamicStrings_String FormatStrings_Sprintf1 (DynamicStrings_String fmt, unsigned char *w_, unsigned int _w_high);
+DynamicStrings_String FormatStrings_Sprintf2 (DynamicStrings_String fmt, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high);
+DynamicStrings_String FormatStrings_Sprintf3 (DynamicStrings_String fmt, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high);
+DynamicStrings_String FormatStrings_Sprintf4 (DynamicStrings_String fmt, unsigned char *w1_, unsigned int _w1_high, unsigned char *w2_, unsigned int _w2_high, unsigned char *w3_, unsigned int _w3_high, unsigned char *w4_, unsigned int _w4_high);
+DynamicStrings_String FormatStrings_HandleEscape (DynamicStrings_String s);
 ssize_t libc_write (int d, void * buf, size_t nbytes);
 ssize_t libc_read (int d, void * buf, size_t nbytes);
 int libc_system (void * a);
