@@ -1,5 +1,5 @@
 # Makefile for libgm2.
-#   Copyright 2013  Free Software Foundation, Inc.
+#   Copyright 2013-2019  Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -97,3 +97,5 @@ AM_MAKEFLAGS = \
 
 # Subdir rules rely on $(FLAGS_TO_PASS)
 FLAGS_TO_PASS = $(AM_MAKEFLAGS)
+
+include $(top_srcdir)/../multilib.am
