@@ -29,7 +29,13 @@
           as gm2 is being built in parallel.
           (gm2.all.cross) added GM2_LINK_TOOLS.
           (gm2.start.encap) added GM2_LINK_TOOLS.
-	  (gm2.all.build) removed.
+          (gm2.all.build) removed.
+	* gm2/Make-lang.in:  (gm2/gm2-libs-boot/pthdummy.o)
+          dependant upon gm2/gm2-libs/gm2-libs-host.h.
+          (gm2/gm2-libs-boot/termios.o) dependant upon
+          gm2/gm2-libs/gm2-libs-host.h.
+	  (gm2/gm2-libs-boot/SysExceptions.o) dependant upon
+          gm2/gm2-libs/gm2-libs-host.h.  Fixes parallel builds.
 
 2019-06-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

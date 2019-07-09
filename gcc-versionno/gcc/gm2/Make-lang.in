@@ -1013,7 +1013,7 @@ gm2/gm2-libs-boot/%.o: $(srcdir)/gm2/gm2-libs/%.mod $(MCDEPS) $(BUILD-BOOT-H)
 gm2/gm2-libs-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def $(MCDEPS)
 	$(MC) -o=$@ $(srcdir)/gm2/gm2-libs/$*.def
 
-gm2/gm2-libs-boot/pthdummy.o: $(srcdir)/gm2/gm2-libs-ch/pthdummy.c
+gm2/gm2-libs-boot/pthdummy.o: $(srcdir)/gm2/gm2-libs-ch/pthdummy.c $(MCDEPS) gm2/gm2-libs/gm2-libs-host.h
 	$(CC) -c -DIN_GCC $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-boot/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h gm2/gm2-libs/gm2-libs-host.h
@@ -1034,11 +1034,11 @@ gm2/gm2-libs-boot/dtoa.o: $(srcdir)/gm2/gm2-libs-ch/dtoa.c gm2/gm2-libs/gm2-libs
 gm2/gm2-libs-boot/ldtoa.o: $(srcdir)/gm2/gm2-libs-ch/ldtoa.c gm2/gm2-libs/gm2-libs-host.h
 	$(CC) -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
-gm2/gm2-libs-boot/termios.o: $(srcdir)/gm2/gm2-libs-ch/termios.c gm2/gm2-libs-boot/$(SRC_PREFIX)termios.h
+gm2/gm2-libs-boot/termios.o: $(srcdir)/gm2/gm2-libs-ch/termios.c gm2/gm2-libs-boot/$(SRC_PREFIX)termios.h gm2/gm2-libs/gm2-libs-host.h
 	$(CC) -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-boot/SysExceptions.o: $(srcdir)/gm2/gm2-libs-ch/SysExceptions.c \
-                                  gm2/gm2-libs-boot/$(SRC_PREFIX)SysExceptions.h
+                                  gm2/gm2-libs-boot/$(SRC_PREFIX)SysExceptions.h gm2/gm2-libs/gm2-libs-host.h
 	$(CC) -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-boot/SysStorage.o: $(srcdir)/gm2/gm2-libs/SysStorage.mod $(MCDEPS) $(BUILD-BOOT-H)
