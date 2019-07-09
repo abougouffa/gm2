@@ -200,16 +200,14 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot \
 
 # Build hooks:
 
-gm2.all.build: xgm2$(exeext) stage1/gm2/cc1gm2$(exeext) \
-	$(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext) \
+gm2.all.cross: xgm2-cross$(exeext) stage1/gm2/cc1gm2$(exeext) \
+	$(GM2_LINK_TOOLS) gm2m$(exeext) \
+	plugin/m2rte$(exeext).so
+
+gm2.start.encap: xgm2$(exeext) stage1/gm2/cc1gm2$(exeext) \
+	$(GM2_LINK_TOOLS) gm2m$(exeext) \
 	$(GM2_TARGET_INDEPENDENT_BIN_TOOLS) \
 	plugin/m2rte$(exeext).so
-
-gm2.all.cross: xgm2-cross$(exeext) stage1/gm2/cc1gm2$(exeext) \
-	$(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext) \
-	plugin/m2rte$(exeext).so
-
-gm2.start.encap: xgm2$(exeext)
 gm2.rest.encap:
 gm2.info: $(objdir)/gm2/gm2.info
 gm2.generated-manpages: gm2.man
@@ -542,6 +540,7 @@ MC_ARGS= --olang=c++ \
  -I$(srcdir)/gm2/gm2-compiler \
  -I$(srcdir)/gm2/gm2-libiberty \
  -I$(srcdir)/gm2/gm2-gcc \
+ --quiet \
  $(MC_COPYRIGHT)
 
 MCDEPS=gm2/boot-bin/mc$(exeext)
@@ -630,6 +629,9 @@ gm2lgen$(exeext): stage1/gm2/gm2lgen$(exeext)
 	cp -p $< $@
 
 gm2lorder$(exeext): stage1/gm2/gm2lorder$(exeext)
+	cp -p $< $@
+
+gm2m$(exeext): stage1/gm2/gm2m$(exeext)
 	cp -p $< $@
 
 stage3/gm2/cc1gm2$(exeext): stage2/gm2/cc1gm2$(exeext) gm2/gm2-compiler-paranoid/m2flex.o \
@@ -1465,19 +1467,19 @@ gm2/boot-bin/mklink$(exeext): $(srcdir)/gm2/tools-src/mklink.c
 	gcc -g -o $@ $<
 
 gm2/gm2-auto/pg.o: gm2/gm2-auto/pg.mod $(MCDEPS)
-	$(MC) -o=gm2/gm2-auto/pg.c gm2/gm2-auto/pg.mod
+	$(MC) --quiet -o=gm2/gm2-auto/pg.c gm2/gm2-auto/pg.mod
 	$(COMPILER) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -I$(srcdir)/gm2/mc-boot-ch $(INCLUDES) gm2/gm2-auto/pg.c -o $@
 
 gm2/gm2-auto/pge.o: gm2/gm2-auto/pge.mod $(MCDEPS)
-	$(MC) -o=gm2/gm2-auto/pge.c gm2/gm2-auto/pge.mod
+	$(MC) --quiet -o=gm2/gm2-auto/pge.c gm2/gm2-auto/pge.mod
 	$(COMPILER) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -I$(srcdir)/gm2/mc-boot-ch $(INCLUDES) gm2/gm2-auto/pge.c -o $@
 
 gm2/gm2-auto/%.o: gm2/gm2-auto/%.mod $(MCDEPS)
-	$(MC) -o=gm2/gm2-auto/$*.c gm2/gm2-auto/$*.mod
+	$(MC) --quiet -o=gm2/gm2-auto/$*.c gm2/gm2-auto/$*.mod
 	$(COMPILER) -c $(CFLAGS) -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -I$(srcdir)/gm2/mc-boot-ch $(INCLUDES) gm2/gm2-auto/$*.c -o $@
 
 gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-compiler-boot/%.def $(MCDEPS)
-	$(MC) -o=$@ $(srcdir)/gm2/gm2-compiler-boot/$*.def
+	$(MC) --quiet -o=$@ $(srcdir)/gm2/gm2-compiler-boot/$*.def
 
 
 #
@@ -1924,10 +1926,10 @@ stage1/gm2/gm2l$(exeext): \
      gm2/boot-bin/mklink$(exeext) gm2/boot-bin/mc$(exeext) \
      gm2/gm2-tools-boot/M2Emit.o \
      gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler-boot/gm2l.o \
-     gm2/gm2-tools/m2flex.o \
-     $(GM2_LIBS_BOOT)
-	unset CC ; $(M2LINK) -s --g++ --exit --name mod_init.c $(srcdir)/gm2/init/gm2linit
-	mv mod_init.c gm2/gm2-compiler-boot/gm2l_init.c
+     gm2/gm2-tools/m2flex.o  \
+     $(GCC_COLOR) $(GM2_LIBS_BOOT) $(MC_LIBS)
+	unset CC ; $(M2LINK) -s --g++ --exit --name gm2l_init.c $(srcdir)/gm2/init/gm2linit
+	mv gm2l_init.c gm2/gm2-compiler-boot/gm2l_init.c
 	$(COMPILER) -c -g gm2/gm2-compiler-boot/gm2l_init.c -o gm2/gm2-compiler-boot/gm2l_init.o
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2l_init.o \
@@ -1940,9 +1942,9 @@ stage1/gm2/gm2lcc$(exeext): \
      gm2/gm2-tools-boot/M2Emit.o \
      gm2/gm2-tools/m2flex.o \
      gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler-boot/gm2lcc.o \
-     $(GM2_LIBS_BOOT)
-	unset CC ; $(M2LINK) -s --g++ --exit --name mod_init.c $(srcdir)/gm2/init/gm2lccinit
-	mv mod_init.c gm2/gm2-compiler-boot/gm2lcc_init.c
+     $(GCC_COLOR) $(GM2_LIBS_BOOT) $(MC_LIBS)
+	unset CC ; $(M2LINK) -s --g++ --exit --name gm2lcc_init.c $(srcdir)/gm2/init/gm2lccinit
+	mv gm2lcc_init.c gm2/gm2-compiler-boot/gm2lcc_init.c
 	$(COMPILER) -c -g gm2/gm2-compiler-boot/gm2lcc_init.c -o gm2/gm2-compiler-boot/gm2lcc_init.o
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2lcc_init.o \
@@ -1954,9 +1956,10 @@ stage1/gm2/gm2lgen$(exeext): \
      gm2/boot-bin/mklink$(exeext) gm2/boot-bin/mc$(exeext) \
      gm2/gm2-tools-boot/M2Emit.o \
      gm2/gm2-tools/m2flex.o \
-     gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler-boot/gm2lgen.o
-	unset CC ; $(M2LINK) -s --g++ --exit --name mod_init.c $(srcdir)/gm2/init/gm2lgeninit
-	mv mod_init.c gm2/gm2-compiler-boot/gm2lgen_init.c
+     gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler-boot/gm2lgen.o \
+     $(GCC_COLOR) $(GM2_LIBS_BOOT) $(MC_LIBS)
+	unset CC ; $(M2LINK) -s --g++ --exit --name gm2lgen_init.c $(srcdir)/gm2/init/gm2lgeninit
+	mv gm2lgen_init.c gm2/gm2-compiler-boot/gm2lgen_init.c
 	$(COMPILER) -c -g gm2/gm2-compiler-boot/gm2lgen_init.c -o gm2/gm2-compiler-boot/gm2lgen_init.o
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2lgen_init.o \
@@ -1969,9 +1972,9 @@ stage1/gm2/gm2lorder$(exeext): \
      gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler-boot/gm2lorder.o \
      gm2/gm2-tools-boot/M2Emit.o \
      gm2/gm2-tools/m2flex.o \
-     $(GM2_LIBS_BOOT)
-	unset CC ; $(M2LINK) -s --g++ --exit --name mod_init.c $(srcdir)/gm2/init/gm2lorderinit
-	mv mod_init.c gm2/gm2-compiler-boot/gm2lorder_init.c
+     $(GCC_COLOR) $(GM2_LIBS_BOOT) $(MC_LIBS)
+	unset CC ; $(M2LINK) -s --g++ --exit --name gm2lorder_init.c $(srcdir)/gm2/init/gm2lorderinit
+	mv gm2lorder_init.c gm2/gm2-compiler-boot/gm2lorder_init.c
 	$(COMPILER) -c -g gm2/gm2-compiler-boot/gm2lorder_init.c -o gm2/gm2-compiler-boot/gm2lorder_init.o
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2lorder_init.o \
@@ -1983,10 +1986,10 @@ stage1/gm2/gm2m$(exeext): \
      gm2/boot-bin/mklink$(exeext) gm2/boot-bin/mc$(exeext) \
      gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler-boot/gm2m.o \
      gm2/gm2-tools/m2flex.o \
-     gm2/gm2-tools-boot/M2Emit.o \
-     $(GM2_LIBS_BOOT)
-	unset CC ; $(M2LINK) -s --g++ --exit --name mod_init.c $(srcdir)/gm2/init/gm2minit
-	mv mod_init.c gm2/gm2-compiler-boot/gm2m_init.c
+     gm2/gm2-tools-boot/M2Emit.o  \
+     $(GCC_COLOR) $(GM2_LIBS_BOOT) $(MC_LIBS)
+	unset CC ; $(M2LINK) -s --g++ --exit --name gm2m_init.c $(srcdir)/gm2/init/gm2minit
+	mv gm2m_init.c gm2/gm2-compiler-boot/gm2m_init.c
 	$(COMPILER) -c -g gm2/gm2-compiler-boot/gm2m_init.c -o gm2/gm2-compiler-boot/gm2m_init.o
 	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2m_init.o \
@@ -2102,6 +2105,7 @@ BUILD-PPG-O = $(PPG-INTERFACE-C:%.c=gm2/gm2-ppg-boot/$(SRC_PREFIX)%.o) \
               $(PPG-SRC:%.mod=gm2/gm2-ppg-boot/$(SRC_PREFIX)%.o)
 
 MCC_ARGS= --olang=c \
+ --quiet \
  --h-file-prefix=$(SRC_PREFIX) \
  -I$(srcdir)/gm2/gm2-libs \
  -I$(srcdir)/gm2/gm2-compiler \

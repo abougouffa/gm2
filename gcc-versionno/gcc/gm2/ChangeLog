@@ -24,6 +24,12 @@
 	* testsuite/lib/gm2.exp:  pass -fno-diagnostics-show-caret,
           -fno-diagnostics-show-line-numbers and
           -fdiagnostics-color=never to gm2 when running dejagnu.
+	* gm2/Make-lang.in:  added --quiet to all invocations of mc.
+          Changed linking to produce program unique _init.c files
+          as gm2 is being built in parallel.
+          (gm2.all.cross) added GM2_LINK_TOOLS.
+          (gm2.start.encap) added GM2_LINK_TOOLS.
+	  (gm2.all.build) removed.
 
 2019-06-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
