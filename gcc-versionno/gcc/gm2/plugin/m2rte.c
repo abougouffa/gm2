@@ -60,6 +60,8 @@ extern void ggc_collect (void);
 #define DEVELOPMENT
 #undef DEVELOPMENT
 
+#define DEBUGGING
+#undef DEBUGGING
 
 int plugin_is_GPL_compatible;
 
@@ -94,6 +96,7 @@ static const char *m2_runtime_error_calls[] = {
 };
 
 
+#if defined(DEVELOPMENT)
 static void
 pretty_function (tree fndecl)
 {
@@ -103,6 +106,7 @@ pretty_function (tree fndecl)
       fprintf (stderr, "%s\n", n);
     }
 }
+#endif
 
 
 void
@@ -229,15 +233,21 @@ pass_warn_exception_inevitable::execute (function *fun)
   fprintf (stderr, "{\n");
   int count = 0;
 #endif
-  const char *n = IDENTIFIER_POINTER (DECL_NAME (fun->decl));
   m2rte_current_function = fun->decl;
+#if defined (DEBUGGING)
   printf ("current_function = 0x%p\n", m2rte_current_function);
+#endif
   m2rte_current_function_rtenode = m2rte_graph->lookup (m2rte_current_function);
-  fprintf (stderr, "function %s\n", n);
+#if defined (DEBUGGING)
+  const char *n = IDENTIFIER_POINTER (DECL_NAME (fun->decl));
+  printf ("function %s\n", n);
   printf ("current_function_rtenode = 0x%p\n", m2rte_current_function_rtenode);
+#endif
   FOR_EACH_BB_FN (bb, fun)
     {
+#if defined (DEBUGGING)
       printf ("FOR_EACH_BB_FN...\n");
+#endif
       for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next (&gsi))
         runtime_exception_inevitable (gsi_stmt (gsi));
       /* we only care about the first basic block in each function.  */
