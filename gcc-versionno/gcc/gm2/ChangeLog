@@ -21,6 +21,9 @@
           (rtegraph) use auto_vec rather than vec.
 	* gm2/plugin/m2rte.c:  turned off development printfs.
 	* gm2/rtegraph.c:  turned off development printfs.
+	* testsuite/lib/gm2.exp:  pass -fno-diagnostics-show-caret,
+          -fno-diagnostics-show-line-numbers and
+          -fdiagnostics-color=never to gm2 when running dejagnu.
 
 2019-06-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

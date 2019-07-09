@@ -94,6 +94,9 @@ proc gm2_init { args } {
     set gm2_link_libraries "";
     set GCC_UNDER_TEST [lookfor_file $tmpdir xgm2];
     append GCC_UNDER_TEST " " -B[file dirname $tmpdir] " " ${args};
+    append GCC_UNDER_TEST " " -fno-diagnostics-show-caret
+    append GCC_UNDER_TEST " " -fno-diagnostics-show-line-numbers
+    append GCC_UNDER_TEST " " -fdiagnostics-color=never
     send_log "GCC_UNDER_TEST is ${GCC_UNDER_TEST}\n"
 
     if ![info exists tmpdir] then {
@@ -255,13 +258,13 @@ proc gm2_init_pimx { dialect {path ""} args } {
 
     set pimIpath "${gccpath}/libgm2/libpim:${gm2src}/gm2-libs";
     set pimLpath "${gccpath}/libgm2/libpim/.libs";
-    
+
     set isoIpath "${gccpath}/libgm2/libiso:${gm2src}/gm2-libs-iso";
     set isoLpath "${gccpath}/libgm2/libiso/.libs";
 
     set theIpath "-I${pimIpath} -I${isoIpath}";
     set theLpath "-L${pimLpath} -L${isoLpath}";
-    
+
     if { $path != "" } then {
 	append theIpath " -I"
 	append theIpath ${path}
@@ -324,10 +327,10 @@ proc gm2_init_iso { {path ""} args } {
     set pimIpath "${gccpath}/libgm2/libpim:${gm2src}/gm2-libs";
     set isoLpath "${gccpath}/libgm2/libiso/.libs";
     set pimLpath "${gccpath}/libgm2/libpim/.libs";
-    
+
     set theIpath "-I${isoIpath} -I${pimIpath}";
     set theLpath "-L${isoLpath} -L${pimLpath}";
-    
+
     if { $path != "" } then {
 	append theIpath " -I"
 	append theIpath ${path}
@@ -352,10 +355,10 @@ proc gm2_init_ulm { {path ""} args } {
 
     set pimIpath "${gccpath}/libgm2/libpim:${gm2src}/gm2-libs";
     set pimLpath "${gccpath}/libgm2/libpim/.libs";
-    
+
     set theIpath "-I${ulmIpath} -I${pimIpath}";
     set theLpath "-L${ulmLpath} -L${pimLpath}";
-    
+
     if { $path != "" } then {
 	append theIpath " -I"
 	append theIpath ${path}
@@ -385,10 +388,10 @@ proc gm2_init_log { {path ""} args } {
 
     set pimIpath "${gccpath}/libgm2/libpim:${gm2src}/gm2-libs";
     set pimLpath "${gccpath}/libgm2/libpim/.libs";
-    
+
     set theIpath "-I${logIpath} -I${pimIpath}";
     set theLpath "-L${logLpath} -L${pimLpath}";
-    
+
     if { $path != "" } then {
 	append theIpath " -I"
 	append theIpath ${path}
@@ -423,10 +426,10 @@ proc gm2_init_cor { {path ""} args } {
 
     set logIpath "${gccpath}/libgm2/liblog:${gm2src}/gm2-libs-pim";
     set logLpath "${gccpath}/libgm2/liblog/.libs";
-    
+
     set theIpath "-I${corIpath} -I${pimIpath} -I${logIpath} -I${isoIpath}";
     set theLpath "-L${corLpath} -L${pimLpath} -L${logLpath} -L${isoLpath}";
-    
+
     if { $path != "" } then {
 	append theIpath " -I"
 	append theIpath ${path}
