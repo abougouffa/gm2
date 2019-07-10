@@ -1,6 +1,9 @@
 2019-07-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* libgm2/libpth/Makefile.am:  use $(MAKE) rather than make.
+	* libgm2/libcor/KeyBoardLEDs.c:  reformatted to GNU coding
+          standards.  Also added/corrected empty functions for non
+	  linux targets.  Fixed the GPL comment.
 
 2019-07-09      Rainer Orth <ro@CeBiTec.Uni-Bielefeld.DE>
 
