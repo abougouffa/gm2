@@ -531,10 +531,10 @@ uninstall-am:
 
 
 @BUILD_PTHLIB_TRUE@all-local: force
-@BUILD_PTHLIB_TRUE@	cd pth && make $(FLAGS_TO_PASS)
+@BUILD_PTHLIB_TRUE@	cd pth && $(MAKE) $(FLAGS_TO_PASS)
 
 @BUILD_PTHLIB_TRUE@install-data-local: force
-@BUILD_PTHLIB_TRUE@	cd pth && make $(FLAGS_TO_PASS) install
+@BUILD_PTHLIB_TRUE@	cd pth && $(MAKE) $(FLAGS_TO_PASS) install
 
 @BUILD_PTHLIB_FALSE@all-local: force
 

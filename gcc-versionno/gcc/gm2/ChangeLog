@@ -11,6 +11,11 @@
           (rtenode::lookup) deleted and replaced with a three
           parameter version.
 	* gm2/plugin/m2rte.c:  removed superfluous comment.
+	* gm2/Make-lang.in:  (gm2.common-install) removed gm2m
+          from being installed in bin and rewritten the install
+          shell script.  Tools are installed without transformed
+          names into libexecsubdir.  Compiler is installed with
+	  transformed name into bin.
 
 2019-07-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

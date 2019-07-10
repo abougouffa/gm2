@@ -41,6 +41,7 @@ GM2_MAKE_DEBUG=
 
 # Actual names to use when installing a native compiler.
 GM2_INSTALL_NAME = `echo gm2|sed '$(program_transform_name)'`
+GM2_TARGET_INSTALL_NAME = $(target_noncanonical)-$(shell echo gm2|sed '$(program_transform_name)')
 
 # Actual names to use when installing a cross-compiler.
 GM2_CROSS_NAME = `echo gm2|sed '$(program_transform_cross_name)'`
@@ -56,11 +57,10 @@ XGM2BUILD1 = ./stage1/gm2 -g -fm2-g
 XGCC = ./xgcc -B./
 
 # Define the name of target independent tools to be installed in $(bindir)
-# Names are subject to changes
+# Names are subject to change
 
-GM2_TARGET_INDEPENDENT_BIN_TOOLS = stage1/gm2/gm2m$(exeext) # stage1/gm2/h2def$(exeext)
-
-GM2_LINK_TOOLS = gm2lcc$(exeext) gm2l$(exeext) gm2lgen$(exeext) gm2lorder$(exeext)
+GM2_LINK_TOOLS = gm2lcc$(exeext) gm2l$(exeext) gm2lgen$(exeext) \
+                 gm2lorder$(exeext) gm2m$(exeext)
 
 GM2_LINK_TOOLS_BOOT = stage1/gm2/gm2lcc$(exeext) stage1/gm2/gm2l$(exeext) \
                       stage1/gm2/gm2lgen$(exeext) stage1/gm2/gm2lorder$(exeext)
@@ -103,8 +103,7 @@ TEXISRC = $(objdir)/gm2/images/gnu.eps \
 
 # Define the names for selecting GNU Modula-2 in LANGUAGES.
 gm2 m2 modula-2 modula2: xgm2$(exeext) xgcc$(exeext) cc1gm2$(exeext) \
-                 $(GCC_TOOLS_FOR_GM2) \
-                 $(GM2_TARGET_INDEPENDENT_BIN_TOOLS)
+                 $(GCC_TOOLS_FOR_GM2)
 
 GM2_PROG_DEP=xgm2$(exeext) xgcc$(exeext) cc1gm2$(exeext)
 
@@ -201,12 +200,11 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot \
 # Build hooks:
 
 gm2.all.cross: xgm2-cross$(exeext) stage1/gm2/cc1gm2$(exeext) \
-	$(GM2_LINK_TOOLS) gm2m$(exeext) \
+	$(GM2_LINK_TOOLS) \
 	plugin/m2rte$(exeext).so
 
 gm2.start.encap: xgm2$(exeext) stage1/gm2/cc1gm2$(exeext) \
-	$(GM2_LINK_TOOLS) gm2m$(exeext) \
-	$(GM2_TARGET_INDEPENDENT_BIN_TOOLS) \
+	$(GM2_LINK_TOOLS) \
 	plugin/m2rte$(exeext).so
 gm2.rest.encap:
 gm2.info: $(objdir)/gm2/gm2.info
@@ -365,7 +363,7 @@ $(GM2_LIB_DIR_PCO):
 
 gm2.install-common: installdirs
 	-rm -f $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext)
-	$(INSTALL_PROGRAM) gm2$(exeext) $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext)
+	$(INSTALL_PROGRAM) xgm2$(exeext) $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext)
 	-if test -f cc1gm2$(exeext); then \
 	  if test -f gm2-cross$(exeext); then \
 	    :; \
@@ -375,33 +373,15 @@ gm2.install-common: installdirs
 	      $(LN) $(GM2_INSTALL_NAME)$(exeext) $(GM2_TARGET_INSTALL_NAME)$(exeext) ); \
 	  fi; \
 	fi
-
-#	if [ -f xgm2$(exeext) ]; then \
-#          rm -f $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
-#          $(INSTALL_PROGRAM) xgm2$(exeext) $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
-#          chmod a+x $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
-#          for tool in stage1/gm2/cc1gm2$(exeext) \
-#                      $(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext) ; do \
-#            toolbase=`basename $$tool` ; \
-#            tool_transformed_name=`echo $$toolbase|sed '$(program_transform_name)'`; \
-#            if [ -f $$tool ]; then \
-#              rm -f $(DESTDIR)$(libexecsubdir)/$$tool_transformed_name; \
-#              $(INSTALL_PROGRAM) $$tool $(DESTDIR)$(libexecsubdir)/$$tool_transformed_name; \
-#              chmod a+x $(DESTDIR)$(libexecsubdir)/$$tool_transformed_name; \
-#            else \
-#              echo "odd cannot find $$tool" ; \
-#            fi ; \
-#          done ; \
-#	fi ; \
-#        for tool in $(GM2_TARGET_INDEPENDENT_BIN_TOOLS); do \
-#          toolbase=`basename $$tool` ; \
-#          tool_transformed_name=`echo $$toolbase|sed '$(program_transform_name)'`; \
-#          if [ -f $$tool$(exeext) ]; then \
-#            rm -f $(DESTDIR)$(bindir)/$$tool_transformed_name; \
-#            $(INSTALL_PROGRAM) $$tool$(exeext) $(DESTDIR)$(bindir)/$$tool_transformed_name; \
-#            chmod a+x $(DESTDIR)$(bindir)/$$tool_transformed_name; \
-#          fi ; \
-#        done
+	-for tool in cc1gm2$(exeext) $(GM2_LINK_TOOLS); do \
+             if [ -f $$tool ]; then \
+               rm -f $(DESTDIR)$(libexecsubdir)/$$tool; \
+               $(INSTALL_PROGRAM) $$tool $(DESTDIR)$(libexecsubdir)/$$tool; \
+               chmod a+x $(DESTDIR)$(libexecsubdir)/$$tool; \
+             else \
+               echo "cannot find $$tool" ; \
+             fi ; \
+         done
 
 gm2.install-info: installdirs
 	if [ -d gm2$(exeext) ] ; then \
@@ -454,7 +434,6 @@ gm2.install-with-gcc: $(INSTALL_HEADERS) gm2.install $(INSTALL_LIBGCC)
 gm2.uninstall:
 	-rm -rf $(bindir)/$(GM2_INSTALL_NAME)
 	-rm -rf $(bindir)/$(GM2_CROSS_NAME)
-	-rm -f $(bindir)/gm2m$(exeext)
 
 gm2.install-plugin: plugin/m2rte$(exeext).so
 	rm -f $(DESTDIR)$(plugin_bindir)/m2rte$(exeext).so
