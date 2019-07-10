@@ -60,8 +60,9 @@ extern void ggc_collect (void);
 #define DEVELOPMENT
 #undef DEVELOPMENT
 
-#define DEBUGGING
 #undef DEBUGGING
+#define DEBUGGING
+
 
 int plugin_is_GPL_compatible;
 
@@ -116,14 +117,15 @@ static bool
 strend (const char *name, const char *ending)
 {
   unsigned int len = strlen (name);
-  return (len > strlen (name)
+  return (len > strlen (ending)
 	  && (strcmp (&name[len-strlen (ending)], ending) == 0));
 }
 
 
 static bool
-is_constructor (const char *name)
+is_constructor (tree fndecl)
 {
+  const char *name = IDENTIFIER_POINTER (DECL_NAME (fndecl));
   unsigned int len = strlen (name);
 
   return ((len > strlen ("_M2_"))
@@ -141,43 +143,63 @@ is_external (tree function)
 }
 
 
+static bool
+is_rte (tree fndecl)
+{
+  const char *n = IDENTIFIER_POINTER (DECL_NAME (fndecl));
+
+  for (int i = 0; m2_runtime_error_calls[i] != NULL; i++)
+    if (strcmp (m2_runtime_error_calls[i], n) == 0)
+      return true;
+  return false;
+}
+
+
 static void
 examine_call (gimple *stmt)
 {
   tree fndecl = gimple_call_fndecl (stmt);
-  rtenode *func = m2rte_graph->lookup (fndecl);
-  m2rte_graph->dump ();
+  rtenode *func = m2rte_graph->lookup (stmt, fndecl, true);
+  // m2rte_graph->dump ();
   if (fndecl != NULL && (DECL_NAME (fndecl) != NULL))
     {
       /* firstly check if the function is a runtime exception.  */
-      const char *n = IDENTIFIER_POINTER (DECL_NAME (fndecl));
-      for (int i = 0; m2_runtime_error_calls[i] != NULL; i++)
-	if (strcmp (m2_runtime_error_calls[i], n) == 0)
-	  {
-	    /* runtime exception seen.  */
-	    func->exception_routine = true;
-	    /* remember runtime exception call.  */
-	    if (! m2rte_current_function_rtenode->rts_calls.contains (func))
-	      m2rte_current_function_rtenode->rts_calls.safe_push (func);
-	    /* add the callee to the list of candidates to be queried reachable.  */
-	    if (! m2rte_graph->candidates.contains (func))
-	      m2rte_graph->candidates.safe_push (m2rte_current_function_rtenode);
-	    m2rte_graph->dump ();
-	    return;
-	  }
-      /* secondly check if the function is a module constructor.  */
-      if (is_constructor (n))
-	if (! m2rte_graph->candidates.contains (func))
-	  m2rte_graph->candidates.safe_push (func);
-      /* thirdly can it be called externally?  */
-      if (is_external (fndecl))
-	if (! m2rte_graph->externs.contains (func))
-	  m2rte_graph->externs.safe_push (func);
+      if (is_rte (fndecl))
+	{
+	  /* runtime exception seen.  */
+	  func->exception_routine = true;
+	  /* remember runtime exception call.  */
+	  if (! m2rte_current_function_rtenode->rts_calls.contains (func))
+	    m2rte_current_function_rtenode->rts_calls.safe_push (func);
+	  /* add the callee to the list of candidates to be queried reachable.  */
+	  if (! m2rte_graph->candidates.contains (func))
+	    m2rte_graph->candidates.safe_push (func);
+	  return;
+	}
     }
   /* add it to the list of calls.  */
   if (! m2rte_current_function_rtenode->function_call.contains (func))
       m2rte_current_function_rtenode->function_call.safe_push (func);
-  m2rte_graph->dump ();
+}
+
+
+static void
+examine_function_decl (rtenode *rt)
+{
+  tree fndecl = rt->func;
+  if (fndecl != NULL && (DECL_NAME (fndecl) != NULL))
+    {
+      /* check if the function is a module constructor.  */
+      if (is_constructor (fndecl))
+	{
+	  if (! m2rte_graph->constructors.contains (rt))
+	    m2rte_graph->constructors.safe_push (rt);
+	}
+      /* can it be called externally?  */
+      if (is_external (fndecl))
+	if (! m2rte_graph->externs.contains (rt))
+	  m2rte_graph->externs.safe_push (rt);
+    }
 }
 
 
@@ -186,7 +208,6 @@ examine_call (gimple *stmt)
 static void
 runtime_exception_inevitable (gimple *stmt)
 {
-  return;
   if (is_gimple_call (stmt))
     examine_call (stmt);
 }
@@ -226,45 +247,35 @@ pass_warn_exception_inevitable::execute (function *fun)
   gimple_stmt_iterator gsi;
   basic_block bb;
 
-#if defined (DEVELOPMENT)
-  m2rte_graph->dump ();
-  fprintf (stderr, "function ");
-  pretty_function (fun->decl);
-  fprintf (stderr, "{\n");
-  int count = 0;
-#endif
   m2rte_current_function = fun->decl;
-#if defined (DEBUGGING)
-  printf ("current_function = 0x%p\n", m2rte_current_function);
-#endif
-  m2rte_current_function_rtenode = m2rte_graph->lookup (m2rte_current_function);
-#if defined (DEBUGGING)
-  const char *n = IDENTIFIER_POINTER (DECL_NAME (fun->decl));
-  printf ("function %s\n", n);
-  printf ("current_function_rtenode = 0x%p\n", m2rte_current_function_rtenode);
-#endif
+  /* record a function declaration.  */
+  m2rte_current_function_rtenode = m2rte_graph->lookup (fun->gimple_body, fun->decl, false);
+  examine_function_decl (m2rte_current_function_rtenode);
   FOR_EACH_BB_FN (bb, fun)
     {
-#if defined (DEBUGGING)
-      printf ("FOR_EACH_BB_FN...\n");
-#endif
+      int stmt_count = 0;
+      bool last_statement_call = true;
       for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next (&gsi))
-        runtime_exception_inevitable (gsi_stmt (gsi));
-      /* we only care about the first basic block in each function.  */
-#if defined (DEVELOPMENT)
-      if (count == 0)
-	fprintf (stderr, "/* end of first bb in function.  */\n\n");
-      else
-	fprintf (stderr, "/* end of bb.  */\n\n");
-      count++;
-#endif
-      return 0;
+	{
+	  // printf ("  [%d][%d]  [basic block][statement]\n", count, stmt_count);
+	  stmt_count++;
+	  runtime_exception_inevitable (gsi_stmt (gsi));
+	  last_statement_call = is_gimple_call (gsi_stmt (gsi));
+	  // debug (gsi_stmt (gsi));
+	}
+      /* we only care about the first basic block in each function,
+	 but we continue to search if the last statement was a function.  */
+      if (! last_statement_call)
+	return 0;
     }
-#if defined (DEVELOPMENT)
-  fprintf (stderr, "}\n\n");
-#endif
-
   return 0;
+}
+
+void /* finish_gcc */  analyse_graph (void *gcc_data, void *user_data)
+{
+  m2rte_graph->determine_reachable ();
+  // m2rte_graph->dump ();
+  m2rte_graph->issue_messages ();
 }
 
 } // anon namespace
@@ -285,10 +296,6 @@ plugin_init (struct plugin_name_args *plugin_info,
 {
   struct register_pass_info pass_info;
   const char *plugin_name = plugin_info->base_name;
-#if 0
-  int argc = plugin_info->argc;
-  struct plugin_argument *argv = plugin_info->argv;
-#endif
 
   if (!plugin_default_version_check (version, &gcc_version))
     {
@@ -312,9 +319,8 @@ plugin_init (struct plugin_name_args *plugin_info,
 		     PLUGIN_PASS_MANAGER_SETUP,
 		     NULL,
 		     &pass_info);
+  register_callback (plugin_name,
+		     PLUGIN_FINISH, analyse_graph, NULL);
 
-#if defined (DEVELOPMENT)
-  fprintf (stderr, "m2rte installed\n\n");
-#endif
   return 0;
 }

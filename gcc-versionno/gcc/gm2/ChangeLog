@@ -1,3 +1,16 @@
+2019-07-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/plugin/m2rte.c:  (code substantially rewritten and
+          tidied up).  Plugin runs per gimple function and also
+          after all functions have been processed.
+	* gm2/rtegraph.c:  (code substantially rewritten).
+	* gm2/rtegraph.h:  (rtenode::func_decl) removed.
+          (rtenode::is_call) added.  (rtenode::rtenode) removed
+          tree and gimple variants and replaced with a three
+          parameter version.  (rtenode::dump_vec) added.
+          (rtenode::lookup) deleted and replaced with a three
+          parameter version.
+
 2019-07-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  added many dependancies to many targets

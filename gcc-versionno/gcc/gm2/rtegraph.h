@@ -31,15 +31,13 @@ class GTY(()) rtenode
   bool exception_routine;   /* is this a exception routine?  */
   bool constructor_final;   /* walked this rtenode during constructor testing?  */
   bool export_final;   /* walked this rtenode during exported testing?  */
-  bool func_decl;    /* is this a function definition?  */
-  int status;             /* 0 no error, 1 warning, 2 error.  */
+  bool is_call;    /* is this a function call?  */
   gimple *grtenode;
   tree func;
   rtenode *reachable_src;  /* if this is reachable which src function will call us?  */
 
   rtenode ();
-  rtenode (gimple *g);
-  rtenode (tree t);
+  rtenode (gimple *g, tree fndecl, bool is_func_call);
   ~rtenode ();
   rtenode (const rtenode &from);
   rtenode& operator= (const rtenode &from);
@@ -47,6 +45,8 @@ class GTY(()) rtenode
   auto_vec<rtenode *> function_call;
   auto_vec<rtenode *> rts_calls;
   void dump (void);
+  void dump_vec (const char *title, vec<rtenode *> &list);
+
   void propagate_constructor_reachable (rtenode *);
   void propagate_export_reachable (rtenode *);
   void error_message (void);
@@ -74,8 +74,7 @@ class GTY(()) rtegraph
 
   void determine_reachable (void);
   void issue_messages (void);
-  rtenode *lookup (gimple *g);
-  rtenode *lookup (tree fun);
+  rtenode *lookup (gimple *g, tree fndecl, bool is_call);
   void dump (void);
   void dump_vec (const char *title, vec<rtenode *> &list);
 };

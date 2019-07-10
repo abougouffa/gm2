@@ -33,6 +33,7 @@ see <https://www.gnu.org/licenses/>.  */
 #include "rtegraph.h"
 
 #undef DEBUGGING
+#define DEBUGGING
 
 
 rtegraph::rtegraph ()
@@ -63,46 +64,16 @@ rtegraph& rtegraph::operator= (const rtegraph &from)
 }
 
 rtenode *
-rtegraph::lookup (gimple *g)
+rtegraph::lookup (gimple *g, tree fndecl, bool is_call)
 {
-  tree fndecl = gimple_call_fndecl (g);
-#if 0
-  dump ();
-  printf ("gimple lookup\n");
-#endif
   for (unsigned int i = 0; i < all_rtenodes.length (); i++)
     {
-      if (all_rtenodes[i]->grtenode == g || all_rtenodes[i]->func == fndecl)
+      if (all_rtenodes[i]->grtenode == g
+	  && all_rtenodes[i]->func == fndecl
+	  && all_rtenodes[i]->is_call == is_call)
 	return all_rtenodes[i];
     }
-#if 0
-  printf ("creating new gimple rtenode\n");
-#endif
-  rtenode *n = new rtenode (g);
-  all_rtenodes.safe_push (n);
-  return n;
-}
-
-
-rtenode *
-rtegraph::lookup (tree fun)
-{
-#if defined (DEBUGGING)
-  printf ("function lookup\n");
-#endif
-  for (unsigned int i = 0; i < all_rtenodes.length (); i++)
-    {
-      if (all_rtenodes[i]->grtenode != NULL)
-	{
-	  tree fndecl = gimple_call_fndecl (all_rtenodes[i]->grtenode);
-	  if (fndecl == fun)
-	    return all_rtenodes[i];
-	}
-    }
-#if defined (DEBUGGING)
-  printf ("creating new tree rtenode\n");
-#endif
-  rtenode *n = new rtenode (fun);
+  rtenode *n = new rtenode (g, fndecl, is_call);
   all_rtenodes.safe_push (n);
   return n;
 }
@@ -148,9 +119,10 @@ rtegraph::dump_vec (const char *title, vec<rtenode *> &list)
 void rtegraph::dump (void)
 {
 #if defined (DEBUGGING)
-  unsigned int l = all_rtenodes.length ();
-  printf ("direct: all_rtenodes (length = %d)\n", l);
   dump_vec ("all_rtenodes", all_rtenodes);
+  dump_vec ("candidates", candidates);
+  dump_vec ("externs", externs);
+  dump_vec ("constructors", constructors);
 #endif
 }
 
@@ -165,37 +137,21 @@ rtenode::rtenode ()
   export_reachable (false),
   constructor_final (false),
   export_final (false),
-  func_decl (false),
-  status (0),
+  is_call (false),
   grtenode (NULL),
   func (NULL),
   reachable_src (NULL)
 {
-
 }
 
-rtenode::rtenode (gimple *g)
+rtenode::rtenode (gimple *g, tree fndecl, bool is_func_call)
 : constructor_reachable (false),
   export_reachable (false),
   constructor_final (false),
   export_final (false),
-  func_decl (false),
-  status (0),
+  is_call (is_func_call),
   grtenode (g),
-  func (NULL),
-  reachable_src (NULL)
-{
-}
-
-rtenode::rtenode (tree t)
-: constructor_reachable (false),
-  export_reachable (false),
-  constructor_final (false),
-  export_final (false),
-  func_decl (true),
-  status (0),
-  grtenode (NULL),
-  func (t),
+  func (fndecl),
   reachable_src (NULL)
 {
 }
@@ -209,8 +165,7 @@ rtenode::rtenode (const rtenode &from)
   export_reachable = from.export_reachable;
   constructor_final = from.constructor_final;
   export_final = from.export_final;
-  func_decl = from.func_decl;
-  status = from.status;
+  is_call = from.is_call;
   grtenode = from.grtenode;
   func = from.func;
   reachable_src = from.reachable_src;
@@ -225,8 +180,7 @@ rtenode& rtenode::operator= (const rtenode &from)
   export_reachable = from.export_reachable;
   constructor_final = from.constructor_final;
   export_final = from.export_final;
-  func_decl = from.func_decl;
-  status = from.status;
+  is_call = from.is_call;
   grtenode = from.grtenode;
   func = from.func;
   reachable_src = from.reachable_src;
@@ -365,6 +319,16 @@ void rtenode::note_message (void)
 
 
 void
+rtenode::dump_vec (const char *title, vec<rtenode *> &list)
+{
+#if defined (DEBUGGING)
+  printf ("  %s (length = %d)\n", title, list.length ());
+  for (unsigned int i = 0; i < list.length (); i++)
+    printf ("   [%d]: rtenode %p\n", i, list[i]);
+#endif
+}
+
+void
 rtenode::dump (void)
 {
 #if defined (DEBUGGING)
@@ -382,9 +346,13 @@ rtenode::dump (void)
     printf (", constructor_final");
   if (export_final)
     printf (", export_final");
-  if (func_decl)
-    printf (", func_decl");
-  printf (", status %d\n", status);
+  if (is_call)
+    printf (", is_call");
+  else
+    printf (", decl");
+  printf (", grtenode %p, func = %p\n", grtenode, func);
+  dump_vec ("function_call", function_call);
+  dump_vec ("rts_calls", rts_calls);
 #endif
 }
 
@@ -397,6 +365,8 @@ void rtenode::propagate_constructor_reachable (rtenode *src)
   reachable_src = src;
   for (unsigned int i = 0; i < function_call.length (); i++)
     function_call[i]->propagate_constructor_reachable (src);
+  for (unsigned int i = 0; i < rts_calls.length (); i++)
+    rts_calls[i]->propagate_constructor_reachable (src);
 }
 
 
@@ -409,6 +379,8 @@ void rtenode::propagate_export_reachable (rtenode *src)
   reachable_src = src;
   for (unsigned int i = 0; i < function_call.length (); i++)
     function_call[i]->propagate_export_reachable (src);
+  for (unsigned int i = 0; i < rts_calls.length (); i++)
+    rts_calls[i]->propagate_export_reachable (src);
 }
 
 // #include "gt-gm2-rtegraph.h"
