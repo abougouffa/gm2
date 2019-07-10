@@ -271,7 +271,7 @@ pass_warn_exception_inevitable::execute (function *fun)
   return 0;
 }
 
-void /* finish_gcc */  analyse_graph (void *gcc_data, void *user_data)
+void analyse_graph (void *gcc_data, void *user_data)
 {
   m2rte_graph->determine_reachable ();
   // m2rte_graph->dump ();

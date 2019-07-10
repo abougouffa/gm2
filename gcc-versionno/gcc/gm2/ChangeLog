@@ -10,6 +10,7 @@
           parameter version.  (rtenode::dump_vec) added.
           (rtenode::lookup) deleted and replaced with a three
           parameter version.
+	* gm2/plugin/m2rte.c:  removed superfluous comment.
 
 2019-07-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
