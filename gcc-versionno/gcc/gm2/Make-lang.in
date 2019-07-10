@@ -363,34 +363,45 @@ $(GM2_LIB_DIR_LOG):
 $(GM2_LIB_DIR_PCO):
 	$(mkinstalldirs) $(GM2_LIB_DIR_PCO)
 
-gm2.install-common: installdirs $(GM2_LINK_TOOLS_BOOT) \
-        $(GM2_TARGET_INDEPENDENT_BIN_TOOLS)
-	if [ -f xgm2$(exeext) ]; then \
-          rm -f $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
-          $(INSTALL_PROGRAM) xgm2$(exeext) $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
-          chmod a+x $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
-          for tool in stage1/gm2/cc1gm2$(exeext) \
-                      $(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext) ; do \
-            toolbase=`basename $$tool` ; \
-            tool_transformed_name=`echo $$toolbase|sed '$(program_transform_name)'`; \
-            if [ -f $$tool ]; then \
-              rm -f $(DESTDIR)$(libexecsubdir)/$$tool_transformed_name; \
-              $(INSTALL_PROGRAM) $$tool $(DESTDIR)$(libexecsubdir)/$$tool_transformed_name; \
-              chmod a+x $(DESTDIR)$(libexecsubdir)/$$tool_transformed_name; \
-            else \
-              echo "odd cannot find $$tool" ; \
-            fi ; \
-          done ; \
-	fi ; \
-        for tool in $(GM2_TARGET_INDEPENDENT_BIN_TOOLS); do \
-          toolbase=`basename $$tool` ; \
-          tool_transformed_name=`echo $$toolbase|sed '$(program_transform_name)'`; \
-          if [ -f $$tool$(exeext) ]; then \
-            rm -f $(DESTDIR)$(bindir)/$$tool_transformed_name; \
-            $(INSTALL_PROGRAM) $$tool$(exeext) $(DESTDIR)$(bindir)/$$tool_transformed_name; \
-            chmod a+x $(DESTDIR)$(bindir)/$$tool_transformed_name; \
-          fi ; \
-        done
+gm2.install-common: installdirs
+	-rm -f $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext)
+	$(INSTALL_PROGRAM) gm2$(exeext) $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext)
+	-if test -f cc1gm2$(exeext); then \
+	  if test -f gm2-cross$(exeext); then \
+	    :; \
+	  else \
+	    rm -f $(DESTDIR)$(bindir)/$(GM2_TARGET_INSTALL_NAME)$(exeext); \
+	    ( cd $(DESTDIR)$(bindir) && \
+	      $(LN) $(GM2_INSTALL_NAME)$(exeext) $(GM2_TARGET_INSTALL_NAME)$(exeext) ); \
+	  fi; \
+	fi
+
+#	if [ -f xgm2$(exeext) ]; then \
+#          rm -f $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
+#          $(INSTALL_PROGRAM) xgm2$(exeext) $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
+#          chmod a+x $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
+#          for tool in stage1/gm2/cc1gm2$(exeext) \
+#                      $(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext) ; do \
+#            toolbase=`basename $$tool` ; \
+#            tool_transformed_name=`echo $$toolbase|sed '$(program_transform_name)'`; \
+#            if [ -f $$tool ]; then \
+#              rm -f $(DESTDIR)$(libexecsubdir)/$$tool_transformed_name; \
+#              $(INSTALL_PROGRAM) $$tool $(DESTDIR)$(libexecsubdir)/$$tool_transformed_name; \
+#              chmod a+x $(DESTDIR)$(libexecsubdir)/$$tool_transformed_name; \
+#            else \
+#              echo "odd cannot find $$tool" ; \
+#            fi ; \
+#          done ; \
+#	fi ; \
+#        for tool in $(GM2_TARGET_INDEPENDENT_BIN_TOOLS); do \
+#          toolbase=`basename $$tool` ; \
+#          tool_transformed_name=`echo $$toolbase|sed '$(program_transform_name)'`; \
+#          if [ -f $$tool$(exeext) ]; then \
+#            rm -f $(DESTDIR)$(bindir)/$$tool_transformed_name; \
+#            $(INSTALL_PROGRAM) $$tool$(exeext) $(DESTDIR)$(bindir)/$$tool_transformed_name; \
+#            chmod a+x $(DESTDIR)$(bindir)/$$tool_transformed_name; \
+#          fi ; \
+#        done
 
 gm2.install-info: installdirs
 	if [ -d gm2$(exeext) ] ; then \

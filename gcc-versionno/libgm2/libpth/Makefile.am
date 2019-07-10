@@ -88,10 +88,10 @@ SRCPTH := $(shell cd @srcdir@ && pwd)
 
 if BUILD_PTHLIB
 all-local: force
-	cd pth && make $(FLAGS_TO_PASS)
+	cd pth && $(MAKE) $(FLAGS_TO_PASS)
 
 install-data-local: force
-	cd pth && make $(FLAGS_TO_PASS) install
+	cd pth && $(MAKE) $(FLAGS_TO_PASS) install
 
 else
 
