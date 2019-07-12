@@ -2457,7 +2457,7 @@ m2r10 imports go here
   (setup-m2-auto-keys)
   (use-local-map m2-auto-map)
   (setq major-mode 'gm2-mode)
-  (setq mode-name "GM2-trunc")
+  (setq mode-name "GM2-trunk")
   (setq local-abbrev-table m2-auto-abbrev-table)
   (set-syntax-table m2-auto-syntax-table)
   (setq blink-matching-paren t)
