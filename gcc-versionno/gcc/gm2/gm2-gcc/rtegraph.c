@@ -457,4 +457,13 @@ void rtegraph_init (void)
 #endif
 }
 
+void rtegraph_finish (void)
+{
+  rtegraph_current_function = NULL;
+  vec_free (allnodes);
+  vec_free (candidates);
+  vec_free (externs);
+  vec_free (constructors);
+}
+
 #include "gt-gm2-rtegraph.h"

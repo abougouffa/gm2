@@ -37,5 +37,6 @@ extern tree rtegraph_get_func (rtenode *func);
 
 extern void rtegraph_discover (void);
 extern void rtegraph_init (void);
+extern void rtegraph_finish (void);
 
 #endif  /* RTEGRAPH_H.  */

@@ -17,6 +17,13 @@
 	* gm2/gm2-gcc/rtegraph.c:  changed all .length calls to
           vec_safe_length.  Disabled debugging output.
 	* gm2/plugin/m2rte.c:  removed short circuit return.
+	* gm2/gm2-gcc/m2expr.c:  tidied up comments.
+	* gm2/gm2-gcc/rtegraph.c:  (rtegraph_finish)  New function.
+	* gm2/gm2-gcc/rtegraph.h:  (rtegraph_finish)  Add prototype
+          for function.
+	* gm2/plugin/m2rte.c:  (analyse_graph) call rtegraph_finish.
+	* testsuitegm2/switches/check-all/plugin/fail/gm2.exp:
+	  restrict options and force -fsoft-check-all.
 
 2019-07-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

@@ -1683,7 +1683,7 @@ m2expr_BuildMultCheck (location_t location, tree op1, tree op2, tree lowest,
 }
 
 /* testLimits return the number of bits required to represent:
-min..max if it matches the, type.  Otherwise NULL_TREE is returned.  */
+   min..max if it matches the, type.  Otherwise NULL_TREE is returned.  */
 
 static tree
 testLimits (location_t location, tree type, tree min, tree max)
@@ -1723,7 +1723,7 @@ getMax (tree a, tree b)
 }
 
 /* calcNbits return the smallest number of bits required to
-represent: min..max.  */
+   represent: min..max.  */
 
 static tree
 calcNbits (location_t location, tree min, tree max)
@@ -1800,8 +1800,8 @@ m2expr_BuildSize (location_t location, tree op1,
 }
 
 /* BuildAddr return an expression which calculates the address of op1
-and returns the tree.  If use_generic is TRUE then create a generic
-pointer type.  */
+   and returns the tree.  If use_generic is TRUE then create a generic
+   pointer type.  */
 
 tree
 m2expr_BuildAddr (location_t location, tree op1, int use_generic)
@@ -1824,9 +1824,9 @@ m2expr_BuildAddr (location_t location, tree op1, int use_generic)
 }
 
 /* BuildOffset1 build and return an expression containing the number
-of bytes the field is offset from the start of the record structure.
-This function is the same as the above, except that it derives the
-record from the field and then calls BuildOffset.  */
+   of bytes the field is offset from the start of the record structure.
+   This function is the same as the above, except that it derives the
+   record from the field and then calls BuildOffset.  */
 
 tree
 m2expr_BuildOffset1 (location_t location, tree field,
@@ -1838,15 +1838,15 @@ m2expr_BuildOffset1 (location_t location, tree field,
 }
 
 /* determinePenultimateField return the field associated with the
-DECL_CONTEXT (field) within a record or varient.  The record, is a
-record/varient but it maybe an outer nested record to the field that
-we are searching.  Ie:
+   DECL_CONTEXT (field) within a record or varient.  The record, is a
+   record/varient but it maybe an outer nested record to the field that
+   we are searching.  Ie:
 
-record = RECORD x: CARDINAL ; y: RECORD field: CARDINAL ; END END ;
+   record = RECORD x: CARDINAL ; y: RECORD field: CARDINAL ; END END ;
 
-determinePenultimateField (record, field) returns, y.  We are
-assurred that the chain of records leading to field will be unique as
-they are built on the fly to implement varient records.  */
+   determinePenultimateField (record, field) returns, y.  We are
+   assurred that the chain of records leading to field will be unique as
+   they are built on the fly to implement varient records.  */
 
 static tree
 determinePenultimateField (tree record, tree field)
@@ -2516,9 +2516,8 @@ m2expr_AreRealOrComplexConstantsEqual (tree e1, tree e2)
     return real_compare (EQ_EXPR, &TREE_REAL_CST (e1), &TREE_REAL_CST (e2));
 }
 
-/* DetermineSign - returns -1 if e<0 0 if e==0 1 if e>0
-
-an unsigned constant will never return -1 */
+/* DetermineSign, returns -1 if e<0 0 if e==0 1 if e>0
+   an unsigned constant will never return -1.  */
 
 int
 m2expr_DetermineSign (tree e)
