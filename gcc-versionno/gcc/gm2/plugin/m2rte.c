@@ -270,7 +270,6 @@ pass_warn_exception_inevitable::execute (function *fun)
 
 void analyse_graph (void *gcc_data, void *user_data)
 {
-  return;
   rtegraph_discover ();
 }
 

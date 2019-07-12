@@ -59,8 +59,8 @@ struct GTY (()) rtenode
   const char *create_message (const char *with_name, const char *without_name);
 };
 
-#undef DEBUGGING
 #define DEBUGGING
+#undef DEBUGGING
 
 typedef vec<rtenode *, va_gc> rtevec;
 
@@ -200,13 +200,11 @@ rtegraph_dump_vec (const char *title, vec<rtenode *, va_gc> *list)
 
 void rtegraph_dump (void)
 {
-#if 0
 #if defined (DEBUGGING)
   rtegraph_dump_vec ("allnodes", allnodes);
   rtegraph_dump_vec ("candidates", candidates);
   rtegraph_dump_vec ("externs", externs);
   rtegraph_dump_vec ("constructors", constructors);
-#endif
 #endif
 }
 
@@ -382,8 +380,8 @@ void
 rtenode::dump_vec (const char *title, vec<rtenode *, va_gc> *list)
 {
 #if defined (DEBUGGING)
-  printf ("  %s (length = %d)\n", title, list->length ());
-  for (unsigned int i = 0; i < list->length (); i++)
+  printf ("  %s (length = %d)\n", title, vec_safe_length (list));
+  for (unsigned int i = 0; i < vec_safe_length (list); i++)
     printf ("   [%d]: rtenode %p\n", i, (*list)[i]);
 #endif
 }
@@ -392,7 +390,7 @@ void
 rtenode::dump (void)
 {
 #if defined (DEBUGGING)
-  printf ("rtenode::dump: ");
+  printf ("rtenode::dump:");
   if (func != NULL && (DECL_NAME (func) != NULL))
     {
       const char *n = IDENTIFIER_POINTER (DECL_NAME (func));
@@ -423,9 +421,9 @@ void rtenode::propagate_constructor_reachable (rtenode *src)
   constructor_final = true;
   constructor_reachable = true;
   reachable_src = src;
-  for (unsigned int i = 0; i < (*function_call).length (); i++)
+  for (unsigned int i = 0; i < vec_safe_length (function_call); i++)
     (*function_call)[i]->propagate_constructor_reachable (src);
-  for (unsigned int i = 0; i < (*rts_call).length (); i++)
+  for (unsigned int i = 0; i < vec_safe_length (rts_call); i++)
     (*rts_call)[i]->propagate_constructor_reachable (src);
 }
 
@@ -437,9 +435,9 @@ void rtenode::propagate_export_reachable (rtenode *src)
   export_final = true;
   export_reachable = true;
   reachable_src = src;
-  for (unsigned int i = 0; i < (*function_call).length (); i++)
+  for (unsigned int i = 0; i < vec_safe_length (function_call); i++)
     (*function_call)[i]->propagate_export_reachable (src);
-  for (unsigned int i = 0; i < (*rts_call).length (); i++)
+  for (unsigned int i = 0; i < vec_safe_length (rts_call); i++)
     (*rts_call)[i]->propagate_export_reachable (src);
 }
 
@@ -454,7 +452,9 @@ void rtegraph_init (void)
   gcc_assert (vec_safe_length (externs) == 0);
   vec_alloc (constructors, 0);
   gcc_assert (vec_safe_length (constructors) == 0);
-  // rtegraph_dump ();
+#if defined (DEBUGGING)
+  rtegraph_dump ();
+#endif
 }
 
 #include "gt-gm2-rtegraph.h"

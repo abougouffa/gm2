@@ -14,6 +14,9 @@
           structures hidden inside rtegraph.c.
 	* gm2/plugin/m2rte.c:  re-written to use the new interface
           presented by rtegraph.h.
+	* gm2/gm2-gcc/rtegraph.c:  changed all .length calls to
+          vec_safe_length.  Disabled debugging output.
+	* gm2/plugin/m2rte.c:  removed short circuit return.
 
 2019-07-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
