@@ -159,46 +159,41 @@ static void
 examine_call (gimple *stmt)
 {
   tree fndecl = gimple_call_fndecl (stmt);
-  rtenode *func = m2rte_graph->lookup (stmt, fndecl, true);
-  // m2rte_graph->dump ();
+  rtenode *func = rtegraph_lookup (stmt, fndecl, true);
+  // rtegraph_dump ();
   if (fndecl != NULL && (DECL_NAME (fndecl) != NULL))
     {
       /* firstly check if the function is a runtime exception.  */
       if (is_rte (fndecl))
 	{
-	  /* runtime exception seen.  */
-	  func->exception_routine = true;
 	  /* remember runtime exception call.  */
-	  if (! m2rte_current_function_rtenode->rts_calls.contains (func))
-	    m2rte_current_function_rtenode->rts_calls.safe_push (func);
+	  rtegraph_include_rtscall (func);
 	  /* add the callee to the list of candidates to be queried reachable.  */
-	  if (! m2rte_graph->candidates.contains (func))
-	    m2rte_graph->candidates.safe_push (func);
+	  rtegraph_candidates_include (func);
 	  return;
 	}
     }
   /* add it to the list of calls.  */
-  if (! m2rte_current_function_rtenode->function_call.contains (func))
-      m2rte_current_function_rtenode->function_call.safe_push (func);
+  rtegraph_include_function_call (func);
 }
 
+
+/* examine_function_decl, check if the current function is a module
+   constructor/deconstructor.  Also check if the current function is
+   declared as external.  */
 
 static void
 examine_function_decl (rtenode *rt)
 {
-  tree fndecl = rt->func;
+  tree fndecl = rtegraph_get_func (rt);
   if (fndecl != NULL && (DECL_NAME (fndecl) != NULL))
     {
       /* check if the function is a module constructor.  */
       if (is_constructor (fndecl))
-	{
-	  if (! m2rte_graph->constructors.contains (rt))
-	    m2rte_graph->constructors.safe_push (rt);
-	}
+	rtegraph_constructors_include (rt);
       /* can it be called externally?  */
       if (is_external (fndecl))
-	if (! m2rte_graph->externs.contains (rt))
-	  m2rte_graph->externs.safe_push (rt);
+	rtegraph_externs_include (rt);
     }
 }
 
@@ -246,11 +241,13 @@ pass_warn_exception_inevitable::execute (function *fun)
 {
   gimple_stmt_iterator gsi;
   basic_block bb;
-
-  m2rte_current_function = fun->decl;
   /* record a function declaration.  */
-  m2rte_current_function_rtenode = m2rte_graph->lookup (fun->gimple_body, fun->decl, false);
-  examine_function_decl (m2rte_current_function_rtenode);
+  rtenode *fn = rtegraph_lookup (fun->gimple_body, fun->decl, false);
+
+  rtegraph_set_current_function (fn);
+  /* check if the current function is a module constructor/deconstructor.
+     Also check if the current function is declared as external.  */
+  examine_function_decl (fn);
   FOR_EACH_BB_FN (bb, fun)
     {
       int stmt_count = 0;
@@ -273,9 +270,8 @@ pass_warn_exception_inevitable::execute (function *fun)
 
 void analyse_graph (void *gcc_data, void *user_data)
 {
-  m2rte_graph->determine_reachable ();
-  // m2rte_graph->dump ();
-  m2rte_graph->issue_messages ();
+  return;
+  rtegraph_discover ();
 }
 
 } // anon namespace
@@ -313,7 +309,7 @@ plugin_init (struct plugin_name_args *plugin_info,
   pass_info.ref_pass_instance_number = 1;
   pass_info.pos_op = PASS_POS_INSERT_AFTER;
 
-  m2rte_graph = new rtegraph ();
+  rtegraph_init ();
 
   register_callback (plugin_name,
 		     PLUGIN_PASS_MANAGER_SETUP,
@@ -321,6 +317,5 @@ plugin_init (struct plugin_name_args *plugin_info,
 		     &pass_info);
   register_callback (plugin_name,
 		     PLUGIN_FINISH, analyse_graph, NULL);
-
   return 0;
 }

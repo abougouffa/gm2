@@ -195,8 +195,6 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot \
                  $(objdir)/plugin \
                  stage1/gm2 stage2/gm2 stage3/gm2 stage4/gm2
 
-# gt-gm2-gm2-lang.h gtype-gm2.h gt-gm2-gccgm2.h gt-gm2-m2builtins.h gt-gm2-m2except.h: s-gtype; @true
-
 # Build hooks:
 
 gm2.all.cross: xgm2-cross$(exeext) stage1/gm2/cc1gm2$(exeext) \
@@ -441,9 +439,9 @@ gm2.install-plugin: plugin/m2rte$(exeext).so
 	$(INSTALL_PROGRAM) plugin/m2rte$(exeext).so $(DESTDIR)$(plugin_bindir)/m2rte$(exeext).so
 	chmod a+x $(DESTDIR)$(plugin_bindir)/m2rte$(exeext).so
 
-plugin/m2rte$(exeext).so: $(srcdir)/gm2/plugin/m2rte.c $(TARGET_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-rtegraph.h
+plugin/m2rte$(exeext).so: $(srcdir)/gm2/plugin/m2rte.c $(TARGET_H) $(srcdir)/flags.h gtype-gm2.h
 	mkdir -p $(GM2_DIRS)
-	$(PLUGINCC) $(PLUGINCFLAGS) -fno-rtti -I. -I$(srcdir) -I$(srcdir)/gm2 -I$(srcdir)/../include -I$(srcdir)/../libcpp/include -Wall -Wno-literal-suffix -fPIC -c -o plugin/m2rte.o $(srcdir)/gm2/plugin/m2rte.c
+	$(PLUGINCC) $(PLUGINCFLAGS) -fno-rtti -I. -I$(srcdir) -I$(srcdir)/gm2 -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/../include -I$(srcdir)/../libcpp/include -Wall -Wno-literal-suffix -fPIC -c -o plugin/m2rte.o $(srcdir)/gm2/plugin/m2rte.c
 	$(PLUGINCC) $(PLUGINCFLAGS) $(PLUGINLIBS) -fno-rtti plugin/m2rte.o -shared -o $@
 
 
@@ -642,10 +640,10 @@ stage2/gm2/cc1gm2$(exeext): stage1/gm2/cc1gm2$(exeext) gm2/gm2-compiler/m2flex.o
 
 stage1/gm2/cc1gm2$(exeext): $(GM2_DIRS) xgm2$(exeext) gm2/gm2-compiler-boot/m2flex.o \
                             $(P) $(GM2_C_OBJS) $(BACKEND) $(LIBDEPS) \
-                            $(GM2_LIBS_BOOT) $(MC_LIBS) gm2/rtegraph.o plugin/m2rte$(exeext).so
+                            $(GM2_LIBS_BOOT) $(MC_LIBS) gm2/gm2-gcc/rtegraph.o plugin/m2rte$(exeext).so
 	$(LINKER) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_C_OBJS) gm2/gm2-compiler-boot/m2flex.o \
                             attribs.o \
-                             $(GM2_LIBS_BOOT) $(MC_LIBS) gm2/rtegraph.o \
+                             $(GM2_LIBS_BOOT) $(MC_LIBS) gm2/gm2-gcc/rtegraph.o \
                              $(BACKEND) $(LIBS) $(BACKENDLIBS)
 
 # Compiling object files from source files.
@@ -666,7 +664,7 @@ gm2/stor-layout.o: $(srcdir)/stor-layout.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(TARG
 gm2/m2pp.o : $(srcdir)/gm2/m2pp.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(TARGET_H) $(srcdir)/flags.h gtype-gm2.h
 	$(COMPILER) -c -g -DGM2 $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
 
-gm2/rtegraph.o: $(srcdir)/gm2/rtegraph.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(TARGET_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-rtegraph.h
+gm2/gm2-gcc/rtegraph.o: $(srcdir)/gm2/gm2-gcc/rtegraph.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(TARGET_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-rtegraph.h
 	$(COMPILER) -c -g -I$(GM2GCC) $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
 
 c-family/m2pp.o : $(srcdir)/gm2/m2pp.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h

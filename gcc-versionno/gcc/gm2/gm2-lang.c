@@ -116,7 +116,7 @@ gm2_langhook_init (void)
   be controllable by a command line option.  */
   mpfr_set_default_prec (256);
 
-  /* Go uses exceptions.  */
+  /* GNU Modula-2 uses exceptions.  */
   using_eh_for_cleanups ();
 
   return true;

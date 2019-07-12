@@ -1,3 +1,20 @@
+2019-07-12      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  removed superfluous comments.
+          (plugin/m2rte$(exeext).so)  removed dependancy.
+          Added include to gm2-gcc for header files.
+          (stage1/gm2/cc1gm2$(exeext)) changed location of
+          rtegraph.o.
+          (gm2/gm2-gcc/rtegraph.o) added dependancy.
+	* gm2/config-lang.in:  changed directory of rtegraph.
+	* gm2/gm2-gcc/rtegraph.c:  moved location of source
+          and adjusted header file includes.  Re-written (again)
+          based on struct (and GTY) rather than class.
+	* gm2/gm2-gcc/rtegraph.h:  re-written to keep data
+          structures hidden inside rtegraph.c.
+	* gm2/plugin/m2rte.c:  re-written to use the new interface
+          presented by rtegraph.h.
+
 2019-07-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/plugin/m2rte.c:  (code substantially rewritten and
