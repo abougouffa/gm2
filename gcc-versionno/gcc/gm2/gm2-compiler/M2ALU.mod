@@ -159,7 +159,7 @@ VAR
 BEGIN
    IF FreeList=NIL
    THEN
-      NEW(v)
+      NEW (v)
    ELSE
       v := FreeList ;
       FreeList := FreeList^.next
@@ -167,8 +167,25 @@ BEGIN
    WITH v^ DO
       numberValue := NIL
    END ;
-   RETURN( v )
+   RETURN InitRecord (v)
 END New ;
+
+
+(*
+   InitRecord - initialize the non variant fields of, v.  Return v.
+*)
+
+PROCEDURE InitRecord (v: PtrToValue) : PtrToValue ;
+BEGIN
+   WITH v^ DO
+      location := UnknownLocation ;
+      areAllConstants := FALSE ;
+      solved := FALSE ;
+      constructorType := NulSym ;
+      numberValue := NIL
+   END ;
+   RETURN v
+END InitRecord ;
 
 
 (*

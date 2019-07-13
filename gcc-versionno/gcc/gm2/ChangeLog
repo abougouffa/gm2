@@ -1,3 +1,8 @@
+2019-07-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2ALU.mod:  (InitRecord)  New
+          procedure function.  (New) use InitRecord.
+
 2019-07-12      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  removed superfluous comments.
