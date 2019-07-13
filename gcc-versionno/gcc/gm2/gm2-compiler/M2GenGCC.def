@@ -79,7 +79,7 @@ PROCEDURE StringToChar (t: Tree; type, str: CARDINAL) : Tree ;
                         It coerces a lvalue into an internal pointer type
 *)
 
-PROCEDURE LValueToGenericPtr (sym: CARDINAL) : Tree ;
+PROCEDURE LValueToGenericPtr (location: location_t; sym: CARDINAL) : Tree ;
 
 
 (*

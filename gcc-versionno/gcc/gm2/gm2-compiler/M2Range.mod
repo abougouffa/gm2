@@ -177,26 +177,23 @@ END IsEqual ;
 
 
 (*
-   IsGreaterOrEqualConversion - tests whether t>=e
+   IsGreaterOrEqualConversion - tests whether t>=e.
 *)
 
-PROCEDURE IsGreaterOrEqualConversion (l: CARDINAL; d, e: CARDINAL) : BOOLEAN ;
-VAR
-   location: location_t ;
+PROCEDURE IsGreaterOrEqualConversion (location: location_t; l: CARDINAL; d, e: CARDINAL) : BOOLEAN ;
 BEGIN
-   location := TokenToLocation(GetDeclaredMod(l)) ;
    IF GetType(d)=NulSym
    THEN
       IF GetType(e)=NulSym
       THEN
-         RETURN( IsGreaterOrEqual(Mod2Gcc(l), LValueToGenericPtr(e)) )
+         RETURN( IsGreaterOrEqual(Mod2Gcc(l), LValueToGenericPtr(location, e)) )
       ELSE
          RETURN( IsGreaterOrEqual(BuildConvert(location, Mod2Gcc(SkipType(GetType(e))), Mod2Gcc(l), FALSE),
-                                  LValueToGenericPtr(e)) )
+                                  LValueToGenericPtr(location, e)) )
       END
    ELSE
       RETURN( IsGreaterOrEqual(BuildConvert(location, Mod2Gcc(SkipType(GetType(d))), Mod2Gcc(l), FALSE),
-                               LValueToGenericPtr(e)) )
+                               LValueToGenericPtr(location, e)) )
    END
 END IsGreaterOrEqualConversion ;
 
@@ -214,14 +211,14 @@ BEGIN
    THEN
       IF GetType(e)=NulSym
       THEN
-         RETURN( IsEqual(Mod2Gcc(l), LValueToGenericPtr(e)) )
+         RETURN( IsEqual(Mod2Gcc(l), LValueToGenericPtr(location, e)) )
       ELSE
          RETURN( IsEqual(BuildConvert(location, Mod2Gcc(SkipType(GetType(e))), Mod2Gcc(l), FALSE),
-                         LValueToGenericPtr(e)) )
+                         LValueToGenericPtr(location, e)) )
       END
    ELSE
       RETURN( IsEqual(BuildConvert(location, Mod2Gcc(SkipType(GetType(d))), Mod2Gcc(l), FALSE),
-                      LValueToGenericPtr(e)) )
+                      LValueToGenericPtr(location, e)) )
    END
 END IsEqualConversion ;
 
@@ -1961,7 +1958,7 @@ BEGIN
       IF GccKnowsAbout(expr) AND IsConst(expr)
       THEN
          zero := MakeAndDeclareConstLit(tokenno, MakeKey('0'), ZType) ;
-         IF IsGreaterOrEqualConversion(zero, des, expr)
+         IF IsGreaterOrEqualConversion(TokenToLocation(tokenno), zero, des, expr)
          THEN
             MetaErrorT2(tokenNo,
                         'the divisor {%2Wa} in this division expression is less than or equal to zero, this will cause an exception to be raised before the result is assigned to the designator {%1a}',
@@ -1988,7 +1985,7 @@ BEGIN
       IF GccKnowsAbout(expr) AND IsConst(expr)
       THEN
          zero := MakeAndDeclareConstLit(tokenno, MakeKey('0'), ZType) ;
-         IF IsGreaterOrEqualConversion(zero, des, expr)
+         IF IsGreaterOrEqualConversion(TokenToLocation(tokenno), zero, des, expr)
          THEN
             MetaErrorT2(tokenNo,
                         'the divisor {%2Wa} in this modulus expression is less than or equal to zero, this will cause an exception to be raised before the result is assigned to the designator {%1a}',
@@ -3080,7 +3077,7 @@ BEGIN
       IF GccKnowsAbout(expr)
       THEN
          location := TokenToLocation(tokenno) ;
-         e := ZConstToTypedConst(LValueToGenericPtr(expr), expr, des) ;
+         e := ZConstToTypedConst(LValueToGenericPtr(location, expr), expr, des) ;
          zero := MakeAndDeclareConstLit(tokenno, MakeKey('0'), SkipType(GetType(des))) ;
          condition := BuildLessThanOrEqual(location, e, Mod2Gcc(zero)) ;
          AddStatement(location, BuildIfThenDoEnd(condition, CodeErrorCheck(r, function, message)))
@@ -3111,7 +3108,7 @@ BEGIN
       IF GccKnowsAbout(expr)
       THEN
          location := TokenToLocation(tokenno) ;
-         e := ZConstToTypedConst(LValueToGenericPtr(expr), expr, des) ;
+         e := ZConstToTypedConst(LValueToGenericPtr(location, expr), expr, des) ;
          zero := MakeAndDeclareConstLit(tokenno, MakeKey('0'), ZType) ;
          condition := BuildEqualTo(location,
                                    e, BuildConvert(location, GetTreeType(e), Mod2Gcc(zero), FALSE)) ;

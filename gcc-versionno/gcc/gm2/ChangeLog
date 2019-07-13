@@ -1,7 +1,16 @@
 2019-07-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
+	* Fixes prompted by valgrind detecting uninitialized
+	  memory follow.
 	* gm2/gm2-compiler/M2ALU.mod:  (InitRecord)  New
           procedure function.  (New) use InitRecord.
+	* gm2/gm2-compiler/M2GenGCC.def:  (LValueToGenericPtr)
+          now has a location parameter.
+	* gm2/gm2-compiler/M2GenGCC.mod:  (LValueToGenericPtr)
+          changed to introduce a parameter.  Change all callers
+          of LValueToGenericPtr.
+	* gm2/gm2-compiler/M2Range.mod:  Change all callers
+          of LValueToGenericPtr to pass location.
 
 2019-07-12      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

@@ -2068,7 +2068,7 @@ BEGIN
    t := StringToChar(NIL, GetType(with), sym) ;
    IF t=NIL
    THEN
-      RETURN( ZConstToTypedConst(LValueToGenericPtr(sym), sym, with) )
+      RETURN( ZConstToTypedConst(LValueToGenericPtr(location, sym), sym, with) )
    ELSE
       RETURN( t )
    END
@@ -3103,13 +3103,11 @@ END CodeBecomes ;
                         It coerces a lvalue into an internal pointer type
 *)
 
-PROCEDURE LValueToGenericPtr (sym: CARDINAL) : Tree ;
+PROCEDURE LValueToGenericPtr (location: location_t; sym: CARDINAL) : Tree ;
 VAR
-   t       : Tree ;
-   location: location_t ;
+   t: Tree ;
 BEGIN
    t := Mod2Gcc(sym) ;
-   location := TokenToLocation(GetDeclaredMod(sym)) ;
    IF t=NIL
    THEN
       InternalError('expecting symbol to be resolved', __FILE__, __LINE__)
@@ -3118,7 +3116,7 @@ BEGIN
    THEN
       t := BuildConvert(location, GetPointerType(), t, FALSE)
    END ;
-   RETURN( t )
+   RETURN t
 END LValueToGenericPtr ;
 
 
@@ -3213,8 +3211,8 @@ BEGIN
             Assert(MixTypes(FindType(op3), FindType(op2), tokenno)#NulSym) ;
             PutConst(op1, MixTypes(FindType(op3), FindType(op2), tokenno)) ;
 
-            tl := LValueToGenericPtr(op2) ;
-            tr := LValueToGenericPtr(op3) ;
+            tl := LValueToGenericPtr(location, op2) ;
+            tr := LValueToGenericPtr(location, op3) ;
 
             IF GetType(op1)=NulSym
             THEN
@@ -3254,12 +3252,12 @@ BEGIN
    tr := NIL ;
    IF GetMode(op2)=LeftValue
    THEN
-      tl := LValueToGenericPtr(op2) ;
+      tl := LValueToGenericPtr(location, op2) ;
       type := Address
    END ;
    IF GetMode(op3)=LeftValue
    THEN
-      tr := LValueToGenericPtr(op3) ;
+      tr := LValueToGenericPtr(location, op3) ;
       type := Address
    END ;
    IF (tl=NIL) AND (tr=NIL)
@@ -5032,9 +5030,9 @@ BEGIN
    END ;
    IF GetMinMax (CurrentQuadToken, lowestType, min, max)
    THEN
-      tv := unop (location, LValueToGenericPtr(op3), lowest, min, max)
+      tv := unop (location, LValueToGenericPtr(location, op3), lowest, min, max)
    ELSE
-      tv := unop (location, LValueToGenericPtr(op3), NIL, NIL, NIL)
+      tv := unop (location, LValueToGenericPtr(location, op3), NIL, NIL, NIL)
    END ;
    CheckOrResetOverflow(CurrentQuadToken, tv, MustCheckOverflow(quad)) ;
    IF IsConst(op1)
@@ -5067,7 +5065,7 @@ BEGIN
    DeclareConstructor(CurrentQuadToken, quad, op3) ;
    location := TokenToLocation(CurrentQuadToken) ;
 
-   tv := unop(location, LValueToGenericPtr(op3), FALSE) ;
+   tv := unop(location, LValueToGenericPtr(location, op3), FALSE) ;
    CheckOrResetOverflow(CurrentQuadToken, tv, MustCheckOverflow(quad)) ;
    IF IsConst(op1)
    THEN
@@ -6003,12 +6001,12 @@ BEGIN
    DeclareConstructor(CurrentQuadToken, quad, rhs) ;
    location := TokenToLocation(CurrentQuadToken) ;
 
-   tl := LValueToGenericPtr(type) ;
+   tl := LValueToGenericPtr(location, type) ;
    IF IsProcedure(rhs)
    THEN
       tr := BuildAddr(location, Mod2Gcc(rhs), FALSE)
    ELSE
-      tr := LValueToGenericPtr(rhs) ;
+      tr := LValueToGenericPtr(location, rhs) ;
       tr := ConvertRHS(tr, type, rhs)
    END ;
    IF IsConst(lhs)
@@ -7198,7 +7196,7 @@ BEGIN
          contents.
       *)
       t := BuildAssignmentTree(location,
-                               BuildIndirect(location, LValueToGenericPtr(op1), Mod2Gcc(Char)),
+                               BuildIndirect(location, LValueToGenericPtr(location, op1), Mod2Gcc(Char)),
                                StringToChar(Mod2Gcc(op3), Char, op3))
    ELSIF IsConstString(op3) AND (SkipTypeAndSubrange(GetType(op1))#Char)
    THEN
