@@ -178,7 +178,7 @@ END New ;
 PROCEDURE InitRecord (v: PtrToValue) : PtrToValue ;
 BEGIN
    WITH v^ DO
-      location := UnknownLocation ;
+      location := UnknownLocation () ;
       areAllConstants := FALSE ;
       solved := FALSE ;
       constructorType := NulSym ;
@@ -478,7 +478,7 @@ BEGIN
       InternalError('out of memory error', __FILE__, __LINE__)
    ELSE
       WITH v^ DO
-         location        := UnknownLocation() ;
+         location        := UnknownLocation () ;
          type            := none ;
          areAllConstants := TRUE ;
          solved          := FALSE ;

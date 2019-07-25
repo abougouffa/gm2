@@ -20,11 +20,14 @@ along with GNU Modula-2; see the file COPYING.  If not,
 see <https://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
+#include <stdlib.h>
+#include <getopt.h>
 
 char *getopt_optarg;
 int getopt_optind;
 int getopt_opterr;
 int getopt_optopt;
+
 
 char
 getopt_getopt (int argc, char *argv[], char *optstring)
@@ -41,8 +44,9 @@ getopt_getopt (int argc, char *argv[], char *optstring)
   return r;
 }
 
+
 int
-getopt_getopt_long (int argc, char *argv[], char *optstring, void *longopts,
+getopt_getopt_long (int argc, char *argv[], char *optstring, const struct option *longopts,
                     int *longindex)
 {
   int r = getopt_long (argc, argv, optstring, longopts, longindex);
@@ -55,9 +59,10 @@ getopt_getopt_long (int argc, char *argv[], char *optstring, void *longopts,
   return r;
 }
 
+
 int
 getopt_getopt_long_only (int argc, char *argv[], char *optstring,
-                         void *longopts, int *longindex)
+                         const struct option *longopts, int *longindex)
 {
   int r = getopt_long_only (argc, argv, optstring, longopts, longindex);
 
@@ -69,12 +74,73 @@ getopt_getopt_long_only (int argc, char *argv[], char *optstring,
   return r;
 }
 
+
+typedef struct getopt_Options_s {
+  struct option *cinfo;
+  unsigned int high;
+} getopt_Options;
+
+
+/* InitOptions a constructor for Options.  */
+
+getopt_Options *
+getopt_InitOptions (void)
+{
+  getopt_Options *o = (getopt_Options *) malloc (sizeof (getopt_Options));
+  o->cinfo = (struct option *) malloc (sizeof (struct option));
+  o->high = 0;
+  return o;
+}
+
+
+/* KillOptions a deconstructor for Options.  Returns NULL after freeing
+   up all allocated memory associated with o.  */
+
+getopt_Options *
+getopt_KillOptions (getopt_Options *o)
+{
+  free (o->cinfo);
+  free (o);
+  return NULL;
+}
+
+
+/* SetOption set option[index] with {name, has_arg, flag, val}.  */
+
+void
+getopt_SetOption (getopt_Options *o, unsigned int index,
+		  char *name, unsigned int has_arg,
+		  int *flag, int val)
+{
+  if (index > o->high)
+    {
+      o->cinfo = (struct option *) malloc (sizeof (struct option) * (index + 1));
+      o->high = index + 1;
+    }
+  o->cinfo[index].name = name;
+  o->cinfo[index].has_arg = has_arg;
+  o->cinfo[index].flag = flag;
+  o->cinfo[index].val = val;
+}
+
+
+/* GetLongOptionArray returns a pointer to the C array containing all
+   long options.  */
+
+struct option *
+getopt_GetLongOptionArray (getopt_Options *o)
+{
+  return o->cinfo;
+}
+
+
 /* GNU Modula-2 linking fodder.  */
 
 void
 _M2_getopt_init (void)
 {
 }
+
 
 void
 _M2_getopt_finish (void)

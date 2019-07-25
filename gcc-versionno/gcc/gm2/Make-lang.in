@@ -623,19 +623,21 @@ gm2m$(exeext): stage1/gm2/gm2m$(exeext)
 	cp -p $< $@
 
 stage3/gm2/cc1gm2$(exeext): stage2/gm2/cc1gm2$(exeext) gm2/gm2-compiler-paranoid/m2flex.o \
-                            $(P) $(GM2_C_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID)
+                            $(P) $(GM2_C_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID) \
+                            gm2/gm2-gcc/rtegraph.o plugin/m2rte$(exeext).so
 	$(LINKER) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_C_OBJS) gm2/gm2-compiler-paranoid/m2flex.o \
                             attribs.o \
                               $(GM2_LIBS_PARANOID) \
-                              $(BACKEND) $(LIBS) \
+                              $(BACKEND) $(LIBS) gm2/gm2-gcc/rtegraph.o \
                               $(BACKENDLIBS) $(LIBSTDCXX) -lm
 
 stage2/gm2/cc1gm2$(exeext): stage1/gm2/cc1gm2$(exeext) gm2/gm2-compiler/m2flex.o $(P) \
-                            $(GM2_C_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS)
+                            $(GM2_C_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS) \
+                            gm2/gm2-gcc/rtegraph.o plugin/m2rte$(exeext).so
 	$(LINKER) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_C_OBJS) gm2/gm2-compiler/m2flex.o \
                             attribs.o \
                               $(GM2_LIBS) \
-                              $(BACKEND) $(LIBS) \
+                              $(BACKEND) $(LIBS) gm2/gm2-gcc/rtegraph.o \
                               $(BACKENDLIBS) $(LIBSTDCXX) -lm
 
 stage1/gm2/cc1gm2$(exeext): $(GM2_DIRS) xgm2$(exeext) gm2/gm2-compiler-boot/m2flex.o \

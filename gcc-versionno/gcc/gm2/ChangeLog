@@ -1,3 +1,33 @@
+2019-07-25      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  add gm2/gm2-gcc/rtegraph.o and
+          plugin/m2rte$(exeext).so to list of dependancies to
+          cc1gm2 (stage1, stage2).  make gm2.paranoid fixed.
+	* gm2/bnf/gm2m.bnf:  corrected dates.
+	* gm2/gm2-compiler/M2ALU.mod:  (InitRecord)
+	  call function (UnknownLocation) rather
+          than use the address of this function.
+	* gm2/gm2-libs-ch/getopt.c:  (getopt_getopt_long)
+          use correct paramater specification for longopts.
+          (getopt_getopt_long_only) use correct paramater
+          specification for longopts.
+          (getopt_InitOptions) New function.
+	  (getopt_KillOptions)  New function.
+          (getopt_SetOption)  New function.
+          (getopt_GetLongOptionArray)  New function.
+	* gm2/gm2-libs/GetOpt.mod:  (GetOptLongOnly)
+          tidied up line wraps.
+	* gm2/gm2-libs/getopt.def:  (Options) declared.
+          (getopt_long) added comment derived from manual page.
+          (getopt_long_only) added comment.
+          (getopt_InitOptions) New function.
+	  (getopt_KillOptions)  New function.
+          (getopt_SetOption)  New function.
+          (getopt_GetLongOptionArray)  New function.
+	* gm2/plugin/m2rte.c:  remove testing shortcut.
+	* gm2/tools-src/def2texi.py:  converted to Python 3.
+	* gm2/tools-src/tidydates.py:  converted to Python 3.
+
 2019-07-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* Fixes prompted by valgrind detecting uninitialized

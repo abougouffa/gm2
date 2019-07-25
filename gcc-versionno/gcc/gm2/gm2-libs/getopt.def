@@ -30,6 +30,9 @@ DEFINITION MODULE getopt ;
 FROM SYSTEM IMPORT ADDRESS ;
 
 
+TYPE
+   Options = ADDRESS ;
+
 VAR
    optarg                : ADDRESS ;
    optind, opterr, optopt: INTEGER ;
@@ -50,7 +53,13 @@ PROCEDURE getopt (argc: INTEGER; argv: ADDRESS; optstring: ADDRESS) : CHAR ;
 
 
 (*
-   getopt_long -
+   getopt_long - works like getopt() except that it also accepts long options,
+                 started with two dashes.  (If the program accepts only long
+                 options, then optstring should be specified as an empty string (""),
+                 not NULL.)  Long option names may be abbreviated if the abbreviation
+                 is unique or is an exact match for some defined option.  A
+                 long option may take a parameter, of the form --arg=param or
+                 --arg param.
 *)
 
 PROCEDURE getopt_long (argc: INTEGER; argv: ADDRESS; optstring: ADDRESS;
@@ -58,11 +67,42 @@ PROCEDURE getopt_long (argc: INTEGER; argv: ADDRESS; optstring: ADDRESS;
 
 
 (*
-   getopt_long_only -
+   getopt_long_only - a wrapper for the C getopt_long_only.
 *)
 
 PROCEDURE getopt_long_only (argc: INTEGER; argv: ADDRESS; optstring: ADDRESS;
                             longopts: ADDRESS; VAR longindex: INTEGER) : INTEGER ;
+
+
+(*
+   InitOptions - constructor for empty Options.
+*)
+
+PROCEDURE InitOptions () : Options ;
+
+
+(*
+   KillOptions - deconstructor for empty Options.
+*)
+
+PROCEDURE KillOptions (o: Options) : Options ;
+
+
+(*
+   SetOption - set option[index] with {name, has_arg, flag, val}.
+*)
+
+PROCEDURE SetOption (o: Options; index: CARDINAL;
+                     name: ADDRESS; has_arg: BOOLEAN;
+                     VAR flag: INTEGER; val: INTEGER) ;
+
+
+(*
+   GetLongOptionArray - return a pointer to the C array containing all
+                        long options.
+*)
+
+PROCEDURE GetLongOptionArray (o: Options) : ADDRESS ;
 
 
 END getopt.

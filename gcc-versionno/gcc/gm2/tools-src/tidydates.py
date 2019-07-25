@@ -104,7 +104,7 @@ def handleCopyright (outfile, lines, n, leader1, leader2):
 #
 
 def handleHeader (file, leader1, leader2):
-    print "------------------------------"
+    print("------------------------------")
     l = open(file, 'r').readlines()
     if len(l)>20:
         outfile = open('tmptidy', 'w')
@@ -114,7 +114,7 @@ def handleHeader (file, leader1, leader2):
                 outfile, n = handleCopyright(outfile, l, n, leader1, leader2)
                 outfile.writelines(l[n:])
                 outfile.close()
-                print "-> mv tmptidy", file
+                print("-> mv tmptidy", file)
                 command = "mv tmptidy %s" % file
                 os.system(command)
                 return

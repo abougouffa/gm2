@@ -292,6 +292,7 @@ plugin_init (struct plugin_name_args *plugin_info,
 {
   struct register_pass_info pass_info;
   const char *plugin_name = plugin_info->base_name;
+  // return 0;  // --fixme-- just testing!
 
   if (!plugin_default_version_check (version, &gcc_version))
     {

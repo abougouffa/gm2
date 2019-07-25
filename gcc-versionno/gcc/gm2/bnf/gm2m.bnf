@@ -1,6 +1,6 @@
 -- Automatic Makefile generator for GNU Modula-2.
 --
--- Copyright (C) 2002-2018 Free Software Foundation, Inc.
+-- Copyright (C) 2002-2019 Free Software Foundation, Inc.
 -- Contributed by Gaius Mulley <gaius@glam.ac.uk>.
 --
 -- This file is part of GNU Modula-2.
@@ -23,7 +23,7 @@
 MODULE gm2m ;
 (*  Automatic Makefile generator for GNU Modula-2.
 
-Copyright (C) 2002-2018 Free Software Foundation, Inc.
+Copyright (C) 2002-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius@glam.ac.uk>.
 
 This file is part of GNU Modula-2.
