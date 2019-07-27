@@ -213,7 +213,7 @@ gm2.man: $(srcdir)/gm2/man/gm2.man
 	cp gm2/man/gm2.1 $@
 
 gm2.dvi: $(TEXISRC)
-	$(TEXI2DVI) -I $(objdir)/gm2 $(srcdir)/gm2/gm2.texi
+	$(TEXI2DVI) -I $(objdir)/gm2 -I $(srcdir)/doc/include $(srcdir)/gm2/gm2.texi
 
 gm2.html: $(TEXISRC)
 	(cd gm2/www ; make gm2.html)
@@ -225,7 +225,7 @@ gm2.pdf: gm2.ps
 	gs -q -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$@ $<
 
 $(objdir)/gm2/gm2.info: $(TEXISRC)
-	$(MAKEINFO) -I$(objdir)/gm2 -o $(objdir)/gm2/gm2.info $(srcdir)/gm2/gm2.texi
+	$(MAKEINFO) -I$(objdir)/gm2 -I$(srcdir)/doc/include -o $(objdir)/gm2/gm2.info $(srcdir)/gm2/gm2.texi
 
 $(objdir)/gm2/images/gnu.eps: $(srcdir)/gm2/images/gnupng
 	mkdir -p gm2/images

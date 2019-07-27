@@ -1,3 +1,10 @@
+2019-07-28      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  add path to doc/include for makeinfo
+          and texinfo rules.
+	* gm2/gm2.texi:  rewritten title and standard GNU FDL
+          copyright as per GCC documentation.
+
 2019-07-25      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  add gm2/gm2-gcc/rtegraph.o and
