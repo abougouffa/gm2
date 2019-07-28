@@ -40,7 +40,7 @@
 GM2_MAKE_DEBUG=
 
 # Actual names to use when installing a native compiler.
-GM2_INSTALL_NAME = `echo gm2|sed '$(program_transform_name)'`
+GM2_INSTALL_NAME = $(shell echo gm2|sed '$(program_transform_name)')
 GM2_TARGET_INSTALL_NAME = $(target_noncanonical)-$(shell echo gm2|sed '$(program_transform_name)')
 
 # Actual names to use when installing a cross-compiler.
@@ -206,11 +206,15 @@ gm2.start.encap: xgm2$(exeext) stage1/gm2/cc1gm2$(exeext) \
 	plugin/m2rte$(exeext).so
 gm2.rest.encap:
 gm2.info: $(objdir)/gm2/gm2.info
-gm2.generated-manpages: gm2.man
 
-gm2.man: $(srcdir)/gm2/man/gm2.man
-	cd gm2/man ; make gm2.1
-	cp gm2/man/gm2.1 $@
+gm2.man: doc/gm2.1
+
+gm2.install-man: $(DESTDIR)$(man1dir)/$(GM2_INSTALL_NAME)$(man1ext)
+
+$(DESTDIR)$(man1dir)/$(GM2_INSTALL_NAME)$(man1ext): doc/gm2.1 installdirs
+	-rm -f $@
+	-$(INSTALL_DATA) $< $@
+	-chmod a-x $@
 
 gm2.dvi: $(TEXISRC)
 	$(TEXI2DVI) -I $(objdir)/gm2 -I $(srcdir)/doc/include $(srcdir)/gm2/gm2.texi
@@ -223,6 +227,11 @@ gm2.ps: gm2.dvi
 
 gm2.pdf: gm2.ps
 	gs -q -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$@ $<
+
+.INTERMEDIATE: gm2.pod
+
+gm2.pod: gm2/gm2.texi
+	-$(TEXI2POD) -D gm2 < $< > $@
 
 $(objdir)/gm2/gm2.info: $(TEXISRC)
 	$(MAKEINFO) -I$(objdir)/gm2 -I$(srcdir)/doc/include -o $(objdir)/gm2/gm2.info $(srcdir)/gm2/gm2.texi
@@ -397,19 +406,6 @@ gm2.install-info: installdirs
 	  if $(SHELL) -c 'install-info --version' >/dev/null 2>&1; then \
 	    install-info --dir-file=$(infodir)/dir $(DESTDIR)$(infodir)/gm2.info; \
 	  else true; fi; \
-	else true; fi
-
-gm2.install-man: $(GENERATED_MANPAGES) installdirs
-	-if [ -f xgm2$(exeext) ] ; then \
-	  if [ -f xgm2-cross$(exeext) ] ; then \
-	    rm -f $(DESTDIR)$(man1dir)/$(GM2_CROSS_NAME)$(man1ext); \
-	    $(INSTALL_DATA) gm2/man/gm2.1 $(DESTDIR)$(man1dir)/$(GM2_CROSS_NAME)$(man1ext); \
-	    chmod a-x $(DESTDIR)$(man1dir)/$(GM2_CROSS_NAME)$(man1ext); \
-	  else \
-	    rm -f $(DESTDIR)$(man1dir)/$(GM2_INSTALL_NAME)$(man1ext); \
-	    $(INSTALL_DATA) gm2/man/gm2.1 $(DESTDIR)$(man1dir)/$(GM2_INSTALL_NAME)$(man1ext); \
-	    chmod a-x $(DESTDIR)$(man1dir)/$(GM2_INSTALL_NAME)$(man1ext); \
-	  fi; \
 	else true; fi
 
 gm2.install-normal: gm2.install-common gm2.install-info gm2.install-man

@@ -9,6 +9,7 @@
 @c
 
 @setfilename gm2.info
+@settitle The GNU Modula-2 Compiler
 
 @include version.texi
 @set version-GDB     7.7.1
@@ -609,6 +610,32 @@ front end is often referred to as @samp{gm2-@value{version-GM2}} or
 @node Example usage, Compiler options, Using, Using
 @section Example compile and link
 
+@ignore
+@c man begin SYNOPSIS gm2
+gm2 [@option{-c}|@option{-S}] [@option{-g}] [@option{-pg}]
+    [@option{-O}@var{level}] [@option{-W}@var{warn}@dots{}]
+    [@option{-I}@var{dir}@dots{}] [@option{-L}@var{dir}@dots{}]
+    [@option{-f}@var{option}@dots{}] [@option{-m}@var{machine-option}@dots{}]
+    [@option{-o} @var{outfile}] [@@@var{file}] @var{infile}@dots{}
+
+Only the most useful options are listed here; see below for the
+remainder.
+@c man end
+@c man begin SEEALSO
+gpl(7), gfdl(7), fsf-funding(7), gcc(1)
+and the Info entries for @file{gm2} and @file{gcc}.
+@c man end
+@end ignore
+
+@c man begin DESCRIPTION gm2
+
+The @command{gm2} command is the GNU compiler for the Modula-2 language and
+supports many of the same options as @command{gcc}.  @xref{Option Summary, ,
+Option Summary, gcc, Using the GNU Compiler Collection (GCC)}.
+This manual only documents the options specific to @command{gm2}.
+
+@c man end
+
 This section describes how to compile and link a simple hello world
 program.  It provides a few examples of using the different options
 mentioned in @xref{Compiler options, , ,gm2}.  Assuming that you have
@@ -656,11 +683,23 @@ when trouble shooting.}
 This section describes the compiler options specific to GNU Modula-2
 for generic flags details see @xref{Invoking GCC, , ,gcc}.
 
-@table @code
+@c man begin OPTIONS
 
-@item -d
-a GCC option @xref{Invoking GCC, , ,gcc}.  It allows users
-to specify how the rtl passes should dump their internal state.
+For any given input file, the file name suffix determines what kind of
+compilation is done.  The following kinds of input file names are supported:
+
+@table @gcctabopt
+@item @var{file}.mod
+Modula-2 implementation or program source files.
+@item @var{file}.def
+Modula-2 definition module source files.  Definition modules are not compiled
+separately, in GNU Modula-2 definition modules are parsed as required when
+program or implementation modules are compiled.
+@end table
+
+You can specify more than one input file on the @command{gm2} command line,
+
+@table @code
 
 @item -g
 create debugging information so that debuggers such as @file{gdb}
@@ -998,8 +1037,12 @@ turn on all Modula-2 warnings.
 
 @end table
 
+@c man end
+
 @node Environment variables, Elementary data types, Compiler options, Using
 @section GNU Modula-2 related environment variables
+
+@c man begin ENVIRONMENT gm2
 
 This section descibes the environment variables used by GNU Modula-2 and
 how they can be used to switch between releases of the compiler.  Other
@@ -1060,6 +1103,8 @@ The environment variable @code{GM2_ROOT} has no effect if either the
 environment variables are used by @code{gcc}.  However if by mistake
 @code{GM2_ROOT} and either @code{LIBRARY_PATH} or @code{COMPILE_PATH}
 is set then an error message is issued.
+
+@c man end
 
 @node Elementary data types, Standard procedures, Environment variables, Using
 @section Elementary data types
@@ -3326,7 +3371,7 @@ to complete.
 @section Building GNU Modula-2 under Cygwin
 
 GNU Modula-2 now builds under Cygwin.  The Cygwin version used was gcc
-version 3.4.4, gdc 0.12 using dmd 0.125.  The following set of
+-version 3.4.4, gdc 0.12 using dmd 0.125.  The following set of
 commands were used to build GNU Modula-2.
 
 @example
