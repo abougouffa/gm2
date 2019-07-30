@@ -231,7 +231,7 @@ gm2.pdf: gm2.ps
 .INTERMEDIATE: gm2.pod
 
 gm2.pod: gm2/gm2.texi
-	-$(TEXI2POD) -D gm2 < $< > $@
+	-$(TEXI2POD) -I $(objdir)/gm2 -D gm2 < $< > $@
 
 $(objdir)/gm2/gm2.info: $(TEXISRC)
 	$(MAKEINFO) -I$(objdir)/gm2 -I$(srcdir)/doc/include -o $(objdir)/gm2/gm2.info $(srcdir)/gm2/gm2.texi

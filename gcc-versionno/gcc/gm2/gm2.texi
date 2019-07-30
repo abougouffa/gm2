@@ -690,11 +690,15 @@ compilation is done.  The following kinds of input file names are supported:
 
 @table @gcctabopt
 @item @var{file}.mod
-Modula-2 implementation or program source files.
+Modula-2 implementation or program source files.  See the
+@samp{-fmod=} option if you wish to compile a project which uses a
+different source file extension.
 @item @var{file}.def
-Modula-2 definition module source files.  Definition modules are not compiled
-separately, in GNU Modula-2 definition modules are parsed as required when
-program or implementation modules are compiled.
+Modula-2 definition module source files.  Definition modules are not
+compiled separately, in GNU Modula-2 definition modules are parsed as
+required when program or implementation modules are compiled.  See the
+@samp{-fdef=} option if you wish to compile a project which uses a
+different source file extension.
 @end table
 
 You can specify more than one input file on the @command{gm2} command line,

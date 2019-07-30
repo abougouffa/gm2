@@ -1,3 +1,9 @@
+2019-07-30      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  add path to doc/include for texi2pod.
+	* gm2/gm2.texi:  added information about changing the
+	  source file suffix.
+
 2019-07-28      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  add path to doc/include for makeinfo
