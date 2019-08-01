@@ -146,12 +146,12 @@ am__objects_1 = ASCII.lo IO.lo Args.lo M2RTS.lo Assertion.lo \
 	PushBackInput.lo StringConvert.lo FormatStrings.lo Builtins.lo \
 	MathLib0.lo M2EXCEPTION.lo RTExceptions.lo SMathLib0.lo \
 	RTint.lo COROUTINES.lo Indexing.lo LMathLib0.lo LegacyReal.lo \
-	MemUtils.lo gdbif.lo
+	MemUtils.lo gdbif.lo GetOpt.lo OptLib.lo
 am_libgm2_la_OBJECTS = $(am__objects_1) libgm2_la-UnixArgs.lo \
 	libgm2_la-Selective.lo libgm2_la-sckt.lo libgm2_la-errno.lo \
 	libgm2_la-dtoa.lo libgm2_la-ldtoa.lo libgm2_la-termios.lo \
 	libgm2_la-SysExceptions.lo libgm2_la-target.lo \
-	libgm2_la-wrapc.lo
+	libgm2_la-wrapc.lo libgm2_la-getopt.lo
 libgm2_la_OBJECTS = $(am_libgm2_la_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -475,7 +475,8 @@ M2MODS = ASCII.mod IO.mod \
        SMathLib0.mod RTint.mod \
        COROUTINES.mod Indexing.mod \
        LMathLib0.mod LegacyReal.mod \
-       MemUtils.mod gdbif.mod
+       MemUtils.mod gdbif.mod \
+       GetOpt.mod OptLib.mod
 
 M2DEFS = Args.def   ASCII.def \
          Assertion.def  Break.def \
@@ -504,7 +505,9 @@ M2DEFS = Args.def   ASCII.def \
          StrLib.def  SysExceptions.def \
          SysStorage.def  SYSTEM.def \
          termios.def  TimeString.def \
-         UnixArgs.def  wrapc.def
+         UnixArgs.def  wrapc.def  \
+         GetOpt.def OptLib.def \
+         getopt.def
 
 libgm2_la_SOURCES = $(M2MODS) \
                     UnixArgs.c \
@@ -512,7 +515,7 @@ libgm2_la_SOURCES = $(M2MODS) \
                     errno.c dtoa.c \
                     ldtoa.c termios.c \
                     SysExceptions.c target.c \
-                    wrapc.c
+                    wrapc.c getopt.c
 
 libgm2dir = libpim
 libgm2_la_DEPENDENCIES = SYSTEM.def
@@ -606,6 +609,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgm2_la-UnixArgs.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgm2_la-dtoa.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgm2_la-errno.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgm2_la-getopt.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgm2_la-ldtoa.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgm2_la-sckt.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgm2_la-target.Plo@am__quote@
@@ -702,6 +706,13 @@ libgm2_la-wrapc.lo: wrapc.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='wrapc.c' object='libgm2_la-wrapc.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgm2_la_CFLAGS) $(CFLAGS) -c -o libgm2_la-wrapc.lo `test -f 'wrapc.c' || echo '$(srcdir)/'`wrapc.c
+
+libgm2_la-getopt.lo: getopt.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgm2_la_CFLAGS) $(CFLAGS) -MT libgm2_la-getopt.lo -MD -MP -MF $(DEPDIR)/libgm2_la-getopt.Tpo -c -o libgm2_la-getopt.lo `test -f 'getopt.c' || echo '$(srcdir)/'`getopt.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libgm2_la-getopt.Tpo $(DEPDIR)/libgm2_la-getopt.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='getopt.c' object='libgm2_la-getopt.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgm2_la_CFLAGS) $(CFLAGS) -c -o libgm2_la-getopt.lo `test -f 'getopt.c' || echo '$(srcdir)/'`getopt.c
 
 mostlyclean-libtool:
 	-rm -f *.lo

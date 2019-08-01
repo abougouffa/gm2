@@ -103,7 +103,8 @@ M2MODS = ASCII.mod IO.mod \
        SMathLib0.mod RTint.mod \
        COROUTINES.mod Indexing.mod \
        LMathLib0.mod LegacyReal.mod \
-       MemUtils.mod gdbif.mod
+       MemUtils.mod gdbif.mod \
+       GetOpt.mod OptLib.mod
 
 M2DEFS = Args.def   ASCII.def \
          Assertion.def  Break.def \
@@ -132,7 +133,9 @@ M2DEFS = Args.def   ASCII.def \
          StrLib.def  SysExceptions.def \
          SysStorage.def  SYSTEM.def \
          termios.def  TimeString.def \
-         UnixArgs.def  wrapc.def
+         UnixArgs.def  wrapc.def  \
+         GetOpt.def OptLib.def \
+         getopt.def
 
 libgm2_la_SOURCES = $(M2MODS) \
                     UnixArgs.c \
@@ -140,7 +143,7 @@ libgm2_la_SOURCES = $(M2MODS) \
                     errno.c dtoa.c \
                     ldtoa.c termios.c \
                     SysExceptions.c target.c \
-                    wrapc.c
+                    wrapc.c getopt.c
 
 libgm2dir = libpim
 libgm2_la_DEPENDENCIES = SYSTEM.def

@@ -1,3 +1,8 @@
+2019-08-01      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-libs/OptLib.def:  New file.
+	* gm2/gm2-libs/OptLib.mod:  New file.
+
 2019-07-30      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  add path to doc/include for texi2pod.

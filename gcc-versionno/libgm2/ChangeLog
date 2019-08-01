@@ -1,3 +1,10 @@
+2019-08-01      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* libpim/Makefile.am:  (M2MODS) added GetOpt.mod
+          and OptLib.mod.  (M2DEFS) added GetOpt.def,
+          OptLib.def and getopt.def.  (libgm2_la_SOURCES)
+          added wrapc.c and getopt.c.
+
 2019-07-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* libgm2/libpth/Makefile.am:  use $(MAKE) rather than make.
