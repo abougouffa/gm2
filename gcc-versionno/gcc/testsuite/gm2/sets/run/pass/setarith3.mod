@@ -23,7 +23,7 @@ VAR
    onetwo: BITSET ;
 BEGIN
    onetwo := BITSET {1, 2} ;
-   IF onetwo - bitset {1} = BITSET {2}
+   IF onetwo - BITSET {1} = BITSET {2}
    THEN
       exit (0)
    END ;

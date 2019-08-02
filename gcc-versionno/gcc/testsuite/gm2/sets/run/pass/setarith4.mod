@@ -23,7 +23,7 @@ VAR
    three: BITSET ;
 BEGIN
    three := BITSET {1, 2, 3} ;
-   IF three - bitset {1} = BITSET {2, 3}
+   IF three - BITSET {1} = BITSET {2, 3}
    THEN
       exit (0)
    END ;
