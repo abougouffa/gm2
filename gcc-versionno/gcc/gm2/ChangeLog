@@ -1,3 +1,13 @@
+2019-08-02      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* testsuite/gm2/sets/run/pass/simple.mod:  New file.
+	* testsuite/gm2/sets/run/pass/simple2.mod:  New file.
+	* testsuite/gm2/sets/run/pass/simple3.mod:  New file.
+	* testsuite/gm2/sets/run/pass/simple4.mod:  New file.
+	* testsuite/gm2/sets/run/pass/simple5.mod:  New file.
+	* testsuite/gm2/sets/run/pass/simple6.mod:  New file.
+	* testsuite/gm2/sets/run/pass/simple7.mod:  New file.
+
 2019-08-01      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-libs/OptLib.def:  New file.
