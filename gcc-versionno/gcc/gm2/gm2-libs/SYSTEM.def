@@ -64,17 +64,18 @@ PROCEDURE TSIZE (<type>) : CARDINAL;
 
 PROCEDURE ROTATE (val: <a set type>;
                   num: INTEGER): <type of first parameter>;
-  (* Returns a bit sequence obtained from val by rotating up or down
-     (left or right) by the absolute value of num.  The direction is
-     down if the sign of num is negative, otherwise the direction is up.
+  (* Returns a bit sequence obtained from val by rotating up/right
+     or down/right by the absolute value of num.  The direction is
+     down/right if the sign of num is negative, otherwise the direction
+     is up/left.
   *)
 
 PROCEDURE SHIFT (val: <a set type>;
                  num: INTEGER): <type of first parameter>;
-  (* Returns a bit sequence obtained from val by shifting up or down
-     (left or right) by the absolute value of num, introducing
-     zeros as necessary.  The direction is down if the sign of
-     num is negative, otherwise the direction is up.
+  (* Returns a bit sequence obtained from val by shifting up/left
+     or down/right by the absolute value of num, introducing
+     zeros as necessary.  The direction is down/right if the sign of
+     num is negative, otherwise the direction is up/left.
   *)
 
 PROCEDURE THROW (i: INTEGER) ;

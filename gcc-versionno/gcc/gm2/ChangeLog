@@ -7,6 +7,16 @@
 	* testsuite/gm2/sets/run/pass/simple5.mod:  New file.
 	* testsuite/gm2/sets/run/pass/simple6.mod:  New file.
 	* testsuite/gm2/sets/run/pass/simple7.mod:  New file.
+	* testsuite/gm2/sets/run/pass/setarith2.mod:  New file.
+	* testsuite/gm2/sets/run/pass/setarith3.mod:  New file.
+	* testsuite/gm2/sets/run/pass/setarith4.mod:  New file.
+	* testsuite/gm2/sets/run/pass/setarith.mod:  New file.
+	* testsuite/gm2/sets/run/pass/setrotate2.mod:  New file.
+	* testsuite/gm2/sets/run/pass/setrotate3.mod:  New file.
+	* testsuite/gm2/sets/run/pass/setrotate4.mod:  New file.
+	* testsuite/gm2/sets/run/pass/setrotate.mod:  New file.
+	* testsuite/gm2/sets/run/pass/setshift2.mod:  New file.
+	* testsuite/gm2/sets/run/pass/setshift.mod:  New file.
 
 2019-08-01      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
