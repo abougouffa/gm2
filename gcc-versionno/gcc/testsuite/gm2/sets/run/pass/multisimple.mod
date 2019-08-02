@@ -15,17 +15,20 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-MODULE simple ;
+MODULE multisimple ;
 
 FROM libc IMPORT printf, exit ;
+FROM SYSTEM IMPORT WORD, BITSPERLOC ;
 
+TYPE
+   multi = SET OF [0..SIZE (WORD) * 2 * BITSPERLOC-1] ;
 VAR
-   empty: BITSET ;
+   empty: multi ;
 BEGIN
-   empty := BITSET {} ;
-   IF empty = BITSET {}
+   empty := multi {} ;
+   IF empty = multi {}
    THEN
       exit (0)
    END ;
    exit (1)
-END simple.
+END multisimple.

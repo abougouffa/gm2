@@ -21,13 +21,13 @@ FROM libc IMPORT printf, exit ;
 FROM SYSTEM IMPORT WORD, BITSPERLOC ;
 
 TYPE
-   multi = SET OF [0..SIZE (WORD) * BITSPERLOC-1] ;
+   multi = SET OF [0..SIZE (WORD) * 2 * BITSPERLOC-1] ;
 VAR
    test: multi ;
 BEGIN
    test := multi {1,2,3} ;
    INCL (test, 1) ;
-   IF test = BITSET {1,2,3}
+   IF test = multi {1,2,3}
    THEN
       exit (0)
    END ;

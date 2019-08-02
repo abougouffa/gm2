@@ -21,7 +21,7 @@ FROM libc IMPORT printf, exit ;
 FROM SYSTEM IMPORT SHIFT, WORD, BITSPERLOC ;
 
 TYPE
-   multi = SET OF [0..SIZE (WORD) * BITSPERLOC-1] ;
+   multi = SET OF [0..SIZE (WORD) * 2 * BITSPERLOC-1] ;
 VAR
    set: multi ;
 BEGIN
