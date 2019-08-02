@@ -23,12 +23,47 @@ FROM SYSTEM IMPORT ROTATE, WORD, BITSPERLOC;
 TYPE
    multi = SET OF [0..SIZE (WORD) * 2 * BITSPERLOC-1] ;
 
+
+(*
+   dump -
+*)
+
+PROCEDURE dump (s: multi) ;
+VAR
+   bits, i: CARDINAL ;
+BEGIN
+   bits := SIZE (multi) * BITSPERLOC -1;
+   FOR i := 0 TO bits DO
+      printf (" %2d", i)
+   END ;
+   printf ("\n") ;
+   FOR i := 0 TO bits DO
+      IF i IN s
+      THEN
+         printf ("  X")
+      ELSE
+         printf ("   ")
+      END
+   END ;
+   printf ("\n")
+END dump ;
+
+
 VAR
    set : multi ;
    bits: INTEGER ;
 BEGIN
+   dump (multi {1}) ;
+   dump (multi {2}) ;
+   dump (multi {63}) ;
+   dump (multi {48}) ;
+   dump (multi {32}) ;
+   dump (multi {31}) ;
    set := multi {1} ;
+   dump (set) ;
    bits := SIZE (multi) * BITSPERLOC ;
+   printf ("bits in multi = %d, bytes in multi = %d\n", bits, SIZE (multi)) ;
+   dump (ROTATE (set, bits)) ;
    IF ROTATE (set, bits) # multi {1}
    THEN
       exit (1)
