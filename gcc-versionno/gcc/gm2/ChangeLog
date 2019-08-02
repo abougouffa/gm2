@@ -11,12 +11,29 @@
 	* testsuite/gm2/sets/run/pass/setarith3.mod:  New file.
 	* testsuite/gm2/sets/run/pass/setarith4.mod:  New file.
 	* testsuite/gm2/sets/run/pass/setarith.mod:  New file.
-	* testsuite/gm2/sets/run/pass/setrotate2.mod:  New file.
+ 	* testsuite/gm2/sets/run/pass/setrotate2.mod:  New file.
 	* testsuite/gm2/sets/run/pass/setrotate3.mod:  New file.
 	* testsuite/gm2/sets/run/pass/setrotate4.mod:  New file.
 	* testsuite/gm2/sets/run/pass/setrotate.mod:  New file.
 	* testsuite/gm2/sets/run/pass/setshift2.mod:  New file.
 	* testsuite/gm2/sets/run/pass/setshift.mod:  New file.
+	* testsuite/gm2/sets/run/pass/multisetarith2.mod:  New file.
+	* testsuite/gm2/sets/run/pass/multisetarith3.mod:  New file.
+	* testsuite/gm2/sets/run/pass/multisetarith4.mod:  New file.
+	* testsuite/gm2/sets/run/pass/multisetarith.mod:  New file.
+	* testsuite/gm2/sets/run/pass/multisetrotate2.mod:  New file.
+	* testsuite/gm2/sets/run/pass/multisetrotate3.mod:  New file.
+	* testsuite/gm2/sets/run/pass/multisetrotate4.mod:  New file.
+	* testsuite/gm2/sets/run/pass/multisetrotate.mod:  New file.
+	* testsuite/gm2/sets/run/pass/multisetshift2.mod:  New file.
+	* testsuite/gm2/sets/run/pass/multisetshift.mod:  New file.
+	* testsuite/gm2/sets/run/pass/multisimple2.mod:  New file.
+	* testsuite/gm2/sets/run/pass/multisimple3.mod:  New file.
+	* testsuite/gm2/sets/run/pass/multisimple4.mod:  New file.
+	* testsuite/gm2/sets/run/pass/multisimple5.mod:  New file.
+	* testsuite/gm2/sets/run/pass/multisimple6.mod:  New file.
+	* testsuite/gm2/sets/run/pass/multisimple7.mod:  New file.
+	* testsuite/gm2/sets/run/pass/multisimple.mod:  New file.
 
 2019-08-01      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
