@@ -186,11 +186,19 @@ VAR
 BEGIN
    IF RotateCount>0
    THEN
+      RotateCount := RotateCount MOD VAL(INTEGER, SetSizeInBits)
+   ELSIF RotateCount<0
+   THEN
+      RotateCount := -VAL(INTEGER, VAL(CARDINAL, -RotateCount) MOD SetSizeInBits)
+   END ;
+   IF RotateCount>0
+   THEN
       RotateLeft(s, d, SetSizeInBits, RotateCount)
    ELSIF RotateCount<0
    THEN
       RotateRight(s, d, SetSizeInBits, -RotateCount)
    ELSE
+      (* no rotate required, but we must copy source to dest.  *)
       a := memcpy(ADR(d), ADR(s), (HIGH(d)+1)*SIZE(BITSET))
    END
 END RotateVal ;
@@ -255,8 +263,3 @@ END RotateRight ;
 
 
 END SYSTEM.
-(*
- * Local variables:
- *  compile-command: "gm2 -fiso -c -g -I. SYSTEM.mod"
- * End:
- *)
