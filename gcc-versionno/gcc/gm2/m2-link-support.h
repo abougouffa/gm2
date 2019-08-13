@@ -48,7 +48,7 @@ along with GCC; see the file COPYING3.  If not see
 
 #define GM2CC(INPUT,OUTPUT) \
   "%{!fno-exceptions:cc1plus;:cc1} " GM2CC_OPTIONS " " INPUT " \
-     -o %b_m2.s \n\
+     -o %d%b_m2.s \n\
   " AS("%b_m2.s",OUTPUT) " "
 
 /* GM2LCC invoke the sub program gm2lcc with the object path options

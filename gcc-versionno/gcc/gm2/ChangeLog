@@ -1,3 +1,8 @@
+2019-08-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/m2-link-support.h:  (GM2CC) added %d to the
+	  temporary assembly file.
+
 2019-08-04      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-libs-iso/SYSTEM.mod:  (RotateVal)
