@@ -92,8 +92,8 @@ proc gm2_init { args } {
     if { $gm2_initialized == 1 } { return; }
 
     set gm2_link_libraries "";
-    set GCC_UNDER_TEST [lookfor_file $tmpdir xgm2];
-    append GCC_UNDER_TEST " " -B[file dirname $tmpdir] " " ${args};
+    set GCC_UNDER_TEST [lookfor_file $rootme xgm2];
+    append GCC_UNDER_TEST " " -B[file dirname $rootme]/gcc " " ${args};
     append GCC_UNDER_TEST " " -fno-diagnostics-show-caret
     append GCC_UNDER_TEST " " -fno-diagnostics-show-line-numbers
     append GCC_UNDER_TEST " " -fdiagnostics-color=never
@@ -123,7 +123,6 @@ proc gm2_init { args } {
 #
 
 proc gm2_target_compile_default { source dest type options } {
-    global tmpdir;
     global gluefile wrap_flags;
     global GCC_UNDER_TEST;
     global TOOL_OPTIONS;

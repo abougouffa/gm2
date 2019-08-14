@@ -1,3 +1,26 @@
+2019-08-14      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  (check-gm2) removed, use inbuilt
+          version.  (lang_checks) include check-gm2.
+	* testsuite/gm2/calling-c/datatypes/unbounded/run/pass/gm2.exp:
+          use rootme and rootme/gm2 rather than tmpdir.
+	* testsuite/gm2/examples/callingC/run/pass/gm2.exp:
+          use rootme and rootme/gm2 rather than tmpdir.
+	* testsuite/gm2/exceptions/run/pass/gm2.exp:
+          use rootme and rootme/gm2 rather than tmpdir.
+	* testsuite/gm2/extensions/run/pass/gm2.exp:
+          use rootme and rootme/gm2 rather than tmpdir.
+	* testsuite/gm2/imports/run/pass/gm2.exp:
+          use rootme and rootme/gm2 rather than tmpdir.
+	* testsuite/gm2/linking/libarchive/pass/gm2.exp:
+          use rootme and rootme/gm2 rather than tmpdir.
+	* testsuite/gm2/pim/run/pass/gm2.exp:
+          use rootme and rootme/gm2 rather than tmpdir.
+	* testsuite/gm2/types/run/pass/gm2.exp:
+          use rootme and rootme/gm2 rather than tmpdir.
+	* testsuite/lib/gm2.exp:
+          use rootme and rootme/gm2 rather than tmpdir.
+
 2019-08-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/m2-link-support.h:  (GM2CC) added %d to the
