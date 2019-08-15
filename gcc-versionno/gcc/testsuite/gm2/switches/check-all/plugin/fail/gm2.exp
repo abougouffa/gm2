@@ -22,6 +22,8 @@ if $tracelevel then {
 # load support procs
 load_lib gm2-torture.exp
 
+global TORTURE_OPTIONS
+
 set TORTURE_OPTIONS [list \
 			 { -O2 -fsoft-check-all } \
 			 { -O2 -g -fsoft-check-all } \

@@ -1,3 +1,19 @@
+2019-08-15      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* fixed torture tests so that tests are run against lists of
+	  arguments.
+	* testsuite/gm2/extensions/run/fail/gm2.exp:  add
+	  -fno-m2-plugin to stop detection of errors at compile time.
+	* testsuite/gm2/pim/run/fail/gm2.exp:  add
+	  -fno-m2-plugin to stop detection of errors at compile time.
+	* testsuite/gm2/switches/check-all/plugin/fail/gm2.exp:
+	  (TORTURE_OPTIONS) use global version.
+	* testsuite/gm2/switches/check-all/run/fail/gm2.exp:  add
+	  -fno-m2-plugin to stop detection of errors at compile time.
+	* testsuite/lib/gm2-torture.exp:  added debugging messages
+	  and also appended additional_flags to options.
+	* testsuite/lib/gm2.exp:  added debugging messages.
+
 2019-08-14      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  (check-gm2) removed, use inbuilt

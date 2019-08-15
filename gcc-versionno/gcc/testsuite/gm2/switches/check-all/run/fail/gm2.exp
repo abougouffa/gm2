@@ -24,7 +24,7 @@ load_lib gm2-torture.exp
 
 set gm2src ${srcdir}/../gm2
 
-gm2_init_pim "${srcdir}/gm2/switches/check-all/run/fail" -fsoft-check-all
+gm2_init_pim "${srcdir}/gm2/switches/check-all/run/fail" -fsoft-check-all -fno-m2-plugin
 
 
 #

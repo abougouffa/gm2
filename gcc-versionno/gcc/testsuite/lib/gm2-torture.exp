@@ -91,14 +91,15 @@ proc gm2-torture-compile { src option } {
 	set testcase "[file tail [file dirname $src]]/[file tail $src]"
     }
 
-    verbose "Testing $testcase, $option" 1
+    # puts stderr "gm2-torture-compiler src = $src, option = $option\n"
 
     # Run the compiler and analyze the results.
     set options ""
-    lappend options "additional_flags=$option"
+    lappend options "additional_flags=${option}"
 
     set comp_output [gm2_target_compile "$src" "$output" object $options];
-    gm2_check_compile $testcase $option $output $comp_output
+    # puts stderr "*** gm2 torture compile: $comp_output ${options} "
+    gm2_check_compile $testcase "$option" $output $comp_output
     remote_file build delete $output
     verbose "$comp_output" 1
 }
@@ -170,6 +171,7 @@ proc gm2-torture-compile-fail { src option } {
     global srcdir tmpdir
     global host_triplet
 
+    # puts stderr "gm2-torture-compile-fail:  ${option}\n"
     set output "$tmpdir/[file tail [file rootname $src]].o"
 
     regsub "^$srcdir/?" $src "" testcase
@@ -185,8 +187,11 @@ proc gm2-torture-compile-fail { src option } {
 
     # Run the compiler and analyze the results.
     set options ""
-    lappend options "additional_flags=$option"
-    set options $option
+    set additional_flags ""
+    lappend options "additional_flags=-w $option"
+    if { $additional_flags != "" } {
+	lappend options "additional_flags=$additional_flags"
+    }
 
     set comp_output [gm2_target_compile "$src" "$output" object $options];
     gm2_check_compile_fail $testcase $option $output $comp_output
@@ -266,8 +271,14 @@ proc gm2-torture-execute { sources args success } {
 	remote_file build delete $execname;
 	verbose "Testing $testcase, $option" 1
 
-	set options $option;
-	set comp_output [gm2_target_compile "$sources" "${objectfile}" object ${options}];
+	set options ""
+	lappend options "additional_flags=-w $option"
+	if { $additional_flags != "" } {
+	    lappend options "additional_flags=$additional_flags"
+	}
+	set comp_output [gm2_target_compile "$sources" "${objectfile}" object "$options"];
+
+	# puts stderr "torture gm2 case: $comp_output ${options} "
 
 	if ![gm2_check_compile "$testcase compilation" ${options} $objectfile $comp_output] {
 	    unresolved "$testcase execution, ${options}"
