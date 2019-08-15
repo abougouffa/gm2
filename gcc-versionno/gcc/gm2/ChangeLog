@@ -13,6 +13,8 @@
 	* testsuite/lib/gm2-torture.exp:  added debugging messages
 	  and also appended additional_flags to options.
 	* testsuite/lib/gm2.exp:  added debugging messages.
+	* testsuite/lib/gm2-torture.exp:  removed -w from the
+	  additional_flags.  Also do not treat warnings as unresolved.
 
 2019-08-14      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

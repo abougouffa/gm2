@@ -123,13 +123,13 @@ proc gm2_check_compile_fail {testcase option objname gcc_output} {
 	return 0
     }
 
-    # We shouldn't get these because of -w, but just in case.
-    if [string match "*cc:*warning:*" $gcc_output] then {
-	warning "$testcase: (with warnings) $option"
-	send_log "$gcc_output\n"
-	unresolved "$testcase, $option"
-	return 0
-    }
+#    # We shouldn't get these because of -w, but just in case.
+#   if [string match "*cc:*warning:*" $gcc_output] then {
+#	warning "$testcase: (with warnings) $option"
+#	send_log "$gcc_output\n"
+#	unresolved "$testcase, $option"
+#	return 0
+#    }
 
     set gcc_output [prune_warnings $gcc_output]
 
@@ -188,7 +188,7 @@ proc gm2-torture-compile-fail { src option } {
     # Run the compiler and analyze the results.
     set options ""
     set additional_flags ""
-    lappend options "additional_flags=-w $option"
+    lappend options "additional_flags=$option"  # do not use -w for gm2
     if { $additional_flags != "" } {
 	lappend options "additional_flags=$additional_flags"
     }
@@ -272,7 +272,7 @@ proc gm2-torture-execute { sources args success } {
 	verbose "Testing $testcase, $option" 1
 
 	set options ""
-	lappend options "additional_flags=-w $option"
+	lappend options "additional_flags=$option"
 	if { $additional_flags != "" } {
 	    lappend options "additional_flags=$additional_flags"
 	}
