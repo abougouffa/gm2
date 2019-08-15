@@ -1245,6 +1245,21 @@ find_builtin_tree (const char *name)
   return NULL_TREE;
 }
 
+
+static void
+set_decl_built_in_class (tree decl, built_in_class c)
+{
+  FUNCTION_DECL_CHECK (decl)->function_decl.built_in_class = c;
+}
+
+
+static void
+set_decl_function_code (tree decl, built_in_function f)
+{
+  tree_function_decl &fndecl = FUNCTION_DECL_CHECK (decl)->function_decl;
+  fndecl.function_code = f;
+}
+
 /* Define a single builtin.  */
 static void
 define_builtin (enum built_in_function val, const char *name, tree type,
@@ -1258,8 +1273,8 @@ define_builtin (enum built_in_function val, const char *name, tree type,
   TREE_PUBLIC (decl) = 1;
   SET_DECL_ASSEMBLER_NAME (decl, get_identifier (libname));
   m2block_pushDecl (decl);
-  DECL_BUILT_IN_CLASS (decl) = BUILT_IN_NORMAL;
-  DECL_FUNCTION_CODE (decl) = val;
+  set_decl_built_in_class (decl, BUILT_IN_NORMAL);
+  set_decl_function_code (decl, val);
   set_call_expr_flags (decl, flags);
 
   set_builtin_decl (val, decl, true);

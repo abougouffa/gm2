@@ -1,3 +1,10 @@
+2019-08-16      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-gcc/m2builtins.c:  (set_decl_function_code) New
+	  function.  (set_decl_built_in_class) New function.
+          (define_builtin) use set_decl_function_code and
+          set_decl_built_in_class.
+
 2019-08-15      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* fixed torture tests so that tests are run against lists of
