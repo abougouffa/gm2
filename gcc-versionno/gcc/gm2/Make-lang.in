@@ -319,10 +319,10 @@ $(objdir)/gm2/boot-bin:
 $(objdir)/gm2/ulm-lib-gm2:
 	mkdir $@
 
-$(objdir)/gm2/ulm-lib-gm2/sys:
+$(objdir)/gm2/ulm-lib-gm2/sys: $(objdir)/gm2/ulm-lib-gm2
 	mkdir $@
 
-$(objdir)/gm2/ulm-lib-gm2/std:
+$(objdir)/gm2/ulm-lib-gm2/std: $(objdir)/gm2/ulm-lib-gm2
 	mkdir $@
 
 $(objdir)/gm2/gm2-libs-pim:

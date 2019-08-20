@@ -1,3 +1,8 @@
+2019-08-20      Matthias Klose  <doko@cs.tu-berlin.de>
+
+	* gm2/Make-lang.in:  added dependancies for subdir
+          creation.
+
 2019-08-20      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/tools-src/buildsyntax:  removed function keyword
