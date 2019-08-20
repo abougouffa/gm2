@@ -167,7 +167,7 @@ FROM m2expr IMPORT GetIntegerZero, GetIntegerOne,
                    BuildBinProcedure, BuildUnaryProcedure,
                    BuildSetProcedure, BuildUnarySetFunction,
 		   BuildAddCheck, BuildSubCheck, BuildMultCheck, BuildDivTruncCheck,
-                   BuildDivM2Check,
+                   BuildDivM2Check, BuildModM2Check,
                    BuildAdd, BuildSub, BuildMult, BuildLSL,
 		   BuildDivCeil, BuildModCeil,
                    BuildDivTrunc, BuildModTrunc, BuildDivFloor, BuildModFloor,
@@ -459,7 +459,7 @@ BEGIN
    SubOp              : CodeSubChecked (q, op1, op2, op3) |
    MultOp             : CodeMultChecked (q, op1, op2, op3) |
    DivM2Op            : CodeDivM2Checked (q, op1, op2, op3) |
-   ModM2Op            : CodeModM2(q, op1, op2, op3) |
+   ModM2Op            : CodeModM2Checked (q, op1, op2, op3) |
    DivTruncOp         : CodeDivTrunc(q, op1, op2, op3) |
    ModTruncOp         : CodeModTrunc(q, op1, op2, op3) |
    DivCeilOp          : CodeDivCeil(q, op1, op2, op3) |
@@ -3647,6 +3647,35 @@ BEGIN
       CodeBinaryCheck (BuildDivM2Check, quad, op1, op2, op3)
    END
 END CodeDivM2Check ;
+
+
+(*
+   CodeModM2Checked - code a modulus instruction, determine whether checking
+                      is required.
+*)
+
+PROCEDURE CodeModM2Checked (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF MustCheckOverflow (quad)
+   THEN
+      CodeModM2Check (quad, op1, op2, op3)
+   ELSE
+      CodeModM2 (quad, op1, op2, op3)
+   END
+END CodeModM2Checked ;
+
+
+(*
+   CodeModM2Check - encode addition but check for overflow.
+*)
+
+PROCEDURE CodeModM2Check (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF BinaryOperands (quad, op2, op3)
+   THEN
+      CodeBinaryCheck (BuildModM2Check, quad, op1, op2, op3)
+   END
+END CodeModM2Check ;
 
 
 (*

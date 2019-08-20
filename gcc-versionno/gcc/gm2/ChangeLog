@@ -1,3 +1,24 @@
+2019-08-20      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  use -p parameter for mkdir.
+	* gm2/gm2-compiler/M2GenGCC.mod:  (BuildModM2Check) imported.
+          (CodeStatement)  call CodeModM2Checked.  (CodeModM2Checked)
+          New procedure.  (CodeModM2Check)  New procedure.
+	* gm2/gm2-gcc/m2expr.c:  (BuildModTruncCheck)  New function.
+          (Build3TruthOrIf)  New function.  (checkWholeModTruncOverflow)
+          New function.  (BuildModM2Check) New function.
+          (checkWholeOverflow) call checkWholeModTruncOverflow.
+	* gm2/gm2-gcc/m2expr.def:  (BuildModM2Check)  New procedure
+          function.
+	* gm2/gm2-gcc/m2expr.h:  (BuildModM2Check)  New function.
+	* gm2/m2pp.c:  (m2pp_truth_expr)  New function.
+          (m2pp_simple_expression) detect TRUTH_ANDIF_EXPR and
+          TRUTH_ORIF_EXPR and call m2pp_truth_expr.
+	* testsuite/gm2/switches/check-all/plugin/fail/gm2.exp:
+          use pim2 options to stress the modulus checking.
+	* testsuite/gm2/switches/check-all/plugin/fail/modulus.mod:
+	  print the values to ensure that the code is not thrown away.
+
 2019-08-20      Matthias Klose  <doko@cs.tu-berlin.de>
 
 	* gm2/Make-lang.in:  added dependancies for subdir
@@ -6,13 +27,13 @@
 2019-08-20      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/tools-src/buildsyntax:  removed function keyword
-          to be sh complient rather than bash.
+          to be sh compliant rather than bash.
 	* gm2/tools-src/makeSystem:  removed function keyword
-          to be sh complient rather than bash.
+          to be sh compliant rather than bash.
 	* gm2/tools-src/makeconfigure:  removed function keyword
-          to be sh complient rather than bash.
+          to be sh compliant rather than bash.
 	* gm2/tools-src/makeversion:  removed function keyword
-          to be sh complient rather than bash.  Also use = rather
+          to be sh compliant rather than bash.  Also use = rather
           than ==.
 
 2019-08-16      Gaius Mulley <gaius.mulley@southwales.ac.uk>

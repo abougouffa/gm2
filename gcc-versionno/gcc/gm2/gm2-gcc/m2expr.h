@@ -165,6 +165,9 @@ EXTERN tree m2expr_BuildModM2 (location_t location, tree op1, tree op2,
 EXTERN tree m2expr_BuildDivM2Check (location_t location, tree op1, tree op2,
 			            tree lowest, tree min, tree max);
 
+EXTERN tree m2expr_BuildModM2Check (location_t location, tree op1, tree op2,
+                                  tree lowest, tree min, tree max);
+
 EXTERN tree m2expr_BuildLSL (location_t location, tree op1, tree op2,
                              int needconvert);
 

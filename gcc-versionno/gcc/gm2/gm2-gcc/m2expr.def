@@ -166,6 +166,18 @@ PROCEDURE BuildModM2 (location: location_t; op1, op2: Tree; needsconvert: BOOLEA
 
 
 (*
+   BuildModM2Check - if iso or pim4 then build and return ((op2 < 0) : (op1
+                     modceil op2) ?  (op1 modfloor op2)) otherwise use modtrunc.
+                     Use the checking mod equivalents.
+                     build and return ((op2 < 0) : (op1 divtrunc op2) ? (op1 divfloor op2))
+                     when -fiso, -fpim4 or -fpositive-mod-floor-div is present else
+                     return op1 div trunc op2.  Use the checking div equivalents.
+*)
+
+PROCEDURE BuildModM2Check (location: location_t; op1, op2, lowest, min, max: Tree) : Tree ;
+
+
+(*
     BuildModFloor - builds a modulus tree.
 *)
 

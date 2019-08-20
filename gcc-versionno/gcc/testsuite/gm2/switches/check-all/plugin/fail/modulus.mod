@@ -1,4 +1,4 @@
-(* plugin9.mod test for compiletime detection of overflow.
+(* modulus.mod test for compiletime detection of overflow.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -19,35 +19,24 @@ You should have received a copy of the GNU General Public License
 along with GNU Modula-2; see the file COPYING.  If not,
 see <https://www.gnu.org/licenses/>.  *)
 
-IMPLEMENTATION MODULE plugin9 ;  (*!m2pim+gm2*)
+MODULE modulus ;  (*!m2pim+gm2*)
 
-
-PROCEDURE bill (value: CARDINAL) ;
-BEGIN
-   value := value-1
-END bill ;
-
-
-PROCEDURE fred (value: CARDINAL) ;
-BEGIN
-   bill (value) ;
-   IF value > 0
-   THEN
-
-   END
-END fred ;
-
-
-PROCEDURE bar ;
-BEGIN
-   fred (0)
-END bar ;
+FROM libc IMPORT printf ;
 
 
 PROCEDURE foo ;
+TYPE
+   tiny = [10..100] ;
+VAR
+   a, b, c: tiny ;
 BEGIN
-   bar
+   c := 80 ;
+   b := 85 ;
+   a := b MOD c ;
+   printf ("a = %d, b = %d, c = %d\n", a, b, c)
 END foo ;
 
 
-END plugin9.
+BEGIN
+   foo
+END modulus.
