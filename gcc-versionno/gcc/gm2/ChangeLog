@@ -1,3 +1,15 @@
+2019-08-20      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/tools-src/buildsyntax:  removed function keyword
+          to be sh complient rather than bash.
+	* gm2/tools-src/makeSystem:  removed function keyword
+          to be sh complient rather than bash.
+	* gm2/tools-src/makeconfigure:  removed function keyword
+          to be sh complient rather than bash.
+	* gm2/tools-src/makeversion:  removed function keyword
+          to be sh complient rather than bash.  Also use = rather
+          than ==.
+
 2019-08-16      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-gcc/m2builtins.c:  (set_decl_function_code) New

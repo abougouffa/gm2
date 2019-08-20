@@ -19,7 +19,7 @@
 # Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 
-function Usage () {
+Usage () {
    echo "Usage: makesystem dialectflag SYSTEM.def SYSTEM.mod librarypath compiler"
 }
 
@@ -41,7 +41,7 @@ if [ "$DIALECT" != "-fiso" -a "$DIALECT" != "-fpim" ] ; then
    exit 1
 fi
 
-function displayExportedTypes () {
+displayExportedTypes () {
    n=1
    c=0
    for i in ${types} ; do
@@ -60,24 +60,24 @@ function displayExportedTypes () {
    echo " " >> ${OUTPUTFILE}
 }
 
-function displayBuiltinTypes () {
+displayBuiltinTypes () {
    for i in ${types} ; do
       echo "   $i ; " >> ${OUTPUTFILE}
    done
 }
 
-function displayStart () {
+displayStart () {
    sed -e "1,/@SYSTEM_DATATYPES@/!d" < ${SYSTEMDEF} | \
    sed -e "/@SYSTEM_DATATYPES@/d" >> ${OUTPUTFILE}
 }
 
-function displayMiddle () {
+displayMiddle () {
    sed -e "1,/@SYSTEM_DATATYPES@/d" < ${SYSTEMDEF} | \
    sed -e "1,/@SYSTEM_TYPES@/!d" | \
    sed -e "/@SYSTEM_TYPES@/d" >> ${OUTPUTFILE}
 }
 
-function displayEnd () {
+displayEnd () {
    sed -e "1,/@SYSTEM_TYPES@/d" < ${SYSTEMDEF} >> ${OUTPUTFILE}
 }
 
