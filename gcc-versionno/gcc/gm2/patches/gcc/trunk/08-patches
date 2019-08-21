@@ -1,5 +1,5 @@
---- gcc-versionno-orig/Makefile.def	2019-04-18 16:42:28.620558856 +0100
-+++ gcc-versionno/Makefile.def	2019-04-18 16:36:27.378393935 +0100
+--- gcc-versionno-orig/Makefile.def	2019-08-16 00:02:01.317836557 +0100
++++ gcc-versionno/Makefile.def	2019-08-15 23:55:15.547387150 +0100
 @@ -10,12 +10,12 @@
  // it under the terms of the GNU General Public License as published by
  // the Free Software Foundation; either version 3 of the License, or
@@ -24,7 +24,7 @@
  		extra_make_flags="$(EXTRA_GCC_FLAGS)"; };
  host_modules= { module= gmp; lib_path=.libs; bootstrap=true;
  		// Work around in-tree gmp configure bug with missing flex.
-@@ -116,7 +116,7 @@
+@@ -117,7 +117,7 @@
  host_modules= { module= expect; };
  host_modules= { module= guile; };
  host_modules= { module= tk; };
@@ -33,7 +33,7 @@
                  missing=mostlyclean;
                  missing=clean;
                  missing=distclean;
-@@ -166,6 +166,7 @@
+@@ -169,6 +169,7 @@
  target_modules = { module= zlib; };
  target_modules = { module= rda; };
  target_modules = { module= libada; };
@@ -41,7 +41,7 @@
  target_modules = { module= libgomp; bootstrap= true; lib_path=.libs; };
  target_modules = { module= libitm; lib_path=.libs; };
  target_modules = { module= libatomic; lib_path=.libs; };
-@@ -174,26 +175,26 @@
+@@ -177,26 +178,26 @@
  // Not all; these are the ones which don't have special options.
  // "depend" indicates that a target depends on another target uniformly
  // for each subdirectory.  There can be several such lines per target.
@@ -77,7 +77,7 @@
                        depend=configure; };
  recursive_targets = { make_target= mostlyclean; };
  recursive_targets = { make_target= clean; };
-@@ -284,6 +285,8 @@
+@@ -287,6 +288,8 @@
  flags_to_pass = { flag= GOCFLAGS_FOR_TARGET ; };
  flags_to_pass = { flag= GDC_FOR_TARGET ; };
  flags_to_pass = { flag= GDCFLAGS_FOR_TARGET ; };
@@ -86,7 +86,7 @@
  flags_to_pass = { flag= LD_FOR_TARGET ; };
  flags_to_pass = { flag= LIPO_FOR_TARGET ; };
  flags_to_pass = { flag= LDFLAGS_FOR_TARGET ; };
-@@ -608,6 +611,7 @@
+@@ -622,6 +625,7 @@
  languages = { language=go;	gcc-check-target=check-go;
  				lib-check-target=check-target-libgo;
  				lib-check-target=check-gotools; };

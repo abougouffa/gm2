@@ -1,5 +1,5 @@
---- gcc-versionno-orig/Makefile.tpl	2019-04-18 16:42:28.680558538 +0100
-+++ gcc-versionno/Makefile.tpl	2019-04-18 16:36:27.386393897 +0100
+--- gcc-versionno-orig/Makefile.tpl	2019-08-16 00:02:01.421837110 +0100
++++ gcc-versionno/Makefile.tpl	2019-08-15 23:55:15.555387207 +0100
 @@ -13,12 +13,12 @@
  # it under the terms of the GNU General Public License as published by
  # the Free Software Foundation; either version 3 of the License, or

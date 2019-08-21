@@ -1,6 +1,6 @@
---- gcc-versionno-orig/gcc/gcc.h	2019-04-18 16:37:44.474017217 +0100
-+++ gcc-versionno/gcc/gcc.h	2019-04-18 16:36:27.058395478 +0100
-@@ -72,9 +72,17 @@
+--- gcc-versionno-orig/gcc/gcc.h	2019-08-15 23:56:47.448004043 +0100
++++ gcc-versionno/gcc/gcc.h	2019-08-15 23:55:15.543387123 +0100
+@@ -73,9 +73,17 @@
  extern int do_spec (const char *);
  extern void record_temp_file (const char *, int, int);
  extern void set_input (const char *);
@@ -18,7 +18,7 @@
  /* Called before processing to change/add/remove arguments.  */
  extern void lang_specific_driver (struct cl_decoded_option **,
  				  unsigned int *, int *);
-@@ -96,4 +104,8 @@
+@@ -97,4 +105,8 @@
  					      void *user_data),
  				   void *user_data);
  

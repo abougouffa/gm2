@@ -1,5 +1,5 @@
---- gcc-versionno-orig/gcc/gcc.c	2019-04-18 16:37:44.474017217 +0100
-+++ gcc-versionno/gcc/gcc.c	2019-04-18 16:36:27.026395632 +0100
+--- gcc-versionno-orig/gcc/gcc.c	2019-08-15 23:56:47.448004043 +0100
++++ gcc-versionno/gcc/gcc.c	2019-08-15 23:55:15.543387123 +0100
 @@ -305,6 +305,10 @@
  static const char *cross_compile = "0";
  #endif
@@ -155,7 +155,7 @@
        validated = true;
        break;
  
-@@ -5993,7 +6052,7 @@
+@@ -5992,7 +6051,7 @@
  		     "%{foo=*:bar%*}%{foo=*:one%*two}"
  
  		   matches -foo=hello then it will produce:
@@ -164,7 +164,7 @@
  		     barhello onehellotwo
  		*/
  		if (*p == 0 || *p == '}')
-@@ -6070,6 +6129,33 @@
+@@ -6069,6 +6128,33 @@
    return 0;
  }
  
@@ -198,7 +198,7 @@
  /* Look up a spec function.  */
  
  static const struct spec_function *
-@@ -6081,6 +6167,11 @@
+@@ -6080,6 +6166,11 @@
      if (strcmp (sf->name, name) == 0)
        return sf;
  
@@ -210,7 +210,7 @@
    return NULL;
  }
  
-@@ -7563,6 +7654,8 @@
+@@ -7568,6 +7659,8 @@
  			   accel_dir_suffix, dir_separator_str, NULL);
    just_machine_suffix = concat (spec_machine, dir_separator_str, NULL);
  
@@ -219,7 +219,7 @@
    specs_file = find_a_file (&startfile_prefixes, "specs", R_OK, true);
    /* Read the specs file unless it is a default one.  */
    if (specs_file != 0 && strcmp (specs_file, "specs"))
-@@ -8257,7 +8350,8 @@
+@@ -8264,7 +8357,8 @@
  
    /* Run ld to link all the compiler output files.  */
  
@@ -229,7 +229,7 @@
      {
        int tmp = execution_count;
  
-@@ -8324,7 +8418,7 @@
+@@ -8333,7 +8427,7 @@
    /* If options said don't run linker,
       complain about input files to be given to the linker.  */
  
@@ -238,7 +238,7 @@
      for (i = 0; (int) i < n_infiles; i++)
        if (explicit_link_files[i]
  	  && !(infiles[i].language && infiles[i].language[0] == '*'))
-@@ -9631,9 +9725,9 @@
+@@ -9680,9 +9774,9 @@
  get_random_number (void)
  {
    unsigned HOST_WIDE_INT ret = 0;
@@ -250,7 +250,7 @@
    if (fd >= 0)
      {
        read (fd, &ret, sizeof (HOST_WIDE_INT));
-@@ -9993,16 +10087,16 @@
+@@ -10042,16 +10136,16 @@
  }
  
  

@@ -1,3 +1,16 @@
+2019-08-21      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/patches/gcc/trunk/01-patches:  regenerated.
+	* gm2/patches/gcc/trunk/02-patches:  regenerated.
+	* gm2/patches/gcc/trunk/03-patches:  regenerated.
+	* gm2/patches/gcc/trunk/04-patches:  regenerated.
+	* gm2/patches/gcc/trunk/05-patches:  regenerated.
+	* gm2/patches/gcc/trunk/06-patches:  regenerated.
+	* gm2/patches/gcc/trunk/07-patches:  regenerated.
+	* gm2/patches/gcc/trunk/08-patches:  regenerated.
+	* gm2/patches/gcc/trunk/09-patches:  regenerated.
+	* gm2/patches/gcc/trunk/10-patches:  regenerated.
+
 2019-08-20      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  use -p parameter for mkdir.
