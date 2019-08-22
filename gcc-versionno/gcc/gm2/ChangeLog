@@ -1,3 +1,12 @@
+2019-08-22      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-gcc/m2expr.c:  (interim commit).
+          (BuildTruthNotIf)  New function.  (BuildModCeilCheck)
+          New function.  (BuildModFloorCheck)  New function.
+          (checkWholeModCeilOverflow) New function.
+          (checkWholeOverflow) call checkWholeModCeilOverflow.
+          (BuildModM2Check) added interim code.
+
 2019-08-21      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/patches/gcc/trunk/01-patches:  regenerated.

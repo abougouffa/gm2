@@ -116,6 +116,14 @@ m2expr_BuildTruthOrIf (location_t location, tree a, tree b)
   return m2expr_build_binary_op (location, TRUTH_ORIF_EXPR, a, b, FALSE);
 }
 
+/* BuildTruthNotIf inverts the boolean value of expr and returns the result.  */
+
+static tree
+m2expr_BuildTruthNot (location_t location, tree expr)
+{
+  return m2expr_build_unary_op (location, TRUTH_NOT_EXPR, expr, FALSE);
+}
+
 /* BuildAddCheck builds an addition tree.  */
 
 tree
@@ -273,6 +281,48 @@ m2expr_BuildModTrunc (location_t location, tree op1, tree op2, int needconvert)
   op2 = CheckAddressToCardinal (location, op2);
 
   t = m2expr_build_binary_op (location, TRUNC_MOD_EXPR, op1, op2, needconvert);
+  return m2expr_FoldAndStrip (t);
+}
+
+/* BuildModCeilCheck builds a ceil modulus tree.  */
+
+tree
+m2expr_BuildModCeilCheck (location_t location, tree op1, tree op2, tree lowest,
+			  tree min, tree max)
+{
+  tree t;
+
+  m2assert_AssertLocation (location);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  op1 = CheckAddressToCardinal (location, op1);
+  op2 = CheckAddressToCardinal (location, op2);
+
+  t = m2expr_build_binary_op_check (location, CEIL_MOD_EXPR, op1, op2, FALSE,
+				    lowest, min, max);
+  return m2expr_FoldAndStrip (t);
+}
+
+/* BuildModFloorCheck builds a trunc modulus tree.  */
+
+tree
+m2expr_BuildModFloorCheck (location_t location, tree op1, tree op2, tree lowest,
+			   tree min, tree max)
+{
+  tree t;
+
+  m2assert_AssertLocation (location);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  op1 = CheckAddressToCardinal (location, op1);
+  op2 = CheckAddressToCardinal (location, op2);
+
+  t = m2expr_build_binary_op_check (location, FLOOR_MOD_EXPR, op1, op2, FALSE,
+				    lowest, min, max);
   return m2expr_FoldAndStrip (t);
 }
 
@@ -1441,7 +1491,7 @@ checkWholeDivTruncOverflow (location_t location, tree i, tree j, tree lowest,
 }
 
 /*
-   checkWholeDivTruncOverflow, the GCC tree.def defines TRUNC_MOD_EXPR to return
+   checkWholeModTruncOverflow, the GCC tree.def defines TRUNC_MOD_EXPR to return
    the remainder which has the same sign as the dividend.  In ISO Modula-2 the
    divisor must never be negative (or zero).  The pseudo code for implementing these
    checks is given below:
@@ -1511,6 +1561,62 @@ checkWholeModTruncOverflow (location_t location, tree i, tree j, tree lowest,
 }
 
 
+/*
+   checkWholeModCeilOverflow, the GCC tree.def defines CEIL_MOD_EXPR to return
+   the remainder which has the same opposite of the divisor.  In gm2 this is
+   only called when the divisor is negative.  The pseudo code for implementing
+   these checks is given below:
+
+   IF j = 0
+   THEN
+      RETURN TRUE   (* division by zero.  *)
+   END ;
+   t := i - j * divceil (i, j) ;
+   printf ("t = %d, i = %d, j = %d, %d / %d = %d\n",
+           t, i, j, i, j, divceil (i, j));
+   RETURN NOT ((t >= minT) AND (t <= maxT))
+
+   ***********************
+   which can be converted into a large expression:
+
+   t := i - j * divceil (i, j) ;
+   RETURN (j = 0) OR (NOT ((t >= minT) AND (t <= maxT)))
+
+   and into GCC trees:
+
+   c1 ->  (j = 0)
+   c2 ->  (i - j)
+   c3 ->  (i DIVceil j)
+   t ->   (c2 * c3)
+   c4 ->  (t >= minT)
+   c5 ->  (t <= maxT)
+   c6 ->  (c4 AND c5)
+   c7 ->  (NOT c6)
+   c8 ->  (c1 OR c7)
+   return c8
+ */
+
+static void
+checkWholeModCeilOverflow (location_t location,
+			   tree i, tree j, tree lowest,
+			   tree min, tree max)
+{
+  tree c1 = m2expr_BuildEqualToZero (location, i, lowest, min, max);
+  tree c2 = m2expr_BuildSub (location, i, j, FALSE);
+  tree c3 = m2expr_BuildDivCeil (location, i, j, FALSE);
+  tree t  = m2expr_BuildMult (location, c2, c3, FALSE);
+  tree c4 = m2expr_BuildGreaterThanOrEqual (location, t, min);
+  tree c5 = m2expr_BuildLessThanOrEqual (location, t, max);
+  tree c6 = m2expr_BuildTruthAndIf (location, c4, c5);
+  tree c7 = m2expr_BuildTruthNot (location, c6);
+  tree condition = m2expr_BuildTruthOrIf (location, c1, c7);
+  tree s = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
+					       get_current_function_name (),
+               "whole value ceil modulus will cause a range overflow");
+  m2type_AddStatement (location, s);
+}
+
+
 /* checkWholeOverflow check to see if the binary operators will overflow
    ordinal types.  */
 
@@ -1541,6 +1647,14 @@ m2expr_checkWholeOverflow (location_t location, enum tree_code code, tree op1,
 	case TRUNC_MOD_EXPR:
 	  checkWholeModTruncOverflow (location, op1, op2, lowest, min, max);
 	  break;
+	case CEIL_MOD_EXPR:
+	  checkWholeModCeilOverflow (location, op1, op2, lowest, min, max);
+	  break;
+#if 0
+	case FLOOR_MOD_EXPR:
+	  checkWholeModFloorOverflow (location, op1, op2, lowest, min, max);
+	  break;
+#endif
         default:
           break;
         }
@@ -2767,8 +2881,21 @@ m2expr_BuildModM2Check (location_t location, tree op1, tree op2,
                                     m2expr_GetIntegerZero (location), FALSE)),
 	/* --fixme-- implement m2expr_BuildModCeilCheck and
            m2expr_BuildModFloorCheck.  */
-        m2expr_BuildModCeil (location, op1, op2, FALSE),
-        m2expr_BuildModFloor (location, op1, op2, FALSE));
+#if 0
+	/* test, fails.  */
+        m2expr_BuildModCeilCheck (location, op1, op2, lowest, min, max),   /* op2 < 0.  */
+        m2expr_BuildModFloor (location, op1, op2, FALSE)); /* op2 >= 0.  */
+#endif
+#if 1
+	/* works, but no extra checking achieved.  */
+        m2expr_BuildModCeil (location, op1, op2, FALSE),   /* op2 < 0.  */
+        m2expr_BuildModFloor (location, op1, op2, FALSE)); /* op2 >= 0.  */
+#endif
+#if 0
+        /* eventual code.  */
+        m2expr_BuildModCeilCheck (location, op1, op2, lowest, min, max),   /* op2 < 0.  */
+        m2expr_BuildModFloorCheck (location, op1, op2, lowest, min, max)); /* op2 >= 0.  */
+#endif
   else
     return m2expr_BuildModTruncCheck (location, op1, op2, lowest, min, max);
 }
