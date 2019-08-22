@@ -2209,7 +2209,7 @@ gm2/gm2-auto/pge.mod: gm2/pg$(exeext)
 gm2/gm2-pge-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def $(MCDEPS)
 	$(MCC) -o=$@ $(srcdir)/gm2/gm2-libs/$*.def
 
-gm2/gm2-pge-boot/$(SRC_PREFIX)%.o: gm2/mc-boot-ch/$(SRC_PREFIX)%.c
+gm2/gm2-pge-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/mc-boot-ch/$(SRC_PREFIX)%.c
 	$(CC) -I$(srcdir)/gm2/mc-boot-ch -g -c $< -o $@
 
 gm2/gm2-pge-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-libs/%.mod $(MCDEPS) $(BUILD-BOOT-H)
