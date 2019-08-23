@@ -23,7 +23,11 @@
           (checkWholeModFloorOverflow)  New function.
           (m2expr_checkWholeOverflow) enable FLOOR_MOD_EXPR checking.
           (m2expr_BuildISOModM2Check) rewritten.
-	  (Completed modulus checking and enabled with -fsoft-check-all).
+          (Completed modulus checking and enabled with -fsoft-check-all).
+	* testsuite/gm2/switches/check-all/plugin/fail/gm2.exp:  save
+          and restore TORTURE_OPTIONS.
+	* testsuite/gm2/iso/check/fail/gm2.exp:  save
+          and restore TORTURE_OPTIONS.
 
 2019-08-22      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
