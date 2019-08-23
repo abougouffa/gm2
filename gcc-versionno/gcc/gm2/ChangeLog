@@ -1,3 +1,24 @@
+2019-08-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2-gcc/m2expr.c:  (checkWholeNegateOverflow) return
+          checking tree.  (m2expr_checkUnaryWholeOverflow)
+          return checking tree.  (m2expr_build_unary_op_check)
+          ensure that the checking tree is combined with the
+          result tree using a COMPOUND_EXPR.
+	(checkWholeNegateOverflow) return the checking tree.
+	(checkWholeAddOverflow) return the checking tree.
+	(checkWholeSubOverflow) return the checking tree.
+	(checkWholeMultOverflow) return the checking tree.
+	(checkWholeDivTruncOverflow) return the checking tree.
+	(checkWholeModTruncOverflow) return the checking tree.
+	(checkWholeModCeilOverflow) return the checking tree.
+	(m2expr_checkWholeOverflow) return the checking tree.
+	(m2expr_build_binary_op_check) ensure that the checking
+	tree is combined with the result tree using a COMPOUND_EXPR.
+	(m2expr_BuildISOModM2Check) New function.
+	(m2expr_BuildModM2Check) tidied up and call
+	 m2expr_BuildISOModM2Check.
+
 2019-08-22      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  added $(srcdir) to prevent

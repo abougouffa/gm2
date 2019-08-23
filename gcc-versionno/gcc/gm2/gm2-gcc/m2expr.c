@@ -42,7 +42,7 @@ see <https://www.gnu.org/licenses/>.  */
 
 static void m2expr_checkRealOverflow (location_t location, enum tree_code code,
                                       tree result);
-static void checkWholeNegateOverflow (location_t location, tree i, tree lowest,
+static tree checkWholeNegateOverflow (location_t location, tree i, tree lowest,
                                       tree min, tree max);
 // static tree m2expr_Build4LogicalAnd (location_t location, tree a, tree b,
 // tree c, tree d);
@@ -937,7 +937,7 @@ m2expr_BuildTrunc (tree op1)
 
 /* checkUnaryWholeOverflow decide if we can check this unary expression.  */
 
-void
+tree
 m2expr_checkUnaryWholeOverflow (location_t location, enum tree_code code,
                                 tree arg, tree lowest, tree min, tree max)
 {
@@ -949,12 +949,12 @@ m2expr_checkUnaryWholeOverflow (location_t location, enum tree_code code,
       switch (code)
         {
         case NEGATE_EXPR:
-          checkWholeNegateOverflow (location, arg, lowest, min, max);
-          break;
+          return checkWholeNegateOverflow (location, arg, lowest, min, max);
         default:
-          break;
+	  return NULL;
         }
     }
+  return NULL;
 }
 
 /* build_unary_op return a unary tree node.  */
@@ -965,16 +965,20 @@ m2expr_build_unary_op_check (location_t location, enum tree_code code,
 {
   tree argtype = TREE_TYPE (arg);
   tree result;
+  tree check = NULL;
 
   m2assert_AssertLocation (location);
 
   arg = m2expr_FoldAndStrip (arg);
 
   if ((TREE_CODE (argtype) != REAL_TYPE) && (min != NULL))
-    m2expr_checkUnaryWholeOverflow (location, code, arg, lowest, min, max);
+    check = m2expr_checkUnaryWholeOverflow (location, code, arg, lowest, min, max);
 
   result = build1 (code, argtype, arg);
   protected_set_expr_location (result, location);
+
+  if (check != NULL)
+    result = build2 (COMPOUND_EXPR, argtype, check, result);
 
   if (TREE_CODE (argtype) == REAL_TYPE)
     m2expr_checkRealOverflow (location, code, result);
@@ -1182,7 +1186,7 @@ BEGIN
    END
 END sneg ; */
 
-static void
+static tree
 checkWholeNegateOverflow (location_t location,
 			  tree i, tree type, tree min,
                           tree max)
@@ -1230,7 +1234,7 @@ checkWholeNegateOverflow (location_t location,
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
 					       get_current_function_name (),
                "whole value unary minus will cause range overflow");
-  m2type_AddStatement (location, t);
+  return t;
 }
 
 /* checkWholeAddOverflow - check to see whether op1 + op2 will
@@ -1244,7 +1248,7 @@ BEGIN
    END
 END sadd.  */
 
-static void
+static tree
 checkWholeAddOverflow (location_t location, tree i, tree j, tree lowest,
                        tree min, tree max)
 {
@@ -1261,7 +1265,7 @@ checkWholeAddOverflow (location_t location, tree i, tree j, tree lowest,
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
 					       get_current_function_name (),
                "whole value additition will cause a range overflow");
-  m2type_AddStatement (location, t);
+  return t;
 }
 
 /* checkWholeSubOverflow - check to see whether op1 - op2 will
@@ -1275,7 +1279,7 @@ BEGIN
    END
 END ssub.  */
 
-static void
+static tree
 checkWholeSubOverflow (location_t location, tree i, tree j, tree lowest,
                        tree min, tree max)
 {
@@ -1292,7 +1296,7 @@ checkWholeSubOverflow (location_t location, tree i, tree j, tree lowest,
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
 					       get_current_function_name (),
                "whole value subtraction will cause a range overflow");
-  m2type_AddStatement (location, t);
+  return t;
 }
 
 /* Build4TruthAndIf - return TRUE if a && b && c && d.  Retain order left to
@@ -1372,7 +1376,7 @@ END smult ;
    || (c2 && c5 && c7))
    error ('signed subtraction overflow').  */
 
-static void
+static tree
 checkWholeMultOverflow (location_t location, tree i, tree j, tree lowest,
                         tree min, tree max)
 {
@@ -1398,7 +1402,7 @@ checkWholeMultOverflow (location_t location, tree i, tree j, tree lowest,
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
 					       get_current_function_name (),
                "whole value multiplication will cause a range overflow");
-  m2type_AddStatement (location, t);
+  return t;
 }
 
 
@@ -1454,7 +1458,7 @@ c7 -> (b5 AND b14 AND b9 AND b13)
  if (c1 || c2 || c3 || c4 || c5 || c6 || c7)
    error ('signed div trunc overflow').  */
 
-static void
+static tree
 checkWholeDivTruncOverflow (location_t location, tree i, tree j, tree lowest,
 			    tree min, tree max)
 {
@@ -1487,7 +1491,7 @@ checkWholeDivTruncOverflow (location_t location, tree i, tree j, tree lowest,
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
 					       get_current_function_name (),
                "whole value truncated division will cause a range overflow");
-  m2type_AddStatement (location, t);
+  return t;
 }
 
 /*
@@ -1541,7 +1545,7 @@ checkWholeDivTruncOverflow (location_t location, tree i, tree j, tree lowest,
         (c3 AND c4 AND c5))
  */
 
-static void
+static tree
 checkWholeModTruncOverflow (location_t location, tree i, tree j, tree lowest,
 			    tree min, tree max)
 {
@@ -1557,7 +1561,7 @@ checkWholeModTruncOverflow (location_t location, tree i, tree j, tree lowest,
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
 					       get_current_function_name (),
                "whole value trunc modulus will cause a range overflow");
-  m2type_AddStatement (location, t);
+  return t;
 }
 
 
@@ -1596,7 +1600,7 @@ checkWholeModTruncOverflow (location_t location, tree i, tree j, tree lowest,
    return c8
  */
 
-static void
+static tree
 checkWholeModCeilOverflow (location_t location,
 			   tree i, tree j, tree lowest,
 			   tree min, tree max)
@@ -1613,14 +1617,14 @@ checkWholeModCeilOverflow (location_t location,
   tree s = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
 					       get_current_function_name (),
                "whole value ceil modulus will cause a range overflow");
-  m2type_AddStatement (location, s);
+  return s;
 }
 
 
 /* checkWholeOverflow check to see if the binary operators will overflow
    ordinal types.  */
 
-void
+tree
 m2expr_checkWholeOverflow (location_t location, enum tree_code code, tree op1,
                            tree op2, tree lowest, tree min, tree max)
 {
@@ -1633,32 +1637,26 @@ m2expr_checkWholeOverflow (location_t location, enum tree_code code, tree op1,
       switch (code)
         {
         case PLUS_EXPR:
-          checkWholeAddOverflow (location, op1, op2, lowest, min, max);
-          break;
+          return checkWholeAddOverflow (location, op1, op2, lowest, min, max);
         case MINUS_EXPR:
-          checkWholeSubOverflow (location, op1, op2, lowest, min, max);
-          break;
+          return checkWholeSubOverflow (location, op1, op2, lowest, min, max);
         case MULT_EXPR:
-          checkWholeMultOverflow (location, op1, op2, lowest, min, max);
-          break;
+          return checkWholeMultOverflow (location, op1, op2, lowest, min, max);
 	case TRUNC_DIV_EXPR:
-	  checkWholeDivTruncOverflow (location, op1, op2, lowest, min, max);
-	  break;
+	  return checkWholeDivTruncOverflow (location, op1, op2, lowest, min, max);
 	case TRUNC_MOD_EXPR:
-	  checkWholeModTruncOverflow (location, op1, op2, lowest, min, max);
-	  break;
+	  return checkWholeModTruncOverflow (location, op1, op2, lowest, min, max);
 	case CEIL_MOD_EXPR:
-	  checkWholeModCeilOverflow (location, op1, op2, lowest, min, max);
-	  break;
+	  return checkWholeModCeilOverflow (location, op1, op2, lowest, min, max);
 #if 0
 	case FLOOR_MOD_EXPR:
-	  checkWholeModFloorOverflow (location, op1, op2, lowest, min, max);
-	  break;
+	  return checkWholeModFloorOverflow (location, op1, op2, lowest, min, max);
 #endif
         default:
-          break;
+	  return NULL;
         }
     }
+  return NULL;
 }
 
 /* checkRealOverflow if we have enabled real value checking then
@@ -1727,6 +1725,7 @@ m2expr_build_binary_op_check (location_t location, enum tree_code code,
                               tree min, tree max)
 {
   tree type1, type2, result;
+  tree check = NULL;
 
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
@@ -1776,9 +1775,11 @@ m2expr_build_binary_op_check (location_t location, enum tree_code code,
       error_at (location, "not expecting different types to binary operator");
 
   if ((TREE_CODE (type1) != REAL_TYPE) && (min != NULL))
-    m2expr_checkWholeOverflow (location, code, op1, op2, lowest, min, max);
+    check = m2expr_checkWholeOverflow (location, code, op1, op2, lowest, min, max);
 
   result = build_binary_op (location, code, op1, op2, needconvert);
+  if (check != NULL)
+    result = build2 (COMPOUND_EXPR, TREE_TYPE (result), check, result);
 
   if (TREE_CODE (type1) == REAL_TYPE)
     m2expr_checkRealOverflow (location, code, result);
@@ -2860,6 +2861,23 @@ m2expr_BuildDivM2Check (location_t location, tree op1, tree op2,
     return m2expr_BuildDivTruncCheck (location, op1, op2, lowest, min, max);
 }
 
+static
+tree
+m2expr_BuildISOModM2Check (location_t location,
+			   tree op1, tree op2, tree lowest, tree min, tree max)
+{
+  /* return the result of the modulus.  */
+  return fold_build3 (COND_EXPR, TREE_TYPE (op1),
+		      m2expr_BuildLessThan (
+					    location, op2,
+					    m2convert_BuildConvert (location, TREE_TYPE (op2),
+								    m2expr_GetIntegerZero (location), FALSE)),
+		      m2expr_BuildModCeilCheck (location, op1, op2, lowest, min, max),   /* op2 < 0.  */
+		      /* --fixme-- implement BuildModFloorCheck and replace call below.  */
+		      m2expr_BuildModFloor (location, op1, op2, FALSE)); /* op2 >= 0.  */
+}
+
+
 /* BuildModM2Check if iso or pim4 then build and return ((op2 < 0) : (op1
    modceil op2) ?  (op1 modfloor op2)) otherwise use modtrunc.
    Use the checking mod equivalents.  */
@@ -2873,29 +2891,7 @@ m2expr_BuildModM2Check (location_t location, tree op1, tree op2,
   ASSERT_CONDITION (TREE_TYPE (op1) == TREE_TYPE (op2));
   if (M2Options_GetPIM4 () || M2Options_GetISO ()
       || M2Options_GetPositiveModFloor ())
-    return fold_build3 (
-        COND_EXPR, TREE_TYPE (op1),
-        m2expr_BuildLessThan (
-            location, op2,
-            m2convert_BuildConvert (location, TREE_TYPE (op2),
-                                    m2expr_GetIntegerZero (location), FALSE)),
-	/* --fixme-- implement m2expr_BuildModCeilCheck and
-           m2expr_BuildModFloorCheck.  */
-#if 0
-	/* test, fails.  */
-        m2expr_BuildModCeilCheck (location, op1, op2, lowest, min, max),   /* op2 < 0.  */
-        m2expr_BuildModFloor (location, op1, op2, FALSE)); /* op2 >= 0.  */
-#endif
-#if 1
-	/* works, but no extra checking achieved.  */
-        m2expr_BuildModCeil (location, op1, op2, FALSE),   /* op2 < 0.  */
-        m2expr_BuildModFloor (location, op1, op2, FALSE)); /* op2 >= 0.  */
-#endif
-#if 0
-        /* eventual code.  */
-        m2expr_BuildModCeilCheck (location, op1, op2, lowest, min, max),   /* op2 < 0.  */
-        m2expr_BuildModFloorCheck (location, op1, op2, lowest, min, max)); /* op2 >= 0.  */
-#endif
+    return m2expr_BuildISOModM2Check (location, op1, op2, lowest, min, max);
   else
     return m2expr_BuildModTruncCheck (location, op1, op2, lowest, min, max);
 }
