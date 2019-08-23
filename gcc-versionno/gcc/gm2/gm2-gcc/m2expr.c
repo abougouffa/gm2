@@ -1549,7 +1549,7 @@ static tree
 checkWholeModTruncOverflow (location_t location, tree i, tree j, tree lowest,
 			    tree min, tree max)
 {
-  tree c1 = m2expr_BuildEqualToZero (location, i, lowest, min, max);
+  tree c1 = m2expr_BuildEqualToZero (location, j, lowest, min, max);
   tree c2 = m2expr_BuildLessThanZero (location, j, lowest, min, max);
   tree c3 = m2expr_BuildNotEqualToZero (location, i, lowest, min, max);
   tree c4 = m2expr_BuildLessThanOrEqual (location, j, i);
@@ -1580,8 +1580,7 @@ checkWholeModTruncOverflow (location_t location, tree i, tree j, tree lowest,
            t, i, j, i, j, divceil (i, j));
    RETURN NOT ((t >= minT) AND (t <= maxT))
 
-   ***********************
-   which can be converted into a large expression:
+   which can be converted into the expression:
 
    t := i - j * divceil (i, j) ;
    RETURN (j = 0) OR (NOT ((t >= minT) AND (t <= maxT)))
@@ -1605,7 +1604,7 @@ checkWholeModCeilOverflow (location_t location,
 			   tree i, tree j, tree lowest,
 			   tree min, tree max)
 {
-  tree c1 = m2expr_BuildEqualToZero (location, i, lowest, min, max);
+  tree c1 = m2expr_BuildEqualToZero (location, j, lowest, min, max);
   tree c2 = m2expr_BuildSub (location, i, j, FALSE);
   tree c3 = m2expr_BuildDivCeil (location, i, j, FALSE);
   tree t  = m2expr_BuildMult (location, c2, c3, FALSE);
@@ -1621,10 +1620,65 @@ checkWholeModCeilOverflow (location_t location,
 }
 
 
+/*
+   checkWholeModFloorOverflow, the GCC tree.def defines FLOOR_MOD_EXPR to return
+   the remainder which has the same sign as the divisor.  In gm2 this is
+   only called when the divisor is positive.  The pseudo code for implementing
+   these checks is given below:
+
+   IF j = 0
+   THEN
+      RETURN TRUE   (* division by zero.  *)
+   END ;
+   t := i - j * divfloor (i, j) ;
+   printf ("t = %d, i = %d, j = %d, %d / %d = %d\n",
+           t, i, j, i, j, divfloor (i, j));
+   RETURN NOT ((t >= minT) AND (t <= maxT))
+
+   which can be converted into the expression:
+
+   t := i - j * divfloor (i, j) ;
+   RETURN (j = 0) OR (NOT ((t >= minT) AND (t <= maxT)))
+
+   and into GCC trees:
+
+   c1 ->  (j = 0)
+   c2 ->  (i - j)
+   c3 ->  (i DIVfloor j)
+   t ->   (c2 * c3)
+   c4 ->  (t >= minT)
+   c5 ->  (t <= maxT)
+   c6 ->  (c4 AND c5)
+   c7 ->  (NOT c6)
+   c8 ->  (c1 OR c7)
+   return c8
+ */
+
+static tree
+checkWholeModFloorOverflow (location_t location,
+			    tree i, tree j, tree lowest,
+			    tree min, tree max)
+{
+  tree c1 = m2expr_BuildEqualToZero (location, j, lowest, min, max);
+  tree c2 = m2expr_BuildSub (location, i, j, FALSE);
+  tree c3 = m2expr_BuildDivFloor (location, i, j, FALSE);
+  tree t  = m2expr_BuildMult (location, c2, c3, FALSE);
+  tree c4 = m2expr_BuildGreaterThanOrEqual (location, t, min);
+  tree c5 = m2expr_BuildLessThanOrEqual (location, t, max);
+  tree c6 = m2expr_BuildTruthAndIf (location, c4, c5);
+  tree c7 = m2expr_BuildTruthNot (location, c6);
+  tree condition = m2expr_BuildTruthOrIf (location, c1, c7);
+  tree s = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
+					       get_current_function_name (),
+               "whole value floor modulus will cause a range overflow");
+  return s;
+}
+
+
 /* checkWholeOverflow check to see if the binary operators will overflow
    ordinal types.  */
 
-tree
+static tree
 m2expr_checkWholeOverflow (location_t location, enum tree_code code, tree op1,
                            tree op2, tree lowest, tree min, tree max)
 {
@@ -1648,10 +1702,8 @@ m2expr_checkWholeOverflow (location_t location, enum tree_code code, tree op1,
 	  return checkWholeModTruncOverflow (location, op1, op2, lowest, min, max);
 	case CEIL_MOD_EXPR:
 	  return checkWholeModCeilOverflow (location, op1, op2, lowest, min, max);
-#if 0
 	case FLOOR_MOD_EXPR:
 	  return checkWholeModFloorOverflow (location, op1, op2, lowest, min, max);
-#endif
         default:
 	  return NULL;
         }
@@ -2866,15 +2918,16 @@ tree
 m2expr_BuildISOModM2Check (location_t location,
 			   tree op1, tree op2, tree lowest, tree min, tree max)
 {
+  tree cond = m2expr_BuildLessThan (location, op2,
+				    m2convert_BuildConvert (location, TREE_TYPE (op2),
+							    m2expr_GetIntegerZero (location), FALSE));
+
   /* return the result of the modulus.  */
-  return fold_build3 (COND_EXPR, TREE_TYPE (op1),
-		      m2expr_BuildLessThan (
-					    location, op2,
-					    m2convert_BuildConvert (location, TREE_TYPE (op2),
-								    m2expr_GetIntegerZero (location), FALSE)),
-		      m2expr_BuildModCeilCheck (location, op1, op2, lowest, min, max),   /* op2 < 0.  */
-		      /* --fixme-- implement BuildModFloorCheck and replace call below.  */
-		      m2expr_BuildModFloor (location, op1, op2, FALSE)); /* op2 >= 0.  */
+  return fold_build3 (COND_EXPR, TREE_TYPE (op1), cond,
+		      /* op2 < 0.  */
+		      m2expr_BuildModCeilCheck (location, op1, op2, lowest, min, max),
+		      /* op2 >= 0.  */
+		      m2expr_BuildModFloorCheck (location, op1, op2, lowest, min, max));
 }
 
 
