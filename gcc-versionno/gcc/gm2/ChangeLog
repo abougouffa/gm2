@@ -1,3 +1,9 @@
+2019-08-24      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-lang.c:  (gm2_langhook_handle_option)
+          flag_excess_precision_cmdline replaced by
+          flag_excess_precision.
+
 2019-08-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-gcc/m2expr.c:  (checkWholeNegateOverflow) return

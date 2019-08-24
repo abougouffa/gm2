@@ -473,7 +473,7 @@ gm2_langhook_handle_option (
 static bool
 gm2_langhook_post_options (const char **pfilename ATTRIBUTE_UNUSED)
 {
-  flag_excess_precision_cmdline = EXCESS_PRECISION_FAST;
+  flag_excess_precision = EXCESS_PRECISION_FAST;
   M2Options_SetCC1Quiet (quiet_flag);
   M2Options_FinaliseOptions ();
 
