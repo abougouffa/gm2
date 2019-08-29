@@ -1,3 +1,20 @@
+2019-08-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* Checking overflow/underflow for DIV_CEIL implemented.
+	* gm2/gm2-compiler/M2Base.mod:  renamed the base types,
+	  Z, R, C so that error messages are improved.
+	* gm2/gm2-gcc/m2expr.c:  (BuildPostInc) New function.
+          (BuildPostDec) New function.  (BuildDivCeilCheck)
+          New function.  (BuildLessThanOrEqualZero) New function.
+          (divCeilOverflowPosPos) New function.
+          (divCeilOverflowPosNeg) New function.
+          (divCeilOverflowPosNeg) New function.
+          (divCeilOverflowNegPos) New function.
+          (divCeilOverflowNegNeg) New function.
+	  (divCeilOverflowCases) New function.
+          (checkWholeDivCeilOverflow) New function.
+	  (m2expr_BuildDivM2Check) call BuildDivCeilCheck.
+
 2019-08-24      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-lang.c:  (gm2_langhook_handle_option)

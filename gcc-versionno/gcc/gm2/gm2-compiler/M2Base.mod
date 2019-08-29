@@ -264,17 +264,17 @@ PROCEDURE InitBaseSimpleTypes (location: location_t) ;
 BEGIN
    InitBaseTypes(location) ;
 
-   ZType := MakeType(MakeKey('_M2_Ztype')) ;
+   ZType := MakeType(MakeKey('Modula-2 base Z')) ;
    PutType(ZType, NulSym) ;                   (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2ZType())) ;
    PopSize(ZType) ;
 
-   RType := MakeType(MakeKey('_M2_Rtype')) ;
+   RType := MakeType(MakeKey('Modula-2 base R')) ;
    PutType(RType, NulSym) ;                   (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2RType())) ;
    PopSize(RType) ;
 
-   CType := MakeType(MakeKey('_M2_Ctype')) ;
+   CType := MakeType(MakeKey('Modula-2 base C')) ;
    PutType(CType, NulSym) ;                   (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2CType())) ;
    PopSize(CType) ;

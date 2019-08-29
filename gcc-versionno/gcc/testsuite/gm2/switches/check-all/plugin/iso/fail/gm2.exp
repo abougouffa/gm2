@@ -1,5 +1,5 @@
 # Expect driver script for GCC Regression Tests
-# Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation
+# Copyright (C) 2019 Free Software Foundation
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,10 +22,16 @@ if $tracelevel then {
 # load support procs
 load_lib gm2-torture.exp
 
-set gm2src ${srcdir}/../gm2
+global TORTURE_OPTIONS
 
-gm2_init_iso "${srcdir}/gm2/switches/check-all/run/pass" -fsoft-check-all
+set old_options $TORTURE_OPTIONS
+set TORTURE_OPTIONS [list \
+			 { -O2 -fsoft-check-all } \
+			 { -O2 -g -fsoft-check-all } \
+			 { -O3 -fsoft-check-all } \
+		         { -O3 -g -fsoft-check-all } ]
 
+gm2_init_iso "${srcdir}/gm2/switches/check-all/plugin/iso/fail/"
 
 foreach testcase [lsort [glob -nocomplain $srcdir/$subdir/*.mod]] {
     # If we're only testing specific files and this isn't one of them, skip it.
@@ -33,5 +39,7 @@ foreach testcase [lsort [glob -nocomplain $srcdir/$subdir/*.mod]] {
 	continue
     }
 
-    gm2-torture-execute $testcase "" "pass"
+    gm2-torture-fail $testcase
 }
+
+set TORTURE_OPTIONS $old_options

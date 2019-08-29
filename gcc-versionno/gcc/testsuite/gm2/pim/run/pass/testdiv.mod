@@ -113,6 +113,8 @@ BEGIN
          THEN
             IF divtest (a, b)
             THEN
+               (* printf ("a = %d, b = %d, a DIV b = %d\n", a, b, a DIV b); *)
+               printf ("a = %d, b = %d\n", a, b);
                IF NOT inRange (a DIV b)
                THEN
                   assertFailed (a, b, "divtest marked this as good") ;

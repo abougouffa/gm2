@@ -124,6 +124,34 @@ m2expr_BuildTruthNot (location_t location, tree expr)
   return m2expr_build_unary_op (location, TRUTH_NOT_EXPR, expr, FALSE);
 }
 
+/* BuildPostInc builds a post increment tree, the second operand is
+   always one.  */
+
+static tree
+m2expr_BuildPostInc (location_t location, tree op)
+{
+#if 0
+  return build2 (POSTINCREMENT_EXPR, TREE_TYPE (op), unshare_expr (op),
+		 build_int_cst (TREE_TYPE (op), 1));
+#else
+  return m2expr_BuildAdd (location, op, build_int_cst (TREE_TYPE (op), 1), FALSE);
+#endif
+}
+
+/* BuildPostDec builds a post decrement tree, the second operand is
+   always one.  */
+
+static tree
+m2expr_BuildPostDec (location_t location, tree op)
+{
+#if 0
+  return build2 (POSTDECREMENT_EXPR, TREE_TYPE (op), unshare_expr (op),
+		 build_int_cst (TREE_TYPE (op), 1));
+#else
+  return m2expr_BuildSub (location, op, build_int_cst (TREE_TYPE (op), 1), FALSE);
+#endif
+}
+
 /* BuildAddCheck builds an addition tree.  */
 
 tree
@@ -342,6 +370,27 @@ m2expr_BuildDivCeil (location_t location, tree op1, tree op2, int needconvert)
   op2 = CheckAddressToCardinal (location, op2);
 
   t = m2expr_build_binary_op (location, CEIL_DIV_EXPR, op1, op2, needconvert);
+  return m2expr_FoldAndStrip (t);
+}
+
+/* BuildDivCeilCheck builds a check ceil division tree.  */
+
+tree
+m2expr_BuildDivCeilCheck (location_t location, tree op1, tree op2, tree lowest,
+			  tree min, tree max)
+{
+  tree t;
+
+  m2assert_AssertLocation (location);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  op1 = CheckAddressToCardinal (location, op1);
+  op2 = CheckAddressToCardinal (location, op2);
+
+  t = m2expr_build_binary_op_check (location, CEIL_DIV_EXPR, op1, op2, FALSE,
+				    lowest, min, max);
   return m2expr_FoldAndStrip (t);
 }
 
@@ -1140,6 +1189,28 @@ m2expr_BuildGreaterThanOrEqualZero (location_t location, tree value, tree type,
 }
 
 
+/* BuildLessThanOrEqualZero - returns a tree containing (<= value 0).  It
+   checks the min and max value to ensure that the test can be safely
+   achieved and will short circuit the result otherwise.  */
+
+tree
+m2expr_BuildLessThanOrEqualZero (location_t location, tree value, tree type,
+				 tree min, tree max)
+{
+  if (m2expr_CompareTrees (min, m2expr_GetIntegerZero (location)) > 0)
+    /* min is greater than zero therefore value will always be > 0.  */
+    return m2expr_GetIntegerZero (location);
+  else if (m2expr_CompareTrees (max, m2expr_GetIntegerZero (location)) <= 0)
+    /* max is less than or equal to zero therefore value will always be <= 0.  */
+    return m2expr_GetIntegerOne (location);
+  /* we now know 0 lies in the range min..max so we can safely cast
+     zero to type.  */
+  return m2expr_BuildLessThanOrEqual (
+      location, value,
+      fold_convert_loc (location, type, m2expr_GetIntegerZero (location)));
+}
+
+
 /* get_current_function_name, return the name of the current function if
    it currently exists.  NULL is returned if we are not inside a function.  */
 
@@ -1407,11 +1478,10 @@ checkWholeMultOverflow (location_t location, tree i, tree j, tree lowest,
 
 
 /*
-   divexpr - returns true if a DIV b will overflow.
-
+   divexpr - returns true if a DIV_TRUNC b will overflow.
  */
 
-/* checkWholeDivOverflow - check to see whether i DIV j will overflow
+/* checkWholeDivOverflow - check to see whether i DIV_TRUNC j will overflow
    an integer.
 
 PROCEDURE divtruncexpr (a, b: INTEGER) : BOOLEAN ;
@@ -1493,6 +1563,361 @@ checkWholeDivTruncOverflow (location_t location, tree i, tree j, tree lowest,
                "whole value truncated division will cause a range overflow");
   return t;
 }
+
+#if 0
+(*
+   divexpr - returns true if a DIV_CEIL b will overflow.
+ *)
+
+(* checkWholeDivCeilOverflow - check to see whether i DIV_CEIL j will overflow
+   an integer.  *)
+
+PROCEDURE divceilexpr (i, j: INTEGER) : BOOLEAN ;
+BEGIN
+   RETURN ((j = 0) OR     (* division by zero.  *)
+           (maxT < 0) OR  (* both inputs are < 0 and max is < 0,
+                             therefore error.  *)
+           ((i # 0) AND   (* first operand is legally zero,
+                             result is also legally zero.  *)
+            divCeilOverflowCases (i, j)))
+END divceilexpr ;
+
+
+(*
+   divCeilOverflowCases - precondition:  i, j are in range values.
+                          postcondition:  TRUE is returned if i divceil will
+                                          result in an overflow/underflow.
+*)
+
+PROCEDURE divCeilOverflowCases (i, j: INTEGER) : BOOLEAN ;
+BEGIN
+   RETURN (((i > 0) AND (j > 0) AND divCeilOverflowPosPos (i, j)) OR
+           ((i < 0) AND (j < 0) AND divCeilOverflowNegNeg (i, j)) OR
+           ((i > 0) AND (j < 0) AND divCeilOverflowPosNeg (i, j)) OR
+           ((i < 0) AND (j > 0) AND divCeilOverflowNegPos (i, j)))
+END divCeilOverflowCases ;
+
+
+(*
+   divCeilOverflowPosPos - precondition:  i, j are legal and are both >= 0.
+                           postcondition:  TRUE is returned if i divceil will
+                                           result in an overflow/underflow.
+*)
+
+PROCEDURE divCeilOverflowPosPos (i, j: INTEGER) : BOOLEAN ;
+BEGIN
+   RETURN (((i MOD j = 0) AND (i < j * minT)) OR
+           (((i MOD j # 0) AND (i < j * minT + 1))))
+END divCeilOverflowPosPos ;
+
+
+(*
+   divCeilOverflowNegNeg - precondition:  i, j are in range values and both < 0.
+                           postcondition:  TRUE is returned if i divceil will
+                                           result in an overflow/underflow.
+*)
+
+PROCEDURE divCeilOverflowNegNeg (i, j: INTEGER) : BOOLEAN ;
+BEGIN
+   RETURN ((maxT <= 0) OR           (* signs will cause overflow.  *)
+           (* check for underflow.  *)
+           ((ABS (i) MOD ABS (j) = 0) AND (i >= j * minT)) OR
+           ((ABS (i) MOD ABS (j) # 0) AND (i >= j * minT - 1)) OR
+           (* check for overflow.  *)
+           (((ABS (i) MOD maxT) = 0) AND (ABS (i) DIV maxT > ABS (j))) OR
+           (((ABS (i) MOD maxT) # 0) AND (ABS (i) DIV maxT > ABS (j) + 1)))
+END divCeilOverflowNegNeg ;
+
+
+(*
+   divCeilOverflowNegPos - precondition:  i, j are in range values.  i < 0, j >= 0.
+                           postcondition:  TRUE is returned if i divceil will
+                                           result in an overflow/underflow.
+*)
+
+PROCEDURE divCeilOverflowNegPos (i, j: INTEGER) : BOOLEAN ;
+BEGIN
+   (* easier than might be initially expected.  We know minT < 0 and maxT > 0.
+      We know the result will be negative and therefore we only need to test
+      against minT.  *)
+   RETURN (((ABS (i) MOD j = 0) AND (i < j * minT)) OR
+           ((ABS (i) MOD j = 0) AND (i < j * minT - 1)))
+END divCeilOverflowNegPos ;
+
+
+(*
+   divCeilOverflowPosNeg - precondition:  i, j are in range values.  i >= 0, j < 0.
+                           postcondition:  TRUE is returned if i divceil will
+                                           result in an overflow/underflow.
+*)
+
+PROCEDURE divCeilOverflowPosNeg (i, j: INTEGER) : BOOLEAN ;
+BEGIN
+   (* easier than might be initially expected.  We know minT < 0 and maxT > 0.
+      We know the result will be negative and therefore we only need to test
+      against minT.  *)
+   RETURN (((i MOD ABS (j) = 0) AND (i > j * minT)) OR
+           ((i MOD ABS (j) # 0) AND (i > j * minT - 1)))
+END divCeilOverflowPosNeg ;
+#endif
+
+/* divCeilOverflowPosPos, precondition:  i, j are legal and are both >= 0.
+   Postcondition:  TRUE is returned if i divceil will result in an overflow/underflow.
+
+   A handbuilt expression of trees implementing:
+
+   RETURN (((i MOD j = 0) AND (i < j * minT)) OR
+           (((i MOD j # 0) AND (i < j * minT + 1))))
+
+   a -> (i MOD j = 0) AND (i < j * minT)
+   b -> (i MOD j # 0) AND (i < j * minT + 1)
+   RETURN a OR b.  */
+
+static tree
+divCeilOverflowPosPos (location_t location, tree i, tree j, tree lowest,
+		       tree min, tree max)
+{
+  tree i_mod_j = m2expr_BuildModTrunc (location, i, j, FALSE);
+  tree i_mod_j_eq_zero = m2expr_BuildEqualToZero (location, i_mod_j, lowest, min, max);
+  tree i_mod_j_ne_zero = m2expr_BuildNotEqualToZero (location, i_mod_j, lowest, min, max);
+  tree j_min = m2expr_BuildMult (location, j, min, FALSE);
+  tree j_min_1 = m2expr_BuildAdd (location, j_min, m2expr_GetIntegerOne (location), FALSE);
+  tree i_lt_j_min = m2expr_BuildLessThan (location, i, j_min);
+  tree i_lt_j_min_1 = m2expr_BuildLessThan (location, i, j_min_1);
+  tree a = m2expr_BuildTruthAndIf (location, i_mod_j_eq_zero, i_lt_j_min);
+  tree b = m2expr_BuildTruthAndIf (location, i_mod_j_ne_zero, i_lt_j_min_1);
+  return m2expr_BuildTruthOrIf (location, a, b);
+}
+
+
+/* divCeilOverflowPosNeg precondition:  i, j are in range values and i >=0, j < 0.
+   Postcondition:  TRUE is returned if i divceil j will result in an
+   overflow/underflow.
+
+   A handbuilt expression of trees implementing:
+
+   RETURN (((i MOD ABS (j) = 0) AND (i > j * min)) OR
+           ((i MOD ABS (j) # 0) AND (i > j * min - 1)))
+
+   abs_j -> (ABS (j))
+   i_mod_abs_j -> (i MOD abs_j)
+   i_mod_abs_j_eq_0 -> (i_mod_abs_j = 0)
+   i_mod_abs_j_ne_0 -> (i_mod_abs_j # 0)
+   j_mult_min -> (j * min)
+   j_mult_min_1 -> (j_mult_min - 1)
+   i_gt_j_mult_min -> (i > j_mult_min)
+   i_gt_j_mult_min_1 -> (i > j_mult_min_1)
+   a -> (i_mod_abs_j_eq_0 AND i_gt_j_mult_min)
+   b -> (i_mod_abs_j_ne_0 AND i_gt_j_mult_min_1)
+   c -> (a OR b).  */
+
+static tree
+divCeilOverflowPosNeg (location_t location, tree i, tree j, tree lowest, tree min, tree max)
+{
+  tree abs_j = m2expr_BuildAbs (location, j);
+  tree i_mod_abs_j = m2expr_BuildModFloor (location, i, abs_j, FALSE);
+  tree i_mod_abs_j_eq_0 = m2expr_BuildEqualToZero (location, i_mod_abs_j, lowest, min, max);
+  tree i_mod_abs_j_ne_0 = m2expr_BuildNotEqualToZero (location, i_mod_abs_j, lowest, min, max);
+  tree j_mult_min = m2expr_BuildMult (location, j, min, FALSE);
+  tree j_mult_min_1 = m2expr_BuildPostDec (location, j_mult_min);
+  tree i_gt_j_mult_min = m2expr_BuildGreaterThan (location, i, j_mult_min);
+  tree i_gt_j_mult_min_1 = m2expr_BuildGreaterThan (location, i, j_mult_min_1);
+  tree a = m2expr_BuildTruthAndIf (location, i_mod_abs_j_eq_0, i_gt_j_mult_min);
+  tree b = m2expr_BuildTruthAndIf (location, i_mod_abs_j_ne_0, i_gt_j_mult_min_1);
+  tree c = m2expr_BuildTruthOrIf (location, a, b);
+  return c;
+}
+
+
+/* divCeilOverflowNegPos precondition:  i, j are in range values and i < 0, j >= 0.
+   Postcondition:  TRUE is returned if i divceil j will result in an
+   overflow/underflow.
+
+   A handbuilt expression of trees implementing:
+
+   RETURN (((ABS (i) MOD j = 0) AND (i < j * min)) OR
+           ((ABS (i) MOD j = 0) AND (i < j * min - 1)))
+
+   abs_i -> (ABS (i))
+   abs_i_mod_j -> (abs_i MOD j)
+   abs_i_mod_j_eq_0 -> (abs_i_mod_j = 0)
+   abs_i_mod_j_ne_0 -> (abs_i_mod_j # 0)
+   j_mult_min -> (j * min)
+   j_mult_min_1 -> (j_mult_min - 1)
+   i_lt_j_mult_min -> (i < j_mult_min)
+   i_lt_j_mult_min_1 -> (i < j_mult_min_1)
+   a = (abs_i_mod_j_eq_0 AND i_lt_j_mult_min)
+   b = (abs_i_mod_j_ne_0 AND i_lt_j_mult_min_1)
+   c -> (a OR b).  */
+
+static tree
+divCeilOverflowNegPos (location_t location, tree i, tree j, tree lowest, tree min, tree max)
+{
+  tree abs_i = m2expr_BuildAbs (location, i);
+  tree abs_i_mod_j = m2expr_BuildModFloor (location, abs_i, j, FALSE);
+  tree abs_i_mod_j_eq_0 = m2expr_BuildEqualToZero (location, abs_i_mod_j, lowest, min, max);
+  tree abs_i_mod_j_ne_0 = m2expr_BuildNotEqualToZero (location, abs_i_mod_j, lowest, min, max);
+  tree j_mult_min = m2expr_BuildMult (location, j, min, FALSE);
+  tree j_mult_min_1 = m2expr_BuildPostDec (location, j_mult_min);
+  tree i_lt_j_mult_min = m2expr_BuildLessThan (location, i, j_mult_min);
+  tree i_lt_j_mult_min_1 = m2expr_BuildLessThan (location, i, j_mult_min_1);
+  tree a = m2expr_BuildTruthAndIf (location, abs_i_mod_j_eq_0, i_lt_j_mult_min);
+  tree b = m2expr_BuildTruthAndIf (location, abs_i_mod_j_ne_0, i_lt_j_mult_min_1);
+  tree c = m2expr_BuildTruthOrIf (location, a, b);
+  return c;
+}
+
+
+/* divCeilOverflowNegNeg precondition:  i, j are in range values and both < 0.
+   Postcondition:  TRUE is returned if i divceil j will result in an
+   overflow/underflow.
+
+   A handbuilt expression of trees implementing:
+
+   RETURN ((max <= 0) OR           (* signs will cause overflow.  *)
+           (* check for underflow.  *)
+           ((ABS (i) MOD ABS (j) = 0) AND (i >= j * min)) OR
+           ((ABS (i) MOD ABS (j) # 0) AND (i >= j * min - 1)) OR
+           (* check for overflow.  *)
+           (((ABS (i) MOD max) = 0) AND (ABS (i) DIV max > ABS (j))) OR
+           (((ABS (i) MOD max) # 0) AND (ABS (i) DIV max > ABS (j) + 1)))
+
+  max_lte_0 -> (max <= 0)
+  abs_i -> (ABS (i))
+  abs_j -> (ABS (j))
+  abs_i_mod_abs_j -> (abs_i MOD abs_j)
+  abs_i_mod_abs_j_eq_0 -> (abs_i_mod_abs_j = 0)
+  abs_i_mod_abs_j_ne_0 -> (abs_i_mod_abs_j # 0)
+  j_mult_min -> (j * min)
+  j_mult_min_1 -> (j_mult_min - 1)
+  i_ge_j_mult_min -> (i >= j_mult_min)
+  i_ge_j_mult_min_1 -> (i >= j_mult_min_1)
+  abs_i_mod_max -> (abs_i mod max)
+  abs_i_div_max -> (abs_i DIVfloor max)
+  abs_j_1 -> (abs_j + 1)
+  abs_i_mod_max_eq_0 -> (abs_i_mod_max = 0)
+  abs_i_mod_max_ne_0 -> (abs_i_mod_max # 0)
+  abs_i_div_max_gt_abs_j -> (abs_i_div_max > abs_j)
+  abs_i_div_max_gt_abs_j_1 -> (abs_i_div_max > abs_j_1)
+
+  a -> (abs_i_mod_abs_j_eq_0 AND i_ge_j_mult_min)
+  b -> (abs_i_mod_abs_j_ne_0 AND i_ge_j_mult_min_1)
+  c -> (abs_i_mod_max_eq_0 AND abs_i_div_max_gt_abs_j)
+  d -> (abs_i_mod_max_ne_0 AND abs_i_div_max_gt_abs_j_1)
+  e -> (a OR b OR c OR d)
+  return max_lte_0 OR e.  */
+
+static tree
+divCeilOverflowNegNeg (location_t location, tree i, tree j, tree lowest,
+		       tree min, tree max)
+{
+  tree max_lte_0 = m2expr_BuildLessThanOrEqualZero (location, max, lowest, min, max);
+  tree abs_i = m2expr_BuildAbs (location, i);
+  tree abs_j = m2expr_BuildAbs (location, j);
+  tree abs_i_mod_abs_j = m2expr_BuildModFloor (location, abs_i, abs_j, FALSE);
+  tree abs_i_mod_abs_j_eq_0 = m2expr_BuildEqualToZero (location, abs_i_mod_abs_j,
+						       lowest, min, max);
+  tree abs_i_mod_abs_j_ne_0 = m2expr_BuildNotEqualToZero (location, abs_i_mod_abs_j,
+							  lowest, min, max);
+  tree j_mult_min = m2expr_BuildMult (location, j, min, FALSE);
+  tree j_mult_min_1 = m2expr_BuildPostDec (location, j_mult_min);
+  tree i_ge_j_mult_min = m2expr_BuildGreaterThanOrEqual (location, i, j_mult_min);
+  tree i_ge_j_mult_min_1 = m2expr_BuildGreaterThanOrEqual (location, i, j_mult_min_1);
+  tree abs_i_mod_max = m2expr_BuildModFloor (location, abs_i, max, FALSE);
+  tree abs_i_div_max = m2expr_BuildDivFloor (location, abs_i, max, FALSE);
+  tree abs_j_1 = m2expr_BuildPostInc (location, abs_j);
+  tree abs_i_mod_max_eq_0 = m2expr_BuildEqualToZero (location, abs_i_mod_max, lowest, min, max);
+  tree abs_i_mod_max_ne_0 = m2expr_BuildNotEqualToZero (location, abs_i_mod_max, lowest, min, max);
+  tree abs_i_div_max_gt_abs_j = m2expr_BuildGreaterThan (location,  abs_i_div_max, abs_j);
+  tree abs_i_div_max_gt_abs_j_1 = m2expr_BuildGreaterThan (location, abs_i_div_max, abs_j_1);
+
+  tree a = m2expr_BuildTruthAndIf (location, abs_i_mod_abs_j_eq_0, i_ge_j_mult_min);
+  tree b = m2expr_BuildTruthAndIf (location, abs_i_mod_abs_j_ne_0, i_ge_j_mult_min_1);
+  tree c = m2expr_BuildTruthAndIf (location, abs_i_mod_max_eq_0, abs_i_div_max_gt_abs_j);
+  tree d = m2expr_BuildTruthAndIf (location, abs_i_mod_max_ne_0, abs_i_div_max_gt_abs_j_1);
+  tree e = m2expr_Build4TruthOrIf (location, a, b, c, d);
+  return m2expr_BuildTruthOrIf (location, max_lte_0, e);
+}
+
+
+/* divCeilOverflowCases, precondition:  i, j are in range values.
+   Postcondition:  TRUE is returned if i divceil will result in an
+   overflow/underflow.
+
+   A handbuilt expression of trees implementing:
+
+   RETURN (((i > 0) AND (j > 0) AND divCeilOverflowPosPos (i, j)) OR
+           ((i < 0) AND (j < 0) AND divCeilOverflowNegNeg (i, j)) OR
+           ((i > 0) AND (j < 0) AND divCeilOverflowPosNeg (i, j)) OR
+           ((i < 0) AND (j > 0) AND divCeilOverflowNegPos (i, j)))
+
+   a -> ((i > 0) AND (j > 0) AND divCeilOverflowPosPos (i, j))
+   b -> ((i < 0) AND (j < 0) AND divCeilOverflowNegNeg (i, j))
+   c -> ((i > 0) AND (j < 0) AND divCeilOverflowPosNeg (i, j))
+   d -> ((i < 0) AND (j > 0) AND divCeilOverflowNegPos (i, j))
+
+   RETURN a AND b AND c AND d.  */
+
+static tree
+divCeilOverflowCases (location_t location, tree i, tree j, tree lowest,
+		      tree min, tree max)
+{
+  tree i_gt_zero = m2expr_BuildGreaterThanZero (location, i, lowest, min, max);
+  tree j_gt_zero = m2expr_BuildGreaterThanZero (location, j, lowest, min, max);
+  tree i_lt_zero = m2expr_BuildLessThanZero (location, i, lowest, min, max);
+  tree j_lt_zero = m2expr_BuildLessThanZero (location, j, lowest, min, max);
+  tree a = m2expr_Build3TruthAndIf (location, i_gt_zero, j_gt_zero,
+				    divCeilOverflowPosPos (location, i, j, lowest, min, max));
+  tree b = m2expr_Build3TruthAndIf (location, i_lt_zero, j_lt_zero,
+				    divCeilOverflowNegNeg (location, i, j, lowest, min, max));
+  tree c = m2expr_Build3TruthAndIf (location, i_gt_zero, j_lt_zero,
+				    divCeilOverflowPosNeg (location, i, j, lowest, min, max));
+  tree d = m2expr_Build3TruthAndIf (location, i_lt_zero, j_gt_zero,
+				    divCeilOverflowNegPos (location, i, j, lowest, min, max));
+  return m2expr_Build4TruthOrIf (location, a, b, c, d);
+}
+
+
+/* checkWholeDivCeilOverflow check to see whether i DIV_CEIL j will overflow
+   an integer.  A handbuilt expression of trees implementing:
+
+   RETURN ((j = 0) OR     (* division by zero.  *)
+           (maxT < 0) OR  (* both inputs are < 0 and max is < 0,
+                             therefore error.  *)
+           ((i # 0) AND   (* first operand is legally zero,
+                             result is also legally zero.  *)
+            divCeilOverflowCases (i, j)))
+
+   using the following subexpressions:
+
+   j_eq_zero -> (j == 0)
+   max_lt_zero -> (max < 0)
+   i_ne_zero -> (i # 0).  */
+
+static tree
+checkWholeDivCeilOverflow (location_t location, tree i, tree j, tree lowest,
+			   tree min, tree max)
+{
+  tree j_eq_zero = m2expr_BuildEqualToZero (location, j, lowest, min, max);
+  tree max_lt_zero = m2expr_BuildLessThanZero (location, max, lowest, min, max);
+  tree i_ne_zero = m2expr_BuildNotEqualToZero (location, i, lowest, min, max);
+  tree rhs = m2expr_BuildTruthAndIf (location,
+				     i_ne_zero,
+				     divCeilOverflowCases (location,
+							   i, j, lowest, min, max));
+
+  j_eq_zero = m2expr_FoldAndStrip (j_eq_zero);
+  max_lt_zero = m2expr_FoldAndStrip (max_lt_zero);
+  i_ne_zero = m2expr_FoldAndStrip (i_ne_zero);
+  rhs = m2expr_FoldAndStrip (rhs);
+
+  tree condition = m2expr_Build3TruthOrIf (location, j_eq_zero, max_lt_zero, rhs);
+  tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
+					       get_current_function_name (),
+               "whole value ceil division will cause a range overflow");
+  return t;
+}
+
 
 /*
    checkWholeModTruncOverflow, the GCC tree.def defines TRUNC_MOD_EXPR to return
@@ -1698,6 +2123,12 @@ m2expr_checkWholeOverflow (location_t location, enum tree_code code, tree op1,
           return checkWholeMultOverflow (location, op1, op2, lowest, min, max);
 	case TRUNC_DIV_EXPR:
 	  return checkWholeDivTruncOverflow (location, op1, op2, lowest, min, max);
+	case CEIL_DIV_EXPR:
+	  return checkWholeDivCeilOverflow (location, op1, op2, lowest, min, max);
+#if 0
+	case FLOOR_DIV_EXPR:
+	  return checkWholeDivFloorOverflow (location, op1, op2, lowest, min, max);
+#endif
 	case TRUNC_MOD_EXPR:
 	  return checkWholeModTruncOverflow (location, op1, op2, lowest, min, max);
 	case CEIL_MOD_EXPR:
@@ -2907,7 +3338,7 @@ m2expr_BuildDivM2Check (location_t location, tree op1, tree op2,
                                     m2expr_GetIntegerZero (location), FALSE)),
 	/* --fixme-- implement m2expr_BuildDivCeilCheck and
            m2expr_BuildDivFloorCheck.  */
-        m2expr_BuildDivCeil (location, op1, op2, FALSE),
+        m2expr_BuildDivCeilCheck (location, op1, op2, lowest, min, max),
         m2expr_BuildDivFloor (location, op1, op2, FALSE));
   else
     return m2expr_BuildDivTruncCheck (location, op1, op2, lowest, min, max);
