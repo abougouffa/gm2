@@ -5,7 +5,9 @@
           and tidied up comments now that BuildDivCeilCheck is
           implemented.  (Generally tidied up comments as per
           GCC coding standards).  (checkWholeDivCeilOverflow)
-	  check for rhs < 0 in ISO M2 which must raise an exception.
+          check for rhs < 0 in ISO M2 which must raise an exception.
+	* gm2/tools-src/def2texi.py:  utilize 2to3 to convert Python 2
+	  into Python 3 code.
 
 2019-08-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

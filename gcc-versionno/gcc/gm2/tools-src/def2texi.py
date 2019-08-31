@@ -24,7 +24,7 @@
 import sys
 import os
 import glob
-import string
+#import string
 import getopt
 
 libraryClassifications = [['gm2-libs','Base libraries',
@@ -95,7 +95,7 @@ def displayMenu():
 #
 
 def removeInitialComments (file, line):
-    while (string.find(line, "*)") == -1):
+    while (str.find(line, "*)") == -1):
         line = file.readline()
         
 #
@@ -104,30 +104,30 @@ def removeInitialComments (file, line):
 #
 
 def removeFields (file, line):
-    while (string.find(line, "*)") == -1):
-        if (string.find(line, "Author") != -1) and (string.find(line, ":") != -1):
+    while (str.find(line, "*)") == -1):
+        if (str.find(line, "Author") != -1) and (str.find(line, ":") != -1):
             line = file.readline()
-        elif (string.find(line, "Last edit") != -1) and (string.find(line, ":") != -1):
+        elif (str.find(line, "Last edit") != -1) and (str.find(line, ":") != -1):
             line = file.readline()
-        elif (string.find(line, "LastEdit") != -1) and (string.find(line, ":") != -1):
+        elif (str.find(line, "LastEdit") != -1) and (str.find(line, ":") != -1):
             line = file.readline()
-        elif (string.find(line, "Last update") != -1) and (string.find(line, ":") != -1):
+        elif (str.find(line, "Last update") != -1) and (str.find(line, ":") != -1):
             line = file.readline()
-        elif (string.find(line, "Date") != -1) and (string.find(line, ":") != -1):
+        elif (str.find(line, "Date") != -1) and (str.find(line, ":") != -1):
             line = file.readline()
-        elif (string.find(line, "Title") != -1) and (string.find(line, ":") != -1):
+        elif (str.find(line, "Title") != -1) and (str.find(line, ":") != -1):
             line = file.readline()
-        elif (string.find(line, "Revision") != -1) and (string.find(line, ":") != -1):
+        elif (str.find(line, "Revision") != -1) and (str.find(line, ":") != -1):
             line = file.readline()
-        elif (string.find(line, "System") != -1) and (string.find(line, ":") != -1) and (string.find(line, "Description:") == -1):
+        elif (str.find(line, "System") != -1) and (str.find(line, ":") != -1) and (str.find(line, "Description:") == -1):
             line = file.readline()
-        elif (string.find(line, "SYSTEM") != -1) and (string.find(line, ":") != -1) and (string.find(line, "Description:") == -1):
+        elif (str.find(line, "SYSTEM") != -1) and (str.find(line, ":") != -1) and (str.find(line, "Description:") == -1):
             line = file.readline()
         else:
-	    print(string.replace(string.replace(string.rstrip(line),
+           print(str.replace(str.replace(str.rstrip(line),
                                             "{", "@{"), "}", "@}"))
-            line = file.readline()
-    print(string.rstrip(line))
+           line = file.readline()
+    print(str.rstrip(line))
 
 
 #
@@ -137,7 +137,7 @@ def removeFields (file, line):
 def checkIndex (line):
     global inVar, inType, inConst
     
-    words = string.split(line)
+    words = str.split(line)
     procedure = ""
     if (len(words)>1) and (words[0] == "PROCEDURE"):
         inConst = False
@@ -168,42 +168,42 @@ def checkIndex (line):
         inVar = False
 
     if inVar:
-        words = string.split(line, ',')
+        words = str.split(line, ',')
         for word in words:
-            word = string.lstrip(word)
+            word = str.lstrip(word)
             if word != "":
-                if string.find(word, ':') == -1:
+                if str.find(word, ':') == -1:
                     print("@findex " + word + " (var)")
                 elif len(word)>0:
-                    var = string.split(word, ':')
+                    var = str.split(word, ':')
                     if len(var)>0:
                         print("@findex " + var[0] + " (var)")
 
     if inType:
-        words = string.lstrip(line)
-        if string.find(words, '=') != -1:
-            word = string.split(words, "=")
+        words = str.lstrip(line)
+        if str.find(words, '=') != -1:
+            word = str.split(words, "=")
             if (len(word[0])>0) and (word[0][0] != '_'):
-                print("@findex " + string.rstrip(word[0]) + " (type)")
+                print("@findex " + str.rstrip(word[0]) + " (type)")
         else:
-            word = string.split(words)
+            word = str.split(words)
             if (len(word)>1) and (word[1] == ';'):
                 # hidden type
                 if (len(word[0])>0) and (word[0][0] != '_'):
-                    print("@findex " + string.rstrip(word[0]) + " (type)")
+                    print("@findex " + str.rstrip(word[0]) + " (type)")
 
     if inConst:
-        words = string.split(line, ';')
+        words = str.split(line, ';')
         for word in words:
-            word = string.lstrip(word)
+            word = str.lstrip(word)
             if word != "":
-                if string.find(word, '=') != -1:
-                    var = string.split(word, '=')
+                if str.find(word, '=') != -1:
+                    var = str.split(word, '=')
                     if len(var)>0:
                         print("@findex " + var[0] + " (const)")
 
     if procedure != "":
-        name = string.split(procedure, "(")
+        name = str.split(procedure, "(")
         if name[0] != "":
             proc = name[0]
             if proc[-1] == ";":
@@ -221,32 +221,33 @@ def parseDefinition (dir, source, build, file, needPage):
     f = open(findFile(dir, build, source, file), 'r')
     initState()
     line = f.readline()
-    while (string.find(line, "(*") != -1):
+#   while (str.find(line, "(*") != -1):
+    while (str.find(line, "(*") != -1):
         removeInitialComments(f, line)
         line = f.readline()
 
-    while (string.find(line, "DEFINITION") == -1):
+    while (str.find(line, "DEFINITION") == -1):
         line = f.readline()
 
     print("@example")
-    print(string.rstrip(line))
+    print(str.rstrip(line))
     line = f.readline()
-    if len(string.rstrip(line)) == 0:
-        print(string.replace(string.replace(string.rstrip(line),
+    if len(str.rstrip(line)) == 0:
+        print(str.replace(str.replace(str.rstrip(line),
                                             "{", "@{"), "}", "@}"))
         line = f.readline()
-        if (string.find(line, "(*") != -1):
+        if (str.find(line, "(*") != -1):
             removeFields(f, line)
         else:
-            print(string.rstrip(line))
+            print(str.rstrip(line))
     else:
-        print(string.rstrip(line))
+        print(str.rstrip(line))
 
     line = f.readline()
     while line:
-	line = string.rstrip(line)
-	checkIndex(line)
-        print(string.replace(string.replace(line, "{", "@{"), "}", "@}"))
+        line = str.rstrip(line)
+        checkIndex(line)
+        print(str.replace(str.replace(line, "{", "@{"), "}", "@}"))
         line = f.readline()
     print("@end example")
     if needPage:
@@ -282,7 +283,7 @@ def doCat (name):
     file = open(name, 'r')
     line = file.readline()
     while line:
-        print(string.rstrip(line))
+        print(str.rstrip(line))
         line = file.readline()
     file.close()
 
