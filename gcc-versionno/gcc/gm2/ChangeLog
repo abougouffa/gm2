@@ -1,3 +1,12 @@
+2019-08-31      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* testsuite/gm2/pim/run/pass/gm2.exp:  remove -fsoft-check-all.
+	* gm2/gm2-gcc/m2expr.c:  (checkWholeModFloorOverflow) updated
+          and tidied up comments now that BuildDivCeilCheck is
+          implemented.  (Generally tidied up comments as per
+          GCC coding standards).  (checkWholeDivCeilOverflow)
+	  check for rhs < 0 in ISO M2 which must raise an exception.
+
 2019-08-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* Checking overflow/underflow for DIV_CEIL implemented.

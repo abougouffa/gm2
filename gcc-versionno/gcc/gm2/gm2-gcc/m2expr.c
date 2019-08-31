@@ -1901,17 +1901,22 @@ checkWholeDivCeilOverflow (location_t location, tree i, tree j, tree lowest,
   tree j_eq_zero = m2expr_BuildEqualToZero (location, j, lowest, min, max);
   tree max_lt_zero = m2expr_BuildLessThanZero (location, max, lowest, min, max);
   tree i_ne_zero = m2expr_BuildNotEqualToZero (location, i, lowest, min, max);
+  tree j_lt_zero;
   tree rhs = m2expr_BuildTruthAndIf (location,
 				     i_ne_zero,
 				     divCeilOverflowCases (location,
 							   i, j, lowest, min, max));
 
+  if (M2Options_GetISO ())
+    j_lt_zero = m2expr_FoldAndStrip (m2expr_BuildLessThanZero (location, j, lowest, min, max));
+  else
+    j_lt_zero = m2expr_GetIntegerZero (location);
   j_eq_zero = m2expr_FoldAndStrip (j_eq_zero);
   max_lt_zero = m2expr_FoldAndStrip (max_lt_zero);
   i_ne_zero = m2expr_FoldAndStrip (i_ne_zero);
   rhs = m2expr_FoldAndStrip (rhs);
 
-  tree condition = m2expr_Build3TruthOrIf (location, j_eq_zero, max_lt_zero, rhs);
+  tree condition = m2expr_Build4TruthOrIf (location, j_eq_zero, max_lt_zero, rhs, j_lt_zero);
   tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
 					       get_current_function_name (),
                "whole value ceil division will cause a range overflow");
@@ -1919,8 +1924,7 @@ checkWholeDivCeilOverflow (location_t location, tree i, tree j, tree lowest,
 }
 
 
-/*
-   checkWholeModTruncOverflow, the GCC tree.def defines TRUNC_MOD_EXPR to return
+/* checkWholeModTruncOverflow, the GCC tree.def defines TRUNC_MOD_EXPR to return
    the remainder which has the same sign as the dividend.  In ISO Modula-2 the
    divisor must never be negative (or zero).  The pseudo code for implementing these
    checks is given below:
@@ -1967,8 +1971,7 @@ checkWholeDivCeilOverflow (location_t location, tree i, tree j, tree lowest,
    c5 ->  c7 < minT
 
    t -> (c1 OR c2 OR
-        (c3 AND c4 AND c5))
- */
+        (c3 AND c4 AND c5)).  */
 
 static tree
 checkWholeModTruncOverflow (location_t location, tree i, tree j, tree lowest,
@@ -1990,8 +1993,7 @@ checkWholeModTruncOverflow (location_t location, tree i, tree j, tree lowest,
 }
 
 
-/*
-   checkWholeModCeilOverflow, the GCC tree.def defines CEIL_MOD_EXPR to return
+/* checkWholeModCeilOverflow, the GCC tree.def defines CEIL_MOD_EXPR to return
    the remainder which has the same opposite of the divisor.  In gm2 this is
    only called when the divisor is negative.  The pseudo code for implementing
    these checks is given below:
@@ -2021,8 +2023,7 @@ checkWholeModTruncOverflow (location_t location, tree i, tree j, tree lowest,
    c6 ->  (c4 AND c5)
    c7 ->  (NOT c6)
    c8 ->  (c1 OR c7)
-   return c8
- */
+   return c8.  */
 
 static tree
 checkWholeModCeilOverflow (location_t location,
@@ -2045,8 +2046,7 @@ checkWholeModCeilOverflow (location_t location,
 }
 
 
-/*
-   checkWholeModFloorOverflow, the GCC tree.def defines FLOOR_MOD_EXPR to return
+/* checkWholeModFloorOverflow, the GCC tree.def defines FLOOR_MOD_EXPR to return
    the remainder which has the same sign as the divisor.  In gm2 this is
    only called when the divisor is positive.  The pseudo code for implementing
    these checks is given below:
@@ -2076,8 +2076,7 @@ checkWholeModCeilOverflow (location_t location,
    c6 ->  (c4 AND c5)
    c7 ->  (NOT c6)
    c8 ->  (c1 OR c7)
-   return c8
- */
+   return c8.  */
 
 static tree
 checkWholeModFloorOverflow (location_t location,
@@ -3328,17 +3327,16 @@ m2expr_BuildDivM2Check (location_t location, tree op1, tree op2,
   op1 = m2expr_FoldAndStrip (op1);
   op2 = m2expr_FoldAndStrip (op2);
   ASSERT_CONDITION (TREE_TYPE (op1) == TREE_TYPE (op2));
-  if (M2Options_GetPIM4 () || M2Options_GetISO ()
-      || M2Options_GetPositiveModFloor ())
+  if (M2Options_GetISO ()
+      || M2Options_GetPIM4 () || M2Options_GetPositiveModFloor ())
     return fold_build3 (
         COND_EXPR, TREE_TYPE (op1),
         m2expr_BuildLessThan (
             location, op2,
             m2convert_BuildConvert (location, TREE_TYPE (op2),
                                     m2expr_GetIntegerZero (location), FALSE)),
-	/* --fixme-- implement m2expr_BuildDivCeilCheck and
-           m2expr_BuildDivFloorCheck.  */
         m2expr_BuildDivCeilCheck (location, op1, op2, lowest, min, max),
+	/* --fixme-- implement m2expr_BuildDivFloorCheck.  */
         m2expr_BuildDivFloor (location, op1, op2, FALSE));
   else
     return m2expr_BuildDivTruncCheck (location, op1, op2, lowest, min, max);
