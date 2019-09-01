@@ -1,5 +1,5 @@
---- gcc-versionno-orig/Makefile.tpl	2019-08-16 00:02:01.421837110 +0100
-+++ gcc-versionno/Makefile.tpl	2019-08-15 23:55:15.555387207 +0100
+--- gcc-versionno-orig/Makefile.tpl	2019-09-01 01:39:40.373079217 +0100
++++ gcc-versionno/Makefile.tpl	2019-09-01 01:34:27.644362160 +0100
 @@ -13,12 +13,12 @@
  # it under the terms of the GNU General Public License as published by
  # the Free Software Foundation; either version 3 of the License, or
@@ -31,7 +31,7 @@
  	AR="$(AR)"; export AR; \
  	AS="$(AS)"; export AS; \
  	CC_FOR_BUILD="$(CC_FOR_BUILD)"; export CC_FOR_BUILD; \
-@@ -295,6 +297,7 @@
+@@ -296,6 +298,7 @@
  	GFORTRAN="$(GFORTRAN_FOR_TARGET) $(XGCC_FLAGS_FOR_TARGET) $$TFLAGS"; export GFORTRAN; \
  	GOC="$(GOC_FOR_TARGET) $(XGCC_FLAGS_FOR_TARGET) $$TFLAGS"; export GOC; \
  	GDC="$(GDC_FOR_TARGET) $(XGCC_FLAGS_FOR_TARGET) $$TFLAGS"; export GDC; \
@@ -39,7 +39,7 @@
  	DLLTOOL="$(DLLTOOL_FOR_TARGET)"; export DLLTOOL; \
  	LD="$(COMPILER_LD_FOR_TARGET)"; export LD; \
  	LDFLAGS="$(LDFLAGS_FOR_TARGET)"; export LDFLAGS; \
-@@ -361,6 +364,7 @@
+@@ -362,6 +365,7 @@
  GFORTRAN_FOR_BUILD = @GFORTRAN_FOR_BUILD@
  GOC_FOR_BUILD = @GOC_FOR_BUILD@
  GDC_FOR_BUILD = @GDC_FOR_BUILD@
@@ -47,7 +47,7 @@
  LDFLAGS_FOR_BUILD = @LDFLAGS_FOR_BUILD@
  LD_FOR_BUILD = @LD_FOR_BUILD@
  NM_FOR_BUILD = @NM_FOR_BUILD@
-@@ -430,6 +434,7 @@
+@@ -431,6 +435,7 @@
  LIBCXXFLAGS = $(CXXFLAGS) -fno-implicit-templates
  GOCFLAGS = $(CFLAGS)
  GDCFLAGS = $(CFLAGS)
@@ -55,7 +55,7 @@
  
  CREATE_GCOV = create_gcov
  
-@@ -517,6 +522,7 @@
+@@ -518,6 +523,7 @@
  GFORTRAN_FOR_TARGET=$(STAGE_CC_WRAPPER) @GFORTRAN_FOR_TARGET@
  GOC_FOR_TARGET=$(STAGE_CC_WRAPPER) @GOC_FOR_TARGET@
  GDC_FOR_TARGET=$(STAGE_CC_WRAPPER) @GDC_FOR_TARGET@
@@ -63,7 +63,7 @@
  DLLTOOL_FOR_TARGET=@DLLTOOL_FOR_TARGET@
  LD_FOR_TARGET=@LD_FOR_TARGET@
  
-@@ -646,6 +652,7 @@
+@@ -647,6 +653,7 @@
  	'GFORTRAN=$(GFORTRAN)' \
  	'GOC=$(GOC)' \
  	'GDC=$(GDC)' \
@@ -71,7 +71,7 @@
  	'LD=$(LD)' \
  	'LIPO=$(LIPO)' \
  	'NM=$(NM)' \
-@@ -706,6 +713,8 @@
+@@ -707,6 +714,8 @@
  	'GOCFLAGS=$$(GOCFLAGS_FOR_TARGET)' \
  	'GDC=$$(GDC_FOR_TARGET) $$(XGCC_FLAGS_FOR_TARGET) $$(TFLAGS)' \
  	'GDCFLAGS=$$(GDCFLAGS_FOR_TARGET)' \
@@ -80,7 +80,7 @@
  	'LD=$(COMPILER_LD_FOR_TARGET)' \
  	'LDFLAGS=$$(LDFLAGS_FOR_TARGET)' \
  	'LIBCFLAGS=$$(LIBCFLAGS_FOR_TARGET)' \
-@@ -874,7 +883,7 @@
+@@ -875,7 +884,7 @@
  clean: do-clean local-clean
  mostlyclean: do-mostlyclean local-clean
  distclean: do-distclean local-clean local-distclean
@@ -89,7 +89,7 @@
  maintainer-clean: local-distclean
  realclean: maintainer-clean
  
-@@ -1031,7 +1040,7 @@
+@@ -1032,7 +1041,7 @@
  
  dist:
  	@echo "Building a full distribution of this tree isn't done"
@@ -98,7 +98,7 @@
  
  etags tags: TAGS
  
-@@ -1404,9 +1413,9 @@
+@@ -1405,9 +1414,9 @@
  ENDIF raw_cxx +]
  	(cd $(TARGET_SUBDIR)/[+module+] && \
  	  $(MAKE) $(TARGET_FLAGS_TO_PASS) [+
@@ -111,7 +111,7 @@
  	  +] [+extra_make_flags+] check)
  [+ ENDIF no_check +]
  @endif target-[+module+]
-@@ -1599,7 +1608,7 @@
+@@ -1600,7 +1609,7 @@
  # reliable.
  
  # 'touch' doesn't work right on some platforms.
@@ -120,7 +120,7 @@
  
  # We only want to compare .o files, so set this!
  objext = .o
-@@ -1981,7 +1990,7 @@
+@@ -1982,7 +1991,7 @@
  install-gdb: $(INSTALL_GDB_TK)
  
  # Serialization dependencies.  Host configures don't work well in parallel to

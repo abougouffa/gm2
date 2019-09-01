@@ -1,5 +1,5 @@
---- gcc-versionno-orig/configure.ac	2019-08-15 23:56:28.207878584 +0100
-+++ gcc-versionno/configure.ac	2019-08-15 23:55:15.515386928 +0100
+--- gcc-versionno-orig/configure.ac	2019-09-01 01:34:54.288074708 +0100
++++ gcc-versionno/configure.ac	2019-09-01 01:34:27.624362376 +0100
 @@ -111,11 +111,11 @@
  ### or a host dependent tool.  Then put it into the appropriate list
  ### (library or tools, host or target), doing a dependency sort.
@@ -106,7 +106,7 @@
    DLLTOOL_FOR_BUILD="\$(DLLTOOL)"
    LD_FOR_BUILD="\$(LD)"
    NM_FOR_BUILD="\$(NM)"
-@@ -1914,7 +1923,7 @@
+@@ -1928,7 +1937,7 @@
        # an apparent bug in bash 1.12 on linux.
        ${srcdir}/gcc/[[*]]/config-lang.in) ;;
        *)
@@ -115,7 +115,7 @@
          # $lang_dirs, $boot_language, and $build_by_default
          language=
          target_libs=
-@@ -2147,7 +2156,7 @@
+@@ -2161,7 +2170,7 @@
  AC_ARG_WITH([target-bdw-gc-lib],
  [AS_HELP_STRING([--with-target-bdw-gc-lib=PATHLIST],
  		[specify directories for installed bdw-gc library])])
@@ -124,7 +124,7 @@
  case ,${enable_languages},:${enable_objc_gc} in *,objc,*:yes|*,objc,*:auto)
    AC_MSG_CHECKING([for bdw garbage collector])
    if test "x$with_target_bdw_gc$with_target_bdw_gc_include$with_target_bdw_gc_lib" = x; then
-@@ -2226,7 +2235,7 @@
+@@ -2240,7 +2249,7 @@
  build_configdirs_all="$build_configdirs"
  build_configdirs=
  for i in ${build_configdirs_all} ; do
@@ -133,7 +133,7 @@
    if test -f ${srcdir}/$j/configure ; then
      build_configdirs="${build_configdirs} $i"
    fi
-@@ -2243,7 +2252,7 @@
+@@ -2257,7 +2266,7 @@
  target_configdirs_all="$target_configdirs"
  target_configdirs=
  for i in ${target_configdirs_all} ; do
@@ -142,7 +142,7 @@
    if test -f ${srcdir}/$j/configure ; then
      target_configdirs="${target_configdirs} $i"
    fi
-@@ -2329,7 +2338,7 @@
+@@ -2343,7 +2352,7 @@
  
  copy_dirs=
  
@@ -151,7 +151,7 @@
    [AS_HELP_STRING([--with-build-sysroot=SYSROOT],
  		  [use sysroot as the system root during the build])],
    [if test x"$withval" != x ; then
-@@ -2428,11 +2437,11 @@
+@@ -2442,11 +2451,11 @@
  # This is done by determining whether or not the appropriate directory
  # is available, and by checking whether or not specific configurations
  # have requested that this magic not happen.
@@ -166,7 +166,7 @@
  # want to do that, then you should use the --without-gnu-as and
  # --without-gnu-ld options for the configure script.  Similarly, if
  # the default is to use the included zlib and you don't want to do that,
-@@ -2539,7 +2548,7 @@
+@@ -2553,7 +2562,7 @@
      target_makefile_frag="config/mt-gnu"
      ;;
    *-*-aix4.[[3456789]]* | *-*-aix[[56789]].*)
@@ -175,7 +175,7 @@
      # commands to handle both 32-bit and 64-bit objects.  These flags are
      # harmless if we're using GNU nm or ar.
      extra_arflags_for_target=" -X32_64"
-@@ -2609,7 +2618,7 @@
+@@ -2623,7 +2632,7 @@
    if test -s conftest || test -s conftest.exe ; then
      we_are_ok=yes
    fi
@@ -184,7 +184,7 @@
  case $we_are_ok in
    no)
      echo 1>&2 "*** The command '${CC} -o conftest ${CFLAGS} ${CPPFLAGS} ${LDFLAGS} conftest.c' failed."
-@@ -3032,7 +3041,7 @@
+@@ -3046,7 +3055,7 @@
  # --program-suffix have been applied to it.  Autoconf has already
  # doubled dollar signs and backslashes in program_transform_name; we want
  # the backslashes un-doubled, and then the entire thing wrapped in single
@@ -193,7 +193,7 @@
  # Also, because we want to override the logic in subdir configure scripts to
  # choose program_transform_name, replace any s,x,x, with s,y,y,.
  sed -e "s,\\\\\\\\,\\\\,g; s,','\\\\'',g; s/s,x,x,/s,y,y,/" <<EOF_SED > conftestsed.out
-@@ -3101,7 +3110,7 @@
+@@ -3115,7 +3124,7 @@
        if test -s conftest || test -s conftest.exe ; then
  	dev64=yes
        fi
@@ -202,7 +202,7 @@
      rm -f conftest*
      if test x${dev64} != xyes ; then
        AC_MSG_ERROR([I suspect your system does not have 32-bit development libraries (libc and headers). If you have them, rerun configure with --enable-multilib. If you do not have them, and want to build a 64-bit-only compiler, rerun configure with --disable-multilib.])
-@@ -3287,6 +3296,7 @@
+@@ -3301,6 +3310,7 @@
  AC_SUBST(GFORTRAN_FOR_BUILD)
  AC_SUBST(GOC_FOR_BUILD)
  AC_SUBST(GDC_FOR_BUILD)
@@ -210,7 +210,7 @@
  AC_SUBST(LDFLAGS_FOR_BUILD)
  AC_SUBST(LD_FOR_BUILD)
  AC_SUBST(NM_FOR_BUILD)
-@@ -3380,7 +3390,7 @@
+@@ -3394,7 +3404,7 @@
  AC_SUBST(CXXFLAGS)
  
  # Target tools.
@@ -219,7 +219,7 @@
    [AS_HELP_STRING([--with-build-time-tools=PATH],
  		  [use given path to find target tools during the build])],
    [case x"$withval" in
-@@ -3398,6 +3408,7 @@
+@@ -3412,6 +3422,7 @@
  NCN_STRICT_CHECK_TARGET_TOOLS(GFORTRAN_FOR_TARGET, gfortran)
  NCN_STRICT_CHECK_TARGET_TOOLS(GOC_FOR_TARGET, gccgo)
  NCN_STRICT_CHECK_TARGET_TOOLS(GDC_FOR_TARGET, gdc)
@@ -227,7 +227,7 @@
  
  ACX_CHECK_INSTALLED_TARGET_TOOL(AR_FOR_TARGET, ar)
  ACX_CHECK_INSTALLED_TARGET_TOOL(AS_FOR_TARGET, as)
-@@ -3434,6 +3445,8 @@
+@@ -3448,6 +3459,8 @@
  		[gcc/gccgo -B$$r/$(HOST_SUBDIR)/gcc/], go)
  GCC_TARGET_TOOL(gdc, GDC_FOR_TARGET, GDC,
  		[gcc/gdc -B$$r/$(HOST_SUBDIR)/gcc/], d)
@@ -236,7 +236,7 @@
  GCC_TARGET_TOOL(ld, LD_FOR_TARGET, LD, [ld/ld-new])
  GCC_TARGET_TOOL(lipo, LIPO_FOR_TARGET, LIPO)
  GCC_TARGET_TOOL(nm, NM_FOR_TARGET, NM, [binutils/nm-new])
-@@ -3489,7 +3502,7 @@
+@@ -3503,7 +3516,7 @@
  else
    MAINTAINER_MODE_TRUE='#'
    MAINTAINER_MODE_FALSE=

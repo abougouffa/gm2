@@ -1,5 +1,5 @@
---- gcc-versionno-orig/gcc/cp/g++spec.c	2019-08-16 00:01:02.333517886 +0100
-+++ gcc-versionno/gcc/cp/g++spec.c	2019-08-15 23:55:15.539387095 +0100
+--- gcc-versionno-orig/gcc/cp/g++spec.c	2019-09-01 01:38:49.477601876 +0100
++++ gcc-versionno/gcc/cp/g++spec.c	2019-09-01 01:34:27.628362333 +0100
 @@ -403,3 +403,9 @@
  
  /* Number of extra output files that lang_specific_pre_link may generate.  */

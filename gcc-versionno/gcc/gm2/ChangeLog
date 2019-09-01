@@ -1,3 +1,7 @@
+2019-09-01      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/patches/gcc/trunk:  all patches recreated.
+
 2019-08-31      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* testsuite/gm2/pim/run/pass/gm2.exp:  remove -fsoft-check-all.

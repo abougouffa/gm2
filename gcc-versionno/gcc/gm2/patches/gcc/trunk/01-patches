@@ -1,5 +1,5 @@
---- gcc-versionno-orig/configure	2019-08-15 23:56:35.707927709 +0100
-+++ gcc-versionno/configure	2019-08-16 00:19:47.686652660 +0100
+--- gcc-versionno-orig/configure	2019-09-01 01:34:57.912035743 +0100
++++ gcc-versionno/configure	2019-09-01 01:44:14.050321654 +0100
 @@ -612,6 +612,7 @@
  DLLTOOL_FOR_TARGET
  AS_FOR_TARGET
@@ -32,7 +32,7 @@
  enable_libssp
  enable_libstdcxx
  enable_liboffloadmic
-@@ -867,6 +871,7 @@
+@@ -868,6 +872,7 @@
  GFORTRAN_FOR_TARGET
  GOC_FOR_TARGET
  GDC_FOR_TARGET
@@ -40,7 +40,7 @@
  AR_FOR_TARGET
  AS_FOR_TARGET
  DLLTOOL_FOR_TARGET
-@@ -919,6 +924,7 @@
+@@ -920,6 +925,7 @@
  sysconfdir='${prefix}/etc'
  sharedstatedir='${prefix}/com'
  localstatedir='${prefix}/var'
@@ -48,7 +48,7 @@
  includedir='${prefix}/include'
  oldincludedir='/usr/include'
  docdir='${datarootdir}/doc/${PACKAGE}'
-@@ -1171,6 +1177,15 @@
+@@ -1172,6 +1178,15 @@
    | -silent | --silent | --silen | --sile | --sil)
      silent=yes ;;
  
@@ -64,7 +64,7 @@
    -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
      ac_prev=sbindir ;;
    -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
-@@ -1308,7 +1323,7 @@
+@@ -1309,7 +1324,7 @@
  for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
  		datadir sysconfdir sharedstatedir localstatedir includedir \
  		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
@@ -73,7 +73,7 @@
  do
    eval ac_val=\$$ac_var
    # Remove trailing slashes.
-@@ -1468,6 +1483,7 @@
+@@ -1469,6 +1484,7 @@
    --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
    --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
    --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
@@ -81,7 +81,7 @@
    --libdir=DIR            object code libraries [EPREFIX/lib]
    --includedir=DIR        C header files [PREFIX/include]
    --oldincludedir=DIR     C header files for non-gcc [/usr/include]
-@@ -1521,6 +1537,7 @@
+@@ -1522,6 +1538,7 @@
    --disable-libquadmath-support
                            disable libquadmath support for Fortran
    --enable-libada         build libada directory
@@ -89,7 +89,7 @@
    --enable-libssp         build libssp directory
    --disable-libstdcxx     do not build libstdc++-v3 directory
    --enable-liboffloadmic=ARG
-@@ -1653,6 +1670,8 @@
+@@ -1657,6 +1674,8 @@
                GOC for the target
    GDC_FOR_TARGET
                GDC for the target
@@ -98,7 +98,7 @@
    AR_FOR_TARGET
                AR for the target
    AS_FOR_TARGET
-@@ -2812,6 +2831,7 @@
+@@ -2816,6 +2835,7 @@
  		target-libffi \
  		target-libobjc \
  		target-libada \
@@ -106,7 +106,7 @@
  		target-libgo \
  		target-libphobos \
  		target-zlib"
-@@ -3141,6 +3161,15 @@
+@@ -3145,6 +3165,15 @@
    noconfigdirs="$noconfigdirs gnattools"
  fi
  
@@ -122,7 +122,7 @@
  # Check whether --enable-libssp was given.
  if test "${enable_libssp+set}" = set; then :
    enableval=$enable_libssp; ENABLE_LIBSSP=$enableval
-@@ -4014,6 +4043,7 @@
+@@ -4018,6 +4047,7 @@
    GFORTRAN_FOR_BUILD=${GFORTRAN_FOR_BUILD-gfortran}
    GOC_FOR_BUILD=${GOC_FOR_BUILD-gccgo}
    GDC_FOR_BUILD=${GDC_FOR_BUILD-gdc}
@@ -130,7 +130,7 @@
    DLLTOOL_FOR_BUILD=${DLLTOOL_FOR_BUILD-dlltool}
    LD_FOR_BUILD=${LD_FOR_BUILD-ld}
    NM_FOR_BUILD=${NM_FOR_BUILD-nm}
-@@ -4028,6 +4058,7 @@
+@@ -4032,6 +4062,7 @@
    GFORTRAN_FOR_BUILD="\$(GFORTRAN)"
    GOC_FOR_BUILD="\$(GOC)"
    GDC_FOR_BUILD="\$(GDC)"
@@ -138,7 +138,7 @@
    DLLTOOL_FOR_BUILD="\$(DLLTOOL)"
    LD_FOR_BUILD="\$(LD)"
    NM_FOR_BUILD="\$(NM)"
-@@ -7778,6 +7809,7 @@
+@@ -7800,6 +7831,7 @@
  
  
  
@@ -146,7 +146,7 @@
  # Generate default definitions for YACC, M4, LEX and other programs that run
  # on the build machine.  These are used if the Makefile can't locate these
  # programs in objdir.
-@@ -11134,6 +11166,167 @@
+@@ -11156,6 +11188,167 @@
  
  
  
@@ -314,7 +314,7 @@
  cat > conftest.c << \EOF
  #ifdef __GNUC__
    gcc_yay;
-@@ -14799,6 +14992,51 @@
+@@ -14821,6 +15014,51 @@
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: host tool" >&5
  $as_echo "host tool" >&6; }
    else
