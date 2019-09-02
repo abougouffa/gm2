@@ -432,6 +432,27 @@ m2expr_BuildDivFloor (location_t location, tree op1, tree op2, int needconvert)
   return m2expr_FoldAndStrip (t);
 }
 
+/* BuildDivFloorCheck builds a check floor division tree.  */
+
+tree
+m2expr_BuildDivFloorCheck (location_t location, tree op1, tree op2, tree lowest,
+			   tree min, tree max)
+{
+  tree t;
+
+  m2assert_AssertLocation (location);
+
+  op1 = m2expr_FoldAndStrip (op1);
+  op2 = m2expr_FoldAndStrip (op2);
+
+  op1 = CheckAddressToCardinal (location, op1);
+  op2 = CheckAddressToCardinal (location, op2);
+
+  t = m2expr_build_binary_op_check (location, FLOOR_DIV_EXPR, op1, op2, FALSE,
+				    lowest, min, max);
+  return m2expr_FoldAndStrip (t);
+}
+
 /* BuildRDiv builds a division tree (this should only be used for
    REAL and COMPLEX types and NEVER for integer based types).  */
 
@@ -1641,7 +1662,7 @@ BEGIN
       We know the result will be negative and therefore we only need to test
       against minT.  *)
    RETURN (((ABS (i) MOD j = 0) AND (i < j * minT)) OR
-           ((ABS (i) MOD j = 0) AND (i < j * minT - 1)))
+           ((ABS (i) MOD j # 0) AND (i < j * minT - 1)))
 END divCeilOverflowNegPos ;
 
 
@@ -1736,7 +1757,7 @@ divCeilOverflowPosNeg (location_t location, tree i, tree j, tree lowest, tree mi
    A handbuilt expression of trees implementing:
 
    RETURN (((ABS (i) MOD j = 0) AND (i < j * min)) OR
-           ((ABS (i) MOD j = 0) AND (i < j * min - 1)))
+           ((ABS (i) MOD j # 0) AND (i < j * min - 1)))
 
    abs_i -> (ABS (i))
    abs_i_mod_j -> (abs_i MOD j)
@@ -2099,6 +2120,291 @@ checkWholeModFloorOverflow (location_t location,
 }
 
 
+#if 0
+(*
+   divFloorOverflow2 - returns TRUE if an overflow will occur
+                       if i divfloor j is performed.
+*)
+
+PROCEDURE divFloorOverflow (i, j: INTEGER) : BOOLEAN ;
+BEGIN
+   RETURN ((j = 0) OR     (* division by zero.  *)
+           (maxT < 0) OR  (* both inputs are < 0 and max is < 0,
+                             therefore error.  *)
+                          (* --fixme-- remember here to also check
+                             if ISO M2 dialect and j < 0
+                             which will also generate an error.  *)
+           ((i # 0) AND   (* first operand is legally zero,
+                             result is also legally zero.  *)
+            divFloorOverflowCases (i, j)))
+END divFloorOverflow ;
+
+
+(*
+   divFloorOverflowCases - precondition:  i, j are in range values.
+                           postcondition:  TRUE is returned if i divfloor will
+                                           result in an overflow/underflow.
+*)
+
+PROCEDURE divFloorOverflowCases (i, j: INTEGER) : BOOLEAN ;
+BEGIN
+   RETURN (((i > 0) AND (j > 0) AND divFloorOverflowPosPos (i, j)) OR
+           ((i < 0) AND (j < 0) AND divFloorOverflowNegNeg (i, j)) OR
+           ((i > 0) AND (j < 0) AND divFloorOverflowPosNeg (i, j)) OR
+           ((i < 0) AND (j > 0) AND divFloorOverflowNegPos (i, j)))
+END divFloorOverflowCases ;
+
+
+(*
+   divFloorOverflowPosPos - precondition:  i, j are legal and are both >= 0.
+                            postcondition:  TRUE is returned if i divfloor will
+                                            result in an overflow/underflow.
+*)
+
+PROCEDURE divFloorOverflowPosPos (i, j: INTEGER) : BOOLEAN ;
+BEGIN
+   RETURN i < j * minT
+END divFloorOverflowPosPos ;
+
+
+(*
+   divFloorOverflowNegNeg - precondition:  i, j are in range values and both < 0.
+                            postcondition:  TRUE is returned if i divfloor will
+                                            result in an overflow/underflow.
+*)
+
+PROCEDURE divFloorOverflowNegNeg (i, j: INTEGER) : BOOLEAN ;
+BEGIN
+   RETURN ((maxT <= 0) OR           (* signs will cause overflow.  *)
+           (* check for underflow.  *)
+           (i >= j * minT) OR
+           (* check for overflow.  *)
+           (ABS (i) DIV maxT > ABS (j)))
+END divFloorOverflowNegNeg ;
+
+
+(*
+   divFloorOverflowNegPos - precondition:  i, j are in range values.  i < 0, j >= 0.
+                           postcondition:  TRUE is returned if i divfloor will
+                                           result in an overflow/underflow.
+*)
+
+PROCEDURE divFloorOverflowNegPos (i, j: INTEGER) : BOOLEAN ;
+BEGIN
+   (* easier than might be initially expected.  We know minT < 0 and maxT > 0.
+      We know the result will be negative and therefore we only need to test
+      against minT.  *)
+   RETURN i < j * minT
+END divFloorOverflowNegPos ;
+
+
+(*
+   divFloorOverflowPosNeg - precondition:  i, j are in range values.  i >= 0, j < 0.
+                           postcondition:  TRUE is returned if i divfloor will
+                                           result in an overflow/underflow.
+*)
+
+PROCEDURE divFloorOverflowPosNeg (i, j: INTEGER) : BOOLEAN ;
+BEGIN
+   (* easier than might be initially expected.  We know minT < 0 and maxT > 0.
+      We know the result will be negative and therefore we only need to test
+      against minT.  *)
+   RETURN i >= j * minT - j  (* is safer than i > j * minT -1 *)
+END divFloorOverflowPosNeg ;
+#endif
+
+
+/* divFloorOverflowPosPos, precondition:  i, j are legal and are both >= 0.
+   Postcondition:  TRUE is returned if i divfloor will result in an overflow/underflow.
+
+   A handbuilt expression of trees implementing:
+
+   RETURN i < j * min
+
+   j_mult_min -> (j * min)
+   RETURN i < j_mult_min.  */
+
+static tree
+divFloorOverflowPosPos (location_t location, tree i, tree j, tree lowest,
+		       tree min, tree max)
+{
+  tree j_mult_min = m2expr_BuildMult (location, j, min, FALSE);
+  tree i_lt_j_mult_min = m2expr_BuildLessThan (location, i, j_mult_min);
+  return i_lt_j_mult_min;
+}
+
+
+/* divFloorOverflowNegNeg precondition:  i, j are in range values and both < 0.
+   Postcondition:  TRUE is returned if i divfloor j will result in an
+   overflow/underflow.
+
+   A handbuilt expression of trees implementing:
+
+   RETURN ((maxT <= 0) OR           (* signs will cause overflow.  *)
+           (* check for underflow.  *)
+           (i >= j * min) OR
+           (* check for overflow.  *)
+           (ABS (i) DIV max > ABS (j)))
+
+  max_lte_0 -> (max <= 0)
+  abs_i -> (ABS (i))
+  abs_j -> (ABS (j))
+  j_mult_min -> (j * min)
+  i_ge_j_mult_min -> (i >= j_mult_min)
+  abs_i_div_max -> (abs_i divfloor max)
+  abs_i_div_max_gt_abs_j -> (abs_i_div_max > abs_j)
+
+  return max_lte_0 OR
+         i_ge_j_mult_min OR
+         abs_i_div_max_gt_abs_j.  */
+
+static tree
+divFloorOverflowNegNeg (location_t location, tree i, tree j, tree lowest,
+			tree min, tree max)
+{
+  tree max_lte_0 = m2expr_BuildLessThanOrEqualZero (location, max, lowest, min, max);
+  tree abs_i = m2expr_BuildAbs (location, i);
+  tree abs_j = m2expr_BuildAbs (location, j);
+  tree j_mult_min = m2expr_BuildMult (location, j, min, FALSE);
+  tree i_ge_j_mult_min = m2expr_BuildGreaterThanOrEqual (location, i, j_mult_min);
+  tree abs_i_div_max = m2expr_BuildDivFloor (location, abs_i, max, FALSE);
+  tree abs_i_div_max_gt_abs_j = m2expr_BuildGreaterThan (location,  abs_i_div_max, abs_j);
+
+  return m2expr_Build3TruthOrIf (location, max_lte_0, i_ge_j_mult_min, abs_i_div_max_gt_abs_j);
+}
+
+
+/* divFloorOverflowPosNeg precondition:  i, j are in range values and i >=0, j < 0.
+   Postcondition:  TRUE is returned if i divfloor j will result in an
+   overflow/underflow.
+
+   A handbuilt expression of trees implementing:
+
+   RETURN i >= j * min - j  (* is safer than i > j * min -1 *)
+
+   j_mult_min -> (j * min)
+   j_mult_min_sub_j -> (j_mult_min - j)
+   i_ge_j_mult_min_sub_j -> (i >= j_mult_min_sub_j)
+
+   return i_ge_j_mult_min_sub_j.  */
+
+static tree
+divFloorOverflowPosNeg (location_t location, tree i, tree j, tree lowest, tree min, tree max)
+{
+  tree j_mult_min = m2expr_BuildMult (location, j, min, FALSE);
+  tree j_mult_min_sub_j = m2expr_BuildSub (location, j_mult_min, j, FALSE);
+  tree i_ge_j_mult_min_sub_j = m2expr_BuildGreaterThanOrEqual (location, i, j_mult_min_sub_j);
+  return i_ge_j_mult_min_sub_j;
+}
+
+
+/* divFloorOverflowNegPos precondition:  i, j are in range values and i < 0, j > 0.
+   Postcondition:  TRUE is returned if i divfloor j will result in an
+   overflow/underflow.
+
+   A handbuilt expression of trees implementing:
+
+   RETURN i < j * min
+
+   j_mult_min -> (j * min)
+   RETURN i < j_mult_min.  */
+
+static tree
+divFloorOverflowNegPos (location_t location, tree i, tree j, tree lowest, tree min, tree max)
+{
+  tree j_mult_min = m2expr_BuildMult (location, j, min, FALSE);
+  tree i_lt_j_mult_min = m2expr_BuildLessThan (location, i, j_mult_min);
+  return i_lt_j_mult_min;
+}
+
+
+/* divFloorOverflowCases, precondition:  i, j are in range values.
+   Postcondition:  TRUE is returned if i divfloor will result in an
+   overflow/underflow.
+
+   A handbuilt expression of trees implementing:
+
+   RETURN (((i > 0) AND (j > 0) AND divFloorOverflowPosPos (i, j)) OR
+           ((i < 0) AND (j < 0) AND divFloorOverflowNegNeg (i, j)) OR
+           ((i > 0) AND (j < 0) AND divFloorOverflowPosNeg (i, j)) OR
+           ((i < 0) AND (j > 0) AND divFloorOverflowNegPos (i, j)))
+
+   a -> ((i > 0) AND (j > 0) AND divFloorOverflowPosPos (i, j))
+   b -> ((i < 0) AND (j < 0) AND divFloorOverflowNegNeg (i, j))
+   c -> ((i > 0) AND (j < 0) AND divFloorOverflowPosNeg (i, j))
+   d -> ((i < 0) AND (j > 0) AND divFloorOverflowNegPos (i, j))
+
+   RETURN a AND b AND c AND d.  */
+
+static tree
+divFloorOverflowCases (location_t location, tree i, tree j, tree lowest,
+		      tree min, tree max)
+{
+  tree i_gt_zero = m2expr_BuildGreaterThanZero (location, i, lowest, min, max);
+  tree j_gt_zero = m2expr_BuildGreaterThanZero (location, j, lowest, min, max);
+  tree i_lt_zero = m2expr_BuildLessThanZero (location, i, lowest, min, max);
+  tree j_lt_zero = m2expr_BuildLessThanZero (location, j, lowest, min, max);
+  tree a = m2expr_Build3TruthAndIf (location, i_gt_zero, j_gt_zero,
+				    divFloorOverflowPosPos (location, i, j, lowest, min, max));
+  tree b = m2expr_Build3TruthAndIf (location, i_lt_zero, j_lt_zero,
+				    divFloorOverflowNegNeg (location, i, j, lowest, min, max));
+  tree c = m2expr_Build3TruthAndIf (location, i_gt_zero, j_lt_zero,
+				    divFloorOverflowPosNeg (location, i, j, lowest, min, max));
+  tree d = m2expr_Build3TruthAndIf (location, i_lt_zero, j_gt_zero,
+				    divFloorOverflowNegPos (location, i, j, lowest, min, max));
+  return m2expr_Build4TruthOrIf (location, a, b, c, d);
+}
+
+
+/* checkWhileDivFloorOverflow check to see whether i DIV_FLOOR j will overflow
+   an integer.  A handbuilt expression of trees implementing:
+
+   RETURN ((j = 0) OR     (* division by zero.  *)
+           (maxT < 0) OR  (* both inputs are < 0 and max is < 0,
+                             therefore error.  *)
+                          (* we also check
+                             if ISO M2 dialect and j < 0
+                             which will also generate an error.  *)
+           ((i # 0) AND   (* first operand is legally zero,
+                             result is also legally zero.  *)
+            divFloorOverflowCases (i, j)))
+
+  using the following subexpressions:
+
+   j_eq_zero -> (j == 0)
+   max_lt_zero -> (max < 0)
+   i_ne_zero -> (i # 0).  */
+
+static tree
+checkWholeDivFloorOverflow (location_t location, tree i, tree j, tree lowest,
+			    tree min, tree max)
+{
+  tree j_eq_zero = m2expr_BuildEqualToZero (location, j, lowest, min, max);
+  tree max_lt_zero = m2expr_BuildLessThanZero (location, max, lowest, min, max);
+  tree i_ne_zero = m2expr_BuildNotEqualToZero (location, i, lowest, min, max);
+  tree j_lt_zero;
+  tree rhs = m2expr_BuildTruthAndIf (location,
+				     i_ne_zero,
+				     divFloorOverflowCases (location,
+							    i, j, lowest, min, max));
+
+  if (M2Options_GetISO ())
+    /*  ISO Modula-2 raises an exception if the right hand operand is < 0.  */
+    j_lt_zero = m2expr_FoldAndStrip (m2expr_BuildLessThanZero (location, j, lowest, min, max));
+  else
+    j_lt_zero = m2expr_GetIntegerZero (location);
+  j_eq_zero = m2expr_FoldAndStrip (j_eq_zero);
+  max_lt_zero = m2expr_FoldAndStrip (max_lt_zero);
+  i_ne_zero = m2expr_FoldAndStrip (i_ne_zero);
+  rhs = m2expr_FoldAndStrip (rhs);
+
+  tree condition = m2expr_Build4TruthOrIf (location, j_eq_zero, max_lt_zero, rhs, j_lt_zero);
+  tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
+					       get_current_function_name (),
+               "whole value floor division will cause a range overflow");
+  return t;
+}
+
 /* checkWholeOverflow check to see if the binary operators will overflow
    ordinal types.  */
 
@@ -2124,10 +2430,8 @@ m2expr_checkWholeOverflow (location_t location, enum tree_code code, tree op1,
 	  return checkWholeDivTruncOverflow (location, op1, op2, lowest, min, max);
 	case CEIL_DIV_EXPR:
 	  return checkWholeDivCeilOverflow (location, op1, op2, lowest, min, max);
-#if 0
 	case FLOOR_DIV_EXPR:
 	  return checkWholeDivFloorOverflow (location, op1, op2, lowest, min, max);
-#endif
 	case TRUNC_MOD_EXPR:
 	  return checkWholeModTruncOverflow (location, op1, op2, lowest, min, max);
 	case CEIL_MOD_EXPR:
@@ -3336,8 +3640,7 @@ m2expr_BuildDivM2Check (location_t location, tree op1, tree op2,
             m2convert_BuildConvert (location, TREE_TYPE (op2),
                                     m2expr_GetIntegerZero (location), FALSE)),
         m2expr_BuildDivCeilCheck (location, op1, op2, lowest, min, max),
-	/* --fixme-- implement m2expr_BuildDivFloorCheck.  */
-        m2expr_BuildDivFloor (location, op1, op2, FALSE));
+        m2expr_BuildDivFloorCheck (location, op1, op2, lowest, min, max));
   else
     return m2expr_BuildDivTruncCheck (location, op1, op2, lowest, min, max);
 }

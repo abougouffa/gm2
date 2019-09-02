@@ -1,3 +1,14 @@
+2019-09-02      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-gcc/m2expr.c:  (BuildDivFloorCheck) New function.
+          (divFloorOverflowPosPos) New function.
+          (divFloorOverflowNegNeg) New function.
+          (divFloorOverflowNegPos) New function.
+          (divFloorOverflowPosNeg) New function.
+          (divFloorOverflowCases) New function.
+          (checkWhileDivFloorOverflow) New function.
+	  (checkWholeOverflow) call BuildDivFloorCheck.
+
 2019-09-01      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/patches/gcc/trunk:  all patches recreated.
