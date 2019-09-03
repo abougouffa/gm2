@@ -1344,20 +1344,20 @@ static tree
 checkWholeAddOverflow (location_t location, tree i, tree j, tree lowest,
                        tree min, tree max)
 {
-  tree c1 = m2expr_BuildGreaterThanZero (location, j, lowest, min, max);
-  tree c2 = m2expr_BuildGreaterThan (
+  tree j_gt_zero = m2expr_BuildGreaterThanZero (location, j, lowest, min, max);
+  tree i_gt_max_sub_j = m2expr_BuildGreaterThan (
       location, i, m2expr_BuildSub (location, max, j, FALSE));
-  tree c3 = m2expr_BuildLessThanZero (location, j, lowest, min, max);
-  tree c4 = m2expr_BuildLessThan (location, i,
-                                  m2expr_BuildSub (location, min, j, FALSE));
-  tree c5 = m2expr_FoldAndStrip (m2expr_BuildTruthAndIf (location, c1, c2));
-  tree c6 = m2expr_FoldAndStrip (m2expr_BuildTruthAndIf (location, c3, c4));
+  tree j_lt_zero = m2expr_BuildLessThanZero (location, j, lowest, min, max);
+  tree i_lt_min_sub_j = m2expr_BuildLessThan (location, i,
+					      m2expr_BuildSub (location, min, j, FALSE));
+  tree lhs_or = m2expr_FoldAndStrip (m2expr_BuildTruthAndIf (location, j_gt_zero, i_gt_max_sub_j));
+  tree rhs_or = m2expr_FoldAndStrip (m2expr_BuildTruthAndIf (location, j_lt_zero, i_lt_min_sub_j));
   tree condition
-      = m2expr_FoldAndStrip (m2expr_BuildTruthOrIf (location, c5, c6));
-  tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
+      = m2expr_FoldAndStrip (m2expr_BuildTruthOrIf (location, lhs_or, rhs_or));
+  tree result = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
 					       get_current_function_name (),
                "whole value additition will cause a range overflow");
-  return t;
+  return result;
 }
 
 /* checkWholeSubOverflow - check to see whether op1 - op2 will

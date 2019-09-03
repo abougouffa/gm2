@@ -127,8 +127,11 @@ gm2/gm2spec.o: $(srcdir)/gm2/gm2spec.c $(SYSTEM_H) $(GCC_H) $(CONFIG_H) \
                 -DPREFIX=\"$(prefix)\" \
                 -c $(srcdir)/gm2/gm2spec.c $(OUTPUT_OPTION))
 
-gm2/gm2version.c: force
+gm2/gm2version.c: gm2version-check; @true
+
+gm2version-check:
 	cd gm2 ; bash ../$(srcdir)/gm2/tools-src/makeversion -p ../$(srcdir)
+	$(STAMP) gm2version-check
 
 gm2version.o: gm2/gm2version.c
 	(SHLIB_LINK='$(SHLIB_LINK)' \
@@ -230,7 +233,7 @@ gm2.pdf: gm2.ps
 
 .INTERMEDIATE: gm2.pod
 
-gm2.pod: gm2/gm2.texi
+gm2.pod: gm2/gm2.texi $(TEXISRC)
 	-$(TEXI2POD) -I $(objdir)/gm2 -D gm2 < $< > $@
 
 $(objdir)/gm2/gm2.info: $(TEXISRC)
@@ -244,23 +247,41 @@ $(objdir)/gm2/images/gnu.eps: $(srcdir)/gm2/images/gnupng
            pngtopnm $< | pnmtops -noturn > $@ ; \
         fi
 
-gm2/gm2-libs.texi: gm2/SYSTEM-pim.texi gm2/SYSTEM-iso.texi gm2/Builtins.texi $(objdir)/gm2/gm2-libs-coroutines/SYSTEM.def
+gm2/gm2-libs.texi: gm2-libs.texi-check; @true
+
+gm2-libs.texi-check:  gm2/SYSTEM-pim.texi gm2/SYSTEM-iso.texi gm2/Builtins.texi $(objdir)/gm2/gm2-libs-coroutines/SYSTEM.def gm2/gm2-ebnf.texi
 	python $(srcdir)/gm2/tools-src/def2texi.py -uLibraries -s$(srcdir)/gm2 -b$(objdir)/gm2 > $(objdir)/gm2/gm2-libs.texi
+	$(STAMP) gm2-libs.texi-check
 
-gm2/gm2-ebnf.texi: gm2/gm2-auto gm2/ppg$(exeext) $(srcdir)/gm2/bnf/m2.bnf
-	./gm2/ppg$(exeext) -c -p -t -f $(srcdir)/gm2/bnf/m2.bnf > $@
+gm2/gm2-ebnf.texi: gm2-ebnf.texi-check; @true
 
-gm2/SYSTEM-pim.texi: $(objdir)/gm2/gm2-libs/SYSTEM.def
+gm2-ebnf.texi-check: gm2/gm2-auto gm2/ppg$(exeext) $(srcdir)/gm2/bnf/m2.bnf
+	./gm2/ppg$(exeext) -c -p -t -f $(srcdir)/gm2/bnf/m2.bnf > gm2/gm2-ebnf.texi
+	$(STAMP) gm2-ebnf.texi-check
+
+gm2/SYSTEM-pim.texi: SYSTEM-pim-texi-check; @true
+
+SYSTEM-pim-texi-check: $(objdir)/gm2/gm2-libs/SYSTEM.def
 	$(srcdir)/gm2/tools-src/def2texi.py -b$(objdir)/gm2 -f$(objdir)/gm2/gm2-libs/SYSTEM.def > $(objdir)/gm2/SYSTEM-pim.texi
+	$(STAMP) SYSTEM-pim-texi-check
 
-gm2/SYSTEM-iso.texi: $(objdir)/gm2/gm2-libs-iso/SYSTEM.def
+gm2/SYSTEM-iso.texi:  SYSTEM-iso.texi-check; @true
+
+SYSTEM-iso.texi-check:  $(objdir)/gm2/gm2-libs-iso/SYSTEM.def
 	$(srcdir)/gm2/tools-src/def2texi.py -b$(objdir)/gm2 -f$(objdir)/gm2/gm2-libs-iso/SYSTEM.def > $(objdir)/gm2/SYSTEM-iso.texi
+	$(STAMP) SYSTEM-iso.texi-check
 
-gm2/Builtins.texi: gm2/gm2-libs/Builtins.def
+gm2/Builtins.texi:  Builtins.texi-check; @true
+
+Builtins.texi-check:  gm2/gm2-libs/Builtins.def
 	$(srcdir)/gm2/tools-src/def2texi.py -b./ -f$(srcdir)/gm2/gm2-libs/Builtins.def > $(objdir)/gm2/Builtins.texi
+	$(STAMP) Builtins.texi-check
 
-gm2/version.texi: force
+gm2/version.texi: gm2-version.texi-check; @true
+
+gm2-version.texi-check:
 	cd gm2 ; bash ../$(srcdir)/gm2/tools-src/makeversion -t ../$(srcdir)
+	$(STAMP) gm2-version.texi-check
 
 $(objdir)/gm2/gm2-tools:
 	mkdir $@
@@ -999,7 +1020,7 @@ gm2/gm2-libs-boot/%.o: $(srcdir)/gm2/gm2-libs/%.mod $(MCDEPS) $(BUILD-BOOT-H)
 gm2/gm2-libs-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def $(MCDEPS)
 	$(MC) -o=$@ $(srcdir)/gm2/gm2-libs/$*.def
 
-gm2/gm2-libs-boot/pthdummy.o: $(srcdir)/gm2/gm2-libs-ch/pthdummy.c $(MCDEPS) gm2/gm2-libs/gm2-libs-host.h
+gm2/gm2-libs-boot/pthdummy.o: $(srcdir)/gm2/gm2-libs-ch/pthdummy.c gm2/gm2-libs/gm2-libs-host.h
 	$(CC) -c -DIN_GCC $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-boot/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h gm2/gm2-libs/gm2-libs-host.h
@@ -1157,8 +1178,11 @@ gm2/gm2-compiler-boot/M2Version.o: gm2/gm2-compiler-boot/M2Version.mod $(MCDEPS)
 	$(MC) -o=gm2/gm2-compiler-boot/M2Version.c $<
 	$(COMPILER) -c $(ALL_CPPFLAGS) $(GM2GCC) -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libiberty $(INCLUDES) gm2/gm2-compiler-boot/M2Version.c -o $@
 
-gm2/gm2-compiler-boot/M2Version.mod:
+gm2/gm2-compiler-boot/M2Version.mod: M2Version-check; @true
+
+M2Version-check:
 	cd gm2/gm2-compiler-boot ; bash ../../$(srcdir)/gm2/tools-src/makeversion -m ../../$(srcdir)
+	$(STAMP) M2Version-check
 
 
 #
