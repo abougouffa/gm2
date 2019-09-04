@@ -1,5 +1,5 @@
 import libtiny
 
-print "inside Python"
+print("inside Python")
 libtiny.libtiny_out("calling out")
-print "finishing Python"
+print("finishing Python")

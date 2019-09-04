@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import sys
 from socket import *
@@ -12,4 +12,4 @@ s.connect((serverHost, serverPort))
 while 1:
    s.send('h')
    data = s.recv(1024)
-   print data
+   print(data)

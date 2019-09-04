@@ -1,5 +1,5 @@
 import libfirst
 
-print "inside Python"
+print("inside Python")
 libfirst.libfirst_out("calling out")
-print "finishing Python"
+print("finishing Python")

@@ -30,7 +30,7 @@ XGM2=../../../../xgm2 -B../../../.. -B../../../../stage1/gm2
 XGPP=../../../../g++
 XGCC=../../../../xgcc
 
-PYTHON_VERSION=2.7
+PYTHON_VERSION=3
 
 all: force
 	@echo "or you can use 'make post-install' to build the examples after installing the compiler"
@@ -55,7 +55,7 @@ strio: force
              -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libStrIO.la 
 	cp .libs/libStrIO.so _StrIO.so
 
-	PYTHONPATH=.:$(srcdir) python $(srcdir)/teststrio.py
+	PYTHONPATH=.:$(srcdir) python$(PYTHON_VERSION) $(srcdir)/teststrio.py
 
 clean: force
 	$(RM) -f *.o *.so a.out *.pyc *~ *_wrap* StrIO.py *.i *_m2.cpp

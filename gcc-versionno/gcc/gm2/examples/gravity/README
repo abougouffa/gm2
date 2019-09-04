@@ -5,4 +5,4 @@ netpbm.
 
 On Debian or Ubuntu you can:
 
-$ sudo apt-get install groff imagemagick python2.8-dev python swig gs netpbm mplayer
+$ sudo apt-get install groff imagemagick python3-dev swig gs netpbm mplayer

@@ -107,7 +107,7 @@ gm2 m2 modula-2 modula2: xgm2$(exeext) xgcc$(exeext) cc1gm2$(exeext) \
 
 GM2_PROG_DEP=xgm2$(exeext) xgcc$(exeext) cc1gm2$(exeext)
 
-TEXI2HTML=python $(srcdir)/gm2/www/tools/texi2tr/src/texi2tr.py
+TEXI2HTML=python3 $(srcdir)/gm2/www/tools/texi2tr/src/texi2tr.py
 
 include gm2/config-make
 LIBSTDCXX=../$(TARGET_SUBDIR)/libstdc++-v3/src/.libs/libstdc++.a
@@ -250,7 +250,7 @@ $(objdir)/gm2/images/gnu.eps: $(srcdir)/gm2/images/gnupng
 gm2/gm2-libs.texi: gm2-libs.texi-check; @true
 
 gm2-libs.texi-check:  gm2/SYSTEM-pim.texi gm2/SYSTEM-iso.texi gm2/Builtins.texi $(objdir)/gm2/gm2-libs-coroutines/SYSTEM.def gm2/gm2-ebnf.texi
-	python $(srcdir)/gm2/tools-src/def2texi.py -uLibraries -s$(srcdir)/gm2 -b$(objdir)/gm2 > $(objdir)/gm2/gm2-libs.texi
+	python3 $(srcdir)/gm2/tools-src/def2texi.py -uLibraries -s$(srcdir)/gm2 -b$(objdir)/gm2 > $(objdir)/gm2/gm2-libs.texi
 	$(STAMP) gm2-libs.texi-check
 
 gm2/gm2-ebnf.texi: gm2-ebnf.texi-check; @true

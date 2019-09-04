@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Copyright (C) 2011
 #               Free Software Foundation, Inc.
@@ -54,7 +54,7 @@ indexSections = {}
 html = None
 
 # output state
-ignore, passthrough, arguments, menu = range(4)
+ignore, passthrough, arguments, menu = list(range(4))
 
 currentMenu = navigation.menuInfo(True)
 
@@ -65,7 +65,7 @@ currentMenu = navigation.menuInfo(True)
 #
 
 def printf (format, *args):
-    print str(format) % args,
+    print(str(format) % args, end=' ')
 
 
 #
@@ -75,7 +75,7 @@ def printf (format, *args):
 def debugf (format, *args):
     global debugging
     if debugging:
-        print str(format) % args,
+        print(str(format) % args, end=' ')
 
 
 #
@@ -85,7 +85,7 @@ def debugf (format, *args):
 def verbosef (format, *args):
     global verbose
     if verbose:
-        print str(format) % args,
+        print(str(format) % args, end=' ')
 
 
 #
@@ -93,10 +93,10 @@ def verbosef (format, *args):
 #
 
 def Usage ():
-    print "texi2tr [-h] [-v] [-Iincludepath] [-Ttemplatepath] [-r rootname.html] [-b basename-%d.html] filename.texi"
-    print "  produces html from the texinfo filename.texi"
-    print "  -h help"
-    print "  -v verbose"
+    print("texi2tr [-h] [-v] [-Iincludepath] [-Ttemplatepath] [-r rootname.html] [-b basename-%d.html] filename.texi")
+    print("  produces html from the texinfo filename.texi")
+    print("  -h help")
+    print("  -v verbose")
     sys.exit(0)
 
 
@@ -206,7 +206,7 @@ def pushArg (init):
     global argStack, debugging
     argStack = [init] + argStack
     if debugging:
-        print "pushArg:  argStack", argStack
+        print("pushArg:  argStack", argStack)
 
 
 #
@@ -222,7 +222,7 @@ def popArg ():
     else:
         argStack = []
     if debugging:
-        print "popArg:  argStack", argStack
+        print("popArg:  argStack", argStack)
     return value
 
 
@@ -279,7 +279,7 @@ def parseArgs (contents, i, delim):
 def call (command, args, state):
     global functions
 
-    if functions.has_key(command):
+    if command in functions:
         return functions[command](args, state)
     else:
         error("unknown command '" + command + "'")
@@ -428,7 +428,7 @@ def doSet (content, state):
 
 def doValue (content, state):
     global values
-    if values.has_key(content):
+    if content in values:
         return values[content], state
     else:
         error('unknown value ' + content)
@@ -548,7 +548,7 @@ def doIgnore (content, state):
 
 def pushState (keyword, state):
     global statementStack
-    if statementStack.has_key(keyword):
+    if keyword in statementStack:
         statementStack[keyword] = [state] + statementStack[keyword]
     else:
         statementStack[keyword] = [state]
@@ -568,11 +568,11 @@ def doConsume (content, state, keyword):
 def doEnd (content, state):
     global statementStack, endFunctions
     keyword = content.split()[0]
-    if statementStack.has_key(keyword):
+    if keyword in statementStack:
         if len(statementStack[keyword]) == 0:
             error("unexpected end '" + keyword + "'")
         else:
-            if endFunctions.has_key(keyword):
+            if keyword in endFunctions:
                 endFunctions[keyword](state)
             state = popState(keyword)
     else:
@@ -666,7 +666,7 @@ def doChapter (content, state):
 
 def addSectionAnchor (content):
     global html, indexSections
-    if indexSections.has_key(content):
+    if content in indexSections:
         error('section name "' + content + '" already exists')
     else:
         indexSections[content] = html.sectionAnchor(content)
@@ -986,7 +986,7 @@ def doFindex (content, state):
 
     if state == ignore:
         return skipLine (content, state)
-    if indexFunc.has_key(content):
+    if content in indexFunc:
         indexFunc[content] += [html.getLink()]
     else:
         indexFunc[content] = [html.getLink()]
@@ -1028,7 +1028,7 @@ def generateFunctionIndex (html):
 
     html.openDiv().flushDiv()
     html.paraBegin()
-    for k,v in sorted([(key, value) for (key,value) in indexFunc.items()]):
+    for k,v in sorted([(key, value) for (key,value) in list(indexFunc.items())]):
         html.write(k)
         html.write(': ')
         for n in range(len(v)):
@@ -1051,7 +1051,7 @@ def generateSectionIndex (html):
     html.paraBegin()
     html.write('Alphabetically sorted list of contents')
     html.raw('<br>\n')
-    for k,v in sorted([(key, value) for (key,value) in indexSections.items()]):
+    for k,v in sorted([(key, value) for (key,value) in list(indexSections.items())]):
         html.raw('<a href="')
         html.raw(v)
         html.raw('">')

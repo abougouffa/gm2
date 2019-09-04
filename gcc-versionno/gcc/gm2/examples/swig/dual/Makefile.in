@@ -30,7 +30,7 @@ XGM2=../../../../xgm2 -B../../../../
 XGPP=../../../../g++ -B../../../../
 XGCC=../../../../xgcc -B../../../../
 
-PYTHON_VERSION=2.7
+PYTHON_VERSION=3
 
 all: force
 	@echo "or you can use 'make post-install' to build the examples after installing the compiler"
@@ -55,7 +55,7 @@ post-install: clean
              -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libfirst.la 
 
 	cp .libs/libfirst.so  _libfirst.so 
-	PYTHONPATH=.:$(srcdir) python $(srcdir)/testdual.py
+	PYTHONPATH=.:$(srcdir) python$(PYTHON_VERSION) $(srcdir)/testdual.py
 
 clean: force
 	$(RM) -f *.o *.so a.out *.pyc *~ *_wrap* *.i *.lst *.cpp *.lo *.la

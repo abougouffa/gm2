@@ -30,7 +30,7 @@ XGM2=../../../../xgm2 -B../../../.. -B../../../../stage1/gm2
 XGPP=../../../../g++
 XGCC=../../../../xgcc
 
-PYTHON_VERSION=2.7
+PYTHON_VERSION=3
 
 all: force
 	@echo "you can use 'make post-install' to build the examples after installing the compiler"
@@ -54,7 +54,7 @@ post-install: clean
              -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libStrLib.la
 
 	cp .libs/libStrLib.so  _libStrLib.so 
-	PYTHONPATH=.:$(srcdir) python $(srcdir)/testlen.py
+	PYTHONPATH=.:$(srcdir) python$(PYTHON_VERSION) $(srcdir)/testlen.py
 
 clean: force
 	$(RM) -f *.o *.so a.out *.pyc *~ *_wrap* libStrLib.py *.i *.lst libStrLib_m2.cpp

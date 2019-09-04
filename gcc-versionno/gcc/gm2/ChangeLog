@@ -1,3 +1,96 @@
+2019-09-04      Matthias Klose  <doko@cs.tu-berlin.de>
+
+	* gm2/examples/gravity/testsim.py:  python2 to 3 conversion.
+	* gm2/examples/gravity/testsim2.py:  python2 to 3 conversion.
+	* gm2/examples/pge/examples/boxes.py:  python2 to 3 conversion.
+	* gm2/examples/pge/examples/exampleBoxes.py:  python2 to 3 conversion.
+	* gm2/examples/pge/examples/triangle.py:  python2 to 3 conversion.
+	* gm2/examples/pge/fig.py:  python2 to 3 conversion.
+	* gm2/examples/pge/max2code.py:  python2 to 3 conversion.
+	* gm2/examples/pge/mxmmaxima.py:  python2 to 3 conversion.
+	* gm2/examples/pge/mxmout.py:  python2 to 3 conversion.
+	* gm2/examples/pge/mxmparser.py:  python2 to 3 conversion.
+	* gm2/examples/pge/mxmtree.py:  python2 to 3 conversion.
+	* gm2/examples/pge/pge.py:  python2 to 3 conversion.
+	* gm2/examples/pge/pgeplayback.py:  python2 to 3 conversion.
+	* gm2/examples/pge/pgepygame.py:  python2 to 3 conversion.
+	* gm2/examples/pge/t.py:  python2 to 3 conversion.
+	* gm2/examples/server/client.py:  python2 to 3 conversion.
+	* gm2/examples/swig/dual/testdual.py:  python2 to 3 conversion.
+	* gm2/examples/swig/exceptions/stresstiny.py:  python2 to 3
+	  conversion.
+	* gm2/examples/swig/exceptions/testtiny.py:  python2 to 3
+	  conversion.
+	* gm2/examples/swig/full-strlib/testcopy.py:  python2 to 3
+	  conversion.
+	* gm2/examples/swig/full-strlib/testequ.py:  python2 to 3
+	  conversion.
+	* gm2/examples/swig/full-strlib/testlen.py:  python2 to 3
+	  conversion.
+	* gm2/examples/swig/full-strlib/testnum.py:  python2 to 3
+	  conversion.
+	* gm2/examples/swig/strlen/testlen.py:  python2 to 3 conversion.
+	* gm2/examples/swig/strlib/testlen.py:  python2 to 3 conversion.
+	* gm2/examples/swig/tiny/testtiny.py:  python2 to 3 conversion.
+	* gm2/tools-src/array2index.py:  python2 to 3 conversion.
+	* gm2/tools-src/def2texi.py:  python2 to 3 conversion.
+	* gm2/tools-src/gensum.py:  python2 to 3 conversion.
+	* gm2/tools-src/tidydates.py:  python2 to 3 conversion.
+	* gm2/www/tools/texi2tr/src/navigation.py:  python2 to 3 conversion.
+	* gm2/www/tools/texi2tr/src/outputdev.py:  python2 to 3 conversion.
+	* gm2/www/tools/texi2tr/src/texi2tr.py:  python2 to 3 conversion.
+	* gm2/Make-lang.in:  use python3 rather than python2.
+	* gm2/examples/gravity/Makefile.in:  use python3 rather than
+	  python2.
+	* gm2/examples/gravity/README:  reference python3.
+	* gm2/examples/pge/Makefile.in:  use python3 rather than python2.
+	* gm2/examples/pge/debugthis:  use python3 rather than python2.
+	* gm2/examples/pge/max2code:  use python3 rather than python2.
+	* gm2/examples/pge/runfig:  use python3 rather than python2.
+	* gm2/examples/pge/runthis:  use python3 rather than python2.
+	* gm2/examples/swig/dual/Makefile.in:  use python3 rather than
+	  python2.
+	* gm2/examples/swig/exceptions/Makefile.in:  use python3 rather
+	  than python2.
+	* gm2/examples/swig/full-strlib/Makefile.in:  use python3 rather
+          than python2.
+	* gm2/examples/swig/strio/Makefile.in:  use python3 rather than
+	  python2.
+	* gm2/examples/swig/strlen/Makefile:  use python3 rather than
+	  python2.
+	* gm2/examples/swig/strlib/Makefile.in:  use python3 rather than
+	  python2.
+	* gm2/examples/swig/tiny/Makefile.in:  use python3 rather than
+	  python2.
+	* gm2/www/Makefile.in:  use python3 rather than python2.
+	* gm2/examples/gravity/testsim.py:  python2 to 3 conversion.
+	* gm2/examples/gravity/testsim2.py:  python2 to 3 conversion.
+	* gm2/examples/pge/examples/boxes.py:  python2 to 3 conversion.
+	* gm2/examples/pge/examples/exampleBoxes.py:  python2 to 3
+	  conversion.
+	* gm2/examples/pge/examples/triangle.py:  python2 to 3
+	  conversion.
+	* gm2/examples/pge/fig.py:  python2 to 3 conversion.
+	* gm2/examples/pge/max2code.py:  python2 to 3 conversion.
+	* gm2/examples/pge/pge.py:  python2 to 3 conversion.
+	* gm2/examples/pge/pgeplayback.py:  python2 to 3 conversion.
+	* gm2/examples/pge/pgepygame.py:  python2 to 3 conversion.
+	* gm2/examples/pge/t.py:  python2 to 3 conversion.
+	* gm2/examples/server/client.py:  python2 to 3 conversion.
+	* gm2/examples/swig/full-strlib/testequ.py:  python2 to 3
+	  conversion.
+	* gm2/tools-src/array2index.py:  python2 to 3 conversion.
+	* gm2/tools-src/def2texi.py:  python2 to 3 conversion.
+	* gm2/tools-src/gensum.py:  python2 to 3 conversion.
+	* gm2/tools-src/tidydates.py:  python2 to 3 conversion.
+	* gm2/www/tools/texi2tr/src/navigation.py:  python2 to 3
+	  conversion.
+	* gm2/www/tools/texi2tr/src/outputdev.py:  python2 to 3
+	  conversion.
+	* gm2/www/tools/texi2tr/src/texi2tr.py:  python2 to 3
+	  conversion.
+	* gm2/tools-src/def2texi.py:  python2 to 3 conversion.
+
 2019-09-04      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/examples/pge/pge2d.py:  removed.

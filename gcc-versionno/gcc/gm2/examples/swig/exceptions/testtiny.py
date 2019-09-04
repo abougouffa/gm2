@@ -5,6 +5,6 @@ import libtiny
 
 try:
     libtiny.doSomething(1)
-    print "error  : should not arrive here"
+    print("error  : should not arrive here")
 except:
-    print "success: caught exception in Python"
+    print("success: caught exception in Python")

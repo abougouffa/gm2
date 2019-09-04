@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Copyright (C) 2010
 #               Free Software Foundation, Inc.
@@ -35,7 +35,7 @@ lines = []   # global copy of the input lines of text.
 #
 
 def printf (format, *args):
-    print str(format) % args,
+    print(str(format) % args, end=' ')
 
 
 #
@@ -43,7 +43,7 @@ def printf (format, *args):
 #
 
 def fatal (format, *args):
-    print str(format) % args,
+    print(str(format) % args, end=' ')
     os.sys.exit(1)
 
 #
@@ -51,7 +51,7 @@ def fatal (format, *args):
 #
 
 def debug(s):
-    print "*", s, "*"
+    print("*", s, "*")
 
 #
 #  putNext - pushes, i, to be the next line read when
@@ -164,20 +164,20 @@ def setVarIndent (v, n):
 #
 
 def adjustVar (v, d):
-    print v, d
+    print(v, d)
     if d != {}:
         if v == []:
             h = ['VAR\n']
             t = []
-            if d.has_key('pCall'):
+            if 'pCall' in d:
                 v = h + ['   pCall: PtrToCallFrame ;\n'] + t
-            if d.has_key('pSym'):
+            if 'pSym' in d:
                 v = h + ['   pSym: PtrToSymbol ;\n'] + t
         else:
             h = v[0]
-            if d.has_key('pCall'):
+            if 'pCall' in d:
                 v = [h] + ['   pCall: PtrToCallFrame ;\n'] + v[1:]
-            if d.has_key('pSym'):
+            if 'pSym' in d:
                 v = [h] + ['   pSym: PtrToSymbol ;\n'] + v[1:]
         v = setVarIndent(v, getMaxIndent(v))
     return v
@@ -212,7 +212,7 @@ def scanStatements ():
             n = getIndent(i)
             y = i.find('[', x)+1
             z = i.find(']', y)
-            print "indexing ", i[y:z] 
+            print("indexing ", i[y:z]) 
             d['pSym'] = i[y:z]
             j = n * ' '
             j += 'pSym := GetPsym(%s) ;\n' % i[y:z]
@@ -224,7 +224,7 @@ def scanStatements ():
                 n = getIndent(i)
                 y = i.find('[', x)+1
                 z = i.find(']', y)
-                print "indexing ", i[y:z] 
+                print("indexing ", i[y:z]) 
                 d['pCall'] = i[y:z]
                 j = n * ' '
                 j += 'pCall := GetPcall(%s) ;\n' % i[y:z]
@@ -262,7 +262,7 @@ def scanProcedure ():
         if isVar(i):
             v = [i]
             v += scanVar()
-            print v
+            print(v)
         elif isBegin(i):
             s, d = scanStatements()
             v = adjustVar(v, d)
@@ -289,7 +289,7 @@ def scanLines (l):
     while not isEof(i):
         o += i
         if isProcedure(i):
-            print i
+            print(i)
             o += scanProcedure()
         i = getNext()
     return o
@@ -300,7 +300,7 @@ def scanLines (l):
 #
 
 def Usage():
-    print "array2index.py [-h][-o outputfile] inputfile"
+    print("array2index.py [-h][-o outputfile] inputfile")
 
 
 #

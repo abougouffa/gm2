@@ -54,7 +54,7 @@ else
 LIBDIR=$(prefix)/lib
 endif
 
-PYTHON_VERSION=2.7
+PYTHON_VERSION=3
 
 
 all: force
@@ -64,7 +64,7 @@ all: force
 pre-install: libtwoDsim.la
 
 run: pre-install
-	PYTHONPATH=`pwd` python $(srcdir)/testsim2.py
+	PYTHONPATH=`pwd` python$(PYTHON_VERSION) $(srcdir)/testsim2.py
 	$(SHELL) $(srcdir)/produce-avi
 
 libtwoDsim.la:  $(TWODSIM:%.mod=%.lo)

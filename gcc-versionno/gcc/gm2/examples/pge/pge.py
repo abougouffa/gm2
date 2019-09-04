@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import pgeif
 import pygame
@@ -9,10 +9,10 @@ import math
 from pygame.locals import *
 
 
-colour_t, box_t, circle_t, fb_box_t, fb_circle_t, fb_text_t = range (6)
+colour_t, box_t, circle_t, fb_box_t, fb_circle_t, fb_text_t = list(range(6))
 id2ob = {}
 ob2id = {}
-batch_d, pyg_d = range (2)
+batch_d, pyg_d = list(range(2))
 device = None
 opened = False
 output = None
@@ -49,14 +49,14 @@ font = None
 #
 
 def printf (format, *args):
-    print str (format) % args,
+    print(str (format) % args, end=' ')
 
 
 def debugf (format, *args):
     global debugging
 
     if debugging:
-        print str (format) % args,
+        print(str (format) % args, end=' ')
 
 def errorf (format, *args):
     m = str (format) % args
@@ -148,7 +148,7 @@ class object:
 
         self._check_colour ()
         i = pgeif.h2l (self._get_pgeif_colour ())
-        if idTOcol.has_key (i):
+        if i in idTOcol:
             return idTOcol[i]
         internalf ("3 colour triple should have been defined")
 
@@ -197,7 +197,7 @@ class object:
         _emit_fract (self.o [1])  #  y pos
         _emit_fract (self.o [2])  #  radius
         _emit_short (self.o [3])  #  colour
-        print "_emit_fill_circle, colour is ", self.o [3], self.o [0], self.o [1], self.o [2]
+        print("_emit_fill_circle, colour is ", self.o [3], self.o [0], self.o [1], self.o [2])
 
     def _emit_fill_polygon (self):
         output.write (struct.pack ("3s", "dP"))
@@ -225,7 +225,7 @@ class object:
         self._check_type ([box_t, circle_t], "assign a velocity to a")
         self._check_not_fixed ("assign a velocity")
         self._check_not_deleted ("a velocity")
-        print "velocity for object", self.o, vx, vy
+        print("velocity for object", self.o, vx, vy)
         self.o = self._check_same (pgeif.velocity (self.o, vx, vy))
         return self
 
@@ -242,7 +242,7 @@ class object:
         self._check_no_mass ("cannot fix " + self._name () + " as it has a mass")
         self.fixed = True
         self.o = self._check_same (pgeif.fix (self.o))
-        print "fix", self.o
+        print("fix", self.o)
         return self
 
     def mass (self, m):
@@ -253,7 +253,7 @@ class object:
             errorf ("cannot give value None as the mass\n")
         self.kg = m
         self.o = self._check_same (pgeif.mass (self.o, m))
-        print "mass", self.o
+        print("mass", self.o)
         return self
 
     def apply_impulse (self, unit_vec, magnitude):
@@ -262,13 +262,13 @@ class object:
         self._check_not_deleted (" an impulse")
         if (magnitude is None) or (unit_vec is None):
             return
-        print "magnitude", magnitude, "vector", unit_vec
+        print("magnitude", magnitude, "vector", unit_vec)
         pgeif.apply_impulse (self.o, unit_vec[0], unit_vec[1], magnitude)
         return self
 
     def on_collision_with (self, another, p):
         if debugging:
-            print "ok registering call back", p, another
+            print("ok registering call back", p, another)
         self.collisionp = p
         self.collisionWith = another
         return self
@@ -318,14 +318,14 @@ class object:
 
     def _collision (self, between, e):
         if debugging:
-            print "collision seen, between:", between
+            print("collision seen, between:", between)
         if self.collisionWith == []:
             if self.collisionp != None:
                 if debugging:
-                    print "before collisionp"
+                    print("before collisionp")
                 self.collisionp (self, e)
                 if debugging:
-                    print "after collisionp"
+                    print("after collisionp")
         else:
             for c in self.collisionWith:
                 for b in between:
@@ -396,7 +396,7 @@ class object:
         return pgeif.get_yaccel (self.o)
 
     def put_xvel (self, f):
-        print "put_xvel on a", self._name ()
+        print("put_xvel on a", self._name ())
         self._check_type ([box_t, circle_t], "put the xvel")
         return pgeif.put_xvel (self.o, f)
 
@@ -425,14 +425,14 @@ def _colspace (f):
 def rgb (r, g, b):
     global idTOcol
 
-    print "in rgb (", r, g, b, ")"
+    print("in rgb (", r, g, b, ")")
     c = pgeif.rgb (float(r), float(g), float(b))
-    print "after pgeif.rgb ->", c
+    print("after pgeif.rgb ->", c)
     o = object (colour_t, [float(r), float(g), float(b), c])
     o._check_colour ()
     c = pgeif.h2l (c)
     idTOcol[c] = (_colspace (r), _colspace (g), _colspace (b))
-    print "define colour triple as:", idTOcol[c]
+    print("define colour triple as:", idTOcol[c])
     return o
 
 def white ():
@@ -462,18 +462,18 @@ def text (x, y, s, c, size, level):
 
 
 def box (x, y, w, h, c, level = 0):
-    print "box:", x, y, w, h, c, level
+    print("box:", x, y, w, h, c, level)
     c._param_colour ("fifth parameter to box is expected to be a colour")
     if level == 0:
         id = pgeif.box (x, y, w, h, c._get_pgeif_colour ())
-        print "box colour =", c, c._get_pgeif_colour ()
+        print("box colour =", c, c._get_pgeif_colour ())
         ob = object (box_t, id, c, level)
         ob.set_width (w)
         debugf ("box ")
         _register (id, ob)
     else:
         ob = object (fb_box_t, [x, y, x+w, y, x+w, y+h, x+w, y+h, x, y+h, c._get_pgeif_colour ()], c, level)
-        print "box colour =", c, c._get_pgeif_colour ()
+        print("box colour =", c, c._get_pgeif_colour ())
         _add (ob, level)
     return ob
 
@@ -516,30 +516,30 @@ def _add (ob, level):
             background += [level]
             background.sort ()
 
-    if levels.has_key (level):
+    if level in levels:
         levels[level] += [ob]
     else:
         levels[level] = [ob]
-    print levels[level]
+    print(levels[level])
 
 
 def _sub (ob, level):
     global foreground, background
 
-    if levels.has_key (level):
+    if level in levels:
         levels[level].remove (ob)
 
     if level > 0:
         f = []
         for l in foreground:
-            if levels.has_key (l):
+            if l in levels:
                 f += [l]
         foreground = f
         foreground.sort ()
     else:
         b = []
         for l in background:
-            if levels.has_key (l):
+            if l in levels:
                 b += [l]
         background = b
         background.sort ()
@@ -549,13 +549,13 @@ def circle (x, y, r, c, level = 0):
     c._param_colour ("fourth parameter to box is expected to be a colour")
     if level == 0:
         id = pgeif.circle (x, y, r, c._get_pgeif_colour ())
-        print "circle id =", id
+        print("circle id =", id)
         debugf ("circle ")
         ob = object (circle_t, id, c, level)
         _register (id, ob)
     else:
-        print "circle, colour =", c
-        print "pge: colour", c._get_pgeif_colour ()
+        print("circle, colour =", c)
+        print("pge: colour", c._get_pgeif_colour ())
         ob = object (fb_circle_t, [x, y, r, c._get_pgeif_colour ()], c, level)
         _add (ob, level)
     return ob
@@ -636,7 +636,7 @@ def draw_background ():
             for o in levels[l]:
                 o._draw ()
 
-no_event, frame_event, collision_event, function_event, final_event = range (5)
+no_event, frame_event, collision_event, function_event, final_event = list(range(5))
 
 class event:
     def __init__ (self, t, d, l):
@@ -706,14 +706,14 @@ class event:
             self._handle_frame_buffer ()
             _collision (self._between (), self)
         elif self._type == function_event:
-            print "_process found timer_event", self.__id
+            print("_process found timer_event", self.__id)
             i = self.__id
-            if id2func.has_key (i):
-                print "function", i, "about to be called"
+            if i in id2func:
+                print("function", i, "about to be called")
                 id2func [i] ()
-                print "function", i, "finished"
+                print("function", i, "finished")
             else:
-                print "function", i, "has been cancelled"
+                print("function", i, "has been cancelled")
     def _handle_frame_buffer (self):
         cData = pgeif.get_cbuf ()
         debugf ("cData len = %d\n", len (cData))
@@ -741,7 +741,7 @@ class event:
     def _get_time (self):
         return self.__etime
     def collision_between (self):
-        print self._between ()
+        print(self._between ())
         return self._between ()
     def cancel (self):
         self._cancelled = True
@@ -827,28 +827,28 @@ def _add_relative (r):
 pge_event_queue = []
 
 def display_element (e, t):
-    print "[", e[0], "ms ",
+    print("[", e[0], "ms ", end=' ')
     if e[1]._type == frame_event:
-        print "displayframe",
+        print("displayframe", end=' ')
     elif e[1]._type == collision_event:
-        print "collision",
+        print("collision", end=' ')
     elif e[1]._type == function_event:
-        print "timer",
+        print("timer", end=' ')
     else:
-        print "final",
-    print " at", e[0] + (int) (t * 1000.0), "ms",
-    print "], ",
+        print("final", end=' ')
+    print(" at", e[0] + (int) (t * 1000.0), "ms", end=' ')
+    print("], ", end=' ')
 
 def display_event_queue (q):
     if q == []:
-        print "event queue is empty"
+        print("event queue is empty")
     else:
-        print "event queue: "
+        print("event queue: ")
         t = pgeif.get_time ()
         for e in q:
             display_element (e, t)
             t += e[1]._get_time ()
-        print ""
+        print("")
 
 prev_event_time = 0.0
 
@@ -869,7 +869,7 @@ def _wait_for_event ():
     global pge_event_queue, slow_down_factor, device, _record, debugging
 
     if debugging:
-        print "_wait_for_event, pge_event_queue ="
+        print("_wait_for_event, pge_event_queue =")
         display_event_queue (pge_event_queue)
     if device == pyg_d:
         pygame.event.set_allowed (None)
@@ -903,7 +903,7 @@ def at_time (t, p):
 
 def at_cancel (i):
     global id2func
-    if id2func.has_key (i):
+    if i in id2func:
         del id2func[i]
     else:
         error ("at_cancel cannot delete function %d as it no longer exists\n", i)
@@ -933,10 +933,10 @@ def pyg_draw_frame (cdata, clength, fdata, flength):
     while f.left () >= 3:
         header = struct.unpack ("3s", f.read (3))[0]
         header = header[:2]
-        if call.has_key (header):
+        if header in call:
             f = call[header] (f)
         else:
-            print "not understood header =", header
+            print("not understood header =", header)
             sys.exit (1)
     # printf ("drawing foreground\n")
     if flength > 0:
@@ -1086,7 +1086,7 @@ def runpy (t=-1, ep=None):
                 _process (pe)
                 ev = _get_next_event ()
                 nev = _post_event (ev, ev._get_time ())
-            elif pyevent2func.has_key (e.type):
+            elif e.type in pyevent2func:
                 pyevent2func[e.type] (e)
         # what does this code do??
         # elif ep != None:
@@ -1190,8 +1190,8 @@ def load_sound (name):
         return NoneSound()
     try:
         sound = pygame.mixer.Sound(name)
-    except pygame.error, message:
-        print 'cannot load sound file:', name
+    except pygame.error as message:
+        print('cannot load sound file:', name)
         return NoneSound()
     return sound
 
@@ -1342,7 +1342,7 @@ def doRegisterColour (f):
     f, gf = readFract (f)
     f, bf = readFract (f)
     if debugging:
-        print rf, gf, bf
+        print(rf, gf, bf)
     r = toCol (rf)
     g = toCol (gf)
     b = toCol (bf)
@@ -1388,14 +1388,14 @@ def doDrawFillPolygon (f):
         f, xf = readFract (f)
         f, yf = readFract (f)
         if debugging:
-            print xf, yf,
+            print(xf, yf, end=' ')
         x = mults (resolution[0], xf)
         y = mults (resolution[1], yf)
         l += [[x, flip (y)]]
 
     f, c = readColour (f)
     if debugging:
-        print "drawFillPolygon (colour =", c, " l =", l, ")"
+        print("drawFillPolygon (colour =", c, " l =", l, ")")
     pygame.draw.polygon (screen, c, l, 0)
     return f
 
@@ -1426,7 +1426,7 @@ def doDrawFillCircle (f):
     f, c = readColour (f)
     debugf("circle  x = %d  y = %d,  r = %d\n", x, y, r)
     if debugging:
-        print "  colour =", c
+        print("  colour =", c)
     pygame.draw.circle (screen, c, (x, flip (y)), r, 0)
     return f
 
@@ -1479,14 +1479,14 @@ def doDrawPolygon (f):
         f, xf = readFract (f)
         f, yf = readFract (f)
         if debugging:
-            print xf, yf,
+            print(xf, yf, end=' ')
         x = mults (resolution[0], xf)
         y = mults (resolution[1], yf)
         l += [[x, flip(y)]]
 
     f, t = readFract (f)
     if debugging:
-        print "draw polygon", l, "thickness", t
+        print("draw polygon", l, "thickness", t)
     # pygame.draw.polygon (screen, c, l, 0)
     return f
 

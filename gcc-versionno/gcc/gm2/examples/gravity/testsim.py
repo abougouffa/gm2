@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #   Copyright (C) 2010
 #                 Free Software Foundation, Inc.
@@ -33,9 +33,9 @@ c2 = fix(c2)
 gravity(-9.81)
 fps(24.0*4.0)
 replayRate(24.0)
-print "creating frames"
+print("creating frames")
 try:
     simulateFor(1.0)
-    print "all done"
+    print("all done")
 except:
-    print "exception raised"
+    print("exception raised")

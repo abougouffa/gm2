@@ -30,7 +30,7 @@ XGM2=../../../../xgm2 -B../../../.. -B../../../../stage1/gm2
 XGPP=../../../../g++
 XGCC=../../../../xgcc
 
-PYTHON_VERSION=2.7
+PYTHON_VERSION=3
 
 all: force
 	@echo "or you can use 'make post-install' to build the examples after installing the compiler"
@@ -56,9 +56,9 @@ strlib: force
              -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libStrLib.la 
 	cp .libs/libStrLib.so _StrLib.so
 
-	PYTHONPATH=.:$(srcdir) python $(srcdir)/testlen.py
-	PYTHONPATH=.:$(srcdir) python $(srcdir)/testequ.py
-	PYTHONPATH=.:$(srcdir) python $(srcdir)/testcopy.py
+	PYTHONPATH=.:$(srcdir) python$(PYTHON_VERSION) $(srcdir)/testlen.py
+	PYTHONPATH=.:$(srcdir) python$(PYTHON_VERSION) $(srcdir)/testequ.py
+	PYTHONPATH=.:$(srcdir) python$(PYTHON_VERSION) $(srcdir)/testcopy.py
 
 numberio: force
 	gm2 -I$(srcdir) -c -g -fswig $(srcdir)/../../../gm2-libs/NumberIO.mod
@@ -75,7 +75,7 @@ numberio: force
              -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libNumberIO.la 
 	cp .libs/libNumberIO.so _NumberIO.so
 
-	PYTHONPATH=.:$(srcdir) python $(srcdir)/testnum.py
+	PYTHONPATH=.:$(srcdir) python$(PYTHON_VERSION) $(srcdir)/testnum.py
 
 clean: force
 	$(RM) -f *.o *.so a.out *.pyc *~ *_wrap* StrLib.py NumberIO.py *.i *_m2.cpp

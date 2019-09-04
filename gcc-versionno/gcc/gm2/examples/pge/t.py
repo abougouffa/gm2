@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import pygame
 from pygame.locals import *
@@ -24,6 +24,6 @@ pygame.draw.circle (screen, blue, (100, 100), 100, 0)
 pygame.display.flip()
 
 
-print "setting timer for 3 seconds"
+print("setting timer for 3 seconds")
 time.sleep (3)
-print "goodbye"
+print("goodbye")

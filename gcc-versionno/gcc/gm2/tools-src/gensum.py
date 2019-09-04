@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # 
 # gensum.py a utility for summarizing the regression tests into html.
 # 
@@ -59,9 +59,9 @@ class testcase:
 def usage (code):
     global noColumns
 
-    print "gensum [-h] [-c number] filename.sum {filename.sum}"
-    print "  -c number of columns per architectural table (default", noColumns, ")"
-    print "  -h help"
+    print("gensum [-h] [-c number] filename.sum {filename.sum}")
+    print("  -c number of columns per architectural table (default", noColumns, ")")
+    print("  -h help")
     sys.exit (code)
 
 
@@ -104,18 +104,18 @@ def scanner (name, function):
 def addPassResult (name, varient):
     global regressionTests, configuration, passStats
 
-    if not regressionTests.has_key (configuration):
+    if configuration not in regressionTests:
         regressionTests[configuration] = {}
 
     arch = regressionTests[configuration]
-    if arch.has_key (name):
+    if name in arch:
         t = arch[name]
     else:
         t = testcase (name)
     t.addPass (varient)
     arch[name] = t
     regressionTests[configuration] = arch
-    if passStats.has_key (configuration):
+    if configuration in passStats:
         passStats[configuration] += 1
     else:
         passStats[configuration] = 1
@@ -128,18 +128,18 @@ def addPassResult (name, varient):
 def addFailResult (name, varient):
     global regressionTests, configuration, failStats
 
-    if not regressionTests.has_key (configuration):
+    if configuration not in regressionTests:
         regressionTests[configuration] = {}
 
     arch = regressionTests[configuration]
-    if arch.has_key (name):
+    if name in arch:
         t = arch[name]
     else:
         t = testcase (name)
     t.addFail (varient)
     arch[name] = t
     regressionTests[configuration] = arch
-    if failStats.has_key (configuration):
+    if configuration in failStats:
         failStats[configuration] += 1
     else:
         failStats[configuration] = 1
@@ -153,18 +153,18 @@ def addFailResult (name, varient):
 def addUnresolvedResult (name, varient, reason):
     global regressionTests, configuration, unresolvedStats
 
-    if not regressionTests.has_key (configuration):
+    if configuration not in regressionTests:
         regressionTests[configuration] = {}
 
     arch = regressionTests[configuration]
-    if arch.has_key (name):
+    if name in arch:
         t = arch[name]
     else:
         t = testcase (name)
     t.addUnresolved (varient, reason)
     arch[name] = t
     regressionTests[configuration] = arch
-    if unresolvedStats.has_key (configuration):
+    if configuration in unresolvedStats:
         unresolvedStats[configuration] += 1
     else:
         unresolvedStats[configuration] = 1
@@ -239,20 +239,20 @@ def processLine(line):
 #
 
 def printRow (testcase, arch, option):
-    if regressionTests[arch].has_key (testcase):
+    if testcase in regressionTests[arch]:
         t = regressionTests[arch][testcase]
         if option in t.getPasses ():
-            print '<td bgcolor="green">', string.join (option, ' '), '</td>',
+            print('<td bgcolor="green">', string.join (option, ' '), '</td>', end=' ')
         elif option in t.getFails():
-            print '<td bgcolor="red">', string.join (option, ' '), '</td>',
+            print('<td bgcolor="red">', string.join (option, ' '), '</td>', end=' ')
         elif option in t.getUnresolved():
-            print '<td bgcolor="yellow">', string.join (option, ' '), '</td>',
+            print('<td bgcolor="yellow">', string.join (option, ' '), '</td>', end=' ')
         elif option == []:
-            print '<td></td>',
+            print('<td></td>', end=' ')
         else:
-            print '<td></td>',
+            print('<td></td>', end=' ')
     else:
-        print '<td></td>',
+        print('<td></td>', end=' ')
 
 
 #
@@ -263,9 +263,9 @@ def getListOfTests ():
     global regressionTests
 
     list = []
-    for arch in regressionTests.keys ():
+    for arch in list(regressionTests.keys ()):
         t = regressionTests[arch]
-        for u in t.keys ():
+        for u in list(t.keys ()):
             if not (u in list):
                 list += [u]
     return list
@@ -281,9 +281,9 @@ def getListOfOptions (testcase):
 
     optlist = []
     total = 0
-    for arch in regressionTests.keys ():
+    for arch in list(regressionTests.keys ()):
         t = regressionTests[arch]
-        if t.has_key (testcase):
+        if testcase in t:
             u = t[testcase]
             for p in u.getPasses () + u.getFails () + u.getUnresolved ():
                 if not (p in optlist):
@@ -314,87 +314,87 @@ def printResults():
     global target, configuration, author, date, regressionTests, noColumns
     global passStats, failStats, unresolvedStats
 
-    print "<html><head><title>"
-    print "GNU Modula-2 regression tests"
-    print "</title></head>"
-    print ""
-    print "<h1>",
-    print "GNU Modula-2 regression tests",
-    print "</h1>"
-    print ""
+    print("<html><head><title>")
+    print("GNU Modula-2 regression tests")
+    print("</title></head>")
+    print("")
+    print("<h1>", end=' ')
+    print("GNU Modula-2 regression tests", end=' ')
+    print("</h1>")
+    print("")
 
-    print '<p><table border="1"><tr>'
-    print '<th colspan="2">Key</th>'
-    print '<tr><td>Colour</td><td>Meaning</td></tr>'
-    print '<tr><td bgcolor="green"></td><td>Pass</td></tr>'
-    print '<tr><td bgcolor="red"></td><td>Fail</td></tr>'
-    print '<tr><td bgcolor="yellow"></td><td>Unresolved due to a prior error</td></tr>'
-    print '<tr><td bgcolor="blue"></td><td>Not tested</td></tr>'
-    print '<tr><td></td><td>Entire testcase not tested on this platform</td></tr>'
-    print '</table></p>'
-    print ''
+    print('<p><table border="1"><tr>')
+    print('<th colspan="2">Key</th>')
+    print('<tr><td>Colour</td><td>Meaning</td></tr>')
+    print('<tr><td bgcolor="green"></td><td>Pass</td></tr>')
+    print('<tr><td bgcolor="red"></td><td>Fail</td></tr>')
+    print('<tr><td bgcolor="yellow"></td><td>Unresolved due to a prior error</td></tr>')
+    print('<tr><td bgcolor="blue"></td><td>Not tested</td></tr>')
+    print('<tr><td></td><td>Entire testcase not tested on this platform</td></tr>')
+    print('</table></p>')
+    print('')
 
-    archList = regressionTests.keys ()
-    print "<h2>",
-    print "Summary",
-    print "</h2>"
-    print '<p><table border="1">'
-    print '<tr>',
-    print '<th colspan="1">Status</th>',
+    archList = list(regressionTests.keys ())
+    print("<h2>", end=' ')
+    print("Summary", end=' ')
+    print("</h2>")
+    print('<p><table border="1">')
+    print('<tr>', end=' ')
+    print('<th colspan="1">Status</th>', end=' ')
     for arch in archList:
-        print '<th colspan="1">', arch, '</th>',
-    print '</tr>'
-    print '<tr><td bgcolor="green"></td>',
+        print('<th colspan="1">', arch, '</th>', end=' ')
+    print('</tr>')
+    print('<tr><td bgcolor="green"></td>', end=' ')
     for arch in archList:
-        if passStats.has_key (arch):
-            print '<td bgcolor="green">', passStats[arch], "</td>"
+        if arch in passStats:
+            print('<td bgcolor="green">', passStats[arch], "</td>")
         else:
-            print '<td bgcolor="green">none</td>'
-    print '</tr>'
-    print '<tr><td bgcolor="red"></td>',
+            print('<td bgcolor="green">none</td>')
+    print('</tr>')
+    print('<tr><td bgcolor="red"></td>', end=' ')
     for arch in archList:
-        if failStats.has_key (arch):
-            print '<td bgcolor="red">', failStats[arch], "</td>"
+        if arch in failStats:
+            print('<td bgcolor="red">', failStats[arch], "</td>")
         else:
-            print '<td bgcolor="red">none</td>'
-    print '</tr>'
-    print '<tr><td bgcolor="yellow"></td>',
+            print('<td bgcolor="red">none</td>')
+    print('</tr>')
+    print('<tr><td bgcolor="yellow"></td>', end=' ')
     for arch in archList:
-        if unresolvedStats.has_key (arch):
-            print '<td bgcolor="yellow">', unresolvedStats[arch], "</td>"
+        if arch in unresolvedStats:
+            print('<td bgcolor="yellow">', unresolvedStats[arch], "</td>")
         else:
-            print '<td bgcolor="yellow">none</td>'
-    print '</tr>'
-    print '</table></p>'
+            print('<td bgcolor="yellow">none</td>')
+    print('</tr>')
+    print('</table></p>')
 
-    print "<h1>",
-    print "GNU Modula-2 regression test results",
-    print "</h1>"
+    print("<h1>", end=' ')
+    print("GNU Modula-2 regression test results", end=' ')
+    print("</h1>")
 
     testlist = getListOfTests ()
     for testcase in testlist:
         total, optlist = getListOfOptions (testcase)
         if total > 0:
-            print '<p><table border="1"><tr>'
-            print '<th colspan="', len (archList) * noColumns, '">',
+            print('<p><table border="1"><tr>')
+            print('<th colspan="', len (archList) * noColumns, '">', end=' ')
             heading = getHeading (testcase)
-            print heading, '</th></tr>'
+            print(heading, '</th></tr>')
             for arch in archList:
-                print '<th colspan="', noColumns, '">', arch, '</th>',
+                print('<th colspan="', noColumns, '">', arch, '</th>', end=' ')
 
             if total % noColumns != 0:
                 total = ((total / noColumns) +1) * noColumns
             for count in range (0, total, noColumns):
-                print '<tr>',
+                print('<tr>', end=' ')
                 for arch in archList:
                     for c in range (count, count+noColumns):
                         if c < len (optlist):
                             printRow (testcase, arch, optlist[c])
                         else:
                             printRow (testcase, arch, [])
-                print '</tr>'
-            print '</table></p>'
-    print '</html>'
+                print('</tr>')
+            print('</table></p>')
+    print('</html>')
 
 
 target = ""

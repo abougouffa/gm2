@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 2009,
 #               2010
@@ -9,22 +9,21 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
-# 
+#
 # GNU Modula-2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with GNU Modula-2; see the file COPYING.  If not, write to the
 # Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA. 
+# 02110-1301, USA.
 #
 
 import sys
 import os
 import glob
-#import string
 import getopt
 
 libraryClassifications = [['gm2-libs','Base libraries',
@@ -97,7 +96,7 @@ def displayMenu():
 def removeInitialComments (file, line):
     while (str.find(line, "*)") == -1):
         line = file.readline()
-        
+
 #
 #  removeFields - removes Author/Date/Last edit/SYSTEM/Revision fields from a comment within the start
 #                 of a definition module
@@ -136,7 +135,7 @@ def removeFields (file, line):
 
 def checkIndex (line):
     global inVar, inType, inConst
-    
+
     words = str.split(line)
     procedure = ""
     if (len(words)>1) and (words[0] == "PROCEDURE"):
@@ -392,7 +391,7 @@ def displayCopyright ():
 
 def Usage():
     print("def2texi.py [-h][-bbuilddir][-uupnode][-ffilename]")
-    
+
 def collectArgs():
     buildDir="."
     sourceDir="."

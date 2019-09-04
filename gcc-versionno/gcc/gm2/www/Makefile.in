@@ -32,7 +32,7 @@ TEXISRC = $(srcdir)/../../gm2/gm2.texi
 #          $(objdir)/gm2/Builtins.texi \
 #          $(objdir)/gm2/version.texi
 
-TEXI2HTML=python $(srcdir)/tools/texi2tr/src/texi2tr.py
+TEXI2HTML=python3 $(srcdir)/tools/texi2tr/src/texi2tr.py
 
 OUTPUTS=download.html homepage.html license.html platforms.html \
         about.html release.html users.html texi2tr.css \

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Copyright (C) 2011
 #               Free Software Foundation, Inc.
@@ -74,15 +74,15 @@ class nodeInfo:
       <table width="100%" cellpadding="2" cellspacing="2">
 	<tr valign="middle">
 """)
-        if (self.prev != "") and (self.prev != "Top") and anchors.has_key(self.prev):
+        if (self.prev != "") and (self.prev != "Top") and self.prev in anchors:
             html.raw('''
 	  <td><a accesskey="p" href="''')
             html.raw(anchors[self.prev])
             html.raw('"><img width="48" alt="Prev" src="prev.png" border="0" height="48"></img></a></td>')
-        if (self.next != "") and (self.next != "Top") and anchors.has_key(self.next):
+        if (self.__next__ != "") and (self.__next__ != "Top") and self.__next__ in anchors:
             html.raw('''
 	  <td align="right"><a accesskey="n" href="''')
-            html.raw(anchors[self.next])
+            html.raw(anchors[self.__next__])
             html.raw('"><img width="48" alt="Next" src="next.png" border="0" height="48"></img></a></td>')
         html.raw('</tr></table></div>')
 
@@ -137,7 +137,7 @@ class menuInfo:
     #
     def debugMenu (self):
         for m in self.list:
-            print m[0], m[1]
+            print((m[0], m[1]))
     #
     #  generateMenu - issues the menu
     #
@@ -175,15 +175,15 @@ class menuInfo:
         html.raw('<div id="tabmenu">\n')
         html.raw('<ul id="tab">\n')
         for m in self.list:
-            if anchors.has_key(m[0]):
+            if m[0] in anchors:
                 active = litab(html, anchors[m[0]], m[0], active)
             else:
-                if (len(m[1]) > 1) and (m[1][-1] == '.') and (anchors.has_key(m[1][:-1])):
+                if (len(m[1]) > 1) and (m[1][-1] == '.') and (m[1][:-1] in anchors):
                     active = litab(html, anchors[m[1][:-1]], m[0], active)
-                elif anchors.has_key(m[1]):
+                elif m[1] in anchors:
                     active = litab(html, anchors[m[1]], m[0], active)
                 else:
-                    print "cannot find anchor for section", m[0], "or", m[1]
+                    print(("cannot find anchor for section", m[0], "or", m[1]))
         html.raw('\n</ul>\n')
         html.raw('</div>\n')
     #
@@ -192,15 +192,15 @@ class menuInfo:
     def _genLong (self, html):
         html.raw('\n<ul>\n')
         for m in self.list:
-            if anchors.has_key(m[0]):
+            if m[0] in anchors:
                 liurl(html, anchors[m[0]], m[1])
             else:
-                if (len(m[1]) > 1) and (m[1][-1] == '.') and (anchors.has_key(m[1][:-1])):
+                if (len(m[1]) > 1) and (m[1][-1] == '.') and (m[1][:-1] in anchors):
                     liurl(html, anchors[m[1][:-1]], m[1])
-                elif anchors.has_key(m[1]):
+                elif m[1] in anchors:
                     liurl(html, anchors[m[1]], m[1])
                 else:
-                    print "cannot find anchor for section", m[0], "or", m[1]
+                    print(("cannot find anchor for section", m[0], "or", m[1]))
         html.raw('</ul>\n')
 
 #
@@ -210,8 +210,8 @@ class menuInfo:
 def anchor (html, label):
     global anchors
 
-    if anchors.has_key(label):
-        print "node", label, "already exists"
+    if label in anchors:
+        print(("node", label, "already exists"))
     anchors[label] = html.getNodeLink()
     s = '<a name="' + html.getNodeAnchor() + '"></a>\n'
     html.raw(s)

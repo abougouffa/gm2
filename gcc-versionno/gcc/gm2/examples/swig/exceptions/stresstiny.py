@@ -7,8 +7,8 @@ import sys
 for i in range (10):
     try:
         libtiny.doSomething (i)
-        print "error exception should have been thrown"
+        print("error exception should have been thrown")
     except:
-        print "caught exception in Python:  i =", i
+        print(("caught exception in Python:  i =", i))
 
-print "stresstiny passed"
+print("stresstiny passed")

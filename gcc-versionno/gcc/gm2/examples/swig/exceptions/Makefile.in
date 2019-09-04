@@ -30,7 +30,7 @@ XGM2=../../../../xgm2 -B../../../../
 XGPP=../../../../g++
 XGCC=../../../../gcc
 
-PYTHON_VERSION=2.7
+PYTHON_VERSION=3
 
 all: force
 	@echo "you can use 'make post-install' to build the examples after installing the compiler"
@@ -54,8 +54,8 @@ post-install: clean
              -rpath `pwd` -lgm2 -lstdc++ -lpth -lm -o libtiny.la 
 
 	cp .libs/libtiny.so  _libtiny.so 
-	PYTHONPATH=.:$(srcdir) python $(srcdir)/testtiny.py
-	PYTHONPATH=.:$(srcdir) python $(srcdir)/stresstiny.py
+	PYTHONPATH=.:$(srcdir) python$(PYTHON_VERSION) $(srcdir)/testtiny.py
+	PYTHONPATH=.:$(srcdir) python$(PYTHON_VERSION) $(srcdir)/stresstiny.py
 
 clean: force
 	$(RM) -f *.o *.so a.out *.pyc *~ *_wrap* tiny.py tiny.i *_m2.cpp
