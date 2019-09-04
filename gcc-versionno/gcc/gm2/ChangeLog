@@ -1,3 +1,7 @@
+2019-09-04      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/examples/pge/pge2d.py:  removed.
+
 2019-09-03      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  convert source build rules to use
