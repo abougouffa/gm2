@@ -1379,8 +1379,8 @@ checkWholeSubOverflow (location_t location, tree i, tree j, tree lowest,
   tree c2 = m2expr_BuildLessThan (location, i,
                                   m2expr_BuildAdd (location, min, j, FALSE));
   tree c3 = m2expr_BuildLessThanZero (location, j, lowest, min, max);
-  tree c4 = m2expr_BuildLessThan (location, i,
-                                  m2expr_BuildAdd (location, max, j, FALSE));
+  tree c4 = m2expr_BuildGreaterThan (location, i,
+				     m2expr_BuildAdd (location, max, j, FALSE));
   tree c5 = m2expr_FoldAndStrip (m2expr_BuildTruthAndIf (location, c1, c2));
   tree c6 = m2expr_FoldAndStrip (m2expr_BuildTruthAndIf (location, c3, c4));
   tree condition

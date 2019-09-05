@@ -1,3 +1,9 @@
+2019-09-05      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-gcc/m2expr.c:  (checkWholeSubOverflow) corrected
+          comparison so that it matches the algorithm in the comment
+	  above.
+
 2019-09-04      Matthias Klose  <doko@cs.tu-berlin.de>
 
 	* gm2/examples/gravity/testsim.py:  python2 to 3 conversion.
