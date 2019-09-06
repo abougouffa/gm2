@@ -1469,7 +1469,7 @@ END smult ;
    error ('signed subtraction overflow').  */
 
 static tree
-checkWholeMultOverflow (location_t location, tree i, tree j, tree lowest,
+testWholeMultOverflow (location_t location, tree i, tree j, tree lowest,
                         tree min, tree max)
 {
   tree c1 = m2expr_BuildGreaterThanZero (location, i, lowest, min, max);
@@ -1491,12 +1491,30 @@ checkWholeMultOverflow (location_t location, tree i, tree j, tree lowest,
   tree c11 = m2expr_Build3TruthAndIf (location, c2, c5, c7);
 
   tree condition = m2expr_Build4LogicalOr (location, c8, c9, c10, c11);
-  tree t = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
-					       get_current_function_name (),
-               "whole value multiplication will cause a range overflow");
-  return t;
+  return condition;
 }
 
+
+static tree
+checkWholeMultOverflow (location_t location, tree i, tree j, tree lowest,
+                        tree min, tree max)
+{
+  tree condition = testWholeMultOverflow (location, i, j, lowest, min, max);
+  tree result = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
+						    get_current_function_name (),
+               "whole value multiplication will cause a range overflow");
+  return result;
+}
+
+
+static tree
+divMinUnderflow (location_t location, tree value, tree lowest, tree min, tree max)
+{
+  tree min2 = m2expr_BuildMult (location, min, min, FALSE);
+  tree rhs = m2expr_BuildGreaterThanOrEqual (location, value, min2);
+  tree lhs = testWholeMultOverflow (location, min, min, lowest, min, max);
+  return m2expr_BuildTruthAndIf (location, lhs, rhs);
+}
 
 /*
    divexpr - returns true if a DIV_TRUNC b will overflow.
@@ -1513,9 +1531,9 @@ BEGIN
            (* in which case a division will be illegal as result will be positive.  *)
            (max < 0) OR
            (* case 1 both min / max are positive, check for underflow.  *)
-           ((min >= 0) AND (max >= 0) AND (a < b * min)) OR
+           ((min >= 0) AND (max >= 0) AND (multMinOverflow (b) OR (a < b * min))) OR
            (* case 1 both min / max are positive, check for overflow.  *)
-           ((min >= 0) AND (max >= 0) AND (b > a DIV min)) OR
+           ((min >= 0) AND (max >= 0) AND (divMinUnderflow (a) OR (b > a DIV min))) OR
            (* case 3 mixed range, need to check underflow.  *)
            ((min < 0) AND (max >= 0) AND (a < 0) AND (b < 0) AND (b >= a DIV min)) OR
            ((min < 0) AND (max >= 0) AND (a < 0) AND (b > 0) AND (b <= a DIV max)) OR
@@ -1528,8 +1546,12 @@ s3 -> a DIV b
 
 b4 -> (min >= 0) AND (max >= 0)
 b5 -> (min < 0) AND (max >= 0)
-b6 -> (a < b * min)
-b7 -> (b > s1)
+a_lt_b_mult_min -> (a < b * min)
+b_mult_min_overflow -> testWholeMultOverflow (location, b, min, lowest, min, max)
+b6 -> (b_mult_min_overflow OR a_lt_b_mult_min)
+b_gt_s1 -> (b > s1)
+a_div_min_overflow -> divMinUnderflow (location, a, min, lowest, min, max)
+b7 -> (a_div_min_overflow OR b_gt_s1)
 b8 -> (a < 0)
 b9 -> (b < 0)
 b10 -> (b > 0)
@@ -1560,12 +1582,21 @@ checkWholeDivTruncOverflow (location_t location, tree i, tree j, tree lowest,
   tree b5 = m2expr_BuildTruthAndIf (location, b5a, b4b);
   tree c1 = m2expr_BuildEqualToZero (location, j, lowest, min, max);
   tree c2 = m2expr_BuildLessThanZero (location, max, lowest, min, max);
-  tree b6 = m2expr_BuildLessThan (location, i, m2expr_BuildMult (location, j, min, FALSE));
+  tree i_lt_j_mult_min = m2expr_BuildLessThan (location, i, m2expr_BuildMult (location, j, min, FALSE));
+  tree j_mult_min_overflow = testWholeMultOverflow (location, j, min, lowest, min, max);
+#if 1
+  tree b6 = m2expr_BuildTruthOrIf (location, j_mult_min_overflow, i_lt_j_mult_min);
+#else
+  tree b6 = i_lt_j_mult_min;
+#endif
   tree c3 = m2expr_BuildTruthAndIf (location, b4, b6);
   tree s1 = m2expr_BuildDivTrunc (location, i, min, FALSE);
   tree s2 = m2expr_BuildDivTrunc (location, i, max, FALSE);
   tree s3 = m2expr_BuildDivTrunc (location, i, j, FALSE);
-  tree b7 = m2expr_BuildGreaterThan (location, j, s1);
+
+  tree j_gt_s1 = m2expr_BuildGreaterThan (location, j, s1);
+  tree i_div_min_overflow = divMinUnderflow (location, i, lowest, min, max);
+  tree b7 = m2expr_BuildTruthOrIf (location, i_div_min_overflow, j_gt_s1);
   tree c4 = m2expr_BuildTruthAndIf (location, b4, b7);
   tree b8 = m2expr_BuildLessThanZero (location, i, lowest, min, max);
   tree b9 = m2expr_BuildLessThanZero (location, j, lowest, min, max);
