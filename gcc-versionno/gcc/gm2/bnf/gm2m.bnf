@@ -1,4 +1,4 @@
--- Automatic Makefile generator for GNU Modula-2.
+-- gm2m.bnf grammar for automatic Makefile generator.
 --
 -- Copyright (C) 2002-2019 Free Software Foundation, Inc.
 -- Contributed by Gaius Mulley <gaius@glam.ac.uk>.
@@ -21,7 +21,7 @@
 -- 02110-1301, USA.
 % module gm2m begin
 MODULE gm2m ;
-(*  Automatic Makefile generator for GNU Modula-2.
+(* output from gm2m.bnf, automatically generated do not edit.
 
 Copyright (C) 2002-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius@glam.ac.uk>.

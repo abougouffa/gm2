@@ -1,3 +1,20 @@
+2019-09-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/bnf/gm2l.bnf:  corrected boilerplate comments.
+	* gm2/bnf/gm2m.bnf:  corrected boilerplate comments.
+	* gm2/bnf/h2def.bnf:  corrected boilerplate comments.
+	* gm2/bnf/m2-1.bnf:  corrected boilerplate comments.
+	* gm2/bnf/m2-2.bnf:  corrected boilerplate comments.
+	* gm2/bnf/m2-3.bnf:  corrected boilerplate comments.
+	* gm2/bnf/m2-c.bnf:  corrected boilerplate comments.
+	* gm2/bnf/m2-h.bnf:  corrected boilerplate comments.
+	* gm2/bnf/m2.bnf:  corrected boilerplate comments.
+	* gm2/bnf/mc-1.bnf:  corrected boilerplate comments.
+	* gm2/bnf/mc-2.bnf:  corrected boilerplate comments.
+	* gm2/bnf/mc-3.bnf:  corrected boilerplate comments.
+	* gm2/bnf/mc-4.bnf:  corrected boilerplate comments.
+	* gm2/bnf/mc-5.bnf:  corrected boilerplate comments.
+
 2019-09-06      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-gcc/m2expr.c:  (testWholeMultOverflow) New function.

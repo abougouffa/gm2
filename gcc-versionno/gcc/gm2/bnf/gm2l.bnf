@@ -1,44 +1,49 @@
--- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
---               2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
--- Free Software Foundation, Inc.
+-- gm2l.bnf grammar and associated actions for gm2l.
+--
+-- Copyright (C) 2001-2019 Free Software Foundation, Inc.
+-- Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
+--
 -- This file is part of GNU Modula-2.
 --
--- GNU Modula-2 is free software; you can redistribute it and/or modify it under
--- the terms of the GNU General Public License as published by the Free
--- Software Foundation; either version 3, or (at your option) any later
--- version.
+-- GNU Modula-2 is free software; you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License as published by
+-- the Free Software Foundation; either version 3, or (at your option)
+-- any later version.
 --
--- GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
--- WARRANTY; without even the implied warranty of MERCHANTABILITY or
--- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
--- for more details.
+-- GNU Modula-2 is distributed in the hope that it will be useful, but
+-- WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-- General Public License for more details.
 --
--- You should have received a copy of the GNU General Public License along
--- with gm2; see the file COPYING.  If not, write to the Free Software
--- Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+-- You should have received a copy of the GNU General Public License
+-- along with GNU Modula-2; see the file COPYING.  If not,
+-- see <https://www.gnu.org/licenses/>.  *)
 --
 --
 --
 % module gm2l begin
+(* output from gm2l.bnf, automatically generated do not edit.
+
+Copyright (C) 2001-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
+
+This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  *)
+
 MODULE gm2l ;
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 2011, 2012, 2013, 2014, 2015
-   Free Software Foundation, Inc.
-   This file is part of GNU Modula-2.
-
-GNU Modula-2 is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 3, or (at your option) any later
-version.
-
-GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License along
-with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 (*
    Author     : Gaius Mulley
@@ -345,12 +350,7 @@ BEGIN
    THEN
       printf0 ('\nskipping token *** ')
    END ;
-   (*
-      yes the ORD(currenttoken) looks ugly, but it is *much* safer than
-      using currenttoken<sometok as a change to the ordering of the
-      token declarations below would cause this to break. Using ORD() we are
-      immune from such changes
-   *)
+   (* --fixme-- this assumes a 32 bit word size.  *)
    WHILE NOT (((ORD (currenttoken) < 32)  AND (currenttoken IN stopset0)) OR
               ((ORD (currenttoken) >= 32) AND (ORD (currenttoken) < 64) AND (currenttoken IN stopset1)) OR
               ((ORD (currenttoken) >= 64) AND (currenttoken IN stopset2)))
@@ -370,8 +370,7 @@ END SyntaxError ;
 
 PROCEDURE SyntaxCheck (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   (* and again (see above re: ORD)
-    *)
+   (* --fixme-- this assumes a 32 bit word size.  *)
    IF NOT (((ORD (currenttoken) < 32)  AND (currenttoken IN stopset0)) OR
      	   ((ORD (currenttoken) >= 32) AND (ORD (currenttoken) < 64) AND (currenttoken IN stopset1)) OR
            ((ORD (currenttoken) >= 64) AND (currenttoken IN stopset2)))
