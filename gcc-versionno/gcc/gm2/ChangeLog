@@ -1,3 +1,62 @@
+2019-09-11      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/bnf/m2-3.bnf:  modified so that BuildAssignment
+          now take the tokenno of the assignment.  Use
+          PushTtok to identify the operator location for
+	  improved error message accuracy.
+	* gm2/bnf/m2-h.bnf:  modified so that BuildAssignment
+          now take the tokenno of the assignment.  Use
+          PushTtok to identify the operator location for
+	  improved error message accuracy.
+	* gm2/gm2-compiler/M2Base.mod:  removed blank line.
+	* gm2/gm2-compiler/M2Emit.def:  (UnknownLocation)
+	  New procedure.  (BuiltinsLocation) New procedure.
+	* gm2/gm2-compiler/M2Emit.mod:  (UnknownLocation)
+	  New procedure.  (BuiltinsLocation) New procedure.
+	* gm2/gm2-compiler/M2LexBuf.def:  (UnknownTokenNo)
+          defined.  (BuiltinTokenNo) defined.  (PrintTokenNo)
+	  New procedure.
+	* gm2/gm2-compiler/M2LexBuf.mod:  (UnknownTokenNo)
+          added.  (BuiltinTokenNo) added.  The buffer contents
+          for user source tokens starts after these special tokens.
+          (InitTokenList) New procedure.  (Init) call InitTokenList.
+          (DisplayToken) rewritten.  Token access routines
+	  defend against UnknownTokenNo and BuiltinTokenNo.
+	* gm2/gm2-compiler/M2Quads.def:  (PushTtok) New procedure.
+          (BuildAssignment) takes a tokenno parameter.
+          (BuildReturn) takes a tokenno parameter.  (PushTtok)
+	  New procedure.
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildAssignmentWithoutBounds)
+          modified to call doBuildAssignment with an extra parameter.
+	  (BuildAssignment) takes a tokenno parameter.
+          (BuildReturn) takes a tokenno parameter.
+          (BuildAlignment) takes a tokenno parameter.
+          (BuildBitLength) takes a tokenno parameter.
+          Many of the runtime checks passed to M2Range are modified
+          to take the tokenno parameter.
+	* gm2/gm2-compiler/M2Range.def:  (InitAssignmentRangeCheck)
+          takes a tokenno parameter.  (InitReturnRangeCheck)
+          takes a tokenno parameter.  (InitWholeNonPosDivCheck)
+          takes a tokenno parameter.  (InitWholeNonPosModCheck)
+          takes a tokenno parameter.  (InitWholeZeroDivisionCheck)
+          takes a tokenno parameter.  (InitWholeZeroRemainderCheck)
+          takes a tokenno parameter.  (InitTypesAssignmentCheck)
+          takes a tokenno parameter.  (InitTypesExpressionCheck)
+          takes a tokenno parameter.
+	* gm2/gm2-compiler/M2Range.mod::  (InitAssignmentRangeCheck)
+          takes a tokenno parameter.  (InitReturnRangeCheck)
+          takes a tokenno parameter.  (InitWholeNonPosDivCheck)
+          takes a tokenno parameter.  (InitWholeNonPosModCheck)
+          takes a tokenno parameter.  (InitWholeZeroDivisionCheck)
+          takes a tokenno parameter.  (InitWholeZeroRemainderCheck)
+          takes a tokenno parameter.  (InitTypesAssignmentCheck)
+          takes a tokenno parameter.  (InitTypesExpressionCheck)
+          takes a tokenno parameter.  (PutRange) takes an extra
+          tokenno parameter.  Propagate tokenno downto the range
+	  record.
+	* gm2/gm2-tools/M2Emit.mod:  (UnknownLocation) implemented.
+	  (BuiltinsLocation) implemented.
+
 2019-09-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/bnf/gm2l.bnf:  corrected boilerplate comments.

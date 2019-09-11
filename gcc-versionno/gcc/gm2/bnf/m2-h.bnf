@@ -79,7 +79,6 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
       	       	    BuildEmptySet, BuildInclRange, BuildInclBit,
                     BuildSetStart, BuildSetEnd,
                     BuildSizeCheckStart,
-                    BuildAssignment,
                     BuildRepeat, BuildUntil,
                     BuildWhile, BuildDoWhile, BuildEndWhile,
                     BuildLoop, BuildExit, BuildEndLoop,
@@ -619,8 +618,10 @@ Qualident :=                                                               % VAR
            =:
 
 ConstantDeclaration :=                                                     % PushAutoOn %
-                       ( Ident "="                                         % BuildConst %
-                         ConstExpression )                                 % BuildAssignment %
+                                                                           % VAR tokno: CARDINAL ; %
+                       ( Ident "="                                         % tokno := GetTokenNo () %
+                                                                           % BuildConst %
+                         ConstExpression )                                 % BuildAssignment (tokno) %
                                                                            % PopAuto %
                      =:
 

@@ -2187,14 +2187,14 @@ END divFloorOverflowCases ;
 
 
 (*
-   divFloorOverflowPosPos - precondition:  i, j are legal and are both >= 0.
-                            postcondition:  TRUE is returned if i divfloor will
+   divFloorOverflowPosPos - precondition:  lhs, rhs are legal and are both >= 0.
+                            postcondition:  TRUE is returned if lhs divfloor rhs will
                                             result in an overflow/underflow.
 *)
 
-PROCEDURE divFloorOverflowPosPos (i, j: INTEGER) : BOOLEAN ;
+PROCEDURE divFloorOverflowPosPos (lhs, rhs: INTEGER) : BOOLEAN ;
 BEGIN
-   RETURN i < j * minT
+   RETURN multMinOverflow (rhs) OR (lhs < rhs * min)   (* --fixme-- *)
 END divFloorOverflowPosPos ;
 
 
@@ -2387,7 +2387,7 @@ divFloorOverflowCases (location_t location, tree i, tree j, tree lowest,
 }
 
 
-/* checkWhileDivFloorOverflow check to see whether i DIV_FLOOR j will overflow
+/* checkWholeDivFloorOverflow check to see whether i DIV_FLOOR j will overflow
    an integer.  A handbuilt expression of trees implementing:
 
    RETURN ((j = 0) OR     (* division by zero.  *)

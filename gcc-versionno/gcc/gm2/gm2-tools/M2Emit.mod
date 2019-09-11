@@ -21,11 +21,15 @@ see <https://www.gnu.org/licenses/>.  *)
 
 IMPLEMENTATION MODULE M2Emit ;
 
-FROM ASCII IMPORT nul, nl ;
 FROM M2ColorString IMPORT filenameColor, endColor, errorColor, warningColor, noteColor,
                           range1Color, range2Color ;
-FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo, TokenToColumnNo, GetTokenNo ;
+
+FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo, TokenToColumnNo, GetTokenNo,
+                     UnknownTokenNo, BuiltinTokenNo;
+
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, ConCat, ConCatChar, Mark, string, KillString, Dup ;
+
+FROM ASCII IMPORT nul, nl ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM FIO IMPORT StdOut, WriteNBytes, Close, FlushBuffer ;
 FROM M2Printf IMPORT printf0, printf1, printf2 ;
@@ -35,6 +39,7 @@ IMPORT StdIO ;
 
 CONST
    Debugging  =  TRUE ;
+
 
 
 (*
@@ -136,6 +141,28 @@ BEGIN
               ConCat (Mark (InitString ('*** internal error *** ')),
                       Mark(InitString (message))))
 END InternalError ;
+
+
+(*
+   UnknownLocation - return the unknown location (using GCC linemap for cc1gm2)
+                     and constants for gm2l and gm2m.
+*)
+
+PROCEDURE UnknownLocation () : location_t ;
+BEGIN
+   RETURN UnknownTokenNo
+END UnknownLocation ;
+
+
+(*
+   BuiltinsLocation - return the builtins location (using GCC linemap for cc1gm2)
+                      and constants for gm2l and gm2m.
+*)
+
+PROCEDURE BuiltinsLocation () : location_t ;
+BEGIN
+   RETURN BuiltinTokenNo
+END BuiltinsLocation ;
 
 
 END M2Emit.

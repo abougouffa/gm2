@@ -43,7 +43,13 @@ EXPORT QUALIFIED OpenSource, CloseSource, ReInitialize, GetToken, InsertToken,
                  ResetForNewPass,
                  currenttoken, currentstring, currentinteger,
                  AddTok, AddTokCharStar, AddTokInteger,
-                 SetFile, PushFile, PopFile ;
+                 SetFile, PushFile, PopFile,
+                 PrintTokenNo,
+                 BuiltinTokenNo, UnknownTokenNo ;
+
+CONST
+   UnknownTokenNo = 0 ;
+   BuiltinTokenNo = 1 ;
 
 VAR
    currenttoken  : toktype ;
@@ -237,6 +243,13 @@ PROCEDURE PushFile (filename: ADDRESS) ;
 *)
 
 PROCEDURE PopFile (filename: ADDRESS) ;
+
+
+(*
+   PrintTokenNo - displays token and the location of the token.
+*)
+
+PROCEDURE PrintTokenNo (tokenno: CARDINAL) ;
 
 
 END M2LexBuf.

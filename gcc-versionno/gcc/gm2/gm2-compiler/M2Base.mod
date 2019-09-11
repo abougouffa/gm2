@@ -193,7 +193,6 @@ BEGIN
 END InitBuiltins ;
 
 
-
 (*
    InitBase - initializes the base types and procedures
               used in the Modula-2 compiler.

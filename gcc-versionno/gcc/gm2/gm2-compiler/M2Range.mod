@@ -65,7 +65,7 @@ FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3,
                         MetaErrorStringT1, MetaErrorStringT2, MetaErrorStringT3,
                         MetaString3 ;
 
-FROM M2LexBuf IMPORT GetTokenNo, FindFileNameFromToken, TokenToLineNo, TokenToColumnNo, TokenToLocation ;
+FROM M2LexBuf IMPORT UnknownTokenNo, GetTokenNo, FindFileNameFromToken, TokenToLineNo, TokenToColumnNo, TokenToLocation ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM M2GCCDeclare IMPORT TryDeclareConstant, DeclareConstructor ;
 FROM M2Quads IMPORT QuadOperator, PutQuad, SubQuad, WriteOperand ;
@@ -328,18 +328,34 @@ END FirstMention ;
               and returns, p.
 *)
 
-PROCEDURE PutRange (p: Range; t: TypeOfRange; d, e: CARDINAL) : Range ;
+PROCEDURE PutRange (tokno: CARDINAL; p: Range; t: TypeOfRange; d, e: CARDINAL) : Range ;
 BEGIN
    WITH p^ DO
       type           := t ;
       des            := d ;
       expr           := e ;
-      desLowestType  := GetLowestType(d) ;
-      exprLowestType := GetLowestType(e) ;
-      tokenNo        := GetTokenNo()
+      desLowestType  := GetLowestType (d) ;
+      exprLowestType := GetLowestType (e) ;
+      tokenNo        := tokno
    END ;
-   RETURN( p )
+   RETURN p
 END PutRange ;
+
+
+(*
+   chooseTokenPos - returns, tokenpos, if it is not the unknown location, otherwise
+                    it returns GetTokenNo.
+*)
+
+PROCEDURE chooseTokenPos (tokenpos: CARDINAL) : CARDINAL ;
+BEGIN
+   IF tokenpos = UnknownTokenNo
+   THEN
+      RETURN GetTokenNo ()
+   ELSE
+      RETURN tokenpos
+   END
+END chooseTokenPos ;
 
 
 (*
@@ -348,7 +364,7 @@ END PutRange ;
                    unknown at this point.
 *)
 
-PROCEDURE PutRangeNoLow (p: Range; t: TypeOfRange; d, e: CARDINAL) : Range ;
+PROCEDURE PutRangeNoLow (tokenpos: CARDINAL; p: Range; t: TypeOfRange; d, e: CARDINAL) : Range ;
 BEGIN
    WITH p^ DO
       type           := t ;
@@ -357,7 +373,7 @@ BEGIN
       desLowestType  := NulSym ;
       exprLowestType := NulSym ;
       isLeftValue    := FALSE ;
-      tokenNo        := GetTokenNo()
+      tokenpos       := chooseTokenPos (tokenpos)
    END ;
    RETURN( p )
 END PutRangeNoLow ;
@@ -395,9 +411,9 @@ PROCEDURE PutRangeNoEval (p: Range; t: TypeOfRange) : Range ;
 BEGIN
    WITH p^ DO
       type    := t ;
-      tokenNo := GetTokenNo()
+      tokenNo := GetTokenNo ()
    END ;
-   RETURN( p )
+   RETURN p
 END PutRangeNoEval ;
 
 
@@ -408,7 +424,7 @@ END PutRangeNoEval ;
               and returns, p.
 *)
 
-PROCEDURE PutRangeUnary (p: Range; t: TypeOfRange; d, e: CARDINAL) : Range ;
+PROCEDURE PutRangeUnary (tokno: CARDINAL; p: Range; t: TypeOfRange; d, e: CARDINAL) : Range ;
 BEGIN
    WITH p^ DO
       type           := t ;
@@ -417,7 +433,7 @@ BEGIN
       desLowestType  := GetLowestType(d) ;
       exprLowestType := NulSym ;
       isLeftValue    := FALSE ;
-      tokenNo        := GetTokenNo()
+      tokenNo        := chooseTokenPos (tokno)
    END ;
    RETURN( p )
 END PutRangeUnary ;
@@ -442,9 +458,9 @@ BEGIN
       procedure      := proc ;
       paramNo        := i ;
       isLeftValue    := FALSE ;
-      tokenNo        := GetTokenNo()
+      tokenNo        := GetTokenNo ()
    END ;
-   RETURN( p )
+   RETURN p
 END PutRangeParam ;
 
 
@@ -466,9 +482,9 @@ BEGIN
       desLowestType  := GetLowestType(d) ;
       exprLowestType := GetLowestType(e) ;
       dimension      := dim ;
-      tokenNo        := GetTokenNo()
+      tokenNo        := GetTokenNo ()
    END ;
-   RETURN( p )
+   RETURN p
 END PutRangeArraySubscript ;
 
 
@@ -479,14 +495,14 @@ END PutRangeArraySubscript ;
                               can be generated later on.
 *)
 
-PROCEDURE InitAssignmentRangeCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitAssignmentRangeCheck (tokno: CARDINAL; d, e: CARDINAL) : CARDINAL ;
 VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRange(GetIndice(RangeIndex, r), assignment, d, e) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRange (tokno, GetIndice (RangeIndex, r), assignment, d, e) ;
+   RETURN r
 END InitAssignmentRangeCheck ;
 
 
@@ -497,14 +513,14 @@ END InitAssignmentRangeCheck ;
                           from procedure, d, can be generated later on.
 *)
 
-PROCEDURE InitReturnRangeCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitReturnRangeCheck (tokno: CARDINAL; d, e: CARDINAL) : CARDINAL ;
 VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRange(GetIndice(RangeIndex, r), returnassignment, d, e) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRange (tokno, GetIndice (RangeIndex, r), returnassignment, d, e) ;
+   RETURN r
 END InitReturnRangeCheck ;
 
 
@@ -520,9 +536,9 @@ VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRange(GetIndice(RangeIndex, r), subrangeassignment, d, e) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRange (GetTokenNo (), GetIndice (RangeIndex, r), subrangeassignment, d, e) ;
+   RETURN r
 END InitSubrangeRangeCheck ;
 
 
@@ -538,9 +554,9 @@ VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRangeArraySubscript(GetIndice(RangeIndex, r), staticarraysubscript, d, e, dim) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRangeArraySubscript (GetIndice (RangeIndex, r), staticarraysubscript, d, e, dim) ;
+   RETURN r
 END InitStaticArraySubscriptRangeCheck ;
 
 
@@ -556,9 +572,9 @@ VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRangeArraySubscript(GetIndice(RangeIndex, r), dynamicarraysubscript, d, e, dim) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRangeArraySubscript (GetIndice (RangeIndex, r), dynamicarraysubscript, d, e, dim) ;
+   RETURN r
 END InitDynamicArraySubscriptRangeCheck ;
 
 
@@ -574,9 +590,9 @@ VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRange(GetIndice(RangeIndex, r), inc, d, e) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRange (GetTokenNo (), GetIndice (RangeIndex, r), inc, d, e) ;
+   RETURN r
 END InitIncRangeCheck ;
 
 
@@ -592,9 +608,9 @@ VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRange(GetIndice(RangeIndex, r), dec, d, e) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRange (GetTokenNo (), GetIndice (RangeIndex, r), dec, d, e) ;
+   RETURN r
 END InitDecRangeCheck ;
 
 
@@ -608,9 +624,9 @@ VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRangeNoLow(GetIndice(RangeIndex, r), incl, d, e) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRangeNoLow (GetTokenNo (), GetIndice (RangeIndex, r), incl, d, e) ;
+   RETURN r
 END InitInclCheck ;
 
 
@@ -624,9 +640,9 @@ VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRangeNoLow(GetIndice(RangeIndex, r), excl, d, e) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRangeNoLow (GetTokenNo (), GetIndice (RangeIndex, r), excl, d, e) ;
+   RETURN r
 END InitExclCheck ;
 
 
@@ -640,9 +656,9 @@ VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRangeNoLow(GetIndice(RangeIndex, r), shift, d, e) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRangeNoLow (GetTokenNo (), GetIndice (RangeIndex, r), shift, d, e) ;
+   RETURN r
 END InitShiftCheck ;
 
 
@@ -657,7 +673,7 @@ VAR
    r: CARDINAL ;
 BEGIN
    r := InitRange() ;
-   p := PutRangeNoLow(GetIndice(RangeIndex, r), rotate, d, e) ;
+   p := PutRangeNoLow(GetTokenNo (), GetIndice(RangeIndex, r), rotate, d, e) ;
    RETURN( r )
 END InitRotateCheck ;
 
@@ -667,14 +683,14 @@ END InitRotateCheck ;
                               are assignment compatible.
 *)
 
-PROCEDURE InitTypesAssignmentCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitTypesAssignmentCheck (tokno: CARDINAL; d, e: CARDINAL) : CARDINAL ;
 VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRangeNoLow(GetIndice(RangeIndex, r), typeassign, d, e) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRangeNoLow (tokno, GetIndice (RangeIndex, r), typeassign, d, e) ;
+   RETURN r
 END InitTypesAssignmentCheck ;
 
 
@@ -689,9 +705,9 @@ VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRangeParam(GetIndice(RangeIndex, r), typeparam, proc, i, formal, actual) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRangeParam (GetIndice (RangeIndex, r), typeparam, proc, i, formal, actual) ;
+   RETURN r
 END InitTypesParameterCheck ;
 
 
@@ -743,14 +759,14 @@ END InitParameterRangeCheck ;
                               are expression compatible.
 *)
 
-PROCEDURE InitTypesExpressionCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitTypesExpressionCheck (tokno: CARDINAL; d, e: CARDINAL) : CARDINAL ;
 VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
    r := InitRange() ;
-   p := PutRangeNoLow(GetIndice(RangeIndex, r), typeexpr, d, e) ;
-   RETURN( r )
+   p := PutRangeNoLow (tokno, GetIndice (RangeIndex, r), typeexpr, d, e) ;
+   RETURN r
 END InitTypesExpressionCheck ;
 
 
@@ -766,9 +782,9 @@ VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRange(GetIndice(RangeIndex, r), forloopbegin, d, e) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRange (GetTokenNo (), GetIndice (RangeIndex, r), forloopbegin, d, e) ;
+   RETURN r
 END InitForLoopBeginRangeCheck ;
 
 
@@ -784,9 +800,9 @@ VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRange(GetIndice(RangeIndex, r), forloopto, d, e) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRange (GetTokenNo(), GetIndice (RangeIndex, r), forloopto, d, e) ;
+   RETURN r
 END InitForLoopToRangeCheck ;
 
 
@@ -804,8 +820,8 @@ VAR
    r: CARDINAL ;
 BEGIN
    r := InitRange() ;
-   p := PutRange(GetIndice(RangeIndex, r), forloopend, d, e) ;
-   RETURN( r )
+   p := PutRange (GetTokenNo (), GetIndice (RangeIndex, r), forloopend, d, e) ;
+   RETURN r
 END InitForLoopEndRangeCheck ;
 
 
@@ -835,9 +851,9 @@ VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRangeNoEval(GetIndice(RangeIndex, r), noreturn) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRangeNoEval (GetIndice(RangeIndex, r), noreturn) ;
+   RETURN r
 END InitNoReturnRangeCheck ;
 
 
@@ -853,9 +869,9 @@ VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRangeNoEval(GetIndice(RangeIndex, r), noelse) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRangeNoEval (GetIndice (RangeIndex, r), noelse) ;
+   RETURN r
 END InitNoElseRangeCheck ;
 
 
@@ -864,14 +880,14 @@ END InitNoElseRangeCheck ;
                              or zero 2nd operand to division.
 *)
 
-PROCEDURE InitWholeNonPosDivCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitWholeNonPosDivCheck (tokno: CARDINAL; d, e: CARDINAL) : CARDINAL ;
 VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRangeUnary(GetIndice(RangeIndex, r), wholenonposdiv, d, e) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRangeUnary (tokno, GetIndice (RangeIndex, r), wholenonposdiv, d, e) ;
+   RETURN r
 END InitWholeNonPosDivCheck ;
 
 
@@ -880,14 +896,14 @@ END InitWholeNonPosDivCheck ;
                              or zero 2nd operand to modulus.
 *)
 
-PROCEDURE InitWholeNonPosModCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitWholeNonPosModCheck (tokno: CARDINAL; d, e: CARDINAL) : CARDINAL ;
 VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRangeUnary(GetIndice(RangeIndex, r), wholenonposmod, d, e) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRangeUnary (tokno, GetIndice (RangeIndex, r), wholenonposmod, d, e) ;
+   RETURN r
 END InitWholeNonPosModCheck ;
 
 
@@ -896,14 +912,14 @@ END InitWholeNonPosModCheck ;
                                 operand for division.
 *)
 
-PROCEDURE InitWholeZeroDivisionCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitWholeZeroDivisionCheck (tokno: CARDINAL; d, e: CARDINAL) : CARDINAL ;
 VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
-   r := InitRange() ;
-   p := PutRangeUnary(GetIndice(RangeIndex, r), wholezerodiv, d, e) ;
-   RETURN( r )
+   r := InitRange () ;
+   p := PutRangeUnary (tokno, GetIndice (RangeIndex, r), wholezerodiv, d, e) ;
+   RETURN r
 END InitWholeZeroDivisionCheck ;
 
 
@@ -912,14 +928,14 @@ END InitWholeZeroDivisionCheck ;
                                  operand for remainder.
 *)
 
-PROCEDURE InitWholeZeroRemainderCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitWholeZeroRemainderCheck (tokno: CARDINAL; d, e: CARDINAL) : CARDINAL ;
 VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
    r := InitRange() ;
-   p := PutRangeUnary(GetIndice(RangeIndex, r), wholezerorem, d, e) ;
-   RETURN( r )
+   p := PutRangeUnary (tokno, GetIndice (RangeIndex, r), wholezerorem, d, e) ;
+   RETURN r
 END InitWholeZeroRemainderCheck ;
 
 

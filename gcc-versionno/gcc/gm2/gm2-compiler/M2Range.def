@@ -87,7 +87,7 @@ EXPORT QUALIFIED InitAssignmentRangeCheck,
                               can be generated later on.
 *)
 
-PROCEDURE InitAssignmentRangeCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitAssignmentRangeCheck (tokno: CARDINAL; d, e: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -97,7 +97,7 @@ PROCEDURE InitAssignmentRangeCheck (d, e: CARDINAL) : CARDINAL ;
                            from procedure, d, can be generated later on.
 *)
 
-PROCEDURE InitReturnRangeCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitReturnRangeCheck (tokno: CARDINAL; d, e: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -213,7 +213,7 @@ PROCEDURE InitNoElseRangeCheck () : CARDINAL ;
                              or zero 2nd operand to division.
 *)
 
-PROCEDURE InitWholeNonPosDivCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitWholeNonPosDivCheck (tokno: CARDINAL; d, e: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -221,7 +221,7 @@ PROCEDURE InitWholeNonPosDivCheck (d, e: CARDINAL) : CARDINAL ;
                              or zero 2nd operand to modulus.
 *)
 
-PROCEDURE InitWholeNonPosModCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitWholeNonPosModCheck (tokno: CARDINAL; d, e: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -229,7 +229,7 @@ PROCEDURE InitWholeNonPosModCheck (d, e: CARDINAL) : CARDINAL ;
                                 operand for division.
 *)
 
-PROCEDURE InitWholeZeroDivisionCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitWholeZeroDivisionCheck (tokno: CARDINAL; d, e: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -237,7 +237,7 @@ PROCEDURE InitWholeZeroDivisionCheck (d, e: CARDINAL) : CARDINAL ;
                                  operand for remainder.
 *)
 
-PROCEDURE InitWholeZeroRemainderCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitWholeZeroRemainderCheck (tokno: CARDINAL; d, e: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -277,7 +277,7 @@ PROCEDURE InitRotateCheck (d, e: CARDINAL) : CARDINAL ;
                               are assignment compatible.
 *)
 
-PROCEDURE InitTypesAssignmentCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitTypesAssignmentCheck (tokno: CARDINAL; d, e: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -303,7 +303,7 @@ PROCEDURE InitParameterRangeCheck (proc: CARDINAL; i: CARDINAL;
                               are expression compatible.
 *)
 
-PROCEDURE InitTypesExpressionCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitTypesExpressionCheck (tokno: CARDINAL; d, e: CARDINAL) : CARDINAL ;
 
 
 (*

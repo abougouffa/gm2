@@ -21,6 +21,8 @@ see <https://www.gnu.org/licenses/>.  *)
 
 IMPLEMENTATION MODULE M2Emit ;
 
+IMPORT m2linemap ;
+
 FROM M2LexBuf IMPORT TokenToLocation ;
 FROM m2linemap IMPORT ErrorAtf, WarningAtf, NoteAtf, internal_error ;
 FROM DynamicStrings IMPORT string ;
@@ -53,6 +55,28 @@ PROCEDURE InternalError (file: ARRAY OF CHAR; line: CARDINAL; message: ARRAY OF 
 BEGIN
    internal_error (ADR (message))
 END InternalError ;
+
+
+(*
+   UnknownLocation - return the unknown location (using GCC linemap for cc1gm2)
+                     and constants for gm2l and gm2m.
+*)
+
+PROCEDURE UnknownLocation () : location_t ;
+BEGIN
+   RETURN m2linemap.UnknownLocation ()
+END UnknownLocation ;
+
+
+(*
+   BuiltinsLocation - return the builtins location (using GCC linemap for cc1gm2)
+                      and constants for gm2l and gm2m.
+*)
+
+PROCEDURE BuiltinsLocation () : location_t ;
+BEGIN
+   RETURN m2linemap.BuiltinsLocation ()
+END BuiltinsLocation ;
 
 
 END M2Emit.

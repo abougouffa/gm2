@@ -78,7 +78,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildUnaryOp,
                  RecordOp,
                  Top,
-                 PopTF, PushTF, PopT, PushT, PopNothing, PopN, PushTFA,
+                 PopTF, PushTF, PopT, PushT, PopNothing, PopN, PushTFA, PushTtok,
                  PushTFn, PopTFn,
                  OperandT, OperandF, OperandA, OperandAnno,
                  DisplayStack, WriteOperand, Annotate,
@@ -730,7 +730,7 @@ PROCEDURE BuildBuiltinTypeInfo ;
 
 *)
 
-PROCEDURE BuildAssignment ;
+PROCEDURE BuildAssignment (tokno: CARDINAL) ;
 
 
 (*
@@ -1602,7 +1602,7 @@ PROCEDURE BuildProcedureEnd ;
                  |------------|
 *)
 
-PROCEDURE BuildReturn ;
+PROCEDURE BuildReturn (tokno: CARDINAL) ;
 
 
 (*
@@ -2110,6 +2110,14 @@ PROCEDURE PushT (True: WORD) ;
 *)
 
 PROCEDURE PopT (VAR True: WORD) ;
+
+
+(*
+   PushTtok - Push an item onto the stack in the T (true) position,
+              it is assummed to be a token and its token location is recorded.
+*)
+
+PROCEDURE PushTtok (True: WORD; tokno: CARDINAL) ;
 
 
 (*

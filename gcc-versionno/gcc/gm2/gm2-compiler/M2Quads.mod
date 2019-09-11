@@ -126,10 +126,10 @@ FROM FifoQueue IMPORT GetConstFromFifoQueue,
 FROM M2Comp IMPORT CompilingImplementationModule,
                    CompilingProgramModule ;
 
-FROM M2LexBuf IMPORT currenttoken,
+FROM M2LexBuf IMPORT currenttoken, UnknownTokenNo,
                      GetToken,
                      GetFileName, TokenToLineNo, GetTokenName,
-                     GetTokenNo, GetLineNo, GetPreviousTokenLineNo ;
+                     GetTokenNo, GetLineNo, GetPreviousTokenLineNo, PrintTokenNo ;
 
 FROM M2Error IMPORT Error,
                     InternalError,
@@ -264,6 +264,7 @@ TYPE
                              ReadWrite : CARDINAL ;
                              name      : CARDINAL ;
                              Annotation: String ;
+                             tokenno   : CARDINAL ;
                           END ;
 
    QuadFrame = POINTER TO RECORD
@@ -2474,7 +2475,7 @@ VAR
 BEGIN
    old := MustNotCheckBounds ;
    MustNotCheckBounds := TRUE ;
-   doBuildAssignment(checkTypes, checkOverflow) ;
+   doBuildAssignment (checkTypes, checkOverflow, GetTokenNo ()) ;
    MustNotCheckBounds := old
 END BuildAssignmentWithoutBounds ;
 
@@ -2774,9 +2775,9 @@ END CheckBecomesMeta ;
                      q+2   XIndr      Designator  _  FALSE
 *)
 
-PROCEDURE BuildAssignment ;
+PROCEDURE BuildAssignment (tokno: CARDINAL) ;
 BEGIN
-   doBuildAssignment(TRUE, TRUE)
+   doBuildAssignment(TRUE, TRUE, tokno)
 END BuildAssignment ;
 
 
@@ -2786,7 +2787,7 @@ END BuildAssignment ;
                        checks the types are compatible.
 *)
 
-PROCEDURE doBuildAssignment (checkTypes, checkOverflow: BOOLEAN) ;
+PROCEDURE doBuildAssignment (checkTypes, checkOverflow: BOOLEAN; tokno: CARDINAL) ;
 VAR
    r, w,
    t, f,
@@ -2802,7 +2803,7 @@ BEGIN
       BackPatch(t, NextQuad) ;
       IF GetMode(Des)=RightValue
       THEN
-         GenQuadO(BecomesOp, Des, NulSym, True, checkOverflow)
+         GenQuadO(tokno, BecomesOp, Des, NulSym, True, checkOverflow)
       ELSE
          CheckPointerThroughNil(Des) ;
          GenQuad(XIndrOp, Des, Boolean, True)
@@ -2811,7 +2812,7 @@ BEGIN
       BackPatch(f, NextQuad) ;
       IF GetMode(Des)=RightValue
       THEN
-         GenQuadO(BecomesOp, Des, NulSym, False, checkOverflow)
+         GenQuadO(tokno, BecomesOp, Des, NulSym, False, checkOverflow)
       ELSE
          CheckPointerThroughNil(Des) ;
          GenQuad(XIndrOp, Des, Boolean, False)
@@ -2832,7 +2833,7 @@ BEGIN
       THEN
          (* tell code generator to test runtime values of assignment so ensure we
             catch overflow and underflow *)
-         BuildRange(InitAssignmentRangeCheck(Des, Exp))
+         BuildRange(InitAssignmentRangeCheck(tokno, Des, Exp))
       END ;
       IF checkTypes
       THEN
@@ -2847,7 +2848,7 @@ BEGIN
             (* we must do this after the assignment to allow the Designator to be
                resolved (if it is a constant) before the type checking is done *)
             (* prompt post pass 3 to check the assignment once all types are resolved *)
-            BuildRange(InitTypesAssignmentCheck(Des, Exp))
+            BuildRange(InitTypesAssignmentCheck(tokno, Des, Exp))
          END ;
          CheckAssignCompatible(Des, Exp)
       END
@@ -2936,10 +2937,10 @@ END CheckAssignCompatible ;
                     | Sym        |            | t   | f    |
                     |------------|            |------------|
 
-                        Quadruples
+                     Quadruples
 
-                        q   If=      Sym   True   _
-                        q+1 GotoOp   _     _      _
+                     q   If=      Sym   True   _
+                     q+1 GotoOp   _     _      _
 *)
 
 PROCEDURE CheckBooleanId ;
@@ -2980,7 +2981,7 @@ END CheckBooleanId ;
                             |---------------|       empty
 *)
 
-PROCEDURE BuildAlignment ;
+PROCEDURE BuildAlignment (tokno: CARDINAL) ;
 VAR
    name : Name ;
    expr,
@@ -2995,7 +2996,7 @@ BEGIN
    GetConstFromFifoQueue(align) ;
    PushT(align) ;
    PushT(expr) ;
-   BuildAssignment
+   BuildAssignment(tokno)
 END BuildAlignment ;
 
 
@@ -3014,7 +3015,7 @@ END BuildAlignment ;
                            |------------|          empty
 *)
 
-PROCEDURE BuildBitLength ;
+PROCEDURE BuildBitLength (tokno: CARDINAL) ;
 VAR
    expr,
    length: CARDINAL ;
@@ -3023,7 +3024,7 @@ BEGIN
    GetConstFromFifoQueue(length) ;
    PushT(length) ;
    PushT(expr) ;
-   BuildAssignment
+   BuildAssignment(tokno)
 END BuildBitLength ;
 
 
@@ -3057,7 +3058,7 @@ BEGIN
    GetConstFromFifoQueue(align) ;
    PushT(align) ;
    PushT(expr) ;
-   BuildAssignment
+   BuildAssignment (GetTokenNo ())
 END BuildDefaultFieldAlignment ;
 
 
@@ -3093,7 +3094,7 @@ BEGIN
       GetConstFromFifoQueue(const) ;
       PushT(const) ;
       PushT(expr) ;
-      BuildAssignment
+      BuildAssignment (GetTokenNo ())
    END
 END BuildPragmaField ;
 
@@ -3824,7 +3825,7 @@ BEGIN
          is counting down.  The above test will generate a more
          precise error message, so we suppress overflow detection
          here.  *)
-      GenQuadO(AddOp, tsym, tsym, BySym, FALSE) ;
+      GenQuadO(UnknownTokenNo, AddOp, tsym, tsym, BySym, FALSE) ;
       CheckPointerThroughNil(IdSym) ;
       GenQuad(XIndrOp, IdSym, GetSType(IdSym), tsym)
    ELSE
@@ -3835,7 +3836,7 @@ BEGIN
          is counting down.  The above test will generate a more
          precise error message, so we suppress overflow detection
          here.  *)
-      GenQuadO(AddOp, IdSym, IdSym, BySym, FALSE)
+      GenQuadO(UnknownTokenNo, AddOp, IdSym, IdSym, BySym, FALSE)
    END ;
    GenQuad(GotoOp, NulSym, NulSym, ForQuad) ;
    BackPatch(PopFor(), NextQuad) ;
@@ -7556,11 +7557,11 @@ BEGIN
 
          PushT(Res) ;
          PushT(False) ;
-         BuildAssignment ;
+         BuildAssignment (GetTokenNo ()) ;
          BuildElse ;
          PushT(Res) ;
          PushT(True) ;
-         BuildAssignment ;
+         BuildAssignment (GetTokenNo ()) ;
          BuildEndIf ;
 
          PushT(Res)
@@ -9803,7 +9804,7 @@ END CheckFunctionReturn ;
                      assignment compatible with actualType.
 *)
 
-PROCEDURE CheckReturnType (currentProc, actualVal, actualType: CARDINAL) ;
+PROCEDURE CheckReturnType (tokno: CARDINAL; currentProc, actualVal, actualType: CARDINAL) ;
 VAR
    procType: CARDINAL ;
    s1, s2  : String ;
@@ -9843,7 +9844,7 @@ BEGIN
                    n1, n2)
    ELSE
       (* this checks the types are compatible, not the data contents.  *)
-      BuildRange(InitTypesAssignmentCheck(currentProc, actualVal))
+      BuildRange(InitTypesAssignmentCheck(tokno, currentProc, actualVal))
    END
 END CheckReturnType ;
 
@@ -9862,7 +9863,7 @@ END CheckReturnType ;
                  |------------|
 *)
 
-PROCEDURE BuildReturn ;
+PROCEDURE BuildReturn (tokno: CARDINAL) ;
 VAR
    e2, t2,
    e1, t1,
@@ -9885,7 +9886,7 @@ BEGIN
    THEN
       (* this will check that the type returned is compatible with
          the formal return type of the procedure.  *)
-      CheckReturnType(CurrentProc, e1, t1) ;
+      CheckReturnType(tokno, CurrentProc, e1, t1) ;
       (* dereference LeftValue if necessary *)
       IF GetMode(e1)=LeftValue
       THEN
@@ -9895,11 +9896,11 @@ BEGIN
          CheckPointerThroughNil(e1) ;
          doIndrX(e2, e1) ;
 	 (* here we check the data contents to ensure no overflow.  *)
-         BuildRange(InitReturnRangeCheck(CurrentProc, e2)) ;
+         BuildRange(InitReturnRangeCheck(tokno, CurrentProc, e2)) ;
          GenQuad(ReturnValueOp, e2, NulSym, CurrentProc)
       ELSE
 	 (* here we check the data contents to ensure no overflow.  *)
-         BuildRange(InitReturnRangeCheck(CurrentProc, e1)) ;
+         BuildRange(InitReturnRangeCheck(tokno, CurrentProc, e1)) ;
          GenQuad(ReturnValueOp, e1, NulSym, CurrentProc)
       END
    END ;
@@ -10008,7 +10009,7 @@ BEGIN
          PutVar(t, Type) ;
          PushTF(t, GetSType(t)) ;
          PushT(Sym) ;
-         BuildAssignment ;
+         BuildAssignment (GetTokenNo ()) ;
          PushTFD(t, GetDType(t), d) ;
          PushT(e)
       END
@@ -11043,10 +11044,11 @@ END BuildComponentValue ;
 
 PROCEDURE RecordOp ;
 VAR
-   Op  : Name ;
-   t, f: CARDINAL ;
+   Op   : Name ;
+   tokno: CARDINAL ;
+   t, f : CARDINAL ;
 BEGIN
-   PopT(Op) ;
+   PopTtok(Op, tokno) ;
    IF (Op=AndTok) OR (Op=AmbersandTok)
    THEN
       CheckBooleanId ;
@@ -11060,7 +11062,7 @@ BEGIN
       BackPatch(f, NextQuad) ;
       PushBool(t, 0)
    END ;
-   PushT(Op)
+   PushTtok(Op, tokno)
 END RecordOp ;
 
 
@@ -11142,17 +11144,17 @@ END CheckForGenericNulSet ;
                     expressions.
 *)
 
-PROCEDURE CheckDivModRem (tok: Name; d, e: CARDINAL) ;
+PROCEDURE CheckDivModRem (TokPos: CARDINAL; tok: Name; d, e: CARDINAL) ;
 BEGIN
    IF tok=DivTok
    THEN
-      BuildRange(InitWholeZeroDivisionCheck(d, e))
+      BuildRange (InitWholeZeroDivisionCheck (TokPos, d, e))
    ELSIF tok=ModTok
    THEN
-      BuildRange(InitWholeZeroDivisionCheck(d, e))
+      BuildRange (InitWholeZeroDivisionCheck (TokPos, d, e))
    ELSIF tok=RemTok
    THEN
-      BuildRange(InitWholeZeroRemainderCheck(d, e))
+      BuildRange (InitWholeZeroRemainderCheck (TokPos, d, e))
    END
 END CheckDivModRem ;
 
@@ -11243,6 +11245,7 @@ VAR
    s     : String ;
    NewTok,
    Tok   : Name ;
+   TokPos,
    r1, r2,
    t1, f1,
    t2, f2,
@@ -11255,7 +11258,7 @@ BEGIN
    THEN
       CheckBooleanId ;
       PopBool(t1, f1) ;
-      PopT(Tok) ;
+      PopTtok(Tok, TokPos) ;
       PopBool(t2, f2) ;
       Assert(f2=0) ;
       PushBool(Merge(t1, t2), f1)
@@ -11263,13 +11266,13 @@ BEGIN
    THEN
       CheckBooleanId ;
       PopBool(t1, f1) ;
-      PopT(Tok) ;
+      PopTtok(Tok, TokPos) ;
       PopBool(t2, f2) ;
       Assert(t2=0) ;
       PushBool(t1, Merge(f1, f2))
    ELSE
       PopTFrw(e1, t1, r1) ;
-      PopT(Tok) ;
+      PopTtok(Tok, TokPos) ;
       PopTFrw(e2, t2, r2) ;
       MarkAsRead(r1) ;
       MarkAsRead(r2) ;
@@ -11318,13 +11321,13 @@ BEGIN
             CheckExpressionCompatible(t1, t2) ;
             IF CannotCheckTypeInPass3(e1) OR CannotCheckTypeInPass3(e2)
             THEN
-               BuildRange(InitTypesExpressionCheck(e1, e2))
+               BuildRange(InitTypesExpressionCheck(TokPos, e1, e2))
             END
          END ;
          t := MakeTemporaryFromExpressions(e1, e2, GetTokenNo(),
                                            AreConstant(IsConst(e1) AND IsConst(e2))) ;
-         CheckDivModRem(NewTok, t, e1) ;
-         GenQuadO(MakeOp(NewTok), t, e2, e1, checkOverflow)
+         CheckDivModRem(TokPos, NewTok, t, e1) ;
+         GenQuadO (TokPos, MakeOp(NewTok), t, e2, e1, checkOverflow)
       END ;
       PushTF(t, GetSType(t))
    END
@@ -11823,7 +11826,8 @@ END MakeOp ;
    GenQuadO - generate a quadruple with Operation, Op1, Op2, Op3, overflow.
 *)
 
-PROCEDURE GenQuadO (Operation: QuadOperator;
+PROCEDURE GenQuadO (TokPos: CARDINAL;
+                    Operation: QuadOperator;
                     Op1, Op2, Op3: CARDINAL; overflow: BOOLEAN) ;
 VAR
    f: QuadFrame ;
@@ -11833,22 +11837,27 @@ BEGIN
    THEN
       IF NextQuad#Head
       THEN
-         f := GetQF(NextQuad-1) ;
+         f := GetQF (NextQuad-1) ;
          f^.Next := NextQuad
       END ;
-      PutQuadO(NextQuad, Operation, Op1, Op2, Op3, overflow) ;
-      f := GetQF(NextQuad) ;
+      PutQuadO (NextQuad, Operation, Op1, Op2, Op3, overflow) ;
+      f := GetQF (NextQuad) ;
       WITH f^ DO
          Next := 0 ;
          LineNo := GetLineNo() ;
-         TokenNo := GetTokenNo()
+         IF TokPos = UnknownTokenNo
+         THEN
+            TokenNo := GetTokenNo ()
+         ELSE
+            TokenNo := TokPos
+         END
       END ;
       IF NextQuad=BreakAtQuad
       THEN
          stop
       END ;
       (* DisplayQuad(NextQuad) ; *)
-      NewQuad(NextQuad)
+      NewQuad (NextQuad)
    END
 END GenQuadO ;
 
@@ -11860,7 +11869,7 @@ END GenQuadO ;
 PROCEDURE GenQuad (Operation: QuadOperator;
                    Op1, Op2, Op3: CARDINAL) ;
 BEGIN
-   GenQuadO(Operation, Op1, Op2, Op3, TRUE)
+   GenQuadO (UnknownTokenNo, Operation, Op1, Op2, Op3, TRUE)
 END GenQuad ;
 
 
@@ -13017,16 +13026,11 @@ PROCEDURE PushTFA (True, False, Array: WORD) ;
 VAR
    f: BoolFrame ;
 BEGIN
-   NEW(f) ;
+   f := newBoolFrame () ;
    WITH f^ DO
       TrueExit := True ;
       FalseExit := False ;
-      Unbounded := Array ;
-      BooleanOp := FALSE ;
-      Dimension := 0 ;
-      ReadWrite := NulSym ;
-      name      := NulSym ;
-      Annotation := NIL
+      Unbounded := Array
    END ;
    PushAddress(BoolStack, f)
 END PushTFA ;
@@ -13042,16 +13046,12 @@ PROCEDURE PushTFAD (True, False, Array, Dim: WORD) ;
 VAR
    f: BoolFrame ;
 BEGIN
-   NEW(f) ;
+   f := newBoolFrame () ;
    WITH f^ DO
       TrueExit := True ;
       FalseExit := False ;
       Unbounded := Array ;
-      BooleanOp := FALSE ;
-      Dimension := Dim ;
-      ReadWrite := NulSym ;
-      name      := NulSym ;
-      Annotation := NIL
+      Dimension := Dim
    END ;
    PushAddress(BoolStack, f)
 END PushTFAD ;
@@ -13067,16 +13067,13 @@ PROCEDURE PushTFADrw (True, False, Array, Dim, rw: WORD) ;
 VAR
    f: BoolFrame ;
 BEGIN
-   NEW(f) ;
+   f := newBoolFrame () ;
    WITH f^ DO
       TrueExit := True ;
       FalseExit := False ;
       Unbounded := Array ;
-      BooleanOp := FALSE ;
       Dimension := Dim ;
-      ReadWrite := rw ;
-      name      := NulSym ;
-      Annotation := NIL
+      ReadWrite := rw
    END ;
    PushAddress(BoolStack, f)
 END PushTFADrw ;
@@ -13092,16 +13089,11 @@ PROCEDURE PushTFD (True, False, Dim: WORD) ;
 VAR
    f: BoolFrame ;
 BEGIN
-   NEW(f) ;
+   f := newBoolFrame () ;
    WITH f^ DO
       TrueExit := True ;
       FalseExit := False ;
-      Unbounded := NulSym ;
-      BooleanOp := FALSE ;
-      Dimension := Dim ;
-      ReadWrite := NulSym ;
-      name      := NulSym ;
-      Annotation := NIL
+      Dimension := Dim
    END ;
    PushAddress(BoolStack, f)
 END PushTFD ;
@@ -13137,16 +13129,12 @@ PROCEDURE PushTFDrw (True, False, Dim, rw: WORD) ;
 VAR
    f: BoolFrame ;
 BEGIN
-   NEW(f) ;
+   f := newBoolFrame () ;
    WITH f^ DO
       TrueExit := True ;
       FalseExit := False ;
-      Unbounded := NulSym ;
-      BooleanOp := FALSE ;
       Dimension := Dim ;
-      ReadWrite := rw ;
-      name      := NulSym ;
-      Annotation := NIL
+      ReadWrite := rw
    END ;
    PushAddress(BoolStack, f)
 END PushTFDrw ;
@@ -13163,16 +13151,11 @@ PROCEDURE PushTFrw (True, False: WORD; rw: CARDINAL) ;
 VAR
    f: BoolFrame ;
 BEGIN
-   NEW(f) ;
+   f := newBoolFrame () ;
    WITH f^ DO
       TrueExit := True ;
       FalseExit := False ;
-      Unbounded := NulSym ;
-      BooleanOp := FALSE ;
-      Dimension := 0 ;
-      ReadWrite := rw ;
-      name      := NulSym ;
-      Annotation := NIL
+      ReadWrite := rw
    END ;
    PushAddress(BoolStack, f)
 END PushTFrw ;
@@ -13207,16 +13190,10 @@ PROCEDURE PushTF (True, False: WORD) ;
 VAR
    f: BoolFrame ;
 BEGIN
-   NEW(f) ;
+   f := newBoolFrame () ;
    WITH f^ DO
       TrueExit := True ;
-      FalseExit := False ;
-      Unbounded := NulSym ;
-      BooleanOp := FALSE ;
-      Dimension := 0 ;
-      ReadWrite := NulSym ;
-      name      := NulSym ;
-      Annotation := NIL
+      FalseExit := False
    END ;
    PushAddress(BoolStack, f)
 END PushTF ;
@@ -13242,30 +13219,66 @@ END PopTF ;
 
 
 (*
-   PushT - Push an item onto the True/False stack. The False value will be zero.
+   newBoolFrame - creates a new BoolFrame with all fields initialised to their defaults.
+*)
+
+PROCEDURE newBoolFrame () : BoolFrame ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   NEW(f) ;
+   WITH f^ DO
+      TrueExit   := 0 ;
+      FalseExit  := 0 ;
+      Unbounded  := NulSym ;
+      BooleanOp  := FALSE ;
+      Dimension  := 0 ;
+      ReadWrite  := NulSym ;
+      name       := NulSym ;
+      Annotation := NIL ;
+      tokenno    := UnknownTokenNo
+   END ;
+   RETURN f
+END newBoolFrame ;
+
+
+(*
+   PushTtok - Push an item onto the stack in the T (true) position,
+              it is assummed to be a token and its token location is recorded.
+*)
+
+PROCEDURE PushTtok (True: WORD; tokno: CARDINAL) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   (* PrintTokenNo (tokno) ; *)
+   f := newBoolFrame () ;
+   WITH f^ DO
+      TrueExit := True ;
+      tokenno := tokno
+   END ;
+   PushAddress (BoolStack, f)
+END PushTtok ;
+
+
+(*
+   PushT - Push an item onto the stack in the T (true) position.
 *)
 
 PROCEDURE PushT (True: WORD) ;
 VAR
    f: BoolFrame ;
 BEGIN
-   NEW(f) ;
+   f := newBoolFrame () ;
    WITH f^ DO
-      TrueExit := True ;
-      FalseExit := 0 ;
-      Unbounded := NulSym ;
-      BooleanOp := FALSE ;
-      Dimension := 0 ;
-      ReadWrite := NulSym ;
-      name      := NulSym ;
-      Annotation := NIL
+      TrueExit := True
    END ;
    PushAddress(BoolStack, f)
 END PushT ;
 
 
 (*
-   PopT - Pops an item from the True/False stack. The False value is ignored.
+   PopT - Pops the T value from the stack.
 *)
 
 PROCEDURE PopT (VAR True: WORD) ;
@@ -13282,6 +13295,24 @@ END PopT ;
 
 
 (*
+   PopTtok - Pops the T value from the stack and token position.
+*)
+
+PROCEDURE PopTtok (VAR True: WORD; VAR tok: CARDINAL) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   f := PopAddress(BoolStack) ;
+   WITH f^ DO
+      True := TrueExit ;
+      tok := tokenno ;
+      Assert(NOT BooleanOp)
+   END ;
+   DISPOSE(f)
+END PopTtok ;
+
+
+(*
    PushTrw - Push an item onto the True/False stack. The False value will be zero.
 *)
 
@@ -13289,16 +13320,10 @@ PROCEDURE PushTrw (True: WORD; rw: WORD) ;
 VAR
    f: BoolFrame ;
 BEGIN
-   NEW(f) ;
+   f := newBoolFrame () ;
    WITH f^ DO
       TrueExit := True ;
-      FalseExit := 0 ;
-      Unbounded := NulSym ;
-      BooleanOp := FALSE ;
-      Dimension := 0 ;
-      ReadWrite := rw ;
-      name      := NulSym ;
-      Annotation := NIL
+      ReadWrite := rw
    END ;
    PushAddress(BoolStack, f)
 END PushTrw ;
@@ -13331,16 +13356,11 @@ PROCEDURE PushTFn (True, False, n: WORD) ;
 VAR
    f: BoolFrame ;
 BEGIN
-   NEW(f) ;
+   f := newBoolFrame () ;
    WITH f^ DO
       TrueExit  := True ;
       FalseExit := False ;
-      Unbounded := NulSym ;
-      BooleanOp := FALSE ;
-      Dimension := 0 ;
-      ReadWrite := NulSym ;
-      name      := n ;
-      Annotation := NIL
+      name      := n
    END ;
    PushAddress(BoolStack, f)
 END PushTFn ;
