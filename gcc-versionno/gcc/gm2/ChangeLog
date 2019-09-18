@@ -5,6 +5,9 @@
           (divCeilOverflowPosPos) short circuit some of the
           tests given the range.
 	* gm2/plugin/m2rte.c:  improved comment in initializer.
+	* gm2/gm2-libs/FIO.mod:  bugfix via valgrind, off by one
+          error corrected.
+	* (mc) regenerated.
 
 2019-09-11      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

@@ -1478,12 +1478,12 @@ unsigned int FIO_ReadNBytes (FIO_File f, unsigned int nBytes, void * a)
     {
       CheckAccess (f, (FileUsage) openedforread, FALSE);
       n = ReadFromBuffer (f, a, nBytes);
-      if (n < 0)
+      if (n <= 0)
         return 0;
       else
         {
           p = a;
-          p += n;
+          p += n-1;
           SetEndOfLine (f, (*p));
           return n;
         }

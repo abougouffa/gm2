@@ -630,21 +630,21 @@ VAR
    n: INTEGER ;
    p: POINTER TO CHAR ;
 BEGIN
-   IF f#Error
+   IF f # Error
    THEN
-      CheckAccess(f, openedforread, FALSE) ;
-      n := ReadFromBuffer(f, a, nBytes) ;
-      IF n<0
+      CheckAccess (f, openedforread, FALSE) ;
+      n := ReadFromBuffer (f, a, nBytes) ;
+      IF n <= 0
       THEN
-         RETURN( 0 )
+         RETURN 0
       ELSE
          p := a ;
-         INC(p, n) ;
-         SetEndOfLine(f, p^) ;
-         RETURN( n )
+         INC (p, n-1) ;
+         SetEndOfLine (f, p^) ;
+         RETURN n
       END
    ELSE
-      RETURN( 0 )
+      RETURN 0
    END
 END ReadNBytes ;
 
