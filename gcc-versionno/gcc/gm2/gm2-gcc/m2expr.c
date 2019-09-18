@@ -1263,16 +1263,16 @@ PROCEDURE sneg (i: type) ;
 BEGIN
    max := MAX (type) ;
    min := MIN (type) ;
+   (* cannot overflow if i is 0 *)
    IF (i#0) AND
-     (* cannot overflow if i is 0 *) (((min >= 0) AND (max >= 0)) OR
      (* will overflow if entire range is positive.  *)
-     ((min <= 0) AND (max <= 0)) OR
-     (* will overflow if entire range is negative.  *)
-     ((min < 0) AND (max > 0) AND ((min + max) > 0) AND (i > -min)) OR
-     (* c7 and c8 and c9 and c10 -> c17 more units positive.  *)
-     ((min < 0) AND (max > 0) AND ((min + max) < 0) AND
-     (i < -max))
-     (* c11 and c12 and c13 and c14 -> c18 more units negative.  *) )
+     ((min >= 0) OR
+      (* will overflow if entire range is negative.  *)
+      (max <= 0) OR
+      (* c7 and c8 and c9 and c10 -> c17 more units positive.  *)
+      ((min < 0) AND (max > 0) AND ((min + max) > 0) AND (i > -min)) OR
+      (* c11 and c12 and c13 and c14 -> c18 more units negative.  *)
+      ((min < 0) AND (max > 0) AND ((min + max) < 0) AND (i < -max)))
    THEN
       'type overflow'
    END
@@ -1713,16 +1713,20 @@ BEGIN
 END divCeilOverflowPosNeg ;
 #endif
 
-/* divCeilOverflowPosPos, precondition:  i, j are legal and are both >= 0.
-   Postcondition:  TRUE is returned if i divceil will result in an overflow/underflow.
+/* divCeilOverflowPosPos, precondition:  lhs, rhs are legal and are both >= 0.
+   Postcondition:  TRUE is returned if lhs divceil rhs will result
+   in an overflow/underflow.
 
    A handbuilt expression of trees implementing:
 
-   RETURN (((i MOD j = 0) AND (i < j * minT)) OR
-           (((i MOD j # 0) AND (i < j * minT + 1))))
+   RETURN (((lhs MOD rhs = 0) AND (min >= 0) AND (lhs < rhs * min)) OR       (* check for underflow, no remainder.   *)
+                                                  lhs_lt_rhs_mult_min
+           (((lhs MOD rhs # 0) AND (lhs < rhs * min + 1))))   (* check for underflow with remainder.  *)
+                                   ((lhs > min) AND (lhs - 1 > rhs * min))
+                                                  lhs_gt_rhs_mult_min
 
-   a -> (i MOD j = 0) AND (i < j * minT)
-   b -> (i MOD j # 0) AND (i < j * minT + 1)
+   a -> (lhs MOD rhs = 0) AND (lhs < rhs * min)
+   b -> (lhs MOD rhs # 0) AND (lhs < rhs * min + 1)
    RETURN a OR b.  */
 
 static tree
@@ -1748,8 +1752,8 @@ divCeilOverflowPosPos (location_t location, tree i, tree j, tree lowest,
 
    A handbuilt expression of trees implementing:
 
-   RETURN (((i MOD ABS (j) = 0) AND (i > j * min)) OR
-           ((i MOD ABS (j) # 0) AND (i > j * min - 1)))
+   RETURN (((i MOD ABS (j) = 0) AND (i > j * min)) OR          --fixme--
+           ((i MOD ABS (j) # 0) AND (i > j * min - 1)))        --fixme--
 
    abs_j -> (ABS (j))
    i_mod_abs_j -> (i MOD abs_j)
@@ -1787,8 +1791,8 @@ divCeilOverflowPosNeg (location_t location, tree i, tree j, tree lowest, tree mi
 
    A handbuilt expression of trees implementing:
 
-   RETURN (((ABS (i) MOD j = 0) AND (i < j * min)) OR
-           ((ABS (i) MOD j # 0) AND (i < j * min - 1)))
+   RETURN (((ABS (i) MOD j = 0) AND (i < j * min)) OR          --fixme--
+           ((ABS (i) MOD j # 0) AND (i < j * min - 1)))        --fixme--
 
    abs_i -> (ABS (i))
    abs_i_mod_j -> (abs_i MOD j)
@@ -1828,8 +1832,8 @@ divCeilOverflowNegPos (location_t location, tree i, tree j, tree lowest, tree mi
 
    RETURN ((max <= 0) OR           (* signs will cause overflow.  *)
            (* check for underflow.  *)
-           ((ABS (i) MOD ABS (j) = 0) AND (i >= j * min)) OR
-           ((ABS (i) MOD ABS (j) # 0) AND (i >= j * min - 1)) OR
+           ((ABS (i) MOD ABS (j) = 0) AND (i >= j * min)) OR               --fixme--
+           ((ABS (i) MOD ABS (j) # 0) AND (i >= j * min - 1)) OR           --fixme--
            (* check for overflow.  *)
            (((ABS (i) MOD max) = 0) AND (ABS (i) DIV max > ABS (j))) OR
            (((ABS (i) MOD max) # 0) AND (ABS (i) DIV max > ABS (j) + 1)))

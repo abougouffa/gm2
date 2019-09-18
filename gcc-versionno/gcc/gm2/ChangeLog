@@ -1,3 +1,11 @@
+2019-09-18      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-gcc/m2expr.c:  (divCeilOverflowPosNeg)
+          short circuit some of the tests given the range.
+          (divCeilOverflowPosPos) short circuit some of the
+          tests given the range.
+	* gm2/plugin/m2rte.c:  improved comment in initializer.
+
 2019-09-11      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/bnf/m2-3.bnf:  modified so that BuildAssignment

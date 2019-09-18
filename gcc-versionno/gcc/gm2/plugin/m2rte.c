@@ -302,7 +302,7 @@ plugin_init (struct plugin_name_args *plugin_info,
     }
 
   /* runtime exception inevitable detection.  This plugin is most effective if
-     it is run after after all optimizations.  This is plugged in at the end of
+     it is run after all optimizations.  This is plugged in at the end of
      gimple range of optimizations.  */
   pass_info.pass = make_pass_warn_exception_inevitable (g);
   pass_info.reference_pass_name = "*warn_function_noreturn";
