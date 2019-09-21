@@ -252,7 +252,7 @@ void Indexing_PutIndice (Indexing_Index i, unsigned int n, void * a)
       else
         {
           oldSize = i->ArraySize;
-          while (((n-i->Low)*(sizeof (void *))) >= i->ArraySize)
+          while (((n-i->Low)*sizeof (void *)) >= i->ArraySize)
             i->ArraySize = i->ArraySize*2;
           if (oldSize != i->ArraySize)
             {
@@ -274,7 +274,7 @@ void Indexing_PutIndice (Indexing_Index i, unsigned int n, void * a)
         }
     }
   b = i->ArrayStart;
-  b += (n-i->Low)*(sizeof (void *));
+  b += (n-i->Low)*sizeof (void *);
   p = b;
   (*p) = a;
   i->Used += 1;
@@ -296,7 +296,7 @@ void * Indexing_GetIndice (Indexing_Index i, unsigned int n)
   if (! (Indexing_InBounds (i, n)))
     M2RTS_HALT (-1);
   b = i->ArrayStart;
-  b += (n-i->Low)*(sizeof (void *));
+  b += (n-i->Low)*sizeof (void *);
   p = (PtrToAddress) (b);
   if (i->Debug)
     if (((n < 32) && (! ((((1 << (n)) & (i->Map)) != 0)))) && ((*p) != NULL))
@@ -366,10 +366,10 @@ void Indexing_DeleteIndice (Indexing_Index i, unsigned int j)
   if (Indexing_InBounds (i, j))
     {
       b = i->ArrayStart;
-      b += (sizeof (void *))*(j-i->Low);
+      b += sizeof (void *)*(j-i->Low);
       p = (PtrToAddress) (b);
       b += sizeof (void *);
-      p = libc_memmove ((void *) p, (void *) b, (size_t) (i->High-j)*(sizeof (void *)));
+      p = libc_memmove ((void *) p, (void *) b, (size_t) (i->High-j)*sizeof (void *));
       i->High -= 1;
       i->Used -= 1;
     }

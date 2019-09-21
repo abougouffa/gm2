@@ -1505,7 +1505,7 @@ BOOTGM2VERSION=4.7.4
 PGE=${HOME}/GM2/graft-${BOOTGM2VERSION}/build-${BOOTGM2VERSION}/gcc/gm2/pge
 BOOTGM2=gm2
 
-MCOPTIONS=-g -c -fsources -fcpp -fsoft-check-all
+MCOPTIONS=-g -c -fsources -fcpp -fsoft-check-all -fm2-g
 MCLINK=-g -fmodules -c
 MCLINK=-g
 GM2SYS=/opt/gm2/lib/gcc/x86_64-linux-gnu/4.7.4/m2/pim

@@ -3581,7 +3581,7 @@ static void SyntaxError (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
       token declarations below would cause this to break. Using ORD() we are
       immune from such changes
   */
-  while (! ((((((unsigned int) (mcLexBuf_currenttoken)) < 32) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & (stopset0)) != 0))) || (((((unsigned int) (mcLexBuf_currenttoken)) >= 32) && (((unsigned int) (mcLexBuf_currenttoken)) < 64)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & (stopset1)) != 0)))) || ((((unsigned int) (mcLexBuf_currenttoken)) >= 64) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & (stopset2)) != 0)))))
+  while (! (((( ((unsigned int) (mcLexBuf_currenttoken)) < 32) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & (stopset0)) != 0))) || ((( ((unsigned int) (mcLexBuf_currenttoken)) >= 32) && ( ((unsigned int) (mcLexBuf_currenttoken)) < 64)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & (stopset1)) != 0)))) || (( ((unsigned int) (mcLexBuf_currenttoken)) >= 64) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & (stopset2)) != 0)))))
     mcLexBuf_getToken ();
   if (Debugging)
     mcPrintf_printf0 ((char *) " ***\\n", 6);
@@ -3596,7 +3596,7 @@ static void SyntaxCheck (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 st
 {
   /* and again (see above re: ORD)
   */
-  if (! ((((((unsigned int) (mcLexBuf_currenttoken)) < 32) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & (stopset0)) != 0))) || (((((unsigned int) (mcLexBuf_currenttoken)) >= 32) && (((unsigned int) (mcLexBuf_currenttoken)) < 64)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & (stopset1)) != 0)))) || ((((unsigned int) (mcLexBuf_currenttoken)) >= 64) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & (stopset2)) != 0)))))
+  if (! (((( ((unsigned int) (mcLexBuf_currenttoken)) < 32) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & (stopset0)) != 0))) || ((( ((unsigned int) (mcLexBuf_currenttoken)) >= 32) && ( ((unsigned int) (mcLexBuf_currenttoken)) < 64)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & (stopset1)) != 0)))) || (( ((unsigned int) (mcLexBuf_currenttoken)) >= 64) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & (stopset2)) != 0)))))
     SyntaxError (stopset0, stopset1, stopset2);
 }
 
@@ -3615,9 +3615,9 @@ static void WarnMissingToken (mcReserved_toktype t)
   s0 = (SetOfStop0) 0;
   s1 = (SetOfStop1) 0;
   s2 = (SetOfStop2) 0;
-  if (((unsigned int) (t)) < 32)
+  if ( ((unsigned int) (t)) < 32)
     s0 = (SetOfStop0) ((1 << (t-mcReserved_eoftok)));
-  else if (((unsigned int) (t)) < 64)
+  else if ( ((unsigned int) (t)) < 64)
     s1 = (SetOfStop1) ((1 << (t-mcReserved_arraytok)));
   else
     s2 = (SetOfStop2) ((1 << (t-mcReserved_recordtok)));
@@ -3649,7 +3649,7 @@ static void MissingToken (mcReserved_toktype t)
 
 static unsigned int CheckAndInsert (mcReserved_toktype t, SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
-  if ((((((unsigned int) (t)) < 32) && ((((1 << (t-mcReserved_eoftok)) & (stopset0)) != 0))) || (((((unsigned int) (t)) >= 32) && (((unsigned int) (t)) < 64)) && ((((1 << (t-mcReserved_arraytok)) & (stopset1)) != 0)))) || ((((unsigned int) (t)) >= 64) && ((((1 << (t-mcReserved_recordtok)) & (stopset2)) != 0))))
+  if (((( ((unsigned int) (t)) < 32) && ((((1 << (t-mcReserved_eoftok)) & (stopset0)) != 0))) || ((( ((unsigned int) (t)) >= 32) && ( ((unsigned int) (t)) < 64)) && ((((1 << (t-mcReserved_arraytok)) & (stopset1)) != 0)))) || (( ((unsigned int) (t)) >= 64) && ((((1 << (t-mcReserved_recordtok)) & (stopset2)) != 0))))
     {
       WarnMissingToken (t);
       mcLexBuf_insertTokenAndRewind (t);
@@ -3666,7 +3666,7 @@ static unsigned int CheckAndInsert (mcReserved_toktype t, SetOfStop0 stopset0, S
 
 static unsigned int InStopSet (mcReserved_toktype t, SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stopset2)
 {
-  if ((((((unsigned int) (t)) < 32) && ((((1 << (t-mcReserved_eoftok)) & (stopset0)) != 0))) || (((((unsigned int) (t)) >= 32) && (((unsigned int) (t)) < 64)) && ((((1 << (t-mcReserved_arraytok)) & (stopset1)) != 0)))) || ((((unsigned int) (t)) >= 64) && ((((1 << (t-mcReserved_recordtok)) & (stopset2)) != 0))))
+  if (((( ((unsigned int) (t)) < 32) && ((((1 << (t-mcReserved_eoftok)) & (stopset0)) != 0))) || ((( ((unsigned int) (t)) >= 32) && ( ((unsigned int) (t)) < 64)) && ((((1 << (t-mcReserved_arraytok)) & (stopset1)) != 0)))) || (( ((unsigned int) (t)) >= 64) && ((((1 << (t-mcReserved_recordtok)) & (stopset2)) != 0))))
     return TRUE;
   else
     return FALSE;
@@ -3685,7 +3685,7 @@ static void PeepToken (SetOfStop0 stopset0, SetOfStop1 stopset1, SetOfStop2 stop
 {
   /* and again (see above re: ORD)
   */
-  if ((! ((((((unsigned int) (mcLexBuf_currenttoken)) < 32) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & (stopset0)) != 0))) || (((((unsigned int) (mcLexBuf_currenttoken)) >= 32) && (((unsigned int) (mcLexBuf_currenttoken)) < 64)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & (stopset1)) != 0)))) || ((((unsigned int) (mcLexBuf_currenttoken)) >= 64) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & (stopset2)) != 0))))) && (! (InStopSet ((mcReserved_toktype) mcReserved_identtok, stopset0, stopset1, stopset2))))
+  if ((! (((( ((unsigned int) (mcLexBuf_currenttoken)) < 32) && ((((1 << (mcLexBuf_currenttoken-mcReserved_eoftok)) & (stopset0)) != 0))) || ((( ((unsigned int) (mcLexBuf_currenttoken)) >= 32) && ( ((unsigned int) (mcLexBuf_currenttoken)) < 64)) && ((((1 << (mcLexBuf_currenttoken-mcReserved_arraytok)) & (stopset1)) != 0)))) || (( ((unsigned int) (mcLexBuf_currenttoken)) >= 64) && ((((1 << (mcLexBuf_currenttoken-mcReserved_recordtok)) & (stopset2)) != 0))))) && (! (InStopSet ((mcReserved_toktype) mcReserved_identtok, stopset0, stopset1, stopset2))))
     /* SyntaxCheck would fail since currentoken is not part of the stopset
          we check to see whether any of currenttoken might be a commonly omitted token  */
     if ((((((((CheckAndInsert ((mcReserved_toktype) mcReserved_semicolontok, stopset0, stopset1, stopset2)) || (CheckAndInsert ((mcReserved_toktype) mcReserved_rsbratok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_rparatok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_rcbratok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_periodtok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_oftok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_endtok, stopset0, stopset1, stopset2))) || (CheckAndInsert ((mcReserved_toktype) mcReserved_commatok, stopset0, stopset1, stopset2)))

@@ -45,7 +45,7 @@ M2EXCEPTION_M2Exceptions M2EXCEPTION_M2Exception (void)
   e = RTExceptions_GetExceptionBlock ();
   n = RTExceptions_GetNumber (e);
   if (n == (UINT_MAX))
-    RTExceptions_Raise ((unsigned int) (M2EXCEPTION_exException), "../../gcc-versionno/gcc/gm2/gm2-libs/M2EXCEPTION.mod", 39, 6, "M2Exception", "current coroutine is not in the exceptional execution state");
+    RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_exException)), "../../gcc-versionno/gcc/gm2/gm2-libs/M2EXCEPTION.mod", 39, 6, "M2Exception", "current coroutine is not in the exceptional execution state");
   else
     return (M2EXCEPTION_M2Exceptions) (n);
   ReturnException ("../../gcc-versionno/gcc/gm2/gm2-libs/M2EXCEPTION.def", 8, 1);

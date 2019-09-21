@@ -399,122 +399,122 @@ void M2RTS_AssignmentException (void * filename, unsigned int line, unsigned int
   /* 
    The following are the runtime exception handler routines.
   */
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_rangeException)), filename, line, column, scope, message);
 }
 
 void M2RTS_ReturnException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_rangeException)), filename, line, column, scope, message);
 }
 
 void M2RTS_IncException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_rangeException)), filename, line, column, scope, message);
 }
 
 void M2RTS_DecException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_rangeException)), filename, line, column, scope, message);
 }
 
 void M2RTS_InclException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_rangeException)), filename, line, column, scope, message);
 }
 
 void M2RTS_ExclException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_rangeException)), filename, line, column, scope, message);
 }
 
 void M2RTS_ShiftException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_rangeException)), filename, line, column, scope, message);
 }
 
 void M2RTS_RotateException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_rangeException)), filename, line, column, scope, message);
 }
 
 void M2RTS_StaticArraySubscriptException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_indexException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_indexException)), filename, line, column, scope, message);
 }
 
 void M2RTS_DynamicArraySubscriptException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_indexException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_indexException)), filename, line, column, scope, message);
 }
 
 void M2RTS_ForLoopBeginException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_rangeException)), filename, line, column, scope, message);
 }
 
 void M2RTS_ForLoopToException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_rangeException)), filename, line, column, scope, message);
 }
 
 void M2RTS_ForLoopEndException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_rangeException)), filename, line, column, scope, message);
 }
 
 void M2RTS_PointerNilException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_invalidLocation), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_invalidLocation)), filename, line, column, scope, message);
 }
 
 void M2RTS_NoReturnException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_functionException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_functionException)), filename, line, column, scope, message);
 }
 
 void M2RTS_CaseException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_caseSelectException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_caseSelectException)), filename, line, column, scope, message);
 }
 
 void M2RTS_WholeNonPosDivException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeDivException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_wholeDivException)), filename, line, column, scope, message);
 }
 
 void M2RTS_WholeNonPosModException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeDivException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_wholeDivException)), filename, line, column, scope, message);
 }
 
 void M2RTS_WholeZeroDivException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeDivException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_wholeDivException)), filename, line, column, scope, message);
 }
 
 void M2RTS_WholeZeroRemException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeDivException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_wholeDivException)), filename, line, column, scope, message);
 }
 
 void M2RTS_WholeValueException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_wholeValueException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_wholeValueException)), filename, line, column, scope, message);
 }
 
 void M2RTS_RealValueException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_realValueException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_realValueException)), filename, line, column, scope, message);
 }
 
 void M2RTS_ParameterException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_rangeException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_rangeException)), filename, line, column, scope, message);
 }
 
 void M2RTS_NoException (void * filename, unsigned int line, unsigned int column, void * scope, void * message)
 {
-  RTExceptions_Raise ((unsigned int) (M2EXCEPTION_exException), filename, line, column, scope, message);
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_exException)), filename, line, column, scope, message);
 }
 
 void _M2_M2RTS_init (__attribute__((unused)) int argc, __attribute__((unused)) char *argv[])

@@ -166,7 +166,7 @@ void NumberIO_CardToStr (unsigned int x, unsigned int n, char *a, unsigned int _
     }
   while ((i > 0) && (j <= Higha))
     {
-      a[j] = (char) (buf.array[i-1]+((unsigned int) ('0')));
+      a[j] = ((char) (buf.array[i-1]+ ((unsigned int) ('0'))));
       j += 1;
       i -= 1;
     }
@@ -201,7 +201,7 @@ void NumberIO_StrToCard (char *a_, unsigned int _a_high, unsigned int *x)
     {
       ok = TRUE;
       do {
-        (*x) = (10*(*x))+(((unsigned int) (a[i]))-((unsigned int) ('0')));
+        (*x) = (10*(*x))+( ((unsigned int) (a[i]))- ((unsigned int) ('0')));
         if (i < higha)
           {
             /* avoid dangling else.  */
@@ -248,9 +248,9 @@ void NumberIO_HexToStr (unsigned int x, unsigned int n, char *a, unsigned int _a
   while ((i != 0) && (j <= Higha))
     {
       if (buf.array[i-1] < 10)
-        a[j] = (char) (buf.array[i-1]+((unsigned int) ('0')));
+        a[j] = ((char) (buf.array[i-1]+ ((unsigned int) ('0'))));
       else
-        a[j] = (char) ((buf.array[i-1]+((unsigned int) ('A')))-10);
+        a[j] = ((char) ((buf.array[i-1]+ ((unsigned int) ('A')))-10));
       j += 1;
       i -= 1;
     }
@@ -322,7 +322,7 @@ void NumberIO_IntToStr (int x, unsigned int n, char *a, unsigned int _a_high)
     }
   while ((i != 0) && (j <= Higha))
     {
-      a[j] = (char) (buf.array[i-1]+((unsigned int) ('0')));
+      a[j] = ((char) (buf.array[i-1]+ ((unsigned int) ('0'))));
       j += 1;
       i -= 1;
     }
@@ -365,9 +365,9 @@ void NumberIO_StrToInt (char *a_, unsigned int _a_high, int *x)
       ok = TRUE;
       do {
         if (Negative)
-          (*x) = (10*(*x))-((int ) (((unsigned int) (a[i]))-((unsigned int) ('0'))));
+          (*x) = (10*(*x))-((int ) ( ((unsigned int) (a[i]))- ((unsigned int) ('0'))));
         else
-          (*x) = (10*(*x))+((int ) (((unsigned int) (a[i]))-((unsigned int) ('0'))));
+          (*x) = (10*(*x))+((int ) ( ((unsigned int) (a[i]))- ((unsigned int) ('0'))));
         if (i < higha)
           {
             /* avoid dangling else.  */
@@ -435,7 +435,7 @@ void NumberIO_OctToStr (unsigned int x, unsigned int n, char *a, unsigned int _a
     }
   while ((i > 0) && (j <= Higha))
     {
-      a[j] = (char) (buf.array[i-1]+((unsigned int) ('0')));
+      a[j] = ((char) (buf.array[i-1]+ ((unsigned int) ('0'))));
       j += 1;
       i -= 1;
     }
@@ -509,7 +509,7 @@ void NumberIO_BinToStr (unsigned int x, unsigned int n, char *a, unsigned int _a
     }
   while ((i > 0) && (j <= Higha))
     {
-      a[j] = (char) (buf.array[i-1]+((unsigned int) ('0')));
+      a[j] = ((char) (buf.array[i-1]+ ((unsigned int) ('0'))));
       j += 1;
       i -= 1;
     }
@@ -556,7 +556,7 @@ void NumberIO_StrToBinInt (char *a_, unsigned int _a_high, int *x)
     {
       ok = TRUE;
       do {
-        (*x) = (2*(*x))+((int ) (((unsigned int) (a[i]))-((unsigned int) ('0'))));
+        (*x) = (2*(*x))+((int ) ( ((unsigned int) (a[i]))- ((unsigned int) ('0'))));
         if (i < higha)
           {
             /* avoid dangling else.  */
@@ -598,9 +598,9 @@ void NumberIO_StrToHexInt (char *a_, unsigned int _a_high, int *x)
       ok = TRUE;
       do {
         if ((a[i] >= '0') && (a[i] <= '9'))
-          (*x) = (0x010*(*x))+((int ) (((unsigned int) (a[i]))-((unsigned int) ('0'))));
+          (*x) = (0x010*(*x))+((int ) ( ((unsigned int) (a[i]))- ((unsigned int) ('0'))));
         else if ((a[i] >= 'A') && (a[i] <= 'F'))
-          (*x) = (0x010*(*x))+((int ) ((((unsigned int) (a[i]))-((unsigned int) ('A')))+10));
+          (*x) = (0x010*(*x))+((int ) (( ((unsigned int) (a[i]))- ((unsigned int) ('A')))+10));
         if (i < higha)
           {
             /* avoid dangling else.  */
@@ -641,7 +641,7 @@ void NumberIO_StrToOctInt (char *a_, unsigned int _a_high, int *x)
     {
       ok = TRUE;
       do {
-        (*x) = (8*(*x))+((int ) (((unsigned int) (a[i]))-((unsigned int) ('0'))));
+        (*x) = (8*(*x))+((int ) ( ((unsigned int) (a[i]))- ((unsigned int) ('0'))));
         if (i < higha)
           {
             /* avoid dangling else.  */

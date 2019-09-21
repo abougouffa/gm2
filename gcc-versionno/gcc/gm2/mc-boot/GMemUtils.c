@@ -50,23 +50,23 @@ void MemUtils_MemCopy (void * from, unsigned int length, void * to)
   unsigned char * pbb;
   unsigned char * pba;
 
-  while (length >= (sizeof (unsigned int)))
+  while (length >= sizeof (unsigned int ))
     {
       pwa = from;
       pwb = to;
       (*pwb) = (*pwa);
-      from += sizeof (unsigned int);
-      to += sizeof (unsigned int);
-      length -= sizeof (unsigned int);
+      from += sizeof (unsigned int );
+      to += sizeof (unsigned int );
+      length -= sizeof (unsigned int );
     }
   while (length > 0)
     {
       pba = from;
       pbb = to;
       (*pbb) = (*pba);
-      from += sizeof (unsigned char);
-      to += sizeof (unsigned char);
-      length -= sizeof (unsigned char);
+      from += sizeof (unsigned char );
+      to += sizeof (unsigned char );
+      length -= sizeof (unsigned char );
     }
 }
 
@@ -81,18 +81,18 @@ void MemUtils_MemZero (void * a, unsigned int length)
   unsigned char * pba;
 
   pwa = a;
-  while (length >= (sizeof (unsigned int)))
+  while (length >= sizeof (unsigned int ))
     {
       (*pwa) = (unsigned int ) (0);
-      pwa += sizeof (unsigned int);
-      length -= sizeof (unsigned int);
+      pwa += sizeof (unsigned int );
+      length -= sizeof (unsigned int );
     }
   pba = (void *) (pwa);
-  while (length >= (sizeof (unsigned char)))
+  while (length >= sizeof (unsigned char ))
     {
       (*pba) = (unsigned char ) (0);
-      pba += sizeof (unsigned char);
-      length -= sizeof (unsigned char);
+      pba += sizeof (unsigned char );
+      length -= sizeof (unsigned char );
     }
 }
 

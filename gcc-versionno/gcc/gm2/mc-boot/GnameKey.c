@@ -481,7 +481,7 @@ unsigned int nameKey_isSameExcludingCase (nameKey_Name key1, nameKey_Name key2)
       c1 = (*pi);
       c2 = (*pj);
       while ((c1 != ASCII_nul) && (c2 != ASCII_nul))
-        if (((c1 == c2) || (((c1 >= 'A') && (c1 <= 'Z')) && (c2 == ((char) ((((unsigned int) (c1))-((unsigned int) ('A')))+((unsigned int) ('a'))))))) || (((c2 >= 'A') && (c2 <= 'Z')) && (c1 == ((char) ((((unsigned int) (c2))-((unsigned int) ('A')))+((unsigned int) ('a')))))))
+        if (((c1 == c2) || (((c1 >= 'A') && (c1 <= 'Z')) && (c2 == ((char) (( ((unsigned int) (c1))- ((unsigned int) ('A')))+ ((unsigned int) ('a'))))))) || (((c2 >= 'A') && (c2 <= 'Z')) && (c1 == ((char) (( ((unsigned int) (c2))- ((unsigned int) ('A')))+ ((unsigned int) ('a')))))))
           {
             pi += 1;
             pj += 1;

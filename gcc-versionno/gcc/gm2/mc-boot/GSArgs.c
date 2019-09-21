@@ -72,7 +72,7 @@ unsigned int SArgs_GetArg (DynamicStrings_String *s, unsigned int i)
 
   if (i < UnixArgs_ArgC)
     {
-      ppc = (void *) (UnixArgs_ArgV+(i*(sizeof (PtrToChar))));
+      ppc = (void *) (UnixArgs_ArgV+(i*sizeof (PtrToChar)));
       (*s) = DynamicStrings_InitStringCharStar ((void *) (*ppc));
       return TRUE;
     }

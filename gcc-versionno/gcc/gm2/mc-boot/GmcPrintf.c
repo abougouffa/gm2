@@ -156,7 +156,7 @@ static void cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, uns
   /* make a local copy of each unbounded array.  */
   memcpy (b, b_, _b_high+1);
 
-  if ((_a_high) == (_b_high))
+  if (_a_high == _b_high)
     for (i=0; i<=_a_high; i++)
       a[i] = b[i];
   else

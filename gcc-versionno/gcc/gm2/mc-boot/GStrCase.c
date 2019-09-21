@@ -125,7 +125,7 @@ void StrCase_StrToLowerCase (char *a_, unsigned int _a_high, char *b, unsigned i
 char StrCase_Cap (char ch)
 {
   if ((ch >= 'a') && (ch <= 'z'))
-    ch = (char) ((((unsigned int) (ch))-((unsigned int) ('a')))+((unsigned int) ('A')));
+    ch = ((char) (( ((unsigned int) (ch))- ((unsigned int) ('a')))+ ((unsigned int) ('A'))));
   return ch;
 }
 
@@ -139,7 +139,7 @@ char StrCase_Cap (char ch)
 char StrCase_Lower (char ch)
 {
   if ((ch >= 'A') && (ch <= 'Z'))
-    ch = (char) ((((unsigned int) (ch))-((unsigned int) ('A')))+((unsigned int) ('a')));
+    ch = ((char) (( ((unsigned int) (ch))- ((unsigned int) ('A')))+ ((unsigned int) ('a'))));
   return ch;
 }
 

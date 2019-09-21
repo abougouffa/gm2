@@ -881,7 +881,7 @@ static void Cast (unsigned char *a, unsigned int _a_high, unsigned char *b_, uns
   /* make a local copy of each unbounded array.  */
   memcpy (b, b_, _b_high+1);
 
-  if ((_a_high) == (_b_high))
+  if (_a_high == _b_high)
     for (i=0; i<=_a_high; i++)
       a[i] = b[i];
   else
@@ -1502,7 +1502,7 @@ unsigned int FIO_ReadNBytes (FIO_File f, unsigned int nBytes, void * a)
 void FIO_ReadAny (FIO_File f, unsigned char *a, unsigned int _a_high)
 {
   CheckAccess (f, (FileUsage) openedforread, FALSE);
-  if ((BufferedRead (f, _a_high, a)) == (_a_high))
+  if ((BufferedRead (f, _a_high, a)) == _a_high)
     SetEndOfLine (f, (char) a[_a_high]);
 }
 
@@ -1555,7 +1555,7 @@ unsigned int FIO_WriteNBytes (FIO_File f, unsigned int nBytes, void * a)
 void FIO_WriteAny (FIO_File f, unsigned char *a, unsigned int _a_high)
 {
   CheckAccess (f, (FileUsage) openedforwrite, TRUE);
-  if ((BufferedWrite (f, _a_high, a)) == (_a_high))
+  if ((BufferedWrite (f, _a_high, a)) == _a_high)
     {}  /* empty.  */
 }
 
@@ -1567,7 +1567,7 @@ void FIO_WriteAny (FIO_File f, unsigned char *a, unsigned int _a_high)
 void FIO_WriteChar (FIO_File f, char ch)
 {
   CheckAccess (f, (FileUsage) openedforwrite, TRUE);
-  if ((BufferedWrite (f, (unsigned int) sizeof (ch), &ch)) == (sizeof (ch)))
+  if ((BufferedWrite (f, sizeof (ch), &ch)) == sizeof (ch))
     {}  /* empty.  */
 }
 
@@ -1652,7 +1652,7 @@ char FIO_ReadChar (FIO_File f)
   char ch;
 
   CheckAccess (f, (FileUsage) openedforread, FALSE);
-  if ((BufferedRead (f, (unsigned int) sizeof (ch), &ch)) == (sizeof (ch)))
+  if ((BufferedRead (f, sizeof (ch), &ch)) == sizeof (ch))
     {
       SetEndOfLine (f, ch);
       return ch;
@@ -1967,7 +1967,7 @@ void FIO_GetFileName (FIO_File f, char *a, unsigned int _a_high)
           {
             p = fd->name.address;
             i = 0;
-            while (((*p) != ASCII_nul) && (i <= (_a_high)))
+            while (((*p) != ASCII_nul) && (i <= _a_high))
               {
                 a[i] = (*p);
                 p += 1;

@@ -814,7 +814,7 @@ static void writeCard (unsigned int c)
     }
   else
     {
-      ch = (char) (((unsigned int) ('0'))+c);
+      ch = ((char) ( ((unsigned int) ('0'))+c));
       i = libc_write (1, &ch, (size_t) 1);
     }
 }
@@ -836,12 +836,12 @@ static void writeLongcard (long unsigned int l)
     }
   else if (l < 10)
     {
-      ch = (char) (((unsigned int) ('0'))+((unsigned int ) (l)));
+      ch = ((char) ( ((unsigned int) ('0'))+((unsigned int ) (l))));
       i = libc_write (1, &ch, (size_t) 1);
     }
   else if (l < 16)
     {
-      ch = (char) ((((unsigned int) ('a'))+((unsigned int ) (l)))-10);
+      ch = ((char) (( ((unsigned int) ('a'))+((unsigned int ) (l)))-10));
       i = libc_write (1, &ch, (size_t) 1);
     }
 }
@@ -2004,7 +2004,7 @@ DynamicStrings_String DynamicStrings_ToUpper (DynamicStrings_String s)
             {
               ch = t->contents.buf.array[i];
               if ((ch >= 'a') && (ch <= 'z'))
-                t->contents.buf.array[i] = (char) ((((unsigned int) (ch))-((unsigned int) ('a')))+((unsigned int) ('A')));
+                t->contents.buf.array[i] = ((char) (( ((unsigned int) (ch))- ((unsigned int) ('a')))+ ((unsigned int) ('A'))));
               i += 1;
             }
           t = t->contents.next;
@@ -2037,7 +2037,7 @@ DynamicStrings_String DynamicStrings_ToLower (DynamicStrings_String s)
             {
               ch = t->contents.buf.array[i];
               if ((ch >= 'A') && (ch <= 'Z'))
-                t->contents.buf.array[i] = (char) ((((unsigned int) (ch))-((unsigned int) ('A')))+((unsigned int) ('a')));
+                t->contents.buf.array[i] = ((char) (( ((unsigned int) (ch))- ((unsigned int) ('A')))+ ((unsigned int) ('a'))));
               i += 1;
             }
           t = t->contents.next;
@@ -2056,14 +2056,14 @@ void DynamicStrings_CopyOut (char *a, unsigned int _a_high, DynamicStrings_Strin
   unsigned int i;
   unsigned int l;
 
-  l = Min ((_a_high)+1, DynamicStrings_Length (s));
+  l = Min (_a_high+1, DynamicStrings_Length (s));
   i = 0;
   while (i < l)
     {
       a[i] = DynamicStrings_char (s, (int) i);
       i += 1;
     }
-  if (i <= (_a_high))
+  if (i <= _a_high)
     a[i] = ASCII_nul;
 }
 

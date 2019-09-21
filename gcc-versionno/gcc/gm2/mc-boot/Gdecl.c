@@ -141,6 +141,8 @@ typedef struct StdIO_ProcRead_p StdIO_ProcRead;
 #   define debugDecl FALSE
 #   define caseException TRUE
 #   define returnException TRUE
+typedef struct intrinsicT_r intrinsicT;
+
 typedef struct fixupInfo_r fixupInfo;
 
 typedef struct explistT_r explistT;
@@ -649,6 +651,13 @@ struct _T10_r {
                 alists_alist next;
               };
 
+struct intrinsicT_r {
+                      decl_node args;
+                      unsigned int noArgs;
+                      decl_node type;
+                      commentPair intrinsicComment;
+                    };
+
 struct funccallT_r {
                      decl_node function;
                      decl_node args;
@@ -844,6 +853,7 @@ struct DebugInfo_r {
 struct _T1_r {
                nodeT kind;  /* case tag */
                union {
+                       intrinsicT intrinsicF;
                        explistT explistF;
                        exitT exitF;
                        returnT returnF;
@@ -3669,10 +3679,38 @@ static decl_node doMakeConstExp (void);
 static unsigned int isAnyType (decl_node n);
 
 /*
-   makeCast -
+   makeVal - creates a VAL (type, expression) node.
+*/
+
+static decl_node makeVal (decl_node params);
+
+/*
+   makeCast - creates a cast node TYPENAME (expr).
 */
 
 static decl_node makeCast (decl_node c, decl_node p);
+static decl_node makeIntrinsicProc (nodeT k, unsigned int noArgs, decl_node p);
+
+/*
+   makeIntrinsicUnaryType -
+*/
+
+static decl_node makeIntrinsicUnaryType (nodeT k, decl_node paramList, decl_node returnType);
+
+/*
+   makeIntrinsicBinaryType -
+*/
+
+static decl_node makeIntrinsicBinaryType (nodeT k, decl_node paramList, decl_node returnType);
+
+/*
+   checkIntrinsic - checks to see if the function call to, c, with
+                    parameter list, n, is really an intrinic.  If it
+                    is an intrinic then an intrinic node is created
+                    and returned.  Otherwise NIL is returned.
+*/
+
+static decl_node checkIntrinsic (decl_node c, decl_node n);
 
 /*
    isFuncCall - returns TRUE if, n, is a function/procedure call.
@@ -3735,6 +3773,12 @@ static void out3 (char *a_, unsigned int _a_high, unsigned int l, nameKey_Name n
 static unsigned int isUnary (decl_node n);
 
 /*
+   isBinary - returns TRUE if, n, is an binary node.
+*/
+
+static unsigned int isBinary (decl_node n);
+
+/*
    makeUnary - create a unary expression node with, e, as the argument
                and res as the return type.
 */
@@ -3772,10 +3816,10 @@ static decl_node resolveString (decl_node n);
 static decl_node foldBinary (nodeT k, decl_node l, decl_node r, decl_node res);
 
 /*
-   makeBinary - create a binary node with left/right/result type:  l, r and res.
+   makeBinary - create a binary node with left/right/result type:  l, r and resultType.
 */
 
-static decl_node makeBinary (nodeT k, decl_node l, decl_node r, decl_node res);
+static decl_node makeBinary (nodeT k, decl_node l, decl_node r, decl_node resultType);
 
 /*
    doMakeBinary - returns a binary node containing left/right/result values
@@ -5099,7 +5143,8 @@ static void doMinC (mcPretty_pretty p, decl_node n);
 static void doMaxC (mcPretty_pretty p, decl_node n);
 
 /*
-   isIntrinsic - returns if, n, is an instrinsic procedure.
+   isIntrinsic - returns if, n, is an intrinsic procedure.
+                 The intrinsic functions are represented as unary and binary nodes.
 */
 
 static unsigned int isIntrinsic (decl_node n);
@@ -5133,6 +5178,24 @@ static void doCmplx (mcPretty_pretty p, decl_node n);
 */
 
 static void doIntrinsicC (mcPretty_pretty p, decl_node n);
+
+/*
+   isIntrinsicFunction - returns true if, n, is an instrinsic function.
+*/
+
+static unsigned int isIntrinsicFunction (decl_node n);
+
+/*
+   doSizeC -
+*/
+
+static void doSizeC (mcPretty_pretty p, decl_node n);
+
+/*
+   doConvertC -
+*/
+
+static void doConvertC (mcPretty_pretty p, decl_node n, char *conversion_, unsigned int _conversion_high);
 
 /*
    getFuncFromExpr -
@@ -5870,6 +5933,12 @@ static void visitVarargs (alists_alist v, decl_node n, nodeProcedure p);
 */
 
 static void visitSetValue (alists_alist v, decl_node n, nodeProcedure p);
+
+/*
+   visitIntrinsic -
+*/
+
+static void visitIntrinsic (alists_alist v, decl_node n, nodeProcedure p);
 
 /*
    visitDependants - helper procedure function called from visitNode.
@@ -7340,9 +7409,13 @@ static decl_node getExpList (decl_node p, unsigned int n)
 
 static unsigned int expListLen (decl_node p)
 {
-  mcDebug_assert (p != NULL);
-  mcDebug_assert (decl_isExpList (p));
-  return Indexing_HighIndice (p->explistF.exp);
+  if (p == NULL)
+    return 0;
+  else
+    {
+      mcDebug_assert (decl_isExpList (p));
+      return Indexing_HighIndice (p->explistF.exp);
+    }
 }
 
 
@@ -7443,7 +7516,21 @@ static unsigned int isAnyType (decl_node n)
 
 
 /*
-   makeCast -
+   makeVal - creates a VAL (type, expression) node.
+*/
+
+static decl_node makeVal (decl_node params)
+{
+  mcDebug_assert (decl_isExpList (params));
+  if ((expListLen (params)) == 2)
+    return makeBinary ((nodeT) val, getExpList (params, 1), getExpList (params, 2), getExpList (params, 1));
+  else
+    M2RTS_HALT (-1);
+}
+
+
+/*
+   makeCast - creates a cast node TYPENAME (expr).
 */
 
 static decl_node makeCast (decl_node c, decl_node p)
@@ -7453,6 +7540,106 @@ static decl_node makeCast (decl_node c, decl_node p)
     return makeBinary ((nodeT) cast, c, getExpList (p, 1), c);
   else
     M2RTS_HALT (-1);
+}
+
+static decl_node makeIntrinsicProc (nodeT k, unsigned int noArgs, decl_node p)
+{
+  decl_node f;
+
+  /* 
+   makeIntrisicProc -
+  */
+  f = newNode (k);
+  f->intrinsicF.args = p;
+  f->intrinsicF.noArgs = noArgs;
+  f->intrinsicF.type = NULL;
+  initPair (&f->intrinsicF.intrinsicComment);
+  return f;
+}
+
+
+/*
+   makeIntrinsicUnaryType -
+*/
+
+static decl_node makeIntrinsicUnaryType (nodeT k, decl_node paramList, decl_node returnType)
+{
+  return makeUnary (k, getExpList (paramList, 1), returnType);
+}
+
+
+/*
+   makeIntrinsicBinaryType -
+*/
+
+static decl_node makeIntrinsicBinaryType (nodeT k, decl_node paramList, decl_node returnType)
+{
+  return makeBinary (k, getExpList (paramList, 1), getExpList (paramList, 2), returnType);
+}
+
+
+/*
+   checkIntrinsic - checks to see if the function call to, c, with
+                    parameter list, n, is really an intrinic.  If it
+                    is an intrinic then an intrinic node is created
+                    and returned.  Otherwise NIL is returned.
+*/
+
+static decl_node checkIntrinsic (decl_node c, decl_node n)
+{
+  if (isAnyType (c))
+    return makeCast (c, n);
+  else if (c == maxN)
+    return makeIntrinsicUnaryType ((nodeT) max, n, (decl_node) NULL);
+  else if (c == minN)
+    return makeIntrinsicUnaryType ((nodeT) min, n, (decl_node) NULL);
+  else if (c == haltN)
+    return makeIntrinsicProc ((nodeT) halt, expListLen (n), n);
+  else if (c == valN)
+    return makeVal (n);
+  else if (c == adrN)
+    return makeIntrinsicUnaryType ((nodeT) adr, n, addressN);
+  else if (c == sizeN)
+    return makeIntrinsicUnaryType ((nodeT) size, n, cardinalN);
+  else if (c == tsizeN)
+    return makeIntrinsicUnaryType ((nodeT) tsize, n, cardinalN);
+  else if (c == floatN)
+    return makeIntrinsicUnaryType ((nodeT) float_, n, realN);
+  else if (c == truncN)
+    return makeIntrinsicUnaryType ((nodeT) trunc, n, integerN);
+  else if (c == ordN)
+    return makeIntrinsicUnaryType ((nodeT) ord, n, cardinalN);
+  else if (c == chrN)
+    return makeIntrinsicUnaryType ((nodeT) chr, n, charN);
+  else if (c == capN)
+    return makeIntrinsicUnaryType ((nodeT) cap, n, charN);
+  else if (c == absN)
+    return makeIntrinsicUnaryType ((nodeT) abs_, n, (decl_node) NULL);
+  else if (c == imN)
+    return makeIntrinsicUnaryType ((nodeT) im, n, (decl_node) NULL);
+  else if (c == reN)
+    return makeIntrinsicUnaryType ((nodeT) re, n, (decl_node) NULL);
+  else if (c == cmplxN)
+    return makeIntrinsicBinaryType ((nodeT) cmplx, n, (decl_node) NULL);
+  else if (c == highN)
+    return makeIntrinsicUnaryType ((nodeT) high, n, cardinalN);
+  else if (c == incN)
+    return makeIntrinsicProc ((nodeT) inc, expListLen (n), n);
+  else if (c == decN)
+    return makeIntrinsicProc ((nodeT) dec, expListLen (n), n);
+  else if (c == inclN)
+    return makeIntrinsicProc ((nodeT) incl, expListLen (n), n);
+  else if (c == exclN)
+    return makeIntrinsicProc ((nodeT) excl, expListLen (n), n);
+  else if (c == newN)
+    return makeIntrinsicProc ((nodeT) new, 1, n);
+  else if (c == disposeN)
+    return makeIntrinsicProc ((nodeT) dispose, 1, n);
+  else if (c == lengthN)
+    return makeIntrinsicUnaryType ((nodeT) length, n, cardinalN);
+  else if (c == throwN)
+    return makeIntrinsicProc ((nodeT) throw, 1, n);
+  return NULL;
 }
 
 
@@ -7622,7 +7809,6 @@ static unsigned int isUnary (decl_node n)
   mcDebug_assert (n != NULL);
   switch (n->kind)
     {
-      case throw:
       case re:
       case im:
       case deref:
@@ -7653,6 +7839,44 @@ static unsigned int isUnary (decl_node n)
 
 
 /*
+   isBinary - returns TRUE if, n, is an binary node.
+*/
+
+static unsigned int isBinary (decl_node n)
+{
+  mcDebug_assert (n != NULL);
+  switch (n->kind)
+    {
+      case cmplx:
+      case and:
+      case or:
+      case equal:
+      case notequal:
+      case less:
+      case greater:
+      case greequal:
+      case lessequal:
+      case val:
+      case cast:
+      case plus:
+      case sub:
+      case div_:
+      case mod:
+      case mult:
+      case divide:
+      case in:
+        return TRUE;
+        break;
+
+
+      default:
+        return FALSE;
+        break;
+    }
+}
+
+
+/*
    makeUnary - create a unary expression node with, e, as the argument
                and res as the return type.
 */
@@ -7669,6 +7893,8 @@ static decl_node makeUnary (nodeT k, decl_node e, decl_node res)
       n->kind = k;
       switch (n->kind)
         {
+          case min:
+          case max:
           case throw:
           case re:
           case im:
@@ -7792,16 +8018,16 @@ static decl_node foldBinary (nodeT k, decl_node l, decl_node r, decl_node res)
 
 
 /*
-   makeBinary - create a binary node with left/right/result type:  l, r and res.
+   makeBinary - create a binary node with left/right/result type:  l, r and resultType.
 */
 
-static decl_node makeBinary (nodeT k, decl_node l, decl_node r, decl_node res)
+static decl_node makeBinary (nodeT k, decl_node l, decl_node r, decl_node resultType)
 {
   decl_node n;
 
-  n = foldBinary (k, l, r, res);
+  n = foldBinary (k, l, r, resultType);
   if (n == NULL)
-    n = doMakeBinary (k, l, r, res);
+    n = doMakeBinary (k, l, r, resultType);
   return n;
 }
 
@@ -8060,82 +8286,7 @@ static decl_node getMaxMinType (decl_node n)
 static decl_node doGetFuncType (decl_node n)
 {
   mcDebug_assert (isFuncCall (n));
-  if (isIntrinsic (n))
-    switch (n->funccallF.function->kind)
-      {
-        case max:
-        case min:
-          return getMaxMinType (getExpList (n->funccallF.args, 1));
-          break;
-
-        case cast:
-        case val:
-          return getExpList (n->funccallF.args, 1);
-          break;
-
-        case adr:
-          return addressN;
-          break;
-
-        case size:
-        case tsize:
-        case float_:
-          return realN;
-          break;
-
-        case trunc:
-          return integerN;
-          break;
-
-        case ord:
-          return cardinalN;
-          break;
-
-        case chr:
-          return charN;
-          break;
-
-        case cap:
-          return charN;
-          break;
-
-        case re:
-        case im:
-          return realN;
-          break;
-
-        case cmplx:
-          return complexN;
-          break;
-
-        case abs_:
-          return getExprType (getExpList (n->funccallF.args, 1));
-          break;
-
-        case high:
-          return cardinalN;
-          break;
-
-        case halt:
-        case inc:
-        case dec:
-        case incl:
-        case excl:
-        case new:
-        case dispose:
-          M2RTS_HALT (-1);
-          break;
-
-        case length:
-          return cardinalN;
-          break;
-
-
-        default:
-          CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 20, 1);
-      }
-  else
-    return doSetExprType (&n->funccallF.type, decl_getType (n->funccallF.function));
+  return doSetExprType (&n->funccallF.type, decl_getType (n->funccallF.function));
 }
 
 
@@ -8147,14 +8298,20 @@ static decl_node doGetExprType (decl_node n)
 {
   switch (n->kind)
     {
+      case max:
+      case min:
+        return getMaxMinType (n->unaryF.arg);
+        break;
+
+      case cast:
+      case val:
+        return doSetExprType (&n->binaryF.resultType, n->binaryF.left);
+        break;
+
       case halt:
       case new:
       case dispose:
         return NULL;
-        break;
-
-      case length:
-        return cardinalN;
         break;
 
       case inc:
@@ -8374,18 +8531,13 @@ static decl_node doGetExprType (decl_node n)
         M2RTS_HALT (-1);
         break;
 
-      case cast:
-      case val:
-        /* expressions.  */
-        return doSetExprType (&n->binaryF.resultType, n->binaryF.left);
-        break;
-
       case plus:
       case sub:
       case div_:
       case mod:
       case mult:
       case divide:
+        /* expressions.  */
         return doSetExprType (&n->binaryF.resultType, mixTypes (getExprType (n->binaryF.left), getExprType (n->binaryF.right)));
         break;
 
@@ -8775,6 +8927,10 @@ static unsigned int needsParen (decl_node n)
         return TRUE;
         break;
 
+      case abs_:
+        return FALSE;
+        break;
+
       case plus:
       case sub:
       case div_:
@@ -8821,6 +8977,9 @@ static unsigned int needsParen (decl_node n)
         return FALSE;
         break;
 
+      case loc:
+      case byte:
+      case word:
       case type:
       case char_:
       case cardinal:
@@ -9535,20 +9694,13 @@ static void doInC (mcPretty_pretty p, decl_node l, decl_node r)
 
 static void doThrowC (mcPretty_pretty p, decl_node n)
 {
-  mcDebug_assert (isFuncCall (n));
-  if (n->funccallF.args == NULL)
-    M2RTS_HALT (-1);
-  else
-    if ((expListLen (n->funccallF.args)) == 1)
-      {
-        outText (p, (char *) "throw", 5);
-        mcPretty_setNeedSpace (p);
-        outText (p, (char *) "(", 1);
-        doExprC (p, getExpList (n->funccallF.args, 1));
-        outText (p, (char *) ")", 1);
-      }
-    else
-      M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to THROW')  */
+  mcDebug_assert (isIntrinsic (n));
+  outText (p, (char *) "throw", 5);
+  mcPretty_setNeedSpace (p);
+  outText (p, (char *) "(", 1);
+  if ((expListLen (n->intrinsicF.args)) == 1)
+    doExprC (p, getExpList (n->intrinsicF.args, 1));
+  outText (p, (char *) ")", 1);
 }
 
 
@@ -9621,46 +9773,73 @@ static void doExprC (mcPretty_pretty p, decl_node n)
         doUnary (p, (char *) "!", 1, n->unaryF.arg, n->unaryF.resultType, FALSE, TRUE);
         break;
 
+      case val:
+        doValC (p, n);
+        break;
+
       case adr:
-        doUnary (p, (char *) "&", 1, n->unaryF.arg, n->unaryF.resultType, TRUE, FALSE);
+        doAdrC (p, n);
         break;
 
       case size:
-        doUnary (p, (char *) "sizeof", 6, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
-        break;
-
       case tsize:
-        doUnary (p, (char *) "sizeof", 6, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
-        break;
-
-      case trunc:
-        doUnary (p, (char *) "TRUNC", 5, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
+        doSizeC (p, n);
         break;
 
       case float_:
-        doUnary (p, (char *) "FLOAT", 5, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
+        doConvertC (p, n, (char *) "(double)", 8);
+        break;
+
+      case trunc:
+        doConvertC (p, n, (char *) "(int)", 5);
         break;
 
       case ord:
-        doUnary (p, (char *) "ORD", 3, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
+        doConvertC (p, n, (char *) "(unsigned int)", 14);
         break;
 
       case chr:
-        doUnary (p, (char *) "CHR", 3, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
+        doConvertC (p, n, (char *) "(char)", 6);
         break;
 
       case cap:
-        doUnary (p, (char *) "CAP", 3, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
+        doCapC (p, n);
+        break;
+
+      case abs_:
+        doAbsC (p, n);
         break;
 
       case high:
-        doUnary (p, (char *) "HIGH", 4, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
+        doFuncHighC (p, n->unaryF.arg);
+        break;
+
+      case length:
+        doLengthC (p, n);
+        break;
+
+      case min:
+        doMinC (p, n);
+        break;
+
+      case max:
+        doMaxC (p, n);
+        break;
+
+      case throw:
+        doThrowC (p, n);
         break;
 
       case re:
+        doReC (p, n);
+        break;
+
       case im:
+        doImC (p, n);
+        break;
+
       case cmplx:
-        M2RTS_HALT (-1);  /* should all be function calls.  */
+        doCmplx (p, n);
         break;
 
       case deref:
@@ -9701,10 +9880,6 @@ static void doExprC (mcPretty_pretty p, decl_node n)
 
       case cast:
         doCastC (p, n->binaryF.left, n->binaryF.right);
-        break;
-
-      case val:
-        doPreBinary (p, (char *) "VAL", 3, n->binaryF.left, n->binaryF.right, TRUE, TRUE);
         break;
 
       case plus:
@@ -9757,14 +9932,6 @@ static void doExprC (mcPretty_pretty p, decl_node n)
 
       case string:
         doStringC (p, n);
-        break;
-
-      case max:
-        doUnary (p, (char *) "MAX", 3, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
-        break;
-
-      case min:
-        doUnary (p, (char *) "MIN", 3, n->unaryF.arg, n->unaryF.resultType, TRUE, TRUE);
         break;
 
       case var:
@@ -13814,13 +13981,8 @@ static void doAdrArgC (mcPretty_pretty p, decl_node n)
 
 static void doAdrC (mcPretty_pretty p, decl_node n)
 {
-  mcDebug_assert (isFuncCall (n));
-  if (n->funccallF.args != NULL)
-    {
-      /* avoid dangling else.  */
-      if ((expListLen (n->funccallF.args)) == 1)
-        doAdrArgC (p, getExpList (n->funccallF.args, 1));
-    }
+  mcDebug_assert (isUnary (n));
+  doAdrArgC (p, n->unaryF.arg);
 }
 
 
@@ -13830,7 +13992,7 @@ static void doAdrC (mcPretty_pretty p, decl_node n)
 
 static void doInc (mcPretty_pretty p, decl_node n)
 {
-  mcDebug_assert (isFuncCall (n));
+  mcDebug_assert (isIntrinsic (n));
   if (lang == ansiCP)
     doIncDecCP (p, n, (char *) "+", 1);
   else
@@ -13844,7 +14006,7 @@ static void doInc (mcPretty_pretty p, decl_node n)
 
 static void doDec (mcPretty_pretty p, decl_node n)
 {
-  mcDebug_assert (isFuncCall (n));
+  mcDebug_assert (isIntrinsic (n));
   if (lang == ansiCP)
     doIncDecCP (p, n, (char *) "-", 1);
   else
@@ -13863,17 +14025,17 @@ static void doIncDecC (mcPretty_pretty p, decl_node n, char *op_, unsigned int _
   /* make a local copy of each unbounded array.  */
   memcpy (op, op_, _op_high+1);
 
-  mcDebug_assert (isFuncCall (n));
-  if (n->funccallF.args != NULL)
+  mcDebug_assert (isIntrinsic (n));
+  if (n->intrinsicF.args != NULL)
     {
-      doExprC (p, getExpList (n->funccallF.args, 1));
+      doExprC (p, getExpList (n->intrinsicF.args, 1));
       mcPretty_setNeedSpace (p);
       outText (p, (char *) op, _op_high);
       mcPretty_setNeedSpace (p);
-      if ((expListLen (n->funccallF.args)) == 1)
+      if ((expListLen (n->intrinsicF.args)) == 1)
         outText (p, (char *) "1", 1);
       else
-        doExprC (p, getExpList (n->funccallF.args, 2));
+        doExprC (p, getExpList (n->intrinsicF.args, 2));
     }
 }
 
@@ -13884,18 +14046,20 @@ static void doIncDecC (mcPretty_pretty p, decl_node n, char *op_, unsigned int _
 
 static void doIncDecCP (mcPretty_pretty p, decl_node n, char *op_, unsigned int _op_high)
 {
+  decl_node lhs;
   decl_node type;
   char op[_op_high+1];
 
   /* make a local copy of each unbounded array.  */
   memcpy (op, op_, _op_high+1);
 
-  mcDebug_assert (isFuncCall (n));
-  if (n->funccallF.args != NULL)
+  mcDebug_assert (isIntrinsic (n));
+  if (n->intrinsicF.args != NULL)
     {
-      doExprC (p, getExpList (n->funccallF.args, 1));
+      lhs = getExpList (n->intrinsicF.args, 1);
+      doExprC (p, lhs);
       mcPretty_setNeedSpace (p);
-      type = decl_getType (getExpList (n->funccallF.args, 1));
+      type = decl_getType (lhs);
       if ((decl_isPointer (type)) || (type == addressN))
         {
           /* cast to (char * ) and then back again after the arithmetic is complete.  */
@@ -13905,14 +14069,14 @@ static void doIncDecCP (mcPretty_pretty p, decl_node n, char *op_, unsigned int 
           doTypeNameC (p, type);
           mcPretty_noSpace (p);
           outText (p, (char *) "> (reinterpret_cast<char *> (", 29);
-          doExprC (p, getExpList (n->funccallF.args, 1));
+          doExprC (p, lhs);
           mcPretty_noSpace (p);
           outText (p, (char *) ")", 1);
           outText (p, (char *) op, _op_high);
-          if ((expListLen (n->funccallF.args)) == 1)
+          if ((expListLen (n->intrinsicF.args)) == 1)
             outText (p, (char *) "1", 1);
           else
-            doExprC (p, getExpList (n->funccallF.args, 2));
+            doExprC (p, getExpList (n->intrinsicF.args, 2));
           outText (p, (char *) ")", 1);
         }
       else if (decl_isEnumeration (decl_skipType (type)))
@@ -13921,13 +14085,13 @@ static void doIncDecCP (mcPretty_pretty p, decl_node n, char *op_, unsigned int 
           doTypeNameC (p, type);
           mcPretty_noSpace (p);
           outText (p, (char *) ">(static_cast<int>(", 19);
-          doExprC (p, getExpList (n->funccallF.args, 1));
+          doExprC (p, lhs);
           outText (p, (char *) ")", 1);
           outText (p, (char *) op, _op_high);
-          if ((expListLen (n->funccallF.args)) == 1)
+          if ((expListLen (n->intrinsicF.args)) == 1)
             outText (p, (char *) "1", 1);
           else
-            doExprC (p, getExpList (n->funccallF.args, 2));
+            doExprC (p, getExpList (n->intrinsicF.args, 2));
           outText (p, (char *) ")", 1);
         }
       else
@@ -13935,10 +14099,10 @@ static void doIncDecCP (mcPretty_pretty p, decl_node n, char *op_, unsigned int 
           outText (p, (char *) op, _op_high);
           outText (p, (char *) "=", 1);
           mcPretty_setNeedSpace (p);
-          if ((expListLen (n->funccallF.args)) == 1)
+          if ((expListLen (n->intrinsicF.args)) == 1)
             outText (p, (char *) "1", 1);
           else
-            doExprC (p, getExpList (n->funccallF.args, 2));
+            doExprC (p, getExpList (n->intrinsicF.args, 2));
         }
     }
 }
@@ -13952,14 +14116,14 @@ static void doInclC (mcPretty_pretty p, decl_node n)
 {
   decl_node lo;
 
-  mcDebug_assert (isFuncCall (n));
-  if (n->funccallF.args != NULL)
+  mcDebug_assert (isIntrinsic (n));
+  if (n->intrinsicF.args != NULL)
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-      if ((expListLen (n->funccallF.args)) == 2)
+      if ((expListLen (n->intrinsicF.args)) == 2)
         {
-          doExprC (p, getExpList (n->funccallF.args, 1));
-          lo = getSetLow (getExpList (n->funccallF.args, 1));
+          doExprC (p, getExpList (n->intrinsicF.args, 1));
+          lo = getSetLow (getExpList (n->intrinsicF.args, 1));
           mcPretty_setNeedSpace (p);
           outText (p, (char *) "|=", 2);
           mcPretty_setNeedSpace (p);
@@ -13968,7 +14132,7 @@ static void doInclC (mcPretty_pretty p, decl_node n)
           outText (p, (char *) "<<", 2);
           mcPretty_setNeedSpace (p);
           outText (p, (char *) "(", 1);
-          doExprC (p, getExpList (n->funccallF.args, 2));
+          doExprC (p, getExpList (n->intrinsicF.args, 2));
           doSubtractC (p, lo);
           mcPretty_setNeedSpace (p);
           outText (p, (char *) "))", 2);
@@ -13987,14 +14151,14 @@ static void doExclC (mcPretty_pretty p, decl_node n)
 {
   decl_node lo;
 
-  mcDebug_assert (isFuncCall (n));
-  if (n->funccallF.args != NULL)
+  mcDebug_assert (isIntrinsic (n));
+  if (n->intrinsicF.args != NULL)
     {
       /* avoid gcc warning by using compound statement even if not strictly necessary.  */
-      if ((expListLen (n->funccallF.args)) == 2)
+      if ((expListLen (n->intrinsicF.args)) == 2)
         {
-          doExprC (p, getExpList (n->funccallF.args, 1));
-          lo = getSetLow (getExpList (n->funccallF.args, 1));
+          doExprC (p, getExpList (n->intrinsicF.args, 1));
+          lo = getSetLow (getExpList (n->intrinsicF.args, 1));
           mcPretty_setNeedSpace (p);
           outText (p, (char *) "&=", 2);
           mcPretty_setNeedSpace (p);
@@ -14003,7 +14167,7 @@ static void doExclC (mcPretty_pretty p, decl_node n)
           outText (p, (char *) "<<", 2);
           mcPretty_setNeedSpace (p);
           outText (p, (char *) "(", 1);
-          doExprC (p, getExpList (n->funccallF.args, 2));
+          doExprC (p, getExpList (n->intrinsicF.args, 2));
           doSubtractC (p, lo);
           mcPretty_setNeedSpace (p);
           outText (p, (char *) ")))", 3);
@@ -14022,11 +14186,11 @@ static void doNewC (mcPretty_pretty p, decl_node n)
 {
   decl_node t;
 
-  mcDebug_assert (isFuncCall (n));
-  if (n->funccallF.args == NULL)
+  mcDebug_assert (isIntrinsic (n));
+  if (n->intrinsicF.args == NULL)
     M2RTS_HALT (-1);
   else
-    if ((expListLen (n->funccallF.args)) == 1)
+    if ((expListLen (n->intrinsicF.args)) == 1)
       {
         keyc_useStorage ();
         outText (p, (char *) "Storage_ALLOCATE", 16);
@@ -14034,10 +14198,10 @@ static void doNewC (mcPretty_pretty p, decl_node n)
         outText (p, (char *) "((void **)", 10);
         mcPretty_setNeedSpace (p);
         outText (p, (char *) "&", 1);
-        doExprC (p, getExpList (n->funccallF.args, 1));
+        doExprC (p, getExpList (n->intrinsicF.args, 1));
         outText (p, (char *) ",", 1);
         mcPretty_setNeedSpace (p);
-        t = decl_skipType (decl_getType (getExpList (n->funccallF.args, 1)));
+        t = decl_skipType (decl_getType (getExpList (n->intrinsicF.args, 1)));
         if (decl_isPointer (t))
           {
             t = decl_getType (t);
@@ -14062,11 +14226,11 @@ static void doDisposeC (mcPretty_pretty p, decl_node n)
 {
   decl_node t;
 
-  mcDebug_assert (isFuncCall (n));
-  if (n->funccallF.args == NULL)
+  mcDebug_assert (isIntrinsic (n));
+  if (n->intrinsicF.args == NULL)
     M2RTS_HALT (-1);
   else
-    if ((expListLen (n->funccallF.args)) == 1)
+    if ((expListLen (n->intrinsicF.args)) == 1)
       {
         keyc_useStorage ();
         outText (p, (char *) "Storage_DEALLOCATE", 18);
@@ -14074,10 +14238,10 @@ static void doDisposeC (mcPretty_pretty p, decl_node n)
         outText (p, (char *) "((void **)", 10);
         mcPretty_setNeedSpace (p);
         outText (p, (char *) "&", 1);
-        doExprC (p, getExpList (n->funccallF.args, 1));
+        doExprC (p, getExpList (n->intrinsicF.args, 1));
         outText (p, (char *) ",", 1);
         mcPretty_setNeedSpace (p);
-        t = decl_skipType (decl_getType (getExpList (n->funccallF.args, 1)));
+        t = decl_skipType (decl_getType (getExpList (n->intrinsicF.args, 1)));
         if (decl_isPointer (t))
           {
             t = decl_getType (t);
@@ -14102,21 +14266,18 @@ static void doDisposeC (mcPretty_pretty p, decl_node n)
 
 static void doCapC (mcPretty_pretty p, decl_node n)
 {
-  mcDebug_assert (isFuncCall (n));
-  if (n->funccallF.args == NULL)
-    M2RTS_HALT (-1);
+  mcDebug_assert (isUnary (n));
+  if (n->unaryF.arg == NULL)
+    M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to CAP')  */
   else
-    if ((expListLen (n->funccallF.args)) == 1)
-      {
-        keyc_useCtype ();
-        outText (p, (char *) "toupper", 7);
-        mcPretty_setNeedSpace (p);
-        outText (p, (char *) "(", 1);
-        doExprC (p, getExpList (n->funccallF.args, 1));
-        outText (p, (char *) ")", 1);
-      }
-    else
-      M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to CAP')  */
+    {
+      keyc_useCtype ();
+      outText (p, (char *) "toupper", 7);
+      mcPretty_setNeedSpace (p);
+      outText (p, (char *) "(", 1);
+      doExprC (p, n->unaryF.arg);
+      outText (p, (char *) ")", 1);
+    }
 }
 
 
@@ -14126,27 +14287,21 @@ static void doCapC (mcPretty_pretty p, decl_node n)
 
 static void doLengthC (mcPretty_pretty p, decl_node n)
 {
-  decl_node v;
-
-  mcDebug_assert (isFuncCall (n));
-  if (n->funccallF.args == NULL)
-    M2RTS_HALT (-1);
+  mcDebug_assert (isUnary (n));
+  if (n->unaryF.arg == NULL)
+    M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to LENGTH')  */
   else
-    if ((expListLen (n->funccallF.args)) == 1)
-      {
-        keyc_useM2RTS ();
-        outText (p, (char *) "M2RTS_Length", 12);
-        mcPretty_setNeedSpace (p);
-        outText (p, (char *) "(", 1);
-        v = getExpList (n->funccallF.args, 1);
-        doExprC (p, v);
-        outText (p, (char *) ",", 1);
-        mcPretty_setNeedSpace (p);
-        doFuncHighC (p, v);
-        outText (p, (char *) ")", 1);
-      }
-    else
-      M2RTS_HALT (-1);  /* metaError0 ('expecting a single parameter to LENGTH')  */
+    {
+      keyc_useM2RTS ();
+      outText (p, (char *) "M2RTS_Length", 12);
+      mcPretty_setNeedSpace (p);
+      outText (p, (char *) "(", 1);
+      doExprC (p, n->unaryF.arg);
+      outText (p, (char *) ",", 1);
+      mcPretty_setNeedSpace (p);
+      doFuncHighC (p, n->unaryF.arg);
+      outText (p, (char *) ")", 1);
+    }
 }
 
 
@@ -14158,11 +14313,11 @@ static void doAbsC (mcPretty_pretty p, decl_node n)
 {
   decl_node t;
 
-  mcDebug_assert (isFuncCall (n));
-  if ((n->funccallF.args != NULL) && ((expListLen (n->funccallF.args)) == 1))
-    t = getExprType (n);
-  else
+  mcDebug_assert (isUnary (n));
+  if (n->unaryF.arg == NULL)
     M2RTS_HALT (-1);
+  else
+    t = getExprType (n);
   if (t == longintN)
     {
       keyc_useLabs ();
@@ -14189,7 +14344,9 @@ static void doAbsC (mcPretty_pretty p, decl_node n)
     /* do nothing.  */
     M2RTS_HALT (-1);
   mcPretty_setNeedSpace (p);
-  doFuncArgsC (p, n, (Indexing_Index) NULL, TRUE);
+  outText (p, (char *) "(", 1);
+  doExprC (p, n->unaryF.arg);
+  outText (p, (char *) ")", 1);
 }
 
 
@@ -14199,22 +14356,14 @@ static void doAbsC (mcPretty_pretty p, decl_node n)
 
 static void doValC (mcPretty_pretty p, decl_node n)
 {
-  mcDebug_assert (isFuncCall (n));
-  if (n->funccallF.args == NULL)
-    M2RTS_HALT (-1);
-  else
-    if ((expListLen (n->funccallF.args)) == 2)
-      {
-        outText (p, (char *) "(", 1);
-        doTypeNameC (p, getExpList (n->funccallF.args, 1));
-        outText (p, (char *) ")", 1);
-        mcPretty_setNeedSpace (p);
-        outText (p, (char *) "(", 1);
-        doExprC (p, getExpList (n->funccallF.args, 2));
-        outText (p, (char *) ")", 1);
-      }
-    else
-      M2RTS_HALT (-1);
+  mcDebug_assert (isBinary (n));
+  outText (p, (char *) "(", 1);
+  doTypeNameC (p, n->binaryF.left);
+  outText (p, (char *) ")", 1);
+  mcPretty_setNeedSpace (p);
+  outText (p, (char *) "(", 1);
+  doExprC (p, n->binaryF.right);
+  outText (p, (char *) ")", 1);
 }
 
 
@@ -14225,20 +14374,10 @@ static void doValC (mcPretty_pretty p, decl_node n)
 static void doMinC (mcPretty_pretty p, decl_node n)
 {
   decl_node t;
-  decl_node a;
 
-  mcDebug_assert (isFuncCall (n));
-  if (n->funccallF.args == NULL)
-    M2RTS_HALT (-1);
-  else
-    if ((expListLen (n->funccallF.args)) == 1)
-      {
-        a = getExpList (n->funccallF.args, 1);
-        t = getExprType (a);
-        doExprC (p, getMin (t));
-      }
-    else
-      M2RTS_HALT (-1);
+  mcDebug_assert (isUnary (n));
+  t = getExprType (n->unaryF.arg);
+  doExprC (p, getMin (t));
 }
 
 
@@ -14249,63 +14388,36 @@ static void doMinC (mcPretty_pretty p, decl_node n)
 static void doMaxC (mcPretty_pretty p, decl_node n)
 {
   decl_node t;
-  decl_node a;
 
-  mcDebug_assert (isFuncCall (n));
-  if (n->funccallF.args == NULL)
-    M2RTS_HALT (-1);
-  else
-    if ((expListLen (n->funccallF.args)) == 1)
-      {
-        a = getExpList (n->funccallF.args, 1);
-        t = getExprType (a);
-        doExprC (p, getMax (t));
-      }
-    else
-      M2RTS_HALT (-1);
+  mcDebug_assert (isUnary (n));
+  t = getExprType (n->unaryF.arg);
+  doExprC (p, getMax (t));
 }
 
 
 /*
-   isIntrinsic - returns if, n, is an instrinsic procedure.
+   isIntrinsic - returns if, n, is an intrinsic procedure.
+                 The intrinsic functions are represented as unary and binary nodes.
 */
 
 static unsigned int isIntrinsic (decl_node n)
 {
-  switch (n->funccallF.function->kind)
+  switch (n->kind)
     {
-      case halt:
-      case max:
-      case min:
-      case cast:
-      case val:
-      case adr:
-      case size:
-      case tsize:
-      case float_:
-      case trunc:
-      case ord:
-      case chr:
-      case cap:
-      case abs_:
-      case im:
-      case re:
-      case cmplx:
-      case high:
+      case throw:
       case inc:
       case dec:
       case incl:
       case excl:
       case new:
       case dispose:
-      case length:
-      case throw:
+      case halt:
         return TRUE;
         break;
 
 
       default:
-        return (isFuncCall (n)) && (n->funccallF.function == haltN);
+        return FALSE;
         break;
     }
 }
@@ -14317,19 +14429,19 @@ static unsigned int isIntrinsic (decl_node n)
 
 static void doHalt (mcPretty_pretty p, decl_node n)
 {
-  mcDebug_assert (isFuncCall (n));
-  if ((n->funccallF.args == NULL) || ((expListLen (n->funccallF.args)) == 0))
+  mcDebug_assert (n->kind == halt);
+  if ((n->intrinsicF.args == NULL) || ((expListLen (n->intrinsicF.args)) == 0))
     {
       outText (p, (char *) "M2RTS_HALT", 10);
       mcPretty_setNeedSpace (p);
       outText (p, (char *) "(-1)", 4);
     }
-  else if ((expListLen (n->funccallF.args)) == 1)
+  else if ((expListLen (n->intrinsicF.args)) == 1)
     {
       outText (p, (char *) "M2RTS_HALT", 10);
       mcPretty_setNeedSpace (p);
       outText (p, (char *) "(", 1);
-      doExprC (p, getExpList (n->funccallF.args, 1));
+      doExprC (p, getExpList (n->intrinsicF.args, 1));
       outText (p, (char *) ")", 1);
     }
 }
@@ -14343,9 +14455,9 @@ static void doReC (mcPretty_pretty p, decl_node n)
 {
   decl_node t;
 
-  mcDebug_assert (isFuncCall (n));
-  if ((n->funccallF.args != NULL) && ((expListLen (n->funccallF.args)) == 1))
-    t = getExprType (n);
+  mcDebug_assert (n->kind == re);
+  if (n->unaryF.arg != NULL)
+    t = getExprType (n->unaryF.arg);
   else
     M2RTS_HALT (-1);
   if (t == realN)
@@ -14356,7 +14468,9 @@ static void doReC (mcPretty_pretty p, decl_node n)
   else
     M2RTS_HALT (-1);
   mcPretty_setNeedSpace (p);
-  doFuncArgsC (p, n, (Indexing_Index) NULL, TRUE);
+  outText (p, (char *) "(", 1);
+  doExprC (p, n->unaryF.arg);
+  outText (p, (char *) ")", 1);
 }
 
 
@@ -14368,9 +14482,9 @@ static void doImC (mcPretty_pretty p, decl_node n)
 {
   decl_node t;
 
-  mcDebug_assert (isFuncCall (n));
-  if ((n->funccallF.args != NULL) && ((expListLen (n->funccallF.args)) == 1))
-    t = getExprType (n);
+  mcDebug_assert (n->kind == im);
+  if (n->unaryF.arg != NULL)
+    t = getExprType (n->unaryF.arg);
   else
     M2RTS_HALT (-1);
   if (t == realN)
@@ -14381,7 +14495,9 @@ static void doImC (mcPretty_pretty p, decl_node n)
   else
     M2RTS_HALT (-1);
   mcPretty_setNeedSpace (p);
-  doFuncArgsC (p, n, (Indexing_Index) NULL, TRUE);
+  outText (p, (char *) "(", 1);
+  doExprC (p, n->unaryF.arg);
+  outText (p, (char *) ")", 1);
 }
 
 
@@ -14391,30 +14507,22 @@ static void doImC (mcPretty_pretty p, decl_node n)
 
 static void doCmplx (mcPretty_pretty p, decl_node n)
 {
-  mcDebug_assert (isFuncCall (n));
-  if (n->funccallF.args != NULL)
-    if ((expListLen (n->funccallF.args)) == 2)
-      {
-        keyc_useComplex ();
-        mcPretty_setNeedSpace (p);
-        outText (p, (char *) "(", 1);
-        doExprC (p, getExpList (n->funccallF.args, 1));
-        outText (p, (char *) ")", 1);
-        mcPretty_setNeedSpace (p);
-        outText (p, (char *) "+", 1);
-        mcPretty_setNeedSpace (p);
-        outText (p, (char *) "(", 1);
-        doExprC (p, getExpList (n->funccallF.args, 2));
-        mcPretty_setNeedSpace (p);
-        outText (p, (char *) "*", 1);
-        mcPretty_setNeedSpace (p);
-        outText (p, (char *) "I", 1);
-        outText (p, (char *) ")", 1);
-      }
-    else
-      M2RTS_HALT (-1);  /* metaError0 ('expecting two parameters to CMPLX')  */
-  else
-    M2RTS_HALT (-1);  /* metaError0 ('expecting two parameters to CMPLX')  */
+  mcDebug_assert (isBinary (n));
+  keyc_useComplex ();
+  mcPretty_setNeedSpace (p);
+  outText (p, (char *) "(", 1);
+  doExprC (p, n->binaryF.left);
+  outText (p, (char *) ")", 1);
+  mcPretty_setNeedSpace (p);
+  outText (p, (char *) "+", 1);
+  mcPretty_setNeedSpace (p);
+  outText (p, (char *) "(", 1);
+  doExprC (p, n->binaryF.right);
+  mcPretty_setNeedSpace (p);
+  outText (p, (char *) "*", 1);
+  mcPretty_setNeedSpace (p);
+  outText (p, (char *) "I", 1);
+  outText (p, (char *) ")", 1);
 }
 
 
@@ -14424,122 +14532,120 @@ static void doCmplx (mcPretty_pretty p, decl_node n)
 
 static void doIntrinsicC (mcPretty_pretty p, decl_node n)
 {
-  if (n->funccallF.function == haltN)
-    doHalt (p, n);
-  else
-    switch (n->funccallF.function->kind)
-      {
-        case halt:
-          doHalt (p, n);
-          break;
+  mcDebug_assert (isIntrinsic (n));
+  doCommentC (p, n->intrinsicF.intrinsicComment.body);
+  switch (n->kind)
+    {
+      case throw:
+        doThrowC (p, n);
+        break;
 
-        case val:
-          doValC (p, n);
-          break;
+      case halt:
+        doHalt (p, n);
+        break;
 
-        case adr:
-          doAdrC (p, n);
-          break;
+      case inc:
+        doInc (p, n);
+        break;
 
-        case size:
-        case tsize:
-          outText (p, (char *) "sizeof", 6);
-          mcPretty_setNeedSpace (p);
-          doFuncArgsC (p, n, (Indexing_Index) NULL, TRUE);
-          break;
+      case dec:
+        doDec (p, n);
+        break;
 
-        case float_:
-          outText (p, (char *) "(double)", 8);
-          mcPretty_setNeedSpace (p);
-          doFuncArgsC (p, n, (Indexing_Index) NULL, TRUE);
-          break;
+      case incl:
+        doInclC (p, n);
+        break;
 
-        case trunc:
-          outText (p, (char *) "(int)", 5);
-          mcPretty_setNeedSpace (p);
-          doFuncArgsC (p, n, (Indexing_Index) NULL, TRUE);
-          break;
+      case excl:
+        doExclC (p, n);
+        break;
 
-        case ord:
-          outText (p, (char *) "(unsigned int)", 14);
-          mcPretty_setNeedSpace (p);
-          doFuncArgsC (p, n, (Indexing_Index) NULL, TRUE);
-          break;
+      case new:
+        doNewC (p, n);
+        break;
 
-        case chr:
-          outText (p, (char *) "(char)", 6);
-          mcPretty_setNeedSpace (p);
-          doFuncArgsC (p, n, (Indexing_Index) NULL, TRUE);
-          break;
-
-        case cap:
-          doCapC (p, n);
-          break;
-
-        case abs_:
-          doAbsC (p, n);
-          break;
-
-        case high:
-          doFuncHighC (p, getExpList (n->funccallF.args, 1));
-          break;
-
-        case inc:
-          doInc (p, n);
-          break;
-
-        case dec:
-          doDec (p, n);
-          break;
-
-        case incl:
-          doInclC (p, n);
-          break;
-
-        case excl:
-          doExclC (p, n);
-          break;
-
-        case new:
-          doNewC (p, n);
-          break;
-
-        case dispose:
-          doDisposeC (p, n);
-          break;
-
-        case length:
-          doLengthC (p, n);
-          break;
-
-        case min:
-          doMinC (p, n);
-          break;
-
-        case max:
-          doMaxC (p, n);
-          break;
-
-        case throw:
-          doThrowC (p, n);
-          break;
-
-        case re:
-          doReC (p, n);
-          break;
-
-        case im:
-          doImC (p, n);
-          break;
-
-        case cmplx:
-          doCmplx (p, n);
-          break;
+      case dispose:
+        doDisposeC (p, n);
+        break;
 
 
-        default:
-          CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 20, 1);
-      }
+      default:
+        CaseException ("../../gcc-versionno/gcc/gm2/mc/decl.def", 20, 1);
+    }
+  outText (p, (char *) ";", 1);
+  doAfterCommentC (p, n->intrinsicF.intrinsicComment.after);
+}
+
+
+/*
+   isIntrinsicFunction - returns true if, n, is an instrinsic function.
+*/
+
+static unsigned int isIntrinsicFunction (decl_node n)
+{
+  switch (n->kind)
+    {
+      case val:
+      case adr:
+      case size:
+      case tsize:
+      case float_:
+      case trunc:
+      case ord:
+      case chr:
+      case cap:
+      case abs_:
+      case high:
+      case length:
+      case min:
+      case max:
+      case throw:
+      case re:
+      case im:
+      case cmplx:
+        return TRUE;
+        break;
+
+
+      default:
+        return FALSE;
+        break;
+    }
+}
+
+
+/*
+   doSizeC -
+*/
+
+static void doSizeC (mcPretty_pretty p, decl_node n)
+{
+  mcDebug_assert (isUnary (n));
+  outText (p, (char *) "sizeof (", 8);
+  doExprC (p, n->unaryF.arg);
+  outText (p, (char *) ")", 1);
+}
+
+
+/*
+   doConvertC -
+*/
+
+static void doConvertC (mcPretty_pretty p, decl_node n, char *conversion_, unsigned int _conversion_high)
+{
+  char conversion[_conversion_high+1];
+
+  /* make a local copy of each unbounded array.  */
+  memcpy (conversion, conversion_, _conversion_high+1);
+
+  mcDebug_assert (isUnary (n));
+  mcPretty_setNeedSpace (p);
+  outText (p, (char *) "(", 1);
+  outText (p, (char *) conversion, _conversion_high);
+  mcPretty_setNeedSpace (p);
+  outText (p, (char *) "(", 1);
+  doExprC (p, n->unaryF.arg);
+  outText (p, (char *) "))", 2);
 }
 
 
@@ -14565,9 +14671,7 @@ static void doFuncExprC (mcPretty_pretty p, decl_node n)
   decl_node t;
 
   mcDebug_assert (isFuncCall (n));
-  if (isIntrinsic (n))
-    doIntrinsicC (p, n);
-  else if (decl_isProcedure (n->funccallF.function))
+  if (decl_isProcedure (n->funccallF.function))
     {
       doFQDNameC (p, n->funccallF.function, TRUE);
       mcPretty_setNeedSpace (p);
@@ -15068,6 +15172,8 @@ static void doStatementsC (mcPretty_pretty p, decl_node s)
     doRepeatC (p, s);
   else if (decl_isWhile (s))
     doWhileC (p, s);
+  else if (isIntrinsic (s))
+    doIntrinsicC (p, s);
   else if (isFuncCall (s))
     doFuncCallC (p, s);
   else if (decl_isCase (s))
@@ -15141,7 +15247,7 @@ static void includeParameters (decl_node n)
 
 static unsigned int isHalt (decl_node n)
 {
-  return (n->funccallF.function == haltN) || (n->funccallF.function->kind == halt);
+  return n->kind == halt;
 }
 
 
@@ -16179,6 +16285,10 @@ static dependentState doDependants (alists_alist l, decl_node n)
         return walkPointerRef (l, n);
         break;
 
+      case not:
+      case abs_:
+      case min:
+      case max:
       case chr:
       case cap:
       case ord:
@@ -16286,6 +16396,7 @@ static unsigned int tryCompleteFromPartial (decl_node n, nodeProcedure t)
 
 static void visitUnary (alists_alist v, decl_node n, nodeProcedure p)
 {
+  mcDebug_assert (isUnary (n));
   visitNode (v, n->unaryF.arg, p);
   visitNode (v, n->unaryF.resultType, p);
 }
@@ -16911,6 +17022,17 @@ static void visitSetValue (alists_alist v, decl_node n, nodeProcedure p)
 
 
 /*
+   visitIntrinsic -
+*/
+
+static void visitIntrinsic (alists_alist v, decl_node n, nodeProcedure p)
+{
+  mcDebug_assert (isIntrinsic (n));
+  visitNode (v, n->intrinsicF.args, p);
+}
+
+
+/*
    visitDependants - helper procedure function called from visitNode.
                      node n has just been visited, this procedure will
                      visit node, n, dependants.
@@ -16945,32 +17067,20 @@ static void visitDependants (alists_alist v, decl_node n, nodeProcedure p)
       case comment:
         break;
 
+      case throw:
       case halt:
-        break;
-
       case new:
-        break;
-
       case dispose:
-        break;
-
       case length:
-        break;
-
       case inc:
-        break;
-
       case dec:
-        break;
-
       case incl:
-        break;
-
       case excl:
+        visitIntrinsic (v, n, p);
         break;
 
       case boolean:
-        visitBoolean (v, n, p);  /* handled in funccall.  */
+        visitBoolean (v, n, p);
         break;
 
       case nil:
@@ -17183,23 +17293,73 @@ static void visitDependants (alists_alist v, decl_node n, nodeProcedure p)
         break;
 
       case re:
+        visitUnary (v, n, p);
+        break;
+
       case im:
+        visitUnary (v, n, p);
+        break;
+
       case abs_:
+        visitUnary (v, n, p);
+        break;
+
       case chr:
+        visitUnary (v, n, p);
+        break;
+
       case cap:
+        visitUnary (v, n, p);
+        break;
+
       case high:
+        visitUnary (v, n, p);
+        break;
+
       case ord:
+        visitUnary (v, n, p);
+        break;
+
       case float_:
+        visitUnary (v, n, p);
+        break;
+
       case trunc:
+        visitUnary (v, n, p);
+        break;
+
       case not:
+        visitUnary (v, n, p);
+        break;
+
       case neg:
+        visitUnary (v, n, p);
+        break;
+
       case adr:
+        visitUnary (v, n, p);
+        break;
+
       case size:
+        visitUnary (v, n, p);
+        break;
+
       case tsize:
+        visitUnary (v, n, p);
+        break;
+
       case min:
+        visitUnary (v, n, p);
+        break;
+
       case max:
-      case throw:
+        visitUnary (v, n, p);
+        break;
+
       case constexp:
+        visitUnary (v, n, p);
+        break;
+
       case deref:
         visitUnary (v, n, p);
         break;
@@ -19175,6 +19335,17 @@ static void addGenericBody (decl_node n, decl_node c)
 {
   switch (n->kind)
     {
+      case throw:
+      case halt:
+      case new:
+      case dispose:
+      case inc:
+      case dec:
+      case incl:
+      case excl:
+        n->intrinsicF.intrinsicComment.body = c;
+        break;
+
       case funccall:
         n->funccallF.funccallComment.body = c;
         break;
@@ -19215,6 +19386,17 @@ static void addGenericAfter (decl_node n, decl_node c)
 {
   switch (n->kind)
     {
+      case throw:
+      case halt:
+      case new:
+      case dispose:
+      case inc:
+      case dec:
+      case incl:
+      case excl:
+        n->intrinsicF.intrinsicComment.after = c;
+        break;
+
       case funccall:
         n->funccallF.funccallComment.after = c;
         break;
@@ -19534,7 +19716,6 @@ static decl_node doDupExpr (decl_node n)
       case float_:
       case trunc:
       case ord:
-      case throw:
       case not:
       case neg:
       case adr:
@@ -20468,6 +20649,8 @@ decl_node decl_getType (decl_node n)
         return booleanN;
         break;
 
+      case max:
+      case min:
       case re:
       case im:
       case abs_:
@@ -22935,17 +23118,16 @@ decl_node decl_makeFuncCall (decl_node c, decl_node n)
   mcDebug_assert ((n == NULL) || (decl_isExpList (n)));
   if (((c == haltN) && ((decl_getMainModule ()) != (decl_lookupDef (nameKey_makeKey ((char *) "M2RTS", 5))))) && ((decl_getMainModule ()) != (decl_lookupImp (nameKey_makeKey ((char *) "M2RTS", 5)))))
     decl_addImportedModule (decl_getMainModule (), decl_lookupDef (nameKey_makeKey ((char *) "M2RTS", 5)), FALSE);
-  if (isAnyType (c))
-    return makeCast (c, n);
-  else
+  f = checkIntrinsic (c, n);
+  if (f == NULL)
     {
       f = newNode ((nodeT) funccall);
       f->funccallF.function = c;
       f->funccallF.args = n;
       f->funccallF.type = NULL;
       initPair (&f->funccallF.funccallComment);
-      return f;
     }
+  return f;
 }
 
 
