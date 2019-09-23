@@ -5,29 +5,25 @@ Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
 This file is part of GNU Modula-2.
 
-GNU Modula-2 is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
 
 GNU Modula-2 is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public License
-along with GNU Modula-2.  If not, see <https://www.gnu.org/licenses/>.  *)
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE Terminal ;
 
 (*
-    Title      : Terminal
-    System     : GNU Modula-2
-    Date       : Fri Aug  6 20:13:17 2004
-    Revision   : $Version$ 
-    Description: provides a Logitech 3.0 compatible and PIM [234] compatible
-                 Terminal module. It provides simple terminal input output
-                 routines which all utilize the TermBase module.
+   It provides simple terminal input output
+   routines which all utilize the TermBase module.
 *)
 
 EXPORT QUALIFIED Read, KeyPressed, ReadAgain, ReadString, Write,

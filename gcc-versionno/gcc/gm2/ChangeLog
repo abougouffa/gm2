@@ -16,6 +16,102 @@
           generated Copyright notice.
 	* gm2/www/Makefile.in:  corrected dates.
 	* gm2/www/gm2-logo.ms:  corrected dates and version of the FDL.
+	* gm2/gm2-libs-iso/ChanConsts.mod:  changed license
+	  from LGPL to GPL3.
+	* gm2/gm2-libs-pim/BitBlockOps.def:  changed license from
+	  LGPL to GPL3.
+	* gm2/gm2-libs-pim/BitBlockOps.mod:  changed license from
+	  LGPL to GPL3.
+	* gm2/gm2-libs-pim/BitByteOps.def:  changed license from
+	  LGPL to GPL3.
+	* gm2/gm2-libs-pim/BitByteOps.mod:  changed license from
+	  LGPL to GPL3.
+	* gm2/gm2-libs-pim/BitWordOps.def:  changed license from
+	  LGPL to GPL3.
+	* gm2/gm2-libs-pim/BitWordOps.mod:  changed license from
+	  LGPL to GPL3.
+	* gm2/gm2-libs-pim/BlockOps.def:  changed license from
+	  LGPL to GPL3.
+	* gm2/gm2-libs-pim/BlockOps.mod:  changed license from
+	  LGPL to GPL3.
+	* gm2/gm2-libs-pim/Break.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/CardinalIO.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/CardinalIO.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/Conversions.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/Conversions.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/DebugPMD.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/DebugTrace.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/DebugTrace.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/Delay.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/Delay.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/Display.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/Display.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/ErrorCode.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/ErrorCode.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/FileSystem.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/FileSystem.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/FloatingUtilities.def:  changed license from
+	  LGPL to GPL3.
+	* gm2/gm2-libs-pim/FloatingUtilities.mod:  changed license from
+	  LGPL to GPL3.
+	* gm2/gm2-libs-pim/InOut.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/InOut.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/Keyboard.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/Keyboard.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/LongIO.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/LongIO.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/NumberConversion.def:  changed license from
+	  LGPL to GPL3.
+	* gm2/gm2-libs-pim/Random.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/Random.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/RealConversions.def:  changed license from
+	  LGPL to GPL3.
+	* gm2/gm2-libs-pim/RealConversions.mod:  changed license from
+	  LGPL to GPL3.
+	* gm2/gm2-libs-pim/RealInOut.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/RealInOut.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/Strings.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/Strings.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/Termbase.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/Termbase.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/Terminal.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/Terminal.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/TimeDate.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs-pim/TimeDate.mod:  changed license from LGPL
+	  to GPL3.
 
 2019-09-21      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

@@ -1,33 +1,25 @@
-(* FloatingUtilities.def provides a Logitech-3.0 compatible library.
+(* FloatingUtilities.def provides a Logitech compatible library.
 
 Copyright (C) 2005-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
 This file is part of GNU Modula-2.
 
-GNU Modula-2 is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
 
 GNU Modula-2 is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public License
-along with GNU Modula-2.  If not, see <https://www.gnu.org/licenses/>.  *)
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE FloatingUtilities ;
-
-(*
-    Title      : FloatingUtilies
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Mon Dec 19 19:11:11 2005
-    Revision   : $Version$ 
-    Description: provides a Logitech-3.0 compatible library
-*)
 
 EXPORT QUALIFIED Frac, Round, Float, Trunc,
                  Fracl, Roundl, Floatl, Truncl ;
