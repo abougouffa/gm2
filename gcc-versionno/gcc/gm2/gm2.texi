@@ -3593,9 +3593,8 @@ been reported to work in OpenBSD 5.2, OpenBSD 4.8 and NetBSD 6.0.
 
 GNU Modula-2 is free software, the compiler is held under the GPL v3
 @uref{http://www.gnu.org/licenses/gpl.txt},
-its libraries (pim, iso, Logitech compatible) are under the LGPL v3
-@uref{http://www.gnu.org/licenses/lgpl.txt},
-whereas the Ulm libraries are under the GPL v3.
+its libraries (pim, iso, Logitech compatible and Ulm) are under the GPL v3
+@uref{http://www.gnu.org/licenses/lgpl.txt}.
 More information on how these licences work is available
 @uref{http://www.gnu.org/licenses/licenses.html} on the GNU web site.
 

@@ -1,7 +1,6 @@
 (* M2Range.mod exports procedures which maintain the range checking.
-
-Copyright (C) 2008-2019 Free Software Foundation, Inc.
-Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
+   Copyright (C) 2008-2019 Free Software Foundation, Inc.
+   Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
 This file is part of GNU Modula-2.
 

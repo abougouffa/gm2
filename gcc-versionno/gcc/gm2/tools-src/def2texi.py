@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 2009,
-#               2010
+# Copyright (C) 2000-2019
 #               Free Software Foundation, Inc.
 # This file is part of GNU Modula-2.
 #
@@ -381,8 +380,8 @@ def displayModules(up, dir, build, source):
 
 
 def displayCopyright ():
-    print("@c Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008")
-    print("@c Free Software Foundation, Inc.")
+    print("@c Copyright (C) 2000-2019 Free Software Foundation, Inc.")
+    print("@c This file is part of GNU Modula-2.")
     print("""
 @c Permission is granted to copy, distribute and/or modify this document
 @c under the terms of the GNU Free Documentation License, Version 1.2 or

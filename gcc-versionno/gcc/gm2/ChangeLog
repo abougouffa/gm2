@@ -7,8 +7,15 @@
 	* gm2/gpl.texi:  combined dates.
 	* gm2/m2pp.h:  fixed boilerplate header.
 	* gm2/m2pp.c:  updated dates.
-	* gm2/gm2-compiler/ppg.mod:  corrected Copyright
-	  strings.
+	* gm2/gm2-compiler/ppg.mod:  corrected Copyright strings.
+	* gm2/gm2-compiler/M2Range.mod:  indented Copright line.
+	* gm2/gm2.texi:  changed license information.
+	* gm2/mc/mcComp.mod:  corrected Copyright and attribution.
+	* gm2/tools-src/createUlmSys:  fixed dates.
+	* gm2/tools-src/def2texi.py:  fixed dates.  Fixed the
+          generated Copyright notice.
+	* gm2/www/Makefile.in:  corrected dates.
+	* gm2/www/gm2-logo.ms:  corrected dates and version of the FDL.
 
 2019-09-21      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
