@@ -1,7 +1,6 @@
 (* ppg.mod master source file of the ebnf parser generator.
-
-Copyright (C) 2003-2019 Free Software Foundation, Inc.
-Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
+   Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
 This file is part of GNU Modula-2.
 
@@ -42,7 +41,7 @@ FROM SYSTEM IMPORT WORD ;
 
 
 CONST
-   MaxCodeHunkLength = 8192 ;   (* try 8192 for efficiency.  *)
+   MaxCodeHunkLength = 8192 ;
    MaxFileName       = 8192 ;
    MaxString         = 8192 ;
    DefaultRecovery   = TRUE ;   (* default is to generate a parser which will recover from errors.  *)
@@ -4635,9 +4634,9 @@ END EmptyProduction ;
 
 PROCEDURE EmitFDLNotice ;
 BEGIN
-   WriteString('@c Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005') ; WriteLn ;
-   WriteString('@c Free Software Foundation, Inc.') ; WriteLn ;
+   WriteString('@c Copyright (C) 2000-2019 Free Software Foundation, Inc.') ; WriteLn ;
    WriteLn ;
+   WriteString('@c This file is part of GCC.') ; WriteLn ;
    WriteString('@c Permission is granted to copy, distribute and/or modify this document') ; WriteLn ;
    WriteString('@c under the terms of the GNU Free Documentation License, Version 1.2 or') ; WriteLn ;
    WriteString('@c any later version published by the Free Software Foundation.') ; WriteLn

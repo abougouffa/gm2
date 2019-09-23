@@ -7,6 +7,8 @@
 	* gm2/gpl.texi:  combined dates.
 	* gm2/m2pp.h:  fixed boilerplate header.
 	* gm2/m2pp.c:  updated dates.
+	* gm2/gm2-compiler/ppg.mod:  corrected Copyright
+	  strings.
 
 2019-09-21      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
