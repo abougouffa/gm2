@@ -415,6 +415,9 @@
           heading.
 	* gm2/gm2-libs-min/libc.def:  reformatted license with
           heading.
+	* gm2-libs-min/M2RTS.def:  use GPLv3.
+	* gm2-libs-min/M2RTS.mod:  use GPLv3.
+	* gm2/gm2-libs-min/libc.def:  use GPLv3.
 
 2019-09-21      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
