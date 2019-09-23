@@ -1,4 +1,4 @@
-(* wrapc.def Provides a Modula-2 interface to the C.
+(* wrapc.def provides access to more of the C library.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -20,14 +20,6 @@ along with GNU Modula-2; see the file COPYING.  If not,
 see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE wrapc ;
-
-(*
-   Author     : Gaius Mulley
-   Title      : wrapc
-   Date       : 93
-   Description: Provides a Modula-2 interface to the C
-                library functionality.
-*)
 
 FROM SYSTEM IMPORT ADDRESS ;
 

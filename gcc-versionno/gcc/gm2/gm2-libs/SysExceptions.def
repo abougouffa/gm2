@@ -21,18 +21,11 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE SysExceptions ;
 
-(*
-    Title      : SysExceptions
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Thu Oct  1 18:55:11 2009
-    Revision   : $Version$ 
-    Description: provides a mechanism for the underlying libraries to
-                 configure the hardware exception routines either via
-                 Posix signal or maybe an alternative method.  Used by
-                 both the ISO and PIM libraries.  It is written to be
-                 ISO compliant though.
-*)
+(* Provides a mechanism for the underlying libraries to
+   configure the exception routines.  This mechanism
+   is used by both the ISO and PIM libraries.
+   It is written to be ISO compliant and this also
+   allows for mixed dialect projects.  *)
 
 FROM SYSTEM IMPORT ADDRESS ;
 

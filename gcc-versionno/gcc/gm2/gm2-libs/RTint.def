@@ -21,16 +21,9 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE RTint ;
 
-(*
-    Title      : RTint
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Thu Oct 29 15:07:33 GMT 2009
-    Revision   : $Version$ 
-    Description: provides users of the COROUTINES library with the
-                 ability to create interrupt sources based on
-                 file descriptors and timeouts.
-*)
+(* Provides users of the COROUTINES library with the
+   ability to create interrupt sources based on
+   file descriptors and timeouts.  *)
 
 FROM SYSTEM IMPORT ADDRESS ;
 

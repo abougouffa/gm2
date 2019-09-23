@@ -21,15 +21,6 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE LegacyReal ;
 
-(*
-    Title      : LegacyReal
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Thu Jun 25 20:01:00 2009
-    Revision   : $Version$ 
-    Description: provides a legacy definition for REAL.
-*)
-
 TYPE
    REAL = SHORTREAL ;
 

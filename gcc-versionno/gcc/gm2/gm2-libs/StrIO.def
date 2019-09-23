@@ -21,15 +21,6 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE StrIO ;
 
-(*
-   Title      : StrIO
-   Author     : Gaius Mulley
-   Date       : 8/84
-   LastEdit   : 27/2/88
-   System     : LOGITECH MODULA-2/86
-   Description: Provides simple string input output routines.
-*)
-
 EXPORT QUALIFIED ReadString, WriteString,
                  WriteLn ;
 

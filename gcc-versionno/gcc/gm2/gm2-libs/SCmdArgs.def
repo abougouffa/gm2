@@ -1,4 +1,4 @@
-(* SCmdArgs.def SCmdArgs - implements procedures to retrieve arguments from.
+(* SCmdArgs.def provides procedures to retrieve arguments from strings.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -20,15 +20,6 @@ along with GNU Modula-2; see the file COPYING.  If not,
 see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE SCmdArgs ;
-
-(*
-   Title      : SCmdArgs
-   Author     : Gaius Mulley
-   Date       : Mon Aug 17 01:02:12 2015
-   System     : UNIX (GNU Modula-2)
-   Description: SCmdArgs - implements procedures to retrieve arguments from
-                a string.
-*)
 
 FROM DynamicStrings IMPORT String ;
 

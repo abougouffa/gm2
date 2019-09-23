@@ -21,15 +21,6 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE OptLib ;
 
-(*
-    Title      : OptLib
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Wed Jul 31 16:00:56 2019
-    Revision   : $Version$
-    Description: allows users to manipulate Argv/Argc.
-*)
-
 FROM SYSTEM IMPORT ADDRESS ;
 FROM DynamicStrings IMPORT String ;
 

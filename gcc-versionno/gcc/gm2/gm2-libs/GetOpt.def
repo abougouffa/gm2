@@ -21,15 +21,6 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE GetOpt ;
 
-(*
-    Title      : GetOpt
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Fri Sep 29 08:24:25 2017
-    Revision   : $Version$
-    Description:
-*)
-
 FROM SYSTEM IMPORT ADDRESS ;
 FROM DynamicStrings IMPORT String ;
 

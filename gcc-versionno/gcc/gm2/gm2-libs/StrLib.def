@@ -1,4 +1,4 @@
-(* StrLib.def Provides string manipulation.
+(* StrLib.def provides string manipulation procedures.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -20,13 +20,6 @@ along with GNU Modula-2; see the file COPYING.  If not,
 see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE StrLib ;
-
-(*
-   Author     : Gaius Mulley
-   Date       : '84
-   LastEdit   : 28/1/97
-   Description: Provides string manipulation
-*)
 
 EXPORT QUALIFIED StrConCat, StrLen, StrCopy, StrEqual, StrLess,
       	       	 IsSubString, StrRemoveWhitePrefix ;

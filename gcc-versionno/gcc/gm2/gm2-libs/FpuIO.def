@@ -1,4 +1,4 @@
-(* FpuIO.def Implements a fixed format input/output for REAL,.
+(* FpuIO.def Implements a fixed format input/output for REAL/LONGREAL.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -20,14 +20,6 @@ along with GNU Modula-2; see the file COPYING.  If not,
 see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE FpuIO ;
-
-(*
-   Author     : Gaius Mulley
-   Title      : FpuIO
-   Date       : 3/1/95
-   Description: Implements a fixed format input/output for REAL,
-                LONGREAL and LONGINT numbers
-*)
 
 EXPORT QUALIFIED ReadReal, WriteReal, StrToReal, RealToStr,
                  ReadLongReal, WriteLongReal, StrToLongReal, LongRealToStr,

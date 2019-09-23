@@ -21,15 +21,6 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE Environment ;
 
-(*
-    Title      : Environment
-    Author     : Gaius Mulley
-    System     : UNIX (gm2)
-    Date       : Sat Aug 27 13:14:31 1994
-    Last edit  : Sat Aug 27 13:14:31 1994
-    Description: provides access to the environment settings of a process.
-*)
-
 EXPORT QUALIFIED GetEnvironment ;
 
 

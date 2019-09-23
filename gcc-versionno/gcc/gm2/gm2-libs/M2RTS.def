@@ -21,13 +21,6 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE M2RTS ;
 
-(*
-   Author     : Gaius Mulley
-   Title      : M2RTS
-   Date       : Wed Jun 20 15:21:04 BST 1990
-   Description: Implements the run time system facilities of Modula-2.
-*)
-
 FROM SYSTEM IMPORT ADDRESS ;
 EXPORT QUALIFIED HALT, Halt,
                  InstallTerminationProcedure, ExecuteTerminationProcedures,

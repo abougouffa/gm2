@@ -1,4 +1,4 @@
-(* TimeString.def Provides time related string manipulation procedures.
+(* TimeString.def provides time related string manipulation procedures.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -20,15 +20,6 @@ along with GNU Modula-2; see the file COPYING.  If not,
 see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE TimeString ;
-
-(*
-    Title      : TimeString
-    Author     : Gaius Mulley
-    System     : UNIX (gm2)
-    Date       : Fri May 29 20:09:16 1992
-    Last edit  : Fri May 29 20:09:16 1992
-    Description: Provides time related string manipulation procedures.
-*)
 
 EXPORT QUALIFIED GetTimeString ;
 

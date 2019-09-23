@@ -21,17 +21,10 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE RTExceptions ;
 
-(*
-    Title      : RTExceptions
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Fri Mar 28 22:57:24 2008
-    Revision   : $Version$ 
-    Description: runtime exception handler routines.  This should
-                 be considered as a system module for GNU Modula-2
-                 and allow the compiler to interface with exception
-                 handling.
-*)
+(* Runtime exception handler routines.  This should
+   be considered as a system module for GNU Modula-2
+   and allow the compiler to interface with exception
+   handling.  *)
 
 FROM SYSTEM IMPORT ADDRESS ;
 EXPORT QUALIFIED EHBlock,

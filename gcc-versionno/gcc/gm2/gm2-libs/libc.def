@@ -1,4 +1,4 @@
-(* libc.def Provides an interface to the C library functions.
+(* libc.def provides an interface to the C library functions.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -20,13 +20,6 @@ along with GNU Modula-2; see the file COPYING.  If not,
 see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE FOR "C" libc ;
-
-(*
-   Author     : Gaius Mulley
-   Title      : libc
-   Date       : Wed Jun  6 11:49:37 BST 1990
-   Description: Provides an interface to the C library functions.
-*)
 
 FROM SYSTEM IMPORT ADDRESS, CSIZE_T, CSSIZE_T ;
 

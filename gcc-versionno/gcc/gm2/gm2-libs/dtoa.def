@@ -21,20 +21,6 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE dtoa ;
 
-(*
-    Title      : dtoa
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Tue Dec 23 11:09:42 2008
-    Revision   : $Version$ 
-    Description: provides routines to convert between a C double
-                 and an ascii string.  The reason we include this
-                 module as well as the ldtoa is that the long doubles
-                 might be implemented in software on some targets.
-                 Hence the libraries should use dtoa if converting
-                 REAL or SHORTREAL to/from ascii.
-*)
-
 FROM SYSTEM IMPORT ADDRESS ;
 
 TYPE

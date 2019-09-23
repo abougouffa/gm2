@@ -1,4 +1,4 @@
-(* Indexing.def provides a dynamic indexing mechanism.
+(* Indexing.def provides a dynamic indexing mechanism for CARDINAL.
 
 Copyright (C) 2003-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -20,15 +20,6 @@ along with GNU Modula-2; see the file COPYING.  If not,
 see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE Indexing ;
-
-(*
-    Title      : Indexing
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Mon Feb 23 17:04:45 2004
-    Revision   : $Version$
-    Description: provides a dynamic indexing mechanism.
-*)
 
 FROM SYSTEM IMPORT ADDRESS ;
 EXPORT QUALIFIED Index, InitIndex, KillIndex, GetIndice, PutIndice,

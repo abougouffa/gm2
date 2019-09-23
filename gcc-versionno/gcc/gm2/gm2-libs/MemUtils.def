@@ -21,15 +21,6 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE MemUtils ;
 
-(*
-    Title      : MemUtils
-    Author     : Gaius Mulley
-    System     : UNIX (gm2)
-    Date       : Tue Oct  1 13:59:56 1996
-    Last edit  : Tue Oct  1 13:59:56 1996
-    Description: provides some basic memory utilities.
-*)
-
 FROM SYSTEM IMPORT ADDRESS ;
 EXPORT QUALIFIED MemCopy, MemZero ;
 

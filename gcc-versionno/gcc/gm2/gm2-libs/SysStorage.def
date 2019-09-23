@@ -18,19 +18,12 @@ General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Modula-2; see the file COPYING.  If not,
 see <https://www.gnu.org/licenses/>.  *)
+
 DEFINITION MODULE SysStorage ;
 
-(*
-    Title      : SysStorage
-    Author     : Gaius Mulley
-    System     : UNIX (gm2)
-    Date       : Fri May  2 15:19:49 1997
-    Last edit  : Fri May  2 15:19:49 1997
-    Description: provides dynamic allocation for the system components
-                 of a realtime system. This allows the application to
-                 use the traditional Storage module which can be
-                 handled differently.
-*)
+(*  Provides dynamic allocation for the system components.
+    This allows the application to use the traditional Storage module
+    which can be handled differently.  *)
 
 FROM SYSTEM IMPORT ADDRESS ;
 EXPORT QUALIFIED ALLOCATE, DEALLOCATE, REALLOCATE, Available, Init ;
@@ -78,4 +71,3 @@ PROCEDURE Init ;
 
 
 END SysStorage.
-

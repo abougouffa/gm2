@@ -1,4 +1,4 @@
-(* FormatStrings.def provides a pseudo printf capability for GM2.
+(* FormatStrings.def provides a pseudo printf capability.
 
 Copyright (C) 2005-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -20,15 +20,6 @@ along with GNU Modula-2; see the file COPYING.  If not,
 see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE FormatStrings ;
-
-(*
-    Title      : FormatStrings
-    Author     : Gaius Mulley
-    System     : UNIX (GNU Modula-2)
-    Date       : Fri Jul 27 14:12:31 2001
-    Last edit  : Fri Jul 27 14:12:31 2001
-    Description: provides a pseudo printf capability for GM2.
-*)
 
 FROM SYSTEM IMPORT BYTE ;
 FROM DynamicStrings IMPORT String ;

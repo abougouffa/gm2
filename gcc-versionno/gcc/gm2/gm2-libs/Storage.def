@@ -1,4 +1,4 @@
-(* Storage.def Implements the dynamic Storage handler for the.
+(* Storage.def provides access to the dynamic Storage handler.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -20,15 +20,6 @@ along with GNU Modula-2; see the file COPYING.  If not,
 see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE Storage ;
-
-(*
-   Author     : Gaius Mulley
-   Title      : Storage
-   Date       : Mon Jun 18 14:37:05 BST 1990
-   Description: Implements the dynamic Storage handler for the
-                Modula-2 compiler.
-   Last update: Mon Jun 18 14:37:41 BST 1990
-*)
 
 FROM SYSTEM IMPORT ADDRESS ;
 

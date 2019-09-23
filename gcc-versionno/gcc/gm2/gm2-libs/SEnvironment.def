@@ -1,4 +1,4 @@
-(* SEnvironment.def provides access to the environment settings of a process.
+(* SEnvironment.def provides access to the environment of a process.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -18,17 +18,9 @@ General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Modula-2; see the file COPYING.  If not,
 see <https://www.gnu.org/licenses/>.  *)
+
 DEFINITION MODULE SEnvironment ;
 
-(*
-    Title      : SEnvironment
-    Author     : Gaius Mulley
-    System     : UNIX (GNU Modula-2)
-    Date       : Tue Aug  7 19:17:15 2001
-    Last edit  : $Date: 2010/10/03 19:01:11 $ 
-    Revision   : $Version$ 
-    Description: provides access to the environment settings of a process.
-*)
 
 FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED GetEnvironment ;

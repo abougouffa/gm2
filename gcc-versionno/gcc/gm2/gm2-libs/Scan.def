@@ -18,17 +18,13 @@ General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Modula-2; see the file COPYING.  If not,
 see <https://www.gnu.org/licenses/>.  *)
+
 DEFINITION MODULE Scan ;
 
-(*
-   Author     : Gaius Mulley
-   Date       : October 1985
-   LastEdit   : 15/10/86
-   Description: Provides a primitive symbol fetching from input.
-                Symbols are delimited by spaces and tabs.
-                Limitation - only allows one source file at
-                             a time to deliver symbols.
-*)
+(* Provides a primitive symbol fetching from input.
+   Symbols are delimited by spaces and tabs.
+   Limitation only allows one source file at
+   a time to deliver symbols.  *)
 
 
 EXPORT QUALIFIED GetNextSymbol, WriteError,

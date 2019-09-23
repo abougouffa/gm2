@@ -21,15 +21,6 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE termios ;
 
-(*
-    Title      : termios
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Mon Jan 30 13:21:37 2006
-    Revision   : $Version$ 
-    Description: provides a procedural interface to termios.
-*)
-
 FROM SYSTEM IMPORT ADDRESS ;
 
 TYPE

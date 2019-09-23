@@ -1,4 +1,4 @@
-(* gdbif.def provides a set of interfaces which enable interactive connectivity with gdb.
+(* gdbif.mod enable interactive connectivity with gdb.
 
 Copyright (C) 2011-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -21,14 +21,8 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE gdbif ;
 
-(*
-    Title      : gdbif
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Tue Mar  3 11:38:43 2015
-    Revision   : $Version$ 
-    Description: provides a set of interfaces which enable interactive connectivity with gdb.
-*)
+(*  Provides interactive connectivity with gdb useful for debugging
+    Modula-2 shared libraries.  *)
 
 EXPORT UNQUALIFIED sleepSpin, finishSpin, connectSpin ;
 

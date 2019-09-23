@@ -21,15 +21,6 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE sckt ;
 
-(*
-    Title      : sckt
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Sun May 29 11:55:25 2005
-    Revision   : $Version$ 
-    Description: provides a minimal interface to tcp sockets.
-*)
-
 FROM SYSTEM IMPORT ADDRESS ;
 EXPORT UNQUALIFIED tcpServerState,
                    tcpServerEstablish, tcpServerEstablishPort,

@@ -21,17 +21,6 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE PushBackInput ;
 
-(*
-    Title      : PushBackInput
-    Author     : Gaius Mulley
-    System     : UNIX (gm2)
-    Date       : Tue Mar  9 11:24:35 1999
-    Last edit  : Tue Mar  9 11:24:35 1999
-    Description: provides a method for pushing back and consuming input
-                 from a standard file descriptor. Insipred by software
-                 tools.
-*)
-
 FROM FIO IMPORT File ;
 FROM DynamicStrings IMPORT String ;
 

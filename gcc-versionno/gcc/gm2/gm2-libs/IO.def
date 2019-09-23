@@ -1,4 +1,4 @@
-(* IO.def provides Read, Write, Errors procedures that map onto UNIX.
+(* IO.def provides Read, Write, Errors procedures mapping onto 0, 1 and 2.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -20,7 +20,7 @@ along with GNU Modula-2; see the file COPYING.  If not,
 see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE IO ;
- 
+
 (*
    Author     : Gaius Mulley
    Title      : IO

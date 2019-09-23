@@ -21,17 +21,6 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE ldtoa ;
 
-(*
-    Title      : ldtoa
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Thu Dec 25 12:04:04 2008
-    Revision   : $Version$ 
-    Description: provides routines to convert between a C long double
-                 and an ascii string.
-*)
-
-
 FROM SYSTEM IMPORT ADDRESS ;
 
 TYPE

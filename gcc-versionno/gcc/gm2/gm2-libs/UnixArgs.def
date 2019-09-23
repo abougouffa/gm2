@@ -21,14 +21,6 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE UnixArgs ;
 
-(*
-   Author     : Gaius Mulley
-   Title      : UnixArgs
-   Date       : Wed Jun 13 13:31:32 BST 1990
-   Description: Implements access to the C arguments argc and argv.
-   Last update: Wed Jun 13 13:31:39 BST 1990
-*)
-
 FROM SYSTEM IMPORT ADDRESS ;
 
 EXPORT QUALIFIED ArgC, ArgV ;

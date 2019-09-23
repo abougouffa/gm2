@@ -1,4 +1,4 @@
-(* cxxabi.def provides a minimal Modula-2 implementation of the.
+(* cxxabi.def provides prototypes to the C++ABI.
 
 Copyright (C) 2008-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -21,16 +21,8 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE FOR "C" cxxabi ;
 
-(*
-    Title      : cxxabi
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Tue Jul 15 12:15:13 2008
-    Revision   : $Version$ 
-    Description: provides a minimal Modula-2 implementation of the
-                 C++ABI exception handling routines used in g++.
-                 This should only be used by the compiler.
-*)
+(* This should only be used by the compiler and it matches the
+    g++ implementation.  *)
 
 FROM SYSTEM IMPORT ADDRESS ;
 EXPORT UNQUALIFIED __cxa_begin_catch, __cxa_end_catch, __cxa_rethrow ;

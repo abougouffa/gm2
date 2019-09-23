@@ -1,4 +1,4 @@
-(* StdIO.def Exports a general Read and Write procedure that ALL character.
+(* StdIO.def provides general Read and Write procedures.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -21,22 +21,12 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE StdIO ;
 
-(*
-   Author     : Gaius Mulley
-   Title      : StdIO
-   Date       : 12/2/86  [$Date: 2010/10/03 19:01:11 $]
-   SYSTEM     : UNIX SUN and Logitech M2
-   Description: Exports a general Read and Write procedure that ALL character
-                processes should use.
-   Version    : $Revision: 1.8 $
-*)
-
 EXPORT QUALIFIED ProcRead, ProcWrite,
                  Read, Write,
                  PushOutput, PopOutput, GetCurrentOutput,
                  PushInput, PopInput, GetCurrentInput ;
 
- 
+
 TYPE
    ProcWrite = PROCEDURE (CHAR) ;
    ProcRead  = PROCEDURE (VAR CHAR) ;
@@ -54,7 +44,7 @@ PROCEDURE Read (VAR ch: CHAR) ;
    Write - is the generic procedure that all higher application layers
            should use to emit a character.
 *)
- 
+
 PROCEDURE Write (ch: CHAR) ;
 
 
@@ -66,7 +56,7 @@ PROCEDURE Write (ch: CHAR) ;
 
 PROCEDURE PushOutput (p: ProcWrite) ;
 
- 
+
 (*
    PopOutput - restores Write to use the previous output procedure.
 *)
@@ -89,7 +79,7 @@ PROCEDURE GetCurrentOutput () : ProcWrite ;
 
 PROCEDURE PushInput (p: ProcRead) ;
 
- 
+
 (*
    PopInput - restores Write to use the previous output procedure.
 *)
@@ -103,5 +93,5 @@ PROCEDURE PopInput ;
 
 PROCEDURE GetCurrentInput () : ProcRead ;
 
- 
+
 END StdIO.

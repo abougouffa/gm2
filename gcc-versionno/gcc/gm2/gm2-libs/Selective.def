@@ -21,15 +21,6 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE Selective ;
 
-(*
-    Title      : Selective
-    Author     : Gaius Mulley
-    System     : UNIX (gm2)
-    Date       : Mon Aug  7 19:12:47 1995
-    Last edit  : Mon Aug  7 19:12:47 1995
-    Description: provides Modula-2 with access to the select(2) primitive.
-*)
-
 FROM SYSTEM IMPORT ADDRESS ;
 
 EXPORT QUALIFIED SetOfFd, Timeval,

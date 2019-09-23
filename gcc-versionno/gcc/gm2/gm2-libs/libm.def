@@ -21,18 +21,10 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE FOR "C" libm ;
 
-(*
-    Title      : libm
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Sat Jan 11 19:44:29 2003
-    Revision   : $Version$ 
-    Description: provides access to libm. Users are strongly advised to
-                 use MathLib0 or RealMath as call to functions within
-                 these modules will generate inline code. This module
-                 is used by MathLib0 and RealMath when inline code cannot
-                 be generated.
-*)
+(* Users are strongly advised to use MathLib0 or RealMath as calls
+   to functions within these modules will generate inline code.
+   This module is used by MathLib0 and RealMath when inline code cannot
+   be generated.  *)
 
 EXPORT UNQUALIFIED sin, sinl, sinf,
                    cos, cosl, cosf,

@@ -21,15 +21,6 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE getopt ;
 
-(*
-    Title      : getopt
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Fri Sep 29 08:09:53 2017
-    Revision   : $Version$
-    Description: provides access to the getopt C library.
-*)
-
 FROM SYSTEM IMPORT ADDRESS ;
 
 

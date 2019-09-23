@@ -21,16 +21,6 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE SFIO ;
 
-(*
-    Title      : SFIO
-    Author     : Gaius Mulley
-    System     : UNIX (GNU Modula-2)
-    Date       : Fri Aug  3 16:55:18 2001
-    Last edit  : $Date: 2010/10/03 19:01:11 $ 
-    Revision   : $Version$ 
-    Description: provides a String interface to the opening routines of FIO
-*)
-
 FROM DynamicStrings IMPORT String ;
 FROM FIO IMPORT File ;
 

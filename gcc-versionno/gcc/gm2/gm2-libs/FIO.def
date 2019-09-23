@@ -21,10 +21,7 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE FIO ;
 
-(*
-    System     : UNIX (gm2)
-    Description: provides a simple buffered file input/output library.
-*)
+(* Provides a simple buffered file input/output library.  *)
 
 
 FROM SYSTEM IMPORT ADDRESS, BYTE ;
@@ -57,7 +54,7 @@ TYPE
 VAR
    StdIn, StdOut, StdErr: File ;
 
- 
+
 
 (*
    IsNoError - returns a TRUE if no error has occured on file, f.

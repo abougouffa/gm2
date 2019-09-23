@@ -21,16 +21,6 @@ see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE StringConvert ;
 
-(*
-    Title      : StringConvert
-    Author     : Gaius Mulley
-    System     : UNIX (GNU Modula-2)
-    Date       : Mon Nov 26 09:12:45 2001
-    Last edit  : $Date: 2010/10/03 19:01:11 $ 
-    Revision   : $Version$ 
-    Description: provides functions to convert numbers to and from strings.
-*)
-
 FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED IntegerToString, StringToInteger,
                  StringToLongInteger, LongIntegerToString,
