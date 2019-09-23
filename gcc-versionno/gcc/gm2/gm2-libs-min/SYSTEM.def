@@ -1,4 +1,4 @@
-(* SYSTEM.def Implements the SYSTEM dependent module.
+(* SYSTEM.def a minimal SYSTEM module.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -20,14 +20,6 @@ along with GNU Modula-2; see the file COPYING.  If not,
 see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE SYSTEM ;
-
-(*
-   Author     : Gaius Mulley
-   Title      : SYSTEM
-   Date       : 3/4/86
-   Description: Implements the SYSTEM dependent module
-                in the Modula-2 compiler.
-*)
 
 EXPORT QUALIFIED BITSPERBYTE, BYTESPERWORD,
                  ADDRESS, WORD, BYTE, CSIZE_T, CSSIZE_T, (* @SYSTEM_DATATYPES@ *)

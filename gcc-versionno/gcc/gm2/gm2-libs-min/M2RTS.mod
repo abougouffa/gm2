@@ -1,4 +1,4 @@
-(* M2RTS.mod provides dummy routines to enable GNU Modula-2.
+(* M2RTS.mod provide the smallest number of routines to satisfy linking.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -24,9 +24,7 @@ IMPORT libc, SYSTEM ;
 (* we reference these to ensure they are dragged in to the link *)
 
 
-(*
-   all these procedures do nothing except satisfy the linker.
-*)
+(* all these procedures do nothing except satisfy the linker.  *)
 
 PROCEDURE ExecuteTerminationProcedures ;
 BEGIN

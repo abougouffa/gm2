@@ -405,6 +405,16 @@
           heading.
 	* gm2/gm2-libiberty/pexecute.def:  reformatted license with
           heading.
+	* gm2/gm2-libs-min/M2RTS.def:  reformatted license with
+          heading.
+	* gm2/gm2-libs-min/M2RTS.mod:  reformatted license with
+          heading.
+	* gm2/gm2-libs-min/SYSTEM.def:  reformatted license with
+          heading.
+	* gm2/gm2-libs-min/SYSTEM.mod:  reformatted license with
+          heading.
+	* gm2/gm2-libs-min/libc.def:  reformatted license with
+          heading.
 
 2019-09-21      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

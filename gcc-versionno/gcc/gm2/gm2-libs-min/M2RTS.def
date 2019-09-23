@@ -1,4 +1,4 @@
-(* M2RTS.def Implements smallest number of routines to enable GNU Modula-2.
+(* M2RTS.def implement the smallest number of routines for linking.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -20,13 +20,8 @@ along with GNU Modula-2.  If not, see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE M2RTS ;
 
-(*
-   Author     : Gaius Mulley
-   Title      : M2RTS
-   Date       : Tue Dec 19 21:39:35 GMT 2006
-   Description: Implements smallest number of routines to enable GNU Modula-2
-                to link targetting tiny embedded systems.
-*)
+(* Implement the smallest number of routines to enable GNU Modula-2
+   to link an executable (possibly targetting tiny embedded systems).  *)
 
 FROM SYSTEM IMPORT ADDRESS ;
 

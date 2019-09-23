@@ -1,4 +1,4 @@
-(* SYSTEM.mod Implements the SYSTEM dependent module.
+(* SYSTEM.def a minimal SYSTEM module.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

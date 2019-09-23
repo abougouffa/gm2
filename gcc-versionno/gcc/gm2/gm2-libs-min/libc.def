@@ -20,15 +20,6 @@ along with GNU Modula-2.  If not, see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE FOR "C" libc ;
 
-(*
-    Title      : libc
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Wed Dec 20 18:45:01 2006
-    Revision   : $Version$ 
-    Description: provides a minimal interface to libc.c
-*)
-
 EXPORT UNQUALIFIED abort, exit, printf ;
 
 PROCEDURE abort (i: INTEGER) ;
