@@ -1,4 +1,4 @@
-(* cbuiltin.def provides replacement routines in case the builtins are.
+(* cbuiltin.def provides non-builtin equivalent routines.
 
 Copyright (C) 2003-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -20,18 +20,6 @@ along with GNU Modula-2; see the file COPYING.  If not,
 see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE FOR "C" cbuiltin ;
-
-(*
-    Title      : cbuiltin
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Sat Jan  4 21:46:33 2003
-    Revision   : $Version$
-    Description: provides replacement routines in case the builtins are
-                 not used by GNU Modula-2.  This module is called by
-                 implementation modules which implement builtins
-                 (see Builtins.mod for an example).
-*)
 
 FROM SYSTEM IMPORT ADDRESS ;
 EXPORT UNQUALIFIED alloca, memcpy,

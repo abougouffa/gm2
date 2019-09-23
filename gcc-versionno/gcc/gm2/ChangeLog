@@ -112,6 +112,122 @@
 	  to GPL3.
 	* gm2/gm2-libs-pim/TimeDate.mod:  changed license from LGPL
 	  to GPL3.
+	* gm2/gm2-libs/ASCII.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/ASCII.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/Args.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/Args.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/Assertion.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/Assertion.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/Break.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/Break.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/Builtins.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/Builtins.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/COROUTINES.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/COROUTINES.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/CmdArgs.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/CmdArgs.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/Debug.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/Debug.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/DynamicStrings.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/Environment.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/FIO.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/FormatStrings.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/FpuIO.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/GetOpt.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/GetOpt.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/IO.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/LMathLib0.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/LegacyReal.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/M2RTS.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/MemUtils.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/NumberIO.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/NumberIO.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/OptLib.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/OptLib.mod:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/PushBackInput.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/RTExceptions.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/RTint.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/SArgs.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/SCmdArgs.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/SEnvironment.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/SMathLib0.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/Scan.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/Selective.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/StdIO.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/Storage.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/StrIO.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/StrLib.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/SysExceptions.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/SysStorage.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/TimeString.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/UnixArgs.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/cbuiltin.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/cxxabi.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/dtoa.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/getopt.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/ldtoa.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/libc.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/libm.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/termios.def:  changed license from LGPL
+	  to GPL3.
+	* gm2/gm2-libs/wrapc.def:  changed license from LGPL
+	  to GPL3.
 
 2019-09-21      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

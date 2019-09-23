@@ -1,20 +1,25 @@
+(* Builtins.def provides access to all built-in functions.
+
+Copyright (C) 2001-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
+
+This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS for A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE Builtins ;
-
-(*
-    Title      : Builtins
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Sat Jan  4 19:11:55 2003
-    Revision   : $Version$
-    Description: provides a convenient place to list all the GNU Modula-2
-                 built-in functions. These functions should be copied into
-                 more generic modules.
-
-                 For example the mathematical functions can be applied to
-                 gm2-iso/LongMath. But each built-in function is here for
-                 reference.
-*)
 
 FROM SYSTEM IMPORT ADDRESS ;
 
