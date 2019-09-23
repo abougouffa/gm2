@@ -1,20 +1,23 @@
-(* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc. *)
-(* This file is part of GNU Modula-2.
+(* TimerHandler.def provides a simple timer handler for the Executive.
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+Copyright (C) 2002-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
+This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA *)
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  *)
 
 IMPLEMENTATION MODULE TimerHandler[MAX(PROTECTION)] ;
 
@@ -86,7 +89,7 @@ END GetTicks ;
    Sleep - suspends the current process for a time, t.
            The time is measured in ticks.
 *)
- 
+
 PROCEDURE Sleep (t: CARDINAL) ;
 VAR
    ToOldState  : PROTECTION ;
@@ -100,20 +103,20 @@ BEGIN
 
 (* ToOldState := TurnInterrupts(ToOldState)          (* restore interrupts *) *)
 END Sleep ;
- 
- 
+
+
 (*
    More lower system calls to the timer procedures follow,
    they are necessary to allow handling multiple events.
 *)
- 
+
 
 (*
    ArmEvent - initializes an event, e, to occur at time, t.
               The time, t, is measured in ticks.
               The event is NOT placed onto the event queue.
 *)
- 
+
 PROCEDURE ArmEvent (t: CARDINAL) : EVENT ;
 VAR
    e         : EVENT ;
@@ -136,7 +139,7 @@ BEGIN
    RETURN( e )
 END ArmEvent ;
 
- 
+
 (*
    WaitOn - places event, e, onto the event queue and then the calling
             process suspends. It is resumed up by either the event
@@ -144,7 +147,7 @@ END ArmEvent ;
             TRUE is returned if the event was cancelled
             FALSE is returned if the event expires.
 *)
- 
+
 PROCEDURE WaitOn (e: EVENT) : BOOLEAN ;
 VAR
    ToOldState: PROTECTION ;
@@ -296,7 +299,7 @@ END LoadClock ;
             (iii) to keep a count of the total ticks so far  (time of day)
             (iv)  provide a heartbeat sign of life via the scroll lock LED
 *)
- 
+
 PROCEDURE Timer ;
 VAR
    CurrentCount: CARDINAL ;
@@ -390,7 +393,7 @@ END CheckActiveQueue ;
                 the dead queue or (if the dead queue is empty) an event is created
                 by using NEW.
 *)
- 
+
 PROCEDURE CreateSolo () : EVENT ;
 VAR
    e: EVENT ;
@@ -558,7 +561,7 @@ BEGIN
       pos^.EventQ.Left := new
    END
 END InsertBefore ;
- 
+
 
 (*
    InsertAfter - place an event, new, AFTER the event pos on any circular event queue.
@@ -571,9 +574,9 @@ BEGIN
    pos^.EventQ.Right^.EventQ.Left := new ;
    pos^.EventQ.Right := new
 END InsertAfter ;
- 
 
-(* 
+
+(*
    RelativeAddToActive - the active event queue is an ordered queue of
                          relative time events.
                          The event, e, is inserted at the appropriate
@@ -584,7 +587,7 @@ END InsertAfter ;
                          the absolute NoOfTicks field is altered to a
                          relative value and inserted on the queue.
 *)
- 
+
 PROCEDURE RelativeAddToActive (e: EVENT) ;
 VAR
    t  : EVENT ;
@@ -627,7 +630,7 @@ BEGIN
       END
    END
 END RelativeAddToActive ;
- 
+
 
 (*
    AddTo - adds an event to a specified queue.
@@ -652,7 +655,7 @@ END AddTo ;
 (*
    SubFrom - removes an event from a queue.
 *)
- 
+
 PROCEDURE SubFrom (VAR Head: EVENT; e: EVENT) ;
 BEGIN
    IF (e^.EventQ.Left=Head) AND (e=Head)
@@ -717,7 +720,7 @@ END DisplayEvent ;
 
 
 (*
-   InitQueue - 
+   InitQueue -
 *)
 
 PROCEDURE InitQueue (VAR q: Queue) ;

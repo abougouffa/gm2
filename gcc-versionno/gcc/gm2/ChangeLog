@@ -232,7 +232,7 @@
 	* gm2/gm2-libs/M2EXCEPTION.def:  changed license and reformatted
 	  and rewritten comments.
 	* gm2/gm2-libs/M2EXCEPTION.mod:  changed license to GPL3
-	and reformatted and rewritten comments.
+          and reformatted and rewritten comments.
 	* gm2/gm2-libs/DynamicStrings.def:  changed license to GPL3 and
 	  reformatted comments.
 	* gm2/gm2-libs/DynamicStrings.mod:  changed license to GPL3 and
@@ -265,20 +265,19 @@
 	  reformatted comments.
 	* gm2/gm2-libs/LMathLib0.def:  changed license to GPL3 and
 	  reformatted comments.
-	diff --git	* gm2/gm2-libs/LMathLib0.mod:  changed license to GPL3 and
+	* gm2/gm2-libs/LMathLib0.mod:  changed license to GPL3 and
 	  reformatted comments.
-diff --git	* gm2/gm2-libs/LegacyReal.def:  changed license to GPL3
-	and
+	* gm2/gm2-libs/LegacyReal.def:  changed license to GPL3
+          and reformatted comments.
+	* gm2/gm2-libs/M2RTS.def:  changed license to GPL3 and
 	  reformatted comments.
-	diff --git	* gm2/gm2-libs/M2RTS.def:  changed license to GPL3 and
+	* gm2/gm2-libs/M2RTS.mod:  changed license to GPL3 and
 	  reformatted comments.
-	diff --git	* gm2/gm2-libs/M2RTS.mod:  changed license to GPL3 and
+	* gm2/gm2-libs/MathLib0.def:  changed license to GPL3 and
 	  reformatted comments.
-	diff --git	* gm2/gm2-libs/MathLib0.def:  changed license to GPL3 and
+	* gm2/gm2-libs/MathLib0.mod:  changed license to GPL3 and
 	  reformatted comments.
-	diff --git	* gm2/gm2-libs/MathLib0.mod:  changed license to GPL3 and
-	  reformatted comments.
-	diff --git	* gm2/gm2-libs/MemUtils.def:  changed license to GPL3 and
+	* gm2/gm2-libs/MemUtils.def:  changed license to GPL3 and
 	  reformatted comments.
 	* gm2/gm2-libs/MemUtils.mod:  changed license to GPL3 and
 	  reformatted comments.
@@ -383,7 +382,25 @@ diff --git	* gm2/gm2-libs/LegacyReal.def:  changed license to GPL3
 	* gm2/gm2-libs/termios.def:  changed license to GPL3 and
 	  reformatted comments.
 	* gm2/gm2-libs/wrapc.def:  changed license to GPL3 and
-	  reformatted comments.
+          reformatted comments.
+	* gm2/gm2-libs-coroutines/Debug.def:  changed license to
+	  GPL3 and reformatted comments.
+	* gm2/gm2-libs-coroutin:  changed license to GPL3 and
+          reformatted comments.es/Debug.mod
+	* gm2/gm2-libs-coroutines/Executive.def:  changed license to
+	  GPL3 and reformatted comments.
+	* gm2/gm2-libs-coroutines/Executive.mod:  changed license to
+	  GPL3 and reformatted comments.
+	* gm2/gm2-libs-coroutines/KeyBoardLEDs.def:  changed license
+	  to GPL3 and reformatted comments.
+	* gm2/gm2-libs-coroutines/SYSTEM.def:  changed license to GPL3
+	  and reformatted comments.
+	* gm2/gm2-libs-coroutines/SYSTEM.mod:  changed license to GPL3
+	  and reformatted comments.
+	* gm2/gm2-libs-coroutines/TimerHandler.def:  changed license to
+	  GPL3 and reformatted comments.
+	* gm2/gm2-libs-coroutines/TimerHandler.mod:  changed license to
+	  GPL3 and reformatted comments.
 
 2019-09-21      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
