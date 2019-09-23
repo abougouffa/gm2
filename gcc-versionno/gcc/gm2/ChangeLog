@@ -400,7 +400,11 @@
 	* gm2/gm2-libs-coroutines/TimerHandler.def:  changed license to
 	  GPL3 and reformatted comments.
 	* gm2/gm2-libs-coroutines/TimerHandler.mod:  changed license to
-	  GPL3 and reformatted comments.
+          GPL3 and reformatted comments.
+	* gm2/gm2-libiberty/choosetemp.def:  reformatted license with
+          heading.
+	* gm2/gm2-libiberty/pexecute.def:  reformatted license with
+          heading.
 
 2019-09-21      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
