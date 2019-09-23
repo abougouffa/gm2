@@ -1845,10 +1845,6 @@ gm2/gm2-libs-paranoid/UnixArgs.o: $(srcdir)/gm2/gm2-libs-ch/UnixArgs.c \
                                   gm2/gm2-libs-boot/$(SRC_PREFIX)UnixArgs.h
 	$(CC) -c -DIN_GCC $(GM2_O_S3) $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
-gm2/gm2-libs-paranoid/sckt.o: $(srcdir)/gm2/gm2-libs-ch/sckt.c \
-                                   gm2/gm2-libs-boot/$(SRC_PREFIX)sckt.h
-	$(CC) -c -DIN_GCC $(GM2_O_S3) $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
-
 gm2/gm2-libs-paranoid/errno.o: $(srcdir)/gm2/gm2-libs-ch/errno.c \
                                    gm2/gm2-libs-boot/$(SRC_PREFIX)errno.h
 	$(CC) -c -DIN_GCC $(GM2_O_S3) $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@

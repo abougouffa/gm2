@@ -1,3 +1,13 @@
+2019-09-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  removed reference to sckt.c.
+	* gm2/configure.in:  updated dates.
+	* gm2/gm2-lang.h:  updated dates.
+	* gm2/gm2-tree.h:  updated dates.
+	* gm2/gpl.texi:  combined dates.
+	* gm2/m2pp.h:  fixed boilerplate header.
+	* gm2/m2pp.c:  updated dates.
+
 2019-09-21      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-file.in:  build args for mc use -fm2-g.
