@@ -1,20 +1,23 @@
-(* Copyright (C) 2008, 2009, 2010
-                 Free Software Foundation, Inc. *)
-(* This file is part of GNU Modula-2.
+(* M2EXCEPTION.def implement M2Exception and IsM2Exception.
 
-GNU Modula-2 is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 3, or (at your option) any later
-version.
+Copyright (C) 2001-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
-GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
+This file is part of GNU Modula-2.
 
-You should have received a copy of the GNU General Public License along
-with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  *)
 
 IMPLEMENTATION MODULE M2EXCEPTION ;
 
@@ -23,39 +26,39 @@ FROM RTExceptions IMPORT EHBlock, GetExceptionBlock, GetNumber, Raise,
                          SetExceptionBlock, InitExceptionBlock ;
 
 
-PROCEDURE M2Exception (): M2Exceptions;
-  (* If the current coroutine is in the exceptional execution state because of the raising
-     of a language exception, returns the corresponding enumeration value, and otherwise
-     raises an exception.
-  *)
+(* If the program or coroutine is in the exception state then return the enumeration
+   value representing the exception cause.  If it is not in the exception state then
+   raises and exception (exException).  *)
+
+PROCEDURE M2Exception () : M2Exceptions;
 VAR
    e: EHBlock ;
    n: CARDINAL ;
 BEGIN
-   e := GetExceptionBlock() ;
-   n := GetNumber(e) ;
-   IF n=MAX(CARDINAL)
+   e := GetExceptionBlock () ;
+   n := GetNumber (e) ;
+   IF n = MAX (CARDINAL)
    THEN
-      Raise(ORD(exException), ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__),
-            ADR('current coroutine is not in the exceptional execution state'))
+      Raise (ORD (exException), ADR (__FILE__), __LINE__, __COLUMN__, ADR (__FUNCTION__),
+             ADR ('current coroutine is not in the exceptional execution state'))
    ELSE
-      RETURN( VAL(M2Exceptions, n) )
+      RETURN VAL (M2Exceptions, n)
    END
 END M2Exception ;
 
 
-PROCEDURE IsM2Exception (): BOOLEAN;
-  (* If the current coroutine is in the exceptional execution state because of the raising
-     of a language exception, returns TRUE, and otherwise returns FALSE.
-  *)
+(* Returns TRUE if the program or coroutine is in the exception state.
+   Returns FALSE if the program or coroutine is not in the exception state.  *)
+
+PROCEDURE IsM2Exception () : BOOLEAN;
 VAR
    e: EHBlock ;
 BEGIN
-   e := GetExceptionBlock() ;
-   RETURN( GetNumber(e)#MAX(CARDINAL) )
+   e := GetExceptionBlock () ;
+   RETURN GetNumber (e) # MAX (CARDINAL)
 END IsM2Exception ;
 
 
 BEGIN
-   SetExceptionBlock(InitExceptionBlock())
+   SetExceptionBlock (InitExceptionBlock ())
 END M2EXCEPTION.

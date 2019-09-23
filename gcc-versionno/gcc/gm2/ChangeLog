@@ -228,6 +228,11 @@
 	  to GPL3.
 	* gm2/gm2-libs/wrapc.def:  changed license from LGPL
 	  to GPL3.
+	* gm2/gm2-libs/Builtins.def:  removed spaces.
+	* gm2/gm2-libs/M2EXCEPTION.def:  changed license and reformatted
+	  and rewritten comments.
+	* gm2/gm2-libs/M2EXCEPTION.mod:  changed license to GPL3
+	  and reformatted and rewritten comments.
 
 2019-09-21      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
