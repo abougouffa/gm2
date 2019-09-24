@@ -1,6 +1,7 @@
 (* ppg.mod master source file of the ebnf parser generator.
-   Copyright (C) 2003-2019 Free Software Foundation, Inc.
-   Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
+
+Copyright (C) 2003-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
 This file is part of GNU Modula-2.
 
@@ -15,8 +16,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Modula-2; see the file COPYING.  If not,
-see <https://www.gnu.org/licenses/>.  *)
+along with GNU Modula-2; see the file COPYING3.  If not see
+<http://www.gnu.org/licenses/>.  *)
 
 MODULE ppg ;
 

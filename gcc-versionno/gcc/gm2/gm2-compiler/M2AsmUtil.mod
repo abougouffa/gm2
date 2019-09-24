@@ -1,4 +1,4 @@
-(* M2AsmUtil.def provides utilities relating symbols in the SymbolTable.
+(* M2AsmUtil.mod provides utilities relating symbols in the SymbolTable.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -16,8 +16,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Modula-2; see the file COPYING.  If not,
-see <https://www.gnu.org/licenses/>.  *)
+along with GNU Modula-2; see the file COPYING3.  If not see
+<http://www.gnu.org/licenses/>.  *)
 
 IMPLEMENTATION MODULE M2AsmUtil ;
 
