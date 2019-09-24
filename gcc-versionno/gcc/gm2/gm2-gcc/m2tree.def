@@ -21,8 +21,6 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 
 DEFINITION MODULE m2tree ;
 
-(* ADD HERE *)
-
 FROM SYSTEM IMPORT ADDRESS ;
 
 TYPE
@@ -37,5 +35,6 @@ PROCEDURE skip_type_decl (type: Tree) : Tree ;
 PROCEDURE is_type (type: Tree) : BOOLEAN ;
 PROCEDURE is_array (array: Tree) : BOOLEAN ;
 PROCEDURE is_var (var: Tree) : BOOLEAN ;
+
 
 END m2tree.

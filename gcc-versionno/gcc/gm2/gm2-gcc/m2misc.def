@@ -21,15 +21,6 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 
 DEFINITION MODULE m2misc ;
 
-(*
-    Title      : m2misc
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Tue Oct  9 02:19:22 2012
-    Revision   : $Version$ 
-    Description: 
-*)
-
 FROM m2tree IMPORT Tree ;
 
 PROCEDURE DebugTree (t: Tree) ;

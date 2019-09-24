@@ -21,15 +21,6 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 
 DEFINITION MODULE m2builtins ;
 
-(*
-    Title      : gm2builtins
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Mon Jan  6 08:36:23 2003
-    Revision   : $Version$
-    Description: provides access to the builtin functions within GCC for GNU Modula-2
-*)
-
 FROM SYSTEM IMPORT ADDRESS ;
 FROM m2tree IMPORT Tree ;
 FROM m2linemap IMPORT location_t ;

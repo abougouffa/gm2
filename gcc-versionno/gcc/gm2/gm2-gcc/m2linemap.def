@@ -1,4 +1,4 @@
-(* m2linemap.def definition module for m2linemap.c.
+(* m2linemap.def provides access to GCC location_t.
 
 Copyright (C) 2011-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -20,16 +20,6 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 <http://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE m2linemap ;
-
-(*
-    Title      : m2linemap
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Fri Jan 25 13:47:34 2013
-    Revision   : $Version$
-    Description: provides a mechanism whereby GNU Modula-2 can interface
-                 to the gcc location_t data type.
-*)
 
 FROM SYSTEM IMPORT ADDRESS ;
 

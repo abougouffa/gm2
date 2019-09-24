@@ -1,4 +1,4 @@
-(* m2except.def definition module for m2except.c.
+(* m2except.def provides an interface to build exception trees.
 
 Copyright (C) 2008-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -20,16 +20,6 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 <http://www.gnu.org/licenses/>.  *)
 
 DEFINITION MODULE m2except ;
-
-(*
-    Title      : gm2except
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Tue Jul 15 21:12:53 2008
-    Revision   : $Version$ 
-    Description: provides an interface to the gm2except.c exception
-                 routines.
-*)
 
 FROM m2tree IMPORT Tree ;
 FROM m2linemap IMPORT location_t ;
@@ -79,7 +69,7 @@ PROCEDURE BuildCatchBegin (location: location_t) : Tree ;
    BuildCatchEnd - completes a try catch block.
                    It returns the, try_block, tree.
                    It creates the C++ statement
- 
+
                    '}' which matches the catch above.
 *)
 

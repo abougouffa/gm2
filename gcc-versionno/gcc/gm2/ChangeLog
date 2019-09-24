@@ -562,6 +562,13 @@
 	* gm2/gm2-gcc/rtegraph.c:  added GPLv3
           with runtime extension.
 	* gm2/gm2-gcc/README:  corrected the filenames.
+	* gm2/gm2-gcc/init.def:  tidied up the comments.
+	* gm2/gm2-gcc/m2builtins.def:  tidied up the comments.
+	* gm2/gm2-gcc/m2color.def:  tidied up the comments.
+	* gm2/gm2-gcc/m2except.def:  tidied up the comments.
+	* gm2/gm2-gcc/m2linemap.def:  tidied up the comments.
+	* gm2/gm2-gcc/m2misc.def:  tidied up the comments.
+	* gm2/gm2-gcc/m2tree.def:  tidied up the comments.
 
 2019-09-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
