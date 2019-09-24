@@ -361,6 +361,34 @@
 	  with runtime extension.
 	* gm2/gm2-libs-iso/SRealIO.def:  added GPLv3
 	  with runtime extension.
+	* gm2/gm2-libs-iso/COROUTINES.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/ChanConsts.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/CharClass.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/ComplexMath.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/ConvStringLong.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/ConvStringReal.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/ConvTypes.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/EXCEPTIONS.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/ErrnoCategory.c:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/GeneralUserExceptions.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/IOChan.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/IOConsts.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/IOLink.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/IOResult.mod:  added GPLv3
+	  with runtime extension.
 
 2019-09-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
