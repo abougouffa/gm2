@@ -328,7 +328,39 @@
 	* gm2/tools-src/boilerplate.py:  corrected dates and
           added reference.
 	* gm2/gm2-libs-ch/wraptime.c:  corrected formatting
-	  and updated the GPLv3 with GCC runtime exemption.
+          and updated the GPLv3 with GCC runtime exemption.
+	* gm2/gm2-libs-iso/ClientSocket.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/ClientSocket.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/ComplexMath.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/ConvStringLong.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/ConvStringReal.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/ErrnoCategory.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/LongWholeIO.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/LongWholeIO.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/LowLong.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/LowReal.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/LowShort.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/LowShort.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/M2EXCEPTION.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/M2RTS.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/M2RTS.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/SRealIO.def:  added GPLv3
+	  with runtime extension.
 
 2019-09-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
