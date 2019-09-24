@@ -98,6 +98,24 @@
 	* gm2/tools-src/boilerplate.py:  added GCC runtime
 	  exemption clause and fixed filesystem walk from Python2 to
           Python3 (new options -g and -x).
+	* gm2/gm2-libs-coroutines/Debug.def:  added GCC runtime
+	  exemption clause.
+	* gm2/gm2-libs-coroutines/Debug.mod:  added GCC runtime
+	  exemption clause.
+	* gm2/gm2-libs-coroutines/Executive.def:  added GCC runtime
+	  exemption clause.
+	* gm2/gm2-libs-coroutines/Executive.mod:  added GCC runtime
+	  exemption clause.
+	* gm2/gm2-libs-coroutines/KeyBoardLEDs.def:  added GCC runtime
+	  exemption clause.
+	* gm2/gm2-libs-coroutines/SYSTEM.def:  added GCC runtime
+	  exemption clause.
+	* gm2/gm2-libs-coroutines/SYSTEM.mod:  added GCC runtime
+	  exemption clause.
+	* gm2/gm2-libs-coroutines/TimerHandler.def:  added GCC runtime
+	  exemption clause.
+	* gm2/gm2-libs-coroutines/TimerHandler.mod:  added GCC runtime
+	  exemption clause.
 
 2019-09-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
