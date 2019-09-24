@@ -31,7 +31,7 @@ forceGPL3x, forceGPL3 = False, False
 doModify, verbose = True, False,
 multiFilemode, updateAll, forceCheck = False, False, False
 
-contributedBy, outputName = "", "-"
+summaryGiven, contributedBy, outputName = "", "", "-"
 errorCount = 0
 startDir = "."
 
@@ -346,7 +346,7 @@ def handleHeader (f, magic, start, end):
         error ("%s:1:no GPL found at the top of the file\n", f)
     else:
         if verbose:
-            printf ("copyright: %s\n", gpl)
+            printf ("copyright: %s\n", lic)
             if (start_date != None) and (end_date != None):
                 if start_date == end_date:
                     printf ("dates = %s\n", start_date)
@@ -359,9 +359,15 @@ def handleHeader (f, magic, start, end):
         if start_date == None:
             error ("%s:1:no date found in the GPL at the top of the file\n", f)
         if contribution == None:
-            error ("%s:1:no contribution found in the GPL at the top of the file\n", f)
+            if contributedBy == "":
+                error ("%s:1:no contribution found in the GPL at the top of the file\n", f)
+            else:
+                contribution = contributedBy
         if summary == None:
-            error ("%s:1:no single line summary found in the GPL at the top of the file\n", f)
+            if summaryGiven == "":
+                error ("%s:1:no single line summary found in the GPL at the top of the file\n", f)
+            else:
+                summary = summaryGiven
     if errorCount == 0:
         now = datetime.datetime.now ()
         if doModify:
@@ -375,6 +381,8 @@ def handleHeader (f, magic, start, end):
             rewriteFile (f, magic, start, end, start_date, str (now.year), contribution, summary, lic, lines)
         elif forceCheck:
             print(f, "suppressing change as requested", start_date, end_date, lic)
+    else:
+        printf ("too many errors, no modifications will occur\n")
 
 
 #
@@ -473,9 +481,10 @@ def findFiles ():
 #
 
 def usage (code = 0):
-    print("boilerplate [-c contributionstring] [-d] [-v] [-g] [-x] [-o outputfile] inputfile.c")
+    print("boilerplate [-c contributionstring] [ -s summarystring ] [-d] [-v] [-g] [-x] [-o outputfile] inputfile.c")
     print("  -o outputfile   (this must be before the final inputfile on the command line).")
     print("  -c              a string which will be used as the contribution line.")
+    print("  -s              a string which will be used as the summary line.")
     print("  -f              force a check to insist that the contribution, summary and GPL exists.")
     print("  -g              change to GPLv3.")
     print("  -x              change to GPLv3 with GCC runtime extension.")
@@ -491,14 +500,16 @@ def usage (code = 0):
 #
 
 def handleArguments ():
-    global multiFilemode, contributedBy, updateAll, forceCheck, outputName, verbose, startDir, doModify, forceGPL3, forceGPL3x
+    global multiFilemode, contributedBy, updateAll, forceCheck, outputName, verbose, startDir, doModify, forceGPL3, forceGPL3x, summaryGiven
     try:
-        optlist, l = getopt.getopt (sys.argv[1:],':c:dfgho:r:uvxN')
+        optlist, l = getopt.getopt (sys.argv[1:],':c:dfgho:r:s:uvxN')
     except getopt.GetoptError:
         usage (1)
     for opt in optlist:
         if opt[0] == '-c':
             contributedBy = opt[1]
+        if opt[0] == '-s':
+            summaryGiven = opt[1]
         if opt[0] == '-d':
             debugging = True
         if opt[0] == '-f':

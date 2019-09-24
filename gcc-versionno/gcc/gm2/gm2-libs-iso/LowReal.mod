@@ -1,4 +1,4 @@
-(* LowReal.mod implements ISO LowReal.def
+(* LowReal.mod implements ISO LowReal.def  Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 Copyright (C) 2008-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

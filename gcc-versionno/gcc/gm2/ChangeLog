@@ -389,6 +389,72 @@
 	  with runtime extension.
 	* gm2/gm2-libs-iso/IOResult.mod:  added GPLv3
 	  with runtime extension.
+	* gm2/gm2-libs-iso/LongComplexMath.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/LongConv.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/LongMath.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/LongStr.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/LowReal.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/Processes.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/ProgramArgs.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/RawIO.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/RealConv.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/RealMath.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/RealStr.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/RndFile.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/SIOResult.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/SLongIO.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/SRawIO.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/SRealIO.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/STextIO.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/SWholeIO.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/SYSTEM.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/Semaphores.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/SeqFile.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/StdChans.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/Storage.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/StreamFile.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/Strings.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/SysClock.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/TERMINATION.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/TermFile.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/TextIO.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/WholeConv.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/WholeIO.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-libs-iso/WholeStr.mod:  added GPLv3
+	  with runtime extension.
+	* gm2/tools-src/boilerplate.py:  implemented -s
+	  option to override the summary found in the comments.
 
 2019-09-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
