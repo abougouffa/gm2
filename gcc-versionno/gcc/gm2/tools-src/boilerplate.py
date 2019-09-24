@@ -27,8 +27,9 @@ import glob
 import sys, getopt, string
 import datetime
 
-forceGPL3 = False
-doModify, verbose, multiFilemode, updateAll, forceCheck = True, False, False, False, False
+forceGPL3x, forceGPL3 = False, False
+doModify, verbose = True, False,
+multiFilemode, updateAll, forceCheck = False, False, False
 
 contributedBy, outputName = "", "-"
 errorCount = 0
@@ -183,9 +184,38 @@ WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with GNU Modula-2; see the file COPYING.  If not,
-see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License and
+a copy of the GCC Runtime Library Exception along with this program;
+see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+<http://www.gnu.org/licenses/>.
+"""
+
+GPLv3x = """
+%s
+
+Copyright (C) %s Free Software Foundation, Inc.
+Contributed by %s
+
+This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+Under Section 7 of GPL version 3, you are granted additional
+permissions described in the GCC Runtime Library Exception, version
+3.1, as published by the Free Software Foundation.
+
+You should have received a copy of the GNU General Public License and
+a copy of the GCC Runtime Library Exception along with this program;
+see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+<http://www.gnu.org/licenses/>.
 """
 
 LGPLv3 = """
@@ -211,6 +241,7 @@ along with GNU Modula-2.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 templates = { "GPLv3":GPLv3,
+              "GPLv3x":GPLv3x,
               "LGPLv3":LGPLv3,
               "LGPLv2.1":LGPLv3 }
 
@@ -247,6 +278,7 @@ def writeTemplate (fo, magic, start, end, dates, contribution, summary, gpl):
             fo.write ("\n")
     else:
         error ("no template found for: %s\n", gpl)
+        os.sys.exit (1)
     return fo
 
 
@@ -306,7 +338,9 @@ def handleHeader (f, magic, start, end):
     if errorCount == 0:
         now = datetime.datetime.now ()
         if doModify:
-            if forceGPL3:
+            if forceGPL3x:
+                gpl = "GPLv3x"
+            elif forceGPL3:
                 gpl = "GPLv3"
             rewriteFile (f, magic, start, end, start_date, str (now.year), contribution, summary, gpl, lines)
         elif forceCheck:
@@ -375,7 +409,19 @@ def doVisit (args, dirname, names):
 #
 
 def visitDir (startDir, extension, func):
-    os.path.walk (startDir, doVisit, [func, extension])
+    global outputName
+    # os.walk (startDir, doVisit, [func, extension])
+    for dirName, subdirList, fileList in os.walk(startDir):
+        for fname in fileList:
+            if (len (fname) > len (extension)) and (fname[-len(extension):] == extension):
+                fullpath = os.path.join (dirName, fname)
+                outputName = fullpath
+                printf ("outputName = %s\n", outputName)
+                func (fullpath)
+            # Remove the first entry in the list of sub-directories
+            # if there are any sub-directories present
+        if len(subdirList) > 0:
+            del subdirList[0]
 
 #
 #  findFiles - for each file extension call the appropriate tidy
@@ -397,11 +443,12 @@ def findFiles ():
 #
 
 def usage (code = 0):
-    print("boilerplate [-c contributionstring] [-d] [-v] [-g] [-o outputfile] inputfile.c")
+    print("boilerplate [-c contributionstring] [-d] [-v] [-g] [-x] [-o outputfile] inputfile.c")
     print("  -o outputfile   (this must be before the final inputfile on the command line).")
     print("  -c              a string which will be used as the contribution line.")
     print("  -f              force a check to insist that the contribution, summary and GPL exists.")
     print("  -g              change to GPLv3.")
+    print("  -x              change to GPLv3 with GCC runtime extension.")
     print("  -r directory    recusively scan directory for known file extensions (.def, .mod, .c, .h, .py, .in, .sh).")
     print("  -u              update all dates.")
     print("  -v              verbose.")
@@ -414,9 +461,9 @@ def usage (code = 0):
 #
 
 def handleArguments ():
-    global multiFilemode, contributedBy, updateAll, forceCheck, outputName, verbose, startDir, doModify, forceGPL3
+    global multiFilemode, contributedBy, updateAll, forceCheck, outputName, verbose, startDir, doModify, forceGPL3, forceGPL3x
     try:
-        optlist, l = getopt.getopt (sys.argv[1:],':c:dfgho:r:uvN')
+        optlist, l = getopt.getopt (sys.argv[1:],':c:dfgho:r:uvxN')
     except getopt.GetoptError:
         usage (1)
     for opt in optlist:
@@ -428,6 +475,8 @@ def handleArguments ():
             forceCheck = True
         if opt[0] == '-g':
             forceGPL3 = True
+        if opt[0] == '-x':
+            forceGPL3x = True
         if opt[0] == '-h':
             usage ()
         if opt[0] == '-r':

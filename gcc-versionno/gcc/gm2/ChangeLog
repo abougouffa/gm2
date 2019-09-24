@@ -1,3 +1,104 @@
+2019-09-24      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-libs-iso/IOChan.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs-min/M2RTS.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs-min/M2RTS.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs-min/SYSTEM.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs-min/SYSTEM.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs-min/libc.c:  added GCC runtime exemption clause.
+	* gm2/gm2-libs-min/libc.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/ASCII.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/ASCII.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/Args.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/Args.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/Assertion.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/Assertion.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/Break.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/Break.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/Builtins.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/Builtins.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/COROUTINES.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/COROUTINES.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/CmdArgs.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/CmdArgs.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/Debug.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/Debug.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/DynamicStrings.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/Environment.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/Environment.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/FIO.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/FIO.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/FormatStrings.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/FormatStrings.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/FpuIO.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/FpuIO.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/GetOpt.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/GetOpt.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/IO.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/Indexing.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/Indexing.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/LMathLib0.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/LegacyReal.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/M2EXCEPTION.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/M2RTS.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/M2RTS.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/MathLib0.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/MathLib0.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/MemUtils.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/MemUtils.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/NumberIO.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/NumberIO.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/OptLib.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/OptLib.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/PushBackInput.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/PushBackInput.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/RTExceptions.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/RTint.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/SArgs.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/SArgs.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/SCmdArgs.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/SCmdArgs.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/SEnvironment.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/SEnvironment.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/SFIO.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/SFIO.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/SMathLib0.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/SMathLib0.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/SYSTEM.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/SYSTEM.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/Scan.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/Selective.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/StdIO.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/StdIO.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/Storage.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/StrCase.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/StrIO.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/StrIO.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/StrLib.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/StringConvert.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/StringConvert.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/SysExceptions.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/SysStorage.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/TimeString.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/TimeString.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/UnixArgs.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/cbuiltin.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/cxxabi.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/dtoa.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/errno.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/gdbif.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/gdbif.mod:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/getopt.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/ldtoa.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/libc.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/libm.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/sckt.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/termios.def:  added GCC runtime exemption clause.
+	* gm2/gm2-libs/wrapc.def:  added GCC runtime exemption clause.
+	* gm2/tools-src/boilerplate.py:  added GCC runtime
+	  exemption clause and fixed filesystem walk from Python2 to
+          Python3 (new options -g and -x).
+
 2019-09-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  removed reference to sckt.c.
