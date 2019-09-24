@@ -69,18 +69,27 @@ def basename (f):
 #
 
 def analyseComment (text, f):
-    start_date, end_date, contribution, summary, gpl = None, None, None, None, None
-    if text.find ("Copyright (C)") > 0:
+    start_date, end_date, contribution, summary, lic = None, None, None, None, None
+    if text.find ("Copyright ISO/IEC") > 0:
+        lic = "BSISO"
+        now = datetime.datetime.now ()
+        for d in range (1984, now.year+1):
+            if text.find (str (d)) > 0:
+                if start_date == None:
+                    start_date = str (d)
+                end_date = str (d)
+        return start_date, end_date, "", "", gpl
+    elif text.find ("Copyright (C)") > 0:
         if text.find ("GNU General Public License") > 0:
-            gpl = "GPL"
+            lic = "GPL"
         elif text.find ("GNU Lesser General") > 0:
-            gpl = "LGPL"
+            lic = "LGPL"
         if text.find ("version 2.1") > 0:
-            gpl += "v2.1"
+            lic += "v2.1"
         elif text.find ("version 2") > 0:
-            gpl += "v2"
+            lic += "v2"
         elif text.find ("version 3") > 0:
-            gpl += "v3"
+            lic += "v3"
         now = datetime.datetime.now ()
         for d in range (1984, now.year+1):
             if text.find (str (d)) > 0:
@@ -100,7 +109,7 @@ def analyseComment (text, f):
             summary = text[i:]
         else:
             summary = text[i:j]
-    return start_date, end_date, contribution, summary, gpl
+    return start_date, end_date, contribution, summary, lic
 
 
 #
@@ -184,9 +193,8 @@ WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
-You should have received a copy of the GNU General Public License and
-a copy of the GCC Runtime Library Exception along with this program;
-see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING3.  If not see
 <http://www.gnu.org/licenses/>.
 """
 
@@ -240,23 +248,42 @@ You should have received a copy of the GNU Lesser General Public License
 along with GNU Modula-2.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+BSISO = """
+Library module defined by the International Standard
+Information technology - programming languages
+BS ISO/IEC 10514-1:1996E Part 1: Modula-2, Base Language.
+
+Copyright ISO/IEC (International Organization for Standardization
+and International Electrotechnical Commission) 1996-2019.
+
+It may be freely copied for the purpose of implementation (see page
+707 of the Information technology - Programming languages Part 1:
+Modula-2, Base Language.  BS ISO/IEC 10514-1:1996).
+"""
+
 templates = { "GPLv3":GPLv3,
               "GPLv3x":GPLv3x,
               "LGPLv3":LGPLv3,
-              "LGPLv2.1":LGPLv3 }
+              "LGPLv2.1":LGPLv3,
+              "BSISO":BSISO }
 
 
-def writeTemplate (fo, magic, start, end, dates, contribution, summary, gpl):
-    if gpl in templates:
-        summary = summary.lstrip ()
-        contribution = contribution.lstrip ()
-        summary = addStop (summary)
-        contribution = addStop (contribution)
-        if magic != None:
-            fo.write (magic)
-            fo.write ("\n")
-        text = templates[gpl] % (summary, dates, contribution)
-        text = text.rstrip ()
+def writeTemplate (fo, magic, start, end, dates, contribution, summary, lic):
+    if lic in templates:
+        if lic == "BSISO":
+            # non gpl but freely distributed for the implementation of a compiler
+            text = templates[gpl] % (summary, dates, contribution)
+            text = text.rstrip ()
+        else:
+            summary = summary.lstrip ()
+            contribution = contribution.lstrip ()
+            summary = addStop (summary)
+            contribution = addStop (contribution)
+            if magic != None:
+                fo.write (magic)
+                fo.write ("\n")
+            text = templates[gpl] % (summary, dates, contribution)
+            text = text.rstrip ()
         if end == None:
             text = text.split ("\n")
             for line in text:
@@ -277,7 +304,7 @@ def writeTemplate (fo, magic, start, end, dates, contribution, summary, gpl):
             fo.write (start)
             fo.write ("\n")
     else:
-        error ("no template found for: %s\n", gpl)
+        error ("no template found for: %s\n", lic)
         os.sys.exit (1)
     return fo
 
@@ -416,7 +443,7 @@ def visitDir (startDir, extension, func):
             if (len (fname) > len (extension)) and (fname[-len(extension):] == extension):
                 fullpath = os.path.join (dirName, fname)
                 outputName = fullpath
-                printf ("outputName = %s\n", outputName)
+                # printf ("outputName = %s\n", outputName)
                 func (fullpath)
             # Remove the first entry in the list of sub-directories
             # if there are any sub-directories present
