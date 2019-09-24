@@ -455,6 +455,112 @@
 	  with runtime extension.
 	* gm2/tools-src/boilerplate.py:  implemented -s
 	  option to override the summary found in the comments.
+	* gm2/gm2-gcc/dynamicstrings.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/gcc-consolidation.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/init.c:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/init.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/init.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2assert.c:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2assert.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2block.c:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2block.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2block.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2builtins.c:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2builtins.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2builtins.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2color.c:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2color.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2color.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2convert.c:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2convert.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2convert.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2decl.c:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2decl.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2decl.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2except.c:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2except.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2except.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2expr.c:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2expr.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2expr.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2linemap.c:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2linemap.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2linemap.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2misc.c:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2misc.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2misc.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2options.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2range.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2search.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2statement.c:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2statement.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2statement.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2top.c:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2top.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2top.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2tree.c:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2tree.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2tree.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2treelib.c:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2treelib.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2treelib.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2type.c:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2type.def:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/m2type.h:  added GPLv3
+	  with runtime extension.
+	* gm2/gm2-gcc/rtegraph.c:  added GPLv3
+	  with runtime extension.
 
 2019-09-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
