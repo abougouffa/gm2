@@ -560,7 +560,8 @@
 	* gm2/gm2-gcc/m2type.h:  added GPLv3
 	  with runtime extension.
 	* gm2/gm2-gcc/rtegraph.c:  added GPLv3
-	  with runtime extension.
+          with runtime extension.
+	* gm2/gm2-gcc/README:  corrected the filenames.
 
 2019-09-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
