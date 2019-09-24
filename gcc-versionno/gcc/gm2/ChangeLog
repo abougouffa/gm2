@@ -227,6 +227,106 @@
 	* gm2/mc/wlists.def:  use GCC version of GPLv3.
 	* gm2/mc/wlists.mod:  use GCC version of GPLv3.
 	* gm2/tools-src/boilerplate.py:  added ISO license support.
+	* gm2/gm2-libs-iso/COROUTINES.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/ChanConsts.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/ChanConsts.mod:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/CharClass.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/ComplexMath.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/ConvTypes.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/EXCEPTIONS.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/GeneralUserExceptions.def:  corrected
+	  dates and added reference.
+	* gm2/gm2-libs-iso/IOConsts.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/IOLink.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/IOResult.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/LongComplexMath.def:  corrected dates
+	  and added reference.
+	* gm2/gm2-libs-iso/LongConv.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/LongIO.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/LongIO.mod:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/LongMath.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/LongStr.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/LowLong.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/LowReal.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/M2EXCEPTION.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/Processes.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/ProgramArgs.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/RawIO.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/RealConv.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/RealIO.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/RealIO.mod:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/RealMath.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/RealStr.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/RndFile.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/SIOResult.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/SLongIO.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/SRawIO.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/SRealIO.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/STextIO.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/SWholeIO.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/SYSTEM.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/Semaphores.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/SeqFile.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/StdChans.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/Storage.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/StreamFile.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/Strings.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/SysClock.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/TERMINATION.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/TermFile.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/TextIO.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/WholeConv.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/WholeIO.def:  corrected dates and
+	  added reference.
+	* gm2/gm2-libs-iso/WholeStr.def:  corrected dates and
+	  added reference.
+	* gm2/tools-src/boilerplate.py:  corrected dates and
+	  added reference.
 
 2019-09-23      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

@@ -78,7 +78,7 @@ def analyseComment (text, f):
                 if start_date == None:
                     start_date = str (d)
                 end_date = str (d)
-        return start_date, end_date, "", "", gpl
+        return start_date, end_date, "", "", lic
     elif text.find ("Copyright (C)") > 0:
         if text.find ("GNU General Public License") > 0:
             lic = "GPL"
@@ -250,15 +250,15 @@ along with GNU Modula-2.  If not, see <https://www.gnu.org/licenses/>.
 
 BSISO = """
 Library module defined by the International Standard
-Information technology - programming languages
-BS ISO/IEC 10514-1:1996E Part 1: Modula-2, Base Language.
+   Information technology - programming languages
+   BS ISO/IEC 10514-1:1996E Part 1: Modula-2, Base Language.
 
-Copyright ISO/IEC (International Organization for Standardization
-and International Electrotechnical Commission) 1996-2019.
+   Copyright ISO/IEC (International Organization for Standardization
+   and International Electrotechnical Commission) %s.
 
-It may be freely copied for the purpose of implementation (see page
-707 of the Information technology - Programming languages Part 1:
-Modula-2, Base Language.  BS ISO/IEC 10514-1:1996).
+   It may be freely copied for the purpose of implementation (see page
+   707 of the Information technology - Programming languages Part 1:
+   Modula-2, Base Language.  BS ISO/IEC 10514-1:1996).
 """
 
 templates = { "GPLv3":GPLv3,
@@ -272,7 +272,7 @@ def writeTemplate (fo, magic, start, end, dates, contribution, summary, lic):
     if lic in templates:
         if lic == "BSISO":
             # non gpl but freely distributed for the implementation of a compiler
-            text = templates[gpl] % (summary, dates, contribution)
+            text = templates[lic] % (dates)
             text = text.rstrip ()
         else:
             summary = summary.lstrip ()
@@ -282,7 +282,7 @@ def writeTemplate (fo, magic, start, end, dates, contribution, summary, lic):
             if magic != None:
                 fo.write (magic)
                 fo.write ("\n")
-            text = templates[gpl] % (summary, dates, contribution)
+            text = templates[lic] % (summary, dates, contribution)
             text = text.rstrip ()
         if end == None:
             text = text.split ("\n")
@@ -341,8 +341,8 @@ def handleHeader (f, magic, start, end):
     global date, contribution, summary, doModify, forceCheck, errorCount
 
     errorCount = 0
-    [start_date, end_date, contribution, summary, gpl], lines =  analyseHeader (f, start, end)
-    if gpl == None:
+    [start_date, end_date, contribution, summary, lic], lines =  analyseHeader (f, start, end)
+    if lic == None:
         error ("%s:1:no GPL found at the top of the file\n", f)
     else:
         if verbose:
@@ -365,13 +365,16 @@ def handleHeader (f, magic, start, end):
     if errorCount == 0:
         now = datetime.datetime.now ()
         if doModify:
-            if forceGPL3x:
-                gpl = "GPLv3x"
+            if lic == "BSISO":
+                # don't change the BS ISO license!
+                pass
+            elif forceGPL3x:
+                lic = "GPLv3x"
             elif forceGPL3:
-                gpl = "GPLv3"
-            rewriteFile (f, magic, start, end, start_date, str (now.year), contribution, summary, gpl, lines)
+                lic = "GPLv3"
+            rewriteFile (f, magic, start, end, start_date, str (now.year), contribution, summary, lic, lines)
         elif forceCheck:
-            print(f, "suppressing change as requested", start_date, end_date, gpl)
+            print(f, "suppressing change as requested", start_date, end_date, lic)
 
 
 #
