@@ -303,7 +303,18 @@
 	* gm2/gm2.texi:  updated to reflect the license changes
           for the libraries.
 	* gm2/m2.flex:  updated the license.
-	* gm2/c.flex:  updated the license.	
+	* gm2/c.flex:  updated the license.
+	* gm2/patches/gcc/trunk/01-patches:  regenerated.
+	* gm2/patches/gcc/trunk/02-patches:  regenerated.
+	* gm2/patches/gcc/trunk/03-patches:  regenerated.
+	* gm2/patches/gcc/trunk/04-patches:  regenerated.
+	* gm2/patches/gcc/trunk/05-patches:  regenerated.
+	* gm2/patches/gcc/trunk/06-patches:  regenerated.
+	* gm2/patches/gcc/trunk/07-patches:  regenerated.
+	* gm2/patches/gcc/trunk/08-patches:  regenerated.
+	* gm2/patches/gcc/trunk/09-patches:  regenerated.
+	* gm2/patches/gcc/trunk/10-patches:  regenerated.
+	* gm2/m2.flex:  removed erroneous comment end.
 
 2019-09-24      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
