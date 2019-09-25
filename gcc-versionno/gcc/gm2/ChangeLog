@@ -1,7 +1,7 @@
 2019-09-25      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-libs-iso/LowShort.def:  removed erroneous character
-	at the beginning of the file.
+          at the beginning of the file.
 	* gm2/ulm-lib-gm2/processes/CoExpressions.def:  changed GPL3
 	  to the GCC GPL3 with runtime exception.
 	* gm2/ulm-lib-gm2/processes/CoExpressions.mod:  changed GPL3
@@ -300,6 +300,8 @@
 	  to the GCC GPL3 with runtime exception.
 	* gm2/ulm-lib-gm2/sys/test.mod:  changed GPL3
 	  to the GCC GPL3 with runtime exception.
+	* gm2/gm2.texi:  updated to reflect the license changes
+	  for the libraries.
 
 2019-09-24      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
