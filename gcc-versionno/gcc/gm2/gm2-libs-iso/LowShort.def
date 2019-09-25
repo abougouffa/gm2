@@ -1,4 +1,4 @@
-o(* LowShort.def provides access to limits of the gm2 SHORTREAL.
+(* LowShort.def provides access to limits of the gm2 SHORTREAL.
 
 Copyright (C) 2010-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

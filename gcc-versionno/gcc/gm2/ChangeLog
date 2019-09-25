@@ -1,3 +1,8 @@
+2019-09-25      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-libs-iso/LowShort.def:  removed erroneous character
+	  at the beginning of the file.
+
 2019-09-24      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-libs-iso/IOChan.def:  added GCC runtime exemption clause.
