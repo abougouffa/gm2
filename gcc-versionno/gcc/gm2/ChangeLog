@@ -301,7 +301,9 @@
 	* gm2/ulm-lib-gm2/sys/test.mod:  changed GPL3
 	  to the GCC GPL3 with runtime exception.
 	* gm2/gm2.texi:  updated to reflect the license changes
-	  for the libraries.
+          for the libraries.
+	* gm2/m2.flex:  updated the license.
+	* gm2/c.flex:  updated the license.	
 
 2019-09-24      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
