@@ -1,3 +1,30 @@
+2019-09-27      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* testsuite/gm2/fpu/pass/five.mod:  moved and added into
+          dejagnu.
+	* testsuite/gm2/fpu/pass/fp.def:moved and added into
+          dejagnu.
+	* testsuite/gm2/fpu/pass/fp.mod:moved and added into
+          dejagnu.
+	* testsuite/gm2/fpu/pass/one.mod:  moved and added into
+          dejagnu.
+	* testsuite/gm2/fpu/pass/r1.mod:  moved and added into
+          dejagnu.
+	* gm2/fpu/pass/realconst.mod:  moved and added into
+          dejagnu.
+	* testsuite/gm2/fpu/pass/testfp.mod:  moved and added into
+          dejagnu.
+	* testsuite/gm2/fpu/pass/testfp2.mod: moved and added into
+          dejagnu.
+	* testsuite/gm2/fpu/pass/testfpu1.mod:  moved and added into
+          dejagnu.
+	* testsuite/gm2/fpu/pass/testfpu2.mod:  moved and added into
+          dejagnu.
+	* testsuite/gm2/fpu/pass/testfpu3.mod:  moved and added into
+          dejagnu.
+	* testsuite/gm2/fpu/pass/testsin.mod:  moved and added into
+          dejagnu.
+
 2019-09-26      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  removed the Ulm libraries from the
