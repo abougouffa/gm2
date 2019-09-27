@@ -334,11 +334,6 @@ supports sets of any ordinal size (memory permitting).
 easy interface to C, and varargs can be passed to C routines.
 
 @item
-University of Ulm libraries are installed together with the compiler
-and can be accessed via:
-@samp{-flibs=ulm,pim}.
-
-@item
 many Logitech libraries have been implemented and can be accessed via:
 @samp{-flibs=logitech,pim}.
 
@@ -470,10 +465,6 @@ front end to GCC.
 @item
 It should support all Niklaus Wirth PIM Dialects [234] and also ISO Modula-2
 including a reimplementation of all the ISO modules.
-
-@item
-To provide PIM library compatibility which includes the all the Ulm
-libraries and many of the Logitech libraries.
 
 @item
 There should be an easy interface to C.
@@ -933,9 +924,9 @@ See @xref{Dialect, , ,gm2}.
 
 @item -flibs=
 modifies the default library search path.  The libraries supplied are:
-pim, iso, min, logitech, pim-coroutine and ulm.  These map onto the
+pim, iso, min, logitech and pim-coroutine.  These map onto the
 Programming in Modula-2 base libraries, ISO standard libraries, minimal
-library support, Logitech compatible library and University of Ulm library.
+library support and Logitech compatible library.
 Multiple libraries might be specified and are comma separated with precidence
 going to the first in the list.  It is not necessary to use -flibs=pim or
 -flibs=iso if you also specify -fpim, -fpim2, -fpim3, -fpim4 or -fiso.
@@ -3593,7 +3584,7 @@ been reported to work in OpenBSD 5.2, OpenBSD 4.8 and NetBSD 6.0.
 
 GNU Modula-2 is free software, the compiler is held under the GPL v3
 @uref{http://www.gnu.org/licenses/gpl.txt},
-its libraries (pim, iso, Logitech compatible and Ulm) are under the
+its libraries (pim, iso and Logitech compatible) are under the
 GPL v3 with the GCC runtime library exception clause.
 
 Under Section 7 of GPL version 3, you are granted additional
@@ -3655,14 +3646,16 @@ phase.
 @node Libraries, Indices, EBNF, Top
 @chapter PIM and ISO library definitions
 
-This chapter contains M2F, ULM, PIM and ISO libraries. The ISO
+This chapter contains M2F, PIM and ISO libraries. The ISO
 libraries are currently work in progress, many are complete but
 probably contain many bugs.  The M2F libraries are very mature as the
-compiler uses them extensively.  Permission has been kindly granted by
-the authors of the ULM libraries to include them with GNU
-Modula-2.  These libraries (under the GNU GPL) were written at the
-University of Ulm and were originally shipped with the ULM sparc
-Modula-2 compiler.
+compiler uses them extensively.
+@c Permission has been kindly granted by
+@c the authors of the ULM libraries to include them with GNU
+@c Modula-2.
+@c These libraries (under the GNU GPL) were written at the
+@c University of Ulm and were originally shipped with the ULM sparc
+@c Modula-2 compiler.
 
 @include gm2-libs.texi
 

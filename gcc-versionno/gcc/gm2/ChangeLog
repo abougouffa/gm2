@@ -1,3 +1,12 @@
+2019-09-26      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  removed the Ulm libraries from the
+          build process.
+	* gm2/gm2.texi:  remove the Ulm libraries from the
+          documentation.
+	* gm2/tools-src/def2texi.py:  removed the Ulm libraries
+	  from the table of auto generated indices.
+
 2019-09-25      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-libs-iso/LowShort.def:  removed erroneous character

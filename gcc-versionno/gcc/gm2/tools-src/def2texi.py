@@ -32,11 +32,7 @@ libraryClassifications = [['gm2-libs','Base libraries',
                           ['gm2-libs-coroutines','PIM coroutine support',
                            'PIM compatible process support'],
                           ['gm2-libs-iso','M2 ISO Libraries',
-                           'ISO defined libraries'],
-                          ['ulm-lib-gm2/sys','ULM System Libraries',
-                           'ULM System libraries'],
-                          ['ulm-lib-gm2/std','ULM Standard Libraries',
-                           'ULM Standard libraries']]
+                           'ISO defined libraries']]
 
 def initState ():
     global inVar, inType, inConst
