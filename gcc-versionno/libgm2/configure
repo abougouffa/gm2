@@ -663,8 +663,6 @@ BUILD_PTHDUMMY_FALSE
 BUILD_PTHDUMMY_TRUE
 BUILD_PTHLIB_FALSE
 BUILD_PTHLIB_TRUE
-BUILD_ULMLIB_FALSE
-BUILD_ULMLIB_TRUE
 BUILD_LOGLIB_FALSE
 BUILD_LOGLIB_TRUE
 BUILD_CORLIB_FALSE
@@ -12835,7 +12833,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 12838 "configure"
+#line 12836 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12941,7 +12939,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 12944 "configure"
+#line 12942 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -19833,7 +19831,6 @@ BUILD_PIMLIB=true
 BUILD_ISOLIB=true
 BUILD_CORLIB=true
 BUILD_LOGLIB=true
-BUILD_ULMLIB=true
 
 case "$target" in
 
@@ -19842,7 +19839,6 @@ case "$target" in
   BUILD_ISOLIB=false
   BUILD_CORLIB=false
   BUILD_LOGLIB=false
-  BUILD_ULMLIB=false
   BUILD_PTHLIB=false
   ;;
 
@@ -19851,7 +19847,6 @@ case "$target" in
   BUILD_ISOLIB=false
   BUILD_CORLIB=false
   BUILD_LOGLIB=false
-  BUILD_ULMLIB=false
   BUILD_PTHLIB=false
   ;;
 
@@ -19860,7 +19855,6 @@ case "$target" in
   BUILD_ISOLIB=true
   BUILD_CORLIB=true
   BUILD_LOGLIB=true
-  BUILD_ULMLIB=true
   BUILD_PTHLIB=false
   ;;
 
@@ -19870,7 +19864,6 @@ BUILD_PIMLIB=true
 BUILD_ISOLIB=true
 BUILD_CORLIB=true
 BUILD_LOGLIB=true
-BUILD_ULMLIB=true
 BUILD_PTHDUMMY=false
 
 if test $pth_found = 0 ; then
@@ -19911,14 +19904,6 @@ fi
 else
   BUILD_LOGLIB_TRUE='#'
   BUILD_LOGLIB_FALSE=
-fi
-
- if test x$BUILD_ULMLIB = xtrue; then
-  BUILD_ULMLIB_TRUE=
-  BUILD_ULMLIB_FALSE='#'
-else
-  BUILD_ULMLIB_TRUE='#'
-  BUILD_ULMLIB_FALSE=
 fi
 
  if test x$BUILD_PTHLIB = xtrue; then
@@ -20179,7 +20164,7 @@ if ${ac_cv_argtype_accept3+:} false; then :
 else
 
 cat >conftest.$ac_ext <<EOF
-#line 20182 "configure"
+#line 20167 "configure"
 #include "confdefs.h"
 EOF
 for ifile in sys/types.h sys/socket.h; do
@@ -20334,7 +20319,7 @@ if ${ac_cv_argtype_poll2+:} false; then :
 else
 
 cat >conftest.$ac_ext <<EOF
-#line 20337 "configure"
+#line 20322 "configure"
 #include "confdefs.h"
 EOF
 for ifile in sys/types.h poll.h; do
@@ -22118,7 +22103,7 @@ PTH_SYSCALL_SOFT="0"
 ################### end of pth ###################
 
 
-ac_config_files="$ac_config_files Makefile libmin/Makefile libpim/Makefile libiso/Makefile libcor/Makefile liblog/Makefile libulm/Makefile libpth/Makefile libpth/pth/Makefile libpth/pth/pth.h libpth/pth/pthread.h libpth/pth/pth_acmac.h"
+ac_config_files="$ac_config_files Makefile libmin/Makefile libpim/Makefile libiso/Makefile libcor/Makefile liblog/Makefile libpth/Makefile libpth/pth/Makefile libpth/pth/pth.h libpth/pth/pthread.h libpth/pth/pth_acmac.h"
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: libgm2 has been configured." >&5
@@ -22291,10 +22276,6 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${BUILD_LOGLIB_TRUE}" && test -z "${BUILD_LOGLIB_FALSE}"; then
   as_fn_error $? "conditional \"BUILD_LOGLIB\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${BUILD_ULMLIB_TRUE}" && test -z "${BUILD_ULMLIB_FALSE}"; then
-  as_fn_error $? "conditional \"BUILD_ULMLIB\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${BUILD_PTHLIB_TRUE}" && test -z "${BUILD_PTHLIB_FALSE}"; then
@@ -23281,7 +23262,6 @@ do
     "libiso/Makefile") CONFIG_FILES="$CONFIG_FILES libiso/Makefile" ;;
     "libcor/Makefile") CONFIG_FILES="$CONFIG_FILES libcor/Makefile" ;;
     "liblog/Makefile") CONFIG_FILES="$CONFIG_FILES liblog/Makefile" ;;
-    "libulm/Makefile") CONFIG_FILES="$CONFIG_FILES libulm/Makefile" ;;
     "libpth/Makefile") CONFIG_FILES="$CONFIG_FILES libpth/Makefile" ;;
     "libpth/pth/Makefile") CONFIG_FILES="$CONFIG_FILES libpth/pth/Makefile" ;;
     "libpth/pth/pth.h") CONFIG_FILES="$CONFIG_FILES libpth/pth/pth.h" ;;

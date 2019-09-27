@@ -315,7 +315,6 @@ BUILD_PIMLIB=true
 BUILD_ISOLIB=true
 BUILD_CORLIB=true
 BUILD_LOGLIB=true
-BUILD_ULMLIB=true
 
 case "$target" in
 
@@ -324,7 +323,6 @@ case "$target" in
   BUILD_ISOLIB=false
   BUILD_CORLIB=false
   BUILD_LOGLIB=false
-  BUILD_ULMLIB=false
   BUILD_PTHLIB=false
   ;;
 
@@ -333,7 +331,6 @@ case "$target" in
   BUILD_ISOLIB=false
   BUILD_CORLIB=false
   BUILD_LOGLIB=false
-  BUILD_ULMLIB=false
   BUILD_PTHLIB=false
   ;;
 
@@ -342,7 +339,6 @@ case "$target" in
   BUILD_ISOLIB=true
   BUILD_CORLIB=true
   BUILD_LOGLIB=true
-  BUILD_ULMLIB=true
   BUILD_PTHLIB=false
   ;;
 
@@ -352,7 +348,6 @@ BUILD_PIMLIB=true
 BUILD_ISOLIB=true
 BUILD_CORLIB=true
 BUILD_LOGLIB=true
-BUILD_ULMLIB=true
 BUILD_PTHDUMMY=false
 
 if test $pth_found = 0 ; then
@@ -366,7 +361,6 @@ AM_CONDITIONAL([BUILD_PIMLIB], [test x$BUILD_PIMLIB = xtrue])
 AM_CONDITIONAL([BUILD_ISOLIB], [test x$BUILD_ISOLIB = xtrue])
 AM_CONDITIONAL([BUILD_CORLIB], [test x$BUILD_CORLIB = xtrue])
 AM_CONDITIONAL([BUILD_LOGLIB], [test x$BUILD_LOGLIB = xtrue])
-AM_CONDITIONAL([BUILD_ULMLIB], [test x$BUILD_ULMLIB = xtrue])
 AM_CONDITIONAL([BUILD_PTHLIB], [test x$BUILD_PTHLIB = xtrue])
 AM_CONDITIONAL([BUILD_PTHDUMMY], [test x$BUILD_PTHDUMMY = xtrue])
 
@@ -649,7 +643,7 @@ AC_SUBST(PTH_SYSCALL_SOFT,"0")
 
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_FILES([Makefile libmin/Makefile libpim/Makefile libiso/Makefile
-                 libcor/Makefile liblog/Makefile libulm/Makefile libpth/Makefile
+                 libcor/Makefile liblog/Makefile libpth/Makefile
 		 libpth/pth/Makefile libpth/pth/pth.h
 		 libpth/pth/pthread.h libpth/pth/pth_acmac.h])
 

@@ -39,7 +39,7 @@ GM2_SRC = $(GCC_DIR)/gm2
 toolexeclibdir=@toolexeclibdir@
 toolexecdir=@toolexecdir@
 
-SUBDIRS = libmin libpim liblog libcor libulm libiso libpth
+SUBDIRS = libmin libpim liblog libcor libiso libpth
 GM2_BUILDDIR := $(shell pwd)
 
 
