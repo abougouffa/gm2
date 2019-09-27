@@ -94,6 +94,18 @@ fsoft-check-all
 Modula-2
 turns on all software runtime checking (an abbreviation for -fnil -frange -findex -fwholediv -fcase -freturn -fwholediv -ffloatvalue)
 
+frange
+Modula-2
+turns on all range checking for numerical values
+
+findex
+Modula-2
+turns on all range checking for numerical values
+
+fwholediv
+Modula-2
+turns on all division and modulus by zero checking for ordinal values
+
 fexceptions
 Modula-2
 ; Documented in common.opt

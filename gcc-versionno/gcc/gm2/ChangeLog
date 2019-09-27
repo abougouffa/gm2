@@ -24,6 +24,9 @@
           dejagnu.
 	* testsuite/gm2/fpu/pass/testsin.mod:  moved and added into
           dejagnu.
+	* gm2/gm2-lang.c:  reenable -fwholediv, -findex, -frange.
+	* gm2/lang-options.h:  remove duplicate option.
+	* gm2/lang.opt:  reenable -fwholediv, -findex, -frange.
 
 2019-09-26      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

@@ -260,17 +260,15 @@ gm2_langhook_handle_option (
     case OPT_fnil:
       M2Options_SetNilCheck (value);
       return 1;
-#if 0
-  case OPT_fwholediv:
-    M2Options_SetWholeDiv (value);
-    return 1;
-  case OPT_findex:
-    M2Options_SetIndex (value);
-    return 1;
-  case OPT_frange:
-    M2Options_SetRange (value);
-    return 1;
-#endif
+    case OPT_fwholediv:
+      M2Options_SetWholeDiv (value);
+      return 1;
+    case OPT_findex:
+      M2Options_SetIndex (value);
+      return 1;
+    case OPT_frange:
+      M2Options_SetRange (value);
+      return 1;
     case OPT_ffloatvalue:
       M2Options_SetFloatValueCheck (value);
       return 1;
