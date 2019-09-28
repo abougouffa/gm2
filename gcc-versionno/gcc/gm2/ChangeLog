@@ -82,6 +82,7 @@
 	* gm2/gm2.texi:  updated as the ISO library is complete.
 	* gm2/bnf/h2def.bnf:  removed.
 	* gm2/gccgdbinit:  removed.
+	* gm2/mc/mc.flex:  refreshed the GPL v3.
 
 2019-09-27      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
