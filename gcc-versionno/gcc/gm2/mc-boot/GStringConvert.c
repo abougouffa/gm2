@@ -1,18 +1,28 @@
-/* This file is part of GNU Modula-2.
+/* StringConvert.mod provides functions to convert numbers to and from strings.
 
-GNU Modula-2 is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 3, or (at your option) any later
-version.
+Copyright (C) 2001-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
-GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
+This file is part of GNU Modula-2.
 
-You should have received a copy of the GNU General Public License along
-with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+Under Section 7 of GPL version 3, you are granted additional
+permissions described in the GCC Runtime Library Exception, version
+3.1, as published by the Free Software Foundation.
+
+You should have received a copy of the GNU General Public License and
+a copy of the GCC Runtime Library Exception along with this program;
+see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+<http://www.gnu.org/licenses/>.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -1582,7 +1592,7 @@ DynamicStrings_String StringConvert_ToSigFig (DynamicStrings_String s, unsigned 
   int point;
   unsigned int poTen;
 
-  Assert ((IsDigit (DynamicStrings_char (s, 0))) || ((DynamicStrings_char (s, 0)) == '.'), (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/StringConvert.mod", 54, 1215, (char *) "ToSigFig", 8);
+  Assert ((IsDigit (DynamicStrings_char (s, 0))) || ((DynamicStrings_char (s, 0)) == '.'), (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/StringConvert.mod", 54, 1222, (char *) "ToSigFig", 8);
   point = DynamicStrings_Index (s, '.', 0);
   if (point < 0)
     poTen = DynamicStrings_Length (s);
@@ -1624,7 +1634,7 @@ DynamicStrings_String StringConvert_ToDecimalPlaces (DynamicStrings_String s, un
 {
   int point;
 
-  Assert ((IsDigit (DynamicStrings_char (s, 0))) || ((DynamicStrings_char (s, 0)) == '.'), (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/StringConvert.mod", 54, 1062, (char *) "ToDecimalPlaces", 15);
+  Assert ((IsDigit (DynamicStrings_char (s, 0))) || ((DynamicStrings_char (s, 0)) == '.'), (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/StringConvert.mod", 54, 1069, (char *) "ToDecimalPlaces", 15);
   point = DynamicStrings_Index (s, '.', 0);
   if (point < 0)
     {

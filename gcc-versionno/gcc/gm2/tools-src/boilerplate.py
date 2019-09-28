@@ -472,6 +472,7 @@ def findFiles ():
     visitDir (startDir, '.py', pythonTidy)
     visitDir (startDir, '.c', cTidy)
     visitDir (startDir, '.h', cTidy)
+    visitDir (startDir, '.cc', cTidy)
     visitDir (startDir, '.def', m2Tidy)
     visitDir (startDir, '.mod', m2Tidy)
 
@@ -554,7 +555,7 @@ def hasExt (name, ext):
 def singleFile (i):
     if hasExt (i, ".def") or hasExt (i, ".mod"):
         m2Tidy (i)
-    elif hasExt (i, ".h") or hasExt (i, ".c"):
+    elif hasExt (i, ".h") or hasExt (i, ".c") or hasExt (i, ".cc"):
         cTidy (i)
     elif hasExt (i, ".in"):
         inTidy (i)

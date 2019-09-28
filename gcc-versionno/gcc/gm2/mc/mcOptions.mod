@@ -229,17 +229,34 @@ BEGIN
    projectContents := SFIO.WriteS (f, projectContents) ;
    FIO.WriteString (f, ".") ;
    FIO.WriteLine (f) ; FIO.WriteLine (f) ;
+
+   projectContents := SFIO.WriteS (f, projectContents) ;
+   comment (f, " is free software; you can redistribute it and/or modify") ;
+   comment (f, "it under the terms of the GNU General Public License as published by") ;
+   comment (f, "the Free Software Foundation; either version 3, or (at your option)") ;
+   comment (f, "any later version.") ;
+   FIO.WriteLine (f) ;
+
    projectContents := SFIO.WriteS (f, projectContents) ;
    comment (f, " is software; you can redistribute it and/or modify") ;
    comment (f, "it under the terms of the GNU Lesser General Public License") ;
    comment (f, "as published by the Free Software Foundation; either version 3,") ;
    comment (f, "or (at your option) any later version.") ;
    FIO.WriteLine (f) ;
+
    projectContents := SFIO.WriteS (f, projectContents) ;
    comment (f, " is distributed in the hope that it will be useful, but") ;
    comment (f, "WITHOUT ANY WARRANTY; without even the implied warranty of") ;
    comment (f, "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU") ;
-   comment (f, "Lesser General Public License for more details.") ;
+   comment (f, "General Public License for more details.") ;
+   FIO.WriteLine (f) ;
+
+   comment (f, "You should have received a copy of the GNU General Public License") ;
+   FIO.WriteString (f, "along with ") ;
+   projectContents := SFIO.WriteS (f, projectContents) ;
+   comment (f, "; see the file COPYING3.  If not see") ;
+   comment (f, "<http://www.gnu.org/licenses/>.") ;
+
    FIO.WriteLine (f) ;
    comment (f, "You should have received a copy of the GNU Lesser General Public License") ;
    FIO.WriteString (f, "along with ") ;

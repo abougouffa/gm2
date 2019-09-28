@@ -1,4 +1,4 @@
-(* m2.def provide an external prototype for foo.
+/* cpp.cc execute a try/catch and call M2 procedure.
 
 Copyright (C) 2008-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -17,19 +17,40 @@ General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Modula-2; see the file COPYING3.  If not see
-<http://www.gnu.org/licenses/>.  *)
+<http://www.gnu.org/licenses/>.  */
 
-DEFINITION MODULE m2 ;
+#include <stdio.h>
+#include <stdlib.h>
 
-(*
-    Title      : m2
-    Author     : Gaius Mulley
-    System     : GNU Modula-2
-    Date       : Fri Sep  5 20:13:28 2008
-    Revision   : $Version$
-    Description: provides an interface for foo.
-*)
+extern "C" void cpp_test (void);
+extern "C" void m2_try (void);
 
-PROCEDURE foo ;
+void cpp_test (void)
+{
+  int r;
 
-END m2.
+  try {
+    printf("start of main c++ program\n");
+    m2_foo () ;
+    printf("ending (should not get here)\n");
+    exit(1);
+  }
+  catch (int i) {
+    printf("c++ caught exception correctly\n");
+    exit(0);
+  }
+  printf("c++ should not get here\n");
+  exit(1);
+}
+
+/*
+ *  GNU Modula-2 initialization and finalization code.
+ */
+extern "C" void _M2_cpp_init (void)
+{
+  cpp_test();
+}
+
+extern "C" void _M2_cpp_finish (void)
+{
+}

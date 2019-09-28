@@ -1,18 +1,23 @@
-/* This file is part of GNU Modula-2.
+/* DynamicStrings.def provides a dynamic string type and procedures.
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+Copyright (C) 2001-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
+This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA  */
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -1128,7 +1133,7 @@ static void ConcatContents (Contents *c, char *a_, unsigned int _a_high, unsigne
       (*c).next->contents.next = NULL;
       ConcatContents (&(*c).next->contents, (char *) a, _a_high, h, o);
       AddDebugInfo ((*c).next);
-      (*c).next = AssignDebug ((*c).next, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 701, (char *) "ConcatContents", 14);
+      (*c).next = AssignDebug ((*c).next, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 703, (char *) "ConcatContents", 14);
     }
   else
     (*c).len = i;
@@ -1210,7 +1215,7 @@ static void ConcatContentsAddress (Contents *c, void * a, unsigned int h)
       ConcatContentsAddress (&(*c).next->contents, (void *) p, h-j);
       AddDebugInfo ((*c).next);
       if (TraceOn)
-        (*c).next = AssignDebug ((*c).next, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 896, (char *) "ConcatContentsAddress", 21);
+        (*c).next = AssignDebug ((*c).next, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 898, (char *) "ConcatContentsAddress", 21);
     }
   else
     {
@@ -1407,7 +1412,7 @@ DynamicStrings_String DynamicStrings_InitString (char *a_, unsigned int _a_high)
   s->head->state = inuse;
   AddDebugInfo (s);
   if (TraceOn)
-    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 737, (char *) "InitString", 10);
+    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 739, (char *) "InitString", 10);
   return s;
 }
 
@@ -1488,7 +1493,7 @@ DynamicStrings_String DynamicStrings_InitStringCharStar (void * a)
   s->head->state = inuse;
   AddDebugInfo (s);
   if (TraceOn)
-    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 936, (char *) "InitStringCharStar", 18);
+    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 938, (char *) "InitStringCharStar", 18);
   return s;
 }
 
@@ -1509,7 +1514,7 @@ DynamicStrings_String DynamicStrings_InitStringChar (char ch)
   a.array[1] = ASCII_nul;
   s = DynamicStrings_InitString ((char *) &a.array[0], 1);
   if (TraceOn)
-    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 956, (char *) "InitStringChar", 14);
+    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 958, (char *) "InitStringChar", 14);
   return s;
 }
 
@@ -1631,7 +1636,7 @@ DynamicStrings_String DynamicStrings_Dup (DynamicStrings_String s)
     s = CheckPoisoned (s);
   s = DynamicStrings_Assign (DynamicStrings_InitString ((char *) "", 0), s);
   if (TraceOn)
-    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1152, (char *) "Dup", 3);
+    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1154, (char *) "Dup", 3);
   return s;
 }
 
@@ -1649,7 +1654,7 @@ DynamicStrings_String DynamicStrings_Add (DynamicStrings_String a, DynamicString
     }
   a = DynamicStrings_ConCat (DynamicStrings_ConCat (DynamicStrings_InitString ((char *) "", 0), a), b);
   if (TraceOn)
-    a = AssignDebug (a, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1172, (char *) "Add", 3);
+    a = AssignDebug (a, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1174, (char *) "Add", 3);
   return a;
 }
 
@@ -1706,7 +1711,7 @@ unsigned int DynamicStrings_EqualCharStar (DynamicStrings_String s, void * a)
     s = CheckPoisoned (s);
   t = DynamicStrings_InitStringCharStar (a);
   if (TraceOn)
-    t = AssignDebug (t, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1237, (char *) "EqualCharStar", 13);
+    t = AssignDebug (t, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1239, (char *) "EqualCharStar", 13);
   t = AddToGarbage (t, s);
   if (DynamicStrings_Equal (t, s))
     {
@@ -1738,7 +1743,7 @@ unsigned int DynamicStrings_EqualArray (DynamicStrings_String s, char *a_, unsig
     s = CheckPoisoned (s);
   t = DynamicStrings_InitString ((char *) a, _a_high);
   if (TraceOn)
-    t = AssignDebug (t, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1267, (char *) "EqualArray", 10);
+    t = AssignDebug (t, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1269, (char *) "EqualArray", 10);
   t = AddToGarbage (t, s);
   if (DynamicStrings_Equal (t, s))
     {
@@ -1766,7 +1771,7 @@ DynamicStrings_String DynamicStrings_Mult (DynamicStrings_String s, unsigned int
   else
     s = DynamicStrings_ConCat (DynamicStrings_Mult (s, n-1), s);
   if (TraceOn)
-    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1299, (char *) "Mult", 4);
+    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1301, (char *) "Mult", 4);
   return s;
 }
 
@@ -1825,7 +1830,7 @@ DynamicStrings_String DynamicStrings_Slice (DynamicStrings_String s, int low, in
                   t->contents.next->contents.len = 0;
                   AddDebugInfo (t->contents.next);
                   if (TraceOn)
-                    t->contents.next = AssignDebug (t->contents.next, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1367, (char *) "Slice", 5);
+                    t->contents.next = AssignDebug (t->contents.next, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1369, (char *) "Slice", 5);
                 }
               t = t->contents.next;
             }
@@ -1839,7 +1844,7 @@ DynamicStrings_String DynamicStrings_Slice (DynamicStrings_String s, int low, in
         s = s->contents.next;
       }
   if (TraceOn)
-    d = AssignDebug (d, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1384, (char *) "Slice", 5);
+    d = AssignDebug (d, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1386, (char *) "Slice", 5);
   return d;
 }
 
@@ -1938,7 +1943,7 @@ DynamicStrings_String DynamicStrings_RemoveComment (DynamicStrings_String s, cha
   else if (i > 0)
     s = DynamicStrings_RemoveWhitePostfix (DynamicStrings_Slice (DynamicStrings_Mark (s), 0, i));
   if (TraceOn)
-    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1496, (char *) "RemoveComment", 13);
+    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1498, (char *) "RemoveComment", 13);
   return s;
 }
 
@@ -1957,7 +1962,7 @@ DynamicStrings_String DynamicStrings_RemoveWhitePrefix (DynamicStrings_String s)
     i += 1;
   s = DynamicStrings_Slice (s, (int ) (i), 0);
   if (TraceOn)
-    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1608, (char *) "RemoveWhitePrefix", 17);
+    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1610, (char *) "RemoveWhitePrefix", 17);
   return s;
 }
 
@@ -1976,7 +1981,7 @@ DynamicStrings_String DynamicStrings_RemoveWhitePostfix (DynamicStrings_String s
     i -= 1;
   s = DynamicStrings_Slice (s, 0, i+1);
   if (TraceOn)
-    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1630, (char *) "RemoveWhitePostfix", 18);
+    s = AssignDebug (s, (char *) "../../gcc-versionno/gcc/gm2/gm2-libs/DynamicStrings.mod", 55, 1632, (char *) "RemoveWhitePostfix", 18);
   return s;
 }
 

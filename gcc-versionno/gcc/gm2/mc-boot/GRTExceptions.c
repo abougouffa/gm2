@@ -1,18 +1,23 @@
-/* This file is part of GNU Modula-2.
+/* RTExceptions.def runtime exception handler routines.
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+Copyright (C) 2008-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
+This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA  */
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -669,7 +674,7 @@ static void AddHandler (RTExceptions_EHBlock e, Handler h)
 
 static void indexf (void * a)
 {
-  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_indexException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 599, 9, "indexf", "array index out of bounds");
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_indexException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 602, 9, "indexf", "array index out of bounds");
 }
 
 
@@ -679,7 +684,7 @@ static void indexf (void * a)
 
 static void range (void * a)
 {
-  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_rangeException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 611, 9, "range", "assignment out of range");
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_rangeException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 614, 9, "range", "assignment out of range");
 }
 
 
@@ -689,7 +694,7 @@ static void range (void * a)
 
 static void casef (void * a)
 {
-  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_caseSelectException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 623, 9, "casef", "case selector out of range");
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_caseSelectException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 626, 9, "casef", "case selector out of range");
 }
 
 
@@ -699,7 +704,7 @@ static void casef (void * a)
 
 static void invalidloc (void * a)
 {
-  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_invalidLocation)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 635, 9, "invalidloc", "invalid address referenced");
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_invalidLocation)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 638, 9, "invalidloc", "invalid address referenced");
 }
 
 
@@ -709,7 +714,7 @@ static void invalidloc (void * a)
 
 static void function (void * a)
 {
-  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_functionException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 647, 9, "function", "... function ... ");  /* --fixme-- what has happened ?  */
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_functionException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 650, 9, "function", "... function ... ");  /* --fixme-- what has happened ?  */
 }
 
 
@@ -719,7 +724,7 @@ static void function (void * a)
 
 static void wholevalue (void * a)
 {
-  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_wholeValueException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 659, 9, "wholevalue", "illegal whole value exception");
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_wholeValueException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 662, 9, "wholevalue", "illegal whole value exception");
 }
 
 
@@ -729,7 +734,7 @@ static void wholevalue (void * a)
 
 static void wholediv (void * a)
 {
-  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_wholeDivException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 671, 9, "wholediv", "illegal whole value exception");
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_wholeDivException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 674, 9, "wholediv", "illegal whole value exception");
 }
 
 
@@ -739,7 +744,7 @@ static void wholediv (void * a)
 
 static void realvalue (void * a)
 {
-  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_realValueException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 683, 9, "realvalue", "illegal real value exception");
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_realValueException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 686, 9, "realvalue", "illegal real value exception");
 }
 
 
@@ -749,7 +754,7 @@ static void realvalue (void * a)
 
 static void realdiv (void * a)
 {
-  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_realDivException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 695, 9, "realdiv", "real number division by zero exception");
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_realDivException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 698, 9, "realdiv", "real number division by zero exception");
 }
 
 
@@ -759,7 +764,7 @@ static void realdiv (void * a)
 
 static void complexvalue (void * a)
 {
-  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_complexValueException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 707, 9, "complexvalue", "illegal complex value exception");
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_complexValueException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 710, 9, "complexvalue", "illegal complex value exception");
 }
 
 
@@ -769,7 +774,7 @@ static void complexvalue (void * a)
 
 static void complexdiv (void * a)
 {
-  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_complexDivException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 719, 9, "complexdiv", "complex number division by zero exception");
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_complexDivException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 722, 9, "complexdiv", "complex number division by zero exception");
 }
 
 
@@ -779,7 +784,7 @@ static void complexdiv (void * a)
 
 static void protection (void * a)
 {
-  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_protException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 731, 9, "protection", "protection exception");
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_protException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 734, 9, "protection", "protection exception");
 }
 
 
@@ -789,7 +794,7 @@ static void protection (void * a)
 
 static void systemf (void * a)
 {
-  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_sysException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 743, 9, "systemf", "system exception");
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_sysException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 746, 9, "systemf", "system exception");
 }
 
 
@@ -799,7 +804,7 @@ static void systemf (void * a)
 
 static void coroutine (void * a)
 {
-  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_coException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 755, 9, "coroutine", "coroutine exception");
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_coException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 758, 9, "coroutine", "coroutine exception");
 }
 
 
@@ -809,7 +814,7 @@ static void coroutine (void * a)
 
 static void exception (void * a)
 {
-  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_exException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 767, 9, "exception", "exception exception");
+  RTExceptions_Raise ( ((unsigned int) (M2EXCEPTION_exException)), "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 770, 9, "exception", "exception exception");
 }
 
 
@@ -1097,10 +1102,10 @@ void RTExceptions_SwitchExceptionState (unsigned int *from, unsigned int to)
 RTExceptions_EHBlock RTExceptions_GetBaseExceptionBlock (void)
 {
   if (currentEHB == NULL)
-    M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 53, 585, (char *) "GetBaseExceptionBlock", 21, (char *) "currentEHB has not been initialized yet", 39);
+    M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.mod", 53, 588, (char *) "GetBaseExceptionBlock", 21, (char *) "currentEHB has not been initialized yet", 39);
   else
     return currentEHB;
-  ReturnException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.def", 19, 1);
+  ReturnException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTExceptions.def", 25, 1);
 }
 
 

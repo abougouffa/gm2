@@ -1,3 +1,83 @@
+2019-09-28      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/configure.in:  adjusted dates used new GPL3 text.
+	* gm2/examples/callingC/Makefile.in:  adjusted dates used new GPL3
+	text.
+	* gm2/examples/callingC/hello.mod:  adjusted dates used new GPL3 text.
+	* gm2/examples/cplusplus/cppcatchm2/Makefile.in:  adjusted dates
+	used new GPL3 text.
+	* gm2/examples/cplusplus/cppcatchm2/cpp.cc:  adjusted dates used
+	new GPL3 text.
+	* gm2/examples/cplusplus/cppcatchm2/cpp.def:  adjusted dates used
+	new GPL3 text.
+	* gm2/examples/cplusplus/cppcatchm2/m2.def:  adjusted dates used
+	new GPL3 text.
+	* gm2/examples/cplusplus/cppcatchm2/m2.mod:  adjusted dates used
+	new GPL3 text.
+	* gm2/mc-boot-ch/GBuiltins.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot-ch/GSYSTEM.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot-ch/GSelective.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot-ch/GSysExceptions.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot-ch/GUnixArgs.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot-ch/Gcbuiltin.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot-ch/Gdtoa.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot-ch/Gerrno.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot-ch/Gldtoa.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot-ch/Glibc.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot-ch/Glibm.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot-ch/Gmcrts.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot-ch/Gmcrts.h:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot-ch/Gnetwork.h:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot-ch/Gpth.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot-ch/Gtermios.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot-ch/Gwrapc.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot-ch/network.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GASCII.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GArgs.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GAssertion.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GBreak.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GCmdArgs.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GDebug.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GDynamicStrings.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GEnvironment.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GFIO.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GFormatStrings.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GFpuIO.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GIO.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GM2EXCEPTION.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GM2RTS.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GMemUtils.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GNumberIO.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GPushBackInput.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GRTExceptions.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GRTint.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GSArgs.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GSFIO.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GStdIO.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GStorage.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GStrCase.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GStrIO.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GStrLib.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GStringConvert.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GSysStorage.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GTimeString.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/Galists.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/Gdecl.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GmcComment.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GmcComp.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GmcError.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GmcLexBuf.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GmcOptions.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GmcStream.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GnameKey.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/GsymbolKey.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/Gtop.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/Gvarargs.c:  adjusted dates used new GPL3 text.
+	* gm2/mc-boot/Gwlists.c:  adjusted dates used new GPL3 text.
+	* gm2/mc/mcOptions.mod:  adjusted dates used new GPL3 text.
+	* gm2/tools-src/boilerplate.py:  adjusted dates used new GPL3 text.
+	* gm2/version.c:  adjusted dates used new GPL3 text.
+
 2019-09-27      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* testsuite/gm2/fpu/pass/five.mod:  moved and added into

@@ -1,18 +1,23 @@
-/* This file is part of GNU Modula-2.
+/* RTint.def provides users of the COROUTINES library with the.
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+Copyright (C) 2009-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
+This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA  */
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not,
+see <https://www.gnu.org/licenses/>.  */
 
 #   if !defined (PROC_D)
 #      define PROC_D
@@ -210,7 +215,7 @@ static unsigned int IsGreaterEqual (Selective_Timeval a, Selective_Timeval b);
 static void SubTime (unsigned int *s, unsigned int *m, Selective_Timeval a, Selective_Timeval b);
 
 /*
-   Init - 
+   Init -
 */
 
 static void Init (void);
@@ -440,7 +445,7 @@ static void SubTime (unsigned int *s, unsigned int *m, Selective_Timeval a, Sele
 
 
 /*
-   Init - 
+   Init -
 */
 
 static void Init (void)
@@ -551,7 +556,7 @@ void RTint_ReArmTimeVector (unsigned int vec, unsigned int micro, unsigned int s
   Assertion_Assert (micro < Microseconds);
   v = FindVectorNo (vec);
   if (v == NULL)
-    M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 256, (char *) "ReArmTimeVector", 15, (char *) "cannot find vector supplied", 27);
+    M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 259, (char *) "ReArmTimeVector", 15, (char *) "cannot find vector supplied", 27);
   else
     Selective_SetTime (v->rel, secs+DebugTime, micro);
 }
@@ -570,7 +575,7 @@ void RTint_GetTimeVector (unsigned int vec, unsigned int *micro, unsigned int *s
 
   v = FindVectorNo (vec);
   if (v == NULL)
-    M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 280, (char *) "GetTimeVector", 13, (char *) "cannot find vector supplied", 27);
+    M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 283, (char *) "GetTimeVector", 13, (char *) "cannot find vector supplied", 27);
   else
     {
       Selective_GetTime (v->rel, secs, micro);
@@ -592,14 +597,14 @@ void * RTint_AttachVector (unsigned int vec, void * p)
 
   v = FindVectorNo (vec);
   if (v == NULL)
-    M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 305, (char *) "AttachVector", 12, (char *) "cannot find vector supplied", 27);
+    M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 308, (char *) "AttachVector", 12, (char *) "cannot find vector supplied", 27);
   else
     {
       l = v->arg;
       v->arg = p;
       return l;
     }
-  ReturnException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTint.def", 19, 1);
+  ReturnException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTint.def", 25, 1);
 }
 
 
@@ -621,7 +626,7 @@ void RTint_IncludeVector (unsigned int vec)
       /* avoid dangling else.  */
       v = FindVectorNo (vec);
       if (v == NULL)
-        M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 331, (char *) "IncludeVector", 13, (char *) "cannot find vector supplied", 27);
+        M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 334, (char *) "IncludeVector", 13, (char *) "cannot find vector supplied", 27);
       else
         {
           /* printf('including vector %d  (fd = %d)
@@ -662,7 +667,7 @@ void RTint_ExcludeVector (unsigned int vec)
 
   v = FindPendingVector (vec);
   if (v == NULL)
-    M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 372, (char *) "ExcludeVector", 13, (char *) "cannot find pending vector supplied", 35);
+    M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 375, (char *) "ExcludeVector", 13, (char *) "cannot find pending vector supplied", 35);
   else
     {
       /* printf('excluding vector %d
@@ -750,7 +755,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
 
 
                   default:
-                    CaseException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTint.def", 19, 1);
+                    CaseException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTint.def", 25, 1);
                 }
               v = v->pending;
             }
@@ -759,7 +764,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
       if (! untilInterrupt)
         Selective_SetTime (t, 0, 0);
       if (((untilInterrupt && (i == NULL)) && (o == NULL)) && ! found)
-        M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 592, (char *) "Listen", 6, (char *) "deadlock found, no more processes to run and no interrupts active", 65);
+        M2RTS_Halt ((char *) "../../gcc-versionno/gcc/gm2/gm2-libs/RTint.mod", 46, 595, (char *) "Listen", 6, (char *) "deadlock found, no more processes to run and no interrupts active", 65);
       /* printf('}
       ') ;  */
       if (((! found && (maxFd == -1)) && (i == NULL)) && (o == NULL))
@@ -861,7 +866,7 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
 
 
                   default:
-                    CaseException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTint.def", 19, 1);
+                    CaseException ("../../gcc-versionno/gcc/gm2/gm2-libs/RTint.def", 25, 1);
                 }
               v = v->pending;
             }

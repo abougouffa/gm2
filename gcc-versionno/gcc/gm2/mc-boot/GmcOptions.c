@@ -442,6 +442,12 @@ static void glplBody (FIO_File f)
   FIO_WriteLine (f);
   FIO_WriteLine (f);
   projectContents = SFIO_WriteS (f, projectContents);
+  comment (f, (char *) " is free software; you can redistribute it and/or modify", 56);
+  comment (f, (char *) "it under the terms of the GNU General Public License as published by", 68);
+  comment (f, (char *) "the Free Software Foundation; either version 3, or (at your option)", 67);
+  comment (f, (char *) "any later version.", 18);
+  FIO_WriteLine (f);
+  projectContents = SFIO_WriteS (f, projectContents);
   comment (f, (char *) " is software; you can redistribute it and/or modify", 51);
   comment (f, (char *) "it under the terms of the GNU Lesser General Public License", 59);
   comment (f, (char *) "as published by the Free Software Foundation; either version 3,", 63);
@@ -451,7 +457,13 @@ static void glplBody (FIO_File f)
   comment (f, (char *) " is distributed in the hope that it will be useful, but", 55);
   comment (f, (char *) "WITHOUT ANY WARRANTY; without even the implied warranty of", 58);
   comment (f, (char *) "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU", 65);
-  comment (f, (char *) "Lesser General Public License for more details.", 47);
+  comment (f, (char *) "General Public License for more details.", 40);
+  FIO_WriteLine (f);
+  comment (f, (char *) "You should have received a copy of the GNU General Public License", 65);
+  FIO_WriteString (f, (char *) "along with ", 11);
+  projectContents = SFIO_WriteS (f, projectContents);
+  comment (f, (char *) "; see the file COPYING3.  If not see", 36);
+  comment (f, (char *) "<http://www.gnu.org/licenses/>.", 31);
   FIO_WriteLine (f);
   comment (f, (char *) "You should have received a copy of the GNU Lesser General Public License", 72);
   FIO_WriteString (f, (char *) "along with ", 11);
