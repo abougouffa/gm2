@@ -3646,10 +3646,8 @@ phase.
 @node Libraries, Indices, EBNF, Top
 @chapter PIM and ISO library definitions
 
-This chapter contains M2F, PIM and ISO libraries. The ISO
-libraries are currently work in progress, many are complete but
-probably contain many bugs.  The M2F libraries are very mature as the
-compiler uses them extensively.
+This chapter contains M2F, PIM and ISO libraries.
+
 @c Permission has been kindly granted by
 @c the authors of the ULM libraries to include them with GNU
 @c Modula-2.

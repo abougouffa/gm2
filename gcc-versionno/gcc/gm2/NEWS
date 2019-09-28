@@ -1,6 +1,16 @@
 This file describes recent user-visible changes in gm2.  Bug fixes are
 not described.  There are more details in the man and info pages.
 
+VERSION 1.9.3
+=============
+
+* GCC error routines utilized for error messages.
+* complete whole number runtime range error detection finished.
+* improved m2-plugin which analyzes the call graph and will issue
+  warnings if the compiler detects a exported procedure will cause
+  a range error.  The plugin will issue an error if the range error
+  will be called from the module constructor/deconstructor.
+
 VERSION 1.2.0
 =============
 

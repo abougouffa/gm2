@@ -1072,13 +1072,6 @@ gm2/gm2-compiler-boot/gm2m.o: $(objdir)/gm2/gm2-compiler-boot/gm2m.mod $(MCDEPS)
 	    -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot \
             -I$(srcdir)/gm2/gm2-libiberty $(MCINCLUDES) $(INCLUDES) gm2/gm2-compiler-boot/gm2m.c -o $@
 
-gm2/gm2-compiler-boot/h2def.o: $(objdir)/gm2/gm2-compiler-boot/h2def.mod \
-                               gm2/gm2-compiler-boot/$(SRC_PREFIX)cflex.h $(MCDEPS) $(BUILD-BOOT-H)
-	$(MC) -o=gm2/gm2-compiler-boot/h2def.c gm2/gm2-compiler-boot/h2def.mod
-	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
-	    -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot \
-            -I$(srcdir)/gm2/gm2-libiberty $(MCINCLUDES) $(INCLUDES) gm2/gm2-compiler-boot/h2def.c -o $@
-
 gm2/gm2-compiler-boot/gm2lcc.o: $(srcdir)/gm2/gm2-compiler/gm2lcc.mod $(MCDEPS) $(BUILD-BOOT-H)
 	$(MC) -o=gm2/gm2-compiler-boot/gm2lcc.c $(srcdir)/gm2/gm2-compiler/gm2lcc.mod
 	$(COMPILER) -c -fpermissive $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(GM2GCC) \
@@ -1203,9 +1196,6 @@ gm2/gm2-compiler/M2Version.o: gm2/gm2-compiler/M2Version.mod
 
 gm2/gm2-compiler/M2Version.mod:
 	cd gm2/gm2-compiler ; bash ../../$(srcdir)/gm2/tools-src/makeversion -m ../../$(srcdir)
-
-gm2/gm2-compiler/h2def.o: $(objdir)/gm2/gm2-compiler/h2def.mod
-	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-gcc -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.c gm2/gm2-libs/gm2-libs-target.h
 	$(CC) -DBUILD_GM2_LIBS_TARGET -DBUILD_GM2_LIBS -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
@@ -1988,33 +1978,6 @@ stage2/gm2/gm2lorder$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compil
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2 -B./ -o $@ \
                -fuselist $(srcdir)/gm2/gm2-compiler/gm2lorder.mod $(LIBS)
 
-stage1/gm2/h2def$(exeext): gm2/boot-bin/mklink$(exeext) \
-     gm2/gm2-libs-boot/libgm2.a \
-     gm2/gm2-compiler-boot/cflex.o gm2/gm2-compiler-boot/CLexBuf.o \
-     gm2/gm2-compiler-boot/h2def.o \
-     $(GM2_LIBS_BOOT)
-	unset CC; $(M2LINK) -s --g++ --exit --name mod_init.c $(srcdir)/gm2/init/h2definit
-	mv mod_init.c gm2/gm2-compiler-boot/h2def_init.c
-	$(COMPILER) -c -g gm2/gm2-compiler-boot/h2def_init.c -o gm2/gm2-compiler-boot/h2def_init.o
-	$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
-              gm2/gm2-compiler-boot/cflex.o \
-              gm2/gm2-compiler-boot/CLexBuf.o \
-              gm2/gm2-compiler-boot/h2def_init.o \
-              gm2/gm2-compiler-boot/h2def.o $(GM2_LIBS_BOOT) $(LIBS) -lm
-
-stage2/gm2/h2def$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) \
-                           gm2/gm2-compiler/cflex.o \
-                           gm2/gm2-compiler/CLexBuf.o \
-                           gm2/gm2-compiler/h2def.o
-	grep -v mod_init $(srcdir)/gm2/init/h2definit > h2def.lst
-	./xgm2 -fuselist -fmodules -c -Igm2/gm2-libs -Igm2/gm2-compiler \
-               -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
-               -g -B./stage1/gm2 -B./ gm2/gm2-compiler/h2def.mod
-	./xgm2 -Igm2/gm2-libs -Igm2/gm2-compiler \
-               -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
-               -g -B./stage1/gm2 -B./ -o $@ \
-               -fuselist gm2/gm2-compiler/h2def.mod $(LIBS)
-
 #
 # gm2/ppg$(exeext)  is the bootstrap parser generator
 #
@@ -2228,9 +2191,6 @@ $(objdir)/gm2/gm2-compiler-paranoid/gm2l.mod: $(srcdir)/gm2/bnf/gm2l.bnf gm2/pge
 $(objdir)/gm2/gm2-compiler-paranoid/gm2m.mod: $(srcdir)/gm2/bnf/gm2m.bnf gm2/pge$(exeext)
 	./gm2/pge$(exeext) $< > $@
 
-$(objdir)/gm2/gm2-compiler-paranoid/h2def.mod: $(srcdir)/gm2/bnf/h2def.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) -l $< > $@
-
 $(objdir)/gm2/gm2-compiler/P0SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf gm2/pge$(exeext)
 	./gm2/pge$(exeext) -k $< > $@
 
@@ -2255,9 +2215,6 @@ $(objdir)/gm2/gm2-compiler/gm2l.mod: $(srcdir)/gm2/bnf/gm2l.bnf gm2/pge$(exeext)
 $(objdir)/gm2/gm2-compiler/gm2m.mod: $(srcdir)/gm2/bnf/gm2m.bnf gm2/pge$(exeext)
 	./gm2/pge$(exeext) $< > $@
 
-$(objdir)/gm2/gm2-compiler/h2def.mod: $(srcdir)/gm2/bnf/h2def.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) -l $< > $@
-
 $(objdir)/gm2/gm2-compiler-boot/P0SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf gm2/pge$(exeext)
 	./gm2/pge$(exeext) -k $< > $@
 
@@ -2281,9 +2238,6 @@ $(objdir)/gm2/gm2-compiler-boot/gm2l.mod: $(srcdir)/gm2/bnf/gm2l.bnf gm2/pge$(ex
 
 $(objdir)/gm2/gm2-compiler-boot/gm2m.mod: $(srcdir)/gm2/bnf/gm2m.bnf gm2/pge$(exeext)
 	./gm2/pge$(exeext) $< > $@
-
-$(objdir)/gm2/gm2-compiler-boot/h2def.mod: $(srcdir)/gm2/bnf/h2def.bnf gm2/pge$(exeext)
-	./gm2/pge$(exeext) -l $< > $@
 
 #
 # gm2.verifyparanoid - diffs the output of all three compilers with the compiler source code
