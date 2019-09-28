@@ -75,11 +75,13 @@
 	* gm2/mc-boot/Gvarargs.c:  adjusted dates used new GPL3 text.
 	* gm2/mc-boot/Gwlists.c:  adjusted dates used new GPL3 text.
 	* gm2/mc/mcOptions.mod:  adjusted dates used new GPL3 text.
-	* gm2/tools-src/boilerplate.py:  adjusted dates used new GPL3 text.
+	* gm2/tools-src/boilerplate.py:  now understands C++ files.
 	* gm2/version.c:  adjusted dates used new GPL3 text.
 	* gm2/Make-lang.in:  removed rules for h2def.
 	* gm2/h2def.texi:  removed.
 	* gm2/gm2.texi:  updated as the ISO library is complete.
+	* gm2/bnf/h2def.bnf:  removed.
+	* gm2/gccgdbinit:  removed.
 
 2019-09-27      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
