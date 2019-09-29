@@ -51,6 +51,7 @@ EXPORT QUALIFIED SetReturnCheck, SetNilCheck, SetCaseCheck,
 		 SetFloatValueCheck, GetFloatValueCheck,
 		 SetWholeValueCheck, GetWholeValueCheck,
                  SetLowerCaseKeywords,
+                 SetIndex, SetRange, SetWholeDiv,
 
                  Iso, Pim, Pim2, Pim3, Pim4,
                  PositiveModFloorDiv,
@@ -327,21 +328,21 @@ PROCEDURE SetPositiveModFloor (value: BOOLEAN) ;
 
 
 (*
-   SetWholeDiv -
+   SetWholeDiv - sets the whole division flag.
 *)
 
 PROCEDURE SetWholeDiv (value: BOOLEAN) ;
 
 
 (*
-   SetIndex -
+   SetIndex - sets the runtime array index checking flag.
 *)
 
 PROCEDURE SetIndex (value: BOOLEAN) ;
 
 
 (*
-   SetRange -
+   SetRange -  sets the runtime range checking flag.
 *)
 
 PROCEDURE SetRange (value: BOOLEAN) ;

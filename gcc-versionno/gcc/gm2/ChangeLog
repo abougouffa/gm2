@@ -1,3 +1,9 @@
+2019-09-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2Options.def:  added SetIndex, SetRange,
+          SetWholeDiv to the list of objects export qualified.
+	  Completed the comment to SetIndex, SetRange, SetWholeDiv.
+
 2019-09-28      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/configure.in:  adjusted dates used new GPL3 text.
