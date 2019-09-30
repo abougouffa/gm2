@@ -59,7 +59,8 @@
           (PutDeclaredModule) extra parameter (tok).
           (PutDeclared) extra parameter (tok).
           (GetDeclaredDef) use UnknownTokenNo rather than 0.
-	  (GetDeclaredMod) use UnknownTokenNo rather than 0.
+          (GetDeclaredMod) use UnknownTokenNo rather than 0.
+	* gm2/images/LICENSE.IMG:  updated GPL with dates.
 
 2019-09-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
