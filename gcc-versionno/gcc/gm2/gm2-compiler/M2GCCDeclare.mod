@@ -223,8 +223,6 @@ VAR
                                     (* be declared to GCC once        *)
                                     (* its dependants have            *)
                                     (* been written.                  *)
-   AnotherType         : CARDINAL ; (* The number of AnotherTypes     *)
-                                    (* that have been produced.       *)
    HaveInitDefaultTypes: BOOLEAN ;  (* have we initialized them yet?  *)
    WatchList           : Set ;      (* Set of symbols being watched   *)
    EnumerationIndex    : Index ;
@@ -3819,6 +3817,21 @@ END PrintDecl ;
 
 
 (*
+   PrintScope - displays the scope and line number of declaration of symbol, sym.
+*)
+
+PROCEDURE PrintScope (sym: CARDINAL) ;
+VAR
+   name: Name ;
+   line: CARDINAL ;
+BEGIN
+   line := TokenToLineNo (GetDeclaredMod (sym), 0) ;
+   name := GetSymName (GetScope (sym)) ;
+   printf2 ('scope %a:%d\n', name, line)
+END PrintScope ;
+
+
+(*
    PrintVerboseFromList - prints the, i, th element in the list, l.
 *)
 
@@ -3951,8 +3964,9 @@ BEGIN
       printf2('sym %d IsProcType (%a)', sym, n)
    ELSIF IsVar(sym)
    THEN
-      n2 := GetSymName(GetScope(sym)) ;
-      printf3('sym %d IsVar (%a) declared in scope %a mode ', sym, n, n2) ;
+      printf2('sym %d IsVar (%a) declared in ', sym, n) ;
+      PrintScope (sym) ;
+      printf0 ('mode ') ;
       CASE GetMode(sym) OF
 
       LeftValue     : printf0('l ') |

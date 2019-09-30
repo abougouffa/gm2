@@ -38,6 +38,10 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 #include <sys/errno.h>
 #endif
 
+#if defined(HAVE_STDIO_H)
+#include <stdio.h>
+#endif
+
 #if 0
 /* Signals.  */
 #define SIGHUP 1       /* Hangup (POSIX).  */

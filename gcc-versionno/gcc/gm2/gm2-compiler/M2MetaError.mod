@@ -143,7 +143,7 @@ END lookupColor ;
    readColor -
 *)
 
-PROCEDURE readColor (eb: errorBlock) : colorType ;
+PROCEDURE readColor (VAR eb: errorBlock) : colorType ;
 VAR
    s: String ;
    c: colorType ;
@@ -309,7 +309,8 @@ END push ;
 
 
 (*
-   pop - copies contents of oldblock into newblock
+   pop - copies contents of oldblock into newblock.  It only copies the error
+         handle if the toblock.e is NIL.
 *)
 
 PROCEDURE pop (VAR toblock, fromblock: errorBlock) ;
@@ -354,6 +355,10 @@ BEGIN
             popColor (toblock)
          END
       END
+   END ;
+   IF toblock.e = NIL
+   THEN
+      toblock.e := fromblock.e
    END ;
    toblock.chain := fromblock.chain ;
    toblock.root := fromblock.root ;
@@ -467,7 +472,7 @@ END killErrorBlock ;
                        | '4'        % doOperand(4) %
                              op
                        )
-                       } =:
+                 =:
 
    op := {'a'|'q'|'t'|'d'|'n'|'s'|'D'|'I'|'U'|'E'|'W'} then =:
 
@@ -835,7 +840,7 @@ END doGetType ;
                    returns the type symbol found and name.
 *)
 
-PROCEDURE doGetSkipType (eb: errorBlock; VAR sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
+PROCEDURE doGetSkipType (VAR eb: errorBlock; VAR sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 VAR
    prev: CARDINAL ;
 BEGIN
@@ -883,6 +888,20 @@ BEGIN
       chooseError (eb, tok)
    END
 END doError ;
+
+
+(*
+   defaultError - adds the default error location to, tok, if one has not already been
+                  assigned.
+*)
+
+PROCEDURE defaultError (VAR eb: errorBlock; tok: CARDINAL) ;
+BEGIN
+   IF eb.e = NIL
+   THEN
+      doError (eb, tok)
+   END
+END defaultError ;
 
 
 (*
@@ -936,7 +955,7 @@ END chooseError ;
    declaredDef - creates an error note where sym[bol] was declared.
 *)
 
-PROCEDURE declaredDef (eb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
+PROCEDURE declaredDef (VAR eb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 BEGIN
    IF bol <= HIGH (sym)
    THEN
@@ -949,7 +968,7 @@ END declaredDef ;
    doDeclaredMod - creates an error note where sym[bol] was declared.
 *)
 
-PROCEDURE declaredMod (eb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
+PROCEDURE declaredMod (VAR eb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 BEGIN
    IF bol <= HIGH (sym)
    THEN
@@ -962,7 +981,7 @@ END declaredMod ;
    used - creates an error note where sym[bol] was first used.
 *)
 
-PROCEDURE used (eb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
+PROCEDURE used (VAR eb: errorBlock; sym: ARRAY OF CARDINAL; bol: CARDINAL) ;
 BEGIN
    IF bol <= HIGH (sym)
    THEN
@@ -1456,8 +1475,6 @@ END percent ;
 *)
 
 PROCEDURE lbra (VAR eb: errorBlock; sym: ARRAY OF CARDINAL) ;
-VAR
-   positive: BOOLEAN ;
 BEGIN
    IF char (eb.in, eb.ini) = '{'
    THEN
@@ -1639,7 +1656,7 @@ BEGIN
    initErrorBlock (eb, m, sym) ;
    ebnf (eb, sym) ;
    flushColor (eb) ;
-   doError (eb, tok) ;
+   defaultError (eb, tok) ;
    ErrorString (eb.e, Dup (eb.out)) ;
    killErrorBlock (eb)
 END MetaErrorStringT0 ;
@@ -1660,7 +1677,7 @@ BEGIN
    initErrorBlock (eb, m, sym) ;
    ebnf (eb, sym) ;
    flushColor (eb) ;
-   doError (eb, tok) ;
+   defaultError (eb, tok) ;
    ErrorString (eb.e, Dup (eb.out)) ;
    killErrorBlock (eb)
 END MetaErrorStringT1 ;
@@ -1668,7 +1685,7 @@ END MetaErrorStringT1 ;
 
 PROCEDURE MetaErrorT1 (tok: CARDINAL; m: ARRAY OF CHAR; s: CARDINAL) ;
 BEGIN
-   MetaErrorStringT1(tok, InitString(m), s)
+   MetaErrorStringT1 (tok, InitString (m), s)
 END MetaErrorT1 ;
 
 
@@ -1682,7 +1699,7 @@ BEGIN
    initErrorBlock (eb, m, sym) ;
    ebnf (eb, sym) ;
    flushColor (eb) ;
-   doError (eb, tok) ;
+   defaultError (eb, tok) ;
    ErrorString (eb.e, Dup (eb.out)) ;
    killErrorBlock (eb)
 END MetaErrorStringT2 ;
@@ -1706,7 +1723,7 @@ BEGIN
    eb.highplus1 := HIGH (sym) + 1 ;
    ebnf (eb, sym) ;
    flushColor (eb) ;
-   doError (eb, tok) ;
+   defaultError (eb, tok) ;
    ErrorString (eb.e, Dup (eb.out)) ;
    killErrorBlock (eb)
 END MetaErrorStringT3 ;
@@ -1730,7 +1747,7 @@ BEGIN
    initErrorBlock (eb, m, sym) ;
    ebnf (eb, sym) ;
    flushColor (eb) ;
-   doError (eb, tok) ;
+   defaultError (eb, tok) ;
    ErrorString (eb.e, Dup (eb.out)) ;
    killErrorBlock (eb)
 END MetaErrorStringT4 ;
@@ -1785,7 +1802,7 @@ BEGIN
    initErrorBlock (eb, InitString (m1), sym) ;
    ebnf (eb, sym) ;
    flushColor (eb) ;
-   doError (eb, tok) ;
+   defaultError (eb, tok) ;
    lastRoot := eb.e ;
    ErrorString (eb.e, Dup (eb.out)) ;
    killErrorBlock (eb) ;
@@ -1793,7 +1810,7 @@ BEGIN
    eb.type := chained ;
    ebnf (eb, sym) ;
    flushColor (eb) ;
-   doError (eb, tok) ;
+   defaultError (eb, tok) ;
    ErrorString (eb.e, Dup (eb.out)) ;
    killErrorBlock (eb)
 END wrapErrors ;

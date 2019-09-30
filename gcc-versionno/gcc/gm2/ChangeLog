@@ -1,3 +1,22 @@
+2019-09-30      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2AsmUtil.mod:  (GetFullSymName)
+	  remove unused variable.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  (AnotherType)
+          remove unused variable.
+	* gm2/gm2-compiler/M2MetaError.mod:  (pop) use callee
+          error handle (if the caller has does not have an error handle).
+          Ensure that all procedures pass eb parameter by its address.
+	  All exported procedures call defaultError (rather than doError).
+	* gm2/gm2-compiler/M2StackWord.mod:  (PushWord)
+          remove unused variable.  (PrintScope)  New procedure.
+	  (PrintVerboseFromList)  call PrintScope.
+	* gm2/gm2-compiler/M2Quads.mod:  (CheckUninitializedVariablesAreUsed)
+	  corrected format specifiers to request declared location of
+          variable and parameter.
+	* gm2/gm2-libs-ch/wrapc.c:  include stdio.h and unistd.h.
+	* gm2/gm2-libs-ch/SysExceptions.c:  include stdio.h.
+
 2019-09-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/M2Options.def:  added SetIndex, SetRange,

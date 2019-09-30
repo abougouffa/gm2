@@ -1564,9 +1564,8 @@ END GetRealQuad ;
 
 PROCEDURE AlterReference (Head, OldQuad, NewQuad: CARDINAL) ;
 VAR
-   f, g       : QuadFrame ;
-   OldOperand3,
-   i          : CARDINAL ;
+   f, g: QuadFrame ;
+   i   : CARDINAL ;
 BEGIN
    f := GetQF(OldQuad) ;
    WHILE (f^.NoOfTimesReferenced>0) AND (Head#0) DO
@@ -1787,7 +1786,7 @@ END GetProtection ;
 
 PROCEDURE CheckNeedPriorityBegin (scope, module: CARDINAL) ;
 VAR
-   ProcSym, old, return: CARDINAL ;
+   ProcSym, old: CARDINAL ;
 BEGIN
    IF GetPriority(module)#NulSym
    THEN
@@ -2274,7 +2273,6 @@ PROCEDURE CheckForIndex (Start, End, Omit: CARDINAL; IndexSym: CARDINAL) ;
 VAR
    ReadStart, ReadEnd,
    WriteStart, WriteEnd: CARDINAL ;
-   s                   : String ;
 BEGIN
    GetWriteLimitQuads(IndexSym, RightValue, Start, End, WriteStart, WriteEnd) ;
    IF (WriteStart < Omit) AND (WriteStart > Start)
@@ -2867,7 +2865,6 @@ END doBuildAssignment ;
 PROCEDURE CheckAssignCompatible (Des, Exp: CARDINAL) ;
 VAR
    DesT, ExpT, DesL: CARDINAL ;
-   n               : Name ;
 BEGIN
    DesT := GetSType(Des) ;
    ExpT := GetSType(Exp) ;
@@ -2944,8 +2941,6 @@ END CheckAssignCompatible ;
 *)
 
 PROCEDURE CheckBooleanId ;
-VAR
-   n: Name ;
 BEGIN
    IF NOT IsBoolean(1)
    THEN
@@ -3659,7 +3654,7 @@ VAR
    ForLoop,
    t, f      : CARDINAL ;
    etype,
-   t1, f1    : CARDINAL ;
+   t1        : CARDINAL ;
 BEGIN
    l2 := PopLineNo() ;
    l1 := PopLineNo() ;
@@ -4274,7 +4269,6 @@ PROCEDURE BuildProcedureCall ;
 VAR
    NoOfParam,
    ProcSym  : CARDINAL ;
-   n        : Name ;
 BEGIN
    PopT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+1) ;
@@ -4373,8 +4367,6 @@ END BuildRealProcedureCall ;
 
 PROCEDURE BuildRealFuncProcCall (IsFunc, IsForC: BOOLEAN) ;
 VAR
-   e             : Error ;
-   n             : Name ;
    ForcedFunc,
    ParamConstant : BOOLEAN ;
    NoOfParameters,
@@ -4514,18 +4506,14 @@ END BuildRealFuncProcCall ;
 PROCEDURE CheckProcedureParameters (IsForC: BOOLEAN) ;
 VAR
    n1, n2      : Name ;
-   e           : Error ;
-   Unbounded   : BOOLEAN ;
    Dim,
    Actual,
    FormalI,
-   FormalIType,
    ParamTotal,
-   TypeSym,
    pi,
    Proc,
    ProcSym,
-   i, Var      : CARDINAL ;
+   i           : CARDINAL ;
 BEGIN
    PopT(ParamTotal) ;
    PushT(ParamTotal) ;  (* Restore stack to origional state *)
@@ -4634,7 +4622,6 @@ VAR
    i, n, t         : CARDINAL ;
    CheckedProcedure: CARDINAL ;
    e               : Error ;
-   s               : String ;
 BEGIN
    n := NoOfParam(ProcType) ;
    IF IsVar(call) OR IsTemporary(call) OR IsParameter(call)
@@ -4786,7 +4773,6 @@ END LegalUnboundedParam ;
 
 PROCEDURE CheckParameter (Actual, Dimension, Formal, ProcSym: CARDINAL; i: CARDINAL; TypeList: List) ;
 VAR
-   n                  : Name ;
    NewList            : BOOLEAN ;
    ActualType, FormalType: CARDINAL ;
 BEGIN
@@ -4900,9 +4886,7 @@ END CheckParameter ;
 
 PROCEDURE DescribeType (Sym: CARDINAL) : String ;
 VAR
-   n1, n2   : Name ;
    s, s1, s2: String ;
-   i,
    Low, High,
    Subrange,
    Subscript,
@@ -4943,7 +4927,7 @@ BEGIN
             IF NOT IsSubrange(Subrange)
             THEN
                MetaError3 ('error in definition of array {%1Ead} in the {%2N} subscript which has no subrange, instead type given is {%3a}',
-                            Sym, i, Subrange)
+                            Sym, Subscript, Subrange)
             END ;
             Assert(IsSubrange(Subrange)) ;
             GetSubrange(Subrange, High, Low) ;
@@ -4991,9 +4975,7 @@ PROCEDURE FailParameter (CurrentState : ARRAY OF CHAR;
                          ParameterNo  : CARDINAL) ;
 VAR
    First,
-   ExpectType,
-   ReturnType: CARDINAL ;
-   e         : Error ;
+   ExpectType: CARDINAL ;
    s, s1, s2 : String ;
 BEGIN
    MetaError2 ('parameter mismatch between the {%2N} parameter of procedure {%1Ead}',
@@ -5065,7 +5047,6 @@ VAR
    First,
    ExpectType,
    ReturnType: CARDINAL ;
-   e         : Error ;
    s, s1, s2 : String ;
 BEGIN
    s := InitString('{%W}') ;
@@ -5370,7 +5351,6 @@ END ConvertStringToC ;
 PROCEDURE ManipulateParameters (IsForC: BOOLEAN) ;
 VAR
    np           : CARDINAL ;
-   n            : Name ;
    s            : String ;
    ArraySym,
    UnboundedType,
@@ -5379,9 +5359,7 @@ VAR
    i, pi,
    ProcSym, rw,
    Proc,
-   t,
-   true, false,
-   Des          : CARDINAL ;
+   t            : CARDINAL ;
    f            : BoolFrame ;
 BEGIN
    PopT(NoOfParameters) ;
@@ -5663,10 +5641,7 @@ END AssignUnboundedVar ;
 
 PROCEDURE AssignUnboundedNonVar (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ;
 VAR
-   n           : Name ;
-   Field,
-   AddressField,
-   Type        : CARDINAL ;
+   Type: CARDINAL ;
 BEGIN
    IF IsConst (Sym)  (* was IsConstString(Sym) *)
    THEN
@@ -5826,13 +5801,10 @@ END AssignHighFields ;
 
 PROCEDURE UnboundedNonVarLinkToArray (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ;
 VAR
-   ArrayType,
-   t, f,
-   AddressField,
-   ArrayAdr,
-   Field       : CARDINAL ;
+   Field,
+   AddressField: CARDINAL ;
 BEGIN
-   (* Unbounded.ArrayAddress := ??? runtime *)
+   (* Unbounded.ArrayAddress := to be assigned at runtime.  *)
    PushTF(UnboundedSym, GetSType(UnboundedSym)) ;
 
    Field := GetUnboundedAddressOffset(GetSType(UnboundedSym)) ;
@@ -5841,7 +5813,7 @@ BEGIN
    BuildDesignatorRecord ;
    PopT(AddressField) ;
 
-   (* caller saves non var unbounded array contents *)
+   (* caller saves non var unbounded array contents.  *)
    GenQuad(UnboundedOp, AddressField, NulSym, Sym) ;
 
    AssignHighFields(Sym, ArraySym, UnboundedSym, ParamType, dim)
@@ -5856,8 +5828,7 @@ END UnboundedNonVarLinkToArray ;
 PROCEDURE UnboundedVarLinkToArray (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ;
 VAR
    SymType,
-   ArrayType,
-   Field    : CARDINAL ;
+   Field  : CARDINAL ;
 BEGIN
    SymType := GetSType(Sym) ;
    (* Unbounded.ArrayAddress := ADR(Sym) *)
@@ -5914,8 +5885,7 @@ END UnboundedVarLinkToArray ;
 PROCEDURE BuildPseudoProcedureCall ;
 VAR
    NoOfParam,
-   ProcSym,
-   Ptr      : CARDINAL ;
+   ProcSym  : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+1) ;
@@ -6064,8 +6034,7 @@ VAR
    NoOfParam,
    SizeSym,
    PtrSym,
-   ProcSym,
-   Ptr      : CARDINAL ;
+   ProcSym  : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam>=1
@@ -6151,8 +6120,7 @@ VAR
    NoOfParam,
    SizeSym,
    PtrSym,
-   ProcSym,
-   Ptr      : CARDINAL ;
+   ProcSym  : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam>=1
@@ -6206,11 +6174,7 @@ END BuildDisposeProcedure ;
 
 PROCEDURE CheckRangeIncDec (des, expr: CARDINAL; tok: Name) ;
 VAR
-   num         : String ;
-   line,
-   t, f,
-   dtype, etype,
-   dlow, dhigh : CARDINAL ;
+   dtype, etype: CARDINAL ;
 BEGIN
    dtype := GetDType(des) ;
    etype := GetDType(expr) ;
@@ -6292,8 +6256,7 @@ VAR
    dtype,
    OperandSym,
    VarSym,
-   TempSym,
-   ProcSym   : CARDINAL ;
+   TempSym   : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF (NoOfParam=1) OR (NoOfParam=2)
@@ -6360,8 +6323,7 @@ VAR
    dtype,
    OperandSym,
    VarSym,
-   TempSym,
-   ProcSym   : CARDINAL ;
+   TempSym   : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF (NoOfParam=1) OR (NoOfParam=2)
@@ -6447,8 +6409,7 @@ VAR
    NoOfParam,
    DerefSym,
    OperandSym,
-   VarSym,
-   ProcSym   : CARDINAL ;
+   VarSym    : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=2
@@ -6506,8 +6467,7 @@ VAR
    NoOfParam,
    DerefSym,
    OperandSym,
-   VarSym,
-   ProcSym   : CARDINAL ;
+   VarSym    : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=2
@@ -6634,10 +6594,8 @@ END CheckBuildFunction ;
 
 PROCEDURE BuildFunctionCall ;
 VAR
-   n        : Name ;
    NoOfParam,
-   ProcSym,
-   Ptr      : CARDINAL ;
+   ProcSym  : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+1) ;
@@ -7236,8 +7194,7 @@ VAR
    ProcSym,
    Type,
    NoOfParam,
-   Param,
-   ReturnVar: CARDINAL ;
+   Param    : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+1) ;
@@ -7361,8 +7318,7 @@ END BuildHighFromUnbounded ;
 
 PROCEDURE GetQualidentImport (n: Name; module: Name) : CARDINAL ;
 VAR
-   ProcSym,
-   ModSym : CARDINAL ;
+   ModSym: CARDINAL ;
 BEGIN
    ModSym := MakeDefinitionSource(module) ;
    IF ModSym=NulSym
@@ -7422,8 +7378,6 @@ END MakeLengthConst ;
 
 PROCEDURE BuildLengthFunction ;
 VAR
-   s        : String ;
-   l,
    ProcSym,
    Type,
    NoOfParam,
@@ -7785,7 +7739,6 @@ END BuildChrFunction ;
 
 PROCEDURE BuildOrdFunction (Sym: CARDINAL) ;
 VAR
-   n        : Name ;
    NoOfParam,
    Type, Var: CARDINAL ;
 BEGIN
@@ -7851,7 +7804,6 @@ END BuildOrdFunction ;
 
 PROCEDURE BuildIntFunction (Sym: CARDINAL) ;
 VAR
-   n        : Name ;
    NoOfParam,
    Type, Var: CARDINAL ;
 BEGIN
@@ -8283,7 +8235,6 @@ VAR
    Var, Type,
    NoOfParam,
    ProcSym,
-   IntegerVar,
    ReturnVar : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
@@ -8449,8 +8400,7 @@ VAR
    min,
    NoOfParam,
    Var,
-   ProcSym,
-   Ptr      : CARDINAL ;
+   ProcSym  : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
@@ -8498,8 +8448,7 @@ VAR
    max,
    NoOfParam,
    Var,
-   ProcSym,
-   Ptr      : CARDINAL ;
+   ProcSym  : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
@@ -8563,8 +8512,7 @@ VAR
    NoOfParam: CARDINAL ;
    Type,
    Var,
-   ReturnVar,
-   ProcSym  : CARDINAL ;
+   ReturnVar: CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    Assert(IsTrunc(OperandT(NoOfParam+1))) ;
@@ -8707,8 +8655,7 @@ VAR
    NoOfParam: CARDINAL ;
    Type,
    ReturnVar,
-   Var,
-   ProcSym  : CARDINAL ;
+   Var      : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
@@ -8762,8 +8709,7 @@ VAR
    NoOfParam: CARDINAL ;
    Type,
    ReturnVar,
-   Var,
-   ProcSym  : CARDINAL ;
+   Var      : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
@@ -8817,8 +8763,7 @@ VAR
    NoOfParam: CARDINAL ;
    ReturnVar,
    Type,
-   l, r,
-   ProcSym  : CARDINAL ;
+   l, r     : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=2
@@ -9667,11 +9612,11 @@ BEGIN
                THEN
                   IF WriteStart = 0
                   THEN
-                     MetaError2 ('unused parameter {%1Wad} in procedure {%2Wad}', n, BlockSym)
+                     MetaError2 ('unused parameter {%1WMad} in procedure {%2ad}', n, BlockSym)
                   ELSE
                      IF NOT IsVarParam (BlockSym, i)
                      THEN
-                        MetaError2 ('writing to a non var parameter {%1Wad} and never reading from it in procedure {%2Wad}',
+                        MetaError2 ('writing to a non var parameter {%1WMad} and never reading from it in procedure {%2ad}',
                                     n, BlockSym)
                      END
                   END
@@ -9685,14 +9630,14 @@ BEGIN
                THEN
                   IF WriteStart=0
                   THEN
-                     MetaError2 ('unused variable {%1Wad} in {%2Wd} {%2ad}', n, BlockSym)
+                     MetaError2 ('unused variable {%1WMad} in {%2d} {%2ad}', n, BlockSym)
                   ELSE
-                     MetaError2 ('writing to a variable {%1Wad} and never reading from it in {%2Wd} {%2ad}', n, BlockSym)
+                     MetaError2 ('writing to a variable {%1WMad} and never reading from it in {%2d} {%2ad}', n, BlockSym)
                   END
                ELSE
                   IF WriteStart=0
                   THEN
-                     MetaError2 ('variable {%1Wad} is being used but it is never initialized in {%2Wd} {%2ad}', n, BlockSym)
+                     MetaError2 ('variable {%1WMad} is being used but it is never initialized in {%2d} {%2ad}', n, BlockSym)
                   END
                END
             END

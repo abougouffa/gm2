@@ -132,7 +132,6 @@ END GetAsmName ;
 PROCEDURE GetFullSymName (Sym: CARDINAL) : Name ;
 VAR
    Module  : String ;
-   k       : Name ;
    Scope   : CARDINAL ;
 BEGIN
    Scope := GetScope(Sym) ;

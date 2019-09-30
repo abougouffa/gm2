@@ -48,6 +48,15 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 #include <math.h>
 #endif
 
+#if defined(HAVE_STDLIB_H)
+#include <stdlib.h>
+#endif
+
+#if defined(HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
+
 /* strtime - returns the address of a string which describes the
 local time.  */
 

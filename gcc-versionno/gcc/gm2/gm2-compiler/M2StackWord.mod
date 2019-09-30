@@ -110,8 +110,6 @@ END InitBucket ;
 *)
 
 PROCEDURE PushWord (s: StackOfWord; w: WORD) ;
-VAR
-   t: StackOfWord ;
 BEGIN
    IF s=NIL
    THEN
