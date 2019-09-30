@@ -26,7 +26,7 @@ FROM libc IMPORT strlen ;
 FROM NameKey IMPORT Name, MakeKey, makekey, KeyToCharStar, NulName, LengthKey, WriteKey ;
 FROM StrLib IMPORT StrEqual ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
-FROM M2LexBuf IMPORT GetTokenNo ;
+FROM M2LexBuf IMPORT UnknownTokenNo, GetTokenNo ;
 FROM M2Error IMPORT InternalError, WriteFormat1, WriteFormat2, WriteFormat0, ErrorStringAt2, WarnStringAt, ErrorStringAt ;
 FROM M2MetaError IMPORT MetaError1, MetaError2, MetaErrorsT2, MetaErrors1, MetaErrors2, MetaErrorString1 ;
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, Mark, Slice, ConCat, KillString, string ;
@@ -56,7 +56,7 @@ FROM SymbolTable IMPORT NulSym,
                         MakeConstLitString,
                         MakeEnumeration, MakeSubrange,
                         MakeVar, MakeType, PutType,
-                        PutMode,
+                        PutMode, PutDeclared,
                         PutFieldEnumeration, PutSubrange, PutVar, PutConst,
                         PutConstSet, PutConstructor,
                         IsDefImp, IsType, IsRecord, IsRecordField, IsPointer,
@@ -128,7 +128,7 @@ FROM M2Batch IMPORT MakeDefinitionSource,
 
 FROM M2Quads IMPORT PushT, PopT,
                     PushTF, PopTF,
-                    OperandT, OperandF, OperandA, PopN, DisplayStack, Annotate,
+                    OperandT, OperandF, OperandA, OperandTok, PopN, DisplayStack, Annotate,
                     AddVarientFieldToList ;
 
 FROM M2Comp IMPORT CompilingDefinitionModule,
@@ -1007,6 +1007,7 @@ END BuildVarAlignment ;
 PROCEDURE BuildVariable ;
 VAR
    name     : Name ;
+   tok,
    AtAddress,
    Type,
    Var,
@@ -1025,6 +1026,11 @@ BEGIN
          PutMode(Var, LeftValue)
       END ;
       PutVar(Var, Type) ;
+      tok := OperandTok(n+1-i) ;
+      IF tok # UnknownTokenNo
+      THEN
+         PutDeclared (Var, tok)
+      END ;
       INC(i)
    END ;
    PopN(n)
@@ -1184,7 +1190,7 @@ BEGIN
       ProcSym := MakeProcedure(name)
    ELSIF IsProcedure(ProcSym)
    THEN
-      PutDeclared(ProcSym)
+      PutDeclared(ProcSym, GetTokenNo ())
    ELSE
       ErrorStringAt2(Sprintf1(Mark(InitString('procedure name (%a) has been declared as another object elsewhere')),
                               name), GetTokenNo(), GetDeclaredMod(ProcSym))

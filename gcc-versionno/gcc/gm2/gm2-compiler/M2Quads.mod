@@ -8234,11 +8234,9 @@ VAR
    t,
    Var, Type,
    NoOfParam,
-   ProcSym,
    ReturnVar : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
-   ProcSym := OperandT(NoOfParam+1) ;
    IF NoOfParam#2
    THEN
       WriteFormat0('builtin procedure function CONVERT expects 2 parameters')
@@ -8399,8 +8397,7 @@ PROCEDURE BuildMinFunction ;
 VAR
    min,
    NoOfParam,
-   Var,
-   ProcSym  : CARDINAL ;
+   Var      : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
@@ -8447,8 +8444,7 @@ PROCEDURE BuildMaxFunction ;
 VAR
    max,
    NoOfParam,
-   Var,
-   ProcSym  : CARDINAL ;
+   Var      : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
@@ -8510,9 +8506,9 @@ END BuildMaxFunction ;
 PROCEDURE BuildTruncFunction (Sym: CARDINAL) ;
 VAR
    NoOfParam: CARDINAL ;
+   ProcSym,
    Type,
-   Var,
-   ReturnVar: CARDINAL ;
+   Var      : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    Assert(IsTrunc(OperandT(NoOfParam+1))) ;
@@ -8653,7 +8649,6 @@ END BuildFloatFunction ;
 PROCEDURE BuildReFunction ;
 VAR
    NoOfParam: CARDINAL ;
-   Type,
    ReturnVar,
    Var      : CARDINAL ;
 BEGIN
@@ -8707,7 +8702,6 @@ END BuildReFunction ;
 PROCEDURE BuildImFunction ;
 VAR
    NoOfParam: CARDINAL ;
-   Type,
    ReturnVar,
    Var      : CARDINAL ;
 BEGIN
@@ -8762,7 +8756,6 @@ PROCEDURE BuildCmplxFunction ;
 VAR
    NoOfParam: CARDINAL ;
    ReturnVar,
-   Type,
    l, r     : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
@@ -8819,7 +8812,6 @@ END BuildCmplxFunction ;
 PROCEDURE BuildAdrFunction ;
 VAR
    t,
-   Array,
    UnboundedSym,
    Dim,
    Field,
@@ -8933,10 +8925,8 @@ VAR
    n           : Name ;
    dim         : CARDINAL ;
    Type,
-   UnboundedSym,
-   Field,
    NoOfParam,
-   ProcSym, ti,
+   ProcSym,
    ReturnVar   : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
@@ -9010,12 +9000,11 @@ END BuildSizeFunction ;
 
 PROCEDURE BuildTSizeFunction ;
 VAR
-   t, f        : CARDINAL ;
-   i, NoOfParam: CARDINAL ;
+   NoOfParam: CARDINAL ;
    ti, tj,
    ProcSym,
    Record,
-   ReturnVar   : CARDINAL ;
+   ReturnVar: CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+1) ;
@@ -9039,32 +9028,6 @@ BEGIN
       THEN
          ReturnVar := MakeTemporary(ImmediateValue) ;
          GenQuad(SizeOp, ReturnVar, NulSym, Record)
-(*
-         IF NoOfParam=2
-         THEN
-            ReturnVar := MakeTemporary(ImmediateValue) ;
-            GenQuad(SizeOp, ReturnVar, OperandT(1), Record)
-         ELSIF NoOfParam>2
-         THEN
-            i := 2 ;
-            ReturnVar := MakeTemporary(RightValue) ;
-            PutVar(ReturnVar, Cardinal) ;
-            GenQuad(SizeOp, ReturnVar, OperandT(1), Record) ;
-            REPEAT
-               ti := MakeTemporary(ImmediateValue) ;
-               GenQuad(SizeOp, ti, OperandT(i), Record) ;
-               PushTF(ti, Cardinal) ;
-               PushT(GreaterTok) ;
-               PushTF(ReturnVar, Cardinal) ;
-               BuildRelOp ;
-               PopBool(t, f) ;
-               BackPatch(t, NextQuad) ;
-               GenQuad(BecomesOp, ReturnVar, NulSym, ti) ;
-               BackPatch(f, NextQuad) ;
-               INC(i)
-            UNTIL i>=NoOfParam
-         END
-*)
       ELSE
          WriteFormat0('SYSTEM procedure TSIZE expects the first parameter to be a record type') ;
          ReturnVar := MakeConstLit(MakeKey('0'), Cardinal)
@@ -12342,6 +12305,21 @@ END OperandFno ;
 
 
 (*
+   OperandTtok - returns the token associated with the position, pos
+                 on the boolean stack.
+*)
+
+PROCEDURE OperandTtok (pos: CARDINAL) : CARDINAL ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   Assert(pos>0) ;
+   f := PeepAddress (BoolStack, pos) ;
+   RETURN f^.tokenno
+END OperandTtok ;
+
+
+(*
    PopBool - Pops a True and a False exit quad number from the True/False
              stack.
 *)
@@ -12474,13 +12452,24 @@ END OperandRW ;
 
 PROCEDURE OperandMergeRW (pos: CARDINAL) : WORD ;
 BEGIN
-   IF OperandRW(pos)=NulSym
+   IF OperandRW (pos) = NulSym
    THEN
-      RETURN( OperandT(pos) )
+      RETURN OperandT (pos)
    ELSE
-      RETURN( OperandRW(pos) )
+      RETURN OperandRW (pos)
    END
 END OperandMergeRW ;
+
+
+(*
+   OperandTok - returns the token associated with pos, on the stack.
+*)
+
+PROCEDURE OperandTok (pos: CARDINAL) : WORD ;
+BEGIN
+   Assert (NOT IsBoolean (pos)) ;
+   RETURN OperandTtok (pos)
+END OperandTok ;
 
 
 (*
@@ -13355,6 +13344,61 @@ BEGIN
       DEC(n)
    END
 END PopN ;
+
+
+(*
+   PushTFtok - Push an item onto the stack in the T (true) position,
+               it is assummed to be a token and its token location is recorded.
+*)
+
+PROCEDURE PushTFtok (True, False: WORD; tokno: CARDINAL) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   f := newBoolFrame () ;
+   WITH f^ DO
+      TrueExit := True ;
+      FalseExit := False ;
+      tokenno := tokno
+   END ;
+   PushAddress(BoolStack, f)
+END PushTFtok ;
+
+
+(*
+   PopTFtok - Pop T/F/tok from the stack.
+*)
+
+PROCEDURE PopTFtok (VAR True, False: WORD; VAR tokno: CARDINAL) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   f := PopAddress(BoolStack) ;
+   WITH f^ DO
+      True := TrueExit ;
+      False := FalseExit ;
+      tokno := tokenno
+   END
+END PopTFtok ;
+
+
+(*
+   PushTFAtok - Push T/F/A/tok to the stack.
+*)
+
+PROCEDURE PushTFAtok (True, False, Array: WORD; tokno: CARDINAL) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   f := newBoolFrame () ;
+   WITH f^ DO
+      TrueExit := True ;
+      FalseExit := False ;
+      Unbounded := Array ;
+      tokenno := tokno
+   END ;
+   PushAddress(BoolStack, f)
+END PushTFAtok ;
 
 
 (*

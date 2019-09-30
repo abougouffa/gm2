@@ -1689,13 +1689,13 @@ PROCEDURE GetDeclaredMod (Sym: CARDINAL) : CARDINAL ;
 
 (*
    PutDeclared - adds an entry to symbol, Sym, indicating that it
-                 was declared at the current tokenno.  This routine
+                 was declared at, tok.  This routine
                  may be called twice, once for definition module
                  partial declaration and once when parsing the
                  implementation module.
 *)
 
-PROCEDURE PutDeclared (Sym: CARDINAL) ;
+PROCEDURE PutDeclared (Sym: CARDINAL; tok: CARDINAL) ;
 
 
 (*

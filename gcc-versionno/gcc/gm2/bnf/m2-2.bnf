@@ -24,7 +24,8 @@
 --  pg takes this file and produces a top down parser for Modula-2.
 --
 % module P2Build begin
-(* output from m2-2.bnf, automatically generated do not edit.
+(* output from m2-2.bnf, automatically generated do not edit if these
+   are the top two lines in the file.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -57,6 +58,7 @@ FROM M2Printf IMPORT printf0 ;
 FROM M2Debug IMPORT Assert ;
 
 FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing, OperandT, PushTFA, Top, Annotate,
+                    PushTFtok, PopTFtok, PushTFAtok, PopTtok,
                     StartBuildInit,
                     EndBuildInit,
                     BuildProcedureStart,
@@ -360,7 +362,7 @@ PROCEDURE Ident (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop
 BEGIN
    IF IsAutoPushOn()
    THEN
-      PushTF(makekey(currentstring), identtok) ;
+      PushTFtok(makekey(currentstring), identtok, GetTokenNo()) ;
       Annotate("%1n|identtok||Ident rule")
    END ;
    Expect(identtok, stopset0, stopset1, stopset2)
@@ -567,11 +569,11 @@ ImplementationOrProgramModule := ImplementationModule | ProgramModule =:
 Number := Integer | Real =:
 
 Qualident :=                                                               % VAR name: Name ;
-                                                                                 Type, Sym: CARDINAL ; %
+                                                                                 Type, Sym, tok: CARDINAL ; %
              Ident
                                                                            % IF IsAutoPushOn()
                                                                              THEN
-                                                                                PopT(name) ;
+                                                                                PopTtok(name, tok) ;
                                                                                 Sym := RequestSym(name) ;
                                                                                 IF IsDefImp(Sym) OR IsModule(Sym)
                                                                                 THEN
@@ -579,13 +581,13 @@ Qualident :=                                                               % VAR
                                                                                    StartScope(Sym) ;
                                                                                    Qualident(stopset0, stopset1, stopset2) ;
                                                                                    (* should we test for lack of ident? *)
-                                                                                   PopTF(Sym, Type) ;
-                                                                                   PushTF(Sym, Type) ;
+                                                                                   PopTFtok(Sym, Type, tok) ;
+                                                                                   PushTFtok(Sym, Type, tok) ;
                                                                                    Annotate("%1s(%1d)|%1s(%1d)||qualident|type") ;
                                                                                    EndScope ;
                                                                                    PutIncluded(Sym)
                                                                                 ELSE
-                                                                                   PushTF(Sym, GetType(Sym)) ;
+                                                                                   PushTFtok(Sym, GetType(Sym), tok) ;
                                                                                    Annotate("%1s(%1d)|%1s(%1d)||qualident|type")
                                                                                 END
                                                                              ELSE (* just parse qualident *) %
@@ -858,13 +860,13 @@ ProcedureParameter :=  "..."                                               % Bui
                     =:
 
 VarIdent := Ident                                                          % VAR
-                                                                                on       : BOOLEAN ;
-                                                                                Sym, Type: CARDINAL ; %
+                                                                                on            : BOOLEAN ;
+                                                                                Sym, Type, tok: CARDINAL ; %
                   [ "["                                                    % on := IsAutoPushOn() ;
                                                                              IF on
                                                                              THEN
-                                                                                 PopTF(Sym, Type) ;
-                                                                                 PushTFA(Sym, Type, Sym)
+                                                                                PopTFtok(Sym, Type, tok) ;
+                                                                                PushTFAtok(Sym, Type, Sym, tok)
                                                                              END %
                         ConstExpression "]" ]
          =:

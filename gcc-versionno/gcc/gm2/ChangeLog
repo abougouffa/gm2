@@ -18,6 +18,48 @@
 	* gm2/gm2-libs-ch/SysExceptions.c:  include stdio.h.
 	* gm2/gm2-tree.def:  updated GPL dates.
 	* gm2/gm2-tree.h:  updated GPL dates.
+	* gm2/bnf/gm2l.bnf:  improved machine generated header
+	  to make it obvious the result file should not be edited.
+	* gm2/bnf/gm2m.bnf:  improved machine generated header
+	  to make it obvious the result file should not be edited.
+	* gm2/bnf/m2.bnf:  improved machine generated header
+	  to make it obvious the result file should not be edited.
+	* gm2/bnf/m2-1.bnf:  improved machine generated header
+	  to make it obvious the result file should not be edited.
+	* gm2/bnf/m2-2.bnf:  improved machine generated header
+	  to make it obvious the result file should not be edited.
+	* gm2/bnf/m2-3.bnf:  improved machine generated header
+	  to make it obvious the result file should not be edited.
+	* gm2/bnf/m2-4.bnf:  improved machine generated header
+	  to make it obvious the result file should not be edited.
+	* gm2/bnf/m2-5.bnf:  improved machine generated header
+	  to make it obvious the result file should not be edited.
+	* gm2/bnf/m2-h.bnf:  improved machine generated header
+	  to make it obvious the result file should not be edited.
+	* gm2/bnf/m2-c.bnf:  improved machine generated header
+          to make it obvious the result file should not be edited.
+	* gm2/bnf/m2-2.bnf:  (Ident) Push the tokenno.  ItentList
+          pop the tokenno and push it.
+	* gm2/gm2-compiler/P2SymBuild.mod:  (BuildVariable) call
+          PutDeclared to coordinate accurate token number to variable.
+	* gm2/gm2-compiler/M2Quads.def:  (PushTtok) New procedure.
+          (PushTFtok) New procedure.  (PopTFtok) New procedure.
+          (PopTtok) New procedure.  (PushTFAtok) New procedure.
+          (OperandTok) New procedure.
+	* gm2/gm2-compiler/M2Quads.mod:  (PushTtok) Implement
+	  new procedure.
+          (PushTFtok) Implement new procedure.  (PopTFtok) New procedure.
+          (PopTtok) Implement new procedure.  (PushTFAtok) New procedure.
+          (OperandTok) New procedure.
+	* gm2/gm2-compiler/P1SymBuild.mod:  (StartBuildProcedure)
+          PutDeclared called with extra token parameter.
+	* gm2/gm2-compiler/SymbolTable.mod:  many unused variables removed
+          now given the error messages are token accurate.
+          (PutDeclaredDefinition) extra parameter (tok).
+          (PutDeclaredModule) extra parameter (tok).
+          (PutDeclared) extra parameter (tok).
+          (GetDeclaredDef) use UnknownTokenNo rather than 0.
+	  (GetDeclaredMod) use UnknownTokenNo rather than 0.
 
 2019-09-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

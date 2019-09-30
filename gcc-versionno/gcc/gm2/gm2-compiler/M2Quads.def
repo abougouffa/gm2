@@ -78,9 +78,10 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildUnaryOp,
                  RecordOp,
                  Top,
-                 PopTF, PushTF, PopT, PushT, PopNothing, PopN, PushTFA, PushTtok,
+                 PopTF, PushTF, PopT, PushT, PopNothing, PopN, PushTFA,
+                 PushTtok, PushTFtok, PopTFtok, PopTtok, PushTFAtok,
                  PushTFn, PopTFn,
-                 OperandT, OperandF, OperandA, OperandAnno,
+                 OperandT, OperandF, OperandA, OperandAnno, OperandTok,
                  DisplayStack, WriteOperand, Annotate,
 
                  BuildCodeOn, BuildCodeOff,
@@ -2121,6 +2122,35 @@ PROCEDURE PushTtok (True: WORD; tokno: CARDINAL) ;
 
 
 (*
+   PushTFtok - Push an item onto the stack in the T (true) position,
+               it is assummed to be a token and its token location is recorded.
+*)
+
+PROCEDURE PushTFtok (True, False: WORD; tokno: CARDINAL) ;
+
+
+(*
+   PopTFtok - Pop T/F/tok from the stack.
+*)
+
+PROCEDURE PopTFtok (VAR True, False: WORD; VAR tokno: CARDINAL) ;
+
+
+(*
+   PushTFAtok - Push T/F/A/tok to the stack.
+*)
+
+PROCEDURE PushTFAtok (True, False, Array: WORD; tokno: CARDINAL) ;
+
+
+(*
+   PopTtok - Pops the T value from the stack and token position.
+*)
+
+PROCEDURE PopTtok (VAR True: WORD; VAR tok: CARDINAL) ;
+
+
+(*
    PushTFn - Push a True and False numbers onto the True/False stack.
              True and False are assumed to contain Symbols or Ident etc.
 *)
@@ -2157,6 +2187,13 @@ PROCEDURE PopN (n: CARDINAL) ;
 *)
 
 PROCEDURE PushTFA (True, False, Array: WORD) ;
+
+
+(*
+   OperandTok - returns the token associated with pos, on the stack.
+*)
+
+PROCEDURE OperandTok (pos: CARDINAL) : WORD ;
 
 
 (*

@@ -28,7 +28,8 @@
 -- and parse with actions constant declarations.
 --
 % module PCBuild begin
-(* output from m2-c.bnf, automatically generated do not edit.
+(* output from m2-c.bnf, automatically generated do not edit if these
+   are the top two lines in the file.
 
 Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.

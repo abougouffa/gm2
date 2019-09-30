@@ -25,7 +25,7 @@ IMPLEMENTATION MODULE P1SymBuild ;
 FROM ASCII IMPORT nul ;
 FROM NameKey IMPORT Name, WriteKey, MakeKey, KeyToCharStar, NulName ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
-FROM M2LexBuf IMPORT GetFileName ;
+FROM M2LexBuf IMPORT GetFileName, GetTokenNo ;
 FROM M2MetaError IMPORT MetaErrorString2, MetaError0, MetaError1, MetaError2 ;
 FROM DynamicStrings IMPORT String, Slice, InitString, KillString, EqualCharStar, RIndex, Mark, ConCat ;
 FROM M2Printf IMPORT printf0, printf1, printf2 ;
@@ -915,7 +915,7 @@ BEGIN
    ELSIF IsProcedure(ProcSym)
    THEN
       (* declared in the other module, we record declaration here as well *)
-      PutDeclared(ProcSym)
+      PutDeclared(ProcSym, GetTokenNo ())
    ELSE
       MetaError1 ('expecting a procedure name and symbol {%1Ea} has been declared as a {%1d}', ProcSym) ;
       PushT(ProcSym) ;

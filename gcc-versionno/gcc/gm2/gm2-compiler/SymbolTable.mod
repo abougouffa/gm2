@@ -31,7 +31,7 @@ FROM Indexing IMPORT InitIndex, InBounds, LowIndice, HighIndice, PutIndice, GetI
 FROM Sets IMPORT Set, InitSet, IncludeElementIntoSet, IsElementInSet ;
 
 FROM M2Options IMPORT Pedantic, ExtendedOpaque, DebugFunctionLineNumbers ;
-FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken ;
+FROM M2LexBuf IMPORT UnknownTokenNo, TokenToLineNo, FindFileNameFromToken ;
 
 FROM M2ALU IMPORT InitValue, PtrToValue, PushCard, PopInto,
                   PushString, PushFrom, PushChar, PushInt,
@@ -1220,7 +1220,6 @@ PROCEDURE stop ; BEGIN END stop ;
 
 PROCEDURE DeclareSym (name: Name) : CARDINAL ;
 VAR
-   s  : String ;
    Sym: CARDINAL ;
 BEGIN
    IF name=NulName
@@ -3369,9 +3368,6 @@ BEGIN
 END HandleHiddenOrDeclare ;
 
 
-VAR
-   pList: POINTER TO List ;
-
 (*
    MakeRecord - makes a Record symbol with name RecordName.
 *)
@@ -3379,20 +3375,10 @@ VAR
 PROCEDURE MakeRecord (RecordName: Name) : CARDINAL ;
 VAR
    oaf, sym: CARDINAL ;
-   pSym: PtrToSymbol ;
 BEGIN
    sym := HandleHiddenOrDeclare(RecordName, oaf) ;
-   IF sym=693
-   THEN
-      stop
-   END ;
    FillInRecordFields(sym, RecordName, GetCurrentScope(), oaf) ;
    ForeachOAFamily(oaf, doFillInOAFamily) ;
-   IF sym=693
-   THEN
-      pSym := GetPsym(sym) ;
-      pList := ADR(pSym^.Record.ListOfSons) ;
-   END ;
    RETURN( sym )
 END MakeRecord ;
 
@@ -5111,7 +5097,6 @@ END IsHiddenType ;
 PROCEDURE GetConstLitType (name: Name) : CARDINAL ;
 VAR
    s            : String ;
-   i, High      : CARDINAL ;
    needsLong,
    needsUnsigned: BOOLEAN ;
 BEGIN
@@ -5463,7 +5448,6 @@ PROCEDURE PutFieldRecord (Sym: CARDINAL;
                           FieldName: Name; FieldType: CARDINAL;
                           VarSym: CARDINAL) : CARDINAL ;
 VAR
-   n     : CARDINAL ;
    oSym,
    pSym  : PtrToSymbol ;
    esym,
@@ -5588,8 +5572,7 @@ END MakeFieldVarient ;
 
 PROCEDURE PutFieldVarient (Field, Sym: CARDINAL) ;
 VAR
-   pSym  : PtrToSymbol ;
-   SonSym: CARDINAL ;
+   pSym: PtrToSymbol ;
 BEGIN
    Assert(IsVarient(Sym)) ;
    Assert(IsFieldVarient(Field)) ;
@@ -5677,10 +5660,6 @@ BEGIN
    END ;
    Assert(n=NoOfItemsInList(l))
 END EnsureOrder ;
-
-
-VAR
-   recordConsist: CARDINAL ;
 
 
 (*
@@ -7030,7 +7009,7 @@ END RequestFromModule ;
 PROCEDURE RequestFromDefinition (ModSym: CARDINAL; SymName: Name) : CARDINAL ;
 VAR
    pSym       : PtrToSymbol ;
-   type, Sym  : CARDINAL ;
+   Sym        : CARDINAL ;
    OldScopePtr: CARDINAL ;
 BEGIN
    pSym := GetPsym(ModSym) ;
@@ -7058,7 +7037,6 @@ BEGIN
                              ELSE
                                 IF IsFieldEnumeration(Sym)
                                 THEN
-                                   type := GetType(Sym) ;
                                    IF IsExported(ModSym, GetType(Sym))
                                    THEN
                                       RETURN( Sym )
@@ -10046,7 +10024,6 @@ END GetUnbounded ;
 PROCEDURE PutUnbounded (oaf: CARDINAL; sym: CARDINAL; ndim: CARDINAL) ;
 VAR
    pSym: PtrToSymbol ;
-   i   : CARDINAL ;
 BEGIN
    pSym := GetPsym(oaf) ;
    WITH pSym^ DO
@@ -10132,8 +10109,7 @@ END GetUnboundedAddressOffset ;
 
 PROCEDURE GetUnboundedHighOffset (sym: CARDINAL; ndim: CARDINAL) : CARDINAL ;
 VAR
-   field,
-   rec  : CARDINAL ;
+   rec: CARDINAL ;
 BEGIN
    rec := GetUnboundedRecordType(sym) ;
    IF rec=NulSym
@@ -11660,7 +11636,7 @@ END GetDeclaredModule ;
                            module.
 *)
 
-PROCEDURE PutDeclaredDefinition (Sym: CARDINAL) ;
+PROCEDURE PutDeclaredDefinition (Sym: CARDINAL; tok: CARDINAL) ;
 VAR
    pSym: PtrToSymbol ;
 BEGIN
@@ -11668,33 +11644,33 @@ BEGIN
    WITH pSym^ DO
       CASE SymbolType OF
 
-      ErrorSym           : Error.At.DefDeclared := GetTokenNo() |
-      ObjectSym          : Object.At.DefDeclared := GetTokenNo() |
-      VarientSym         : Varient.At.DefDeclared := GetTokenNo() |
-      RecordSym          : Record.At.DefDeclared := GetTokenNo() |
-      SubrangeSym        : Subrange.At.DefDeclared := GetTokenNo() |
-      EnumerationSym     : Enumeration.At.DefDeclared := GetTokenNo() |
-      ArraySym           : Array.At.DefDeclared := GetTokenNo() |
-      SubscriptSym       : Subscript.At.DefDeclared := GetTokenNo() |
-      UnboundedSym       : Unbounded.At.DefDeclared := GetTokenNo() |
-      ProcedureSym       : Procedure.At.DefDeclared := GetTokenNo() |
-      ProcTypeSym        : ProcType.At.DefDeclared := GetTokenNo() |
-      ParamSym           : Param.At.DefDeclared := GetTokenNo() |
-      VarParamSym        : VarParam.At.DefDeclared := GetTokenNo() |
-      ConstStringSym     : ConstString.At.DefDeclared := GetTokenNo() |
-      ConstLitSym        : ConstLit.At.DefDeclared := GetTokenNo() |
-      ConstVarSym        : ConstVar.At.DefDeclared := GetTokenNo() |
-      VarSym             : Var.At.DefDeclared := GetTokenNo() |
-      TypeSym            : Type.At.DefDeclared := GetTokenNo() |
-      PointerSym         : Pointer.At.DefDeclared := GetTokenNo() |
-      RecordFieldSym     : RecordField.At.DefDeclared := GetTokenNo() |
-      VarientFieldSym    : VarientField.At.DefDeclared := GetTokenNo() |
-      EnumerationFieldSym: EnumerationField.At.DefDeclared := GetTokenNo() |
-      SetSym             : Set.At.DefDeclared := GetTokenNo() |
-      DefImpSym          : DefImp.At.DefDeclared := GetTokenNo() |
-      ModuleSym          : Module.At.DefDeclared := GetTokenNo() |
+      ErrorSym           : Error.At.DefDeclared := tok |
+      ObjectSym          : Object.At.DefDeclared := tok |
+      VarientSym         : Varient.At.DefDeclared := tok |
+      RecordSym          : Record.At.DefDeclared := tok |
+      SubrangeSym        : Subrange.At.DefDeclared := tok |
+      EnumerationSym     : Enumeration.At.DefDeclared := tok |
+      ArraySym           : Array.At.DefDeclared := tok |
+      SubscriptSym       : Subscript.At.DefDeclared := tok |
+      UnboundedSym       : Unbounded.At.DefDeclared := tok |
+      ProcedureSym       : Procedure.At.DefDeclared := tok |
+      ProcTypeSym        : ProcType.At.DefDeclared := tok |
+      ParamSym           : Param.At.DefDeclared := tok |
+      VarParamSym        : VarParam.At.DefDeclared := tok |
+      ConstStringSym     : ConstString.At.DefDeclared := tok |
+      ConstLitSym        : ConstLit.At.DefDeclared := tok |
+      ConstVarSym        : ConstVar.At.DefDeclared := tok |
+      VarSym             : Var.At.DefDeclared := tok |
+      TypeSym            : Type.At.DefDeclared := tok |
+      PointerSym         : Pointer.At.DefDeclared := tok |
+      RecordFieldSym     : RecordField.At.DefDeclared := tok |
+      VarientFieldSym    : VarientField.At.DefDeclared := tok |
+      EnumerationFieldSym: EnumerationField.At.DefDeclared := tok |
+      SetSym             : Set.At.DefDeclared := tok |
+      DefImpSym          : DefImp.At.DefDeclared := tok |
+      ModuleSym          : Module.At.DefDeclared := tok |
       UndefinedSym       : |
-      PartialUnboundedSym: PutDeclaredDefinition(PartialUnbounded.Type)
+      PartialUnboundedSym: PutDeclaredDefinition(PartialUnbounded.Type, tok)
 
       ELSE
          InternalError('not expecting this type of symbol', __FILE__, __LINE__)
@@ -11708,7 +11684,7 @@ END PutDeclaredDefinition ;
                        in an implementation or program module.
 *)
 
-PROCEDURE PutDeclaredModule (Sym: CARDINAL) ;
+PROCEDURE PutDeclaredModule (Sym: CARDINAL; tok: CARDINAL) ;
 VAR
    pSym: PtrToSymbol ;
 BEGIN
@@ -11716,33 +11692,33 @@ BEGIN
    WITH pSym^ DO
       CASE SymbolType OF
 
-      ErrorSym           : Error.At.ModDeclared := GetTokenNo() |
-      ObjectSym          : Object.At.ModDeclared := GetTokenNo() |
-      VarientSym         : Varient.At.ModDeclared := GetTokenNo() |
-      RecordSym          : Record.At.ModDeclared := GetTokenNo() |
-      SubrangeSym        : Subrange.At.ModDeclared := GetTokenNo() |
-      EnumerationSym     : Enumeration.At.ModDeclared := GetTokenNo() |
-      ArraySym           : Array.At.ModDeclared := GetTokenNo() |
-      SubscriptSym       : Subscript.At.ModDeclared := GetTokenNo() |
-      UnboundedSym       : Unbounded.At.ModDeclared := GetTokenNo() |
-      ProcedureSym       : Procedure.At.ModDeclared := GetTokenNo() |
-      ProcTypeSym        : ProcType.At.ModDeclared := GetTokenNo() |
-      ParamSym           : Param.At.ModDeclared := GetTokenNo() |
-      VarParamSym        : VarParam.At.ModDeclared := GetTokenNo() |
-      ConstStringSym     : ConstString.At.ModDeclared := GetTokenNo() |
-      ConstLitSym        : ConstLit.At.ModDeclared := GetTokenNo() |
-      ConstVarSym        : ConstVar.At.ModDeclared := GetTokenNo() |
-      VarSym             : Var.At.ModDeclared := GetTokenNo() |
-      TypeSym            : Type.At.ModDeclared := GetTokenNo() |
-      PointerSym         : Pointer.At.ModDeclared := GetTokenNo() |
-      RecordFieldSym     : RecordField.At.ModDeclared := GetTokenNo() |
-      VarientFieldSym    : VarientField.At.ModDeclared := GetTokenNo() |
-      EnumerationFieldSym: EnumerationField.At.ModDeclared := GetTokenNo() |
-      SetSym             : Set.At.ModDeclared := GetTokenNo() |
-      DefImpSym          : DefImp.At.ModDeclared := GetTokenNo() |
-      ModuleSym          : Module.At.ModDeclared := GetTokenNo() |
+      ErrorSym           : Error.At.ModDeclared := tok |
+      ObjectSym          : Object.At.ModDeclared := tok |
+      VarientSym         : Varient.At.ModDeclared := tok |
+      RecordSym          : Record.At.ModDeclared := tok |
+      SubrangeSym        : Subrange.At.ModDeclared := tok |
+      EnumerationSym     : Enumeration.At.ModDeclared := tok |
+      ArraySym           : Array.At.ModDeclared := tok |
+      SubscriptSym       : Subscript.At.ModDeclared := tok |
+      UnboundedSym       : Unbounded.At.ModDeclared := tok |
+      ProcedureSym       : Procedure.At.ModDeclared := tok |
+      ProcTypeSym        : ProcType.At.ModDeclared := tok |
+      ParamSym           : Param.At.ModDeclared := tok |
+      VarParamSym        : VarParam.At.ModDeclared := tok |
+      ConstStringSym     : ConstString.At.ModDeclared := tok |
+      ConstLitSym        : ConstLit.At.ModDeclared := tok |
+      ConstVarSym        : ConstVar.At.ModDeclared := tok |
+      VarSym             : Var.At.ModDeclared := tok |
+      TypeSym            : Type.At.ModDeclared := tok |
+      PointerSym         : Pointer.At.ModDeclared := tok |
+      RecordFieldSym     : RecordField.At.ModDeclared := tok |
+      VarientFieldSym    : VarientField.At.ModDeclared := tok |
+      EnumerationFieldSym: EnumerationField.At.ModDeclared := tok |
+      SetSym             : Set.At.ModDeclared := tok |
+      DefImpSym          : DefImp.At.ModDeclared := tok |
+      ModuleSym          : Module.At.ModDeclared := tok |
       UndefinedSym       : |
-      PartialUnboundedSym: PutDeclaredModule(PartialUnbounded.Type)
+      PartialUnboundedSym: PutDeclaredModule(PartialUnbounded.Type, tok)
 
       ELSE
          InternalError('not expecting this type of symbol', __FILE__, __LINE__)
@@ -11753,19 +11729,19 @@ END PutDeclaredModule ;
 
 (*
    PutDeclared - adds an entry to symbol, Sym, indicating that it
-                 was declared at the current tokenno.  This routine
+                 was declared at, tok.  This routine
                  may be called twice, once for definition module
                  partial declaration and once when parsing the
                  implementation module.
 *)
 
-PROCEDURE PutDeclared (Sym: CARDINAL) ;
+PROCEDURE PutDeclared (Sym: CARDINAL; tok: CARDINAL) ;
 BEGIN
-   IF CompilingDefinitionModule()
+   IF CompilingDefinitionModule ()
    THEN
-      PutDeclaredDefinition(Sym)
+      PutDeclaredDefinition (Sym, tok)
    ELSE
-      PutDeclaredModule(Sym)
+      PutDeclaredModule (Sym, tok)
    END
 END PutDeclared ;
 
@@ -11780,12 +11756,12 @@ PROCEDURE GetDeclaredDef (Sym: CARDINAL) : CARDINAL ;
 VAR
    declared: CARDINAL ;
 BEGIN
-   declared := GetDeclaredDefinition(Sym) ;
-   IF declared=0
+   declared := GetDeclaredDefinition (Sym) ;
+   IF declared = UnknownTokenNo
    THEN
-      RETURN( GetDeclaredModule(Sym) )
+      RETURN GetDeclaredModule (Sym)
    END ;
-   RETURN( declared )
+   RETURN declared
 END GetDeclaredDef ;
 
 
@@ -11799,12 +11775,12 @@ PROCEDURE GetDeclaredMod (Sym: CARDINAL) : CARDINAL ;
 VAR
    declared: CARDINAL ;
 BEGIN
-   declared := GetDeclaredModule(Sym) ;
-   IF declared=0
+   declared := GetDeclaredModule (Sym) ;
+   IF declared = UnknownTokenNo
    THEN
-      RETURN( GetDeclaredDefinition(Sym) )
+      RETURN GetDeclaredDefinition (Sym)
    END ;
-   RETURN( declared )
+   RETURN declared
 END GetDeclaredMod ;
 
 
@@ -11816,7 +11792,7 @@ PROCEDURE GetFirstUsed (Sym: CARDINAL) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
 BEGIN
-   pSym := GetPsym(Sym) ;
+   pSym := GetPsym (Sym) ;
    WITH pSym^ DO
       CASE SymbolType OF
 
