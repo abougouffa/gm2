@@ -16,6 +16,8 @@
           variable and parameter.
 	* gm2/gm2-libs-ch/wrapc.c:  include stdio.h and unistd.h.
 	* gm2/gm2-libs-ch/SysExceptions.c:  include stdio.h.
+	* gm2/gm2-tree.def:  updated GPL dates.
+	* gm2/gm2-tree.h:  updated GPL dates.
 
 2019-09-29      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
