@@ -74,6 +74,8 @@
           runtime exception.
 	* gm2/gm2-libs-iso/wraptime.def:  changed licence to GPL 3 with
           runtime exception.
+	* gm2-libs-iso/README.texi:  corrected licence of files and
+	  given more detail about the GPL 3 with runtime exceptions.
 
 2019-09-30      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
