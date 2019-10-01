@@ -28,6 +28,52 @@
           runtime exception.
 	* gm2/gm2-libs-iso/pth.def:  changed licence to GPL 3 with runtime
           exception.
+	* gm2/gm2-libs-iso/RTio.def:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/RTio.mod:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/SLongWholeIO.def:  changed licence to GPL 3
+          with runtime exception.
+	* gm2/gm2-libs-iso/SLongWholeIO.mod:  changed licence to GPL 3
+          with runtime exception.
+	* gm2/gm2-libs-iso/SShortIO.def:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/SShortIO.mod:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/SShortWholeIO.def:  changed licence to GPL 3
+          with runtime exception.
+  	* gm2/gm2-libs-iso/SShortWholeIO.mod:  changed licence to GPL 3
+          with runtime exception.
+	* gm2/gm2-libs-iso/ServerSocket.def:  changed licence to GPL 3
+          with runtime exception.
+	* gm2/gm2-libs-iso/ServerSocket.mod:  changed licence to GPL 3
+          with runtime exception.
+	* gm2/gm2-libs-iso/ShortComplexMath.def:  changed licence to GPL 3
+          with runtime exception.
+	* gm2/gm2-libs-iso/ShortComplexMath.mod:  changed licence to GPL 3
+          with runtime exception.
+	* gm2/gm2-libs-iso/ShortIO.def:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/ShortIO.mod:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/ShortWholeIO.def:  changed licence to GPL 3
+          with runtime exception.
+	* gm2/gm2-libs-iso/ShortWholeIO.mod:  changed licence to GPL 3
+          with runtime exception.
+	* gm2/gm2-libs-iso/SimpleCipher.def:  changed licence to GPL 3
+          with runtime exception.
+	* gm2/gm2-libs-iso/SimpleCipher.mod:  changed licence to GPL 3
+          with runtime exception.
+	* gm2/gm2-libs-iso/StringChan.def:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/StringChan.mod:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/wrapsock.c:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/wrapsock.def:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/wraptime.def:  changed licence to GPL 3 with
+          runtime exception.
 
 2019-09-30      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
