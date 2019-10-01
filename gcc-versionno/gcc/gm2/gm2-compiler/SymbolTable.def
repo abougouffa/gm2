@@ -1376,7 +1376,7 @@ PROCEDURE PutVarientTag (Sym, Tag: CARDINAL) ;
                          Sym. The field has a name FieldName.
 *)
 
-PROCEDURE PutFieldEnumeration (Sym: CARDINAL; FieldName: Name) ;
+PROCEDURE PutFieldEnumeration (Sym: CARDINAL; FieldName: Name; tok: CARDINAL) ;
 
 
 (*
@@ -1449,7 +1449,7 @@ PROCEDURE IsReturnOptional (sym: CARDINAL) : BOOLEAN ;
 
 PROCEDURE PutParam (Sym: CARDINAL; ParamNo: CARDINAL;
                     ParamName: Name; ParamType: CARDINAL;
-                    isUnbounded: BOOLEAN) : BOOLEAN ;
+                    isUnbounded: BOOLEAN; tok: CARDINAL) : BOOLEAN ;
 
 
 (*
@@ -1463,7 +1463,7 @@ PROCEDURE PutParam (Sym: CARDINAL; ParamNo: CARDINAL;
 
 PROCEDURE PutVarParam (Sym: CARDINAL; ParamNo: CARDINAL;
                        ParamName: Name; ParamType: CARDINAL;
-                       isUnbounded: BOOLEAN) : BOOLEAN ;
+                       isUnbounded: BOOLEAN; tok: CARDINAL) : BOOLEAN ;
 
 
 (*
@@ -1471,7 +1471,7 @@ PROCEDURE PutVarParam (Sym: CARDINAL; ParamNo: CARDINAL;
                   ProcSym.
 *)
 
-PROCEDURE PutParamName (ProcSym: CARDINAL; no: CARDINAL; name: Name) ;
+PROCEDURE PutParamName (ProcSym: CARDINAL; no: CARDINAL; name: Name; tok: CARDINAL) ;
 
 
 (*

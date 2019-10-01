@@ -98,6 +98,25 @@
           with runtime exception.
 	* gm2/tools-src/boilerplate.py:  issue python3 rather than python.
 	* gm2/gm2-compiler/SymbolTable.mod:  (recordConsist) restored.
+	* gm2/bnf/m2-1.bnf:  (Ident) now pushes the token number to the stack.
+	* gm2/gm2-compiler/M2Base.mod:  PutFieldEnumeration pass extra
+          token parameter.
+	* gm2/gm2-compiler/P1SymBuild.mod:  (StartBuildEnumeration)
+	  call PutFieldEnumeration with an extra parameter tokenno.
+	* gm2/gm2-compiler/P2SymBuild.mod:  (BuildVariable) added
+          debugging printf in comments.  Call PutParam and PutVarParam
+          with extra tokenno parameter.  (BuildFieldRecord)
+	  call PutDeclared with the tokenno.
+	* gm2/gm2-compiler/SymbolTable.def:  (PutParamName) introduce
+          tokenno parameter.  (PutVarParam)  introduce tokenno parameter.
+          (PutParam)  introduce tokenno parameter.  (PutFieldEnumeration)
+	  introduce tokenno parameter.
+	* gm2/gm2-compiler/SymbolTable.mod:  (PutParamName) introduce
+          tokenno parameter.  (PutVarParam)  introduce tokenno parameter.
+          (PutParam)  introduce tokenno parameter.  (MakeVariableForParam)
+          introduce tokenno parameter.  (PutFieldEnumeration)
+	  introduce tokenno parameter.  (InitWhereDeclaredTok)  New
+          procedure.  (InitWhereDeclared) use InitWhereDeclaredTok.
 
 2019-09-30      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

@@ -32,7 +32,7 @@ IMPLEMENTATION MODULE M2Base ;
 *)
 
 FROM DynamicStrings IMPORT InitString, String, Mark, InitStringCharStar, ConCat ;
-FROM M2LexBuf IMPORT GetTokenNo ;
+FROM M2LexBuf IMPORT BuiltinTokenNo, GetTokenNo ;
 FROM NameKey IMPORT MakeKey, WriteKey, KeyToCharStar ;
 FROM M2Debug IMPORT Assert ;
 FROM SYSTEM IMPORT WORD ;
@@ -349,8 +349,8 @@ BEGIN
    *)
    Boolean := MakeEnumeration(MakeKey('BOOLEAN')) ;
 
-   PutFieldEnumeration(Boolean, MakeKey('FALSE')) ;
-   PutFieldEnumeration(Boolean, MakeKey('TRUE')) ;
+   PutFieldEnumeration(Boolean, MakeKey('FALSE'), BuiltinTokenNo) ;
+   PutFieldEnumeration(Boolean, MakeKey('TRUE'), BuiltinTokenNo) ;
 
    True  := RequestSym(MakeKey('TRUE')) ;
    False := RequestSym(MakeKey('FALSE')) ;

@@ -31,12 +31,14 @@ FROM M2Error IMPORT InternalError, WriteFormat1, WriteFormat2, WriteFormat0, Err
 FROM M2MetaError IMPORT MetaError1, MetaError2, MetaErrorsT2, MetaErrors1, MetaErrors2, MetaErrorString1 ;
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, Mark, Slice, ConCat, KillString, string ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf4 ;
-FROM M2Printf IMPORT printf0, printf1, printf2 ;
+FROM M2Printf IMPORT printf0, printf1, printf2, printf3 ;
 FROM M2StackWord IMPORT StackOfWord, InitStackWord, PushWord, PopWord ;
 FROM M2Options IMPORT PedanticParamNames, ExtendedOpaque ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM M2Base IMPORT ZType ;
 FROM Storage IMPORT ALLOCATE ;
+FROM m2linemap IMPORT location_t ;
+FROM M2LexBuf IMPORT TokenToLocation ;
 
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        NulTok, VarTok, ArrayTok ;
@@ -54,7 +56,7 @@ FROM SymbolTable IMPORT NulSym,
                         MakeTemporary, CheckAnonymous, IsNameAnonymous,
                         MakeConstLit,
                         MakeConstLitString,
-                        MakeEnumeration, MakeSubrange,
+                        MakeSubrange,
                         MakeVar, MakeType, PutType,
                         PutMode, PutDeclared,
                         PutFieldEnumeration, PutSubrange, PutVar, PutConst,
@@ -1006,6 +1008,7 @@ END BuildVarAlignment ;
 
 PROCEDURE BuildVariable ;
 VAR
+   l        : location_t ;
    name     : Name ;
    tok,
    AtAddress,
@@ -1029,7 +1032,12 @@ BEGIN
       tok := OperandTok(n+1-i) ;
       IF tok # UnknownTokenNo
       THEN
-         PutDeclared (Var, tok)
+         PutDeclared (Var, tok) ;
+         name := OperandT(n+1-i) ;
+         (*
+         l := TokenToLocation (tok) ;
+         printf3 ('declaring variable %a at position %d location %d\n', name, tok, l)
+         *)
       END ;
       INC(i)
    END ;
@@ -1518,6 +1526,7 @@ VAR
    ParamName,
    Var,
    Array     : Name ;
+   tok,
    ParamTotal,
    TypeSym,
    UnBoundedSym,
@@ -1554,16 +1563,17 @@ BEGIN
       ELSE
          ParamName := OperandT(NoOfIds+1-i)
       END ;
+      tok := OperandTok(NoOfIds+1-i) ;
       IF Var=VarTok
       THEN
          (* VAR parameter *)
-         IF NOT PutVarParam(ProcSym, ParamTotal+i, ParamName, TypeSym, Array=ArrayTok)
+         IF NOT PutVarParam(ProcSym, ParamTotal+i, ParamName, TypeSym, Array=ArrayTok, tok)
          THEN
             InternalError('problems adding a VarParameter - wrong param #?', __FILE__, __LINE__)
          END
       ELSE
          (* Non VAR parameter *)
-         IF NOT PutParam(ProcSym, ParamTotal+i, ParamName, TypeSym, Array=ArrayTok)
+         IF NOT PutParam(ProcSym, ParamTotal+i, ParamName, TypeSym, Array=ArrayTok, tok)
          THEN
             InternalError('problems adding a Parameter - wrong param #?', __FILE__, __LINE__)
          END
@@ -1687,7 +1697,7 @@ BEGIN
          ELSE
             IF GetSymName(ParamI)=NulName
             THEN
-               PutParamName(ProcSym, ParamTotal+i, OperandT(pi))
+               PutParamName(ProcSym, ParamTotal+i, OperandT(pi), OperandTok (pi))
             END
          END ;
          IF Unbounded
@@ -2193,6 +2203,7 @@ VAR
    bytealignment,
    name,
    n1, n2       : Name ;
+   tok,
    fsym,
    Field,
    Varient,
@@ -2248,6 +2259,12 @@ BEGIN
       ELSE
          MetaErrors2('record field {%1ad} has already been declared inside a {%2Dd} {%2a}',
                      'attempting to declare a duplicate record field', fsym, Parent)
+      END ;
+      (* adjust the location of declaration to the one on the stack (rather than GetTokenNo).  *)
+      tok := OperandTok(NoOfPragmas*2+NoOfFields+3-i) ;
+      IF tok # UnknownTokenNo
+      THEN
+         PutDeclared (Field, tok)
       END ;
       INC(i)
    END ;

@@ -86,7 +86,7 @@ FROM M2Batch IMPORT MakeDefinitionSource,
                     MakeProgramSource,
                     LookupModule, LookupOuterModule ;
 
-FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, OperandT, PopN ;
+FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, OperandT, PopN, OperandTok ;
 
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule,
@@ -762,7 +762,7 @@ BEGIN
    Type := MakeEnumeration(name) ;
    i := 1 ;
    WHILE i<=n DO
-      PutFieldEnumeration(Type, OperandT(n-i+1)) ;
+      PutFieldEnumeration(Type, OperandT(n-i+1), OperandTok(n-i+1)) ;
       INC(i)
    END ;
    PutEnumerationIntoFifoQueue(Type) ;  (* store enumeration away for pass 2 *)

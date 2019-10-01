@@ -866,19 +866,29 @@ END IsNameAnonymous ;
    InitWhereDeclared - sets the Declared and FirstUsed fields of record, at.
 *)
 
-PROCEDURE InitWhereDeclared (VAR at: Where) ;
+PROCEDURE InitWhereDeclaredTok (VAR at: Where; tok: CARDINAL) ;
 BEGIN
    WITH at DO
       IF CompilingDefinitionModule()
       THEN
-         DefDeclared := GetTokenNo() ;
-         ModDeclared := 0
+         DefDeclared := tok ;
+         ModDeclared := UnknownTokenNo
       ELSE
-         DefDeclared := 0 ;
-         ModDeclared := GetTokenNo()
+         DefDeclared := UnknownTokenNo ;
+         ModDeclared := tok
       END ;
-      FirstUsed := GetTokenNo()   (* we assign this field to something legal *)
+      FirstUsed := tok   (* we assign this field to something legal *)
    END
+END InitWhereDeclaredTok ;
+
+
+(*
+   InitWhereDeclared - sets the Declared and FirstUsed fields of record, at.
+*)
+
+PROCEDURE InitWhereDeclared (VAR at: Where) ;
+BEGIN
+   InitWhereDeclaredTok (at, GetTokenNo ())
 END InitWhereDeclared ;
 
 
@@ -5946,7 +5956,7 @@ END IsUnused ;
                          value FieldVal.
 *)
 
-PROCEDURE PutFieldEnumeration (Sym: CARDINAL; FieldName: Name) ;
+PROCEDURE PutFieldEnumeration (Sym: CARDINAL; FieldName: Name; tok: CARDINAL) ;
 VAR
    oSym,
    pSym : PtrToSymbol ;
@@ -5972,7 +5982,7 @@ BEGIN
             PopInto(Value) ;
             Type := Sym ;
             Scope := GetCurrentScope() ;
-            InitWhereDeclared(At)  (* Declared here *)
+            InitWhereDeclaredTok(At, tok)  (* Declared here *)
          END
       END ;
       pSym := GetPsym(Sym) ;
@@ -8544,7 +8554,8 @@ END PutOptFunction ;
 
 PROCEDURE MakeVariableForParam (ParamName: Name;
                                 ProcSym  : CARDINAL ;
-                                no       : CARDINAL) : CARDINAL ;
+                                no       : CARDINAL ;
+                                tok      : CARDINAL) : CARDINAL ;
 VAR
    pSym       : PtrToSymbol ;
    VariableSym: CARDINAL ;
@@ -8563,6 +8574,7 @@ BEGIN
    END ;
    (* Note that the parameter is now treated as a local variable *)
    PutVar(VariableSym, GetType(GetNthParam(ProcSym, no))) ;
+   PutDeclared(VariableSym, tok) ;
    (*
       Normal VAR parameters have LeftValue,
       however Unbounded VAR parameters have RightValue.
@@ -8588,7 +8600,7 @@ END MakeVariableForParam ;
 
 PROCEDURE PutParam (Sym: CARDINAL; ParamNo: CARDINAL;
                     ParamName: Name; ParamType: CARDINAL;
-                    isUnbounded: BOOLEAN) : BOOLEAN ;
+                    isUnbounded: BOOLEAN; tok: CARDINAL) : BOOLEAN ;
 VAR
    pSym       : PtrToSymbol ;
    ParSym     : CARDINAL ;
@@ -8608,13 +8620,13 @@ BEGIN
             Type := ParamType ;
             IsUnbounded := isUnbounded ;
             ShadowVar := NulSym ;
-            InitWhereDeclared(At)
+            InitWhereDeclaredTok(At, tok)
          END
       END ;
       AddParameter(Sym, ParSym) ;
       IF ParamName#NulName
       THEN
-         VariableSym := MakeVariableForParam(ParamName, Sym, ParamNo) ;
+         VariableSym := MakeVariableForParam(ParamName, Sym, ParamNo, tok) ;
          IF VariableSym=NulSym
          THEN
             RETURN( FALSE )
@@ -8639,7 +8651,7 @@ END PutParam ;
 
 PROCEDURE PutVarParam (Sym: CARDINAL; ParamNo: CARDINAL;
                        ParamName: Name; ParamType: CARDINAL;
-                       isUnbounded: BOOLEAN) : BOOLEAN ;
+                       isUnbounded: BOOLEAN; tok: CARDINAL) : BOOLEAN ;
 VAR
    pSym       : PtrToSymbol ;
    ParSym     : CARDINAL ;
@@ -8660,13 +8672,13 @@ BEGIN
             Type := ParamType ;
             IsUnbounded := isUnbounded ;
             ShadowVar := NulSym ;
-            InitWhereDeclared(At)
+            InitWhereDeclaredTok(At, tok)
          END
       END ;
       AddParameter(Sym, ParSym) ;
       IF ParamName#NulName
       THEN
-         VariableSym := MakeVariableForParam(ParamName, Sym, ParamNo) ;
+         VariableSym := MakeVariableForParam(ParamName, Sym, ParamNo, tok) ;
          IF VariableSym=NulSym
          THEN
             RETURN( FALSE )
@@ -8685,7 +8697,7 @@ END PutVarParam ;
                   ProcSym.
 *)
 
-PROCEDURE PutParamName (ProcSym: CARDINAL; no: CARDINAL; name: Name) ;
+PROCEDURE PutParamName (ProcSym: CARDINAL; no: CARDINAL; name: Name; tok: CARDINAL) ;
 VAR
    pSym  : PtrToSymbol ;
    ParSym: CARDINAL ;
@@ -8709,7 +8721,7 @@ BEGIN
       ParamSym:    IF Param.name=NulName
                    THEN
                       Param.name := name ;
-                      Param.ShadowVar := MakeVariableForParam(name, ProcSym, no)
+                      Param.ShadowVar := MakeVariableForParam(name, ProcSym, no, tok)
                    ELSE
                       InternalError('name of parameter has already been assigned',
                                     __FILE__, __LINE__)
@@ -8717,7 +8729,7 @@ BEGIN
       VarParamSym: IF VarParam.name=NulName
                    THEN
                       VarParam.name := name ;
-                      VarParam.ShadowVar := MakeVariableForParam(name, ProcSym, no)
+                      VarParam.ShadowVar := MakeVariableForParam(name, ProcSym, no, tok)
                    ELSE
                       InternalError('name of parameter has already been assigned',
                                     __FILE__, __LINE__)
