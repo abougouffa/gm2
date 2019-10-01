@@ -6,6 +6,28 @@
           with runtime exception.
 	* gm2/gm2-libs-iso/RandomNumber.mod:  changed licence to GPL 3
           with runtime exception.
+	* gm2/gm2-libs-iso/RTdata.def:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/RTdata.mod:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/RTentity.def:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/RTentity.mod:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/RTfio.def:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/RTfio.mod:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/RTgen.def:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/RTgen.mod:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/RTgenif.def:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/RTgenif.mod:  changed licence to GPL 3 with
+          runtime exception.
+	* gm2/gm2-libs-iso/pth.def:  changed licence to GPL 3 with runtime
+          exception.
 
 2019-09-30      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
