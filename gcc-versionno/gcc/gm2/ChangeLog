@@ -76,6 +76,14 @@
           runtime exception.
 	* gm2-libs-iso/README.texi:  corrected licence of files and
 	  given more detail about the GPL 3 with runtime exceptions.
+        * gm2/examples/swig/dual/Makefile.in:  changed to use
+	  GPL 3 licence.
+	* gm2/examples/swig/dual/libfirst.def:  changed licence to GPL 3
+	  with runtime exception.
+	* gm2/examples/swig/dual/libfirst.mod:  changed licence to GPL 3
+	  with runtime exception.
+	* gm2/examples/swig/dual/testdual.py:  changed licence to GPL 3
+	  with runtime exception.
 
 2019-09-30      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
