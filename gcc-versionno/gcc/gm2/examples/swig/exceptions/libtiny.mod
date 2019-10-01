@@ -1,20 +1,28 @@
-(* Copyright (C) 2008, 2009, 2010
-                 Free Software Foundation, Inc. *)
-(* This file is part of GNU Modula-2.
+(* libtiny.mod throw an exception in Modula-2.
 
-GNU Modula-2 is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 3, or (at your option) any later
-version.
+Copyright (C) 2008-2019 Free Software Foundation, Inc.
+Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
 
-GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
+This file is part of GNU Modula-2.
 
-You should have received a copy of the GNU General Public License along
-with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+Under Section 7 of GPL version 3, you are granted additional
+permissions described in the GCC Runtime Library Exception, version
+3.1, as published by the Free Software Foundation.
+
+You should have received a copy of the GNU General Public License and
+a copy of the GCC Runtime Library Exception along with this program;
+see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+<http://www.gnu.org/licenses/>.  *)
 
 IMPLEMENTATION MODULE libtiny ;
 
@@ -23,10 +31,10 @@ FROM libc IMPORT printf ;
 
 PROCEDURE doSomething (i: INTEGER) ;
 BEGIN
-   printf("doSomething %d\n", i) ;
-   IF i#0
+   printf ("doSomething %d\n", i) ;
+   IF i # 0
    THEN
-      THROW(i)
+      THROW (i)
    END
 END doSomething ;
 

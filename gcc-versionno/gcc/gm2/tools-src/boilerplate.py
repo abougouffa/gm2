@@ -398,7 +398,7 @@ def bashTidy (f):
 #
 
 def pythonTidy (f):
-    handleHeader (f, "#!/usr/bin/env python", '#', None)
+    handleHeader (f, "#!/usr/bin/env python3", '#', None)
 
 
 #
