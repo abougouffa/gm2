@@ -97,6 +97,7 @@
 	* gm2/examples/swig/exceptions/testtiny.py:  changed licence to GPL 3
           with runtime exception.
 	* gm2/tools-src/boilerplate.py:  issue python3 rather than python.
+	* gm2/gm2-compiler/SymbolTable.mod:  (recordConsist) restored.
 
 2019-09-30      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

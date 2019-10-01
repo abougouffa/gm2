@@ -5662,6 +5662,10 @@ BEGIN
 END EnsureOrder ;
 
 
+VAR
+   recordConsist: CARDINAL ;   (* is used by CheckRecordConsistency and friends.  *)
+
+
 (*
    DumpSons -
 *)
