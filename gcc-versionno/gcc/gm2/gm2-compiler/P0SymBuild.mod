@@ -349,7 +349,7 @@ END RegisterImports ;
 
 PROCEDURE RegisterInnerImports ;
 VAR
-   i, n: CARDINAL ;
+   n: CARDINAL ;
 BEGIN
    PopT(n) ;       (* n   = # of the Ident List *)
    IF OperandT(n+1)=ImportTok

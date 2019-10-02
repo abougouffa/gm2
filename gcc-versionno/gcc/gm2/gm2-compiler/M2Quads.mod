@@ -9130,8 +9130,6 @@ END ExpectingParameterType ;
 *)
 
 PROCEDURE ExpectingVariableType (BlockSym, Type: CARDINAL) ;
-VAR
-   s1, s2: String ;
 BEGIN
    IF NOT IsAModula2Type(Type)
    THEN
@@ -9579,8 +9577,9 @@ BEGIN
                   ELSE
                      IF NOT IsVarParam (BlockSym, i)
                      THEN
-                        MetaError2 ('writing to a non var parameter {%1WMad} and never reading from it in procedure {%2ad}',
-                                    n, BlockSym)
+                        (* --fixme-- reconsider this.  *)
+                        (* MetaError2 ('writing to a non var parameter {%1WMad} and never reading from it in procedure {%2ad}',
+                                    n, BlockSym) *)
                      END
                   END
                END
@@ -9595,7 +9594,8 @@ BEGIN
                   THEN
                      MetaError2 ('unused variable {%1WMad} in {%2d} {%2ad}', n, BlockSym)
                   ELSE
-                     MetaError2 ('writing to a variable {%1WMad} and never reading from it in {%2d} {%2ad}', n, BlockSym)
+                     (* --fixme-- reconsider this.  *)
+                     (* MetaError2 ('writing to a variable {%1WMad} and never reading from it in {%2d} {%2ad}', n, BlockSym) *)
                   END
                ELSE
                   IF WriteStart=0
@@ -9844,7 +9844,6 @@ END BuildReturn ;
 PROCEDURE BuildDesignatorRecord ;
 VAR
    n, rw,
-   PrevType,
    Field,
    FieldType,
    Record,
@@ -9900,8 +9899,8 @@ PROCEDURE BuildDesignatorArray ;
 VAR
    s       : String ;
    e, t, d,
-   Sym, n,
-   Type, rw: CARDINAL ;
+   Sym,
+   Type    : CARDINAL ;
 BEGIN
    IF IsConst(OperandT(2)) AND IsConstructor(OperandT(2))
    THEN
@@ -10073,7 +10072,7 @@ VAR
    UnboundedType,
    PtrToBase,
    Base,
-   Dim, i, rw,
+   Dim, rw,
    ti, tj, tk   : CARDINAL ;
 BEGIN
    DisplayStack ;
@@ -10198,9 +10197,7 @@ END BuildDynamicArray ;
 
 PROCEDURE BuildDesignatorPointer ;
 VAR
-   n1, n2     : Name ;
    rw,
-   BackEndType,
    Sym1, Type1,
    Sym2, Type2: CARDINAL ;
 BEGIN
@@ -10251,7 +10248,6 @@ END BuildDesignatorPointer ;
 
 PROCEDURE StartBuildWith ;
 VAR
-   n        : Name ;
    Sym, Type,
    Ref      : CARDINAL ;
 BEGIN
@@ -10663,7 +10659,6 @@ END BuildInclRange ;
 
 PROCEDURE BuildInclBit ;
 VAR
-   e           : Error ;
    el, value, t: CARDINAL ;
 BEGIN
    PopT(el) ;
@@ -10763,10 +10758,8 @@ END SilentBuildConstructor ;
 
 PROCEDURE BuildConstructor ;
 VAR
-   name      : Name ;
    constValue,
-   type,
-   const     : CARDINAL ;
+   type      : CARDINAL ;
 BEGIN
    PopT(type) ;
    constValue := MakeTemporary(ImmediateValue) ;
@@ -11491,7 +11484,6 @@ END BuildRelOpFromBoolean ;
 
 PROCEDURE CheckVariableOrConstantOrProcedure (sym: CARDINAL) ;
 VAR
-   s   : String ;
    type: CARDINAL ;
 BEGIN
    type := GetSType(sym) ;
@@ -11521,8 +11513,6 @@ END CheckVariableOrConstantOrProcedure ;
 *)
 
 PROCEDURE CheckInCompatible (Op: Name; t1, t2: CARDINAL) : CARDINAL ;
-VAR
-   s: String ;
 BEGIN
    IF Op = InTok
    THEN

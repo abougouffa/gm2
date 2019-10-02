@@ -223,7 +223,6 @@ VAR
    Main,
    Sym     : CARDINAL ;
    i       : CARDINAL ;
-   ModName,
    SymName,
    FileName: String ;
 BEGIN
@@ -322,8 +321,7 @@ PROCEDURE DoPass1 ;
 VAR
    name    : Name ;
    Sym     : CARDINAL ;
-   i,
-   n       : CARDINAL ;
+   i       : CARDINAL ;
    FileName: String ;
 BEGIN
    P1Init ;
@@ -395,8 +393,7 @@ PROCEDURE DoPass2 ;
 VAR
    name    : Name ;
    Sym     : CARDINAL ;
-   i,
-   n       : CARDINAL ;
+   i       : CARDINAL ;
    FileName: String ;
 BEGIN
    SetPassToPass2 ;
@@ -467,8 +464,7 @@ PROCEDURE DoPassC ;
 VAR
    name    : Name ;
    Sym     : CARDINAL ;
-   i,
-   n       : CARDINAL ;
+   i       : CARDINAL ;
    FileName: String ;
 BEGIN
    SetPassToPassC ;
@@ -541,10 +537,8 @@ END DoPassC ;
 PROCEDURE DoPass3 ;
 VAR
    Main,
-   Sym : CARDINAL ;
-   i,
-   n   : CARDINAL ;
-   Name,
+   Sym     : CARDINAL ;
+   i       : CARDINAL ;
    FileName: String ;
 BEGIN
    SetPassToPass3 ;

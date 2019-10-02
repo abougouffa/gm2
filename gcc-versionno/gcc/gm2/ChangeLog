@@ -1,3 +1,21 @@
+2019-10-02      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-compiler/M2Comp.mod:  (DoPass1) removed
+          unused variables.  (DoPass2) removed unused variables.
+          (DoPass3) removed unused variables.  (DoPassC)
+          removed unused variables.
+	* gm2/gm2-compiler/M2Quads.mod:  (ExpectingVariableType)
+          removed unused variables.  (BuildDesignatorRecord)
+          removed unused variables.  (BuildDesignatorPointer)
+          removed unused variables.  (StartBuildWith)
+          removed unused variables.  (BuildInclBit)
+          removed unused variables.  (BuildConstructor)
+          removed unused variables.  (CheckVariableOrConstantOrProcedure)
+          removed unused variables.  (CheckInCompatible)
+          removed unused variables.
+	* gm2/gm2-compiler/P0SymBuild.mod:  (RegisterInnerImports)
+          removed unused variables.
+
 2019-10-01      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-libs-iso/MemStream.mod:  changed licence to GPL 3
