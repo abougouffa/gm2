@@ -658,7 +658,7 @@ VAR
    p    : CARDINAL ;
 BEGIN
    wait (lock) ;
-   IF pri<MAX(PROTECTION)
+   IF pri < MAX (PROTECTION)
    THEN
       IF Debugging
       THEN
@@ -668,8 +668,8 @@ BEGIN
       t := NIL ;
       i := NIL ;
       o := NIL ;
-      t := InitTime(MAX(INTEGER), 0) ;
-      p := MAX(PROTECTION) ;
+      t := InitTime (MAX (INTEGER), 0) ;
+      p := MAX (PROTECTION) ;
       found := FALSE ;
       WHILE p>pri DO
          v := Pending[p] ;
@@ -677,17 +677,17 @@ BEGIN
             WITH v^ DO
                CASE type OF
 
-               input :  AddFd(i, maxFd, File) |
-               output:  AddFd(o, maxFd, File) |
-               time  :  IF IsGreaterEqual(t, abs)
+               input :  AddFd (i, maxFd, File) |
+               output:  AddFd (o, maxFd, File) |
+               time  :  IF IsGreaterEqual (t, abs)
                         THEN
-                           GetTime(abs, s, m) ;
-                           Assert(m<Microseconds) ;
+                           GetTime (abs, s, m) ;
+                           Assert (m<Microseconds) ;
                            IF Debugging
                            THEN
-                              printf("shortest delay is %d.%d\n", s, m)
+                              printf ("shortest delay is %d.%d\n", s, m)
                            END ;
-                           SetTime(t, s, m) ;
+                           SetTime (t, s, m) ;
                            found := TRUE
                         END
 
@@ -699,12 +699,12 @@ BEGIN
       END ;
       IF NOT untilInterrupt
       THEN
-         SetTime(t, 0, 0)
+         SetTime (t, 0, 0)
       END ;
       IF untilInterrupt AND (i=NIL) AND (o=NIL) AND (NOT found)
       THEN
-         Halt(__FILE__, __LINE__, __FUNCTION__,
-              'deadlock found, no more processes to run and no interrupts active')
+         Halt (__FILE__, __LINE__, __FUNCTION__,
+               'deadlock found, no more processes to run and no interrupts active')
       END ;
       (* printf('timeval = 0x%x\n', t) ; *)
       (* printf('}\n') ; *)

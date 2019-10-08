@@ -43,7 +43,7 @@ FROM Debug IMPORT DebugString, Halt ;
 
 CONST
    MaxCharsInName = 15 ;
-   IdleStackSize  = 64 * 1024 ;
+   IdleStackSize  = 16 * 1024 * 1024 ;
 
 TYPE
    SEMAPHORE = POINTER TO Semaphore ;         (* defines dijkstra's semaphores *)

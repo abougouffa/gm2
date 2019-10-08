@@ -19,32 +19,47 @@ MODULE testiotransfer ;
 
 
 FROM SYSTEM IMPORT ADDRESS, PROCESS, TRANSFER, NEWPROCESS,
-                   BYTE, LISTEN, IOTRANSFER ;
+                   BYTE, LISTEN, IOTRANSFER, ListenLoop ;
 
 FROM COROUTINES IMPORT PROTECTION ;
 FROM RTint IMPORT InitTimeVector, ReArmTimeVector ;
 FROM Storage IMPORT ALLOCATE ;
 FROM libc IMPORT printf, exit ;
 
+CONST
+   Debugging = FALSE ;
+
 
 PROCEDURE Timer ;
 CONST
-   MaxCount = 50 ;
+   MaxCount = 1000 ;
 VAR
    v: CARDINAL ;
    c: CARDINAL ;
 BEGIN
-   printf('clock starting\n') ;
-   v := InitTimeVector(500, 0, MAX(PROTECTION)) ;
+   printf ('clock starting\n') ;
+   v := InitTimeVector (500, 0, MAX (PROTECTION)) ;
    c := 0 ;
    LOOP
-      INC(c) ;
-      printf('%d\n', c) ;
-      IOTRANSFER(p2, p1, v) ;
-      ReArmTimeVector(v, 500, 0) ;
-      IF c=MaxCount
+      INC (c) ;
+      IF Debugging
       THEN
-         exit(0)
+         printf ('about to call IOTRANSFER: %d\n', c)
+      END ;
+      IOTRANSFER (p2, p1, v) ;
+      IF Debugging
+      THEN
+         printf ('back from IOTRANSFER: %d\n', c)
+      END ;
+      ReArmTimeVector (v, 500, 0) ;
+      IF Debugging
+      THEN
+         printf ('ReArmed timer: %d\n', c)
+      END ;
+      IF c = MaxCount
+      THEN
+         printf ("%d IOTRANSFERs successfully completed\nexit 0\n", c) ;
+         exit (0)
       END
    END
 END Timer ;
@@ -57,14 +72,17 @@ VAR
    s1, s2 : ADDRESS ;
    p1, p2 : PROCESS ;
 BEGIN
-   exit (1) ;   (* disable test for now.  *)
-   ALLOCATE(s1, MaxStack) ;
-   ALLOCATE(s2, MaxStack) ;
-   NEWPROCESS(Timer, s2, MaxStack, p2) ;
-   printf('now to TRANSFER...\n') ;
-   TRANSFER(p1, p2) ;
-   printf('now to LISTEN\n') ;
+   (* exit (1) ; *)   (* disable test for now.  *)
+   ALLOCATE (s1, MaxStack) ;
+   ALLOCATE (s2, MaxStack) ;
+   NEWPROCESS (Timer, s2, MaxStack, p2) ;
+   printf ('now to TRANSFER...\n') ;
+   TRANSFER (p1, p2) ;
+   printf ('now to LISTEN\n') ;
+   ListenLoop
+(*
    LOOP
       LISTEN
    END
+*)
 END testiotransfer.

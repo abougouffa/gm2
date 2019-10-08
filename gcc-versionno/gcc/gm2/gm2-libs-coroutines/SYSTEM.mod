@@ -37,7 +37,6 @@ FROM libc IMPORT printf, memcpy, memcpy, memset ;
 
 
 CONST
-   MinStack = 8 * 16 * 1024 ;
    BitsPerBitset = MAX (BITSET) +1 ;
 
 TYPE
@@ -185,7 +184,9 @@ END LISTEN ;
 PROCEDURE ListenLoop ;
 BEGIN
    localInit ;
-   Listen (TRUE, IOTransferHandler, MIN (PROTECTION))
+   LOOP
+      Listen (TRUE, IOTransferHandler, MIN (PROTECTION))
+   END
 END ListenLoop ;
 
 
@@ -198,9 +199,11 @@ PROCEDURE TurnInterrupts (to: PROTECTION) : PROTECTION ;
 VAR
    old: PROTECTION ;
 BEGIN
+   localInit ;
    old := currentIntValue ;
    currentIntValue := to ;
    Listen (FALSE, IOTransferHandler, currentIntValue) ;
+   printf ("interrupt level is %d\n", currentIntValue);
    RETURN old
 END TurnInterrupts ;
 
