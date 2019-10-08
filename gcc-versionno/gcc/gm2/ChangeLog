@@ -1,3 +1,42 @@
+2019-10-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/Make-lang.in:  (RTco.c) added to GM2-LIBS-ISO-C.
+          (RTcodummy.c) replaces pthdummy.c.
+          (RTcodummy.o) replaces pthdummy.o.
+          (MC-INTERFACE-C) pth.c removed.
+          (PPG-INTERFACE-C) pth.c removed.
+	* gm2/gm2-libs-coroutines/SYSTEM.def:  (context) declared as
+          INTEGER.  (NEWPROCESS) StackSize parameter name and improved
+          comment.
+	* gm2/gm2-libs-coroutines/SYSTEM.mod:  reimplemented using RTco
+	  rather than pth.
+	* gm2/gm2-libs-iso/COROUTINES.mod:  reimplemented using RTco
+	  rather than pth.
+	* gm2/gm2spec.c:  (need_pth) replaced by need_pthread.
+	* gm2/init/mcinit:  (RTco) included into the list.
+	* gm2/mc-boot-ch/Gpth.c:  use create dummy stubs.
+	* gm2/mc-boot/GRTint.c:  rebuilt.
+	* testsuite/gm2/coroutines/pim/run/pass/testiotransfer.mod:
+	  disabled the test during development.
+	* testsuite/gm2/coroutines/pim/run/pass/testtransfer.mod:
+	  increased stacksize and added more debugging printfs.
+	* libgm2/Makefile.am: (SUBDIRS) removed libpth.
+	* libgm2/Makefile.in: rebuilt.
+	* libgm2/config.h.in: regenerated.
+	* libgm2/configure:  regenerated.
+	* libgm2/configure.ac:  removed all references to libpth
+	  and options to build with/without libpth.
+	* libgm2/libcor/Makefile.in:  regenerated.
+	* libgm2/libiso/Makefile.am:  (pth.def) removed.
+          (RTco.def) added.  (RTco.c) added to libiso_la_SOURCES.
+          (libiso_la_CFLAGS) added.  $(GCC_DIR) added to the include
+          path.  $(GCC_DIR)/../include ../../libgcc $(GCC_DIR)/../libgcc
+	  added to the include path.
+	* libgm2/libiso/Makefile.in:  regenerated.
+	* libgm2/liblog/Makefile.in:  regenerated.
+	* libgm2/libmin/Makefile.in:  regenerated.
+	* libgm2/libpim/Makefile.in:  regenerated.
+
 2019-10-02      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/M2Comp.mod:  (DoPass1) removed

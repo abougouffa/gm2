@@ -26,8 +26,7 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 
 IMPLEMENTATION MODULE SYSTEM ;
 
-FROM pth IMPORT pth_uctx_create, pth_uctx_make, pth_uctx_t,
-                pth_uctx_save, pth_uctx_switch, pth_init ;
+FROM RTco IMPORT init, initThread, transfer, currentThread ;
 
 FROM RTint IMPORT Listen, AttachVector,
                   IncludeVector, ExcludeVector ;
@@ -39,7 +38,7 @@ FROM libc IMPORT printf, memcpy, memcpy, memset ;
 
 CONST
    MinStack = 8 * 16 * 1024 ;
-   BitsPerBitset = MAX(BITSET)+1 ;
+   BitsPerBitset = MAX (BITSET) +1 ;
 
 TYPE
    PtrToIOTransferState = POINTER TO IOTransferState ;
@@ -50,10 +49,8 @@ TYPE
                           END ;
 
 VAR
-   currentContext,
-   illegalFinish  : ADDRESS ;
    initMain,
-   initPthreads   : BOOLEAN ;
+   initGTh        : BOOLEAN ;
    currentIntValue: CARDINAL ;
 
 
@@ -66,7 +63,7 @@ PROCEDURE TRANSFER (VAR p1: PROCESS; p2: PROCESS) ;
 VAR
    r: INTEGER ;
 BEGIN
-   localMain(p1) ;
+   localMain (p1) ;
    p1.ints := currentIntValue ;
    currentIntValue := p2.ints ;
    IF p1.context=p2.context
@@ -74,43 +71,24 @@ BEGIN
       Halt(__FILE__, __LINE__, __FUNCTION__,
            'error when attempting to context switch to the same process')
    END ;
-   (* r := printf('ctx\n') ; *)
-   currentContext := p2.context ;
-   IF pth_uctx_switch(p1.context, p2.context)=0
-   THEN
-      Halt(__FILE__, __LINE__, __FUNCTION__,
-           'an error as it was unable to change the user context')
-   END
+   transfer (p1.context, p2.context)
 END TRANSFER ;
 
 
 (*
    NEWPROCESS - p is a parameterless procedure, a, is the origin of
                 the workspace used for the process stack and containing
-                the volatile environment of the process. n, is the amount
-                in bytes of this workspace. new, is the new process.
+                the volatile environment of the process.  StackSize, is
+                the maximum size of the stack in bytes which can be used
+                by this process.  new, is the new process.
 *)
 
-PROCEDURE NEWPROCESS (p: PROC; a: ADDRESS; n: CARDINAL; VAR new: PROCESS) ;
-TYPE
-   ThreadProcess = PROCEDURE (ADDRESS) ;
-VAR
-   ctx: ADDRESS ;
-   tp : ThreadProcess ;
+PROCEDURE NEWPROCESS (p: PROC; a: ADDRESS; StackSize: CARDINAL; VAR new: PROCESS) ;
 BEGIN
    localInit ;
-   tp := ThreadProcess(p) ;
-   IF pth_uctx_create(ADR(ctx))=0
-   THEN
-      Halt(__FILE__, __LINE__, __FUNCTION__, 'unable to create user context')
-   END ;
-   IF pth_uctx_make(ctx, a, n, NIL, tp, NIL, illegalFinish)=0
-   THEN
-      Halt(__FILE__, __LINE__, __FUNCTION__, 'unable to make user context')
-   END ;
    WITH new DO
-      context := ctx ;
       ints    := currentIntValue ;
+      context := initThread (p, StackSize)
    END
 END NEWPROCESS ;
 
@@ -132,14 +110,14 @@ VAR
    p: IOTransferState ;
    l: POINTER TO IOTransferState ;
 BEGIN
-   localMain(First) ;
+   localMain (First) ;
    WITH p DO
-      ptrToFirst  := ADR(First) ;
-      ptrToSecond := ADR(Second) ;
-      next        := AttachVector(InterruptNo, ADR(p))
+      ptrToFirst  := ADR (First) ;
+      ptrToSecond := ADR (Second) ;
+      next        := AttachVector (InterruptNo, ADR (p))
    END ;
-   IncludeVector(InterruptNo) ;
-   TRANSFER(First, Second)
+   IncludeVector (InterruptNo) ;
+   TRANSFER (First, Second)
 END IOTRANSFER ;
 
 
@@ -155,24 +133,23 @@ VAR
 BEGIN
    IF l=NIL
    THEN
-      Halt(__FILE__, __LINE__, __FUNCTION__,
-           'no processes attached to this interrupt vector which is associated with IOTRANSFER')
+      Halt (__FILE__, __LINE__, __FUNCTION__,
+            'no processes attached to this interrupt vector which is associated with IOTRANSFER')
    ELSE
       WITH l^ DO
-         old := AttachVector(InterruptNo, next) ;
+         old := AttachVector (InterruptNo, next) ;
          IF old#l
          THEN
-            Halt(__FILE__, __LINE__, __FUNCTION__,
-                 'inconsistancy of return result')
+            Halt (__FILE__, __LINE__, __FUNCTION__,
+                  'inconsistancy of return result')
          END ;
          IF next=NIL
          THEN
-            ExcludeVector(InterruptNo)
+            ExcludeVector (InterruptNo)
          ELSE
-            printf('odd vector has been chained\n')
+            printf ('odd vector has been chained\n')
          END ;
-         ptrToSecond^.context := currentContext ;
-         TRANSFER(ptrToSecond^, ptrToFirst^)
+         TRANSFER (ptrToSecond^, ptrToFirst^)
       END
    END
 END IOTransferHandler ;
@@ -185,7 +162,7 @@ END IOTransferHandler ;
 PROCEDURE LISTEN ;
 BEGIN
    localInit ;
-   Listen(FALSE, IOTransferHandler, MIN(PROTECTION))
+   Listen (FALSE, IOTransferHandler, MIN (PROTECTION))
 END LISTEN ;
 
 
@@ -208,7 +185,7 @@ END LISTEN ;
 PROCEDURE ListenLoop ;
 BEGIN
    localInit ;
-   Listen(TRUE, IOTransferHandler, MIN(PROTECTION))
+   Listen (TRUE, IOTransferHandler, MIN (PROTECTION))
 END ListenLoop ;
 
 
@@ -221,11 +198,10 @@ PROCEDURE TurnInterrupts (to: PROTECTION) : PROTECTION ;
 VAR
    old: PROTECTION ;
 BEGIN
-   Listen(FALSE, IOTransferHandler, currentIntValue) ;
    old := currentIntValue ;
    currentIntValue := to ;
-   Listen(FALSE, IOTransferHandler, currentIntValue) ;
-   RETURN( old )
+   Listen (FALSE, IOTransferHandler, currentIntValue) ;
+   RETURN old
 END TurnInterrupts ;
 
 
@@ -246,22 +222,12 @@ END Finished ;
 
 PROCEDURE localInit ;
 BEGIN
-   IF NOT initPthreads
+   IF NOT initGTh
    THEN
-      IF pth_init()=0
+      initGTh := TRUE ;
+      IF init () # 0
       THEN
-         Halt(__FILE__, __LINE__, __FUNCTION__,
-              'failed to initialize pthreads')
-      END ;
-      initPthreads := TRUE ;
-      IF pth_uctx_create(ADR(illegalFinish))=0
-      THEN
-         Halt(__FILE__, __LINE__, __FUNCTION__,
-              'unable to create user context')
-      END ;
-      IF pth_uctx_make(illegalFinish, NIL, MinStack, NIL, Finished, NIL, NIL)=0
-      THEN
-         Halt(__FILE__, __LINE__, __FUNCTION__, 'unable to make user context')
+         Halt (__FILE__, __LINE__, __FUNCTION__, "gthr did not initialize")
       END
    END
 END localInit ;
@@ -276,13 +242,8 @@ BEGIN
    IF NOT initMain
    THEN
       initMain := TRUE ;
-      IF pth_uctx_create(ADR(currentContext))=0
-      THEN
-         Halt(__FILE__, __LINE__, __FUNCTION__,
-              'unable to create context for main')
-      END ;
       WITH mainProcess DO
-         context := currentContext ;
+         context := currentThread () ;
          ints := currentIntValue
       END
    END
@@ -295,11 +256,11 @@ END localMain ;
 
 PROCEDURE Max (a, b: CARDINAL) : CARDINAL ;
 BEGIN
-   IF a>b
+   IF a > b
    THEN
-      RETURN( a )
+      RETURN a
    ELSE
-      RETURN( b )
+      RETURN b
    END
 END Max ;
 
@@ -310,11 +271,11 @@ END Max ;
 
 PROCEDURE Min (a, b: CARDINAL) : CARDINAL ;
 BEGIN
-   IF a<b
+   IF a < b
    THEN
-      RETURN( a )
+      RETURN a
    ELSE
-      RETURN( b )
+      RETURN b
    END
 END Min ;
 
@@ -520,8 +481,7 @@ END RotateRight ;
 
 
 BEGIN
-   currentContext := NIL ;
-   initPthreads := FALSE ;
+   initGTh := FALSE ;
    initMain := FALSE ;
-   currentIntValue := MIN(PROTECTION)
+   currentIntValue := MIN (PROTECTION)
 END SYSTEM.

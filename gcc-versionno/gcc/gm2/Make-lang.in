@@ -919,7 +919,8 @@ GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ClientSocket.mod \
                      TermFile.mod      \
                      WholeConv.mod     WholeIO.mod     WholeStr.mod
 
-GM2-LIBS-ISO-C     = ErrnoCategory.c   wrapsock.c      wraptime.c
+GM2-LIBS-ISO-C     = ErrnoCategory.c   wrapsock.c      wraptime.c \
+                     RTco.c
 
 GM2-LIBS-PIM-MODS  = \
               CardinalIO.mod                Display.mod   InOut.mod \
@@ -978,7 +979,7 @@ gm2/gm2-libs-boot/%.o: $(srcdir)/gm2/gm2-libs/%.mod $(MCDEPS) $(BUILD-BOOT-H)
 gm2/gm2-libs-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def $(MCDEPS)
 	$(MC) -o=$@ $(srcdir)/gm2/gm2-libs/$*.def
 
-gm2/gm2-libs-boot/pthdummy.o: $(srcdir)/gm2/gm2-libs-ch/pthdummy.c gm2/gm2-libs/gm2-libs-host.h
+gm2/gm2-libs-boot/RTcodummy.o: $(srcdir)/gm2/gm2-libs-ch/RTcodummy.c gm2/gm2-libs/gm2-libs-host.h
 	$(CC) -c -DIN_GCC $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-boot/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h gm2/gm2-libs/gm2-libs-host.h
@@ -1426,14 +1427,15 @@ gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-compiler-boot/%.def $(
 #  replaced by mc-bootstrap.
 #
 BOOTGM2VERSION=svn-trunc
-BOOTGM2VERSION=4.7.4
+BOOTGM2VERSION=10.0.0
 PGE=${HOME}/GM2/graft-${BOOTGM2VERSION}/build-${BOOTGM2VERSION}/gcc/gm2/pge
 BOOTGM2=gm2
 
 MCOPTIONS=-g -c -fsources -fcpp -fsoft-check-all -fm2-g
 MCLINK=-g -fmodules -c
 MCLINK=-g
-GM2SYS=/opt/gm2/lib/gcc/x86_64-linux-gnu/4.7.4/m2/pim
+# GM2SYS=/opt/gm2/lib/gcc/x86_64-linux-gnu/4.7.4/m2/pim
+GM2SYS=/home/gaius/opt/lib/gcc/x86_64-pc-linux-gnu/$(BOOTGM2VERSION)/m2/pim
 GM2PATH=$(srcdir)/gm2/mc:$(GM2SYS):$(srcdir)/gm2:gm2/gm2-auto:$(srcdir)/gm2/gm2-libs
 
 mc:  $(GM2_DIRS) mc-clean mc-devel
@@ -1591,7 +1593,8 @@ MC-LIB-DEFS = Args.def ASCII.def Assertion.def Break.def  \
               SysExceptions.def SysStorage.def \
               SYSTEM.def TimeString.def \
               UnixArgs.def wrapc.def \
-              pth.def COROUTINES.def Selective.def termios.def
+              RTco.def \
+              COROUTINES.def Selective.def termios.def
 
 MC-LIB-MODS = Args.mod ASCII.mod Assertion.mod Break.mod  \
               CmdArgs.mod Debug.mod \
@@ -1635,7 +1638,7 @@ MC-AUTO-MODS = mcp1.mod  mcp2.mod  mcp3.mod  mcp4.mod  mcp5.mod
 MC-BOOT-C = $(MC-MODS:%.mod=%.c) $(MC-AUTO-MODS:%.mod=%.c)
 
 MC-INTERFACE-C = libc.c mcrts.c UnixArgs.c Selective.c termios.c \
-                 SysExceptions.c ldtoa.c dtoa.c wrapc.c pth.c \
+                 SysExceptions.c ldtoa.c dtoa.c wrapc.c \
                  SYSTEM.c errno.c
 
 BUILD-MC-BOOT-H =  $(MC-LIB-DEFS:%.def=gm2/mc-boot-gen/$(SRC_PREFIX)%.h) \
@@ -1712,8 +1715,8 @@ gm2/mc-boot-ch/$(SRC_PREFIX)%.o: gm2/mc-boot-ch/$(SRC_PREFIX)%.c
 
 mc-bootstrap: $(GM2_DIRS) mc-clean gm2/boot-bin/mc$(exeext)
 
-gm2/boot-bin/mc$(exeext): $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) gm2/mc-boot/main.o mcflex.o gm2/gm2-libs-boot/pthdummy.o
-	$(CC) -g -o $@ $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) $(LDFLAGS) gm2/mc-boot/main.o mcflex.o gm2/gm2-libs-boot/pthdummy.o -lm
+gm2/boot-bin/mc$(exeext): $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) gm2/mc-boot/main.o mcflex.o gm2/gm2-libs-boot/RTcodummy.o
+	$(CC) -g -o $@ $(BUILD-MC-BOOT-O) $(BUILD-MC-INTERFACE-O) $(LDFLAGS) gm2/mc-boot/main.o mcflex.o gm2/gm2-libs-boot/RTcodummy.o -lm
 
 gm2/mc-boot/main.o: $(M2LINK) $(srcdir)/gm2/init/mcinit
 	unset CC ; $(M2LINK) -s --gcc --exit --name mainmcinit.c $(srcdir)/gm2/init/mcinit
@@ -1983,7 +1986,7 @@ stage2/gm2/gm2lorder$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compil
 #
 
 PPG-INTERFACE-C = libc.c mcrts.c UnixArgs.c Selective.c termios.c \
-                  SysExceptions.c ldtoa.c dtoa.c wrapc.c pth.c \
+                  SysExceptions.c ldtoa.c dtoa.c wrapc.c \
                   SYSTEM.c errno.c
 
 PPG-MODS         =  SymbolKey.mod   NameKey.mod  Lists.mod  bnflex.mod
@@ -2038,8 +2041,8 @@ gm2/gm2-ppg-boot/$(SRC_PREFIX)%.o: $(srcdir)/gm2/gm2-compiler/%.mod $(MCDEPS) $(
 	$(CC) -Igm2/mc-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot \
               -I$(srcdir)/gm2/mc-boot-ch -g -c gm2/gm2-ppg-boot/$(SRC_PREFIX)$*.c -o $@
 
-gm2/ppg$(exeext): gm2/boot-bin/mc $(BUILD-PPG-O) $(BUILD-MC-INTERFACE-O) gm2/gm2-ppg-boot/main.o gm2/gm2-libs-boot/pthdummy.o
-	$(CC) -g -o $@ $(BUILD-PPG-O) gm2/gm2-ppg-boot/main.o gm2/gm2-libs-boot/pthdummy.o -lm
+gm2/ppg$(exeext): gm2/boot-bin/mc $(BUILD-PPG-O) $(BUILD-MC-INTERFACE-O) gm2/gm2-ppg-boot/main.o gm2/gm2-libs-boot/RTcodummy.o
+	$(CC) -g -o $@ $(BUILD-PPG-O) gm2/gm2-ppg-boot/main.o gm2/gm2-libs-boot/RTcodummy.o -lm
 
 gm2/gm2-ppg-boot/main.o: $(M2LINK) $(srcdir)/gm2/init/mcinit
 	unset CC ; $(M2LINK) -s --gcc --exit --name mainppginit.c $(srcdir)/gm2/init/ppginit
@@ -2084,8 +2087,8 @@ gm2/gm2-pg-boot/$(SRC_PREFIX)pg.o:  gm2/gm2-auto/pg.mod $(MCDEPS) $(BUILD-BOOT-H
 
 gm2/pg$(exeext): gm2/boot-bin/mc \
     $(BUILD-PG-O) $(GM2-PPG-MODS:%.mod=gm2/gm2-pg-boot/%.o) \
-    $(BUILD-MC-INTERFACE-O) gm2/gm2-pg-boot/main.o gm2/gm2-libs-boot/pthdummy.o
-	$(CC) -g -o $@ $(BUILD-PG-O) gm2/gm2-pg-boot/main.o gm2/gm2-libs-boot/pthdummy.o -lm
+    $(BUILD-MC-INTERFACE-O) gm2/gm2-pg-boot/main.o gm2/gm2-libs-boot/RTcodummy.o
+	$(CC) -g -o $@ $(BUILD-PG-O) gm2/gm2-pg-boot/main.o gm2/gm2-libs-boot/RTcodummy.o -lm
 
 gm2/gm2-auto/pginit:
 	sed -e 's/ppg/pg/' < $(srcdir)/gm2/init/ppginit > $@
@@ -2147,8 +2150,8 @@ gm2/gm2-pge-boot/$(SRC_PREFIX)pge.o:  gm2/gm2-auto/pge.mod $(MCDEPS) $(BUILD-BOO
 
 gm2/pge$(exeext): gm2/boot-bin/mc \
     $(BUILD-PGE-O) $(GM2-PPG-MODS:%.mod=gm2/gm2-pge-boot/%.o) \
-    $(BUILD-MC-INTERFACE-O) gm2/gm2-pge-boot/main.o gm2/gm2-libs-boot/pthdummy.o
-	$(CC) -g -o $@ $(BUILD-PGE-O) gm2/gm2-pge-boot/main.o gm2/gm2-libs-boot/pthdummy.o -lm
+    $(BUILD-MC-INTERFACE-O) gm2/gm2-pge-boot/main.o gm2/gm2-libs-boot/RTcodummy.o
+	$(CC) -g -o $@ $(BUILD-PGE-O) gm2/gm2-pge-boot/main.o gm2/gm2-libs-boot/RTcodummy.o -lm
 	$(srcdir)/gm2/tools-src/buildpg $(srcdir)/gm2/gm2-compiler/ppg.mod t > gm2/gm2-auto/t.bnf
 	./gm2/pge$(exeext) gm2/gm2-auto/t.bnf > gm2/gm2-auto/t1.mod
 	./gm2/pg$(exeext) gm2/gm2-auto/t.bnf > gm2/gm2-auto/t2.mod

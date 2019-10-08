@@ -59,6 +59,7 @@ RTExceptions
 #
 # Initialization order
 #
+RTco
 StrLib
 ASCII
 M2EXCEPTION

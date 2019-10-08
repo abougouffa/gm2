@@ -98,9 +98,7 @@ am__aclocal_m4_deps = $(top_srcdir)/../config/acx.m4 \
 	$(top_srcdir)/../config/override.m4 \
 	$(top_srcdir)/../libtool.m4 $(top_srcdir)/../ltoptions.m4 \
 	$(top_srcdir)/../ltsugar.m4 $(top_srcdir)/../ltversion.m4 \
-	$(top_srcdir)/../lt~obsolete.m4 \
-	$(top_srcdir)/libpth/pth/pth.m4 \
-	$(top_srcdir)/libpth/pth/aclocal.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/../lt~obsolete.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am
@@ -236,14 +234,6 @@ ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
-EXTRA_INCLUDE_SYS_SELECT_H = @EXTRA_INCLUDE_SYS_SELECT_H@
-FALLBACK_NFDS_T = @FALLBACK_NFDS_T@
-FALLBACK_OFF_T = @FALLBACK_OFF_T@
-FALLBACK_PID_T = @FALLBACK_PID_T@
-FALLBACK_SIG_ATOMIC_T = @FALLBACK_SIG_ATOMIC_T@
-FALLBACK_SIZE_T = @FALLBACK_SIZE_T@
-FALLBACK_SOCKLEN_T = @FALLBACK_SOCKLEN_T@
-FALLBACK_SSIZE_T = @FALLBACK_SSIZE_T@
 FGREP = @FGREP@
 GREP = @GREP@
 INSTALL = @INSTALL@
@@ -277,15 +267,6 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
-PTH_EXT_SFIO = @PTH_EXT_SFIO@
-PTH_FAKE_POLL = @PTH_FAKE_POLL@
-PTH_FAKE_RWV = @PTH_FAKE_RWV@
-PTH_MCTX_ID = @PTH_MCTX_ID@
-PTH_STACK_GROWTH = @PTH_STACK_GROWTH@
-PTH_SYSCALL_HARD = @PTH_SYSCALL_HARD@
-PTH_SYSCALL_SOFT = @PTH_SYSCALL_SOFT@
-PTH_VERSION_HEX = @PTH_VERSION_HEX@
-PTH_VERSION_STR = @PTH_VERSION_STR@
 RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
@@ -344,15 +325,6 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
-pth_sigjmpbuf = @pth_sigjmpbuf@
-pth_siglongjmp = @pth_siglongjmp@
-pth_sigsetjmp = @pth_sigsetjmp@
-pth_skaddr_makecontext = @pth_skaddr_makecontext@
-pth_skaddr_sigaltstack = @pth_skaddr_sigaltstack@
-pth_skaddr_sigstack = @pth_skaddr_sigstack@
-pth_sksize_makecontext = @pth_sksize_makecontext@
-pth_sksize_sigaltstack = @pth_sksize_sigaltstack@
-pth_sksize_sigstack = @pth_sksize_sigstack@
 runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@

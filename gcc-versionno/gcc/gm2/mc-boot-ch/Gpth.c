@@ -22,7 +22,7 @@ along with GNU Modula-2; see the file COPYING3.  If not see
 int
 pth_pth_select (int p1, int p2, int p3, int p4, int p5)
 {
-  return pth_select (p1, p2, p3, p4, p5);
+  return 0;
 }
 
 int
@@ -61,5 +61,5 @@ pth_pth_uctx_switch (void *p1, void *p2)
 int
 pth_pth_init (void)
 {
-  return pth_init ();
+  return 0;
 }

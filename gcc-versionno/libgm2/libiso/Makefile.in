@@ -98,9 +98,7 @@ am__aclocal_m4_deps = $(top_srcdir)/../config/acx.m4 \
 	$(top_srcdir)/../config/override.m4 \
 	$(top_srcdir)/../libtool.m4 $(top_srcdir)/../ltoptions.m4 \
 	$(top_srcdir)/../ltsugar.m4 $(top_srcdir)/../ltversion.m4 \
-	$(top_srcdir)/../lt~obsolete.m4 \
-	$(top_srcdir)/libpth/pth/pth.m4 \
-	$(top_srcdir)/libpth/pth/aclocal.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/../lt~obsolete.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am
@@ -155,7 +153,7 @@ am__objects_1 = ChanConsts.lo CharClass.lo ClientSocket.lo \
 	SWholeIO.lo SysClock.lo SYSTEM.lo TermFile.lo TERMINATION.lo \
 	TextIO.lo WholeConv.lo WholeIO.lo WholeStr.lo
 am_libiso_la_OBJECTS = $(am__objects_1) libiso_la-ErrnoCategory.lo \
-	libiso_la-wrapsock.lo libiso_la-wraptime.lo
+	libiso_la-wrapsock.lo libiso_la-wraptime.lo libiso_la-RTco.lo
 libiso_la_OBJECTS = $(am_libiso_la_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -252,14 +250,6 @@ ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
-EXTRA_INCLUDE_SYS_SELECT_H = @EXTRA_INCLUDE_SYS_SELECT_H@
-FALLBACK_NFDS_T = @FALLBACK_NFDS_T@
-FALLBACK_OFF_T = @FALLBACK_OFF_T@
-FALLBACK_PID_T = @FALLBACK_PID_T@
-FALLBACK_SIG_ATOMIC_T = @FALLBACK_SIG_ATOMIC_T@
-FALLBACK_SIZE_T = @FALLBACK_SIZE_T@
-FALLBACK_SOCKLEN_T = @FALLBACK_SOCKLEN_T@
-FALLBACK_SSIZE_T = @FALLBACK_SSIZE_T@
 FGREP = @FGREP@
 GREP = @GREP@
 INSTALL = @INSTALL@
@@ -293,15 +283,6 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
-PTH_EXT_SFIO = @PTH_EXT_SFIO@
-PTH_FAKE_POLL = @PTH_FAKE_POLL@
-PTH_FAKE_RWV = @PTH_FAKE_RWV@
-PTH_MCTX_ID = @PTH_MCTX_ID@
-PTH_STACK_GROWTH = @PTH_STACK_GROWTH@
-PTH_SYSCALL_HARD = @PTH_SYSCALL_HARD@
-PTH_SYSCALL_SOFT = @PTH_SYSCALL_SOFT@
-PTH_VERSION_HEX = @PTH_VERSION_HEX@
-PTH_VERSION_STR = @PTH_VERSION_STR@
 RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
@@ -360,15 +341,6 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
-pth_sigjmpbuf = @pth_sigjmpbuf@
-pth_siglongjmp = @pth_siglongjmp@
-pth_sigsetjmp = @pth_sigsetjmp@
-pth_skaddr_makecontext = @pth_skaddr_makecontext@
-pth_skaddr_sigaltstack = @pth_skaddr_sigaltstack@
-pth_skaddr_sigstack = @pth_skaddr_sigstack@
-pth_sksize_makecontext = @pth_sksize_makecontext@
-pth_sksize_sigaltstack = @pth_sksize_sigaltstack@
-pth_sksize_sigstack = @pth_sksize_sigstack@
 runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
@@ -473,10 +445,11 @@ M2DEFS = ChanConsts.def  CharClass.def \
          M2EXCEPTION.def  M2RTS.def \
          MemStream.def \
          Processes.def  ProgramArgs.def \
-         pth.def  RandomNumber.def \
+         RandomNumber.def \
          RawIO.def  RealConv.def \
          RealIO.def  RealMath.def \
          RealStr.def  RndFile.def \
+         RTco.def \
          RTdata.def  RTentity.def \
          RTfio.def  RTgen.def \
          RTgenif.def  RTio.def \
@@ -537,11 +510,11 @@ M2MODS = ChanConsts.mod  CharClass.mod \
 toolexeclib_LTLIBRARIES = libiso.la
 libiso_la_SOURCES = $(M2MODS) \
                      ErrnoCategory.c  wrapsock.c \
-                     wraptime.c
+                     wraptime.c RTco.c
 
 libisodir = libiso
 libiso_la_DEPENDENCIES = SYSTEM.def
-libiso_la_CFLAGS = -I. -I$(GM2_SRC)/gm2-libs-iso -I$(GM2_SRC)/gm2-libs -DBUILD_GM2_LIBS -I@srcdir@/../
+libiso_la_CFLAGS = -I. -I$(GM2_SRC)/gm2-libs-iso -I$(GM2_SRC)/gm2-libs -DBUILD_GM2_LIBS -I@srcdir@/../ -I../../../gcc -I$(GCC_DIR) -I$(GCC_DIR)/../include -I../../libgcc -I$(GCC_DIR)/../libgcc
 libiso_la_M2FLAGS = -I. -Ilibiso -I$(GM2_SRC)/gm2-libs-iso -I$(GM2_SRC)/gm2-libs -fiso -fextended-opaque
 libiso_la_LINK = $(LINK)
 CLEANFILES = SYSTEM.def
@@ -627,6 +600,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libiso_la-ErrnoCategory.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libiso_la-RTco.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libiso_la-wrapsock.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libiso_la-wraptime.Plo@am__quote@
 
@@ -671,6 +645,13 @@ libiso_la-wraptime.lo: wraptime.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='wraptime.c' object='libiso_la-wraptime.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libiso_la_CFLAGS) $(CFLAGS) -c -o libiso_la-wraptime.lo `test -f 'wraptime.c' || echo '$(srcdir)/'`wraptime.c
+
+libiso_la-RTco.lo: RTco.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libiso_la_CFLAGS) $(CFLAGS) -MT libiso_la-RTco.lo -MD -MP -MF $(DEPDIR)/libiso_la-RTco.Tpo -c -o libiso_la-RTco.lo `test -f 'RTco.c' || echo '$(srcdir)/'`RTco.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libiso_la-RTco.Tpo $(DEPDIR)/libiso_la-RTco.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='RTco.c' object='libiso_la-RTco.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libiso_la_CFLAGS) $(CFLAGS) -c -o libiso_la-RTco.lo `test -f 'RTco.c' || echo '$(srcdir)/'`RTco.c
 
 mostlyclean-libtool:
 	-rm -f *.lo

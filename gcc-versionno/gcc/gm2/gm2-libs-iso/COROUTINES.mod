@@ -26,8 +26,8 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 
 IMPLEMENTATION MODULE COROUTINES ;
 
-FROM pth IMPORT pth_uctx_create, pth_uctx_make, pth_uctx_t,
-                pth_uctx_save, pth_uctx_switch, pth_init ;
+FROM RTco IMPORT init, initThread, transfer, initSemaphore,
+                 wait, signal, currentThread ;
 
 FROM RTExceptions IMPORT EHBlock, InitExceptionBlock,
                          SetExceptionBlock, GetExceptionBlock,
@@ -49,7 +49,7 @@ TYPE
    Status = (suspended, ready, new, running) ;
 
    COROUTINE = POINTER TO RECORD
-                             context   : SYSTEM.ADDRESS ;
+                             context   : INTEGER ;
                              ehblock   : EHBlock ;
                              inexcept  : BOOLEAN ;
                              source    : ExceptionSource ;
@@ -78,8 +78,8 @@ VAR
    currentCoRoutine : COROUTINE ;
    illegalFinish    : ADDRESS ;
    initMain,
-   initPthreads     : BOOLEAN ;
-
+   initCo           : BOOLEAN ;
+   lock             : INTEGER ;    (* semaphore protecting module data structures.  *)
 
 
 PROCEDURE NEWCOROUTINE (procBody: PROC;
@@ -96,30 +96,23 @@ PROCEDURE NEWCOROUTINE (procBody: PROC;
      The optarg, initProtection, may contain a single parameter
      which specifies the initial protection level of the coroutine.
   *)
-TYPE
-   ThreadProcess = PROCEDURE (ADDRESS) ;
 VAR
-   ctx: ADDRESS ;
-   tp : ThreadProcess ;
+   tp : INTEGER ;
 BEGIN
    localInit ;
-   tp := ThreadProcess(procBody) ;
-   IF pth_uctx_create(ADR(ctx))=0
+   tp := initThread (procBody, size) ;
+   IF tp = -1
    THEN
-      Halt(__FILE__, __LINE__, __FUNCTION__, 'unable to create user context')
+      Halt(__FILE__, __LINE__, __FUNCTION__, 'unable to create a new thread')
    END ;
-   IF pth_uctx_make(ctx, workspace, size, NIL, tp, NIL, illegalFinish)=0
+   NEW (cr) ;
+   IF initProtection = UnassignedPriority
    THEN
-      Halt(__FILE__, __LINE__, __FUNCTION__, 'unable to make user context')
-   END ;
-   NEW(cr) ;
-   IF initProtection=UnassignedPriority
-   THEN
-      initProtection := PROT()
+      initProtection := PROT ()
    END ;
    WITH cr^ DO
-      context    := ctx ;
-      ehblock    := InitExceptionBlock() ;
+      context    := tp ;
+      ehblock    := InitExceptionBlock () ;
       inexcept   := FALSE ;
       source     := NIL ;
       wspace     := workspace ;
@@ -127,7 +120,7 @@ BEGIN
       status     := new ;
       protection := initProtection ;
       attached   := NIL ;
-      next       := head ;
+      next       := head
    END ;
    head := cr
 END NEWCOROUTINE ;
@@ -139,22 +132,20 @@ PROCEDURE TRANSFER (VAR from: COROUTINE; to: COROUTINE);
   *)
 BEGIN
    localInit ;
+   wait (lock) ;
    from := currentCoRoutine ;
-   IF to^.context=from^.context
+   IF to^.context = from^.context
    THEN
-      Halt(__FILE__, __LINE__, __FUNCTION__,
-           'error when attempting to context switch to the same process')
+      Halt (__FILE__, __LINE__, __FUNCTION__,
+            'error when attempting to context switch to the same process')
    END ;
-   from^.inexcept := SetExceptionState(to^.inexcept) ;
-   from^.source := GetExceptionSource() ;
+   from^.inexcept := SetExceptionState (to^.inexcept) ;
+   from^.source := GetExceptionSource () ;
    currentCoRoutine := to ;
-   SetExceptionBlock(currentCoRoutine^.ehblock) ;
-   SetExceptionSource(currentCoRoutine^.source) ;
-   IF pth_uctx_switch(from^.context, to^.context)=0
-   THEN
-      Halt(__FILE__, __LINE__, __FUNCTION__,
-           'an error as it was unable to change the user context')
-   END
+   SetExceptionBlock (currentCoRoutine^.ehblock) ;
+   SetExceptionSource (currentCoRoutine^.source) ;
+   transfer (from^.context, to^.context) ;
+   signal (lock)
 END TRANSFER ;
 
 
@@ -167,16 +158,14 @@ BEGIN
    IF NOT initMain
    THEN
       initMain := TRUE ;
-      NEW(currentCoRoutine) ;
+      lock := initSemaphore (1) ;
+      wait (lock) ;
+      NEW (currentCoRoutine) ;
       WITH currentCoRoutine^ DO
-         IF pth_uctx_create(ADR(context))=0
-         THEN
-            Halt(__FILE__, __LINE__, __FUNCTION__,
-                 'unable to create context for main')
-         END ;
-         ehblock    := GetExceptionBlock() ;
-         inexcept   := IsInExceptionState() ;
-         source     := GetExceptionSource() ;
+         context    := currentThread () ;
+         ehblock    := GetExceptionBlock () ;
+         inexcept   := IsInExceptionState () ;
+         source     := GetExceptionSource () ;
          wspace     := NIL ;
          nLocs      := 0 ;
          status     := running ;
@@ -184,20 +173,10 @@ BEGIN
          attached   := NIL ;
          next       := head
       END ;
-      head := currentCoRoutine
+      head := currentCoRoutine ;
+      signal (lock)
    END
 END localMain ;
-
-
-(*
-   Finished - generates an error message. Modula-2 processes
-              should never terminate.
-*)
-
-PROCEDURE Finished (p: ADDRESS) ;
-BEGIN
-   Halt(__FILE__, __LINE__, __FUNCTION__, 'process terminated illegally')
-END Finished ;
 
 
 (*
@@ -206,23 +185,14 @@ END Finished ;
 
 PROCEDURE localInit ;
 BEGIN
-   IF NOT initPthreads
+   IF NOT initCo
    THEN
-      IF pth_init()=0
+      IF init () = 0
       THEN
-         Halt(__FILE__, __LINE__, __FUNCTION__,
-              'failed to initialize pthreads')
+         Halt (__FILE__, __LINE__, __FUNCTION__,
+               'failed to initialize RTco')
       END ;
-      initPthreads := TRUE ;
-      IF pth_uctx_create(ADR(illegalFinish))=0
-      THEN
-         Halt(__FILE__, __LINE__, __FUNCTION__,
-              'unable to create user context')
-      END ;
-      IF pth_uctx_make(illegalFinish, NIL, MinStack, NIL, Finished, NIL, NIL)=0
-      THEN
-         Halt(__FILE__, __LINE__, __FUNCTION__, 'unable to make user context')
-      END
+      initCo := TRUE ;
    END ;
    localMain
 END localInit ;
@@ -240,6 +210,7 @@ VAR
    l: SourceList ;
 BEGIN
    localInit ;
+   wait (lock) ;
    l := currentCoRoutine^.attached ;
    IF l=NIL
    THEN
@@ -259,7 +230,8 @@ BEGIN
       END ;
       l := l^.next
    END ;
-   TRANSFER(from, to)
+   TRANSFER(from, to) ;
+   signal (lock)
 END IOTRANSFER ;
 
 
@@ -297,6 +269,7 @@ VAR
    l: SourceList ;
 BEGIN
    localInit ;
+   wait (lock) ;
    l := currentCoRoutine^.attached ;
    WHILE l#NIL DO
       IF l^.vec=source
@@ -311,7 +284,8 @@ BEGIN
       vec := source ;
       next := currentCoRoutine^.attached
    END ;
-   currentCoRoutine^.attached := l
+   currentCoRoutine^.attached := l ;
+   signal (lock)
 END ATTACH ;
 
 
@@ -322,6 +296,7 @@ VAR
    l, m: SourceList ;
 BEGIN
    localInit ;
+   wait (lock) ;
    l := currentCoRoutine^.attached ;
    m := l ;
    WHILE l#NIL DO
@@ -339,7 +314,8 @@ BEGIN
          m := l ;
          l := l^.next
       END
-   END
+   END ;
+   signal (lock)
 END DETACH ;
 
 
@@ -374,9 +350,14 @@ PROCEDURE IsATTACHED (source: INTERRUPTSOURCE): BOOLEAN;
   (* Returns TRUE if and only if the specified source of interrupts is
      currently associated with a coroutine; otherwise returns FALSE.
   *)
+VAR
+   result: BOOLEAN ;
 BEGIN
    localInit ;
-   RETURN getAttached(source)#NIL
+   wait (lock) ;
+   result := getAttached(source)#NIL ;
+   signal (lock) ;
+   RETURN result
 END IsATTACHED ;
 
 
@@ -385,9 +366,14 @@ PROCEDURE HANDLER (source: INTERRUPTSOURCE) : COROUTINE;
      of interrupts. The result is undefined if IsATTACHED(source) =
      FALSE.
   *)
+VAR
+   co: COROUTINE ;
 BEGIN
    localInit ;
-   RETURN getAttached(source)
+   wait (lock) ;
+   co := getAttached(source) ;
+   signal (lock) ;
+   RETURN co
 END HANDLER ;
 
 
@@ -403,7 +389,7 @@ PROCEDURE LISTEN (p: PROTECTION) ;
   (* Momentarily changes the protection of the calling coroutine to p. *)
 BEGIN
    localInit ;
-   Listen(FALSE, IOTransferHandler, MIN(PROTECTION))
+   Listen (FALSE, IOTransferHandler, MIN (PROTECTION))
 END LISTEN ;
 
 
@@ -426,7 +412,7 @@ END LISTEN ;
 PROCEDURE ListenLoop ;
 BEGIN
    localInit ;
-   Listen(TRUE, IOTransferHandler, MIN(PROTECTION))
+   Listen (TRUE, IOTransferHandler, MIN (PROTECTION))
 END ListenLoop ;
 
 
@@ -462,6 +448,7 @@ BEGIN
       Halt(__FILE__, __LINE__, __FUNCTION__,
            'no coroutine attached to this interrupt vector which was initiated by IOTRANSFER')
    ELSE
+      wait (lock) ;
       WITH l^ DO
          ourself := AttachVector(InterruptNo, chain) ;
          IF ourself#l
@@ -476,8 +463,9 @@ BEGIN
             printf('odd vector has been chained\n')
          END ;
          ptrToTo^^.context := currentCoRoutine^.context ;
-         TRANSFER(ptrToTo^, ptrToFrom^)
-      END
+         TRANSFER (ptrToTo^, ptrToFrom^)
+      END ;
+      signal (lock)
    END
 END IOTransferHandler ;
 
@@ -500,10 +488,11 @@ VAR
    old: PROTECTION ;
 BEGIN
    localInit ;
+   wait (lock) ;
    old := currentCoRoutine^.protection ;
-   Listen(FALSE, IOTransferHandler, old) ;
    currentCoRoutine^.protection := to ;
-   Listen(FALSE, IOTransferHandler, to) ;
+   signal (lock) ;
+   Listen (FALSE, IOTransferHandler, to) ;
    RETURN old
 END TurnInterrupts ;
 
@@ -515,7 +504,7 @@ END TurnInterrupts ;
 PROCEDURE Init ;
 BEGIN
    freeList := NIL ;
-   initPthreads := FALSE ;
+   initCo := FALSE ;
    initMain := FALSE ;
    currentCoRoutine := NIL
 END Init ;

@@ -1059,8 +1059,8 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
   /* By default, we throw on the math library if we have one.  */
   int need_math = (MATH_LIBRARY[0] != '\0');
 
-  /* True if we should add -lpth to the command-line.  */
-  int need_pth = TRUE;
+  /* True if we should add -lpthread to the command-line.  */
+  int need_pthread = TRUE;
 
   /* True if we should add -fplugin=m2rte to the command-line.  */
   int need_plugin = TRUE;
@@ -1097,8 +1097,8 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
           seen_B = TRUE;
           B_path = (*in_decoded_options)[i].arg;
           break;
-        case OPT_fno_pth:
-          need_pth = FALSE;
+        case OPT_fno_pthread:
+          need_pthread = FALSE;
           break;
         case OPT_fno_m2_plugin:
           need_plugin = FALSE;
@@ -1248,9 +1248,9 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
             += add_library (MATH_LIBRARY, in_decoded_options_count,
                             in_decoded_options, *in_decoded_options_count);
 
-      if (need_pth)
+      if (need_pthread)
         (*in_added_libraries)
-            += add_library ("pth", in_decoded_options_count,
+            += add_library ("pthread", in_decoded_options_count,
                             in_decoded_options, *in_decoded_options_count);
 
       if (seen_fexceptions)

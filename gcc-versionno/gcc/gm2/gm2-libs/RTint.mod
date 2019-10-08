@@ -1,4 +1,4 @@
-(* RTint.def provides users of the COROUTINES library with the.
+(* RTint.mod provides users of the COROUTINES library with the.
 
 Copyright (C) 2009-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -24,13 +24,14 @@ IMPLEMENTATION MODULE RTint ;
 
 FROM M2RTS IMPORT Halt ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
-FROM pth IMPORT pth_select ;
+FROM RTco IMPORT select, initSemaphore, wait, signal ;
 FROM COROUTINES IMPORT PROTECTION ;
 FROM libc IMPORT printf, perror ;
 FROM Assertion IMPORT Assert ;
 
 FROM Selective IMPORT InitSet, FdSet, Timeval, InitTime, KillTime, KillSet,
-                      SetOfFd, FdIsSet, GetTime, FdZero, GetTimeOfDay, SetTime ;
+                      SetOfFd, FdIsSet, GetTime, FdZero, GetTimeOfDay, SetTime,
+                      FdClr;
 
 CONST
    Microseconds = 1000000 ;
@@ -56,6 +57,7 @@ VAR
    VecNo  : CARDINAL ;
    Exists : Vector ;
    Pending: ARRAY [MIN(PROTECTION)..MAX(PROTECTION)] OF Vector ;
+   lock   : INTEGER ;
 
 
 (*
@@ -105,7 +107,7 @@ BEGIN
       END ;
       v := v^.exists
    END ;
-   RETURN( NIL )
+   RETURN NIL
 END FindVector ;
 
 
@@ -122,6 +124,7 @@ BEGIN
    THEN
       printf("InitInputVector fd = %d priority = %d\n", fd, pri)
    END ;
+   wait (lock) ;
    v := FindVector(fd, input) ;
    IF v=NIL
    THEN
@@ -137,9 +140,11 @@ BEGIN
          File     := fd
       END ;
       Exists := v ;
-      RETURN( VecNo )
+      signal (lock) ;
+      RETURN VecNo
    ELSE
-      RETURN( v^.no )
+      signal (lock) ;
+      RETURN v^.no
    END
 END InitInputVector ;
 
@@ -153,11 +158,12 @@ PROCEDURE InitOutputVector (fd: INTEGER; pri: CARDINAL) : CARDINAL ;
 VAR
    v: Vector ;
 BEGIN
-   v := FindVector(fd, output) ;
+   wait (lock) ;
+   v := FindVector (fd, output) ;
    IF v=NIL
    THEN
-      NEW(v) ;
-      INC(VecNo) ;
+      NEW (v) ;
+      INC (VecNo) ;
       WITH v^ DO
          type     := output ;
          priority := pri ;
@@ -168,9 +174,11 @@ BEGIN
          File     := fd
       END ;
       Exists := v ;
-      RETURN( VecNo )
+      signal (lock) ;
+      RETURN VecNo
    ELSE
-      RETURN( v^.no )
+      signal (lock) ;
+      RETURN v^.no
    END
 END InitOutputVector ;
 
@@ -184,9 +192,10 @@ PROCEDURE InitTimeVector (micro, secs: CARDINAL; pri: CARDINAL) : CARDINAL ;
 VAR
    v: Vector ;
 BEGIN
-   NEW(v) ;
-   INC(VecNo) ;
-   Assert(micro<Microseconds) ;
+   wait (lock) ;
+   NEW (v) ;
+   INC (VecNo) ;
+   Assert (micro<Microseconds) ;
    WITH v^ DO
       type     := time ;
       priority := pri ;
@@ -199,7 +208,8 @@ BEGIN
       queued   := FALSE
    END ;
    Exists := v ;
-   RETURN( VecNo )
+   signal (lock) ;
+   RETURN VecNo
 END InitTimeVector ;
 
 
@@ -253,6 +263,7 @@ VAR
    v: Vector ;
 BEGIN
    Assert(micro<Microseconds) ;
+   wait (lock) ;
    v := FindVectorNo(vec) ;
    IF v=NIL
    THEN
@@ -262,7 +273,8 @@ BEGIN
       WITH v^ DO
          SetTime(rel, secs+DebugTime, micro)
       END
-   END
+   END ;
+   signal (lock)
 END ReArmTimeVector ;
 
 
@@ -277,6 +289,7 @@ PROCEDURE GetTimeVector (vec: CARDINAL; VAR micro, secs: CARDINAL) ;
 VAR
    v: Vector ;
 BEGIN
+   wait (lock) ;
    v := FindVectorNo(vec) ;
    IF v=NIL
    THEN
@@ -287,7 +300,8 @@ BEGIN
          GetTime(rel, secs, micro) ;
          Assert(micro<Microseconds)
       END
-   END
+   END ;
+   signal (lock)
 END GetTimeVector ;
 
 
@@ -302,6 +316,7 @@ VAR
    v: Vector ;
    l: ADDRESS ;
 BEGIN
+   wait (lock) ;
    v := FindVectorNo(vec) ;
    IF v=NIL
    THEN
@@ -309,7 +324,8 @@ BEGIN
    ELSE
       l := v^.arg ;
       v^.arg := p ;
-      RETURN( l )
+      signal (lock) ;
+      RETURN l
    END
 END AttachVector ;
 
@@ -325,6 +341,7 @@ VAR
    m, s: CARDINAL ;
    r   : INTEGER ;
 BEGIN
+   wait (lock) ;
    v := FindPendingVector(vec) ;
    IF v=NIL
    THEN
@@ -356,7 +373,8 @@ BEGIN
                 vec, v^.File)
       END ;
       stop
-   END
+   END ;
+   signal (lock)
 END IncludeVector ;
 
 
@@ -369,6 +387,7 @@ PROCEDURE ExcludeVector (vec: CARDINAL) ;
 VAR
    v, u: Vector ;
 BEGIN
+   wait (lock) ;
    v := FindPendingVector(vec) ;
    IF v=NIL
    THEN
@@ -390,7 +409,8 @@ BEGIN
       THEN
          v^.queued := FALSE
       END
-   END
+   END ;
+   signal (lock)
 END ExcludeVector ;
 
 
@@ -520,6 +540,96 @@ END SubTime ;
 
 
 (*
+   activatePending - activates the first interrupt pending and clears it.
+*)
+
+PROCEDURE activatePending (untilInterrupt: BOOLEAN; call: DespatchVector; pri: CARDINAL;
+                           maxFd: INTEGER; VAR i, o: SetOfFd; VAR t: Timeval; b4, after: Timeval) : BOOLEAN ;
+VAR
+   r   : INTEGER ;
+   p   : CARDINAL ;
+   v   : Vector ;
+   b4s,
+   b4m,
+   afs,
+   afm,
+   s, m: CARDINAL ;
+BEGIN
+   wait (lock) ;
+   p := MAX(PROTECTION) ;
+   WHILE p > pri DO
+      v := Pending[p] ;
+      WHILE v # NIL DO
+         WITH v^ DO
+            CASE type OF
+
+            input :  IF (File < maxFd) AND (i#NIL) AND FdIsSet(File, i)
+                     THEN
+                        IF Debugging
+                        THEN
+                           printf('read (fd=%d) is ready (vec=%d)\n', File, no) ;
+                           DumpPendingQueue
+                        END ;
+                        FdClr (File, i) ;  (* so we dont activate this again from our select.  *)
+                        signal (lock) ;
+                        call(no, priority, arg) ;
+                        RETURN TRUE
+                     END |
+            output:  IF (File < maxFd) AND (o#NIL) AND FdIsSet(File, o)
+                     THEN
+                        IF Debugging
+                        THEN
+                           printf('write (fd=%d) is ready (vec=%d)\n', File, no) ;
+                           DumpPendingQueue
+                        END ;
+                        FdClr (File, o) ;  (* so we dont activate this again from our select.  *)
+                        signal (lock) ;
+                        call(no, priority, arg) ;
+                        RETURN TRUE
+                     END |
+            time  :  IF untilInterrupt AND (t # NIL)
+                     THEN
+                        r := GetTimeOfDay(after) ;
+                        Assert(r=0) ;
+                        IF Debugging
+                        THEN
+                           GetTime(t, s, m) ;
+                           Assert(m<Microseconds) ;
+                           GetTime(after, afs, afm) ;
+                           Assert(afm<Microseconds) ;
+                           GetTime(b4, b4s, b4m) ;
+                           Assert(b4m<Microseconds) ;
+                           printf("waited %d.%d + %d.%d now is %d.%d\n",
+                                  s, m, b4s, b4m, afs, afm) ;
+                        END ;
+                        IF IsGreaterEqual(after, abs)
+                        THEN
+                           IF Debugging
+                           THEN
+                              DumpPendingQueue ;
+                              printf("time has expired calling despatcher\n")
+                           END ;
+                           t := KillTime(t) ;  (* so we dont activate this again from our select.  *)
+                           signal (lock) ;
+                           call(no, priority, arg) ;
+                           RETURN TRUE
+                        ELSIF Debugging
+                        THEN
+                           printf("must wait longer as time has not expired\n")
+                        END
+                     END
+            END
+         END ;
+         v := v^.pending
+      END ;
+      DEC(p)
+   END ;
+   signal (lock) ;
+   RETURN FALSE
+END activatePending ;
+
+
+(*
    Listen - will either block indefinitely (until an interrupt)
             or alteratively will test to see whether any interrupts
             are pending.
@@ -534,8 +644,8 @@ PROCEDURE Listen (untilInterrupt: BOOLEAN;
 VAR
    found: BOOLEAN ;
    r    : INTEGER ;
-   b4,
    after,
+   b4,
    t    : Timeval ;
    v    : Vector ;
    i, o : SetOfFd ;
@@ -547,6 +657,7 @@ VAR
    maxFd: INTEGER ;
    p    : CARDINAL ;
 BEGIN
+   wait (lock) ;
    IF pri<MAX(PROTECTION)
    THEN
       IF Debugging
@@ -600,6 +711,7 @@ BEGIN
       IF (NOT found) AND (maxFd=-1) AND (i=NIL) AND (o=NIL)
       THEN
          t := KillTime(t) ;
+         signal (lock) ;
          RETURN
       ELSE
          GetTime(t, s, m) ;
@@ -612,104 +724,48 @@ BEGIN
          SetTime(t, s, m) ;
          IF Debugging
          THEN
-            printf("select waiting for %u.%u seconds\n", s, m)
+            printf("select waiting for %u.%6u seconds\n", s, m)
          END ;
+         signal (lock) ;
          REPEAT
-            r := pth_select(maxFd+1, i, o, NIL, t) ;
+            r := select(maxFd+1, i, o, NIL, t) ;
             IF r=-1
             THEN
-               perror("pth_select") ;
-               r := pth_select(maxFd+1, i, o, NIL, NIL) ;
+               perror("select") ;
+               r := select(maxFd+1, i, o, NIL, NIL) ;
                IF r=-1
                THEN
-                  perror("pth_select timeout argument is faulty")
+                  perror("select timeout argument is faulty")
                END ;
-               r := pth_select(maxFd+1, i, NIL, NIL, t) ;
+               r := select(maxFd+1, i, NIL, NIL, t) ;
                IF r=-1
                THEN
-                  perror("pth_select output fd argument is faulty")
+                  perror("select output fd argument is faulty")
                END ;
-               r := pth_select(maxFd+1, NIL, o, NIL, t) ;
+               r := select(maxFd+1, NIL, o, NIL, t) ;
                IF r=-1
                THEN
-                  perror("pth_select input fd argument is faulty")
+                  perror("select input fd argument is faulty")
                ELSE
-                  perror("pth_select maxFD+1 argument is faulty")
+                  perror("select maxFD+1 argument is faulty")
                END
             END
          UNTIL r#-1
       END ;
-      p := MAX(PROTECTION) ;
-      WHILE p>pri DO
-         v := Pending[p] ;
-         WHILE v#NIL DO
-            WITH v^ DO
-               CASE type OF
-
-               input :  IF (i#NIL) AND FdIsSet(File, i)
-                        THEN
-                           IF Debugging
-                           THEN
-                              printf('read (fd=%d) is ready (vec=%d)\n', File, no) ;
-                              DumpPendingQueue
-                           END ;
-                           call(no, priority, arg)
-                        END |
-               output:  IF (o#NIL) AND FdIsSet(File, o)
-                        THEN
-                           IF Debugging
-                           THEN
-                              printf('write (fd=%d) is ready (vec=%d)\n', File, no) ;
-                              DumpPendingQueue
-                           END ;
-                           call(no, priority, arg)
-                        END |
-               time  :  IF untilInterrupt OR TRUE
-                        THEN
-                           r := GetTimeOfDay(after) ;
-                           Assert(r=0) ;
-                           IF Debugging
-                           THEN
-                              GetTime(t, s, m) ;
-                              Assert(m<Microseconds) ;
-                              GetTime(after, afs, afm) ;
-                              Assert(afm<Microseconds) ;
-                              GetTime(b4, b4s, b4m) ;
-                              Assert(b4m<Microseconds) ;
-                              printf("waited %d.%d + %d.%d now is %d.%d\n",
-                                     s, m, b4s, b4m, afs, afm) ;
-                           END ;
-                           IF IsGreaterEqual(after, abs)
-                           THEN
-                              IF Debugging
-                              THEN
-                                 DumpPendingQueue ;
-                                 printf("time has expired calling despatcher\n")
-                              END ;
-                              call(no, priority, arg)
-                           ELSIF Debugging
-                           THEN
-                              printf("must wait longer as time has not expired\n")
-                           END
-                        END
-
-               END
-            END ;
-            v := v^.pending
-         END ;
-         DEC(p)
+      WHILE activatePending (untilInterrupt, call, pri,
+                             maxFd+1, i, o, t, b4, after) DO
       END ;
       IF t#NIL
       THEN
          t := KillTime(t)
       END ;
-      IF b4#NIL
-      THEN
-         t := KillTime(b4)
-      END ;
       IF after#NIL
       THEN
          t := KillTime(after)
+      END ;
+      IF b4#NIL
+      THEN
+         t := KillTime(b4)
       END ;
       IF i#NIL
       THEN
@@ -719,7 +775,8 @@ BEGIN
       THEN
          o := KillSet(o)
       END
-   END
+   END ;
+   signal (lock)
 END Listen ;
 
 
@@ -731,10 +788,13 @@ PROCEDURE Init ;
 VAR
    p: PROTECTION ;
 BEGIN
+   lock := initSemaphore (1) ;
+   wait (lock) ;
    Exists := NIL ;
    FOR p := MIN(PROTECTION) TO MAX(PROTECTION) DO
       Pending[p] := NIL
-   END
+   END ;
+   signal (lock)
 END Init ;
 
 

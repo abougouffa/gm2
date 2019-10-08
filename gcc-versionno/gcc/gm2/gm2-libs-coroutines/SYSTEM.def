@@ -49,7 +49,7 @@ EXPORT QUALIFIED (* the following are built into the compiler: *)
 
 TYPE
    PROCESS  = RECORD
-                 context: ADDRESS ;
+                 context: INTEGER ;
                  ints   : PROTECTION ;
               END ;
 (* all the following types are declared internally to gm2
@@ -68,11 +68,12 @@ PROCEDURE TRANSFER (VAR p1: PROCESS; p2: PROCESS) ;
 (*
    NEWPROCESS - p is a parameterless procedure, a, is the origin of
                 the workspace used for the process stack and containing
-                the volatile environment of the process. n, is the amount
-                in bytes of this workspace. new, is the new process.
+                the volatile environment of the process.  StackSize, is
+                the maximum size of the stack in bytes which can be used
+                by this process.  new, is the new process.
 *)
 
-PROCEDURE NEWPROCESS (p: PROC; a: ADDRESS; n: CARDINAL; VAR new: PROCESS) ;
+PROCEDURE NEWPROCESS (p: PROC; a: ADDRESS; StackSize: CARDINAL; VAR new: PROCESS) ;
 
 
 (*

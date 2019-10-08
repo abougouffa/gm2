@@ -96,10 +96,11 @@ M2DEFS = ChanConsts.def  CharClass.def \
          M2EXCEPTION.def  M2RTS.def \
          MemStream.def \
          Processes.def  ProgramArgs.def \
-         pth.def  RandomNumber.def \
+         RandomNumber.def \
          RawIO.def  RealConv.def \
          RealIO.def  RealMath.def \
          RealStr.def  RndFile.def \
+         RTco.def \
          RTdata.def  RTentity.def \
          RTfio.def  RTgen.def \
          RTgenif.def  RTio.def \
@@ -160,11 +161,11 @@ M2MODS = ChanConsts.mod  CharClass.mod \
 toolexeclib_LTLIBRARIES = libiso.la
 libiso_la_SOURCES =  $(M2MODS) \
                      ErrnoCategory.c  wrapsock.c \
-                     wraptime.c
+                     wraptime.c RTco.c
 
 libisodir = libiso
 libiso_la_DEPENDENCIES = SYSTEM.def
-libiso_la_CFLAGS = -I. -I$(GM2_SRC)/gm2-libs-iso -I$(GM2_SRC)/gm2-libs -DBUILD_GM2_LIBS -I@srcdir@/../
+libiso_la_CFLAGS = -I. -I$(GM2_SRC)/gm2-libs-iso -I$(GM2_SRC)/gm2-libs -DBUILD_GM2_LIBS -I@srcdir@/../ -I../../../gcc -I$(GCC_DIR) -I$(GCC_DIR)/../include -I../../libgcc -I$(GCC_DIR)/../libgcc
 libiso_la_M2FLAGS = -I. -Ilibiso -I$(GM2_SRC)/gm2-libs-iso -I$(GM2_SRC)/gm2-libs -fiso -fextended-opaque
 libiso_la_LINK = $(LINK)
 CLEANFILES = SYSTEM.def

@@ -29,7 +29,7 @@ FROM libc IMPORT printf, exit ;
 
 PROCEDURE Timer ;
 CONST
-   MaxCount = 500 ;
+   MaxCount = 50 ;
 VAR
    v: CARDINAL ;
    c: CARDINAL ;
@@ -57,6 +57,7 @@ VAR
    s1, s2 : ADDRESS ;
    p1, p2 : PROCESS ;
 BEGIN
+   exit (1) ;   (* disable test for now.  *)
    ALLOCATE(s1, MaxStack) ;
    ALLOCATE(s2, MaxStack) ;
    NEWPROCESS(Timer, s2, MaxStack, p2) ;

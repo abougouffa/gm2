@@ -23,9 +23,9 @@ FROM libc IMPORT printf, exit ;
 
 
 CONST
-   MaxStack  = 16 * 1024 * 8 ;
+   MaxStack  = 16 * 1024 * 1024 ;
    Debugging = FALSE ;
-   MaxCount  = 1000000 ;
+   MaxCount  = 1000 ;
 
 
 PROCEDURE p1 ;
@@ -71,11 +71,17 @@ VAR
    S1, S2, S3   : ADDRESS ;
    count        : CARDINAL ;
 BEGIN
+   printf ("inside testtransfer\n");
    count := 0 ;
    ALLOCATE(S1, MaxStack) ;
    ALLOCATE(S2, MaxStack) ;
    ALLOCATE(S3, MaxStack) ;
+   printf ("before newprocess 1\n");
    NEWPROCESS(p1, S1, MaxStack, P1) ;
+   printf ("before newprocess 2\n");
    NEWPROCESS(p2, S2, MaxStack, P2) ;
-   TRANSFER(MainP, P1)
+   printf ("before TRANSFER\n");
+   TRANSFER(MainP, P1) ;
+   printf ("program finishing - which should not occur here!\n");
+   exit (1)
 END testtransfer.

@@ -22,9 +22,6 @@ AC_INIT(package-unused, version-unused,,libgm2)
 AC_CONFIG_MACRO_DIR([config])
 AC_CONFIG_HEADER(config.h)
 
-m4_include([libpth/pth/pth.m4])
-m4_include([libpth/pth/aclocal.m4])
-
 libtool_VERSION=14:0:0
 AC_SUBST(libtool_VERSION)
 
@@ -83,23 +80,6 @@ AC_CANONICAL_HOST
 ACX_NONCANONICAL_HOST
 ACX_NONCANONICAL_TARGET
 GCC_TOPLEV_SUBDIRS
-
-#
-#  by default the local libpth is built if a system libpth in not found.
-#  However the user can override this using --enable-libpth-m2 or
-#  --disable-libpth-m2.
-#
-
-AC_MSG_CHECKING([for --enable-libpth-m2])
-AC_ARG_ENABLE(libpth-m2,
-[  --enable-libpth-m2    Specify that libpth should be built and installed],
-[case "$enableval" in
- yes) libpth_m2=yes;;
- no)  libpth_m2=no;;
- *)   AC_MSG_ERROR([Unknown argument to enable/disable building and installing libpth]);;
- esac],
-[libpth_m2=check])
-AC_MSG_RESULT($libpth_m2)
 
 AC_MSG_CHECKING([for --enable-version-specific-runtime-libs])
 AC_ARG_ENABLE(version-specific-runtime-libs,
@@ -291,26 +271,6 @@ GM2_CHECK_LIB([m],[signbitl],[SIGNBITL])
 CC_FOR_BUILD=${CC_FOR_BUILD:-gcc}
 AC_SUBST(CC_FOR_BUILD)
 
-AC_MSG_NOTICE([checking for system installed libpth])
-pth_found=1
-AC_CHECK_LIB(pth, pselect, [], [pth_found=0])
-if test $libpth_m2 = no ; then
-   AC_MSG_NOTICE([user has disabled building local libpth])
-   BUILD_PTHLIB=false
-elif test $libpth_m2 = yes ; then
-   AC_MSG_NOTICE([user has enabled building local libpth])
-   BUILD_PTHLIB=true
-else
-   AC_MSG_NOTICE([user has not specified if libpth should be built, will see if the system needs one])
-   if test $pth_found = 0 ; then
-      AC_MSG_NOTICE([no libpth installed, so we will build libpth for m2])
-      BUILD_PTHLIB=true
-   else
-      AC_MSG_NOTICE([system libpth is installed, so no need to build libpth for m2])
-      BUILD_PTHLIB=false
-   fi
-fi
-
 BUILD_PIMLIB=true
 BUILD_ISOLIB=true
 BUILD_CORLIB=true
@@ -323,7 +283,6 @@ case "$target" in
   BUILD_ISOLIB=false
   BUILD_CORLIB=false
   BUILD_LOGLIB=false
-  BUILD_PTHLIB=false
   ;;
 
   avrxmega2*-*-* | avrxmega4*-*-* | avrxmega5*-*-* | avrxmega6*-*-* | avrxmega7*-*-*)
@@ -331,7 +290,6 @@ case "$target" in
   BUILD_ISOLIB=false
   BUILD_CORLIB=false
   BUILD_LOGLIB=false
-  BUILD_PTHLIB=false
   ;;
 
   avr3-*-*)
@@ -339,7 +297,6 @@ case "$target" in
   BUILD_ISOLIB=true
   BUILD_CORLIB=true
   BUILD_LOGLIB=true
-  BUILD_PTHLIB=false
   ;;
 
 esac
@@ -348,304 +305,15 @@ BUILD_PIMLIB=true
 BUILD_ISOLIB=true
 BUILD_CORLIB=true
 BUILD_LOGLIB=true
-BUILD_PTHDUMMY=false
-
-if test $pth_found = 0 ; then
-   if test $BUILD_PTHLIB = false ; then
-      AC_MSG_NOTICE([no system libpth found and libpth has been disabled, will build and install dummypth.])
-      BUILD_PTHDUMMY=true
-   fi
-fi
 
 AM_CONDITIONAL([BUILD_PIMLIB], [test x$BUILD_PIMLIB = xtrue])
 AM_CONDITIONAL([BUILD_ISOLIB], [test x$BUILD_ISOLIB = xtrue])
 AM_CONDITIONAL([BUILD_CORLIB], [test x$BUILD_CORLIB = xtrue])
 AM_CONDITIONAL([BUILD_LOGLIB], [test x$BUILD_LOGLIB = xtrue])
-AM_CONDITIONAL([BUILD_PTHLIB], [test x$BUILD_PTHLIB = xtrue])
-AM_CONDITIONAL([BUILD_PTHDUMMY], [test x$BUILD_PTHDUMMY = xtrue])
-
-
-#
-#  Now for the GNU Pth configuration
-#
-
-AC_HEADLINE(GNU Pth, Portable Threads, PTH_VERSION, pth_vers.c,
-[Copyright (c) 1999-2006 Ralf S. Engelschall <rse@engelschall.com>])
-
-# check whether we've to use a non-standard #include <sys/select.h>  to get
-# the definition for fd_set under AIX and other platforms.
-
-AC_HAVE_HEADERS(sys/select.h)
-EXTRA_INCLUDE_SYS_SELECT_H="#include <sys/select.h>"
-if test ".$ac_cv_header_sys_select_h" != .yes; then
-    EXTRA_INCLUDE_SYS_SELECT_H="/* $EXTRA_INCLUDE_SYS_SELECT_H */"
-fi
-AC_SUBST(EXTRA_INCLUDE_SYS_SELECT_H)
-
-# check whether we've to define sig_atomic_t
-AC_CHECK_TYPEDEF(sig_atomic_t, signal.h)
-FALLBACK_SIG_ATOMIC_T="typedef int sig_atomic_t;"
-if test ".$ac_cv_typedef_sig_atomic_t" = .yes; then
-    FALLBACK_SIG_ATOMIC_T="/* $FALLBACK_SIG_ATOMIC_T */"
-fi
-AC_SUBST(FALLBACK_SIG_ATOMIC_T)
-
-# check whether we've to define pid_t
-AC_CHECK_TYPEDEF(pid_t, sys/types.h)
-FALLBACK_PID_T="typedef int pid_t;"
-if test ".$ac_cv_typedef_pid_t" = .yes; then
-    FALLBACK_PID_T="/* $FALLBACK_PID_T */"
-fi
-AC_SUBST(FALLBACK_PID_T)
-
-FALLBACK_SIZE_T="/* size_t is an internal.  */"
-AC_SUBST(FALLBACK_SIZE_T)
-
-# check whether we've to define ssize_t
-AC_CHECK_TYPEDEF(ssize_t, sys/types.h)
-FALLBACK_SSIZE_T="typedef unsigned int ssize_t;"
-if test ".$ac_cv_typedef_ssize_t" = .yes; then
-    FALLBACK_SSIZE_T="/* $FALLBACK_SSIZE_T */"
-fi
-AC_SUBST(FALLBACK_SSIZE_T)
-
-# check whether we've to define off_t
-AC_CHECK_TYPEDEF(off_t, sys/types.h)
-FALLBACK_OFF_T="typedef int off_t;"
-if test ".$ac_cv_typedef_off_t" = .yes; then
-    FALLBACK_OFF_T="/* $FALLBACK_OFF_T */"
-fi
-AC_SUBST(FALLBACK_OFF_T)
-
-# check for network/socket size type
-AC_CHECK_SOCKLENTYPE([
-FALLBACK_SOCKLEN_T="typedef ${ac_type} socklen_t;"
-if test ".$ac_type" = ".socklen_t"; then
-    FALLBACK_SOCKLEN_T="/* $FALLBACK_SOCKLEN_T */"
-fi
-AC_SUBST(FALLBACK_SOCKLEN_T)
-])
-
-# check for struct timespec
-AC_MSG_CHECKING(for struct timespec)
-AC_TRY_COMPILE([
-#include <time.h>
-#include <sys/time.h>
-],[
-struct timespec ts;
-],
-msg="yes"
-,
-msg="no"
-)
-if test ".$msg" = .yes; then
-    AC_DEFINE(HAVE_STRUCT_TIMESPEC, 1, [define if exists "struct timespec"])
-fi
-
-# check for filedescriptor number type
-AC_CHECK_NFDSTYPE([
-FALLBACK_NFDS_T="typedef ${ac_type} nfds_t;"
-if test ".$ac_type" = ".nfds_t"; then
-    FALLBACK_NFDS_T="/* $FALLBACK_NFDS_T */"
-fi
-AC_SUBST(FALLBACK_NFDS_T)
-])
-
-# check whether poll(2)'s input stuff has to be faked
-AC_CHECK_FUNCS(poll)
-AC_CHECK_DEFINE(POLLIN, poll.h)
-AC_MSG_CHECKING(whether poll(2) facility has to be faked)
-AC_IFALLYES(func:poll define:POLLIN, PTH_FAKE_POLL=0, PTH_FAKE_POLL=1)
-if test .$PTH_FAKE_POLL = .1; then
-    msg="yes"
-else
-    msg="no"
-fi
-AC_SUBST(PTH_FAKE_POLL)
-
-# check for readv/writev environment
-AC_HAVE_HEADERS(sys/uio.h)
-AC_CHECK_FUNCS(readv writev)
-AC_MSG_CHECKING(whether readv(2)/writev(2) facility has to be faked)
-AC_IFALLYES(func:readv func:writev header:sys/uio.h, PTH_FAKE_RWV=0, PTH_FAKE_RWV=1)
-if test .$PTH_FAKE_RWV = .1; then
-    msg="yes"
-else
-    msg="no"
-fi
-AC_SUBST(PTH_FAKE_RWV)
-
-#   whether to build against Sfio library
-
-PTH_EXT_SFIO=0
-AC_CHECK_EXTLIB(Sfio, sfio, sfdisc, sfio.h, PTH_EXT_SFIO=1)
-AC_SUBST(PTH_EXT_SFIO)
-
-#
-#  MACHINE CONTEXT IMPLEMENTATION
-#
-
-AC_MSG_PART(Machine Context Implementation)
-
-#
-#  1. determine possibilities
-#
-
-#  check for MCSC method
-
-AC_CHECK_HEADER(ucontext.h,,, [#include <sys/types.h>])
-AC_CHECK_FUNCS(makecontext swapcontext getcontext setcontext)
-AC_CHECK_MCSC(mcsc=yes, mcsc=no)
-
-#  check for SJLJ method
-
-AC_CHECK_HEADERS(signal.h)
-AC_CHECK_FUNCS(sigsetjmp siglongjmp setjmp longjmp _setjmp _longjmp)
-AC_CHECK_FUNCS(sigaltstack sigstack)
-AC_CHECK_SJLJ(sjlj=yes, sjlj=no, sjlj_type)
-
-#
-#  2. make a general decision
-#
-
-if test ".$mcsc" = .yes; then
-    mctx_mth=mcsc
-    mctx_dsp=sc
-    mctx_stk=mc
-elif test ".$sjlj" = .yes; then
-    mctx_mth=sjlj
-    mctx_dsp=$sjlj_type
-    mctx_stk=none
-    AC_IFALLYES(func:sigstack,    mctx_stk=ss)
-    AC_IFALLYES(func:sigaltstack, mctx_stk=sas)
-    case $mctx_dsp in
-         sjljlx|sjljisc|sjljw32 ) mctx_stk=none
-    esac
-else
-    AC_ERROR([no appropriate mctx method found])
-fi
-
-#
-#  3. allow decision to be overridden by user
-#
-
-AC_ARG_WITH(mctx-mth,dnl
-[  --with-mctx-mth=ID      force mctx method      (mcsc,sjlj)],[
-case $withval in
-    mcsc|sjlj ) mctx_mth=$withval ;;
-    * ) AC_ERROR([invalid mctx method -- allowed: mcsc,sjlj]) ;;
-esac
-])dnl
-AC_ARG_WITH(mctx-dsp,dnl
-[  --with-mctx-dsp=ID      force mctx dispatching (sc,ssjlj,sjlj,usjlj,sjlje,...)],[
-case $withval in
-    sc|ssjlj|sjlj|usjlj|sjlje|sjljlx|sjljisc|sjljw32 ) mctx_dsp=$withval ;;
-    * ) AC_ERROR([invalid mctx dispatching -- allowed: sc,ssjlj,sjlj,usjlj,sjlje,sjljlx,sjljisc,sjljw32]) ;;
-esac
-])dnl
-AC_ARG_WITH(mctx-stk,dnl
-[  --with-mctx-stk=ID      force mctx stack setup (mc,ss,sas,...)],[
-case $withval in
-    mc|ss|sas|none ) mctx_stk=$withval ;;
-    * ) AC_ERROR([invalid mctx stack setup -- allowed: mc,ss,sas,none]) ;;
-esac
-])dnl
-
-#
-#  4. determine a few additional details
-#
-
-#  whether sigaltstack has to use stack_t instead of struct sigaltstack
-
-AC_CHECK_TYPEDEF(stack_t, signal.h)
-
-dnl #  direction of stack grow
-AC_CHECK_STACKGROWTH(PTH_STACKGROWTH)
-if test ".$ac_cv_check_stackgrowth" = ".down"; then
-    PTH_STACK_GROWTH="down"
-else
-    PTH_STACK_GROWTH="up"
-fi
-AC_SUBST(PTH_STACK_GROWTH)
-
-#  GNU Hurd has a broken libc which has stubs for sigaltstack and
-#  sigstack. When the following Autoconf checks for them are run, it
-#  even crashes the system. So we have to disable these checks here.
-
-case $PLATFORM in
-    *86-*-gnu0* ) ac_cv_func_sigaltstack="no"; ac_cv_func_sigstack="no" ;;
-esac
-
-#  how to specify stacks for the various functions
-
-AC_CHECK_STACKSETUP(makecontext, pth_skaddr_makecontext, pth_sksize_makecontext)
-AC_CHECK_STACKSETUP(sigaltstack, pth_skaddr_sigaltstack, pth_sksize_sigaltstack)
-AC_CHECK_STACKSETUP(sigstack,    pth_skaddr_sigstack,    pth_sksize_sigstack)
-
-#  how to implement POSIX compliant sig{set,long}jmp()
-
-case $mctx_dsp in [
-    ssjlj )
-        pth_sigjmpbuf='sigjmp_buf'
-        pth_sigsetjmp='sigsetjmp(buf,1)'
-        pth_siglongjmp='siglongjmp(buf,val)'
-        ;;
-    sjlj )
-        pth_sigjmpbuf='jmp_buf'
-        pth_sigsetjmp='setjmp(buf)'
-        pth_siglongjmp='longjmp(buf,val)'
-        ;;
-    usjlj )
-        pth_sigjmpbuf='jmp_buf'
-        pth_sigsetjmp='_setjmp(buf)'
-        pth_siglongjmp='_longjmp(buf,val)'
-        ;;
-    sjlje )
-        pth_sigjmpbuf='jmp_buf'
-        pth_sigsetjmp='setjmp(buf)'
-        pth_siglongjmp='longjmp(buf,val)'
-        ;;
-    sjljlx|sjljisc|sjljw32 )
-        pth_sigjmpbuf='sigjmp_buf'
-        pth_sigsetjmp='sigsetjmp(buf,1)'
-        pth_siglongjmp='siglongjmp(buf,val)'
-        ;;
-] esac
-pth_sigjmpbuf="#define pth_sigjmpbuf $pth_sigjmpbuf"
-pth_sigsetjmp="#define pth_sigsetjmp(buf) $pth_sigsetjmp"
-pth_siglongjmp="#define pth_siglongjmp(buf,val) $pth_siglongjmp"
-AC_SUBST(pth_sigjmpbuf)
-AC_SUBST(pth_sigsetjmp)
-AC_SUBST(pth_siglongjmp)
-
-#
-#  5. export the results
-#
-
-AC_DEFINE_UNQUOTED(PTH_MCTX_MTH_use, [PTH_MCTX_MTH_$mctx_mth], [define for machine context method])
-AC_DEFINE_UNQUOTED(PTH_MCTX_DSP_use, [PTH_MCTX_DSP_$mctx_dsp], [define for machine context dispatching])
-AC_DEFINE_UNQUOTED(PTH_MCTX_STK_use, [PTH_MCTX_STK_$mctx_stk], [define for machine context stack])
-
-PTH_MCTX_ID="$mctx_mth/$mctx_dsp/$mctx_stk"
-AC_MSG_RESULT([decision on mctx implementation... ${TB}${PTH_MCTX_ID}${TN}])
-AC_SUBST(PTH_MCTX_ID)
-
-#  check for the number of signals
-
-AC_CHECK_NSIG(PTH_NSIG)
-
-AC_CHECK_FUNCS(strerror)
-
-AC_SUBST(PTH_SYSCALL_HARD,"0")
-AC_SUBST(PTH_SYSCALL_SOFT,"0")
-
-################### end of pth ###################
 
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_FILES([Makefile libmin/Makefile libpim/Makefile libiso/Makefile
-                 libcor/Makefile liblog/Makefile libpth/Makefile
-		 libpth/pth/Makefile libpth/pth/pth.h
-		 libpth/pth/pthread.h libpth/pth/pth_acmac.h])
+                 libcor/Makefile liblog/Makefile])
 
 AC_MSG_NOTICE([libgm2 has been configured.])
 

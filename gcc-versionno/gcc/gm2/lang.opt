@@ -142,9 +142,9 @@ fmake-I=
 Modula-2 Joined
 build project path (internal)
 
-fno-pth
+fno-pthread
 Modula-2
-do not link against the pth library
+do not link against the pthread library
 
 fm2-plugin
 Modula-2

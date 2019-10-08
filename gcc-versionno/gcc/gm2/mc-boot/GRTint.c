@@ -1,4 +1,4 @@
-/* RTint.def provides users of the COROUTINES library with the.
+/* RTint.mod provides users of the COROUTINES library with the.
 
 Copyright (C) 2009-2019 Free Software Foundation, Inc.
 Contributed by Gaius Mulley <gaius.mulley@southwales.ac.uk>.
@@ -42,7 +42,7 @@ see <https://www.gnu.org/licenses/>.  */
 
 #   include "GM2RTS.h"
 #   include "GStorage.h"
-#   include "Gpth.h"
+#   include "GRTco.h"
 #   include "GCOROUTINES.h"
 #   include "Glibc.h"
 #   include "GAssertion.h"
@@ -783,23 +783,23 @@ void RTint_Listen (unsigned int untilInterrupt, RTint_DespatchVector call, unsig
           SubTime (&s, &m, t, b4);
           Selective_SetTime (t, s, m);
           if (Debugging)
-            libc_printf ((char *) "select waiting for %u.%u seconds\\n", 34, s, m);
+            libc_printf ((char *) "select waiting for %u.%6u seconds\\n", 35, s, m);
           do {
-            r = pth_pth_select (maxFd+1, (void *) i, (void *) o, NULL, (void *) t);
+            r = RTco_select (maxFd+1, (void *) i, (void *) o, NULL, (void *) t);
             if (r == -1)
               {
-                libc_perror ((char *) "pth_select", 10);
-                r = pth_pth_select (maxFd+1, (void *) i, (void *) o, NULL, NULL);
+                libc_perror ((char *) "select", 6);
+                r = RTco_select (maxFd+1, (void *) i, (void *) o, NULL, NULL);
                 if (r == -1)
-                  libc_perror ((char *) "pth_select timeout argument is faulty", 37);
-                r = pth_pth_select (maxFd+1, (void *) i, NULL, NULL, (void *) t);
+                  libc_perror ((char *) "select timeout argument is faulty", 33);
+                r = RTco_select (maxFd+1, (void *) i, NULL, NULL, (void *) t);
                 if (r == -1)
-                  libc_perror ((char *) "pth_select output fd argument is faulty", 39);
-                r = pth_pth_select (maxFd+1, NULL, (void *) o, NULL, (void *) t);
+                  libc_perror ((char *) "select output fd argument is faulty", 35);
+                r = RTco_select (maxFd+1, NULL, (void *) o, NULL, (void *) t);
                 if (r == -1)
-                  libc_perror ((char *) "pth_select input fd argument is faulty", 38);
+                  libc_perror ((char *) "select input fd argument is faulty", 34);
                 else
-                  libc_perror ((char *) "pth_select maxFD+1 argument is faulty", 37);
+                  libc_perror ((char *) "select maxFD+1 argument is faulty", 33);
               }
           } while (! (r != -1));
         }
