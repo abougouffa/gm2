@@ -36,6 +36,7 @@
 	* libgm2/liblog/Makefile.in:  regenerated.
 	* libgm2/libmin/Makefile.in:  regenerated.
 	* libgm2/libpim/Makefile.in:  regenerated.
+	* gm2/gm2-lang.c:  (OPT_fno_pth) replaced by OPT_fno_pthread.
 
 2019-10-02      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

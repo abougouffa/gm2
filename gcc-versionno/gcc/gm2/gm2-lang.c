@@ -356,7 +356,7 @@ gm2_langhook_handle_option (
     case OPT_fmake_I_:
       /* handled in the driver.  */
       return 1;
-    case OPT_fno_pth:
+    case OPT_fno_pthread:
       /* handled in the driver.  */
       return 1;
     case OPT_fno_m2_plugin:
