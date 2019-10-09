@@ -68,9 +68,9 @@ PROCEDURE Max (i, j: INTEGER) : INTEGER ;
 BEGIN
    IF i>j
    THEN
-      RETURN( i )
+      RETURN i
    ELSE
-      RETURN( j )
+      RETURN j
    END
 END Max ;
 
@@ -83,9 +83,9 @@ PROCEDURE Min (i, j: INTEGER) : INTEGER ;
 BEGIN
    IF i<j
    THEN
-      RETURN( i )
+      RETURN i
    ELSE
-      RETURN( j )
+      RETURN j
    END
 END Min ;
 
@@ -103,7 +103,7 @@ BEGIN
    WHILE v#NIL DO
       IF (v^.type=t) AND (v^.File=fd)
       THEN
-         RETURN( v )
+         RETURN v
       END ;
       v := v^.exists
    END ;
@@ -225,7 +225,7 @@ BEGIN
    WHILE (v#NIL) AND (v^.no#vec) DO
       v := v^.exists
    END ;
-   RETURN( v )
+   RETURN v
 END FindVectorNo ;
 
 
@@ -245,10 +245,10 @@ BEGIN
       END ;
       IF (v#NIL) AND (v^.no=vec)
       THEN
-         RETURN( v )
+         RETURN v
       END
    END ;
-   RETURN( NIL )
+   RETURN NIL
 END FindPendingVector ;
 
 
@@ -502,7 +502,7 @@ BEGIN
    Assert(am<Microseconds) ;
    GetTime(b, bs, bm) ;
    Assert(bm<Microseconds) ;
-   RETURN( (as>bs) OR ((as=bs) AND (am>=bm)) )
+   RETURN (as>bs) OR ((as=bs) AND (am>=bm))
 END IsGreaterEqual ;
 
 

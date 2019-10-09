@@ -203,7 +203,7 @@ BEGIN
    old := currentIntValue ;
    currentIntValue := to ;
    Listen (FALSE, IOTransferHandler, currentIntValue) ;
-   printf ("interrupt level is %d\n", currentIntValue);
+   (* printf ("interrupt level is %d\n", currentIntValue); *)
    RETURN old
 END TurnInterrupts ;
 

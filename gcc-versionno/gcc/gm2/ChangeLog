@@ -73,7 +73,10 @@
 	* gm2-gcc/m2linemap.h:  (GetLocationRange) added prototype.
 	* gm2/m2.flex:  (GET_LOCATION) added extra parameter
           to determine the end column.  (updatepos) rewrite
-	  calls to GET_LOCATION to contain the end column.
+          calls to GET_LOCATION to contain the end column.
+	* gm2/gm2-libs/RTint.mod:  tidied up formatting.
+	* gm2/gm2-libs-coroutines/SYSTEM.mod:  removed debugging
+	  printf.
 
 2019-10-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
