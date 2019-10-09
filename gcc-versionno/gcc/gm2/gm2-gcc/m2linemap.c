@@ -77,7 +77,7 @@ m2linemap_StartLine (unsigned int linenumber, unsigned int linesize)
   linemap_line_start (line_table, linenumber, linesize);
 }
 
-/* GetLocationColumn - returns a location_t based on the current line
+/* GetLocationColumn, returns a location_t based on the current line
    number and column.  */
 
 EXTERN
@@ -85,6 +85,21 @@ location_t
 m2linemap_GetLocationColumn (unsigned int column)
 {
   return linemap_position_for_column (line_table, column);
+}
+
+/* GetLocationRange, returns a location based on the start column
+   and end column.  */
+
+EXTERN
+location_t
+m2linemap_GetLocationRange (unsigned int start, unsigned int end)
+{
+  location_t caret = m2linemap_GetLocationColumn (start);
+
+  source_range where;
+  where.m_start = linemap_position_for_column (line_table, start);
+  where.m_finish = linemap_position_for_column (line_table, end);
+  return make_location (caret, where);
 }
 
 /* GetLineNoFromLocation - returns the lineno given a location.  */

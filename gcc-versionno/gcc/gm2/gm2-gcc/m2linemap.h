@@ -43,6 +43,7 @@ EXTERN void m2linemap_EndFile (void);
 EXTERN void m2linemap_StartLine (unsigned int linenumber,
                                  unsigned int linesize);
 EXTERN location_t m2linemap_GetLocationColumn (unsigned int column);
+EXTERN location_t m2linemap_GetLocationRange (unsigned int start, unsigned int end);
 
 EXTERN location_t m2linemap_UnknownLocation (void);
 EXTERN location_t m2linemap_BuiltinsLocation (void);

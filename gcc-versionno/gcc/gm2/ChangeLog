@@ -65,7 +65,15 @@
 	* testsuite/lib/gm2.exp:  removed libpth/pth from the list
           of libraries to be included into the various paths.
 	* testsuite/gm2/pim/options/optimize/run/pass/gm2.exp:
-	  added library order.
+          added library order.
+	* gm2/gm2-gcc/m2linemap.c:  (GetLocationRange) New
+          function.  (GetLocationColumn) reworded the comment.
+	* gm2/gm2-gcc/m2linemap.def: (GetLocationRange) added
+          definition.
+	* gm2-gcc/m2linemap.h:  (GetLocationRange) added prototype.
+	* gm2/m2.flex:  (GET_LOCATION) added extra parameter
+          to determine the end column.  (updatepos) rewrite
+	  calls to GET_LOCATION to contain the end column.
 
 2019-10-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
