@@ -1,3 +1,70 @@
+2019-10-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/gm2-lang.c:  removed the fall through clauses in
+          case statements.
+	* gm2/gm2-libs-iso/COROUTINES.mod:  corrected failure test
+          condition.
+	* testsuite/gm2/calling-c/datatypes/unbounded/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/complex/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/coroutines/pim/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/examples/callingC/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/exceptions/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/extensions/run/fail/gm2.exp:
+          added library order.
+	* testsuite/gm2/extensions/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/imports/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/iso/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/isocoroutines/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/pim/no-options/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/pim/run/fail/gm2.exp:
+          added library order.
+	* testsuite/gm2/pim/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/pimlib/base/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/pimlib/logitech/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/pimlib/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/quads/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/sets/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/switches/check-all/run/fail/gm2.exp:
+          added library order.
+	* testsuite/gm2/switches/check-all/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/switches/iso/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/switches/none/run/pass/gm2-none.exp:
+          added library order.
+	* testsuite/gm2/switches/optimization/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/switches/pic/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/switches/pim2/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/switches/pim3/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/switches/pim4/run/pass/gm2.exp:
+          added library order.
+	* testsuite/gm2/switches/whole-program/pass/run/gm2.exp:
+          added library order.
+	* testsuite/gm2/types/run/pass/gm2.exp:
+          added library order.
+	* testsuite/lib/gm2.exp:  removed libpth/pth from the list
+	  of libraries to be included into the various paths.
+
 2019-10-08      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/Make-lang.in:  (RTco.c) added to GM2-LIBS-ISO-C.

@@ -322,6 +322,7 @@ RTco_init (void)
       signalSem (&lock) ;
       initialized = TRUE;
     }
+  return 0;
 }
 
 

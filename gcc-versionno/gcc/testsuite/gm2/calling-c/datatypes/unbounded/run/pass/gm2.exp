@@ -29,7 +29,8 @@ gm2_init_pim "${srcdir}/gm2/calling-c/datatypes/unbounded/run/pass"
 
 set XGCC [lookfor_file $rootme xgcc];
 
-gm2_link_with "c.o"
+gm2_link_with "c.o -lgm2 -liso -lpthread"
+
 
 set output [exec rm -f c.o]
 set output [exec ${XGCC} -B[file dirname $rootme]/gcc -g -c $srcdir/gm2/calling-c/datatypes/unbounded/run/pass/c.c -o c.o]

@@ -25,8 +25,7 @@ load_lib gm2-torture.exp
 set gm2src ${srcdir}/../gm2
 
 gm2_init_pim "${srcdir}/gm2/imports/run/pass"
-
-gm2_link_with "-lgm2"
+gm2_link_with "-lgm2 -liso -lpthread"
 
 foreach testcase [lsort [glob -nocomplain $srcdir/$subdir/*.mod]] {
     set output [exec ../../xgm2 -B../../ -g -c "-I${gccpath}/libgm2/libpim:${gm2src}/gm2-libs:${srcdir}/gm2/imports/run/pass" -fpim ${srcdir}/gm2/imports/run/pass/c.mod]

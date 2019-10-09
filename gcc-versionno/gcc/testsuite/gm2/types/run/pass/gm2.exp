@@ -25,8 +25,7 @@ load_lib gm2-torture.exp
 set gm2src ${srcdir}/../gm2
 
 gm2_init_pim "${srcdir}/gm2/types/run/pass"
-
-gm2_link_with d.o
+gm2_link_with "d.o -lpim -liso -lpthread"
 
 set XGCC [lookfor_file $rootme xgcc];
 

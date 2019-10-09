@@ -899,10 +899,10 @@ gm2_mark_addressable (tree exp)
     switch (TREE_CODE (x))
       {
       case COMPONENT_REF:
-        if (DECL_PACKED (TREE_OPERAND (x, 1)))
-          return false;
-
-      /* ... fall through ...  */
+	if (DECL_PACKED (TREE_OPERAND (x, 1)))
+	  return false;
+	x = TREE_OPERAND (x, 0);
+	break;
 
       case ADDR_EXPR:
       case ARRAY_REF:
@@ -913,22 +913,19 @@ gm2_mark_addressable (tree exp)
 
       case COMPOUND_LITERAL_EXPR:
       case CONSTRUCTOR:
-        TREE_ADDRESSABLE (x) = 1;
-        return true;
-
       case STRING_CST:
       case VAR_DECL:
       case CONST_DECL:
       case PARM_DECL:
       case RESULT_DECL:
-      /* drops in.  */
       case FUNCTION_DECL:
         TREE_ADDRESSABLE (x) = 1;
-      /* drops out.  */
+        return true;
       default:
         return true;
       }
   /* never reach here.  */
+  gcc_unreachable ();
 }
 
 /* Return an integer type with BITS bits of precision, that is

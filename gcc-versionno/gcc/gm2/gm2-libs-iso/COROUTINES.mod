@@ -187,7 +187,7 @@ PROCEDURE localInit ;
 BEGIN
    IF NOT initCo
    THEN
-      IF init () = 0
+      IF init () # 0
       THEN
          Halt (__FILE__, __LINE__, __FUNCTION__,
                'failed to initialize RTco')
