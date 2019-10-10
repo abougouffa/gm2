@@ -1,3 +1,8 @@
+2019-10-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/m2.flex:  use time_t rather than long as the
+          parameter type casted to 0.
+
 2019-10-09      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-lang.c:  removed the fall through clauses in

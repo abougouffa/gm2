@@ -354,10 +354,10 @@ static void handleColumn (void)
 
 static void handleDate (void)
 {
-  time_t  clock = time((long *)0);
-  char   *sdate = ctime(&clock);
-  char   *s     = (char *)alloca(strlen(sdate)+2+1);
-  char   *p     = index(sdate, '\n');
+  time_t  clock = time ((time_t *)0);
+  char   *sdate = ctime (&clock);
+  char   *s     = (char *) alloca (strlen (sdate) + 2 + 1);
+  char   *p     = index (sdate, '\n');
 
   if (p != NULL) {
     *p = (char) 0;
@@ -365,7 +365,7 @@ static void handleDate (void)
   strcpy(s, "\"");
   strcat(s, sdate);
   strcat(s, "\"");
-  M2LexBuf_AddTokCharStar(M2Reserved_stringtok, s);
+  M2LexBuf_AddTokCharStar (M2Reserved_stringtok, s);
 }
 
 /*
