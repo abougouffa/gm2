@@ -14,7 +14,12 @@
 	* gm2/m2.flex:  change currentLine->column every token.
           Correct off by one errors in token positioning.
 	* gm2/gm2-gcc/m2expr.c:  corrected spelling mistake in
-	  error message.
+          error message.
+	* testsuite/gm2/extensions/run/pass/column.mod:
+          changed test as __COLUMN__ now generates a constant literal
+          based on the left most _.
+	* gm2/gm2.tex:	updated the documentation reflecting on the
+	  change to __COLUMN__ behaviour.
 
 2019-10-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

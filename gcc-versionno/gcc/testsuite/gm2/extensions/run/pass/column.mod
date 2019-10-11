@@ -20,19 +20,19 @@ MODULE column ;
 FROM libc IMPORT exit ;
 
 BEGIN
-   IF __COLUMN__#3
+   IF __COLUMN__#7
    THEN
       exit(1)
    END ;
    IF TRUE
    THEN
-      IF __COLUMN__#6
+      IF __COLUMN__#10
       THEN
          exit(2)
       END
    END ;
    IF
-   __COLUMN__#3
+   __COLUMN__#4
    THEN
       exit(3)
    END

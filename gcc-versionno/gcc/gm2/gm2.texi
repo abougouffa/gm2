@@ -1721,8 +1721,10 @@ anywhere    __DATE__                Constant string compatible
                                     "Thu Apr 29 10:07:16 BST 2004"
 
 anywhere   __COLUMN__               Gives a contant literal number
-                                    determining the column of the
-                                    first token on the line.
+                                    determining the left hand column
+                                    where the first _ appears in
+                                    __COLUMN__.  The left most column
+                                    is 1.
 
 @end example
 
