@@ -1451,12 +1451,12 @@ m2expr_Build4LogicalOr (location_t location, tree op1, tree op2, tree op3,
 /* checkWholeMultOverflow - check to see whether i * j will overflow
    an integer.
 
-PROCEDURE smult (i, j: INTEGER) ;
+PROCEDURE smult (lhs, rhs: INTEGER) ;
 BEGIN
-   IF ((i > 0) AND (j > 0) AND (i > max DIV j)) OR
-      ((i > 0) AND (j < 0) AND (j < min DIV i)) OR
-      ((i < 0) AND (j > 0) AND (i < min DIV j)) OR
-      ((i < 0) AND (j < 0) AND (i < min DIV j))
+   IF ((lhs > 0) AND (rhs > 0) AND (lhs > max DIV rhs)) OR
+      ((lhs > 0) AND (rhs < 0) AND (rhs < min DIV lhs)) OR
+      ((lhs < 0) AND (rhs > 0) AND (lhs < min DIV rhs)) OR
+      ((lhs < 0) AND (rhs < 0) AND (lhs < max DIV rhs))
    THEN
       error ('signed multiplication overflow')
    END
@@ -1465,32 +1465,34 @@ END smult ;
  if ((c1 && c3 && c4)
    || (c1 && c5 && c6)
    || (c2 && c3 && c7)
-   || (c2 && c5 && c7))
+   || (c2 && c5 && c8))
    error ('signed subtraction overflow').  */
 
 static tree
-testWholeMultOverflow (location_t location, tree i, tree j, tree lowest,
-                        tree min, tree max)
+testWholeMultOverflow (location_t location, tree lhs, tree rhs,
+		       tree lowest, tree min, tree max)
 {
-  tree c1 = m2expr_BuildGreaterThanZero (location, i, lowest, min, max);
-  tree c2 = m2expr_BuildLessThanZero (location, i, lowest, min, max);
+  tree c1 = m2expr_BuildGreaterThanZero (location, lhs, lowest, min, max);
+  tree c2 = m2expr_BuildLessThanZero (location, lhs, lowest, min, max);
 
-  tree c3 = m2expr_BuildGreaterThanZero (location, j, lowest, min, max);
+  tree c3 = m2expr_BuildGreaterThanZero (location, rhs, lowest, min, max);
   tree c4 = m2expr_BuildGreaterThan (
-      location, i, m2expr_BuildDivTrunc (location, max, j, FALSE));
+      location, lhs, m2expr_BuildDivTrunc (location, max, rhs, FALSE));
 
-  tree c5 = m2expr_BuildLessThanZero (location, j, lowest, min, max);
+  tree c5 = m2expr_BuildLessThanZero (location, rhs, lowest, min, max);
   tree c6 = m2expr_BuildLessThan (
-      location, j, m2expr_BuildDivTrunc (location, min, i, FALSE));
+      location, rhs, m2expr_BuildDivTrunc (location, min, lhs, FALSE));
   tree c7 = m2expr_BuildLessThan (
-      location, i, m2expr_BuildDivTrunc (location, min, j, FALSE));
+      location, lhs, m2expr_BuildDivTrunc (location, min, rhs, FALSE));
+  tree c8 = m2expr_BuildLessThan (
+      location, lhs, m2expr_BuildDivTrunc (location, max, rhs, FALSE));
 
-  tree c8 = m2expr_Build3TruthAndIf (location, c1, c3, c4);
-  tree c9 = m2expr_Build3TruthAndIf (location, c1, c5, c6);
-  tree c10 = m2expr_Build3TruthAndIf (location, c2, c3, c7);
-  tree c11 = m2expr_Build3TruthAndIf (location, c2, c5, c7);
+  tree c9 = m2expr_Build3TruthAndIf (location, c1, c3, c4);
+  tree c10 = m2expr_Build3TruthAndIf (location, c1, c5, c6);
+  tree c11 = m2expr_Build3TruthAndIf (location, c2, c3, c7);
+  tree c12 = m2expr_Build3TruthAndIf (location, c2, c5, c8);
 
-  tree condition = m2expr_Build4LogicalOr (location, c8, c9, c10, c11);
+  tree condition = m2expr_Build4LogicalOr (location, c9, c10, c11, c12);
   return condition;
 }
 

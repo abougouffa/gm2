@@ -527,13 +527,13 @@ static void updatepos (void)
   seenModuleStart      = FALSE;
   currentLine->nextpos = currentLine->tokenpos+yyleng;
   currentLine->toklen  = yyleng;
-  if (currentLine->column == 0)
-    currentLine->column = currentLine->tokenpos;
+  /* if (currentLine->column == 0) */
+  currentLine->column = currentLine->tokenpos+1;
   currentLine->location =
     M2Options_OverrideLocation (GET_LOCATION (currentLine->column,
-                                              currentLine->column+currentLine->toklen));
+                                              currentLine->column+currentLine->toklen-1));
   assert_location (GET_LOCATION (currentLine->column,
-                                 currentLine->column+currentLine->toklen));
+                                 currentLine->column+currentLine->toklen-1));
 }
 
 /*

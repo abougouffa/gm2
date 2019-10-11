@@ -35,6 +35,7 @@ FROM M2Debug IMPORT Assert ;
 FROM NameKey IMPORT makekey ;
 FROM m2linemap IMPORT location_t ;
 FROM M2Emit IMPORT UnknownLocation, BuiltinsLocation ;
+FROM M2Error IMPORT WarnStringAt ;
 
 CONST
    MaxBucketSize      = 100 ;
@@ -971,13 +972,21 @@ END PrintTokenNo ;
 *)
 
 PROCEDURE AddTok (t: toktype) ;
+VAR
+   s: String ;
 BEGIN
    IF NOT ((t=eoftok) AND IsLastTokenEof())
    THEN
       AddTokToList(t, NulName, 0,
                    m2flex.GetLineNo(), m2flex.GetColumnNo(), CurrentSource,
                    m2flex.GetLocation()) ;
-      CurrentUsed := TRUE
+      CurrentUsed := TRUE ;
+      IF Debugging
+      THEN
+         (* display each token as a warning.  *)
+         s := InitStringCharStar (KeyToCharStar (GetTokenName (GetTokenNo ()))) ;
+         WarnStringAt (s, GetTokenNo ())
+      END
    END
 END AddTok ;
 

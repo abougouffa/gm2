@@ -422,7 +422,9 @@ BEGIN
    GetQuad(q, op, op1, op2, op3) ;
    IF op=StatementNoteOp
    THEN
-      FoldStatementNote (q, op1, op2, op3)  (* will change CurrentQuadToken.  *)
+      FoldStatementNote (q, op1, op2, op3)  (* will change CurrentQuadToken using op3  *)
+   ELSE
+      CurrentQuadToken := QuadToTokenNo (q)
    END ;
    location := TokenToLocation (CurrentQuadToken) ;
    CheckReferenced(q, op) ;
@@ -3413,26 +3415,26 @@ END CodeBinarySet ;
 PROCEDURE BinaryOperands (quad: CARDINAL; l, r: CARDINAL) : BOOLEAN ;
 VAR
    tl, tr: CARDINAL ;
-   ok    : BOOLEAN ;
+   result: BOOLEAN ;
 BEGIN
-   ok := TRUE ;
+   result := TRUE ;
    tl := SkipType(GetType(l)) ;
    tr := SkipType(GetType(r)) ;
    IF (Word=tl) OR IsWordN(tl) OR (Byte=tl) OR (Loc=tl)
    THEN
       MetaErrorT1 (CurrentQuadToken, 'operand of type {%1Ets} is not allowed in a binary expression', l) ;
-      ok := FALSE
+      result := FALSE
    END ;
    IF (Word=tr) OR IsWordN(tr) OR (Byte=tl) OR (Loc=tl)
    THEN
       MetaErrorT1 (CurrentQuadToken, 'operand of type {%1Ets} is not allowed in a binary expression', r) ;
-      ok := FALSE
+      result := FALSE
    END ;
-   IF NOT ok
+   IF NOT result
    THEN
       SubQuad(quad)   (* we do not want multiple copies of the same error *)
    END ;
-   RETURN( ok )
+   RETURN result
 END BinaryOperands ;
 
 
@@ -3615,7 +3617,7 @@ PROCEDURE CodeMult (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    IF BinaryOperands(quad, op2, op3)
    THEN
-      CodeBinary(BuildMult, quad, op1, op2, op3)
+      CodeBinary (BuildMult, quad, op1, op2, op3)
    END
 END CodeMult ;
 

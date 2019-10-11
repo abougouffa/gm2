@@ -247,6 +247,7 @@ CONST
    DebugStackOn = TRUE ;
    DebugVarients = FALSE ;
    BreakAtQuad = 266 ;
+   DebugTokPos = FALSE ;
 
 TYPE
    ConstructorFrame = POINTER TO constructorFrame ;
@@ -11225,9 +11226,16 @@ BEGIN
                BuildRange(InitTypesExpressionCheck(TokPos, e1, e2))
             END
          END ;
-         t := MakeTemporaryFromExpressions(e1, e2, GetTokenNo(),
+         t := MakeTemporaryFromExpressions(e1, e2, TokPos,
                                            AreConstant(IsConst(e1) AND IsConst(e2))) ;
          CheckDivModRem(TokPos, NewTok, t, e1) ;
+
+         IF DebugTokPos
+         THEN
+            s := InitStringCharStar (KeyToCharStar (GetTokenName (TokPos))) ;
+            WarnStringAt (s, TokPos)
+         END ;
+
          GenQuadO (TokPos, MakeOp(NewTok), t, e2, e1, checkOverflow)
       END ;
       PushTF(t, GetSType(t))
