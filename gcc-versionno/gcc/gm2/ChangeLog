@@ -12,7 +12,9 @@
           renamed parameters i and j to lhs and rhs respectively.
           c8 added and pseudo code corrected.
 	* gm2/m2.flex:  change currentLine->column every token.
-	  Correct off by one errors in token positioning.
+          Correct off by one errors in token positioning.
+	* gm2/gm2-gcc/m2expr.c:  corrected spelling mistake in
+	  error message.
 
 2019-10-10      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

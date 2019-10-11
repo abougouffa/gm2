@@ -1356,7 +1356,7 @@ checkWholeAddOverflow (location_t location, tree i, tree j, tree lowest,
       = m2expr_FoldAndStrip (m2expr_BuildTruthOrIf (location, lhs_or, rhs_or));
   tree result = M2Range_BuildIfCallWholeHandlerLoc (location, condition,
 					       get_current_function_name (),
-               "whole value additition will cause a range overflow");
+               "whole value addition will cause a range overflow");
   return result;
 }
 
