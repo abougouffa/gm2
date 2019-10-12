@@ -71,7 +71,7 @@ FROM M2Reserved IMPORT tokToTok, toktype,
                        AndTok, AmbersandTok, PeriodPeriodTok, ByTok ;
 
 FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing, Annotate,
-                    PushTtok,
+                    PushTtok, PushTFtok, PopTtok,
                     BuildModuleStart,
                     StartBuildDefFile, StartBuildModFile,
                     EndBuildFile,
@@ -620,12 +620,12 @@ Number := Integer | Real =:
 --  IsAutoPushOff then we just consume tokens.
 --
 
-Qualident :=                                                               % VAR name     : Name ;
-                                                                                 init, ip1: CARDINAL ; %
+Qualident :=                                                               % VAR name          : Name ;
+                                                                                 init, ip1, tok: CARDINAL ; %
              Ident
                                                                            % IF IsAutoPushOn()
                                                                              THEN
-                                                                                PopT(name) ;
+                                                                                PopTtok(name, tok) ;
                                                                                 init := RequestSym(name) ;
                                                                                 WHILE IsDefImp(init) OR IsModule(init) DO
                                                                                    Expect(periodtok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
@@ -640,9 +640,9 @@ Qualident :=                                                               % VAR
                                                                                 END ;
                                                                                 IF IsProcedure(init) OR IsProcType(init)
                                                                                 THEN
-                                                                                   PushT(init)
+                                                                                   PushTtok(init, tok)
                                                                                 ELSE
-                                                                                   PushTF(init, GetType(init))
+                                                                                   PushTFtok(init, GetType(init), tok) ;
                                                                                 END
                                                                              ELSE %
              { "." Ident }                                                 % END %

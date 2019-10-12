@@ -130,7 +130,6 @@ VAR
                                  (* in a variant record?  True for ISO and   *)
                                  (* false for PIM.                           *)
    Quiet,                        (* -fquiet option specified.                *)
-   Alignment,                    (* should parameters and data be aligned?   *)
    LineDirectives,               (* should compiler understand preprocessor  *)
                                  (* # linenumber "filename" markers?         *)
    CPreProcessor,                (* must we run the cpp on the source?       *)

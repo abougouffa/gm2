@@ -30,7 +30,7 @@ FROM M2DebugStack IMPORT DebugStack ;
 
 FROM M2MetaError IMPORT MetaError0, MetaError1, MetaError2, MetaError3,
                         MetaErrors1, MetaErrors2, MetaErrors3,
-                        MetaErrorT1,
+                        MetaErrorT1, MetaErrorT2,
                         MetaErrorStringT0, MetaErrorStringT1,
                         MetaErrorString1, MetaErrorString2,
                         MetaErrorN1, MetaErrorN2 ;
@@ -4370,6 +4370,7 @@ PROCEDURE BuildRealFuncProcCall (IsFunc, IsForC: BOOLEAN) ;
 VAR
    ForcedFunc,
    ParamConstant : BOOLEAN ;
+   tokno,
    NoOfParameters,
    i, pi,
    ReturnVar,
@@ -4380,6 +4381,7 @@ BEGIN
    PopT(NoOfParameters) ;
    PushT(NoOfParameters) ;  (* Restore stack to original state.  *)
    ProcSym := OperandT(NoOfParameters+2) ;
+   tokno := OperandTtok(NoOfParameters+2) ;
    ProcSym := SkipConst(ProcSym) ;
    ForcedFunc := FALSE ;
    IF IsVar(ProcSym)
@@ -4455,7 +4457,7 @@ BEGIN
          GenQuad(OptParamOp, NoOfParam(Proc), Proc, Proc)
       END
    END ;
-   GenQuad(CallOp, NulSym, NulSym, ProcSym) ;
+   GenQuadO (tokno, CallOp, NulSym, NulSym, ProcSym, TRUE) ;
    PopN(NoOfParameters+1) ; (* Destroy arguments and procedure call *)
    IF IsFunc
    THEN
@@ -5351,6 +5353,7 @@ END ConvertStringToC ;
 
 PROCEDURE ManipulateParameters (IsForC: BOOLEAN) ;
 VAR
+   tokpos,
    np           : CARDINAL ;
    s            : String ;
    ArraySym,
@@ -5365,6 +5368,7 @@ VAR
 BEGIN
    PopT(NoOfParameters) ;
    ProcSym := OperandT(NoOfParameters+1) ;
+   tokpos := OperandTtok(NoOfParameters+1) ;
    IF IsVar(ProcSym)
    THEN
       (* Procedure Variable ? *)
@@ -5381,7 +5385,7 @@ BEGIN
          np := NoOfParam(Proc) ;
          ErrorStringAt2(Sprintf3(Mark(InitString('attempting to pass (%d) parameters to procedure (%s) which was declared with varargs but contains at least (%d) parameters')),
                                  NoOfParameters, s, np),
-                        GetTokenNo(), GetTokenNo())
+                        tokpos, GetDeclaredMod(ProcSym))
       END
    ELSIF UsesOptArg(Proc)
    THEN
@@ -5391,7 +5395,7 @@ BEGIN
          np := NoOfParam(Proc) ;
          ErrorStringAt2(Sprintf3(Mark(InitString('attempting to pass (%d) parameters to procedure (%s) which was declared with an optarg with a maximum of (%d) parameters')),
                                  NoOfParameters, s, np),
-                        GetTokenNo(), GetTokenNo())
+                        tokpos, GetDeclaredMod(ProcSym))
       END
    ELSIF NoOfParameters#NoOfParam(Proc)
    THEN
@@ -5399,7 +5403,7 @@ BEGIN
       np := NoOfParam(Proc) ;
       ErrorStringAt2(Sprintf3(Mark(InitString('attempting to pass (%d) parameters to procedure (%s) which was declared with (%d) parameters')),
                               NoOfParameters, s, np),
-                     GetTokenNo(), GetTokenNo())
+                     tokpos, GetDeclaredMod(ProcSym))
    END ;
    i := 1 ;
    pi := NoOfParameters ;
@@ -5439,7 +5443,9 @@ BEGIN
                f^.TrueExit := t
             END
          ELSE
-            MetaError2 ('attempting to pass too many parameters to procedure {%1a}, the {%2N} parameter does not exist', Proc, i)
+            MetaErrorT2 (tokpos,
+                         'attempting to pass too many parameters to procedure {%1a}, the {%2N} parameter does not exist',
+                         Proc, i)
          END
       ELSIF IsForC AND IsUnboundedParam(Proc, i) AND
             (GetSType(OperandT(pi))#NulSym) AND IsArray(GetDType(OperandT(pi)))
@@ -9002,7 +9008,6 @@ END BuildSizeFunction ;
 PROCEDURE BuildTSizeFunction ;
 VAR
    NoOfParam: CARDINAL ;
-   ti, tj,
    ProcSym,
    Record,
    ReturnVar: CARDINAL ;
@@ -9067,12 +9072,10 @@ END BuildTSizeFunction ;
 
 PROCEDURE BuildTBitSizeFunction ;
 VAR
-   t, f        : CARDINAL ;
-   i, NoOfParam: CARDINAL ;
-   ti, tj,
+   NoOfParam: CARDINAL ;
    ProcSym,
    Record,
-   ReturnVar   : CARDINAL ;
+   ReturnVar: CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+1) ;
@@ -10351,13 +10354,14 @@ END PopWith ;
 PROCEDURE CheckWithReference ;
 VAR
    f        : WithFrame ;
+   tokno,
    i, n, rw,
    Sym, Type: CARDINAL ;
 BEGIN
    n := NoOfItemsInStackAddress(WithStack) ;
    IF (n>0) AND (NOT SuppressWith)
    THEN
-      PopTFrw(Sym, Type, rw) ;
+      PopTFrwtok(Sym, Type, rw, tokno) ;
       (* inner WITH always has precidence *)
       i := 1 ;  (* top of stack *)
       WHILE i<=n DO
@@ -10381,7 +10385,7 @@ BEGIN
             END
          END
       END ;
-      PushTFrw(Sym, Type, rw)
+      PushTFrwtok(Sym, Type, rw, tokno)
    END
 END CheckWithReference ;
 
@@ -11152,8 +11156,7 @@ VAR
    t1, f1,
    t2, f2,
    e1, e2,
-   t,
-   ta    : CARDINAL ;
+   t     : CARDINAL ;
 BEGIN
    Tok := OperandT(2) ;
    IF Tok=OrTok
@@ -13009,6 +13012,47 @@ BEGIN
    END ;
    PushAddress(BoolStack, f)
 END PushTFADrw ;
+
+
+(*
+   PopTFrwtok - Pop a True and False number from the True/False stack.
+                True and False are assumed to contain Symbols or Ident etc.
+*)
+
+PROCEDURE PopTFrwtok (VAR True, False, rw: WORD; VAR tokno: CARDINAL) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   f := PopAddress(BoolStack) ;
+   WITH f^ DO
+      True := TrueExit ;
+      False := FalseExit ;
+      Assert(NOT BooleanOp) ;
+      rw := ReadWrite ;
+      tokno := tokenno
+   END ;
+   DISPOSE(f)
+END PopTFrwtok ;
+
+
+(*
+   PushTFrwtok - Push an item onto the stack in the T (true) position,
+                 it is assummed to be a token and its token location is recorded.
+*)
+
+PROCEDURE PushTFrwtok (True, False, rw: WORD; tokno: CARDINAL) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   f := newBoolFrame () ;
+   WITH f^ DO
+      TrueExit := True ;
+      FalseExit := False ;
+      ReadWrite := rw ;
+      tokenno := tokno
+   END ;
+   PushAddress(BoolStack, f)
+END PushTFrwtok ;
 
 
 (*

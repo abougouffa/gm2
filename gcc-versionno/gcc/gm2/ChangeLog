@@ -1,3 +1,19 @@
+2019-10-12      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	* gm2/bnf/m2-3.bnf:  Qualident push the token position
+          to the quad stack.
+	* gm2/gm2-compiler/M2Options.def:  (Alignment)
+          removed unused variable
+	* gm2/gm2-compiler/M2Quads.mod:  (MetaErrorT2) imported.
+          (BuildRealFuncProcCall) use tokenno to position the call.
+          (ManipulateParameters) use the parameter token pos
+          from the stack to position error messages.
+	  (BuildTSizeFunction)  removed unused variables.
+	  (BuildTBitSizeFunction)  removed unused variables.
+          (CheckWithReference)  preserve token value on stack.
+          (PopTFrwtok)  New procedure.  (PushTFrwtok)  New
+	  procedure.
+
 2019-10-11      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeStatement)
