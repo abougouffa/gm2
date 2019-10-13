@@ -54,7 +54,8 @@ see <https://www.gnu.org/licenses/>.  *)
 IMPLEMENTATION MODULE P3Build ;
 
 FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken,
-                     InsertTokenAndRewind, GetTokenNo, PrintTokenNo ;
+                     InsertTokenAndRewind, GetTokenNo, PrintTokenNo,
+                     UnknownTokenNo ;
 
 FROM M2Error IMPORT ErrorStringAt, WriteFormat1, WriteFormat2 ;
 FROM NameKey IMPORT NulName, Name, makekey ;
@@ -71,7 +72,7 @@ FROM M2Reserved IMPORT tokToTok, toktype,
                        AndTok, AmbersandTok, PeriodPeriodTok, ByTok ;
 
 FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing, Annotate,
-                    PushTtok, PushTFtok, PopTtok,
+                    PushTtok, PushTFtok, PopTtok, PopTFtok, OperandTok,
                     BuildModuleStart,
                     StartBuildDefFile, StartBuildModFile,
                     EndBuildFile,
@@ -407,7 +408,7 @@ PROCEDURE Ident (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop
 BEGIN
    IF IsAutoPushOn()
    THEN
-      PushTF(makekey(currentstring), identtok)
+      PushTFtok(makekey(currentstring), identtok, GetTokenNo())
    END ;
    Expect(identtok, stopset0, stopset1, stopset2)
 END Ident ;
@@ -421,7 +422,7 @@ PROCEDURE string (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfSto
 BEGIN
    IF IsAutoPushOn()
    THEN
-      PushTF(makekey(currentstring), stringtok) ;
+      PushTFtok(makekey(currentstring), stringtok, GetTokenNo()) ;
       BuildString
    END ;
    Expect(stringtok, stopset0, stopset1, stopset2)
@@ -436,7 +437,7 @@ PROCEDURE Integer (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfSt
 BEGIN
    IF IsAutoPushOn()
    THEN
-      PushTF(makekey(currentstring), integertok) ;
+      PushTFtok(makekey(currentstring), integertok, GetTokenNo()) ;
       BuildNumber
    END ;
    Expect(integertok, stopset0, stopset1, stopset2)
@@ -451,7 +452,7 @@ PROCEDURE Real (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2
 BEGIN
    IF IsAutoPushOn()
    THEN
-      PushTF(makekey(currentstring), realtok) ;
+      PushTFtok(makekey(currentstring), realtok, GetTokenNo()) ;
       BuildNumber
    END ;
    Expect(realtok, stopset0, stopset1, stopset2)
@@ -1008,12 +1009,11 @@ VariableDeclaration := VarIdentList ":"
 Designator := Qualident                                                    % CheckWithReference %
               { SubDesignator } =:
 
-SubDesignator := "."                                                       % VAR Sym, Type: CARDINAL ;
-                                                                                 name,
-                                                                                 n1       : Name ; %
-                                                                           % PopTF(Sym, Type) ;
+SubDesignator := "."                                                       % VAR Sym, Type, tok: CARDINAL ;
+                                                                                 name, n1      : Name ; %
+                                                                           % PopTFtok (Sym, Type, tok) ;
                                                                              Type := SkipType(Type) ;
-                                                                             PushTF(Sym, Type) ;
+                                                                             PushTFtok(Sym, Type, tok) ;
                                                                              IF Type=NulSym
                                                                              THEN
                                                                                 n1 := GetSymName(Sym) ;
@@ -1031,7 +1031,7 @@ SubDesignator := "."                                                       % VAR
                                                                              END ;
                                                                              StartScope(Type) %
                  Ident
-                                                                           % PopT(name) ;
+                                                                           % PopTtok (name, tok) ;
                                                                              Sym := GetLocalSym(Type, name) ;
                                                                              IF Sym=NulSym
                                                                              THEN
@@ -1039,7 +1039,7 @@ SubDesignator := "."                                                       % VAR
                                                                                 WriteFormat2('field %a does not exist within record %a', name, n1)
                                                                              END ;
                                                                              Type := GetType(Sym) ;
-                                                                             PushTF(Sym, Type) ;
+                                                                             PushTFtok (Sym, Type, tok) ;
                                                                              EndScope ;
                                                                              PushT(1) ;
                                                                              BuildDesignatorRecord %
@@ -1089,9 +1089,13 @@ Factor := Number | string | SetOrDesignatorOrFunction |
           | ConstAttribute
                                 ) =:
 
-SetOrDesignatorOrFunction := Qualident                                     % CheckWithReference %
+SetOrDesignatorOrFunction := Qualident                                     % VAR tok: CARDINAL ; %
+                                                                           % Assert (OperandTok(1) # UnknownTokenNo) %
+                                                                           % CheckWithReference %
+                                                                           % Assert (OperandTok(1) # UnknownTokenNo) %
                               [ Constructor |
-                                SimpleDes [ ActualParameters               % IF IsInConstExpression()
+                                SimpleDes                                  % (* Assert (OperandTok(1) # UnknownTokenNo) *) %
+                                          [ ActualParameters               % IF IsInConstExpression()
                                                                              THEN
                                                                                 BuildConstFunctionCall
                                                                              ELSE

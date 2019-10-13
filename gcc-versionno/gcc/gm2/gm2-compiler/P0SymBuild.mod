@@ -27,11 +27,11 @@ FROM Lists IMPORT List, InitList, KillList, IncludeItemIntoList, RemoveItemFromL
 FROM M2Batch IMPORT MakeDefinitionSource, MakeProgramSource, MakeImplementationSource ;
 FROM SymbolTable IMPORT NulSym, MakeInnerModule, SetCurrentModule, SetFileModule, MakeError ;
 FROM NameKey IMPORT Name, NulName ;
-FROM M2Quads IMPORT PushT, PushTF, PopT, PopTF, PopN, OperandT ;
+FROM M2Quads IMPORT PushT, PushTF, PopT, PopTF, PopN, OperandT, PopTtok, PushTtok ;
 FROM M2Reserved IMPORT ImportTok ;
 FROM M2Debug IMPORT Assert ;
 FROM M2MetaError IMPORT MetaErrorT1, MetaErrorT2, MetaError1, MetaError2 ;
-FROM M2LexBuf IMPORT GetTokenNo ;
+FROM M2LexBuf IMPORT GetTokenNo, UnknownTokenNo ;
 
 
 CONST
@@ -199,7 +199,7 @@ END GraftBlock ;
                 local modules and procedures created in this block.
 *)
 
-PROCEDURE BeginBlock (n: Name; k: Kind; s: CARDINAL) ;
+PROCEDURE BeginBlock (n: Name; k: Kind; s: CARDINAL; tok: CARDINAL) ;
 VAR
    b: BlockInfoPtr ;
 BEGIN
@@ -216,7 +216,7 @@ BEGIN
       toDown := NIL ;
       toUp := NIL ;
       level := Level ;
-      token := GetTokenNo () ;
+      token := tok
    END ;
    GraftBlock(b)
 END BeginBlock ;
@@ -378,15 +378,16 @@ PROCEDURE RegisterProgramModule ;
 VAR
    n  : Name ;
    sym: CARDINAL ;
+   tok: CARDINAL ;
 BEGIN
    Assert(Level=0) ;
    INC(Level) ;
-   PopT(n) ;
-   PushT(n) ;
+   PopTtok (n, tok) ;
+   PushTtok (n, tok) ;
    sym := MakeProgramSource(n) ;
    SetCurrentModule(sym) ;
    SetFileModule(sym) ;
-   BeginBlock(n, program, sym)
+   BeginBlock(n, program, sym, tok)
 END RegisterProgramModule ;
 
 
@@ -398,15 +399,16 @@ PROCEDURE RegisterImplementationModule ;
 VAR
    n  : Name ;
    sym: CARDINAL ;
+   tok: CARDINAL ;
 BEGIN
    Assert(Level=0) ;
    INC(Level) ;
-   PopT(n) ;
-   PushT(n) ;
+   PopTtok (n, tok) ;
+   PushTtok (n, tok) ;
    sym := MakeImplementationSource(n) ;
    SetCurrentModule(sym) ;
    SetFileModule(sym) ;
-   BeginBlock(n, defimp, sym)
+   BeginBlock(n, defimp, sym, tok)
 END RegisterImplementationModule ;
 
 
@@ -418,15 +420,16 @@ PROCEDURE RegisterDefinitionModule ;
 VAR
    n  : Name ;
    sym: CARDINAL ;
+   tok: CARDINAL ;
 BEGIN
    Assert(Level=0) ;
    INC(Level) ;
-   PopT(n) ;
-   PushT(n) ;
+   PopTtok (n, tok) ;
+   PushTtok (n, tok) ;
    sym := MakeDefinitionSource(n) ;
    SetCurrentModule(sym) ;
    SetFileModule(sym) ;
-   BeginBlock(n, defimp, sym)
+   BeginBlock(n, defimp, sym, tok)
 END RegisterDefinitionModule ;
 
 
@@ -438,13 +441,14 @@ END RegisterDefinitionModule ;
 
 PROCEDURE RegisterInnerModule ;
 VAR
-   n: Name ;
+   n  : Name ;
+   tok: CARDINAL ;
 BEGIN
    INC(Level) ;
-   PopT(n) ;
-   PushT(n) ;
+   PopTtok (n, tok) ;
+   PushTtok (n, tok) ;
    RegisterLocalModule(n) ;
-   BeginBlock(n, inner, NulSym)
+   BeginBlock(n, inner, NulSym, tok)
 END RegisterInnerModule ;
 
 
@@ -454,12 +458,13 @@ END RegisterInnerModule ;
 
 PROCEDURE RegisterProcedure ;
 VAR
-   n: Name ;
+   n  : Name ;
+   tok: CARDINAL ;
 BEGIN
    INC (Level) ;
-   PopT (n) ;
-   PushT (n) ;
-   BeginBlock (n, procedure, NulSym)
+   PopTtok (n, tok) ;
+   PushTtok (n, tok) ;
+   BeginBlock (n, procedure, NulSym, tok)
 END RegisterProcedure ;
 
 
@@ -469,26 +474,29 @@ END RegisterProcedure ;
 
 PROCEDURE EndProcedure ;
 VAR
-   NameEnd,
-   NameStart: Name ;
+   NameEnd, NameStart: Name ;
+   end, start        : CARDINAL ;
 BEGIN
-   PopT (NameEnd) ;
-   PopT (NameStart) ;
+   PopTtok (NameEnd, end) ;
+   PopTtok (NameStart, start) ;
+   Assert (start # UnknownTokenNo) ;
+   Assert (end # UnknownTokenNo) ;
    IF NameEnd # NameStart
    THEN
       IF NameEnd = NulName
       THEN
-         MetaErrorT1 (curBP^.token,
+         MetaErrorT1 (start,
                       'procedure name at beginning {%1Ea} does not match the name at end',
                       MakeError (NameStart)) ;
          MetaError1 ('procedure name at end does not match the name at beginning {%1Ea}',
                      MakeError (NameStart))
       ELSE
-         MetaErrorT2 (curBP^.token,
+         MetaErrorT2 (start,
                       'procedure name at beginning {%1Ea} does not match the name at end {%2a}',
                       MakeError (curBP^.name), MakeError (NameEnd)) ;
-         MetaError2 ('procedure name at end {%1Ea} does not match the name at beginning {%2Ea}',
-                     MakeError (NameEnd), MakeError (curBP^.name))
+         MetaErrorT2 (end,
+                      'procedure name at end {%1Ea} does not match the name at beginning {%2Ea}',
+                      MakeError (NameEnd), MakeError (curBP^.name))
       END
    END ;
    EndBlock
@@ -501,26 +509,29 @@ END EndProcedure ;
 
 PROCEDURE EndModule ;
 VAR
-   NameEnd,
-   NameStart: Name ;
+   NameEnd, NameStart: Name ;
+   end, start        : CARDINAL ;
 BEGIN
-   PopT(NameEnd) ;
-   PopT(NameStart) ;
+   PopTtok (NameEnd, end) ;
+   PopTtok (NameStart, start) ;
+   Assert (start # UnknownTokenNo) ;
+   Assert (end # UnknownTokenNo) ;
    IF NameEnd # NameStart
    THEN
       IF NameEnd = NulName
       THEN
-         MetaErrorT1 (curBP^.token,
+         MetaErrorT1 (start,
                       'module name at beginning {%1Ea} does not match the name at end',
                       MakeError (NameStart)) ;
          MetaError1 ('module name at end does not match the name at beginning {%1Ea}',
                      MakeError (NameStart))
       ELSE
-         MetaErrorT2 (curBP^.token,
+         MetaErrorT2 (start,
                       'module name at beginning {%1Ea} does not match the name at end {%2a}',
                       MakeError (curBP^.name), MakeError (NameEnd)) ;
-         MetaError2 ('module name at end {%1Ea} does not match the name at beginning {%2Ea}',
-                     MakeError (NameEnd), MakeError (curBP^.name))
+         MetaErrorT2 (end,
+                      'module name at end {%1Ea} does not match the name at beginning {%2Ea}',
+                      MakeError (NameEnd), MakeError (curBP^.name))
       END
    END ;
    EndBlock

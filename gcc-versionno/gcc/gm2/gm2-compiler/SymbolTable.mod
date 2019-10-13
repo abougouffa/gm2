@@ -7596,10 +7596,10 @@ END CheckForUnknownInModule ;
 
 PROCEDURE UnknownSymbolError (sym: WORD) ;
 BEGIN
-   IF IsUnreportedUnknown(sym)
+   IF IsUnreportedUnknown (sym)
    THEN
-      IncludeElementIntoSet(ReportedUnknowns, sym) ;
-      MetaErrorStringT1(GetFirstUsed(sym), InitString("unknown symbol {%1EUad}"), sym)
+      IncludeElementIntoSet (ReportedUnknowns, sym) ;
+      MetaErrorStringT1 (GetFirstUsed (sym), InitString("unknown symbol {%1EUad}"), sym)
    END
 END UnknownSymbolError ;
 

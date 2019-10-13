@@ -48,7 +48,7 @@ IMPLEMENTATION MODULE P0SyntaxCheck ;
 
 FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertTokenAndRewind, GetTokenNo ;
 FROM M2MetaError IMPORT MetaErrorStringT0 ;
-FROM M2Quads IMPORT PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto, DisplayStack ;
+FROM M2Quads IMPORT PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto, DisplayStack, PushTFtok ;
 FROM M2Reserved IMPORT tokToTok, toktype, NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok, BuiltinTok, InlineTok ;
 FROM P2SymBuild IMPORT BuildString, BuildNumber ;
 FROM NameKey IMPORT Name, NulName, makekey ;
@@ -308,7 +308,7 @@ BEGIN
    LastIdent := makekey(currentstring) ;
    IF IsAutoPushOn()
    THEN
-      PushTF(LastIdent, identtok)
+      PushTFtok(LastIdent, identtok, GetTokenNo())
    END ;
    Expect(identtok, stopset0, stopset1, stopset2)
 END Ident ;

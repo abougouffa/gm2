@@ -129,7 +129,7 @@ FROM M2Batch IMPORT MakeDefinitionSource,
                     LookupModule, LookupOuterModule ;
 
 FROM M2Quads IMPORT PushT, PopT,
-                    PushTF, PopTF,
+                    PushTF, PopTF, PopTtok, PushTFtok,
                     OperandT, OperandF, OperandA, OperandTok, PopN, DisplayStack, Annotate,
                     AddVarientFieldToList ;
 
@@ -624,21 +624,22 @@ END BuildExportInnerModule ;
 
                  Entry                 Exit
 
-          Ptr ->                                      <- Ptr
-                 +------------+        +------------+
-                 | Name       |        | Sym        |
-                 |------------+        |------------|
+          Ptr ->                                             <- Ptr
+                 +------------+        +-------------------+
+                 | Name | tok |        | Sym | Type | tok  |
+                 |------------+        |-------------------|
 *)
 
 PROCEDURE BuildNumber ;
 VAR
    name: Name ;
    Sym : CARDINAL ;
+   tok : CARDINAL ;
 BEGIN
-   PopT(name) ;
-   Sym := MakeConstLit(name, NulSym) ;
-   PushTF(Sym, GetType(Sym)) ;
-   Annotate("%1s(%1d)||constant number")
+   PopTtok (name, tok) ;
+   Sym := MakeConstLit (name, NulSym) ;
+   PushTFtok (Sym, GetType(Sym), tok) ;
+   Annotate ("%1s(%1d)||constant number")
 END BuildNumber ;
 
 
@@ -650,22 +651,23 @@ END BuildNumber ;
 
                  Entry                 Exit
 
-          Ptr ->                                      <- Ptr
-                 +------------+        +------------+
-                 | Name       |        | Sym        |
-                 |------------+        |------------|
+          Ptr ->                                               <- Ptr
+                 +-------------+        +--------------------+
+                 | Name | | tok|        | Sym | NulSym | tok |
+                 |-------------+        |--------------------|
 *)
 
 PROCEDURE BuildString ;
 VAR
    name: Name ;
    Sym : CARDINAL ;
+   tok : CARDINAL ;
 BEGIN
-   PopT(name) ;
+   PopTtok (name, tok) ;
    (* slice off the leading and trailing quotes *)
    Sym := MakeConstLitString(makekey(string(Mark(Slice(Mark(InitStringCharStar(KeyToCharStar(name))), 1, -1))))) ;
-   PushTF(Sym, NulSym) ;
-   Annotate("%1s(%1d)||constant string")
+   PushTFtok (Sym, NulSym, tok) ;
+   Annotate ("%1s(%1d)||constant string")
 END BuildString ;
 
 

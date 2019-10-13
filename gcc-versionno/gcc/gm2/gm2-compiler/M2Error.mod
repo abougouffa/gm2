@@ -33,6 +33,7 @@ FROM M2Options IMPORT Xcode ;
 FROM M2RTS IMPORT ExitOnHalt ;
 FROM SYSTEM IMPORT ADDRESS ;
 FROM M2Emit IMPORT EmitError ;
+FROM M2LexBuf IMPORT UnknownTokenNo ;
 
 FROM M2ColorString IMPORT filenameColor, endColor, errorColor, warningColor, noteColor,
                           range1Color, range2Color ;
@@ -370,6 +371,13 @@ PROCEDURE NewError (AtTokenNo: CARDINAL) : Error ;
 VAR
    e, f: Error ;
 BEGIN
+   IF AtTokenNo = UnknownTokenNo
+   THEN
+      (* this could be used as a useful debugging hook as the front end
+         has forgotten the token no.  This can occur if a complex record
+         structure or array is used for example.  *)
+      AtTokenNo := GetTokenNo ()
+   END ;
    NEW(e) ;
    WITH e^ DO
       s      := NIL ;
