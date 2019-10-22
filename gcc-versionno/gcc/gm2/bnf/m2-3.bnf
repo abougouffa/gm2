@@ -1075,9 +1075,9 @@ Expression :=                                                              % Pus
 SimpleExpression := UnaryOrTerm { AddOperator Term                         % BuildBinaryOp %
                                 } =:
 
-UnaryOrTerm := "+"                                                         % PushT(PlusTok) %
+UnaryOrTerm := "+"                                                         % PushTtok(PlusTok, GetTokenNo() -1) %
                  Term                                                      % BuildUnaryOp %
-               | "-"                                                       % PushT(MinusTok) %
+               | "-"                                                       % PushTtok(MinusTok, GetTokenNo() -1) %
                  Term                                                      % BuildUnaryOp %
                | Term =:
 

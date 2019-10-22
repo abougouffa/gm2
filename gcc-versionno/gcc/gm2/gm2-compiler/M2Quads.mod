@@ -33,7 +33,8 @@ FROM M2MetaError IMPORT MetaError0, MetaError1, MetaError2, MetaError3,
                         MetaErrorT0, MetaErrorT1, MetaErrorT2,
                         MetaErrorStringT0, MetaErrorStringT1,
                         MetaErrorString1, MetaErrorString2,
-                        MetaErrorN1, MetaErrorN2 ;
+                        MetaErrorN1, MetaErrorN2,
+                        MetaErrorNT1, MetaErrorNT2 ;
 
 FROM DynamicStrings IMPORT String, string, InitString, KillString,
                            ConCat, InitStringCharStar, Dup, Mark,
@@ -7418,7 +7419,8 @@ BEGIN
    ModSym := MakeDefinitionSource (tokno, module) ;
    IF ModSym=NulSym
    THEN
-      MetaErrorN2 ('module {%E%a} cannot be found and is needed to import {%E%a}', module, n) ;
+      MetaErrorNT2 (tokno,
+                    'module {%E%a} cannot be found and is needed to import {%E%a}', module, n) ;
       FlushErrors ;
       RETURN( NulSym )
    END ;
@@ -11432,9 +11434,8 @@ VAR
    Sym,
    SymT, r, t: CARDINAL ;
 BEGIN
-   tokpos := GetTokenNo () ;
    PopTrw(Sym, r) ;
-   PopT(Tok) ;
+   PopTtok(Tok, tokpos) ;
    IF Tok=MinusTok
    THEN
       MarkAsRead(r) ;
@@ -11463,13 +11464,14 @@ BEGIN
             Sym := SymT
          END
       END ;
-      GenQuad(NegateOp, t, NulSym, Sym) ;
-      PushT(t)
+      GenQuadO (tokpos, NegateOp, t, NulSym, Sym, TRUE) ;
+      PushTtok(t, tokpos)
    ELSIF Tok=PlusTok
    THEN
-      PushTrw(Sym, r)
+      PushTrwtok(Sym, r, tokpos)
    ELSE
-      MetaErrorN1 ('expecting an unary operator, seen {%Ek%a}', Tok)
+      MetaErrorNT1 (tokpos,
+                    'expecting an unary operator, seen {%Ek%a}', Tok)
    END
 END BuildUnaryOp ;
 
@@ -11485,9 +11487,9 @@ PROCEDURE AreConstant (b: BOOLEAN) : ModeOfAddr ;
 BEGIN
    IF b
    THEN
-      RETURN( ImmediateValue )
+      RETURN ImmediateValue
    ELSE
-      RETURN( RightValue )
+      RETURN RightValue
    END
 END AreConstant ;
 
@@ -13463,6 +13465,24 @@ BEGIN
    END ;
    PushAddress(BoolStack, f)
 END PushTrw ;
+
+
+(*
+   PushTrwtok - Push an item onto the True/False stack. The False value will be zero.
+*)
+
+PROCEDURE PushTrwtok (True: WORD; rw: WORD; tok: CARDINAL) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   f := newBoolFrame () ;
+   WITH f^ DO
+      TrueExit := True ;
+      ReadWrite := rw ;
+      tokenno := tok
+   END ;
+   PushAddress(BoolStack, f)
+END PushTrwtok ;
 
 
 (*

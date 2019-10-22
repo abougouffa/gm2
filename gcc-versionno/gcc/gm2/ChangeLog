@@ -91,6 +91,18 @@
 	* libgm2/libpim/dtoa.c:  (calcmaxsig) use memmove rather
 	  than strncpy.  (calcsign) use memmove rather
           than strncpy.
+	* gm2/bnf/m2-2.bnf:  PushTok imported.  (ArrayType) preserve
+          tokenpos.
+	* gm2/bnf/m2-3.bnf:  (UnaryOrTerm) push tokenpos with unary
+          operator.
+	* gm2/gm2-compiler/M2MetaError.def:  (MetaErrorNT1) New procedure.
+          (MetaErrorNT2) New procedure.
+	* gm2/gm2-compiler/M2MetaError.mod:  (MetaErrorNT1) New procedure.
+          (MetaErrorNT2) New procedure.  (MetaErrorT1) re-implemented.
+          (MetaErrorT2) re-implemented.
+	* gm2/gm2-compiler/M2Quads.mod:  (BuildBinaryOp) use token pos
+          when generating quadruple.  (PushTrwtok) New procedure.
+	* gm2/errors/fail/array1.mod:  tidied up spacing.
 
 2019-10-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

@@ -58,7 +58,7 @@ FROM M2Printf IMPORT printf0 ;
 FROM M2Debug IMPORT Assert ;
 
 FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing, OperandT, PushTFA, Top, Annotate,
-                    PushTFtok, PopTFtok, PushTFAtok, PopTtok,
+                    PushTFtok, PopTFtok, PushTFAtok, PopTtok, PushTtok,
                     StartBuildInit,
                     EndBuildInit,
                     BuildProcedureStart,
@@ -738,9 +738,10 @@ PrefixedSubrangeType := "[" ConstExpression  ".." ConstExpression "]"      % VAR
                                                                              BuildSubrange(t) %
               =:
 
-ArrayType := "ARRAY"                                                       % VAR a: CARDINAL ; %
+ArrayType := "ARRAY"                                                       % VAR arrayType, tok: CARDINAL ; %
                                                                            % StartBuildArray ;
-                                                                             PopT(a) ; PushT(a) ;
+                                                                             PopTtok(arrayType, tok) ;
+                                                                             PushTtok(arrayType, tok) ;
                                                                              BuildNulName ; %
               SimpleType                                                   % BuildFieldArray ; %
               { ","                                                        % BuildArrayComma ;
@@ -749,7 +750,7 @@ ArrayType := "ARRAY"                                                       % VAR
               } "OF"                                                       % BuildNulName ; %
              Type                                                          % EndBuildArray ;
                                                                              PopNothing ;
-                                                                             PushT(a) %
+                                                                             PushTtok(arrayType, tok) %
            =:
 
 RecordType := "RECORD"                                                     % BuildRecord %

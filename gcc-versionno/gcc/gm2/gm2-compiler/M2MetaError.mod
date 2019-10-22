@@ -1946,10 +1946,10 @@ END translate ;
 
 
 (*
-   MetaErrorN1 -
+   MetaErrorNT1 -
 *)
 
-PROCEDURE MetaErrorN1 (m: ARRAY OF CHAR; n: Name) ;
+PROCEDURE MetaErrorNT1 (tok: CARDINAL; m: ARRAY OF CHAR; n: Name) ;
 VAR
    i  : INTEGER ;
    s,
@@ -1959,16 +1959,26 @@ BEGIN
    fmt := InitString (m) ;
    s := InitString ('') ;
    s := translate (fmt, s, i, n) ;
-   MetaErrorStringT0 (GetTokenNo (), s) ;
+   MetaErrorStringT0 (tok, s) ;
    fmt := KillString (fmt) ;
+END MetaErrorNT1 ;
+
+
+(*
+   MetaErrorN1 -
+*)
+
+PROCEDURE MetaErrorN1 (m: ARRAY OF CHAR; n: Name) ;
+BEGIN
+   MetaErrorNT1 (GetTokenNo (), m, n)
 END MetaErrorN1 ;
 
 
 (*
-   MetaErrorN2 -
+   MetaErrorNT2 -
 *)
 
-PROCEDURE MetaErrorN2 (m: ARRAY OF CHAR; n1, n2: Name) ;
+PROCEDURE MetaErrorNT2 (tok: CARDINAL; m: ARRAY OF CHAR; n1, n2: Name) ;
 VAR
    i  : INTEGER ;
    s,
@@ -1979,8 +1989,18 @@ BEGIN
    s := InitString ('') ;
    s := translate (fmt, s, i, n1) ;
    s := translate (fmt, s, i, n2) ;
-   MetaErrorStringT0 (GetTokenNo (), s) ;
+   MetaErrorStringT0 (tok, s) ;
    fmt := KillString (fmt) ;
+END MetaErrorNT2 ;
+
+
+(*
+   MetaErrorN2 -
+*)
+
+PROCEDURE MetaErrorN2 (m: ARRAY OF CHAR; n1, n2: Name) ;
+BEGIN
+   MetaErrorNT2 (GetTokenNo (), m, n1, n2)
 END MetaErrorN2 ;
 
 
