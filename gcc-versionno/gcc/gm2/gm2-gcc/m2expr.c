@@ -3876,8 +3876,8 @@ append_digit (unsigned HOST_WIDE_INT *low, HOST_WIDE_INT *high,
 {
   unsigned int shift;
   int overflow;
-  HOST_WIDE_INT add_high, res_high;
-  unsigned HOST_WIDE_INT add_low, res_low;
+  HOST_WIDE_INT add_high, res_high, test_high;
+  unsigned HOST_WIDE_INT add_low, res_low, test_low;
 
   switch (base)
     {
@@ -3919,13 +3919,16 @@ append_digit (unsigned HOST_WIDE_INT *low, HOST_WIDE_INT *high,
   else
     add_high = add_low = 0;
 
-  if (add_low + digit < add_low)
+  test_low = add_low + digit;
+  if (test_low < add_low)
     add_high++;
   add_low += digit;
 
-  if (res_low + add_low < res_low)
+  test_low = res_low + add_low;
+  if (test_low < res_low)
     add_high++;
-  if (res_high + add_high < res_high)
+  test_high = res_high + add_high;
+  if (test_high < res_high)
     overflow = TRUE;
 
   *low = res_low + add_low;
@@ -3995,8 +3998,8 @@ append_m2_digit (unsigned int *low, int *high, unsigned int digit,
 {
   unsigned int shift;
   int overflow;
-  int add_high, res_high;
-  unsigned int add_low, res_low;
+  int add_high, res_high, test_high;
+  unsigned int add_low, res_low, test_low;
 
   switch (base)
     {
@@ -4038,13 +4041,16 @@ append_m2_digit (unsigned int *low, int *high, unsigned int digit,
   else
     add_high = add_low = 0;
 
-  if (add_low + digit < add_low)
+  test_low = add_low + digit;
+  if (test_low < add_low)
     add_high++;
   add_low += digit;
 
-  if (res_low + add_low < res_low)
+  test_low = res_low + add_low;
+  if (test_low < res_low)
     add_high++;
-  if (res_high + add_high < res_high)
+  test_high = res_high + add_high;
+  if (test_high < res_high)
     overflow = TRUE;
 
   *low = res_low + add_low;

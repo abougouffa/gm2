@@ -75,7 +75,22 @@
 	  local variables.  Propagate all
           tokenno into all procedures which now use tokenno.
 	* testsuite/gm2/types/run/pass/gm2.exp:  corrected
-	  -lpim for -lgm2.
+          -lpim for -lgm2.
+	* gm2/gm2-gcc/m2expr.c:  (append_digit) use temporary
+          variables to hold the intermediate results before testing
+          if they are less than the rhs.
+	* append_m2_digit:  (append_digit) use temporary
+          variables to hold the intermediate results before testing
+          if they are less than the rhs.
+	* gm2/gm2-libs-ch/dtoa.c:  (calcmaxsig) use memmove rather
+	  than strncpy.  (calcsign) use memmove rather
+          than strncpy.
+	* gm2/mc-boot-ch/Gdtoa.c:  (calcmaxsig) use memmove rather
+	  than strncpy.  (calcsign) use memmove rather
+          than strncpy.
+	* libgm2/libpim/dtoa.c:  (calcmaxsig) use memmove rather
+	  than strncpy.  (calcsign) use memmove rather
+          than strncpy.
 
 2019-10-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 

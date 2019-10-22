@@ -123,7 +123,7 @@ dtoa_calcmaxsig (char *p, int ndigits)
     return strlen (p) + x;
   else
     {
-      strncpy (o, o + 1, ndigits - (o - p));
+      memmove (o, o + 1, ndigits - (o - p));
       return o - p + x;
     }
 }
@@ -172,7 +172,7 @@ dtoa_calcsign (char *p, int str_size)
 {
   if (p[0] == '-')
     {
-      strncpy (p, p + 1, str_size - 1);
+      memmove (p, p + 1, str_size - 1);
       return TRUE;
     }
   else

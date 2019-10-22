@@ -18,7 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA */
 
 /*
- *   dtoa.c - 
+ *   dtoa.c -
  */
 
 #define GM2
@@ -143,15 +143,15 @@ int dtoa_calcmaxsig (char *p, int ndigits)
     x = 0;
   else {
     *e = (char)0;
-    x = atoi(e+1);
+    x = atoi (e+1);
   }
 
   o = index (p, '.');
   if (o == NULL)
-    return strlen(p)+x;
+    return strlen (p) + x;
   else {
-    strncpy(o, o+1, ndigits-(o-p));
-    return o-p+x;
+    memmove (o, o+1, ndigits - (o - p));
+    return o - p + x;
   }
 }
 
@@ -197,7 +197,7 @@ int dtoa_calcdecimal (char *p, int str_size, int ndigits)
 int dtoa_calcsign (char *p, int str_size)
 {
   if (p[0] == '-') {
-    strncpy(p, p+1, str_size-1);
+    memmove (p, p+1, str_size-1);
     return TRUE;
   } else
     return FALSE;
