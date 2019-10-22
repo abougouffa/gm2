@@ -50,7 +50,6 @@ EXPORT QUALIFIED (* the following are built into the compiler: *)
 TYPE
    PROCESS  = RECORD
                  context: INTEGER ;
-                 ints   : PROTECTION ;
               END ;
 (* all the following types are declared internally to gm2
    @SYSTEM_TYPES@

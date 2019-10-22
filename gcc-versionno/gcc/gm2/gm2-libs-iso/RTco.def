@@ -29,13 +29,11 @@ DEFINITION MODULE RTco ;
 FROM SYSTEM IMPORT ADDRESS ;
 
 
-(*
-   init initializes the module and allows the application to lazily invoke threads.
-*)
+(* init initializes the module and allows the application to lazily invoke threads.  *)
 
 PROCEDURE init () : INTEGER ;
 
-PROCEDURE initThread (p: PROC; stackSize: CARDINAL) : INTEGER ;
+PROCEDURE initThread (p: PROC; stackSize: CARDINAL; interruptLevel: CARDINAL) : INTEGER ;
 
 PROCEDURE initSemaphore (value: CARDINAL) : INTEGER ;
 
@@ -50,6 +48,17 @@ PROCEDURE waitThread (tid: INTEGER) ;
 PROCEDURE signalThread (tid: INTEGER) ;
 
 PROCEDURE currentThread () : INTEGER ;
+
+
+(* currentInterruptLevel returns the interrupt level of the current thread.  *)
+
+PROCEDURE currentInterruptLevel () : CARDINAL ;
+
+
+(* turninterrupts returns the old interrupt level and assigns the interrupt level
+   to newLevel.  *)
+
+PROCEDURE turnInterrupts (newLevel: CARDINAL) : CARDINAL ;
 
 
 (*

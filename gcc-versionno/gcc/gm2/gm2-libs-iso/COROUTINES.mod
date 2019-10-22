@@ -27,7 +27,8 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 IMPLEMENTATION MODULE COROUTINES ;
 
 FROM RTco IMPORT init, initThread, transfer, initSemaphore,
-                 wait, signal, currentThread ;
+                 wait, signal, currentThread, turnInterrupts,
+                 currentInterruptLevel ;
 
 FROM RTExceptions IMPORT EHBlock, InitExceptionBlock,
                          SetExceptionBlock, GetExceptionBlock,
@@ -56,7 +57,6 @@ TYPE
                              wspace    : SYSTEM.ADDRESS ;
                              nLocs     : CARDINAL ;
                              status    : Status ;
-                             protection: PROTECTION ;
                              attached  : SourceList ;
                              next      : COROUTINE ;
                           END ;
@@ -100,16 +100,16 @@ VAR
    tp : INTEGER ;
 BEGIN
    localInit ;
-   tp := initThread (procBody, size) ;
+   IF initProtection = UnassignedPriority
+   THEN
+      initProtection := PROT ()
+   END ;
+   tp := initThread (procBody, size, initProtection) ;
    IF tp = -1
    THEN
       Halt(__FILE__, __LINE__, __FUNCTION__, 'unable to create a new thread')
    END ;
    NEW (cr) ;
-   IF initProtection = UnassignedPriority
-   THEN
-      initProtection := PROT ()
-   END ;
    WITH cr^ DO
       context    := tp ;
       ehblock    := InitExceptionBlock () ;
@@ -118,7 +118,6 @@ BEGIN
       wspace     := workspace ;
       nLocs      := size ;
       status     := new ;
-      protection := initProtection ;
       attached   := NIL ;
       next       := head
    END ;
@@ -154,6 +153,8 @@ END TRANSFER ;
 *)
 
 PROCEDURE localMain ;
+VAR
+   old: PROTECTION ;
 BEGIN
    IF NOT initMain
    THEN
@@ -169,11 +170,11 @@ BEGIN
          wspace     := NIL ;
          nLocs      := 0 ;
          status     := running ;
-         protection := UnassignedPriority ;
          attached   := NIL ;
          next       := head
       END ;
       head := currentCoRoutine ;
+      old := turnInterrupts (MAX (PROTECTION)) ;    (* was UnassignedPriority *)
       signal (lock)
    END
 END localMain ;
@@ -474,7 +475,7 @@ PROCEDURE PROT () : PROTECTION;
   (* Returns the protection of the calling coroutine. *)
 BEGIN
    localInit ;
-   RETURN currentCoRoutine^.protection
+   RETURN currentInterruptLevel ()
 END PROT ;
 
 
@@ -488,10 +489,7 @@ VAR
    old: PROTECTION ;
 BEGIN
    localInit ;
-   wait (lock) ;
-   old := currentCoRoutine^.protection ;
-   currentCoRoutine^.protection := to ;
-   signal (lock) ;
+   old := turnInterrupts (to) ;
    Listen (FALSE, IOTransferHandler, to) ;
    RETURN old
 END TurnInterrupts ;

@@ -64,6 +64,7 @@ typedef struct threadCB_s {
   int execution;
   pthread_t p;
   int tid;
+  unsigned int interruptLevel;
 } threadCB;
 
 
@@ -203,6 +204,30 @@ RTco_currentThread (void)
 }
 
 
+/* currentInterruptLevel returns the interrupt level of the current thread.  */
+
+unsigned int
+RTco_currentInterruptLevel (void)
+{
+  return threadArray[RTco_currentThread ()].interruptLevel;
+}
+
+/* turninterrupts returns the old interrupt level and assigns the interrupt level
+   to newLevel.  */
+
+unsigned int
+RTco_turnInterrupts (unsigned int newLevel)
+{
+  int tid = RTco_currentThread ();
+  unsigned int old = RTco_currentInterruptLevel ();
+
+  waitSem (&lock);
+  threadArray[tid].interruptLevel = newLevel;
+  signalSem (&lock);
+  return old;
+}
+
+
 static void *
 execThread (void *t)
 {
@@ -236,7 +261,7 @@ newThread (void)
 
 static
 int
-initThread (void (*proc)(void), unsigned int stackSize)
+initThread (void (*proc)(void), unsigned int stackSize, unsigned int interrupt)
 {
   int tid = newThread ();
   pthread_attr_t attr;
@@ -245,6 +270,7 @@ initThread (void (*proc)(void), unsigned int stackSize)
   threadArray[tid].proc = proc;
   threadArray[tid].tid = tid;
   threadArray[tid].execution = initSemaphore (0);
+  threadArray[tid].interruptLevel = interrupt;
 
   /* set thread creation attributes */
   result = pthread_attr_init (&attr);
@@ -264,11 +290,11 @@ initThread (void (*proc)(void), unsigned int stackSize)
 
 
 int
-RTco_initThread (void (*proc)(void), unsigned int stackSize)
+RTco_initThread (void (*proc)(void), unsigned int stackSize, unsigned int interrupt)
 {
   int tid;
   waitSem (&lock);
-  tid = initThread (proc, stackSize);
+  tid = initThread (proc, stackSize, interrupt);
   signalSem (&lock);
   return tid;
 }

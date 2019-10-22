@@ -325,11 +325,15 @@ proc gm2_init_iso { {path ""} args } {
 
     set isoIpath "${gccpath}/libgm2/libiso:${gm2src}/gm2-libs-iso";
     set pimIpath "${gccpath}/libgm2/libpim:${gm2src}/gm2-libs";
+
     set isoLpath "${gccpath}/libgm2/libiso/.libs";
     set pimLpath "${gccpath}/libgm2/libpim/.libs";
 
-    set theIpath "-I${isoIpath} -I${pimIpath}";
-    set theLpath "-L${isoLpath} -L${pimLpath}";
+    set corIpath "${gccpath}/libgm2/libcor:${gm2src}/gm2-libs-coroutines";
+    set corLpath "${gccpath}/libgm2/libcor/.libs";
+
+    set theIpath "-I${isoIpath} -I${corIpath} -I${pimIpath}";
+    set theLpath "-L${isoLpath} -L${corLpath} -L${pimLpath}";
 
     if { $path != "" } then {
 	append theIpath " -I"

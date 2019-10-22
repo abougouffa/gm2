@@ -26,7 +26,7 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 
 IMPLEMENTATION MODULE SYSTEM ;
 
-FROM RTco IMPORT init, initThread, transfer, currentThread ;
+FROM RTco IMPORT init, initThread, transfer, currentThread, turnInterrupts ;
 
 FROM RTint IMPORT Listen, AttachVector,
                   IncludeVector, ExcludeVector ;
@@ -50,7 +50,6 @@ TYPE
 VAR
    initMain,
    initGTh        : BOOLEAN ;
-   currentIntValue: CARDINAL ;
 
 
 (*
@@ -63,8 +62,6 @@ VAR
    r: INTEGER ;
 BEGIN
    localMain (p1) ;
-   p1.ints := currentIntValue ;
-   currentIntValue := p2.ints ;
    IF p1.context=p2.context
    THEN
       Halt(__FILE__, __LINE__, __FUNCTION__,
@@ -86,8 +83,7 @@ PROCEDURE NEWPROCESS (p: PROC; a: ADDRESS; StackSize: CARDINAL; VAR new: PROCESS
 BEGIN
    localInit ;
    WITH new DO
-      ints    := currentIntValue ;
-      context := initThread (p, StackSize)
+      context := initThread (p, StackSize, MAX(PROTECTION))
    END
 END NEWPROCESS ;
 
@@ -200,9 +196,8 @@ VAR
    old: PROTECTION ;
 BEGIN
    localInit ;
-   old := currentIntValue ;
-   currentIntValue := to ;
-   Listen (FALSE, IOTransferHandler, currentIntValue) ;
+   old := turnInterrupts (to);
+   Listen (FALSE, IOTransferHandler, to) ;
    (* printf ("interrupt level is %d\n", currentIntValue); *)
    RETURN old
 END TurnInterrupts ;
@@ -246,8 +241,7 @@ BEGIN
    THEN
       initMain := TRUE ;
       WITH mainProcess DO
-         context := currentThread () ;
-         ints := currentIntValue
+         context := currentThread ()
       END
    END
 END localMain ;
@@ -485,6 +479,5 @@ END RotateRight ;
 
 BEGIN
    initGTh := FALSE ;
-   initMain := FALSE ;
-   currentIntValue := MIN (PROTECTION)
+   initMain := FALSE
 END SYSTEM.

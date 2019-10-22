@@ -103,6 +103,23 @@
 	* gm2/gm2-compiler/M2Quads.mod:  (BuildBinaryOp) use token pos
           when generating quadruple.  (PushTrwtok) New procedure.
 	* gm2/errors/fail/array1.mod:  tidied up spacing.
+	* gm2-compiler/M2MetaError.def:  (MetaErrorNT1) exported.
+          (MetaErrorNT2) exported.
+	* gm2/gm2-libs-coroutines/SYSTEM.def:  (ints) removed.
+	* gm2/gm2-libs-coroutines/SYSTEM.mod:  (turnInterrupts)
+          imported.  (currentIntValue) removed.  (NEWPROCESS)
+          pass interrruptLevel to initThread.  (TurnInterrupts)
+          reimplemented.  (localMain) remove ints.
+	* gm2/gm2-libs-iso/COROUTINES.mod:  (protection)
+          removed.  (NEWPROCESS) reimplemented.  (localMain)
+          remove reference to protection.  (PROT) reimplemented.
+	* gm2/gm2-libs-iso/RTco.def:  (initThread) extra parameter
+          interruptLevel.  (currentInterruptLevel) New procedure function.
+          (turnInterrupts) New procedure function.
+	* libgm2/libiso/RTco.c:  (interruptLevel) New field.
+          (currentInterruptLevel) New function.  (turnInterrupts) New
+          function.  (initThread) extra parameter.  (initThread)
+	  extra parameter.
 
 2019-10-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
