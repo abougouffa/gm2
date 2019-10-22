@@ -129,7 +129,7 @@ FROM M2Batch IMPORT MakeDefinitionSource,
                     LookupModule, LookupOuterModule ;
 
 FROM M2Quads IMPORT PushT, PopT,
-                    PushTF, PopTF, PopTtok, PushTFtok,
+                    PushTF, PopTF, PopTtok, PushTFtok, PushTtok, PopTFtok,
                     OperandT, OperandF, OperandA, OperandTok, PopN, DisplayStack, Annotate,
                     AddVarientFieldToList ;
 
@@ -175,9 +175,10 @@ PROCEDURE P2StartBuildDefModule ;
 VAR
    name     : Name ;
    ModuleSym: CARDINAL ;
+   tokno    : CARDINAL ;
 BEGIN
-   PopT(name) ;
-   ModuleSym := MakeDefinitionSource(name) ;
+   PopTtok(name, tokno) ;
+   ModuleSym := MakeDefinitionSource(tokno, name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    StartScope(ModuleSym) ;
@@ -245,9 +246,10 @@ PROCEDURE P2StartBuildImplementationModule ;
 VAR
    name     : Name ;
    ModuleSym: CARDINAL ;
+   tokno    : CARDINAL ;
 BEGIN
-   PopT(name) ;
-   ModuleSym := MakeImplementationSource(name) ;
+   PopTtok(name, tokno) ;
+   ModuleSym := MakeImplementationSource(tokno, name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    StartScope(ModuleSym) ;
@@ -310,9 +312,10 @@ PROCEDURE P2StartBuildProgramModule ;
 VAR
    name     : Name ;
    ModuleSym: CARDINAL ;
+   tokno    : CARDINAL ;
 BEGIN
-   PopT(name) ;
-   ModuleSym := MakeProgramSource(name) ;
+   PopTtok(name, tokno) ;
+   ModuleSym := MakeProgramSource(tokno, name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    StartScope(ModuleSym) ;
@@ -463,7 +466,7 @@ BEGIN
    IF OperandT(n+1)#ImportTok
    THEN
       (* Ident List contains list of objects imported from ModSym *)
-      ModSym := LookupModule(OperandT(n+1)) ;
+      ModSym := LookupModule(OperandTok(n+1), OperandT(n+1)) ;
       i := 1 ;
       WHILE i<=n DO
          Sym := GetExported(ModSym, OperandT(i)) ;
@@ -564,7 +567,7 @@ BEGIN
       END
    ELSE
       (* Ident List contains list of objects from ModSym *)
-      ModSym := LookupOuterModule(OperandT(n+1)) ;
+      ModSym := LookupOuterModule(OperandTok(n+1), OperandT(n+1)) ;
       i := 1 ;
       WHILE i<=n DO
          Sym := GetExported(ModSym, OperandT(i)) ;
@@ -665,9 +668,9 @@ VAR
 BEGIN
    PopTtok (name, tok) ;
    (* slice off the leading and trailing quotes *)
-   Sym := MakeConstLitString(makekey(string(Mark(Slice(Mark(InitStringCharStar(KeyToCharStar(name))), 1, -1))))) ;
+   Sym := MakeConstLitString(tok, makekey(string(Mark(Slice(Mark(InitStringCharStar(KeyToCharStar(name))), 1, -1))))) ;
    PushTFtok (Sym, NulSym, tok) ;
-   Annotate ("%1s(%1d)||constant string")
+   Annotate ("%1s(%1d)|%3d||constant string")
 END BuildString ;
 
 
@@ -687,12 +690,13 @@ PROCEDURE BuildConst ;
 VAR
    name: Name ;
    sym : CARDINAL ;
+   tok : CARDINAL ;
 BEGIN
-   PopT(name) ;
-   sym := MakeConstVar(name) ;
-   PushT(sym) ;
+   PopTtok(name, tok) ;
+   sym := MakeConstVar(tok, name) ;
+   PushTtok(sym, tok) ;
    RememberConstant(sym) ;
-   Annotate("%1s(%1d)||remembered constant")
+   Annotate("%1s(%1d)|%3d||remembered constant")
 END BuildConst ;
 
 
@@ -725,16 +729,18 @@ END BuildConst ;
 PROCEDURE StartBuildEnumeration ;
 VAR
    name: Name ;
-   n, i,
+   n,
    Type: CARDINAL ;
+   tok : CARDINAL ;
 BEGIN
    PopT(n) ;       (* n := # *)
    name := OperandT(n+1) ;
+   tok := OperandTok(n+1) ;
    GetEnumerationFromFifoQueue(Type) ;
    CheckForExportedImplementation(Type) ;   (* May be an exported hidden type *)
    PopN(n) ;
-   PushT(Type) ;
-   Annotate("%1s(%1d)||enumerated type")
+   PushTtok(Type, tok) ;
+   Annotate("%1s(%1d)|%3d||enumerated type")
 END StartBuildEnumeration ;
 
 
@@ -759,17 +765,18 @@ PROCEDURE BuildSubrange (Base: CARDINAL) ;
 VAR
    name: Name ;
    Type: CARDINAL ;
+   tok : CARDINAL ;
 BEGIN
-   PopT(name) ;
-   Type := MakeSubrange(name) ;
+   PopTtok(name, tok) ;
+   Type := MakeSubrange(tok, name) ;
    PutSubrangeIntoFifoQueue(Type) ;   (* Store Subrange away so that we can fill in *)
                                       (* its bounds during pass 3.                  *)
    PutSubrangeIntoFifoQueue(Base) ;   (* store Base type of subrange away as well.  *)
    CheckForExportedImplementation(Type) ; (* May be an exported hidden type *)
-   PushT(name) ;
-   Annotate("%1n||subrange name") ;
-   PushT(Type) ;
-   Annotate("%1s(%1d)||subrange type")
+   PushTtok(name, tok) ;
+   Annotate("%1n|%3d||subrange name|token no") ;
+   PushTtok(Type, tok) ;
+   Annotate("%1s(%1d)|%3d||subrange type|token no")
 END BuildSubrange ;
 
 
@@ -795,11 +802,12 @@ END BuildSubrange ;
 
 PROCEDURE P2BuildDefaultFieldAlignment ;
 VAR
+   tok      : CARDINAL ;
    alignment: Name ;
    align    : CARDINAL ;
 BEGIN
-   PopT(alignment) ;
-   align := MakeTemporary(ImmediateValue) ;
+   PopTtok(alignment, tok) ;
+   align := MakeTemporary(tok, ImmediateValue) ;
    PutConst(align, ZType) ;
    PutConstIntoFifoQueue(align) ;     (* store align away ready for pass 3 *)
    PutDefaultRecordFieldAlignment(OperandT(1), align)
@@ -815,7 +823,7 @@ PROCEDURE BuildPragmaConst ;
 VAR
    value : CARDINAL ;
 BEGIN
-   value := MakeTemporary(ImmediateValue) ;
+   value := MakeTemporary(GetTokenNo (), ImmediateValue) ;
    PutConst(value, ZType) ;
    PutConstIntoFifoQueue(value) ;     (* Store value away so that we can fill it in   *)
    PushT(value) ;                     (* during pass 3.                               *)
@@ -841,18 +849,19 @@ END BuildPragmaConst ;
 
 PROCEDURE BuildAligned ;
 VAR
+   tok  : CARDINAL ;
    name : Name ;
    align: CARDINAL ;
 BEGIN
-   PopT(name) ;
+   PopTtok (name, tok) ;
    IF name=MakeKey('bytealignment')
    THEN
-      align := MakeTemporary(ImmediateValue) ;
+      align := MakeTemporary (tok, ImmediateValue) ;
       PutConst(align, ZType) ;
       PutConstIntoFifoQueue(align) ;     (* Store align away so that we can fill in its  *)
       PushT(align) ;                     (* value during pass 3.                         *)
-      Annotate("%1s(%1d)||bytealignment constant generated from <* *>") ;
-      PushT(name)
+      Annotate("%1s(%1d)|%3d||bytealignment constant generated from <* *>|token no") ;
+      PushTtok(name, tok)
    ELSE
       WriteFormat1('expecting bytealignment identifier, rather than %a', name) ;
       PushT(NulSym)
@@ -931,8 +940,8 @@ END BuildTypeAlignment ;
 
 PROCEDURE BuildVarAlignment ;
 VAR
+   tokno    : CARDINAL ;
    alignment,
-   name,
    newname  : Name ;
    new,
    type,
@@ -943,15 +952,15 @@ BEGIN
    IF alignment=MakeKey('bytealignment')
    THEN
       PopT(align) ;
-      PopT(type) ;
+      PopTtok(type, tokno) ;
       IF IsRecord(type) OR IsRecordField(type) OR IsType(type) OR IsArray(type) OR IsPointer(type)
       THEN
          stop ;
          IF IsNameAnonymous(type)
          THEN
             PutAlignment(type, align) ;
-            PushTF(type, GetSymName(type)) ;
-            Annotate("%1s(%1d)|%2n||aligned type|aligned type name")
+            PushTFtok(type, GetSymName(type), tokno) ;
+            Annotate("%1s(%1d)|%2n|%3d||aligned type|aligned type name|token no")
          ELSE
             (* create a pseudonym *)
             s := Sprintf1(Mark(InitString('_$A%d')), alignTypeNo) ;
@@ -959,20 +968,20 @@ BEGIN
             newname := makekey(string(s)) ;
             IF IsPointer(type)
             THEN
-               new := MakePointer(newname)
+               new := MakePointer(tokno, newname)
             ELSE
-               new := MakeType(newname)
+               new := MakeType(tokno, newname)
             END ;
             s := KillString(s) ;
             PutType(new, type) ;
             PutAlignment(new, align) ;
-            PushTF(new, GetSymName(new)) ;
-            Annotate("%1s(%1d)|%2n||aligned type|aligned type name")
+            PushTFtok(new, GetSymName(new), tokno) ;
+            Annotate("%1s(%1d)|%2n|%3d||aligned type|aligned type name")
          END
       ELSE
          MetaError1('not allowed to add an alignment attribute to type {%1ad}', type) ;
-         PushTF(type, GetSymName(type)) ;
-         Annotate("%1s(%1d)|%2n||error aligned type|error aligned type name")
+         PushTFtok(type, GetSymName(type), tokno) ;
+         Annotate("%1s(%1d)|%2n|%3d||error aligned type|error aligned type name")
       END
    ELSIF alignment#NulName
    THEN
@@ -1010,7 +1019,6 @@ END BuildVarAlignment ;
 
 PROCEDURE BuildVariable ;
 VAR
-   l        : location_t ;
    name     : Name ;
    tok,
    AtAddress,
@@ -1018,32 +1026,33 @@ VAR
    Var,
    i, n     : CARDINAL ;
 BEGIN
-   PopTF(Type, name) ;
-   PopT(n) ;
+   PopTF (Type, name) ;
+   PopT (n) ;
    i := 1 ;
-   WHILE i<=n DO
+   WHILE i <= n DO
       CheckForVariableThatLooksLikeKeyword (OperandT (n+1-i)) ;
-      Var := MakeVar(OperandT(n+1-i)) ;
-      AtAddress := OperandA(n+1-i) ;
-      IF AtAddress#NulSym
+      Var := MakeVar (OperandTok (n+1-i), OperandT (n+1-i)) ;
+      AtAddress := OperandA (n+1-i) ;
+      IF AtAddress # NulSym
       THEN
-         PutVariableAtAddress(Var, NulSym) ;
-         PutMode(Var, LeftValue)
+         PutVariableAtAddress (Var, NulSym) ;
+         PutMode (Var, LeftValue)
       END ;
-      PutVar(Var, Type) ;
-      tok := OperandTok(n+1-i) ;
+      PutVar (Var, Type) ;
+      tok := OperandTok (n+1-i) ;
       IF tok # UnknownTokenNo
       THEN
-         PutDeclared (Var, tok) ;
-         name := OperandT(n+1-i) ;
+         PutDeclared (tok, Var) ;
+         name := OperandT (n+1-i) ;
+         (* printf3 ('declaring variable %a at tok %d Type %d \n', name, tok, Type) *)
          (*
          l := TokenToLocation (tok) ;
          printf3 ('declaring variable %a at position %d location %d\n', name, tok, l)
          *)
       END ;
-      INC(i)
+      INC (i)
    END ;
-   PopN(n)
+   PopN (n)
 END BuildVariable ;
 
 
@@ -1072,6 +1081,7 @@ VAR
    Sym,
    Type     : CARDINAL ;
    name     : Name ;
+   tokno    : CARDINAL ;
 BEGIN
    (*
       Two cases
@@ -1080,7 +1090,7 @@ BEGIN
       - when type with a name that is different to Name. In which case
         we create a new type.
    *)
-   PopT(Type) ;
+   PopTtok(Type, tokno) ;
    PopT(name) ;
    IF Debugging
    THEN
@@ -1110,19 +1120,19 @@ BEGIN
 
       *)
       (* WriteString('Blank name type') ; WriteLn ; *)
-      PushTF(Type, name) ;
-      Annotate("%1s(%1d)|%2n||type|type name")
+      PushTFtok(Type, name, tokno) ;
+      Annotate("%1s(%1d)|%2n|%3d||type|type name|token no")
    ELSIF IsError(Type)
    THEN
-      PushTF(Sym, name) ;
-      Annotate("%1s(%1d)|%2n||error type|error type name")
+      PushTFtok(Type, name, tokno) ;
+      Annotate("%1s(%1d)|%2n|%3d||error type|error type name|token no")
    ELSIF GetSymName(Type)=name
    THEN
       isunknown := IsUnknown(Type) ;
       IF isunknown OR
          (NOT IsDeclaredIn(GetCurrentScope(), Type))
       THEN
-         Sym := MakeType(name) ;
+         Sym := MakeType(tokno, name) ;
          IF NOT IsError(Sym)
          THEN
             IF Sym=Type
@@ -1141,19 +1151,19 @@ BEGIN
                CheckForEnumerationInCurrentModule(Type)
             END
          END ;
-         PushTF(Sym, name) ;
-         Annotate("%1s(%1d)|%2n||type|type name")
+         PushTFtok(Sym, name, tokno) ;
+         Annotate("%1s(%1d)|%2n|%3d||type|type name|token no")
       ELSE
-         PushTF(Type, name) ;
-         Annotate("%1s(%1d)|%2n||type|type name")
+         PushTFtok(Type, name, tokno) ;
+         Annotate("%1s(%1d)|%2n|%3d||type|type name|token no")
       END
    ELSE
       (* example   TYPE a = CARDINAL *)
-      Sym := MakeType(name) ;
+      Sym := MakeType(tokno, name) ;
       PutType(Sym, Type) ;
       CheckForExportedImplementation(Sym) ;   (* May be an exported hidden type *)
-      PushTF(Sym, name) ;
-      Annotate("%1s(%1d)|%2n||type|type name")
+      PushTFtok(Sym, name, tokno) ;
+      Annotate("%1s(%1d)|%2n|%3d||type|type name|token no")
    END
 END BuildType ;
 
@@ -1177,18 +1187,11 @@ PROCEDURE StartBuildProcedure ;
 VAR
    name   : Name ;
    ProcSym: CARDINAL ;
+   tokno  : CARDINAL ;
 BEGIN
-   PopT(name) ;
-   PushT(name) ;  (* name saved for the EndBuildProcedure name check *)
-   IF name=323
-   THEN
-      stop
-   END ;
+   PopTtok(name, tokno) ;
+   PushTtok(name, tokno) ;  (* name saved for the EndBuildProcedure name check *)
    ProcSym := GetDeclareSym(name) ;
-   IF ProcSym=411
-   THEN
-      stop
-   END ;
    IF IsUnknown(ProcSym)
    THEN
       (*
@@ -1197,13 +1200,13 @@ BEGIN
          definition module.
          - no definition should always be compilied before implementation modules.
       *)
-      ProcSym := MakeProcedure(name)
+      ProcSym := MakeProcedure(tokno, name)
    ELSIF IsProcedure(ProcSym)
    THEN
-      PutDeclared(ProcSym, GetTokenNo ())
+      PutDeclared(tokno, ProcSym)
    ELSE
       ErrorStringAt2(Sprintf1(Mark(InitString('procedure name (%a) has been declared as another object elsewhere')),
-                              name), GetTokenNo(), GetDeclaredMod(ProcSym))
+                              name), tokno, GetDeclaredMod(ProcSym))
    END ;
    IF CompilingDefinitionModule()
    THEN
@@ -1211,7 +1214,7 @@ BEGIN
    ELSE
       CheckForExportedImplementation(ProcSym)   (* May be exported procedure *)
    END ;
-   PushT(ProcSym) ;
+   PushTtok(ProcSym, tokno) ;
    Annotate("%1s(%1d)||procedure start symbol") ;
    StartScope(ProcSym)
 END StartBuildProcedure ;
@@ -1528,7 +1531,7 @@ VAR
    ParamName,
    Var,
    Array     : Name ;
-   tok,
+   tok       : CARDINAL ;
    ParamTotal,
    TypeSym,
    UnBoundedSym,
@@ -1544,10 +1547,11 @@ BEGIN
    ProcSym := OperandT(NoOfIds+2) ;
    Assert(IsProcedure(ProcSym)) ;
    Var := OperandT(NoOfIds+1) ;
+   tok := OperandTok (NoOfIds+2) ;
    Assert( (Var=VarTok) OR (Var=NulTok) ) ;
    IF Array=ArrayTok
    THEN
-      UnBoundedSym := MakeUnbounded(TypeSym, ndim) ;
+      UnBoundedSym := MakeUnbounded(tok, TypeSym, ndim) ;
       TypeSym := UnBoundedSym
    END ;
    i := 1 ;
@@ -1569,13 +1573,13 @@ BEGIN
       IF Var=VarTok
       THEN
          (* VAR parameter *)
-         IF NOT PutVarParam(ProcSym, ParamTotal+i, ParamName, TypeSym, Array=ArrayTok, tok)
+         IF NOT PutVarParam(tok, ProcSym, ParamTotal+i, ParamName, TypeSym, Array=ArrayTok)
          THEN
             InternalError('problems adding a VarParameter - wrong param #?', __FILE__, __LINE__)
          END
       ELSE
          (* Non VAR parameter *)
-         IF NOT PutParam(ProcSym, ParamTotal+i, ParamName, TypeSym, Array=ArrayTok, tok)
+         IF NOT PutParam(tok, ProcSym, ParamTotal+i, ParamName, TypeSym, Array=ArrayTok)
          THEN
             InternalError('problems adding a Parameter - wrong param #?', __FILE__, __LINE__)
          END
@@ -1699,7 +1703,7 @@ BEGIN
          ELSE
             IF GetSymName(ParamI)=NulName
             THEN
-               PutParamName(ProcSym, ParamTotal+i, OperandT(pi), OperandTok (pi))
+               PutParamName (OperandTok (pi), ProcSym, ParamTotal+i, OperandT(pi))
             END
          END ;
          IF Unbounded
@@ -1755,8 +1759,7 @@ PROCEDURE FailParameter (CurrentState : ARRAY OF CHAR;
                          ParameterNo  : CARDINAL;
                          ProcedureSym : CARDINAL) ;
 VAR
-   First,
-   Second      : CARDINAL ;
+   First       : CARDINAL ;
    FirstModule,
    SecondModule,
    s1, s2, s3  : String ;
@@ -2010,31 +2013,22 @@ END BuildNulParam ;
 
 PROCEDURE BuildPointerType ;
 VAR
+   tok      : CARDINAL ;
    name     : Name ;
-   NewType,
    Type,
    PtrToType: CARDINAL ;
 BEGIN
-   PopT(Type) ;
+   PopTtok(Type, tok) ;
    PopT(name) ;
    name := CheckAnonymous(name) ;
-(*
-   PtrToType := MakePointer(NulName) ;
-   PutPointer(PtrToType, Type) ;
-   NewType := MakeType(name) ;
-   PutType(NewType, PtrToType) ;
-   CheckForExportedImplementation(NewType) ;   (* May be an exported hidden type *)
-   PushT(name) ;
-   PushT(NewType) ;
-*)
 
-   PtrToType := MakePointer(name) ;
+   PtrToType := MakePointer(tok, name) ;
    PutPointer(PtrToType, Type) ;
    CheckForExportedImplementation(PtrToType) ;   (* May be an exported hidden type *)
-   PushT(name) ;
-   Annotate("%1n||pointer type name") ;
-   PushT(PtrToType) ;
-   Annotate("%1s(%1d)||pointer type")
+   PushTtok(name, tok) ;
+   Annotate("%1n|%3d||pointer type name") ;
+   PushTtok(PtrToType, tok) ;
+   Annotate("%1s(%1d)|%3d||pointer type")
 
 END BuildPointerType ;
 
@@ -2057,19 +2051,20 @@ END BuildPointerType ;
 
 PROCEDURE BuildSetType ;
 VAR
+   tok    : CARDINAL ;
    name   : Name ;
    Type,
    SetType: CARDINAL ;
 BEGIN
-   PopT(Type) ;
+   PopTtok(Type, tok) ;
    PopT(name) ;
-   SetType := MakeSet(name) ;
+   SetType := MakeSet(tok, name) ;
    CheckForExportedImplementation(SetType) ;   (* May be an exported hidden type *)
    PutSet(SetType, Type) ;
    PushT(name) ;
    Annotate("%1n||set type name") ;
-   PushT(SetType) ;
-   Annotate("%1s(%1d)||set type")
+   PushTtok (SetType, tok) ;
+   Annotate ("%1s(%1d)|%3d||set type|token no")
 END BuildSetType ;
 
 
@@ -2091,12 +2086,14 @@ END BuildSetType ;
 
 PROCEDURE BuildRecord ;
 VAR
+   tokno     : CARDINAL ;
    name      : Name ;
    RecordType: CARDINAL ;
 BEGIN
    name := OperandT(1) ;
    name := CheckAnonymous(name) ;
-   RecordType := MakeRecord(name) ;
+   tokno := OperandTok(1) ;
+   RecordType := MakeRecord(tokno, name) ;
    CheckForExportedImplementation(RecordType) ;   (* May be an exported hidden type *)
    PushT(RecordType) ;
 (* ; WriteKey(name) ; WriteString(' RECORD made') ; WriteLn *)
@@ -2202,9 +2199,7 @@ END HandleRecordFieldPragmas ;
 
 PROCEDURE BuildFieldRecord ;
 VAR
-   bytealignment,
-   name,
-   n1, n2       : Name ;
+   name, n1   : Name ;
    tok,
    fsym,
    Field,
@@ -2214,7 +2209,7 @@ VAR
    NoOfPragmas,
    NoOfFields,
    Record,
-   Ptr, i       : CARDINAL ;
+   i          : CARDINAL ;
 BEGIN
    PopT(NoOfPragmas) ;
    Type := OperandT(NoOfPragmas*2+1) ;
@@ -2266,7 +2261,7 @@ BEGIN
       tok := OperandTok(NoOfPragmas*2+NoOfFields+3-i) ;
       IF tok # UnknownTokenNo
       THEN
-         PutDeclared (Field, tok)
+         PutDeclared (tok, Field)
       END ;
       INC(i)
    END ;
@@ -2308,7 +2303,6 @@ VAR
    Varient,
    Parent,
    VarField,
-   NoOfFields,
    Record    : CARDINAL ;
 BEGIN
    PopT(Type) ;
@@ -2446,11 +2440,13 @@ END EndBuildVarientFieldRecord ;
 
 PROCEDURE StartBuildVarient ;
 VAR
+   tokno    : CARDINAL ;
    RecordSym,
    Sym      : CARDINAL ;
 BEGIN
    RecordSym := OperandT(1) ;
-   Sym := MakeVarient(RecordSym) ;
+   tokno := OperandTok(1) ;
+   Sym := MakeVarient(tokno, RecordSym) ;
    PushT(Sym) ;
    Annotate("%1s(%1d)||varient type")
 END StartBuildVarient ;
@@ -2541,14 +2537,16 @@ END BuildTypeEnd ;
 
 PROCEDURE StartBuildArray ;
 VAR
+   tok      : CARDINAL ;
    name     : Name ;
    ArrayType: CARDINAL ;
 BEGIN
    name := OperandT(1) ;
-   ArrayType := MakeArray(name) ;
-   CheckForExportedImplementation(ArrayType) ;   (* May be an exported hidden type *)
-   PushT(ArrayType) ;
-   Annotate("%1s(%1d)||array type")
+   tok := OperandTok(1) ;
+   ArrayType := MakeArray (tok, name) ;
+   CheckForExportedImplementation (ArrayType) ;   (* May be an exported hidden type *)
+   PushTtok(ArrayType, tok) ;
+   Annotate("%1s(%1d)|%3d||array type|token no")
 (* ; WriteKey(Name) ; WriteString(' ARRAY made') ; WriteLn *)
 END StartBuildArray ;
 
@@ -2604,9 +2602,6 @@ END EndBuildArray ;
 
 PROCEDURE BuildFieldArray ;
 VAR
-   d         : CARDINAL ;
-   s         : String ;
-   Subrange,
    Subscript,
    Type,
    Array     : CARDINAL ;
@@ -2678,14 +2673,16 @@ END BuildArrayComma ;
 
 PROCEDURE BuildProcedureType ;
 VAR
+   tok        : CARDINAL ;
    name       : Name ;
    ProcTypeSym: CARDINAL ;
 BEGIN
    name := OperandT(1) ;
-   ProcTypeSym := MakeProcType(name) ;
+   tok := OperandTok(1) ;
+   ProcTypeSym := MakeProcType(tok, name) ;
    Annotate("%1n||procedure type name") ;
-   PushT(ProcTypeSym) ;
-   Annotate("%1s(%1d)||proc type")
+   PushTtok(ProcTypeSym, tok) ;
+   Annotate("%1s(%1d)|%3d||proc type|token no")
 END BuildProcedureType ;
 
 
@@ -2710,6 +2707,7 @@ END BuildProcedureType ;
 
 PROCEDURE BuildFormalType ;
 VAR
+   tok        : CARDINAL ;
    Array, Var : Name ;
    TypeSym,
    UnboundedSym,
@@ -2719,6 +2717,7 @@ BEGIN
    PopT(Array) ;
    PopT(Var) ;
    PopT(ProcTypeSym) ;
+   tok := GetTokenNo () ;
 
    Assert( (Array=ArrayTok) OR (Array=NulTok) ) ;
    Assert(IsProcType(ProcTypeSym)) ;
@@ -2726,7 +2725,7 @@ BEGIN
 
    IF Array=ArrayTok
    THEN
-      UnboundedSym := MakeUnbounded(TypeSym, 1) ;
+      UnboundedSym := MakeUnbounded(tok, TypeSym, 1) ;
       TypeSym := UnboundedSym
    END ;
    IF Var=VarTok
@@ -2932,7 +2931,7 @@ BEGIN
    CASE type OF
 
    set        :  PutConstSet(Sym) |
-   str        :  PutConstString(Sym, MakeKey('')) |
+   str        :  PutConstString(GetTokenNo(), Sym, MakeKey('')) |
    array,
    constructor:  PutConstructor(Sym) |
    cast       :  PutConst(Sym, castType) |

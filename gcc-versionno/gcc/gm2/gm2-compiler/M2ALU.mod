@@ -3475,7 +3475,7 @@ BEGIN
       END ;
       RETURN( EnumerationField )
    ELSE
-      sym := MakeTemporary(ImmediateValue) ;
+      sym := MakeTemporary(tokenno, ImmediateValue) ;
       PutVar(sym, type) ;
       CheckOverflow(tokenno, value) ;
       PushIntegerTree(value) ;

@@ -259,7 +259,7 @@ BEGIN
       n := NoOfItemsInList(ImportedModules) ;
       WHILE i<=n DO
          modname := GetItemFromList(ImportedModules, i) ;
-         sym := MakeDefinitionSource(modname) ;
+         sym := MakeDefinitionSource(GetTokenNo(), modname) ;
          INC(i)
       END
    END
@@ -384,7 +384,7 @@ BEGIN
    INC(Level) ;
    PopTtok (n, tok) ;
    PushTtok (n, tok) ;
-   sym := MakeProgramSource(n) ;
+   sym := MakeProgramSource(tok, n) ;
    SetCurrentModule(sym) ;
    SetFileModule(sym) ;
    BeginBlock(n, program, sym, tok)
@@ -405,7 +405,7 @@ BEGIN
    INC(Level) ;
    PopTtok (n, tok) ;
    PushTtok (n, tok) ;
-   sym := MakeImplementationSource(n) ;
+   sym := MakeImplementationSource(tok, n) ;
    SetCurrentModule(sym) ;
    SetFileModule(sym) ;
    BeginBlock(n, defimp, sym, tok)
@@ -426,7 +426,7 @@ BEGIN
    INC(Level) ;
    PopTtok (n, tok) ;
    PushTtok (n, tok) ;
-   sym := MakeDefinitionSource(n) ;
+   sym := MakeDefinitionSource(tok, n) ;
    SetCurrentModule(sym) ;
    SetFileModule(sym) ;
    BeginBlock(n, defimp, sym, tok)
@@ -487,16 +487,16 @@ BEGIN
       THEN
          MetaErrorT1 (start,
                       'procedure name at beginning {%1Ea} does not match the name at end',
-                      MakeError (NameStart)) ;
+                      MakeError (start, NameStart)) ;
          MetaError1 ('procedure name at end does not match the name at beginning {%1Ea}',
-                     MakeError (NameStart))
+                     MakeError (start, NameStart))
       ELSE
          MetaErrorT2 (start,
                       'procedure name at beginning {%1Ea} does not match the name at end {%2a}',
-                      MakeError (curBP^.name), MakeError (NameEnd)) ;
+                      MakeError (start, curBP^.name), MakeError (end, NameEnd)) ;
          MetaErrorT2 (end,
                       'procedure name at end {%1Ea} does not match the name at beginning {%2Ea}',
-                      MakeError (NameEnd), MakeError (curBP^.name))
+                      MakeError (end, NameEnd), MakeError (start, curBP^.name))
       END
    END ;
    EndBlock
@@ -522,16 +522,16 @@ BEGIN
       THEN
          MetaErrorT1 (start,
                       'module name at beginning {%1Ea} does not match the name at end',
-                      MakeError (NameStart)) ;
+                      MakeError (start, NameStart)) ;
          MetaError1 ('module name at end does not match the name at beginning {%1Ea}',
-                     MakeError (NameStart))
+                     MakeError (start, NameStart))
       ELSE
          MetaErrorT2 (start,
                       'module name at beginning {%1Ea} does not match the name at end {%2a}',
-                      MakeError (curBP^.name), MakeError (NameEnd)) ;
+                      MakeError (start, curBP^.name), MakeError (end, NameEnd)) ;
          MetaErrorT2 (end,
                       'module name at end {%1Ea} does not match the name at beginning {%2Ea}',
-                      MakeError (NameEnd), MakeError (curBP^.name))
+                      MakeError (end, NameEnd), MakeError (start, curBP^.name))
       END
    END ;
    EndBlock
@@ -555,7 +555,7 @@ BEGIN
          THEN
             printf1("***  declaring inner module %a\n", b^.name)
          END ;
-         s := MakeInnerModule(b^.name)
+         s := MakeInnerModule(curBP^.token, b^.name)
       END ;
       b := b^.toNext
    END

@@ -25,6 +25,7 @@ IMPLEMENTATION MODULE SymbolTable ;
 FROM SYSTEM IMPORT ADDRESS, ADR ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM M2Debug IMPORT Assert ;
+FROM libc IMPORT printf ;
 
 IMPORT Indexing ;
 FROM Indexing IMPORT InitIndex, InBounds, LowIndice, HighIndice, PutIndice, GetIndice ;
@@ -866,7 +867,7 @@ END IsNameAnonymous ;
    InitWhereDeclared - sets the Declared and FirstUsed fields of record, at.
 *)
 
-PROCEDURE InitWhereDeclaredTok (VAR at: Where; tok: CARDINAL) ;
+PROCEDURE InitWhereDeclaredTok (tok: CARDINAL; VAR at: Where) ;
 BEGIN
    WITH at DO
       IF CompilingDefinitionModule()
@@ -888,7 +889,7 @@ END InitWhereDeclaredTok ;
 
 PROCEDURE InitWhereDeclared (VAR at: Where) ;
 BEGIN
-   InitWhereDeclaredTok (at, GetTokenNo ())
+   InitWhereDeclaredTok (GetTokenNo (), at)
 END InitWhereDeclared ;
 
 
@@ -898,10 +899,20 @@ END InitWhereDeclared ;
 
 PROCEDURE InitWhereFirstUsed (VAR at: Where) ;
 BEGIN
-   WITH at DO
-      FirstUsed := GetTokenNo()
-   END
+   InitWhereFirstUsedTok (GetTokenNo (), at)
 END InitWhereFirstUsed ;
+
+
+(*
+   InitWhereFirstUsedTok - sets the FirstUsed field of record, at.
+*)
+
+PROCEDURE InitWhereFirstUsedTok (tok: CARDINAL; VAR at: Where) ;
+BEGIN
+   WITH at DO
+      FirstUsed := tok
+   END
+END InitWhereFirstUsedTok ;
 
 
 (*
@@ -923,7 +934,7 @@ VAR
    pSym: PtrToSymbol ;
 BEGIN
    sym := FreeSymbol ;
-   IF sym=3005
+   IF sym=835
    THEN
       stop
    END ;
@@ -1118,7 +1129,7 @@ END AlreadyImportedError ;
                It will be removed from ExportUndeclared and Unknown trees.
 *)
 
-PROCEDURE MakeError (name: Name) : CARDINAL ;
+PROCEDURE MakeError (tok: CARDINAL; name: Name) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
    Sym : CARDINAL ;
@@ -1139,8 +1150,8 @@ BEGIN
    WITH pSym^ DO
       SymbolType := ErrorSym ;
       Error.name := name ;
-      InitWhereDeclared(Error.At) ;
-      InitWhereFirstUsed(Error.At)
+      InitWhereDeclaredTok(tok, Error.At) ;
+      InitWhereFirstUsedTok(tok, Error.At)
    END ;
    RETURN( Sym )
 END MakeError ;
@@ -1152,9 +1163,9 @@ END MakeError ;
                 It will be removed from ExportUndeclared and Unknown trees.
 *)
 
-PROCEDURE MakeErrorS (name: String) : CARDINAL ;
+PROCEDURE MakeErrorS (tok: CARDINAL; name: String) : CARDINAL ;
 BEGIN
-   RETURN MakeError (makekey (string (name)))
+   RETURN MakeError (tok, makekey (string (name)))
 END MakeErrorS ;
 
 
@@ -1228,44 +1239,44 @@ PROCEDURE stop ; BEGIN END stop ;
                 a New symbol, since name is about to be declared.
 *)
 
-PROCEDURE DeclareSym (name: Name) : CARDINAL ;
+PROCEDURE DeclareSym (tok: CARDINAL; name: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
-   IF name=NulName
+   IF name = NulName
    THEN
-      NewSym(Sym)
-   ELSIF IsAlreadyDeclaredSym(name)
+      NewSym (Sym)
+   ELSIF IsAlreadyDeclaredSym (name)
    THEN
-      Sym := GetSym(name) ;
-      IF IsImported(GetCurrentModuleScope(), Sym)
+      Sym := GetSym (name) ;
+      IF IsImported (GetCurrentModuleScope (), Sym)
       THEN
-         MetaErrorT1(GetWhereImported(Sym),
-                     'symbol {%1Rad} is already present in this scope, check both definition and implementation modules, use a different name or remove the import',
-                     Sym) ;
-         MetaError1('symbol {%1Cad} also declared in this module', Sym) ;
-         IF Sym#GetVisibleSym(name)
+         MetaErrorT1 (GetWhereImported(Sym),
+                      'symbol {%1Rad} is already present in this scope, check both definition and implementation modules, use a different name or remove the import',
+                      Sym) ;
+         MetaErrorT1 (tok, 'symbol {%1Cad} also declared in this module', Sym) ;
+         IF Sym # GetVisibleSym (name)
          THEN
-            MetaError1('symbol {%1CMad} also declared in this module', GetVisibleSym(name))
+            MetaErrorT1 (tok, 'symbol {%1CMad} also declared in this module', GetVisibleSym (name))
          END
       ELSE
-         MetaError1('symbol {%1RMad} is already declared in this scope, use a different name or remove the declaration', Sym) ;
-         MetaError1('symbol {%1Cad} also declared in this module', Sym) ;
-         IF Sym#GetVisibleSym(name)
+         MetaErrorT1 (tok, 'symbol {%1RMad} is already declared in this scope, use a different name or remove the declaration', Sym) ;
+         MetaErrorT1 (tok, 'symbol {%1Cad} also declared in this module', Sym) ;
+         IF Sym # GetVisibleSym(name)
          THEN
-            MetaError1('symbol {%1CMad} also declared in this module', GetVisibleSym(name))
+            MetaErrorT1(tok, 'symbol {%1CMad} also declared in this module', GetVisibleSym (name))
          END
       END ;
-      Sym := MakeError(name)
+      Sym := MakeError (tok, name)
    ELSE
-      Sym := FetchUnknownSym(name) ;
+      Sym := FetchUnknownSym (name) ;
       IF Sym=NulSym
       THEN
-         NewSym(Sym)
+         NewSym (Sym)
       END ;
-      CheckForExportedDeclaration(Sym)
+      CheckForExportedDeclaration (Sym)
    END ;
-   RETURN( Sym )
+   RETURN Sym
 END DeclareSym ;
 
 
@@ -2702,7 +2713,7 @@ END IsImplicityExported ;
                 symbol index.
 *)
 
-PROCEDURE MakeModule (ModuleName: Name) : CARDINAL ;
+PROCEDURE MakeModule (tok: CARDINAL; ModuleName: Name) : CARDINAL ;
 VAR
    pSym : PtrToSymbol ;
    pCall: PtrToCallFrame ;
@@ -2776,8 +2787,8 @@ BEGIN
          InitList(ListOfProcs) ;            (* List of all procedures        *)
                                             (* declared within this module.  *)
          InitList(ListOfModules) ;          (* List of all inner modules.    *)
-         InitWhereDeclared(At) ;            (* Where symbol declared.        *)
-         InitWhereFirstUsed(At) ;           (* Where symbol first used.      *)
+         InitWhereDeclaredTok(tok, At) ;    (* Where symbol declared.        *)
+         InitWhereFirstUsedTok(tok, At) ;   (* Where symbol first used.      *)
          pCall := GetPcall(ScopePtr) ;
          IF pCall^.Main=GetBaseModule()
          THEN
@@ -2820,12 +2831,12 @@ END AddModuleToParent ;
                      symbol index.
 *)
 
-PROCEDURE MakeInnerModule (ModuleName: Name) : CARDINAL ;
+PROCEDURE MakeInnerModule (tok: CARDINAL; ModuleName: Name) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
    Sym : CARDINAL ;
 BEGIN
-   Sym := DeclareSym(ModuleName) ;
+   Sym := DeclareSym (tok, ModuleName) ;
    IF NOT IsError(Sym)
    THEN
       pSym := GetPsym(Sym) ;
@@ -2887,8 +2898,8 @@ BEGIN
             InitList(ListOfProcs) ;         (* List of all procedures        *)
                                             (* declared within this module.  *)
             InitList(ListOfModules) ;       (* List of all inner modules.    *)
-            InitWhereDeclared(At) ;         (* Where symbol declared.        *)
-            InitWhereFirstUsed(At) ;        (* Where symbol first used.      *)
+            InitWhereDeclaredTok(tok, At) ;   (* Where symbol declared.        *)
+            InitWhereFirstUsedTok(tok, At) ;  (* Where symbol first used.      *)
             IF GetCurrentScope()=GetBaseModule()
             THEN
                Scope := NulSym
@@ -2900,7 +2911,7 @@ BEGIN
       END ;
       AddSymToScope(Sym, ModuleName)
    END ;
-   RETURN( Sym )
+   RETURN Sym
 END MakeInnerModule ;
 
 
@@ -2909,7 +2920,7 @@ END MakeInnerModule ;
                 with name DefImpName. It returns the symbol index.
 *)
 
-PROCEDURE MakeDefImp (DefImpName: Name) : CARDINAL ;
+PROCEDURE MakeDefImp (tok: CARDINAL; DefImpName: Name) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
    Sym : CARDINAL ;
@@ -3013,12 +3024,12 @@ BEGIN
          InitList(ListOfProcs) ;      (* List of all procedures        *)
                                       (* declared within this module.  *)
          InitList(ListOfModules) ;    (* List of all inner modules.    *)
-         InitWhereDeclared(At) ;      (* Where symbol declared.        *)
-         InitWhereFirstUsed(At) ;     (* Where symbol first used.      *)
+         InitWhereDeclaredTok(tok, At) ;  (* Where symbol declared.        *)
+         InitWhereFirstUsedTok(tok, At) ; (* Where symbol first used.      *)
       END
    END ;
    PutSymKey(ModuleTree, DefImpName, Sym) ;
-   RETURN( Sym )
+   RETURN Sym
 END MakeDefImp ;
 
 
@@ -3027,12 +3038,12 @@ END MakeDefImp ;
                    the symbol index.
 *)
 
-PROCEDURE MakeProcedure (ProcedureName: Name) : CARDINAL ;
+PROCEDURE MakeProcedure (tok: CARDINAL; ProcedureName: Name) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
    Sym : CARDINAL ;
 BEGIN
-   Sym := DeclareSym(ProcedureName) ;
+   Sym := DeclareSym(tok, ProcedureName) ;
    IF NOT IsError(Sym)
    THEN
       pSym := GetPsym(Sym) ;
@@ -3097,14 +3108,14 @@ BEGIN
                        := InitValue() ;  (* size of all parameters.       *)
             Begin := 0 ;                 (* token number for BEGIN        *)
             End := 0 ;                   (* token number for END          *)
-            InitWhereDeclared(At) ;      (* Where symbol declared.        *)
+            InitWhereDeclaredTok(tok, At) ;  (* Where symbol declared.        *)
          END
       END ;
       (* Now add this procedure to the symbol table of the current scope *)
       AddSymToScope(Sym, ProcedureName) ;
       AddProcedureToList(GetCurrentScope(), Sym)
    END ;
-   RETURN( Sym )
+   RETURN Sym
 END MakeProcedure ;
 
 
@@ -3174,12 +3185,12 @@ END AddVarToList ;
              symbol index.
 *)
 
-PROCEDURE MakeVar (VarName: Name) : CARDINAL ;
+PROCEDURE MakeVar (tok: CARDINAL; VarName: Name) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
    Sym : CARDINAL ;
 BEGIN
-   Sym := DeclareSym(VarName) ;
+   Sym := DeclareSym (tok, VarName) ;
    IF NOT IsError(Sym)
    THEN
       pSym := GetPsym(Sym) ;
@@ -3192,28 +3203,28 @@ BEGIN
             Size := InitValue() ;
             Offset := InitValue() ;
             AddrMode := RightValue ;
-            Scope := GetCurrentScope() ;  (* Procedure or Module ? *)
+            Scope := GetCurrentScope() ;  (* Procedure or Module?  *)
             AtAddress := FALSE ;
-            Address := NulSym ;           (* Address at which declared   *)
+            Address := NulSym ;           (* Address at which declared.  *)
             IsTemp := FALSE ;
             IsComponentRef := FALSE ;
             IsParam := FALSE ;
             IsPointerCheck := FALSE ;
             IsWritten := FALSE ;
-            InitWhereDeclared(At) ;
-            InitWhereFirstUsed(At) ;      (* Where symbol first used.      *)
+            InitWhereDeclaredTok(tok, At) ;
+            InitWhereFirstUsedTok(tok, At) ;   (* Where symbol first used.  *)
             InitList(ReadUsageList[RightValue]) ;
             InitList(WriteUsageList[RightValue]) ;
             InitList(ReadUsageList[LeftValue]) ;
             InitList(WriteUsageList[LeftValue])
          END
       END ;
-      (* Add Var to Procedure or Module variable list *)
+      (* Add Var to Procedure or Module variable list.  *)
       AddVarToList(Sym) ;
-      (* Now add this Var to the symbol table of the current scope *)
+      (* Now add this Var to the symbol table of the current scope.  *)
       AddSymToScope(Sym, VarName)
    END ;
-   RETURN( Sym )
+   RETURN Sym
 END MakeVar ;
 
 
@@ -3326,21 +3337,21 @@ END HasExceptionFinally ;
                         and initialize its fields.
 *)
 
-PROCEDURE FillInRecordFields (Sym: CARDINAL; RecordName: Name;
+PROCEDURE FillInRecordFields (tok: CARDINAL; sym: CARDINAL; RecordName: Name;
                               scope: CARDINAL; oaf: CARDINAL) ;
 VAR
    pSym: PtrToSymbol ;
 BEGIN
-   IF NOT IsError(Sym)
+   IF NOT IsError(sym)
    THEN
-      pSym := GetPsym(Sym) ;
+      pSym := GetPsym (sym) ;
       WITH pSym^ DO
          SymbolType := RecordSym ;
          WITH Record DO
             name := RecordName ;
-            InitTree(LocalSymbols) ;
-            Size := InitValue() ;
-            InitList(ListOfSons) ;   (* List of RecordFieldSym and VarientSym *)
+            InitTree (LocalSymbols) ;
+            Size := InitValue () ;
+            InitList (ListOfSons) ;   (* List of RecordFieldSym and VarientSym *)
             oafamily := oaf ;
             Parent := NulSym ;
             Align := NulSym ;
@@ -3348,7 +3359,7 @@ BEGIN
             DeclPacked := FALSE ;
             DeclResolved := FALSE ;
             Scope := scope ;
-            InitWhereDeclared(At)
+            InitWhereDeclaredTok (tok, At)
          END
       END
    END
@@ -3359,22 +3370,22 @@ END FillInRecordFields ;
    HandleHiddenOrDeclare -
 *)
 
-PROCEDURE HandleHiddenOrDeclare (name: Name; VAR oaf: CARDINAL) : CARDINAL ;
+PROCEDURE HandleHiddenOrDeclare (tok: CARDINAL; name: Name; VAR oaf: CARDINAL) : CARDINAL ;
 VAR
    sym: CARDINAL ;
 BEGIN
-   sym := CheckForHiddenType(name) ;
+   sym := CheckForHiddenType (name) ;
    IF sym=NulSym
    THEN
-      sym := DeclareSym(name) ;
-      IF NOT IsError(sym)
+      sym := DeclareSym (tok, name) ;
+      IF NOT IsError (sym)
       THEN
          (* Now add this type to the symbol table of the current scope *)
-         AddSymToScope(sym, name)
+         AddSymToScope (sym, name)
       END
    END ;
-   oaf := GetOAFamily(sym) ;
-   RETURN( sym )
+   oaf := GetOAFamily (sym) ;
+   RETURN sym
 END HandleHiddenOrDeclare ;
 
 
@@ -3382,14 +3393,14 @@ END HandleHiddenOrDeclare ;
    MakeRecord - makes a Record symbol with name RecordName.
 *)
 
-PROCEDURE MakeRecord (RecordName: Name) : CARDINAL ;
+PROCEDURE MakeRecord (tok: CARDINAL; RecordName: Name) : CARDINAL ;
 VAR
    oaf, sym: CARDINAL ;
 BEGIN
-   sym := HandleHiddenOrDeclare(RecordName, oaf) ;
-   FillInRecordFields(sym, RecordName, GetCurrentScope(), oaf) ;
-   ForeachOAFamily(oaf, doFillInOAFamily) ;
-   RETURN( sym )
+   sym := HandleHiddenOrDeclare (tok, RecordName, oaf) ;
+   FillInRecordFields (tok, sym, RecordName, GetCurrentScope (), oaf) ;
+   ForeachOAFamily (oaf, doFillInOAFamily) ;
+   RETURN sym
 END MakeRecord ;
 
 
@@ -3398,12 +3409,12 @@ END MakeRecord ;
                  symbol, RecOrVarFieldSym.
 *)
 
-PROCEDURE MakeVarient (RecOrVarFieldSym: CARDINAL) : CARDINAL ;
+PROCEDURE MakeVarient (tok: CARDINAL; RecOrVarFieldSym: CARDINAL) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
    Sym : CARDINAL ;
 BEGIN
-   NewSym(Sym) ;
+   NewSym (Sym) ;
    pSym := GetPsym(Sym) ;
    WITH pSym^ DO
       SymbolType := VarientSym ;
@@ -3420,7 +3431,7 @@ BEGIN
          DeclPacked := FALSE ;
          Scope := GetCurrentScope() ;
          InitList(ListOfSons) ;
-         InitWhereDeclared(At)
+         InitWhereDeclaredTok(tok, At)
       END
    END ;
    (* Now add Sym to the record RecSym field list *)
@@ -3436,7 +3447,7 @@ BEGIN
                        __FILE__, __LINE__)
       END
    END ;
-   RETURN( Sym )
+   RETURN Sym
 END MakeVarient ;
 
 
@@ -3450,16 +3461,16 @@ PROCEDURE GetRecord (Sym: CARDINAL) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
 BEGIN
-   pSym := GetPsym(Sym) ;
+   pSym := GetPsym (Sym) ;
    WITH pSym^ DO
       CASE SymbolType OF
 
-      RecordSym      : RETURN( Sym ) |
-      VarientSym     : RETURN( GetRecord(Varient.Parent) ) |
-      VarientFieldSym: RETURN( GetRecord(VarientField.Parent) )
+      RecordSym      : RETURN Sym  |
+      VarientSym     : RETURN GetRecord(Varient.Parent)  |
+      VarientFieldSym: RETURN GetRecord(VarientField.Parent)
 
       ELSE
-         InternalError('expecting Record or Varient symbol', __FILE__, __LINE__)
+         InternalError ('expecting Record or Varient symbol', __FILE__, __LINE__)
       END
    END
 END GetRecord ;
@@ -3502,14 +3513,14 @@ PROCEDURE IsDeclaredPacked (sym: CARDINAL) : BOOLEAN ;
 VAR
    pSym: PtrToSymbol ;
 BEGIN
-   pSym := GetPsym(sym) ;
+   pSym := GetPsym (sym) ;
    WITH pSym^ DO
       CASE SymbolType OF
 
-      RecordSym      :  RETURN( Record.DeclPacked ) |
-      RecordFieldSym :  RETURN( RecordField.DeclPacked ) |
-      VarientFieldSym:  RETURN( VarientField.DeclPacked ) |
-      VarientSym     :  RETURN( Varient.DeclPacked )
+      RecordSym      :  RETURN Record.DeclPacked |
+      RecordFieldSym :  RETURN RecordField.DeclPacked |
+      VarientFieldSym:  RETURN VarientField.DeclPacked |
+      VarientSym     :  RETURN Varient.DeclPacked
 
       ELSE
          InternalError('expecting a record or a record field symbol', __FILE__, __LINE__)
@@ -3527,17 +3538,17 @@ PROCEDURE IsDeclaredPackedResolved (sym: CARDINAL) : BOOLEAN ;
 VAR
    pSym: PtrToSymbol ;
 BEGIN
-   pSym := GetPsym(sym) ;
+   pSym := GetPsym (sym) ;
    WITH pSym^ DO
       CASE SymbolType OF
 
-      RecordSym      :  RETURN( Record.DeclResolved ) |
-      RecordFieldSym :  RETURN( RecordField.DeclResolved ) |
-      VarientFieldSym:  RETURN( VarientField.DeclResolved ) |
-      VarientSym     :  RETURN( Varient.DeclResolved )
+      RecordSym      :  RETURN Record.DeclResolved |
+      RecordFieldSym :  RETURN RecordField.DeclResolved |
+      VarientFieldSym:  RETURN VarientField.DeclResolved |
+      VarientSym     :  RETURN Varient.DeclResolved
 
       ELSE
-         InternalError('expecting a record or a record field symbol', __FILE__, __LINE__)
+         InternalError ('expecting a record or a record field symbol', __FILE__, __LINE__)
       END
    END
 END IsDeclaredPackedResolved ;
@@ -3548,48 +3559,48 @@ END IsDeclaredPackedResolved ;
                      is an enumeration symbol. The symbol index is returned.
 *)
 
-PROCEDURE MakeEnumeration (EnumerationName: Name) : CARDINAL ;
+PROCEDURE MakeEnumeration (tok: CARDINAL; EnumerationName: Name) : CARDINAL ;
 VAR
    pSym    : PtrToSymbol ;
    sym, oaf: CARDINAL ;
 BEGIN
-   sym := CheckForHiddenType(EnumerationName) ;
+   sym := CheckForHiddenType (EnumerationName) ;
    IF sym=NulSym
    THEN
-      sym := DeclareSym(EnumerationName) ;
-      oaf := GetOAFamily(sym) ;
-      IF NOT IsError(sym)
+      sym := DeclareSym (tok, EnumerationName) ;
+      oaf := GetOAFamily (sym) ;
+      IF NOT IsError (sym)
       THEN
-         pSym := GetPsym(sym) ;
+         pSym := GetPsym (sym) ;
          pSym^.SymbolType := EnumerationSym ; (* To satisfy AddSymToScope *)
          (* Now add this type to the symbol table of the current scope *)
-         AddSymToScope(sym, EnumerationName)
+         AddSymToScope (sym, EnumerationName)
       END
    ELSE
-      oaf := GetOAFamily(sym)
+      oaf := GetOAFamily (sym)
    END ;
-   IF NOT IsError(sym)
+   IF NOT IsError (sym)
    THEN
-      pSym := GetPsym(sym) ;
+      pSym := GetPsym (sym) ;
       WITH pSym^ DO
          SymbolType := EnumerationSym ;
          WITH Enumeration DO
             name := EnumerationName ;      (* Name of enumeration.   *)
             NoOfElements := 0 ;            (* No of elements in the  *)
                                            (* enumeration type.      *)
-            Size := InitValue() ;          (* Size at runtime of sym *)
-            InitTree(LocalSymbols) ;       (* Enumeration fields.    *)
-            InitPacked(packedInfo) ;       (* not packed and no      *)
+            Size := InitValue () ;         (* Size at runtime of sym *)
+            InitTree (LocalSymbols) ;      (* Enumeration fields.    *)
+            InitPacked (packedInfo) ;      (* not packed and no      *)
                                            (* equivalent (yet).      *)
             oafamily := oaf ;              (* The open array family  *)
-            Scope := GetCurrentScope() ;   (* Which scope created it *)
-            InitWhereDeclared(At)          (* Declared here          *)
+            Scope := GetCurrentScope () ;  (* Which scope created it *)
+            InitWhereDeclaredTok (tok, At) (* Declared here          *)
          END
       END ;
-      CheckIfEnumerationExported(sym, ScopePtr)
+      CheckIfEnumerationExported (sym, ScopePtr)
    END ;
-   ForeachOAFamily(oaf, doFillInOAFamily) ;
-   RETURN( sym )
+   ForeachOAFamily (oaf, doFillInOAFamily) ;
+   RETURN sym
 END MakeEnumeration ;
 
 
@@ -3597,16 +3608,12 @@ END MakeEnumeration ;
    MakeType - makes a type symbol with name TypeName.
 *)
 
-PROCEDURE MakeType (TypeName: Name) : CARDINAL ;
+PROCEDURE MakeType (tok: CARDINAL; TypeName: Name) : CARDINAL ;
 VAR
    pSym    : PtrToSymbol ;
    sym, oaf: CARDINAL ;
 BEGIN
-   sym := HandleHiddenOrDeclare(TypeName, oaf) ;
-   IF sym=717
-   THEN
-      stop
-   END ;
+   sym := HandleHiddenOrDeclare (tok, TypeName, oaf) ;
    IF NOT IsError(sym)
    THEN
       pSym := GetPsym(sym) ;
@@ -3624,12 +3631,12 @@ BEGIN
                                       (* equivalent yet.             *)
             oafamily := oaf ;         (* The open array family.      *)
             Scope := GetCurrentScope() ;   (* Which scope created it *)
-            InitWhereDeclared(At)     (* Declared here               *)
+            InitWhereDeclaredTok(tok, At)  (* Declared here               *)
          END
       END
    END ;
    ForeachOAFamily(oaf, doFillInOAFamily) ;
-   RETURN( sym )
+   RETURN sym
 END MakeType ;
 
 
@@ -3642,12 +3649,12 @@ END MakeType ;
                     is reached.
 *)
 
-PROCEDURE MakeHiddenType (TypeName: Name) : CARDINAL ;
+PROCEDURE MakeHiddenType (tok: CARDINAL; TypeName: Name) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
    Sym : CARDINAL ;
 BEGIN
-   Sym := DeclareSym(TypeName) ;
+   Sym := DeclareSym (tok, TypeName) ;
    IF NOT IsError(Sym)
    THEN
       pSym := GetPsym(Sym) ;
@@ -3671,7 +3678,7 @@ BEGIN
                IncludeItemIntoList(AddressTypes, Sym)
             END ;
             Size := InitValue() ;   (* Runtime size of symbol.     *)
-            InitWhereDeclared(At)   (* Declared here               *)
+            InitWhereDeclaredTok(tok, At) (* Declared here         *)
          END
       END ;
       PutExportUnImplemented(Sym) ;
@@ -3682,7 +3689,7 @@ BEGIN
       (* Now add this type to the symbol table of the current scope *)
       AddSymToScope(Sym, TypeName)
    END ;
-   RETURN( Sym )
+   RETURN Sym
 END MakeHiddenType ;
 
 
@@ -3797,12 +3804,12 @@ END MakeConstLit ;
                   name ConstVarName.
 *)
 
-PROCEDURE MakeConstVar (ConstVarName: Name) : CARDINAL ;
+PROCEDURE MakeConstVar (tok: CARDINAL; ConstVarName: Name) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
    Sym : CARDINAL ;
 BEGIN
-   Sym := DeclareSym(ConstVarName) ;
+   Sym := DeclareSym (tok, ConstVarName) ;
    IF NOT IsError(Sym)
    THEN
       pSym := GetPsym(Sym) ;
@@ -3817,7 +3824,7 @@ BEGIN
             FromType := NulSym ;     (* type is determined FromType *)
             UnresFromType := FALSE ; (* is Type resolved?           *)
             IsTemp := FALSE ;
-            InitWhereDeclared(At)
+            InitWhereDeclaredTok (tok, At)
          END
       END ;
       (* Now add this constant to the symbol table of the current scope *)
@@ -3841,7 +3848,7 @@ END MakeConstVar ;
                         In this procedure ConstName is the string.
 *)
 
-PROCEDURE MakeConstLitString (ConstName: Name) : CARDINAL ;
+PROCEDURE MakeConstLitString (tok: CARDINAL; ConstName: Name) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
    Sym : CARDINAL ;
@@ -3850,13 +3857,13 @@ BEGIN
    IF Sym=NulSym
    THEN
       NewSym(Sym) ;
-      PutSymKey(ConstLitStringTree, ConstName, Sym) ;
+      PutSymKey (ConstLitStringTree, ConstName, Sym) ;
       pSym := GetPsym(Sym) ;
       WITH pSym^ DO
          SymbolType := ConstStringSym ;
          CASE SymbolType OF
 
-         ConstStringSym : InitConstString (Sym, ConstName, ConstName)
+         ConstStringSym : InitConstString (tok, Sym, ConstName, ConstName)
 
          ELSE
             InternalError('expecting ConstString symbol', __FILE__, __LINE__)
@@ -3871,7 +3878,7 @@ END MakeConstLitString ;
    InitConstString -
 *)
 
-PROCEDURE InitConstString (sym: CARDINAL; name: Name; String: Name) ;
+PROCEDURE InitConstString (tok: CARDINAL; sym: CARDINAL; name: Name; String: Name) ;
 VAR
    pSym: PtrToSymbol ;
 BEGIN
@@ -3881,14 +3888,14 @@ BEGIN
       CASE SymbolType OF
 
       ConstStringSym:  ConstString.name := name ;
-                       PutConstString(sym, String) ;
+                       PutConstString (tok, sym, String) ;
                        ConstString.NulTerminated := NulSym ;
                        ConstString.IsNulTerminated := FALSE ;
                        ConstString.IsCstring := FALSE ;
-                       InitWhereDeclared(ConstString.At)
+                       InitWhereDeclaredTok (tok, ConstString.At)
 
       ELSE
-         InternalError('expecting ConstStringSym', __FILE__, __LINE__)
+         InternalError ('expecting ConstStringSym', __FILE__, __LINE__)
       END
    END
 END InitConstString ;
@@ -3949,7 +3956,7 @@ END IsCString ;
                                   as sym, except it will have a trailing nul char.
 *)
 
-PROCEDURE GetConstStringNullTerminated (sym: CARDINAL) : CARDINAL ;
+PROCEDURE GetConstStringNullTerminated (tok: CARDINAL; sym: CARDINAL) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
 BEGIN
@@ -3962,16 +3969,17 @@ BEGIN
                           RETURN( ConstString.NulTerminated )
                        ELSIF ConstString.NulTerminated = NulSym
                        THEN
-                          NewSym(ConstString.NulTerminated) ;
-                          InitConstString(ConstString.NulTerminated,
-                                          ConstString.name,
-                                          ConstString.String) ;
-                          PutConstStringRequiresNul(ConstString.NulTerminated)
+                          NewSym (ConstString.NulTerminated) ;
+                          InitConstString (tok,
+                                           ConstString.NulTerminated,
+                                           ConstString.name,
+                                           ConstString.String) ;
+                          PutConstStringRequiresNul (ConstString.NulTerminated)
                        END ;
                        RETURN( ConstString.NulTerminated )
 
       ELSE
-         InternalError('expecting ConstString symbol', __FILE__, __LINE__)
+         InternalError ('expecting ConstString symbol', __FILE__, __LINE__)
       END
    END
 END GetConstStringNullTerminated ;
@@ -3983,7 +3991,7 @@ END GetConstStringNullTerminated ;
                      filled in later by PutString.
 *)
 
-PROCEDURE MakeConstString (ConstName: Name) : CARDINAL ;
+PROCEDURE MakeConstString (tok: CARDINAL; ConstName: Name) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
    Sym : CARDINAL ;
@@ -3995,7 +4003,7 @@ BEGIN
       SymbolType := ConstStringSym ;
       CASE SymbolType OF
 
-      ConstStringSym :  InitConstString(Sym, ConstName, NulName)
+      ConstStringSym :  InitConstString (tok, Sym, ConstName, NulName)
 
       ELSE
          InternalError('expecting ConstString symbol', __FILE__, __LINE__)
@@ -4011,7 +4019,7 @@ END MakeConstString ;
                     true then the ConstVar is converted to a ConstString.
 *)
 
-PROCEDURE PutConstString (Sym: CARDINAL; String: Name) ;
+PROCEDURE PutConstString (tok: CARDINAL; Sym: CARDINAL; String: Name) ;
 VAR
    pSym: PtrToSymbol ;
 BEGIN
@@ -4019,18 +4027,18 @@ BEGIN
    WITH pSym^ DO
       CASE SymbolType OF
 
-      ConstStringSym: ConstString.Length := LengthKey(String) ;
+      ConstStringSym: ConstString.Length := LengthKey (String) ;
                       ConstString.String := String ;
-                      InitWhereFirstUsed(ConstString.At) |
+                      InitWhereFirstUsedTok (tok, ConstString.At) |
 
       ConstVarSym   : (* ok altering this to ConstString *)
                       (* copy name and alter symbol.     *)
-                      InitConstString(Sym, ConstVar.name, String) ;
-                      PutConstString(Sym, String)
+                      InitConstString (tok, Sym, ConstVar.name, String) ;
+                      PutConstString (tok, Sym, String)
 
       ELSE
-         InternalError('expecting ConstString or ConstVar symbol',
-                       __FILE__, __LINE__)
+         InternalError ('expecting ConstString or ConstVar symbol',
+                        __FILE__, __LINE__)
       END
    END
 END PutConstString ;
@@ -4666,12 +4674,12 @@ END IsEquivalent ;
                   name SubrangeName.
 *)
 
-PROCEDURE MakeSubrange (SubrangeName: Name) : CARDINAL ;
+PROCEDURE MakeSubrange (tok: CARDINAL; SubrangeName: Name) : CARDINAL ;
 VAR
    pSym    : PtrToSymbol ;
    sym, oaf: CARDINAL ;
 BEGIN
-   sym := HandleHiddenOrDeclare(SubrangeName, oaf) ;
+   sym := HandleHiddenOrDeclare (tok, SubrangeName, oaf) ;
    IF NOT IsError(sym)
    THEN
       pSym := GetPsym(sym) ;
@@ -4696,12 +4704,12 @@ BEGIN
             Size := InitValue() ;       (* Size determines the type size *)
             oafamily := oaf ;           (* The unbounded sym for this    *)
             Scope := GetCurrentScope() ;      (* Which scope created it  *)
-            InitWhereDeclared(At)       (* Declared here                 *)
+            InitWhereDeclaredTok(tok, At)     (* Declared here           *)
          END
       END
    END ;
    ForeachOAFamily(oaf, doFillInOAFamily) ;
-   RETURN( sym )
+   RETURN sym
 END MakeSubrange ;
 
 
@@ -4709,12 +4717,12 @@ END MakeSubrange ;
    MakeArray - makes an Array symbol with name ArrayName.
 *)
 
-PROCEDURE MakeArray (ArrayName: Name) : CARDINAL ;
+PROCEDURE MakeArray (tok: CARDINAL; ArrayName: Name) : CARDINAL ;
 VAR
    pSym    : PtrToSymbol ;
    sym, oaf: CARDINAL ;
 BEGIN
-   sym := HandleHiddenOrDeclare(ArrayName, oaf) ;
+   sym := HandleHiddenOrDeclare (tok, ArrayName, oaf) ;
    IF NOT IsError(sym)
    THEN
       pSym := GetPsym(sym) ;
@@ -4730,7 +4738,7 @@ BEGIN
             Align := NulSym ;       (* The alignment of this type.         *)
             oafamily := oaf ;       (* The unbounded for this array        *)
             Scope := GetCurrentScope() ;        (* Which scope created it  *)
-            InitWhereDeclared(At)   (* Declared here                       *)
+            InitWhereDeclaredTok(tok, At)   (* Declared here               *)
          END
       END
    END ;
@@ -5956,7 +5964,7 @@ END IsUnused ;
                          value FieldVal.
 *)
 
-PROCEDURE PutFieldEnumeration (Sym: CARDINAL; FieldName: Name; tok: CARDINAL) ;
+PROCEDURE PutFieldEnumeration (tok: CARDINAL; Sym: CARDINAL; FieldName: Name) ;
 VAR
    oSym,
    pSym : PtrToSymbol ;
@@ -5966,7 +5974,7 @@ BEGIN
    Field := CheckForHiddenType(FieldName) ;
    IF Field=NulSym
    THEN
-      Field := DeclareSym(FieldName)
+      Field := DeclareSym (tok, FieldName)
    END ;
    IF NOT IsError(Field)
    THEN
@@ -5982,7 +5990,7 @@ BEGIN
             PopInto(Value) ;
             Type := Sym ;
             Scope := GetCurrentScope() ;
-            InitWhereDeclaredTok(At, tok)  (* Declared here *)
+            InitWhereDeclaredTok (tok, At)  (* Declared here *)
          END
       END ;
       pSym := GetPsym(Sym) ;
@@ -6163,7 +6171,8 @@ END PutConstVarTemporary ;
    buildTemporary - builds the temporary filling in componentRef, record and sets mode.
 *)
 
-PROCEDURE buildTemporary (Mode: ModeOfAddr; componentRef: BOOLEAN; record: CARDINAL) : CARDINAL ;
+PROCEDURE buildTemporary (tok: CARDINAL;
+                          Mode: ModeOfAddr; componentRef: BOOLEAN; record: CARDINAL) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
    s   : String ;
@@ -6174,10 +6183,10 @@ BEGIN
    s := Sprintf1(Mark(InitString('_T%d')), TemporaryNo) ;
    IF Mode=ImmediateValue
    THEN
-      Sym := MakeConstVar(makekey(string(s))) ;
+      Sym := MakeConstVar(tok, makekey(string(s))) ;
       PutConstVarTemporary(Sym)
    ELSE
-      Sym := MakeVar(makekey(string(s))) ;
+      Sym := MakeVar(tok, makekey(string(s))) ;
       pSym := GetPsym(Sym) ;
       WITH pSym^ DO
          CASE SymbolType OF
@@ -6198,7 +6207,7 @@ BEGIN
       END
    END ;
    s := KillString(s) ;
-   RETURN( Sym )
+   RETURN Sym
 END buildTemporary ;
 
 
@@ -6239,9 +6248,9 @@ END MakeComponentRef ;
                          (or sub field) of record.
 *)
 
-PROCEDURE MakeComponentRecord (Mode: ModeOfAddr; record: CARDINAL) : CARDINAL ;
+PROCEDURE MakeComponentRecord (tok: CARDINAL; Mode: ModeOfAddr; record: CARDINAL) : CARDINAL ;
 BEGIN
-   RETURN( buildTemporary(Mode, TRUE, record) )
+   RETURN buildTemporary (tok, Mode, TRUE, record)
 END MakeComponentRecord ;
 
 
@@ -6272,9 +6281,9 @@ END IsComponent ;
                    The addressing mode of the temporary is set to NoValue.
 *)
 
-PROCEDURE MakeTemporary (Mode: ModeOfAddr) : CARDINAL ;
+PROCEDURE MakeTemporary (tok: CARDINAL; Mode: ModeOfAddr) : CARDINAL ;
 BEGIN
-   RETURN( buildTemporary(Mode, FALSE, NulSym) )
+   RETURN buildTemporary (tok, Mode, FALSE, NulSym)
 END MakeTemporary ;
 
 
@@ -6286,8 +6295,8 @@ END MakeTemporary ;
                                   e1 and e2.
 *)
 
-PROCEDURE MakeTemporaryFromExpressions (e1, e2: CARDINAL;
-                                        tok: CARDINAL;
+PROCEDURE MakeTemporaryFromExpressions (tok: CARDINAL;
+                                        e1, e2: CARDINAL;
                                         mode: ModeOfAddr) : CARDINAL ;
 VAR
    pSym: PtrToSymbol ;
@@ -6300,7 +6309,7 @@ BEGIN
    s := Sprintf1(Mark(InitString('_T%d')), TemporaryNo) ;
    IF mode=ImmediateValue
    THEN
-      Sym := MakeConstVar(makekey(string(s))) ;
+      Sym := MakeConstVar(tok, makekey(string(s))) ;
       IF IsConstructor(e1)
       THEN
          PutConstructor(Sym) ;
@@ -6314,7 +6323,7 @@ BEGIN
       END ;
       PutConstVarTemporary(Sym)
    ELSE
-      Sym := MakeVar(makekey(string(s))) ;
+      Sym := MakeVar(tok, makekey(string(s))) ;
       pSym := GetPsym(Sym) ;
       WITH pSym^ DO
          CASE SymbolType OF
@@ -6322,7 +6331,8 @@ BEGIN
          VarSym : Var.AddrMode := mode ;
                   Var.IsComponentRef := FALSE ;
                   Var.IsTemp := TRUE ;       (* Variable is a temporary var *)
-                  InitWhereDeclared(Var.At)  (* Declared here               *)
+                  InitWhereDeclaredTok(tok, Var.At)
+                                             (* Declared here               *)
 
          ELSE
             InternalError('expecting a Var symbol', __FILE__, __LINE__)
@@ -6347,11 +6357,11 @@ END MakeTemporaryFromExpressions ;
                                  type is determined by expressions, e.
 *)
 
-PROCEDURE MakeTemporaryFromExpression (e: CARDINAL;
-                                       tok: CARDINAL;
+PROCEDURE MakeTemporaryFromExpression (tok: CARDINAL;
+                                       e: CARDINAL;
                                        mode: ModeOfAddr) : CARDINAL ;
 BEGIN
-   RETURN( MakeTemporaryFromExpressions(e, e, tok, mode) )
+   RETURN MakeTemporaryFromExpressions (tok, e, e, mode)
 END MakeTemporaryFromExpression ;
 
 
@@ -6661,7 +6671,7 @@ BEGIN
          *)
       END
    END ;
-   RETURN( Sym )
+   RETURN Sym
 END GetDeclareSym ;
 
 
@@ -8552,15 +8562,15 @@ END PutOptFunction ;
    MakeVariableForParam -
 *)
 
-PROCEDURE MakeVariableForParam (ParamName: Name;
+PROCEDURE MakeVariableForParam (tok      : CARDINAL;
+                                ParamName: Name;
                                 ProcSym  : CARDINAL ;
-                                no       : CARDINAL ;
-                                tok      : CARDINAL) : CARDINAL ;
+                                no       : CARDINAL) : CARDINAL ;
 VAR
    pSym       : PtrToSymbol ;
    VariableSym: CARDINAL ;
 BEGIN
-   VariableSym := MakeVar(ParamName) ;
+   VariableSym := MakeVar(tok, ParamName) ;
    pSym := GetPsym(VariableSym) ;
    WITH pSym^ DO
       CASE SymbolType OF
@@ -8574,7 +8584,7 @@ BEGIN
    END ;
    (* Note that the parameter is now treated as a local variable *)
    PutVar(VariableSym, GetType(GetNthParam(ProcSym, no))) ;
-   PutDeclared(VariableSym, tok) ;
+   PutDeclared(tok, VariableSym) ;
    (*
       Normal VAR parameters have LeftValue,
       however Unbounded VAR parameters have RightValue.
@@ -8598,9 +8608,9 @@ END MakeVariableForParam ;
               consistancy test is returned.
 *)
 
-PROCEDURE PutParam (Sym: CARDINAL; ParamNo: CARDINAL;
+PROCEDURE PutParam (tok: CARDINAL; Sym: CARDINAL; ParamNo: CARDINAL;
                     ParamName: Name; ParamType: CARDINAL;
-                    isUnbounded: BOOLEAN; tok: CARDINAL) : BOOLEAN ;
+                    isUnbounded: BOOLEAN) : BOOLEAN ;
 VAR
    pSym       : PtrToSymbol ;
    ParSym     : CARDINAL ;
@@ -8620,13 +8630,13 @@ BEGIN
             Type := ParamType ;
             IsUnbounded := isUnbounded ;
             ShadowVar := NulSym ;
-            InitWhereDeclaredTok(At, tok)
+            InitWhereDeclaredTok(tok, At)
          END
       END ;
       AddParameter(Sym, ParSym) ;
       IF ParamName#NulName
       THEN
-         VariableSym := MakeVariableForParam(ParamName, Sym, ParamNo, tok) ;
+         VariableSym := MakeVariableForParam(tok, ParamName, Sym, ParamNo) ;
          IF VariableSym=NulSym
          THEN
             RETURN( FALSE )
@@ -8649,9 +8659,9 @@ END PutParam ;
                  consistancy test is returned.
 *)
 
-PROCEDURE PutVarParam (Sym: CARDINAL; ParamNo: CARDINAL;
+PROCEDURE PutVarParam (tok: CARDINAL; Sym: CARDINAL; ParamNo: CARDINAL;
                        ParamName: Name; ParamType: CARDINAL;
-                       isUnbounded: BOOLEAN; tok: CARDINAL) : BOOLEAN ;
+                       isUnbounded: BOOLEAN) : BOOLEAN ;
 VAR
    pSym       : PtrToSymbol ;
    ParSym     : CARDINAL ;
@@ -8672,13 +8682,13 @@ BEGIN
             Type := ParamType ;
             IsUnbounded := isUnbounded ;
             ShadowVar := NulSym ;
-            InitWhereDeclaredTok(At, tok)
+            InitWhereDeclaredTok(tok, At)
          END
       END ;
       AddParameter(Sym, ParSym) ;
       IF ParamName#NulName
       THEN
-         VariableSym := MakeVariableForParam(ParamName, Sym, ParamNo, tok) ;
+         VariableSym := MakeVariableForParam(tok, ParamName, Sym, ParamNo) ;
          IF VariableSym=NulSym
          THEN
             RETURN( FALSE )
@@ -8697,7 +8707,7 @@ END PutVarParam ;
                   ProcSym.
 *)
 
-PROCEDURE PutParamName (ProcSym: CARDINAL; no: CARDINAL; name: Name; tok: CARDINAL) ;
+PROCEDURE PutParamName (tok: CARDINAL; ProcSym: CARDINAL; no: CARDINAL; name: Name) ;
 VAR
    pSym  : PtrToSymbol ;
    ParSym: CARDINAL ;
@@ -8721,7 +8731,7 @@ BEGIN
       ParamSym:    IF Param.name=NulName
                    THEN
                       Param.name := name ;
-                      Param.ShadowVar := MakeVariableForParam(name, ProcSym, no, tok)
+                      Param.ShadowVar := MakeVariableForParam(tok, name, ProcSym, no)
                    ELSE
                       InternalError('name of parameter has already been assigned',
                                     __FILE__, __LINE__)
@@ -8729,7 +8739,7 @@ BEGIN
       VarParamSym: IF VarParam.name=NulName
                    THEN
                       VarParam.name := name ;
-                      VarParam.ShadowVar := MakeVariableForParam(name, ProcSym, no, tok)
+                      VarParam.ShadowVar := MakeVariableForParam(tok, name, ProcSym, no)
                    ELSE
                       InternalError('name of parameter has already been assigned',
                                     __FILE__, __LINE__)
@@ -9397,11 +9407,11 @@ END FillInPointerFields ;
    MakePointer - returns a pointer symbol with PointerName.
 *)
 
-PROCEDURE MakePointer (PointerName: Name) : CARDINAL ;
+PROCEDURE MakePointer (tok: CARDINAL; PointerName: Name) : CARDINAL ;
 VAR
    oaf, sym: CARDINAL ;
 BEGIN
-   sym := HandleHiddenOrDeclare(PointerName, oaf) ;
+   sym := HandleHiddenOrDeclare(tok, PointerName, oaf) ;
    FillInPointerFields(sym, PointerName, GetCurrentScope(), oaf) ;
    ForeachOAFamily(oaf, doFillInOAFamily) ;
    RETURN( sym )
@@ -9658,12 +9668,12 @@ END PutSubscript ;
    MakeSet - makes a set Symbol with name, SetName.
 *)
 
-PROCEDURE MakeSet (SetName: Name) : CARDINAL ;
+PROCEDURE MakeSet (tok: CARDINAL; SetName: Name) : CARDINAL ;
 VAR
    pSym    : PtrToSymbol ;
    oaf, sym: CARDINAL ;
 BEGIN
-   sym := HandleHiddenOrDeclare(SetName, oaf) ;
+   sym := HandleHiddenOrDeclare(tok, SetName, oaf) ;
    IF NOT IsError(sym)
    THEN
       pSym := GetPsym(sym) ;
@@ -9677,7 +9687,7 @@ BEGIN
                                             (* equivalent (yet).      *)
             oafamily := oaf ;          (* The unbounded sym for this  *)
             Scope := GetCurrentScope() ;    (* Which scope created it *)
-            InitWhereDeclared(At)      (* Declared here               *)
+            InitWhereDeclaredTok(tok, At)   (* Declared here          *)
          END
       END
    END ;
@@ -9924,7 +9934,7 @@ BEGIN
    SimpleType := GetType(oaf) ;
    IF unbounded#NulSym
    THEN
-      FillInUnboundedFields(unbounded, SimpleType, i)
+      FillInUnboundedFields(GetTokenNo(), unbounded, SimpleType, i)
    END
 END doFillInOAFamily ;
 
@@ -9933,7 +9943,8 @@ END doFillInOAFamily ;
    FillInUnboundedFields -
 *)
 
-PROCEDURE FillInUnboundedFields (sym: CARDINAL; SimpleType: CARDINAL; ndim: CARDINAL) ;
+PROCEDURE FillInUnboundedFields (tok: CARDINAL;
+                                 sym: CARDINAL; SimpleType: CARDINAL; ndim: CARDINAL) ;
 VAR
    pSym    : PtrToSymbol ;
    field   : CARDINAL ;
@@ -9949,9 +9960,9 @@ BEGIN
             Type := SimpleType ;            (* Index to a simple type.     *)
             Size := InitValue() ;           (* Size in bytes for this sym  *)
             Scope := GetScope(SimpleType) ; (* Which scope will create it  *)
-            InitWhereDeclared(At) ;         (* Declared here               *)
+            InitWhereDeclaredTok(tok, At) ; (* Declared here               *)
             NewSym(RecordType) ;
-            FillInRecordFields(RecordType, NulName, GetScope(SimpleType), NulSym) ;
+            FillInRecordFields(tok, RecordType, NulName, GetScope(SimpleType), NulSym) ;
             NewSym(Contents) ;
             FillInPointerFields(Contents, NulName, GetScope(SimpleType), NulSym) ;
             PutPointer(Contents, SimpleType) ;
@@ -9981,7 +9992,8 @@ END FillInUnboundedFields ;
                    No name is required.
 *)
 
-PROCEDURE MakeUnbounded (SimpleType: CARDINAL; ndim: CARDINAL) : CARDINAL ;
+PROCEDURE MakeUnbounded (tok: CARDINAL;
+                         SimpleType: CARDINAL; ndim: CARDINAL) : CARDINAL ;
 VAR
    sym, oaf: CARDINAL ;
 BEGIN
@@ -9994,7 +10006,7 @@ BEGIN
       THEN
          PutPartialUnbounded(sym, SimpleType, ndim)
       ELSE
-         FillInUnboundedFields(sym, SimpleType, ndim)
+         FillInUnboundedFields(tok, sym, SimpleType, ndim)
       END ;
       PutUnbounded(oaf, sym, ndim)
    END ;
@@ -10814,12 +10826,12 @@ END IsRecordField ;
    MakeProcType - returns a procedure type symbol with ProcTypeName.
 *)
 
-PROCEDURE MakeProcType (ProcTypeName: Name) : CARDINAL ;
+PROCEDURE MakeProcType (tok: CARDINAL; ProcTypeName: Name) : CARDINAL ;
 VAR
    pSym    : PtrToSymbol ;
    oaf, sym: CARDINAL ;
 BEGIN
-   sym := HandleHiddenOrDeclare(ProcTypeName, oaf) ;
+   sym := HandleHiddenOrDeclare (tok, ProcTypeName, oaf) ;
    IF NOT IsError(sym)
    THEN
       pSym := GetPsym(sym) ;
@@ -10839,7 +10851,7 @@ BEGIN
                       ProcType.Size := InitValue() ;
                       ProcType.TotalParamSize := InitValue() ;  (* size of all parameters *)
                       ProcType.oafamily := oaf ;         (* The oa family for this symbol *)
-                      InitWhereDeclared(ProcType.At)     (* Declared here *)
+                      InitWhereDeclaredTok(tok, ProcType.At)     (* Declared here *)
 
          ELSE
             InternalError('expecting ProcType symbol', __FILE__, __LINE__)
@@ -11652,7 +11664,7 @@ END GetDeclaredModule ;
                            module.
 *)
 
-PROCEDURE PutDeclaredDefinition (Sym: CARDINAL; tok: CARDINAL) ;
+PROCEDURE PutDeclaredDefinition (tok: CARDINAL; Sym: CARDINAL) ;
 VAR
    pSym: PtrToSymbol ;
 BEGIN
@@ -11686,7 +11698,7 @@ BEGIN
       DefImpSym          : DefImp.At.DefDeclared := tok |
       ModuleSym          : Module.At.DefDeclared := tok |
       UndefinedSym       : |
-      PartialUnboundedSym: PutDeclaredDefinition(PartialUnbounded.Type, tok)
+      PartialUnboundedSym: PutDeclaredDefinition(tok, PartialUnbounded.Type)
 
       ELSE
          InternalError('not expecting this type of symbol', __FILE__, __LINE__)
@@ -11700,7 +11712,7 @@ END PutDeclaredDefinition ;
                        in an implementation or program module.
 *)
 
-PROCEDURE PutDeclaredModule (Sym: CARDINAL; tok: CARDINAL) ;
+PROCEDURE PutDeclaredModule (tok: CARDINAL; Sym: CARDINAL) ;
 VAR
    pSym: PtrToSymbol ;
 BEGIN
@@ -11734,7 +11746,7 @@ BEGIN
       DefImpSym          : DefImp.At.ModDeclared := tok |
       ModuleSym          : Module.At.ModDeclared := tok |
       UndefinedSym       : |
-      PartialUnboundedSym: PutDeclaredModule(PartialUnbounded.Type, tok)
+      PartialUnboundedSym: PutDeclaredModule(tok, PartialUnbounded.Type)
 
       ELSE
          InternalError('not expecting this type of symbol', __FILE__, __LINE__)
@@ -11751,13 +11763,13 @@ END PutDeclaredModule ;
                  implementation module.
 *)
 
-PROCEDURE PutDeclared (Sym: CARDINAL; tok: CARDINAL) ;
+PROCEDURE PutDeclared (tok: CARDINAL; Sym: CARDINAL) ;
 BEGIN
    IF CompilingDefinitionModule ()
    THEN
-      PutDeclaredDefinition (Sym, tok)
+      PutDeclaredDefinition (tok, Sym)
    ELSE
-      PutDeclaredModule (Sym, tok)
+      PutDeclaredModule (tok, Sym)
    END
 END PutDeclared ;
 
@@ -12892,6 +12904,64 @@ BEGIN
       END
    END
 END GetDefaultRecordFieldAlignment ;
+
+
+(*
+   DumpSymbols - display all symbol numbers and their type.
+*)
+
+PROCEDURE DumpSymbols ;
+VAR
+   pSym: PtrToSymbol ;
+   sym : CARDINAL ;
+BEGIN
+   sym := 1 ;
+   WHILE sym <= FinalSymbol () DO
+      pSym := GetPsym(sym) ;
+      printf ("%d  ", sym) ;
+      WITH pSym^ DO
+         CASE SymbolType OF
+
+         RecordSym:  printf ("RecordSym") |
+         VarientSym:  printf ("VarientSym") |
+         DummySym:  printf ("DummySym") |
+         VarSym:  printf ("VarSym") |
+         EnumerationSym:  printf ("EnumerationSym") |
+         SubrangeSym:  printf ("SubrangeSym") |
+         ArraySym:  printf ("ArraySym") |
+         ConstStringSym:  printf ("ConstStringSym") |
+         ConstVarSym:  printf ("ConstVarSym") |
+         ConstLitSym:  printf ("ConstLitSym") |
+         VarParamSym:  printf ("VarParamSym") |
+         ParamSym:  printf ("ParamSym") |
+         PointerSym:  printf ("PointerSym") |
+         UndefinedSym:  printf ("UndefinedSym") |
+         TypeSym:  printf ("TypeSym") |
+         RecordFieldSym:  printf ("RecordFieldSym") |
+         VarientFieldSym:  printf ("VarientFieldSym") |
+         EnumerationFieldSym:  printf ("EnumerationFieldSym") |
+         DefImpSym:  printf ("DefImpSym") |
+         ModuleSym:  printf ("ModuleSym") |
+         SetSym:  printf ("SetSym") |
+         ProcedureSym:  printf ("ProcedureSym") |
+         ProcTypeSym:  printf ("ProcTypeSym") |
+         SubscriptSym:  printf ("SubscriptSym") |
+         UnboundedSym:  printf ("UnboundedSym") |
+         GnuAsmSym:  printf ("GnuAsmSym") |
+         InterfaceSym:  printf ("InterfaceSym") |
+         ObjectSym:  printf ("ObjectSym") |
+         PartialUnboundedSym:  printf ("PartialUnboundedSym") |
+         TupleSym:  printf ("TupleSym") |
+         OAFamilySym:  printf ("OAFamilySym") |
+         EquivSym:  printf ("EquivSym") |
+         ErrorSym:  printf ("ErrorSym")
+
+         END
+      END ;
+      printf ("\n") ;
+      INC (sym)
+   END
+END DumpSymbols ;
 
 
 (*

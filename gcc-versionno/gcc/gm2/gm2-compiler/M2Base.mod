@@ -188,7 +188,7 @@ BEGIN
    IF DebugBuiltins
    THEN
       (* we will need to parse this module as functions alloca/memcpy will be used *)
-      builtins := MakeDefinitionSource(MakeKey('Builtins'))
+      builtins := MakeDefinitionSource(BuiltinTokenNo, MakeKey('Builtins'))
    END
 END InitBuiltins ;
 
@@ -200,7 +200,7 @@ END InitBuiltins ;
 
 PROCEDURE InitBase (location: location_t; VAR sym: CARDINAL) ;
 BEGIN
-   sym := MakeModule(MakeKey('_BaseTypes')) ;
+   sym := MakeModule(BuiltinTokenNo, MakeKey('_BaseTypes')) ;
    SetCurrentModule(sym) ;
    StartScope(sym) ;
 
@@ -249,7 +249,7 @@ END IsNeededAtRunTime ;
 
 PROCEDURE InitBaseConstants ;
 BEGIN
-   Nil := MakeConstVar(MakeKey('NIL')) ;
+   Nil := MakeConstVar(BuiltinTokenNo, MakeKey('NIL')) ;
    PutConst(Nil, Address)
 END InitBaseConstants ;
 
@@ -261,85 +261,85 @@ END InitBaseConstants ;
 
 PROCEDURE InitBaseSimpleTypes (location: location_t) ;
 BEGIN
-   InitBaseTypes(location) ;
+   InitBaseTypes (location) ;
 
-   ZType := MakeType(MakeKey('Modula-2 base Z')) ;
+   ZType := MakeType (BuiltinTokenNo, MakeKey('Modula-2 base Z')) ;
    PutType(ZType, NulSym) ;                   (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2ZType())) ;
    PopSize(ZType) ;
 
-   RType := MakeType(MakeKey('Modula-2 base R')) ;
+   RType := MakeType(BuiltinTokenNo, MakeKey('Modula-2 base R')) ;
    PutType(RType, NulSym) ;                   (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2RType())) ;
    PopSize(RType) ;
 
-   CType := MakeType(MakeKey('Modula-2 base C')) ;
+   CType := MakeType (BuiltinTokenNo, MakeKey('Modula-2 base C')) ;
    PutType(CType, NulSym) ;                   (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2CType())) ;
    PopSize(CType) ;
 
-   Integer := MakeType(MakeKey('INTEGER')) ;
+   Integer := MakeType (BuiltinTokenNo, MakeKey('INTEGER')) ;
    PutType(Integer, NulSym) ;                 (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2IntegerType())) ;
    PopSize(Integer) ;
 
-   Cardinal := MakeType(MakeKey('CARDINAL')) ;
+   Cardinal := MakeType (BuiltinTokenNo, MakeKey('CARDINAL')) ;
    PutType(Cardinal, NulSym) ;
                                               (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2CardinalType())) ;
    PopSize(Cardinal) ;
 
-   LongInt := MakeType(MakeKey('LONGINT')) ;
+   LongInt := MakeType (BuiltinTokenNo, MakeKey('LONGINT')) ;
    PutType(LongInt, NulSym) ;                 (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2LongIntType())) ;
    PopSize(LongInt) ;
 
-   LongCard := MakeType(MakeKey('LONGCARD')) ;
+   LongCard := MakeType (BuiltinTokenNo, MakeKey('LONGCARD')) ;
    PutType(LongCard, NulSym) ;                (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2LongCardType())) ;
    PopSize(LongCard) ;
 
-   ShortInt := MakeType(MakeKey('SHORTINT')) ;
+   ShortInt := MakeType (BuiltinTokenNo, MakeKey('SHORTINT')) ;
    PutType(ShortInt, NulSym) ;                (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2ShortIntType())) ;
    PopSize(ShortInt) ;
 
-   ShortCard := MakeType(MakeKey('SHORTCARD')) ;
+   ShortCard := MakeType (BuiltinTokenNo, MakeKey('SHORTCARD')) ;
    PutType(ShortCard, NulSym) ;               (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2ShortCardType())) ;
    PopSize(ShortCard) ;
 
-   Real := MakeType(MakeKey('REAL')) ;
+   Real := MakeType (BuiltinTokenNo, MakeKey('REAL')) ;
    PutType(Real, NulSym) ;                    (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2RealType())) ;
    PopSize(Real) ;
 
-   ShortReal := MakeType(MakeKey('SHORTREAL')) ;
+   ShortReal := MakeType (BuiltinTokenNo, MakeKey('SHORTREAL')) ;
    PutType(ShortReal, NulSym) ;               (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2ShortRealType())) ;
    PopSize(ShortReal) ;
 
-   LongReal := MakeType(MakeKey('LONGREAL')) ;
+   LongReal := MakeType (BuiltinTokenNo, MakeKey('LONGREAL')) ;
    PutType(LongReal, NulSym) ;                (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2LongRealType())) ;
    PopSize(LongReal) ;
 
-   Complex := MakeType(MakeKey('COMPLEX')) ;
+   Complex := MakeType (BuiltinTokenNo, MakeKey('COMPLEX')) ;
    PutType(Complex, NulSym) ;                 (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2ComplexType())) ;
    PopSize(Complex) ;
 
-   LongComplex := MakeType(MakeKey('LONGCOMPLEX')) ;
+   LongComplex := MakeType (BuiltinTokenNo, MakeKey('LONGCOMPLEX')) ;
    PutType(LongComplex, NulSym) ;             (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2LongComplexType())) ;
    PopSize(LongComplex) ;
 
-   ShortComplex := MakeType(MakeKey('SHORTCOMPLEX')) ;
+   ShortComplex := MakeType (BuiltinTokenNo, MakeKey('SHORTCOMPLEX')) ;
    PutType(ShortComplex, NulSym) ;            (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2ShortComplexType())) ;
    PopSize(ShortComplex) ;
 
-   Char := MakeType(MakeKey('CHAR')) ;
+   Char := MakeType (BuiltinTokenNo, MakeKey('CHAR')) ;
    PutType(Char, NulSym) ;                    (* Base Type       *)
    PushIntegerTree(GetSizeOf(location, GetM2CharType())) ;
    PopSize(Char) ;
@@ -347,134 +347,134 @@ BEGIN
    (*
       Boolean = (FALSE, TRUE) ;
    *)
-   Boolean := MakeEnumeration(MakeKey('BOOLEAN')) ;
+   Boolean := MakeEnumeration (BuiltinTokenNo, MakeKey('BOOLEAN')) ;
 
-   PutFieldEnumeration(Boolean, MakeKey('FALSE'), BuiltinTokenNo) ;
-   PutFieldEnumeration(Boolean, MakeKey('TRUE'), BuiltinTokenNo) ;
+   PutFieldEnumeration (BuiltinTokenNo, Boolean, MakeKey('FALSE')) ;
+   PutFieldEnumeration (BuiltinTokenNo, Boolean, MakeKey('TRUE')) ;
 
-   True  := RequestSym(MakeKey('TRUE')) ;
-   False := RequestSym(MakeKey('FALSE')) ;
+   True  := RequestSym (MakeKey('TRUE')) ;
+   False := RequestSym (MakeKey('FALSE')) ;
 
-   Proc := MakeProcType(MakeKey('PROC')) ;
+   Proc := MakeProcType (BuiltinTokenNo, MakeKey('PROC')) ;
    PushIntegerTree(GetSizeOf(location, GetProcType())) ;
    PopSize(Proc) ;
 
    (* MinChar *)
-   MinChar := MakeTemporary(ImmediateValue) ;
+   MinChar := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushIntegerTree(GetMinFrom(location, GetM2CharType())) ;
    PopValue(MinChar) ;
    PutVar(MinChar, Char) ;
 
    (* MaxChar *)
-   MaxChar := MakeTemporary(ImmediateValue) ;
+   MaxChar := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushIntegerTree(GetMaxFrom(location, GetM2CharType())) ;
    PopValue(MaxChar) ;
    PutVar(MaxChar, Char) ;
 
    (* MinInteger *)
-   MinInteger := MakeTemporary(ImmediateValue) ;
+   MinInteger := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushIntegerTree(GetMinFrom(location, GetM2IntegerType())) ;
    PopValue(MinInteger) ;
    PutVar(MinInteger, Integer) ;
 
    (* MaxInteger *)
-   MaxInteger := MakeTemporary(ImmediateValue) ;
+   MaxInteger := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushIntegerTree(GetMaxFrom(location, GetM2IntegerType())) ;
    PopValue(MaxInteger) ;
    PutVar(MaxInteger, Integer) ;
 
    (* MinCardinal *)
-   MinCardinal := MakeTemporary(ImmediateValue) ;
+   MinCardinal := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushIntegerTree(GetMinFrom(BuiltinsLocation(), GetM2CardinalType())) ;
    PopValue(MinCardinal) ;
    PutVar(MinCardinal, Cardinal) ;
 
    (* MaxCardinal *)
-   MaxCardinal := MakeTemporary(ImmediateValue) ;
+   MaxCardinal := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushIntegerTree(GetMaxFrom(location, GetM2CardinalType())) ;
    PopValue(MaxCardinal) ;
    PutVar(MaxCardinal, Cardinal) ;
 
    (* MinLongInt *)
-   MinLongInt := MakeTemporary(ImmediateValue) ;
+   MinLongInt := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushIntegerTree(GetMinFrom(location, GetM2LongIntType())) ;
    PopValue(MinLongInt) ;
    PutVar(MinLongInt, LongInt) ;
 
    (* MaxLongInt *)
-   MaxLongInt := MakeTemporary(ImmediateValue) ;
+   MaxLongInt := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushIntegerTree(GetMaxFrom(location, GetM2LongIntType())) ;
    PopValue(MaxLongInt) ;
    PutVar(MaxLongInt, LongInt) ;
 
    (* MinLongCard *)
-   MinLongCard := MakeTemporary(ImmediateValue) ;
+   MinLongCard := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushIntegerTree(GetMinFrom(location, GetM2LongCardType())) ;
    PopValue(MinLongCard) ;
    PutVar(MinLongCard, LongCard) ;
 
    (* MinLongCard *)
-   MaxLongCard := MakeTemporary(ImmediateValue) ;
+   MaxLongCard := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushIntegerTree(GetMaxFrom(BuiltinsLocation(), GetM2LongCardType())) ;
    PopValue(MaxLongCard) ;
    PutVar(MaxLongCard, LongCard) ;
 
    (* MinReal *)
-   MinReal := MakeTemporary(ImmediateValue) ;
+   MinReal := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushRealTree(GetMinFrom(location, GetM2RealType())) ;
    PopValue(MinReal) ;
    PutVar(MinReal, Real) ;
 
    (* MaxReal *)
-   MaxReal := MakeTemporary(ImmediateValue) ;
+   MaxReal := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushRealTree(GetMaxFrom(location, GetM2RealType())) ;
    PopValue(MaxReal) ;
    PutVar(MaxReal, Real) ;
 
    (* MinShortReal *)
-   MinShortReal := MakeTemporary(ImmediateValue) ;
+   MinShortReal := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushRealTree(GetMinFrom(location, GetM2ShortRealType())) ;
    PopValue(MinShortReal) ;
    PutVar(MinShortReal, ShortReal) ;
 
    (* MaxShortReal *)
-   MaxShortReal := MakeTemporary(ImmediateValue) ;
+   MaxShortReal := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushRealTree(GetMaxFrom(location, GetM2ShortRealType())) ;
    PopValue(MaxShortReal) ;
    PutVar(MaxShortReal, ShortReal) ;
 
    (* MinLongReal *)
-   MinLongReal := MakeTemporary(ImmediateValue) ;
+   MinLongReal := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushRealTree(GetMinFrom(location, GetM2LongRealType())) ;
    PopValue(MinLongReal) ;
    PutVar(MinLongReal, LongReal) ;
 
    (* MaxLongReal *)
-   MaxLongReal := MakeTemporary(ImmediateValue) ;
+   MaxLongReal := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushRealTree(GetMaxFrom(location, GetM2LongRealType())) ;
    PopValue(MaxLongReal) ;
    PutVar(MaxLongReal, LongReal) ;
 
    (* MaxShortInt *)
-   MaxShortInt := MakeTemporary(ImmediateValue) ;
+   MaxShortInt := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushIntegerTree(GetMaxFrom(location, GetM2ShortIntType())) ;
    PopValue(MaxShortInt) ;
    PutVar(MaxShortInt, ShortInt) ;
 
    (* MinShortInt *)
-   MinShortInt := MakeTemporary(ImmediateValue) ;
+   MinShortInt := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushIntegerTree(GetMinFrom(location, GetM2ShortIntType())) ;
    PopValue(MinShortInt) ;
    PutVar(MinShortInt, ShortInt) ;
 
    (* MaxShortCard *)
-   MaxShortCard := MakeTemporary(ImmediateValue) ;
+   MaxShortCard := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushIntegerTree(GetMaxFrom(location, GetM2ShortCardType())) ;
    PopValue(MaxShortCard) ;
    PutVar(MaxShortCard, ShortCard) ;
 
    (* MinShortCard *)
-   MinShortCard := MakeTemporary(ImmediateValue) ;
+   MinShortCard := MakeTemporary(BuiltinTokenNo, ImmediateValue) ;
    PushIntegerTree(GetMinFrom(location, GetM2ShortCardType())) ;
    PopValue(MinShortCard) ;
    PutVar(MinShortCard, ShortCard)
@@ -608,12 +608,12 @@ BEGIN
       "Macro" substitution occurs in M2Quads.
    *)
 
-   New := MakeProcedure(MakeKey('NEW')) ;
-   Dispose := MakeProcedure(MakeKey('DISPOSE')) ;
-   Inc := MakeProcedure(MakeKey('INC')) ;
-   Dec := MakeProcedure(MakeKey('DEC')) ;
-   Incl := MakeProcedure(MakeKey('INCL')) ;
-   Excl := MakeProcedure(MakeKey('EXCL')) ;
+   New := MakeProcedure(BuiltinTokenNo, MakeKey('NEW')) ;
+   Dispose := MakeProcedure(BuiltinTokenNo, MakeKey('DISPOSE')) ;
+   Inc := MakeProcedure(BuiltinTokenNo, MakeKey('INC')) ;
+   Dec := MakeProcedure(BuiltinTokenNo, MakeKey('DEC')) ;
+   Incl := MakeProcedure(BuiltinTokenNo, MakeKey('INCL')) ;
+   Excl := MakeProcedure(BuiltinTokenNo, MakeKey('EXCL')) ;
 
    IF NOT Pim2
    THEN
@@ -629,7 +629,7 @@ BEGIN
       without the need to import it from M2RTS. ie it is
       within the BaseType module scope.
    *)
-   m2rts := MakeDefinitionSource(MakeKey('M2RTS')) ;
+   m2rts := MakeDefinitionSource(BuiltinTokenNo, MakeKey('M2RTS')) ;
    PutImported(GetExported(m2rts, MakeKey('HALT'))) ;
 
    ExceptionAssign          := NulSym ;
@@ -706,7 +706,7 @@ BEGIN
    THEN
       ExceptionNo := ImportFrom(m2rts, 'NoException') ;
       (* ensure that this module is included *)
-      rtexceptions := MakeDefinitionSource(MakeKey('RTExceptions'))
+      rtexceptions := MakeDefinitionSource(BuiltinTokenNo, MakeKey('RTExceptions'))
    END
 END InitBaseProcedures ;
 
@@ -728,11 +728,11 @@ END IsOrd ;
 
 PROCEDURE BuildOrdFunctions ;
 BEGIN
-   Ord := MakeProcedure(MakeKey('ORD')) ;
+   Ord := MakeProcedure(BuiltinTokenNo, MakeKey('ORD')) ;
    PutFunction(Ord, Cardinal) ;
-   OrdS := MakeProcedure(MakeKey('ORDS')) ;
+   OrdS := MakeProcedure(BuiltinTokenNo, MakeKey('ORDS')) ;
    PutFunction(OrdS, ShortCard) ;
-   OrdL := MakeProcedure(MakeKey('ORDL')) ;
+   OrdL := MakeProcedure(BuiltinTokenNo, MakeKey('ORDL')) ;
    PutFunction(OrdL, LongCard)
 END BuildOrdFunctions ;
 
@@ -756,18 +756,18 @@ PROCEDURE BuildTruncFunctions ;
 BEGIN
    IF Pim2 OR Pim3 OR Iso
    THEN
-      Trunc := MakeProcedure(MakeKey('TRUNC')) ;
+      Trunc := MakeProcedure(BuiltinTokenNo, MakeKey('TRUNC')) ;
       PutFunction(Trunc, Cardinal) ;
-      TruncS := MakeProcedure(MakeKey('STRUNC')) ;
+      TruncS := MakeProcedure(BuiltinTokenNo, MakeKey('STRUNC')) ;
       PutFunction(TruncS, ShortCard) ;
-      TruncL := MakeProcedure(MakeKey('LTRUNC')) ;
+      TruncL := MakeProcedure(BuiltinTokenNo, MakeKey('LTRUNC')) ;
       PutFunction(TruncL, LongCard)
    ELSE
-      Trunc := MakeProcedure(MakeKey('TRUNC')) ;
+      Trunc := MakeProcedure(BuiltinTokenNo, MakeKey('TRUNC')) ;
       PutFunction(Trunc, Integer) ;
-      TruncS := MakeProcedure(MakeKey('STRUNC')) ;
+      TruncS := MakeProcedure(BuiltinTokenNo, MakeKey('STRUNC')) ;
       PutFunction(TruncS, ShortInt) ;
-      TruncL := MakeProcedure(MakeKey('LTRUNC')) ;
+      TruncL := MakeProcedure(BuiltinTokenNo, MakeKey('LTRUNC')) ;
       PutFunction(TruncL, LongInt)
    END
 END BuildTruncFunctions ;
@@ -793,15 +793,15 @@ END IsFloat ;
 
 PROCEDURE BuildFloatFunctions ;
 BEGIN
-   Float := MakeProcedure(MakeKey('FLOAT')) ;
+   Float := MakeProcedure(BuiltinTokenNo, MakeKey('FLOAT')) ;
    PutFunction(Float, Real) ;
-   SFloat := MakeProcedure(MakeKey('SFLOAT')) ;
+   SFloat := MakeProcedure(BuiltinTokenNo, MakeKey('SFLOAT')) ;
    PutFunction(SFloat, ShortReal) ;
-   LFloat := MakeProcedure(MakeKey('LFLOAT')) ;
+   LFloat := MakeProcedure(BuiltinTokenNo, MakeKey('LFLOAT')) ;
    PutFunction(LFloat, LongReal) ;
-   FloatS := MakeProcedure(MakeKey('FLOATS')) ;
+   FloatS := MakeProcedure(BuiltinTokenNo, MakeKey('FLOATS')) ;
    PutFunction(FloatS, ShortReal) ;
-   FloatL := MakeProcedure(MakeKey('FLOATL')) ;
+   FloatL := MakeProcedure(BuiltinTokenNo, MakeKey('FLOATL')) ;
    PutFunction(FloatL, LongReal)
 END BuildFloatFunctions ;
 
@@ -823,11 +823,11 @@ END IsInt ;
 
 PROCEDURE BuildIntFunctions ;
 BEGIN
-   Int := MakeProcedure(MakeKey('INT')) ;
+   Int := MakeProcedure(BuiltinTokenNo, MakeKey('INT')) ;
    PutFunction(Int, Integer) ;
-   IntS := MakeProcedure(MakeKey('INTS')) ;
+   IntS := MakeProcedure(BuiltinTokenNo, MakeKey('INTS')) ;
    PutFunction(IntS, ShortInt) ;
-   IntL := MakeProcedure(MakeKey('INTL')) ;
+   IntL := MakeProcedure(BuiltinTokenNo, MakeKey('INTL')) ;
    PutFunction(IntL, LongInt)
 END BuildIntFunctions ;
 
@@ -839,7 +839,7 @@ END BuildIntFunctions ;
 PROCEDURE InitBaseFunctions ;
 BEGIN
    (* Now declare the dynamic array components, HIGH *)
-   High := MakeProcedure(MakeKey('HIGH')) ;  (* Pseudo Base function HIGH *)
+   High := MakeProcedure(BuiltinTokenNo, MakeKey('HIGH')) ;  (* Pseudo Base function HIGH *)
    PutFunction(High, Cardinal) ;
 
    (*
@@ -847,48 +847,48 @@ BEGIN
       whose offset is used for all nested procedures. (The activation pointer
       being in the same relative position for all procedures).
    *)
-   TemplateProcedure := MakeProcedure(MakeKey('_TemplateProcedure')) ;
+   TemplateProcedure := MakeProcedure(BuiltinTokenNo, MakeKey('_TemplateProcedure')) ;
    StartScope(TemplateProcedure) ;
-   ActivationPointer := MakeVar(MakeKey('_ActivationPointer')) ;
+   ActivationPointer := MakeVar(BuiltinTokenNo, MakeKey('_ActivationPointer')) ;
    PutVar(ActivationPointer, Address) ;
    EndScope ;
 
    (* and the base functions *)
 
-   Convert := MakeProcedure(MakeKey('CONVERT')) ;  (* Internal function CONVERT    *)
+   Convert := MakeProcedure(BuiltinTokenNo, MakeKey('CONVERT')) ;  (* Internal function CONVERT    *)
    IF Iso
    THEN
-      LengthS := MakeProcedure(MakeKey('LENGTH')) ; (* Pseudo Base function LENGTH  *)
+      LengthS := MakeProcedure(BuiltinTokenNo, MakeKey('LENGTH')) ; (* Pseudo Base function LENGTH  *)
       PutFunction(LengthS, ZType)
    ELSE
       LengthS := NulSym
    END ;
-   Abs   := MakeProcedure(MakeKey('ABS')) ;      (* Pseudo Base function ABS     *)
+   Abs   := MakeProcedure(BuiltinTokenNo, MakeKey('ABS')) ;      (* Pseudo Base function ABS     *)
    PutFunction(Abs, ZType) ;
 
-   Cap   := MakeProcedure(MakeKey('CAP')) ;      (* Pseudo Base function CAP     *)
+   Cap   := MakeProcedure(BuiltinTokenNo, MakeKey('CAP')) ;      (* Pseudo Base function CAP     *)
    PutFunction(Cap, Char) ;
 
-   Odd   := MakeProcedure(MakeKey('ODD')) ;      (* Pseudo Base function ODD     *)
+   Odd   := MakeProcedure(BuiltinTokenNo, MakeKey('ODD')) ;      (* Pseudo Base function ODD     *)
    PutFunction(Odd, Boolean) ;
 
-   Chr   := MakeProcedure(MakeKey('CHR')) ;      (* Pseudo Base function CHR     *)
+   Chr   := MakeProcedure(BuiltinTokenNo, MakeKey('CHR')) ;      (* Pseudo Base function CHR     *)
    PutFunction(Chr, Char) ;
 
    (* the following three procedure functions have a return type depending upon  *)
    (* the parameters.                                                            *)
 
-   Val   := MakeProcedure(MakeKey('VAL')) ;      (* Pseudo Base function VAL     *)
-   Min   := MakeProcedure(MakeKey('MIN')) ;      (* Pseudo Base function MIN     *)
-   Max   := MakeProcedure(MakeKey('MAX')) ;      (* Pseudo Base function MIN     *)
+   Val   := MakeProcedure(BuiltinTokenNo, MakeKey('VAL')) ;      (* Pseudo Base function VAL     *)
+   Min   := MakeProcedure(BuiltinTokenNo, MakeKey('MIN')) ;      (* Pseudo Base function MIN     *)
+   Max   := MakeProcedure(BuiltinTokenNo, MakeKey('MAX')) ;      (* Pseudo Base function MIN     *)
 
-   Re    := MakeProcedure(MakeKey('RE')) ;       (* Pseudo Base function RE      *)
+   Re    := MakeProcedure(BuiltinTokenNo, MakeKey('RE')) ;       (* Pseudo Base function RE      *)
    PutFunction(Re, RType) ;
 
-   Im    := MakeProcedure(MakeKey('IM')) ;       (* Pseudo Base function IM      *)
+   Im    := MakeProcedure(BuiltinTokenNo, MakeKey('IM')) ;       (* Pseudo Base function IM      *)
    PutFunction(Im, RType) ;
 
-   Cmplx := MakeProcedure(MakeKey('CMPLX')) ;    (* Pseudo Base function CMPLX   *)
+   Cmplx := MakeProcedure(BuiltinTokenNo, MakeKey('CMPLX')) ;    (* Pseudo Base function CMPLX   *)
    PutFunction(Cmplx, CType) ;
 
    BuildFloatFunctions ;

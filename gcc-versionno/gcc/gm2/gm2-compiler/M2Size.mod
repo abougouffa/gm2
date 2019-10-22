@@ -23,6 +23,7 @@ IMPLEMENTATION MODULE M2Size ;
 
 FROM NameKey IMPORT MakeKey ;
 FROM M2Base IMPORT ZType ;
+FROM M2LexBuf IMPORT BuiltinTokenNo ;
 
 FROM SymbolTable IMPORT NulSym, MakeProcedure, PutFunction,
                         AddSymToModuleScope, GetCurrentScope ;
@@ -36,7 +37,8 @@ PROCEDURE MakeSize ;
 BEGIN
    IF Size=NulSym
    THEN
-      Size := MakeProcedure(MakeKey('SIZE')) ;       (* Function        *)
+                                                     (* Function        *)
+      Size := MakeProcedure (BuiltinTokenNo, MakeKey('SIZE')) ;
       PutFunction(Size, ZType)                       (* Return Type     *)
                                                      (* ZType           *)
    ELSE

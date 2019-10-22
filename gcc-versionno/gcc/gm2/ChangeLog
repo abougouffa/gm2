@@ -1,3 +1,82 @@
+2019-10-22      Gaius Mulley <gaius.mulley@southwales.ac.uk>
+
+	large number of changes to introduce tokenno to the creation
+	of symbols.
+	* gm2/bnf/m2-2.bnf:  added many calls to DisplayStack.
+	* gm2/gm2-compiler/M2ALU.mod:  MakeTemporary uses tokenno
+          parameter.
+	* gm2/gm2-compiler/M2Base.mod:  (InitBuiltins)
+          MakeDefinitionSource use tokenno.  (InitBase)
+          MakeModule use tokenno.  (InitBaseConstants)
+          MakeConstVar use tokenno.  (InitBaseSimpleTypes)
+          MakeType use tokenno.  PutFieldEnumeration
+          use tokenno.  MakeProcType use tokenno.
+          MakeTemporary use tokenno.  MakeProcedure use tokenno.
+          MakeDefinitionSource use tokenno.  (BuildOrdFunctions)
+          MakeProcedure use tokenno.  (BuildTruncFunctions)
+          MakeProcedure use tokenno.  (BuildFloatFunctions)
+          MakeProcedure use tokenno.  (BuildIntFunctions)
+          MakeProcedure use tokenno.  (InitBaseFunctions)
+	  MakeProcedure use tokenno.
+	* gm2/gm2-compiler/M2Batch.def:  (MakeDefinitionSource)
+          use tokenno.  (MakeImplementationSource) use tokenno.
+          (MakeProgramSource) use tokenno.  (LookupModule)
+	  use tokenno.  (LookupOuterModule) use tokenno.
+	* gm2/gm2-compiler/M2Batch.mod:  (MakeDefinitionSource)
+          use tokenno.  (MakeImplementationSource) use tokenno.
+          (MakeProgramSource) use tokenno.  (LookupModule)
+	  use tokenno.  (LookupOuterModule) use tokenno.
+	* gm2/gm2-compiler/M2Bitset.mod:  (MakeBitset)
+	  MakeConstVar use tokenno.
+	* gm2/gm2-compiler/M2Comp.mod:  (PeepInto)
+	  SetMainModule use tokenno.
+	* gm2/gm2-compiler/M2DebugStack.def:  (DebugStack)
+	  extra token operand procedure function.
+	* gm2/gm2-compiler/M2DebugStack.mod:  (symDesc)
+          recognise NulSym.  (doPercent) allow 3 parameters.
+          (doPercentLength) allow 3 parameters.
+          (GetStackFieldLengths) get the parameter lengths.
+          (DisplayRow) display 3 columns.  (DisplayFields)
+	  (DebugStack) display the token column, if present.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  propagate all
+          tokenno into all procedures which now use tokenno.
+	  Removed all unused local variables.
+	* gm2/gm2-compiler/M2GenGCC.mod:  Removed all unused
+	  local variables.  Propagate all
+          tokenno into all procedures which now use tokenno.
+	* gm2/gm2-compiler/M2Quads.mod:  Removed all unused
+	  local variables.  Propagate all
+          tokenno into all procedures which now use tokenno.
+	* gm2/gm2-compiler/M2Size.mod:  Removed all unused
+	  local variables.  Propagate all
+          tokenno into all procedures which now use tokenno.
+	* gm2/gm2-compiler/M2System.mod:  Removed all unused
+	  local variables.  Propagate all
+          tokenno into all procedures which now use tokenno.
+	* gm2/gm2-compiler/P0SymBuild.mod:  Removed all unused
+	  local variables.  Propagate all
+          tokenno into all procedures which now use tokenno.
+	* gm2/gm2-compiler/P1SymBuild.mod:  Removed all unused
+	  local variables.  Propagate all
+          tokenno into all procedures which now use tokenno.
+	* gm2/gm2-compiler/P2SymBuild.mod:  Removed all unused
+	  local variables.  Propagate all
+          tokenno into all procedures which now use tokenno.
+	* gm2/gm2-compiler/P3SymBuild.mod:  Removed all unused
+	  local variables.  Propagate all
+          tokenno into all procedures which now use tokenno.
+	* gm2/gm2-compiler/PCSymBuild.mod:  Removed all unused
+	  local variables.  Propagate all
+          tokenno into all procedures which now use tokenno.
+	* gm2/gm2-compiler/SymbolTable.def:  Removed all unused
+	  local variables.  Propagate all
+          tokenno into all procedures which now use tokenno.
+	* gm2/gm2-compiler/SymbolTable.mod:  Removed all unused
+	  local variables.  Propagate all
+          tokenno into all procedures which now use tokenno.
+	* testsuite/gm2/types/run/pass/gm2.exp:  corrected
+	  -lpim for -lgm2.
+
 2019-10-13      Gaius Mulley <gaius.mulley@southwales.ac.uk>
 
 	* gm2/bnf/m2-3.bnf:  (UnknownTokenNo) imported.

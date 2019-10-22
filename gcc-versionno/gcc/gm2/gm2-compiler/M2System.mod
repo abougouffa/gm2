@@ -52,6 +52,7 @@ FROM SymbolTable IMPORT NulSym,
                         PopValue,
                         PopSize ;
 
+FROM M2LexBuf IMPORT BuiltinTokenNo ;
 FROM M2Options IMPORT Iso, Pim2, Pedantic, DumpSystemExports ;
 FROM NameKey IMPORT Name, MakeKey, NulName ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
@@ -116,17 +117,17 @@ PROCEDURE CreateMinMaxFor (type: CARDINAL; min, max: ARRAY OF CHAR; gccType: Tre
 VAR
    maxval, minval: CARDINAL ;
 BEGIN
-   maxval := MakeConstVar(MakeKey(max)) ;
-   PushIntegerTree(GetMaxFrom(BuiltinsLocation(), gccType)) ;
-   PopValue(maxval) ;
-   PutVar(maxval, type) ;
-   PutSymKey(MaxValues, GetSymName(type), maxval) ;
+   maxval := MakeConstVar (BuiltinTokenNo, MakeKey(max)) ;
+   PushIntegerTree (GetMaxFrom (BuiltinsLocation (), gccType)) ;
+   PopValue (maxval) ;
+   PutVar (maxval, type) ;
+   PutSymKey (MaxValues, GetSymName (type), maxval) ;
 
-   minval := MakeConstVar(MakeKey(min)) ;
-   PushIntegerTree(GetMinFrom(BuiltinsLocation(), gccType)) ;
-   PopValue(minval) ;
-   PutVar(minval, type) ;
-   PutSymKey(MinValues, GetSymName(type), minval)
+   minval := MakeConstVar (BuiltinTokenNo, MakeKey(min)) ;
+   PushIntegerTree (GetMinFrom (BuiltinsLocation (), gccType)) ;
+   PopValue (minval) ;
+   PutVar (minval, type) ;
+   PutSymKey (MinValues, GetSymName (type), minval)
 END CreateMinMaxFor ;
 
 
@@ -138,9 +139,7 @@ PROCEDURE MapType (type: CARDINAL;
                    name, min, max: ARRAY OF CHAR;
                    needsExporting: BOOLEAN; t: Tree) ;
 VAR
-   minval,
-   maxval: CARDINAL ;
-   n     : Name ;
+   n: Name ;
 BEGIN
    PushIntegerTree(BuildSize(BuiltinsLocation(), t, FALSE)) ;
    PopSize(type) ;
@@ -175,13 +174,13 @@ BEGIN
    IF t=NIL
    THEN
       (* GCC backend does not support this type *)
-      RETURN( NulSym )
+      RETURN NulSym
    ELSE
       (* create base type *)
-      type := MakeType(MakeKey(name)) ;
-      PutType(type, NulSym) ;  (* a Base Type *)
-      MapType(type, name, min, max, needsExporting, t) ;
-      RETURN( type )
+      type := MakeType (BuiltinTokenNo, MakeKey (name)) ;
+      PutType (type, NulSym) ;  (* a Base Type *)
+      MapType (type, name, min, max, needsExporting, t) ;
+      RETURN type
    END
 END AttemptToCreateType ;
 
@@ -202,17 +201,17 @@ BEGIN
    IF t=NIL
    THEN
       (* GCC backend does not support this type *)
-      RETURN( NulSym )
+      RETURN NulSym
    ELSE
       (* create base type *)
-      type := MakeSet(MakeKey(name)) ;
-      low := MakeConstLit(MakeKey('0'), Cardinal) ;
-      high := MakeConstLit(MakeKey(highBit), Cardinal) ;
-      subrange := MakeSubrange(NulName) ;
-      PutSubrange(subrange, low, high, Cardinal) ;
-      PutSet(type, subrange) ;
-      MapType(type, name, '', '', needsExporting, t) ;
-      RETURN( type )
+      type := MakeSet (BuiltinTokenNo, MakeKey (name)) ;
+      low := MakeConstLit (MakeKey ('0'), Cardinal) ;
+      high := MakeConstLit (MakeKey (highBit), Cardinal) ;
+      subrange := MakeSubrange (BuiltinTokenNo, NulName) ;
+      PutSubrange (subrange, low, high, Cardinal) ;
+      PutSet (type, subrange) ;
+      MapType (type, name, '', '', needsExporting, t) ;
+      RETURN type
    END
 END AttemptToCreateSetType ;
 
@@ -261,8 +260,6 @@ END MakeFixedSizedTypes ;
 *)
 
 PROCEDURE InitPIMTypes ;
-VAR
-   min, max: CARDINAL ;
 BEGIN
    Loc := AttemptToCreateType('LOC', '', '', TRUE, GetISOLocType()) ;
    InitSystemTypes(BuiltinsLocation(), Loc) ;
@@ -271,7 +268,7 @@ BEGIN
 
    (* ADDRESS = POINTER TO BYTE *)
 
-   Address := MakePointer(MakeKey('ADDRESS')) ;
+   Address := MakePointer(BuiltinTokenNo, MakeKey('ADDRESS')) ;
    PutPointer(Address, Byte) ;                (* Base Type       *)
    MapType(Address, 'ADDRESS', '', '', TRUE, GetPointerType())
 END InitPIMTypes ;
@@ -286,7 +283,7 @@ BEGIN
    Loc := AttemptToCreateType('LOC', 'MinLoc', 'MaxLoc', TRUE, GetISOLocType()) ;
    InitSystemTypes(BuiltinsLocation(), Loc) ;
 
-   Address := MakePointer(MakeKey('ADDRESS')) ;
+   Address := MakePointer(BuiltinTokenNo, MakeKey('ADDRESS')) ;
    PutPointer(Address, Loc) ;                (* Base Type       *)
    MapType(Address, 'ADDRESS', '', '', TRUE, GetPointerType()) ;
 
@@ -319,16 +316,12 @@ END MakeExtraSystemTypes ;
 
 PROCEDURE InitSystem (location: location_t) ;
 VAR
-   Previous              : CARDINAL ;
-   MinWord   , MaxWord,
-   MinAddress, MaxAddress,
-   MinLoc    , MaxLoc,
-   MinByte   , MaxByte   : CARDINAL ;
+   Previous: CARDINAL ;
 BEGIN
    Init ;
 
    (* create SYSTEM module *)
-   System := MakeDefinitionSource(MakeKey('SYSTEM')) ;
+   System := MakeDefinitionSource(BuiltinTokenNo, MakeKey('SYSTEM')) ;
    StartScope(System) ;
    Previous := GetCurrentModule() ;
    SetCurrentModule(System) ;
@@ -356,40 +349,51 @@ BEGIN
 
    (* And now the predefined pseudo functions *)
 
-   Adr := MakeProcedure(MakeKey('ADR')) ;           (* Function        *)
+   Adr := MakeProcedure(BuiltinTokenNo,
+                        MakeKey('ADR')) ;           (* Function        *)
    PutFunction(Adr, Address) ;                      (* Return Type     *)
                                                     (* Address         *)
 
-   TSize := MakeProcedure(MakeKey('TSIZE')) ;       (* Function        *)
+   TSize := MakeProcedure(BuiltinTokenNo,
+                          MakeKey('TSIZE')) ;       (* Function        *)
    PutFunction(TSize, ZType) ;                      (* Return Type     *)
                                                     (* ZType           *)
 
-   TBitSize := MakeProcedure(MakeKey('TBITSIZE')) ; (* GNU extension   *)
+   TBitSize := MakeProcedure(BuiltinTokenNo,
+                             MakeKey('TBITSIZE')) ; (* GNU extension   *)
                                                     (* Function        *)
    PutFunction(TBitSize, ZType) ;                   (* Return Type     *)
                                                     (* ZType           *)
    (* and the ISO specific predefined pseudo functions *)
 
-   AddAdr := MakeProcedure(MakeKey('ADDADR')) ;     (* Function        *)
+   AddAdr := MakeProcedure(BuiltinTokenNo,
+                           MakeKey('ADDADR')) ;     (* Function        *)
    PutFunction(AddAdr, Address) ;                   (* Return Type     *)
 
-   SubAdr := MakeProcedure(MakeKey('SUBADR')) ;     (* Function        *)
+   SubAdr := MakeProcedure(BuiltinTokenNo,
+                           MakeKey('SUBADR')) ;     (* Function        *)
    PutFunction(SubAdr, Address) ;                   (* Return Type     *)
 
-   DifAdr := MakeProcedure(MakeKey('DIFADR')) ;     (* Function        *)
+   DifAdr := MakeProcedure(BuiltinTokenNo,
+                           MakeKey('DIFADR')) ;     (* Function        *)
    PutFunction(DifAdr, Address) ;                   (* Return Type     *)
 
-   MakeAdr := MakeProcedure(MakeKey('MAKEADR')) ;   (* Function        *)
+   MakeAdr := MakeProcedure(BuiltinTokenNo,
+                            MakeKey('MAKEADR')) ;   (* Function        *)
    PutFunction(MakeAdr, Address) ;                  (* Return Type     *)
 
    (* the return value for ROTATE, SHIFT and CAST is actually the
       same as the first parameter, this is faked in M2Quads *)
 
-   Rotate := MakeProcedure(MakeKey('ROTATE')) ;     (* Function        *)
-   Shift := MakeProcedure(MakeKey('SHIFT')) ;       (* Function        *)
-   Cast := MakeProcedure(MakeKey('CAST')) ;         (* Function        *)
+   Rotate := MakeProcedure(BuiltinTokenNo,
+                           MakeKey('ROTATE')) ;     (* Function        *)
+   Shift := MakeProcedure(BuiltinTokenNo,
+                          MakeKey('SHIFT')) ;       (* Function        *)
+   Cast := MakeProcedure(BuiltinTokenNo,
+                         MakeKey('CAST')) ;         (* Function        *)
 
-   Throw := MakeProcedure(MakeKey('THROW')) ;       (* Procedure       *)
+   Throw := MakeProcedure(BuiltinTokenNo,
+                          MakeKey('THROW')) ;       (* Procedure       *)
 
    CreateMinMaxFor(Word, 'MinWord', 'MaxWord', GetWordType()) ;
    CreateMinMaxFor(Address, 'MinAddress', 'MaxAddress', GetPointerType()) ;
@@ -425,9 +429,9 @@ END GetSystemTypeMinMax ;
 
 PROCEDURE IsISOPseudoSystemFunction (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( Iso AND ((sym=AddAdr) OR (sym=SubAdr) OR (sym=DifAdr) OR
-                    (sym=MakeAdr) OR (sym=Rotate) OR (sym=Shift) OR
-                    (sym=Cast)) )
+   RETURN Iso AND ((sym=AddAdr) OR (sym=SubAdr) OR (sym=DifAdr) OR
+                   (sym=MakeAdr) OR (sym=Rotate) OR (sym=Shift) OR
+                   (sym=Cast))
 END IsISOPseudoSystemFunction ;
 
 
@@ -438,7 +442,7 @@ END IsISOPseudoSystemFunction ;
 
 PROCEDURE IsPIMPseudoSystemFunction (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( (NOT Iso) AND ((sym=Size) OR (sym=Shift) OR (sym=Rotate)) )
+   RETURN (NOT Iso) AND ((sym=Size) OR (sym=Shift) OR (sym=Rotate))
 END IsPIMPseudoSystemFunction ;
 
 

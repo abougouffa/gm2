@@ -58,20 +58,20 @@ VAR
                        The Module Sym is returned.
 *)
 
-PROCEDURE MakeProgramSource (n: Name) : CARDINAL ;
+PROCEDURE MakeProgramSource (tok: CARDINAL; n: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
-   Sym := Get(n) ;
-   IF Sym=NulSym
+   Sym := Get (n) ;
+   IF Sym = NulSym
    THEN
-      Assert((NOT IsPass1()) AND (NOT IsPass2()) AND (NOT IsPass3()) AND (NOT IsPassC())) ;
+      Assert ((NOT IsPass1 ()) AND (NOT IsPass2 ()) AND (NOT IsPass3 ()) AND (NOT IsPassC ())) ;
       (* Neither been compiled or on the Pending Queue *)
-      Sym := MakeModule(n) ;
-      Put(Sym, n) ;
-      Push(Sym)
+      Sym := MakeModule (tok, n) ;
+      Put (Sym, n) ;
+      Push (Sym)
    END ;
-   RETURN( Sym )
+   RETURN Sym
 END MakeProgramSource ;
 
 
@@ -85,20 +85,20 @@ END MakeProgramSource ;
                           taken. The Module Sym is returned.
 *)
 
-PROCEDURE MakeDefinitionSource (n: Name) : CARDINAL ;
+PROCEDURE MakeDefinitionSource (tok: CARDINAL; n: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
-   Sym := Get(n) ;
-   IF Sym=NulSym
+   Sym := Get (n) ;
+   IF Sym = NulSym
    THEN
-      Assert((NOT IsPass1()) AND (NOT IsPass2()) AND (NOT IsPass3()) AND (NOT IsPassC())) ;
+      Assert ((NOT IsPass1 ()) AND (NOT IsPass2 ()) AND (NOT IsPass3 ()) AND (NOT IsPassC ())) ;
       (* Neither been compiled or on the Pending Queue *)
-      Sym := MakeDefImp(n) ;
-      Put(Sym, n) ;
-      Push(Sym)
+      Sym := MakeDefImp (tok, n) ;
+      Put (Sym, n) ;
+      Push (Sym)
    END ;
-   RETURN( Sym )
+   RETURN Sym
 END MakeDefinitionSource ;
 
 
@@ -112,20 +112,20 @@ END MakeDefinitionSource ;
                               action is taken. The Module Sym is returned.
 *)
 
-PROCEDURE MakeImplementationSource (n: Name) : CARDINAL ;
+PROCEDURE MakeImplementationSource (tok: CARDINAL; n: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
-   Sym := Get(n) ;
-   IF Sym=NulSym
+   Sym := Get (n) ;
+   IF Sym = NulSym
    THEN
-      Assert((NOT IsPass1()) AND (NOT IsPass2()) AND (NOT IsPass3()) AND (NOT IsPassC())) ;
+      Assert ((NOT IsPass1()) AND (NOT IsPass2()) AND (NOT IsPass3()) AND (NOT IsPassC())) ;
       (* Neither been compiled or on the Pending Queue *)
-      Sym := MakeDefImp(n) ;
-      Put(Sym, n) ;
-      Push(Sym)
+      Sym := MakeDefImp (tok, n) ;
+      Put (Sym, n) ;
+      Push (Sym)
    END ;
-   RETURN( Sym )
+   RETURN Sym
 END MakeImplementationSource ;
 
 
@@ -136,7 +136,7 @@ END MakeImplementationSource ;
 
 PROCEDURE GetSource () : CARDINAL ;
 BEGIN
-   RETURN( Pop() )
+   RETURN Pop ()
 END GetSource ;
 
 
@@ -148,13 +148,13 @@ PROCEDURE GetModuleNo (n: CARDINAL) : CARDINAL ;
 VAR
    m: Module ;
 BEGIN
-   Assert(n#0) ;
-   IF InBounds(DoneQueue, n)
+   Assert (n#0) ;
+   IF InBounds (DoneQueue, n)
    THEN
-      m := GetIndice(DoneQueue, n) ;
-      RETURN( m^.SymNo )
+      m := GetIndice (DoneQueue, n) ;
+      RETURN m^.SymNo
    ELSE
-      RETURN( NulSym )
+      RETURN NulSym
    END
 END GetModuleNo ;
 
@@ -165,7 +165,7 @@ END GetModuleNo ;
 
 PROCEDURE IsModuleKnown (n: Name) : BOOLEAN ;
 BEGIN
-   RETURN( Get(n)#NulSym )
+   RETURN Get (n) # NulSym
 END IsModuleKnown ;
 
 
@@ -179,19 +179,19 @@ VAR
    m    : Module ;
 BEGIN
    i := 1 ;
-   no := HighIndice(DoneQueue) ;
-   WHILE i<=no DO
-      m := GetIndice(DoneQueue, i) ;
+   no := HighIndice (DoneQueue) ;
+   WHILE i <= no DO
+      m := GetIndice (DoneQueue, i) ;
       WITH m^ DO
-         IF Key=n
+         IF Key = n
          THEN
-            RETURN( SymNo )
+            RETURN SymNo
          ELSE
-            INC(i)
+            INC (i)
          END
       END
    END ;
-   RETURN( NulSym )
+   RETURN NulSym
 END Get ;
 
 
@@ -199,8 +199,8 @@ PROCEDURE Put (Sym: CARDINAL; n: Name) ;
 VAR
    m: Module ;
 BEGIN
-   NEW(m) ;
-   IncludeIndiceIntoIndex(DoneQueue, m) ;
+   NEW (m) ;
+   IncludeIndiceIntoIndex (DoneQueue, m) ;
    WITH m^ DO
       SymNo   := Sym ;
       Key     := n ;
@@ -212,7 +212,7 @@ END Put ;
 
 PROCEDURE Push (Sym: CARDINAL) ;
 BEGIN
-   IncludeItemIntoList(PendingQueue, Sym)
+   IncludeItemIntoList (PendingQueue, Sym)
 END Push ;
 
 
@@ -221,14 +221,14 @@ VAR
    n  : CARDINAL ;
    Sym: CARDINAL ;
 BEGIN
-   n := NoOfItemsInList(PendingQueue) ;
-   IF n=0
+   n := NoOfItemsInList (PendingQueue) ;
+   IF n = 0
    THEN
-      RETURN( NulSym )
+      RETURN NulSym
    ELSE
-      Sym := GetItemFromList(PendingQueue, n) ;
-      RemoveItemFromList(PendingQueue, Sym) ;
-      RETURN( Sym )
+      Sym := GetItemFromList (PendingQueue, n) ;
+      RemoveItemFromList (PendingQueue, Sym) ;
+      RETURN Sym
    END
 END Pop ;
 
@@ -391,8 +391,8 @@ END ForeachSourceModuleDo ;
 
 PROCEDURE IsSourceSeen (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   Assert(IsModule(sym) OR IsDefImp(sym)) ;
-   RETURN( GetModuleFile(sym)#NIL )
+   Assert (IsModule (sym) OR IsDefImp (sym)) ;
+   RETURN GetModuleFile (sym) # NIL
 END IsSourceSeen ;
 
 
@@ -402,7 +402,7 @@ END IsSourceSeen ;
 
 PROCEDURE IsModuleSeen (n: Name) : BOOLEAN ;
 BEGIN
-   RETURN( Get(n)#NulSym )
+   RETURN Get (n) # NulSym
 END IsModuleSeen ;
 
 
@@ -411,19 +411,19 @@ END IsModuleSeen ;
                   then it creates a DefImp module.
 *)
 
-PROCEDURE LookupModule (n: Name) : CARDINAL ;
+PROCEDURE LookupModule (tok: CARDINAL; n: Name) : CARDINAL ;
 VAR
    sym: CARDINAL ;
 BEGIN
-   sym := GetSym(n) ;
-   IF sym=NulSym
+   sym := GetSym (n) ;
+   IF sym = NulSym
    THEN
-      RETURN( MakeDefinitionSource(n) )
-   ELSIF IsModule(sym) OR IsDefImp(sym)
+      RETURN MakeDefinitionSource (tok, n)
+   ELSIF IsModule (sym) OR IsDefImp (sym)
    THEN
-      RETURN( sym )
+      RETURN sym
    ELSE
-      RETURN( MakeDefinitionSource(n) )
+      RETURN MakeDefinitionSource (tok, n)
    END
 END LookupModule ;
 
@@ -433,35 +433,35 @@ END LookupModule ;
                        module does not exist then it creates a DefImp module.
 *)
 
-PROCEDURE LookupOuterModule (n: Name) : CARDINAL ;
+PROCEDURE LookupOuterModule (tok: CARDINAL; n: Name) : CARDINAL ;
 VAR
    outer: CARDINAL ;
    sym  : CARDINAL ;
 BEGIN
-   sym := GetSym(n) ;
-   IF sym=NulSym
+   sym := GetSym (n) ;
+   IF sym = NulSym
    THEN
-      outer := GetScope(GetCurrentScope()) ;
-      IF outer#NulSym
+      outer := GetScope (GetCurrentScope ()) ;
+      IF outer # NulSym
       THEN
-         sym := GetLocalSym(outer, n)
+         sym := GetLocalSym (outer, n)
       END ;
-      IF sym=NulSym
+      IF sym = NulSym
       THEN
-         (* not a local module, so it must be refering to a definition module *)
-         sym := MakeDefinitionSource(n)
+         (* not a local module, so it must be refering to a definition module.  *)
+         sym := MakeDefinitionSource (tok, n)
       END
    END ;
-   IF IsModule(sym) OR IsDefImp(sym)
+   IF IsModule (sym) OR IsDefImp (sym)
    THEN
-      RETURN( sym )
+      RETURN sym
    ELSE
-      RETURN( MakeDefinitionSource(n) )
+      RETURN MakeDefinitionSource (tok, n)
    END
 END LookupOuterModule ;
 
 
 BEGIN
-   InitList(PendingQueue) ;
-   DoneQueue := InitIndex(1)
+   InitList (PendingQueue) ;
+   DoneQueue := InitIndex (1)
 END M2Batch.

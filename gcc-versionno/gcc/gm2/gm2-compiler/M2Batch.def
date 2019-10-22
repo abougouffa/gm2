@@ -55,7 +55,7 @@ TYPE
                           taken. The Module Sym is returned.
 *)
 
-PROCEDURE MakeDefinitionSource (n: Name) : CARDINAL ;
+PROCEDURE MakeDefinitionSource (tok: CARDINAL; n: Name) : CARDINAL ;
 
 
 (*
@@ -68,7 +68,7 @@ PROCEDURE MakeDefinitionSource (n: Name) : CARDINAL ;
                               action is taken. The Module Sym is returned.
 *)
 
-PROCEDURE MakeImplementationSource (n: Name) : CARDINAL ;
+PROCEDURE MakeImplementationSource (tok: CARDINAL; n: Name) : CARDINAL ;
 
 
 (*
@@ -79,7 +79,7 @@ PROCEDURE MakeImplementationSource (n: Name) : CARDINAL ;
                        The Module Sym is returned.
 *)
 
-PROCEDURE MakeProgramSource (n: Name) : CARDINAL ;
+PROCEDURE MakeProgramSource (tok: CARDINAL; n: Name) : CARDINAL ;
 
 
 (*
@@ -166,7 +166,7 @@ PROCEDURE IsModuleSeen (n: Name) : BOOLEAN ;
                   then it creates a DefImp module.
 *)
 
-PROCEDURE LookupModule (n: Name) : CARDINAL ;
+PROCEDURE LookupModule (tok: CARDINAL; n: Name) : CARDINAL ;
 
 
 (*
@@ -174,7 +174,7 @@ PROCEDURE LookupModule (n: Name) : CARDINAL ;
                        module does not exist then it creates a DefImp module.
 *)
 
-PROCEDURE LookupOuterModule (n: Name) : CARDINAL ;
+PROCEDURE LookupOuterModule (tok: CARDINAL; n: Name) : CARDINAL ;
 
 
 END M2Batch.

@@ -30,7 +30,7 @@ FROM M2Pass IMPORT SetPassToPass0, SetPassToPass1, SetPassToPass2, SetPassToPass
 FROM M2Reserved IMPORT toktype ;
 FROM M2Search IMPORT FindSourceDefFile, FindSourceModFile ;
 FROM M2Code IMPORT Code ;
-FROM M2LexBuf IMPORT OpenSource, CloseSource, ResetForNewPass, currenttoken, GetToken, ReInitialize, currentstring ;
+FROM M2LexBuf IMPORT OpenSource, CloseSource, ResetForNewPass, currenttoken, GetToken, ReInitialize, currentstring, GetTokenNo ;
 FROM M2FileName IMPORT CalculateFileName ;
 FROM M2Preprocess IMPORT PreprocessModule ;
 FROM libc IMPORT exit ;
@@ -201,9 +201,9 @@ BEGIN
       ExamineCompilationUnit(name, isdefimp) ;
       IF isdefimp
       THEN
-         SetMainModule(MakeImplementationSource(makekey(name)))
+         SetMainModule(MakeImplementationSource(GetTokenNo(), makekey(name)))
       ELSE
-         SetMainModule(MakeProgramSource(makekey(name)))
+         SetMainModule(MakeProgramSource(GetTokenNo(), makekey(name)))
       END ;
       CloseSource ;
       ReInitialize

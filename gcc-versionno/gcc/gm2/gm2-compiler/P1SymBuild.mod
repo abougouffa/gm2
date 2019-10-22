@@ -25,8 +25,8 @@ IMPLEMENTATION MODULE P1SymBuild ;
 FROM ASCII IMPORT nul ;
 FROM NameKey IMPORT Name, WriteKey, MakeKey, KeyToCharStar, NulName ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
-FROM M2LexBuf IMPORT GetFileName, GetTokenNo ;
-FROM M2MetaError IMPORT MetaErrorString2, MetaError0, MetaError1, MetaError2 ;
+FROM M2LexBuf IMPORT GetFileName, GetTokenNo, UnknownTokenNo ;
+FROM M2MetaError IMPORT MetaErrorString2, MetaError0, MetaError1, MetaError2, MetaErrorT1, MetaErrorT2 ;
 FROM DynamicStrings IMPORT String, Slice, InitString, KillString, EqualCharStar, RIndex, Mark, ConCat ;
 FROM M2Printf IMPORT printf0, printf1, printf2 ;
 FROM M2Options IMPORT Iso ;
@@ -86,7 +86,8 @@ FROM M2Batch IMPORT MakeDefinitionSource,
                     MakeProgramSource,
                     LookupModule, LookupOuterModule ;
 
-FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, OperandT, PopN, OperandTok ;
+FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, OperandT, PopN, OperandTok,
+                    PopTtok, PushTtok, PushTFtok, PopTFtok ;
 
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule,
@@ -104,7 +105,7 @@ VAR
    CheckName - checks to see that the module name matches the file name.
 *)
 
-PROCEDURE CheckFileName (name: Name; ModuleType: ARRAY OF CHAR) ;
+PROCEDURE CheckFileName (tok: CARDINAL; name: Name; ModuleType: ARRAY OF CHAR) ;
 VAR
    ext,
    basename: CARDINAL ;
@@ -129,7 +130,7 @@ BEGIN
    ELSE
       s := ConCat (InitString (ModuleType),
                    Mark (InitString (" module name {%1Ea} is inconsistant with the filename {%F{%2a}}"))) ;
-      MetaErrorString2 (s, MakeError (name), MakeErrorS (FileName))
+      MetaErrorString2 (s, MakeError (tok, name), MakeErrorS (tok, FileName))
    END
 END CheckFileName ;
 
@@ -158,7 +159,7 @@ VAR
 BEGIN
    PopT(name) ;
    (* CheckFileName(name, 'definition') ; *)
-   ModuleSym := MakeDefinitionSource(name) ;
+   ModuleSym := MakeDefinitionSource(GetTokenNo(), name) ;
    PutDoesNotNeedExportList(ModuleSym) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
@@ -201,12 +202,13 @@ END P1StartBuildDefinitionModule ;
 
 PROCEDURE P1EndBuildDefinitionModule ;
 VAR
+   start    : CARDINAL ;
    NameStart,
    NameEnd  : Name ;
 BEGIN
    Assert(CompilingDefinitionModule()) ;
    EndScope ;
-   PopT(NameStart) ;
+   PopTtok(NameStart, start) ;
    PopT(NameEnd) ;
    IF Debugging
    THEN
@@ -215,7 +217,7 @@ BEGIN
    END ;
    IF NameStart#NameEnd
    THEN
-      MetaError1 ('inconsistant definition module name {%1Wa}', MakeError (NameStart))
+      MetaError1 ('inconsistant definition module name {%1Wa}', MakeError (start, NameStart))
    END ;
    LeaveBlock
 END P1EndBuildDefinitionModule ;
@@ -238,12 +240,13 @@ END P1EndBuildDefinitionModule ;
 
 PROCEDURE P1StartBuildImplementationModule ;
 VAR
+   tok      : CARDINAL ;
    name, n  : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
-   PopT(name) ;
+   PopTtok(name, tok) ;
    (* CheckFileName(name, 'implementation') ; *)
-   ModuleSym := MakeImplementationSource(name) ;
+   ModuleSym := MakeImplementationSource(tok, name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    StartScope(ModuleSym) ;
@@ -252,7 +255,7 @@ BEGIN
       MetaError1 ('cannot find corresponding definition module for {%1Ea}', ModuleSym)
    END ;
    Assert(CompilingImplementationModule()) ;
-   PushT(name) ;
+   PushTtok(name, tok) ;
    EnterBlock(name)
 END P1StartBuildImplementationModule ;
 
@@ -275,17 +278,19 @@ END P1StartBuildImplementationModule ;
 
 PROCEDURE P1EndBuildImplementationModule ;
 VAR
+   start, end: CARDINAL ;
    NameStart,
-   NameEnd  : Name ;
+   NameEnd   : Name ;
 BEGIN
    ResolveImports ;
    Assert(CompilingImplementationModule()) ;
    EndScope ;
-   PopT(NameStart) ;
-   PopT(NameEnd) ;
+   PopTtok(NameStart, start) ;
+   PopTtok(NameEnd, end) ;
    IF NameStart#NameEnd
    THEN
-      MetaError1 ('inconsistant implementation module name {%1Wa}', MakeError (NameStart))
+      MetaErrorT1 (end,
+                   'inconsistant implementation module name {%1Wa}', MakeError (start, NameStart))
    END ;
    LeaveBlock
 END P1EndBuildImplementationModule ;
@@ -308,20 +313,22 @@ END P1EndBuildImplementationModule ;
 
 PROCEDURE P1StartBuildProgramModule ;
 VAR
+   tok      : CARDINAL ;
    name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
-   PopT(name) ;
+   PopTtok(name, tok) ;
    (* CheckFileName(name, 'main') ; *)
-   ModuleSym := MakeProgramSource(name) ;
+   ModuleSym := MakeProgramSource(tok, name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    StartScope(ModuleSym) ;
    IF (NOT CompilingProgramModule()) OR IsDefImp(ModuleSym)
    THEN
-      MetaError1 ('module {%1Ea} has a corresponding DEFINITION MODULE but no IMPLEMENTATION keyword in the main module', ModuleSym)
+      MetaErrorT1 (tok,
+                   'module {%1Ea} has a corresponding DEFINITION MODULE but no IMPLEMENTATION keyword in the main module', ModuleSym)
    END ;
-   PushT(name) ;
+   PushTtok(name, tok) ;
    EnterBlock(name)
 END P1StartBuildProgramModule ;
 
@@ -344,14 +351,16 @@ END P1StartBuildProgramModule ;
 
 PROCEDURE P1EndBuildProgramModule ;
 VAR
+   start,
+   end      : CARDINAL ;
    NameStart,
    NameEnd  : Name ;
 BEGIN
    ResolveImports ;
    Assert(CompilingProgramModule()) ;
    EndScope ;
-   PopT(NameStart) ;
-   PopT(NameEnd) ;
+   PopTtok(NameStart, start) ;
+   PopTtok(NameEnd, end) ;
    IF Debugging
    THEN
       printf0('pass 1: ') ;
@@ -359,7 +368,8 @@ BEGIN
    END ;
    IF NameStart#NameEnd
    THEN
-      MetaError1 ('inconsistant program module name {%1Wa}', MakeError (NameStart))
+      MetaErrorT1 (end,
+                   'inconsistant program module name {%1Wa}', MakeError (start, NameStart))
    END ;
    LeaveBlock
 END P1EndBuildProgramModule ;
@@ -382,15 +392,16 @@ END P1EndBuildProgramModule ;
 
 PROCEDURE StartBuildInnerModule ;
 VAR
+   tok      : CARDINAL ;
    name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
-   PopT(name) ;
+   PopTtok(name, tok) ;
    ModuleSym := GetSym(name) ;
    Assert(ModuleSym#NulSym) ;
    StartScope(ModuleSym) ;
    Assert(NOT IsDefImp(ModuleSym)) ;
-   PushT(name) ;
+   PushTtok(name, tok) ;
    EnterBlock(name)
 END StartBuildInnerModule ;
 
@@ -413,15 +424,17 @@ END StartBuildInnerModule ;
 
 PROCEDURE EndBuildInnerModule ;
 VAR
+   start, end: CARDINAL ;
    NameStart,
-   NameEnd  : Name ;
+   NameEnd   : Name ;
 BEGIN
    EndScope ;
-   PopT(NameStart) ;
-   PopT(NameEnd) ;
+   PopTtok(NameStart, start) ;
+   PopTtok(NameEnd, end) ;
    IF NameStart#NameEnd
    THEN
-      MetaError1 ('inconsistant inner module name {%1Wa}', MakeError (NameStart))
+      MetaErrorT1 (end,
+                   'inconsistant inner module name {%1Wa}', MakeError (start, NameStart))
    END ;
    LeaveBlock
 END EndBuildInnerModule ;
@@ -469,7 +482,8 @@ BEGIN
       (* Ident list contains Module Names *)
       i := 1 ;
       WHILE i<=n DO
-         ModSym := LookupModule(OperandT(n+1-i)) ;
+         ModSym := LookupModule(OperandTok(n+1-i),
+                                OperandT(n+1-i)) ;
          PutImported(ModSym) ;
          IF definition
          THEN
@@ -479,7 +493,8 @@ BEGIN
       END
    ELSE
       (* Ident List contains list of objects *)
-      ModSym := LookupModule(OperandT(n+1)) ;
+      ModSym := LookupModule(OperandTok(n+1),
+                             OperandT(n+1)) ;
       i := 1 ;
       WHILE i<=n DO
 (*
@@ -639,7 +654,8 @@ BEGIN
       END
    ELSE
       (* Ident List contains list of objects *)
-      ModSym := LookupOuterModule(OperandT(n+1)) ;
+      ModSym := LookupOuterModule(OperandTok(n+1),
+                                  OperandT(n+1)) ;
       i := 1 ;
       WHILE i<=n DO
          Sym := GetExported(ModSym, OperandT(n+1-i)) ;
@@ -753,22 +769,24 @@ END BuildExportInnerModule ;
 
 PROCEDURE StartBuildEnumeration ;
 VAR
-   name: Name ;
+   name : Name ;
    n, i,
-   Type: CARDINAL ;
+   Type : CARDINAL ;
+   tokno: CARDINAL ;
 BEGIN
    PopT(n) ;      (* No := # *)
    name := OperandT(n+1) ;
-   Type := MakeEnumeration(name) ;
+   tokno := OperandTok(n+1) ;
+   Type := MakeEnumeration(tokno, name) ;
    i := 1 ;
    WHILE i<=n DO
-      PutFieldEnumeration(Type, OperandT(n-i+1), OperandTok(n-i+1)) ;
+      PutFieldEnumeration(OperandTok(n-i+1), Type, OperandT(n-i+1)) ;
       INC(i)
    END ;
    PutEnumerationIntoFifoQueue(Type) ;  (* store enumeration away for pass 2 *)
    PopN(n+1) ;
-   PushT(name) ;
-   PushT(Type)
+   PushTtok(name, tokno) ;
+   PushTtok(Type, tokno)
 END StartBuildEnumeration ;
 
 
@@ -792,6 +810,7 @@ END StartBuildEnumeration ;
 
 PROCEDURE EndBuildEnumeration ;
 VAR
+   tokno : CARDINAL ;
    Sym,
    Type  : CARDINAL ;
    n1, n2,
@@ -804,7 +823,7 @@ BEGIN
       - when type with a name that is different to Name. In which case
         we create a new type.
    *)
-   PopT(Type) ;
+   PopTtok(Type, tokno) ;
    PopT(name) ;
 
    IF Debugging
@@ -833,7 +852,7 @@ BEGIN
 
          in which case the constructed from StartBuildEnumeration is complete
       *)
-      PushTF(Type, name)
+      PushTFtok(Type, name, tokno)
    ELSE
       (* in this case we are seeing:
 
@@ -843,9 +862,9 @@ BEGIN
          so we construct the type name and define it to have the previously
          created enumeration type
       *)
-      Sym := MakeType(name) ;
+      Sym := MakeType(tokno, name) ;
       PutType(Sym, Type) ;
-      PushTF(Sym, name)
+      PushTFtok(Sym, name, tokno)
    END
 END EndBuildEnumeration ;
 
@@ -866,13 +885,14 @@ END EndBuildEnumeration ;
 
 PROCEDURE BuildHiddenType ;
 VAR
-   name: Name ;
-   Sym : CARDINAL ;
+   name : Name ;
+   tokno: CARDINAL ;
+   Sym  : CARDINAL ;
 BEGIN
-   PopT(name) ;
+   PopTtok(name, tokno) ;
    (* WriteString('Hidden type encountered: ') ; *)
    (* WriteKey(Name) ; WriteLn ; *)
-   Sym := MakeHiddenType(name)
+   Sym := MakeHiddenType(tokno, name)
 END BuildHiddenType ;
 
 
@@ -897,13 +917,14 @@ END BuildHiddenType ;
 
 PROCEDURE StartBuildProcedure ;
 VAR
+   tokno   : CARDINAL ;
    builtin,
    name    : Name ;
    ProcSym : CARDINAL ;
 BEGIN
-   PopT(name) ;
+   PopTtok(name, tokno) ;
    PopT(builtin) ; (* was this procedure defined as a builtin?        *)
-   PushT(name) ;   (* Name saved for the EndBuildProcedure name check *)
+   PushTtok(name, tokno) ;   (* Name saved for the EndBuildProcedure name check *)
    ProcSym := RequestSym(name) ;
    IF IsUnknown(ProcSym)
    THEN
@@ -911,11 +932,11 @@ BEGIN
          May have been compiled in DEF or IMP module, remember that IMP maybe
          compiled before corresponding DEF module.
       *)
-      ProcSym := MakeProcedure(name)
+      ProcSym := MakeProcedure(tokno, name)
    ELSIF IsProcedure(ProcSym)
    THEN
       (* declared in the other module, we record declaration here as well *)
-      PutDeclared(ProcSym, GetTokenNo ())
+      PutDeclared(tokno, ProcSym)
    ELSE
       MetaError1 ('expecting a procedure name and symbol {%1Ea} has been declared as a {%1d}', ProcSym) ;
       PushT(ProcSym) ;
@@ -966,29 +987,31 @@ END StartBuildProcedure ;
 
 PROCEDURE EndBuildProcedure ;
 VAR
-   ProcSym  : CARDINAL ;
+   start, end: CARDINAL ;
+   ProcSym   : CARDINAL ;
    NameEnd,
-   NameStart: Name ;
+   NameStart : Name ;
 BEGIN
-   PopT(NameEnd) ;
+   PopTtok(NameEnd, end) ;
    PopT(ProcSym) ;
-   PopT(NameStart) ;
+   PopTtok(NameStart, start) ;
    IF NameEnd#NameStart
    THEN
-      IF NameEnd=NulName
+      IF end # UnknownTokenNo
       THEN
-         MetaError1 ('procedure name at end does not match name at beginning {%1EDa}', ProcSym)
-      ELSIF NameStart=NulName
+         MetaErrorT1 (end,
+                      'procedure name at end does not match name at beginning {%1EDa}', ProcSym)
+      ELSIF start # UnknownTokenNo
       THEN
-         MetaError1 ('procedure name at end does not match name at beginning {%1EDa}', ProcSym)
+         MetaErrorT2 (start,
+                      'procedure name at end {%1EDa} does not match name at beginning {%2a}',
+                      MakeError (end, NameEnd), ProcSym)
       ELSE
-         MetaError1 ('procedure name at end does not match name at beginning {%1EDa}', ProcSym) ;
-         MetaError2 ('procedure name at end {%1EDa} does not match name at beginning {%2a}',
-                     MakeError (NameEnd), ProcSym)
+         MetaError1 ('procedure name at end does not match name at beginning {%1EDa}', ProcSym)
       END
    END ;
    EndScope ;
-   Assert(NOT CompilingDefinitionModule()) ;
+   Assert (NOT CompilingDefinitionModule()) ;
    LeaveBlock
 END EndBuildProcedure ;
 

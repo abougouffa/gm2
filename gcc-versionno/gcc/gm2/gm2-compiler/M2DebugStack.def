@@ -44,7 +44,7 @@ TYPE
 *)
 
 PROCEDURE DebugStack (amount: CARDINAL;
-                      opt, opf, opa, opd, oprw: ProcedureWord;
+                      opt, opf, opa, opd, oprw, optk: ProcedureWord;
                       opanno: ProcedureString) ;
 
 

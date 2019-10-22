@@ -33,7 +33,10 @@ FROM M2LexBuf IMPORT GetTokenNo ;
 FROM M2Reserved IMPORT NulTok, ImportTok ;
 FROM M2Const IMPORT constType ;
 FROM Indexing IMPORT Index, InitIndex, GetIndice, PutIndice, InBounds, IncludeIndiceIntoIndex, HighIndice ;
-FROM M2Quads IMPORT PushT, PopT, OperandT, PopN, PopTF, PushTF, IsAutoPushOn, PopNothing, PushTFn, PopTFn ;
+
+FROM M2Quads IMPORT PushT, PopT, OperandT, PopN, PopTF, PushTF, IsAutoPushOn,
+                    PopNothing, PushTFn, PopTFn, PushTtok, PopTtok, OperandTok ;
+
 FROM M2Options IMPORT Iso ;
 FROM StdIO IMPORT Write ;
 FROM M2System IMPORT IsPseudoSystemFunctionConstExpression ;
@@ -206,11 +209,12 @@ END GetSkippedType ;
 
 PROCEDURE PCStartBuildDefModule ;
 VAR
+   tok      : CARDINAL ;
    name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
-   PopT(name) ;
-   ModuleSym := MakeDefinitionSource(name) ;
+   PopTtok(name, tok) ;
+   ModuleSym := MakeDefinitionSource(tok, name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    StartScope(ModuleSym) ;
@@ -271,17 +275,18 @@ END PCEndBuildDefModule ;
 
 PROCEDURE PCStartBuildImpModule ;
 VAR
+   tok      : CARDINAL ;
    name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
-   PopT(name) ;
-   ModuleSym := MakeImplementationSource(name) ;
+   PopTtok(name, tok) ;
+   ModuleSym := MakeImplementationSource(tok, name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    StartScope(ModuleSym) ;
    Assert(IsDefImp(ModuleSym)) ;
    Assert(CompilingImplementationModule()) ;
-   PushT(name)
+   PushTtok(name, tok)
 END PCStartBuildImpModule ;
 
 
@@ -339,19 +344,20 @@ END PCEndBuildImpModule ;
 
 PROCEDURE PCStartBuildProgModule ;
 VAR
+   tok      : CARDINAL ;
    name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
    (* WriteString('StartBuildProgramModule') ; WriteLn ; *)
-   PopT(name) ;
-   ModuleSym := MakeProgramSource(name) ;
+   PopTtok(name, tok) ;
+   ModuleSym := MakeProgramSource(tok, name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    (* WriteString('MODULE - ') ; WriteKey(GetSymName(ModuleSym)) ; WriteLn ; *)
    StartScope(ModuleSym) ;
    Assert(CompilingProgramModule()) ;
    Assert(NOT IsDefImp(ModuleSym)) ;
-   PushT(name)
+   PushTtok(name, tok)
 END PCStartBuildProgModule ;
 
 
@@ -499,7 +505,7 @@ BEGIN
    IF OperandT(n+1)#ImportTok
    THEN
       (* Ident List contains list of objects imported from ModSym *)
-      ModSym := LookupModule(OperandT(n+1)) ;
+      ModSym := LookupModule(OperandTok(n+1), OperandT(n+1)) ;
       i := 1 ;
       WHILE i<=n DO
          Sym := GetExported(ModSym, OperandT(i)) ;
@@ -558,7 +564,7 @@ BEGIN
       END
    ELSE
       (* Ident List contains list of objects imported from ModSym *)
-      ModSym := LookupOuterModule(OperandT(n+1)) ;
+      ModSym := LookupOuterModule(OperandTok(n+1), OperandT(n+1)) ;
       i := 1 ;
       WHILE i<=n DO
          Sym := GetExported(ModSym, OperandT(i)) ;
@@ -1096,13 +1102,15 @@ END EndDesConst ;
 
 PROCEDURE fixupProcedureType (p: CARDINAL) : CARDINAL ;
 VAR
+   tok : CARDINAL ;
    par,
    t   : CARDINAL ;
    n, i: CARDINAL ;
 BEGIN
    IF IsProcedure(p)
    THEN
-      t := MakeProcType(CheckAnonymous(NulName)) ;
+      tok := GetTokenNo () ;
+      t := MakeProcType(tok, CheckAnonymous(NulName)) ;
       i := 1 ;
       n := NoOfParam(p) ;
       WHILE i<=n DO

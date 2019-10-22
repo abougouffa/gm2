@@ -49,7 +49,7 @@ FROM M2FileName IMPORT CalculateFileName ;
 FROM M2Configure IMPORT PushParametersLeftToRight ;
 FROM DynamicStrings IMPORT String, string, InitString, KillString, InitStringCharStar, Mark ;
 FROM FormatStrings IMPORT Sprintf1 ;
-FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken, TokenToLocation ;
+FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken, TokenToLocation, UnknownTokenNo ;
 FROM M2MetaError IMPORT MetaError1 ;
 FROM M2Error IMPORT FlushErrors, InternalError ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3 ;
@@ -358,7 +358,7 @@ BEGIN
    sn := MakeKey(symname) ;
    IF IsModuleSeen(mn)
    THEN
-      mod := LookupModule(mn) ;
+      mod := LookupModule (UnknownTokenNo, mn) ;
       RETURN( GetLocalSym(mod, sn) )
    ELSE
       RETURN( NulSym )
@@ -1277,9 +1277,6 @@ END Body ;
 PROCEDURE ForeachTryDeclare (start, end: CARDINAL;
                              t: ListType; l: Set; r: Rule;
                              q: IsAction; p: WalkAction) : BOOLEAN ;
-VAR
-   sym : CARDINAL ;
-   n, i: CARDINAL ;
 BEGIN
    IF recursionCaught
    THEN
@@ -1585,7 +1582,6 @@ PROCEDURE DeclareStringConstant (sym: CARDINAL) ;
 VAR
    location: location_t ;
    symtree : Tree ;
-   s       : String ;
 BEGIN
    location := TokenToLocation(GetDeclaredMod(sym)) ;
    IF IsConstStringRequiresNul(sym) OR IsCString (sym)
@@ -1704,6 +1700,7 @@ END TryDeclareConstructor ;
 PROCEDURE WalkConst (sym: CARDINAL; p: WalkAction) ;
 VAR
    type: CARDINAL ;
+   tok : CARDINAL ;
 BEGIN
    Assert(IsConst(sym)) ;
    type := GetSType(sym) ;
@@ -1715,9 +1712,10 @@ BEGIN
    THEN
       WalkConstructor(sym, p)
    END ;
-   IF IsConstString(sym) AND (GetConstStringNullTerminated(sym) # NulSym)
+   tok := GetDeclaredMod (sym) ;
+   IF IsConstString(sym) AND (GetConstStringNullTerminated(tok, sym) # NulSym)
    THEN
-      WalkConst(GetConstStringNullTerminated(sym), p)
+      WalkConst(GetConstStringNullTerminated(tok, sym), p)
    END
 END WalkConst ;
 
@@ -2272,7 +2270,6 @@ END WalkTypesInModule ;
 PROCEDURE IsRecordFieldDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
 VAR
    align: CARDINAL ;
-   v    : CARDINAL ;
    final: BOOLEAN ;
 BEGIN
    final := TRUE ;
@@ -2692,7 +2689,7 @@ END DeclareTypesConstantsProcedures ;
 
 PROCEDURE AssertAllTypesDeclared (scope: CARDINAL) ;
 VAR
-   o, s,
+   o,
    n, Var: CARDINAL ;
    failed: BOOLEAN ;
 BEGIN
@@ -2950,7 +2947,6 @@ END PreAddModGcc ;
 
 PROCEDURE DeclareDefaultType (sym: CARDINAL; name: ARRAY OF CHAR; gcctype: Tree) ;
 VAR
-   n        : Name ;
    t        : Tree ;
    high, low: CARDINAL ;
    location : location_t ;
@@ -3410,7 +3406,7 @@ END DeclareVariableWholeProgram ;
 
 PROCEDURE DeclareGlobalVariablesWholeProgram (ModSym: CARDINAL) ;
 VAR
-   o, s,
+   o,
    n, Son: CARDINAL ;
 BEGIN
    n := 1 ;
@@ -3432,7 +3428,7 @@ END DeclareGlobalVariablesWholeProgram ;
 
 PROCEDURE DeclareGlobalVariables (ModSym: CARDINAL) ;
 VAR
-   o, s,
+   o,
    n, Son: CARDINAL ;
 BEGIN
    n := 1 ;
@@ -4494,7 +4490,6 @@ END DeclarePackedType ;
 
 PROCEDURE doDeclareEquivalent (sym: CARDINAL; p: doDeclareProcedure) : Tree ;
 VAR
-   type,
    equiv: CARDINAL ;
 BEGIN
    equiv := GetPackedEquivalent(sym) ;
@@ -4676,7 +4671,6 @@ VAR
    byteOffset,
    bitOffset,
    FieldList,
-   field,
    VarientType : Tree ;
    location    : location_t ;
 BEGIN
@@ -4719,7 +4713,6 @@ VAR
    VarientType,
    byteOffset,
    bitOffset,
-   field,
    GccFieldType: Tree ;
    location    : location_t ;
 BEGIN
@@ -4915,8 +4908,6 @@ VAR
 *)
 
 PROCEDURE FindMinMaxEnum (field: WORD) ;
-VAR
-   i: CARDINAL ;
 BEGIN
    IF MaxEnumerationField=NulSym
    THEN
@@ -4949,7 +4940,6 @@ END FindMinMaxEnum ;
 
 PROCEDURE GetTypeMin (type: CARDINAL) : CARDINAL ;
 VAR
-   n       : Name ;
    min, max: CARDINAL ;
 BEGIN
    IF IsSubrange(type)
@@ -4988,7 +4978,6 @@ END GetTypeMin ;
 
 PROCEDURE GetTypeMax (type: CARDINAL) : CARDINAL ;
 VAR
-   n       : Name ;
    min, max: CARDINAL ;
 BEGIN
    IF IsSubrange(type)
@@ -5162,7 +5151,6 @@ END DeclareSet ;
 
 PROCEDURE CheckResolveSubrange (sym: CARDINAL) ;
 VAR
-   n                    : Name ;
    size, high, low, type: CARDINAL ;
 BEGIN
    GetSubrange(sym, high, low) ;

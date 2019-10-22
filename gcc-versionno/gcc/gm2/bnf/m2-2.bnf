@@ -890,8 +890,11 @@ VarIdentList := VarIdent                                                   % VAR
              =:
 
 VariableDeclaration := VarIdentList ":"                                    % BuildNulName %
-                       Type
-                       Alignment                                           % BuildVarAlignment %
+                                                                           % DisplayStack %
+                       Type                                                % DisplayStack %
+                       Alignment                                           % DisplayStack %
+                                                                           % BuildVarAlignment %
+                                                                           % DisplayStack %
                                                                            % BuildVariable %
                     =:
 

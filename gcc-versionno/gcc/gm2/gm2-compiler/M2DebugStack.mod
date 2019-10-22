@@ -28,7 +28,7 @@ FROM SymbolTable IMPORT IsConstLit, IsConstSet, IsConstructor, IsConst,
                         IsArray, IsVar, IsEnumeration, IsFieldEnumeration,
                         IsUnbounded, IsProcType, IsProcedure, IsPointer, IsParameter,
                         IsParameterVar, IsType, IsRecord, IsRecordField, IsVarient,
-                        IsModule, IsDefImp, IsSet, IsSubrange, GetSymName ;
+                        IsModule, IsDefImp, IsSet, IsSubrange, GetSymName, NulSym ;
 
 FROM StringConvert IMPORT CardinalToString ;
 FROM NameKey IMPORT Name, KeyToCharStar ;
@@ -41,6 +41,7 @@ CONST
    Debugging = FALSE ;
 
 VAR
+   OperandTok,
    OperandT,
    OperandF,
    OperandA,
@@ -100,7 +101,10 @@ END ConCatWord ;
 
 PROCEDURE symDesc (sym: CARDINAL; o: String) : String ;
 BEGIN
-   IF IsConstLit(sym)
+   IF sym = NulSym
+   THEN
+      RETURN( ConCatWord(o, Mark(InitString('NulSym'))) )
+   ELSIF IsConstLit(sym)
    THEN
       RETURN( ConCatWord(o, Mark(InitString('constant literal'))) )
    ELSIF IsConstSet(sym)
@@ -295,13 +299,14 @@ BEGIN
       CASE char(s, i) OF
 
       '1':  RETURN doOperand(o, s, i, e, OperandT(n)) |
-      '2':  RETURN doOperand(o, s, i, e, OperandF(n))
+      '2':  RETURN doOperand(o, s, i, e, OperandF(n)) |
+      '3':  RETURN doOperand(o, s, i, e, OperandTok(n))
 
       ELSE
-         InternalError('unrecognised format specifier - expecting 1 or 2 after the %', __FILE__, __LINE__)
+         InternalError('unrecognised format specifier - expecting 1, 2 or 3 after the %', __FILE__, __LINE__)
       END
    END ;
-   InternalError('end of field found before format specifier - expecting 1 or 2 after the %', __FILE__, __LINE__)
+   InternalError('end of field found before format specifier - expecting 1, 2 or 3 after the %', __FILE__, __LINE__)
 END doPercent ;
 
 
@@ -408,10 +413,11 @@ BEGIN
       CASE char(s, i) OF
 
       '1':  doOperandLength(s, i, e, l, OperandT(n)) |
-      '2':  doOperandLength(s, i, e, l, OperandF(n))
+      '2':  doOperandLength(s, i, e, l, OperandF(n)) |
+      '3':  doOperandLength(s, i, e, l, OperandTok(n)) |
 
       ELSE
-         InternalError('unrecognised format specifier - expecting 1 or 2 after the %', __FILE__, __LINE__)
+         InternalError('unrecognised format specifier - expecting 1, 2 or 3 after the %', __FILE__, __LINE__)
       END
    END
 END doPercentLength ;
@@ -597,16 +603,18 @@ END GetMaxFieldAnno ;
                           maximum field width values.
 *)
 
-PROCEDURE GetStackFieldLengths (VAR tn, fn: CARDINAL; amount: CARDINAL) ;
+PROCEDURE GetStackFieldLengths (VAR tn, fn, tk: CARDINAL; amount: CARDINAL) ;
 VAR
    i: CARDINAL ;
 BEGIN
    i := 1 ;
    tn := 0 ;
    fn := 0 ;
+   tk := 0 ;
    WHILE i<=amount DO
       tn := doMaxCard(tn, GetMaxFieldAnno(i, 0)) ;
       fn := doMaxCard(fn, GetMaxFieldAnno(i, 1)) ;
+      tk := doMaxCard(tk, GetMaxFieldAnno(i, 2)) ;
       INC(i)
    END
 END GetStackFieldLengths ;
@@ -616,7 +624,7 @@ END GetStackFieldLengths ;
    DisplayRow -
 *)
 
-PROCEDURE DisplayRow (tn, fn: CARDINAL; initOrFinal: BOOLEAN) ;
+PROCEDURE DisplayRow (tn, fn, tk: CARDINAL; initOrFinal: BOOLEAN) ;
 VAR
    i: CARDINAL ;
 BEGIN
@@ -624,9 +632,14 @@ BEGIN
    FOR i := 1 TO tn DO
       printf0('-')
    END ;
-   IF fn=0
+   IF (fn=0) AND (tk=0)
    THEN
-      printf0('-+\n')
+      IF initOrFinal
+      THEN
+         printf0('-+-')
+      ELSE
+         printf0('-|-')
+      END
    ELSE
       IF initOrFinal
       THEN
@@ -634,10 +647,25 @@ BEGIN
       ELSE
          printf0('-|-')
       END ;
-      FOR i := 1 TO fn DO
-         printf0('-')
+      IF fn#0
+      THEN
+         FOR i := 1 TO fn DO
+            printf0('-')
+         END
       END ;
-      printf0('-+\n')
+      IF initOrFinal
+      THEN
+         printf0('-+-')
+      ELSE
+         printf0('-|-')
+      END ;
+      IF tk#0
+      THEN
+         FOR i := 1 TO tk DO
+            printf0('-')
+         END ;
+         printf0('-+\n')
+      END
    END
 END DisplayRow ;
 
@@ -768,20 +796,23 @@ END doAnnotation ;
    DisplayFields -
 *)
 
-PROCEDURE DisplayFields (n: CARDINAL; tn, fn: CARDINAL) ;
+PROCEDURE DisplayFields (n: CARDINAL; tn, fn, tk: CARDINAL) ;
 VAR
-   s   : String ;
-   t, f: CARDINAL ;
+   s      : String ;
+   t, f, k: CARDINAL ;
 BEGIN
    s := OperandAnno(n) ;
    IF s=NIL
    THEN
       t := OperandT(n) ;
       f := OperandF(n) ;
+      k := OperandTok(n) ;
       printf0('| ') ;
       Output(Pad(CardinalToString(VAL(CARDINAL, t), 0, ' ', 10, TRUE), tn)) ;
       printf0(' | ') ;
       Output(Pad(CardinalToString(VAL(CARDINAL, f), 0, ' ', 10, TRUE), fn)) ;
+      printf0(' | ') ;
+      Output(Pad(CardinalToString(VAL(CARDINAL, k), 0, ' ', 10, TRUE), tk)) ;
       printf0(' |\n')
    ELSE
       IF tn>0
@@ -794,6 +825,11 @@ BEGIN
          printf0(' | ') ;
          Output(doField(s, n, 1, fn))
       END ;
+      IF tk>0
+      THEN
+         printf0(' | ') ;
+         Output(doField(s, n, 2, tk))
+      END ;
       printf0(' |\n') ;
       IF tn>0
       THEN
@@ -805,6 +841,11 @@ BEGIN
          printf0(' | ') ;
          Output(doAnnotation(s, n, 1, fn))
       END ;
+      IF tk>0
+      THEN
+         printf0(' | ') ;
+         Output(doAnnotation(s, n, 2, tk))
+      END ;
       printf0(' |\n')
    END
 END DisplayFields ;
@@ -815,11 +856,11 @@ END DisplayFields ;
 *)
 
 PROCEDURE DebugStack (amount: CARDINAL;
-                      opt, opf, opa, opd, oprw: ProcedureWord;
+                      opt, opf, opa, opd, oprw, optk: ProcedureWord;
                       opanno: ProcedureString) ;
 VAR
-   i     : CARDINAL ;
-   tn, fn: CARDINAL ;
+   i         : CARDINAL ;
+   tn, fn, tk: CARDINAL ;
 BEGIN
    OperandT := opt ;
    OperandF := opf ;
@@ -827,15 +868,16 @@ BEGIN
    OperandD := opd ;
    OperandRW := oprw ;
    OperandAnno := opanno ;
-   GetStackFieldLengths(tn, fn, amount) ;
+   OperandTok := optk ;
+   GetStackFieldLengths(tn, fn, tk, amount) ;
    i := 1 ;
    WHILE i<=amount DO
       IF i=1
       THEN
-         DisplayRow(tn, fn, TRUE)
+         DisplayRow(tn, fn, tk, TRUE)
       END ;
-      DisplayFields(i, tn, fn) ;
-      DisplayRow(tn, fn, i=amount) ;
+      DisplayFields(i, tn, fn, tk) ;
+      DisplayRow(tn, fn, tk, i=amount) ;
       INC(i)
    END
 END DebugStack ;

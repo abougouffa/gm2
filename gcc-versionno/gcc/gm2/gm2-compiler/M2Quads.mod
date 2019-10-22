@@ -30,7 +30,7 @@ FROM M2DebugStack IMPORT DebugStack ;
 
 FROM M2MetaError IMPORT MetaError0, MetaError1, MetaError2, MetaError3,
                         MetaErrors1, MetaErrors2, MetaErrors3,
-                        MetaErrorT1, MetaErrorT2,
+                        MetaErrorT0, MetaErrorT1, MetaErrorT2,
                         MetaErrorStringT0, MetaErrorStringT1,
                         MetaErrorString1, MetaErrorString2,
                         MetaErrorN1, MetaErrorN2 ;
@@ -126,7 +126,7 @@ FROM FifoQueue IMPORT GetConstFromFifoQueue,
 FROM M2Comp IMPORT CompilingImplementationModule,
                    CompilingProgramModule ;
 
-FROM M2LexBuf IMPORT currenttoken, UnknownTokenNo,
+FROM M2LexBuf IMPORT currenttoken, UnknownTokenNo, BuiltinTokenNo,
                      GetToken,
                      GetFileName, TokenToLineNo, GetTokenName,
                      GetTokenNo, GetLineNo, GetPreviousTokenLineNo, PrintTokenNo ;
@@ -1750,13 +1750,15 @@ END CheckVariablesAt ;
    GetTurnInterrupts - returns the TurnInterrupts procedure function.
 *)
 
-PROCEDURE GetTurnInterrupts () : CARDINAL ;
+PROCEDURE GetTurnInterrupts (tok: CARDINAL) : CARDINAL ;
 BEGIN
    IF Iso
    THEN
-      RETURN( GetQualidentImport(MakeKey('TurnInterrupts'), MakeKey('COROUTINES')) )
+      RETURN GetQualidentImport (tok,
+                                 MakeKey('TurnInterrupts'), MakeKey('COROUTINES'))
    ELSE
-      RETURN( GetQualidentImport(MakeKey('TurnInterrupts'), MakeKey('SYSTEM')) )
+      RETURN GetQualidentImport (tok,
+                                 MakeKey('TurnInterrupts'), MakeKey('SYSTEM'))
    END
 END GetTurnInterrupts ;
 
@@ -1765,13 +1767,15 @@ END GetTurnInterrupts ;
    GetProtection - returns the PROTECTION data type.
 *)
 
-PROCEDURE GetProtection () : CARDINAL ;
+PROCEDURE GetProtection (tok: CARDINAL) : CARDINAL ;
 BEGIN
    IF Iso
    THEN
-      RETURN( GetQualidentImport(MakeKey('PROTECTION'), MakeKey('COROUTINES')) )
+      RETURN GetQualidentImport(tok,
+                                MakeKey('PROTECTION'), MakeKey('COROUTINES'))
    ELSE
-      RETURN( GetQualidentImport(MakeKey('PROTECTION'), MakeKey('SYSTEM')) )
+      RETURN GetQualidentImport(tok,
+                                MakeKey('PROTECTION'), MakeKey('SYSTEM'))
    END
 END GetProtection ;
 
@@ -1785,20 +1789,20 @@ END GetProtection ;
                             priority will be used is defined by, module.
 *)
 
-PROCEDURE CheckNeedPriorityBegin (scope, module: CARDINAL) ;
+PROCEDURE CheckNeedPriorityBegin (tok: CARDINAL; scope, module: CARDINAL) ;
 VAR
    ProcSym, old: CARDINAL ;
 BEGIN
    IF GetPriority(module)#NulSym
    THEN
       (* module has been given a priority *)
-      ProcSym := GetTurnInterrupts() ;
+      ProcSym := GetTurnInterrupts(tok) ;
       IF ProcSym#NulSym
       THEN
-         old := MakeTemporary(RightValue) ;
-         PutVar(old, GetProtection()) ;
+         old := MakeTemporary (tok, RightValue) ;
+         PutVar(old, GetProtection(tok)) ;
 
-         GenQuad(SavePriorityOp, old, scope, ProcSym) ;
+         GenQuadO(tok, SavePriorityOp, old, scope, ProcSym, FALSE) ;
          PushWord(PriorityStack, old)
       END
    END
@@ -1812,14 +1816,15 @@ END CheckNeedPriorityBegin ;
                           being built is defined by, scope.
 *)
 
-PROCEDURE CheckNeedPriorityEnd (scope, module: CARDINAL) ;
+PROCEDURE CheckNeedPriorityEnd (tok: CARDINAL;
+                                scope, module: CARDINAL) ;
 VAR
    ProcSym, old: CARDINAL ;
 BEGIN
    IF GetPriority(module)#NulSym
    THEN
       (* module has been given a priority *)
-      ProcSym := GetTurnInterrupts() ;
+      ProcSym := GetTurnInterrupts(tok) ;
       IF ProcSym#NulSym
       THEN
          old := PopWord(PriorityStack) ;
@@ -1926,6 +1931,7 @@ END EndBuildFile ;
 
 PROCEDURE StartBuildInit ;
 VAR
+   tok      : CARDINAL ;
    name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
@@ -1934,11 +1940,12 @@ BEGIN
    Assert(IsModule(ModuleSym) OR IsDefImp(ModuleSym)) ;
    Assert(GetSymName(ModuleSym)=name) ;
    PutModuleStartQuad(ModuleSym, NextQuad) ;
-   GenQuad(InitStartOp, GetPreviousTokenLineNo(), GetFileModule(), ModuleSym) ;
+   tok := GetPreviousTokenLineNo () ;
+   GenQuad(InitStartOp, tok, GetFileModule(), ModuleSym) ;
    PushWord(ReturnStack, 0) ;
    PushT(name) ;
    CheckVariablesAt(ModuleSym) ;
-   CheckNeedPriorityBegin(ModuleSym, ModuleSym) ;
+   CheckNeedPriorityBegin(tok, ModuleSym, ModuleSym) ;
    PushWord(TryStack, NextQuad) ;
    PushWord(CatchStack, 0) ;
    IF HasExceptionBlock(ModuleSym)
@@ -1953,18 +1960,20 @@ END StartBuildInit ;
 *)
 
 PROCEDURE EndBuildInit ;
+VAR
+   tok: CARDINAL ;
 BEGIN
+   tok := GetPreviousTokenLineNo () ;
    IF HasExceptionBlock(GetCurrentModule())
    THEN
-      BuildRTExceptLeave(TRUE) ;
-      GenQuad(CatchEndOp, NulSym, NulSym, NulSym)
+      BuildRTExceptLeave (tok, TRUE) ;
+      GenQuadO (tok, CatchEndOp, NulSym, NulSym, NulSym, FALSE)
    END ;
-   BackPatch(PopWord(ReturnStack), NextQuad) ;
-   CheckNeedPriorityEnd(GetCurrentModule(), GetCurrentModule()) ;
-   PutModuleEndQuad(GetCurrentModule(), NextQuad) ;
-   CheckVariablesInBlock(GetCurrentModule()) ;
-   GenQuad(InitEndOp, GetPreviousTokenLineNo(), GetFileModule(),
-           GetCurrentModule())
+   BackPatch (PopWord (ReturnStack), NextQuad) ;
+   CheckNeedPriorityEnd (tok, GetCurrentModule(), GetCurrentModule()) ;
+   PutModuleEndQuad (GetCurrentModule(), NextQuad) ;
+   CheckVariablesInBlock (GetCurrentModule()) ;
+   GenQuadO (tok, InitEndOp, tok, GetFileModule(), GetCurrentModule(), FALSE)
 END EndBuildInit ;
 
 
@@ -1975,6 +1984,7 @@ END EndBuildInit ;
 
 PROCEDURE StartBuildFinally ;
 VAR
+   tok      : CARDINAL ;
    name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
@@ -1983,16 +1993,17 @@ BEGIN
    Assert(IsModule(ModuleSym) OR IsDefImp(ModuleSym)) ;
    Assert(GetSymName(ModuleSym)=name) ;
    PutModuleFinallyStartQuad(ModuleSym, NextQuad) ;
-   GenQuad(FinallyStartOp, GetPreviousTokenLineNo(), GetFileModule(), ModuleSym) ;
-   PushWord(ReturnStack, 0) ;
-   PushT(name) ;
+   tok := GetPreviousTokenLineNo() ;
+   GenQuadO (tok, FinallyStartOp, tok, GetFileModule(), ModuleSym, FALSE) ;
+   PushWord (ReturnStack, 0) ;
+   PushT (name) ;
    (* CheckVariablesAt(ModuleSym) ; *)
-   CheckNeedPriorityBegin(ModuleSym, ModuleSym) ;
-   PushWord(TryStack, NextQuad) ;
-   PushWord(CatchStack, 0) ;
-   IF HasExceptionFinally(ModuleSym)
+   CheckNeedPriorityBegin (tok, ModuleSym, ModuleSym) ;
+   PushWord (TryStack, NextQuad) ;
+   PushWord (CatchStack, 0) ;
+   IF HasExceptionFinally (ModuleSym)
    THEN
-      GenQuad(TryOp, NulSym, NulSym, 0)
+      GenQuadO (tok, TryOp, NulSym, NulSym, 0, FALSE)
    END
 END StartBuildFinally ;
 
@@ -2002,18 +2013,21 @@ END StartBuildFinally ;
 *)
 
 PROCEDURE EndBuildFinally ;
+VAR
+   tok: CARDINAL ;
 BEGIN
+   tok := GetPreviousTokenLineNo() ;
    IF HasExceptionFinally(GetCurrentModule())
    THEN
-      BuildRTExceptLeave(TRUE) ;
-      GenQuad(CatchEndOp, NulSym, NulSym, NulSym)
+      BuildRTExceptLeave (tok, TRUE) ;
+      GenQuadO (tok, CatchEndOp, NulSym, NulSym, NulSym, FALSE)
    END ;
-   BackPatch(PopWord(ReturnStack), NextQuad) ;
-   CheckNeedPriorityEnd(GetCurrentModule(), GetCurrentModule()) ;
-   PutModuleFinallyEndQuad(GetCurrentModule(), NextQuad) ;
-   CheckVariablesInBlock(GetCurrentModule()) ;
-   GenQuad(FinallyEndOp, GetPreviousTokenLineNo(), GetFileModule(),
-           GetCurrentModule())
+   BackPatch (PopWord (ReturnStack), NextQuad) ;
+   CheckNeedPriorityEnd (tok, GetCurrentModule (), GetCurrentModule ()) ;
+   PutModuleFinallyEndQuad(GetCurrentModule (), NextQuad) ;
+   CheckVariablesInBlock (GetCurrentModule ()) ;
+   GenQuadO (tok, FinallyEndOp, tok, GetFileModule (),
+             GetCurrentModule(), FALSE)
 END EndBuildFinally ;
 
 
@@ -2021,7 +2035,7 @@ END EndBuildFinally ;
    BuildRTExceptEnter - informs RTExceptions that we are about to enter the except state.
 *)
 
-PROCEDURE BuildRTExceptEnter ;
+PROCEDURE BuildRTExceptEnter (tok: CARDINAL) ;
 VAR
    old,
    ProcSym: CARDINAL ;
@@ -2029,18 +2043,21 @@ BEGIN
    IF Exceptions
    THEN
       (* now inform the Modula-2 runtime we are in the exception state *)
-      ProcSym := GetQualidentImport(MakeKey('SetExceptionState'), MakeKey('RTExceptions')) ;
+      ProcSym := GetQualidentImport (tok,
+                                     MakeKey('SetExceptionState'), MakeKey('RTExceptions')) ;
       IF ProcSym=NulSym
       THEN
-         MetaError0 ('{%W}no procedure SetExceptionState found in RTExceptions which is needed to implement exception handling')
+         MetaErrorT0 (tok,
+                      '{%W}no procedure SetExceptionState found in RTExceptions which is needed to implement exception handling')
       ELSE
-         old := MakeTemporary(RightValue) ;
-         PutVar(old, Boolean) ;
-         GenQuad(SaveExceptionOp, old, NulSym, ProcSym) ;
-         PushWord(ExceptStack, old)
+         old := MakeTemporary (tok, RightValue) ;
+         PutVar (old, Boolean) ;
+         GenQuadO (tok, SaveExceptionOp, old, NulSym, ProcSym, FALSE) ;
+         PushWord (ExceptStack, old)
       END
    ELSE
-      MetaError0 ('{%E}cannot use {%kEXCEPT} blocks with the -fno-exceptions flag')
+      MetaErrorT0 (tok,
+                   '{%E}cannot use {%kEXCEPT} blocks with the -fno-exceptions flag')
    END
 END BuildRTExceptEnter ;
 
@@ -2050,7 +2067,7 @@ END BuildRTExceptEnter ;
                         If, destroy, is TRUE then pop the ExceptStack.
 *)
 
-PROCEDURE BuildRTExceptLeave (destroy: BOOLEAN) ;
+PROCEDURE BuildRTExceptLeave (tok: CARDINAL; destroy: BOOLEAN) ;
 VAR
    old,
    ProcSym: CARDINAL ;
@@ -2058,16 +2075,17 @@ BEGIN
    IF Exceptions
    THEN
       (* now inform the Modula-2 runtime we are in the exception state *)
-      ProcSym := GetQualidentImport(MakeKey('SetExceptionState'), MakeKey('RTExceptions')) ;
+      ProcSym := GetQualidentImport (tok,
+                                     MakeKey('SetExceptionState'), MakeKey('RTExceptions')) ;
       IF ProcSym#NulSym
       THEN
          IF destroy
          THEN
-            old := PopWord(ExceptStack)
+            old := PopWord (ExceptStack)
          ELSE
-            old := PeepWord(ExceptStack, 1)
+            old := PeepWord (ExceptStack, 1)
          END ;
-         GenQuad(RestoreExceptionOp, old, NulSym, ProcSym)
+         GenQuadO (tok, RestoreExceptionOp, old, NulSym, ProcSym, FALSE)
       END
    ELSE
       (* no need for an error message here as it will be generated in the Enter procedure above *)
@@ -2080,27 +2098,28 @@ END BuildRTExceptLeave ;
                         in the current block.
 *)
 
-PROCEDURE BuildExceptInitial ;
+PROCEDURE BuildExceptInitial (tok: CARDINAL) ;
 VAR
    previous: CARDINAL ;
 BEGIN
    (* we have finished the 'try' block, so now goto the return
       section which will tidy up (any) priorities before returning.
    *)
-   GenQuad(GotoOp, NulSym, NulSym, PopWord(ReturnStack)) ;
-   PushWord(ReturnStack, NextQuad-1) ;
+   GenQuadO (tok, GotoOp, NulSym, NulSym, PopWord(ReturnStack), FALSE) ;
+   PushWord (ReturnStack, NextQuad-1) ;
    (*
       this is the 'catch' block.
    *)
-   BackPatch(PeepWord(TryStack, 1), NextQuad) ;
-   GenQuad(CatchBeginOp, NulSym, NulSym, NulSym) ;
-   previous := PopWord(CatchStack) ;
-   IF previous#0
+   BackPatch (PeepWord (TryStack, 1), NextQuad) ;
+   GenQuadO (tok, CatchBeginOp, NulSym, NulSym, NulSym, FALSE) ;
+   previous := PopWord (CatchStack) ;
+   IF previous # 0
    THEN
-      MetaError0 ('{%E}only allowed one EXCEPT statement in a procedure or module')
+      MetaErrorT0 (tok,
+                   '{%E}only allowed one EXCEPT statement in a procedure or module')
    END ;
-   PushWord(CatchStack, NextQuad-1) ;
-   BuildRTExceptEnter
+   PushWord (CatchStack, NextQuad-1) ;
+   BuildRTExceptEnter (tok)
 END BuildExceptInitial ;
 
 
@@ -2109,9 +2128,9 @@ END BuildExceptInitial ;
                         finally block.
 *)
 
-PROCEDURE BuildExceptFinally ;
+PROCEDURE BuildExceptFinally (tok: CARDINAL) ;
 BEGIN
-   BuildExceptInitial
+   BuildExceptInitial (tok)
 END BuildExceptFinally ;
 
 
@@ -2120,9 +2139,9 @@ END BuildExceptFinally ;
                           block.
 *)
 
-PROCEDURE BuildExceptProcedure ;
+PROCEDURE BuildExceptProcedure (tok: CARDINAL) ;
 BEGIN
-   BuildExceptInitial
+   BuildExceptInitial (tok)
 END BuildExceptProcedure ;
 
 
@@ -2130,14 +2149,15 @@ END BuildExceptProcedure ;
    BuildRetry - adds an RetryOp quadruple.
 *)
 
-PROCEDURE BuildRetry ;
+PROCEDURE BuildRetry (tok: CARDINAL);
 BEGIN
-   IF PeepWord(CatchStack, 1)=0
+   IF PeepWord (CatchStack, 1) = 0
    THEN
-      MetaError0 ('{%E}the {%kRETRY} statement must occur after an {%kEXCEPT} statement in the same module or procedure block')
+      MetaErrorT0 (tok,
+                   '{%E}the {%kRETRY} statement must occur after an {%kEXCEPT} statement in the same module or procedure block')
    ELSE
-      BuildRTExceptLeave(FALSE) ;
-      GenQuad(RetryOp, NulSym, NulSym, PeepWord(TryStack, 1))
+      BuildRTExceptLeave (tok, FALSE) ;
+      GenQuadO (tok, RetryOp, NulSym, NulSym, PeepWord(TryStack, 1), FALSE)
    END
 END BuildRetry ;
 
@@ -2147,9 +2167,13 @@ END BuildRetry ;
 *)
 
 PROCEDURE BuildModuleStart ;
+VAR
+   tok: CARDINAL ;
 BEGIN
-   GenQuad(ModuleScopeOp, GetPreviousTokenLineNo(),
-           WORD(makekey(string(GetFileName()))), GetCurrentModule())
+   tok := GetPreviousTokenLineNo () ;
+   GenQuadO (tok,
+             ModuleScopeOp, tok,
+             WORD (makekey (string (GetFileName ()))), GetCurrentModule (), FALSE)
 END BuildModuleStart ;
 
 
@@ -2159,16 +2183,19 @@ END BuildModuleStart ;
 *)
 
 PROCEDURE StartBuildInnerInit ;
+VAR
+   tok: CARDINAL ;
 BEGIN
+   tok := GetPreviousTokenLineNo () ;
    PutModuleStartQuad(GetCurrentModule(), NextQuad) ;
-   GenQuad(InitStartOp, GetPreviousTokenLineNo(), NulSym, GetCurrentModule()) ;
-   PushWord(ReturnStack, 0) ;
-   CheckNeedPriorityBegin(GetCurrentModule(), GetCurrentModule()) ;
-   PushWord(TryStack, NextQuad) ;
-   PushWord(CatchStack, 0) ;
-   IF HasExceptionFinally(GetCurrentModule())
+   GenQuadO (tok, InitStartOp, tok, NulSym, GetCurrentModule(), FALSE) ;
+   PushWord (ReturnStack, 0) ;
+   CheckNeedPriorityBegin (tok, GetCurrentModule(), GetCurrentModule()) ;
+   PushWord (TryStack, NextQuad) ;
+   PushWord (CatchStack, 0) ;
+   IF HasExceptionFinally (GetCurrentModule())
    THEN
-      GenQuad(TryOp, NulSym, NulSym, 0)
+      GenQuadO (tok, TryOp, NulSym, NulSym, 0, FALSE)
    END
 END StartBuildInnerInit ;
 
@@ -2178,17 +2205,20 @@ END StartBuildInnerInit ;
 *)
 
 PROCEDURE EndBuildInnerInit ;
+VAR
+   tok: CARDINAL ;
 BEGIN
-   IF HasExceptionBlock(GetCurrentModule())
+   tok := GetPreviousTokenLineNo () ;
+   IF HasExceptionBlock (GetCurrentModule())
    THEN
-      BuildRTExceptLeave(TRUE) ;
-      GenQuad(CatchEndOp, NulSym, NulSym, NulSym)
+      BuildRTExceptLeave (tok, TRUE) ;
+      GenQuadO (tok, CatchEndOp, NulSym, NulSym, NulSym, FALSE)
    END ;
-   PutModuleEndQuad(GetCurrentModule(), NextQuad) ;
-   CheckVariablesInBlock(GetCurrentModule()) ;
-   BackPatch(PopWord(ReturnStack), NextQuad) ;
-   CheckNeedPriorityEnd(GetCurrentModule(), GetCurrentModule()) ;
-   GenQuad(InitEndOp, GetPreviousTokenLineNo(), NulSym, GetCurrentModule())
+   PutModuleEndQuad (GetCurrentModule(), NextQuad) ;
+   CheckVariablesInBlock (GetCurrentModule ()) ;
+   BackPatch (PopWord (ReturnStack), NextQuad) ;
+   CheckNeedPriorityEnd (tok, GetCurrentModule (), GetCurrentModule ()) ;
+   GenQuadO (tok, InitEndOp, tok, NulSym, GetCurrentModule (), FALSE)
 END EndBuildInnerInit ;
 
 
@@ -2210,8 +2240,8 @@ PROCEDURE BuildModulePriority ;
 VAR
    Priority: CARDINAL ;
 BEGIN
-   PopT(Priority) ;
-   PutPriority(GetCurrentModule(), Priority)
+   PopT (Priority) ;
+   PutPriority (GetCurrentModule (), Priority)
 END BuildModulePriority ;
 
 
@@ -2252,10 +2282,10 @@ BEGIN
    IF Pedantic
    THEN
       WITH ForInfo DO
-         PutItemIntoList(IncrementQuad, IncQuad) ;
-         PutItemIntoList(StartOfForLoop, Start) ;
-         PutItemIntoList(EndOfForLoop, End) ;
-         PutItemIntoList(ForLoopIndex, Sym)
+         PutItemIntoList (IncrementQuad, IncQuad) ;
+         PutItemIntoList (StartOfForLoop, Start) ;
+         PutItemIntoList (EndOfForLoop, End) ;
+         PutItemIntoList (ForLoopIndex, Sym)
       END
    END
 END AddForInfo ;
@@ -2557,21 +2587,22 @@ END doVal ;
    MoveWithMode -
 *)
 
-PROCEDURE MoveWithMode (Des, Exp, Array: CARDINAL) ;
+PROCEDURE MoveWithMode (tokno: CARDINAL;
+                        Des, Exp, Array: CARDINAL) ;
 VAR
    t: CARDINAL ;
 BEGIN
    IF IsConstString(Exp) AND IsConst(Des)
    THEN
-      GenQuad(BecomesOp, Des, NulSym, Exp) ;
-      PutConstString(Des, GetString(Exp))
+      GenQuadO(tokno, BecomesOp, Des, NulSym, Exp, TRUE) ;
+      PutConstString(tokno, Des, GetString(Exp))
    ELSE
       IF GetMode(Des)=RightValue
       THEN
          IF GetMode(Exp)=LeftValue
          THEN
             CheckPointerThroughNil(Exp) ;  (*    Des = *Exp    *)
-            doIndrX(Des, Exp)
+            doIndrX(tokno, Des, Exp)
          ELSE
             GenQuad(BecomesOp, Des, NulSym, Exp)
          END
@@ -2580,12 +2611,12 @@ BEGIN
          MarkArrayWritten(Array) ;
          IF GetMode(Exp)=LeftValue
          THEN
-            t := MakeTemporary(RightValue) ;
+            t := MakeTemporary (tokno, RightValue) ;
             PutVar(t, GetSType(Exp)) ;
             CheckPointerThroughNil(Exp) ;
-            doIndrX(t, Exp) ;
+            doIndrX(tokno, t, Exp) ;
             CheckPointerThroughNil(Des) ;  (*    *Des = Exp    *)
-            GenQuad(XIndrOp, Des, GetSType(Des), doVal(GetSType(Des), t))
+            GenQuad (XIndrOp, Des, GetSType(Des), doVal(GetSType(Des), t))
          ELSE
             CheckPointerThroughNil(Des) ;  (*    *Des = Exp    *)
             GenQuad(XIndrOp, Des, GetSType(Des), doVal(GetSType(Des), Exp))
@@ -2618,8 +2649,8 @@ VAR
    Sym: CARDINAL ;
 BEGIN
    PopT(Id) ;
-   Sym := MakeTemporary(ImmediateValue) ;
-   PutVar(Sym, Integer) ;
+   Sym := MakeTemporary (BuiltinTokenNo, ImmediateValue) ;
+   PutVar (Sym, Integer) ;
 (*
    CASE GetBuiltinConstType(KeyToCharStar(Name(Id))) OF
 
@@ -2632,8 +2663,8 @@ BEGIN
       InternalError('unrecognised value', __FILE__, __LINE__)
    END ;
 *)
-   GenQuad(BuiltinConstOp, Sym, NulSym, Id) ;
-   PushT(Sym)
+   GenQuad (BuiltinConstOp, Sym, NulSym, Id) ;
+   PushTtok (Sym, BuiltinTokenNo)
 END BuildBuiltinConst ;
 
 
@@ -2663,7 +2694,7 @@ VAR
 BEGIN
    PopT(Ident) ;
    PopT(Type) ;
-   Sym := MakeTemporary(ImmediateValue) ;
+   Sym := MakeTemporary (BuiltinTokenNo, ImmediateValue) ;
    CASE GetBuiltinTypeInfoType(KeyToCharStar(Name(Ident))) OF
 
    0:  ErrorFormat1(NewError(GetTokenNo()),
@@ -2675,8 +2706,8 @@ BEGIN
    ELSE
       InternalError('unrecognised value', __FILE__, __LINE__)
    END ;
-   GenQuad(BuiltinTypeInfoOp, Sym, Type, Ident) ;
-   PushT(Sym)
+   GenQuad (BuiltinTypeInfoOp, Sym, Type, Ident) ;
+   PushTtok (Sym, BuiltinTokenNo)
 END BuildBuiltinTypeInfo ;
 
 
@@ -2839,7 +2870,7 @@ BEGIN
          CheckBecomesMeta(Des, Exp)
       END ;
       (* Traditional Assignment *)
-      MoveWithMode(Des, Exp, Array) ;
+      MoveWithMode(tokno, Des, Exp, Array) ;
       IF checkTypes
       THEN
          IF (CannotCheckTypeInPass3(Des) OR CannotCheckTypeInPass3(Exp))
@@ -2987,7 +3018,8 @@ BEGIN
    PopT(name) ;
    IF name#MakeKey('bytealignment')
    THEN
-      MetaError1 ('expecting bytealignment identifier, rather than {%1Ea}', MakeError (name))
+      MetaError1 ('expecting bytealignment identifier, rather than {%1Ea}',
+                  MakeError (tokno, name))
    END ;
    GetConstFromFifoQueue(align) ;
    PushT(align) ;
@@ -3689,8 +3721,9 @@ BEGIN
    BuildAssignmentWithoutBounds(TRUE, TRUE) ;
 
    UseLineNote(l2) ;
-   FinalValue := MakeTemporary(AreConstant(IsConst(e1) AND IsConst(e2) AND
-                                           IsConst(BySym))) ;
+   FinalValue := MakeTemporary (GetTokenNo(),
+                                AreConstant(IsConst(e1) AND IsConst(e2) AND
+                                            IsConst(BySym))) ;
    PutVar(FinalValue, GetSType(IdSym)) ;
    etype := MixTypes(GetSType(e1), GetSType(e2), GetTokenNo()) ;
    e1 := doConvert(etype, e1) ;
@@ -3782,6 +3815,7 @@ END BuildForToByDo ;
 
 PROCEDURE BuildEndFor ;
 VAR
+   tokno  : CARDINAL ;
    t, f,
    tsym,
    IncQuad,
@@ -3795,6 +3829,8 @@ BEGIN
    PopT(LastSym) ;
    PopTF(BySym, ByType) ;
    PopT(IdSym) ;
+
+   tokno := GetTokenNo () ;
 
    (* IF IdSym=LastSym THEN exit END *)
    PushTF(IdSym, GetSType(IdSym)) ;
@@ -3810,10 +3846,10 @@ BEGIN
    IF GetMode(IdSym)=LeftValue
    THEN
       (* index variable is a LeftValue, therefore we must dereference it *)
-      tsym := MakeTemporary(RightValue) ;
+      tsym := MakeTemporary (GetTokenNo(), RightValue) ;
       PutVar(tsym, GetSType(IdSym)) ;
       CheckPointerThroughNil(IdSym) ;
-      doIndrX(tsym, IdSym) ;
+      doIndrX(tokno, tsym, IdSym) ;
       BuildRange(InitForLoopEndRangeCheck(tsym, BySym)) ;
       IncQuad := NextQuad ;
       (* we have explicitly checked using the above and also
@@ -4470,8 +4506,7 @@ BEGIN
          to builtins to always be evaluated at compile
          time --fixme--
       *)
-      ReturnVar := MakeTemporary(AreConstant(ParamConstant)) ;
-      (* ReturnVar := MakeTemporary(RightValue) ; *)
+      ReturnVar := MakeTemporary (tokno, AreConstant(ParamConstant)) ;
       PutVar(ReturnVar, GetSType(Proc)) ;
       GenQuadO(tokno, FunctValueOp, ReturnVar, NulSym, Proc, TRUE) ;
       IF NOT ForcedFunc
@@ -5188,18 +5223,19 @@ END ExpectVariable ;
    doIndrX - perform des = *exp with a conversion if necessary.
 *)
 
-PROCEDURE doIndrX (des, exp: CARDINAL) ;
+PROCEDURE doIndrX (tok: CARDINAL;
+                   des, exp: CARDINAL) ;
 VAR
    t: CARDINAL ;
 BEGIN
    IF GetDType(des)=GetDType(exp)
    THEN
-      GenQuad(IndrXOp, des, GetSType(des), exp)
+      GenQuadO (tok, IndrXOp, des, GetSType(des), exp, TRUE)
    ELSE
-      t := MakeTemporary(RightValue) ;
-      PutVar(t, GetSType(exp)) ;
-      GenQuad(IndrXOp, t, GetSType(exp), exp) ;
-      GenQuad(BecomesOp, des, NulSym, doVal(GetSType(des), t))
+      t := MakeTemporary (tok, RightValue) ;
+      PutVar (t, GetSType (exp)) ;
+      GenQuadO (tok, IndrXOp, t, GetSType (exp), exp, TRUE) ;
+      GenQuadO (tok, BecomesOp, des, NulSym, doVal (GetSType(des), t), TRUE)
    END
 END doIndrX ;
 
@@ -5211,31 +5247,32 @@ END doIndrX ;
                     and an IndrX quadruple is generated.
 *)
 
-PROCEDURE MakeRightValue (Sym: CARDINAL; type: CARDINAL) : CARDINAL ;
+PROCEDURE MakeRightValue (tok: CARDINAL;
+                          Sym: CARDINAL; type: CARDINAL) : CARDINAL ;
 VAR
    t: CARDINAL ;
 BEGIN
-   IF GetMode(Sym)=RightValue
+   IF GetMode (Sym) = RightValue
    THEN
-      IF GetSType(Sym)=type
+      IF GetSType(Sym) = type
       THEN
-         RETURN( Sym )   (* already a RightValue with desired type *)
+         RETURN Sym    (* already a RightValue with desired type *)
       ELSE
          (*
             type change or mode change, type changes are a pain, but I've
             left them here as it is perhaps easier to remove them later.
          *)
-         t := MakeTemporary(RightValue) ;
-         PutVar(t, type) ;
-         GenQuad(BecomesOp, t, NulSym, doVal(type, Sym)) ;
-         RETURN( t )
+         t := MakeTemporary (tok, RightValue) ;
+         PutVar (t, type) ;
+         GenQuadO (tok, BecomesOp, t, NulSym, doVal(type, Sym), TRUE) ;
+         RETURN t
       END
    ELSE
-      t := MakeTemporary(RightValue) ;
-      PutVar(t, type) ;
-      CheckPointerThroughNil(Sym) ;
-      doIndrX(t, Sym) ;
-      RETURN( t )
+      t := MakeTemporary (tok, RightValue) ;
+      PutVar (t, type) ;
+      CheckPointerThroughNil (Sym) ;
+      doIndrX (tok, t, Sym) ;
+      RETURN t
    END
 END MakeRightValue ;
 
@@ -5246,30 +5283,31 @@ END MakeRightValue ;
                    a LeftValue and has the same type.
 *)
 
-PROCEDURE MakeLeftValue (Sym: CARDINAL; with: ModeOfAddr; type: CARDINAL) : CARDINAL ;
+PROCEDURE MakeLeftValue (tok: CARDINAL;
+                         Sym: CARDINAL; with: ModeOfAddr; type: CARDINAL) : CARDINAL ;
 VAR
    t: CARDINAL ;
 BEGIN
-   IF GetMode(Sym)=LeftValue
+   IF GetMode (Sym) = LeftValue
    THEN
-      IF GetSType(Sym)=type
+      IF GetSType (Sym) = type
       THEN
-         RETURN( Sym )
+         RETURN Sym
       ELSE
          (*
             type change or mode change, type changes are a pain, but I've
             left them here as it is perhaps easier to remove them later
          *)
-         t := MakeTemporary(with) ;
-         PutVar(t, type) ;
-         GenQuad(BecomesOp, t, NulSym, Sym) ;
-         RETURN( t )
+         t := MakeTemporary (tok, with) ;
+         PutVar (t, type) ;
+         GenQuadO (tok, BecomesOp, t, NulSym, Sym, TRUE) ;
+         RETURN t
       END
    ELSE
-      t := MakeTemporary(with) ;
-      PutVar(t, type) ;
-      GenQuad(AddrOp, t, NulSym, Sym) ;
-      RETURN( t )
+      t := MakeTemporary (tok, with) ;
+      PutVar (t, type) ;
+      GenQuadO (tok, AddrOp, t, NulSym, Sym, TRUE) ;
+      RETURN t
    END
 END MakeLeftValue ;
 
@@ -5329,7 +5367,7 @@ BEGIN
       THEN
          (* must dereference LeftValue *)
          f := PeepAddress(BoolStack, pi) ;
-         f^.TrueExit := MakeRightValue(OperandT(pi), GetSType(OperandT(pi)))
+         f^.TrueExit := MakeRightValue (GetTokenNo(), OperandT(pi), GetSType(OperandT(pi)))
       END ;
       INC(i) ;
       DEC(pi)
@@ -5341,9 +5379,9 @@ END ManipulatePseudoCallParameters ;
    ConvertStringToC - creates a new ConstString symbol with a C style string.
 *)
 
-PROCEDURE ConvertStringToC (sym: CARDINAL) : CARDINAL ;
+PROCEDURE ConvertStringToC (tok: CARDINAL; sym: CARDINAL) : CARDINAL ;
 BEGIN
-   sym := GetConstStringNullTerminated (sym) ;
+   sym := GetConstStringNullTerminated (tok, sym) ;
    PutCString (sym) ;
    RETURN sym
 END ConvertStringToC ;
@@ -5442,11 +5480,11 @@ BEGIN
          THEN
             IF (GetSType(OperandT(pi))#NulSym) AND IsArray(GetDType(OperandT(pi)))
             THEN
-               f^.TrueExit := MakeLeftValue(OperandT(pi), RightValue, Address) ;
+               f^.TrueExit := MakeLeftValue(OperandTok(pi), OperandT(pi), RightValue, Address) ;
                MarkAsReadWrite(rw)
             ELSIF IsConstString(OperandT(pi))
             THEN
-               f^.TrueExit := MakeLeftValue(ConvertStringToC(OperandT(pi)), RightValue, Address) ;
+               f^.TrueExit := MakeLeftValue(OperandTok(pi), ConvertStringToC(OperandTok(pi), OperandT(pi)), RightValue, Address) ;
                MarkAsReadWrite(rw)
             ELSIF (GetSType(OperandT(pi))#NulSym) AND IsUnbounded(GetSType(OperandT(pi)))
             THEN
@@ -5461,10 +5499,10 @@ BEGIN
             THEN
                MarkAsReadWrite(rw) ;
                (* must dereference LeftValue (even if we are passing variable as a vararg) *)
-               t := MakeTemporary(RightValue) ;
+               t := MakeTemporary (OperandTok (pi), RightValue) ;
                PutVar(t, GetSType(OperandT(pi))) ;
                CheckPointerThroughNil(OperandT(pi)) ;
-               doIndrX(t, OperandT(pi)) ;
+               doIndrX (OperandTok(pi), t, OperandT(pi)) ;
                f^.TrueExit := t
             END
          ELSE
@@ -5475,7 +5513,7 @@ BEGIN
       ELSIF IsForC AND IsUnboundedParam(Proc, i) AND
             (GetSType(OperandT(pi))#NulSym) AND IsArray(GetDType(OperandT(pi)))
       THEN
-         f^.TrueExit := MakeLeftValue(OperandT(pi), RightValue, Address) ;
+         f^.TrueExit := MakeLeftValue(OperandTok(pi), OperandT(pi), RightValue, Address) ;
          MarkAsReadWrite(rw)
       ELSIF IsForC AND IsUnboundedParam(Proc, i) AND
             (GetSType(OperandT(pi))#NulSym) AND IsUnbounded(GetDType(OperandT(pi)))
@@ -5490,16 +5528,18 @@ BEGIN
       ELSIF IsForC AND IsConstString(OperandT(pi)) AND
                         (IsUnboundedParam(Proc, i) OR (GetDType(GetParam(Proc, i))=Address))
       THEN
-         f^.TrueExit := MakeLeftValue(ConvertStringToC(OperandT(pi)), RightValue, Address) ;
+         f^.TrueExit := MakeLeftValue(OperandTok(pi),
+                                      ConvertStringToC(OperandTok(pi), OperandT(pi)),
+                                      RightValue, Address) ;
          MarkAsReadWrite(rw)
       ELSIF IsUnboundedParam(Proc, i)
       THEN
          (* always pass constant strings with a nul terminator, but leave the HIGH as before.  *)
          IF IsConstString(OperandT(pi))
          THEN
-            f^.TrueExit := GetConstStringNullTerminated(OperandT(pi))
+            f^.TrueExit := GetConstStringNullTerminated(OperandTok(pi), OperandT(pi))
          END ;
-         t := MakeTemporary(RightValue) ;
+         t := MakeTemporary (OperandTok (pi), RightValue) ;
          UnboundedType := GetSType(GetParam(Proc, i)) ;
          PutVar(t, UnboundedType) ;
          ParamType := GetSType(UnboundedType) ;
@@ -5526,14 +5566,14 @@ BEGIN
          MarkArrayWritten(OperandT(pi)) ;
          MarkArrayWritten(OperandA(pi)) ;
          MarkAsReadWrite(rw) ;
-         f^.TrueExit := MakeLeftValue(OperandT(pi), LeftValue, GetSType(GetParam(Proc, i)))
+         f^.TrueExit := MakeLeftValue(OperandTok(pi), OperandT(pi), LeftValue, GetSType(GetParam(Proc, i)))
       ELSIF (NOT IsVarParam(Proc, i)) AND (GetMode(OperandT(pi))=LeftValue)
       THEN
          (* must dereference LeftValue *)
-         t := MakeTemporary(RightValue) ;
+         t := MakeTemporary (OperandTok (pi), RightValue) ;
          PutVar(t, GetSType(OperandT(pi))) ;
          CheckPointerThroughNil(OperandT(pi)) ;
-         doIndrX(t, OperandT(pi)) ;
+         doIndrX (OperandTok(pi), t, OperandT(pi)) ;
          f^.TrueExit := t ;
          MarkAsRead(rw)
       ELSE
@@ -5705,18 +5745,19 @@ END AssignUnboundedNonVar ;
              via indirection and eleminate these.
 *)
 
-PROCEDURE GenHigh (op1, op2, op3: CARDINAL) ;
+PROCEDURE GenHigh (tok: CARDINAL;
+                   op1, op2, op3: CARDINAL) ;
 VAR
    sym: CARDINAL ;
 BEGIN
    IF (GetMode(op3)=LeftValue) AND IsUnbounded(GetSType(op3))
    THEN
-      sym := MakeTemporary(RightValue) ;
-      PutVar(sym, GetSType(op3)) ;
-      doIndrX(sym, op3) ;
-      GenQuad(HighOp, op1, op2, sym)
+      sym := MakeTemporary (tok, RightValue) ;
+      PutVar (sym, GetSType (op3)) ;
+      doIndrX (tok, sym, op3) ;
+      GenQuadO (tok, HighOp, op1, op2, sym, TRUE)
    ELSE
-      GenQuad(HighOp, op1, op2, op3)
+      GenQuadO (tok, HighOp, op1, op2, op3, TRUE)
    END
 END GenHigh ;
 
@@ -5728,11 +5769,13 @@ END GenHigh ;
 PROCEDURE AssignHighField (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL;
                            actuali, formali: CARDINAL) ;
 VAR
+   tok      : CARDINAL ;
    ReturnVar,
    ArrayType,
    Field    : CARDINAL ;
 BEGIN
    (* Unbounded.ArrayHigh := HIGH(ArraySym) *)
+   tok := GetTokenNo () ;
    PushTF(UnboundedSym, GetSType(UnboundedSym)) ;
    Field := GetUnboundedHighOffset(GetSType(UnboundedSym), formali) ;
    PushTF(Field, GetSType(Field)) ;
@@ -5757,7 +5800,7 @@ BEGIN
              *  remember SIZE doubles as
              *  (HIGH(a)+1) * SIZE(ArrayType) for unbounded symbols
              *)
-            PushTF(calculateMultipicand(ArraySym, ArrayType, actuali-1), Cardinal) ;
+            PushTF(calculateMultipicand(tok, ArraySym, ArrayType, actuali-1), Cardinal) ;
             PushT(DivideTok) ;        (* Divide by                    *)
             PushTF(TSize, Cardinal) ; (* TSIZE(ParamType)             *)
             PushT(ParamType) ;
@@ -5783,15 +5826,15 @@ BEGIN
          BuildBinaryOp
       END
    ELSE
-      ReturnVar := MakeTemporary(RightValue) ;
+      ReturnVar := MakeTemporary (tok, RightValue) ;
       PutVar(ReturnVar, Cardinal) ;
       IF (actuali#formali) AND (ArraySym#NulSym) AND IsUnbounded(GetSType(ArraySym))
       THEN
-         GenHigh(ReturnVar, actuali, ArraySym)
+         GenHigh(tok, ReturnVar, actuali, ArraySym)
       ELSE
-         GenHigh(ReturnVar, formali, Sym)
+         GenHigh(tok, ReturnVar, formali, Sym)
       END ;
-      PushTF(ReturnVar, GetSType(ReturnVar))
+      PushTFtok(ReturnVar, GetSType(ReturnVar), tok)
    END ;
    BuildAssignmentWithoutBounds(FALSE, TRUE)
 END AssignHighField ;
@@ -6291,31 +6334,31 @@ VAR
    TempSym   : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
-   IF (NoOfParam=1) OR (NoOfParam=2)
+   IF (NoOfParam = 1) OR (NoOfParam = 2)
    THEN
       VarSym := OperandT(NoOfParam) ;  (* bottom/first parameter *)
-      IF IsVar(VarSym)
+      IF IsVar (VarSym)
       THEN
-         dtype := GetDType(VarSym) ;
-         IF NoOfParam=2
+         dtype := GetDType (VarSym) ;
+         IF NoOfParam = 2
          THEN
-            OperandSym := DereferenceLValue(OperandT(1))
+            OperandSym := DereferenceLValue (OperandTok (1), OperandT (1))
          ELSE
-            PushOne(dtype, 'the {%EkINC} will cause an overflow {%1ad}') ;
-	    PopT(OperandSym)
+            PushOne (dtype, 'the {%EkINC} will cause an overflow {%1ad}') ;
+	    PopT (OperandSym)
          END ;
 
-         PushT(VarSym) ;
-         TempSym := DereferenceLValue(VarSym) ;
-         CheckRangeIncDec(TempSym, OperandSym, PlusTok) ;  (* TempSym + OperandSym *)
-         BuildAssignmentWithoutBounds(FALSE, TRUE)   (* VarSym := TempSym + OperandSym *)
+         PushT (VarSym) ;
+         TempSym := DereferenceLValue (OperandTok (NoOfParam), VarSym) ;
+         CheckRangeIncDec (TempSym, OperandSym, PlusTok) ;  (* TempSym + OperandSym *)
+         BuildAssignmentWithoutBounds (FALSE, TRUE)   (* VarSym := TempSym + OperandSym *)
       ELSE
          MetaError1 ('base procedure {%EkINC} expects a variable as a parameter but was given {%E1d}', VarSym)
       END
    ELSE
       MetaError0 ('the base procedure {%EkINC} expects 1 or 2 parameters')
    END ;
-   PopN(NoOfParam+1)
+   PopN (NoOfParam + 1)
 END BuildIncProcedure ;
 
 
@@ -6357,32 +6400,32 @@ VAR
    VarSym,
    TempSym   : CARDINAL ;
 BEGIN
-   PopT(NoOfParam) ;
-   IF (NoOfParam=1) OR (NoOfParam=2)
+   PopT (NoOfParam) ;
+   IF (NoOfParam = 1) OR (NoOfParam = 2)
    THEN
-      VarSym := OperandT(NoOfParam) ;  (* bottom/first parameter *)
+      VarSym := OperandT (NoOfParam) ;  (* bottom/first parameter *)
       IF IsVar(VarSym)
       THEN
          dtype := GetDType(VarSym) ;
          IF NoOfParam=2
          THEN
-            OperandSym := DereferenceLValue(OperandT(1))
+            OperandSym := DereferenceLValue (OperandTok (1), OperandT (1))
          ELSE
             PushOne(dtype, 'the {%EkDEC} will cause an overflow {%1ad}') ;
 	    PopT(OperandSym)
          END ;
 
          PushT(VarSym) ;
-         TempSym := DereferenceLValue(VarSym) ;
-         CheckRangeIncDec(TempSym, OperandSym, MinusTok) ;  (* TempSym - OperandSym *)
-         BuildAssignmentWithoutBounds(FALSE, TRUE)   (* VarSym := TempSym - OperandSym *)
+         TempSym := DereferenceLValue(OperandTok (NoOfParam), VarSym) ;
+         CheckRangeIncDec (TempSym, OperandSym, MinusTok) ;  (* TempSym - OperandSym *)
+         BuildAssignmentWithoutBounds (FALSE, TRUE)   (* VarSym := TempSym - OperandSym *)
       ELSE
          MetaError1 ('base procedure {%EkDEC} expects a variable as a parameter but was given {%E1d}', VarSym)
       END
    ELSE
       MetaError0 ('the base procedure {%EkDEC} expects 1 or 2 parameters')
    END ;
-   PopN(NoOfParam+1)
+   PopN (NoOfParam + 1)
 END BuildDecProcedure ;
 
 
@@ -6391,22 +6434,22 @@ END BuildDecProcedure ;
                        and if so it dereferences it.
 *)
 
-PROCEDURE DereferenceLValue (operand: CARDINAL) : CARDINAL ;
+PROCEDURE DereferenceLValue (tok: CARDINAL; operand: CARDINAL) : CARDINAL ;
 VAR
    sym: CARDINAL ;
 BEGIN
-   IF GetMode(operand)=LeftValue
+   IF GetMode (operand) = LeftValue
    THEN
       (* dereference the pointer *)
-      sym := MakeTemporary(AreConstant(IsConst(operand))) ;
-      PutVar(sym, GetSType(operand)) ;
+      sym := MakeTemporary (tok, AreConstant(IsConst(operand))) ;
+      PutVar(sym, GetSType (operand)) ;
 
-      PushT(sym) ;
-      PushT(operand) ;
-      BuildAssignmentWithoutBounds(FALSE, TRUE) ;
-      RETURN( sym )
+      PushT (sym) ;
+      PushT (operand) ;
+      BuildAssignmentWithoutBounds (FALSE, TRUE) ;
+      RETURN sym
    ELSE
-      RETURN( operand )
+      RETURN operand
    END
 END DereferenceLValue ;
 
@@ -6438,6 +6481,7 @@ END DereferenceLValue ;
 
 PROCEDURE BuildInclProcedure ;
 VAR
+   tok1      : CARDINAL ;
    NoOfParam,
    DerefSym,
    OperandSym,
@@ -6449,11 +6493,12 @@ BEGIN
       VarSym := OperandT(2) ;
       MarkArrayWritten(OperandA(2)) ;
       OperandSym := OperandT(1) ;
+      tok1 := OperandTok(1) ;
       IF IsVar(VarSym)
       THEN
          IF IsSet(GetDType(VarSym))
          THEN
-            DerefSym := DereferenceLValue(OperandSym) ;
+            DerefSym := DereferenceLValue (tok1, OperandSym) ;
             BuildRange(InitInclCheck(VarSym, DerefSym)) ;
             GenQuad(InclOp, VarSym, NulSym, DerefSym)
          ELSE
@@ -6496,24 +6541,26 @@ END BuildInclProcedure ;
 
 PROCEDURE BuildExclProcedure ;
 VAR
+   tok1      : CARDINAL ;
    NoOfParam,
    DerefSym,
    OperandSym,
    VarSym    : CARDINAL ;
 BEGIN
-   PopT(NoOfParam) ;
+   PopT (NoOfParam) ;
    IF NoOfParam=2
    THEN
-      VarSym := OperandT(2) ;
-      MarkArrayWritten(OperandA(2)) ;
-      OperandSym := OperandT(1) ;
-      IF IsVar(VarSym)
+      VarSym := OperandT (2) ;
+      MarkArrayWritten (OperandA(2)) ;
+      OperandSym := OperandT (1) ;
+      tok1 := OperandTok (1) ;
+      IF IsVar (VarSym)
       THEN
-         IF IsSet(GetDType(VarSym))
+         IF IsSet (GetDType (VarSym))
          THEN
-            DerefSym := DereferenceLValue(OperandSym) ;
-            BuildRange(InitExclCheck(VarSym, DerefSym)) ;
-            GenQuad(ExclOp, VarSym, NulSym, DerefSym)
+            DerefSym := DereferenceLValue (tok1, OperandSym) ;
+            BuildRange (InitExclCheck (VarSym, DerefSym)) ;
+            GenQuad (ExclOp, VarSym, NulSym, DerefSym)
          ELSE
             MetaError1 ('the first parameter to {%EkEXCL} must be a set variable but is {%E1d}', VarSym)
          END
@@ -6523,7 +6570,7 @@ BEGIN
    ELSE
       MetaError0 ('the base procedure {%EkEXCL} expects 1 or 2 parameters')
    END ;
-   PopN(NoOfParam+1)
+   PopN (NoOfParam+1)
 END BuildExclProcedure ;
 
 
@@ -6563,7 +6610,7 @@ BEGIN
    THEN
       IF GetSType(Type)#NulSym
       THEN
-         TempSym := MakeTemporary(RightValue) ;
+         TempSym := MakeTemporary (tokpos, RightValue) ;
          PutVar(TempSym, GetSType(Type)) ;
          PushTFtok(TempSym, GetSType(Type), tokpos) ;
          PushTFtok(ProcSym, Type, tokpos) ;
@@ -6571,32 +6618,32 @@ BEGIN
          THEN
             IF IsTemporary(ProcSym)
             THEN
-               ErrorFormat0(NewError(GetTokenNo()),
-                            'function is being called but its return value is ignored')
+               ErrorFormat0 (NewError (tokpos),
+                             'function is being called but its return value is ignored')
             ELSE
-               n := GetSymName(ProcSym) ;
-               ErrorFormat1(NewError(GetTokenNo()),
+               n := GetSymName (ProcSym) ;
+               ErrorFormat1 (NewError (tokpos),
                             'function (%a) is being called but its return value is ignored', n)
             END
          END ;
-         RETURN( TRUE )
+         RETURN TRUE
       END
    ELSIF IsProcedure(ProcSym) AND (Type#NulSym)
    THEN
-      TempSym := MakeTemporary(RightValue) ;
+      TempSym := MakeTemporary (tokpos, RightValue) ;
       PutVar(TempSym, Type) ;
       PushTFtok(TempSym, Type, tokpos) ;
       PushTFtok(ProcSym, Type, tokpos) ;
       IF NOT IsReturnOptional(ProcSym)
       THEN
          n := GetSymName(ProcSym) ;
-         ErrorFormat1(NewError(GetTokenNo()),
+         ErrorFormat1(NewError(tokpos),
                       'function (%a) is being called but its return value is ignored', n)
       END ;
-      RETURN( TRUE )
+      RETURN TRUE
    END ;
-   PushTFtok(ProcSym, Type, tokpos) ;
-   RETURN( FALSE )
+   PushTFtok (ProcSym, Type, tokpos) ;
+   RETURN FALSE
 END CheckBuildFunction ;
 
 
@@ -6779,31 +6826,33 @@ END BuildConstFunctionCall ;
 
 PROCEDURE BuildTypeCoercion ;
 VAR
+   tok      : CARDINAL ;
    NoOfParam,
    ReturnVar,
    ProcSym  : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
-   ProcSym := OperandT(NoOfParam+1) ;
-   IF NOT IsAModula2Type(ProcSym)
+   ProcSym := OperandT (NoOfParam+1) ;
+   tok := OperandTok (NoOfParam+1) ;
+   IF NOT IsAModula2Type (ProcSym)
    THEN
       MetaError1 ('coersion expecting a type, seen {%1Ea} which is {%1Ed}', ProcSym)
    END ;
-   ReturnVar := MakeTemporary(RightValue) ;
-   PutVar(ReturnVar, ProcSym) ;  (* Set ReturnVar's TYPE *)
-   IF NoOfParam=1
+   ReturnVar := MakeTemporary (tok, RightValue) ;
+   PutVar (ReturnVar, ProcSym) ;  (* Set ReturnVar's TYPE *)
+   IF NoOfParam = 1
    THEN
-      IF IsConst(OperandT(1)) OR IsVar(OperandT(1))
+      IF IsConst (OperandT (1)) OR IsVar (OperandT (1))
       THEN
-         GenQuad(CoerceOp, ReturnVar, ProcSym, OperandT(1)) ;
-         PopN(NoOfParam+1) ;
-         PushTF(ReturnVar, ProcSym)
+         GenQuad (CoerceOp, ReturnVar, ProcSym, OperandT(1)) ;
+         PopN (NoOfParam+1) ;
+         PushTFtok (ReturnVar, ProcSym, tok)
       ELSE
          MetaError2 ('trying to coerse {%1EMRad} which is not a variable or constant into {%2ad}',
                      OperandT (1), ProcSym) ;
          MetaError2 ('trying to coerse {%1ECad} which is not a variable or constant into {%2ad}',
                      OperandT (1), ProcSym) ;
-         PopN(NoOfParam+1)
+         PopN (NoOfParam+1)
       END
    ELSE
       MetaError0 ('{%E}only one parameter expected in a TYPE coersion')
@@ -7012,6 +7061,7 @@ END BuildPseudoFunctionCall ;
 
 PROCEDURE BuildAddAdrFunction ;
 VAR
+   tok1      : CARDINAL ;
    ReturnVar,
    NoOfParam,
    OperandSym,
@@ -7020,30 +7070,31 @@ BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=2
    THEN
-      VarSym := OperandT(2) ;
-      OperandSym := OperandT(1) ;
-      PopN(NoOfParam+1) ;
-      IF IsVar(VarSym)
+      VarSym := OperandT (2) ;
+      OperandSym := OperandT (1) ;
+      tok1 := OperandTok (1) ;
+      PopN (NoOfParam+1) ;
+      IF IsVar (VarSym)
       THEN
-         IF IsReallyPointer(VarSym) OR (GetSType(VarSym)=Address)
+         IF IsReallyPointer (VarSym) OR (GetSType (VarSym) = Address)
          THEN
-            ReturnVar := MakeTemporary(RightValue) ;
-            PutVar(ReturnVar, Address) ;
-            GenQuad(AddOp, ReturnVar, VarSym, DereferenceLValue(OperandSym)) ;
-            PushTF(ReturnVar, Address)
+            ReturnVar := MakeTemporary (tok1, RightValue) ;
+            PutVar (ReturnVar, Address) ;
+            GenQuad (AddOp, ReturnVar, VarSym, DereferenceLValue (tok1, OperandSym)) ;
+            PushTFtok (ReturnVar, Address, tok1)
          ELSE
             MetaError1 ('the first parameter to ADDADR {%1Ea} must be a variable of type ADDRESS or a {%EkPOINTER}, rather than a {%1Etsd}',
                         VarSym) ;
-            PushTF(MakeConstLit(MakeKey('0'), Address), Address)
+            PushTFtok (MakeConstLit(MakeKey('0'), Address), Address, tok1)
          END
       ELSE
          MetaError0 ('{%E}SYSTEM procedure ADDADR expects a variable of type ADDRESS or POINTER as its first parameter') ;
-         PushTF(MakeConstLit(MakeKey('0'), Address), Address)
+         PushTFtok (MakeConstLit(MakeKey('0'), Address), Address, tok1)
       END
    ELSE
       MetaError0 ('{%E}SYSTEM procedure ADDADR expects 2 parameters') ;
-      PopN(NoOfParam+1) ;
-      PushTF(MakeConstLit(MakeKey('0'), Address), Address)
+      PopN (NoOfParam + 1) ;
+      PushTFtok (MakeConstLit (MakeKey ('0'), Address), Address, tok1)
    END
 END BuildAddAdrFunction ;
 
@@ -7076,6 +7127,7 @@ END BuildAddAdrFunction ;
 
 PROCEDURE BuildSubAdrFunction ;
 VAR
+   tok1, tok2: CARDINAL ;
    ReturnVar,
    NoOfParam,
    OperandSym,
@@ -7084,30 +7136,32 @@ BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=2
    THEN
-      VarSym := OperandT(2) ;
-      OperandSym := OperandT(1) ;
-      PopN(NoOfParam+1) ;
-      IF IsVar(VarSym)
+      VarSym := OperandT (2) ;
+      tok2 := OperandTok (1) ;
+      OperandSym := OperandT (1) ;
+      tok1 := OperandTok (1) ;
+      PopN (NoOfParam + 1) ;
+      IF IsVar (VarSym)
       THEN
          IF IsReallyPointer(VarSym) OR (GetSType(VarSym)=Address)
          THEN
-            ReturnVar := MakeTemporary(RightValue) ;
-            PutVar(ReturnVar, Address) ;
-            GenQuad(SubOp, ReturnVar, VarSym, DereferenceLValue(OperandSym)) ;
-            PushTF(ReturnVar, Address)
+            ReturnVar := MakeTemporary (tok2, RightValue) ;
+            PutVar (ReturnVar, Address) ;
+            GenQuad (SubOp, ReturnVar, VarSym, DereferenceLValue (tok1, OperandSym)) ;
+            PushTFtok (ReturnVar, Address, tok1)
          ELSE
             MetaError1 ('the first parameter to SUBADR {%1Ea} must be a variable of type ADDRESS or a {%EkPOINTER}, rather than a {%1Etsd}',
                         VarSym) ;
-            PushTF(MakeConstLit(MakeKey('0'), Address), Address)
+            PushTF (MakeConstLit(MakeKey('0'), Address), Address)
          END
       ELSE
          MetaError0 ('{%E}SYSTEM procedure SUBADR expects a variable of type ADDRESS or POINTER as its first parameter') ;
-         PushTF(MakeConstLit(MakeKey('0'), Address), Address)
+         PushTF (MakeConstLit (MakeKey('0'), Address), Address)
       END
    ELSE
       MetaError0 ('{%E}SYSTEM procedure SUBADR expects 2 parameters') ;
-      PopN(NoOfParam+1) ;
-      PushTF(MakeConstLit(MakeKey('0'), Address), Address)
+      PopN (NoOfParam+1) ;
+      PushTF (MakeConstLit (MakeKey('0'), Address), Address)
    END
 END BuildSubAdrFunction ;
 
@@ -7141,6 +7195,7 @@ END BuildSubAdrFunction ;
 
 PROCEDURE BuildDifAdrFunction ;
 VAR
+   tok1, tok2: CARDINAL ;
    TempVar,
    NoOfParam,
    OperandSym,
@@ -7151,16 +7206,18 @@ BEGIN
    THEN
       VarSym := OperandT(2) ;
       OperandSym := OperandT(1) ;
-      PopN(NoOfParam+1) ;
-      IF IsVar(VarSym)
+      tok1 := OperandTok (1) ;
+      tok2 := OperandTok (2) ;
+      PopN (NoOfParam+1) ;
+      IF IsVar (VarSym)
       THEN
-         IF IsReallyPointer(VarSym) OR (GetSType(VarSym)=Address)
+         IF IsReallyPointer (VarSym) OR (GetSType (VarSym) = Address)
          THEN
-            IF IsReallyPointer(OperandSym) OR (GetSType(OperandSym)=Address)
+            IF IsReallyPointer (OperandSym) OR (GetSType (OperandSym) = Address)
             THEN
-               TempVar := MakeTemporary(RightValue) ;
+               TempVar := MakeTemporary(tok2, RightValue) ;
                PutVar(TempVar, Address) ;
-               GenQuad(SubOp, TempVar, VarSym, DereferenceLValue(OperandSym)) ;
+               GenQuad(SubOp, TempVar, VarSym, DereferenceLValue(tok1, OperandSym)) ;
                (*
                   Build macro: CONVERT( INTEGER, TempVar )
                *)
@@ -7226,6 +7283,7 @@ END BuildDifAdrFunction ;
 
 PROCEDURE BuildHighFunction ;
 VAR
+   tok      : CARDINAL ;
    ProcSym,
    Type,
    NoOfParam,
@@ -7236,24 +7294,25 @@ BEGIN
    BuildSizeCheckEnd(ProcSym) ;   (* quadruple generation now on *)
    IF NoOfParam=1
    THEN
-      Param := OperandT(1) ;
-      Type := GetDType(Param) ;
+      Param := OperandT (1) ;
+      tok := OperandTok (1) ;
+      Type := GetDType (Param) ;
       (* Restore stack to original form *)
-      PushT(NoOfParam) ;
+      PushT (NoOfParam) ;
       IF (NOT IsVar(Param)) AND (NOT IsConstString(Param)) AND (NOT IsConst(Param))
       THEN
          (* we cannot test for IsConst(Param) AND (GetSType(Param)=Char)  as the type might not be assigned yet *)
          MetaError1 ('base procedure {%EkHIGH} expects a variable or string constant as its parameter {%1d:rather than {%1d}} {%1asa}', Param)
       ELSIF IsUnbounded(Type)
       THEN
-         BuildHighFromUnbounded
+         BuildHighFromUnbounded (tok)
       ELSE
-         BuildConstHighFromSym
+         BuildConstHighFromSym (tok)
       END
    ELSE
       MetaError0 ('base procedure {%EkHIGH} requires one parameter') ;
-      PopN(2) ;
-      PushTF(MakeConstLit(MakeKey('0'), Cardinal), Cardinal)
+      PopN (2) ;
+      PushTF (MakeConstLit(MakeKey('0'), Cardinal), Cardinal)
    END
 END BuildHighFunction ;
 
@@ -7286,19 +7345,19 @@ END BuildHighFunction ;
                            |----------------|         |------------|
 *)
 
-PROCEDURE BuildConstHighFromSym ;
+PROCEDURE BuildConstHighFromSym (tok: CARDINAL) ;
 VAR
    Dim,
    NoOfParam,
    ReturnVar: CARDINAL ;
 BEGIN
-   PopT(NoOfParam) ;
-   ReturnVar := MakeTemporary(ImmediateValue) ;
-   Dim := OperandD(1) ;
-   INC(Dim) ;
-   GenHigh(ReturnVar, 1, OperandT(1)) ;
-   PopN(NoOfParam+1) ;
-   PushT(ReturnVar)
+   PopT (NoOfParam) ;
+   ReturnVar := MakeTemporary (tok, ImmediateValue) ;
+   Dim := OperandD (1) ;
+   INC (Dim) ;
+   GenHigh (tok, ReturnVar, 1, OperandT (1)) ;
+   PopN (NoOfParam+1) ;
+   PushTtok (ReturnVar, tok)
 END BuildConstHighFromSym ;
 
 
@@ -7322,26 +7381,26 @@ END BuildConstHighFromSym ;
 
 *)
 
-PROCEDURE BuildHighFromUnbounded ;
+PROCEDURE BuildHighFromUnbounded (tok: CARDINAL) ;
 VAR
    Dim,
    NoOfParam,
    ReturnVar: CARDINAL ;
 BEGIN
-   PopT(NoOfParam) ;
-   Assert(NoOfParam=1) ;
-   ReturnVar := MakeTemporary(RightValue) ;
-   PutVar(ReturnVar, Cardinal) ;
-   Dim := OperandD(1) ;
-   INC(Dim) ;
-   IF Dim>1
+   PopT (NoOfParam) ;
+   Assert (NoOfParam=1) ;
+   ReturnVar := MakeTemporary (tok, RightValue) ;
+   PutVar (ReturnVar, Cardinal) ;
+   Dim := OperandD (1) ;
+   INC (Dim) ;
+   IF Dim > 1
    THEN
-      GenHigh(ReturnVar, Dim, OperandA(1))
+      GenHigh (tok, ReturnVar, Dim, OperandA(1))
    ELSE
-      GenHigh(ReturnVar, Dim, OperandT(1))
+      GenHigh (tok, ReturnVar, Dim, OperandT(1))
    END ;
-   PopN(2) ;
-   PushTF(ReturnVar, GetSType(ReturnVar))
+   PopN (2) ;
+   PushTFtok (ReturnVar, GetSType(ReturnVar), tok)
 END BuildHighFromUnbounded ;
 
 
@@ -7351,11 +7410,12 @@ END BuildHighFromUnbounded ;
                         error is generated if the symbol cannot be obtained.
 *)
 
-PROCEDURE GetQualidentImport (n: Name; module: Name) : CARDINAL ;
+PROCEDURE GetQualidentImport (tokno: CARDINAL;
+                              n: Name; module: Name) : CARDINAL ;
 VAR
    ModSym: CARDINAL ;
 BEGIN
-   ModSym := MakeDefinitionSource(module) ;
+   ModSym := MakeDefinitionSource (tokno, module) ;
    IF ModSym=NulSym
    THEN
       MetaErrorN2 ('module {%E%a} cannot be found and is needed to import {%E%a}', module, n) ;
@@ -7368,9 +7428,9 @@ BEGIN
       MetaErrorN2 ('module {%E%a} does not export procedure {%E%a} which is a necessary component of the runtime system, hint check the path and library/language variant',
                    module, n) ;
       FlushErrors ;
-      RETURN( NulSym )
+      RETURN NulSym
    END ;
-   RETURN( GetExported(MakeDefinitionSource(module), n) )
+   RETURN GetExported (MakeDefinitionSource (tokno, module), n)
 END GetQualidentImport ;
 
 
@@ -7388,7 +7448,7 @@ BEGIN
    s := Sprintf1(Mark(InitString("%d")), l) ;
    c := MakeConstLit(makekey(string(s)), Cardinal) ;
    s := KillString(s) ;
-   RETURN( c )
+   RETURN c
 END MakeLengthConst ;
 
 
@@ -7413,6 +7473,7 @@ END MakeLengthConst ;
 
 PROCEDURE BuildLengthFunction ;
 VAR
+   tokno    : CARDINAL ;
    ProcSym,
    Type,
    NoOfParam,
@@ -7421,6 +7482,7 @@ VAR
 BEGIN
    PopT(NoOfParam) ;
    Param := OperandT(1) ;
+   tokno := OperandTok(NoOfParam+1) ;
    (* Restore stack to origional form *)
    PushT(NoOfParam) ;
    Type  := GetSType(Param) ;  (* get the type from the symbol, not the stack *)
@@ -7443,14 +7505,14 @@ BEGIN
          PopN(NoOfParam+1) ;
          PushT(ReturnVar)
       ELSE
-         ProcSym := GetQualidentImport(MakeKey('Length'), MakeKey('M2RTS')) ;
+         ProcSym := GetQualidentImport(tokno, MakeKey('Length'), MakeKey('M2RTS')) ;
          IF (ProcSym#NulSym) AND IsProcedure(ProcSym)
          THEN
             PopT(NoOfParam) ;
             IF IsConst(OperandT(1))
             THEN
                (* we can fold this in M2GenGCC.  *)
-               ReturnVar := MakeTemporary(ImmediateValue) ;
+               ReturnVar := MakeTemporary(tokno, ImmediateValue) ;
                PutVar(ReturnVar, Cardinal) ;
                GenQuad(StandardFunctionOp, ReturnVar, ProcSym, OperandT(1)) ;
                PopN(NoOfParam+1) ;
@@ -7513,13 +7575,15 @@ END BuildLengthFunction ;
 
 PROCEDURE BuildOddFunction ;
 VAR
+   tok      : CARDINAL ;
    NoOfParam,
    Res, Var : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
    THEN
-      Var := OperandT(1) ;
+      Var := OperandT (1) ;
+      tok := OperandTok (1) ;
       IF IsVar(Var) OR IsConst(Var)
       THEN
          PopN(NoOfParam+1) ;
@@ -7541,7 +7605,7 @@ BEGIN
          BuildRelOp ;
          BuildThenIf ;
 
-         Res := MakeTemporary(RightValue) ;
+         Res := MakeTemporary (tok, RightValue) ;
          PutVar(Res, Boolean) ;
 
          PushT(Res) ;
@@ -7600,6 +7664,7 @@ END BuildOddFunction ;
 
 PROCEDURE BuildAbsFunction ;
 VAR
+   tok      : CARDINAL ;
    NoOfParam,
    ProcSym,
    Res, Var : CARDINAL ;
@@ -7607,17 +7672,18 @@ BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
    THEN
-      Var := OperandT(1) ;
+      Var := OperandT (1) ;
+      tok := OperandTok (1) ;
       IF IsVar(Var) OR IsConst(Var)
       THEN
          ProcSym := OperandT(NoOfParam+1) ;
          PopN(NoOfParam+1) ;
 
-         Res := MakeTemporary(AreConstant(IsConst(Var))) ;
+         Res := MakeTemporary(tok, AreConstant(IsConst(Var))) ;
          PutVar(Res, GetSType(Var)) ;
 
          GenQuad(StandardFunctionOp, Res, ProcSym, Var) ;
-         PushTF(Res, GetSType(Var))
+         PushTFtok (Res, GetSType(Var), tok)
       ELSE
          MetaError1 ('the parameter to {%E1kABS} must be a variable or constant, seen {%E1ad}', Var)
       END
@@ -7651,6 +7717,7 @@ END BuildAbsFunction ;
 
 PROCEDURE BuildCapFunction ;
 VAR
+   tok      : CARDINAL ;
    NoOfParam,
    ProcSym,
    Res, Var : CARDINAL ;
@@ -7659,15 +7726,16 @@ BEGIN
    IF NoOfParam=1
    THEN
       Var := OperandT(1) ;
+      tok := OperandTok (1) ;
       IF IsVar(Var) OR IsConst(Var)
       THEN
          ProcSym := OperandT(NoOfParam+1) ;
          PopN(NoOfParam+1) ;
 
-         Res := MakeTemporary(AreConstant(IsConst(Var))) ;
+         Res := MakeTemporary(tok, AreConstant(IsConst(Var))) ;
          PutVar(Res, Char) ;
          GenQuad(StandardFunctionOp, Res, ProcSym, Var) ;
-         PushTF(Res, Char)
+         PushTFtok(Res, Char, tok)
       ELSE
          WriteFormat0('argument to CAP must be a variable or constant')
       END
@@ -7712,6 +7780,7 @@ END BuildCapFunction ;
 
 PROCEDURE BuildChrFunction ;
 VAR
+   tok      : CARDINAL ;
    NoOfParam,
    Var      : CARDINAL ;
 BEGIN
@@ -7719,6 +7788,7 @@ BEGIN
    IF NoOfParam=1
    THEN
       Var := OperandT(1) ;
+      tok := OperandTok (1) ;
       IF IsVar(Var) OR IsConst(Var)
       THEN
          PopN(NoOfParam+1) ;
@@ -7727,7 +7797,7 @@ BEGIN
          *)
          PushTF(Convert, NulSym) ;
          PushT(Char) ;
-         PushT(Var) ;
+         PushTtok(Var, tok) ;
          PushT(2) ;          (* Two parameters *)
          BuildConvertFunction
       ELSE
@@ -7774,6 +7844,7 @@ END BuildChrFunction ;
 
 PROCEDURE BuildOrdFunction (Sym: CARDINAL) ;
 VAR
+   tok      : CARDINAL ;
    NoOfParam,
    Type, Var: CARDINAL ;
 BEGIN
@@ -7781,6 +7852,7 @@ BEGIN
    IF NoOfParam=1
    THEN
       Var := OperandT(1) ;
+      tok := OperandTok (1) ;
       IF IsVar(Var) OR IsConst(Var)
       THEN
          Type := GetSType(Sym) ;
@@ -7790,7 +7862,7 @@ BEGIN
          *)
          PushTF(Convert, NulSym) ;
          PushT(Type) ;
-         PushT(Var) ;
+         PushTtok(Var, tok) ;
          PushT(2) ;          (* Two parameters *)
          BuildConvertFunction
       ELSE
@@ -7839,13 +7911,15 @@ END BuildOrdFunction ;
 
 PROCEDURE BuildIntFunction (Sym: CARDINAL) ;
 VAR
+   tok      : CARDINAL ;
    NoOfParam,
    Type, Var: CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
    THEN
-      Var := OperandT(1) ;
+      Var := OperandT (1) ;
+      tok := OperandTok (1) ;
       IF IsVar(Var) OR IsConst(Var)
       THEN
          Type := GetSType(Sym) ;  (* return type of function *)
@@ -7855,7 +7929,7 @@ BEGIN
          *)
          PushTF(Convert, NulSym) ;
          PushT(Type) ;
-         PushT(Var) ;
+         PushTtok(Var, tok) ;
          PushT(2) ;          (* Two parameters *)
          BuildConvertFunction
       ELSE
@@ -7897,6 +7971,7 @@ END BuildIntFunction ;
 
 PROCEDURE BuildMakeAdrFunction ;
 VAR
+   tok           : CARDINAL ;
    AreConst      : BOOLEAN ;
    i, pi,
    NoOfParameters: CARDINAL ;
@@ -7905,6 +7980,7 @@ BEGIN
    PopT(NoOfParameters) ;
    IF NoOfParameters>0
    THEN
+      tok := GetTokenNo () ;
       GenQuad(ParamOp, 0, MakeAdr, MakeAdr) ;
       IF PushParametersLeftToRight
       THEN
@@ -7939,7 +8015,7 @@ BEGIN
          INC(i)
       END ;
       (* ReturnVar - will have the type of the procedure *)
-      ReturnVar := MakeTemporary(AreConstant(AreConst)) ;
+      ReturnVar := MakeTemporary (tok, AreConstant(AreConst)) ;
       PutVar(ReturnVar, GetSType(MakeAdr)) ;
       GenQuad(FunctValueOp, ReturnVar, NulSym, MakeAdr) ;
       PopN(NoOfParameters+1) ;
@@ -7982,6 +8058,7 @@ END BuildMakeAdrFunction ;
 
 PROCEDURE BuildShiftFunction ;
 VAR
+   tok       : CARDINAL ;
    ReturnVar,
    NoOfParam,
    OperandSym,
@@ -7991,27 +8068,28 @@ BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=2
    THEN
-      VarSym := OperandT(2) ;
-      OperandSym := OperandT(1) ;
-      PopN(NoOfParam+1) ;
+      VarSym := OperandT (2) ;
+      OperandSym := OperandT (1) ;
+      tok := OperandTok (2) ;
+      PopN (NoOfParam + 1) ;
       IF (GetSType(VarSym)#NulSym) AND IsSet(GetDType(VarSym))
       THEN
-         TempSym := DereferenceLValue(OperandSym) ;
-         BuildRange(InitShiftCheck(VarSym, TempSym)) ;
-         ReturnVar := MakeTemporary(RightValue) ;
-         PutVar(ReturnVar, GetSType(VarSym)) ;
-         GenQuad(LogicalShiftOp, ReturnVar, VarSym, TempSym) ;
-         PushTF(ReturnVar, GetSType(VarSym))
+         TempSym := DereferenceLValue (tok, OperandSym) ;
+         BuildRange (InitShiftCheck (VarSym, TempSym)) ;
+         ReturnVar := MakeTemporary (tok, RightValue) ;
+         PutVar (ReturnVar, GetSType (VarSym)) ;
+         GenQuad (LogicalShiftOp, ReturnVar, VarSym, TempSym) ;
+         PushTFtok (ReturnVar, GetSType(VarSym), tok)
       ELSE
          MetaError1 ('SYSTEM procedure {%E1kSHIFT} expects a constant or variable which has a type of SET as its first parameter, seen {%E1ad}',
                      VarSym) ;
-         PushTF(MakeConstLit(MakeKey('0'), Cardinal), Cardinal)
+         PushTF (MakeConstLit (MakeKey ('0'), Cardinal), Cardinal)
       END
    ELSE
       MetaError1 ('the pseudo procedure {%EkSHIFT} requires at least two parameters, seen {%E1n}',
                   NoOfParam) ;
-      PopN(NoOfParam+1) ;
-      PushTF(MakeConstLit(MakeKey('0'), Cardinal), Cardinal)
+      PopN (NoOfParam+1) ;
+      PushTF (MakeConstLit (MakeKey ('0'), Cardinal), Cardinal)
    END
 END BuildShiftFunction ;
 
@@ -8046,6 +8124,7 @@ END BuildShiftFunction ;
 
 PROCEDURE BuildRotateFunction ;
 VAR
+   tok       : CARDINAL ;
    ReturnVar,
    NoOfParam,
    TempSym,
@@ -8055,25 +8134,26 @@ BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=2
    THEN
-      VarSym := OperandT(2) ;
-      OperandSym := OperandT(1) ;
-      PopN(NoOfParam+1) ;
-      IF (GetSType(VarSym)#NulSym) AND IsSet(GetDType(VarSym))
+      VarSym := OperandT (2) ;
+      tok := OperandTok (2) ;
+      OperandSym := OperandT (1) ;
+      PopN (NoOfParam + 1) ;
+      IF (GetSType (VarSym) # NulSym) AND IsSet (GetDType (VarSym))
       THEN
-         TempSym := DereferenceLValue(OperandSym) ;
-         BuildRange(InitRotateCheck(VarSym, TempSym)) ;
-         ReturnVar := MakeTemporary(RightValue) ;
-         PutVar(ReturnVar, GetSType(VarSym)) ;
-         GenQuad(LogicalRotateOp, ReturnVar, VarSym, TempSym) ;
-         PushTF(ReturnVar, GetSType(VarSym))
+         TempSym := DereferenceLValue (tok, OperandSym) ;
+         BuildRange (InitRotateCheck (VarSym, TempSym)) ;
+         ReturnVar := MakeTemporary (tok, RightValue) ;
+         PutVar (ReturnVar, GetSType (VarSym)) ;
+         GenQuad (LogicalRotateOp, ReturnVar, VarSym, TempSym) ;
+         PushTFtok (ReturnVar, GetSType (VarSym), tok)
       ELSE
-         WriteFormat0('SYSTEM procedure ROTATE expects a constant or variable which has a type of SET as its first parameter') ;
-         PushTF(MakeConstLit(MakeKey('0'), Cardinal), Cardinal)
+         WriteFormat0 ('SYSTEM procedure ROTATE expects a constant or variable which has a type of SET as its first parameter') ;
+         PushTF (MakeConstLit (MakeKey('0'), Cardinal), Cardinal)
       END
    ELSE
-      WriteFormat0('SYSTEM procedure ROTATE expects 2 parameters') ;
-      PopN(NoOfParam+1) ;
-      PushTF(MakeConstLit(MakeKey('0'), Cardinal), Cardinal)
+      WriteFormat0 ('SYSTEM procedure ROTATE expects 2 parameters') ;
+      PopN (NoOfParam+1) ;
+      PushTF (MakeConstLit (MakeKey ('0'), Cardinal), Cardinal)
    END
 END BuildRotateFunction ;
 
@@ -8183,6 +8263,7 @@ END BuildValFunction ;
 
 PROCEDURE BuildCastFunction ;
 VAR
+   tok      : CARDINAL ;
    n        : Name ;
    ReturnVar,
    NoOfParam,
@@ -8191,40 +8272,41 @@ BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=2
    THEN
-      Type := OperandT(2) ;
-      Var := OperandT(1) ;
+      Type := OperandT (2) ;
+      Var := OperandT (1) ;
+      tok := OperandTok (1) ;
       IF IsUnknown(Type)
       THEN
-         n := GetSymName(Type) ;
-         WriteFormat1('undeclared type found in CAST (%a)', n)
+         n := GetSymName (Type) ;
+         WriteFormat1 ('undeclared type found in CAST (%a)', n)
       ELSIF IsSet(Type) OR IsEnumeration(Type) OR IsSubrange(Type) OR IsType(Type) OR
             IsPointer(Type) OR IsArray(Type) OR IsProcType(Type)
       THEN
          IF IsConst(Var)
          THEN
-            PopN(NoOfParam+1) ;
+            PopN (NoOfParam+1) ;
             (*
                Build macro: Type( Var )
             *)
-            PushTF(Type, NulSym) ;
-            PushT(Var) ;
-            PushT(1) ;          (* one parameter *)
+            PushTF (Type, NulSym) ;
+            PushT (Var) ;
+            PushT (1) ;          (* one parameter *)
             BuildTypeCoercion
          ELSIF IsVar(Var) OR IsProcedure(Var)
          THEN
-            PopN(NoOfParam+1) ;
-            ReturnVar := MakeTemporary(RightValue) ;
-            PutVar(ReturnVar, Type) ;
-            GenQuad(CastOp, ReturnVar, Type, Var) ;
-            PushTF(ReturnVar, Type)
+            PopN (NoOfParam+1) ;
+            ReturnVar := MakeTemporary (tok, RightValue) ;
+            PutVar (ReturnVar, Type) ;
+            GenQuad (CastOp, ReturnVar, Type, Var) ;
+            PushTFtok (ReturnVar, Type, tok)
          ELSE
-            WriteFormat0('second parameter to CAST must either be a variable or procedure or a constant, the formal parameters to cast are CAST(type, variable or constant or procedure)')
+            WriteFormat0 ('second parameter to CAST must either be a variable or procedure or a constant, the formal parameters to cast are CAST(type, variable or constant or procedure)')
          END
       ELSE
-         WriteFormat0('formal paramater declaration of the builtin procedure function CAST is CAST(type, variable or procedure or constant)')
+         WriteFormat0 ('formal paramater declaration of the builtin procedure function CAST is CAST(type, variable or procedure or constant)')
       END
    ELSE
-      WriteFormat0('the pseudo procedure CAST has 2 parameters, a type and expression')
+      WriteFormat0 ('the pseudo procedure CAST has 2 parameters, a type and expression')
    END
 END BuildCastFunction ;
 
@@ -8266,47 +8348,49 @@ END BuildCastFunction ;
 PROCEDURE BuildConvertFunction ;
 VAR
    n         : Name ;
+   tok       : CARDINAL ;
    t,
    Var, Type,
    NoOfParam,
    ReturnVar : CARDINAL ;
 BEGIN
-   PopT(NoOfParam) ;
-   IF NoOfParam#2
+   PopT (NoOfParam) ;
+   IF NoOfParam # 2
    THEN
-      WriteFormat0('builtin procedure function CONVERT expects 2 parameters')
+      WriteFormat0 ('builtin procedure function CONVERT expects 2 parameters')
    ELSE
-      Type := OperandT(2) ;
-      Var := OperandT(1) ;
-      IF IsUnknown(Type)
+      Type := OperandT (2) ;
+      Var := OperandT (1) ;
+      tok := OperandTok (1) ;
+      IF IsUnknown (Type)
       THEN
-         n := GetSymName(Type) ;
-         WriteFormat1('undeclared type found in CONVERT (%a)', n)
-      ELSIF IsUnknown(Var)
+         n := GetSymName (Type) ;
+         WriteFormat1 ('undeclared type found in CONVERT (%a)', n)
+      ELSIF IsUnknown (Var)
       THEN
-         n := GetSymName(Var) ;
-         WriteFormat1('undeclared variable found in CONVERT (%a)', n)
+         n := GetSymName (Var) ;
+         WriteFormat1 ('undeclared variable found in CONVERT (%a)', n)
       ELSIF (IsSet(Type) OR IsEnumeration(Type) OR IsSubrange(Type) OR
              IsType(Type) OR IsPointer(Type) OR IsProcType(Type) OR IsRecord(Type)) AND
             (IsVar(Var) OR IsConst(Var) OR IsProcedure(Var))
       THEN
-         PopN(NoOfParam+1) ;    (* destroy arguments to this function *)
+         PopN (NoOfParam+1) ;    (* destroy arguments to this function *)
          (* firstly dereference Var *)
-         IF GetMode(Var)=LeftValue
+         IF GetMode (Var) = LeftValue
          THEN
-            t := MakeTemporary(RightValue) ;
-            PutVar(t, GetSType(Var)) ;
-            CheckPointerThroughNil(Var) ;
-            doIndrX(t, Var) ;
+            t := MakeTemporary (tok, RightValue) ;
+            PutVar (t, GetSType(Var)) ;
+            CheckPointerThroughNil (Var) ;
+            doIndrX (tok, t, Var) ;
             Var := t
          END ;
 
-         ReturnVar := MakeTemporary(AreConstant(IsConst(Var))) ;
-         PutVar(ReturnVar, Type) ;
-         GenQuad(ConvertOp, ReturnVar, Type, Var) ;
-         PushTF(ReturnVar, Type)
+         ReturnVar := MakeTemporary(tok, AreConstant(IsConst(Var))) ;
+         PutVar (ReturnVar, Type) ;
+         GenQuadO (tok, ConvertOp, ReturnVar, Type, Var, TRUE) ;
+         PushTFtok (ReturnVar, Type, tok)
       ELSE
-         WriteFormat0('builtin procedure function CONVERT is declared with the following formal parameters CONVERT(type, constant or procedure or variable)')
+         WriteFormat0 ('builtin procedure function CONVERT is declared with the following formal parameters CONVERT(type, constant or procedure or variable)')
       END
    END
 END BuildConvertFunction ;
@@ -8324,52 +8408,52 @@ VAR
 BEGIN
    IF (type=Real) OR (type=LongReal) OR (type=ShortReal)
    THEN
-      PushValue(min) ;
-      IF NOT IsValueAndTreeKnown()
+      PushValue (min) ;
+      IF NOT IsValueAndTreeKnown ()
       THEN
-         n1 := MakeKey(n) ;
-         n2 := GetSymName(type) ;
-         WriteFormat2('%a(%a) cannot be calculated at compile time for the target architecture', n1, n2) ;
-         RETURN( MakeConstLit(MakeKey('1.0'), RType) )
+         n1 := MakeKey (n) ;
+         n2 := GetSymName (type) ;
+         WriteFormat2 ('%a(%a) cannot be calculated at compile time for the target architecture', n1, n2) ;
+         RETURN MakeConstLit (MakeKey ('1.0'), RType)
       END
    END ;
-   RETURN( min )
+   RETURN min
 END CheckBaseTypeValue ;
 
 
 (*
-   GetTypeMin -
+   GetTypeMin - returns the minimium value of type.
 *)
 
-PROCEDURE GetTypeMin (type: CARDINAL) : CARDINAL ;
+PROCEDURE GetTypeMin (tok: CARDINAL; type: CARDINAL) : CARDINAL ;
 VAR
    n       : Name ;
    min, max: CARDINAL ;
 BEGIN
-   IF IsSubrange(type)
+   IF IsSubrange (type)
    THEN
-      min := MakeTemporary(ImmediateValue) ;
-      PutVar(min, type) ;
-      GenQuad(SubrangeLowOp, min, NulSym, type) ;
-      RETURN( min )
-   ELSIF IsSet(SkipType(type))
+      min := MakeTemporary (tok, ImmediateValue) ;
+      PutVar (min, type) ;
+      GenQuad (SubrangeLowOp, min, NulSym, type) ;
+      RETURN min
+   ELSIF IsSet (SkipType (type))
    THEN
-      RETURN( GetTypeMin(GetSType(SkipType(type))) )
+      RETURN GetTypeMin (tok, GetSType(SkipType(type)))
    ELSIF IsBaseType(type) OR IsEnumeration(type)
    THEN
-      GetBaseTypeMinMax(type, min, max) ;
-      min := CheckBaseTypeValue(type, min, 'MIN') ;
-      RETURN( min )
-   ELSIF IsSystemType(type)
+      GetBaseTypeMinMax (type, min, max) ;
+      min := CheckBaseTypeValue (type, min, 'MIN') ;
+      RETURN min
+   ELSIF IsSystemType (type)
    THEN
-      GetSystemTypeMinMax(type, min, max) ;
-      RETURN( min )
-   ELSIF GetSType(type)=NulSym
+      GetSystemTypeMinMax (type, min, max) ;
+      RETURN min
+   ELSIF GetSType (type) = NulSym
    THEN
       n := GetSymName(type) ;
       WriteFormat1('unable to obtain the MIN value for type %a', n)
    ELSE
-      RETURN( GetTypeMin(GetSType(type)) )
+      RETURN GetTypeMin (tok, GetSType (type))
    END
 END GetTypeMin ;
 
@@ -8378,35 +8462,35 @@ END GetTypeMin ;
    GetTypeMax -
 *)
 
-PROCEDURE GetTypeMax (type: CARDINAL) : CARDINAL ;
+PROCEDURE GetTypeMax (tok: CARDINAL; type: CARDINAL) : CARDINAL ;
 VAR
    n       : Name ;
    min, max: CARDINAL ;
 BEGIN
-   IF IsSubrange(type)
+   IF IsSubrange (type)
    THEN
-      max := MakeTemporary(ImmediateValue) ;
-      PutVar(max, type) ;
-      GenQuad(SubrangeHighOp, max, NulSym, type) ;
-      RETURN( max )
-   ELSIF IsSet(SkipType(type))
+      max := MakeTemporary (tok, ImmediateValue) ;
+      PutVar (max, type) ;
+      GenQuad (SubrangeHighOp, max, NulSym, type) ;
+      RETURN max
+   ELSIF IsSet (SkipType (type))
    THEN
-      RETURN( GetTypeMax(GetSType(SkipType(type))) )
-   ELSIF IsBaseType(type) OR IsEnumeration(type)
+      RETURN GetTypeMax (tok, GetSType (SkipType (type)))
+   ELSIF IsBaseType (type) OR IsEnumeration (type)
    THEN
-      GetBaseTypeMinMax(type, min, max) ;
-      max := CheckBaseTypeValue(type, max, 'MAX') ;
-      RETURN( max )
-   ELSIF IsSystemType(type)
+      GetBaseTypeMinMax (type, min, max) ;
+      max := CheckBaseTypeValue (type, max, 'MAX') ;
+      RETURN max
+   ELSIF IsSystemType (type)
    THEN
-      GetSystemTypeMinMax(type, min, max) ;
-      RETURN( max )
-   ELSIF GetSType(type)=NulSym
+      GetSystemTypeMinMax (type, min, max) ;
+      RETURN max
+   ELSIF GetSType (type) = NulSym
    THEN
-      n := GetSymName(type) ;
-      WriteFormat1('unable to obtain the MAX value for type %a', n)
+      n := GetSymName (type) ;
+      WriteFormat1 ('unable to obtain the MAX value for type %a', n)
    ELSE
-      RETURN( GetTypeMax(GetSType(type)) )
+      RETURN GetTypeMax (tok, GetSType(type))
    END
 END GetTypeMax ;
 
@@ -8430,6 +8514,7 @@ END GetTypeMax ;
 
 PROCEDURE BuildMinFunction ;
 VAR
+   tok      : CARDINAL ;
    min,
    NoOfParam,
    Var      : CARDINAL ;
@@ -8437,16 +8522,17 @@ BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
    THEN
-      Var := OperandT(1) ;
-      PopN(NoOfParam+1) ;    (* destroy arguments to this function *)
-      IF IsAModula2Type(Var)
+      Var := OperandT (1) ;
+      tok := OperandTok (1) ;
+      PopN (NoOfParam+1) ;    (* destroy arguments to this function *)
+      IF IsAModula2Type (Var)
       THEN
-         min := GetTypeMin(Var) ;
-         PushTF(min, GetSType(min))
+         min := GetTypeMin (tok, Var) ;
+         PushTFtok (min, GetSType (min), tok)
       ELSIF IsVar(Var)
       THEN
-         min := GetTypeMin(GetSType(Var)) ;
-         PushTF(min, GetSType(Var))
+         min := GetTypeMin (tok, GetSType (Var)) ;
+         PushTFtok (min, GetSType(Var), tok)
       ELSE
          WriteFormat0('parameter to MIN must be a type or a variable') ;
          PushT(MakeConstLit(MakeKey('0'), ZType))   (* put a legal value on the stack *)
@@ -8477,6 +8563,7 @@ END BuildMinFunction ;
 
 PROCEDURE BuildMaxFunction ;
 VAR
+   tok      : CARDINAL ;
    max,
    NoOfParam,
    Var      : CARDINAL ;
@@ -8484,23 +8571,24 @@ BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
    THEN
-      Var := OperandT(1) ;
-      PopN(NoOfParam+1) ;    (* destroy arguments to this function *)
-      IF IsAModula2Type(Var)
+      Var := OperandT (1) ;
+      tok := OperandTok (1) ;
+      PopN (NoOfParam+1) ;    (* destroy arguments to this function *)
+      IF IsAModula2Type (Var)
       THEN
-         max := GetTypeMax(Var) ;
-         PushTF(max, GetSType(max))
+         max := GetTypeMax (tok, Var) ;
+         PushTFtok (max, GetSType (max), tok)
       ELSIF IsVar(Var)
       THEN
-         max := GetTypeMax(GetSType(Var)) ;
-         PushTF(max, GetSType(Var))
+         max := GetTypeMax (tok, GetSType (Var)) ;
+         PushTFtok (max, GetSType (Var), tok)
       ELSE
-         WriteFormat0('parameter to MAX must be a type or a variable') ;
-         PushT(MakeConstLit(MakeKey('0'), ZType))   (* put a legal value on the stack *)
+         WriteFormat0 ('parameter to MAX must be a type or a variable') ;
+         PushT (MakeConstLit (MakeKey ('0'), ZType))   (* put a legal value on the stack *)
       END
    ELSE
-      WriteFormat0('the pseudo function MAX only has one parameter') ;
-      PushT(MakeConstLit(MakeKey('0'), ZType))   (* put a legal value on the stack *)
+      WriteFormat0 ('the pseudo function MAX only has one parameter') ;
+      PushT (MakeConstLit (MakeKey ('0'), ZType))   (* put a legal value on the stack *)
    END
 END BuildMaxFunction ;
 
@@ -8683,6 +8771,7 @@ END BuildFloatFunction ;
 
 PROCEDURE BuildReFunction ;
 VAR
+   tok      : CARDINAL ;
    NoOfParam: CARDINAL ;
    ReturnVar,
    Var      : CARDINAL ;
@@ -8690,20 +8779,21 @@ BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
    THEN
-      Var := OperandT(1) ;
+      Var := OperandT (1) ;
+      tok := OperandTok (1) ;
       IF IsVar(Var) OR IsConst(Var)
       THEN
-         ReturnVar := MakeTemporary(AreConstant(IsConst(Var))) ;
-         PutVar(ReturnVar, ComplexToScalar(GetSType(Var))) ;
-         GenQuad(StandardFunctionOp, ReturnVar, Re, Var) ;
-         PopN(NoOfParam+1) ;  (* destroy arguments to this function *)
-         PushTF(ReturnVar, GetSType(ReturnVar))
+         ReturnVar := MakeTemporary (tok, AreConstant (IsConst (Var))) ;
+         PutVar (ReturnVar, ComplexToScalar (GetSType (Var))) ;
+         GenQuad (StandardFunctionOp, ReturnVar, Re, Var) ;
+         PopN (NoOfParam+1) ;  (* destroy arguments to this function *)
+         PushTFtok (ReturnVar, GetSType (ReturnVar), tok)
       ELSE
-         PopN(NoOfParam+1) ;  (* destroy arguments to this function *)
-         PushTF(MakeConstLit(MakeKey('1.0'), RType), RType)
+         PopN (NoOfParam+1) ;  (* destroy arguments to this function *)
+         PushTF (MakeConstLit (MakeKey ('1.0'), RType), RType)
       END
    ELSE
-      WriteFormat0('the pseudo procedure RE only has one parameter')
+      WriteFormat0 ('the pseudo procedure RE only has one parameter')
    END
 END BuildReFunction ;
 
@@ -8736,6 +8826,7 @@ END BuildReFunction ;
 
 PROCEDURE BuildImFunction ;
 VAR
+   tok      : CARDINAL ;
    NoOfParam: CARDINAL ;
    ReturnVar,
    Var      : CARDINAL ;
@@ -8743,20 +8834,21 @@ BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
    THEN
-      Var := OperandT(1) ;
+      Var := OperandT (1) ;
+      tok := OperandTok (1) ;
       IF IsVar(Var) OR IsConst(Var)
       THEN
-         ReturnVar := MakeTemporary(AreConstant(IsConst(Var))) ;
-         PutVar(ReturnVar, ComplexToScalar(GetSType(Var))) ;
-         GenQuad(StandardFunctionOp, ReturnVar, Im, Var) ;
-         PopN(NoOfParam+1) ;  (* destroy arguments to this function *)
-         PushTF(ReturnVar, GetSType(ReturnVar))
+         ReturnVar := MakeTemporary(tok, AreConstant (IsConst (Var))) ;
+         PutVar (ReturnVar, ComplexToScalar (GetSType (Var))) ;
+         GenQuad (StandardFunctionOp, ReturnVar, Im, Var) ;
+         PopN (NoOfParam+1) ;  (* destroy arguments to this function *)
+         PushTFtok (ReturnVar, GetSType (ReturnVar), tok)
       ELSE
          PopN(NoOfParam+1) ;  (* destroy arguments to this function *)
-         PushTF( MakeConstLit(MakeKey('1.0'), RType), RType )
+         PushTF (MakeConstLit (MakeKey ('1.0'), RType), RType)
       END
    ELSE
-      WriteFormat0('the pseudo procedure IM only has one parameter')
+      WriteFormat0 ('the pseudo procedure IM only has one parameter')
    END
 END BuildImFunction ;
 
@@ -8789,31 +8881,33 @@ END BuildImFunction ;
 
 PROCEDURE BuildCmplxFunction ;
 VAR
+   tok      : CARDINAL ;
    NoOfParam: CARDINAL ;
    ReturnVar,
    l, r     : CARDINAL ;
 BEGIN
-   PopT(NoOfParam) ;
-   IF NoOfParam=2
+   PopT (NoOfParam) ;
+   IF NoOfParam = 2
    THEN
-      l := OperandT(2) ;
-      r := OperandT(1) ;
+      l := OperandT (2) ;
+      r := OperandT (1) ;
+      tok := OperandTok (2) ;
       IF (IsVar(l) OR IsConst(l)) AND
          (IsVar(r) OR IsConst(r))
       THEN
-         CheckExpressionCompatible(GetSType(l), GetSType(r)) ;
-         ReturnVar := MakeTemporary(AreConstant(IsConst(l) AND IsConst(r))) ;
-         PutVar(ReturnVar, GetCmplxReturnType(GetDType(l), GetDType(r))) ;
-         GenQuad(StandardFunctionOp, ReturnVar, Cmplx, Make2Tuple(l, r)) ;
-         PopN(NoOfParam+1) ;   (* destroy arguments to this function *)
-         PushTF(ReturnVar, GetSType(ReturnVar))
+         CheckExpressionCompatible (GetSType(l), GetSType(r)) ;
+         ReturnVar := MakeTemporary (tok, AreConstant(IsConst(l) AND IsConst(r))) ;
+         PutVar (ReturnVar, GetCmplxReturnType (GetDType (l), GetDType (r))) ;
+         GenQuad (StandardFunctionOp, ReturnVar, Cmplx, Make2Tuple (l, r)) ;
+         PopN (NoOfParam+1) ;   (* destroy arguments to this function *)
+         PushTFtok (ReturnVar, GetSType (ReturnVar), tok)
       ELSE
-         WriteFormat0('the pseudo procedure CMPLX requires two parameters') ;
+         WriteFormat0 ('the pseudo procedure CMPLX requires two parameters') ;
          PopN(NoOfParam+1) ;  (* destroy arguments to this function *)
-         PushTF( MakeConstLit(MakeKey('1.0'), RType), RType )
+         PushTF (MakeConstLit(MakeKey('1.0'), RType), RType)
       END
    ELSE
-      WriteFormat0('the pseudo procedure CMPLX requires two parameters')
+      WriteFormat0 ('the pseudo procedure CMPLX requires two parameters')
    END
 END BuildCmplxFunction ;
 
@@ -8846,6 +8940,7 @@ END BuildCmplxFunction ;
 
 PROCEDURE BuildAdrFunction ;
 VAR
+   tok,
    t,
    UnboundedSym,
    Dim,
@@ -8858,6 +8953,7 @@ BEGIN
    DisplayStack ;
    PopT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+1) ;
+   tok := OperandTok(1) ;
    IF NoOfParam#1
    THEN
       WriteFormat0('SYSTEM procedure ADR expects 1 parameter') ;
@@ -8865,7 +8961,7 @@ BEGIN
       PushTF(Nil, Address)
    ELSIF IsConstString(OperandT(1))
    THEN
-      ReturnVar := MakeLeftValue(OperandT(1), RightValue, GetSType(ProcSym)) ;
+      ReturnVar := MakeLeftValue(tok, OperandT(1), RightValue, GetSType(ProcSym)) ;
       PopN(NoOfParam+1) ;    (* destroy the arguments and function *)
       PushTF(ReturnVar, GetSType(ReturnVar))
    ELSIF (NOT IsVar(OperandT(1))) AND (NOT IsProcedure(OperandT(1)))
@@ -8875,7 +8971,7 @@ BEGIN
       PushTF(Nil, Address)
    ELSIF IsProcedure(OperandT(1))
    THEN
-      ReturnVar := MakeLeftValue(OperandT(1), RightValue, GetSType(ProcSym)) ;
+      ReturnVar := MakeLeftValue(tok, OperandT(1), RightValue, GetSType(ProcSym)) ;
       PopN(NoOfParam+1) ;    (* destroy the arguments and function *)
       PushTF(ReturnVar, GetSType(ReturnVar))
    ELSE
@@ -8900,19 +8996,19 @@ BEGIN
          PopTrw(ReturnVar, rw) ;
          IF GetMode(ReturnVar)=LeftValue
          THEN
-            t := MakeTemporary(RightValue) ;
+            t := MakeTemporary(tok, RightValue) ;
             PutVar(t, GetSType(ProcSym)) ;
-            doIndrX(t, ReturnVar) ;
+            doIndrX(tok, t, ReturnVar) ;
             ReturnVar := t
          ELSE
             (* we need to cast ReturnVar into ADDRESS *)
-            t := MakeTemporary(RightValue) ;
+            t := MakeTemporary(tok, RightValue) ;
             PutVar(t, GetSType(ProcSym)) ;
             GenQuad(ConvertOp, t, GetSType(ProcSym), ReturnVar) ;
             ReturnVar := t
          END
       ELSE
-         ReturnVar := MakeTemporary(RightValue) ;
+         ReturnVar := MakeTemporary(tok, RightValue) ;
          PutVar(ReturnVar, GetSType(ProcSym)) ;
          IF GetMode(OperandT(1))=LeftValue
          THEN
@@ -8957,6 +9053,7 @@ END BuildAdrFunction ;
 
 PROCEDURE BuildSizeFunction ;
 VAR
+   tok         : CARDINAL ;
    n           : Name ;
    dim         : CARDINAL ;
    Type,
@@ -8972,25 +9069,27 @@ BEGIN
       ReturnVar := MakeConstLit(MakeKey('0'), Cardinal)
    ELSIF IsAModula2Type(OperandT(1))
    THEN
+      tok := OperandTok(1) ;
       BuildSizeCheckEnd(ProcSym) ;   (* quadruple generation now on *)
-      ReturnVar := MakeTemporary(ImmediateValue) ;
+      ReturnVar := MakeTemporary (tok, ImmediateValue) ;
       GenQuad(SizeOp, ReturnVar, NulSym, OperandT(1))
    ELSIF IsVar(OperandT(1))
    THEN
       BuildSizeCheckEnd(ProcSym) ;   (* quadruple generation now on *)
       Type := GetSType(OperandT(1)) ;
+      tok := OperandTok(1) ;
       IF IsUnbounded(Type)
       THEN
          (* eg. SIZE(a)  ; where a is unbounded dereference HIGH and multiply by the TYPE *)
          dim := OperandD(1) ;
          IF dim=0
          THEN
-            ReturnVar := calculateMultipicand(OperandT(1), Type, dim)
+            ReturnVar := calculateMultipicand(tok, OperandT(1), Type, dim)
          ELSE
-            ReturnVar := calculateMultipicand(OperandA(1), Type, dim)
+            ReturnVar := calculateMultipicand(tok, OperandA(1), Type, dim)
          END
       ELSE
-         ReturnVar := MakeTemporary(ImmediateValue) ;
+         ReturnVar := MakeTemporary(tok, ImmediateValue) ;
          IF Type=NulSym
          THEN
             n := GetSymName(OperandT(1)) ;
@@ -9035,6 +9134,7 @@ END BuildSizeFunction ;
 
 PROCEDURE BuildTSizeFunction ;
 VAR
+   tok      : CARDINAL ;
    NoOfParam: CARDINAL ;
    ProcSym,
    Record,
@@ -9042,15 +9142,16 @@ VAR
 BEGIN
    PopT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+1) ;
+   tok := OperandTok(NoOfParam) ;
    IF NoOfParam=1
    THEN
       IF IsAModula2Type(OperandT(1))
       THEN
-         ReturnVar := MakeTemporary(ImmediateValue) ;
+         ReturnVar := MakeTemporary(tok, ImmediateValue) ;
          GenQuad(SizeOp, ReturnVar, NulSym, OperandT(1))
       ELSIF IsVar(OperandT(1))
       THEN
-         ReturnVar := MakeTemporary(ImmediateValue) ;
+         ReturnVar := MakeTemporary(tok, ImmediateValue) ;
          GenQuad(SizeOp, ReturnVar, NulSym, GetSType(OperandT(1)))
       ELSE
          WriteFormat0('SYSTEM procedure TSIZE expects the first parameter to be a type or variable') ;
@@ -9060,15 +9161,15 @@ BEGIN
       Record := OperandT(NoOfParam) ;
       IF IsRecord(Record)
       THEN
-         ReturnVar := MakeTemporary(ImmediateValue) ;
+         ReturnVar := MakeTemporary(tok, ImmediateValue) ;
          GenQuad(SizeOp, ReturnVar, NulSym, Record)
       ELSE
          WriteFormat0('SYSTEM procedure TSIZE expects the first parameter to be a record type') ;
          ReturnVar := MakeConstLit(MakeKey('0'), Cardinal)
       END
    END ;
-   PopN(NoOfParam+1) ;       (* destroy the arguments and function *)
-   PushTF(ReturnVar, GetSType(ProcSym))
+   PopN (NoOfParam+1) ;       (* destroy the arguments and function *)
+   PushTFtok (ReturnVar, GetSType(ProcSym), tok)
 END BuildTSizeFunction ;
 
 
@@ -9100,6 +9201,7 @@ END BuildTSizeFunction ;
 
 PROCEDURE BuildTBitSizeFunction ;
 VAR
+   tok      : CARDINAL ;
    NoOfParam: CARDINAL ;
    ProcSym,
    Record,
@@ -9107,15 +9209,16 @@ VAR
 BEGIN
    PopT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+1) ;
+   tok := OperandTok(NoOfParam) ;
    IF NoOfParam=1
    THEN
       IF IsAModula2Type(OperandT(1))
       THEN
-         ReturnVar := MakeTemporary(ImmediateValue) ;
+         ReturnVar := MakeTemporary (tok, ImmediateValue) ;
          GenQuad(StandardFunctionOp, ReturnVar, ProcSym, OperandT(1)) ;
       ELSIF IsVar(OperandT(1))
       THEN
-         ReturnVar := MakeTemporary(ImmediateValue) ;
+         ReturnVar := MakeTemporary (tok, ImmediateValue) ;
          GenQuad(StandardFunctionOp, ReturnVar, ProcSym, OperandT(1)) ;
       ELSE
          WriteFormat0('SYSTEM procedure TBITSIZE expects the first parameter to be a type or variable') ;
@@ -9125,7 +9228,7 @@ BEGIN
       Record := OperandT(NoOfParam) ;
       IF IsRecord(Record)
       THEN
-         ReturnVar := MakeTemporary(ImmediateValue) ;
+         ReturnVar := MakeTemporary (tok, ImmediateValue) ;
          GenQuad(StandardFunctionOp, ReturnVar, ProcSym, OperandT(1)) ;
       ELSE
          WriteFormat0('SYSTEM procedure TBITSIZE expects the first parameter to be a record type') ;
@@ -9133,7 +9236,7 @@ BEGIN
       END
    END ;
    PopN(NoOfParam+1) ;       (* destroy the arguments and function *)
-   PushTF(ReturnVar, GetSType(ProcSym))
+   PushTFtok (ReturnVar, GetSType(ProcSym), tok)
 END BuildTBitSizeFunction ;
 
 
@@ -9291,7 +9394,7 @@ BEGIN
    PushWord(ReturnStack, 0) ;
    PushT(ProcSym) ;
    CheckVariablesAt(ProcSym) ;
-   CheckNeedPriorityBegin(ProcSym, GetCurrentModule()) ;
+   CheckNeedPriorityBegin(GetTokenNo(), ProcSym, GetCurrentModule()) ;
    PushWord(TryStack, NextQuad) ;
    PushWord(CatchStack, 0) ;
    IF HasExceptionBlock(ProcSym)
@@ -9325,13 +9428,14 @@ END BuildProcedureBegin ;
 
 PROCEDURE BuildProcedureEnd ;
 VAR
+   tok    : CARDINAL ;
    t,
    ProcSym: CARDINAL ;
 BEGIN
-   PopT(ProcSym) ;
+   PopTtok(ProcSym, tok) ;
    IF HasExceptionBlock(ProcSym)
    THEN
-      BuildRTExceptLeave(TRUE) ;
+      BuildRTExceptLeave(tok, TRUE) ;
       GenQuad(CatchEndOp, NulSym, NulSym, NulSym)
    END ;
    IF GetSType(ProcSym)#NulSym
@@ -9339,9 +9443,9 @@ BEGIN
       BuildError(InitNoReturnRangeCheck())
    END ;
    BackPatch(PopWord(ReturnStack), NextQuad) ;
-   CheckNeedPriorityEnd(ProcSym, GetCurrentModule()) ;
+   CheckNeedPriorityEnd(tok, ProcSym, GetCurrentModule()) ;
    CurrentProc := NulSym ;
-   PutProcedureEnd(ProcSym, GetTokenNo()-1) ;
+   PutProcedureEnd(ProcSym, GetTokenNo()-1) ;   (* --fixme-- *)
    GenQuad(KillLocalVarOp, GetTokenNo()-1, NulSym, ProcSym) ;
    PutProcedureEndQuad(ProcSym, NextQuad) ;
    GenQuad(ReturnOp, NulSym, NulSym, ProcSym) ;
@@ -9814,7 +9918,7 @@ BEGIN
    THEN
       PopBool(t, f) ;
       (* Des will be a boolean type *)
-      Des := MakeTemporary(RightValue) ;
+      Des := MakeTemporary(tokno, RightValue) ;
       PutVar(Des, Boolean) ;
       PushTF(Des, Boolean) ;
       PushBool(t, f) ;
@@ -9831,10 +9935,10 @@ BEGIN
       IF GetMode(e1)=LeftValue
       THEN
          t2 := GetSType(CurrentProc) ;
-         e2 := MakeTemporary(RightValue) ;
+         e2 := MakeTemporary(tokno, RightValue) ;
          PutVar(e2, t2) ;
          CheckPointerThroughNil(e1) ;
-         doIndrX(e2, e1) ;
+         doIndrX(tokno, e2, e1) ;
 	 (* here we check the data contents to ensure no overflow.  *)
          BuildRange(InitReturnRangeCheck(tokno, CurrentProc, e2)) ;
          GenQuad(ReturnValueOp, e2, NulSym, CurrentProc)
@@ -9875,6 +9979,7 @@ END BuildReturn ;
 
 PROCEDURE BuildDesignatorRecord ;
 VAR
+   tok       : CARDINAL ;
    n, rw,
    Field,
    FieldType,
@@ -9883,6 +9988,7 @@ VAR
    Res       : CARDINAL ;
 BEGIN
    PopT(n) ;
+   tok := GetTokenNo () ;
    Record := OperandT(n+1) ;
    RecordType := SkipType(OperandF(n+1)) ;
    rw := OperandMergeRW(n+1) ;
@@ -9899,7 +10005,8 @@ BEGIN
       MetaErrors1('record field {%1Dad} was declared as unused by a pragma',
                   'record field {%1ad} is being used after being declared as unused by a pragma', Field)
    END ;
-   Res := MakeComponentRef(MakeComponentRecord(RightValue, Record), Field) ;
+   Res := MakeComponentRef(MakeComponentRecord(tok,
+                                               RightValue, Record), Field) ;
    GenQuad(RecordFieldOp, Res, Record, Field) ;
    PopN(n+1) ;
    PushTFrw(Res, FieldType, rw)
@@ -9929,11 +10036,13 @@ END BuildDesignatorRecord ;
 
 PROCEDURE BuildDesignatorArray ;
 VAR
+   tok     : CARDINAL ;
    s       : String ;
    e, t, d,
    Sym,
    Type    : CARDINAL ;
 BEGIN
+   tok := GetTokenNo () ;
    IF IsConst(OperandT(2)) AND IsConstructor(OperandT(2))
    THEN
       t := GetDType(OperandT(2)) ;
@@ -9944,7 +10053,7 @@ BEGIN
       THEN
          PopT(e) ;
          PopTFD(Sym, Type, d) ;
-         t := MakeTemporary(RightValue) ;
+         t := MakeTemporary(tok, RightValue) ;
          PutVar(t, Type) ;
          PushTF(t, GetSType(t)) ;
          PushT(Sym) ;
@@ -10001,6 +10110,7 @@ END BuildDesignatorArray ;
 
 PROCEDURE BuildStaticArray ;
 VAR
+   tok        : CARDINAL ;
    rw,
    Dim,
    Array,
@@ -10008,34 +10118,35 @@ VAR
    BackEndType,
    Type, Adr  : CARDINAL ;
 BEGIN
-   Index := OperandT(1) ;
-   Array  := OperandT(2) ;
-   Type := SkipType(OperandF(2)) ;
-   rw := OperandMergeRW(2) ;
-   Assert(IsLegal(rw)) ;
-   Dim := OperandD(2) ;
-   INC(Dim) ;
-   IF GetMode(Index)=LeftValue
+   Index := OperandT (1) ;
+   Array  := OperandT (2) ;
+   Type := SkipType (OperandF (2)) ;
+   rw := OperandMergeRW (2) ;
+   Assert (IsLegal (rw)) ;
+   Dim := OperandD (2) ;
+   INC (Dim) ;
+   tok := GetTokenNo () ;
+   IF GetMode (Index)=LeftValue
    THEN
-      Index := MakeRightValue(Index, GetSType(Index))
+      Index := MakeRightValue (tok, Index, GetSType(Index))
    END ;
-   BuildRange(InitStaticArraySubscriptRangeCheck(GetArraySubscript(Type), Index, Dim)) ;
+   BuildRange (InitStaticArraySubscriptRangeCheck (GetArraySubscript (Type), Index, Dim)) ;
 
    (* now make Adr point to the address of the indexed element *)
-   Adr := MakeTemporary(LeftValue) ;
+   Adr := MakeTemporary (tok, LeftValue) ;
    (*
       Ok in the future must reference the array element by its lvalue
       - but we contain the type of the referenced entity
    *)
 
-   BackEndType := MakePointer(NulName) ;
-   PutPointer(BackEndType, GetDType(Type)) ;
+   BackEndType := MakePointer (tok, NulName) ;
+   PutPointer (BackEndType, GetDType(Type)) ;
    (* PutVar(Adr, BackEndType) ; *)
-   PutLeftValueFrontBackType(Adr, GetDType(Type), BackEndType) ;
+   PutLeftValueFrontBackType (Adr, GetDType(Type), BackEndType) ;
 
-   GenQuad(ArrayOp, Adr, Index, Array) ;
-   PopN(2) ;   (* remove all parameters to this procedure *)
-   PushTFDrw(Adr, GetSType(Adr), Dim, rw)
+   GenQuadO (tok, ArrayOp, Adr, Index, Array, TRUE) ;
+   PopN (2) ;   (* remove all parameters to this procedure *)
+   PushTFDrw (Adr, GetSType(Adr), Dim, rw)
 END BuildStaticArray ;
 
 
@@ -10044,30 +10155,31 @@ END BuildStaticArray ;
                           multiplicand for the array at dimension, dim.
 *)
 
-PROCEDURE calculateMultipicand (arraySym, arrayType: CARDINAL; dim: CARDINAL) : CARDINAL ;
+PROCEDURE calculateMultipicand (tok: CARDINAL;
+                                arraySym, arrayType: CARDINAL; dim: CARDINAL) : CARDINAL ;
 VAR
    ti, tj, tk, tl: CARDINAL ;
 BEGIN
-   IF dim=GetDimension(arrayType)
+   IF dim = GetDimension (arrayType)
    THEN
       (* ti has no type since constant *)
-      ti := MakeTemporary(ImmediateValue) ;
+      ti := MakeTemporary (tok, ImmediateValue) ;
       PutVar(ti, Cardinal) ;
-      GenQuad(ElementSizeOp, ti, arrayType, 1)
+      GenQuadO (tok, ElementSizeOp, ti, arrayType, 1, TRUE)
    ELSE
       INC(dim) ;
-      tk := MakeTemporary(RightValue) ;
+      tk := MakeTemporary (tok, RightValue) ;
       PutVar(tk, Cardinal) ;
-      GenHigh(tk, dim, arraySym) ;
-      tl := MakeTemporary(RightValue) ;
+      GenHigh (tok, tk, dim, arraySym) ;
+      tl := MakeTemporary (tok, RightValue) ;
       PutVar(tl, Cardinal) ;
-      GenQuad(AddOp, tl, tk, MakeConstLit(MakeKey('1'), Cardinal)) ;
-      tj := calculateMultipicand(arraySym, arrayType, dim) ;
-      ti := MakeTemporary(RightValue) ;
-      PutVar(ti, Cardinal) ;
-      GenQuad(MultOp, ti, tj, tl)
+      GenQuadO (tok, AddOp, tl, tk, MakeConstLit(MakeKey('1'), Cardinal), TRUE) ;
+      tj := calculateMultipicand (tok, arraySym, arrayType, dim) ;
+      ti := MakeTemporary (tok, RightValue) ;
+      PutVar (ti, Cardinal) ;
+      GenQuadO (tok, MultOp, ti, tj, tl, TRUE)
    END ;
-   RETURN( ti )
+   RETURN ti
 END calculateMultipicand ;
 
 
@@ -10097,6 +10209,7 @@ END calculateMultipicand ;
 
 PROCEDURE BuildDynamicArray ;
 VAR
+   tok          : CARDINAL ;
    Sym, idx,
    Type, Adr,
    ArraySym,
@@ -10113,6 +10226,7 @@ BEGIN
    Dim := OperandD(2) ;
    rw := OperandMergeRW(2) ;
    Assert(IsLegal(rw)) ;
+   tok := GetTokenNo () ;
    INC(Dim) ;
    IF Dim=1
    THEN
@@ -10140,7 +10254,7 @@ BEGIN
       (* Now actually copy Unbounded.ArrayAddress into base *)
       IF GetMode(PtrToBase)=LeftValue
       THEN
-         Base := MakeTemporary(RightValue) ;
+         Base := MakeTemporary(tok, RightValue) ;
          PutVar(Base, Address) ;           (* has type ADDRESS *)
          CheckPointerThroughNil(PtrToBase) ;
          GenQuad(IndrXOp, Base, Address, PtrToBase)           (* Base = *PtrToBase *)
@@ -10155,18 +10269,18 @@ BEGIN
       ArraySym := OperandA(2)
    END ;
    Assert(GetSType(Sym)=Type) ;
-   ti := calculateMultipicand(Sym, Type, Dim) ;
+   ti := calculateMultipicand(tok, Sym, Type, Dim) ;
    idx := OperandT(1) ;
    IF IsConst(idx)
    THEN
       (* tj has no type since constant *)
-      tj := MakeTemporary(ImmediateValue) ;
-      tk := MakeTemporary(ImmediateValue) ;
+      tj := MakeTemporary(tok, ImmediateValue) ;
+      tk := MakeTemporary(tok, ImmediateValue) ;
       PutVar(tj, Cardinal) ;
       PutVar(tk, Cardinal)
    ELSE
       (* tj has Cardinal type since we have multiplied array indices *)
-      tj := MakeTemporary(RightValue) ;
+      tj := MakeTemporary(tok, RightValue) ;
       IF GetSType(idx)#Cardinal
       THEN
          PushTF(RequestSym(MakeKey('CONVERT')), NulSym) ;
@@ -10177,7 +10291,7 @@ BEGIN
          PopT(idx)
       END ;
       PutVar(tj, Cardinal) ;
-      tk := MakeTemporary(RightValue) ;
+      tk := MakeTemporary(tok, RightValue) ;
       PutVar(tk, Cardinal)
    END ;
    BuildRange(InitDynamicArraySubscriptRangeCheck(ArraySym, idx, Dim)) ;
@@ -10187,12 +10301,12 @@ BEGIN
    BuildAssignmentWithoutBounds(FALSE, TRUE) ;
 
    GenQuad(MultOp, tk, ti, tj) ;
-   Adr := MakeTemporary(LeftValue) ;
+   Adr := MakeTemporary(tok, LeftValue) ;
    (*
       Ok must reference by address
       - but we contain the type of the referenced entity
    *)
-   BackEndType := MakePointer(NulName) ;
+   BackEndType := MakePointer(GetTokenNo(), NulName) ;
    PutPointer(BackEndType, GetSType(Type)) ;
 
    IF Dim=GetDimension(Type)
@@ -10229,6 +10343,7 @@ END BuildDynamicArray ;
 
 PROCEDURE BuildDesignatorPointer ;
 VAR
+   tok        : CARDINAL ;
    rw,
    Sym1, Type1,
    Sym2, Type2: CARDINAL ;
@@ -10241,7 +10356,8 @@ BEGIN
    ELSIF IsPointer(Type1)
    THEN
       Type2 := GetSType(Type1) ;
-      Sym2 := MakeTemporary(LeftValue) ;
+      tok := GetTokenNo () ;
+      Sym2 := MakeTemporary(tok, LeftValue) ;
       (*
          Ok must reference by address
          - but we contain the type of the referenced entity
@@ -10280,14 +10396,16 @@ END BuildDesignatorPointer ;
 
 PROCEDURE StartBuildWith ;
 VAR
+   tok      : CARDINAL ;
    Sym, Type,
    Ref      : CARDINAL ;
 BEGIN
    DisplayStack ;
    PopTF(Sym, Type) ;
    Type := SkipType(Type) ;
+   tok := GetTokenNo () ;
 
-   Ref := MakeTemporary(LeftValue) ;
+   Ref := MakeTemporary(tok, LeftValue) ;
    PutVar(Ref, Type) ;
    IF GetMode(Sym)=LeftValue
    THEN
@@ -10441,6 +10559,7 @@ END CheckWithReference ;
 
 PROCEDURE BuildAccessWithField ;
 VAR
+   tok               : CARDINAL ;
    OldSuppressWith   : BOOLEAN ;
    rw,
    Field, FieldType,
@@ -10448,6 +10567,7 @@ VAR
    Ref               : CARDINAL ;
 BEGIN
    OldSuppressWith := SuppressWith ;
+   tok := GetTokenNo () ;
    SuppressWith := TRUE ;
    (*
       now the WITH cannot look at the stack of outstanding WITH records.
@@ -10455,7 +10575,8 @@ BEGIN
    PopTF(Field, FieldType) ;
    PopTFrw(Record, RecordType, rw) ;
 
-   Ref := MakeComponentRef(MakeComponentRecord(RightValue, Record), Field) ;
+   Ref := MakeComponentRef(MakeComponentRecord(tok,
+                                               RightValue, Record), Field) ;
    GenQuad(RecordFieldOp, Ref, Record, Field) ;
 
    PushTFrw(Ref, FieldType, rw) ;
@@ -10577,8 +10698,10 @@ VAR
    n     : Name ;
    Type  : CARDINAL ;
    NulSet: CARDINAL ;
+   tok   : CARDINAL ;
 BEGIN
    PopT(Type) ;  (* type of set we are building *)
+   tok := GetTokenNo () ;
    IF (Type=NulSym) AND Pim
    THEN
       (* allowed generic {} in PIM Modula-2 *)
@@ -10596,7 +10719,7 @@ BEGIN
       Type := SkipType(Type) ;
       Assert((Type#NulSym))
    END ;
-   NulSet := MakeTemporary(ImmediateValue) ;
+   NulSet := MakeTemporary(tok, ImmediateValue) ;
    PutVar(NulSet, Type) ;
    PutConstSet(NulSet) ;
    IF CompilerDebugging
@@ -10693,28 +10816,30 @@ END BuildInclRange ;
 
 PROCEDURE BuildInclBit ;
 VAR
+   tok         : CARDINAL ;
    el, value, t: CARDINAL ;
 BEGIN
    PopT(el) ;
    PopT(value) ;
+   tok := GetTokenNo () ;
    IF IsConst(el)
    THEN
       PushValue(value) ;  (* onto ALU stack *)
-      AddBit(GetTokenNo(), el) ;
+      AddBit(tok, el) ;
       PopValue(value)    (* ALU -> symboltable *)
    ELSE
       IF GetMode(el)=LeftValue
       THEN
-         t := MakeTemporary(RightValue) ;
+         t := MakeTemporary(tok, RightValue) ;
          PutVar(t, GetSType(el)) ;
          CheckPointerThroughNil(el) ;
-         doIndrX(t, el) ;
+         doIndrX(tok, t, el) ;
          el := t
       END ;
       IF IsConst(value)
       THEN
          (* move constant into a variable to achieve the include *)
-         t := MakeTemporary(RightValue) ;
+         t := MakeTemporary(tok, RightValue) ;
          PutVar(t, GetSType(value)) ;
          GenQuad(BecomesOp, t, NulSym, value) ;
          value := t
@@ -10792,11 +10917,13 @@ END SilentBuildConstructor ;
 
 PROCEDURE BuildConstructor ;
 VAR
+   tok       : CARDINAL ;
    constValue,
    type      : CARDINAL ;
 BEGIN
    PopT(type) ;
-   constValue := MakeTemporary(ImmediateValue) ;
+   tok := GetTokenNo () ;
+   constValue := MakeTemporary(tok, ImmediateValue) ;
    PutVar(constValue, type) ;
    PutConstructor(constValue) ;
    PushValue(constValue) ;
@@ -11225,18 +11352,18 @@ BEGIN
          *)
          IF GetMode(e1)=LeftValue
          THEN
-            t := MakeTemporary(RightValue) ;
+            t := MakeTemporary(TokPos, RightValue) ;
             PutVar(t, t1) ;
             CheckPointerThroughNil(e1) ;
-            doIndrX(t, e1) ;
+            doIndrX(TokPos, t, e1) ;
             e1 := t
          END ;
          IF GetMode(e2)=LeftValue
          THEN
-            t := MakeTemporary(RightValue) ;
+            t := MakeTemporary(TokPos, RightValue) ;
             PutVar(t, t2) ;
             CheckPointerThroughNil(e2) ;
-            doIndrX(t, e2) ;
+            doIndrX(TokPos, t, e2) ;
             e2 := t
          END
       ELSE
@@ -11247,7 +11374,7 @@ BEGIN
          (* handle special addition for constant strings *)
          s := InitStringCharStar(KeyToCharStar(GetString(e2))) ;
          s := ConCat(s, Mark(InitStringCharStar(KeyToCharStar(GetString(e1))))) ;
-         t := MakeConstLitString(makekey(string(s))) ;
+         t := MakeConstLitString(TokPos, makekey(string(s))) ;
          s := KillString(s)
       ELSE
          IF checkTypes
@@ -11258,7 +11385,7 @@ BEGIN
                BuildRange(InitTypesExpressionCheck(TokPos, e1, e2))
             END
          END ;
-         t := MakeTemporaryFromExpressions(e1, e2, TokPos,
+         t := MakeTemporaryFromExpressions(TokPos, e1, e2,
                                            AreConstant(IsConst(e1) AND IsConst(e2))) ;
          CheckDivModRem(TokPos, NewTok, t, e1) ;
 
@@ -11299,18 +11426,20 @@ END doBuildBinaryOp ;
 
 PROCEDURE BuildUnaryOp ;
 VAR
+   tokpos    : CARDINAL ;
    Tok       : Name ;
    type,
    Sym,
    SymT, r, t: CARDINAL ;
 BEGIN
+   tokpos := GetTokenNo () ;
    PopTrw(Sym, r) ;
    PopT(Tok) ;
    IF Tok=MinusTok
    THEN
       MarkAsRead(r) ;
-      type := NegateType(GetSType(Sym), GetTokenNo()) ;
-      t := MakeTemporary(AreConstant(IsConst(Sym))) ;
+      type := NegateType (GetSType(Sym), tokpos) ;
+      t := MakeTemporary (tokpos, AreConstant(IsConst(Sym))) ;
       PutVar(t, type) ;
 
       (*
@@ -11327,10 +11456,10 @@ BEGIN
          THEN
             (* dereference symbols which are not sets and which are variables *)
 
-            SymT := MakeTemporary(RightValue) ;
+            SymT := MakeTemporary (tokpos, RightValue) ;
             PutVar(SymT, GetSType(Sym)) ;
             CheckPointerThroughNil(Sym) ;
-            doIndrX(SymT, Sym) ;
+            doIndrX(tokpos, SymT, Sym) ;
             Sym := SymT
          END
       END ;
@@ -11380,7 +11509,7 @@ BEGIN
       need to convert it to a variable containing the result.
       Des will be a boolean type
    *)
-   Des := MakeTemporary(RightValue) ;
+   Des := MakeTemporary(GetTokenNo(), RightValue) ;
    PutVar(Des, Boolean) ;
    PushT(Des) ;   (* we have just increased the stack so we must use i+1 *)
    f := PeepAddress(BoolStack, i+1) ;
@@ -11597,11 +11726,13 @@ END CheckInCompatible ;
 
 PROCEDURE BuildRelOp ;
 VAR
+   tokpos: CARDINAL ;
    Op    : Name ;
    t,
    t1, t2,
    e1, e2: CARDINAL ;
 BEGIN
+   tokpos := GetTokenNo () ;
    IF CompilerDebugging
    THEN
       DisplayStack    (* Debugging info *)
@@ -11645,18 +11776,18 @@ BEGIN
       (* must dereference LeftValue operands *)
       IF GetMode(e1)=LeftValue
       THEN
-         t := MakeTemporary(RightValue) ;
+         t := MakeTemporary(tokpos, RightValue) ;
          PutVar(t, GetSType(e1)) ;
          CheckPointerThroughNil(e1) ;
-         doIndrX(t, e1) ;
+         doIndrX(tokpos, t, e1) ;
          e1 := t
       END ;
       IF GetMode(e2)=LeftValue
       THEN
-         t := MakeTemporary(RightValue) ;
+         t := MakeTemporary(tokpos, RightValue) ;
          PutVar(t, GetSType(e2)) ;
          CheckPointerThroughNil(e2) ;
-         doIndrX(t, e2) ;
+         doIndrX(tokpos, t, e2) ;
          e2 := t
       END ;
       GenQuad(MakeOp(Op), e2, e1, 0) ;      (* True  Exit *)
@@ -11773,7 +11904,7 @@ BEGIN
    (* WriteString('Potential Quad: ') ; *)
    IF QuadrupleGeneration
    THEN
-      IF NextQuad#Head
+      IF NextQuad # Head
       THEN
          f := GetQF (NextQuad-1) ;
          f^.Next := NextQuad
@@ -11782,7 +11913,7 @@ BEGIN
       f := GetQF (NextQuad) ;
       WITH f^ DO
          Next := 0 ;
-         LineNo := GetLineNo() ;
+         LineNo := GetLineNo () ;
          IF TokPos = UnknownTokenNo
          THEN
             TokenNo := GetTokenNo ()
@@ -11931,8 +12062,8 @@ PROCEDURE OperandAnno (n: CARDINAL) : String ;
 VAR
    f: BoolFrame ;
 BEGIN
-   f := PeepAddress(BoolStack, n) ;
-   RETURN( f^.Annotation )
+   f := PeepAddress (BoolStack, n) ;
+   RETURN f^.Annotation
 END OperandAnno ;
 
 
@@ -11944,9 +12075,9 @@ PROCEDURE DisplayStack ;
 BEGIN
    IF DebugStackOn AND CompilerDebugging
    THEN
-      DebugStack(NoOfItemsInStackAddress(BoolStack),
-                 OperandTno, OperandFno, OperandA,
-                 OperandD, OperandRW, OperandAnno)
+      DebugStack (NoOfItemsInStackAddress (BoolStack),
+                  OperandTno, OperandFno, OperandA,
+                  OperandD, OperandRW, OperandTok, OperandAnno)
    END
 END DisplayStack ;
 

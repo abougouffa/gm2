@@ -879,7 +879,7 @@ END PopScope ;
 PROCEDURE GetCurrentScopeDescription () : String ;
 VAR
    sym : CARDINAL ;
-   s, n: String ;
+   n   : String ;
 BEGIN
    IF IsEmptyWord(ScopeStack)
    THEN
@@ -1294,13 +1294,13 @@ END GetSizeOfHighFromUnbounded ;
    MaybeDebugBuiltinAlloca -
 *)
 
-PROCEDURE MaybeDebugBuiltinAlloca (location: location_t; high: Tree) : Tree ;
+PROCEDURE MaybeDebugBuiltinAlloca (location: location_t; tok: CARDINAL; high: Tree) : Tree ;
 VAR
    func: Tree ;
 BEGIN
    IF DebugBuiltins
    THEN
-      func := Mod2Gcc(FromModuleGetSym(MakeKey('alloca_trace'), MakeDefinitionSource(MakeKey('Builtins')))) ;
+      func := Mod2Gcc(FromModuleGetSym(MakeKey('alloca_trace'), MakeDefinitionSource(tok, MakeKey('Builtins')))) ;
       RETURN( BuildCall2(location, func, GetPointerType(), BuiltInAlloca(location, high), high) )
    ELSE
       RETURN( BuiltInAlloca(location, high) )
@@ -1312,13 +1312,13 @@ END MaybeDebugBuiltinAlloca ;
    MaybeDebugBuiltinMemcpy -
 *)
 
-PROCEDURE MaybeDebugBuiltinMemcpy (location: location_t; src, dest, nbytes: Tree) : Tree ;
+PROCEDURE MaybeDebugBuiltinMemcpy (location: location_t; tok: CARDINAL; src, dest, nbytes: Tree) : Tree ;
 VAR
    func: Tree ;
 BEGIN
    IF DebugBuiltins
    THEN
-      func := Mod2Gcc(FromModuleGetSym(MakeKey('memcpy'), MakeDefinitionSource(MakeKey('Builtins')))) ;
+      func := Mod2Gcc(FromModuleGetSym(MakeKey('memcpy'), MakeDefinitionSource(tok, MakeKey('Builtins')))) ;
       RETURN( BuildCall3(location, func, GetPointerType(), src, dest, nbytes) )
    ELSE
       RETURN( BuiltInMemCopy(location, src, dest, nbytes) )
@@ -1343,13 +1343,10 @@ END MaybeDebugBuiltinMemcpy ;
 PROCEDURE MakeCopyAndUse (tokenno: CARDINAL; proc, param, i: CARDINAL) ;
 VAR
    location     : location_t;
-   UnboundedType,
-   ArrayType    : CARDINAL ;
+   UnboundedType: CARDINAL ;
    t,
    Addr,
    High,
-   GccIndex,
-   GccArray,
    NewArray,
    Type         : Tree ;
 BEGIN
@@ -1361,8 +1358,8 @@ BEGIN
    Addr := GetAddressOfUnbounded(location, param) ;
    Type := Mod2Gcc(GetType(param)) ;
 
-   NewArray := MaybeDebugBuiltinAlloca(location, High) ;
-   NewArray := MaybeDebugBuiltinMemcpy(location, NewArray, Addr, High) ;
+   NewArray := MaybeDebugBuiltinAlloca(location, tokenno, High) ;
+   NewArray := MaybeDebugBuiltinMemcpy(location, tokenno, NewArray, Addr, High) ;
 
    (* now assign  param.Addr := ADR(NewArray) *)
 
@@ -1496,7 +1493,6 @@ VAR
    ta, tb,
    tc, td  : Tree ;
    n, j    : CARDINAL ;
-   s,
    tLabel,
    fLabel,
    nLabel  : String ;
@@ -2280,8 +2276,7 @@ VAR
    bits,
    max,
    tmp,
-   val,
-   res     : Tree ;
+   val     : Tree ;
    location: location_t ;
 BEGIN
    resolved := TRUE ;
@@ -2468,8 +2463,6 @@ END FoldBuiltinFunction ;
 *)
 
 PROCEDURE CodeParam (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
-VAR
-   n: Name ;
 BEGIN
    IF op1=0
    THEN
@@ -2526,7 +2519,6 @@ PROCEDURE CodeAddr (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    value,
    t       : Tree ;
-   s       : String ;
    type    : CARDINAL ;
    location: location_t ;
 BEGIN
@@ -2570,7 +2562,6 @@ END CheckStop ;
 
 PROCEDURE FoldBecomes (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   s: String ;
    t: Tree ;
    location: location_t ;
 BEGIN
@@ -2589,7 +2580,7 @@ BEGIN
          ELSE
             IF IsConstString(op3)
             THEN
-               PutConstString(op1, GetString(op3)) ;
+               PutConstString(tokenno, op1, GetString(op3)) ;
             ELSIF GetType(op1)=NulSym
             THEN
                Assert(GetType(op3)#NulSym) ;
@@ -3068,7 +3059,7 @@ BEGIN
    THEN
       DoCopyString(CurrentQuadToken, t, op3t, SkipType(GetType(op1)), op3) ;
       AddStatement(location,
-                   MaybeDebugBuiltinMemcpy(location,
+                   MaybeDebugBuiltinMemcpy(location, CurrentQuadToken,
                                            BuildAddr(location, Mod2Gcc(op1), FALSE),
                                            BuildAddr(location, op3t, FALSE),
                                            t))
@@ -3082,7 +3073,7 @@ BEGIN
          (NOT IsConstant(op3))
       THEN
          AddStatement(location,
-                      MaybeDebugBuiltinMemcpy(location,
+                      MaybeDebugBuiltinMemcpy(location, CurrentQuadToken,
                                               BuildAddr(location, Mod2Gcc(op1), FALSE),
                                               BuildAddr(location, Mod2Gcc(op3), FALSE),
                                               BuildSize(location, Mod2Gcc(op1), FALSE)))
@@ -3366,7 +3357,6 @@ END CodeBinary ;
 PROCEDURE CodeBinarySet (binop: BuildBinProcedure; doOp: DoProcedure;
                          quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t       : CARDINAL ;
    location: location_t ;
 BEGIN
    (* firstly ensure that constant literals are declared *)
@@ -3453,7 +3443,7 @@ BEGIN
       (* handle special addition for constant strings *)
       s := InitStringCharStar(KeyToCharStar(GetString(op2))) ;
       s := ConCat(s, Mark(InitStringCharStar(KeyToCharStar(GetString(op3))))) ;
-      PutConstString(op1, makekey(string(s))) ;
+      PutConstString(tokenno, op1, makekey(string(s))) ;
       TryDeclareConstant(tokenno, op1) ;
       p(op1) ;
       NoChange := FALSE ;
@@ -3958,7 +3948,6 @@ PROCEDURE FoldBuiltinConst (tokenno: CARDINAL; p: WalkAction;
                             quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t: Tree ;
-   s: String ;
 BEGIN
    t := GetBuiltinConst(KeyToCharStar(Name(op3))) ;
    IF t=NIL
@@ -3981,7 +3970,6 @@ PROCEDURE FoldBuiltinTypeInfo (tokenno: CARDINAL; p: WalkAction;
                                quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t       : Tree ;
-   s       : String ;
    location: location_t ;
 BEGIN
    IF GccKnowsAbout(op2) AND CompletelyResolved(op2)
@@ -4008,7 +3996,6 @@ END FoldBuiltinTypeInfo ;
 PROCEDURE FoldStandardFunction (tokenno: CARDINAL; p: WalkAction;
                                 quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t       : Tree ;
    s       : String ;
    type,
    d,
@@ -4426,7 +4413,6 @@ PROCEDURE CodeBinarySetShift (binop: BuildSetProcedure;
                               quad: CARDINAL;
                               op1, op2, op3: CARDINAL) ;
 VAR
-   type     : CARDINAL ;
    nBits,
    unbounded,
    leftproc,
@@ -4762,8 +4748,8 @@ END GetSetLimits ;
 
 PROCEDURE GetFieldNo (tokenno: CARDINAL; element: CARDINAL; set: CARDINAL; VAR offset: Tree) : INTEGER ;
 VAR
-   type, low, high, bpw, c: CARDINAL ;
-   location               : location_t ;
+   low, high, bpw, c: CARDINAL ;
+   location         : location_t ;
 BEGIN
    location := TokenToLocation(tokenno) ;
    bpw := GetBitsPerBitset() ;
@@ -4823,7 +4809,6 @@ END GetFieldNo ;
 
 PROCEDURE CodeIncl (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   s       : String ;
    low,
    high    : CARDINAL ;
    offset  : Tree ;
@@ -4901,7 +4886,6 @@ END FoldExcl ;
 
 PROCEDURE CodeExcl (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   s       : String ;
    low,
    high    : CARDINAL ;
    offset  : Tree ;
@@ -5156,7 +5140,6 @@ PROCEDURE FoldSize (tokenno: CARDINAL; p: WalkAction;
                     quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t       : Tree ;
-   l       : List ;
    location: location_t ;
 BEGIN
    location := TokenToLocation(tokenno) ;
@@ -5195,8 +5178,6 @@ END FoldSize ;
 PROCEDURE CodeSize (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t: Tree ;
-   s: CARDINAL ;
-   l: List ;
    location: location_t ;
 BEGIN
    location := TokenToLocation(CurrentQuadToken) ;
@@ -5284,7 +5265,6 @@ END DetermineFieldOf ;
 PROCEDURE FoldOffset (tokenno: CARDINAL; p: WalkAction;
                       quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   field   : CARDINAL ;
    t       : Tree ;
    location: location_t ;
 BEGIN
@@ -5331,7 +5311,6 @@ END FoldOffset ;
 
 PROCEDURE CodeOffset (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   field   : CARDINAL ;
    t       : Tree ;
    location: location_t ;
 BEGIN
@@ -5611,9 +5590,6 @@ PROCEDURE FoldHigh (tokenno: CARDINAL; p: WalkAction;
                     quad: CARDINAL; op1, dim, op3: CARDINAL) ;
 VAR
    t       : Tree ;
-   high,
-   low,
-   type    : CARDINAL ;
    location: location_t ;
 BEGIN
    (* firstly ensure that any constant literal is declared *)
@@ -5942,7 +5918,7 @@ PROCEDURE FoldConvert (tokenno: CARDINAL; p: WalkAction;
                        quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 
 VAR
-   tl, tr  : Tree ;
+   tl      : Tree ;
    location: location_t ;
 BEGIN
    location := TokenToLocation(tokenno) ;
@@ -6103,7 +6079,7 @@ BEGIN
          ELSE
             (* does not work t := BuildCoerce(Mod2Gcc(op1), Mod2Gcc(op2), Mod2Gcc(op3)) *)
             AddStatement(location,
-                         MaybeDebugBuiltinMemcpy(location,
+                         MaybeDebugBuiltinMemcpy(location, CurrentQuadToken,
                                                  BuildAddr(location, Mod2Gcc(op1), FALSE),
                                                  BuildAddr(location, Mod2Gcc(op3), FALSE),
                                                  FindSize(CurrentQuadToken, op2)))
@@ -6796,7 +6772,6 @@ END CodeIfSetEqu ;
 
 PROCEDURE CodeIfSetNotEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t        : Tree ;
    settype  : CARDINAL ;
    truelabel: ADDRESS ;
    location  : location_t ;
@@ -7026,7 +7001,6 @@ END BuildIfNotVarInConstValue ;
 
 PROCEDURE CodeIfIn (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   s       : String ;
    low,
    high    : CARDINAL ;
    lowtree,
@@ -7093,8 +7067,6 @@ END CodeIfIn ;
 
 PROCEDURE CodeIfNotIn (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   s       : String ;
-   operator: QuadOperator ;
    low,
    high    : CARDINAL ;
    lowtree,
@@ -7233,7 +7205,7 @@ BEGIN
    THEN
       DoCopyString(CurrentQuadToken, t, newstr, type, op3) ;
       AddStatement(location,
-                   MaybeDebugBuiltinMemcpy(location,
+                   MaybeDebugBuiltinMemcpy(location, CurrentQuadToken,
                                            Mod2Gcc(op1),
                                            BuildAddr(location, newstr, FALSE),
                                            t))

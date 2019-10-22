@@ -32,6 +32,7 @@ FROM M2ALU IMPORT PushCard, PushIntegerTree ;
 FROM NameKey IMPORT MakeKey ;
 FROM M2System IMPORT Word ;
 FROM M2Base IMPORT Cardinal ;
+FROM M2LexBuf IMPORT BuiltinTokenNo ;
 
 FROM SymbolTable IMPORT NulSym,
       	       	     	MakeConstLit,
@@ -54,18 +55,18 @@ VAR
 
 PROCEDURE MakeBitset ;
 BEGIN
-   Bitset := MakeSet(MakeKey('BITSET')) ;     (* Base Type       *)
+   Bitset := MakeSet(BuiltinTokenNo, MakeKey('BITSET')) ;     (* Base Type       *)
 
    (* MinBitset *)
    MinBitset := MakeConstLit(MakeKey('0'), Cardinal) ;
 
    (* MaxBitset *)
-   MaxBitset := MakeConstVar(MakeKey('MaxBitset')) ;
+   MaxBitset := MakeConstVar(BuiltinTokenNo, MakeKey('MaxBitset')) ;
    PushCard(GetBitsPerBitset()-1) ;
    PopValue(MaxBitset) ;
 
    Assert(Word#NulSym) ;
-   Bitnum := MakeSubrange(MakeKey('BITNUM')) ;
+   Bitnum := MakeSubrange(BuiltinTokenNo, MakeKey('BITNUM')) ;
    PutSubrange(Bitnum, MinBitset, MaxBitset, Cardinal) ;
    PutSet(Bitset, Bitnum) ;
 

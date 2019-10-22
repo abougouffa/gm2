@@ -360,7 +360,8 @@ PROCEDURE FinalSymbol () : CARDINAL ;
                          (or sub field) of record.
 *)
 
-PROCEDURE MakeComponentRecord (Mode: ModeOfAddr; record: CARDINAL) : CARDINAL ;
+PROCEDURE MakeComponentRecord (tok: CARDINAL;
+                               Mode: ModeOfAddr; record: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -383,7 +384,7 @@ PROCEDURE IsComponent (sym: CARDINAL) : BOOLEAN ;
                    The addressing mode of the temporary is set to Mode.
 *)
 
-PROCEDURE MakeTemporary (Mode: ModeOfAddr) : CARDINAL ;
+PROCEDURE MakeTemporary (tok: CARDINAL; Mode: ModeOfAddr) : CARDINAL ;
 
 
 (*
@@ -393,8 +394,8 @@ PROCEDURE MakeTemporary (Mode: ModeOfAddr) : CARDINAL ;
                                  type is determined by expressions, e.
 *)
 
-PROCEDURE MakeTemporaryFromExpression (e: CARDINAL;
-                                       tok: CARDINAL;
+PROCEDURE MakeTemporaryFromExpression (tok: CARDINAL;
+                                       e: CARDINAL;
                                        mode: ModeOfAddr) : CARDINAL ;
 
 (*
@@ -405,10 +406,9 @@ PROCEDURE MakeTemporaryFromExpression (e: CARDINAL;
                                   e1 and e2.
 *)
 
-PROCEDURE MakeTemporaryFromExpressions (e1, e2: CARDINAL;
-                                        tok: CARDINAL;
+PROCEDURE MakeTemporaryFromExpressions (tok: CARDINAL;
+                                        e1, e2: CARDINAL;
                                         mode: ModeOfAddr) : CARDINAL ;
-
 
 
 (*
@@ -522,31 +522,31 @@ PROCEDURE IsNameAnonymous (sym: CARDINAL) : BOOLEAN ;
                 symbol index.
 *)
 
-PROCEDURE MakeModule (ModuleName: Name) : CARDINAL ;
+PROCEDURE MakeModule (tok: CARDINAL; ModuleName: Name) : CARDINAL ;
 
 
 (*
-   MakeDefImp - creates a definition module sym with DefImpName. It
-                returns the symbol index.
+   MakeDefImp - creates a definition and implementation module sym
+                with name DefImpName. It returns the symbol index.
 *)
 
-PROCEDURE MakeDefImp (DefImpName: Name) : CARDINAL ;
+PROCEDURE MakeDefImp (tok: CARDINAL; DefImpName: Name) : CARDINAL ;
 
 
 (*
-   MakeInnerModule - creates an inner module sym with ModuleName.
-                     It returns the symbol index.
+   MakeInnerModule - creates an inner module sym with ModuleName. It returns the
+                     symbol index.
 *)
 
-PROCEDURE MakeInnerModule (ModuleName: Name) : CARDINAL ;
+PROCEDURE MakeInnerModule (tok: CARDINAL; ModuleName: Name) : CARDINAL ;
 
 
 (*
-   MakeProcedure - creates a procedure sym with ProcedureName. It returns
+   MakeProcedure - creates a procedure sym with name. It returns
                    the symbol index.
 *)
 
-PROCEDURE MakeProcedure (ProcedureName: Name) : CARDINAL ;
+PROCEDURE MakeProcedure (tok: CARDINAL; ProcedureName: Name) : CARDINAL ;
 
 
 (*
@@ -554,22 +554,22 @@ PROCEDURE MakeProcedure (ProcedureName: Name) : CARDINAL ;
              symbol index.
 *)
 
-PROCEDURE MakeVar (VarName: Name) : CARDINAL ;
+PROCEDURE MakeVar (tok: CARDINAL; VarName: Name) : CARDINAL ;
 
 
 (*
-   MakeRecord - makes the a Record symbol with name RecordName.
+   MakeRecord - makes a Record symbol with name RecordName.
 *)
 
-PROCEDURE MakeRecord (RecordName: Name) : CARDINAL ;
+PROCEDURE MakeRecord (tok: CARDINAL; RecordName: Name) : CARDINAL ;
 
 
 (*
-   MakeVarient - creates a new symbol, a varient symbol for record symbol,
-                 RecOrVarFieldSym.
+   MakeVarient - creates a new symbol, a varient symbol for record or varient field
+                 symbol, RecOrVarFieldSym.
 *)
 
-PROCEDURE MakeVarient (RecOrVarFieldSym: CARDINAL) : CARDINAL ;
+PROCEDURE MakeVarient (tok: CARDINAL; RecOrVarFieldSym: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -581,18 +581,18 @@ PROCEDURE MakeFieldVarient (n: Name; Sym: CARDINAL) : CARDINAL ;
 
 
 (*
-   MakeEnumeration - makes a symbol an enumeration type with name
-                     EnumerationName.
+   MakeEnumeration - places a new symbol in the current scope, the symbol
+                     is an enumeration symbol. The symbol index is returned.
 *)
 
-PROCEDURE MakeEnumeration (EnumerationName: Name) : CARDINAL ;
+PROCEDURE MakeEnumeration (tok: CARDINAL; EnumerationName: Name) : CARDINAL ;
 
 
 (*
    MakeType - makes a type symbol with name TypeName.
 *)
 
-PROCEDURE MakeType (TypeName: Name) : CARDINAL ;
+PROCEDURE MakeType (tok: CARDINAL; TypeName: Name) : CARDINAL ;
 
 
 (*
@@ -604,7 +604,7 @@ PROCEDURE MakeType (TypeName: Name) : CARDINAL ;
                     is reached.
 *)
 
-PROCEDURE MakeHiddenType (TypeName: Name) : CARDINAL ;
+PROCEDURE MakeHiddenType (tok: CARDINAL; TypeName: Name) : CARDINAL ;
 
 
 (*
@@ -622,7 +622,7 @@ PROCEDURE MakeConstLit (ConstName: Name; constType: CARDINAL) : CARDINAL ;
                   name ConstVarName.
 *)
 
-PROCEDURE MakeConstVar (ConstVarName: Name) : CARDINAL ;
+PROCEDURE MakeConstVar (tok: CARDINAL; ConstVarName: Name) : CARDINAL ;
 
 
 (*
@@ -639,7 +639,7 @@ PROCEDURE MakeConstVar (ConstVarName: Name) : CARDINAL ;
                         In this procedure ConstName is the string.
 *)
 
-PROCEDURE MakeConstLitString (ConstName: Name) : CARDINAL ;
+PROCEDURE MakeConstLitString (tok: CARDINAL; ConstName: Name) : CARDINAL ;
 
 
 (*
@@ -648,29 +648,29 @@ PROCEDURE MakeConstLitString (ConstName: Name) : CARDINAL ;
                      filled in later by PutString.
 *)
 
-PROCEDURE MakeConstString (ConstName: Name) : CARDINAL ;
+PROCEDURE MakeConstString (tok: CARDINAL; ConstName: Name) : CARDINAL ;
 
 
 (*
    MakeSubrange - makes a new symbol into a subrange type with
-                  name SubName.
+                  name SubrangeName.
 *)
 
-PROCEDURE MakeSubrange (SubrangeName: Name) : CARDINAL ;
+PROCEDURE MakeSubrange (tok: CARDINAL; SubrangeName: Name) : CARDINAL ;
 
 
 (*
    MakeSet - makes a set Symbol with name, SetName.
 *)
 
-PROCEDURE MakeSet (SetName: Name) : CARDINAL ;
+PROCEDURE MakeSet (tok: CARDINAL; SetName: Name) : CARDINAL ;
 
 
 (*
    MakeArray - makes an Array symbol with name ArrayName.
 *)
 
-PROCEDURE MakeArray (ArrayName: Name) : CARDINAL ;
+PROCEDURE MakeArray (tok: CARDINAL; ArrayName: Name) : CARDINAL ;
 
 
 (*
@@ -1233,7 +1233,7 @@ PROCEDURE PutConst (Sym: CARDINAL; ConstType: CARDINAL) ;
                     true then the ConstVar is converted to a ConstString.
 *)
 
-PROCEDURE PutConstString (Sym: CARDINAL; String: Name) ;
+PROCEDURE PutConstString (tok: CARDINAL; Sym: CARDINAL; String: Name) ;
 
 
 (*
@@ -1256,7 +1256,7 @@ PROCEDURE IsConstStringRequiresNul (sym: CARDINAL) : BOOLEAN ;
                                   as sym, except it will have a trailing nul char.
 *)
 
-PROCEDURE GetConstStringNullTerminated (sym: CARDINAL) : CARDINAL ;
+PROCEDURE GetConstStringNullTerminated (tok: CARDINAL; sym: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -1373,10 +1373,11 @@ PROCEDURE PutVarientTag (Sym, Tag: CARDINAL) ;
 
 (*
    PutFieldEnumeration - places a field into the enumeration type
-                         Sym. The field has a name FieldName.
+                         Sym. The field has a name FieldName and a
+                         value FieldVal.
 *)
 
-PROCEDURE PutFieldEnumeration (Sym: CARDINAL; FieldName: Name; tok: CARDINAL) ;
+PROCEDURE PutFieldEnumeration (tok: CARDINAL; Sym: CARDINAL; FieldName: Name) ;
 
 
 (*
@@ -1447,9 +1448,9 @@ PROCEDURE IsReturnOptional (sym: CARDINAL) : BOOLEAN ;
               consistancy test is returned.
 *)
 
-PROCEDURE PutParam (Sym: CARDINAL; ParamNo: CARDINAL;
+PROCEDURE PutParam (tok: CARDINAL; Sym: CARDINAL; ParamNo: CARDINAL;
                     ParamName: Name; ParamType: CARDINAL;
-                    isUnbounded: BOOLEAN; tok: CARDINAL) : BOOLEAN ;
+                    isUnbounded: BOOLEAN) : BOOLEAN ;
 
 
 (*
@@ -1461,9 +1462,9 @@ PROCEDURE PutParam (Sym: CARDINAL; ParamNo: CARDINAL;
                  consistancy test is returned.
 *)
 
-PROCEDURE PutVarParam (Sym: CARDINAL; ParamNo: CARDINAL;
+PROCEDURE PutVarParam (tok: CARDINAL; Sym: CARDINAL; ParamNo: CARDINAL;
                        ParamName: Name; ParamType: CARDINAL;
-                       isUnbounded: BOOLEAN; tok: CARDINAL) : BOOLEAN ;
+                       isUnbounded: BOOLEAN) : BOOLEAN ;
 
 
 (*
@@ -1471,7 +1472,7 @@ PROCEDURE PutVarParam (Sym: CARDINAL; ParamNo: CARDINAL;
                   ProcSym.
 *)
 
-PROCEDURE PutParamName (ProcSym: CARDINAL; no: CARDINAL; name: Name; tok: CARDINAL) ;
+PROCEDURE PutParamName (tok: CARDINAL; ProcSym: CARDINAL; no: CARDINAL; name: Name) ;
 
 
 (*
@@ -1695,7 +1696,7 @@ PROCEDURE GetDeclaredMod (Sym: CARDINAL) : CARDINAL ;
                  implementation module.
 *)
 
-PROCEDURE PutDeclared (Sym: CARDINAL; tok: CARDINAL) ;
+PROCEDURE PutDeclared (tok: CARDINAL; Sym: CARDINAL) ;
 
 
 (*
@@ -2321,7 +2322,7 @@ PROCEDURE GetOptArgInit (ProcSym: CARDINAL) : CARDINAL ;
    MakePointer - returns a pointer symbol with PointerName.
 *)
 
-PROCEDURE MakePointer (PointerName: Name) : CARDINAL ;
+PROCEDURE MakePointer (tok: CARDINAL; PointerName: Name) : CARDINAL ;
 
 
 (*
@@ -2496,10 +2497,12 @@ PROCEDURE PutSubscript (Sym: CARDINAL; SimpleType: CARDINAL) ;
 
 (*
    MakeUnbounded - makes an unbounded array Symbol.
+                   ndim is the number of dimensions required.
                    No name is required.
 *)
 
-PROCEDURE MakeUnbounded (SimpleType: CARDINAL; ndim: CARDINAL) : CARDINAL ;
+PROCEDURE MakeUnbounded (tok: CARDINAL;
+                         SimpleType: CARDINAL; ndim: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -2602,7 +2605,7 @@ PROCEDURE IsRecordField (Sym: CARDINAL) : BOOLEAN ;
    MakeProcType - returns a procedure type symbol with ProcTypeName.
 *)
 
-PROCEDURE MakeProcType (ProcTypeName: Name) : CARDINAL ;
+PROCEDURE MakeProcType (tok: CARDINAL; ProcTypeName: Name) : CARDINAL ;
 
 
 (*
@@ -3010,7 +3013,7 @@ PROCEDURE Make2Tuple (a, b: CARDINAL) : CARDINAL ;
                It will be removed from ExportUndeclared and Unknown trees.
 *)
 
-PROCEDURE MakeError (name: Name) : CARDINAL ;
+PROCEDURE MakeError (tok: CARDINAL; name: Name) : CARDINAL ;
 
 
 (*
@@ -3019,7 +3022,7 @@ PROCEDURE MakeError (name: Name) : CARDINAL ;
                 It will be removed from ExportUndeclared and Unknown trees.
 *)
 
-PROCEDURE MakeErrorS (name: String) : CARDINAL ;
+PROCEDURE MakeErrorS (tok: CARDINAL; name: String) : CARDINAL ;
 
 
 (*

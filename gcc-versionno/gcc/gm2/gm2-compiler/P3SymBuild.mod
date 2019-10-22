@@ -53,7 +53,8 @@ FROM M2Batch IMPORT MakeDefinitionSource,
                     MakeProgramSource,
                     LookupOuterModule ;
 
-FROM M2Quads IMPORT PushT, PopT, OperandT, PopN, PopTF, PushTF ;
+FROM M2Quads IMPORT PushT, PopT, OperandT, PopN, PopTF, PushTF,
+                    PopTtok, PopTFtok, PushTtok, PushTFtok, OperandTok ;
 
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule,
@@ -80,11 +81,12 @@ FROM M2Reserved IMPORT NulTok, ImportTok ;
 
 PROCEDURE P3StartBuildDefModule ;
 VAR
+   tok      : CARDINAL ;
    name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
-   PopT(name) ;
-   ModuleSym := MakeDefinitionSource(name) ;
+   PopTtok(name, tok) ;
+   ModuleSym := MakeDefinitionSource(tok, name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    StartScope(ModuleSym) ;
@@ -145,11 +147,12 @@ END P3EndBuildDefModule ;
 
 PROCEDURE P3StartBuildImpModule ;
 VAR
+   tok      : CARDINAL ;
    name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
-   PopT(name) ;
-   ModuleSym := MakeImplementationSource(name) ;
+   PopTtok(name, tok) ;
+   ModuleSym := MakeImplementationSource(tok, name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    StartScope(ModuleSym) ;
@@ -213,12 +216,13 @@ END P3EndBuildImpModule ;
 
 PROCEDURE P3StartBuildProgModule ;
 VAR
+   tok      : CARDINAL ;
    name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
    (* WriteString('StartBuildProgramModule') ; WriteLn ; *)
-   PopT(name) ;
-   ModuleSym := MakeProgramSource(name) ;
+   PopTtok(name, tok) ;
+   ModuleSym := MakeProgramSource(tok, name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    (* WriteString('MODULE - ') ; WriteKey(GetSymName(ModuleSym)) ; WriteLn ; *)
@@ -375,7 +379,7 @@ BEGIN
    IF OperandT(n+1)#ImportTok
    THEN
       (* Ident List contains list of objects *)
-      ModSym := LookupOuterModule(OperandT(n+1)) ;
+      ModSym := LookupOuterModule(OperandTok(n+1), OperandT(n+1)) ;
       i := 1 ;
       WHILE i<=n DO
          IF (NOT IsExported(ModSym, RequestSym(OperandT(i)))) AND
